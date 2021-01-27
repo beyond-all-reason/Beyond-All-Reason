@@ -34,10 +34,16 @@ if gadgetHandler:IsSyncedCode() then
 	_G.validationUndo = validation
 
 
-	local authorizedPlayers  = {
-		'Floris',
-		'[teh]Flow',
-	}
+	local authorizedPlayers = {}
+	local powerusers = include("LuaRules/configs/powerusers.lua")
+	if powerusers then
+		for name, permissions in pairs(powerusers) do
+			if permissions.undo then
+				authorizedPlayers[name] = true
+			end
+		end
+		powerusers = nil
+	end
 
 	local teamSelfdUnits = {}
 	local selfdCmdUnits = {}
@@ -171,11 +177,9 @@ if gadgetHandler:IsSyncedCode() then
 
 			local playername, _, spec = Spring.GetPlayerInfo(playerID,false)
 			local authorized = false
-			for _,name in ipairs(authorizedPlayers) do
-				if playername == name then
-					authorized = true
-					break
-				end
+			local authorized = false
+			if authorizedPlayers[playername] then
+				authorized = true
 			end
 			if playername ~= "UnnamedPlayer" then
 				if not authorized then

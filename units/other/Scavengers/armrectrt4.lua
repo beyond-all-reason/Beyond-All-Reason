@@ -32,7 +32,7 @@ return {
 		name = "Epic Rector",
 		objectname = "Units/scavboss/ARMRECTRT4.s3o",
 		radardistance = 50,
-		script = "Units/ARMRECTR.cob",
+		script = "Units/ARMRECTRT4.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallbuilderSelfd",
 		sightdistance = 600,

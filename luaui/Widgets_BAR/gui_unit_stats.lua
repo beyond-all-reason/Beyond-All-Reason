@@ -72,6 +72,9 @@ local texts = {        -- fallback (if you want to change this, also update: lan
 	persecond = 'per second',
 	totaldmg = 'Total Dmg',
 }
+local unitHumanName = {        -- fallback (if you want to change this, also update: language/en.lua, or it will be overwritten)
+	-- gets filled with unit names from unitdefs, then overwritten by language file names
+}
 
 local damageStats = (VFS.FileExists("LuaUI/Config/BAR_damageStats.lua")) and VFS.Include("LuaUI/Config/BAR_damageStats.lua")
 local gameName = Game.gameName
@@ -151,14 +154,10 @@ include("keysym.h.lua")
 ------------------------------------------------------------------------------------
 local useSelection = true
 
-
 local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
 
 local customFontSize = 14
 local fontSize = customFontSize
-
-local bgcornerSize = fontSize*0.25
-local bgpadding = fontSize*1.15
 
 local cX, cY, cYstart
 
@@ -225,6 +224,7 @@ local font, chobbyInterface, showUnitID
 local unitBuildPic = {}
 for id, def in pairs(UnitDefs) do
 	unitBuildPic[id] = def.buildpicname
+	unitHumanName[id] = def.humanName
 end
 
 local myTeamID = Spring.GetMyTeamID
@@ -250,118 +250,17 @@ end
 -- Functions
 ------------------------------------------------------------------------------------
 
-
-local function DrawRectRound(px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)
-	local csyMult = 1 / ((sy-py)/cs)
-
-	if c2 then
-		gl.Color(c1[1],c1[2],c1[3],c1[4])
-	end
-	gl.Vertex(px+cs, py, 0)
-	gl.Vertex(sx-cs, py, 0)
-	if c2 then
-		gl.Color(c2[1],c2[2],c2[3],c2[4])
-	end
-	gl.Vertex(sx-cs, sy, 0)
-	gl.Vertex(px+cs, sy, 0)
-
-	-- left side
-	if c2 then
-		gl.Color(c1[1]*(1-csyMult)+(c2[1]*csyMult),c1[2]*(1-csyMult)+(c2[2]*csyMult),c1[3]*(1-csyMult)+(c2[3]*csyMult),c1[4]*(1-csyMult)+(c2[4]*csyMult))
-	end
-	gl.Vertex(px, py+cs, 0)
-	gl.Vertex(px+cs, py+cs, 0)
-	if c2 then
-		gl.Color(c2[1]*(1-csyMult)+(c1[1]*csyMult),c2[2]*(1-csyMult)+(c1[2]*csyMult),c2[3]*(1-csyMult)+(c1[3]*csyMult),c2[4]*(1-csyMult)+(c1[4]*csyMult))
-	end
-	gl.Vertex(px+cs, sy-cs, 0)
-	gl.Vertex(px, sy-cs, 0)
-
-	-- right side
-	if c2 then
-		gl.Color(c1[1]*(1-csyMult)+(c2[1]*csyMult),c1[2]*(1-csyMult)+(c2[2]*csyMult),c1[3]*(1-csyMult)+(c2[3]*csyMult),c1[4]*(1-csyMult)+(c2[4]*csyMult))
-	end
-	gl.Vertex(sx, py+cs, 0)
-	gl.Vertex(sx-cs, py+cs, 0)
-	if c2 then
-		gl.Color(c2[1]*(1-csyMult)+(c1[1]*csyMult),c2[2]*(1-csyMult)+(c1[2]*csyMult),c2[3]*(1-csyMult)+(c1[3]*csyMult),c2[4]*(1-csyMult)+(c1[4]*csyMult))
-	end
-	gl.Vertex(sx-cs, sy-cs, 0)
-	gl.Vertex(sx, sy-cs, 0)
-
-	local offset = 0.15		-- texture offset, because else gaps could show
-
-	-- bottom left
-	if c2 then
-		gl.Color(c1[1],c1[2],c1[3],c1[4])
-	end
-	if ((py <= 0 or px <= 0)  or (bl ~= nil and bl == 0)) and bl ~= 2   then
-		gl.Vertex(px, py, 0)
-	else
-		gl.Vertex(px+cs, py, 0)
-	end
-	gl.Vertex(px+cs, py, 0)
-	if c2 then
-		gl.Color(c1[1]*(1-csyMult)+(c2[1]*csyMult),c1[2]*(1-csyMult)+(c2[2]*csyMult),c1[3]*(1-csyMult)+(c2[3]*csyMult),c1[4]*(1-csyMult)+(c2[4]*csyMult))
-	end
-	gl.Vertex(px+cs, py+cs, 0)
-	gl.Vertex(px, py+cs, 0)
-	-- bottom right
-	if c2 then
-		gl.Color(c1[1],c1[2],c1[3],c1[4])
-	end
-	if ((py <= 0 or sx >= vsx) or (br ~= nil and br == 0)) and br ~= 2 then
-		gl.Vertex(sx, py, 0)
-	else
-		gl.Vertex(sx-cs, py, 0)
-	end
-	gl.Vertex(sx-cs, py, 0)
-	if c2 then
-		gl.Color(c1[1]*(1-csyMult)+(c2[1]*csyMult),c1[2]*(1-csyMult)+(c2[2]*csyMult),c1[3]*(1-csyMult)+(c2[3]*csyMult),c1[4]*(1-csyMult)+(c2[4]*csyMult))
-	end
-	gl.Vertex(sx-cs, py+cs, 0)
-	gl.Vertex(sx, py+cs, 0)
-	-- top left
-	if c2 then
-		gl.Color(c2[1],c2[2],c2[3],c2[4])
-	end
-	if ((sy >= vsy or px <= 0) or (tl ~= nil and tl == 0)) and tl ~= 2 then
-		gl.Vertex(px, sy, 0)
-	else
-		gl.Vertex(px+cs, sy, 0)
-	end
-	gl.Vertex(px+cs, sy, 0)
-	if c2 then
-		gl.Color(c2[1]*(1-csyMult)+(c1[1]*csyMult),c2[2]*(1-csyMult)+(c1[2]*csyMult),c2[3]*(1-csyMult)+(c1[3]*csyMult),c2[4]*(1-csyMult)+(c1[4]*csyMult))
-	end
-	gl.Vertex(px+cs, sy-cs, 0)
-	gl.Vertex(px, sy-cs, 0)
-	-- top right
-	if c2 then
-		gl.Color(c2[1],c2[2],c2[3],c2[4])
-	end
-	if ((sy >= vsy or sx >= vsx)  or (tr ~= nil and tr == 0)) and tr ~= 2 then
-		gl.Vertex(sx, sy, 0)
-	else
-		gl.Vertex(sx-cs, sy, 0)
-	end
-	gl.Vertex(sx-cs, sy, 0)
-	if c2 then
-		gl.Color(c2[1]*(1-csyMult)+(c1[1]*csyMult),c2[2]*(1-csyMult)+(c1[2]*csyMult),c2[3]*(1-csyMult)+(c1[3]*csyMult),c2[4]*(1-csyMult)+(c1[4]*csyMult))
-	end
-	gl.Vertex(sx-cs, sy-cs, 0)
-	gl.Vertex(sx, sy-cs, 0)
-end
-function RectRound(px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)		-- (coordinates work differently than the RectRound func in other widgets)
-	gl.Texture(false)
-	gl.BeginEnd(GL.QUADS, DrawRectRound, px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)
-end
+local RectRound = Spring.FlowUI.Draw.RectRound
+local UiElement = Spring.FlowUI.Draw.Element
+local UiUnit = Spring.FlowUI.Draw.Unit
+local bgpadding = Spring.FlowUI.elementPadding
+local elementCorner = Spring.FlowUI.elementCorner
 
 local function DrawText(t1, t2)
 	textBufferCount = textBufferCount + 1
-	textBuffer[textBufferCount] = {t1,t2,cX,cY}
+	textBuffer[textBufferCount] = {t1,t2,cX+(bgpadding*6),cY}
 	cY = cY - fontSize
-	maxWidth = max(maxWidth, (font:GetTextWidth(t1)*fontSize) + bgpadding*2, (font:GetTextWidth(t2)*fontSize)+(fontSize*6.5) + bgpadding*2)
+	maxWidth = max(maxWidth, (font:GetTextWidth(t1)*fontSize) + (bgpadding*10), (font:GetTextWidth(t2)*fontSize)+(fontSize*6.5) + (bgpadding*10))
 end
 
 local function DrawTextBuffer()
@@ -424,6 +323,12 @@ end
 function widget:Initialize()
 	if WG['lang'] then
 		texts = WG['lang'].getText('unitstats')
+		local translations = WG['lang'].getText('unitnames')
+		for name,text in pairs(translations) do
+			if UnitDefNames[name] then
+				unitHumanName[UnitDefNames[name].id] = text
+			end
+		end
 	end
 	font = WG['fonts'].getFont(fontfile)
 	init()
@@ -447,9 +352,6 @@ function init()
 	widgetScale = (1+((vsy-850)/900)) * (0.95+(ui_scale-1)/2.5)
 	fontSize = customFontSize * widgetScale
 
-	bgcornerSize = fontSize*0.25
-	bgpadding = fontSize*1.04
-
 	xOffset = (32 + bgpadding)*widgetScale
 	yOffset = -((32 + bgpadding)*widgetScale)
 end
@@ -469,6 +371,9 @@ end
 function widget:ViewResize(n_vsx,n_vsy)
 	vsx,vsy = Spring.GetViewGeometry()
 	widgetScale = (1+((vsy-850)/1800)) * (0.95+(ui_scale-1)/2.5)
+
+	bgpadding = Spring.FlowUI.elementPadding
+	elementCorner = Spring.FlowUI.elementCorner
 
 	font = WG['fonts'].getFont(fontfile)
 
@@ -490,55 +395,9 @@ function widget:RecvLuaMsg(msg, playerID)
 	end
 end
 
-function widget:DrawScreen()
-	if chobbyInterface then return end
-	if WG['topbar'] and WG['topbar'].showingQuit() then
-		return
-	end
-
-	local alt, ctrl, meta, shift = spGetModKeyState()
-	if (not meta and not showUnitID) or spIsUserWriting() then
-		RemoveGuishader()
-		return
-	end
+local function drawStats(uDefID, uID)
 	local mx, my = spGetMouseState()
-	local uID
-	local rType, unitID = spTraceScreenRay(mx, my)
-	if rType == 'unit' then
-		uID = unitID
-	end
-	if useSelection then
-		if selectedUnitsCount >= 1 then
-			uID = selectedUnits[1]
-		end
-	end
-	if showUnitID then
-		uID = showUnitID
-		showUnitID = nil
-	end
-	local useHoverID = false
-	local _, activeID = Spring.GetActiveCommand()
-	if not activeID then activeID = 0 end
-	if not uID and (WG['buildmenu'] and not WG['buildmenu'].hoverID) and not (activeID < 0) then
-		RemoveGuishader() return
-	elseif WG['buildmenu'] and WG['buildmenu'].hoverID and not (activeID < 0) then
-		uID = nil
-		useHoverID = true
-	elseif activeID < 0 then
-		uID = nil
-		useHoverID = false
-	end
-	if uID and not Spring.ValidUnitID(uID) then
-		RemoveGuishader()
-		return
-	end
-	local useExp = ctrl
-	local uDefID = (uID and spGetUnitDefID(uID)) or (useHoverID and WG['buildmenu'] and WG['buildmenu'].hoverID) or (UnitDefs[-activeID] and -activeID)
-
-	if not uDefID then
-		RemoveGuishader()
-		return
-	end
+	local alt, ctrl, meta, shift = spGetModKeyState()
 
 	local uDef = uDefs[uDefID]
 	local maxHP = uDef.health
@@ -612,9 +471,9 @@ function widget:DrawScreen()
 	--DrawText('Height:', uDefs[spGetUnitDefID(uID)].height)
 
 	DrawText(texts.cost..":", format(metalColor .. '%d' .. white .. ' / ' ..
-							energyColor .. '%d' .. white .. ' / ' ..
-							buildColor .. '%d', uDef.metalCost, uDef.energyCost, uDef.buildTime)
-			)
+		energyColor .. '%d' .. white .. ' / ' ..
+		buildColor .. '%d', uDef.metalCost, uDef.energyCost, uDef.buildTime)
+	)
 
 	if not (uDef.isBuilding or uDef.isFactory) then
 		if not uID or not Spring.GetUnitMoveTypeData(uID) then
@@ -740,6 +599,7 @@ function widget:DrawScreen()
 	local totaldpsAoE = 0
 	local totalbDamages = 0
 	local totalbDamagesAoE = 0
+	local useExp = true
 	for i = 1, #wepsCompact do
 
 		local wDefId = wepsCompact[i]
@@ -873,13 +733,13 @@ function widget:DrawScreen()
 				local drainAdjust = uWep.stockpile and (simSpeed+2)/simSpeed or 1
 
 				DrawText(texts.cost..':', format(metalColor .. '%d' .. white .. ', ' ..
-						energyColor .. '%d' .. white .. ' = ' ..
-						metalColor .. '-%d' .. white .. ', ' ..
-						energyColor .. '-%d' .. white .. ' '..texts.persecond,
-						uWep.metalCost,
-						uWep.energyCost,
-						drainAdjust * uWep.metalCost / oRld,
-						drainAdjust * uWep.energyCost / oRld))
+					energyColor .. '%d' .. white .. ' = ' ..
+					metalColor .. '-%d' .. white .. ', ' ..
+					energyColor .. '-%d' .. white .. ' '..texts.persecond,
+					uWep.metalCost,
+					uWep.energyCost,
+					drainAdjust * uWep.metalCost / oRld,
+					drainAdjust * uWep.energyCost / oRld))
 			end
 
 
@@ -927,70 +787,104 @@ function widget:DrawScreen()
 	end
 
 	-- title
-	local text = "\255\190\255\190" .. uDef.humanName
+	local text = "\255\190\255\190" .. unitHumanName[uDefID]
 	if uID then
 		text = text .. "   " ..  grey ..  uDef.name .. "   #" .. uID .. "   "..GetTeamColorCode(uTeam) .. GetTeamName(uTeam) .. grey .. effectivenessRate
 	end
-	local iconHalfSize = titleFontSize*0.9
+	local iconHalfSize = floor(titleFontSize*0.9)
 	if not uID then
-		iconHalfSize = -bgpadding/2.5
+		iconHalfSize = floor(-bgpadding/2.5)
 	end
-	cornersize = 0
-	local color1,color2
-	if not uID then
-		color1 = {0.14,0.14,0.14 ,(WG['guishader'] and 0.77 or 0.96)}
-		color2 = {0,0,0,(WG['guishader'] and 0.77 or 0.96)}
-	else
-		color1 = {0.07,0.07,0.07 ,(WG['guishader'] and 0.77 or 0.96)}
-		color2 = {0,0,0, (WG['guishader'] and 0.77 or 0.96)}
-	end
-	RectRound(math.floor(cX-bgpadding+cornersize), math.ceil(cYstart-bgpadding+cornersize), math.floor(cX+(font:GetTextWidth(text)*titleFontSize)+iconHalfSize+iconHalfSize+bgpadding+(bgpadding/1.5)-cornersize), math.floor(cYstart+(titleFontSize/2)+bgpadding-cornersize), bgcornerSize, 2,2,2,2, color1,color2)
-
+	local backgroundRect = {floor(cX-bgpadding), ceil(cYstart-bgpadding), floor(cX+(font:GetTextWidth(text)*titleFontSize)+(titleFontSize*3.5)), floor(cYstart+(titleFontSize*1.8)+bgpadding)}
+	UiElement(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], 1,1,1,0, 1,1,0,1, Spring.GetConfigFloat("ui_opacity", 0.6) + 0.2)
 	if WG['guishader'] then
 		guishaderEnabled = true
 		WG['guishader'].InsertScreenDlist( gl.CreateList( function()
-			RectRound(math.floor(cX-bgpadding+cornersize), math.ceil(cYstart-bgpadding+cornersize), math.floor(cX+(font:GetTextWidth(text)*titleFontSize)+iconHalfSize+iconHalfSize+bgpadding+(bgpadding/1.5)-cornersize), math.floor(cYstart+(titleFontSize/2)+bgpadding-cornersize), bgcornerSize)
+			RectRound(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], elementCorner, 1,1,1,0)
 		end), 'unit_stats_title')
 	end
 
-	cornersize = ceil(bgpadding*0.15)
-	RectRound(math.floor(cX-bgpadding+cornersize), math.ceil(cYstart-bgpadding+cornersize), math.floor(cX+(font:GetTextWidth(text)*titleFontSize)+iconHalfSize+iconHalfSize+bgpadding+(bgpadding/1.5)-cornersize), math.floor(cYstart+(titleFontSize/2)+bgpadding-cornersize), bgcornerSize*0.66, 2,2,2,2, {0.25,0.25,0.25,0.1}, {1,1,1,0.1})
-
-
 	-- icon
 	if uID then
+		local iconPadding = math.max(1, math.floor(bgpadding*0.8))
 		glColor(1,1,1,1)
-		glTexture(':lr64,64c:unitpics/'..unitBuildPic[uDefID])
-		glTexRect(cX-(iconHalfSize*0.6), cYstart+cornersize-iconHalfSize, cX+(iconHalfSize*1.4), cYstart+cornersize+iconHalfSize)
-		glTexture(false)
+		UiUnit(
+			backgroundRect[1]+bgpadding+iconPadding, backgroundRect[2]+iconPadding, backgroundRect[1]+(backgroundRect[4]-backgroundRect[2])-iconPadding, backgroundRect[4]-bgpadding-iconPadding,
+			nil,
+			1,1,1,1,
+			0.13,
+			nil, nil,
+			':lr64,64c:unitpics/'..unitBuildPic[uDefID]
+		)
 	end
 
 	-- title text
 	glColor(1,1,1,1)
 	font:Begin()
-	font:Print(text, cX+iconHalfSize+iconHalfSize+(bgpadding/1.5), cYstart, titleFontSize, "o")
+	font:Print(text, backgroundRect[1]+((backgroundRect[4]-backgroundRect[2])*1.3), backgroundRect[2]+titleFontSize*0.7, titleFontSize, "o")
 	font:End()
 
 	-- stats
-	cornersize = -1
-	if not uID then
-		glColor(0.1,0.1,0.1,(WG['guishader'] and 0.8 or 0.88))
-	else
-		glColor(0,0,0,(WG['guishader'] and 0.7 or 0.75))
-	end
-	RectRound(floor(cX-bgpadding)+cornersize, ceil(cY+(fontSize/3)+(bgpadding*0.3))-cornersize, ceil(cX+maxWidth+bgpadding)-cornersize, floor(cYstart-bgpadding)-cornersize, bgcornerSize, 2,2,2,2, {0.05,0.05,0.05,WG['guishader'] and 0.8 or 0.88}, {0,0,0,WG['guishader'] and 0.8 or 0.88})
+	UiElement(floor(cX-bgpadding), ceil(cY+(fontSize/3)+(bgpadding*0.3)), ceil(cX+maxWidth+bgpadding), ceil(cYstart-bgpadding), 0,1,1,1, 1,1,1,1, Spring.GetConfigFloat("ui_opacity", 0.6) + 0.2)
 
 	if WG['guishader'] then
 		guishaderEnabled = true
 		WG['guishader'].InsertScreenDlist( gl.CreateList( function()
-			RectRound(floor(cX-bgpadding)+cornersize, ceil(cY+(fontSize/3)+bgpadding)-cornersize, ceil(cX+maxWidth+bgpadding)-cornersize, floor(cYstart-bgpadding)-cornersize, bgcornerSize)
+			RectRound(floor(cX-bgpadding), ceil(cY+(fontSize/3)+(bgpadding*0.3)), ceil(cX+maxWidth+bgpadding), floor(cYstart-bgpadding), elementCorner, 0,1,1,1)
 		end), 'unit_stats_data')
 	end
-
-	cornersize = ceil(bgpadding*0.12)
-	RectRound(floor(cX-bgpadding)+cornersize, ceil(cY+(fontSize/3)+(bgpadding*0.3))-cornersize, ceil(cX+maxWidth+bgpadding)-cornersize, floor(cYstart-bgpadding)-cornersize, bgcornerSize*0.66, 2,2,2,2, {0.25,0.25,0.25,0.1}, {1,1,1,0.1})
-
 	DrawTextBuffer()
+end
 
-------------------------------------------------------------------------------------
+function widget:DrawScreen()
+	if chobbyInterface then return end
+	if WG['topbar'] and WG['topbar'].showingQuit() then
+		return
+	end
+
+	local alt, ctrl, meta, shift = spGetModKeyState()
+	if (not meta and not showUnitID) or spIsUserWriting() then
+		RemoveGuishader()
+		return
+	end
+	local mx, my = spGetMouseState()
+	local uID
+	local rType, unitID = spTraceScreenRay(mx, my)
+	if rType == 'unit' then
+		uID = unitID
+	end
+	if useSelection then
+		if selectedUnitsCount >= 1 then
+			uID = selectedUnits[1]
+		end
+	end
+	if showUnitID then
+		uID = showUnitID
+		showUnitID = nil
+	end
+	local useHoverID = false
+	local _, activeID = Spring.GetActiveCommand()
+	if not activeID then activeID = 0 end
+	if not uID and (WG['buildmenu'] and not WG['buildmenu'].hoverID) and not (activeID < 0) then
+		RemoveGuishader() return
+	elseif WG['buildmenu'] and WG['buildmenu'].hoverID and not (activeID < 0) then
+		uID = nil
+		useHoverID = true
+	elseif activeID < 0 then
+		uID = nil
+		useHoverID = false
+	end
+	if uID and not Spring.ValidUnitID(uID) then
+		RemoveGuishader()
+		return
+	end
+	local useExp = ctrl
+	local uDefID = (uID and spGetUnitDefID(uID)) or (useHoverID and WG['buildmenu'] and WG['buildmenu'].hoverID) or (UnitDefs[-activeID] and -activeID)
+
+	if not uDefID then
+		RemoveGuishader()
+		return
+	end
+
+	drawStats(uDefID, uID)
 end

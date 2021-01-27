@@ -14,7 +14,7 @@ static-var bMoving,maxSpeed, animFramesPerKeyframe, animSpeed,gun_1,isDying;
 
 // For N:\animations\chicken_2legged_fast_anim_walk.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 2, 8))
 #define MOVESCALE 100 //How much extra body sway the chicken should have. Scale this with size of chicken
-#define MOVESPEED  5  //How many frames per animation cycle, valid 2-10
+#define MOVESPEED  7  //How many frames per animation cycle, valid 2-10
 #define animAmplitude 55 //How big steps the chicken should take, valid 20-200
 #define LUHAND lsack  //define these as the left and right head thingies
 #define RUHAND rsack  

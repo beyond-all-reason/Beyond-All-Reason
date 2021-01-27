@@ -58,6 +58,7 @@ local function scavamphfactoryt2(scav, posx, posy, posz, GaiaTeamID, radiusCheck
 end
 table.insert(ScavengerConstructorBlueprintsT2Sea,scavamphfactoryt2)
 table.insert(ScavengerConstructorBlueprintsT3Sea,scavamphfactoryt2)
+table.insert(ScavengerConstructorBlueprintsT4Sea,scavamphfactoryt2)
 
 local function waterblocks(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
 	local unitoptionsblue = {UDN.armfdrag_scav.id,}
@@ -152,6 +153,7 @@ local posradius = 120
 end
 table.insert(ScavengerConstructorBlueprintsT2Sea,scavsonaroutpostadv)
 table.insert(ScavengerConstructorBlueprintsT3Sea,scavsonaroutpostadv)
+table.insert(ScavengerConstructorBlueprintsT4Sea,scavsonaroutpostadv)
 
 local function scavuwmstore(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
 local posradius = 128

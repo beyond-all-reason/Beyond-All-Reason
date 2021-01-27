@@ -12,7 +12,12 @@ Units
  • T1 vehicle artillery has faster projectile and does 2x more damage per shot, but also has 2x reloadtime.
  • Decreased cormaw damage 27%
  • Arm Peewee damage reduced by 9%
- • Core AK range reduced 240->225
+ • Core AK range reduced 240->225 and damage increased 6%
+ • Arm Warrior health and buildtime increased by 10%
+ • Arm Flash health increased by 5% and firing script improved
+ • Cor Instigator health increased by 2%
+ • Arm Stumpy turn rate reduced by 10%
+ • Cor Raider turn rate reduced by 10%
  • Claw/Zeus: lightning chains again (up to 2 neighbouring units *0.5dmg for zeus, *0.325 for claw)
  • Juggernaut: main weapon does 4x old damage/reloadtime
  • EMP launcher: reduced range 10%
@@ -24,11 +29,18 @@ Air
  • Air Fighters can no longer attack ground
  • T1 construction plane E cost -30%
  • LLT, HLLT, BEAMER, RL, RAD now transportable with T2/Heavy Transporters
+ • Torpedo bombers: Added 800 range radar+sonar, +10% los, -13% max velocity, reduced flight altitude 25%, split main weapon into 3-round burst (500 damage each instead of 1500), Increased cost by 21%
+ • Torpedo gunships: Targetting/tracking improvements, +17% los, added 535 range sonar
 
 Sea
+ • Arm and Cor corvette health +25
  • Arm and Cor frigate damage and speed increased
+ • Arm and Cor destroyer E cost increased 50% (7.5E/M instead of 5E/M)
  • Cor Battleship and Black Hydra laser dps increased by 15%, and minor improvements to their speed/health/cost
- • All sub damage -30%
+ • T1 sub damage -30%
+ • T2 sub killer reworked: speed increased, range decreased, reloadtime decreased, damage per shot decreased
+ • T2 battle sub introduced: has a high cost, long range, high damage, long cooldown, and is slow
+ • Arm and Cor depthcharge turrets: +31% health, +13% range, increased build time
 
 Renamed units:
  • Jeffy -> Ranger

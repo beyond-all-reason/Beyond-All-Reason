@@ -29,6 +29,7 @@ damageMod            = 1
 waves                = {}
 newWaveSquad         = {}
 
+
 maxAges = {}
 maxAges["chicken1"] = 240
 maxAges["chicken1b"] = 240
@@ -40,6 +41,7 @@ maxAges["chickena2b"] = 500
 maxAges["chickenh4"] = 120
 maxAges["chickenh1"] = 240
 maxAges["chickenh1b"] = 200
+
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -285,7 +287,7 @@ difficulties = {
     defenders         = Copy(defenders),
     chickensPerPlayer = 7,
     spawnChance       = 0.25,
-    damageMod         = 0.25,
+    damageMod         = 0.125,
   },
   [EASY] = {
     chickenSpawnRate  = 100,
@@ -298,7 +300,7 @@ difficulties = {
     defenders         = Copy(defenders),
     chickensPerPlayer = 7,
     spawnChance       = 0.33,
-    damageMod         = 0.5,
+    damageMod         = 0.25,
   },
 
   [NORMAL] = {
@@ -312,7 +314,7 @@ difficulties = {
     defenders         = Copy(defenders),
     chickensPerPlayer = 9,
     spawnChance       = 0.4,
-    damageMod         = 1,
+    damageMod         = 0.4,
   },
 
   [HARD] = {
@@ -326,7 +328,7 @@ difficulties = {
     defenders         = Copy(defenders),
     chickensPerPlayer = 14,
     spawnChance       = 0.5,
-    damageMod         = 1.1,
+    damageMod         = 0.55,
   },
 
   [VERYHARD] = {
@@ -340,7 +342,7 @@ difficulties = {
     defenders         = Copy(defenders),
     chickensPerPlayer = 18,
     spawnChance       = 0.6,
-    damageMod         = 1.25,
+    damageMod         = 0.66,
   },
   [EPIC] = {
     chickenSpawnRate  = 120,
@@ -353,7 +355,7 @@ difficulties = {
     defenders         = Copy(defenders),
     chickensPerPlayer = 50,
     spawnChance       = 0.75,
-    damageMod         = 2,
+    damageMod         = 1.0,
   },
 
   [CUSTOM] = {
@@ -381,7 +383,7 @@ difficulties = {
     defenders           = Copy(defenders),
     chickensPerPlayer   = 9,
     spawnChance         = 0.4,
-    damageMod           = 1,
+    damageMod           = 0.5,
   },
 }
 

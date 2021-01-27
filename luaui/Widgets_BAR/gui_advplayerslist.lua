@@ -59,34 +59,9 @@ local lockcameraHideEnemies = true            -- specfullview
 local lockcameraLos = true                    -- togglelos
 local collapsable = false
 
-
-local texts = {        -- fallback (if you want to change this, also update: language/en.lua, or it will be overwritten)
-	playerlist = 'Playerlist',
-	spectators = 'Spectators',
-	enemies = 'Enemies',
-	allies = 'Allies',
-	clicktohidespecs = 'click to hide specs',
-	clicktoshowspecs = 'click to show specs',
-	dblclickplayernametotrack = 'dbl-click playername to track',
-	clicktotake = 'Click to take abandoned units',
-	dblclickunitsupport = 'Double click to ask for Unit support',
-	dblclickshareunits = 'Double click to share Units',
-	clickdragaskenergy = 'Click and drag to ask for Energy',
-	clickdragaskmetal = 'Click and drag to ask for Metal',
-	clickdragshareenergy = 'Click and drag to share for Energy',
-	clickdragsharemetal = 'Click and drag to share for Metal',
-	clicktobecomeenemy = 'Click to become enemy',
-	clicktobecomeally = 'Click to become ally',
-	k = 'k',
-	ms = 'ms',
-	sec = 'sec',
-	min = 'min',
-	totalcmddelay = 'Total command delay',
-	cpu = 'CPU',
-	fps = 'FPS',
-	gpumem = 'GPU mem',
-	pointclicktooltip = 'Click to reach the last point set by the player',
-}
+local backgroundTexture = "LuaUI/Images/backgroundtile.png"
+local ui_tileopacity = tonumber(Spring.GetConfigFloat("ui_tileopacity", 0.012) or 0.012)
+local bgtexScale = tonumber(Spring.GetConfigFloat("ui_tilescale", 7) or 7)	-- lower = smaller tiles
 
 local vsx, vsy = Spring.GetViewGeometry()
 
@@ -140,6 +115,10 @@ local GL_SRC_ALPHA = GL.SRC_ALPHA
 local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 local GL_ONE = GL.ONE
 
+local RectRound = Spring.FlowUI.Draw.RectRound
+local UiElement = Spring.FlowUI.Draw.Element
+local elementCorner = Spring.FlowUI.elementCorner
+
 --------------------------------------------------------------------------------
 -- IMAGES
 --------------------------------------------------------------------------------
@@ -187,14 +166,14 @@ local pics = {
     sizednPic = imageDirectory .. "sizedn.dds",
     sizeupPic = imageDirectory .. "sizeup.dds",
 
-    rank0 = imageDirectory .. "ranks/rank0.png",
-    rank1 = imageDirectory .. "ranks/rank1.png",
-    rank2 = imageDirectory .. "ranks/rank2.png",
-    rank3 = imageDirectory .. "ranks/rank3.png",
-    rank4 = imageDirectory .. "ranks/rank4.png",
-    rank5 = imageDirectory .. "ranks/rank5.png",
-    rank6 = imageDirectory .. "ranks/rank6.png",
-    rank7 = imageDirectory .. "ranks/rank7.png",
+    rank0 = imageDirectory .. "ranks/1.png",
+    rank1 = imageDirectory .. "ranks/2.png",
+    rank2 = imageDirectory .. "ranks/3.png",
+    rank3 = imageDirectory .. "ranks/4.png",
+    rank4 = imageDirectory .. "ranks/5.png",
+    rank5 = imageDirectory .. "ranks/6.png",
+    rank6 = imageDirectory .. "ranks/7.png",
+    rank7 = imageDirectory .. "ranks/8.png",
 }
 
 local sidePics = {}  -- loaded in SetSidePics function
@@ -247,8 +226,8 @@ local newBroadcaster = false
 local aliveAllyTeams = {}
 local screenshotVars = {} -- containing: finished, width, height, gameframe, data, dataLast, dlist, pixels, player, filename, saved, saveQueued, posX, posY
 
---local Background, ShareSlider, specJoinedOnce, chobbyInterface, BackgroundGuishader, drawTipText, drawTipMouseX, drawTipMouseY, DrawLabelRightside, tipY
-local lockPlayerID, leftPosX, lastSliderSound, release, specTarget, curFrame, tipText, prevClickedName, clickedName, myLastCameraState, sceduledSpecFullView
+--local Background, ShareSlider, specJoinedOnce, chobbyInterface, BackgroundGuishader, drawTipText, drawTipMouseX, drawTipMouseY, DrawLabelRightside, tipY, clickedName, myLastCameraState, sceduledSpecFullView, bgtexSize, curFrame, tipText, prevClickedName
+local lockPlayerID, leftPosX, lastSliderSound, release, specTarget
 local PrevGameFrame, MainList, desiredLosmode, drawListOffset
 
 local deadPlayerHeightReduction = 10
@@ -264,8 +243,7 @@ local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity", 0.66) or 0.66)
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
 local glossMult = 1 + (2 - (ui_opacity * 2))    -- increase gloss/highlight so when ui is transparant, you can still make out its boundaries and make it less flat
 
-local widgetSpaceMargin = math.floor(0.0045 * vsy * ui_scale) / vsy
-local bgpadding = math.ceil(widgetSpaceMargin * 0.66 * vsy)
+local bgpadding = Spring.FlowUI.elementPadding
 
 local playSounds = true
 local buttonclick = LUAUI_DIRNAME .. 'Sounds/buildbar_waypoint.wav'
@@ -1050,10 +1028,6 @@ function widget:PlayerChanged(playerID)
 end
 
 function widget:Initialize()
-	if WG['lang'] then
-		texts = WG['lang'].getText('advplayerslist')
-	end
-
     widget:ViewResize()
 
     widgetHandler:RegisterGlobal('CameraBroadcastEvent', CameraBroadcastEvent)
@@ -1286,9 +1260,9 @@ function GetAllPlayers()
             tplayerCount = tplayerCount + 1
         end
 
-        local _, _, _, isAiTeam = Spring.GetTeamInfo(teamN, false)
-        local isLuaAI = (Spring.GetTeamLuaAI(teamN) ~= "")
-        if not (isAiTeam or isLuaAI) then
+        local isAiTeam = select(4, Spring.GetTeamInfo(teamN, false))
+        local luaAI = (Spring.GetTeamLuaAI(teamN) ~= "")
+        if not (isAiTeam or (luaAI ~= nil and luaAI ~= '')) then
             if tplayerCount > 0 then
                 playerSpecs[i] = true        -- (this isnt correct when team consists of only AI)
             end
@@ -1940,113 +1914,6 @@ end
 --  Background gllist
 ---------------------------------------------------------------------------------------------------
 
-local function DrawRectRound(px, py, sx, sy, cs, tl, tr, br, bl, c1, c2)
-    local csyMult = 1 / ((sy - py) / cs)
-
-    if c2 then
-        gl.Color(c1[1], c1[2], c1[3], c1[4])
-    end
-    gl.Vertex(px + cs, py, 0)
-    gl.Vertex(sx - cs, py, 0)
-    if c2 then
-        gl.Color(c2[1], c2[2], c2[3], c2[4])
-    end
-    gl.Vertex(sx - cs, sy, 0)
-    gl.Vertex(px + cs, sy, 0)
-
-    -- left side
-    if c2 then
-        gl.Color(c1[1] * (1 - csyMult) + (c2[1] * csyMult), c1[2] * (1 - csyMult) + (c2[2] * csyMult), c1[3] * (1 - csyMult) + (c2[3] * csyMult), c1[4] * (1 - csyMult) + (c2[4] * csyMult))
-    end
-    gl.Vertex(px, py + cs, 0)
-    gl.Vertex(px + cs, py + cs, 0)
-    if c2 then
-        gl.Color(c2[1] * (1 - csyMult) + (c1[1] * csyMult), c2[2] * (1 - csyMult) + (c1[2] * csyMult), c2[3] * (1 - csyMult) + (c1[3] * csyMult), c2[4] * (1 - csyMult) + (c1[4] * csyMult))
-    end
-    gl.Vertex(px + cs, sy - cs, 0)
-    gl.Vertex(px, sy - cs, 0)
-
-    -- right side
-    if c2 then
-        gl.Color(c1[1] * (1 - csyMult) + (c2[1] * csyMult), c1[2] * (1 - csyMult) + (c2[2] * csyMult), c1[3] * (1 - csyMult) + (c2[3] * csyMult), c1[4] * (1 - csyMult) + (c2[4] * csyMult))
-    end
-    gl.Vertex(sx, py + cs, 0)
-    gl.Vertex(sx - cs, py + cs, 0)
-    if c2 then
-        gl.Color(c2[1] * (1 - csyMult) + (c1[1] * csyMult), c2[2] * (1 - csyMult) + (c1[2] * csyMult), c2[3] * (1 - csyMult) + (c1[3] * csyMult), c2[4] * (1 - csyMult) + (c1[4] * csyMult))
-    end
-    gl.Vertex(sx - cs, sy - cs, 0)
-    gl.Vertex(sx, sy - cs, 0)
-
-    local offset = 0.15        -- texture offset, because else gaps could show
-
-    -- bottom left
-    if c2 then
-        gl.Color(c1[1], c1[2], c1[3], c1[4])
-    end
-    if ((py <= 0 or px <= 0) or (bl ~= nil and bl == 0)) and bl ~= 2 then
-        gl.Vertex(px, py, 0)
-    else
-        gl.Vertex(px + cs, py, 0)
-    end
-    gl.Vertex(px + cs, py, 0)
-    if c2 then
-        gl.Color(c1[1] * (1 - csyMult) + (c2[1] * csyMult), c1[2] * (1 - csyMult) + (c2[2] * csyMult), c1[3] * (1 - csyMult) + (c2[3] * csyMult), c1[4] * (1 - csyMult) + (c2[4] * csyMult))
-    end
-    gl.Vertex(px + cs, py + cs, 0)
-    gl.Vertex(px, py + cs, 0)
-    -- bottom right
-    if c2 then
-        gl.Color(c1[1], c1[2], c1[3], c1[4])
-    end
-    if ((py <= 0 or sx >= vsx) or (br ~= nil and br == 0)) and br ~= 2 then
-        gl.Vertex(sx, py, 0)
-    else
-        gl.Vertex(sx - cs, py, 0)
-    end
-    gl.Vertex(sx - cs, py, 0)
-    if c2 then
-        gl.Color(c1[1] * (1 - csyMult) + (c2[1] * csyMult), c1[2] * (1 - csyMult) + (c2[2] * csyMult), c1[3] * (1 - csyMult) + (c2[3] * csyMult), c1[4] * (1 - csyMult) + (c2[4] * csyMult))
-    end
-    gl.Vertex(sx - cs, py + cs, 0)
-    gl.Vertex(sx, py + cs, 0)
-    -- top left
-    if c2 then
-        gl.Color(c2[1], c2[2], c2[3], c2[4])
-    end
-    if ((sy >= vsy or px <= 0) or (tl ~= nil and tl == 0)) and tl ~= 2 then
-        gl.Vertex(px, sy, 0)
-    else
-        gl.Vertex(px + cs, sy, 0)
-    end
-    gl.Vertex(px + cs, sy, 0)
-    if c2 then
-        gl.Color(c2[1] * (1 - csyMult) + (c1[1] * csyMult), c2[2] * (1 - csyMult) + (c1[2] * csyMult), c2[3] * (1 - csyMult) + (c1[3] * csyMult), c2[4] * (1 - csyMult) + (c1[4] * csyMult))
-    end
-    gl.Vertex(px + cs, sy - cs, 0)
-    gl.Vertex(px, sy - cs, 0)
-    -- top right
-    if c2 then
-        gl.Color(c2[1], c2[2], c2[3], c2[4])
-    end
-    if ((sy >= vsy or sx >= vsx) or (tr ~= nil and tr == 0)) and tr ~= 2 then
-        gl.Vertex(sx, sy, 0)
-    else
-        gl.Vertex(sx - cs, sy, 0)
-    end
-    gl.Vertex(sx - cs, sy, 0)
-    if c2 then
-        gl.Color(c2[1] * (1 - csyMult) + (c1[1] * csyMult), c2[2] * (1 - csyMult) + (c1[2] * csyMult), c2[3] * (1 - csyMult) + (c1[3] * csyMult), c2[4] * (1 - csyMult) + (c1[4] * csyMult))
-    end
-    gl.Vertex(sx - cs, sy - cs, 0)
-    gl.Vertex(sx, sy - cs, 0)
-end
-function RectRound(px, py, sx, sy, cs, tl, tr, br, bl, c1, c2)
-    -- (coordinates work differently than the RectRound func in other widgets)
-    gl.Texture(false)
-    gl.BeginEnd(GL.QUADS, DrawRectRound, px, py, sx, sy, cs, tl, tr, br, bl, c1, c2)
-end
-
 function CreateBackground()
 
     if Background then
@@ -2088,28 +1955,17 @@ function CreateBackground()
 
     if WG['guishader'] then
         BackgroundGuishader = gl_CreateList(function()
-            RectRound(absLeft, absBottom, absRight, absTop, bgpadding * 1.6, math.min(paddingLeft, paddingTop), math.min(paddingTop, paddingRight), math.min(paddingRight, paddingBottom), math.min(paddingBottom, paddingLeft))
+            RectRound(absLeft, absBottom, absRight, absTop, elementCorner, math.min(paddingLeft, paddingTop), math.min(paddingTop, paddingRight), math.min(paddingRight, paddingBottom), math.min(paddingBottom, paddingLeft))
         end)
         WG['guishader'].InsertDlist(BackgroundGuishader, 'advplayerlist')
         --WG['guishader'].InsertRect(absLeft,absBottom,absRight,absTop,'advplayerlist')
     end
     Background = gl_CreateList(function()
-        --gl_Color(0,0,0,ui_opacity)
-        RectRound(absLeft, absBottom, absRight, absTop, bgpadding * 1.6, math.min(paddingLeft, paddingTop), math.min(paddingTop, paddingRight), math.min(paddingRight, paddingBottom), math.min(paddingBottom, paddingLeft), { 0.1, 0.1, 0.1, ui_opacity }, { 0, 0, 0, ui_opacity })
-        --gl_Color(1,1,1,ui_opacity*0.055)
-        --RectRound(absLeft+paddingLeft,absBottom+paddingBottom,absRight-paddingRight,absTop-paddingTop,padding*1.1, math.min(paddingLeft,paddingTop), math.min(paddingTop,paddingRight), math.min(paddingRight,paddingBottom), math.min(paddingBottom,paddingLeft), {0.3,0.3,0.3,ui_opacity*0.3}, {1,1,1,ui_opacity*0.3})
-        local height = 25 * widgetScale
-        RectRound(absLeft + paddingLeft, absTop - paddingTop - height, absRight - paddingRight, absTop - paddingTop, bgpadding, math.min(paddingLeft, paddingTop), math.min(paddingTop, paddingRight), 0, 0, { 0.6, 0.6, 0.6, ui_opacity * 0.15 }, { 1, 1, 1, ui_opacity * 0.15 })
-        RectRound(absLeft + paddingLeft, absBottom + paddingBottom, absRight - paddingRight, absTop - paddingTop - height, bgpadding, 0, 0, math.min(paddingRight, paddingBottom), math.min(paddingBottom, paddingLeft), { 0.15, 0.15, 0.15, ui_opacity * 0.15 }, { 0.6, 0.6, 0.6, ui_opacity * 0.15 })
-        -- gloss
-        glBlending(GL_SRC_ALPHA, GL_ONE)
-        RectRound(absLeft + paddingLeft, absTop - paddingTop - (height * 0.4), absRight - paddingRight, absTop - paddingTop, bgpadding, 1, 1, 0, 0, { 1, 1, 1, 0.003 * glossMult }, { 1, 1, 1, 0.035 * glossMult })
-        RectRound(absLeft + paddingLeft, absBottom + paddingBottom, absRight - paddingRight, absTop - paddingTop - (height * 0.15), bgpadding, 0, 0, 1, 1, { 1, 1, 1, 0.04 * glossMult }, { 1, 1, 1, 0 })
-        glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+		UiElement(absLeft, absBottom, absRight, absTop, math.min(paddingLeft, paddingTop), math.min(paddingTop, paddingRight), math.min(paddingRight, paddingBottom), math.min(paddingBottom, paddingLeft))
 
         if collapsed then
             font:Begin()
-            local text = texts.playerlist
+            local text = Spring.I18N('ui.playerslist.playerList')
             local yOffset = collapsedHeight * 0.5
             local xOffset = collapsedHeight / 6
             font:SetTextColor(0, 0, 0, 0.2)
@@ -2198,22 +2054,22 @@ function CreateMainList(tip)
                 if numberOfSpecs == 0 or (specListShow and numberOfSpecs < 10) then
                     specAmount = ""
                 end
-                DrawLabel(" "..texts.spectators.."  " .. specAmount, drawListOffset[i], specListShow)
+                DrawLabel(" ".. Spring.I18N('ui.playersList.spectators') .. "  " .. specAmount, drawListOffset[i], specListShow)
                 if Spring.GetGameFrame() <= 0 then
                     if specListShow then
-                        DrawLabelTip("("..texts.clicktohidespecs..")", drawListOffset[i], 95)
+                        DrawLabelTip("(" .. Spring.I18N('ui.playersList.hideSpecs') .. ")", drawListOffset[i], 95)
                     else
-                        DrawLabelTip("("..texts.clicktoshowspecs..")", drawListOffset[i], 95)
+                        DrawLabelTip("(" .. Spring.I18N('ui.playersList.showSpecs') .. ")", drawListOffset[i], 95)
                     end
                 end
             elseif drawObject == -4 then
                 DrawSeparator(drawListOffset[i])
             elseif drawObject == -3 then
-                DrawLabel(" "..texts.enemies, drawListOffset[i], true)
+                DrawLabel(" "..Spring.I18N('ui.playersList.enemies'), drawListOffset[i], true)
             elseif drawObject == -2 then
-                DrawLabel(" "..texts.allies, drawListOffset[i], true)
+                DrawLabel(" " .. Spring.I18N('ui.playersList.allies'), drawListOffset[i], true)
                 if Spring.GetGameFrame() <= 0 then
-                    DrawLabelTip("("..texts.dblclickplayernametotrack..")", drawListOffset[i], 46)
+                    DrawLabelTip("(" .. Spring.I18N('ui.playersList.trackPlayer') .. ")", drawListOffset[i], 46)
                 end
             elseif drawObject == -1 then
                 leader = true
@@ -2938,12 +2794,12 @@ end
 function TakeTip(mouseX)
     if right == true then
         if mouseX >= widgetPosX - 57 * widgetScale and mouseX <= widgetPosX - 1 * widgetScale then
-            tipText = texts.clicktotake
+            tipText = Spring.I18N('ui.playersList.takeUnits')
         end
     else
         local leftPosX = widgetPosX + widgetWidth
         if mouseX >= leftPosX + 1 * widgetScale and mouseX <= leftPosX + 57 * widgetScale then
-            tipText = texts.clicktotake
+            tipText = Spring.I18N('ui.playersList.takeUnits')
         end
     end
 end
@@ -2951,19 +2807,19 @@ end
 function ShareTip(mouseX, playerID)
     if playerID == myPlayerID then
         if mouseX >= widgetPosX + (m_share.posX + 1) * widgetScale and mouseX <= widgetPosX + (m_share.posX + 17) * widgetScale then
-            tipText = texts.dblclickunitsupport
+            tipText = Spring.I18N('ui.playersList.requestSupport')
         elseif mouseX >= widgetPosX + (m_share.posX + 19) * widgetScale and mouseX <= widgetPosX + (m_share.posX + 35) * widgetScale then
-            tipText = texts.clickdragaskenergy
+            tipText = Spring.I18N('ui.playersList.requestEnergy')
         elseif mouseX >= widgetPosX + (m_share.posX + 37) * widgetScale and mouseX <= widgetPosX + (m_share.posX + 53) * widgetScale then
-            tipText = texts.clickdragaskmetal
+            tipText = Spring.I18N('ui.playersList.requestMetal')
         end
     else
         if mouseX >= widgetPosX + (m_share.posX + 1) * widgetScale and mouseX <= widgetPosX + (m_share.posX + 17) * widgetScale then
-            tipText = texts.dblclickshareunits
+            tipText = Spring.I18N('ui.playersList.shareUnits')
         elseif mouseX >= widgetPosX + (m_share.posX + 19) * widgetScale and mouseX <= widgetPosX + (m_share.posX + 35) * widgetScale then
-            tipText = texts.clickdragshareenergy
+            tipText = Spring.I18N('ui.playersList.shareEnergy')
         elseif mouseX >= widgetPosX + (m_share.posX + 37) * widgetScale and mouseX <= widgetPosX + (m_share.posX + 53) * widgetScale then
-            tipText = texts.clickdragsharemetal
+            tipText = Spring.I18N('ui.playersList.shareMetal')
         end
     end
 end
@@ -2971,9 +2827,9 @@ end
 function AllyTip(mouseX, playerID)
     if mouseX >= widgetPosX + (m_alliance.posX + 1) * widgetScale and mouseX <= widgetPosX + (m_alliance.posX + 11) * widgetScale then
         if Spring_AreTeamsAllied(player[playerID].team, myTeamID) then
-            tipText = texts.clicktobecomeenemy
+            tipText = Spring.I18N('ui.playersList.becomeEnemy')
         else
-            tipText = texts.clicktobecomeally
+            tipText = Spring.I18N('ui.playersList.becomeAlly')
         end
     end
 end
@@ -3005,16 +2861,16 @@ function ResourcesTip(mouseX, e, es, ei, m, ms, mi)
             mi = math.floor(mi / 10) * 10
         end
         if e >= 10000 then
-            e = math.floor(e / 1000) .. texts.k
+            e = math.floor(e / 1000) .. Spring.I18N('ui.playersList.thousands')
         end
         if m >= 10000 then
-            e = math.floor(m / 1000) .. texts.k
+            e = math.floor(m / 1000) .. Spring.I18N('ui.playersList.thousands')
         end
         if ei >= 10000 then
-            ei = math.floor(ei / 1000) .. texts.k
+            ei = math.floor(ei / 1000) .. Spring.I18N('ui.playersList.thousands')
         end
         if mi >= 10000 then
-            ei = math.floor(mi / 1000) .. texts.k
+            ei = math.floor(mi / 1000) .. Spring.I18N('ui.playersList.thousands')
         end
         tipText = "\255\255\255\000+" .. ei .. "\n\255\255\255\000" .. e .. "\n\255\255\255\255" .. m .. "\n\255\255\255\255+" .. mi
     end
@@ -3023,20 +2879,20 @@ end
 function PingCpuTip(mouseX, pingLvl, cpuLvl, fps, gpumem, system, name, teamID, spec)
     if mouseX >= widgetPosX + (m_cpuping.posX + 13) * widgetScale and mouseX <= widgetPosX + (m_cpuping.posX + 23) * widgetScale then
         if pingLvl < 2000 then
-            pingLvl = pingLvl .. " "..texts.ms
+            pingLvl = pingLvl .. " " .. Spring.I18N('ui.playersList.milliseconds')
         elseif pingLvl >= 2000 and pingLvl < 60000 then
-            pingLvl = round(pingLvl / 1000, 0) .. " "..texts.sec
+            pingLvl = round(pingLvl / 1000, 0) .. " " .. Spring.I18N('ui.playersList.seconds')
         elseif pingLvl >= 60000 then
-            pingLvl = round(pingLvl / 60000, 0) .. " "..texts.min
+            pingLvl = round(pingLvl / 60000, 0) .. " " .. Spring.I18N('ui.playersList.minutes')
         end
-        tipText = "\255\190\190\190"..texts.totalcmddelay..":  \255\255\255\255" .. pingLvl
+        tipText = "\255\190\190\190" .. Spring.I18N('ui.playersList.commandDelay') .. ":  \255\255\255\255" .. pingLvl
     elseif mouseX >= widgetPosX + (m_cpuping.posX + 1) * widgetScale and mouseX <= widgetPosX + (m_cpuping.posX + 11) * widgetScale then
-        tipText = texts.cpu..": " .. cpuLvl .. "%"
+        tipText = Spring.I18N('ui.playersList.cpu') .. ": " .. cpuLvl .. "%"
         if fps ~= nil then
-            tipText = texts.fps..": " .. fps .. "    " .. tipText
+            tipText = Spring.I18N('ui.playersList.framerate') .. ": " .. fps .. "    " .. tipText
         end
         if gpumem ~= nil then
-            tipText = tipText .. "    "..texts.gpumem..": " .. gpumem .. "%"
+            tipText = tipText .. "    " .. Spring.I18N('ui.playersList.gpuMemory') .. ": " .. gpumem .. "%"
         end
         if system ~= nil then
             tipText = (spec and "\255\240\240\240" or colourNames(teamID)) .. name .. "\n\255\215\255\215" .. tipText .. "\n\255\240\240\240" .. system
@@ -3047,12 +2903,12 @@ end
 function PointTip(mouseX)
     if right == true then
         if mouseX >= widgetPosX - 28 * widgetScale and mouseX <= widgetPosX - 1 * widgetScale then
-            tipText = texts.pointclicktooltip
+            tipText = Spring.I18N('ui.playersList.pointClickTooltip')
         end
     else
         local leftPosX = widgetPosX + widgetWidth
         if mouseX >= leftPosX + 1 * widgetScale and mouseX <= leftPosX + 28 * widgetScale then
-            tipText = texts.pointclicktooltip
+            tipText = Spring.I18N('ui.playersList.pointClickTooltip')
         end
     end
 end
@@ -4261,8 +4117,9 @@ function widget:ViewResize()
     font = WG['fonts'].getFont()
     font2 = WG['fonts'].getFont(fontfile2)
 
-    local widgetSpaceMargin = math.floor(0.0045 * vsy * ui_scale) / vsy
-    bgpadding = math.ceil(widgetSpaceMargin * 0.66 * vsy)
+    bgpadding = Spring.FlowUI.elementPadding
+	elementCorner = Spring.FlowUI.elementCorner
+	bgtexSize = bgpadding * bgtexScale
 
     updateWidgetScale()
 end

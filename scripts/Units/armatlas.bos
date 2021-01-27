@@ -67,12 +67,18 @@ HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and f
 	return (100); //return damage percent
 }
 
+#define IDLEHOVERSCALE 16
+#define IDLEHOVERSPEED 60
+#define IDLEBASEPIECE base
+#include "idlehover.h"
+
 SmokeUnit(healthpercent, sleeptime, smoketype)
 {
 	while( get BUILD_PERCENT_LEFT )
 	{
 		sleep 400;
 	}
+	start-script IdleHover();
 	while( TRUE )
 	{
 		healthpercent = get HEALTH;
@@ -128,7 +134,37 @@ RequestState(requestedstate, currentstate)
 	statechg_StateChanging = FALSE;
 }
 
+/*
+StartMoving(){
+	get PRINT( get GAME_FRAME,1111);
+	isIdle = TRUE;
+}
 
+
+StopMoving(){
+	get PRINT( get GAME_FRAME,2222);
+	isIdle = FALSE;
+}
+
+MoveRate0(){
+	get PRINT(get GAME_FRAME,333, 00);
+}
+SetSFXOccupy(terraintype){
+	get PRINT(get GAME_FRAME,0, terraintype);
+}
+
+
+MoveRate1(){
+	get PRINT(get GAME_FRAME,333, 11);
+}
+
+MoveRate2(){
+	get PRINT(get GAME_FRAME,333, 22);
+}
+
+MoveRate3(){
+	get PRINT(get GAME_FRAME,333, 33);
+}*/
 
 Create()
 {

@@ -25,7 +25,7 @@ function BossPassiveAbilityController(n)
 	elseif CurrentlyUsedPassiveAbility == "selfrepair" then -- Gonna need sound and visual effects here
 		local currentbosshealth = Spring.GetUnitHealth(FinalBossUnitID)
 		local initialbosshealth = unitSpawnerModuleConfig.FinalBossHealth*teamcount*spawnmultiplier
-		local healing = initialbosshealth*0.0001*BossFightCurrentPhase
+		local healing = initialbosshealth*0.0000125*BossFightCurrentPhase
 		if currentbosshealth < initialbosshealth then
 			Spring.SetUnitHealth(FinalBossUnitID, currentbosshealth+healing)
 		end
@@ -177,26 +177,26 @@ function BossSpecAbiFighterWave(n)
 			local fighters = {"armhawk_scav", "corvamp_scav",}
 			local fighter = fighters[math_random(1,2)]
 			local bossx, bossy, bossz = Spring.GetUnitPosition(FinalBossUnitID)
-			for i = 1,5*BossFightCurrentPhase*spawnmultiplier do
+			for i = 1,3*BossFightCurrentPhase*spawnmultiplier do
 				if r == 1 then
 					local posx = 0
 					local posz = math.random(0,mapsizeZ)
-					local posy = Spring.GetGroundHeight(posx, posy)
+					local posy = Spring.GetGroundHeight(posx, posz)+1000
 					QueueSpawn(fighter, posx, posy, posz, math_random(0,3),GaiaTeamID, n+i+1)
 				elseif r == 2 then
 					local posx = mapsizeX
 					local posz = math.random(0,mapsizeZ)
-					local posy = Spring.GetGroundHeight(posx, posy)
+					local posy = Spring.GetGroundHeight(posx, posz)+1000
 					QueueSpawn(fighter, posx, posy, posz, math_random(0,3),GaiaTeamID, n+i+1)
 				elseif r == 3 then
 					local posx = math.random(0,mapsizeX)
 					local posz = 0
-					local posy = Spring.GetGroundHeight(posx, posy)
+					local posy = Spring.GetGroundHeight(posx, posz)+1000
 					QueueSpawn(fighter, posx, posy, posz, math_random(0,3),GaiaTeamID, n+i+1)
 				elseif r == 4 then
 					local posx = math.random(0,mapsizeX)
 					local posz = mapsizeZ
-					local posy = Spring.GetGroundHeight(posx, posy)
+					local posy = Spring.GetGroundHeight(posx, posz)+1000
 					QueueSpawn(fighter, posx, posy, posz, math_random(0,3),GaiaTeamID, n+i+1)
 				end
 			end

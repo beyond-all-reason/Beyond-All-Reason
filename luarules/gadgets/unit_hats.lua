@@ -24,7 +24,13 @@ end
 -- attachunit somehow does not pass the direction, and passes the position of the piece attached to it about 1 frame late
 -- consider manually repositioning hats then? could start to get expensive
 -- You cant pick up allied hats
--- 
+-- Hats should not prevent game ending if they are the only unit left. 
+  -- e.g. dying comms should give hats to gaia
+
+-- Notes:
+-- hat wearing units must have unitdef holdsteady = true to give the piece orientations
+-- hat wearing commander is only transportable by t2 transports (mass? unitcount? why?) 
+-- hat pos is 1 frame off :/ 
 
 if (not gadgetHandler:IsSyncedCode()) then
 	return
@@ -51,19 +57,12 @@ local unitDefCanWearHats = {
 }
 
 
-local hasDeathAnim = {
-  [UnitDefNames.corkarg.id] = true,
-  [UnitDefNames.corthud.id] = true,
-  [UnitDefNames.corstorm.id] = true,
-  [UnitDefNames.corsumo.id] = true,
-}
-
 --Spring.GetUnitPiecePosDir
 
  --( number unitID, number pieceNum ) -> nil | number posX, number posY, number posZ,
   -- number dirX, number dirZ, number dirY
 
---Returns piece position and direction in world space. The direction (dirX, dirY, dirZ) is not necessarily normalized. The position is defined as the position of the first vertex of the piece and it defines direction as the direction in which the line --from the first vertex to the second vertex points. 
+--Returns piece position and direction in world space. The direction (dirX, dirY, dirZ) is not necessarily normalized. The position is defined as the position of the first vertex of the piece and it defines direction as the direction in which the line --from the first vertex to the second vertex points. -> e.g. hats need two null vertices
 
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID) -- for unitID reuse, just in case
@@ -91,12 +90,16 @@ function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDef
     Hats[unitID] = nil 
   end
   if unitsWearingHats[unitID] ~= nil then
+    local hatID = unitsWearingHats[unitID]
     if DEBUG then Spring.Echo("A hat wearing unit was destroyed, freeing hat",unitID, unitDefID, teamID, attackerID, attackerDefID, attackerTeamID) end
-    Spring.UnitDetach(unitsWearingHats[unitID])
+    Spring.UnitDetachFromAir(hatID)
+    Spring.UnitDetach(hatID)
     unitsWearingHats[unitID] = nil
-    Hats[unitID] = -1
-    Spring.SetUnitNoSelect(unitID,false) 
-    --detach it:
+    Hats[hatID] = -1
+    Spring.SetUnitNoSelect(hatID,false) 
+    Spring.TransferUnit(hatID, Spring.GetGaiaTeamID()) -- ( number unitID,  numer newTeamID [, boolean given = true ] ) -> nil if given=false, the unit is captured 
+    local px, py, pz = Spring.GetUnitPosition(unitID)
+    Spring.SetUnitPosition(hatID,px+32, pz+32)  
   end
 end
 
@@ -107,7 +110,12 @@ function gadget:UnitGiven(unitID, unitDefID, unitTeam)
     unitsWearingHats[unitID] = nil
   end
   if Hats[unitID] then
+    
     local hatID = unitID
+    if unitTeam == Spring.GetGaiaTeamID() then
+      if DEBUG then Spring.Echo("A hat was given back to gaia",hatID, unitDefID, unitTeam ,Spring.GetGaiaTeamID()) end
+      return
+    end  
     
     if DEBUG then Spring.Echo("A hat was given, finding a wearer",hatID, unitDefID, unitTeam ) end
     -- find nearest commander and attach hat onto him?
@@ -122,7 +130,7 @@ function gadget:UnitGiven(unitID, unitDefID, unitTeam)
           local pieceMap = Spring.GetUnitPieceMap(nearunitID)
           local hatPoint = nil
           for pieceName, pieceNum in pairs(pieceMap) do
-            if pieceName:find("laserflare", nil, true) then
+            if pieceName:find("hatpoint", nil, true) then
               hatPoint = pieceNum
               break
             end
@@ -146,45 +154,3 @@ function gadget:UnitGiven(unitID, unitDefID, unitTeam)
     Spring.DestroyUnit(hatID)
   end
 end
-
-----------------------------------------------------------------------------
---[[
-local dyingUnits = {}
-
-for udid, ud in pairs(UnitDefs) do --almost all chickens have dying anims
-	if ud.customParams and ud.customParams.subfolder and ud.customParams.subfolder == "other/chickens" then
-		hasDeathAnim[udid] = true
-	end
-end
-
-local SetUnitNoSelect	= Spring.SetUnitNoSelect
-local GiveOrderToUnit	= Spring.GiveOrderToUnit
-local SetUnitBlocking = Spring.SetUnitBlocking 
-local CMD_STOP = CMD.STOP
-
-function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDefID, attackerTeamID)
-	if hasDeathAnim[unitDefID] then
-		--Spring.Echo("gadget:UnitDestroyed",unitID, unitDefID, teamID, attackerID, attackerDefID, attackerTeamID)
-		SetUnitNoSelect(unitID,true)
-    SetUnitBlocking(unitID,false) -- non blocking while dying
-		GiveOrderToUnit(unitID, CMD_STOP, {}, 0)
-    dyingUnits[unitID] = true
-	end
-end
-
-function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua) -- do not allow dying units to be moved
-  if dyingUnits[unitID] then
-    return false
-  else
-    return true
-  end
-end
-
-function gadget:RenderUnitDestroyed(unitID, unitDefID, unitTeam) --called when killed anim finishes
-  if dyingUnits[unitID] then dyingUnits[unitID] = nil end
-end
-
-function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID) -- for unitID reuse, just in case
-  if dyingUnits[unitID] then dyingUnits[unitID] = nil end
-end
-]]--

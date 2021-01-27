@@ -17,12 +17,17 @@ end
 local PACKET_HEADER = "$wl$"
 local PACKET_HEADER_LENGTH = string.len(PACKET_HEADER)
 
-local authorizedPlayers = {
-	'Floris',
-	'[teh]Flow',
-	'IceXuick',
-	--'Player',
-}
+
+local authorizedPlayers = {}
+local powerusers = include("LuaRules/configs/powerusers.lua")
+if powerusers then
+	for name, permissions in pairs(powerusers) do
+		if permissions.waterlevel then
+			authorizedPlayers[name] = true
+		end
+	end
+	powerusers = nil
+end
 
 if gadgetHandler:IsSyncedCode() then
 

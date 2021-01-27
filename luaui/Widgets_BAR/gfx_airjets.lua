@@ -34,6 +34,7 @@ local spGetUnitIsActive = Spring.GetUnitIsActive
 local spGetUnitIsStunned = Spring.GetUnitIsStunned
 local spGetUnitMoveTypeData = Spring.GetUnitMoveTypeData
 local spGetUnitVelocity = Spring.GetUnitVelocity
+local spGetUnitTeam = Spring.GetUnitTeam
 local spGetFPS = Spring.GetFPS
 
 local glUseShader = gl.UseShader
@@ -64,6 +65,8 @@ local glScale = gl.Scale
 local glUnitMultMatrix = gl.UnitMultMatrix
 local glUnitPieceMultMatrix = gl.UnitPieceMultMatrix
 
+local gaiaID = Spring.GetGaiaTeamID()
+
 --------------------------------------------------------------------------------
 -- Configuration
 --------------------------------------------------------------------------------
@@ -84,7 +87,8 @@ local effectDefs = {
 		{ color = { 0.7, 0.4, 0.1 }, width = 4, length = 20, piece = "jet2", limit = true },
 	},
 	["corfink"] = {
-		{ color = { 0.7, 0.4, 0.1 }, width = 3, length = 20, piece = "thrustb", limit = true  },
+		{ color = { 0.7, 0.4, 0.1 }, width = 2.2, length = 15, piece = "thrusta", limit = true  },
+		{ color = { 0.7, 0.4, 0.1 }, width = 2.2, length = 15, piece = "thrustb", limit = true  },
 	},
 
 	-- fighters
@@ -113,7 +117,9 @@ local effectDefs = {
 		{ color = { 0.1, 0.4, 0.6 }, width = 3.5, length = 30, piece = "thrust", light = 1 },
 	},
 	["corawac"] = {
-		{ color = { 0.2, 0.8, 0.2 }, width = 4, length = 30, piece = "thrust", light = 1 },
+		{ color = { 0.2, 0.8, 0.2 }, width = 4, length = 30, piece = "lthrust", light = 1 },
+		{ color = { 0.2, 0.8, 0.2 }, width = 4, length = 30, piece = "mthrust", light = 1 },
+		{ color = { 0.2, 0.8, 0.2 }, width = 4, length = 30, piece = "rthrust", light = 1 },
 	},
 	["corhunt"] = {
 		{ color = { 0.2, 0.8, 0.2 }, width = 4, length = 37, piece = "thrust", light = 1 },
@@ -471,7 +477,7 @@ local function Deactivate(unitID, unitDefID)
 	RemoveLights(unitID)
 end
 
-local function RemoveUnit(unitID, unitDefID)
+local function RemoveUnit(unitID, unitDefID, unitTeamID)
 	if effectDefs[unitDefID] then
 		activePlanes[unitID] = nil
 		inactivePlanes[unitID] = nil
@@ -495,7 +501,7 @@ local function FinishInitialization(unitID, effectDef)
 	effectDef.finishedInit = true
 end
 
-local function AddUnit(unitID, unitDefID)
+local function AddUnit(unitID, unitDefID, unitTeamID)
 	if not effectDefs[unitDefID] then
 		return false
 	end
@@ -557,8 +563,8 @@ function widget:Update(dt)
 	if lighteffectsEnabled ~= prevLighteffectsEnabled then
 		for _, unitID in ipairs(Spring.GetAllUnits()) do
 			local unitDefID = Spring.GetUnitDefID(unitID)
-			RemoveUnit(unitID, unitDefID)
-			AddUnit(unitID, unitDefID)
+			RemoveUnit(unitID, unitDefID, spGetUnitTeam(unitID))
+			AddUnit(unitID, unitDefID, spGetUnitTeam(unitID))
 		end
 	end
 
@@ -592,25 +598,25 @@ function widget:Update(dt)
 end
 
 function widget:UnitEnteredLos(unitID, unitTeam)
-	AddUnit(unitID, spGetUnitDefID(unitID))
+	AddUnit(unitID, spGetUnitDefID(unitID), unitTeam)
 end
 
 function widget:UnitLeftLos(unitID, unitDefID, unitTeam)
-	RemoveUnit(unitID, unitDefID)
+	RemoveUnit(unitID, unitDefID, unitTeam)
 end
 
 function widget:UnitCreated(unitID, unitDefID, unitTeam)
-	AddUnit(unitID, unitDefID)
+	AddUnit(unitID, unitDefID, unitTeam)
 end
 
 function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
-	RemoveUnit(unitID, unitDefID)
+	RemoveUnit(unitID, unitDefID, unitTeam)
 end
 
 -- wont be called for enemy units nor can it read spGetUnitMoveTypeData(unitID).aircraftState anyway
 function widget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
 	if effectDefs[unitDefID] and spGetUnitMoveTypeData(unitID).aircraftState == "crashing" then
-		RemoveUnit(unitID, unitDefID)
+		RemoveUnit(unitID, unitDefID, unitTeam)
 	end
 end
 
@@ -810,7 +816,7 @@ function widget:Initialize()
 
 	for _, unitID in ipairs(Spring.GetAllUnits()) do
 		local unitDefID = Spring.GetUnitDefID(unitID)
-		AddUnit(unitID, unitDefID)
+		AddUnit(unitID, unitDefID, spGetUnitTeam(unitID))
 	end
 
 	WG['airjets'] = {}
@@ -831,7 +837,7 @@ end
 
 function widget:Shutdown()
 	for unitID, unitDefID in pairs(activePlanes) do
-		RemoveUnit(unitID, unitDefID)
+		RemoveUnit(unitID, unitDefID, spGetUnitTeam(unitID))
 	end
 	for unitDefID, data in pairs(effectDefs) do
 		for i = 1, #data do

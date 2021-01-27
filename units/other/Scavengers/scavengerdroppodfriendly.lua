@@ -26,7 +26,7 @@ return {
 		idletime = 90,
 		levelground = false,
 		mass = 165.75,
-		maxdamage = 1800,
+		maxdamage = 100,
 		maxvelocity = 0,
 		name = "Friendly Droppod",
 		noautofire = false,
@@ -61,7 +61,7 @@ return {
 		weapondefs = {
 			weapon = {
 				alwaysvisible = true,
-				areaofeffect = 500,
+				areaofeffect = 0,
 				avoidfriendly = 0,
 				cegtag = "scaspawn-greentrail",
 				collidefriendly = 0,

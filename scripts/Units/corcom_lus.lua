@@ -1,6 +1,6 @@
 
 --Skeleton pieces
-local torso, lfirept, rbigflash, nanospray, nanolathe, luparm, ruparm, pelvis, rthigh, lthigh, biggun, lleg, l_foot, rleg, r_foot, head, teleport, aimx1, aimy1 = piece("torso", "lfirept", "rbigflash", "nanospray", "nanolathe", "luparm", "ruparm", "pelvis", "rthigh", "lthigh", "biggun", "lleg", "l_foot", "rleg", "r_foot", "head", "teleport", "aimx1", "aimy1")    
+local torso, lfirept, rbigflash, nanospray, nanolathe, luparm, ruparm, pelvis, rthigh, lthigh, biggun, lleg, l_foot, rleg, r_foot, head, teleport, aimx1, aimy1 = piece("torso", "lfirept", "rbigflash", "nanospray", "nanolathe", "luparm", "ruparm", "pelvis", "rthigh", "lthigh", "biggun", "lleg", "l_foot", "rleg", "r_foot", "head", "teleport", "aimx1", "aimy1","hatpoint")    
 
 
 

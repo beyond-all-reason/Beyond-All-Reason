@@ -2,9 +2,9 @@
 if addon.InGetInfo then
 	return {
 		name    = "Main",
-		desc    = "displays a simple loading bar",
-		author  = "jK",
-		date    = "2012,2013",
+		desc    = "loadbar and tips",
+		author  = "jK, Floris",
+		date    = "2012",
 		license = "GPL2",
 		layer   = 0,
 		depend  = {"LoadProgress"},
@@ -47,8 +47,8 @@ local texts = {       -- fallback (if you want to change this, also update: lang
 		"You can pause the game with the PAUSE/BREAK key, or by typing /pause",
 		"Did your team member drop out of the game? Type /take to add all of his units to your army.",
 		"Give your nano turrets a Fight Command (F) to let it repair and reclaim everything within reach.",
-		"Press E and drag and area circle to quickly rEclaim all resources/wreckages.",
-		"Press R and drag and area circle to quickly Repair all units inside this circle.",
+		"Press E and drag a circle to quickly rEclaim all resources/wreckages.",
+		"Press R and drag a circle to quickly Repair all units inside this area.",
 		"Press CTRL+C to quickly select and center the camera on your Commander.",
 		"Think ahead and include anti-air and support units in your army.",
 		"Mastering hotkeys is the key to proficiency.\nUse Z,X,C,V to quickly cycle between most frequently built structures.",
@@ -133,7 +133,8 @@ if showTips then
 		if not k then k = 0 end
 	end
 	k = k + 1
-	local file = assert(io.open(filename,'w'), "Unable to save latest randomseed from "..filename)
+	--local file = assert(io.open(filename,'w'), "Unable to save latest randomseed from "..filename)
+	local file = io.open(filename,'w')
 	if file then
 		file:write(k)
 		file:close()

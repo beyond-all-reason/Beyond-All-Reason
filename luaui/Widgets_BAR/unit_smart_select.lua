@@ -56,7 +56,6 @@ local GetMyPlayerID = Spring.GetMyPlayerID
 local GetPlayerInfo = Spring.GetPlayerInfo
 local GetTeamUnits = Spring.GetTeamUnits
 local GetAllUnits = Spring.GetAllUnits
-local GetSelectedUnits = Spring.GetSelectedUnits
 local GetUnitsInRectangle = Spring.GetUnitsInRectangle
 local SelectUnitArray = Spring.SelectUnitArray
 local GetActiveCommand = Spring.GetActiveCommand
@@ -82,6 +81,14 @@ local glBeginEnd = gl.BeginEnd
 local GL_LINE_STRIP = GL.LINE_STRIP
 
 local GaiaTeamID = Spring.GetGaiaTeamID()
+local selectedUnits = Spring.GetSelectedUnits()
+
+local ignoreUnits = {}
+for udefID,def in ipairs(UnitDefs) do
+	if def.modCategories['object'] or (def.customParams and def.customParams.objectify) then
+		ignoreUnits[udefID] = true
+	end
+end
 
 -----------------------------------------------------------------
 -- end function locals ------------------------------------------
@@ -162,7 +169,6 @@ local function GetUnitsInScreenRectangle(x1, y1, x2, y2, team)
 	return result
 end
 
-local selectedUnits = Spring.GetSelectedUnits()
 function widget:SelectionChanged(sel)
 	local equalSelection = true
 	for i = 1, #sel do
@@ -294,12 +300,12 @@ function widget:Update()
 			originalMouseSelection = mouseSelection
 
 
-			-- filter gaia units
+			-- filter gaia units + ignored units (objects)
 			local filteredselection = {}
 			local filteredselectionCount = 0
 			if not Spring.IsGodModeEnabled() then
 				for i = 1, #mouseSelection do
-					if GetUnitTeam(mouseSelection[i]) ~= GaiaTeamID then
+					if GetUnitTeam(mouseSelection[i]) ~= GaiaTeamID and not ignoreUnits[GetUnitDefID(mouseSelection[i])] then
 						filteredselectionCount = filteredselectionCount + 1
 						filteredselection[filteredselectionCount] = mouseSelection[i]
 					end
@@ -336,15 +342,15 @@ function widget:Update()
 				mouseSelection = tmp
 			end
 
-			if (alt) then
+			if alt then
 				-- only select mobile combat units
 
-				if (ctrl == false) then
+				if ctrl == false then
 					tmp = {}
 					for i = 1, #referenceSelection do
 						uid = referenceSelection[i]
 						udid = GetUnitDefID(uid)
-						if (combatFilter[udid]) then
+						if combatFilter[udid] then
 							-- is a combat unit
 							tmp[#tmp + 1] = uid
 						end
@@ -356,32 +362,32 @@ function widget:Update()
 				for i = 1, #mouseSelection do
 					uid = mouseSelection[i]
 					udid = GetUnitDefID(uid)
-					if (combatFilter[udid]) then
+					if combatFilter[udid] then
 						-- is a combat unit
 						tmp[#tmp + 1] = uid
 					end
 				end
 				mouseSelection = tmp
-			elseif (selectBuildingsWithMobile == false) and (shift == false) and (ctrl == false) then
+			elseif selectBuildingsWithMobile == false and shift == false and ctrl == false then
 				-- only select mobile units, not buildings
 				local mobiles = false
 				for i = 1, #mouseSelection do
 					uid = mouseSelection[i]
 					udid = GetUnitDefID(uid)
-					if (mobileFilter[udid]) then
+					if mobileFilter[udid] then
 						mobiles = true
 						break
 					end
 				end
 
-				if (mobiles) then
+				if mobiles then
 					tmp = {}
 					local tmp2 = {}
 					for i = 1, #mouseSelection do
 						uid = mouseSelection[i]
 						udid = GetUnitDefID(uid)
-						if (buildingFilter[udid] == false) then
-							if (includeBuilders or not builderFilter[udid]) then
+						if buildingFilter[udid] == false then
+							if includeBuilders or not builderFilter[udid] then
 								tmp[#tmp + 1] = uid
 							else
 								tmp2[#tmp2 + 1] = uid
@@ -395,11 +401,11 @@ function widget:Update()
 				end
 			end
 
-			if (#newSelection < 1) then
+			if #newSelection < 1 then
 				newSelection = referenceSelection
 			end
 
-			if (ctrl) then
+			if ctrl then
 				-- deselect units inside the selection rectangle, if we already had units selected
 				local negative = {}
 
@@ -417,14 +423,14 @@ function widget:Update()
 				end
 				newSelection = tmp
 				SelectUnitArray(newSelection)
-			elseif (shift) then
+			elseif shift then
 				-- append units inside selection rectangle to current selection
 				SelectUnitArray(newSelection)
 				SelectUnitArray(mouseSelection, true)
-			elseif (#mouseSelection > 0) then
+			elseif #mouseSelection > 0 then
 				-- select units inside selection rectangle
 				SelectUnitArray(mouseSelection)
-			elseif (#originalMouseSelection > 0) and (#mouseSelection == 0) then
+			elseif #originalMouseSelection > 0 and #mouseSelection == 0 then
 				SelectUnitArray({})
 			else
 				-- keep current selection while dragging until more things are selected
@@ -506,14 +512,3 @@ local function DrawRectangle(r)
 	glVertex(r[3], 0, r[2])
 	glVertex(r[1], 0, r[2])
 end
-
-
-
---function widget:DrawWorld()
---	if (minimapRect ~= nil) then
---		glColor(1, 1, 1, 1)
---		glLineWidth(1.0)
---		glDepthTest(false)
---		glBeginEnd(GL_LINE_STRIP, DrawRectangle, minimapRect)	-- drawing coordinates display incorrect
---	end
---end

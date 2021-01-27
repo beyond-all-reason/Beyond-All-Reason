@@ -16,7 +16,7 @@ return {
 		canstop = "1",
 		category = "BOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE CHICKEN EMPABLE",
 		collisionvolumeoffsets = "0 -3 -3",
-		collisionvolumescales = "18 26 40",
+		collisionvolumescales = "18 40 40",
 		collisionvolumetype = "box",
 		corpse = "chicken_egg_s_pink",
 		defaultmissiontype = "Standby",

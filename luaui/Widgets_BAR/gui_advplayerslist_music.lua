@@ -27,9 +27,6 @@ local pauseWhenPaused = false
 local fadeInTime = 2
 local fadeOutTime = 6.5
 
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
 -- Unfucked volumes finally. Instead of setting the volume in Spring.PlaySoundStream. you need to call Spring.PlaySoundStream and then immediately call Spring.SetSoundStreamVolume
 -- This widget desperately needs to be reorganized
 
@@ -43,7 +40,7 @@ local peaceTracks = VFS.DirList(musicDir..'peace', '*.ogg')
 local warTracks = VFS.DirList(musicDir..'war', '*.ogg')
 
 local vsx, vsy = Spring.GetViewGeometry()
-local bgpadding, borderPaddingRight, borderPaddingLeft, trackname, font, draggingSlider, prevStreamStartTime, force, doCreateList, chobbyInterface
+local borderPaddingRight, borderPaddingLeft, trackname, font, draggingSlider, prevStreamStartTime, force, doCreateList, chobbyInterface, bgpadding
 
 local tracksConfig = {}
 for i,v in pairs(peaceTracks) do
@@ -108,7 +105,14 @@ local GL_SRC_ALPHA = GL.SRC_ALPHA
 local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 local GL_ONE = GL.ONE
 
-local guishaderEnabled = (WG['guishader'])
+local RectRound = Spring.FlowUI.Draw.RectRound
+local UiElement = Spring.FlowUI.Draw.Element
+local UiButton = Spring.FlowUI.Draw.Button
+local UiSlider = Spring.FlowUI.Draw.Slider
+local UiSliderKnob = Spring.FlowUI.Draw.SliderKnob
+local elementCorner = Spring.FlowUI.elementCorner
+
+local guishaderEnabled = (WG['guishader'] ~= nil)
 
 local drawlist = {}
 local advplayerlistPos = {}
@@ -130,6 +134,7 @@ local maxMusicVolume = Spring.GetConfigInt("snd_volmusic", 20)	-- user value, ca
 local volume = Spring.GetConfigInt("snd_volmaster", 100)
 
 local fadeMult = 1
+local uiOpacitySec = 0
 
 --Assume that if it isn't set, dynamic music is true
 if dynamicMusic == nil then
@@ -246,126 +251,19 @@ function widget:Initialize()
 	end
 end
 
-
-local function DrawRectRound(px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)
-    local csyMult = 1 / ((sy-py)/cs)
-
-    if c2 then
-        gl.Color(c1[1],c1[2],c1[3],c1[4])
-    end
-    gl.Vertex(px+cs, py, 0)
-    gl.Vertex(sx-cs, py, 0)
-    if c2 then
-        gl.Color(c2[1],c2[2],c2[3],c2[4])
-    end
-    gl.Vertex(sx-cs, sy, 0)
-    gl.Vertex(px+cs, sy, 0)
-
-    -- left side
-    if c2 then
-        gl.Color(c1[1]*(1-csyMult)+(c2[1]*csyMult),c1[2]*(1-csyMult)+(c2[2]*csyMult),c1[3]*(1-csyMult)+(c2[3]*csyMult),c1[4]*(1-csyMult)+(c2[4]*csyMult))
-    end
-    gl.Vertex(px, py+cs, 0)
-    gl.Vertex(px+cs, py+cs, 0)
-    if c2 then
-        gl.Color(c2[1]*(1-csyMult)+(c1[1]*csyMult),c2[2]*(1-csyMult)+(c1[2]*csyMult),c2[3]*(1-csyMult)+(c1[3]*csyMult),c2[4]*(1-csyMult)+(c1[4]*csyMult))
-    end
-    gl.Vertex(px+cs, sy-cs, 0)
-    gl.Vertex(px, sy-cs, 0)
-
-    -- right side
-    if c2 then
-        gl.Color(c1[1]*(1-csyMult)+(c2[1]*csyMult),c1[2]*(1-csyMult)+(c2[2]*csyMult),c1[3]*(1-csyMult)+(c2[3]*csyMult),c1[4]*(1-csyMult)+(c2[4]*csyMult))
-    end
-    gl.Vertex(sx, py+cs, 0)
-    gl.Vertex(sx-cs, py+cs, 0)
-    if c2 then
-        gl.Color(c2[1]*(1-csyMult)+(c1[1]*csyMult),c2[2]*(1-csyMult)+(c1[2]*csyMult),c2[3]*(1-csyMult)+(c1[3]*csyMult),c2[4]*(1-csyMult)+(c1[4]*csyMult))
-    end
-    gl.Vertex(sx-cs, sy-cs, 0)
-    gl.Vertex(sx, sy-cs, 0)
-
-    local offset = 0.15		-- texture offset, because else gaps could show
-
-    -- bottom left
-    if c2 then
-        gl.Color(c1[1],c1[2],c1[3],c1[4])
-    end
-    if ((py <= 0 or px <= 0)  or (bl ~= nil and bl == 0)) and bl ~= 2   then
-        gl.Vertex(px, py, 0)
-    else
-        gl.Vertex(px+cs, py, 0)
-    end
-    gl.Vertex(px+cs, py, 0)
-    if c2 then
-        gl.Color(c1[1]*(1-csyMult)+(c2[1]*csyMult),c1[2]*(1-csyMult)+(c2[2]*csyMult),c1[3]*(1-csyMult)+(c2[3]*csyMult),c1[4]*(1-csyMult)+(c2[4]*csyMult))
-    end
-    gl.Vertex(px+cs, py+cs, 0)
-    gl.Vertex(px, py+cs, 0)
-    -- bottom right
-    if c2 then
-        gl.Color(c1[1],c1[2],c1[3],c1[4])
-    end
-    if ((py <= 0 or sx >= vsx) or (br ~= nil and br == 0)) and br ~= 2 then
-        gl.Vertex(sx, py, 0)
-    else
-        gl.Vertex(sx-cs, py, 0)
-    end
-    gl.Vertex(sx-cs, py, 0)
-    if c2 then
-        gl.Color(c1[1]*(1-csyMult)+(c2[1]*csyMult),c1[2]*(1-csyMult)+(c2[2]*csyMult),c1[3]*(1-csyMult)+(c2[3]*csyMult),c1[4]*(1-csyMult)+(c2[4]*csyMult))
-    end
-    gl.Vertex(sx-cs, py+cs, 0)
-    gl.Vertex(sx, py+cs, 0)
-    -- top left
-    if c2 then
-        gl.Color(c2[1],c2[2],c2[3],c2[4])
-    end
-    if ((sy >= vsy or px <= 0) or (tl ~= nil and tl == 0)) and tl ~= 2 then
-        gl.Vertex(px, sy, 0)
-    else
-        gl.Vertex(px+cs, sy, 0)
-    end
-    gl.Vertex(px+cs, sy, 0)
-    if c2 then
-        gl.Color(c2[1]*(1-csyMult)+(c1[1]*csyMult),c2[2]*(1-csyMult)+(c1[2]*csyMult),c2[3]*(1-csyMult)+(c1[3]*csyMult),c2[4]*(1-csyMult)+(c1[4]*csyMult))
-    end
-    gl.Vertex(px+cs, sy-cs, 0)
-    gl.Vertex(px, sy-cs, 0)
-    -- top right
-    if c2 then
-        gl.Color(c2[1],c2[2],c2[3],c2[4])
-    end
-    if ((sy >= vsy or sx >= vsx)  or (tr ~= nil and tr == 0)) and tr ~= 2 then
-        gl.Vertex(sx, sy, 0)
-    else
-        gl.Vertex(sx-cs, sy, 0)
-    end
-    gl.Vertex(sx-cs, sy, 0)
-    if c2 then
-        gl.Color(c2[1]*(1-csyMult)+(c1[1]*csyMult),c2[2]*(1-csyMult)+(c1[2]*csyMult),c2[3]*(1-csyMult)+(c1[3]*csyMult),c2[4]*(1-csyMult)+(c1[4]*csyMult))
-    end
-    gl.Vertex(sx-cs, sy-cs, 0)
-    gl.Vertex(sx, sy-cs, 0)
-end
-function RectRound(px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)		-- (coordinates work differently than the RectRound func in other widgets)
-    gl.Texture(false)
-    gl.BeginEnd(GL.QUADS, DrawRectRound, px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)
-end
-
 local function createList()
 
-	local padding = 2.75*widgetScale -- button background margin
-	local padding2 = 2.5*widgetScale -- inner icon padding
-	local volumeWidth = 50*widgetScale
-	local heightoffset = -(0.9*widgetScale)
+	local padding = math.floor(2.75*widgetScale) -- button background margin
+	local padding2 = math.floor(2.5*widgetScale) -- inner icon padding
+	local volumeWidth = math.floor(50*widgetScale)
+	local heightoffset = -math.floor(0.9*widgetScale)
 	buttons['playpause'] = {left+padding+padding, bottom+padding+heightoffset, left+(widgetHeight*widgetScale), top-padding+heightoffset}
 
 	buttons['next'] = {buttons['playpause'][3]+padding, bottom+padding+heightoffset, buttons['playpause'][3]+((widgetHeight*widgetScale)-padding), top-padding+heightoffset}
 
 	buttons['musicvolumeicon'] = {buttons['next'][3]+padding+padding, bottom+padding+heightoffset, buttons['next'][3]+((widgetHeight*widgetScale)), top-padding+heightoffset}
 	buttons['musicvolume'] = {buttons['musicvolumeicon'][3]+padding, bottom+padding+heightoffset, buttons['musicvolumeicon'][3]+padding+volumeWidth, top-padding+heightoffset}
-	buttons['musicvolume'][5] = buttons['musicvolume'][1] + (buttons['musicvolume'][3] - buttons['musicvolume'][1]) * (maxMusicVolume/50)
+	buttons['musicvolume'][5] = buttons['musicvolume'][1] + (buttons['musicvolume'][3] - buttons['musicvolume'][1]) * (maxMusicVolume/100)
 
 	buttons['volumeicon'] = {buttons['musicvolume'][3]+padding+padding+padding, bottom+padding+heightoffset, buttons['musicvolume'][3]+((widgetHeight*widgetScale)), top-padding+heightoffset}
 	buttons['volume'] = {buttons['volumeicon'][3]+padding, bottom+padding+heightoffset, buttons['volumeicon'][3]+padding+volumeWidth, top-padding+heightoffset}
@@ -385,13 +283,12 @@ local function createList()
 	end
 	if WG['guishader'] then
 		drawlist[5] = glCreateList( function()
-			RectRound(left, bottom, right, top, bgpadding*1.6)
+			RectRound(left, bottom, right, top, elementCorner, 1,0,0,1)
 		end)
 		WG['guishader'].InsertDlist(drawlist[5], 'music')
 	end
 	drawlist[1] = glCreateList( function()
-		--glColor(0, 0, 0, ui_opacity)
-		RectRound(left, bottom, right, top, bgpadding*1.6, 1,1,1,1, {0.1,0.1,0.1,ui_opacity}, {0,0,0,ui_opacity})
+		UiElement(left, bottom, right, top, 1,0,0,1, 1,1,0,1)
 
 		borderPadding = bgpadding
 		borderPaddingRight = borderPadding
@@ -402,14 +299,6 @@ local function createList()
 		if left <= 0.2 then
 			borderPaddingLeft = 0
 		end
-		--glColor(1,1,1,ui_opacity*0.055)
-		RectRound(left+borderPaddingLeft, bottom, right-borderPaddingRight, top-borderPadding, bgpadding, 1,1,1,1, {0.3,0.3,0.3,ui_opacity*0.1}, {1,1,1,ui_opacity*0.1})
-
-		-- gloss
-		glBlending(GL_SRC_ALPHA, GL_ONE)
-		RectRound(left+borderPaddingLeft, top-borderPadding-((top-bottom)*0.35), right-borderPaddingRight, top-borderPadding, bgpadding, 1,1,0,0, {1,1,1,0.006*glossMult}, {1,1,1,0.055*glossMult})
-		RectRound(left+borderPaddingLeft, bottom, right-borderPaddingRight, bottom+((top-bottom)*0.35), bgpadding, 0,0,1,1, {1,1,1,0.025*glossMult},{1,1,1,0})
-		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 	end)
 	drawlist[2] = glCreateList( function()
 
@@ -426,6 +315,7 @@ local function createList()
 		glColor(0.88,0.88,0.88,0.9)
 		glTexture(nextTex)
 		glTexRect(buttons[button][1]+padding2, buttons[button][2]+padding2, buttons[button][3]-padding2, buttons[button][4]-padding2)
+		glTexture(false)
 
 	end)
 	drawlist[3] = glCreateList( function()
@@ -460,26 +350,25 @@ local function createList()
 		local lineHeight = math.floor((1.5*widgetScale)+0.5)
 
 		local button = 'musicvolumeicon'
-		local sliderY = buttons[button][2] + (buttons[button][4] - buttons[button][2])/2
+		local sliderY = math.floor(buttons[button][2] + (buttons[button][4] - buttons[button][2])/2)
 		glColor(0.8,0.8,0.8,0.9)
 		glTexture(musicTex)
 		glTexRect(buttons[button][1]+padding2, buttons[button][2]+padding2, buttons[button][3]-padding2, buttons[button][4]-padding2)
+		glTexture(false)
 
 		button = 'musicvolume'
-		RectRound(buttons[button][1], sliderY-math.ceil(lineHeight*1.15), buttons[button][3], sliderY+lineHeight, (lineHeight/3)*widgetScale,2,2,2,2, {0.1,0.1,0.1,0.35}, {0.8,0.8,0.8,0.35})
-		RectRound(buttons[button][1], sliderY-math.ceil(lineHeight*1.15), buttons[button][3], sliderY+(lineHeight*0.15), (lineHeight/3)*widgetScale,2,2,2,2, {1,1,1,0.17}, {1,1,1,0})
-		RectRound(buttons[button][5]-sliderWidth, sliderY-sliderHeight, buttons[button][5]+sliderWidth, sliderY+sliderHeight, (sliderWidth/7)*widgetScale, 1,1,1,1, {0.6,0.6,0.6,1}, {0.9,0.9,0.9,1})
-
+		UiSlider(buttons[button][1], sliderY-math.ceil(lineHeight*1.15), buttons[button][3], sliderY+lineHeight)
+		UiSliderKnob(buttons[button][5]-(sliderWidth/2), sliderY, sliderWidth)
 
 		button = 'volumeicon'
 		glColor(0.8,0.8,0.8,0.9)
 		glTexture(volumeTex)
 		glTexRect(buttons[button][1]+padding2, buttons[button][2]+padding2, buttons[button][3]-padding2, buttons[button][4]-padding2)
+		glTexture(false)
 
 		button = 'volume'
-		RectRound(buttons[button][1], sliderY-math.ceil(lineHeight*1.15), buttons[button][3], sliderY+lineHeight, (lineHeight/3)*widgetScale,2,2,2,2, {0.1,0.1,0.1,0.35}, {0.8,0.8,0.8,0.35})
-		RectRound(buttons[button][1], sliderY-math.ceil(lineHeight*1.15), buttons[button][3], sliderY+(lineHeight*0.15), (lineHeight/3)*widgetScale,2,2,2,2, {1,1,1,0.17}, {1,1,1,0})
-		RectRound(buttons[button][5]-sliderWidth, sliderY-sliderHeight, buttons[button][5]+sliderWidth, sliderY+sliderHeight, (sliderWidth/7)*widgetScale, 1,1,1,1, {0.6,0.6,0.6,1}, {0.9,0.9,0.9,1})
+		UiSlider(buttons[button][1], sliderY-math.ceil(lineHeight*1.15), buttons[button][3], sliderY+lineHeight)
+		UiSliderKnob(buttons[button][5]-(sliderWidth/2), sliderY, sliderWidth)
 
 	end)
 	if WG['tooltip'] ~= nil and trackname then
@@ -503,7 +392,7 @@ end
 function widget:MouseMove(x, y)
 	if draggingSlider ~= nil then
 		if draggingSlider == 'musicvolume' then
-			maxMusicVolume = math.floor(getSliderValue(draggingSlider, x) * 50)
+			maxMusicVolume = math.floor(getSliderValue(draggingSlider, x) * 100)
 			Spring.SetConfigInt("snd_volmusic", math.floor(maxMusicVolume * fadeMult))
 			createList()
 		end
@@ -532,7 +421,7 @@ function mouseEvent(x, y, button, release)
 			local button = 'musicvolume'
 			if isInBox(x, y, {buttons[button][1]-sliderWidth, buttons[button][2], buttons[button][3]+sliderWidth, buttons[button][4]}) then
 				draggingSlider = button
-				maxMusicVolume = math.floor(getSliderValue(button, x) * 50)
+				maxMusicVolume = math.floor(getSliderValue(button, x) * 100)
 				Spring.SetConfigInt("snd_volmusic", math.floor(maxMusicVolume * fadeMult))
 				createList()
 			end
@@ -733,7 +622,6 @@ function PlayNewTrack(track)
 	createList()
 end
 
-local uiOpacitySec = 0
 function widget:Update(dt)
 	if playing then
 		updateMusicVolume()
@@ -756,10 +644,10 @@ function widget:Update(dt)
 			widget:ViewResize()
 		end
 		uiOpacitySec = 0
-		if ui_opacity ~= Spring.GetConfigFloat("ui_opacity",0.66) or guishaderEnabled ~= (WG['guishader']) then
+		if ui_opacity ~= Spring.GetConfigFloat("ui_opacity",0.66) or guishaderEnabled ~= (WG['guishader'] ~= nil)then
 			ui_opacity = Spring.GetConfigFloat("ui_opacity",0.66)
 			glossMult = 1 + (2-(ui_opacity*2))
-			guishaderEnabled = (WG['guishader'])
+			guishaderEnabled = (WG['guishader'] ~= nil)
 			doCreateList = true
 		end
 	end
@@ -812,8 +700,8 @@ function widget:ViewResize(newX,newY)
 
 	font = WG['fonts'].getFont()
 
-	local widgetSpaceMargin = math.floor(0.0045 * vsy * ui_scale) / vsy
-	bgpadding = math.ceil(widgetSpaceMargin * 0.66 * vsy)
+	bgpadding = Spring.FlowUI.elementPadding
+	elementCorner = Spring.FlowUI.elementCorner
 
 	if prevVsy ~= vsx or prevVsy ~= vsy then
 		createList()
@@ -854,25 +742,25 @@ function widget:DrawScreen()
 			end
 			if mouseover then
 
-			  -- display play progress
-			  local progressPx = ((right-left)*(playedTime/totalTime))
-			  if progressPx > 1 then
-			    if progressPx < borderPadding*5 then
-			    	progressPx = borderPadding*5
-			    end
-			    RectRound(left+borderPaddingLeft, bottom+borderPadding-(1.8*widgetScale), left-borderPaddingRight+progressPx , top-borderPadding, borderPadding*1.4, 2,2,2,2, {0.6,0.6,0.6,ui_opacity*0.14}, {1,1,1,ui_opacity*0.14})
-			  end
+				-- display play progress
+				local progressPx = math.floor((right - left) * (playedTime / totalTime))
+				if progressPx > 1 then
+					if progressPx < borderPadding * 5 then
+						progressPx = borderPadding * 5
+					end
+					RectRound(left + borderPaddingLeft, bottom + borderPadding - (1.8 * widgetScale), left - borderPaddingRight + progressPx, top - borderPadding, borderPadding * 1.4, 2, 2, 2, 2, { 0.6, 0.6, 0.6, ui_opacity * 0.14 }, { 1, 1, 1, ui_opacity * 0.14 })
+				end
 
-			  local color = {1,1,1,0.18}
-			  local colorHighlight = {1,1,1,0.3}
-			  glBlending(GL_SRC_ALPHA, GL_ONE)
-			  local button = 'playpause'
-				if buttons[button] ~= nil and isInBox(mx, my, {buttons[button][1], buttons[button][2], buttons[button][3], buttons[button][4]}) then
-					RectRound(buttons[button][1], buttons[button][2], buttons[button][3], buttons[button][4], borderPadding*0.6, 2,2,2,2, mlb and colorHighlight or color, mlb and colorHighlight or color)
+				local color = { 1, 1, 1, 0.1 }
+				local colorHighlight = { 1, 1, 1, 0.3 }
+				glBlending(GL_SRC_ALPHA, GL_ONE)
+				local button = 'playpause'
+				if buttons[button] ~= nil and isInBox(mx, my, { buttons[button][1], buttons[button][2], buttons[button][3], buttons[button][4] }) then
+					UiButton(buttons[button][1], buttons[button][2], buttons[button][3], buttons[button][4], 1, 1, 1, 1, 1, 1, 1, 1, 1, mlb and colorHighlight or color)
 				end
 				button = 'next'
-				if buttons[button] ~= nil and isInBox(mx, my, {buttons[button][1], buttons[button][2], buttons[button][3], buttons[button][4]}) then
-					RectRound(buttons[button][1], buttons[button][2], buttons[button][3], buttons[button][4], borderPadding*0.6, 2,2,2,2, mlb and colorHighlight or color, mlb and colorHighlight or color)
+				if buttons[button] ~= nil and isInBox(mx, my, { buttons[button][1], buttons[button][2], buttons[button][3], buttons[button][4] }) then
+					UiButton(buttons[button][1], buttons[button][2], buttons[button][3], buttons[button][4], 1, 1, 1, 1, 1, 1, 1, 1, 1, mlb and colorHighlight or color)
 				end
 				glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 			end

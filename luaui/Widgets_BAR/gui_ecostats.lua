@@ -10,18 +10,9 @@ function widget:GetInfo()
 	}
 end
 
-
 local loadSettings		= true
 
 local vsx,vsy = Spring.GetViewGeometry()
-
----------------------------------------------------------------------------------------------------
---  Declarations
----------------------------------------------------------------------------------------------------
-
-local texts = {        -- fallback (if you want to change this, also update: language/en.lua, or it will be overwritten)
-	tooltip = 'Team metal/energy income\n(Lighter part of the bar is reclaim income)',
-}
 
 local PmaxDmg						= 0
 local comTable 						= {}
@@ -64,6 +55,9 @@ local GetPlayerInfo					= Spring.GetPlayerInfo
 local GetTeamColor					= Spring.GetTeamColor
 local GetTeamResources				= Spring.GetTeamResources
 local Echo							= Spring.Echo
+
+local RectRound = Spring.FlowUI.Draw.RectRound
+local UiElement = Spring.FlowUI.Draw.Element
 
 local font, bgpadding, chobbyInterface, sideImageList
 
@@ -163,10 +157,6 @@ local images			= {
 ---------------------------------------------------------------------------------------------------
 
 function widget:Initialize()
-	if WG['lang'] then
-		texts = WG['lang'].getText('ecostats')
-	end
-
 	if not (Spring.GetSpectatingState() or isReplay) then
 		inSpecMode = false
 		Spring.Echo("Ecostats: widget loaded in active player mode")
@@ -408,114 +398,6 @@ local function formatRes(number)
 end
 
 
--- Draw
-local function DrawRectRound(px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)
-	local csyMult = 1 / ((sy-py)/cs)
-
-	if c2 then
-		gl.Color(c1[1],c1[2],c1[3],c1[4])
-	end
-	gl.Vertex(px+cs, py, 0)
-	gl.Vertex(sx-cs, py, 0)
-	if c2 then
-		gl.Color(c2[1],c2[2],c2[3],c2[4])
-	end
-	gl.Vertex(sx-cs, sy, 0)
-	gl.Vertex(px+cs, sy, 0)
-
-	-- left side
-	if c2 then
-		gl.Color(c1[1]*(1-csyMult)+(c2[1]*csyMult),c1[2]*(1-csyMult)+(c2[2]*csyMult),c1[3]*(1-csyMult)+(c2[3]*csyMult),c1[4]*(1-csyMult)+(c2[4]*csyMult))
-	end
-	gl.Vertex(px, py+cs, 0)
-	gl.Vertex(px+cs, py+cs, 0)
-	if c2 then
-		gl.Color(c2[1]*(1-csyMult)+(c1[1]*csyMult),c2[2]*(1-csyMult)+(c1[2]*csyMult),c2[3]*(1-csyMult)+(c1[3]*csyMult),c2[4]*(1-csyMult)+(c1[4]*csyMult))
-	end
-	gl.Vertex(px+cs, sy-cs, 0)
-	gl.Vertex(px, sy-cs, 0)
-
-	-- right side
-	if c2 then
-		gl.Color(c1[1]*(1-csyMult)+(c2[1]*csyMult),c1[2]*(1-csyMult)+(c2[2]*csyMult),c1[3]*(1-csyMult)+(c2[3]*csyMult),c1[4]*(1-csyMult)+(c2[4]*csyMult))
-	end
-	gl.Vertex(sx, py+cs, 0)
-	gl.Vertex(sx-cs, py+cs, 0)
-	if c2 then
-		gl.Color(c2[1]*(1-csyMult)+(c1[1]*csyMult),c2[2]*(1-csyMult)+(c1[2]*csyMult),c2[3]*(1-csyMult)+(c1[3]*csyMult),c2[4]*(1-csyMult)+(c1[4]*csyMult))
-	end
-	gl.Vertex(sx-cs, sy-cs, 0)
-	gl.Vertex(sx, sy-cs, 0)
-
-	local offset = 0.15		-- texture offset, because else gaps could show
-
-	-- bottom left
-	if c2 then
-		gl.Color(c1[1],c1[2],c1[3],c1[4])
-	end
-	if ((py <= 0 or px <= 0)  or (bl ~= nil and bl == 0)) and bl ~= 2   then
-		gl.Vertex(px, py, 0)
-	else
-		gl.Vertex(px+cs, py, 0)
-	end
-	gl.Vertex(px+cs, py, 0)
-	if c2 then
-		gl.Color(c1[1]*(1-csyMult)+(c2[1]*csyMult),c1[2]*(1-csyMult)+(c2[2]*csyMult),c1[3]*(1-csyMult)+(c2[3]*csyMult),c1[4]*(1-csyMult)+(c2[4]*csyMult))
-	end
-	gl.Vertex(px+cs, py+cs, 0)
-	gl.Vertex(px, py+cs, 0)
-	-- bottom right
-	if c2 then
-		gl.Color(c1[1],c1[2],c1[3],c1[4])
-	end
-	if ((py <= 0 or sx >= vsx) or (br ~= nil and br == 0)) and br ~= 2 then
-		gl.Vertex(sx, py, 0)
-	else
-		gl.Vertex(sx-cs, py, 0)
-	end
-	gl.Vertex(sx-cs, py, 0)
-	if c2 then
-		gl.Color(c1[1]*(1-csyMult)+(c2[1]*csyMult),c1[2]*(1-csyMult)+(c2[2]*csyMult),c1[3]*(1-csyMult)+(c2[3]*csyMult),c1[4]*(1-csyMult)+(c2[4]*csyMult))
-	end
-	gl.Vertex(sx-cs, py+cs, 0)
-	gl.Vertex(sx, py+cs, 0)
-	-- top left
-	if c2 then
-		gl.Color(c2[1],c2[2],c2[3],c2[4])
-	end
-	if ((sy >= vsy or px <= 0) or (tl ~= nil and tl == 0)) and tl ~= 2 then
-		gl.Vertex(px, sy, 0)
-	else
-		gl.Vertex(px+cs, sy, 0)
-	end
-	gl.Vertex(px+cs, sy, 0)
-	if c2 then
-		gl.Color(c2[1]*(1-csyMult)+(c1[1]*csyMult),c2[2]*(1-csyMult)+(c1[2]*csyMult),c2[3]*(1-csyMult)+(c1[3]*csyMult),c2[4]*(1-csyMult)+(c1[4]*csyMult))
-	end
-	gl.Vertex(px+cs, sy-cs, 0)
-	gl.Vertex(px, sy-cs, 0)
-	-- top right
-	if c2 then
-		gl.Color(c2[1],c2[2],c2[3],c2[4])
-	end
-	if ((sy >= vsy or sx >= vsx)  or (tr ~= nil and tr == 0)) and tr ~= 2 then
-		gl.Vertex(sx, sy, 0)
-	else
-		gl.Vertex(sx-cs, sy, 0)
-	end
-	gl.Vertex(sx-cs, sy, 0)
-	if c2 then
-		gl.Color(c2[1]*(1-csyMult)+(c1[1]*csyMult),c2[2]*(1-csyMult)+(c1[2]*csyMult),c2[3]*(1-csyMult)+(c1[3]*csyMult),c2[4]*(1-csyMult)+(c1[4]*csyMult))
-	end
-	gl.Vertex(sx-cs, sy-cs, 0)
-	gl.Vertex(sx, sy-cs, 0)
-end
-function RectRound(px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)		-- (coordinates work differently than the RectRound func in other widgets)
-	gl.Texture(false)
-	gl.BeginEnd(GL.QUADS, DrawRectRound, px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)
-end
-
-
 local function DrawEText(numberE, vOffset)
 	if Options["resText"]["On"] then
 		local label = tconcat({"",formatRes(numberE)})
@@ -549,6 +431,7 @@ local function DrawEBar(tE,tEp,vOffset)-- where tE = team Energy = [0,1]
 	if Options["resText"]["On"] then
 		maxW = (widgetWidth/2) + (2*sizeMultiplier)
 	end
+
 	-- background
 	glColor(0.8, 0.8, 0, 0.13)
 	gl.Texture(images["barbg"])
@@ -733,21 +616,14 @@ local function DrawBackground(posY, allyID, sideimagesWidth)
 	if (widgetPosX + widgetWidth) >= vsx-0.2 then
 		borderPaddingRight = 0
 	end
-	--glColor(0,0,0,ui_opacity)
-	RectRound(widgetPosX+sideimagesWidth,y1, widgetPosX + widgetWidth, y2, borderPadding*1.4,  (posY>tH and 1 or 0),1,1,1, {0,0,0,ui_opacity*1.1}, {0.05,0.05,0.05,ui_opacity*1.1})
-	--glColor(1,1,1,ui_opacity*0.055)
-	RectRound(widgetPosX+sideimagesWidth+borderPadding,y1+borderPadding, widgetPosX + widgetWidth-borderPaddingRight, y2, borderPadding, (posY>tH and 1 or 0), 0,0,1, {0.5,0.5,0.5,ui_opacity*0.1}, {1,1,1,ui_opacity*0.1})
-	-- gloss
-	glBlending(GL_SRC_ALPHA, GL_ONE)
-	RectRound(widgetPosX+sideimagesWidth+borderPadding,y1+borderPadding+((y2-y1)*0.6), widgetPosX + widgetWidth-borderPaddingRight, y2, borderPadding, (posY>tH and 1 or 0), 0,0,0, {1,1,1,0.006*glossMult}, {1,1,1,0.05*glossMult})
-	RectRound(widgetPosX+sideimagesWidth+borderPadding,y1+borderPadding, widgetPosX + widgetWidth-borderPaddingRight, y1+borderPadding+((y2-y1)*0.35), borderPadding*0.8, 0,0,0,1, {1,1,1,0.025*glossMult}, {1,1,1,0})
-	glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+
+	UiElement(widgetPosX+sideimagesWidth,y1, widgetPosX + widgetWidth, y2, (posY>tH and 1 or 0),0,0,1, 0,1,1,1)
 
 	guishaderRects['ecostats_'..allyID] = {widgetPosX+sideimagesWidth, y1, widgetPosX + widgetWidth, y2, 4*widgetScale}
 
 	area[1] = area[1]+(widgetWidth/12)
 	if WG['tooltip'] ~= nil and (tooltipAreas['ecostats_'..allyID] == nil or tooltipAreas['ecostats_'..allyID] ~= area[1]..'_'..area[2]..'_'..area[3]..'_'..area[4]) then
-		WG['tooltip'].AddTooltip('ecostats_'..allyID, area, texts.tooltip)
+		WG['tooltip'].AddTooltip('ecostats_'..allyID, area, Spring.I18N('ui.teamEconomy.tooltip'))
 		tooltipAreas['ecostats_'..allyID] = area[1]..'_'..area[2]..'_'..area[3]..'_'..area[4]
 	end
 	glColor(1,1,1,1)
@@ -1466,8 +1342,7 @@ function widget:ViewResize()
 	widgetPosX, widgetPosY = xRelPos * vsx, yRelPos * vsy
 	widgetScale = (((vsy) / 2000) * 0.5) * (0.95+(ui_scale-1)/1.5)		-- only used for rounded corners atm
 
-	local widgetSpaceMargin = math.floor((0.0045 * (vsy/vsx))*vsx * ui_scale)
-	bgpadding = math.ceil(widgetSpaceMargin * 0.66)
+	bgpadding = Spring.FlowUI.elementPadding
 
 	font = WG['fonts'].getFont()
 
@@ -1512,7 +1387,7 @@ function makeSideImageList()
 			if guishaderRectsDlists[id] then
 				gl.DeleteList(guishaderRectsDlists[id])
 			end
-			guishaderRectsDlists[id] = gl.CreateList( function() RectRound(rect[1],rect[2],rect[3],rect[4],rect[5]) end)
+			guishaderRectsDlists[id] = gl.CreateList( function() RectRound(rect[1],rect[2],rect[3],rect[4],rect[5], 1,0,0,1) end)
 			WG['guishader'].InsertDlist(guishaderRectsDlists[id], id)
 		end
 	end

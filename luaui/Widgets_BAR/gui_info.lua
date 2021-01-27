@@ -27,10 +27,55 @@ local hoverCellZoom = 0.03 * zoomMult
 local iconBorderOpacity = 0.1
 local showSelectionTotals = true
 
+local backgroundTexture = "LuaUI/Images/backgroundtile.png"
+local ui_tileopacity = tonumber(Spring.GetConfigFloat("ui_tileopacity", 0.012) or 0.012)
+local bgtexScale = tonumber(Spring.GetConfigFloat("ui_tilescale", 7) or 7)	-- lower = smaller tiles
+local bgtexSize
+
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 
 local texts = {        -- fallback (if you want to change this, also update: language/en.lua, or it will be overwritten)
+	selectedunits = 'Selected units',
+	unitsselected = 'units selected',
+	m = 'M',
+	e = 'E',
+	costm = 'Cost M',
+	coste = 'Cost E',
+	health = 'Health',
+	of = 'of',		-- 3 of 7
+	xp = 'XP',
+	maxhealth = 'max health',
+	reload = 'reload',
+	dps = 'DPS',
+	weaponrange = 'weapon range',
+	reloadtime = 'reload time',
+	energyshot = 'energy/shot',
+	metalshot = 'metal/shot',
+	stealthy = 'stealthy',
+	cloakcost = 'cloak cost',
+	cloakcostmoving = 'cloak cost moving',
+	transportmaxmass = 'transport max mass',
+	transportmaxsize = 'transport max size',
+	transportcapacity = 'transport capacity',
+	speed = 'speed',
+	reversespeed = 'reverse speed',
+	buildpower = 'buildpower',
+	buildoptions = 'buildoptions',
+	unparalyzable = 'unparalyzable',
+	paralyzemult = 'paralyzeMult',
+	transportable = 'transportable',
+	los = 'LoS',
+	airlos = 'AirLoS',
+	radar = 'radar',
+	sonar = 'sonar',
+	jamrange = 'jam range',
+	sonarjamrange = 'sonar jam range',
+	seismic = 'seismic',
+	eneededforconversion = 'E needed for conversion',
+	convertedm = 'converted M',
+	estorage = 'E storage',
+	mstorage = 'M storage',
 }
 
 local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
@@ -123,6 +168,11 @@ local GL_SRC_ALPHA = GL.SRC_ALPHA
 local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 local GL_ONE = GL.ONE
 
+local RectRound = Spring.FlowUI.Draw.RectRound
+local UiElement = Spring.FlowUI.Draw.Element
+local UiUnit = Spring.FlowUI.Draw.Unit
+local elementCorner = Spring.FlowUI.elementCorner
+
 function lines(str)
 	local t = {}
 	local function helper(line)
@@ -194,6 +244,12 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	end
 	if unitDef.stealth then
 		unitDefInfo[unitDefID].stealth = true
+	end
+	if unitDef.cloakCost then
+		unitDefInfo[unitDefID].cloakCost = unitDef.cloakCost
+		if unitDef.cloakCostMoving > unitDef.cloakCost then
+			unitDefInfo[unitDefID].cloakCostMoving = unitDef.cloakCostMoving
+		end
 	end
 	if unitDef.isTransport then
 		unitDefInfo[unitDefID].transport = { unitDef.transportMass, unitDef.transportSize, unitDef.transportCapacity }
@@ -349,7 +405,7 @@ local function checkGuishader(force)
 		end
 		if not dlistGuishader then
 			dlistGuishader = gl.CreateList(function()
-				RectRound(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], bgpadding * 1.6)
+				RectRound(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], elementCorner)
 			end)
 			WG['guishader'].InsertDlist(dlistGuishader, 'info')
 		end
@@ -376,8 +432,8 @@ function widget:ViewResize()
 	height = math_floor(height * vsy) / vsy
 	width = math_floor(width * vsx) / vsx
 
-	local widgetSpaceMargin = math_floor(0.0045 * vsy * ui_scale) / vsy
-	bgpadding = math_ceil(widgetSpaceMargin * 0.66 * vsy)
+	bgpadding = Spring.FlowUI.elementPadding
+	elementCorner = Spring.FlowUI.elementCorner
 
 	backgroundRect = { 0, 0, (width - addonWidth) * vsx, height * vsy }
 
@@ -429,6 +485,18 @@ end
 function widget:Initialize()
 	if WG['lang'] then
 		texts = WG['lang'].getText('info')
+		local translations = WG['lang'].getText('unitnames')
+		for name,text in pairs(translations) do
+			if UnitDefNames[name] then
+				unitDefInfo[UnitDefNames[name].id].humanName = text
+			end
+		end
+		translations = WG['lang'].getText('unittooltips')
+		for name,text in pairs(translations) do
+			if UnitDefNames[name] then
+				unitDefInfo[UnitDefNames[name].id].tooltip = text
+			end
+		end
 	end
 	widget:ViewResize()
 
@@ -540,113 +608,6 @@ function widget:Update(dt)
 		sec = 0
 		checkChanges()
 	end
-end
-
-local function DrawRectRound(px, py, sx, sy, cs, tl, tr, br, bl, c1, c2)
-	local csyMult = 1 / ((sy - py) / cs)
-
-	if c2 then
-		gl.Color(c1[1], c1[2], c1[3], c1[4])
-	end
-	gl.Vertex(px + cs, py, 0)
-	gl.Vertex(sx - cs, py, 0)
-	if c2 then
-		gl.Color(c2[1], c2[2], c2[3], c2[4])
-	end
-	gl.Vertex(sx - cs, sy, 0)
-	gl.Vertex(px + cs, sy, 0)
-
-	-- left side
-	if c2 then
-		gl.Color(c1[1] * (1 - csyMult) + (c2[1] * csyMult), c1[2] * (1 - csyMult) + (c2[2] * csyMult), c1[3] * (1 - csyMult) + (c2[3] * csyMult), c1[4] * (1 - csyMult) + (c2[4] * csyMult))
-	end
-	gl.Vertex(px, py + cs, 0)
-	gl.Vertex(px + cs, py + cs, 0)
-	if c2 then
-		gl.Color(c2[1] * (1 - csyMult) + (c1[1] * csyMult), c2[2] * (1 - csyMult) + (c1[2] * csyMult), c2[3] * (1 - csyMult) + (c1[3] * csyMult), c2[4] * (1 - csyMult) + (c1[4] * csyMult))
-	end
-	gl.Vertex(px + cs, sy - cs, 0)
-	gl.Vertex(px, sy - cs, 0)
-
-	-- right side
-	if c2 then
-		gl.Color(c1[1] * (1 - csyMult) + (c2[1] * csyMult), c1[2] * (1 - csyMult) + (c2[2] * csyMult), c1[3] * (1 - csyMult) + (c2[3] * csyMult), c1[4] * (1 - csyMult) + (c2[4] * csyMult))
-	end
-	gl.Vertex(sx, py + cs, 0)
-	gl.Vertex(sx - cs, py + cs, 0)
-	if c2 then
-		gl.Color(c2[1] * (1 - csyMult) + (c1[1] * csyMult), c2[2] * (1 - csyMult) + (c1[2] * csyMult), c2[3] * (1 - csyMult) + (c1[3] * csyMult), c2[4] * (1 - csyMult) + (c1[4] * csyMult))
-	end
-	gl.Vertex(sx - cs, sy - cs, 0)
-	gl.Vertex(sx, sy - cs, 0)
-
-	local offset = 0.15        -- texture offset, because else gaps could show
-
-	-- bottom left
-	if c2 then
-		gl.Color(c1[1], c1[2], c1[3], c1[4])
-	end
-	if ((py <= 0 or px <= 0) or (bl ~= nil and bl == 0)) and bl ~= 2 then
-		gl.Vertex(px, py, 0)
-	else
-		gl.Vertex(px + cs, py, 0)
-	end
-	gl.Vertex(px + cs, py, 0)
-	if c2 then
-		gl.Color(c1[1] * (1 - csyMult) + (c2[1] * csyMult), c1[2] * (1 - csyMult) + (c2[2] * csyMult), c1[3] * (1 - csyMult) + (c2[3] * csyMult), c1[4] * (1 - csyMult) + (c2[4] * csyMult))
-	end
-	gl.Vertex(px + cs, py + cs, 0)
-	gl.Vertex(px, py + cs, 0)
-	-- bottom right
-	if c2 then
-		gl.Color(c1[1], c1[2], c1[3], c1[4])
-	end
-	if ((py <= 0 or sx >= vsx) or (br ~= nil and br == 0)) and br ~= 2 then
-		gl.Vertex(sx, py, 0)
-	else
-		gl.Vertex(sx - cs, py, 0)
-	end
-	gl.Vertex(sx - cs, py, 0)
-	if c2 then
-		gl.Color(c1[1] * (1 - csyMult) + (c2[1] * csyMult), c1[2] * (1 - csyMult) + (c2[2] * csyMult), c1[3] * (1 - csyMult) + (c2[3] * csyMult), c1[4] * (1 - csyMult) + (c2[4] * csyMult))
-	end
-	gl.Vertex(sx - cs, py + cs, 0)
-	gl.Vertex(sx, py + cs, 0)
-	-- top left
-	if c2 then
-		gl.Color(c2[1], c2[2], c2[3], c2[4])
-	end
-	if ((sy >= vsy or px <= 0) or (tl ~= nil and tl == 0)) and tl ~= 2 then
-		gl.Vertex(px, sy, 0)
-	else
-		gl.Vertex(px + cs, sy, 0)
-	end
-	gl.Vertex(px + cs, sy, 0)
-	if c2 then
-		gl.Color(c2[1] * (1 - csyMult) + (c1[1] * csyMult), c2[2] * (1 - csyMult) + (c1[2] * csyMult), c2[3] * (1 - csyMult) + (c1[3] * csyMult), c2[4] * (1 - csyMult) + (c1[4] * csyMult))
-	end
-	gl.Vertex(px + cs, sy - cs, 0)
-	gl.Vertex(px, sy - cs, 0)
-	-- top right
-	if c2 then
-		gl.Color(c2[1], c2[2], c2[3], c2[4])
-	end
-	if ((sy >= vsy or sx >= vsx) or (tr ~= nil and tr == 0)) and tr ~= 2 then
-		gl.Vertex(sx, sy, 0)
-	else
-		gl.Vertex(sx - cs, sy, 0)
-	end
-	gl.Vertex(sx - cs, sy, 0)
-	if c2 then
-		gl.Color(c2[1] * (1 - csyMult) + (c1[1] * csyMult), c2[2] * (1 - csyMult) + (c1[2] * csyMult), c2[3] * (1 - csyMult) + (c1[3] * csyMult), c2[4] * (1 - csyMult) + (c1[4] * csyMult))
-	end
-	gl.Vertex(sx - cs, sy - cs, 0)
-	gl.Vertex(sx, sy - cs, 0)
-end
-function RectRound(px, py, sx, sy, cs, tl, tr, br, bl, c1, c2)
-	-- (coordinates work differently than the RectRound func in other widgets)
-	gl.Texture(false)
-	gl.BeginEnd(GL.QUADS, DrawRectRound, px, py, sx, sy, cs, tl, tr, br, bl, c1, c2)
 end
 
 local function DrawRectRoundCircle(x, y, z, radius, cs, centerOffset, color1, color2)
@@ -782,61 +743,17 @@ local function drawSelectionCell(cellID, uDefID, usedZoom, highlightColor)
 		usedZoom = defaultCellZoom
 	end
 
-	glColor(1, 1, 1, 1)
-	glTexture(texSetting .. "unitpics/" .. unitDefInfo[uDefID].buildPic)
-	--glTexRect(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3]-cellPadding, cellRect[cellID][4]-cellPadding)
-	--DrawRect(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3]-cellPadding, cellRect[cellID][4]-cellPadding,0.06)
-	TexRectRound(cellRect[cellID][1] + cellPadding, cellRect[cellID][2] + cellPadding, cellRect[cellID][3], cellRect[cellID][4], cornerSize, 1, 1, 1, 1, usedZoom)
-	glTexture(false)
-	-- darkening bottom
-	RectRound(cellRect[cellID][1] + cellPadding, cellRect[cellID][2] + cellPadding, cellRect[cellID][3], cellRect[cellID][4], cornerSize, 0, 0, 1, 1, { 0, 0, 0, 0.1 }, { 0, 0, 0, 0 })
-	-- gloss
-	glBlending(GL_SRC_ALPHA, GL_ONE)
-	RectRound(cellRect[cellID][1] + cellPadding, cellRect[cellID][4] - ((cellRect[cellID][4] - cellRect[cellID][2]) * 0.77), cellRect[cellID][3], cellRect[cellID][4], cornerSize, 1, 1, 0, 0, { 1, 1, 1, 0 }, { 1, 1, 1, 0.08 })
-	RectRound(cellRect[cellID][1] + cellPadding, cellRect[cellID][4] - ((cellRect[cellID][4] - cellRect[cellID][2]) * 0.14), cellRect[cellID][3], cellRect[cellID][4], cornerSize, 1, 1, 0, 0, { 1, 1, 1, 0 }, { 1, 1, 1, 0.05 })
-	RectRound(cellRect[cellID][1] + cellPadding, cellRect[cellID][2] + cellPadding, cellRect[cellID][3], cellRect[cellID][2] + cellPadding + ((cellRect[cellID][4] - cellRect[cellID][2]) * 0.14), cornerSize, 0, 0, 1, 1, { 1, 1, 1, 0.08 }, { 1, 1, 1, 0 })
-	glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-
-	-- lighten cell edges
-	if highlightColor then
-		local halfSize = (((cellRect[cellID][3] - cellPadding)) - (cellRect[cellID][1])) * 0.5
-		glBlending(GL_SRC_ALPHA, GL_ONE)
-		RectRoundCircle(
-			cellRect[cellID][1] + cellPadding + halfSize,
-			0,
-			cellRect[cellID][2] + cellPadding + halfSize,
-			halfSize, cornerSize, halfSize * 0.5, { highlightColor[1], highlightColor[2], highlightColor[3], 0 }, { highlightColor[1], highlightColor[2], highlightColor[3], highlightColor[4] * 0.75 }
-		)
-		RectRoundCircle(
-			cellRect[cellID][1] + cellPadding + halfSize,
-			0,
-			cellRect[cellID][2] + cellPadding + halfSize,
-			halfSize, cornerSize, halfSize * 0.82, { highlightColor[1], highlightColor[2], highlightColor[3], 0 }, highlightColor
-		)
-		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-	end
-
-	-- lighten border
-	local halfSize = (((cellRect[cellID][3] - cellPadding)) - (cellRect[cellID][1])) * 0.5
-	if iconBorderOpacity > 0 then
-		glBlending(GL_SRC_ALPHA, GL_ONE)
-		RectRoundCircle(
-			cellRect[cellID][1] + cellPadding + halfSize,
-			0,
-			cellRect[cellID][2] + cellPadding + halfSize,
-			halfSize, cornerSize, halfSize - math_max(1, cellPadding), { 1, 1, 1, iconBorderOpacity }, { 1, 1, 1, iconBorderOpacity }
-		)
-		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-	end
-
-	-- group icon
-	if unitGroup[uDefID] then
-		local size = math.floor((halfSize + halfSize) * 0.29)
-		glColor(1, 1, 1, 0.9)
-		glTexture(groups[unitGroup[uDefID]])
-		glTexRect(cellRect[cellID][1] + cellPadding, cellRect[cellID][4] - size, cellRect[cellID][1] + size + cellPadding, cellRect[cellID][4])
-		glTexture(false)
-	end
+	glColor(1,1,1,1)
+	UiUnit(
+		cellRect[cellID][1] + cellPadding, cellRect[cellID][2] + cellPadding, cellRect[cellID][3], cellRect[cellID][4],
+		cornerSize,
+		1,1,1,1,
+		usedZoom,
+		nil, nil,
+		texSetting .. "unitpics/" .. unitDefInfo[uDefID].buildPic,
+		nil,
+		groups[unitGroup[uDefID]]
+	)
 
 	-- unitcount
 	if selUnitsCounts[uDefID] > 1 then
@@ -1036,51 +953,25 @@ local function drawUnitInfo()
 	local iconSize = math.floor(fontSize * 4.4)
 	local iconPadding = math.floor(fontSize * 0.28)
 
-	glColor(1, 1, 1, 1)
 	if unitDefInfo[displayUnitDefID].buildPic then
 		local iconX = backgroundRect[1] + iconPadding
 		local iconY =  backgroundRect[4] - iconPadding - bgpadding
-
-		glTexture(":lr"..unitIconSize..","..unitIconSize..":unitpics/" .. unitDefInfo[displayUnitDefID].buildPic)
-		TexRectRound(iconX, iconY - iconSize, iconX + iconSize, iconY, bgpadding * 0.6, 1, 1, 1, 1, 0.03)
-		glTexture(false)
-		-- darkening bottom
-		RectRound(iconX, iconY - iconSize, iconX + iconSize, iconY, bgpadding * 0.6, 0, 0, 1, 1, { 0, 0, 0, 0.15 }, { 0, 0, 0, 0 })
-		-- gloss
-		glBlending(GL_SRC_ALPHA, GL_ONE)
-		RectRound(iconX, iconY - (iconSize*0.35), iconX + iconSize, iconY, bgpadding * 0.6, 1, 1, 0, 0, { 1, 1, 1, 0 }, { 1, 1, 1, 0.1 })
-		RectRound(iconX, iconY - iconSize, iconX + iconSize, iconY-(iconSize*0.2), bgpadding * 0.6, 0, 0, 1, 1, { 1, 1, 1, 0.05 }, { 1, 1, 1, 0 })
-
-		local halfSize = iconSize * 0.5
-		RectRoundCircle(
-				iconX + halfSize,
-				0,
-				iconY - halfSize,
-				halfSize, bgpadding * 0.6, halfSize - math_max(1, bgpadding* 0.5), { 1, 1, 1, iconBorderOpacity }, { 1, 1, 1, iconBorderOpacity }
+		-- unit icon
+		glColor(1,1,1,1)
+		UiUnit(
+			iconX, iconY - iconSize, iconX + iconSize, iconY,
+			nil,
+			1, 1, 1, 1,
+			0.03,
+			nil, nil,
+			":lr"..unitIconSize..","..unitIconSize..":unitpics/" .. unitDefInfo[displayUnitDefID].buildPic,
+			((unitDefInfo[displayUnitDefID].iconType and iconTypesMap[unitDefInfo[displayUnitDefID].iconType]) and ':lr' .. (radarIconSize * 2) .. ',' .. (radarIconSize * 2) .. ':' .. iconTypesMap[unitDefInfo[displayUnitDefID].iconType] or nil),
+			groups[unitGroup[displayUnitDefID]],
+			{unitDefInfo[displayUnitDefID].metalCost, unitDefInfo[displayUnitDefID].energyCost}
 		)
-		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-
-		-- group icon
-		if unitGroup[displayUnitDefID] then
-			local size = math.floor((halfSize + halfSize) * 0.29)
-			glColor(1, 1, 1, 0.9)
-			glTexture(groups[unitGroup[displayUnitDefID]])
-			glTexRect(iconX, iconY - size, iconX + size, iconY)
-			glTexture(false)
-		end
-
-		-- radar icon
-		if iconTypesMap[unitDefInfo[displayUnitDefID].iconType] then
-			local padding = (halfSize + halfSize) * 0.035
-			local size = math.floor((halfSize + halfSize) * 0.26)
-			glColor(1, 1, 1, 0.9)
-			glTexture(':lr' .. (radarIconSize * 2) .. ',' .. (radarIconSize * 2) .. ':' .. iconTypesMap[unitDefInfo[displayUnitDefID].iconType])
-			glTexRect(iconX+(halfSize + halfSize)-padding-size, iconY - (halfSize + halfSize)+padding, iconX+(halfSize + halfSize)-padding, iconY - (halfSize + halfSize) + size + padding)
-			glTexture(false)
-		end
-
 		-- price
 		if unitGroup[displayUnitDefID] then
+			local halfSize = iconSize * 0.5
 			local padding = (halfSize + halfSize) * 0.045
 			local size = (halfSize + halfSize) * 0.18
 			font3:Print("\255\245\245\245" .. unitDefInfo[displayUnitDefID].metalCost .. "\n\255\255\255\000" .. unitDefInfo[displayUnitDefID].energyCost, iconX + padding, iconY - halfSize - halfSize + padding + (size * 1.07), size, "o")
@@ -1161,15 +1052,24 @@ local function drawUnitInfo()
 	font:End()
 
 	-- unit name
+	local nameFontSize = fontSize * 1.12
+	local humanName = unitDefInfo[displayUnitDefID].humanName
+	humanName = string.gsub(humanName, 'Scavenger', 'Scav')
+	if font:GetTextWidth(humanName) * nameFontSize > width*1.05 then
+		while font:GetTextWidth(humanName) * nameFontSize > width do
+			humanName = string.sub(humanName, 1, string.len(humanName)-1)
+		end
+		humanName = humanName..'...'
+	end
 	font2:Begin()
-	font2:Print(unitNameColor .. unitDefInfo[displayUnitDefID].humanName, backgroundRect[3] - width + bgpadding, backgroundRect[4] - contentPadding - (fontSize * 0.89), fontSize * 1.12, "o")
+	font2:Print(unitNameColor .. humanName, backgroundRect[3] - width + bgpadding, backgroundRect[4] - contentPadding - (nameFontSize * 0.76), nameFontSize, "o")
 	--font2:End()
 
 	-- custom unit info area
 	customInfoArea = { math_floor(backgroundRect[3] - width - bgpadding), math_floor(backgroundRect[2]), math_floor(backgroundRect[3] - bgpadding), math_floor(backgroundRect[2] + height) }
 
 	if not displayMode == 'unitdef' or not unitDefInfo[displayUnitDefID].buildOptions or (not (WG['buildmenu'] and WG['buildmenu'].hoverID)) then
-		RectRound(customInfoArea[1], customInfoArea[2], customInfoArea[3], customInfoArea[4], bgpadding, 1, 0, 0, 0, { 0.8, 0.8, 0.8, 0.06 }, { 0.8, 0.8, 0.8, 0.14 })
+		RectRound(customInfoArea[1], customInfoArea[2], customInfoArea[3], customInfoArea[4], elementCorner*0.66, 1, 0, 0, 0, { 0.8, 0.8, 0.8, 0.08 }, { 0.8, 0.8, 0.8, 0.15 })
 	end
 
 	local contentPaddingLeft = contentPadding * 0.6
@@ -1390,6 +1290,13 @@ local function drawUnitInfo()
 			addTextInfo(texts.stealthy, nil)
 		end
 
+		if unitDefInfo[displayUnitDefID].cloakCost then
+			addTextInfo(texts.cloakcost, unitDefInfo[displayUnitDefID].cloakCost)
+			if unitDefInfo[displayUnitDefID].cloakCostMoving then
+				addTextInfo(texts.cloakcostmoving, unitDefInfo[displayUnitDefID].cloakCostMoving)
+			end
+		end
+
 		if unitDefInfo[displayUnitDefID].transport then
 			addTextInfo(texts.transportmaxmass, unitDefInfo[displayUnitDefID].transport[1])
 			addTextInfo(texts.transportmaxsize, unitDefInfo[displayUnitDefID].transport[2])
@@ -1506,15 +1413,7 @@ local function drawEngineTooltip()
 end
 
 local function drawInfo()
-	RectRound(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], bgpadding * 1.6, 1, (WG['buildpower'] and 0 or 1), 1, 1, { 0.05, 0.05, 0.05, ui_opacity }, { 0, 0, 0, ui_opacity })
-	RectRound(backgroundRect[1], backgroundRect[2] + bgpadding, backgroundRect[3] - bgpadding, backgroundRect[4] - bgpadding, bgpadding, 0, (WG['buildpower'] and 0 or 1), 1, 0, { 0.3, 0.3, 0.3, ui_opacity * 0.1 }, { 1, 1, 1, ui_opacity * 0.1 })
-
-	-- gloss
-	glBlending(GL_SRC_ALPHA, GL_ONE)
-	RectRound(backgroundRect[1], backgroundRect[4] - ((backgroundRect[4] - backgroundRect[2]) * 0.16), backgroundRect[3] - bgpadding, backgroundRect[4] - bgpadding, bgpadding, 0, (WG['buildpower'] and 0 or 1), 0, 0, { 1, 1, 1, 0.006 * glossMult }, { 1, 1, 1, 0.05 * glossMult })
-	RectRound(backgroundRect[1], backgroundRect[2], backgroundRect[3] - bgpadding, backgroundRect[2] + ((backgroundRect[4] - backgroundRect[2]) * 0.15), bgpadding, 0, 0, 0, 0, { 1, 1, 1, 0.02 * glossMult }, { 1, 1, 1, 0 })
-	RectRound(backgroundRect[1], backgroundRect[4] - ((backgroundRect[4] - backgroundRect[2]) * 0.4), backgroundRect[3] - bgpadding, backgroundRect[4] - bgpadding, bgpadding, 0, (WG['buildpower'] and 0 or 1), 0, 0, { 1, 1, 1, 0 }, { 1, 1, 1, 0.07 })
-	glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+	UiElement(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], 0, (WG['buildpower'] and 0 or 1), 0, 0)
 
 	contentPadding = (height * vsy * 0.075) * (0.95 - ((1 - ui_scale) * 0.5))
 	contentWidth = backgroundRect[3] - backgroundRect[1] - contentPadding - contentPadding

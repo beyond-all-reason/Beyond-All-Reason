@@ -2,15 +2,19 @@ local ShieldSphereBase = {
 	layer = -34,
 	life = 10000,
 	radius = 350,
-	colormap1 = {{0.2, 1, 0.2, 0.22}, {1, 0.2, 0.2, 0.22}},
-	colormap2 = {{0.2, 0.9, 1, 0.0}, {1, 0.9, 0.2, 0.0}},
+    --white
+    --colormap1 = {{0.99, 0.99, 0.99, 0.05}, {0.0, 0.0, 0.0, 0.0}},
+	--colormap2 = {{0.95, 0.95, 0.95, 0.01}, {0.0, 0.0, 0.0, 0.0}},
+	-- go to red
+    colormap1 = {{0.99, 0.99, 0.90, 0.05}, {0.6, 0.30, 0.09, 0.0}},
+	colormap2 = {{0.95, 0.95, 0.90, 0.01}, {0.48, 0.16, 0.0, 0.0}},
 	repeatEffect = true,
 	drawBack = 0.7,
 	--
 	terrainOutline = true,
 	unitsOutline = true,
 	impactAnimation = true,
-	impactChrommaticAberrations = true,
+	impactChrommaticAberrations = false,
 	impactHexSwirl = false,
 	impactScaleWithDistance = true,
 	impactRipples = true,

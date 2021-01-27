@@ -61,8 +61,6 @@ else
 	_,_,_,_,_,GaiaAllyTeamID = Spring.GetTeamInfo(GaiaTeamID)
 	ScavengerStartboxExists = false
 end
-teamcount = #Spring.GetTeamList() - 1
-allyteamcount = #Spring.GetAllyTeamList() - 1
 
 BossWaveStarted = false
 selfdx = {}
@@ -98,6 +96,8 @@ AliveEnemyCommanders = {}
 AliveEnemyCommandersCount = 0
 FinalBossKilled = false
 bosshealthmultiplier = 5--teamcount*spawnmultiplier
+ActiveReinforcementUnits = {}
+scavteamhasplayers = false
 
 if Spring.GetModOptions() and Spring.GetModOptions().maxunits then
 	scavMaxUnits = tonumber(Spring.GetModOptions().maxunits)
@@ -162,6 +162,9 @@ function teamsCheck()
 	end
 	if not killedscavengers then
 		killedscavengers = 0
+	end
+	if scoreTeamCount == 1 then
+		scoreTeamCount = 2
 	end
 	local timeScore = Spring.GetGameSeconds()*scavconfig.scoreConfig.scorePerSecond
 	if scavTechDifficulty == "adaptive" then

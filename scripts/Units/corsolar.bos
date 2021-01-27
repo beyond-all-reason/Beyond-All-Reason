@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, d1,d2,d3,d4;
+piece  base, fan, d1,d2,d3,d4;
 
 static-var  Static_Var_1, Static_Var_2, Static_Var_3;
 
@@ -34,6 +34,7 @@ CloseYard()
 
 activatescr()
 {
+	set ACTIVATION to 100;
 	turn d1 to x-axis <90> speed <30>;
 	turn d3 to x-axis <-90> speed <30>;
 	turn d1 to y-axis <180> speed <60>;
@@ -43,6 +44,7 @@ activatescr()
 	turn d4 to z-axis <90> speed <30>;
 	turn d2 to y-axis <180> speed <60>;
 	turn d4 to y-axis <180> speed <60>;
+	spin fan around y-axis speed <15> accelerate <0.1>;
 }
 
 deactivatescr()
@@ -57,6 +59,8 @@ deactivatescr()
 	turn d4 to z-axis <0> speed <30>;
 	turn d2 to y-axis <0> speed <60>;
 	turn d4 to y-axis <0> speed <60>;
+	
+	stop-spin fan around y-axis decelerate <0.2>;
 }
 
 SmokeUnit(healthpercent, sleeptime, smoketype)
@@ -166,6 +170,7 @@ Killed(severity, corpsetype)
 		corpsetype = 1 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode d1 type BITMAPONLY | NOHEATCLOUD;
+		explode fan type BITMAPONLY | NOHEATCLOUD;
 		explode d2 type BITMAPONLY | NOHEATCLOUD;
 		explode d3 type BITMAPONLY | NOHEATCLOUD;
 		explode d4 type BITMAPONLY | NOHEATCLOUD;
@@ -179,6 +184,8 @@ Killed(severity, corpsetype)
 		explode d2 type FALL | NOHEATCLOUD;
 		explode d3 type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode d4 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		
+		explode fan type FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
@@ -189,6 +196,7 @@ Killed(severity, corpsetype)
 		explode d2 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		explode d3 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode d4 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode fan type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
@@ -197,5 +205,6 @@ Killed(severity, corpsetype)
 		explode d2 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode d3 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode d4 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode fan type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }

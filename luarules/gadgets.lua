@@ -38,6 +38,8 @@ VFS.Include(HANDLER_DIR .. 'setupdefs.lua', nil, VFSMODE)
 VFS.Include(HANDLER_DIR .. 'system.lua', nil, VFSMODE)
 VFS.Include(HANDLER_DIR .. 'callins.lua', nil, VFSMODE)
 VFS.Include(SCRIPT_DIR .. 'utilities.lua', nil, VFSMODE)
+VFS.Include("modules/flowui/flowui.lua", nil, VFSMODE)
+
 
 local actionHandler = VFS.Include(HANDLER_DIR .. 'actions.lua', nil, VFSMODE)
 
@@ -939,6 +941,9 @@ function gadgetHandler:SetViewSize(vsx, vsy)
 end
 
 function gadgetHandler:ViewResize(vsx, vsy)
+	if Spring.FlowUI then
+		Spring.FlowUI.ViewResize(vsx, vsy)
+	end
 	for _, g in ipairs(self.ViewResizeList) do
 		g:ViewResize(vsx, vsy)
 	end
@@ -1668,6 +1673,9 @@ function gadgetHandler:SunChanged()
 end
 
 function gadgetHandler:Update(deltaTime)
+	if Spring.FlowUI then
+		Spring.FlowUI.Update(deltaTime)
+	end
 	for _, g in ipairs(self.UpdateList) do
 		g:Update(deltaTime)
 	end
@@ -1743,6 +1751,9 @@ function gadgetHandler:DrawScreenEffects(vsx, vsy)
 end
 
 function gadgetHandler:DrawScreen(vsx, vsy)
+	if Spring.FlowUI then
+		Spring.FlowUI.DrawScreen()
+	end
 	for _, g in ipairs(self.DrawScreenList) do
 		g:DrawScreen(vsx, vsy)
 	end

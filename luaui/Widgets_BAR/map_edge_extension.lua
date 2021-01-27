@@ -1,14 +1,14 @@
 
 function widget:GetInfo()
   return {
-    name      = "Map Edge Extension",
+    name      = "Map Edge Extension Old",
     version   = "v0.6",
     desc      = "Draws a mirrored map next to the edges of the real map",
     author    = "Pako",
     date      = "2010.10.27",
     license   = "GPL",
     layer     = 0,
-    enabled   = true,
+    enabled   = false,
     --detailsDefault = 3
   }
 end

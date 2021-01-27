@@ -14,7 +14,7 @@ end
 --Changelog
 -- v2 Changed colors + remember ; mode + fix keybindings for non english layouts + 2 color presets (/loswithcolors)
 
-local losWithRadarEnabled = true
+local losWithRadarEnabled = false
 local colorize = false
 local specDetected = false
 local opacity = 1
@@ -22,16 +22,16 @@ local opacity = 1
 local always, LOS, radar, jam, radar2
 
 local losColorsWithRadarsGray = {
-    fog =    {0.14, 0.14, 0.14},
-    los =    {0.26, 0.26, 0.26},
-    radar =  {0.17, 0.17, 0.17},
-    jam =    {0.12, 0.00, 0.00},
-    radar2 = {0.17, 0.17, 0.17},
+    fog =    {0.20, 0.20, 0.20},
+    los =    {0.25, 0.25, 0.25},
+    radar =  {0.12, 0.12, 0.12},
+    jam =    {0.10, 0.02, 0.02},
+    radar2 = {0.40, 0.40, 0.40},
 }
 
 local losColorsWithRadarsColor = {
     fog =    {0.17, 0.17, 0.17},
-    los =    {0.22, 0.14, 0.30},
+    los =    {0.30, 0.30, 0.30},
     radar2 = {0.08, 0.16, 0.00},
     jam =    {0.20, 0.00, 0.00},
     radar =  {0.08, 0.16, 0.00},
@@ -39,9 +39,9 @@ local losColorsWithRadarsColor = {
 
 local losColorsWithoutRadars = {
     fog =    {0.30, 0.30, 0.30},
-    los =    {0.25, 0.25, 0.25},
+    los =    {0.20, 0.20, 0.20},
     radar =  {0.00, 0.00, 0.00},
-    jam =    {0.12, 0.00, 0.00},
+    jam =    {0.10, 0.02, 0.02},
     radar2 = {0.00, 0.00, 0.00},
 }
 

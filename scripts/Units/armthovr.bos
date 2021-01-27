@@ -274,6 +274,10 @@ BoomToPad()
 	wait-for-turn turret2 around x-axis;
 }
 
+QueryTransport(tpiece){
+	tpiece = link;
+}
+
 TransportPickup(unitid)
 {
 	call-script BoomCalc(get UNIT_XZ(unitid),get UNIT_Y(unitid) + get UNIT_HEIGHT(unitid));

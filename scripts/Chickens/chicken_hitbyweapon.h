@@ -14,9 +14,11 @@ HitByWeapon(anglex, anglez, damage)	// angle[x|z] is always [-500;500], damage i
 {
 	var amount;//, speedz, speedx;
 	amount = damage / (100 * UNITSIZE);
+	var randpiece;
+	randpiece = 0;
 	if (amount < 3  ) return (0);
-	if (RAND(1, MAXTILT) < amount){
-		var randpiece;
+	//if (RAND(1, MAXTILT) < amount){
+	if (1){
 		randpiece = RAND(1, 3);
 		if (randpiece == 1) emit-sfx 1024 from body;
 		if (randpiece == 2) emit-sfx 1024 from head;
@@ -32,7 +34,7 @@ HitByWeapon(anglex, anglez, damage)	// angle[x|z] is always [-500;500], damage i
 			anglez = RAND(1,500);
 		}
 	} 
-	//get PRINT(anglex, anglez, amount, damage);
+	//get PRINT(anglex, anglez, amount, randpiece);
 	//speedz = HITSPEED * get ABS(anglez) / 500; //nevermind this, the random error this produces actually looks better than the accurate version
 	turn BASEPIECE to z-axis (anglez * amount) / 100  speed HITSPEED;
 	turn BASEPIECE to x-axis <0> - (anglex * amount) /100 speed HITSPEED;

@@ -12,6 +12,11 @@ static-var  gun_1, statechg_DesiredState, statechg_StateChanging, restore_delay;
 // Signal definitions
 #define SIG_AIM				2
 
+#define IDLEHOVERSCALE 32
+#define IDLEHOVERSPEED 60
+#define IDLEBASEPIECE base
+#include "idlehover.h"
+
 
 SmokeUnit(healthpercent, sleeptime, smoketype)
 {
@@ -19,6 +24,7 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 	{
 		sleep 400;
 	}
+	start-script IdleHover();
 	while( TRUE )
 	{
 		healthpercent = get HEALTH;

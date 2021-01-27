@@ -291,7 +291,7 @@ const float noiseCloudness = float(0.7) * 0.5; // TODO: configurable
 #define DEPTH_CLIP01 ###DEPTH_CLIP01###
 #define CLAMP_TO_MAP ###CLAMP_TO_MAP###
 
-#ifdef CLAMP_TO_MAP
+#if CLAMP_TO_MAP
 	const vec3 vAA = vec3(  1.,fogBottom,  1.);
 	const vec3 vBB = vec3(mapX-1.,fogHeight,mapZ-1.);
 #else

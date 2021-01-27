@@ -449,8 +449,9 @@ local function DoDrawSSAO(isScreenSpace)
 		firstTime = false
 	end
 
-	gl.ActiveFBO(gbuffFuseFBO, function()
-		gbuffFuseShader:ActivateWith( function ()
+	local prevFBO
+	prevFBO = gl.RawBindFBO(gbuffFuseFBO)
+		gbuffFuseShader:Activate()
 
 			gbuffFuseShader:SetUniformMatrix("invProjMatrix", "projectioninverse")
 			gbuffFuseShader:SetUniformMatrix("viewMatrix", "view")
@@ -479,12 +480,13 @@ local function DoDrawSSAO(isScreenSpace)
 				gl.Texture(5, false)
 				gl.Texture(6, false)
 			end
-		end)
-	end)
+		gbuffFuseShader:Deactivate()
+	--end)
+	gl.RawBindFBO(nil, nil, prevFBO)
 
-	gl.ActiveFBO(ssaoFBO, function()
+	prevFBO = gl.RawBindFBO(ssaoFBO)
 		gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
-		ssaoShader:ActivateWith( function ()
+		ssaoShader:Activate()
 			ssaoShader:SetUniformMatrix("projMatrix", "projection")
 
 			gl.Texture(0, gbuffFuseViewPosTex)
@@ -500,27 +502,27 @@ local function DoDrawSSAO(isScreenSpace)
 			if MERGE_MISC then
 				gl.Texture(2, false)
 			end
-		end)
-	end)
+		ssaoShader:Deactivate()
+	gl.RawBindFBO(nil, nil, prevFBO)
 
 	gl.Texture(0, ssaoTex)
 
 	for i = 1, presets[preset].BLUR_PASSES do
-		gaussianBlurShader:ActivateWith( function ()
+		gaussianBlurShader:Activate()
 
 			gaussianBlurShader:SetUniform("dir", 1.0, 0.0) --horizontal blur
-			gl.ActiveFBO(ssaoBlurFBOs[1], function()
+			prevFBO = gl.RawBindFBO(ssaoBlurFBOs[1])
 				gl.CallList(screenQuadList) -- gl.TexRect(-1, -1, 1, 1)
-			end)
+			gl.RawBindFBO(nil, nil, prevFBO)
 			gl.Texture(0, ssaoBlurTexes[1])
 
 			gaussianBlurShader:SetUniform("dir", 0.0, 1.0) --vertical blur
-			gl.ActiveFBO(ssaoBlurFBOs[2], function()
+			prevFBO = gl.RawBindFBO(ssaoBlurFBOs[2])
 				gl.CallList(screenQuadList) -- gl.TexRect(-1, -1, 1, 1)
-			end)
+			gl.RawBindFBO(nil, nil, prevFBO)
 			gl.Texture(0, ssaoBlurTexes[2])
 
-		end)
+		gaussianBlurShader:Deactivate()
 	end
 
 

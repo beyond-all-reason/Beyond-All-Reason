@@ -26,6 +26,8 @@ include("savetable.lua")
 
 Spring.Utilities = {}
 VFS.Include("LuaRules/Utilities/tablefunctions.lua")
+VFS.Include("modules/flowui/flowui.lua")
+VFS.Include("modules/i18n/i18n.lua")
 
 local gl = gl
 
@@ -1147,6 +1149,9 @@ function widgetHandler:Update()
 	local deltaTime = Spring.GetLastUpdateSeconds()
 	-- update the hour timer
 	hourTimer = (hourTimer + deltaTime) % 3600.0
+	if Spring.FlowUI then
+		Spring.FlowUI.Update(deltaTime)
+	end
 	for _, w in ipairs(self.UpdateList) do
 		w:Update(deltaTime)
 	end
@@ -1242,21 +1247,23 @@ end
 function widgetHandler:SetViewSize(vsx, vsy)
 	self.xViewSize = vsx
 	self.yViewSize = vsy
-	if ((self.xViewSizeOld ~= vsx) or
-		(self.yViewSizeOld ~= vsy)) then
+	if self.xViewSizeOld ~= vsx or self.yViewSizeOld ~= vsy then
 		widgetHandler:ViewResize(vsx, vsy)
 		self.xViewSizeOld = vsx
 		self.yViewSizeOld = vsy
 	end
 end
 
+local xViewSizeOld
 function widgetHandler:ViewResize(vsx, vsy)
-	if (type(vsx) == 'table') then
+	if type(vsx) == 'table' then
 		vsy = vsx.viewSizeY
 		vsx = vsx.viewSizeX
 		print('real ViewResize') -- FIXME
 	end
-
+	if Spring.FlowUI then
+		Spring.FlowUI.ViewResize(vsx, vsy)
+	end
 	for _, w in ipairs(self.ViewResizeList) do
 		w:ViewResize(vsx, vsy)
 	end
@@ -1264,7 +1271,7 @@ function widgetHandler:ViewResize(vsx, vsy)
 end
 
 function widgetHandler:DrawScreen()
-	if (self.tweakMode) then
+	if self.tweakMode then
 		gl.Color(0, 0, 0, 0.5)
 		local sx, sy = self.xViewSize, self.yViewSize
 		gl.Shape(GL.QUADS, {
@@ -1272,9 +1279,12 @@ function widgetHandler:DrawScreen()
 		})
 		gl.Color(1, 1, 1)
 	end
+	if Spring.FlowUI then
+		Spring.FlowUI.DrawScreen()
+	end
 	for _, w in r_ipairs(self.DrawScreenList) do
 		w:DrawScreen()
-		if (self.tweakMode and w.TweakDrawScreen) then
+		if self.tweakMode and w.TweakDrawScreen then
 			w:TweakDrawScreen()
 		end
 	end

@@ -9,7 +9,7 @@ for i = 1,#teams do
 	end
 end
 
-if scavengersAIEnabled or (Spring.GetModOptions and (tonumber(Spring.GetModOptions().lootboxes) or 0) ~= 0) then
+if (Spring.GetModOptions and (Spring.GetModOptions().lootboxes or "disabled") == "enabled") or (Spring.GetModOptions and (Spring.GetModOptions().scavonlylootboxes or "enabled") == "enabled" and scavengersAIEnabled == true) then
 	lootboxSpawnEnabled = true
 else
 	lootboxSpawnEnabled = false
@@ -161,6 +161,9 @@ local aliveLootboxesCount   = 0
 local QueuedSpawns = {}
 local QueuedSpawnsFrames = {}
 
+local SpawnChance = 250
+local TryToSpawn = false
+
 
 -- functions
 
@@ -215,6 +218,12 @@ function gadget:GameFrame(n)
 	end
 
     if n%30 == 0 and n > 2 then
+		if math.random(0,SpawnChance) == 0 then
+			TryToSpawn = true
+		-- elseif #aliveLootboxes < math.ceil((n/30)/(SpawnChance*2)) then
+			-- TryToSpawn = true
+		end
+
 
         if aliveLootboxesCount > 0 then
             for unitID,_ in pairs(aliveLootboxes) do
@@ -231,7 +240,7 @@ function gadget:GameFrame(n)
                 end
             end
         end
-        if math_random(0,450) == 0 and lootboxSpawnEnabled then
+        if TryToSpawn == true and lootboxSpawnEnabled then
             for k = 1,1000 do
                 local posx = math.floor(math_random(xBorder,mapsizeX-xBorder)/16)*16
                 local posz = math.floor(math_random(zBorder,mapsizeZ-zBorder)/16)*16
@@ -241,16 +250,21 @@ function gadget:GameFrame(n)
                 if #unitsCyl == 0 and scavLoS == true then
                     --QueueSpawn("lootdroppod_gold", posx, posy, posz, math_random(0,3),spGaiaTeam, n)
                     --QueueSpawn(lootboxesList[math_random(1,#lootboxesList)], posx, posy, posz, math_random(0,3),spGaiaTeam, n+600)
-                    if aliveLootboxesCount < 3 then
-						spCreateUnit(lootboxesListLow[math_random(1,#lootboxesListLow)]..NameSuffix, posx, posy, posz, math_random(0,3), spGaiaTeam)
-					elseif aliveLootboxesCount < 6 then
-						spCreateUnit(lootboxesListMid[math_random(1,#lootboxesListMid)]..NameSuffix, posx, posy, posz, math_random(0,3), spGaiaTeam)
-					elseif aliveLootboxesCount < 9 then
-						spCreateUnit(lootboxesListHigh[math_random(1,#lootboxesListHigh)]..NameSuffix, posx, posy, posz, math_random(0,3), spGaiaTeam)
+                    if aliveLootboxesCount < 2 then
+						local spawnedUnit = spCreateUnit(lootboxesListLow[math_random(1,#lootboxesListLow)]..NameSuffix, posx, posy, posz, math_random(0,3), spGaiaTeam)
+						Spring.SetUnitNeutral(spawnedUnit, true)
+					elseif aliveLootboxesCount < 5 then
+						local spawnedUnit = spCreateUnit(lootboxesListMid[math_random(1,#lootboxesListMid)]..NameSuffix, posx, posy, posz, math_random(0,3), spGaiaTeam)
+						Spring.SetUnitNeutral(spawnedUnit, true)
+					elseif aliveLootboxesCount < 8 then
+						local spawnedUnit = spCreateUnit(lootboxesListHigh[math_random(1,#lootboxesListHigh)]..NameSuffix, posx, posy, posz, math_random(0,3), spGaiaTeam)
+						Spring.SetUnitNeutral(spawnedUnit, true)
 					else
-						spCreateUnit(lootboxesListTop[math_random(1,#lootboxesListTop)]..NameSuffix, posx, posy, posz, math_random(0,3), spGaiaTeam)
+						local spawnedUnit = spCreateUnit(lootboxesListTop[math_random(1,#lootboxesListTop)]..NameSuffix, posx, posy, posz, math_random(0,3), spGaiaTeam)
+						Spring.SetUnitNeutral(spawnedUnit, true)
 					end
 					spCreateUnit("lootdroppod_gold"..NameSuffix, posx, posy, posz, math_random(0,3), spGaiaTeam)
+					TryToSpawn = false
                     break
                 end
             end
@@ -265,7 +279,6 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 		local uposx, uposy, uposz = spGetUnitPosition(unitID)
 		aliveLootboxes[unitID] = true
 		aliveLootboxesCount = aliveLootboxesCount + 1
-        Spring.SetUnitNeutral(unitID, true)
 	end
 	if UnitName == "lootdroppod_gold" or UnitName == "lootdroppod_gold_scav" then
 		Spring.SetUnitNeutral(unitID, true)

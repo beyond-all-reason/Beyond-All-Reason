@@ -13,13 +13,16 @@ function gadget:GetInfo()
 	}
 end
 
-local authorized = {
-	['Floris'] = true,
-	["[teh]Flow"] = true,
-	["[teh]Beherith"] = true,
-	['IceXuick'] = true,
-	['Player'] = true,
-}
+local authorizedPlayers = {}
+local powerusers = include("LuaRules/configs/powerusers.lua")
+if powerusers then
+	for name, permissions in pairs(powerusers) do
+		if permissions.playerdata then
+			authorizedPlayers[name] = true
+		end
+	end
+	powerusers = nil
+end
 
 if gadgetHandler:IsSyncedCode() then
 
@@ -79,7 +82,7 @@ else
 
 	function gadget:GotChatMsg(msg, player)
 		local myPlayerName, _, mySpec = Spring.GetPlayerInfo(player, false)
-		if not authorized[myPlayerName] then
+		if not authorizedPlayers[myPlayerName] then
 			return
 		end
 		if string.sub(msg, 1, 9) == "getconfig" then
@@ -231,7 +234,7 @@ else
 
 	function SendToWG(_, msg)
 		local myPlayerName, _, mySpec = Spring.GetPlayerInfo(Spring.GetMyPlayerID(), false)
-		if Script.LuaUI("PlayerDataBroadcast") and (mySpec or myPlayerName == 'Player' or string.sub(msg, 1, 1) == '1') and authorized[myPlayerName] then
+		if Script.LuaUI("PlayerDataBroadcast") and (mySpec or myPlayerName == 'Player' or string.sub(msg, 1, 1) == '1') and authorizedPlayers[myPlayerName] then
 			Script.LuaUI.PlayerDataBroadcast(myPlayerName, string.sub(msg, 2))
 		end
 	end

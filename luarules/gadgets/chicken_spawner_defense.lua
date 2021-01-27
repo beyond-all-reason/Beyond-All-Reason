@@ -279,10 +279,25 @@ if gadgetHandler:IsSyncedCode() then
 
 	SetGlobals(luaAI or "Chicken: Normal") -- set difficulty
 
+	if luaAI == "Chicken: Very Easy" then
+		queenName = "ve_chickenq"
+	elseif luaAI == "Chicken: Easy" then
+		queenName = "e_chickenq" 
+	elseif luaAI == "Chicken: Normal" then
+		queenName = "n_chickenq" 
+	elseif luaAI == "Chicken: Hard" then
+		queenName = "h_chickenq" 
+	elseif luaAI == "Chicken: Very Hard" then
+		queenName = "vh_chickenq" 
+	elseif luaAI == "Chicken: Epic!" then
+		queenName = "epic_chickenq" 
+	end
+
 	if (queenName == "asc") then
 		queenName = "ve_chickenq"
 		ascendingQueen = true
 	end
+
 
 	local expIncrement = ((SetCount(humanTeams) * expStep) / queenTime)
 	if expStep < 0 then
@@ -1118,14 +1133,16 @@ if gadgetHandler:IsSyncedCode() then
 				local h = GetUnitHeading(unitID)
 				SetUnitBlocking(unitID, false, false)
 				local newUnitID = CreateUnit("chickenr2", bx, by, bz, "n", unitTeam)
-				Spring.SetUnitNoDraw(newUnitID, true)
-				Spring.MoveCtrl.Enable(newUnitID)
-				Spring.MoveCtrl.SetHeading(newUnitID, h)
-				Spring.MoveCtrl.Disable(newUnitID)
-				SetUnitExperience(newUnitID, mRandom() * expMod)
-				Spring.SetUnitNoDraw(newUnitID, false)
-				deathQueue[unitID] = { selfd = false, reclaimed = true }
-				idleOrderQueue[newUnitID] = { cmd = CMD.STOP, params = {}, opts = {} }
+				if newUnitID then
+					Spring.SetUnitNoDraw(newUnitID, true)
+					Spring.MoveCtrl.Enable(newUnitID)
+					Spring.MoveCtrl.SetHeading(newUnitID, h)
+					Spring.MoveCtrl.Disable(newUnitID)
+					SetUnitExperience(newUnitID, mRandom() * expMod)
+					Spring.SetUnitNoDraw(newUnitID, false)
+					deathQueue[unitID] = { selfd = false, reclaimed = true }
+					idleOrderQueue[newUnitID] = { cmd = CMD.STOP, params = {}, opts = {} }
+				end
 				return
 			end
 		elseif unitID == queenID then

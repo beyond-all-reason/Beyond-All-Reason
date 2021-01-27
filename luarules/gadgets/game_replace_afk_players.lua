@@ -15,7 +15,7 @@ local teams = Spring.GetTeamList()
 for i = 1, #teams do
 	local _, _, _, isAiTeam = Spring.GetTeamInfo(teams[i], false)
 	local luaAI = Spring.GetTeamLuaAI(teams[i])
-	if not luaAI and not isAiTeam and teams[i] ~= Spring.GetGaiaTeamID() then
+	if (not luaAI or luaAI == '') and not isAiTeam and teams[i] ~= Spring.GetGaiaTeamID() then
 		numPlayers = numPlayers + 1
 	end
 end
@@ -24,12 +24,17 @@ if numPlayers <= 4 then
 	-- not needed to show sub button for small games where restarting one the better option
 	return
 end
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
 
------------------------------
+local texts = {        -- fallback (if you want to change this, also update: language/en.lua, or it will be overwritten)
+	offertoplay = 'Offer to play',
+	withdrawoffer = 'Withdraw offer',
+	substituteecho = 'If player(s) are afk when the game starts, you might be used as a substitute',
+	substitutewithdrawn = 'Your offer to substitute has been withdrawn',
+	substitutionoccurred = 'Substitution occurred, revealed start positions to all',
+	wassubstitutedinfor = 'was substituted in for',
+}
+
 if gadgetHandler:IsSyncedCode() then
-	-----------------------------
 
 	-- TS difference required for substitutions
 	-- idealDiff is used if possible, validDiff as fall-back, otherwise no
@@ -174,7 +179,7 @@ if gadgetHandler:IsSyncedCode() then
 
 					local incoming, _ = Spring.GetPlayerInfo(sID, false)
 					local outgoing, _ = Spring.GetPlayerInfo(playerID, false)
-					Spring.Echo("Player " .. incoming .. " was substituted in for " .. outgoing)
+					Spring.Echo(incoming .. ' '..texts.wassubstitutedinfor..' ' .. outgoing)
 				end
 				substitutesLocal[sID] = nil
 				wouldSub = true
@@ -282,6 +287,9 @@ else
 
 	local eligible, guishaderApplied
 
+	local RectRound = Spring.FlowUI.Draw.RectRound
+	local UiElement = Spring.FlowUI.Draw.Element
+
 	function gadget:ViewResize(viewSizeX, viewSizeY)
 		vsx, vsy = Spring.GetViewGeometry()
 		local newFontfileScale = (0.5 + (vsx * vsy / 5700000))
@@ -299,113 +307,6 @@ else
 	local bW = 140
 	local bgMargin = 2.5
 	local offer = false
-
-	local function DrawRectRound(px, py, sx, sy, cs, tl, tr, br, bl, c1, c2)
-		local csyMult = 1 / ((sy - py) / cs)
-
-		if c2 then
-			gl.Color(c1[1], c1[2], c1[3], c1[4])
-		end
-		gl.Vertex(px + cs, py, 0)
-		gl.Vertex(sx - cs, py, 0)
-		if c2 then
-			gl.Color(c2[1], c2[2], c2[3], c2[4])
-		end
-		gl.Vertex(sx - cs, sy, 0)
-		gl.Vertex(px + cs, sy, 0)
-
-		-- left side
-		if c2 then
-			gl.Color(c1[1] * (1 - csyMult) + (c2[1] * csyMult), c1[2] * (1 - csyMult) + (c2[2] * csyMult), c1[3] * (1 - csyMult) + (c2[3] * csyMult), c1[4] * (1 - csyMult) + (c2[4] * csyMult))
-		end
-		gl.Vertex(px, py + cs, 0)
-		gl.Vertex(px + cs, py + cs, 0)
-		if c2 then
-			gl.Color(c2[1] * (1 - csyMult) + (c1[1] * csyMult), c2[2] * (1 - csyMult) + (c1[2] * csyMult), c2[3] * (1 - csyMult) + (c1[3] * csyMult), c2[4] * (1 - csyMult) + (c1[4] * csyMult))
-		end
-		gl.Vertex(px + cs, sy - cs, 0)
-		gl.Vertex(px, sy - cs, 0)
-
-		-- right side
-		if c2 then
-			gl.Color(c1[1] * (1 - csyMult) + (c2[1] * csyMult), c1[2] * (1 - csyMult) + (c2[2] * csyMult), c1[3] * (1 - csyMult) + (c2[3] * csyMult), c1[4] * (1 - csyMult) + (c2[4] * csyMult))
-		end
-		gl.Vertex(sx, py + cs, 0)
-		gl.Vertex(sx - cs, py + cs, 0)
-		if c2 then
-			gl.Color(c2[1] * (1 - csyMult) + (c1[1] * csyMult), c2[2] * (1 - csyMult) + (c1[2] * csyMult), c2[3] * (1 - csyMult) + (c1[3] * csyMult), c2[4] * (1 - csyMult) + (c1[4] * csyMult))
-		end
-		gl.Vertex(sx - cs, sy - cs, 0)
-		gl.Vertex(sx, sy - cs, 0)
-
-		local offset = 0.15        -- texture offset, because else gaps could show
-
-		-- bottom left
-		if c2 then
-			gl.Color(c1[1], c1[2], c1[3], c1[4])
-		end
-		if ((py <= 0 or px <= 0) or (bl ~= nil and bl == 0)) and bl ~= 2 then
-			gl.Vertex(px, py, 0)
-		else
-			gl.Vertex(px + cs, py, 0)
-		end
-		gl.Vertex(px + cs, py, 0)
-		if c2 then
-			gl.Color(c1[1] * (1 - csyMult) + (c2[1] * csyMult), c1[2] * (1 - csyMult) + (c2[2] * csyMult), c1[3] * (1 - csyMult) + (c2[3] * csyMult), c1[4] * (1 - csyMult) + (c2[4] * csyMult))
-		end
-		gl.Vertex(px + cs, py + cs, 0)
-		gl.Vertex(px, py + cs, 0)
-		-- bottom right
-		if c2 then
-			gl.Color(c1[1], c1[2], c1[3], c1[4])
-		end
-		if ((py <= 0 or sx >= vsx) or (br ~= nil and br == 0)) and br ~= 2 then
-			gl.Vertex(sx, py, 0)
-		else
-			gl.Vertex(sx - cs, py, 0)
-		end
-		gl.Vertex(sx - cs, py, 0)
-		if c2 then
-			gl.Color(c1[1] * (1 - csyMult) + (c2[1] * csyMult), c1[2] * (1 - csyMult) + (c2[2] * csyMult), c1[3] * (1 - csyMult) + (c2[3] * csyMult), c1[4] * (1 - csyMult) + (c2[4] * csyMult))
-		end
-		gl.Vertex(sx - cs, py + cs, 0)
-		gl.Vertex(sx, py + cs, 0)
-		-- top left
-		if c2 then
-			gl.Color(c2[1], c2[2], c2[3], c2[4])
-		end
-		if ((sy >= vsy or px <= 0) or (tl ~= nil and tl == 0)) and tl ~= 2 then
-			gl.Vertex(px, sy, 0)
-		else
-			gl.Vertex(px + cs, sy, 0)
-		end
-		gl.Vertex(px + cs, sy, 0)
-		if c2 then
-			gl.Color(c2[1] * (1 - csyMult) + (c1[1] * csyMult), c2[2] * (1 - csyMult) + (c1[2] * csyMult), c2[3] * (1 - csyMult) + (c1[3] * csyMult), c2[4] * (1 - csyMult) + (c1[4] * csyMult))
-		end
-		gl.Vertex(px + cs, sy - cs, 0)
-		gl.Vertex(px, sy - cs, 0)
-		-- top right
-		if c2 then
-			gl.Color(c2[1], c2[2], c2[3], c2[4])
-		end
-		if ((sy >= vsy or sx >= vsx) or (tr ~= nil and tr == 0)) and tr ~= 2 then
-			gl.Vertex(sx, sy, 0)
-		else
-			gl.Vertex(sx - cs, sy, 0)
-		end
-		gl.Vertex(sx - cs, sy, 0)
-		if c2 then
-			gl.Color(c2[1] * (1 - csyMult) + (c1[1] * csyMult), c2[2] * (1 - csyMult) + (c1[2] * csyMult), c2[3] * (1 - csyMult) + (c1[3] * csyMult), c2[4] * (1 - csyMult) + (c1[4] * csyMult))
-		end
-		gl.Vertex(sx - cs, sy - cs, 0)
-		gl.Vertex(sx, sy - cs, 0)
-	end
-	function RectRound(px, py, sx, sy, cs, tl, tr, br, bl, c1, c2)
-		-- (coordinates work differently than the RectRound func in other widgets)
-		gl.Texture(false)
-		gl.BeginEnd(GL.QUADS, DrawRectRound, px, py, sx, sy, cs, tl, tr, br, bl, c1, c2)
-	end
 
 	function correctMouseForScaling(x, y)
 		local buttonScreenCenterPosX = (bX + (bW / 2)) / vsx
@@ -445,6 +346,10 @@ else
 	end
 
 	function gadget:Initialize()
+
+		if GG.lang then
+			texts = GG.lang.getText('replaceafkplayers')
+		end
 
 		if isReplay or (tonumber(Spring.GetModOptions().ffa_mode) or 0) == 1 or Spring.GetGameFrame() > 6 then
 			gadgetHandler:RemoveGadget() -- don't run in FFA mode
@@ -492,9 +397,9 @@ else
 			end
 			local textString
 			if not offer then
-				textString = "Offer to play"
+				textString = texts.offertoplay
 			else
-				textString = "Withdraw offer"
+				textString = texts.withdrawoffer
 			end
 			font:Begin()
 			font:Print(colorString .. textString, -((bW / 2) - 12.5), -((bH / 2) - 9.5), 19, "o")
@@ -517,14 +422,14 @@ else
 			--Spring.Echo("sent", myPlayerID, ts)
 			if not offer then
 				Spring.SendLuaRulesMsg('\144')
-				Spring.Echo("If player(s) are afk when the game starts, you might be used as a substitute")
+				Spring.Echo(texts.substituteecho)
 				offer = true
 				bW = 160
 				MakeButton()
 				return true
 			else
 				Spring.SendLuaRulesMsg('\145')
-				Spring.Echo("Your offer to substitute has been withdrawn")
+				Spring.Echo(texts.substitutewithdrawn)
 				offer = false
 				bW = 140
 				MakeButton()
@@ -572,7 +477,7 @@ else
 			return
 		end
 		if revealed then
-			Spring.Echo("Substitution occurred, revealed start positions to all")
+			Spring.Echo(texts.substitutionoccurred)
 		end
 
 		gadgetHandler:RemoveCallIn("GameFrame")

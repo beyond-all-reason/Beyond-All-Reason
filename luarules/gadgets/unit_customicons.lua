@@ -2,29 +2,24 @@
 --------------------------------------------------------------------------------
 --
 --  file:    ico_customicons.lua
---  author:  Dave Rodgers
+--  author:  Dave Rodgers and reworked by tovernaar123
 --
 --  Copyright (C) 2007.
 --  Licensed under the terms of the GNU GPL, v2 or later.
 --
 --------------------------------------------------------------------------------
--- This gadget checks through the attributes of each unitdef and assigns an appropriate icon for use in the minimap & zoomed out mode.
---
--- The reason that this is a gadget (it could also be a widget) and not part of weapondefs_post.lua/iconTypes.lua is the following:
--- the default valuesfor UnitDefs attributes that are not specified in our unitdefs lua files are only loaded into UnitDefs AFTER
--- unitdefs_post.lua and iconTypes.lua have been processed. For example, at the time of unitdefs_post, for most units ud.speed is
--- nil and not a number, so we can't e.g. compare it to zero. Also, it's more modularized as a widget/gadget.
--- [We could set the default values up in unitdefs_post to match engine defaults but thats just too hacky.]
---
--- Bluestone 27/04/2013
+-- To add a unit simply add it in the units config table the format is:
+-- unit name = path_icon, size.
+-- Every entry will auto add a _scav version with the metatable.
+-- Tovernaar123 dec 31, 2020
 --------------------------------------------------------------------------------
 
 function gadget:GetInfo()
 	return {
 		name = "CustomIcons",
 		desc = "Sets custom unit icons",
-		author = "trepan,BrainDamage,TheFatController,Floris",
-		date = "Jan 8, 2007",
+		author = "trepan,BrainDamage,TheFatController,Floris,tovernaar123",
+		date = "dec 31, 2020", --Yes 1 day before 2021 :P
 		license = "GNU GPL, v2 or later",
 		layer = -100,
 		enabled = true  --  loaded by default?
@@ -40,1039 +35,572 @@ end
 
 --------------------------------------------------------------------------------
 
-local iconScale = 1.05
+local iconScale = 1
 if Spring.GetConfigFloat then
-	iconScale = Spring.GetConfigFloat("UnitIconScale", 1.05)
+	iconScale = Spring.GetConfigFloat("UnitIconScale", 1)
 end
 
 local spSetUnitDefIcon = Spring.SetUnitDefIcon
-local spAddUnitIcon = Spring.AddUnitIcon
 local spFreeUnitIcon = Spring.FreeUnitIcon
+local myPlayerID = Spring.GetMyPlayerID()
 
-local icons = {
-	-- ID,   icon png file,   scale
-	{ "armcom.user", "armcom", 1.75 },
-	{ "corcom.user", "corcom", 1.75 },
-
-	{ "mine1.user", "mine", 0.36 },
-	{ "mine2.user", "mine", 0.44 },
-	{ "mine3.user", "mine", 0.53 },
-
-	{ "sub_t1.user", "sub", 1.33 },
-	{ "sub_t2.user", "sub", 1.7 },
-	{ "sub_t3.user", "sub", 2 },
-	{ "sub_t1_worker.user", "sub_worker", 1.33 },
-	{ "sub_t2_worker.user", "sub_worker", 1.66 },
-
-	{ "beacon.user", "beacon", 1.66 },
-	{ "lootboxbronze.user", "lootbox", 1.0 },
-	{ "lootboxsilver.user", "lootboxt2", 1.1 },
-	{ "lootboxgold.user", "lootboxt3", 1.15 },
-	{ "lootboxplatinum.user", "lootboxt4", 1.2 },
-
-	{ "wind.user", "wind", 1 },
-	{ "energy1.user", "solar", 1.5 },
-	{ "energy2.user", "energy", 1.63 },
-	{ "energy3.user", "fusion", 1.4 },
-	{ "energy4.user", "hazardous", 1.8 },
-	{ "energy5.user", "fusion", 1.8 },
-	{ "energy6.user", "energy", 2.05 },
-
-	{ "eye.user", "eyes", 0.85 },
-	{ "spy.user", "eye", 1.18 },
-
-	{ "hover_t1.user", "hover", 1.15 },
-	{ "hover_raid.user", "hover", 1.05 },
-	{ "hover_gun.user", "hover", 1.05 },
-	{ "hover_t1_worker.user", "hover_worker", 1.2 },
-	{ "hover_t1_aa.user", "hover_aa", 1.1 },
-	{ "hover_t1_missile.user", "hover", 1.35 },
-	{ "hover_t2.user", "hover", 1.5 },
-	{ "hover_t3.user", "hover", 1.75 },
-	{ "hover_transport.user", "hovertrans", 1.7 },
-
-	{ "ship_tiny.user", "ship", 0.8 },
-	{ "ship_raid.user", "ship", 1.1 },
-	{ "ship.user", "ship", 1.2 },
-	{ "ship_pship.user", "ship", 1.2 },
-	{ "ship_torpedo.user", "ship", 1.25 },
-	{ "ship_destroyer.user", "ship", 1.44 },
-	{ "ship_t1_worker.user", "ship_worker", 1.33 },
-	{ "ship_aa.user", "ship_aa", 1.2 },
-	{ "ship_t2.user", "ship", 1.65 },
-	{ "ship_t2_jammer.user", "ship_jammer", 1.65 },
-	{ "ship_t2_worker.user", "ship_worker", 1.65 },
-	{ "ship_t2_aa.user", "ship_aa", 1.65 },
-	{ "ship_t2_cruiser.user", "ship", 2.15 },
-	{ "ship_t2_missile.user", "ship", 2 },
-	{ "ship_t2_carrier.user", "ship", 2.4 },
-	{ "ship_t2_battleship.user", "ship", 2.55 },
-	{ "ship_t2_flagship.user", "ship", 3.3 },
-	{ "ship_engineer.user", "shipengineer", 1.5 },
-	{ "ship_transport.user", "shiptrans", 2 },
-
-	{ "engineer.user", "wrench", 1.3 },
-	{ "engineer_small.user", "wrench", 0.9 },
-
-	{ "commandtower.user", "mission_command_tower", 2.35 },
-
-	{ "amphib_t1.user", "amphib", 1.15 },
-	{ "amphib_tank.user", "amphib", 1.2 },
-	{ "amphib_t1_aa.user", "amphib_aa", 1.2 },
-	{ "amphib_t1_worker.user", "amphib_worker", 1.3 },
-	{ "amphib_t2.user", "amphib", 1.6 },
-	{ "amphib_t2_aa.user", "amphib_aa", 1.6 },
-	{ "amphib_t3.user", "amphib", 2.1 },
-
-	{ "shield.user", "shield", 1.5 },
-
-	{ "targetting.user", "targetting", 1.3 },
-	{ "seismic.user", "seismic", 1.4 },
-
-	{ "radar_t1.user", "radar", 0.9 },
-	{ "jammer_t1.user", "jammer", 0.9 },
-	{ "radar_t2.user", "radar", 1.2 },
-	{ "jammer_t2.user", "jammer", 1.2 },
-
-	{ "korgoth.user", "mech", 3.3 },
-	{ "bantha.user", "bantha", 2.7 },
-	{ "juggernaut.user", "juggernaut", 3.0 },
-	{ "juggernaut2.user", "bot", 2.75 },
-	{ "commando.user", "commando", 1.35 },
-	{ "commando2.user", "mech", 1.3 }, -- old
-
-	{ "mex_t1.user", "mex", 0.77 },
-	{ "mex_t2.user", "mex", 1.15 },
-
-	{ "metalmaker_t1.user", "metalmaker", 0.75 },
-	{ "metalmaker_t2.user", "metalmaker", 1.15 },
-
-	{ "energystorage.user", "estore", 1.05 },
-	{ "energystorage_t2.user", "estore", 1.25 },
-	{ "metalstorage.user", "mstore", 1.05 },
-	{ "metalstorage_t2.user", "mstore", 1.25 },
-
-	{ "emp.user", "emp", 1.8 },
-	{ "tacnuke.user", "tacnuke", 1.8 },
-	{ "nuke.user", "nuke", 1.8 },
-	{ "nuke_big.user", "nuke", 2.4 },
-	{ "antinuke.user", "antinuke", 1.6 },
-	{ "antinuke_mobile.user", "antinukemobile", 1.4 },
-
-	{ "aa1.user", "aa", 0.85 },
-	{ "aa2.user", "aa", 1.1 },
-	{ "aa_flak.user", "aa", 1.4 },
-	{ "aa_longrange.user", "aa", 1.8 },
-
-	{ "worker.user", "worker", 0.85 },
-
-	{ "allterrain_t1.user", "allterrain", 1 },
-	{ "allterrain_emp.user", "allterrain", 1 },
-	{ "allterrain_t2.user", "allterrain", 1.33 },
-	{ "allterrain_t3.user", "allterrain", 1.95 },
-	{ "allterrain_vanguard.user", "allterrain", 2.3 },
-
-	{ "bot_t1_flea.user", "bot", 0.51 },
-	{ "bot_t1_tinyworker.user", "worker", 0.66 },
-	{ "bot_t1_raid.user", "bot", 0.7 },
-	{ "bot_t1.user", "bot", 0.95 },
-	{ "bot_t1_big.user", "bot", 1.1 },
-	{ "bot_t1_worker.user", "bot_worker", 0.95 },
-	{ "bot_t1_aa.user", "bot_aa", 0.95 },
-	{ "bot_t2_raid.user", "bot", 1.1 },
-	{ "bot_t2.user", "bot", 1.28 },
-	{ "bot_t2_radar.user", "bot_radar", 1.28 },
-	{ "bot_t2_jammer.user", "bot_jammer", 1.28 },
-	{ "bot_t2_big.user", "bot", 1.47 },
-	{ "bot_t2_worker.user", "bot_worker", 1.33 },
-	{ "bot_t2_aa.user", "bot_aa", 1.28 },
-	{ "bot_t3.user", "bot", 1.9 },
-
-	{ "vehicle_t1_flea.user", "vehicle", 0.55 },
-	{ "vehicle_t1_raid.user", "vehicle", 0.85 },
-	{ "vehicle_t1.user", "vehicle", 1 },
-	{ "vehicle_t1_tank.user", "vehicle", 1.1 },
-	{ "vehicle_t1_missile.user", "vehicle", 1 },
-	{ "vehicle_t1_big.user", "vehicle", 1.18 },
-	{ "vehicle_t1_aa.user", "vehicle_aa", 1 },
-	{ "vehicle_t2.user", "vehicle", 1.3 },
-	{ "vehicle_t2_radar.user", "vehicle_radar", 1.3 },
-	{ "vehicle_t2_jammer.user", "vehicle_jammer", 1.3 },
-	{ "vehicle_t2_tank.user", "vehicle", 1.4 },
-	{ "vehicle_t2_aa.user", "vehicle_aa", 1.3 },
-	{ "vehicle_t2_big.user", "vehicle", 1.5 },
-	{ "vehicle_t1_worker.user", "vehicle_worker", 0.95 },
-	{ "vehicle_t2_worker.user", "vehicle_worker", 1.3 },
-
-	{ "vehicle_trans.user", "vehicle_trans", 1.7 },
-
-	{ "building_t1.user", "building", 1 },
-	{ "building_t2.user", "building", 1.3 },
-
-	{ "factory_t1.user", "factory", 1.45 },
-	{ "factory_t2.user", "factory", 1.85 },
-	{ "factory_t3.user", "factory", 2.4 },
-	{ "factory_t1_vehicle.user", "factory_vehicle", 1.45 },
-	{ "factory_t2_vehicle.user", "factory_vehicle_t2", 1.85 },
-	{ "factory_t1_bot.user", "factory_bot", 1.45 },
-	{ "factory_t2_bot.user", "factory_bot_t2", 1.85 },
-	{ "factory_t1_ship.user", "factory_ship", 1.45 },
-	{ "factory_t2_ship.user", "factory_ship_t2", 1.85 },
-	{ "factory_t1_air.user", "factory_air", 1.45 },
-	{ "factory_t2_air.user", "factory_air_t2", 1.85 },
-	{ "factory_hover.user", "factory_hover", 1.45 },
-	{ "factory_amph.user", "factory_amph", 1.45 },
-	{ "factory_gantry.user", "factory_gantry", 2.4 },
-
-	{ "lrpc.user", "lrpc", 2.35 },
-	{ "lrpc_lolcannon.user", "lrpc", 3.5 },
-
-	{ "chicken1.user", "chicken", 0.9 },
-	{ "chicken2.user", "chicken", 1.2 },
-	{ "chicken3.user", "chicken", 1.5 },
-	{ "chicken4.user", "chicken", 2.6 },
-	{ "chicken_air.user", "chicken_air", 1.3 },
-	{ "chicken_air2.user", "chicken_air", 1.7 },
-	{ "chicken_roost.user", "chicken_roost", 1.5 },
-	{ "chicken_queen.user", "chicken_queen", 4 },
-
-	{ "meteor.user", "blank", 1 },
-
-	{ "wall.user", "building", 0.5 },
-
-	{ "air_t1.user", "air", 0.82 },
-	{ "air_t1_worker.user", "air_worker", 1.2 },
-	{ "air_t1_hover.user", "air_hover", 1.2 },
-	{ "air_t1_bomber.user", "air_bomber", 1.35 },
-	{ "air_t1_transport.user", "air_trans", 1.3 },
-	{ "air_t1_scout.user", "air_los", 0.75 },
-	{ "air_t2.user", "air", 0.98 },
-	{ "air_t2_worker.user", "air_worker", 1.55 },
-	{ "air_t2_hover.user", "air_hover", 1.4 },
-	{ "air_t2_hover_missile.user", "air_hover", 1.4 },
-	{ "air_t2_bomber.user", "air_bomber", 1.66 },
-	{ "air_t2_transport.user", "air_trans", 1.75 },
-	{ "air_t2_radar.user", "air_los", 1.33 },
-	{ "air_t2_torpbomber.user", "air_hover", 1.6 },
-	{ "air_flagship.user", "air_flagship", 3 },
-	{ "air_bladew.user", "air_hover_bw", 0.75 },
-	{ "air_torp.user", "air_hover", 1.5 },
-	{ "air_krow.user", "air_krow", 2 },
-	{ "air_liche.user", "air_liche", 2 },
-	{ "air_krow2.user", "air_hover", 2 },
-	{ "air_liche2.user", "air_bomber", 2 },
-
-	{ "defence_0.user", "defence", 0.8 },
-	{ "defence_0_laser.user", "defence", 0.8 },
-	{ "defence_0_laser2.user", "defence", 0.94 },
-	{ "defence_1.user", "defence", 1.05 },
-	{ "defence_1_laser.user", "defence", 1.05 },
-	{ "defence_1_arty.user", "arty", 1.3 },
-	{ "defence_2.user", "defence", 1.4 },
-	{ "defence_2_laser.user", "defence", 1.4 },
-	{ "defence_2_arty.user", "arty", 1.5 },
-	{ "defence_3.user", "defence", 1.95 },
-	{ "defence_1_naval.user", "defence", 1.05 },
-	{ "defence_2_naval.user", "defence", 1.4 },
-
-	{ "boss.user", "skull", 2.5 },
-
-	{ "t4_demon.user", "cordemont4", 2.5 },
-	{ "t4_invader.user", "armvadert4", 2.5 },
-	{ "t4_ratte.user", "armrattet4", 2.95 },
-	{ "t4_recluse.user", "armsptkt4", 2.2 },
-	{ "t4_karg.user", "corkarganetht4", 3.0 },
-	{ "t4_peewee.user", "armpwt4", 2.2 },
-	{ "t4_fepoch.user", "air_t4_flagship", 3.2 },
-	{ "t4_fblackhy.user", "air_t4_flagship", 3.2 },
-	{ "t4_krow.user", "corcrwt4", 3.2 },
-	{ "t4_thund.user", "armthundt4", 3.2 },
-	{ "t4_armcomboss.user", "armcomboss", 4 },
-	{ "t4_corcomboss.user", "corcomboss", 4 },
-
-	{ "lootboxnanot1.user", "scavnanotc_t1", 1.5 },
-	{ "lootboxnanot2.user", "scavnanotc_t2", 1.875 },
-	{ "lootboxnanot3.user", "scavnanotc_t3", 2.35 },
-	{ "lootboxnanot4.user", "scavnanotc_t4", 2.95 },
-
-
-	{ "blank.user", "blank", 1 },
-	{ "unknown.user", "unknown", 2 },
+local units = {
+	corageo = { "hazardous.png", 1.88999987 },
+	armcroc = { "armcroc_1.6.png", 1.67999995 },
+	cormart = { "cormart_1.3.png", 1.36499989 },
+	corah = { "hover_aa.png", 1.15499997 },
+	corap = { "factory_air.png", 1.52250004 },
+	freefusion = { "fusion.png", 1.46999991 },
+	armfig = { "air.png", 0.86099994 },
+	armawac = { "air_t2_radar.png", 1.39649999 },
+	coraak = { "amphib_t2_aa.png", 1.67999995 },
+	armmship = { "ship_t2_missile.png", 2.0999999 },
+	corpun = { "corpun_1.3.png", 1.36499989 },
+	armgate = { "shield.png", 1.57499993 },
+	armsam = { "vehicle_t1_missile.png", 1.04999995 },
+	armfark = { "engineer_small.png", 0.94499993 },
+	armageo = { "hazardous.png", 1.88999987 },
+	critter_gull = { "blank.png", 1.04999995 },
+	armshltx = { "factory_gantry.png", 2.51999998 },
+	armpship = { "ship_pship.png", 1.25999999 },
+	scavmistxl = { "blank.png", 1.04999995 },
+	lootboxgold = { "lootboxt3.png", 1.20749986 },
+	armseer = { "vehicle_t2_radar.png", 1.36499989 },
+	corgol = { "corgol_1.75.png", 1.83749986 },
+	corfhlt = { "defence_1_laser_1.05.png", 1.10249984 },
+	chickena1c = { "chicken.png", 1.57499993 },
+	armack = { "bot_t2_worker.png", 1.39649999 },
+	armjamt = { "jammer_t1_0.9.png", 0.94499993 },
+	armthundt4 = { "armthundt4.png", 3.3599999 },
+	armpb = { "armpb_1.4.png", 1.46999991 },
+	armap = { "factory_air.png", 1.52250004 },
+	armham = { "armham_1.05.png", 1.10249984 },
+	xmasball2 = { "blank.png", 1.04999995 },
+	chickens3 = { "chicken_air.png", 1.36499989 },
+	dice = { "blank.png", 1.04999995 },
+	corarad = { "radar_t2_1.2.png", 1.25999999 },
+	armuwfus = { "fusion.png", 1.46999991 },
+	armptl = { "aa.png", 0.89249998 },
+	armtl = { "defence_1_naval.png", 1.10249984 },
+	cormine4 = { "mine.png", 0.46199998 },
+	corssubold = { "sub.png", 1.39649999 },
+	armsaber = { "air_hover.png", 1.25999999 },
+	cortoast = { "cortoast_1.5.png", 1.57499993 },
+	scavengerdroppod = { "mine.png", 0.55649996 },
+	nuketestcor = { "aa.png", 0.89249998 },
+	lootboxnano_t2_var4 = { "scavnanotc_t2.png", 1.96874988 },
+	xmasball = { "blank.png", 1.04999995 },
+	chip = { "blank.png", 1.04999995 },
+	armdecom = { "armcom.png", 1.83749986 },
+	vh_chickenq = { "chicken_queen.png", 4.19999981 },
+	corhunt = { "air_t2_radar.png", 1.39649999 },
+	chickenf2 = { "chicken_air.png", 1.78499997 },
+	ve_chickenq = { "chicken_queen.png", 4.19999981 },
+	scavtacnukespawner = { "aa.png", 0.89249998 },
+	armhawk = { "air_t2.png", 1.02899992 },
+	h_chickenq = { "chicken_queen.png", 4.19999981 },
+	chickenc2 = { "chicken.png", 1.57499993 },
+	armrl = { "aa.png", 0.89249998 },
+	scavmist = { "blank.png", 1.04999995 },
+	armassimilator = { "bot_t3.png", 1.99499989 },
+	scavengerdroppodfriendly = { "mine.png", 0.55649996 },
+	armsptkt4 = { "armsptkt4.png", 2.30999994 },
+	nuketestcororg = { "aa.png", 0.89249998 },
+	scavengerdroppodbeacon = { "beacon.png", 1.74299991 },
+	scavempspawner = { "aa.png", 0.89249998 },
+	scavsafeareabeacon = { "beacon.png", 1.74299991 },
+	chickena1b = { "chicken.png", 1.57499993 },
+	corshad = { "air_bomber.png", 1.41750002 },
+	corgplat = { "defence_0_0.8.png", 0.83999997 },
+	corack = { "bot_t2_worker.png", 1.39649999 },
+	resourcecheat = { "building.png", 1.36499989 },
+	armdecade = { "ship_raid.png", 1.15499997 },
+	nuketestorg = { "aa.png", 0.89249998 },
+	armvadert4 = { "armvadert4.png", 2.625 },
+	armzeus = { "armzeus_1.28.png", 1.34399986 },
+	corstone = { "blank.png", 1.04999995 },
+	armfepocht4 = { "air_t4_flagship.png", 3.3599999 },
+	nuketest = { "aa.png", 0.89249998 },
+	n_chickenq = { "chicken_queen.png", 4.19999981 },
+	mission_command_tower = { "mission_command_tower.png", 2.46749973 },
+	armconsul = { "armconsul_1.35.png", 1.41750002 },
+	meteor = { "blank.png", 1.04999995 },
+	corgant = { "factory_gantry.png", 2.51999998 },
+	chicken1d = { "chicken.png", 0.94499993 },
+	lootdroppod_printer = { "mine.png", 0.55649996 },
+	lootdroppod_gold = { "mine.png", 0.55649996 },
+	corint = { "corint_2.3.png", 2.41499972 },
+	armmine3 = { "mine.png", 0.55649996 },
+	chicken1y = { "chicken.png", 0.94499993 },
+	armacsub = { "sub_t2_worker.png", 1.74299991 },
+	lootboxsilver = { "lootboxt2.png", 1.15499997 },
+	coruwadvms = { "metalstorage_t2.png", 1.3125 },
+	corsilo = { "nuke.png", 2.51999998 },
+	lootboxplatinum = { "lootboxt4.png", 1.25999999 },
+	armspy = { "eye.png", 1.23899984 },
+	lootboxnano_t4_var4 = { "scavnanotc_t4.png", 3.09749985 },
+	chickenp1 = { "chicken.png", 1.57499993 },
+	corsfig = { "air.png", 0.86099994 },
+	armwin = { "wind.png", 1.04999995 },
+	chickenc3b = { "chicken.png", 1.25999999 },
+	corgarp = { "amphib_tank.png", 1.25999999 },
+	cortarg = { "targetting.png", 1.36499989 },
+	lootboxnano_t3_var4 = { "scavnanotc_t3.png", 2.46749973 },
+	lootboxnano_t3_var3 = { "scavnanotc_t3.png", 2.46749973 },
+	lootboxnano_t4_var3 = { "scavnanotc_t4.png", 3.09749985 },
+	scavmistxxl = { "blank.png", 1.04999995 },
+	armrecl = { "sub_t2_worker.png", 1.74299991 },
+	lootboxnano_t3_var1 = { "scavnanotc_t3.png", 2.46749973 },
+	chickenw1d = { "chicken_air.png", 1.36499989 },
+	armmanni = { "armmanni_1.55.png", 1.62749982 },
+	corroach = { "corroach_0.9.png", 0.94499993 },
+	coruwadves = { "energystorage_t2.png", 1.3125 },
+	corsnap = { "hover_gun.png", 1.10249984 },
+	lootboxnano_t2_var3 = { "scavnanotc_t2.png", 1.96874988 },
+	lootboxnano_t2_var2 = { "scavnanotc_t2.png", 1.96874988 },
+	armason = { "radar_t2_1.2.png", 1.25999999 },
+	lootboxnano_t2_var1 = { "scavnanotc_t2.png", 1.96874988 },
+	armsjam = { "ship_t2_jammer.png", 1.73249984 },
+	chickenc3 = { "chicken.png", 1.25999999 },
+	corlab = { "factory_bot.png", 1.52250004 },
+	armstil = { "armstil_1.66.png", 1.74299991 },
+	chickenw2 = { "chicken_air.png", 1.36499989 },
+	armalab = { "factory_bot_t2.png", 1.9425 },
+	armllt = { "defence_0_laser_0.8.png", 0.83999997 },
+	armavp = { "factory_vehicle_t2.png", 1.9425 },
+	corssub = { "sub.png", 1.39649999 },
+	corrl = { "aa.png", 0.89249998 },
+	corcom = { "corcom.png", 1.83749986 },
+	armvader = { "armvader_0.9.png", 0.94499993 },
+	lootboxnano_t1_var1 = { "scavnanotc_t1.png", 1.57499993 },
+	armbats = { "ship_t2_battleship.png", 2.67749977 },
+	corfrt = { "aa.png", 0.89249998 },
+	chickenc3c = { "chicken.png", 1.25999999 },
+	cornanotcplat = { "cornanotcplat_0.92.png", 0.96599996 },
+	armvulc = { "armvulc_3.1.png", 3.25499964 },
+	corllt = { "defence_0_laser_0.8.png", 0.83999997 },
+	armtarg = { "targetting.png", 1.36499989 },
+	lootboxbronze = { "lootbox.png", 1.04999995 },
+	cormstor = { "metalstorage.png", 1.10249984 },
+	lootboxnano_t1_var2 = { "scavnanotc_t1.png", 1.57499993 },
+	hat_viking_teamcolored = { "building.png", 1.04999995 },
+	armstump = { "vehicle_t1_tank.png", 1.15499997 },
+	roost = { "chicken_roost.png", 1.57499993 },
+	corca = { "air_worker.png", 1.25999999 },
+	epic_chickenq = { "chicken_queen.png", 4.19999981 },
+	e_chickenq = { "chicken_queen.png", 4.19999981 },
+	armgmm = { "fusion.png", 1.46999991 },
+	armmart = { "armmart_1.3.png", 1.36499989 },
+	armcom = { "armcom.png", 1.83749986 },
+	corvalk = { "air_trans.png", 1.36499989 },
+	armah = { "hover_aa.png", 1.15499997 },
+	dbg_sphere = { "allterrain.png", 1.04999995 },
+	chickena1 = { "chicken.png", 1.57499993 },
+	chicken1z = { "chicken.png", 0.94499993 },
+	armarad = { "radar_t2_1.2.png", 1.25999999 },
+	critter_penguinking = { "blank.png", 1.04999995 },
+	armmark = { "bot_t2_radar.png", 1.34399986 },
+	critter_penguinbro = { "blank.png", 1.04999995 },
+	critter_penguin = { "blank.png", 1.04999995 },
+	chickenh4 = { "chicken.png", 0.94499993 },
+	critter_duck = { "blank.png", 1.04999995 },
+	coradvsol = { "energy2_1.18.png", 1.23899984 },
+	corcan = { "corcan_1.28.png", 1.34399986 },
+	corhal = { "corhal_1.33.png", 1.39649999 },
+	corfav = { "vehicle.png", 0.57749999 },
+	armch = { "hover_worker.png", 1.25999999 },
+	corwin = { "wind.png", 1.04999995 },
+	armferret = { "aa.png", 1.15499997 },
+	corvroc = { "corvroc_1.6.png", 1.67999995 },
+	corkorg = { "mech.png", 3.46499968 },
+	armamd = { "antinuke.png", 1.67999995 },
+	armbrtha = { "armbrtha_2.5.png", 2.625 },
+	armckfus = { "fusion.png", 1.46999991 },
+	corvoyr = { "bot_t2_radar.png", 1.34399986 },
+	cormabm = { "antinukemobile.png", 1.46999991 },
+	armsnipe = { "armsnipe_1.3.png", 1.36499989 },
+	corbhmth = { "corbhmth_1.55.png", 1.62749982 },
+	corvipe = { "corvipe_1.4.png", 1.46999991 },
+	armmeatball = { "amphib_t3.png", 2.20499969 },
+	corveng = { "air.png", 0.86099994 },
+	corenaa = { "aa_flak_1.4.png", 1.46999991 },
+	corvamp = { "air_t2.png", 1.02899992 },
+	corasy = { "factory_ship_t2.png", 1.9425 },
+	corgator = { "vehicle_t1_raid.png", 0.89249998 },
+	coruwms = { "metalstorage.png", 1.10249984 },
+	armacv = { "vehicle_t2_worker.png", 1.36499989 },
+	cordrag = { "wall_0.4.png", 0.41999999 },
+	chicken1c = { "chicken.png", 0.94499993 },
+	armguard = { "armguard_1.3.png", 1.36499989 },
+	corspy = { "eye.png", 1.23899984 },
+	coruwmme = { "mex_t2_1.15.png", 1.20749986 },
+	armsehak = { "air_t2_radar.png", 1.39649999 },
+	coruwmex = { "mex_t1_0.77.png", 0.80849993 },
+	corhllt = { "defence_0_laser2_0.94.png", 0.98699993 },
+	armatl = { "defence_2_naval.png", 1.46999991 },
+	armjam = { "vehicle_t2_jammer.png", 1.36499989 },
+	chicken1 = { "chicken.png", 0.94499993 },
+	coruwes = { "energystorage.png", 1.10249984 },
+	armmerl = { "armmerl_1.55.png", 1.62749982 },
+	armblade = { "air_t2_hover_missile.png", 1.46999991 },
+	armseap = { "air_torp.png", 1.57499993 },
+	armmercury = { "aa_longrange_1.8.png", 1.88999987 },
+	armfast = { "bot_t2_raid.png", 1.15499997 },
+	cortship = { "shiptrans.png", 2.0999999 },
+	cortron = { "tacnuke.png", 1.88999987 },
+	armfrad = { "radar_t1_0.9.png", 0.94499993 },
+	cormh = { "hover_t1_missile.png", 1.41750002 },
+	armtide = { "energy1_1.0.png", 1.04999995 },
+	cortrem = { "cortrem_1.85.png", 1.9425 },
+	armmlv = { "armmlv_1.0.png", 1.04999995 },
+	armfmine3 = { "mine.png", 0.55649996 },
+	chickenc1 = { "chicken.png", 1.57499993 },
+	cortl = { "defence_1_naval.png", 1.10249984 },
+	corexp = { "mex_t1_0.77.png", 0.80849993 },
+	cortitan = { "air_t2_torpbomber.png", 1.67999995 },
+	armsd = { "seismic.png", 1.46999991 },
+	armcsa = { "air_worker.png", 1.25999999 },
+	corthovr = { "hovertrans.png", 1.78499997 },
+	armjuno = { "jammer_t2.png", 1.25999999 },
+	armpt = { "ship_tiny.png", 0.83999997 },
+	coratl = { "defence_2_naval.png", 1.46999991 },
+	armsubk = { "sub.png", 1.39649999 },
+	corvp = { "factory_vehicle.png", 1.52250004 },
+	lootboxnano_t4_var1 = { "scavnanotc_t4.png", 3.09749985 },
+	corsy = { "factory_ship.png", 1.52250004 },
+	corsumo = { "corsumo_1.66.png", 1.74299991 },
+	corflak = { "aa_flak_1.4.png", 1.46999991 },
+	corstorm = { "corstorm_1.png", 1.04999995 },
+	armwar = { "armwar_1.15.png", 1.20749986 },
+	armgeo = { "energy6_1.3.png", 1.36499989 },
+	corason = { "radar_t2_1.2.png", 1.25999999 },
+	coruwmmm = { "metalmaker_t2_1.15.png", 1.20749986 },
+	armmine2 = { "mine.png", 0.46199998 },
+	armca = { "air_worker.png", 1.25999999 },
+	corseah = { "air_trans.png", 1.83749986 },
+	armsy = { "factory_ship.png", 1.52250004 },
+	armliche = { "air_liche.png", 2.0999999 },
+	armafus = { "energy5_1.85.png", 1.9425 },
+	armflash = { "vehicle_t1_raid.png", 0.89249998 },
+	corsktl = { "mine.png", 0.55649996 },
+	coresupp = { "ship_raid.png", 1.15499997 },
+	armanni = { "armanni_1.95.png", 2.0474999 },
+	armclaw = { "wall_0.4.png", 0.41999999 },
+	coruwfus = { "fusion.png", 1.46999991 },
+	corshiva = { "corshiva_2.1.png", 2.20499969 },
+	corawac = { "air_t2_radar.png", 1.39649999 },
+	armfrock = { "aa.png", 0.89249998 },
+	lootboxnano_t4_var2 = { "scavnanotc_t4.png", 3.09749985 },
+	corsharkold = { "amphib_t2.png", 1.67999995 },
+	armfatf = { "targetting.png", 1.36499989 },
+	corsh = { "hover_raid.png", 1.10249984 },
+	armminivulc = { "armvulc_3.1.png", 1.88999987 },
+	armflea = { "bot_t1_flea.png", 0.53549999 },
+	armfus = { "fusion.png", 1.46999991 },
+	corsolar = { "energy1_1.0.png", 1.04999995 },
+	corfgate = { "shield.png", 1.57499993 },
+	armthovr = { "hovertrans.png", 1.78499997 },
+	correap = { "vehicle_t2_tank.png", 1.46999991 },
+	corsd = { "seismic.png", 1.46999991 },
+	corscreamer = { "aa_longrange_1.8.png", 1.88999987 },
+	corpt = { "ship_tiny.png", 0.83999997 },
+	chicken_dodo2 = { "chicken.png", 0.94499993 },
+	corkarganetht4 = { "corkarganetht4.png", 3.14999986 },
+	armrad = { "radar_t1_0.9.png", 0.94499993 },
+	chicken1x = { "chicken.png", 0.94499993 },
+	armroy = { "ship_destroyer.png", 1.51199996 },
+	corfmd = { "antinuke.png", 1.67999995 },
+	lootboxnano_t1_var3 = { "scavnanotc_t1.png", 1.57499993 },
+	coreter = { "vehicle_t2_jammer.png", 1.36499989 },
+	armuwmme = { "mex_t2_1.15.png", 1.20749986 },
+	corfdrag = { "wall_0.4.png", 0.41999999 },
+	corsub = { "sub.png", 1.39649999 },
+	corfmkr = { "metalmaker_t1_0.75.png", 0.78749996 },
+	corraid = { "vehicle_t1_tank.png", 1.15499997 },
+	armart = { "armart_1.png", 1.04999995 },
+	corpyro = { "corpyro_1.15.png", 1.20749986 },
+	armasy = { "factory_ship_t2.png", 1.9425 },
+	coracsub = { "sub_t2_worker.png", 1.74299991 },
+	armamph = { "armamph_1.3.png", 1.36499989 },
+	cormmkr = { "metalmaker_t2_1.15.png", 1.20749986 },
+	cormaw = { "wall_0.4.png", 0.41999999 },
+	corptl = { "aa.png", 0.89249998 },
+	armepoch = { "ship_t2_flagship.png", 3.46499968 },
+	armdrag = { "wall_0.4.png", 0.41999999 },
+	armfgate = { "shield.png", 1.57499993 },
+	armnanotcplat = { "armnanotcplat_0.92.png", 0.96599996 },
+	corsb = { "air_bomber.png", 1.41750002 },
+	corpship = { "ship_pship.png", 1.25999999 },
+	chickenw1b = { "chicken_air.png", 1.36499989 },
+	armpeep = { "air_los.png", 0.78749996 },
+	armpincer = { "amphib_tank.png", 1.25999999 },
+	corfrad = { "radar_t1_0.9.png", 0.94499993 },
+	cormando = { "commando.png", 1.41750002 },
+	cornecro = { "bot_t1_tinyworker.png", 0.69300002 },
+	corcomboss = { "corcomboss.png", 4.19999981 },
+	cornanotc = { "cornanotc_0.92.png", 0.96599996 },
+	armsfig = { "air.png", 0.86099994 },
+	cormuskrat = { "amphib_worker.png", 1.36499989 },
+	armsub = { "sub.png", 1.39649999 },
+	cormship = { "ship_t2_missile.png", 2.0999999 },
+	cormort = { "cormort_1.3.png", 1.36499989 },
+	cormoho = { "mex_t2_1.15.png", 1.20749986 },
+	armuwmex = { "mex_t1_0.77.png", 0.80849993 },
+	corfus = { "fusion.png", 1.46999991 },
+	cormlv = { "cormlv_1.0.png", 1.04999995 },
+	armsh = { "hover_raid.png", 1.10249984 },
+	cormls = { "shipengineer.png", 1.57499993 },
+	corplat = { "factory_air.png", 1.52250004 },
+	armgremlin = { "eye.png", 1.23899984 },
+	cormine3 = { "mine.png", 0.55649996 },
+	cormine2 = { "mine.png", 0.46199998 },
+	corsent = { "vehicle_t2_aa.png", 1.36499989 },
+	chicken_dodo1 = { "chicken.png", 0.94499993 },
+	armuwadvms = { "metalstorage_t2.png", 1.3125 },
+	cormexp = { "mex_t2_1.15.png", 1.20749986 },
+	corfast = { "corfast_1.3.png", 1.36499989 },
+	corjamt = { "jammer_t1_0.9.png", 0.94499993 },
+	corparrow = { "corparrow_1.55.png", 1.62749982 },
+	corbuzz = { "corbuzz_3.85.png", 4.04249954 },
+	corminibuzz = { "corbuzz_3.85.png", 1.88999987 },
+	armvp = { "factory_vehicle.png", 1.52250004 },
+	chickenr2 = { "chicken.png", 1.57499993 },
+	corhlt = { "defence_1_laser_1.05.png", 1.10249984 },
+	cormakr = { "metalmaker_t1_0.75.png", 0.78749996 },
+	armfmkr = { "metalmaker_t1_0.75.png", 0.78749996 },
+	cormadsam = { "aa.png", 1.15499997 },
+	armtship = { "shiptrans.png", 2.0999999 },
+	armcs = { "ship_worker.png", 1.39649999 },
+	corlevlr = { "corlevlr_1.2.png", 1.25999999 },
+	coravp = { "factory_vehicle_t2.png", 1.9425 },
+	armfort = { "wall_0.4.png", 0.41999999 },
+	corfblackhyt4 = { "air_t4_flagship.png", 3.3599999 },
+	armrectrt4 = { "bot_worker.png", 2.0999999 },
+	corroy = { "ship_destroyer.png", 1.51199996 },
+	armfav = { "vehicle.png", 0.57749999 },
+	chickenr3 = { "chicken.png", 2.72999978 },
+	coraap = { "factory_air_t2.png", 1.9425 },
+	corfink = { "air_los.png", 0.78749996 },
+	armnanotc = { "armnanotc_0.92.png", 0.96599996 },
+	corcat = { "corcat_1.9.png", 1.99499989 },
+	armestor = { "energystorage.png", 1.10249984 },
+	corcs = { "ship_worker.png", 1.39649999 },
+	armpwt4 = { "armpwt4.png", 2.30999994 },
+	armuwadves = { "energystorage_t2.png", 1.3125 },
+	corintr = { "vehicle_trans.png", 1.78499997 },
+	corspec = { "bot_t2_jammer.png", 1.34399986 },
+	armjanus = { "armjanus_1.2.png", 1.25999999 },
+	corhurc = { "air_t2_bomber.png", 1.74299991 },
+	armsubkold = { "sub.png", 1.39649999 },
+	corhrk = { "corhrk_1.35.png", 1.41750002 },
+	corhp = { "factory_hover.png", 1.52250004 },
+	armflak = { "aa_flak_1.4.png", 1.46999991 },
+	corwolv = { "corwolv_1.png", 1.04999995 },
+	armsolar = { "energy1_1.0.png", 1.04999995 },
+	armbrawl = { "air_t2_hover.png", 1.46999991 },
+	corgolt4 = { "armrattet4.png", 3.09749985 },
+	armraz = { "armraz_1.75.png", 1.83749986 },
+	corcrwt4 = { "corcrwt4.png", 3.3599999 },
+	corshroud = { "jammer_t2.png", 1.25999999 },
+	armuwmmm = { "metalmaker_t2_1.15.png", 1.20749986 },
+	corsok = { "corsok_1.8.png", 1.88999987 },
+	corgatreap = { "vehicle_t2.png", 1.36499989 },
+	corafus = { "energy5_1.85.png", 1.9425 },
+	armcarry = { "ship_t2_carrier.png", 2.51999998 },
+	corcv = { "vehicle_worker.png", 0.99749994 },
+	corgate = { "shield.png", 1.57499993 },
+	armvang = { "allterrain_vanguard_2.4.png", 2.51999998 },
+	armmoho = { "mex_t2_1.15.png", 1.20749986 },
+	armfflak = { "aa_flak_1.4.png", 1.46999991 },
+	corfrock = { "aa.png", 0.89249998 },
+	corfmine3 = { "mine.png", 0.55649996 },
+	armuwes = { "energystorage.png", 1.10249984 },
+	corvrad = { "vehicle_t2_radar.png", 1.36499989 },
+	corfhp = { "factory_hover.png", 1.52250004 },
+	armserp = { "sub.png", 1.39649999 },
+	corsjam = { "ship_t2_jammer.png", 1.73249984 },
+	corfatf = { "targetting.png", 1.36499989 },
+	corseal = { "corseal_1.45.png", 1.52250004 },
+	cormex = { "mex_t1_0.77.png", 0.80849993 },
+	coreyes = { "eye.png", 0.89249998 },
+	critter_ant = { "blank.png", 1.04999995 },
+	cormist = { "vehicle_t1_missile.png", 1.04999995 },
+	armrattet4 = { "armrattet4.png", 3.09749985 },
+	corerad = { "aa.png", 1.15499997 },
+	corseap = { "air_torp.png", 1.57499993 },
+	corch = { "hover_worker.png", 1.25999999 },
+	armaas = { "ship_t2_aa.png", 1.73249984 },
+	cordemont4 = { "cordemont4.png", 2.625 },
+	armamsub = { "factory_amph.png", 1.52250004 },
+	cordecom = { "corcom.png", 1.83749986 },
+	armamb = { "armamb_1.5.png", 1.57499993 },
+	corcut = { "air_hover.png", 1.25999999 },
+	corcsa = { "air_worker.png", 1.25999999 },
+	corjuno = { "jammer_t2.png", 1.25999999 },
+	armthund = { "air_bomber.png", 1.41750002 },
+	corcrw = { "air_krow.png", 2.0999999 },
+	armemp = { "emp.png", 1.88999987 },
+	cortide = { "energy1_1.0.png", 1.04999995 },
+	corcrus = { "ship_t2_cruiser.png", 2.25749993 },
+	armaca = { "air_t2_worker.png", 1.62749982 },
+	corcrash = { "corcrash_0.95.png", 0.99749994 },
+	corgantuw = { "factory_gantry.png", 2.51999998 },
+	cordoom = { "cordoom_1.95.png", 2.0474999 },
+	corkarg = { "corkarg_2.05.png", 2.15249991 },
+	armscab = { "antinukemobile.png", 1.46999991 },
+	armaser = { "bot_t2_jammer.png", 1.34399986 },
+	corcarry = { "ship_t2_carrier.png", 2.51999998 },
+	corck = { "bot_worker.png", 0.99749994 },
+	corbw = { "air_bladew.png", 0.78749996 },
+	corban = { "corban_1.6.png", 1.67999995 },
+	armrock = { "armrock_1.png", 1.04999995 },
+	corblackhy = { "ship_t2_flagship.png", 3.46499968 },
+	coracv = { "vehicle_t2_worker.png", 1.36499989 },
+	armyork = { "vehicle_t2_aa.png", 1.36499989 },
+	armhlt = { "defence_1_laser_1.05.png", 1.10249984 },
+	corbats = { "ship_t2_battleship.png", 2.67749977 },
+	armfido = { "armfido_1.28.png", 1.34399986 },
+	armpw = { "bot_t1_raid_0.7.png", 0.73499995 },
+	armhp = { "factory_hover.png", 1.52250004 },
+	coramph = { "coramph_1.3.png", 1.36499989 },
+	armveil = { "jammer_t2.png", 1.25999999 },
+	armmls = { "shipengineer.png", 1.57499993 },
+	cormine1 = { "mine.png", 0.37799999 },
+	armaak = { "amphib_t2_aa.png", 1.67999995 },
+	corarch = { "ship_t2_aa.png", 1.73249984 },
+	armdfly = { "air_trans.png", 1.83749986 },
+	armshltxuw = { "factory_gantry.png", 2.51999998 },
+	corapt3 = { "factory_air_t3.png", 1.52250004 },
+	corape = { "air_t2_hover_missile.png", 1.46999991 },
+	armfhp = { "factory_hover.png", 1.52250004 },
+	armsonar = { "radar_t1_0.9.png", 0.94499993 },
+	chickenh1b = { "chicken.png", 0.94499993 },
+	coramsub = { "factory_amph.png", 1.52250004 },
+	lootboxnano_t3_var2 = { "scavnanotc_t3.png", 2.46749973 },
+	armlun = { "armlun_1.8.png", 1.88999987 },
+	coralab = { "factory_bot_t2.png", 1.9425 },
+	coraca = { "air_t2_worker.png", 1.62749982 },
+	armmmkr = { "metalmaker_t2_1.15.png", 1.20749986 },
+	corak = { "bot_t1_raid_0.7.png", 0.73499995 },
+	armbull = { "vehicle_t2_tank.png", 1.46999991 },
+	armlunchbox = { "allterrain.png", 2.0474999 },
+	armrectr = { "bot_t1_tinyworker.png", 0.69300002 },
+	armfboy = { "armfboy_1.6.png", 1.67999995 },
+	armlance = { "air_t2_torpbomber.png", 1.67999995 },
+	chickenr1 = { "chicken.png", 1.57499993 },
+	corrad = { "radar_t1_0.9.png", 0.94499993 },
+	armeyes = { "eye.png", 0.89249998 },
+	corgeo = { "energy6_1.3.png", 1.36499989 },
+	armamex = { "mex_t1_0.77.png", 0.80849993 },
+	corsonar = { "radar_t1_0.9.png", 0.94499993 },
+	chickena2 = { "chicken.png", 1.57499993 },
+	armmar = { "amphib_t3.png", 2.20499969 },
+	armuwms = { "metalstorage.png", 1.10249984 },
+	chicken2b = { "chicken.png", 1.25999999 },
+	corestor = { "energystorage.png", 1.10249984 },
+	armserpold = { "sub.png", 1.39649999 },
+	lootboxnano_t1_var4 = { "scavnanotc_t1.png", 1.57499993 },
+	armgplat = { "defence_0_0.8.png", 0.83999997 },
+	armapt3 = { "factory_air_t3.png", 1.52250004 },
+	chicken2 = { "chicken.png", 1.25999999 },
+	chickenw1c = { "chicken_air.png", 1.36499989 },
+	chickenw1 = { "chicken_air.png", 1.36499989 },
+	armatlas = { "air_trans.png", 1.36499989 },
+	armcv = { "vehicle_worker.png", 0.99749994 },
+	corasp = { "corasp_2.4.png", 2.51999998 },
+	armmstor = { "metalstorage.png", 1.10249984 },
+	chickens1 = { "chicken.png", 1.25999999 },
+	correcl = { "sub_t2_worker.png", 1.74299991 },
+	armjeth = { "armjeth_0.95.png", 0.99749994 },
+	armdl = { "defence_1_naval.png", 1.10249984 },
+	armmex = { "mex_t1_0.77.png", 0.80849993 },
+	chickenh5 = { "chicken.png", 1.57499993 },
+	critter_goldfish = { "blank.png", 1.04999995 },
+	chickenh3 = { "chicken.png", 1.25999999 },
+	corjugg = { "juggernaut.png", 3.14999986 },
+	chickenh1 = { "chicken.png", 0.94499993 },
+	armmh = { "hover_t1_missile.png", 1.41750002 },
+	chickenf1b = { "chicken_air.png", 1.78499997 },
+	chickenf1 = { "chicken_air.png", 1.78499997 },
+	armspid = { "allterrain_emp.png", 1.04999995 },
+	chickena2b = { "chicken.png", 1.57499993 },
+	armsb = { "air_bomber.png", 1.41750002 },
+	armmakr = { "metalmaker_t1_0.75.png", 0.78749996 },
+	armsilo = { "nuke.png", 2.51999998 },
+	banana = { "unknown.png", 2.0999999 },
+	armcomboss = { "armcomboss.png", 4.19999981 },
+	armlatnk = { "armlatnk_1.3.png", 1.36499989 },
+	armanac = { "hover_gun.png", 1.10249984 },
+	armcir = { "aa.png", 1.15499997 },
+	armsptk = { "armsptk_1.44.png", 1.51199996 },
+	chickens2 = { "chicken.png", 1.57499993 },
+	armfdrag = { "wall_0.4.png", 0.41999999 },
+	armdf = { "fusion.png", 1.46999991 },
+	armbanth = { "bantha.png", 2.83500004 },
+	armtorps = { "ship.png", 1.25999999 },
+	chicken1b = { "chicken.png", 0.94499993 },
+	corshark = { "sub_t2.png", 1.78499997 },
+	armaap = { "factory_air_t2.png", 1.9425 },
+	armcrus = { "ship_t2_cruiser.png", 2.25749993 },
+	cortermite = { "cortermite_1.5.png", 1.57499993 },
+	armbeamer = { "defence_0_laser2_0.94.png", 0.98699993 },
+	armstone = { "blank.png", 1.04999995 },
+	armmav = { "armmav_1.3.png", 1.36499989 },
+	chickend1 = { "chicken_roost.png", 1.57499993 },
+	armfhlt = { "defence_1_laser_1.05.png", 1.10249984 },
+	armfrt = { "aa.png", 0.89249998 },
+	corthud = { "corthud_1.05.png", 1.10249984 },
+	armpnix = { "air_t2_bomber.png", 1.74299991 },
+	armlab = { "factory_bot.png", 1.52250004 },
+	armkam = { "air_hover.png", 1.25999999 },
+	chickenh2 = { "chicken.png", 1.25999999 },
+	armplat = { "factory_air.png", 1.52250004 },
+	armbeaver = { "amphib_worker.png", 1.36499989 },
+	armasp = { "armasp_2.4.png", 2.51999998 },
+	armadvsol = { "energy2_1.18.png", 1.23899984 },
+	cordl = { "defence_1_naval.png", 1.10249984 },
+	armmine1 = { "mine.png", 0.37799999 },
+	corfort = { "wall_0.4.png", 0.41999999 },
+	armck = { "bot_worker.png", 0.99749994 },
+	hat_viking_teamcolored = { "blank.png", 1.83749986 },
 }
 
--- add inverted icons for scavenger units
-if UnitDefNames['armcom_scav'] then
-	local scavengerAlternatives = {}
-	for i, icon in ipairs(icons) do
-		scavengerAlternatives[#scavengerAlternatives + 1] = { 'scav_' .. icon[1], 'inverted/' .. icon[2], icon[3] }
-	end
-	for i, v in pairs(scavengerAlternatives) do
-		icons[#icons + 1] = v
-	end
-	scavengerAlternatives = nil
-end
-
-function getIconID(name)
-	-- does not check if file exists
-	if string.sub(name, #name - 4) ~= '.user' then
-		name = name .. '.user'
-	end
-	for i, icon in ipairs(icons) do
-		local iconName = icon[1]
-		if string.sub(iconName, #iconName - 4) ~= '.user' then
-			iconName = iconName .. '.user'
+setmetatable(units, { __index =
+function(table, key)
+	if string.find(key, "_scav") then
+		local new_key = key:gsub("_scav", "")
+		local normal_icon = units[new_key]
+		local new_object;
+		if normal_icon then
+			local new_path = "inverted/"..normal_icon[1]
+			new_object = {new_path, normal_icon[2]} -- new path old
 		end
-		if iconName == name then
-			if icon[4] then
-				return i
-			else
-				return false
-			end
-		end
+		return new_object
 	end
-	return false
-end
+end})
 
 local iconTypes = {}
-function addUnitIcon(icon, file, size)
-	spAddUnitIcon(icon, file, size)
-	iconTypes[icon] = file
+function addUnitIcon(name, path, size)
+    Spring.AddUnitIcon(name, path, size)
+    iconTypes[name] = path
 end
 
 function loadUnitIcons()
-
-	-- free up icons
-	for icon, file in ipairs(iconTypes) do
-		spFreeUnitIcon(icon)
-	end
-	iconTypes = {}
-
-	-- load icons
-	for i, icon in ipairs(icons) do
-		icons[i][4] = nil   -- reset
-		if VFS.FileExists('icons/' .. icon[2] .. icon[3] .. '.png') then
-			-- check if specific custom sized icon is availible
-			addUnitIcon(icon[1], 'icons/' .. icon[2] .. icon[3] .. '.png', icon[3] * iconScale)
+	local root = 'icons/'
+	for id, unit in ipairs(UnitDefs) do
+		local name = unit.name
+		local icon = units[name]
+		if icon then
+			local path = root..icon[1]
+			local size = icon[2]
+			spFreeUnitIcon(name) --Free the icon so it can be used
+			addUnitIcon(name, path, size * iconScale) -- Create the icon in the enigne
+			spSetUnitDefIcon(id, name)  -- Set the unit icon
 		else
-			addUnitIcon(icon[1], 'icons/' .. icon[2] .. '.png', icon[3] * iconScale)
-		end
-	end
-
-	-- load custom unit icons when availible
-	local files = VFS.DirList('icons', "*.png")
-	local files2 = VFS.DirList('icons/inverted', "*.png")
-	for k, file in ipairs(files2) do
-		files[#files + 1] = file
-	end
-	for k, file in ipairs(files) do
-		local scavPrefix = ''
-		local scavSuffix = ''
-		local inverted = ''
-		if string.find(file, 'inverted') then
-			scavPrefix = 'scav_'
-			scavSuffix = '_scav'
-			inverted = 'inverted/'
-		end
-		local name = string.gsub(file, 'icons\\', '')   -- when located in spring folder
-		name = string.gsub(name, 'icons/', '')   -- when located in game archive
-		name = string.gsub(name, 'inverted/', '')   -- when located in game archive
-		local iconname = string.gsub(name, '.png', '')
-		if iconname then
-			local iconname = string.match(iconname, '([a-z0-9-_]*)')
-			local scale = string.match(name, '_[0-9.]*%.png')
-			if scale ~= nil then
-				iconname = string.gsub(name, scale, '')
-				scale = string.gsub(scale, '_', '')
-				scale = string.gsub(scale, '.png', '')
-			end
-			for i, icon in ipairs(icons) do
-				if string.gsub(icon[1], '.user', '') == iconname then
-					local inv = ''
-					if string.find(icon[2], 'inverted') then
-						inv = 'inverted/'
-					end
-					local scalenum = icon[3]
-					if not scale or scale == '' then
-						scale = ''
-					else
-						scalenum = scale
-						scale = '_' .. scale
-					end
-					addUnitIcon(icon[1], 'icons/' .. inv .. iconname .. scale .. '.png', tonumber(scalenum) * iconScale)
-				end
-			end
-			local unitname = iconname
-			if UnitDefNames[unitname] then
-				local scale = string.gsub(name, unitname, '')
-				scale = string.gsub(scale, '_', '')
-				if scale ~= '' and tonumber(scale) then
-					addUnitIcon(scavPrefix .. unitname .. ".user", file, tonumber(scale) * iconScale)
-				end
-			end
-		end
-	end
-
-	-- tag all icons that have a valid file
-	for i, icon in ipairs(icons) do
-		if VFS.FileExists('icons/' .. icon[2] .. '.png') then
-			icons[i][4] = true
-		end
-	end
-
-	-- assign (standard) icons
-	local weaponDef, iconPrefix
-	for udid, ud in pairs(UnitDefs) do
-		local name = ud.name
-		iconPrefix = ''
-		if string.find(name, '_scav') then
-			iconPrefix = 'scav_'
-			name = string.gsub(name, '_scav', '')
-		end
-
-		if ud == nil then
-			break
-		end
-		if ud.weapons[1] then
-			weaponDef = WeaponDefs[ud.weapons[1].weaponDef]
-		else
-			weaponDef = nil
-		end
-
-		if name == "meteor" then
-			spSetUnitDefIcon(udid, iconPrefix .. "blank.user")
-		elseif name == "armcom" or name == "armdecom" then
-			spSetUnitDefIcon(udid, iconPrefix .. "armcom.user")
-		elseif name == "corcom" or name == "cordecom" then
-			spSetUnitDefIcon(udid, iconPrefix .. "corcom.user")
-			-- T4 scav units
-		elseif name == "armcomboss" then
-			spSetUnitDefIcon(udid, iconPrefix .. "t4_armcomboss.user")
-		elseif name == "corcomboss" then
-			spSetUnitDefIcon(udid, iconPrefix .. "t4_corcomboss.user")
-		elseif name == "cordemont4" then
-			spSetUnitDefIcon(udid, iconPrefix .. "t4_demon.user")
-		elseif name == "armvadert4" then
-			spSetUnitDefIcon(udid, iconPrefix .. "t4_invader.user")
-		elseif name == "armrattet4" then
-			spSetUnitDefIcon(udid, iconPrefix .. "t4_ratte.user")
-		elseif name == "armsptkt4" then
-			spSetUnitDefIcon(udid, iconPrefix .. "t4_recluse.user")
-		elseif name == "armpwt4" then
-			spSetUnitDefIcon(udid, iconPrefix .. "t4_peewee.user")
-		elseif name == "armfepocht4" then
-			spSetUnitDefIcon(udid, iconPrefix .. "t4_fepoch.user")
-		elseif name == "corfblackhyt4" then
-			spSetUnitDefIcon(udid, iconPrefix .. "t4_fblackhy.user")
-		elseif name == "corcrwt4" then
-			spSetUnitDefIcon(udid, iconPrefix .. "t4_krow.user")
-		elseif name == "corkarganetht4" then
-			spSetUnitDefIcon(udid, iconPrefix .. "t4_karg.user")
-		elseif name == "armthundt4" then
-			spSetUnitDefIcon(udid, iconPrefix .. "t4_thund.user")
-
-			-- Scavenger Printers
-		elseif string.find(name, 'lootboxnano') then
-			if string.find(name, 't1') then
-				spSetUnitDefIcon(udid, iconPrefix .. "lootboxnanot1.user")
-			elseif string.find(name, 't2') then
-				spSetUnitDefIcon(udid, iconPrefix .. "lootboxnanot2.user")
-			elseif string.find(name, 't3') then
-				spSetUnitDefIcon(udid, iconPrefix .. "lootboxnanot3.user")
-			elseif string.find(name, 't4') then
-				spSetUnitDefIcon(udid, iconPrefix .. "lootboxnanot4.user")
-			end
-
-			-- Lootboxes / resource generators
-		elseif string.find(name, 'lootbox') then
-			if string.find(name, 'bronze') then
-				spSetUnitDefIcon(udid, iconPrefix .. "lootboxbronze.user")
-			elseif string.find(name, 'silver') then
-				spSetUnitDefIcon(udid, iconPrefix .. "lootboxsilver.user")
-			elseif string.find(name, 'gold') then
-				spSetUnitDefIcon(udid, iconPrefix .. "lootboxgold.user")
-			elseif string.find(name, 'platinum') then
-				spSetUnitDefIcon(udid, iconPrefix .. "lootboxplatinum.user")
-			end
-		elseif string.find(name, 'boss') then
-			spSetUnitDefIcon(udid, iconPrefix .. "boss.user")
-		elseif string.find(name, 'beacon') then
-			spSetUnitDefIcon(udid, iconPrefix .. "beacon.user")
-		elseif string.find(name, 'droppod') then
-			spSetUnitDefIcon(udid, iconPrefix .. "mine3.user")
-		elseif string.sub(name, 0, 7) == "critter" then
-			spSetUnitDefIcon(udid, iconPrefix .. "blank.user")
-
-			-- Scav Custom Units
-		elseif string.find(name, 'scavmist') then
-			spSetUnitDefIcon(udid, iconPrefix .. "blank.user")
-
-			-- objects
-		elseif name == "chip" or name == "dice" or name == "xmasball" or name == "xmasball2" or name == "corstone" or name == "armstone" then
-			spSetUnitDefIcon(udid, iconPrefix .. "blank.user")
-
-		elseif name == "mission_command_tower" then
-			spSetUnitDefIcon(udid, iconPrefix .. "commandtower.user")
-
-		elseif name == "corkorg" then
-			spSetUnitDefIcon(udid, iconPrefix .. "korgoth.user")
-		elseif name == "armbanth" then
-			spSetUnitDefIcon(udid, iconPrefix .. "bantha.user")
-		elseif name == "corjugg" and getIconID(iconPrefix .. 'juggernaut') then
-			spSetUnitDefIcon(udid, iconPrefix .. "juggernaut.user")
-		elseif name == "corjugg" then
-			spSetUnitDefIcon(udid, iconPrefix .. "juggernaut2.user")
-		elseif name == "cormando" and getIconID(iconPrefix .. 'commando') then
-			spSetUnitDefIcon(udid, iconPrefix .. "commando.user")
-		elseif name == "cormando" then
-			spSetUnitDefIcon(udid, iconPrefix .. "commando2.user")
-
-			-- chickens
-		elseif name == "chickenr3" then
-			spSetUnitDefIcon(udid, iconPrefix .. "chicken4.user")
-		elseif (ud.moveDef ~= nil and ud.moveDef.name == "chickqueen") then
-			spSetUnitDefIcon(udid, iconPrefix .. "chicken_queen.user")
-		elseif name == "roost" or name == "chickend1" then
-			spSetUnitDefIcon(udid, iconPrefix .. "chicken_roost.user")
-		elseif ud.modCategories["chicken"] and ud.canFly and ud.xsize >= 3 then
-			spSetUnitDefIcon(udid, iconPrefix .. "chicken_air2.user")
-		elseif ud.modCategories["chicken"] and ud.canFly then
-			spSetUnitDefIcon(udid, iconPrefix .. "chicken_air.user")
-		elseif ud.modCategories["chicken"] and ud.xsize >= 5 then
-			spSetUnitDefIcon(udid, iconPrefix .. "chicken3.user")
-		elseif ud.modCategories["chicken"] and ud.xsize >= 3 then
-			spSetUnitDefIcon(udid, iconPrefix .. "chicken2.user")
-		elseif ud.modCategories["chicken"] then
-			spSetUnitDefIcon(udid, iconPrefix .. "chicken1.user")
-
-			-- mines
-		elseif name == "cormine3" or name == "armmine3" or name == "corfmine3" or name == "armfmine3" or name == "corsktl" then
-			spSetUnitDefIcon(udid, iconPrefix .. "mine3.user")
-		elseif name == "cormine2" or name == "armmine2" or name == "cormine4" or name == "armmine4" or name == "corroach" or name == "armvader" then
-			spSetUnitDefIcon(udid, iconPrefix .. "mine2.user")
-		elseif ud.modCategories["mine"] ~= nil then
-			spSetUnitDefIcon(udid, iconPrefix .. "mine1.user")
-
-			-- targeting
-		elseif ud.targfac then
-			spSetUnitDefIcon(udid, iconPrefix .. "targetting.user")
-
-			-- cloak
-		elseif name == "armeyes" or name == "coreyes" then
-			spSetUnitDefIcon(udid, iconPrefix .. "eye.user")
-		elseif name == "armspy" or name == "corspy" or name == "armgremlin" then
-			spSetUnitDefIcon(udid, iconPrefix .. "spy.user")
-		elseif name == "armpeep" or name == "corfink" then
-			spSetUnitDefIcon(udid, iconPrefix .. "air_t1_scout.user")
-
-			-- energy
-		elseif name == "armwin" or name == "corwin" then
-			spSetUnitDefIcon(udid, iconPrefix .. "wind.user")
-		elseif name == "corafus" or name == "armafus" then
-			spSetUnitDefIcon(udid, iconPrefix .. "energy5.user")
-		elseif name == "armageo" or name == "corageo" then
-			spSetUnitDefIcon(udid, iconPrefix .. "energy4.user")
-		elseif name == "armgmm" or name == "armfus" or name == "corfus" or name == "armckfus" or name == "armdf" or name == "armuwfus" or name == "coruwfus" or name == "freefusion" then
-			spSetUnitDefIcon(udid, iconPrefix .. "energy3.user")
-		elseif name == "armgeo" or name == "corgeo" or name == "corbhmth" then
-			spSetUnitDefIcon(udid, iconPrefix .. "energy6.user")
-		elseif name == "armadvsol" or name == "coradvsol" then
-			spSetUnitDefIcon(udid, iconPrefix .. "energy2.user")
-		elseif name == "armsolar" or name == "corsolar" or name == "armtide" or name == "cortide" then
-			spSetUnitDefIcon(udid, iconPrefix .. "energy1.user")
-
-			-- storages
-		elseif name == "armestor" or name == "corestor" or name == "armuwes" or name == "coruwes" then
-			spSetUnitDefIcon(udid, iconPrefix .. "energystorage.user")
-		elseif name == "armuwadves" or name == "coruwadves" then
-			spSetUnitDefIcon(udid, iconPrefix .. "energystorage_t2.user")
-		elseif name == "armmstor" or name == "cormstor" or name == "armuwms" or name == "coruwms" then
-			spSetUnitDefIcon(udid, iconPrefix .. "metalstorage.user")
-		elseif name == "armuwadvms" or name == "coruwadvms" then
-			spSetUnitDefIcon(udid, iconPrefix .. "metalstorage_t2.user")
-
-			-- lrpc
-		elseif (name == "armvulc") or (name == "corbuzz") then
-			spSetUnitDefIcon(udid, iconPrefix .. "lrpc_lolcannon.user")
-		elseif (name == "armbrtha") or (name == "corint") then
-			spSetUnitDefIcon(udid, iconPrefix .. "lrpc.user")
-
-			--elseif (name=="armclaw") or (name=="cormaw") then
-			--  spSetUnitDefIcon(udid, "defence_0.user")
-
-			-- factories
-		elseif (ud.isFactory) then
-
-			if (name == "armap" or name == "corap" or name == "armplat" or name == "corplat") and getIconID(iconPrefix .. 'factory_t1_air') then
-				spSetUnitDefIcon(udid, iconPrefix .. "factory_t1_air.user")
-			elseif (name == "armaap" or name == "coraap") and getIconID(iconPrefix .. 'factory_t1_air') then
-				spSetUnitDefIcon(udid, iconPrefix .. "factory_t2_air.user")
-			elseif (name == "armlab" or name == "corlab") and getIconID(iconPrefix .. 'factory_t1_bot') then
-				spSetUnitDefIcon(udid, iconPrefix .. "factory_t1_bot.user")
-			elseif (name == "armalab" or name == "coralab") and getIconID(iconPrefix .. 'factory_t2_bot') then
-				spSetUnitDefIcon(udid, iconPrefix .. "factory_t2_bot.user")
-			elseif (name == "armvp" or name == "corvp") and getIconID(iconPrefix .. 'factory_t1_vehicle') then
-				spSetUnitDefIcon(udid, iconPrefix .. "factory_t1_vehicle.user")
-			elseif (name == "armavp" or name == "coravp") and getIconID(iconPrefix .. 'factory_t2_vehicle') then
-				spSetUnitDefIcon(udid, iconPrefix .. "factory_t2_vehicle.user")
-			elseif (name == "armsy" or name == "corsy") and getIconID(iconPrefix .. 'factory_t1_ship') then
-				spSetUnitDefIcon(udid, iconPrefix .. "factory_t1_ship.user")
-			elseif (name == "armasy" or name == "corasy") and getIconID(iconPrefix .. 'factory_t2_ship') then
-				spSetUnitDefIcon(udid, iconPrefix .. "factory_t2_ship.user")
-			elseif (name == "armhp" or name == "corhp" or name == "armfhp" or name == "corfhp") and getIconID(iconPrefix .. 'factory_hover') then
-				spSetUnitDefIcon(udid, iconPrefix .. "factory_hover.user")
-			elseif (name == "armamsub" or name == "coramsub") and getIconID(iconPrefix .. 'factory_amph') then
-				spSetUnitDefIcon(udid, iconPrefix .. "factory_amph.user")
-			elseif (name == "armshltx" or name == "armshltxuw" or name == "corgant" or name == "corgantuw") and getIconID(iconPrefix .. 'factory_gantry') then
-				spSetUnitDefIcon(udid, iconPrefix .. "factory_gantry.user")
-
-			elseif (name == "armshltx" or name == "armshltxuw" or name == "corgant" or name == "corgantuw") then
-				spSetUnitDefIcon(udid, iconPrefix .. "factory_t3.user")
-			elseif (name == "armaap" or name == "armavp" or name == "armalab" or name == "armasy" or name == "coraap" or name == "coravp" or name == "coralab" or name == "corasy") then
-				spSetUnitDefIcon(udid, iconPrefix .. "factory_t2.user")
-			else
-				spSetUnitDefIcon(udid, iconPrefix .. "factory_t1.user")
-			end
-
-			-- (anti) nuke
-		elseif (name == "armemp") and getIconID(iconPrefix .. 'emp') then
-			spSetUnitDefIcon(udid, iconPrefix .. "emp.user")
-		elseif (name == "cortron") and getIconID(iconPrefix .. 'tacnuke') then
-			spSetUnitDefIcon(udid, iconPrefix .. "tacnuke.user")
-		elseif (name == "corfmd" or name == "armamd") then
-			spSetUnitDefIcon(udid, iconPrefix .. "antinuke.user")
-		elseif (name == "cormabm" or name == "armscab") then
-			spSetUnitDefIcon(udid, iconPrefix .. "antinuke_mobile.user")
-		elseif (name == "armcarry" or name == "corcarry") then
-			spSetUnitDefIcon(udid, iconPrefix .. "ship_t2_carrier.user")
-		elseif (ud.stockpileWeaponDef ~= nil) and not (name == "armmercury" or name == "corscreamer" or name == "corfmd" or name == "armamd" or name == "cormabm" or name == "armscab") then
-			-- nuke( stockpile weapon, but not mercury/screamer or anti nukes)
-			if name == "armsilo" or name == "corsilo" then
-				spSetUnitDefIcon(udid, iconPrefix .. "nuke_big.user")
-			elseif name == "armjuno" or name == "corjuno" then
-				spSetUnitDefIcon(udid, "jammer_t2.user")
-			else
-				spSetUnitDefIcon(udid, iconPrefix .. "nuke.user")
-			end
-
-			-- shield
-		elseif (ud.shieldWeaponDef) then
-			spSetUnitDefIcon(udid, "shield.user")
-
-
-			-- metal extractors
-		elseif ud.extractsMetal > 0 or ud.makesMetal > 0 then
-			if ud.extractsMetal > 0.001 then
-				spSetUnitDefIcon(udid, iconPrefix .. "mex_t2.user")
-			elseif ud.extractsMetal > 0 and ud.extractsMetal <= 0.001 then
-				spSetUnitDefIcon(udid, iconPrefix .. "mex_t1.user")
-			end
-
-			-- metal makers
-		elseif ud.customParams.energyconv_capacity and ud.customParams.energyconv_efficiency then
-			if tonumber(ud.customParams.energyconv_capacity) > 200 then
-				spSetUnitDefIcon(udid, iconPrefix .. "metalmaker_t2.user")
-			else
-				spSetUnitDefIcon(udid, iconPrefix .. "metalmaker_t1.user")
-			end
-
-		elseif ud.isTransport then
-			-- transports
-			if name == "armdfly" or name == "corseah" then
-				spSetUnitDefIcon(udid, iconPrefix .. "air_t2_transport.user")
-			elseif name == "armthovr" or name == "corthovr" then
-				spSetUnitDefIcon(udid, iconPrefix .. "hover_transport.user")
-			elseif name == "corintr" then
-				spSetUnitDefIcon(udid, iconPrefix .. "vehicle_trans.user")
-			elseif name == "armtship" or name == "cortship" then
-				spSetUnitDefIcon(udid, iconPrefix .. "ship_transport.user")
-			else
-				spSetUnitDefIcon(udid, iconPrefix .. "air_t1_transport.user")
-			end
-
-			-- nanos
-		elseif ud.deathExplosion == "nanoboom" then
-			spSetUnitDefIcon(udid, iconPrefix .. "worker.user")
-
-			-- amphib & t2 subs
-		elseif ud.modCategories["phib"] ~= nil or (ud.modCategories["canbeuw"] ~= nil and ud.modCategories["underwater"] == nil) then
-			if name == "armserp" or name == "armsubk" or name == "corshark" or name == "corssub" then
-				spSetUnitDefIcon(udid, iconPrefix .. "sub_t2.user")
-			elseif name == "armpincer" or name == "corgarp" then
-				spSetUnitDefIcon(udid, iconPrefix .. "amphib_tank.user")
-			elseif ud.customParams.techlevel ~= nil and ud.customParams.techlevel == '3' then
-				spSetUnitDefIcon(udid, iconPrefix .. "amphib_t3.user")
-			elseif ud.weapons[1] ~= nil and ud.weapons[1].onlyTargets["vtol"] then
-				if ud.customParams.techlevel ~= nil and ud.customParams.techlevel == '2' then
-					spSetUnitDefIcon(udid, iconPrefix .. "amphib_t2_aa.user")
-				else
-					spSetUnitDefIcon(udid, iconPrefix .. "amphib_t1_aa.user")
-				end
-			elseif ud.customParams.techlevel ~= nil and ud.customParams.techlevel == '2' then
-				if ud.isBuilder then
-					spSetUnitDefIcon(udid, iconPrefix .. "amphib_t2_worker.user")
-				else
-					spSetUnitDefIcon(udid, iconPrefix .. "amphib_t2.user")
-				end
-			else
-				if ud.isBuilder then
-					spSetUnitDefIcon(udid, iconPrefix .. "amphib_t1_worker.user")
-				else
-					spSetUnitDefIcon(udid, iconPrefix .. "amphib_t1.user")
-				end
-			end
-
-			-- submarines
-		elseif ud.modCategories["underwater"] ~= nil and ud.speed > 0 then
-			if name == "armacsub" or name == "coracsub" or name == "armrecl" or name == "correcl" then
-				spSetUnitDefIcon(udid, iconPrefix .. "sub_t2_worker.user")
-			else
-				spSetUnitDefIcon(udid, iconPrefix .. "sub_t1.user")
-			end
-
-			-- hovers
-		elseif ud.modCategories["hover"] ~= nil then
-			if ud.isBuilder then
-				spSetUnitDefIcon(udid, iconPrefix .. "hover_t1_worker.user")
-			elseif ud.weapons[1] ~= nil and ud.weapons[1].onlyTargets["vtol"] then
-				spSetUnitDefIcon(udid, iconPrefix .. "hover_t1_aa.user")
-			elseif name == "corhal" then
-				spSetUnitDefIcon(udid, iconPrefix .. "hover_t2.user")
-			elseif name == "armlun" or name == "corsok" then
-				spSetUnitDefIcon(udid, iconPrefix .. "hover_t3.user")
-			elseif name == "armmh" or name == "cormh" then
-				spSetUnitDefIcon(udid, iconPrefix .. "hover_t1_missile.user")
-			elseif name == "armsh" or name == "corsh" then
-				spSetUnitDefIcon(udid, iconPrefix .. "hover_raid.user")
-			elseif name == "armanac" or name == "corsnap" then
-				spSetUnitDefIcon(udid, iconPrefix .. "hover_gun.user")
-			else
-				spSetUnitDefIcon(udid, iconPrefix .. "hover_t1.user")
-			end
-
-			-- aircraft
-		elseif ud.canFly then
-
-			if name == "armliche" and getIconID(iconPrefix .. 'air_liche') then
-				spSetUnitDefIcon(udid, iconPrefix .. "air_liche.user")
-			elseif name == "armliche" then
-				spSetUnitDefIcon(udid, iconPrefix .. "air_liche2.user")
-			elseif name == "corcrw" and getIconID(iconPrefix .. 'air_krow') then
-				spSetUnitDefIcon(udid, iconPrefix .. "air_krow.user")
-			elseif name == "corcrw" then
-				spSetUnitDefIcon(udid, iconPrefix .. "air_krow2.user")
-			elseif name == "armstil" then
-				spSetUnitDefIcon(udid, iconPrefix .. "air_krow2.user")
-			elseif name == "armlance" or name == "cortitan" then
-				spSetUnitDefIcon(udid, iconPrefix .. "air_t2_torpbomber.user")
-			elseif name == "armseap" or name == "corseap" then
-				spSetUnitDefIcon(udid, iconPrefix .. "air_torp.user")
-			elseif name == "armawac" or name == "corawac" or name == "armsehak" or name == "corhunt" then
-				spSetUnitDefIcon(udid, iconPrefix .. "air_t2_radar.user")
-			elseif ud.isBuilder then
-				if (ud.customParams.techlevel ~= nil and ud.customParams.techlevel == '2') then
-					spSetUnitDefIcon(udid, iconPrefix .. "air_t2_worker.user")
-				else
-					spSetUnitDefIcon(udid, iconPrefix .. "air_t1_worker.user")
-				end
-			elseif ud.hoverAttack then
-				if name == "corbw" then
-					spSetUnitDefIcon(udid, iconPrefix .. "air_bladew.user")
-				elseif name == "armblade" or name == "corape" then
-					spSetUnitDefIcon(udid, iconPrefix .. "air_t2_hover_missile.user")
-				elseif ud.customParams.techlevel ~= nil and ud.customParams.techlevel == '2' then
-					spSetUnitDefIcon(udid, iconPrefix .. "air_t2_hover.user")
-				else
-					spSetUnitDefIcon(udid, iconPrefix .. "air_t1_hover.user")
-				end
-			elseif #ud.weapons > 0 and WeaponDefs[ud.weapons[1].weaponDef].type == "AircraftBomb" then
-				if name == "armpnix" or name == "corhurc" then
-					spSetUnitDefIcon(udid, iconPrefix .. "air_t2_bomber.user")
-				else
-					spSetUnitDefIcon(udid, iconPrefix .. "air_t1_bomber.user")
-				end
-			else
-				if (ud.customParams.techlevel ~= nil and ud.customParams.techlevel == '2') then
-					spSetUnitDefIcon(udid, iconPrefix .. "air_t2.user")
-				else
-					spSetUnitDefIcon(udid, iconPrefix .. "air_t1.user")
-				end
-			end
-
-			-- ships
-		elseif ud.modCategories["ship"] ~= nil then
-			if name == "armroy" or name == "corroy" then
-				spSetUnitDefIcon(udid, iconPrefix .. "ship_destroyer.user")
-			elseif name == "armdecade" or name == "coresupp" then
-				spSetUnitDefIcon(udid, iconPrefix .. "ship_raid.user")
-			elseif name == "armmship" or name == "cormship" then
-				spSetUnitDefIcon(udid, iconPrefix .. "ship_t2_missile.user")
-			elseif name == "armcrus" or name == "corcrus" then
-				spSetUnitDefIcon(udid, iconPrefix .. "ship_t2_cruiser.user")
-			elseif name == "armbats" or name == "corbats" then
-				spSetUnitDefIcon(udid, iconPrefix .. "ship_t2_battleship.user")
-			elseif name == "armepoch" or name == "corblackhy" then
-				spSetUnitDefIcon(udid, iconPrefix .. "ship_t2_flagship.user")
-			elseif name == "armsjam" or name == "corsjam" then
-				spSetUnitDefIcon(udid, iconPrefix .. "ship_t2_jammer.user")
-			elseif name == "armpt" or name == "corpt" then
-				spSetUnitDefIcon(udid, iconPrefix .. "ship_tiny.user")
-			elseif name == "armpship" or name == "corpship" then
-				spSetUnitDefIcon(udid, iconPrefix .. "ship_pship.user")
-			elseif ud.isBuilder then
-				if name == "armmls" or name == "cormls" then
-					spSetUnitDefIcon(udid, iconPrefix .. "ship_engineer.user")
-				elseif ud.customParams.techlevel ~= nil and ud.customParams.techlevel == '2' then
-					spSetUnitDefIcon(udid, iconPrefix .. "ship_t2_worker.user")
-				else
-					spSetUnitDefIcon(udid, iconPrefix .. "ship_t1_worker.user")
-				end
-			elseif ud.weapons[1] ~= nil and ud.weapons[1].onlyTargets["vtol"] then
-				if ud.customParams.techlevel ~= nil and ud.customParams.techlevel == '2' then
-					spSetUnitDefIcon(udid, iconPrefix .. "ship_t2_aa.user")
-				else
-					spSetUnitDefIcon(udid, iconPrefix .. "ship_aa.user")
-				end
-			else
-				if ud.customParams.techlevel ~= nil and ud.customParams.techlevel == '2' then
-					spSetUnitDefIcon(udid, iconPrefix .. "ship_t2.user")
-				else
-					spSetUnitDefIcon(udid, iconPrefix .. "ship.user")
-				end
-			end
-
-			-- sensors
-		elseif ud.seismicRadius > 1 then
-			spSetUnitDefIcon(udid, iconPrefix .. "seismic.user")
-		elseif (ud.radarRadius > 1 or ud.sonarRadius > 1) and ud.speed <= 0 and #ud.weapons <= 0 then
-			if name == "armarad" or name == "armason" or name == "corarad" or name == "corason" then
-				spSetUnitDefIcon(udid, iconPrefix .. "radar_t2.user")
-			else
-				spSetUnitDefIcon(udid, iconPrefix .. "radar_t1.user")
-			end
-
-			-- jammer buildings
-		elseif (ud.jammerRadius > 1 or ud.sonarJamRadius > 1) and ud.speed <= 0 then
-			if name == "corshroud" or name == "armveil" then
-				spSetUnitDefIcon(udid, iconPrefix .. "jammer_t2.user")
-			else
-				spSetUnitDefIcon(udid, iconPrefix .. "jammer_t1.user")
-			end
-
-			-- defenders and other buildings
-		elseif ud.isBuilding or ud.speed <= 0 then
-			if #ud.weapons <= 0 then
-				if ud.customParams.techlevel ~= nil and ud.customParams.techlevel == '2' then
-					spSetUnitDefIcon(udid, iconPrefix .. "building_t2.user")
-				else
-					spSetUnitDefIcon(udid, iconPrefix .. "building_t1.user")
-				end
-			else
-				if ud.weapons[1] ~= nil and ud.weapons[1].onlyTargets["vtol"] then
-					if name == "armmercury" or name == "corscreamer" then
-						spSetUnitDefIcon(udid, iconPrefix .. "aa_longrange.user")
-					elseif WeaponDefs[ud.weapons[1].weaponDef].cegTag == 'flaktrailaa' then
-						spSetUnitDefIcon(udid, iconPrefix .. "aa_flak.user")
-					elseif name == "corerad" or name == "armcir" or name == "armferret" or name == "cormadsam" then
-						spSetUnitDefIcon(udid, iconPrefix .. "aa2.user")
-					else
-						spSetUnitDefIcon(udid, iconPrefix .. "aa1.user")
-					end
-				else
-					if name == "armanni" or name == "cordoom" then
-						spSetUnitDefIcon(udid, iconPrefix .. "defence_3.user")
-					elseif (name == "armguard" or name == "corpun") and getIconID(iconPrefix .. 'defence_1_arty') then
-						spSetUnitDefIcon(udid, iconPrefix .. "defence_1_arty.user")
-					elseif (name == "armamb" or name == "cortoast") and getIconID(iconPrefix .. 'defence_2_arty') then
-						spSetUnitDefIcon(udid, iconPrefix .. "defence_2_arty.user")
-					elseif name == "armtl" or name == "cortl" or name == "armptl" or name == "corptl" or name == "armdl" or name == "cordl" then
-						spSetUnitDefIcon(udid, iconPrefix .. "defence_1_naval.user")
-					elseif name == "armatl" or name == "coratl" then
-						spSetUnitDefIcon(udid, iconPrefix .. "defence_2_naval.user")
-					elseif name == "armhlt" or name == "corhlt" or name == "armfhlt" or name == "corfhlt" then
-						spSetUnitDefIcon(udid, iconPrefix .. "defence_1_laser.user")
-					elseif name == "armbeamer" or name == "corhllt" then
-						spSetUnitDefIcon(udid, iconPrefix .. "defence_0_laser2.user")
-					elseif (ud.customParams.techlevel ~= nil and ud.customParams.techlevel == '2') or name == "armguard" or name == "corpun" then
-						if weaponDef and weaponDef.type == 'BeamLaser' then
-							spSetUnitDefIcon(udid, iconPrefix .. "defence_2_laser.user")
-						elseif weaponDef and weaponDef.type == 'MissileLauncher' then
-							spSetUnitDefIcon(udid, iconPrefix .. "defence_2_missile.user")
-						else
-							spSetUnitDefIcon(udid, iconPrefix .. "defence_2.user")
-						end
-					else
-						if weaponDef and weaponDef.type == 'BeamLaser' then
-							spSetUnitDefIcon(udid, iconPrefix .. "defence_0_laser.user")
-						else
-							spSetUnitDefIcon(udid, iconPrefix .. "defence_0.user")
-						end
-					end
-				end
-			end
-
-			-- vehicles
-		elseif ud.modCategories["tank"] ~= nil then
-
-			if name == "armmanni" or name == "corgol" or name == "cortrem" then
-				spSetUnitDefIcon(udid, iconPrefix .. "vehicle_t2_big.user")
-			elseif name == "corvrad" or name == "armseer" then
-				spSetUnitDefIcon(udid, iconPrefix .. "vehicle_t2_radar.user")
-			elseif name == "coreter" or name == "armjam" then
-				spSetUnitDefIcon(udid, iconPrefix .. "vehicle_t2_jammer.user")
-			elseif name == "corfav" or name == "armfav" then
-				spSetUnitDefIcon(udid, iconPrefix .. "vehicle_t1_flea.user")
-			elseif name == "armsam" or name == "cormist" then
-				spSetUnitDefIcon(udid, iconPrefix .. "vehicle_t1_missile.user")
-			elseif name == "armflash" or name == "corgator" then
-				spSetUnitDefIcon(udid, iconPrefix .. "vehicle_t1_raid.user")
-			elseif name == "armjanus" or name == "corlevlr" then
-				spSetUnitDefIcon(udid, iconPrefix .. "vehicle_t1_big.user")
-			elseif name == "armbull" or name == "correap" then
-				spSetUnitDefIcon(udid, iconPrefix .. "vehicle_t2_tank.user")
-			elseif name == "armstump" or name == "corraid" then
-				spSetUnitDefIcon(udid, iconPrefix .. "vehicle_t1_tank.user")
-			elseif ud.isBuilder then
-				if name == "armconsul" then
-					spSetUnitDefIcon(udid, iconPrefix .. "engineer.user")
-				elseif ud.customParams.techlevel ~= nil and ud.customParams.techlevel == '2' then
-					spSetUnitDefIcon(udid, iconPrefix .. "vehicle_t2_worker.user")
-				else
-					spSetUnitDefIcon(udid, iconPrefix .. "vehicle_t1_worker.user")
-				end
-			elseif ud.weapons[1] ~= nil and ud.weapons[1].onlyTargets["vtol"] then
-				if ud.customParams.techlevel ~= nil and ud.customParams.techlevel == '2' then
-					spSetUnitDefIcon(udid, iconPrefix .. "vehicle_t2_aa.user")
-				else
-					spSetUnitDefIcon(udid, iconPrefix .. "vehicle_aa.user")
-				end
-			else
-				if (ud.customParams.techlevel ~= nil and ud.customParams.techlevel == '2') then
-					spSetUnitDefIcon(udid, iconPrefix .. "vehicle_t2.user")
-				else
-					spSetUnitDefIcon(udid, iconPrefix .. "vehicle_t1.user")
-				end
-			end
-
-			-- all terrain
-		elseif ud.moveDef.name == "tbot2" or ud.moveDef.name == "tbot3" or ud.moveDef.name == "htbot4" then
-
-			if name == "armvang" then
-				spSetUnitDefIcon(udid, iconPrefix .. "allterrain_vanguard.user")
-			elseif name == "armspid" then
-				spSetUnitDefIcon(udid, iconPrefix .. "allterrain_emp.user")
-			elseif (ud.customParams.techlevel ~= nil and ud.customParams.techlevel == '3') then
-				spSetUnitDefIcon(udid, iconPrefix .. "allterrain_t3.user")
-			elseif (ud.customParams.techlevel ~= nil and ud.customParams.techlevel == '2') then
-				spSetUnitDefIcon(udid, iconPrefix .. "allterrain_t2.user")
-			else
-				spSetUnitDefIcon(udid, iconPrefix .. "allterrain_t1.user")
-			end
-
-			-- bots
-		elseif ud.modCategories["bot"] ~= nil then
-
-			if name == "corsumo" then
-				spSetUnitDefIcon(udid, iconPrefix .. "bot_t2_big.user")
-			elseif name == "armflea" then
-				spSetUnitDefIcon(udid, iconPrefix .. "bot_t1_flea.user")
-			elseif name == "corak" or name == "armpw" then
-				spSetUnitDefIcon(udid, iconPrefix .. "bot_t1_raid.user")
-			elseif name == "armfast" then
-				spSetUnitDefIcon(udid, iconPrefix .. "bot_t2_raid.user")
-			elseif name == "corvoyr" or name == "armmark" then
-				spSetUnitDefIcon(udid, iconPrefix .. "bot_t2_radar.user")
-			elseif name == "corspec" or name == "armaser" then
-				spSetUnitDefIcon(udid, iconPrefix .. "bot_t2_jammer.user")
-			elseif name == "armham" or name == "armwar" or name == "corthud" then
-				spSetUnitDefIcon(udid, iconPrefix .. "bot_t1_big.user")
-			elseif ud.isBuilder then
-				if name == "cornecro" or name == "armrectr" then
-					spSetUnitDefIcon(udid, iconPrefix .. "bot_t1_tinyworker.user")
-				elseif name == "armfark" or name == "corfast" then
-					spSetUnitDefIcon(udid, iconPrefix .. "engineer_small.user")
-				elseif ud.customParams.techlevel ~= nil and ud.customParams.techlevel == '2' then
-					spSetUnitDefIcon(udid, iconPrefix .. "bot_t2_worker.user")
-				else
-					spSetUnitDefIcon(udid, iconPrefix .. "bot_t1_worker.user")
-				end
-			elseif ud.weapons[1] ~= nil and ud.weapons[1].onlyTargets["vtol"] then
-				if ud.customParams.techlevel ~= nil and ud.customParams.techlevel == '2' then
-					spSetUnitDefIcon(udid, iconPrefix .. "bot_t2_aa.user")
-				else
-					spSetUnitDefIcon(udid, iconPrefix .. "bot_aa.user")
-				end
-			else
-				if ud.customParams.techlevel ~= nil and ud.customParams.techlevel == '3' then
-					spSetUnitDefIcon(udid, iconPrefix .. "bot_t3.user")
-				elseif ud.customParams.techlevel ~= nil and ud.customParams.techlevel == '2' then
-					spSetUnitDefIcon(udid, iconPrefix .. "bot_t2.user")
-				else
-					spSetUnitDefIcon(udid, iconPrefix .. "bot_t1.user")
-				end
-			end
-
-		else
-
-			-- unknown
-			spSetUnitDefIcon(udid, iconPrefix .. "unknown.user")
-		end
-
-	end
-
-	-- Walls
-	spSetUnitDefIcon(UnitDefNames["cordrag"].id, "wall.user")
-	spSetUnitDefIcon(UnitDefNames["armdrag"].id, "wall.user")
-	spSetUnitDefIcon(UnitDefNames["corfort"].id, "wall.user")
-	spSetUnitDefIcon(UnitDefNames["armfort"].id, "wall.user")
-	spSetUnitDefIcon(UnitDefNames["corfdrag"].id, "wall.user")
-	spSetUnitDefIcon(UnitDefNames["armfdrag"].id, "wall.user")
-	if UnitDefNames["cordrag_scav"] then
-		spSetUnitDefIcon(UnitDefNames["cordrag_scav"].id, "wall.user")
-		spSetUnitDefIcon(UnitDefNames["armdrag_scav"].id, "wall.user")
-		spSetUnitDefIcon(UnitDefNames["corfort_scav"].id, "wall.user")
-		spSetUnitDefIcon(UnitDefNames["armfort_scav"].id, "wall.user")
-		spSetUnitDefIcon(UnitDefNames["corfdrag_scav"].id, "wall.user")
-		spSetUnitDefIcon(UnitDefNames["armfdrag_scav"].id, "wall.user")
-	end
-
-	-- load and assign custom unit icons when availible
-	local customUnitIcons = {}
-	local files = VFS.DirList('icons', "*.png")
-	local files2 = VFS.DirList('icons/inverted', "*.png")
-	for k, file in ipairs(files2) do
-		files[#files + 1] = file
-	end
-
-	-- add inverted icons for scavenger units
-	for k, file in ipairs(files) do
-		local scavPrefix = ''
-		local scavSuffix = ''
-		if string.find(file, 'inverted') then
-			scavPrefix = 'scav_'
-			scavSuffix = '_scav'
-		end
-		local name = string.gsub(file, 'icons\\', '')   -- when located in spring folder
-		name = string.gsub(name, 'icons/', '')   -- when located in game archive
-		name = string.gsub(name, 'inverted/', '')   -- when located in game archive
-		name = string.gsub(name, '.png', '')
-		if name then
-			local unitname = string.match(name, '([a-z0-9]*)')
-			if unitname and UnitDefNames[unitname] then
-				local scale = string.gsub(name, unitname, '')
-				scale = string.gsub(scale, '_', '')
-				if scale ~= '' and UnitDefNames[unitname .. scavSuffix] then
-					addUnitIcon(scavPrefix .. unitname .. ".user", file, tonumber(scale) * iconScale)
-					if unitname == 'armcom' then
-						Spring.Echo(unitname, UnitDefNames[unitname .. scavSuffix].id, scavSuffix, scavPrefix .. unitname .. ".user")
-					end
-					spSetUnitDefIcon(UnitDefNames[unitname .. scavSuffix].id, scavPrefix .. unitname .. ".user")
-				end
-			end
+			Spring.Echo("No icon for: " ..name)
 		end
 	end
 end
-
-local myPlayerID = Spring.GetMyPlayerID()
 
 function gadget:GotChatMsg(msg, playerID)
 	if playerID == myPlayerID then
@@ -1080,7 +608,6 @@ function gadget:GotChatMsg(msg, playerID)
 			iconScale = tonumber(string.sub(msg, 15))
 			Spring.SetConfigFloat("UnitIconScale", iconScale)
 			loadUnitIcons()
-			--Spring.SendCommands("minimap unitsize "..Spring.GetConfigFloat("MinimapIconScale", 3.5-(iconScale-1)))
 		end
 	end
 end
@@ -1095,5 +622,3 @@ function gadget:Initialize()
 		loadUnitIcons()
 	end
 end
-
-

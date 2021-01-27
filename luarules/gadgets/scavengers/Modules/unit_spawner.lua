@@ -40,19 +40,20 @@ function BossWaveTimer(n)
 						pickedBeacon = pickedBeaconTest
 						break
 					else
-						pickedBeacon = 1234567890
+						pickedBeacon = 16000000 -- high number that UnitID should never pick
 					end
 				end
 			elseif #SpawnBeacons == 1 then
 				pickedBeacon = SpawnBeacons[1]
 			elseif #SpawnBeacons == 0 then
 				noSpawnerForBoss = true
+				pickedBeacon = 16000000 -- high number that UnitID should never pick
 			end
 			SpawnBeacons = nil
 			if noSpawnerForBoss ~= true and not Spring.ValidUnitID(pickedBeacon) or Spring.GetUnitIsDead(pickedBeacon) == true or Spring.GetUnitIsDead(pickedBeacon) == nil then
-				pickedBeacon = 1234567890
+				pickedBeacon = 16000000 -- high number that UnitID should never pick
 			end
-			if noSpawnerForBoss ~= true and pickedBeacon == 1234567890 then
+			if noSpawnerForBoss ~= true and pickedBeacon == 16000000 then
 				Spring.Echo("[Scavengers] Failed Attempt to spawn Final Boss")
 				ScavBossFailedSpawnAttempts = ScavBossFailedSpawnAttempts+1
 				return
@@ -217,10 +218,10 @@ function UnitGroupSpawn(n)
 					pickedBeacon = pickedBeaconTest
 					break
 				else
-					pickedBeacon = 1234567890
+					pickedBeacon = 16000000 -- high number that UnitID should never pick
 				end
 			end
-			if pickedBeacon == 1234567890 then
+			if pickedBeacon == 16000000 then
 				return
 			end
 			local posx,posy,posz = Spring.GetUnitPosition(pickedBeacon)

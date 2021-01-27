@@ -1,0 +1,4 @@
+PriorityTargetsUnitsList = {
+	"armcom",
+	"corcom",
+}

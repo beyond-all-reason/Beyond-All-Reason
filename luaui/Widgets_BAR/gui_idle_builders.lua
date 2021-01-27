@@ -6,7 +6,7 @@ function widget:GetInfo()
 		date = "15 april 2015",
 		license = "GNU GPL, v2 or later",
 		layer = 0,
-		enabled = false  --  loaded by default?
+		enabled = true  --  loaded by default?
 	}
 end
 
@@ -18,17 +18,16 @@ local vsx, vsy = Spring.GetViewGeometry()
 local enabledAsSpec = false
 
 local MAX_ICONS = 10
-local iconsize = 37
+local iconsize = 35
 local CONDENSE = false -- show one icon for all builders of same type
 local POSITION_X = 0.5 -- horizontal centre of screen
-local POSITION_Y = 0.095 -- near bottom
+local POSITION_Y = 0.178 -- near bottom
 local NEAR_IDLE = 0 -- this means that factories with only X build items left will be shown as idle
 
 local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity", 0.6) or 0.66)
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
 
-local ICON_SIZE_X = iconsize * (1 + (ui_scale - 1) / 1.5)
-local ICON_SIZE_Y = ICON_SIZE_X
+local ICON_SIZE = iconsize * (1 + (ui_scale - 1) / 1.5)
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
@@ -44,6 +43,7 @@ local rightclick = 'LuaUI/Sounds/buildbar_rem.wav'
 local hoversize = 0
 local rot = 0
 
+local fontFile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 local chobbyInterface, font
 
 local X_MIN = 0
@@ -76,23 +76,15 @@ end
 
 local glColor = gl.Color
 local glShape = gl.Shape
-local glDepthTest = gl.DepthTest
-local glDepthMask = gl.DepthMask
-local glCulling = gl.Culling
-local glLighting = gl.Lighting
 local glBlending = gl.Blending
 local glMaterial = gl.Material
 local glTranslate = gl.Translate
 local glTexture = gl.Texture
-local glScissor = gl.Scissor
 local glPushMatrix = gl.PushMatrix
 local glPopMatrix = gl.PopMatrix
-local glUnitShape = gl.UnitShape
-local glUnitShapeTextures = gl.UnitShapeTextures
 local glClear = gl.Clear
 local glText = gl.Text
 local glUnit = gl.Unit
-local glScale = gl.Scale
 local glRotate = gl.Rotate
 local glRect = gl.Rect
 local glCallList = gl.CallList
@@ -101,7 +93,6 @@ local glDeleteList = gl.DeleteList
 local glBeginEnd = gl.BeginEnd
 local glTexCoord = gl.TexCoord
 local glVertex = gl.Vertex
-local glLoadIdentity = gl.LoadIdentity
 local glGetScreenViewTrans = gl.GetScreenViewTrans
 
 local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
@@ -128,14 +119,15 @@ local GetUnitDefDimensions = Spring.GetUnitDefDimensions
 local GetViewGeometry = Spring.GetViewGeometry
 local ValidUnitID = Spring.ValidUnitID
 local GetGameFrame = Spring.GetGameFrame
-local GetCameraPosition = Spring.GetCameraPosition
-local GetCameraDirection = Spring.GetCameraDirection
-local SetCameraTarget = Spring.SetCameraTarget
 
 local math_sin = math.sin
 local math_pi = math.pi
 
 local getn = table.getn
+
+local RectRound = Spring.FlowUI.Draw.RectRound
+local UiUnit = Spring.FlowUI.Draw.Unit
+local bgpadding = Spring.FlowUI.elementPadding
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
@@ -143,10 +135,9 @@ local getn = table.getn
 local sizeMultiplier = 1
 local function init()
 	vsx, vsy = GetViewGeometry()
-	sizeMultiplier = (((vsx + vsy) / 2000) * 1) * (1 + (ui_scale - 1) / 1.5)
+	sizeMultiplier = (((vsy) / 750) * 1) * (1 + (ui_scale - 1) / 1.5)
 
-	ICON_SIZE_X = iconsize * sizeMultiplier
-	ICON_SIZE_Y = ICON_SIZE_X
+	ICON_SIZE = iconsize * sizeMultiplier
 
 	bgcornerSize = cornerSize * (sizeMultiplier - 1)
 	noOfIcons = 0   -- this fixes positioning when resolution change
@@ -154,7 +145,8 @@ end
 
 function widget:ViewResize()
 	vsx, vsy = Spring.GetViewGeometry()
-	font = WG['fonts'].getFont(nil, 1, 0.2, 1.3)
+	font = WG['fonts'].getFont(fontFile, 1, 0.2, 1.3)
+	bgpadding = Spring.FlowUI.elementPadding
 	init()
 end
 
@@ -218,7 +210,7 @@ local function DrawBoxes(number)
 	local ct = 0
 	while (ct < number) do
 		ct = ct + 1
-		local X2 = X1 + ICON_SIZE_X
+		local X2 = X1 + ICON_SIZE
 
 		if widgetHandler:InTweakMode() then
 			glShape(GL_LINE_LOOP, {
@@ -235,49 +227,34 @@ local function DrawBoxes(number)
 	--Spring.Echo(X2)
 end--]]
 
-local function CenterUnitDef(unitDefID)
-	local ud = UnitDefs[unitDefID]
-	if (not ud) then
-		return
-	end
-	if (not ud.dimensions) then
-		ud.dimensions = GetUnitDefDimensions(unitDefID)
-	end
-	if (not ud.dimensions) then
-		return
+
+local function MouseOverIcon(x, y)
+	if not drawTable then
+		return -1
 	end
 
-	local d = ud.dimensions
-	local xSize = (d.maxx - d.minx)
-	local ySize = (d.maxy - d.miny)
-	local zSize = (d.maxz - d.minz)
-
-	local hSize -- maximum horizontal dimension
-	if (xSize > zSize) then
-		hSize = xSize
-	else
-		hSize = zSize
+	local NumOfIcons = table.getn(drawTable)
+	if x < X_MIN then
+		return -1
+	end
+	if x > X_MAX then
+		return -1
+	end
+	if y < Y_MIN then
+		return -1
+	end
+	if y > Y_MAX then
+		return -1
 	end
 
-	-- aspect ratios
-	local mAspect = hSize / ySize
-	local vAspect = ICON_SIZE_X / ICON_SIZE_Y
-
-	-- scale the unit to the box (maxspect)
-	local scale
-	if (mAspect > vAspect) then
-		scale = (ICON_SIZE_X / hSize)
-	else
-		scale = (ICON_SIZE_Y / ySize)
+	local icon = math.floor((x - X_MIN) / ICON_SIZE)
+	if icon < 0 then
+		icon = 0
 	end
-	scale = scale * 0.8
-	glScale(scale, scale, scale)
-
-	-- translate to the unit's midpoint
-	local xMid = 0.5 * (d.maxx + d.minx)
-	local yMid = 0.5 * (d.maxy + d.miny)
-	local zMid = 0.5 * (d.maxz + d.minz)
-	glTranslate(-xMid, -yMid, -zMid)
+	if icon >= NumOfIcons then
+		icon = (NumOfIcons - 1)
+	end
+	return icon
 end
 
 local function DrawUnitIcons(number)
@@ -287,205 +264,57 @@ local function DrawUnitIcons(number)
 	local ct = 0
 	local X1, X2
 
-	local cpx, cpy, cpz = GetCameraPosition()
-	local ctx, cty, ctz = glGetScreenViewTrans()
+	local iconNum = MouseOverIcon(GetMouseState())
 
-	-- magic to keep UnitShape fog under control
-	SetCameraTarget(ctx, cty, ctz, -1.0)
-
-	glTexture(false)
-	glScissor(true)
-
-	while (ct < number) do
+	while ct < number do
 		ct = ct + 1
 		local unitID = drawTable[ct][2]
 
 		if (type(unitID) == 'number' and ValidUnitID(unitID)) or type(unitID) == 'table' then
 
-			X1 = X_MIN + (ICON_SIZE_X * (ct - 1))
-			X2 = X1 + ICON_SIZE_X
+			if type(unitID) == 'table' then
+				unitID = unitID[1]
+			end
 
-			glPushMatrix()
-			glLoadIdentity()
-			glTranslate(ctx, cty, ctz)
+			local iconPadding = math.floor(ICON_SIZE*0.05)
+			if ct-1 == iconNum then
+				iconPadding = math.floor(ICON_SIZE*0.02)
+			end
 
-			glScissor(X1, Y_MIN, X2 - X1, Y_MAX - Y_MIN)
+			X1 = math.floor(X_MIN + (ICON_SIZE * (ct - 1)))
+			X2 = math.floor(X1 + ICON_SIZE)
 
-			glTranslate(0.5 * (X2 + X1), 0.5 * (Y_MAX + Y_MIN), 0)
-			glRotate(18, 1, 0, 0)
-			glRotate(rot, 0, 1, 0)
-
-			CenterUnitDef(drawTable[ct][1])
-
-			--glUnitShapeTextures(drawTable[ct][1], true)
-			glUnitShape(drawTable[ct][1], GetMyTeamID(), false, true, true)
-			--glUnitShapeTextures(drawTable[ct][1], false)
-
-			glScissor(false)
-			glPopMatrix()
+			glColor(1,1,1,1)
+			UiUnit(X1+iconPadding, Y_MIN+iconPadding, X2-iconPadding, Y_MAX-iconPadding,
+				math.ceil(bgpadding*0.5), 1,1,1,1,
+				0.05,
+				nil, nil,
+				':lr'..math.floor(ICON_SIZE*1.5)..','..math.floor(ICON_SIZE*1.5)..':unitpics/'..UnitDefs[GetUnitDefID(unitID)].buildpicname
+			)
 
 			if CONDENSE then
 				local NumberCondensed = table.getn(drawTable[ct][2])
 				if NumberCondensed > 1 then
 					font:Begin()
-					font:Print(NumberCondensed, X1, Y_MIN, 8 * sizeMultiplier, "o")
+					font:Print(NumberCondensed, X1+math.floor(ICON_SIZE*0.1), Y_MIN+math.floor(ICON_SIZE*0.13), 12 * sizeMultiplier, "o")
 					font:End()
 				end
 			end
 
-			if type(unitID) == 'table' then
-				unitID = unitID[1]
-			end
 			if ValidUnitID(unitID) and QCount[unitID] then
 				font:Begin()
-				font:Print(QCount[unitID], X1 + (0.5 * ICON_SIZE_X), Y_MIN, 10 * sizeMultiplier, "ocn")
+				font:Print(QCount[unitID], X1 + (0.5 * ICON_SIZE), Y_MIN, 14 * sizeMultiplier, "ocn")
 				font:End()
 			end
 		end
 	end
-
-	SetCameraTarget(cpx, cpy, cpz, -1.0)
+	glTexture(false)
 end
 
-local function MouseOverIcon(x, y)
-	if not drawTable then
-		return -1
-	end
-
-	local NumOfIcons = table.getn(drawTable)
-	if (x < X_MIN) then
-		return -1
-	end
-	if (x > X_MAX) then
-		return -1
-	end
-	if (y < Y_MIN) then
-		return -1
-	end
-	if (y > Y_MAX) then
-		return -1
-	end
-
-	local icon = math.floor((x - X_MIN) / ICON_SIZE_X)
-	if (icon < 0) then
-		icon = 0
-	end
-	if (icon >= NumOfIcons) then
-		icon = (NumOfIcons - 1)
-	end
-	return icon
-end
-
-local function DrawRectRound(px, py, sx, sy, cs, tl, tr, br, bl, c1, c2)
-	local csyMult = 1 / ((sy - py) / cs)
-
-	if c2 then
-		gl.Color(c1[1], c1[2], c1[3], c1[4])
-	end
-	gl.Vertex(px + cs, py, 0)
-	gl.Vertex(sx - cs, py, 0)
-	if c2 then
-		gl.Color(c2[1], c2[2], c2[3], c2[4])
-	end
-	gl.Vertex(sx - cs, sy, 0)
-	gl.Vertex(px + cs, sy, 0)
-
-	-- left side
-	if c2 then
-		gl.Color(c1[1] * (1 - csyMult) + (c2[1] * csyMult), c1[2] * (1 - csyMult) + (c2[2] * csyMult), c1[3] * (1 - csyMult) + (c2[3] * csyMult), c1[4] * (1 - csyMult) + (c2[4] * csyMult))
-	end
-	gl.Vertex(px, py + cs, 0)
-	gl.Vertex(px + cs, py + cs, 0)
-	if c2 then
-		gl.Color(c2[1] * (1 - csyMult) + (c1[1] * csyMult), c2[2] * (1 - csyMult) + (c1[2] * csyMult), c2[3] * (1 - csyMult) + (c1[3] * csyMult), c2[4] * (1 - csyMult) + (c1[4] * csyMult))
-	end
-	gl.Vertex(px + cs, sy - cs, 0)
-	gl.Vertex(px, sy - cs, 0)
-
-	-- right side
-	if c2 then
-		gl.Color(c1[1] * (1 - csyMult) + (c2[1] * csyMult), c1[2] * (1 - csyMult) + (c2[2] * csyMult), c1[3] * (1 - csyMult) + (c2[3] * csyMult), c1[4] * (1 - csyMult) + (c2[4] * csyMult))
-	end
-	gl.Vertex(sx, py + cs, 0)
-	gl.Vertex(sx - cs, py + cs, 0)
-	if c2 then
-		gl.Color(c2[1] * (1 - csyMult) + (c1[1] * csyMult), c2[2] * (1 - csyMult) + (c1[2] * csyMult), c2[3] * (1 - csyMult) + (c1[3] * csyMult), c2[4] * (1 - csyMult) + (c1[4] * csyMult))
-	end
-	gl.Vertex(sx - cs, sy - cs, 0)
-	gl.Vertex(sx, sy - cs, 0)
-
-	local offset = 0.15        -- texture offset, because else gaps could show
-
-	-- bottom left
-	if c2 then
-		gl.Color(c1[1], c1[2], c1[3], c1[4])
-	end
-	if ((py <= 0 or px <= 0) or (bl ~= nil and bl == 0)) and bl ~= 2 then
-		gl.Vertex(px, py, 0)
-	else
-		gl.Vertex(px + cs, py, 0)
-	end
-	gl.Vertex(px + cs, py, 0)
-	if c2 then
-		gl.Color(c1[1] * (1 - csyMult) + (c2[1] * csyMult), c1[2] * (1 - csyMult) + (c2[2] * csyMult), c1[3] * (1 - csyMult) + (c2[3] * csyMult), c1[4] * (1 - csyMult) + (c2[4] * csyMult))
-	end
-	gl.Vertex(px + cs, py + cs, 0)
-	gl.Vertex(px, py + cs, 0)
-	-- bottom right
-	if c2 then
-		gl.Color(c1[1], c1[2], c1[3], c1[4])
-	end
-	if ((py <= 0 or sx >= vsx) or (br ~= nil and br == 0)) and br ~= 2 then
-		gl.Vertex(sx, py, 0)
-	else
-		gl.Vertex(sx - cs, py, 0)
-	end
-	gl.Vertex(sx - cs, py, 0)
-	if c2 then
-		gl.Color(c1[1] * (1 - csyMult) + (c2[1] * csyMult), c1[2] * (1 - csyMult) + (c2[2] * csyMult), c1[3] * (1 - csyMult) + (c2[3] * csyMult), c1[4] * (1 - csyMult) + (c2[4] * csyMult))
-	end
-	gl.Vertex(sx - cs, py + cs, 0)
-	gl.Vertex(sx, py + cs, 0)
-	-- top left
-	if c2 then
-		gl.Color(c2[1], c2[2], c2[3], c2[4])
-	end
-	if ((sy >= vsy or px <= 0) or (tl ~= nil and tl == 0)) and tl ~= 2 then
-		gl.Vertex(px, sy, 0)
-	else
-		gl.Vertex(px + cs, sy, 0)
-	end
-	gl.Vertex(px + cs, sy, 0)
-	if c2 then
-		gl.Color(c2[1] * (1 - csyMult) + (c1[1] * csyMult), c2[2] * (1 - csyMult) + (c1[2] * csyMult), c2[3] * (1 - csyMult) + (c1[3] * csyMult), c2[4] * (1 - csyMult) + (c1[4] * csyMult))
-	end
-	gl.Vertex(px + cs, sy - cs, 0)
-	gl.Vertex(px, sy - cs, 0)
-	-- top right
-	if c2 then
-		gl.Color(c2[1], c2[2], c2[3], c2[4])
-	end
-	if ((sy >= vsy or sx >= vsx) or (tr ~= nil and tr == 0)) and tr ~= 2 then
-		gl.Vertex(sx, sy, 0)
-	else
-		gl.Vertex(sx - cs, sy, 0)
-	end
-	gl.Vertex(sx - cs, sy, 0)
-	if c2 then
-		gl.Color(c2[1] * (1 - csyMult) + (c1[1] * csyMult), c2[2] * (1 - csyMult) + (c1[2] * csyMult), c2[3] * (1 - csyMult) + (c1[3] * csyMult), c2[4] * (1 - csyMult) + (c1[4] * csyMult))
-	end
-	gl.Vertex(sx - cs, sy - cs, 0)
-	gl.Vertex(sx, sy - cs, 0)
-end
-function RectRound(px, py, sx, sy, cs, tl, tr, br, bl, c1, c2)
-	-- (coordinates work differently than the RectRound func in other widgets)
-	gl.Texture(false)
-	gl.BeginEnd(GL.QUADS, DrawRectRound, px, py, sx, sy, cs, tl, tr, br, bl, c1, c2)
-end
 
 function DrawIconQuad(iconPos, color, size)
-	local X1 = X_MIN + (ICON_SIZE_X * iconPos)
-	local X2 = X1 + (ICON_SIZE_X)
+	local X1 = X_MIN + (ICON_SIZE * iconPos)
+	local X2 = X1 + (ICON_SIZE)
 	local corneradjust = (bgcornerSize / (3 + (math.abs(hoversize)))) * size
 
 	glColor(color)
@@ -509,14 +338,14 @@ local mouseOnUnitID = nil
 function widget:GetConfigData(data)
 	return {
 		position_x = POSITION_X,
-		position_y = POSITION_Y,
+		pposition_y = POSITION_Y,
 		max_icons = MAX_ICONS
 	}
 end
 
 function widget:SetConfigData(data)
 	POSITION_X = data.position_x or POSITION_X
-	POSITION_Y = data.position_y or POSITION_Y
+	POSITION_Y = data.pposition_y or POSITION_Y
 	MAX_ICONS = data.max_icons or MAX_ICONS
 end
 
@@ -619,10 +448,10 @@ function widget:Update(dt)
 end
 
 function calcSizes(numIcons)
-	X_MIN = POSITION_X * vsx - 0.5 * numIcons * ICON_SIZE_X
-	X_MAX = POSITION_X * vsx + 0.5 * numIcons * ICON_SIZE_X
-	Y_MIN = POSITION_Y * vsy - 0.5 * ICON_SIZE_Y
-	Y_MAX = POSITION_Y * vsy + 0.5 * ICON_SIZE_Y
+	X_MIN = math.floor(POSITION_X * vsx - 0.5 * numIcons * ICON_SIZE)
+	X_MAX = math.floor(POSITION_X * vsx + 0.5 * numIcons * ICON_SIZE)
+	Y_MIN = math.floor(POSITION_Y * vsy - 0.5 * ICON_SIZE)
+	Y_MAX = math.floor(POSITION_Y * vsy + 0.5 * ICON_SIZE)
 end
 
 function widget:RecvLuaMsg(msg, playerID)
@@ -643,8 +472,8 @@ function widget:DrawScreen()
 		local line1 = "Idle cons tweak mode"
 		local line2 = "Click and drag here to move icons around, hover over icons and move mouse wheel to change max number of icons"
 		font:Begin()
-		font:Print(line1, POSITION_X * vsx, POSITION_Y * vsy, 15, "c")
-		font:Print(line2, POSITION_X * vsx, (POSITION_Y * vsy) - 10, 10, "c")
+		font:Print(line1, POSITION_X * vsx, POSITION_Y * vsy, 16, "c")
+		font:Print(line2, POSITION_X * vsx, (POSITION_Y * vsy) - 10, 12, "c")
 		font:End()
 		return
 	end
@@ -658,9 +487,9 @@ function widget:DrawScreen()
 
 		if not WG['topbar'] or not WG['topbar'].showingQuit() then
 			local icon = MouseOverIcon(x, y)
-			if (icon >= 0) then
+			if icon >= 0 then
 
-				if (lb or mb or rb) then
+				if lb or mb or rb then
 					DrawIconQuad(icon, { 0.5, 0.2, 0, 0.5 }, 1.1)
 				else
 					DrawIconQuad(icon, { 0, 0, 0.1, 0.4 }, 1.1)
@@ -673,25 +502,25 @@ function widget:DrawScreen()
 end
 
 function widget:TweakMouseMove(x, y, dx, dy, button)
-	local right = (x + (0.5 * MAX_ICONS * ICON_SIZE_X)) / vsx
-	local left = (x - (0.5 * MAX_ICONS * ICON_SIZE_X)) / vsx
-	local top = (y + (0.5 * ICON_SIZE_Y)) / vsy
-	local bottom = (y - (0.5 * ICON_SIZE_Y)) / vsy
+	local right = (x + (0.5 * MAX_ICONS * ICON_SIZE)) / vsx
+	local left = (x - (0.5 * MAX_ICONS * ICON_SIZE)) / vsx
+	local top = (y + (0.5 * ICON_SIZE)) / vsy
+	local bottom = (y - (0.5 * ICON_SIZE)) / vsy
 	if right > 1 then
 		right = 1
-		left = 1 - (MAX_ICONS * ICON_SIZE_X) / vsx
+		left = 1 - (MAX_ICONS * ICON_SIZE) / vsx
 	end
 	if left < 0 then
 		left = 0
-		right = (MAX_ICONS * ICON_SIZE_X) / vsx
+		right = (MAX_ICONS * ICON_SIZE) / vsx
 	end
 	if top > 1 then
 		top = 1
-		bottom = 1 - ICON_SIZE_Y / vsy
+		bottom = 1 - ICON_SIZE / vsy
 	end
 	if bottom < 0 then
 		bottom = 0
-		top = ICON_SIZE_Y / vsy
+		top = ICON_SIZE / vsy
 	end
 
 	POSITION_X = 0.5 * (right + left)
@@ -733,7 +562,7 @@ function widget:DrawInMiniMap(sx, sz)
 	end
 
 	local ux, uy, uz = GetUnitPosition(mouseOnUnitID)
-	if (not ux or not uy or not uz) then
+	if not ux or not uy or not uz then
 		return
 	end
 	local xr = ux / (Game.mapSizeX)
@@ -773,14 +602,14 @@ function widget:MouseRelease(x, y, button)
 
 	local alt, ctrl, meta, shift = GetModKeyState()
 
-	if (button == 1) then
+	if button == 1 then
 		-- left mouse
 		SelectUnitArray({ unitID })
 		if playSounds then
 			Spring.PlaySoundFile(leftclick, 0.75, 'ui')
 		end
-	elseif (button == 2) then
-		-- middle mouse
+	elseif button == 3 then
+		-- right mouse
 		SelectUnitArray({ unitID })
 		SendCommands({ "viewselection" })
 		if playSounds then

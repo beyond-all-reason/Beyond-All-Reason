@@ -78,10 +78,13 @@ local function round_to_frames(name, wd, key)
 		-- even reloadtime can be nil (shields, death explosions)
 		return
 	end
+  
+  local Game_gameSpeed = 30 --for mission editor backwards compat (engine 104.0.1-287)
+  if Game and Game.gameSpeed then Game_gameSpeed = Game.gameSpeed end
+  
+	local frames = math.max(1, math.floor((original_value + 1E-3) * Game_gameSpeed))
 
-	local frames = math.max(1, math.floor((original_value + 1E-3) * Game.gameSpeed))
-
-	local sanitized_value = frames / Game.gameSpeed
+	local sanitized_value = frames / Game_gameSpeed
 	if math.abs (original_value - sanitized_value) > 1E-3 then
 		--Spring.Echo(name.."."..key.. " = " .. original_value .. "  ->  " .. sanitized_value .. "  ingame!  difference: "..sanitized_value-original_value)
 	end
@@ -103,6 +106,13 @@ local function processWeapons(unitDefName, unitDef)
 end
 
 function UnitDef_Post(name, uDef)
+	if string.find(name, "chicken") and uDef.maxdamage then
+		local chickHealth = uDef.maxdamage
+		uDef.buildcostmetal = chickHealth*5
+		uDef.buildcostenergy = chickHealth*50
+		uDef.buildtime = chickHealth*50
+	end
+	
 	if not uDef.customparams then
 		uDef.customparams = {}
 	end
@@ -163,8 +173,9 @@ function UnitDef_Post(name, uDef)
 			uDef.crashdrag = 0.01	-- default 0.005
 
 			if not (string.find(name, "fepoch") or string.find(name, "fblackhy")) then--(string.find(name, "liche") or string.find(name, "crw") or string.find(name, "fepoch") or string.find(name, "fblackhy")) then
-				
+
 				--uDef.collide = false
+
 				--local airmult = 1.3
 				--if uDef.buildcostenergy then
 				--	uDef.buildcostenergy = math.ceil(uDef.buildcostenergy*airmult)
@@ -343,13 +354,13 @@ end
 --------------------------------------------------------------------------------
 
 local function ProcessSoundDefaults(wd)
-	local forceSetVolume = (not wd.soundstartvolume) or (not wd.soundhitvolume) or (not wd.soundhitwetvolume)
+	local forceSetVolume = not wd.soundstartvolume or not wd.soundhitvolume or not wd.soundhitwetvolume
 	if not forceSetVolume then
 		return
 	end
 
 	local defaultDamage = wd.damage and wd.damage.default
-	if (not defaultDamage) or (defaultDamage <= 50) then
+	if not defaultDamage or defaultDamage <= 50 then
 		wd.soundstartvolume = 5
 		wd.soundhitvolume = 5
 		wd.soundhitwetvolume = 5
@@ -361,13 +372,13 @@ local function ProcessSoundDefaults(wd)
 		soundVolume = soundVolume*0.5
 	end
 
-	if (not wd.soundstartvolume) then
+	if not wd.soundstartvolume then
 		wd.soundstartvolume = soundVolume
 	end
-	if (not wd.soundhitvolume) then
+	if not wd.soundhitvolume then
 		wd.soundhitvolume = soundVolume
 	end
-		if (not wd.soundhitwetvolume) then
+		if not wd.soundhitwetvolume then
 			if wd.weapontype == "LaserCannon" or "BeamLaser" then
 				wd.soundhitwetvolume = soundVolume * 0.3
 		else
@@ -470,7 +481,7 @@ end
 
 -- process modoptions (last, because they should not get baked)
 function ModOptions_Post (UnitDefs, WeaponDefs)
-	if (Spring.GetModOptions) then
+	if Spring.GetModOptions then
 	local modOptions = Spring.GetModOptions() or {}
 	local map_tidal = modOptions and modOptions.map_tidal
 		if map_tidal and map_tidal ~= "unchanged" then
@@ -489,13 +500,13 @@ function ModOptions_Post (UnitDefs, WeaponDefs)
 		end
 
 		-- transporting enemy coms
-		if (modOptions.transportenemy == "notcoms") then
+		if modOptions.transportenemy == "notcoms" then
 			for name,ud in pairs(UnitDefs) do
-				if (name == "armcom" or name == "corcom" or name == "armdecom" or name == "cordecom") then
+				if name == "armcom" or name == "corcom" or name == "armdecom" or name == "cordecom" then
 					ud.transportbyenemy = false
 				end
 			end
-		elseif (modOptions.transportenemy == "none") then
+		elseif modOptions.transportenemy == "none" then
 			for name, ud in pairs(UnitDefs) do
 				ud.transportbyenemy = false
 			end

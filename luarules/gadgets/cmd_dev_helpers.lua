@@ -17,11 +17,16 @@ function gadget:GetInfo()
 	}
 end
 
-local authorizedPlayers = {
-	'Floris',
-	'[teh]Flow',
-	'IceXuick',
-}
+local authorizedPlayers = {}
+local powerusers = include("LuaRules/configs/powerusers.lua")
+if powerusers then
+	for name, permissions in pairs(powerusers) do
+		if permissions.devhelpers then
+			authorizedPlayers[name] = true
+		end
+	end
+	powerusers = nil
+end
 
 local PACKET_HEADER = "$dev$"
 local PACKET_HEADER_LENGTH = string.len(PACKET_HEADER)
@@ -36,11 +41,11 @@ function isAuthorized(playerID)
 	else
 		local playername = Spring.GetPlayerInfo(playerID, false)
 		local authorized = false
-		for _, name in ipairs(authorizedPlayers) do
-			if playername == name or playername == "UnnamedPlayer" then
-				if startPlayers == nil or startPlayers[playername] == nil then
-					return true
-				end
+
+		local authorized = false
+		if authorizedPlayers[playername] then
+			if startPlayers == nil or startPlayers[playername] == nil then
+				return true
 			end
 		end
 	end

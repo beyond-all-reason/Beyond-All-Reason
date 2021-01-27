@@ -7,7 +7,7 @@ function widget:GetInfo()
 		author = "jK",
 		date = "Jul 11, 2007",
 		license = "GNU GPL, v2 or later",
-		layer = 0,
+		layer = 1,
 		enabled = true  --  loaded by default?
 	}
 end
@@ -59,10 +59,16 @@ local myTeamID = 0
 
 local unitBuildPic = {}
 local unitName = {}
+local unitHumanName = {}
+local unitTooltip = {}
+local unitIconType = {}
 local unitBuildOptions = {}
 for udid, unitDef in pairs(UnitDefs) do
 	unitBuildPic[udid] = unitDef.buildpicname
 	unitName[udid] = unitDef.name
+	unitHumanName[udid] = unitDef.humanName
+	unitTooltip[udid] = unitDef.tooltip
+	unitIconType[udid] = unitDef.iconType
 	if unitDef.isFactory and #unitDef.buildOptions > 0 then
 		unitBuildOptions[udid] = unitDef.buildOptions
 	end
@@ -81,6 +87,10 @@ local maxVisibleBuilds = 3
 local startTimer = Spring.GetTimer()
 local msx = Game.mapX * 512
 local msz = Game.mapY * 512
+
+local groups, unitGroup = {}, {}	-- retrieves from buildmenu in initialize
+local unitOrder = {}	-- retrieves from buildmenu in initialize
+local iconTypesMap = {}
 
 local bgpadding, font, backgroundRect, backgroundOptionsRect, buildoptionsArea, dlistGuishader, dlistGuishader2, forceGuishader
 local chobbyInterface, factoriesArea, cornerSize, setInfoDisplayUnitID, factoriesAreaHovered
@@ -122,6 +132,11 @@ local glLineWidth = gl.LineWidth
 local tan = math.tan
 local GL_TRIANGLE_FAN = GL.TRIANGLE_FAN
 
+local RectRound = Spring.FlowUI.Draw.RectRound
+local UiElement = Spring.FlowUI.Draw.Element
+local UiUnit = Spring.FlowUI.Draw.Unit
+local elementCorner = Spring.FlowUI.elementCorner
+
 -------------------------------------------------------------------------------
 -- SOUNDS
 -------------------------------------------------------------------------------
@@ -159,12 +174,12 @@ local function checkGuishader(force)
 		end
 		if not dlistGuishader and backgroundRect then
 			dlistGuishader = gl.CreateList( function()
-				RectRound(backgroundRect[1],backgroundRect[2],backgroundRect[3],backgroundRect[4], bgpadding*1.6 * ui_scale)
+				RectRound(backgroundRect[1],backgroundRect[2],backgroundRect[3],backgroundRect[4], elementCorner * ui_scale, 1,0,0,1)
 			end)
 		end
 		if not dlistGuishader2 and backgroundOptionsRect then
 			dlistGuishader2 = gl.CreateList( function()
-				RectRound(backgroundOptionsRect[1],backgroundOptionsRect[2],backgroundOptionsRect[3],backgroundOptionsRect[4], bgpadding*1.6 * ui_scale)
+				RectRound(backgroundOptionsRect[1],backgroundOptionsRect[2],backgroundOptionsRect[3],backgroundOptionsRect[4], elementCorner * ui_scale)
 			end)
 		end
 	else
@@ -184,8 +199,8 @@ end
 function widget:ViewResize()
 	vsx, vsy = Spring.GetViewGeometry()
 
-	local widgetSpaceMargin = math_floor((0.0045 * (vsy/vsx))*vsx * ui_scale)
-	bgpadding = math.ceil(widgetSpaceMargin * 0.66)
+	bgpadding = Spring.FlowUI.elementPadding
+	elementCorner = Spring.FlowUI.elementCorner
 
 	glossMult = 1 + (2-(ui_opacity*2))
 
@@ -224,6 +239,37 @@ end
 -------------------------------------------------------------------------------
 
 function widget:Initialize()
+	if WG['buildmenu'] then
+		if WG['buildmenu'].getGroups then
+			groups, unitGroup = WG['buildmenu'].getGroups()
+		end
+		if WG['buildmenu'].getOrder then
+			unitOrder = WG['buildmenu'].getOrder()
+
+			-- order buildoptions
+			for uDefID, def in pairs(unitBuildOptions) do
+				local temp = {}
+				for i, udid in pairs(def) do
+					temp[udid] = i
+				end
+				local newBuildOptions = {}
+				local newBuildOptionsCount = 0
+				for k, orderUDefID in pairs(unitOrder) do
+					if temp[orderUDefID] then
+						newBuildOptionsCount = newBuildOptionsCount + 1
+						newBuildOptions[newBuildOptionsCount] = orderUDefID
+					end
+				end
+				unitBuildOptions[uDefID] = newBuildOptions
+			end
+		end
+	end
+
+	iconTypesMap = {}
+	if Script.LuaRules('GetIconTypes') then
+		iconTypesMap = Script.LuaRules.GetIconTypes()
+	end
+
 	widget:ViewResize()
 
 	myTeamID = Spring.GetMyTeamID()
@@ -311,113 +357,6 @@ end
 -- DRAW FUNCTIONS
 -------------------------------------------------------------------------------
 
-local function DrawRectRound(px, py, sx, sy, cs, tl, tr, br, bl, c1, c2)
-	local csyMult = 1 / ((sy - py) / cs)
-
-	if c2 then
-		gl.Color(c1[1], c1[2], c1[3], c1[4])
-	end
-	gl.Vertex(px + cs, py, 0)
-	gl.Vertex(sx - cs, py, 0)
-	if c2 then
-		gl.Color(c2[1], c2[2], c2[3], c2[4])
-	end
-	gl.Vertex(sx - cs, sy, 0)
-	gl.Vertex(px + cs, sy, 0)
-
-	-- left side
-	if c2 then
-		gl.Color(c1[1] * (1 - csyMult) + (c2[1] * csyMult), c1[2] * (1 - csyMult) + (c2[2] * csyMult), c1[3] * (1 - csyMult) + (c2[3] * csyMult), c1[4] * (1 - csyMult) + (c2[4] * csyMult))
-	end
-	gl.Vertex(px, py + cs, 0)
-	gl.Vertex(px + cs, py + cs, 0)
-	if c2 then
-		gl.Color(c2[1] * (1 - csyMult) + (c1[1] * csyMult), c2[2] * (1 - csyMult) + (c1[2] * csyMult), c2[3] * (1 - csyMult) + (c1[3] * csyMult), c2[4] * (1 - csyMult) + (c1[4] * csyMult))
-	end
-	gl.Vertex(px + cs, sy - cs, 0)
-	gl.Vertex(px, sy - cs, 0)
-
-	-- right side
-	if c2 then
-		gl.Color(c1[1] * (1 - csyMult) + (c2[1] * csyMult), c1[2] * (1 - csyMult) + (c2[2] * csyMult), c1[3] * (1 - csyMult) + (c2[3] * csyMult), c1[4] * (1 - csyMult) + (c2[4] * csyMult))
-	end
-	gl.Vertex(sx, py + cs, 0)
-	gl.Vertex(sx - cs, py + cs, 0)
-	if c2 then
-		gl.Color(c2[1] * (1 - csyMult) + (c1[1] * csyMult), c2[2] * (1 - csyMult) + (c1[2] * csyMult), c2[3] * (1 - csyMult) + (c1[3] * csyMult), c2[4] * (1 - csyMult) + (c1[4] * csyMult))
-	end
-	gl.Vertex(sx - cs, sy - cs, 0)
-	gl.Vertex(sx, sy - cs, 0)
-
-	-- bottom left
-	if c2 then
-		gl.Color(c1[1], c1[2], c1[3], c1[4])
-	end
-	if ((py <= 0 or px <= 0) or (bl ~= nil and bl == 0)) and bl ~= 2 then
-		gl.Vertex(px, py, 0)
-	else
-		gl.Vertex(px + cs, py, 0)
-	end
-	gl.Vertex(px + cs, py, 0)
-	if c2 then
-		gl.Color(c1[1] * (1 - csyMult) + (c2[1] * csyMult), c1[2] * (1 - csyMult) + (c2[2] * csyMult), c1[3] * (1 - csyMult) + (c2[3] * csyMult), c1[4] * (1 - csyMult) + (c2[4] * csyMult))
-	end
-	gl.Vertex(px + cs, py + cs, 0)
-	gl.Vertex(px, py + cs, 0)
-	-- bottom right
-	if c2 then
-		gl.Color(c1[1], c1[2], c1[3], c1[4])
-	end
-	if ((py <= 0 or sx >= vsx) or (br ~= nil and br == 0)) and br ~= 2 then
-		gl.Vertex(sx, py, 0)
-	else
-		gl.Vertex(sx - cs, py, 0)
-	end
-	gl.Vertex(sx - cs, py, 0)
-	if c2 then
-		gl.Color(c1[1] * (1 - csyMult) + (c2[1] * csyMult), c1[2] * (1 - csyMult) + (c2[2] * csyMult), c1[3] * (1 - csyMult) + (c2[3] * csyMult), c1[4] * (1 - csyMult) + (c2[4] * csyMult))
-	end
-	gl.Vertex(sx - cs, py + cs, 0)
-	gl.Vertex(sx, py + cs, 0)
-	-- top left
-	if c2 then
-		gl.Color(c2[1], c2[2], c2[3], c2[4])
-	end
-	if ((sy >= vsy or px <= 0) or (tl ~= nil and tl == 0)) and tl ~= 2 then
-		gl.Vertex(px, sy, 0)
-	else
-		gl.Vertex(px + cs, sy, 0)
-	end
-	gl.Vertex(px + cs, sy, 0)
-	if c2 then
-		gl.Color(c2[1] * (1 - csyMult) + (c1[1] * csyMult), c2[2] * (1 - csyMult) + (c1[2] * csyMult), c2[3] * (1 - csyMult) + (c1[3] * csyMult), c2[4] * (1 - csyMult) + (c1[4] * csyMult))
-	end
-	gl.Vertex(px + cs, sy - cs, 0)
-	gl.Vertex(px, sy - cs, 0)
-	-- top right
-	if c2 then
-		gl.Color(c2[1], c2[2], c2[3], c2[4])
-	end
-	if ((sy >= vsy or sx >= vsx) or (tr ~= nil and tr == 0)) and tr ~= 2 then
-		gl.Vertex(sx, sy, 0)
-	else
-		gl.Vertex(sx - cs, sy, 0)
-	end
-	gl.Vertex(sx - cs, sy, 0)
-	if c2 then
-		gl.Color(c2[1] * (1 - csyMult) + (c1[1] * csyMult), c2[2] * (1 - csyMult) + (c1[2] * csyMult), c2[3] * (1 - csyMult) + (c1[3] * csyMult), c2[4] * (1 - csyMult) + (c1[4] * csyMult))
-	end
-	gl.Vertex(sx - cs, sy - cs, 0)
-	gl.Vertex(sx, sy - cs, 0)
-end
-function RectRound(px, py, sx, sy, cs, tl, tr, br, bl, c1, c2)
-	-- (coordinates work differently than the RectRound func in other widgets)
-	gl.Texture(false)
-	gl.BeginEnd(GL.QUADS, DrawRectRound, px, py, sx, sy, cs, tl, tr, br, bl, c1, c2)
-end
-
-
-
 -- cs (corner size) is not implemented yet
 local function RectRoundProgress(left,bottom,right,top, cs, progress, color)
 
@@ -473,115 +412,6 @@ local function RectRoundProgress(left,bottom,right,top, cs, progress, color)
 	glColor(color[1],color[2],color[3],color[4])
 	glShape(GL_TRIANGLE_FAN, list)
 	glColor(1,1,1,1)
-end
-
-local function DrawRectRoundCircle(x, y, z, radius, cs, centerOffset, color1, color2)
-	if not color2 then color2 = color1 end
-	--centerOffset = 0
-	local coords = {
-		{x-radius+cs, z+radius, y},   -- top left
-		{x+radius-cs, z+radius, y},   -- top right
-		{x+radius, z+radius-cs, y},   -- right top
-		{x+radius, z-radius+cs, y},   -- right bottom
-		{x+radius-cs, z-radius, y},   -- bottom right
-		{x-radius+cs, z-radius, y},   -- bottom left
-		{x-radius, z-radius+cs, y},   -- left bottom
-		{x-radius, z+radius-cs, y},   -- left top
-	}
-	local cs2 = cs * (centerOffset/radius)
-	local coords2 = {
-		{x-centerOffset+cs2, z+centerOffset, y},   -- top left
-		{x+centerOffset-cs2, z+centerOffset, y},   -- top right
-		{x+centerOffset, z+centerOffset-cs2, y},   -- right top
-		{x+centerOffset, z-centerOffset+cs2, y},   -- right bottom
-		{x+centerOffset-cs2, z-centerOffset, y},   -- bottom right
-		{x-centerOffset+cs2, z-centerOffset, y},   -- bottom left
-		{x-centerOffset, z-centerOffset+cs2, y},   -- left bottom
-		{x-centerOffset, z+centerOffset-cs2, y},   -- left top
-	}
-	for i = 1, 8 do
-		local i2 = (i>=8 and 1 or i + 1)
-		glColor(color2)
-		glVertex(coords[i][1], coords[i][2], coords[i][3])
-		glVertex(coords[i2][1], coords[i2][2], coords[i2][3])
-		glColor(color1)
-		glVertex(coords2[i2][1], coords2[i2][2], coords2[i2][3])
-		glVertex(coords2[i][1], coords2[i][2], coords2[i][3])
-	end
-end
-local function RectRoundCircle(x, y, z, radius, cs, centerOffset, color1, color2)
-	glBeginEnd(GL.QUADS, DrawRectRoundCircle, x, y, z, radius, cs, centerOffset, color1, color2)
-end
-
-local function DrawTexRectRound(px, py, sx, sy, cs, tl, tr, br, bl, offset)
-	local csyMult = 1 / ((sy - py) / cs)
-	offset = offset or 0
-
-	local function drawTexCoordVertex(x, y)
-		local yc = 1 - ((y - py) / (sy - py))
-		local xc = (offset * 0.5) + ((x - px) / (sx - px)) + (-offset * ((x - px) / (sx - px)))
-		yc = 1 - (offset * 0.5) - ((y - py) / (sy - py)) + (offset * ((y - py) / (sy - py)))
-		gl.TexCoord(xc, yc)
-		gl.Vertex(x, y, 0)
-	end
-
-	-- mid section
-	drawTexCoordVertex(px + cs, py)
-	drawTexCoordVertex(sx - cs, py)
-	drawTexCoordVertex(sx - cs, sy)
-	drawTexCoordVertex(px + cs, sy)
-
-	-- left side
-	drawTexCoordVertex(px, py + cs)
-	drawTexCoordVertex(px + cs, py + cs)
-	drawTexCoordVertex(px + cs, sy - cs)
-	drawTexCoordVertex(px, sy - cs)
-
-	-- right side
-	drawTexCoordVertex(sx, py + cs)
-	drawTexCoordVertex(sx - cs, py + cs)
-	drawTexCoordVertex(sx - cs, sy - cs)
-	drawTexCoordVertex(sx, sy - cs)
-
-	-- bottom left
-	if ((py <= 0 or px <= 0) or (bl ~= nil and bl == 0)) and bl ~= 2 then
-		drawTexCoordVertex(px, py)
-	else
-		drawTexCoordVertex(px + cs, py)
-	end
-	drawTexCoordVertex(px + cs, py)
-	drawTexCoordVertex(px + cs, py + cs)
-	drawTexCoordVertex(px, py + cs)
-	-- bottom right
-	if ((py <= 0 or sx >= vsx) or (br ~= nil and br == 0)) and br ~= 2 then
-		drawTexCoordVertex(sx, py)
-	else
-		drawTexCoordVertex(sx - cs, py)
-	end
-	drawTexCoordVertex(sx - cs, py)
-	drawTexCoordVertex(sx - cs, py + cs)
-	drawTexCoordVertex(sx, py + cs)
-	-- top left
-	if ((sy >= vsy or px <= 0) or (tl ~= nil and tl == 0)) and tl ~= 2 then
-		drawTexCoordVertex(px, sy)
-	else
-		drawTexCoordVertex(px + cs, sy)
-	end
-	drawTexCoordVertex(px + cs, sy)
-	drawTexCoordVertex(px + cs, sy - cs)
-	drawTexCoordVertex(px, sy - cs)
-	-- top right
-	if ((sy >= vsy or sx >= vsx) or (tr ~= nil and tr == 0)) and tr ~= 2 then
-		drawTexCoordVertex(sx, sy)
-	else
-		drawTexCoordVertex(sx - cs, sy)
-	end
-	drawTexCoordVertex(sx - cs, sy)
-	drawTexCoordVertex(sx - cs, sy - cs)
-	drawTexCoordVertex(sx, sy - cs)
-end
-function TexRectRound(px, py, sx, sy, cs, tl, tr, br, bl, zoom)
-	gl.BeginEnd(GL.QUADS, DrawTexRectRound, px, py, sx, sy, cs, tl, tr, br, bl, zoom)
 end
 
 local function DrawTexRect(rect, texture, color)
@@ -658,71 +488,35 @@ local function DrawBuildProgress(left, top, right, bottom, progress, color)
 	glColor(1, 1, 1, 1)
 end
 
-local function drawIcon(rect, tex, color, zoom)
-
-	glTexture(tex)
-	glColor(color[1],color[2],color[3],color[4])
-	TexRectRound(rect[1], rect[2], rect[3], rect[4], cornerSize, nil,nil,nil,nil, zoom)
-	glTexture(false)
-
-	-- lighten top
-	glBlending(GL_SRC_ALPHA, GL_ONE)
-	-- glossy half
-	RectRound(rect[1], rect[2]+((rect[4]-rect[2])*0.5), rect[3], rect[4], cornerSize, 2,2,0,0,{1,1,1,0}, {1,1,1,0.13})
-	glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-
-	-- extra darken gradually
-	RectRound(rect[1], rect[2], rect[3], rect[4], cornerSize, 0,0,2,2,{0,0,0,0.11}, {0,0,0,0})
-
-	local halfSize = (rect[3] - rect[1])*0.5
-	glBlending(GL_SRC_ALPHA, GL_ONE)
-	RectRoundCircle(
-			rect[1]+halfSize,
-			0,
-			rect[2]+halfSize,
-			halfSize, cornerSize*0.6,
-			halfSize-math_max(1,math_floor(halfSize*0.066)),
-			{1,1,1,0.09}, {1,1,1,0.09}
+local function drawIcon(udid, rect, tex, color, zoom, isfactory)
+	local radarIconSize = math.floor((rect[3]-rect[1])*0.4)
+	local radarIcon = ':lr'..radarIconSize..','..radarIconSize..':'..iconTypesMap[unitIconType[udid]]
+	if isfactory then
+		radarIcon = nil
+	end
+	glColor(1,1,1,1)
+	UiUnit(
+		rect[1], rect[2], rect[3], rect[4],
+		cornerSize,
+		1,1,1,1,
+		zoom,
+		nil, nil,
+		tex,
+		radarIcon,
+		groups[unitGroup[udid]]
 	)
-	RectRoundCircle(
-			rect[1]+halfSize,
-			0,
-			rect[2]+halfSize,
-			halfSize, cornerSize*0.6,
-			halfSize*0.4,
-			{1,1,1,0}, {1,1,1,0.07}
-	)
-	glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 end
 
 local function DrawOptionsBackground()
 	local addDist = math_floor(bgpadding*0.5)
 	backgroundOptionsRect = {boptRect[1]-addDist, boptRect[4]-addDist, boptRect[3] - math.floor(bgpadding/2), boptRect[2]+addDist}
-
-	-- background
-	RectRound(backgroundOptionsRect[1],backgroundOptionsRect[2],backgroundOptionsRect[3],backgroundOptionsRect[4], bgpadding*1.6, 1,0,0,1,{0.05,0.05,0.05,ui_opacity}, {0,0,0,ui_opacity})
-	RectRound(backgroundOptionsRect[1]+bgpadding, backgroundOptionsRect[2]+bgpadding, backgroundOptionsRect[3]-bgpadding, backgroundOptionsRect[4]-bgpadding, bgpadding*1, 1,0,0,1,{0.3,0.3,0.3,ui_opacity*0.1}, {1,1,1,ui_opacity*0.1})
-
-	-- gloss
-	glBlending(GL_SRC_ALPHA, GL_ONE)
-	RectRound(backgroundOptionsRect[1]+bgpadding,backgroundOptionsRect[4]-((backgroundOptionsRect[4]-backgroundOptionsRect[2])*0.33),backgroundOptionsRect[3]-bgpadding,backgroundOptionsRect[4]-bgpadding, bgpadding, 1,0,0,1, {1,1,1,0.01*glossMult}, {1,1,1,0.055*glossMult})
-	RectRound(backgroundOptionsRect[1]+bgpadding,backgroundOptionsRect[2], backgroundOptionsRect[3]-bgpadding,backgroundOptionsRect[2]+((backgroundOptionsRect[4]-backgroundOptionsRect[2])*0.3), bgpadding, 1,0,0,1, {1,1,1,0.025*glossMult}, {1,1,1,0})
-	glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+	UiElement(backgroundOptionsRect[1],backgroundOptionsRect[2],backgroundOptionsRect[3],backgroundOptionsRect[4], 1,1,1,1)
 end
 
 local function DrawBackground()
 	local addDist = math_floor(bgpadding*0.5)
 	backgroundRect = {factoriesArea[1]-addDist, factoriesArea[4]-addDist, factoriesArea[3], factoriesArea[2]+addDist}
-
-	-- background
-	RectRound(backgroundRect[1],backgroundRect[2],backgroundRect[3],backgroundRect[4], bgpadding*1.6, 1,1,1,1,{0.05,0.05,0.05,ui_opacity}, {0,0,0,ui_opacity})
-	RectRound(backgroundRect[1]+bgpadding, backgroundRect[2]+bgpadding, backgroundRect[3]-bgpadding, backgroundRect[4]-bgpadding, bgpadding, 1,0,0,1,{0.3,0.3,0.3,ui_opacity*0.1}, {1,1,1,ui_opacity*0.1})
-
-	-- gloss
-	glBlending(GL_SRC_ALPHA, GL_ONE)
-	RectRound(backgroundRect[1]+bgpadding,backgroundRect[4]-((backgroundRect[4]-backgroundRect[2])*0.33),backgroundRect[3]-bgpadding,backgroundRect[4]-bgpadding, bgpadding, 1,0,0,1, {1,1,1,0.01*glossMult}, {1,1,1,0.055*glossMult})
-	RectRound(backgroundRect[1]+bgpadding,backgroundRect[2], backgroundRect[3]-bgpadding,backgroundRect[2]+((backgroundRect[4]-backgroundRect[2])*0.3), bgpadding, 1,0,0,1, {1,1,1,0.025*glossMult}, {1,1,1,0})
-	glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+	UiElement(backgroundRect[1],backgroundRect[2],backgroundRect[3],backgroundRect[4], 1,0,0,1)
 end
 
 local function DrawButton(rect, unitDefID, options, isFac)	-- options = {pressed,hovered,selected,repeat,hovered_repeat,waypoint,progress,amount,alpha}
@@ -738,13 +532,16 @@ local function DrawButton(rect, unitDefID, options, isFac)	-- options = {pressed
 	elseif options.hovered then
 		iconAlpha = 1
 		zoom = 0.12
+		if WG.tooltip then
+			WG.tooltip.ShowTooltip('buildbar', '\255\215\255\215'..unitHumanName[unitDefID]..'\n'..unitTooltip[unitDefID])
+		end
 	end
 
 	-- draw icon
 	local imgRect = { rect[1] + (hoverPadding*1), rect[2] - hoverPadding, rect[3] - (hoverPadding*1), rect[4] + hoverPadding }
 
 	local tex = ':lr128,128:unitpics/' .. unitBuildPic[unitDefID]
-	drawIcon({imgRect[1], imgRect[4], imgRect[3], imgRect[2]}, tex, {1, 1, 1, iconAlpha}, zoom)
+	drawIcon(unitDefID, {imgRect[1], imgRect[4], imgRect[3], imgRect[2]}, tex, {1, 1, 1, iconAlpha}, zoom, (unitBuildOptions[unitDefID]~=nil))
 
 	-- Progress
 	if (options.progress or -1) > -1 then
@@ -770,33 +567,6 @@ local function DrawButton(rect, unitDefID, options, isFac)	-- options = {pressed
 		glTexture(repeatPic)
 		glColor(1, 1, 1, 0.5)
 		DrawTexRect({imgRect[3]-repIcoSize-4,imgRect[2]-4,imgRect[3]-4,imgRect[2]-repIcoSize-4}, repeatPic, color)
-	end
-
-	-- pressed / hovered
-	local color1, color2
-	if options.pressed then
-		if options.pressed == 1 then
-			color1, color2 = {0,1,0,0}, {0,1,0,0.25}
-		elseif options.pressed == 2 then
-			color1, color2 = {1,0,0,0}, {1,0,0,0.25}
-		elseif options.pressed == 3 then
-			color1, color2 = {1,1,1,0}, {1,1,1,0.22}
-		end
-	elseif options.hovered then
-		color1, color2 = {1,1,1,0}, {1,1,1,0.16}
-	end
-	if color2 then
-		local halfSize = (imgRect[3] - imgRect[1])*0.5
-		glBlending(GL_SRC_ALPHA, GL_ONE)
-		RectRoundCircle(
-				imgRect[1]+halfSize,
-				0,
-				imgRect[2]-halfSize,
-				halfSize, cornerSize*0.6,
-				halfSize*0.2,
-				color1, color2
-		)
-		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 	end
 
 	-- amount
@@ -842,7 +612,7 @@ function widget:Update(dt)
 	end
 
 	local icon
-	local mx, my, lb, mb, rb = GetMouseState()
+	local mx, my, lb, mb, rb, moffscreen = GetMouseState()
 
 	sec = sec + dt
 	local doupdate = false
@@ -850,15 +620,18 @@ function widget:Update(dt)
 		doupdate = true
 	end
 	if factoriesArea ~= nil then
-		if IsInRect(mx, my, { factoriesArea[1], factoriesArea[2], factoriesArea[3], factoriesArea[4] }) then
-			doupdate = true
-			factoriesAreaHovered = true
-		elseif factoriesAreaHovered then
-			factoriesAreaHovered = nil
-			doupdate = true
+		if not moffscreen then
+			if IsInRect(mx, my, { factoriesArea[1], factoriesArea[2], factoriesArea[3], factoriesArea[4] }) then
+				doupdate = true
+				factoriesAreaHovered = true
+			elseif factoriesAreaHovered then
+				factoriesAreaHovered = nil
+				doupdate = true
+			end
 		end
 
-		if not(IsInRect(mx, my, { factoriesArea[1], factoriesArea[2], factoriesArea[3], factoriesArea[4] }) or (backgroundOptionsRect and
+		local graceSpace = math.floor((factoriesArea[3]-factoriesArea[1])*0.3)
+		if not (IsInRect(mx, my, { factoriesArea[1]-graceSpace, factoriesArea[2], factoriesArea[3], factoriesArea[4] }) or (backgroundOptionsRect and
 			IsInRect(mx, my, { backgroundOptionsRect[1], backgroundOptionsRect[4], backgroundOptionsRect[3], backgroundOptionsRect[2] })))
 		then
 			openedMenu = -1
@@ -915,7 +688,7 @@ function widget:Update(dt)
 				options['repeat'] = false
 			end
 			-- hover or pressed?
-			if (i == hoveredFac + 1) then
+			if not moffscreen and i == hoveredFac + 1 then
 				options.hovered_repeat = IsInRect(mx, my, { fac_rec[3] - repIcoSize, fac_rec[2], fac_rec[3], fac_rec[2] - repIcoSize })
 				options.pressed = (lb or mb or rb) or (options.hovered_repeat)
 				options.hovered = true
@@ -946,7 +719,7 @@ function widget:Update(dt)
 						dlistGuishader2 = gl.DeleteList(dlistGuishader2)
 					end
 					dlistGuishader2 = gl.CreateList( function()
-						RectRound(backgroundOptionsRect[1],backgroundOptionsRect[2],backgroundOptionsRect[3],backgroundOptionsRect[4], bgpadding*1.6 * ui_scale)
+						RectRound(backgroundOptionsRect[1],backgroundOptionsRect[2],backgroundOptionsRect[3],backgroundOptionsRect[4], elementCorner * ui_scale)
 					end)
 
 					if dlistGuishader2 then
@@ -982,7 +755,7 @@ function widget:DrawScreen()
 	end
 
 	local icon
-	local mx, my, lb, mb, rb = GetMouseState()
+	local mx, my, lb, mb, rb, moffscreen = GetMouseState()
 
 	if WG['guishader'] then
 		if #dlists == 0 then
@@ -1037,7 +810,7 @@ function widget:DrawScreen()
 					-- amount
 					options.amount = buildQueue[unitDefID]
 					-- hover or pressed?
-					if j == hoveredBOpt + 1 then
+					if not moffscreen and j == hoveredBOpt + 1 then
 						options.pressed = (lb or mb or rb)
 						if lb then
 							options.pressed = 1
@@ -1081,7 +854,7 @@ function widget:DrawScreen()
 							local yPad = math_floor(iconSizeY * 0.88)
 							local xPad = yPad
 							local zoom = 0.04
-							drawIcon({bopt_rec[3] - xPad, bopt_rec[2] - yPad, bopt_rec[1] + xPad, bopt_rec[4] + yPad}, "#" .. unitBuildDefID, {1, 1, 1, 0.5}, zoom)
+							drawIcon(unitBuildDefID, {bopt_rec[3] - xPad, bopt_rec[2] - yPad, bopt_rec[1] + xPad, bopt_rec[4] + yPad}, "#" .. unitBuildDefID, {1, 1, 1, 0.5}, zoom)
 							--TexRectRound(bopt_rec[1] + xPad, bopt_rec[4] + yPad, bopt_rec[3] - xPad, bopt_rec[2] - yPad, (bopt_rec[3] - bopt_rec[1]) * 0.05)
 							if count > 1 then
 								font:Begin()
@@ -1425,7 +1198,7 @@ function MenuHandler(x, y, button)
 			Spring.PlaySoundFile(sound_click, 0.8, 'ui')
 		else
 			--if (bar_openByClick) then
-			if (not menuHovered) and (openedMenu == pressedFac) then
+			if not menuHovered and openedMenu == pressedFac then
 				openedMenu = -1
 				Spring.PlaySoundFile(sound_click, 0.75, 'ui')
 			else
@@ -1569,7 +1342,7 @@ function widget:IsAbove(x, y)
 		return false
 	end
 
-	local _, _, lb, mb, rb = GetMouseState()
+	local _, _, lb, mb, rb, moffscreen = GetMouseState()
 	if ((lb or mb or rb) and openedMenu == -1) or waypointMode == 2 then
 		return false
 	end
@@ -1593,7 +1366,7 @@ function widget:IsAbove(x, y)
 
 	if hoveredFac >= 0 then
 		--factory icon
-		if not bar_openByClick and (openedMenu < 0 or menuHovered) then
+		if not moffscreen and (not bar_openByClick and (openedMenu < 0 or menuHovered)) then
 			menuHovered = true
 			openedMenu = hoveredFac
 		end

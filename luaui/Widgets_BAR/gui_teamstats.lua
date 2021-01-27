@@ -12,6 +12,7 @@ function widget:GetInfo()
 end
 
 local vsx,vsy = Spring.GetViewGeometry()
+local ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.6)
 
 local fontSize = 22		-- is caclulated somewhere else anyway
 local fontSizePercentage = 0.6 -- fontSize * X = actual fontsize
@@ -152,7 +153,11 @@ local format				= string.format
 local SIsuffixes = {"p","n","u","m","","k","M","G","T"}
 local borderRemap = {left={"x","min",-1},right={"x","max",1},top={"y","max",1},bottom={"y","min",-1}}
 
-local font, chobbyInterface, backgroundGuishader, gameStarted
+local RectRound = Spring.FlowUI.Draw.RectRound
+local UiElement = Spring.FlowUI.Draw.Element
+local elementCorner = Spring.FlowUI.elementCorner
+
+local font, chobbyInterface, backgroundGuishader, gameStarted, bgpadding
 
 function roundNumber(num,useFirstDecimal)
 	return useFirstDecimal and format("%0.1f",round(num,1)) or round(num)
@@ -285,6 +290,9 @@ function widget:ViewResize()
 		maxColumnTextSize = max(font:GetTextWidth(data[1]),maxColumnTextSize)
 		maxColumnTextSize = max(font:GetTextWidth(data[2]),maxColumnTextSize)
 	end
+
+	bgpadding = Spring.FlowUI.elementPadding
+	elementCorner = Spring.FlowUI.elementCorner
 
 	calcAbsSizes()
 	updateFontSize()
@@ -567,6 +575,12 @@ function updateFontSize()
 	fontSize = 11*widgetScale + floor(fakeColumnSize/maxColumnTextSize)
 end
 
+function IsOnRect(x, y, BLcornerX, BLcornerY, TRcornerX, TRcornerY)
+
+	-- check if the mouse is in a rectangle
+	return x >= BLcornerX and x <= TRcornerX and y >= BLcornerY and y <= TRcornerY
+end
+
 function widget:MouseMove(mx,my,dx,dy)
 	if not guiData.mainPanel.visible then
 		return
@@ -583,12 +597,22 @@ function widget:MouseMove(mx,my,dx,dy)
 	end
 end
 
-function widget:Update()
+local uiOpacitySec = 0
+function widget:Update(dt)
 	local x,y = GetMouseState()
 	if x ~= mousex or y ~= mousey then
 		widget:MouseMove(x,y,x-mousex,y-mousey)
 	end
 	mousex,mousey = x,y
+
+	uiOpacitySec = uiOpacitySec + dt
+	if uiOpacitySec > 0.5 then
+		uiOpacitySec = 0
+		if ui_opacity ~= Spring.GetConfigFloat("ui_opacity", 0.6) then
+			ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.6)
+			widget:ViewResize()
+		end
+	end
 end
 
 function widget:RecvLuaMsg(msg, playerID)
@@ -605,112 +629,12 @@ function widget:DrawScreen()
 	end
 	DrawBackground()
 	DrawAllStats()
-end
 
-local function DrawRectRound(px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)
-	local csyMult = 1 / ((sy-py)/cs)
-
-	if c2 then
-		gl.Color(c1[1],c1[2],c1[3],c1[4])
+	local x, y, pressed = Spring.GetMouseState()
+	local x1,y1,x2,y2 = math.floor(guiData.mainPanel.absSizes.x.min), math.floor(guiData.mainPanel.absSizes.y.min), math.floor(guiData.mainPanel.absSizes.x.max), math.floor(guiData.mainPanel.absSizes.y.max)
+	if IsOnRect(x, y, x1,y1,x2,y2) then
+		Spring.SetMouseCursor('cursornormal')
 	end
-	gl.Vertex(px+cs, py, 0)
-	gl.Vertex(sx-cs, py, 0)
-	if c2 then
-		gl.Color(c2[1],c2[2],c2[3],c2[4])
-	end
-	gl.Vertex(sx-cs, sy, 0)
-	gl.Vertex(px+cs, sy, 0)
-
-	-- left side
-	if c2 then
-		gl.Color(c1[1]*(1-csyMult)+(c2[1]*csyMult),c1[2]*(1-csyMult)+(c2[2]*csyMult),c1[3]*(1-csyMult)+(c2[3]*csyMult),c1[4]*(1-csyMult)+(c2[4]*csyMult))
-	end
-	gl.Vertex(px, py+cs, 0)
-	gl.Vertex(px+cs, py+cs, 0)
-	if c2 then
-		gl.Color(c2[1]*(1-csyMult)+(c1[1]*csyMult),c2[2]*(1-csyMult)+(c1[2]*csyMult),c2[3]*(1-csyMult)+(c1[3]*csyMult),c2[4]*(1-csyMult)+(c1[4]*csyMult))
-	end
-	gl.Vertex(px+cs, sy-cs, 0)
-	gl.Vertex(px, sy-cs, 0)
-
-	-- right side
-	if c2 then
-		gl.Color(c1[1]*(1-csyMult)+(c2[1]*csyMult),c1[2]*(1-csyMult)+(c2[2]*csyMult),c1[3]*(1-csyMult)+(c2[3]*csyMult),c1[4]*(1-csyMult)+(c2[4]*csyMult))
-	end
-	gl.Vertex(sx, py+cs, 0)
-	gl.Vertex(sx-cs, py+cs, 0)
-	if c2 then
-		gl.Color(c2[1]*(1-csyMult)+(c1[1]*csyMult),c2[2]*(1-csyMult)+(c1[2]*csyMult),c2[3]*(1-csyMult)+(c1[3]*csyMult),c2[4]*(1-csyMult)+(c1[4]*csyMult))
-	end
-	gl.Vertex(sx-cs, sy-cs, 0)
-	gl.Vertex(sx, sy-cs, 0)
-
-	local offset = 0.15		-- texture offset, because else gaps could show
-
-	-- bottom left
-	if c2 then
-		gl.Color(c1[1],c1[2],c1[3],c1[4])
-	end
-	if ((py <= 0 or px <= 0)  or (bl ~= nil and bl == 0)) and bl ~= 2   then
-		gl.Vertex(px, py, 0)
-	else
-		gl.Vertex(px+cs, py, 0)
-	end
-	gl.Vertex(px+cs, py, 0)
-	if c2 then
-		gl.Color(c1[1]*(1-csyMult)+(c2[1]*csyMult),c1[2]*(1-csyMult)+(c2[2]*csyMult),c1[3]*(1-csyMult)+(c2[3]*csyMult),c1[4]*(1-csyMult)+(c2[4]*csyMult))
-	end
-	gl.Vertex(px+cs, py+cs, 0)
-	gl.Vertex(px, py+cs, 0)
-	-- bottom right
-	if c2 then
-		gl.Color(c1[1],c1[2],c1[3],c1[4])
-	end
-	if ((py <= 0 or sx >= vsx) or (br ~= nil and br == 0)) and br ~= 2 then
-		gl.Vertex(sx, py, 0)
-	else
-		gl.Vertex(sx-cs, py, 0)
-	end
-	gl.Vertex(sx-cs, py, 0)
-	if c2 then
-		gl.Color(c1[1]*(1-csyMult)+(c2[1]*csyMult),c1[2]*(1-csyMult)+(c2[2]*csyMult),c1[3]*(1-csyMult)+(c2[3]*csyMult),c1[4]*(1-csyMult)+(c2[4]*csyMult))
-	end
-	gl.Vertex(sx-cs, py+cs, 0)
-	gl.Vertex(sx, py+cs, 0)
-	-- top left
-	if c2 then
-		gl.Color(c2[1],c2[2],c2[3],c2[4])
-	end
-	if ((sy >= vsy or px <= 0) or (tl ~= nil and tl == 0)) and tl ~= 2 then
-		gl.Vertex(px, sy, 0)
-	else
-		gl.Vertex(px+cs, sy, 0)
-	end
-	gl.Vertex(px+cs, sy, 0)
-	if c2 then
-		gl.Color(c2[1]*(1-csyMult)+(c1[1]*csyMult),c2[2]*(1-csyMult)+(c1[2]*csyMult),c2[3]*(1-csyMult)+(c1[3]*csyMult),c2[4]*(1-csyMult)+(c1[4]*csyMult))
-	end
-	gl.Vertex(px+cs, sy-cs, 0)
-	gl.Vertex(px, sy-cs, 0)
-	-- top right
-	if c2 then
-		gl.Color(c2[1],c2[2],c2[3],c2[4])
-	end
-	if ((sy >= vsy or sx >= vsx)  or (tr ~= nil and tr == 0)) and tr ~= 2 then
-		gl.Vertex(sx, sy, 0)
-	else
-		gl.Vertex(sx-cs, sy, 0)
-	end
-	gl.Vertex(sx-cs, sy, 0)
-	if c2 then
-		gl.Color(c2[1]*(1-csyMult)+(c1[1]*csyMult),c2[2]*(1-csyMult)+(c1[2]*csyMult),c2[3]*(1-csyMult)+(c1[3]*csyMult),c2[4]*(1-csyMult)+(c1[4]*csyMult))
-	end
-	gl.Vertex(sx-cs, sy-cs, 0)
-	gl.Vertex(sx, sy-cs, 0)
-end
-function RectRound(px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)		-- (coordinates work differently than the RectRound func in other widgets)
-	gl.Texture(false)
-	gl.BeginEnd(GL.QUADS, DrawRectRound, px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)
 end
 
 function DrawBackground()
@@ -721,21 +645,19 @@ function DrawBackground()
 		glCallList(backgroundDisplayList)
 	end
 
-	local x1,y1,x2,y2 = guiData.mainPanel.absSizes.x.min, guiData.mainPanel.absSizes.y.min, guiData.mainPanel.absSizes.x.max, guiData.mainPanel.absSizes.y.max
-
+	local x1,y1,x2,y2 = math.floor(guiData.mainPanel.absSizes.x.min), math.floor(guiData.mainPanel.absSizes.y.min), math.floor(guiData.mainPanel.absSizes.x.max), math.floor(guiData.mainPanel.absSizes.y.max)
 	if WG['guishader'] then
 		gl.Color(0,0,0,0.8)
 	else
 		gl.Color(0,0,0,0.85)
 	end
-	local padding = 5*widgetScale
-	RectRound(x1-padding,y1-padding,x2+padding,y2+padding,8*widgetScale, 1,1,1,1, {0.05,0.05,0.05,WG['guishader'] and 0.8 or 0.88}, {0,0,0,WG['guishader'] and 0.8 or 0.88})
+	UiElement(x1-bgpadding,y1-bgpadding,x2+bgpadding,y2+bgpadding, 1, 1, 1, 1, 1,1,1,1, ui_opacity + 0.2)
 	if WG['guishader'] then
 		if backgroundGuishader ~= nil then
 			glDeleteList(backgroundGuishader)
 		end
 		backgroundGuishader = glCreateList( function()
-			RectRound(x1-padding,y1-padding,x2+padding,y2+padding, 9*widgetScale)
+			RectRound(x1-bgpadding,y1-bgpadding,x2+bgpadding,y2+bgpadding, elementCorner)
 		end)
 		WG['guishader'].InsertDlist(backgroundGuishader,'teamstats_window')
 	end
@@ -751,6 +673,7 @@ function DrawAllStats()
 end
 
 function ReGenerateBackgroundDisplayList()
+	gl.Texture(false)	-- some other widget left it on
 	local boxSizes = guiData.mainPanel.absSizes
 	for lineCount=1,prevNumLines do
 		local colour = evenLineColour
@@ -765,7 +688,7 @@ function ReGenerateBackgroundDisplayList()
 		end
 		glColor(colour)
 		if lineCount > 2 then
-			RectRound(boxSizes.x.min, boxSizes.y.max -lineCount*fontSize, boxSizes.x.max, boxSizes.y.max -(lineCount-1)*fontSize, 3.5*widgetScale, 1,1,1,1, {colour[1],colour[2],colour[3],colour[4]}, {colour[1],colour[2],colour[3],colour[4]*3})
+			RectRound(math.floor(boxSizes.x.min), math.floor(boxSizes.y.max -lineCount*fontSize), math.floor(boxSizes.x.max), math.floor(boxSizes.y.max -(lineCount-1)*fontSize), bgpadding, 1,1,1,1, {colour[1],colour[2],colour[3],colour[4]}, {colour[1],colour[2],colour[3],colour[4]*3})
 		elseif lineCount == 1 then
 			--RectRound(boxSizes.x.min, boxSizes.y.max -(lineCount+1)*fontSize, boxSizes.x.max, boxSizes.y.max -(lineCount-1)*fontSize, 3*widgetScale)
 		end
@@ -776,7 +699,7 @@ function ReGenerateBackgroundDisplayList()
 		else
 			glColor(sortHighLightColourDesc)
 		end
-		RectRound(boxSizes.x.min +(selectedColumn)*columnSize-columnSize/2,boxSizes.y.max -2*fontSize,boxSizes.x.min +(selectedColumn+1)*columnSize-columnSize/2, boxSizes.y.max,3.5*widgetScale)
+		RectRound(math.floor(boxSizes.x.min +(selectedColumn)*columnSize-columnSize/2), math.floor(boxSizes.y.max -2*fontSize), math.floor(boxSizes.x.min +(selectedColumn+1)*columnSize-columnSize/2), math.floor(boxSizes.y.max), bgpadding)
 	end
 	for selectedIndex, headerName in ipairs(header) do
 		if sortVar == headerName then
@@ -785,7 +708,7 @@ function ReGenerateBackgroundDisplayList()
 			else
 				glColor(activeSortColourDesc)
 			end
-			RectRound(boxSizes.x.min +(selectedIndex)*columnSize-columnSize/2,boxSizes.y.max -2*fontSize,boxSizes.x.min +(selectedIndex+1)*columnSize-columnSize/2, boxSizes.y.max,3.5*widgetScale)
+			RectRound(math.floor(boxSizes.x.min +(selectedIndex)*columnSize-columnSize/2), math.floor(boxSizes.y.max -2*fontSize), math.floor(boxSizes.x.min +(selectedIndex+1)*columnSize-columnSize/2), math.floor(boxSizes.y.max), bgpadding)
 			break
 		end
 	end

@@ -228,25 +228,25 @@ void main() {
 	float valueNoise = Value3D(valueNoiseVec);
 
 	if (BITMASK_FIELD(effects, 6)) {
-		const float perlinNoiseMovePace = 0.005;
-		float waveFront = mod(-gameFrame * 0.0025, 1.0);
+		const float perlinNoiseMovePace = 0.003;
+		float waveFront = mod(-gameFrame * 0.0020, 0.5);
 
 		vec3 perlinNoiseVec = modelPos.xyz;
 		//perlinNoiseVec.y += gameFrame * perlinNoiseMovePace;
 
 		//float perlin = 0.33 * abs(SimplexPerlin3D(perlinNoiseVec * 50.0)) + 0.5 * abs(SimplexPerlin3D(perlinNoiseVec * 0.5));
-		float perlin = 1.3 * abs(StrangeSurface(modelPos.xyz, 50.0, gameFrame * perlinNoiseMovePace));
+		float perlin = 10 * abs(StrangeSurface(modelPos.xyz, 5.0, gameFrame * perlinNoiseMovePace));
 
 		float band = SNORM2NORM(cos((modelPos.y - waveFront) * PI * 4.0));
 
-		float pb = pow( clamp(perlin * band, 0.0, 0.95), 0.2 );
+		float pb = pow( clamp(perlin * band, 0.0, 0.8), 0.25 );
 
-		color = pow(color, vec4(1.1 - pb));
+		color = pow(color, vec4(1.2 - pb));
 	}
 
 	if (BITMASK_FIELD(effects, 1) || BITMASK_FIELD(effects, 2)) {
-		const float outlineEffectSize = 40.0;
-		const float outlineAlpha = 0.6;
+		const float outlineEffectSize = 30.0;
+		const float outlineAlpha = 0.45;
 
 		float minDepth = 1.0;
 		vec2 viewPortUV = gl_FragCoord.xy/viewPortSize;
@@ -265,7 +265,7 @@ void main() {
 
 		float minDepthView = GetViewSpaceDepth( minDepth );
 		float outlineFactor = smoothstep( 0.0, abs(viewPos.z - minDepthView), outlineEffectSize * valueNoise );
-		outlineFactor *= mix(0.25, 1.0, SNORM2NORM(sin(0.1*gameFrame + 10.0*(modelPos.x + modelPos.z +  modelPos.y))));
+		outlineFactor *= mix(0.25, 1.0, SNORM2NORM(sin(0.1*gameFrame + 5.0*(modelPos.x + modelPos.z +  modelPos.y))));
 
 
 		color.a = mix(color.a, outlineAlpha, outlineFactor);

@@ -41,7 +41,7 @@ local textStartOpacity = 0.6
 
 local fpsDifference 			= (maxFps-minFps)/particleSteps		-- fps difference need before changing the dlist to one with fewer particles
 
-local snowTexFolder = "LuaUI/Images/snow/"
+local snowTexture = "LuaUI/Images/snow.dds"
 
 local snowKeywords = {'snow','frozen','cold','winter','ice','icy','arctic','frost','melt','glacier','mosh_pit','blindside','northernmountains','amarante','cervino'}
 
@@ -57,32 +57,26 @@ snowMaps['thecoldplace'] = false
 
 local particleTypes = {}
 table.insert(particleTypes, {
-		texture = 'snow1.dds',
 		gravity = 50,
 		scale = 5500
 })
 table.insert(particleTypes, {
-		texture = 'snow2.dds',
 		gravity = 44,
 		scale = 5500
 })
 table.insert(particleTypes, {
-		texture = 'snow3.dds',
 		gravity = 58,
 		scale = 5500
 })
 table.insert(particleTypes, {
-		texture = 'snow4.dds',
 		gravity = 62,
 		scale = 6600
 })
 table.insert(particleTypes, {
-		texture = 'snow5.dds',
 		gravity = 47,
 		scale = 6600
 })
 table.insert(particleTypes, {
-		texture = 'snow6.dds',
 		gravity = 54,
 		scale = 6600
 })
@@ -518,13 +512,13 @@ function widget:DrawWorld()
 				offsetZ = offsetZ + ((windDirZ * windMultiplier) * timePassed)
 			end
 
+			glTexture(snowTexture)
 			for particleType, pt in pairs(particleTypes) do
-				glTexture(snowTexFolder..pt.texture)
 				glUniform(shaderScaleLoc, pt.scale*particleScale)
 				glUniform(shaderSpeedLoc, pt.gravity, offsetX, offsetZ)
 				glCallList(particleLists[particleType][particleStep])
-				glTexture(false)
 			end
+			glTexture(false)
 
 			gl.PointParameter(1, 0, 0, 0, 1e9, 1)
 			gl.PointSize(1.0)

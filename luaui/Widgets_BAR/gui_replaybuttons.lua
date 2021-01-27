@@ -35,6 +35,9 @@ local GL_SRC_ALPHA = GL.SRC_ALPHA
 local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 local GL_ONE = GL.ONE
 
+local RectRound = Spring.FlowUI.Draw.RectRound
+local elementCorner = Spring.FlowUI.elementCorner
+
 local chobbyInterface, font, backgroundGuishader, buttonsList, speedButtonsList, buttonlist, active_button, bgpadding
 
 function widget:Initialize()
@@ -92,7 +95,7 @@ function widget:DrawScreen()
 				gl.DeleteList(backgroundGuishader)
 			end
 			backgroundGuishader = gl.CreateList(function()
-				RectRound(sX(wPos.x), sY(wPos.y), sX(wPos.x + 0.037), sY(wPos.y + dy), bgpadding * 1.6, 0, 1, 1, 0)
+				RectRound(sX(wPos.x), sY(wPos.y), sX(wPos.x + 0.037), sY(wPos.y + dy), elementCorner, 0, 1, 1, 0)
 			end)
 			WG['guishader'].InsertDlist(backgroundGuishader, 'replaybuttons')
 		else
@@ -122,11 +125,11 @@ function widget:DrawScreen()
 	if point_in_rect(buttons[1].x, buttons[1].y, b[topbutton].x + b[topbutton].w, b[topbutton].y + b[topbutton].h, uiX(mousex), uiY(mousey)) then
 		for i = 1, #b, 1 do
 			if point_in_rect(b[i].x, b[i].y, b[i].x + b[i].w, b[i].y + b[i].h, uiX(mousex), uiY(mousey)) or i == active_button then
-				uiRect(b[i].x, b[i].y, b[i].x + b[i].w - (bgpadding / vsx), b[i].y + b[i].h - (bgpadding / vsy), bgpadding, 0, 1, 1, 0, { 0.3, 0.3, 0.3, buttonstate and 0.25 or 0.15 }, { 1, 1, 1, buttonstate and 0.25 or 0.15 })
+				uiRect(b[i].x, b[i].y, b[i].x + b[i].w - (bgpadding / vsx), b[i].y + b[i].h - (bgpadding / vsy), elementCorner*0.66, 0, 1, 1, 0, { 0.3, 0.3, 0.3, buttonstate and 0.25 or 0.15 }, { 1, 1, 1, buttonstate and 0.25 or 0.15 })
 				-- gloss
 				glBlending(GL_SRC_ALPHA, GL_ONE)
-				uiRect(b[i].x, b[i].y + (b[i].h * 0.55), b[i].x + b[i].w - (bgpadding / vsx), b[i].y + b[i].h - (bgpadding / vsy), bgpadding, 1, 1, 0, 0, { 1, 1, 1, 0.06 }, { 1, 1, 1, buttonstate and 0.4 or 0.25 })
-				uiRect(b[i].x, b[i].y, b[i].x + b[i].w - (bgpadding / vsx), b[i].y + (b[i].h * 0.4), bgpadding, 0, 0, 1, 1, { 1, 1, 1, buttonstate and 0.25 or 0.15 }, { 1, 1, 1, 0 })
+				uiRect(b[i].x, b[i].y + (b[i].h * 0.55), b[i].x + b[i].w - (bgpadding / vsx), b[i].y + b[i].h - (bgpadding / vsy), elementCorner*0.66, 1, 1, 0, 0, { 1, 1, 1, 0.06 }, { 1, 1, 1, buttonstate and 0.4 or 0.25 })
+				uiRect(b[i].x, b[i].y, b[i].x + b[i].w - (bgpadding / vsx), b[i].y + (b[i].h * 0.4), elementCorner*0.66, 0, 0, 1, 1, { 1, 1, 1, buttonstate and 0.25 or 0.15 }, { 1, 1, 1, 0 })
 				glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 				uiText(b[i].text, b[i].x, b[i].y + b[i].h / 2, (0.0115), 'vo')
 				break
@@ -135,11 +138,11 @@ function widget:DrawScreen()
 		b = buttons
 		for i = 1, #b, 1 do
 			if point_in_rect(b[i].x, b[i].y, b[i].x + b[i].w, b[i].y + b[i].h, uiX(mousex), uiY(mousey)) or i == active_button then
-				uiRect(b[i].x, b[i].y, b[i].x + b[i].w - (bgpadding / vsx), b[i].y + b[i].h - (bgpadding / vsy), bgpadding, 0, 1, 1, 0, { 0.3, 0.3, 0.3, buttonstate and 0.25 or 0.15 }, { 1, 1, 1, buttonstate and 0.25 or 0.15 })
+				uiRect(b[i].x, b[i].y, b[i].x + b[i].w - (bgpadding / vsx), b[i].y + b[i].h - (bgpadding / vsy), elementCorner*0.66, 0, 1, 1, 0, { 0.3, 0.3, 0.3, buttonstate and 0.25 or 0.15 }, { 1, 1, 1, buttonstate and 0.25 or 0.15 })
 				-- gloss
 				glBlending(GL_SRC_ALPHA, GL_ONE)
-				uiRect(b[i].x, b[i].y + (b[i].h * 0.55), b[i].x + b[i].w - (bgpadding / vsx), b[i].y + b[i].h - (bgpadding / vsy), bgpadding, 1, 1, 0, 0, { 1, 1, 1, 0.06 }, { 1, 1, 1, buttonstate and 0.4 or 0.25 })
-				uiRect(b[i].x, b[i].y, b[i].x + b[i].w - (bgpadding / vsx), b[i].y + (b[i].h * 0.4), bgpadding, 0, 0, 1, 1, { 1, 1, 1, buttonstate and 0.25 or 0.15 }, { 1, 1, 1, 0 })
+				uiRect(b[i].x, b[i].y + (b[i].h * 0.55), b[i].x + b[i].w - (bgpadding / vsx), b[i].y + b[i].h - (bgpadding / vsy), elementCorner*0.66, 1, 1, 0, 0, { 1, 1, 1, 0.06 }, { 1, 1, 1, buttonstate and 0.4 or 0.25 })
+				uiRect(b[i].x, b[i].y, b[i].x + b[i].w - (bgpadding / vsx), b[i].y + (b[i].h * 0.4), elementCorner*0.66, 0, 0, 1, 1, { 1, 1, 1, buttonstate and 0.25 or 0.15 }, { 1, 1, 1, 0 })
 				glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 				uiText(b[i].text, b[i].x, b[i].y + b[i].h / 2, (0.0115), 'vo')
 				break
@@ -260,8 +263,8 @@ function widget:ViewResize()
 	widgetScale = (0.5 + (vsx * vsy / 5700000))
 	sceduleUpdate = true
 
-	local widgetSpaceMargin = math.floor(0.0045 * vsy * ui_scale) / vsy
-	bgpadding = math.ceil(widgetSpaceMargin * 0.66 * vsy)
+	bgpadding = Spring.FlowUI.elementPadding
+	elementCorner = Spring.FlowUI.elementCorner
 
 	font = WG['fonts'].getFont(fontfile2)
 end
@@ -275,111 +278,6 @@ function uiText (text, x, y, s, options)
 	font:End()
 end
 
-
-local function DrawRectRound(px, py, sx, sy, cs, tl, tr, br, bl, c1, c2)
-	local csyMult = 1 / ((sy - py) / cs)
-
-	if c2 then
-		gl.Color(c1[1], c1[2], c1[3], c1[4])
-	end
-	gl.Vertex(px + cs, py, 0)
-	gl.Vertex(sx - cs, py, 0)
-	if c2 then
-		gl.Color(c2[1], c2[2], c2[3], c2[4])
-	end
-	gl.Vertex(sx - cs, sy, 0)
-	gl.Vertex(px + cs, sy, 0)
-
-	-- left side
-	if c2 then
-		gl.Color(c1[1] * (1 - csyMult) + (c2[1] * csyMult), c1[2] * (1 - csyMult) + (c2[2] * csyMult), c1[3] * (1 - csyMult) + (c2[3] * csyMult), c1[4] * (1 - csyMult) + (c2[4] * csyMult))
-	end
-	gl.Vertex(px, py + cs, 0)
-	gl.Vertex(px + cs, py + cs, 0)
-	if c2 then
-		gl.Color(c2[1] * (1 - csyMult) + (c1[1] * csyMult), c2[2] * (1 - csyMult) + (c1[2] * csyMult), c2[3] * (1 - csyMult) + (c1[3] * csyMult), c2[4] * (1 - csyMult) + (c1[4] * csyMult))
-	end
-	gl.Vertex(px + cs, sy - cs, 0)
-	gl.Vertex(px, sy - cs, 0)
-
-	-- right side
-	if c2 then
-		gl.Color(c1[1] * (1 - csyMult) + (c2[1] * csyMult), c1[2] * (1 - csyMult) + (c2[2] * csyMult), c1[3] * (1 - csyMult) + (c2[3] * csyMult), c1[4] * (1 - csyMult) + (c2[4] * csyMult))
-	end
-	gl.Vertex(sx, py + cs, 0)
-	gl.Vertex(sx - cs, py + cs, 0)
-	if c2 then
-		gl.Color(c2[1] * (1 - csyMult) + (c1[1] * csyMult), c2[2] * (1 - csyMult) + (c1[2] * csyMult), c2[3] * (1 - csyMult) + (c1[3] * csyMult), c2[4] * (1 - csyMult) + (c1[4] * csyMult))
-	end
-	gl.Vertex(sx - cs, sy - cs, 0)
-	gl.Vertex(sx, sy - cs, 0)
-
-	-- bottom left
-	if c2 then
-		gl.Color(c1[1], c1[2], c1[3], c1[4])
-	end
-	if ((py <= 0 or px <= 0) or (bl ~= nil and bl == 0)) and bl ~= 2 then
-		gl.Vertex(px, py, 0)
-	else
-		gl.Vertex(px + cs, py, 0)
-	end
-	gl.Vertex(px + cs, py, 0)
-	if c2 then
-		gl.Color(c1[1] * (1 - csyMult) + (c2[1] * csyMult), c1[2] * (1 - csyMult) + (c2[2] * csyMult), c1[3] * (1 - csyMult) + (c2[3] * csyMult), c1[4] * (1 - csyMult) + (c2[4] * csyMult))
-	end
-	gl.Vertex(px + cs, py + cs, 0)
-	gl.Vertex(px, py + cs, 0)
-	-- bottom right
-	if c2 then
-		gl.Color(c1[1], c1[2], c1[3], c1[4])
-	end
-	if ((py <= 0 or sx >= vsx) or (br ~= nil and br == 0)) and br ~= 2 then
-		gl.Vertex(sx, py, 0)
-	else
-		gl.Vertex(sx - cs, py, 0)
-	end
-	gl.Vertex(sx - cs, py, 0)
-	if c2 then
-		gl.Color(c1[1] * (1 - csyMult) + (c2[1] * csyMult), c1[2] * (1 - csyMult) + (c2[2] * csyMult), c1[3] * (1 - csyMult) + (c2[3] * csyMult), c1[4] * (1 - csyMult) + (c2[4] * csyMult))
-	end
-	gl.Vertex(sx - cs, py + cs, 0)
-	gl.Vertex(sx, py + cs, 0)
-	-- top left
-	if c2 then
-		gl.Color(c2[1], c2[2], c2[3], c2[4])
-	end
-	if ((sy >= vsy or px <= 0) or (tl ~= nil and tl == 0)) and tl ~= 2 then
-		gl.Vertex(px, sy, 0)
-	else
-		gl.Vertex(px + cs, sy, 0)
-	end
-	gl.Vertex(px + cs, sy, 0)
-	if c2 then
-		gl.Color(c2[1] * (1 - csyMult) + (c1[1] * csyMult), c2[2] * (1 - csyMult) + (c1[2] * csyMult), c2[3] * (1 - csyMult) + (c1[3] * csyMult), c2[4] * (1 - csyMult) + (c1[4] * csyMult))
-	end
-	gl.Vertex(px + cs, sy - cs, 0)
-	gl.Vertex(px, sy - cs, 0)
-	-- top right
-	if c2 then
-		gl.Color(c2[1], c2[2], c2[3], c2[4])
-	end
-	if ((sy >= vsy or sx >= vsx) or (tr ~= nil and tr == 0)) and tr ~= 2 then
-		gl.Vertex(sx, sy, 0)
-	else
-		gl.Vertex(sx - cs, sy, 0)
-	end
-	gl.Vertex(sx - cs, sy, 0)
-	if c2 then
-		gl.Color(c2[1] * (1 - csyMult) + (c1[1] * csyMult), c2[2] * (1 - csyMult) + (c1[2] * csyMult), c2[3] * (1 - csyMult) + (c1[3] * csyMult), c2[4] * (1 - csyMult) + (c1[4] * csyMult))
-	end
-	gl.Vertex(sx - cs, sy - cs, 0)
-	gl.Vertex(sx, sy - cs, 0)
-end
-function RectRound(px, py, sx, sy, cs, tl, tr, br, bl, c1, c2)
-	-- (coordinates work differently than the RectRound func in other widgets)
-	gl.Texture(false)
-	gl.BeginEnd(GL.QUADS, DrawRectRound, px, py, sx, sy, cs, tl, tr, br, bl, c1, c2)
-end
 function uiRect(x, y, x2, y2, cs, tl, tr, br, bl, c1, c2)
 	RectRound(sX(x), sY(y), sX(x2), sY(y2), cs, tl, tr, br, bl, c1, c2)
 	--gl.Rect (sX(x), sY(y), sX(x2), sY(y2))
@@ -395,12 +293,12 @@ function draw_buttons (b)
 		end
 
 		local padding = bgpadding
-		uiRect(b[i].x, b[i].y, b[i].x + b[i].w, b[i].y + b[i].h, bgpadding * 1.6, 0, 1, 1, 0, { 0.05, 0.05, 0.05, ui_opacity }, { 0, 0, 0, ui_opacity })
-		uiRect(b[i].x, b[i].y, b[i].x + b[i].w - (bgpadding / vsx), b[i].y + b[i].h - (bgpadding / vsy), bgpadding, 0, 1, 1, 0, { 0.3, 0.3, 0.3, ui_opacity * 0.1 }, { 1, 1, 1, ui_opacity * 0.1 })
+		uiRect(b[i].x, b[i].y, b[i].x + b[i].w, b[i].y + b[i].h, elementCorner, 0, 1, 1, 0, { 0.05, 0.05, 0.05, ui_opacity }, { 0, 0, 0, ui_opacity })
+		uiRect(b[i].x, b[i].y, b[i].x + b[i].w - (bgpadding / vsx), b[i].y + b[i].h - (bgpadding / vsy), elementCorner*0.66, 0, 1, 1, 0, { 0.3, 0.3, 0.3, ui_opacity * 0.1 }, { 1, 1, 1, ui_opacity * 0.1 })
 		-- gloss
 		glBlending(GL_SRC_ALPHA, GL_ONE)
-		uiRect(b[i].x, b[i].y + (b[i].h * 0.55), b[i].x + b[i].w - (bgpadding / vsx), b[i].y + b[i].h - (bgpadding / vsy), bgpadding, 1, 1, 0, 0, { 1, 1, 1, 0.01 * glossMult }, { 1, 1, 1, 0.055 * glossMult })
-		uiRect(b[i].x, b[i].y, b[i].x + b[i].w - (bgpadding / vsx), b[i].y + (b[i].h * 0.4), bgpadding, 0, 0, 1, 1, { 1, 1, 1, 0.04 * glossMult }, { 1, 1, 1, 0 })
+		uiRect(b[i].x, b[i].y + (b[i].h * 0.55), b[i].x + b[i].w - (bgpadding / vsx), b[i].y + b[i].h - (bgpadding / vsy), elementCorner*0.66, 1, 1, 0, 0, { 1, 1, 1, 0.01 * glossMult }, { 1, 1, 1, 0.055 * glossMult })
+		uiRect(b[i].x, b[i].y, b[i].x + b[i].w - (bgpadding / vsx), b[i].y + (b[i].h * 0.4), elementCorner*0.66, 0, 0, 1, 1, { 1, 1, 1, 0.04 * glossMult }, { 1, 1, 1, 0 })
 		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
 		uiText(b[i].text, b[i].x, b[i].y + b[i].h / 2, (0.0115), 'vo')

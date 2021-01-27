@@ -53,7 +53,7 @@ function gadget:AllowFeatureBuildStep(builderID, builderTeam, featureID, feature
 				featureList[featureDefID] = { minX = (defs.model.minx * 0.6), maxX = (defs.model.maxx + 1 * 0.6), minZ = (defs.model.minz * 0.6), maxZ = (defs.model.maxz + 1 * 0.6), y = (defs.model.maxy + 1 * 0.5) }
 				featureDefs = featureList[featureDefID]
 			end
-			if featureDefs.minX then
+			if featureDefs.minX and featureDefs.maxX then
 				local x, y, z = GetFeaturePosition(featureID)
 				x = x + random(featureDefs.minX, featureDefs.maxX)
 				z = z + random(featureDefs.minZ, featureDefs.maxZ)

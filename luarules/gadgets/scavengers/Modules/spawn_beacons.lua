@@ -26,7 +26,7 @@ function SpawnBeacon(n)
 			end
 			if ScavSafeAreaExist or SafeAreaBeaconSpawnAttempts > 20 then 
 				beacontype = "normal"
-				posradius = 80 
+				posradius = 128 
 			else
 				beacontype = "safearea"
 				posradius = ScavSafeAreaSize
@@ -36,12 +36,12 @@ function SpawnBeacon(n)
 			canSpawnBeaconHere = posCheck(posx, posy, posz, 80)
 			if canSpawnBeaconHere then
 				if globalScore then
-					local g = math_random(0,1)
+					local g = math_random(0,10)
 					--ScavSafeAreaMinX
 					--ScavSafeAreaMaxX
 					--ScavSafeAreaMinZ
 					--ScavSafeAreaMaxZ
-					if ScavSafeAreaExist and g ~= 0 then
+					if ScavSafeAreaExist and g == 0 then
 						if ScavSafeAreaMinX < posx and ScavSafeAreaMaxX > posx and ScavSafeAreaMinZ < posz and ScavSafeAreaMaxZ > posz then
 							canSpawnBeaconHere = true
 						else
@@ -105,40 +105,40 @@ function SpawnBeacon(n)
 					local posy = Spring.GetGroundHeight(posx-128, posz)
 					if posy > 0 then
 						local r = grouptier[math_random(1,#grouptier)]
-						QueueSpawn(r..scavconfig.unitnamesuffix, posx-128, posy, posz, math_random(0,3),GaiaTeamID, n+90)
+						QueueSpawn(r..scavconfig.unitnamesuffix, posx-128, posy, posz, math_random(0,3),GaiaTeamID, n+90, false)
 					else
 						local r2 = grouptiersea[math_random(1,#grouptiersea)]
-						QueueSpawn(r2..scavconfig.unitnamesuffix, posx-128, posy, posz, math_random(0,3),GaiaTeamID, n+90)
+						QueueSpawn(r2..scavconfig.unitnamesuffix, posx-128, posy, posz, math_random(0,3),GaiaTeamID, n+90, false)
 					end
 
 					
 					local posy = Spring.GetGroundHeight(posx+128, posz)
 					if posy > 0 then
 						local r = grouptier[math_random(1,#grouptier)]
-						QueueSpawn(r..scavconfig.unitnamesuffix, posx+128, posy, posz, math_random(0,3),GaiaTeamID, n+90)
+						QueueSpawn(r..scavconfig.unitnamesuffix, posx+128, posy, posz, math_random(0,3),GaiaTeamID, n+90, false)
 					else
 						local r2 = grouptiersea[math_random(1,#grouptiersea)]
-						QueueSpawn(r2..scavconfig.unitnamesuffix, posx+128, posy, posz, math_random(0,3),GaiaTeamID, n+90)
+						QueueSpawn(r2..scavconfig.unitnamesuffix, posx+128, posy, posz, math_random(0,3),GaiaTeamID, n+90, false)
 					end
 
 					
 					local posy = Spring.GetGroundHeight(posx, posz+128)
 					if posy > 0 then
 						local r = grouptier[math_random(1,#grouptier)]
-						QueueSpawn(r..scavconfig.unitnamesuffix, posx, posy, posz+128, math_random(0,3),GaiaTeamID, n+90)
+						QueueSpawn(r..scavconfig.unitnamesuffix, posx, posy, posz+128, math_random(0,3),GaiaTeamID, n+90, false)
 					else
 						local r2 = grouptiersea[math_random(1,#grouptiersea)]
-						QueueSpawn(r2..scavconfig.unitnamesuffix, posx, posy, posz+128, math_random(0,3),GaiaTeamID, n+90)
+						QueueSpawn(r2..scavconfig.unitnamesuffix, posx, posy, posz+128, math_random(0,3),GaiaTeamID, n+90, false)
 					end
 
 					
 					local posy = Spring.GetGroundHeight(posx, posz-128)
 					if posy > 0 then
 						local r = grouptier[math_random(1,#grouptier)]
-						QueueSpawn(r..scavconfig.unitnamesuffix, posx, posy, posz-128, math_random(0,3),GaiaTeamID, n+90)
+						QueueSpawn(r..scavconfig.unitnamesuffix, posx, posy, posz-128, math_random(0,3),GaiaTeamID, n+90, false)
 					else
 						local r2 = grouptiersea[math_random(1,#grouptiersea)]
-						QueueSpawn(r2..scavconfig.unitnamesuffix, posx, posy, posz-128, math_random(0,3),GaiaTeamID, n+90)
+						QueueSpawn(r2..scavconfig.unitnamesuffix, posx, posy, posz-128, math_random(0,3),GaiaTeamID, n+90, false)
 					end
 					grouptier = nil
 					grouptiersea = nil

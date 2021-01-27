@@ -5,6 +5,10 @@ local ReinforcementsChancePerTeam = {}
 local numOfSpawnBeaconsTeamsForSpawn = {}
 local CaptureProgressForBeacons = {}
 
+FriendlyResurrectors = {}
+FriendlyCollectors = {}
+FriendlyReclaimers = {}
+
 function CaptureBeacons(n)
 	local scavengerunits = Spring.GetTeamUnits(GaiaTeamID)
 	local spGetUnitTeam = Spring.GetUnitTeam
@@ -87,7 +91,7 @@ function CaptureBeacons(n)
 					CaptureProgressForBeacons[scav] = CaptureProgressForBeacons[scav] - 1
 					--Spring.Echo("uncapturing our beacon")
 				elseif captureraiTeam == false and unitTeamID ~= GaiaTeamID and unitTeamID ~= Spring.GetGaiaTeamID() and IsUnitExcluded == false and (not UnitDefs[unitDefID].canFly) then
-					CaptureProgressForBeacons[scav] = CaptureProgressForBeacons[scav] + 0.001
+					CaptureProgressForBeacons[scav] = CaptureProgressForBeacons[scav] + ((UnitDefs[unitDefID].metalCost)/800)*0.001
 					CapturingUnitsTeam[unitTeamID] = CapturingUnitsTeam[unitTeamID] + 1
 					--Spring.Echo("capturing scav beacon")
 				end
@@ -129,81 +133,13 @@ function SetBeaconsResourceProduction(n)
 			local unitDefID = Spring.GetUnitDefID(unitID)
 			local name = UnitDefs[unitDefID].name
 			if name ==	"scavengerdroppodbeacon_scav" then
-				--Spring.AddUnitResource(unitID, "m", beaconmetalproduction)
-				Spring.AddUnitResource(unitID, "e", beaconenergyproduction)
+				-- Spring.AddUnitResource(unitID, "m", beaconmetalproduction)
+				-- Spring.AddUnitResource(unitID, "e", beaconenergyproduction)
 			end
 		end
 	end
 end
 
--- function SpawnDefencesAfterCapture(unitID, teamID)
-	-- local spawnTier = math_random(1,100)
-	-- if spawnTier <= TierSpawnChances.T0 then
-		-- grouptier = BeaconDefenceStructuresT0
-	-- elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 then
-		-- grouptier = BeaconDefenceStructuresT1
-	-- elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 then
-		-- grouptier = BeaconDefenceStructuresT2
-	-- elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 + TierSpawnChances.T4 then
-		-- grouptier = BeaconDefenceStructuresT3
-	-- end
-	-- if spawnTier <= TierSpawnChances.T0 then
-		-- grouptiersea = StartboxDefenceStructuresT0Sea
-	-- elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 then
-		-- grouptiersea = StartboxDefenceStructuresT1Sea
-	-- elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 then
-		-- grouptiersea = StartboxDefenceStructuresT2Sea
-	-- elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 + TierSpawnChances.T4 then
-		-- grouptiersea = StartboxDefenceStructuresT3Sea
-	-- end
-
-	-- local posx,posy,posz = Spring.GetUnitPosition(unitID)
-	-- local posy = Spring.GetGroundHeight(posx, posz)
-	-- local n = Spring.GetGameFrame()
-
-	-- local r = grouptier[math_random(1,#grouptier)]
-	-- local r2 = grouptiersea[math_random(1,#grouptiersea)]
-	-- Spring.CreateUnit("scavengerdroppodfriendly", posx-128, posy, posz-128, math_random(0,3),teamID)
-	-- local posy = Spring.GetGroundHeight(posx-128, posz-128)
-	-- if posy > 0 then
-		-- QueueSpawn(r..scavconfig.unitnamesuffix, posx-128, posy, posz-128, math_random(0,3),teamID, n+90)
-	-- else
-		-- QueueSpawn(r2..scavconfig.unitnamesuffix, posx-128, posy, posz-128, math_random(0,3),teamID, n+90)
-	-- end
-
-	-- local r = grouptier[math_random(1,#grouptier)]
-	-- local r2 = grouptiersea[math_random(1,#grouptiersea)]
-	-- Spring.CreateUnit("scavengerdroppodfriendly", posx+128, posy, posz+128, math_random(0,3),teamID)
-	-- local posy = Spring.GetGroundHeight(posx+128, posz+128)
-	-- if posy > 0 then
-		-- QueueSpawn(r..scavconfig.unitnamesuffix, posx+128, posy, posz+128, math_random(0,3),teamID, n+90)
-	-- else
-		-- QueueSpawn(r2..scavconfig.unitnamesuffix, posx+128, posy, posz+128, math_random(0,3),teamID, n+90)
-	-- end
-
-	-- local r = grouptier[math_random(1,#grouptier)]
-	-- local r2 = grouptiersea[math_random(1,#grouptiersea)]
-	-- Spring.CreateUnit("scavengerdroppodfriendly", posx-128, posy, posz+128, math_random(0,3),teamID)
-	-- local posy = Spring.GetGroundHeight(posx-128, posz+128)
-	-- if posy > 0 then
-		-- QueueSpawn(r..scavconfig.unitnamesuffix, posx-128, posy, posz+128, math_random(0,3),teamID, n+90)
-	-- else
-		-- QueueSpawn(r2..scavconfig.unitnamesuffix, posx-128, posy, posz+128, math_random(0,3),teamID, n+90)
-	-- end
-
-	-- local r = grouptier[math_random(1,#grouptier)]
-	-- local r2 = grouptiersea[math_random(1,#grouptiersea)]
-	-- Spring.CreateUnit("scavengerdroppodfriendly", posx+128, posy, posz-128, math_random(0,3),teamID)
-	-- local posy = Spring.GetGroundHeight(posx+128, posz-128)
-	-- if posy > 0 then
-		-- QueueSpawn(r..scavconfig.unitnamesuffix, posx+128, posy, posz-128, math_random(0,3),teamID, n+90)
-	-- else
-		-- QueueSpawn(r2..scavconfig.unitnamesuffix, posx+128, posy, posz-128, math_random(0,3),teamID, n+90)
-	-- end
-
-	-- grouptier = nil
-	-- grouptiersea = nil
--- end
 
 function spawnPlayerReinforcements(n)
     --mapsizeX
@@ -226,9 +162,9 @@ function spawnPlayerReinforcements(n)
 				numOfSpawnBeaconsTeams[teamID] = 0
 			end
 			if not numOfSpawnBeaconsTeamsForSpawn[teamID] or numOfSpawnBeaconsTeamsForSpawn[teamID] == 0 then
-				numOfSpawnBeaconsTeamsForSpawn[teamID] = 2
+				numOfSpawnBeaconsTeamsForSpawn[teamID] = 1
 			else
-				numOfSpawnBeaconsTeamsForSpawn[teamID] = numOfSpawnBeaconsTeams[teamID] + 2
+				numOfSpawnBeaconsTeamsForSpawn[teamID] = numOfSpawnBeaconsTeams[teamID] + 1
 			end
 
 
@@ -236,7 +172,7 @@ function spawnPlayerReinforcements(n)
 				ReinforcementsCountPerTeam[teamID] = 0
 			end
 			if not ReinforcementsChancePerTeam[teamID] then
-				ReinforcementsChancePerTeam[teamID] = (((unitSpawnerModuleConfig.spawnchance)*10)/numOfSpawnBeaconsTeamsForSpawn[teamID])
+				ReinforcementsChancePerTeam[teamID] = math.ceil(((unitSpawnerModuleConfig.spawnchance)/numOfSpawnBeaconsTeamsForSpawn[teamID])*2.5)
 			end
 
 			if not isDead then
@@ -252,99 +188,135 @@ function spawnPlayerReinforcements(n)
 						end
 					end
 					--numOfSpawnBeaconsTeams[teamID] = 10
-					if numOfSpawnBeaconsTeams[teamID] == 1 then
+					if #PlayerSpawnBeacons == 1 then --numOfSpawnBeaconsTeams[teamID] == 1 then
 						pickedBeacon = PlayerSpawnBeacons[1]
-					elseif numOfSpawnBeaconsTeams[teamID] > 1 then
+					elseif #PlayerSpawnBeacons > 1 then--numOfSpawnBeaconsTeams[teamID] > 1 then
 						pickedBeacon = PlayerSpawnBeacons[math_random(1,#PlayerSpawnBeacons)]
 					else
 						pickedBeacon = nil
 						TryingToSpawnReinforcements[teamID] = false
-						ReinforcementsChancePerTeam[teamID] = (((unitSpawnerModuleConfig.spawnchance)*10)/numOfSpawnBeaconsTeamsForSpawn[teamID])
+						ReinforcementsChancePerTeam[teamID] = math.ceil(((unitSpawnerModuleConfig.spawnchance)/numOfSpawnBeaconsTeamsForSpawn[teamID])*2.5)
 					end
 					PlayerSpawnBeacons = nil
 					if pickedBeacon then
 						if not globalScore then
 							teamsCheck()
 						end
-						local groupsize = (bestTeamScore / unitSpawnerModuleConfig.globalscoreperoneunit)*spawnmultiplier
-						local groupsize = math.ceil(groupsize*2)
-						if scorePerTeam[teamID] < bestTeamScore*2 then
-							groupsize = math.ceil(groupsize*2)
-						end
-						local posradius = 160
+						local groupsize = math.ceil((bestTeamScore / unitSpawnerModuleConfig.globalscoreperoneunit)*0.75)
+						--local groupsize = math.ceil(groupsize*2)
+						--if scorePerTeam[teamID] < bestTeamScore*2 then
+							--groupsize = math.ceil(groupsize*2)
+						--end
+						local posradius = 80
 						local posx,posy,posz = Spring.GetUnitPosition(pickedBeacon)
 						local posy = Spring.GetGroundHeight(posx, posz)
 						local spawnTier = math_random(1,100)
 						local aircraftchance = math_random(0,unitSpawnerModuleConfig.aircraftchance)
 						if aircraftchance == 0 then
 							if spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 then
-								groupunit = T1ReinforcementAirUnits[math_random(1,#T1ReinforcementAirUnits)]
+								groupunit = T1AirUnits[math_random(1,#T1AirUnits)]
 								groupsize = groupsize*unitSpawnerModuleConfig.airmultiplier*unitSpawnerModuleConfig.t1multiplier
 							elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 then
-								groupunit = T2ReinforcementAirUnits[math_random(1,#T2ReinforcementAirUnits)]
+								groupunit = T2AirUnits[math_random(1,#T2AirUnits)]
 								groupsize = groupsize*unitSpawnerModuleConfig.airmultiplier*unitSpawnerModuleConfig.t2multiplier
 							elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 then
-								groupunit = T3ReinforcementAirUnits[math_random(1,#T3ReinforcementAirUnits)]
+								groupunit = T3AirUnits[math_random(1,#T3AirUnits)]
 								groupsize = 5
 							elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 + TierSpawnChances.T4 then
-								groupunit = T4ReinforcementAirUnits[math_random(1,#T4ReinforcementAirUnits)]
-								groupsize = 2
+								groupunit = T4AirUnits[math_random(1,#T4AirUnits)]
+								groupsize = 1
 							end
 						elseif posy > -20 then
 							if spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 then
-								groupunit = T1ReinforcementLandUnits[math_random(1,#T1ReinforcementLandUnits)]
+								groupunit = T1LandUnits[math_random(1,#T1LandUnits)]
 								groupsize = groupsize*unitSpawnerModuleConfig.landmultiplier*unitSpawnerModuleConfig.t1multiplier
 							elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 then
-								groupunit = T2ReinforcementLandUnits[math_random(1,#T2ReinforcementLandUnits)]
+								groupunit = T2LandUnits[math_random(1,#T2LandUnits)]
 								groupsize = groupsize*unitSpawnerModuleConfig.landmultiplier*unitSpawnerModuleConfig.t2multiplier
 							elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 then
-								groupunit = T3ReinforcementLandUnits[math_random(1,#T3ReinforcementLandUnits)]
-								groupsize = 5
+								groupunit = T3LandUnits[math_random(1,#T3LandUnits)]
+								groupsize = 3
 							elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 + TierSpawnChances.T4 then
-								groupunit = T4ReinforcementLandUnits[math_random(1,#T4ReinforcementLandUnits)]
-								groupsize = 2
+								groupunit = T4LandUnits[math_random(1,#T4LandUnits)]
+								groupsize = 1
 							end
 						elseif posy <= -20 then
 							if spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 then
-								groupunit = T1ReinforcementSeaUnits[math_random(1,#T1ReinforcementSeaUnits)]
+								groupunit = T1SeaUnits[math_random(1,#T1SeaUnits)]
 								groupsize = groupsize*unitSpawnerModuleConfig.seamultiplier*unitSpawnerModuleConfig.t1multiplier
 							elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 then
-								groupunit = T2ReinforcementSeaUnits[math_random(1,#T2ReinforcementSeaUnits)]
+								groupunit = T2SeaUnits[math_random(1,#T2SeaUnits)]
 								groupsize = groupsize*unitSpawnerModuleConfig.seamultiplier*unitSpawnerModuleConfig.t2multiplier
 							elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 then
-								groupunit = T3ReinforcementSeaUnits[math_random(1,#T3ReinforcementSeaUnits)]
-								groupsize = 5
+								groupunit = T3SeaUnits[math_random(1,#T3SeaUnits)]
+								groupsize = 3
 							elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 + TierSpawnChances.T4 then
-								groupunit = T4ReinforcementSeaUnits[math_random(1,#T4ReinforcementSeaUnits)]
-								groupsize = 2
+								groupunit = T4SeaUnits[math_random(1,#T4SeaUnits)]
+								groupsize = 1
 							end
-							ScavSendMessage(playerName .."'s reinforcements detected. Units: ".. UDN[groupunit1].humanName .. "s.")
 						end
-						for i = 1,groupsize do
+						
+						
+						ScavSendMessage(playerName .."'s reinforcements detected. Unit type: ".. UDN[groupunit].humanName .. ".")
+						for a = 1,math.ceil(groupsize) do
+							--local posradius = posradius+(groupsize*8)
 							local posx = posx+(math_random(-posradius,posradius))
 							local posz = posz+(math_random(-posradius,posradius))
 							local newposy = Spring.GetGroundHeight(posx, posz)
-							if posy >= -20 and newposy >= -20 then
-								if i then
-									QueueSpawn("scavengerdroppodfriendly", posx, posy, posz, math_random(0,3),GaiaTeamID, n+(i*60))
-									QueueSpawn(groupunit..scavconfig.unitnamesuffix, posx, posy, posz, math_random(0,3),GaiaTeamID, n+90+(i*60))
-								else
-									QueueSpawn("scavengerdroppodfriendly", posx, posy, posz, math_random(0,3),GaiaTeamID, n)
-									QueueSpawn(groupunit..scavconfig.unitnamesuffix, posx, posy, posz, math_random(0,3),GaiaTeamID, n+90)
+							Spring.CreateUnit("scavengerdroppodfriendly", posx, posy, posz, math_random(0,3), teamID)
+							local ReUnit = Spring.CreateUnit(groupunit..scavconfig.unitnamesuffix, posx, posy, posz, math_random(0,3), teamID)
+							Spring.SetUnitNoSelect(ReUnit, true)
+							table.insert(ActiveReinforcementUnits, ReUnit)
+							
+							
+							
+							
+							local unitDefID = Spring.GetUnitDefID(ReUnit)
+							local UnitName = UnitDefs[unitDefID].name
+							UnitSuffixLenght[ReUnit] = string.len(scavconfig.unitnamesuffix)
+							if scavconfig.modules.constructorControllerModule then
+								if constructorControllerModuleConfig.useresurrectors then
+									for i = 1,#Resurrectors do
+										if string.sub(UnitName, 1, string.len(UnitName)-UnitSuffixLenght[ReUnit]) == Resurrectors[i] then
+											FriendlyResurrectors[ReUnit] = true
+										end
+									end
+									for i = 1,#ResurrectorsSea do
+										if string.sub(UnitName, 1, string.len(UnitName)-UnitSuffixLenght[ReUnit]) == ResurrectorsSea[i] then
+											FriendlyResurrectors[ReUnit] = true
+										end
+									end
 								end
-							elseif posy < -20 and newposy < -20 then
-								if i then
-									QueueSpawn("scavengerdroppod_scav", posx, posy, posz, math_random(0,3),GaiaTeamID, n+(i*60))
-									QueueSpawn(groupunit..scavconfig.unitnamesuffix, posx, posy, posz, math_random(0,3),GaiaTeamID, n+90+(i*60))
-								else
-									QueueSpawn("scavengerdroppod_scav", posx, posy, posz, math_random(0,3),GaiaTeamID, n)
-									QueueSpawn(groupunit..scavconfig.unitnamesuffix, posx, posy, posz, math_random(0,3),GaiaTeamID, n+90)
+								
+								if constructorControllerModuleConfig.usecollectors then
+									for i = 1,#Collectors do
+										if string.sub(UnitName, 1, string.len(UnitName)-UnitSuffixLenght[ReUnit]) == Collectors[i] then
+											if math_random(0,100) <= 10 then
+												FriendlyCollectors[ReUnit] = true
+											else
+												FriendlyReclaimers[ReUnit] = true
+											end
+										end
+									end
 								end
 							end
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
+							
 						end
+						
+						groupunit = nil
 						groupsize = nil
-						groupunit1 = nil
-						groupunit2 = nil
 						TryingToSpawnReinforcements[teamID] = false
 						ReinforcementsCountPerTeam[teamID] = ReinforcementsCountPerTeam[teamID] + 1
 					end
@@ -352,7 +324,7 @@ function spawnPlayerReinforcements(n)
 					local r = math_random(0,ReinforcementsChancePerTeam[teamID])
 					if r == 0 or ReinforcementsCountPerTeam[teamID] == 0 then
 						TryingToSpawnReinforcements[teamID] = true
-						ReinforcementsChancePerTeam[teamID] = (((unitSpawnerModuleConfig.spawnchance)*10)/numOfSpawnBeaconsTeamsForSpawn[teamID])
+						ReinforcementsChancePerTeam[teamID] = math.ceil(((unitSpawnerModuleConfig.spawnchance)/numOfSpawnBeaconsTeamsForSpawn[teamID])*2.5)
 					else
 						TryingToSpawnReinforcements[teamID] = false
 						ReinforcementsChancePerTeam[teamID] = ReinforcementsChancePerTeam[teamID] - 1
@@ -364,3 +336,72 @@ function spawnPlayerReinforcements(n)
 	pickedBeacon = nil
 end
 
+function ReinforcementsMoveOrder(n)
+	if #ActiveReinforcementUnits > 0 then
+		for i = 1,#ActiveReinforcementUnits do
+			local unitID = ActiveReinforcementUnits[i]
+			local unitDefID = Spring.GetUnitDefID(unitID)
+			local UnitName = UnitDefs[unitDefID].name
+			UnitSuffixLenght[unitID] = string.len(scavconfig.unitnamesuffix)
+			FriendlyArmyOrders = true
+			
+			if scavconfig.modules.constructorControllerModule then
+				if constructorControllerModuleConfig.useresurrectors then
+					if FriendlyResurrectors[unitID] then
+						ResurrectorOrders(n, unitID)
+						FriendlyArmyOrders = false
+					end
+				end
+
+				if constructorControllerModuleConfig.usecollectors then
+					if FriendlyCollectors[unitID] then
+						CollectorOrders(n, unitID)
+						FriendlyArmyOrders = false
+					end
+					if FriendlyReclaimers[unitID] then
+						ReclaimerOrders(n, unitID)
+						FriendlyArmyOrders = false
+					end
+				end
+			end
+			
+			
+			-- fallback - armyorders
+			if FriendlyArmyOrders == true and Spring.GetCommandQueue(unitID, 0) <= 1 then
+				
+				local nearestEnemy = Spring.GetUnitNearestEnemy(unitID, 200000, false)
+				if nearestEnemy then
+					UnitRange = {}
+					if UnitDefs[unitDefID].maxWeaponRange and UnitDefs[unitDefID].maxWeaponRange > 100 then
+						UnitRange[unitID] = UnitDefs[unitDefID].maxWeaponRange
+					else
+						UnitRange[unitID] = 100
+					end
+					
+					local x,y,z = Spring.GetUnitPosition(nearestEnemy)
+					local y = Spring.GetGroundHeight(x, z)
+					
+					if (-(UnitDefs[unitDefID].minWaterDepth) > y) and (-(UnitDefs[unitDefID].maxWaterDepth) < y) or UnitDefs[unitDefID].canFly then
+						local range = UnitRange[unitID]
+						if range < 500 then 
+							range = 500 
+						end
+						local x = x + math_random(-range*0.5,range*0.5)
+						local z = z + math_random(-range*0.5,range*0.5)
+						if UnitDefs[unitDefID].canFly then
+							Spring.GiveOrderToUnit(unitID, CMD.FIGHT,{x,y,z}, {"shift", "alt", "ctrl"})
+						elseif UnitRange[unitID] > unitControllerModuleConfig.minimumrangeforfight then
+							Spring.GiveOrderToUnit(unitID, CMD.FIGHT,{x,y,z}, {"shift", "alt", "ctrl"})
+						else
+							Spring.GiveOrderToUnit(unitID, CMD.MOVE,{x,y,z}, {"shift", "alt", "ctrl"})
+						end
+					end
+				end
+			end
+			FriendlyArmyOrders = nil
+			if n%600 == 0 then
+                SelfDestructionControls(n, unitID, unitDefID, true)
+            end
+		end
+	end
+end
