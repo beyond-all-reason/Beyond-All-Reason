@@ -493,11 +493,11 @@ function widget:DrawWorldRefraction()
 end
 ]]--
 
-function widget:GameFrame()
+--function widget:GameFrame()
 	--local res = Spring.GetProjectilesInRectangle(-10000, -10000, 10000, 10000)
 	--local res = Spring.GetVisibleProjectiles()
 	--Spring.Utilities.TableEcho(res)
-end
+--end
 
 
 function widget:GetConfigData(data)
