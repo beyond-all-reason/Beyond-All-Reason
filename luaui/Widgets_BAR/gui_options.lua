@@ -3551,7 +3551,7 @@ function init()
 		--	  Spring.SetConfigInt("UnitIconsAsUI", (value and 1 or 0))
 		--  end,
 		--},
-		{ id = "uniticon_scaleui", group = "ui", name = texts.option.uniticonscaleui, type = "slider", min = 0.5, max = 2, step = 0.05, value =tonumber(Spring.GetConfigFloat("UnitIconScaleUI", 1) or 1), description = texts.option.uniticonscaleui_descr,
+		{ id = "uniticon_scaleui", group = "ui", name = texts.option.uniticonscaleui, type = "slider", min = 0.85, max = 1.6, step = 0.05, value =tonumber(Spring.GetConfigFloat("UnitIconScaleUI", 1) or 1), description = texts.option.uniticonscaleui_descr,
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
