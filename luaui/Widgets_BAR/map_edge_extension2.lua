@@ -50,6 +50,8 @@ local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
 local restoreMapBorder = true
 local mapExtensionShader = nil
 local terrainVAO = nil
+local terrainVertexVBO = nil
+local terrainInstanceVBO = nil
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -64,7 +66,7 @@ end
 --------------------------------------------------------------------------------
 
 local vsSrc = [[
-#version 330 compatibility
+#version 330
 #line 10065
 
 layout (location = 0) in vec2 aPos;
@@ -82,7 +84,7 @@ void main() {
 
 
 local gsSrc = [[
-#version 330 compatibility
+#version 330
 
 #extension GL_ARB_uniform_buffer_object : require
 #extension GL_ARB_shading_language_420pack: require
@@ -114,9 +116,15 @@ layout(std140, binding = 0) uniform UniformMatrixBuffer {
 };
 
 layout(std140, binding = 1) uniform UniformParamsBuffer {
+	vec3 rndVec3; //new every draw frame.
+	uint renderCaps; //various render booleans
+
 	vec4 timeInfo; //gameFrame, gameSeconds, drawFrame, frameTimeOffset
 	vec4 viewGeometry; //vsx, vsy, vpx, vpy
 	vec4 mapSize; //xz, xzPO2
+
+	vec4 fogColor; //fog color
+	vec4 fogParams; //fog {start, end, 0.0, scale}
 };
 
 uniform sampler2D heightTex;
@@ -155,8 +163,9 @@ void MyEmitVertex(vec2 xzVec) {
 
 	worldPos.y = textureLod(heightTex, uvHM, 0.0).x;
 
+	const vec2 edgeTightening = vec2(0.5); // to tighten edges a little better
 	worldPos.xz = abs(dataIn[0].vMirrorParams.xy * mapSize.xy - worldPos.xz);
-	worldPos.xz += dataIn[0].vMirrorParams.zw * mapSize.xy;
+	worldPos.xz += dataIn[0].vMirrorParams.zw * (mapSize.xy - edgeTightening);
 
 	float alpha = 1.0;
 
@@ -182,17 +191,19 @@ void MyEmitVertex(vec2 xzVec) {
 
 	float fogFactor = 1.0;
 	if (edgeFog == 1.0) {
-		vec4 clipVertex = cameraView * worldPos;
+		vec4 forCoord = cameraView * worldPos;
 
 		// emulate linear fog
-		float fogCoord = length(clipVertex.xyz);
-		fogFactor = (gl_Fog.end - fogCoord) * gl_Fog.scale; // gl_Fog.scale == 1.0 / (gl_Fog.end - gl_Fog.start)
+		// vec4 fogParams; //fog {start, end, 0.0, scale}
+		float fogDist = length(forCoord.xyz);
+		fogFactor = (fogParams.y - fogDist) * fogParams.w;
 		fogFactor = clamp(fogFactor, 0.0, 1.0);
 	}
 
 	alphaFog = vec2(alpha, fogFactor);
 
 	gl_Position = cameraViewProj * worldPos;
+	gl_ClipDistance[4] = min(alpha - 0.05, fogFactor - 0.025);
 
 	EmitVertex();
 }
@@ -224,7 +235,22 @@ void main() {
 
 
 local fsSrc = [[
-#version 330 compatibility
+#version 330
+
+#extension GL_ARB_uniform_buffer_object : require
+#extension GL_ARB_shading_language_420pack: require
+
+layout(std140, binding = 1) uniform UniformParamsBuffer {
+	vec3 rndVec3; //new every draw frame.
+	uint renderCaps; //various render booleans
+
+	vec4 timeInfo; //gameFrame, gameSeconds, drawFrame, frameTimeOffset
+	vec4 viewGeometry; //vsx, vsy, vpx, vpy
+	vec4 mapSize; //xz, xzPO2
+
+	vec4 fogColor; //fog color
+	vec4 fogParams; //fog {start, end, 0.0, scale}
+};
 
 uniform sampler2D colorTex;
 
@@ -260,8 +286,10 @@ void main() {
 		fragColor.rgb *= brightness;
 	#endif
 
-	fragColor.rgb = mix(gl_Fog.color.rgb, fragColor.rgb, alphaFog.y);
-	fragColor.a = alphaFog.x;}
+	fragColor.rgb = mix(fogColor.rgb, fragColor.rgb, alphaFog.y);
+	fragColor.a = alphaFog.x;
+
+}
 ]]
 
 
@@ -286,17 +314,35 @@ function widget:Initialize()
 
 	Spring.SendCommands("mapborder " .. (mapBorderStyle == 'cutaway' and "1" or "0"))
 
-	local voidGround = gl.GetMapRendering("voidGround")
-	if voidGround then
+	if gl.GetMapRendering("voidGround") then
 		restoreMapBorder = false
 		widgetHandler:RemoveWidget(self)
 	end
 
-	terrainVAO = gl.GetVAO(false)
+	if gl.GetMapRendering("voidWater") then
+		restoreMapBorder = false
+		widgetHandler:RemoveWidget(self)
+	end
+
+	-----------
+	terrainVAO = gl.GetVAO()
 	if terrainVAO == nil then
 		Spring.SendCommands("luaui enablewidget Map Edge Extension Old")
 		widgetHandler:RemoveWidget(self)
 	end
+
+	terrainVertexVBO = gl.GetVBO() -- GL.ARRAY_BUFFER, false
+	if terrainVertexVBO == nil then
+		Spring.SendCommands("luaui enablewidget Map Edge Extension Old")
+		widgetHandler:RemoveWidget(self)
+	end
+
+	terrainInstanceVBO = gl.GetVBO() -- GL.ARRAY_BUFFER, false
+	if terrainInstanceVBO == nil then
+		Spring.SendCommands("luaui enablewidget Map Edge Extension Old")
+		widgetHandler:RemoveWidget(self)
+	end
+	-----------
 
 	local qX = mapSizeX / gridSize
 	local qZ = mapSizeZ / gridSize
@@ -317,12 +363,12 @@ function widget:Initialize()
 
 	numPoints = #posArray / 2
 
-	terrainVAO:SetVertexAttributes(numPoints, {
+	terrainVertexVBO:Define(numPoints, {
 		{id = 0, name = "pos", size = 2}, --only update {x,z} once
 	})
-	terrainVAO:UploadVertexBulk(posArray, 0)
+	terrainVertexVBO:Upload(posArray, 0)
 
-	terrainVAO:SetInstanceAttributes(8, {
+	terrainInstanceVBO:Define(8, {
 		{id = 1, name = "mirrorParams", size = 4},
 	})
 
@@ -339,7 +385,10 @@ function widget:Initialize()
 		1, 0,  1,  0, --MR
 		1, 1,  1,  1, --BR
 	}
-	terrainVAO:UploadInstanceBulk(mirrorParams, 0)
+	terrainInstanceVBO:Upload(mirrorParams, 0)
+
+	terrainVAO:AttachVertexBuffer(terrainVertexVBO)
+	terrainVAO:AttachInstanceBuffer(terrainInstanceVBO)
 
 
 	mapExtensionShader = LuaShader({
@@ -349,13 +398,14 @@ function widget:Initialize()
 		uniformInt = {
 			colorTex = 0,
 			heightTex = 1,
+			mapDepthTex = 2,
 		},
 		uniformFloat = {
 			shaderParams = {gridSize, brightness, (curvature and 1.0) or 0.0, (fogEffect and 1.0) or 0.0},
 		},
 	}, "Map Extension Shader")
 	local shaderCompiled = mapExtensionShader:Initialize()
-	
+
 	if not shaderCompiled then
 		Spring.SendCommands("luaui enablewidget Map Edge Extension Old")
 		widgetHandler:RemoveWidget(self)
@@ -374,8 +424,20 @@ function widget:Shutdown()
 	end
 
 	if terrainVAO then
-		terrainVAO:Delete()
+		--terrainVAO:Delete()
+		terrainVAO = nil
 	end
+
+	if terrainVertexVBO then
+		--terrainVertexVBO:Delete()
+		terrainVertexVBO = nil
+	end
+
+	if terrainInstanceVBO then
+		--terrainInstanceVBO:Delete()
+		terrainInstanceVBO = nil
+	end
+	--collectgarbage("collect")
 end
 
 
@@ -397,8 +459,9 @@ end
 	GL_CULL_FACE_MODE = GL_BACK
 ]]--
 function widget:DrawWorldPreUnit()
+	--local q = gl.CreateQuery()
 	--Spring.Utilities.TableEcho({gl.GetFixedState("alphatest", true)})
-
+	gl.ClipPlane(1, true)
 	gl.DepthTest(GL.LEQUAL)
 	gl.DepthMask(true)
 	gl.Culling(true)
@@ -407,8 +470,9 @@ function widget:DrawWorldPreUnit()
 	gl.Texture(1, "$heightmap")
 	mapExtensionShader:Activate()
 
-	terrainVAO:DrawArrays(GL.POINTS, numPoints, 0, 8)
-
+	--gl.RunQuery(q, function()
+		terrainVAO:DrawArrays(GL.POINTS, numPoints, 0, 8)
+	--end)
 	mapExtensionShader:Deactivate()
 	gl.Texture(0, false)
 	gl.Texture(1, false)
@@ -417,6 +481,9 @@ function widget:DrawWorldPreUnit()
 	gl.DepthTest(false)
 	gl.DepthMask(false)
 	gl.Culling(false)
+	gl.ClipPlane(1, false)
+
+	--Spring.Echo(gl.GetQuery(q))
 end
 
 -- I see no value in this call
@@ -425,6 +492,12 @@ function widget:DrawWorldRefraction()
 	--DrawWorldFunc()
 end
 ]]--
+
+function widget:GameFrame()
+	--local res = Spring.GetProjectilesInRectangle(-10000, -10000, 10000, 10000)
+	--local res = Spring.GetVisibleProjectiles()
+	--Spring.Utilities.TableEcho(res)
+end
 
 
 function widget:GetConfigData(data)
