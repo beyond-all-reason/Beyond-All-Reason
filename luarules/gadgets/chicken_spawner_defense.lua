@@ -279,10 +279,25 @@ if gadgetHandler:IsSyncedCode() then
 
 	SetGlobals(luaAI or "Chicken: Normal") -- set difficulty
 
+	if luaAI == "Chicken: Very Easy" then
+		queenName = "ve_chickenq"
+	elseif luaAI == "Chicken: Easy" then
+		queenName = "e_chickenq" 
+	elseif luaAI == "Chicken: Normal" then
+		queenName = "n_chickenq" 
+	elseif luaAI == "Chicken: Hard" then
+		queenName = "h_chickenq" 
+	elseif luaAI == "Chicken: Very Hard" then
+		queenName = "vh_chickenq" 
+	elseif luaAI == "Chicken: Epic!" then
+		queenName = "epic_chickenq" 
+	end
+
 	if (queenName == "asc") then
 		queenName = "ve_chickenq"
 		ascendingQueen = true
 	end
+
 
 	local expIncrement = ((SetCount(humanTeams) * expStep) / queenTime)
 	if expStep < 0 then

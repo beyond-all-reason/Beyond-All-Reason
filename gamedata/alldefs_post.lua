@@ -106,6 +106,13 @@ local function processWeapons(unitDefName, unitDef)
 end
 
 function UnitDef_Post(name, uDef)
+	if string.find(name, "chicken") and uDef.maxdamage then
+		local chickHealth = uDef.maxdamage
+		uDef.buildcostmetal = chickHealth*5
+		uDef.buildcostenergy = chickHealth*50
+		uDef.buildtime = chickHealth*50
+	end
+	
 	if not uDef.customparams then
 		uDef.customparams = {}
 	end
