@@ -174,7 +174,8 @@ function UnitDef_Post(name, uDef)
 
 			if not (string.find(name, "fepoch") or string.find(name, "fblackhy")) then--(string.find(name, "liche") or string.find(name, "crw") or string.find(name, "fepoch") or string.find(name, "fblackhy")) then
 
-				uDef.collide = false
+				--uDef.collide = false
+
 				--local airmult = 1.3
 				--if uDef.buildcostenergy then
 				--	uDef.buildcostenergy = math.ceil(uDef.buildcostenergy*airmult)
