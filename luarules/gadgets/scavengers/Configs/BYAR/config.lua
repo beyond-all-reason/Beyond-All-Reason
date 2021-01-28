@@ -1,5 +1,7 @@
 Spring.Echo("[Scavengers] Config initialized")
 
+
+
 -- Modoptions
 	-- Endless Mode
 	local Modoption = Spring.GetModOptions().scavendless or "disabled"
@@ -345,5 +347,24 @@ function UpdateTierChances(n)
 		TierSpawnChances.T3 = 0
 		TierSpawnChances.T4 = 0
 		TierSpawnChances.Message = "Current tier: T0"
+	end
+end
+
+
+local UDN = UnitDefNames
+function BPWallOrPopup(faction)
+	local r = math.random(0,5)
+	if faction == "arm" then
+		if r == 0 then
+			return UDN.armclaw_scav.id
+		else
+			return UDN.armdrag_scav.id
+		end
+	elseif faction == "cor" then
+		if r == 0 then
+			return UDN.cormaw_scav.id
+		else
+			return UDN.cordrag_scav.id
+		end
 	end
 end
