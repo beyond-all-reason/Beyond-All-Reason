@@ -174,7 +174,7 @@ local QueuedSpawnsFrames = {}
 
 local CaptureProgressForLootboxes = {}
 
-local SpawnChance = 250
+local SpawnChance = 75
 local TryToSpawn = false
 
 
@@ -232,7 +232,7 @@ function gadget:GameFrame(n)
 
     if n%30 == 0 and n > 2 then
 		if math.random(0,SpawnChance) == 0 then
-			LootboxesToSpawn = LootboxesToSpawn+1
+			LootboxesToSpawn = LootboxesToSpawn+0.25
 		-- elseif #aliveLootboxes < math.ceil((n/30)/(SpawnChance*2)) then
 			-- TryToSpawn = true
 		end
@@ -385,7 +385,7 @@ function gadget:GameFrame(n)
 			end
 			]]
         end
-        if LootboxesToSpawn > 0 and lootboxSpawnEnabled then
+        if LootboxesToSpawn >= 1 and lootboxSpawnEnabled then
             for k = 1,1000 do
                 local posx = math.floor(math_random(xBorder,mapsizeX-xBorder)/16)*16
                 local posz = math.floor(math_random(zBorder,mapsizeZ-zBorder)/16)*16
@@ -423,7 +423,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 		local uposx, uposy, uposz = spGetUnitPosition(unitID)
 		LootboxesToSpawn = LootboxesToSpawn-1
 		aliveLootboxes[unitID] = true
-		aliveLootboxesCount = aliveLootboxesCount + 1
+		aliveLootboxesCount = aliveLootboxesCount + 0.25
 	end
 	if UnitName == "lootdroppod_gold" or UnitName == "lootdroppod_gold_scav" then
 		
@@ -438,5 +438,11 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
 		LootboxesToSpawn = LootboxesToSpawn+1
 		aliveLootboxes[unitID] = nil
 		aliveLootboxesCount = aliveLootboxesCount - 1
+	end
+end
+
+function gadget:UnitTaken(unitID, unitDefID, unitOldTeam, unitNewTeam)
+	if aliveLootboxes[unitID] then
+		Spring.SetUnitNeutral(unitID, true)
 	end
 end

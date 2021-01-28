@@ -52,6 +52,7 @@ unitDef = {
 	upright = true,
 	usebuildinggrounddecal = true,
 	workertime = 100*sizeMultiplier,
+	reclaimable = false,
 	--yardmap = "oooo",
 	
 	sfxtypes = {

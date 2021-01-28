@@ -34,6 +34,7 @@ return {
 		stealth = true,
 		waterline = 5,
 		yardmap = "o",
+		reclaimable = false,
 		customparams = {
 			model_author = "Beherith",
 			normaltex = "unittextures/Arm_normal.dds",

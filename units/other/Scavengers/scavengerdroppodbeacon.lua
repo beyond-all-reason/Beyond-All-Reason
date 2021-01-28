@@ -52,6 +52,7 @@ return {
 		--waterline = 0,
 		workertime = 1500,
 		yardmap = "",
+		reclaimable = false,
 		customparams = {
 			subfolder = "scavengers",
 			isairbase = false,
