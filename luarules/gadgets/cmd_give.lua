@@ -67,7 +67,7 @@ if (Game and Game.gameVersion and (string.find(Game.gameVersion, 'test') or stri
 			return arr
 		end
 
-		function giveunits(amount, unitName, teamID, x, z, playerID)
+		function giveunits(amount, unitName, teamID, x, z, playerID, xp)
 			local unitDefID
 			for udid, unitDef in pairs(UnitDefs) do
 				if unitDef.name == unitName then  unitDefID = udid break end
@@ -80,6 +80,9 @@ if (Game and Game.gameVersion and (string.find(Game.gameVersion, 'test') or stri
 					local unitID = Spring.CreateUnit(unitDefID, x, Spring.GetGroundHeight(x, z), z, 0, teamID)
 					if unitID ~= nil then
 						succesfullyCreated = succesfullyCreated + 1
+						if xp and type(xp) == 'number' then
+							Spring.SetUnitExperience(unitID, xp)
+						end
 					end
 				end
 				if succesfullyCreated > 0 then
@@ -119,7 +122,7 @@ if (Game and Game.gameVersion and (string.find(Game.gameVersion, 'test') or stri
 				return
 			end
 			local params = explode(':', msg)
-			giveunits(tonumber(params[2]), params[3], tonumber(params[4]), tonumber(params[5]), tonumber(params[6]), playerID)
+			giveunits(tonumber(params[2]), params[3], tonumber(params[4]), tonumber(params[5]), tonumber(params[6]), playerID, (params[7] and tonumber(params[7]) or nil))
 			return true
 		end
 
@@ -176,7 +179,7 @@ if (Game and Game.gameVersion and (string.find(Game.gameVersion, 'test') or stri
 					pos = {Spring.GetFeaturePosition(pos)}
 				end
 				if type(pos) == 'table' and pos[1] ~= nil and pos[3] ~= nil and pos[1] > 0 and pos[3] > 0 and words[1] ~= nil and words[2] ~= nil and words[3] ~= nil then
-					Spring.SendLuaRulesMsg(PACKET_HEADER..':'..words[1]..':'..words[2]..':'..words[3]..':'..pos[1]..':'..pos[3])
+					Spring.SendLuaRulesMsg(PACKET_HEADER..':'..words[1]..':'..words[2]..':'..words[3]..':'..pos[1]..':'..pos[3]..(words[4] ~= nil and ':'..words[4] or ''))
 				else
 					Spring.SendMessageToPlayer(playerID, "failed to give, check syntax or cursor position")
 				end
