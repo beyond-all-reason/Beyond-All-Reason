@@ -465,6 +465,18 @@ local options={
 			{key="disabled", name="Disabled", desc="description"},
 		}
 	},
+	{
+		key    = 'scavinitialbonuscommander',
+		name   = 'Bonus Starter Commander',
+		desc   = 'Spawns additional commander of opposite faction for every player',
+		type   = 'list',
+		section = 'options_scavengers',
+		def  = "enabled",
+		items={
+			{key="enabled", name="Enabled", desc="Bonus Starter Commander Enabled"},
+			{key="disabled", name="Disabled", desc="Bonus Starter Commander Disabled"},
+		}
+	},
 	
 	-----------------------------------------------------------------------------------------------------------------------------------------
 

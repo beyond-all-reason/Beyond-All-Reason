@@ -420,13 +420,13 @@ end
 function gadget:UnitCreated(unitID, unitDefID, unitTeam)
     local UnitName = UnitDefs[unitDefID].name
 	if isLootbox[unitDefID] then
+		Spring.SetUnitNeutral(unitID, true)
 		local uposx, uposy, uposz = spGetUnitPosition(unitID)
 		LootboxesToSpawn = LootboxesToSpawn-1
 		aliveLootboxes[unitID] = true
-		aliveLootboxesCount = aliveLootboxesCount + 0.25
+		aliveLootboxesCount = aliveLootboxesCount + 1
 	end
 	if UnitName == "lootdroppod_gold" or UnitName == "lootdroppod_gold_scav" then
-		
 		Spring.SetUnitNeutral(unitID, true)
 		Spring.GiveOrderToUnit(unitID, CMD.SELFD,{}, {"shift"})
 	end
@@ -435,7 +435,7 @@ end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
 	if aliveLootboxes[unitID] then
-		LootboxesToSpawn = LootboxesToSpawn+1
+		LootboxesToSpawn = LootboxesToSpawn+0.25
 		aliveLootboxes[unitID] = nil
 		aliveLootboxesCount = aliveLootboxesCount - 1
 	end

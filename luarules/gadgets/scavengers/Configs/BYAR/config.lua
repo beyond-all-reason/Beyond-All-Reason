@@ -50,6 +50,14 @@ Spring.Echo("[Scavengers] Config initialized")
 	elseif Modoption == "higher" then
 		ScavRandomEventsAmountModoption = 0.5
 	end
+
+	-- Initial Bonus Commander
+	local Modoption = Spring.GetModOptions().scavinitialbonuscommander or "enabled"
+	if Modoption == "enabled" then
+		InitialBonusCommanderEnabled = true
+	elseif Modoption == "disabled" then
+		InitialBonusCommanderEnabled = false
+	end
 	
 	
 	
@@ -141,26 +149,28 @@ unitSpawnerModuleConfig = {
 		FinalBossMinionsActive				= 150, -- this/(teamcount*difficulty), how often does boss spawn minions when taking damage, frames.
 	BossWaveTimeLeft					= 300,
 	aircraftchance 						= 6, -- higher number = lower chance
-	globalscoreperoneunit 				= 1200,
-	spawnchance							= 240,
-	beaconspawnchance					= 120,
+	globalscoreperoneunit 				= 800,
+	spawnchance							= 480,
+	beaconspawnchance					= 240,
 	beacondefences						= true,
 	minimumspawnbeacons					= teamcount,
 	landmultiplier 						= 0.75,
-	airmultiplier 						= 2.0,
+	airmultiplier 						= 1.5,
 	seamultiplier 						= 0.75,
 	chanceforaircraftonsea				= 5, -- higher number = lower chance
 
 	t0multiplier						= 3.5,
 	t1multiplier						= 3,
-	t2multiplier						= 0.9,
-	t3multiplier						= 0.15,
+	t2multiplier						= 0.8,
+	t3multiplier						= 0.20,
 	t4multiplier						= 0.05,
+
+	initialbonuscommander				= InitialBonusCommanderEnabled,
 }
 
 constructorControllerModuleConfig = {
 	constructortimerstart				= 120, -- ammount of seconds it skips from constructortimer for the first spawn (make first spawn earlier - this timer starts on timer-Timer1)
-	constructortimer 					= 240, -- time in seconds between commander/constructor spawns
+	constructortimer 					= 480, -- time in seconds between commander/constructor spawns
 	constructortimerreductionframes		= 36000,
 	minimumconstructors					= teamcount,
 	useresurrectors						= true,
@@ -188,7 +198,46 @@ randomEventsConfig = {
 
 -- Functions which you can configure
 function CountScavConstructors()
-	return UDC(GaiaTeamID, UDN.corcom_scav.id) + UDC(GaiaTeamID, UDN.armcom_scav.id)
+	local UDC = Spring.GetTeamUnitDefCount
+	local result = UDC(GaiaTeamID, UDN.corcom_scav.id) + UDC(GaiaTeamID, UDN.armcom_scav.id)
+	return result
+end
+
+function SpawnBonusCommander(unitID, unitName, unitTeam)
+	if unitName == "armcom" or unitName == "corcom" then
+		local posx, posy, posz = Spring.GetUnitPosition(unitID)
+		if posy >= 0 then
+			Spring.SetUnitPosition(unitID, posx-32, posz)
+			if unitName == "armcom" then
+				Spring.CreateUnit("corcv", posx+32, posy+48, posz-48, 1, unitTeam)
+				Spring.CreateUnit("corck", posx+32, posy+48, posz+48, 1, unitTeam)
+				Spring.CreateUnit("corcom", posx+32, posy+48, posz, 0, unitTeam)
+				Spring.CreateUnit("armcv", posx-32, posy+48, posz-48, 3, unitTeam)
+				Spring.CreateUnit("armck", posx-32, posy+48, posz+48, 3, unitTeam)
+			elseif unitName == "corcom" then
+				Spring.CreateUnit("armcv", posx+32, posy+48, posz-48, 1, unitTeam)
+				Spring.CreateUnit("armck", posx+32, posy+48, posz+48, 1, unitTeam)
+				Spring.CreateUnit("armcom", posx+32, posy+48, posz, 0, unitTeam)
+				Spring.CreateUnit("corcv", posx-32, posy+48, posz-48, 3, unitTeam)
+				Spring.CreateUnit("corck", posx-32, posy+48, posz+48, 3, unitTeam)
+			end
+		else
+			Spring.SetUnitPosition(unitID, posx-32, posz)
+			if unitName == "armcom" then
+				Spring.CreateUnit("corca", posx+32, posy+48, posz-48, 1, unitTeam)
+				Spring.CreateUnit("corcs", posx+32, posy+48, posz+48, 1, unitTeam)
+				Spring.CreateUnit("corcom", posx+32, posy+48, posz, 0, unitTeam)
+				Spring.CreateUnit("armca", posx-32, posy+48, posz-48, 3, unitTeam)
+				Spring.CreateUnit("armcs", posx-32, posy+48, posz+48, 3, unitTeam)
+			elseif unitName == "corcom" then
+				Spring.CreateUnit("armca", posx+32, posy+48, posz-48, 1, unitTeam)
+				Spring.CreateUnit("armcs", posx+32, posy+48, posz+48, 1, unitTeam)
+				Spring.CreateUnit("armcom", posx+32, posy+48, posz, 0, unitTeam)
+				Spring.CreateUnit("corca", posx-32, posy+48, posz-48, 3, unitTeam)
+				Spring.CreateUnit("corcs", posx-32, posy+48, posz+48, 3, unitTeam)
+			end
+		end
+	end
 end
 
 function UpdateTierChances(n)

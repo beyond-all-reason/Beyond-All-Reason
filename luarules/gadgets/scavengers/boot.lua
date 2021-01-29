@@ -217,6 +217,11 @@ function gadget:GameFrame(n)
 	if n == 1 then
 		-- PutSpectatorsInScavTeam(n)
 		PutScavAlliesInScavTeam(n)
+		
+	end
+
+	if n == 1 and unitSpawnerModuleConfig.initialbonuscommander == true then
+		InitialSpawnBonusCommanders()
 	end
 
 	if n > 1 then
@@ -279,7 +284,7 @@ function gadget:GameFrame(n)
 	end
 
 
-	if scavconfig.modules.startBoxProtection == true and ScavSafeAreaExist == true and FinalBossKilled == false then
+	if n > 9000 and scavconfig.modules.startBoxProtection == true and ScavSafeAreaExist == true and FinalBossKilled == false then
 		if n%30 == 0 then
 			spawnStartBoxProtection(n)
 			executeStartBoxProtection(n)
@@ -860,7 +865,7 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 		Spring.GiveOrderToUnit(unitID,37382,{1},0)
 		-- Fire At Will
 		if scavConstructor[unitID] then
-			Spring.GiveOrderToUnit(unitID,CMD.FIRE_STATE,{1},0)
+			Spring.GiveOrderToUnit(unitID,CMD.FIRE_STATE,{2},0)
 			if scavteamhasplayers == false then
 				Spring.GiveOrderToUnit(unitID,CMD.MOVE_STATE,{0},0)
 			end

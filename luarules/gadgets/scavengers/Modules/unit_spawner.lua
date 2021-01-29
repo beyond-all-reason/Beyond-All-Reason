@@ -511,3 +511,17 @@ function UnitGroupSpawn(n)
 	end
 end
 
+function InitialSpawnBonusCommanders()
+	local units = Spring.GetAllUnits()
+	for i = 1,#units do
+		local unitID = units[i]
+		local unitDefID = Spring.GetUnitDefID(unitID)
+		local unitName = UnitDefs[unitDefID].name
+		local unitTeam = Spring.GetUnitTeam(unitID)
+		if unitTeam ~= GaiaTeamID then
+			SpawnBonusCommander(unitID, unitName, unitTeam)
+		end
+	end
+end
+
+

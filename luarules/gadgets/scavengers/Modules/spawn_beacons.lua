@@ -36,7 +36,7 @@ function SpawnBeacon(n)
 			canSpawnBeaconHere = posCheck(posx, posy, posz, 80)
 			if canSpawnBeaconHere then
 				if globalScore then
-					local g = math_random(0,10)
+					local g = math_random(0,20)
 					--ScavSafeAreaMinX
 					--ScavSafeAreaMaxX
 					--ScavSafeAreaMinZ
@@ -48,9 +48,11 @@ function SpawnBeacon(n)
 							canSpawnBeaconHere = false
 						end
 					else
+						if ScavSafeAreaExist and ScavSafeAreaMinX < posx and ScavSafeAreaMaxX > posx and ScavSafeAreaMinZ < posz and ScavSafeAreaMaxZ > posz then
+							canSpawnBeaconHere = false
 						-- elseif globalScore > scavconfig.timers.OnlyLos then
 							-- canSpawnBeaconHere = posLosCheckOnlyLOS(posx, posy, posz,posradius)
-						if globalScore > scavconfig.timers.NoRadar then
+						elseif globalScore > scavconfig.timers.NoRadar then
 							canSpawnBeaconHere = posLosCheckNoRadar(posx, posy, posz,posradius)
 						else
 							canSpawnBeaconHere = posLosCheck(posx, posy, posz,posradius)
