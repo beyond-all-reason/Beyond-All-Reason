@@ -254,7 +254,7 @@ function gadget:GameFrame(n)
 		pregameMessages(n)
 	end
 
-	if n%30 == 20 and n > 9000 and scavconfig.modules.randomEventsModule == true then
+	if n%30 == 20 and n > scavconfig.gracePeriod and scavconfig.modules.randomEventsModule == true then
 		RandomEventTrigger(n)
 	end
 
@@ -284,7 +284,7 @@ function gadget:GameFrame(n)
 	end
 
 
-	if n > 9000 and scavconfig.modules.startBoxProtection == true and ScavSafeAreaExist == true and FinalBossKilled == false then
+	if n > scavconfig.gracePeriod and scavconfig.modules.startBoxProtection == true and ScavSafeAreaExist == true and FinalBossKilled == false then
 		if n%30 == 0 then
 			spawnStartBoxProtection(n)
 			executeStartBoxProtection(n)
@@ -367,7 +367,7 @@ function gadget:GameFrame(n)
 			SpawnBeacon(n)
 			UnitGroupSpawn(n)
 		end
-		if scavconfig.modules.constructorControllerModule and constructorControllerModuleConfig.useconstructors and n > 9000 and (not FinalBossUnitSpawned) then
+		if scavconfig.modules.constructorControllerModule and constructorControllerModuleConfig.useconstructors and n > scavconfig.gracePeriod and (not FinalBossUnitSpawned) then
 			SpawnConstructor(n)
 		end
 		local scavengerunits = Spring.GetTeamUnits(GaiaTeamID)
@@ -678,7 +678,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 		Spring.GiveOrderToUnit(unitID, CMD.SELFD,{}, {"shift"})
 	end
 	if unitTeam == GaiaTeamID then
-		Spring.SetUnitExperience(unitID, math_random() * spawnmultiplier)
+		Spring.SetUnitExperience(unitID, math_random() * (spawnmultiplier*0.5*unitControllerModuleConfig.veterancymultiplier))
 		if string.find(UnitName, scavconfig.unitnamesuffix) then
 			UnitSuffixLenght[unitID] = string.len(scavconfig.unitnamesuffix)
 		else

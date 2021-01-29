@@ -3,6 +3,18 @@ Spring.Echo("[Scavengers] Config initialized")
 
 
 -- Modoptions
+	-- Numbers and Bools
+	local ScavBossHealthModoption = tonumber(Spring.GetModOptions().scavbosshealth) or 1
+	local ScavTechCurveModoption = tonumber(Spring.GetModOptions().scavtechcurve) or 1
+	local ScavUnitCountModoption = tonumber(Spring.GetModOptions().scavunitcountmultiplier) or 1
+	local ScavUnitSpawnFrequencyModoption = tonumber(Spring.GetModOptions().scavunitspawnmultiplier) or 1
+	local ScavUnitVeterancyModoption = tonumber(Spring.GetModOptions().scavunitspawnmultiplier) or 1
+	local ScavGracePeriodModoption = tonumber(Spring.GetModOptions().scavgraceperiod) or 1
+	
+	
+	
+	-- Strings
+
 	-- Endless Mode
 	local Modoption = Spring.GetModOptions().scavendless or "disabled"
 	if Modoption == "disabled" then
@@ -10,29 +22,7 @@ Spring.Echo("[Scavengers] Config initialized")
 	else
 		scavEndlessModoption = false
 	end
-	
-	-- Boss Health Modifier
-	local Modoption = Spring.GetModOptions().scavbosshealth or "normal"
-	if Modoption == "normal" then
-		ScavBossHealthModoption = 1
-	elseif Modoption == "lower" then
-		ScavBossHealthModoption = 0.5
-	elseif Modoption == "higher" then
-		ScavBossHealthModoption = 1.5
-	elseif Modoption == "high" then
-		ScavBossHealthModoption = 2
-	end
-	
-	-- Tech Curve Modifier
-	local Modoption = Spring.GetModOptions().scavtechcurve or "normal"
-	if Modoption == "normal" then
-		ScavTechCurveModoption = 1
-	elseif Modoption == "fast" then
-		ScavTechCurveModoption = 0.5
-	elseif Modoption == "slow" then
-		ScavTechCurveModoption = 1.5
-	end
-	
+
 	-- Random Events Bool
 	local Modoption = Spring.GetModOptions().scavevents or "enabled"
 	if Modoption == "enabled" then
@@ -100,6 +90,7 @@ scavconfig = {
 			scorePerKilledSpawner 			= 99,
 			scorePerCapturedSpawner 		= 50, -- this doesn't care about baseScorePerKill 
 	},
+	gracePeriod = ScavGracePeriodModoption*30*60,
 	timers = {
 		-- globalScore values
 		T0start								= 1,
@@ -149,8 +140,8 @@ unitSpawnerModuleConfig = {
 		FinalBossMinionsActive				= 150, -- this/(teamcount*difficulty), how often does boss spawn minions when taking damage, frames.
 	BossWaveTimeLeft					= 300,
 	aircraftchance 						= 6, -- higher number = lower chance
-	globalscoreperoneunit 				= 800,
-	spawnchance							= 480,
+	globalscoreperoneunit 				= 800*ScavUnitCountModoption,
+	spawnchance							= 480*ScavUnitSpawnFrequencyModoption,
 	beaconspawnchance					= 240,
 	beacondefences						= true,
 	minimumspawnbeacons					= teamcount,
@@ -181,6 +172,7 @@ constructorControllerModuleConfig = {
 
 unitControllerModuleConfig = {
 	minimumrangeforfight				= 650,
+	veterancymultiplier					= ScavUnitVeterancyModoption,
 }
 
 spawnProtectionConfig = {

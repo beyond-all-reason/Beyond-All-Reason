@@ -182,7 +182,7 @@ end
 
 
 function UnitGroupSpawn(n)
-	if n > 9000 then
+	if n > scavconfig.gracePeriod then
 		local gaiaUnitCount = Spring.GetTeamUnitCount(GaiaTeamID)
 		if BossWaveTimeLeft then
 			if numOfSpawnBeacons or numOfSpawnBeacons == 0 then

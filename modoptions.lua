@@ -316,8 +316,8 @@ local options={
 	
 	{
 		key    = 'scavdifficulty',
-		name   = 'Difficulty',
-		desc   = 'Scavengers Difficulty Level',
+		name   = 'Base Difficulty',
+		desc   = 'Scavengers Base Difficulty Level',
 		type   = 'list',
 		section = 'options_scavengers',
 		def  = "easy",
@@ -332,22 +332,111 @@ local options={
 			{key="impossible", name="Impossible", desc="You can't win this... seriously."},
 		}
 	},
-	
-	-- {
-		-- key    = 'scavtechdifficulty',
-		-- name   = 'Scavengers Tech Difficulty',
-		-- desc   = 'Determines how fast scav tech ramps up. Adaptive will adjust to players skill',
-		-- type   = 'list',
-		-- section = 'options_scavengers',
-		-- def  = "adaptive",
-		-- items={
-			-- {key="adaptive", name="Adaptive", desc="Adapts to players skill"},
-			-- {key="easy", name="Easy", desc="Slow ramp up for newbies and noobs"},
-			-- {key="medium", name="Medium", desc="Normal ramp up for slightly experienced players"},
-			-- {key="hard", name="Hard", desc="Hard ramp up for experienced players"},
-			-- {key="brutal", name="Brutal", desc="You'll die"},
-		-- }
-	-- },
+	{
+		key    = 'scavendless',
+		name   = 'Endless Mode (Disables final boss fight, turning Scavengers into an endless survival mode)',
+		desc   = 'Disables final boss fight, turning Scavengers into an endless survival mode',
+		type   = 'list',
+		section = 'options_scavengers',
+		def  = "disabled",
+		items={
+			{key="disabled", name="Disabled", desc="Final Boss Enabled"},
+			{key="enabled", name="Enabled", desc="Final Boss Disabled"},
+		}
+	},
+	{
+		key    = 'scavunitcountmultiplier',
+		name   = 'Number of units multiplier',
+		desc   = 'no-description-here',
+		type   = 'number',
+		section= 'options_scavengers',
+		def    = 1,
+		min    = 0.01,
+		max    = 10,
+		step   = 0.01,
+	},
+	{
+		key    = 'scavunitspawnmultiplier',
+		name   = 'Frequency of unit spawns multiplier',
+		desc   = 'no-description-here',
+		type   = 'number',
+		section= 'options_scavengers',
+		def    = 1,
+		min    = 0.01,
+		max    = 10,
+		step   = 0.01,
+	},
+	{
+		key    = 'scavbuildspeedmultiplier',
+		name   = 'Build speed multiplier',
+		desc   = 'no-description-here',
+		type   = 'number',
+		section= 'options_scavengers',
+		def    = 1,
+		min    = 0.01,
+		max    = 10,
+		step   = 0.01,
+	},
+	{
+		key    = 'scavunitveterancymultiplier',
+		name   = 'Scav Veterancy (XP) multiplier',
+		desc   = 'no-description-here',
+		type   = 'number',
+		section= 'options_scavengers',
+		def    = 1,
+		min    = 0.01,
+		max    = 10,
+		step   = 0.01,
+	},
+	{
+		key    = 'scavgraceperiod',
+		name   = 'Grace period (minutes)',
+		desc   = 'no-description-here',
+		type   = 'number',
+		section= 'options_scavengers',
+		def    = 5,
+		min    = 1,
+		max    = 20,
+		step   = 1,
+	},
+	{
+		key    = 'scavtechcurve',
+		name   = 'Scav Tech Curve lenght (Modifies how fast Scavengers tech up)',
+		desc   = 'Modifies how fast Scavengers tech up',
+		type   = 'number',
+		section= 'options_scavengers',
+		def    = 1,
+		min    = 0.01,
+		max    = 10,
+		step   = 0.01,
+	},
+	{
+		key    = 'scavbosshealth',
+		name   = 'Boss Health Multiplier',
+		desc   = 'Modifies Final Boss maximum health points',
+		type   = 'number',
+		section= 'options_scavengers',
+		def    = 1,
+		min    = 0.01,
+		max    = 10,
+		step   = 0.01,
+	},
+	--[[
+	{
+		key    = 'scavtechdifficulty',
+		name   = 'Scavengers Tech Difficulty',
+		desc   = 'Determines how fast scav tech ramps up. Adaptive will adjust to players skill',
+		type   = 'list',
+		section = 'options_scavengers',
+		def  = "adaptive",
+		items={
+			{key="adaptive", name="Adaptive", desc="Adapts to players skill"},
+			{key="easy", name="Easy", desc="Slow ramp up for newbies and noobs"},
+			{key="medium", name="Medium", desc="Normal ramp up for slightly experienced players"},
+			{key="hard", name="Hard", desc="Hard ramp up for experienced players"},
+			{key="brutal", name="Brutal", desc="You'll die"},
+		}
+	},
 	
 	{
 		key    = 'scavtechcurve',
@@ -360,19 +449,6 @@ local options={
 			{key="normal", name="Normal", desc="x1"},
 			{key="fast", name="Fast", desc="x0.5"},
 			{key="slow", name="Slow", desc="x1.5"},
-		}
-	},
-	
-	{
-		key    = 'scavendless',
-		name   = 'Endless Mode',
-		desc   = 'Disables final boss fight, turning Scavengers into an endless survival mode',
-		type   = 'list',
-		section = 'options_scavengers',
-		def  = "disabled",
-		items={
-			{key="disabled", name="Disabled", desc="Final Boss Enabled"},
-			{key="enabled", name="Enabled", desc="Final Boss Disabled"},
 		}
 	},
 	
@@ -390,7 +466,7 @@ local options={
 			{key="high", name="High", desc="x2"},
 		}
 	},
-	
+	--]]
 	{
 		key    = 'scavevents',
 		name   = 'Random Events',
@@ -467,8 +543,8 @@ local options={
 	},
 	{
 		key    = 'scavinitialbonuscommander',
-		name   = 'Bonus Starter Commander',
-		desc   = 'Spawns additional commander of opposite faction for every player',
+		name   = 'Bonus Starter Commander (Spawns additional commander of opposite faction for every player, together with a few constructors)',
+		desc   = 'Spawns additional commander of opposite faction for every player, together with a few constructors',
 		type   = 'list',
 		section = 'options_scavengers',
 		def  = "enabled",
