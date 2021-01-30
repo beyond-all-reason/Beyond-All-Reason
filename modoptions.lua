@@ -24,88 +24,24 @@
 
 
 local options={
+	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	-- Resources
+	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	{
-		key="modes",
-		name="Game Modes",
-		desc="Game Modes",
-		type="section",
+		key		= "resources_options",
+		name	= "Resources",
+		desc	= "Resources",
+		type	= "section",
 	},
-	{
-		key="deathmode",
-		name="Game End Mode",
-		desc="What it takes to eliminate a team",
-		type="list",
-		def="com",
-		section="modes",
-		items={
-			{key="neverend", name="None", desc="Teams are never eliminated"},
-			{key="com", name="Kill all enemy Commanders", desc="When a team has no Commanders left, it loses"},
-			{key="killall", name="Kill everything", desc="Every last unit must be eliminated, no exceptions!"},
-		}
-	},
-	{
-		key    = "ffa_mode",
-		name   = "FFA Mode",
-		desc   = "Units with no player control are removed/destroyed \nUse FFA spawning mode",
-		type   = "bool",
-		def    = false,
-		section= "modes",
-	},
-	{
-		key    = 'armageddontime',
-		name   = 'Armageddon time (minutes)',
-		desc   = 'At armageddon every immobile unit is destroyed and you fight to the death with what\'s left! (0=off)',
-		type   = 'number',
-		section= 'modes',
-		def    = 0,
-		min    = 0,
-		max    = 120,
-		step   = 1,
-	},
-
-	--{
-	--	key		= "unba",
-	--	name	= "Unbalanced Commanders",
-	--	desc	= "Defines if commanders level up with xp and gain more power or not",
-	--	type	= "list",
-	--	def		= "disabled",
-	--	section	= "modes",
-	--	items	= {
-	--		{key="disabled", name="Disabled", desc="Disable Unbalanced Commanders"},
-	--		{key="enabled", name="Enabled", desc="Enable Unbalanced Commanders"},
-	--	}
-	--},
-
-	{
-		key    = 'coop',
-		name   = 'Cooperative mode',
-		desc   = 'Adds extra commanders to id-sharing teams, 1 com per player',
-		type   = 'bool',
-		def    = false,
-		section= 'modes',
-	},
-	{
-		key    = "shareddynamicalliancevictory",
-		name   = "Dynamic Ally Victory",
-		desc   = "Ingame alliance should count for game over condition.",
-		type   = "bool",
-		section= 'modes',
-		def    = false,
-	},
-
-
-	{
-		key="options",
-		name="Options",
-		desc="Options",
-		type="section",
-	},
+	
 	{
 		key    = "startmetal",
 		name   = "Starting metal",
 		desc   = "Determines amount of metal and metal storage that each player will start with",
 		type   = "number",
-		section= "options",
+		section= "resources_options",
 		def    = 1000,
 		min    = 0,
 		max    = 10000,
@@ -116,11 +52,36 @@ local options={
 		name   = "Starting energy",
 		desc   = "Determines amount of energy and energy storage that each player will start with",
 		type   = "number",
-		section= "options",
+		section= "resources_options",
 		def    = 1000,
 		min    = 0,
 		max    = 10000,
 		step   = 1,
+	},
+	{
+		key="map_tidal",
+		name="Tidal Strength",
+		desc="Unchanged = map setting, low = 13e/sec, medium = 18e/sec, high = 23e/sec.",
+		type="list",
+		def="unchanged",
+		section="resources_options",
+		items={
+			{key="unchanged", name="Unchanged", desc="Use map settings"},
+			{key="low", name="Low", desc="Set tidal incomes to 13 energy per second"},
+			{key="medium", name="Medium", desc="Set tidal incomes to 18 energy per second"},
+			{key="high", name="High", desc="Set tidal incomes to 23 energy per second"},
+		}
+	},
+	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	-- Restrictions
+	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	{
+		key		= 'restrictions',
+		name	= 'Restrictions',
+		desc   	= '',
+		type   	= 'section',
 	},
 	{
 		key    = 'MaxUnits',
@@ -131,114 +92,7 @@ local options={
 		min    = 1,
 		max    = 10000, --- engine caps at lower limit if more than 3 team are ingame
 		step   = 1,  -- quantization is aligned to the def value, (step <= 0) means that there is no quantization
-		section= "options",
-	},
-	--{
-	--	key    = 'ai_incomemultiplier',
-	--	name   = 'AI Income Multiplier',
-	--	desc   = 'Multiplies AI resource income',
-	--	type   = 'number',
-	--	section= 'options',
-	--	def    = 1,
-	--	min    = 1,
-	--	max    = 10,
-	--	step   = 0.1,
-	--},
-	{
-		key="map_tidal",
-		name="Tidal Strength",
-		desc="Unchanged = map setting, low = 13e/sec, medium = 18e/sec, high = 23e/sec.",
-		type="list",
-		def="unchanged",
-		section="options",
-		items={
-			{key="unchanged", name="Unchanged", desc="Use map settings"},
-			{key="low", name="Low", desc="Set tidal incomes to 13 energy per second"},
-			{key="medium", name="Medium", desc="Set tidal incomes to 18 energy per second"},
-			{key="high", name="High", desc="Set tidal incomes to 23 energy per second"},
-		}
-	},
-	{
-		key="map_terraintype",
-		name="Map TerrainTypes",
-		desc="Allows to cancel the TerrainType movespeed buffs of a map.",
-		type="list",
-		def="enabled",
-		section="options",
-		items={
-			{key="disabled", name="Disabled", desc="Disable TerrainTypes related MoveSpeed Buffs"},
-			{key="enabled", name="Enabled", desc="Enable TerrainTypes related MoveSpeed Buffs"},
-		}
-	},
-	{
-		key="map_waterlevel",
-		name="Water Level",
-		desc=" <0 = Decrease water level, >0 = Increase water level",
-		type="number",
-		def    = 0,
-		min    = -10000,
-		max    = 10000,
-		step   = 1,
-		section="options",
-	},
-	{
-		key    = 'critters',
-		name   = 'Animal amount',
-		desc   = 'This multiplier will be applied on the amount of critters a map will end up with',
-		type   = 'number',
-		section= 'options',
-		def    = 1,
-		min    = 0,
-		max    = 2,
-		step   = 0.2,
-	},
-	-- {
-		-- key    = 'scavengers',
-		-- name   = 'Scavenger Difficulty',
-		-- desc   = 'This multiplier will be applied on the amount of civilians a map will end up with',
-		-- type   = 'number',
-		-- section= 'options',
-		-- def    = 0.5,
-		-- min    = 0.1,
-		-- max    = 5,
-		-- step   = 0.1,
-	-- },
-	--{
-	--	key    = 'airrebalance',
-	--	name   = 'Heavier but more expensive air',
-	--	desc   = 'placeholder-description',
-	--	type   = 'number',
-	--	section= 'options',
-	--	def    = 1,
-	--	min    = 0,
-	--	max    = 1,
-	--	step   = 1,
-	--},
-	-- {
-		-- key    = 'night',
-		-- name   = 'Day-Night Cycle',
-		-- desc   = 'Hello darkness my old friend',
-		-- type   = 'number',
-		-- section= 'options',
-		-- def    = 0,
-		-- min    = 0,
-		-- max    = 1,
-		-- step   = 1,
-	-- },
-	{
-		key    = "newbie_placer",
-		name   = "Newbie Placer",
-		desc   = "Chooses a startpoint and a random faction for all rank 1 accounts (online only)",
-		type   = "bool",
-		def    = false,
-		section= "options",
-	},
-
-	{
-		key    = 'restrictions',
-		name   = 'Restrictions',
-		desc   = '',
-		type   = 'section',
+		section= "restrictions",
 	},
 	{
 		key    = 'MinSpeed',
@@ -263,12 +117,16 @@ local options={
 		step   = 0.1,
 	},
 	{
-		key    = 'DisableMapDamage',
-		name   = 'Undeformable map',
-		desc   = 'Prevents the map shape from being changed by weapons',
-		type   = 'bool',
-		def    = false,
-		section= "restrictions",
+		key="transportenemy",
+		name="Enemy Transporting",
+		desc="Toggle which enemy units you can kidnap with an air transport",
+		type="list",
+		def="notcoms",
+		section="restrictions",
+		items={
+			{key="notcoms", name="All But Commanders", desc="Only commanders are immune to napping"},
+			{key="none", name="Disallow All", desc="No enemy units can be napped"},
+		}
 	},
 	{
 		key    = "allowuserwidgets",
@@ -294,26 +152,17 @@ local options={
 		def    = true,
 		section= "restrictions",
 	},
+	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	-- Scavengers
+	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	{
-		key="transportenemy",
-		name="Enemy Transporting",
-		desc="Toggle which enemy units you can kidnap with an air transport",
-		type="list",
-		def="notcoms",
-		section="restrictions",
-		items={
-			{key="notcoms", name="All But Commanders", desc="Only commanders are immune to napping"},
-			{key="none", name="Disallow All", desc="No enemy units can be napped"},
-		}
+		key		= "options_scavengers",
+		name	= "Scavengers",
+		desc	= "Gameplay options for Scavengers gamemode",
+		type	= "section",
 	},
-	-----------------------------------------------------------------------------------------------------------------------------------------
-	{
-		key="options_scavengers",
-		name="Scavengers",
-		desc="Gameplay options for Scavengers gamemode",
-		type="section",
-	},
-	
 	{
 		key    = 'scavdifficulty',
 		name   = 'Base Difficulty',
@@ -421,52 +270,6 @@ local options={
 		max    = 10,
 		step   = 0.01,
 	},
-	--[[
-	{
-		key    = 'scavtechdifficulty',
-		name   = 'Scavengers Tech Difficulty',
-		desc   = 'Determines how fast scav tech ramps up. Adaptive will adjust to players skill',
-		type   = 'list',
-		section = 'options_scavengers',
-		def  = "adaptive",
-		items={
-			{key="adaptive", name="Adaptive", desc="Adapts to players skill"},
-			{key="easy", name="Easy", desc="Slow ramp up for newbies and noobs"},
-			{key="medium", name="Medium", desc="Normal ramp up for slightly experienced players"},
-			{key="hard", name="Hard", desc="Hard ramp up for experienced players"},
-			{key="brutal", name="Brutal", desc="You'll die"},
-		}
-	},
-	
-	{
-		key    = 'scavtechcurve',
-		name   = 'Tech Curve',
-		desc   = 'Modifies how fast Scavengers tech up',
-		type   = 'list',
-		section = 'options_scavengers',
-		def  = "normal",
-		items={
-			{key="normal", name="Normal", desc="x1"},
-			{key="fast", name="Fast", desc="x0.5"},
-			{key="slow", name="Slow", desc="x1.5"},
-		}
-	},
-	
-	{
-		key    = 'scavbosshealth',
-		name   = 'Boss Health Modifier',
-		desc   = 'Modifies Final Boss maximum health points',
-		type   = 'list',
-		section = 'options_scavengers',
-		def  = "normal",
-		items={
-			{key="normal", name="Normal", desc="x1"},
-			{key="lower", name="Lower", desc="x0.5"},
-			{key="higher", name="Higher", desc="x1.5"},
-			{key="high", name="High", desc="x2"},
-		}
-	},
-	--]]
 	{
 		key    = 'scavevents',
 		name   = 'Random Events',
@@ -494,36 +297,12 @@ local options={
 		}
 	},
 	{
-		key    = 'ruins',
-		name   = 'Random Ruins',
-		desc   = 'description',
-		type   = 'list',
-		section = 'options',
-		def  = "disabled",
-		items={
-			{key="enabled", name="Enabled", desc="description"},
-			{key="disabled", name="Disabled", desc="description"},
-		}
-	},
-	{
 		key    = 'scavonlyruins',
 		name   = 'Random Ruins (ScavMode)',
 		desc   = 'description',
 		type   = 'list',
 		section = 'options_scavengers',
 		def  = "enabled",
-		items={
-			{key="enabled", name="Enabled", desc="description"},
-			{key="disabled", name="Disabled", desc="description"},
-		}
-	},
-	{
-		key    = 'lootboxes',
-		name   = 'Lootboxes',
-		desc   = '1 to enable, 0 to disable',
-		type   = 'list',
-		section= 'options',
-		def  = "disabled",
 		items={
 			{key="enabled", name="Enabled", desc="description"},
 			{key="disabled", name="Disabled", desc="description"},
@@ -553,15 +332,16 @@ local options={
 			{key="disabled", name="Disabled", desc="Bonus Starter Commander Disabled"},
 		}
 	},
-	
-	-----------------------------------------------------------------------------------------------------------------------------------------
-
--- Chicken Defense Options
+	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	-- Chickens
+	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	{
-		key    = 'chicken_defense_options',
-		name   = 'Chicken Defense Options',
-		desc   = 'Various gameplay options that will change how the Chicken Defense is played.',
-		type   = 'section',
+		key 	= 'chicken_defense_options',
+		name 	= 'Chickens',
+		desc 	= 'Various gameplay options that will change how the Chicken Defense is played.',
+		type 	= 'section',
 	},
 	{
 		key="chicken_chickenstart",
@@ -635,11 +415,15 @@ local options={
 		def    = true,
 		section= "chicken_defense_options",
     },
-
--- Chicken Defense Custom Difficulty Settings
+	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	-- Chickens Custom Difficulty
+	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	--[[
 	{
 		key    = 'chicken_defense_custom_settings',
-		name   = 'Chicken Defense Custom Settings',
+		name   = 'Chicken Custom',
 		desc   = 'Use these settings to adjust the difficulty of Chicken Defense',
 		type   = 'section',
 	},
@@ -742,6 +526,217 @@ local options={
 		step   = 1,
 		section= "chicken_defense_custom_settings",
 	},
--- End Chicken Defense Settings
+	]]
+	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	-- Other Options
+	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	{
+		key		= "options",
+		name	= "Other",
+		desc	= "Options",
+		type	= "section",
+	},
+	{
+		key    = 'ruins',
+		name   = 'Random Ruins',
+		desc   = 'description',
+		type   = 'list',
+		section = 'options',
+		def  = "disabled",
+		items={
+			{key="enabled", name="Enabled", desc="description"},
+			{key="disabled", name="Disabled", desc="description"},
+		}
+	},
+	{
+		key    = 'lootboxes',
+		name   = 'Lootboxes',
+		desc   = '1 to enable, 0 to disable',
+		type   = 'list',
+		section= 'options',
+		def  = "disabled",
+		items={
+			{key="enabled", name="Enabled", desc="description"},
+			{key="disabled", name="Disabled", desc="description"},
+		}
+	},
+	{
+		key    = 'critters',
+		name   = 'Animal amount',
+		desc   = 'This multiplier will be applied on the amount of critters a map will end up with',
+		type   = 'number',
+		section= 'options',
+		def    = 1,
+		min    = 0,
+		max    = 2,
+		step   = 0.2,
+	},
+	{
+		key="deathmode",
+		name="Game End Mode",
+		desc="What it takes to eliminate a team",
+		type="list",
+		def="com",
+		section="options",
+		items={
+			{key="neverend", name="None", desc="Teams are never eliminated"},
+			{key="com", name="Kill all enemy Commanders", desc="When a team has no Commanders left, it loses"},
+			{key="killall", name="Kill everything", desc="Every last unit must be eliminated, no exceptions!"},
+		}
+	},
+	{
+		key="map_terraintype",
+		name="Map TerrainTypes",
+		desc="Allows to cancel the TerrainType movespeed buffs of a map.",
+		type="list",
+		def="enabled",
+		section="options",
+		items={
+			{key="disabled", name="Disabled", desc="Disable TerrainTypes related MoveSpeed Buffs"},
+			{key="enabled", name="Enabled", desc="Enable TerrainTypes related MoveSpeed Buffs"},
+		}
+	},
+	{
+		key="map_waterlevel",
+		name="Water Level",
+		desc=" <0 = Decrease water level, >0 = Increase water level",
+		type="number",
+		def    = 0,
+		min    = -10000,
+		max    = 10000,
+		step   = 1,
+		section="options",
+	},
+	{
+		key    = "ffa_mode",
+		name   = "FFA Mode",
+		desc   = "Units with no player control are removed/destroyed \nUse FFA spawning mode",
+		type   = "bool",
+		def    = false,
+		section= "options",
+	},
+	{
+		key    = 'coop',
+		name   = 'Cooperative mode',
+		desc   = 'Adds extra commanders to id-sharing teams, 1 com per player',
+		type   = 'bool',
+		def    = false,
+		section= 'options',
+	},
+	{
+		key    = 'DisableMapDamage',
+		name   = 'Undeformable map',
+		desc   = 'Prevents the map shape from being changed by weapons',
+		type   = 'bool',
+		def    = false,
+		section= "options",
+	},
+	{
+		key    = "newbie_placer",
+		name   = "Newbie Placer",
+		desc   = "Chooses a startpoint and a random faction for all rank 1 accounts (online only)",
+		type   = "bool",
+		def    = false,
+		section= "options",
+	},
+
+
+
+	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	-- Experimental Options
+	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+	{
+		key		= "options_experimental",
+		name	= "Experimental",
+		desc	= "Experimental options",
+		type	= "section",
+	},
+
+	{
+		key    = 'experimentalnoaircollisions',
+		name   = 'Aircraft Collisions Override',
+		desc   = 'Aircraft Collisions Override',
+		type   = 'list',
+		section = 'options_experimental',
+		def  = "unchanged",
+		items={
+			{key="unchanged", name="Unchanged", desc="Unchanged"},
+			{key="disabled", name="Force Disabled", desc="Collisions Disabled"},
+			{key="enabled", name="Force Enabled", desc="Collisions Enabled"},
+		}
+	},
+
+	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	-- Unused Options
+	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+	--{
+	--	key		= "modes",
+	--	name	= "GameModes",
+	--	desc	= "Game Modes",
+	--	type	= "section",
+	--},
+
+	--{
+	--	key    = 'armageddontime',
+	--	name   = 'Armageddon time (minutes)',
+	--	desc   = 'At armageddon every immobile unit is destroyed and you fight to the death with what\'s left! (0=off)',
+	--	type   = 'number',
+	--	section= 'options',
+	--	def    = 0,
+	--	min    = 0,
+	--	max    = 120,
+	--	step   = 1,
+	--},
+
+	--{
+	--	key		= "unba",
+	--	name	= "Unbalanced Commanders",
+	--	desc	= "Defines if commanders level up with xp and gain more power or not",
+	--	type	= "list",
+	--	def		= "disabled",
+	--	section	= "modes",
+	--	items	= {
+	--		{key="disabled", name="Disabled", desc="Disable Unbalanced Commanders"},
+	--		{key="enabled", name="Enabled", desc="Enable Unbalanced Commanders"},
+	--	}
+	--},
+
+	
+	--{
+	--	key    = "shareddynamicalliancevictory",
+	--	name   = "Dynamic Ally Victory",
+	--	desc   = "Ingame alliance should count for game over condition.",
+	--	type   = "bool",
+	--	section= 'options',
+	--	def    = false,
+	--},
+
+	--{
+	--	key    = 'ai_incomemultiplier',
+	--	name   = 'AI Income Multiplier',
+	--	desc   = 'Multiplies AI resource income',
+	--	type   = 'number',
+	--	section= 'options',
+	--	def    = 1,
+	--	min    = 1,
+	--	max    = 10,
+	--	step   = 0.1,
+	--},
+
+	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	-- End Options
+	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	
 }
 return options

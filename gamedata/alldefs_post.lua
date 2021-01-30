@@ -173,8 +173,11 @@ function UnitDef_Post(name, uDef)
 			uDef.crashdrag = 0.01	-- default 0.005
 
 			if not (string.find(name, "fepoch") or string.find(name, "fblackhy")) then--(string.find(name, "liche") or string.find(name, "crw") or string.find(name, "fepoch") or string.find(name, "fblackhy")) then
-
-				--uDef.collide = false
+				if Spring.GetModOptions() and Spring.GetModOptions().experimentalnoaircollisions == "disabled" then
+					uDef.collide = false
+				elseif Spring.GetModOptions() and Spring.GetModOptions().experimentalnoaircollisions == "enabled" then
+					uDef.collide = true
+				end
 
 				--local airmult = 1.3
 				--if uDef.buildcostenergy then
