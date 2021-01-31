@@ -672,6 +672,33 @@ local options={
 		}
 	},
 
+	{
+		key    = 'experimentalshields',
+		name   = 'Shield Override',
+		desc   = 'Shield Override',
+		type   = 'list',
+		section = 'options_experimental',
+		def  = "unchanged",
+		items={
+			{key="unchanged", name="Unchanged", desc="Unchanged"},
+			{key="absorbplasma", name="Absorb Plasma", desc="Collisions Disabled"},
+			{key="absorbeverything", name="Absorb Everything", desc="Collisions Enabled"},
+			{key="bounceeverything", name="Deflect Everything", desc="Collisions Enabled"},
+		}
+	},
+
+	{
+		key    = 'experimentalshieldpower',
+		name   = 'Shield Power Multiplier',
+		desc   = 'Shield Power Multiplier',
+		type   ="number",
+		section = 'options_experimental',
+		def    = 1,
+		min    = 0.01,
+		max    = 100,
+		step   = 0.01,
+	},
+
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	-- Unused Options

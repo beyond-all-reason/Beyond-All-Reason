@@ -395,6 +395,54 @@ end
 function WeaponDef_Post(name, wDef)
 
 	if not SaveDefsToCustomParams then
+		
+
+		-------------- EXPERIMENTAL MODOPTIONS 
+		---- SHIELD CHANGES
+		if Spring.GetModOptions() and Spring.GetModOptions().experimentalshields == "absorbplasma" then
+			if wDef.shield and wDef.shield.repulser and wDef.shield.repulser ~= false then
+				wDef.shield.repulser = false
+			end
+		elseif Spring.GetModOptions() and Spring.GetModOptions().experimentalshields == "absorbeverything" then
+			if wDef.shield and wDef.shield.repulser and wDef.shield.repulser ~= false then
+				wDef.shield.repulser = false
+			end
+			if (not wDef.interceptedbyshieldtype) or wDef.interceptedbyshieldtype ~= 1 then
+				wDef.interceptedbyshieldtype = 1
+			end
+		elseif Spring.GetModOptions() and Spring.GetModOptions().experimentalshields == "bounceeverything" then
+			if wDef.shield then
+				wDef.shield.repulser = true
+			end
+			if (not wDef.interceptedbyshieldtype) or wDef.interceptedbyshieldtype ~= 1 then
+				wDef.interceptedbyshieldtype = 1
+			end
+		end
+
+		if Spring.GetModOptions() and Spring.GetModOptions().experimentalshieldpower then
+			if wDef.shield then
+				local multiplier = tonumber(Spring.GetModOptions().experimentalshieldpower)
+				if wDef.shield.power then
+					wDef.shield.power = wDef.shield.power*multiplier
+				end
+				if wDef.shield.powerregen then
+					wDef.shield.powerregen = wDef.shield.powerregen*multiplier
+				end
+				if wDef.shield.powerregenenergy then
+					wDef.shield.powerregenenergy = wDef.shield.powerregenenergy*multiplier
+				end
+				if wDef.shield.startingpower then
+					wDef.shield.startingpower = wDef.shield.startingpower*multiplier
+				end
+			end
+		end
+		----------------------------------------
+
+
+
+
+
+
 
 		--Use targetborderoverride in weapondef customparams to override this global setting
 		--Controls whether the weapon aims for the center or the edge of its target's collision volume. Clamped between -1.0 - target the far border, and 1.0 - target the near border.
