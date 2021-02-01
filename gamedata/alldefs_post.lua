@@ -106,11 +106,21 @@ local function processWeapons(unitDefName, unitDef)
 end
 
 function UnitDef_Post(name, uDef)
+	if uDef.builddistance then
+		local x = tonumber(Spring.GetModOptions().experimentalbuildrange) or 1
+		uDef.builddistance = uDef.builddistance*x
+	end
+
+	if uDef.workertime then
+		local x = tonumber(Spring.GetModOptions().experimentalbuildpower) or 1
+		uDef.workertime = uDef.workertime*x
+	end
+
 	if string.find(name, "chicken") and uDef.maxdamage then
 		local chickHealth = uDef.maxdamage
-		uDef.buildcostmetal = chickHealth*5
-		uDef.buildcostenergy = chickHealth*50
-		uDef.buildtime = chickHealth*50
+		uDef.buildcostmetal = chickHealth*1
+		uDef.buildcostenergy = chickHealth*10
+		uDef.buildtime = chickHealth*10
 	end
 	
 	if not uDef.customparams then

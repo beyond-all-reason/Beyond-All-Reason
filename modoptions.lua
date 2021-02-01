@@ -73,6 +73,18 @@ local options={
 			{key="high", name="High", desc="Set tidal incomes to 23 energy per second"},
 		}
 	},
+
+	{
+		key    = 'resourceincomemultiplier',
+		name   = 'Resource Income Multiplier',
+		desc   = 'Resource Income Multiplier',
+		type   =  "number",
+		section = 'resources_options',
+		def    = 1,
+		min    = 0.01,
+		max    = 100,
+		step   = 0.01,
+	},
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	-- Restrictions
@@ -697,6 +709,42 @@ local options={
 		min    = 0.01,
 		max    = 100,
 		step   = 0.01,
+	},
+
+	{
+		key    = 'experimentalxpgain',
+		name   = 'XP Gain Multiplier',
+		desc   = 'XP Gain Multiplier',
+		type   ="number",
+		section = 'options_experimental',
+		def    = 1,
+		min    = 0.1,
+		max    = 10,
+		step   = 0.1,
+	},
+
+	{
+		key    = 'experimentalbuildrange',
+		name   = 'Build Range Multiplier',
+		desc   = 'Build Range Multiplier',
+		type   ="number",
+		section = 'options_experimental',
+		def    = 1,
+		min    = 0.1,
+		max    = 10,
+		step   = 0.1,
+	},
+
+	{
+		key    = 'experimentalbuildpower',
+		name   = 'Build Power Multiplier',
+		desc   = 'Build Power Multiplier',
+		type   ="number",
+		section = 'options_experimental',
+		def    = 1,
+		min    = 0.1,
+		max    = 10,
+		step   = 0.1,
 	},
 
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
