@@ -23,6 +23,11 @@ Units
  • EMP launcher: reduced range 10%
  • T2 Bot/Air Constructors can build Advanced Fusion + cost: +60 metal
  • T2 Vehicle/Air Constructors can make the T3 Experimental Gantry
+ • Arm Guardian: Removed special damage to ships and commander, reduced low trajectory aoe from 128 to 100, increased low trajectory default damage by 20%, increased high trajectory default damage by 9%
+ • Cor Punisher: Removed special damage to ships and commander, reduced low trajectory aoe from 140 to 120, increased low trajectory default damage by 20%, increased high trajectory default damage by 18%, increased reloadtime by 8%
+ • Arm Ambusher: Removed special damage to ships and commander
+ • Core Toaster: Removed special damage to ships and commander, low and high trajectory damage increased by 20%, high trajectory cooldown increased by 14%
+ 
 
 Air
  • Banshee: changed weapon to machine gun with more accuracy, 5 burst (instead of 3) but little less average dps (-10%)
