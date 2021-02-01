@@ -188,12 +188,117 @@ function BuildSiteHST:CheckBuildPos(pos, unitTypeToBuild, builder, originalPosit
 end
 
 function BuildSiteHST:GetBuildSpacing(unitTypeToBuild)
-	local spacing = 1
-	local name = unitTypeToBuild:Name()
-	if self.ai.armyhst.Eco1[name] then spacing = 2 end--TODO removing this sistem
-	if self.ai.armyhst.unitTable[name].isWeapon then spacing = 8 end
-	if self.ai.armyhst.unitTable[name].bigExplosion then spacing = 20 end
-	if self.ai.armyhst.unitTable[name].buildOptions then spacing = 4 end
+	local army = self.ai.armyhst
+	local spacing = 3
+	local un = unitTypeToBuild:Name()
+	if army.factoryMobilities[un] then
+		--self:EchoDebug()
+		spacing = 5
+	elseif army._mex_[un] then
+		--self:EchoDebug()
+	elseif army._nano_[un] then
+		--self:EchoDebug()
+		spacing = 2
+	elseif army._wind_[un] then
+		--self:EchoDebug()
+		spacing = 3
+	elseif army._tide_[un] then
+		--self:EchoDebug()
+		spacing = 3
+	elseif army._advsol_[un] then
+		--self:EchoDebug()
+		spacing = 3
+	elseif army._solar_[un] then
+		--self:EchoDebug()
+		spacing = 3
+	elseif army._estor_[un] then
+		--self:EchoDebug()
+		spacing = 5
+	elseif army._mstor_[un] then
+		--self:EchoDebug()
+		spacing = 3
+	elseif army._convs_[un] then
+		--self:EchoDebug()
+	elseif army._llt_[un] then
+		--self:EchoDebug()
+	elseif army._popup1_[un] then
+		--self:EchoDebug()
+		spacing = 3
+	elseif army._specialt_[un] then
+		--self:EchoDebug()
+		spacing = 5
+	elseif army._heavyt_[un] then
+		--self:EchoDebug()
+		spacing = 5
+	elseif army._aa1_[un] then
+		--self:EchoDebug()
+		spacing = 5
+	elseif army._flak_[un] then
+		--self:EchoDebug()
+		spacing = 5
+	elseif army._fus_[un] then
+		--self:EchoDebug()
+		spacing = 3
+	elseif army._popup2_[un] then
+		--self:EchoDebug()
+		spacing = 5
+	elseif army._jam_[un] then
+		--self:EchoDebug()
+	elseif army._radar_[un] then
+		--self:EchoDebug()
+	elseif army._geo_[un] then
+		--self:EchoDebug()
+		spacing = 5
+	elseif army._silo_[un] then
+		--self:EchoDebug()
+	elseif army._antinuke_[un] then
+		--self:EchoDebug()
+		spacing = 5
+	elseif army._sonar_[un] then
+		--self:EchoDebug()
+		spacing = 3
+	elseif army._shield_[un] then
+		--self:EchoDebug()
+		spacing = 5
+	elseif army._juno_[un] then
+		--self:EchoDebug()
+		spacing = 3
+	elseif army._laser2_[un] then
+		--self:EchoDebug()
+		spacing = 3
+	elseif army._lol_[un] then
+		--self:EchoDebug()
+		spacing = 5
+	elseif army._coast1_[un] then
+		--self:EchoDebug()
+		spacing = 5
+	elseif army._coast2_[un] then
+		--self:EchoDebug()
+		spacing = 5
+	elseif army._plasma_[un] then
+		--self:EchoDebug()
+		spacing = 3
+	elseif army._torpedo1_[un] then
+		--self:EchoDebug()
+		spacing = 3
+	elseif army._torpedo2_[un] then
+		--self:EchoDebug()
+		spacing = 3
+	elseif army._torpedoground_[un] then
+		--self:EchoDebug()
+		spacing = 5
+	elseif army._aabomb_[un] then
+		--self:EchoDebug()
+		spacing = 5
+	elseif army._aaheavy_[un] then
+		--self:EchoDebug()
+		spacing = 5
+	elseif army._aa2_[un] then
+		--self:EchoDebug()
+		spacing = 5
+	else
+		spacing = 5
+	end
 	return spacing
 end
 
@@ -270,18 +375,22 @@ function BuildSiteHST:DontBuildOnMetalOrGeoSpots()
 
 end
 
-function BuildSiteHST:unitNearCheck(utype,pos,range)
+function BuildSiteHST:unitNearCheck(utype,pos,range,number)
+	number = number or 1
 	if type(range) ~= 'number' then
 		range = self.ai.armyhst.unitTable[utype:Name()][range]
 	end
-	--local target = Spring.GetUnitsInCylinder(p.x,p.z,range,self.game:GetTeamID())
 	local unitsNear = self.game:getUnitsInCylinder(pos, range)
 	if not unitsNear  then return false end
+	local counter = 0
 	for idx, typeDef in pairs(unitsNear) do
 		local unitName = self.game:GetUnitByID(typeDef):Name()
 		if utype:Name() == unitName  then
-			self:EchoDebug(utype:Name() .. ' block by ' .. tostring(unitName))
-			return true
+			counter = counter +1
+			if counter >= number then
+				self:EchoDebug(utype:Name(),' block by ',counter ,unitName)
+				return true
+			end
 		end
 	end
 	return false
@@ -305,10 +414,18 @@ function BuildSiteHST:searchPosNearThing(utype,builder,thing,range,spaceEquals,m
 		local unitNear = self.game:GetUnitByID(typeDef)
 		local unitNearName = unitNear:Name()
 		self:EchoDebug('around there ', unitNearName)
-		local tg = self.ai.armyhst.unitTable[unitNearName][thing] or self.ai.armyhst[cat]
+		local tg
+		if thing and self.ai.armyhst.unitTable[unitNearName][thing] then
+			if type(self.ai.armyhst.unitTable[unitNearName][thing]) ~= 'number' then
+				tg = self.ai.armyhst.unitTable[unitNearName][thing]
+			else
+				tg = self.ai.armyhst.unitTable[unitNearName][thing] > 0
+			end
+		end
+		tg = tg or self.ai.armyhst[cat]
 		if tg then
-			self:EchoDebug()
 			local tgPos = unitNear:GetPosition()
+			self:EchoDebug('tg',tgPos)
 			if  spaceEquals then
 				if not self:unitNearCheck(utype,tgPos,spaceEquals)then
 					self:EchoDebug('no same unit near: pass')
@@ -319,7 +436,7 @@ function BuildSiteHST:searchPosNearThing(utype,builder,thing,range,spaceEquals,m
 					self:EchoDebug('same unit near: skip')
 				end
 			else
-				local p = self.ai.buildsitehst:ClosestBuildSpot(builder, tgPos, utype , minDist, nil, nil, self.ai.armyhst.unitTable[builderName].losRadius)
+				local p = self.ai.buildsitehst:ClosestBuildSpot(builder, tgPos, utype , minDist, nil, nil, self.ai.armyhst.unitTable[builderName].losRadius or range)
 				if p then return p end
 			end
 		end
@@ -330,9 +447,12 @@ end
 function BuildSiteHST:searchPosInList(list,utype, builder, spaceEquals,minDist)
 	if spaceEquals and self:unitNearCheck(utype,builder:GetPosition(),spaceEquals) then return nil end
 	if list and #list > 0 then
+-- 		self:EchoDebug('list ok')
 		for index, pos in pairs(list) do
 			if self.ai.tool:Distance(pos,builder:GetPosition()) < self.ai.armyhst.unitTable[builder:Name()].losRadius then
+				self:EchoDebug('to far away')
 				if not spaceEquals or not self:unitNearCheck(utype,pos,spaceEquals)then
+					self:EchoDebug('ok space')
 					local p = self.ai.buildsitehst:ClosestBuildSpot(builder, pos, utype , minDist, nil, nil, self.ai.armyhst.unitTable[utype:Name()][spaceEquals])
 					if p then return p end
 				end
@@ -445,6 +565,7 @@ function BuildSiteHST:MyUnitBuilt(unit)
 	local unitID = unit:ID()
 	local done = self.constructing[unitID]
 	if done then
+		self:EchoDebug(done.behaviour.name , done.behaviour.id,  " completed ", done.unitName, unitID)
 		EchoDebugPlans(done.behaviour.name .. " " .. done.behaviour.id ..  " completed " .. done.unitName .. " " .. unitID)
 		done.behaviour:ConstructionComplete()
 		done.frame = self.game:Frame()

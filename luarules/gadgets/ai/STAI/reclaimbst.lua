@@ -4,71 +4,57 @@ function ReclaimBST:Name()
 	return "ReclaimBST"
 end
 
-local CMD_RESURRECT = 125
+function ReclaimBST:Act()
+-- 	if not self.active then
+-- 		return
+-- 	end
+-- 	local rnd =  math.random(1,3)
+	local timearea = 10000
 
-function ReclaimBST:Init()
-	self.DebugEnabled = false
 
-	local mtype, network = self.ai.maphst:MobilityOfUnit(self.unit:Internal())
-	self.mtype = mtype
-	self.canReclaimGAS = {}
-	if self.mtype == "veh" or self.mtype == "bot" or self.mtype == "amp" or self.mtype == "hov" then
-		table.insert(self.canReclaimGAS, "ground")
-	end
-	if self.mtype == "sub" or self.mtype == "amp" or self.mtype == "shp" or self.mtype == "hov" then
-		table.insert(self.canReclaimGAS, "submerged")
-	end
-	if self.mtype == "air" then
-		table.insert(self.canReclaimGAS, "air")
-	end
-	self.name = self.unit:Internal():Name()
-	self.dedicated = self.ai.armyhst.rezs[self.name]
-	self.id = self.unit:Internal():ID()
-	self.lastCheckFrame = 0
-end
+-- 	if rnd == 1 then
+-- 		local rep = self.unit:Internal():AreaRepair(self.unit:Internal():GetPosition(),timearea)
+-- 		self.unit:Internal():AreaRepair(self.unit:Internal():GetPosition(),timearea)
+-- 		return true
+-- 	elseif rnd ==2 then
+	self.act = self.unit:Internal():AreaReclaim(self.unit:Internal():GetPosition(),timearea)
+	self.unit:ElectBehaviour()
 
-function ReclaimBST:OwnerBuilt()
-	self:EchoDebug("got new reclaimer")
-end
-
-function ReclaimBST:OwnerDead()
-	-- notify the command that area is too hot
-	self:EchoDebug("reclaimer " .. self.name .. " died")
-	if self.target then
-		self.ai.targethst:AddBadPosition(self.target, self.mtype)
-	end
-	self.ai.buildsitehst:ClearMyPlans(self)
-end
-
-function ReclaimBST:OwnerIdle()
-	if self.active then
-		if self.myFeature then
-			self.ai.targethst:RemoveFeature(self.myFeature, self.myFeaturePos)
-			self.myFeature = nil
-			self.myFeaturePos = nil
-		end
-		self:EraseTargets()
-		self.unit:ElectBehaviour()
-	end
-	self.idle = self.game:Frame()
+-- 	else
+-- 		local res = self.unit:Internal():AreaRESURRECT(self.unit:Internal():GetPosition(),timearea)
+-- 		return true
+-- 	end
 end
 
 function ReclaimBST:Update()
-	if self.active then return end
 	local f = self.game:Frame()
-	if (self.idle and f > self.idle) or (self.dedicated and f > self.lastCheckFrame + 150) or (f > self.lastCheckFrame + 500) then
-		self:EchoDebug("update")
-		if self.idle then
-			self:EchoDebug('idletime',f - self.idle)
-		end
-		self.idle = nil
-		self.lastCheckFrame = f
-		self:Check()
+	if f % 257 == 0 then
+		self:Act()
 	end
 end
+-- 	if (self.idle and f > self.idle) or (self.dedicated and f > self.lastCheckFrame + 150) or (f > self.lastCheckFrame + 500) then
+-- 		self:EchoDebug("update")
+-- 		if self.idle then
+-- 			self:EchoDebug('idletime',f - self.idle)
+-- 		end
+-- 		self.idle = nil
+-- 		self.lastCheckFrame = f
+-- 		self:Check()
+-- 	end
+-- end
+-- function ReclaimBST:workArea()
+-- 	local mexes =  {}
+-- 	for name,bool in pairs(self.ai.armyhst._mex_) do
+-- 		local mex = game:GetTeamUnitsByDefs(self.ai.id,self.ai.armyhst.unitTable[name].defId)
+-- 		for i,v
+--
+
+
+-- end
+
 
 function ReclaimBST:Priority()
-	if self.targetCell or self.targetUnit then
+	if self.act then
 		self:EchoDebug("priority HIGH")
 		return 101
 	else
@@ -77,15 +63,68 @@ function ReclaimBST:Priority()
 	end
 end
 
-function ReclaimBST:Activate()
-	self:EchoDebug("activate")
-	self.active = true
-	if not self:Act() then
-		self:EraseTargets()
-		self.unit:ElectBehaviour()
-	end
-end
+-- local CMD_RESURRECT = 125
 
+-- function ReclaimBST:Init()
+-- 	self.DebugEnabled = false
+--
+-- 	local mtype, network = self.ai.maphst:MobilityOfUnit(self.unit:Internal())
+-- 	self.mtype = mtype
+-- 	self.canReclaimGAS = {}
+-- 	if self.mtype == "veh" or self.mtype == "bot" or self.mtype == "amp" or self.mtype == "hov" then
+-- 		table.insert(self.canReclaimGAS, "ground")
+-- 	end
+-- 	if self.mtype == "sub" or self.mtype == "amp" or self.mtype == "shp" or self.mtype == "hov" then
+-- 		table.insert(self.canReclaimGAS, "submerged")
+-- 	end
+-- 	if self.mtype == "air" then
+-- 		table.insert(self.canReclaimGAS, "air")
+-- 	end
+-- 	self.name = self.unit:Internal():Name()
+-- 	self.dedicated = self.ai.armyhst.rezs[self.name]
+-- 	self.id = self.unit:Internal():ID()
+-- 	self.lastCheckFrame = 0
+-- end
+--
+-- function ReclaimBST:OwnerBuilt()
+-- 	self:EchoDebug("got new reclaimer")
+-- end
+--
+-- function ReclaimBST:OwnerDead()
+-- 	-- notify the command that area is too hot
+-- 	self:EchoDebug("reclaimer " .. self.name .. " died")
+-- 	if self.target then
+-- 		self.ai.targethst:AddBadPosition(self.target, self.mtype)
+-- 	end
+-- 	self.ai.buildsitehst:ClearMyPlans(self)
+-- end
+--
+-- function ReclaimBST:OwnerIdle()
+-- 	if self.active then
+-- 		if self.myFeature then
+-- 			self.ai.targethst:RemoveFeature(self.myFeature, self.myFeaturePos)
+-- 			self.myFeature = nil
+-- 			self.myFeaturePos = nil
+-- 		end
+-- 		self:EraseTargets()
+-- 		self.unit:ElectBehaviour()
+-- 	end
+-- 	self.idle = self.game:Frame()
+-- end
+
+
+
+
+
+-- function ReclaimBST:Activate()
+-- 	self:EchoDebug("activate")
+-- 	self.active = true
+-- 	if not self:Act() then
+-- 		self:EraseTargets()
+-- 		self.unit:ElectBehaviour()
+-- 	end
+-- end
+--[[
 function ReclaimBST:Deactivate()
 	self:EchoDebug("deactivate")
 	self.active = false
@@ -162,26 +201,10 @@ function ReclaimBST:Retarget()
 		end
 	end
 	self.unit:ElectBehaviour()
-end
-
-function ReclaimBST:Act()
-	if not self.active then
-		return
-	end
-	local rnd =  math.random(1,3)
-	local timearea = 10000
-	if rnd == 1 then
-		self.unit:Internal():AreaRepair(self.unit:Internal():GetPosition(),timearea)
-		return true
-	elseif rnd ==2 then
-		self.unit:Internal():AreaReclaim(self.unit:Internal():GetPosition(),timearea)
-		return true
-	else
-		self.unit:Internal():AreaRESURRECT(self.unit:Internal():GetPosition(),timearea)
-		return true
-	end
+end]]
 
 
+--[[
 	if self.targetRepair then
 		self:EchoDebug("repair unit", self.targetRepair, self.targetRepair:ID())
 		self.target = self.targetRepair:GetPosition()
@@ -247,4 +270,4 @@ end
 function ReclaimBST:ResurrectionComplete()
 	self.resurrecting = false
 	self.ai.buildsitehst:ClearMyPlans(self)
-end
+end]]

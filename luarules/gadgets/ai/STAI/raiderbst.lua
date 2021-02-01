@@ -45,7 +45,7 @@ function RaiderBST:Init()
 	self.pathingDistance = nodeSize * 0.67 -- how far away from a node means you've arrived there
 	self.minPathfinderDistance = nodeSize * 3 -- closer than this and i don't pathfind
 	self.id = self.unit:Internal():ID()
-	self.disarmer = self.ai.armyhst.raiderDisarms[self.name]
+	self.disarmer = self.ai.armyhst.airgun[self.name]
 	self.ai.raiderCount[mtype] = (self.ai.raiderCount[mtype] or 0) + 1
 	self.lastGetTargetFrame = 0
 	self.lastMovementFrame = 0

@@ -75,6 +75,24 @@ function TaskLabBST:GetAmpOrGroundWeapon()
 	return false
 end
 
+
+
+function TaskLabBST:getSoldier()
+	self:EchoDebug('soldier')
+	local soldier
+	for index,param in ipairs(self.queue) do
+		local soldiers = self:scanRanks(param[1])
+		soldier = self:ecoCheck2(soldiers)
+		soldier = self:countCheck(soldier,param[2],param[3],param[4])
+		soldier = self:toAmphibious(soldier)
+		if soldier then
+			self.fails = 0
+			return soldier,param
+		end
+	end
+	self.fails = self.fails +1
+end
+
 function TaskLabBST:scanRanks(rank)
 	self:EchoDebug('rank',rank)
 	local soldiers = {}
@@ -90,24 +108,40 @@ function TaskLabBST:scanRanks(rank)
 	end
 end
 
-function TaskLabBST:getSoldier()
-	self:EchoDebug('soldier')
-	local soldier
-	for index,param in ipairs(self.queue) do
-		local soldiers = self:scanRanks(param[1])
-		soldier = self:ecoCheck(soldiers)
-		soldier = self:countCheck(soldier,param[2],param[3],param[4])
-		soldier = self:toAmphibious(soldier)
-		if soldier then
-			self.fails = 0
-			return soldier,param
-		end
-	end
-	self.fails = self.fails +1
-end
-function TaskLabBST:ecoCheck(soldiers)
-	self:EchoDebug('ecoCheck')
+function TaskLabBST:ecoCheck2(soldiers)
 	if not soldiers then return end
+	self:EchoDebug('ecoCheck')
+	local metal = self.ai.Metal.full
+	local threshold = #soldiers
+	local army = self.ai.armyhst.unitTable
+	local mMax = 0
+	local mRatio = 0
+	local soldier = false
+	local tmp = {}
+	local first = table.remove(soldiers,1)
+	tmp[1] = first
+	while # soldiers > 0 do
+		first = table.remove(soldiers,1)
+		for i,v in pairs(tmp) do
+			if army[first].metalCost < army[v].metalCost then
+				table.insert(tmp,i,first)
+				first = nil
+				break
+			end
+		end
+		if first then table.insert(tmp,-1,first) end
+	end
+	local idx = metal * threshold
+	local idxN = math.ceil(idx)
+	local target = tmp[idxN]
+
+	self:EchoDebug(unpack(tmp),metal,threshold,idx,idxN,target)
+	return target
+end
+
+function TaskLabBST:ecoCheck(soldiers)
+	if not soldiers then return end
+	self:EchoDebug('ecoCheck')
 	local metal = self.ai.Metal.full
 	local threshold = 1 / #soldiers
 	local army = self.ai.armyhst.unitTable
@@ -191,11 +225,14 @@ end
 
 
 TaskLabBST.queue = {
-		{'techs',1,10,15},
-		{'raiders',nil,5,10,5},
-		{'breaks',1,5,20,5},
-		{'battles',nil,7,12,5},
-		--{'scouts',1,nil,1},
+
+		{'techs',1,6,15},
+		{'scouts',nil,5,10,2},
+		{'raiders',2,5,10,8},
+		{'battles',3,7,12,5},
+		{'breaks',2,5,20,5},
+		{'artillerys',1,10,5},
+
 
 		{'rezs',1,8,10}, -- rezzers
 		{'engineers',1,8,10}, --help builders and build thinghs
@@ -203,11 +240,11 @@ TaskLabBST.queue = {
 		{'amptechs',1,7,5}, --amphibious builders
 		{'jammers',1,nil,1	},
 		{'radars',1,nil,1},
+		{'airgun',1,5,10,5},
 		{'bomberairs',10,4,20,5},
-		{'bomberairs',1,5,20,5},
 		{'fighterairs',1,5,10},
 		{'paralyzers',1,10,5}, --have paralyzer weapon
-		{'artillerys',0,10,5},
+
 		{'wartechs',1,nil,1}, --decoy etc
 		{'subkillers',1,7,5}, -- submarine weaponed
 		{'breaks',nil,nil,40},
@@ -225,9 +262,10 @@ function TaskLabBST:preFilter()
 	local spec = self.ai.armyhst.unitTable[self.name]
 	local techLv = spec.techLevel
 	local topLevel = self.ai.maxFactoryLevel
-	local threshold = 1 - (techLv / self.ai.maxFactoryLevel)
+-- 	local threshold = 1 - (techLv / self.ai.maxFactoryLevel)
+	local threshold = techLv / 20 --TODO this is a shit
 	self:EchoDebug('prefilter threshold', threshold)
-	if self.ai.Metal.full > threshold then
+	if self.ai.Metal.full > threshold and self.ai.Energy.full > 0.05 and self.ai.Metal.full > 0.05 then
 		return true
 	end
 end
@@ -235,20 +273,16 @@ end
 function TaskLabBST:Update()
 	local f = self.game:Frame()
 	if f % 111 == 0 then
--- 		if not self:preFilter() then return end
+		if not self:preFilter() then return end
 		self:GetAmpOrGroundWeapon()
 		self.isBuilding = game:GetUnitIsBuilding(self.id)--TODO better this?
 		if Spring.GetFactoryCommands(self.id,0) > 0 then return end
 		local soldier, param = self:getSoldier()
 		self:EchoDebug('update',soldier)
 		if soldier then
--- 			if param[5] then
-				for i=1,param[5] or 1 do
-					self.unit:Internal():Build(self.units[soldier].type,nil,nil,{-1})
-				end
--- 			else
--- 				self.unit:Internal():Build(self.units[soldier].type,nil,nil,{-1})
--- 			end
+			for i=1,param[5] or 1 do
+				self.unit:Internal():Build(self.units[soldier].type,nil,nil,{-1})
+			end
 		end
 	end
 end

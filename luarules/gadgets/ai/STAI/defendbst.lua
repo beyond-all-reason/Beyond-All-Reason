@@ -19,7 +19,7 @@ function DefendBST:Init()
 	self.name = self.unit:Internal():Name()
 	local ut = self.ai.armyhst.unitTable[self.name]
 	self.tough = self.ai.armyhst.battles[self.name] or self.ai.armyhst.breaks[self.name]
-	self.isDefender = self.ai.armyhst.defenderList[self.name]
+-- 	self.isDefender = self.ai.armyhst.defenderList[self.name]
 	self.mtype = self.ai.armyhst.unitTable[self.name].mtype
 	-- defenders need to be sorted into only one type of weapon
 	if ut.groundRange > 0 then

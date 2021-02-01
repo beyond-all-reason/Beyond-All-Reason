@@ -41,15 +41,20 @@ local unitPriorities = {}
 TurtleHST = class(Module)
 
 function TurtleHST:Priority(unitName)
+	local army = self.ai.armyhst
 	local p = unitPriorities[unitName]
 	if p then return p end
 	local priority = 0
-	local ut = self.ai.armyhst.unitTable[unitName]
-	if self.ai.armyhst.turtleList[unitName] then
-		priority = self.ai.armyhst.turtleList[unitName]
-	elseif self.ai.armyhst.antinukes[unitName] then
-		priority = 2
-	elseif self.ai.armyhst._shield_[unitName] then
+	local ut = army.unitTable[unitName]
+	if army._convs_[unitName] then
+		priority = 1 * ut.techLevel
+	elseif army._estor_[unitName] then
+		priority = 2 * ut.techLevel
+	elseif army._mstor_[unitName] then
+		priority = 2 * ut.techLevel
+	elseif army.antinukes[unitName] then
+		priority = 2 * ut.techLevel
+	elseif army._shield_[unitName] then
 		priority = 2
 	else
 		if ut.buildOptions then

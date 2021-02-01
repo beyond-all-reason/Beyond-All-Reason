@@ -9,7 +9,7 @@ function LabBuildHST:internalName()
 end
 
 function LabBuildHST:Init()
-	self.DebugEnabled = true
+	self.DebugEnabled = false
 	self.lastCheckFrameForConName = {}
 	self.lastFactoriesForConName = {}
 	self.conTypesByName = {}
@@ -88,6 +88,10 @@ function LabBuildHST:PrePositionFilter()
 		local isAdvanced = self.ai.armyhst.advFactories[factoryName]
 		local isExperimental = self.ai.armyhst.expFactories[factoryName] or self.ai.armyhst.leadsToExpFactories[factoryName]
 		local mtype = self.ai.armyhst.factoryMobilities[factoryName][1]
+		if self.game:GetTeamUnitDefCount(self.ai.id,self.ai.armyhst.unitTable[factoryName].defId) > 0 then
+			self:EchoDebug(factoryName ..' already have ')
+			buildMe = false
+		end
 		if mtype == 'air' and not isAdvanced and self.ai.factories == 1 then
 			self:EchoDebug(factoryName ..' dont build air before advanced ')
 			buildMe = false
@@ -243,6 +247,13 @@ function LabBuildHST:FactoryPosition(factoryName,builder)
 			p = self.ai.buildsitehst:ClosestBuildSpot(builder, factoryPos, utype)
 		end
 	end
+-- 	if p == nil then
+-- 		self:EchoDebug("looking next to llt for " .. factoryName)
+-- 		p = self.ai.buildsitehst:searchPosNearThing(utype, builder,nil,1000, nil,100,'_llt_')
+-- 		if factoryPos then
+-- 			p = self.ai.buildsitehst:ClosestBuildSpot(builder, factoryPos, utype)
+-- 		end
+-- 	end
 	if p == nil then
 		self:EchoDebug('builfactory near hotSpot')
 		local place = false

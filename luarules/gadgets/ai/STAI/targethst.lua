@@ -121,14 +121,14 @@ function TargetHST:CellValueThreat(unitName, cell)
 			for i, weaponGAS in pairs(weapons) do
 				value = value + cell.values[GAS][weaponGAS]
 			end
-		elseif self.ai.armyhst.raiderDisarms[unitName] then
+		elseif self.ai.armyhst.airgun[unitName] then
 			notThreat = notThreat + cell.threat[GAS]
 		end
 	end
-	if gas.air and self.ai.armyhst.raiders[unitName] and not self.ai.armyhst.raiderDisarms[unitName] then
+	if gas.air and self.ai.armyhst.raiders[unitName] and not self.ai.armyhst.airgun[unitName] then
 		threat = threat + cell.threat.ground * 0.1
 	end
-	if self.ai.armyhst.raiderDisarms[unitName] then
+	if self.ai.armyhst.airgun[unitName] then
 		value = notThreat
 		-- if notThreat == 0 then value = 0 end
 	end

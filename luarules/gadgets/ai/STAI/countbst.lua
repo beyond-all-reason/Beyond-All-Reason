@@ -23,7 +23,6 @@ function CountBST:Init()
 			self.mobileMtyped = uTn.mtype
 		end
 	end
-	if uTn.totalEnergyOut > 750 then self.isBigEnergy = true end
 	if uTn.extractsMetal > 0 then self.isMex = true end
 	if self.ai.armyhst.battles[self.name] then self.isBattle = true end
 	if self.ai.armyhst.breaks[self.name] then self.isBreakthrough = true end
@@ -62,7 +61,6 @@ function CountBST:OwnerBuilt()
 	if self.isSiege then self.ai.siegeCount = self.ai.siegeCount + 1 end
 	if self.isReclaimer then self.ai.reclaimerCount = self.ai.reclaimerCount + 1 end
 	if self.isAssist then self.ai.assistCount = self.ai.assistCount + 1 end
-	if self.isBigEnergy then self.ai.bigEnergyCount = self.ai.bigEnergyCount + 1 end
 	if self.isCleanable then self.ai.armyhst.cleanable[self.unit.engineID] = self.position end
 	if self.ai.armyhst.unitTable.isAttacker then self.ai.attackerCount = self.ai.attackerCount + 1 end
 	if self.isNano then
@@ -102,7 +100,6 @@ function CountBST:OwnerDead()
 		if self.isSiege then self.ai.siegeCount = self.ai.siegeCount - 1 end
 		if self.isReclaimer then self.ai.reclaimerCount = self.ai.reclaimerCount - 1 end
 		if self.isAssist then self.ai.assistCount = self.ai.assistCount - 1 end
-		if self.isBigEnergy then self.ai.bigEnergyCount = self.ai.bigEnergyCount - 1 end
 		if self.isCleanable then self.ai.armyhst.cleanable[self.unit.engineID] = nil end
 		if self.ai.armyhst.unitTable.isAttacker then self.ai.attackerCount = self.ai.attackerCount - 1 end
 		if self.isNano then

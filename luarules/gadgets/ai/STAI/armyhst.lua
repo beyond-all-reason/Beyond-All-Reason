@@ -115,17 +115,18 @@ function ArmyHST:Init()
 	}
 
 	self.scouts = {
-		armfast = true,
+
 		armflea = true,
 		armfav = true,
 		corfav = true,
 
 	}
 	self.raiders = {
+		armfast = true,
 		armflash = true,
 		corak = true,
 		armpw = true,
-		armmav = true,
+
 		armlatnk = true,
 		corgator = true,
 		corseal = true,
@@ -159,9 +160,11 @@ function ArmyHST:Init()
 
 	}
 	self.battles = {
+		armzeus = true,
+		armmav = true,
+		armham = true,
 		armstump = true,
 		correap = true,
-		armzeus = true,
 		armbull = true,
 		corraid = true,
 		corstorm = true,
@@ -177,6 +180,7 @@ function ArmyHST:Init()
 
 	} -- sturdy, cheap units to be built in larger numbers than siege units
 	self.breaks = {
+
 		armjanus = true,
 		corlevlr = true,
 		corgol = true,
@@ -186,8 +190,8 @@ function ArmyHST:Init()
 		armepoch = true,
 		corthud = true,
 		corsumo = true,
-		armwar = true,
 		armham = true,
+		armwar = true,
 		armbanth = true,
 		armanac = true,
 		corhal = true,
@@ -327,7 +331,7 @@ function ArmyHST:Init()
 		armnanotcplat = true ,
 		cornanotc = true ,
 		cornanotcplat = true ,
-		cormoho = true ,
+
 	}
 
 	self._solar_ = {
@@ -341,16 +345,28 @@ function ArmyHST:Init()
 	}
 
 	self._mex_ = {
-		cormex = true ,
-		armuwmex = true ,
-		coruwmex = true ,
+		cormex = 'cormoho' ,
+		armuwmex = 'armuwmme' ,
+		coruwmex = 'coruwmme' ,
 		cormexp = true ,
-		armmex = true ,
-		armamex = true ,
+		armmex = "armmoho" ,
+		armamex = 'armmoho' ,
 		armmoho = true ,
-		corexp = true ,
+		cormoho = true ,
+		corexp = 'cormexp' ,
 		armuwmme = true ,
 		coruwmme = true ,
+	}
+
+	-- what mexes upgrade to what
+	ArmyHST.mexUpgrade = {
+		cormex = "cormoho",
+		armmex = "armmoho",
+		coruwmex = "coruwmme",--ex coruwmex caution this will be changed --TODO
+		armuwmex = "armuwmme",--ex armuwmex
+		armamex = "armmoho",
+		corexp = "cormexp",
+
 	}
 
 	self._flak_ = {
@@ -377,14 +393,20 @@ function ArmyHST:Init()
 		coreyes = true ,
 	}
 
+-- 	self._afus_ = {
+-- 		armafus = true ,
+-- 		corafus = true ,
+-- 	}
+
+
 	self._fus_ = {
 		armfus = true ,
-		armafus = true ,
 		armuwfus = true ,
 		armckfus = true ,
 		corfus = true ,
-		corafus = true ,
 		coruwfus = true ,
+		armafus = true ,
+		corafus = true ,
 		--armdf = true, --fake fus
 	}
 
@@ -596,11 +618,7 @@ function ArmyHST:Init()
 		eco = {},
 		expand = {},
 		support = {},
-
 	}
-
-
-
 end
 
 
@@ -695,26 +713,6 @@ ArmyHST.littlePlasmaList = {
 	corbhmth = 1,
 }
 
--- these big energy plants will be shielded in addition to factories
-ArmyHST.bigEnergyList = {
-	corageo = 1,
-	armageo = 1,
-	corfus = 1,
-	armfus = 1,
-	corafus = 1,
-	armafus = 1,
-}
-
--- geothermal plants
-ArmyHST.geothermalPlant = {
-	corgeo = 1,
-	armgeo = 1,
-	corageo = 1,
-	armageo = 1,
-	corbhmth = 1,
-	armgmm = 1,
-}
-
 -- what mexes upgrade to what
 ArmyHST.mexUpgrade = {
 	cormex = "cormoho",
@@ -724,39 +722,6 @@ ArmyHST.mexUpgrade = {
 	armamex = "armmoho",
 	corexp = "cormexp",
 
-}
-
--- these will be abandoned faster
-ArmyHST.hyperWatchdog = {
-	armmex = 1,
-	cormex = 1,
-	armgeo = 1,
-	corgeo = 1,
-}
-
-
--- priorities of things to defend that can't be accounted for by the formula in turtlehst
-ArmyHST.turtleList = {
-	cormakr = 0.5,
-	armmakr = 0.5,
-	corfmkr = 0.5,
-	armfmkr = 0.5,
-	cormmkr = 4,
-	armmmkr = 4,
-	corfmmm = 4,
-	armfmmm = 4,
-	corestor = 0.5,
-	armestor = 0.5,
-	cormstor = 0.5,
-	armmstor = 0.5,
-	coruwes = 0.5,
-	armuwes = 0.5,
-	coruwms = 0.5,
-	armuwms = 0.5,
-	coruwadves = 2,
-	armuwadves = 2,
-	coruwadvms = 2,
-	armuwadvms = 2,
 }
 
 -- factories that can build advanced construction units (i.e. moho mines)
@@ -792,50 +757,10 @@ ArmyHST.leadsToExpFactories = {
 	corasy = 1,
 	armasy = 1,
 }
--- for milling about next to con units and factories only
-ArmyHST.defenderList = {
-	armaak = 1 ,
-	corcrash = 1 ,
-	armjeth = 1 ,
-	corsent = 1 ,
-	armyork = 1 ,
-	corah = 1 ,
-	armaas = 1 ,
-	armah = 1 ,
-	corarch = 1 ,
-	armaser = 1 ,
-	armjam = 1 ,
-	armsjam = 1 ,
-	coreter = 1 ,
-	corsjam = 1 ,
-	corspec = 1 ,
-	armfig = 1 ,
-	armhawk = 1 ,
-	armsfig = 1 ,
-	corveng = 1 ,
-	corvamp = 1 ,
-	corsfig = 1 ,
-}
-
-ArmyHST.raiderDisarms = {
-	corbw = 1,
-}
 
 ArmyHST.commanderList = {
 	armcom = 1,
 	corcom = 1,
-}
-
--- advanced construction units
-ArmyHST.advConList = {
-	corack = 1,
-	armack = 1,
-	coracv = 1,
-	armacv = 1,
-	coraca = 1,
-	armaca = 1,
-	coracsub = 1,
-	armacsub = 1,
 }
 
 ArmyHST.groundFacList = {
@@ -896,104 +821,56 @@ ArmyHST.nukeList = {
 	cortron = 2250,
 }
 
--- ArmyHST.seaplaneConList = {
--- 	corcsa = 1,
--- 	armcsa = 1,
+
+
+-- ArmyHST.Eco1={
+-- 	armsolar=1,
+-- 	armwin=1,
+-- 	armadvsol=1,
+-- 	armtide=1,
+--
+-- 	corsolar=1,
+-- 	corwin=1,
+-- 	coradvsol=1,
+-- 	cortide=1,
+--
+-- 	corgeo=1,
+-- 	armgeo=1,
+--
+-- 	--store
+--
+-- 	armestor=1,
+-- 	armmstor=1,
+-- 	armuwes=1,
+-- 	armuwms=1,
+--
+-- 	corestor=1,
+-- 	cormstor=1,
+-- 	coruwes=1,
+-- 	coruwms=1,
+--
+-- 	--conv
+-- 	armmakr=1,
+-- 	cormakr=1,
+-- 	armfmkr=1,
+-- 	corfmkr=1,
+--
+--
+-- 	--metalli
+-- 	corexp=1,
+-- 	armamex=1,
+--
+-- 	cormex=1,
+-- 	armmex=1,
+--
+-- 	armuwmex=1,
+-- 	coruwmex=1,
+--
+-- 	armnanotc=1,
+-- 	cornanotc=1,
+-- 	armnanotcplat = 1,
+-- 	cornanotcplat = 1,
 -- }
-
-
-ArmyHST.Eco1={
-	armsolar=1,
-	armwin=1,
-	armadvsol=1,
-	armtide=1,
-
-	corsolar=1,
-	corwin=1,
-	coradvsol=1,
-	cortide=1,
-
-	corgeo=1,
-	armgeo=1,
-
-	--store
-
-	armestor=1,
-	armmstor=1,
-	armuwes=1,
-	armuwms=1,
-
-	corestor=1,
-	cormstor=1,
-	coruwes=1,
-	coruwms=1,
-
-	--conv
-	armmakr=1,
-	cormakr=1,
-	armfmkr=1,
-	corfmkr=1,
-
-
-	--metalli
-	corexp=1,
-	armamex=1,
-
-	cormex=1,
-	armmex=1,
-
-	armuwmex=1,
-	coruwmex=1,
-
-	armnanotc=1,
-	cornanotc=1,
-	armnanotcplat = 1,
-	cornanotcplat = 1,
-}
-
-ArmyHST.Eco2={
-	--metalli
-	armmoho=4,
-	cormoho=4,
-	cormexp=4,
-
-	coruwmme=0,
-	armuwmme=0,
-
-	--magazzini
-	armuwadves=3,
-	armuwadvms=3,
-
-	coruwadves=3,
-	coruwadvms=3,
-
-	corageo = 4,
-	armageo = 4,
-	corbhmth = 4,
-	armgmm = 4,
-
-	corfus = 1,
-	armfus = 1,
-	corafus = 1,
-	armafus = 1,
-	armuwfus = 0,
-	coruwfus = 0,
-
-	--convertitori
-	cormmkr=1,
-	armmmkr=1,
-	corfmmm=0,
-	armfmmm=0,
-}
-
-ArmyHST.cleaners = {
-	armbeaver = 1,
-	cormuskrat = 1,
-	armcom = 1,
-	corcom = 1,
-	armdecom = 1,
-	cordecom = 1,
-}
 
 ArmyHST.cleanable = {
 	armsolar= 'ground',
@@ -1019,21 +896,17 @@ ArmyHST.siegeAttackCounter = 20 -- build siege units
 ArmyHST.minBattleCount = 4 -- how many battle units to build before building any breakthroughs, even if counter is too high
 ArmyHST.minBomberCounter = 0
 ArmyHST.maxBomberCounter = 16
-ArmyHST.baseBomberCounter = 2
+ArmyHST.baseBomberCounter = 8
 ArmyHST.breakthroughBomberCounter = 8 -- build atomic bombers or air fortresses
 
 -- raid counter works backwards: it determines the number of raiders to build
 -- if it reaches ArmyHST.minRaidCounter, none are built
-ArmyHST.minRaidCounter = 0
+ArmyHST.minRaidCounter =2
 ArmyHST.maxRaidCounter = 8
 ArmyHST.baseRaidCounter = 5
 
 -- Taskqueuebehaviour was modified to skip this name
 ArmyHST.DummyUnitName = "skipthisorder"
-
--- Taskqueuebehaviour was modified to use this as a generic "build me a factory" order
-ArmyHST.FactoryUnitName = "buildfactory"
-
 -- this unit is used to check for underwater metal spots
 ArmyHST.UWMetalSpotCheckUnit = "coruwmex"
 
@@ -1503,14 +1376,12 @@ function ArmyHST:GetFeatureTable()
 		end
 		self.featureTable[featureDef.name] = ftable
 	end
-
 end
 
 getTechTree(armTechLv)
 getTechTree(corTechLv)
 for k,v in pairs(corTechLv) do unitsLevels[k] = v end
 for k,v in pairs(armTechLv) do unitsLevels[k] = v end
---ArmyHST.unitTable, ArmyHST.wrecks = GetUnitTable()
 
 wrecks = nil
 

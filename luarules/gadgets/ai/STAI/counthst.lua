@@ -30,7 +30,6 @@ function CountHST:Init()
 	self.ai.breakthroughCount = 0
 	self.ai.siegeCount = 0
 	self.ai.reclaimerCount = 0
-	self.ai.bigEnergyCount = 0
 	self.ai.cleanable = {}
 	self.ai.assistCount = 0
 	self.ai.nanoList = {}

@@ -27,9 +27,6 @@ local function MaxBuildDist(unitName, speed)
 	return speedDist
 end
 
-
-
-
 function TaskQueueBST:Init()
 	self.DebugEnabled = false
 	self.role = nil
@@ -38,11 +35,11 @@ function TaskQueueBST:Init()
 	self.lastWatchdogCheck = self.game:Frame()
 	self.watchdogTimeout = 1800
 	local u = self.unit:Internal()
-
 	local mtype, network = self.ai.maphst:MobilityOfUnit(u)
 	self.id = u:ID()
 	self.mtype = mtype
 	self.name = u:Name()
+	self.fails = 0
 	self.side = self.ai.armyhst.unitTable[self.name].side
 	self.speed = self.ai.armyhst.unitTable[self.name].speed
 	if self.ai.armyhst.commanderList[self.name] then self.isCommander = true end
@@ -53,6 +50,7 @@ function TaskQueueBST:Init()
 	end
 	self.queue = self:GetQueue()
 	self:EchoDebug(self.name .. " " .. self.id .. " initializing...")
+	self.unit:ElectBehaviour()
 end
 
 function TaskQueueBST:OwnerBuilt()
@@ -81,7 +79,7 @@ function TaskQueueBST:OwnerIdle()
 		return
 	end
 	if self.unit == nil then return end
-	self.progress = true
+	self.progress = false
 	self.currentProject = nil
 	self.ai.buildsitehst:ClearMyPlans(self)
 	self.unit:ElectBehaviour()
@@ -98,7 +96,8 @@ function TaskQueueBST:ConstructionBegun(unitID, unitName, position)
 end
 
 function TaskQueueBST:ConstructionComplete()
-	self:EchoDebug(self.name, self.id," completed construction of ", self.constructing.unitName ," ",self.constructing.unitID)
+	self:EchoDebug(self.name, self.id," completed construction of ", self.constructing.unitName ,self.constructing.unitID)
+
 	self.constructing = nil
 end
 
@@ -123,29 +122,31 @@ end
 
 function TaskQueueBST:Priority()
 	if self.failOut then
-		return 0
-	elseif self.currentProject == nil then
 		return 50
+	elseif self.currentProject == nil  or self.role == 'expand' then
+		return 50
+	elseif self.role == 'eco' then
+		return 1000
 	else
 		return 75
 	end
 end
 
 function TaskQueueBST:Update()
-	if self.failOut then
-		local f = self.game:Frame()
-		if f > self.failOut + 300 then
-			-- game:SendToConsole("getting back to work " .. self.name .. " " .. self.id)
-			self.failOut = nil
-			self.failures = 0
-		end
+	local f = self.game:Frame()
+	if self.failOut and f > self.failOut + 3000 then
+		self:EchoDebug("getting back to work " .. self.name .. " " .. self.id)
+		self.failOut = false
+		self.fails = 0
+		self.progress = true
 	end
 	if not self:IsActive() then
 		return
 	end
-	local f = self.game:Frame()
+
 	-- watchdog POS
 	if not self.constructing then
+		self:EchoDebug('not constructing?')
 		if (self.lastWatchdogCheck + self.watchdogTimeout < f) or (self.currentProject == nil and (self.lastWatchdogCheck + 1 < f)) then
 			-- we're probably stuck doing nothing
 			local tmpOwnName = self.unit:Internal():Name() or "no-unit"
@@ -158,95 +159,185 @@ function TaskQueueBST:Update()
 			return
 		end
 	end
-	if self.progress == true then
+	if self.progress == true  and not self.failOut then
+		self:EchoDebug('progress update')
 		self:ProgressQueue()
 	end
 end
 
 function TaskQueueBST:CategoryEconFilter(cat,param,name)
-	self:EchoDebug(cat ,value,self.role, " (before econ filter)")
+	self:EchoDebug(cat ,name,self.role, " (before econ filter)")
 	if not name then return end
 	local M = self.ai.Metal
 	local E = self.ai.Energy
-	local eco = false
+	local check = false
 	if cat == 'factoryMobilities' then
-		eco =  M.income > 3 and E.income > 30
+		check =  M.income > 3 and E.income > 30
 	elseif cat == '_mex_' then
-		eco =   (M.full < 0.5 or M.income < 6) or self.role == 'expand'
+		check =   (M.full < 0.5 or M.income < 6) or self.role == 'expand'
 	elseif cat == '_nano_' then
-		eco =  (E.full > 0.5  and M.full > 0.3 and M.income > 10 and E.income > 100)
+		check =  (E.full > 0.3  and M.full > 0.3 and M.income > 10 and E.income > 100)
 	elseif cat == '_wind_' then
-		eco =   map:AverageWind() > 7 and ((E.full < 0.5 or E.income < E.usage )  or E.income < 30)
+		check =   map:AverageWind() > 7 and ((E.full < 0.5 or E.income < E.usage )  or E.income < 30)
 	elseif cat == '_tide_' then
-		eco =  map:TidalStrength() >= 10 and  ((E.full < 0.5 or E.income < E.usage )  or E.income < 30)
+		check =  map:TidalStrength() >= 10 and  ((E.full < 0.5 or E.income < E.usage )  or E.income < 30)
 	elseif cat == '_advsol_' then
-		eco =   ((E.full < 0.5 or E.income < E.usage )  and M.income > 12 and M.reserves > 100 )
+		check =   ((E.full < 0.5 or E.income < E.usage * 1.1 )  and( M.income > 15 and M.reserves > 100 ))
 	elseif cat == '_solar_' then
-		eco =   (E.full < 0.5 or E.income < E.usage )  or E.income < 30
+		check =   ((E.full < 0.5 or E.income < E.usage * 1.1 ) and  (M.income < 15 or M.reserves < 100))  or E.income < 30
 	elseif cat == '_estor_' then
-		eco =   E.full > 0.9 and E.income > 400  and M.reserves > 100 and E.capacity < 7000
+		check =   E.full > 0.8 and E.income > 400  and M.full > 0.1
 	elseif cat == '_mstor_' then
-		eco =   E.full > 0.5  and M.full > 0.3 and M.income > 10 and E.income > 100
+		check =   E.full > 0.5  and M.full > 0.75 and M.income > 20 and E.income > 200
 	elseif cat == '_convs_' then
-		eco =   E.income > E.usage * 1.1 and E.full > 0.9 and E.income > 200 and E.income  and M.full < 0.3
-	elseif cat == '_llt_' then
-		eco =   (E.income > 30 and M.income > 1 and M.full < 0.5)
-	elseif cat == '_popup1_' then
-		eco =   (E.income > 100 and M.income > 12 and M.full > 0.5)
-	elseif cat == '_specialt_' then
-		eco =   E.income > 40 and M.income > 4 and M.full > 0.1
-	elseif cat == '_heavyt_' then
-		eco =   E.income > 100 and M.income > 15 and M.full > 0.3
-	elseif cat == '_aa1_' then
-		eco =  E.full > 0.1 and E.full < 0.5 and M.income > 25 and E.income > 100
-	elseif cat == '_flak_' then
-		eco =  E.full > 0.1 and E.full < 0.5 and E.income > 2000
+		check =   E.income > E.usage * 1.1 and E.full > 0.9 and E.income > 200 and M.full < 0.7
 	elseif cat == '_fus_' then
-		eco =  (E.full < 0.6 or E.income < E.usage) or E.full < 0.3
-	elseif cat == '_popup2_' then
-		eco =  M.full > 0.2
-	elseif cat == '_jam_' then
-		eco =  M.full > 0.5 and M.income > 25 and E.income > 100
-	elseif cat == '_radar_' then
-		eco =  M.full > 0.5 and M.income > 6 and E.income > 50
+		check =  (E.full < 0.5 or E.income < E.usage) or E.full < 0.3
 	elseif cat == '_geo_' then
-		eco =  E.income > 100 and M.income > 15 and E.full > 0.3 and M.full > 0.3
-	elseif cat == '_silo_' then
-		eco =  E.income > 10000 and M.income > 100 and E.full > 0.8 and M.full > 0.5
-	elseif cat == '_antinuke_' then
-		eco =  E.income > 5000 and M.income > 75 and E.full > 0.6 and M.full > 0.3
+		check =  E.income > 100 and M.income > 15 and E.full > 0.3 and M.full > 0.2
+	elseif cat == '_jam_' then
+		check =  M.full > 0.5 and M.income > 50 and E.income > 500
+	elseif cat == '_radar_' then
+		check =  M.full > 0.1 and M.income > 9 and E.income > 50
 	elseif cat == '_sonar_' then
-		eco =  true
-	elseif cat == '_shield_' then
-		eco =  E.income > 8000 and M.income > 100 and E.full > 0.6 and M.full > 0.5
-	elseif cat == '_juno_' then
-		eco =  false
+		check =  M.full > 0.3 and M.income > 15 and E.income > 100
+
+	elseif cat == '_llt_' then
+		check =   (E.income > 5 and M.income > 1)
+	elseif cat == '_popup1_' then
+		check =   (E.income > 100 and M.income > 15 and M.full > 0.1 )
+	elseif cat == '_specialt_' then
+		check =   E.income > 40 and M.income > 4 and M.full > 0.1
+	elseif cat == '_heavyt_' then
+		check =   E.income > 100 and M.income > 15 and M.full > 0.3
+	elseif cat == '_popup2_' then
+		check =  M.full > 0.1
 	elseif cat == '_laser2_' then
-		eco =   E.income > 2000 and M.income > 50 and E.full > 0.5 and M.full > 0.3
-	elseif cat == '_lol_' then
-		eco =  E.income > 20000 and M.income > 200 and E.full > 0.8 and M.full > 0.8
+		check =   E.income > 2000 and M.income > 50 and E.full > 0.5 and M.full > 0.3
 	elseif cat == '_coast1_' then
-		eco =  false
+		check =  false
 	elseif cat == '_coast2_' then
-		eco =  false
+		check =  false
 	elseif cat == '_plasma_' then
-		eco =  E.income > 6000 and M.income > 120 and E.full > 0.8 and M.full > 0.5
+		check =  E.income > 6000 and M.income > 120 and E.full > 0.8 and M.full > 0.5
+	elseif cat == '_lol_' then
+		check =  E.income > 20000 and M.income > 200 and E.full > 0.8 and M.full > 0.5
+
 	elseif cat == '_torpedo1_' then
-		eco =  true
+		check =  (E.income > 20 and M.income > 2 and M.full < 0.5)
 	elseif cat == '_torpedo2_' then
-		eco =  true
+		check =  E.income > 100 and M.income > 15 and M.full > 0.2
 	elseif cat == '_torpedoground_' then
-		eco =  true
+		check =  false
+
+	elseif cat == '_aa1_' then
+		check =  E.full > 0.1 and E.full < 0.5 and M.income > 25 and E.income > 100
 	elseif cat == '_aabomb_' then
-		eco =  E.full > 0.5 and M.full > 0.5
+		check =  E.full > 0.5 and M.full > 0.5
+	elseif cat == '_flak_' then
+		check =  E.full > 0.1 and E.full < 0.5 and E.income > 2000
+
 	elseif cat == '_aaheavy_' then
-		eco =  E.income > 500 and M.income > 25 and E.full > 0.3 and M.full > 0.3
+		check =  E.income > 500 and M.income > 25 and E.full > 0.3 and M.full > 0.3
 	elseif cat == '_aa2_' then
-		eco =  E.income > 7000 and M.income > 100 and E.full > 0.3 and M.full > 0.3
+		check =  E.income > 7000 and M.income > 100 and E.full > 0.3 and M.full > 0.3
+	elseif cat == '_silo_' then
+		check =  E.income > 10000 and M.income > 100 and E.full > 0.8 and M.full > 0.5
+	elseif cat == '_antinuke_' then
+		check =  E.income > 5000 and M.income > 75 and E.full > 0.6 and M.full > 0.3
+	elseif cat == '_shield_' then
+		check =  E.income > 8000 and M.income > 100 and E.full > 0.6 and M.full > 0.5
+	elseif cat == '_juno_' then
+		check =  false
 	else
 		self:EchoDebug('economi category not handled')
 	end
-	if eco then return name end
+	if check then return name end
+end
+
+function TaskQueueBST:specialFilter(cat,param,name)
+	self:EchoDebug(cat ,value,self.role, " (before special filter)")
+	if not name then return end
+	local tasks = self.ai.taskshst
+	local check = false
+	if cat == 'factoryMobilities' then
+		check =  true
+	elseif cat == '_mex_' then
+		check =  true
+	elseif cat == '_nano_' then
+		check =  true
+	elseif cat == '_wind_' then
+		check =   true
+	elseif cat == '_tide_' then
+		check =  true
+	elseif cat == '_advsol_' then
+		check =  true
+	elseif cat == '_solar_' then
+		check =  true
+	elseif cat == '_estor_' then
+		check = true
+	elseif cat == '_mstor_' then
+		check = true
+	elseif cat == '_convs_' then
+		check = true
+	elseif cat == '_llt_' then
+		check = true
+	elseif cat == '_popup1_' then
+		check = true
+	elseif cat == '_specialt_' then
+		check = true
+	elseif cat == '_heavyt_' then
+		check =  true
+	elseif cat == '_fus_' then
+		check = true
+	elseif cat == '_popup2_' then
+		check =  true
+	elseif cat == '_jam_' then
+		check = true
+	elseif cat == '_radar_' then
+		check = true
+	elseif cat == '_geo_' then
+		check = true
+	elseif cat == '_silo_' then
+		check = true
+	elseif cat == '_antinuke_' then
+		check = true
+	elseif cat == '_sonar_' then
+		check =  true
+	elseif cat == '_shield_' then
+		check = tasks.needShields
+	elseif cat == '_juno_' then
+		check =  false
+	elseif cat == '_laser2_' then
+		check = true
+	elseif cat == '_lol_' then
+		check = true
+	elseif cat == '_coast1_' then
+		check =  false
+	elseif cat == '_coast2_' then
+		check =  false
+	elseif cat == '_plasma_' then
+		check =  true
+	elseif cat == '_torpedo1_' then
+		check =  true
+	elseif cat == '_torpedo2_' then
+		check =  true
+	elseif cat == '_torpedoground_' then
+		check =  true
+	elseif cat == '_aa1_' then
+		check =  self.ai.needAirDefense
+	elseif cat == '_flak_' then
+		check = self.ai.needAirDefense
+	elseif cat == '_aabomb_' then
+		check = self.ai.needAirDefense
+	elseif cat == '_aaheavy_' then
+		check = true
+	elseif cat == '_aa2_' then
+		check = true
+	else
+		self:EchoDebug('special filter not handled')
+	end
+	if check then return name end
 end
 
 function TaskQueueBST:GetAmpOrGroundWeapon()
@@ -272,15 +363,15 @@ function TaskQueueBST:findPlace(utype, value,cat)
 	local builderPos = builder:GetPosition()
 	local army = self.ai.armyhst
 	local site = self.ai.buildsitehst
-
 	if cat == 'factoryMobilities' then
 		POS =  site:BuildNearLastNano(builder, utype) or
 				site:searchPosNearThing(utype, builder,'isNano',400, nil,100) or
 				site:searchPosNearThing(utype, builder,'isFactory',1000, nil,100) or
-				site:searchPosNearThing(utype, builder,'extractsMetal',nil, 'radarRadius',20)
+				site:searchPosNearThing(utype, builder,nil,1000, nil,100,'_llt_')
+-- 				site:searchPosNearThing(utype, builder,'extractsMetal',nil, 'radarRadius',20)
 	elseif cat == '_mex_' then
 		local uw
-		POS, uw, reclaimEnemyMex = self.ai.maphst:ClosestFreeSpot(utype, builder,site:ClosestHighestLevelFactory(builder:GetPosition(), 999999999))
+		POS, uw, reclaimEnemyMex = self.ai.maphst:ClosestFreeSpot(utype, builder)
 		if POS  then
 			if reclaimEnemyMex then
 				value = {"ReclaimEnemyMex", reclaimEnemyMex}
@@ -294,7 +385,6 @@ function TaskQueueBST:findPlace(utype, value,cat)
 			end
 		end
 	elseif cat == '_nano_' then
-		-- build nano turrets next to a factory near you
 		self:EchoDebug("looking for factory for nano")
 		local currentLevel = 0
 		local target = nil
@@ -339,10 +429,11 @@ function TaskQueueBST:findPlace(utype, value,cat)
 				site:searchPosNearThing(utype, builder,'isFactory',1000, nil,100) or
 				site:ClosestBuildSpot(builder, builderPos, utype)
 	elseif cat == '_fus_' then
-		POS = site:searchPosNearThing(utype, builder,'isNano',500, nil,50) or
-				site:searchPosNearThing(utype, builder,'isFactory',1000, nil,100) or
-				site:ClosestBuildSpot(builder, builderPos, utype) or
-				site:BuildNearLastNano(builder, utype)
+		POS = site:searchPosNearThing(utype, builder,'isNano',350, nil,50) or
+				site:BuildNearLastNano(builder, utype) or
+				site:searchPosNearThing(utype, builder,'isFactory',390, nil,0) or
+				site:ClosestBuildSpot(builder, builderPos, utype)
+
 	elseif cat == '_estor_' then
 		POS = site:searchPosNearThing(utype, builder,'isNano',500, nil,300) or
 				site:searchPosNearThing(utype, builder,'isFactory',1000, nil,300) or
@@ -352,27 +443,26 @@ function TaskQueueBST:findPlace(utype, value,cat)
 				site:searchPosNearThing(utype, builder,'isFactory',1000, nil,300) or
 				site:ClosestBuildSpot(builder, builderPos, utype)
 	elseif cat == '_convs_' then
-		POS = site:searchPosNearThing(utype, builder,'isNano',500, nil,200) or
+		POS = site:searchPosNearThing(utype, builder,'isNano',350, nil,200) or
 				site:searchPosNearThing(utype, builder,'isFactory',1000, nil,200) or
 				site:ClosestBuildSpot(builder, builderPos, utype)
 	elseif cat == '_llt_' then
 		POS = site:searchPosNearThing(utype, builder,'extractsMetal',nil, 'losRadius',20)
 	elseif cat == '_popup1_' then
-		POS = site:searchPosNearThing(utype, builder,'extractsMetal',nil, 'losRadius',20)
+		POS = site:searchPosNearThing(utype, builder,'extractsMetal',nil, 'losRadius',20) or
+				site:searchPosInList(self.map:GetMetalSpots(),utype, builder,200, 20)
 	elseif cat == '_specialt_' then
-		POS = site:searchPosNearThing(utype, builder,'isFactory',500, 300,300)
+		POS = site:searchPosInList(self.ai.hotSpot,utype, builder, 400,200)
 	elseif cat == '_heavyt_' then
-		POS = site:searchPosInList(self.ai.hotSpot,utype, builder, 'losRadius',0)
-	elseif cat == '_aa1_' then
-		POS = site:searchPosNearThing(utype, builder,'extractsMetal',nil, 'losRadius',20)
-	elseif cat == '_flak_' then
-		POS = site:searchPosNearThing(utype, builder,'extractsMetal',nil, 'losRadius',20)
+		POS = site:searchPosInList(self.ai.hotSpot,utype, builder, 400,200)
 	elseif cat == '_popup2_' then
-		POS = site:searchPosNearThing(utype, builder,'extractsMetal',nil, 'losRadius',20)
+		POS = site:searchPosNearThing(utype, builder,'extractsMetal',nil, 'losRadius',20) or
+		site:searchPosInList(self.map:GetMetalSpots(),utype, builder, 200,20)
 	elseif cat == '_jam_' then
 		POS =  site:searchPosNearThing(utype, builder,'isFactory',nil, 200,200)
 	elseif cat == '_radar_' then
-		POS = site:searchPosNearThing(utype, builder,'extractsMetal',nil, 'losRadius',20)
+		POS = site:searchPosNearThing(utype, builder,'extractsMetal',nil, 'losRadius',20) or
+				site:searchPosInList(self.map:GetMetalSpots(),utype, builder,200,20)
 	elseif cat == '_geo_' then
 		POS =  self.ai.maphst:ClosestFreeGeo(utype, builder)
 	elseif cat == '_silo_' then
@@ -380,26 +470,28 @@ function TaskQueueBST:findPlace(utype, value,cat)
 	elseif cat == '_antinuke_' then
 		POS =  site:searchPosNearThing(utype, builder,'isFactory',nil, 500,500)
 	elseif cat == '_sonar_' then
-		POS = site:searchPosNearThing(utype, builder,'extractsMetal',nil, 'losRadius',20)
+		POS = site:searchPosNearThing(utype, builder,'extractsMetal',nil, 'losRadius',20) or
+		site:searchPosInList(self.map:GetMetalSpots(),utype, builder, 200,20)
 	elseif cat == '_shield_' then
 		POS =  site:searchPosNearThing(utype, builder,'isFactory',nil, 500,500)
 	elseif cat == '_juno_' then
 		POS =  site:searchPosNearThing(utype, builder,'isFactory',nil, 500,500)
 	elseif cat == '_laser2_' then
-		POS =   site:searchPosNearThing(utype, builder,'isFactory',nil, 1000,500) or
-				site:searchPosInList(self.ai.hotSpot,utype, builder, 'losRadius',0)
+		POS =   site:searchPosNearThing(utype, builder,'isFactory',nil, 1000,500)
 	elseif cat == '_lol_' then
 		POS =  site:searchPosNearThing(utype, builder,'isFactory',nil, 1000,1000)
 	elseif cat == '_coast1_' then
-		POS = site:searchPosInList(self.ai.turtlehst:LeastTurtled(builder, value),utype, builder, 'losRadius',0)
+		POS = site:searchPosInList(self.ai.turtlehst:LeastTurtled(builder, value),utype, builder, 200,20)
 	elseif cat == '_coast2_' then
-		POS = site:searchPosInList(self.ai.turtlehst:LeastTurtled(builder, value),utype, builder, 'losRadius',0)
+		POS = site:searchPosInList(self.ai.turtlehst:LeastTurtled(builder, value),utype, builder, 200,20)
 	elseif cat == '_plasma_' then
 		POS =  site:searchPosNearThing(utype, builder,'isFactory',nil, 500,500)
 	elseif cat == '_torpedo1_' then
-		POS = site:searchPosNearThing(utype, builder,'extractsMetal',nil, 'losRadius',20)
+		POS = site:searchPosNearThing(utype, builder,'extractsMetal',nil, 'losRadius',20) or
+		site:searchPosInList(self.map:GetMetalSpots(),utype, builder, 200,20)
 	elseif cat == '_torpedo2_' then
-		POS = site:searchPosNearThing(utype, builder,'extractsMetal',nil, 'losRadius',20)
+		POS = site:searchPosNearThing(utype, builder,'extractsMetal',nil, 'losRadius',20) or
+				site:searchPosInList(self.map:GetMetalSpots(),utype, builder, 400,20)
 	elseif cat == '_torpedoground_' then
 		POS = site:searchPosNearThing(utype, builder,'extractsMetal',nil, 'losRadius',20)
 	elseif cat == '_aabomb_' then
@@ -409,8 +501,14 @@ function TaskQueueBST:findPlace(utype, value,cat)
 		POS = site:searchPosNearThing(utype, builder,'isFactory',nil, 400,400)
 	elseif cat == '_aa2_' then
 		POS =  site:searchPosNearThing(utype, builder,'isFactory',nil, 500,500)
+	elseif cat == '_aa1_' then
+		POS = site:searchPosNearThing(utype, builder,'extractsMetal',nil, 'losRadius',20) or
+				site:searchPosInList(self.map:GetMetalSpots(),utype, builder, 200,20)
+	elseif cat == '_flak_' then
+		POS = site:searchPosNearThing(utype, builder,'extractsMetal',nil, 'losRadius',20) or
+				site:searchPosInList(self.map:GetMetalSpots(),utype, builder,'losRadius',20)
 	else
-		self:EchoDebug(' cant find a place for ',value,cat)
+		self:EchoDebug(' cant manage POS for ',value,cat)
 	end
 	if POS then
 		self:EchoDebug('found pos for .. ' ,value)
@@ -423,12 +521,13 @@ end
 
 
 function TaskQueueBST:limitedNumber(name,number)
-	self:EchoDebug(number,'limited for ',name)
 	if not name then return end
+	self:EchoDebug(number,'limited for ',name)
 	local team = game:GetTeamID()
 	local id = self.ai.armyhst.unitTable[name].defId
 	local counter = game:GetTeamUnitDefCount(team,id)
 	if counter < number then
+		self:EchoDebug('limited OK',name)
 		return name
 	end
 	self:EchoDebug('limited stop',name)
@@ -458,20 +557,20 @@ function TaskQueueBST:getOrder(builder,params)
 end
 
 function TaskQueueBST:GetQueue()
-	self.unit:ElectBehaviour()
+-- 	self.unit:ElectBehaviour()
 	local buildersRole = self.ai.armyhst.buildersRole
 	local team = game:GetTeamID()
 	local id = self.ai.armyhst.unitTable[self.name].defId
 	local counter = game:GetTeamUnitDefCount(team,id)
 	if self.role then
 		return self.ai.taskshst.roles[self.role]
-	elseif self.name == 'corcom' or self.name == 'armcom' then
+	elseif self.isCommander then
 		table.insert(buildersRole.default[self.name], self.id)
 		self.role = 'default'
 	elseif #buildersRole.eco[self.name] < 1 then
 		table.insert(buildersRole.eco[self.name], self.id)
 		self.role = 'eco'
-	elseif #buildersRole.expand[self.name] < 2 then
+	elseif #buildersRole.expand[self.name] < 1 then
 		self.role = 'expand'
 		table.insert(buildersRole.expand[self.name], self.id)
 	elseif #buildersRole.default[self.name] < 1 then
@@ -480,6 +579,19 @@ function TaskQueueBST:GetQueue()
 	elseif #buildersRole.support[self.name] < 1 then
 		table.insert(buildersRole.support[self.name], self.id)
 		self.role = 'support'
+	elseif #buildersRole.eco[self.name] < 2 then
+		table.insert(buildersRole.eco[self.name], self.id)
+		self.role = 'eco'
+	elseif #buildersRole.expand[self.name] < 2 then
+		self.role = 'expand'
+		table.insert(buildersRole.expand[self.name], self.id)
+
+	elseif #buildersRole.support[self.name] < 2 then
+		table.insert(buildersRole.support[self.name], self.id)
+		self.role = 'support'
+	elseif #buildersRole.default[self.name] < 2 then
+		table.insert(buildersRole.default[self.name], self.id)
+		self.role = 'default'
 	else
 		table.insert(buildersRole.expand[self.name], self.id)
 		self.role ='expand'
@@ -489,10 +601,11 @@ function TaskQueueBST:GetQueue()
 end
 
 function TaskQueueBST:ProgressQueue()
-	self:EchoDebug(self.name .. " " .. self.id .. " progress queue")
+	self:EchoDebug(self.name," progress queue")
 	self.lastWatchdogCheck = self.game:Frame()
 	self.constructing = false
 	self.progress = false
+	self.ai.buildsitehst:ClearMyPlans(self)
 	local builder = self.unit:Internal()
 	local idx, val = next(self.queue,self.idx)
 	self:EchoDebug(idx , val)
@@ -500,11 +613,11 @@ function TaskQueueBST:ProgressQueue()
 	if idx == nil then
 		self.queue = self:GetQueue(name)
 		self.progress = true
+
 		return
 	end
 	local utype = nil
 	local value = val
-	self:EchoDebug('here start with queue')
 	local utype = nil
 	local p
 	local value = self:getOrder(builder,val)
@@ -519,7 +632,6 @@ function TaskQueueBST:ProgressQueue()
 			value = self:limitedNumber(value, val[4])
 		end
 		if val[3] then
-			self:EchoDebug("before duplicate filter ", value)
 			if self.ai.buildsitehst:CheckForDuplicates(value) then
 				value = nil
 			end
@@ -528,7 +640,9 @@ function TaskQueueBST:ProgressQueue()
 			self:EchoDebug("before eco filter ", value)
 			value = self:CategoryEconFilter(val[1],val[2],value)
 		end
-		self:EchoDebug(value, " after filters")
+		if val[6] and value then
+			self:specialFilter(val[1],val[6],value)
+		end
 		if value  then
 			utype = game:GetTypeByName(value)
 		end
@@ -543,7 +657,6 @@ function TaskQueueBST:ProgressQueue()
 			return
 		end
 		if value and utype and not p then
-			self:EchoDebug('p',p)
 			utype, value, p = self:findPlace(utype, value,val[1])
 			self:EchoDebug('p',p)
 		end
@@ -559,27 +672,126 @@ function TaskQueueBST:ProgressQueue()
 			end
 		end
 		if success then
-			self:EchoDebug(self.name .. " " .. self.id .. " successful build command for " .. utype:Name())
+			self:EchoDebug(self.name , " successful build command for ", utype:Name())
 			self.target = p
 			self.watchdogTimeout = math.max(self.ai.tool:Distance(self.unit:Internal():GetPosition(), p) * 1.5, 360)
 			self.currentProject = value
+			self.fails = 0
+			self.failOut = false
 			self.progress = false
-			self.failures = 0
 			if value == "ReclaimEnemyMex" then
 				self.watchdogTimeout = self.watchdogTimeout + 450 -- give it 15 more seconds to reclaim it
 			end
 		else
 			self.target = nil
 			self.currentProject = nil
-			self.progress = true
-			self.failures = (self.failures or 0) + 1
-			local limit = 20
-			if self.queue then limit = #self.queue * 2 end
-			if self.failures > limit then
-				-- game:SendToConsole("taking a break after " .. limit .. " tries. " .. self.name .. " " .. self.id)
+			self.fails = self.fails + 1
+			if self.fails >  #self.queue *2 then
 				self.failOut = self.game:Frame()
+				self.progress = false
 				self.unit:ElectBehaviour()
 			end
+			if self.role == 'eco' then
+				local unitsNear = game:getUnitsInCylinder(self.unit:Internal():GetPosition(), 5000)
+				for idx, typeDef in pairs(unitsNear) do
+					local unitNear = self.game:GetUnitByID(typeDef)
+					local unitNearName = unitNear:Name()
+					if self.ai.armyhst.factoryMobilities[unitNearName] then
+						self.unit:Internal():Guard(typeDef)
+						break
+					end
+				end
+			end
+
 		end
 	end
 end
+
+
+--[[
+    function TaskQueueBST:specialFilter(cat,param,name)
+   self:EchoDebug(cat ,value,self.role, " (before econ filter)")
+   if not name then return end
+   local tasks = self.ai.taskshst
+   local eco = false
+   if cat == 'factoryMobilities' then
+   eco =  true
+   elseif cat == '_mex_' then
+   eco =  true
+   elseif cat == '_nano_' then
+   eco =  true
+   elseif cat == '_wind_' then
+   eco =   true
+   elseif cat == '_tide_' then
+   eco =  true
+   elseif cat == '_advsol_' then
+   eco =  true
+   elseif cat == '_solar_' then
+   eco =  true
+   elseif cat == '_estor_' then
+   eco = true
+   elseif cat == '_mstor_' then
+   eco = true
+   elseif cat == '_convs_' then
+   eco = true
+   elseif cat == '_llt_' then
+   eco = true
+   elseif cat == '_popup1_' then
+   eco = true
+   elseif cat == '_specialt_' then
+   eco = true
+   elseif cat == '_heavyt_' then
+   eco =  true
+   elseif cat == '_aa1_' then
+   eco =  true
+   elseif cat == '_flak_' then
+   eco = true
+   elseif cat == '_fus_' then
+   eco = true
+   elseif cat == '_popup2_' then
+   eco =  M.full > 0.2
+   elseif cat == '_jam_' then
+   eco = true
+   elseif cat == '_radar_' then
+   eco = true
+   elseif cat == '_geo_' then
+   eco = true
+   elseif cat == '_silo_' then
+   eco = true
+   elseif cat == '_antinuke_' then
+   eco = true
+   elseif cat == '_sonar_' then
+   eco =  true
+   elseif cat == '_shield_' then
+   eco = true
+   elseif cat == '_juno_' then
+   eco =  false
+   elseif cat == '_laser2_' then
+   eco = true
+   elseif cat == '_lol_' then
+   eco = true
+   elseif cat == '_coast1_' then
+   eco =  false
+   elseif cat == '_coast2_' then
+   eco =  false
+   elseif cat == '_plasma_' then
+   eco =  true
+   elseif cat == '_torpedo1_' then
+   eco =  true
+   elseif cat == '_torpedo2_' then
+   eco =  true
+   elseif cat == '_torpedoground_' then
+   eco =  true
+   elseif cat == '_aabomb_' then
+   eco = true
+   elseif cat == '_aaheavy_' then
+   eco = true
+   elseif cat == '_aa2_' then
+   eco = true
+   else
+   self:EchoDebug('economi category not handled')
+   end
+   if eco then return name end
+   end
+
+   ]]
