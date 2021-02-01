@@ -62,12 +62,16 @@ local enabled = true
 
 local isBuilder = {}
 local isFactory = {}
+local unitBuildPic = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.buildSpeed > 0 and unitDef.buildOptions[1] then
 		isBuilder[unitDefID] = true
 	end
 	if unitDef.isFactory then
 		isFactory[unitDefID] = true
+	end
+	if unitDef.buildpicname then
+		unitBuildPic[unitDefID] = unitDef.buildpicname
 	end
 end
 
@@ -276,35 +280,38 @@ local function DrawUnitIcons(number)
 				unitID = unitID[1]
 			end
 
-			local iconPadding = math.floor(ICON_SIZE*0.05)
-			if ct-1 == iconNum then
-				iconPadding = math.floor(ICON_SIZE*0.02)
-			end
+			local unitDefID = GetUnitDefID(unitID)
+			if unitBuildPic[unitDefID] then
+				local iconPadding = math.floor(ICON_SIZE*0.05)
+				if ct-1 == iconNum then
+					iconPadding = math.floor(ICON_SIZE*0.02)
+				end
 
-			X1 = math.floor(X_MIN + (ICON_SIZE * (ct - 1)))
-			X2 = math.floor(X1 + ICON_SIZE)
+				X1 = math.floor(X_MIN + (ICON_SIZE * (ct - 1)))
+				X2 = math.floor(X1 + ICON_SIZE)
 
-			glColor(1,1,1,1)
-			UiUnit(X1+iconPadding, Y_MIN+iconPadding, X2-iconPadding, Y_MAX-iconPadding,
-				math.ceil(bgpadding*0.5), 1,1,1,1,
-				0.05,
-				nil, nil,
-				':lr'..math.floor(ICON_SIZE*1.5)..','..math.floor(ICON_SIZE*1.5)..':unitpics/'..UnitDefs[GetUnitDefID(unitID)].buildpicname
-			)
+				glColor(1,1,1,1)
+				UiUnit(X1+iconPadding, Y_MIN+iconPadding, X2-iconPadding, Y_MAX-iconPadding,
+					math.ceil(bgpadding*0.5), 1,1,1,1,
+					0.05,
+					nil, nil,
+					':lr'..math.floor(ICON_SIZE*1.5)..','..math.floor(ICON_SIZE*1.5)..':unitpics/'..unitBuildPic[unitDefID]
+				)
 
-			if CONDENSE then
-				local NumberCondensed = table.getn(drawTable[ct][2])
-				if NumberCondensed > 1 then
+				if CONDENSE then
+					local NumberCondensed = table.getn(drawTable[ct][2])
+					if NumberCondensed > 1 then
+						font:Begin()
+						font:Print(NumberCondensed, X1+math.floor(ICON_SIZE*0.1), Y_MIN+math.floor(ICON_SIZE*0.13), 12 * sizeMultiplier, "o")
+						font:End()
+					end
+				end
+
+				if ValidUnitID(unitID) and QCount[unitID] then
 					font:Begin()
-					font:Print(NumberCondensed, X1+math.floor(ICON_SIZE*0.1), Y_MIN+math.floor(ICON_SIZE*0.13), 12 * sizeMultiplier, "o")
+					font:Print(QCount[unitID], X1 + (0.5 * ICON_SIZE), Y_MIN, 14 * sizeMultiplier, "ocn")
 					font:End()
 				end
-			end
-
-			if ValidUnitID(unitID) and QCount[unitID] then
-				font:Begin()
-				font:Print(QCount[unitID], X1 + (0.5 * ICON_SIZE), Y_MIN, 14 * sizeMultiplier, "ocn")
-				font:End()
 			end
 		end
 	end
