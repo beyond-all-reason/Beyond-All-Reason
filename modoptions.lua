@@ -335,8 +335,8 @@ local options={
 	},
 	{
 		key    = 'scavinitialbonuscommander',
-		name   = 'Bonus Starter Commander (Spawns additional commander of opposite faction for every player, together with a few constructors)',
-		desc   = 'Spawns additional commander of opposite faction for every player, together with a few constructors',
+		name   = 'Bonus Starter Constructors',
+		desc   = 'Spawns additional constructors on game start',
 		type   = 'list',
 		section = 'options_scavengers',
 		def  = "enabled",

@@ -201,30 +201,30 @@ function SpawnBonusCommander(unitID, unitName, unitTeam)
 		if posy >= 0 then
 			Spring.SetUnitPosition(unitID, posx-32, posz)
 			if unitName == "armcom" then
-				Spring.CreateUnit("corcv", posx+32, posy+48, posz-48, 1, unitTeam)
-				Spring.CreateUnit("corck", posx+32, posy+48, posz+48, 1, unitTeam)
-				Spring.CreateUnit("corcom", posx+32, posy+48, posz, 0, unitTeam)
+				Spring.CreateUnit("armcv", posx+32, posy+48, posz-48, 1, unitTeam)
+				Spring.CreateUnit("armck", posx+32, posy+48, posz+48, 1, unitTeam)
+				Spring.CreateUnit("armdecom", posx+32, posy+48, posz, 0, unitTeam)
 				Spring.CreateUnit("armcv", posx-32, posy+48, posz-48, 3, unitTeam)
 				Spring.CreateUnit("armck", posx-32, posy+48, posz+48, 3, unitTeam)
 			elseif unitName == "corcom" then
-				Spring.CreateUnit("armcv", posx+32, posy+48, posz-48, 1, unitTeam)
-				Spring.CreateUnit("armck", posx+32, posy+48, posz+48, 1, unitTeam)
-				Spring.CreateUnit("armcom", posx+32, posy+48, posz, 0, unitTeam)
+				Spring.CreateUnit("corcv", posx+32, posy+48, posz-48, 1, unitTeam)
+				Spring.CreateUnit("corck", posx+32, posy+48, posz+48, 1, unitTeam)
+				Spring.CreateUnit("codecom", posx+32, posy+48, posz, 0, unitTeam)
 				Spring.CreateUnit("corcv", posx-32, posy+48, posz-48, 3, unitTeam)
 				Spring.CreateUnit("corck", posx-32, posy+48, posz+48, 3, unitTeam)
 			end
 		else
 			Spring.SetUnitPosition(unitID, posx-32, posz)
 			if unitName == "armcom" then
-				Spring.CreateUnit("corca", posx+32, posy+48, posz-48, 1, unitTeam)
-				Spring.CreateUnit("corcs", posx+32, posy+48, posz+48, 1, unitTeam)
-				Spring.CreateUnit("corcom", posx+32, posy+48, posz, 0, unitTeam)
+				Spring.CreateUnit("armca", posx+32, posy+48, posz-48, 1, unitTeam)
+				Spring.CreateUnit("armcs", posx+32, posy+48, posz+48, 1, unitTeam)
+				Spring.CreateUnit("armdecom", posx+32, posy+48, posz, 0, unitTeam)
 				Spring.CreateUnit("armca", posx-32, posy+48, posz-48, 3, unitTeam)
 				Spring.CreateUnit("armcs", posx-32, posy+48, posz+48, 3, unitTeam)
 			elseif unitName == "corcom" then
-				Spring.CreateUnit("armca", posx+32, posy+48, posz-48, 1, unitTeam)
-				Spring.CreateUnit("armcs", posx+32, posy+48, posz+48, 1, unitTeam)
-				Spring.CreateUnit("armcom", posx+32, posy+48, posz, 0, unitTeam)
+				Spring.CreateUnit("corca", posx+32, posy+48, posz-48, 1, unitTeam)
+				Spring.CreateUnit("corcs", posx+32, posy+48, posz+48, 1, unitTeam)
+				Spring.CreateUnit("cordecom", posx+32, posy+48, posz, 0, unitTeam)
 				Spring.CreateUnit("corca", posx-32, posy+48, posz-48, 3, unitTeam)
 				Spring.CreateUnit("corcs", posx-32, posy+48, posz+48, 3, unitTeam)
 			end
