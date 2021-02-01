@@ -28,6 +28,9 @@ local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity", 0.6) or 0.66)
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
 
 local ICON_SIZE = iconsize * (1 + (ui_scale - 1) / 1.5)
+local texts = {
+	idle = 'Idle',
+}
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
@@ -63,6 +66,7 @@ local enabled = true
 local isBuilder = {}
 local isFactory = {}
 local unitBuildPic = {}
+local unitHumanName = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.buildSpeed > 0 and unitDef.buildOptions[1] then
 		isBuilder[unitDefID] = true
@@ -72,6 +76,9 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	end
 	if unitDef.buildpicname then
 		unitBuildPic[unitDefID] = unitDef.buildpicname
+	end
+	if unitDef.humanName then
+		unitHumanName[unitDefID] = unitDef.humanName
 	end
 end
 
@@ -161,6 +168,11 @@ function widget:PlayerChanged(playerID)
 end
 
 function widget:Initialize()
+
+	if WG['lang'] then
+		texts = WG['lang'].getText('idlebuilders')
+	end
+
 	widget:ViewResize()
 	widget:PlayerChanged()
 	enabled = true
@@ -495,11 +507,16 @@ function widget:DrawScreen()
 		if not WG['topbar'] or not WG['topbar'].showingQuit() then
 			local icon = MouseOverIcon(x, y)
 			if icon >= 0 then
-
-				if lb or mb or rb then
-					DrawIconQuad(icon, { 0.5, 0.2, 0, 0.5 }, 1.1)
+				if WG['tooltip'] then
+					local unitDefID = drawTable[icon + 1][1]
+					WG['tooltip'].ShowTooltip('idlebuilders', texts.idle..' '..unitHumanName[unitDefID])
+				end
+				if lb then
+					DrawIconQuad(icon, { 0.7, 0.7, 0, 0.6 }, 1.1)
+				elseif rb then
+					DrawIconQuad(icon, { 0.6, 0.3, 0, 0.6 }, 1.1)
 				else
-					DrawIconQuad(icon, { 0, 0, 0.1, 0.4 }, 1.1)
+					DrawIconQuad(icon, { 0, 0, 0.1, 0.45 }, 1.1)
 				end
 			end
 		end

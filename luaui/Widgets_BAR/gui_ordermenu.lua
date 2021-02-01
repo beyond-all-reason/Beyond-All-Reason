@@ -154,11 +154,6 @@ local fontFile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.
 local barGlowCenterTexture = ":l:LuaUI/Images/barglow-center.png"
 local barGlowEdgeTexture = ":l:LuaUI/Images/barglow-edge.png"
 
-local backgroundTexture = "LuaUI/Images/backgroundtile.png"
-local ui_tileopacity = tonumber(Spring.GetConfigFloat("ui_tileopacity", 0.012) or 0.012)
-local bgtexScale = tonumber(Spring.GetConfigFloat("ui_tilescale", 7) or 7)	-- lower = smaller tiles
-local bgtexSize
-
 local sound_button = 'LuaUI/Sounds/buildbar_waypoint.wav'
 
 local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity", 0.6) or 0.66)
@@ -412,8 +407,6 @@ function widget:ViewResize()
 			posX = 0
 		end
 	end
-
-	bgtexSize = bgpadding * bgtexScale
 
 	backgroundRect = { posX * vsx, (posY - height) * vsy, (posX + width) * vsx, posY * vsy }
 	local activeBgpadding = math_floor((bgpadding * 1.4) + 0.5)
