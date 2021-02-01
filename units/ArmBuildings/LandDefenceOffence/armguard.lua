@@ -1,6 +1,7 @@
 return {
 	armguard = {
 		acceleration = 0,
+		activatewhenbuilt = true,
 		brakerate = 0,
 		buildangle = 8192,
 		buildcostenergy = 12500,
@@ -21,7 +22,6 @@ return {
 		explodeas = "mediumBuildingExplosionGeneric",
 		footprintx = 4,
 		footprintz = 4,
-		hightrajectory = 2,
 		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
@@ -31,6 +31,7 @@ return {
 		name = "Guardian",
 		nochasecategory = "MOBILE",
 		objectname = "Units/ARMGUARD.s3o",
+		onoffable = true,
 		script = "Units/ARMGUARD.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumBuildingExplosionGenericSelfd",
@@ -40,7 +41,7 @@ return {
 		customparams = {
 			model_author = "Beherith",
 			normaltex = "unittextures/Arm_normal.dds",
-			removewait = true,
+			onoffname = "traj",
 			subfolder = "armbuildings/landdefenceoffence",
 		},
 		featuredefs = {
@@ -122,7 +123,7 @@ return {
 		weapondefs = {
 			plasma = {
 				accuracy = 75,
-				areaofeffect = 128,
+				areaofeffect = 100,
 				avoidfeature = false,
 				cegtag = "arty-medium",
 				craterboost = 0,
@@ -136,7 +137,7 @@ return {
 				name = "Heavy g2g long range plasma cannon",
 				noselfdamage = true,
 				range = 1220,
-				reloadtime = 2.9,
+				reloadtime = 2.85,
 				soundhit = "xplomed2",
 				soundhitwet = "splsmed",
 				soundstart = "cannhvy5",
@@ -145,11 +146,11 @@ return {
 				weaponvelocity = 450,
 				damage = {
 					bombers = 90,
-					commanders = 550,
-					default = 250,
+					commanders = 300,
+					default = 300,
 					fighters = 90,
-					hvyboats = 630,
-					lboats = 630,
+					hvyboats = 300,
+					lboats = 300,
 					subs = 90,
 					vtol = 90,
 				},
@@ -165,6 +166,7 @@ return {
 				edgeeffectiveness = 0.65,
 				explosiongenerator = "custom:genericshellexplosion-medium",
 				gravityaffected = "true",
+				hightrajectory = 1,
 				impulseboost = 0.123,
 				impulsefactor = 1.4,
 				--model = "artshell-medium.s3o",
@@ -181,25 +183,25 @@ return {
 				weaponvelocity = 440,
 				damage = {
 					bombers = 90,
-					commanders = 950,
-					default = 550,
+					commanders = 600,
+					default = 600,
 					fighters = 90,
-					hvyboats = 1100,
-					lboats = 1100,
+					hvyboats = 600,
+					lboats = 600,
 					subs = 90,
 					vtol = 90,
 				},
 			},
 		},
 		weapons = {
-			[1] = {
+			[2] = {
 				badtargetcategory = "VTOL",
 				def = "PLASMA",
 				maindir = "0 1 0",
 				maxangledif = 230,
 				onlytargetcategory = "SURFACE",
 			},
-			[2] = {
+			[1] = {
 				def = "PLASMA_HIGH",
 				onlytargetcategory = "SURFACE",
 			},

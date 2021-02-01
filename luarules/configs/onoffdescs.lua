@@ -19,4 +19,9 @@ cmdArray = {
 		tooltip     = "Switches between Active/Armored Modes" ,
 		params      = { '1', "Armored", "Active" }
 	},
+	traj = {
+		name        = "Low Trajectory/High Trajectory",
+		tooltip     = "Switches between Low and High Trajectory" ,
+		params      = { '1', "High Trajectory", "Low Trajectory" }
+	},
 }
