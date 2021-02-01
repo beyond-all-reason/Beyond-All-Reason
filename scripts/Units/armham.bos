@@ -461,8 +461,8 @@ AimPrimary(heading, pitch)
 {
         start-script RequestState(0);
         signal SIG_AIM;
-        turn aimy1 to y-axis heading speed <220.000000>;
-        turn aimx1 to x-axis <0.000000> - pitch speed <65.000000>;
+        turn aimy1 to y-axis heading speed <140>;
+        turn aimx1 to x-axis <0.000000> - pitch speed <50>;
         while( !Static_Var_4 )
         {
             return(0);

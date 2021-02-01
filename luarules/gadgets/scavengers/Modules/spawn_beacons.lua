@@ -6,7 +6,7 @@ for i = 1,#UnitLists do
 end
 
 function SpawnBeacon(n)
-	if n and n > 7200 then
+	if n and n > scavconfig.gracePeriod-1800 then
 		local BeaconSpawnChance = math_random(0,BeaconSpawnChance)
 		if numOfSpawnBeacons <= unitSpawnerModuleConfig.minimumspawnbeacons or ScavSafeAreaExists == false then
 			BeaconSpawnChance = 0
@@ -36,7 +36,7 @@ function SpawnBeacon(n)
 			canSpawnBeaconHere = posCheck(posx, posy, posz, 80)
 			if canSpawnBeaconHere then
 				if globalScore then
-					local g = math_random(0,10)
+					local g = math_random(0,5)
 					--ScavSafeAreaMinX
 					--ScavSafeAreaMaxX
 					--ScavSafeAreaMinZ
@@ -48,9 +48,11 @@ function SpawnBeacon(n)
 							canSpawnBeaconHere = false
 						end
 					else
+						if ScavSafeAreaExist and ScavSafeAreaMinX < posx and ScavSafeAreaMaxX > posx and ScavSafeAreaMinZ < posz and ScavSafeAreaMaxZ > posz then
+							canSpawnBeaconHere = false
 						-- elseif globalScore > scavconfig.timers.OnlyLos then
 							-- canSpawnBeaconHere = posLosCheckOnlyLOS(posx, posy, posz,posradius)
-						if globalScore > scavconfig.timers.NoRadar then
+						elseif globalScore > scavconfig.timers.NoRadar then
 							canSpawnBeaconHere = posLosCheckNoRadar(posx, posy, posz,posradius)
 						else
 							canSpawnBeaconHere = posLosCheck(posx, posy, posz,posradius)

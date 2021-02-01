@@ -225,7 +225,7 @@ function widget:Update(dt)
 		local shape
 		for id, unit in pairs(unitList) do
 			local x, y, z = spGetUnitPosition(id)
-			if not rangeShapeList[id] or unit.x ~= x or unit.y ~= y or unit.z ~= z then -- update only if positions is changed
+			if x and y and z and (not rangeShapeList[id] or unit.x ~= x or unit.y ~= y or unit.z ~= z) then -- update only if positions is changed
 				unitList[id].x = x
 				unitList[id].y = y
 				unitList[id].z = z

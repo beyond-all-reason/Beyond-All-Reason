@@ -42,7 +42,7 @@ function ReclaimerOrders(n, scav)
 end
 
 function SpawnConstructor(n)
-	if (constructortimer > constructorControllerModuleConfig.constructortimer or CountScavConstructors() < constructorControllerModuleConfig.minimumconstructors ) and numOfSpawnBeacons > 0 and constructortimer > 4 then
+	if (constructortimer > constructorControllerModuleConfig.constructortimer or CountScavConstructors() < constructorControllerModuleConfig.minimumconstructors ) and numOfSpawnBeacons > 0 and constructortimer > 10 then
 		local scavengerunits = Spring.GetTeamUnits(GaiaTeamID)
 		SpawnBeacons = {}
 		for i = 1,#scavengerunits do
@@ -131,7 +131,7 @@ function SpawnConstructor(n)
 					QueueSpawn(r3..scavconfig.unitnamesuffix, posx+32, posy, posz-32, math_random(0,3),GaiaTeamID,n+90+4)
 				end
 			end
-			constructortimer = constructortimer - constructorControllerModuleConfig.constructortimer
+			constructortimer = 0
 			local r = ConstructorsList[math_random(1,#ConstructorsList)]
 			QueueSpawn(r..scavconfig.unitnamesuffix, posx, posy, posz, math_random(0,3),GaiaTeamID,n+90)
 			Spring.CreateUnit("scavengerdroppod_scav", posx, posy, posz, math_random(0,3),GaiaTeamID)

@@ -124,7 +124,7 @@ return {
 				avoidfriendly = false,
 				cegtag = "antimissiletrail",
 				collidefriendly = false,
-				coverage = 1600,
+				coverage = 1400,
 				craterareaofeffect = 420,
 				craterboost = 0,
 				cratermult = 0,

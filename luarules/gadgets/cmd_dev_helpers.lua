@@ -41,11 +41,11 @@ function isAuthorized(playerID)
 	else
 		local playername = Spring.GetPlayerInfo(playerID, false)
 		local authorized = false
-		for _, name in ipairs(authorizedPlayers) do
-			if playername == name or playername == "UnnamedPlayer" then
-				if startPlayers == nil or startPlayers[playername] == nil then
-					return true
-				end
+
+		local authorized = false
+		if authorizedPlayers[playername] then
+			if startPlayers == nil or startPlayers[playername] == nil then
+				return true
 			end
 		end
 	end

@@ -461,7 +461,6 @@ QueryPrimary(piecenum)
 	{
 		piecenum = lfirept;
 	}
-	piecenum = lfirept;
 }
 
 static-var  Stunned;
@@ -498,8 +497,8 @@ AimPrimary(heading, pitch)
 	signal SIG_AIM;
 	
 	if (bAiming == 1) return;
-	turn aimy1 to y-axis heading speed <220.005495>;
-	turn aimx1 to x-axis <0.000000> - pitch speed <50.005495>;
+	turn aimy1 to y-axis heading speed <140>;
+	turn aimx1 to x-axis <0.000000> - pitch speed <50>;
 	
 	//needed for luarules\gadgets\unit_continuous_aim.lua
 	if ((get ABS(wpnheading - heading)) > 500){
@@ -538,6 +537,7 @@ FirePrimary()
 		wait-for-move lgun along z-axis;
 		return (0);
 	}
+	gun_1 = !gun_1;
 }
 
 // For N:\animations\corthud_anim_death.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 2, 8))

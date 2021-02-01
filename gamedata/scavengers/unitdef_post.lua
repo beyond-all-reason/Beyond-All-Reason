@@ -200,6 +200,10 @@ function scav_Udef_Post(name, uDef)
 
 	-- don't let players get scav constructors
 	if uDef.buildoptions then
+		if uDef.workertime then 
+			local workertimemultipliermodoption = tonumber(Spring.GetModOptions().scavbuildspeedmultiplier) or 1
+			uDef.workertime = uDef.workertime*workertimemultipliermodoption
+		end
 		if uDef.maxvelocity then
 			uDef.maxvelocity = uDef.maxvelocity*2*randomMultiplier
 		end

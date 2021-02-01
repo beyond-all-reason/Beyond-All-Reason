@@ -29,6 +29,7 @@ damageMod            = 1
 waves                = {}
 newWaveSquad         = {}
 
+
 maxAges = {}
 maxAges["chicken1"] = 240
 maxAges["chicken1b"] = 240
@@ -40,6 +41,7 @@ maxAges["chickena2b"] = 500
 maxAges["chickenh4"] = 120
 maxAges["chickenh1"] = 240
 maxAges["chickenh1b"] = 200
+
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------

@@ -49,6 +49,9 @@ return {
 		escape = "\255\255\255\255ESCAPE\255\170\170\170 key will cancel changes",
 		apply = 'Apply',
 	},
+	idlebuilders = {
+		idle = 'Idle',
+	},
 	changelog = {
 		title = 'Changelog',
 	},

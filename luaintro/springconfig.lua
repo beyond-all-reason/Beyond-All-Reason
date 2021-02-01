@@ -67,16 +67,23 @@ Spring.SetConfigInt("LoadingMT", 0)
 Spring.SetConfigInt("LuaGarbageCollectionMemLoadMult", 2)
 
 
+Spring.SetConfigFloat("CrossAlpha", 0)	-- will be in effect next launch
+
 -- change some default value(s), upp the version and set what needs to be set
 local version = 2
-if Spring.GetConfigInt("version",0) < version then
+if Spring.GetConfigInt("version", 0) < version then
+	Spring.SetConfigInt("version", version)
 
-	Spring.SetConfigFloat("CrossAlpha", 0)	-- will be in effect next launch
+	-- set icon settings
+	Spring.SetConfigFloat("UnitIconScaleUI", 1)
+	Spring.SetConfigInt("UnitIconFadeVanish", 2000)
+	Spring.SetConfigInt("UnitIconFadeStart", 2200)
+	Spring.SetConfigInt("UnitIconsHideWithUI", 1)
 
-	if Spring.GetConfigFloat("ui_tileopacity", 0.011) <= 0 then
-		Spring.SetConfigFloat("ui_tileopacity", 0.011)
-	end
-	if Spring.GetConfigFloat("ui_tilescale", 7) <= 0 then
-		Spring.SetConfigFloat("ui_tilescale", 7)
-	end
+	--if Spring.GetConfigFloat("ui_tileopacity", 0.011) <= 0 then
+	--	Spring.SetConfigFloat("ui_tileopacity", 0.011)
+	--end
+	--if Spring.GetConfigFloat("ui_tilescale", 7) <= 0 then
+	--	Spring.SetConfigFloat("ui_tilescale", 7)
+	--end
 end

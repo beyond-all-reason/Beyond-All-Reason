@@ -1,6 +1,20 @@
 Spring.Echo("[Scavengers] Config initialized")
 
+
+
 -- Modoptions
+	-- Numbers and Bools
+	local ScavBossHealthModoption = tonumber(Spring.GetModOptions().scavbosshealth) or 1
+	local ScavTechCurveModoption = tonumber(Spring.GetModOptions().scavtechcurve) or 1
+	local ScavUnitCountModoption = tonumber(Spring.GetModOptions().scavunitcountmultiplier) or 1
+	local ScavUnitSpawnFrequencyModoption = tonumber(Spring.GetModOptions().scavunitspawnmultiplier) or 1
+	local ScavUnitVeterancyModoption = tonumber(Spring.GetModOptions().scavunitspawnmultiplier) or 1
+	local ScavGracePeriodModoption = tonumber(Spring.GetModOptions().scavgraceperiod) or 1
+	
+	
+	
+	-- Strings
+
 	-- Endless Mode
 	local Modoption = Spring.GetModOptions().scavendless or "disabled"
 	if Modoption == "disabled" then
@@ -8,29 +22,7 @@ Spring.Echo("[Scavengers] Config initialized")
 	else
 		scavEndlessModoption = false
 	end
-	
-	-- Boss Health Modifier
-	local Modoption = Spring.GetModOptions().scavbosshealth or "normal"
-	if Modoption == "normal" then
-		ScavBossHealthModoption = 1
-	elseif Modoption == "lower" then
-		ScavBossHealthModoption = 0.5
-	elseif Modoption == "higher" then
-		ScavBossHealthModoption = 1.5
-	elseif Modoption == "high" then
-		ScavBossHealthModoption = 2
-	end
-	
-	-- Tech Curve Modifier
-	local Modoption = Spring.GetModOptions().scavtechcurve or "normal"
-	if Modoption == "normal" then
-		ScavTechCurveModoption = 1
-	elseif Modoption == "fast" then
-		ScavTechCurveModoption = 0.5
-	elseif Modoption == "slow" then
-		ScavTechCurveModoption = 1.5
-	end
-	
+
 	-- Random Events Bool
 	local Modoption = Spring.GetModOptions().scavevents or "enabled"
 	if Modoption == "enabled" then
@@ -47,6 +39,14 @@ Spring.Echo("[Scavengers] Config initialized")
 		ScavRandomEventsAmountModoption = 2
 	elseif Modoption == "higher" then
 		ScavRandomEventsAmountModoption = 0.5
+	end
+
+	-- Initial Bonus Commander
+	local Modoption = Spring.GetModOptions().scavinitialbonuscommander or "enabled"
+	if Modoption == "enabled" then
+		InitialBonusCommanderEnabled = true
+	elseif Modoption == "disabled" then
+		InitialBonusCommanderEnabled = false
 	end
 	
 	
@@ -90,6 +90,7 @@ scavconfig = {
 			scorePerKilledSpawner 			= 99,
 			scorePerCapturedSpawner 		= 50, -- this doesn't care about baseScorePerKill 
 	},
+	gracePeriod = ScavGracePeriodModoption*30*60,
 	timers = {
 		-- globalScore values
 		T0start								= 1,
@@ -139,26 +140,28 @@ unitSpawnerModuleConfig = {
 		FinalBossMinionsActive				= 150, -- this/(teamcount*difficulty), how often does boss spawn minions when taking damage, frames.
 	BossWaveTimeLeft					= 300,
 	aircraftchance 						= 6, -- higher number = lower chance
-	globalscoreperoneunit 				= 1200,
-	spawnchance							= 240,
-	beaconspawnchance					= 120,
+	globalscoreperoneunit 				= 800/ScavUnitCountModoption,
+	spawnchance							= 480/ScavUnitSpawnFrequencyModoption,
+	beaconspawnchance					= 240,
 	beacondefences						= true,
 	minimumspawnbeacons					= teamcount,
 	landmultiplier 						= 0.75,
-	airmultiplier 						= 2.0,
+	airmultiplier 						= 1.5,
 	seamultiplier 						= 0.75,
 	chanceforaircraftonsea				= 5, -- higher number = lower chance
 
 	t0multiplier						= 3.5,
 	t1multiplier						= 3,
-	t2multiplier						= 0.9,
-	t3multiplier						= 0.15,
+	t2multiplier						= 0.8,
+	t3multiplier						= 0.20,
 	t4multiplier						= 0.05,
+
+	initialbonuscommander				= InitialBonusCommanderEnabled,
 }
 
 constructorControllerModuleConfig = {
 	constructortimerstart				= 120, -- ammount of seconds it skips from constructortimer for the first spawn (make first spawn earlier - this timer starts on timer-Timer1)
-	constructortimer 					= 240, -- time in seconds between commander/constructor spawns
+	constructortimer 					= 480, -- time in seconds between commander/constructor spawns
 	constructortimerreductionframes		= 36000,
 	minimumconstructors					= teamcount,
 	useresurrectors						= true,
@@ -169,6 +172,7 @@ constructorControllerModuleConfig = {
 
 unitControllerModuleConfig = {
 	minimumrangeforfight				= 650,
+	veterancymultiplier					= ScavUnitVeterancyModoption,
 }
 
 spawnProtectionConfig = {
@@ -186,7 +190,46 @@ randomEventsConfig = {
 
 -- Functions which you can configure
 function CountScavConstructors()
-	return UDC(GaiaTeamID, UDN.corcom_scav.id) + UDC(GaiaTeamID, UDN.armcom_scav.id)
+	local UDC = Spring.GetTeamUnitDefCount
+	local result = UDC(GaiaTeamID, UDN.corcom_scav.id) + UDC(GaiaTeamID, UDN.armcom_scav.id)
+	return result
+end
+
+function SpawnBonusCommander(unitID, unitName, unitTeam)
+	if unitName == "armcom" or unitName == "corcom" then
+		local posx, posy, posz = Spring.GetUnitPosition(unitID)
+		if posy >= 0 then
+			Spring.SetUnitPosition(unitID, posx-32, posz)
+			if unitName == "armcom" then
+				Spring.CreateUnit("armcv", posx+32, posy+48, posz-48, 1, unitTeam)
+				Spring.CreateUnit("armck", posx+32, posy+48, posz+48, 1, unitTeam)
+				Spring.CreateUnit("armdecom", posx+32, posy+48, posz, 0, unitTeam)
+				Spring.CreateUnit("armcv", posx-32, posy+48, posz-48, 3, unitTeam)
+				Spring.CreateUnit("armck", posx-32, posy+48, posz+48, 3, unitTeam)
+			elseif unitName == "corcom" then
+				Spring.CreateUnit("corcv", posx+32, posy+48, posz-48, 1, unitTeam)
+				Spring.CreateUnit("corck", posx+32, posy+48, posz+48, 1, unitTeam)
+				Spring.CreateUnit("codecom", posx+32, posy+48, posz, 0, unitTeam)
+				Spring.CreateUnit("corcv", posx-32, posy+48, posz-48, 3, unitTeam)
+				Spring.CreateUnit("corck", posx-32, posy+48, posz+48, 3, unitTeam)
+			end
+		else
+			Spring.SetUnitPosition(unitID, posx-32, posz)
+			if unitName == "armcom" then
+				Spring.CreateUnit("armca", posx+32, posy+48, posz-48, 1, unitTeam)
+				Spring.CreateUnit("armcs", posx+32, posy+48, posz+48, 1, unitTeam)
+				Spring.CreateUnit("armdecom", posx+32, posy+48, posz, 0, unitTeam)
+				Spring.CreateUnit("armca", posx-32, posy+48, posz-48, 3, unitTeam)
+				Spring.CreateUnit("armcs", posx-32, posy+48, posz+48, 3, unitTeam)
+			elseif unitName == "corcom" then
+				Spring.CreateUnit("corca", posx+32, posy+48, posz-48, 1, unitTeam)
+				Spring.CreateUnit("corcs", posx+32, posy+48, posz+48, 1, unitTeam)
+				Spring.CreateUnit("cordecom", posx+32, posy+48, posz, 0, unitTeam)
+				Spring.CreateUnit("corca", posx-32, posy+48, posz-48, 3, unitTeam)
+				Spring.CreateUnit("corcs", posx-32, posy+48, posz+48, 3, unitTeam)
+			end
+		end
+	end
 end
 
 function UpdateTierChances(n)
@@ -345,5 +388,24 @@ function UpdateTierChances(n)
 		TierSpawnChances.T3 = 0
 		TierSpawnChances.T4 = 0
 		TierSpawnChances.Message = "Current tier: T0"
+	end
+end
+
+
+local UDN = UnitDefNames
+function BPWallOrPopup(faction)
+	local r = math.random(0,5)
+	if faction == "arm" then
+		if r == 0 then
+			return UDN.armclaw_scav.id
+		else
+			return UDN.armdrag_scav.id
+		end
+	elseif faction == "cor" then
+		if r == 0 then
+			return UDN.cormaw_scav.id
+		else
+			return UDN.cordrag_scav.id
+		end
 	end
 end

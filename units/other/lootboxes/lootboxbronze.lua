@@ -57,6 +57,7 @@ return {
 		usebuildinggrounddecal = false,
 		--waterline = 0,
 		yardmap = "oooo",
+		reclaimable = false,
 		customparams = {
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "other/lootboxes",

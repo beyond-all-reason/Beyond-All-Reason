@@ -8,7 +8,7 @@ for i = 1,#BlueprintsList do
 end
 
 function SpawnBlueprint(n)
-	if n > 9000 then
+	if n > scavconfig.gracePeriod then
 		local gaiaUnitCount = Spring.GetTeamUnitCount(GaiaTeamID)
 		local spawnchance = math_random(0,buildingSpawnerModuleConfig.spawnchance)
 		if spawnchance == 0 or canBuildHere == false then

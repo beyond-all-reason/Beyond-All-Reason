@@ -370,7 +370,7 @@ local function cacheUnitIcons()
 			gl.DeleteTexture(':lr'..prevUnitIconSize..','..prevUnitIconSize..':unitpics/' .. unitDefInfo[id].buildPic)
 			gl.DeleteTexture(':lr'..prevUnitIconSize2..','..prevUnitIconSize2..':unitpics/' .. unitDefInfo[id].buildPic)
 		end
-		if prevRadarIconSize and prevRadarIconSize ~= radarIconSize then
+		if prevRadarIconSize and prevRadarIconSize ~= radarIconSize and unitDefInfo[id].iconType and iconTypesMap[unitDefInfo[id].iconType] then
 			gl.DeleteTexture(':lr' .. (prevRadarIconSize * 2) .. ',' .. (prevRadarIconSize * 2) .. ':' .. iconTypesMap[unitDefInfo[id].iconType])
 		end
 
@@ -378,7 +378,7 @@ local function cacheUnitIcons()
 		gl.TexRect(-1, -1, 0, 0)
 		gl.Texture(':lr'..unitIconSize..','..unitIconSize..':unitpics/' .. unitDefInfo[id].buildPic)
 		gl.TexRect(-1, -1, 0, 0)
-		if iconTypesMap[unitDefInfo[id].iconType] then
+		if unitDefInfo[id].iconType and iconTypesMap[unitDefInfo[id].iconType] then
 			gl.Texture(':lr' .. (radarIconSize * 2) .. ',' .. (radarIconSize * 2) .. ':' .. iconTypesMap[unitDefInfo[id].iconType])
 			gl.TexRect(-1, -1, 0, 0)
 		end
@@ -965,7 +965,7 @@ local function drawUnitInfo()
 			0.03,
 			nil, nil,
 			":lr"..unitIconSize..","..unitIconSize..":unitpics/" .. unitDefInfo[displayUnitDefID].buildPic,
-			':lr' .. (radarIconSize * 2) .. ',' .. (radarIconSize * 2) .. ':' .. iconTypesMap[unitDefInfo[displayUnitDefID].iconType],
+			((unitDefInfo[displayUnitDefID].iconType and iconTypesMap[unitDefInfo[displayUnitDefID].iconType]) and ':lr' .. (radarIconSize * 2) .. ',' .. (radarIconSize * 2) .. ':' .. iconTypesMap[unitDefInfo[displayUnitDefID].iconType] or nil),
 			groups[unitGroup[displayUnitDefID]],
 			{unitDefInfo[displayUnitDefID].metalCost, unitDefInfo[displayUnitDefID].energyCost}
 		)

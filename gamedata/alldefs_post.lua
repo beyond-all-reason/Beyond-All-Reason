@@ -106,6 +106,23 @@ local function processWeapons(unitDefName, unitDef)
 end
 
 function UnitDef_Post(name, uDef)
+	if uDef.builddistance then
+		local x = tonumber(Spring.GetModOptions().experimentalbuildrange) or 1
+		uDef.builddistance = uDef.builddistance*x
+	end
+
+	if uDef.workertime then
+		local x = tonumber(Spring.GetModOptions().experimentalbuildpower) or 1
+		uDef.workertime = uDef.workertime*x
+	end
+
+	if string.find(name, "chicken") and uDef.maxdamage then
+		local chickHealth = uDef.maxdamage
+		uDef.buildcostmetal = chickHealth*1
+		uDef.buildcostenergy = chickHealth*10
+		uDef.buildtime = chickHealth*10
+	end
+	
 	if not uDef.customparams then
 		uDef.customparams = {}
 	end
@@ -166,8 +183,12 @@ function UnitDef_Post(name, uDef)
 			uDef.crashdrag = 0.01	-- default 0.005
 
 			if not (string.find(name, "fepoch") or string.find(name, "fblackhy")) then--(string.find(name, "liche") or string.find(name, "crw") or string.find(name, "fepoch") or string.find(name, "fblackhy")) then
+				if Spring.GetModOptions() and Spring.GetModOptions().experimentalnoaircollisions == "disabled" then
+					uDef.collide = false
+				elseif Spring.GetModOptions() and Spring.GetModOptions().experimentalnoaircollisions == "enabled" then
+					uDef.collide = true
+				end
 
-				uDef.collide = false
 				--local airmult = 1.3
 				--if uDef.buildcostenergy then
 				--	uDef.buildcostenergy = math.ceil(uDef.buildcostenergy*airmult)
@@ -384,6 +405,54 @@ end
 function WeaponDef_Post(name, wDef)
 
 	if not SaveDefsToCustomParams then
+		
+
+		-------------- EXPERIMENTAL MODOPTIONS 
+		---- SHIELD CHANGES
+		if Spring.GetModOptions() and Spring.GetModOptions().experimentalshields == "absorbplasma" then
+			if wDef.shield and wDef.shield.repulser and wDef.shield.repulser ~= false then
+				wDef.shield.repulser = false
+			end
+		elseif Spring.GetModOptions() and Spring.GetModOptions().experimentalshields == "absorbeverything" then
+			if wDef.shield and wDef.shield.repulser and wDef.shield.repulser ~= false then
+				wDef.shield.repulser = false
+			end
+			if (not wDef.interceptedbyshieldtype) or wDef.interceptedbyshieldtype ~= 1 then
+				wDef.interceptedbyshieldtype = 1
+			end
+		elseif Spring.GetModOptions() and Spring.GetModOptions().experimentalshields == "bounceeverything" then
+			if wDef.shield then
+				wDef.shield.repulser = true
+			end
+			if (not wDef.interceptedbyshieldtype) or wDef.interceptedbyshieldtype ~= 1 then
+				wDef.interceptedbyshieldtype = 1
+			end
+		end
+
+		if Spring.GetModOptions() and Spring.GetModOptions().experimentalshieldpower then
+			if wDef.shield then
+				local multiplier = tonumber(Spring.GetModOptions().experimentalshieldpower)
+				if wDef.shield.power then
+					wDef.shield.power = wDef.shield.power*multiplier
+				end
+				if wDef.shield.powerregen then
+					wDef.shield.powerregen = wDef.shield.powerregen*multiplier
+				end
+				if wDef.shield.powerregenenergy then
+					wDef.shield.powerregenenergy = wDef.shield.powerregenenergy*multiplier
+				end
+				if wDef.shield.startingpower then
+					wDef.shield.startingpower = wDef.shield.startingpower*multiplier
+				end
+			end
+		end
+		----------------------------------------
+
+
+
+
+
+
 
 		--Use targetborderoverride in weapondef customparams to override this global setting
 		--Controls whether the weapon aims for the center or the edge of its target's collision volume. Clamped between -1.0 - target the far border, and 1.0 - target the near border.

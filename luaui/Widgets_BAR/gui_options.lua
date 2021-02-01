@@ -3551,7 +3551,7 @@ function init()
 		--	  Spring.SetConfigInt("UnitIconsAsUI", (value and 1 or 0))
 		--  end,
 		--},
-		{ id = "uniticon_scaleui", group = "ui", name = texts.option.uniticonscaleui, type = "slider", min = 0.5, max = 2, step = 0.05, value =tonumber(Spring.GetConfigFloat("UnitIconScaleUI", 1) or 1), description = texts.option.uniticonscaleui_descr,
+		{ id = "uniticon_scaleui", group = "ui", name = texts.option.uniticonscaleui, type = "slider", min = 0.85, max = 1.6, step = 0.05, value =tonumber(Spring.GetConfigFloat("UnitIconScaleUI", 1) or 1), description = texts.option.uniticonscaleui_descr,
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
@@ -5417,8 +5417,8 @@ function widget:Initialize()
 			Spring.SetConfigInt("MaxParticles", 10000)
 		end
 
-		if Spring.GetConfigInt("MaxSounds", 128) < 64 then
-			Spring.SetConfigInt("MaxSounds", 64)
+		if Spring.GetConfigInt("MaxSounds", 128) < 256 then
+			Spring.SetConfigInt("MaxSounds", 256)
 		end
 
 		-- limit music volume

@@ -6,33 +6,37 @@ function gadget:GetInfo()
 		date = "September 2018",
 		license = "GPL",
 		layer = 1,
-		enabled = false
+		enabled = true,
 	}
 end
 
-local timedResBonusMultiplier = 0.0001	-- adds this percentage boost per sec (0.0001 * 60sec * 15mins = 9%)
-local timedResBonusMultiplierMax = 0.5
+--local timedResBonusMultiplier = 0.0001	-- adds this percentage boost per sec (0.0001 * 60sec * 15mins = 9%)
+--local timedResBonusMultiplierMax = 0.5
 
 
 if (not gadgetHandler:IsSyncedCode()) then
 	return -- No Unsynced
 end
 
-local aiResourceMultiplier = tonumber(Spring.GetModOptions().ai_incomemultiplier) or 1
+local ResourceMultiplier = tonumber(Spring.GetModOptions().resourceincomemultiplier) or 1
 
-if timedResBonusMultiplier == 0 and aiResourceMultiplier == 1 then
+--if timedResBonusMultiplier == 0 and aiResourceMultiplier == 1 then
+	--return
+--end
+
+if ResourceMultiplier == 1 then
 	return
 end
 
 local aiTeams = {}
 local aiCount = 0
 for _,teamID in ipairs(Spring.GetTeamList()) do
-	if select(4,Spring.GetTeamInfo(teamID,false)) then	-- is AI?
+	--if select(4,Spring.GetTeamInfo(teamID,false)) then	-- is AI?
 		aiCount = aiCount + 1
 		aiTeams[teamID] = { energy = 0, metal = 0, winds = 0, mexes = {} }
 		--aiCountEResMultiplier = aiCount*0.2 + 0.8
 		--aiCountMResMultiplier = aiCount*0.1 + 0.9
-	end
+	--end
 end
 if aiCount == 0 then
 	return
@@ -50,7 +54,7 @@ local spGetUnitResources = Spring.GetUnitResources
 
 function gadget:UnitGiven(uID, uDefID, uTeam)
 	if aiTeams[uTeam] and ecoUnitsDefs[uDefID] then
-		aiGiftedUnits[uID] = true
+		--aiGiftedUnits[uID] = true
 	end
 end
 
@@ -157,11 +161,12 @@ function gadget:GameFrame(n)
 			end
 		end
 
+		--[[
 		local timedResBonus = (n / 30) * timedResBonusMultiplier
 		if timedResBonus > timedResBonusMultiplierMax then
 			timedResBonus = timedResBonusMultiplierMax
 		end
-
+		]]
 		local currentWind = string.format('%.1f', select(4,Spring.GetWind()))
 		for TeamID, aiRes in pairs(aiTeams) do
 			local totalEnergy = aiRes.energy + (aiRes.winds * currentWind)
@@ -169,8 +174,10 @@ function gadget:GameFrame(n)
 
 			--Spring.Echo(totalEnergy..'   +   '..((totalEnergy * (aiResourceMultiplier + timedResBonus)) - totalEnergy))
 			--Spring.Echo(totalMetal..'   +   '..((totalMetal * (aiResourceMultiplier + timedResBonus)) - totalMetal))
-			Spring.AddTeamResource(TeamID,"e", (totalEnergy * (aiResourceMultiplier + timedResBonus)) - totalEnergy)
-			Spring.AddTeamResource(TeamID,"m", (totalMetal * (aiResourceMultiplier + timedResBonus)) - totalMetal)
+			--Spring.AddTeamResource(TeamID,"e", (totalEnergy * (aiResourceMultiplier + timedResBonus)) - totalEnergy)
+			--Spring.AddTeamResource(TeamID,"m", (totalMetal * (aiResourceMultiplier + timedResBonus)) - totalMetal)
+			Spring.AddTeamResource(TeamID,"e", (totalEnergy * (ResourceMultiplier)) - totalEnergy)
+			Spring.AddTeamResource(TeamID,"m", (totalMetal * (ResourceMultiplier)) - totalMetal)
 		end
 	end
 end

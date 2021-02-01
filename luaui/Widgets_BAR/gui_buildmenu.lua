@@ -1004,7 +1004,7 @@ local function drawCell(cellRectID, usedZoom, cellColor, progress, highlightColo
 		usedZoom,
 		nil, nil,
 		 ':lr' .. textureDetail .. ',' .. textureDetail .. ':unitpics/' .. unitBuildPic[uDefID],
-		':lr' .. radariconTextureDetail .. ',' .. radariconTextureDetail .. ':' .. iconTypesMap[unitIconType[uDefID]],
+		((unitIconType[uDefID] and iconTypesMap[unitIconType[uDefID]]) and ':lr' .. radariconTextureDetail .. ',' .. radariconTextureDetail .. ':' .. iconTypesMap[unitIconType[uDefID]] or nil),
 		groups[unitGroup[uDefID]],
 		{unitMetalCost[uDefID], unitEnergyCost[uDefID]},
 		cmds[cellRectID].params[1]

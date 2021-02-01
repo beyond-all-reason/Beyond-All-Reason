@@ -28,6 +28,9 @@ local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity", 0.6) or 0.66)
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
 
 local ICON_SIZE = iconsize * (1 + (ui_scale - 1) / 1.5)
+local texts = {
+	idle = 'Idle',
+}
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
@@ -39,9 +42,6 @@ local playSounds = true
 local leftclick = 'LuaUI/Sounds/buildbar_add.wav'
 local middleclick = 'LuaUI/Sounds/buildbar_click.wav'
 local rightclick = 'LuaUI/Sounds/buildbar_rem.wav'
-
-local hoversize = 0
-local rot = 0
 
 local fontFile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 local chobbyInterface, font
@@ -62,12 +62,20 @@ local enabled = true
 
 local isBuilder = {}
 local isFactory = {}
+local unitBuildPic = {}
+local unitHumanName = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.buildSpeed > 0 and unitDef.buildOptions[1] then
 		isBuilder[unitDefID] = true
 	end
 	if unitDef.isFactory then
 		isFactory[unitDefID] = true
+	end
+	if unitDef.buildpicname then
+		unitBuildPic[unitDefID] = unitDef.buildpicname
+	end
+	if unitDef.humanName then
+		unitHumanName[unitDefID] = unitDef.humanName
 	end
 end
 
@@ -157,6 +165,11 @@ function widget:PlayerChanged(playerID)
 end
 
 function widget:Initialize()
+
+	if WG['lang'] then
+		texts = WG['lang'].getText('idlebuilders')
+	end
+
 	widget:ViewResize()
 	widget:PlayerChanged()
 	enabled = true
@@ -205,7 +218,7 @@ local function IsIdleBuilder(unitID)
 end
 
 local function DrawBoxes(number)
-	glColor({ 0, 0, 0, 0.7 })
+	glColor({ 0, 0, 0, 0.85 })
 	local X1 = X_MIN
 	local ct = 0
 	while (ct < number) do
@@ -276,35 +289,38 @@ local function DrawUnitIcons(number)
 				unitID = unitID[1]
 			end
 
-			local iconPadding = math.floor(ICON_SIZE*0.05)
-			if ct-1 == iconNum then
-				iconPadding = math.floor(ICON_SIZE*0.02)
-			end
+			local unitDefID = GetUnitDefID(unitID)
+			if unitBuildPic[unitDefID] then
+				local iconPadding = math.floor(ICON_SIZE*0.05)
+				if ct-1 == iconNum then
+					iconPadding = math.floor(ICON_SIZE*0.02)
+				end
 
-			X1 = math.floor(X_MIN + (ICON_SIZE * (ct - 1)))
-			X2 = math.floor(X1 + ICON_SIZE)
+				X1 = math.floor(X_MIN + (ICON_SIZE * (ct - 1)))
+				X2 = math.floor(X1 + ICON_SIZE)
 
-			glColor(1,1,1,1)
-			UiUnit(X1+iconPadding, Y_MIN+iconPadding, X2-iconPadding, Y_MAX-iconPadding,
-				math.ceil(bgpadding*0.5), 1,1,1,1,
-				0.05,
-				nil, nil,
-				':lr'..math.floor(ICON_SIZE*1.5)..','..math.floor(ICON_SIZE*1.5)..':unitpics/'..UnitDefs[GetUnitDefID(unitID)].buildpicname
-			)
+				glColor(1,1,1,1)
+				UiUnit(X1+iconPadding, Y_MIN+iconPadding, X2-iconPadding, Y_MAX-iconPadding,
+					math.ceil(bgpadding*0.5), 1,1,1,1,
+					0.05,
+					nil, nil,
+					':lr'..math.floor(ICON_SIZE*1.5)..','..math.floor(ICON_SIZE*1.5)..':unitpics/'..unitBuildPic[unitDefID]
+				)
 
-			if CONDENSE then
-				local NumberCondensed = table.getn(drawTable[ct][2])
-				if NumberCondensed > 1 then
+				if CONDENSE then
+					local NumberCondensed = table.getn(drawTable[ct][2])
+					if NumberCondensed > 1 then
+						font:Begin()
+						font:Print(NumberCondensed, X1+math.floor(ICON_SIZE*0.1), Y_MIN+math.floor(ICON_SIZE*0.13), 12 * sizeMultiplier, "o")
+						font:End()
+					end
+				end
+
+				if ValidUnitID(unitID) and QCount[unitID] then
 					font:Begin()
-					font:Print(NumberCondensed, X1+math.floor(ICON_SIZE*0.1), Y_MIN+math.floor(ICON_SIZE*0.13), 12 * sizeMultiplier, "o")
+					font:Print(QCount[unitID], X1 + (0.5 * ICON_SIZE), Y_MIN, 14 * sizeMultiplier, "ocn")
 					font:End()
 				end
-			end
-
-			if ValidUnitID(unitID) and QCount[unitID] then
-				font:Begin()
-				font:Print(QCount[unitID], X1 + (0.5 * ICON_SIZE), Y_MIN, 14 * sizeMultiplier, "ocn")
-				font:End()
 			end
 		end
 	end
@@ -313,20 +329,21 @@ end
 
 
 function DrawIconQuad(iconPos, color, size)
-	local X1 = X_MIN + (ICON_SIZE * iconPos)
-	local X2 = X1 + (ICON_SIZE)
-	local corneradjust = (bgcornerSize / (3 + (math.abs(hoversize)))) * size
+	local X1 =  math.floor(X_MIN + (ICON_SIZE * iconPos))
+	local X2 =  math.floor(X1 + ICON_SIZE)
+
+	local bordersize = math.max(1, math.floor(size*0.6))
 
 	glColor(color)
-	RectRound(X1 - corneradjust, Y_MIN - corneradjust, X2 + corneradjust, Y_MAX + corneradjust, bgcornerSize)
+	RectRound(X1 - bordersize, Y_MIN - bordersize, X2 + bordersize, Y_MAX + bordersize, bgcornerSize/2)
 
 	if WG['guishader'] then
 		WG['guishader'].InsertDlist(glCreateList(function()
-			RectRound(X1 - corneradjust, Y_MIN - corneradjust, X2 + corneradjust, Y_MAX + corneradjust, bgcornerSize)
+			RectRound(X1 - bordersize, Y_MIN - bordersize, X2 + bordersize, Y_MAX + bordersize, bgcornerSize)
 		end), 'idlebuilders')
 	end
 
-end--]]
+end
 
 
 ------------------------------------------------------------------------------------------------------------------------------------
@@ -391,8 +408,6 @@ function widget:Update(dt)
 	end
 
 	sec = sec + dt
-	hoversize = math_sin(math_pi * (sec))
-	rot = 30 * math_sin(math_pi * (sec / 2.5))
 
 	if GetGameFrame() % 31 == 0 or doUpdate then
 		doUpdate = false
@@ -488,11 +503,16 @@ function widget:DrawScreen()
 		if not WG['topbar'] or not WG['topbar'].showingQuit() then
 			local icon = MouseOverIcon(x, y)
 			if icon >= 0 then
-
-				if lb or mb or rb then
-					DrawIconQuad(icon, { 0.5, 0.2, 0, 0.5 }, 1.1)
+				if WG['tooltip'] then
+					local unitDefID = drawTable[icon + 1][1]
+					WG['tooltip'].ShowTooltip('idlebuilders', texts.idle..' '..unitHumanName[unitDefID])
+				end
+				if lb then
+					DrawIconQuad(icon, { 1, 1, 1, 0.85 }, 1.1)
+				elseif rb then
+					DrawIconQuad(icon, { 0.3, 0.6, 0, 0.7 }, 1.1)
 				else
-					DrawIconQuad(icon, { 0, 0, 0.1, 0.4 }, 1.1)
+					DrawIconQuad(icon, { 0, 0, 0.1, 0.45 }, 1.1)
 				end
 			end
 		end

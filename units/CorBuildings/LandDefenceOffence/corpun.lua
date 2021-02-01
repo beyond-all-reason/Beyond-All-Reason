@@ -1,6 +1,7 @@
 return {
 	corpun = {
 		acceleration = 0,
+		activatewhenbuilt = true,
 		brakerate = 0,
 		buildangle = 8192,
 		buildcostenergy = 13500,
@@ -21,7 +22,6 @@ return {
 		explodeas = "largeBuildingexplosiongeneric",
 		footprintx = 4,
 		footprintz = 4,
-		hightrajectory = 2,
 		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
@@ -31,7 +31,8 @@ return {
 		name = "Punisher",
 		nochasecategory = "MOBILE",
 		objectname = "Units/CORPUN.s3o",
-		script = "Units/CORPUN.lua",
+		onoffable = true,
+		script = "Units/armguard.cob",
 		seismicsignature = 0,
 		selfdestructas = "largeBuildingExplosionGenericSelfd",
 		sightdistance = 455,
@@ -40,7 +41,7 @@ return {
 		customparams = {
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
-			removewait = true,
+			onoffname = "traj",
 			subfolder = "corbuildings/landdefenceoffence",
 			techlevel = 2,
 		},
@@ -123,7 +124,7 @@ return {
 		weapondefs = {
 			plasma = {
 				accuracy = 75,
-				areaofeffect = 140,
+				areaofeffect = 120,
 				avoidfeature = false,
 				cegtag = "arty-medium",
 				craterboost = 0,
@@ -146,11 +147,11 @@ return {
 				weaponvelocity = 450,
 				damage = {
 					bombers = 95,
-					commanders = 590,
-					default = 290,
+					commanders = 350,
+					default = 350,
 					fighters = 95,
-					hvyboats = 680,
-					lboats = 680,
+					hvyboats = 350,
+					lboats = 350,
 					subs = 90,
 					vtol = 95,
 				},
@@ -166,6 +167,7 @@ return {
 				edgeeffectiveness = 0.65,
 				explosiongenerator = "custom:genericshellexplosion-large",
 				gravityaffected = "true",
+				hightrajectory = 1,
 				impulseboost = 0.123,
 				impulsefactor = 1.4,
 				--model = "artshell-medium.s3o",
@@ -173,7 +175,7 @@ return {
 				noselfdamage = true,
 				proximitypriority = -2,
 				range = 1245,
-				reloadtime = 7,
+				reloadtime = 7.5,
 				soundhit = "xplomed2",
 				soundhitwet = "splslrg",
 				soundstart = "cannhvy5",
@@ -182,25 +184,25 @@ return {
 				weaponvelocity = 440,
 				damage = {
 					bombers = 95,
-					commanders = 950,
-					default = 550,
+					commanders = 650,
+					default = 650,
 					fighters = 95,
-					hvyboats = 1100,
-					lboats = 1100,
+					hvyboats = 650,
+					lboats = 650,
 					subs = 95,
 					vtol = 95,
 				},
 			},
 		},
 		weapons = {
-			[1] = {
+			[2] = {
 				badtargetcategory = "VTOL",
 				def = "PLASMA",
 				maindir = "0 1 0",
 				maxangledif = 230,
 				onlytargetcategory = "SURFACE",
 			},
-			[2] = {
+			[1] = {
 				def = "PLASMA_HIGH",
 				onlytargetcategory = "SURFACE",
 			},
