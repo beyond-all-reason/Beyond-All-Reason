@@ -299,6 +299,10 @@ local function DrawUnitIcons(number)
 				X1 = math.floor(X_MIN + (ICON_SIZE * (ct - 1)))
 				X2 = math.floor(X1 + ICON_SIZE)
 
+				local bordersize = math.max(1, math.floor(ICON_SIZE*0.02))
+				glColor(0,0,0,0.12)
+				RectRound(X1+iconPadding - bordersize, Y_MIN+iconPadding - bordersize, X2-iconPadding + bordersize, Y_MAX-iconPadding + bordersize, bgcornerSize*0.3)
+
 				glColor(1,1,1,1)
 				UiUnit(X1+iconPadding, Y_MIN+iconPadding, X2-iconPadding, Y_MAX-iconPadding,
 					math.ceil(bgpadding*0.5), 1,1,1,1,
