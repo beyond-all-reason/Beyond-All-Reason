@@ -28,7 +28,7 @@ local function MaxBuildDist(unitName, speed)
 end
 
 function TaskQueueBST:Init()
-	self.DebugEnabled = true
+	self.DebugEnabled = false
 	self.role = nil
 	self.active = false
 	self.currentProject = nil
@@ -134,9 +134,9 @@ end
 
 function TaskQueueBST:Update()
 	local f = self.game:Frame()
-	if f % 180 == 0 then
-		self:VisualDBG()
-	end
+-- 	if f % 180 == 0 then
+-- 		self:VisualDBG()
+-- 	end
 	if self.failOut and f > self.failOut + 3000 then
 		self:EchoDebug("getting back to work " .. self.name .. " " .. self.id)
 		self.failOut = false
