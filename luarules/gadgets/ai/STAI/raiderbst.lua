@@ -45,7 +45,7 @@ function RaiderBST:Init()
 	self.pathingDistance = nodeSize * 0.67 -- how far away from a node means you've arrived there
 	self.minPathfinderDistance = nodeSize * 3 -- closer than this and i don't pathfind
 	self.id = self.unit:Internal():ID()
-	self.disarmer = self.ai.armyhst.raiderDisarms[self.name]
+	self.disarmer = self.ai.armyhst.airgun[self.name]
 	self.ai.raiderCount[mtype] = (self.ai.raiderCount[mtype] or 0) + 1
 	self.lastGetTargetFrame = 0
 	self.lastMovementFrame = 0
@@ -101,7 +101,8 @@ function RaiderBST:Update()
 			self:CheckPath()
 		end
 		if self.moveNextUpdate then
-			self.unit:Internal():Move(self.moveNextUpdate)
+-- 			self.unit:Internal():Move(self.moveNextUpdate)
+			self.unit:Internal():AttackMove(self.moveNextUpdate)--need to check
 			self.moveNextUpdate = nil
 		elseif f > self.lastMovementFrame + 30 then
 			self.ai.targethst:RaiderHere(self)
@@ -113,7 +114,13 @@ function RaiderBST:Update()
 			end
 			if attackThisUnit then
 				self.offPath = true
-				self.ai.tool:CustomCommand(self.unit:Internal(), CMD_ATTACK, {attackThisUnit:ID()})
+-- 				self.ai.tool:CustomCommand(self.unit:Internal(), CMD_ATTACK, {attackThisUnit:ID()})
+				local tg = attackThisUnit:GetPosition()
+				if tg then
+					self.unit:Internal():AttackMove(attackThisUnit:GetPosition())--need to check
+				else
+					Spring.Echo('warning no pos for',attackThisUnit:ID())
+				end
 			elseif self.offPath then
 				self.offPath = false
 				self:ResumeCourse()
@@ -377,7 +384,8 @@ function RaiderBST:AttackTarget(distance)
 	if self.unitTarget ~= nil then
 		local utpos = self.unitTarget:GetPosition()
 		if utpos and utpos.x then
-			self.ai.tool:CustomCommand(self.unit:Internal(), CMD_ATTACK, {self.unitTarget:ID()})
+			--self.ai.tool:CustomCommand(self.unit:Internal(), CMD_ATTACK, {self.unitTarget:ID()})
+			self.unit:Internal():AttackMove(self.unitTarget:GetPosition())--need to check
 			return
 		end
 	end

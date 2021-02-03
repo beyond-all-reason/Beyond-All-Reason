@@ -67,7 +67,8 @@ function OverviewHST:EvaluateSituation()
 		self:EchoDebug("plasma/rocket bot ratio: " .. self.plasmaRocketBotRatio)
 	end
 	self.needSiege = (self.ai.totalEnemyImmobileThreat > self.ai.totalEnemyMobileThreat * 3.5 and self.ai.totalEnemyImmobileThreat > 50000) or attackCounter >= self.ai.armyhst.siegeAttackCounter or controlMetalSpots
-	local needAdvanced = (self.ai.Metal.income > 18 or controlMetalSpots) and self.ai.factories > 0 and (needUpgrade or self.ai.lotsOfMetal)
+
+	local needAdvanced = self.ai.combatCount > 35 and (self.ai.Metal.income > 18 or controlMetalSpots) and self.ai.factories > 0 and (needUpgrade or self.ai.lotsOfMetal)
 	if needAdvanced ~= self.ai.needAdvanced then
 		self.ai.needAdvanced = needAdvanced
 		self.ai.labbuildhst:UpdateFactories()
@@ -75,17 +76,15 @@ function OverviewHST:EvaluateSituation()
 	self.ai.needAdvanced = needAdvanced
 	local needExperimental
 	self.ai.needNukes = false
-	if self.ai.Metal.income > 50 and self.ai.haveAdvFactory and (needUpgrade or self.ai.BigEco) and self.ai.enemyBasePosition then
-		if not self.ai.haveExpFactory then
-			for i, factory in pairs(self.ai.factoriesAtLevel[self.ai.maxFactoryLevel]) do
-				for expFactName, _ in pairs(self.ai.armyhst.expFactories) do
-					for _, mtype in pairs(self.ai.armyhst.factoryMobilities[expFactName]) do
-						local myNet = self.ai.maphst:MobilityNetworkHere(mtype, factory.position)
-						local enemyNet = self.ai.maphst:MobilityNetworkHere(mtype, self.ai.enemyBasePosition)
-						if myNet and enemyNet and myNet == enemyNet then
-							needExperimental = true
-							break
-						end
+	if self.ai.Metal.income > 60 and self.ai.haveAdvFactory and (needUpgrade or self.ai.BigEco) and self.ai.enemyBasePosition and not self.ai.haveExpFactory then
+		for i, factory in pairs(self.ai.factoriesAtLevel[self.ai.maxFactoryLevel]) do
+			for expFactName, _ in pairs(self.ai.armyhst.expFactories) do
+				for _, mtype in pairs(self.ai.armyhst.factoryMobilities[expFactName]) do
+					local myNet = self.ai.maphst:MobilityNetworkHere(mtype, factory.position)
+					local enemyNet = self.ai.maphst:MobilityNetworkHere(mtype, self.ai.enemyBasePosition)
+					if myNet and enemyNet and myNet == enemyNet then
+						needExperimental = true
+						break
 					end
 				end
 			end

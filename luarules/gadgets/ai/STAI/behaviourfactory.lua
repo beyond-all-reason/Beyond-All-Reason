@@ -4,6 +4,7 @@ BehaviourFactory = class(AIBase)
 function BehaviourFactory:Init()
 	self.behaviours = shard_include( "behaviours" )
 	self.scoutslist = {}
+	self.DebugEnabled = true
 end
 
 function BehaviourFactory:AddBehaviours(unit)
@@ -33,89 +34,163 @@ function BehaviourFactory:defaultBehaviours(unit)
 	local b = {}
 	local u = unit:Internal()
 	local un = u:Name()
+	local army = self.ai.armyhst
 	-- game:SendToConsole(un, "getting default behaviours")
 
 	-- keep track of how many of each kind of unit we have
 	table.insert(b, CountBST)
 	table.insert(b, BootBST)
 
-	if self.ai.armyhst.commanderList[un] then
+	if army.commanderList[un] then
 		table.insert(b, CommanderBST)
+		table.insert(b,TaskQueueBST)
+		table.insert(b, WardBST)
+	end
+	if army.techs[un] then
+		--self:EchoDebug()
+		table.insert(b, WardBST)
+		table.insert(b,TaskQueueBST)
+		if army.unitTable[un].techLevel >=4 then
+			table.insert(b, MexUpBST)
+		end
+	end
+	if army.rezs[un] then
+		--self:EchoDebug()
+		if math.random() > 0.5 then
+			table.insert(b, ReclaimBST)
+			table.insert(b, WardBST)
+		else
+			table.insert(b, AttackerBST)
+		end
+	end
+	if army.engineers[un] then
+		--self:EchoDebug()
+		if math.random() > 0.5 then
+			table.insert(b, ReclaimBST)
+			table.insert(b, WardBST)
+		else
+			table.insert(b, AttackerBST)
+		end
+	end
+	if army.wartechs[un] then
+		--self:EchoDebug()
+		table.insert(b, WardBST)
+		table.insert(b,TaskQueueBST)
+	end
+	if army.amptechs[un] then
+		table.insert(b, WardBST)
+		table.insert(b,TaskQueueBST)
+		--self:EchoDebug()
+	end
+	if army.jammers[un] then
+		--self:EchoDebug()
+		table.insert(b, AttackerBST)
+		table.insert(b, WardBST)
+	end
+	if army.radars[un] then
+		--self:EchoDebug()
+		table.insert(b, AttackerBST)
+		table.insert(b, WardBST)
+	end
+	if army.scouts[un] then
+		--self:EchoDebug()
+		table.insert(b, ScoutBST)
+-- 		table.insert(b, WardBST)
+	end
+	if army.raiders[un] then
+-- 		table.insert(b, AttackerBST)
+		table.insert(b, RaiderBST)
+-- 		table.insert(b, ScoutBST)
+		--self:EchoDebug()
+	end
+	if army.breaks[un] then
+		table.insert(b, AttackerBST)
+		table.insert(b, DefendBST)
+		--self:EchoDebug()
+	end
+	if army.artillerys[un] then
+		table.insert(b, AttackerBST)
+		--self:EchoDebug()
+	end
+	if army.battles[un] then
+		table.insert(b, AttackerBST)
+		table.insert(b, DefendBST)
+		--self:EchoDebug()
 	end
 
-	if self.ai.armyhst.nanoTurretList[un] then
+	if army.bomberairs[un] then
+		--self:EchoDebug()
+		table.insert(b, BomberBST)
+	end
+	if army.airgun[un] then
+		table.insert(b, RaiderBST)
+		table.insert(b, AttackerBST)
+		--self:EchoDebug()
+	end
+	if army.fighterairs[un] then
+		table.insert(b, DefendBST)
+		--self:EchoDebug()
+	end
+	if army.paralyzers[un] then
+		--self:EchoDebug()
+		table.insert(b, DefendBST)
+	end
+
+	if army.antiairs[un] then
+		--self:EchoDebug()
+		table.insert(b, DefendBST)
+	end
+	if army.subkillers[un] then
+		table.insert(b, AttackerBST)
+		table.insert(b, DefendBST)
+		--self:EchoDebug()
+	end
+	if army.amphibious[un] then
+		table.insert(b, AttackerBST)
+		table.insert(b, DefendBST)
+		--self:EchoDebug()
+	end
+	if army.transports[un] then
+		--self:EchoDebug()
+	end
+	if army.spys[un] then
+		--self:EchoDebug()
+	end
+	if army.miners[un] then
+		--self:EchoDebug()
+	end
+	if army.spiders[un] then
+		table.insert(b, AttackerBST)
+		--self:EchoDebug()
+	end
+	if army.antinukes[un] then
+		--self:EchoDebug()
+	end
+	if army.crawlings[un] then
+		--self:EchoDebug()
+	end
+	if army.cloakables[un] then
+		--self:EchoDebug()
+	end
+	if army._nano_[un] then
 		table.insert(b, AssistBST)
-		table.insert(b, WardBST)
+		table.insert(b, WardBST) -- TODO testing sometime nano stuck
 		table.insert(b, CleanerBST)
 	end
 
+
+
 	if self.ai.armyhst.unitTable[un].isBuilding then
 		table.insert(b, WardBST) --tells defending units to rush to threatened buildings
-		if self.ai.armyhst.nukeList[un] then
+		if self.ai.armyhst._silo_[un] then
 			table.insert(b, NukeBST)
-		elseif self.ai.armyhst.antinukeList[un] then
+		elseif self.ai.armyhst._antinuke_[un] then
 			table.insert(b, AntinukeBST)
 		elseif self.ai.armyhst.bigPlasmaList[un] then
 			table.insert(b, BombardBST)
-		end
-	end
-
-
-	if u:CanBuild() then
-		-- game:SendToConsole(u:Name() .. " can build")
-		-- moho engineer doesn't need the queue!
-		if self.ai.armyhst.advConList[un] then
-			-- game:SendToConsole(u:Name() .. " is advanced construction unit")
-			-- half advanced engineers upgrade mexes instead of building things
-			if self.ai.advCons == nil then self.ai.advCons = 0 end
-			if self.ai.advCons == 0 then
-				-- game:SendToConsole(u:Name() .. " taskqueuing")
-				table.insert(b, MexUpBST)
-				self.ai.advCons = 1
-			else
-				-- game:SendToConsole(u:Name() .. " mexupgrading")
-				self.ai.advCons = 0
-			end
-			table.insert(b,TaskQueueBST)
-
-		else
-			table.insert(b,TaskQueueBST)
-			if self.ai.armyhst.unitTable[un].isBuilding then
-				table.insert(b, LabRegisterBST)
-			else
-				--table.insert(b, AssistBST)
-				table.insert(b, ReclaimBST)
-				table.insert(b, CleanerBST)
-			end
-		end
-		table.insert(b, WardBST)
-	elseif self.ai.armyhst.reclaimerList[un] then
-		table.insert(b, ReclaimBST)
-		table.insert(b, WardBST)
-	else
-		if self.ai.tool:dictHasKey(un,self.ai.armyhst.attackerlist)then
-			table.insert(b, AttackerBST)
-			-- if self.ai.armyhst.battleList[un] or self.ai.armyhst.breakthroughList[un] then
-				-- arty and merl don't make good defense
-				table.insert(b, DefendBST)
-			-- end
-		end
-		if self.ai.tool:dictHasKey(un,self.ai.armyhst.raiderList) then
-			table.insert(b, RaiderBST)
-			table.insert(b, ScoutBST)
-			if self.ai.armyhst.unitTable[un].mtype ~= "air" then
-				table.insert(b, DefendBST)
-			end -- will only defend when scrambled by danger
-		end
-		if self.ai.tool:dictHasKey(un,self.ai.armyhst.bomberList) then
-			table.insert(b, BomberBST)
-		end
-		if self.ai.tool:dictHasKey(un,self.ai.armyhst.scoutList)then
-			table.insert(b, ScoutBST)
-			table.insert(b, WardBST)
-		end
-		if self.ai.armyhst.defenderList[un]  then
-			table.insert(b, DefendBST)
+		elseif self.ai.armyhst.unitTable[un].isStaticBuilder then
+			table.insert(b,TaskLabBST)
+			table.insert(b, LabRegisterBST)
 		end
 	end
 
@@ -123,7 +198,7 @@ function BehaviourFactory:defaultBehaviours(unit)
 	for i = #b, 1, -1 do
 		local behaviour = b[i]
 		if alreadyHave[behaviour] then
-			-- game:SendToConsole(self.ai.id, "duplicate behaviour", u:ID(), u:Name())
+			game:SendToConsole(self.ai.id, "duplicate behaviour", u:ID(), u:Name())
 			table.remove(b, i)
 		else
 			alreadyHave[behaviour] = true
@@ -133,3 +208,83 @@ function BehaviourFactory:defaultBehaviours(unit)
 
 	return b
 end
+--[[
+    if army.factoryMobilities[un] then
+   --self:EchoDebug()
+   elseif army._mex_[un] then
+   --self:EchoDebug()
+   elseif army._nano_[un] then
+   --self:EchoDebug()
+   elseif army._wind_[un] then
+   --self:EchoDebug()
+   elseif army._tide_[un] then
+   --self:EchoDebug()
+   elseif army._advsol_[un] then
+   --self:EchoDebug()
+   elseif army._solar_[un] then
+   --self:EchoDebug()
+   elseif army._estor_[un] then
+   --self:EchoDebug()
+   elseif army._mstor_[un] then
+   --self:EchoDebug()
+   elseif army._convs_[un] then
+   --self:EchoDebug()
+   elseif army._llt_[un] then
+   --self:EchoDebug()
+   elseif army._popup1_[un] then
+   --self:EchoDebug()
+   elseif army._specialt_[un] then
+   --self:EchoDebug()
+   elseif army._heavyt_[un] then
+   --self:EchoDebug()
+   elseif army._aa1_[un] then
+   --self:EchoDebug()
+   elseif army._flak_[un] then
+   --self:EchoDebug()
+   elseif army._fus_[un] then
+   --self:EchoDebug()
+   elseif army._popup2_[un] then
+   --self:EchoDebug()
+   elseif army._jam_[un] then
+   --self:EchoDebug()
+   elseif army._radar_[un] then
+   --self:EchoDebug()
+   elseif army._geo_[un] then
+   --self:EchoDebug()
+   elseif army._silo_[un] then
+   --self:EchoDebug()
+   elseif army._antinuke_[un] then
+   --self:EchoDebug()
+   elseif army._sonar_[un] then
+   --self:EchoDebug()
+   elseif army._shield_[un] then
+   --self:EchoDebug()
+   elseif army._juno_[un] then
+   --self:EchoDebug()
+   elseif army._laser2_[un] then
+   --self:EchoDebug()
+   elseif army._lol_[un] then
+   --self:EchoDebug()
+   elseif army._coast1_[un] then
+   --self:EchoDebug()
+   elseif army._coast2_[un] then
+   --self:EchoDebug()
+   elseif army._plasma_[un] then
+   --self:EchoDebug()
+   elseif army._torpedo1_[un] then
+   --self:EchoDebug()
+   elseif army._torpedo2_[un] then
+   --self:EchoDebug()
+   elseif army._torpedoground_[un] then
+   --self:EchoDebug()
+   elseif army._aabomb_[un] then
+   --self:EchoDebug()
+   elseif army._aaheavy_[un] then
+   --self:EchoDebug()
+   elseif army._aa2_[un] then
+   --self:EchoDebug()
+   else
+   self:EchoDebug('mobile unit not in category')
+   end
+
+   ]]

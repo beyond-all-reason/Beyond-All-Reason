@@ -15,14 +15,14 @@ local halfCellSize = cellSize / 2
 local hotBuildRadius = math.floor(math.sqrt(halfCellSize * halfCellSize * 2))
 
 function NanoHST:Init()
-	self.DebugEnabled = false
+	self.DebugEnabled = true
 	self.densityMap = {}
 end
 
 function NanoHST:MyUnitBuilt(engineUnit)
 	local ut = self.ai.armyhst.unitTable[engineUnit:Name()]
 	if not ut then return end
-	if self.ai.armyhst.nanoTurretList[engineUnit:Name()] then
+	if self.ai.armyhst._nano_[engineUnit:Name()] then
 		self:AddNano(engineUnit)
 	end
 end
@@ -30,7 +30,7 @@ end
 function NanoHST:UnitDead(engineUnit)
 	local ut = self.ai.armyhst.unitTable[engineUnit:Name()]
 	if not ut then return end
-	if self.ai.armyhst.nanoTurretList[engineUnit:Name()] then
+	if self.ai.armyhst._nano_[engineUnit:Name()] then
 		self:RemoveNano(engineUnit)
 	end
 end

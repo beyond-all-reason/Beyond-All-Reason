@@ -1,5 +1,6 @@
 function IsAttacker(unit)
-	return self.ai.armyhst.attackerlist[unit:Internal():Name()] or false
+-- 	return self.ai.armyhst.attackerlist[unit:Internal():Name()] or false
+	return self.ai.armyhst.unitTable[unit:Internal():Name()].isAttacker
 end
 
 AttackerBST = class(Behaviour)
@@ -22,7 +23,7 @@ function AttackerBST:Init()
 	self.range = math.max(ut.groundRange, ut.airRange, ut.submergedRange)
 	self.weaponDistance = self.range * 0.9
 	self.sightDistance = ut.losRadius * 0.9
-	self.sturdy = self.ai.armyhst.battleList[self.name] or self.ai.armyhst.breakthroughList[self.name]
+	self.sturdy = self.ai.armyhst.battles[self.name] or self.ai.armyhst.breaks[self.name]
 	if ut.groundRange > 0 then
 		self.hits = "ground"
 	elseif ut.submergedRange > 0 then
@@ -104,7 +105,9 @@ function AttackerBST:Update()
 	end
 	if self.active and self.needToMoveToTarget then
 		self.needToMoveToTarget = false
-		self.unit:Internal():Move(self.target)
+-- 		self.unit:Internal():Move(self.target)
+		self.unit:Internal():AttackMove(self.target) --need to check this
+
 	end
 end
 
@@ -132,7 +135,8 @@ function AttackerBST:Advance(pos, perpendicularAttackAngle, reverseAttackAngle)
 		-- local framesToArrive = 30 * (self.ai.tool:Distance(self.unit:Internal():GetPosition(), self.target) / self.speed) * 2
 		-- game:SendToConsole("frames to arrive", framesToArrive)
 		-- self.timeout = self.game:Frame() + framesToArrive
-		self.unit:Internal():Move(self.target)
+		self.unit:Internal():AttackMove(self.target) --need to check this
+		--self.unit:Internal():Move(self.target)
 	end
 	return canMoveThere
 end
@@ -158,10 +162,10 @@ function AttackerBST:SetMoveState()
 	if thisUnit then
 		local unitName = self.name
 		local floats = api.vectorFloat()
-		if self.ai.armyhst.battleList[unitName] then
+		if self.ai.armyhst.battles[unitName] then
 			-- floats:push_back(MOVESTATE_ROAM)
 			floats:push_back(MOVESTATE_MANEUVER)
-		elseif self.ai.armyhst.breakthroughList[unitName] then
+		elseif self.ai.armyhst.breaks[unitName] then
 			floats:push_back(MOVESTATE_MANEUVER)
 		else
 			floats:push_back(MOVESTATE_HOLDPOS)
