@@ -11,7 +11,7 @@ function CleanHST:internalName()
 end
 
 function CleanHST:Init()
-	self.DebugEnabled = true
+	self.DebugEnabled = false
 -- 	self.cleanables = {}
 -- 	self.priorities = {}
 -- 	self.isObstructedBy = {}
