@@ -28,7 +28,7 @@ local function MaxBuildDist(unitName, speed)
 end
 
 function TaskQueueBST:Init()
-	self.DebugEnabled = false
+	self.DebugEnabled = true
 	self.role = nil
 	self.active = false
 	self.currentProject = nil
@@ -134,6 +134,9 @@ end
 
 function TaskQueueBST:Update()
 	local f = self.game:Frame()
+	if f % 180 == 0 then
+		self:VisualDBG()
+	end
 	if self.failOut and f > self.failOut + 3000 then
 		self:EchoDebug("getting back to work " .. self.name .. " " .. self.id)
 		self.failOut = false
@@ -159,9 +162,12 @@ function TaskQueueBST:Update()
 			return
 		end
 	end
-	if self.progress == true  and not self.failOut then
-		self:EchoDebug('progress update')
-		self:ProgressQueue()
+
+	if f % 60 == 0 then
+		if self.progress == true  and not self.failOut then
+			self:EchoDebug('progress update')
+			self:ProgressQueue()
+		end
 	end
 end
 
@@ -205,7 +211,7 @@ function TaskQueueBST:CategoryEconFilter(cat,param,name)
 	elseif cat == '_llt_' then
 		check =   (E.income > 5 and M.income > 1)
 	elseif cat == '_popup1_' then
-		check =   (E.income > 100 and M.income > 15 and M.full > 0.1 )
+		check =   (E.income > 200 and M.income > 25  )
 	elseif cat == '_specialt_' then
 		check =   E.income > 40 and M.income > 4 and M.full > 0.1
 	elseif cat == '_heavyt_' then
@@ -413,43 +419,43 @@ function TaskQueueBST:findPlace(utype, value,cat)
 			end
 		end
 	elseif cat == '_wind_' then
-		POS = 	site:searchPosNearThing(utype, builder,'isNano',500, nil,50) or
+		POS = 	site:searchPosNearThing(utype, builder,'isNano',500, nil,100) or
 				site:searchPosNearThing(utype, builder,'isFactory',1000, nil,100) or
 				site:ClosestBuildSpot(builder, builderPos, utype)
 	elseif cat == '_tide_' then
-		POS =  	site:searchPosNearThing(utype, builder,'isNano',500, nil,50) or
-				site:searchPosNearThing(utype, builder,'isFactory',1000, nil,100) or
+		POS =  	site:searchPosNearThing(utype, builder,'isNano',500, nil,100) or
+				site:searchPosNearThing(utype, builder,'isFactory',500, nil,100) or
 				site:ClosestBuildSpot(builder, builderPos, utype)
 	elseif cat == '_advsol_' then
-		POS = 	site:searchPosNearThing(utype, builder,'isNano',500, nil,50) or
+		POS = 	site:searchPosNearThing(utype, builder,'isNano',500, nil,100) or
 				site:searchPosNearThing(utype, builder,'isFactory',1000, nil,100) or
 				site:ClosestBuildSpot(builder, builderPos, utype)
 	elseif cat == '_solar_' then
-		POS = 	site:searchPosNearThing(utype, builder,'isNano',500, nil,50) or
+		POS = 	site:searchPosNearThing(utype, builder,'isNano',500, nil,100) or
 				site:searchPosNearThing(utype, builder,'isFactory',1000, nil,100) or
 				site:ClosestBuildSpot(builder, builderPos, utype)
 	elseif cat == '_fus_' then
-		POS = site:searchPosNearThing(utype, builder,'isNano',350, nil,50) or
+		POS = site:searchPosNearThing(utype, builder,'isNano',350, nil,100) or
 				site:BuildNearLastNano(builder, utype) or
-				site:searchPosNearThing(utype, builder,'isFactory',390, nil,0) or
+				site:searchPosNearThing(utype, builder,'isFactory',390, nil,100) or
 				site:ClosestBuildSpot(builder, builderPos, utype)
 
 	elseif cat == '_estor_' then
-		POS = site:searchPosNearThing(utype, builder,'isNano',500, nil,300) or
-				site:searchPosNearThing(utype, builder,'isFactory',1000, nil,300) or
+		POS = site:searchPosNearThing(utype, builder,'isNano',500, nil,100) or
+				site:searchPosNearThing(utype, builder,'isFactory',500, nil,100) or
 				site:ClosestBuildSpot(builder, builderPos, utype)
 	elseif cat == '_mstor_' then
-		POS = site:searchPosNearThing(utype, builder,'isNano',500, nil,300) or
-				site:searchPosNearThing(utype, builder,'isFactory',1000, nil,300) or
+		POS = site:searchPosNearThing(utype, builder,'isNano',500, nil,100) or
+				site:searchPosNearThing(utype, builder,'isFactory',500, nil,100) or
 				site:ClosestBuildSpot(builder, builderPos, utype)
 	elseif cat == '_convs_' then
-		POS = site:searchPosNearThing(utype, builder,'isNano',350, nil,200) or
-				site:searchPosNearThing(utype, builder,'isFactory',1000, nil,200) or
+		POS = site:searchPosNearThing(utype, builder,'isNano',350, nil,100) or
+				site:searchPosNearThing(utype, builder,'isFactory',500, nil,100) or
 				site:ClosestBuildSpot(builder, builderPos, utype)
 	elseif cat == '_llt_' then
-		POS = site:searchPosNearThing(utype, builder,'extractsMetal',nil, 'losRadius',20)
+		POS = site:searchPosNearThing(utype, builder,'extractsMetal',nil, 'losRadius',50)
 	elseif cat == '_popup1_' then
-		POS = site:searchPosNearThing(utype, builder,'extractsMetal',nil, 'losRadius',20) or
+		POS = site:searchPosNearThing(utype, builder,'extractsMetal',nil, 'losRadius',50) or
 				site:searchPosInList(self.map:GetMetalSpots(),utype, builder,200, 20)
 	elseif cat == '_specialt_' then
 		POS = site:searchPosInList(self.ai.hotSpot,utype, builder, 400,200)
@@ -707,6 +713,17 @@ function TaskQueueBST:ProgressQueue()
 	end
 end
 
+function TaskQueueBST:VisualDBG()
+	local colours = {
+	default = {255,0,0,255},
+	eco = {0,255,0,255},
+	support = {0,0,255,255},
+	expand = {255,255,255,255},
+	}
+	self.unit:Internal():EraseHighlight(nil, self.id, 8 )
+	self.unit:Internal():DrawHighlight(colours[self.role] , self.id, 8 )
+
+end
 
 --[[
     function TaskQueueBST:specialFilter(cat,param,name)

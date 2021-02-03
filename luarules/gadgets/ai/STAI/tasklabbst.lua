@@ -5,7 +5,7 @@ function TaskLabBST:Name()
 end
 
 function TaskLabBST:Init()
-	self.DebugEnabled = true
+	self.DebugEnabled = false
 	self:EchoDebug('initialize tasklab')
 	local u = self.unit:Internal()
 	self.id = u:ID()

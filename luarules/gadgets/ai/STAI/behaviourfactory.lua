@@ -40,10 +40,7 @@ function BehaviourFactory:defaultBehaviours(unit)
 	-- keep track of how many of each kind of unit we have
 	table.insert(b, CountBST)
 	table.insert(b, BootBST)
--- 	if army.isAttacker[un] then
--- 		table.insert(b, AttackerBST)
--- 		table.insert(b, DefendBST)
--- 	end
+
 	if army.commanderList[un] then
 		table.insert(b, CommanderBST)
 		table.insert(b,TaskQueueBST)
@@ -103,7 +100,7 @@ function BehaviourFactory:defaultBehaviours(unit)
 	if army.raiders[un] then
 -- 		table.insert(b, AttackerBST)
 		table.insert(b, RaiderBST)
-		table.insert(b, ScoutBST)
+-- 		table.insert(b, ScoutBST)
 		--self:EchoDebug()
 	end
 	if army.breaks[un] then

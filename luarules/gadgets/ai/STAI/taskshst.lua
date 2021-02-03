@@ -13,17 +13,14 @@ function TasksHST:Init()
 	self.roles = {}
 	self.roles.default = {
 		--group, eco,duplicate,limitedNumber,location,special
-
-
+		{'factoryMobilities',true,true,false,true,true},
 		{'_wind_',true,false,false,true,true},
 		{'_tide_',true,false,false,true,true},
 		{'_solar_',true,false,false,true,true},
-		{'_advsol_',true,false,false,true,true},
 		{'_mex_',true,false,false,true,true},
 		{'_llt_',true,false,false,true,true},
-		{'factoryMobilities',true,true,false,true,true},
 		{'_nano_',true,false,false,true,true},
-
+		{'_advsol_',true,false,false,true,true},
 		{'_aa1_',true,false,false,true,true},
 		{'_flak_',true,false,false,true,true},
 		{'_specialt_',true,false,false,true,true},--limited number % Energy
@@ -63,8 +60,8 @@ function TasksHST:Init()
 	}
 
 	self.roles.eco = {
-		{'_llt_',true,false,false,true,true},
 		{'factoryMobilities',true,true,false,true,true},
+		{'_llt_',true,false,false,true,true},
 		{'_wind_',true,false,false,true,true},
 		{'_tide_',true,false,false,true,true},
 		{'_solar_',true,false,false,true,true},
@@ -81,7 +78,7 @@ function TasksHST:Init()
 		{'_radar_',true,true,false,true,true},
 		{'_popup1_',true,false,false,true,true},
 		{'_popup2_',true,false,false,true,true},
-		{'_heavyt_',true,false,false,true,true},
+		{'_heavyt_',true,true,false,true,true},
 		{'_laser2_',true,true,false,true,true},
 		{'_aa1_',true,false,false,true,true},
 		{'_aabomb_',true,false,false,true,true},

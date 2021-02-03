@@ -94,7 +94,7 @@ function CleanerBST:ecoCondition()
 			return true
 		end
 	end
-	self:reset()
+-- 	self:reset()
 
 end
 

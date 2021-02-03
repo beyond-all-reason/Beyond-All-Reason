@@ -201,29 +201,29 @@ function BuildSiteHST:GetBuildSpacing(unitTypeToBuild)
 		spacing = 2
 	elseif army._wind_[un] then
 		--self:EchoDebug()
-		spacing = 3
+		spacing = 4
 	elseif army._tide_[un] then
 		--self:EchoDebug()
-		spacing = 3
+		spacing = 4
 	elseif army._advsol_[un] then
 		--self:EchoDebug()
-		spacing = 3
+		spacing = 4
 	elseif army._solar_[un] then
 		--self:EchoDebug()
-		spacing = 3
+		spacing = 4
 	elseif army._estor_[un] then
 		--self:EchoDebug()
 		spacing = 5
 	elseif army._mstor_[un] then
 		--self:EchoDebug()
-		spacing = 3
+		spacing = 4
 	elseif army._convs_[un] then
 		--self:EchoDebug()
 	elseif army._llt_[un] then
 		--self:EchoDebug()
 	elseif army._popup1_[un] then
 		--self:EchoDebug()
-		spacing = 3
+		spacing = 4
 	elseif army._specialt_[un] then
 		--self:EchoDebug()
 		spacing = 5
@@ -238,7 +238,7 @@ function BuildSiteHST:GetBuildSpacing(unitTypeToBuild)
 		spacing = 5
 	elseif army._fus_[un] then
 		--self:EchoDebug()
-		spacing = 3
+		spacing = 4
 	elseif army._popup2_[un] then
 		--self:EchoDebug()
 		spacing = 5
@@ -256,16 +256,16 @@ function BuildSiteHST:GetBuildSpacing(unitTypeToBuild)
 		spacing = 5
 	elseif army._sonar_[un] then
 		--self:EchoDebug()
-		spacing = 3
+		spacing = 4
 	elseif army._shield_[un] then
 		--self:EchoDebug()
 		spacing = 5
 	elseif army._juno_[un] then
 		--self:EchoDebug()
-		spacing = 3
+		spacing = 4
 	elseif army._laser2_[un] then
 		--self:EchoDebug()
-		spacing = 3
+		spacing = 4
 	elseif army._lol_[un] then
 		--self:EchoDebug()
 		spacing = 5
@@ -277,13 +277,13 @@ function BuildSiteHST:GetBuildSpacing(unitTypeToBuild)
 		spacing = 5
 	elseif army._plasma_[un] then
 		--self:EchoDebug()
-		spacing = 3
+		spacing = 4
 	elseif army._torpedo1_[un] then
 		--self:EchoDebug()
-		spacing = 3
+		spacing = 4
 	elseif army._torpedo2_[un] then
 		--self:EchoDebug()
-		spacing = 3
+		spacing = 4
 	elseif army._torpedoground_[un] then
 		--self:EchoDebug()
 		spacing = 5
@@ -301,21 +301,6 @@ function BuildSiteHST:GetBuildSpacing(unitTypeToBuild)
 	end
 	return spacing
 end
-
-function BuildSiteHST:ClosestBuildSpot(builder, position, unitTypeToBuild, minimumDistance, attemptNumber, buildDistance, maximumDistance)
-	maximumDistance = maximumDistance or 400
-	-- return self:ClosestBuildSpotInSpiral(builder, unitTypeToBuild, position)
-	if attemptNumber == nil then self:EchoDebug("looking for build spot for " .. builder:Name() .. " to build " .. unitTypeToBuild:Name()) end
-	local minDistance = minimumDistance or self:GetBuildSpacing(unitTypeToBuild)
-	buildDistance = buildDistance or 100
-	local function validFunction(pos)
-		local vpos = self:CheckBuildPos(pos, unitTypeToBuild, builder, position)
-		-- Spring.Echo(pos.x, pos.y, pos.z, unitTypeToBuild:Name(), builder:Name(), position.x, position.y, position.z, vpos)
-		return vpos
-	end
-	return self.map:FindClosestBuildSite(unitTypeToBuild, position, maximumDistance, minDistance, validFunction)
-end
-
 
 function BuildSiteHST:ClosestHighestLevelFactory(builderPos, maxDist)
 	if not builderPos then return end
@@ -444,22 +429,47 @@ function BuildSiteHST:searchPosNearThing(utype,builder,thing,range,spaceEquals,m
 	return nil
 end
 
+
+function BuildSiteHST:ClosestBuildSpot(builder, position, unitTypeToBuild, minimumDistance, attemptNumber, buildDistance, maximumDistance)
+	maximumDistance = maximumDistance or 400
+	-- return self:ClosestBuildSpotInSpiral(builder, unitTypeToBuild, position)
+	if attemptNumber == nil then self:EchoDebug("looking for build spot for " .. builder:Name() .. " to build " .. unitTypeToBuild:Name()) end
+	local minDistance = minimumDistance or self:GetBuildSpacing(unitTypeToBuild)
+	buildDistance = buildDistance or 100
+	local function validFunction(pos)
+		local vpos = self:CheckBuildPos(pos, unitTypeToBuild, builder, position)
+		-- Spring.Echo(pos.x, pos.y, pos.z, unitTypeToBuild:Name(), builder:Name(), position.x, position.y, position.z, vpos)
+		return vpos
+	end
+	return self.map:FindClosestBuildSite(unitTypeToBuild, position, maximumDistance, minDistance, validFunction)
+end
+
 function BuildSiteHST:searchPosInList(list,utype, builder, spaceEquals,minDist)
-	if spaceEquals and self:unitNearCheck(utype,builder:GetPosition(),spaceEquals) then return nil end
+-- 	if spaceEquals and self:unitNearCheck(utype,builder:GetPosition(),spaceEquals) then return nil end
+	local d
+	self.DebugEnabled = true
 	if list and #list > 0 then
--- 		self:EchoDebug('list ok')
+		self:EchoDebug('list ok')
 		for index, pos in pairs(list) do
-			if self.ai.tool:Distance(pos,builder:GetPosition()) < self.ai.armyhst.unitTable[builder:Name()].losRadius then
+			if self.ai.tool:Distance(pos,builder:GetPosition()) < 5000 then
 				self:EchoDebug('to far away')
 				if not spaceEquals or not self:unitNearCheck(utype,pos,spaceEquals)then
 					self:EchoDebug('ok space')
-					local p = self.ai.buildsitehst:ClosestBuildSpot(builder, pos, utype , minDist, nil, nil, self.ai.armyhst.unitTable[utype:Name()][spaceEquals])
-					if p then return p end
+					local p = self.ai.buildsitehst:ClosestBuildSpot(builder, pos, utype , minDist, nil, nil, nil)
+
+					if p then
+						d = self.ai.tool:Distance(p,builder:GetPosition())
+						self:EchoDebug('Found pos in list')
+-- 						if d < 3000 then
+						self.DebugEnabled = false
+							return p
+-- 						end
+					end
 				end
 			end
 		end
 	end
-
+	self.DebugEnabled = false
 	return nil
 end
 
