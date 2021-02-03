@@ -15,7 +15,7 @@ local halfCellSize = cellSize / 2
 local hotBuildRadius = math.floor(math.sqrt(halfCellSize * halfCellSize * 2))
 
 function NanoHST:Init()
-	self.DebugEnabled = true
+	self.DebugEnabled = false
 	self.densityMap = {}
 end
 
