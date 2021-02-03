@@ -1,7 +1,11 @@
 CleanerBST = class(Behaviour)
 
+function CleanerBST:Name()
+	return "CleanerBST"
+end
+
 function CleanerBST:Init()
-	self.DebugEnabled = true
+	self.DebugEnabled = false
 
 	self.name = self.unit:Internal():Name()
 	self.id = self.unit:Internal():ID()
