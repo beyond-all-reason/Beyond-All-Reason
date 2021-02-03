@@ -447,7 +447,6 @@ end
 function BuildSiteHST:searchPosInList(list,utype, builder, spaceEquals,minDist)
 -- 	if spaceEquals and self:unitNearCheck(utype,builder:GetPosition(),spaceEquals) then return nil end
 	local d
-	self.DebugEnabled = true
 	if list and #list > 0 then
 		self:EchoDebug('list ok')
 		for index, pos in pairs(list) do
@@ -461,7 +460,6 @@ function BuildSiteHST:searchPosInList(list,utype, builder, spaceEquals,minDist)
 						d = self.ai.tool:Distance(p,builder:GetPosition())
 						self:EchoDebug('Found pos in list')
 -- 						if d < 3000 then
-						self.DebugEnabled = false
 							return p
 -- 						end
 					end
@@ -469,7 +467,6 @@ function BuildSiteHST:searchPosInList(list,utype, builder, spaceEquals,minDist)
 			end
 		end
 	end
-	self.DebugEnabled = false
 	return nil
 end
 
