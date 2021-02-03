@@ -10,14 +10,9 @@ function widget:GetInfo()
 	}
 end
 
-
 local loadSettings		= true
 
 local vsx,vsy = Spring.GetViewGeometry()
-
----------------------------------------------------------------------------------------------------
---  Declarations
----------------------------------------------------------------------------------------------------
 
 local PmaxDmg						= 0
 local comTable 						= {}
@@ -60,6 +55,11 @@ local GetPlayerInfo					= Spring.GetPlayerInfo
 local GetTeamColor					= Spring.GetTeamColor
 local GetTeamResources				= Spring.GetTeamResources
 local Echo							= Spring.Echo
+
+local RectRound = Spring.FlowUI.Draw.RectRound
+local UiElement = Spring.FlowUI.Draw.Element
+
+local font, bgpadding, chobbyInterface, sideImageList
 
 local reclaimerUnits = {}
 
@@ -398,114 +398,6 @@ local function formatRes(number)
 end
 
 
--- Draw
-local function DrawRectRound(px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)
-	local csyMult = 1 / ((sy-py)/cs)
-
-	if c2 then
-		gl.Color(c1[1],c1[2],c1[3],c1[4])
-	end
-	gl.Vertex(px+cs, py, 0)
-	gl.Vertex(sx-cs, py, 0)
-	if c2 then
-		gl.Color(c2[1],c2[2],c2[3],c2[4])
-	end
-	gl.Vertex(sx-cs, sy, 0)
-	gl.Vertex(px+cs, sy, 0)
-
-	-- left side
-	if c2 then
-		gl.Color(c1[1]*(1-csyMult)+(c2[1]*csyMult),c1[2]*(1-csyMult)+(c2[2]*csyMult),c1[3]*(1-csyMult)+(c2[3]*csyMult),c1[4]*(1-csyMult)+(c2[4]*csyMult))
-	end
-	gl.Vertex(px, py+cs, 0)
-	gl.Vertex(px+cs, py+cs, 0)
-	if c2 then
-		gl.Color(c2[1]*(1-csyMult)+(c1[1]*csyMult),c2[2]*(1-csyMult)+(c1[2]*csyMult),c2[3]*(1-csyMult)+(c1[3]*csyMult),c2[4]*(1-csyMult)+(c1[4]*csyMult))
-	end
-	gl.Vertex(px+cs, sy-cs, 0)
-	gl.Vertex(px, sy-cs, 0)
-
-	-- right side
-	if c2 then
-		gl.Color(c1[1]*(1-csyMult)+(c2[1]*csyMult),c1[2]*(1-csyMult)+(c2[2]*csyMult),c1[3]*(1-csyMult)+(c2[3]*csyMult),c1[4]*(1-csyMult)+(c2[4]*csyMult))
-	end
-	gl.Vertex(sx, py+cs, 0)
-	gl.Vertex(sx-cs, py+cs, 0)
-	if c2 then
-		gl.Color(c2[1]*(1-csyMult)+(c1[1]*csyMult),c2[2]*(1-csyMult)+(c1[2]*csyMult),c2[3]*(1-csyMult)+(c1[3]*csyMult),c2[4]*(1-csyMult)+(c1[4]*csyMult))
-	end
-	gl.Vertex(sx-cs, sy-cs, 0)
-	gl.Vertex(sx, sy-cs, 0)
-
-	local offset = 0.15		-- texture offset, because else gaps could show
-
-	-- bottom left
-	if c2 then
-		gl.Color(c1[1],c1[2],c1[3],c1[4])
-	end
-	if ((py <= 0 or px <= 0)  or (bl ~= nil and bl == 0)) and bl ~= 2   then
-		gl.Vertex(px, py, 0)
-	else
-		gl.Vertex(px+cs, py, 0)
-	end
-	gl.Vertex(px+cs, py, 0)
-	if c2 then
-		gl.Color(c1[1]*(1-csyMult)+(c2[1]*csyMult),c1[2]*(1-csyMult)+(c2[2]*csyMult),c1[3]*(1-csyMult)+(c2[3]*csyMult),c1[4]*(1-csyMult)+(c2[4]*csyMult))
-	end
-	gl.Vertex(px+cs, py+cs, 0)
-	gl.Vertex(px, py+cs, 0)
-	-- bottom right
-	if c2 then
-		gl.Color(c1[1],c1[2],c1[3],c1[4])
-	end
-	if ((py <= 0 or sx >= vsx) or (br ~= nil and br == 0)) and br ~= 2 then
-		gl.Vertex(sx, py, 0)
-	else
-		gl.Vertex(sx-cs, py, 0)
-	end
-	gl.Vertex(sx-cs, py, 0)
-	if c2 then
-		gl.Color(c1[1]*(1-csyMult)+(c2[1]*csyMult),c1[2]*(1-csyMult)+(c2[2]*csyMult),c1[3]*(1-csyMult)+(c2[3]*csyMult),c1[4]*(1-csyMult)+(c2[4]*csyMult))
-	end
-	gl.Vertex(sx-cs, py+cs, 0)
-	gl.Vertex(sx, py+cs, 0)
-	-- top left
-	if c2 then
-		gl.Color(c2[1],c2[2],c2[3],c2[4])
-	end
-	if ((sy >= vsy or px <= 0) or (tl ~= nil and tl == 0)) and tl ~= 2 then
-		gl.Vertex(px, sy, 0)
-	else
-		gl.Vertex(px+cs, sy, 0)
-	end
-	gl.Vertex(px+cs, sy, 0)
-	if c2 then
-		gl.Color(c2[1]*(1-csyMult)+(c1[1]*csyMult),c2[2]*(1-csyMult)+(c1[2]*csyMult),c2[3]*(1-csyMult)+(c1[3]*csyMult),c2[4]*(1-csyMult)+(c1[4]*csyMult))
-	end
-	gl.Vertex(px+cs, sy-cs, 0)
-	gl.Vertex(px, sy-cs, 0)
-	-- top right
-	if c2 then
-		gl.Color(c2[1],c2[2],c2[3],c2[4])
-	end
-	if ((sy >= vsy or sx >= vsx)  or (tr ~= nil and tr == 0)) and tr ~= 2 then
-		gl.Vertex(sx, sy, 0)
-	else
-		gl.Vertex(sx-cs, sy, 0)
-	end
-	gl.Vertex(sx-cs, sy, 0)
-	if c2 then
-		gl.Color(c2[1]*(1-csyMult)+(c1[1]*csyMult),c2[2]*(1-csyMult)+(c1[2]*csyMult),c2[3]*(1-csyMult)+(c1[3]*csyMult),c2[4]*(1-csyMult)+(c1[4]*csyMult))
-	end
-	gl.Vertex(sx-cs, sy-cs, 0)
-	gl.Vertex(sx, sy-cs, 0)
-end
-function RectRound(px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)		-- (coordinates work differently than the RectRound func in other widgets)
-	gl.Texture(false)
-	gl.BeginEnd(GL.QUADS, DrawRectRound, px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)
-end
-
-
 local function DrawEText(numberE, vOffset)
 	if Options["resText"]["On"] then
 		local label = tconcat({"",formatRes(numberE)})
@@ -539,6 +431,7 @@ local function DrawEBar(tE,tEp,vOffset)-- where tE = team Energy = [0,1]
 	if Options["resText"]["On"] then
 		maxW = (widgetWidth/2) + (2*sizeMultiplier)
 	end
+
 	-- background
 	glColor(0.8, 0.8, 0, 0.13)
 	gl.Texture(images["barbg"])
@@ -723,104 +616,19 @@ local function DrawBackground(posY, allyID, sideimagesWidth)
 	if (widgetPosX + widgetWidth) >= vsx-0.2 then
 		borderPaddingRight = 0
 	end
-	--glColor(0,0,0,ui_opacity)
-	RectRound(widgetPosX+sideimagesWidth,y1, widgetPosX + widgetWidth, y2, borderPadding*1.4,  (posY>tH and 1 or 0),1,1,1, {0,0,0,ui_opacity*1.1}, {0.05,0.05,0.05,ui_opacity*1.1})
-	--glColor(1,1,1,ui_opacity*0.055)
-	RectRound(widgetPosX+sideimagesWidth+borderPadding,y1+borderPadding, widgetPosX + widgetWidth-borderPaddingRight, y2, borderPadding, (posY>tH and 1 or 0), 0,0,1, {0.5,0.5,0.5,ui_opacity*0.1}, {1,1,1,ui_opacity*0.1})
-	-- gloss
-	glBlending(GL_SRC_ALPHA, GL_ONE)
-	RectRound(widgetPosX+sideimagesWidth+borderPadding,y1+borderPadding+((y2-y1)*0.6), widgetPosX + widgetWidth-borderPaddingRight, y2, borderPadding, (posY>tH and 1 or 0), 0,0,0, {1,1,1,0.006*glossMult}, {1,1,1,0.05*glossMult})
-	RectRound(widgetPosX+sideimagesWidth+borderPadding,y1+borderPadding, widgetPosX + widgetWidth-borderPaddingRight, y1+borderPadding+((y2-y1)*0.35), borderPadding*0.8, 0,0,0,1, {1,1,1,0.025*glossMult}, {1,1,1,0})
-	glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+
+	UiElement(widgetPosX+sideimagesWidth,y1, widgetPosX + widgetWidth, y2, (posY>tH and 1 or 0),0,0,1, 0,1,1,1)
 
 	guishaderRects['ecostats_'..allyID] = {widgetPosX+sideimagesWidth, y1, widgetPosX + widgetWidth, y2, 4*widgetScale}
 
 	area[1] = area[1]+(widgetWidth/12)
 	if WG['tooltip'] ~= nil and (tooltipAreas['ecostats_'..allyID] == nil or tooltipAreas['ecostats_'..allyID] ~= area[1]..'_'..area[2]..'_'..area[3]..'_'..area[4]) then
-		WG['tooltip'].AddTooltip('ecostats_'..allyID, area, "Team metal/energy income\n(Lighter part of the bar is reclaim income)")
+		WG['tooltip'].AddTooltip('ecostats_'..allyID, area, Spring.I18N('ui.teamEconomy.tooltip'))
 		tooltipAreas['ecostats_'..allyID] = area[1]..'_'..area[2]..'_'..area[3]..'_'..area[4]
 	end
 	glColor(1,1,1,1)
 end
 
-local function DrawOptionRibbon()
-	local h = 45*sizeMultiplier
-	local dx = 80*sizeMultiplier
-	local x0
-	local t = 12*sizeMultiplier
-
-	if right then
-		x0 = widgetPosX-dx
-		x1 = x0 + dx + widgetWidth
-	else
-		x0 = widgetPosX
-		x1 = x0 + dx + widgetWidth
-	end
-	local yPos = widgetPosY + widgetHeight - tH*(aliveAllyTeams)
-
-	Options["resText"]["x1"] = x1 - (20*sizeMultiplier)
-	Options["resText"]["x2"] = x1 - (20*sizeMultiplier) + t
-	Options["resText"]["y2"] = yPos - (7*sizeMultiplier)
-	Options["resText"]["y1"] = yPos - (7*sizeMultiplier) - t
-
-	Options["sticktotopbar"]["x1"] = x1 - (20*sizeMultiplier)
-	Options["sticktotopbar"]["x2"] = x1 - (20*sizeMultiplier) + t
-	Options["sticktotopbar"]["y2"] = yPos - (27*sizeMultiplier)
-	Options["sticktotopbar"]["y1"] = yPos - (27*sizeMultiplier) - t
-
-	Options["removeDead"]["x1"] = x0 + (190*sizeMultiplier)
-	Options["removeDead"]["x2"] = x0 + (190*sizeMultiplier) + t
-	Options["removeDead"]["y2"] = yPos - (47*sizeMultiplier)
-	Options["removeDead"]["y1"] = yPos - (47*sizeMultiplier) - t
-
-
-	glColor(0,0,0,0.4)                              -- draws background rectangle
-	--glRect(x0,widgetPosY, x1, widgetPosY -h)
-	local padding = 2*sizeMultiplier
-	RectRound(x0-padding, yPos -h-padding, x1+padding, yPos+padding, 6*sizeMultiplier)
-
-	font:Begin()
-	font:SetTextColor(0.8,0.8,1,0.8)
-	font:Print("Show resource text:", x0+(10*sizeMultiplier), Options["resText"]["y1"]+4,textsize)
-	font:Print("Stick to Top Bar widget:", x0+(10*sizeMultiplier), Options["sticktotopbar"]["y1"]+4,textsize)
-	font:End()
-	--glText("Remove dead teams:", x0+10, Options["removeDead"]["y1"]+(textsize/2),textsize)
-	glColor(1,1,1,1)
-	if Options["resText"]["On"] then
-		glTexture(images["checkboxon"])
-	else
-		glTexture(images["checkboxoff"])
-	end
-	glTexRect(
-		Options["resText"]["x1"],
-		Options["resText"]["y1"],
-		Options["resText"]["x2"],
-		Options["resText"]["y2"]
-	)
-	if Options["sticktotopbar"]["On"] then
-		glTexture(images["checkboxon"])
-	else
-		glTexture(images["checkboxoff"])
-	end
-	glTexRect(
-		Options["sticktotopbar"]["x1"],
-		Options["sticktotopbar"]["y1"],
-		Options["sticktotopbar"]["x2"],
-		Options["sticktotopbar"]["y2"]
-	)
-	--[[if Options["removeDead"]["On"] then
-		glTexture(images["checkboxon"])
-	else
-		glTexture(images["checkboxoff"])
-	end
-	glTexRect(
-		Options["removeDead"]["x1"],
-		Options["removeDead"]["y1"],
-		Options["removeDead"]["x2"],
-		Options["removeDead"]["y2"]
-	)]]--
-	glTexture(false)
-end
 
 local function DrawBox(hOffset, vOffset,r,g,b)
 	local w = tH*0.36
@@ -864,12 +672,11 @@ local function DrawSideImage(sideImage, hOffset, vOffset, r, g, b, a, small, mou
 		b = 1
 	end
 
-	if mouseOn and (not isDead) then
+	if mouseOn and not isDead then
 		if ctrlDown then
 			glColor(1,1,1,a)
 		else
-			local gs
-			gs,_,_ = GetGameSpeed() or 1
+			local gs,_,_ = GetGameSpeed() or 1
 			glColor(r-0.2*sin(10*t/gs),g-0.2*sin(10*t/gs),b,a)
 		end
 	else
@@ -1046,17 +853,6 @@ function UpdateAllies()
 end
 
 
-function UpdateAlly(allyID)
-	if inSpecMode then
-		setAllyData(allyID)
-	else
-		if allyID == myAllyID then
-			setAllyData(allyID)
-		end
-	end
-end
-
-
 local reclaimerUnitDefs = {}
 for udefID,def in ipairs(UnitDefs) do
 	if def.isBuilder and not def.isFactory then
@@ -1132,10 +928,10 @@ end
 
 function setTeamTable(teamID)
 
-	local side, aID, isDead, commanderAlive, minc, mrecl, einc, erecl, x, y, leaderName, leaderID, active, spectator
+	local commanderAlive, minc, mrecl, einc, erecl, x, y
 
-	_,leaderID,isDead,isAI,side,aID,_,_ 		= GetTeamInfo(teamID,false)
-	leaderName,active,spectator,_,_,_,_,_,_		= GetPlayerInfo(leaderID,false)
+	local _,leaderID,isDead,isAI,side,aID,_,_ = GetTeamInfo(teamID,false)
+	local leaderName,active,spectator,_,_,_,_,_,_ = GetPlayerInfo(leaderID,false)
 
 	if teamID == gaiaID then
 		if haveZombies then
@@ -1147,7 +943,7 @@ function setTeamTable(teamID)
 
 	local tred, tgreen, tblue = GetTeamColor(teamID)
 	local luminance  = (tred * 0.299) + (tgreen * 0.587) + (tblue * 0.114)
-	if (luminance < 0.2) then
+	if luminance < 0.2 then
 		tred = tred + 0.25
 		tgreen = tgreen + 0.25
 		tblue = tblue + 0.25
@@ -1165,6 +961,7 @@ function setTeamTable(teamID)
 	if cp and cp.side then side = cp.side end
 
 	-- code from ecostats widget
+	local teamside
 	if Spring.GetTeamRulesParam(teamID, 'startUnit') then
 		local startunit = Spring.GetTeamRulesParam(teamID, 'startUnit')
 		if startunit == armcomDefID then
@@ -1257,7 +1054,7 @@ end
 
 function isTeamReal(allyID)
 	if allyID == nil then return false end
-	local leaderID, spectator, isDead, unitCount
+	local leaderID, spectator, isDead, unitCount, leaderName, active
 
 	for _,tID in ipairs (GetTeamList(allyID)) do
 		_,leaderID,isDead			= GetTeamInfo(tID,false)
@@ -1299,7 +1096,7 @@ end
 
 function getNbPlacedPositions(teamID)
 	local nbPlayers = 0
-	local startx, starty, active, leaderID, leaderName, isDead
+	local startx, starty, active, leaderID, leaderName, isDead, spectator
 
 	for _,pID in ipairs (GetTeamList(teamID)) do
 		if teamData[pID] == nil then
@@ -1341,8 +1138,7 @@ end
 
 function checkDeadTeams()
 	for teamID in pairs(teamData) do
-		isDead = select(3,GetTeamInfo(teamID,false))
-		teamData[teamID]["isDead"] = isDead
+		teamData[teamID]["isDead"] = select(3,GetTeamInfo(teamID,false))
 	end
 end
 
@@ -1540,19 +1336,13 @@ function widget:MousePress(x, y, button)
 	end
 end
 
-function widget:MouseRelease(x,y,button)
-	if button == 2 or button == 3 then
-		pressedToMove = nil                                              -- ends move action
-	end
-end
 
 function widget:ViewResize()
 	vsx,vsy = gl.GetViewSizes()
 	widgetPosX, widgetPosY = xRelPos * vsx, yRelPos * vsy
 	widgetScale = (((vsy) / 2000) * 0.5) * (0.95+(ui_scale-1)/1.5)		-- only used for rounded corners atm
 
-	widgetSpaceMargin = math.floor((0.0045 * (vsy/vsx))*vsx * ui_scale)
-	bgpadding = math.ceil(widgetSpaceMargin * 0.66)
+	bgpadding = Spring.FlowUI.elementPadding
 
 	font = WG['fonts'].getFont()
 
@@ -1597,7 +1387,7 @@ function makeSideImageList()
 			if guishaderRectsDlists[id] then
 				gl.DeleteList(guishaderRectsDlists[id])
 			end
-			guishaderRectsDlists[id] = gl.CreateList( function() RectRound(rect[1],rect[2],rect[3],rect[4],rect[5]) end)
+			guishaderRectsDlists[id] = gl.CreateList( function() RectRound(rect[1],rect[2],rect[3],rect[4],rect[5], 1,0,0,1) end)
 			WG['guishader'].InsertDlist(guishaderRectsDlists[id], id)
 		end
 	end
@@ -1622,7 +1412,7 @@ function widget:Update(dt)
 	end
 	if myFullview ~= select(2,Spring.GetSpectatingState()) then
 		myFullview = select(2,Spring.GetSpectatingState())
-		if myFullView then
+		if myFullview then
 			Reinit()
 		else
 			removeGuiShaderRects()
@@ -1645,7 +1435,7 @@ end
 function widget:DrawScreen()
 	if chobbyInterface then return end
 	if not inSpecMode or not myFullview then return end
-	if Spring.IsGUIHidden() or (not inSpecMode) then return end
+	if Spring.IsGUIHidden() or not inSpecMode then return end
 
 	if not sideImageList then makeSideImageList() end
 

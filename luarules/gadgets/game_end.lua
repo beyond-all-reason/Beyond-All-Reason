@@ -128,7 +128,8 @@ if gadgetHandler:IsSyncedCode() then
 					playerIDtoAIs[AIHostPlayerID][teamID] = allyTeamID
 				end
 				--is luaai
-				if GetTeamLuaAI(teamID) ~= "" then
+				local luaAi = GetTeamLuaAI(teamID)
+				if luaAi and luaAi ~= "" then
 					teamInfo.isAI = true
 					teamInfo.isControlled = true
 				end

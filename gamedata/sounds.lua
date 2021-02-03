@@ -169,6 +169,27 @@ for i=1,#files do
     end
 end
 
+-- CHICKEN SOUNDS
+local files = VFS.DirList("sounds/chickens/")
+local t = Sounds.SoundItems
+for i=1,#files do
+	local fileName = files[i]
+	fileNames = string.sub(fileName, 17, string.find(fileName, ".wav") -1)
+	t[fileNames] = {
+    	file     = fileName;
+		gain = 1.0,
+    	pitchmod = 0.23,
+    	gainmod  = 0.2*0.3,
+		dopplerscale = 1.0,
+    	maxconcurrent = 6,
+		rolloff = 1.1,
+	}
+	
+	if fileNames == "talonattack" then
+    t[fileNames].pitchmod = 0.07
+    end
+end
+
 -- BOMB SOUNDS / More maxconcurrent
 local files = VFS.DirList("sounds/bombs/")
 local t = Sounds.SoundItems
@@ -182,7 +203,7 @@ for i=1,#files do
 		gainmod  = 0.2*0.3,
 		dopplerscale = 1.0,
 		maxconcurrent = 18,
-		rolloff = 1.0,
+		rolloff = 0.9,
 	}
 end
 
@@ -202,23 +223,6 @@ for i=1,#files do
 		rolloff = 0.2,
 		--in3d = "false",
 	}
-end
-
--- CHICKEN SOUNDS
-local files = VFS.DirList("sounds/chickens/")
-local t = Sounds.SoundItems
-for i=1,#files do
-   local fileName = files[i]
-   fileNames = string.sub(fileName, 17, string.find(fileName, ".wav") -1)
-   t[fileNames] = {
-      	file     = fileName;
-	    gain = 1.2*0.3,
-      	pitchmod = 0.21,
-      	gainmod  = 0.2*0.3,
-	    dopplerscale = 1.0,
-      	maxconcurrent = 4,
-	    rolloff = 1.5,
-   }
 end
 
 -- CRITTER SOUNDS

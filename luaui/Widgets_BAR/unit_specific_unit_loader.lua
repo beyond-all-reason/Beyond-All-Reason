@@ -27,12 +27,12 @@ local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
 local spGetModKeyState = Spring.GetModKeyState
 
-
 local reclaimEnemy = Game.reclaimAllowEnemies
 
 local CMD_LOAD_UNITS = CMD.LOAD_UNITS
 local CMD_STOP = CMD.STOP
---
+
+local gameStarted
 
 
 function maybeRemoveSelf()
@@ -108,7 +108,7 @@ function widget:CommandNotify(id, params, options)
 		end
 	end
 
-	
+
 end
 
 

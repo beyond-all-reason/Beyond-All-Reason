@@ -3,9 +3,19 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  rflare2, lflare2, base, rwing1, backbone, rjet, ljet;
+piece  	base, body, lpaddle, rpaddle,
+		rjet, rthrust, rwing, rmislink, rmissile, rflare, 
+		ljet, lthrust, lwing, lmislink, lmissile, lflare;
 
-static-var  gun_1, statechg_DesiredState, statechg_StateChanging;
+static-var  gun_1, statechg_DesiredState, statechg_StateChanging, restore_delay;
+
+// Signal definitions
+#define SIG_AIM				2
+
+#define IDLEHOVERSCALE 32
+#define IDLEHOVERSPEED 60
+#define IDLEBASEPIECE base
+#include "idlehover.h"
 
 
 SmokeUnit(healthpercent, sleeptime, smoketype)
@@ -14,6 +24,7 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 	{
 		sleep 400;
 	}
+	start-script IdleHover();
 	while( TRUE )
 	{
 		healthpercent = get HEALTH;
@@ -94,11 +105,13 @@ RequestState(requestedstate, currentstate)
 
 Create()
 {
-	hide rflare2;
-	hide lflare2;
-	gun_1 = rflare2;
+	hide rflare;
+	hide lflare;
+	gun_1 = rflare;
 	call-script InitState();
 	start-script SmokeUnit();
+	turn rwing to z-axis <-60> speed <90>;
+	turn lwing to z-axis <60> speed <90>;
 }
 
 Activate()
@@ -108,25 +121,82 @@ Activate()
 
 Deactivate()
 {
-	start-script RequestState(1);
-	
+	start-script RequestState(1);	
 }
+
+// start block: following block returns weapon in straight position after firing
+//SetMaxReloadTime(Func_Var_1)
+//{
+//	restore_delay = Func_Var_1 * 2;
+//	return (0);
+//}
+
+//static-var  Stunned;
+//ExecuteRestoreAfterDelay()
+//{
+//   if (Stunned) {
+//       return (1);
+//    }
+//   turn rjet to x-axis <0> speed <90>;
+//	turn ljet to x-axis <0> speed <90>;
+// }
+//SetStunned(State)
+//{
+//    Stunned = State;
+//	if (!Stunned) {
+//	    start-script ExecuteRestoreAfterDelay();
+//	}
+//}
+RestoreAfterDelay()
+{
+	set-signal-mask SIG_AIM;
+	sleep restore_delay;
+	set-signal-mask 0;
+   	turn rjet to x-axis <0> speed <90>;
+	turn ljet to x-axis <0> speed <90>;
+	turn rwing to z-axis <-45> speed <90>;
+	turn lwing to z-axis <45> speed <90>;
+	turn rwing to x-axis <0> speed <90>;
+	turn lwing to x-axis <0> speed <90>;
+	//turn rmislink to x-axis <0> speed <90>;
+	//turn lmislink to x-axis <-0> speed <90>;
+
+	//sleep restore_delay;
+	//start-script ExecuteRestoreAfterDelay();
+}
+// end block 
+
+
 
 QueryPrimary(piecenum)
 {
 	if( gun_1 == 0 )
 	{
-		piecenum = rflare2;
+		piecenum = rflare;
 	}
 	if( gun_1 == 1 )
 	{
-		piecenum = lflare2;
+		piecenum = lflare;
 	}
 }
 
 AimPrimary(heading, pitch)
 {
-	turn rwing1 to x-axis <0> -pitch speed <300>;
+	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
+	turn rwing to z-axis <0> speed <90>;
+	turn lwing to z-axis <0> speed <90>;
+	turn rwing to x-axis <90> speed <90>;
+	turn lwing to x-axis <90> speed <90>;
+	//turn rmislink to x-axis <90> speed <90>;
+	//turn lmislink to x-axis <90> speed <90>;
+	//turn wing to x-axis <0> -pitch speed <300>;
+	turn rjet to x-axis <-90> speed <90>;
+	turn ljet to x-axis <-90> speed <90>;
+	wait-for-turn rjet around x-axis;
+	wait-for-turn ljet around x-axis;
+
+	start-script RestoreAfterDelay();
 	return (1);
 }
 
@@ -134,18 +204,22 @@ FirePrimary()
 {
 	if( gun_1 == 0 )
 	{
-		show rflare2;
+//		show rflare;
+		show rmissile;
 		sleep 150;
-		hide rflare2;
-		gun_1 = lflare2;
+//		hide rflare;
+		hide rmissile;
+		gun_1 = lflare;
 		return (0);
 	}
 	if( gun_1 == 1 )
 	{
-		show lflare2;
+//		show lflare;
+		show lmissile;
 		sleep 150;
-		hide lflare2;
-		gun_1 = rflare2;
+//		hide lflare;
+		hide lmissile;
+		gun_1 = rflare;
 	}
 }
 
@@ -160,10 +234,9 @@ Killed(severity, corpsetype)
 	{
 		corpsetype = 1 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode rwing1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode rflare2 type BITMAPONLY | NOHEATCLOUD;
-		explode lflare2 type BITMAPONLY | NOHEATCLOUD;
-		explode backbone type BITMAPONLY | NOHEATCLOUD;
+		explode rwing type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode lwing type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode body type BITMAPONLY | NOHEATCLOUD;
 		explode rjet type BITMAPONLY | NOHEATCLOUD;
 		explode ljet type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
@@ -172,10 +245,9 @@ Killed(severity, corpsetype)
 	{
 		corpsetype = 2 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode rwing1 type FALL | NOHEATCLOUD;
-		explode rflare2 type BITMAPONLY | NOHEATCLOUD;
-		explode lflare2 type BITMAPONLY | NOHEATCLOUD;
-		explode backbone type BITMAPONLY | NOHEATCLOUD;
+		explode rwing type FALL | NOHEATCLOUD;
+		explode lwing type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode body type BITMAPONLY | NOHEATCLOUD;
 		explode rjet type BITMAPONLY | NOHEATCLOUD;
 		explode ljet type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
@@ -184,20 +256,18 @@ Killed(severity, corpsetype)
 	{
 		corpsetype = 3 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode rwing1 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		explode rflare2 type BITMAPONLY | NOHEATCLOUD;
-		explode lflare2 type BITMAPONLY | NOHEATCLOUD;
-		explode backbone type BITMAPONLY | NOHEATCLOUD;
+		explode rwing type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		explode lwing type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode body type BITMAPONLY | NOHEATCLOUD;
 		explode rjet type BITMAPONLY | NOHEATCLOUD;
 		explode ljet type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode rwing1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode rflare2 type BITMAPONLY | NOHEATCLOUD;
-		explode lflare2 type BITMAPONLY | NOHEATCLOUD;
-		explode backbone type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode rwing type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode lwing type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode base type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode rjet type BITMAPONLY | NOHEATCLOUD;
 		explode ljet type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 	return corpsetype;

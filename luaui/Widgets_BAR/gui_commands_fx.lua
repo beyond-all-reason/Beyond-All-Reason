@@ -22,7 +22,7 @@ local CMD_ATTACK = CMD.ATTACK --icon unit or map
 local CMD_CAPTURE = CMD.CAPTURE --icon unit or area
 local CMD_FIGHT = CMD.FIGHT -- icon map
 local CMD_GUARD = CMD.GUARD -- icon unit
-local CMD_INSERT = CMD.INSERT 
+local CMD_INSERT = CMD.INSERT
 local CMD_LOAD_ONTO = CMD.LOAD_ONTO -- icon unit
 local CMD_LOAD_UNITS = CMD.LOAD_UNITS -- icon unit or area
 local CMD_MANUALFIRE = CMD.MANUALFIRE -- icon unit or map (cmdtype edited by gadget)
@@ -41,7 +41,7 @@ local diag = math.diag
 local pi = math.pi
 local sin = math.sin
 local cos = math.cos
-local atan = math.atan 
+local atan = math.atan
 local random = math.random
 
 local os_clock = os.clock
@@ -60,6 +60,8 @@ local glUnit = gl.Unit
 local GL_QUADS = GL.QUADS
 
 local GaiaTeamID  = Spring.GetGaiaTeamID()
+
+local chobbyInterface
 
 --------------------------------------------------------------------------------
 -- Config
@@ -106,7 +108,7 @@ end
 local mapX = Game.mapSizeX
 local mapZ = Game.mapSizeZ
 
-local CONFIG = {  
+local CONFIG = {
     [CMD_ATTACK] = {
         sizeMult = 1.4,
 		endSize = 0.28,
@@ -120,7 +122,7 @@ local CONFIG = {
     [CMD_FIGHT] = {
         sizeMult = 1.2,
 		endSize = 0.24,
-        colour = {0.30, 0.50, 1.00, 0.25}, 
+        colour = {0.30, 0.50, 1.00, 0.25},
     },
     [CMD_GUARD] = {
         sizeMult = 1,
@@ -211,7 +213,7 @@ local minQueueCommand = 1
 local maxCommand = 0
 local totalCommands = 0
 
-local unitCommand = {} -- most recent key in command table of order for unitID 
+local unitCommand = {} -- most recent key in command table of order for unitID
 local osClock
 
 local UNITCONF = {}
@@ -258,12 +260,12 @@ end
 
 
 function SetUnitConf()
-	local name, shape, xscale, zscale, scale, xsize, zsize, weaponcount
+	local name, shape, xscale, zscale, scale, xsize, zsize, weaponcount, shapeName
 	for udid, unitDef in pairs(UnitDefs) do
 		xsize, zsize = unitDef.xsize, unitDef.zsize
 		scale = ( xsize^2 + zsize^2 )^0.5
 		name = unitDef.name
-		
+
 		if (unitDef.isBuilding or unitDef.isFactory or unitDef.speed==0) then
 			shapeName = 'square'
 			shape = shapes.square
@@ -277,7 +279,7 @@ function SetUnitConf()
 			shape = shapes.circle
 			xscale, zscale = scale, scale
 		end
-			
+
 		UNITCONF[udid] = {name=name, shape=shape, shapeName=shapeName, xscale=xscale, zscale=zscale}
 	end
 end
@@ -314,11 +316,11 @@ end
 
 function widget:Initialize()
 	--SetUnitConf()
-	
+
 	--spLoadCmdColorsConfig('useQueueIcons  0 ')
 	spLoadCmdColorsConfig('queueIconScale  0.66 ')
 	spLoadCmdColorsConfig('queueIconAlpha  0.5 ')
-	
+
 	setCmdLineColors(0.5)
 	resetEnabledTeams()
 
@@ -342,7 +344,7 @@ function widget:Shutdown()
 	--spLoadCmdColorsConfig('useQueueIcons  1 ')
 	spLoadCmdColorsConfig('queueIconScale  1 ')
 	spLoadCmdColorsConfig('queueIconAlpha  1 ')
-	
+
 	setCmdLineColors(0.7)
 end
 
@@ -351,40 +353,40 @@ end
 
 local function DrawLineEnd(x1,y1,z1, x2,y2,z2, width)
 	y1 = y2
-	
-	local distance			= diag(x2-x1, y2-y1, z2-z1) 
-	
+
+	local distance			= diag(x2-x1, y2-y1, z2-z1)
+
 	-- for 2nd rounding
 	local distanceDivider = distance / (width/2.25)
 	local x1_2 = x2 - ((x1 - x2) / distanceDivider)
 	local z1_2 = z2 - ((z1 - z2) / distanceDivider)
-	
+
 	-- for first rounding
 	distanceDivider = distance / (width/4.13)
 	x1 = x2 - ((x1 - x2) / distanceDivider)
 	z1 = z2 - ((z1 - z2) / distanceDivider)
-	
+
     local theta	= (x1~=x2) and atan((z2-z1)/(x2-x1)) or pi/2
     local zOffset = cos(pi-theta) * width / 2
     local xOffset = sin(pi-theta) * width / 2
-    
+
     local xOffset2 = xOffset / 1.35
     local zOffset2 = zOffset / 1.35
-	
+
 	-- first rounding
     glVertex(x1+xOffset2, y1, z1+zOffset2)
     glVertex(x1-xOffset2, y1, z1-zOffset2)
-    
+
     glVertex(x2-xOffset, y2, z2-zOffset)
     glVertex(x2+xOffset, y2, z2+zOffset)
-    
+
     -- second rounding
     glVertex(x1+xOffset2, y1, z1+zOffset2)
     glVertex(x1-xOffset2, y1, z1-zOffset2)
-	
+
     xOffset2 = xOffset / 3.22
     zOffset2 = zOffset / 3.22
-	
+
     glVertex(x1_2-xOffset2, y1, z1_2-zOffset2)
     glVertex(x1_2+xOffset2, y1, z1_2+zOffset2)
 end
@@ -392,46 +394,46 @@ end
 
 local function DrawLineEndTex(x1,y1,z1, x2,y2,z2, width, texLength, texOffset)
 	y1 = y2
-	
+
 	local distance = diag(x2-x1, y2-y1, z2-z1)
-	
+
 	-- for 2nd rounding
 	local distanceDivider = distance / (width/2.25)
 	local x1_2 = x2 - ((x1 - x2) / distanceDivider)
 	local z1_2 = z2 - ((z1 - z2) / distanceDivider)
-	
+
 	-- for first rounding
 	local distanceDivider2 = distance / (width/4.13)
 	x1 = x2 - ((x1 - x2) / distanceDivider2)
 	z1 = z2 - ((z1 - z2) / distanceDivider2)
-	
+
     local theta	= (x1~=x2) and atan((z2-z1)/(x2-x1)) or pi/2
     local zOffset = cos(pi-theta) * width / 2
     local xOffset = sin(pi-theta) * width / 2
-    
+
     local xOffset2 = xOffset / 1.35
     local zOffset2 = zOffset / 1.35
-	
+
 	-- first rounding
 	glTexCoord(0.2-texOffset,0)
     glVertex(x1+xOffset2, y1, z1+zOffset2)
 	glTexCoord(0.2-texOffset,1)
     glVertex(x1-xOffset2, y1, z1-zOffset2)
-    
+
 	glTexCoord(0.55-texOffset,0.85)
     glVertex(x2-xOffset, y2, z2-zOffset)
 	glTexCoord(0.55-texOffset,0.15)
     glVertex(x2+xOffset, y2, z2+zOffset)
-    
+
     -- second rounding
 	glTexCoord(0.8-texOffset,0.7)
     glVertex(x1+xOffset2, y1, z1+zOffset2)
 	glTexCoord(0.8-texOffset,0.3)
     glVertex(x1-xOffset2, y1, z1-zOffset2)
-	
+
     xOffset2 = xOffset / 3.22
     zOffset2 = zOffset / 3.22
-	
+
 	glTexCoord(0.55-texOffset,0.15)
     glVertex(x1_2-xOffset2, y1, z1_2-zOffset2)
 	glTexCoord(0.55-texOffset,0.85)
@@ -442,26 +444,26 @@ local function DrawLine(x1,y1,z1, x2,y2,z2, width) -- long thin rectangle
     local theta	= (x1~=x2) and atan((z2-z1)/(x2-x1)) or pi/2
     local zOffset = cos(pi-theta) * width / 2
     local xOffset = sin(pi-theta) * width / 2
-    
+
     glVertex(x1+xOffset, y1, z1+zOffset)
     glVertex(x1-xOffset, y1, z1-zOffset)
-    
+
     glVertex(x2-xOffset, y2, z2-zOffset)
     glVertex(x2+xOffset, y2, z2+zOffset)
 end
 
 local function DrawLineTex(x1,y1,z1, x2,y2,z2, width, texLength, texOffset) -- long thin rectangle
 	local distance = diag(x2-x1, y2-y1, z2-z1)
-	
+
     local theta	= (x1~=x2) and atan((z2-z1)/(x2-x1)) or pi/2
     local zOffset = cos(pi-theta) * width / 2
     local xOffset = sin(pi-theta) * width / 2
-    
+
 	glTexCoord(((distance/width)/texLength)+1-texOffset, 1)
     glVertex(x1+xOffset, y1, z1+zOffset)
 	glTexCoord(((distance/width)/texLength)+1-texOffset, 0)
     glVertex(x1-xOffset, y1, z1-zOffset)
-    
+
 	glTexCoord(0-texOffset,0)
     glVertex(x2-xOffset, y2, z2-zOffset)
 	glTexCoord(0-texOffset,1)
@@ -518,7 +520,7 @@ function ExtractTargetLocation(a,b,c,d,cmdID)
     local x,y,z
     if c or d then
         if cmdID==CMD_RECLAIM and a >= MAX_UNITS and spValidFeatureID(a-MAX_UNITS) then --ugh, but needed
-            x,y,z = spGetFeaturePosition(a-MAX_UNITS)        
+            x,y,z = spGetFeaturePosition(a-MAX_UNITS)
         elseif cmdID==CMD_REPAIR and spValidUnitID(a) then
             x,y,z = spGetUnitPosition(a)
         else
@@ -530,7 +532,7 @@ function ExtractTargetLocation(a,b,c,d,cmdID)
         if a >= MAX_UNITS then
             x,y,z = spGetFeaturePosition(a-MAX_UNITS)
         else
-            x,y,z = spGetUnitPosition(a)     
+            x,y,z = spGetUnitPosition(a)
         end
     end
     return x,y,z
@@ -566,7 +568,7 @@ function widget:Update(dt)
 	sec = sec + dt
 	if sec > lastUpdate + 0.1 then
 		lastUpdate = sec
-		
+
 		-- process newly given commands (not done in widgetUnitCommand() because with huge build queue it eats memory and can crash lua)
 		for unitID,v in pairs(newUnitCommands) do
 			if v ~= true and ignoreUnits[v[1]] == nil then
@@ -821,10 +823,10 @@ end
 function widget:DrawWorld()
 	if chobbyInterface then return end
   if spIsGUIHidden() then return end
-    
+
 	if drawUnitHighlightSkipFPS > 0 and spGetFPS() < drawUnitHighlightSkipFPS then return end
-	
-	-- highlight unit 
+
+	-- highlight unit
 	if drawUnitHighlight then
 		gl.DepthTest(true)
 		gl.PolygonOffset(-2, -2)
@@ -849,10 +851,7 @@ end
 
 
 function widget:GetConfigData(data)
-	savedTable = {}
-	savedTable.opacity = opacity
-	savedTable.filterAIteams = filterAIteams
-	return savedTable
+	return {opacity = opacity, filterAIteams = filterAIteams}
 end
 
 function widget:SetConfigData(data)

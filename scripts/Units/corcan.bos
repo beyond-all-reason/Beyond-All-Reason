@@ -8,12 +8,12 @@ piece  torso, head, flare, lleg, barrel, rleg, lfoot, rfoot,turret, aimx1,aimy1;
 static-var  restore_delay,bMoving, wpn1_lasthead;
 
 // Signal definitions
-#define SIG_MOVE			2
+#define SIG_WALK			2
 #define SIG_AIM				4
 
 static-var animSpeed, maxSpeed, animFramesPerKeyframe;
 Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations\corcan_anim_walk_v2.blend 
-	set-signal-mask SIG_MOVE;
+	set-signal-mask SIG_WALK;
 	if (bMoving) { //Frame:4
 			turn head to x-axis <-2.988460> speed <266.653795> / animSpeed; 
 			turn head to z-axis <-1.299999> speed <38.999979> / animSpeed; 
@@ -287,19 +287,16 @@ HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and f
 	start-script HitByWeapon(dmg, anglez,anglex); //I dont know why param order must be switched, and this also runs a frame later :(
 	return (100); //return damage percent
 }
-StartMoving()
-{
-	signal SIG_MOVE;
-	set-signal-mask SIG_MOVE;
-	call-script Walk();
-	return (0);
-}
 
-StopMoving()
-{
-	signal SIG_MOVE;
-	set-signal-mask SIG_MOVE;
-	start-script StopWalking();
+StartMoving(){
+	signal SIG_WALK;
+	bMoving=TRUE;
+	start-script Walk();
+}
+StopMoving(){
+	signal SIG_WALK;
+	bMoving=FALSE;
+	call-script StopWalking();
 }
 
 Create()

@@ -63,6 +63,18 @@ local minReloadTime = 4 --// in seconds
 
 local variableBarSizes = true
 
+local texts = {        -- fallback (if you want to change this, also update: language/en.lua, or it will be overwritten)
+	shield = 'shield',
+	health = 'health',
+	building = 'building',
+	stockpile = 'stockpile',
+	paralyze = 'paralyze',
+	capture = 'capture',
+	reload = 'reload',
+	resurrect = 'resurrect',
+	reclaim = 'reclaim',
+}
+
 local destructableFeature = {}
 local drawnFeature = {}
 for i = 1, #FeatureDefs do
@@ -93,7 +105,9 @@ end
 local selectedUnits = {}
 local SelectedUnitsCount = Spring.GetSelectedUnitsCount()
 
-local unba_enabled = (Spring.GetModOptions() and Spring.GetModOptions().unba == "enabled")
+local unba_enabled = (Spring.GetModOptions() and Spring.GetModOptions().unba and Spring.GetModOptions().unba == "enabled")
+
+local chobbyInterface
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -162,7 +176,7 @@ local glColor = gl.Color
 local glMyText = gl.FogCoord
 local floor = math.floor
 local sub = string.sub
-local GetUnitDefID = Spring.GetUnitDefID
+local spGetUnitDefID = Spring.GetUnitDefID
 local glDepthTest = gl.DepthTest
 
 --------------------------------------------------------------------------------
@@ -171,7 +185,7 @@ local glDepthTest = gl.DepthTest
 
 -- tiny perf improvement this way:
 local unitsUnitDefCache = {}
-function aGetUnitDefID(unitID)
+function GetUnitDefID(unitID)
 	if unitsUnitDefCache[unitID] == nil then
 		unitsUnitDefCache[unitID] = spGetUnitDefID(unitID)
 	end
@@ -644,6 +658,10 @@ function init()
 end
 
 function widget:Initialize()
+	if WG['lang'] then
+		texts = WG['lang'].getText('healthbars')
+	end
+
 	--// catch f9
 	Spring.SendCommands({ "showhealthbars 0" })
 	Spring.SendCommands({ "showrezbars 0" })
@@ -754,10 +772,10 @@ do
 
 	local brightClr = {}
 	function DrawUnitBar(offsetY, percent, color)
-		if (barShader) then
+		if barShader then
 			glMultiTexCoord(1, color)
 			glMultiTexCoord(2, percent, offsetY)
-			glCallList(barDList, progress)
+			glCallList(barDList)
 			return
 		end
 
@@ -774,7 +792,7 @@ do
 	end
 
 	function DrawFeatureBar(offsetY, percent, color)
-		if (barShader) then
+		if barShader then
 			glMultiTexCoord(1, color)
 			glMultiTexCoord(2, percent, offsetY)
 			glCallList(barFeatureDList)
@@ -860,7 +878,7 @@ do
 				end
 				glColor(1, 1, 1, barAlpha)
 				glText(barInfo.text, barStart, -outlineSize, 4, "r")
-				if drawBarTitles and barInfo.title ~= "health" then
+				if drawBarTitles and barInfo.title ~= texts.health then
 					glColor(1, 1, 1, titlesAlpha)
 					glText(barInfo.title, 0, 0, 2.35, "cd")
 				end
@@ -889,7 +907,7 @@ do
 					glColor(1, 1, 1, featureBarAlpha)
 					glText(barInfo.text, fBarStart, yoffset - outlineSize, 4, "r")
 				end
-				if drawBarTitles and barInfo.title ~= "health" then
+				if drawBarTitles and barInfo.title ~= texts.health then
 					glColor(1, 1, 1, featureTitlesAlpha)
 					glText(barInfo.title, 0, yoffset - outlineSize, 2.35, "cd")
 				end
@@ -967,7 +985,7 @@ do
 
 	function DrawUnitInfos(unitID, unitDefID, hideHealth, ux, uy, uz, dist)
 
-		fullText = (dist < infoDistance * drawDistanceMult)
+		local fullText = (dist < infoDistance * drawDistanceMult)
 
 		ci = unitdefInfo[unitDefID]
 
@@ -1008,7 +1026,7 @@ do
 						if shieldOn ~= 0 and build == 1 and shieldPower < ci.maxShield then
 							ci.maxShield = WeaponDefs[UnitDefs[unitDefID].weapons[i].weaponDef].shieldPower
 							shieldPower = shieldPower / ci.maxShield
-							AddBar("shield", shieldPower, "shield", (fullText and floor(shieldPower * 100) .. '%') or '')
+							AddBar(texts.shield, shieldPower, "shield", (fullText and floor(shieldPower * 100) .. '%') or '')
 						end
 					end
 				end
@@ -1016,7 +1034,7 @@ do
 				local shieldOn, shieldPower = GetUnitShieldState(unitID)
 				if shieldOn and build == 1 and shieldPower < ci.maxShield then
 					shieldPower = shieldPower / ci.maxShield
-					AddBar("shield", shieldPower, "shield", (fullText and floor(shieldPower * 100) .. '%') or '')
+					AddBar(texts.shield, shieldPower, "shield", (fullText and floor(shieldPower * 100) .. '%') or '')
 				end
 			end
 		end
@@ -1040,7 +1058,7 @@ do
 						infotext = hp100 .. '%'
 					end
 				end
-				AddBar("health", hp, nil, infotext or '', bfcolormap[hp100])
+				AddBar(texts.health, hp, nil, infotext or '', bfcolormap[hp100])
 			end
 		end
 
@@ -1050,7 +1068,7 @@ do
 			if fullText and (drawBarPercentage > 0 or dist < minPercentageDistance * drawDistanceMult) then
 				infotext = floor(build * 100) .. '%'
 			end
-			AddBar("building", build, "build", infotext or '')
+			AddBar(texts.building, build, "build", infotext or '')
 		end
 
 		--// STOCKPILE
@@ -1060,7 +1078,7 @@ do
 			if numStockpiled then
 				stockpileBuild = stockpileBuild or 0
 				if stockpileBuild > 0 then
-					AddBar("stockpile", stockpileBuild, "stock", (fullText and floor(stockpileBuild * 100) .. '%') or '')
+					AddBar(texts.stockpile, stockpileBuild, "stock", (fullText and floor(stockpileBuild * 100) .. '%') or '')
 				end
 			end
 		else
@@ -1085,7 +1103,7 @@ do
 				end
 			end
 			local empcolor_index = (stunned and ((blink and "emp_b") or "emp_p")) or ("emp")
-			AddBar("paralyze", emp, empcolor_index, infotext)
+			AddBar(texts.paralyze, emp, empcolor_index, infotext)
 		end
 
 		--// CAPTURE
@@ -1094,7 +1112,7 @@ do
 			if fullText and drawBarPercentage > 0 then
 				infotext = floor(capture * 100) .. '%'
 			end
-			AddBar("capture", capture, "capture", infotext or '')
+			AddBar(texts.capture, capture, "capture", infotext or '')
 		end
 
 		--// RELOAD
@@ -1110,7 +1128,7 @@ do
 				if fullText and drawBarPercentage > 0 then
 					infotext = reload .. '%'
 				end
-				AddBar("reload", reload, "reload", infoText or '')
+				AddBar(texts.reload, reload, "reload", infotext or '')
 			end
 		end
 
@@ -1193,17 +1211,17 @@ do
 		--// HEALTH
 		if hp < featureHpThreshold and drawFeatureHealth then
 			local color = { GetColor(fhpcolormap, hp) }
-			AddBar("health", hp, nil, (floor(hp * 100) <= drawFeatureBarPercentage and floor(hp * 100) .. '%') or '', color)
+			AddBar(texts.health, hp, nil, (floor(hp * 100) <= drawFeatureBarPercentage and floor(hp * 100) .. '%') or '', color)
 		end
 
 		--// RESURRECT
 		if resurrect > 0 then
-			AddBar("resurrect", resurrect, "resurrect", (fullText and floor(resurrect * 100) .. '%') or '')
+			AddBar(texts.resurrect, resurrect, "resurrect", (fullText and floor(resurrect * 100) .. '%') or '')
 		end
 
 		--// RECLAIMING
 		if reclaimLeft > 0 and reclaimLeft < 1 then
-			AddBar("reclaim", reclaimLeft, "reclaim", (fullText and floor(reclaimLeft * 100) .. '%') or '')
+			AddBar(texts.reclaim, reclaimLeft, "reclaim", (fullText and floor(reclaimLeft * 100) .. '%') or '')
 		end
 
 		if barsN > 0 then
@@ -1451,22 +1469,20 @@ end
 --------------------------------------------------------------------------------
 
 function widget:GetConfigData(data)
-	savedTable = {}
-	savedTable.barScale = barScale
-	savedTable.drawBarPercentage = drawBarPercentage
-	savedTable.alwaysDrawBarPercentageForComs = alwaysDrawBarPercentageForComs
-	savedTable.currentOption = currentOption
-	savedTable.hideHealthbars = hideHealthbars
-	savedTable.drawDistanceMult = drawDistanceMult
-	savedTable.variableBarSizes = variableBarSizes
-	return savedTable
+	return {
+		barScale = barScale,
+		drawBarPercentage = drawBarPercentage,
+		alwaysDrawBarPercentageForComs = alwaysDrawBarPercentageForComs,
+		hideHealthbars = hideHealthbars,
+		drawDistanceMult = drawDistanceMult,
+		variableBarSizes = variableBarSizes
+	}
 end
 
 function widget:SetConfigData(data)
 	barScale = data.barScale or barScale
 	drawBarPercentage = data.drawBarPercentage or drawBarPercentage
 	alwaysDrawBarPercentageForComs = data.alwaysDrawBarPercentageForComs or alwaysDrawBarPercentageForComs
-	currentOption = data.currentOption or currentOption
 	if data.hideHealthbars ~= nil then
 		hideHealthbars = data.hideHealthbars
 	end

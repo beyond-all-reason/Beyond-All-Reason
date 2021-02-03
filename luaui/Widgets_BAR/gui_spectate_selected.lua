@@ -16,6 +16,8 @@ local spGetUnitTeam = Spring.GetUnitTeam
 local spec, fullview = Spring.GetSpectatingState()
 local myTeamID = Spring.GetMyTeamID()
 
+local switchToTeam
+
 function widget:PlayerChanged()
 	spec, fullview = Spring.GetSpectatingState()
 	if myTeamID ~= Spring.GetMyTeamID() then

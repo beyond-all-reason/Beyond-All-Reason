@@ -21,8 +21,10 @@ local spGetGroundHeight = Spring.GetGroundHeight
 local spGetFeatureVelocity = Spring.GetFeatureVelocity
 local spGetFeatureRotation = Spring.GetFeatureRotation
 local spSetFeaturePhysics = Spring.SetFeaturePhysics
+local spGetGameFrame = Spring.GetGameFrame
 
 function gadget:FeatureCreated(featureID)
+  if spGetGameFrame() < 1 then return end
 	local x, y, z = spGetFeaturePosition(featureID)
 	if spGetGroundHeight(x, z) < -25 then
 		local vx, vy, vz = spGetFeatureVelocity(featureID)

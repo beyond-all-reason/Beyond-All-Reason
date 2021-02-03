@@ -1,3 +1,5 @@
 *.db
 /.git
 /.svn
+.vscode/
+.project

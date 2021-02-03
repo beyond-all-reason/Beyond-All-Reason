@@ -40,7 +40,7 @@ return {
 		metalmake = 20,
 		movementclass = "HOVER3",
 		movestate = 0,
-		name = "T2 Lootbox",
+		name = "T2 Resource Generator",
 		noautofire = false,
 		objectname = "lootboxes/lootbox.s3o",
 		script = "lootboxes/lootboxgold.cob",
@@ -56,6 +56,7 @@ return {
 		usebuildinggrounddecal = false,
 		--waterline = 0,
 		yardmap = "oooo",
+		reclaimable = false,
 		customparams = {
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "other/lootboxes",

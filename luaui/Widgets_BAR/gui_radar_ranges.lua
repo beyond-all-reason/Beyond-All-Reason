@@ -61,6 +61,8 @@ local rangeShapeList = {} -- table of coordinates lists for range circles
 local spec, fullview = spGetSpectatingState()
 local allyTeamID = Spring.GetMyAllyTeamID()
 
+local chobbyInterface, rangeCircleList
+
 -- find all unit types with radar in the game and place ranges into unitRange table
 local unitRange = {} -- table of unit types with their radar ranges
 --local isBuilding = {}
@@ -223,7 +225,7 @@ function widget:Update(dt)
 		local shape
 		for id, unit in pairs(unitList) do
 			local x, y, z = spGetUnitPosition(id)
-			if not rangeShapeList[id] or unit.x ~= x or unit.y ~= y or unit.z ~= z then -- update only if positions is changed
+			if x and y and z and (not rangeShapeList[id] or unit.x ~= x or unit.y ~= y or unit.z ~= z) then -- update only if positions is changed
 				unitList[id].x = x
 				unitList[id].y = y
 				unitList[id].z = z
@@ -235,11 +237,12 @@ function widget:Update(dt)
 				shape = rangeShapeList[id].shape
 
 				-- center of the circle is needed since it's been rendered as triangle fan
-				if not shape[0] then
-					shape[0] = {x, spGetGroundHeight( x, z ), z}
+				local y = spGetGroundHeight( x, z )
+				if not shape[0] and y then
+					shape[0] = {x, y, z}
 				else
 					shape[0][1] = x
-					shape[0][2] = spGetGroundHeight( x, z )
+					shape[0][2] = y
 					shape[0][3] = z
 				end
 
@@ -247,14 +250,16 @@ function widget:Update(dt)
 					local shx = x + circleSplits[i].sin * unit.range
 					local shz = z + circleSplits[i].cos * unit.range
 					local shy = spGetGroundHeight( shx, shz ) + shapeHover
-					if shy < 0 then shy = 0 end
+					if shy then
+						if shy < 0 then shy = 0 end
 
-					if not shape[i] then
-						shape[i] = { shx, shy, shz }
-					else
-						shape[i][1] = shx
-						shape[i][2] = shy
-						shape[i][3] = shz
+						if not shape[i] then
+							shape[i] = { shx, shy, shz }
+						else
+							shape[i][1] = shx
+							shape[i][2] = shy
+							shape[i][3] = shz
+						end
 					end
 				end
 			end

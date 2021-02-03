@@ -55,6 +55,10 @@ HitByWeapon(anglex, anglez)
 	turn base to x-axis <0.000000> speed <15.000000>;
 }
 
+#define IDLEHOVERSCALE 32
+#define IDLEHOVERSPEED 60
+#define IDLEBASEPIECE base
+#include "idlehover.h"
 
 SmokeUnit(healthpercent, sleeptime, smoketype)
 {
@@ -62,6 +66,7 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 	{
 		sleep 400;
 	}
+	start-script IdleHover();
 	while( TRUE )
 	{
 		healthpercent = get HEALTH;

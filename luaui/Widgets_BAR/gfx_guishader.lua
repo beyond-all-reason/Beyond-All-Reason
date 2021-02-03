@@ -42,6 +42,7 @@ local blurtex
 local blurtex2
 local stenciltex
 local stenciltexScreen
+local intensityLoc
 local screenBlur = false
 
 local blurIntensity = defaultBlurIntensity
@@ -62,7 +63,7 @@ function widget:ViewResize(viewSizeX, viewSizeY)
 
 	intensityMult = (vsx + vsy) / 2800
 
-	if (gl.DeleteTextureFBO) then
+	if gl.DeleteTextureFBO then
 		gl.DeleteTextureFBO(blurtex)
 		gl.DeleteTextureFBO(blurtex2)
 		gl.DeleteTexture(screencopy)
@@ -86,7 +87,7 @@ function widget:ViewResize(viewSizeX, viewSizeY)
 		fbo = true,
 	})
 
-	if (blurtex == nil) or (blurtex2 == nil) or (screencopy == nil) then
+	if blurtex == nil or blurtex2 == nil or screencopy == nil then
 		Spring.Log(widget:GetInfo().name, LOG.ERROR, "guishader api: texture error")
 		widgetHandler:RemoveWidget(self)
 		return false
@@ -94,12 +95,6 @@ function widget:ViewResize(viewSizeX, viewSizeY)
 
 	updateStencilTexture = true
 	updateStencilTextureScreen = true
-end
-
-function widget:UpdateCallIns()
-	self:ViewResize(vsx, vsy)
-	self.DrawScreenEffects = DrawScreenEffectsBlur
-	widgetHandler:UpdateCallIn("DrawScreenEffects")
 end
 
 --------------------------------------------------------------------------------
@@ -113,9 +108,9 @@ local function DrawStencilTexture(world, fullscreen)
 		usedStencilTex = stenciltexScreen
 	end
 
-	if (next(guishaderRects) or next(guishaderScreenRects) or next(guishaderDlists)) then
+	if next(guishaderRects) or next(guishaderScreenRects) or next(guishaderDlists) then
 
-		if (usedStencilTex == nil) or (vsx + vsy ~= oldvs) then
+		if usedStencilTex == nil or vsx + vsy ~= oldvs then
 			gl.DeleteTextureFBO(usedStencilTex)
 
 			oldvs = vsx + vsy
@@ -175,31 +170,31 @@ end
 --------------------------------------------------------------------------------
 
 local function CheckHardware()
-	if (not canCTT) then
+	if not canCTT then
 		Spring.Echo("guishader api: your hardware is missing the necessary CopyToTexture feature")
 		widgetHandler:RemoveWidget(self)
 		return false
 	end
 
-	if (not canRTT) then
+	if not canRTT then
 		Spring.Echo("guishader api: your hardware is missing the necessary RenderToTexture feature")
 		widgetHandler:RemoveWidget(self)
 		return false
 	end
 
-	if (not canShader) then
+	if not canShader then
 		Spring.Echo("guishader api: your hardware does not support shaders, OR: change springsettings: \"enable lua shaders\" ")
 		widgetHandler:RemoveWidget(self)
 		return false
 	end
 
-	if (not canFBO) then
+	if not canFBO then
 		Spring.Echo("guishader api: your hardware does not fbo textures")
 		widgetHandler:RemoveWidget(self)
 		return false
 	end
 
-	if (not NON_POWER_OF_TWO) then
+	if not NON_POWER_OF_TWO then
 		Spring.Echo("guishader api: your hardware does not non-2^n-textures")
 		widgetHandler:RemoveWidget(self)
 		return false
@@ -215,122 +210,9 @@ local function CheckHardware()
 	return true
 end
 
-function widget:Initialize()
-	if (not CheckHardware()) then
-		return false
-	end
-
-	CreateShaders()
-
-	self:UpdateCallIns()
-
-	WG['guishader'] = {}
-	WG['guishader'].InsertDlist = function(dlist, name)
-		guishaderDlists[name] = dlist
-		updateStencilTexture = true
-	end
-	WG['guishader'].RemoveDlist = function(name)
-		local found = false
-		if guishaderDlists[name] ~= nil then
-			found = true
-		end
-		guishaderDlists[name] = nil
-		updateStencilTexture = true
-		return found
-	end
-	WG['guishader'].DeleteDlist = function(name)
-		local found = false
-		if guishaderDlists[name] ~= nil then
-			found = true
-			deleteDlistQueue[name] = guishaderDlists[name]
-		end
-		return found
-	end
-	WG['guishader'].InsertRect = function(left, top, right, bottom, name)
-		guishaderRects[name] = { left, top, right, bottom }
-		updateStencilTexture = true
-	end
-	WG['guishader'].RemoveRect = function(name)
-		local found = false
-		if guishaderRects[name] ~= nil then
-			found = true
-		end
-		guishaderRects[name] = nil
-		updateStencilTexture = true
-		return found
-	end
-	WG['guishader'].InsertScreenDlist = function(dlist, name)
-		guishaderScreenDlists[name] = dlist
-		updateStencilTextureScreen = true
-	end
-	WG['guishader'].RemoveScreenDlist = function(name)
-		local found = false
-		if guishaderScreenDlists[name] ~= nil then
-			found = true
-		end
-		guishaderScreenDlists[name] = nil
-		updateStencilTextureScreen = true
-		return found
-	end
-	WG['guishader'].DeleteScreenDlist = function(name)
-		local found = false
-		if guishaderScreenDlists[name] ~= nil then
-			found = true
-			deleteDlistQueue[name] = guishaderScreenDlists[name]
-		end
-		return found
-	end
-	WG['guishader'].InsertScreenRect = function(left, top, right, bottom, name)
-		guishaderScreenRects[name] = { left, top, right, bottom }
-		updateStencilTextureScreen = true
-	end
-	WG['guishader'].RemoveScreenRect = function(name)
-		local found = false
-		if guishaderScreenRects[name] ~= nil then
-			found = true
-		end
-		guishaderScreenRects[name] = nil
-		updateStencilTextureScreen = true
-		return found
-	end
-	WG['guishader'].getBlurDefault = function()
-		return defaultBlurIntensity
-	end
-	WG['guishader'].getBlurIntensity = function()
-		return blurIntensity
-	end
-	WG['guishader'].setBlurIntensity = function(value)
-		if value == nil then
-			value = defaultBlurIntensity
-		end
-		blurIntensity = value
-	end
-
-	WG['guishader'].setScreenBlur = function(value)
-		updateStencilTextureScreen = true
-		screenBlur = value
-	end
-	WG['guishader'].getScreenBlur = function(value)
-		return screenBlur
-	end
-
-	-- will let it draw a given dlist to be rendered on top of screenblur
-	WG['guishader'].insertRenderDlist = function(value)
-		renderDlists[value] = true
-	end
-	WG['guishader'].removeRenderDlist = function(value)
-		if renderDlists[value] then
-			renderDlists[value] = nil
-		end
-	end
-
-	widgetHandler:RegisterGlobal('GuishaderInsertRect', WG['guishader'].InsertRect)
-	widgetHandler:RegisterGlobal('GuishaderRemoveRect', WG['guishader'].RemoveRect)
-end
-
 function CreateShaders()
 
-	if (blurShader) then
+	if blurShader then
 		gl.DeleteShader(blurShader or 0)
 	end
 
@@ -374,7 +256,7 @@ function CreateShaders()
 		}
 	})
 
-	if (blurShader == nil) then
+	if blurShader == nil then
 		Spring.Log(widget:GetInfo().name, LOG.ERROR, "guishader blurShader: shader error: " .. gl.GetShaderLog())
 		widgetHandler:RemoveWidget(self)
 		return false
@@ -402,7 +284,7 @@ function CreateShaders()
 	intensityLoc = gl.GetUniformLocation(blurShader, "intensity")
 
 	-- debug?
-	if (blurtex == nil) or (blurtex2 == nil) or (screencopy == nil) then
+	if blurtex == nil or blurtex2 == nil or screencopy == nil then
 		Spring.Log(widget:GetInfo().name, LOG.ERROR, "guishader api: texture error")
 		widgetHandler:RemoveWidget(self)
 		return false
@@ -435,7 +317,7 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-function widget:DrawScreenEffectsBlur()
+function widget:DrawScreenEffects()
 	if Spring.IsGUIHidden() then
 		return
 	end
@@ -603,10 +485,125 @@ function widget:DrawScreen()
 	deleteDlistQueue = {}
 end
 
+function widget:UpdateCallIns()
+	self:ViewResize(vsx, vsy)
+end
+
+function widget:Initialize()
+	if not CheckHardware() then
+		return false
+	end
+
+	CreateShaders()
+
+	self:UpdateCallIns()
+
+	WG['guishader'] = {}
+	WG['guishader'].InsertDlist = function(dlist, name)
+		guishaderDlists[name] = dlist
+		updateStencilTexture = true
+	end
+	WG['guishader'].RemoveDlist = function(name)
+		local found = false
+		if guishaderDlists[name] ~= nil then
+			found = true
+		end
+		guishaderDlists[name] = nil
+		updateStencilTexture = true
+		return found
+	end
+	WG['guishader'].DeleteDlist = function(name)
+		local found = false
+		if guishaderDlists[name] ~= nil then
+			found = true
+			deleteDlistQueue[name] = guishaderDlists[name]
+		end
+		return found
+	end
+	WG['guishader'].InsertRect = function(left, top, right, bottom, name)
+		guishaderRects[name] = { left, top, right, bottom }
+		updateStencilTexture = true
+	end
+	WG['guishader'].RemoveRect = function(name)
+		local found = false
+		if guishaderRects[name] ~= nil then
+			found = true
+		end
+		guishaderRects[name] = nil
+		updateStencilTexture = true
+		return found
+	end
+	WG['guishader'].InsertScreenDlist = function(dlist, name)
+		guishaderScreenDlists[name] = dlist
+		updateStencilTextureScreen = true
+	end
+	WG['guishader'].RemoveScreenDlist = function(name)
+		local found = false
+		if guishaderScreenDlists[name] ~= nil then
+			found = true
+		end
+		guishaderScreenDlists[name] = nil
+		updateStencilTextureScreen = true
+		return found
+	end
+	WG['guishader'].DeleteScreenDlist = function(name)
+		local found = false
+		if guishaderScreenDlists[name] ~= nil then
+			found = true
+			deleteDlistQueue[name] = guishaderScreenDlists[name]
+		end
+		return found
+	end
+	WG['guishader'].InsertScreenRect = function(left, top, right, bottom, name)
+		guishaderScreenRects[name] = { left, top, right, bottom }
+		updateStencilTextureScreen = true
+	end
+	WG['guishader'].RemoveScreenRect = function(name)
+		local found = false
+		if guishaderScreenRects[name] ~= nil then
+			found = true
+		end
+		guishaderScreenRects[name] = nil
+		updateStencilTextureScreen = true
+		return found
+	end
+	WG['guishader'].getBlurDefault = function()
+		return defaultBlurIntensity
+	end
+	WG['guishader'].getBlurIntensity = function()
+		return blurIntensity
+	end
+	WG['guishader'].setBlurIntensity = function(value)
+		if value == nil then
+			value = defaultBlurIntensity
+		end
+		blurIntensity = value
+	end
+
+	WG['guishader'].setScreenBlur = function(value)
+		updateStencilTextureScreen = true
+		screenBlur = value
+	end
+	WG['guishader'].getScreenBlur = function(value)
+		return screenBlur
+	end
+
+	-- will let it draw a given dlist to be rendered on top of screenblur
+	WG['guishader'].insertRenderDlist = function(value)
+		renderDlists[value] = true
+	end
+	WG['guishader'].removeRenderDlist = function(value)
+		if renderDlists[value] then
+			renderDlists[value] = nil
+		end
+	end
+
+	widgetHandler:RegisterGlobal('GuishaderInsertRect', WG['guishader'].InsertRect)
+	widgetHandler:RegisterGlobal('GuishaderRemoveRect', WG['guishader'].RemoveRect)
+end
+
 function widget:GetConfigData(data)
-	savedTable = {}
-	savedTable.blurIntensity = blurIntensity
-	return savedTable
+	return {blurIntensity = blurIntensity}
 end
 
 function widget:SetConfigData(data)

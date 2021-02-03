@@ -5,8 +5,29 @@
 
 piece  base, blades, turbine;
 
-static-var  Static_Var_1, Static_Var_2, statechg_DesiredState, statechg_StateChanging;
+static-var  WindSpeed, WindDirection, LastDirection, Built, Stunned;
 
+
+Go()
+{
+	sleep RAND(1, 500);
+	
+	//Take 5s to turn and accelerate
+	//Angular speed is always positive, even if the angle is negative. The speed is in Spring angles/second (sa/s). 
+	var DirectionDelta;
+	DirectionDelta = WindDirection - LastDirection;
+	if (DirectionDelta < 0 ) DirectionDelta = 0 - DirectionDelta;
+	if (DirectionDelta > <180>) DirectionDelta = DirectionDelta - <180>;
+	//get PRINT(get GAME_FRAME,DirectionDelta, WindSpeed, WindDirection);
+	
+	turn turbine to y-axis WindDirection speed DirectionDelta/7;
+	spin blades around z-axis speed WindSpeed accelerate <1.0>;
+	//The angular acceleration should always be positive, even if you are spinning the piece at a negative angular speed. 
+	//It is measured in Spring angles per frame-second (sa/f*s); in other words, 
+	//the speed of the piece will increase by that amount every frame, not every second. There are 30 frames per second. 
+	//spin [piece] around [axis] speed [angular speed] accelerate [angular acceleration];
+	
+}
 
 SmokeUnit(healthpercent, sleeptime, smoketype)
 {
@@ -14,6 +35,8 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 	{
 		sleep 400;
 	}
+	Built = 1;
+	call-script Go();
 	while( TRUE )
 	{
 		healthpercent = get HEALTH;
@@ -35,35 +58,66 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 	}
 }
 
-Go()
+
+Create()
 {
-	spin blades around z-axis speed Static_Var_1;
-	turn turbine to y-axis Static_Var_2 speed <30.000000>;
+	WindSpeed = 800;
+	WindDirection = 0;
+	LastDirection = 0;
+	Built = 0;
+	//call-script InitState();
+	start-script SmokeUnit();
+}
+
+SetSpeed(windSpd) //called every 450 frames
+{
+	WindSpeed = 0 - windSpd; //invert if desired
+	if (!Stunned) {
+		if(Built)
+		{
+			set ACTIVATION to 100;
+		}
+	}
+}
+
+SetDirection(windDir) //called every 450 frames
+{
+	LastDirection = WindDirection;
+	WindDirection = windDir + <180>;
+	
+	if (!Stunned) {
+		if(Built)
+		{
+			call-script Go();
+		}
+	}
 }
 
 Stop()
 {
-	spin blades around z-axis speed <0.000000>;
-	turn turbine to y-axis Static_Var_2 speed <0.000000>;
+	stop-spin blades around z-axis decelerate <10.0>;
 }
 
+SetStunned(State)
+{
+	Stunned = State;
+	if (State) {
+		call-script Stop();
+		set ACTIVATION to 0;
+	}else{
+		//if (statechg_DesiredState == 0) {
+		call-script Go();
+		
+		set ACTIVATION to 100;
+		//}
+	}
+}
+
+/*
 InitState()
 {
 	statechg_DesiredState = TRUE;
 	statechg_StateChanging = FALSE;
-}
-
-static-var  Stunned;
-SetStunned(State)
-{
-    Stunned = State;
-	if (State) {
-	    call-script Stop();
-	}else{
-	    if (statechg_DesiredState == 0) {
-	        call-script Go();
-	    }
-	}
 }
 
 RequestState(requestedstate, currentstate)
@@ -92,16 +146,9 @@ RequestState(requestedstate, currentstate)
 	statechg_StateChanging = FALSE;
 }
 
-Create()
+SweetSpot(piecenum)
 {
-	dont-cache blades;
-	dont-cache turbine;
-	dont-shade blades;
-	dont-shade turbine;
-	Static_Var_1 = 800;
-	Static_Var_2 = 0;
-	call-script InitState();
-	start-script SmokeUnit();
+	piecenum = base;
 }
 
 Activate()
@@ -113,35 +160,7 @@ Deactivate()
 {
 	start-script RequestState(1);
 }
-
-SetSpeed(Func_Var_1)
-{
-    if (!Stunned) {
-        Static_Var_1 = 0 - Func_Var_1;
-        if( !get BUILD_PERCENT_LEFT )
-        {
-            spin blades around z-axis speed Static_Var_1;
-            set ACTIVATION to 100;
-        }
-	}
-}
-
-SetDirection(Func_Var_1)
-{
-    if (!Stunned) {
-        Static_Var_2 = Func_Var_1;
-        if( !get BUILD_PERCENT_LEFT )
-        {
-            turn turbine to y-axis Func_Var_1 speed <20.000000>;
-        }
-	}
-}
-
-SweetSpot(piecenum)
-{
-	piecenum = base;
-}
-
+*/
 Killed(severity, corpsetype)
 {
 	if( severity <= 25 )

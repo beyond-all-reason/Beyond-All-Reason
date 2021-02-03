@@ -17,6 +17,7 @@ local glDepthTest = gl.DepthTest
 local glCallList = gl.CallList
 local glColor = gl.Color
 local spGetMapDrawMode = Spring.GetMapDrawMode
+local chobbyInterface
 
 local geoUnits = {}
 for defID, def in pairs(UnitDefs) do
@@ -74,11 +75,11 @@ function widget:DrawWorld()
 	if chobbyInterface then return end
 	local _, cmdID = Spring.GetActiveCommand()
 	if spGetMapDrawMode() == 'metal' or (cmdID~=nil and geoUnits[-cmdID]) then
-		
+
 		if not geoDisplayList then
 			geoDisplayList = gl.CreateList(HighlightGeos)
 		end
-		
+
 		glLineWidth(20)
 		glDepthTest(true)
 		glCallList(geoDisplayList)

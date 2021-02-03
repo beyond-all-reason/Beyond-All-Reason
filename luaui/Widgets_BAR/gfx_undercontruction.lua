@@ -37,10 +37,10 @@ local prevMyAllyTeamID = Spring.GetMyAllyTeamID()
 local mySpec, prevMyFullView = Spring.GetSpectatingState()
 local unitList = {}
 local unitListCount = 0
+local shader
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
-
 
 function CreateHighlightShader()
   if shader then

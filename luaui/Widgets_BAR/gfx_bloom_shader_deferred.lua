@@ -10,7 +10,6 @@ function widget:GetInfo()
 	}
 end
 
-
 local version = 1.0
 
 -- config params
@@ -47,14 +46,13 @@ local blursize = presets[qualityPreset].blursize
 local blurPasses = presets[qualityPreset].blurPasses
 local quality = presets[qualityPreset].quality
 
-	-- non-editables
+-- non-editables
 local vsx = 1                        -- current viewport width
 local vsy = 1                        -- current viewport height
 local ivsx = 1.0 / vsx
 local ivsy = 1.0 / vsy
 
 local debugBrightShader = false
-
 
 -- shader and texture handles
 local blurShaderH71 = nil
@@ -103,9 +101,6 @@ local blurShaderV71FragLoc = nil
 local combineShaderDebgDrawLoc = nil
 local combineShaderTexture0Loc = nil
 local combineShaderTexture1Loc = nil
-
-
-local hasdeferredmodelrendering = nil
 
 local function SetIllumThreshold()
 	local ra, ga, ba = glGetSun("ambient", "unit")
@@ -261,7 +256,7 @@ local function MakeBloomShaders()
 				//color = color *(1.0 - detectchangedbuffer);
 				color.rgb = color.rgb * color.a;
 				color.rgb += color.rgb * colorEmit.r;
-				
+
 				float illum = dot(color.rgb, vec3(0.2990, 0.4870, 0.2140)); //adjusted from the real values of  vec3(0.2990, 0.5870, 0.1140)
 
 				vec4 illumCond = vec4(illum > illuminationThreshold) ;
@@ -308,7 +303,7 @@ end
 function widget:ViewResize(viewSizeX, viewSizeY)
 	vsx = math.max(4,viewSizeX); ivsx = 1.0 / vsx --we can do /n here!
 	vsy = math.max(4,viewSizeY); ivsy = 1.0 / vsy
-	qvsx,qvsy = math.floor(vsx/quality), math.floor(vsy/quality)
+	local qvsx,qvsy = math.floor(vsx/quality), math.floor(vsy/quality)
 	glDeleteTexture(brightTexture1 or "")
 	glDeleteTexture(brightTexture2 or "")
 
@@ -347,16 +342,16 @@ end
 
 function widget:Initialize()
 
-	if (glCreateShader == nil) then
+	if glCreateShader == nil then
 		RemoveMe("[BloomShader::Initialize] removing widget, no shader support")
 		return
 	end
 
-	hasdeferredmodelrendering = (Spring.GetConfigString("AllowDeferredModelRendering")=='1')
+	local hasdeferredmodelrendering = (Spring.GetConfigString("AllowDeferredModelRendering")=='1')
 	if hasdeferredmodelrendering == false then
 		RemoveMe("[BloomShader::Initialize] removing widget, AllowDeferredModelRendering is required")
 	end
-	hasdeferredmaprendering = (Spring.GetConfigString("AllowDeferredMapRendering")=='1')
+	local hasdeferredmaprendering = (Spring.GetConfigString("AllowDeferredMapRendering")=='1')
 	if hasdeferredmaprendering == false then
 		RemoveMe("[BloomShader::Initialize] removing widget, AllowDeferredMapRendering is required")
 	end
@@ -392,7 +387,7 @@ function widget:Shutdown()
 
 	glDeleteTexture(brightTexture1 or "")
 
-	if (glDeleteShader) then
+	if glDeleteShader then
 		if brightShader ~= nil then glDeleteShader(brightShader or 0) end
 		if blurShaderH71 ~= nil then glDeleteShader(blurShaderH71 or 0) end
 		if blurShaderV71 ~= nil then glDeleteShader(blurShaderV71 or 0) end
@@ -488,12 +483,12 @@ end
 
 
 function widget:GetConfigData(data)
-	savedTable = {}
-	savedTable.version = version
-	savedTable.glowAmplifier = glowAmplifier
-	savedTable.qualityPreset = qualityPreset
-	savedTable.globalBlursizeMult = globalBlursizeMult
-	return savedTable
+	return {
+		version = version,
+		glowAmplifier = glowAmplifier,
+		qualityPreset = qualityPreset,
+		globalBlursizeMult = globalBlursizeMult
+	}
 end
 
 function widget:SetConfigData(data)

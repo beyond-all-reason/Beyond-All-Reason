@@ -17,7 +17,7 @@ return {
 		collisionvolumeoffsets = "0 -3 -3",
 		collisionvolumescales = "18 28 40",
 		collisionvolumetype = "box",
-		corpse = "chicken_egg",
+		corpse = "chicken_egg_s_red",
 		defaultmissiontype = "Standby",
 		description = "All-Terrain Swarmer",
 		explodeas = "BUG_DEATH",
@@ -31,7 +31,7 @@ return {
 		maxslope = 18,
 		maxvelocity = 3.2,
 		maxwaterdepth = 15,
-		movementclass = "BOT2",
+		movementclass = "TBOT2",
 		name = "Weevil",
 		noautofire = false,
 		nochasecategory = "VTOL",
@@ -58,6 +58,9 @@ return {
 		workertime = 0,
 		customparams = {
 			subfolder = "other/chickens",
+      model_author = "KDR_11k, Beherith",
+			normalmaps = "yes",
+			normaltex = "unittextures/chicken_s_normals.png",
 		},
 		featuredefs = {
 			dead = {},
@@ -68,6 +71,11 @@ return {
 				[1] = "custom:blood_spray",
 				[2] = "custom:blood_explode",
 				[3] = "custom:dirt",
+			},
+			pieceexplosiongenerators = {
+				[1] = "blood_spray",
+				[2] = "blood_spray",
+				[3] = "blood_spray",
 			},
 		},
 		weapondefs = {
@@ -92,7 +100,7 @@ return {
 				rgbcolor = "0.3 0.5 0.6",
 				size = 8,
 				sizedecay = -0.3,
-				soundhit = "chickens/junohit2edit",
+				soundhit = "bloodsplash",
 				targetmoveerror = 0.4,
 				tolerance = 5000,
 				turret = true,

@@ -35,6 +35,7 @@ local sec = 0
 local prevCam = {spGetCameraDirection()}
 local myTeamID = Spring.GetLocalTeamID()
 
+local gameStarted, chobbyInterface, selectionChanged
 
 for udid, unitDef in pairs(UnitDefs) do
 	local xsize, zsize = unitDef.xsize, unitDef.zsize
@@ -142,7 +143,7 @@ function widget:DrawWorld()
 	if spIsGUIHidden() then return end
 	local osClock = os.clock()
 	--local gameSecs = Spring.GetGameSeconds()
-	
+
 	gl.DepthMask(true)
 	gl.DepthTest(true)
 	gl.Texture('LuaUI/Images/new.dds')
@@ -155,7 +156,7 @@ function widget:DrawWorld()
 			alpha = 1 - ((osClock - (unit.osClock + (timeoutTime - timeoutFadeTime))) / timeoutFadeTime)
 		end
 		if spIsUnitInView(unitID) then
-			
+
 			if alpha <= 0 then
 				givenUnits[unitID] = nil
 			else
@@ -170,7 +171,7 @@ function widget:DrawWorld()
 			end
 		end
 	end
-	
+
 	gl.Color(1,1,1,1)
 	gl.Texture(false)
 	gl.DepthTest(false)

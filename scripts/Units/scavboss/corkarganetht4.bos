@@ -747,7 +747,7 @@ DeathAnim() {// For C:\Users\PtaQ\Desktop\Dropbox\BAR\Remoddeling\Reanimating\co
 			turn lfhip to y-axis <-38.463640> speed <44.341702> ; //delta=13.30 
 			turn lfleg to z-axis <-36.009560> speed <92.906797> ; //delta=27.87 
 			turn llauncher to x-axis <-13.992956> speed <46.643188> ; //delta=13.99 
-			explode lmfoot type FALL|SMOKE|FIRE;
+			explode lmfoot type FALL|SMOKE|FIRE|NOHEATCLOUD;
 			hide lmfoot;
 			turn lmhip to y-axis <-1.461104> speed <2.835061> ; //delta=-0.85 
 			turn lmleg to z-axis <9.584743> speed <8.508384> ; //delta=2.55 
@@ -765,11 +765,11 @@ DeathAnim() {// For C:\Users\PtaQ\Desktop\Dropbox\BAR\Remoddeling\Reanimating\co
 			turn rffoot to z-axis <38.762194> speed <102.834008> ; //delta=-30.85 
 			turn rfhip to y-axis <41.576885> speed <24.260957> ; //delta=-7.28 
 			turn rfleg to z-axis <28.496495> speed <94.889257> ; //delta=-28.47 
-			explode rlauncher type FALL|SMOKE|FIRE;
+			explode rlauncher type FALL|SMOKE|FIRE|NOHEATCLOUD;
 			hide rlauncher;
-			explode rbarrel2 type FALL|SMOKE|FIRE;
+			explode rbarrel2 type FALL|SMOKE|FIRE|NOHEATCLOUD;
 			hide rbarrel2;
-			explode rbarrel1 type FALL|SMOKE|FIRE;
+			explode rbarrel1 type FALL|SMOKE|FIRE|NOHEATCLOUD;
 			hide rbarrel1;
 			turn rmhip to y-axis <-4.037522> speed <27.445978> ; //delta=-8.23 
 			turn rmleg to z-axis <29.673303> speed <194.153022> ; //delta=-58.25 

@@ -53,6 +53,8 @@ if gadgetHandler:IsSyncedCode() then
 	local CMD_MOVE = CMD.MOVE
 	local CMD_WAIT = CMD.WAIT
 
+	local toRemoveCount
+
 	local isAirUnit = {}
 	local unitBuildtime = {}
 	for unitDefID, unitDef in pairs(UnitDefs) do
@@ -596,7 +598,7 @@ else
 
 	function gadget:Initialize()
 		Spring.SetCustomCommandDrawData(CMD_LAND_AT_SPECIFIC_AIRBASE, "landatairbase", landAtAirBaseCmdColor, false)
-		Spring.SetCustomCommandDrawData(CMD_LAND_AT_AIRBASE, "landatspecificairbase", landAtAirBaseCmdColorr, false)
+		Spring.SetCustomCommandDrawData(CMD_LAND_AT_AIRBASE, "landatspecificairbase", landAtAirBaseCmdColor, false)
 		Spring.AssignMouseCursor("landatspecificairbase", "cursorrepair", false, false)
 	end
 

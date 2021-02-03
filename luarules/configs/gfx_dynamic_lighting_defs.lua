@@ -4,13 +4,9 @@ local function CopyTable(srcTbl, dstTbl)
 	for key, val in pairs(srcTbl) do
 		assert(type(key) ~= type({}))
 
-		if (type(val) == type({})) then
+		if type(val) == type({}) then
 			dstTbl[key] = {}
-
-			srcSubTbl = val
-			dstSubTbl = dstTbl[key]
-
-			CopyTable(srcSubTbl, dstSubTbl)
+			CopyTable(val, dstTbl[key])
 		else
 			dstTbl[key] = val
 		end

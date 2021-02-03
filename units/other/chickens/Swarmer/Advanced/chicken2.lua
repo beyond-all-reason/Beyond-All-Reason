@@ -15,9 +15,9 @@ return {
 		canstop = "1",
 		category = "BOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE CHICKEN EMPABLE",
 		collisionvolumeoffsets = "0 -1 0",
-		collisionvolumescales = "20 29 44",
+		collisionvolumescales = "20 40 44",
 		collisionvolumetype = "box",
-		corpse = "chicken_egg",
+		corpse = "chicken_egg_m_red",
 		defaultmissiontype = "Standby",
 		description = "Advanced Swarmer",
 		explodeas = "BUG_DEATH",
@@ -58,6 +58,10 @@ return {
 		workertime = 0,
 		customparams = {
 			subfolder = "other/chickens",
+			model_author = "KDR_11k, Beherith",
+			normalmaps = "yes",
+			normaltex = "unittextures/chicken_m_normals.png",
+			treeshader = "yes",
 		},
 		featuredefs = {
 			dead = {},
@@ -68,6 +72,11 @@ return {
 				[1] = "custom:blood_spray",
 				[2] = "custom:blood_explode",
 				[3] = "custom:dirt",
+			},
+			pieceexplosiongenerators = {
+				[1] = "blood_spray",
+				[2] = "blood_spray",
+				[3] = "blood_spray",
 			},
 		},
 		weapondefs = {
@@ -87,7 +96,7 @@ return {
 				noselfdamage = true,
 				range = 200,
 				reloadtime = 0.7,
-				soundstart = "chickens/smallchickenattack",
+				soundstart = "smallchickenattack",
 				targetborder = 1,
 				tolerance = 5000,
 				turret = true,

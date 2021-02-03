@@ -23,7 +23,7 @@ function widget:GetInfo()
 		author = "trepan, jK, Bluestone",
 		date = "Jan 8, 2007",
 		license = "GNU GPL, v2 or later",
-		layer = -math.huge,
+		layer = (-math.huge) + 1,
 		handler = true,
 		enabled = true
 	}
@@ -31,6 +31,8 @@ end
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
+
+local showButtons = false
 
 -- relies on a gadget to implement "luarules reloadluaui"
 -- relies on custom stuff in widgetHandler to implement blankOutConfig and allowUserWidgets
@@ -62,7 +64,7 @@ local curMaxEntries = 25
 local startEntry = 1
 local pageStep = floor(curMaxEntries / 2) - 1
 
-local fontSize = 13.5
+local fontSize = 14.25
 local fontSpace = 8.5
 local yStep = fontSize + fontSpace
 
@@ -81,6 +83,9 @@ local bgPadding = 4.5
 local maxWidth = 0.01
 local borderx = yStep * 0.75
 local bordery = yStep * 0.75
+
+local activeGuishader = false
+local scrollbarOffset = -15
 
 local midx = vsx * 0.5
 local minx = vsx * 0.4
@@ -103,12 +108,27 @@ local scrollbargrabpos = 0.0
 local show = false
 local pagestepped = false
 
+local RectRound = Spring.FlowUI.Draw.RectRound
+local UiElement = Spring.FlowUI.Draw.Element
+
+local chobbyInterface, widgetScale, dlistGuishader, lastStart, receivedTexts
+
+local texts = {
+	title = 'Widget Selector',
+	button_reloadluaui = 'Reload LuaUI',
+	button_unloadallwidgets = 'Unload All Widgets',
+	button_disallowuserwidgets = 'Disallow User Widgets',
+	button_allowuserwidgets = 'Allow User Widgets',
+	button_resetluaui = 'Reset LuaUI',
+	button_factoryresetluaui = 'Factory Reset LuaUI',
+}
+
 local buttons = { --see MouseRelease for which functions are called by which buttons
-	[1] = "Reload LuaUI",
-	[2] = "Unload ALL Widgets",
-	[3] = "Allow/Disallow User Widgets",
-	[4] = "Reset LuaUI",
-	[5] = "Factory Reset LuaUI",
+	[1] = texts.button_reloadluaui,
+	[2] = texts.button_unloadallwidgets,
+	[3] = texts.button_disallowuserwidgets,
+	[4] = texts.button_resetluaui,
+	[5] = texts.button_factoryresetluaui,
 }
 
 local allowuserwidgets = true
@@ -125,131 +145,42 @@ local buttonTop = 28 -- offset between top of buttons and bottom of widget
 -------------------------------------------------------------------------------
 
 function widget:Initialize()
+
+	if not allowuserwidgets then
+		buttons[3] = ''
+	else
+		if widgetHandler.allowUserWidgets then
+			buttons[3] = texts.button_disallowuserwidgets
+		else
+			buttons[3] = texts.button_llowuserwidgets
+		end
+	end
+
 	widgetHandler.knownChanged = true
 	Spring.SendCommands('unbindkeyset f11')
 
-	if allowuserwidgets then
-		if widgetHandler.allowUserWidgets then
-			buttons[3] = "Disallow User Widgets"
-		else
-			buttons[3] = "Allow User Widgets"
-		end
-	end
 	if Spring.GetGameFrame() <= 0 then
-		Spring.SendLuaRulesMsg('xmas' .. ((os.date("%m") == "12" and os.date("%d") >= "13") and '1' or '0'))
+		Spring.SendLuaRulesMsg('xmas' .. ((os.date("%m") == "12" and os.date("%d") >= "12") and '1' or '0'))
+	end
+	WG['widgetselector'] = {}
+	WG['widgetselector'].toggle = function(state)
+		local newShow = state
+		if newShow == nil then
+			newShow = not show
+		end
+		if newShow and WG['topbar'] then
+			WG['topbar'].hideWindows()
+		end
+		show = newShow
+	end
+	WG['widgetselector'].isvisible = function()
+		return show
 	end
 end
 
 
 -------------------------------------------------------------------------------
 
-
-local function DrawRectRound(px, py, sx, sy, cs, tl, tr, br, bl, c1, c2)
-	local csyMult = 1 / ((sy - py) / cs)
-
-	if c2 then
-		gl.Color(c1[1], c1[2], c1[3], c1[4])
-	end
-	gl.Vertex(px + cs, py, 0)
-	gl.Vertex(sx - cs, py, 0)
-	if c2 then
-		gl.Color(c2[1], c2[2], c2[3], c2[4])
-	end
-	gl.Vertex(sx - cs, sy, 0)
-	gl.Vertex(px + cs, sy, 0)
-
-	-- left side
-	if c2 then
-		gl.Color(c1[1] * (1 - csyMult) + (c2[1] * csyMult), c1[2] * (1 - csyMult) + (c2[2] * csyMult), c1[3] * (1 - csyMult) + (c2[3] * csyMult), c1[4] * (1 - csyMult) + (c2[4] * csyMult))
-	end
-	gl.Vertex(px, py + cs, 0)
-	gl.Vertex(px + cs, py + cs, 0)
-	if c2 then
-		gl.Color(c2[1] * (1 - csyMult) + (c1[1] * csyMult), c2[2] * (1 - csyMult) + (c1[2] * csyMult), c2[3] * (1 - csyMult) + (c1[3] * csyMult), c2[4] * (1 - csyMult) + (c1[4] * csyMult))
-	end
-	gl.Vertex(px + cs, sy - cs, 0)
-	gl.Vertex(px, sy - cs, 0)
-
-	-- right side
-	if c2 then
-		gl.Color(c1[1] * (1 - csyMult) + (c2[1] * csyMult), c1[2] * (1 - csyMult) + (c2[2] * csyMult), c1[3] * (1 - csyMult) + (c2[3] * csyMult), c1[4] * (1 - csyMult) + (c2[4] * csyMult))
-	end
-	gl.Vertex(sx, py + cs, 0)
-	gl.Vertex(sx - cs, py + cs, 0)
-	if c2 then
-		gl.Color(c2[1] * (1 - csyMult) + (c1[1] * csyMult), c2[2] * (1 - csyMult) + (c1[2] * csyMult), c2[3] * (1 - csyMult) + (c1[3] * csyMult), c2[4] * (1 - csyMult) + (c1[4] * csyMult))
-	end
-	gl.Vertex(sx - cs, sy - cs, 0)
-	gl.Vertex(sx, sy - cs, 0)
-
-	local offset = 0.15        -- texture offset, because else gaps could show
-
-	-- bottom left
-	if c2 then
-		gl.Color(c1[1], c1[2], c1[3], c1[4])
-	end
-	if ((py <= 0 or px <= 0) or (bl ~= nil and bl == 0)) and bl ~= 2 then
-		gl.Vertex(px, py, 0)
-	else
-		gl.Vertex(px + cs, py, 0)
-	end
-	gl.Vertex(px + cs, py, 0)
-	if c2 then
-		gl.Color(c1[1] * (1 - csyMult) + (c2[1] * csyMult), c1[2] * (1 - csyMult) + (c2[2] * csyMult), c1[3] * (1 - csyMult) + (c2[3] * csyMult), c1[4] * (1 - csyMult) + (c2[4] * csyMult))
-	end
-	gl.Vertex(px + cs, py + cs, 0)
-	gl.Vertex(px, py + cs, 0)
-	-- bottom right
-	if c2 then
-		gl.Color(c1[1], c1[2], c1[3], c1[4])
-	end
-	if ((py <= 0 or sx >= vsx) or (br ~= nil and br == 0)) and br ~= 2 then
-		gl.Vertex(sx, py, 0)
-	else
-		gl.Vertex(sx - cs, py, 0)
-	end
-	gl.Vertex(sx - cs, py, 0)
-	if c2 then
-		gl.Color(c1[1] * (1 - csyMult) + (c2[1] * csyMult), c1[2] * (1 - csyMult) + (c2[2] * csyMult), c1[3] * (1 - csyMult) + (c2[3] * csyMult), c1[4] * (1 - csyMult) + (c2[4] * csyMult))
-	end
-	gl.Vertex(sx - cs, py + cs, 0)
-	gl.Vertex(sx, py + cs, 0)
-	-- top left
-	if c2 then
-		gl.Color(c2[1], c2[2], c2[3], c2[4])
-	end
-	if ((sy >= vsy or px <= 0) or (tl ~= nil and tl == 0)) and tl ~= 2 then
-		gl.Vertex(px, sy, 0)
-	else
-		gl.Vertex(px + cs, sy, 0)
-	end
-	gl.Vertex(px + cs, sy, 0)
-	if c2 then
-		gl.Color(c2[1] * (1 - csyMult) + (c1[1] * csyMult), c2[2] * (1 - csyMult) + (c1[2] * csyMult), c2[3] * (1 - csyMult) + (c1[3] * csyMult), c2[4] * (1 - csyMult) + (c1[4] * csyMult))
-	end
-	gl.Vertex(px + cs, sy - cs, 0)
-	gl.Vertex(px, sy - cs, 0)
-	-- top right
-	if c2 then
-		gl.Color(c2[1], c2[2], c2[3], c2[4])
-	end
-	if ((sy >= vsy or sx >= vsx) or (tr ~= nil and tr == 0)) and tr ~= 2 then
-		gl.Vertex(sx, sy, 0)
-	else
-		gl.Vertex(sx - cs, sy, 0)
-	end
-	gl.Vertex(sx - cs, sy, 0)
-	if c2 then
-		gl.Color(c2[1] * (1 - csyMult) + (c1[1] * csyMult), c2[2] * (1 - csyMult) + (c1[2] * csyMult), c2[3] * (1 - csyMult) + (c1[3] * csyMult), c2[4] * (1 - csyMult) + (c1[4] * csyMult))
-	end
-	gl.Vertex(sx - cs, sy - cs, 0)
-	gl.Vertex(sx, sy - cs, 0)
-end
-function RectRound(px, py, sx, sy, cs, tl, tr, br, bl, c1, c2)
-	-- (coordinates work differently than the RectRound func in other widgets)
-	gl.Texture(false)
-	gl.BeginEnd(GL.QUADS, DrawRectRound, px, py, sx, sy, cs, tl, tr, br, bl, c1, c2)
-end
 
 local function UpdateGeometry()
 	midx = vsx * 0.5
@@ -267,16 +198,16 @@ end
 local function UpdateListScroll()
 	local wCount = #fullWidgetsList
 	local lastStart = lastStart or wCount - curMaxEntries + 1
-	if (lastStart < 1) then
+	if lastStart < 1 then
 		lastStart = 1
 	end
-	if (lastStart > wCount - curMaxEntries + 1) then
+	if lastStart > wCount - curMaxEntries + 1 then
 		lastStart = 1
 	end
-	if (startEntry > lastStart) then
+	if startEntry > lastStart then
 		startEntry = lastStart
 	end
-	if (startEntry < 1) then
+	if startEntry < 1 then
 		startEntry = 1
 	end
 
@@ -305,11 +236,11 @@ function widget:MouseWheel(up, value)
 	end
 
 	local a, c, m, s = Spring.GetModKeyState()
-	if (a or m) then
+	if a or m then
 		return false  -- alt and meta allow normal control
 	end
 	local step = (s and 4) or (c and 1) or 2
-	if (up) then
+	if up then
 		ScrollUp(step)
 	else
 		ScrollDown(step)
@@ -336,7 +267,7 @@ local function SortWidgetListFunc(nd1, nd2)
 end
 
 local function UpdateList()
-	if (not widgetHandler.knownChanged) then
+	if not widgetHandler.knownChanged then
 		return
 	end
 	widgetHandler.knownChanged = false
@@ -385,24 +316,28 @@ end
 -------------------------------------------------------------------------------
 
 function widget:KeyPress(key, mods, isRepeat)
-	if (show and (key == KEYSYMS.ESCAPE) or
-		((key == KEYSYMS.F11) and not isRepeat and
-			not (mods.alt or mods.ctrl or mods.meta or mods.shift))) then
-		show = not show
+	if show and key == KEYSYMS.ESCAPE or
+		(key == KEYSYMS.F11 and not isRepeat and
+			not (mods.alt or mods.ctrl or mods.meta or mods.shift)) then
+
+		local newShow = not show
+		if newShow and WG['topbar'] then
+			WG['topbar'].hideWindows()
+		end
+		show = newShow
 		return true
 	end
-	if (show and key == KEYSYMS.PAGEUP) then
+	if show and key == KEYSYMS.PAGEUP then
 		ScrollUp(pageStep)
 		return true
 	end
-	if (show and key == KEYSYMS.PAGEDOWN) then
+	if show and key == KEYSYMS.PAGEDOWN then
 		ScrollDown(pageStep)
 		return true
 	end
 	return false
 end
-local activeGuishader = false
-local scrollbarOffset = -15
+
 function widget:RecvLuaMsg(msg, playerID)
 	if msg:sub(1, 18) == 'LobbyOverlayActive' then
 		chobbyInterface = (msg:sub(1, 19) == 'LobbyOverlayActive1')
@@ -414,17 +349,40 @@ function widget:DrawScreen()
 		return
 	end
 	if not show then
-		if activeGuishader and (WG['guishader']) then
+		if WG['guishader'] and activeGuishader then
 			activeGuishader = false
 			WG['guishader'].DeleteDlist('widgetselector')
 		end
 		return
 	end
+
+	if not receivedTexts and WG['lang'] then		-- not sure why but this seems not availible yet aperently
+		texts = WG['lang'].getText('widgetselector')
+		receivedTexts = true
+
+		buttons = { --see MouseRelease for which functions are called by which buttons
+			[1] = texts.button_reloadluaui,
+			[2] = texts.button_unloadallwidgets,
+			[3] = texts.button_disallowuserwidgets,
+			[4] = texts.button_resetluaui,
+			[5] = texts.button_factoryresetluaui,
+		}
+		if not allowuserwidgets then
+			buttons[3] = ''
+		else
+			if widgetHandler.allowUserWidgets then
+				buttons[3] = texts.button_disallowuserwidgets
+			else
+				buttons[3] = texts.button_llowuserwidgets
+			end
+		end
+	end
+
 	UpdateList()
-	if (WG['guishader'] == nil) then
+	if WG['guishader'] == nil then
 		activeGuishader = false
 	end
-	if (WG['guishader']) and not activeGuishader then
+	if WG['guishader'] and not activeGuishader then
 		activeGuishader = true
 		dlistGuishader = gl.CreateList(function()
 			RectRound(floor(minx - (bgPadding * sizeMultiplier)), floor(miny - (bgPadding * sizeMultiplier)), floor(maxx + (bgPadding * sizeMultiplier)), floor(maxy + (bgPadding * sizeMultiplier)), 6 * sizeMultiplier)
@@ -436,7 +394,7 @@ function widget:DrawScreen()
 
 	-- draw the header
 	font2:Begin()
-	font2:Print("Widget Selector", midx, maxy + ((11 + bgPadding) * sizeMultiplier), titleFontSize * sizeMultiplier, "oc")
+	font2:Print(texts.title, midx, maxy + ((11 + bgPadding) * sizeMultiplier), titleFontSize * sizeMultiplier, "oc")
 	font2:End()
 
 	font:Begin()
@@ -455,17 +413,17 @@ function widget:DrawScreen()
 	font:Print(tcol .. "-", minx, maxy + ((7 + bgPadding) * sizeMultiplier), buttonFontSize * sizeMultiplier, "ol")
 	tcol = WhiteStr
 
-	-- draw the box
-	RectRound(floor(minx - (bgPadding * sizeMultiplier)), floor(miny - (bgPadding * sizeMultiplier)), floor(maxx + (bgPadding * sizeMultiplier)), floor(maxy + (bgPadding * sizeMultiplier)), 6 * sizeMultiplier, 1, 1, 1, 1, { 0.05, 0.05, 0.05, WG['guishader'] and 0.8 or 0.88 }, { 0, 0, 0, WG['guishader'] and 0.8 or 0.88 })
-	RectRound(floor(minx), floor(miny), floor(maxx), floor(maxy), 4.5 * sizeMultiplier, 1, 1, 1, 1, { 0.25, 0.25, 0.25, 0.2 }, { 0.5, 0.5, 0.5, 0.2 })
+	UiElement(floor(minx - (bgPadding * sizeMultiplier)), floor(miny - (bgPadding * sizeMultiplier)), floor(maxx + (bgPadding * sizeMultiplier)), floor(maxy + (bgPadding * sizeMultiplier)), 1, 1, 1, 1, 1,1,1,1, Spring.GetConfigFloat("ui_opacity", 0.6) + 0.2)
 
 	-- draw the text buttons (at the bottom) & their outlines
-	for i, name in ipairs(buttons) do
-		tcol = WhiteStr
-		if minx < mx and mx < maxx and miny - (buttonTop * sizeMultiplier) - i * (buttonHeight * sizeMultiplier) < my and my < miny - (buttonTop * sizeMultiplier) - (i - 1) * (buttonHeight * sizeMultiplier) then
-			tcol = '\255\031\031\031'
+	if showButtons then
+		for i, name in ipairs(buttons) do
+			tcol = WhiteStr
+			if minx < mx and mx < maxx and miny - (buttonTop * sizeMultiplier) - i * (buttonHeight * sizeMultiplier) < my and my < miny - (buttonTop * sizeMultiplier) - (i - 1) * (buttonHeight * sizeMultiplier) then
+				tcol = '\255\031\031\031'
+			end
+			font:Print(tcol .. buttons[i], (minx + maxx) / 2, miny - (buttonTop * sizeMultiplier) - (i * (buttonHeight * sizeMultiplier)), buttonFontSize * sizeMultiplier, "oc")
 		end
-		font:Print(tcol .. buttons[i], (minx + maxx) / 2, miny - (buttonTop * sizeMultiplier) - (i * (buttonHeight * sizeMultiplier)), buttonFontSize * sizeMultiplier, "oc")
 	end
 
 
@@ -484,7 +442,7 @@ function widget:DrawScreen()
 		local order = widgetHandler.orderList[name]
 		local enabled = order and (order > 0)
 		local active = data.active
-		if (pointed and not activescrollbar) then
+		if pointed and not activescrollbar then
 			pointedY = posy
 			pointedEnabled = data.active
 			if not pagestepped and (lmb or mmb or rmb) then
@@ -499,7 +457,7 @@ function widget:DrawScreen()
 		end
 
 		local tmpName
-		if (data.fromZip) then
+		if data.fromZip then
 			-- FIXME: extra chars not counted in text length
 			tmpName = WhiteStr .. '*' .. color .. name .. WhiteStr .. '*'
 		else
@@ -571,7 +529,7 @@ function widget:DrawScreen()
 	if (sbposx < mx and mx < sbposx + sbsizex and miny < my and my < maxy) or activescrollbar then
 
 	else
-		if (pointedY) then
+		if pointedY then
 			local xn = minx + 0.5
 			local xp = maxx - 0.5
 			local yn = pointedY - ((fontSpace * 0.5 + 1) * sizeMultiplier)
@@ -594,7 +552,7 @@ function widget:DrawScreen()
 end
 
 function widget:MousePress(x, y, button)
-	if (Spring.IsGUIHidden()) or not show then
+	if Spring.IsGUIHidden() or not show then
 		return false
 	end
 
@@ -602,8 +560,10 @@ function widget:MousePress(x, y, button)
 
 	if button == 1 then
 		-- above a button
-		if minx < x and x < maxx and miny - (buttonTop * sizeMultiplier) - #buttons * (buttonHeight * sizeMultiplier) < y and y < miny - (buttonTop * sizeMultiplier) then
-			return true
+		if showButtons then
+			if minx < x and x < maxx and miny - (buttonTop * sizeMultiplier) - #buttons * (buttonHeight * sizeMultiplier) < y and y < miny - (buttonTop * sizeMultiplier) then
+				return true
+			end
 		end
 
 		-- above the -/+
@@ -615,15 +575,15 @@ function widget:MousePress(x, y, button)
 		end
 
 		-- above the scrollbar
-		if ((x >= minx + scrollbarOffset) and (x <= maxx + scrollbarOffset + (yStep * sizeMultiplier))) then
-			if ((y >= (maxy - bordery)) and (y <= maxy)) then
+		if x >= minx + scrollbarOffset and x <= maxx + scrollbarOffset + (yStep * sizeMultiplier) then
+			if y >= (maxy - bordery) and y <= maxy then
 				if x > maxx + scrollbarOffset then
 					ScrollUp(1)
 				else
 					ScrollUp(pageStep)
 				end
 				return true
-			elseif ((y >= miny) and (y <= miny + bordery)) then
+			elseif y >= miny and y <= miny + bordery then
 				if x > maxx + scrollbarOffset then
 					ScrollDown(1)
 				else
@@ -651,7 +611,7 @@ function widget:MousePress(x, y, button)
 	end
 
 	local namedata = self:AboveLabel(x, y)
-	if (not namedata) then
+	if not namedata then
 		show = false
 		return false
 	end
@@ -671,7 +631,7 @@ function widget:MouseMove(x, y, dx, dy, button)
 end
 
 function widget:MouseRelease(x, y, mb)
-	if (Spring.IsGUIHidden()) or not show then
+	if Spring.IsGUIHidden() or not show then
 		return -1
 	end
 
@@ -708,7 +668,7 @@ function widget:MouseRelease(x, y, mb)
 		end
 	end
 
-	if mb == 1 then
+	if showButtons and mb == 1 then
 		local buttonID = nil
 		for i, _ in ipairs(buttons) do
 			if minx < x and x < maxx and miny - (buttonTop * sizeMultiplier) - i * (buttonHeight * sizeMultiplier) < y and y < miny - (buttonTop * sizeMultiplier) - (i - 1) * (buttonHeight * sizeMultiplier) then
@@ -751,21 +711,21 @@ function widget:MouseRelease(x, y, mb)
 	end
 
 	local namedata = self:AboveLabel(x, y)
-	if (not namedata) then
+	if not namedata then
 		return false
 	end
 
 	local name = namedata[1]
 	local data = namedata[2]
 
-	if (mb == 1) then
+	if mb == 1 then
 		widgetHandler:ToggleWidget(name)
-	elseif ((button == 2) or (button == 3)) then
+	elseif mb == 2 or mb == 3 then
 		local w = widgetHandler:FindWidget(name)
-		if (not w) then
+		if not w then
 			return -1
 		end
-		if (button == 2) then
+		if mb == 2 then
 			widgetHandler:LowerWidget(w)
 		else
 			widgetHandler:RaiseWidget(w)
@@ -776,19 +736,19 @@ function widget:MouseRelease(x, y, mb)
 end
 
 function widget:AboveLabel(x, y)
-	if ((x < minx) or (y < (miny + bordery)) or
-		(x > maxx) or (y > (maxy - bordery))) then
+	if x < minx or y < (miny + bordery) or
+		x > maxx or y > (maxy - bordery) then
 		return nil
 	end
 	local count = #widgetsList
-	if (count < 1) then
+	if count < 1 then
 		return nil
 	end
 
 	local i = floor(1 + ((maxy - bordery) - y) / (yStep * sizeMultiplier))
-	if (i < 1) then
+	if i < 1 then
 		i = 1
-	elseif (i > count) then
+	elseif i > count then
 		i = count
 	end
 
@@ -800,9 +760,11 @@ function widget:IsAbove(x, y)
 		return false
 	end
 	UpdateList()
-	if ((x < minx) or (x > maxx + (yStep * sizeMultiplier)) or
-		(y < miny - #buttons * buttonHeight) or (y > maxy + bgPadding)) then
-		return false
+	if showButtons then
+		if x < minx or x > maxx + (yStep * sizeMultiplier) or
+			y < miny - #buttons * buttonHeight or y > maxy + bgPadding then
+			return false
+		end
 	end
 	return true
 end
@@ -814,7 +776,7 @@ function widget:GetTooltip(x, y)
 
 	UpdateList()
 	local namedata = self:AboveLabel(x, y)
-	if (not namedata) then
+	if not namedata then
 		return '\255\200\255\200' .. 'Widget Selector\n' ..
 			'\255\255\255\200' .. 'LMB: toggle widget\n' ..
 			'\255\255\200\200' .. 'MMB: lower  widget\n' ..
@@ -832,7 +794,7 @@ function widget:GetTooltip(x, y)
 	tt = d.desc and tt .. WhiteStr .. d.desc .. '\n' or tt
 	tt = d.author and tt .. BlueStr .. 'Author:  ' .. CyanStr .. d.author .. '\n' or tt
 	tt = tt .. MagentaStr .. d.basename
-	if (d.fromZip) then
+	if d.fromZip then
 		tt = tt .. RedStr .. ' (mod widget)'
 	end
 	return tt
@@ -879,7 +841,3 @@ function widget:Shutdown()
 	gl.DeleteFont(font)
 	gl.DeleteFont(font2)
 end
-
-
--------------------------------------------------------------------------------
--------------------------------------------------------------------------------

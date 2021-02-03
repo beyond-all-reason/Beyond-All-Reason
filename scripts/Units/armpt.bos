@@ -206,27 +206,17 @@ AimPrimary(heading, pitch)
 
 FirePrimary()
 {
-	if( gun_1 )
-	{
-
-		sleep 150;
-	}
-	else
-	{
-
-		sleep 150;
-	}
 	gun_1 = !gun_1;
 }
 
 AimFromPrimary(piecenum)
 {
-	piecenum = base;
+	piecenum = turretaa;
 }
 
 QueryPrimary(piecenum)
 {
-	piecenum = gun_1;
+	piecenum = flarel + gun_1;
 }
 
 SweetSpot(piecenum)

@@ -16,8 +16,13 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
+local texts = {        -- fallback (if you want to change this, also update: language/en.lua, or it will be overwritten)
+	gamepaused = 'GAME  PAUSED',
+}
+
 local spGetGameSpeed = Spring.GetGameSpeed
 local spGetGameState = Spring.GetGameState
+local spGetGameFrame = Spring.GetGameFrame
 
 local glColor = gl.Color
 local glTexture = gl.Texture
@@ -34,6 +39,7 @@ local glUniform = gl.Uniform
 local glGetUniformLocation = gl.GetUniformLocation
 
 local osClock = os.clock
+
 
 ----------------------------------------------------------------------------------
 
@@ -74,10 +80,15 @@ local vsx, vsy = Spring.GetWindowGeometry()
 local widgetInitTime = osClock()
 local previousDrawScreenClock = osClock()
 local paused = false
+local lastGameFrame = spGetGameFrame()
+local lastGameFrameTime = os.clock() + 10
 
 local shaderAlpha = 0
-local screencopy
-local shaderProgram
+local screencopy, shaderProgram
+local chobbyInterface, alphaLoc, showPauseScreen, nonShaderAlpha
+local gameover = false
+local noNewGameframes = false
+
 
 
 --intensity formula based on http://alienryderflex.com/hsp.html
@@ -117,13 +128,13 @@ local fragmentShaderSource = {
 	]],
 }
 
-local gameover = false
 function widget:GameOver()
 	gameover = true
 end
 
 function widget:Update(dt)
 	local now = osClock()
+	local gameFrame = spGetGameFrame()
 	previousDrawScreenClock = now
 
 	local diffPauseTime = (now - pauseTimestamp)
@@ -146,8 +157,8 @@ function widget:Update(dt)
 
 	lastPause = paused
 
-	local _, _, isPaused = spGetGameSpeed()
-	if not gameover and isPaused then
+	local _, gameSpeed, isPaused = spGetGameSpeed()
+	if not gameover and gameSpeed == 0 then
 		-- when host (admin) paused its just gamespeed 0
 		paused = true
 	else
@@ -157,14 +168,37 @@ function widget:Update(dt)
 	if spGetGameState and select(3, spGetGameState()) then
 		paused = true
 	end
+
+	-- admin pause / game freeze
+	if not paused and gameFrame > 0 and not gameover then
+		if lastGameFrame == gameFrame then
+			if now - lastGameFrameTime > 1 then
+				if not noNewGameframes then
+					pauseTimestamp = now - (slideTime + autoFadeTime)
+				end
+				paused = true
+				noNewGameframes = true
+			else
+				noNewGameframes = false
+			end
+		else
+			lastGameFrame = gameFrame
+			lastGameFrameTime = now
+			paused = false
+			noNewGameframes = false
+		end
+	end
 end
 
 function widget:Initialize()
+	if WG['lang'] then
+		texts = WG['lang'].getText('pausescreen')
+	end
 	vsx, vsy = widgetHandler:GetViewSizes()
 	widget:ViewResize(vsx, vsy)
 
 	local _, gameSpeed, isPaused = spGetGameSpeed()
-	if isPaused or gameSpeed == 0 then
+	if gameSpeed == 0 then
 		-- when host admin paused its just gamespeed 0
 		paused = true
 	end
@@ -187,7 +221,7 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
-	glDeleteFont(myFont)
+	glDeleteFont(font)
 	if shaderProgram then
 		gl.DeleteShader(shaderProgram)
 	end
@@ -234,6 +268,7 @@ function drawPause()
 	local text = { 1.0, 1.0, 1.0, 0 * maxAlpha }
 	local outline = { 0.0, 0.0, 0.0, 0 * maxAlpha }
 
+	local progress
 	if paused then
 		progress = (now - pauseTimestamp) / slideTime
 	else
@@ -275,13 +310,13 @@ function drawPause()
 	font:Begin()
 	font:SetOutlineColor(outline)
 	font:SetTextColor(text)
-	font:Print("GAME  PAUSED", textX, textY, fontSizeHeadline, "O")
+	font:Print(texts.gamepaused, textX, textY, fontSizeHeadline, "O")
 	font:End()
 
 	glPopMatrix()
 end
 
-function updateWindowCoords()
+local function updateWindowCoords()
 	wndX1 = (vsx / 2) - boxWidth
 	wndY1 = (vsy / 2) + boxHeight
 	wndX2 = (vsx / 2) + boxWidth

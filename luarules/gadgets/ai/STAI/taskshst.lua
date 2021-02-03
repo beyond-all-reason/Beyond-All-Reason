@@ -89,10 +89,30 @@ end
 function TasksHST:wrap( theTable, theFunction )
 	self:EchoDebug(theTable)
 	self:EchoDebug(theFunction)
-	return function( tb, ai )
-	return theTable[theFunction](theTable, tb, ai)
+	return function( tb, ai ,bd)
+		return theTable[theFunction](theTable, tb, ai, bd)
 	end
 end
+
+function map(func, array)
+	local new_array = {}
+	for i,v in ipairs(array) do
+		new_array[i] = func(v)
+	end
+	return new_array
+end
+
+function TasksHST:multiwrap( tables )
+	local wrapped = {}
+	for i,v in ipairs( table ) do
+		wrapped[i] = self:wrap( v[1], v[2] )
+	end
+	return wrapped
+end
+
+random = math.random
+math.randomseed( os.time() + game:GetTeamID() )
+random(); random(); random()
 
 function TasksHST:MapHasWater()
 	return (self.ai.waterMap or self.ai.hasUWSpots) or false

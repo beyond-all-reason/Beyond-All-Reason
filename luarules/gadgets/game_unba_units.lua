@@ -12,8 +12,7 @@ function gadget:GetInfo()
 end
 
 
-if (gadgetHandler:IsSyncedCode()) then  --Sync?
-
+if gadgetHandler:IsSyncedCode() then  --Sync?
 
 	local defaultTaxValue = 1.025
 	local taxvalues = {
@@ -171,6 +170,7 @@ if (gadgetHandler:IsSyncedCode()) then  --Sync?
 		if category then
 			local taxvalue = taxvalues[unitDefID]
 			local invtaxvalue = 1/taxvalue
+			local team
 			if oldteams[unitID] then
 				team = oldteams[unitID]
 			else

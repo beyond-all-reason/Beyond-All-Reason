@@ -14,7 +14,7 @@ end
 --------------------------------------------------------------------------------
 --This unit marker is a culmination of previous work by Pako (this method of
 --setting units of interest and their names with multi-language support) and
---enhancements by LEDZ. The amount of units/events it marks has been reduced 
+--enhancements by LEDZ. The amount of units/events it marks has been reduced
 --substanially by Bluestone (by popular request).
 --Features:
 --{x}Multilanguage support
@@ -91,6 +91,8 @@ local prevMarkX = {}
 local prevMarkY = {}
 local prevMarkZ = {}
 
+local gameStarted, curUnitList
+
 local teamNames = {}
 
 local isCommander = {}
@@ -136,51 +138,51 @@ function widget:Initialize()
         maybeRemoveSelf()
     end
 
-	myColour = colourNames(Spring.GetMyTeamID())
-	markerLocal = nil --note: this name of this here and on the lua wiki is a misnomer
 	curModID = string.upper(Game.gameShortName or "")
 	if ( unitList[curModID] == nil ) then
 		spEcho("<Unit Marker> Unsupported Game, shutting down...")
 		widgetHandler:RemoveWidget(self)
 		return
-	else	
+	else
 		curUnitList = unitList[curModID] or {}
 	end
 	myLang = myLang or string.lower(select(8,Spring.GetPlayerInfo(Spring.GetMyPlayerID(),false)))
 end
 
-function colourNames(teamID) 
-	nameColourR,nameColourG,nameColourB,nameColourA = spGetTeamColor(teamID)
-	R255 = math.floor(nameColourR*255)  --the first \255 is just a tag (not colour setting) no part can end with a zero due to engine limitation (C)
-	G255 = math.floor(nameColourG*255)
-	B255 = math.floor(nameColourB*255)
-	if ( R255%10 == 0) then
+function colourNames(teamID)
+	local nameColourR,nameColourG,nameColourB,nameColourA = spGetTeamColor(teamID)
+	local R255 = math.floor(nameColourR*255)  --the first \255 is just a tag (not colour setting) no part can end with a zero due to engine limitation (C)
+	local G255 = math.floor(nameColourG*255)
+	local B255 = math.floor(nameColourB*255)
+	if R255%10 == 0 then
 		R255 = R255+1
 	end
-	if( G255%10 == 0) then
+	if G255%10 == 0 then
 		G255 = G255+1
 	end
-	if ( B255%10 == 0) then
+	if B255%10 == 0 then
 		B255 = B255+1
 	end
   return "\255"..string.char(R255)..string.char(G255)..string.char(B255) --works thanks to zwzsg
-end 
+end
 
 function widget:UnitEnteredLos(unitID, allyTeam)
 	if ( IsUnitAllied( unitID ) ) then return end
 
 	local udefID = spGetUnitDefID(unitID)
 	local x, y, z = spGetUnitPosition(unitID)  --x and z on map floor, y is height
-	
+
 	if udefID and x then
 	  if curUnitList[udefID] then
 			prevX, prevY, prevZ = prevMarkX[unitID],prevMarkY[unitID],prevMarkZ[unitID]
 			if prevX == nil then
 				prevX, prevY, prevZ = 0,0,0
 			end
-			
+
 			if (math.sqrt(math.pow((prevX - x), 2)+(math.pow((prevZ - z), 2)))) >= 100 then -- marker only really uses x and z
-				markColour = colourNames(spGetUnitTeam(unitID))
+				local markName
+				local colouredMarkName
+				local markColour = colourNames(spGetUnitTeam(unitID))
 				if isCommander[udefID]then
 					markName = GetTeamName(spGetUnitTeam(unitID))
 					colouredMarkName = markColour..markName
@@ -190,7 +192,7 @@ function widget:UnitEnteredLos(unitID, allyTeam)
 					colouredMarkName = markColour..markName
 				end
 				spMarkerErasePosition(prevX,prevY,prevZ)
-				spMarkerAddPoint(x,y,z,colouredMarkName,markerLocal)
+				spMarkerAddPoint(x,y,z,colouredMarkName)
 				prevX, prevY, prevZ = x, y, z
 				prevMarkX[unitID] = prevX
 				prevMarkY[unitID] = prevY

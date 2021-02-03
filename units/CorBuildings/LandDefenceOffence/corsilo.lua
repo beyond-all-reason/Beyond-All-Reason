@@ -143,9 +143,9 @@ return {
 				stockpiletime = 180,
 				targetable = 1,
 				tolerance = 4000,
-				turnrate = 32768,
+				turnrate = 5500,
 				weaponacceleration = 100,
-				weapontimer = 8,
+				weapontimer = 5.5,
 				weapontype = "StarburstLauncher",
 				weaponvelocity = 1600,
 				customparams = {
@@ -157,6 +157,7 @@ return {
 				},
 				damage = {
 					commanders = 2500,
+					scavboss = 2500,
 					default = 11500,
 				},
 			},

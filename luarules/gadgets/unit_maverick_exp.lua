@@ -2,7 +2,7 @@ function gadget:GetInfo()
 	return {
 		name		= "Maverick Exp",
 		desc		= "Sets Maverick exp effect",
-		author		= "BD",
+		author		= "BrainDamage",
 		date		= "-",
 		license		= "WTFPL",
 		layer		= 0,

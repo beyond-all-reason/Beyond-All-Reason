@@ -2,7 +2,7 @@ function widget:GetInfo()
 	return {
 	name	= "Spy move/reclaim defaults",
 	desc	= "prevents accidental spy decloak\nmakes move the default command for spies when cloaked",
-	author	= "BD",
+	author	= "BrainDamage",
 	date	= "-",
 	license	= "WTFPL and horses",
 	layer	= -math.huge,
@@ -18,6 +18,8 @@ local spies  = {
 local GetSelectedUnitsSorted = Spring.GetSelectedUnitsSorted
 local GetUnitStates = Spring.GetUnitStates
 local GetSelectedUnitsCount = Spring.GetSelectedUnitsCount
+
+local gameStarted, selectionChanged
 
 local CMD_MOVE = CMD.MOVE
 

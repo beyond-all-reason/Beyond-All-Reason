@@ -129,7 +129,7 @@ return {
 				craterboost = 0.1,
 				cratermult = 0.1,
 				edgeeffectiveness = 0.15,
-				energypershot = 3000,
+				energypershot = 6000,
 				explosiongenerator = "custom:genericshellexplosion-huge",
 				gravityaffected = "true",
 				heightboostfactor = 6,
@@ -144,11 +144,12 @@ return {
 				soundhit = "xplonuk1xs",
 				soundhitwet = "splshbig",
 				soundstart = "lrpcshot",
+				soundstartvolume = 42,
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 1150,
 				customparams = {
-					expl_light_heat_radius_mult = 3.2,
+					expl_light_heat_radius_mult = 4,
 				},
 				damage = {
 					default = 2000,

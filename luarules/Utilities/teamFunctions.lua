@@ -8,7 +8,7 @@ do
 	for i = 1, #allyTeamList do
 		local teamList = Spring.GetTeamList(allyTeamList[i]) or {}
 		local allyteamEntirelyHuman = true
-		if ((#teamList > 0) and (allyTeamList[i] ~= gaiaAllyTeamID)) then
+		if #teamList > 0 and allyTeamList[i] ~= gaiaAllyTeamID then
 			local isTeamValid = true
 			for j = 1, #teamList do
 				if select (4, Spring.GetTeamInfo(teamList[j], false)) then
@@ -32,11 +32,11 @@ do
 
 	if teamCount > 2 then
 		isFFA = true
-		isChicken = false
+		isChickens = false
 	elseif teamCount < 2 then
 		isSandbox = not isChickens
 	else
-		isChicken = false
+		isChickens = false
 		local cnt1 = #Spring.GetTeamList(actualAllyTeamList[1])
 		local cnt2 = #Spring.GetTeamList(actualAllyTeamList[2])
 		if cnt1 == 1 and cnt2 == 1 then

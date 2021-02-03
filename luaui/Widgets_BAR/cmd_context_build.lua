@@ -3,7 +3,7 @@ function widget:GetInfo()
 	return {
 		name = "Context Build",
 		desc = "Toggles buildings between buildings automagically" ,
-		author = "dizekat and BD",
+		author = "dizekat and BrainDamage",
 		date = "30 July 2009",
 		license = "GNU LGPL, v2.1 or later",
 		layer = 1,
@@ -61,6 +61,8 @@ local TestBuildOrder		= Spring.TestBuildOrder
 local alternative_units = {}-- unit def id --> list of alternative unit def ids
 local updateRate = 8/30
 local timeCounter = 0
+
+local gameStarted
 
 
 function maybeRemoveSelf()

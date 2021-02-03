@@ -4,7 +4,7 @@ return {
 		activatewhenbuilt = true,
 		brakerate = 0.03061,
 		buildangle = 16384,
-		buildcostenergy = 4400,
+		buildcostenergy = 6600,
 		buildcostmetal = 880,
 		buildpic = "ARMROY.PNG",
 		buildtime = 10200,

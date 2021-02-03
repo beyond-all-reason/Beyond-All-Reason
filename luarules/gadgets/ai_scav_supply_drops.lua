@@ -9,7 +9,7 @@ for i = 1,#teams do
 	end
 end
 
-if scavengersAIEnabled or (Spring.GetModOptions and (tonumber(Spring.GetModOptions().lootboxes) or 0) ~= 0) then
+if (Spring.GetModOptions and (Spring.GetModOptions().lootboxes or "disabled") == "enabled") or (Spring.GetModOptions and (Spring.GetModOptions().scavonlylootboxes or "enabled") == "enabled" and scavengersAIEnabled == true) then
 	lootboxSpawnEnabled = true
 else
 	lootboxSpawnEnabled = false
@@ -136,6 +136,15 @@ local lootboxesListTop = {
 	"lootboxnano_t4_var4",
 }
 
+local LootboxCaptureExcludedUnits = {
+	"armdrag",
+	"armfdrag",
+	"cordrag",
+	"corfdrag",
+	"armfort",
+	"corfort",
+}
+
 
 -- locals
 local spGetUnitTeam         = Spring.GetUnitTeam
@@ -158,8 +167,15 @@ local spGetUnitPosition 	= Spring.GetUnitPosition
 local aliveLootboxes        = {}
 local aliveLootboxesCount   = 0
 
+local LootboxesToSpawn = 0
+
 local QueuedSpawns = {}
 local QueuedSpawnsFrames = {}
+
+local CaptureProgressForLootboxes = {}
+
+local SpawnChance = 75
+local TryToSpawn = false
 
 
 -- functions
@@ -215,9 +231,146 @@ function gadget:GameFrame(n)
 	end
 
     if n%30 == 0 and n > 2 then
+		if math.random(0,SpawnChance) == 0 then
+			LootboxesToSpawn = LootboxesToSpawn+0.25
+		-- elseif #aliveLootboxes < math.ceil((n/30)/(SpawnChance*2)) then
+			-- TryToSpawn = true
+		end
+
 
         if aliveLootboxesCount > 0 then
-            for unitID,_ in pairs(aliveLootboxes) do
+			for lootboxID,_ in pairs(aliveLootboxes) do
+				local lootboxDefID = Spring.GetUnitDefID(lootboxID)
+				local lootboxTeamID = spGetUnitTeam(lootboxID)
+				if not CaptureProgressForLootboxes[lootboxID] then
+					CaptureProgressForLootboxes[lootboxID] = 0
+					Spring.SetUnitHealth(lootboxID, {capture = CaptureProgressForLootboxes[lootboxID]})
+				end
+				local posx,posy,posz = Spring.GetUnitPosition(lootboxID)
+				--Spring.Echo("posx "..posx)
+				--Spring.Echo("posz "..posz)
+				unitsAround = Spring.GetUnitsInCylinder(posx, posz, 256)
+				--Spring.Echo("#unitsAround "..#unitsAround)
+				CapturingUnits = {}
+				CapturingUnitsTeam = {}
+				CapturingUnitsTeamTest = {}
+				local TeamsCapturing = 0
+				CapturingUnits[lootboxID] = 0
+	
+				for j = 1,#unitsAround do
+					local unitID = unitsAround[j]
+					local unitTeamID = spGetUnitTeam(unitID)
+					local unitAllyTeam = Spring.GetUnitAllyTeam(unitID)
+					local LuaAI = Spring.GetTeamLuaAI(unitTeamID)
+					local _,_,_,isAI,_,_ = Spring.GetTeamInfo(unitTeamID)
+					if (not LuaAI) and unitTeamID ~= lootboxTeamID and unitTeamID ~= Spring.GetGaiaTeamID() and (not isAI) then
+						captureraiTeam = false
+					else
+						captureraiTeam = false -- true
+					end
+					if not CapturingUnitsTeamTest[unitAllyTeam] then
+						CapturingUnitsTeamTest[unitAllyTeam] = true
+						if unitTeamID ~= lootboxTeamID and captureraiTeam == false then
+							TeamsCapturing = TeamsCapturing + 1
+							if TeamsCapturing > 1 then
+								break
+							end
+						end
+					end
+					captureraiTeam = nil
+				end
+	
+				for j = 1,#unitsAround do
+					local unitID = unitsAround[j]
+					local unitTeamID = spGetUnitTeam(unitID)
+					if not CapturingUnitsTeam[unitTeamID] then
+						CapturingUnitsTeam[unitTeamID] = 0
+					end
+					local unitDefID = Spring.GetUnitDefID(unitID)
+					local LuaAI = Spring.GetTeamLuaAI(unitTeamID)
+					local _,_,_,isAI,_,_ = Spring.GetTeamInfo(unitTeamID)
+	
+					if (not LuaAI) and unitTeamID ~= lootboxTeamID and unitTeamID ~= Spring.GetGaiaTeamID() and (not isAI) then
+						captureraiTeam = false
+					else
+						captureraiTeam = false -- true
+					end
+	
+					if not CapturingUnitsTeam[unitTeamID] then
+						CapturingUnitsTeam[unitTeamID] = 0
+					end
+	
+					for k = 1,#LootboxCaptureExcludedUnits do
+						if UnitDefs[unitDefID].name == LootboxCaptureExcludedUnits[k] then
+							IsUnitExcluded = true
+							break
+						else
+							IsUnitExcluded = false
+						end
+					end
+					
+					if unitDefID == lootboxDefID then
+						CaptureProgressForLootboxes[lootboxID] = CaptureProgressForLootboxes[lootboxID] - 0.0005
+						--Spring.Echo("uncapturing myself")
+					elseif unitTeamID == lootboxTeamID and (unitDefID ~= lootboxDefID) then
+						CaptureProgressForLootboxes[lootboxID] = CaptureProgressForLootboxes[lootboxID] - 1
+						--Spring.Echo("uncapturing our beacon")
+					elseif captureraiTeam == false and unitTeamID ~= lootboxTeamID and unitTeamID ~= Spring.GetGaiaTeamID() and IsUnitExcluded == false and (not UnitDefs[unitDefID].canFly) then
+						CaptureProgressForLootboxes[lootboxID] = CaptureProgressForLootboxes[lootboxID] + ((UnitDefs[unitDefID].metalCost)/800)*0.01
+						CapturingUnitsTeam[unitTeamID] = CapturingUnitsTeam[unitTeamID] + 1
+						--Spring.Echo("capturing scav beacon")
+					end
+					if CaptureProgressForLootboxes[lootboxID] < 0 then
+						CaptureProgressForLootboxes[lootboxID] = 0
+						--Spring.Echo("capture below 0")
+					end
+					if CaptureProgressForLootboxes[lootboxID] > 1 then
+						CaptureProgressForLootboxes[lootboxID] = 1
+						--Spring.Echo("capture above 1")
+					end
+					Spring.SetUnitHealth(lootboxID, {capture = CaptureProgressForLootboxes[lootboxID]})
+	
+					if TeamsCapturing < 2 and captureraiTeam == false and CaptureProgressForLootboxes[lootboxID] >= 1 then
+						CaptureProgressForLootboxes[lootboxID] = 0
+						Spring.SetUnitHealth(lootboxID, {capture = 0})
+						Spring.TransferUnit(lootboxID, unitTeamID, true)
+						captureraiTeam = nil
+						break
+					end
+					captureraiTeam = nil
+					IsUnitExcluded = nil
+				end
+				CapturingUnits = nil
+				CapturingUnitsTeam = nil
+				unitsAround = nil
+			end
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			--[[
+			for unitID,_ in pairs(aliveLootboxes) do
                 local unitTeam = spGetUnitTeam(unitID)
                 local unitEnemy = spNearestEnemy(unitID, 128, false)
                 if unitEnemy then
@@ -229,9 +382,10 @@ function gadget:GameFrame(n)
 						Spring.SetUnitNeutral(unitID, true)
                     --end
                 end
-            end
+			end
+			]]
         end
-        if math_random(0,450) == 0 and lootboxSpawnEnabled then
+        if LootboxesToSpawn >= 1 and lootboxSpawnEnabled then
             for k = 1,1000 do
                 local posx = math.floor(math_random(xBorder,mapsizeX-xBorder)/16)*16
                 local posz = math.floor(math_random(zBorder,mapsizeZ-zBorder)/16)*16
@@ -241,14 +395,18 @@ function gadget:GameFrame(n)
                 if #unitsCyl == 0 and scavLoS == true then
                     --QueueSpawn("lootdroppod_gold", posx, posy, posz, math_random(0,3),spGaiaTeam, n)
                     --QueueSpawn(lootboxesList[math_random(1,#lootboxesList)], posx, posy, posz, math_random(0,3),spGaiaTeam, n+600)
-                    if aliveLootboxesCount < 3 then
-						spCreateUnit(lootboxesListLow[math_random(1,#lootboxesListLow)]..NameSuffix, posx, posy, posz, math_random(0,3), spGaiaTeam)
-					elseif aliveLootboxesCount < 6 then
-						spCreateUnit(lootboxesListMid[math_random(1,#lootboxesListMid)]..NameSuffix, posx, posy, posz, math_random(0,3), spGaiaTeam)
-					elseif aliveLootboxesCount < 9 then
-						spCreateUnit(lootboxesListHigh[math_random(1,#lootboxesListHigh)]..NameSuffix, posx, posy, posz, math_random(0,3), spGaiaTeam)
+                    if aliveLootboxesCount < 2 then
+						local spawnedUnit = spCreateUnit(lootboxesListLow[math_random(1,#lootboxesListLow)]..NameSuffix, posx, posy, posz, math_random(0,3), spGaiaTeam)
+						Spring.SetUnitNeutral(spawnedUnit, true)
+					elseif aliveLootboxesCount < 5 then
+						local spawnedUnit = spCreateUnit(lootboxesListMid[math_random(1,#lootboxesListMid)]..NameSuffix, posx, posy, posz, math_random(0,3), spGaiaTeam)
+						Spring.SetUnitNeutral(spawnedUnit, true)
+					elseif aliveLootboxesCount < 8 then
+						local spawnedUnit = spCreateUnit(lootboxesListHigh[math_random(1,#lootboxesListHigh)]..NameSuffix, posx, posy, posz, math_random(0,3), spGaiaTeam)
+						Spring.SetUnitNeutral(spawnedUnit, true)
 					else
-						spCreateUnit(lootboxesListTop[math_random(1,#lootboxesListTop)]..NameSuffix, posx, posy, posz, math_random(0,3), spGaiaTeam)
+						local spawnedUnit = spCreateUnit(lootboxesListTop[math_random(1,#lootboxesListTop)]..NameSuffix, posx, posy, posz, math_random(0,3), spGaiaTeam)
+						Spring.SetUnitNeutral(spawnedUnit, true)
 					end
 					spCreateUnit("lootdroppod_gold"..NameSuffix, posx, posy, posz, math_random(0,3), spGaiaTeam)
                     break
@@ -262,10 +420,11 @@ end
 function gadget:UnitCreated(unitID, unitDefID, unitTeam)
     local UnitName = UnitDefs[unitDefID].name
 	if isLootbox[unitDefID] then
+		Spring.SetUnitNeutral(unitID, true)
 		local uposx, uposy, uposz = spGetUnitPosition(unitID)
+		LootboxesToSpawn = LootboxesToSpawn-1
 		aliveLootboxes[unitID] = true
 		aliveLootboxesCount = aliveLootboxesCount + 1
-        Spring.SetUnitNeutral(unitID, true)
 	end
 	if UnitName == "lootdroppod_gold" or UnitName == "lootdroppod_gold_scav" then
 		Spring.SetUnitNeutral(unitID, true)
@@ -276,7 +435,14 @@ end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
 	if aliveLootboxes[unitID] then
+		LootboxesToSpawn = LootboxesToSpawn+0.25
 		aliveLootboxes[unitID] = nil
 		aliveLootboxesCount = aliveLootboxesCount - 1
+	end
+end
+
+function gadget:UnitTaken(unitID, unitDefID, unitOldTeam, unitNewTeam)
+	if aliveLootboxes[unitID] then
+		Spring.SetUnitNeutral(unitID, true)
 	end
 end

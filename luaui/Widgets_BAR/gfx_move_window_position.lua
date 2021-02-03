@@ -13,9 +13,14 @@ function widget:GetInfo()
 	}
 end
 
+local texts = {        -- fallback (if you want to change this, also update: language/en.lua, or it will be overwritten)
+	movewitharrows = "\255\170\170\170Move window position with the \255\255\255\255arrow keys\255\170\170\170 or \255\255\255\255drag\255\170\170\170 using the mouse.",
+	escape = "\255\255\255\255ESCAPE\255\170\170\170 key will cancel changes",
+	apply = 'Apply',
+}
+
 local vsx,vsy = Spring.GetViewGeometry()
 
-local vsx, vsy = gl.GetViewSizes()
 local customScale = 1.2
 local widgetScale = (1 + (vsx*vsy / 4000000)) * customScale
 
@@ -26,110 +31,9 @@ local initialWindowPosY = windowPosY
 local dlistPosX = windowPosX
 local dlistPosY = windowPosY
 
+local font, applyButtonPos, windowList, changeClock, escape, applyChanges, draggingStartX, draggingStartY, chobbyInterface, dragging
 
-local function DrawRectRound(px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)
-	local csyMult = 1 / ((sy-py)/cs)
-
-	if c2 then
-		gl.Color(c1[1],c1[2],c1[3],c1[4])
-	end
-	gl.Vertex(px+cs, py, 0)
-	gl.Vertex(sx-cs, py, 0)
-	if c2 then
-		gl.Color(c2[1],c2[2],c2[3],c2[4])
-	end
-	gl.Vertex(sx-cs, sy, 0)
-	gl.Vertex(px+cs, sy, 0)
-
-	-- left side
-	if c2 then
-		gl.Color(c1[1]*(1-csyMult)+(c2[1]*csyMult),c1[2]*(1-csyMult)+(c2[2]*csyMult),c1[3]*(1-csyMult)+(c2[3]*csyMult),c1[4]*(1-csyMult)+(c2[4]*csyMult))
-	end
-	gl.Vertex(px, py+cs, 0)
-	gl.Vertex(px+cs, py+cs, 0)
-	if c2 then
-		gl.Color(c2[1]*(1-csyMult)+(c1[1]*csyMult),c2[2]*(1-csyMult)+(c1[2]*csyMult),c2[3]*(1-csyMult)+(c1[3]*csyMult),c2[4]*(1-csyMult)+(c1[4]*csyMult))
-	end
-	gl.Vertex(px+cs, sy-cs, 0)
-	gl.Vertex(px, sy-cs, 0)
-
-	-- right side
-	if c2 then
-		gl.Color(c1[1]*(1-csyMult)+(c2[1]*csyMult),c1[2]*(1-csyMult)+(c2[2]*csyMult),c1[3]*(1-csyMult)+(c2[3]*csyMult),c1[4]*(1-csyMult)+(c2[4]*csyMult))
-	end
-	gl.Vertex(sx, py+cs, 0)
-	gl.Vertex(sx-cs, py+cs, 0)
-	if c2 then
-		gl.Color(c2[1]*(1-csyMult)+(c1[1]*csyMult),c2[2]*(1-csyMult)+(c1[2]*csyMult),c2[3]*(1-csyMult)+(c1[3]*csyMult),c2[4]*(1-csyMult)+(c1[4]*csyMult))
-	end
-	gl.Vertex(sx-cs, sy-cs, 0)
-	gl.Vertex(sx, sy-cs, 0)
-
-	-- bottom left
-	if c2 then
-		gl.Color(c1[1],c1[2],c1[3],c1[4])
-	end
-	if ((py <= 0 or px <= 0)  or (bl ~= nil and bl == 0)) and bl ~= 2   then
-		gl.Vertex(px, py, 0)
-	else
-		gl.Vertex(px+cs, py, 0)
-	end
-	gl.Vertex(px+cs, py, 0)
-	if c2 then
-		gl.Color(c1[1]*(1-csyMult)+(c2[1]*csyMult),c1[2]*(1-csyMult)+(c2[2]*csyMult),c1[3]*(1-csyMult)+(c2[3]*csyMult),c1[4]*(1-csyMult)+(c2[4]*csyMult))
-	end
-	gl.Vertex(px+cs, py+cs, 0)
-	gl.Vertex(px, py+cs, 0)
-	-- bottom right
-	if c2 then
-		gl.Color(c1[1],c1[2],c1[3],c1[4])
-	end
-	if ((py <= 0 or sx >= vsx) or (br ~= nil and br == 0)) and br ~= 2 then
-		gl.Vertex(sx, py, 0)
-	else
-		gl.Vertex(sx-cs, py, 0)
-	end
-	gl.Vertex(sx-cs, py, 0)
-	if c2 then
-		gl.Color(c1[1]*(1-csyMult)+(c2[1]*csyMult),c1[2]*(1-csyMult)+(c2[2]*csyMult),c1[3]*(1-csyMult)+(c2[3]*csyMult),c1[4]*(1-csyMult)+(c2[4]*csyMult))
-	end
-	gl.Vertex(sx-cs, py+cs, 0)
-	gl.Vertex(sx, py+cs, 0)
-	-- top left
-	if c2 then
-		gl.Color(c2[1],c2[2],c2[3],c2[4])
-	end
-	if ((sy >= vsy or px <= 0) or (tl ~= nil and tl == 0)) and tl ~= 2 then
-		gl.Vertex(px, sy, 0)
-	else
-		gl.Vertex(px+cs, sy, 0)
-	end
-	gl.Vertex(px+cs, sy, 0)
-	if c2 then
-		gl.Color(c2[1]*(1-csyMult)+(c1[1]*csyMult),c2[2]*(1-csyMult)+(c1[2]*csyMult),c2[3]*(1-csyMult)+(c1[3]*csyMult),c2[4]*(1-csyMult)+(c1[4]*csyMult))
-	end
-	gl.Vertex(px+cs, sy-cs, 0)
-	gl.Vertex(px, sy-cs, 0)
-	-- top right
-	if c2 then
-		gl.Color(c2[1],c2[2],c2[3],c2[4])
-	end
-	if ((sy >= vsy or sx >= vsx)  or (tr ~= nil and tr == 0)) and tr ~= 2 then
-		gl.Vertex(sx, sy, 0)
-	else
-		gl.Vertex(sx-cs, sy, 0)
-	end
-	gl.Vertex(sx-cs, sy, 0)
-	if c2 then
-		gl.Color(c2[1]*(1-csyMult)+(c1[1]*csyMult),c2[2]*(1-csyMult)+(c1[2]*csyMult),c2[3]*(1-csyMult)+(c1[3]*csyMult),c2[4]*(1-csyMult)+(c1[4]*csyMult))
-	end
-	gl.Vertex(sx-cs, sy-cs, 0)
-	gl.Vertex(sx, sy-cs, 0)
-end
-function RectRound(px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)		-- (coordinates work differently than the RectRound func in other widgets)
-	gl.Texture(false)
-	gl.BeginEnd(GL.QUADS, DrawRectRound, px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)
-end
+local RectRound = Spring.FlowUI.Draw.RectRound
 
 function DrawWindow()
 	dlistPosX = windowPosX
@@ -141,15 +45,15 @@ function DrawWindow()
 	font:Begin()
 	gl.Color(0,0,0,0.6)
 	gl.Rect(0,0,vsx,vsy)
-	font:Print("\255\170\170\170Move window position with the \255\255\255\255arrow keys\255\170\170\170 or \255\255\255\255drag\255\170\170\170 using the mouse.", vsx/2, (vsy/2)+(50*widgetScale), 12*widgetScale, "ocn")
+	font:Print(texts.movewitharrows, vsx/2, (vsy/2)+(50*widgetScale), 12*widgetScale, "ocn")
 	font:Print("\255\222\255\222x = "..windowPosX.."     y = "..windowPosY, vsx/2, (vsy/2), 14*widgetScale, "ocn")
-	local buttonText = '   Apply   '
+	local buttonText = '   '..texts.apply..'   '
 	local buttonX = vsx/2
 	local buttonY = (vsy/2)-(36*widgetScale)
 	local buttonFontsize = 15*widgetScale
 	local buttonWidth = font:GetTextWidth(buttonText)*buttonFontsize
 	local buttonHeight = buttonFontsize*2.2
-	font:Print("\255\255\255\255ESCAPE\255\170\170\170 key will cancel changes", vsx/2, (vsy/2)-(50*widgetScale)-buttonHeight, 12*widgetScale, "ocn")
+	font:Print(texts.escape, vsx/2, (vsy/2)-(50*widgetScale)-buttonHeight, 12*widgetScale, "ocn")
 	if initialWindowPosX ~= dlistPosX or initialWindowPosY ~= dlistPosY then
 		applyButtonPos = {buttonX-(buttonWidth/2), buttonY-(buttonHeight/2), buttonX+(buttonWidth/2), buttonY+(buttonHeight/2),buttonFontsize/5}
 		gl.Color(0,0.33,0,0.8)
@@ -175,6 +79,9 @@ function widget:ViewResize()
 end
 
 function widget:Initialize()
+	if WG['lang'] then
+		texts = WG['lang'].getText('movewindowpos')
+	end
 	widget:ViewResize()
 end
 

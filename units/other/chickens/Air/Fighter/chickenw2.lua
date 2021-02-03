@@ -68,6 +68,10 @@ return {
 		workertime = 0,
 		customparams = {
 			subfolder = "other/chickens",
+			model_author = "KDR_11k, Beherith",
+			normalmaps = "yes",
+			normaltex = "unittextures/chicken_m_normals.png",
+			treeshader = "yes",
 		},
 		featuredefs = {
 			dead = {},
@@ -78,6 +82,11 @@ return {
 				[1] = "custom:blood_spray",
 				[2] = "custom:blood_explode",
 				[3] = "custom:dirt",
+			},
+			pieceexplosiongenerators = {
+				[1] = "blood_spray",
+				[2] = "blood_spray",
+				[3] = "blood_spray",
 			},
 		},
 		weapondefs = {
@@ -100,7 +109,7 @@ return {
 				range = 600,
 				reloadtime = 1.6,
 				smoketrail = true,
-				soundstart = "chickens/talonattack",
+				soundstart = "talonattack",
 				startvelocity = 600,
 				texture1 = "",
 				texture2 = "sporetrail",

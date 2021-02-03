@@ -2,12 +2,15 @@
 --ScavSendMessage("addmessage Global score: "..globalScore)
 
 function pregameMessages(n)
-	if n == 1800 then
+	if n > scavconfig.gracePeriod+100 then
+		return
+	end
+	if n == scavconfig.gracePeriod-7200 then
 		--ScavSendMessage("WARNING")
 		--ScavSendVoiceMessage(scavengerSoundPath.."warning.wav")
 	end
 
-	if n == 1830 then
+	if n == scavconfig.gracePeriod-7170 then
 		ScavSendNotification("scav_unidentifiedObjectsDetected")
 	end
 
@@ -16,7 +19,7 @@ function pregameMessages(n)
 	-- 	ScavSendVoiceMessage(scavengerSoundPath.."waitingForIntel.wav")
 	-- end
 
-	if n == 3900 then
+	if n == scavconfig.gracePeriod-5100 then
 		ScavSendNotification("scav_classifiedAsScavengers")
 	end
 
@@ -30,21 +33,21 @@ function pregameMessages(n)
 	-- 	ScavSendVoiceMessage(scavengerSoundPath.."droppodsDetectedNearby.wav")
 	-- end
 
-	if n == 7200 then
+	if n == scavconfig.gracePeriod-1800 then
 		--ScavSendMessage("WARNING")
 		--ScavSendVoiceMessage(scavengerSoundPath.."warning.wav")
 	end
 
-	if n == 7230 then
+	if n == scavconfig.gracePeriod-1770 then
 		ScavSendNotification("scav_droppodsDetectedInArea")
 	end
 
-	if n == 9000 then
+	if n == scavconfig.gracePeriod then
 		--ScavSendMessage("WARNING")
 		--ScavSendVoiceMessage(scavengerSoundPath.."warning.wav")
 	end
 
-	if n == 9030 then
+	if n == scavconfig.gracePeriod+30 then
 		ScavSendNotification("scav_droppingUnits")
 	end
 

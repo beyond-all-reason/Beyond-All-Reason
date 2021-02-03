@@ -23,6 +23,10 @@ function widget:GetInfo()
 	}
 end
 
+local texts = {
+	title = 'Scavengers',
+}
+
 local show = true	-- gets disabled when it has been loaded before
 
 local vsx,vsy = Spring.GetViewGeometry()
@@ -30,22 +34,25 @@ local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold
 
 local textFile = VFS.LoadFile("gamedata/scavengers/infotext.txt")
 
-local bgMargin = 6
+local ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.6)
+
 local numGames = 0
 
-local screenHeight = 520-bgMargin-bgMargin
-local screenWidth = 1050-bgMargin-bgMargin
+local screenHeightOrg = 520
+local screenWidthOrg = 1050
+local screenHeight = screenHeightOrg
+local screenWidth = screenWidthOrg
 
-local textareaMinLines = 10		-- wont scroll down more, will show at least this amount of lines
+local textareaMinLines = 14		-- wont scroll down more, will show at least this amount of lines
 
 local playSounds = true
 local buttonclick = 'LuaUI/Sounds/buildbar_waypoint.wav'
 
 local startLine = 1
 
-local customScale = 1.1
-local centerPosX = 0.51	-- note: dont go too far from 0.5
-local centerPosY = 0.49		-- note: dont go too far from 0.5
+local customScale = 1
+local centerPosX = 0.5
+local centerPosY = 0.5
 local screenX = (vsx*centerPosX) - (screenWidth/2)
 local screenY = (vsy*centerPosY) + (screenHeight/2)
 
@@ -76,6 +83,7 @@ local GL_LINE_STRIP = GL.LINE_STRIP
 
 local widgetScale = 1
 
+local titleRect = {}
 local textLines = {}
 local totalTextLines = 0
 
@@ -83,140 +91,45 @@ local myTeamID = Spring.GetMyTeamID()
 
 local showOnceMore = false		-- used because of GUI shader delay
 
+local font, font2, loadedFontSize, chobbyInterface, titleRect, backgroundGuishader, textList, dlistcreated, bgpadding
+
+local RectRound = Spring.FlowUI.Draw.RectRound
+local UiElement = Spring.FlowUI.Draw.Element
+local elementCorner = Spring.FlowUI.elementCorner
+
 function widget:ViewResize()
 	vsx,vsy = Spring.GetViewGeometry()
-	screenX = (vsx*centerPosX) - (screenWidth/2)
-	screenY = (vsy*centerPosY) + (screenHeight/2)
-	widgetScale = (0.5 + (vsx*vsy / 5700000)) * customScale
-	widgetScale = widgetScale * (1 - (0.11 * ((vsx/vsy) - 1.78)))		-- make smaller for ultrawide screens
+	widgetScale = ((vsx + vsy) / 2000) * 0.65 * customScale
+	widgetScale = widgetScale * (1 - (0.11 * ((vsx / vsy) - 1.78)))        -- make smaller for ultrawide screens
+
+	screenHeight = math.floor(screenHeightOrg * widgetScale)
+	screenWidth = math.floor(screenWidthOrg * widgetScale)
+	screenX = math.floor((vsx * centerPosX) - (screenWidth / 2))
+	screenY = math.floor((vsy * centerPosY) + (screenHeight / 2))
 
 	font, loadedFontSize = WG['fonts'].getFont()
 	font2 = WG['fonts'].getFont(fontfile2)
+	bgpadding = Spring.FlowUI.elementPadding
+	elementCorner = Spring.FlowUI.elementCorner
 
 	if textList then gl.DeleteList(textList) end
 	textList = gl.CreateList(DrawWindow)
-end
-
-local function DrawRectRound(px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)
-	local csyMult = 1 / ((sy-py)/cs)
-
-	if c2 then
-		gl.Color(c1[1],c1[2],c1[3],c1[4])
-	end
-	gl.Vertex(px+cs, py, 0)
-	gl.Vertex(sx-cs, py, 0)
-	if c2 then
-		gl.Color(c2[1],c2[2],c2[3],c2[4])
-	end
-	gl.Vertex(sx-cs, sy, 0)
-	gl.Vertex(px+cs, sy, 0)
-
-	-- left side
-	if c2 then
-		gl.Color(c1[1]*(1-csyMult)+(c2[1]*csyMult),c1[2]*(1-csyMult)+(c2[2]*csyMult),c1[3]*(1-csyMult)+(c2[3]*csyMult),c1[4]*(1-csyMult)+(c2[4]*csyMult))
-	end
-	gl.Vertex(px, py+cs, 0)
-	gl.Vertex(px+cs, py+cs, 0)
-	if c2 then
-		gl.Color(c2[1]*(1-csyMult)+(c1[1]*csyMult),c2[2]*(1-csyMult)+(c1[2]*csyMult),c2[3]*(1-csyMult)+(c1[3]*csyMult),c2[4]*(1-csyMult)+(c1[4]*csyMult))
-	end
-	gl.Vertex(px+cs, sy-cs, 0)
-	gl.Vertex(px, sy-cs, 0)
-
-	-- right side
-	if c2 then
-		gl.Color(c1[1]*(1-csyMult)+(c2[1]*csyMult),c1[2]*(1-csyMult)+(c2[2]*csyMult),c1[3]*(1-csyMult)+(c2[3]*csyMult),c1[4]*(1-csyMult)+(c2[4]*csyMult))
-	end
-	gl.Vertex(sx, py+cs, 0)
-	gl.Vertex(sx-cs, py+cs, 0)
-	if c2 then
-		gl.Color(c2[1]*(1-csyMult)+(c1[1]*csyMult),c2[2]*(1-csyMult)+(c1[2]*csyMult),c2[3]*(1-csyMult)+(c1[3]*csyMult),c2[4]*(1-csyMult)+(c1[4]*csyMult))
-	end
-	gl.Vertex(sx-cs, sy-cs, 0)
-	gl.Vertex(sx, sy-cs, 0)
-
-	local offset = 0.15		-- texture offset, because else gaps could show
-
-	-- bottom left
-	if c2 then
-		gl.Color(c1[1],c1[2],c1[3],c1[4])
-	end
-	if ((py <= 0 or px <= 0)  or (bl ~= nil and bl == 0)) and bl ~= 2   then
-		gl.Vertex(px, py, 0)
-	else
-		gl.Vertex(px+cs, py, 0)
-	end
-	gl.Vertex(px+cs, py, 0)
-	if c2 then
-		gl.Color(c1[1]*(1-csyMult)+(c2[1]*csyMult),c1[2]*(1-csyMult)+(c2[2]*csyMult),c1[3]*(1-csyMult)+(c2[3]*csyMult),c1[4]*(1-csyMult)+(c2[4]*csyMult))
-	end
-	gl.Vertex(px+cs, py+cs, 0)
-	gl.Vertex(px, py+cs, 0)
-	-- bottom right
-	if c2 then
-		gl.Color(c1[1],c1[2],c1[3],c1[4])
-	end
-	if ((py <= 0 or sx >= vsx) or (br ~= nil and br == 0)) and br ~= 2 then
-		gl.Vertex(sx, py, 0)
-	else
-		gl.Vertex(sx-cs, py, 0)
-	end
-	gl.Vertex(sx-cs, py, 0)
-	if c2 then
-		gl.Color(c1[1]*(1-csyMult)+(c2[1]*csyMult),c1[2]*(1-csyMult)+(c2[2]*csyMult),c1[3]*(1-csyMult)+(c2[3]*csyMult),c1[4]*(1-csyMult)+(c2[4]*csyMult))
-	end
-	gl.Vertex(sx-cs, py+cs, 0)
-	gl.Vertex(sx, py+cs, 0)
-	-- top left
-	if c2 then
-		gl.Color(c2[1],c2[2],c2[3],c2[4])
-	end
-	if ((sy >= vsy or px <= 0) or (tl ~= nil and tl == 0)) and tl ~= 2 then
-		gl.Vertex(px, sy, 0)
-	else
-		gl.Vertex(px+cs, sy, 0)
-	end
-	gl.Vertex(px+cs, sy, 0)
-	if c2 then
-		gl.Color(c2[1]*(1-csyMult)+(c1[1]*csyMult),c2[2]*(1-csyMult)+(c1[2]*csyMult),c2[3]*(1-csyMult)+(c1[3]*csyMult),c2[4]*(1-csyMult)+(c1[4]*csyMult))
-	end
-	gl.Vertex(px+cs, sy-cs, 0)
-	gl.Vertex(px, sy-cs, 0)
-	-- top right
-	if c2 then
-		gl.Color(c2[1],c2[2],c2[3],c2[4])
-	end
-	if ((sy >= vsy or sx >= vsx)  or (tr ~= nil and tr == 0)) and tr ~= 2 then
-		gl.Vertex(sx, sy, 0)
-	else
-		gl.Vertex(sx-cs, sy, 0)
-	end
-	gl.Vertex(sx-cs, sy, 0)
-	if c2 then
-		gl.Color(c2[1]*(1-csyMult)+(c1[1]*csyMult),c2[2]*(1-csyMult)+(c1[2]*csyMult),c2[3]*(1-csyMult)+(c1[3]*csyMult),c2[4]*(1-csyMult)+(c1[4]*csyMult))
-	end
-	gl.Vertex(sx-cs, sy-cs, 0)
-	gl.Vertex(sx, sy-cs, 0)
-end
-function RectRound(px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)		-- (coordinates work differently than the RectRound func in other widgets)
-	gl.Texture(false)
-	gl.BeginEnd(GL.QUADS, DrawRectRound, px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)
 end
 
 
 function DrawTextarea(x,y,width,height,scrollbar)
 	local scrollbarOffsetTop 		= 0	-- note: wont add the offset to the bottom, only to top
 	local scrollbarOffsetBottom 	= 0	-- note: wont add the offset to the top, only to bottom
-	local scrollbarMargin    		= 10
-	local scrollbarWidth     		= 8
-	local scrollbarPosWidth  		= 4
-	local scrollbarPosMinHeight 	= 8
+	local scrollbarMargin    		= 10 * widgetScale
+	local scrollbarWidth     		= 8 * widgetScale
+	local scrollbarPosWidth  		= 4 * widgetScale
+	local scrollbarPosMinHeight 	= 8 * widgetScale
 	local scrollbarBackgroundColor	= {0,0,0,0.24}
 	local scrollbarBarColor			= {1,1,1,0.08}
 
-	local fontSizeTitle				= 18		-- is version number
-	local fontSizeLine				= 16
-	local lineSeparator				= 2
+	local fontSizeTitle				= 18 * widgetScale
+	local fontSizeLine				= 16 * widgetScale
+	local lineSeparator				= 2 * widgetScale
 
 	local fontColorTitle			= {1,1,1,1}
 	local fontColorLine				= {0.8,0.77,0.74,1}
@@ -268,15 +181,16 @@ function DrawTextarea(x,y,width,height,scrollbar)
 			end
 
 			local line = textLines[lineKey]
+			local numLines
 			if string.find(line, '^[A-Z][A-Z]') then
 				font:SetTextColor(fontColorTitle)
-				font:Print(line, x-9, y-(lineSeparator+fontSizeTitle)*j, fontSizeTitle, "n")
+				font:Print(line, x-(9 * widgetScale), y-(lineSeparator+fontSizeTitle)*j, fontSizeTitle, "n")
 
 			else
 				font:SetTextColor(fontColorLine)
 				-- line
-				line, numLines = font:WrapText(line, (width-50)*(loadedFontSize/fontSizeLine))
-				if (lineSeparator+fontSizeTitle)*(j+numLines-1) > height then
+				line, numLines = font:WrapText(line, (width-(50 * widgetScale))*(loadedFontSize/fontSizeLine))
+				if (lineSeparator+fontSizeTitle) * (j+numLines-1) > height then
 					break;
 				end
 				font:Print(line, x, y-(lineSeparator+fontSizeTitle)*j, fontSizeLine, "n")
@@ -292,45 +206,44 @@ end
 
 
 function DrawWindow()
-    local vsx,vsy = Spring.GetViewGeometry()
-    local x = screenX --rightwards
-    local y = screenY --upwards
-
 	-- background
-	if WG['guishader'] then
-		gl.Color(0,0,0,0.8)
-	else
-		gl.Color(0,0,0,0.85)
-	end
-	RectRound(x-bgMargin,y-screenHeight-bgMargin,x+screenWidth+bgMargin,y+bgMargin,8, 0,1,1,1)
-	-- content area
-	gl.Color(0.33,0.33,0.33,0.15)
-	RectRound(x,y-screenHeight,x+screenWidth,y,5.5)
+	UiElement(screenX, screenY - screenHeight, screenX + screenWidth, screenY, 0, 1, 1, 1, 1,1,1,1, ui_opacity + 0.2)
+
+	-- title background
+	local title = texts.title
+	local titleFontSize = 18 * widgetScale
+	titleRect = { screenX, screenY, math.floor(screenX + (font2:GetTextWidth(texts.title) * titleFontSize) + (titleFontSize*1.5)), math.floor(screenY + (titleFontSize*1.7)) }
+
+	gl.Color(0, 0, 0, Spring.GetConfigFloat("ui_opacity", 0.6) + 0.2)
+	RectRound(titleRect[1], titleRect[2], titleRect[3], titleRect[4], elementCorner, 1, 1, 0, 0)
 
 	-- title
-    local title = "Scavengers"
-	local titleFontSize = 18
-	if WG['guishader'] then
-		gl.Color(0,0,0,0.8)
-	else
-		gl.Color(0,0,0,0.85)
-	end
-    titleRect = {x-bgMargin, y+bgMargin, x+(font2:GetTextWidth(title)*titleFontSize)+27-bgMargin, y+37}
-	RectRound(titleRect[1], titleRect[2], titleRect[3], titleRect[4], 8, 1,1,0,0)
 	font2:Begin()
-	font2:SetTextColor(1,1,1,1)
-	font2:SetOutlineColor(0,0,0,0.4)
-	font2:Print(title, x-bgMargin+(titleFontSize*0.75), y+bgMargin+8, titleFontSize, "on")
+	font2:SetTextColor(1, 1, 1, 1)
+	font2:SetOutlineColor(0, 0, 0, 0.4)
+	font2:Print(title, screenX + (titleFontSize * 0.75), screenY + (8*widgetScale), titleFontSize, "on")
 	font2:End()
 
 	-- textarea
-	DrawTextarea(x+22, y-10, screenWidth-22, screenHeight-24, 1)
+	DrawTextarea(screenX+math.floor(28 * widgetScale), screenY-math.floor(14 * widgetScale), screenWidth-math.floor(28 * widgetScale), screenHeight-math.floor(28 * widgetScale), 1)
 end
 
 
 function widget:RecvLuaMsg(msg, playerID)
 	if msg:sub(1,18) == 'LobbyOverlayActive' then
 		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
+	end
+end
+
+local uiOpacitySec = 0
+function widget:Update(dt)
+	uiOpacitySec = uiOpacitySec + dt
+	if uiOpacitySec > 0.5 then
+		uiOpacitySec = 0
+		if ui_opacity ~= Spring.GetConfigFloat("ui_opacity", 0.6) then
+			ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.6)
+			widget:ViewResize()
+		end
 	end
 end
 
@@ -344,35 +257,30 @@ function widget:DrawScreen()
   end
 
   if show or showOnceMore then
+	  gl.Texture(false)	-- some other widget left it on
 
 		-- draw the text panel
-		glPushMatrix()
-			glTranslate(-(vsx * (widgetScale-1))/2, -(vsy * (widgetScale-1))/2, 0)
-			glScale(widgetScale, widgetScale, 1)
-			glCallList(textList)
-		glPopMatrix()
+	  glCallList(textList)
+
 		if WG['guishader'] then
-			local rectX1 = ((screenX-bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
-			local rectY1 = ((screenY+bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
-			local rectX2 = ((screenX+screenWidth+bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
-			local rectY2 = ((screenY-screenHeight-bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
 			if backgroundGuishader ~= nil then
 				glDeleteList(backgroundGuishader)
 			end
-			backgroundGuishader = glCreateList( function()
+			backgroundGuishader = glCreateList(function()
 				-- background
-				RectRound(rectX1, rectY2, rectX2, rectY1, 9*widgetScale, 0,1,1,1)
+				RectRound(screenX, screenY - screenHeight, screenX + screenWidth, screenY, elementCorner, 0, 1, 1, 1)
 				-- title
-				rectX1 = (titleRect[1] * widgetScale) - ((vsx * (widgetScale-1))/2)
-				rectY1 = (titleRect[2] * widgetScale) - ((vsy * (widgetScale-1))/2)
-				rectX2 = (titleRect[3] * widgetScale) - ((vsx * (widgetScale-1))/2)
-				rectY2 = (titleRect[4] * widgetScale) - ((vsy * (widgetScale-1))/2)
-				RectRound(rectX1, rectY1, rectX2, rectY2, 9*widgetScale, 1,1,0,0)
+				RectRound(titleRect[1], titleRect[2], titleRect[3], titleRect[4], elementCorner, 1, 1, 0, 0)
 			end)
 			dlistcreated = true
 			WG['guishader'].InsertDlist(backgroundGuishader, 'text')
 		end
 		showOnceMore = false
+
+	  local x, y, pressed = Spring.GetMouseState()
+	  if IsOnRect(x, y, screenX, screenY - screenHeight, screenX + screenWidth, screenY) or IsOnRect(x, y, titleRect[1], titleRect[2], titleRect[3], titleRect[4]) then
+		  Spring.SetMouseCursor('cursornormal')
+	  end
 
   elseif dlistcreated and WG['guishader'] then
 	WG['guishader'].DeleteDlist('text')
@@ -425,19 +333,13 @@ end
 function mouseEvent(x, y, button, release)
   if spIsGUIHidden() then return end
 
-  if show then
+	if show then
 		-- on window
-		local rectX1 = ((screenX-bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
-		local rectY1 = ((screenY+bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
-		local rectX2 = ((screenX+screenWidth+bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
-		local rectY2 = ((screenY-screenHeight-bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
-		if IsOnRect(x, y, rectX1, rectY2, rectX2, rectY1) then
-			if button == 1 or button == 3 then
-				return true
-			end
-		elseif titleRect == nil or not IsOnRect(x, y, (titleRect[1] * widgetScale) - ((vsx * (widgetScale-1))/2), (titleRect[2] * widgetScale) - ((vsy * (widgetScale-1))/2), (titleRect[3] * widgetScale) - ((vsx * (widgetScale-1))/2), (titleRect[4] * widgetScale) - ((vsy * (widgetScale-1))/2)) then
+		if IsOnRect(x, y, screenX, screenY - screenHeight, screenX + screenWidth, screenY) then
+			return true
+		elseif titleRect == nil or not IsOnRect(x, y, titleRect[1], titleRect[2], titleRect[3], titleRect[4]) then
 			if release then
-				showOnceMore = true		-- show once more because the guishader lags behind, though this will not fully fix it
+				showOnceMore = show        -- show once more because the guishader lags behind, though this will not fully fix it
 				show = false
 			end
 			return true
@@ -453,6 +355,9 @@ function lines(str)
 end
 
 function widget:Initialize()
+	if WG['lang'] then
+		--texts = WG['lang'].getText('scavengers')
+	end
 	if textFile then
 
 		WG['scavengerinfo'] = {}
@@ -484,10 +389,6 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
-    if buttonGL then
-        glDeleteList(buttonGL)
-        buttonGL = nil
-    end
     if textList then
         glDeleteList(textList)
         textList = nil
@@ -500,9 +401,7 @@ end
 
 
 function widget:GetConfigData(data)
-	savedTable = {}
-	savedTable.numGames	= numGames
-	return savedTable
+	return {numGames	= numGames}
 end
 
 function widget:SetConfigData(data)

@@ -36,4 +36,3 @@ function RandomEventTrigger(CurrentFrame)
 		end
 	end
 end
-

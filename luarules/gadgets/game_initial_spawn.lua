@@ -130,7 +130,7 @@ end
 --check if a player is to be considered as a 'newbie', in terms of startpoint placements
 function isPlayerNewbie(pID)
 	local name,_,isSpec,tID,_,_,_,_,pRank = Spring.GetPlayerInfo(pID,false)
-	playerRank = tonumber(pRank) or 0
+	pRank = tonumber(pRank) or 0
 	local customtable = select(11,Spring.GetPlayerInfo(pID)) or {} -- player custom table
 	local tsMu = tostring(customtable.skill) or ""
 	local tsSigma = tonumber(customtable.skilluncertainty) or 3
@@ -432,9 +432,9 @@ function SpawnTeamStartUnit(teamID, allyTeamID)
 
 	-- if its choose-in-game mode, see if we need to autoplace anyone
 	if Game.startPosType==2 then
-		if ((not startPointTable[teamID]) or (startPointTable[teamID][1] < 0)) then
+		if not startPointTable[teamID] or startPointTable[teamID][1] < 0 then
 			-- guess points for the ones classified in startPointTable as not genuine (newbies will not have a genuine startpoint)
-			x,z=GuessStartSpot(teamID, allyID, xmin, zmin, xmax, zmax, startPointTable)
+			x,z=GuessStartSpot(teamID, allyTeamID, xmin, zmin, xmax, zmax, startPointTable)
 		else
 			--fallback
 			if x<=0 or z<=0 then
@@ -454,24 +454,15 @@ function SpawnStartUnit(teamID, x, z)
 	local startUnit = spGetTeamRulesParam(teamID, startUnitParamName)
 
 	--overwrite startUnit with random faction for newbies
-	local _,_,_,isAI = Spring.GetTeamInfo(teamID)
-	if Spring.GetTeamRulesParam(teamID, 'isNewbie') == 1 then
+	local _,_,_,isAI,sideName = Spring.GetTeamInfo(teamID)
+	if Spring.GetTeamRulesParam(teamID, 'isNewbie') == 1 or sideName == "random" then
 		if math.random() > 0.5 then
 			startUnit = corcomDefID
 		else
 			startUnit = armcomDefID
 		end
-	elseif isAI == true then
-		local luaAI = Spring.GetTeamLuaAI(teamID)
-		if not (luaAI and luaAI ~= "" and string.sub(luaAI, 1, 4) == 'STAI') then
-			if math.random() > 0.5 then
-				startUnit = corcomDefID
-			else
-				startUnit = armcomDefID
-			end
-		end
 	end
-	
+
 	--spawn starting unit
 	local y = spGetGroundHeight(x,z)
 	local unitID = spCreateUnit(startUnit, x, y, z, 0, teamID)
@@ -494,6 +485,16 @@ end
 -- Unsynced
 else
 ----------------------------------------------------------------
+
+local texts = {		-- fallback (if you want to change this, also update: language/en.lua, or it will be overwritten)
+	ready = 'Ready',
+	gamestartingin = 'Game starting in',
+	seconds = 'seconds',
+	youneed = 'You need \255\255\255\255DAI\255\200\200\200, \255\255\255\255KAIK \255\200\200\200or \255\255\255\255Chickens  \255\200\200\200(or NullAI)',
+	closingin = 'closing in...',
+	unsupportedai = 'Unsupportedai',
+	unsupportedengine = 'Unsupported engine\n\You need at least version',
+}
 
 local fontfile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 local vsx,vsy = Spring.GetViewGeometry()
@@ -526,6 +527,12 @@ local readyH = 35
 local readyW = 100
 local bgMargin = 2.5
 
+local readyButton, readyButtonHover
+
+local RectRound = Spring.FlowUI.Draw.RectRound
+local UiElement = Spring.FlowUI.Draw.Element
+local UiButton = Spring.FlowUI.Draw.Button
+
 function gadget:ViewResize(viewSizeX, viewSizeY)
 	vsx,vsy = Spring.GetViewGeometry()
 	readyX = vsx * 0.8
@@ -539,113 +546,6 @@ function gadget:ViewResize(viewSizeX, viewSizeY)
 end
 
 local pStates = {} --local copy of playerStates table
-
-
-local function DrawRectRound(px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)
-	local csyMult = 1 / ((sy-py)/cs)
-
-	if c2 then
-		gl.Color(c1[1],c1[2],c1[3],c1[4])
-	end
-	gl.Vertex(px+cs, py, 0)
-	gl.Vertex(sx-cs, py, 0)
-	if c2 then
-		gl.Color(c2[1],c2[2],c2[3],c2[4])
-	end
-	gl.Vertex(sx-cs, sy, 0)
-	gl.Vertex(px+cs, sy, 0)
-
-	-- left side
-	if c2 then
-		gl.Color(c1[1]*(1-csyMult)+(c2[1]*csyMult),c1[2]*(1-csyMult)+(c2[2]*csyMult),c1[3]*(1-csyMult)+(c2[3]*csyMult),c1[4]*(1-csyMult)+(c2[4]*csyMult))
-	end
-	gl.Vertex(px, py+cs, 0)
-	gl.Vertex(px+cs, py+cs, 0)
-	if c2 then
-		gl.Color(c2[1]*(1-csyMult)+(c1[1]*csyMult),c2[2]*(1-csyMult)+(c1[2]*csyMult),c2[3]*(1-csyMult)+(c1[3]*csyMult),c2[4]*(1-csyMult)+(c1[4]*csyMult))
-	end
-	gl.Vertex(px+cs, sy-cs, 0)
-	gl.Vertex(px, sy-cs, 0)
-
-	-- right side
-	if c2 then
-		gl.Color(c1[1]*(1-csyMult)+(c2[1]*csyMult),c1[2]*(1-csyMult)+(c2[2]*csyMult),c1[3]*(1-csyMult)+(c2[3]*csyMult),c1[4]*(1-csyMult)+(c2[4]*csyMult))
-	end
-	gl.Vertex(sx, py+cs, 0)
-	gl.Vertex(sx-cs, py+cs, 0)
-	if c2 then
-		gl.Color(c2[1]*(1-csyMult)+(c1[1]*csyMult),c2[2]*(1-csyMult)+(c1[2]*csyMult),c2[3]*(1-csyMult)+(c1[3]*csyMult),c2[4]*(1-csyMult)+(c1[4]*csyMult))
-	end
-	gl.Vertex(sx-cs, sy-cs, 0)
-	gl.Vertex(sx, sy-cs, 0)
-
-	local offset = 0.15		-- texture offset, because else gaps could show
-
-	-- bottom left
-	if c2 then
-		gl.Color(c1[1],c1[2],c1[3],c1[4])
-	end
-	if ((py <= 0 or px <= 0)  or (bl ~= nil and bl == 0)) and bl ~= 2   then
-		gl.Vertex(px, py, 0)
-	else
-		gl.Vertex(px+cs, py, 0)
-	end
-	gl.Vertex(px+cs, py, 0)
-	if c2 then
-		gl.Color(c1[1]*(1-csyMult)+(c2[1]*csyMult),c1[2]*(1-csyMult)+(c2[2]*csyMult),c1[3]*(1-csyMult)+(c2[3]*csyMult),c1[4]*(1-csyMult)+(c2[4]*csyMult))
-	end
-	gl.Vertex(px+cs, py+cs, 0)
-	gl.Vertex(px, py+cs, 0)
-	-- bottom right
-	if c2 then
-		gl.Color(c1[1],c1[2],c1[3],c1[4])
-	end
-	if ((py <= 0 or sx >= vsx) or (br ~= nil and br == 0)) and br ~= 2 then
-		gl.Vertex(sx, py, 0)
-	else
-		gl.Vertex(sx-cs, py, 0)
-	end
-	gl.Vertex(sx-cs, py, 0)
-	if c2 then
-		gl.Color(c1[1]*(1-csyMult)+(c2[1]*csyMult),c1[2]*(1-csyMult)+(c2[2]*csyMult),c1[3]*(1-csyMult)+(c2[3]*csyMult),c1[4]*(1-csyMult)+(c2[4]*csyMult))
-	end
-	gl.Vertex(sx-cs, py+cs, 0)
-	gl.Vertex(sx, py+cs, 0)
-	-- top left
-	if c2 then
-		gl.Color(c2[1],c2[2],c2[3],c2[4])
-	end
-	if ((sy >= vsy or px <= 0) or (tl ~= nil and tl == 0)) and tl ~= 2 then
-		gl.Vertex(px, sy, 0)
-	else
-		gl.Vertex(px+cs, sy, 0)
-	end
-	gl.Vertex(px+cs, sy, 0)
-	if c2 then
-		gl.Color(c2[1]*(1-csyMult)+(c1[1]*csyMult),c2[2]*(1-csyMult)+(c1[2]*csyMult),c2[3]*(1-csyMult)+(c1[3]*csyMult),c2[4]*(1-csyMult)+(c1[4]*csyMult))
-	end
-	gl.Vertex(px+cs, sy-cs, 0)
-	gl.Vertex(px, sy-cs, 0)
-	-- top right
-	if c2 then
-		gl.Color(c2[1],c2[2],c2[3],c2[4])
-	end
-	if ((sy >= vsy or sx >= vsx)  or (tr ~= nil and tr == 0)) and tr ~= 2 then
-		gl.Vertex(sx, sy, 0)
-	else
-		gl.Vertex(sx-cs, sy, 0)
-	end
-	gl.Vertex(sx-cs, sy, 0)
-	if c2 then
-		gl.Color(c2[1]*(1-csyMult)+(c1[1]*csyMult),c2[2]*(1-csyMult)+(c1[2]*csyMult),c2[3]*(1-csyMult)+(c1[3]*csyMult),c2[4]*(1-csyMult)+(c1[4]*csyMult))
-	end
-	gl.Vertex(sx-cs, sy-cs, 0)
-	gl.Vertex(sx, sy-cs, 0)
-end
-function RectRound(px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)		-- (coordinates work differently than the RectRound func in other widgets)
-	gl.Texture(false)
-	gl.BeginEnd(GL.QUADS, DrawRectRound, px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)
-end
 
 function StartPointChosen(_,playerID)
 	if playerID == myPlayerID then
@@ -736,11 +636,18 @@ function gadget:MouseRelease(x,y)
 end
 
 function gadget:Initialize()
+	if GG.lang then
+		texts = GG.lang.getText('initialspawn')
+	end
+
 	-- add function to receive when startpoints were chosen
 	gadgetHandler:AddSyncAction("StartPointChosen", StartPointChosen)
 
 	-- create ready button
 	readyButton = gl.CreateList(function()
+
+		--UiButton(-readyW/2, -readyH/2, readyW/2, readyH/2, 1,1,1,1, 1,1,1,1, nil, {1, 1, 1, 1}, {0.33, 0.33, 0.33, 1})
+
 		-- draws background rectangle
 		gl.Color(0,0,0,0.75)
 		RectRound(-((readyW/2)+bgMargin), -((readyH/2)+bgMargin), ((readyW/2)+bgMargin), ((readyH/2)+bgMargin), 4, 2,2,2,2, {0.05,0.05,0.05,0.75}, {0,0,0,0.75})
@@ -752,8 +659,10 @@ function gadget:Initialize()
 		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 		gl.Color(1,1,1,1)
 	end)
-	-- create ready button
 	readyButtonHover = gl.CreateList(function()
+
+		--UiButton(-readyW/2, -readyH/2, readyW/2, readyH/2, 1,1,1,1, 1,1,1,1, nil, {1, 1, 1, 1}, {0.33, 0.33, 0.33, 1})
+
 		-- draws background rectangle
 		gl.Color(0.15,0.12,0,0.75)
 		RectRound(-((readyW/2)+bgMargin), -((readyH/2)+bgMargin), ((readyW/2)+bgMargin), ((readyH/2)+bgMargin), 4, 2,2,2,2)
@@ -838,6 +747,7 @@ function gadget:DrawScreen()
 
 				-- draw ready button and text
 				local x,y = Spring.GetMouseState()
+				local colorString
 				x,y = correctMouseForScaling(x,y)
 				if x > readyX-bgMargin and x < readyX+readyW+bgMargin and y > readyY-bgMargin and y < readyY+readyH+bgMargin then
 					gl.CallList(readyButtonHover)
@@ -852,19 +762,20 @@ function gadget:DrawScreen()
 					end
 				end
 				font:Begin()
-				font:Print(colorString .. "Ready", -((readyW/2)-12.5), -((readyH/2)-9.5), 25, "o")
+				font:Print(colorString .. texts.ready, -((readyW/2)-12.5), -((readyH/2)-9.5), 25, "o")
 				font:End()
 				gl.Color(1,1,1,1)
 			end
 
 			if gameStarting and not isReplay then
 				timer = timer + Spring.GetLastUpdateSeconds()
+				local colorString
 				if timer % 0.75 <= 0.375 then
 					colorString = "\255\233\233\20"
 				else
 					colorString = "\255\255\255\255"
 				end
-				local text = colorString .. "Game starting in " .. math.max(1,3-math.floor(timer)) .. " seconds..."
+				local text = colorString .. texts.gamestartingin.." " .. math.max(1,3-math.floor(timer)) .. " "..texts.seconds
 				font:Begin()
 				font:Print(text, vsx*0.5 - font:GetTextWidth(text)/2*17, vsy*0.75, 17, "o")
 				font:End()
@@ -885,9 +796,9 @@ function gadget:DrawScreen()
 		gl.Rect(0,0,vsx,vsy)
 		font:Begin()
 		if unsupportedAI then
-			font:Print("\255\200\200\200Unsupported AI  ("..unsupportedAI..")\n\nYou need \255\255\255\255DAI\255\200\200\200, \255\255\255\255KAIK \255\200\200\200or \255\255\255\255Chickens  \255\200\200\200(or NullAI)\n\n\255\130\130\130closing in... "..math.floor(timer3), vsx/2, vsy/2, vsx/95, "con")
+			font:Print("\255\200\200\200"..texts.unsupportedai.."  ("..unsupportedAI..")\n\n"..texts.youneed.."\n\n\255\130\130\130"..texts.closingin.." "..math.floor(timer3), vsx/2, vsy/2, vsx/95, "con")
 		else
-			font:Print("\255\200\200\200Unsupported engine\n\nYou need at least version  \255\255\255\255"..minEngineVersionTitle.."\n\n\255\130\130\130closing in... "..math.floor(timer3), vsx/2, vsy/2, vsx/95, "con")
+			font:Print("\255\200\200\200"..texts.unsupportedengine.."  \255\255\255\255"..minEngineVersionTitle.."\n\n\255\130\130\130"..texts.closingin.." "..math.floor(timer3), vsx/2, vsy/2, vsx/95, "con")
 		end
 		font:End()
 		if Script.LuaUI("GuishaderInsertRect") then

@@ -22,6 +22,7 @@ function widget:GetInfo()
 		enabled		= false	--	loaded by default?
 	}
 end
+
 local GetSpectatingState = Spring.GetSpectatingState
 local GiveOrderToUnit = Spring.GiveOrderToUnit
 local GetUnitPosition = Spring.GetUnitPosition
@@ -30,9 +31,7 @@ local GetMyTeamID = Spring.GetMyTeamID
 local GetSelectedUnits = Spring.GetSelectedUnits
 local GetUnitDefID = Spring.GetUnitDefID
 
-
 local CMD_MOVE = CMD.MOVE
-
 
 --------------------------------------------------------------------------------
 
@@ -40,6 +39,7 @@ local myTeamID = GetMyTeamID()
 local engineers = {}
 local engineerDefs = {}
 local moveUnitsDefs = {}
+local gameStarted
 
 function maybeRemoveSelf()
     if Spring.GetSpectatingState() and (Spring.GetGameFrame() > 0 or gameStarted) then

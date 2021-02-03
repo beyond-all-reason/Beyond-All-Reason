@@ -12,7 +12,7 @@ return {
 		canfly = true,
 		canmove = true,
 		category = "ALL NOTLAND MOBILE NOTSUB VTOL NOWEAPON NOTSHIP NOTHOVER",
-		collide = true,
+		collide = false,
 		cruisealt = 70,
 		description = "Tech Level 2",
 		energymake = 10,

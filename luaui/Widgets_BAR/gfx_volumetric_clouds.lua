@@ -49,9 +49,9 @@ local gnd_min, gnd_max = Spring.GetGroundExtremes()
 
 local function convertAltitude(input, default)
 	local result = input
-	if (input == nil or input == "auto") then
+	if input == nil or input == "auto" then
 		result = default
-	elseif (type(input) == "string" and input:match("(%d+)%%")) then
+	elseif type(input) == "string" and input:match("(%d+)%%") then
 		local percent = input:match("(%d+)%%")
 		result = gnd_max * (percent / 100)
 	end
@@ -178,25 +178,23 @@ local offsetX = 0
 local offsetY = 0
 local offsetZ = 0
 
-
-
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
 function widget:ViewResize()
 	vsx, vsy = gl.GetViewSizes()
-	if (Spring.GetMiniMapDualScreen()=='left') then
-		vsx=vsx/2
+	if Spring.GetMiniMapDualScreen() == 'left' then
+		vsx = vsx / 2
 	end
-	if (Spring.GetMiniMapDualScreen()=='right') then
-		vsx=vsx/2
+	if Spring.GetMiniMapDualScreen() == 'right' then
+		vsx = vsx / 2
 	end
 
-	if (depthTexture) then
+	if depthTexture then
 		glDeleteTexture(depthTexture)
 	end
 
-	if (fogTexture) then
+	if fogTexture then
 		glDeleteTexture(fogTexture)
 	end
 
@@ -215,7 +213,7 @@ function widget:ViewResize()
 	})
 
 
-	if (depthTexture == nil) then
+	if depthTexture == nil then
 		spEcho("Removing fog widget, bad depth texture")
 		widgetHandler:RemoveWidget()
 	end
@@ -293,7 +291,7 @@ const float noiseCloudness = float(0.7) * 0.5; // TODO: configurable
 #define DEPTH_CLIP01 ###DEPTH_CLIP01###
 #define CLAMP_TO_MAP ###CLAMP_TO_MAP###
 
-#ifdef CLAMP_TO_MAP
+#if CLAMP_TO_MAP
 	const vec3 vAA = vec3(  1.,fogBottom,  1.);
 	const vec3 vBB = vec3(mapX-1.,fogHeight,mapZ-1.);
 #else
@@ -542,11 +540,8 @@ void main()
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-
 function widget:GetConfigData(data)
-	savedTable = {}
-	savedTable.opacityMult	= opacityMult
-	return savedTable
+	return {opacityMult	= opacityMult}
 end
 
 function widget:SetConfigData(data)
@@ -609,17 +604,17 @@ function widget:Initialize()
 		init()
 	end
 
-	if (Spring.GetMiniMapDualScreen() == 'left') then --FIXME dualscreen
+	if Spring.GetMiniMapDualScreen() == 'left' then --FIXME dualscreen
 		enabled = false
 	end
 
-	if (not glCreateShader) then
+	if not glCreateShader then
 		enabled = false
 	end
 
 	init()
 
-	if not(enabled) then
+	if not enabled then
 		widgetHandler:RemoveWidget()
 		return
 	end
@@ -629,7 +624,7 @@ end
 function widget:Shutdown()
 	glDeleteTexture(depthTexture)
 	glDeleteTexture(fogTexture)
-	if (glDeleteShader) then
+	if glDeleteShader then
 		glDeleteShader(depthShader)
 	end
 	glDeleteTexture(noiseTex)
@@ -695,7 +690,7 @@ local function DrawClouds()
 
 		gl.MatrixMode(GL.PROJECTION)
 		gl.PushMatrix()
-		gl.LoadIdentity();
+		gl.LoadIdentity()
 
 			glTexture(fogTexture)
 			gl.TexRect(-1, -1, 1, 1, 0, 0, 1, 1)

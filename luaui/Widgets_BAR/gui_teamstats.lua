@@ -12,6 +12,7 @@ function widget:GetInfo()
 end
 
 local vsx,vsy = Spring.GetViewGeometry()
+local ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.6)
 
 local fontSize = 22		-- is caclulated somewhere else anyway
 local fontSizePercentage = 0.6 -- fontSize * X = actual fontsize
@@ -25,6 +26,36 @@ local activeSortColourDesc = {0.66,1,0.66,1}
 local oddLineColour = {0.23,0.23,0.23,0.4}
 local evenLineColour = {0.8,0.8,0.8,0.4}
 local sortLineColour = {0.82,0.82,0.82,0.85}
+
+local texts = {        -- fallback (if you want to change this, also update: language/en.lua, or it will be overwritten)
+	player = 'Player',
+	dead = 'dead',
+	gone = 'gone',
+	damagedealt1 = 'Damage',
+	damagedealt2 = 'Dealt',
+	damagereceived1 = 'Damage',
+	damagereceived2 = 'Received',
+	unitsproduced1 = 'Units',
+	unitsproduced2 = 'Produced',
+	unitskilled1 = 'Units',
+	unitskilled2 = 'Killed',
+	unitsdied1 = 'Units',
+	unitsdied2 = 'Died',
+	damageefficiency1 = 'Damage',
+	damageefficiency2 = 'Efficiency',
+	aggressionlevel1 = 'Aggression',
+	aggressionlevel2 = 'Level',
+	metalproduced1 = 'Metal',
+	metalproduced2 = 'Produced',
+	metalexcess1 = 'Metal',
+	metalexcess2 = 'Excess',
+	energyproduced1 = 'Energy',
+	energyproduced2 = 'Produced',
+	energyexcess1 = 'Energy',
+	energyexcess2 = 'Excess',
+}
+
+local widgetScale
 
 local customScale = 1
 
@@ -62,36 +93,7 @@ local header = {
 --	"resourcesSent",
 }
 
-local headerRemap = {
-	frame = {" ","Player"},
-	metalUsed = {"Metal","Used"},
-	metalProduced = {"Metal","Produced"},
-	metalExcess = {"Metal","Excess"},
-	metalReceived = {"Metal","Received"},
-	metalSent = {"Metal","Sent"},
-	energyUsed = {"Energy","Used"},
-	energyProduced = {"Energy","Produced"},
-	energyExcess = {"Energy","Excess"},
-	energyReceived = {"Energy","Received"},
-	energySent = {"Energy","Sent"},
-	damageDealt = {"Damage","Dealt"},
-	damageReceived = {"Damage","Received"},
-	damageEfficiency = {"Damage","Efficiency"},
-	unitsProduced = {"Units","Produced"},
-	unitsDied = {"Units","Died"},
-	unitsReceived = {"Units","Received"},
-	unitsSent = {"Units","Sent"},
-	unitsCaptured = {"Units","Captured"},
-	unitsOutCaptured = {"Units","OutCaptured"},
-	unitsKilled = {"Units","Killed"},
-	resourcesUsed = {"Resources","Used"},
-	resourcesProduced = {"Resources","Produced"},
-	resourcesExcess = {"Resources","Excess"},
-	resourcesReceived = {"Resources","Received"},
-	resourcesSent = {"Resources","Sent"},
-	killEfficiency = {"Killing","Efficiency"},
-	aggressionLevel = {"Aggression","Level"},
-}
+local headerRemap = {}	-- filled in initialize
 
 local guiData = {
 	mainPanel = {
@@ -151,6 +153,11 @@ local format				= string.format
 local SIsuffixes = {"p","n","u","m","","k","M","G","T"}
 local borderRemap = {left={"x","min",-1},right={"x","max",1},top={"y","max",1},bottom={"y","min",-1}}
 
+local RectRound = Spring.FlowUI.Draw.RectRound
+local UiElement = Spring.FlowUI.Draw.Element
+local elementCorner = Spring.FlowUI.elementCorner
+
+local font, chobbyInterface, backgroundGuishader, gameStarted, bgpadding
 
 function roundNumber(num,useFirstDecimal)
 	return useFirstDecimal and format("%0.1f",round(num,1)) or round(num)
@@ -188,30 +195,6 @@ function convertSIPrefix(value,thresholdmodifier,noSmallValues,useFirstDecimal)
 	return retVal
 end
 
-function rectBoxWithBorder(boxData,fillColor,edgeColor)
-	if fillColor then
-		glColor(fillColor)
-	end
-	rectBox(boxData)
-	if edgeColor then
-		glColor(edgeColor)
-	end
-	local borderSize = boxData.draggingBorderSize
-	boxData = boxData.absSizes
-	glRect(boxData.x.min, boxData.y.max, boxData.x.max, boxData.y.max - borderSize ) -- top
-	glRect(boxData.x.min, boxData.y.max, boxData.x.min + borderSize , boxData.y.min) -- left
-	glRect(boxData.x.min, boxData.y.min + borderSize, boxData.x.max, boxData.y.min) -- bottom
-	glRect(boxData.x.max - borderSize, boxData.y.max, boxData.x.max, boxData.y.min) -- right
-end
-
-function rectBox(boxData,fillColor)
-	boxData = boxData.absSizes
-	if fillColor then
-		glColor(fillColor)
-	end
-	glRect(boxData.x.min,boxData.y.max,boxData.x.max,boxData.y.min)
-end
-
 function aboveRectangle(mousePos,boxData)
 	local included = true
 	for coordName, coordData in pairs(boxData.absSizes) do
@@ -247,36 +230,6 @@ end
 function colorToChar(colorarray)
 	return char(255,min(max(floor(colorarray[1]*255),1),255),min(max(floor(colorarray[2]*255),1),255),min(max(floor(colorarray[3]*255),1),255))
 end
-
-function getColourOutline(colour)
-	--local luminance  = colour[1] * 0.299 + colour[2] * 0.587 + colour[3] * 0.114
-	--return luminance > 0.25 and "o" or "O"
-
-	if (colour[1] + colour[2]*1.2 + colour[3]*0.4) < 0.8 then
-		return "o"
-	else
-		return "O"
-	end
-end
-
-function viewResize(scalingVec,guiData)
-	for boxType, boxData in pairs(guiData) do
-		guiData[boxType].absSizes = convertCoords(boxData.relSizes,scalingVec)
-	end
-	return guiData
-end
-
-function convertCoords(sourceCoords,scalingVec)
-	local newCoords = {}
-	for coordName, coordData in pairs(sourceCoords) do
-		newCoords[coordName] = {}
-		for minmax, value in pairs(coordData) do
-			newCoords[coordName][minmax] = value*scalingVec[coordName]
-		end
-	end
-	return newCoords
-end
-
 
 local teamData={}
 local maxColumnTextSize = 0
@@ -338,11 +291,49 @@ function widget:ViewResize()
 		maxColumnTextSize = max(font:GetTextWidth(data[2]),maxColumnTextSize)
 	end
 
+	bgpadding = Spring.FlowUI.elementPadding
+	elementCorner = Spring.FlowUI.elementCorner
+
 	calcAbsSizes()
 	updateFontSize()
 end
 
 function widget:Initialize()
+	if WG['lang'] then
+		texts = WG['lang'].getText('teamstats')
+	end
+
+	headerRemap = {
+		frame = {" ",texts.player},
+		--metalUsed = {"Metal","Used"},
+		metalProduced = {texts.metalproduced1,texts.metalproduced2},
+		metalExcess = {texts.metalexcess1,texts.metalexcess2},
+		--metalReceived = {"Metal","Received"},
+		--metalSent = {"Metal","Sent"},
+		--energyUsed = {"Energy","Used"},
+		energyProduced = {texts.energyproduced1,texts.energyproduced2},
+		energyExcess = {texts.energyexcess1,texts.energyexcess2},
+		--energyReceived = {"Energy","Received"},
+		--energySent = {"Energy","Sent"},
+		damageDealt = {texts.damagedealt1,texts.damagedealt2},
+		damageReceived = {texts.damagereceived1,texts.damagereceived2},
+		damageEfficiency = {texts.damageefficiency1,texts.damageefficiency2},
+		unitsProduced = {texts.unitsproduced1,texts.unitsproduced2},
+		unitsDied = {texts.unitsdied1,texts.unitsdied2},
+		--unitsReceived = {"Units","Received"},
+		--unitsSent = {"Units","Sent"},
+		--unitsCaptured = {"Units","Captured"},
+		--unitsOutCaptured = {"Units","OutCaptured"},
+		unitsKilled = {texts.unitskilled1,texts.unitskilled2},
+		--resourcesUsed = {"Resources","Used"},
+		--resourcesProduced = {"Resources","Produced"},
+		--resourcesExcess = {"Resources","Excess"},
+		--resourcesReceived = {"Resources","Received"},
+		--resourcesSent = {"Resources","Sent"},
+		--killEfficiency = {"Killing","Efficiency"},
+		aggressionLevel = {texts.aggressionlevel1,texts.aggressionlevel2},
+	}
+
 	guiData.mainPanel.visible = false
 	widget:ViewResize()
 	local _,_, paused = Spring.GetGameSpeed()
@@ -438,14 +429,14 @@ function widget:GameFrame(n,forceupdate)
 					end
 					if gameStarted ~= nil then
 						if not playerName then
-							playerName = teamControllers[teamID] or "gone"
+							playerName = teamControllers[teamID] or texts.gone
 						else
 							teamControllers[teamID] = playerName
 						end
 						if isDead then
-							playerName = playerName .. " (dead)"
+							playerName = playerName .. " ("..texts.dead..")"
 						elseif not isActive then
-							playerName = playerName .. " (gone)"
+							playerName = playerName .. " ("..texts.gone..")"
 						end
 					end
 					if history.damageReceived ~= 0 then
@@ -584,6 +575,12 @@ function updateFontSize()
 	fontSize = 11*widgetScale + floor(fakeColumnSize/maxColumnTextSize)
 end
 
+function IsOnRect(x, y, BLcornerX, BLcornerY, TRcornerX, TRcornerY)
+
+	-- check if the mouse is in a rectangle
+	return x >= BLcornerX and x <= TRcornerX and y >= BLcornerY and y <= TRcornerY
+end
+
 function widget:MouseMove(mx,my,dx,dy)
 	if not guiData.mainPanel.visible then
 		return
@@ -600,12 +597,22 @@ function widget:MouseMove(mx,my,dx,dy)
 	end
 end
 
-function widget:Update()
+local uiOpacitySec = 0
+function widget:Update(dt)
 	local x,y = GetMouseState()
 	if x ~= mousex or y ~= mousey then
 		widget:MouseMove(x,y,x-mousex,y-mousey)
 	end
 	mousex,mousey = x,y
+
+	uiOpacitySec = uiOpacitySec + dt
+	if uiOpacitySec > 0.5 then
+		uiOpacitySec = 0
+		if ui_opacity ~= Spring.GetConfigFloat("ui_opacity", 0.6) then
+			ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.6)
+			widget:ViewResize()
+		end
+	end
 end
 
 function widget:RecvLuaMsg(msg, playerID)
@@ -622,141 +629,35 @@ function widget:DrawScreen()
 	end
 	DrawBackground()
 	DrawAllStats()
-end
 
-local function DrawRectRound(px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)
-	local csyMult = 1 / ((sy-py)/cs)
-
-	if c2 then
-		gl.Color(c1[1],c1[2],c1[3],c1[4])
+	local x, y, pressed = Spring.GetMouseState()
+	local x1,y1,x2,y2 = math.floor(guiData.mainPanel.absSizes.x.min), math.floor(guiData.mainPanel.absSizes.y.min), math.floor(guiData.mainPanel.absSizes.x.max), math.floor(guiData.mainPanel.absSizes.y.max)
+	if IsOnRect(x, y, x1,y1,x2,y2) then
+		Spring.SetMouseCursor('cursornormal')
 	end
-	gl.Vertex(px+cs, py, 0)
-	gl.Vertex(sx-cs, py, 0)
-	if c2 then
-		gl.Color(c2[1],c2[2],c2[3],c2[4])
-	end
-	gl.Vertex(sx-cs, sy, 0)
-	gl.Vertex(px+cs, sy, 0)
-
-	-- left side
-	if c2 then
-		gl.Color(c1[1]*(1-csyMult)+(c2[1]*csyMult),c1[2]*(1-csyMult)+(c2[2]*csyMult),c1[3]*(1-csyMult)+(c2[3]*csyMult),c1[4]*(1-csyMult)+(c2[4]*csyMult))
-	end
-	gl.Vertex(px, py+cs, 0)
-	gl.Vertex(px+cs, py+cs, 0)
-	if c2 then
-		gl.Color(c2[1]*(1-csyMult)+(c1[1]*csyMult),c2[2]*(1-csyMult)+(c1[2]*csyMult),c2[3]*(1-csyMult)+(c1[3]*csyMult),c2[4]*(1-csyMult)+(c1[4]*csyMult))
-	end
-	gl.Vertex(px+cs, sy-cs, 0)
-	gl.Vertex(px, sy-cs, 0)
-
-	-- right side
-	if c2 then
-		gl.Color(c1[1]*(1-csyMult)+(c2[1]*csyMult),c1[2]*(1-csyMult)+(c2[2]*csyMult),c1[3]*(1-csyMult)+(c2[3]*csyMult),c1[4]*(1-csyMult)+(c2[4]*csyMult))
-	end
-	gl.Vertex(sx, py+cs, 0)
-	gl.Vertex(sx-cs, py+cs, 0)
-	if c2 then
-		gl.Color(c2[1]*(1-csyMult)+(c1[1]*csyMult),c2[2]*(1-csyMult)+(c1[2]*csyMult),c2[3]*(1-csyMult)+(c1[3]*csyMult),c2[4]*(1-csyMult)+(c1[4]*csyMult))
-	end
-	gl.Vertex(sx-cs, sy-cs, 0)
-	gl.Vertex(sx, sy-cs, 0)
-
-	local offset = 0.15		-- texture offset, because else gaps could show
-
-	-- bottom left
-	if c2 then
-		gl.Color(c1[1],c1[2],c1[3],c1[4])
-	end
-	if ((py <= 0 or px <= 0)  or (bl ~= nil and bl == 0)) and bl ~= 2   then
-		gl.Vertex(px, py, 0)
-	else
-		gl.Vertex(px+cs, py, 0)
-	end
-	gl.Vertex(px+cs, py, 0)
-	if c2 then
-		gl.Color(c1[1]*(1-csyMult)+(c2[1]*csyMult),c1[2]*(1-csyMult)+(c2[2]*csyMult),c1[3]*(1-csyMult)+(c2[3]*csyMult),c1[4]*(1-csyMult)+(c2[4]*csyMult))
-	end
-	gl.Vertex(px+cs, py+cs, 0)
-	gl.Vertex(px, py+cs, 0)
-	-- bottom right
-	if c2 then
-		gl.Color(c1[1],c1[2],c1[3],c1[4])
-	end
-	if ((py <= 0 or sx >= vsx) or (br ~= nil and br == 0)) and br ~= 2 then
-		gl.Vertex(sx, py, 0)
-	else
-		gl.Vertex(sx-cs, py, 0)
-	end
-	gl.Vertex(sx-cs, py, 0)
-	if c2 then
-		gl.Color(c1[1]*(1-csyMult)+(c2[1]*csyMult),c1[2]*(1-csyMult)+(c2[2]*csyMult),c1[3]*(1-csyMult)+(c2[3]*csyMult),c1[4]*(1-csyMult)+(c2[4]*csyMult))
-	end
-	gl.Vertex(sx-cs, py+cs, 0)
-	gl.Vertex(sx, py+cs, 0)
-	-- top left
-	if c2 then
-		gl.Color(c2[1],c2[2],c2[3],c2[4])
-	end
-	if ((sy >= vsy or px <= 0) or (tl ~= nil and tl == 0)) and tl ~= 2 then
-		gl.Vertex(px, sy, 0)
-	else
-		gl.Vertex(px+cs, sy, 0)
-	end
-	gl.Vertex(px+cs, sy, 0)
-	if c2 then
-		gl.Color(c2[1]*(1-csyMult)+(c1[1]*csyMult),c2[2]*(1-csyMult)+(c1[2]*csyMult),c2[3]*(1-csyMult)+(c1[3]*csyMult),c2[4]*(1-csyMult)+(c1[4]*csyMult))
-	end
-	gl.Vertex(px+cs, sy-cs, 0)
-	gl.Vertex(px, sy-cs, 0)
-	-- top right
-	if c2 then
-		gl.Color(c2[1],c2[2],c2[3],c2[4])
-	end
-	if ((sy >= vsy or sx >= vsx)  or (tr ~= nil and tr == 0)) and tr ~= 2 then
-		gl.Vertex(sx, sy, 0)
-	else
-		gl.Vertex(sx-cs, sy, 0)
-	end
-	gl.Vertex(sx-cs, sy, 0)
-	if c2 then
-		gl.Color(c2[1]*(1-csyMult)+(c1[1]*csyMult),c2[2]*(1-csyMult)+(c1[2]*csyMult),c2[3]*(1-csyMult)+(c1[3]*csyMult),c2[4]*(1-csyMult)+(c1[4]*csyMult))
-	end
-	gl.Vertex(sx-cs, sy-cs, 0)
-	gl.Vertex(sx, sy-cs, 0)
-end
-function RectRound(px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)		-- (coordinates work differently than the RectRound func in other widgets)
-	gl.Texture(false)
-	gl.BeginEnd(GL.QUADS, DrawRectRound, px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)
 end
 
 function DrawBackground()
 	if not guiData.mainPanel.visible then
 		return
 	end
-	if widgetHandler:InTweakMode() then
-		--rectBoxWithBorder(guiData.mainPanel,{0,0,0,0.4})
-	else
-		if backgroundDisplayList then
-			glCallList(backgroundDisplayList)
-		end
+	if backgroundDisplayList then
+		glCallList(backgroundDisplayList)
 	end
 
-	local x1,y1,x2,y2 = guiData.mainPanel.absSizes.x.min, guiData.mainPanel.absSizes.y.min, guiData.mainPanel.absSizes.x.max, guiData.mainPanel.absSizes.y.max
-
+	local x1,y1,x2,y2 = math.floor(guiData.mainPanel.absSizes.x.min), math.floor(guiData.mainPanel.absSizes.y.min), math.floor(guiData.mainPanel.absSizes.x.max), math.floor(guiData.mainPanel.absSizes.y.max)
 	if WG['guishader'] then
 		gl.Color(0,0,0,0.8)
 	else
 		gl.Color(0,0,0,0.85)
 	end
-	local padding = 5*widgetScale
-	RectRound(x1-padding,y1-padding,x2+padding,y2+padding,8*widgetScale, 1,1,1,1, {0.05,0.05,0.05,WG['guishader'] and 0.8 or 0.88}, {0,0,0,WG['guishader'] and 0.8 or 0.88})
+	UiElement(x1-bgpadding,y1-bgpadding,x2+bgpadding,y2+bgpadding, 1, 1, 1, 1, 1,1,1,1, ui_opacity + 0.2)
 	if WG['guishader'] then
 		if backgroundGuishader ~= nil then
 			glDeleteList(backgroundGuishader)
 		end
 		backgroundGuishader = glCreateList( function()
-			RectRound(x1-padding,y1-padding,x2+padding,y2+padding, 9*widgetScale)
+			RectRound(x1-bgpadding,y1-bgpadding,x2+bgpadding,y2+bgpadding, elementCorner)
 		end)
 		WG['guishader'].InsertDlist(backgroundGuishader,'teamstats_window')
 	end
@@ -772,6 +673,7 @@ function DrawAllStats()
 end
 
 function ReGenerateBackgroundDisplayList()
+	gl.Texture(false)	-- some other widget left it on
 	local boxSizes = guiData.mainPanel.absSizes
 	for lineCount=1,prevNumLines do
 		local colour = evenLineColour
@@ -786,7 +688,7 @@ function ReGenerateBackgroundDisplayList()
 		end
 		glColor(colour)
 		if lineCount > 2 then
-			RectRound(boxSizes.x.min, boxSizes.y.max -lineCount*fontSize, boxSizes.x.max, boxSizes.y.max -(lineCount-1)*fontSize, 3.5*widgetScale, 1,1,1,1, {colour[1],colour[2],colour[3],colour[4]}, {colour[1],colour[2],colour[3],colour[4]*3})
+			RectRound(math.floor(boxSizes.x.min), math.floor(boxSizes.y.max -lineCount*fontSize), math.floor(boxSizes.x.max), math.floor(boxSizes.y.max -(lineCount-1)*fontSize), bgpadding, 1,1,1,1, {colour[1],colour[2],colour[3],colour[4]}, {colour[1],colour[2],colour[3],colour[4]*3})
 		elseif lineCount == 1 then
 			--RectRound(boxSizes.x.min, boxSizes.y.max -(lineCount+1)*fontSize, boxSizes.x.max, boxSizes.y.max -(lineCount-1)*fontSize, 3*widgetScale)
 		end
@@ -797,7 +699,7 @@ function ReGenerateBackgroundDisplayList()
 		else
 			glColor(sortHighLightColourDesc)
 		end
-		RectRound(boxSizes.x.min +(selectedColumn)*columnSize-columnSize/2,boxSizes.y.max -2*fontSize,boxSizes.x.min +(selectedColumn+1)*columnSize-columnSize/2, boxSizes.y.max,3.5*widgetScale)
+		RectRound(math.floor(boxSizes.x.min +(selectedColumn)*columnSize-columnSize/2), math.floor(boxSizes.y.max -2*fontSize), math.floor(boxSizes.x.min +(selectedColumn+1)*columnSize-columnSize/2), math.floor(boxSizes.y.max), bgpadding)
 	end
 	for selectedIndex, headerName in ipairs(header) do
 		if sortVar == headerName then
@@ -806,7 +708,7 @@ function ReGenerateBackgroundDisplayList()
 			else
 				glColor(activeSortColourDesc)
 			end
-			RectRound(boxSizes.x.min +(selectedIndex)*columnSize-columnSize/2,boxSizes.y.max -2*fontSize,boxSizes.x.min +(selectedIndex+1)*columnSize-columnSize/2, boxSizes.y.max,3.5*widgetScale)
+			RectRound(math.floor(boxSizes.x.min +(selectedIndex)*columnSize-columnSize/2), math.floor(boxSizes.y.max -2*fontSize), math.floor(boxSizes.x.min +(selectedIndex+1)*columnSize-columnSize/2), math.floor(boxSizes.y.max), bgpadding)
 			break
 		end
 	end

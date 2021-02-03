@@ -10,7 +10,7 @@ function gadget:GetInfo()
 end
 
 -- synced only
-if (not gadgetHandler:IsSyncedCode()) then
+if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
@@ -78,9 +78,12 @@ local mapSizeX, mapSizeZ = Game.mapSizeX, Game.mapSizeZ
 local totalCritters = 0
 local aliveCritters = 0
 local companionRadius = companionRadiusStart
+local processOrders = true
+local addedInitialCritters
+
 
 local function randomPatrolInBox(unitID, box, minWaterDepth)	-- only define minWaterDepth if unit is a submarine
-	local ux,uy,uz = GetUnitPosition(unitID,true,true)
+	local ux,_,uz = GetUnitPosition(unitID,true,true)
 	local waterRadius = 1000		-- max distance a submarine unit will travel
 	local orders = 6
 	local attempts = orders
@@ -131,9 +134,6 @@ local function in_circle(center_x, center_y, radius, x, y)
 	return square_dist <= radius * radius
 end
 
-
-local processOrders = true
-
 -- doing multiple orders per unit gives errors, so doing 1 per gameframe is best
 local function processSceduledOrders()
 
@@ -171,7 +171,7 @@ local function randomPatrolInCircle(unitID, circle, minWaterDepth)	-- only defin
 	local modifiers = {}
 	for i=1,attempts do
 		if minWaterDepth ~= nil and waterRadius <= circle.r then
-			ux,uy,uz = GetUnitPosition(unitID,true,true)
+			ux,_,uz = GetUnitPosition(unitID,true,true)
 			ur = waterRadius
 		end
 		local a = rad(random(0, 360))
@@ -319,7 +319,7 @@ local function adjustCritters(newAliveCritters)
 			critterUnits[unitID] = nil		-- this however leaves these keys still being iterated
 		end
 		--if totalCritters > 800 then		-- occasional cleanup (leaving this in will make ´critterDifference´ useless)
-		newCritterUnits = {}
+		local newCritterUnits = {}
 		for unitID, critter in pairs(critterUnits) do
 			if critter ~= nil then
 				newCritterUnits[unitID] = critter

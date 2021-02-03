@@ -1,4 +1,5 @@
 -- See: https://springrts.com/wiki/Modrules.lua
+local xpmultiplier = tonumber(Spring.GetModOptions().experimentalxpgain) or 1
 
 local modrules  = {
 
@@ -89,7 +90,7 @@ local modrules  = {
   },
 
   experience = {
-    experienceMult = 0.3,    -- Controls the amount of experience gained by units engaging in combat. The formulae used are: xp for damage = 0.1 * experienceMult * damage / target_HP * target_power / attacker_power.  xp for kill = 0.1 * experienceMult * target_power / attacker_power. Where power can be set by the UnitDef tag.
+    experienceMult = 0.3*xpmultiplier,    -- Controls the amount of experience gained by units engaging in combat. The formulae used are: xp for damage = 0.1 * experienceMult * damage / target_HP * target_power / attacker_power.  xp for kill = 0.1 * experienceMult * target_power / attacker_power. Where power can be set by the UnitDef tag.
     powerScale     = 0,    -- Controls how gaining experience changes the relative power of the unit. The formula used is Power multiplier = powerScale * (1 + xp / (xp + 1)).
     healthScale    = 2.5,  -- Controls how gaining experience increases the maxDamage (total hitpoints) of the unit. The formula used is Health multiplier = healthScale * (1 + xp / (xp + 1)).
     reloadScale    = 1.25,  -- Controls how gaining experience decreases the reloadTime of the unit's weapons. The formula used is Rate of fire multiplier = reloadScale * (1 + xp / (xp + 1)).

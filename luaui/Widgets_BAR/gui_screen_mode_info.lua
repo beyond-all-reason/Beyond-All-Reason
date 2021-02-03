@@ -16,6 +16,14 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
+local texts = {        -- fallback (if you want to change this, also update: language/en.lua, or it will be overwritten)
+	screenmode = 'Screen mode',
+	overviewmode = 'press \255\255\255\255[TAB]\255\215\215\215 to zoom onto mouse position',
+	heightmapmode = '[F1] displays a different color for every height level',
+	pathingmode = '[F2] shows where the selected unit can path/move, Green: OK, Red: problematic, Purple: Cant path',
+	metalmapmode = '[F4] shows green areas on the map than contain metal',
+}
+
 local vsx, vsy = Spring.GetViewGeometry()
 local widgetScale = (0.80 + (vsx * vsy / 6000000))
 
@@ -23,6 +31,8 @@ local glPopMatrix = gl.PopMatrix
 local glPushMatrix = gl.PushMatrix
 local glText = gl.Text
 local glTranslate = gl.Translate
+
+local font, chobbyInterface
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -35,6 +45,9 @@ function widget:ViewResize()
 end
 
 function widget:Initialize()
+	if WG['lang'] then
+		texts = WG['lang'].getText('screenmodeinfo')
+	end
 	widget:ViewResize()
 end
 
@@ -64,16 +77,16 @@ function widget:DrawScreen()
 			screenmode = ''
 		end
 		if screenmode ~= '' then
-			font:Print('\255\233\233\233' .. 'Screen mode:  \255\255\255\255'..screenmode, 0, 15 * widgetScale, 20 * widgetScale, "oc")
+			font:Print('\255\233\233\233' .. texts.screenmode..':  \255\255\255\255'..screenmode, 0, 15 * widgetScale, 20 * widgetScale, "oc")
 		end
 		if st.name == 'ov' then
-			description = 'press \255\255\255\255[TAB]\255\215\215\215 to zoom onto mouse position'
+			description = texts.overviewmode
 		elseif screenmode == 'height' then
-			description = '[F1] displays a different color for every height level'
+			description = texts.heightmapmode
 		elseif screenmode == 'pathTraversability' then
-			description = '[F2] shows where the selected unit can path/move, Green: OK, Red: problematic, Purple: Cant path'
+			description = texts.pathingmode
 		elseif screenmode == 'metal' then
-			description = '[F4] shows green areas on the map than contain metal'
+			description = texts.metalmapmode
 		end
 		if description ~= '' then
 			font:Print('\255\215\215\215' .. description, 0, -10 * widgetScale, 17 * widgetScale, "oc")

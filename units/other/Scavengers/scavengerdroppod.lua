@@ -62,7 +62,7 @@ return {
 		weapondefs = {
 			weapon = {
 				alwaysVisible = true,
-				areaofeffect = 500,
+				areaofeffect = 0,
 				avoidfriendly = 0,
 				cegtag = "scaspawn-trail",
 				collidefriendly = 0,

@@ -1,6 +1,7 @@
-piece body,head,tail,lthigh,lknee,lshin,lfoot,rthigh,rknee,rshin,rfoot,rsack,lsack;
+piece base, body, head,tail,lthigh,lknee,lshin,lfoot,rthigh,rknee,rshin,rfoot,rsack,lsack, aimy1;
 
-static-var aMoving, bMoving, bAiming, bCanAim, shooting_num, base_speed, restore_delay;
+
+static-var bMoving,maxSpeed, animFramesPerKeyframe, animSpeed,gun_1,isDying;
 
 // Signal definitions
 #define SIG_AIM				2
@@ -11,158 +12,44 @@ static-var aMoving, bMoving, bAiming, bCanAim, shooting_num, base_speed, restore
 #include "sfxtype.h"
 #include "exptype.h"
 
+// For N:\animations\chicken_2legged_fast_anim_walk.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 2, 8))
+#define MOVESCALE 55 //How much extra body sway the chicken should have. Scale this with size of chicken
+#define MOVESPEED  3  //How many frames per animation cycle, valid 2-10
+#define animAmplitude 80 //How big steps the chicken should take, valid 20-200
+#define LUHAND lsack  //define these as the left and right head thingies
+#define RUHAND rsack  
+#define LLHAND lsack  //define these as the left and right head thingies
+#define RLHAND rsack  
+#define SIG_WALK 64 //these defines are needed before includes!
+#include "chicken_walk_2legged_v2.h"
+
+#define IDLEMOVESCALE 55
+#define IDLEAMPLITUDE 100
+#define IDLESPEED 14
+#include "chicken_idle_2legged_v2.h"
+
+#define DEATHSCALE 55 //Higher values are bigger, 100 is default
+#define DEATHAMPLIDUTE 100 //Higher values are bigger, 100 is default
+#define DEATHSPEED 12
+#include "chicken_death_2legged_v2.h"
+//use call-script DeathAnim(); from Killed()
+
+#define BASEPIECE base //needed for HitByWeapon
+#define HITSPEED <55.0>
+//how 'heavy' the unit is, on a scale of 1-10
+#define UNITSIZE 2
+#define MAXTILT 200
+#include "chicken_hitbyweapon.h"
+
+#include "chicken_death_2legged_ptaq.h"
+
+#include "chicken_killed_2legged.h"
+
+#include "chicken_create_move.h"
+
 lua_FlameShot(weapon) //Distortion and lups flame effect
 {
   return 0;
-}
-
-walk()
-{
- while (aMoving)
- {
-    bMoving = TRUE;
-	if (aMoving) {
-			turn lthigh to x-axis <70> speed<115>;
-			turn lknee to x-axis <-40> speed<145>;
-			turn lshin to x-axis <20> speed<145>;
-			turn lfoot to x-axis <-50> speed<210>;
-			
-			turn rthigh to x-axis <-20> speed<210>;
-			turn rknee to x-axis <-60> speed<210>;
-			turn rshin to x-axis <50> speed<210>;
-			turn rfoot to x-axis <30> speed<210>;
-			
-			turn body to z-axis <5> speed <20>;
-			turn lthigh to z-axis <-5> speed <20>;
-			turn rthigh to z-axis <-5> speed <20>;
-			move body to y-axis [0.7] speed <4000>;			
-			turn tail to y-axis <10> speed <40>;
-			turn head to x-axis <-10> speed <20>;
-			turn tail to x-axis <10> speed <20>;
-			wait-for-turn lthigh around x-axis;
-			}
-				if (aMoving) {
-			
-			turn lthigh to x-axis <-10> speed<160>;
-			turn lknee to x-axis <15> speed<145>;
-			turn lshin to x-axis <-60> speed<250>;
-			turn lfoot to x-axis <30> speed<145>;
-			
-			turn rthigh to x-axis <40> speed<145>;
-			turn rknee to x-axis <-35> speed<145>;
-			turn rshin to x-axis <-40> speed<145>;
-			turn rfoot to x-axis <35> speed<145>;
-			
-			move body to y-axis [0] speed <4000>;
-			turn head to x-axis <10> speed <20>;
-			turn tail to x-axis <-10> speed <20>;
-			wait-for-turn lshin around x-axis;
-			emit-sfx 1024 from head;
-			}
-				if (aMoving) {
-			
-			turn rthigh to x-axis <70> speed<115>;
-			turn rknee to x-axis <-40> speed<145>;
-			turn rshin to x-axis <20> speed<145>;
-			turn rfoot to x-axis <-50> speed<210>;
-			
-			turn lthigh to x-axis <-20> speed<210>;
-			turn lknee to x-axis <-60> speed<210>;
-			turn lshin to x-axis <50> speed<210>;
-			turn lfoot to x-axis <30> speed<210>;
-			
-			turn tail to y-axis <-10> speed <40>;
-			turn body to z-axis <-5> speed <20>;
-			turn lthigh to z-axis <5> speed <20>;
-			turn rthigh to z-axis <5> speed <20>;
-			move body to y-axis [0.7] speed <4000>;
-			turn head to x-axis <-10> speed <20>;
-			turn tail to x-axis <10> speed <20>;
-			wait-for-turn rthigh around x-axis;
-			
-			}
-				if (aMoving) {
-			
-			turn rthigh to x-axis <-10> speed<160>;
-			turn rknee to x-axis <15> speed<145>;
-			turn rshin to x-axis <-60> speed<250>;
-			turn rfoot to x-axis <30> speed<145>;
-			
-			turn lthigh to x-axis <40> speed<145>;
-			turn lknee to x-axis <-35> speed<145>;
-			turn lshin to x-axis <-40> speed<145>;
-			turn lfoot to x-axis <35> speed<145>;
-			
-			
-			move body to y-axis [0] speed <4000>;
-			turn head to x-axis <10> speed <20>;
-			turn tail to x-axis <-10> speed <20>;
-			wait-for-turn rshin around x-axis;
-			emit-sfx 1024 from head;
-			}
-			
-		}
-		return 0;
-}
-
-Halt()
-{	
-	sleep 150;
-	if(!aMoving)
-	{
-	bMoving = FALSE;
-	turn lfoot		to x-axis <0> 		speed <100>;
-	turn rfoot		to x-axis <0> 		speed <100>;
-	turn rthigh 	to x-axis <0> 		speed <100>;
-	turn lthigh 	to x-axis <0> 		speed <100>;
-	turn lshin  	to x-axis <0> 		speed <100>;
-	turn rshin 		to x-axis <0> 		speed <100>;
-	turn lfoot		to y-axis <0> 		speed <100>;
-	turn rfoot		to y-axis <0> 		speed <100>;
-	turn rthigh 	to y-axis <0> 		speed <100>;
-	turn lthigh 	to y-axis <0> 		speed <100>;
-	turn lshin  	to y-axis <0> 		speed <100>;
-	turn rshin 		to y-axis <0> 		speed <100>;
-	}
-}
-
-StartMoving()
-{
-	aMoving = TRUE;
-	if (!bMoving)
-	{
-		start-script Walk();
-	}
-}
-
-StopMoving()
-{
-	aMoving = FALSE;
-	start-script Halt();
-}
-
-
-Activate()
-{	
-
-}
-
-Deactivate()
-{
-
-}
-
-RestoreAfterDelay()
-{
-	sleep 1000;
-	
-}
-
-Create()
-{
-	emit-sfx 1024+2 from body;
-	
-	start-script RestoreAfterDelay();
 }
 
 AimFromPrimary(piecenum)
@@ -175,14 +62,16 @@ AimFromSecondary(piecenum)
 	{	piecenum=head;	}
 
 QuerySecondary(piecenum)
-	{	piecenum=head; }
+	{	piecenum=lsack; }
+
 
 
 AimPrimary(heading,pitch)
 {
     signal SIG_AIM;
 	set-signal-mask SIG_AIM;
-	 	while( 255 > heading )
+	//nasty stuff here
+	/* 	while( 255 > heading )
 		{
 			set UNKNOWN_UNIT_VALUE(82) to 0 - 1000 + get UNKNOWN_UNIT_VALUE(82);
 			heading = heading + 1000;
@@ -194,6 +83,14 @@ AimPrimary(heading,pitch)
 			heading = heading - 1000;
 			sleep 1;
 		}	
+		*/
+	if (heading > <60>) heading = <60>;
+	if (heading < <-60>) heading = <-60>;
+	turn aimy1 to y-axis heading speed <175>;
+	turn aimy1 to x-axis 0 -pitch speed <175>;
+	wait-for-turn aimy1 around y-axis;
+	wait-for-turn aimy1 around x-axis;
+	start-script RestoreAfterDelay();
 	return (1);
 }
 
@@ -201,18 +98,20 @@ AimSecondary(heading,pitch)
 	{
   	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
-	turn head to y-axis heading speed <175>;
-	turn head to x-axis 0 -pitch speed <175>;
-	wait-for-turn head around y-axis;
-	wait-for-turn head around x-axis;
+	
+	if (heading > <60>) heading = <60>;
+	if (heading < <-60>) heading = <-60>;
+	turn aimy1 to y-axis heading speed <175>;
+	turn aimy1 to x-axis 0 -pitch speed <175>;
+	wait-for-turn aimy1 around y-axis;
+	wait-for-turn aimy1 around x-axis;
+	
+	start-script RestoreAfterDelay();
 	return(1);
 	}
 
 Shot1()
-	{
-
-}
-
+	{ }
 Shot2()
 	{
 	turn lsack to y-axis <30> speed <200>;
@@ -225,25 +124,5 @@ Shot2()
 	move rsack to x-axis [0] speed [0.3];
 	move lsack to x-axis [0] speed [0.3];
 	call-script lua_FlameShot(2);
-	return (TRUE);
-	}
-	
-SweetSpot(piecenum)
-	{	piecenum=body;	}	
-	
-HitByWeaponId()
-	{
-	emit-sfx 1024+1 from head;
-	return 100;
-	}
-
-Killed( severity, corpsetype )
-	{
-	corpsetype = 1;
-	emit-sfx 1024+2 from head;
-	explode head type FALL | NOHEATCLOUD;
-	explode tail type FALL | NOHEATCLOUD;
-	explode lthigh type FALL | NOHEATCLOUD;
-	explode rthigh type FALL | NOHEATCLOUD;
-	return( 0 );
+	return (head);
 	}

@@ -34,10 +34,16 @@ if gadgetHandler:IsSyncedCode() then
 	_G.validationUndo = validation
 
 
-	local authorizedPlayers  = {
-		'Floris',
-		'[teh]Flow',
-	}
+	local authorizedPlayers = {}
+	local powerusers = include("LuaRules/configs/powerusers.lua")
+	if powerusers then
+		for name, permissions in pairs(powerusers) do
+			if permissions.undo then
+				authorizedPlayers[name] = true
+			end
+		end
+		powerusers = nil
+	end
 
 	local teamSelfdUnits = {}
 	local selfdCmdUnits = {}
@@ -67,8 +73,9 @@ if gadgetHandler:IsSyncedCode() then
 		-- cleanup periodically
 		if gameFrame % 901 == 1 then
 			local oldestGameFrame = gameFrame - rememberGameframes
+			local cleanedUnits = {}
 			for teamID, units in pairs(teamSelfdUnits) do
-				local cleanedUnits = {}
+				cleanedUnits = {}
 				for oldUnitID, params in pairs(units) do
 					if params[1] > oldestGameFrame then
 						cleanedUnits[oldUnitID] = params
@@ -170,11 +177,9 @@ if gadgetHandler:IsSyncedCode() then
 
 			local playername, _, spec = Spring.GetPlayerInfo(playerID,false)
 			local authorized = false
-			for _,name in ipairs(authorizedPlayers) do
-				if playername == name then
-					authorized = true
-					break
-				end
+			local authorized = false
+			if authorizedPlayers[playername] then
+				authorized = true
 			end
 			if playername ~= "UnnamedPlayer" then
 				if not authorized then
@@ -262,7 +267,7 @@ else	-- UNSYNCED
 
 	function Undo(cmd, line, words, playerID)
 		if words[1] ~= nil and words[2] ~= nil then
-			targetTeamID = words[1]
+			local targetTeamID = words[1]
 			if words[3] ~= nil then
 				targetTeamID = words[3]
 			end

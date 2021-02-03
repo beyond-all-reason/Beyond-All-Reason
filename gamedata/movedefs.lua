@@ -136,7 +136,17 @@ local moveDatas = {
 		--slopeMod = 32,
 		maxwaterslope = 255,
 	},
-
+	-- armamph
+	HOVER5 = {
+		badslope = 36,
+		badwaterslope = 255,
+		crushstrength = 25,
+		footprintx = 3,
+		footprintz = 3,
+		maxslope = 36,
+		--slopeMod = 32,
+		maxwaterslope = 255,
+	},
 	-- armfav/corfav
 	TANK1 = {
 		crushstrength = 10,
@@ -422,8 +432,8 @@ local moveDatas = {
 		footprintx = 0,
 		footprintz = 0,
 		maxslope = 100,
-		maxwaterdepth = 9999,
-		maxwaterslope = 55,
+		maxwaterdepth = 99999,
+		maxwaterslope = 100,
 	},
 
 	-- Scav Mist

@@ -11,7 +11,7 @@ function widget:GetInfo()
 end
 
 --------------------------------------------------------------------------------
--- config 
+-- config
 --------------------------------------------------------------------------------
 
 local basicAlpha = 0.2
@@ -41,6 +41,10 @@ local qualityPreset = 1
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
+
+local vsx,vsy = gl.GetViewSizes()
+
+local ivsx, ivsy, kernelRadius, kernelRadius2, initialized, illuminationThreshold, fragMaxBrightness, inverseRX, fragKernelRadius, inverseRY
 
 local drawWorldAlpha = 0
 local drawWorldPreUnitAlpha = 0
@@ -167,7 +171,7 @@ function reset()
 	gl.DeleteTexture(brightTexture1 or "")
 	gl.DeleteTexture(brightTexture2 or "")
 	gl.DeleteTexture(screenTexture or "")
-	
+
 	--local quality = 4.6		-- high value creates flickering, but lower is more expensive
 	brightTexture1 = glCreateTexture(vsx/quality, vsy/quality, {
 		fbo = true, min_filter = GL.LINEAR, mag_filter = GL.LINEAR,
@@ -191,12 +195,12 @@ end
 
 function widget:ViewResize(viewSizeX, viewSizeY)
 	vsx,vsy = gl.GetViewSizes()
-	
+
 	ivsx = 1.0 / vsx
 	ivsy = 1.0 / vsy
 	kernelRadius = vsy / 80.0
 	kernelRadius2 = vsy / 30.0
-	
+
 	reset()
 end
 
@@ -276,7 +280,7 @@ function widget:Initialize()
   end
 
   widget:ViewResize(widgetHandler:GetViewSizes())
-    
+
 
 	combineShader = gl.CreateShader({
 		fragment = [[
@@ -391,7 +395,7 @@ function widget:Initialize()
 				vec2 C0 = vec2(gl_TexCoord[0]);
 				vec3 color = vec3(texture2D(texture0, C0));
 				float illum = dot(color, vec3(0.2990, 0.5870, 0.1140));
-		
+
 				if (illum > illuminationThreshold) {
 					gl_FragColor = vec4((color - color*(illuminationThreshold/max(illum, 0.00001))), 1.0);
 				} else {
@@ -425,7 +429,7 @@ function widget:Initialize()
 	combineShaderTexture1Loc = glGetUniformLocation(combineShader, "texture1")
 	combineShaderIllumLoc = glGetUniformLocation(combineShader, "illuminationThreshold")
 	combineShaderFragLoc = glGetUniformLocation(combineShader, "fragMaxBrightness")
-	
+
 	initialized = true
 end
 
@@ -486,9 +490,9 @@ end
 
 local function Bloom()
 	gl.Color(1, 1, 1, 1)
-	
+
 	glCopyToTexture(screenTexture, 0, 0, 0, 0, vsx, vsy)
-	
+
 	-- global bloomin
 	glUseShader(brightShader)
 		glUniformInt(brightShaderText0Loc, 0)
@@ -497,7 +501,7 @@ local function Bloom()
 		glUniform(   brightShaderIllumLoc, illumThreshold)
 		mglRenderToTexture(brightTexture1, screenTexture, 1, -1)
 	glUseShader(0)
-	
+
 	for i = 1, blurPasses do
 		glUseShader(blurShaderH71)
 			glUniformInt(blurShaderH71Text0Loc, 0)
@@ -512,7 +516,7 @@ local function Bloom()
 			mglRenderToTexture(brightTexture1, brightTexture2, 1, -1)
 		glUseShader(0)
 	end
-	
+
 	glUseShader(combineShader)
 		glUniformInt(combineShaderDebgDrawLoc, dbgDraw)
 		glUniformInt(combineShaderTexture0Loc, 0)
@@ -530,11 +534,11 @@ function widget:DrawScreenEffects()
 end
 
 function widget:GetConfigData(data)
-    savedTable = {}
-    savedTable.basicAlpha = basicAlpha
-	savedTable.qualityPreset = qualityPreset
-	savedTable.globalBlursizeMult = globalBlursizeMult
-    return savedTable
+    return {
+		basicAlpha = basicAlpha,
+		qualityPreset = qualityPreset,
+		globalBlursizeMult = globalBlursizeMult
+	}
 end
 
 function widget:SetConfigData(data)

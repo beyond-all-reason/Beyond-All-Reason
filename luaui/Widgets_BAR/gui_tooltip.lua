@@ -31,6 +31,11 @@ Use 'ShowTooltip' to directly show a tooltip, the name you give should be unique
 -- Config
 ------------------------------------------------------------------------------------
 
+local backgroundTexture = "LuaUI/Images/backgroundtile.png"
+local ui_tileopacity = 0.012
+local bgtexScale = tonumber(Spring.GetConfigFloat("ui_tilescale", 7) or 7)	-- lower = smaller tiles
+local bgtexSize
+
 local vsx, vsy = Spring.GetViewGeometry()
 
 local defaultDelay = 0.4
@@ -43,6 +48,7 @@ local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular
 
 local widgetScale = 1
 local usedFontSize = cfgFontSize
+local bgpadding = math.ceil(Spring.FlowUI.elementPadding * 0.66)
 
 ------------------------------------------------------------------------------------
 -- Speedups
@@ -58,6 +64,9 @@ local spGetMouseState = Spring.GetMouseState
 local spTraceScreenRay = Spring.TraceScreenRay
 local spGetTooltip = Spring.GetCurrentTooltip
 
+local RectRound = Spring.FlowUI.Draw.RectRound
+local UiElement = Spring.FlowUI.Draw.Element
+
 local math_floor = math.floor
 local math_ceil = math.ceil
 
@@ -66,116 +75,11 @@ local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
 
 local tooltips = {}
 
+local font, chobbyInterface
+
 ------------------------------------------------------------------------------------
 -- Functions
 ------------------------------------------------------------------------------------
-
-local function DrawRectRound(px, py, sx, sy, cs, tl, tr, br, bl, c1, c2)
-	local csyMult = 1 / ((sy - py) / cs)
-
-	if c2 then
-		gl.Color(c1[1], c1[2], c1[3], c1[4])
-	end
-	gl.Vertex(px + cs, py, 0)
-	gl.Vertex(sx - cs, py, 0)
-	if c2 then
-		gl.Color(c2[1], c2[2], c2[3], c2[4])
-	end
-	gl.Vertex(sx - cs, sy, 0)
-	gl.Vertex(px + cs, sy, 0)
-
-	-- left side
-	if c2 then
-		gl.Color(c1[1] * (1 - csyMult) + (c2[1] * csyMult), c1[2] * (1 - csyMult) + (c2[2] * csyMult), c1[3] * (1 - csyMult) + (c2[3] * csyMult), c1[4] * (1 - csyMult) + (c2[4] * csyMult))
-	end
-	gl.Vertex(px, py + cs, 0)
-	gl.Vertex(px + cs, py + cs, 0)
-	if c2 then
-		gl.Color(c2[1] * (1 - csyMult) + (c1[1] * csyMult), c2[2] * (1 - csyMult) + (c1[2] * csyMult), c2[3] * (1 - csyMult) + (c1[3] * csyMult), c2[4] * (1 - csyMult) + (c1[4] * csyMult))
-	end
-	gl.Vertex(px + cs, sy - cs, 0)
-	gl.Vertex(px, sy - cs, 0)
-
-	-- right side
-	if c2 then
-		gl.Color(c1[1] * (1 - csyMult) + (c2[1] * csyMult), c1[2] * (1 - csyMult) + (c2[2] * csyMult), c1[3] * (1 - csyMult) + (c2[3] * csyMult), c1[4] * (1 - csyMult) + (c2[4] * csyMult))
-	end
-	gl.Vertex(sx, py + cs, 0)
-	gl.Vertex(sx - cs, py + cs, 0)
-	if c2 then
-		gl.Color(c2[1] * (1 - csyMult) + (c1[1] * csyMult), c2[2] * (1 - csyMult) + (c1[2] * csyMult), c2[3] * (1 - csyMult) + (c1[3] * csyMult), c2[4] * (1 - csyMult) + (c1[4] * csyMult))
-	end
-	gl.Vertex(sx - cs, sy - cs, 0)
-	gl.Vertex(sx, sy - cs, 0)
-
-	local offset = 0.15        -- texture offset, because else gaps could show
-
-	-- bottom left
-	if c2 then
-		gl.Color(c1[1], c1[2], c1[3], c1[4])
-	end
-	if ((py <= 0 or px <= 0) or (bl ~= nil and bl == 0)) and bl ~= 2 then
-		gl.Vertex(px, py, 0)
-	else
-		gl.Vertex(px + cs, py, 0)
-	end
-	gl.Vertex(px + cs, py, 0)
-	if c2 then
-		gl.Color(c1[1] * (1 - csyMult) + (c2[1] * csyMult), c1[2] * (1 - csyMult) + (c2[2] * csyMult), c1[3] * (1 - csyMult) + (c2[3] * csyMult), c1[4] * (1 - csyMult) + (c2[4] * csyMult))
-	end
-	gl.Vertex(px + cs, py + cs, 0)
-	gl.Vertex(px, py + cs, 0)
-	-- bottom right
-	if c2 then
-		gl.Color(c1[1], c1[2], c1[3], c1[4])
-	end
-	if ((py <= 0 or sx >= vsx) or (br ~= nil and br == 0)) and br ~= 2 then
-		gl.Vertex(sx, py, 0)
-	else
-		gl.Vertex(sx - cs, py, 0)
-	end
-	gl.Vertex(sx - cs, py, 0)
-	if c2 then
-		gl.Color(c1[1] * (1 - csyMult) + (c2[1] * csyMult), c1[2] * (1 - csyMult) + (c2[2] * csyMult), c1[3] * (1 - csyMult) + (c2[3] * csyMult), c1[4] * (1 - csyMult) + (c2[4] * csyMult))
-	end
-	gl.Vertex(sx - cs, py + cs, 0)
-	gl.Vertex(sx, py + cs, 0)
-	-- top left
-	if c2 then
-		gl.Color(c2[1], c2[2], c2[3], c2[4])
-	end
-	if ((sy >= vsy or px <= 0) or (tl ~= nil and tl == 0)) and tl ~= 2 then
-		gl.Vertex(px, sy, 0)
-	else
-		gl.Vertex(px + cs, sy, 0)
-	end
-	gl.Vertex(px + cs, sy, 0)
-	if c2 then
-		gl.Color(c2[1] * (1 - csyMult) + (c1[1] * csyMult), c2[2] * (1 - csyMult) + (c1[2] * csyMult), c2[3] * (1 - csyMult) + (c1[3] * csyMult), c2[4] * (1 - csyMult) + (c1[4] * csyMult))
-	end
-	gl.Vertex(px + cs, sy - cs, 0)
-	gl.Vertex(px, sy - cs, 0)
-	-- top right
-	if c2 then
-		gl.Color(c2[1], c2[2], c2[3], c2[4])
-	end
-	if ((sy >= vsy or sx >= vsx) or (tr ~= nil and tr == 0)) and tr ~= 2 then
-		gl.Vertex(sx, sy, 0)
-	else
-		gl.Vertex(sx - cs, sy, 0)
-	end
-	gl.Vertex(sx - cs, sy, 0)
-	if c2 then
-		gl.Color(c2[1] * (1 - csyMult) + (c1[1] * csyMult), c2[2] * (1 - csyMult) + (c1[2] * csyMult), c2[3] * (1 - csyMult) + (c1[3] * csyMult), c2[4] * (1 - csyMult) + (c1[4] * csyMult))
-	end
-	gl.Vertex(sx - cs, sy - cs, 0)
-	gl.Vertex(sx, sy - cs, 0)
-end
-function RectRound(px, py, sx, sy, cs, tl, tr, br, bl, c1, c2)
-	-- (coordinates work differently than the RectRound func in other widgets)
-	gl.Texture(false)
-	gl.BeginEnd(GL.QUADS, DrawRectRound, px, py, sx, sy, cs, tl, tr, br, bl, c1, c2)
-end
 
 function widget:Initialize()
 	widget:ViewResize()
@@ -246,6 +150,8 @@ function widget:ViewResize(x, y)
 
 	font = WG['fonts'].getFont(fontfile)
 
+	bgpadding = math.ceil(Spring.FlowUI.elementPadding * 0.66)
+
 	init()
 end
 
@@ -264,8 +170,6 @@ function lines(str)
 end
 
 function drawTooltip(name, x, y)
-	--Spring.Echo('Showing tooltip:  '..name)
-
 	local paddingH = math_floor(9.5 * widgetScale)
 	local paddingW = math_floor(paddingH * 1.42)
 	local posX = math_floor(x + paddingW)
@@ -296,23 +200,12 @@ function drawTooltip(name, x, y)
 		posY = 0 + maxHeight + paddingH + paddingH
 	end
 
-	-- draw background
-	local cornersize = 0
-	--glColor(0.45,0.45,0.45,(WG['guishader'] and 0.66 or 0.8))
-	RectRound(posX - paddingW + cornersize, posY - maxHeight - paddingH + cornersize, posX + maxWidth + paddingW - cornersize, posY + paddingH - cornersize, 3.3 * widgetScale, 2, 2, 2, 2, { 0.44, 0.44, 0.44, (WG['guishader'] and 0.67 or 0.94) }, { 0.66, 0.66, 0.66, (WG['guishader'] and 0.62 or 0.94) })
+	UiElement(posX - paddingW, posY - maxHeight - paddingH, posX + maxWidth + paddingW, posY + paddingH, 1,1,1,1, 1,1,1,1, nil, {0.85, 0.85, 0.85, (WG['guishader'] and 0.72 or 0.94)}, {0, 0, 0, (WG['guishader'] and 0.52 or 0.56)}, bgpadding)
 	if WG['guishader'] then
 		WG['guishader'].InsertScreenDlist(gl.CreateList(function()
-			RectRound(posX - paddingW + cornersize, posY - maxHeight - paddingH + cornersize, posX + maxWidth + paddingW - cornersize, posY + paddingH - cornersize, 3.3 * widgetScale)
+			RectRound(posX - paddingW, posY - maxHeight - paddingH, posX + maxWidth + paddingW, posY + paddingH, 3.3 * widgetScale)
 		end), 'tooltip_' .. name)
 	end
-	cornersize = math_floor(2.4 * widgetScale)
-	--glColor(0,0,0,(WG['guishader'] and 0.22 or 0.26))
-	RectRound(posX - paddingW + cornersize,
-		posY - maxHeight - paddingH + cornersize,
-		posX + maxWidth + paddingW - cornersize,
-		posY + paddingH - cornersize - 0.06,
-		2.2 * widgetScale,
-		2, 2, 2, 2, { 0, 0, 0, (WG['guishader'] and 0.5 or 0.55) }, { 0.15, 0.15, 0.15, (WG['guishader'] and 0.47 or 0.55) })
 
 	-- draw text
 	maxHeight = math_floor(-fontSize * 0.93)

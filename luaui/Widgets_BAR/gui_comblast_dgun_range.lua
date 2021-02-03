@@ -2,7 +2,7 @@ function widget:GetInfo()
     return {
         name      = "Comblast & Dgun Range",
         desc      = "Shows the range of commander death explosion and dgun ranges",
-        author    = "Bluestone, based on similar widgets by vbs, tfc, decay  (made fancy by Floris)",
+        author    = "Bluestone, very_bad_soldier, the fat controller, decay, Floris, BrainDamage",
         date      = "14 february 2015",
         license   = "GPL v3 or later",
         license   = "GPL v3 or later",
@@ -85,6 +85,7 @@ local dgunRange	= WeaponDefNames["armcom_disintegrator"].range + WeaponDefNames[
 local comCircleDlist = {}
 local prevCamX, prevCamY, prevCamZ = spGetCameraPosition()
 
+local chobbyInterface
 
 local isCommander = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
@@ -92,7 +93,6 @@ for unitDefID, unitDef in pairs(UnitDefs) do
         isCommander[unitDefID] = true
     end
 end
---------------------------------------------------------------------------------
 
 
 local vsx,vsy = Spring.GetViewGeometry()
@@ -193,7 +193,7 @@ end
 function checkSpecView()
 	--check if we became a spec
     if select(3,spGetPlayerInfo(spGetMyPlayerID(),false)) ~= amSpec then
-        amSpec = spec
+        amSpec = select(3,spGetPlayerInfo(spGetMyPlayerID(),false))
 		checkComs()
     end
 end
@@ -228,6 +228,7 @@ function widget:GameFrame(n)
     end
 
 	-- check com movement
+	local oldOpacityMultiplier
 	for unitID in pairs(comCenters) do
 		local x,y,z = spGetUnitPosition(unitID)
 		if x then
@@ -428,9 +429,7 @@ function widget:DrawWorldPreUnit()
 end
 
 function widget:GetConfigData(data)
-    savedTable = {}
-    savedTable.hideOnDistantEnemy	= hideOnDistantEnemy
-    return savedTable
+    return {hideOnDistantEnemy = hideOnDistantEnemy}
 end
 
 function widget:SetConfigData(data)

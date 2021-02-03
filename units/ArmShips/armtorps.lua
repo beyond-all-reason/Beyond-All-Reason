@@ -31,7 +31,7 @@ return {
 		name = "Torpedo Ship",
 		nochasecategory = "UNDERWATER VTOL",
 		objectname = "Units/ARMMLS.s3o",
-		script = "Units/ARMSTUMP.cob",
+		script = "Units/ARMMLS.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumexplosiongenericSelfd",
 		sightdistance = 500,

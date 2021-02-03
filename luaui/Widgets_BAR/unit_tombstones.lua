@@ -72,10 +72,10 @@ end
 
 -- preserve data in case of a /luaui reload
 function widget:GetConfigData(data)
-  savedTable = {}
-  savedTable.tombstones = tombstones
-  savedTable.gameframe = Spring.GetGameFrame()
-  return savedTable
+  return {
+	  tombstones = tombstones,
+	  gameframe = Spring.GetGameFrame()
+  }
 end
 
 function widget:SetConfigData(data)

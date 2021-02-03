@@ -10,12 +10,9 @@ function widget:GetInfo()
 	}
 end
 
--------------------------------------------------------------------------------
--------------------------------------------------------------------------------
-
 local cellZoom = 1
-local cellClickedZoom = 1.1
-local cellHoverZoom = 1.045
+local cellClickedZoom = 1.05
+local cellHoverZoom = 1.035
 
 local altPosition = true
 
@@ -32,8 +29,6 @@ local width = 0
 local height = 0
 local cellMarginOrg = 0.055
 local cellMargin = cellMarginOrg
-local bgBorderOrg = 0.0018
-local bgBorder = bgBorderOrg
 local cmdInfo = {		-- r, g, b, SHORTCUT
 	Move = { 0.64, 1, 0.64, 'M'},
 	Stop = { 1, 0.3, 0.3, 'S'},
@@ -59,14 +54,95 @@ local cmdInfo = {		-- r, g, b, SHORTCUT
 	['Cloak State'] = { nil,nil,nil, 'K'},
 	['Active state'] = { nil,nil,nil, 'X'},
 }
-local cmdNameAlternative = {
-	['Repeat off'] = 'Repeat',
-	['Repeat on'] = 'Repeat',
-	['Decloaked'] = 'Cloaked',
-	['UpgMex OFF'] = 'Upgrade Mex',
-	['UpgMex ON'] = 'Upgrade Mex',
-}
 local isStateCmd = {}
+
+local disabledCmd = {}
+
+local texts = {        -- fallback (if you want to change this, also update: language/en.lua, or it will be overwritten)
+	Move = 'Move',
+	Move_tooltip = 'Move a unit towards a position or follow other units',
+	Stop = 'Stop',
+	Stop_tooltip = 'Cancel the units current actions',
+	Attack = 'Attack',
+	Attack_tooltip = 'Attack a unit or ground position',
+	['Area Attack'] = 'Area Attack',
+	['Area Attack_tooltip'] = 'Area attack everything within a circle (click-drag)',
+	ManualFire = 'D-Gun',
+	ManualFire_tooltip = 'Fire the powerful commander Disintegrator-gun',
+	Patrol = 'Patrol',
+	Patrol_tooltip = 'Patrol along one or more waypoints',
+	Fight = 'Fight',
+	Fight_tooltip = 'Order units to take action while moving to a position',
+	Resurrect = 'Resurrect',
+	Resurrect_tooltip = 'Revive wrecks to become units again (click-drag for area)',
+	Guard = 'Guard',
+	Guard_tooltip = 'Guard another unit against enemy units attacking it',
+	Wait = 'Wait',
+	Wait_tooltip = 'Prevents unit from processing command queue',
+	Repair = 'Repair',
+	Reclaim = 'Reclaim',
+	Reclaim_tooltip = 'Suck metal/energy from wrecks or features (trees/stones)',
+	Restore = 'Restore',
+	Restore_tooltip = 'Restore an area of the map to its original height',
+	Capture = 'Capture',
+	Capture_tooltip = 'Convert units that belong to the enemy (or ally)',
+	['Set Target'] = 'Set Target',
+	['Set Target_tooltip'] = 'Set a prioritized target (prioritizes targeting when target in range) ',
+	['Cancel Target'] = 'Cancel Target',
+	['Cancel Target_tooltip'] = 'Removes the priority target',
+	Mex = 'Area Mex',
+	Mex_tooltip = 'Click-drag an area to auto queue metal extractors for all available metal spots',
+	['Upgrade Mex'] = 'Upgrade Mex',
+	['Load units'] = 'Load units',
+	['Load units_tooltip'] = 'Load unit or multiple units within an area in the transport',
+	['Unload units'] = 'Unload units',
+	['Unload units_tooltip'] = 'Unload unit or multiple units within an area in the transport',
+	['Land At Airbase'] = 'Land At Airbase',
+	['Land At Airbase_tooltip'] = 'Land At Airbase',
+	-- state buttons
+	['Fire at will'] = 'Fire at will',
+	['Hold fire'] = 'Hold fire',
+	['Return fire'] = 'Return fire',
+	['Fire state_tooltip'] = 'Set under what conditions a unit should start firing at enemies (without explicit attack order)',
+	['Hold pos'] = 'Hold pos',
+	['Maneuver'] = 'Maneuver',
+	['Move state_tooltip'] = 'Set how far out of its way a unit should move to attack enemies',
+	['Roam'] = 'Roam',
+	['Repeat on'] = 'Repeat',
+	['Repeat off'] = 'Repeat',
+	['Repeat_tooltip'] = 'Repeat unit command queue',
+	['Low Prio'] = 'Priority',
+	['High Prio'] = 'Priority',
+	['priority_tooltip'] = 'Assigns resources to use for this builder when not having enough for all',
+	['Decloaked'] = 'Cloaked',
+	['Cloaked'] = 'Cloaked',
+	['Cloak State_tooltip'] = 'Invisibility state',
+	[' On '] = 'On',
+	[' Off '] = 'On',
+	['Active state_tooltip'] = 'Active state: turn a unit on/off',
+	['Fighters'] = 'Fighters',
+	['Bombers'] = 'Bombers',
+	['No priority'] = 'No priority',
+	['Set Priority_tooltip'] = 'Set target priority Fighters/Bombers/no priority',
+	[' Fly '] = 'Land',
+	['Land'] = 'Land',
+	['Land mode_tooltip'] = 'Sets what aircraft do when idle',
+	['apLandAt_tooltip'] = 'Sets what aircraft do when leaving air factory',
+	['Low traj'] = 'High Traj',
+	['High traj'] = 'High Traj',
+	['Trajectory_tooltip'] = 'Sets fire mode in artillery state (firing upwards instead of forwards)',
+	['LandAt 0'] = 'LandAt 0',
+	['LandAt 30'] = 'LandAt 30',
+	['LandAt 50'] = 'LandAt 50',
+	['LandAt 80'] = 'LandAt 80',
+	['Repair level_tooltip'] = 'Set at which health % this aircraft should automatically move to and land on an air repair pad',
+	['apAirRepair_tooltip'] = 'Air factory: Set at which health % an aircraft should automatically move to and land on an air repair pad',
+	['UpgMex ON'] = 'Upgrade Mex',
+	['UpgMex OFF'] = 'Upgrade Mex',
+	['Auto Mex Upgrade_tooltip'] = 'When toggled: tech 1 metal extractors will automatically be upgraded to tech 2',
+	['Upgrade Mex_tooltip'] = 'Click on a tech 1 metal extractor to auto upgrade it to a tech 2 version',
+	stockpile_tooltip = '[ stockpiled number ] / [ target stockpile number ]',
+}
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
@@ -94,6 +170,11 @@ local lastUpdate = os.clock() - 1
 local rows = 0
 local cols = 0
 local disableInput = false
+
+local font, font2, bgpadding, widgetSpaceMargin, chobbyInterface, dlistOrders, dlistGuishader
+local clickedCell, clickedCellTime, clickedCellDesiredState, cellWidth, cellHeight
+local bpWidth, bpHeight, buildmenuBottomPos, buildpowerWidgetEnabled
+local activeCmd, prevActiveCmd, doUpdate, doUpdateClock, SelectedUnitsCount
 
 local hiddencmds = {
 	[76] = true, --load units clone
@@ -139,6 +220,12 @@ local math_max = math.max
 local math_ceil = math.ceil
 local math_floor = math.floor
 
+local RectRound = Spring.FlowUI.Draw.RectRound
+local TexturedRectRound = Spring.FlowUI.Draw.TexturedRectRound
+local UiElement = Spring.FlowUI.Draw.Element
+local UiButton = Spring.FlowUI.Draw.Button
+local elementCorner = Spring.FlowUI.elementCorner
+
 local isSpec = Spring.GetSpectatingState()
 local cursorTextures = {}
 
@@ -156,7 +243,7 @@ local function checkGuishader(force)
 		end
 		if not dlistGuishader then
 			dlistGuishader = gl.CreateList(function()
-				RectRound(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], bgpadding * 1.6 * ui_scale)
+				RectRound(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], elementCorner * ui_scale)
 			end)
 		end
 	elseif dlistGuishader then
@@ -174,7 +261,7 @@ local function RefreshCommands()
 	local stateCmdsCount = 0
 	local otherCmdsCount = 0
 	for index, cmd in pairs(spGetActiveCmdDescs()) do
-		if type(cmd) == "table" then
+		if type(cmd) == "table" and not disabledCmd[cmd.name] then
 			if cmd.type == 5 then
 				isStateCmd[cmd.id] = true
 			end
@@ -234,12 +321,6 @@ function setupCellGrid(force)
 
 	local sizeDivider = ((cols + rows) / 16)
 	cellMargin = (cellMarginOrg / sizeDivider) * ui_scale
-	bgBorder = (bgBorderOrg / sizeDivider) * ui_scale
-
-	if minusColumn then
-		cols = cols - 1
-		rows = rows + 1
-	end
 
 	if force or oldcols ~= cols or oldRows ~= rows then
 		clickedCell = nil
@@ -302,27 +383,26 @@ function widget:ViewResize()
 	end
 
 	font2 = WG['fonts'].getFont(fontFile)
+
+	elementCorner = Spring.FlowUI.elementCorner
+	bgpadding = Spring.FlowUI.elementPadding
+
+	local widgetSpaceMargin = Spring.FlowUI.elementMargin
 	if stickToBottom or (altPosition and not buildmenuBottomPos) then
-		widgetSpaceMargin = math.floor(0.0045 * (vsy / vsx) * vsx * ui_scale) / vsx
-		bgpadding = math.ceil(widgetSpaceMargin * 0.66 * vsx)
 
 		posY = height
-		posX = width + widgetSpaceMargin
+		posX = width + (widgetSpaceMargin/vsx)
 	else
 		if buildmenuBottomPos then
-			widgetSpaceMargin = math.floor(0.0045 * vsy * ui_scale) / vsy
-			bgpadding = math.ceil(widgetSpaceMargin * 0.66 * vsy)
 			posX = 0
-			posY = height + height + widgetSpaceMargin
+			posY = height + height + (widgetSpaceMargin/vsy)
 		else
-			widgetSpaceMargin = math.floor(0.0045 * vsy * ui_scale) / vsy
-			bgpadding = math.ceil(widgetSpaceMargin * 0.66 * vsy)
 			posY = 0.75
 			local posY2, _ = WG['buildmenu'].getSize()
-			posY2 = posY2 + widgetSpaceMargin
+			posY2 = posY2 + (widgetSpaceMargin/vsy)
 			posY = posY2 + height
 			if WG['minimap'] then
-				posY = 1 - (WG['minimap'].getHeight() / vsy) - widgetSpaceMargin
+				posY = 1 - (WG['minimap'].getHeight() / vsy) - (widgetSpaceMargin/vsy)
 			end
 			posX = 0
 		end
@@ -345,6 +425,9 @@ function widget:ViewResize()
 end
 
 function widget:Initialize()
+	if WG['lang'] then
+		texts = WG['lang'].getText('ordermenu')
+	end
 
 	if WG['minimap'] then
 		altPosition = WG['minimap'].getEnlarged()
@@ -370,6 +453,16 @@ function widget:Initialize()
 	end
 	WG['ordermenu'].getBottomPosition = function()
 		return stickToBottom
+	end
+	WG['ordermenu'].getDisabledCmd = function(cmd)
+		return disabledCmd[cmd]
+	end
+	WG['ordermenu'].setDisabledCmd = function(params)
+		if params[2] then
+			disabledCmd[params[1]] = true
+		else
+			disabledCmd[params[1]] = nil
+		end
 	end
 	WG['ordermenu'].getColorize = function()
 		return colorize
@@ -441,111 +534,6 @@ function widget:Update(dt)
 	end
 end
 
-local function DrawRectRound(px, py, sx, sy, cs, tl, tr, br, bl, c1, c2)
-	local csyMult = 1 / ((sy - py) / cs)
-
-	if c2 then
-		gl.Color(c1[1], c1[2], c1[3], c1[4])
-	end
-	gl.Vertex(px + cs, py, 0)
-	gl.Vertex(sx - cs, py, 0)
-	if c2 then
-		gl.Color(c2[1], c2[2], c2[3], c2[4])
-	end
-	gl.Vertex(sx - cs, sy, 0)
-	gl.Vertex(px + cs, sy, 0)
-
-	-- left side
-	if c2 then
-		gl.Color(c1[1] * (1 - csyMult) + (c2[1] * csyMult), c1[2] * (1 - csyMult) + (c2[2] * csyMult), c1[3] * (1 - csyMult) + (c2[3] * csyMult), c1[4] * (1 - csyMult) + (c2[4] * csyMult))
-	end
-	gl.Vertex(px, py + cs, 0)
-	gl.Vertex(px + cs, py + cs, 0)
-	if c2 then
-		gl.Color(c2[1] * (1 - csyMult) + (c1[1] * csyMult), c2[2] * (1 - csyMult) + (c1[2] * csyMult), c2[3] * (1 - csyMult) + (c1[3] * csyMult), c2[4] * (1 - csyMult) + (c1[4] * csyMult))
-	end
-	gl.Vertex(px + cs, sy - cs, 0)
-	gl.Vertex(px, sy - cs, 0)
-
-	-- right side
-	if c2 then
-		gl.Color(c1[1] * (1 - csyMult) + (c2[1] * csyMult), c1[2] * (1 - csyMult) + (c2[2] * csyMult), c1[3] * (1 - csyMult) + (c2[3] * csyMult), c1[4] * (1 - csyMult) + (c2[4] * csyMult))
-	end
-	gl.Vertex(sx, py + cs, 0)
-	gl.Vertex(sx - cs, py + cs, 0)
-	if c2 then
-		gl.Color(c2[1] * (1 - csyMult) + (c1[1] * csyMult), c2[2] * (1 - csyMult) + (c1[2] * csyMult), c2[3] * (1 - csyMult) + (c1[3] * csyMult), c2[4] * (1 - csyMult) + (c1[4] * csyMult))
-	end
-	gl.Vertex(sx - cs, sy - cs, 0)
-	gl.Vertex(sx, sy - cs, 0)
-
-	-- bottom left
-	if c2 then
-		gl.Color(c1[1], c1[2], c1[3], c1[4])
-	end
-	if ((py <= 0 or px <= 0) or (bl ~= nil and bl == 0)) and bl ~= 2 then
-		gl.Vertex(px, py, 0)
-	else
-		gl.Vertex(px + cs, py, 0)
-	end
-	gl.Vertex(px + cs, py, 0)
-	if c2 then
-		gl.Color(c1[1] * (1 - csyMult) + (c2[1] * csyMult), c1[2] * (1 - csyMult) + (c2[2] * csyMult), c1[3] * (1 - csyMult) + (c2[3] * csyMult), c1[4] * (1 - csyMult) + (c2[4] * csyMult))
-	end
-	gl.Vertex(px + cs, py + cs, 0)
-	gl.Vertex(px, py + cs, 0)
-	-- bottom right
-	if c2 then
-		gl.Color(c1[1], c1[2], c1[3], c1[4])
-	end
-	if ((py <= 0 or sx >= vsx) or (br ~= nil and br == 0)) and br ~= 2 then
-		gl.Vertex(sx, py, 0)
-	else
-		gl.Vertex(sx - cs, py, 0)
-	end
-	gl.Vertex(sx - cs, py, 0)
-	if c2 then
-		gl.Color(c1[1] * (1 - csyMult) + (c2[1] * csyMult), c1[2] * (1 - csyMult) + (c2[2] * csyMult), c1[3] * (1 - csyMult) + (c2[3] * csyMult), c1[4] * (1 - csyMult) + (c2[4] * csyMult))
-	end
-	gl.Vertex(sx - cs, py + cs, 0)
-	gl.Vertex(sx, py + cs, 0)
-	-- top left
-	if c2 then
-		gl.Color(c2[1], c2[2], c2[3], c2[4])
-	end
-	if ((sy >= vsy or px <= 0) or (tl ~= nil and tl == 0)) and tl ~= 2 then
-		gl.Vertex(px, sy, 0)
-	else
-		gl.Vertex(px + cs, sy, 0)
-	end
-	gl.Vertex(px + cs, sy, 0)
-	if c2 then
-		gl.Color(c2[1] * (1 - csyMult) + (c1[1] * csyMult), c2[2] * (1 - csyMult) + (c1[2] * csyMult), c2[3] * (1 - csyMult) + (c1[3] * csyMult), c2[4] * (1 - csyMult) + (c1[4] * csyMult))
-	end
-	gl.Vertex(px + cs, sy - cs, 0)
-	gl.Vertex(px, sy - cs, 0)
-	-- top right
-	if c2 then
-		gl.Color(c2[1], c2[2], c2[3], c2[4])
-	end
-	if ((sy >= vsy or sx >= vsx) or (tr ~= nil and tr == 0)) and tr ~= 2 then
-		gl.Vertex(sx, sy, 0)
-	else
-		gl.Vertex(sx - cs, sy, 0)
-	end
-	gl.Vertex(sx - cs, sy, 0)
-	if c2 then
-		gl.Color(c2[1] * (1 - csyMult) + (c1[1] * csyMult), c2[2] * (1 - csyMult) + (c1[2] * csyMult), c2[3] * (1 - csyMult) + (c1[3] * csyMult), c2[4] * (1 - csyMult) + (c1[4] * csyMult))
-	end
-	gl.Vertex(sx - cs, sy - cs, 0)
-	gl.Vertex(sx, sy - cs, 0)
-end
-function RectRound(px, py, sx, sy, cs, tl, tr, br, bl, c1, c2)
-	-- (coordinates work differently than the RectRound func in other widgets)
-	--gl.Texture(false)
-	gl.BeginEnd(GL.QUADS, DrawRectRound, px, py, sx, sy, cs, tl, tr, br, bl, c1, c2)
-end
-
 local function RectQuad(px, py, sx, sy, offset)
 	gl.TexCoord(offset, 1 - offset)
 	gl.Vertex(px, py, 0)
@@ -611,36 +599,42 @@ function drawCell(cell, zoom)
 		local cellInnerWidth = math_floor(((cellRects[cell][3] - rightMargin) - (cellRects[cell][1] + leftMargin)) + 0.5)
 		local cellInnerHeight = math_floor(((cellRects[cell][4] - topMargin) - (cellRects[cell][2] + bottomMargin)) + 0.5)
 
+		local padding = math_max(1, math_floor(bgpadding * 0.52))
+
 		local isActiveCmd = (activeCmd == cmd.name)
 		-- order button background
 		local color1, color2
 		if isActiveCmd then
 			zoom = cellClickedZoom
-			color1 = { 0.66, 0.66, 0.66, 0.95 }
-			color2 = { 1, 1, 1, 0.95 }
+			color1 = { 0.66, 0.66, 0.66, math_max(0.75, math_min(0.95, ui_opacity)) }	-- bottom
+			color2 = { 1, 1, 1, math_max(0.75, math_min(0.95, ui_opacity)) }			-- top
 		else
 			if WG['guishader'] then
-				color1 = (cmd.type == 5) and { 0.4, 0.4, 0.4, math_max(0.35, math_min(0.55, ui_opacity/1.5)) } or { 0.6, 0.6, 0.6, math_max(0.35, math_min(0.55, ui_opacity/1.5)) }
-				color2 = { 0.8, 0.8, 0.8, math_max(0.35, math_min(0.6, ui_opacity/1.4)) }
+				color1 = (cmd.type == 5) and { 0.5, 0.5, 0.5, math_max(0.35, math_min(0.55, ui_opacity/1.5)) } or { 0.6, 0.6, 0.6, math_max(0.35, math_min(0.55, ui_opacity/1.5)) }
+				color1[4] = math_max(0, math_min(0.35, (ui_opacity-0.3)))
+				color2 = { 1,1,1, math_max(0, math_min(0.35, (ui_opacity-0.3))) }
 			else
-				color1 = (cmd.type == 5) and { 0.25, 0.25, 0.25, 1 } or { 0.33, 0.33, 0.33, 1 }
-				color2 = { 0.8, 0.8, 0.8, math_max(0.35, math_min(0.6, ui_opacity/1.4)) }
+				color1 = (cmd.type == 5) and { 0.33, 0.33, 0.33, 1 } or { 0.33, 0.33, 0.33, 1 }
+				color1[4] = math_max(0, math_min(0.4, (ui_opacity-0.3)))
+				color2 = { 1,1,1, math_max(0, math_min(0.4, (ui_opacity-0.3))) }
 			end
-			RectRound(cellRects[cell][1] + leftMargin, cellRects[cell][2] + bottomMargin, cellRects[cell][3] - rightMargin, cellRects[cell][4] - topMargin, cellWidth * 0.025, 2, 2, 2, 2, color1, color2)
-
-			color1 = { 0, 0, 0, 0.8 }
-			color2 = { 0, 0, 0, 0.6 }
+			if color1[4] > 0.06 then
+				-- white bg (outline)
+				RectRound(cellRects[cell][1] + leftMargin, cellRects[cell][2] + bottomMargin, cellRects[cell][3] - rightMargin, cellRects[cell][4] - topMargin, cellWidth * 0.021, 2, 2, 2, 2, color1, color2)
+				-- darken inside
+				color1 = {0,0,0, color1[4]*0.85}
+				color2 = {0,0,0, color2[4]*0.85}
+				RectRound(cellRects[cell][1] + leftMargin + padding, cellRects[cell][2] + bottomMargin + padding, cellRects[cell][3] - rightMargin - padding, cellRects[cell][4] - topMargin - padding, padding, 2, 2, 2, 2, color1, color2)
+			end
+			color1 = { 0, 0, 0, math_max(0.55, math_min(0.95, ui_opacity)) }	-- bottom
+			color2 = { 0, 0, 0, math_max(0.55, math_min(0.95, ui_opacity)) }	-- top
 		end
 
-		local padding = math_max(1, math_floor(bgpadding * 0.52))
-		if padding == 1 then	-- make border less harch
-			RectRound(cellRects[cell][1] + leftMargin + padding + padding, cellRects[cell][2] + bottomMargin + padding + padding, cellRects[cell][3] - rightMargin - padding - padding, cellRects[cell][4] - topMargin - padding - padding, cellWidth * 0.008, 2, 2, 2, 2, {color1[1],color1[2],color1[3],color1[4]*math_min(0.55, ui_opacity)}, {color2[1],color2[2],color2[3],color2[4]*math_min(0.55, ui_opacity)})
-		end
-		RectRound(cellRects[cell][1] + leftMargin + padding, cellRects[cell][2] + bottomMargin + padding, cellRects[cell][3] - rightMargin - padding, cellRects[cell][4] - topMargin - padding, cellWidth * 0.017, 2, 2, 2, 2, {color1[1],color1[2],color1[3],color2[4]*(padding>1 and 1 or ui_opacity+0.25)}, {color2[1],color2[2],color2[3],color2[4]*(padding>1 and 1 or ui_opacity+0.25)})
+		--if padding == 1 then	-- make border less harch
+		--	RectRound(cellRects[cell][1] + leftMargin + padding + padding, cellRects[cell][2] + bottomMargin + padding + padding, cellRects[cell][3] - rightMargin - padding - padding, cellRects[cell][4] - topMargin - padding - padding, cellWidth * 0.008, 2, 2, 2, 2, {color1[1],color1[2],color1[3],color1[4]*math_min(0.55, ui_opacity)}, {color2[1],color2[2],color2[3],color2[4]*math_min(0.55, ui_opacity)})
+		--end
 
-		-- gloss
-		RectRound(cellRects[cell][1] + leftMargin + padding, cellRects[cell][4] - topMargin - ((cellRects[cell][4] - cellRects[cell][2]) * 0.42) - padding, cellRects[cell][3] - rightMargin - padding, (cellRects[cell][4] - topMargin) - padding, cellWidth * 0.017, 2, 2, 0, 0, { 1, 1, 1, 0.03 }, { 1, 1, 1, 0.09 })
-		RectRound(cellRects[cell][1] + leftMargin + padding, cellRects[cell][2] + bottomMargin + padding, cellRects[cell][3] - rightMargin - padding, (cellRects[cell][2] - leftMargin) + ((cellRects[cell][4] - cellRects[cell][2]) * 0.5) - padding, cellWidth * 0.017, 0, 0, 2, 2, { 1, 1, 1, 0.07 }, { 1, 1, 1, 0 })
+		UiButton(cellRects[cell][1] + leftMargin + padding, cellRects[cell][2] + bottomMargin + padding, cellRects[cell][3] - rightMargin - padding, cellRects[cell][4] - topMargin - padding, 1,1,1,1, 1,1,1,1, nil, color1, color2, padding)
 
 		-- icon
 		if showIcons then
@@ -669,14 +663,13 @@ function drawCell(cell, zoom)
 		if not showIcons or not cursorTextures[cmd.cursor] then
 			local text = string_gsub(cmd.name, "\n", " ")
 			if cmd.params[1] and cmd.params[cmd.params[1] + 2] then
-				text = cmd.params[cmd.params[1] + 2]
-			end
-			if cmdNameAlternative[text] then
-				text = cmdNameAlternative[text]
+				text = texts[cmd.params[cmd.params[1] + 2]] or '['..cmd.params[cmd.params[1] + 2]..']'
+			elseif texts[text] then
+				text = texts[text]
 			end
 			local fontSize = cellInnerWidth / font2:GetTextWidth('  ' .. text .. ' ') * math_min(1, (cellInnerHeight / (rows * 6)))
-			if fontSize > cellInnerWidth / 6.3 then
-				fontSize = cellInnerWidth / 6.3
+			if fontSize > cellInnerWidth / 7 then
+				fontSize = cellInnerWidth / 7
 			end
 			fontSize = fontSize * zoom
 			local fontHeight = font2:GetTextHeight(text) * fontSize
@@ -711,9 +704,10 @@ function drawCell(cell, zoom)
 				clickedCellDesiredState = nil
 				desiredState = nil
 			end
-			local stateWidth = cellInnerWidth / statecount
+			local padding2 = padding
+			local stateWidth = (cellInnerWidth / statecount) - padding2 - padding2
 			local stateHeight = math_floor(cellInnerHeight * 0.14)
-			local stateMargin = math_floor((stateWidth * 0.075) + 0.5)
+			local stateMargin = math_floor((stateWidth * 0.075) + 0.5) + padding2 + padding2
 			local glowSize = math_floor(stateHeight * 8)
 			local r, g, b, a = 0, 0, 0, 0
 			for i = 1, statecount do
@@ -733,10 +727,10 @@ function drawCell(cell, zoom)
 					r, g, b, a = 0, 0, 0, 0.36  -- default off state
 				end
 				glColor(r, g, b, a)
-				local x1 = math_floor(cellRects[cell][1] + leftMargin + padding + (stateWidth * (i - 1)) + (i == 1 and 0 or stateMargin))
-				local y1 = math_floor(cellRects[cell][2] + bottomMargin + padding)
-				local x2 = math_ceil(cellRects[cell][3] - rightMargin - padding - (stateWidth * (statecount - i)) - (i == statecount and 0 or stateMargin))
-				local y2 = math_ceil(cellRects[cell][2] + bottomMargin + stateHeight)
+				local x1 = math_floor(cellRects[cell][1] + leftMargin + padding + padding2 + (stateWidth * (i - 1)) + (i == 1 and 0 or stateMargin))
+				local y1 = math_floor(cellRects[cell][2] + bottomMargin + padding + padding2)
+				local x2 = math_ceil(cellRects[cell][3] - rightMargin - padding - padding2 - (stateWidth * (statecount - i)) - (i == statecount and 0 or stateMargin))
+				local y2 = math_ceil(cellRects[cell][2] + bottomMargin + stateHeight + padding2)
 				-- fancy fitting rectrounds
 				if rows < 6 then
 					RectRound(x1, y1, x2, y2, stateHeight * 0.33,
@@ -762,31 +756,11 @@ function drawCell(cell, zoom)
 end
 
 function drawOrders()
-	-- background
-	RectRound(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], bgpadding * 1.6, 1, 1, 1, 1, { 0.05, 0.05, 0.05, ui_opacity }, { 0, 0, 0, ui_opacity })
-	RectRound(backgroundRect[1] + (posX > 0 and bgpadding or 0), backgroundRect[2] + bgpadding, backgroundRect[3] - bgpadding, backgroundRect[4] - bgpadding, bgpadding, (posX > 0 and 1 or 0), 1, 1, 0, { 0.3, 0.3, 0.3, ui_opacity * 0.1 }, { 1, 1, 1, ui_opacity * 0.1 })
-
-	-- gloss
-	glBlending(GL_SRC_ALPHA, GL_ONE)
-	RectRound(
-		backgroundRect[1] + (posX > 0 and bgpadding or 0),
-		backgroundRect[4] - ((backgroundRect[4] - backgroundRect[2]) * 0.16),
-		backgroundRect[3] - bgpadding, backgroundRect[4] - bgpadding,
-		bgpadding,
-		(posX > 0 and 1 or 0), 1, 0, 0,
-		{ 1, 1, 1, 0.006 * glossMult }, { 1, 1, 1, 0.055 * glossMult }
-	)
-	RectRound(
-		backgroundRect[1] + (posX > 0 and bgpadding or 0),
-		backgroundRect[2] + (posY-height > 0 and bgpadding or 0),
-		backgroundRect[3] - bgpadding, backgroundRect[2] + ((backgroundRect[4] - backgroundRect[2]) * 0.15),
-		bgpadding,
-		0, 0, (posY > 0 and 1 or 0), 0,
-		{ 1, 1, 1, 0.025 * glossMult }, { 1, 1, 1, 0 }
-	)
+	-- just making sure blending mode is correct
 	glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
-	--RectRound(activeRect[1], activeRect[2], activeRect[3], activeRect[4], 0, 0,0,0,0, {1,0,1,0.5}, {1,0,1,0.5})
+	UiElement(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], 1, 1, ((posY-height > 0 or posX <= 0) and 1 or 0), 0)
+
 	if #cmds > 0 then
 		font2:Begin()
 		for cell = 1, #cmds do
@@ -826,12 +800,21 @@ function widget:DrawScreen()
 				if cmds[cell] then
 					if IsOnRect(x, y, cellRects[cell][1], cellRects[cell][2], cellRects[cell][3], cellRects[cell][4]) then
 						local cmd = cmds[cell]
-						if WG['tooltip'] and cmd.tooltip then
-							--Spring.Echo(cmd.name)
+						if WG['tooltip'] then
+							local shortcut = ''
 							if cmdInfo[cmd.name] and cmdInfo[cmd.name][4] then
-								WG['tooltip'].ShowTooltip('ordermenu', '\255\255\215\100'..cmdInfo[cmd.name][4]..'\255\240\240\240 - '..cmd.tooltip)
-							else
-								WG['tooltip'].ShowTooltip('ordermenu', cmd.tooltip)
+								shortcut = '\255\255\215\100'..cmdInfo[cmd.name][4]
+							end
+							local tooltip = ((texts[cmd.name..'_tooltip'] and texts[cmd.name..'_tooltip'] ~= '') and texts[cmd.name..'_tooltip'] or '')
+							-- stockpile doesnt have its own cmd.name but it always starts with a number
+							if tooltip == '' and type(tonumber(string.sub(cmd.name, 1, 1))) == 'number' then
+								tooltip = texts.stockpile_tooltip
+							end
+							if tooltip ~= '' then
+								tooltip = '\255\240\240\240 '..(shortcut ~= '' and '- ' or '') .. tooltip
+							end
+							if shortcut..tooltip ~= '' then
+								WG['tooltip'].ShowTooltip('ordermenu', shortcut..tooltip)
 							end
 						end
 						cellHovered = cell
@@ -882,10 +865,8 @@ function widget:DrawScreen()
 					if cellRects[cell] and cellRects[cell][4] then
 						drawCell(cell, cellHoverZoom)
 
-						local pad = 0
 						local colorMult = 1
 						if cmds[cell] and activeCmd == cmds[cell].name then
-							pad = (bgBorder * vsy) * 0.35
 							colorMult = 0.4
 						end
 
@@ -908,9 +889,11 @@ function widget:DrawScreen()
 						--end
 
 						-- gloss highlight
+						local pad = math_max(1, math_floor(bgpadding * 0.52))
+						local pad2 = pad
 						glBlending(GL_SRC_ALPHA, GL_ONE)
-						RectRound(cellRects[cell][1] + leftMargin + pad, cellRects[cell][4] - topMargin - bgpadding - pad - ((cellRects[cell][4] - cellRects[cell][2]) * 0.42), cellRects[cell][3] - rightMargin, (cellRects[cell][4] - topMargin - pad), cellWidth * 0.025, 2, 2, 0, 0, { 1, 1, 1, 0.035 * colorMult }, { 1, 1, 1, (disableInput and 0.11 * colorMult or 0.24 * colorMult) })
-						RectRound(cellRects[cell][1] + leftMargin + pad, cellRects[cell][2] + bottomMargin + pad, cellRects[cell][3] - rightMargin - pad, (cellRects[cell][2] - bottomMargin - pad) + ((cellRects[cell][4] - cellRects[cell][2]) * 0.5), cellWidth * 0.025, 0, 0, 2, 2, { 1, 1, 1, (disableInput and 0.035 * colorMult or 0.075 * colorMult) }, { 1, 1, 1, 0 })
+						RectRound(cellRects[cell][1] + leftMargin + pad + pad2, cellRects[cell][4] - topMargin - bgpadding - pad - pad2 - ((cellRects[cell][4] - cellRects[cell][2]) * 0.42), cellRects[cell][3] - rightMargin - pad - pad2, (cellRects[cell][4] - topMargin - pad - pad2), cellMargin * 0.025, 2, 2, 0, 0, { 1, 1, 1, 0.035 * colorMult }, { 1, 1, 1, (disableInput and 0.11 * colorMult or 0.24 * colorMult) })
+						RectRound(cellRects[cell][1] + leftMargin + pad + pad2, cellRects[cell][2] + bottomMargin + pad + pad2, cellRects[cell][3] - rightMargin - pad - pad2, (cellRects[cell][2] - bottomMargin - pad - pad2) + ((cellRects[cell][4] - cellRects[cell][2]) * 0.5), cellMargin * 0.025, 0, 0, 2, 2, { 1, 1, 1, (disableInput and 0.035 * colorMult or 0.075 * colorMult) }, { 1, 1, 1, 0 })
 						glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 					end
 				end
@@ -921,7 +904,6 @@ function widget:DrawScreen()
 				local cell = clickedCell
 				if cellRects[cell] and cellRects[cell][4] then
 					local isActiveCmd = (cmds[cell].name == activeCmd)
-					local padding = (bgBorder * vsy) * 0.5
 					local duration = 0.33
 					if isActiveCmd then
 						duration = 0.45
@@ -936,7 +918,28 @@ function widget:DrawScreen()
 							glBlending(GL_SRC_ALPHA, GL_ONE)
 							glColor(1, 1, 1, alpha)
 						end
-						RectRound(cellRects[cell][1] + cellMarginPx, cellRects[cell][2] + cellMarginPx, cellRects[cell][3] - cellMarginPx2, (cellRects[cell][4] - cellMarginPx2), cellWidth * 0.025, 2, 2, 2, 2)
+
+						local leftMargin = cellMarginPx
+						local rightMargin = cellMarginPx2
+						local topMargin = cellMarginPx
+						local bottomMargin = cellMarginPx2
+						local yFirstMargin = cell % rows == 1 and rightMargin or leftMargin
+						if cell % cols == 1 then
+							leftMargin = cellMarginPx2
+						end
+						if cell % cols == 0 then
+							rightMargin = cellMarginPx2
+						end
+						if cols/cell >= 1  then
+							topMargin = math_floor(((cellMarginPx + cellMarginPx2) / 2) + 0.5)
+						end
+						--if cols/cell < 1/(cols-1) then
+						--  bottomMargin = cellMarginPx2
+						--end
+
+						-- gloss highlight
+						local pad = math_max(1, math_floor(bgpadding * 0.52))
+						RectRound(cellRects[cell][1] + leftMargin + pad, cellRects[cell][2] + bottomMargin + pad, cellRects[cell][3] - rightMargin - pad, cellRects[cell][4] - topMargin - pad, pad, 2, 2, 2, 2)
 					else
 						clickedCellTime = nil
 					end
@@ -1014,7 +1017,7 @@ end
 
 function widget:GetConfigData()
 	--save config
-	return { colorize = colorize, stickToBottom = stickToBottom, alwaysShow = alwaysShow}
+	return { colorize = colorize, stickToBottom = stickToBottom, alwaysShow = alwaysShow, disabledCmd = disabledCmd}
 end
 
 function widget:SetConfigData(data)
@@ -1027,5 +1030,8 @@ function widget:SetConfigData(data)
 	end
 	if data.alwaysShow ~= nil then
 		alwaysShow = data.alwaysShow
+	end
+	if data.disabledCmd ~= nil then
+		disabledCmd = data.disabledCmd
 	end
 end

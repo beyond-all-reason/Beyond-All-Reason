@@ -5,15 +5,18 @@
 -- BAR requires higher textureatlas size for particles than the default of 2048x2048
 local maxTextureAtlasSize = 4096
 Spring.SetConfigInt("MaxTextureAtlasSizeX", maxTextureAtlasSize)
-Spring.SetConfigInt("MaxTextureAtlasSizeZ", maxTextureAtlasSize)
+Spring.SetConfigInt("MaxTextureAtlasSizeY", maxTextureAtlasSize)
 if tonumber(Spring.GetConfigInt("MaxTextureAtlasSizeX",2048) or 2048) < maxTextureAtlasSize then
 	Spring.SetConfigInt("MaxTextureAtlasSizeX", maxTextureAtlasSize)
-	Spring.SetConfigInt("MaxTextureAtlasSizeZ", maxTextureAtlasSize)
+	Spring.SetConfigInt("MaxTextureAtlasSizeY", maxTextureAtlasSize)
 end
 
 -- Sets necessary spring configuration parameters, so shaded units look the way they should
 Spring.SetConfigInt("CubeTexGenerateMipMaps", 1)
 Spring.SetConfigInt("CubeTexSizeReflection", 2048)
+
+-- disable grass
+Spring.SetConfigInt("GrassDetail", 0)
 
 -- adv unit shading
 if not tonumber(Spring.GetConfigInt("AdvUnitShading",0) or 0) then
@@ -23,6 +26,18 @@ end
 -- adv map shading
 if not tonumber(Spring.GetConfigInt("AdvMapShading",0) or 0) then
 	Spring.SetConfigInt("AdvMapShading", 1)
+end
+
+-- make sure default/minimum ui opacity is set
+if Spring.GetConfigFloat("ui_opacity", 0.6) < 0.3 then
+	Spring.SetConfigFloat("ui_opacity", 0.6)
+end
+-- set default bg tile settings
+if Spring.GetConfigFloat("ui_tileopacity", 0.011) < 0 then
+	Spring.SetConfigFloat("ui_tileopacity", 0.011)
+end
+if Spring.GetConfigFloat("ui_tilescale", 7) < 0 then
+	Spring.SetConfigFloat("ui_tilescale", 7)
 end
 
 -- disable ForceDisableShaders
@@ -50,3 +65,25 @@ Spring.SetConfigInt("LoadingMT", 0)
 
 -- Chobby had this set to 100 before and it introduced latency of 4ms a sim-frame, having a 10%-15% penalty compared it the default
 Spring.SetConfigInt("LuaGarbageCollectionMemLoadMult", 2)
+
+
+Spring.SetConfigFloat("CrossAlpha", 0)	-- will be in effect next launch
+
+-- change some default value(s), upp the version and set what needs to be set
+local version = 2
+if Spring.GetConfigInt("version", 0) < version then
+	Spring.SetConfigInt("version", version)
+
+	-- set icon settings
+	Spring.SetConfigFloat("UnitIconScaleUI", 1)
+	Spring.SetConfigInt("UnitIconFadeVanish", 2000)
+	Spring.SetConfigInt("UnitIconFadeStart", 2200)
+	Spring.SetConfigInt("UnitIconsHideWithUI", 1)
+
+	--if Spring.GetConfigFloat("ui_tileopacity", 0.011) <= 0 then
+	--	Spring.SetConfigFloat("ui_tileopacity", 0.011)
+	--end
+	--if Spring.GetConfigFloat("ui_tilescale", 7) <= 0 then
+	--	Spring.SetConfigFloat("ui_tilescale", 7)
+	--end
+end

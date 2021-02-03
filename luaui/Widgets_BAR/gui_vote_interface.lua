@@ -10,7 +10,12 @@ function widget:GetInfo()
 	}
 end
 
-local debug = false
+local texts = {        -- fallback (if you want to change this, also update: language/en.lua, or it will be overwritten)
+	no = 'NO',
+	yes = 'YES',
+	endvote = 'End Vote',
+	esc = 'ESC',
+}
 
 -- dont show vote interface for specs for the following keywords (use lowercase)
 local specBadKeywords = { 'forcestart', 'stop' }
@@ -22,8 +27,9 @@ local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity", 0.6) or 0.66)
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
 local glossMult = 1 + (2 - (ui_opacity * 2))    -- increase gloss/highlight so when ui is transparant, you can still make out its boundaries and make it less flat
 
-local widgetSpaceMargin = math.floor((0.0045 * (vsy / vsx)) * vsx * ui_scale)
-local bgpadding = math.ceil(widgetSpaceMargin * 0.66)
+local widgetSpaceMargin = Spring.FlowUI.elementMargin
+local bgpadding = Spring.FlowUI.elementPadding
+local elementCorner = Spring.FlowUI.elementCorner
 
 local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 
@@ -37,111 +43,12 @@ local GL_SRC_ALPHA = GL.SRC_ALPHA
 local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 local GL_ONE = GL.ONE
 
+local RectRound = Spring.FlowUI.Draw.RectRound
+local UiElement = Spring.FlowUI.Draw.Element
+local UiButton = Spring.FlowUI.Draw.Button
 
-local function DrawRectRound(px, py, sx, sy, cs, tl, tr, br, bl, c1, c2)
-	local csyMult = 1 / ((sy - py) / cs)
-
-	if c2 then
-		gl.Color(c1[1], c1[2], c1[3], c1[4])
-	end
-	gl.Vertex(px + cs, py, 0)
-	gl.Vertex(sx - cs, py, 0)
-	if c2 then
-		gl.Color(c2[1], c2[2], c2[3], c2[4])
-	end
-	gl.Vertex(sx - cs, sy, 0)
-	gl.Vertex(px + cs, sy, 0)
-
-	-- left side
-	if c2 then
-		gl.Color(c1[1] * (1 - csyMult) + (c2[1] * csyMult), c1[2] * (1 - csyMult) + (c2[2] * csyMult), c1[3] * (1 - csyMult) + (c2[3] * csyMult), c1[4] * (1 - csyMult) + (c2[4] * csyMult))
-	end
-	gl.Vertex(px, py + cs, 0)
-	gl.Vertex(px + cs, py + cs, 0)
-	if c2 then
-		gl.Color(c2[1] * (1 - csyMult) + (c1[1] * csyMult), c2[2] * (1 - csyMult) + (c1[2] * csyMult), c2[3] * (1 - csyMult) + (c1[3] * csyMult), c2[4] * (1 - csyMult) + (c1[4] * csyMult))
-	end
-	gl.Vertex(px + cs, sy - cs, 0)
-	gl.Vertex(px, sy - cs, 0)
-
-	-- right side
-	if c2 then
-		gl.Color(c1[1] * (1 - csyMult) + (c2[1] * csyMult), c1[2] * (1 - csyMult) + (c2[2] * csyMult), c1[3] * (1 - csyMult) + (c2[3] * csyMult), c1[4] * (1 - csyMult) + (c2[4] * csyMult))
-	end
-	gl.Vertex(sx, py + cs, 0)
-	gl.Vertex(sx - cs, py + cs, 0)
-	if c2 then
-		gl.Color(c2[1] * (1 - csyMult) + (c1[1] * csyMult), c2[2] * (1 - csyMult) + (c1[2] * csyMult), c2[3] * (1 - csyMult) + (c1[3] * csyMult), c2[4] * (1 - csyMult) + (c1[4] * csyMult))
-	end
-	gl.Vertex(sx - cs, sy - cs, 0)
-	gl.Vertex(sx, sy - cs, 0)
-
-	-- bottom left
-	if c2 then
-		gl.Color(c1[1], c1[2], c1[3], c1[4])
-	end
-	if ((py <= 0 or px <= 0) or (bl ~= nil and bl == 0)) and bl ~= 2 then
-		gl.Vertex(px, py, 0)
-	else
-		gl.Vertex(px + cs, py, 0)
-	end
-	gl.Vertex(px + cs, py, 0)
-	if c2 then
-		gl.Color(c1[1] * (1 - csyMult) + (c2[1] * csyMult), c1[2] * (1 - csyMult) + (c2[2] * csyMult), c1[3] * (1 - csyMult) + (c2[3] * csyMult), c1[4] * (1 - csyMult) + (c2[4] * csyMult))
-	end
-	gl.Vertex(px + cs, py + cs, 0)
-	gl.Vertex(px, py + cs, 0)
-	-- bottom right
-	if c2 then
-		gl.Color(c1[1], c1[2], c1[3], c1[4])
-	end
-	if ((py <= 0 or sx >= vsx) or (br ~= nil and br == 0)) and br ~= 2 then
-		gl.Vertex(sx, py, 0)
-	else
-		gl.Vertex(sx - cs, py, 0)
-	end
-	gl.Vertex(sx - cs, py, 0)
-	if c2 then
-		gl.Color(c1[1] * (1 - csyMult) + (c2[1] * csyMult), c1[2] * (1 - csyMult) + (c2[2] * csyMult), c1[3] * (1 - csyMult) + (c2[3] * csyMult), c1[4] * (1 - csyMult) + (c2[4] * csyMult))
-	end
-	gl.Vertex(sx - cs, py + cs, 0)
-	gl.Vertex(sx, py + cs, 0)
-	-- top left
-	if c2 then
-		gl.Color(c2[1], c2[2], c2[3], c2[4])
-	end
-	if ((sy >= vsy or px <= 0) or (tl ~= nil and tl == 0)) and tl ~= 2 then
-		gl.Vertex(px, sy, 0)
-	else
-		gl.Vertex(px + cs, sy, 0)
-	end
-	gl.Vertex(px + cs, sy, 0)
-	if c2 then
-		gl.Color(c2[1] * (1 - csyMult) + (c1[1] * csyMult), c2[2] * (1 - csyMult) + (c1[2] * csyMult), c2[3] * (1 - csyMult) + (c1[3] * csyMult), c2[4] * (1 - csyMult) + (c1[4] * csyMult))
-	end
-	gl.Vertex(px + cs, sy - cs, 0)
-	gl.Vertex(px, sy - cs, 0)
-	-- top right
-	if c2 then
-		gl.Color(c2[1], c2[2], c2[3], c2[4])
-	end
-	if ((sy >= vsy or sx >= vsx) or (tr ~= nil and tr == 0)) and tr ~= 2 then
-		gl.Vertex(sx, sy, 0)
-	else
-		gl.Vertex(sx - cs, sy, 0)
-	end
-	gl.Vertex(sx - cs, sy, 0)
-	if c2 then
-		gl.Color(c2[1] * (1 - csyMult) + (c1[1] * csyMult), c2[2] * (1 - csyMult) + (c1[2] * csyMult), c2[3] * (1 - csyMult) + (c1[3] * csyMult), c2[4] * (1 - csyMult) + (c1[4] * csyMult))
-	end
-	gl.Vertex(sx - cs, sy - cs, 0)
-	gl.Vertex(sx, sy - cs, 0)
-end
-function RectRound(px, py, sx, sy, cs, tl, tr, br, bl, c1, c2)
-	-- (coordinates work differently than the RectRound func in other widgets)
-	gl.Texture(false)
-	gl.BeginEnd(GL.QUADS, DrawRectRound, px, py, sx, sy, cs, tl, tr, br, bl, c1, c2)
-end
+local voteDlist, chobbyInterface, font, font2, gameStarted, height, dlistGuishader
+local voteOwner, hovered, voteName, windowArea, closeButtonArea, yesButtonArea, noButtonArea
 
 function IsOnRect(x, y, BLcornerX, BLcornerY, TRcornerX, TRcornerY)
 	return x >= BLcornerX and x <= TRcornerX and y >= BLcornerY and y <= TRcornerY
@@ -151,8 +58,9 @@ function widget:ViewResize()
 	vsx, vsy = Spring.GetViewGeometry()
 	widgetScale = (0.5 + (vsx * vsy / 5700000)) * 1.55
 
-	widgetSpaceMargin = math.floor((0.0045 * (vsy / vsx)) * vsx * ui_scale)
-	bgpadding = math.ceil(widgetSpaceMargin * 0.66)
+	widgetSpaceMargin = Spring.FlowUI.elementMargin
+	bgpadding = Spring.FlowUI.elementPadding
+	elementCorner = Spring.FlowUI.elementCorner
 
 	font, loadedFontSize = WG['fonts'].getFont()
 	font2 = WG['fonts'].getFont(fontfile2)
@@ -165,13 +73,11 @@ end
 local sec = 0
 local uiOpacitySec = 0
 function widget:Update(dt)
-	if debug then
-		myName,_,mySpec,myTeamID,myAllyTeamID = Spring.GetPlayerInfo(1,false)
-		sec = sec + dt
-		if sec > 0.66 and not voteDlist then
-			StartVote('testvote yeah!', 'somebody')
-		end
-	end
+	--myName,_,mySpec,myTeamID,myAllyTeamID = Spring.GetPlayerInfo(1,false)
+	--sec = sec + dt
+	--if sec > 1 and not voteDlist then
+	--	StartVote('testvote yeah!', 'somebody')
+	--end
 
 	uiOpacitySec = uiOpacitySec + dt
 	if uiOpacitySec > 0.5 then
@@ -182,13 +88,15 @@ function widget:Update(dt)
 		end
 		if ui_scale ~= Spring.GetConfigFloat("ui_scale", 1) then
 			ui_scale = Spring.GetConfigFloat("ui_scale", 1)
-			height = orgHeight * (1 + (ui_scale - 1) / 1.7)
 			widget:ViewResize()
 		end
 	end
 end
 
 function widget:Initialize()
+	if WG['lang'] then
+		texts = WG['lang'].getText('voteinterface')
+	end
 	widget:ViewResize()
 	if Spring.IsReplay() then
 		widgetHandler:RemoveWidget(self)
@@ -291,8 +199,8 @@ function StartVote(name, owner)
 
 			if WG['topbar'] ~= nil then
 				local topbarArea = WG['topbar'].GetPosition()
-				xpos = vsx*0.75
-				--xpos = math.floor(topbarArea[1] + (width) + widgetSpaceMargin)
+				--xpos = vsx-(width/2)
+				xpos = math.floor(topbarArea[1] + (width/2) + widgetSpaceMargin + ((topbarArea[3] - topbarArea[1])/2))
 				ypos = math.floor(topbarArea[2] - (5 * topbarArea[5]) - (height / 2))
 			end
 
@@ -303,14 +211,7 @@ function StartVote(name, owner)
 			yesButtonArea = { xpos - (width / 2) + buttonMargin, ypos - (height / 2) + buttonMargin, xpos - (buttonMargin / 2), ypos - (height / 2) + buttonHeight - buttonMargin }
 			noButtonArea = { xpos + (buttonMargin / 2), ypos - (height / 2) + buttonMargin, xpos + (width / 2) - buttonMargin, ypos - (height / 2) + buttonHeight - buttonMargin }
 
-			-- window
-			RectRound(windowArea[1], windowArea[2], windowArea[3], windowArea[4], bgpadding * 1.6, 1, 1, 1, 1, { 0.05, 0.05, 0.05, WG['guishader'] and 0.8 or 0.88 }, { 0, 0, 0, WG['guishader'] and 0.8 or 0.88 })
-			RectRound(windowArea[1] + bgpadding, windowArea[2] + bgpadding, windowArea[3] - bgpadding, windowArea[4] - bgpadding, bgpadding * 1.25, 1, 1, 1, 1, { 0.25, 0.22, 0.22, 0.2 }, { 0.5, 0.5, 0.5, 0.15 })
-
-			-- gloss
-			glBlending(GL_SRC_ALPHA, GL_ONE)
-			RectRound(windowArea[1] + bgpadding, windowArea[2] + bgpadding, windowArea[3] - bgpadding, windowArea[4] - bgpadding, bgpadding * 1.25, 0, 0, 0, 0, { 1, 1, 1, 0.006 * glossMult }, { 1, 1, 1, 0.055 * glossMult })
-			glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+			UiElement(windowArea[1], windowArea[2], windowArea[3], windowArea[4], 1,1,1,1, 1,1,1,1, Spring.GetConfigFloat("ui_opacity", 0.6) + 0.2)
 
 			-- close
 			--gl.Color(0.1,0.1,0.1,0.55+(0.36))
@@ -326,7 +227,7 @@ function StartVote(name, owner)
 				color1 = { 0.6, 0.6, 0.6, 0.08 }
 				color2 = { 1, 1, 1, 0.08 }
 			end
-			RectRound(closeButtonArea[1] + bgpadding, closeButtonArea[2] + bgpadding, closeButtonArea[3] - bgpadding, closeButtonArea[4] - bgpadding, bgpadding * 1.25, 0, 1, 0, 1, color1, color2)
+			RectRound(closeButtonArea[1] + bgpadding, closeButtonArea[2] + bgpadding, closeButtonArea[3] - bgpadding, closeButtonArea[4] - bgpadding, elementCorner*0.66, 0, 1, 0, 1, color1, color2)
 
 			fontSize = fontSize * 0.85
 			gl.Color(0, 0, 0, 1)
@@ -338,7 +239,7 @@ function StartVote(name, owner)
 
 			font2:Begin()
 			-- ESC
-			font2:Print("\255\0\0\0ESC", closeButtonArea[1] + ((closeButtonArea[3] - closeButtonArea[1]) / 2), closeButtonArea[2] + ((closeButtonArea[4] - closeButtonArea[2]) / 2) - (fontSize / 3), fontSize, "cn")
+			font2:Print("\255\0\0\0"..texts.esc, closeButtonArea[1] + ((closeButtonArea[3] - closeButtonArea[1]) / 2), closeButtonArea[2] + ((closeButtonArea[4] - closeButtonArea[2]) / 2) - (fontSize / 3), fontSize, "cn")
 
 			-- NO
 			local color1, color2, mult
@@ -354,20 +255,12 @@ function StartVote(name, owner)
 				color2 = { 0.5, 0, 0, 0.75 }
 				mult = 1
 			end
-			RectRound(noButtonArea[1], noButtonArea[2], noButtonArea[3], noButtonArea[4], bgpadding * 0.7, 1, 1, 1, 1, color1, color2)
-			local padding = math.max(1, math.floor(widgetScale*1.5))
-			RectRound(noButtonArea[1]+padding, noButtonArea[2]+padding, noButtonArea[3]-padding, noButtonArea[4]-padding, bgpadding * 0.4, 1, 1, 1, 1, {0,0,0,0}, {0,0,0,0.12})
+			UiButton(noButtonArea[1], noButtonArea[2], noButtonArea[3], noButtonArea[4], 1,1,1,1, 1,1,1,1, nil, color1, color2, elementCorner*0.4)
 
-			-- gloss
-			glBlending(GL_SRC_ALPHA, GL_ONE)
-			RectRound(noButtonArea[1], noButtonArea[4] - ((noButtonArea[4] - noButtonArea[2]) * 0.5), noButtonArea[3], noButtonArea[4], bgpadding * 0.7, 2, 2, 0, 0, { 1, 1, 1, 0.02 * mult }, { 1, 1, 1, 0.16 * mult })
-			RectRound(noButtonArea[1], noButtonArea[2], noButtonArea[3], noButtonArea[2] + ((noButtonArea[4] - noButtonArea[2]) * 0.35), bgpadding * 0.7, 0, 0, 2, 2, { 1, 1, 1, 0.06 * mult }, { 1, 1, 1, 0 })
-			glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-
-			fontSize = fontSize * 0.88
-			local noText = 'NO'
+			fontSize = fontSize * 0.85
+			local noText = texts.no
 			if voteOwner then
-				noText = 'End Vote'
+				noText = texts.endvote
 			end
 			font2:SetOutlineColor(0, 0, 0, 0.4)
 			font2:Print(noText, noButtonArea[1] + ((noButtonArea[3] - noButtonArea[1]) / 2), noButtonArea[2] + ((noButtonArea[4] - noButtonArea[2]) / 2) - (fontSize / 3), fontSize, "con")
@@ -386,24 +279,16 @@ function StartVote(name, owner)
 					color2 = { 0, 0.5, 0, 0.38 }
 					mult = 1
 				end
-				RectRound(yesButtonArea[1], yesButtonArea[2], yesButtonArea[3], yesButtonArea[4], bgpadding * 0.7, 1, 1, 1, 1, color1, color2)
-				local padding = math.max(1, math.floor(widgetScale*1.5))
-				RectRound(yesButtonArea[1]+padding, yesButtonArea[2]+padding, yesButtonArea[3]-padding, yesButtonArea[4]-padding, bgpadding * 0.4, 1, 1, 1, 1, {0,0,0,0}, {0,0,0,0.12})
+				UiButton(yesButtonArea[1], yesButtonArea[2], yesButtonArea[3], yesButtonArea[4], 1,1,1,1, 1,1,1,1, nil, color1, color2, elementCorner*0.4)
 
-				-- gloss
-				glBlending(GL_SRC_ALPHA, GL_ONE)
-				RectRound(yesButtonArea[1], yesButtonArea[4] - ((yesButtonArea[4] - yesButtonArea[2]) * 0.5), yesButtonArea[3], yesButtonArea[4], bgpadding * 0.7, 2, 2, 0, 0, { 1, 1, 1, 0.02 * mult }, { 1, 1, 1, 0.16 * mult })
-				RectRound(yesButtonArea[1], yesButtonArea[2], yesButtonArea[3], yesButtonArea[2] + ((yesButtonArea[4] - yesButtonArea[2]) * 0.35), bgpadding * 0.7, 0, 0, 2, 2, { 1, 1, 1, 0.06 * mult }, { 1, 1, 1, 0 })
-				glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-
-				font2:Print("YES", yesButtonArea[1] + ((yesButtonArea[3] - yesButtonArea[1]) / 2), yesButtonArea[2] + ((yesButtonArea[4] - yesButtonArea[2]) / 2) - (fontSize / 3), fontSize, "con")
+				font2:Print(texts.yes, yesButtonArea[1] + ((yesButtonArea[3] - yesButtonArea[1]) / 2), yesButtonArea[2] + ((yesButtonArea[4] - yesButtonArea[2]) / 2) - (fontSize / 3), fontSize, "con")
 			end
 			font2:End()
 		end)
 		-- background blur
 		if WG['guishader'] then
 			dlistGuishader = gl.CreateList(function()
-				RectRound(windowArea[1], windowArea[2], windowArea[3], windowArea[4], bgpadding * 1.6)
+				RectRound(windowArea[1], windowArea[2], windowArea[3], windowArea[4], elementCorner)
 			end)
 			WG['guishader'].InsertDlist(dlistGuishader, 'voteinterface')
 		end

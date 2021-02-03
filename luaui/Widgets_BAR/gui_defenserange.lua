@@ -65,7 +65,6 @@ modConfig["BYAR"]["unitList"] = {
 	-- CORTEX
 	cormaw = { weapons = { 1 } },
 	corexp = { weapons = { 1 } },
-	cormaw = { weapons = { 1 } },
 	corllt = { weapons = { 1 } },
 	corhllt = { weapons = { 1 } },
 	corhlt = { weapons = { 1 } },
@@ -241,7 +240,7 @@ local spIsSphereInView  	= Spring.IsSphereInView
 local udefTab				= UnitDefs
 local weapTab				= WeaponDefs
 
-
+local chobbyInterface
 
 local mapBaseHeight
 local h = {}
@@ -413,8 +412,7 @@ function UnitDetected( unitID, allyTeam, teamId )
 				type = currentModConfig["unitList"][unitName[unitDefID]]["weapons"][i]
 
 				local dam = weaponDef.damages
-				local dps
-				local damage
+				local dps, damage, color1, color2
 
 				--check if dps-depending colors should be used
 				if currentModConfig["armorTags"] ~= nil then
@@ -531,10 +529,6 @@ function GetColorByDps( dps, isEnemy, typeStr )
 	--	printDebug( "#" .. i .. ":" .. "min: " .. colorConfig[team][typeStr]["min"]["color"][i] .. " max: " .. colorConfig[team][typeStr]["max"]["color"][i] .. " calc: " .. color[i] )
 	end
 	return color
-end
-
-function SetButtonOrigin(coords, xlen, ylen, xstep, ystep)
-  buttonConfig["nextOrigin"] = {coords, xlen, ylen, xstep, ystep}
 end
 
 
@@ -666,10 +660,10 @@ function GetRange2DCannon( range, yDiff, projectileSpeed, rangeFactor, myGravity
 	local speed2d = projectileSpeed*factor
 	local speed2dSq = speed2d*speed2d
 	local curGravity = Game.gravity
+	local gravity = - ( curGravity / 900 ) -- -0.13333333
 	if myGravity ~= nil and myGravity ~= 0 then
 		gravity = myGravity   -- i have never seen a stationary weapon using myGravity tag, so its untested :D
 	end
-	local gravity = - ( curGravity / 900 ) -- -0.13333333
 
 	--printDebug("rangeFactor: " .. rangeFactor)
 	--printDebug("ProjSpeed: " .. projectileSpeed)

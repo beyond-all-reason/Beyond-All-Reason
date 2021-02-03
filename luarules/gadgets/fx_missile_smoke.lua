@@ -70,9 +70,7 @@ end
 
 
 function gadget:ProjectileDestroyed(proID)
-    if missileWeapons[weaponDefID] then
-        missiles[proID] = nil
-    end
+	missiles[proID] = nil
 end
 
 

@@ -20,11 +20,11 @@ table.insert(OPTIONS, {
 	circleSpaceUsage				= 0.8,
 	circleInnerOffset				= 0,
 	rotationSpeed					= 8,
-	
+
 	-- size
 	innersize						= 1.85,		-- outersize-innersize = circle width
 	outersize						= 2.02,		-- outersize-innersize = circle width
-	
+
 	alphaFalloffdistance			= 750,
 	maxAlpha						= 0.55,
 })
@@ -41,6 +41,9 @@ local transDefs = {}
 local cantBeTransported = {}
 local unitMass = {}
 local unitXsize = {}
+
+local circleList, currentClock, chobbyInterface
+
 for defID, def in pairs(UnitDefs) do
 	if def.transportSize and def.transportSize > 0 then
 		validTrans[defID] = true
@@ -61,13 +64,13 @@ local function DrawCircleLine(innersize, outersize)
 		local radstep = (2.0 * math.pi) / OPTIONS[currentOption].circlePieces
 		for i = 1, OPTIONS[currentOption].circlePieces do
 			for d = 1, detail do
-				
+
 				detailPartWidth = ((width / detail) * d)
 				a1 = ((i+detailPartWidth - (width / detail)) * radstep)
 				a2 = ((i+detailPartWidth) * radstep)
 				a3 = ((i+OPTIONS[currentOption].circleInnerOffset+detailPartWidth - (width / detail)) * radstep)
 				a4 = ((i+OPTIONS[currentOption].circleInnerOffset+detailPartWidth) * radstep)
-				
+
 				--outer (fadein)
 				gl.Vertex(math.sin(a4)*innersize, 0, math.cos(a4)*innersize)
 				gl.Vertex(math.sin(a3)*innersize, 0, math.cos(a3)*innersize)
@@ -182,10 +185,10 @@ end
 
 function widget:DrawWorldPreUnit()
 	if chobbyInterface then return end
-	
+
 	local clockDifference = (os.clock() - previousOsClock)
 	previousOsClock = os.clock()
-	
+
 	-- animate rotation
 	if OPTIONS[currentOption].rotationSpeed > 0 then
 		local angleDifference = (OPTIONS[currentOption].rotationSpeed) * (clockDifference * 5)
@@ -193,13 +196,13 @@ function widget:DrawWorldPreUnit()
 		if currentRotationAngle > 360 then
 		   currentRotationAngle = currentRotationAngle - 360
 		end
-	
+
 		currentRotationAngleOpposite = currentRotationAngleOpposite - angleDifference
 		if currentRotationAngleOpposite < -360 then
 		   currentRotationAngleOpposite = currentRotationAngleOpposite + 360
 		end
 	end
-	
+
 	local alpha = 1
     for unitID,_ in pairs(unitstodraw) do
         local pos = unitstodraw[unitID].pos
@@ -215,7 +218,7 @@ function widget:DrawWorldPreUnit()
 			gl.DrawListAtUnit(unitID, circleList, false, size*1.18, 1.0, size*1.18, -currentRotationAngle, 0, 1, 0)
 		end
     end
-    
+
     gl.Color(1,1,1,1)
     gl.LineWidth(1)
 end

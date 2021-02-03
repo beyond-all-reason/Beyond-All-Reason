@@ -1,139 +1,66 @@
-piece body,head,tail,lthigh,lknee,lshin,lfoot,rthigh,rknee,rshin,rfoot,lforearm,lupperarm,lblade,rforearm,rupperarm,rblade;
-
-static-var aMoving, bMoving;
-
-// Signal definitions
-#define SIG_AIM				2
-#define SIG_AIM_2			4
-#define SIG_MOVE			16
+piece base, body, head,tail,lthigh,lknee,lshin,lfoot,rthigh,rknee,rshin,rfoot,lforearm,lupperarm,lblade,rforearm,rupperarm,rblade, aimy1;
 
 #include "sfxtype.h"
 #include "exptype.h"
 
-walk()
-{
- while (aMoving)
- {
-    bMoving = TRUE;
-	if (aMoving) {
-			turn lthigh to x-axis <70> speed<230>;
-			turn lknee to x-axis <-40> speed<270>;
-			turn lshin to x-axis <20> speed<270>;
-			turn lfoot to x-axis <-50> speed<420>;
-			
-			turn rthigh to x-axis <-20> speed<420>;
-			turn rknee to x-axis <-60> speed<420>;
-			turn rshin to x-axis <50> speed<420>;
-			turn rfoot to x-axis <30> speed<420>;
-			
-			turn body to z-axis <5> speed <40>;
-			turn lthigh to z-axis <-5> speed <40>;
-			turn rthigh to z-axis <-5> speed <40>;
-			move body to y-axis [0.7] speed <8000>;			
-			turn tail to y-axis <10> speed <80>;
-			turn head to x-axis <-10> speed <40>;
-			turn tail to x-axis <10> speed <40>;
-			wait-for-turn lthigh around x-axis;
-		}
-	if (aMoving) {		
-			turn lthigh to x-axis <-10> speed<320>;
-			turn lknee to x-axis <15> speed<270>;
-			turn lshin to x-axis <-60> speed<500>;
-			turn lfoot to x-axis <30> speed<270>;
-			
-			turn rthigh to x-axis <40> speed<270>;
-			turn rknee to x-axis <-35> speed<270>;
-			turn rshin to x-axis <-40> speed<270>;
-			turn rfoot to x-axis <35> speed<270>;
-			
-			move body to y-axis <0> speed <8000>;
-			turn head to x-axis <10> speed <40>;
-			turn tail to x-axis <-10> speed <40>;
-			wait-for-turn lshin around x-axis;
-		}
-	if (aMoving) {	
-			turn rthigh to x-axis <70> speed<230>;
-			turn rknee to x-axis <-40> speed<270>;
-			turn rshin to x-axis <20> speed<270>;
-			turn rfoot to x-axis <-50> speed<420>;
-			
-			turn lthigh to x-axis <-20> speed<420>;
-			turn lknee to x-axis <-60> speed<420>;
-			turn lshin to x-axis <50> speed<420>;
-			turn lfoot to x-axis <30> speed<420>;
-			
-			turn tail to y-axis <-10> speed <80>;
-			turn body to z-axis <-5> speed <40>;
-			turn lthigh to z-axis <5> speed <40>;
-			turn rthigh to z-axis <5> speed <40>;
-			move body to y-axis [0.7] speed <8000>;
-			turn head to x-axis <-10> speed <40>;
-			turn tail to x-axis <10> speed <40>;
-			wait-for-turn rthigh around x-axis;
-		}
-	if (aMoving) {
-			turn rthigh to x-axis <-10> speed<320>;
-			turn rknee to x-axis <15> speed<270>;
-			turn rshin to x-axis <-60> speed<500>;
-			turn rfoot to x-axis <30> speed<270>;
-			
-			turn lthigh to x-axis <40> speed<270>;
-			turn lknee to x-axis <-35> speed<270>;
-			turn lshin to x-axis <-40> speed<270>;
-			turn lfoot to x-axis <35> speed<270>;
-			
-			
-			move body to y-axis <0> speed <8000>;
-			turn head to x-axis <10> speed <40>;
-			turn tail to x-axis <-10> speed <40>;
-			wait-for-turn rshin around x-axis;
-		}
-	}
-	return 0;
-}
+#define SIG_AIM				2
 
-Halt()
-{	
-	sleep 150;
-	if(!aMoving)
+static-var maxSpeed, animFramesPerKeyframe, bMoving, animSpeed,isDying,gun_1;
+
+// For N:\animations\Chickens\chicken_walk_remaster_v2.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 5))
+#define MOVESCALE 27 //Higher values are bigger, 100 is default
+#define MOVESPEED 4
+#define animAmplitude 100
+#define LUHAND lupperarm  //define these as the left and right head thingies
+#define RUHAND rupperarm  
+#define LLHAND lupperarm  //define these as the left and right head thingies
+#define RLHAND rupperarm  
+#define SIG_WALK 64 //these defines are needed before includes!
+#include "chicken_walk_2legged_v2.h"
+
+
+#define IDLEMOVESCALE 27
+#define IDLEAMPLITUDE 100
+#define IDLESPEED 8
+#include "chicken_idle_2legged_v2.h"
+
+
+#define DEATHSCALE 27 //Higher values are bigger, 100 is default
+#define DEATHAMPLIDUTE 100 //Higher values are bigger, 100 is default
+#define DEATHSPEED 6
+#include "chicken_death_2legged_v2.h"
+//use call-script DeathAnim(); from Killed()
+
+#define BASEPIECE body //needed for HitByWeapon
+#define HITSPEED <55.0>
+//how 'heavy' the unit is, on a scale of 1-10
+#define UNITSIZE 2
+#define MAXTILT 100
+#include "chicken_hitbyweapon.h"
+
+#include "chicken_death_2legged_ptaq.h"
+
+#include "chicken_killed_2legged.h"
+
+#include "chicken_create_move.h"
+
+Shot1()
 	{
-		bMoving = FALSE;
-		turn lfoot		to x-axis <0> 		speed <200>;
-		turn rfoot		to x-axis <0> 		speed <200>;
-		turn rthigh 	to x-axis <0> 		speed <200>;
-		turn lthigh 	to x-axis <0> 		speed <200>;
-		turn lshin  	to x-axis <0> 		speed <200>;
-		turn rshin 		to x-axis <0> 		speed <200>;
-		turn lknee  	to x-axis <0> 		speed <200>;
-		turn rknee 		to x-axis <0> 		speed <200>;
+	turn lforearm to y-axis <-100> speed <600>;
+	turn rforearm to y-axis <100> speed <600>;
+	//turn lblade to y-axis <140> speed <600>;
+	//turn rblade to y-axis <-140> speed <600>;
+	wait-for-turn rforearm around y-axis;
+	turn lforearm to y-axis <0> speed <120>;
+	turn rforearm to y-axis <0> speed <120>;
+	//turn lblade to y-axis <0> speed <120>;
+	//turn rblade to y-axis <0> speed <120>;
 	}
-}
-
-StartMoving()
-{
-	aMoving = TRUE;
-	if (!bMoving)
-	{
-		start-script Walk();
-	}
-}
-
-StopMoving()
-{
-	aMoving = FALSE;
-	start-script Halt();
-}
-
-Create()
-{
-	hide rblade;
-	hide lblade;
-	emit-sfx 1024+2 from body;
-}
 
 StartBuilding()
 {
 	set INBUILDSTANCE to 1;
+	call-script Shot1();
 }
 
 StopBuilding()
@@ -145,43 +72,3 @@ QueryNanoPiece(piecenum)
 {
 	piecenum = head;
 }
-
-
-SweetSpot(piecenum)
-	{	piecenum=body;	}	
-	
-
-RestoreAfterDelay()
-	{
-	sleep 1000;
-	}
-
-	
-Shot1()
-	{
-	turn lforearm to y-axis <-140> speed <600>;
-	turn rforearm to y-axis <140> speed <600>;
-	//turn lblade to y-axis <140> speed <600>;
-	//turn rblade to y-axis <-140> speed <600>;
-	//wait-for-turn rblade around y-axis;
-	turn lforearm to y-axis <0> speed <120>;
-	turn rforearm to y-axis <0> speed <120>;
-	//turn lblade to y-axis <0> speed <120>;
-	//turn rblade to y-axis <0> speed <120>;
-	}
-	
-
-HitByWeaponId()
-	{
-	return 100;
-	}
-
-Killed( severity, corpsetype )
-	{
-	corpsetype = 1;
-	explode head type FALL | NOHEATCLOUD;
-	explode lblade type FALL | NOHEATCLOUD;
-	explode rblade type FALL | NOHEATCLOUD;
-	explode tail type FALL | NOHEATCLOUD;
-	return( 0 );
-	}

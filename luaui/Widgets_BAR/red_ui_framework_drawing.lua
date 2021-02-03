@@ -60,6 +60,7 @@ local GL_MODELVIEW = GL.MODELVIEW
 local blurRect = {}
 local newBlurRect = {}
 
+local font, chobbyInterface
 
 local function Color(c)
 	glColor(c[1],c[2],c[3],c[4])

@@ -3,131 +3,54 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  body, head, tail, lthigh, lknee, lshin, lfoot, rthigh,
-       rknee, rshin, rfoot, rsack, lsack;
+piece  base, body, head, tail, lthigh, lknee, lshin, lfoot, rthigh,
+       rknee, rshin, rfoot, rsack, lsack, aimy1;
 
-static-var  bMoving, Static_Var_2;
+
+// this animation uses the static-var animFramesPerKeyframe which contains how many frames each keyframe takes
+static-var bMoving,maxSpeed, animFramesPerKeyframe, animSpeed,gun_1,isDying;
 
 // Signal definitions
 #define SIG_AIM				2
-#define CHANGE_TARGET       98 
 
-walk()
-{
-	while( bMoving )
-	{
-		Static_Var_2 = 1;
-		if( bMoving )
-		{
-			turn lthigh to x-axis <70.000000> speed <115.000000>;
-			turn lknee to x-axis <-40.000000> speed <145.000000>;
-			turn lshin to x-axis <20.000000> speed <145.000000>;
-			turn lfoot to x-axis <-50.000000> speed <210.000000>;
-			turn rthigh to x-axis <-20.000000> speed <210.000000>;
-			turn rknee to x-axis <-60.000000> speed <210.000000>;
-			turn rshin to x-axis <50.000000> speed <210.000000>;
-			turn rfoot to x-axis <30.000000> speed <210.000000>;
-			turn body to z-axis <5.000000> speed <20.000000>;
-			turn lthigh to z-axis <-5.000000> speed <20.000000>;
-			turn rthigh to z-axis <-5.000000> speed <20.000000>;
-			move body to y-axis [0.700000] speed [4.443359];
-			turn tail to y-axis <10.000000> speed <40.000000>;
-			turn head to x-axis <-10.000000> speed <20.000000>;
-			turn tail to x-axis <10.000000> speed <20.000000>;
-			wait-for-turn lthigh around x-axis;
-		}
-		if( bMoving )
-		{
-			turn lthigh to x-axis <-10.000000> speed <160.000000>;
-			turn lknee to x-axis <15.000000> speed <145.000000>;
-			turn lshin to x-axis <-60.000000> speed <250.000000>;
-			turn lfoot to x-axis <30.000000> speed <145.000000>;
-			turn rthigh to x-axis <40.000000> speed <145.000000>;
-			turn rknee to x-axis <-35.000000> speed <145.000000>;
-			turn rshin to x-axis <-40.000000> speed <145.000000>;
-			turn rfoot to x-axis <35.000000> speed <145.000000>;
-			move body to y-axis [0.000000] speed [4.443359];
-			turn head to x-axis <10.000000> speed <20.000000>;
-			turn tail to x-axis <-10.000000> speed <20.000000>;
-			wait-for-turn lshin around x-axis;
-		}
-		if( bMoving )
-		{
-			turn rthigh to x-axis <70.000000> speed <115.000000>;
-			turn rknee to x-axis <-40.000000> speed <145.000000>;
-			turn rshin to x-axis <20.000000> speed <145.000000>;
-			turn rfoot to x-axis <-50.000000> speed <210.000000>;
-			turn lthigh to x-axis <-20.000000> speed <210.000000>;
-			turn lknee to x-axis <-60.000000> speed <210.000000>;
-			turn lshin to x-axis <50.000000> speed <210.000000>;
-			turn lfoot to x-axis <30.000000> speed <210.000000>;
-			turn tail to y-axis <-10.000000> speed <40.000000>;
-			turn body to z-axis <-5.000000> speed <20.000000>;
-			turn lthigh to z-axis <5.000000> speed <20.000000>;
-			turn rthigh to z-axis <5.000000> speed <20.000000>;
-			move body to y-axis [0.700000] speed [4.443359];
-			turn head to x-axis <-10.000000> speed <20.000000>;
-			turn tail to x-axis <10.000000> speed <20.000000>;
-			wait-for-turn rthigh around x-axis;
-		}
-		if( bMoving )
-		{
-			turn rthigh to x-axis <-10.000000> speed <160.000000>;
-			turn rknee to x-axis <15.000000> speed <145.000000>;
-			turn rshin to x-axis <-60.000000> speed <250.000000>;
-			turn rfoot to x-axis <30.000000> speed <145.000000>;
-			turn lthigh to x-axis <40.000000> speed <145.000000>;
-			turn lknee to x-axis <-35.000000> speed <145.000000>;
-			turn lshin to x-axis <-40.000000> speed <145.000000>;
-			turn lfoot to x-axis <35.000000> speed <145.000000>;
-			move body to y-axis [0.000000] speed [4.443359];
-			turn head to x-axis <10.000000> speed <20.000000>;
-			turn tail to x-axis <-10.000000> speed <20.000000>;
-			wait-for-turn rshin around x-axis;
-		}
-	}
-}
+// For N:\animations\chicken_2legged_fast_anim_walk.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 2, 8))
+#define MOVESCALE 150 //How much extra body sway the chicken should have. Scale this with size of chicken
+#define MOVESPEED  9  //How many frames per animation cycle, valid 2-10
+#define animAmplitude 45 //How big steps the chicken should take, valid 20-200
+#define LUHAND lsack  //define these as the left and right head thingies
+#define RUHAND rsack  
+#define LLHAND lsack  //define these as the left and right head thingies
+#define RLHAND rsack  
+#define SIG_WALK 64 //these defines are needed before includes!
+#include "chicken_walk_2legged_v2.h"
 
-Halt()
-{
-	sleep 150;
-	if( !bMoving )
-	{
-		Static_Var_2 = 0;
-		turn lfoot to x-axis <0.000000> speed <200.000000>;
-		turn rfoot to x-axis <0.000000> speed <200.000000>;
-		turn rthigh to x-axis <0.000000> speed <200.000000>;
-		turn lthigh to x-axis <0.000000> speed <200.000000>;
-		turn lshin to x-axis <0.000000> speed <200.000000>;
-		turn rshin to x-axis <0.000000> speed <200.000000>;
-		turn lknee to x-axis <0.000000> speed <200.000000>;
-		turn rknee to x-axis <0.000000> speed <200.000000>;
-	}
-}
+#define IDLEMOVESCALE 150
+#define IDLEAMPLITUDE 100
+#define IDLESPEED 33
+#include "chicken_idle_2legged_v2.h"
 
-StartMoving()
-{
-	bMoving = TRUE;
-	if( !Static_Var_2 )
-	{
-		start-script walk();
-	}
-}
+#define DEATHSCALE 150 //Higher values are bigger, 100 is default
+#define DEATHAMPLIDUTE 100 //Higher values are bigger, 100 is default
+#define DEATHSPEED 12
+#include "chicken_death_2legged_v2.h"
+//use call-script DeathAnim(); from Killed()
 
-StopMoving()
-{
-	bMoving = FALSE;
-	start-script Halt();
-}
+#define BASEPIECE base //needed for HitByWeapon
+#define HITSPEED <25.0>
+//how 'heavy' the unit is, on a scale of 1-10
+#define UNITSIZE 10
+#define MAXTILT 200
+#include "chicken_hitbyweapon.h"
 
-Create()
-{
-	emit-sfx 1024 + 2 from body;
-}
+#include "chicken_death_2legged_ptaq.h"
 
-SweetSpot(piecenum)
+#include "chicken_killed_2legged.h"
+
+#include "chicken_create_move.h"
+
+lua_FlameShot(weapon) //Distortion and lups flame effect
 {
-	piecenum = body;
+  return 0;
 }
 
 AimFromPrimary(piecenum)
@@ -140,18 +63,18 @@ QueryPrimary(piecenum)
 	piecenum = head;
 }
 
-RestoreAfterDelay()
-{
-	sleep 1000;
-}
-
 AimPrimary(heading, pitch)
 {
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
-	turn head to y-axis heading speed <250.000000>;
-	turn head to x-axis <0.000000> - pitch speed <200.000000>;
-	wait-for-turn head around y-axis;
+	if (pitch > <60>) pitch = <60>;
+	if (pitch < <-60>) pitch = <-60>;
+	
+	if (heading > <60>) heading = <60>;
+	if (heading < <-60>) heading = <-60>;
+	turn aimy1 to y-axis heading speed <250.000000>;
+	turn aimy1 to x-axis <0.000000> - pitch speed <200.000000>;
+	wait-for-turn aimy1 around y-axis;
 	start-script RestoreAfterDelay();
 	return (1);
 }
@@ -170,29 +93,3 @@ Shot1()
 	move lsack to x-axis [0.000000] speed [0.300000];
 }
 
-HitByWeaponId()
-{
-	emit-sfx 1024 from body;
-	return (100);
-}
-
-
-Killed(severity, corpsetype)
-{
-	corpsetype = 1;
-	emit-sfx 1025 from body;
-	emit-sfx 1025 from head;
-	emit-sfx 1025 from tail;
-	emit-sfx 1025 from lsack;
-	explode body type FALL | EXPLODE_ON_HIT | NOHEATCLOUD;
-	explode head type FALL | EXPLODE_ON_HIT | NOHEATCLOUD;
-	explode tail type FALL | EXPLODE_ON_HIT | NOHEATCLOUD;
-	explode lthigh type FALL | EXPLODE_ON_HIT | NOHEATCLOUD;
-	explode lknee type FALL | EXPLODE_ON_HIT | NOHEATCLOUD;
-	explode lshin type FALL | EXPLODE_ON_HIT | NOHEATCLOUD;
-	explode rthigh type FALL | EXPLODE_ON_HIT | NOHEATCLOUD;
-	explode rknee type FALL | EXPLODE_ON_HIT | NOHEATCLOUD;
-	explode rshin type FALL | EXPLODE_ON_HIT | NOHEATCLOUD;
-	explode rsack type FALL | EXPLODE_ON_HIT | NOHEATCLOUD;
-	explode lsack type FALL | EXPLODE_ON_HIT | NOHEATCLOUD;
-}

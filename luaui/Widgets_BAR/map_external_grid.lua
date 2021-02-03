@@ -51,9 +51,7 @@ local featureChance = 0.01
 local noFeatureRange = 0
 ]]--
 
-options_path = 'Settings/Graphics/Map/VR Grid'
-options_order = {"mirrorHeightMap","res","range","northSouthText"}
-options = {
+local options = {
 	mirrorHeightMap = {
 		name = "Mirror heightmap",
 		type = 'bool',
@@ -70,8 +68,8 @@ options = {
 		name = "Tile size (64-512)",
 		advanced = true,
 		type = 'number',
-		min = 64, 
-		max = 512, 
+		min = 64,
+		max = 512,
 		step = 64,
 		value = 512,
 		desc = 'Sets tile size (lower = more detail)\nStepsize is 64; recommend powers of 2',
@@ -86,8 +84,8 @@ options = {
 		name = "Range (1024-8192)",
 		advanced = true,
 		type = 'number',
-		min = 1024, 
-		max = 8192, 
+		min = 1024,
+		max = 8192,
 		step = 256,
 		value = 3072,
 		desc = 'How far outside the map to draw',
@@ -97,7 +95,7 @@ options = {
 				widget:Initialize()
 			end
 		end,
-	},	
+	},
 	northSouthText = {
 		name = "North, East, South, & West text",
 		type = 'bool',
@@ -109,7 +107,7 @@ options = {
 				widget:Initialize()
 			end
 		end,
-	},	
+	},
 }
 
 -- for terrain randomization - kind of primitive
@@ -136,7 +134,7 @@ local terrainFuncs = {
 					elseif excessDistX < excessDistZ then
 						heightMod = excessDistZ/(args.sizeZ - args.plateauSizeZ)
 					end
-					
+
 					if heights[a] and heights[a][b] then
 						heights[a][b] = heights[a][b] + args.height * (1-heightMod)
 					end
@@ -172,7 +170,7 @@ local function IsIsland()
 		-- right edge
 		if GetGroundHeight(mapSizeX, i) > 0 then
 			return false
-		end	
+		end
 	end
 	return true
 end
@@ -182,7 +180,7 @@ local function InitGroundHeights()
 	local range = (options.range.value or 8192)/res
 	local TileMaxX = mapSizeX/res +1
 	local TileMaxZ = mapSizeZ/res +1
-	
+
 	for x = (-range)*res,mapSizeX+range*res, res do
 		heights[x] = {}
 		for z = (-range)*res,mapSizeZ+range*res, res do
@@ -206,13 +204,13 @@ local function InitGroundHeights()
 						pz = mapSizeZ - zFrac
 					else
 						pz = zFrac
-					end				
+					end
 				end
 			end
 			heights[x][z] = GetGroundHeight(px or x, pz or z)	-- 20, 0
 		end
 	end
-	
+
 	--apply noise
 	--[[
 	for x=-range*res, (TileMaxX+range)*res,res do
@@ -229,8 +227,8 @@ local function InitGroundHeights()
 				terrainFuncs.ridge(x,z,args)
 			end
 		end
-	end	
-	
+	end
+
 	-- for testing
 	local args = {
 		sizeX = maxHillSize,
@@ -239,7 +237,7 @@ local function InitGroundHeights()
 		plateauSizeZ = maxPlateauSize,
 		height = maxHeight,
 	}
-	terrainFuncs.ridge(-600,-600,args)	
+	terrainFuncs.ridge(-600,-600,args)
 	]]--
 end
 
@@ -255,16 +253,16 @@ local function TilesVerticesOutside()
 	local res = options.res.value or 128
 	local range = (options.range.value or 8192)/res
 	local TileMaxX = mapSizeX/res +1
-	local TileMaxZ = mapSizeZ/res +1	
+	local TileMaxZ = mapSizeZ/res +1
 	for x=-range,TileMaxX+range,1 do
 		for z=-range,TileMaxZ+range,1 do
-			if (x > 0 and z > 0 and x < TileMaxX and z < TileMaxZ) then 
+			if (x > 0 and z > 0 and x < TileMaxX and z < TileMaxZ) then
 			else
 				glTexCoord(0,0)
 				glVertex(res*(x-1), GetGroundHeight(res*(x-1),res*z), res*z)
 				glTexCoord(0,1)
 				glVertex(res*x, GetGroundHeight(res*x,res*z), res*z)
-				glTexCoord(1,1)				
+				glTexCoord(1,1)
 				glVertex(res*x, GetGroundHeight(res*x,res*(z-1)), res*(z-1))
 				glTexCoord(1,0)
 				glVertex(res*(x-1), GetGroundHeight(res*(x-1),res*(z-1)), res*(z-1))
@@ -330,7 +328,7 @@ function widget:Update(dt)
 		if resetsec > 1 then
 			groundHeightPoint = Spring.GetGroundHeight(0,0)
 			resetted = true
-			ResetWidget()
+			--ResetWidget()
 		end
 	end
 	if checkInView then

@@ -70,6 +70,7 @@ local glText                = gl.Text
 local sqrt					= math.sqrt
 local lower                 = string.lower
 
+local font, chobbyInterface
 
 -----------------------------------------------------------------------------------
 
@@ -123,6 +124,7 @@ function ChangeBlastColor()
 		selfdCycleDir = true
 	end
 
+	local expCycleDir
 	if expBlastColor[2] >= 1.0 then
 		expCycleDir = false
 	elseif expBlastColor[2] <= 0.0 then
@@ -212,15 +214,15 @@ function DrawUnitBlastRadius( unitID )
 
 	local x, y, z = spGetUnitPosition(unitID)
 
-	if ( weapNamTab[lower(udef[explodeTag])] ~= nil and weapNamTab[lower(udef[selfdTag])] ~= nil ) then
-		deathBlasId = weapNamTab[lower(udef[explodeTag])].id
-		blastId = weapNamTab[lower(udef[selfdTag])].id
+	if weapNamTab[lower(udef[explodeTag])] ~= nil and weapNamTab[lower(udef[selfdTag])] ~= nil then
+		local deathBlasId = weapNamTab[lower(udef[explodeTag])].id
+		local blastId = weapNamTab[lower(udef[selfdTag])].id
 
-		blastRadius = weapTab[blastId][aoeTag]
-		deathblastRadius = weapTab[deathBlasId][aoeTag]
+		local blastRadius = weapTab[blastId][aoeTag]
+		local deathblastRadius = weapTab[deathBlasId][aoeTag]
 
-		blastDamage = weapTab[blastId].damages[0]
-		deathblastDamage = weapTab[deathBlasId].damages[0]
+		local blastDamage = weapTab[blastId].damages[0]
+		local deathblastDamage = weapTab[deathBlasId].damages[0]
 
 		local height = Spring.GetGroundHeight(x,z)
 
@@ -231,8 +233,8 @@ function DrawUnitBlastRadius( unitID )
 		glPushMatrix()
 		glTranslate(x - ( blastRadius / 1.5 ), height , z  + ( blastRadius / 1.5 ) )
 		glBillboard()
-		text = "SELF-D"
-		if ( deathblastRadius == blastRadius ) then
+		local text = "SELF-D"
+		if deathblastRadius == blastRadius then
 			text = blastDamage .. " / " .. deathblastDamage --text = "SELF-D / EXPLODE"
 		end
 
@@ -240,7 +242,7 @@ function DrawUnitBlastRadius( unitID )
 		font:Print( text, 0.0, 0.0, sqrt(blastRadius) , "")
 		glPopMatrix()
 
-		if ( deathblastRadius ~= blastRadius ) then
+		if deathblastRadius ~= blastRadius then
 			glColor( expBlastColor[1], expBlastColor[2], expBlastColor[3], expBlastAlphaValue)
 			glDrawGroundCircle( x,y,z, deathblastRadius, blastCircleDivs )
 

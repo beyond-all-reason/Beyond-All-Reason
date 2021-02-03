@@ -12,6 +12,8 @@ end
 
 if not gadgetHandler:IsSyncedCode() then
 
+	local Lups, LupsAddFX
+
 	local function MergeTable(table1, table2)
 		local result = {}
 		for i, v in pairs(table2) do

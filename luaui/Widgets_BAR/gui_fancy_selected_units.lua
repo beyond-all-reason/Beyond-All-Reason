@@ -28,6 +28,8 @@ local degrot = {}
 local rad_con						= 180 / math.pi
 local math_acos						= math.acos
 
+local currentClock, chobbyInterface
+
 local UNITCONF						= {}
 
 local selectedUnits					= {}
@@ -153,9 +155,6 @@ local function DrawCircleSolid(size)
 		local pieces = OPTIONS.solidCirclePieces
 		local radstep = (2.0 * math.pi) / pieces
 		local a1
-		if (color) then
-			gl.Color(color)
-		end
 		gl.Vertex(0, 1, 0)
 		for i = 0, pieces do
 			a1 = (i * radstep)
@@ -189,8 +188,8 @@ local function DrawSquareLine(innersize, outersize)
 			-- straight piece
 			width = 0.7
 			i = i + 0.65
-			a1 = (i * radstep)
-			a2 = ((i+width) * radstep)
+			a1 = i * radstep
+			a2 = (i+width) * radstep
 
 			gl.Vertex(math.sin(a2)*innersize, 1, math.cos(a2)*innersize)
 			gl.Vertex(math.sin(a1)*innersize, 1, math.cos(a1)*innersize)
@@ -201,10 +200,10 @@ local function DrawSquareLine(innersize, outersize)
 			-- corner piece
 			width = 0.3
 			i = i + 3
-			a1 = (i * radstep)
-			a2 = ((i+width) * radstep)
+			a1 = i * radstep
+			a2 = (i+width) * radstep
 			i = i -0.6
-			a2_2 = ((i+width) * radstep)
+			a2_2 = (i+width) * radstep
 
 			gl.Vertex(math.sin(a2_2)*innersize, 1, math.cos(a2_2)*innersize)
 			gl.Vertex(math.sin(a1)*innersize, 1, math.cos(a1)*innersize)
@@ -224,8 +223,8 @@ local function DrawSquareSolid(size)
 			--straight piece
 			width = 0.7
 			i = i + 0.65
-			a1 = (i * radstep)
-			a2 = ((i+width) * radstep)
+			a1 = i * radstep
+			a2 = (i+width) * radstep
 
 			gl.Vertex(0, 0, 0)
 			gl.Vertex(math.sin(a2)*size, 1, math.cos(a2)*size)
@@ -234,10 +233,10 @@ local function DrawSquareSolid(size)
 			--corner piece
 			width = 0.3
 			i = i + 3
-			a1 = (i * radstep)
-			a2 = ((i+width) * radstep)
+			a1 = i * radstep
+			a2 = (i+width) * radstep
 			i = i -0.6
-			a2_2 = ((i+width) * radstep)
+			a2_2 = (i+width) * radstep
 
 			gl.Vertex(0, 0, 0)
 			gl.Vertex(math.sin(a2_2)*size, 1, math.cos(a2_2)*size)
@@ -272,8 +271,8 @@ local function DrawTriangleLine(innersize, outersize)
 			--straight piece
 			width = 0.75
 			i = i + 0.625
-			a1 = (i * radstep)
-			a2 = ((i+width) * radstep)
+			a1 = i * radstep
+			a2 = (i+width) * radstep
 
 			gl.Vertex(math.sin(a2)*innersize, 1, math.cos(a2)*innersize)
 			gl.Vertex(math.sin(a1)*innersize, 1, math.cos(a1)*innersize)
@@ -284,10 +283,10 @@ local function DrawTriangleLine(innersize, outersize)
 			-- corner piece
 			width = 0.35
 			i = i + 3
-			a1 = (i * radstep)
-			a2 = ((i+width) * radstep)
+			a1 = i * radstep
+			a2 = (i+width) * radstep
 			i = i -0.6
-			a2_2 = ((i+width) * radstep)
+			a2_2 = (i+width) * radstep
 
 			gl.Vertex(math.sin(a2_2)*innersize, 1, math.cos(a2_2)*innersize)
 			gl.Vertex(math.sin(a1)*innersize, 1, math.cos(a1)*innersize)
@@ -310,8 +309,8 @@ local function DrawTriangleSolid(size)
 			-- straight piece
 			width = 0.75
 			i = i + 0.625
-			a1 = (i * radstep)
-			a2 = ((i+width) * radstep)
+			a1 = i * radstep
+			a2 = (i+width) * radstep
 
 			gl.Vertex(0, 0, 0)
 			gl.Vertex(math.sin(a2)*size, 1, math.cos(a2)*size)
@@ -320,10 +319,10 @@ local function DrawTriangleSolid(size)
 			-- corner piece
 			width = 0.35
 			i = i + 3
-			a1 = (i * radstep)
-			a2 = ((i+width) * radstep)
+			a1 = i * radstep
+			a2 = (i+width) * radstep
 			i = i -0.6
-			a2_2 = ((i+width) * radstep)
+			a2_2 = (i+width) * radstep
 
 			gl.Vertex(0, 0, 0)
 			gl.Vertex(math.sin(a2_2)*size, 1, math.cos(a2_2)*size)
@@ -833,12 +832,11 @@ end
 -- Config related
 
 function widget:GetConfigData(data)
-    savedTable = {}
-	savedTable.spotterOpacity					= OPTIONS.spotterOpacity
-	savedTable.baseOpacity						= OPTIONS.baseOpacity
-	savedTable.teamcolorOpacity					= OPTIONS.teamcolorOpacity
-
-    return savedTable
+    return {
+		spotterOpacity = OPTIONS.spotterOpacity,
+		baseOpacity = OPTIONS.baseOpacity,
+		teamcolorOpacity = OPTIONS.teamcolorOpacity
+	}
 end
 
 function widget:SetConfigData(data)

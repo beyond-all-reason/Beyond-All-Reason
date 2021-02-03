@@ -1,6 +1,6 @@
 function gadget:GameFrame(n)
 	if n == 31 then
-		Spring.Echo("Loaded atmosphere CEGs config for map: " .. mapname)
+		Spring.Echo("Loaded atmosphere CEGs config for map: " .. Game.mapName)
 	end
 
 -- DayNight Cycle

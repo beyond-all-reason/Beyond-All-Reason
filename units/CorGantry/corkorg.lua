@@ -229,9 +229,9 @@ return {
 				texture3 = "null",
 				tolerance = 9000,
 				tracks = true,
-				turnrate = 32500,
+				turnrate = 15000,
 				weaponacceleration = 230,
-				weapontimer = 2,
+				weapontimer = 1,
 				weapontype = "StarburstLauncher",
 				weaponvelocity = 2600,
 				customparams = {

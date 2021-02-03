@@ -28,7 +28,6 @@ local tutorialPlayLimit = 3		-- display the same tutorial message only this many
 
 --------------------------------------------------------------------------------
 
-
 local LastPlay = {}
 local soundFolder = "Sounds/voice/"
 local Sound = {}
@@ -37,6 +36,7 @@ local SoundOrder = {}
 local spGetGameFrame = Spring.GetGameFrame
 local gameframe = spGetGameFrame()
 
+local lockPlayerID
 
 function addSound(name, file, minDelay, duration, message, unlisted)
 	Sound[name] = {file, minDelay, duration, message}
@@ -297,7 +297,7 @@ function widget:Initialize()
 	WG['notifications'] = {}
 	for sound, params in pairs(Sound) do
 		WG['notifications']['getSound'..sound] = function()
-			return (SoundDisabled[sound] and false or true)
+			return soundList[sound] or false
 		end
 		WG['notifications']['setSound'..sound] = function(value)
 			soundList[sound] = value
@@ -306,7 +306,7 @@ function widget:Initialize()
 	WG['notifications'].getSoundList = function()
 		local soundInfo = {}
 		for i, v in pairs(SoundOrder) do
-			soundInfo[i] = {v, soundList[v], Sound[v][5]}
+			soundInfo[i] = {v, soundList[v], Sound[v][4]}
 		end
 		return soundInfo
 	end

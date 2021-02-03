@@ -7,14 +7,15 @@ if addon.InGetInfo then
 		date    = "2012,2013",
 		license = "GPL2",
 		layer   = 0,
-		depend  = {"LoadProgress"},
+		--depend  = {"LoadProgress"},
 		enabled = true, -- loading makes it choppy towards the end; also, volume cannot be adjusted
 	}
 end
 
-if Spring.GetConfigInt("music_loadscreen", 1) ~= 1 or Spring.GetConfigInt('music', 1) ~= 1 then
-	return
-end
+Spring.Echo("Loading Screen Music Initialized")
+--if Spring.GetConfigInt("music_loadscreen", 1) ~= 1 or Spring.GetConfigInt('music', 1) ~= 1 then
+	--return
+--end
 
 function addon.DrawLoadScreen()
 	-- local loadProgress = SG.GetLoadProgress()
@@ -32,14 +33,21 @@ end
 function addon.Initialize()
 	math.randomseed( os.clock() )
 	math.random(); math.random(); math.random()
-	local musicvolume = Spring.GetConfigInt("snd_volmusic", 20) * 0.01
+	local musicvolume = Spring.GetConfigInt("snd_volmusic", 50) * 0.01
 	Spring.SetSoundStreamVolume(musicvolume)
-	local musicfiles = VFS.DirList("sounds/music/peace", "*.ogg")
+	local musicfiles = VFS.DirList("sounds/musicnew/intro", "*.ogg")
 	--Spring.Echo("musicfiles", #musicfiles)
 	if #musicfiles > 0 then
-		local i = 1 + (math.floor((1000*os.clock())%#musicfiles))
-		Spring.SetConfigInt('musictrack', i)
-		Spring.PlaySoundStream(musicfiles[i], musicvolume)
-		Spring.SetSoundStreamVolume(musicvolume)
+		--local i = 1 + (math.floor((1000*os.clock())%#musicfiles))
+
+		--Spring.SetConfigInt('musictrack', i)
+		if #musicfiles > 1 then
+			local pickedTrack = math.ceil(#musicfiles*math.random())
+			Spring.PlaySoundStream(musicfiles[pickedTrack], 1)
+			Spring.SetSoundStreamVolume(musicvolume)
+		elseif #musicfiles == 1 then
+			Spring.PlaySoundStream(musicfiles[1], 1)
+			Spring.SetSoundStreamVolume(musicvolume)
+		end	
 	end
 end

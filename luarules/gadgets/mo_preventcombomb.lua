@@ -87,13 +87,13 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 		if immuneDgunList[unitID] then
 			-- immune
 			return 0, 0
-		elseif (isCommander[attackerDefID] and isCommander[unitDefID]) and ((CommCount(UnitTeam(unitID)) <= 1) and (CommCount(UnitTeam(attackerID)) <= 1)) then
+		elseif isCommander[attackerDefID] and isCommander[unitDefID] and CommCount(UnitTeam(unitID)) <= 1 and attackerID and CommCount(UnitTeam(attackerID)) <= 1 then
 			-- make unitID immune to DGun, kill attackedID
 			immuneDgunList[unitID] = GetGameFrame() + 45
 			DestroyUnit(attackerID,false,false,unitID)
 			return combombDamage, 0
 		end
-	elseif (weaponID == COM_BLAST and isCommander[unitDefID]) and ((CommCount(UnitTeam(unitID)) <= 1) and (CommCount(UnitTeam(attackerID)) <= 1)) then
+	elseif weaponID == COM_BLAST and isCommander[unitDefID] and CommCount(UnitTeam(unitID)) <= 1 and attackerID and CommCount(UnitTeam(attackerID)) <= 1 then
 		if unitID ~= attackerID then
 			-- make unitID immune to DGun
 			immuneDgunList[unitID] = GetGameFrame() + 45

@@ -53,9 +53,7 @@ function gadget:ProjectileCreated(proID, proOwnerID, weaponDefID)
 end
 
 function gadget:ProjectileDestroyed(proID)
-    if depthChargeWeapons[weaponDefID] then
-        missiles[proID] = nil
-    end
+	missiles[proID] = nil
 end
 
 

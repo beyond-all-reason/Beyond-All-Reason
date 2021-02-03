@@ -14,6 +14,7 @@ local CMD_CLOAK = 37382
 
 local cloakingUnitDefs = {[UnitDefNames["armpb"].id]=true, [UnitDefNames["armamb"].id]=true}
 local cloakunits = {}
+local gameStarted
 
 function widget:UnitFinished(unitID, unitDefID, unitTeam)
     if cloakingUnitDefs[unitDefID] then

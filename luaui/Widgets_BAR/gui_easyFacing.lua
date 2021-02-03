@@ -30,6 +30,8 @@ local mouseYStartRotate = 0
 local mouseXStartDrag = 0
 local mouseYStartDrag = 0
 local mouseLbLast = false
+
+local gameStarted, chobbyInterface, lastTimeUpdate
 -------------------------------------------------------------------------------
 local udefTab				= UnitDefs
 
@@ -101,17 +103,17 @@ end
 function widget:Update()
 	local timef = spGetGameSeconds()
 	local time = floor(timef)
-	
+
 	-- update timers once every <updateInt> seconds
-	if (time % updateInt == 0 and time ~= lastTimeUpdate) then	
+	if time % updateInt == 0 and time ~= lastTimeUpdate then
 		lastTimeUpdate = time
 		--do update stuff:
-		
-		if ( CheckSpecState() == false ) then
+
+		if CheckSpecState() == false then
 			return false
 		end
 	end
-	
+
 	manipulateFacing()
 end
 
@@ -124,7 +126,7 @@ end
 function widget:DrawWorld()
 	if chobbyInterface then return end
 	drawOrientation()
-	
+
 	ResetGl()
 end
 
@@ -136,7 +138,7 @@ function getRotationVectors2d( vectorA, vectorB )
 	vectorA = normalizeVector2d( vectorA )
 	vectorB = normalizeVector2d( vectorB )
 	local radian = atan2( vectorA[2], vectorA[1] ) - atan2( vectorB[2], vectorB[1] )
-	local val = ( 360.0 * radian) / ( 2 * pi ) 
+	local val = ( 360.0 * radian) / ( 2 * pi )
 	return normalizeDegreeRange(val)
 end
 
@@ -168,38 +170,38 @@ end
 
 function getFacingByMouseDelta( mouseDeltaX,mouseDeltaY )
 	local camVecs = spGetCameraVectors()	--would be cool to update this only on a callin like "onCameraMoved()"
-	
+
 	local mouseMovVec = { mouseDeltaX, mouseDeltaY }
 	local mMovVecLen = getVector2dLen( mouseMovVec )
-	
+
 	if ( mMovVecLen < sens ) then
 		return nil
 	end
-	
+
 	local mouseDegree = getMouseFacingDegree( mouseMovVec )
-	
+
 	--calculate the camera angle
 	local camRight2d = { camVecs.right[1], -camVecs.right[3] }
 	local camDegree = getMouseFacingDegree( camRight2d ) - 90
 	camDegree = normalizeDegreeRange( camDegree )
-	
+
 	--take the camera angle into account here
 	mouseDegree = mouseDegree + camDegree
 	mouseDegree = normalizeDegreeRange( mouseDegree )
-	
+
 	local newFacing = nil
-	if ( ( mouseDegree >= 280.0 ) or ( mouseDegree < 45.0 ) ) then
+	if mouseDegree >= 280.0 or mouseDegree < 45.0 then
 		newFacing = 2
-	elseif ( ( mouseDegree >= 45.0 ) and ( mouseDegree < 135.0 ) ) then
+	elseif mouseDegree >= 45.0 and mouseDegree < 135.0 then
 		newFacing = 1
-	elseif ( ( mouseDegree >= 135.0 ) and ( mouseDegree < 225.0 ) ) then 
+	elseif mouseDegree >= 135.0 and mouseDegree < 225.0 then
 		newFacing = 0
-	elseif ( ( mouseDegree >= 225.0 ) and ( mouseDegree < 280.0 ) ) then
+	elseif mouseDegree >= 225.0 and mouseDegree < 280.0 then
 		newFacing = 3
 	else
 		newFacing = 0 --should not happen
 	end
-	
+
 	return newFacing
 end
 
@@ -212,13 +214,13 @@ function manipulateFacing()
 
 	--check if valid command
 	local idx, cmd_id, cmd_type, cmd_name = spGetActiveCommand()
-	if (not cmd_id) then return end
+	if not cmd_id then return end
 
 	local unitDefID = -cmd_id
 	local udef = udefTab[unitDefID]
 
 	--if (lmb and (mmb or (not shift or (udef ~= nil and udef["isFactory"])))) then
-	if (lmb and mmb) then
+	if lmb and mmb then
 		--in
         if not inDrag then
             mouseDeltaX = 0
@@ -240,28 +242,28 @@ function manipulateFacing()
 
 	--check if build command
 	local cmdDesc = spGetActiveCmdDesc( idx )
-	if ( cmdDesc["type"] ~= 20 ) then
+	if cmdDesc["type"] ~= 20 then
 		--quit here if not a build command
 		return
 	end
-	
-	if ( inDrag ) then
+
+	if inDrag then
 		local curDeltaX = mx - mouseXStartRotate
 		mouseDeltaX = mouseDeltaX + curDeltaX
 		local curDeltaY = my - mouseYStartRotate
 		mouseDeltaY = mouseDeltaY + curDeltaY
-        
+
 		local newFacing = getFacingByMouseDelta( mouseDeltaX, mouseDeltaY )
 
-		if ( newFacing ~= nil ) then
+		if newFacing ~= nil then
 			mouseDeltaX = 0
-			mouseDeltaY = 0 
-			
-			if ( newFacing ~= spGetBuildFacing() ) then
+			mouseDeltaY = 0
+
+			if newFacing ~= spGetBuildFacing() then
 				spSetBuildFacing( newFacing )
 			end
 		end
-			
+
 		if mouseXStartRotate~=mx or mouseYStartRotate~=my then
 			spWarpMouse( mouseXStartRotate, mouseYStartRotate ) --set old mouse coords to prevent mouse movement
 		end
@@ -275,13 +277,13 @@ function drawOrientation()
 	--local mx,my,lmb,mmb,rmb = spGetMouseState()
 	--if not lmb then return false end
 
-	--local alt,ctrl,meta,shift = spGetModKeyState()
+	local alt,ctrl,meta,shift = spGetModKeyState()
 	--if shift then return false end
 
 	local idx, cmd_id, cmd_type, cmd_name = spGetActiveCommand()
 	local cmdDesc = spGetActiveCmdDesc( idx )
 
-	if ( cmdDesc == nil or cmdDesc["type"] ~= 20 ) then
+	if cmdDesc == nil or cmdDesc["type"] ~= 20 then
 		--quit here if not a build command
 		return
 	end
@@ -291,13 +293,13 @@ function drawOrientation()
 	local udef = udefTab[unitDefID]
 
 	--check for an empty buildlist to avoid to draw for air repair pads
-	if (drawForAll == false and (udef["isFactory"] == false or #udef["buildOptions"] == 0)) then
+	if drawForAll == false and (udef["isFactory"] == false or #udef["buildOptions"] == 0) then
 		return
 	end
 
 	local mx, my = spGetMouseState()
 
-	if ( shift and inDrag ) then
+	if shift and inDrag then
 		mx = mouseXStartDrag
 		my = mouseYStartDrag
 		printDebug("UDEFID: " .. mx )
@@ -347,16 +349,16 @@ function drawOrientation()
 
 	local transX, transZ
 	local facing = spGetBuildFacing()
-	if ( facing == 0 ) then
+	if facing == 0 then
 		transX = 0
 		transZ = transSpace
-	elseif ( facing == 1 ) then
+	elseif facing == 1 then
 		transX = transSpace
 		transZ = 0
-	elseif ( facing == 2 ) then
+	elseif facing == 2 then
 		transX = 0
 		transZ = -transSpace
-	elseif ( facing == 3 ) then
+	elseif facing == 3 then
 		transX = -transSpace
 		transZ = 0
 	end
@@ -376,7 +378,7 @@ function drawOrientation()
 end
 
 --Commons
-function ResetGl() 
+function ResetGl()
 	glColor( { 1.0, 1.0, 1.0, 1.0 } )
 	glLineWidth( 1.0 )
 	glDepthTest(false)
@@ -384,27 +386,26 @@ function ResetGl()
 end
 
 function CheckSpecState()
-	if (select(3,spGetPlayerInfo(spGetMyPlayerID(),false)) == true ) then
+	if select(3,spGetPlayerInfo(spGetMyPlayerID(),false)) == true then
 		widgetHandler:RemoveWidget(self)
 		return false
 	end
-	
-	return true	
+
+	return true
 end
 
 function printDebug( value )
-	if ( debug ) then
-		if ( type( value ) == "boolean" ) then
-			if ( value == true ) then spEcho( "true" )
+	if debug then
+		if type(value) == "boolean" then
+			if value == true then spEcho( "true" )
 				else spEcho("false") end
-		elseif ( type(value ) == "table" ) then
+		elseif type(value) == "table" then
 			spEcho("Dumping table:")
-			for key,val in pairs(value) do 
-				spEcho(key,val) 
+			for key,val in pairs(value) do
+				spEcho(key,val)
 			end
 		else
 			spEcho( value )
 		end
 	end
 end
-	

@@ -20,6 +20,7 @@ end
 --------------------------------------------------------------------------------
 
 local vsx,vsy = Spring.GetViewGeometry()
+local widgetScale = (0.55 + (vsx*vsy / 10000000))
 
 local minFps					= 22		-- stops snowing at
 local maxFps					= 55		-- max particles at
@@ -32,6 +33,7 @@ local gameFrameCountdown		= 120		-- on launch: wait this many frames before adju
 local particleScaleMultiplier	= 1
 
 -- pregame info message
+local showPreGameInfo = false
 local autoReduce = true
 local fadetime = 13
 local fadetimeThreshold = 30
@@ -39,7 +41,7 @@ local textStartOpacity = 0.6
 
 local fpsDifference 			= (maxFps-minFps)/particleSteps		-- fps difference need before changing the dlist to one with fewer particles
 
-local snowTexFolder = "LuaUI/Images/snow/"
+local snowTexture = "LuaUI/Images/snow.dds"
 
 local snowKeywords = {'snow','frozen','cold','winter','ice','icy','arctic','frost','melt','glacier','mosh_pit','blindside','northernmountains','amarante','cervino'}
 
@@ -55,40 +57,37 @@ snowMaps['thecoldplace'] = false
 
 local particleTypes = {}
 table.insert(particleTypes, {
-		texture = 'snow1.dds',
 		gravity = 50,
 		scale = 5500
 })
 table.insert(particleTypes, {
-		texture = 'snow2.dds',
 		gravity = 44,
 		scale = 5500
 })
 table.insert(particleTypes, {
-		texture = 'snow3.dds',
 		gravity = 58,
 		scale = 5500
 })
 table.insert(particleTypes, {
-		texture = 'snow4.dds',
 		gravity = 62,
 		scale = 6600
 })
 table.insert(particleTypes, {
-		texture = 'snow5.dds',
 		gravity = 47,
 		scale = 6600
 })
 table.insert(particleTypes, {
-		texture = 'snow6.dds',
 		gravity = 54,
 		scale = 6600
 })
 
 local avgFpsInit = false
+local widgetDisabledSnow = false
 
 local math_random = math.random
 local math_randomseed = math.randomseed
+
+local font, drawinfolist
 
 local shader
 local shaderTimeLoc
@@ -354,18 +353,20 @@ function widget:Initialize()
 		gameStarted = true
 	end
 
-	drawinfolist = gl.CreateList( function()
-		local text = "Snowing less when FPS gets lower \n"
-		local text2 = "/snow to toggle snow... for this map \n".."disable 'Snow' widget... for all maps "
-		local fontSize = 30
-		--local textWidth = font:GetTextWidth(text)*fontSize
-		local textHeight = font:GetTextHeight(text)*fontSize
-		--gl.Text(text, -textWidth/2, -textHeight/2, fontSize, "")
-		font:Begin()
-		font:Print(text, 0, textHeight/2, fontSize, "c")
-		font:Print(text2, 0, -textHeight/1.6, fontSize*0.8, "c")
-		font:End()
-	end)
+	if showPreGameInfo then
+		drawinfolist = gl.CreateList( function()
+			local text = "Snowing less when FPS gets lower \n"
+			local text2 = "/snow to toggle snow... for this map \n".."disable 'Snow' widget... for all maps "
+			local fontSize = 30
+			--local textWidth = font:GetTextWidth(text)*fontSize
+			local textHeight = font:GetTextHeight(text)*fontSize
+			--gl.Text(text, -textWidth/2, -textHeight/2, fontSize, "")
+			font:Begin()
+			font:Print(text, 0, textHeight/2, fontSize, "c")
+			font:Print(text2, 0, -textHeight/1.6, fontSize*0.8, "c")
+			font:End()
+		end)
+	end
 
 	startOsClock = os.clock()
 	-- check for keywords
@@ -397,7 +398,6 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-local widgetDisabledSnow = false
 function widget:GameFrame(gameFrame)
 	if gameFrame == 1 then
 		gameStarted = true
@@ -433,7 +433,7 @@ function widget:GameFrame(gameFrame)
 						particleDensity = math.floor(particleDensityMax * particleAmount)
 						if particleDensity > particleDensityMax then particleDensity = particleDensityMax end
 						particleStep = math.floor(particleDensity / (particleDensityMax / particleSteps))
-						if particleStep < 1 then particeStep = 1 end
+						if particleStep < 1 then particleStep = 1 end
 						enabled = true
 						widgetDisabledSnow = false
 					end
@@ -452,25 +452,27 @@ function widget:Shutdown()
 	end
 end
 
-function widget:DrawScreen()
-	if not enabled or not autoReduce then return end
+if showPreGameInfo then
+	function widget:DrawScreen()
+		if not enabled or not autoReduce then return end
 
-	if not gameStarted and snowMaps[currentMapname] ~= nil and snowMaps[currentMapname] then
-		if not avgFpsInit then
-			avgFpsInit = true
-			averageFps = spGetFPS()
-		end
-		local now = os.clock()
-		local opacityMultiplier = (((startTime+fadetimeThreshold) - now) / fadetime)
-		if opacityMultiplier > 1 then opacityMultiplier = 1 end
+		if not gameStarted and snowMaps[currentMapname] ~= nil and snowMaps[currentMapname] then
+			if not avgFpsInit then
+				avgFpsInit = true
+				averageFps = spGetFPS()
+			end
+			local now = os.clock()
+			local opacityMultiplier = (((startTime+fadetimeThreshold) - now) / fadetime)
+			if opacityMultiplier > 1 then opacityMultiplier = 1 end
 
-		if opacityMultiplier > 0 then
-			gl.PushMatrix()
-			gl.Translate(vsx/2, vsy/1.5, 0)
-			gl.Scale(widgetScale,widgetScale,0)
-			gl.Color(1,1,1,textStartOpacity*opacityMultiplier)
-			gl.CallList(drawinfolist)
-			gl.PopMatrix()
+			if opacityMultiplier > 0 then
+				gl.PushMatrix()
+				gl.Translate(vsx/2, vsy/1.5, 0)
+				gl.Scale(widgetScale,widgetScale,0)
+				gl.Color(1,1,1,textStartOpacity*opacityMultiplier)
+				gl.CallList(drawinfolist)
+				gl.PopMatrix()
+			end
 		end
 	end
 end
@@ -510,13 +512,13 @@ function widget:DrawWorld()
 				offsetZ = offsetZ + ((windDirZ * windMultiplier) * timePassed)
 			end
 
+			glTexture(snowTexture)
 			for particleType, pt in pairs(particleTypes) do
-				glTexture(snowTexFolder..pt.texture)
 				glUniform(shaderScaleLoc, pt.scale*particleScale)
 				glUniform(shaderSpeedLoc, pt.gravity, offsetX, offsetZ)
 				glCallList(particleLists[particleType][particleStep])
-				glTexture(false)
 			end
+			glTexture(false)
 
 			gl.PointParameter(1, 0, 0, 0, 1e9, 1)
 			gl.PointSize(1.0)
@@ -544,14 +546,14 @@ end
 --------------------------------------------------------------------------------
 
 function widget:GetConfigData(data)
-    savedTable = {}
-    savedTable.snowMaps	= snowMaps
-    savedTable.averageFps = math.floor(averageFps)
-    savedTable.particleStep = particleStep
-    savedTable.gameframe = Spring.GetGameFrame()
-	savedTable.customParticleMultiplier = customParticleMultiplier
-	savedTable.autoReduce = autoReduce
-    return savedTable
+    return {
+		snowMaps = snowMaps,
+		averageFps = math.floor(averageFps),
+		articleStep = particleStep,
+		gameframe = Spring.GetGameFrame(),
+		customParticleMultiplier = customParticleMultiplier,
+		autoReduce = autoReduce
+	}
 end
 
 function widget:SetConfigData(data)

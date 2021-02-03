@@ -17,13 +17,10 @@ end
 local random = math.random
 
 local ignoreUnits = {}
-if UnitDefNames["chip"] ~= nil then
-	ignoreUnits[UnitDefNames["chip"].id] = true
-	ignoreUnits[UnitDefNames["dice"].id] = true
-	ignoreUnits[UnitDefNames["xmasball"].id] = true
-	ignoreUnits[UnitDefNames["xmasball2"].id] = true
-	ignoreUnits[UnitDefNames["armstone"].id] = true
-	ignoreUnits[UnitDefNames["corstone"].id] = true
+for udefID,def in ipairs(UnitDefs) do
+	if def.modCategories['object'] or (def.customParams and def.customParams.objectify) then
+		ignoreUnits[udefID] = true
+	end
 end
 
 
@@ -52,7 +49,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
-	if attackerID == nil then -- if reclaimed
+	if attackerID == nil and not ignoreUnits[unitDefID] then -- if reclaimed
 		local ux,uy,uz = Spring.GetUnitPosition(unitID)
 		if ux ~= nil then
 			local x,y,z = ux,uy,uz

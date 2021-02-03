@@ -49,7 +49,21 @@ local nonLoadedCommands = {
 	--[CMD_PUSH_PULL] = true
 }
 
-if (gadgetHandler:IsSyncedCode()) then
+local function tobool(val)
+	local t = type(val)
+	if t == 'nil' then
+		return false
+	elseif t == 'boolean' then
+		return val
+	elseif t == 'number' then
+		return (val ~= 0)
+	elseif t == 'string' then
+		return (val ~= '0' and val ~= 'false')
+	end
+	return false
+end
+
+if gadgetHandler:IsSyncedCode() then
 -----------------------------------------------------------------------------------
 --  SYNCED
 -----------------------------------------------------------------------------------
@@ -95,8 +109,8 @@ local autosave = false
 -----------------------------------------------------------------------------------
 local function ReadFile(zip, name, file)
 	name = name or ''
-	if (not file) then return end
-	local dataRaw, dataFunc, data, err
+	if not file then return end
+	local dataRaw, dataFunc, data, success, err
 
 	zip:open(file)
 	dataRaw = zip:read("*all")
@@ -327,7 +341,7 @@ local function LoadUnits()
 					spSetUnitWeaponState(newID, i, 'reloadState', v.reloadState - GetSavedGameFrame())
 				end
 				if data.shield[i] then
-					spSetUnitShieldState(newID, i, Spring.Utilities.tobool(data.shield[i].enabled), data.shield[i].power)
+					spSetUnitShieldState(newID, i, tobool(data.shield[i].enabled), data.shield[i].power)
 				end
 			end
 			spSetUnitStockpile(newID, data.stockpile.num or 0, data.stockpile.progress or 0)
@@ -408,7 +422,7 @@ local function LoadUnits()
 
 	-- second pass for orders
 	for oldID, data in pairs(savedata.unit) do
-		LoadOrdersForUnit(unitID, data)
+		LoadOrdersForUnit(oldID, data)
 
 		if data.factoryData then
 			for i=1,#data.factoryData.commands do
@@ -932,7 +946,7 @@ local function SaveUnits()
 				unitInfo.weapons[i].reloadState = spGetUnitWeaponState(unitID, i, 'reloadState')
 				local enabled, power = Spring.GetUnitShieldState(unitID, i)
 				if power then
-					unitInfo.shield[i] = {enabled = Spring.Utilities.tobool(enabled), power = power}
+					unitInfo.shield[i] = {enabled = tobool(enabled), power = power}
 				end
 			end
 			unitInfo.stockpile = {}

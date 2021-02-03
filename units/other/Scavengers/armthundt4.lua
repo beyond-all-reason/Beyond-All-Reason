@@ -117,7 +117,7 @@ return {
 					expl_light_heat_radius_mult = 1.3,
 				},
 				damage = {
-					commanders = 450,
+					commanders = 300,
 					default = 900,
 					subs = 5,
 				},

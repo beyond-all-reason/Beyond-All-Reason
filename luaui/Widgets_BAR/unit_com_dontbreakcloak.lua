@@ -35,6 +35,7 @@ local spGiveOrderToUnit = Spring.GiveOrderToUnit
 local spGetSpectatingState = Spring.GetSpectatingState
 local spec = spGetSpectatingState()
 local myTeam = spGetMyTeamID()
+local gameStarted
 ----------------------------------------------------------------
 -- Callins
 ----------------------------------------------------------------

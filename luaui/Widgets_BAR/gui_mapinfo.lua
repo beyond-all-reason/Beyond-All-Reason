@@ -63,6 +63,8 @@ local mapInfo = {}
 local mapInfoWidth = 400	-- minimum width
 local mapinfoList = {}
 
+local font, mapInfoBoxHeight, chobbyInterface
+
 --------------------------------------------------------------------------------
 -- Functions
 --------------------------------------------------------------------------------
@@ -167,7 +169,7 @@ local function createMapinfoList(opacityMultiplier)
 		usedTextOffsetY = usedTextOffsetY+textOffsetY
 		text = Game.mapDescription
 		font:SetTextColor(1,1,1,textOpacity*0.6*opacityMultiplier)
-		font:Print("Size: "..Game.mapX.. " x "..Game.mapY, textOffsetX,-usedTextOffsetY+0.8,textSize,"n")
+		font:Print(Game.mapX.. " x "..Game.mapY, textOffsetX,-usedTextOffsetY+0.8,textSize,"n")
 		font:End()
 
 		--[[
@@ -283,9 +285,7 @@ end
 
 
 function widget:GetConfigData(data)
-    savedTable = {}
-    savedTable.stickToFloor = stickToFloor
-    return savedTable
+    return {stickToFloor = stickToFloor}
 end
 
 function widget:SetConfigData(data)

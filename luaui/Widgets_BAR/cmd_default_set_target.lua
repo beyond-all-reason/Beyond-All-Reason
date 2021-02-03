@@ -2,7 +2,7 @@ function widget:GetInfo()
 	return {
 	name	= "Set target default",
 	desc	= "replaces default click from attack to set target",
-	author	= "BD",
+	author	= "BrainDamage",
 	date	= "-",
 	license	= "WTFPL",
 	layer	= -math.huge,
@@ -23,6 +23,7 @@ local SendCommmands = Spring.SendCommands
 
 local hotKeys = {}
 
+local gameStarted
 
 local hasSetTarget = {}
 for udid, ud in pairs(UnitDefs) do

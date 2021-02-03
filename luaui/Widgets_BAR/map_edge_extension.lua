@@ -1,14 +1,14 @@
 
 function widget:GetInfo()
   return {
-    name      = "Map Edge Extension",
+    name      = "Map Edge Extension Old",
     version   = "v0.6",
     desc      = "Draws a mirrored map next to the edges of the real map",
     author    = "Pako",
     date      = "2010.10.27",
     license   = "GPL",
     layer     = 0,
-    enabled   = true,
+    enabled   = false,
     --detailsDefault = 3
   }
 end
@@ -25,6 +25,7 @@ local mapBorderStyle = 'texture'	-- either 'texture' or 'cutaway'
 
 local gridSize = 32
 local useShader = true
+local wiremap = false
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -676,11 +677,11 @@ end
 
 
 function widget:GetConfigData(data)
-	savedTable = {}
-	savedTable.brightness = brightness
-	savedTable.curvature = curvature
-	savedTable.fogEffect = fogEffect
-	return savedTable
+	return {
+		brightness = brightness,
+		curvature = curvature,
+		fogEffect = fogEffect
+	}
 end
 
 

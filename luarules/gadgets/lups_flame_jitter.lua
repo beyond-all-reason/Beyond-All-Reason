@@ -16,7 +16,7 @@ end
 
 local MIN_EFFECT_INTERVAL = 3
 
-if (gadgetHandler:IsSyncedCode()) then
+if gadgetHandler:IsSyncedCode() then
 -------------------------------------------------------------------------------------
 -- -> SYNCED
 -------------------------------------------------------------------------------------
@@ -51,14 +51,14 @@ if (gadgetHandler:IsSyncedCode()) then
 
   function gadget:Initialize()
     gadgetHandler:RegisterGlobal("FlameShot",FlameShot)
-    gadgetHandler:RegisterGlobal("FlameSetDir",FlameSetDir)
-    gadgetHandler:RegisterGlobal("FlameSetFirePoint",FlameSetFirePoint)
+    --gadgetHandler:RegisterGlobal("FlameSetDir",FlameSetDir)
+    --gadgetHandler:RegisterGlobal("FlameSetFirePoint",FlameSetFirePoint)
   end
 
   function gadget:Shutdown()
     gadgetHandler:DeregisterGlobal("FlameShot")
-    gadgetHandler:DeregisterGlobal("FlameSetDir")
-    gadgetHandler:DeregisterGlobal("FlameSetFirePoint")
+    --gadgetHandler:DeregisterGlobal("FlameSetDir")
+    --gadgetHandler:DeregisterGlobal("FlameSetFirePoint")
   end
 
 else

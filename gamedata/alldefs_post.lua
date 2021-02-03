@@ -78,10 +78,13 @@ local function round_to_frames(name, wd, key)
 		-- even reloadtime can be nil (shields, death explosions)
 		return
 	end
+  
+  local Game_gameSpeed = 30 --for mission editor backwards compat (engine 104.0.1-287)
+  if Game and Game.gameSpeed then Game_gameSpeed = Game.gameSpeed end
+  
+	local frames = math.max(1, math.floor((original_value + 1E-3) * Game_gameSpeed))
 
-	local frames = math.max(1, math.floor((original_value + 1E-3) * Game.gameSpeed))
-
-	local sanitized_value = frames / Game.gameSpeed
+	local sanitized_value = frames / Game_gameSpeed
 	if math.abs (original_value - sanitized_value) > 1E-3 then
 		--Spring.Echo(name.."."..key.. " = " .. original_value .. "  ->  " .. sanitized_value .. "  ingame!  difference: "..sanitized_value-original_value)
 	end
@@ -103,6 +106,23 @@ local function processWeapons(unitDefName, unitDef)
 end
 
 function UnitDef_Post(name, uDef)
+	if uDef.builddistance then
+		local x = tonumber(Spring.GetModOptions().experimentalbuildrange) or 1
+		uDef.builddistance = uDef.builddistance*x
+	end
+
+	if uDef.workertime then
+		local x = tonumber(Spring.GetModOptions().experimentalbuildpower) or 1
+		uDef.workertime = uDef.workertime*x
+	end
+
+	if string.find(name, "chicken") and uDef.maxdamage then
+		local chickHealth = uDef.maxdamage
+		uDef.buildcostmetal = chickHealth*1
+		uDef.buildcostenergy = chickHealth*10
+		uDef.buildtime = chickHealth*10
+	end
+	
 	if not uDef.customparams then
 		uDef.customparams = {}
 	end
@@ -163,8 +183,12 @@ function UnitDef_Post(name, uDef)
 			uDef.crashdrag = 0.01	-- default 0.005
 
 			if not (string.find(name, "fepoch") or string.find(name, "fblackhy")) then--(string.find(name, "liche") or string.find(name, "crw") or string.find(name, "fepoch") or string.find(name, "fblackhy")) then
-				
-				uDef.collide = false
+				if Spring.GetModOptions() and Spring.GetModOptions().experimentalnoaircollisions == "disabled" then
+					uDef.collide = false
+				elseif Spring.GetModOptions() and Spring.GetModOptions().experimentalnoaircollisions == "enabled" then
+					uDef.collide = true
+				end
+
 				--local airmult = 1.3
 				--if uDef.buildcostenergy then
 				--	uDef.buildcostenergy = math.ceil(uDef.buildcostenergy*airmult)
@@ -343,13 +367,13 @@ end
 --------------------------------------------------------------------------------
 
 local function ProcessSoundDefaults(wd)
-	local forceSetVolume = (not wd.soundstartvolume) or (not wd.soundhitvolume) or (not wd.soundhitwetvolume)
+	local forceSetVolume = not wd.soundstartvolume or not wd.soundhitvolume or not wd.soundhitwetvolume
 	if not forceSetVolume then
 		return
 	end
 
 	local defaultDamage = wd.damage and wd.damage.default
-	if (not defaultDamage) or (defaultDamage <= 50) then
+	if not defaultDamage or defaultDamage <= 50 then
 		wd.soundstartvolume = 5
 		wd.soundhitvolume = 5
 		wd.soundhitwetvolume = 5
@@ -361,13 +385,13 @@ local function ProcessSoundDefaults(wd)
 		soundVolume = soundVolume*0.5
 	end
 
-	if (not wd.soundstartvolume) then
+	if not wd.soundstartvolume then
 		wd.soundstartvolume = soundVolume
 	end
-	if (not wd.soundhitvolume) then
+	if not wd.soundhitvolume then
 		wd.soundhitvolume = soundVolume
 	end
-		if (not wd.soundhitwetvolume) then
+		if not wd.soundhitwetvolume then
 			if wd.weapontype == "LaserCannon" or "BeamLaser" then
 				wd.soundhitwetvolume = soundVolume * 0.3
 		else
@@ -381,6 +405,54 @@ end
 function WeaponDef_Post(name, wDef)
 
 	if not SaveDefsToCustomParams then
+		
+
+		-------------- EXPERIMENTAL MODOPTIONS 
+		---- SHIELD CHANGES
+		if Spring.GetModOptions() and Spring.GetModOptions().experimentalshields == "absorbplasma" then
+			if wDef.shield and wDef.shield.repulser and wDef.shield.repulser ~= false then
+				wDef.shield.repulser = false
+			end
+		elseif Spring.GetModOptions() and Spring.GetModOptions().experimentalshields == "absorbeverything" then
+			if wDef.shield and wDef.shield.repulser and wDef.shield.repulser ~= false then
+				wDef.shield.repulser = false
+			end
+			if (not wDef.interceptedbyshieldtype) or wDef.interceptedbyshieldtype ~= 1 then
+				wDef.interceptedbyshieldtype = 1
+			end
+		elseif Spring.GetModOptions() and Spring.GetModOptions().experimentalshields == "bounceeverything" then
+			if wDef.shield then
+				wDef.shield.repulser = true
+			end
+			if (not wDef.interceptedbyshieldtype) or wDef.interceptedbyshieldtype ~= 1 then
+				wDef.interceptedbyshieldtype = 1
+			end
+		end
+
+		if Spring.GetModOptions() and Spring.GetModOptions().experimentalshieldpower then
+			if wDef.shield then
+				local multiplier = tonumber(Spring.GetModOptions().experimentalshieldpower)
+				if wDef.shield.power then
+					wDef.shield.power = wDef.shield.power*multiplier
+				end
+				if wDef.shield.powerregen then
+					wDef.shield.powerregen = wDef.shield.powerregen*multiplier
+				end
+				if wDef.shield.powerregenenergy then
+					wDef.shield.powerregenenergy = wDef.shield.powerregenenergy*multiplier
+				end
+				if wDef.shield.startingpower then
+					wDef.shield.startingpower = wDef.shield.startingpower*multiplier
+				end
+			end
+		end
+		----------------------------------------
+
+
+
+
+
+
 
 		--Use targetborderoverride in weapondef customparams to override this global setting
 		--Controls whether the weapon aims for the center or the edge of its target's collision volume. Clamped between -1.0 - target the far border, and 1.0 - target the near border.
@@ -470,7 +542,7 @@ end
 
 -- process modoptions (last, because they should not get baked)
 function ModOptions_Post (UnitDefs, WeaponDefs)
-	if (Spring.GetModOptions) then
+	if Spring.GetModOptions then
 	local modOptions = Spring.GetModOptions() or {}
 	local map_tidal = modOptions and modOptions.map_tidal
 		if map_tidal and map_tidal ~= "unchanged" then
@@ -489,13 +561,13 @@ function ModOptions_Post (UnitDefs, WeaponDefs)
 		end
 
 		-- transporting enemy coms
-		if (modOptions.transportenemy == "notcoms") then
+		if modOptions.transportenemy == "notcoms" then
 			for name,ud in pairs(UnitDefs) do
-				if (name == "armcom" or name == "corcom" or name == "armdecom" or name == "cordecom") then
+				if name == "armcom" or name == "corcom" or name == "armdecom" or name == "cordecom" then
 					ud.transportbyenemy = false
 				end
 			end
-		elseif (modOptions.transportenemy == "none") then
+		elseif modOptions.transportenemy == "none" then
 			for name, ud in pairs(UnitDefs) do
 				ud.transportbyenemy = false
 			end

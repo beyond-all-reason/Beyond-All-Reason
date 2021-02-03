@@ -10,22 +10,35 @@ function widget:GetInfo()
 		enabled   = true
 	}
 end
-
-local vsx,vsy = Spring.GetViewGeometry()
-
 ----------------------------------------------------------------
 -- Load?
 ----------------------------------------------------------------
+
 local armageddonTime = 60 * (tonumber((Spring.GetModOptions() or {}).armageddontime) or 0)
 if armageddonTime <= 0 then
     return false
 end
 
 ----------------------------------------------------------------
+----------------------------------------------------------------
+
+local texts = {        -- fallback (if you want to change this, also update: language/en.lua, or it will be overwritten)
+	armageddon = 'ARMAGEDDON',
+	armageddoniminent = 'Armageddon imminent...',
+	armageddonapproaches = 'Armageddon approaches...',
+}
+
+local vsx,vsy = Spring.GetViewGeometry()
+local font, chobbyInterface, gameStarted
+
+----------------------------------------------------------------
 -- Callins
 ----------------------------------------------------------------
 
 function widget:Initialize()
+	if WG['lang'] then
+		texts = WG['lang'].getText('armageddon')
+	end
 	widget:ViewResize()
 end
 
@@ -35,7 +48,6 @@ function widget:ViewResize()
 	font = WG['fonts'].getFont(nil, 1, 0.2, 1.3)
 end
 
-local gameStarterd = false
 function widget:GameFrame(n)
     if n == 1 then
         gameStarted = true
@@ -55,11 +67,11 @@ function widget:DrawScreen()
         local vsx, vsy = gl.GetViewSizes()
         font:Begin()
         if timeLeft <= 0 then
-            font:Print('\255\255\1\1ARMAGEDDON', 0.5 * vsx, 0.25 * vsy, 20, 'cvo')
+            font:Print('\255\255\1\1'..texts.armageddon, 0.5 * vsx, 0.25 * vsy, 20, 'cvo')
         elseif timeLeft <= 60 then
-            font:Print(string.format('\255\255\1\1Armageddon imminent... %i:%02i', timeLeft / 60, timeLeft % 60), 0.5 * vsx, 0.25 * vsy, 20, 'cvo')
+            font:Print(string.format('\255\255\1\1'..texts.armageddoniminent..' %i:%02i', timeLeft / 60, timeLeft % 60), 0.5 * vsx, 0.25 * vsy, 20, 'cvo')
         else
-            font:Print(string.format('\255\255\255\1Armageddon approaches... %i:%02i', timeLeft / 60, timeLeft % 60), 0.5 * vsx, 0.25 * vsy, 20, 'cvo')
+            font:Print(string.format('\255\255\255\1'..texts.armageddonapproaches..' %i:%02i', timeLeft / 60, timeLeft % 60), 0.5 * vsx, 0.25 * vsy, 20, 'cvo')
         end
         font:End()
     end

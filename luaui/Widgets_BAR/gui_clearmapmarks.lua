@@ -29,6 +29,8 @@ local mouseover = false
 
 local usedImgSize = iconSize
 
+local chobbyInterface
+
 ---------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------
 
@@ -58,7 +60,7 @@ local function createList(size)
 		gl.Texture(false)
 	end)
 	if WG['tooltip'] ~= nil then
-		WG['tooltip'].AddTooltip('clearmapmarks', {xPos-usedImgSize, yPos, xPos, yPos+usedImgSize}, "clear mapmarks/drawings")
+		WG['tooltip'].AddTooltip('clearmapmarks', {xPos-usedImgSize, yPos, xPos, yPos+usedImgSize}, Spring.I18N('ui.clearMapmarks.tooltip'))
 	end
 end
 

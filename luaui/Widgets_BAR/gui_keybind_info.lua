@@ -1,23 +1,133 @@
-
 function widget:GetInfo()
-return {
-	name    = "Keybind/Mouse Info",
-	desc    = "Provides information on the controls",
-	author  = "Bluestone",
-	date    = "April 2015",
-	license = "Mouthwash",
-	layer   = -99990,
-	enabled = true,
-}
+	return {
+		name = "Keybind/Mouse Info",
+		desc = "Provides information on the controls",
+		author = "Bluestone",
+		date = "April 2015",
+		license = "Mouthwash",
+		layer = -99990,
+		enabled = true,
+	}
 end
 
-local vsx,vsy = Spring.GetViewGeometry()
+local texts = {        -- fallback (if you want to change this, also update: language/en.lua, or it will be overwritten)
+	title = 'Keybinds',
+	disclaimer = 'These keybinds are set by default. If you remove/replace hotkey widgets, or use your own uikeys, they might stop working!',
+	lines = {
+		{ "Chat", title = true },
+		{ "enter", "Send chat message" },
+		{ "alt + enter", "Send chat message to allies" },
+		{ "shift + enter", "Send chat message to spectators" },
+		{ "ctrl + left click on name", "Ignore player" },
+		{ blankLine = true },
+		{ "Menus", title = true },
+		{ "f10", "Settings" },
+		{ "f11", "Widget list" },
+		{ "ctrl + f11", "Widget teak mode" },
+		{ "h", "Share units / resources" },
+		{ blankLine = true },
+		{ "Camera movement", title = true },
+		{ "scrollwheel", "Zoom camera" },
+		{ "arrow keys / mouse at screen edge", "Move camera" },
+		{ "ctrl + scrollwheel", "Change camera angle" },
+		{ "middle click (+ drag)", "Drag camera" },
+		{ "ctrl + shift + o", "Flip camera" },
+		{ blankLine = true },
+		{ "Camera modes", title = true },
+		{ "ctrl + f1,2,3,4,5", "Change camera type" },
+		{ "alt + backspace", "Toggle fullscreen" },
+		{ "tab", "Toggle overview camera" },
+		{ "l", "Toggle LOS view" },
+		{ "f1", "Show height map" },
+		{ "f2", "Show passability (for selected unit)" },
+		{ "f3", "Cycle through map marks" },
+		{ "f4", "Show metal map" },
+		{ "f5", "Hide GUI" },
+		{ blankLine = true },
+		{ "Sound", title = true },
+		{ "-/+", "Change volume" },
+		{ "f6", "Toggle mute" },
+
+		{ blankLine = true },
+		{ "Selecting units", title = true },
+		{ "left mouse (+ drag)", "Select or deselect units" },
+		{ blankLine = true },
+		{ "Giving orders", title = true },
+		{ "right mouse (single click)", "Give order to unit(s)" },
+		{ "right mouse (drag)", "Give formation order to unit(s)" },
+		{ blankLine = true },
+		{ "Selecting orders", title = true },
+		{ "(none)", "default order (usually move)" },
+		{ "m", "move" },
+		{ "a", "attack" },
+		{ "y", "set priority target" },
+		{ "r", "repair" },
+		{ "e", "reclaim" },
+		{ "o", "resurrect" },
+		{ "f", "fight" },
+		{ "p", "patrol" },
+		{ "k", "cloak" },
+		{ blankLine = true },
+		{ "s", "stop (clears order queue)" },
+		{ "w", "wait (pause current command)" },
+		{ "j", "cancel priority target" },
+		{ blankLine = true },
+		{ "d", "manual fire (dgun)" },
+		{ "ctrl + d", "self-destruct" },
+		{ blankLine = true },
+		{ "Giving selected orders", title = true },
+		{ "left mouse (single click)", "Give order to unit(s)" },
+		{ "right mouse (single click)", "Revert to default order" },
+		{ "right mouse + drag", "Give formation order to unit(s)" },
+		{ blankLine = true },
+		{ "Queueing orders", title = true },
+		{ "shift + (some order)", "Add order to end of order queue" },
+		{ "space + (some order)", "Add order to start of order queue" },
+
+		{ blankLine = true },
+		{ "Selecting build orders", title = true },
+		{ "(mouse)", "Select from units build-menu" },
+		{ "z", "Cycle through mexes" },
+		{ "x", "Cycle through energy production" },
+		{ "c", "Cycle through radar/defence/etc" },
+		{ "v", "Cycle through factories" },
+		{ "[ and ], or o", "Change facing of buildings" },
+		{ blankLine = true },
+		{ "Giving build orders", title = true },
+		{ "left mouse", "Give build order" },
+		{ "right mouse", "De-select build order" },
+		{ "shift + (build order)", "Build in a line" },
+		{ "shift + alt + (build order)", "Build in a square" },
+		{ "alt+z", "Increase build spacing" },
+		{ "alt+x", "Decrease build spacing" },
+		{ blankLine = true },
+		{ "Group selection", title = true },
+		{ "ctrl + a", "Select all units" },
+		{ "ctrl + b", "Select all constructors" },
+		{ "ctrl + (num)", "Add units to group (num=1,2,..)" },
+		{ "(num)", "Select all units assigned to group (num)" },
+		{ "ctrl + z", "Select all units of same type as current" },
+		{ blankLine = true },
+		{ "Drawing", title = true },
+		{ "q + dbl click", "Place map mark" },
+		{ "q + drag left mouse", "Draw on map" },
+		{ "q + drag right mouse", "Erase drawings and markers" },
+		{ blankLine = true },
+		{ "Console commands", title = true },
+		{ "/clearmapmarks", "Erase all drawings and markes" },
+		{ "/pause", "Pause" },
+	},
+}
+
+local vsx, vsy = Spring.GetViewGeometry()
 local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 
-local bgMargin = 6
+local ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.6)
 
-local screenHeight = 520-bgMargin-bgMargin
-local screenWidth = 1050-bgMargin-bgMargin
+local screenHeightOrg = 520
+local screenWidthOrg = 1050
+local screenHeight = screenHeightOrg
+local screenWidth = screenWidthOrg
 
 local spIsGUIHidden = Spring.IsGUIHidden
 local showHelp = false
@@ -44,264 +154,185 @@ local GL_FILL = GL.FILL
 local GL_FRONT_AND_BACK = GL.FRONT_AND_BACK
 local GL_LINE_STRIP = GL.LINE_STRIP
 
+local RectRound = Spring.FlowUI.Draw.RectRound
+local UiElement = Spring.FlowUI.Draw.Element
+local elementCorner = Spring.FlowUI.elementCorner
+
 local myTeamID = Spring.GetMyTeamID()
 local showOnceMore = false
 
 -- keybind info
-include("configs/BAR_HotkeyInfo.lua")
-local bindColor			= "\255\235\185\070"
-local titleColor		= "\255\254\254\254"
-local descriptionColor	= "\255\192\190\180"
+local bindColor = "\255\235\185\070"
+local titleColor = "\255\254\254\254"
+local descriptionColor = "\255\192\190\180"
 
 local widgetScale = 1
 local customScale = 1
-local centerPosX = 0.5	-- note: dont go too far from 0.5
-local centerPosY = 0.49		-- note: dont go too far from 0.5
-local screenX = (vsx*centerPosX) - (screenWidth/2)
-local screenY = (vsy*centerPosY) + (screenHeight/2)
+local centerPosX = 0.5
+local centerPosY = 0.5
+local screenX = math.floor((vsx * centerPosX) - (screenWidth / 2))
+local screenY = math.floor((vsy * centerPosY) + (screenHeight / 2))
+
+local font, font2, loadedFontSize, titleRect, keybinds, chobbyInterface, backgroundGuishader, show, bgpadding
 
 function widget:ViewResize()
-	vsx,vsy = Spring.GetViewGeometry()
-	screenX = (vsx*centerPosX) - (screenWidth/2)
-	screenY = (vsy*centerPosY) + (screenHeight/2)
-	widgetScale = ((vsx+vsy) / 2000) * 0.65 * customScale
-	widgetScale = widgetScale * (1 - (0.11 * ((vsx/vsy) - 1.78)))		-- make smaller for ultrawide screens
+	vsx, vsy = Spring.GetViewGeometry()
+	widgetScale = ((vsx + vsy) / 2000) * 0.65 * customScale
+	widgetScale = widgetScale * (1 - (0.11 * ((vsx / vsy) - 1.78)))        -- make smaller for ultrawide screens
+
+	screenHeight = math.floor(screenHeightOrg * widgetScale)
+	screenWidth = math.floor(screenWidthOrg * widgetScale)
+	screenX = math.floor((vsx * centerPosX) - (screenWidth / 2))
+	screenY = math.floor((vsy * centerPosY) + (screenHeight / 2))
 
 	font, loadedFontSize = WG['fonts'].getFont()
 	font2 = WG['fonts'].getFont(fontfile2)
+	bgpadding = Spring.FlowUI.elementPadding
+	elementCorner = Spring.FlowUI.elementCorner
 
-	if keybinds then gl.DeleteList(keybinds) end
+	if keybinds then
+		gl.DeleteList(keybinds)
+	end
 	keybinds = gl.CreateList(DrawWindow)
 end
 
-local function DrawRectRound(px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)
-	local csyMult = 1 / ((sy-py)/cs)
-
-	if c2 then
-		gl.Color(c1[1],c1[2],c1[3],c1[4])
-	end
-	gl.Vertex(px+cs, py, 0)
-	gl.Vertex(sx-cs, py, 0)
-	if c2 then
-		gl.Color(c2[1],c2[2],c2[3],c2[4])
-	end
-	gl.Vertex(sx-cs, sy, 0)
-	gl.Vertex(px+cs, sy, 0)
-
-	-- left side
-	if c2 then
-		gl.Color(c1[1]*(1-csyMult)+(c2[1]*csyMult),c1[2]*(1-csyMult)+(c2[2]*csyMult),c1[3]*(1-csyMult)+(c2[3]*csyMult),c1[4]*(1-csyMult)+(c2[4]*csyMult))
-	end
-	gl.Vertex(px, py+cs, 0)
-	gl.Vertex(px+cs, py+cs, 0)
-	if c2 then
-		gl.Color(c2[1]*(1-csyMult)+(c1[1]*csyMult),c2[2]*(1-csyMult)+(c1[2]*csyMult),c2[3]*(1-csyMult)+(c1[3]*csyMult),c2[4]*(1-csyMult)+(c1[4]*csyMult))
-	end
-	gl.Vertex(px+cs, sy-cs, 0)
-	gl.Vertex(px, sy-cs, 0)
-
-	-- right side
-	if c2 then
-		gl.Color(c1[1]*(1-csyMult)+(c2[1]*csyMult),c1[2]*(1-csyMult)+(c2[2]*csyMult),c1[3]*(1-csyMult)+(c2[3]*csyMult),c1[4]*(1-csyMult)+(c2[4]*csyMult))
-	end
-	gl.Vertex(sx, py+cs, 0)
-	gl.Vertex(sx-cs, py+cs, 0)
-	if c2 then
-		gl.Color(c2[1]*(1-csyMult)+(c1[1]*csyMult),c2[2]*(1-csyMult)+(c1[2]*csyMult),c2[3]*(1-csyMult)+(c1[3]*csyMult),c2[4]*(1-csyMult)+(c1[4]*csyMult))
-	end
-	gl.Vertex(sx-cs, sy-cs, 0)
-	gl.Vertex(sx, sy-cs, 0)
-
-	local offset = 0.15		-- texture offset, because else gaps could show
-
-	-- bottom left
-	if c2 then
-		gl.Color(c1[1],c1[2],c1[3],c1[4])
-	end
-	if ((py <= 0 or px <= 0)  or (bl ~= nil and bl == 0)) and bl ~= 2   then
-		gl.Vertex(px, py, 0)
-	else
-		gl.Vertex(px+cs, py, 0)
-	end
-	gl.Vertex(px+cs, py, 0)
-	if c2 then
-		gl.Color(c1[1]*(1-csyMult)+(c2[1]*csyMult),c1[2]*(1-csyMult)+(c2[2]*csyMult),c1[3]*(1-csyMult)+(c2[3]*csyMult),c1[4]*(1-csyMult)+(c2[4]*csyMult))
-	end
-	gl.Vertex(px+cs, py+cs, 0)
-	gl.Vertex(px, py+cs, 0)
-	-- bottom right
-	if c2 then
-		gl.Color(c1[1],c1[2],c1[3],c1[4])
-	end
-	if ((py <= 0 or sx >= vsx) or (br ~= nil and br == 0)) and br ~= 2 then
-		gl.Vertex(sx, py, 0)
-	else
-		gl.Vertex(sx-cs, py, 0)
-	end
-	gl.Vertex(sx-cs, py, 0)
-	if c2 then
-		gl.Color(c1[1]*(1-csyMult)+(c2[1]*csyMult),c1[2]*(1-csyMult)+(c2[2]*csyMult),c1[3]*(1-csyMult)+(c2[3]*csyMult),c1[4]*(1-csyMult)+(c2[4]*csyMult))
-	end
-	gl.Vertex(sx-cs, py+cs, 0)
-	gl.Vertex(sx, py+cs, 0)
-	-- top left
-	if c2 then
-		gl.Color(c2[1],c2[2],c2[3],c2[4])
-	end
-	if ((sy >= vsy or px <= 0) or (tl ~= nil and tl == 0)) and tl ~= 2 then
-		gl.Vertex(px, sy, 0)
-	else
-		gl.Vertex(px+cs, sy, 0)
-	end
-	gl.Vertex(px+cs, sy, 0)
-	if c2 then
-		gl.Color(c2[1]*(1-csyMult)+(c1[1]*csyMult),c2[2]*(1-csyMult)+(c1[2]*csyMult),c2[3]*(1-csyMult)+(c1[3]*csyMult),c2[4]*(1-csyMult)+(c1[4]*csyMult))
-	end
-	gl.Vertex(px+cs, sy-cs, 0)
-	gl.Vertex(px, sy-cs, 0)
-	-- top right
-	if c2 then
-		gl.Color(c2[1],c2[2],c2[3],c2[4])
-	end
-	if ((sy >= vsy or sx >= vsx)  or (tr ~= nil and tr == 0)) and tr ~= 2 then
-		gl.Vertex(sx, sy, 0)
-	else
-		gl.Vertex(sx-cs, sy, 0)
-	end
-	gl.Vertex(sx-cs, sy, 0)
-	if c2 then
-		gl.Color(c2[1]*(1-csyMult)+(c1[1]*csyMult),c2[2]*(1-csyMult)+(c1[2]*csyMult),c2[3]*(1-csyMult)+(c1[3]*csyMult),c2[4]*(1-csyMult)+(c1[4]*csyMult))
-	end
-	gl.Vertex(sx-cs, sy-cs, 0)
-	gl.Vertex(sx, sy-cs, 0)
-end
-function RectRound(px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)		-- (coordinates work differently than the RectRound func in other widgets)
-	gl.Texture(false)
-	gl.BeginEnd(GL.QUADS, DrawRectRound, px,py,sx,sy,cs, tl,tr,br,bl, c1,c2)
-end
-
-
-function DrawTextTable(t,x,y)
-    local j = 0
-    local height = 0
-    local width = 0
+function DrawTextTable(t, x, y)
+	local j = 0
+	local height = 0
+	local width = 0
+	local fontSize = (screenHeight * 0.96) / math.ceil(#texts.lines / 3)
 	font:Begin()
-    for _,t in pairs(t) do
-      if t.blankLine then
-        -- nothing here
-      elseif t.title then
-        -- title line
-        local title = t[1] or ""
-        local line = " " .. titleColor .. title -- a WTF whitespace is needed here, the colour doesn't show without it...
-		font:Print(line, x+4, y-((13)*j)+5, 14)
-		screenWidth = math.max(font:GetTextWidth(line)*13,screenWidth)
-      else
-        -- keybind line
-        local bind = string.upper(t[1]) or ""
-        local effect = t[2] or ""
-        local line = " " .. bindColor .. bind .. "   " .. descriptionColor .. effect
-		font:Print(line, x+14, y-(13)*j, 11)
-		width = math.max(font:GetTextWidth(line)*11,width)
-      end
-      height = height + 13
+	for _, t in pairs(t) do
+		if t.blankLine then
+			-- nothing here
+		elseif t.title then
+			-- title line
+			local title = t[1] or ""
+			local line = " " .. titleColor .. title -- a WTF whitespace is needed here, the colour doesn't show without it...
+			font:Print(line, x + 4, y - ((fontSize * 0.94) * j) + 5, fontSize)
+			screenWidth = math.max(font:GetTextWidth(line) * 13, screenWidth)
+		else
+			-- keybind line
+			local bind = string.upper(t[1]) or ""
+			local effect = t[2] or ""
+			local line = " " .. bindColor .. bind .. "   " .. descriptionColor .. effect
+			font:Print(line, x + 14, y - (fontSize * 0.94) * j, fontSize * 0.8)
+			width = math.max(font:GetTextWidth(line) * 11, width)
+		end
+		height = height + 13
 
-	  j = j + 1
-    end
+		j = j + 1
+		-- dont let the first line of a column be blank
+		if j == 1 and t.blankLine then
+			j = j - 1
+		end
+	end
 	font:End()
-    --screenHeight = math.max(screenHeight, height)
-    --screenWidth = screenWidth + width
-    return x,j
+	--screenHeight = math.max(screenHeight, height)
+	--screenWidth = screenWidth + width
+	return x, j
 end
 
 function DrawWindow()
-    local vsx,vsy = Spring.GetViewGeometry()
-    local x = screenX --rightwards
-    local y = screenY --upwards
-
 	-- background
-	if WG['guishader'] then
-		gl.Color(0,0,0,0.8)
-	else
-		gl.Color(0,0,0,0.85)
-	end
-	RectRound(x-bgMargin,y-screenHeight-bgMargin,x+screenWidth+bgMargin,y+bgMargin,8, 0,1,1,1, {0.05,0.05,0.05,WG['guishader'] and 0.8 or 0.88}, {0,0,0,WG['guishader'] and 0.8 or 0.88})
-	-- content area
-	gl.Color(0.33,0.33,0.33,0.15)
-	RectRound(x,y-screenHeight,x+screenWidth,y,5.5, 1,1,1,1, {0.25,0.25,0.25,0.2}, {0.5,0.5,0.5,0.2})
+	UiElement(screenX, screenY - screenHeight, screenX + screenWidth, screenY, 0, 1, 1, 1, 1,1,1,1, ui_opacity + 0.2)
 
 	-- title background
-    local title = "Keybinds"
-    local titleFontSize = 18
-	if WG['guishader'] then
-		gl.Color(0,0,0,0.8)
-	else
-		gl.Color(0,0,0,0.85)
-	end
-    titleRect = {x-bgMargin, y+bgMargin, x-bgMargin+(font2:GetTextWidth(title)*titleFontSize)+27, y+37}
-	RectRound(titleRect[1], titleRect[2], titleRect[3], titleRect[4], 8, 1,1,0,0)
+	local title = texts.title
+	local titleFontSize = 18 * widgetScale
+	titleRect = { screenX, screenY, math.floor(screenX + (font2:GetTextWidth(texts.title) * titleFontSize) + (titleFontSize*1.5)), math.floor(screenY + (titleFontSize*1.7)) }
+
+	gl.Color(0, 0, 0, Spring.GetConfigFloat("ui_opacity", 0.6) + 0.2)
+	RectRound(titleRect[1], titleRect[2], titleRect[3], titleRect[4], elementCorner, 1, 1, 0, 0)
+
 	-- title
 	font2:Begin()
-	font2:SetTextColor(1,1,1,1)
-	font2:SetOutlineColor(0,0,0,0.4)
-	font2:Print(title, x-bgMargin+(titleFontSize*0.75), y+bgMargin+8, titleFontSize, "on")
+	font2:SetTextColor(1, 1, 1, 1)
+	font2:SetOutlineColor(0, 0, 0, 0.4)
+	font2:Print(title, screenX + (titleFontSize * 0.75), screenY + (8*widgetScale), titleFontSize, "on")
 	font2:End()
 
-    DrawTextTable(General,x,y-24)
-    x = x + 350
-    DrawTextTable(Units_I_II,x,y-24)
-    x = x + 350
-    DrawTextTable(Units_III,x,y-24)
+	local entriesPerColumn = math.ceil(#texts.lines / 3)
+	local entries1 = {}
+	local entries2 = {}
+	local entries3 = {}
+	for k, v in pairs(texts.lines) do
+		if k <= entriesPerColumn then
+			entries1[#entries1 + 1] = v
+		elseif k > entriesPerColumn and k <= entriesPerColumn * 2 then
+			entries2[#entries2 + 1] = v
+		else
+			entries3[#entries3 + 1] = v
+		end
+	end
+	local textPadding = 8 * widgetScale
+	local textTopPadding = 28 * widgetScale
+	local x = screenX + textPadding
+	DrawTextTable(entries1, x, screenY - textTopPadding)
+	x = x + (350*widgetScale)
+	DrawTextTable(entries2, x, screenY - textTopPadding)
+	x = x + (350*widgetScale)
+	DrawTextTable(entries3, x, screenY - textTopPadding)
 
-    gl.Color(1,1,1,1)
+	gl.Color(1, 1, 1, 1)
 	font:Begin()
-    font:Print("These keybinds are set by default. If you remove/replace hotkey widgets, or use your own uikeys, they might stop working!", screenX+12, y-screenHeight + 14, 12.5)
+	font:Print(texts.disclaimer, screenX + (12*widgetScale), screenY - screenHeight + (14*widgetScale), 12.5*widgetScale)
 	font:End()
 end
 
-
 function widget:RecvLuaMsg(msg, playerID)
-	if msg:sub(1,18) == 'LobbyOverlayActive' then
-		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
+	if msg:sub(1, 18) == 'LobbyOverlayActive' then
+		chobbyInterface = (msg:sub(1, 19) == 'LobbyOverlayActive1')
+	end
+end
+
+local uiOpacitySec = 0
+function widget:Update(dt)
+	uiOpacitySec = uiOpacitySec + dt
+	if uiOpacitySec > 0.5 then
+		uiOpacitySec = 0
+		if ui_opacity ~= Spring.GetConfigFloat("ui_opacity", 0.6) then
+			ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.6)
+			widget:ViewResize()
+		end
 	end
 end
 
 function widget:DrawScreen()
-  if chobbyInterface then return end
-  if spIsGUIHidden() then return end
+	if chobbyInterface then
+		return
+	end
+	if spIsGUIHidden() then
+		return
+	end
 
-  -- draw the help
-  if not keybinds then
-      keybinds = gl.CreateList(DrawWindow)
-  end
+	-- draw the help
+	if not keybinds then
+		keybinds = gl.CreateList(DrawWindow)
+	end
 
-  if show or showOnceMore then
-		glPushMatrix()
-			glTranslate(-(vsx * (widgetScale-1))/2, -(vsy * (widgetScale-1))/2, 0)
-			glScale(widgetScale, widgetScale, 1)
-			glCallList(keybinds)
-		glPopMatrix()
+	if show or showOnceMore then
+		gl.Texture(false)	-- some other widget left it on
+		glCallList(keybinds)
 		if WG['guishader'] then
-			local rectX1 = ((screenX-bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
-			local rectY1 = ((screenY+bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
-			local rectX2 = ((screenX+screenWidth+bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
-			local rectY2 = ((screenY-screenHeight-bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
 			if backgroundGuishader ~= nil then
 				glDeleteList(backgroundGuishader)
 			end
-			backgroundGuishader = glCreateList( function()
+			backgroundGuishader = glCreateList(function()
 				-- background
-				RectRound(rectX1, rectY2, rectX2, rectY1, 9*widgetScale, 0,1,1,1)
+				RectRound(screenX, screenY - screenHeight, screenX + screenWidth, screenY, elementCorner, 0, 1, 1, 1)
 				-- title
-				rectX1 = (titleRect[1] * widgetScale) - ((vsx * (widgetScale-1))/2)
-				rectY1 = (titleRect[2] * widgetScale) - ((vsy * (widgetScale-1))/2)
-				rectX2 = (titleRect[3] * widgetScale) - ((vsx * (widgetScale-1))/2)
-				rectY2 = (titleRect[4] * widgetScale) - ((vsy * (widgetScale-1))/2)
-				RectRound(rectX1, rectY1, rectX2, rectY2, 9*widgetScale, 1,1,0,0)
+				RectRound(titleRect[1], titleRect[2], titleRect[3], titleRect[4], elementCorner, 1, 1, 0, 0)
 			end)
 			WG['guishader'].InsertDlist(backgroundGuishader, 'keybindinfo')
 		end
 		showOnceMore = false
-  	else
+
+		local x, y, pressed = Spring.GetMouseState()
+		if IsOnRect(x, y, screenX, screenY - screenHeight, screenX + screenWidth, screenY) or IsOnRect(x, y, titleRect[1], titleRect[2], titleRect[3], titleRect[4]) then
+			Spring.SetMouseCursor('cursornormal')
+		end
+	else
 		if WG['guishader'] then
 			WG['guishader'].DeleteDlist('keybindinfo')
 		end
@@ -309,17 +340,18 @@ function widget:DrawScreen()
 end
 
 function widget:KeyPress(key)
-	if key == 27 then	-- ESC
+	if key == 27 then
+		-- ESC
 		show = false
 	end
 end
 
-function IsOnRect(x, y, BLcornerX, BLcornerY,TRcornerX,TRcornerY)
+function IsOnRect(x, y, BLcornerX, BLcornerY, TRcornerX, TRcornerY)
 
 	-- check if the mouse is in a rectangle
 	return x >= BLcornerX and x <= TRcornerX
-	                      and y >= BLcornerY
-	                      and y <= TRcornerY
+		and y >= BLcornerY
+		and y <= TRcornerY
 end
 
 function widget:MousePress(x, y, button)
@@ -331,19 +363,17 @@ function widget:MouseRelease(x, y, button)
 end
 
 function mouseEvent(x, y, button, release)
-	if spIsGUIHidden() then return false end
+	if spIsGUIHidden() then
+		return false
+	end
 
-  if show then
+	if show then
 		-- on window
-		local rectX1 = ((screenX-bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
-		local rectY1 = ((screenY+bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
-		local rectX2 = ((screenX+screenWidth+bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
-		local rectY2 = ((screenY-screenHeight-bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
-		if IsOnRect(x, y, rectX1, rectY2, rectX2, rectY1) then
+		if IsOnRect(x, y, screenX, screenY - screenHeight, screenX + screenWidth, screenY) then
 			return true
-		elseif titleRect == nil or not IsOnRect(x, y, (titleRect[1] * widgetScale) - ((vsx * (widgetScale-1))/2), (titleRect[2] * widgetScale) - ((vsy * (widgetScale-1))/2), (titleRect[3] * widgetScale) - ((vsx * (widgetScale-1))/2), (titleRect[4] * widgetScale) - ((vsy * (widgetScale-1))/2)) then
+		elseif titleRect == nil or not IsOnRect(x, y, titleRect[1], titleRect[2], titleRect[3], titleRect[4]) then
 			if release then
-				showOnceMore = show		-- show once more because the guishader lags behind, though this will not fully fix it
+				showOnceMore = show        -- show once more because the guishader lags behind, though this will not fully fix it
 				show = false
 			end
 			return true
@@ -352,6 +382,9 @@ function mouseEvent(x, y, button, release)
 end
 
 function widget:Initialize()
+	if WG['lang'] then
+		texts = WG['lang'].getText('keys')
+	end
 
 	WG['keybinds'] = {}
 	WG['keybinds'].toggle = function(state)
@@ -368,10 +401,10 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
-    if keybinds then
-        glDeleteList(keybinds)
-        keybinds = nil
-    end
+	if keybinds then
+		glDeleteList(keybinds)
+		keybinds = nil
+	end
 	if WG['guishader'] then
 		WG['guishader'].DeleteDlist('keybindinfo')
 	end

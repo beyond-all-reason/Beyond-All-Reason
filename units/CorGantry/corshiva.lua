@@ -172,7 +172,7 @@ return {
 				texture1 = "trans",
 				texture2 = "null",
 				texture3 = "null",
-				turnrate = 28384,
+				turnrate = 15000,
 				weaponacceleration = 100,
 				weapontimer = 2,
 				weapontype = "StarburstLauncher",

@@ -18,6 +18,14 @@ DEFS = {}
 --------------------------------------------------------------------------------
 local section='defs.lua'
 
+-- https://springrts.com/mantis/view.php?id=6088, remove this when no longer needed!
+if not VFS.BASE then --readded for mission editor backwards compat (engine 104.0.1-287)
+  VFS.BASE = "b"
+  VFS.MOD = "M"
+  VFS.MAP = "m"
+end
+
+
 vfs_modes = VFS.MOD .. VFS.BASE
 allow_map_mutators = (Spring.GetModOptions and tonumber(Spring.GetModOptions().allowmapmutators) or 1) ~= 0 
 if allow_map_mutators then

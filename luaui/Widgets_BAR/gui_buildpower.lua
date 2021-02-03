@@ -6,9 +6,16 @@ function widget:GetInfo()
 		date = "May 2020",
 		license = "GNU GPL, v2 or later",
 		layer = 0,
-		enabled = true,
+		enabled = false,
 	}
 end
+
+local texts = {        -- fallback (if you want to change this, also update: language/en.lua, or it will be overwritten)
+	usedbuildpower = 'Used buildpower',
+	buildpower = 'buildpower',
+	builders = 'builders',
+	tip = 'Increase efficiency -> put idle worker units to work! (have enough resources too!)\n\255\240\240\240High buildpower usage -> make more workers',
+}
 
 local vsx, vsy = Spring.GetViewGeometry()
 
@@ -39,6 +46,10 @@ local spGetTeamUnits = Spring.GetTeamUnits
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitCurrentBuildPower = Spring.GetUnitCurrentBuildPower
 
+local RectRound = Spring.FlowUI.Draw.RectRound
+local UiElement = Spring.FlowUI.Draw.Element
+local elementCorner = Spring.FlowUI.elementCorner
+
 local totalBuilders = 0
 local builders = {}
 local totalBuildpower = 0
@@ -54,6 +65,9 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 		--end
 	end
 end
+
+local gamestarted, dlistGuishader, bgpadding, chobbyInterface, contentMargin, dlistBuildpower, dlistBuildpower2
+local posX, posY, width, height
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
@@ -97,7 +111,7 @@ local function checkGuishader(force)
 		end
 		if not dlistGuishader then
 			dlistGuishader = gl.CreateList(function()
-				RectRound(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], bgpadding * 1.6, 1, 1, 0, 0)
+				RectRound(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], elementCorner, 0, 1, 0, 0)
 			end)
 			WG['guishader'].InsertDlist(dlistGuishader, 'buildpower')
 		end
@@ -113,11 +127,14 @@ function widget:ViewResize()
 		checkGuishader(true)
 		clear()
 	end
-	local widgetSpaceMargin = math.floor(0.0045 * vsy * ui_scale) / vsy
-	bgpadding = math.ceil(widgetSpaceMargin * 0.66 * vsy)
+	bgpadding = Spring.FlowUI.elementPadding
+	elementCorner = Spring.FlowUI.elementCorner
 end
 
 function widget:Initialize()
+	if WG['lang'] then
+		texts = WG['lang'].getText('buildpower')
+	end
 	widget:ViewResize()
 
 	WG['buildpower'] = {}
@@ -195,133 +212,16 @@ function widget:Update(dt)
 	end
 end
 
-local function DrawRectRound(px, py, sx, sy, cs, tl, tr, br, bl, c1, c2)
-	local csyMult = 1 / ((sy - py) / cs)
-
-	if c2 then
-		gl.Color(c1[1], c1[2], c1[3], c1[4])
-	end
-	gl.Vertex(px + cs, py, 0)
-	gl.Vertex(sx - cs, py, 0)
-	if c2 then
-		gl.Color(c2[1], c2[2], c2[3], c2[4])
-	end
-	gl.Vertex(sx - cs, sy, 0)
-	gl.Vertex(px + cs, sy, 0)
-
-	-- left side
-	if c2 then
-		gl.Color(c1[1] * (1 - csyMult) + (c2[1] * csyMult), c1[2] * (1 - csyMult) + (c2[2] * csyMult), c1[3] * (1 - csyMult) + (c2[3] * csyMult), c1[4] * (1 - csyMult) + (c2[4] * csyMult))
-	end
-	gl.Vertex(px, py + cs, 0)
-	gl.Vertex(px + cs, py + cs, 0)
-	if c2 then
-		gl.Color(c2[1] * (1 - csyMult) + (c1[1] * csyMult), c2[2] * (1 - csyMult) + (c1[2] * csyMult), c2[3] * (1 - csyMult) + (c1[3] * csyMult), c2[4] * (1 - csyMult) + (c1[4] * csyMult))
-	end
-	gl.Vertex(px + cs, sy - cs, 0)
-	gl.Vertex(px, sy - cs, 0)
-
-	-- right side
-	if c2 then
-		gl.Color(c1[1] * (1 - csyMult) + (c2[1] * csyMult), c1[2] * (1 - csyMult) + (c2[2] * csyMult), c1[3] * (1 - csyMult) + (c2[3] * csyMult), c1[4] * (1 - csyMult) + (c2[4] * csyMult))
-	end
-	gl.Vertex(sx, py + cs, 0)
-	gl.Vertex(sx - cs, py + cs, 0)
-	if c2 then
-		gl.Color(c2[1] * (1 - csyMult) + (c1[1] * csyMult), c2[2] * (1 - csyMult) + (c1[2] * csyMult), c2[3] * (1 - csyMult) + (c1[3] * csyMult), c2[4] * (1 - csyMult) + (c1[4] * csyMult))
-	end
-	gl.Vertex(sx - cs, sy - cs, 0)
-	gl.Vertex(sx, sy - cs, 0)
-
-	local offset = 0.15        -- texture offset, because else gaps could show
-
-	-- bottom left
-	if c2 then
-		gl.Color(c1[1], c1[2], c1[3], c1[4])
-	end
-	if ((py <= 0 or px <= 0) or (bl ~= nil and bl == 0)) and bl ~= 2 then
-		gl.Vertex(px, py, 0)
-	else
-		gl.Vertex(px + cs, py, 0)
-	end
-	gl.Vertex(px + cs, py, 0)
-	if c2 then
-		gl.Color(c1[1] * (1 - csyMult) + (c2[1] * csyMult), c1[2] * (1 - csyMult) + (c2[2] * csyMult), c1[3] * (1 - csyMult) + (c2[3] * csyMult), c1[4] * (1 - csyMult) + (c2[4] * csyMult))
-	end
-	gl.Vertex(px + cs, py + cs, 0)
-	gl.Vertex(px, py + cs, 0)
-	-- bottom right
-	if c2 then
-		gl.Color(c1[1], c1[2], c1[3], c1[4])
-	end
-	if ((py <= 0 or sx >= vsx) or (br ~= nil and br == 0)) and br ~= 2 then
-		gl.Vertex(sx, py, 0)
-	else
-		gl.Vertex(sx - cs, py, 0)
-	end
-	gl.Vertex(sx - cs, py, 0)
-	if c2 then
-		gl.Color(c1[1] * (1 - csyMult) + (c2[1] * csyMult), c1[2] * (1 - csyMult) + (c2[2] * csyMult), c1[3] * (1 - csyMult) + (c2[3] * csyMult), c1[4] * (1 - csyMult) + (c2[4] * csyMult))
-	end
-	gl.Vertex(sx - cs, py + cs, 0)
-	gl.Vertex(sx, py + cs, 0)
-	-- top left
-	if c2 then
-		gl.Color(c2[1], c2[2], c2[3], c2[4])
-	end
-	if ((sy >= vsy or px <= 0) or (tl ~= nil and tl == 0)) and tl ~= 2 then
-		gl.Vertex(px, sy, 0)
-	else
-		gl.Vertex(px + cs, sy, 0)
-	end
-	gl.Vertex(px + cs, sy, 0)
-	if c2 then
-		gl.Color(c2[1] * (1 - csyMult) + (c1[1] * csyMult), c2[2] * (1 - csyMult) + (c1[2] * csyMult), c2[3] * (1 - csyMult) + (c1[3] * csyMult), c2[4] * (1 - csyMult) + (c1[4] * csyMult))
-	end
-	gl.Vertex(px + cs, sy - cs, 0)
-	gl.Vertex(px, sy - cs, 0)
-	-- top right
-	if c2 then
-		gl.Color(c2[1], c2[2], c2[3], c2[4])
-	end
-	if ((sy >= vsy or sx >= vsx) or (tr ~= nil and tr == 0)) and tr ~= 2 then
-		gl.Vertex(sx, sy, 0)
-	else
-		gl.Vertex(sx - cs, sy, 0)
-	end
-	gl.Vertex(sx - cs, sy, 0)
-	if c2 then
-		gl.Color(c2[1] * (1 - csyMult) + (c1[1] * csyMult), c2[2] * (1 - csyMult) + (c1[2] * csyMult), c2[3] * (1 - csyMult) + (c1[3] * csyMult), c2[4] * (1 - csyMult) + (c1[4] * csyMult))
-	end
-	gl.Vertex(sx - cs, sy - cs, 0)
-	gl.Vertex(sx, sy - cs, 0)
-end
-function RectRound(px, py, sx, sy, cs, tl, tr, br, bl, c1, c2)
-	-- (coordinates work differently than the RectRound func in other widgets)
-	gl.Texture(false)
-	gl.BeginEnd(GL.QUADS, DrawRectRound, px, py, sx, sy, cs, tl, tr, br, bl, c1, c2)
-end
-
 function IsOnRect(x, y, BLcornerX, BLcornerY, TRcornerX, TRcornerY)
 	return x >= BLcornerX and x <= TRcornerX and y >= BLcornerY and y <= TRcornerY
 end
 
 function drawBuildpower()
-	RectRound(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], bgpadding * 1.6, 0, 1, 0, 0, { 0.05, 0.05, 0.05, ui_opacity }, { 0, 0, 0, ui_opacity })
-	RectRound(backgroundRect[1], backgroundRect[2] + bgpadding, backgroundRect[3] - bgpadding, backgroundRect[4] - bgpadding, bgpadding, 0, 1, 0, 0, { 0.3, 0.3, 0.3, ui_opacity * 0.1 }, { 1, 1, 1, ui_opacity * 0.1 })
-
-	-- gloss
-	glBlending(GL_SRC_ALPHA, GL_ONE)
-	RectRound(backgroundRect[1], backgroundRect[4] - ((backgroundRect[4] - backgroundRect[2]) * 0.16), backgroundRect[3] - bgpadding, backgroundRect[4] - bgpadding, bgpadding, 0, 1, 0, 0, { 1, 1, 1, 0.006 * glossMult }, { 1, 1, 1, 0.055 * glossMult })
-	RectRound(backgroundRect[1], backgroundRect[2], backgroundRect[3] - bgpadding, backgroundRect[2] + ((backgroundRect[4] - backgroundRect[2]) * 0.15), bgpadding, 0, 0, 0, 0, { 1, 1, 1, 0.02 * glossMult }, { 1, 1, 1, 0 })
-	glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-
-	RectRound(backgroundRect[1], backgroundRect[4] - ((backgroundRect[4] - backgroundRect[2]) * 0.4), backgroundRect[3] - bgpadding, backgroundRect[4] - bgpadding, bgpadding, 0, 1, 0, 0, { 1, 1, 1, 0 }, { 1, 1, 1, 0.1 })
-	--RectRound(backgroundRect[1],backgroundRect[2],backgroundRect[3]-bgpadding,backgroundRect[4]-((backgroundRect[4]-backgroundRect[2])*0.75), bgpadding, 0,0,0,0, {1,1,1,0.08}, {1,1,1,0})
+	UiElement(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], 0,1,0,0, 1,1,1,0)
 
 	-- bar background
 	contentMargin = math.ceil((backgroundRect[3] - backgroundRect[1]) * 0.2)
-	RectRound(backgroundRect[1] + contentMargin, backgroundRect[2] + contentMargin, backgroundRect[3] - bgpadding - contentMargin, backgroundRect[4] - bgpadding - contentMargin, bgpadding * 0.5, 1, 1, 1, 1, { 0.04, 0.04, 0.04, 0.1 }, { 0.09, 0.09, 0.09, 0.1 })
+	RectRound(backgroundRect[1] + contentMargin, backgroundRect[2] + contentMargin, backgroundRect[3] - bgpadding - contentMargin, backgroundRect[4] - bgpadding - contentMargin, elementCorner*0.33, 1, 1, 1, 1, { 0.04, 0.04, 0.04, 0.1 }, { 0.09, 0.09, 0.09, 0.1 })
 end
 
 function drawBuildpower2()
@@ -338,7 +238,7 @@ function drawBuildpower2()
 		local barHeight = math.ceil(((backgroundRect[4] - bgpadding - contentMargin2) - (backgroundRect[2] + contentMargin2)) * avgBuildPower)
 		if barHeight > bgpadding * 2 then
 			-- prevent artifacts
-			RectRound(backgroundRect[1] + contentMargin2, backgroundRect[2] + contentMargin2, backgroundRect[3] - bgpadding - contentMargin2, backgroundRect[2] + contentMargin + barHeight, bgpadding * 0.4, 1, 1, 1, 1, { 0.6, 0.6, 0.6, 0.35 }, { 0.8, 0.8, 0.8, 0.35 }) --{0.2,0.6,0.2,0.45}, {0.5,1,0.5,0.45})
+			RectRound(backgroundRect[1] + contentMargin2, backgroundRect[2] + contentMargin2, backgroundRect[3] - bgpadding - contentMargin2, backgroundRect[2] + contentMargin + barHeight, elementCorner*0.33, 1, 1, 1, 1, { 0.6, 0.6, 0.6, 0.35 }, { 0.8, 0.8, 0.8, 0.35 }) --{0.2,0.6,0.2,0.45}, {0.5,1,0.5,0.45})
 		end
 	end
 end
@@ -381,7 +281,7 @@ function widget:DrawScreen()
 	local x, y, b = Spring.GetMouseState()
 	if WG['tooltip'] and IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
 		Spring.SetMouseCursor('cursornormal')
-		WG['tooltip'].ShowTooltip('buildpower', '\255\215\255\215Used buildpower: \255\255\255\200' .. math.ceil(avgBuildPower * 100) .. '% \255\180\180\180   buildpower: \255\255\255\200' .. totalBuildpower .. ' \255\180\180\180   builders: \255\255\255\200' .. totalBuilders .. '\n\255\240\240\240Increase efficiency -> put idle worker units to work! (have enough resources too!)\n\255\240\240\240High buildpower usage -> make more workers')
+		WG['tooltip'].ShowTooltip('buildpower', '\255\215\255\215'..texts.usedbuildpower..': \255\255\255\200' .. math.ceil(avgBuildPower * 100) .. '% \255\180\180\180   '..texts.buildpower..': \255\255\255\200' .. totalBuildpower .. ' \255\180\180\180   '..texts.builders..': \255\255\255\200' .. totalBuilders .. '\n\255\240\240\240'..texts.tip)
 		--Spring.SetMouseCursor('cursornormal')
 	end
 

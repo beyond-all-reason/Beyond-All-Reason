@@ -11,9 +11,6 @@ function widget:GetInfo()
 	}
 end
 
--------------------------------------------------------------------------------
--------------------------------------------------------------------------------
-
 local stickToBottom = false
 
 local alwaysShow = false
@@ -21,8 +18,9 @@ local alwaysShow = false
 local cfgCellPadding = 0.007
 local cfgIconPadding = 0.015 -- space between icons
 local cfgIconCornerSize = 0.025
-local cfgRadaiconSize = 0.29
-local cfgRadariconOffset = 0.027
+local cfgRadariconSize = 0.23
+local cfgRadariconOffset = 0.025
+local cfgGroupiconSize = 0.29
 local cfgPriceFontSize = 0.19
 local cfgActiveAreaMargin = 0.1 -- (# * bgpadding) space between the background border and active area
 
@@ -39,8 +37,9 @@ local maxPosY = 0.73
 local enableShortcuts = false   -- problematic since it overrules use of top row letters from keyboard which some are in use already
 
 local makeFancy = true    -- when using transparant icons this adds highlights so it shows the squared shape of button
-local showPrice = true
-local showRadarIcon = true
+local showPrice = false		-- false will still show hover
+local showRadarIcon = true		-- false will still show hover
+local showGroupIcon = true		-- false will still show hover
 local showShortcuts = false
 local showTooltip = true
 local showBuildProgress = true
@@ -58,6 +57,21 @@ local hoverCellZoom = 0.05 * zoomMult
 local clickSelectedCellZoom = 0.125 * zoomMult
 local selectedCellZoom = 0.135 * zoomMult
 
+local buttonBackgroundTexture = "LuaUI/Images/vr_grid.png"
+local buttonBgtexScale = 1.9	-- lower = smaller tiles
+local buttonBgtexOpacity = 0
+local buttonBgtexSize
+local backgroundTexture = "LuaUI/Images/backgroundtile.png"
+local ui_tileopacity = tonumber(Spring.GetConfigFloat("ui_tileopacity", 0.012) or 0.012)
+local bgtexScale = tonumber(Spring.GetConfigFloat("ui_tilescale", 7) or 7)	-- lower = smaller tiles
+local bgtexSize
+
+local bgpadding, chobbyInterface, activeAreaMargin, textureDetail, iconTypesMap, radariconTextureDetail
+local dlistCache, dlistGuishader, dlistBuildmenuBg, dlistBuildmenu, startDefID, font, font2, cmdsCount
+local hijackedlayout, doUpdateClock, ordermenuHeight, advplayerlistPos, prevAdvplayerlistLeft
+local cellPadding, iconPadding, cornerSize, cellInnerSize, cellSize
+--local radariconSize, radariconOffset, groupiconSize, priceFontSize
+--local activeCmd, selBuildQueueDefID, rowPressedClock, rowPressed
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
@@ -172,10 +186,12 @@ local GL_DST_ALPHA = GL.DST_ALPHA
 local GL_ONE_MINUS_SRC_COLOR = GL.ONE_MINUS_SRC_COLOR
 local glDepthTest = gl.DepthTest
 
---local glCreateTexture = gl.CreateTexture
---local glActiveTexture = gl.ActiveTexture
---local glCopyToTexture = gl.CopyToTexture
---local glRenderToTexture = gl.RenderToTexture
+local RectRound = Spring.FlowUI.Draw.RectRound
+local RectRoundProgress = Spring.FlowUI.Draw.RectRoundProgress
+local UiUnit = Spring.FlowUI.Draw.Unit
+local UiElement = Spring.FlowUI.Draw.Element
+local UiButton = Spring.FlowUI.Draw.Button
+local elementCorner = Spring.FlowUI.elementCorner
 
 function table_invert(t)
 	local s = {}
@@ -244,23 +260,100 @@ function wrap(str, limit)
 	return t
 end
 
+
+local folder = ':l:LuaUI/Images/groupicons/'
+local groups = {
+	energy = folder..'energy.png',
+	metal = folder..'metal.png',
+	builder = folder..'builder.png',
+	buildert2 = folder..'buildert2.png',
+	buildert3 = folder..'buildert3.png',
+	buildert4 = folder..'buildert4.png',
+	util = folder..'util.png',
+	weapon = folder..'weapon.png',
+	emp = folder..'emp.png',
+	aa = folder..'aa.png',
+	nuke = folder..'nuke.png',
+	antinuke = folder..'antinuke.png',
+}
+
+local unitHumanName = {        -- fallback (if you want to change this, also update: language/en.lua, or it will be overwritten)
+	-- gets filled with unit names from unitdefs, then overwritten by language file names
+}
+local unitTooltip = {        -- fallback (if you want to change this, also update: language/en.lua, or it will be overwritten)
+	-- gets filled with unit tooltips for unitdefs, then overwritten by language file tooltips
+}
+
 local unitBuildPic = {}
 local unitEnergyCost = {}
 local unitMetalCost = {}
 local unitGroup = {}
 local isBuilder = {}
 local isFactory = {}
-local unitHumanName = {}
 local unitDescriptionLong = {}
-local unitTooltip = {}
 local unitIconType = {}
 local isMex = {}
 local unitMaxWeaponRange = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
 	unitHumanName[unitDefID] = unitDef.humanName
+	unitGroup[unitDefID] = 'util'
+	if unitDef.customParams.objectify or unitDef.isTransport or string.find(unitDef.name, 'critter') then
+		unitGroup[unitDefID] = nil
+	end
+	if unitDef.energyMake > 19 and (not unitDef.energyUpkeep or unitDef.energyUpkeep < 10) or unitDef.energyUpkeep < -19 or unitDef.windGenerator > 0 or unitDef.tidalGenerator > 0 then
+		unitGroup[unitDefID] = 'energy'
+	end
+	if unitDef.extractsMetal > 0 or (unitDef.customParams.energyconv_capacity and unitDef.customParams.energyconv_efficiency) then
+		unitGroup[unitDefID] = 'metal'
+	end
+	if unitDef.energyStorage > 1000 and string.find(string.lower(unitDef.humanName), 'storage') then
+		unitGroup[unitDefID] = 'energy'
+	end
+	if unitDef.metalStorage > 500 and string.find(string.lower(unitDef.humanName), 'storage') then
+		unitGroup[unitDefID] = 'metal'
+	end
 	if unitDef.maxWeaponRange > 16 then
 		unitMaxWeaponRange[unitDefID] = unitDef.maxWeaponRange
+		unitGroup[unitDefID] = 'weapon'
 	end
+	if string.find(string.lower(unitDef.name), 'silo') then
+		unitGroup[unitDefID] = 'nuke'
+	end
+	local aaWeapons = 0
+	local weaponCount = 0
+	for i = 1, #unitDef.weapons do
+		local weaponDef = WeaponDefs[unitDef.weapons[i].weaponDef]
+		if weaponDef then
+			if weaponDef.damages then
+				-- get highest damage category
+				local maxDmg = 0
+				for _, v in pairs(weaponDef.damages) do
+					if v > maxDmg then
+						maxDmg = v
+					end
+				end
+				if maxDmg > 1 then	-- filter away bogus weapons
+					weaponCount = weaponCount + 1
+					if unitDef.weapons[i].onlyTargets and unitDef.weapons[i].onlyTargets['vtol'] then
+						aaWeapons = aaWeapons + 1
+					end
+				end
+				if weaponDef.paralyzer then
+					unitGroup[unitDefID] = 'emp'
+				end
+			end
+			if weaponDef.shieldRepulser then
+				unitGroup[unitDefID] = 'util'
+			end
+			--if weaponDef.description ~= nil and string.find(string.lower(weaponDef.description), 'nuclear') then
+			--	unitGroup[unitDefID] = 'nuke'
+			--end
+		end
+	end
+	if aaWeapons > 0 and weaponCount == aaWeapons then
+		unitGroup[unitDefID] = 'aa'
+	end
+
 	if unitDef.customParams.description_long then
 		unitDescriptionLong[unitDefID] = wrap(unitDef.customParams.description_long, 58)
 	end
@@ -268,13 +361,29 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	unitIconType[unitDefID] = unitDef.iconType
 	unitEnergyCost[unitDefID] = unitDef.energyCost
 	unitMetalCost[unitDefID] = unitDef.metalCost
-	unitGroup = {}
 	unitBuildPic[unitDefID] = unitDef.buildpicname
 	if unitDef.buildSpeed > 0 and unitDef.buildOptions[1] then
 		isBuilder[unitDefID] = unitDef.buildOptions
+		unitGroup[unitDefID] = 'builder'
 	end
 	if unitDef.isFactory and #unitDef.buildOptions > 0 then
 		isFactory[unitDefID] = true
+		unitGroup[unitDefID] = 'builder'
+	end
+	if unitDef.buildSpeed > 10 then
+		unitGroup[unitDefID] = 'builder'
+	end
+	if unitGroup[unitDefID] == 'builder' and unitDef.customParams.techlevel then
+		if tonumber(unitDef.customParams.techlevel) == 2 then
+			unitGroup[unitDefID] = 'buildert2'
+		elseif tonumber(unitDef.customParams.techlevel) == 3 then
+			unitGroup[unitDefID] = 'buildert3'
+		elseif tonumber(unitDef.customParams.techlevel) == 4 then
+			unitGroup[unitDefID] = 'buildert4'
+		end
+	end
+	if string.find(string.lower(unitDef.tooltip), 'anti%-nuke') then
+		unitGroup[unitDefID] = 'antinuke'
 	end
 	if unitDef.extractsMetal > 0 then
 		isMex[unitDefID] = true
@@ -319,11 +428,11 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 		elseif unitDef.extractsMetal > 0 then
 			addOrderImportance(unitDefID, skip, 14000000)
 		elseif unitDef.windGenerator > 0 then
-			addOrderImportance(unitDefID, skip, 13000000)
-		elseif unitDef.energyMake > 19 and (not unitDef.energyUpkeep or unitDef.energyUpkeep < 10) then
-			addOrderImportance(unitDefID, skip, 12000000)
-		elseif unitDef.energyUpkeep < -19 then
 			addOrderImportance(unitDefID, skip, 12500000)
+		elseif unitDef.energyMake > 19 and (not unitDef.energyUpkeep or unitDef.energyUpkeep < 10) then
+			addOrderImportance(unitDefID, skip, 11500000)
+		elseif unitDef.energyUpkeep < -19 then
+			addOrderImportance(unitDefID, skip, 12000000)
 		end
 
 		-- storage
@@ -331,12 +440,12 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 			addOrderImportance(unitDefID, skip, 11000000)
 		end
 		if unitDef.metalStorage > 500 and string.find(string.lower(unitDef.humanName), 'storage') then
-			addOrderImportance(unitDefID, skip, 11000000)
+			addOrderImportance(unitDefID, skip, 13000000)
 		end
 
 		-- converters
 		if string.find(string.lower(unitDef.humanName), 'converter') then
-			addOrderImportance(unitDefID, skip, 10000000)
+			addOrderImportance(unitDefID, skip, 13500000)
 		end
 	end
 
@@ -442,7 +551,7 @@ local function cacheUnitIcons()
 	local cellPadding = math_floor(cellSize * cfgCellPadding)
 	local cellInnerSize = cellSize - cellPadding - cellPadding
 	local newTextureDetail = math_floor(cellInnerSize * (1 + defaultCellZoom) * texDetailMult)
-	local newRadariconTextureDetail = math_floor(math_floor((cellInnerSize * cfgRadaiconSize) + 0.5) * radartexDetailMult)
+	local newRadariconTextureDetail = math_floor(math_floor((cellInnerSize * cfgRadariconSize) + 0.5) * radartexDetailMult)
 	if not textureDetail or textureDetail ~= newTextureDetail then
 		while colls <= maxC do
 			-- these are globals so it can be re-used (hover highlight)
@@ -482,324 +591,6 @@ local function refreshUnitIconCache()
 	end)
 end
 
--------------------------------------------------------------------------------
--------------------------------------------------------------------------------
-
--- RectRound(px,py,sx,sy,cs, tl,tr,br,bl, c1,c2): Draw a rectangular shape with cut off edges
---  optional: tl,tr,br,bl  0 = corner, 1 = depending on touching screen border, 2 = always
---  optional: c1,c2 for top-down color gradients
-local function DrawRectRound(px, py, sx, sy, cs, tl, tr, br, bl, c1, c2)
-	local csyMult = 1 / ((sy - py) / cs)
-
-	if c2 then
-		gl.Color(c1[1], c1[2], c1[3], c1[4])
-	end
-	gl.Vertex(px + cs, py, 0)
-	gl.Vertex(sx - cs, py, 0)
-	if c2 then
-		gl.Color(c2[1], c2[2], c2[3], c2[4])
-	end
-	gl.Vertex(sx - cs, sy, 0)
-	gl.Vertex(px + cs, sy, 0)
-
-	-- left side
-	if c2 then
-		gl.Color(c1[1] * (1 - csyMult) + (c2[1] * csyMult), c1[2] * (1 - csyMult) + (c2[2] * csyMult), c1[3] * (1 - csyMult) + (c2[3] * csyMult), c1[4] * (1 - csyMult) + (c2[4] * csyMult))
-	end
-	gl.Vertex(px, py + cs, 0)
-	gl.Vertex(px + cs, py + cs, 0)
-	if c2 then
-		gl.Color(c2[1] * (1 - csyMult) + (c1[1] * csyMult), c2[2] * (1 - csyMult) + (c1[2] * csyMult), c2[3] * (1 - csyMult) + (c1[3] * csyMult), c2[4] * (1 - csyMult) + (c1[4] * csyMult))
-	end
-	gl.Vertex(px + cs, sy - cs, 0)
-	gl.Vertex(px, sy - cs, 0)
-
-	-- right side
-	if c2 then
-		gl.Color(c1[1] * (1 - csyMult) + (c2[1] * csyMult), c1[2] * (1 - csyMult) + (c2[2] * csyMult), c1[3] * (1 - csyMult) + (c2[3] * csyMult), c1[4] * (1 - csyMult) + (c2[4] * csyMult))
-	end
-	gl.Vertex(sx, py + cs, 0)
-	gl.Vertex(sx - cs, py + cs, 0)
-	if c2 then
-		gl.Color(c2[1] * (1 - csyMult) + (c1[1] * csyMult), c2[2] * (1 - csyMult) + (c1[2] * csyMult), c2[3] * (1 - csyMult) + (c1[3] * csyMult), c2[4] * (1 - csyMult) + (c1[4] * csyMult))
-	end
-	gl.Vertex(sx - cs, sy - cs, 0)
-	gl.Vertex(sx, sy - cs, 0)
-
-	-- bottom left corner
-	if c2 then
-		gl.Color(c1[1], c1[2], c1[3], c1[4])
-	end
-	if ((py <= 0 or px <= 0) or (bl ~= nil and bl == 0)) and bl ~= 2 then
-		gl.Vertex(px, py, 0)
-	else
-		gl.Vertex(px + cs, py, 0)
-	end
-	gl.Vertex(px + cs, py, 0)
-	if c2 then
-		gl.Color(c1[1] * (1 - csyMult) + (c2[1] * csyMult), c1[2] * (1 - csyMult) + (c2[2] * csyMult), c1[3] * (1 - csyMult) + (c2[3] * csyMult), c1[4] * (1 - csyMult) + (c2[4] * csyMult))
-	end
-	gl.Vertex(px + cs, py + cs, 0)
-	gl.Vertex(px, py + cs, 0)
-
-	-- bottom right corner
-	if c2 then
-		gl.Color(c1[1], c1[2], c1[3], c1[4])
-	end
-	if ((py <= 0 or sx >= vsx) or (br ~= nil and br == 0)) and br ~= 2 then
-		gl.Vertex(sx, py, 0)
-	else
-		gl.Vertex(sx - cs, py, 0)
-	end
-	gl.Vertex(sx - cs, py, 0)
-	if c2 then
-		gl.Color(c1[1] * (1 - csyMult) + (c2[1] * csyMult), c1[2] * (1 - csyMult) + (c2[2] * csyMult), c1[3] * (1 - csyMult) + (c2[3] * csyMult), c1[4] * (1 - csyMult) + (c2[4] * csyMult))
-	end
-	gl.Vertex(sx - cs, py + cs, 0)
-	gl.Vertex(sx, py + cs, 0)
-
-	-- top left corner
-	if c2 then
-		gl.Color(c2[1], c2[2], c2[3], c2[4])
-	end
-	if ((sy >= vsy or px <= 0) or (tl ~= nil and tl == 0)) and tl ~= 2 then
-		gl.Vertex(px, sy, 0)
-	else
-		gl.Vertex(px + cs, sy, 0)
-	end
-	gl.Vertex(px + cs, sy, 0)
-	if c2 then
-		gl.Color(c2[1] * (1 - csyMult) + (c1[1] * csyMult), c2[2] * (1 - csyMult) + (c1[2] * csyMult), c2[3] * (1 - csyMult) + (c1[3] * csyMult), c2[4] * (1 - csyMult) + (c1[4] * csyMult))
-	end
-	gl.Vertex(px + cs, sy - cs, 0)
-	gl.Vertex(px, sy - cs, 0)
-
-	-- top right corner
-	if c2 then
-		gl.Color(c2[1], c2[2], c2[3], c2[4])
-	end
-	if ((sy >= vsy or sx >= vsx) or (tr ~= nil and tr == 0)) and tr ~= 2 then
-		gl.Vertex(sx, sy, 0)
-	else
-		gl.Vertex(sx - cs, sy, 0)
-	end
-	gl.Vertex(sx - cs, sy, 0)
-	if c2 then
-		gl.Color(c2[1] * (1 - csyMult) + (c1[1] * csyMult), c2[2] * (1 - csyMult) + (c1[2] * csyMult), c2[3] * (1 - csyMult) + (c1[3] * csyMult), c2[4] * (1 - csyMult) + (c1[4] * csyMult))
-	end
-	gl.Vertex(sx - cs, sy - cs, 0)
-	gl.Vertex(sx, sy - cs, 0)
-end
-function RectRound(px, py, sx, sy, cs, tl, tr, br, bl, c1, c2)
-	-- (coordinates work differently than the RectRound func in other widgets)
-	--gl.Texture(false)   -- just make sure you do this before calling this function, or uncomment this line
-	gl.BeginEnd(GL.QUADS, DrawRectRound, px, py, sx, sy, cs, tl, tr, br, bl, c1, c2)
-end
-
-
--- cs (corner size) is not implemented yet
-local function RectRoundProgress(left, bottom, right, top, cs, progress, color)
-
-	local xcen = (left + right) / 2
-	local ycen = (top + bottom) / 2
-
-	local alpha = 360 * (progress)
-	local alpha_rad = math_rad(alpha)
-	local beta_rad = math_pi / 2 - alpha_rad
-	local list = {}
-	local listCount = 1
-	list[listCount] = { v = { xcen, ycen } }
-	listCount = listCount + 1
-	list[#list + 1] = { v = { xcen, top } }
-
-	local x, y
-	x = (top - ycen) * math_tan(alpha_rad) + xcen
-	if alpha < 90 and x < right then
-		-- < 25%
-		listCount = listCount + 1
-		list[listCount] = { v = { x, top } }
-	else
-		listCount = listCount + 1
-		list[listCount] = { v = { right, top } }
-		y = (right - xcen) * math_tan(beta_rad) + ycen
-		if alpha < 180 and y > bottom then
-			-- < 50%
-			listCount = listCount + 1
-			list[listCount] = { v = { right, y } }
-		else
-			listCount = listCount + 1
-			list[listCount] = { v = { right, bottom } }
-			x = (top - ycen) * math_tan(-alpha_rad) + xcen
-			if alpha < 270 and x > left then
-				-- < 75%
-				listCount = listCount + 1
-				list[listCount] = { v = { x, bottom } }
-			else
-				listCount = listCount + 1
-				list[listCount] = { v = { left, bottom } }
-				y = (right - xcen) * math_tan(-beta_rad) + ycen
-				if alpha < 350 and y < top then
-					-- < 97%
-					listCount = listCount + 1
-					list[listCount] = { v = { left, y } }
-				else
-					listCount = listCount + 1
-					list[listCount] = { v = { left, top } }
-					x = (top - ycen) * math_tan(alpha_rad) + xcen
-					listCount = listCount + 1
-					list[listCount] = { v = { x, top } }
-				end
-			end
-		end
-	end
-
-	glColor(color[1], color[2], color[3], color[4])
-	glShape(GL_TRIANGLE_FAN, list)
-	glColor(1, 1, 1, 1)
-end
-
-local function DrawRectRoundCircle(x, y, z, radius, cs, centerOffset, color1, color2)
-	if not color2 then
-		color2 = color1
-	end
-	--centerOffset = 0
-	local coords = {
-		{ x - radius + cs, z + radius, y }, -- top left
-		{ x + radius - cs, z + radius, y }, -- top right
-		{ x + radius, z + radius - cs, y }, -- right top
-		{ x + radius, z - radius + cs, y }, -- right bottom
-		{ x + radius - cs, z - radius, y }, -- bottom right
-		{ x - radius + cs, z - radius, y }, -- bottom left
-		{ x - radius, z - radius + cs, y }, -- left bottom
-		{ x - radius, z + radius - cs, y }, -- left top
-	}
-	local cs2 = cs * (centerOffset / radius)
-	local coords2 = {
-		{ x - centerOffset + cs2, z + centerOffset, y }, -- top left
-		{ x + centerOffset - cs2, z + centerOffset, y }, -- top right
-		{ x + centerOffset, z + centerOffset - cs2, y }, -- right top
-		{ x + centerOffset, z - centerOffset + cs2, y }, -- right bottom
-		{ x + centerOffset - cs2, z - centerOffset, y }, -- bottom right
-		{ x - centerOffset + cs2, z - centerOffset, y }, -- bottom left
-		{ x - centerOffset, z - centerOffset + cs2, y }, -- left bottom
-		{ x - centerOffset, z + centerOffset - cs2, y }, -- left top
-	}
-	for i = 1, 8 do
-		local i2 = (i >= 8 and 1 or i + 1)
-		glColor(color2)
-		glVertex(coords[i][1], coords[i][2], coords[i][3])
-		glVertex(coords[i2][1], coords[i2][2], coords[i2][3])
-		glColor(color1)
-		glVertex(coords2[i2][1], coords2[i2][2], coords2[i2][3])
-		glVertex(coords2[i][1], coords2[i][2], coords2[i][3])
-	end
-end
-local function RectRoundCircle(x, y, z, radius, cs, centerOffset, color1, color2)
-	glBeginEnd(GL.QUADS, DrawRectRoundCircle, x, y, z, radius, cs, centerOffset, color1, color2)
-end
-
-local function DrawCircle(x, y, z, radius, sides, color1, color2)
-	if not color2 then
-		color2 = color1
-	end
-	local sideAngle = math_twicePi / sides
-	glColor(color1)
-	glVertex(x, z, y)
-	glColor(color2)
-	for i = 1, sides + 1 do
-		local cx = x + (radius * math_cos(i * sideAngle))
-		local cz = z + (radius * math_sin(i * sideAngle))
-		glVertex(cx, cz, y)
-	end
-end
-
-local function doCircle(x, y, z, radius, sides, color1, color2)
-	glBeginEnd(GL_TRIANGLE_FAN, DrawCircle, x, 0, z, radius, sides, color1, color2)
-end
-
-local function RectQuad(px, py, sx, sy, offset)
-	gl.TexCoord(offset, 1 - offset)
-	gl.Vertex(px, py, 0)
-	gl.TexCoord(1 - offset, 1 - offset)
-	gl.Vertex(sx, py, 0)
-	gl.TexCoord(1 - offset, offset)
-	gl.Vertex(sx, sy, 0)
-	gl.TexCoord(offset, offset)
-	gl.Vertex(px, sy, 0)
-end
-function DrawRect(px, py, sx, sy, zoom)
-	gl.BeginEnd(GL.QUADS, RectQuad, px, py, sx, sy, zoom)
-end
-
-local function DrawTexRectRound(px, py, sx, sy, cs, tl, tr, br, bl, offset)
-	local csyMult = 1 / ((sy - py) / cs)
-
-	local function drawTexCoordVertex(x, y)
-		local yc = 1 - ((y - py) / (sy - py))
-		local xc = (offset * 0.5) + ((x - px) / (sx - px)) + (-offset * ((x - px) / (sx - px)))
-		yc = 1 - (offset * 0.5) - ((y - py) / (sy - py)) + (offset * ((y - py) / (sy - py)))
-		gl.TexCoord(xc, yc)
-		gl.Vertex(x, y, 0)
-	end
-
-	-- mid section
-	drawTexCoordVertex(px + cs, py)
-	drawTexCoordVertex(sx - cs, py)
-	drawTexCoordVertex(sx - cs, sy)
-	drawTexCoordVertex(px + cs, sy)
-
-	-- left side
-	drawTexCoordVertex(px, py + cs)
-	drawTexCoordVertex(px + cs, py + cs)
-	drawTexCoordVertex(px + cs, sy - cs)
-	drawTexCoordVertex(px, sy - cs)
-
-	-- right side
-	drawTexCoordVertex(sx, py + cs)
-	drawTexCoordVertex(sx - cs, py + cs)
-	drawTexCoordVertex(sx - cs, sy - cs)
-	drawTexCoordVertex(sx, sy - cs)
-
-	-- bottom left
-	if ((py <= 0 or px <= 0) or (bl ~= nil and bl == 0)) and bl ~= 2 then
-		drawTexCoordVertex(px, py)
-	else
-		drawTexCoordVertex(px + cs, py)
-	end
-	drawTexCoordVertex(px + cs, py)
-	drawTexCoordVertex(px + cs, py + cs)
-	drawTexCoordVertex(px, py + cs)
-	-- bottom right
-	if ((py <= 0 or sx >= vsx) or (br ~= nil and br == 0)) and br ~= 2 then
-		drawTexCoordVertex(sx, py)
-	else
-		drawTexCoordVertex(sx - cs, py)
-	end
-	drawTexCoordVertex(sx - cs, py)
-	drawTexCoordVertex(sx - cs, py + cs)
-	drawTexCoordVertex(sx, py + cs)
-	-- top left
-	if ((sy >= vsy or px <= 0) or (tl ~= nil and tl == 0)) and tl ~= 2 then
-		drawTexCoordVertex(px, sy)
-	else
-		drawTexCoordVertex(px + cs, sy)
-	end
-	drawTexCoordVertex(px + cs, sy)
-	drawTexCoordVertex(px + cs, sy - cs)
-	drawTexCoordVertex(px, sy - cs)
-	-- top right
-	if ((sy >= vsy or sx >= vsx) or (tr ~= nil and tr == 0)) and tr ~= 2 then
-		drawTexCoordVertex(sx, sy)
-	else
-		drawTexCoordVertex(sx - cs, sy)
-	end
-	drawTexCoordVertex(sx - cs, sy)
-	drawTexCoordVertex(sx - cs, sy - cs)
-	drawTexCoordVertex(sx, sy - cs)
-end
-function TexRectRound(px, py, sx, sy, cs, tl, tr, br, bl, zoom)
-	gl.BeginEnd(GL.QUADS, DrawTexRectRound, px, py, sx, sy, cs, tl, tr, br, bl, zoom)
-end
 
 function IsOnRect(x, y, BLcornerX, BLcornerY, TRcornerX, TRcornerY)
 	return x >= BLcornerX and x <= TRcornerX and y >= BLcornerY and y <= TRcornerY
@@ -812,7 +603,7 @@ local function checkGuishader(force)
 		end
 		if not dlistGuishader then
 			dlistGuishader = gl.CreateList(function()
-				RectRound(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], bgpadding * 1.6)
+				RectRound(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], elementCorner)
 			end)
 			if selectedBuilderCount > 0 then
 				WG['guishader'].InsertDlist(dlistGuishader, 'buildmenu')
@@ -881,23 +672,26 @@ end
 function widget:ViewResize()
 	vsx, vsy = Spring.GetViewGeometry()
 
-	font2 = WG['fonts'].getFont(fontFile, 1.2, 0.22, 1.5)
+	font2 = WG['fonts'].getFont(fontFile, 1.2, 0.28, 1.6)
 
 	if WG['minimap'] then
 		minimapEnlarged = WG['minimap'].getEnlarged()
 		minimapHeight = WG['minimap'].getHeight()
 	end
 
-	local widgetSpaceMargin = math.floor(0.0045 * (vsy / vsx) * vsx * ui_scale) / vsx
-	bgpadding = math.ceil(widgetSpaceMargin * 0.66 * vsx)
+	local widgetSpaceMargin = Spring.FlowUI.elementMargin
+	bgpadding = Spring.FlowUI.elementPadding
+	elementCorner = Spring.FlowUI.elementCorner
+	bgtexSize = bgpadding * bgtexScale
+	buttonBgtexSize = bgpadding * buttonBgtexScale
 
 	activeAreaMargin = math_ceil(bgpadding * cfgActiveAreaMargin)
 
 	if stickToBottom then
 		posY = math_floor(0.14 * ui_scale * vsy) / vsy
 		posY2 = 0
-		posX = math_floor((ordermenuLeft+widgetSpaceMargin)*vsx)
-		posX2 = advplayerlistLeft - (widgetSpaceMargin*vsx)
+		posX = math_floor(ordermenuLeft*vsx) + widgetSpaceMargin
+		posX2 = advplayerlistLeft - widgetSpaceMargin
 		width = posX2 - posX
 		height = posY
 		minColls = math_max(8, math_floor((width/vsx)*25))
@@ -905,7 +699,7 @@ function widget:ViewResize()
 	else
 		posY = 0.606
 		posY2 = math_floor(0.14 * ui_scale * vsy) / vsy
-		posY2 = posY2 + ((widgetSpaceMargin*vsx)/vsy)
+		posY2 = posY2 + (widgetSpaceMargin/vsy)
 		posX = 0
 		minColls = 4
 		maxColls = 5
@@ -913,7 +707,7 @@ function widget:ViewResize()
 		if minimapEnlarged then
 			posY = math_max(0.4615, (vsy - minimapHeight) / vsy) - 0.0064
 			if WG['minimap'] then
-				posY = 1 - (WG['minimap'].getHeight() / vsy) - ((widgetSpaceMargin*vsx)/vsy)
+				posY = 1 - (WG['minimap'].getHeight() / vsy) - (widgetSpaceMargin/vsy)
 				if posY > maxPosY then
 					posY = maxPosY
 				end
@@ -922,7 +716,7 @@ function widget:ViewResize()
 			if WG['ordermenu'] then
 				local oposX, oposY, owidth, oheight = WG['ordermenu'].getPosition()
 				if oposY > 0.5 then
-					posY = oposY - oheight - ((widgetSpaceMargin*vsx)/vsy)
+					posY = oposY - oheight - ((widgetSpaceMargin)/vsy)
 				end
 			end
 		end
@@ -965,7 +759,22 @@ local function hijacklayout()
 	Spring.ForceLayoutUpdate()
 end
 
+
 function widget:Initialize()
+	if WG['lang'] then
+		local translations = WG['lang'].getText('unitnames')
+		for name,text in pairs(translations) do
+			if UnitDefNames[name] then
+				unitHumanName[UnitDefNames[name].id] = text
+			end
+		end
+		translations = WG['lang'].getText('unittooltips')
+		for name,text in pairs(translations) do
+			if UnitDefNames[name] then
+				unitTooltip[UnitDefNames[name].id] = text
+			end
+		end
+	end
 	hijacklayout()
 
 	iconTypesMap = {}
@@ -986,6 +795,12 @@ function widget:Initialize()
 	widget:SelectionChanged(spGetSelectedUnits())
 
 	WG['buildmenu'] = {}
+	WG['buildmenu'].getGroups = function()
+		return groups, unitGroup
+	end
+	WG['buildmenu'].getOrder = function()
+		return unitOrder
+	end
 	WG['buildmenu'].getMakeFancy = function()
 		return makeFancy
 	end
@@ -1012,6 +827,13 @@ function widget:Initialize()
 	end
 	WG['buildmenu'].setShowRadarIcon = function(value)
 		showRadarIcon = value
+		doUpdate = true
+	end
+	WG['buildmenu'].getShowGroupIcon = function()
+		return showGroupIcon
+	end
+	WG['buildmenu'].setShowGroupIcon = function(value)
+		showGroupIcon = value
 		doUpdate = true
 	end
 	WG['buildmenu'].getShowShortcuts = function()
@@ -1138,11 +960,11 @@ function widget:Update(dt)
 				local prevAdvplayerlistLeft = advplayerlistLeft
 				advplayerlistLeft = advplayerlistPos[2]
 			end
+			local prevOrdermenuLeft = ordermenuLeft
+			local prevOrdermenuHeight = ordermenuHeight
 			if WG['ordermenu'] then
 				local oposX, oposY, owidth, oheight = WG['ordermenu'].getPosition()
-				local prevOrdermenuLeft = ordermenuLeft
 				ordermenuLeft = oposX + owidth
-				local prevOrdermenuHeight = ordermenuHeight
 				ordermenuHeight = oheight
 			end
 			if not prevAdvplayerlistLeft or advplayerlistLeft ~= prevAdvplayerlistLeft or not prevOrdermenuLeft or ordermenuLeft ~= prevOrdermenuLeft  or not prevOrdermenuHeight or ordermenuHeight ~= prevOrdermenuHeight then
@@ -1159,16 +981,7 @@ end
 
 function drawBuildmenuBg()
 	WG['buildmenu'].selectedID = nil
-
-	-- background
-	RectRound(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], bgpadding * 1.6, (posX > 0 and 1 or 0), 1, 1, 0, { 0.05, 0.05, 0.05, ui_opacity }, { 0, 0, 0, ui_opacity })
-	RectRound(backgroundRect[1] + (posX > 0 and bgpadding or 0), backgroundRect[2] + (posY2 > 0 and bgpadding or 0), backgroundRect[3] - bgpadding, backgroundRect[4] - bgpadding, bgpadding, (posX > 0 and 1 or 0), 1, (posY2 > 0 and 1 or 0), 0, { 0.3, 0.3, 0.3, ui_opacity * 0.1 }, { 1, 1, 1, ui_opacity * 0.1 })
-
-	-- gloss
-	glBlending(GL_SRC_ALPHA, GL_ONE)
-	RectRound(backgroundRect[1]+ (posX > 0 and bgpadding or 0), backgroundRect[4] - bgpadding - ((backgroundRect[4] - backgroundRect[2]) * (stickToBottom and 0.15 or 0.07)), backgroundRect[3] - bgpadding, backgroundRect[4] - bgpadding, bgpadding, (posX > 0 and 1 or 0), 1, 0, 0, { 1, 1, 1, 0.006 * glossMult }, { 1, 1, 1, 0.055 * glossMult })
-	RectRound(backgroundRect[1]+ (posX > 0 and bgpadding or 0), backgroundRect[2] + (posY2 > 0 and bgpadding or 0), backgroundRect[3] - bgpadding, backgroundRect[2] + bgpadding + ((backgroundRect[4] - backgroundRect[2]) * 0.045), bgpadding, 0, 0, 1, 0, { 1, 1, 1, 0.025 * glossMult }, { 1, 1, 1, 0 })
-	glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+	UiElement(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], (posX > 0 and 1 or 0), 1, ((posY-height > 0 or posX <= 0) and 1 or 0), 0)
 end
 
 local function drawCell(cellRectID, usedZoom, cellColor, progress, highlightColor, edgeAlpha)
@@ -1180,15 +993,21 @@ local function drawCell(cellRectID, usedZoom, cellColor, progress, highlightColo
 	-- unit icon
 	glColor(1, 1, 1, 1)
 	--local textureDetail = math_floor(cellInnerSize * (1 + usedZoom) * texDetailMult)
-	glTexture(':lr' .. textureDetail .. ',' .. textureDetail .. ':unitpics/' .. unitBuildPic[uDefID])
+	--glTexture(':lr' .. textureDetail .. ',' .. textureDetail .. ':unitpics/' .. unitBuildPic[uDefID])
 	--glTexRect(cellRects[cellRectID][1]+cellPadding+iconPadding, cellRects[cellRectID][2]+cellPadding+iconPadding, cellRects[cellRectID][3]-cellPadding-iconPadding, cellRects[cellRectID][4]-cellPadding-iconPadding)
-	TexRectRound(
+	UiUnit(
 		cellRects[cellRectID][1] + cellPadding + iconPadding,
 		cellRects[cellRectID][2] + cellPadding + iconPadding,
 		cellRects[cellRectID][3] - cellPadding - iconPadding,
 		cellRects[cellRectID][4] - cellPadding - iconPadding,
-		cornerSize, 2, 2, 2, 2,
-		usedZoom
+		cornerSize, 1,1,1,1,
+		usedZoom,
+		nil, nil,
+		 ':lr' .. textureDetail .. ',' .. textureDetail .. ':unitpics/' .. unitBuildPic[uDefID],
+		((unitIconType[uDefID] and iconTypesMap[unitIconType[uDefID]]) and ':lr' .. radariconTextureDetail .. ',' .. radariconTextureDetail .. ':' .. iconTypesMap[unitIconType[uDefID]] or nil),
+		groups[unitGroup[uDefID]],
+		{unitMetalCost[uDefID], unitEnergyCost[uDefID]},
+		cmds[cellRectID].params[1]
 	)
 
 	-- colorize/highlight unit icon
@@ -1196,22 +1015,22 @@ local function drawCell(cellRectID, usedZoom, cellColor, progress, highlightColo
 		glBlending(GL_DST_ALPHA, GL_ONE_MINUS_SRC_COLOR)
 		glColor(cellColor[1], cellColor[2], cellColor[3], cellColor[4])
 		glTexture(':lr' .. textureDetail .. ',' .. textureDetail .. ':unitpics/' .. unitBuildPic[uDefID])
-		TexRectRound(
+		UiUnit(
 			cellRects[cellRectID][1] + cellPadding + iconPadding,
 			cellRects[cellRectID][2] + cellPadding + iconPadding,
 			cellRects[cellRectID][3] - cellPadding - iconPadding,
 			cellRects[cellRectID][4] - cellPadding - iconPadding,
-			cornerSize, 2, 2, 2, 2,
+			cornerSize, 1,1,1,1,
 			usedZoom
 		)
 		if cellColor[4] > 0 then
 			glBlending(GL_SRC_ALPHA, GL_ONE)
-			TexRectRound(
+			UiUnit(
 				cellRects[cellRectID][1] + cellPadding + iconPadding,
 				cellRects[cellRectID][2] + cellPadding + iconPadding,
 				cellRects[cellRectID][3] - cellPadding - iconPadding,
 				cellRects[cellRectID][4] - cellPadding - iconPadding,
-				cornerSize, 2, 2, 2, 2,
+				cornerSize, 1,1,1,1,
 				usedZoom
 			)
 		end
@@ -1219,73 +1038,10 @@ local function drawCell(cellRectID, usedZoom, cellColor, progress, highlightColo
 	end
 	glTexture(false)
 
-	-- draw build progress pie on top of texture
-	if progress and showBuildProgress then
-		RectRoundProgress(cellRects[cellRectID][1] + cellPadding + iconPadding, cellRects[cellRectID][2] + cellPadding + iconPadding, cellRects[cellRectID][3] - cellPadding - iconPadding, cellRects[cellRectID][4] - cellPadding - iconPadding, cellSize * 0.03, progress, { 0.08, 0.08, 0.08, 0.6 })
-	end
-
-	-- make fancy
-	if makeFancy then
-		-- lighten top
-		glBlending(GL_SRC_ALPHA, GL_ONE)
-		-- glossy half
-		--RectRound(cellRects[cellRectID][1]+iconPadding, cellRects[cellRectID][4]-iconPadding-(cellInnerSize*0.5), cellRects[cellRectID][3]-iconPadding, cellRects[cellRectID][4]-iconPadding, cellSize*0.03, 1,1,0,0,{1,1,1,0.1}, {1,1,1,0.18})
-		RectRound(cellRects[cellRectID][1] + cellPadding + iconPadding, cellRects[cellRectID][4] - cellPadding - iconPadding - (cellInnerSize * 0.66), cellRects[cellRectID][3] - cellPadding - iconPadding, cellRects[cellRectID][4] - cellPadding - iconPadding, cornerSize, 2, 2, 0, 0, { 1, 1, 1, 0 }, { 1, 1, 1, 0.1 })
-		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-
-		-- extra darken gradually
-		RectRound(cellRects[cellRectID][1] + cellPadding + iconPadding, cellRects[cellRectID][2] + cellPadding + iconPadding, cellRects[cellRectID][3] - cellPadding - iconPadding, cellRects[cellRectID][4] - cellPadding - iconPadding, cornerSize, 0, 0, 2, 2, { 0, 0, 0, 0.1 }, { 0, 0, 0, 0 })
-	end
-
-	-- darken price background gradually
-	if showPrice or makeFancy then
-		RectRound(cellRects[cellRectID][1] + cellPadding + iconPadding, cellRects[cellRectID][2] + cellPadding + iconPadding, cellRects[cellRectID][3] - cellPadding - iconPadding, cellRects[cellRectID][2] + cellPadding + iconPadding + (cellInnerSize * 0.415), cornerSize, 0, 0, 2, 2, { 0, 0, 0, (makeFancy and 0.2 or 0.27) }, { 0, 0, 0, 0 })
-	end
-
-	-- lighten cell edges
-	if highlightColor then
-		local halfSize = (((cellRects[cellRectID][3] - cellPadding - iconPadding)) - (cellRects[cellRectID][1] + cellPadding + iconPadding)) * 0.5
-		glBlending(GL_SRC_ALPHA, GL_ONE)
-		RectRoundCircle(
-			cellRects[cellRectID][1] + cellPadding + iconPadding + halfSize,
-			0,
-			cellRects[cellRectID][2] + cellPadding + iconPadding + halfSize,
-			halfSize, cornerSize, halfSize * 0.5, { highlightColor[1], highlightColor[2], highlightColor[3], 0 }, { highlightColor[1], highlightColor[2], highlightColor[3], highlightColor[4] * 0.75 }
-		)
-		RectRoundCircle(
-			cellRects[cellRectID][1] + cellPadding + iconPadding + halfSize,
-			0,
-			cellRects[cellRectID][2] + cellPadding + iconPadding + halfSize,
-			halfSize, cornerSize, halfSize * 0.82, { highlightColor[1], highlightColor[2], highlightColor[3], 0 }, highlightColor
-		)
-		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-	end
-
-	-- lighten border
-	if iconBorderOpacity > 0 then
-		local halfSize = (((cellRects[cellRectID][3] - cellPadding - iconPadding)) - (cellRects[cellRectID][1] + cellPadding + iconPadding)) * 0.5
-		glBlending(GL_SRC_ALPHA, GL_ONE)
-		RectRoundCircle(
-			cellRects[cellRectID][1] + cellPadding + iconPadding + halfSize,
-			0,
-			cellRects[cellRectID][2] + cellPadding + iconPadding + halfSize,
-			halfSize, cornerSize, halfSize - math_max(1, math_floor(halfSize * 0.045)), { 1, 1, 1, edgeAlpha and edgeAlpha or iconBorderOpacity }, { 1, 1, 1, edgeAlpha and edgeAlpha or iconBorderOpacity }
-		)
-		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-	end
-
-	-- radar icon
-	if showRadarIcon and unitIconType[uDefID] and iconTypesMap[unitIconType[uDefID]] then
-		glColor(1, 1, 1, 0.9)
-		glTexture(':lr' .. radariconTextureDetail .. ',' .. radariconTextureDetail .. ':' .. iconTypesMap[unitIconType[uDefID]])
-		glTexRect(cellRects[cellRectID][3] - radariconOffset - radariconSize, cellRects[cellRectID][2] + radariconOffset, cellRects[cellRectID][3] - radariconOffset, cellRects[cellRectID][2] + radariconOffset + radariconSize)
-		glTexture(false)
-	end
-
 	-- price
 	if showPrice then
 		--doCircle(x, y, z, radius, sides)
-		font2:Print("\255\245\245\245" .. unitMetalCost[uDefID] .. "\n\255\255\255\000" .. unitEnergyCost[uDefID], cellRects[cellRectID][1] + cellPadding + (cellInnerSize * 0.05), cellRects[cellRectID][2] + cellPadding + (priceFontSize * 1.38), priceFontSize, "o")
+		font2:Print("\255\245\245\245" .. unitMetalCost[uDefID] .. "\n\255\255\255\000" .. unitEnergyCost[uDefID], cellRects[cellRectID][1] + cellPadding + (cellInnerSize * 0.048), cellRects[cellRectID][2] + cellPadding + (priceFontSize * 1.35), priceFontSize, "o")
 	end
 
 	-- debug order value
@@ -1300,6 +1056,11 @@ local function drawCell(cellRectID, usedZoom, cellColor, progress, highlightColo
 		local col = cellRectID - ((row - 1) * colls)
 		local text = string.upper(string.char(buildKeys[row]) .. ' ' .. string.char(buildKeys[col]))
 		font2:Print("\255\175\175\175" .. text, cellRects[cellRectID][1] + cellPadding + (cellInnerSize * 0.05), cellRects[cellRectID][4] - cellPadding - priceFontSize, priceFontSize, "o")
+	end
+
+	-- draw build progress pie on top of texture
+	if progress and showBuildProgress then
+		RectRoundProgress(cellRects[cellRectID][1] + cellPadding + iconPadding, cellRects[cellRectID][2] + cellPadding + iconPadding, cellRects[cellRectID][3] - cellPadding - iconPadding, cellRects[cellRectID][4] - cellPadding - iconPadding, cellSize * 0.03, progress, { 0.08, 0.08, 0.08, 0.6 })
 	end
 
 	-- factory queue number
@@ -1397,8 +1158,9 @@ function drawBuildmenu()
 	iconPadding = math_max(1, math_floor(cellSize * cfgIconPadding))
 	cornerSize = math_floor(cellSize * cfgIconCornerSize)
 	cellInnerSize = cellSize - cellPadding - cellPadding
-	radariconSize = math_floor((cellInnerSize * cfgRadaiconSize) + 0.5)
+	radariconSize = math_floor((cellInnerSize * cfgRadariconSize) + 0.5)
 	radariconOffset = math_floor(((cellInnerSize * cfgRadariconOffset) + cellPadding + iconPadding) + 0.5)
+	groupiconSize = math_floor((cellInnerSize * cfgGroupiconSize) + 0.5)
 	priceFontSize = math_floor((cellInnerSize * cfgPriceFontSize) + 0.5)
 
 	cellRects = {}
@@ -1460,20 +1222,8 @@ function drawBuildmenu()
 		paginatorRects[1] = { activeArea[1], activeArea[2], activeArea[1] + paginatorCellWidth, activeArea[2] + paginatorCellHeight - cellPadding - activeAreaMargin }
 		paginatorRects[2] = { activeArea[3] - paginatorCellWidth, activeArea[2], activeArea[3], activeArea[2] + paginatorCellHeight - cellPadding - activeAreaMargin }
 
-		RectRound(paginatorRects[1][1] + cellPadding, paginatorRects[1][2] + cellPadding, paginatorRects[1][3] - cellPadding, paginatorRects[1][4] - cellPadding, cellSize * 0.03, 2, 2, 2, 2, { 0.28, 0.28, 0.28, WG['guishader'] and 0.66 or 0.8 }, { 0.36, 0.36, 0.36, WG['guishader'] and 0.66 or 0.88 })
-		RectRound(paginatorRects[2][1] + cellPadding, paginatorRects[2][2] + cellPadding, paginatorRects[2][3] - cellPadding, paginatorRects[2][4] - cellPadding, cellSize * 0.03, 2, 2, 2, 2, { 0.28, 0.28, 0.28, WG['guishader'] and 0.66 or 0.8 }, { 0.36, 0.36, 0.36, WG['guishader'] and 0.66 or 0.88 })
-		RectRound(paginatorRects[1][1] + cellPadding + paginatorBorderSize, paginatorRects[1][2] + cellPadding + paginatorBorderSize, paginatorRects[1][3] - cellPadding - paginatorBorderSize, paginatorRects[1][4] - cellPadding - paginatorBorderSize, cellSize * 0.02, 2, 2, 2, 2, { 0, 0, 0, WG['guishader'] and 0.48 or 0.55 }, { 0, 0, 0, WG['guishader'] and 0.45 or 0.55 })
-		RectRound(paginatorRects[2][1] + cellPadding + paginatorBorderSize, paginatorRects[2][2] + cellPadding + paginatorBorderSize, paginatorRects[2][3] - cellPadding - paginatorBorderSize, paginatorRects[2][4] - cellPadding - paginatorBorderSize, cellSize * 0.02, 2, 2, 2, 2, { 0, 0, 0, WG['guishader'] and 0.48 or 0.55 }, { 0, 0, 0, WG['guishader'] and 0.45 or 0.55 })
-
-		-- glossy half
-		glBlending(GL_SRC_ALPHA, GL_ONE)
-		RectRound(paginatorRects[1][1] + cellPadding, paginatorRects[1][4] - cellPadding - ((paginatorRects[1][4] - paginatorRects[1][2]) * 0.5), paginatorRects[1][3] - cellPadding, paginatorRects[1][4] - cellPadding, cellSize * 0.03, 2, 2, 0, 0, { 1, 1, 1, 0.015 }, { 1, 1, 1, 0.15 })
-		RectRound(paginatorRects[2][1] + cellPadding, paginatorRects[2][4] - cellPadding - ((paginatorRects[2][4] - paginatorRects[1][2]) * 0.5), paginatorRects[2][3] - cellPadding, paginatorRects[2][4] - cellPadding, cellSize * 0.03, 2, 2, 0, 0, { 1, 1, 1, 0.015 }, { 1, 1, 1, 0.15 })
-
-		-- glossy bottom
-		RectRound(paginatorRects[1][1] + cellPadding, paginatorRects[1][2] + cellPadding, paginatorRects[1][3] - cellPadding, paginatorRects[1][2] + cellPadding + ((paginatorRects[1][4] - paginatorRects[1][2]) * 0.35), cellSize * 0.03, 0, 0, 2, 2, { 1, 1, 1, 0.055 }, { 1, 1, 1, 0 })
-		RectRound(paginatorRects[2][1] + cellPadding, paginatorRects[2][2] + cellPadding, paginatorRects[2][3] - cellPadding, paginatorRects[2][2] + cellPadding + ((paginatorRects[2][4] - paginatorRects[1][2]) * 0.35), cellSize * 0.03, 0, 0, 2, 2, { 1, 1, 1, 0.055 }, { 1, 1, 1, 0 })
-		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+		UiButton(paginatorRects[1][1] + cellPadding, paginatorRects[1][2] + cellPadding, paginatorRects[1][3] - cellPadding, paginatorRects[1][4] - cellPadding, 1,1,1,1, 1,1,1,1, nil, { 0, 0, 0, 0.8 }, { 0.2, 0.2, 0.2, 0.8 }, bgpadding * 0.5)
+		UiButton(paginatorRects[2][1] + cellPadding, paginatorRects[2][2] + cellPadding, paginatorRects[2][3] - cellPadding, paginatorRects[2][4] - cellPadding, 1,1,1,1, 1,1,1,1, nil, { 0, 0, 0, 0.8 }, { 0.2, 0.2, 0.2, 0.8 }, bgpadding * 0.5)
 
 		font2:Print("\255\245\245\245" .. currentPage .. "  \\  " .. pages, contentWidth * 0.5, activeArea[2] + (paginatorCellHeight * 0.5) - (paginatorFontSize * 0.25), paginatorFontSize, "co")
 	end
@@ -1572,7 +1322,7 @@ function widget:DrawScreen()
 	end
 
 	-- refresh buildmenu if active cmd changed
-	prevActiveCmd = activeCmd
+	local prevActiveCmd = activeCmd
 	activeCmd = select(4, spGetActiveCommand())
 	if activeCmd ~= prevActiveCmd then
 		doUpdate = true
@@ -1665,7 +1415,7 @@ function widget:DrawScreen()
 					end
 					if paginatorHovered then
 						if WG['tooltip'] then
-							local text = "\255\240\240\240" .. (paginatorHovered == 1 and "previous page" or "next page")
+							local text = "\255\240\240\240" .. (paginatorHovered == 1 and Spring.I18N('ui.buildMenu.previousPage') or Spring.I18N('ui.buildMenu.nextPage'))
 							WG['tooltip'].ShowTooltip('buildmenu', text)
 						end
 						RectRound(paginatorRects[paginatorHovered][1] + cellPadding, paginatorRects[paginatorHovered][2] + cellPadding, paginatorRects[paginatorHovered][3] - cellPadding, paginatorRects[paginatorHovered][4] - cellPadding, cellSize * 0.03, 2, 2, 2, 2, { 1, 1, 1, 0 }, { 1, 1, 1, (b and 0.35 or 0.15) })
@@ -1710,15 +1460,33 @@ function widget:DrawScreen()
 							end
 							cellColor = { 1, 0.85, 0.2, 0.25 }
 						end
+
+						local unsetShowPrice, unsetShowRadarIcon, unsetShowGroupIcon
 						if not showPrice then
 							unsetShowPrice = true
 							showPrice = true
+						end
+						if not showRadarIcon then
+							unsetShowRadarIcon = true
+							showRadarIcon = true
+						end
+						if not showGroupIcon then
+							unsetShowGroupIcon = true
+							showGroupIcon = true
 						end
 						-- re-draw cell with hover zoom (and price shown)
 						drawCell(cellRectID, usedZoom, cellColor, nil, { cellColor[1], cellColor[2], cellColor[3], 0.045 + (usedZoom * 0.45) }, 0.15)
 						if unsetShowPrice then
 							showPrice = false
 							unsetShowPrice = nil
+						end
+						if unsetShowRadarIcon then
+							showRadarIcon = false
+							unsetShowRadarIcon = nil
+						end
+						if unsetShowGroupIcon then
+							showGroupIcon = false
+							unsetShowGroupIcon = nil
 						end
 						-- gloss highlight
 						--glBlending(GL_SRC_ALPHA, GL_ONE)
@@ -1744,7 +1512,9 @@ function widget:DrawScreen()
 						local unitBuildDefID = spGetUnitDefID(unitBuildID)
 						if unitBuildDefID then
 							-- loop all shown cells
+							local cellIsSelected
 							for cellRectID, cellRect in pairs(cellRects) do
+								cellIsSelected = false
 								if cellRectID > maxCellRectID then
 									break
 								end
@@ -1755,7 +1525,7 @@ function widget:DrawScreen()
 										if cellRectID == hoveredCellID and (b or b2 or b3) then
 											usedZoom = clickSelectedCellZoom
 										else
-											local cellIsSelected = (activeCmd and cmds[cellRectID] and activeCmd == cmds[cellRectID].name)
+											cellIsSelected = (activeCmd and cmds[cellRectID] and activeCmd == cmds[cellRectID].name)
 											usedZoom = cellIsSelected and selectedCellZoom or defaultCellZoom
 										end
 									end
@@ -1764,15 +1534,36 @@ function widget:DrawScreen()
 										usedZoom = cellIsSelected and selectedCellZoom or defaultCellZoom
 									end
 
-									if cellRectID == hoveredCellID and not showPrice then
-										unsetShowPrice = true
-										showPrice = true
+									local unsetShowPrice, unsetShowRadarIcon, unsetShowGroupIcon
+									if cellRectID == hoveredCellID then
+										if not showPrice then
+											unsetShowPrice = true
+											showPrice = true
+										end
+										if not showRadarIcon then
+											unsetShowRadarIcon = true
+											showRadarIcon = true
+										end
+										if not showGroupIcon then
+											unsetShowGroupIcon = true
+											showGroupIcon = true
+										end
 									end
 									-- re-draw cell with hover zoom (and price shown)
 									drawCell(cellRectID, usedZoom, cellColor, progress)
-									if cellRectID == hoveredCellID and unsetShowPrice then
-										showPrice = false
-										unsetShowPrice = nil
+									if cellRectID == hoveredCellID then
+										if unsetShowPrice then
+											showPrice = false
+											unsetShowPrice = nil
+										end
+										if unsetShowRadarIcon then
+											showRadarIcon = false
+											unsetShowRadarIcon = nil
+										end
+										if unsetShowGroupIcon then
+											showGroupIcon = false
+											unsetShowGroupIcon = nil
+										end
 									end
 								end
 							end
@@ -2006,6 +1797,7 @@ function SetBuildFacing()
 	local x = pos[1]
 	local z = pos[3]
 
+	local facing
 	if math.abs(Game.mapSizeX - 2 * x) > math.abs(Game.mapSizeZ - 2 * z) then
 		if 2 * x > Game.mapSizeX then
 			facing = 3
@@ -2204,6 +1996,7 @@ function widget:GetConfigData()
 	return {
 		showPrice = showPrice,
 		showRadarIcon = showRadarIcon,
+		showGroupIcon = showGroupIcon,
 		dynamicIconsize = dynamicIconsize,
 		minColls = minColls,
 		maxColls = maxColls,
@@ -2225,6 +2018,9 @@ function widget:SetConfigData(data)
 	end
 	if data.showRadarIcon ~= nil then
 		showRadarIcon = data.showRadarIcon
+	end
+	if data.showGroupIcon ~= nil then
+		showGroupIcon = data.showGroupIcon
 	end
 	if data.dynamicIconsize ~= nil then
 		dynamicIconsize = data.dynamicIconsize

@@ -42,7 +42,7 @@ function ReclaimerOrders(n, scav)
 end
 
 function SpawnConstructor(n)
-	if (constructortimer > constructorControllerModuleConfig.constructortimer or CountScavConstructors() < constructorControllerModuleConfig.minimumconstructors ) and numOfSpawnBeacons > 0 and constructortimer > 4 then
+	if (constructortimer > constructorControllerModuleConfig.constructortimer or CountScavConstructors() < constructorControllerModuleConfig.minimumconstructors ) and numOfSpawnBeacons > 0 and constructortimer > 10 then
 		local scavengerunits = Spring.GetTeamUnits(GaiaTeamID)
 		SpawnBeacons = {}
 		for i = 1,#scavengerunits do
@@ -59,10 +59,10 @@ function SpawnConstructor(n)
 				pickedBeacon = pickedBeaconTest
 				break
 			else
-				pickedBeacon = 1234567890
+				pickedBeacon = 16000000 -- high number that UnitID should never pick
 			end
 		end
-		if pickedBeacon == 1234567890 then
+		if pickedBeacon == 16000000 then
 			return
 		end
 		posx,posy,posz = Spring.GetUnitPosition(pickedBeacon)
@@ -131,7 +131,7 @@ function SpawnConstructor(n)
 					QueueSpawn(r3..scavconfig.unitnamesuffix, posx+32, posy, posz-32, math_random(0,3),GaiaTeamID,n+90+4)
 				end
 			end
-			constructortimer = constructortimer - constructorControllerModuleConfig.constructortimer
+			constructortimer = 0
 			local r = ConstructorsList[math_random(1,#ConstructorsList)]
 			QueueSpawn(r..scavconfig.unitnamesuffix, posx, posy, posz, math_random(0,3),GaiaTeamID,n+90)
 			Spring.CreateUnit("scavengerdroppod_scav", posx, posy, posz, math_random(0,3),GaiaTeamID)
@@ -166,7 +166,7 @@ function ConstructNewBlueprint(n, scav)
 			elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 then
 					blueprint = ScavengerConstructorBlueprintsT3[math_random(1,#ScavengerConstructorBlueprintsT3)]
 			elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 + TierSpawnChances.T4 then
-					blueprint = ScavengerConstructorBlueprintsT3[math_random(1,#ScavengerConstructorBlueprintsT3)]
+					blueprint = ScavengerConstructorBlueprintsT3[math_random(1,#ScavengerConstructorBlueprintsT4)]
 			else
 				blueprint = ScavengerConstructorBlueprintsT0[math_random(1,#ScavengerConstructorBlueprintsT0)]
 			end
@@ -180,7 +180,7 @@ function ConstructNewBlueprint(n, scav)
 			elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 then
 					blueprint = ScavengerConstructorBlueprintsT3Sea[math_random(1,#ScavengerConstructorBlueprintsT3Sea)]
 			elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 + TierSpawnChances.T4 then
-					blueprint = ScavengerConstructorBlueprintsT3Sea[math_random(1,#ScavengerConstructorBlueprintsT3Sea)]
+					blueprint = ScavengerConstructorBlueprintsT3Sea[math_random(1,#ScavengerConstructorBlueprintsT4Sea)]
 			else
 				blueprint = ScavengerConstructorBlueprintsT0Sea[math_random(1,#ScavengerConstructorBlueprintsT0Sea)]
 			end

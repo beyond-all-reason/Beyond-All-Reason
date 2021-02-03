@@ -17,7 +17,7 @@ return {
 		collisionvolumeoffsets = "0 2 0",
 		collisionvolumescales = "30 38 60",
 		collisionvolumetype = "box",
-		corpse = "chicken_egg",
+		corpse = "chicken_egg_l_white",
 		defaultmissiontype = "Standby",
 		description = "Progenitor Hatchling",
 		explodeas = "BUG_DEATH",
@@ -58,6 +58,10 @@ return {
 		workertime = 0,
 		customparams = {
 			subfolder = "other/chickens",
+      model_author = "KDR_11k, Beherith",
+			normalmaps = "yes",
+			normaltex = "unittextures/chicken_l_normals.png",
+			--treeshader = "no",
 		},
 		featuredefs = {
 			dead = {},
@@ -68,6 +72,11 @@ return {
 				[1] = "custom:blood_spray",
 				[2] = "custom:blood_explode",
 				[3] = "custom:dirt",
+			},
+			pieceexplosiongenerators = {
+				[1] = "blood_spray",
+				[2] = "blood_spray",
+				[3] = "blood_spray",
 			},
 		},
 		weapondefs = {
@@ -87,7 +96,7 @@ return {
 				noselfdamage = true,
 				range = 200,
 				reloadtime = 0.73333,
-				soundstart = "chickens/smallchickenattack",
+				soundstart = "smallchickenattack",
 				targetborder = 1,
 				tolerance = 5000,
 				turret = true,

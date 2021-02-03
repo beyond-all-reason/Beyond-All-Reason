@@ -7,7 +7,7 @@
 
 customDefs = {}
 
-scavDifficulty = Spring.GetModOptions().scavengers or "easy"
+scavDifficulty = (Spring.GetModOptions and Spring.GetModOptions().scavdifficulty) or "easy" -- mission editor compat
 if scavDifficulty == "noob" then
 	ScavDifficultyMultiplier = 0.1
 elseif scavDifficulty == "easy" then
@@ -30,7 +30,9 @@ end
 
 local scavUnit = {}
 for name,uDef in pairs(UnitDefs) do
-    scavUnit[#scavUnit+1] = name..'_scav'
+	if string.sub(name, 1, 3) == "arm" or string.sub(name, 1, 3) == "cor" then
+		scavUnit[#scavUnit+1] = name..'_scav'
+	end
 end
 
 -- Scav Commanders
@@ -109,7 +111,21 @@ customDefs.corcom = {
 	-- 		},
 	-- 	},
 }
-
+customDefs.armdecom = {
+	decoyfor = "armcom_scav",
+}
+customDefs.cordecom = {
+	decoyfor = "cordecom_scav",
+}
+customDefs.armclaw = {
+	decoyfor = "armdrag_scav"
+}
+customDefs.cormaw = {
+	decoyfor = "cordrag_scav"
+}
+customDefs.armdf = {
+	decoyfor = "armfus_scav"
+}
 customDefs.armcom = {
 	autoheal = 15,
 	buildoptions = scavUnit,
@@ -178,230 +194,230 @@ customDefs.armcom = {
 
 -- M/E storages T1 give rewarding amounts of metal / energy for reclaim
 
-customDefs.armmstor = {
-	explodeas = "decoycommander",
-	--buildcostmetal = 1500,
-	featuredefs = {
-		dead = {
-			category = "loot",
-			description = "3000 Metal Lootbox",
-			damage = 3000,
-			metal = 3000, --50% reduction for being scav?
-			energy = 0,
-			object = "scavs/scavcrate.s3o",
-			resurrectable = 0,
-			smokeTime = 0,
-		},
-		heap = {
-			category = "loot",
-			description = "1500 Metal Lootbox (Damaged)",
-			damage = 1500,
-			metal = 1500, --50% reduction for being scav?
-			energy = 0,
-			object = "scavs/scavcrate.s3o",
-			resurrectable = 0,
-			smokeTime = 0,
-		},
-	},
-}
+-- customDefs.armmstor = {
+	-- explodeas = "decoycommander",
+	-- --buildcostmetal = 1500,
+	-- featuredefs = {
+		-- dead = {
+			-- category = "loot",
+			-- description = "3000 Metal Lootbox",
+			-- damage = 3000,
+			-- metal = 3000, --50% reduction for being scav?
+			-- energy = 0,
+			-- object = "scavs/scavcrate.s3o",
+			-- resurrectable = 0,
+			-- smokeTime = 0,
+		-- },
+		-- heap = {
+			-- category = "loot",
+			-- description = "1500 Metal Lootbox (Damaged)",
+			-- damage = 1500,
+			-- metal = 1500, --50% reduction for being scav?
+			-- energy = 0,
+			-- object = "scavs/scavcrate.s3o",
+			-- resurrectable = 0,
+			-- smokeTime = 0,
+		-- },
+	-- },
+-- }
 
-customDefs.armestor = {
-	explodeas = "decoycommander",
-	--buildcostenergy = 3000,
-	featuredefs = {
-		dead = {
-			category = "corpses",
-			collisionvolumescales = "26 26 26",
-			description = "6000 Energy Lootbox",
-			damage = 3000,
-			energy = 6000, --50% reduction for being scav?
-			metal = 0,
-			object = "scavs/scavcrate.s3o",
-			resurrectable = 0,
-			smokeTime = 0,
-			-- customparams = {
-			-- 	normaltex = "unittextures/cor_normal.dds",
-			-- },
-		},
-		heap = {
-			category = "corpses",
-			collisionvolumescales = "26 26 26",
-			description = "3000 Energy Lootbox Damaged",
-			damage = 1500,
-			energy = 3000, --50% reduction for being scav?
-			metal = 0,
-			object = "scavs/scavcrate.s3o",
-			resurrectable = 0,
-			smokeTime = 0,
-			-- customparams = {
-			-- 	normaltex = "unittextures/cor_normal.dds",
-			-- },
-		},
-	},
-}
+-- customDefs.armestor = {
+	-- explodeas = "decoycommander",
+	-- --buildcostenergy = 3000,
+	-- featuredefs = {
+		-- dead = {
+			-- category = "corpses",
+			-- collisionvolumescales = "26 26 26",
+			-- description = "6000 Energy Lootbox",
+			-- damage = 3000,
+			-- energy = 6000, --50% reduction for being scav?
+			-- metal = 0,
+			-- object = "scavs/scavcrate.s3o",
+			-- resurrectable = 0,
+			-- smokeTime = 0,
+			-- -- customparams = {
+			-- -- 	normaltex = "unittextures/cor_normal.dds",
+			-- -- },
+		-- },
+		-- heap = {
+			-- category = "corpses",
+			-- collisionvolumescales = "26 26 26",
+			-- description = "3000 Energy Lootbox Damaged",
+			-- damage = 1500,
+			-- energy = 3000, --50% reduction for being scav?
+			-- metal = 0,
+			-- object = "scavs/scavcrate.s3o",
+			-- resurrectable = 0,
+			-- smokeTime = 0,
+			-- -- customparams = {
+			-- -- 	normaltex = "unittextures/cor_normal.dds",
+			-- -- },
+		-- },
+	-- },
+-- }
 
-customDefs.cormstor = {
-	explodeas = "decoycommander",
-	--buildcostmetal = 1500,
-	featuredefs = {
-		dead = {
-			category = "loot",
-			description = "3000 Metal Lootbox",
-			damage = 3000,
-			metal = 3000, --50% reduction for being scav
-			energy = 0,
-			object = "scavs/scavcrate.s3o",
-			resurrectable = 0,
-			smokeTime = 0,
-		},
-		heap = {
-			category = "loot",
-			description = "1500 Metal Lootbox Damaged",
-			damage = 1500,
-			metal = 1500, --50% reduction for being scav
-			energy = 0,
-			object = "scavs/scavcrate.s3o",
-			resurrectable = 0,
-			smokeTime = 0,
-		},
-	},
-}
+-- customDefs.cormstor = {
+	-- explodeas = "decoycommander",
+	-- --buildcostmetal = 1500,
+	-- featuredefs = {
+		-- dead = {
+			-- category = "loot",
+			-- description = "3000 Metal Lootbox",
+			-- damage = 3000,
+			-- metal = 3000, --50% reduction for being scav
+			-- energy = 0,
+			-- object = "scavs/scavcrate.s3o",
+			-- resurrectable = 0,
+			-- smokeTime = 0,
+		-- },
+		-- heap = {
+			-- category = "loot",
+			-- description = "1500 Metal Lootbox Damaged",
+			-- damage = 1500,
+			-- metal = 1500, --50% reduction for being scav
+			-- energy = 0,
+			-- object = "scavs/scavcrate.s3o",
+			-- resurrectable = 0,
+			-- smokeTime = 0,
+		-- },
+	-- },
+-- }
 
-customDefs.corestor = {
-	explodeas = "decoycommander",
-	--buildcostenergy = 3000,
-	featuredefs = {
-		dead = {
-			category = "loot",
-			description = "6000 Energy Lootbox",
-			damage = 3000,
-			energy = 6000, --50% reduction for being scav
-			metal = 0,
-			object = "scavs/scavcrate.s3o",
-			resurrectable = 0,
-			smokeTime = 0,
-		},
-		heap = {
-			category = "loot",
-			description = "3000 Energy Lootbox Damaged",
-			damage = 1500,
-			energy = 3000, --50% reduction for being scav
-			metal = 0,
-			object = "scavs/scavcrate.s3o",
-			resurrectable = 0,
-		},
-	},
-}
+-- customDefs.corestor = {
+	-- explodeas = "decoycommander",
+	-- --buildcostenergy = 3000,
+	-- featuredefs = {
+		-- dead = {
+			-- category = "loot",
+			-- description = "6000 Energy Lootbox",
+			-- damage = 3000,
+			-- energy = 6000, --50% reduction for being scav
+			-- metal = 0,
+			-- object = "scavs/scavcrate.s3o",
+			-- resurrectable = 0,
+			-- smokeTime = 0,
+		-- },
+		-- heap = {
+			-- category = "loot",
+			-- description = "3000 Energy Lootbox Damaged",
+			-- damage = 1500,
+			-- energy = 3000, --50% reduction for being scav
+			-- metal = 0,
+			-- object = "scavs/scavcrate.s3o",
+			-- resurrectable = 0,
+		-- },
+	-- },
+-- }
 
--- M/E storages T2 give rewarding amounts of metal / energy for reclaim
+-- -- M/E storages T2 give rewarding amounts of metal / energy for reclaim
 
-customDefs.armuwadvms = {
-	explodeas = "decoycommander",
-	--buildcostmetal = 5000,
-	featuredefs = {
-		dead = {
-			category = "loot",
-			description = "Big 10000 Metal Lootbox",
-			damage = 4500,
-			metal = 10000, --50% reduction for being scav
-			energy = 0,
-			object = "scavs/scavcrate.s3o",
-			resurrectable = 0,
-			smokeTime = 0,
-		},
-		heap = {
-			category = "loot",
-			description = "Big 5000 Metal Lootbox Damaged",
-			damage = 2250,
-			metal = 5000, --50% reduction for being scav
-			energy = 0,
-			object = "scavs/scavcrate.s3o",
-			resurrectable = 0,
-			smokeTime = 0,
-		},
-	},
-}
+-- customDefs.armuwadvms = {
+	-- explodeas = "decoycommander",
+	-- --buildcostmetal = 5000,
+	-- featuredefs = {
+		-- dead = {
+			-- category = "loot",
+			-- description = "Big 10000 Metal Lootbox",
+			-- damage = 4500,
+			-- metal = 10000, --50% reduction for being scav
+			-- energy = 0,
+			-- object = "scavs/scavcrate.s3o",
+			-- resurrectable = 0,
+			-- smokeTime = 0,
+		-- },
+		-- heap = {
+			-- category = "loot",
+			-- description = "Big 5000 Metal Lootbox Damaged",
+			-- damage = 2250,
+			-- metal = 5000, --50% reduction for being scav
+			-- energy = 0,
+			-- object = "scavs/scavcrate.s3o",
+			-- resurrectable = 0,
+			-- smokeTime = 0,
+		-- },
+	-- },
+-- }
 
-customDefs.armuwadves = {
-	explodeas = "decoycommander",
-	--buildcostenergy = 20000,
-	featuredefs = {
-	    dead = {
-			category = "loot",
-			description = "Big 10000 Energy Lootbox",
-			damage = 4500,
-			energy = 10000, --50% reduction for being scav
-			metal = 0,
-			object = "scavs/scavcrate.s3o",
-			resurrectable = 0,
-			smokeTime = 0,
-		},
-		heap = {
-			category = "loot",
-			description = "Big 5000 Energy Lootbox Damaged",
-			damage = 2250,
-			energy = 5000, --50% reduction for being scav
-			metal = 0,
-			object = "scavs/scavcrate.s3o",
-			resurrectable = 0,
-			smokeTime = 0,
-		},
-	},
-}
+-- customDefs.armuwadves = {
+	-- explodeas = "decoycommander",
+	-- --buildcostenergy = 20000,
+	-- featuredefs = {
+	    -- dead = {
+			-- category = "loot",
+			-- description = "Big 10000 Energy Lootbox",
+			-- damage = 4500,
+			-- energy = 10000, --50% reduction for being scav
+			-- metal = 0,
+			-- object = "scavs/scavcrate.s3o",
+			-- resurrectable = 0,
+			-- smokeTime = 0,
+		-- },
+		-- heap = {
+			-- category = "loot",
+			-- description = "Big 5000 Energy Lootbox Damaged",
+			-- damage = 2250,
+			-- energy = 5000, --50% reduction for being scav
+			-- metal = 0,
+			-- object = "scavs/scavcrate.s3o",
+			-- resurrectable = 0,
+			-- smokeTime = 0,
+		-- },
+	-- },
+-- }
 
-customDefs.coruwadvms = {
-	explodeas = "decoycommander",
-	--buildcostmetal = 5000,
-	featuredefs = {
-		dead = {
-			category = "loot",
-			description = "Big 10000 Metal Lootbox",
-			damage = 4500,
-			metal = 10000, --50% reduction for being scav
-			energy = 0,
-			object = "scavs/scavcrate.s3o",
-			resurrectable = 0,
-			smokeTime = 0,
-		},
-		heap = {
-			category = "loot",
-			description = "Big 5000 Metal Lootbox Damaged",
-			damage = 2250,
-			metal = 5000, --50% reduction for being scav
-			energy = 0,
-			object = "scavs/scavcrate.s3o",
-			resurrectable = 0,
-			smokeTime = 0,
-		},
-	},
-}
+-- customDefs.coruwadvms = {
+	-- explodeas = "decoycommander",
+	-- --buildcostmetal = 5000,
+	-- featuredefs = {
+		-- dead = {
+			-- category = "loot",
+			-- description = "Big 10000 Metal Lootbox",
+			-- damage = 4500,
+			-- metal = 10000, --50% reduction for being scav
+			-- energy = 0,
+			-- object = "scavs/scavcrate.s3o",
+			-- resurrectable = 0,
+			-- smokeTime = 0,
+		-- },
+		-- heap = {
+			-- category = "loot",
+			-- description = "Big 5000 Metal Lootbox Damaged",
+			-- damage = 2250,
+			-- metal = 5000, --50% reduction for being scav
+			-- energy = 0,
+			-- object = "scavs/scavcrate.s3o",
+			-- resurrectable = 0,
+			-- smokeTime = 0,
+		-- },
+	-- },
+-- }
 
-customDefs.coruwadves = {
-	explodeas = "decoycommander",
-	--buildcostenergy = 20000,
-	featuredefs = {
-		dead = {
-			category = "loot",
-			description = "Big 10000 Energy Lootbox",
-			damage = 4500,
-			energy = 10000, --50% reduction for being scav
-			metal = 0,
-			object = "scavs/scavcrate.s3o",
-			resurrectable = 0,
-			smokeTime = 0,
-		},
-		heap = {
-			category = "loot",
-			description = "Big 5000 Energy Lootbox Damaged",
-			damage = 2250,
-			energy = 5000, --50% reduction for being scav
-			metal = 0,
-			object = "scavs/scavcrate.s3o",
-			resurrectable = 0,
-			smokeTime = 0,
-		},
-	},
-}
+-- customDefs.coruwadves = {
+	-- explodeas = "decoycommander",
+	-- --buildcostenergy = 20000,
+	-- featuredefs = {
+		-- dead = {
+			-- category = "loot",
+			-- description = "Big 10000 Energy Lootbox",
+			-- damage = 4500,
+			-- energy = 10000, --50% reduction for being scav
+			-- metal = 0,
+			-- object = "scavs/scavcrate.s3o",
+			-- resurrectable = 0,
+			-- smokeTime = 0,
+		-- },
+		-- heap = {
+			-- category = "loot",
+			-- description = "Big 5000 Energy Lootbox Damaged",
+			-- damage = 2250,
+			-- energy = 5000, --50% reduction for being scav
+			-- metal = 0,
+			-- object = "scavs/scavcrate.s3o",
+			-- resurrectable = 0,
+			-- smokeTime = 0,
+		-- },
+	-- },
+-- }
 
 
 ----CUSTOM UNITS---
@@ -530,16 +546,17 @@ customDefs.corgant = {
 	buildoptions = {
 		[numBuildoptions+1] = "cordemont4",
 		[numBuildoptions+2] = "corkarganetht4",
+		[numBuildoptions+3] = "corgolt4",
+		
 	},
 }
 
--- numBuildoptions = #UnitDefs.corgantuw.buildoptions
--- customDefs.corgantuw = {
-	-- buildoptions = {
-		-- [numBuildoptions+1] = "corcrwt4",
-		-- [numBuildoptions+2] = "corfblackhyt4",
-	-- },
--- }
+numBuildoptions = #UnitDefs.corgantuw.buildoptions
+customDefs.corgantuw = {
+	buildoptions = {
+		[numBuildoptions+1] = "corgolt4",
+	},
+}
 
 numBuildoptions = #UnitDefs.coravp.buildoptions
 customDefs.coravp = {
@@ -554,6 +571,7 @@ numBuildoptions = #UnitDefs.armaca.buildoptions
 customDefs.armaca = {
 	buildoptions = {
 		[numBuildoptions+1] = "armapt3",
+		[numBuildoptions+2] = "armminivulc",
 	},
 }
 
@@ -561,6 +579,7 @@ numBuildoptions = #UnitDefs.armack.buildoptions
 customDefs.armack = {
 	buildoptions = {
 		[numBuildoptions+1] = "armapt3",
+		[numBuildoptions+2] = "armminivulc",
 	},
 }
 
@@ -568,6 +587,7 @@ numBuildoptions = #UnitDefs.armacv.buildoptions
 customDefs.armacv = {
 	buildoptions = {
 		[numBuildoptions+1] = "armapt3",
+		[numBuildoptions+2] = "armminivulc",
 	},
 }
 
@@ -575,6 +595,7 @@ numBuildoptions = #UnitDefs.coraca.buildoptions
 customDefs.coraca = {
 	buildoptions = {
 		[numBuildoptions+1] = "corapt3",
+		[numBuildoptions+2] = "corminibuzz",
 	},
 }
 
@@ -582,6 +603,7 @@ numBuildoptions = #UnitDefs.corack.buildoptions
 customDefs.corack = {
 	buildoptions = {
 		[numBuildoptions+1] = "corapt3",
+		[numBuildoptions+2] = "corminibuzz",
 	},
 }
 
@@ -589,6 +611,7 @@ numBuildoptions = #UnitDefs.coracv.buildoptions
 customDefs.coracv = {
 	buildoptions = {
 		[numBuildoptions+1] = "corapt3",
+		[numBuildoptions+2] = "corminibuzz",
 	},
 }
 
@@ -869,11 +892,25 @@ customDefs.cortoast = {
 }
 
 customDefs.armrectr = {
-	workertime = 150, 	-- can get multiplied in unitdef_post
+	--cancloak = true,
+	--cloakcost = 10,
+	--cloakcostmoving = 100,
+	description = "Improved Rez-Bot. Amphibious and All-Terrain",
+	footprintx = 0,
+	footprintz = 0,
+	movementclass = "SCAVCOMMANDERBOT",
+	workertime = 200*ScavDifficultyMultiplier, 	-- can get multiplied in unitdef_post
 }
 
 customDefs.cornecro = {
-	workertime = 150,		-- can get multiplied in unitdef_post
+	--cancloak = true,
+	--cloakcost = 10,
+	--cloakcostmoving = 100,
+	description = "Improved Rez-Bot. Amphibious and All-Terrain",
+	footprintx = 0,
+	footprintz = 0,
+	movementclass = "SCAVCOMMANDERBOT",
+	workertime = 200*ScavDifficultyMultiplier,		-- can get multiplied in unitdef_post
 }
 
 -- LOOTBOXES

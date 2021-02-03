@@ -299,7 +299,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 end
 
 function gadget:PlayerChanged(playerID)
-	local prevFullView = fullView
+	local prevFullview = fullview
 	local prevMyAllyTeamID = myAllyTeamID
 	isSpec, fullview = Spring.GetSpectatingState()
 	myAllyTeamID = Spring.GetMyAllyTeamID()
@@ -483,7 +483,6 @@ end
 function gadget:GameFrame(gf)
 	if gf % 7 == 1 then
 		UpdateAllGlassUnits()
-		first = false
 	end
 end
 

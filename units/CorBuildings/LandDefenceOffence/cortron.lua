@@ -143,9 +143,9 @@ return {
 				stockpiletime = 75,
 				texture1 = "flare2",
 				tolerance = 4000,
-				turnrate = 32768,
-				weaponacceleration = 180,
-				weapontimer = 4,
+				turnrate = 10000,
+				weaponacceleration = 150,
+				weapontimer = 3,
 				weapontype = "StarburstLauncher",
 				weaponvelocity = 1200,
 				customparams = {

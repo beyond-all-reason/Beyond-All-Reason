@@ -32,6 +32,8 @@ local haloImg = ':n:LuaUI/Images/halo.dds'
 local unitConf = {}
 local drawLists = {}
 
+local chobbyInterface
+
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
@@ -137,8 +139,8 @@ function widget:DrawWorld()
 	if spIsGUIHidden() then return end
 
 	if haloUnitsCount > 0 then
-		osClock = os.clock()
-		clockDiff = osClock - prevOsClock
+		local osClock = os.clock()
+		local clockDiff = osClock - prevOsClock
 		prevOsClock = osClock
 
 		local camX, camY, camZ = spGetCameraPosition()

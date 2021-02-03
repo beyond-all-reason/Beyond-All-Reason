@@ -26,7 +26,7 @@ end
 
 local onlyDrawRangeWhenSelected	= true
 local fadeOnCameraDistance		= true
-local showLineGlow 				= true		-- a ticker but faint 2nd line will be drawn underneath	
+local showLineGlow 				= true		-- a ticker but faint 2nd line will be drawn underneath
 local opacityMultiplier			= 1.3
 local fadeMultiplier			= 1.2		-- lower value: fades out sooner
 local circleDivs				= 64		-- detail of range circle
@@ -61,6 +61,8 @@ local myPlayerID = Spring.GetMyPlayerID()
 
 local units = {}
 local cmdCloak = 37382
+
+local chobbyInterface
 
 local isSpy = {}
 local isGremlin = {}
@@ -128,7 +130,7 @@ end
 
 function widget:UnitCreated(unitID, unitDefID, teamID, builderID)
 	if not spValidUnitID(unitID) then return end --because units can be created AND destroyed on the same frame, in which case luaui thinks they are destroyed before they are created
-		
+
     if isSpy[unitDefID] then
 		addSpy(unitID, unitDefID)
         cloakSpy(unitID)
@@ -182,14 +184,14 @@ function widget:DrawWorldPreUnit()
     if spIsGUIHidden() then return end
 
 	local camX, camY, camZ = spGetCameraPosition()
-	
+
     glDepthTest(true)
 
     for unitID, property in pairs(units) do
         local x,y,z = spGetUnitPosition(unitID)
 		if ((onlyDrawRangeWhenSelected and spIsUnitSelected(unitID)) or onlyDrawRangeWhenSelected == false) and spIsSphereInView(x,y,z,math.max(property[1],property[2])) then
-			local camDistance = diag(camX-x, camY-y, camZ-z) 
-			
+			local camDistance = diag(camX-x, camY-y, camZ-z)
+
 			local lineWidthMinus = (camDistance/2000)
 			if lineWidthMinus > 2 then
 				lineWidthMinus = 2

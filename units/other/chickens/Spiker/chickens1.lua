@@ -17,7 +17,7 @@ return {
 		collisionvolumeoffsets = "0 -3 0",
 		collisionvolumescales = "21 30 46",
 		collisionvolumetype = "box",
-		corpse = "chicken_egg",
+		corpse = "chicken_egg_m_red",
 		defaultmissiontype = "Standby",
 		description = "Spike Spitter",
 		explodeas = "BUG_DEATH",
@@ -61,6 +61,10 @@ return {
 		customparams = {
 			maxrange = "375",
 			subfolder = "other/chickens",
+      model_author = "KDR_11k, Beherith",
+			normalmaps = "yes",
+			normaltex = "unittextures/chicken_m_normals.png",
+			--treeshader = "no",
 		},
 		featuredefs = {
 			dead = {},
@@ -71,6 +75,11 @@ return {
 				[1] = "custom:blood_spray",
 				[2] = "custom:blood_explode",
 				[3] = "custom:dirt",
+			},
+			pieceexplosiongenerators = {
+				[1] = "blood_spray",
+				[2] = "blood_spray",
+				[3] = "blood_spray",
 			},
 		},
 		weapondefs = {
@@ -124,6 +133,7 @@ return {
 				noselfdamage = true,
 				range = 375,
 				reloadtime = 2,
+				soundstart = "smallchickenattack",
 				startvelocity = 300,
 				submissile = 1,
 				targetmoveerror = 0.5,

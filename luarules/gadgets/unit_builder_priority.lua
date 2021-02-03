@@ -19,7 +19,7 @@ function gadget:GetInfo()
     return {
         name      = 'Builder Priority', 	-- this once was named: Passive Builders v3
         desc      = 'Builders marked as low priority only use resources after others builder have taken their share',
-        author    = 'BD, Bluestone',
+        author    = 'BrainDamage, Bluestone',
         date      = 'Why is date even relevant',
         license   = 'GNU GPL, v2 or later',
         layer     = 0,

@@ -49,6 +49,8 @@ local toggled = false
 local drawlist = {}
 local widgetHeight = 22
 
+local font, font2, lockPlayerID, prevLockPlayerID, bgpadding, toggleButton, backgroundGuishader, prevGameframeClock, chobbyInterface
+
 ---------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------
 
@@ -157,112 +159,9 @@ function createCountdownLists()
 	--end
 end
 
-local function DrawRectRound(px, py, sx, sy, cs, tl, tr, br, bl, c1, c2)
-	local csyMult = 1 / ((sy - py) / cs)
-
-	if c2 then
-		gl.Color(c1[1], c1[2], c1[3], c1[4])
-	end
-	gl.Vertex(px + cs, py, 0)
-	gl.Vertex(sx - cs, py, 0)
-	if c2 then
-		gl.Color(c2[1], c2[2], c2[3], c2[4])
-	end
-	gl.Vertex(sx - cs, sy, 0)
-	gl.Vertex(px + cs, sy, 0)
-
-	-- left side
-	if c2 then
-		gl.Color(c1[1] * (1 - csyMult) + (c2[1] * csyMult), c1[2] * (1 - csyMult) + (c2[2] * csyMult), c1[3] * (1 - csyMult) + (c2[3] * csyMult), c1[4] * (1 - csyMult) + (c2[4] * csyMult))
-	end
-	gl.Vertex(px, py + cs, 0)
-	gl.Vertex(px + cs, py + cs, 0)
-	if c2 then
-		gl.Color(c2[1] * (1 - csyMult) + (c1[1] * csyMult), c2[2] * (1 - csyMult) + (c1[2] * csyMult), c2[3] * (1 - csyMult) + (c1[3] * csyMult), c2[4] * (1 - csyMult) + (c1[4] * csyMult))
-	end
-	gl.Vertex(px + cs, sy - cs, 0)
-	gl.Vertex(px, sy - cs, 0)
-
-	-- right side
-	if c2 then
-		gl.Color(c1[1] * (1 - csyMult) + (c2[1] * csyMult), c1[2] * (1 - csyMult) + (c2[2] * csyMult), c1[3] * (1 - csyMult) + (c2[3] * csyMult), c1[4] * (1 - csyMult) + (c2[4] * csyMult))
-	end
-	gl.Vertex(sx, py + cs, 0)
-	gl.Vertex(sx - cs, py + cs, 0)
-	if c2 then
-		gl.Color(c2[1] * (1 - csyMult) + (c1[1] * csyMult), c2[2] * (1 - csyMult) + (c1[2] * csyMult), c2[3] * (1 - csyMult) + (c1[3] * csyMult), c2[4] * (1 - csyMult) + (c1[4] * csyMult))
-	end
-	gl.Vertex(sx - cs, sy - cs, 0)
-	gl.Vertex(sx, sy - cs, 0)
-
-	local offset = 0.15        -- texture offset, because else gaps could show
-
-	-- bottom left
-	if c2 then
-		gl.Color(c1[1], c1[2], c1[3], c1[4])
-	end
-	if ((py <= 0 or px <= 0) or (bl ~= nil and bl == 0)) and bl ~= 2 then
-		gl.Vertex(px, py, 0)
-	else
-		gl.Vertex(px + cs, py, 0)
-	end
-	gl.Vertex(px + cs, py, 0)
-	if c2 then
-		gl.Color(c1[1] * (1 - csyMult) + (c2[1] * csyMult), c1[2] * (1 - csyMult) + (c2[2] * csyMult), c1[3] * (1 - csyMult) + (c2[3] * csyMult), c1[4] * (1 - csyMult) + (c2[4] * csyMult))
-	end
-	gl.Vertex(px + cs, py + cs, 0)
-	gl.Vertex(px, py + cs, 0)
-	-- bottom right
-	if c2 then
-		gl.Color(c1[1], c1[2], c1[3], c1[4])
-	end
-	if ((py <= 0 or sx >= vsx) or (br ~= nil and br == 0)) and br ~= 2 then
-		gl.Vertex(sx, py, 0)
-	else
-		gl.Vertex(sx - cs, py, 0)
-	end
-	gl.Vertex(sx - cs, py, 0)
-	if c2 then
-		gl.Color(c1[1] * (1 - csyMult) + (c2[1] * csyMult), c1[2] * (1 - csyMult) + (c2[2] * csyMult), c1[3] * (1 - csyMult) + (c2[3] * csyMult), c1[4] * (1 - csyMult) + (c2[4] * csyMult))
-	end
-	gl.Vertex(sx - cs, py + cs, 0)
-	gl.Vertex(sx, py + cs, 0)
-	-- top left
-	if c2 then
-		gl.Color(c2[1], c2[2], c2[3], c2[4])
-	end
-	if ((sy >= vsy or px <= 0) or (tl ~= nil and tl == 0)) and tl ~= 2 then
-		gl.Vertex(px, sy, 0)
-	else
-		gl.Vertex(px + cs, sy, 0)
-	end
-	gl.Vertex(px + cs, sy, 0)
-	if c2 then
-		gl.Color(c2[1] * (1 - csyMult) + (c1[1] * csyMult), c2[2] * (1 - csyMult) + (c1[2] * csyMult), c2[3] * (1 - csyMult) + (c1[3] * csyMult), c2[4] * (1 - csyMult) + (c1[4] * csyMult))
-	end
-	gl.Vertex(px + cs, sy - cs, 0)
-	gl.Vertex(px, sy - cs, 0)
-	-- top right
-	if c2 then
-		gl.Color(c2[1], c2[2], c2[3], c2[4])
-	end
-	if ((sy >= vsy or sx >= vsx) or (tr ~= nil and tr == 0)) and tr ~= 2 then
-		gl.Vertex(sx, sy, 0)
-	else
-		gl.Vertex(sx - cs, sy, 0)
-	end
-	gl.Vertex(sx - cs, sy, 0)
-	if c2 then
-		gl.Color(c2[1] * (1 - csyMult) + (c1[1] * csyMult), c2[2] * (1 - csyMult) + (c1[2] * csyMult), c2[3] * (1 - csyMult) + (c1[3] * csyMult), c2[4] * (1 - csyMult) + (c1[4] * csyMult))
-	end
-	gl.Vertex(sx - cs, sy - cs, 0)
-	gl.Vertex(sx, sy - cs, 0)
-end
-function RectRound(px, py, sx, sy, cs, tl, tr, br, bl, c1, c2)
-	-- (coordinates work differently than the RectRound func in other widgets)
-	gl.Texture(false)
-	gl.BeginEnd(GL.QUADS, DrawRectRound, px, py, sx, sy, cs, tl, tr, br, bl, c1, c2)
-end
+local RectRound = Spring.FlowUI.Draw.RectRound
+local TexturedRectRound = Spring.FlowUI.Draw.TexturedRectRound
+local elementCorner = Spring.FlowUI.elementCorner
 
 function createList()
 	for i = 1, #drawlist do
@@ -271,11 +170,11 @@ function createList()
 	drawlist = {}
 	drawlist[1] = gl.CreateList(function()
 		local fontSize = (widgetHeight * widgetScale) * 0.5
-		local text = '   cancel camera   '
+		local text = '   ' .. Spring.I18N('ui.playerTV.cancelCamera') .. '   '
 		local color = '\255\255\222\222'
 		local color1, color2
 		if not toggled and not lockPlayerID then
-			text = '   Player TV   '
+			text = '   ' .. Spring.I18N('ui.playerTV.playerTV') .. '   '
 			color = '\255\222\255\222'
 			color1 = { 0, 0.8, 0, 0.66 }
 			color2 = { 0, 0.55, 0, 0.66 }
@@ -284,16 +183,16 @@ function createList()
 			color2 = { 0.6, 0.05, 0.05, 0.66 }
 		end
 		local textWidth = font:GetTextWidth(text) * fontSize
-		RectRound(right - textWidth, bottom, right, top, bgpadding * 1.6, 1, 1, 1, 0, color1, color2)
+		RectRound(right - textWidth, bottom, right, top, elementCorner, 1, 0, 1, 0, color1, color2)
 		toggleButton = { right - textWidth, bottom, right, top }
 
-		RectRound(right - textWidth + bgpadding, bottom, right, top - bgpadding, bgpadding, 1, 1, 1, 0, { 0.3, 0.3, 0.3, 0.25 }, { 0.05, 0.05, 0.05, 0.25 })
+		RectRound(right - textWidth + bgpadding, bottom, right, top - bgpadding, elementCorner*0.66, 1, 0, 1, 0, { 0.3, 0.3, 0.3, 0.25 }, { 0.05, 0.05, 0.05, 0.25 })
 
 		font:Begin()
 		font:Print(color .. text, right - (textWidth / 2), toggleButton[2] + (7 * widgetScale), fontSize, 'oc')
 
 		if toggled then
-			local name = 'Player TV  '
+			local name = Spring.I18N('ui.playerTV.playerTV') .. '  '
 			local fontSize = (widgetHeight * widgetScale) * 0.6
 			local vpos = toggleButton[2] + (0.25 * widgetHeight * widgetScale)
 			font:SetTextColor(0, 0, 0, 0.6)
@@ -310,15 +209,15 @@ function createList()
 		else
 			gl.Color(0.2, 1, 0.2, 0.4)
 		end
-		RectRound(toggleButton[1], toggleButton[2], toggleButton[3], toggleButton[4], bgpadding * 1.6, 1, 1, 1, 0)
+		RectRound(toggleButton[1], toggleButton[2], toggleButton[3], toggleButton[4], elementCorner, 1, 1, 1, 0)
 
 		gl.Color(0, 0, 0, 0.14)
-		RectRound(toggleButton[1] + bgpadding, toggleButton[2], toggleButton[3], toggleButton[4] - bgpadding, bgpadding, 1, 1, 1, 0)
+		RectRound(toggleButton[1] + bgpadding, toggleButton[2], toggleButton[3], toggleButton[4] - bgpadding, elementCorner*0.66, 1, 1, 1, 0)
 
-		local text = '   cancel camera   '
+		local text = '   ' .. Spring.I18N('ui.playerTV.cancelCamera') .. '   '
 		local color = '\255\255\225\225'
 		if not toggled and not lockPlayerID then
-			text = '   Player TV   '
+			text = '   ' .. Spring.I18N('ui.playerTV.playerTV') .. '   '
 			color = '\255\225\255\225'
 		end
 		local fontSize = (widgetHeight * widgetScale) * 0.5
@@ -333,7 +232,7 @@ function createList()
 			backgroundGuishader = gl.DeleteList(backgroundGuishader)
 		end
 		backgroundGuishader = gl.CreateList(function()
-			RectRound(toggleButton[1], toggleButton[2], toggleButton[3], toggleButton[4], bgpadding * 1.6, 1, 1, 1, 0)
+			RectRound(toggleButton[1], toggleButton[2], toggleButton[3], toggleButton[4], elementCorner, 1, 1, 1, 0)
 		end)
 		WG['guishader'].InsertDlist(backgroundGuishader, 'playertv')
 	end
@@ -456,10 +355,10 @@ function widget:Update(dt)
 	end
 	if isSpec and Spring.GetGameFrame() > 0 and not rejoining then
 		if WG['tooltip'] and not toggled and not lockPlayerID then
-			mx, my, mb = Spring.GetMouseState()
+			local mx, my, mb = Spring.GetMouseState()
 			if toggleButton ~= nil and isInBox(mx, my, toggleButton) then
 				Spring.SetMouseCursor('cursornormal')
-				WG['tooltip'].ShowTooltip('playertv', 'Auto camera-track of mostly top TS players\n(switches player every ' .. playerChangeDelay .. ' seconds)')
+				WG['tooltip'].ShowTooltip('playertv', Spring.I18N('ui.playerTV.tooltip'))
 			end
 		end
 		if not rejoining and toggled then
@@ -485,7 +384,7 @@ function widget:Update(dt)
 						orderID = 2
 					end
 				end
-				prevorderID = orderID
+				prevOrderID = orderID
 				if tsOrderedPlayers[orderID] then
 					SelectTrackingPlayer(tsOrderedPlayers[orderID][2])
 				end
@@ -495,8 +394,8 @@ function widget:Update(dt)
 end
 
 function widget:GameFrame(n)
+	local prevRejoining = rejoining
 	if WG['topbar'] then
-		local prevRejoining = rejoining
 		rejoining = WG['topbar'].showingRejoining()
 	end
 	if isSpec and toggled and n % 30 == 5 then
@@ -524,7 +423,7 @@ function widget:MousePress(mx, my, mb)
 	if isSpec and (Spring.GetGameFrame() > 0 or lockPlayerID) then
 		if toggleButton ~= nil and isInBox(mx, my, toggleButton) then
 			if mb == 1 then
-				prevorderID = nil
+				prevOrderID = nil
 				currentTrackedPlayer = nil
 				if toggled or lockPlayerID then
 					toggled = false
@@ -550,8 +449,8 @@ function widget:ViewResize()
 	vsx, vsy = Spring.GetViewGeometry()
 	widgetScale = (0.7 + (vsx * vsy / 5000000))
 
-	local widgetSpaceMargin = math.floor(0.0045 * vsy * ui_scale) / vsy
-	bgpadding = math.ceil(widgetSpaceMargin * 0.66 * vsy)
+	bgpadding = Spring.FlowUI.elementPadding
+	elementCorner = Spring.FlowUI.elementCorner
 
 	font = WG['fonts'].getFont(nil, 1, 0.2, 1.3)
 	font2 = WG['fonts'].getFont(fontfile2, 2, 0.2, 1.3)
@@ -607,7 +506,7 @@ function widget:DrawScreen()
 			gl.PushMatrix()
 			gl.CallList(drawlist[1])
 			gl.PopMatrix()
-			mx, my, mb = Spring.GetMouseState()
+			local mx, my, mb = Spring.GetMouseState()
 			if toggleButton ~= nil and isInBox(mx, my, toggleButton) then
 				gl.CallList(drawlist[2])
 			end
@@ -695,10 +594,10 @@ function widget:Shutdown()
 end
 
 function widget:GetConfigData(data)
-	savedTable = {}
-	savedTable.toggled = toggled
-	savedTable.playerChangeDelay = playerChangeDelay
-	return savedTable
+	return {
+		toggled = toggled,
+		playerChangeDelay = playerChangeDelay
+	}
 end
 
 function widget:SetConfigData(data)

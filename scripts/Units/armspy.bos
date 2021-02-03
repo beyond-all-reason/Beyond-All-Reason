@@ -247,6 +247,16 @@ QueryNanoPiece(piecenum)
 	piecenum = body;
 }
 
+
+
+Reload()
+{
+	sleep 5000;
+	Static_Var_3 = 1;
+}
+
+
+
 StartBuilding(Func_Var_1)
 {
 	while( !Static_Var_3 )
@@ -255,7 +265,7 @@ StartBuilding(Func_Var_1)
 	}
 	Static_Var_3 = 0;
 	set INBUILDSTANCE to 1;
-	//start-script Reload();
+	start-script Reload();
 }
 
 StopBuilding()

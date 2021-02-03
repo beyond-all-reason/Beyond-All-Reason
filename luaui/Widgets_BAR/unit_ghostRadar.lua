@@ -86,12 +86,18 @@ end
 function widget:UnitLeftRadar(unitID, allyTeam)
 	if ( dots[unitID] ~= nil ) then
 		dots[unitID]["radar"] = false
+		if not dots[unitID]["los"] then -- not in LOS - forget unit type
+			dots[unitID]["unitDefId"] = nil
+		end
 	end
 end
 
 function widget:UnitLeftLos(unitID, allyTeam)
 	if ( dots[unitID] ~= nil ) then
 		dots[unitID]["los"] = false
+		if not dots[unitID]["radar"] then -- not on radar - forget unit type
+			dots[unitID]["unitDefId"] = nil
+		end
 	end
 end
 

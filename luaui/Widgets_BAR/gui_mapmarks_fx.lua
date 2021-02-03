@@ -28,7 +28,7 @@ local glDeleteList				= gl.DeleteList
 local glCallList				= gl.CallList
 
 local commandCount = 0
-local glowDlist
+local glowDlist, font, chobbyInterface, ringDlist, pencilDlist, eraserDlist
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -158,12 +158,6 @@ function widget:MapDrawCmd(playerID, cmdType, x, y, z, a, b, c)
 		mapEraseNicknameTime[playerID] = osClock
 		AddEffect('map_erase', x, y, z, osClock, false, playerID)
 	end
-end
-
-
-function Round(num, idp)
-    local mult = 10^(idp or 0)
-    return math.floor(num * mult + 0.5) / mult
 end
 
 

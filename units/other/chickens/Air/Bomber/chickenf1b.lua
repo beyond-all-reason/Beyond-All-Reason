@@ -23,7 +23,7 @@ return {
 		collisionvolumeoffsets = "0 8 -2",
 		collisionvolumescales = "70 14 48",
 		collisionvolumetype = "box",
-		corpse = "chicken_egg",
+		corpse = "chicken_egg_l_red",
 		cruisealt = 270,
 		defaultmissiontype = "Standby",
 		description = "Flying Chicken Bomber",
@@ -67,6 +67,9 @@ return {
 		workertime = 0,
 		customparams = {
 			subfolder = "other/chickens",
+      model_author = "KDR_11k, Beherith",
+			normalmaps = "yes",
+			normaltex = "unittextures/chicken_l_normals.png",
 		},
 		featuredefs = {
 			dead = {},
@@ -77,6 +80,11 @@ return {
 				[1] = "custom:blood_spray",
 				[2] = "custom:blood_explode",
 				[3] = "custom:dirt",
+			},
+			pieceexplosiongenerators = {
+				[1] = "blood_spray",
+				[2] = "blood_spray",
+				[3] = "blood_spray",
 			},
 		},
 		weapondefs = {
@@ -91,7 +99,7 @@ return {
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.4,
-				explosiongenerator = "custom:gundam_MISSILE_EXPLOSION",
+				explosiongenerator = "custom:genericshellexplosion-medium-bomb",
 				impulseboost = 1,
 				impulsefactor = 1,
 				interceptedbyshieldtype = 0,
@@ -100,7 +108,7 @@ return {
 				noselfdamage = true,
 				range = 700,
 				reloadtime = 9,
-				soundhit = "chickens/junohit2edit",
+				soundhit = "bombsmed2",
 				sprayangle = 2000,
 				weapontype = "AircraftBomb",
 				damage = {

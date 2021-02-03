@@ -50,12 +50,18 @@ HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and f
 	return (100); //return damage percent
 }
 
+#define IDLEHOVERSCALE 32
+#define IDLEHOVERSPEED 60
+#define IDLEBASEPIECE base
+#include "idlehover.h"
+
 SmokeUnit(healthpercent, sleeptime, smoketype)
 {
 	while( get BUILD_PERCENT_LEFT )
 	{
 		sleep 500;
 	}
+	start-script IdleHover();
 	while( TRUE )
 	{
 		healthpercent = get HEALTH;

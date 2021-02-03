@@ -29,11 +29,6 @@ function AllPlayers()
 	return players
 end
 
-function AllUsers()
-	local players = Spring.GetPlayerList()
-	return players
-end
-
 function PlayersInAllyTeamID(allyTeamID)
 	local players = AllPlayers()
 	for ct, id in pairs(players) do
@@ -60,6 +55,8 @@ if gadgetHandler:IsSyncedCode() then
 
 	local armnuke = WeaponDefNames["armsilo_nuclear_missile"].id
 	local cornuke = WeaponDefNames["corsilo_crblmssl"].id
+	local scavArmNuke = WeaponDefNames["armsilo_scav_nuclear_missile"].id
+	local scavCorNuke = WeaponDefNames["corsilo_scav_crblmssl"].id
 	local idleBuilderNotificationDelay = 10
 	local idleBuilderAt = {}
 	local gamestarted = (Spring.GetGameFrame() > 0)
@@ -111,7 +108,7 @@ if gadgetHandler:IsSyncedCode() then
 
 -- NUKE LAUNCH send to all but ally team
 	function gadget:ProjectileCreated(proID, proOwnerID, weaponDefID)
-		if Spring.GetProjectileDefID(proID) == armnuke or Spring.GetProjectileDefID(proID) == cornuke then
+		if Spring.GetProjectileDefID(proID) == armnuke or Spring.GetProjectileDefID(proID) == cornuke or Spring.GetProjectileDefID(proID) == scavArmNuke or Spring.GetProjectileDefID(proID) == scavCorNuke then
 			local event = "NukeLaunched"
 			local players = AllButAllyTeamID(GetAllyTeamID(Spring.GetUnitTeam(proOwnerID)))
 			for ct, player in pairs (players) do

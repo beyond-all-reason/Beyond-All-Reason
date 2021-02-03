@@ -17,7 +17,7 @@ return {
 		collisionvolumeoffsets = "0 11 3",
 		collisionvolumescales = "25 38 64",
 		collisionvolumetype = "box",
-		corpse = "chicken_egg",
+		corpse = "chicken_egg_m_pink",
 		defaultmissiontype = "Standby",
 		description = "All-Terrain Assault",
 		explodeas = "BIGBUG_DEATH",
@@ -30,7 +30,7 @@ return {
 		maxslope = 18,
 		maxvelocity = 4.25,
 		maxwaterdepth = 15,
-		movementclass = "BOT3",
+		movementclass = "TBOT3",
 		name = "Manticore",
 		noautofire = false,
 		nochasecategory = "VTOL",
@@ -58,6 +58,9 @@ return {
 		customparams = {
 			model_author = "Beherith",
 			subfolder = "other/chickens",
+      model_author = "KDR_11k, Beherith",
+			normalmaps = "yes",
+			normaltex = "unittextures/chicken_m_normals.png",
 		},
 		featuredefs = {
 			dead = {},
@@ -68,6 +71,11 @@ return {
 				[1] = "custom:blood_spray",
 				[2] = "custom:blood_explode",
 				[3] = "custom:dirt",
+			},
+			pieceexplosiongenerators = {
+				[1] = "blood_spray",
+				[2] = "blood_spray",
+				[3] = "blood_spray",
 			},
 		},
 		weapondefs = {
@@ -93,7 +101,7 @@ return {
 				rgbcolor = "0.0 0.6 0.6",
 				size = 8,
 				sizedecay = -0.3,
-				soundhit = "chickens/e16",
+				soundhit = "e16",
 				sprayangle = 256,
 				targetmoveerror = 0.2,
 				tolerance = 5000,
