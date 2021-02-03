@@ -198,7 +198,7 @@ function BehaviourFactory:defaultBehaviours(unit)
 	for i = #b, 1, -1 do
 		local behaviour = b[i]
 		if alreadyHave[behaviour] then
-			game:SendToConsole(self.ai.id, "duplicate behaviour", u:ID(), u:Name())
+			--game:SendToConsole(self.ai.id, "duplicate behaviour", u:ID(), u:Name())
 			table.remove(b, i)
 		else
 			alreadyHave[behaviour] = true

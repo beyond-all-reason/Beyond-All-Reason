@@ -4,7 +4,7 @@ function WardBST:Name()
 	return "WardBST"
 end
 
-WardBST.DebugEnabled = true
+WardBST.DebugEnabled = false
 
 function WardBST:Init()
 	self.minFleeDistance = 500
