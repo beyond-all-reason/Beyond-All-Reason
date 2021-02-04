@@ -553,7 +553,7 @@ local UiButton = Spring.FlowUI.Draw.Button
 function gadget:ViewResize(viewSizeX, viewSizeY)
 	vsx,vsy = Spring.GetViewGeometry()
 
-	uiScale = (0.85 + (vsx*vsy / 4500000))
+	uiScale = (0.9 + (vsx*vsy / 2700000))
 
 	readyX = math.floor(vsx * 0.8)
 	readyY = math.floor(vsy * 0.8)
@@ -738,7 +738,7 @@ function gadget:DrawScreen()
 					end
 				end
 				font:Begin()
-				font:Print(colorString .. texts.ready, 0, -(readyH*0.15), 25*uiScale, "co")
+				font:Print(colorString .. texts.ready, 0, -(readyH*0.2), 25*uiScale, "co")
 				font:End()
 				gl.Color(1,1,1,1)
 			end
