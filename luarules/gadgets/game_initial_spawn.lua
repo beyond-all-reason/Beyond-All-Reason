@@ -645,34 +645,37 @@ function gadget:Initialize()
 
 	-- create ready button
 	readyButton = gl.CreateList(function()
-
-		--UiButton(-readyW/2, -readyH/2, readyW/2, readyH/2, 1,1,1,1, 1,1,1,1, nil, {1, 1, 1, 1}, {0.33, 0.33, 0.33, 1})
+		local bordersize = math.floor(math.max(1, readyH*0.02))
+		RectRound((-readyW/2)-bordersize, (-readyH/2)-bordersize, (readyW/2)+bordersize, (readyH/2)+bordersize, bordersize*2, 1,1,1,1, {1, 1, 1, 0.85})
+		UiButton(-readyW/2, -readyH/2, readyW/2, readyH/2, 1,1,1,1, 1,1,1,1, nil, {1, 1, 1, 1}, {0.33, 0.33, 0.33, 1})
 
 		-- draws background rectangle
-		gl.Color(0,0,0,0.75)
-		RectRound(-((readyW/2)+bgMargin), -((readyH/2)+bgMargin), ((readyW/2)+bgMargin), ((readyH/2)+bgMargin), 4, 2,2,2,2, {0.05,0.05,0.05,0.75}, {0,0,0,0.75})
-		RectRound(-readyW/2, -readyH/2, readyW/2, readyH/2, 3, 2,2,2,2, {1,1,1,0}, {1,1,1,0.1})
-		-- gloss
-		gl.Blending(GL.SRC_ALPHA, GL.ONE)
-		RectRound(-readyW/2, 0, readyW/2, readyH/2, 3, 2,2,0,0, {1,1,1,0.035}, {1,1,1,0.11})
-		RectRound(-readyW/2, -readyH/2, readyW/2, -readyH/4, 3, 0,0,2,2, {1,1,1,0.045}, {1,1,1,0})
-		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
-		gl.Color(1,1,1,1)
+		--gl.Color(0,0,0,0.75)
+		--RectRound(-((readyW/2)+bgMargin), -((readyH/2)+bgMargin), ((readyW/2)+bgMargin), ((readyH/2)+bgMargin), 4, 2,2,2,2, {0.05,0.05,0.05,0.75}, {0,0,0,0.75})
+		--RectRound(-readyW/2, -readyH/2, readyW/2, readyH/2, 3, 2,2,2,2, {1,1,1,0}, {1,1,1,0.1})
+		---- gloss
+		--gl.Blending(GL.SRC_ALPHA, GL.ONE)
+		--RectRound(-readyW/2, 0, readyW/2, readyH/2, 3, 2,2,0,0, {1,1,1,0.035}, {1,1,1,0.11})
+		--RectRound(-readyW/2, -readyH/2, readyW/2, -readyH/4, 3, 0,0,2,2, {1,1,1,0.045}, {1,1,1,0})
+		--gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+		--gl.Color(1,1,1,1)
 	end)
 	readyButtonHover = gl.CreateList(function()
 
-		--UiButton(-readyW/2, -readyH/2, readyW/2, readyH/2, 1,1,1,1, 1,1,1,1, nil, {1, 1, 1, 1}, {0.33, 0.33, 0.33, 1})
+		local bordersize = math.floor(math.max(1, readyH*0.02))
+		RectRound((-readyW/2)-bordersize, (-readyH/2)-bordersize, (readyW/2)+bordersize, (readyH/2)+bordersize, bordersize*2, 1,1,1,1, {1, 1, 1, 0.85})
+		UiButton(-readyW/2, -readyH/2, readyW/2, readyH/2, 1,1,1,1, 1,1,1,1, nil, {1, 1, 1, 1}, {0.33, 0.33, 0.33, 1})
 
 		-- draws background rectangle
-		gl.Color(0.15,0.12,0,0.75)
-		RectRound(-((readyW/2)+bgMargin), -((readyH/2)+bgMargin), ((readyW/2)+bgMargin), ((readyH/2)+bgMargin), 4, 2,2,2,2)
-		RectRound(-readyW/2, -readyH/2, readyW/2, readyH/2, 3, 2,2,2,2,{1,1,1,0}, {1,1,1,0.22})
-		-- gloss
-		gl.Blending(GL.SRC_ALPHA, GL.ONE)
-		RectRound(-readyW/2, 0, readyW/2, readyH/2, 3, 2,2,0,0, {1,1,1,0.05}, {1,1,1,0.18})
-		RectRound(-readyW/2, -readyH/2, readyW/2, -readyH/4, 3, 0,0,2,2, {1,1,1,0.07}, {1,1,1,0})
-		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
-		gl.Color(1,1,1,1)
+		--gl.Color(0.15,0.12,0,0.75)
+		--RectRound(-((readyW/2)+bgMargin), -((readyH/2)+bgMargin), ((readyW/2)+bgMargin), ((readyH/2)+bgMargin), 4, 2,2,2,2)
+		--RectRound(-readyW/2, -readyH/2, readyW/2, readyH/2, 3, 2,2,2,2,{1,1,1,0}, {1,1,1,0.22})
+		---- gloss
+		--gl.Blending(GL.SRC_ALPHA, GL.ONE)
+		--RectRound(-readyW/2, 0, readyW/2, readyH/2, 3, 2,2,0,0, {1,1,1,0.05}, {1,1,1,0.18})
+		--RectRound(-readyW/2, -readyH/2, readyW/2, -readyH/4, 3, 0,0,2,2, {1,1,1,0.07}, {1,1,1,0})
+		--gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+		--gl.Color(1,1,1,1)
 	end)
 end
 

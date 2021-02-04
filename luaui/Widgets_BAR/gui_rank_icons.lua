@@ -129,6 +129,9 @@ local function getRank(unitDefID, xp)
 end
 
 local function updateUnitRank(unitID, unitDefID)
+	for i = 0, numRanks do
+		ranks[i][unitID] = nil
+	end
 	local xp = GetUnitExperience(unitID)
 	if xp then
 		ranks[getRank(unitDefID, xp)][unitID] = unitDefID
@@ -193,7 +196,10 @@ function widget:UnitExperience(unitID, unitDefID, unitTeam, xp, oldXP)
 	local oldRank = getRank(unitDefID, oldXP)
 
 	if rank ~= oldRank then
-		for i = 0, rank - 1 do
+		--for i = 0, rank - 1 do
+		--	ranks[i][unitID] = nil
+		--end
+		for i = 0, numRanks do
 			ranks[i][unitID] = nil
 		end
 		ranks[rank][unitID] = unitDefID
