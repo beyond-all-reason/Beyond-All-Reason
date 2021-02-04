@@ -553,11 +553,14 @@ local UiButton = Spring.FlowUI.Draw.Button
 
 function gadget:ViewResize(viewSizeX, viewSizeY)
 	vsx,vsy = Spring.GetViewGeometry()
+
+	uiScale = (0.75 + (vsx*vsy / 7500000)) * customScale
+
 	readyX = math.floor(vsx * 0.8)
 	readyY = math.floor(vsy * 0.8)
 	readyW = math.floor(orgReadyW * uiScale / 2) * 2
 	readyH =  math.floor(orgReadyH * uiScale / 2) * 2
-	bgMargin = math.floor(math.max(1, readyH*0.02))
+	bgMargin = math.floor(math.max(1, readyH*0.03))
 
 	local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
 	if fontfileScale ~= newFontfileScale then
@@ -658,12 +661,12 @@ function gadget:Initialize()
 
 	-- create ready button
 	readyButton = gl.CreateList(function()
-		RectRound((-readyW/2)-bgMargin, (-readyH/2)-bgMargin, (readyW/2)+bgMargin, (readyH/2)+bgMargin, bgMargin*2, 1,1,1,1, {1, 0.9, 0.6, 0.85})
-		UiButton((-readyW/2), (-readyH/2), (readyW/2), (readyH/2), 1,1,1,1, 1,1,1,1, nil, {0.15, 0.11, 0, 1}, {0.28, 0.22, 0, 1})
+		RectRound((-readyW/2)-bgMargin, (-readyH/2)-bgMargin, (readyW/2)+bgMargin, (readyH/2)+bgMargin, bgMargin*2, 1,1,1,1, {1, 0.96, 0.8, 0.85})
+		UiButton((-readyW/2), (-readyH/2), (readyW/2), (readyH/2), 1,1,1,1, 1,1,1,1, nil, {0.15, 0.12, 0, 1}, {0.28, 0.23, 0, 1})
 	end)
 	readyButtonHover = gl.CreateList(function()
-		RectRound((-readyW/2)-bgMargin, (-readyH/2)-bgMargin, (readyW/2)+bgMargin, (readyH/2)+bgMargin, bgMargin*2, 1,1,1,1, {1, 0.9, 0.6, 0.85})
-		UiButton((-readyW/2), (-readyH/2), (readyW/2), (readyH/2), 1,1,1,1, 1,1,1,1, nil, {0.25, 0.2, 0, 1}, {0.45, 0.43, 0, 1})
+		RectRound((-readyW/2)-bgMargin, (-readyH/2)-bgMargin, (readyW/2)+bgMargin, (readyH/2)+bgMargin, bgMargin*2, 1,1,1,1, {1, 0.96, 0.8, 0.85})
+		UiButton((-readyW/2), (-readyH/2), (readyW/2), (readyH/2), 1,1,1,1, 1,1,1,1, nil, {0.25, 0.21, 0, 1}, {0.44, 0.37, 0, 1})
 	end)
 end
 
@@ -704,8 +707,6 @@ function gadget:DrawScreen()
 
 	if enabled then
 
-	 	uiScale = (0.75 + (vsx*vsy / 7500000)) * customScale
-
 		gl.PushMatrix()
 			gl.Translate(readyX+(readyW/2), readyY+(readyH/2),0)
 
@@ -738,7 +739,7 @@ function gadget:DrawScreen()
 					end
 				end
 				font:Begin()
-				font:Print(colorString .. texts.ready, -((readyW/2)-12.5), -((readyH/2)-9.5), 25, "o")
+				font:Print(colorString .. texts.ready, -(readyW/2), -((readyH*0.37)), 25*uiScale, "co")
 				font:End()
 				gl.Color(1,1,1,1)
 			end
@@ -753,7 +754,7 @@ function gadget:DrawScreen()
 				end
 				local text = colorString .. texts.gamestartingin.." " .. math.max(1,3-math.floor(timer)) .. " "..texts.seconds
 				font:Begin()
-				font:Print(text, vsx*0.5 - font:GetTextWidth(text)/2*17, vsy*0.75, 17, "o")
+				font:Print(text, vsx*0.5 - font:GetTextWidth(text)/2*17, vsy*0.75, 17*uiScale, "o")
 				font:End()
 			end
 		gl.PopMatrix()
