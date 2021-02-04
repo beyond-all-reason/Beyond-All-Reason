@@ -518,7 +518,7 @@ local fontfileOutlineSize = 10
 local fontfileOutlineStrength = 1.4
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
-local uiScale = 1
+local uiScale = (0.85 + (vsx*vsy / 4500000))
 local myPlayerID = Spring.GetMyPlayerID()
 local _,_,spec,myTeamID = Spring.GetPlayerInfo(myPlayerID,false)
 local amNewbie
@@ -553,7 +553,7 @@ local UiButton = Spring.FlowUI.Draw.Button
 function gadget:ViewResize(viewSizeX, viewSizeY)
 	vsx,vsy = Spring.GetViewGeometry()
 
-	uiScale = (0.9 + (vsx*vsy / 2700000))
+	uiScale = (0.85 + (vsx*vsy / 4500000))
 
 	readyX = math.floor(vsx * 0.8)
 	readyY = math.floor(vsy * 0.8)
