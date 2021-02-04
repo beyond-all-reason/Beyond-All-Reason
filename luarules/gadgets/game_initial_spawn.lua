@@ -542,7 +542,7 @@ local orgReadyW = 100
 
 local readyH = orgReadyH * uiScale
 local readyW = orgReadyW * uiScale
-local bgMargin = math.floor(math.max(1, readyH*0.035))
+local bgMargin = math.floor(math.max(1, readyH*0.04))
 
 local readyButton, readyButtonHover
 
@@ -559,7 +559,7 @@ function gadget:ViewResize(viewSizeX, viewSizeY)
 	readyY = math.floor(vsy * 0.8)
 	readyW = math.floor(orgReadyW * uiScale / 2) * 2
 	readyH =  math.floor(orgReadyH * uiScale / 2) * 2
-	bgMargin = math.floor(math.max(1, readyH*0.035))
+	bgMargin = math.floor(math.max(1, readyH*0.04))
 
 	local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
 	if fontfileScale ~= newFontfileScale then

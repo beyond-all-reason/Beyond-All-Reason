@@ -1460,19 +1460,18 @@ function widget:DrawScreen()
 			end
 		else
 			if now < 90 and WG['tooltip'] ~= nil then
-				local minh = height * 0.5
 				if (minWind + maxWind) / 2 < 5.5 then
-					WG['tooltip'].ShowTooltip('topbar_windinfo', Spring.I18N('ui.topbar.wind.worth1'), windArea[1], windArea[2] - minh * widgetScale)
+					WG['tooltip'].ShowTooltip('topbar_windinfo', Spring.I18N('ui.topbar.wind.worth1'), windArea[1], windArea[2] - bgpadding)
 				elseif (minWind + maxWind) / 2 >= 5.5 and (minWind + maxWind) / 2 < 7 then
-					WG['tooltip'].ShowTooltip('topbar_windinfo', Spring.I18N('ui.topbar.wind.worth2'), windArea[1], windArea[2] - minh * widgetScale)
+					WG['tooltip'].ShowTooltip('topbar_windinfo', Spring.I18N('ui.topbar.wind.worth2'), windArea[1], windArea[2] - bgpadding)
 				elseif (minWind + maxWind) / 2 >= 7 and (minWind + maxWind) / 2 < 8.5 then
-					WG['tooltip'].ShowTooltip('topbar_windinfo', Spring.I18N('ui.topbar.wind.worth3'), windArea[1], windArea[2] - minh * widgetScale)
+					WG['tooltip'].ShowTooltip('topbar_windinfo', Spring.I18N('ui.topbar.wind.worth3'), windArea[1], windArea[2] - bgpadding)
 				elseif (minWind + maxWind) / 2 >= 8.5 and (minWind + maxWind) / 2 < 10 then
-					WG['tooltip'].ShowTooltip('topbar_windinfo', Spring.I18N('ui.topbar.wind.worth4'), windArea[1], windArea[2] - minh * widgetScale)
+					WG['tooltip'].ShowTooltip('topbar_windinfo', Spring.I18N('ui.topbar.wind.worth4'), windArea[1], windArea[2] - bgpadding)
 				elseif (minWind + maxWind) / 2 >= 10 and (minWind + maxWind) / 2 < 15 then
-					WG['tooltip'].ShowTooltip('topbar_windinfo', Spring.I18N('ui.topbar.wind.worth5'), windArea[1], windArea[2] - minh * widgetScale)
+					WG['tooltip'].ShowTooltip('topbar_windinfo', Spring.I18N('ui.topbar.wind.worth5'), windArea[1], windArea[2] - bgpadding)
 				elseif (minWind + maxWind) / 2 >= 15 then
-					WG['tooltip'].ShowTooltip('topbar_windinfo', Spring.I18N('ui.topbar.wind.worth6'), windArea[1], windArea[2] - minh * widgetScale)
+					WG['tooltip'].ShowTooltip('topbar_windinfo', Spring.I18N('ui.topbar.wind.worth6'), windArea[1], windArea[2] - bgpadding)
 				end
 			end
 		end
