@@ -537,9 +537,13 @@ local timer2 = 0
 
 local readyX = vsx * 0.8
 local readyY = vsy * 0.8
-local readyH = 35
-local readyW = 100
-local bgMargin = 2.5
+
+local orgReadyH = 35
+local orgReadyW = 100
+
+local readyH = orgReadyH * uiScale
+local readyW = orgReadyW * uiScale
+local bgMargin = math.floor(math.max(1, readyH*0.02))
 
 local readyButton, readyButtonHover
 
@@ -549,10 +553,14 @@ local UiButton = Spring.FlowUI.Draw.Button
 
 function gadget:ViewResize(viewSizeX, viewSizeY)
 	vsx,vsy = Spring.GetViewGeometry()
-	readyX = vsx * 0.8
-	readyY = vsy * 0.8
+	readyX = math.floor(vsx * 0.8)
+	readyY = math.floor(vsy * 0.8)
+	readyW = math.floor(orgReadyW * uiScale / 2) * 2
+	readyH =  math.floor(orgReadyH * uiScale / 2) * 2
+	bgMargin = math.floor(math.max(1, readyH*0.02))
+
 	local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
-	if (fontfileScale ~= newFontfileScale) then
+	if fontfileScale ~= newFontfileScale then
 		fontfileScale = newFontfileScale
 		gl.DeleteFont(font)
 		font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
@@ -616,17 +624,8 @@ function gadget:GameSetup(state,ready,playerStates)
 end
 
 
-function correctMouseForScaling(x,y)
-	local buttonScreenCenterPosX = (readyX+math.floor(readyW/2))/vsx
-	local buttonScreenCenterPosY = (readyY+math.floor(readyH/2))/vsy
-	x = x - (((x/vsx)-buttonScreenCenterPosX) * vsx)*((uiScale-1)/uiScale)
-	y = y - (((y/vsy)-buttonScreenCenterPosY) * vsy)*((uiScale-1)/uiScale)
-	return x,y
-end
-
 function gadget:MousePress(sx,sy)
 	-- pressing ready
-	sx,sy = correctMouseForScaling(sx,sy)
 	if sx > readyX-bgMargin and sx < readyX+readyW+bgMargin and sy > readyY-bgMargin and sy < readyY+readyH+bgMargin and Spring.GetGameFrame() <= 0 and Game.startPosType == 2 and gameStarting==nil and not spec then
 		if startPointChosen then
 			readied = true
@@ -659,14 +658,12 @@ function gadget:Initialize()
 
 	-- create ready button
 	readyButton = gl.CreateList(function()
-		local bordersize = math.floor(math.max(1, readyH*0.02))
-		RectRound(math.floor(-readyW/2)-bordersize, math.floor(-readyH/2)-bordersize, math.floor(readyW/2)+bordersize, math.floor(readyH/2)+bordersize, bordersize*2, 1,1,1,1, {1, 1, 1, 0.85})
-		UiButton(math.floor(-readyW/2), math.floor(-readyH/2), math.floor(readyW/2), math.floor(readyH/2), 1,1,1,1, 1,1,1,1, nil, {0.4, 0.36, 0, 1}, {0.2, 0.18, 0, 1})
+		RectRound((-readyW/2)-bgMargin, (-readyH/2)-bgMargin, (readyW/2)+bgMargin, (readyH/2)+bgMargin, bgMargin*2, 1,1,1,1, {1, 0.9, 0.6, 0.85})
+		UiButton((-readyW/2), (-readyH/2), (readyW/2), (readyH/2), 1,1,1,1, 1,1,1,1, nil, {0.15, 0.11, 0, 1}, {0.28, 0.22, 0, 1})
 	end)
 	readyButtonHover = gl.CreateList(function()
-		local bordersize = math.floor(math.max(1, readyH*0.02))
-		RectRound(math.floor(-readyW/2)-bordersize, math.floor(-readyH/2)-bordersize, math.floor(readyW/2)+bordersize, math.floor(readyH/2)+bordersize, bordersize*2, 1,1,1,1, {1, 1, 1, 0.85})
-		UiButton(math.floor(-readyW/2), math.floor(-readyH/2), math.floor(readyW/2), math.floor(readyH/2), 1,1,1,1, 1,1,1,1, nil, {0.55, 0.5, 0, 1}, {0.3, 0.27, 0, 1})
+		RectRound((-readyW/2)-bgMargin, (-readyH/2)-bgMargin, (readyW/2)+bgMargin, (readyH/2)+bgMargin, bgMargin*2, 1,1,1,1, {1, 0.9, 0.6, 0.85})
+		UiButton((-readyW/2), (-readyH/2), (readyW/2), (readyH/2), 1,1,1,1, 1,1,1,1, nil, {0.25, 0.2, 0, 1}, {0.45, 0.43, 0, 1})
 	end)
 end
 
@@ -710,18 +707,17 @@ function gadget:DrawScreen()
 	 	uiScale = (0.75 + (vsx*vsy / 7500000)) * customScale
 
 		gl.PushMatrix()
-			gl.Translate(readyX+math.floor(readyW/2),readyY+math.floor(readyH/2),0)
-			gl.Scale(uiScale, uiScale, 1)
+			gl.Translate(readyX+(readyW/2), readyY+(readyH/2),0)
 
 			if not readied and readyButton and Game.startPosType == 2 and gameStarting==nil and not spec and not isReplay then
 			--if not readied and readyButton and not spec and not isReplay then
 
 				if Script.LuaUI("GuishaderInsertRect") then
 					Script.LuaUI.GuishaderInsertRect(
-						readyX+math.floor(readyW/2)-((math.floor(readyW/2)+bgMargin)*uiScale),
-						readyY+math.floor(readyH/2)-((math.floor(readyH/2)+bgMargin)*uiScale),
-						readyX+math.floor(readyW/2)+((math.floor(readyW/2)+bgMargin)*uiScale),
-						readyY+math.floor(readyH/2)+((math.floor(readyH/2)+bgMargin)*uiScale),
+						readyX+(readyW/2)-(((readyW/2)+bgMargin)),
+						readyY+(readyH/2)-(((readyH/2)+bgMargin)),
+						readyX+(readyW/2)+(((readyW/2)+bgMargin)),
+						readyY+(readyH/2)+(((readyH/2)+bgMargin)),
 						'ready'
 					)
 				end
@@ -729,7 +725,6 @@ function gadget:DrawScreen()
 				-- draw ready button and text
 				local x,y = Spring.GetMouseState()
 				local colorString
-				x,y = correctMouseForScaling(x,y)
 				if x > readyX-bgMargin and x < readyX+readyW+bgMargin and y > readyY-bgMargin and y < readyY+readyH+bgMargin then
 					gl.CallList(readyButtonHover)
 					colorString = "\255\255\222\0"
@@ -737,9 +732,9 @@ function gadget:DrawScreen()
 					gl.CallList(readyButton)
 			  		timer2 = timer2 + Spring.GetLastUpdateSeconds()
 					if timer2 % 0.75 <= 0.375 then
-						colorString = "\255\233\215\20"
+						colorString = "\255\233\215\40"
 					else
-						colorString = "\255\255\255\255"
+						colorString = "\255\255\240\180"
 					end
 				end
 				font:Begin()
@@ -752,9 +747,9 @@ function gadget:DrawScreen()
 				timer = timer + Spring.GetLastUpdateSeconds()
 				local colorString
 				if timer % 0.75 <= 0.375 then
-					colorString = "\255\233\233\20"
+					colorString = "\255\233\215\40"
 				else
-					colorString = "\255\255\255\255"
+					colorString = "\255\255\240\180"
 				end
 				local text = colorString .. texts.gamestartingin.." " .. math.max(1,3-math.floor(timer)) .. " "..texts.seconds
 				font:Begin()
