@@ -518,7 +518,7 @@ local fontfileOutlineSize = 10
 local fontfileOutlineStrength = 1.4
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
-local uiScale = (0.85 + (vsx*vsy / 4500000))
+local uiScale = (0.8 + (vsx*vsy / 4500000))
 local myPlayerID = Spring.GetMyPlayerID()
 local _,_,spec,myTeamID = Spring.GetPlayerInfo(myPlayerID,false)
 local amNewbie
@@ -534,15 +534,15 @@ local gameStarting
 local timer = 0
 local timer2 = 0
 
-local readyX = vsx * 0.8
-local readyY = vsy * 0.8
+local readyX = vsx * 0.77
+local readyY = vsy * 0.77
 
 local orgReadyH = 35
 local orgReadyW = 100
 
 local readyH = orgReadyH * uiScale
 local readyW = orgReadyW * uiScale
-local bgMargin = math.floor(math.max(1, readyH*0.02))
+local bgMargin = math.floor(math.max(1, readyH*0.035))
 
 local readyButton, readyButtonHover
 
@@ -553,13 +553,13 @@ local UiButton = Spring.FlowUI.Draw.Button
 function gadget:ViewResize(viewSizeX, viewSizeY)
 	vsx,vsy = Spring.GetViewGeometry()
 
-	uiScale = (0.85 + (vsx*vsy / 4500000))
+	uiScale = (0.8 + (vsx*vsy / 4500000))
 
 	readyX = math.floor(vsx * 0.8)
 	readyY = math.floor(vsy * 0.8)
 	readyW = math.floor(orgReadyW * uiScale / 2) * 2
 	readyH =  math.floor(orgReadyH * uiScale / 2) * 2
-	bgMargin = math.floor(math.max(1, readyH*0.03))
+	bgMargin = math.floor(math.max(1, readyH*0.035))
 
 	local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
 	if fontfileScale ~= newFontfileScale then
@@ -654,6 +654,8 @@ function gadget:Initialize()
 	if GG.lang then
 		texts = GG.lang.getText('initialspawn')
 	end
+
+	gadget:ViewResize(vsx, vsy)
 
 	-- add function to receive when startpoints were chosen
 	gadgetHandler:AddSyncAction("StartPointChosen", StartPointChosen)
