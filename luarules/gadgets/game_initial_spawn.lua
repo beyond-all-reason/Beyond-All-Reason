@@ -518,8 +518,7 @@ local fontfileOutlineSize = 10
 local fontfileOutlineStrength = 1.4
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
-local customScale = 1.23
-local uiScale = customScale
+local uiScale = 1
 local myPlayerID = Spring.GetMyPlayerID()
 local _,_,spec,myTeamID = Spring.GetPlayerInfo(myPlayerID,false)
 local amNewbie
@@ -554,7 +553,7 @@ local UiButton = Spring.FlowUI.Draw.Button
 function gadget:ViewResize(viewSizeX, viewSizeY)
 	vsx,vsy = Spring.GetViewGeometry()
 
-	uiScale = (0.75 + (vsx*vsy / 7500000)) * customScale
+	uiScale = (0.85 + (vsx*vsy / 4500000))
 
 	readyX = math.floor(vsx * 0.8)
 	readyY = math.floor(vsy * 0.8)
@@ -661,11 +660,11 @@ function gadget:Initialize()
 
 	-- create ready button
 	readyButton = gl.CreateList(function()
-		RectRound((-readyW/2)-bgMargin, (-readyH/2)-bgMargin, (readyW/2)+bgMargin, (readyH/2)+bgMargin, bgMargin*2, 1,1,1,1, {1, 0.96, 0.8, 0.85})
+		RectRound((-readyW/2)-bgMargin, (-readyH/2)-bgMargin, (readyW/2)+bgMargin, (readyH/2)+bgMargin, bgMargin*2, 1,1,1,1, {1, 0.97, 0.85, 0.85})
 		UiButton((-readyW/2), (-readyH/2), (readyW/2), (readyH/2), 1,1,1,1, 1,1,1,1, nil, {0.15, 0.12, 0, 1}, {0.28, 0.23, 0, 1})
 	end)
 	readyButtonHover = gl.CreateList(function()
-		RectRound((-readyW/2)-bgMargin, (-readyH/2)-bgMargin, (readyW/2)+bgMargin, (readyH/2)+bgMargin, bgMargin*2, 1,1,1,1, {1, 0.96, 0.8, 0.85})
+		RectRound((-readyW/2)-bgMargin, (-readyH/2)-bgMargin, (readyW/2)+bgMargin, (readyH/2)+bgMargin, bgMargin*2, 1,1,1,1, {1, 0.97, 0.85, 0.85})
 		UiButton((-readyW/2), (-readyH/2), (readyW/2), (readyH/2), 1,1,1,1, 1,1,1,1, nil, {0.25, 0.21, 0, 1}, {0.44, 0.37, 0, 1})
 	end)
 end
@@ -733,13 +732,13 @@ function gadget:DrawScreen()
 					gl.CallList(readyButton)
 			  		timer2 = timer2 + Spring.GetLastUpdateSeconds()
 					if timer2 % 0.75 <= 0.375 then
-						colorString = "\255\233\215\40"
+						colorString = "\255\255\235\50"
 					else
 						colorString = "\255\255\240\180"
 					end
 				end
 				font:Begin()
-				font:Print(colorString .. texts.ready, -(readyW/2), -((readyH*0.37)), 25*uiScale, "co")
+				font:Print(colorString .. texts.ready, 0, -((readyH*0.5)), 25*uiScale, "co")
 				font:End()
 				gl.Color(1,1,1,1)
 			end
@@ -748,7 +747,7 @@ function gadget:DrawScreen()
 				timer = timer + Spring.GetLastUpdateSeconds()
 				local colorString
 				if timer % 0.75 <= 0.375 then
-					colorString = "\255\233\215\40"
+					colorString = "\255\255\235\50"
 				else
 					colorString = "\255\255\240\180"
 				end
