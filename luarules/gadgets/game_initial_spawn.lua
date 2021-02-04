@@ -738,7 +738,7 @@ function gadget:DrawScreen()
 					end
 				end
 				font:Begin()
-				font:Print(colorString .. texts.ready, 0, -((readyH*0.5)), 25*uiScale, "co")
+				font:Print(colorString .. texts.ready, 0, -(readyH*0.15), 25*uiScale, "co")
 				font:End()
 				gl.Color(1,1,1,1)
 			end
