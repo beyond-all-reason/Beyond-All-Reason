@@ -173,7 +173,7 @@ function drawTooltip(name, x, y)
 	local paddingH = math_floor(9.5 * widgetScale)
 	local paddingW = math_floor(paddingH * 1.42)
 	local posX = math_floor(x + paddingW)
-	local posY = math_floor(y + paddingH)
+	local posY = math_floor(y - paddingH)
 
 	local fontSize = math_floor(usedFontSize)
 	local maxWidth = 0
