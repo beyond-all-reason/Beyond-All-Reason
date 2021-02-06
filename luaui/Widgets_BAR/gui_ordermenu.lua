@@ -54,7 +54,7 @@ local cmdInfo = {		-- r, g, b, SHORTCUT
 	['Cloak State'] = { nil,nil,nil, 'K'},
 	['Active state'] = { nil,nil,nil, 'X'},
 }
-local isStateCmd = {}
+local isStateCommand = {}
 
 local disabledCmd = {}
 
@@ -174,7 +174,7 @@ local function RefreshCommands()
 	for index, cmd in pairs(spGetActiveCmdDescs()) do
 		if type(cmd) == "table" and not disabledCmd[cmd.name] then
 			if cmd.type == 5 then
-				isStateCmd[cmd.id] = true
+				isStateCommand[cmd.id] = true
 			end
 			if not hiddencmds[cmd.id] and cmd.action ~= nil and cmd.type ~= 21 and cmd.type ~= 18 and cmd.type ~= 17 and not cmd.disabled then
 				if cmd.type == 20 --build building
@@ -568,12 +568,19 @@ function drawCell(cell, zoom)
 
 		-- text
 		if not showIcons or not cursorTextures[cmd.cursor] then
-			local text = string_gsub(cmd.name, "\n", " ")
-			if cmd.params[1] and cmd.params[cmd.params[1] + 2] then
-				text = Spring.I18N('ui.ordermenu.' .. cmd.params[cmd.params[1] + 2]) or Spring.I18N('ui.ordermenu.' .. '['..cmd.params[cmd.params[1] + 2]..']')
+			local text
+			-- First element of params represents selected state index, but Spring engine implementation returns a value 2 less than the actual index
+			local stateOffset = 2
+
+			if isStateCommand[cmd.id] then
+				local currentStateIndex = cmd.params[1]
+				local commandState = cmd.params[currentStateIndex + stateOffset]
+
+				text = Spring.I18N('ui.orderMenu.' .. commandState)
 			else
-				text = Spring.I18N('ui.ordermenu.' .. text)
+				text = Spring.I18N('ui.orderMenu.' .. cmd.action)
 			end
+			
 			local fontSize = cellInnerWidth / font2:GetTextWidth('  ' .. text .. ' ') * math_min(1, (cellInnerHeight / (rows * 6)))
 			if fontSize > cellInnerWidth / 7 then
 				fontSize = cellInnerWidth / 7
@@ -708,20 +715,17 @@ function widget:DrawScreen()
 					if IsOnRect(x, y, cellRects[cell][1], cellRects[cell][2], cellRects[cell][3], cellRects[cell][4]) then
 						local cmd = cmds[cell]
 						if WG['tooltip'] then
+							local tooltipKey = cmd.action .. '_tooltip'
 							local shortcut = ''
 							if cmdInfo[cmd.name] and cmdInfo[cmd.name][4] then
 								shortcut = '\255\255\215\100'..cmdInfo[cmd.name][4]
 							end
-							local tooltip = ((Spring.I18N('ui.ordermenu.' .. cmd.name..'_tooltip') and Spring.I18N('ui.ordermenu.' .. cmd.name..'_tooltip') ~= '') and Spring.I18N('ui.ordermenu.' .. cmd.name..'_tooltip') or '')
-							-- stockpile doesnt have its own cmd.name but it always starts with a number
-							if tooltip == '' and type(tonumber(string.sub(cmd.name, 1, 1))) == 'number' then
-								tooltip = Spring.I18N('ui.ordermenu.stockpile_tooltip')
-							end
+							local tooltip = Spring.I18N('ui.orderMenu.' .. tooltipKey)
 							if tooltip ~= '' then
-								tooltip = '\255\240\240\240 '..(shortcut ~= '' and '- ' or '') .. tooltip
+								tooltip = '\255\240\240\240 ' .. (shortcut ~= '' and '- ' or '') .. tooltip
 							end
-							if shortcut..tooltip ~= '' then
-								WG['tooltip'].ShowTooltip('ordermenu', shortcut..tooltip)
+							if shortcut .. tooltip ~= '' then
+								WG['tooltip'].ShowTooltip('ordermenu', shortcut .. tooltip)
 							end
 						end
 						cellHovered = cell
@@ -910,7 +914,7 @@ function widget:MousePress(x, y, button)
 end
 
 function widget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdOpts, cmdParams, cmdTag)
-	if isStateCmd[cmdID] then
+	if isStateCommand[cmdID] then
 		if not hiddencmds[cmdID] and doUpdateClock == nil then
 			doUpdateClock = os_clock() + 0.01
 		end
