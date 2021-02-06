@@ -135,6 +135,7 @@ return {
 				unloadunits_tooltip = 'Unload unit or multiple units within an area in the transport',
 				landatairbase = 'Land At Airbase',
 				landatairbase_tooltip = 'Land At Airbase',
+				stockpile = 'Stockpile %{stockpileStatus}',
 				stockpile_tooltip = '[ stockpiled number ] / [ target stockpile number ]',
 				-- state buttons
 				['Fire at will'] = 'Fire at will',

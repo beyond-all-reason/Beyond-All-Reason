@@ -578,7 +578,12 @@ function drawCell(cell, zoom)
 
 				text = Spring.I18N('ui.orderMenu.' .. commandState)
 			else
-				text = Spring.I18N('ui.orderMenu.' .. cmd.action)
+				if cmd.action == 'stockpile' then
+					-- Stockpile command name gets mutated to reflect the current status, so can just pass it in
+					text  = Spring.I18N('ui.orderMenu.' .. cmd.action, { stockpileStatus = cmd.name })
+				else
+					text = Spring.I18N('ui.orderMenu.' .. cmd.action)
+				end
 			end
 			
 			local fontSize = cellInnerWidth / font2:GetTextWidth('  ' .. text .. ' ') * math_min(1, (cellInnerHeight / (rows * 6)))
