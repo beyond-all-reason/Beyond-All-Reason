@@ -114,6 +114,7 @@ return {
 				wait = 'Wait',
 				wait_tooltip = 'Prevents unit from processing command queue',
 				repair = 'Repair',
+				repair_tooltip = 'Repair a damaged unit',
 				reclaim = 'Reclaim',
 				reclaim_tooltip = 'Suck metal/energy from wrecks or features (trees/stones)',
 				restore = 'Restore',
@@ -127,6 +128,7 @@ return {
 				areamex = 'Area Mex',
 				areamex_tooltip = 'Click-drag an area to auto queue metal extractors for all available metal spots',
 				upgrademex = 'Upgrade Mex',
+				upgrademex_tooltip = 'Click on a tech 1 metal extractor to auto upgrade it to a tech 2 version',
 				loadunits = 'Load units',
 				loadunits_tooltip = 'Load unit or multiple units within an area in the transport',
 				unloadunits = 'Unload units',
@@ -175,7 +177,6 @@ return {
 				['UpgMex ON'] = 'Upgrade Mex',
 				['UpgMex OFF'] = 'Upgrade Mex',
 				automex_tooltip = 'When toggled: tech 1 metal extractors will automatically be upgraded to tech 2',
-				upgrademex_tooltip = 'Click on a tech 1 metal extractor to auto upgrade it to a tech 2 version',
 			},
 		}
 	}
