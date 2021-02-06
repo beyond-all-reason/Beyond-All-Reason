@@ -116,6 +116,24 @@ function UnitDef_Post(name, uDef)
 		uDef.workertime = uDef.workertime*x
 	end
 
+	-- mass remove push resistance
+	if uDef.pushresistant and uDef.pushresistant == true then
+		uDef.pushresistant = false
+		if not uDef.mass then
+			Spring.Echo("Push Resistant Unit with no mass: "..uDef.name)
+			uDef.mass = 4999
+		end
+	end
+
+
+	--[[
+	if uDef.buildcostmetal and uDef.maxdamage then
+		uDef.mass = uDef.buildcostmetal
+		if uDef.mass and uDef.name then
+			Spring.Echo(uDef.name.."'s mass is:"..uDef.mass)
+		end
+	end
+	]]
 	if string.find(name, "chicken") and uDef.maxdamage then
 		local chickHealth = uDef.maxdamage
 		uDef.buildcostmetal = chickHealth*1

@@ -22,6 +22,7 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		leavetracks = true,
+		mass = 1000000,
 		maxdamage = 120000,
 		maxslope = 10,
 		maxvelocity = 0.8,

@@ -90,7 +90,7 @@ return {
 				footprintz = 2,
 				height = 55,
 				hitdensity = 100,
-				metal = "2500",
+				metal = 2500,
 				object = "Units/scavboss/corcomboss_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",

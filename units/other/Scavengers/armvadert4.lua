@@ -13,8 +13,6 @@ return {
 		collisionvolumescales = "91 91 91",
 		collisionvolumetype = "sphere",
 		description = "So it's a ball with nuke warhead inside",
-		energymake = 0.1,
-		energyuse = 0.1,
 		explodeas = "crawl_blastsmlscavboss",
 		firestate = 2,
 		footprintx = 4,
