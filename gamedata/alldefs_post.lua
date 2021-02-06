@@ -106,12 +106,12 @@ local function processWeapons(unitDefName, unitDef)
 end
 
 function UnitDef_Post(name, uDef)
-	if uDef.builddistance then
+	if Spring.GetModOptions and uDef.builddistance then
 		local x = tonumber(Spring.GetModOptions().experimentalbuildrange) or 1
 		uDef.builddistance = uDef.builddistance*x
 	end
 
-	if uDef.workertime then
+	if Spring.GetModOptions and uDef.workertime then
 		local x = tonumber(Spring.GetModOptions().experimentalbuildpower) or 1
 		uDef.workertime = uDef.workertime*x
 	end
@@ -183,9 +183,9 @@ function UnitDef_Post(name, uDef)
 			uDef.crashdrag = 0.01	-- default 0.005
 
 			if not (string.find(name, "fepoch") or string.find(name, "fblackhy")) then--(string.find(name, "liche") or string.find(name, "crw") or string.find(name, "fepoch") or string.find(name, "fblackhy")) then
-				if Spring.GetModOptions() and Spring.GetModOptions().experimentalnoaircollisions == "disabled" then
+				if Spring.GetModOptions and Spring.GetModOptions().experimentalnoaircollisions == "disabled" then
 					uDef.collide = false
-				elseif Spring.GetModOptions() and Spring.GetModOptions().experimentalnoaircollisions == "enabled" then
+				elseif Spring.GetModOptions and Spring.GetModOptions().experimentalnoaircollisions == "enabled" then
 					uDef.collide = true
 				end
 
@@ -409,18 +409,18 @@ function WeaponDef_Post(name, wDef)
 
 		-------------- EXPERIMENTAL MODOPTIONS 
 		---- SHIELD CHANGES
-		if Spring.GetModOptions() and Spring.GetModOptions().experimentalshields == "absorbplasma" then
+		if Spring.GetModOptions and Spring.GetModOptions() and Spring.GetModOptions().experimentalshields == "absorbplasma" then
 			if wDef.shield and wDef.shield.repulser and wDef.shield.repulser ~= false then
 				wDef.shield.repulser = false
 			end
-		elseif Spring.GetModOptions() and Spring.GetModOptions().experimentalshields == "absorbeverything" then
+		elseif Spring.GetModOptions and Spring.GetModOptions() and Spring.GetModOptions().experimentalshields == "absorbeverything" then
 			if wDef.shield and wDef.shield.repulser and wDef.shield.repulser ~= false then
 				wDef.shield.repulser = false
 			end
 			if (not wDef.interceptedbyshieldtype) or wDef.interceptedbyshieldtype ~= 1 then
 				wDef.interceptedbyshieldtype = 1
 			end
-		elseif Spring.GetModOptions() and Spring.GetModOptions().experimentalshields == "bounceeverything" then
+		elseif Spring.GetModOptions and Spring.GetModOptions() and Spring.GetModOptions().experimentalshields == "bounceeverything" then
 			if wDef.shield then
 				wDef.shield.repulser = true
 			end
@@ -429,7 +429,7 @@ function WeaponDef_Post(name, wDef)
 			end
 		end
 
-		if Spring.GetModOptions() and Spring.GetModOptions().experimentalshieldpower then
+		if Spring.GetModOptions and Spring.GetModOptions() and Spring.GetModOptions().experimentalshieldpower then
 			if wDef.shield then
 				local multiplier = tonumber(Spring.GetModOptions().experimentalshieldpower)
 				if wDef.shield.power then
