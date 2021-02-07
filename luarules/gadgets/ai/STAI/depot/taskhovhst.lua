@@ -11,63 +11,62 @@ function TaskHovHST:Init()
 	self.DebugEnabled = false
 end
 
-function TaskHovHST:ConHover( taskQueueBehaviour, ai, builder )
-	if builder:CanBuild( "corch" ) then
+function TaskHovHST:ConHover()
+	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "corch"
-	elseif builder:CanBuild( "armch" ) then
+	else
 		unitName = "armch"
 	end
 	local mtypedLv = self.ai.taskshst:GetMtypedLv(unitName)
 	return self.ai.taskshst:BuildWithLimitedNumber(unitName, math.min((mtypedLv / 6) + 1, self.ai.conUnitPerTypeLimit))
 end
 
-function TaskHovHST:HoverMerl( taskQueueBehaviour, ai, builder )
+function TaskHovHST:HoverMerl()
 	local unitName = ""
-	if builder:CanBuild( "cormh" ) then
+	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "cormh"
-	elseif builder:CanBuild( "armmh" ) then
+	else
 		unitName = "armmh"
 	end
 	return self.ai.taskshst:BuildSiegeIfNeeded(unitName)
 end
 
-function TaskHovHST:HoverRaider( taskQueueBehaviour, ai, builder )
+function TaskHovHST:HoverRaider()
 	local unitName = ""
-	if builder:CanBuild( "corsh" ) then
+	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "corsh"
-	elseif builder:CanBuild( "armsh" ) then
+	else
 		unitName = "armsh"
 	end
 	return self.ai.taskshst:BuildRaiderIfNeeded(unitName)
 end
 
-function TaskHovHST:HoverBattle( taskQueueBehaviour, ai, builder )
+function TaskHovHST:HoverBattle()
 	local unitName = ""
-	if builder:CanBuild( "corsnap" ) then
+	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "corsnap"
-	elseif builder:CanBuild( "armanac" ) then
+	else
 		unitName = "armanac"
 	end
 	return self.ai.taskshst:BuildBattleIfNeeded(unitName)
 end
 
-function TaskHovHST:HoverBreakthrough( taskQueueBehaviour, ai, builder )
+function TaskHovHST:HoverBreakthrough()
 	local unitName = ""
-	if builder:CanBuild( "corhal" ) then
+	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "corhal"
-	elseif builder:CanBuild( "armanac" ) then
+	else
 		unitName = "armanac"
 	end
 	self.ai.taskshst:BuildBreakthroughIfNeeded(unitName)
 end
 
-function TaskHovHST:AAHover( taskQueueBehaviour, ai, builder )
-	if builder:CanBuild( "corah" ) then
+function TaskHovHST:AAHover()
+	if  self.ai.side == self.ai.armyhst.CORESideName then
 		return self.ai.taskshst:BuildAAIfNeeded("corah")
-	elseif builder:CanBuild( "armah" ) then
+	else
 		return self.ai.taskshst:BuildAAIfNeeded("armah")
 	end
-	return ""
 end
 
 

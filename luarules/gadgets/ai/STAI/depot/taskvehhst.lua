@@ -15,15 +15,12 @@ end
 
 --LEVEL 1
 
-function TaskVehHST:ConVehicleAmphibious( taskQueueBehaviour, ai, builder )
+function TaskVehHST:ConVehicleAmphibious()
 	local unitName = self.ai.armyhst.DummyUnitName
-	if builder:CanBuild( "cormuskrat" ) then
+	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "cormuskrat"
-	elseif builder:CanBuild( "armbeaver" ) then
+	else
 		unitName = "armbeaver"
-	end
-	if unitName ~= self.ai.armyhst.DummyUnitName then
-		return unitName
 	end
 	local mtypedLvAmph = self.ai.taskshst:GetMtypedLv(unitName)
 	local mtypedLvGround = self.ai.taskshst:GetMtypedLv('armcv')
@@ -31,114 +28,113 @@ function TaskVehHST:ConVehicleAmphibious( taskQueueBehaviour, ai, builder )
 	return self.ai.taskshst:BuildWithLimitedNumber(unitName, math.min((mtypedLv / 6) + 1, self.ai.conUnitPerTypeLimit))
 end
 
-function TaskVehHST:ConGroundVehicle( taskQueueBehaviour, ai, builder )
+function TaskVehHST:ConGroundVehicle()
 	local unitName = self.ai.armyhst.DummyUnitName
-	if builder:CanBuild( "corcv" ) then
+	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "corcv"
-	elseif builder:CanBuild( "armcv" ) then
+	else
 		unitName = "armcv"
 	end
 	local mtypedLv = self.ai.taskshst:GetMtypedLv(unitName)
 	return self.ai.taskshst:BuildWithLimitedNumber(unitName, math.min((mtypedLv / 6) + 1, self.ai.conUnitPerTypeLimit))
 end
 
-function TaskVehHST:ConVehicle( taskQueueBehaviour, ai, builder )
+function TaskVehHST:ConVehicle()
 	local unitName = self.ai.armyhst.DummyUnitName
 	-- local amphRank = (((ai.mobCount['shp']) / self.ai.mobilityGridArea ) +  ((#ai.UWMetalSpots) /(#ai.landMetalSpots + #ai.UWMetalSpots)))/ 2
 	local amphRank = self.amphRank or 0.5
 	if math.random() < amphRank then
-		unitName = self:ConVehicleAmphibious( taskQueueBehaviour, ai, builder )
+		unitName = self:ConVehicleAmphibious()
 	else
-		unitName = self:ConGroundVehicle( taskQueueBehaviour, ai, builder )
+		unitName = self:ConGroundVehicle()
 	end
 	return unitName
 end
 
-function TaskVehHST:Lvl1VehBreakthrough( taskQueueBehaviour, ai, builder )
+function TaskVehHST:Lvl1VehBreakthrough(tqb)
 	if self.AmpOrGroundWeapon then
-		return self:Lvl1Amphibious( taskQueueBehaviour, ai, builder )
+		return self:Lvl1Amphibious(tqb)
 	else
-		if builder:CanBuild( "corlevlr" ) then
+		if  self.ai.side == self.ai.armyhst.CORESideName then
 			return self.ai.taskshst:BuildBreakthroughIfNeeded("corlevlr")
-		elseif builder:CanBuild( "armjanus" ) then
+		else
 			-- armjanus isn't very a very good defense unit by itself
 			local output = self.ai.taskshst:BuildSiegeIfNeeded("armjanus")
-			if output == self.ai.armyhst.DummyUnitName and builder:CanBuild( "armstump" ) then
+			if output == self.ai.armyhst.DummyUnitName then
 				output = self.ai.taskshst:BuildBreakthroughIfNeeded("armstump")
 			end
 			return output
 		end
 	end
-	return ""
 end
 
-function TaskVehHST:Lvl1VehArty( taskQueueBehaviour, ai, builder )
+function TaskVehHST:Lvl1VehArty(tqb)
 	local unitName = self.ai.armyhst.DummyUnitName
 	if self.AmpOrGroundWeapon then
-		return self:Lvl1Amphibious( taskQueueBehaviour, ai, builder )
+		return self:Lvl1Amphibious(tqb)
 	else
-		if builder:CanBuild( "corwolv" ) then
+		if  self.ai.side == self.ai.armyhst.CORESideName then
 			unitName = "corwolv"
-		elseif builder:CanBuild( "armart" ) then
+		else
 			unitName = "armart"
 		end
 	end
 	return self.ai.taskshst:BuildSiegeIfNeeded(unitName)
 end
 
-function TaskVehHST:AmphibiousRaider( taskQueueBehaviour, ai, builder )
+function TaskVehHST:AmphibiousRaider()
 	local unitName = ""
-	if builder:CanBuild( "corgarp" ) then
+	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "corgarp"
-	elseif builder:CanBuild( "armpincer" ) then
+	else
 		unitName = "armpincer"
 	end
 	return self.ai.taskshst:BuildRaiderIfNeeded(unitName)
 end
 
-function TaskVehHST:Lvl1Amphibious( taskQueueBehaviour, ai, builder )
+function TaskVehHST:Lvl1Amphibious()
 	local unitName = ""
-	if builder:CanBuild( "corgarp" ) then
+	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "corgarp"
-	elseif builder:CanBuild( "armpincer" ) then
+	else
 		unitName = "armpincer"
 	end
 	return unitName
 end
 
-function TaskVehHST:Lvl1VehRaider( taskQueueBehaviour, ai, builder )
+function TaskVehHST:Lvl1VehRaider(tqb)
 	local unitName = self.ai.armyhst.DummyUnitName
 	if self.AmpOrGroundWeapon then
-		return self:Lvl1Amphibious( taskQueueBehaviour, ai, builder )
+		return self:Lvl1Amphibious(tqb)
 	else
-		if builder:CanBuild( "corgator" ) then
+		if  self.ai.side == self.ai.armyhst.CORESideName then
 			unitName = "corgator"
-		elseif builder:CanBuild( "armflash" ) then
+		else
 			unitName = "armflash"
 		end
 	end
 	return self.ai.taskshst:BuildRaiderIfNeeded(unitName)
 end
 
-function TaskVehHST:Lvl1VehBattle( taskQueueBehaviour, ai, builder )
+function TaskVehHST:Lvl1VehBattle(tqb)
 	local unitName = self.ai.armyhst.DummyUnitName
 	if self.AmpOrGroundWeapon then
-		return self:Lvl1Amphibious( taskQueueBehaviour, ai, builder )
+		return self:Lvl1Amphibious(tqb)
 	else
-		if builder:CanBuild( "corraid" ) then
+		if  self.ai.side == self.ai.armyhst.CORESideName then
 			unitName = "corraid"
-		elseif builder:CanBuild( "armstump" ) then
+		else
 			unitName = "armstump"
 		end
 	end
 	return self.ai.taskshst:BuildBattleIfNeeded(unitName)
 end
 
-function TaskVehHST:Lvl1VehRaiderOutmoded( taskQueueBehaviour, ai, builder )
+function TaskVehHST:Lvl1VehRaiderOutmoded()
 	if self.AmpOrGroundWeapon then
-		return self:Lvl1Amphibious( taskQueueBehaviour, ai, builder )
+		return self:Lvl1Amphibious(self)
 	else
-		if builder:CanBuild( "corgator" ) then
+		if  self.ai.side == self.ai.armyhst.CORESideName then
 			return self.ai.taskshst:BuildRaiderIfNeeded("corgator")
 		else
 			return self.ai.armyhst.DummyUnitName
@@ -146,19 +142,19 @@ function TaskVehHST:Lvl1VehRaiderOutmoded( taskQueueBehaviour, ai, builder )
 	end
 end
 
-function TaskVehHST:Lvl1AAVeh( taskQueueBehaviour, ai, builder )
-	if builder:CanBuild( "cormist" ) then
+function TaskVehHST:Lvl1AAVeh()
+	if  self.ai.side == self.ai.armyhst.CORESideName then
 		return self.ai.taskshst:BuildAAIfNeeded("cormist")
-	elseif builder:CanBuild( "armsam" ) then
+	else
 		return self.ai.taskshst:BuildAAIfNeeded("armsam")
 	end
 end
 
-function TaskVehHST:ScoutVeh( taskQueueBehaviour, ai, builder )
+function TaskVehHST:ScoutVeh()
 	local unitName
-	if builder:CanBuild( "corfav" ) then
+	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "corfav"
-	elseif builder:CanBuild( "armfav" ) then
+	else
 		unitName = "armfav"
 	end
 	return self.ai.taskshst:BuildWithLimitedNumber(unitName, 1)
@@ -166,37 +162,38 @@ end
 
 --LEVEL 2
 
-function TaskVehHST:ConAdvVehicle( taskQueueBehaviour, ai, builder )
+function TaskVehHST:ConAdvVehicle()
 	local unitName = self.ai.armyhst.DummyUnitName
-	if builder:CanBuild( "coracv" ) then
+	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "coracv"
-	elseif builder:CanBuild( "armacv" ) then
+	else
 		unitName = "armacv"
 	end
 	local mtypedLv = self.ai.taskshst:GetMtypedLv(unitName)
 	return self.ai.taskshst:BuildWithLimitedNumber(unitName, math.min((mtypedLv / 10) + 1, self.ai.conUnitAdvPerTypeLimit))
 end
 
-function TaskVehHST:Lvl2VehAssist( taskQueueBehaviour, ai, builder )
-	if builder:CanBuild( "armconsul" ) then
+function TaskVehHST:Lvl2VehAssist()
+	if  self.ai.side == self.ai.armyhst.CORESideName then
+		return self.ai.armyhst.DummyUnitName
+	else
 		unitName = 'armconsul'
 		local mtypedLv = self.ai.taskshst:GetMtypedLv(unitName)
 		return self.ai.taskshst:BuildWithLimitedNumber(unitName, math.min((mtypedLv / 8) + 1, self.ai.conUnitPerTypeLimit))
 	end
-	return self.ai.armyhst.DummyUnitName
 end
 
-function TaskVehHST:Lvl2VehBreakthrough( taskQueueBehaviour, ai, builder )
+function TaskVehHST:Lvl2VehBreakthrough()
 	local unitName = self.ai.armyhst.DummyUnitName
 	if self.AmpOrGroundWeapon then
-		return self:Lvl2Amphibious( taskQueueBehaviour, ai, builder )
+		return self:Lvl2Amphibious(self)
 	else
-		if builder:CanBuild( "corgol" ) then
+		if  self.ai.side == self.ai.armyhst.CORESideName then
 			return self.ai.taskshst:BuildBreakthroughIfNeeded("corgol")
-		elseif builder:CanBuild( "armmanni" ) then
+		else
 			-- armmanni isn't very a very good defense unit by itself
 			local output = self.ai.taskshst:BuildSiegeIfNeeded("armmanni")
-			if output == self.ai.armyhst.DummyUnitName and builder:CanBuild( "armbull" ) then
+			if output == self.ai.armyhst.DummyUnitName then
 				output = self.ai.taskshst:BuildBreakthroughIfNeeded("armbull")
 			end
 			return output
@@ -204,14 +201,14 @@ function TaskVehHST:Lvl2VehBreakthrough( taskQueueBehaviour, ai, builder )
 	end
 end
 
-function TaskVehHST:Lvl2VehArty( taskQueueBehaviour, ai, builder )
+function TaskVehHST:Lvl2VehArty()
 	local unitName = self.ai.armyhst.DummyUnitName
 	if self.AmpOrGroundWeapon then
-		return self:Lvl2Amphibious( taskQueueBehaviour, ai, builder )
+		return self:Lvl2Amphibious(self)
 	else
-		if builder:CanBuild( "cormart" ) then
+		if  self.ai.side == self.ai.armyhst.CORESideName then
 			unitName = "cormart"
-		elseif builder:CanBuild( "armmart" ) then
+		else
 			unitName = "armmart"
 		end
 	end
@@ -221,14 +218,14 @@ end
 -- because core doesn't have a lvl2 vehicle raider or a lvl3 raider
 
 
-function TaskVehHST:Lvl2VehRaider( taskQueueBehaviour, ai, builder )
+function TaskVehHST:Lvl2VehRaider()
 	local unitName = self.ai.armyhst.DummyUnitName
 	if self.AmpOrGroundWeapon then
-		return self:Lvl2Amphibious( taskQueueBehaviour, ai, builder )
+		return self:Lvl2Amphibious(self)
 	else
-		if builder:CanBuild( "corseal" ) then
+		if  self.ai.side == self.ai.armyhst.CORESideName then
 			unitName = ("corseal")
-		elseif builder:CanBuild( "armlatnk" ) then
+		else
 			unitName = ("armlatnk")
 		end
 	end
@@ -237,74 +234,76 @@ end
 
 
 
-function TaskVehHST:AmphibiousBattle( taskQueueBehaviour, ai, builder )
+function TaskVehHST:AmphibiousBattle()
 	local unitName = self.ai.armyhst.DummyUnitName
-	if builder:CanBuild( "corseal" ) then
+	if  self.ai.side == self.ai.armyhst.CORESideName then
 		if self.ai.Metal.full < 0.5 then
 			unitName = "corseal"
-		elseif builder:CanBuild( "corparrow" ) then
+		else
 			unitName = "corparrow"
 		end
-	elseif builder:CanBuild( "armcroc" ) then
+
+	else
 		unitName = "armcroc"
 	end
 	return self.ai.taskshst:BuildBattleIfNeeded(unitName)
 end
 
-function TaskVehHST:Lvl2Amphibious( taskQueueBehaviour, ai, builder )
+function TaskVehHST:Lvl2Amphibious()
 	local unitName = self.ai.armyhst.DummyUnitName
-	if builder:CanBuild( "corseal" ) then
+	if  self.ai.side == self.ai.armyhst.CORESideName then
 		if self.ai.Metal.full < 0.5 then
 			unitName = "corseal"
-		elseif builder:CanBuild( "corparrow" ) then
+		else
 			unitName = "corparrow"
 		end
-	elseif builder:CanBuild( "armcroc" ) then
+
+	else
 		unitName = "armcroc"
 	end
 	return unitName
 end
 
-function TaskVehHST:AmphibiousBreakthrough( taskQueueBehaviour, ai, builder )
+function TaskVehHST:AmphibiousBreakthrough()
 	local unitName = self.ai.armyhst.DummyUnitName
-	if builder:CanBuild( "corparrow" ) then
+	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "corparrow"
-	elseif builder:CanBuild( "armcroc" ) then
+	else
 		unitName = "armcroc"
 	end
 	return self.ai.taskshst:BuildBreakthroughIfNeeded(unitName)
 end
 
-function TaskVehHST:Lvl2VehBattle( taskQueueBehaviour, ai, builder )
+function TaskVehHST:Lvl2VehBattle()
 	local unitName = self.ai.armyhst.DummyUnitName
 	if self.AmpOrGroundWeapon then
-		return self:Lvl2Amphibious( taskQueueBehaviour, ai, builder )
+		return self:Lvl2Amphibious(self)
 	else
-		if builder:CanBuild( "correap" ) then
+		if  self.ai.side == self.ai.armyhst.CORESideName then
 			unitName = "correap"
-		elseif builder:CanBuild( "armbull" ) then
+		else
 			unitName = "armbull"
 		end
 	end
 	return self.ai.taskshst:BuildBattleIfNeeded(unitName)
 end
 
-function TaskVehHST:Lvl2AAVeh( taskQueueBehaviour, ai, builder )
-	if builder:CanBuild( "corsent" ) then
+function TaskVehHST:Lvl2AAVeh()
+	if  self.ai.side == self.ai.armyhst.CORESideName then
 		return self.ai.taskshst:BuildAAIfNeeded("corsent")
-	elseif builder:CanBuild( "armyork" ) then
+	else
 		return self.ai.taskshst:BuildAAIfNeeded("armyork")
 	end
 end
 
-function TaskVehHST:Lvl2VehMerl( taskQueueBehaviour, ai, builder )
+function TaskVehHST:Lvl2VehMerl()
 	local unitName = self.ai.armyhst.DummyUnitName
 	if self.AmpOrGroundWeapon then
-		return self:Lvl2Amphibious( taskQueueBehaviour, ai, builder )
+		return self:Lvl2Amphibious(self)
 	else
-		if builder:CanBuild( "corvroc" ) then
+		if  self.ai.side == self.ai.armyhst.CORESideName then
 			unitName = "corvroc"
-		elseif builder:CanBuild( "armmerl" ) then
+		else
 			unitName = "armmerl"
 		end
 	end

@@ -6,7 +6,7 @@
 
 piece  base,flare,turret,door1,door2,barrel,bore,aimpoint;
 
-static-var  Static_Var_1, Static_Var_2, gun_2, wpn1_lasthead, wpn2_lasthead, statechg_DesiredState, statechg_StateChanging,restore_delay,oldTurretOpen, oldrestore_delay, oldstatechg_DesiredState, oldstatechg_StateChanging, oldReloading;
+static-var  AIMING, Static_Var_1, Static_Var_2, gun_2, wpn1_lasthead, wpn2_lasthead, statechg_DesiredState, statechg_StateChanging,restore_delay,oldTurretOpen, oldrestore_delay, oldstatechg_DesiredState, oldstatechg_StateChanging, oldReloading;
 #define SIG_AIM				2
 #define SIG_AIM_2			8
 
@@ -218,6 +218,7 @@ Create()
 	oldTurretOpen = 0;
 	oldReloading = 0;
 	oldrestore_delay = 10000;
+	AIMING = 0;
 	call-script InitState();
 	start-script SmokeUnit();
 	start-script oldRequestState(1);
@@ -279,10 +280,11 @@ AimPrimary(heading, pitch)
 {
 	start-script oldRequestState(0);
 	signal SIG_AIM;
-	if( Static_Var_2 == 1 OR gun_2 == 1 )
+	if(AIMING == 1 OR Static_Var_2 == 1 OR gun_2 == 1 )
 	 {
 	 	return(0);
 	 }
+	AIMING = 1;
 	while( oldTurretOpen == 0 )
 	{
 		sleep 250;
@@ -293,6 +295,7 @@ AimPrimary(heading, pitch)
 	wait-for-turn turret around x-axis;
 	start-script RestoreAfterDelay();
 	wpn1_lasthead = heading;
+	AIMING = 0;
 	return (1);
 }
 
@@ -300,10 +303,11 @@ AimSecondary(heading, pitch)
 {
 	start-script oldRequestState(0);
 	signal SIG_AIM;
-	if( Static_Var_2 == 0 OR gun_2 == 1 )
+	if(AIMING == 1 OR Static_Var_2 == 0 OR gun_2 == 1 )
 	{
 		return(0);
 	}
+	AIMING = 1;
 	while( oldTurretOpen == 0 )
 	{
 		sleep 250;
@@ -314,6 +318,7 @@ AimSecondary(heading, pitch)
 	wait-for-turn turret around x-axis;
 	start-script RestoreAfterDelay();
 	wpn2_lasthead = heading;
+	AIMING = 0;
 	return (1);
 }
 

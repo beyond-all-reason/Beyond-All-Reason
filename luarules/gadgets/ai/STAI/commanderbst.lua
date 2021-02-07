@@ -6,6 +6,8 @@ end
 
 function CommanderBST:Init()
 	self.DebugEnabled = false
+	local u = self.unit:Internal()
+	self.id = u:ID()
 
 	self:EchoDebug("init")
 end
@@ -15,13 +17,16 @@ local CMD_PATROL = 15
 
 function CommanderBST:Update()
 	local f = self.game:Frame()
+
 	if self.lowHealth and f >= self.nextHealthCheck then
 		if self.unit:Internal():GetHealth() >= self.unit:Internal():GetMaxHealth() * 0.75 then
 			self.lowHealth = false
 			self.unit:ElectBehaviour()
 		end
 	end
-	if self.active and f >= self.nextFactoryCheck then
+	if self.active and self.nextFactoryCheck 	 and f >= self.nextFactoryCheck  then
+		self:EchoDebug('f',f,'self.nextFactoryCheck',self.nextFactoryCheck)
+
 		self:FindSafeHouse()
 	end
 	if f % 30 == 0 and not self.active and self.ai.overviewhst.paranoidCommander then
@@ -46,6 +51,10 @@ end
 
 function CommanderBST:Activate()
 	self.active = true
+	if not self.factoryToHelp then
+		self:FindSafeHouse()
+	end
+
 	if self.factoryToHelp then
 		self:HelpFactory()
 	elseif self.safeHouse then
@@ -60,7 +69,12 @@ function CommanderBST:Deactivate()
 end
 
 function CommanderBST:Priority()
-	if (self.lowHealth or self.ai.overviewhst.paranoidCommander) and self.safeHouse then
+
+	local _, queueL = Spring.GetRealBuildQueue(self.id)
+	self:EchoDebug('Spring.GetRealBuildQueue(self.id)',Spring.GetRealBuildQueue(self.id),'queueL',queueL)
+	if (self.ai.Metal.income > 15 and self.ai.Energy.full > 0.5 and queueL == 0) or
+			self.ai.haveAdvFactory or
+			((self.lowHealth or self.ai.overviewhst.paranoidCommander) and self.safeHouse) then
 		return 200
 	else
 		return 0
@@ -82,7 +96,13 @@ function CommanderBST:HelpFactory()
 		floats:push_back(pos.x)
 		floats:push_back(pos.y)
 		floats:push_back(pos.z)
-		self.unit:Internal():ExecuteCustomCommand(CMD_PATROL, floats, {"shift"})
+		if math.random() > 0.5 then --TODO workaround, wait to rework it better
+
+			self.unit:Internal():ExecuteCustomCommand(CMD_PATROL, floats, {"shift"})
+		else
+
+			self.unit:Internal():Guard(self.factoryToHelp)
+		end
 	end
 end
 

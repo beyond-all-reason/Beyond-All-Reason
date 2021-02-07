@@ -10,9 +10,9 @@ Spring.Echo("[Scavengers] Config initialized")
 	local ScavUnitSpawnFrequencyModoption = tonumber(Spring.GetModOptions().scavunitspawnmultiplier) or 1
 	local ScavUnitVeterancyModoption = tonumber(Spring.GetModOptions().scavunitspawnmultiplier) or 1
 	local ScavGracePeriodModoption = tonumber(Spring.GetModOptions().scavgraceperiod) or 1
-	
-	
-	
+
+
+
 	-- Strings
 
 	-- Endless Mode
@@ -30,7 +30,7 @@ Spring.Echo("[Scavengers] Config initialized")
 	elseif Modoption == "disabled" then
 		ScavRandomEventsEnabledModoption = false
 	end
-	
+
 	-- Random Events Amount
 	local Modoption = Spring.GetModOptions().scaveventsamount or "normal"
 	if Modoption == "normal" then
@@ -48,9 +48,9 @@ Spring.Echo("[Scavengers] Config initialized")
 	elseif Modoption == "disabled" then
 		InitialBonusCommanderEnabled = false
 	end
-	
-	
-	
+
+
+
 	Modoption = nil
 -- End of Modoptions
 
@@ -75,7 +75,7 @@ scavconfig = {
 		stockpilers						= true,
 		nukes							= true,
 	},
-	
+
 	scoreConfig = {
 		-- set to 0 to disable
 		scorePerMetal 					= 5, 	-- thisvalue*metalproduction
@@ -88,7 +88,7 @@ scavconfig = {
 			scorePerKilledBuilding 			= 9,
 			scorePerKilledConstructor 		= 49,
 			scorePerKilledSpawner 			= 99,
-			scorePerCapturedSpawner 		= 50, -- this doesn't care about baseScorePerKill 
+			scorePerCapturedSpawner 		= 50, -- this doesn't care about baseScorePerKill
 	},
 	gracePeriod = ScavGracePeriodModoption*30*60,
 	timers = {
@@ -122,7 +122,7 @@ scavconfig = {
 	other = {
 		heighttolerance						= 40, -- higher = allow higher height diffrences
 		noheightchecksforwater				= true,
-		
+
 	}
 }
 
@@ -183,7 +183,7 @@ spawnProtectionConfig = {
 randomEventsConfig = {
 	randomEventMinimumDelay = 9000*ScavRandomEventsAmountModoption, -- frames
 	randomEventChance = 200*ScavRandomEventsAmountModoption, -- higher = lower chance
-	
+
 }
 
 
@@ -209,7 +209,7 @@ function SpawnBonusCommander(unitID, unitName, unitTeam)
 			elseif unitName == "corcom" then
 				Spring.CreateUnit("corcv", posx+32, posy+48, posz-48, 1, unitTeam)
 				Spring.CreateUnit("corck", posx+32, posy+48, posz+48, 1, unitTeam)
-				Spring.CreateUnit("codecom", posx+32, posy+48, posz, 0, unitTeam)
+				Spring.CreateUnit("cordecom", posx+32, posy+48, posz, 0, unitTeam)
 				Spring.CreateUnit("corcv", posx-32, posy+48, posz-48, 3, unitTeam)
 				Spring.CreateUnit("corck", posx-32, posy+48, posz+48, 3, unitTeam)
 			end
@@ -233,14 +233,14 @@ function SpawnBonusCommander(unitID, unitName, unitTeam)
 end
 
 function UpdateTierChances(n)
-	-- Must be 100 in total 
+	-- Must be 100 in total
 	if globalScore > scavconfig.timers.Endless then
 		TierSpawnChances.T0 = 1
 		TierSpawnChances.T1 = 1
 		TierSpawnChances.T2 = 1
 		TierSpawnChances.T3 = 1
 		TierSpawnChances.T4 = 96
-		TierSpawnChances.Message = "Current tier: Endless" 
+		TierSpawnChances.Message = "Current tier: Endless"
 	elseif globalScore > scavconfig.timers.T4top then
 		TierSpawnChances.T0 = 0
 		TierSpawnChances.T1 = 0

@@ -88,9 +88,20 @@ function LabBuildHST:PrePositionFilter()
 		local isAdvanced = self.ai.armyhst.advFactories[factoryName]
 		local isExperimental = self.ai.armyhst.expFactories[factoryName] or self.ai.armyhst.leadsToExpFactories[factoryName]
 		local mtype = self.ai.armyhst.factoryMobilities[factoryName][1]
-		if mtype == 'air' and not isAdvanced and self.ai.factories == 1 then
-			self:EchoDebug(factoryName ..' not air before advanced ')
+		if self.game:GetTeamUnitDefCount(self.ai.id,self.ai.armyhst.unitTable[factoryName].defId) > 0 then
+			self:EchoDebug(factoryName ..' already have ')
 			buildMe = false
+		end
+		if mtype == 'air' and not isAdvanced and self.ai.factories == 1 then
+			self:EchoDebug(factoryName ..' dont build air before advanced ')
+			buildMe = false
+		end
+		if mtype == 'air' then
+			local counter = game:GetTeamUnitDefCount(self.ai.id,self.ai.armyhst.unitTable[factoryName].defId)
+			if counter > 0 then
+				self:EchoDebug(factoryName ..' never build more than 1 air factory per name, units can go anywhare ')
+				buildMe = false
+			end
 		end
 		if self.ai.needAdvanced and not self.ai.haveAdvFactory and not isAdvanced then
 			self:EchoDebug(factoryName ..' not advanced when i need it')
@@ -236,6 +247,13 @@ function LabBuildHST:FactoryPosition(factoryName,builder)
 			p = self.ai.buildsitehst:ClosestBuildSpot(builder, factoryPos, utype)
 		end
 	end
+-- 	if p == nil then
+-- 		self:EchoDebug("looking next to llt for " .. factoryName)
+-- 		p = self.ai.buildsitehst:searchPosNearThing(utype, builder,nil,1000, nil,100,'_llt_')
+-- 		if factoryPos then
+-- 			p = self.ai.buildsitehst:ClosestBuildSpot(builder, factoryPos, utype)
+-- 		end
+-- 	end
 	if p == nil then
 		self:EchoDebug('builfactory near hotSpot')
 		local place = false

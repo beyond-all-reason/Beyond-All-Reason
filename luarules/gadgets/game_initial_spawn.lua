@@ -486,6 +486,20 @@ end
 else
 ----------------------------------------------------------------
 
+local validAIs = {
+	"Chicken:",
+	"KAIK",
+	"NullAI",
+	"DAI",
+	"newAI",
+	"ScavengersAI",
+	"STAI",
+	"Shard",
+	"SimpleAI",
+	"SimpleCheaterAI",
+	"SimpleDefenderAI",
+}
+
 local texts = {		-- fallback (if you want to change this, also update: language/en.lua, or it will be overwritten)
 	ready = 'Ready',
 	gamestartingin = 'Game starting in',
@@ -504,8 +518,7 @@ local fontfileOutlineSize = 10
 local fontfileOutlineStrength = 1.4
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
-local customScale = 1.23
-local uiScale = customScale
+local uiScale = (0.8 + (vsx*vsy / 4500000))
 local myPlayerID = Spring.GetMyPlayerID()
 local _,_,spec,myTeamID = Spring.GetPlayerInfo(myPlayerID,false)
 local amNewbie
@@ -521,11 +534,15 @@ local gameStarting
 local timer = 0
 local timer2 = 0
 
-local readyX = vsx * 0.8
-local readyY = vsy * 0.8
-local readyH = 35
-local readyW = 100
-local bgMargin = 2.5
+local readyX = vsx * 0.77
+local readyY = vsy * 0.77
+
+local orgReadyH = 35
+local orgReadyW = 100
+
+local readyH = orgReadyH * uiScale
+local readyW = orgReadyW * uiScale
+local bgMargin = math.floor(math.max(1, readyH*0.04))
 
 local readyButton, readyButtonHover
 
@@ -535,10 +552,17 @@ local UiButton = Spring.FlowUI.Draw.Button
 
 function gadget:ViewResize(viewSizeX, viewSizeY)
 	vsx,vsy = Spring.GetViewGeometry()
-	readyX = vsx * 0.8
-	readyY = vsy * 0.8
+
+	uiScale = (0.8 + (vsx*vsy / 4500000))
+
+	readyX = math.floor(vsx * 0.8)
+	readyY = math.floor(vsy * 0.8)
+	readyW = math.floor(orgReadyW * uiScale / 2) * 2
+	readyH =  math.floor(orgReadyH * uiScale / 2) * 2
+	bgMargin = math.floor(math.max(1, readyH*0.04))
+
 	local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
-	if (fontfileScale ~= newFontfileScale) then
+	if fontfileScale ~= newFontfileScale then
 		fontfileScale = newFontfileScale
 		gl.DeleteFont(font)
 		font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
@@ -602,17 +626,8 @@ function gadget:GameSetup(state,ready,playerStates)
 end
 
 
-function correctMouseForScaling(x,y)
-	local buttonScreenCenterPosX = (readyX+(readyW/2))/vsx
-	local buttonScreenCenterPosY = (readyY+(readyH/2))/vsy
-	x = x - (((x/vsx)-buttonScreenCenterPosX) * vsx)*((uiScale-1)/uiScale)
-	y = y - (((y/vsy)-buttonScreenCenterPosY) * vsy)*((uiScale-1)/uiScale)
-	return x,y
-end
-
 function gadget:MousePress(sx,sy)
 	-- pressing ready
-	sx,sy = correctMouseForScaling(sx,sy)
 	if sx > readyX-bgMargin and sx < readyX+readyW+bgMargin and sy > readyY-bgMargin and sy < readyY+readyH+bgMargin and Spring.GetGameFrame() <= 0 and Game.startPosType == 2 and gameStarting==nil and not spec then
 		if startPointChosen then
 			readied = true
@@ -640,39 +655,19 @@ function gadget:Initialize()
 		texts = GG.lang.getText('initialspawn')
 	end
 
+	gadget:ViewResize(vsx, vsy)
+
 	-- add function to receive when startpoints were chosen
 	gadgetHandler:AddSyncAction("StartPointChosen", StartPointChosen)
 
 	-- create ready button
 	readyButton = gl.CreateList(function()
-
-		--UiButton(-readyW/2, -readyH/2, readyW/2, readyH/2, 1,1,1,1, 1,1,1,1, nil, {1, 1, 1, 1}, {0.33, 0.33, 0.33, 1})
-
-		-- draws background rectangle
-		gl.Color(0,0,0,0.75)
-		RectRound(-((readyW/2)+bgMargin), -((readyH/2)+bgMargin), ((readyW/2)+bgMargin), ((readyH/2)+bgMargin), 4, 2,2,2,2, {0.05,0.05,0.05,0.75}, {0,0,0,0.75})
-		RectRound(-readyW/2, -readyH/2, readyW/2, readyH/2, 3, 2,2,2,2, {1,1,1,0}, {1,1,1,0.1})
-		-- gloss
-		gl.Blending(GL.SRC_ALPHA, GL.ONE)
-		RectRound(-readyW/2, 0, readyW/2, readyH/2, 3, 2,2,0,0, {1,1,1,0.035}, {1,1,1,0.11})
-		RectRound(-readyW/2, -readyH/2, readyW/2, -readyH/4, 3, 0,0,2,2, {1,1,1,0.045}, {1,1,1,0})
-		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
-		gl.Color(1,1,1,1)
+		RectRound((-readyW/2)-bgMargin, (-readyH/2)-bgMargin, (readyW/2)+bgMargin, (readyH/2)+bgMargin, bgMargin*2, 1,1,1,1, {1, 0.97, 0.85, 0.85})
+		UiButton((-readyW/2), (-readyH/2), (readyW/2), (readyH/2), 1,1,1,1, 1,1,1,1, nil, {0.15, 0.12, 0, 1}, {0.28, 0.23, 0, 1})
 	end)
 	readyButtonHover = gl.CreateList(function()
-
-		--UiButton(-readyW/2, -readyH/2, readyW/2, readyH/2, 1,1,1,1, 1,1,1,1, nil, {1, 1, 1, 1}, {0.33, 0.33, 0.33, 1})
-
-		-- draws background rectangle
-		gl.Color(0.15,0.12,0,0.75)
-		RectRound(-((readyW/2)+bgMargin), -((readyH/2)+bgMargin), ((readyW/2)+bgMargin), ((readyH/2)+bgMargin), 4, 2,2,2,2)
-		RectRound(-readyW/2, -readyH/2, readyW/2, readyH/2, 3, 2,2,2,2,{1,1,1,0}, {1,1,1,0.22})
-		-- gloss
-		gl.Blending(GL.SRC_ALPHA, GL.ONE)
-		RectRound(-readyW/2, 0, readyW/2, readyH/2, 3, 2,2,0,0, {1,1,1,0.05}, {1,1,1,0.18})
-		RectRound(-readyW/2, -readyH/2, readyW/2, -readyH/4, 3, 0,0,2,2, {1,1,1,0.07}, {1,1,1,0})
-		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
-		gl.Color(1,1,1,1)
+		RectRound((-readyW/2)-bgMargin, (-readyH/2)-bgMargin, (readyW/2)+bgMargin, (readyH/2)+bgMargin, bgMargin*2, 1,1,1,1, {1, 0.97, 0.85, 0.85})
+		UiButton((-readyW/2), (-readyH/2), (readyW/2), (readyH/2), 1,1,1,1, 1,1,1,1, nil, {0.25, 0.21, 0, 1}, {0.44, 0.37, 0, 1})
 	end)
 end
 
@@ -680,7 +675,7 @@ end
 local timer3 = 30
 function gadget:DrawScreen()
 
-	-- only support AI's:  NullAI, DAI and KAIK
+	-- check for supported AI's
 	if enabled then
 		local teams = Spring.GetTeamList()
 		for i =1, #teams do
@@ -690,19 +685,6 @@ function gadget:DrawScreen()
 					aiName = select(4,Spring.GetAIInfo(teams[i]))
 				end
 				if aiName and aiName ~= '' then
-					local validAIs = {
-						"Chicken:",
-						"KAIK",
-						"NullAI",
-						"DAI",
-						"newAI",
-						"ScavengersAI",
-						"STAI",
-						"Shard",
-						"SimpleAI",
-						"SimpleCheaterAI",
-						"SimpleDefenderAI",
-					}
 					local hasAI = false
 					for key,ai in ipairs(validAIs) do
 						if string.find( aiName, ai) then
@@ -726,21 +708,18 @@ function gadget:DrawScreen()
 
 	if enabled then
 
-	 	uiScale = (0.75 + (vsx*vsy / 7500000)) * customScale
-
 		gl.PushMatrix()
-			gl.Translate(readyX+(readyW/2),readyY+(readyH/2),0)
-			gl.Scale(uiScale, uiScale, 1)
+			gl.Translate(readyX+(readyW/2), readyY+(readyH/2),0)
 
 			if not readied and readyButton and Game.startPosType == 2 and gameStarting==nil and not spec and not isReplay then
 			--if not readied and readyButton and not spec and not isReplay then
 
 				if Script.LuaUI("GuishaderInsertRect") then
 					Script.LuaUI.GuishaderInsertRect(
-						readyX+(readyW/2)-(((readyW/2)+bgMargin)*uiScale),
-						readyY+(readyH/2)-(((readyH/2)+bgMargin)*uiScale),
-						readyX+(readyW/2)+(((readyW/2)+bgMargin)*uiScale),
-						readyY+(readyH/2)+(((readyH/2)+bgMargin)*uiScale),
+						readyX+(readyW/2)-(((readyW/2)+bgMargin)),
+						readyY+(readyH/2)-(((readyH/2)+bgMargin)),
+						readyX+(readyW/2)+(((readyW/2)+bgMargin)),
+						readyY+(readyH/2)+(((readyH/2)+bgMargin)),
 						'ready'
 					)
 				end
@@ -748,7 +727,6 @@ function gadget:DrawScreen()
 				-- draw ready button and text
 				local x,y = Spring.GetMouseState()
 				local colorString
-				x,y = correctMouseForScaling(x,y)
 				if x > readyX-bgMargin and x < readyX+readyW+bgMargin and y > readyY-bgMargin and y < readyY+readyH+bgMargin then
 					gl.CallList(readyButtonHover)
 					colorString = "\255\255\222\0"
@@ -756,13 +734,13 @@ function gadget:DrawScreen()
 					gl.CallList(readyButton)
 			  		timer2 = timer2 + Spring.GetLastUpdateSeconds()
 					if timer2 % 0.75 <= 0.375 then
-						colorString = "\255\233\215\20"
+						colorString = "\255\255\235\50"
 					else
-						colorString = "\255\255\255\255"
+						colorString = "\255\255\240\180"
 					end
 				end
 				font:Begin()
-				font:Print(colorString .. texts.ready, -((readyW/2)-12.5), -((readyH/2)-9.5), 25, "o")
+				font:Print(colorString .. texts.ready, 0, -(readyH*0.2), 25*uiScale, "co")
 				font:End()
 				gl.Color(1,1,1,1)
 			end
@@ -771,13 +749,13 @@ function gadget:DrawScreen()
 				timer = timer + Spring.GetLastUpdateSeconds()
 				local colorString
 				if timer % 0.75 <= 0.375 then
-					colorString = "\255\233\233\20"
+					colorString = "\255\255\235\50"
 				else
-					colorString = "\255\255\255\255"
+					colorString = "\255\255\240\180"
 				end
 				local text = colorString .. texts.gamestartingin.." " .. math.max(1,3-math.floor(timer)) .. " "..texts.seconds
 				font:Begin()
-				font:Print(text, vsx*0.5 - font:GetTextWidth(text)/2*17, vsy*0.75, 17, "o")
+				font:Print(text, vsx*0.5 - font:GetTextWidth(text)/2*17, vsy*0.75, 17*uiScale, "o")
 				font:End()
 			end
 		gl.PopMatrix()

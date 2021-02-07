@@ -3,11 +3,40 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, beam1, beam2, flare;
+#define SIG_BUILD		2	
 
-static-var  Static_Var_1, gun_2, statechg_DesiredState, statechg_StateChanging, spray;
+piece  base, turret, tracks, beamhinge, beamcase, flare;
+
+static-var  notBuilding, bMoving, statechg_DesiredState, statechg_StateChanging;
+
+static-var animSpeed, maxSpeed, animFramesPerKeyframe;
 
 
+#define BASEPIECE base
+#define HITSPEED <65.0>
+//how 'heavy' the unit is, on a scale of 1-10
+#define UNITSIZE 1
+#define MAXTILT 100
+HitByWeapon(anglex, anglez, damage)	// angle[x|z] is always [-500;500], damage is multiplied by 100
+{
+	var amount;//, speedz, speedx;
+	amount = damage / (100 * UNITSIZE);
+	if (amount < 3  ) return (0);
+	if (amount > MAXTILT) amount = MAXTILT;
+	//get PRINT(anglex, anglez, amount, damage);
+	//speedz = HITSPEED * get ABS(anglez) / 500; //nevermind this, the random error this produces actually looks better than the accurate version
+	turn BASEPIECE to z-axis (anglez * amount) / 100  speed HITSPEED;
+	turn BASEPIECE to x-axis <0> - (anglex * amount) /100 speed HITSPEED;
+	wait-for-turn BASEPIECE around z-axis;
+	wait-for-turn BASEPIECE around x-axis;
+	turn BASEPIECE to z-axis <0.000000> speed HITSPEED / 4;
+	turn BASEPIECE to x-axis <0.000000> speed HITSPEED / 4;
+}
+HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and flamers give angles of 0
+{
+	start-script HitByWeapon(dmg, anglez,anglex); //I dont know why param order must be switched, and this also runs a frame later :(
+	return (100); //return damage percent
+}
 SmokeUnit(healthpercent, sleeptime, smoketype)
 {
 	while( get BUILD_PERCENT_LEFT )
@@ -38,47 +67,27 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 
 Go()
 {
-	set INBUILDSTANCE to 1;
-	return (0);
+	turn beamcase to z-axis <-90> speed <180>;
+	wait-for-turn beamcase around z-axis;
+	
+	turn beamhinge to x-axis <90> speed <360>;
+	wait-for-turn beamhinge around x-axis;
 }
 
 Stop()
 {
 	set INBUILDSTANCE to 0;
-	return (0);
-}
+	
+	turn beamhinge to x-axis <0> speed <360>;
+	wait-for-turn beamhinge around x-axis;	
 
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-	return (0);
-}
+	turn beamcase to z-axis <0> speed <180>;
+	wait-for-turn beamcase around z-axis;
+	
 
-#define BASEPIECE base
-#define HITSPEED <85.0>
-//how 'heavy' the unit is, on a scale of 1-10
-#define UNITSIZE 1
-#define MAXTILT 100
-HitByWeapon(anglex, anglez, damage)	// angle[x|z] is always [-500;500], damage is multiplied by 100
-{
-	var amount;//, speedz, speedx;
-	amount = damage / (100 * UNITSIZE);
-	if (amount < 3  ) return (0);
-	if (amount > MAXTILT) amount = MAXTILT;
-	//get PRINT(anglex, anglez, amount, damage);
-	//speedz = HITSPEED * get ABS(anglez) / 500; //nevermind this, the random error this produces actually looks better than the accurate version
-	turn BASEPIECE to z-axis (anglez * amount) / 100  speed HITSPEED;
-	turn BASEPIECE to x-axis <0> - (anglex * amount) /100 speed HITSPEED;
-	wait-for-turn BASEPIECE around z-axis;
-	wait-for-turn BASEPIECE around x-axis;
-	turn BASEPIECE to z-axis <0.000000> speed HITSPEED / 4;
-	turn BASEPIECE to x-axis <0.000000> speed HITSPEED / 4;
-}
-HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and flamers give angles of 0
-{
-	start-script HitByWeapon(dmg, anglez,anglex); //I dont know why param order must be switched, and this also runs a frame later :(
-	return (100); //return damage percent
+	
+	turn turret to y-axis <0.000000> speed <160.000000>;
+	wait-for-turn turret around y-axis;
 }
 
 RequestState(requestedstate, currentstate)
@@ -93,146 +102,85 @@ RequestState(requestedstate, currentstate)
 	statechg_DesiredState = requestedstate;
 	while( statechg_DesiredState != currentstate )
 	{
-		if( statechg_DesiredState == 0 )
-		{
-			call-script Go();
-			currentstate = 0;
-		}
-		if( statechg_DesiredState == 1 )
+		if( statechg_DesiredState )
 		{
 			call-script Stop();
+			notBuilding = 1;
 			currentstate = 1;
+		}
+		else
+		{
+			call-script Go();
+			notBuilding = 0;
+			currentstate = 0;
 		}
 	}
 	statechg_StateChanging = FALSE;
-	return (0);
 }
 
 Create()
 {
-	hide flare;
-	Static_Var_1 = 0;
-	gun_2 = beam1;
-	spray=beam1;
-	call-script InitState();
+	bMoving = FALSE;
+	notBuilding = 1;
+	statechg_DesiredState = TRUE;
+	statechg_StateChanging = FALSE;
+	animSpeed = 4;
 	start-script SmokeUnit();
-	return (0);
 }
 
 Activate()
 {
 	start-script RequestState(0);
-	return (0);
 }
 
 Deactivate()
 {
 	start-script RequestState(1);
-	return (0);
 }
 
-StartBuilding(Func_Var_1)
+StartBuilding(heading, pitch)
 {
-	Static_Var_1 = Func_Var_1;
 	start-script RequestState(0);
-	return (0);
+	while( notBuilding ) sleep 100;
+	signal SIG_BUILD;
+	turn turret to y-axis heading speed <600.000000>;
+	wait-for-turn turret around y-axis;
+	set INBUILDSTANCE to 1;
 }
 
 StopBuilding()
 {
+	signal SIG_BUILD;	
+	set-signal-mask SIG_BUILD;
+	sleep 6000;
+	set-signal-mask 0;
+	signal SIG_BUILD;	
 	start-script RequestState(1);
-	return (0);
 }
 
 StartMoving()
 {
-	return (0);
+ return (0);
 }
 
 StopMoving()
 {
-	return (0);
+ return (0);
 }
 
 QueryNanoPiece(piecenum)
 {
-	if( spray == 0 )
-	{
-		piecenum = beam1;
-	}
-	if( spray != 0 )
-	{
-		piecenum = beam2;
-	}
-	spray = !spray;
-	return (0);
+	piecenum = flare;
 }
 
+/*
 TargetHeading(Func_Var_1)
 {
 	Static_Var_1 = 0 - Func_Var_1;
-	return (0);
 }
+*/
 
 SweetSpot(piecenum)
-{
-	piecenum = base;
-	return (0);
-}
-
-AimPrimary(heading, pitch)
-{
-	while( !gun_2 )
-	{
-		sleep 250;
-	}
-	return (1);
-}
-
-FirePrimary()
-{
-	gun_2 = base;
-	sleep 3000;
-	gun_2 = flare;
-	return (0);
-}
-
-QueryPrimary(piecenum)
-{
-	piecenum = flare;
-	return (0);
-}
-
-AimFromPrimary(piecenum)
-{
-	piecenum = base;
-	return (0);
-}
-
-AimSecondary(heading, pitch)
-{
-	while( !gun_2 )
-	{
-		sleep 250;
-	}
-	return (1);
-}
-
-FireSecondary()
-{
-	gun_2 = base;
-	sleep 3000;
-	gun_2 = flare;
-	return (0);
-}
-
-QuerySecondary(piecenum)
-{
-	piecenum = flare;
-	return (0);
-}
-
-AimFromSecondary(piecenum)
 {
 	piecenum = base;
 	return (0);
@@ -244,33 +192,33 @@ Killed(severity, corpsetype)
 	{
 		corpsetype = 1 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode flare type BITMAPONLY | NOHEATCLOUD;
-		explode beam1 type BITMAPONLY | NOHEATCLOUD;
-		//explode beam2 type BITMAPONLY | NOHEATCLOUD;
+		explode turret type BITMAPONLY | NOHEATCLOUD;
+		explode beamhinge type BITMAPONLY | NOHEATCLOUD;
+		explode beamcase type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode flare type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode beam1 type FALL | NOHEATCLOUD;
-		//explode beam2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode turret type BITMAPONLY | NOHEATCLOUD;
+		explode beamhinge type BITMAPONLY | NOHEATCLOUD;
+		explode beamcase type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3 ;
-		explode base type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode flare type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode beam1 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		//explode beam2 type SMOKE | FALL | NOHEATCLOUD;
+		explode base type SHATTER | NOHEATCLOUD;
+		explode turret type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode beamhinge type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode beamcase type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
-		explode base type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode flare type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode beam1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode beam2 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-	return corpsetype;
+		explode base type SHATTER | NOHEATCLOUD;
+		explode turret type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode beamhinge type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode beamcase type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		return corpsetype;
 }

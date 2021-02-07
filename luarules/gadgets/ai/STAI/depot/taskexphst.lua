@@ -12,9 +12,9 @@ function TaskExpHST:Init()
 end
 
 --SOME FUNCTIONS ARE DUPLICATE HERE
-function TaskExpHST:Lvl3Merl( taskQueueBehaviour, ai, builder )
+function TaskExpHST:Lvl3Merl()
 	local unitName = ""
-	if builder:CanBuild( "corcat" ) then
+	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "corcat"
 	else
 		unitName = self.ai.armyhst.DummyUnitName
@@ -22,110 +22,106 @@ function TaskExpHST:Lvl3Merl( taskQueueBehaviour, ai, builder )
 	return self.ai.taskshst:BuildSiegeIfNeeded(unitName)
 end
 
-function TaskExpHST:Lvl3Arty( taskQueueBehaviour, ai, builder )
+function TaskExpHST:Lvl3Arty()
 	local unitName = ""
-	if builder:CanBuild( "armshiva" ) then
+	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "armshiva"
-	elseif builder:CanBuild( "armvang" ) then
+	else
 		unitName = "armvang"
 	end
 	return self.ai.taskshst:BuildSiegeIfNeeded(unitName)
 end
 
-function TaskExpHST:lv3Amp( taskQueueBehaviour, ai, builder )
+function TaskExpHST:lv3Amp()
 	local unitName = self.ai.armyhst.DummyUnitName
-	if builder:CanBuild( "armshiva" ) then
+	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "armshiva"
-	elseif builder:CanBuild( "armmar" ) then
+	else
 		unitName = "armmar"
 	end
 	return self.ai.taskshst:BuildSiegeIfNeeded(unitName)
 end
 
-function TaskExpHST:Lvl3Breakthrough( taskQueueBehaviour, ai, builder )
+function TaskExpHST:Lvl3Breakthrough()
 	local unitName = ""
-	if builder:CanBuild( "corkorg" ) then
+	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = self.ai.taskshst:BuildWithLimitedNumber("corkorg", 1)
-		if unitName == self.ai.armyhst.DummyUnitName and builder:CanBuild( "corjugg" ) then
+		if unitName == self.ai.armyhst.DummyUnitName then
 			unitName = self.ai.taskshst:BuildWithLimitedNumber("corjugg", 2)
 		end
-		if unitName == self.ai.armyhst.DummyUnitName and builder:CanBuild( "corkorg" ) then
+		if unitName == self.ai.armyhst.DummyUnitName then
 			unitName = "corkarg"
 		end
 	else
-		if builder:CanBuild( "armbanth" ) then
-			unitName = self.ai.taskshst:BuildWithLimitedNumber("armbanth", 5)
-			if unitName == self.ai.armyhst.DummyUnitName then
-				if builder:CanBuild( "armraz" ) then
-					unitName = "armraz"
-				end
-			end
+		unitName = self.ai.taskshst:BuildWithLimitedNumber("armbanth", 5)
+		if unitName == self.ai.armyhst.DummyUnitName then
+			unitName = "armraz"
 		end
 	end
 	return self.ai.taskshst:BuildBreakthroughIfNeeded(unitName)
 end
 
-function TaskExpHST:lv3bigamp( taskQueueBehaviour, ai, builder )
+function TaskExpHST:lv3bigamp()
 	local unitName = self.ai.armyhst.DummyUnitName
-	if builder:CanBuild( "corkorg" ) then
+	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = 'corkorg'
-	elseif builder:CanBuild( "armbanth" ) then
+	else
 		unitName = 'armbanth'
 	end
 	return unitName
 end
 
-function TaskExpHST:Lvl3Raider( taskQueueBehaviour, ai, builder )
+function TaskExpHST:Lvl3Raider()
 	local unitName = ""
-	if builder:CanBuild( "armmar" ) then
-		unitName = "armmar"
-	else
+	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = self.ai.armyhst.DummyUnitName
+	else
+		unitName = "armmar"
 	end
 	self:EchoDebug(unitName)
 	return self.ai.taskshst:BuildRaiderIfNeeded(unitName)
 end
 
-function TaskExpHST:Lvl3Battle( taskQueueBehaviour, ai, builder )
+function TaskExpHST:Lvl3Battle()
 	local unitName = ""
-	if builder:CanBuild( "corkarg" ) then
+	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "corkarg"
-	elseif builder:CanBuild( "armraz" ) then
+	else
 		unitName = "armraz"
 	end
 	return self.ai.taskshst:BuildBattleIfNeeded(unitName)
 end
 
-function TaskExpHST:Lvl3Hov( taskQueueBehaviour, ai, builder )
+function TaskExpHST:Lvl3Hov()
 	local unitName = self.ai.armyhst.DummyUnitName
-	if builder:CanBuild( "corsok" ) then
+	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "corsok"
-	elseif builder:CanBuild( "armlun" ) then
+	else
 		unitName = "armlun"
 	end
 	return self.ai.taskshst:BuildBattleIfNeeded(unitName)
 end
 
-function TaskExpHST:Lv3VehAmp( taskQueueBehaviour, ai, builder )
+function TaskExpHST:Lv3VehAmp()
 	local unitName = self.ai.armyhst.DummyUnitName
 	if  self.ai.side == self.ai.armyhst.CORESideName then
-		if self.ai.Metal.full < 0.5 and builder:CanBuild( "corseal" ) then
+		if self.ai.Metal.full < 0.5 then
 			unitName = "corseal"
-		elseif builder:CanBuild( "corparrow" ) then
+		else
 			unitName = "corparrow"
 		end
-	elseif builder:CanBuild( "armcroc" ) then
+	else
 		unitName = "armcroc"
 	end
 	return self.ai.taskshst:BuildSiegeIfNeeded(unitName)
 end
 
 
-function TaskExpHST:Lv3Special( taskQueueBehaviour, ai, builder )
+function TaskExpHST:Lv3Special()
 	local unitName = self.ai.armyhst.DummyUnitName
-	if builder:CanBuild( "corjugg" ) then
+	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "corjugg"
-	elseif builder:CanBuild( "armvang" ) then
+	else
 		unitName = "armvang"
 	end
 	return self.ai.taskshst:BuildBattleIfNeeded(unitName)

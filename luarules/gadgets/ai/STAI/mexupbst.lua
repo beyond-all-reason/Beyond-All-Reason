@@ -9,6 +9,7 @@ function MexUpBST:Init()
 	self.mexPos = nil
 	self.lastFrame = self.game:Frame()
 	self.name = self.unit:Internal():Name()
+	self.id = self.unit:Internal():ID()
 	self:EchoDebug("MexUpBST: added to unit "..self.name)
 end
 
@@ -50,9 +51,6 @@ function MexUpBST:OwnerIdle()
 				s = builder:Build(mohoName, self.mexPos)
 			end
 			if s then
-				-- get assistance and magnetize
-				self.ai.assisthst:PersistantSummon(builder, self.mexPos, self.ai.armyhst.helpList[mohoName])
-				self.released = false
 				self.active = true
 				self.mohoStarted = true
 				self.mexPos = nil
@@ -93,8 +91,11 @@ function MexUpBST:Deactivate()
 end
 
 function MexUpBST:Priority()
-	if self.ai.lvl1Mexes > 0 then
-		return 101
+	if self.ai.lvl1Mexes > 0  and self.ai.tool:listHasValue(self.ai.armyhst.buildersRole.expand[self.name]  , self.id) then
+		return 99
+	elseif
+	self.ai.lvl1Mexes > 0  and self.ai.tool:listHasValue(self.ai.armyhst.buildersRole.eco[self.name]  , self.id) and self.ai.tool:countMyUnit(self.ai.armyhst._mex_) < 3 and self.ai.Metal.full < 0.3 then
+		return 150
 	else
 		return 0
 	end

@@ -15,80 +15,81 @@ end
 
 --LEVEL 1
 
-function TaskBotHST:ConBot( taskQueueBehaviour, ai, builder )
+function TaskBotHST:ConBot()
 	local unitName = self.ai.armyhst.DummyUnitName
-	if builder:CanBuild( "corck" ) then
+	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "corck"
-	elseif builder:CanBuild( "armck" ) then
+	else
 		unitName = "armck"
 	end
 	local mtypedLv = self.ai.taskshst:GetMtypedLv(unitName)
 	return self.ai.taskshst:BuildWithLimitedNumber(unitName, math.min((mtypedLv / 6) + 1, self.ai.conUnitPerTypeLimit))
 end
 
-function TaskBotHST:RezBot1( taskQueueBehaviour, ai, builder )
+function TaskBotHST:RezBot1()
 	local unitName = self.ai.armyhst.DummyUnitName
-	if builder:CanBuild( "cornecro" ) then
+	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "cornecro"
-	elseif builder:CanBuild( "armrectr" ) then
+	else
 		unitName = "armrectr"
 	end
 	local mtypedLv = self.ai.taskshst:GetMtypedLv(unitName)
 	return self.ai.taskshst:BuildWithLimitedNumber(unitName, math.min((mtypedLv / 8) + 1 , self.ai.conUnitPerTypeLimit))
 end
 
-function TaskBotHST:Lvl1BotRaider( taskQueueBehaviour, ai, builder )
+function TaskBotHST:Lvl1BotRaider()
 	local unitName = ""
-	if builder:CanBuild( "corak" ) then
+	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "corak"
-	elseif builder:CanBuild( "armpw" ) then
+	else
 		unitName = "armpw"
 	end
 	return self.ai.taskshst:BuildRaiderIfNeeded(unitName)
 end
 
-function TaskBotHST:Lvl1BotBreakthrough( taskQueueBehaviour, ai, builder )
+function TaskBotHST:Lvl1BotBreakthrough()
 	local unitName = ""
-	if builder:CanBuild( "corthud" ) then
+	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "corthud"
-	elseif builder:CanBuild( "armwar" ) then
+	else
 		unitName = "armwar"
 	end
 	return self.ai.taskshst:BuildBreakthroughIfNeeded(unitName)
 end
 
-function TaskBotHST:Lvl1BotBattle( taskQueueBehaviour, ai, builder )
+function TaskBotHST:Lvl1BotBattle()
 	local unitName = ""
 	local r = math.random()
 	local compare = self.ai.overviewhst.plasmaRocketBotRatio or 1
 	if compare >= 1 or math.random() < compare then
-		if builder:CanBuild( "corthud" ) then
+		if  self.ai.side == self.ai.armyhst.CORESideName then
 			unitName = "corthud"
-		elseif builder:CanBuild( "armham" ) then
+		else
 			unitName = "armham"
 		end
 	else
-		if builder:CanBuild( "corstorm" ) then
+		if  self.ai.side == self.ai.armyhst.CORESideName then
 			unitName = "corstorm"
-		elseif builder:CanBuild( "armrock" ) then
+		else
 			unitName = "armrock"
 		end
 	end
 	return self.ai.taskshst:BuildBattleIfNeeded(unitName)
 end
 
-function TaskBotHST:Lvl1AABot( taskQueueBehaviour, ai, builder )
-	if builder:CanBuild( "corcrash" ) then
+function TaskBotHST:Lvl1AABot()
+	if  self.ai.side == self.ai.armyhst.CORESideName then
 		return self.ai.taskshst:BuildAAIfNeeded("corcrash")
-	elseif builder:CanBuild( "armjeth" ) then
+	else
 		return self.ai.taskshst:BuildAAIfNeeded("armjeth")
 	end
-	return ""
 end
 
-function TaskBotHST:ScoutBot( taskQueueBehaviour, ai, builder )
-	local unitName = self.ai.armyhst.DummyUnitName
-	if builder:CanBuild( "armflea" ) then
+function TaskBotHST:ScoutBot()
+	local unitName
+	if  self.ai.side == self.ai.armyhst.CORESideName then
+		return self.ai.armyhst.DummyUnitName
+	else
 		unitName = "armflea"
 	end
 	return self.ai.taskshst:BuildWithLimitedNumber(unitName, 1)
@@ -96,11 +97,11 @@ end
 
 --LEVEL 2
 
-function TaskBotHST:ConAdvBot( taskQueueBehaviour, ai, builder )
+function TaskBotHST:ConAdvBot()
 	local unitName = self.ai.armyhst.DummyUnitName
-	if builder:CanBuild( "corack" ) then
+	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "corack"
-	elseif builder:CanBuild( "armack" ) then
+	else
 		unitName = "armack"
 	end
 	local mtypedLv = self.ai.taskshst:GetMtypedLv(unitName)
@@ -108,128 +109,130 @@ function TaskBotHST:ConAdvBot( taskQueueBehaviour, ai, builder )
 end
 
 
-function TaskBotHST:Lvl2BotAssist( taskQueueBehaviour, ai, builder )
+function TaskBotHST:Lvl2BotAssist()
 	unitName = self.ai.armyhst.DummyUnitName
-	if builder:CanBuild( "corfast" ) then
+	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "corfast"
-	elseif builder:CanBuild( "armfark" ) then
+	else
 		unitName = "armfark"
 	end
 	local mtypedLv = self.ai.taskshst:GetMtypedLv(unitName)
 	return self.ai.taskshst:BuildWithLimitedNumber(unitName, math.min((mtypedLv / 8) + 1, self.ai.conUnitPerTypeLimit))
 end
 
-function TaskBotHST:NewCommanders( taskQueueBehaviour, ai, builder )
+function TaskBotHST:NewCommanders()
 	local unitName = self.ai.armyhst.DummyUnitName
-	if builder:CanBuild( "cormando" ) then
+	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = 'cormando'
+	else
+		unitName = self.ai.armyhst.DummyUnitName
 	end
 	return unitName
 end
 
-function TaskBotHST:Decoy( taskQueueBehaviour, ai, builder )
+function TaskBotHST:Decoy()
 	local unitName = self.ai.armyhst.DummyUnitName
-	if builder:CanBuild( "cordecom" ) then
+	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = 'cordecom'
-	elseif builder:CanBuild( "armdecom" ) then
+	else
 		unitName = 'armdecom'
 	end
 	return unitName
 end
 
 
-function TaskBotHST:Lvl2BotBreakthrough( taskQueueBehaviour, ai, builder )
+function TaskBotHST:Lvl2BotBreakthrough()
 	local unitName = ""
-	if builder:CanBuild( "corsumo" ) then
+	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "corsumo"
-	elseif builder:CanBuild( "armfboy" ) then
+	else
 		unitName = "armfboy"
 	end
 	return self.ai.taskshst:BuildBreakthroughIfNeeded(unitName)
 end
 
-function TaskBotHST:Lvl2BotArty( taskQueueBehaviour, ai, builder )
+function TaskBotHST:Lvl2BotArty()
 	local unitName = ""
-	if builder:CanBuild( "cormort" ) then
+	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "cormort"
-	elseif builder:CanBuild( "armfido" ) then
+	else
 		unitName = "armfido"
 	end
 	return self.ai.taskshst:BuildSiegeIfNeeded(unitName)
 end
 
-function TaskBotHST:Lvl2BotLongRange( taskQueueBehaviour, ai, builder )
+function TaskBotHST:Lvl2BotLongRange()
 	local unitName = ""
-	if builder:CanBuild( "corhrk" ) then
+	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "corhrk"
-	elseif builder:CanBuild( "armsnipe" ) then
+	else
 		unitName = "armsnipe"
 	end
 	return self.ai.taskshst:BuildSiegeIfNeeded(unitName)
 end
 
-function TaskBotHST:Lvl2BotRaider( taskQueueBehaviour, ai, builder )
+function TaskBotHST:Lvl2BotRaider()
 	local unitName = ""
-	if builder:CanBuild( "corpyro" ) then
+	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "corpyro"
-	elseif builder:CanBuild( "armfast" ) then
+	else
 		unitName = "armfast"
 	end
 	return self.ai.taskshst:BuildRaiderIfNeeded(unitName)
 end
 
-function TaskBotHST:Lvl2BotCorRaiderArmArty( taskQueueBehaviour, ai, builder )
-	local unitName = self:Lvl2BotRaider( taskQueueBehaviour, ai, builder )
-	if not builder:CanBuild( unitName) then
-		unitName = self:Lvl2BotArty( taskQueueBehaviour, ai, builder )
+function TaskBotHST:Lvl2BotCorRaiderArmArty()
+	if  self.ai.side == self.ai.armyhst.CORESideName then
+		return Lvl2BotRaider(self)
+	else
+		return Lvl2BotArty(self)
 	end
-	return unitName
 end
 
-function TaskBotHST:Lvl2BotAllTerrain( taskQueueBehaviour, ai, builder )
+function TaskBotHST:Lvl2BotAllTerrain()
 	local unitName = self.ai.armyhst.DummyUnitName
-	if builder:CanBuild( "cortermite" ) then
+	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = 'cortermite'
-	elseif builder:CanBuild( "armsptk" ) then
+	else
 		unitName = "armsptk"
 	end
 	return unitName
 end
 
-function TaskBotHST:Lvl2BotBattle( taskQueueBehaviour, ai, builder )
+function TaskBotHST:Lvl2BotBattle()
 	local unitName = ""
-	if builder:CanBuild( "corcan" ) then
+	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "corcan"
-	elseif builder:CanBuild( "armzeus" ) then
+	else
 		unitName = "armzeus"
 	end
 	return self.ai.taskshst:BuildBattleIfNeeded(unitName)
 end
 
-function TaskBotHST:Lvl2BotMedium( taskQueueBehaviour, ai, builder )
+function TaskBotHST:Lvl2BotMedium()
 	local unitName = self.ai.armyhst.DummyUnitName
-	if builder:CanBuild( "corcan" ) then
+	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = 'corcan'
-	elseif builder:CanBuild( "armmav" ) then
+	else
 		unitName = "armmav"
 	end
 	return unitName
 end
 
-function TaskBotHST:Lvl2AmphBot( taskQueueBehaviour, ai, builder )
+function TaskBotHST:Lvl2AmphBot()
 	local unitName = self.ai.armyhst.DummyUnitName
-	if builder:CanBuild( "coramph" ) then
+	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = 'coramph'
-	elseif builder:CanBuild( "armamph" ) then
+	else
 		unitName = 'armamph'
 	end
 	return unitName
 end
 
-function TaskBotHST:Lvl2AABot( taskQueueBehaviour, ai, builder )
-	if builder:CanBuild( "coraak" ) then
+function TaskBotHST:Lvl2AABot()
+	if  self.ai.side == self.ai.armyhst.CORESideName then
 		return self.ai.taskshst:BuildAAIfNeeded("coraak")
-	elseif builder:CanBuild( "armaak" ) then
+	else
 		return self.ai.taskshst:BuildAAIfNeeded("armaak")
 	end
 end

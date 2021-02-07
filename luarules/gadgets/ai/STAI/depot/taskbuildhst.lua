@@ -13,128 +13,134 @@ function TaskBuildHST:Init()
 end
 --t1 ground
 
-function TaskBuildHST:BuildLLT( taskQueueBehaviour, ai, builder )
--- 	if builder.unit == nil then
--- 		return self.ai.armyhst.DummyUnitName
--- 	end
+function TaskBuildHST:BuildLLT(Builder)
+	if Builder.unit == nil then
+		return self.ai.armyhst.DummyUnitName
+	end
 	local unitName = self.ai.armyhst.DummyUnitName
-		if builder:CanBuild( "corllt" ) then
+		if  self.ai.side == self.ai.armyhst.CORESideName then
 			unitName = "corllt"
-		elseif builder:CanBuild( "armllt" ) then
+		else
 			unitName = "armllt"
 		end
+		local unit = Builder.unit:Internal()
 	return self.ai.taskshst:GroundDefenseIfNeeded(unitName)
 end
 
-function TaskBuildHST:BuildSpecialLT( taskQueueBehaviour, ai, builder )
+function TaskBuildHST:BuildSpecialLT(Builder)
 	local unitName = self.ai.armyhst.DummyUnitName
 	if self.ai.taskshst:IsAANeeded() then
 		-- pop-up turrets are protected against bombs
-		if builder:CanBuild( "cormaw" ) then
+		if  self.ai.side == self.ai.armyhst.CORESideName then
 			unitName = "cormaw"
-		elseif builder:CanBuild( "armclaw" ) then
+		else
 			unitName = "armclaw"
 		end
 	else
-		if builder:CanBuild( "corhllt" ) then
+		if  self.ai.side == self.ai.armyhst.CORESideName then
 			unitName = "corhllt"
-		elseif builder:CanBuild( "armbeamer" ) then
+		else
 			unitName = "armbeamer"
 		end
 	end
+	local unit = Builder.unit:Internal()
 	return self.ai.taskshst:GroundDefenseIfNeeded(unitName)
 end
 
-function TaskBuildHST:BuildSpecialLTOnly( taskQueueBehaviour, ai, builder )
+function TaskBuildHST:BuildSpecialLTOnly(Builder)
 	local unitName = self.ai.armyhst.DummyUnitName
-	if builder:CanBuild( "corhllt" ) then
+	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "corhllt"
-	elseif builder:CanBuild( "armbeamer" ) then
+	else
 		unitName = "armbeamer"
 	end
+	local unit = Builder.unit:Internal()
 	return self.ai.taskshst:GroundDefenseIfNeeded(unitName)
 end
 
-function TaskBuildHST:BuildHLT( taskQueueBehaviour, ai, builder )
+function TaskBuildHST:BuildHLT(Builder)
 	local unitName = self.ai.armyhst.DummyUnitName
-	if builder:CanBuild( "corhlt" ) then
+	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "corhlt"
-	elseif builder:CanBuild( "armhlt" ) then
+	else
 		unitName = "armhlt"
 	end
+	local unit = Builder.unit:Internal()
 	return self.ai.taskshst:GroundDefenseIfNeeded(unitName)
 end
 
-function TaskBuildHST:BuildDepthCharge( taskQueueBehaviour, ai, builder )
+function TaskBuildHST:BuildDepthCharge(Builder)
 	local unitName = self.ai.armyhst.DummyUnitName
-	if builder:CanBuild( "cordl" ) then
+	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "cordl"
-	elseif builder:CanBuild( "armdl" ) then
+	else
 		unitName = "armdl"
 	end
 	return self.ai.taskshst:BuildTorpedoIfNeeded(unitName)
 end
 
-function TaskBuildHST:BuildFloatHLT( taskQueueBehaviour, ai, builder )
+function TaskBuildHST:BuildFloatHLT(Builder)
 	local unitName = self.ai.armyhst.DummyUnitName
-	if builder:CanBuild( "corfhlt" ) then
+	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "corfhlt"
-	elseif builder:CanBuild( "armfhlt" ) then
+	else
 		unitName = "armfhlt"
 	end
-	local unit = builder
+	local unit = Builder.unit:Internal()
 	--return self.ai.taskshst:GroundDefenseIfNeeded(unitName)
 	return unitName
 end
 
 --t2 ground
-function TaskBuildHST:BuildLvl2PopUp( taskQueueBehaviour, ai, builder )
+function TaskBuildHST:BuildLvl2PopUp(Builder)
 	local unitName = self.ai.armyhst.DummyUnitName
-	if builder:CanBuild( "corvipe" ) then
+	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "corvipe"
-	elseif builder:CanBuild( "armpb" ) then
+	else
 		unitName = "armpb"
 	end
+	local unit = Builder.unit:Internal()
 	return self.ai.taskshst:GroundDefenseIfNeeded(unitName)
 end
 
-function TaskBuildHST:BuildTachyon( taskQueueBehaviour, ai, builder )
+function TaskBuildHST:BuildTachyon(Builder)
 	local unitName = self.ai.armyhst.DummyUnitName
-	if builder:CanBuild( "cordoom" ) then
+	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "cordoom"
-	elseif builder:CanBuild( "armanni" ) then
+	else
 		unitName = "armanni"
 	end
+	local unit = Builder.unit:Internal()
 	return self.ai.taskshst:GroundDefenseIfNeeded(unitName)
 end
 
 -- torpedos
 
-function TaskBuildHST:BuildLightTorpedo( taskQueueBehaviour, ai, builder )
+function TaskBuildHST:BuildLightTorpedo()
 	local unitName = self.ai.armyhst.DummyUnitName
-	if builder:CanBuild( "cortl" ) then
+	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "cortl"
-	elseif builder:CanBuild( "armtl" ) then
+	else
 		unitName = "armtl"
 	end
 	return self.ai.taskshst:BuildTorpedoIfNeeded(unitName)
 end
 
-function TaskBuildHST:BuildPopTorpedo( taskQueueBehaviour, ai, builder )
+function TaskBuildHST:BuildPopTorpedo()
 	local unitName = self.ai.armyhst.DummyUnitName
-	if builder:CanBuild( "corptl" ) then
+	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "corptl"
-	elseif builder:CanBuild( "armptl" ) then
+	else
 		unitName = "armptl"
 	end
 	return self.ai.taskshst:BuildTorpedoIfNeeded(unitName)
 end
 
-function TaskBuildHST:BuildHeavyTorpedo( taskQueueBehaviour, ai, builder )
+function TaskBuildHST:BuildHeavyTorpedo()
 	local unitName = self.ai.armyhst.DummyUnitName
-	if builder:CanBuild( "coratl" ) then
+	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "coratl"
-	elseif builder:CanBuild( "armatl" ) then
+	else
 		unitName = "armatl"
 	end
 	return self.ai.taskshst:BuildTorpedoIfNeeded(unitName)
@@ -145,41 +151,41 @@ end
 -- build AA in area only if there's not enough of it there already
 --t1
 
-function TaskBuildHST:BuildLightAA( taskQueueBehaviour, ai, builder )
+function TaskBuildHST:BuildLightAA()
 	local unitName = self.ai.armyhst.DummyUnitName
-	if builder:CanBuild( "corrl" ) then
+	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = self.ai.taskshst:BuildAAIfNeeded("corrl")
-	elseif builder:CanBuild( "armrl" ) then
+	else
 		unitName = self.ai.taskshst:BuildAAIfNeeded("armrl")
 	end
 	return unitName
 end
 
-function TaskBuildHST:BuildFloatLightAA( taskQueueBehaviour, ai, builder )
+function TaskBuildHST:BuildFloatLightAA()
 	local unitName = self.ai.armyhst.DummyUnitName
-	if builder:CanBuild( "corfrt" ) then
+	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = self.ai.taskshst:BuildAAIfNeeded("corfrt")
-	elseif builder:CanBuild( "armfrt" ) then
+	else
 		unitName = self.ai.taskshst:BuildAAIfNeeded("armfrt")
 	end
 	return unitName
 end
 
-function TaskBuildHST:BuildMediumAA( taskQueueBehaviour, ai, builder )
+function TaskBuildHST:BuildMediumAA()
 	local unitName = self.ai.armyhst.DummyUnitName
-	if builder:CanBuild( "cormadsam" ) then
+	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = self.ai.taskshst:BuildAAIfNeeded("cormadsam")
-	elseif builder:CanBuild( "armferret" ) then
+	else
 		unitName = self.ai.taskshst:BuildAAIfNeeded("armferret")
 	end
 	return unitName
 end
 
-function TaskBuildHST:BuildHeavyishAA( taskQueueBehaviour, ai, builder )
+function TaskBuildHST:BuildHeavyishAA()
 	local unitName = self.ai.armyhst.DummyUnitName
-	if builder:CanBuild( "corerad" ) then
+	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = self.ai.taskshst:BuildAAIfNeeded("corerad")
-	elseif builder:CanBuild( "armcir" ) then
+	else
 		unitName = self.ai.taskshst:BuildAAIfNeeded("armcir")
 	end
 	return unitName
@@ -187,31 +193,31 @@ end
 
 --t2
 
-function TaskBuildHST:BuildHeavyAA( taskQueueBehaviour, ai, builder )
+function TaskBuildHST:BuildHeavyAA()
 	local unitName = self.ai.armyhst.DummyUnitName
-	if builder:CanBuild( "corflak" ) then
+	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = self.ai.taskshst:BuildAAIfNeeded("corflak")
-	elseif builder:CanBuild( "armflak" ) then
+	else
 		unitName = self.ai.taskshst:BuildAAIfNeeded("armflak")
 	end
 	return unitName
 end
 
-function TaskBuildHST:BuildFloatHeavyAA( taskQueueBehaviour, ai, builder )
+function TaskBuildHST:BuildFloatHeavyAA()
 	local unitName = self.ai.armyhst.DummyUnitName
-	if builder:CanBuild( "corenaa" ) then
+	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = self.ai.taskshst:BuildAAIfNeeded("corenaa")
-	elseif builder:CanBuild( "armfflak" ) then
+	else
 		unitName = self.ai.taskshst:BuildAAIfNeeded("armfflak")
 	end
 	return unitName
 end
 
-function TaskBuildHST:BuildExtraHeavyAA( taskQueueBehaviour, ai, builder )
+function TaskBuildHST:BuildExtraHeavyAA()
 	local unitName = self.ai.armyhst.DummyUnitName
-	if builder:CanBuild( "corscreamer" ) then
+	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = self.ai.taskshst:BuildAAIfNeeded("corscreamer")
-	elseif builder:CanBuild( "armmercury" ) then
+	else
 		unitName = self.ai.taskshst:BuildAAIfNeeded("armmercury")
 	end
 	return unitName
@@ -221,75 +227,73 @@ end
 
 --SONAR-RADAR
 
-function TaskBuildHST:BuildRadar( taskQueueBehaviour, ai, builder )
+function TaskBuildHST:BuildRadar()
 	local unitName = self.ai.armyhst.DummyUnitName
-	if builder:CanBuild( "corrad" ) then
-		unitName = "corrad"
-	elseif builder:CanBuild( "armrad" ) then
-		unitName = "armrad"
-	end
+		if  self.ai.side == self.ai.armyhst.CORESideName then
+			unitName = "corrad"
+		else
+			unitName = "armrad"
+		end
 	return unitName
 end
 
-function TaskBuildHST:BuildFloatRadar( taskQueueBehaviour, ai, builder )
+function TaskBuildHST:BuildFloatRadar()
 	local unitName = self.ai.armyhst.DummyUnitName
-	if builder:CanBuild( "corfrad" ) then
+	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "corfrad"
-	elseif builder:CanBuild( "armfrad" ) then
+	else
 		unitName = "armfrad"
 	end
 	return unitName
 end
 
-function TaskBuildHST:BuildLvl1Jammer( taskQueueBehaviour, ai, builder )
-	if not self.ai.taskshst:IsJammerNeeded() then
-		return self.ai.armyhst.DummyUnitName
-	end
-	if builder:CanBuild( "corjamt" ) then
-		return "corjamt"
-	elseif builder:CanBuild( "armjamt" ) then
-		return "armjamt"
-	end
+function TaskBuildHST:BuildLvl1Jammer()
+	if not self.ai.taskshst:IsJammerNeeded() then return self.ai.armyhst.DummyUnitName end
+		if  self.ai.side == self.ai.armyhst.CORESideName then
+			return "corjamt"
+		else
+			return "armjamt"
+		end
 end
 
 --t1
 
-function TaskBuildHST:BuildAdvancedSonar( taskQueueBehaviour, ai, builder )
+function TaskBuildHST:BuildAdvancedSonar()
 	local unitName = self.ai.armyhst.DummyUnitName
-	if builder:CanBuild( "corason" ) then
+	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "corason"
-	elseif builder:CanBuild( "armason" ) then
+	else
 		unitName = "armason"
 	end
 	return unitName
 end
 
-function TaskBuildHST:BuildAdvancedRadar( taskQueueBehaviour, ai, builder )
+function TaskBuildHST:BuildAdvancedRadar()
 	local unitName = self.ai.armyhst.DummyUnitName
-	if builder:CanBuild( "corarad" ) then
+	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "corarad"
-	elseif builder:CanBuild( "armarad" ) then
+	else
 		unitName = "armarad"
 	end
 	return unitName
 end
 
-function TaskBuildHST:BuildLvl2Jammer( taskQueueBehaviour, ai, builder )
+function TaskBuildHST:BuildLvl2Jammer()
 	if not self.ai.taskshst:IsJammerNeeded() then return self.ai.armyhst.DummyUnitName end
-	if builder:CanBuild( "corshroud" ) then
+	if  self.ai.side == self.ai.armyhst.CORESideName then
 		return "corshroud"
-	elseif builder:CanBuild( "armveil" ) then
+	else
 		return "armveil"
 	end
 end
 
 --Anti Radar/Jammer/Minefield/ScoutSpam Weapon
 
-function TaskBuildHST:BuildAntiRadar( taskQueueBehaviour, ai, builder )
+function TaskBuildHST:BuildAntiRadar()
 	local unitName = self.ai.armyhst.DummyUnitName
-	if builder:CanBuild( "corjuno" ) then
+	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "corjuno"
-	elseif builder:CanBuild( "armjuno" ) then
+	else
 		unitName = "armjuno"
 	end
 	return unitName
@@ -297,12 +301,12 @@ end
 
 --NUKE
 
-function TaskBuildHST:BuildAntinuke( taskQueueBehaviour, ai, builder )
+function TaskBuildHST:BuildAntinuke()
 	if self.ai.taskshst:IsAntinukeNeeded() then
 		local unitName = self.ai.armyhst.DummyUnitName
-		if builder:CanBuild( "corfmd" ) then
+		if  self.ai.side == self.ai.armyhst.CORESideName then
 			unitName = "corfmd"
-		elseif builder:CanBuild( "armamd" ) then
+		else
 			unitName = "armamd"
 		end
 		return self.ai.taskshst:BuildWithLimitedNumber(unitName, 1)
@@ -310,27 +314,27 @@ function TaskBuildHST:BuildAntinuke( taskQueueBehaviour, ai, builder )
 	return self.ai.armyhst.DummyUnitName
 end
 
-function TaskBuildHST:BuildNuke( taskQueueBehaviour, ai, builder )
+function TaskBuildHST:BuildNuke()
 	local unitName = self.ai.armyhst.DummyUnitName
-	if builder:CanBuild( "corsilo" ) then
+	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "corsilo"
-	elseif builder:CanBuild( "armsilo" ) then
+	else
 		unitName = "armsilo"
 	end
 	return self.ai.taskshst:BuildWithLimitedNumber(unitName, 1)--ai.overviewhst.nukeLimit)
 end
 
-function TaskBuildHST:BuildNukeIfNeeded( taskQueueBehaviour, ai, builder )
+function TaskBuildHST:BuildNukeIfNeeded()
 	if self.ai.taskshst:IsNukeNeeded() then
-		return self:BuildNuke( taskQueueBehaviour, ai, builder )
+		return self:BuildNuke()
 	end
 end
 
-function TaskBuildHST:BuildTacticalNuke( taskQueueBehaviour, ai, builder )
+function TaskBuildHST:BuildTacticalNuke()
 	local unitName = self.ai.armyhst.DummyUnitName
-	if builder:CanBuild( "cortron" ) then
+	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "cortron"
-	elseif builder:CanBuild( "armemp" ) then
+	else
 		unitName = "armemp"
 	end
 	return self.ai.taskshst:BuildWithLimitedNumber(unitName, self.ai.overviewhst.tacticalNukeLimit)
@@ -338,41 +342,41 @@ end
 
 --PLASMA
 
-function TaskBuildHST:BuildLvl1Plasma( taskQueueBehaviour, ai, builder )
+function TaskBuildHST:BuildLvl1Plasma()
 	local unitName = self.ai.armyhst.DummyUnitName
-	if builder:CanBuild( "corpun" ) then
+	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "corpun"
-	elseif builder:CanBuild( "armguard" ) then
+	else
 		unitName = "armguard"
 	end
 	return unitName
 end
 
-function TaskBuildHST:BuildLvl2Plasma( taskQueueBehaviour, ai, builder )
+function TaskBuildHST:BuildLvl2Plasma()
 	local unitName = self.ai.armyhst.DummyUnitName
-	if builder:CanBuild( "cortoast" ) then
+	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "cortoast"
-	elseif builder:CanBuild( "armamb" ) then
+	else
 		unitName = "armamb"
 	end
 	return unitName
 end
 
-function TaskBuildHST:BuildHeavyPlasma( taskQueueBehaviour, ai, builder )
+function TaskBuildHST:BuildHeavyPlasma()
 	local unitName = self.ai.armyhst.DummyUnitName
-	if builder:CanBuild( "corint" ) then
+	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "corint"
-	elseif builder:CanBuild( "armbrtha" ) then
+	else
 		unitName = "armbrtha"
 	end
 	return self.ai.taskshst:BuildWithLimitedNumber(unitName, self.ai.overviewhst.heavyPlasmaLimit)
 end
 
-function TaskBuildHST:BuildLol( taskQueueBehaviour, ai, builder )
+function TaskBuildHST:BuildLol()
 	local unitName = self.ai.armyhst.DummyUnitName
-	if builder:CanBuild( "corbuzz" ) then
+	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "corbuzz"
-	elseif builder:CanBuild( "armvulc" ) then
+	else
 		unitName = "armvulc"
 	end
 	return unitName
@@ -380,12 +384,12 @@ end
 
 --plasma deflector
 
-function TaskBuildHST:BuildShield( taskQueueBehaviour, ai, builder )
+function TaskBuildHST:BuildShield()
 	if self.ai.taskshst:IsShieldNeeded() then
 		local unitName = self.ai.armyhst.DummyUnitName
-		if builder:CanBuild( "corgate" ) then
+		if  self.ai.side == self.ai.armyhst.CORESideName then
 			unitName = "corgate"
-		elseif builder:CanBuild( "armgate" ) then
+		else
 			unitName = "armgate"
 		end
 		return unitName
@@ -395,11 +399,11 @@ end
 
 --anti intrusion
 
-function TaskBuildHST:BuildAntiIntr( taskQueueBehaviour, ai, builder )
+function TaskBuildHST:BuildAntiIntr()
 	local unitName = self.ai.armyhst.DummyUnitName
-	if builder:CanBuild( "corsd" ) then
+	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "corsd"
-	elseif builder:CanBuild( "armsd" ) then
+	else
 		unitName = "armsd"
 	end
 	return unitName
@@ -407,11 +411,11 @@ end
 
 --targeting facility
 
-function TaskBuildHST:BuildTargeting( taskQueueBehaviour, ai, builder )
+function TaskBuildHST:BuildTargeting()
 	local unitName = self.ai.armyhst.DummyUnitName
-	if builder:CanBuild( "cortarg" ) then
+	if  self.ai.side == self.ai.armyhst.CORESideName then
 		unitName = "cortarg"
-	elseif builder:CanBuild( "armtarg" ) then
+	else
 		unitName = "armtarg"
 	end
 	return unitName
@@ -419,9 +423,11 @@ end
 
 --ARM emp launcer
 
-function TaskBuildHST:BuildEmpLauncer( taskQueueBehaviour, ai, builder )
+function TaskBuildHST:BuildEmpLauncer()
 	local unitName = self.ai.armyhst.DummyUnitName
-	if builder:CanBuild( "armEmp" ) then
+	if  self.ai.side == self.ai.armyhst.CORESideName then
+		unitName = self.ai.armyhst.DummyUnitName
+	else
 		unitName = "armEmp"
 	end
 	return unitName
@@ -429,13 +435,13 @@ end
 
 --Function of function
 
-function TaskBuildHST:CommanderAA( taskQueueBehaviour, ai, builder )
+function TaskBuildHST:CommanderAA(Builder)
 	local unitName = self.ai.armyhst.DummyUnitName
 	if self.ai.taskshst:IsAANeeded() then
-		if self.ai.maphst:IsUnderWater(builder:GetPosition()) then
-			unitName = self:BuildFloatLightAA( taskQueueBehaviour, ai, builder )
+		if self.ai.maphst:IsUnderWater(Builder.unit:Internal():GetPosition()) then
+			unitName = self:BuildFloatLightAA(Builder)
 		else
-			unitName = self:BuildLightAA( taskQueueBehaviour, ai, builder )
+			unitName = self:BuildLightAA(Builder)
 		end
 	end
 	return unitName

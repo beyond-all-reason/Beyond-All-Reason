@@ -15,8 +15,8 @@ function WardBST:Init()
 	self.mtype = self.ai.armyhst.unitTable[self.name].mtype
 	self.water = self.mtype == "sub" or self.mtype == "shp" or self.mtype == "amp" -- can be hurt by submerged weapons
 	self.isCommander = self.ai.armyhst.commanderList[self.name]
-	self.mobile = not self.ai.armyhst.unitTable[self.name].isBuilding and not self.ai.armyhst.nanoTurretList[self.name] -- for some reason nano turrets are not buildings
-	self.isScout = self.ai.armyhst.scoutList[self.name]
+	self.mobile = not self.ai.armyhst.unitTable[self.name].isBuilding and not self.ai.armyhst._nano_[self.name] -- for some reason nano turrets are not buildings
+	self.isScout = self.ai.armyhst.scouts[self.name]
 	if self.isCommander then
 		self.threshold = 0.2
 	elseif self.isScout then
@@ -88,13 +88,15 @@ function WardBST:Activate()
 	-- can we move at all?
 	if self.mobile then
 		-- run to the most defended base location
-		local salvation = self.ai.turtlehst:MostTurtled(self.unit:Internal(), nil, nil, true) or self:NearestCombat()
+		local salvation = self:NearestNano() or self.ai.turtlehst:MostTurtled(self.unit:Internal(), nil, nil, true) or self:NearestCombat()
+
 		self:EchoDebug(tostring(salvation), "salvation")
 		if salvation and self.ai.tool:Distance(self.unit:Internal():GetPosition(), salvation) > self.minFleeDistance then
-			self.unit:Internal():Move(self.ai, self.ai.tool:RandomAway(salvation,150))
+
+			self.unit:Internal():Move( self.ai.tool:RandomAway(salvation,150))
 			self.noSalvation = false
 			self.active = true
-			self:EchoDebug("unit ".. self.name .." runs away from danger")
+			self:EchoDebug("unit ".. self.name .." runs away from danger to ", salvation.x,salvation.z)
 		else
 			-- we're already as safe as we can get
 			self:EchoDebug("no salvation for", self.name)
@@ -103,6 +105,17 @@ function WardBST:Activate()
 		end
 	end
 end
+
+function WardBST:NearestNano()
+	local nanoHots = self.ai.nanohst:GetHotSpots()
+	if not nanoHots then return false end
+	for i = 1, #nanoHots do
+		local hotPos = nanoHots[i]
+		return hotPos
+
+	end
+end
+
 
 function WardBST:NearestCombat()
 	local best
@@ -115,7 +128,7 @@ function WardBST:NearestCombat()
 	for i,unit in pairs(ownUnits) do
 		local un = unit:Name()
 		if unit:ID() ~= fid and un ~= "corcom" and un ~= "armcom" and not self.ai.defendhst:IsDefendingMe(unit, self) then
-			if self.ai.armyhst.unitTable[un].isWeapon and (self.ai.armyhst.battleList[un] or self.ai.armyhst.breakthroughList[un]) then
+			if self.ai.armyhst.unitTable[un].isWeapon and (self.ai.armyhst.battles[un] or self.ai.armyhst.breaks[un]) then
 				local upos = unit:GetPosition()
 				if self.ai.targethst:IsSafePosition(upos, fleeing) and unit:GetHealth() > unit:GetMaxHealth() * 0.9 and self.ai.maphst:UnitCanGetToUnit(fleeing, unit) and not unit:IsBeingBuilt() then
 					local dist = self.ai.tool:Distance(fpos, upos) - self.ai.armyhst.unitTable[un].metalCost

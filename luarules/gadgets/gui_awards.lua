@@ -625,7 +625,7 @@ else
 			glTexRect(bx + w / 2 - math.floor(220*widgetScale), by + h - math.floor(75*widgetScale), bx + w / 2 + math.floor(120*widgetScale), by + h - math.floor(5*widgetScale))
 
 			font:Begin()
-			font:Print(texts.score, bx + w / 2 + math.floor(275*widgetScale), by + h - math.floor(65*widgetScale), 16*widgetScale, "o")
+			font:Print(texts.score, bx + w / 2 + math.floor(275*widgetScale), by + h - math.floor(65*widgetScale), 15*widgetScale, "o")
 			font:End()
 		end)
 	end
@@ -703,8 +703,8 @@ else
 				glTexture(pic)
 				glTexRect(bx + math.floor(12*widgetScale), by + h - offset - math.floor(70*widgetScale), bx + math.floor(108*widgetScale), by + h - offset + math.floor(25*widgetScale))
 
-				font:Print(colourNames(winnerID) .. winnerName, bx + math.floor(120*widgetScale), by + h - offset - math.floor(10*widgetScale), 20*widgetScale, "o")
-				font:Print(noteColour .. note, bx + math.floor(120*widgetScale), by + h - offset - math.floor(50*widgetScale), 16*widgetScale, "o")
+				font:Print(colourNames(winnerID) .. winnerName, bx + math.floor(120*widgetScale), by + h - offset - math.floor(10*widgetScale), 18*widgetScale, "o")
+				font:Print(noteColour .. note, bx + math.floor(120*widgetScale), by + h - offset - math.floor(50*widgetScale), 15*widgetScale, "o")
 			else
 				--if the cow is not awarded, we replace it with minor awards (just text)
 				local heightoffset = 0
