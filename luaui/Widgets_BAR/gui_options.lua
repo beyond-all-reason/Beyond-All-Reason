@@ -2953,7 +2953,7 @@ function init()
 				end
 			end,
 		  },
-		{ id = "sndvolmusic", group = "snd", basic = true, name = texts.option.sndvolmusic, type = "slider", min = 0, max = 100, step = 1, value = tonumber(Spring.GetConfigInt("snd_volmusic", 20) or 20),
+		{ id = "sndvolmusic", group = "snd", basic = true, name = widgetOptionColor.."   "..texts.option.sndvolmusic, type = "slider", min = 0, max = 100, step = 1, value = tonumber(Spring.GetConfigInt("snd_volmusic", 20) or 20),
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)

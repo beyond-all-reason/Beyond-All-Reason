@@ -588,7 +588,7 @@ return {
 			sndvolunitreply = 'unit reply',
 			sndairabsorption = 'Air absorption',
 			sndairabsorption_descr = 'Air absorption is basically a low-pass filter relative to distance between\nsound source and listener, so when in your base or zoomed out, front battles\nwill be heard as only low frequencies',
-			sndvolmusic = 'Music volume',
+			sndvolmusic = 'volume',
 			loadscreen_music = 'music starts on loadscreen',
 			loadscreen_music_descr = 'Music when displaying the startup load screen',
 			scav_messages = 'Scavenger written notifications',
