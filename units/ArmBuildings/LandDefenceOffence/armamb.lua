@@ -41,7 +41,7 @@ return {
 		customparams = {
 			model_author = "Beherith",
 			normaltex = "unittextures/Arm_normal.dds",
-			onoffname = "traj",
+			onoffname = "trajectory",
 			removewait = true,
 			subfolder = "armbuildings/landdefenceoffence",
 			techlevel = 2,

@@ -137,7 +137,7 @@ return {
 				landatairbase_tooltip = 'Land At Airbase',
 				stockpile = 'Stockpile %{stockpileStatus}',
 				stockpile_tooltip = '[ stockpiled number ] / [ target stockpile number ]',
-				-- state buttons
+				-- Stateful orders
 				['Fire at will'] = 'Fire at will',
 				['Hold fire'] = 'Hold fire',
 				['Return fire'] = 'Return fire',
@@ -178,6 +178,14 @@ return {
 				['UpgMex ON'] = 'Upgrade Mex',
 				['UpgMex OFF'] = 'Upgrade Mex',
 				automex_tooltip = 'When toggled: tech 1 metal extractors will automatically be upgraded to tech 2',
+				customOnOff = {
+					lowTrajectory = 'Low Trajectory',
+					highTrajectory = 'High Trajectory',
+					trajectory_tooltip = 'Switch artillery firing angle between low and high trajectory',
+					gaussCannon = 'Gauss Cannon',
+					heavyPlasma = 'Heavy Plasma',
+					gauss_tooltip = 'Switches between Gauss Cannon and Heavy Plasma Cannon'
+				}
 			},
 		}
 	}
