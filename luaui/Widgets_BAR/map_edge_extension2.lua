@@ -57,9 +57,9 @@ local terrainInstanceVBO = nil
 --------------------------------------------------------------------------------
 
 local function UpdateShader()
-	mapExtensionShader:ActivateWith(function()
+	mapExtensionShader:Activate()
 		mapExtensionShader:SetUniformAlways("shaderParams", gridSize, brightness, (curvature and 1.0) or 0.0, (fogEffect and 1.0) or 0.0)
-	end)
+	mapExtensionShader:Deactivate()
 end
 
 --------------------------------------------------------------------------------
@@ -321,6 +321,11 @@ function widget:Initialize()
 
 	if gl.GetMapRendering("voidWater") then
 		restoreMapBorder = false
+		widgetHandler:RemoveWidget(self)
+	end
+
+	if (Platform.gpuVendor == "AMD" and Platform.osFamily == "Linux") then -- AMD and AMDGPU on Linux crashes with new API
+		Spring.SendCommands("luaui enablewidget Map Edge Extension Old")
 		widgetHandler:RemoveWidget(self)
 	end
 
