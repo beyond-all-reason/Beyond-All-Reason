@@ -110,6 +110,7 @@ local pagestepped = false
 
 local RectRound = Spring.FlowUI.Draw.RectRound
 local UiElement = Spring.FlowUI.Draw.Element
+local UiSelectHighlight = Spring.FlowUI.Draw.SelectHighlight
 
 local chobbyInterface, widgetScale, dlistGuishader, lastStart, receivedTexts
 
@@ -541,9 +542,7 @@ function widget:DrawScreen()
 			yn = yn + 0.5
 			yp = yp - 0.5
 			gl.Blending(GL.SRC_ALPHA, GL.ONE)
-			RectRound(xn, yn, xp, yp, 2.5 * sizeMultiplier, 1, 1, 1, 1, { 0.15, 0.15, 0.15, 0.08 }, { 1, 1, 1, lmb and 0.15 or 0.08 })
-			RectRound(xn, yp - ((yp - yn) * 0.45), xp, yp, 2.5 * sizeMultiplier, 1, 1, 0, 0, { 1, 1, 1, lmb and 0.015 or 0.01 }, { 1, 1, 1, lmb and 0.15 or 0.08 })
-			RectRound(xn, yn, xp, yn + ((yp - yn) * 0.4), 2.5 * sizeMultiplier, 0, 0, 1, 1, { 1, 1, 1, lmb and 0.09 or 0.05 }, { 1, 1, 1, 0 })
+			UiSelectHighlight(math.floor(xn), math.floor(yn), math.floor(xp), math.floor(yp), nil, lmb and 0.18 or 0.11)
 			gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 		end
 	end

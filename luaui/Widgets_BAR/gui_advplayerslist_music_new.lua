@@ -66,7 +66,6 @@ local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale",1) or 1)
 local glossMult = 1 + (2-(ui_opacity*2))	-- increase gloss/highlight so when ui is transparant, you can still make out its boundaries and make it less flat
 
 local firstTime = false
-local wasPaused = false
 local gameOver = false
 local playing = (Spring.GetConfigInt('music', 1) == 1)
 
@@ -140,6 +139,9 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
+	shutdown = true
+	Spring.SetConfigInt('music', (playing and 1 or 0))
+
 	if WG['guishader'] then
 		WG['guishader'].RemoveDlist('music')
 	end
@@ -527,6 +529,8 @@ function widget:UnitDamaged(unitID,unitDefID,_,damage)
 end
 
 function widget:GameFrame(n)
+	if not playing then return end
+
 	--if n == 1 then
 		--Spring.StopSoundStream()
 	--end
