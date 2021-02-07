@@ -579,6 +579,8 @@ return {
 			tombstones_descr = 'Displays tombstones where commanders died',
 			snddevice = 'Sound device',
 			snddevice_descr = 'Select a sound device\ndefault means your default OS playback device\n\nNOTE: Changes require a restart',
+			soundtrack = 'Soundtrack',
+			soundtrack_descr = 'Select a soundtrack genre',
 			sndvolmaster = 'Master volume',
 			sndvolgeneral = 'general',
 			sndvolbattle = 'battle',

@@ -105,7 +105,7 @@ local GL_ONE = GL.ONE
 
 function widget:GetInfo()
 	return {
-		name	= "Music Player New",
+		name	= "AdvPlayersList Music Player (orchestral)",
 		desc	= "Plays music and offers volume controls",
 		author	= "Damgam",
 		date	= "2021",
@@ -236,9 +236,6 @@ local function createList()
 		trackname = text
 	end)
 	drawlist[4] = glCreateList( function()
-
-		---glColor(0,0,0,0.5)
-		--RectRound(left, bottom, right, top, 5.5*widgetScale)
 
 		local sliderWidth = math.floor((4.5*widgetScale)+0.5)
 		local sliderHeight = math.floor((4.5*widgetScale)+0.5)
