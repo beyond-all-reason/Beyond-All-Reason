@@ -5372,6 +5372,11 @@ end
 
 function widget:Initialize()
 
+	-- disable ambient player widget
+	if widgetHandler:IsWidgetKnown("Ambient Player") then
+		widgetHandler:DisableWidget("Ambient Player")
+	end
+
 	if WG['lang'] then
 		texts = WG['lang'].getText('options')
 	end
