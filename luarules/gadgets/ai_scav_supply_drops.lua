@@ -174,7 +174,7 @@ local QueuedSpawnsFrames = {}
 
 local CaptureProgressForLootboxes = {}
 
-local SpawnChance = 1
+local SpawnChance = 75
 local TryToSpawn = false
 
 
