@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, beam, nano;
+piece  base, track, arm1, arm2, turret, beam, door, nano ;
 
 static-var  Static_Var_1, statechg_DesiredState, statechg_StateChanging;
 
@@ -98,6 +98,9 @@ Create()
 	Static_Var_1 = 0;
 	call-script InitState();
 	start-script SmokeUnit();
+	hide nano;
+	turn arm1 to x-axis <-90> speed <180>;
+	turn arm2 to x-axis <90> speed <180>;
 }
 
 Activate()
@@ -112,18 +115,27 @@ Deactivate()
 
 StartBuilding(Func_Var_1)
 {
+	turn arm1 to x-axis <60> speed <180>;
+	turn arm2 to x-axis <30> speed <180>;
+	turn door to x-axis <90> speed <180>;
+	wait-for-turn arm1 around x-axis;
+	move beam to y-axis [5] speed [10];
 	Static_Var_1 = Func_Var_1;
 	start-script RequestState(0);
 }
 
 StopBuilding()
 {
+	move beam to y-axis [0] speed [10];
+	turn arm1 to x-axis <-90> speed <180>;
+	turn arm2 to x-axis <90> speed <180>;
+	turn door to x-axis <0> speed <180>;
 	start-script RequestState(1);
 }
 
 QueryNanoPiece(piecenum)
 {
-	piecenum = nano;
+	piecenum = beam;
 }
 
 TargetHeading(Func_Var_1)
@@ -143,7 +155,7 @@ Killed(severity, corpsetype)
 		corpsetype = 1 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode beam type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode nano type BITMAPONLY | NOHEATCLOUD;
+		explode track type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
@@ -151,7 +163,7 @@ Killed(severity, corpsetype)
 		corpsetype = 2 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode beam type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode nano type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode track type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
@@ -159,12 +171,12 @@ Killed(severity, corpsetype)
 		corpsetype = 3 ;
 		explode base type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode beam type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode nano type SMOKE | FALL | NOHEATCLOUD;
+		explode track type SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
 		explode base type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode beam type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode nano type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode track type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }
