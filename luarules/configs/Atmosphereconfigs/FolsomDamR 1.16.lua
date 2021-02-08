@@ -3,6 +3,32 @@ function gadget:GameFrame(n)
 		Spring.Echo("Loaded atmosphere CEGs config for map: " .. Game.mapName)
 	end
 
+-- SND windy locations
+	if n%960 == 0 then
+		SpawnCEGInPositionGround("noceg", 700, 500, 800, _, _, _, "windy", 0.5)
+	end
+
+	if n%870 == 100 then
+		SpawnCEGInPositionGround("noceg", 9400, 600, 800, _, _, _, "windy", 0.5)
+	end
+
+	if n%930 == 200 then
+		SpawnCEGInPositionGround("noceg", 660, 500, 6700, _, _, _, "windy", 0.5)
+	end
+
+	if n%900 == 300 then
+		SpawnCEGInPositionGround("noceg", 9700, 600, 6560, _, _, _, "windy", 0.5)
+	end
+
+-- SND dam hum
+	if n%830 == 0 then
+		SpawnCEGInPositionGround("noceg", 5115, 0, 4095, _, _, _, "humheavy", 0.95)
+	end
+
+	if n%830 == 120 then
+		SpawnCEGInPositionGround("noceg", 5115, 0, 3078, _, _, _, "humheavy", 0.95)
+	end
+
 -- common foggy cliffs	
 	if n%360 == 0 then
 		SpawnCEGInPositionGround("fogdirty", 9809, 0, 3968)
