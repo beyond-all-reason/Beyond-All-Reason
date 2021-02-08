@@ -7,6 +7,6 @@ cmdArray = {
 	trajectory = {
 		name		= "Low Trajectory/High Trajectory",
 		action		= "customOnOff.trajectory",
-		params		= { '1', "customOnOff.highTrajectory", "customOnOff.lowTrajectory" }
+		params		= { '0', "customOnOff.lowTrajectory", "customOnOff.highTrajectory" }
 	},
 }

@@ -194,14 +194,14 @@ return {
 			},
 		},
 		weapons = {
-			[2] = {
+			[1] = {
 				badtargetcategory = "VTOL",
 				def = "PLASMA",
 				maindir = "0 1 0",
 				maxangledif = 230,
 				onlytargetcategory = "SURFACE",
 			},
-			[1] = {
+			[2] = {
 				def = "PLASMA_HIGH",
 				onlytargetcategory = "SURFACE",
 			},
