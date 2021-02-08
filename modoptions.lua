@@ -747,6 +747,30 @@ local options={
 		step   = 0.1,
 	},
 
+	{
+		key    = 'experimentallosrange',
+		name   = 'Line of Sight Range Multiplier',
+		desc   = 'Line of Sight Range Multiplier',
+		type   ="number",
+		section = 'options_experimental',
+		def    = 1,
+		min    = 0.1,
+		max    = 5,
+		step   = 0.1,
+	},
+
+	{
+		key    = 'experimentalradarrange',
+		name   = 'Radar Range Multiplier',
+		desc   = 'Radar Range Multiplier',
+		type   ="number",
+		section = 'options_experimental',
+		def    = 1,
+		min    = 0.1,
+		max    = 5,
+		step   = 0.1,
+	},
+
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	-- Unused Options
