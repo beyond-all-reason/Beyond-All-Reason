@@ -14,16 +14,6 @@ end
 
 if (Game and Game.gameVersion and (string.find(Game.gameVersion, 'test') or string.find(Game.gameVersion, '$VERSION'))) then
 
-	local authorizedPlayers = {}
-	local powerusers = include("LuaRules/configs/powerusers.lua")
-	if powerusers then
-		for name, permissions in pairs(powerusers) do
-			if permissions.give then
-				authorizedPlayers[name] = true
-			end
-		end
-		powerusers = nil
-	end
 
 	-- usage: /luarules give 1 armcom 0
 
@@ -105,7 +95,7 @@ if (Game and Game.gameVersion and (string.find(Game.gameVersion, 'test') or stri
 
 			local playername, _, spec = Spring.GetPlayerInfo(playerID,false)
 			local authorized = false
-			if authorizedPlayers[playername] then
+			if _G.permissions.give[playername] then
 				authorized = true
 				givenSomethingAtFrame = Spring.GetGameFrame()
 			end
@@ -155,6 +145,7 @@ if (Game and Game.gameVersion and (string.find(Game.gameVersion, 'test') or stri
 
 	else	-- UNSYNCED
 
+		local authorizedPlayers = SYNCED.permissions.give
 
 		function gadget:Initialize()
 			gadgetHandler:AddChatAction(cmdname, RequestGive)
