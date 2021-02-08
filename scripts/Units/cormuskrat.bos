@@ -3,9 +3,11 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
+#define SIG_BUILD	2
+
 piece  base, track, arm1, arm2, turret, beam, door, nano ;
 
-static-var  Static_Var_1, statechg_DesiredState, statechg_StateChanging;
+static-var  Static_Var_1, statechg_DesiredState, statechg_StateChanging, notBuilding, bMoving, animSpeed;
 
 
 
@@ -49,23 +51,28 @@ HitByWeapon(anglex, anglez)
 
 Go()
 {
-	turn beam to y-axis Static_Var_1 speed <160.038462>;
-	wait-for-turn beam around y-axis;
+
 	set INBUILDSTANCE to 1;
+	turn arm1 to x-axis <60> speed <180>;
+	turn arm2 to x-axis <30> speed <180>;
+	wait-for-turn arm1 around x-axis;
+	turn door to x-axis <90> speed <180>;
+	move beam to y-axis [5] speed [10];
 }
 
 Stop()
 {
 	set INBUILDSTANCE to 0;
-	turn beam to y-axis <0.000000> speed <160.038462>;
-	wait-for-turn beam around y-axis;
+
+	move beam to y-axis [0] speed [10];
+	turn door to x-axis <0> speed <180>;
+	wait-for-turn door around x-axis;
+	turn arm1 to x-axis <-90> speed <180>;
+	turn arm2 to x-axis <105> speed <180>;
+	turn door to x-axis <0> speed <180>;
+
 }
 
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-}
 
 RequestState(requestedstate, currentstate)
 {
@@ -79,29 +86,39 @@ RequestState(requestedstate, currentstate)
 	statechg_DesiredState = requestedstate;
 	while( statechg_DesiredState != currentstate )
 	{
-		if( statechg_DesiredState == 0 )
-		{
-			call-script Go();
-			currentstate = 0;
-		}
-		if( statechg_DesiredState == 1 )
+		if( statechg_DesiredState )
 		{
 			call-script Stop();
+			notBuilding = 1;
 			currentstate = 1;
+		}
+		else
+		{
+			call-script Go();
+			notBuilding = 0;
+			currentstate = 0;
 		}
 	}
 	statechg_StateChanging = FALSE;
 }
 
+
 Create()
 {
-	Static_Var_1 = 0;
-	call-script InitState();
+	bMoving = FALSE;
+	notBuilding = 1;
+	statechg_DesiredState = TRUE;
+	statechg_StateChanging = FALSE;
+//	animSpeed = 4;
 	start-script SmokeUnit();
 	hide nano;
 	turn arm1 to x-axis <-90> speed <180>;
-	turn arm2 to x-axis <90> speed <180>;
+	turn arm2 to x-axis <105> speed <180>;
+	
+
+
 }
+
 
 Activate()
 {
@@ -113,25 +130,30 @@ Deactivate()
 	start-script RequestState(1);
 }
 
-StartBuilding(Func_Var_1)
+
+StartBuilding(heading, pitch)
 {
-	turn arm1 to x-axis <60> speed <180>;
-	turn arm2 to x-axis <30> speed <180>;
-	turn door to x-axis <90> speed <180>;
-	wait-for-turn arm1 around x-axis;
-	move beam to y-axis [5] speed [10];
-	Static_Var_1 = Func_Var_1;
 	start-script RequestState(0);
+	while( notBuilding ) sleep 100;
+	signal SIG_BUILD;
+	turn turret to z-axis heading speed <360.000000>;
+//	turn arm2 to x-axis heading speed <360.000000>;  up/down movement not working correct
+	wait-for-turn turret around z-axis;
+	set INBUILDSTANCE to 1;
 }
+
 
 StopBuilding()
 {
-	move beam to y-axis [0] speed [10];
-	turn arm1 to x-axis <-90> speed <180>;
-	turn arm2 to x-axis <90> speed <180>;
-	turn door to x-axis <0> speed <180>;
+	signal SIG_BUILD;	
+	set-signal-mask SIG_BUILD;
+	sleep 6000;
+	set-signal-mask 0;
+	signal SIG_BUILD;	
 	start-script RequestState(1);
 }
+
+
 
 QueryNanoPiece(piecenum)
 {
