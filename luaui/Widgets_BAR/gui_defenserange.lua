@@ -276,7 +276,7 @@ function widget:TextCommand(command)
 		end
 		if string.find(command, "air", nil, true) then
 			rangetype = 'air'
-		elseif  (string.find(command, "nuke", nil, true)) then
+		elseif string.find(command, "nuke", nil, true) then
 			rangetype = 'nuke'
 		end
 		if string.find(command, "+", nil, true) then
@@ -298,10 +298,9 @@ end
 
 function init()
 	local units = Spring.GetAllUnits()
-	for i=1,#units do
+	for i=1, #units do
 		local unitID = units[i]
-		local unitAllyTeam = Spring.GetUnitAllyTeam(unitID)
-		UnitDetected(unitID, unitAllyTeam == myAllyTeam)
+		UnitDetected(unitID, Spring.GetUnitAllyTeam(unitID) == myAllyTeam)
 	end
 end
 
@@ -370,7 +369,7 @@ end
 function UnitDetected( unitID, allyTeam, teamId )
 	local tag
 	local tabValue = defences[unitID]
-	if ( tabValue ~= nil and tabValue[1] ~= allyTeam) then
+	if tabValue ~= nil and tabValue[1] ~= allyTeam then
 		--unit already known
 		return
 	end
@@ -385,12 +384,12 @@ function UnitDetected( unitID, allyTeam, teamId )
 	local weaponDef
 
 	if unitRadius[unitDefID] and unitRadius[unitDefID] < 100 then
-		if ( not unitNumWeapons[unitDefID] ) then
+		if not unitNumWeapons[unitDefID] then
 			--not interesting, has no weapons and no radar coverage, lame
 			return
 		end
 
-		if ( canMove[unitDefID] ) then
+		if canMove[unitDefID] then
 			--not interesting, it moves
 			return
 		end
@@ -400,7 +399,7 @@ function UnitDetected( unitID, allyTeam, teamId )
 	local foundWeapons = {}
 	if unitNumWeapons[unitDefID] then
 		for i=1, unitNumWeapons[unitDefID] do
-			if ( currentModConfig["unitList"][unitName[unitDefID]] == nil or currentModConfig["unitList"][unitName[unitDefID]]["weapons"][i] == nil ) then
+			if currentModConfig["unitList"][unitName[unitDefID]] == nil or currentModConfig["unitList"][unitName[unitDefID]]["weapons"][i] == nil then
 				printDebug("Weapon skipped! Name: "..  unitName[unitDefID] .. " weaponidx: " .. i )
 			else
 				--get definition from weapon table
@@ -484,20 +483,20 @@ function GetColorsByTypeAndDps( dps, type, isEnemy )
 	end
 
   --get standard colors
-	if ( type == 1 or type == 4 ) then
-	  if ( isEnemy ) then
+	if type == 1 or type == 4 then
+	  if isEnemy then
 			color1 = GetColorByDps( dps, true, "ground" )
 		else
 			color1 = GetColorByDps( dps, false, "ground")
 		end
-	elseif ( type == 2 ) then
-		if ( isEnemy ) then
+	elseif type == 2 then
+		if isEnemy then
 			color1 = GetColorByDps( dps, true, "air" )
 		else
 			color1 = GetColorByDps( dps, false, "air")
 		end
-	elseif ( type == 3 ) then
-		if ( isEnemy ) then
+	elseif type == 3 then
+		if isEnemy then
 			color1 = colorConfig["enemy"]["nuke"]
 		else
 			color1 = colorConfig["ally"]["nuke"]
@@ -511,7 +510,7 @@ end
 function GetColorByDps( dps, isEnemy, typeStr )
 	local color = { 0.0, 0.0, 0.0 }
 	local team = "ally"
-	if ( isEnemy ) then team = "enemy" end
+	if isEnemy then team = "enemy" end
 
 	printDebug("GetColor typeStr : " .. typeStr  .. "Team: " .. team )
 	--printDebug( colorConfig[team][typeStr]["min"] )
@@ -540,7 +539,7 @@ end
 
 function CheckSpecState()
 	local playerID = spGetMyPlayerID()
-	if (select(3,spGetPlayerInfo(playerID,false)) == true ) then
+	if select(3,spGetPlayerInfo(playerID,false)) == true then
 		widgetHandler:RemoveWidget(self)
 		return false
 	end
@@ -550,10 +549,10 @@ end
 
 function widget:PlayerChanged()
 	if myAllyTeam ~= Spring.GetMyAllyTeamID() or fullview ~= select(2, spGetSpectatingState()) then
+		myAllyTeam = Spring.GetMyAllyTeamID()
+		spec, fullview = spGetSpectatingState()
 		init()
 	end
-	myAllyTeam = Spring.GetMyAllyTeamID()
-	spec, fullview = spGetSpectatingState()
 end
 
 function widget:Update()
@@ -568,7 +567,7 @@ function widget:Update()
 	local timef = spGetGameSeconds()
 	local time = floor(timef)
 
-	if ( (timef - updateTimes["line"]) > 0.2 and timef ~= updateTimes["line"] ) then
+	if (timef - updateTimes["line"]) > 0.2 and timef ~= updateTimes["line"] then
 		updateTimes["line"] = timef
 
 		--adjust line width and alpha by camera height (old code, kept for refence)
@@ -600,7 +599,7 @@ function widget:Update()
 
 
 	-- update timers once every <updateInt> seconds
-	if (time % updateTimes["removeInterval"] == 0 and time ~= updateTimes["remove"] ) then
+	if time % updateTimes["removeInterval"] == 0 and time ~= updateTimes["remove"] then
 		updateTimes["remove"] = time
 		--do update stuff:
 
@@ -678,7 +677,7 @@ function GetRange2DCannon( range, yDiff, projectileSpeed, rangeFactor, myGravity
 	end
 
 	local root1 = speed2dSq + 2 * gravity * yDiff
-	if ( root1 < 0.0 ) then
+	if root1 < 0.0 then
 		printDebug("Cann return 0")
 		return 0.0
 	else
@@ -698,7 +697,7 @@ function CalcBallisticCircle( x, y, z, range, weaponDef )
 	if weaponDef.type == "Cannon" then
 		rangeFunc = GetRange2DCannon
 		rangeFactor = range / GetRange2DCannon( range, 0.0, weaponDef.projectilespeed, rangeFactor, nil, weaponDef.heightBoostFactor )
-		if ( rangeFactor > 1.0 or rangeFactor <= 0.0 ) then
+		if rangeFactor > 1.0 or rangeFactor <= 0.0 then
 			rangeFactor = 1.0
 		end
 	end
@@ -841,7 +840,7 @@ function DrawRanges()
 
 				--printDebug( "Drawing defence: range: " .. range .. " Color: " .. color[1] .. "/" .. color[2] .. "/" .. color[3] .. " a:" .. lineConfig["alphaValue"] )
 
-				if ( weapon["type"] == 4 )
+				if weapon["type"] == 4
 					and
 					( ( def["allyState"] == true and buttonConfig["enabled"]["enemy"]["air"] ) or ( def["allyState"] == false and buttonConfig["enabled"]["ally"]["air"] ) )
 					and
@@ -920,7 +919,7 @@ function widget:GetConfigData()
 end
 
 function widget:SetConfigData(data)
-	if(data ~= nil) then
+	if data ~= nil then
 		if data["enabled"] ~= nil then
 			buttonConfig["enabled"] = data["enabled"]
 			printDebug("enabled config found...")

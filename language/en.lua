@@ -450,7 +450,7 @@ return {
 			featuredrawdist = 'Feature draw distance',
 			featuredrawdist_descr = 'Features (trees, stones, wreckage) stop being displayed at this distance',
 			particles = 'Particle limit',
-			particles_descr = 'Particle limit used for explosions, smoke, fire and missiletrails\n\nBeware, a too low value can result in the particle bugdget being reached,\nand effects no longer show up',
+			particles_descr = 'Particle limit used for explosions, smoke, fire and missiletrails\n\nBeware, a too low value can result in the particle budget being reached,\nand effects no longer show up',
 			lighteffects = 'Lights',
 			lighteffects_descr = 'Adds lights to projectiles, lasers and explosions.\n\nRequires shaders.',
 			lighteffects_life = 'lifetime',
