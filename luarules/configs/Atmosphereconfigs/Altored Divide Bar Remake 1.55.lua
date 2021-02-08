@@ -3,6 +3,40 @@ function gadget:GameFrame(n)
 		Spring.Echo("Loaded atmosphere CEGs config for map: " .. Game.mapName)
 	end
 
+-- SND windy locations
+	if n%850 == 0 then
+		SpawnCEGInPositionGround("noceg", 660, 500, 413, _, _, _, "windy", 0.5)
+	end
+
+	if n%870 == 30 then
+		SpawnCEGInPositionGround("noceg", 7400, 600, 350, _, _, _, "windy", 0.5)
+	end
+
+	if n%850 == 60 then
+		SpawnCEGInPositionGround("noceg", 470, 500, 7900, _, _, _, "windy", 0.5)
+	end
+
+	if n%870 == 90 then
+		SpawnCEGInPositionGround("noceg", 7400, 600, 7800, _, _, _, "windy", 0.5)
+	end
+
+-- SND geos
+	if n%560 == 0 then
+		SpawnCEGInPositionGround("noceg", 2525, 300, 5383, _, _, _, "geovent", 0.75)
+	end
+
+	if n%560 == 30 then
+		SpawnCEGInPositionGround("noceg", 4992, 300, 3885, _, _, _, "geovent", 0.75)
+	end
+
+	if n%560 == 60 then
+		SpawnCEGInPositionGround("noceg", 5420, 300, 2693, _, _, _, "geovent", 0.75)
+	end
+
+	if n%560 == 15 then
+		SpawnCEGInPositionGround("noceg", 2513, 300, 3967, _, _, _, "geovent", 0.75)
+	end
+
 -- ## Atmosphere Functions
 -- SendToUnsynced("MapAtmosphereConfigSetSun", red&green, transitionspeed, blue)
 -- SendToUnsynced("MapAtmosphereConfigSetFog", targetfogstart, targetfogend, transitionspeedfogstart, transitionspeedfogend)
