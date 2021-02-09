@@ -59,14 +59,19 @@ Create()
 	start-script SmokeUnit();
 }
 
+RequestState(requestedState)
+{
+	trajectoryMode = requestedstate;
+}
+
 Activate()
 {
-	trajectoryMode = HIGH_TRAJECTORY;
+	start-script RequestState(HIGH_TRAJECTORY);
 }
 
 Deactivate()
 {
-	trajectoryMode = LOW_TRAJECTORY;
+	start-script RequestState(LOW_TRAJECTORY);
 }
 
 RestoreAfterDelay()
