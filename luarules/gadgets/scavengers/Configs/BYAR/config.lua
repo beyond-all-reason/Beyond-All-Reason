@@ -9,7 +9,7 @@ Spring.Echo("[Scavengers] Config initialized")
 	local ScavUnitCountModoption = tonumber(Spring.GetModOptions().scavunitcountmultiplier) or 1
 	local ScavUnitSpawnFrequencyModoption = tonumber(Spring.GetModOptions().scavunitspawnmultiplier) or 1
 	local ScavUnitVeterancyModoption = tonumber(Spring.GetModOptions().scavunitspawnmultiplier) or 1
-	local ScavGracePeriodModoption = tonumber(Spring.GetModOptions().scavgraceperiod) or 1
+	local ScavGracePeriodModoption = tonumber(Spring.GetModOptions().scavgraceperiod) or 5
 
 
 
