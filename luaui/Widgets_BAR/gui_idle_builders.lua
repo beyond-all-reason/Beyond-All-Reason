@@ -28,6 +28,8 @@ local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity", 0.6) or 0.66)
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
 
 local ICON_SIZE = iconsize * (1 + (ui_scale - 1) / 1.5)
+ICON_SIZE = math.floor(ICON_SIZE/2) * 2	-- make sure it's divisible by 2
+
 local texts = {
 	idle = 'Idle',
 }
@@ -145,6 +147,7 @@ local function init()
 	sizeMultiplier = (((vsy) / 750) * 1) * (1 + (ui_scale - 1) / 1.5)
 
 	ICON_SIZE = iconsize * sizeMultiplier
+	ICON_SIZE = math.floor(ICON_SIZE/2) * 2	-- make sure it's divisible by 2
 
 	bgcornerSize = cornerSize * (sizeMultiplier - 1)
 	noOfIcons = 0   -- this fixes positioning when resolution change
