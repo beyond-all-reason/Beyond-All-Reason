@@ -5383,12 +5383,12 @@ end
 
 function widget:Initialize()
 
-	-- initialize new engine icons first time
-	if not newEngineIconsInitialized and engineVersion >= 104011747 then
-		Spring.SendCommands("iconsasui 1")
-		Spring.SetConfigInt("UnitIconsAsUI", 1)
-		newEngineIconsInitialized = true
-	end
+	-- UNCOMMENT WHEN we want everybody to switch to new icon rendering
+	--if not newEngineIconsInitialized and engineVersion >= 104011747 then		-- initialize new engine icons first time
+	--	Spring.SendCommands("iconsasui 1")
+	--	Spring.SetConfigInt("UnitIconsAsUI", 1)
+	--	newEngineIconsInitialized = true
+	--end
 
 	-- disable ambient player widget
 	if widgetHandler:IsWidgetKnown("Ambient Player") then
