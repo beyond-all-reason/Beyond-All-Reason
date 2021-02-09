@@ -5,7 +5,7 @@
 
 piece  flare1, flare2, base, turret, barrel1, barrel2, sleeves;
 
-static-var  aiming, nextBarrel, trajectoryMode, inStateChange;
+static-var  aiming, nextBarrel, trajectoryMode;
 
 #define SIGNAL_AIM			2
 #define LOW_TRAJECTORY		0
@@ -60,21 +60,18 @@ Create()
 	dont-shade sleeves;
 	dont-shade turret;
 	nextBarrel = 0;
-	trajectoryMode = LOW_TRAJECTORY;
 	aiming = FALSE;
-	inStateChange = FALSE;
 	start-script SmokeUnit();
 }
 
-
 Activate()
 {
-	start-script RequestState(LOW_TRAJECTORY);
+	start-script RequestState(HIGH_TRAJECTORY);
 }
 
 Deactivate()
 {
-	start-script RequestState(HIGH_TRAJECTORY);
+	start-script RequestState(LOW_TRAJECTORY);
 }
 
 RestoreAfterDelay()
@@ -103,7 +100,7 @@ AimPrimary(heading, pitch)
 {
 	signal SIGNAL_AIM;
 
-	if( aiming == TRUE OR trajectoryMode == LOW_TRAJECTORY )
+	if( aiming == TRUE OR trajectoryMode != LOW_TRAJECTORY )
 	{
 		return(0);
 	}
@@ -116,7 +113,7 @@ AimSecondary(heading, pitch)
 {
 	signal SIGNAL_AIM;
 
-	if( aiming == TRUE OR trajectoryMode == HIGH_TRAJECTORY )
+	if( aiming == TRUE OR trajectoryMode != HIGH_TRAJECTORY )
 	{
 		return(0);
 	}
