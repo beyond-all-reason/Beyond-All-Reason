@@ -1,7 +1,7 @@
 return {
 	cortoast = {
 		acceleration = 0,
-		activatewhenbuilt = true,
+		activatewhenbuilt = false,
 		brakerate = 0,
 		buildangle = 8192,
 		buildcostenergy = 17000,
