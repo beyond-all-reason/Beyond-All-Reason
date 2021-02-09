@@ -516,7 +516,7 @@ function widget:DrawScreen()
 				if lb then
 					DrawIconQuad(icon, { 1, 1, 1, 0.85 }, 1.1)
 				elseif rb then
-					DrawIconQuad(icon, { 0.3, 0.6, 0, 0.7 }, 1.1)
+					DrawIconQuad(icon, { 0.4, 0.6, 0, 0.75 }, 1.1)
 				else
 					DrawIconQuad(icon, { 0, 0, 0.1, 0.45 }, 1.1)
 				end

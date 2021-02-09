@@ -434,7 +434,7 @@ return {
 			grounddetail = 'Ground detail',
 			grounddetail_descr = 'Set how detailed the map mesh/model is',
 			uniticonsasui = 'Draw icons on top of unit models',
-			uniticonsasui_descr = 'Disable to return to the old engine method (...of switching to models to icons)\n\nNOTE: reduced performance when enabled (due to more unit model rendering)',
+			uniticonsasui_descr = 'Disable to return to the old engine method\n\nNOTE: reduced performance when enabled\n(due to more unit model rendering)',
 			disticon = 'Strategic icon distance',
 			disticon_descr = 'Set a lower value to get better performance',
 			iconscale = 'scale',
