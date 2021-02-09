@@ -139,7 +139,7 @@ FirePrimary()
 
 AimFromPrimary(piecenum)
 {
-	piecenum = turret;
+	piecenum = gun;
 	return (0);
 }
 

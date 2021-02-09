@@ -181,7 +181,7 @@ QueryPrimary(piecenum)
 
 AimFromPrimary(piecenum)
 {
-	piecenum = turret;
+	piecenum = barrel;
 }
 
 SweetSpot(piecenum)
