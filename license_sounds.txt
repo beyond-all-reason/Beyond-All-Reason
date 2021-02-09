@@ -1,0 +1,17 @@
+Sound effects made for Beyond All Reason. By IceXuick, all rights reserved (CC BY NC ND)
+Check https://github.com/beyond-all-reason/Beyond-All-Reason/tree/master/sounds for a complete list and modification dates.
+
+/sounds/atmos (Water Sound effects obtained from https://www.zapsplat.com)
+/sounds/atmoslocal
+/sounds/bombs
+/sounds/chickens
+/sounds/replies
+/sounds/ui
+/sounds/uw
+/sounds/weapons
+/sounds/voice
+
+For the above mentioned folder the CC BY NC ND applies to all new sound effects created after january 2019.
+For the "chicken" sound effects created after july 2020
+
+/sounds/chickens

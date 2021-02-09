@@ -17,15 +17,15 @@ function gadget:GameFrame(n)
 	end
 
 	if n%860 == 20 then
-		SpawnCEGInPositionGround("noceg", 3200, 0, 3400, _, _, _, "oceangentlesurf", 0.7)
+		SpawnCEGInPositionGround("noceg", 3200, 0, 3400, _, _, _, "oceangentlesurf", 0.9)
 	end
 
 	if n%860 == 50 then
-		SpawnCEGInPositionGround("noceg", 5100, 0, 1400, _, _, _, "oceangentlesurf", 0.7)
+		SpawnCEGInPositionGround("noceg", 5100, 0, 1400, _, _, _, "oceangentlesurf", 0.9)
 	end
 
 	if n%860 == 80 then
-		SpawnCEGInPositionGround("noceg", 4130, 0, 5000, _, _, _, "oceangentlesurf", 0.7)
+		SpawnCEGInPositionGround("noceg", 4130, 0, 5000, _, _, _, "oceangentlesurf", 0.9)
 	end
 
 -- common foggy cliffs	
