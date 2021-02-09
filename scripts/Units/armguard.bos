@@ -38,11 +38,6 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 	}
 }
 
-RequestState(requestedstate)
-{
-	trajectoryMode = requestedstate;
-}
-
 Create()
 {
 	hide flare1;
@@ -66,12 +61,12 @@ Create()
 
 Activate()
 {
-	start-script RequestState(HIGH_TRAJECTORY);
+	trajectoryMode = HIGH_TRAJECTORY;
 }
 
 Deactivate()
 {
-	start-script RequestState(LOW_TRAJECTORY);
+	trajectoryMode = LOW_TRAJECTORY;
 }
 
 RestoreAfterDelay()
