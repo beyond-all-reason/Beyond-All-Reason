@@ -6,7 +6,7 @@
 --    List of LuaAIs supported by the mod.
 --
 --
-	
+
 return {
   {
     name = 'SimpleAI',
@@ -23,10 +23,6 @@ return {
   {
     name = 'ScavengersAI',
     desc = 'Infinite Games'
-  },
-  {
-    name = 'DAI',
-    desc = 'Damgams - Shard AI'
   },
   {
     name = 'STAI',
