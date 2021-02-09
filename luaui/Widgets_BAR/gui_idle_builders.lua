@@ -17,7 +17,7 @@ local vsx, vsy = Spring.GetViewGeometry()
 
 local enabledAsSpec = false
 
-local MAX_ICONS = 12
+local MAX_ICONS = 14
 local iconsize = 35
 local CONDENSE = true -- show one icon for all builders of same type
 local POSITION_X = 0.5 -- horizontal centre of screen
@@ -359,14 +359,14 @@ function widget:GetConfigData(data)
 	return {
 		position_x = POSITION_X,
 		pposition_y = POSITION_Y,
-		max_icons = MAX_ICONS
+		--max_icons = MAX_ICONS
 	}
 end
 
 function widget:SetConfigData(data)
 	POSITION_X = data.position_x or POSITION_X
 	POSITION_Y = data.pposition_y or POSITION_Y
-	MAX_ICONS = data.max_icons or MAX_ICONS
+	--MAX_ICONS = data.max_icons or MAX_ICONS
 end
 
 local sec = 0

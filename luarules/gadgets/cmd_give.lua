@@ -21,7 +21,13 @@ if (Game and Game.gameVersion and (string.find(Game.gameVersion, 'test') or stri
 	local PACKET_HEADER = "$g$"
 	local PACKET_HEADER_LENGTH = string.len(PACKET_HEADER)
 
-	local isSilentUnitGift = {armstone=true, corstone=true, chip=true, dice=true, xmasball=true, xmasball2=true}
+	local isSilentUnitGift = {}
+	for udefID,def in ipairs(UnitDefs) do
+		if def.modCategories['object'] or (def.customParams and def.customParams.objectify) then
+			isSilentUnitGift[udefID] = true
+		end
+	end
+
 	local givenSomethingAtFrame = -1	-- used to fix double spawns when multiple authorized users are present
 
 	if gadgetHandler:IsSyncedCode() then
@@ -76,7 +82,7 @@ if (Game and Game.gameVersion and (string.find(Game.gameVersion, 'test') or stri
 					end
 				end
 				if succesfullyCreated > 0 then
-					if isSilentUnitGift[unitName] == nil then
+					if isSilentUnitGift[unitDefID] == nil then
 						Spring.SendMessageToTeam(teamID, "You have been given: "..succesfullyCreated.." "..unitName)
 					end
 					Spring.SendMessageToPlayer(playerID, "You have given team "..teamID..": "..succesfullyCreated.." "..unitName)

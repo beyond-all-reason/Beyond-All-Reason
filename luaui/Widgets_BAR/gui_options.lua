@@ -462,6 +462,8 @@ local texts = {        -- fallback (if you want to change this, also update: lan
 	},
 }
 
+local newEngineIconsInitialized = false
+
 local ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.6)
 
 local advSettings = false
@@ -3540,6 +3542,15 @@ function init()
 		{ id = "label_ui_game_spacer", group = "ui", basic = true },
 
 
+		  { id = "uniticonsasui", group = "ui", name = texts.option.uniticonsasui, type = "bool", value = (Spring.GetConfigInt("UnitIconsAsUI", 0) == 1), description = texts.option.uniticonsasui_descr,
+			onload = function(i)
+			end,
+			onchange = function(i, value)
+				Spring.SendCommands("iconsasui "..(value and 1 or 0))
+				Spring.SetConfigInt("UnitIconsAsUI", (value and 1 or 0))
+				init()
+			end,
+		  },
 
 		{ id = "disticon", group = "ui", basic = true, name = texts.option.disticon, type = "slider", min = 100, max = 700, step = 10, value = tonumber(Spring.GetConfigInt("UnitIconDist", 1) or 160), description = texts.option.disticon_descr,
 		  onload = function(i)
@@ -4764,19 +4775,18 @@ function init()
 	}
 
 	-- force new unit icons
-	if engineVersion >= 104011747 then
-		Spring.SendCommands("iconsasui 1")
-		Spring.SetConfigInt("UnitIconsAsUI", 1)
-		-- disable old icon options
-		options[getOptionByID('disticon')] = nil
-		options[getOptionByID('iconscale')] = nil
-	else
+	if Spring.GetConfigInt("UnitIconsAsUI", 0) == 0 then
+		if engineVersion < 104011747 then
+			options[getOptionByID('uniticonsasui')] = nil
+		end
 		-- disable new icon options
 		options[getOptionByID('uniticon_scaleui')] = nil
 		options[getOptionByID('uniticon_fadestart')] = nil
 		options[getOptionByID('uniticon_fadevanish')] = nil
 		options[getOptionByID('uniticon_hidewithui')] = nil
-
+	else
+		options[getOptionByID('disticon')] = nil
+		options[getOptionByID('iconscale')] = nil
 	end
 
 	-- air absorption does nothing on 32 bit engine version
@@ -5373,6 +5383,13 @@ end
 
 function widget:Initialize()
 
+	-- initialize new engine icons first time
+	if not newEngineIconsInitialized and engineVersion >= 104011747 then
+		Spring.SendCommands("iconsasui 1")
+		Spring.SetConfigInt("UnitIconsAsUI", 1)
+		newEngineIconsInitialized = true
+	end
+
 	-- disable ambient player widget
 	if widgetHandler:IsWidgetKnown("Ambient Player") then
 		widgetHandler:DisableWidget("Ambient Player")
@@ -5670,6 +5687,7 @@ end
 
 function widget:GetConfigData(data)
 	return {
+		newEngineInitialized = newEngineInitialized,
 		vsyncLevel = vsyncLevel,
 		vsyncOnlyForSpec = vsyncOnlyForSpec,
 		vsyncEnabled = vsyncEnabled,
@@ -5712,6 +5730,11 @@ function widget:GetConfigData(data)
 end
 
 function widget:SetConfigData(data)
+
+	if data.newEngineIconsInitialized then
+		newEngineIconsInitialized = data.newEngineIconsInitialized
+	end
+
 	if data.vsyncEnabled ~= nil then
 		vsyncEnabled = data.vsyncEnabled
 	end

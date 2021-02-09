@@ -433,6 +433,8 @@ return {
 			decals_descr = 'Set how long map decals will stay.\n\nDecals are ground scars, footsteps/tracks and shading under buildings',
 			grounddetail = 'Ground detail',
 			grounddetail_descr = 'Set how detailed the map mesh/model is',
+			uniticonsasui = 'Draw icons on top of unit models',
+			uniticonsasui_descr = 'Disable to return to the old engine method (...of switching to models to icons)',
 			disticon = 'Strategic icon distance',
 			disticon_descr = 'Set a lower value to get better performance',
 			iconscale = 'scale',
