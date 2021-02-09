@@ -27,11 +27,4 @@ return {
 		playerdata = true,
 		waterlevel = true,
 	},
-	--['Player'] = {
-	--	give = true,
-	--	undo = true,
-	--	devhelpers = true,
-	--	playerdata = true,
-	--	waterlevel = true,
-	--},
 }

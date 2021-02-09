@@ -150,7 +150,8 @@ local texts = {        -- fallback (if you want to change this, also update: lan
 		tombstones_descr = 'Displays tombstones where commanders died',
 		snddevice = 'Sound device',
 		snddevice_descr = 'Select a sound device\ndefault means your default OS playback device\n\nNOTE: Changes require a restart',
-		sndvolmaster = 'Master volume',
+		volume = 'Volume',
+		sndvolmaster = 'master',
 		sndvolgeneral = 'general',
 		sndvolbattle = 'battle',
 		sndvolui = 'interface',
@@ -2891,7 +2892,7 @@ function init()
 			end,
 		  },
 
-		{ id = "sndvolmaster", group = "snd", basic = true, name = texts.option.sndvolmaster, type = "slider", min = 0, max = 200, step = 2, value = tonumber(Spring.GetConfigInt("snd_volmaster", 1) or 100),
+		{ id = "sndvolmaster", group = "snd", basic = true, name = texts.option.volume..widgetOptionColor .. "  "..texts.option.sndvolmaster, type = "slider", min = 0, max = 200, step = 2, value = tonumber(Spring.GetConfigInt("snd_volmaster", 1) or 100),
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)

@@ -21,12 +21,25 @@ function gadget:GameFrame(n)
 	end
 
 -- SND dam hum
-	if n%830 == 0 then
+	if n%820 == 0 then
 		SpawnCEGInPositionGround("noceg", 5115, 0, 4095, _, _, _, "humheavy", 0.95)
 	end
 
-	if n%830 == 120 then
+	if n%840 == 120 then
 		SpawnCEGInPositionGround("noceg", 5115, 0, 3078, _, _, _, "humheavy", 0.95)
+	end
+
+-- SND water ocean gentle
+	if n%830 == 0 then
+		SpawnCEGInPositionGround("noceg", 6400, 0, 8500, _, _, _, "oceangentlesurf", 0.70)
+	end
+
+	if n%830 == 300 then
+		SpawnCEGInPositionGround("noceg", 3971, 0, 5586, _, _, _, "oceangentlesurf", 0.70)
+	end
+
+	if n%860 == 35 then
+		SpawnCEGInPositionGround("noceg", 5101, 60, 1455, _, _, _, "tropicalbeach", 0.9)
 	end
 
 -- common foggy cliffs	

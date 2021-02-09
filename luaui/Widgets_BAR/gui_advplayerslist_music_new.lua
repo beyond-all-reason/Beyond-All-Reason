@@ -15,6 +15,7 @@ local victoryTracks = VFS.DirList(musicDir..'victory', '*.ogg')
 local defeatTracks = VFS.DirList(musicDir..'defeat', '*.ogg')
 if #victoryTracks == 0 then victoryTracks = introTracks end
 if #defeatTracks == 0 then defeatTracks = introTracks end
+local myAllyTeam = Spring.GetMyAllyTeamID()
 
 local currentTrackList = introTracks
 
@@ -66,7 +67,6 @@ local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale",1) or 1)
 local glossMult = 1 + (2-(ui_opacity*2))	-- increase gloss/highlight so when ui is transparant, you can still make out its boundaries and make it less flat
 
 local firstTime = false
-local gameOver = false
 local playing = (Spring.GetConfigInt('music', 1) == 1)
 
 local borderPaddingRight, borderPaddingLeft, trackname, font, draggingSlider, prevStreamStartTime, force, doCreateList, chobbyInterface
@@ -584,16 +584,28 @@ end
 
 function widget:GameOver(winningAllyTeams)
 	gameOver = true
-	local myTeamID = Spring.GetMyTeamID()
-	local myTeamUnits = Spring.GetTeamUnits(myTeamID)
-	if #myTeamUnits > 0 then
-		VictoryMusic = true
-	elseif #myTeamUnits == 0 then
-		VictoryMusic = false
+	
+	--local myTeamID = Spring.GetMyTeamID()
+	--local myTeamUnits = Spring.GetTeamUnits(myTeamID)
+
+	VictoryMusic = false
+	
+	for i = 1,#winningAllyTeams do
+		
+		local winningAllyTeam = winningAllyTeams[i]
+		if winningAllyTeam == myAllyTeam then
+			VictoryMusic = true
+			break
+		end
+		
+		--if #myTeamUnits > 0  then
+		--	VictoryMusic = true
+		--elseif #myTeamUnits == 0 then
+		--	VictoryMusic = false
+		--end
+
 	end
 end
-
-
 
 function widget:GetConfigData(data)
 	return {curTrack = curTrack}

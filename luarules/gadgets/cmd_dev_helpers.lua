@@ -17,17 +17,6 @@ function gadget:GetInfo()
 	}
 end
 
-local authorizedPlayers = {}
-local powerusers = include("LuaRules/configs/powerusers.lua")
-if powerusers then
-	for name, permissions in pairs(powerusers) do
-		if permissions.devhelpers then
-			authorizedPlayers[name] = true
-		end
-	end
-	powerusers = nil
-end
-
 local PACKET_HEADER = "$dev$"
 local PACKET_HEADER_LENGTH = string.len(PACKET_HEADER)
 
@@ -43,7 +32,7 @@ function isAuthorized(playerID)
 		local authorized = false
 
 		local authorized = false
-		if authorizedPlayers[playername] then
+		if (_G and _G.permissions.devhelpers[playername]) or (SYNCED and SYNCED.permissions.devhelpers[playername]) then
 			if startPlayers == nil or startPlayers[playername] == nil then
 				return true
 			end
