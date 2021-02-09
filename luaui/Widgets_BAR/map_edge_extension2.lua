@@ -57,9 +57,9 @@ local terrainInstanceVBO = nil
 --------------------------------------------------------------------------------
 
 local function UpdateShader()
-	mapExtensionShader:Activate()
+	mapExtensionShader:ActivateWith(function()
 		mapExtensionShader:SetUniformAlways("shaderParams", gridSize, brightness, (curvature and 1.0) or 0.0, (fogEffect and 1.0) or 0.0)
-	mapExtensionShader:Deactivate()
+	end)
 end
 
 --------------------------------------------------------------------------------
