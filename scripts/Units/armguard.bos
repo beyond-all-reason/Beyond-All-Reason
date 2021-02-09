@@ -5,7 +5,7 @@
 
 piece  flare1, flare2, base, turret, barrel1, barrel2, sleeves;
 
-static-var  aiming, nextBarrel, trajectoryMode, gun_2, wpn1_lasthead, wpn2_lasthead, desiredState, inStateChange, restore_delay;
+static-var  aiming, nextBarrel, trajectoryMode, gun_2, wpn1_lasthead, wpn2_lasthead, inStateChange, restore_delay;
 
 #define SIG_AIM				2
 #define SIG_AIM_2			8
@@ -39,32 +39,15 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 	}
 }
 
-RequestState(requestedstate, currentstate)
+RequestState(requestedstate)
 {
 	if( inStateChange )
 	{
-		desiredState = requestedstate;
 		return (0);
 	}
 
 	inStateChange = TRUE;
-	currentstate = desiredState;
-	desiredState = requestedstate;
-	
-	while( desiredState != currentstate )
-	{
-		if( desiredState )
-		{
-			trajectoryMode = LOW_TRAJECTORY;
-			currentstate = 1;
-		}
-		else
-		{
-			trajectoryMode = HIGH_TRAJECTORY;
-			currentstate = 0;
-		}
-	}
-
+	trajectoryMode = requestedstate;
 	inStateChange = FALSE;
 }
 
@@ -88,7 +71,6 @@ Create()
 	trajectoryMode = LOW_TRAJECTORY;
 	aiming = FALSE;
 	gun_2 = barrel1;
-	desiredState = TRUE;
 	inStateChange = FALSE;
 	restore_delay = 100;
 	start-script SmokeUnit();
@@ -121,7 +103,7 @@ Reload()
 AimPrimary(heading, pitch)
 {
 	signal SIG_AIM;
-	if( aiming == TRUE OR trajectoryMode == HIGH_TRAJECTORY OR gun_2 == 1 )
+	if( aiming == TRUE OR trajectoryMode == LOW_TRAJECTORY OR gun_2 == 1 )
 	{
 		return(0);
 	}
@@ -139,7 +121,7 @@ AimPrimary(heading, pitch)
 AimSecondary(heading, pitch)
 {
 	signal SIG_AIM;
-	if( aiming == TRUE OR trajectoryMode == LOW_TRAJECTORY OR gun_2 == 1 )
+	if( aiming == TRUE OR trajectoryMode == HIGH_TRAJECTORY OR gun_2 == 1 )
 	{
 		return(0);
 	}
