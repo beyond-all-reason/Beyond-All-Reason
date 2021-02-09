@@ -36,6 +36,8 @@ local maxPosY = 0.73
 
 local enableShortcuts = false   -- problematic since it overrules use of top row letters from keyboard which some are in use already
 
+local disableInputWhenSpec = false		-- disable specs selecting buildoptions
+
 local makeFancy = true    -- when using transparant icons this adds highlights so it shows the squared shape of button
 local showPrice = false		-- false will still show hover
 local showRadarIcon = true		-- false will still show hover
@@ -111,7 +113,7 @@ local myPlayerID = Spring.GetMyPlayerID()
 local teamList = Spring.GetTeamList()
 
 local buildQueue = {}
-local disableInput = isSpec
+local disableInput = disableInputWhenSpec and isSpec
 local backgroundRect = { 0, 0, 0, 0 }
 local colls = 5
 local rows = 5
@@ -972,7 +974,7 @@ function widget:Update(dt)
 			end
 		end
 
-		disableInput = isSpec
+		disableInput = disableInputWhenSpec and isSpec
 		if Spring.IsGodModeEnabled() then
 			disableInput = false
 		end

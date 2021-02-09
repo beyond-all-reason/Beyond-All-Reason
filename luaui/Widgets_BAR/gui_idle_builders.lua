@@ -17,9 +17,9 @@ local vsx, vsy = Spring.GetViewGeometry()
 
 local enabledAsSpec = false
 
-local MAX_ICONS = 10
+local MAX_ICONS = 12
 local iconsize = 35
-local CONDENSE = false -- show one icon for all builders of same type
+local CONDENSE = true -- show one icon for all builders of same type
 local POSITION_X = 0.5 -- horizontal centre of screen
 local POSITION_Y = 0.178 -- near bottom
 local NEAR_IDLE = 0 -- this means that factories with only X build items left will be shown as idle
@@ -40,8 +40,7 @@ local bgcornerSize = cornerSize
 
 local playSounds = true
 local leftclick = 'LuaUI/Sounds/buildbar_add.wav'
-local middleclick = 'LuaUI/Sounds/buildbar_click.wav'
-local rightclick = 'LuaUI/Sounds/buildbar_rem.wav'
+local rightclick = 'LuaUI/Sounds/buildbar_click.wav'
 
 local fontFile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 local chobbyInterface, font
@@ -637,7 +636,7 @@ function widget:MouseRelease(x, y, button)
 		SelectUnitArray({ unitID })
 		SendCommands({ "viewselection" })
 		if playSounds then
-			Spring.PlaySoundFile(middleclick, 0.75, 'ui')
+			Spring.PlaySoundFile(rightclick, 0.75, 'ui')
 		end
 	end
 

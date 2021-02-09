@@ -32,6 +32,16 @@ local texts = {        -- fallback (if you want to change this, also update: lan
 local vsx, vsy = Spring.GetViewGeometry()
 local lastGameUpdate = Spring.GetGameSeconds()
 
+local spGetUnitViewPosition = Spring.GetUnitViewPosition
+local spGetUnitDefID = Spring.GetUnitDefID
+local spGetGameSeconds = Spring.GetGameSeconds
+local spGetUnitHealth = Spring.GetUnitHealth
+local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
+local spGetSpectatingState = Spring.GetSpectatingState
+local spec, fullview = spGetSpectatingState()
+
+local myAllyTeam = Spring.GetMyAllyTeamID()
+
 local gl = gl  --  use a local copy for faster access
 local Spring = Spring
 local table = table
@@ -61,14 +71,14 @@ local function MakeETA(unitID, unitDefID)
 	if unitDefID == nil then
 		return nil
 	end
-	local _, _, _, _, buildProgress = Spring.GetUnitHealth(unitID)
+	local _, _, _, _, buildProgress = spGetUnitHealth(unitID)
 	if buildProgress == nil then
 		return nil
 	end
 
 	return {
 		firstSet = true,
-		lastTime = Spring.GetGameSeconds(),
+		lastTime = spGetGameSeconds(),
 		lastProg = buildProgress,
 		rate = nil,
 		timeLeft = nil,
@@ -76,18 +86,32 @@ local function MakeETA(unitID, unitDefID)
 	}
 end
 
+function init()
+	etaTable = {}
+	local units = Spring.GetAllUnits()
+	for i=1, #units do
+		local unitID = units[i]
+		local unitAllyTeam = spGetUnitAllyTeam(unitID)
+
+		if fullview or spGetUnitAllyTeam(unitID) == myAllyTeam then
+			etaTable[unitID] = MakeETA(unitID, Spring.GetUnitDefID(unitID))
+		end
+	end
+	--local myUnits = Spring.GetTeamUnits(Spring.GetMyTeamID())
+	--for _, unitID in ipairs(myUnits) do
+	--	local _, _, _, _, buildProgress = Spring.GetUnitHealth(unitID)
+	--	if buildProgress < 1 then
+	--		etaTable[unitID] = MakeETA(unitID, Spring.GetUnitDefID(unitID))
+	--	end
+	--end
+end
+
 function widget:Initialize()
 	if WG['lang'] then
 		texts = WG['lang'].getText('eta')
 	end
 	widget:ViewResize()
-	local myUnits = Spring.GetTeamUnits(Spring.GetMyTeamID())
-	for _, unitID in ipairs(myUnits) do
-		local _, _, _, _, buildProgress = Spring.GetUnitHealth(unitID)
-		if buildProgress < 1 then
-			etaTable[unitID] = MakeETA(unitID, Spring.GetUnitDefID(unitID))
-		end
-	end
+	init()
 end
 
 function widget:Update(dt)
@@ -100,7 +124,7 @@ function widget:Update(dt)
 		return
 	end
 
-	local gs = Spring.GetGameSeconds()
+	local gs = spGetGameSeconds()
 	if gs == lastGameUpdate then
 		return
 	end
@@ -109,7 +133,7 @@ function widget:Update(dt)
 	local killTable = {}
 	local count = 0
 	for unitID, bi in pairs(etaTable) do
-		local _, _, _, _, buildProgress = Spring.GetUnitHealth(unitID)
+		local _, _, _, _, buildProgress = spGetUnitHealth(unitID)
 		if not buildProgress or buildProgress >= 1.0 then
 			count = count + 1
 			killTable[count] = unitID
@@ -164,9 +188,16 @@ function widget:Update(dt)
 	end
 end
 
+function widget:PlayerChanged()
+	if myAllyTeam ~= Spring.GetMyAllyTeamID() or fullview ~= select(2, spGetSpectatingState()) then
+		myAllyTeam = Spring.GetMyAllyTeamID()
+		spec, fullview = spGetSpectatingState()
+		init()
+	end
+end
+
 function widget:UnitCreated(unitID, unitDefID, unitTeam)
-	local spect, spectFull = Spring.GetSpectatingState()
-	if Spring.AreTeamsAllied(unitTeam, Spring.GetMyTeamID()) or (spect and spectFull) then
+	if fullview or spGetUnitAllyTeam(unitID) == myAllyTeam then
 		etaTable[unitID] = MakeETA(unitID, unitDefID)
 	end
 end
@@ -221,12 +252,12 @@ function widget:DrawWorld()
 		gl.Color(1, 1, 1, 0.1)
 		local cx, cy, cz = Spring.GetCameraPosition()
 		for unitID, bi in pairs(etaTable) do
-			local ux, uy, uz = Spring.GetUnitViewPosition(unitID)
+			local ux, uy, uz = spGetUnitViewPosition(unitID)
 			if ux ~= nil then
 				local dx, dy, dz = ux - cx, uy - cy, uz - cz
 				local dist = dx * dx + dy * dy + dz * dz
 				if dist < etaMaxDist then
-					if isOmex[Spring.GetUnitDefID(unitID)] then
+					if isOmex[spGetUnitDefID(unitID)] then
 						bi.yoffset = 25
 					end
 					gl.DrawFuncAtUnit(unitID, false, DrawEtaText, bi.timeLeft, bi.yoffset)

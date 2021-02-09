@@ -3,6 +3,31 @@ function gadget:GameFrame(n)
 		Spring.Echo("Loaded atmosphere CEGs config for map: " .. Game.mapName)
 	end
 
+-- SND water ocean 
+	if n%830 == 0 then
+		SpawnCEGInPositionGround("noceg", 4000, 0, 1200, _, _, _, "tropicalbeach", 0.9)
+	end
+
+	if n%840 == 150 then
+		SpawnCEGInPositionGround("noceg", 1400, 0, 5500, _, _, _, "tropicalbeach", 0.9)
+	end
+
+	if n%850 == 75 then
+		SpawnCEGInPositionGround("noceg", 6800, 0, 5600, _, _, _, "tropicalbeach", 0.9)
+	end
+
+	if n%860 == 20 then
+		SpawnCEGInPositionGround("noceg", 3200, 0, 3400, _, _, _, "oceangentlesurf", 0.7)
+	end
+
+	if n%860 == 50 then
+		SpawnCEGInPositionGround("noceg", 5100, 0, 1400, _, _, _, "oceangentlesurf", 0.7)
+	end
+
+	if n%860 == 80 then
+		SpawnCEGInPositionGround("noceg", 4130, 0, 5000, _, _, _, "oceangentlesurf", 0.7)
+	end
+
 -- common foggy cliffs	
 	if n%360 == 0 then
 		SpawnCEGInPositionGround("fogdirty", 1723, 0, 4129)
@@ -18,15 +43,15 @@ function gadget:GameFrame(n)
 
 	end
 
--- sanddune dust	
-	if n%200 == 0 then
-		SpawnCEGInPositionGround("dunecloud", 3940, 0, 3755)
-	end
+-- -- sanddune dust	
+-- 	if n%200 == 0 then
+-- 		SpawnCEGInPositionGround("dunecloud", 3940, 0, 3755)
+-- 	end
 
--- rare sanddune dust	
-	if n%450 == 0 then
-		SpawnCEGInPositionGround("dunecloud", 4542, 0, 5326)
-	end
+-- -- rare sanddune dust	
+-- 	if n%450 == 0 then
+-- 		SpawnCEGInPositionGround("dunecloud", 4542, 0, 5326)
+-- 	end
 
 -- alternate rare foggy cliffs	
 	if n%620 == 300 then

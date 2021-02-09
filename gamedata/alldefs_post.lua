@@ -125,6 +125,21 @@ function UnitDef_Post(name, uDef)
 		end
 	end
 
+	-- vision range
+	if uDef.sightdistance then
+		local x = tonumber(Spring.GetModOptions().experimentallosrange) or 1
+		uDef.sightdistance = uDef.sightdistance*x
+	end
+
+	if uDef.airsightdistance then
+		local x = tonumber(Spring.GetModOptions().experimentallosrange) or 1
+		uDef.airsightdistance = uDef.airsightdistance*x
+	end
+
+	if uDef.radardistance then
+		local x = tonumber(Spring.GetModOptions().experimentalradarrange) or 1
+		uDef.radardistance = uDef.radardistance*x
+	end
 
 	--[[
 	if uDef.buildcostmetal and uDef.maxdamage then

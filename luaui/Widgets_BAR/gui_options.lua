@@ -2881,15 +2881,16 @@ function init()
 		{ id = "tombstones", group = "gfx", widget = "Tombstones", name = texts.option.tombstones, type = "bool", value = GetWidgetToggleValue("Tombstones"), description = texts.option.tombstones_descr },
 
 		-- SND
-		{ id = "snddevice", group = "snd", name = texts.option.snddevice, type = "select", restart = true, options = soundDevices, value = soundDevicesByName[Spring.GetConfigString("snd_device")], description = texts.option.snddevice_descr,
-		  onchange = function(i, value)
-			  if options[i].options[options[i].value] == 'default' then
-				  Spring.SetConfigString("snd_device", '')
-			  else
-				  Spring.SetConfigString("snd_device", options[i].options[options[i].value])
-			  end
-		  end,
-		},
+		  { id = "snddevice", group = "snd", name = texts.option.snddevice, type = "select", restart = true, options = soundDevices, value = soundDevicesByName[Spring.GetConfigString("snd_device")], description = texts.option.snddevice_descr,
+			onchange = function(i, value)
+				if options[i].options[options[i].value] == 'default' then
+					Spring.SetConfigString("snd_device", '')
+				else
+					Spring.SetConfigString("snd_device", options[i].options[options[i].value])
+				end
+			end,
+		  },
+
 		{ id = "sndvolmaster", group = "snd", basic = true, name = texts.option.sndvolmaster, type = "slider", min = 0, max = 200, step = 2, value = tonumber(Spring.GetConfigInt("snd_volmaster", 1) or 100),
 		  onload = function(i)
 		  end,
@@ -2933,7 +2934,26 @@ function init()
 		  end,
 		},
 
-		{ id = "sndvolmusic", group = "snd", basic = true, name = texts.option.sndvolmusic, type = "slider", min = 0, max = 100, step = 1, value = tonumber(Spring.GetConfigInt("snd_volmusic", 20) or 20),
+		  { id = "soundtrack", group = "snd", basic = true, name = texts.option.soundtrack, type = "select", options = {'---', 'modern', 'orchestral'}, value = Spring.GetConfigInt('soundtrack', 2), description = texts.option.soundtrack_descr,
+			onchange = function(i, value)
+				Spring.SetConfigString("soundtrack", value)
+				Spring.StopSoundStream()
+				if value == 1 then
+					widgetHandler:DisableWidget('AdvPlayersList Music Player')
+					widgetHandler:DisableWidget('AdvPlayersList Music Player (orchestral)')
+					init()
+				elseif value == 2 then
+					widgetHandler:DisableWidget('AdvPlayersList Music Player (orchestral)')
+					widgetHandler:EnableWidget('AdvPlayersList Music Player')
+					init()
+				elseif value == 3 then
+					widgetHandler:DisableWidget('AdvPlayersList Music Player')
+					widgetHandler:EnableWidget('AdvPlayersList Music Player (orchestral)')
+					init()
+				end
+			end,
+		  },
+		{ id = "sndvolmusic", group = "snd", basic = true, name = widgetOptionColor.."   "..texts.option.sndvolmusic, type = "slider", min = 0, max = 100, step = 1, value = tonumber(Spring.GetConfigInt("snd_volmusic", 20) or 20),
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
@@ -3477,15 +3497,15 @@ function init()
 		  end,
 		},
 		{ id = "unittotals", group = "ui", basic = true, widget = "AdvPlayersList Unit Totals", name = widgetOptionColor .. "   "..texts.option.unittotals, type = "bool", value = GetWidgetToggleValue("AdvPlayersList Unit Totals"), description = texts.option.unittotals_descr },
-		{ id = "musicplayer", group = "ui", basic = true, widget = "AdvPlayersList Music Player", name = widgetOptionColor .. "   "..texts.option.musicplayer, type = "bool", value = GetWidgetToggleValue("AdvPlayersList Music Player"), description = texts.option.musicplayer,
-		  onload = function(i)
-		  end,
-		  onchange = function(i, value)
-			  if value then
-				  Spring.StopSoundStream()
-			  end
-		  end
-		},
+		--{ id = "musicplayer", group = "ui", basic = true, widget = "AdvPlayersList Music Player", name = widgetOptionColor .. "   "..texts.option.musicplayer, type = "bool", value = GetWidgetToggleValue("AdvPlayersList Music Player"), description = texts.option.musicplayer,
+		--  onload = function(i)
+		--  end,
+		--  onchange = function(i, value)
+		--	  if value then
+		--		  Spring.StopSoundStream()
+		--	  end
+		--  end
+		--},
 		{ id = "mascot", group = "ui", basic = true, widget = "AdvPlayersList Mascot", name = widgetOptionColor .. "   "..texts.option.mascot, type = "bool", value = GetWidgetToggleValue("AdvPlayersList Mascot"), description = texts.option.mascot_descr },
 
 		{ id = "consolemaxlines", group = "ui", name = texts.option.console .. widgetOptionColor .. "  "..texts.option.consolemaxlines, type = "slider", min = 3, max = 9, step = 1, value = 6, description = '',
@@ -4988,7 +5008,7 @@ function init()
 		options[getOptionByID('label_notif_messages_spacer')] = nil
 	end
 
-	if widgetHandler.knownWidgets["AdvPlayersList Music Player"] then
+	if Spring.GetConfigInt('soundtrack', 2) == 2 and widgetHandler.knownWidgets["AdvPlayersList Music Player"] then
 		local tracksConfig = {}
 		if WG['music'] ~= nil and WG['music'].getTracksConfig ~= nil then
 			tracksConfig = WG['music'].getTracksConfig()
@@ -5036,25 +5056,28 @@ function init()
 						optionName = optionName..'...'
 					end
 					newOptions[count] = { id = "music_track" .. v[1], group = "snd", basic = true, name = musicOptionColor .. optionName, type = "bool", value = v[2], description = v[3] .. '\n\n' .. trackName,
-						onchange = function(i, value)
-							if not WG['music'] and widgetHandler.configData["AdvPlayersList Music Player"] ~= nil and widgetHandler.configData["AdvPlayersList Music Player"].tracksConfig ~= nil then
-								if widgetHandler.configData["AdvPlayersList Music Player"].tracksConfig[ v[1] ] then
-									widgetHandler.configData["AdvPlayersList Music Player"].tracksConfig[ v[1] ][1] = value
-								end
-							else
-								saveOptionValue('AdvPlayersList Music Player', 'music', 'setTrack' .. v[1], { 'tracksConfig' }, value)
-							end
-						end,
-						onclick = function()
-							if WG['music'] ~= nil and WG['music'].playTrack then
-								WG['music'].playTrack(v[1])
-							end
-						end,
+					  onchange = function(i, value)
+						  if not WG['music'] and widgetHandler.configData["AdvPlayersList Music Player"] ~= nil and widgetHandler.configData["AdvPlayersList Music Player"].tracksConfig ~= nil then
+							  if widgetHandler.configData["AdvPlayersList Music Player"].tracksConfig[ v[1] ] then
+								  widgetHandler.configData["AdvPlayersList Music Player"].tracksConfig[ v[1] ][1] = value
+							  end
+						  else
+							  saveOptionValue('AdvPlayersList Music Player', 'music', 'setTrack' .. v[1], { 'tracksConfig' }, value)
+						  end
+					  end,
+					  onclick = function()
+						  if WG['music'] ~= nil and WG['music'].playTrack then
+							  WG['music'].playTrack(v[1])
+						  end
+					  end,
 					}
 				end
 			end
 		end
 		options = newOptions
+	else
+		options[getOptionByID('label_snd_tracks')] = nil
+		options[getOptionByID('label_snd_tracks_spacer')] = nil
 	end
 
 	if not widgetHandler.knownWidgets["Player-TV"] then
@@ -5349,6 +5372,11 @@ end
 
 function widget:Initialize()
 
+	-- disable ambient player widget
+	if widgetHandler:IsWidgetKnown("Ambient Player") then
+		widgetHandler:DisableWidget("Ambient Player")
+	end
+
 	if WG['lang'] then
 		texts = WG['lang'].getText('options')
 	end
@@ -5402,6 +5430,19 @@ function widget:Initialize()
 			vsync = vsyncLevel
 		end
 		Spring.SetConfigInt("VSync", vsync)
+
+		-- make sure only one music widget is loaded
+		local value = Spring.GetConfigInt('soundtrack', 2)
+		if value == 1 then
+			widgetHandler:DisableWidget('AdvPlayersList Music Player')
+			widgetHandler:DisableWidget('AdvPlayersList Music Player (orchestral)')
+		elseif value == 2 then
+			widgetHandler:DisableWidget('AdvPlayersList Music Player (orchestral)')
+			widgetHandler:EnableWidget('AdvPlayersList Music Player')
+		elseif value == 3 then
+			widgetHandler:DisableWidget('AdvPlayersList Music Player')
+			widgetHandler:EnableWidget('AdvPlayersList Music Player (orchestral)')
+		end
 	end
 	if not waterDetected then
 		Spring.SendCommands("water 0")

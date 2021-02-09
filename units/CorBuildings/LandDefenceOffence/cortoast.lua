@@ -40,7 +40,7 @@ return {
 		customparams = {
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
-			onoffname = "traj",
+			onoffname = "trajectory",
 			subfolder = "corbuildings/landdefenceoffence",
 			techlevel = 2,
 		},
