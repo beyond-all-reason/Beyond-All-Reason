@@ -140,13 +140,13 @@ function BossMinionsSpawn(n)
 				minionUnit = T0AirUnits[math_random(1,#T0AirUnits)]..scavconfig.unitnamesuffix
 			end
 		elseif posy > -20 then
-			if BossFightCurrentPhase >= 9 then
+			if BossFightCurrentPhase >= 5 then
 				minionUnit = T4LandUnits[math_random(1,#T4LandUnits)]..scavconfig.unitnamesuffix
-			elseif BossFightCurrentPhase >= 7 then
+			elseif BossFightCurrentPhase >= 4 then
 				minionUnit = T3LandUnits[math_random(1,#T3LandUnits)]..scavconfig.unitnamesuffix
-			elseif BossFightCurrentPhase >= 5 then
-				minionUnit = T2LandUnits[math_random(1,#T2LandUnits)]..scavconfig.unitnamesuffix
 			elseif BossFightCurrentPhase >= 3 then
+				minionUnit = T2LandUnits[math_random(1,#T2LandUnits)]..scavconfig.unitnamesuffix
+			elseif BossFightCurrentPhase >= 2 then
 				minionUnit = T1LandUnits[math_random(1,#T1LandUnits)]..scavconfig.unitnamesuffix
 			elseif BossFightCurrentPhase == 1 then
 				minionUnit = T0LandUnits[math_random(1,#T0LandUnits)]..scavconfig.unitnamesuffix
