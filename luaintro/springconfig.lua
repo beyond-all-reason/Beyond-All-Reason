@@ -51,7 +51,7 @@ if not tonumber(Spring.GetConfigInt("LuaShaders",0) or 0) then
 end
 
 -- Disable PBO for intel GFX
-if Platform.gpuVendor ~= 'Nvidia' and Platform.gpuVendor ~= 'AMD' then
+if Platform.gpuVendor ~= 'Nvidia' and Platform.gpuVendor ~= 'AMD' and Platform.glRenderer:lower():find("radeon") == nil then
 	Spring.SetConfigInt("UsePBO", 0)
 else
 	Spring.SetConfigInt("UsePBO", 1)
