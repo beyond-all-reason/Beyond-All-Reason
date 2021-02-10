@@ -105,6 +105,7 @@ T2LandUnits = {
 	--hovercraft
 	"corhal",
 	--constructors
+	--[[
 	"armck",
 	"armcv",
 	"armbeaver",
@@ -112,6 +113,7 @@ T2LandUnits = {
 	"corck",
 	"corcv",
 	"cormuskrat",
+	]]
 	"armack",
 	"armdecom",
 	"armacv",
@@ -145,6 +147,7 @@ T3LandUnits = {
 	"corsok",
 	"armsptkt4",
 	--constructors
+	--[[
 	"armck",
 	"armcv",
 	"armbeaver",
@@ -159,6 +162,7 @@ T3LandUnits = {
 	"corack",
 	"cordecom",
 	"coracv",
+	]]
 }
 
 T4LandUnits = {

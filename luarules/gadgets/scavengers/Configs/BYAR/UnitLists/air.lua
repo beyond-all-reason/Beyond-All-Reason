@@ -31,10 +31,12 @@ T2AirUnits = {
 	"corsfig",
 	"corcut",
 	--constructors
+	--[[
 	"armca",
 	"armcsa",
 	"corca",
 	"corcsa",
+	]]
 	"armaca",
 	"coraca",
 }
@@ -52,12 +54,14 @@ T3AirUnits = {
 	"corape",
 	"corcrw",
 	--constructors
+	--[[
 	"armca",
 	"armcsa",
 	"corca",
 	"corcsa",
 	"armaca",
 	"coraca",
+	]]
 }
 
 T4AirUnits = {

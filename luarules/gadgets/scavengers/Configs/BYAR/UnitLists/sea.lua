@@ -79,11 +79,11 @@ T3SeaUnits = {
 	"armlun",
 	"corsok",
 	--constructors
-	"armbeaver",
-	"armch",
-	"armcs",
-	"cormuskrat",
-	"corcs",
+	--"armbeaver",
+	--"armch",
+	--"armcs",
+	--"cormuskrat",
+	--"corcs",
 }
 
 T4SeaUnits = {

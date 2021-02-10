@@ -185,13 +185,13 @@ function UnitGroupSpawn(n)
 	if n > scavconfig.gracePeriod then
 		local gaiaUnitCount = Spring.GetTeamUnitCount(GaiaTeamID)
 		if BossWaveTimeLeft then
-			if numOfSpawnBeacons or numOfSpawnBeacons == 0 then
-				ActualUnitSpawnChance = math_random(0,math.ceil(UnitSpawnChance)*3)
+			if (not numOfSpawnBeacons) or numOfSpawnBeacons == 0 then
+				ActualUnitSpawnChance = math_random(0,math.ceil(UnitSpawnChance))
 			else
-				ActualUnitSpawnChance = math_random(0,(UnitSpawnChance/(numOfSpawnBeacons/5))*3)
+				ActualUnitSpawnChance = math_random(0,(UnitSpawnChance/(numOfSpawnBeacons/5)))
 			end
 		else
-			if numOfSpawnBeacons or numOfSpawnBeacons == 0 then
+			if (not numOfSpawnBeacons) or numOfSpawnBeacons == 0 then
 				ActualUnitSpawnChance = math_random(0,math.ceil(UnitSpawnChance))
 			else
 				ActualUnitSpawnChance = math_random(0,(UnitSpawnChance/(numOfSpawnBeacons/5)))
@@ -274,7 +274,7 @@ function UnitGroupSpawn(n)
 				if (posy <= -20 and aircraftchanceonsea == 0) or (aircraftchance == 0 and (not BossWaveTimeLeft)) or (bossaircraftchance == 0 and BossWaveTimeLeft and BossWaveTimeLeft > 0) then
 					if unitSpawnerModuleConfig.bossFightEnabled and BossWaveTimeLeft then
 						groupsize = math.ceil(groupsize*unitSpawnerModuleConfig.airmultiplier*unitSpawnerModuleConfig.t4multiplier)
-						if spawnTier < 50 then
+						if spawnTier < 80 then
 							for i = 1,groupsize do
 								if i%newTypeNumber == 1 then
 									numOfTypes = numOfTypes+1
@@ -341,7 +341,7 @@ function UnitGroupSpawn(n)
 				elseif posy > -20 then
 					if unitSpawnerModuleConfig.bossFightEnabled and BossWaveTimeLeft then
 						groupsize = math.ceil(groupsize*unitSpawnerModuleConfig.landmultiplier*unitSpawnerModuleConfig.t4multiplier)
-						if spawnTier < 50 then
+						if spawnTier < 80 then
 							for i = 1,groupsize do
 								if i%newTypeNumber == 1 then
 									numOfTypes = numOfTypes+1
@@ -408,7 +408,7 @@ function UnitGroupSpawn(n)
 				elseif posy <= -20 then
 					if unitSpawnerModuleConfig.bossFightEnabled and BossWaveTimeLeft then
 						groupsize = math.ceil(groupsize*unitSpawnerModuleConfig.seamultiplier*unitSpawnerModuleConfig.t4multiplier)
-						if spawnTier < 50 then
+						if spawnTier < 80 then
 							for i = 1,groupsize do
 								if i%newTypeNumber == 1 then
 									numOfTypes = numOfTypes+1
