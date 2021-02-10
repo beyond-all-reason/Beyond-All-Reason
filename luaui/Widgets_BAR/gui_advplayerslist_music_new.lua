@@ -15,7 +15,9 @@ local victoryTracks = VFS.DirList(musicDir..'victory', '*.ogg')
 local defeatTracks = VFS.DirList(musicDir..'defeat', '*.ogg')
 if #victoryTracks == 0 then victoryTracks = introTracks end
 if #defeatTracks == 0 then defeatTracks = introTracks end
-local myAllyTeam = Spring.GetMyAllyTeamID()
+local myTeamID = Spring.GetMyTeamID()
+local myAllyTeamID = Spring.GetMyAllyTeamID()
+local iAmSpec = Spring.GetSpectatingState()
 
 local currentTrackList = introTracks
 
@@ -584,26 +586,14 @@ end
 
 function widget:GameOver(winningAllyTeams)
 	gameOver = true
-	
-	--local myTeamID = Spring.GetMyTeamID()
-	--local myTeamUnits = Spring.GetTeamUnits(myTeamID)
-
+	local myTeamUnits = Spring.GetTeamUnits(myTeamID)
 	VictoryMusic = false
-	
-	for i = 1,#winningAllyTeams do
-		
-		local winningAllyTeam = winningAllyTeams[i]
-		if winningAllyTeam == myAllyTeam then
-			VictoryMusic = true
-			break
-		end
-		
-		--if #myTeamUnits > 0  then
-		--	VictoryMusic = true
-		--elseif #myTeamUnits == 0 then
-		--	VictoryMusic = false
-		--end
-
+	if iAmSpec == true then
+		VictoryMusic = false
+	elseif #myTeamUnits > 0  then
+		VictoryMusic = true
+	elseif #myTeamUnits == 0 then
+		VictoryMusic = false
 	end
 end
 
