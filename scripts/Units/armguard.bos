@@ -7,7 +7,6 @@ piece  flare1, flare2, base, turret, barrel1, barrel2, sleeves;
 
 static-var  aiming, nextBarrel, trajectoryMode;
 
-#define SIGNAL_AIM			2
 #define LOW_TRAJECTORY		0
 #define HIGH_TRAJECTORY		1
 
@@ -74,12 +73,6 @@ Deactivate()
 	start-script RequestState(LOW_TRAJECTORY);
 }
 
-RestoreAfterDelay()
-{
-	set-signal-mask SIGNAL_AIM;
-	sleep 100;
-}
-
 Reload()
 {
 	sleep 2000;
@@ -92,14 +85,11 @@ aimCommon(heading, pitch)
 	turn sleeves to x-axis <0.000000> - pitch speed <45.000000>;
 	wait-for-turn turret around y-axis;
 	wait-for-turn sleeves around x-axis;
-	start-script RestoreAfterDelay();
 	aiming = FALSE;
 }
 
 AimPrimary(heading, pitch)
 {
-	signal SIGNAL_AIM;
-
 	if( aiming == TRUE OR trajectoryMode != LOW_TRAJECTORY )
 	{
 		return(0);
@@ -111,8 +101,6 @@ AimPrimary(heading, pitch)
 
 AimSecondary(heading, pitch)
 {
-	signal SIGNAL_AIM;
-
 	if( aiming == TRUE OR trajectoryMode != HIGH_TRAJECTORY )
 	{
 		return(0);
