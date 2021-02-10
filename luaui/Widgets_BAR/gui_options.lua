@@ -3591,7 +3591,7 @@ function init()
 			  Spring.SetConfigFloat("UnitIconScaleUI", value)
 		  end,
 		},
-		{ id = "uniticon_fadevanish", group = "ui", name = widgetOptionColor .. "   "..texts.option.uniticonfadevanish, type = "slider", min = 1, max = 10000, step = 10, value = tonumber(Spring.GetConfigInt("UnitIconFadeVanish", 1000) or 1), description = texts.option.uniticonfadevanish_descr,
+		{ id = "uniticon_fadevanish", group = "ui", name = widgetOptionColor .. "   "..texts.option.uniticonfadevanish, type = "slider", min = 1, max = 10000, step = 50, value = tonumber(Spring.GetConfigInt("UnitIconFadeVanish", 1000) or 1), description = texts.option.uniticonfadevanish_descr,
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
@@ -3603,7 +3603,7 @@ function init()
 			  Spring.SetConfigInt("UnitIconFadeVanish", value)
 		  end,
 		},
-		{ id = "uniticon_fadestart", group = "ui", name = widgetOptionColor .. "   "..texts.option.uniticonfadestart, type = "slider", min = 1, max = 10000, step = 10, value = tonumber(Spring.GetConfigInt("UnitIconFadeStart", 3000) or 1), description = texts.option.uniticonfadestart_descr,
+		{ id = "uniticon_fadestart", group = "ui", name = widgetOptionColor .. "   "..texts.option.uniticonfadestart, type = "slider", min = 1, max = 10000, step = 50, value = tonumber(Spring.GetConfigInt("UnitIconFadeStart", 3000) or 1), description = texts.option.uniticonfadestart_descr,
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
