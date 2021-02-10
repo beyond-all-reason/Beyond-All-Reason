@@ -69,7 +69,6 @@ local sound_button = 'LuaUI/Sounds/buildbar_waypoint.wav'
 
 local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity", 0.6) or 0.66)
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
-local glossMult = 1 + (2 - (ui_opacity * 2))    -- increase gloss/highlight so when ui is transparant, you can still make out its boundaries and make it less flat
 
 local backgroundRect = {}
 local activeRect = {}
@@ -77,15 +76,14 @@ local cellRects = {}
 local cellMarginPx = 0
 local cellMarginPx2 = 0
 local cmds = {}
-local lastUpdate = os.clock() - 1
 local rows = 0
 local cols = 0
 local disableInput = false
 
-local font, font2, bgpadding, widgetSpaceMargin, chobbyInterface, dlistOrders, dlistGuishader
+local font, bgpadding, widgetSpaceMargin, chobbyInterface, dlistOrders, dlistGuishader
 local clickedCell, clickedCellTime, clickedCellDesiredState, cellWidth, cellHeight
 local bpWidth, bpHeight, buildmenuBottomPos, buildpowerWidgetEnabled
-local activeCmd, prevActiveCmd, doUpdate, doUpdateClock, SelectedUnitsCount
+local activeCmd, prevActiveCmd, doUpdate, doUpdateClock
 
 local hiddencmds = {
 	[76] = true, --load units clone
@@ -99,18 +97,12 @@ local hiddencmds = {
 	--[34923] = true, -- set target
 }
 
--------------------------------------------------------------------------------
--------------------------------------------------------------------------------
-
-local spGetSelectedUnitsCount = Spring.GetSelectedUnitsCount
 local spGetActiveCommand = Spring.GetActiveCommand
 local spGetActiveCmdDescs = Spring.GetActiveCmdDescs
 
 local string_sub = string.sub
-local string_gsub = string.gsub
 local os_clock = os.clock
 
-local GL_QUADS = GL.QUADS
 local GL_TRIANGLE_FAN = GL.TRIANGLE_FAN
 local glBeginEnd = gl.BeginEnd
 local glTexture = gl.Texture
@@ -132,7 +124,6 @@ local math_ceil = math.ceil
 local math_floor = math.floor
 
 local RectRound = Spring.FlowUI.Draw.RectRound
-local TexturedRectRound = Spring.FlowUI.Draw.TexturedRectRound
 local UiElement = Spring.FlowUI.Draw.Element
 local UiButton = Spring.FlowUI.Draw.Button
 local elementCorner = Spring.FlowUI.elementCorner
@@ -143,9 +134,6 @@ local cursorTextures = {}
 local function convertColor(r, g, b)
 	return string.char(255, (r * 255), (g * 255), (b * 255))
 end
-
--------------------------------------------------------------------------------
--------------------------------------------------------------------------------
 
 local function checkGuishader(force)
 	if WG['guishader'] then
@@ -166,42 +154,7 @@ function widget:PlayerChanged(playerID)
 	isSpec = Spring.GetSpectatingState()
 end
 
-local function RefreshCommands()
-	local stateCmds = {}
-	local otherCmds = {}
-	local stateCmdsCount = 0
-	local otherCmdsCount = 0
-	for index, cmd in pairs(spGetActiveCmdDescs()) do
-		if type(cmd) == "table" and not disabledCmd[cmd.name] then
-			if cmd.type == 5 then
-				isStateCommand[cmd.id] = true
-			end
-			if not hiddencmds[cmd.id] and cmd.action ~= nil and cmd.type ~= 21 and cmd.type ~= 18 and cmd.type ~= 17 and not cmd.disabled then
-				if cmd.type == 20 --build building
-					or (string_sub(cmd.action, 1, 10) == 'buildunit_') then
-
-				elseif cmd.type == 5 then
-					stateCmdsCount = stateCmdsCount + 1
-					stateCmds[stateCmdsCount] = cmd
-				else
-					otherCmdsCount = otherCmdsCount + 1
-					otherCmds[otherCmdsCount] = cmd
-				end
-			end
-		end
-	end
-	cmds = {}
-	for i = 1, stateCmdsCount do
-		cmds[i] = stateCmds[i]
-	end
-	for i = 1, otherCmdsCount do
-		cmds[i + stateCmdsCount] = otherCmds[i]
-	end
-
-	setupCellGrid()
-end
-
-function setupCellGrid(force)
+local function setupCellGrid(force)
 	local oldcols = cols
 	local oldRows = rows
 	local cmdCount = #cmds
@@ -246,8 +199,6 @@ function setupCellGrid(force)
 		cellMarginPx = math_max(1, math_ceil(cellHeight * 0.5 * cellMargin))
 		cellMarginPx2 = math_max(0, math_ceil(cellHeight * 0.18 * cellMargin))
 
-		--cellWidth = math_floor(cellWidth)
-		--cellHeight = math_floor(cellHeight)
 		local addedWidth = 0
 		local addedHeight = 0
 		local addedWidthFloat = 0
@@ -276,6 +227,41 @@ function setupCellGrid(force)
 	end
 end
 
+local function refreshCommands()
+	local stateCmds = {}
+	local otherCmds = {}
+	local stateCmdsCount = 0
+	local otherCmdsCount = 0
+	for index, cmd in pairs(spGetActiveCmdDescs()) do
+		if type(cmd) == "table" and not disabledCmd[cmd.name] then
+			if cmd.type == 5 then
+				isStateCommand[cmd.id] = true
+			end
+			if not hiddencmds[cmd.id] and cmd.action ~= nil and cmd.type ~= 21 and cmd.type ~= 18 and cmd.type ~= 17 and not cmd.disabled then
+				if cmd.type == 20 --build building
+					or (string_sub(cmd.action, 1, 10) == 'buildunit_') then
+
+				elseif cmd.type == 5 then
+					stateCmdsCount = stateCmdsCount + 1
+					stateCmds[stateCmdsCount] = cmd
+				else
+					otherCmdsCount = otherCmdsCount + 1
+					otherCmds[otherCmdsCount] = cmd
+				end
+			end
+		end
+	end
+	cmds = {}
+	for i = 1, stateCmdsCount do
+		cmds[i] = stateCmds[i]
+	end
+	for i = 1, otherCmdsCount do
+		cmds[i + stateCmdsCount] = otherCmds[i]
+	end
+
+	setupCellGrid(false)
+end
+
 function widget:ViewResize()
 	vsx, vsy = Spring.GetViewGeometry()
 
@@ -293,12 +279,12 @@ function widget:ViewResize()
 		buildmenuBottomPos = WG['buildmenu'].getBottomPosition()
 	end
 
-	font2 = WG['fonts'].getFont(fontFile)
+	font = WG['fonts'].getFont(fontFile)
 
 	elementCorner = Spring.FlowUI.elementCorner
 	bgpadding = Spring.FlowUI.elementPadding
 
-	local widgetSpaceMargin = Spring.FlowUI.elementMargin
+	widgetSpaceMargin = Spring.FlowUI.elementMargin
 	if stickToBottom or (altPosition and not buildmenuBottomPos) then
 
 		posY = height
@@ -424,7 +410,6 @@ function widget:Update(dt)
 		end
 		if ui_opacity ~= Spring.GetConfigFloat("ui_opacity", 0.6) then
 			ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.6)
-			glossMult = 1 + (2 - (ui_opacity * 2))
 			doUpdate = true
 		end
 		if WG['minimap'] and altPosition ~= WG['minimap'].getEnlarged() then
@@ -459,26 +444,7 @@ function IsOnRect(x, y, BLcornerX, BLcornerY, TRcornerX, TRcornerY)
 	return x >= BLcornerX and x <= TRcornerX and y >= BLcornerY and y <= TRcornerY
 end
 
-local function DrawCircle(x, y, z, radius, sides, color1, color2)
-	if not color2 then
-		color2 = color1
-	end
-	local sideAngle = math_twicePi / sides
-	glColor(color1)
-	glVertex(x, z, y)
-	glColor(color2)
-	for i = 1, sides + 1 do
-		local cx = x + (radius * math_cos(i * sideAngle))
-		local cz = z + (radius * math_sin(i * sideAngle))
-		glVertex(cx, cz, y)
-	end
-end
-
-local function doCircle(x, y, z, radius, sides, color1, color2)
-	glBeginEnd(GL_TRIANGLE_FAN, DrawCircle, x, 0, z, radius, sides, color1, color2)
-end
-
-function drawCell(cell, zoom)
+local function drawCell(cell, zoom)
 	if not zoom then
 		zoom = 1
 	end
@@ -489,7 +455,7 @@ function drawCell(cell, zoom)
 		local rightMargin = cellMarginPx2
 		local topMargin = cellMarginPx
 		local bottomMargin = cellMarginPx2
-		local yFirstMargin = cell % rows == 1 and rightMargin or leftMargin
+
 		if cell % cols == 1 then
 			leftMargin = cellMarginPx2
 		end
@@ -499,9 +465,6 @@ function drawCell(cell, zoom)
 		if cols/cell >= 1  then
 			topMargin = math_floor(((cellMarginPx + cellMarginPx2) / 2) + 0.5)
 		end
-		--if cols/cell < 1/(cols-1) then
-		--  bottomMargin = cellMarginPx2
-		--end
 
 		local cellInnerWidth = math_floor(((cellRects[cell][3] - rightMargin) - (cellRects[cell][1] + leftMargin)) + 0.5)
 		local cellInnerHeight = math_floor(((cellRects[cell][4] - topMargin) - (cellRects[cell][2] + bottomMargin)) + 0.5)
@@ -537,10 +500,6 @@ function drawCell(cell, zoom)
 			color2 = { 0, 0, 0, math_max(0.55, math_min(0.95, ui_opacity)) }	-- top
 		end
 
-		--if padding == 1 then	-- make border less harch
-		--	RectRound(cellRects[cell][1] + leftMargin + padding + padding, cellRects[cell][2] + bottomMargin + padding + padding, cellRects[cell][3] - rightMargin - padding - padding, cellRects[cell][4] - topMargin - padding - padding, cellWidth * 0.008, 2, 2, 2, 2, {color1[1],color1[2],color1[3],color1[4]*math_min(0.55, ui_opacity)}, {color2[1],color2[2],color2[3],color2[4]*math_min(0.55, ui_opacity)})
-		--end
-
 		UiButton(cellRects[cell][1] + leftMargin + padding, cellRects[cell][2] + bottomMargin + padding, cellRects[cell][3] - rightMargin - padding, cellRects[cell][4] - topMargin - padding, 1,1,1,1, 1,1,1,1, nil, color1, color2, padding)
 
 		-- icon
@@ -554,8 +513,6 @@ function drawCell(cell, zoom)
 				if VFS.FileExists(cursorTexture) then
 					local s = 0.45
 					local halfsize = s * ((cellRects[cell][4] - topMargin - padding) - (cellRects[cell][2] + bottomMargin + padding))
-					--local midPosX = (cellRects[cell][3]-leftMargin-padding) - halfsize - (halfsize*((1-s-s)/2))
-					--local midPosY = (cellRects[cell][4]-topMargin-padding) - (((cellRects[cell][4]-topMargin-padding)-(cellRects[cell][2]+bottomMargin+padding)) / 2)
 					local midPosX = (cellRects[cell][3] - rightMargin - padding) - (((cellRects[cell][3] - rightMargin - padding) - (cellRects[cell][1] + leftMargin + padding)) / 2)
 					local midPosY = (cellRects[cell][4] - topMargin - padding) - (((cellRects[cell][4] - topMargin - padding) - (cellRects[cell][2] + bottomMargin + padding)) / 2)
 					glColor(1, 1, 1, 0.66)
@@ -586,12 +543,12 @@ function drawCell(cell, zoom)
 				end
 			end
 			
-			local fontSize = cellInnerWidth / font2:GetTextWidth('  ' .. text .. ' ') * math_min(1, (cellInnerHeight / (rows * 6)))
+			local fontSize = cellInnerWidth / font:GetTextWidth('  ' .. text .. ' ') * math_min(1, (cellInnerHeight / (rows * 6)))
 			if fontSize > cellInnerWidth / 7 then
 				fontSize = cellInnerWidth / 7
 			end
 			fontSize = fontSize * zoom
-			local fontHeight = font2:GetTextHeight(text) * fontSize
+			local fontHeight = font:GetTextHeight(text) * fontSize
 			local fontHeightOffset = fontHeight * 0.34
 			if cmd.type == 5 then
 				-- state cmds (fire at will, etc)
@@ -606,7 +563,7 @@ function drawCell(cell, zoom)
 			if isActiveCmd then
 				textColor = "\255\020\020\020"
 			end
-			font2:Print(textColor .. text, cellRects[cell][1] + ((cellRects[cell][3] - cellRects[cell][1]) / 2), (cellRects[cell][2] - ((cellRects[cell][2] - cellRects[cell][4]) / 2) - fontHeightOffset), fontSize, "con")
+			font:Print(textColor .. text, cellRects[cell][1] + ((cellRects[cell][3] - cellRects[cell][1]) / 2), (cellRects[cell][2] - ((cellRects[cell][2] - cellRects[cell][4]) / 2) - fontHeightOffset), fontSize, "con")
 		end
 
 		-- state lights
@@ -674,18 +631,18 @@ function drawCell(cell, zoom)
 	end
 end
 
-function drawOrders()
+local function drawOrders()
 	-- just making sure blending mode is correct
 	glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
 	UiElement(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], 1, 1, ((posY-height > 0 or posX <= 0) and 1 or 0), 0)
 
 	if #cmds > 0 then
-		font2:Begin()
+		font:Begin()
 		for cell = 1, #cmds do
 			drawCell(cell, cellZoom)
 		end
-		font2:End()
+		font:End()
 	end
 end
 
@@ -750,8 +707,7 @@ function widget:DrawScreen()
 			doUpdate = true
 		end
 		doUpdateClock = nil
-		lastUpdate = now
-		RefreshCommands()
+		refreshCommands()
 	end
 
 	if #cmds == 0 and not alwaysShow then
@@ -790,7 +746,7 @@ function widget:DrawScreen()
 						local rightMargin = cellMarginPx2
 						local topMargin = cellMarginPx
 						local bottomMargin = cellMarginPx2
-						local yFirstMargin = cell % rows == 1 and rightMargin or leftMargin
+
 						if cell % cols == 1 then
 							leftMargin = cellMarginPx2
 						end
@@ -800,9 +756,6 @@ function widget:DrawScreen()
 						if cols/cell >= 1  then
 							topMargin = math_floor(((cellMarginPx + cellMarginPx2) / 2) + 0.5)
 						end
-						--if cols/cell < 1/(cols-1) then
-						--  bottomMargin = cellMarginPx2
-						--end
 
 						-- gloss highlight
 						local pad = math_max(1, math_floor(bgpadding * 0.52))
@@ -839,7 +792,7 @@ function widget:DrawScreen()
 						local rightMargin = cellMarginPx2
 						local topMargin = cellMarginPx
 						local bottomMargin = cellMarginPx2
-						local yFirstMargin = cell % rows == 1 and rightMargin or leftMargin
+
 						if cell % cols == 1 then
 							leftMargin = cellMarginPx2
 						end
@@ -849,9 +802,6 @@ function widget:DrawScreen()
 						if cols/cell >= 1  then
 							topMargin = math_floor(((cellMarginPx + cellMarginPx2) / 2) + 0.5)
 						end
-						--if cols/cell < 1/(cols-1) then
-						--  bottomMargin = cellMarginPx2
-						--end
 
 						-- gloss highlight
 						local pad = math_max(1, math_floor(bgpadding * 0.52))
@@ -927,7 +877,6 @@ function widget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdOpts, cmdPara
 end
 
 function widget:SelectionChanged(sel)
-	SelectedUnitsCount = spGetSelectedUnitsCount()
 	clickCountDown = 2
 end
 
