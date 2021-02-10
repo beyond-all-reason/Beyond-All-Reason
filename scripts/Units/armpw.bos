@@ -1125,7 +1125,7 @@ RestoreAfterDelay()
 
 AimFromPrimary(piecenum)
 {
-	piecenum = aimy1;
+	piecenum = aimx1;
 }
 
 QueryPrimary(piecenum)

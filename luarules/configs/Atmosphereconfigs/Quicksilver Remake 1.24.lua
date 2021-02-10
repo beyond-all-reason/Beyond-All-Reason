@@ -3,12 +3,58 @@ function gadget:GameFrame(n)
 		Spring.Echo("Loaded atmosphere CEGs config for map: " .. Game.mapName)
 	end
 
+-- SpawnCEGInAreaGround(cegname, midposx, groundOffset, midposz, radius, damage, paralyzedamage, damageradius, sound, soundvolume)
+
+-- SND water ocean 
+	if n%830 == 0 then
+		SpawnCEGInPositionGround("noceg", 3800, 60, 3800, _, _, _, "oceangentlesurf", 0.9)
+	end
+
+	if n%840 == 150 then
+		SpawnCEGInPositionGround("noceg", 2700, 30, 1200, _, _, _, "oceangentlesurf", 0.9)
+	end
+
+	if n%850 == 75 then
+		SpawnCEGInPositionGround("noceg", 5500, 30, 5900, _, _, _, "oceangentlesurf", 0.9)
+	end
+
+	if n%860 == 20 then
+		SpawnCEGInPositionGround("noceg", 650, 100, 6550, _, _, _, "tropicalbeach", 0.9)
+	end
+
+	if n%860 == 70 then
+		SpawnCEGInPositionGround("noceg", 600, 100, 800, _, _, _, "tropicalbeach", 0.9)
+	end
+
+	if n%860 == 50 then
+		SpawnCEGInPositionGround("noceg", 6450, 100, 800, _, _, _, "tropicalbeach", 0.9)
+	end
+
+	if n%860 == 90 then
+		SpawnCEGInPositionGround("noceg", 6700, 100, 6700, _, _, _, "tropicalbeach", 0.9)
+	end
+
+-- SND windy locations
+	if n%960 == 0 then
+		SpawnCEGInPositionGround("noceg", 1300, 500, 6000, _, _, _, "windy", 0.7)
+	end
+
+	if n%870 == 100 then
+		SpawnCEGInPositionGround("noceg", 5500, 500, 1150, _, _, _, "windy", 0.7)
+	end
+
+-- ## Atmosphere Functions
+-- SendToUnsynced("MapAtmosphereConfigSetSun", red&green, transitionspeed, blue)
+-- SendToUnsynced("MapAtmosphereConfigSetFog", targetfogstart, targetfogend, transitionspeedfogstart, transitionspeedfogend)
+
 -- DayNight Cycle
 
-	if n%18000 < 14000 then
+	if n%18000 < 15000 then
 		SendToUnsynced("MapAtmosphereConfigSetSun", 1, 0.8, 1)
+		SendToUnsynced("MapAtmosphereConfigSetFog", 0.8, 0.8, 3, 2)
 	else
-		SendToUnsynced("MapAtmosphereConfigSetSun", 0.5, 0.8, 0.65)
+		SendToUnsynced("MapAtmosphereConfigSetSun", 0.7, 0.8, 0.65)
+		SendToUnsynced("MapAtmosphereConfigSetFog", 0.18, 0.6, 3.9, 3.2)
 	end
 
 -- common foggy cliffs

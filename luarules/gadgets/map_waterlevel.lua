@@ -17,18 +17,6 @@ end
 local PACKET_HEADER = "$wl$"
 local PACKET_HEADER_LENGTH = string.len(PACKET_HEADER)
 
-
-local authorizedPlayers = {}
-local powerusers = include("LuaRules/configs/powerusers.lua")
-if powerusers then
-	for name, permissions in pairs(powerusers) do
-		if permissions.waterlevel then
-			authorizedPlayers[name] = true
-		end
-	end
-	powerusers = nil
-end
-
 if gadgetHandler:IsSyncedCode() then
 
 	local waterlevel = ((Spring.GetModOptions() and tonumber(Spring.GetModOptions().map_waterlevel)) or 0)
@@ -110,7 +98,7 @@ if gadgetHandler:IsSyncedCode() then
 
 		local playername, _, spec = Spring.GetPlayerInfo(playerID, false)
 		local authorized = false
-		for _, name in ipairs(authorizedPlayers) do
+		for _, name in ipairs(_G.permissions.waterlevel) do
 			if playername == name then
 				authorized = true
 				break
@@ -142,7 +130,7 @@ else
 		if words[1] then
 			local playername = Spring.GetPlayerInfo(Spring.GetMyPlayerID(),false)
 			local authorized = false
-			for _,name in ipairs(authorizedPlayers) do
+			for _,name in ipairs(SYNCED.permissions.waterlevel) do
 				if playername == name then
 					authorized = true
 					break

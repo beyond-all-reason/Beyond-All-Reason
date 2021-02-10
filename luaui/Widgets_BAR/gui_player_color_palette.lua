@@ -103,10 +103,10 @@ local function GetColor(i, teams)
 			end
 		end
 	end
-
 	local r, g, b = 0, 0, 0
 	local hueteams = teams
 	local useHueRGB = true
+	--[[
 	if teams > 7 then
 		hueteams = hueteams - 1
 		if i == teams then
@@ -121,7 +121,7 @@ local function GetColor(i, teams)
 			useHueRGB = false
 		end
 	end
-
+	]]
 	if useHueRGB then
 		local offset = 0
 		if offsetstartcolor then
