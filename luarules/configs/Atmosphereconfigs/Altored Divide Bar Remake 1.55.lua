@@ -8,15 +8,15 @@ function gadget:GameFrame(n)
 		SpawnCEGInPositionGround("noceg", 660, 500, 413, _, _, _, "windy", 0.5)
 	end
 
-	if n%870 == 30 then
+	if n%860 == 30 then
 		SpawnCEGInPositionGround("noceg", 7400, 600, 350, _, _, _, "windy", 0.5)
 	end
 
-	if n%850 == 60 then
+	if n%870 == 60 then
 		SpawnCEGInPositionGround("noceg", 470, 500, 7900, _, _, _, "windy", 0.5)
 	end
 
-	if n%870 == 90 then
+	if n%880 == 90 then
 		SpawnCEGInPositionGround("noceg", 7400, 600, 7800, _, _, _, "windy", 0.5)
 	end
 
