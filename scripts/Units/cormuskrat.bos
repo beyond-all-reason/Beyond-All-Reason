@@ -131,14 +131,21 @@ Deactivate()
 }
 
 
+
+
+
+
+
 StartBuilding(heading, pitch)
 {
+//get PRINT(heading,pitch,get GAME_FRAME,0);
 	start-script RequestState(0);
 	while( notBuilding ) sleep 100;
 	signal SIG_BUILD;
 	turn turret to z-axis heading speed <360.000000>;
-//	turn arm2 to x-axis heading speed <360.000000>;  up/down movement not working correct
 	wait-for-turn turret around z-axis;
+//	turn arm2 to x-axis <0> - pitch speed <360.000000>;  //up/down movement not working correct
+//	wait-for-turn arm2 around x-axis;
 	set INBUILDSTANCE to 1;
 }
 
