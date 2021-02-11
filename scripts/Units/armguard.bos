@@ -75,11 +75,6 @@ Deactivate()
 	start-script RequestState(LOW_TRAJECTORY);
 }
 
-Reload()
-{
-	sleep 2000;
-}
-
 aimCommon(heading, pitch)
 {
 	turn turret to y-axis heading speed <30.000000>;
@@ -98,6 +93,15 @@ AimPrimary(heading, pitch)
 	signal SIGNAL_AIM;
 	set-signal-mask SIGNAL_AIM;
 	call-script aimCommon(heading, pitch);
+
+	// Prevent low-trajectory "bonus shots" while high-trajectory is reloading
+	var reloading;
+	reloading = (get GAME_FRAME) < (get WEAPON_RELOADSTATE(2));
+	if( reloading )
+	{
+		return(0);
+	}
+
 	return (1);
 }
 
@@ -141,7 +145,6 @@ fireCommon()
 		move barrel2 to z-axis [0.000000] speed [2.500000];
 	}
 	nextBarrel = !nextBarrel;
-	start-script Reload();
 }
 
 FirePrimary()
