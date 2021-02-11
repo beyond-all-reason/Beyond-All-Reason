@@ -19,17 +19,16 @@ local altPosition = true
 local showIcons = false
 local colorize = 0
 local playSounds = true
-local posY = 0.75
 local stickToBottom = false
-
 local alwaysShow = false
 
 local posX = 0
+local posY = 0.75
 local width = 0
 local height = 0
-local cellMarginOrg = 0.055
-local cellMargin = cellMarginOrg
-local cmdInfo = {		-- r, g, b, SHORTCUT
+local cellMarginOriginal = 0.055
+local cellMargin = cellMarginOriginal
+local commandInfo = {		-- r, g, b, SHORTCUT
 	Move = { 0.64, 1, 0.64, 'M'},
 	Stop = { 1, 0.3, 0.3, 'S'},
 	Attack = { 1, 0.5, 0.35, 'A' },
@@ -56,68 +55,67 @@ local cmdInfo = {		-- r, g, b, SHORTCUT
 }
 local isStateCommand = {}
 
-local disabledCmd = {}
+local disabledCommand = {}
 
-local vsx, vsy = Spring.GetViewGeometry()
+local viewSizeX, viewSizeY = Spring.GetViewGeometry()
 
 local fontFile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 
 local barGlowCenterTexture = ":l:LuaUI/Images/barglow-center.png"
 local barGlowEdgeTexture = ":l:LuaUI/Images/barglow-edge.png"
 
-local sound_button = 'LuaUI/Sounds/buildbar_waypoint.wav'
+local soundButton = 'LuaUI/Sounds/buildbar_waypoint.wav'
 
-local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity", 0.6) or 0.66)
-local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
+local uiOpacity = tonumber(Spring.GetConfigFloat("ui_opacity", 0.6) or 0.66)
+local uiScale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
 
 local backgroundRect = {}
 local activeRect = {}
 local cellRects = {}
 local cellMarginPx = 0
 local cellMarginPx2 = 0
-local cmds = {}
+local commands = {}
 local rows = 0
 local cols = 0
 local disableInput = false
 
-local font, bgpadding, widgetSpaceMargin, chobbyInterface, dlistOrders, dlistGuishader
+local font, backgroundPadding, widgetSpaceMargin, chobbyInterface, deleteListOrders, deleteListGuiShader
 local clickedCell, clickedCellTime, clickedCellDesiredState, cellWidth, cellHeight
-local bpWidth, bpHeight, buildmenuBottomPos, buildpowerWidgetEnabled
-local activeCmd, prevActiveCmd, doUpdate, doUpdateClock
+local bpWidth, bpHeight, buildmenuBottomPosition, buildpowerWidgetEnabled
+local activeCommand, previousActiveCommand, doUpdate, doUpdateClock
 
-local hiddencmds = {
-	[76] = true, --load units clone
-	[65] = true, --selfd
-	[9] = true, --gatherwait
-	[8] = true, --squadwait
-	[7] = true, --deathwait
-	[6] = true, --timewait
+Spring.Echo(CMD_RAW_MOVE)
+local hiddenCommands = {
+	[CMD.LOAD_ONTO] = true,
+	[CMD.SELFD] = true,
+	[CMD.GATHERWAIT] = true,
+	[CMD.SQUADWAIT] = true,
+	[CMD.DEATHWAIT] = true,
+	[CMD.TIMEWAIT] = true,
 	[39812] = true, --raw move
 	[34922] = true, -- set unit target
-	--[34923] = true, -- set target
+}
+
+local hiddenCommandTypes = {
+	[CMDTYPE.CUSTOM] = true,
+	[CMDTYPE.PREV] = true,
+	[CMDTYPE.NEXT] = true,
 }
 
 local spGetActiveCommand = Spring.GetActiveCommand
 local spGetActiveCmdDescs = Spring.GetActiveCmdDescs
 
-local string_sub = string.sub
 local os_clock = os.clock
 
-local GL_TRIANGLE_FAN = GL.TRIANGLE_FAN
-local glBeginEnd = gl.BeginEnd
 local glTexture = gl.Texture
 local glTexRect = gl.TexRect
 local glColor = gl.Color
 local glRect = gl.Rect
-local glVertex = gl.Vertex
 local glBlending = gl.Blending
 local GL_SRC_ALPHA = GL.SRC_ALPHA
 local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 local GL_ONE = GL.ONE
 
-local math_twicePi = math.pi * 2
-local math_cos = math.cos
-local math_sin = math.sin
 local math_min = math.min
 local math_max = math.max
 local math_ceil = math.ceil
@@ -128,65 +126,65 @@ local UiElement = Spring.FlowUI.Draw.Element
 local UiButton = Spring.FlowUI.Draw.Button
 local elementCorner = Spring.FlowUI.elementCorner
 
-local isSpec = Spring.GetSpectatingState()
+local isSpectating = Spring.GetSpectatingState()
 local cursorTextures = {}
 
 local function convertColor(r, g, b)
 	return string.char(255, (r * 255), (g * 255), (b * 255))
 end
 
-local function checkGuishader(force)
+local function checkGuiShader(force)
 	if WG['guishader'] then
-		if force and dlistGuishader then
-			dlistGuishader = gl.DeleteList(dlistGuishader)
+		if force and deleteListGuiShader then
+			deleteListGuiShader = gl.DeleteList(deleteListGuiShader)
 		end
-		if not dlistGuishader then
-			dlistGuishader = gl.CreateList(function()
-				RectRound(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], elementCorner * ui_scale)
+		if not deleteListGuiShader then
+			deleteListGuiShader = gl.CreateList(function()
+				RectRound(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], elementCorner * uiScale)
 			end)
 		end
-	elseif dlistGuishader then
-		dlistGuishader = gl.DeleteList(dlistGuishader)
+	elseif deleteListGuiShader then
+		deleteListGuiShader = gl.DeleteList(deleteListGuiShader)
 	end
 end
 
 function widget:PlayerChanged(playerID)
-	isSpec = Spring.GetSpectatingState()
+	isSpectating = Spring.GetSpectatingState()
 end
 
 local function setupCellGrid(force)
-	local oldcols = cols
+	local oldCols = cols
 	local oldRows = rows
-	local cmdCount = #cmds
-	local addcol = ui_scale < 0.85 and -1 or 0
-	local addRow = ui_scale < 0.85 and 0 or 0
-	if cmdCount <= (4 + addcol) * (4 + addRow) then
-		cols = 4 + addcol
+	local cmdCount = #commands
+	local addCol = uiScale < 0.85 and -1 or 0
+	local addRow = uiScale < 0.85 and 0 or 0
+	if cmdCount <= (4 + addCol) * (4 + addRow) then
+		cols = 4 + addCol
 		rows = 4 + addRow
-	elseif cmdCount <= (5 + addcol) * (4 + addRow) then
-		cols = 5 + addcol
+	elseif cmdCount <= (5 + addCol) * (4 + addRow) then
+		cols = 5 + addCol
 		rows = 4 + addRow
-	elseif cmdCount <= (5 + addcol) * (5 + addRow) then
-		cols = 5 + addcol
+	elseif cmdCount <= (5 + addCol) * (5 + addRow) then
+		cols = 5 + addCol
 		rows = 5 + addRow
-	elseif cmdCount <= (5 + addcol) * (6 + addRow) then
-		cols = 5 + addcol
+	elseif cmdCount <= (5 + addCol) * (6 + addRow) then
+		cols = 5 + addCol
 		rows = 6 + addRow
-	elseif cmdCount <= (6 + addcol) * (6 + addRow) then
-		cols = 6 + addcol
+	elseif cmdCount <= (6 + addCol) * (6 + addRow) then
+		cols = 6 + addCol
 		rows = 6 + addRow
-	elseif cmdCount <= (6 + addcol) * (7 + addRow) then
-		cols = 6 + addcol
+	elseif cmdCount <= (6 + addCol) * (7 + addRow) then
+		cols = 6 + addCol
 		rows = 7 + addRow
 	else
-		cols = 7 + addcol
+		cols = 7 + addCol
 		rows = 7 + addRow
 	end
 
 	local sizeDivider = ((cols + rows) / 16)
-	cellMargin = (cellMarginOrg / sizeDivider) * ui_scale
+	cellMargin = (cellMarginOriginal / sizeDivider) * uiScale
 
-	if force or oldcols ~= cols or oldRows ~= rows then
+	if force or oldCols ~= cols or oldRows ~= rows then
 		clickedCell = nil
 		clickedCellTime = nil
 		clickedCellDesiredState = nil
@@ -228,95 +226,93 @@ local function setupCellGrid(force)
 end
 
 local function refreshCommands()
-	local stateCmds = {}
-	local otherCmds = {}
-	local stateCmdsCount = 0
-	local otherCmdsCount = 0
-	for index, cmd in pairs(spGetActiveCmdDescs()) do
-		if type(cmd) == "table" and not disabledCmd[cmd.name] then
-			if cmd.type == 5 then
-				isStateCommand[cmd.id] = true
+	local stateCommands = {}
+	local otherCommands = {}
+	local stateCommandsCount = 0
+	local otherCommandsCount = 0
+	for index, command in pairs(spGetActiveCmdDescs()) do
+		if type(command) == "table" and not disabledCommand[command.name] then
+			if command.type == CMDTYPE.ICON_MODE then
+				isStateCommand[command.id] = true
 			end
-			if not hiddencmds[cmd.id] and cmd.action ~= nil and cmd.type ~= 21 and cmd.type ~= 18 and cmd.type ~= 17 and not cmd.disabled then
-				if cmd.type == 20 --build building
-					or (string_sub(cmd.action, 1, 10) == 'buildunit_') then
-
-				elseif cmd.type == 5 then
-					stateCmdsCount = stateCmdsCount + 1
-					stateCmds[stateCmdsCount] = cmd
+			if not hiddenCommands[command.id] and not hiddenCommandTypes[command.type] and command.action ~= nil and not command.disabled then
+				if command.type == CMDTYPE.ICON_BUILDING or (string.sub(command.action, 1, 10) == 'buildunit_') then
+					-- intentionally empty, no action to take
+				elseif isStateCommand[command.id] then
+					stateCommandsCount = stateCommandsCount + 1
+					stateCommands[stateCommandsCount] = command
 				else
-					otherCmdsCount = otherCmdsCount + 1
-					otherCmds[otherCmdsCount] = cmd
+					otherCommandsCount = otherCommandsCount + 1
+					otherCommands[otherCommandsCount] = command
 				end
 			end
 		end
 	end
-	cmds = {}
-	for i = 1, stateCmdsCount do
-		cmds[i] = stateCmds[i]
+	commands = {}
+	for i = 1, stateCommandsCount do
+		commands[i] = stateCommands[i]
 	end
-	for i = 1, otherCmdsCount do
-		cmds[i + stateCmdsCount] = otherCmds[i]
+	for i = 1, otherCommandsCount do
+		commands[i + stateCommandsCount] = otherCommands[i]
 	end
 
 	setupCellGrid(false)
 end
 
 function widget:ViewResize()
-	vsx, vsy = Spring.GetViewGeometry()
+	viewSizeX, viewSizeY = Spring.GetViewGeometry()
 
 	width = 0.2125
-	height = 0.14 * ui_scale
+	height = 0.14 * uiScale
 
-	width = width / (vsx / vsy) * 1.78        -- make smaller for ultrawide screens
-	width = width * ui_scale
+	width = width / (viewSizeX / viewSizeY) * 1.78        -- make smaller for ultrawide screens
+	width = width * uiScale
 
 	-- make pixel aligned
-	width = math.floor(width * vsx) / vsx
-	height = math.floor(height * vsy) / vsy
+	width = math.floor(width * viewSizeX) / viewSizeX
+	height = math.floor(height * viewSizeY) / viewSizeY
 
 	if WG['buildmenu'] then
-		buildmenuBottomPos = WG['buildmenu'].getBottomPosition()
+		buildmenuBottomPosition = WG['buildmenu'].getBottomPosition()
 	end
 
 	font = WG['fonts'].getFont(fontFile)
 
 	elementCorner = Spring.FlowUI.elementCorner
-	bgpadding = Spring.FlowUI.elementPadding
+	backgroundPadding = Spring.FlowUI.elementPadding
 
 	widgetSpaceMargin = Spring.FlowUI.elementMargin
-	if stickToBottom or (altPosition and not buildmenuBottomPos) then
+	if stickToBottom or (altPosition and not buildmenuBottomPosition) then
 
 		posY = height
-		posX = width + (widgetSpaceMargin/vsx)
+		posX = width + (widgetSpaceMargin/viewSizeX)
 	else
-		if buildmenuBottomPos then
+		if buildmenuBottomPosition then
 			posX = 0
-			posY = height + height + (widgetSpaceMargin/vsy)
+			posY = height + height + (widgetSpaceMargin/viewSizeY)
 		else
 			posY = 0.75
 			local posY2, _ = WG['buildmenu'].getSize()
-			posY2 = posY2 + (widgetSpaceMargin/vsy)
+			posY2 = posY2 + (widgetSpaceMargin/viewSizeY)
 			posY = posY2 + height
 			if WG['minimap'] then
-				posY = 1 - (WG['minimap'].getHeight() / vsy) - (widgetSpaceMargin/vsy)
+				posY = 1 - (WG['minimap'].getHeight() / viewSizeY) - (widgetSpaceMargin/viewSizeY)
 			end
 			posX = 0
 		end
 	end
 
-	backgroundRect = { posX * vsx, (posY - height) * vsy, (posX + width) * vsx, posY * vsy }
-	local activeBgpadding = math_floor((bgpadding * 1.4) + 0.5)
+	backgroundRect = { posX * viewSizeX, (posY - height) * viewSizeY, (posX + width) * viewSizeX, posY * viewSizeY }
+	local activeBgpadding = math_floor((backgroundPadding * 1.4) + 0.5)
 	activeRect = {
-		(posX * vsx) + (posX > 0 and activeBgpadding or math.ceil(bgpadding * 0.6)),
-		((posY - height) * vsy) + (posY-height > 0 and math_floor(activeBgpadding) or math_floor(activeBgpadding / 3)),
-		((posX + width) * vsx) - activeBgpadding,
-		(posY * vsy) - activeBgpadding
+		(posX * viewSizeX) + (posX > 0 and activeBgpadding or math.ceil(backgroundPadding * 0.6)),
+		((posY - height) * viewSizeY) + (posY-height > 0 and math_floor(activeBgpadding) or math_floor(activeBgpadding / 3)),
+		((posX + width) * viewSizeX) - activeBgpadding,
+		(posY * viewSizeY) - activeBgpadding
 	}
-	dlistOrders = gl.DeleteList(dlistOrders)
+	deleteListOrders = gl.DeleteList(deleteListOrders)
 
-	checkGuishader(true)
-
+	checkGuiShader(true)
 	setupCellGrid(true)
 	doUpdate = true
 end
@@ -348,13 +344,13 @@ function widget:Initialize()
 		return stickToBottom
 	end
 	WG['ordermenu'].getDisabledCmd = function(cmd)
-		return disabledCmd[cmd]
+		return disabledCommand[cmd]
 	end
 	WG['ordermenu'].setDisabledCmd = function(params)
 		if params[2] then
-			disabledCmd[params[1]] = true
+			disabledCommand[params[1]] = true
 		else
-			disabledCmd[params[1]] = nil
+			disabledCommand[params[1]] = nil
 		end
 	end
 	WG['ordermenu'].getColorize = function()
@@ -370,11 +366,11 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
-	if WG['guishader'] and dlistGuishader then
+	if WG['guishader'] and deleteListGuiShader then
 		WG['guishader'].DeleteDlist('ordermenu')
-		dlistGuishader = nil
+		deleteListGuiShader = nil
 	end
-	dlistOrders = gl.DeleteList(dlistOrders)
+	deleteListOrders = gl.DeleteList(deleteListOrders)
 	WG['ordermenu'] = nil
 end
 
@@ -384,7 +380,7 @@ function widget:Update(dt)
 	sec = sec + dt
 	if sec > 0.5 then
 		sec = 0
-		checkGuishader()
+		checkGuiShader()
 		if WG['buildpower'] then
 			local newBpWidth, newBpHeight = WG['buildpower'].getPosition()
 			if bpWidth == nil or (bpWidth ~= newBpWidth or bpHeight ~= newBpHeight) then
@@ -402,14 +398,14 @@ function widget:Update(dt)
 				widget:ViewResize()
 			end
 		end
-		if ui_scale ~= Spring.GetConfigFloat("ui_scale", 1) then
-			ui_scale = Spring.GetConfigFloat("ui_scale", 1)
+		if uiScale ~= Spring.GetConfigFloat("ui_scale", 1) then
+			uiScale = Spring.GetConfigFloat("ui_scale", 1)
 			widget:ViewResize()
 			setupCellGrid(true)
 			doUpdate = true
 		end
-		if ui_opacity ~= Spring.GetConfigFloat("ui_opacity", 0.6) then
-			ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.6)
+		if uiOpacity ~= Spring.GetConfigFloat("ui_opacity", 0.6) then
+			uiOpacity = Spring.GetConfigFloat("ui_opacity", 0.6)
 			doUpdate = true
 		end
 		if WG['minimap'] and altPosition ~= WG['minimap'].getEnlarged() then
@@ -419,7 +415,7 @@ function widget:Update(dt)
 			doUpdate = true
 		end
 
-		disableInput = isSpec
+		disableInput = isSpectating
 		if Spring.IsGodModeEnabled() then
 			disableInput = false
 		end
@@ -449,7 +445,7 @@ local function drawCell(cell, zoom)
 		zoom = 1
 	end
 
-	local cmd = cmds[cell]
+	local cmd = commands[cell]
 	if cmd then
 		local leftMargin = cellMarginPx
 		local rightMargin = cellMarginPx2
@@ -469,24 +465,24 @@ local function drawCell(cell, zoom)
 		local cellInnerWidth = math_floor(((cellRects[cell][3] - rightMargin) - (cellRects[cell][1] + leftMargin)) + 0.5)
 		local cellInnerHeight = math_floor(((cellRects[cell][4] - topMargin) - (cellRects[cell][2] + bottomMargin)) + 0.5)
 
-		local padding = math_max(1, math_floor(bgpadding * 0.52))
+		local padding = math_max(1, math_floor(backgroundPadding * 0.52))
 
-		local isActiveCmd = (activeCmd == cmd.name)
+		local isActiveCmd = (activeCommand == cmd.name)
 		-- order button background
 		local color1, color2
 		if isActiveCmd then
 			zoom = cellClickedZoom
-			color1 = { 0.66, 0.66, 0.66, math_max(0.75, math_min(0.95, ui_opacity)) }	-- bottom
-			color2 = { 1, 1, 1, math_max(0.75, math_min(0.95, ui_opacity)) }			-- top
+			color1 = { 0.66, 0.66, 0.66, math_max(0.75, math_min(0.95, uiOpacity)) }	-- bottom
+			color2 = { 1, 1, 1, math_max(0.75, math_min(0.95, uiOpacity)) }			-- top
 		else
 			if WG['guishader'] then
-				color1 = (cmd.type == 5) and { 0.5, 0.5, 0.5, math_max(0.35, math_min(0.55, ui_opacity/1.5)) } or { 0.6, 0.6, 0.6, math_max(0.35, math_min(0.55, ui_opacity/1.5)) }
-				color1[4] = math_max(0, math_min(0.35, (ui_opacity-0.3)))
-				color2 = { 1,1,1, math_max(0, math_min(0.35, (ui_opacity-0.3))) }
+				color1 = (isStateCommand[cmd.id]) and { 0.5, 0.5, 0.5, math_max(0.35, math_min(0.55, uiOpacity/1.5)) } or { 0.6, 0.6, 0.6, math_max(0.35, math_min(0.55, uiOpacity/1.5)) }
+				color1[4] = math_max(0, math_min(0.35, (uiOpacity-0.3)))
+				color2 = { 1,1,1, math_max(0, math_min(0.35, (uiOpacity-0.3))) }
 			else
-				color1 = (cmd.type == 5) and { 0.33, 0.33, 0.33, 1 } or { 0.33, 0.33, 0.33, 1 }
-				color1[4] = math_max(0, math_min(0.4, (ui_opacity-0.3)))
-				color2 = { 1,1,1, math_max(0, math_min(0.4, (ui_opacity-0.3))) }
+				color1 = (isStateCommand[cmd.id]) and { 0.33, 0.33, 0.33, 1 } or { 0.33, 0.33, 0.33, 1 }
+				color1[4] = math_max(0, math_min(0.4, (uiOpacity-0.3)))
+				color2 = { 1,1,1, math_max(0, math_min(0.4, (uiOpacity-0.3))) }
 			end
 			if color1[4] > 0.06 then
 				-- white bg (outline)
@@ -496,8 +492,8 @@ local function drawCell(cell, zoom)
 				color2 = {0,0,0, color2[4]*0.85}
 				RectRound(cellRects[cell][1] + leftMargin + padding, cellRects[cell][2] + bottomMargin + padding, cellRects[cell][3] - rightMargin - padding, cellRects[cell][4] - topMargin - padding, padding, 2, 2, 2, 2, color1, color2)
 			end
-			color1 = { 0, 0, 0, math_max(0.55, math_min(0.95, ui_opacity)) }	-- bottom
-			color2 = { 0, 0, 0, math_max(0.55, math_min(0.95, ui_opacity)) }	-- top
+			color1 = { 0, 0, 0, math_max(0.55, math_min(0.95, uiOpacity)) }	-- bottom
+			color2 = { 0, 0, 0, math_max(0.55, math_min(0.95, uiOpacity)) }	-- top
 		end
 
 		UiButton(cellRects[cell][1] + leftMargin + padding, cellRects[cell][2] + bottomMargin + padding, cellRects[cell][3] - rightMargin - padding, cellRects[cell][4] - topMargin - padding, 1,1,1,1, 1,1,1,1, nil, color1, color2, padding)
@@ -550,15 +546,14 @@ local function drawCell(cell, zoom)
 			fontSize = fontSize * zoom
 			local fontHeight = font:GetTextHeight(text) * fontSize
 			local fontHeightOffset = fontHeight * 0.34
-			if cmd.type == 5 then
-				-- state cmds (fire at will, etc)
+			if isStateCommand[cmd.id] then
 				fontHeightOffset = fontHeight * 0.22
 			end
 			local textColor = "\255\233\233\233"
-			if colorize > 0 and cmdInfo[cmd.name] and cmdInfo[cmd.name][1] then
+			if colorize > 0 and commandInfo[cmd.name] and commandInfo[cmd.name][1] then
 				local part = (1 / colorize)
 				local grey = (0.93 * (part - 1))
-				textColor = convertColor((grey + cmdInfo[cmd.name][1]) / part, (grey + cmdInfo[cmd.name][2]) / part, (grey + cmdInfo[cmd.name][3]) / part)
+				textColor = convertColor((grey + commandInfo[cmd.name][1]) / part, (grey + commandInfo[cmd.name][2]) / part, (grey + commandInfo[cmd.name][3]) / part)
 			end
 			if isActiveCmd then
 				textColor = "\255\020\020\020"
@@ -567,9 +562,7 @@ local function drawCell(cell, zoom)
 		end
 
 		-- state lights
-		if cmd.type == 5 then
-			-- state cmds (fire at will, etc)
-
+		if isStateCommand[cmd.id] then
 			local statecount = #cmd.params - 1 --number of states for the cmd
 			local curstate = cmd.params[1] + 1
 			local desiredState = nil
@@ -637,9 +630,9 @@ local function drawOrders()
 
 	UiElement(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], 1, 1, ((posY-height > 0 or posX <= 0) and 1 or 0), 0)
 
-	if #cmds > 0 then
+	if #commands > 0 then
 		font:Begin()
-		for cell = 1, #cmds do
+		for cell = 1, #commands do
 			drawCell(cell, cellZoom)
 		end
 		font:End()
@@ -661,9 +654,9 @@ function widget:DrawScreen()
 	if clickCountDown == 0 then
 		doUpdate = true
 	end
-	prevActiveCmd = activeCmd
-	activeCmd = select(4, spGetActiveCommand())
-	if activeCmd ~= prevActiveCmd then
+	previousActiveCommand = activeCommand
+	activeCommand = select(4, spGetActiveCommand())
+	if activeCommand ~= previousActiveCommand then
 		doUpdate = true
 	end
 
@@ -673,14 +666,14 @@ function widget:DrawScreen()
 		if IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
 			Spring.SetMouseCursor('cursornormal')
 			for cell = 1, #cellRects do
-				if cmds[cell] then
+				if commands[cell] then
 					if IsOnRect(x, y, cellRects[cell][1], cellRects[cell][2], cellRects[cell][3], cellRects[cell][4]) then
-						local cmd = cmds[cell]
+						local cmd = commands[cell]
 						if WG['tooltip'] then
 							local tooltipKey = cmd.action .. '_tooltip'
 							local shortcut = ''
-							if cmdInfo[cmd.name] and cmdInfo[cmd.name][4] then
-								shortcut = '\255\255\215\100'..cmdInfo[cmd.name][4]
+							if commandInfo[cmd.name] and commandInfo[cmd.name][4] then
+								shortcut = '\255\255\215\100'..commandInfo[cmd.name][4]
 							end
 							local tooltip = Spring.I18N('ui.orderMenu.' .. tooltipKey)
 							if tooltip ~= '' then
@@ -710,35 +703,35 @@ function widget:DrawScreen()
 		refreshCommands()
 	end
 
-	if #cmds == 0 and not alwaysShow then
-		if dlistGuishader and WG['guishader'] then
+	if #commands == 0 and not alwaysShow then
+		if deleteListGuiShader and WG['guishader'] then
 			WG['guishader'].RemoveDlist('ordermenu')
 		end
 	else
-		if dlistGuishader and WG['guishader'] then
-			WG['guishader'].InsertDlist(dlistGuishader, 'ordermenu')
+		if deleteListGuiShader and WG['guishader'] then
+			WG['guishader'].InsertDlist(deleteListGuiShader, 'ordermenu')
 		end
 		if doUpdate then
-			dlistOrders = gl.DeleteList(dlistOrders)
+			deleteListOrders = gl.DeleteList(deleteListOrders)
 		end
-		if not dlistOrders then
-			dlistOrders = gl.CreateList(function()
+		if not deleteListOrders then
+			deleteListOrders = gl.CreateList(function()
 				drawOrders()
 			end)
 		end
 
-		gl.CallList(dlistOrders)
+		gl.CallList(deleteListOrders)
 
-		if #cmds >0 then
+		if #commands >0 then
 			-- draw highlight on top of button
 			if not WG['topbar'] or not WG['topbar'].showingQuit() then
-				if cmds and cellHovered then
+				if commands and cellHovered then
 					local cell = cellHovered
 					if cellRects[cell] and cellRects[cell][4] then
 						drawCell(cell, cellHoverZoom)
 
 						local colorMult = 1
-						if cmds[cell] and activeCmd == cmds[cell].name then
+						if commands[cell] and activeCommand == commands[cell].name then
 							colorMult = 0.4
 						end
 
@@ -758,10 +751,10 @@ function widget:DrawScreen()
 						end
 
 						-- gloss highlight
-						local pad = math_max(1, math_floor(bgpadding * 0.52))
+						local pad = math_max(1, math_floor(backgroundPadding * 0.52))
 						local pad2 = pad
 						glBlending(GL_SRC_ALPHA, GL_ONE)
-						RectRound(cellRects[cell][1] + leftMargin + pad + pad2, cellRects[cell][4] - topMargin - bgpadding - pad - pad2 - ((cellRects[cell][4] - cellRects[cell][2]) * 0.42), cellRects[cell][3] - rightMargin - pad - pad2, (cellRects[cell][4] - topMargin - pad - pad2), cellMargin * 0.025, 2, 2, 0, 0, { 1, 1, 1, 0.035 * colorMult }, { 1, 1, 1, (disableInput and 0.11 * colorMult or 0.24 * colorMult) })
+						RectRound(cellRects[cell][1] + leftMargin + pad + pad2, cellRects[cell][4] - topMargin - backgroundPadding - pad - pad2 - ((cellRects[cell][4] - cellRects[cell][2]) * 0.42), cellRects[cell][3] - rightMargin - pad - pad2, (cellRects[cell][4] - topMargin - pad - pad2), cellMargin * 0.025, 2, 2, 0, 0, { 1, 1, 1, 0.035 * colorMult }, { 1, 1, 1, (disableInput and 0.11 * colorMult or 0.24 * colorMult) })
 						RectRound(cellRects[cell][1] + leftMargin + pad + pad2, cellRects[cell][2] + bottomMargin + pad + pad2, cellRects[cell][3] - rightMargin - pad - pad2, (cellRects[cell][2] - bottomMargin - pad - pad2) + ((cellRects[cell][4] - cellRects[cell][2]) * 0.5), cellMargin * 0.025, 0, 0, 2, 2, { 1, 1, 1, (disableInput and 0.035 * colorMult or 0.075 * colorMult) }, { 1, 1, 1, 0 })
 						glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 					end
@@ -769,14 +762,14 @@ function widget:DrawScreen()
 			end
 
 			-- clicked cell effect
-			if clickedCellTime and cmds[clickedCell] then
+			if clickedCellTime and commands[clickedCell] then
 				local cell = clickedCell
 				if cellRects[cell] and cellRects[cell][4] then
-					local isActiveCmd = (cmds[cell].name == activeCmd)
+					local isActiveCmd = (commands[cell].name == activeCommand)
 					local duration = 0.33
 					if isActiveCmd then
 						duration = 0.45
-					elseif cmds[clickedCell].type == 5 then
+					elseif isStateCommand[commands[clickedCell].id] then
 						duration = 0.6
 					end
 					local alpha = 0.33 - ((now - clickedCellTime) / duration)
@@ -804,7 +797,7 @@ function widget:DrawScreen()
 						end
 
 						-- gloss highlight
-						local pad = math_max(1, math_floor(bgpadding * 0.52))
+						local pad = math_max(1, math_floor(backgroundPadding * 0.52))
 						RectRound(cellRects[cell][1] + leftMargin + pad, cellRects[cell][2] + bottomMargin + pad, cellRects[cell][3] - rightMargin - pad, cellRects[cell][4] - topMargin - pad, pad, 2, 2, 2, 2)
 					else
 						clickedCellTime = nil
@@ -822,10 +815,10 @@ function widget:MousePress(x, y, button)
 		return
 	end
 	if IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
-		if #cmds > 0 then
+		if #commands > 0 then
 			if not disableInput then
 				for cell = 1, #cellRects do
-					local cmd = cmds[cell]
+					local cmd = commands[cell]
 					if cmd then
 						if IsOnRect(x, y, cellRects[cell][1], cellRects[cell][2], cellRects[cell][3], cellRects[cell][4]) then
 							clickCountDown = 2
@@ -833,7 +826,7 @@ function widget:MousePress(x, y, button)
 							clickedCellTime = os_clock()
 
 							-- remember desired state: only works for a single cell at a time, because there is no way to re-identify a cell when the selection changes
-							if cmd.type == 5 then
+							if isStateCommand[cmd.id] then
 								if button == 1 then
 									clickedCellDesiredState = cmd.params[1] + 1
 									if clickedCellDesiredState >= #cmd.params - 1 then
@@ -849,7 +842,7 @@ function widget:MousePress(x, y, button)
 							end
 
 							if playSounds then
-								Spring.PlaySoundFile(sound_button, 0.6, 'ui')
+								Spring.PlaySoundFile(soundButton, 0.6, 'ui')
 							end
 							if cmd.id and Spring.GetCmdDescIndex(cmd.id) then
 								Spring.SetActiveCommand(Spring.GetCmdDescIndex(cmd.id), button, true, false, Spring.GetModKeyState())
@@ -870,7 +863,7 @@ end
 
 function widget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdOpts, cmdParams, cmdTag)
 	if isStateCommand[cmdID] then
-		if not hiddencmds[cmdID] and doUpdateClock == nil then
+		if not hiddenCommands[cmdID] and doUpdateClock == nil then
 			doUpdateClock = os_clock() + 0.01
 		end
 	end
@@ -882,7 +875,7 @@ end
 
 function widget:GetConfigData()
 	--save config
-	return { colorize = colorize, stickToBottom = stickToBottom, alwaysShow = alwaysShow, disabledCmd = disabledCmd}
+	return { colorize = colorize, stickToBottom = stickToBottom, alwaysShow = alwaysShow, disabledCmd = disabledCommand}
 end
 
 function widget:SetConfigData(data)
@@ -897,6 +890,6 @@ function widget:SetConfigData(data)
 		alwaysShow = data.alwaysShow
 	end
 	if data.disabledCmd ~= nil then
-		disabledCmd = data.disabledCmd
+		disabledCommand = data.disabledCmd
 	end
 end
