@@ -84,7 +84,6 @@ local clickedCell, clickedCellTime, clickedCellDesiredState, cellWidth, cellHeig
 local bpWidth, bpHeight, buildmenuBottomPosition, buildpowerWidgetEnabled
 local activeCommand, previousActiveCommand, doUpdate, doUpdateClock
 
-Spring.Echo(CMD_RAW_MOVE)
 local hiddenCommands = {
 	[CMD.LOAD_ONTO] = true,
 	[CMD.SELFD] = true,
