@@ -5,8 +5,9 @@
 
 piece  flare1, flare2, base, turret, barrel1, barrel2, sleeves;
 
-static-var  aiming, nextBarrel, trajectoryMode;
+static-var  nextBarrel, trajectoryMode;
 
+#define SIGNAL_AIM			1
 #define LOW_TRAJECTORY		0
 #define HIGH_TRAJECTORY		1
 
@@ -54,7 +55,6 @@ Create()
 	dont-shade sleeves;
 	dont-shade turret;
 	nextBarrel = 0;
-	aiming = FALSE;
 	start-script SmokeUnit();
 }
 
@@ -65,11 +65,13 @@ RequestState(requestedState)
 
 Activate()
 {
+	signal SIGNAL_AIM;
 	start-script RequestState(HIGH_TRAJECTORY);
 }
 
 Deactivate()
 {
+	signal SIGNAL_AIM;
 	start-script RequestState(LOW_TRAJECTORY);
 }
 
@@ -80,32 +82,34 @@ Reload()
 
 aimCommon(heading, pitch)
 {
-	aiming = TRUE;
 	turn turret to y-axis heading speed <30.000000>;
 	turn sleeves to x-axis <0.000000> - pitch speed <45.000000>;
 	wait-for-turn turret around y-axis;
 	wait-for-turn sleeves around x-axis;
-	aiming = FALSE;
 }
 
 AimPrimary(heading, pitch)
 {
-	if( aiming == TRUE OR trajectoryMode != LOW_TRAJECTORY )
+	if( trajectoryMode != LOW_TRAJECTORY )
 	{
 		return(0);
 	}
 
+	signal SIGNAL_AIM;
+	set-signal-mask SIGNAL_AIM;
 	call-script aimCommon(heading, pitch);
 	return (1);
 }
 
 AimSecondary(heading, pitch)
 {
-	if( aiming == TRUE OR trajectoryMode != HIGH_TRAJECTORY )
+	if( trajectoryMode != HIGH_TRAJECTORY )
 	{
 		return(0);
 	}
 
+	signal SIGNAL_AIM;
+	set-signal-mask SIGNAL_AIM;
 	call-script aimCommon(heading, pitch);
 	return (1);
 }
