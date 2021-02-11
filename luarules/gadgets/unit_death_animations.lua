@@ -39,7 +39,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDef
 		--Spring.Echo("gadget:UnitDestroyed",unitID, unitDefID, teamID, attackerID, attackerDefID, attackerTeamID)
 		SetUnitNoSelect(unitID,true)
     SetUnitBlocking(unitID,false) -- non blocking while dying
-		GiveOrderToUnit(unitID, CMD_STOP, {}, 0)
+		GiveOrderToUnit(unitID, CMD_STOP, 0, 0)
     dyingUnits[unitID] = true
 	end
 end
