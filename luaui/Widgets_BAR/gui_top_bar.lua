@@ -1256,7 +1256,7 @@ function widget:Update(dt)
 		if t <= 0 then
 			t = t + UPDATE_RATE_S
 
-			-- update/estimate serverFrame (because widget:GameProgress(n) only happens every 300 frames)
+			-- update/estimate serverFrame (because widget:GameProgress(n) only happens every 150 frames)
 			if gameStarted and not isPaused then
 				serverFrame = serverFrame + math.ceil(speedFactor * UPDATE_RATE_F)
 			end
@@ -1982,7 +1982,7 @@ end
 
 -- used for rejoin progress functionality
 function widget:GameProgress(n)
-	-- happens every 300 frames
+	-- happens every 150 frames
 	serverFrame = n
 end
 

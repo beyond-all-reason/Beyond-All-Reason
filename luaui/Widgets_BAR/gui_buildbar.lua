@@ -490,7 +490,10 @@ end
 
 local function drawIcon(udid, rect, tex, color, zoom, isfactory)
 	local radarIconSize = math.floor((rect[3]-rect[1])*0.4)
-	local radarIcon = ':lr'..radarIconSize..','..radarIconSize..':'..iconTypesMap[unitIconType[udid]]
+	local radarIcon
+	if unitIconType[udid] and iconTypesMap[unitIconType[udid]] then
+		radarIcon = ':lr'..radarIconSize..','..radarIconSize..':'..iconTypesMap[unitIconType[udid]]
+	end
 	if isfactory then
 		radarIcon = nil
 	end
