@@ -79,7 +79,7 @@ local rows = 0
 local cols = 0
 local disableInput = false
 
-local font, backgroundPadding, widgetSpaceMargin, chobbyInterface, deleteListOrders, deleteListGuiShader
+local font, backgroundPadding, widgetSpaceMargin, chobbyInterface, displayListOrders, displayListGuiShader
 local clickedCell, clickedCellTime, clickedCellDesiredState, cellWidth, cellHeight
 local bpWidth, bpHeight, buildmenuBottomPosition, buildpowerWidgetEnabled
 local activeCommand, previousActiveCommand, doUpdate, doUpdateClock
@@ -135,16 +135,16 @@ end
 
 local function checkGuiShader(force)
 	if WG['guishader'] then
-		if force and deleteListGuiShader then
-			deleteListGuiShader = gl.DeleteList(deleteListGuiShader)
+		if force and displayListGuiShader then
+			displayListGuiShader = gl.DeleteList(displayListGuiShader)
 		end
-		if not deleteListGuiShader then
-			deleteListGuiShader = gl.CreateList(function()
+		if not displayListGuiShader then
+			displayListGuiShader = gl.CreateList(function()
 				RectRound(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], elementCorner * uiScale)
 			end)
 		end
-	elseif deleteListGuiShader then
-		deleteListGuiShader = gl.DeleteList(deleteListGuiShader)
+	elseif displayListGuiShader then
+		displayListGuiShader = gl.DeleteList(displayListGuiShader)
 	end
 end
 
@@ -310,7 +310,7 @@ function widget:ViewResize()
 		((posX + width) * viewSizeX) - activeBgpadding,
 		(posY * viewSizeY) - activeBgpadding
 	}
-	deleteListOrders = gl.DeleteList(deleteListOrders)
+	displayListOrders = gl.DeleteList(displayListOrders)
 
 	checkGuiShader(true)
 	setupCellGrid(true)
@@ -366,11 +366,11 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
-	if WG['guishader'] and deleteListGuiShader then
+	if WG['guishader'] and displayListGuiShader then
 		WG['guishader'].DeleteDlist('ordermenu')
-		deleteListGuiShader = nil
+		displayListGuiShader = nil
 	end
-	deleteListOrders = gl.DeleteList(deleteListOrders)
+	displayListOrders = gl.DeleteList(displayListOrders)
 	WG['ordermenu'] = nil
 end
 
@@ -704,23 +704,23 @@ function widget:DrawScreen()
 	end
 
 	if #commands == 0 and not alwaysShow then
-		if deleteListGuiShader and WG['guishader'] then
+		if displayListGuiShader and WG['guishader'] then
 			WG['guishader'].RemoveDlist('ordermenu')
 		end
 	else
-		if deleteListGuiShader and WG['guishader'] then
-			WG['guishader'].InsertDlist(deleteListGuiShader, 'ordermenu')
+		if displayListGuiShader and WG['guishader'] then
+			WG['guishader'].InsertDlist(displayListGuiShader, 'ordermenu')
 		end
 		if doUpdate then
-			deleteListOrders = gl.DeleteList(deleteListOrders)
+			displayListOrders = gl.DeleteList(displayListOrders)
 		end
-		if not deleteListOrders then
-			deleteListOrders = gl.CreateList(function()
+		if not displayListOrders then
+			displayListOrders = gl.CreateList(function()
 				drawOrders()
 			end)
 		end
 
-		gl.CallList(deleteListOrders)
+		gl.CallList(displayListOrders)
 
 		if #commands >0 then
 			-- draw highlight on top of button
