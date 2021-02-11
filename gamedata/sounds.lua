@@ -267,12 +267,29 @@ for i=1,#files do
   fileNames = string.sub(fileName, 14, string.find(fileName, ".wav") -1)
   t[fileNames] = {
       file     = fileName;
-      gain = 0.8,
+      gain = 0.9,
       pitchmod = 0.22,
       gainmod  = 0.2*0.3,
       dopplerscale = 1.0,
-      maxconcurrent = 4,
+      maxconcurrent = 6,
       rolloff = 0.5,
+  }
+end
+
+-- AMBIENCE LOCAL
+local files = VFS.DirList("sounds/atmoslocal/")
+local t = Sounds.SoundItems
+for i=1,#files do
+  local fileName = files[i]
+  fileNames = string.sub(fileName, 19, string.find(fileName, ".wav") -1)
+  t[fileNames] = {
+      file     = fileName;
+      gain = 0.9,
+      pitchmod = 0.11,
+      gainmod  = 0.2*0.3,
+      dopplerscale = 1.0,
+      maxconcurrent = 12,
+      rolloff = 1.4,
   }
 end
 

@@ -503,10 +503,10 @@ RestoreAfterDelay()
 
 AimSecondary(heading, pitch)
 {
-    if ( get IN_WATER(0) == 1 )
-    {									  
-     return (0);
-    }
+    //if ( get IN_WATER(0) == 1 )
+    //{									  
+    // return (0);
+    // }
 	signal SIG_AIM_3;
 	turn aimy1 to y-axis heading speed <200.000000>;
 	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 1300) AND ((get ABS(wpn1_lasthead - heading)) < 64236)))

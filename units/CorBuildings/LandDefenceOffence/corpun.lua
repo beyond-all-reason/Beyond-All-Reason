@@ -1,7 +1,7 @@
 return {
 	corpun = {
 		acceleration = 0,
-		activatewhenbuilt = true,
+		activatewhenbuilt = false,
 		brakerate = 0,
 		buildangle = 8192,
 		buildcostenergy = 13500,
@@ -195,14 +195,14 @@ return {
 			},
 		},
 		weapons = {
-			[2] = {
+			[1] = {
 				badtargetcategory = "VTOL",
 				def = "PLASMA",
 				maindir = "0 1 0",
 				maxangledif = 230,
 				onlytargetcategory = "SURFACE",
 			},
-			[1] = {
+			[2] = {
 				def = "PLASMA_HIGH",
 				onlytargetcategory = "SURFACE",
 			},

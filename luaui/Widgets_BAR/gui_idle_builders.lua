@@ -17,7 +17,7 @@ local vsx, vsy = Spring.GetViewGeometry()
 
 local enabledAsSpec = false
 
-local MAX_ICONS = 12
+local MAX_ICONS = 14
 local iconsize = 35
 local CONDENSE = true -- show one icon for all builders of same type
 local POSITION_X = 0.5 -- horizontal centre of screen
@@ -28,6 +28,8 @@ local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity", 0.6) or 0.66)
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
 
 local ICON_SIZE = iconsize * (1 + (ui_scale - 1) / 1.5)
+ICON_SIZE = math.floor(ICON_SIZE/2) * 2	-- make sure it's divisible by 2
+
 local texts = {
 	idle = 'Idle',
 }
@@ -64,7 +66,7 @@ local isFactory = {}
 local unitBuildPic = {}
 local unitHumanName = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
-	if unitDef.buildSpeed > 0 and unitDef.buildOptions[1] then
+	if unitDef.buildSpeed > 0 then --and unitDef.buildOptions[1] then
 		isBuilder[unitDefID] = true
 	end
 	if unitDef.isFactory then
@@ -145,6 +147,7 @@ local function init()
 	sizeMultiplier = (((vsy) / 750) * 1) * (1 + (ui_scale - 1) / 1.5)
 
 	ICON_SIZE = iconsize * sizeMultiplier
+	ICON_SIZE = math.floor(ICON_SIZE/2) * 2	-- make sure it's divisible by 2
 
 	bgcornerSize = cornerSize * (sizeMultiplier - 1)
 	noOfIcons = 0   -- this fixes positioning when resolution change
@@ -359,14 +362,14 @@ function widget:GetConfigData(data)
 	return {
 		position_x = POSITION_X,
 		pposition_y = POSITION_Y,
-		max_icons = MAX_ICONS
+		--max_icons = MAX_ICONS
 	}
 end
 
 function widget:SetConfigData(data)
 	POSITION_X = data.position_x or POSITION_X
 	POSITION_Y = data.pposition_y or POSITION_Y
-	MAX_ICONS = data.max_icons or MAX_ICONS
+	--MAX_ICONS = data.max_icons or MAX_ICONS
 end
 
 local sec = 0
@@ -513,7 +516,7 @@ function widget:DrawScreen()
 				if lb then
 					DrawIconQuad(icon, { 1, 1, 1, 0.85 }, 1.1)
 				elseif rb then
-					DrawIconQuad(icon, { 0.3, 0.6, 0, 0.7 }, 1.1)
+					DrawIconQuad(icon, { 0.4, 0.6, 0, 0.75 }, 1.1)
 				else
 					DrawIconQuad(icon, { 0, 0, 0.1, 0.45 }, 1.1)
 				end

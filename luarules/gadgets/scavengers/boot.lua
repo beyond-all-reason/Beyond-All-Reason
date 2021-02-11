@@ -359,15 +359,15 @@ function gadget:GameFrame(n)
 		end
 	end
 
-	if n%90 == 0 and scavconfig.modules.buildingSpawnerModule and (not FinalBossUnitSpawned) then
+	if n%90 == 0 and scavconfig.modules.buildingSpawnerModule then --and (not FinalBossUnitSpawned) then
 		SpawnBlueprint(n)
 	end
 	if n%30 == 0 then
-		if scavconfig.modules.unitSpawnerModule and (not FinalBossUnitSpawned) then
+		if scavconfig.modules.unitSpawnerModule then --and (not FinalBossUnitSpawned) then
 			SpawnBeacon(n)
 			UnitGroupSpawn(n)
 		end
-		if scavconfig.modules.constructorControllerModule and constructorControllerModuleConfig.useconstructors and n > scavconfig.gracePeriod and (not FinalBossUnitSpawned) then
+		if scavconfig.modules.constructorControllerModule and constructorControllerModuleConfig.useconstructors and n > scavconfig.gracePeriod then --and (not FinalBossUnitSpawned) then
 			SpawnConstructor(n)
 		end
 		local scavengerunits = Spring.GetTeamUnits(GaiaTeamID)

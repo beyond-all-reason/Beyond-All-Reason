@@ -140,13 +140,13 @@ function BossMinionsSpawn(n)
 				minionUnit = T0AirUnits[math_random(1,#T0AirUnits)]..scavconfig.unitnamesuffix
 			end
 		elseif posy > -20 then
-			if BossFightCurrentPhase >= 9 then
+			if BossFightCurrentPhase >= 5 then
 				minionUnit = T4LandUnits[math_random(1,#T4LandUnits)]..scavconfig.unitnamesuffix
-			elseif BossFightCurrentPhase >= 7 then
+			elseif BossFightCurrentPhase >= 4 then
 				minionUnit = T3LandUnits[math_random(1,#T3LandUnits)]..scavconfig.unitnamesuffix
-			elseif BossFightCurrentPhase >= 5 then
-				minionUnit = T2LandUnits[math_random(1,#T2LandUnits)]..scavconfig.unitnamesuffix
 			elseif BossFightCurrentPhase >= 3 then
+				minionUnit = T2LandUnits[math_random(1,#T2LandUnits)]..scavconfig.unitnamesuffix
+			elseif BossFightCurrentPhase >= 2 then
 				minionUnit = T1LandUnits[math_random(1,#T1LandUnits)]..scavconfig.unitnamesuffix
 			elseif BossFightCurrentPhase == 1 then
 				minionUnit = T0LandUnits[math_random(1,#T0LandUnits)]..scavconfig.unitnamesuffix
@@ -185,13 +185,13 @@ function UnitGroupSpawn(n)
 	if n > scavconfig.gracePeriod then
 		local gaiaUnitCount = Spring.GetTeamUnitCount(GaiaTeamID)
 		if BossWaveTimeLeft then
-			if numOfSpawnBeacons or numOfSpawnBeacons == 0 then
-				ActualUnitSpawnChance = math_random(0,math.ceil(UnitSpawnChance)*3)
+			if (not numOfSpawnBeacons) or numOfSpawnBeacons == 0 then
+				ActualUnitSpawnChance = math_random(0,math.ceil(UnitSpawnChance))
 			else
-				ActualUnitSpawnChance = math_random(0,(UnitSpawnChance/(numOfSpawnBeacons/5))*3)
+				ActualUnitSpawnChance = math_random(0,(UnitSpawnChance/(numOfSpawnBeacons/5)))
 			end
 		else
-			if numOfSpawnBeacons or numOfSpawnBeacons == 0 then
+			if (not numOfSpawnBeacons) or numOfSpawnBeacons == 0 then
 				ActualUnitSpawnChance = math_random(0,math.ceil(UnitSpawnChance))
 			else
 				ActualUnitSpawnChance = math_random(0,(UnitSpawnChance/(numOfSpawnBeacons/5)))
@@ -274,7 +274,7 @@ function UnitGroupSpawn(n)
 				if (posy <= -20 and aircraftchanceonsea == 0) or (aircraftchance == 0 and (not BossWaveTimeLeft)) or (bossaircraftchance == 0 and BossWaveTimeLeft and BossWaveTimeLeft > 0) then
 					if unitSpawnerModuleConfig.bossFightEnabled and BossWaveTimeLeft then
 						groupsize = math.ceil(groupsize*unitSpawnerModuleConfig.airmultiplier*unitSpawnerModuleConfig.t4multiplier)
-						if spawnTier < 50 then
+						if spawnTier < 80 then
 							for i = 1,groupsize do
 								if i%newTypeNumber == 1 then
 									numOfTypes = numOfTypes+1
@@ -341,7 +341,7 @@ function UnitGroupSpawn(n)
 				elseif posy > -20 then
 					if unitSpawnerModuleConfig.bossFightEnabled and BossWaveTimeLeft then
 						groupsize = math.ceil(groupsize*unitSpawnerModuleConfig.landmultiplier*unitSpawnerModuleConfig.t4multiplier)
-						if spawnTier < 50 then
+						if spawnTier < 80 then
 							for i = 1,groupsize do
 								if i%newTypeNumber == 1 then
 									numOfTypes = numOfTypes+1
@@ -408,7 +408,7 @@ function UnitGroupSpawn(n)
 				elseif posy <= -20 then
 					if unitSpawnerModuleConfig.bossFightEnabled and BossWaveTimeLeft then
 						groupsize = math.ceil(groupsize*unitSpawnerModuleConfig.seamultiplier*unitSpawnerModuleConfig.t4multiplier)
-						if spawnTier < 50 then
+						if spawnTier < 80 then
 							for i = 1,groupsize do
 								if i%newTypeNumber == 1 then
 									numOfTypes = numOfTypes+1

@@ -182,7 +182,7 @@ FireTertiary()
 
 AimFromPrimary(piecenum)
 {
-	piecenum = lturret;
+	piecenum = emit_spark;
 	return (0);
 }
 

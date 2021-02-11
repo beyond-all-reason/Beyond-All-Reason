@@ -14,7 +14,7 @@ end
 -- usage: /luarules undo #teamid #maxSecondsAgo (#receivingteamid)
 
 -- only works when being spectator and you werent a player before
--- only availible to a select few playernames.... (listed in var: authorizedPlayers)
+-- only availible to a select few playernames
 
 local cmdname = 'undo'
 
@@ -32,18 +32,6 @@ if gadgetHandler:IsSyncedCode() then
 	end
 	local validation = randomString(2)
 	_G.validationUndo = validation
-
-
-	local authorizedPlayers = {}
-	local powerusers = include("LuaRules/configs/powerusers.lua")
-	if powerusers then
-		for name, permissions in pairs(powerusers) do
-			if permissions.undo then
-				authorizedPlayers[name] = true
-			end
-		end
-		powerusers = nil
-	end
 
 	local teamSelfdUnits = {}
 	local selfdCmdUnits = {}
@@ -178,7 +166,7 @@ if gadgetHandler:IsSyncedCode() then
 			local playername, _, spec = Spring.GetPlayerInfo(playerID,false)
 			local authorized = false
 			local authorized = false
-			if authorizedPlayers[playername] then
+			if _G.permissions.undo[playername] then
 				authorized = true
 			end
 			if playername ~= "UnnamedPlayer" then

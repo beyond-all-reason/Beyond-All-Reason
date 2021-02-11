@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  flare1, flare2, base, turret, lwheel,rwheel;
+piece  flare1, flare2, base, turret, lwheel,rwheel, mlauncher;
 
 static-var  restore_delay, gun_1;
 
@@ -128,7 +128,7 @@ FirePrimary()
 
 AimFromPrimary(piecenum)
 {
-	piecenum = turret;
+	piecenum = mlauncher;
 }
 
 QueryPrimary(piecenum)

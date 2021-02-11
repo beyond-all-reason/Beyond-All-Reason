@@ -150,7 +150,8 @@ local texts = {        -- fallback (if you want to change this, also update: lan
 		tombstones_descr = 'Displays tombstones where commanders died',
 		snddevice = 'Sound device',
 		snddevice_descr = 'Select a sound device\ndefault means your default OS playback device\n\nNOTE: Changes require a restart',
-		sndvolmaster = 'Master volume',
+		volume = 'Volume',
+		sndvolmaster = 'master',
 		sndvolgeneral = 'general',
 		sndvolbattle = 'battle',
 		sndvolui = 'interface',
@@ -460,6 +461,8 @@ local texts = {        -- fallback (if you want to change this, also update: lan
 		blue = 'blue',
 	},
 }
+
+local newEngineIconsInitialized = false
 
 local ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.6)
 
@@ -2891,7 +2894,7 @@ function init()
 			end,
 		  },
 
-		{ id = "sndvolmaster", group = "snd", basic = true, name = texts.option.sndvolmaster, type = "slider", min = 0, max = 200, step = 2, value = tonumber(Spring.GetConfigInt("snd_volmaster", 1) or 100),
+		{ id = "sndvolmaster", group = "snd", basic = true, name = texts.option.volume..widgetOptionColor .. "  "..texts.option.sndvolmaster, type = "slider", min = 0, max = 200, step = 2, value = tonumber(Spring.GetConfigInt("snd_volmaster", 1) or 100),
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
@@ -3539,6 +3542,15 @@ function init()
 		{ id = "label_ui_game_spacer", group = "ui", basic = true },
 
 
+		  { id = "uniticonsasui", group = "ui", name = texts.option.uniticonsasui, type = "bool", value = (Spring.GetConfigInt("UnitIconsAsUI", 0) == 1), description = texts.option.uniticonsasui_descr,
+			onload = function(i)
+			end,
+			onchange = function(i, value)
+				Spring.SendCommands("iconsasui "..(value and 1 or 0))
+				Spring.SetConfigInt("UnitIconsAsUI", (value and 1 or 0))
+				init()
+			end,
+		  },
 
 		{ id = "disticon", group = "ui", basic = true, name = texts.option.disticon, type = "slider", min = 100, max = 700, step = 10, value = tonumber(Spring.GetConfigInt("UnitIconDist", 1) or 160), description = texts.option.disticon_descr,
 		  onload = function(i)
@@ -3579,7 +3591,7 @@ function init()
 			  Spring.SetConfigFloat("UnitIconScaleUI", value)
 		  end,
 		},
-		{ id = "uniticon_fadevanish", group = "ui", name = widgetOptionColor .. "   "..texts.option.uniticonfadevanish, type = "slider", min = 1, max = 10000, step = 10, value = tonumber(Spring.GetConfigInt("UnitIconFadeVanish", 1000) or 1), description = texts.option.uniticonfadevanish_descr,
+		{ id = "uniticon_fadevanish", group = "ui", name = widgetOptionColor .. "   "..texts.option.uniticonfadevanish, type = "slider", min = 1, max = 10000, step = 50, value = tonumber(Spring.GetConfigInt("UnitIconFadeVanish", 1000) or 1), description = texts.option.uniticonfadevanish_descr,
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
@@ -3591,7 +3603,7 @@ function init()
 			  Spring.SetConfigInt("UnitIconFadeVanish", value)
 		  end,
 		},
-		{ id = "uniticon_fadestart", group = "ui", name = widgetOptionColor .. "   "..texts.option.uniticonfadestart, type = "slider", min = 1, max = 10000, step = 10, value = tonumber(Spring.GetConfigInt("UnitIconFadeStart", 3000) or 1), description = texts.option.uniticonfadestart_descr,
+		{ id = "uniticon_fadestart", group = "ui", name = widgetOptionColor .. "   "..texts.option.uniticonfadestart, type = "slider", min = 1, max = 10000, step = 50, value = tonumber(Spring.GetConfigInt("UnitIconFadeStart", 3000) or 1), description = texts.option.uniticonfadestart_descr,
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
@@ -4763,19 +4775,18 @@ function init()
 	}
 
 	-- force new unit icons
-	if engineVersion >= 104011747 then
-		Spring.SendCommands("iconsasui 1")
-		Spring.SetConfigInt("UnitIconsAsUI", 1)
-		-- disable old icon options
-		options[getOptionByID('disticon')] = nil
-		options[getOptionByID('iconscale')] = nil
-	else
+	if Spring.GetConfigInt("UnitIconsAsUI", 0) == 0 then
+		if engineVersion < 104011747 then
+			options[getOptionByID('uniticonsasui')] = nil
+		end
 		-- disable new icon options
 		options[getOptionByID('uniticon_scaleui')] = nil
 		options[getOptionByID('uniticon_fadestart')] = nil
 		options[getOptionByID('uniticon_fadevanish')] = nil
 		options[getOptionByID('uniticon_hidewithui')] = nil
-
+	else
+		options[getOptionByID('disticon')] = nil
+		options[getOptionByID('iconscale')] = nil
 	end
 
 	-- air absorption does nothing on 32 bit engine version
@@ -5372,6 +5383,13 @@ end
 
 function widget:Initialize()
 
+	-- UNCOMMENT WHEN we want everybody to switch to new icon rendering
+	--if not newEngineIconsInitialized and engineVersion >= 104011747 then		-- initialize new engine icons first time
+	--	Spring.SendCommands("iconsasui 1")
+	--	Spring.SetConfigInt("UnitIconsAsUI", 1)
+	--	newEngineIconsInitialized = true
+	--end
+
 	-- disable ambient player widget
 	if widgetHandler:IsWidgetKnown("Ambient Player") then
 		widgetHandler:DisableWidget("Ambient Player")
@@ -5669,6 +5687,7 @@ end
 
 function widget:GetConfigData(data)
 	return {
+		newEngineInitialized = newEngineInitialized,
 		vsyncLevel = vsyncLevel,
 		vsyncOnlyForSpec = vsyncOnlyForSpec,
 		vsyncEnabled = vsyncEnabled,
@@ -5711,6 +5730,11 @@ function widget:GetConfigData(data)
 end
 
 function widget:SetConfigData(data)
+
+	if data.newEngineIconsInitialized then
+		newEngineIconsInitialized = data.newEngineIconsInitialized
+	end
+
 	if data.vsyncEnabled ~= nil then
 		vsyncEnabled = data.vsyncEnabled
 	end

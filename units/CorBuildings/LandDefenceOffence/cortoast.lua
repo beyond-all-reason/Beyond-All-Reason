@@ -1,7 +1,7 @@
 return {
 	cortoast = {
 		acceleration = 0,
-		activatewhenbuilt = true,
+		activatewhenbuilt = false,
 		brakerate = 0,
 		buildangle = 8192,
 		buildcostenergy = 17000,
@@ -193,14 +193,14 @@ return {
 			},
 		},
 		weapons = {
-			[2] = {
+			[1] = {
 				badtargetcategory = "VTOL GROUNDSCOUT",
 				def = "CORTOAST_GUN",
 				maindir = "0 1 0",
 				maxangledif = 230,
 				onlytargetcategory = "SURFACE",
 			},
-			[1] = {
+			[2] = {
 				badtargetcategory = "VTOL GROUNDSCOUT",
 				def = "CORTOAST_GUN_HIGH",
 				onlytargetcategory = "SURFACE",

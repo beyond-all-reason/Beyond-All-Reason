@@ -111,21 +111,7 @@ customDefs.corcom = {
 	-- 		},
 	-- 	},
 }
-customDefs.armdecom = {
-	decoyfor = "armcom_scav",
-}
-customDefs.cordecom = {
-	decoyfor = "cordecom_scav",
-}
-customDefs.armclaw = {
-	decoyfor = "armdrag_scav"
-}
-customDefs.cormaw = {
-	decoyfor = "cordrag_scav"
-}
-customDefs.armdf = {
-	decoyfor = "armfus_scav"
-}
+
 customDefs.armcom = {
 	autoheal = 15,
 	buildoptions = scavUnit,
@@ -190,6 +176,58 @@ customDefs.armcom = {
 	--			def = "REPULSOR1",
 	--		},
 	--	},
+}
+
+customDefs.armdecom = {
+	decoyfor = "armcom_scav",
+}
+customDefs.cordecom = {
+	decoyfor = "cordecom_scav",
+}
+customDefs.armclaw = {
+	decoyfor = "armdrag_scav"
+}
+customDefs.cormaw = {
+	decoyfor = "cordrag_scav"
+}
+customDefs.armdf = {
+	decoyfor = "armfus_scav"
+}
+
+customDefs.armfort = {
+	collisionvolumeoffsets = "0 -3 0",
+	collisionvolumescales = "32 50 32",
+	collisionvolumetype = "CylY",
+	corpse = "ROCKTEETHX",
+	objectname = "scavs/SCAVFORT.s3o",
+	script = "scavs/SCAVFORT.cob",
+}
+
+customDefs.corfort = {
+	collisionvolumeoffsets = "0 -3 0",
+	collisionvolumescales = "32 50 32",
+	collisionvolumetype = "CylY",
+	corpse = "ROCKTEETHX",
+	objectname = "scavs/SCAVFORT.s3o",
+	script = "scavs/SCAVFORT.cob",
+}
+
+customDefs.armdrag = {
+	collisionvolumeoffsets = "0 0 0",
+	collisionvolumescales = "32 22 32",
+	collisionvolumetype = "CylY",
+	corpse = "ROCKTEETH",
+	objectname = "scavs/scavdrag.s3o",
+	script = "Units/cordrag.cob",
+}
+
+customDefs.cordrag = {
+	collisionvolumeoffsets = "0 0 0",
+	collisionvolumescales = "32 22 32",
+	collisionvolumetype = "CylY",
+	corpse = "ROCKTEETH",
+	objectname = "scavs/scavdrag.s3o",
+	script = "Units/cordrag.cob",
 }
 
 -- M/E storages T1 give rewarding amounts of metal / energy for reclaim

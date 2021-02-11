@@ -222,11 +222,11 @@ function scav_Udef_Post(name, uDef)
 			end
 		end
 		if uDef.featuredefs then
-			if uDef.featuredefs.dead then
-				if uDef.featuredefs.dead.damage then
-					uDef.featuredefs.dead.damage = 1
-				end
-			end
+			--if uDef.featuredefs.dead then
+				--if uDef.featuredefs.dead.damage then
+					--uDef.featuredefs.dead.damage = 1
+				--end
+			--end
 			-- if uDef.featuredefs.dead then
 				-- uDef.featuredefs.dead.resurrectable = 0
 			-- end

@@ -57,9 +57,9 @@ local terrainInstanceVBO = nil
 --------------------------------------------------------------------------------
 
 local function UpdateShader()
-	mapExtensionShader:Activate()
+	mapExtensionShader:ActivateWith(function()
 		mapExtensionShader:SetUniformAlways("shaderParams", gridSize, brightness, (curvature and 1.0) or 0.0, (fogEffect and 1.0) or 0.0)
-	mapExtensionShader:Deactivate()
+	end)
 end
 
 --------------------------------------------------------------------------------
@@ -324,7 +324,7 @@ function widget:Initialize()
 		widgetHandler:RemoveWidget(self)
 	end
 
-	if (Platform.gpuVendor == "AMD" and Platform.osFamily == "Linux") then -- AMD and AMDGPU on Linux crashes with new API
+	if ((Platform.gpuVendor == "AMD" or Platform.glRenderer:lower():find("radeon") ~= nil) and Platform.osFamily == "Linux") then -- AMD and AMDGPU on Linux crashes with new API
 		Spring.SendCommands("luaui enablewidget Map Edge Extension Old")
 		widgetHandler:RemoveWidget(self)
 	end

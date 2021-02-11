@@ -359,7 +359,7 @@ RestoreAfterDelay()
 
 AimFromPrimary(piecenum)
 {
-	piecenum = torso;
+	piecenum = lmisspod;
 }
 
 QueryPrimary(piecenum)

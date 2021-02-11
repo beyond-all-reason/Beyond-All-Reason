@@ -394,7 +394,11 @@ local function updateRejoin()
 
 	end)
 	if WG['tooltip'] ~= nil then
-		WG['tooltip'].AddTooltip('rejoin', area, Spring.I18N('ui.topbar.catchingUpTooltip'))
+
+		local mins = math.floor(serverFrame / 30 / 60)
+		local secs = math.floor(((serverFrame / 30 / 60) - mins) * 60)
+		local gametime = mins..':'..(secs < 10 and '0'..secs or secs)
+		WG['tooltip'].AddTooltip('rejoin', area, Spring.I18N('ui.topbar.catchingUpTooltip')..'\n'..Spring.I18N('ui.topbar.catchingUpTooltipGametime')..' '..gametime)
 	end
 end
 
@@ -1252,7 +1256,7 @@ function widget:Update(dt)
 		if t <= 0 then
 			t = t + UPDATE_RATE_S
 
-			--Estimate Server Frame
+			-- update/estimate serverFrame (because widget:GameProgress(n) only happens every 150 frames)
 			if gameStarted and not isPaused then
 				serverFrame = serverFrame + math.ceil(speedFactor * UPDATE_RATE_F)
 			end
@@ -1977,8 +1981,8 @@ end
 
 
 -- used for rejoin progress functionality
-function widget:GameProgress (n)
-	-- happens every 300 frames
+function widget:GameProgress(n)
+	-- happens every 150 frames
 	serverFrame = n
 end
 

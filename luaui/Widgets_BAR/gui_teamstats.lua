@@ -624,8 +624,11 @@ end
 function widget:DrawScreen()
 	if chobbyInterface then return end
 	if IsGUIHidden() then return end
-	if not guiData.mainPanel.visible and WG['guishader'] then
-		WG['guishader'].DeleteDlist('teamstats_window')
+	if not guiData.mainPanel.visible then
+		if WG['guishader'] then
+			WG['guishader'].DeleteDlist('teamstats_window')
+		end
+		return
 	end
 	DrawBackground()
 	DrawAllStats()
