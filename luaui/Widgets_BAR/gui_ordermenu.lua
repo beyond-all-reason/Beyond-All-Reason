@@ -28,30 +28,30 @@ local width = 0
 local height = 0
 local cellMarginOriginal = 0.055
 local cellMargin = cellMarginOriginal
-local commandInfo = {		-- r, g, b, SHORTCUT
-	Move = { 0.64, 1, 0.64, 'M'},
-	Stop = { 1, 0.3, 0.3, 'S'},
-	Attack = { 1, 0.5, 0.35, 'A' },
-	['Area attack'] = { 1, 0.35, 0.15, 'A'},
-	ManualFire = { 1, 0.7, 0.7, 'D' },
-	Patrol = { 0.73, 0.73, 1, 'P'},
-	Fight = { 0.9, 0.5, 1, 'F'},
-	Resurrect = { 1, 0.75, 1 },
-	Guard = { 0.33, 0.92, 1, 'G'},
-	Wait = { 0.7, 0.66, 0.6, 'W' },
-	Repair = { 1, 0.95, 0.7, 'R'},
-	Reclaim = { 0.86, 1, 0.86, 'E'},
-	Restore = { 0.77, 1, 0.77 },
-	Capture = { 1, 0.85, 0.22 },
-	['Set Target'] = { 1, 0.66, 0.35, 'Y'},
-	['Cancel Target'] = { 0.8, 0.55, 0.2, 'J'},
-	Mex = { 0.93, 0.93, 0.93},
-	['Upgrade Mex'] = { 0.93, 0.93, 0.93 },
-	['Load units'] = { 0.1, 0.7, 1, 'L' },
-	['Unload units'] = { 0, 0.5, 1, 'U'},
-	['Land At Airbase'] = { 0.4, 0.7, 0.4 },
-	['Cloak State'] = { nil,nil,nil, 'K'},
-	['Active state'] = { nil,nil,nil, 'X'},
+local commandInfo = {
+	move			= { red = 0.64,	green = 1,		blue = 0.64,	shortcut = 'M' },
+	stop			= { red = 1,	green = 0.3,	blue = 0.3,		shortcut = 'S' },
+	attack			= { red = 1,	green = 0.5,	blue = 0.35,	shortcut = 'A' },
+	areaattack		= { red = 1,	green = 0.35,	blue = 0.15,	shortcut = 'A' },
+	manualfire		= { red = 1,	green = 0.7,	blue = 0.7,		shortcut = 'D' },
+	patrol			= { red = 0.73,	green = 0.73,	blue = 1,		shortcut = 'P' },
+	fight			= { red = 0.9,	green = 0.5,	blue = 1,		shortcut = 'F' },
+	resurrect		= { red = 1,	green = 0.75,	blue = 1, },
+	guard			= { red = 0.33,	green = 0.92,	blue = 1,		shortcut = 'G' },
+	wait			= { red = 0.7,	green = 0.66,	blue = 0.6,		shortcut = 'W' },
+	repair			= { red = 1,	green = 0.95,	blue = 0.7,		shortcut = 'R' },
+	reclaim			= { red = 0.86,	green = 1,		blue = 0.86,	shortcut = 'E' },
+	restore			= { red = 0.77,	green = 1,		blue = 0.77 },
+	capture			= { red = 1,	green = 0.85,	blue = 0.22 },
+	settarget		= { red = 1,	green = 0.66,	blue = 0.35,	shortcut = 'Y' },
+	canceltarget	= { red = 0.8,	green = 0.55,	blue = 0.2,		shortcut = 'J' },
+	areamex			= { red = 0.93,	green = 0.93,	blue = 0.93 },
+	upgrademex		= { red = 0.93,	green = 0.93,	blue = 0.93 },
+	loadunits		= { red = 0.1,	green = 0.7,	blue = 1,		shortcut = 'L' },
+	unloadunits		= { red = 0,	green = 0.5,	blue = 1,		shortcut = 'U' },
+	landatairbase	= { red = 0.4,	green = 0.7,	blue = 0.4 },
+	wantcloak		= { red = nil,	green = nil,	blue = nil,		shortcut = 'K' },
+	onoff			= { red = nil,	green = nil,	blue = nil,		shortcut = 'X' },
 }
 local isStateCommand = {}
 
@@ -550,10 +550,10 @@ local function drawCell(cell, zoom)
 				fontHeightOffset = fontHeight * 0.22
 			end
 			local textColor = "\255\233\233\233"
-			if colorize > 0 and commandInfo[cmd.name] and commandInfo[cmd.name][1] then
+			if colorize > 0 and commandInfo[cmd.action] and commandInfo[cmd.action].red then
 				local part = (1 / colorize)
 				local grey = (0.93 * (part - 1))
-				textColor = convertColor((grey + commandInfo[cmd.name][1]) / part, (grey + commandInfo[cmd.name][2]) / part, (grey + commandInfo[cmd.name][3]) / part)
+				textColor = convertColor((grey + commandInfo[cmd.action].red) / part, (grey + commandInfo[cmd.action].green) / part, (grey + commandInfo[cmd.action].blue) / part)
 			end
 			if isActiveCmd then
 				textColor = "\255\020\020\020"
@@ -672,8 +672,8 @@ function widget:DrawScreen()
 						if WG['tooltip'] then
 							local tooltipKey = cmd.action .. '_tooltip'
 							local shortcut = ''
-							if commandInfo[cmd.name] and commandInfo[cmd.name][4] then
-								shortcut = '\255\255\215\100'..commandInfo[cmd.name][4]
+							if commandInfo[cmd.action] and commandInfo[cmd.action].shortcut then
+								shortcut = '\255\255\215\100'..commandInfo[cmd.action].shortcut
 							end
 							local tooltip = Spring.I18N('ui.orderMenu.' .. tooltipKey)
 							if tooltip ~= '' then
