@@ -324,6 +324,11 @@ function widget:Initialize()
 		widgetHandler:RemoveWidget(self)
 	end
 
+	Spring.Echo("Platform.glRenderer", Platform.glRenderer)
+	Spring.Echo("Platform.glVendor", Platform.glVendor)
+	Spring.Echo("Platform.gpu", Platform.gpu)
+	Spring.Echo("Platform.gpuVendor", Platform.gpuVendor)
+
 	if ((Platform.gpuVendor == "AMD" or Platform.glRenderer:lower():find("amd")) and Platform.osFamily == "Linux") then -- AMD and AMDGPU on Linux crashes with new API
 		Spring.SendCommands("luaui enablewidget Map Edge Extension Old")
 		widgetHandler:RemoveWidget(self)
