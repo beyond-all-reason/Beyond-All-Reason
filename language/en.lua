@@ -44,9 +44,6 @@ return {
 		estorage = 'E storage',
 		mstorage = 'M storage',
 	},
-	changelog = {
-		title = 'Changelog',
-	},
 	keys = {
 		title = 'Keybinds',
 		disclaimer = 'These keybinds are set by default. If you remove/replace hotkey widgets, or use your own uikeys, they might stop working!',

@@ -196,6 +196,9 @@ return {
 			idleBuilders = {
 				idle = 'Idle',
 			},
+			changelog = {
+				title = 'Changelog',
+			},
 		}
 	}
 }
