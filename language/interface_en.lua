@@ -188,9 +188,9 @@ return {
 					gauss_tooltip = 'Switches between Gauss Cannon and Heavy Plasma Cannon'
 				}
 			},
-			movewindowpos = {
-				movewitharrows = "\255\170\170\170Move window position with the \255\255\255\255arrow keys\255\170\170\170 or \255\255\255\255drag\255\170\170\170 using the mouse.",
-				escape = "\255\255\255\255ESCAPE\255\170\170\170 key will cancel changes",
+			moveGameWindow = {
+				moveWindow = "%{textColor}Move window position with the %{emphasisColor}arrow keys%{textColor} or %{emphasisColor}drag%{textColor} using the mouse.",
+				cancel = "%{emphasisColor}ESCAPE%{textColor} key will cancel changes",
 				apply = 'Apply',
 			},
 		}
