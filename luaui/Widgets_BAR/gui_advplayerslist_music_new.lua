@@ -11,10 +11,7 @@ local introTracks = VFS.DirList(musicDir..'intro', '*.ogg')
 local peaceTracks = VFS.DirList(musicDir..'peace', '*.ogg')
 local warhighTracks = VFS.DirList(musicDir..'warhigh', '*.ogg')
 local warlowTracks = VFS.DirList(musicDir..'warlow', '*.ogg')
-local victoryTracks = VFS.DirList(musicDir..'victory', '*.ogg')
-local defeatTracks = VFS.DirList(musicDir..'defeat', '*.ogg')
-if #victoryTracks == 0 then victoryTracks = introTracks end
-if #defeatTracks == 0 then defeatTracks = introTracks end
+local gameOverTracks = VFS.DirList(musicDir..'gameover', '*.ogg')
 local myTeamID = Spring.GetMyTeamID()
 local myAllyTeamID = Spring.GetMyAllyTeamID()
 local iAmSpec = Spring.GetSpectatingState()
@@ -118,6 +115,8 @@ function widget:GetInfo()
 end
 
 function widget:Initialize()
+	appliedSilence = true 
+	silenceTimer = 0
 	widget:ViewResize()
 	--Spring.StopSoundStream() -- only for testing purposes
 
@@ -472,13 +471,8 @@ function PlayNewTrack()
 
 	currentTrackList = nil
 	if gameOver == true then
-		if VictoryMusic == true then
-			currentTrackList = victoryTracks
-			playedGameOverTrack = true
-		else
-			currentTrackList = defeatTracks
-			playedGameOverTrack = true
-		end
+		currentTrackList = gameOverTracks
+		playedGameOverTrack = true
 	elseif warMeter >= 20000 then
 		currentTrackList = warhighTracks
 		--Spring.Echo("[NewMusicPlayer] Playing warhigh track")
@@ -529,7 +523,6 @@ end
 
 function widget:GameFrame(n)
 	if not playing then return end
-
 	--if n == 1 then
 		--Spring.StopSoundStream()
 	--end
@@ -586,15 +579,6 @@ end
 
 function widget:GameOver(winningAllyTeams)
 	gameOver = true
-	local myTeamUnits = Spring.GetTeamUnits(myTeamID)
-	VictoryMusic = false
-	if iAmSpec == true then
-		VictoryMusic = false
-	elseif #myTeamUnits > 0  then
-		VictoryMusic = true
-	elseif #myTeamUnits == 0 then
-		VictoryMusic = false
-	end
 end
 
 function widget:GetConfigData(data)
