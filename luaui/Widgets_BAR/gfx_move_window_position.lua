@@ -42,7 +42,7 @@ function DrawWindow()
 		WG['guishader'].setScreenBlur(true)
 	end
 	font:Begin()
-	gl.Color(0,0,0,0.6)
+	gl.Color(0,0,0,0.9)
 	gl.Rect(0,0,vsx,vsy)
 	font:Print(textMoveWindow, vsx/2, (vsy/2)+(50*widgetScale), 12*widgetScale, "ocn")
 	font:Print("\255\222\255\222x = "..windowPosX.."     y = "..windowPosY, vsx/2, (vsy/2), 14*widgetScale, "ocn")
