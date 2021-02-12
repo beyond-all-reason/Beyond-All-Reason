@@ -44,9 +44,6 @@ return {
 		estorage = 'E storage',
 		mstorage = 'M storage',
 	},
-	idlebuilders = {
-		idle = 'Idle',
-	},
 	changelog = {
 		title = 'Changelog',
 	},
