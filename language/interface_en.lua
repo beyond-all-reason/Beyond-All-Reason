@@ -193,7 +193,7 @@ return {
 				cancel = "%{emphasisColor}ESCAPE%{textColor} key will cancel changes",
 				apply = 'Apply',
 			},
-			idlebuilders = {
+			idleBuilders = {
 				idle = 'Idle',
 			},
 		}

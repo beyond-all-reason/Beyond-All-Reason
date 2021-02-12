@@ -30,13 +30,6 @@ local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
 local ICON_SIZE = iconsize * (1 + (ui_scale - 1) / 1.5)
 ICON_SIZE = math.floor(ICON_SIZE/2) * 2	-- make sure it's divisible by 2
 
-local texts = {
-	idle = 'Idle',
-}
-
--------------------------------------------------------------------------------
--------------------------------------------------------------------------------
-
 local cornerSize = 7
 local bgcornerSize = cornerSize
 
@@ -167,11 +160,6 @@ function widget:PlayerChanged(playerID)
 end
 
 function widget:Initialize()
-
-	if WG['lang'] then
-		texts = WG['lang'].getText('idlebuilders')
-	end
-
 	widget:ViewResize()
 	widget:PlayerChanged()
 	enabled = true
@@ -511,7 +499,7 @@ function widget:DrawScreen()
 			if icon >= 0 then
 				if WG['tooltip'] then
 					local unitDefID = drawTable[icon + 1][1]
-					WG['tooltip'].ShowTooltip('idlebuilders', texts.idle..' '..unitHumanName[unitDefID])
+					WG['tooltip'].ShowTooltip('idlebuilders', Spring.I18N('ui.idleBuilders.idle') .. ' ' .. unitHumanName[unitDefID])
 				end
 				if lb then
 					DrawIconQuad(icon, { 1, 1, 1, 0.85 }, 1.1)
