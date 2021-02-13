@@ -47,7 +47,7 @@ local keybindsText = {
 	{ type = lineType.key, key = Spring.I18N('ui.keybinds.cameraModes.resourceSpotsKey'),	text = Spring.I18N('ui.keybinds.cameraModes.resourceSpots')	},
 	{ type = lineType.key, key = Spring.I18N('ui.keybinds.cameraModes.interfaceKey'),		text = Spring.I18N('ui.keybinds.cameraModes.interface')		},
 	{ type = lineType.blank },
-	{ type = lineType.title, Spring.I18N('ui.keybinds.sound.title') },
+	{ type = lineType.title, text = Spring.I18N('ui.keybinds.sound.title') },
 	{ type = lineType.key, key = Spring.I18N('ui.keybinds.sound.volumeKey'),	text = Spring.I18N('ui.keybinds.sound.volume')	},
 	{ type = lineType.key, key = Spring.I18N('ui.keybinds.sound.muteKey'),		text = Spring.I18N('ui.keybinds.sound.mute')	},
 	{ type = lineType.blank },
@@ -185,15 +185,15 @@ function DrawTextTable(lines, x, y)
 			-- nothing here
 		elseif line.type == lineType.title then
 			-- title line
-			local title = line.text or ""
-			local text = " " .. titleColor .. title -- a WTF whitespace is needed here, the colour doesn't show without it...
+			local title = line.text
+			local text = titleColor .. title
 			font:Print(text, x + 4, y - ((fontSize * 0.94) * lineIndex) + 5, fontSize)
 			screenWidth = math.max(font:GetTextWidth(text) * 13, screenWidth)
 		elseif line.type == lineType.key then
 			-- keybind line
-			local bind = string.upper(line.key) or ""
-			local description = line.text or ""
-			local line = " " .. keybindColor .. bind .. "   " .. descriptionColor .. description
+			local bind = string.upper(line.key)
+			local description = line.text
+			local line = keybindColor .. bind .. "   " .. descriptionColor .. description
 			font:Print(line, x + 14, y - (fontSize * 0.94) * lineIndex, fontSize * 0.8)
 			width = math.max(font:GetTextWidth(line) * 11, width)
 		end
