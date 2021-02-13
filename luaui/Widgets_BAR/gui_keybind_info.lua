@@ -154,27 +154,7 @@ local screenY = math.floor((vsy * centerPosY) + (screenHeight / 2))
 
 local font, font2, titleRect, keybinds, chobbyInterface, backgroundGuishader, show
 
-function widget:ViewResize()
-	vsx, vsy = Spring.GetViewGeometry()
-	widgetScale = ((vsx + vsy) / 2000) * 0.65 * customScale
-	widgetScale = widgetScale * (1 - (0.11 * ((vsx / vsy) - 1.78)))        -- make smaller for ultrawide screens
-
-	screenHeight = math.floor(screenHeightOrg * widgetScale)
-	screenWidth = math.floor(screenWidthOrg * widgetScale)
-	screenX = math.floor((vsx * centerPosX) - (screenWidth / 2))
-	screenY = math.floor((vsy * centerPosY) + (screenHeight / 2))
-
-	font = WG['fonts'].getFont()
-	font2 = WG['fonts'].getFont(fontfile2)
-	elementCorner = Spring.FlowUI.elementCorner
-
-	if keybinds then
-		gl.DeleteList(keybinds)
-	end
-	keybinds = gl.CreateList(DrawWindow)
-end
-
-function DrawTextTable(lines, x, y)
+local function drawTextTable(lines, x, y)
 	local lineIndex = 0
 	local height = 0
 	local width = 0
@@ -210,7 +190,7 @@ function DrawTextTable(lines, x, y)
 	return x, lineIndex
 end
 
-function DrawWindow()
+local function drawWindow()
 	-- background
 	UiElement(screenX, screenY - screenHeight, screenX + screenWidth, screenY, 0, 1, 1, 1, 1,1,1,1, ui_opacity + 0.2)
 
@@ -245,16 +225,36 @@ function DrawWindow()
 	local textPadding = 8 * widgetScale
 	local textTopPadding = 28 * widgetScale
 	local x = screenX + textPadding
-	DrawTextTable(entries1, x, screenY - textTopPadding)
+	drawTextTable(entries1, x, screenY - textTopPadding)
 	x = x + (350*widgetScale)
-	DrawTextTable(entries2, x, screenY - textTopPadding)
+	drawTextTable(entries2, x, screenY - textTopPadding)
 	x = x + (350*widgetScale)
-	DrawTextTable(entries3, x, screenY - textTopPadding)
+	drawTextTable(entries3, x, screenY - textTopPadding)
 
 	gl.Color(1, 1, 1, 1)
 	font:Begin()
 	font:Print(Spring.I18N('ui.keybinds.disclaimer'), screenX + (12*widgetScale), screenY - screenHeight + (14*widgetScale), 12.5*widgetScale)
 	font:End()
+end
+
+function widget:ViewResize()
+	vsx, vsy = Spring.GetViewGeometry()
+	widgetScale = ((vsx + vsy) / 2000) * 0.65 * customScale
+	widgetScale = widgetScale * (1 - (0.11 * ((vsx / vsy) - 1.78)))        -- make smaller for ultrawide screens
+
+	screenHeight = math.floor(screenHeightOrg * widgetScale)
+	screenWidth = math.floor(screenWidthOrg * widgetScale)
+	screenX = math.floor((vsx * centerPosX) - (screenWidth / 2))
+	screenY = math.floor((vsy * centerPosY) + (screenHeight / 2))
+
+	font = WG['fonts'].getFont()
+	font2 = WG['fonts'].getFont(fontfile2)
+	elementCorner = Spring.FlowUI.elementCorner
+
+	if keybinds then
+		gl.DeleteList(keybinds)
+	end
+	keybinds = gl.CreateList(drawWindow)
 end
 
 function widget:RecvLuaMsg(msg, playerID)
@@ -275,6 +275,14 @@ function widget:Update(dt)
 	end
 end
 
+local function isOnRect(x, y, BLcornerX, BLcornerY, TRcornerX, TRcornerY)
+
+	-- check if the mouse is in a rectangle
+	return x >= BLcornerX and x <= TRcornerX
+		and y >= BLcornerY
+		and y <= TRcornerY
+end
+
 function widget:DrawScreen()
 	if chobbyInterface then
 		return
@@ -285,7 +293,7 @@ function widget:DrawScreen()
 
 	-- draw the help
 	if not keybinds then
-		keybinds = gl.CreateList(DrawWindow)
+		keybinds = gl.CreateList(drawWindow)
 	end
 
 	if show or showOnceMore then
@@ -306,7 +314,7 @@ function widget:DrawScreen()
 		showOnceMore = false
 
 		local x, y, pressed = Spring.GetMouseState()
-		if IsOnRect(x, y, screenX, screenY - screenHeight, screenX + screenWidth, screenY) or IsOnRect(x, y, titleRect[1], titleRect[2], titleRect[3], titleRect[4]) then
+		if isOnRect(x, y, screenX, screenY - screenHeight, screenX + screenWidth, screenY) or isOnRect(x, y, titleRect[1], titleRect[2], titleRect[3], titleRect[4]) then
 			Spring.SetMouseCursor('cursornormal')
 		end
 	else
@@ -323,12 +331,23 @@ function widget:KeyPress(key)
 	end
 end
 
-function IsOnRect(x, y, BLcornerX, BLcornerY, TRcornerX, TRcornerY)
-
-	-- check if the mouse is in a rectangle
-	return x >= BLcornerX and x <= TRcornerX
-		and y >= BLcornerY
-		and y <= TRcornerY
+local function mouseEvent(x, y, button, release)
+	if spIsGUIHidden() then
+		return false
+	end
+	
+	if show then
+		-- on window
+		if isOnRect(x, y, screenX, screenY - screenHeight, screenX + screenWidth, screenY) then
+			return true
+		elseif titleRect == nil or not isOnRect(x, y, titleRect[1], titleRect[2], titleRect[3], titleRect[4]) then
+			if release then
+				showOnceMore = show        -- show once more because the guishader lags behind, though this will not fully fix it
+				show = false
+			end
+			return true
+		end
+	end
 end
 
 function widget:MousePress(x, y, button)
@@ -337,25 +356,6 @@ end
 
 function widget:MouseRelease(x, y, button)
 	return mouseEvent(x, y, button, true)
-end
-
-function mouseEvent(x, y, button, release)
-	if spIsGUIHidden() then
-		return false
-	end
-
-	if show then
-		-- on window
-		if IsOnRect(x, y, screenX, screenY - screenHeight, screenX + screenWidth, screenY) then
-			return true
-		elseif titleRect == nil or not IsOnRect(x, y, titleRect[1], titleRect[2], titleRect[3], titleRect[4]) then
-			if release then
-				showOnceMore = show        -- show once more because the guishader lags behind, though this will not fully fix it
-				show = false
-			end
-			return true
-		end
-	end
 end
 
 function widget:Initialize()
