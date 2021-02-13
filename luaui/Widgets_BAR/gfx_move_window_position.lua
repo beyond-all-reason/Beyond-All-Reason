@@ -13,16 +13,13 @@ function widget:GetInfo()
 	}
 end
 
-local texts = {        -- fallback (if you want to change this, also update: language/en.lua, or it will be overwritten)
-	movewitharrows = "\255\170\170\170Move window position with the \255\255\255\255arrow keys\255\170\170\170 or \255\255\255\255drag\255\170\170\170 using the mouse.",
-	escape = "\255\255\255\255ESCAPE\255\170\170\170 key will cancel changes",
-	apply = 'Apply',
-}
-
 local vsx,vsy = Spring.GetViewGeometry()
 
 local customScale = 1.2
 local widgetScale = (1 + (vsx*vsy / 4000000)) * customScale
+
+local textColor = '\255\170\170\170'
+local textEmphasisColor = '\255\255\255\255'
 
 local windowPosX = tonumber(Spring.GetConfigInt("WindowPosX",1) or 0)
 local windowPosY = tonumber(Spring.GetConfigInt("WindowPosY",1) or 0)
@@ -38,22 +35,24 @@ local RectRound = Spring.FlowUI.Draw.RectRound
 function DrawWindow()
 	dlistPosX = windowPosX
 	dlistPosY = windowPosY
+	local textMoveWindow = Spring.I18N('ui.moveGameWindow.moveWindow', { textColor = textColor, emphasisColor = textEmphasisColor })
+	local textCancel = Spring.I18N('ui.moveGameWindow.cancel', { textColor = textColor, emphasisColor = textEmphasisColor })
 	if WG['guishader'] then
 		WG['guishader'].InsertRect(0,0,vsx,vsy, 'movewindowpos')
 		WG['guishader'].setScreenBlur(true)
 	end
 	font:Begin()
-	gl.Color(0,0,0,0.6)
+	gl.Color(0,0,0,0.9)
 	gl.Rect(0,0,vsx,vsy)
-	font:Print(texts.movewitharrows, vsx/2, (vsy/2)+(50*widgetScale), 12*widgetScale, "ocn")
+	font:Print(textMoveWindow, vsx/2, (vsy/2)+(50*widgetScale), 12*widgetScale, "ocn")
 	font:Print("\255\222\255\222x = "..windowPosX.."     y = "..windowPosY, vsx/2, (vsy/2), 14*widgetScale, "ocn")
-	local buttonText = '   '..texts.apply..'   '
+	local buttonText = '   ' .. Spring.I18N('ui.moveGameWindow.apply') .. '   '
 	local buttonX = vsx/2
 	local buttonY = (vsy/2)-(36*widgetScale)
 	local buttonFontsize = 15*widgetScale
 	local buttonWidth = font:GetTextWidth(buttonText)*buttonFontsize
 	local buttonHeight = buttonFontsize*2.2
-	font:Print(texts.escape, vsx/2, (vsy/2)-(50*widgetScale)-buttonHeight, 12*widgetScale, "ocn")
+	font:Print(textCancel, vsx/2, (vsy/2)-(50*widgetScale)-buttonHeight, 12*widgetScale, "ocn")
 	if initialWindowPosX ~= dlistPosX or initialWindowPosY ~= dlistPosY then
 		applyButtonPos = {buttonX-(buttonWidth/2), buttonY-(buttonHeight/2), buttonX+(buttonWidth/2), buttonY+(buttonHeight/2),buttonFontsize/5}
 		gl.Color(0,0.33,0,0.8)
@@ -79,9 +78,6 @@ function widget:ViewResize()
 end
 
 function widget:Initialize()
-	if WG['lang'] then
-		texts = WG['lang'].getText('movewindowpos')
-	end
 	widget:ViewResize()
 end
 
