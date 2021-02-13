@@ -187,13 +187,6 @@ function widget:Initialize()
 	}, ": Contrast Adaptive Sharpen")
 	casShader:Initialize()
 
-	fullTexQuad = gl.CreateList( function ()
-		gl.DepthTest(false)
-		gl.Blending(false)
-		gl.TexRect(-1, -1, 1, 1, false, true) --false, true
-		gl.Blending(true)
-	end)
-
 	fullTexQuad = gl.GetVAO()
 	if fullTexQuad == nil then
 		widgetHandler:RemoveWidget(self) --no fallback for potatoes
@@ -225,9 +218,9 @@ function widget:DrawScreenEffects()
 	glCopyToTexture(screenCopyTex, 0, 0, vpx, vpy, vsx, vsy)
 	glTexture(0, screenCopyTex)
 	glBlending(false)
-	casShader:ActivateWith( function()
+	casShader:Activate()
 		fullTexQuad:DrawArrays(GL.TRIANGLES, 3)
-	end)
+	casShader:Deactivate()
 	glBlending(true)
 	glTexture(0, false)
 end
