@@ -628,14 +628,21 @@ local function RefreshCommands()
 
 	if preGamestartPlayer then
 		if startDefID then
-			-- mimmick output of spGetActiveCmdDescs
+
+			local cmdUnitdefs = {}
 			for i, udefid in pairs(UnitDefs[startDefID].buildOptions) do
-				cmdsCount = cmdsCount + 1
-				cmds[cmdsCount] = {
-					id = udefid * -1,
-					name = UnitDefs[udefid].name,
-					params = {}
-				}
+				cmdUnitdefs[udefid] = i
+			end
+			for k, uDefID in pairs(unitOrder) do
+				if cmdUnitdefs[uDefID] then
+					cmdsCount = cmdsCount + 1
+					-- mimmick output of spGetActiveCmdDescs
+					cmds[cmdsCount] = {
+						id = uDefID * -1,
+						name = UnitDefs[uDefID].name,
+						params = {}
+					}
+				end
 			end
 		end
 	else
