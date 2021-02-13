@@ -130,39 +130,18 @@ local screenHeight = screenHeightOrg
 local screenWidth = screenWidthOrg
 
 local spIsGUIHidden = Spring.IsGUIHidden
-local showHelp = false
-
-local glColor = gl.Color
-local glLineWidth = gl.LineWidth
-local glPolygonMode = gl.PolygonMode
-local glRect = gl.Rect
-local glText = gl.Text
-local glShape = gl.Shape
-
-local bgColorMultiplier = 0
 
 local glCreateList = gl.CreateList
 local glCallList = gl.CallList
 local glDeleteList = gl.DeleteList
 
-local glPopMatrix = gl.PopMatrix
-local glPushMatrix = gl.PushMatrix
-local glTranslate = gl.Translate
-local glScale = gl.Scale
-
-local GL_FILL = GL.FILL
-local GL_FRONT_AND_BACK = GL.FRONT_AND_BACK
-local GL_LINE_STRIP = GL.LINE_STRIP
-
 local RectRound = Spring.FlowUI.Draw.RectRound
 local UiElement = Spring.FlowUI.Draw.Element
 local elementCorner = Spring.FlowUI.elementCorner
 
-local myTeamID = Spring.GetMyTeamID()
 local showOnceMore = false
 
--- keybind info
-local bindColor = "\255\235\185\070"
+local keybindColor = "\255\235\185\070"
 local titleColor = "\255\254\254\254"
 local descriptionColor = "\255\192\190\180"
 
@@ -173,7 +152,7 @@ local centerPosY = 0.5
 local screenX = math.floor((vsx * centerPosX) - (screenWidth / 2))
 local screenY = math.floor((vsy * centerPosY) + (screenHeight / 2))
 
-local font, font2, loadedFontSize, titleRect, keybinds, chobbyInterface, backgroundGuishader, show, bgpadding
+local font, font2, titleRect, keybinds, chobbyInterface, backgroundGuishader, show
 
 function widget:ViewResize()
 	vsx, vsy = Spring.GetViewGeometry()
@@ -185,9 +164,8 @@ function widget:ViewResize()
 	screenX = math.floor((vsx * centerPosX) - (screenWidth / 2))
 	screenY = math.floor((vsy * centerPosY) + (screenHeight / 2))
 
-	font, loadedFontSize = WG['fonts'].getFont()
+	font = WG['fonts'].getFont()
 	font2 = WG['fonts'].getFont(fontfile2)
-	bgpadding = Spring.FlowUI.elementPadding
 	elementCorner = Spring.FlowUI.elementCorner
 
 	if keybinds then
@@ -215,7 +193,7 @@ function DrawTextTable(lines, x, y)
 			-- keybind line
 			local bind = string.upper(line.key) or ""
 			local description = line.text or ""
-			local line = " " .. bindColor .. bind .. "   " .. descriptionColor .. description
+			local line = " " .. keybindColor .. bind .. "   " .. descriptionColor .. description
 			font:Print(line, x + 14, y - (fontSize * 0.94) * lineIndex, fontSize * 0.8)
 			width = math.max(font:GetTextWidth(line) * 11, width)
 		end
@@ -228,8 +206,7 @@ function DrawTextTable(lines, x, y)
 		end
 	end
 	font:End()
-	--screenHeight = math.max(screenHeight, height)
-	--screenWidth = screenWidth + width
+
 	return x, lineIndex
 end
 
