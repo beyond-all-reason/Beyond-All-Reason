@@ -27,6 +27,8 @@ local minLogRate = math.floor(gameFramesPerSecond * 5)
 local maxLogRate = math.floor(gameFramesPerSecond * 30)
 local maxLogRateUnits = 3000	-- # of units where maxLogRate gets reached
 
+local maxLogMemoryDuration = gameFramesPerSecond * 60
+
 -- verify if every part of a log has been received every X amount of gameframes, and resend parts if not
 local verifyRate = math.floor(gameFramesPerSecond * 2)
 
@@ -61,7 +63,7 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:RecvLuaMsg(msg, playerID)
 		if msg:sub(1,3)=="log" and msg:sub(4,5)==validation then
 			local params = explode(';', msg:sub(6,40))	-- 1=frame, 2=part, 3=numParts, (4=json leftover)
-			SendToUnsynced("receivedPart", params[1], params[2], params[3])
+			SendToUnsynced("receivedPart", params[1], params[2])
 			return true
 		end
 	end
@@ -112,8 +114,8 @@ else	-- UNSYNCED
 		end
 	end
 
-	local function sendLog(frame, part)
-		Spring.SendLuaRulesMsg('log' .. validation .. frame ..';'.. part ..';'.. (#log[frame].parts) ..';'.. VFS.ZlibCompress(Spring.Utilities.json.encode(log[frame].parts[part])))
+	local function sendLog(frame, part, attempts)
+		Spring.SendLuaRulesMsg('log' .. validation .. frame ..';'.. part ..';'.. (#log[frame].participants) ..(attempts and '_'..attempts..'_' or '')..';'.. VFS.ZlibCompress(Spring.Utilities.json.encode(log[frame].parts[part])))
 	end
 
 	local function receivedPart(_,frame,part)
@@ -123,7 +125,7 @@ else	-- UNSYNCED
 		if log[frame] then
 			log[frame].parts[part] = nil
 
-			-- if all parts have been received: clear the logged frame
+			-- clear the logged frame when all parts have been received
 			if #log[frame].parts == 0 then
 				log[frame] = nil
 			end
@@ -144,10 +146,12 @@ else	-- UNSYNCED
 	function gadget:GameFrame(gf)
 
 		-- check if all parts have been received, clear the logged frame if this is the case
-		if gf % verifyRate == 1 then
+		if gf % verifyRate == 0 then
 			for frame, params in ipairs(log) do
+
 				-- start checking after giving receiving the proper time
 				if gf-frame-pingCutoffFrames >= verifyRate then
+
 					log[frame].attempts = log[frame].attempts + 1
 					if log[frame].attempts > #log[frame].participants then
 						-- this should not happen... if so, something went wrong because we tried resending by all other participants already
@@ -168,7 +172,7 @@ else	-- UNSYNCED
 							end
 							if designatedBackupParticipant == myPlayerID then
 								--log[frame].participants[part] = myPlayerID	-- take ownership of this part
-								sendLog(frame, part)
+								sendLog(frame, part, log[frame].attempts)
 							end
 						end
 					end
@@ -178,6 +182,13 @@ else	-- UNSYNCED
 
 		-- save and send ypu part of all unit positions
 		if gf >= lastLogFrame+logRate then
+
+			-- cleanup incomplete old frames in case this has happened for some reason
+			for frame, params in ipairs(log) do
+				if frame < gf-maxLogMemoryDuration then
+					log[frame] = nil
+				end
+			end
 
 			lastLogFrame = gf
 
