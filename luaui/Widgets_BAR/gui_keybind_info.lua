@@ -110,7 +110,7 @@ local keybindsText = {
 	{ type = lineType.key, key = Spring.I18N('ui.keybinds.massSelect.sameTypeKey'),		text = Spring.I18N('ui.keybinds.massSelect.sameType')	},
 	{ type = lineType.blank },
 	{ type = lineType.title, text = Spring.I18N('ui.keybinds.drawing.title') },
-	{ type = lineType.key, key = Spring.I18N('ui.keybinds.drawing.mapmarksKey'),	text = Spring.I18N('ui.keybinds.drawing.mapmark')	},
+	{ type = lineType.key, key = Spring.I18N('ui.keybinds.drawing.mapmarkKey'),	text = Spring.I18N('ui.keybinds.drawing.mapmark')	},
 	{ type = lineType.key, key = Spring.I18N('ui.keybinds.drawing.drawKey'),		text = Spring.I18N('ui.keybinds.drawing.draw')		},
 	{ type = lineType.key, key = Spring.I18N('ui.keybinds.drawing.eraseKey'),		text = Spring.I18N('ui.keybinds.drawing.erase')		},
 	{ type = lineType.blank },
