@@ -786,18 +786,6 @@ local options={
 	--},
 
 	--{
-	--	key    = 'armageddontime',
-	--	name   = 'Armageddon time (minutes)',
-	--	desc   = 'At armageddon every immobile unit is destroyed and you fight to the death with what\'s left! (0=off)',
-	--	type   = 'number',
-	--	section= 'options',
-	--	def    = 0,
-	--	min    = 0,
-	--	max    = 120,
-	--	step   = 1,
-	--},
-
-	--{
 	--	key		= "unba",
 	--	name	= "Unbalanced Commanders",
 	--	desc	= "Defines if commanders level up with xp and gain more power or not",
