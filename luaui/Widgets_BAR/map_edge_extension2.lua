@@ -24,6 +24,8 @@ local mapBorderStyle = 'texture'	-- either 'texture' or 'cutaway'
 local gridSize = 32
 local wiremap = false
 
+local hasClipDistance = false
+
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
@@ -145,6 +147,7 @@ out DataGS {
 	vec2 uv;
 };
 
+#define SUPPORTS_CLIPDISTANCE ###SUPPORTS_CLIPDISTANCE###
 
 #define NORM2SNORM(value) (value * 2.0 - 1.0)
 #define SNORM2NORM(value) (value * 0.5 + 0.5)
@@ -203,7 +206,10 @@ void MyEmitVertex(vec2 xzVec) {
 	alphaFog = vec2(alpha, fogFactor);
 
 	gl_Position = cameraViewProj * worldPos;
-	gl_ClipDistance[4] = min(alpha - 0.05, fogFactor - 0.025);
+
+	#if (SUPPORTS_CLIPDISTANCE == 1)
+		gl_ClipDistance[4] = min(alpha - 0.05, fogFactor - 0.025);
+	#endif
 
 	EmitVertex();
 }
@@ -390,6 +396,9 @@ function widget:Initialize()
 	terrainVAO:AttachVertexBuffer(terrainVertexVBO)
 	terrainVAO:AttachInstanceBuffer(terrainInstanceVBO)
 
+	hasClipDistance = ((Platform.gpuVendor == "AMD" and Platform.osFamily == "Linux") == false)
+	gsSrc = gsSrc:gsub("###SUPPORTS_CLIPDISTANCE###", (hasClipDistance and "1" or "0"))
+	--Spring.Echo(gsSrc)
 
 	mapExtensionShader = LuaShader({
 		vertex = vsSrc,
@@ -461,7 +470,9 @@ end
 function widget:DrawWorldPreUnit()
 	--local q = gl.CreateQuery()
 	--Spring.Utilities.TableEcho({gl.GetFixedState("alphatest", true)})
-	gl.ClipDistance(1, true)
+	if hasClipDistance then
+		gl.ClipDistance(1, true)
+	end
 	gl.DepthTest(GL.LEQUAL)
 	gl.DepthMask(true)
 	gl.Culling(true)
@@ -481,7 +492,9 @@ function widget:DrawWorldPreUnit()
 	gl.DepthTest(false)
 	gl.DepthMask(false)
 	gl.Culling(false)
-	gl.ClipDistance(1, false)
+	if hasClipDistance then
+		gl.ClipDistance(1, false)
+	end
 
 	--Spring.Echo(gl.GetQuery(q))
 end
