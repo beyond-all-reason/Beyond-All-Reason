@@ -111,12 +111,6 @@ return {
 	prospector = {
 		metalextraction = 'Metal extraction',
 	},
-	buildpower = {
-		usedbuildpower = 'Used buildpower',
-		buildpower = 'buildpower',
-		builders = 'builders',
-		tip = 'Increase efficiency -> put idle worker units to work! (have enough resources too!)\n\255\240\240\240High buildpower usage -> make more workers',
-	},
 	eta = {
 		eta = 'ETA',
 	},
@@ -437,8 +431,6 @@ return {
 			buildmenu_tooltip = 'tooltips',
 			buildmenu_tooltip_descr = 'Tooltip when hovering over a unit in the buildmenu',
 			info = 'Info',
-			buildpower = 'build power usage bar',
-			buildpower_descr = 'Adds a vertical build power usage bar to the right of the info UI ',
 			ordermenu = 'Ordermenu',
 			ordermenu_colorize = 'colorize',
 			ordermenu_bottompos = 'bottom position',

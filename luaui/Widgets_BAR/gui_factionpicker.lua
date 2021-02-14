@@ -277,14 +277,7 @@ function widget:Update(dt)
 		doUpdate = true
 		sec = 0
 		checkGuishader()
-		if WG['buildpower'] then
-			local newBpWidth, newBpHeight = WG['buildpower'].getPosition()
-			if bpWidth == nil or (bpWidth ~= newBpWidth or bpHeight ~= newBpHeight) then
-				bpWidth = newBpWidth
-				bpHeight = newBpHeight
-				widget:ViewResize()
-			end
-		end
+		
 		if ui_scale ~= Spring.GetConfigFloat("ui_scale", 1) then
 			ui_scale = Spring.GetConfigFloat("ui_scale", 1)
 			widget:ViewResize()
