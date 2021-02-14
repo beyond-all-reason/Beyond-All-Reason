@@ -18,64 +18,30 @@ end
 	(parts that fail to be received are passed on to the next player/spec to re-send until everyone tried once)
 ]]
 
-local gameFramesPerSecond = 30	-- engine constant
+if not gadgetHandler:IsSyncedCode() then
 
-local pingCutoff = 1500	-- players with higher ping wont participate in sending unit positions log
+	local gameFramesPerSecond = 30	-- engine constant
 
---	send log (all unit postions) every X amount of gameframes
-local minLogRate = math.floor(gameFramesPerSecond * 5)
-local maxLogRate = math.floor(gameFramesPerSecond * 30)
-local maxLogRateUnits = 3000	-- # of units where maxLogRate gets reached
+	local pingCutoff = 1500	-- players with higher ping wont participate in sending unit positions log
 
-local maxLogMemoryDuration = gameFramesPerSecond * 60
+	--	send log (all unit postions) every X amount of gameframes
+	local minLogRate = math.floor(gameFramesPerSecond * 5)
+	local maxLogRate = math.floor(gameFramesPerSecond * 30)
+	local maxLogRateUnits = 3000	-- # of units where maxLogRate gets reached
 
--- verify if every part of a log has been received every X amount of gameframes, and resend parts if not
-local verifyRate = math.floor(gameFramesPerSecond * 2)
+	local maxLogMemoryDuration = gameFramesPerSecond * 60
 
-if gadgetHandler:IsSyncedCode() then
+	-- verify if every part of a log has been received every X amount of gameframes, and resend parts if not
+	local verifyRate = math.floor(gameFramesPerSecond * 2)
 
-	local charset = {}  do -- [0-9a-zA-Z]
-		for c = 48, 57  do table.insert(charset, string.char(c)) end
-		for c = 65, 90  do table.insert(charset, string.char(c)) end
-		for c = 97, 122 do table.insert(charset, string.char(c)) end
-	end
-
-	local function randomString(length)
-		if not length or length <= 0 then return '' end
-		return randomString(length - 1) .. charset[math.random(1, #charset)]
-	end
-
-	local validation = randomString(2)
-	_G.validationLogger = validation
-
-	local function explode(div,str) -- credit: http://richard.warburton.it
-		if (div=='') then return false end
-		local pos,arr = 0,{}
-		-- for each divider found
-		for st,sp in function() return string.find(str,div,pos,true) end do
-			table.insert(arr,string.sub(str,pos,st-1)) -- Attach chars left of current divider
-			pos = sp + 1 -- Jump past current divider
-		end
-		table.insert(arr,string.sub(str,pos)) -- Attach chars right of last divider
-		return arr
-	end
-
-	function gadget:RecvLuaMsg(msg, playerID)
-		if msg:sub(1,3)=="log" and msg:sub(4,5)==validation then
-			local params = explode(';', msg:sub(6,40))	-- 1=frame, 2=part, 3=numParts, (4=json leftover)
-			SendToUnsynced("receivedPart", params[1], params[2])
-			return true
-		end
-	end
-
-
-else	-- UNSYNCED
-
+	---------------------------------------------------------------------------------------
 
 	local logRate = minLogRate
-
 	local pingCutoffFrames = (pingCutoff / (pingCutoff / gameFramesPerSecond))
 	local lastLogFrame = -9999
+	local log = {}
+
+	local validation = SYNCED.validationLogger
 
 	local spGetUnitDefID = Spring.GetUnitDefID
 	local spGetUnitPosition = Spring.GetUnitPosition
@@ -83,10 +49,6 @@ else	-- UNSYNCED
 	local math_floor = math.floor
 	local math_ceil = math.ceil
 	local myPlayerID = Spring.GetMyPlayerID()
-
-	local validation = SYNCED.validationLogger
-
-	local log = {}
 
 	-- store all unit positions (in case you're requested to send a missing part later)
 	local function updateLog(frame, participants)
@@ -110,12 +72,12 @@ else	-- UNSYNCED
 				log[frame].parts[part][teamID] = {}
 			end
 			local count = #log[frame].parts[part][teamID]+1
-			log[frame].parts[part][teamID][count] = {unitID, spGetUnitDefID(unitID), math_floor(px), math_floor(py), math_floor(pz)}
+			log[frame].parts[part][teamID][count] = {unitID, spGetUnitDefID(unitID), math_floor(px), math_floor(pz)}--, math_floor(py)}	-- put height last so it can be left out easier
 		end
 	end
 
 	local function sendLog(frame, part, attempts)
-		Spring.SendLuaRulesMsg('log' .. validation .. frame ..';'.. part ..';'.. (#log[frame].participants) ..(attempts and '_'..attempts..'_' or '')..';'.. VFS.ZlibCompress(Spring.Utilities.json.encode(log[frame].parts[part])))
+		Spring.SendLuaRulesMsg('log' .. validation .. frame ..';'.. part ..';'.. (#log[frame].participants) ..(attempts and '_'..attempts..'__' or '')..';'.. VFS.ZlibCompress(Spring.Utilities.json.encode(log[frame].parts[part])))
 	end
 
 	local function receivedPart(_,frame,part)
@@ -161,17 +123,16 @@ else	-- UNSYNCED
 						for part, _ in ipairs(params.parts) do
 
 							-- resend part if you're the designated backup sender
-							local numParticipants = #log[frame].participants
 							local designatedBackupParticipant = myPlayerID
 							if log[frame].participants[part + log[frame].attempts] then
 								-- goto next participant
 								designatedBackupParticipant = log[frame].participants[part + log[frame].attempts]
 							else
 								-- start from first participant onwards
+								local numParticipants = #log[frame].participants
 								designatedBackupParticipant = log[frame].participants[ log[frame].attempts - (numParticipants-part) ]
 							end
 							if designatedBackupParticipant == myPlayerID then
-								--log[frame].participants[part] = myPlayerID	-- take ownership of this part
 								sendLog(frame, part, log[frame].attempts)
 							end
 						end
@@ -216,6 +177,44 @@ else	-- UNSYNCED
 				updateLog(gf, participants)
 				sendLog(gf, myPart)
 			end
+		end
+	end
+
+
+else	-- SYNCED
+
+
+	local charset = {}  do -- [0-9a-zA-Z]
+		for c = 48, 57  do table.insert(charset, string.char(c)) end
+		for c = 65, 90  do table.insert(charset, string.char(c)) end
+		for c = 97, 122 do table.insert(charset, string.char(c)) end
+	end
+
+	local function randomString(length)
+		if not length or length <= 0 then return '' end
+		return randomString(length - 1) .. charset[math.random(1, #charset)]
+	end
+
+	local validation = randomString(2)
+	_G.validationLogger = validation
+
+	local function explode(div,str) -- credit: http://richard.warburton.it
+		if (div=='') then return false end
+		local pos,arr = 0,{}
+		-- for each divider found
+		for st,sp in function() return string.find(str,div,pos,true) end do
+			table.insert(arr,string.sub(str,pos,st-1)) -- Attach chars left of current divider
+			pos = sp + 1 -- Jump past current divider
+		end
+		table.insert(arr,string.sub(str,pos)) -- Attach chars right of last divider
+		return arr
+	end
+
+	function gadget:RecvLuaMsg(msg, playerID)
+		if msg:sub(1,3)=="log" and msg:sub(4,5)==validation then
+			local params = explode(';', msg:sub(6,40))	-- 1=frame, 2=part, 3=numParts, (4=json leftover)
+			SendToUnsynced("receivedPart", params[1], params[2])
+			return true
 		end
 	end
 
