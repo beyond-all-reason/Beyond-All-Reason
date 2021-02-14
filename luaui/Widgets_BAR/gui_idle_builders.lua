@@ -424,11 +424,11 @@ function widget:Update(dt)
 			end
 		end
 
-		if unitCount >= MAX_ICONS then
-			CONDENSE = true
-		else
-			CONDENSE = false
-		end
+		--if unitCount >= MAX_ICONS then
+		--	CONDENSE = true
+		--else
+		--	CONDENSE = false
+		--end
 
 		local oldNoOfIcons = noOfIcons
 		noOfIcons = 0
