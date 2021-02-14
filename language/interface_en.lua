@@ -386,6 +386,25 @@ return {
 					pause = 'Pause',
 				},
 			},
+			teamStats = {
+				player = 'Player',
+				dead = 'dead',
+				gone = 'gone',
+				damage = 'Damage',
+				damageDealt = 'Dealt',
+				damageReceived = 'Received',
+				damageEfficiency = 'Efficiency',
+				units = 'Units',
+				unitsProduced = 'Produced',
+				unitsKilled = 'Killed',
+				unitsDied = 'Died',
+				aggression = 'Aggression',
+				aggressionLevel = 'Level',
+				metal = 'Metal',
+				energy = 'Energy',
+				resourceProduced = 'Produced',
+				resourceExcess = 'Excess',
+			},
 		}
 	}
 }

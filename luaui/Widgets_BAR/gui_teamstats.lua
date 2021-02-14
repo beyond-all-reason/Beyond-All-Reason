@@ -27,34 +27,6 @@ local oddLineColour = {0.23,0.23,0.23,0.4}
 local evenLineColour = {0.8,0.8,0.8,0.4}
 local sortLineColour = {0.82,0.82,0.82,0.85}
 
-local texts = {        -- fallback (if you want to change this, also update: language/en.lua, or it will be overwritten)
-	player = 'Player',
-	dead = 'dead',
-	gone = 'gone',
-	damagedealt1 = 'Damage',
-	damagedealt2 = 'Dealt',
-	damagereceived1 = 'Damage',
-	damagereceived2 = 'Received',
-	unitsproduced1 = 'Units',
-	unitsproduced2 = 'Produced',
-	unitskilled1 = 'Units',
-	unitskilled2 = 'Killed',
-	unitsdied1 = 'Units',
-	unitsdied2 = 'Died',
-	damageefficiency1 = 'Damage',
-	damageefficiency2 = 'Efficiency',
-	aggressionlevel1 = 'Aggression',
-	aggressionlevel2 = 'Level',
-	metalproduced1 = 'Metal',
-	metalproduced2 = 'Produced',
-	metalexcess1 = 'Metal',
-	metalexcess2 = 'Excess',
-	energyproduced1 = 'Energy',
-	energyproduced2 = 'Produced',
-	energyexcess1 = 'Energy',
-	energyexcess2 = 'Excess',
-}
-
 local widgetScale
 
 local customScale = 1
@@ -67,30 +39,14 @@ local header = {
 	"damageDealt",
 	"damageReceived",
 	"unitsProduced",
---	"unitsReceived",
---	"unitsSent",
---	"unitsCaptured",
---	"unitsOutCaptured",
 	"unitsKilled",
 	"unitsDied",
 	"damageEfficiency",
---	"killEfficiency",
 	"aggressionLevel",
---	"metalUsed",
 	"metalProduced",
 	"metalExcess",
---	"metalReceived",
---	"metalSent",
---	"energyUsed",
 	"energyProduced",
 	"energyExcess",
---	"energyReceived",
---	"energySent",
---	"resourcesUsed",
---	"resourcesProduced",
---	"resourcesExcess",
---	"resourcesReceived",
---	"resourcesSent",
 }
 
 local headerRemap = {}	-- filled in initialize
@@ -299,39 +255,19 @@ function widget:ViewResize()
 end
 
 function widget:Initialize()
-	if WG['lang'] then
-		texts = WG['lang'].getText('teamstats')
-	end
-
 	headerRemap = {
-		frame = {" ",texts.player},
-		--metalUsed = {"Metal","Used"},
-		metalProduced = {texts.metalproduced1,texts.metalproduced2},
-		metalExcess = {texts.metalexcess1,texts.metalexcess2},
-		--metalReceived = {"Metal","Received"},
-		--metalSent = {"Metal","Sent"},
-		--energyUsed = {"Energy","Used"},
-		energyProduced = {texts.energyproduced1,texts.energyproduced2},
-		energyExcess = {texts.energyexcess1,texts.energyexcess2},
-		--energyReceived = {"Energy","Received"},
-		--energySent = {"Energy","Sent"},
-		damageDealt = {texts.damagedealt1,texts.damagedealt2},
-		damageReceived = {texts.damagereceived1,texts.damagereceived2},
-		damageEfficiency = {texts.damageefficiency1,texts.damageefficiency2},
-		unitsProduced = {texts.unitsproduced1,texts.unitsproduced2},
-		unitsDied = {texts.unitsdied1,texts.unitsdied2},
-		--unitsReceived = {"Units","Received"},
-		--unitsSent = {"Units","Sent"},
-		--unitsCaptured = {"Units","Captured"},
-		--unitsOutCaptured = {"Units","OutCaptured"},
-		unitsKilled = {texts.unitskilled1,texts.unitskilled2},
-		--resourcesUsed = {"Resources","Used"},
-		--resourcesProduced = {"Resources","Produced"},
-		--resourcesExcess = {"Resources","Excess"},
-		--resourcesReceived = {"Resources","Received"},
-		--resourcesSent = {"Resources","Sent"},
-		--killEfficiency = {"Killing","Efficiency"},
-		aggressionLevel = {texts.aggressionlevel1,texts.aggressionlevel2},
+		frame = {" ", Spring.I18N('ui.teamStats.player')},
+		metalProduced = {Spring.I18N('ui.teamStats.metal'), Spring.I18N('ui.teamStats.resourceProduced')},
+		metalExcess = {Spring.I18N('ui.teamStats.metal'), Spring.I18N('ui.teamStats.resourceExcess')},
+		energyProduced = {Spring.I18N('ui.teamStats.energy'), Spring.I18N('ui.teamStats.resourceProduced')},
+		energyExcess = {Spring.I18N('ui.teamStats.energy'), Spring.I18N('ui.teamStats.resourceExcess')},
+		damageDealt = {Spring.I18N('ui.teamStats.damage'), Spring.I18N('ui.teamStats.damageDealt')},
+		damageReceived = {Spring.I18N('ui.teamStats.damage'), Spring.I18N('ui.teamStats.damageReceived')},
+		damageEfficiency = {Spring.I18N('ui.teamStats.damage'), Spring.I18N('ui.teamStats.damageEfficiency')},
+		unitsProduced = {Spring.I18N('ui.teamStats.units'), Spring.I18N('ui.teamStats.unitsProduced')},
+		unitsDied = {Spring.I18N('ui.teamStats.units'), Spring.I18N('ui.teamStats.unitsDied')},
+		unitsKilled = {Spring.I18N('ui.teamStats.units'), Spring.I18N('ui.teamStats.unitsKilled')},
+		aggressionLevel = {Spring.I18N('ui.teamStats.aggression'), Spring.I18N('ui.teamStats.aggressionLevel')},
 	}
 
 	guiData.mainPanel.visible = false
@@ -429,14 +365,14 @@ function widget:GameFrame(n,forceupdate)
 					end
 					if gameStarted ~= nil then
 						if not playerName then
-							playerName = teamControllers[teamID] or texts.gone
+							playerName = teamControllers[teamID] or Spring.I18N('ui.teamStats.gone')
 						else
 							teamControllers[teamID] = playerName
 						end
 						if isDead then
-							playerName = playerName .. " ("..texts.dead..")"
+							playerName = playerName .. " (" .. Spring.I18N('ui.teamStats.dead') .. ")"
 						elseif not isActive then
-							playerName = playerName .. " ("..texts.gone..")"
+							playerName = playerName .. " (" .. Spring.I18N('ui.teamStats.gone') .. ")"
 						end
 					end
 					if history.damageReceived ~= 0 then
