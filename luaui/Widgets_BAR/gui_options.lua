@@ -241,8 +241,6 @@ local texts = {        -- fallback (if you want to change this, also update: lan
 		buildmenu_tooltip = 'tooltips',
 		buildmenu_tooltip_descr = 'Tooltip when hovering over a unit in the buildmenu',
 		info = 'Info',
-		buildpower = 'build power usage bar',
-		buildpower_descr = 'Adds a vertical build power usage bar to the right of the info UI ',
 		ordermenu = 'Ordermenu',
 		ordermenu_colorize = 'colorize',
 		ordermenu_bottompos = 'bottom position',
@@ -3391,8 +3389,6 @@ function init()
 		--	  saveOptionValue('Build menu', 'buildmenu', 'setMaxColls', { 'maxColls' }, value)
 		--  end,
 		--},
-
-		{ id = "buildpower", group = "ui", basic = true, widget = "Build power", name = texts.option.info..widgetOptionColor.." "..texts.option.buildpower, type = "bool", value = GetWidgetToggleValue("Build power"), description = texts.option.buildpower_descr },
 
 		{ id = "ordermenu_colorize", group = "ui", basic = true, name = texts.option.ordermenu .. widgetOptionColor .. "  "..texts.option.ordermenu_colorize, type = "slider", min = 0, max = 1, step = 0.1, value = 0, description = '',
 		  onload = function(i)

@@ -15,7 +15,6 @@ end
 
 local teamcolorRadarIcon = false
 local width = 0
-local addonWidth = 0
 local height = 0
 
 local zoomMult = 1.5
@@ -435,7 +434,7 @@ function widget:ViewResize()
 	bgpadding = Spring.FlowUI.elementPadding
 	elementCorner = Spring.FlowUI.elementCorner
 
-	backgroundRect = { 0, 0, (width - addonWidth) * vsx, height * vsy }
+	backgroundRect = { 0, 0, width * vsx, height * vsy }
 
 	doUpdate = true
 	clear()
@@ -578,16 +577,7 @@ function widget:Update(dt)
 	if uiOpacitySec > 0.5 then
 		uiOpacitySec = 0
 		checkGuishader()
-		if WG['buildpower'] then
-			addonWidth, _ = WG['buildpower'].getSize()
-			if not addonWidth then
-				addonWidth = 0
-			end
-			widget:ViewResize()
-		elseif addonWidth > 0 then
-			addonWidth = 0
-			widget:ViewResize()
-		end
+
 		if ui_scale ~= Spring.GetConfigFloat("ui_scale", 1) then
 			ui_scale = Spring.GetConfigFloat("ui_scale", 1)
 			widget:ViewResize()
@@ -1413,7 +1403,7 @@ local function drawEngineTooltip()
 end
 
 local function drawInfo()
-	UiElement(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], 0, (WG['buildpower'] and 0 or 1), 0, 0)
+	UiElement(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], 0, 1, 0, 0)
 
 	contentPadding = (height * vsy * 0.075) * (0.95 - ((1 - ui_scale) * 0.5))
 	contentWidth = backgroundRect[3] - backgroundRect[1] - contentPadding - contentPadding

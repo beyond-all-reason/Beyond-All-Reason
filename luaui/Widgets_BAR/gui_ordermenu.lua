@@ -81,7 +81,7 @@ local disableInput = false
 
 local font, backgroundPadding, widgetSpaceMargin, chobbyInterface, displayListOrders, displayListGuiShader
 local clickedCell, clickedCellTime, clickedCellDesiredState, cellWidth, cellHeight
-local bpWidth, bpHeight, buildmenuBottomPosition, buildpowerWidgetEnabled
+local bpWidth, bpHeight, buildmenuBottomPosition
 local activeCommand, previousActiveCommand, doUpdate, doUpdateClock
 
 local hiddenCommands = {
@@ -380,16 +380,7 @@ function widget:Update(dt)
 	if sec > 0.5 then
 		sec = 0
 		checkGuiShader()
-		if WG['buildpower'] then
-			local newBpWidth, newBpHeight = WG['buildpower'].getPosition()
-			if bpWidth == nil or (bpWidth ~= newBpWidth or bpHeight ~= newBpHeight) then
-				bpWidth, bpHeight = WG['buildpower'].getPosition()
-				widget:ViewResize()
-			end
-		elseif buildpowerWidgetEnabled then
-			buildpowerWidgetEnabled = false
-			widget:ViewResize()
-		end
+		
 		if WG['buildmenu'] and WG['buildmenu'].getBottomPosition then
 			local prevbuildmenuBottomPos = buildmenuBottomPos
 			buildmenuBottomPos = WG['buildmenu'].getBottomPosition()
