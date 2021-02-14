@@ -31,7 +31,6 @@ local texts = {        -- fallback (if you want to change this, also update: lan
 	killallunits = 'Kill all enemy units',
 	killallcoms = 'Kill all enemy Commanders',
 	comssurvivedguns = 'Commanders survive DGuns and commander explosions',
-	armageddonat = 'Armageddon at',
 	unbacomsenabled = 'Unbalanced Commanders is enabled: Commander levels up and gain upgrades',
 	victorycondition = 'Victory condition',
 }
@@ -52,7 +51,6 @@ local floor = math.floor
 local message = ""
 local message2 = ""
 local message3 = ""
-local message4 = ""
 
 local font, chobbyInterface
 
@@ -85,12 +83,8 @@ function widget:Initialize()
 		message2 = texts.comssurvivedguns
 	end
 
-	if (tonumber(Spring.GetModOptions().armageddontime) or -1) > 0 then
-		message3 = texts.armageddonat..": " .. Spring.GetModOptions().armageddontime
-	end
-
 	if (Spring.GetModOptions().unba or "disabled") == "enabled" then
-		message4 = texts.unbacomsenabled
+		message3 = texts.unbacomsenabled
 	end
 end
 
@@ -125,12 +119,11 @@ function widget:DrawScreen()
 
 	local msg = '\255\255\255\255' .. string.format("%s %s", texts.victorycondition..": ", message)
 	local msg2 = '\255\255\255\255' .. message2
-	local msg3 = "\255\255\0\0" .. message3
-	local msg4
+	local msg3
 	if blink then
-		msg4 = "\255\255\222\111" .. message4
+		msg3 = "\255\255\222\111" .. message3
 	else
-		msg4 = "\255\255\150\050" .. message4
+		msg3 = "\255\255\150\050" .. message3
 	end
 
 	glPushMatrix()
@@ -139,8 +132,7 @@ function widget:DrawScreen()
 	font:Begin()
 	font:Print(msg, 0, 15 * widgetScale, 18 * widgetScale, "oc")
 	font:Print(msg2, 0, -35 * widgetScale, 12.5 * widgetScale, "oc")
-	font:Print(msg3, 0, -55 * widgetScale, 11 * widgetScale, "oc")
-	font:Print(msg4, 0, 60 * widgetScale, 18 * widgetScale, "oc")
+	font:Print(msg3, 0, 60 * widgetScale, 18 * widgetScale, "oc")
 	font:End()
 	glPopMatrix()
 end

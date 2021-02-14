@@ -44,11 +44,6 @@ return {
 		estorage = 'E storage',
 		mstorage = 'M storage',
 	},
-	armageddon = {
-		armageddon = 'ARMAGEDDON',
-		armageddoniminent = 'Armageddon imminent...',
-		armageddonapproaches = 'Armageddon approaches...',
-	},
 	unitstats = {
 		prog = 'Prog',
 		metal = 'Metal',
@@ -140,7 +135,6 @@ return {
 		killallunits = 'Kill all enemy units',
 		killallcoms = 'Kill all enemy Commanders',
 		comssurvivedguns = 'Commanders survive DGuns and commander explosions',
-		armageddonat = 'Armageddon at',
 		unbacomsenabled = 'Unbalanced Commanders is enabled: Commander levels up and gain upgrades',
 		victorycondition = 'Victory condition',
 	},
