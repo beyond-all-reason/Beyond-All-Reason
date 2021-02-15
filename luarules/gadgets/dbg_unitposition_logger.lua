@@ -28,7 +28,7 @@ if not gadgetHandler:IsSyncedCode() then
 	local pingCutoff = 1500	-- players with higher ping wont participate in sending unit positions log
 
 	-- based on the current number of units it will adjust the amount of gameframes between each log
-	local minLogRate = math.floor(gameFramesPerSecond * 5)
+	local minLogRate = math.floor(gameFramesPerSecond * 6)
 	local maxLogRate = math.floor(gameFramesPerSecond * 30)
 	local maxLogRateUnits = 3000	-- # of units where maxLogRate gets reached
 
@@ -165,15 +165,16 @@ if not gadgetHandler:IsSyncedCode() then
 			local participants = {}
 			local myPart
 			for _,playerID in ipairs(Spring.GetPlayerList()) do
-				local _,_,_,teamID,_,ping = Spring.GetPlayerInfo(playerID,false)
+				local name,_,_,teamID,_,ping = Spring.GetPlayerInfo(playerID,false)
+				if name == '[teh]Flow' then
+					Spring.Echo('frame: '..gf..'  ping: '..ping)
+				end
 				-- exclude lagged out players and AI
 				if ping < pingCutoff and not Spring.GetTeamLuaAI(teamID) and not select(4, Spring.GetTeamInfo(teamID)) then
 					participants[#participants+1] = playerID
 					if playerID == myPlayerID then
 						myPart = #participants
 					end
-				elseif ping >= pingCutoff then
-					Spring.Echo('player: '..playerID..'  ping: '..ping)
 				end
 			end
 
