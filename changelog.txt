@@ -27,6 +27,10 @@ Units
  • Cor Punisher: Removed special damage to ships and commander, reduced low trajectory aoe from 140 to 120, increased low trajectory default damage by 20%, increased high trajectory default damage by 18%, increased reloadtime by 8%
  • Arm Ambusher: Removed special damage to ships and commander
  • Core Toaster: Removed special damage to ships and commander, low and high trajectory damage increased by 20%, high trajectory cooldown increased by 14%
+ • Arm Big Bertha: Increased E cost to fire from 3000 to 5000
+ • Cor Intimidator: Increased E cost to fire from 3000 to 6000
+ • Arm Vulcan: Reduced E cost to fire from 14500 to 10000
+ • Cor Buzzsaw: Reduced E cost to fire from 15725 to 12000
  
 
 Air
