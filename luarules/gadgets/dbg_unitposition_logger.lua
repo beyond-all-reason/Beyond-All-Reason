@@ -23,6 +23,8 @@ if not gadgetHandler:IsSyncedCode() then
 
 	if Spring.IsReplay() then return end
 
+	local debug = select(1, Spring.GetPlayerInfo(Spring.GetMyPlayerID())) == '[teh]Flow'
+
 	local gameFramesPerSecond = 30	-- engine constant
 
 	local pingCutoff = 1500	-- players with higher ping wont participate in sending unit positions log
@@ -41,7 +43,7 @@ if not gadgetHandler:IsSyncedCode() then
 
 	local logRate = minLogRate
 	local pingCutoffFrames = (pingCutoff / (pingCutoff / gameFramesPerSecond))
-	local lastLogFrame = -9999
+	local lastLogFrame = 30-minLogRate
 	local log = {}
 	local serverFrame = 0
 
@@ -92,10 +94,10 @@ if not gadgetHandler:IsSyncedCode() then
 	end
 
 	local function sendLog(frame, part, attempts)
-		Spring.SendLuaRulesMsg('log' .. validation .. frame ..';'.. part ..';'.. (#log[frame].participants) ..(attempts and '_'..attempts..'__' or '')..';'.. VFS.ZlibCompress(Spring.Utilities.json.encode(log[frame].parts[part])))
+		Spring.SendLuaRulesMsg('log' .. validation .. frame ..';'.. part ..';'.. (#log[frame].participants) ..';'..attempts ..';'.. VFS.ZlibCompress(Spring.Utilities.json.encode(log[frame].parts[part])))
 	end
 
-	local function receivedPart(_,frame,part)
+	local function receivedPart(_,frame,part,numParts,attempts)
 		frame = tonumber(frame)
 		part = tonumber(part)
 
@@ -106,6 +108,10 @@ if not gadgetHandler:IsSyncedCode() then
 			if #log[frame].parts == 0 then
 				log[frame] = nil
 			end
+		end
+
+		if debug and attempts ~= '0' then
+			Spring.Echo('LOG frame:'..frame..' part:'..part..' numparts:'..numParts..' attempts:'..attempts)
 		end
 	end
 
@@ -187,13 +193,13 @@ if not gadgetHandler:IsSyncedCode() then
 			for _,playerID in ipairs(Spring.GetPlayerList()) do
 				local name,_,_,teamID,_,ping = Spring.GetPlayerInfo(playerID,false)
 
-				if name == '[teh]Flow' and playerID == myPlayerID then
-					Spring.Echo('gameframe: '..gf..'  serverframe: '..serverFrame..'  ping: '..ping)
-				end
+				--if name == '[teh]Flow' and playerID == myPlayerID then
+				--	Spring.Echo('gameframe: '..gf..'  serverframe: '..serverFrame..'  ping: '..ping)
+				--end
 
 				-- exclude lagged out players and AI
-				-- NOTE: ping is 0 when player is catching up or playing local (local can be slightly above 0 when low fps)
-				if (ping > 0.04 or isSinglePlayer) and ping < pingCutoff/1000 and not Spring.GetTeamLuaAI(teamID) and not select(4, Spring.GetTeamInfo(teamID)) then
+				-- NOTE: ping is 0 when player is catching up or playing local (local can be slightly above 0 when low fps 0.033)
+				if (ping > 0.01 or isSinglePlayer) and ping < pingCutoff/1000 and not Spring.GetTeamLuaAI(teamID) and not select(4, Spring.GetTeamInfo(teamID)) then
 					participants[#participants+1] = playerID
 					if playerID == myPlayerID then
 						myPart = #participants
@@ -204,13 +210,14 @@ if not gadgetHandler:IsSyncedCode() then
 			-- send log when you're included as participant
 			if myPart then
 				updateLog(gf, participants)
-				sendLog(gf, myPart)
+				sendLog(gf, myPart, 0)
 			end
 		end
 	end
 
 
 else	-- SYNCED
+
 
 
 	local charset = {}  do -- [0-9a-zA-Z]
@@ -241,8 +248,8 @@ else	-- SYNCED
 
 	function gadget:RecvLuaMsg(msg, playerID)
 		if msg:sub(1,3)=="log" and msg:sub(4,5)==validation then
-			local params = explode(';', msg:sub(6,40))	-- 1=frame, 2=part, 3=numParts, (4=json leftover)
-			SendToUnsynced("receivedPart", params[1], params[2])
+			local params = explode(';', msg:sub(6,40))	-- 1=frame, 2=part, 3=numParts, 4=attempts, 5=gzipped-json
+			SendToUnsynced("receivedPart", params[1], params[2], params[3], params[4])
 			return true
 		end
 	end
