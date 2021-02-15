@@ -409,6 +409,9 @@ return {
 				metal = 'M',
 				energy = 'E',
 			},
+			prospector = {
+				metalextraction = 'Metal extraction',
+			},
 		}
 	}
 }

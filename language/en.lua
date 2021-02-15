@@ -104,9 +104,6 @@ return {
 		persecond = 'per second',
 		totaldmg = 'Total Dmg',
 	},
-	prospector = {
-		metalextraction = 'Metal extraction',
-	},
 	eta = {
 		eta = 'ETA',
 	},
