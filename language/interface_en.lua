@@ -410,7 +410,7 @@ return {
 				energy = 'E',
 			},
 			prospector = {
-				metalextraction = 'Metal extraction',
+				metalExtraction = 'Metal extraction',
 			},
 		}
 	}
