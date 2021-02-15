@@ -412,8 +412,10 @@ return {
 			prospector = {
 				metalExtraction = 'Metal extraction',
 			},
-			eta = {
-				eta = 'ETA',
+			buildEstimate = {
+				time = 'ETA',
+				minutes = 'm',
+				seconds = 's',
 			},
 		}
 	}
