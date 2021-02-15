@@ -417,6 +417,17 @@ return {
 				minutes = 'm',
 				seconds = 's',
 			},
+			healthbars = {
+				shield = 'shield',
+				health = 'health',
+				building = 'building',
+				stockpile = 'stockpile',
+				paralyze = 'paralyze',
+				capture = 'capture',
+				reload = 'reload',
+				resurrect = 'resurrect',
+				reclaim = 'reclaim',
+			},
 		}
 	}
 }
