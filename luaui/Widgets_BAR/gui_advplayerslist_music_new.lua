@@ -518,7 +518,7 @@ function widget:UnitDamaged(unitID,unitDefID,_,damage)
 		else
 			warMeter = math.ceil(warMeter + damage)
 		end
-	end
+	end             
 end
 
 function widget:GameFrame(n)
