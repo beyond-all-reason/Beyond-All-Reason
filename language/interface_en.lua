@@ -417,16 +417,16 @@ return {
 				minutes = 'm',
 				seconds = 's',
 			},
-			healthbars = {
-				shield = 'shield',
-				health = 'health',
-				building = 'building',
-				stockpile = 'stockpile',
-				paralyze = 'paralyze',
-				capture = 'capture',
-				reload = 'reload',
-				resurrect = 'resurrect',
-				reclaim = 'reclaim',
+			statusBars = {
+				shield = 'Shield',
+				health = 'Health',
+				building = 'Building',
+				stockpile = 'Stockpile',
+				paralyze = 'Paralyze',
+				capture = 'Capture',
+				reload = 'Reload',
+				resurrect = 'Resurrect',
+				reclaim = 'Reclaim',
 			},
 		}
 	}
