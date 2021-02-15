@@ -104,9 +104,6 @@ return {
 		persecond = 'per second',
 		totaldmg = 'Total Dmg',
 	},
-	eta = {
-		eta = 'ETA',
-	},
 	healthbars = {
 		shield = 'shield',
 		health = 'health',

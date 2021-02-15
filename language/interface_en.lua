@@ -412,6 +412,9 @@ return {
 			prospector = {
 				metalExtraction = 'Metal extraction',
 			},
+			eta = {
+				eta = 'ETA',
+			},
 		}
 	}
 }
