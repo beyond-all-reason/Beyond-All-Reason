@@ -97,7 +97,8 @@ CallInsList = {
   "AllowResourceTransfer",
   "MoveCtrlNotify",
   "TerraformComplete",
-  "UnsyncedHeightMapUpdate"
+  "UnsyncedHeightMapUpdate",
+  "GameProgress"
 }
 
 

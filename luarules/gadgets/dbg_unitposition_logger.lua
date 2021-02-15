@@ -43,6 +43,7 @@ if not gadgetHandler:IsSyncedCode() then
 	local pingCutoffFrames = (pingCutoff / (pingCutoff / gameFramesPerSecond))
 	local lastLogFrame = -9999
 	local log = {}
+	local serverFrame = 0
 
 	local validation = SYNCED.validationLogger
 
@@ -52,6 +53,17 @@ if not gadgetHandler:IsSyncedCode() then
 	local math_floor = math.floor
 	local math_ceil = math.ceil
 	local myPlayerID = Spring.GetMyPlayerID()
+
+	local numPlayers = 0
+	local teams = Spring.GetTeamList()
+	for i = 1, #teams do
+		local _, _, _, isAiTeam = Spring.GetTeamInfo(teams[i], false)
+		local luaAI = Spring.GetTeamLuaAI(teams[i])
+		if (not luaAI or luaAI == '') and not isAiTeam and teams[i] ~= Spring.GetGaiaTeamID() then
+			numPlayers = numPlayers + 1
+		end
+	end
+	local isSinglePlayer = numPlayers == 1
 
 	-- store all unit positions (in case you're requested to send a missing part later)
 	local function updateLog(frame, participants)
@@ -108,7 +120,15 @@ if not gadgetHandler:IsSyncedCode() then
 	--function gadget:GameOver(winningAllyTeams)
 	--end
 
+	-- happens every 150 frames
+	function gadget:GameProgress(n)
+		serverFrame = n
+	end
+
 	function gadget:GameFrame(gf)
+		--if gf < serverFrame then
+		--	return end
+		--end
 
 		-- check if all parts have been received, clear the logged frame if this is the case
 		if gf % verifyRate == 0 then
@@ -166,11 +186,14 @@ if not gadgetHandler:IsSyncedCode() then
 			local myPart
 			for _,playerID in ipairs(Spring.GetPlayerList()) do
 				local name,_,_,teamID,_,ping = Spring.GetPlayerInfo(playerID,false)
-				if name == '[teh]Flow' then
-					Spring.Echo('frame: '..gf..'  ping: '..ping)
+
+				if name == '[teh]Flow' and playerID == myPlayerID then
+					Spring.Echo('gameframe: '..gf..'  serverframe: '..serverFrame..'  ping: '..ping)
 				end
+
 				-- exclude lagged out players and AI
-				if ping < pingCutoff and not Spring.GetTeamLuaAI(teamID) and not select(4, Spring.GetTeamInfo(teamID)) then
+				-- NOTE: ping is 0 when player is catching up or playing local (local can be slightly above 0 when low fps)
+				if (ping > 0.04 or isSinglePlayer) and ping < pingCutoff/1000 and not Spring.GetTeamLuaAI(teamID) and not select(4, Spring.GetTeamInfo(teamID)) then
 					participants[#participants+1] = playerID
 					if playerID == myPlayerID then
 						myPart = #participants
