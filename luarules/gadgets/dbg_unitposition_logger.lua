@@ -18,13 +18,15 @@ end
 	(parts that fail to be received are passed on to the next player/spec to re-send until everyone tried once)
 ]]
 
+if Spring.IsReplay() then return end
+
 if not gadgetHandler:IsSyncedCode() then
 
 	local gameFramesPerSecond = 30	-- engine constant
 
 	local pingCutoff = 1500	-- players with higher ping wont participate in sending unit positions log
 
-	--	send log (all unit postions) every X amount of gameframes
+	-- based on the current number of units it will adjust the amount of gameframes between each log
 	local minLogRate = math.floor(gameFramesPerSecond * 5)
 	local maxLogRate = math.floor(gameFramesPerSecond * 30)
 	local maxLogRateUnits = 3000	-- # of units where maxLogRate gets reached
@@ -141,7 +143,7 @@ if not gadgetHandler:IsSyncedCode() then
 			end
 		end
 
-		-- save and send ypu part of all unit positions
+		-- save and send you part of all unit positions
 		if gf >= lastLogFrame+logRate then
 
 			-- cleanup incomplete old frames in case this has happened for some reason
@@ -169,6 +171,8 @@ if not gadgetHandler:IsSyncedCode() then
 					if playerID == myPlayerID then
 						myPart = #participants
 					end
+				elseif ping >= pingCutoff then
+					Spring.Echo('player: '..playerID..'  ping: '..ping)
 				end
 			end
 
