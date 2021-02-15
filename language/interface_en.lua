@@ -405,6 +405,18 @@ return {
 				resourceProduced = 'Produced',
 				resourceExcess = 'Excess',
 			},
+			reclaimInfo = {
+				metal = 'M',
+				energy = 'E',
+			},
+			prospector = {
+				metalExtraction = 'Metal extraction',
+			},
+			buildEstimate = {
+				time = 'ETA',
+				minutes = 'm',
+				seconds = 's',
+			},
 		}
 	}
 }

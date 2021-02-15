@@ -104,16 +104,6 @@ return {
 		persecond = 'per second',
 		totaldmg = 'Total Dmg',
 	},
-	reclaiminfo = {
-		m = 'M',
-		e = 'E',
-	},
-	prospector = {
-		metalextraction = 'Metal extraction',
-	},
-	eta = {
-		eta = 'ETA',
-	},
 	healthbars = {
 		shield = 'shield',
 		health = 'health',

@@ -25,10 +25,6 @@ function widget:GetInfo()
 	}
 end
 
-local texts = {        -- fallback (if you want to change this, also update: language/en.lua, or it will be overwritten)
-	eta = 'ETA',
-}
-
 local vsx, vsy = Spring.GetViewGeometry()
 local lastGameUpdate = Spring.GetGameSeconds()
 
@@ -107,9 +103,6 @@ function init()
 end
 
 function widget:Initialize()
-	if WG['lang'] then
-		texts = WG['lang'].getText('eta')
-	end
 	widget:ViewResize()
 	init()
 end
@@ -215,16 +208,17 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
 end
 
 local function DrawEtaText(timeLeft, yoffset)
-	local etaStr
+	local etaText
+	local etaPrefix = "\255\255\255\1" .. Spring.I18N('ui.buildEstimate.time') .. "\255\255\255\255:"
 	if timeLeft == nil then
-		etaStr = '\255\255\255\1' .. texts.eta .. '\255\255\255\255:\255\1\1\255???'
+		etaText = etaPrefix .. "\255\1\1\255???"
 	else
 		if timeLeft > 60 then
-			etaStr = "\255\255\255\1" .. texts.eta .. "\255\255\255\255:" .. string.format('\255\1\255\1%d', timeLeft / 60) .. "m, " .. string.format('\255\1\255\1%.1f', timeLeft % 60) .. "s"
+			etaText = etaPrefix .. string.format('\255\1\255\1%d', timeLeft / 60) .. Spring.I18N('ui.buildEstimate.minutes') .. ", " .. string.format('\255\1\255\1%.1f', timeLeft % 60) .. Spring.I18N('ui.buildEstimate.seconds')
 		elseif timeLeft > 0 then
-			etaStr = "\255\255\255\1" .. texts.eta .. "\255\255\255\255:" .. string.format('\255\1\255\1%.1f', timeLeft) .. "s"
+			etaText = etaPrefix .. string.format('\255\1\255\1%.1f', timeLeft) .. Spring.I18N('ui.buildEstimate.seconds')
 		else
-			etaStr = "\255\255\255\1" .. texts.eta .. "\255\255\255\255:" .. string.format('\255\255\1\1%.1f', -timeLeft) .. "s"
+			etaText = etaPrefix .. string.format('\255\255\1\1%.1f', -timeLeft) .. Spring.I18N('ui.buildEstimate.seconds')
 		end
 	end
 
@@ -232,7 +226,7 @@ local function DrawEtaText(timeLeft, yoffset)
 	gl.Billboard()
 	gl.Translate(0, 5, 0)
 	font:Begin()
-	font:Print(etaStr, 0, 0, 5.75, "co")
+	font:Print(etaText, 0, 0, 5.75, "co")
 	font:End()
 end
 
