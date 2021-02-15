@@ -18,9 +18,10 @@ end
 	(parts that fail to be received are passed on to the next player/spec to re-send until everyone tried once)
 ]]
 
-if Spring.IsReplay() then return end
 
 if not gadgetHandler:IsSyncedCode() then
+
+	if Spring.IsReplay() then return end
 
 	local gameFramesPerSecond = 30	-- engine constant
 
