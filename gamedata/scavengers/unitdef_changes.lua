@@ -93,7 +93,7 @@ customDefs.corcom = {
 		},
 		disintegrator = {
 			commandfire = false,
-			reloadtime = 1,
+			reloadtime = 1.5/ScavDifficultyMultiplier,
 			weaponvelocity = 350,
 			damage = {
 				bombers = 9000,
@@ -159,7 +159,7 @@ customDefs.armcom = {
 		},
 		disintegrator = {
 			commandfire = false,
-			reloadtime = 1,
+			reloadtime = 1.5/ScavDifficultyMultiplier,
 			weaponvelocity = 350,
 			damage = {
 				bombers = 9000,
