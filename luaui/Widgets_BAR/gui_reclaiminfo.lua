@@ -25,11 +25,6 @@ end
 
 local vsx, vsy = Spring.GetViewGeometry()
 
-local texts = {        -- fallback (if you want to change this, also update: language/en.lua, or it will be overwritten)
-	m = 'M',
-	e = 'E',
-}
-
 local start = false  --reclaim area cylinder drawing has been started
 local metal = 0  --metal count from features in cylinder
 local energy = 0  --energy count from features in cylinder
@@ -58,9 +53,6 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 end
 
 function widget:Initialize()
-	if WG['lang'] then
-		texts = WG['lang'].getText('reclaiminfo')
-	end
 	widget:ViewResize()
 end
 
@@ -162,7 +154,8 @@ function widget:DrawScreen()
 		end
 		metal = math.floor(metal)
 		energy = math.floor(energy)
-		local textwidth = 12 * font:GetTextWidth("   "..texts.m..":" .. metal .. "\255\255\255\128" .. " "..texts.e..":" .. energy)
+		local text = "   " .. Spring.I18N('ui.reclaimInfo.metal') .. ":" .. metal .. "\255\255\255\128" .. " " .. Spring.I18N('ui.reclaimInfo.energy') .. ":" .. energy
+		local textwidth = 12 * font:GetTextWidth(text)
 		if textwidth + x > vsx then
 			x = x - textwidth - 10
 		end
@@ -170,7 +163,7 @@ function widget:DrawScreen()
 			y = y - form
 		end
 		font:Begin()
-		font:Print("   "..texts.m..":" .. metal .. "\255\255\255\128" .. " "..texts.e..":" .. energy, x, y, form, 'o')
+		font:Print(text, x, y, form, 'o')
 		font:End()
 	end
 	--Unit resource info when mouse on one
@@ -181,7 +174,8 @@ function widget:DrawScreen()
 			local unitDefID = Spring.GetUnitDefID(unitID)
 			local _, _, _, _, buildprogress = Spring.GetUnitHealth(unitID)
 			metal = math.floor(unitMetalCost[unitDefID] * buildprogress)
-			local textwidth = 12 * font:GetTextWidth("   "..texts.m..":" .. metal .. "\255\255\255\128")
+			local text = "   " .. Spring.I18N('ui.reclaimInfo.metal') .. ":" .. metal
+			local textwidth = 12 * font:GetTextWidth(text)
 			if textwidth + x > vsx then
 				x = x - textwidth - 10
 			end
@@ -193,7 +187,7 @@ function widget:DrawScreen()
 				color = "\255\220\10\10"
 			end
 			font:Begin()
-			font:Print(color .. "   "..texts.m..":" .. metal, x, y, form, 'o')
+			font:Print(color .. text, x, y, form, 'o')
 			font:End()
 		end
 	end
