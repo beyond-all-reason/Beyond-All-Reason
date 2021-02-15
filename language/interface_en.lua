@@ -405,6 +405,10 @@ return {
 				resourceProduced = 'Produced',
 				resourceExcess = 'Excess',
 			},
+			reclaiminfo = {
+				m = 'M',
+				e = 'E',
+			},
 		}
 	}
 }
