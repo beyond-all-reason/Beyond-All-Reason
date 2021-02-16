@@ -104,12 +104,6 @@ return {
 		persecond = 'per second',
 		totaldmg = 'Total Dmg',
 	},
-	voteinterface = {
-		no = 'NO',
-		yes = 'YES',
-		endvote = 'End Vote',
-		esc = 'ESC',
-	},
 	gameinfo = {
 		title = 'Game info',
 		engine = 'Engine',
