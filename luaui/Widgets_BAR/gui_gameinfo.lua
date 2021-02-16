@@ -10,20 +10,6 @@ function widget:GetInfo()
 	}
 end
 
-local texts = {        -- fallback (if you want to change this, also update: language/en.lua, or it will be overwritten)
-	title = 'Game info',
-	engine = 'Engine',
-	engineversionerror = 'engine version error',
-	size = 'Size',
-	gravity = 'Gravity',
-	hardness = 'Hardness',
-	tidalspeed = 'Tidal speed',
-	windspeed = 'Wind speed',
-	waterdamage = 'Water damage',
-	chickenoptions = 'Chicken options',
-	modoptions = 'Mod options',
-}
-
 local vsx, vsy = Spring.GetViewGeometry()
 local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 
@@ -280,7 +266,7 @@ end
 function DrawWindow()
 	-- title
 	local titleFontSize = 18 * widgetScale
-	titleRect = { screenX, screenY, math.floor(screenX + (font2:GetTextWidth(texts.title) * titleFontSize) + (titleFontSize*1.5)), math.floor(screenY + (titleFontSize*1.7)) }
+	titleRect = { screenX, screenY, math.floor(screenX + (font2:GetTextWidth(Spring.I18N('ui.gameInfo.title')) * titleFontSize) + (titleFontSize*1.5)), math.floor(screenY + (titleFontSize*1.7)) }
 
 	UiElement(screenX, screenY - screenHeight, screenX + screenWidth, screenY, 0, 1, 1, 1, 1,1,1,1, Spring.GetConfigFloat("ui_opacity", 0.6) + 0.2)
 
@@ -292,7 +278,7 @@ function DrawWindow()
 	font2:Begin()
 	font2:SetTextColor(1, 1, 1, 1)
 	font2:SetOutlineColor(0, 0, 0, 0.4)
-	font2:Print(texts.title, screenX + (titleFontSize * 0.75), screenY + (8*widgetScale), titleFontSize, "on")
+	font2:Print(Spring.I18N('ui.gameInfo.title'), screenX + (titleFontSize * 0.75), screenY + (8*widgetScale), titleFontSize, "on")
 	font2:End()
 
 	-- textarea
@@ -451,26 +437,22 @@ function toggle()
 end
 
 function widget:Initialize()
-	if WG['lang'] then
-		texts = WG['lang'].getText('gameinfo')
-	end
-
 	content = content .. titlecolor .. Game.gameName .. valuegreycolor .. " (" .. Game.gameMutator .. ") " .. titlecolor .. Game.gameVersion .. "\n"
-	content = content .. keycolor .. texts.engine .. separator .. valuegreycolor .. ((Game and Game.version) or (Engine and Engine.version) or texts.engineversionerror) .. "\n"
+	content = content .. keycolor .. Spring.I18N('ui.gameInfo.engine') .. separator .. valuegreycolor .. ((Game and Game.version) or (Engine and Engine.version) or Spring.I18N('ui.gameInfo.engineVersionError')) .. "\n"
 	content = content .. "\n"
 
 	-- map info
 	content = content .. titlecolor .. Game.mapName .. "\n"
 	content = content .. valuegreycolor .. Game.mapDescription .. "\n"
-	content = content .. keycolor .. texts.size .. separator .. valuegreycolor .. Game.mapX .. valuegreycolor .. " x " .. valuegreycolor .. Game.mapY .. "\n"
-	content = content .. keycolor .. texts.gravity .. separator .. valuegreycolor .. Game.gravity .. "\n"
-	content = content .. keycolor .. texts.hardness .. separator .. valuegreycolor .. Game.mapHardness .. keycolor .. "\n"
-	content = content .. keycolor .. texts.tidalspeed .. separator .. valuegreycolor .. tidal .. keycolor .. "\n"
+	content = content .. keycolor .. Spring.I18N('ui.gameInfo.size') .. separator .. valuegreycolor .. Game.mapX .. valuegreycolor .. " x " .. valuegreycolor .. Game.mapY .. "\n"
+	content = content .. keycolor .. Spring.I18N('ui.gameInfo.gravity') .. separator .. valuegreycolor .. Game.gravity .. "\n"
+	content = content .. keycolor .. Spring.I18N('ui.gameInfo.hardness') .. separator .. valuegreycolor .. Game.mapHardness .. keycolor .. "\n"
+	content = content .. keycolor .. Spring.I18N('ui.gameInfo.tidalStrength') .. separator .. valuegreycolor .. tidal .. keycolor .. "\n"
 
 	if Game.windMin == Game.windMax then
-		content = content .. keycolor .. texts.windspeed .. separator .. valuegreycolor .. Game.windMin .. valuegreycolor .. "\n"
+		content = content .. keycolor .. Spring.I18N('ui.gameInfo.windStrength') .. separator .. valuegreycolor .. Game.windMin .. valuegreycolor .. "\n"
 	else
-		content = content .. keycolor .. texts.windspeed .. separator .. valuegreycolor .. Game.windMin .. valuegreycolor .. "  -  " .. valuegreycolor .. Game.windMax .. "\n"
+		content = content .. keycolor .. Spring.I18N('ui.gameInfo.windStrength') .. separator .. valuegreycolor .. Game.windMin .. valuegreycolor .. "  -  " .. valuegreycolor .. Game.windMax .. "\n"
 	end
 	local vcolor
 	if Game.waterDamage == 0 then
@@ -478,11 +460,11 @@ function widget:Initialize()
 	else
 		vcolor = valuecolor
 	end
-	content = content .. keycolor .. texts.waterdamage .. separator .. vcolor .. Game.waterDamage .. keycolor .. "\n"
+	content = content .. keycolor .. Spring.I18N('ui.gameInfo.waterDamage') .. separator .. vcolor .. Game.waterDamage .. keycolor .. "\n"
 	content = content .. "\n"
 	if chickensEnabled then
 		-- filter chicken modoptions
-		content = content .. titlecolor .. texts.chickenoptions.."\n"
+		content = content .. titlecolor .. Spring.I18N('ui.gameInfo.chickenOptions') .. "\n"
 		for key, value in pairs(changedChickenModoptions) do
 			content = content .. keycolor .. string.sub(key, 9) .. separator .. valuecolor .. value .. "\n"
 		end
@@ -491,7 +473,7 @@ function widget:Initialize()
 		end
 		content = content .. "\n"
 	end
-	content = content .. titlecolor .. texts.modoptions.."\n"
+	content = content .. titlecolor .. Spring.I18N('ui.gameInfo.modOptions') .. "\n"
 	for key, value in pairs(changedModoptions) do
 		content = content .. keycolor .. key .. separator .. valuecolor .. value .. "\n"
 	end

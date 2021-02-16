@@ -455,18 +455,18 @@ return {
 				endVote = 'End Vote',
 				cancel = 'ESC',
 			},
-			gameinfo = {
+			gameInfo = {
 				title = 'Game info',
 				engine = 'Engine',
-				engineversionerror = 'engine version error',
+				engineVersionError = 'engine version error',
 				size = 'Size',
 				gravity = 'Gravity',
 				hardness = 'Hardness',
-				tidalspeed = 'Tidal speed',
-				windspeed = 'Wind speed',
-				waterdamage = 'Water damage',
-				chickenoptions = 'Chicken options',
-				modoptions = 'Mod options',
+				tidalStrength = 'Tidal speed',
+				windStrength = 'Wind speed',
+				waterDamage = 'Water damage',
+				chickenOptions = 'Chicken options',
+				modOptions = 'Mod options',
 			},
 		}
 	}
