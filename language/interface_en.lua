@@ -428,6 +428,13 @@ return {
 				resurrect = 'Resurrect',
 				reclaim = 'Reclaim',
 			},
+			gametypeInfo = {
+				killAllUnits = 'Kill all enemy units',
+				killAllCommanders = 'Kill all enemy Commanders',
+				commandersSurviveDgun = 'Commanders survive D-Guns and commander explosions',
+				unbalancedCommanders = 'Unbalanced Commanders is enabled: Commander levels up and gains upgrades',
+				victoryCondition = 'Victory condition',
+			},
 		}
 	}
 }
