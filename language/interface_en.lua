@@ -435,6 +435,10 @@ return {
 				unbalancedCommanders = 'Unbalanced Commanders is enabled: Commander levels up and gains upgrades',
 				victoryCondition = 'Victory condition',
 			},
+			startSpot = {
+				anywhere = "Pick a startspot and click the Ready button. (F4 shows metal spots)",
+				startbox = "Pick a startspot within the green area, and click the Ready button. (F4 shows metal spots)",
+			},
 		}
 	}
 }
