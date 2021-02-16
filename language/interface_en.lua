@@ -439,6 +439,13 @@ return {
 				anywhere = "Pick a startspot and click the Ready button. (F4 shows metal spots)",
 				startbox = "Pick a startspot within the green area, and click the Ready button. (F4 shows metal spots)",
 			},
+			screenmodeinfo = {
+				screenmode = 'Screen mode',
+				overviewmode = 'press \255\255\255\255[TAB]\255\215\215\215 to zoom onto mouse position',
+				heightmapmode = '[F1] displays a different color for every height level',
+				pathingmode = '[F2] shows where the selected unit can path/move, Green: OK, Red: problematic, Purple: Cant path',
+				metalmapmode = '[F4] shows green areas on the map than contain metal',
+			},
 		}
 	}
 }
