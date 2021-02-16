@@ -13,13 +13,6 @@ function widget:GetInfo()
 	}
 end
 
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
-local texts = {        -- fallback (if you want to change this, also update: language/en.lua, or it will be overwritten)
-	gamepaused = 'GAME  PAUSED',
-}
-
 local spGetGameSpeed = Spring.GetGameSpeed
 local spGetGameState = Spring.GetGameState
 local spGetGameFrame = Spring.GetGameFrame
@@ -191,9 +184,6 @@ function widget:Update(dt)
 end
 
 function widget:Initialize()
-	if WG['lang'] then
-		texts = WG['lang'].getText('pausescreen')
-	end
 	vsx, vsy = widgetHandler:GetViewSizes()
 	widget:ViewResize(vsx, vsy)
 
@@ -310,7 +300,7 @@ function drawPause()
 	font:Begin()
 	font:SetOutlineColor(outline)
 	font:SetTextColor(text)
-	font:Print(texts.gamepaused, textX, textY, fontSizeHeadline, "O")
+	font:Print(Spring.I18N('ui.pauseScreen.paused'), textX, textY, fontSizeHeadline, "O")
 	font:End()
 
 	glPopMatrix()
