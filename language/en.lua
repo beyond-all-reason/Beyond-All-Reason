@@ -104,17 +104,6 @@ return {
 		persecond = 'per second',
 		totaldmg = 'Total Dmg',
 	},
-	healthbars = {
-		shield = 'shield',
-		health = 'health',
-		building = 'building',
-		stockpile = 'stockpile',
-		paralyze = 'paralyze',
-		capture = 'capture',
-		reload = 'reload',
-		resurrect = 'resurrect',
-		reclaim = 'reclaim',
-	},
 	gametypeinfo = {
 		killallunits = 'Kill all enemy units',
 		killallcoms = 'Kill all enemy Commanders',
