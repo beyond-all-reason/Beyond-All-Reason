@@ -24,17 +24,6 @@ function widget:GetInfo()
 	}
 end
 
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
-local texts = {        -- fallback (if you want to change this, also update: language/en.lua, or it will be overwritten)
-	killallunits = 'Kill all enemy units',
-	killallcoms = 'Kill all enemy Commanders',
-	comssurvivedguns = 'Commanders survive DGuns and commander explosions',
-	unbacomsenabled = 'Unbalanced Commanders is enabled: Commander levels up and gain upgrades',
-	victorycondition = 'Victory condition',
-}
-
 local vsx, vsy = Spring.GetViewGeometry()
 local widgetScale = (0.80 + (vsx * vsy / 6000000))
 
@@ -65,26 +54,22 @@ function widget:ViewResize()
 end
 
 function widget:Initialize()
-	if WG['lang'] then
-		texts = WG['lang'].getText('gametypeinfo')
-	end
 	widget:ViewResize()
 
 	if Spring.GetModOptions().deathmode == "killall" then
-		message = texts.killallunits
+		message = Spring.I18N('ui.gametypeInfo.killAllUnits')
 	elseif Spring.GetModOptions().deathmode == "neverend" then
 		widgetHandler:RemoveWidget(self)
 	else
-		--if Spring.GetModOptions().deathmode=="com" then
-		message = texts.killallcoms
+		message = Spring.I18N('ui.gametypeInfo.killAllCommanders')
 	end
 
 	if (tonumber(Spring.GetModOptions().preventcombomb) or 0) ~= 0 then
-		message2 = texts.comssurvivedguns
+		message2 = Spring.I18N('ui.gametypeInfo.commandersSurviveDgun')
 	end
 
 	if (Spring.GetModOptions().unba or "disabled") == "enabled" then
-		message3 = texts.unbacomsenabled
+		message3 = Spring.I18N('ui.gametypeInfo.unbalancedCommanders')
 	end
 end
 
@@ -117,7 +102,7 @@ function widget:DrawScreen()
 		return
 	end
 
-	local msg = '\255\255\255\255' .. string.format("%s %s", texts.victorycondition..": ", message)
+	local msg = '\255\255\255\255' .. string.format("%s %s", Spring.I18N('ui.gametypeInfo.victoryCondition') .. ": ", message)
 	local msg2 = '\255\255\255\255' .. message2
 	local msg3
 	if blink then
