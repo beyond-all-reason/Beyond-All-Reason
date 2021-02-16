@@ -13,17 +13,17 @@ end
 -------------------------------------------------------
 -- Use a building mask for Control Points?
 --If this is set to false, then any unit will be buildable in the control point
-useBuildingMask = true
+useBuildingMask = false
 -------------------------------------------------------
 
 captureRadius = tonumber(Spring.GetModOptions().captureradius) -- Radius around a point in which to capture it
 if captureRadius == nil then
-	captureRadius = 500
+	captureRadius = 250
 end
 
 captureTime = tonumber(Spring.GetModOptions().capturetime) -- Time to capture a point
 if captureTime == nil then
-	captureTime = 30
+	captureTime = 60
 end
 
 captureBonus = tonumber(Spring.GetModOptions().capturebonus) -- speedup from adding more units
@@ -35,7 +35,7 @@ end
 
 decapSpeed = tonumber(Spring.GetModOptions().decapspeed) -- speed multiplier for neutralizing an enemy point
 if decapSpeed == nil then
-	decapSpeed = 3
+	decapSpeed = 2
 end
 
 dominationScore = tonumber(Spring.GetModOptions().dominationscore)
@@ -50,12 +50,12 @@ end
 
 usemapconfig = Spring.GetModOptions().usemapconfig
 if usemapconfig == nil then
-	usemapconfig = "disabled"
+	usemapconfig = "enabled"
 end
 
 limitScore = tonumber(Spring.GetModOptions().limitscore)
 if limitScore == nil then
-	limitScore = 3500
+	limitScore = 10000
 end
 
 -- These are together because they cover the same area (resourcing)
@@ -71,12 +71,12 @@ end
 
 numberOfControlPoints = tonumber(Spring.GetModOptions().numberofcontrolpoints)
 if numberOfControlPoints == nil then
-	numberOfControlPoints = 7
+	numberOfControlPoints = 13
 end
 
 startTime = tonumber(Spring.GetModOptions().starttime) -- The time when capturing can start
 if startTime == nil then
-	startTime = 180
+	startTime = 0
 end
 
 tugofWarModifier = tonumber(Spring.GetModOptions().tugofwarmodifier) -- Radius around a point in which to capture it

@@ -304,14 +304,15 @@ for i =1, #teams do
 		luaAI == "Chicken: Very Hard" or 
 		luaAI == "Chicken: Epic!" or 
 		luaAI == "Chicken: Custom" or 
-		luaAI == "Chicken: Survival" then
+		luaAI == "Chicken: Survival" or
+		luaAI == "ScavengersAI" then
 			chickensEnabled = true
 		end
 	end
 end
 
 if chickensEnabled == true then
-	Spring.Echo("[ControlVictory] Deactivated because Chickens are present!")
+	Spring.Echo("[ControlVictory] Deactivated because Chickens or Scavengers are present!")
 	return false
 end
 
@@ -322,18 +323,23 @@ local buildingMask = 2
 
 --Here we mitigate potential issues caused by wonky options settings
 
+if numberOfControlPoints == 7 then
+	limitScore = limitScore * 0.5
+	captureRadius = captureRadius * 1.25
+end
+
 if numberOfControlPoints == 13 then
-	limitScore = limitScore * 2
-	captureRadius = captureRadius * 0.83
+	limitScore = limitScore * 1
+	captureRadius = captureRadius * 1
 end
 
 if numberOfControlPoints == 19 then
-	limitScore = limitScore * 3
-	captureRadius = captureRadius * 0.66
+	limitScore = limitScore * 1.5
+	captureRadius = captureRadius * 0.75
 end
 
 if numberOfControlPoints == 25 then
-	limitScore = limitScore * 4
+	limitScore = limitScore * 2
 	captureRadius = captureRadius * 0.5
 end
 
@@ -459,13 +465,15 @@ if (gadgetHandler:IsSyncedCode()) then
 				Spring.Echo("[ControlVictory] " .. configfile .. " -This is the name of the control victory configfile-")
 				if VFS.FileExists(configfile) and usemapconfig == "enabled" then
 					local config = VFS.Include(configfile)
+					mapconfigexists = true
 					points = config.points
 					for _, p in pairs(points) do
 						p.capture = 0
 					end
 					moveSpeed = 0
 				end
-			else
+			end
+			if not mapconfigexists then
 				if numberOfControlPoints == 7 then
 				--Since no config file is found, we create 7 points spaced out in a circle on the map
 					local angle = math.random() * math.pi * 2
@@ -775,7 +783,7 @@ if (gadgetHandler:IsSyncedCode()) then
 					if Spring.GetModOptions().metalperpoint == nil then
 						metalPerPoint = 0
 					end
-					if Spring.GetModOptions().energyPerPoint == nil then
+					if Spring.GetModOptions().energyperpoint == nil then
 						energyPerPoint = 0
 					end
 					Spring.AddTeamResource(ateams[i], "metal", owned[allyTeamID] * metalPerPoint) -- adjust the 5
@@ -1204,13 +1212,13 @@ else -- UNSYNCED
 	function DrawPoints(simplified)
 		local capturedAlpha, capturingAlpha, prefix, parts
 		if simplified then	-- for minimap
-			capturedAlpha = 0.7
-			capturingAlpha = 0.85
+			capturedAlpha = 0.6
+			capturingAlpha = 0.9
 			prefix = 'm_'		-- so it uses different displaylists
 			parts = math.ceil((OPTIONS.circlePieces * OPTIONS.circlePieceDetail) / 5)
 		else
-			capturedAlpha = 0.7
-			capturingAlpha = 0.85
+			capturedAlpha = 0.3
+			capturingAlpha = 0.6
 			prefix = ''
 			parts = (OPTIONS.circlePieces * OPTIONS.circlePieceDetail)
 		end
