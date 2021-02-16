@@ -449,11 +449,11 @@ return {
 			pauseScreen = {
 				paused = 'GAME  PAUSED',
 			},
-			voteinterface = {
+			voting = {
 				no = 'NO',
 				yes = 'YES',
-				endvote = 'End Vote',
-				esc = 'ESC',
+				endVote = 'End Vote',
+				cancel = 'ESC',
 			},
 		}
 	}
