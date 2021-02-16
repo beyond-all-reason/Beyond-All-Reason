@@ -446,6 +446,9 @@ return {
 				pathing = '[F2] shows where the selected unit can path/move, Green: OK, Red: problematic, Purple: Cant path',
 				resources = '[F4] shows green areas on the map than contain metal',
 			},
+			pausescreen = {
+				gamepaused = 'GAME  PAUSED',
+			},
 		}
 	}
 }

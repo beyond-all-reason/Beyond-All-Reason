@@ -104,9 +104,6 @@ return {
 		persecond = 'per second',
 		totaldmg = 'Total Dmg',
 	},
-	pausescreen = {
-		gamepaused = 'GAME  PAUSED',
-	},
 	voteinterface = {
 		no = 'NO',
 		yes = 'YES',
