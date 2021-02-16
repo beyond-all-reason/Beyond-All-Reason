@@ -1,6 +1,3 @@
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
 function widget:GetInfo()
 	return {
 		name = "Screen Mode Info",
@@ -12,17 +9,6 @@ function widget:GetInfo()
 		enabled = true  --  loaded by default?
 	}
 end
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
-local texts = {        -- fallback (if you want to change this, also update: language/en.lua, or it will be overwritten)
-	screenmode = 'Screen mode',
-	overviewmode = 'press \255\255\255\255[TAB]\255\215\215\215 to zoom onto mouse position',
-	heightmapmode = '[F1] displays a different color for every height level',
-	pathingmode = '[F2] shows where the selected unit can path/move, Green: OK, Red: problematic, Purple: Cant path',
-	metalmapmode = '[F4] shows green areas on the map than contain metal',
-}
 
 local vsx, vsy = Spring.GetViewGeometry()
 local widgetScale = (0.80 + (vsx * vsy / 6000000))
@@ -45,9 +31,6 @@ function widget:ViewResize()
 end
 
 function widget:Initialize()
-	if WG['lang'] then
-		texts = WG['lang'].getText('screenmodeinfo')
-	end
 	widget:ViewResize()
 end
 
@@ -71,31 +54,30 @@ function widget:DrawScreen()
 		local description = ''
 		glPushMatrix()
 		glTranslate((vsx * 0.5), (vsy * 0.21), 0) --has to be below where newbie info appears!
-		--glScale(1.5, 1.5, 1)
+
 		font:Begin()
 		if st.name == 'ov' then
 			screenmode = ''
 		end
 		if screenmode ~= '' then
-			font:Print('\255\233\233\233' .. texts.screenmode..':  \255\255\255\255'..screenmode, 0, 15 * widgetScale, 20 * widgetScale, "oc")
+			font:Print('\255\233\233\233' .. Spring.I18N('ui.screenMode.title') .. ':  \255\255\255\255' .. screenmode, 0, 15 * widgetScale, 20 * widgetScale, "oc")
 		end
 		if st.name == 'ov' then
-			description = texts.overviewmode
+			description = Spring.I18N('ui.screenMode.overview', { highlightColor = '\255\255\255\255', textColor = '\255\215\215\215' })
 		elseif screenmode == 'height' then
-			description = texts.heightmapmode
+			description = Spring.I18N('ui.screenMode.heightmap')
 		elseif screenmode == 'pathTraversability' then
-			description = texts.pathingmode
+			description = Spring.I18N('ui.screenMode.pathing')
 		elseif screenmode == 'metal' then
-			description = texts.metalmapmode
+			description = Spring.I18N('ui.screenMode.resources')
 		end
 		if description ~= '' then
 			font:Print('\255\215\215\215' .. description, 0, -10 * widgetScale, 17 * widgetScale, "oc")
 		end
-		--font:Print(msg2, 0, -35 * widgetScale, 12.5 * widgetScale, "oc")
+
 		font:End()
 		glPopMatrix()
 	end
-	--prevScreenmode = screenmode
 end
 
 function widget:GameOver()
