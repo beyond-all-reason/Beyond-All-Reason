@@ -12,6 +12,7 @@ local chicken_egg =  {
     metal = 25,
     --object = "Chickens/chickenegg_m_pink.s3o",
     reclaimable = 1,
+	resurrectable = 0,
     --seqnamereclamate = "TREE1RECLAMATE",
     world = "All Worlds",
     smokeTime = 0,
