@@ -104,13 +104,6 @@ return {
 		persecond = 'per second',
 		totaldmg = 'Total Dmg',
 	},
-	gametypeinfo = {
-		killallunits = 'Kill all enemy units',
-		killallcoms = 'Kill all enemy Commanders',
-		comssurvivedguns = 'Commanders survive DGuns and commander explosions',
-		unbacomsenabled = 'Unbalanced Commanders is enabled: Commander levels up and gain upgrades',
-		victorycondition = 'Victory condition',
-	},
 	screenmodeinfo = {
 		screenmode = 'Screen mode',
 		overviewmode = 'press \255\255\255\255[TAB]\255\215\215\215 to zoom onto mouse position',
