@@ -435,6 +435,39 @@ return {
 				unbalancedCommanders = 'Unbalanced Commanders is enabled: Commander levels up and gains upgrades',
 				victoryCondition = 'Victory condition',
 			},
+			startSpot = {
+				anywhere = "Pick a startspot and click the Ready button. (F4 shows metal spots)",
+				startbox = "Pick a startspot within the green area, and click the Ready button. (F4 shows metal spots)",
+			},
+			screenMode = {
+				title = 'Screen mode',
+				overview = 'Press %{highlightColor}[TAB]%{textColor} to zoom onto mouse position',
+				heightmap = '[F1] displays a different color for every height level',
+				pathing = '[F2] shows where the selected unit can path/move, Green: OK, Red: problematic, Purple: Cant path',
+				resources = '[F4] shows green areas on the map than contain metal',
+			},
+			pauseScreen = {
+				paused = 'GAME  PAUSED',
+			},
+			voting = {
+				no = 'NO',
+				yes = 'YES',
+				endVote = 'End Vote',
+				cancel = 'ESC',
+			},
+			gameInfo = {
+				title = 'Game info',
+				engine = 'Engine',
+				engineVersionError = 'engine version error',
+				size = 'Size',
+				gravity = 'Gravity',
+				hardness = 'Hardness',
+				tidalStrength = 'Tidal speed',
+				windStrength = 'Wind speed',
+				waterDamage = 'Water damage',
+				chickenOptions = 'Chicken options',
+				modOptions = 'Mod options',
+			},
 		}
 	}
 }

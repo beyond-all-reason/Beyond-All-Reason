@@ -10,13 +10,6 @@ function widget:GetInfo()
 	}
 end
 
-local texts = {        -- fallback (if you want to change this, also update: language/en.lua, or it will be overwritten)
-	no = 'NO',
-	yes = 'YES',
-	endvote = 'End Vote',
-	esc = 'ESC',
-}
-
 -- dont show vote interface for specs for the following keywords (use lowercase)
 local specBadKeywords = { 'forcestart', 'stop' }
 
@@ -73,11 +66,12 @@ end
 local sec = 0
 local uiOpacitySec = 0
 function widget:Update(dt)
-	--myName,_,mySpec,myTeamID,myAllyTeamID = Spring.GetPlayerInfo(1,false)
-	--sec = sec + dt
-	--if sec > 1 and not voteDlist then
-	--	StartVote('testvote yeah!', 'somebody')
-	--end
+	-- Uncomment for testing in singleplayer
+	-- myName,_,mySpec,myTeamID,myAllyTeamID = Spring.GetPlayerInfo(1,false)
+	-- sec = sec + dt
+	-- if sec > 1 and not voteDlist then
+	-- 	StartVote('testvote yeah!', 'somebody')
+	-- end
 
 	uiOpacitySec = uiOpacitySec + dt
 	if uiOpacitySec > 0.5 then
@@ -94,9 +88,6 @@ function widget:Update(dt)
 end
 
 function widget:Initialize()
-	if WG['lang'] then
-		texts = WG['lang'].getText('voteinterface')
-	end
 	widget:ViewResize()
 	if Spring.IsReplay() then
 		widgetHandler:RemoveWidget(self)
@@ -239,7 +230,7 @@ function StartVote(name, owner)
 
 			font2:Begin()
 			-- ESC
-			font2:Print("\255\0\0\0"..texts.esc, closeButtonArea[1] + ((closeButtonArea[3] - closeButtonArea[1]) / 2), closeButtonArea[2] + ((closeButtonArea[4] - closeButtonArea[2]) / 2) - (fontSize / 3), fontSize, "cn")
+			font2:Print("\255\0\0\0" .. Spring.I18N('ui.voting.cancel'), closeButtonArea[1] + ((closeButtonArea[3] - closeButtonArea[1]) / 2), closeButtonArea[2] + ((closeButtonArea[4] - closeButtonArea[2]) / 2) - (fontSize / 3), fontSize, "cn")
 
 			-- NO
 			local color1, color2, mult
@@ -258,9 +249,9 @@ function StartVote(name, owner)
 			UiButton(noButtonArea[1], noButtonArea[2], noButtonArea[3], noButtonArea[4], 1,1,1,1, 1,1,1,1, nil, color1, color2, elementCorner*0.4)
 
 			fontSize = fontSize * 0.85
-			local noText = texts.no
+			local noText = Spring.I18N('ui.voting.no')
 			if voteOwner then
-				noText = texts.endvote
+				noText = Spring.I18N('ui.voting.endVote')
 			end
 			font2:SetOutlineColor(0, 0, 0, 0.4)
 			font2:Print(noText, noButtonArea[1] + ((noButtonArea[3] - noButtonArea[1]) / 2), noButtonArea[2] + ((noButtonArea[4] - noButtonArea[2]) / 2) - (fontSize / 3), fontSize, "con")
@@ -281,7 +272,7 @@ function StartVote(name, owner)
 				end
 				UiButton(yesButtonArea[1], yesButtonArea[2], yesButtonArea[3], yesButtonArea[4], 1,1,1,1, 1,1,1,1, nil, color1, color2, elementCorner*0.4)
 
-				font2:Print(texts.yes, yesButtonArea[1] + ((yesButtonArea[3] - yesButtonArea[1]) / 2), yesButtonArea[2] + ((yesButtonArea[4] - yesButtonArea[2]) / 2) - (fontSize / 3), fontSize, "con")
+				font2:Print(Spring.I18N('ui.voting.yes'), yesButtonArea[1] + ((yesButtonArea[3] - yesButtonArea[1]) / 2), yesButtonArea[2] + ((yesButtonArea[4] - yesButtonArea[2]) / 2) - (fontSize / 3), fontSize, "con")
 			end
 			font2:End()
 		end)
