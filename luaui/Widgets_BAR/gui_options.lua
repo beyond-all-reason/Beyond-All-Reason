@@ -5532,9 +5532,11 @@ function widget:Initialize()
 		if customMapFog[Game.mapName] and customMapFog[Game.mapName] then
 			Spring.SetAtmosphere(customMapFog[Game.mapName])
 		end
+	end
 
-		-- disable fog
-		--Spring.SetAtmosphere({fogStart = 0.99999, fogEnd = 1.0, fogColor = {1.0, 1.0, 1.0, 0.0}})
+	-- make sure fog-start is smaller than fog-end in case maps have configured it this way
+	if gl.GetAtmosphere("fogEnd") <= gl.GetAtmosphere("fogStart") then
+		Spring.SetAtmosphere({ fogEnd = gl.GetAtmosphere("fogStart") + 0.01 })
 	end
 
 	Spring.SendCommands("minimap unitsize " .. (Spring.GetConfigFloat("MinimapIconScale", 3.5)))        -- spring wont remember what you set with '/minimap iconssize #'
