@@ -448,8 +448,6 @@ else
 	local GL_LINE_LOOP = GL.LINE_LOOP
 	local glText = gl.Text
 
-	local RectRound = Spring.FlowUI.Draw.RectRound
-	local TexturedRectRound = Spring.FlowUI.Draw.TexturedRectRound
 	local UiElement = Spring.FlowUI.Draw.Element
 
 	local thisAward
