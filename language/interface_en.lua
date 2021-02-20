@@ -468,6 +468,21 @@ return {
 				chickenOptions = 'Chicken options',
 				modOptions = 'Mod options',
 			},
+			chickenpanel = {
+				thequeenisangered = 'The Queen is angered!',
+				wave = 'Wave',
+				chickens = 'Chickens',
+				count = 'Count',
+				kills = 'Kills',
+				chickenkills = 'Chicken Kills',
+				queenanger = 'Queen Anger',
+				queenhealth = 'Queen Health',
+				graceperiod = 'Grace Period',
+				burrows = 'Burrows',
+				burrowkills = 'Burrow Kills',
+				mode = 'Mode',
+				yourscore = 'Your Score',
+			},
 		}
 	}
 }
