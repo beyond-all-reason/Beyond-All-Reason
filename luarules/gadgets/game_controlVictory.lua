@@ -14,6 +14,18 @@ if Spring.GetModOptions() == nil or Spring.GetModOptions().scoremode == nil or S
 	return
 end
 
+local captureRadius = 1
+local startTime = 1
+local energyPerPoint = 1
+local dominationScore = 1
+local tugofWarModifier = 1
+local scoreModeAsString = 1
+local metalPerPoint = 1
+local limitScore = 1
+local captureTime = 1
+local captureBonus = 1
+local dominationScoreTime = 1
+
 --[[
 -------------------
 Before implementing this gadget, read this!!!
@@ -900,8 +912,8 @@ else
 	local exampleImage = ":n:LuaRules/Images/controlpoints.png"
 	local showGameModeInfo = true
 
-	local scoreboardRelX = 0.75
-	local scoreboardRelY = 0.7
+	local scoreboardRelX = 0.87
+	local scoreboardRelY = 0.76
 	local scoreboardWidth = 100
 	local scoreboardHeight = 100
 
@@ -909,6 +921,7 @@ else
 	local closeButtonSize = 30
 	local vsx, vsy = Spring.GetViewGeometry()
 	local uiScale = 1
+	local ui_scale = Spring.GetConfigFloat("ui_scale", 1)
 
 	local closeButtonSize = 30
 	local screenHeight = 212 - bgMargin - bgMargin
@@ -950,16 +963,20 @@ else
 	local capturePoints = {}
 	local controlPointSolidList = {}
 
+	local floor = math.floor
+
 	local prevTimer = Spring.GetTimer()
 	local currentRotationAngle = 0
 
 	local ringThickness = 3.5
-	local capturePieParts = 4 + math.floor(captureRadius / 8)
+	local capturePieParts = 4 + floor(captureRadius / 8)
 
 	local scoreMode = Spring.GetModOptions().scoremode or "countdown"
 
 	local RectRound = Spring.FlowUI.Draw.RectRound
 	local UiElement = Spring.FlowUI.Draw.Element
+	local bgpadding = Spring.FlowUI.elementPadding
+	local elementCorner = Spring.FlowUI.elementCorner
 
 	-----------------------------------------------------------------------------------------
 	-- creates initial player listing
@@ -1056,13 +1073,17 @@ else
 		local vsx2, vsy2 = Spring.GetViewGeometry()
 		if force or vsx2 ~= vsy or vsx2 ~= vsy then
 			vsx, vsy = vsx2, vsy2
-			uiScale = (0.75 + (vsx * vsy / 7500000))
+			ui_scale = Spring.GetConfigFloat("ui_scale", 1)
+			uiScale = (0.75 + (vsx * vsy / 7500000)) * ui_scale
 
 			screenX = (vsx * 0.5) - (screenWidth / 2)
 			screenY = (vsy * 0.5) + (screenHeight / 2)
 
-			scoreboardX = (vsx * scoreboardRelX) - (((vsx / 2) * (scoreboardRelX - 0.5)) * (uiScale - 1))    -- not acurate :(
-			scoreboardY = (vsy * scoreboardRelY) - (((vsy / 2) * (scoreboardRelY - 0.5)) * (uiScale - 1))    -- not acurate :(
+			bgpadding = Spring.FlowUI.elementPadding
+			elementCorner = Spring.FlowUI.elementCorner
+
+			scoreboardX = floor(vsx * scoreboardRelX)
+			scoreboardY = floor(vsy * scoreboardRelY)
 
 			if infoList then
 				gl.DeleteList(infoList)
@@ -1161,7 +1182,7 @@ else
 			capturedAlpha = 0.6
 			capturingAlpha = 0.9
 			prefix = 'm_'        -- so it uses different displaylists
-			parts = math.ceil((OPTIONS.circlePieces * OPTIONS.circlePieceDetail) / 5)
+			parts = math.ceil((OPTIONS.circlePieces * OPTIONS.circlePieceDetail) / 2)
 		else
 			capturedAlpha = 0.3
 			capturingAlpha = 0.6
@@ -1183,7 +1204,7 @@ else
 				if point.aggressorColor[1] .. '_' .. point.aggressorColor[2] .. '_' .. point.aggressorColor[3] == '1_1_1' then
 					revert = true
 				end
-				local piesize = math.floor(((point.capture / captureTime) / (1 / capturePieParts)) + 0.5)
+				local piesize = floor(((point.capture / captureTime) / (1 / capturePieParts)) + 0.5)
 				if controlPointSolidList[prefix .. point.aggressorColor[1] .. '_' .. point.aggressorColor[2] .. '_' .. point.aggressorColor[3] .. '_' .. piesize] == nil then
 					controlPointSolidList[prefix .. point.aggressorColor[1] .. '_' .. point.aggressorColor[2] .. '_' .. point.aggressorColor[3] .. '_' .. piesize] = CreateList(DrawCircleSolid, (captureRadius - ringThickness * 2), capturePieParts, piesize, { 0, 0, 0, 0 }, { point.aggressorColor[1], point.aggressorColor[2], point.aggressorColor[3], capturingAlpha }, revert)
 				end
@@ -1206,8 +1227,12 @@ else
 		PolygonOffset(false)
 	end
 
-	function gadget:GameStart()
-		--showGameModeInfo = false
+	function gadget:Shutdown()
+		if Script.LuaUI("GuishaderRemoveRect") then
+			Script.LuaUI.GuishaderRemoveRect('cv_scoreboard')
+			Script.LuaUI.GuishaderRemoveRect('cv_scoreboardtitle')
+		end
+		gl.DeleteFont(font)
 	end
 
 	function drawGameModeInfo()
@@ -1223,11 +1248,10 @@ else
 		PushMatrix()
 		Translate(-(vsx * (uiScale - 1)) / 2, -(vsy * (uiScale - 1)) / 2, 0)
 		Scale(uiScale, uiScale, 1)
-		local x = screenX --rightwards
-		local y = screenY --upwards
 
 		-- background
-		UiElement(x - bgMargin, y - screenHeight - bgMargin, x + screenWidth + bgMargin, y + bgMargin, 1,1,1,1, 1,1,1,1, Spring.GetConfigFloat("ui_opacity", 0.6) + 0.2)
+		infoRect = {screenX - bgMargin, screenY - screenHeight - bgMargin, screenX + screenWidth + bgMargin, screenY + bgMargin}
+		UiElement(infoRect[1], infoRect[2], infoRect[3], infoRect[4], 0,1,1,1, 1,1,1,1, Spring.GetConfigFloat("ui_opacity", 0.6) + 0.2)
 		--Color(0, 0, 0, 0.8)
 		--RectRound(x - bgMargin, y - screenHeight - bgMargin, x + screenWidth + bgMargin, y + bgMargin, 8, 0, 1, 1, 1)
 		-- content area
@@ -1250,20 +1274,20 @@ else
 		local title = offwhite .. [[Area Capture Mode    ]] .. yellow .. scoreModeAsString
 		local titleFontSize = 18
 		Color(0, 0, 0, 0.8)
-		titleRect = { x - bgMargin, y + bgMargin, x + (gl.GetTextWidth(title) * titleFontSize) + 27 - bgMargin, y + 37 }
-		RectRound(titleRect[1], titleRect[2], titleRect[3], titleRect[4], 8, 1, 1, 0, 0)
+		titleRect = { screenX - bgMargin, screenY + bgMargin, screenX + (gl.GetTextWidth(title) * titleFontSize) + 27 - bgMargin, screenY + 37 }
+		RectRound(titleRect[1], titleRect[2], titleRect[3], titleRect[4], elementCorner, 1, 1, 0, 0)
 
 		font:Begin()
 		font:SetTextColor(1, 1, 1, 1)
 		font:SetOutlineColor(0, 0, 0, 0.4)
-		font:Print(title, x - bgMargin + (titleFontSize * 0.75), y + bgMargin + 8, titleFontSize, "on")
+		font:Print(title, screenX- bgMargin + (titleFontSize * 0.75), screenY + bgMargin + 8, titleFontSize, "on")
 		font:End()
 
 		-- image of minimap showing controlpoints
 		local imageSize = 200
 		Color(1, 1, 1, 1)
 		gl.Texture(exampleImage)
-		gl.TexRect(x, y, x + imageSize, y - imageSize)
+		gl.TexRect(screenX, screenY, screenX + imageSize, screenY - imageSize)
 		gl.Texture(false)
 
 		-- textarea
@@ -1280,62 +1304,46 @@ You will also gain ]] .. white .. [[+]] .. skyblue .. metalPerPoint .. offwhite 
 
 There are various options available in the lobby bsettings (use ]] .. yellow .. [[!list bsettings]] .. offwhite .. [[ in the lobby chat)]]
 
-		Text(infotext, x + imageSize + 15, y - 25, 16, "no")
+		Text(infotext, screenX + imageSize + 15, screenY - 25, 16, "no")
 
 		PopMatrix()
 	end
 
 	function drawMouseoverScoreboard()
-		PushMatrix()
-		Translate(-(vsx * (uiScale - 1)) / 2, -(vsy * (uiScale - 1)) / 2, 0)
-		Scale(uiScale, uiScale, 1)
-		local x = scoreboardX --rightwards
-		local y = scoreboardY --upwards
-		local width = scoreboardWidth
-		local height = scoreboardHeight
-		local maxWidth = width
-		local maxHeight = height
-
 		-- background
-		Color(0, 0, 0, 0.8)
-		RectRound(x - bgMargin, y - height - bgMargin, x + width + bgMargin, y + bgMargin, 8, 0, 1, 1, 1)
+		Color(0, 0, 0, 0.75)
+		RectRound(elementRect[1], elementRect[2], elementRect[3], elementRect[4], elementCorner, 0, 1, 1, 1)
 
 		-- text
-		Text("\255\200\200\200Use middlemouse\nto drag this window", x + scoreboardWidth / 2, y - (scoreboardHeight / 2) + 7, 14, "co")
-
-		PopMatrix()
+		Text("\255\200\200\200Middlemouse\nto move", scoreboardX, scoreboardY + 7, 15*uiScale, "co")
 	end
 
 	function drawScoreboard()
 		PushMatrix()
-		Translate(-(vsx * (uiScale - 1)) / 2, -(vsy * (uiScale - 1)) / 2, 0)
-		Scale(uiScale, uiScale, 1)
-		local x = scoreboardX --rightwards
-		local y = scoreboardY --upwards
-		local width = scoreboardWidth
-		local height = scoreboardHeight
-		local maxWidth = width
-		local maxHeight = height
+		local maxWidth = scoreboardWidth
+		local maxHeight = scoreboardHeight
 
 		-- background
-		UiElement(x - bgMargin, y - height - bgMargin, x + width + bgMargin, y + bgMargin, 1,1,1,1, 1,1,1,1, Spring.GetConfigFloat("ui_opacity", 0.6) + 0.2)
-		--Color(0, 0, 0, 0.8)
-		--RectRound(x - bgMargin, y - height - bgMargin, x + width + bgMargin, y + bgMargin, 8, 0, 1, 1, 1)
-		-- content area
-		--Color(0.33, 0.33, 0.33, 0.15)
-		--RectRound(x, y - height, x + width, y, 6)
+		elementRect = {scoreboardX - floor((bgMargin + (scoreboardWidth/2))*uiScale), scoreboardY - floor(((scoreboardHeight/2) + bgMargin)*uiScale), scoreboardX + floor(((scoreboardWidth/2) + bgMargin)*uiScale), scoreboardY + floor((bgMargin + (scoreboardHeight/2))*uiScale)}
+		UiElement(elementRect[1], elementRect[2], elementRect[3], elementRect[4], 0,1,1,1, 1,1,1,1, Spring.GetConfigFloat("ui_opacity", 0.6) + 0.2)
+		if Script.LuaUI("GuishaderInsertRect") then
+			Script.LuaUI.GuishaderInsertRect(elementRect[1], elementRect[2], elementRect[3], elementRect[4], 'cv_scoreboard')
+		end
 
 		-- title
 		local title = "\255\255\255\255" .. scoreModeAsString
 		local titleFontSize = 18
 		Color(0, 0, 0, 0.8)
-		titleRect = { x - bgMargin, y + bgMargin, x + (gl.GetTextWidth(title) * titleFontSize) + 27 - bgMargin, y + 37 }
-		RectRound(titleRect[1], titleRect[2], titleRect[3], titleRect[4], 8, 1, 1, 0, 0)
+		titleRect = { scoreboardX - floor((bgMargin + (scoreboardWidth/2))*uiScale), scoreboardY + floor((bgMargin + (scoreboardHeight/2))*uiScale), scoreboardX - floor(((scoreboardWidth/2) - (gl.GetTextWidth(title) * titleFontSize) - 27 + bgMargin)*uiScale), scoreboardY + floor(((scoreboardHeight/2) + 37)*uiScale) }
+		RectRound(titleRect[1], titleRect[2], titleRect[3], titleRect[4], elementCorner, 1, 1, 0, 0)
+		if Script.LuaUI("GuishaderInsertRect") then
+			Script.LuaUI.GuishaderInsertRect(titleRect[1], titleRect[2], titleRect[3], titleRect[4], 'cv_scoreboardtitle')
+		end
 
 		font:Begin()
 		font:SetTextColor(1, 1, 1, 1)
 		font:SetOutlineColor(0, 0, 0, 0.4)
-		font:Print(title, x - bgMargin + (titleFontSize * 0.75), y + bgMargin + 8, titleFontSize, "on")
+		font:Print(title, scoreboardX - ((bgMargin + (scoreboardWidth/2) - (titleFontSize * 0.75))*uiScale), scoreboardY + ((bgMargin + (scoreboardHeight/2) + 8)*uiScale), titleFontSize*uiScale, "on")
 		font:End()
 
 		local n = 1
@@ -1384,9 +1392,9 @@ There are various options available in the lobby bsettings (use ]] .. yellow .. 
 					--get AI info?
 				end
 				local r, g, b = Spring.GetTeamColor(team)
-				color = string.char("255", r * 255, g * 255, b * 255)
-				Text(color .. name .. "'s team", x + 10, y - 22 - (55 * allyCounter - 1), 16, "lo")
-				Text(white .. "\255\200\200\200Score: \255\255\255\255" .. allyScore, x + 10, y - 42 - (55 * allyCounter - 1), 16, "lo")
+				local color = string.char("255", r * 255, g * 255, b * 255)
+				Text(color .. name .. "'s team", scoreboardX - (((scoreboardWidth/2) - 10)*uiScale), scoreboardY + (((scoreboardHeight/2) - 22 - (55 * allyCounter - 1))*uiScale), 16*uiScale, "lo")
+				Text(white .. "\255\200\200\200Score: \255\255\255\255" .. allyScore, scoreboardX - (((scoreboardWidth/2) - 10)*uiScale), scoreboardY + (((scoreboardHeight/2) - 42 - (55 * allyCounter - 1))*uiScale), 16*uiScale, "lo")
 
 				local textwidth = 20 + gl.GetTextWidth(name .. "'s team") * 16
 				if textwidth > maxWidth then
@@ -1402,8 +1410,8 @@ There are various options available in the lobby bsettings (use ]] .. yellow .. 
 			--		math.floor((dominationTime - Spring.GetGameFrame()) / 30) ..
 			--		" seconds!", vsx *.5, vsy *.7, 24, "oc")
 		end
-		scoreboardWidth = maxWidth
-		scoreboardHeight = maxHeight
+		scoreboardWidth = floor(maxWidth / 2) * 2
+		scoreboardHeight = floor(maxHeight / 2) * 2
 		PopMatrix()
 	end
 
@@ -1433,12 +1441,8 @@ There are various options available in the lobby bsettings (use ]] .. yellow .. 
 			end
 			CallList(scoreboardList)
 
-			local mx, my = Spring.GetMouseState()
-			local rectX1 = ((scoreboardX - bgMargin) * uiScale) - ((vsx * (uiScale - 1)) / 2)
-			local rectY1 = ((scoreboardY + bgMargin) * uiScale) - ((vsy * (uiScale - 1)) / 2)
-			local rectX2 = ((scoreboardX + scoreboardWidth + bgMargin) * uiScale) - ((vsx * (uiScale - 1)) / 2)
-			local rectY2 = ((scoreboardY - scoreboardHeight - bgMargin) * uiScale) - ((vsy * (uiScale - 1)) / 2)
-			if IsOnRect(mx, my, rectX1, rectY2, rectX2, rectY1) then
+			local x, y = Spring.GetMouseState()
+			if elementRect and IsOnRect(x, y, elementRect[1], elementRect[2], elementRect[3], elementRect[4]) then
 				if mouseoverScoreboard == nil then
 					mouseoverScoreboard = true
 					if mouseoverScoreboardList ~= nil then
@@ -1501,16 +1505,11 @@ There are various options available in the lobby bsettings (use ]] .. yellow .. 
 			draggingScoreboard = nil
 		end
 		if not release and Spring.GetGameFrame() > 0 then
-			local rectX1 = ((scoreboardX - bgMargin) * uiScale) - ((vsx * (uiScale - 1)) / 2)
-			local rectY1 = ((scoreboardY + bgMargin) * uiScale) - ((vsy * (uiScale - 1)) / 2)
-			local rectX2 = ((scoreboardX + scoreboardWidth + bgMargin) * uiScale) - ((vsx * (uiScale - 1)) / 2)
-			local rectY2 = ((scoreboardY - scoreboardHeight - bgMargin) * uiScale) - ((vsy * (uiScale - 1)) / 2)
-			if button == 2 and IsOnRect(x, y, rectX1, rectY2, rectX2, rectY1) then
+			if button == 2 and elementRect and (IsOnRect(x, y, elementRect[1], elementRect[2], elementRect[3], elementRect[4]) or IsOnRect(x, y, titleRect[1], titleRect[2], titleRect[3], titleRect[4])) then
 				draggingScoreboard = true
 				return true
 			end
 		end
-
 		if showGameModeInfo then
 			-- on window
 			local rectX1 = ((screenX - bgMargin) * uiScale) - ((vsx * (uiScale - 1)) / 2)
