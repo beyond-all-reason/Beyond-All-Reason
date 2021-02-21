@@ -1,4 +1,3 @@
-
 if addon.InGetInfo then
 	return {
 		name    = "Main",
@@ -16,78 +15,6 @@ local showTips = (Spring.GetConfigInt("loadscreen_tips",1) == 1)
 
 local showTipAboveBar = true
 local showTipBackground = false	-- false = tips shown below the loading bar
-
-local texts = {       -- fallback (if you want to change this, also update: language/en.lua, or it will be overwritten)
-	intelwarning = '\255\200\200\200You are using the integrated \255\255\255\255Intel graphics\255\200\200\200 card.      Your experience might be sub optimal.',
-	tips = {
-		"Have trouble finding metal spots?\nPress F4 to switch to the metal map.",
-		"Queue-up multiple consecutive unit actions by holding SHIFT.",
-		"Tweak graphic preferences in options (top right corner of the screen).\nWhen your FPS drops, switch to a lower graphic preset.",
-		"Radars are cheap. Make them early in the game to effectively counter initial strikes.",
-		--"To see detailed info about each unit in-game switch on \"Extensive unit info\" via Options menu",
-		"In general, vehicles are a good choice for flat and open battlefields. Bots are better on hills.",
-		"Go for Wind Generators when the average wind speed is over 7. Current, minimum, and maximum wind speeds are shown to the right of the energy bar.",
-		"If your economy is based on wind generators, always build an E storage to have a reserve for when the wind speed drops.",
-		"Commanders have a manual D-Gun weapon, which can decimate every unit with one shot.\nPress D to quickly initiate aiming.",
-		"Spread buildings to prevent chain explosions.\nPress ALT+Z and ALT+X to adjust auto-spacing.",
-		"It is effective to move your units in spread formations.\nDrag your mouse while initiating a move order to draw multiple waypoints.",
-		--"Artillery vehicles can move in reverse if you press 'Ctrl' while giving a command behind it. Use this to keep shooting during a retreat.",
-		"T2 factories are expensive. You can reclaim your T1 lab for metal to fund it.",
-		"Air strikes and air drops may come at any time, always have at least one anti-air unit in your base.",
-		"With Q + double click LMB you can place a label with text on the map.\nQ + middle mouse button for an empty label. Q + mouse drag to draw lines",
-		"Always check your Com-counter (next to resource bars). If you have the last Commander you better hide it quick!",
-		"Expanding territory is essential for gaining economic advantage.\nTry to secure as many metal spots and geothermal vents as you can.",
-		"Think in advance about reclaiming metal from wrecks piling up at the front.",
-		"Nano turrets can be picked up by transporters. This way you can move them where you need more buildpower.",
-		"Set your factories on Repeat to let it build a continuous queue of units.",
-		"Use the Fight Command (F) with your rez-bots to make them reclaim and repair everything in the vicinity.\nOptionally turn on Repeat to let them do this forever.",
-		"When you're overflowing energy... build metal makers to convert energy to metal.",
-		"Press F3 to go to the location of the last notification or label by a team mate",
-		"Select all units of the same type by pressing CTRL+Z.",
-		"You can pause the game with the PAUSE/BREAK key, or by typing /pause",
-		"Did your team member drop out of the game? Type /take to add all of his units to your army.",
-		"Give your nano turrets a Fight Command (F) to let it repair and reclaim everything within reach.",
-		"Press E and drag a circle to quickly rEclaim all resources/wreckages.",
-		"Press R and drag a circle to quickly Repair all units inside this area.",
-		"Press CTRL+C to quickly select and center the camera on your Commander.",
-		"Think ahead and include anti-air and support units in your army.",
-		"Mastering hotkeys is the key to proficiency.\nUse Z,X,C,V to quickly cycle between most frequently built structures.",
-		"To share resources with team mates:\nClick-drag metal/energy bar next to player's name to send resources.",
-		"To share units with team mates:\nSelect the unit(s) and click the tank-icon next to the players name.",
-		"It is efficient to support your lab with constructors increasing its build-power.\nRight click on the factory with a constructor selected to guard (assist) with construction",
-		"Remember to separate your highly explosive buildings (like metal makers) from the rest of your base.",
-		"Most long-ranged units are very vulnerable in close combat. Always keep a good distance from your targets. Try to use the Fight (F) Command",
-		"Keep all your builders busy.\nPress CTRL+B to select and center camera on your idle constructor.",
-		"The best way to prevent air strikes is building fighters and putting them on PATROL in front of your base.",
-		"Use radar jammers to hide your units from enemy radar and hinder artillery strikes.",
-		"Cloaking your Commander while stationary drains 100 energy/second. It costs 1000 energy/second when walking.",
-		"Combine CLOAK with radar jamming to completely hide your units.",
-		"Long-ranged units need scouting for accurate aiming.\nGenerate a constant stream of fast, cheap units for better vision.",
-		"You can assign units to groups by pressing CTRL+[num].\nSelect the group using numbers (1-9).",
-		"When performing a bombing run fly your fighters first to eliminate enemy's fighter-wall.\nUse FIGHT or PATROL command for more effective engagement.",
-		"You can disable enemy's anti-nukes using EMP missiles (built by ARM T2 cons).",
-		"Shields in BAR are 'plasma-deflector-shields'. They only deflect plasma shells. Everything else will go through.",
-		"Don't build too much stuff around your Moho-geothermal power plants or everything will go boom!",
-		"If you encounter a bug, or have a great idea or want to contribute in any way, please join BAR on Discord.",
-		"Build long range anti-air on an extended front line to slowly dismantle enemy's fighter-wall.",
-		"Your commander's Dgun can be used for insta-killing T3 units.\nDon't forget to CLOAK first. For quickly cloaking press K.",
-		"If you are certain of losing some unit in enemy territory, self-destruct (CTRL+D) it to prevent him from getting the metal.",
-		"Mines are super-cheap and quick to build. Remember to make them away from enemy's line of sight.",
-		"Enemy's mines, radars, and jammers may be disabled using the Juno - built by both factions with T1 constructors.",
-		"Use Alt+0-9 sets autogroup# for selected unit type(s). Newly built units get added to group# equal to their autogroup#. Alt BACKQUOTE (~) remove units.",
-	},
-}
-
--- load language
-local defaultLanguage = 'en'
-local language = Spring.GetConfigString('language', defaultLanguage)
-local file = "language/"..language..".lua"
-local s = assert(VFS.LoadFile(file, VFS.RAW_FIRST))
-local func = loadstring(s, file)
-local defaultLanguageContent = func()
-if defaultLanguageContent and defaultLanguageContent.loadscreen then
-	texts = defaultLanguageContent.loadscreen
-end
 
 local infolog = VFS.LoadFile("infolog.txt")
 local usingIntelGpu = false
@@ -123,25 +50,67 @@ if infolog then
 	end
 end
 
--- Since math.random is not random and always the same, we save a counter to a file and use that.
+-- I18N module does not support accessing translation keys by index number, so need to concatenate name
+local tipKeys = {
+	'showMetalSpots',
+	'queues',
+	'graphicsSettings',
+	'useRadar',
+	'vehiclesOrBots',
+	'windSpeed',
+	'windEnergyBuffer',
+	'dGun',
+	'separateBuildings',
+	'useDragMove',
+	'factoryCannibalism',
+	'useAntiAir',
+	'mapmarks',
+	'lastCommander',
+	'alwaysExpand',
+	'reclaimWrecks',
+	'transportBuildings',
+	'factoryRepeat',
+	'resurrectFight',
+	'overflowingEnergy',
+	'lastNotification',
+	'selectSameType',
+	'usePause',
+	'takeUnits',
+	'nanoTurretFight',
+	'useReclaim',
+	'useRepair',
+	'selectCommander',
+	'armyDiversity',
+	'buildingHotkeys',
+	'shareResources',
+	'shareUnits',
+	'assistFactories',
+	'separateBuildings2',
+	'longRangeUnits',
+	'idleConstructors',
+	'useFighters',
+	'useRadarJammers',
+	'useCloak',
+	'completelyDisappear',
+	'useSpotters',
+	'groups',
+	'screenBombers',
+	'disableAntiNukes',
+	'howShieldsWork',
+	'mohoGeoExplosion',
+	'joinDiscord',
+	'destroyFighters',
+	'dGunAssassin',
+	'useSelfDestruct',
+	'useMines',
+	'useJuno',
+	'autogroups',
+}
+
 local randomTip = ''
 if showTips then
-	local filename = "LuaUI/Config/randomseed.txt"
-	local k = os.time() % 1500
-	if VFS.FileExists(filename) then
-		k = tonumber(VFS.LoadFile(filename))
-		if not k then k = 0 end
-	end
-	k = k + 1
-	--local file = assert(io.open(filename,'w'), "Unable to save latest randomseed from "..filename)
-	local file = io.open(filename,'w')
-	if file then
-		file:write(k)
-		file:close()
-		file = nil
-	end
-
-	randomTip = texts.tips[((math.ceil(k/2)) % #texts.tips) + 1]
+	local index = math.random(#tipKeys)
+	randomTip = Spring.I18N('tips.' .. tipKeys[index])
 end
 
 -- for guishader
