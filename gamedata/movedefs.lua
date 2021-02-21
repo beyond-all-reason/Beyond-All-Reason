@@ -377,8 +377,8 @@ local moveDatas = {
 	-- juggernaut
 	HBOT5 = {
 		crushstrength = 1400,
-		footprintx = 6,
-		footprintz = 6,
+		footprintx = 5,
+		footprintz = 5,
 		maxslope = 36,
 		maxwaterdepth = 30,
 		depthModParams = {
