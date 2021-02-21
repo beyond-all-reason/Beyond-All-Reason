@@ -491,8 +491,8 @@ return {
 					survival = 'Survival',
 				},
 			},
-			loadscreen = {
-				intelwarning = '\255\200\200\200You are using the integrated \255\255\255\255Intel graphics\255\200\200\200 card.      Your experience might be sub optimal.',
+			loadScreen = {
+				intelGpuWarning = '%{textColor}You are using the integrated %{warnColor}Intel graphics%{textColor} card.      Your experience might be sub optimal.',
 			}
 		}
 	}

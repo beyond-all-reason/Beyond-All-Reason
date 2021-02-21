@@ -595,7 +595,7 @@ function addon.DrawLoadScreen()
 		gl.Translate(vsx/2, 0.988*vsy, 0)
 		font2:SetTextColor(0.8,0.8,0.8,1)
 		font2:SetOutlineColor(0,0,0,0.8)
-		font2:Print(texts.intelwarning, 0, 0, height*0.66, "oac")
+		font2:Print(Spring.I18N('ui.loadScreen.intelGpuWarning', { textColor = '\255\200\200\200', warnColor = '\255\255\255\255' }), 0, 0, height*0.66, "oac")
 		gl.PopMatrix()
 	end
 end
