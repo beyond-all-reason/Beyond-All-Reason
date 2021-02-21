@@ -468,6 +468,29 @@ return {
 				chickenOptions = 'Chicken options',
 				modOptions = 'Mod options',
 			},
+			chickens = {
+				queenIsAngry = 'The Queen is angered!',
+				wave = 'Wave',
+				chickens = 'Chickens',
+				chickenKills = 'Chicken Kills',
+				queenAnger = 'Queen Anger',
+				queenHealth = 'Queen Health',
+				gracePeriod = 'Grace Period',
+				burrows = 'Burrows',
+				burrowKills = 'Burrow Kills',
+				mode = 'Mode',
+				score = 'Your Score',
+				difficulty = {
+					veryEasy = 'Very Easy',
+					easy = 'Easy',
+					normal = 'Normal',
+					hard ='Hard',
+					veryHard = 'Very Hard',
+					epic = 'Epic',
+					custom = 'Custom',
+					survival = 'Survival',
+				},
+			},
 		}
 	}
 }

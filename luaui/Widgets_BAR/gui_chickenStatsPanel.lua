@@ -1,7 +1,7 @@
 function widget:GetInfo()
 	return {
 		name = "Chicken Stats Panel",
-		desc = "Shows statics and progress whhen fighting vs Chickens",
+		desc = "Shows statistics and progress when fighting vs Chickens",
 		author = "quantum",
 		date = "May 04, 2008",
 		license = "GNU GPL, v2 or later",
@@ -30,43 +30,16 @@ else
 	return false
 end
 
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
 if not Spring.GetGameRulesParam("difficulty") then
 	return false
 end
 
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
-local GetTimer = Spring.GetTimer
-local DiffTimers = Spring.DiffTimers
-local lastRulesUpdate = Spring.GetTimer()
 local GetGameSeconds = Spring.GetGameSeconds
-local GetGameRulesParam = Spring.GetGameRulesParam
 local Spring = Spring
-local gl, GL = gl, GL
+local gl = gl
 local widgetHandler = widgetHandler
 local math = math
 local table = table
-
-
-local texts = {        -- fallback (if you want to change this, also update: language/en.lua, or it will be overwritten)
-	thequeenisangered = 'The Queen is angered!',
-	wave = 'Wave',
-	chickens = 'Chickens',
-	count = 'Count',
-	kills = 'Kills',
-	chickenkills = 'Chicken Kills',
-	queenanger = 'Queen Anger',
-	queenhealth = 'Queen Health',
-	graceperiod = 'Grace Period',
-	burrows = 'Burrows',
-	burrowkills = 'Burrow Kills',
-	mode = 'Mode',
-	yourscore = 'Your Score',
-}
 
 local displayList
 local panelTexture = ":n:LuaUI/Images/chickenpanel.tga"
@@ -89,31 +62,28 @@ local waveSpacingY = 7
 local moving
 local capture
 local gameInfo
-local waveY = 800
 local waveSpeed = 0.2
 local waveCount = 0
 local waveTime
 local enabled
 local gotScore
 local scoreCount = 0
-local queenAnger = 0
 
 local guiPanel --// a displayList
 local updatePanel
 local hasChickenEvent = false
 
-local red = "\255\255\001\001"
 local white = "\255\255\255\255"
 
 local difficulties = {
-	[1] = 'Very Easy',
-	[2] = 'Easy',
-	[3] = 'Normal',
-	[4] = 'Hard',
-	[5] = 'Very Hard',
-	[6] = 'Epic',
-	[7] = 'Custom',
-	[8] = 'Survival',
+	[1] = Spring.I18N('ui.chickens.difficulty.veryEasy'),
+	[2] = Spring.I18N('ui.chickens.difficulty.easy'),
+	[3] = Spring.I18N('ui.chickens.difficulty.normal'),
+	[4] = Spring.I18N('ui.chickens.difficulty.hard'),
+	[5] = Spring.I18N('ui.chickens.difficulty.veryHard'),
+	[6] = Spring.I18N('ui.chickens.difficulty.epic'),
+	[7] = Spring.I18N('ui.chickens.difficulty.custom'),
+	[8] = Spring.I18N('ui.chickens.difficulty.survival'),
 }
 
 local rules = {
@@ -180,11 +150,7 @@ for _, t in ipairs(chickenColors) do
 	chickenColorSet[t[1]] = t[2]
 end
 
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
-
-function comma_value(amount)
+local function commaValue(amount)
 	local formatted = amount
 	local k
 	while true do
@@ -214,12 +180,12 @@ local function MakeCountString(type, showbreakdown)
 	if showbreakdown then
 		local breakDown = table.concat(t, white .. ",") .. white
 		if showbrackets then
-			return string.format(texts.chickens..": %d (%s)", total, breakDown)
+			return string.format(Spring.I18N('ui.chickens.chickens') .. ": %d (%s)", total, breakDown)
 		else
-			return string.format(texts.chickens..": %d", total)
+			return string.format(Spring.I18N('ui.chickens.chickens') .. ": %d", total)
 		end
 	else
-		return (texts.chickenkills..": " .. white .. total)
+		return (Spring.I18N('ui.chickens.chickenKills') .. ": " .. white .. total)
 	end
 end
 
@@ -247,25 +213,25 @@ local function CreatePanelDisplayList()
 	local techLevel = ""
 	if currentTime > gameInfo.gracePeriod then
 		if gameInfo.queenAnger < 100 then
-			techLevel = texts.queenanger..": " .. gameInfo.queenAnger .. "%"
+			techLevel = Spring.I18N('ui.chickens.queenAnger') .. ": " .. gameInfo.queenAnger .. "%"
 		else
-			techLevel = texts.queenhealth..": " .. gameInfo.queenLife .. "%"
+			techLevel = Spring.I18N('ui.chickens.queenHealth') .. ": " .. gameInfo.queenLife .. "%"
 		end
 	else
-		techLevel = texts.graceperiod..": " .. math.ceil(((currentTime - gameInfo.gracePeriod) * -1) - 0.5)
+		techLevel = Spring.I18N('ui.chickens.gracePeriod') .. ": " .. math.ceil(((currentTime - gameInfo.gracePeriod) * -1) - 0.5)
 	end
 
 	font:Begin()
 	font:Print(white .. techLevel, panelMarginX, PanelRow(1), panelFontSize, "")
 	font:Print(white .. gameInfo.unitCounts, panelMarginX, PanelRow(2), panelFontSize, "")
 	font:Print(white .. gameInfo.unitKills, panelMarginX, PanelRow(3), panelFontSize, "")
-	font:Print(white .. texts.burrows..": " .. gameInfo.roostCount, panelMarginX, PanelRow(4), panelFontSize, "")
-	font:Print(white .. texts.burrowkills..": " .. gameInfo.roostKills, panelMarginX, PanelRow(5), panelFontSize, "")
-	local s = white .. texts.mode..": " .. difficulties[gameInfo.difficulty]
+	font:Print(white .. Spring.I18N('ui.chickens.burrows') .. ": " .. gameInfo.roostCount, panelMarginX, PanelRow(4), panelFontSize, "")
+	font:Print(white .. Spring.I18N('ui.chickens.burrowKills') .. ": " .. gameInfo.roostKills, panelMarginX, PanelRow(5), panelFontSize, "")
+	local s = white .. Spring.I18N('ui.chickens.mode') .. ": " .. difficulties[gameInfo.difficulty]
 	if gotScore then
-		font:Print(white .. texts.yourscore..": " .. comma_value(scoreCount), 88, h - 170, panelFontSize "")
+		font:Print(white .. Spring.I18N('ui.chickens.score') .. ": " .. commaValue(scoreCount), 88, h - 170, panelFontSize "")
 	else
-		font:Print(white .. texts.mode..": " .. difficulties[gameInfo.difficulty], 120, h - 170, panelFontSize, "")
+		font:Print(white .. Spring.I18N('ui.chickens.mode') .. ": " .. difficulties[gameInfo.difficulty], 120, h - 170, panelFontSize, "")
 	end
 	font:End()
 
@@ -308,11 +274,6 @@ local function Draw()
 	end
 end
 
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
-
 local function UpdateRules()
 	if not gameInfo then
 		gameInfo = {}
@@ -321,19 +282,10 @@ local function UpdateRules()
 	for _, rule in ipairs(rules) do
 		gameInfo[rule] = Spring.GetGameRulesParam(rule) or 999
 	end
-	gameInfo.unitCounts = MakeCountString(texts.count, true)
-	gameInfo.unitKills = MakeCountString(texts.kills, false)
+	gameInfo.unitCounts = MakeCountString('Count', true)
+	gameInfo.unitKills = MakeCountString('Kills', false)
 
 	updatePanel = true
-end
-
-local function MakeLine(chicken, n)
-	if n <= 0 then
-		return
-	end
-	local humanName = UnitDefNames[chicken].humanName
-	local color = chickenColorSet[chicken]
-	return color .. n .. " " .. humanName .. "s"
 end
 
 function ChickenEvent(chickenEventArgs)
@@ -343,28 +295,21 @@ function ChickenEvent(chickenEventArgs)
 		end
 		waveMessage = {}
 		waveCount = waveCount + 1
-		waveMessage[1] = texts.wave.." " .. waveCount
-		waveMessage[2] = waveColors[chickenEventArgs.tech] .. chickenEventArgs.number .. ' '..texts.chickens..'!'
+		waveMessage[1] = Spring.I18N('ui.chickens.wave') .. " " .. waveCount
+		waveMessage[2] = waveColors[chickenEventArgs.tech] .. chickenEventArgs.number .. ' ' .. Spring.I18N('ui.chickens.chickens') .. '!'
 		waveTime = Spring.GetTimer()
 	elseif chickenEventArgs.type == "burrowSpawn" then
 		UpdateRules()
 	elseif chickenEventArgs.type == "queen" then
 		waveMessage = {}
-		waveMessage[1] = texts.thequeenisangered
+		waveMessage[1] = Spring.I18N('ui.chickens.queenIsAngry')
 		waveTime = Spring.GetTimer()
 	elseif chickenEventArgs.type == "score" .. (Spring.GetMyTeamID()) then
 		gotScore = chickenEventArgs.number
 	end
 end
 
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
 function widget:Initialize()
-	if WG['lang'] then
-		texts = WG['lang'].getText('chickenpanel')
-	end
 	widget:ViewResize()
 
 	displayList = gl.CreateList(function()
@@ -473,4 +418,3 @@ function widget:ViewResize()
 	x1 = viewSizeX + x1 + ((x1 / 2) * (widgetScale - 1))
 	y1 = viewSizeY + y1 + ((y1 / 2) * (widgetScale - 1))
 end
-
