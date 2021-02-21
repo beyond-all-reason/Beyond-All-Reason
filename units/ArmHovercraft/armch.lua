@@ -29,7 +29,7 @@ return {
 		maxwaterdepth = 0,
 		metalmake = 0.11,
 		metalstorage = 75,
-		movementclass = "HOVER3",
+		movementclass = "HOVER2",
 		name = "Construction Hovercraft",
 		objectname = "Units/ARMCH.s3o",
 		radardistance = 50,

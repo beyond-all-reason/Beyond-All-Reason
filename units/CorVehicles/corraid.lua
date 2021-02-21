@@ -25,7 +25,7 @@ return {
 		maxslope = 10,
 		maxvelocity = 2.43,
 		maxwaterdepth = 12,
-		movementclass = "TANK2",
+		movementclass = "TANK3",
 		name = "Raider",
 		nochasecategory = "VTOL",
 		objectname = "Units/CORRAID.s3o",

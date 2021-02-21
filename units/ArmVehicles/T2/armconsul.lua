@@ -30,7 +30,7 @@ return {
 		maxwaterdepth = 18,
 		metalmake = 0.15,
 		metalstorage = 100,
-		movementclass = "TANK3",
+		movementclass = "TANK2",
 		name = "Consul",
 		objectname = "Units/ARMCONSUL.s3o",
 		script = "Units/ARMCONSUL.cob",

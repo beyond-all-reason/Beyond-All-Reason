@@ -53,6 +53,17 @@ local moveDatas = {
 		maxwaterdepth = 5000,
 		maxwaterslope = 80,
 	},
+	-- amphibious transport
+	ATANK4 = {
+		crushstrength = 30,
+		depthmod = 0,
+		footprintx = 4,
+		footprintz = 4,
+		maxslope = 36,
+		--slopeMod = 32,
+		maxwaterdepth = 5000,
+		maxwaterslope = 80,
+	},
 
 	BOAT3 = {
 		crushstrength = 9,
@@ -73,14 +84,20 @@ local moveDatas = {
 		footprintz = 5,
 		minwaterdepth = 10,
 	},
-	-- battleships/aircraft carriers
+	BOAT6 = {
+		crushstrength = 16,
+		footprintx = 6,
+		footprintz = 6,
+		minwaterdepth = 10,
+	},
+	-- battleships
 	BOAT7 = {
 		crushstrength = 252,
 		footprintx = 7,
 		footprintz = 7,
 		minwaterdepth = 15,
 	},
-	-- flagships
+	-- flagships/aircraft carriers
 	BOAT8 = {
 		crushstrength = 252,
 		footprintx = 8,
@@ -96,6 +113,7 @@ local moveDatas = {
 		crushstrength = 5,
 		subMarine = 1,
 	},
+	-- Battle Subs
 	UBOAT4 = {
 		footprintx = 4,
 		footprintz = 4,
@@ -104,6 +122,16 @@ local moveDatas = {
 		subMarine = 1,
 	},
 
+	HOVER2 = {
+		badslope = 22,
+		badwaterslope = 255,
+		crushstrength = 25,
+		footprintx = 2,
+		footprintz = 2,
+		maxslope = 22,
+		--slopeMod = 32,
+		maxwaterslope = 255,
+	},
 	HOVER3 = {
 		badslope = 22,
 		badwaterslope = 255,
@@ -125,6 +153,17 @@ local moveDatas = {
 		--slopeMod = 32,
 		maxwaterslope = 255,
 	},
+	-- lun/sokolov
+	HHOVER4 = {
+		badslope = 22,
+		badwaterslope = 255,
+		crushstrength = 252,
+		footprintx = 4,
+		footprintz = 4,
+		maxslope = 22,
+		--slopeMod = 32,
+		maxwaterslope = 255,
+	},
 	-- transports
 	HOVER4 = {
 		badslope = 22,
@@ -141,8 +180,8 @@ local moveDatas = {
 		badslope = 36,
 		badwaterslope = 255,
 		crushstrength = 25,
-		footprintx = 3,
-		footprintz = 3,
+		footprintx = 2,
+		footprintz = 2,
 		maxslope = 36,
 		--slopeMod = 32,
 		maxwaterslope = 255,
@@ -253,7 +292,7 @@ local moveDatas = {
 			maxValue = 0.7,
 		}
 	},
-	-- only used by some chickens
+	-- fido/dominator and some chickens
 	BOT4 = {
 		crushstrength = 25,
 		footprintx = 3,
@@ -338,8 +377,8 @@ local moveDatas = {
 	-- juggernaut
 	HBOT5 = {
 		crushstrength = 1400,
-		footprintx = 5,
-		footprintz = 5,
+		footprintx = 6,
+		footprintz = 6,
 		maxslope = 36,
 		maxwaterdepth = 30,
 		depthModParams = {

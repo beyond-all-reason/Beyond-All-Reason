@@ -25,7 +25,7 @@ return {
 		maxdamage = 2000,
 		maxvelocity = 1.5,
 		minwaterdepth = 20,
-		movementclass = "UBOAT3",
+		movementclass = "UBOAT4",
 		name = "Serpent",
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMSERP.s3o",

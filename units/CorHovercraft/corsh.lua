@@ -24,7 +24,7 @@ return {
 		maxslope = 16,
 		maxvelocity = 3.65,
 		maxwaterdepth = 0,
-		movementclass = "HOVER3",
+		movementclass = "HOVER2",
 		name = "Scrubber",
 		nochasecategory = "VTOL",
 		objectname = "Units/CORSH.s3o",

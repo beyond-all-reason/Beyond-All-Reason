@@ -30,7 +30,7 @@ return {
 		name = "Messenger",
 		nochasecategory = "VTOL",
 		objectname = "Units/CORMSHIP.s3o",
-		radardistance = 1400,
+		radardistance = 1000,
 		script = "Units/CORMSHIP.cob",
 		seismicsignature = 0,
 		selfdestructas = "largeexplosiongenericSelfd",

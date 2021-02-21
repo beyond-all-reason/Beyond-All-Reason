@@ -25,7 +25,7 @@ return {
 		maxslope = 10,
 		maxvelocity = 1.8,
 		maxwaterdepth = 12,
-		movementclass = "TANK2",
+		movementclass = "TANK3",
 		name = "Janus",
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMJANUS.s3o",

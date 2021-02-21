@@ -30,7 +30,7 @@ return {
 		maxslope = 16,
 		maxvelocity = 1.51,
 		maxwaterdepth = 0,
-		movementclass = "HHOVER3",
+		movementclass = "HHOVER4",
 		name = "Sokolov",
 		nochasecategory = "VTOL",
 		objectname = "Units/CORSOK.s3o",

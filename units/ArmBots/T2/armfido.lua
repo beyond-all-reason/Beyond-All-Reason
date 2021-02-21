@@ -25,7 +25,7 @@ return {
 		maxslope = 14,
 		maxvelocity = 2.3,
 		maxwaterdepth = 12,
-		movementclass = "BOT3",
+		movementclass = "BOT4",
 		name = "Fido",
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMFIDO.s3o",
