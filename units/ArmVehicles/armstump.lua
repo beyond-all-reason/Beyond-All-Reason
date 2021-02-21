@@ -26,7 +26,7 @@ return {
 		maxslope = 10,
 		maxvelocity = 2.53,
 		maxwaterdepth = 12,
-		movementclass = "TANK2",
+		movementclass = "TANK3",
 		name = "Stumpy",
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMSTUMP.s3o",

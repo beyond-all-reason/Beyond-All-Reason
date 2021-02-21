@@ -24,7 +24,7 @@ return {
 		maxslope = 16,
 		maxvelocity = 3.79,
 		maxwaterdepth = 0,
-		movementclass = "HOVER3",
+		movementclass = "HOVER2",
 		name = "Skimmer",
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMSH.s3o",

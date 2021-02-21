@@ -27,7 +27,7 @@ return {
 		maxslope = 10,
 		maxvelocity = 1.7,
 		maxwaterdepth = 8,
-		movementclass = "TANK2",
+		movementclass = "TANK3",
 		name = "Wolverine",
 		nochasecategory = "VTOL",
 		objectname = "Units/CORWOLV.s3o",

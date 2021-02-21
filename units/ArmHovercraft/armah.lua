@@ -25,7 +25,7 @@ return {
 		maxslope = 16,
 		maxvelocity = 2.95,
 		maxwaterdepth = 0,
-		movementclass = "HOVER3",
+		movementclass = "HOVER2",
 		name = "Swatter",
 		nochasecategory = "NOTAIR",
 		objectname = "Units/ARMAH.s3o",

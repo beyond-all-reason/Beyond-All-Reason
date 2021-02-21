@@ -27,7 +27,7 @@ return {
 		maxslope = 16,
 		maxvelocity = 1.67,
 		maxwaterdepth = 0,
-		movementclass = "HHOVER3",
+		movementclass = "HHOVER4",
 		name = "Lun",
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMLUN.s3o",

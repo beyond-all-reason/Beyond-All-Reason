@@ -25,7 +25,7 @@ return {
 		maxslope = 17,
 		maxvelocity = 1.35,
 		maxwaterdepth = 12,
-		movementclass = "TANK2",
+		movementclass = "TANK3",
 		name = "Leveler",
 		nochasecategory = "VTOL",
 		objectname = "Units/CORLEVLR.s3o",

@@ -37,7 +37,7 @@ return {
 		maxvelocity = 2.1,
 		metalstorage = 700,
 		minwaterdepth = 15,
-		movementclass = "BOAT7",
+		movementclass = "BOAT8",
 		name = "Colossus",
 		nochasecategory = "ALL",
 		objectname = "Units/ARMCARRY.s3o",

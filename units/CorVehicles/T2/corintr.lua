@@ -28,7 +28,7 @@ return {
 		maxdamage = 20000,
 		maxvelocity = 1.8,
 		maxwaterdepth = 255,
-		movementclass = "ATANK3",
+		movementclass = "ATANK4",
 		name = "Intruder",
 		objectname = "Units/CORINTR.s3o",
 		releaseheld = true,
