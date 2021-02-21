@@ -1,7 +1,7 @@
 function widget:GetInfo()
 	return {
 		name = "Chicken Stats Panel",
-		desc = "Shows statics and progress whhen fighting vs Chickens",
+		desc = "Shows statistics and progress when fighting vs Chickens",
 		author = "quantum",
 		date = "May 04, 2008",
 		license = "GNU GPL, v2 or later",
@@ -30,23 +30,13 @@ else
 	return false
 end
 
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
 if not Spring.GetGameRulesParam("difficulty") then
 	return false
 end
 
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
-local GetTimer = Spring.GetTimer
-local DiffTimers = Spring.DiffTimers
-local lastRulesUpdate = Spring.GetTimer()
 local GetGameSeconds = Spring.GetGameSeconds
-local GetGameRulesParam = Spring.GetGameRulesParam
 local Spring = Spring
-local gl, GL = gl, GL
+local gl = gl
 local widgetHandler = widgetHandler
 local math = math
 local table = table
@@ -72,20 +62,17 @@ local waveSpacingY = 7
 local moving
 local capture
 local gameInfo
-local waveY = 800
 local waveSpeed = 0.2
 local waveCount = 0
 local waveTime
 local enabled
 local gotScore
 local scoreCount = 0
-local queenAnger = 0
 
 local guiPanel --// a displayList
 local updatePanel
 local hasChickenEvent = false
 
-local red = "\255\255\001\001"
 local white = "\255\255\255\255"
 
 local difficulties = {
@@ -163,11 +150,7 @@ for _, t in ipairs(chickenColors) do
 	chickenColorSet[t[1]] = t[2]
 end
 
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
-
-function comma_value(amount)
+local function commaValue(amount)
 	local formatted = amount
 	local k
 	while true do
@@ -246,7 +229,7 @@ local function CreatePanelDisplayList()
 	font:Print(white .. Spring.I18N('ui.chickens.burrowKills') .. ": " .. gameInfo.roostKills, panelMarginX, PanelRow(5), panelFontSize, "")
 	local s = white .. Spring.I18N('ui.chickens.mode') .. ": " .. difficulties[gameInfo.difficulty]
 	if gotScore then
-		font:Print(white .. Spring.I18N('ui.chickens.score') .. ": " .. comma_value(scoreCount), 88, h - 170, panelFontSize "")
+		font:Print(white .. Spring.I18N('ui.chickens.score') .. ": " .. commaValue(scoreCount), 88, h - 170, panelFontSize "")
 	else
 		font:Print(white .. Spring.I18N('ui.chickens.mode') .. ": " .. difficulties[gameInfo.difficulty], 120, h - 170, panelFontSize, "")
 	end
@@ -291,11 +274,6 @@ local function Draw()
 	end
 end
 
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
-
 local function UpdateRules()
 	if not gameInfo then
 		gameInfo = {}
@@ -308,15 +286,6 @@ local function UpdateRules()
 	gameInfo.unitKills = MakeCountString('Kills', false)
 
 	updatePanel = true
-end
-
-local function MakeLine(chicken, n)
-	if n <= 0 then
-		return
-	end
-	local humanName = UnitDefNames[chicken].humanName
-	local color = chickenColorSet[chicken]
-	return color .. n .. " " .. humanName .. "s"
 end
 
 function ChickenEvent(chickenEventArgs)
@@ -339,10 +308,6 @@ function ChickenEvent(chickenEventArgs)
 		gotScore = chickenEventArgs.number
 	end
 end
-
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
 
 function widget:Initialize()
 	widget:ViewResize()
@@ -453,4 +418,3 @@ function widget:ViewResize()
 	x1 = viewSizeX + x1 + ((x1 / 2) * (widgetScale - 1))
 	y1 = viewSizeY + y1 + ((y1 / 2) * (widgetScale - 1))
 end
-
