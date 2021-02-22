@@ -126,17 +126,17 @@ function UnitDef_Post(name, uDef)
 	end
 
 	-- vision range
-	if uDef.sightdistance then
+	if Spring.GetModOptions and uDef.sightdistance then
 		local x = tonumber(Spring.GetModOptions().experimentallosrange) or 1
 		uDef.sightdistance = uDef.sightdistance*x
 	end
 
-	if uDef.airsightdistance then
+	if Spring.GetModOptions and uDef.airsightdistance then
 		local x = tonumber(Spring.GetModOptions().experimentallosrange) or 1
 		uDef.airsightdistance = uDef.airsightdistance*x
 	end
 
-	if uDef.radardistance then
+	if Spring.GetModOptions and uDef.radardistance then
 		local x = tonumber(Spring.GetModOptions().experimentalradarrange) or 1
 		uDef.radardistance = uDef.radardistance*x
 	end
