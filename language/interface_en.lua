@@ -491,6 +491,9 @@ return {
 					survival = 'Survival',
 				},
 			},
+			loadScreen = {
+				intelGpuWarning = '%{textColor}You are using the integrated %{warnColor}Intel graphics%{textColor} card.      Your experience might be sub optimal.',
+			}
 		}
 	}
 }
