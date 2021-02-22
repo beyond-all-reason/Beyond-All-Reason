@@ -578,15 +578,6 @@ return {
 			blue = 'blue',
 		},
 	},
-	initialspawn = {
-		ready = 'Ready',
-		gamestartingin = 'Game starting in',
-		seconds = 'seconds',
-		youneed = 'You need \255\255\255\255BARBARIAN\255\200\200\200, \255\255\255\255KAIK\255\200\200\200, \255\255\255\255Chickens\255\200\200\200, Scavengers \255\200\200\200or NullAI',
-		closingin = 'closing in...',
-		unsupportedai = 'Unsupported AI',
-		unsupportedengine = 'Unsupported engine\n\You need at least version',
-	},
 	replaceafkplayers = {
 		offertoplay = 'Offer to play',
 		withdrawoffer = 'Withdraw offer',
