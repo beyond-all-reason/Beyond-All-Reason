@@ -89,7 +89,7 @@ local startboxDListColor = 0
 local isSpec = Spring.GetSpectatingState() or Spring.IsReplay()
 local myTeamID = Spring.GetMyTeamID()
 
-local placeVoiceNotifTimer = os.clock() + 35
+local placeVoiceNotifTimer = os.clock() + 60	-- reset in initialize()
 local amPlaced = false
 
 local gaiaTeamID
@@ -249,6 +249,8 @@ function createInfotextList()
 end
 
 function widget:Initialize()
+	placeVoiceNotifTimer = os.clock() + 35
+
 	-- only show at the beginning
 	if (Spring.GetGameFrame() > 1) then
 		widgetHandler:RemoveWidget(self)
