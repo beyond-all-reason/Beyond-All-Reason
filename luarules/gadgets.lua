@@ -39,6 +39,7 @@ VFS.Include(HANDLER_DIR .. 'system.lua', nil, VFSMODE)
 VFS.Include(HANDLER_DIR .. 'callins.lua', nil, VFSMODE)
 VFS.Include(SCRIPT_DIR .. 'utilities.lua', nil, VFSMODE)
 VFS.Include("modules/flowui/flowui.lua", nil, VFSMODE)
+VFS.Include("modules/i18n/i18n.lua", nil, VFSMODE)
 
 
 local actionHandler = VFS.Include(HANDLER_DIR .. 'actions.lua', nil, VFSMODE)

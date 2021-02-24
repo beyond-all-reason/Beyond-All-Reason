@@ -499,16 +499,6 @@ local validAIs = {
 	"SimpleDefenderAI",
 }
 
-local texts = {		-- fallback (if you want to change this, also update: language/en.lua, or it will be overwritten)
-	ready = 'Ready',
-	gamestartingin = 'Game starting in',
-	seconds = 'seconds',
-	youneed = 'You need \255\255\255\255BARBARIAN\255\200\200\200, \255\255\255\255KAIK\255\200\200\200, \255\255\255\255Chickens\255\200\200\200, Scavengers \255\200\200\200or NullAI',
-	closingin = 'closing in...',
-	unsupportedai = 'Unsupportedai',
-	unsupportedengine = 'Unsupported engine\n\You need at least version',
-}
-
 local fontfile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 local vsx,vsy = Spring.GetViewGeometry()
 local fontfileScale = (0.5 + (vsx*vsy / 5700000))
@@ -650,10 +640,6 @@ function gadget:MouseRelease(x,y)
 end
 
 function gadget:Initialize()
-	if GG.lang then
-		texts = GG.lang.getText('initialspawn')
-	end
-
 	gadget:ViewResize(vsx, vsy)
 
 	-- add function to receive when startpoints were chosen
@@ -739,7 +725,7 @@ function gadget:DrawScreen()
 					end
 				end
 				font:Begin()
-				font:Print(colorString .. texts.ready, 0, -(readyH*0.2), 25*uiScale, "co")
+				font:Print(colorString .. Spring.I18N('ui.initialSpawn.ready'), 0, -(readyH*0.2), 25*uiScale, "co")
 				font:End()
 				gl.Color(1,1,1,1)
 			end
@@ -752,7 +738,7 @@ function gadget:DrawScreen()
 				else
 					colorString = "\255\255\240\180"
 				end
-				local text = colorString .. texts.gamestartingin.." " .. math.max(1,3-math.floor(timer)) .. " "..texts.seconds
+				local text = colorString ..  Spring.I18N('ui.initialSpawn.startCountdown', { time = math.max(1,3-math.floor(timer)) })
 				font:Begin()
 				font:Print(text, vsx*0.5 - font:GetTextWidth(text)/2*17, vsy*0.75, 17*uiScale, "o")
 				font:End()
@@ -773,9 +759,9 @@ function gadget:DrawScreen()
 		gl.Rect(0,0,vsx,vsy)
 		font:Begin()
 		if unsupportedAI then
-			font:Print("\255\200\200\200"..texts.unsupportedai.."  ("..unsupportedAI..")\n\n"..texts.youneed.."\n\n\255\130\130\130"..texts.closingin.." "..math.floor(timer3), vsx/2, vsy/2, vsx/95, "con")
+			font:Print("\255\200\200\200"..Spring.I18N('ui.initialSpawn.unsupportedai').."  ("..unsupportedAI..")\n\n"..Spring.I18N('ui.initialSpawn.youneed').."\n\n\255\130\130\130"..Spring.I18N('ui.initialSpawn.closingin').." "..math.floor(timer3), vsx/2, vsy/2, vsx/95, "con")
 		else
-			font:Print("\255\200\200\200"..texts.unsupportedengine.."  \255\255\255\255"..minEngineVersionTitle.."\n\n\255\130\130\130"..texts.closingin.." "..math.floor(timer3), vsx/2, vsy/2, vsx/95, "con")
+			font:Print("\255\200\200\200"..Spring.I18N('ui.initialSpawn.unsupportedengine').."  \255\255\255\255"..minEngineVersionTitle.."\n\n\255\130\130\130"..Spring.I18N('ui.initialSpawn.closingin').." "..math.floor(timer3), vsx/2, vsy/2, vsx/95, "con")
 		end
 		font:End()
 		if Script.LuaUI("GuishaderInsertRect") then
