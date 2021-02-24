@@ -494,14 +494,13 @@ return {
 			loadScreen = {
 				intelGpuWarning = '%{textColor}You are using the integrated %{warnColor}Intel graphics%{textColor} card.      Your experience might be sub optimal.',
 			},
-			initialspawn = {
+			initialSpawn = {
 				ready = 'Ready',
-				gamestartingin = 'Game starting in',
-				seconds = 'seconds',
+				startCountdown = 'Game starting in %{time} seconds',
 				youneed = 'You need \255\255\255\255BARBARIAN\255\200\200\200, \255\255\255\255KAIK\255\200\200\200, \255\255\255\255Chickens\255\200\200\200, Scavengers \255\200\200\200or NullAI',
 				closingin = 'closing in...',
 				unsupportedai = 'Unsupported AI',
-				unsupportedengine = 'Unsupported engine\n\You need at least version',
+				unsupportedengine = 'Unsupported engine\nYou need at least version',
 			},
 		}
 	}
