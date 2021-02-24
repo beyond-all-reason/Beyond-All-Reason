@@ -1,4 +1,4 @@
-Sound effects made for Beyond All Reason. By IceXuick, all rights reserved (CC BY NC ND)
+Sound effects made for Beyond All Reason. By IceXuick, all rights reserved (CC BY NC ND 4.0)
 Check https://github.com/beyond-all-reason/Beyond-All-Reason/tree/master/sounds for a complete list and modification dates.
 
 /sounds/atmos (Water Sound effects obtained from https://www.zapsplat.com)
