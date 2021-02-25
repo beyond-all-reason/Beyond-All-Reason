@@ -10,7 +10,46 @@ static-var  restore_delay, bAiming;
 // Signal definitions
 #define SIG_AIM				2
 #define SIG_AIM_3			4
+#define SIG_MOVE			8
+static-var oldheading, tilt, maxspeed;
 
+#define tiltspeed <0.75>
+#define maxtilt 20
+
+Steering(heading, steer, currentSpeed)
+{
+	signal SIG_MOVE;
+	set-signal-mask SIG_MOVE;
+	while(1)
+	{
+		heading = get HEADING;
+		steer = (heading - oldheading);
+		//get PRINT(heading,steer,tilt,oldheading);
+		currentSpeed =((get CURRENT_SPEED) * 100 / get MAX_SPEED);
+		if ((currentSpeed > 75) AND ((get ABS(steer)) > 150)) { //going fast can increase tilt
+			
+		//get PRINT(1111,currentSpeed, maxspeed);
+			if (steer < 5) tilt = tilt + 1;// tilt left
+			else tilt = tilt - 1;
+			
+		}
+		else
+		{ // slow will always decrease tilt, as will going flat
+		//get PRINT(8888,currentSpeed, maxspeed);
+			if (tilt > 1) tilt = tilt - 2;
+			if (tilt < -1) tilt = tilt + 2;
+		}
+		if (tilt > 20) tilt = 20;
+		if (tilt < -20) tilt = -20;
+		
+		turn base to z-axis tilt * tiltspeed now;
+		move base to y-axis ((tilt* tilt) * [0.005]) now;
+		 
+		
+		sleep 30;
+		oldheading = heading;
+	}
+}
 
 SmokeUnit(healthpercent, sleeptime, smoketype)
 {
@@ -98,6 +137,10 @@ Create()
 	restore_delay = 3000;
 	bAiming = FALSE;
 	hide emit_spark;
+	maxspeed = get MAX_SPEED;
+	oldheading = get HEADING;
+	tilt = 0;
+	
 	start-script SmokeUnit();
 	start-script Sparks();
 	return (0);
@@ -106,11 +149,17 @@ Create()
 StartMoving()
 {
 	spin wheels around x-axis speed <140.000000> accelerate <5.000000>;
+	
+	start-script Steering();
 }
 
 StopMoving()
 {
 	stop-spin wheels around x-axis decelerate <24.000000>;
+	signal SIG_MOVE;
+	tilt = 0;
+	turn base to z-axis <0> speed <180>;
+	move base to z-axis [0] speed [2];
 }
 
 SetMaxReloadTime(Func_Var_1)
