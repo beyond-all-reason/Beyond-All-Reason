@@ -631,7 +631,7 @@ Spring.FlowUI.Draw.Unit = function(px, py, sx, sy,  cs,  tl, tr, br, bl,  zoom, 
 	Spring.FlowUI.Draw.RectRound(px, sy-((sy-py)*0.4), sx, sy, cs, 1,1,0,0,{1,1,1,0}, {1,1,1,0.06})
 
 	-- lighten feather edges
-	local borderOpacity = 0.1
+	borderOpacity = borderOpacity or 0.1
 	local halfSize = ((sx-px) * 0.5)
 	Spring.FlowUI.Draw.RectRoundCircle(
 		px + halfSize,

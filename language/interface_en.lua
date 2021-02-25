@@ -92,6 +92,7 @@ return {
 			buildMenu = {
 				nextPage = 'Next page',
 				previousPage = 'Previous page',
+				disabled = 'disabled',
 			},
 			orderMenu = {
 				move = 'Move',

@@ -263,7 +263,7 @@ function wrap(str, limit)
 end
 
 
-local folder = ':l:LuaUI/Images/groupicons/'
+local folder = 'LuaUI/Images/groupicons/'
 local groups = {
 	energy = folder..'energy.png',
 	metal = folder..'metal.png',
@@ -290,6 +290,7 @@ local unitBuildPic = {}
 local unitEnergyCost = {}
 local unitMetalCost = {}
 local unitGroup = {}
+local unitRestricted = {}
 local isBuilder = {}
 local isFactory = {}
 local unitDescriptionLong = {}
@@ -364,6 +365,9 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	unitEnergyCost[unitDefID] = unitDef.energyCost
 	unitMetalCost[unitDefID] = unitDef.metalCost
 	unitBuildPic[unitDefID] = unitDef.buildpicname
+	if unitDef.restricted == 0 then -- or unitDef.name == 'armllt' then
+		unitRestricted[unitDefID] = true
+	end
 	if unitDef.buildSpeed > 0 and unitDef.buildOptions[1] then
 		isBuilder[unitDefID] = unitDef.buildOptions
 		unitGroup[unitDefID] = 'builder'
@@ -993,14 +997,18 @@ function drawBuildmenuBg()
 	UiElement(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], (posX > 0 and 1 or 0), 1, ((posY-height > 0 or posX <= 0) and 1 or 0), 0)
 end
 
-local function drawCell(cellRectID, usedZoom, cellColor, progress, highlightColor, edgeAlpha)
+local function drawCell(cellRectID, usedZoom, cellColor, progress, highlightColor, edgeAlpha, disabled)
 	local uDefID = cmds[cellRectID].id * -1
 
 	-- encapsulating cell background
 	--RectRound(cellRects[cellRectID][1]+cellPadding, cellRects[cellRectID][2]+cellPadding, cellRects[cellRectID][3]-cellPadding, cellRects[cellRectID][4]-cellPadding, cellSize*0.03, 1,1,1,1, {0.3,0.3,0.3,0.95},{0.22,0.22,0.22,0.95})
 
 	-- unit icon
-	glColor(1, 1, 1, 1)
+	if disabled then
+		glColor(0.4, 0.4, 0.4, 1)
+	else
+		glColor(1, 1, 1, 1)
+	end
 	--local textureDetail = math_floor(cellInnerSize * (1 + usedZoom) * texDetailMult)
 	--glTexture(':lr' .. textureDetail .. ',' .. textureDetail .. ':unitpics/' .. unitBuildPic[uDefID])
 	--glTexRect(cellRects[cellRectID][1]+cellPadding+iconPadding, cellRects[cellRectID][2]+cellPadding+iconPadding, cellRects[cellRectID][3]-cellPadding-iconPadding, cellRects[cellRectID][4]-cellPadding-iconPadding)
@@ -1011,10 +1019,10 @@ local function drawCell(cellRectID, usedZoom, cellColor, progress, highlightColo
 		cellRects[cellRectID][4] - cellPadding - iconPadding,
 		cornerSize, 1,1,1,1,
 		usedZoom,
-		nil, nil,
-		 ':lr' .. textureDetail .. ',' .. textureDetail .. ':unitpics/' .. unitBuildPic[uDefID],
-		((unitIconType[uDefID] and iconTypesMap[unitIconType[uDefID]]) and ':lr' .. radariconTextureDetail .. ',' .. radariconTextureDetail .. ':' .. iconTypesMap[unitIconType[uDefID]] or nil),
-		groups[unitGroup[uDefID]],
+		nil, disabled and 0 or nil,
+		':l' .. (disabled and 'g' or '') ..'r' .. textureDetail .. ',' .. textureDetail .. ':unitpics/' .. unitBuildPic[uDefID],
+		((unitIconType[uDefID] and iconTypesMap[unitIconType[uDefID]]) and ':l' .. (disabled and 't0.35,0.35,0.35' or '') ..'r' .. radariconTextureDetail .. ',' .. radariconTextureDetail .. ':' .. iconTypesMap[unitIconType[uDefID]] or nil),
+		groups[unitGroup[uDefID]] and ':l' .. (disabled and 'g:' or ':') ..groups[unitGroup[uDefID]] or nil,
 		{unitMetalCost[uDefID], unitEnergyCost[uDefID]},
 		cmds[cellRectID].params[1]
 	)
@@ -1023,7 +1031,7 @@ local function drawCell(cellRectID, usedZoom, cellColor, progress, highlightColo
 	if cellColor then
 		glBlending(GL_DST_ALPHA, GL_ONE_MINUS_SRC_COLOR)
 		glColor(cellColor[1], cellColor[2], cellColor[3], cellColor[4])
-		glTexture(':lr' .. textureDetail .. ',' .. textureDetail .. ':unitpics/' .. unitBuildPic[uDefID])
+		glTexture(':lr' .. (disabled and 'g' or '') .. textureDetail .. ',' .. textureDetail .. ':unitpics/' .. unitBuildPic[uDefID])
 		UiUnit(
 			cellRects[cellRectID][1] + cellPadding + iconPadding,
 			cellRects[cellRectID][2] + cellPadding + iconPadding,
@@ -1050,7 +1058,13 @@ local function drawCell(cellRectID, usedZoom, cellColor, progress, highlightColo
 	-- price
 	if showPrice then
 		--doCircle(x, y, z, radius, sides)
-		font2:Print("\255\245\245\245" .. unitMetalCost[uDefID] .. "\n\255\255\255\000" .. unitEnergyCost[uDefID], cellRects[cellRectID][1] + cellPadding + (cellInnerSize * 0.048), cellRects[cellRectID][2] + cellPadding + (priceFontSize * 1.35), priceFontSize, "o")
+		local text
+		if disabled then
+			text = "\255\125\125\125" .. unitMetalCost[uDefID] .. "\n\255\135\135\135"
+		else
+			text = "\255\245\245\245" .. unitMetalCost[uDefID] .. "\n\255\255\255\000"
+		end
+		font2:Print(text .. unitEnergyCost[uDefID], cellRects[cellRectID][1] + cellPadding + (cellInnerSize * 0.048), cellRects[cellRectID][2] + cellPadding + (priceFontSize * 1.35), priceFontSize, "o")
 	end
 
 	-- debug order value
@@ -1216,7 +1230,7 @@ function drawBuildmenu()
 				WG['buildmenu'].selectedID = uDefID
 			end
 
-			drawCell(cellRectID, usedZoom, cellIsSelected and { 1, 0.85, 0.2, 0.25 } or nil)
+			drawCell(cellRectID, usedZoom, cellIsSelected and { 1, 0.85, 0.2, 0.25 } or nil, nil, nil, nil, unitRestricted[uDefID])
 		end
 	end
 
@@ -1391,7 +1405,7 @@ function widget:DrawScreen()
 							local alt, ctrl, meta, shift = Spring.GetModKeyState()
 							if showTooltip and WG['tooltip'] and not meta then
 								-- when meta: unitstats does the tooltip
-								local text = "\255\215\255\215" .. unitHumanName[uDefID] .. "\n\255\240\240\240" .. unitTooltip[uDefID]
+								local text = "\255\215\255\215" .. unitHumanName[uDefID] .. (unitRestricted[uDefID] and "  \255\166\166\166("..Spring.I18N('ui.buildMenu.disabled')..")" or "").. "\n\255\240\240\240" .. unitTooltip[uDefID]
 								WG['tooltip'].ShowTooltip('buildmenu', text)
 							end
 
@@ -1469,39 +1483,42 @@ function widget:DrawScreen()
 							end
 							cellColor = { 1, 0.85, 0.2, 0.25 }
 						end
+						if not unitRestricted[uDefID] then
 
-						local unsetShowPrice, unsetShowRadarIcon, unsetShowGroupIcon
-						if not showPrice then
-							unsetShowPrice = true
-							showPrice = true
+							local unsetShowPrice, unsetShowRadarIcon, unsetShowGroupIcon
+							if not showPrice then
+								unsetShowPrice = true
+								showPrice = true
+							end
+							if not showRadarIcon then
+								unsetShowRadarIcon = true
+								showRadarIcon = true
+							end
+							if not showGroupIcon then
+								unsetShowGroupIcon = true
+								showGroupIcon = true
+							end
+							-- re-draw cell with hover zoom (and price shown)
+							drawCell(cellRectID, usedZoom, cellColor, nil, { cellColor[1], cellColor[2], cellColor[3], 0.045 + (usedZoom * 0.45) }, 0.15, unitRestricted[uDefID])
+
+							if unsetShowPrice then
+								showPrice = false
+								unsetShowPrice = nil
+							end
+							if unsetShowRadarIcon then
+								showRadarIcon = false
+								unsetShowRadarIcon = nil
+							end
+							if unsetShowGroupIcon then
+								showGroupIcon = false
+								unsetShowGroupIcon = nil
+							end
+							-- gloss highlight
+							--glBlending(GL_SRC_ALPHA, GL_ONE)
+							--RectRound(cellRects[cellRectID][1]+cellPadding, cellRects[cellRectID][4]-cellPadding-(cellInnerSize*0.5), cellRects[cellRectID][3]-cellPadding, cellRects[cellRectID][4]-cellPadding, cellSize*0.03, 1,1,0,0,{1,1,1,0.0}, {1,1,1,0.09})
+							--RectRound(cellRects[cellRectID][1]+cellPadding, cellRects[cellRectID][2]+cellPadding, cellRects[cellRectID][3]-cellPadding, cellRects[cellRectID][2]+cellPadding+(cellInnerSize*0.15), cellSize*0.03, 0,0,1,1,{1,1,1,0.07}, {1,1,1,0})
+							--glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 						end
-						if not showRadarIcon then
-							unsetShowRadarIcon = true
-							showRadarIcon = true
-						end
-						if not showGroupIcon then
-							unsetShowGroupIcon = true
-							showGroupIcon = true
-						end
-						-- re-draw cell with hover zoom (and price shown)
-						drawCell(cellRectID, usedZoom, cellColor, nil, { cellColor[1], cellColor[2], cellColor[3], 0.045 + (usedZoom * 0.45) }, 0.15)
-						if unsetShowPrice then
-							showPrice = false
-							unsetShowPrice = nil
-						end
-						if unsetShowRadarIcon then
-							showRadarIcon = false
-							unsetShowRadarIcon = nil
-						end
-						if unsetShowGroupIcon then
-							showGroupIcon = false
-							unsetShowGroupIcon = nil
-						end
-						-- gloss highlight
-						--glBlending(GL_SRC_ALPHA, GL_ONE)
-						--RectRound(cellRects[cellRectID][1]+cellPadding, cellRects[cellRectID][4]-cellPadding-(cellInnerSize*0.5), cellRects[cellRectID][3]-cellPadding, cellRects[cellRectID][4]-cellPadding, cellSize*0.03, 1,1,0,0,{1,1,1,0.0}, {1,1,1,0.09})
-						--RectRound(cellRects[cellRectID][1]+cellPadding, cellRects[cellRectID][2]+cellPadding, cellRects[cellRectID][3]-cellPadding, cellRects[cellRectID][2]+cellPadding+(cellInnerSize*0.15), cellSize*0.03, 0,0,1,1,{1,1,1,0.07}, {1,1,1,0})
-						--glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 					end
 				end
 			end
@@ -1919,7 +1936,7 @@ function widget:MousePress(x, y, button)
 			end
 			if not disableInput then
 				for cellRectID, cellRect in pairs(cellRects) do
-					if cmds[cellRectID].id and unitHumanName[-cmds[cellRectID].id] and IsOnRect(x, y, cellRect[1], cellRect[2], cellRect[3], cellRect[4]) then
+					if cmds[cellRectID].id and unitHumanName[-cmds[cellRectID].id] and IsOnRect(x, y, cellRect[1], cellRect[2], cellRect[3], cellRect[4]) and not unitRestricted[-cmds[cellRectID].id] then
 						if button ~= 3 then
 							Spring.PlaySoundFile(sound_queue_add, 0.75, 'ui')
 							if preGamestartPlayer then
