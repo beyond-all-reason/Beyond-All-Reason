@@ -264,7 +264,7 @@ if gadgetHandler:IsSyncedCode() then
 			local sameTeam = (teamID == otherTeamID)
 			local sameAllyTeam = (allyTeamID == select(6,Spring.GetTeamInfo(otherTeamID,false)))
 			if (sx>0) and tooClose and sameAllyTeam and not sameTeam then
-				Spring.SendMessageToPlayer(playerID,"You cannot place your start position too close to another player")
+				Spring.SendMessageToPlayer(playerID, Spring.I18N('ui.initialSpawn.tooClose'))
 				return false
 			end
 		end
@@ -541,7 +541,7 @@ else
 				readied = true
 				return true
 			else
-				Spring.Echo("Please choose a start point!")
+				Spring.Echo(Spring.I18N('ui.initialSpawn.choosePoint'))
 			end
 		end
 
@@ -549,7 +549,7 @@ else
 		if amNewbie then
 			local target,_ = Spring.TraceScreenRay(sx,sy)
 			if target == "ground" then
-				Spring.Echo("In this match, newbies (rank 0) will have a faction and startpoint chosen for them!")
+				Spring.Echo(Spring.I18N('ui.initialSpawn.newbiePlacer'))
 			end
 		end
 	end
