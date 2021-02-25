@@ -497,10 +497,6 @@ return {
 			initialSpawn = {
 				ready = 'Ready',
 				startCountdown = 'Game starting in %{time} seconds',
-				youneed = 'You need \255\255\255\255BARBARIAN\255\200\200\200, \255\255\255\255KAIK\255\200\200\200, \255\255\255\255Chickens\255\200\200\200, Scavengers \255\200\200\200or NullAI',
-				closingin = 'closing in...',
-				unsupportedai = 'Unsupported AI',
-				unsupportedengine = 'Unsupported engine\nYou need at least version',
 			},
 		}
 	}
