@@ -1,4 +1,3 @@
-
 function gadget:GetInfo()
 	return {
 		name	= 'Initial Spawn',
@@ -14,7 +13,6 @@ end
 
 -- Note: (31/03/13) coop_II deals with the extra startpoints etc needed for teamsIDs with more than one playerID.
 
-
 ----------------------------------------------------------------
 -- Synced
 ----------------------------------------------------------------
@@ -27,7 +25,6 @@ local spGetPlayerInfo = Spring.GetPlayerInfo
 local spGetTeamInfo = Spring.GetTeamInfo
 local spGetTeamRulesParam = Spring.GetTeamRulesParam
 local spSetTeamRulesParam = Spring.SetTeamRulesParam
-local spGetTeamStartPosition = Spring.GetTeamStartPosition
 local spGetAllyTeamStartBox = Spring.GetAllyTeamStartBox
 local spCreateUnit = Spring.CreateUnit
 local spGetGroundHeight = Spring.GetGroundHeight
@@ -49,7 +46,7 @@ local validStartUnits = {
 	[corcomDefID] = true,
 }
 local spawnTeams = {} -- spawnTeams[teamID] = allyID
-local nSpawnTeams
+local spawnTeamsCount
 
 --each player gets to choose a faction
 local playerStartingUnits = {} -- playerStartingUnits[unitID] = unitDefID
@@ -58,27 +55,24 @@ GG.playerStartingUnits = playerStartingUnits
 --each team gets one startpos. if coop mode is on, extra startpoints are placed in GG.coopStartPoints by coop
 local teamStartPoints = {} -- teamStartPoints[teamID] = {x,y,z}
 GG.teamStartPoints = teamStartPoints
-local startPointTable = {} --temporary, only for use within this gadget & its libs
+local startPointTable = {}
 
-local nAllyTeams
+local allyTeamsCount
 local allyTeams = {} --allyTeams[allyTeamID] is non-nil if this allyTeam will spawn at least one starting unit
 
 ----------------------------------------------------------------
 -- Start Point Guesser
 ----------------------------------------------------------------
-
 include("luarules/gadgets/lib_startpoint_guesser.lua") --start point guessing routines
 
 ----------------------------------------------------------------
 -- FFA Startpoints (modoption)
 ----------------------------------------------------------------
-
 -- ffaStartPoints is "global"
 local useFFAStartPoints = false
 if (tonumber(Spring.GetModOptions().ffa_mode) or 0) == 1 then
     useFFAStartPoints = true
 end
-
 
 function GetFFAStartPoints()
     include("luarules/configs/ffa_startpoints/ffa_startpoints.lua") -- if we have a ffa start points config for this map, use it
@@ -90,7 +84,6 @@ end
 ----------------------------------------------------------------
 -- NewbiePlacer (modoption)
 ----------------------------------------------------------------
-
 --Newbie Placer (prevents newbies from choosing their own a startpoint and faction)
 local NewbiePlacer
 local processedNewbies = false
@@ -117,7 +110,7 @@ function isPlayerNewbie(pID)
 end
 
 --a team is a newbie team if it contains at least one newbie player
-function isNewbie(teamID)
+function isTeamNewbie(teamID)
 	if not NewbiePlacer then return false end
 	local playerList = Spring.GetPlayerList(teamID) or {}
 	local isNewbie = false
@@ -130,22 +123,6 @@ function isNewbie(teamID)
 	end
 	return isNewbie
 end
-
-----------------------------------------------------------------
--- NoCloseSpawns (modoption)
-----------------------------------------------------------------
-
-local NoCloseSpawns
-local closeSpawnDist = 350
-local mapx = Game.mapX
-local mapz = Game.mapY -- misnomer in API
-local smallmap = (mapx^2 + mapz^2 < 6^2) --TODO: improve this
-if (Game.startPosType ~= 2) and smallmap then --don't load if modoptions says not too or if start pos placement is not 'choose in game' or if map is small
-	NoCloseSpawns = true
-else
-	NoCloseSpawns = false
-end
-
 
 ----------------------------------------------------------------
 -- Initialize
@@ -167,7 +144,7 @@ function gadget:Initialize()
 
 			--broadcast if newbie
 			local newbieParam
-			if isNewbie(teamID) then
+			if isTeamNewbie(teamID) then
 				newbieParam = 1
 			else
 				newbieParam = 0
@@ -181,16 +158,14 @@ function gadget:Initialize()
 	end
 	processedNewbies = true
 
-	-- count allyteams
-	nAllyTeams = 0
+	allyTeamsCount = 0
 	for k,v in pairs(allyTeams) do
-		nAllyTeams = nAllyTeams + 1
+		allyTeamsCount = allyTeamsCount + 1
 	end
 
-	-- count teams
-	nSpawnTeams = 0
+	spawnTeamsCount = 0
 	for k,v in pairs(spawnTeams) do
-		nSpawnTeams = nSpawnTeams + 1
+		spawnTeamsCount = spawnTeamsCount + 1
 	end
 
 	-- create the ffaStartPoints table, if we need it & can get it
@@ -199,7 +174,7 @@ function gadget:Initialize()
 	end
 	-- make the relevant part of ffaStartPoints accessible to all, if it is use-able
 	if ffaStartPoints then
-		GG.ffaStartPoints = ffaStartPoints[nAllyTeams] -- NOT indexed by allyTeamID
+		GG.ffaStartPoints = ffaStartPoints[allyTeamsCount] -- NOT indexed by allyTeamID
 	end
 
 	-- mark all players as 'not yet placed'
@@ -215,11 +190,9 @@ function gadget:Initialize()
 	end
 end
 
-
 ----------------------------------------------------------------
 -- Factions
 ----------------------------------------------------------------
-
 -- keep track of choosing faction ingame
 function gadget:RecvLuaMsg(msg, playerID)
 	local startUnit = tonumber(msg:match(changeStartUnitRegex))
@@ -233,11 +206,9 @@ function gadget:RecvLuaMsg(msg, playerID)
 	end
 end
 
-
 ----------------------------------------------------------------
 -- Startpoints
 ----------------------------------------------------------------
-
 function gadget:AllowStartPosition(playerID,teamID,readyState,x,y,z)
 	-- readyState:
 	-- 0: player did not place startpoint, is unready
@@ -286,6 +257,8 @@ function gadget:AllowStartPosition(playerID,teamID,readyState,x,y,z)
 	end
 
 	-- NoCloseSpawns
+	local closeSpawnDist = 350
+
 	for otherTeamID,startpoint in pairs(startPointTable) do
 		local sx,sz = startpoint[1],startpoint[2]
 		local tooClose = ((x-sx)^2+(z-sz)^2 <= closeSpawnDist^2)
@@ -316,28 +289,26 @@ function gadget:AllowStartPosition(playerID,teamID,readyState,x,y,z)
 	return true
 end
 
-
 ----------------------------------------------------------------
 -- Spawning
 ----------------------------------------------------------------
-
 function gadget:GameStart()
 
     -- ffa mode spawning
-    if useFFAStartPoints and ffaStartPoints and ffaStartPoints[nAllyTeams] and #(ffaStartPoints[nAllyTeams])==nAllyTeams then
+    if useFFAStartPoints and ffaStartPoints and ffaStartPoints[allyTeamsCount] and #(ffaStartPoints[allyTeamsCount])==allyTeamsCount then
 		-- cycle over ally teams and spawn starting units
-        local allyTeamSpawn = SetPermutedSpawns(nAllyTeams, allyTeams)
+        local allyTeamSpawn = SetPermutedSpawns(allyTeamsCount, allyTeams)
 			for teamID, allyTeamID in pairs(spawnTeams) do
-            SpawnFFAStartUnit(nAllyTeams, allyTeamSpawn[allyTeamID], teamID)
+            SpawnFFAStartUnit(allyTeamsCount, allyTeamSpawn[allyTeamID], teamID)
 			end
 			return
 		end
 
     -- use ffa mode startpoints for random spawning, if possible, but per team instead of per allyTeam
-    if Game.startPosType==1 and ffaStartPoints and ffaStartPoints[nSpawnTeams] and #(ffaStartPoints[nSpawnTeams])==nSpawnTeams then
-        local teamSpawn = SetPermutedSpawns(nSpawnTeams, spawnTeams)
+    if Game.startPosType==1 and ffaStartPoints and ffaStartPoints[spawnTeamsCount] and #(ffaStartPoints[spawnTeamsCount])==spawnTeamsCount then
+        local teamSpawn = SetPermutedSpawns(spawnTeamsCount, spawnTeams)
         for teamID, allyTeamID in pairs(spawnTeams) do
-            SpawnFFAStartUnit(nSpawnTeams, teamSpawn[teamID], teamID)
+            SpawnFFAStartUnit(spawnTeamsCount, teamSpawn[teamID], teamID)
         end
         return
 	end
@@ -394,7 +365,6 @@ function SpawnFFAStartUnit(nSpawns, spawnID, teamID)
 	SpawnStartUnit(teamID, x, z)
 end
 
-
 function SpawnTeamStartUnit(teamID, allyTeamID)
 	local x,_,z = Spring.GetTeamStartPosition(teamID)
 	local xmin, zmin, xmax, zmax = spGetAllyTeamStartBox(allyTeamID)
@@ -416,7 +386,6 @@ function SpawnTeamStartUnit(teamID, allyTeamID)
 	--spawn
 	SpawnStartUnit(teamID, x, z)
 end
-
 
 function SpawnStartUnit(teamID, x, z)
 	--get starting unit
@@ -447,25 +416,10 @@ function gadget:GameFrame()
 	gadgetHandler:RemoveGadget(self)
 end
 
-
 ----------------------------------------------------------------
 -- Unsynced
 else
 ----------------------------------------------------------------
-
-local validAIs = {
-	"Chicken:",
-	"KAIK",
-	"NullAI",
-	"newAI",
-	"ScavengersAI",
-	"STAI",
-	"Shard",
-	"SimpleAI",
-	"SimpleCheaterAI",
-	"SimpleDefenderAI",
-}
-
 local fontfile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 local vsx,vsy = Spring.GetViewGeometry()
 local fontfileScale = (0.5 + (vsx*vsy / 5700000))
@@ -580,7 +534,6 @@ function gadget:GameSetup(state,ready,playerStates)
 
 	return true, ready
 end
-
 
 function gadget:MousePress(sx,sy)
 	-- pressing ready
@@ -700,4 +653,3 @@ end
 ----------------------------------------------------------------
 end
 ----------------------------------------------------------------
-
