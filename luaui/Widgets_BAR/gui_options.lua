@@ -1120,6 +1120,24 @@ function DrawWindow()
 	font:End()
 end
 
+function updateGrabinput()
+	-- grabinput makes alt-tabbing harder, so loosen grip a bit when in lobby would be wise
+	if Spring.GetConfigInt('grabinput', 0) == 1 then
+		if chobbyInterface then
+			if enabledGrabinput then
+				enabledGrabinput = false
+				Spring.SendCommands("grabinput 0")
+			end
+		else
+			if not enabledGrabinput then
+				enabledGrabinput = true
+				Spring.SendCommands("grabinput 1")
+			end
+		end
+	end
+
+end
+
 local sec = 0
 local lastUpdate = 0
 --local minGroundDetail = 3
@@ -1276,6 +1294,7 @@ end
 function widget:RecvLuaMsg(msg, playerID)
 	if msg:sub(1, 18) == 'LobbyOverlayActive' then
 		chobbyInterface = (msg:sub(1, 19) == 'LobbyOverlayActive1')
+		updateGrabinput()
 		if isSinglePlayer and pauseGameWhenSingleplayer and not skipUnpauseOnHide then
 			local _, gameSpeed, isPaused = Spring.GetGameSpeed()
 			if chobbyInterface and isPaused then
@@ -3064,9 +3083,17 @@ function init()
 		  end,
 		},
 
-		{ id = "containmouse", group = "control", basic = true, widget = "Grabinput", name = texts.option.containmouse, type = "bool", value = GetWidgetToggleValue("Grabinput"), description = texts.option.containmouse_descr },
+		{ id = "containmouse", group = "control", basic = true, name = texts.option.containmouse, type = "bool", value = (Spring.GetConfigInt("grabinput", 0) ~= 0), description = texts.option.containmouse_descr ,
+			onload = function(i)
+				updateGrabinput()
+			end,
+			onchange = function(i, value)
+			  Spring.SendCommands("grabinput "..(value and 1 or 0))
+			  Spring.SetConfigInt("grabinput", (value and 1 or 0))
+		  end,
+		},
 
-		{ id = "screenedgemove", group = "control", basic = true, name = texts.option.screenedgemove, type = "bool", restart = true, value = tonumber(Spring.GetConfigInt("FullscreenEdgeMove", 1) or 1) == 1, description = texts.option.screenedgemove_descr,
+		  { id = "screenedgemove", group = "control", basic = true, name = texts.option.screenedgemove, type = "bool", restart = true, value = tonumber(Spring.GetConfigInt("FullscreenEdgeMove", 1) or 1) == 1, description = texts.option.screenedgemove_descr,
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("FullscreenEdgeMove", (value and 1 or 0))
 			  Spring.SetConfigInt("WindowedEdgeMove", (value and 1 or 0))
