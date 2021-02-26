@@ -498,6 +498,9 @@ return {
 			initialSpawn = {
 				ready = 'Ready',
 				startCountdown = 'Game starting in %{time} seconds',
+				choosePoint = 'Please choose a start point!',
+				tooClose = 'You cannot place your start position too close to another player',
+				newbiePlacer = 'In this match, newbies (rank 0) will have a faction and startpoint chosen for them!',
 			},
 		}
 	}
