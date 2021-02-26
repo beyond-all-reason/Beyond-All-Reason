@@ -449,8 +449,8 @@ function widget:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
 	end
 end
 
-function widget:UnitEnteredLos(unitID, unitDefID, unitTeam)
-	CheckCom(unitID, unitDefID, unitTeam)
+function widget:UnitEnteredLos(unitID, unitTeam)
+	CheckCom(unitID, GetUnitDefID(unitID), unitTeam)
 end
 
 function toggleNameScaling()

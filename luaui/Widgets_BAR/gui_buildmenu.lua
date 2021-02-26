@@ -365,7 +365,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	unitEnergyCost[unitDefID] = unitDef.energyCost
 	unitMetalCost[unitDefID] = unitDef.metalCost
 	unitBuildPic[unitDefID] = unitDef.buildpicname
-	if unitDef.restricted == 0 then -- or unitDef.name == 'armllt' then
+	if unitDef.restricted == 0 then--or unitDef.name == 'armllt' or unitDef.name == 'armmakr' then
 		unitRestricted[unitDefID] = true
 	end
 	if unitDef.buildSpeed > 0 and unitDef.buildOptions[1] then
@@ -1022,7 +1022,7 @@ local function drawCell(cellRectID, usedZoom, cellColor, progress, highlightColo
 		nil, disabled and 0 or nil,
 		':l' .. (disabled and 'g' or '') ..'r' .. textureDetail .. ',' .. textureDetail .. ':unitpics/' .. unitBuildPic[uDefID],
 		((unitIconType[uDefID] and iconTypesMap[unitIconType[uDefID]]) and ':l' .. (disabled and 't0.35,0.35,0.35' or '') ..'r' .. radariconTextureDetail .. ',' .. radariconTextureDetail .. ':' .. iconTypesMap[unitIconType[uDefID]] or nil),
-		groups[unitGroup[uDefID]] and ':l' .. (disabled and 'g:' or ':') ..groups[unitGroup[uDefID]] or nil,
+		groups[unitGroup[uDefID]] and ':l' .. (disabled and 'gt0.4,0.4,0.4:' or ':') ..groups[unitGroup[uDefID]] or nil,
 		{unitMetalCost[uDefID], unitEnergyCost[uDefID]},
 		cmds[cellRectID].params[1]
 	)

@@ -18,7 +18,6 @@ end
 	(parts that fail to be received are passed on to the next player/spec to re-send until everyone tried once)
 ]]
 
-
 if not gadgetHandler:IsSyncedCode() then
 
 	if Spring.IsReplay() then return end
@@ -94,6 +93,7 @@ if not gadgetHandler:IsSyncedCode() then
 	end
 
 	local function sendLog(frame, part, attempts)
+		--Spring.Echo(Spring.Utilities.json.encode(log[frame].parts[part]))
 		Spring.SendLuaRulesMsg('log' .. validation .. frame ..';'.. part ..';'.. (#log[frame].participants) ..';'..attempts ..';'.. VFS.ZlibCompress(Spring.Utilities.json.encode(log[frame].parts[part])))
 	end
 
@@ -219,7 +219,6 @@ if not gadgetHandler:IsSyncedCode() then
 else	-- SYNCED
 
 
-
 	local charset = {}  do -- [0-9a-zA-Z]
 		for c = 48, 57  do table.insert(charset, string.char(c)) end
 		for c = 65, 90  do table.insert(charset, string.char(c)) end
@@ -248,7 +247,7 @@ else	-- SYNCED
 
 	function gadget:RecvLuaMsg(msg, playerID)
 		if msg:sub(1,3)=="log" and msg:sub(4,5)==validation then
-			local params = explode(';', msg:sub(6,40))	-- 1=frame, 2=part, 3=numParts, 4=attempts, 5=gzipped-json
+			local params = explode(';', msg:sub(6, 40))	-- 1=frame, 2=part, 3=numParts, 4=attempts, 5=gzipped-json
 			SendToUnsynced("receivedPart", params[1], params[2], params[3], params[4])
 			return true
 		end

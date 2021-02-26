@@ -1833,8 +1833,7 @@ function widgetHandler:UnitFinished(unitID, unitDefID, unitTeam)
 	return
 end
 
-function widgetHandler:UnitFromFactory(unitID, unitDefID, unitTeam,
-									   factID, factDefID, userOrders)
+function widgetHandler:UnitFromFactory(unitID, unitDefID, unitTeam, factID, factDefID, userOrders)
 	for _, w in ipairs(self.UnitFromFactoryList) do
 		w:UnitFromFactory(unitID, unitDefID, unitTeam,
 			factID, factDefID, userOrders)
@@ -1849,8 +1848,7 @@ function widgetHandler:UnitDestroyed(unitID, unitDefID, unitTeam)
 	return
 end
 
-function widgetHandler:UnitExperience(unitID, unitDefID, unitTeam,
-									  experience, oldExperience)
+function widgetHandler:UnitExperience(unitID, unitDefID, unitTeam, experience, oldExperience)
 	for _, w in ipairs(self.UnitExperienceList) do
 		w:UnitExperience(unitID, unitDefID, unitTeam,
 			experience, oldExperience)
@@ -1895,8 +1893,7 @@ function widgetHandler:UnitCmdDone(unitID, unitDefID, unitTeam, cmdID, cmdTag, c
 	return
 end
 
-function widgetHandler:UnitDamaged(unitID, unitDefID, unitTeam,
-								   damage, paralyzer)
+function widgetHandler:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
 	for _, w in ipairs(self.UnitDamagedList) do
 		w:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
 	end

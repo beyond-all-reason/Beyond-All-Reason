@@ -37,6 +37,7 @@ local spGetGameFrame = Spring.GetGameFrame
 local gameframe = spGetGameFrame()
 
 local lockPlayerID
+local gaiaTeamID = Spring.GetGaiaTeamID()
 
 function addSound(name, file, minDelay, duration, message, unlisted)
 	Sound[name] = {file, minDelay, duration, message}
@@ -476,10 +477,10 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
 end
 
 
-function widget:UnitEnteredLos(unitID, allyTeam)
+function widget:UnitEnteredLos(unitID, unitTeam)
 	if not displayMessages and not spoken then return end
 
-	if spIsUnitAllied(unitID) then return end
+	if spIsUnitAllied(unitID) or gaiaTeamID(unitTeam) then return end
 
 	local udefID = spGetUnitDefID(unitID)
 
