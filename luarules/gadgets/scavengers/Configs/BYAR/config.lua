@@ -141,7 +141,7 @@ unitSpawnerModuleConfig = {
 	BossWaveTimeLeft					= 300,
 	aircraftchance 						= 6, -- higher number = lower chance
 	globalscoreperoneunit 				= 800/ScavUnitCountModoption,
-	spawnchance							= 480/ScavUnitSpawnFrequencyModoption,
+	spawnchance							= 360/ScavUnitSpawnFrequencyModoption,
 	beaconspawnchance					= 240,
 	beacondefences						= true,
 	minimumspawnbeacons					= teamcount,
@@ -198,35 +198,25 @@ end
 function SpawnBonusCommander(unitID, unitName, unitTeam)
 	if unitName == "armcom" or unitName == "corcom" then
 		local posx, posy, posz = Spring.GetUnitPosition(unitID)
+		Spring.CreateUnit("scavengerdroppodfriendly", posx-32, posy+48, posz, math_random(0,3), unitTeam)
+		Spring.CreateUnit("scavengerdroppodfriendly", posx+32, posy+48, posz, math_random(0,3), unitTeam)
 		if posy >= 0 then
-			Spring.SetUnitPosition(unitID, posx-32, posz)
+			--Spring.SetUnitPosition(unitID, posx-32, posz)
 			if unitName == "armcom" then
-				Spring.CreateUnit("armcv", posx+32, posy+48, posz-48, 1, unitTeam)
-				Spring.CreateUnit("armck", posx+32, posy+48, posz+48, 1, unitTeam)
-				Spring.CreateUnit("armdecom", posx+32, posy+48, posz, 0, unitTeam)
-				Spring.CreateUnit("armcv", posx-32, posy+48, posz-48, 3, unitTeam)
-				Spring.CreateUnit("armck", posx-32, posy+48, posz+48, 3, unitTeam)
+				Spring.CreateUnit("armcv", posx-32, posy+48, posz, 3, unitTeam)
+				Spring.CreateUnit("armck", posx+32, posy+48, posz, 3, unitTeam)
 			elseif unitName == "corcom" then
-				Spring.CreateUnit("corcv", posx+32, posy+48, posz-48, 1, unitTeam)
-				Spring.CreateUnit("corck", posx+32, posy+48, posz+48, 1, unitTeam)
-				Spring.CreateUnit("cordecom", posx+32, posy+48, posz, 0, unitTeam)
-				Spring.CreateUnit("corcv", posx-32, posy+48, posz-48, 3, unitTeam)
-				Spring.CreateUnit("corck", posx-32, posy+48, posz+48, 3, unitTeam)
+				Spring.CreateUnit("corcv", posx-32, posy+48, posz, 3, unitTeam)
+				Spring.CreateUnit("corck", posx+32, posy+48, posz, 3, unitTeam)
 			end
 		else
-			Spring.SetUnitPosition(unitID, posx-32, posz)
+			--Spring.SetUnitPosition(unitID, posx-32, posz)
 			if unitName == "armcom" then
-				Spring.CreateUnit("armca", posx+32, posy+48, posz-48, 1, unitTeam)
-				Spring.CreateUnit("armcs", posx+32, posy+48, posz+48, 1, unitTeam)
-				Spring.CreateUnit("armdecom", posx+32, posy+48, posz, 0, unitTeam)
-				Spring.CreateUnit("armca", posx-32, posy+48, posz-48, 3, unitTeam)
-				Spring.CreateUnit("armcs", posx-32, posy+48, posz+48, 3, unitTeam)
+				Spring.CreateUnit("armca", posx-32, posy+48, posz, 3, unitTeam)
+				Spring.CreateUnit("armcs", posx+32, posy+48, posz, 3, unitTeam)
 			elseif unitName == "corcom" then
-				Spring.CreateUnit("corca", posx+32, posy+48, posz-48, 1, unitTeam)
-				Spring.CreateUnit("corcs", posx+32, posy+48, posz+48, 1, unitTeam)
-				Spring.CreateUnit("cordecom", posx+32, posy+48, posz, 0, unitTeam)
-				Spring.CreateUnit("corca", posx-32, posy+48, posz-48, 3, unitTeam)
-				Spring.CreateUnit("corcs", posx-32, posy+48, posz+48, 3, unitTeam)
+				Spring.CreateUnit("corca", posx-32, posy+48, posz, 3, unitTeam)
+				Spring.CreateUnit("corcs", posx+32, posy+48, posz, 3, unitTeam)
 			end
 		end
 	end

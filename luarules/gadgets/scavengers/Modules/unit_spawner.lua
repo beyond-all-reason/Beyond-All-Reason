@@ -480,16 +480,16 @@ function UnitGroupSpawn(n)
 					local newposy = Spring.GetGroundHeight(posx, posz)
 					if posy >= -20 and newposy >= -20 then
 						if i then
-							QueueSpawn("scavengerdroppod_scav", posx, posy, posz, math_random(0,3),GaiaTeamID, n+(i*15))
-							QueueSpawn(groupunit[math.ceil(i/newTypeNumber)]..scavconfig.unitnamesuffix, posx, posy, posz, math_random(0,3),GaiaTeamID, n+90+(i*15))
+							QueueSpawn("scavengerdroppod_scav", posx, posy, posz, math_random(0,3),GaiaTeamID, n+(i*5))
+							QueueSpawn(groupunit[math.ceil(i/newTypeNumber)]..scavconfig.unitnamesuffix, posx, posy, posz, math_random(0,3),GaiaTeamID, n+90+(i*5))
 						else
 							QueueSpawn("scavengerdroppod_scav", posx, posy, posz, math_random(0,3),GaiaTeamID, n)
 							QueueSpawn(groupunit[math.ceil(i/newTypeNumber)]..scavconfig.unitnamesuffix, posx, posy, posz, math_random(0,3),GaiaTeamID, n+90)
 						end
 					elseif posy < -20 and newposy < -20 then
 						if i then
-							QueueSpawn("scavengerdroppod_scav", posx, posy, posz, math_random(0,3),GaiaTeamID, n+(i*15))
-							QueueSpawn(groupunit[math.ceil(i/newTypeNumber)]..scavconfig.unitnamesuffix, posx, posy, posz, math_random(0,3),GaiaTeamID, n+90+(i*15))
+							QueueSpawn("scavengerdroppod_scav", posx, posy, posz, math_random(0,3),GaiaTeamID, n+(i*5))
+							QueueSpawn(groupunit[math.ceil(i/newTypeNumber)]..scavconfig.unitnamesuffix, posx, posy, posz, math_random(0,3),GaiaTeamID, n+90+(i*5))
 						else
 							QueueSpawn("scavengerdroppod_scav", posx, posy, posz, math_random(0,3),GaiaTeamID, n)
 							QueueSpawn(groupunit[math.ceil(i/newTypeNumber)]..scavconfig.unitnamesuffix, posx, posy, posz, math_random(0,3),GaiaTeamID, n+90)

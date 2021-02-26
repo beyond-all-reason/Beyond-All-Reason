@@ -182,16 +182,16 @@ local options={
 		desc   = 'Scavengers Base Difficulty Level',
 		type   = 'list',
 		section = 'options_scavengers',
-		def  = "easy",
+		def  = "veryeasy",
 		items={
 			{key="noob", name="Noob", desc="Noob"},
+			{key="veryeasy", name="Very Easy", desc="Very Easy"},
 			{key="easy", name="Easy", desc="Easy"},
 			{key="medium", name="Medium", desc="Medium"},
 			{key="hard", name="Hard", desc="Hard"},
 			{key="veryhard", name="Very Hard", desc="Very Hard"},
+			{key="expert", name="Expert", desc="Expert"},
 			{key="brutal", name="Brutal", desc="You'll die"},
-			{key="insane", name="Insane", desc="You'll die, but harder."},
-			{key="impossible", name="Impossible", desc="You can't win this... seriously."},
 		}
 	},
 	{
@@ -905,6 +905,7 @@ local options={
 		step   = 0.01,
 	},
 
+	
 	{
 		key    = 'experimentalxpgain',
 		name   = 'XP Gain Multiplier',
@@ -916,7 +917,7 @@ local options={
 		max    = 10,
 		step   = 0.1,
 	},
-
+	--[[
 	{
 		key    = 'experimentalbuildrange',
 		name   = 'Build Range Multiplier',
@@ -940,7 +941,7 @@ local options={
 		max    = 10,
 		step   = 0.1,
 	},
-
+	]]
 	{
 		key    = 'experimentallosrange',
 		name   = 'Line of Sight Range Multiplier',

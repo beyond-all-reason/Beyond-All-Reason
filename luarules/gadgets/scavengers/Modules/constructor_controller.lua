@@ -79,7 +79,6 @@ function SpawnConstructor(n)
 			end
 		end
 		if canSpawnCommanderHere then
-			posradius = 48
 			--Spring.GiveOrderToUnit(pickedBeacon, CMD.SELFD,{}, {"shift"})
 			if not anothercommander then
 				ScavSendNotification("scav_scavcomdetected")
@@ -105,14 +104,14 @@ function SpawnConstructor(n)
 			end
 			SpawnBeacon(n)
 			if constructorControllerModuleConfig.useresurrectors then
-				Spring.CreateUnit("scavengerdroppod_scav", posx+posradius, posy, posz, math_random(0,3),GaiaTeamID)
-				Spring.CreateUnit("scavengerdroppod_scav", posx-posradius, posy, posz, math_random(0,3),GaiaTeamID)
-				Spring.CreateUnit("scavengerdroppod_scav", posx, posy, posz+posradius, math_random(0,3),GaiaTeamID)
-				Spring.CreateUnit("scavengerdroppod_scav", posx, posy, posz-posradius, math_random(0,3),GaiaTeamID)
-				Spring.CreateUnit("scavengerdroppod_scav", posx+posradius, posy, posz+posradius, math_random(0,3),GaiaTeamID)
-				Spring.CreateUnit("scavengerdroppod_scav", posx-posradius, posy, posz+posradius, math_random(0,3),GaiaTeamID)
-				Spring.CreateUnit("scavengerdroppod_scav", posx-posradius, posy, posz-posradius, math_random(0,3),GaiaTeamID)
-				Spring.CreateUnit("scavengerdroppod_scav", posx+posradius, posy, posz-posradius, math_random(0,3),GaiaTeamID)
+				Spring.CreateUnit("scavengerdroppod_scav", posx+32, posy, posz, math_random(0,3),GaiaTeamID)
+				Spring.CreateUnit("scavengerdroppod_scav", posx-32, posy, posz, math_random(0,3),GaiaTeamID)
+				Spring.CreateUnit("scavengerdroppod_scav", posx, posy, posz+32, math_random(0,3),GaiaTeamID)
+				Spring.CreateUnit("scavengerdroppod_scav", posx, posy, posz-32, math_random(0,3),GaiaTeamID)
+				Spring.CreateUnit("scavengerdroppod_scav", posx+32, posy, posz+32, math_random(0,3),GaiaTeamID)
+				Spring.CreateUnit("scavengerdroppod_scav", posx-32, posy, posz+32, math_random(0,3),GaiaTeamID)
+				Spring.CreateUnit("scavengerdroppod_scav", posx-32, posy, posz-32, math_random(0,3),GaiaTeamID)
+				Spring.CreateUnit("scavengerdroppod_scav", posx+32, posy, posz-32, math_random(0,3),GaiaTeamID)
 				if posy > 0 then
 					local r2 = Resurrectors[math_random(1,#Resurrectors)]
 					QueueSpawn(r2..scavconfig.unitnamesuffix, posx+32, posy, posz, math_random(0,3),GaiaTeamID,n+90+1)
@@ -129,6 +128,10 @@ function SpawnConstructor(n)
 					QueueSpawn(r3..scavconfig.unitnamesuffix, posx-32, posy, posz-32, math_random(0,3),GaiaTeamID,n+90+2)
 					QueueSpawn(r3..scavconfig.unitnamesuffix, posx-32, posy, posz+32, math_random(0,3),GaiaTeamID,n+90+3)
 					QueueSpawn(r3..scavconfig.unitnamesuffix, posx+32, posy, posz-32, math_random(0,3),GaiaTeamID,n+90+4)
+					QueueSpawn(r3..scavconfig.unitnamesuffix, posx+32, posy, posz+32, math_random(0,3),GaiaTeamID,n+90+5)
+					QueueSpawn(r3..scavconfig.unitnamesuffix, posx-32, posy, posz-32, math_random(0,3),GaiaTeamID,n+90+6)
+					QueueSpawn(r3..scavconfig.unitnamesuffix, posx-32, posy, posz+32, math_random(0,3),GaiaTeamID,n+90+7)
+					QueueSpawn(r3..scavconfig.unitnamesuffix, posx+32, posy, posz-32, math_random(0,3),GaiaTeamID,n+90+8)
 				end
 			end
 			constructortimer = 0
@@ -237,4 +240,49 @@ function ConstructNewBlueprint(n, scav)
 		-- local y = Spring.GetGroundHeight(x,z)
 		-- Spring.GiveOrderToUnit(scav, CMD.MOVE,{x,y,z}, {"shift"})
 	-- end
+end
+
+function SpawnResurrectorGroup(n)
+	if ScavSafeAreaExist then 
+		--ResurrectorSpawnCount = math.ceil(math.random(0,math.ceil(teamcount*spawnmultiplier))+1)
+		local spawnTier = math.random(1,100)
+		if spawnTier <= TierSpawnChances.T0 then
+			ResurrectorSpawnCount = 1
+		elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 then
+			ResurrectorSpawnCount = math.random(1,2)
+		elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 then
+			ResurrectorSpawnCount = math.random(3,5)
+		elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 then
+			ResurrectorSpawnCount = math.random(6,10)
+		elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 + TierSpawnChances.T4 then
+			ResurrectorSpawnCount = math.random(11,20)
+		else
+			ResurrectorSpawnCount = 0
+		end
+		if ResurrectorSpawnCount == 0 then
+			return
+		end
+		local posx = math.random(ScavSafeAreaMinX, ScavSafeAreaMaxX)
+		local posz = math.random(ScavSafeAreaMinZ, ScavSafeAreaMaxZ)
+		local posy = Spring.GetGroundHeight(posx, posz)
+		local posradius = 32
+		for a = 1,100 do
+			canSpawnHere = posCheck(posx, posy, posz, posradius)
+			if canSpawnHere == true then
+				canSpawnHere = posOccupied(posx, posy, posz, posradius)
+			end
+			if canSpawnHere == true then
+				for y = 1,ResurrectorSpawnCount do
+					if posy > -20 then
+						local r2 = Resurrectors[math_random(1,#Resurrectors)]
+						QueueSpawn(r2..scavconfig.unitnamesuffix, posx, posy, posz, math_random(0,3),GaiaTeamID,n+(y*1)+90)
+					else
+						local r3 = ResurrectorsSea[math_random(1,#ResurrectorsSea)]
+						QueueSpawn(r3..scavconfig.unitnamesuffix, posx, posy, posz, math_random(0,3),GaiaTeamID,n+(y*1)+90)
+					end
+				end
+				break
+			end
+		end
+	end
 end

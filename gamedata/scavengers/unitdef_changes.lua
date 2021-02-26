@@ -7,23 +7,23 @@
 
 customDefs = {}
 
-scavDifficulty = (Spring.GetModOptions and Spring.GetModOptions().scavdifficulty) or "easy" -- mission editor compat
+scavDifficulty = (Spring.GetModOptions and Spring.GetModOptions().scavdifficulty) or "veryeasy"
 if scavDifficulty == "noob" then
 	ScavDifficultyMultiplier = 0.1
-elseif scavDifficulty == "easy" then
+elseif scavDifficulty == "veryeasy" then
 	ScavDifficultyMultiplier = 0.5
+elseif scavDifficulty == "easy" then
+	ScavDifficultyMultiplier = 0.75
 elseif scavDifficulty == "medium" then
 	ScavDifficultyMultiplier = 1
 elseif scavDifficulty == "hard" then
-	ScavDifficultyMultiplier = 1.5
+	ScavDifficultyMultiplier = 1.25
 elseif scavDifficulty == "veryhard" then
+	ScavDifficultyMultiplier = 1.5
+elseif scavDifficulty == "expert" then
 	ScavDifficultyMultiplier = 2
 elseif scavDifficulty == "brutal" then
 	ScavDifficultyMultiplier = 3
-elseif scavDifficulty == "insane" then
-	ScavDifficultyMultiplier = 4
-elseif scavDifficulty == "impossible" then
-	ScavDifficultyMultiplier = 5
 else
 	ScavDifficultyMultiplier = 0.5
 end

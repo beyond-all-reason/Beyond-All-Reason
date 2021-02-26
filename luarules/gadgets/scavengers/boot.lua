@@ -220,7 +220,7 @@ function gadget:GameFrame(n)
 		
 	end
 
-	if n == 1 and unitSpawnerModuleConfig.initialbonuscommander == true then
+	if n == 150 and unitSpawnerModuleConfig.initialbonuscommander == true then
 		InitialSpawnBonusCommanders()
 	end
 
@@ -362,6 +362,11 @@ function gadget:GameFrame(n)
 	if n%90 == 0 and scavconfig.modules.buildingSpawnerModule then --and (not FinalBossUnitSpawned) then
 		SpawnBlueprint(n)
 	end
+
+	if n%(math.ceil(300/spawnmultiplier)) == 0 and scavteamhasplayers == false and n > scavconfig.gracePeriod and constructorControllerModuleConfig.useresurrectors then
+		SpawnResurrectorGroup(n)
+	end
+
 	if n%30 == 0 then
 		if scavconfig.modules.unitSpawnerModule then --and (not FinalBossUnitSpawned) then
 			SpawnBeacon(n)
@@ -678,7 +683,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 		Spring.GiveOrderToUnit(unitID, CMD.SELFD,{}, {"shift"})
 	end
 	if unitTeam == GaiaTeamID then
-		Spring.SetUnitExperience(unitID, math_random() * (spawnmultiplier*0.5*unitControllerModuleConfig.veterancymultiplier))
+		Spring.SetUnitExperience(unitID, math_random() * (spawnmultiplier*0.01*unitControllerModuleConfig.veterancymultiplier))
 		if string.find(UnitName, scavconfig.unitnamesuffix) then
 			UnitSuffixLenght[unitID] = string.len(scavconfig.unitnamesuffix)
 		else

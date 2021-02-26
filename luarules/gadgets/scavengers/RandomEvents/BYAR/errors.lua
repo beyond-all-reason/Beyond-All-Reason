@@ -49,7 +49,7 @@ function RandomEventRebelion2(CurrentFrame)
 		end
 	end
 end
-table.insert(RandomEventsList,RandomEventRebelion2)
+--table.insert(RandomEventsList,RandomEventRebelion2)
 
 function RandomEventBlueScreenOfDeath(CurrentFrame)
 	ScavSendNotification("scav_eventmalfunctions")
@@ -71,4 +71,5 @@ function RandomEventBlueScreenOfDeath(CurrentFrame)
 		end
 	end
 end
+table.insert(RandomEventsList,RandomEventBlueScreenOfDeath)
 table.insert(RandomEventsList,RandomEventBlueScreenOfDeath)

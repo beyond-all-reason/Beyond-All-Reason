@@ -7,6 +7,8 @@ ConstructorsList = {
 CommandersList = {
 "armcom",
 "corcom",
+"armdecom",
+"cordecom",
 }
 
 ConstructorsCounter = {
