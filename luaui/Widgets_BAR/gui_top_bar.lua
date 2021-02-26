@@ -938,7 +938,7 @@ local function updateResbar(res)
 			else
 				cornerSize = 1.33 * widgetScale
 			end
-			UiSliderKnob(conversionIndicatorArea[1]+((conversionIndicatorArea[3]-conversionIndicatorArea[1])/2), conversionIndicatorArea[2]+((conversionIndicatorArea[4]-conversionIndicatorArea[2])/2), (conversionIndicatorArea[3]-conversionIndicatorArea[1])/2, { 0.95, 0.95, 0.7, 1 })
+			UiSliderKnob(math_floor(conversionIndicatorArea[1]+((conversionIndicatorArea[3]-conversionIndicatorArea[1])/2)), math_floor(conversionIndicatorArea[2]+((conversionIndicatorArea[4]-conversionIndicatorArea[2])/2)), math_floor((conversionIndicatorArea[3]-conversionIndicatorArea[1])/2), { 0.95, 0.95, 0.7, 1 })
 
 			if buttonBgtexOpacity > 0 then
 				gl.Texture(buttonBackgroundTexture)
@@ -959,7 +959,7 @@ local function updateResbar(res)
 		else
 			cornerSize = 1.33 * widgetScale
 		end
-		UiSliderKnob(shareIndicatorArea[res][1]+((shareIndicatorArea[res][3]-shareIndicatorArea[res][1])/2), shareIndicatorArea[res][2]+((shareIndicatorArea[res][4]-shareIndicatorArea[res][2])/2), (shareIndicatorArea[res][3]-shareIndicatorArea[res][1])/2, { 0.85, 0, 0, 1 })
+		UiSliderKnob(math_floor(shareIndicatorArea[res][1]+((shareIndicatorArea[res][3]-shareIndicatorArea[res][1])/2)), math_floor(shareIndicatorArea[res][2]+((shareIndicatorArea[res][4]-shareIndicatorArea[res][2])/2)), math_floor((shareIndicatorArea[res][3]-shareIndicatorArea[res][1])/2), { 0.85, 0, 0, 1 })
 
 		if buttonBgtexOpacity > 0 then
 			gl.Texture(buttonBackgroundTexture)
