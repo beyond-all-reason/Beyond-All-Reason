@@ -449,12 +449,10 @@ QueryTertiary(piecenum)
 	if( gun_3 == 0 )
 	{
 		piecenum = flarer1;
-		//gun_3=2;
 	}
 	else
 	{
 		piecenum = flarer2;
-		//gun_3=1;
 	}
 	
 }

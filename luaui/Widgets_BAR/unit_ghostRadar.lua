@@ -70,7 +70,7 @@ function widget:UnitEnteredLos(unitID, unitTeam)
 end
 
 
-function widget:UnitCreated(unitID, allyTeam)
+function widget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	--kill the dot info if this unitID gets reused on own team
 	if dots[unitID] ~= nil then
 		dots[unitID] = nil
@@ -83,7 +83,7 @@ function widget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDef
 	end
 end
 
-function widget:UnitLeftRadar(unitID, allyTeam)
+function widget:UnitLeftRadar(unitID, unitTeam)
 	if dots[unitID] ~= nil then
 		dots[unitID]["radar"] = false
 		if not dots[unitID]["los"] then -- not in LOS - forget unit type
@@ -92,7 +92,7 @@ function widget:UnitLeftRadar(unitID, allyTeam)
 	end
 end
 
-function widget:UnitLeftLos(unitID, allyTeam)
+function widget:UnitLeftLos(unitID, unitTeam)
 	if dots[unitID] ~= nil then
 		dots[unitID]["los"] = false
 		if not dots[unitID]["radar"] then -- not on radar - forget unit type

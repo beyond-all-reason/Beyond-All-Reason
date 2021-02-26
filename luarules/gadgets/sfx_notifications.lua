@@ -274,7 +274,7 @@ else
 		if not Spring.IsUnitInView(unitID) then
 
 			-- if own and not killed by yourself
-			if unitTeam == myTeamID and attackerTeam and attackerTeam ~= unitTeam then
+			if not isSpec and unitTeam == myTeamID and attackerTeam and attackerTeam ~= unitTeam then
 				if isRadar[unitDefID] then
 					local event = isRadar[unitDefID] > 2800 and 'AdvRadarLost' or 'RadarLost'
 					BroadcastEvent("EventBroadcast", event, tostring(myPlayerID))

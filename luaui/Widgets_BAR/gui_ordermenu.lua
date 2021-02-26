@@ -380,7 +380,7 @@ function widget:Update(dt)
 	if sec > 0.5 then
 		sec = 0
 		checkGuiShader()
-		
+
 		if WG['buildmenu'] and WG['buildmenu'].getBottomPosition then
 			local prevbuildmenuBottomPos = buildmenuBottomPos
 			buildmenuBottomPos = WG['buildmenu'].getBottomPosition()
@@ -528,7 +528,7 @@ local function drawCell(cell, zoom)
 					text = Spring.I18N('ui.orderMenu.' .. cmd.action)
 				end
 			end
-			
+
 			local fontSize = cellInnerWidth / font:GetTextWidth('  ' .. text .. ' ') * math_min(1, (cellInnerHeight / (rows * 6)))
 			if fontSize > cellInnerWidth / 7 then
 				fontSize = cellInnerWidth / 7
@@ -861,6 +861,7 @@ end
 
 function widget:SelectionChanged(sel)
 	clickCountDown = 2
+	clickedCellDesiredState = nil
 end
 
 function widget:GetConfigData()

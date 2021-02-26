@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, column, turret, barrel1,barrel2;
+piece  base, column, turret, barrel1, barrel2, flare1, flare2;
 
 static-var  Static_Var_1, restore_delay, Static_Var_3, Static_Var_4, Static_Var_5,
             gun_1, Static_Var_7, Static_Var_8, statechg_DesiredState, statechg_StateChanging;
@@ -170,11 +170,11 @@ QueryPrimary(piecenum)
 {
 	if( gun_1 == 0 )
 	{
-		piecenum = barrel1;
+		piecenum = flare1;
 	}
 	if( gun_1 == 1 )
 	{
-		piecenum = barrel2;
+		piecenum = flare2;
 	}
 }
 
