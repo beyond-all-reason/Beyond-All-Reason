@@ -1120,9 +1120,9 @@ function DrawWindow()
 	font:End()
 end
 
-function updateGrabinput()
+local function updateGrabinput()
 	-- grabinput makes alt-tabbing harder, so loosen grip a bit when in lobby would be wise
-	if Spring.GetConfigInt('grabinput', 0) == 1 then
+	if Spring.GetConfigInt('grabinput', 1) == 1 then
 		if chobbyInterface then
 			if enabledGrabinput then
 				enabledGrabinput = false
@@ -3083,7 +3083,7 @@ function init()
 		  end,
 		},
 
-		{ id = "containmouse", group = "control", basic = true, name = texts.option.containmouse, type = "bool", value = (Spring.GetConfigInt("grabinput", 0) ~= 0), description = texts.option.containmouse_descr ,
+		{ id = "containmouse", group = "control", basic = true, name = texts.option.containmouse, type = "bool", value = (Spring.GetConfigInt("grabinput", 1) ~= 0), description = texts.option.containmouse_descr ,
 			onload = function(i)
 				updateGrabinput()
 			end,
@@ -5421,6 +5421,8 @@ function widget:Initialize()
 	if WG['lang'] then
 		texts = WG['lang'].getText('options')
 	end
+
+	updateGrabinput()
 
 	widget:ViewResize()
 
