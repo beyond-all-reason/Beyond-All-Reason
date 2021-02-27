@@ -578,14 +578,6 @@ return {
 			blue = 'blue',
 		},
 	},
-	replaceafkplayers = {
-		offertoplay = 'Offer to play',
-		withdrawoffer = 'Withdraw offer',
-		substituteecho = 'If player(s) are afk when the game starts, you might be used as a substitute',
-		substitutewithdrawn = 'Your offer to substitute has been withdrawn',
-		substitutionoccurred = 'Substitution occurred, revealed start positions to all',
-		wassubstitutedinfor = 'was substituted in for',
-	},
 	awards = {
 		awards = 'Awards',
 		score = 'Score',
