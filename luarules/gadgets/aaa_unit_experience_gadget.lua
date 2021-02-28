@@ -111,8 +111,46 @@ function ApplyBonuses(unitID)
 
     end
     XPLevel[unitID] = XPLevel[unitID] + 1
+    
+
     local posx, posy, posz = Spring.GetUnitPosition(unitID)
-    Spring.SpawnCEG("scav-spawnexplo",posx,posy,posz,0,0,0)
+    local footprintx = UnitDefs[unitDefID].footprintx
+    local footprintz = UnitDefs[unitDefID].footprintz
+    if footprintx and footprintz then
+        if (footprintx > footprintz) or (footprintx == footprintz) then
+            if footprintx == 0 then
+                Spring.SpawnCEG("levelup_fp3",posx,posy,posz,0,0,0)
+            elseif footprintx == 1 then
+                Spring.SpawnCEG("levelup_fp1",posx,posy,posz,0,0,0)
+            elseif footprintx == 2 then
+                Spring.SpawnCEG("levelup_fp2",posx,posy,posz,0,0,0)
+            elseif footprintx == 3 then
+                Spring.SpawnCEG("levelup_fp3",posx,posy,posz,0,0,0)
+            elseif footprintx == 4 then
+                Spring.SpawnCEG("levelup_fp4",posx,posy,posz,0,0,0)
+            elseif footprintx >= 5 then
+                Spring.SpawnCEG("levelup_fp5",posx,posy,posz,0,0,0)
+            end
+
+        elseif footprintx < footprintz then
+            if footprintz == 0 then
+                Spring.SpawnCEG("levelup_fp3",posx,posy,posz,0,0,0)
+            elseif footprintz == 1 then
+                Spring.SpawnCEG("levelup_fp1",posx,posy,posz,0,0,0)
+            elseif footprintz == 2 then
+                Spring.SpawnCEG("levelup_fp2",posx,posy,posz,0,0,0)
+            elseif footprintz == 3 then
+                Spring.SpawnCEG("levelup_fp3",posx,posy,posz,0,0,0)
+            elseif footprintz == 4 then
+                Spring.SpawnCEG("levelup_fp4",posx,posy,posz,0,0,0)
+            elseif footprintz >= 5 then
+                Spring.SpawnCEG("levelup_fp5",posx,posy,posz,0,0,0)
+            end
+        end
+    else
+        Spring.SpawnCEG("levelup_fp3",posx,posy,posz,0,0,0)
+    end
+    --Spring.SpawnCEG("scav-spawnexplo",posx,posy,posz,0,0,0)
 end
 
 
