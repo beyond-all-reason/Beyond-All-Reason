@@ -4,7 +4,7 @@ return {
 		brakerate = 0.11054,
 		buildangle = 16384,
 		buildcostenergy = 1450,
-		buildcostmetal = 150,
+		buildcostmetal = 145,
 		buildpic = "CORESUPP.PNG",
 		buildtime = 2350,
 		canmove = true,
