@@ -917,6 +917,19 @@ local options={
 		max    = 10,
 		step   = 0.1,
 	},
+
+	{
+		key    = 'experimentalxpsystem',
+		name   = 'New XP System',
+		desc   = 'New XP System',
+		type   = 'list',
+		section = 'options_experimental',
+		def  = "disabled",
+		items={
+			{key="disabled", name="Disabled", desc="Using old XP system"},
+			{key="enabled", name="Enabled", desc="Using new XP system"},
+		}
+	},
 	--[[
 	{
 		key    = 'experimentalbuildrange',
