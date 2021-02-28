@@ -502,6 +502,14 @@ return {
 				tooClose = 'You cannot place your start position too close to another player',
 				newbiePlacer = 'In this match, newbies (rank 0) will have a faction and startpoint chosen for them!',
 			},
+			substitutePlayers = {
+				offer = 'Offer to play',
+				withdraw = 'Withdraw offer',
+				substitutionMessage = 'If player(s) are afk when the game starts, you might be used as a substitute',
+				offerWithdrawn = 'Your offer to substitute has been withdrawn',
+				substituted = 'Substitution occurred, revealed start positions to all',
+				substitutedPlayers = '%{incoming} was substituted in for %{outgoing}',
+			},
 		}
 	}
 }

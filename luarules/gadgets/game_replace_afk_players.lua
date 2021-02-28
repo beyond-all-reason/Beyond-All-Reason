@@ -25,15 +25,6 @@ if numPlayers <= 4 then
 	return
 end
 
-local texts = {        -- fallback (if you want to change this, also update: language/en.lua, or it will be overwritten)
-	offertoplay = 'Offer to play',
-	withdrawoffer = 'Withdraw offer',
-	substituteecho = 'If player(s) are afk when the game starts, you might be used as a substitute',
-	substitutewithdrawn = 'Your offer to substitute has been withdrawn',
-	substitutionoccurred = 'Substitution occurred, revealed start positions to all',
-	wassubstitutedinfor = 'was substituted in for',
-}
-
 if gadgetHandler:IsSyncedCode() then
 
 	-- TS difference required for substitutions
@@ -56,7 +47,6 @@ if gadgetHandler:IsSyncedCode() then
 
 		if msg == '\145' then
 			substitutes[playerID] = nil
-			--Spring.Echo("received removal", playerID)
 		end
 		if msg == '\144' then
 			-- do the same eligibility check as in unsynced
@@ -71,11 +61,9 @@ if gadgetHandler:IsSyncedCode() then
 					substitutes[playerID] = ts
 				end
 			end
-			--Spring.Echo("received", playerID, eligible, ts)
 		end
 
 		if checkChange then
-			--Spring.Echo("FindSubs", "RecvLuaMsg")
 			FindSubs(false)
 		end
 	end
@@ -101,8 +89,6 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function FindSubs(real)
-		--Spring.Echo("FindSubs", "real=", real)
-
 		-- make a copy of the substitutes table
 		local substitutesLocal = {}
 		local i = 0
@@ -111,10 +97,6 @@ if gadgetHandler:IsSyncedCode() then
 			i = i + 1
 		end
 		absent = {}
-
-		--local theSubs = ""
-		--for k,v in pairs(substitutesLocal) do theSubs = theSubs .. tostring(k) .. "[" .. v .. "]" .. "," end
-		--Spring.Echo("#subs: " .. i , theSubs)
 
 		-- make a list of absent players (only ones with valid ts)
 		for playerID, _ in pairs(players) do
@@ -128,7 +110,6 @@ if gadgetHandler:IsSyncedCode() then
 				local ts = tsMu and tonumber(tsMu:match("%d+%.?%d*"))
 				if ts then
 					absent[playerID] = ts
-					--Spring.Echo("absent:", playerID, ts)
 				end
 			end
 			-- if present, tell LuaUI that won't be substituted
@@ -136,7 +117,6 @@ if gadgetHandler:IsSyncedCode() then
 				Spring.SetGameRulesParam("Player" .. playerID .. "willSub", 0)
 			end
 		end
-		--Spring.Echo("#absent: " .. #absent)
 
 		-- for each one, try and find a suitable replacement & substitute if so
 		for playerID, ts in pairs(absent) do
@@ -154,8 +134,6 @@ if gadgetHandler:IsSyncedCode() then
 					end
 				end
 			end
-			--Spring.Echo("ideal: " .. #idealSubs .. " for pID " .. playerID)
-			--Spring.Echo("valid: " .. #validSubs .. " for pID " .. playerID)
 
 			local wouldSub = false -- would we substitute this player if the game started now
 			if #validSubs > 0 then
@@ -163,13 +141,10 @@ if gadgetHandler:IsSyncedCode() then
 				local sID
 				if #idealSubs > 0 then
 					sID = (#idealSubs > 1) and idealSubs[math.random(1, #idealSubs)] or idealSubs[1]
-					--Spring.Echo("picked ideal sub", sID)
 				else
 					sID = (#validSubs > 1) and validSubs[math.random(1, #validSubs)] or validSubs[1]
-					--Spring.Echo("picked valid sub", sID)
 				end
 
-				--Spring.Echo("real", real)
 				if real then
 					-- do the replacement
 					local teamID = players[playerID]
@@ -179,14 +154,13 @@ if gadgetHandler:IsSyncedCode() then
 
 					local incoming, _ = Spring.GetPlayerInfo(sID, false)
 					local outgoing, _ = Spring.GetPlayerInfo(playerID, false)
-					Spring.Echo(incoming .. ' '..texts.wassubstitutedinfor..' ' .. outgoing)
+					Spring.Echo(Spring.I18N('ui.substitutePlayers.substitutedPlayers', { incoming = incoming, outgoing = outgoing }))
 				end
 				substitutesLocal[sID] = nil
 				wouldSub = true
 			end
 
 			-- tell luaui that if would substitute if the game started now
-			--Spring.Echo("wouldSub: " .. (sID or "-1") .. " for pID " .. playerID)
 			Spring.SetGameRulesParam("Player" .. playerID .. "willSub", wouldSub and 1 or 0)
 		end
 
@@ -236,9 +210,6 @@ if gadgetHandler:IsSyncedCode() then
 			CheckJoined() -- there is no PlayerChanged or PlayerAdded in synced code
 		end
 	end
-
-
-	---------------------------
 
 	function CheckJoined()
 		local pList = SpGetPlayerList(true)
@@ -346,11 +317,6 @@ else
 	end
 
 	function gadget:Initialize()
-
-		if GG.lang then
-			texts = GG.lang.getText('replaceafkplayers')
-		end
-
 		if isReplay or (tonumber(Spring.GetModOptions().ffa_mode) or 0) == 1 or Spring.GetGameFrame() > 6 then
 			gadgetHandler:RemoveGadget() -- don't run in FFA mode
 			return
@@ -360,10 +326,8 @@ else
 		--gadgetHandler:AddSyncAction("ForceSpec", ForceSpec)
 
 		-- match the equivalent check in synced
-		--local customtable = select(11,Spring.GetPlayerInfo(myPlayerID))
 		local tsMu = "30"--customtable.skill
 		local tsSigma = "0"--customtable.skilluncertainty
-		--local ts = tsMu and tonumber(tsMu:match("%d+%.?%d*"))
 		tsSigma = tonumber(tsSigma)
 		eligible = tsMu and tsSigma and (tsSigma <= 2) and (not string.find(tsMu, ")")) and spec
 
@@ -397,9 +361,9 @@ else
 			end
 			local textString
 			if not offer then
-				textString = texts.offertoplay
+				textString = Spring.I18N('ui.substitutePlayers.offer')
 			else
-				textString = texts.withdrawoffer
+				textString = Spring.I18N('ui.substitutePlayers.withdraw')
 			end
 			font:Begin()
 			font:Print(colorString .. textString, -((bW / 2) - 12.5), -((bH / 2) - 9.5), 19, "o")
@@ -419,17 +383,16 @@ else
 		-- pressing b
 		sx, sy = correctMouseForScaling(sx, sy)
 		if sx > bX - bgMargin and sx < bX + bW + bgMargin and sy > bY - bgMargin and sy < bY + bH + bgMargin and eligible then
-			--Spring.Echo("sent", myPlayerID, ts)
 			if not offer then
 				Spring.SendLuaRulesMsg('\144')
-				Spring.Echo(texts.substituteecho)
+				Spring.Echo(Spring.I18N('ui.substitutePlayers.substitutionMessage'))
 				offer = true
 				bW = 160
 				MakeButton()
 				return true
 			else
 				Spring.SendLuaRulesMsg('\145')
-				Spring.Echo(texts.substitutewithdrawn)
+				Spring.Echo(Spring.I18N('ui.substitutePlayers.offerWithdrawn'))
 				offer = false
 				bW = 140
 				MakeButton()
@@ -477,7 +440,7 @@ else
 			return
 		end
 		if revealed then
-			Spring.Echo(texts.substitutionoccurred)
+			Spring.Echo(Spring.I18N('ui.substitutePlayers.substituted'))
 		end
 
 		gadgetHandler:RemoveCallIn("GameFrame")
