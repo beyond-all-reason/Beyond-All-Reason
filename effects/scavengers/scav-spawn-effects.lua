@@ -214,21 +214,21 @@ return {
         useairlos          = false,
       },
     },
-    shockwave = {
-        class              = [[CSpherePartSpawner]],
-            count              = 1,
-            ground             = true,
-            water              = true,
-            underwater         = true,
-            air                = true,
-            properties = {
-                alpha           = 0.46,
-                ttl             = 8,
-                expansionSpeed  = 7,
-                color           = [[0.65, 0.15, 1]],
-                alwaysvisible      = true,
-            },
-    },
+    -- shockwave = {
+    --     class              = [[CSpherePartSpawner]],
+    --         count              = 1,
+    --         ground             = true,
+    --         water              = true,
+    --         underwater         = true,
+    --         air                = true,
+    --         properties = {
+    --             alpha           = 0.46,
+    --             ttl             = 8,
+    --             expansionSpeed  = 7,
+    --             color           = [[0.65, 0.15, 1]],
+    --             alwaysvisible      = true,
+    --         },
+    -- },
     
     clouddust = {
       air                = true,
