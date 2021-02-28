@@ -5,7 +5,7 @@ return {
 		buildcostenergy = 1500,
 		buildcostmetal = 75,
 		buildpic = "CORSH.PNG",
-		buildtime = 4079,
+		buildtime = 1500,
 		canmove = true,
 		category = "ALL HOVER MOBILE WEAPON NOTSUB NOTSHIP NOTAIR SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 1 0",

@@ -22,7 +22,7 @@ return {
 		idletime = 1800,
 		maxdamage = 1377,
 		maxslope = 16,
-		maxvelocity = 2.23,
+		maxvelocity = 2.333,
 		maxwaterdepth = 0,
 		movementclass = "HOVER3",
 		name = "Anaconda",
