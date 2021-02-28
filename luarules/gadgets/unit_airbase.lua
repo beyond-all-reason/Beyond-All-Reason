@@ -58,7 +58,7 @@ if gadgetHandler:IsSyncedCode() then
 	local isAirUnit = {}
 	local unitBuildtime = {}
 	for unitDefID, unitDef in pairs(UnitDefs) do
-		if unitDef.isAirUnit then
+		if unitDef.isAirUnit and unitDef.canFly then
 			isAirUnit[unitDefID] = true
 		end
 		unitBuildtime[unitDefID] = unitDef.buildTime
