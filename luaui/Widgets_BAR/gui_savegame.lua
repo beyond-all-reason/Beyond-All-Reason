@@ -262,10 +262,11 @@ end
 local options = {}
 
 function widget:TextCommand(msg)
-    Spring.Echo("Trying to save:",msg)
 		if string.sub(msg, 1, 8) == "savegame" then
-      local savefilename = string.sub(msg, 10)
-      SaveGame(savefilename, "BAR IS GREAT", true)
+		
+    		Spring.Echo("Trying to save:",msg)
+		  local savefilename = string.sub(msg, 10)
+		  SaveGame(savefilename, "BAR IS GREAT", true)
 		end
 end
 
