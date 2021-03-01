@@ -14,17 +14,17 @@ if Spring.GetModOptions() == nil or Spring.GetModOptions().scoremode == nil or S
 	return
 end
 
-local captureRadius = 1
-local startTime = 1
-local energyPerPoint = 1
-local dominationScore = 1
-local tugofWarModifier = 1
-local scoreModeAsString = 1
-local metalPerPoint = 1
-local limitScore = 1
-local captureTime = 1
-local captureBonus = 1
-local dominationScoreTime = 1
+--local captureRadius = 1
+--local startTime = 1
+--local energyPerPoint = 1
+--local dominationScore = 1
+--local tugofWarModifier = 1
+--local scoreModeAsString = 1
+--local metalPerPoint = 1
+--local limitScore = 1
+--local captureTime = 1
+--local captureBonus = 1
+--local dominationScoreTime = 1
 
 --[[
 -------------------
