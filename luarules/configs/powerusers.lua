@@ -2,6 +2,7 @@ return {
 	['[teh]Flow'] = {
 		give = true,
 		undo = true,
+		cmd = true,
 		devhelpers = true,
 		playerdata = true,
 		waterlevel = true,
@@ -9,6 +10,7 @@ return {
 	['Floris'] = {
 		give = true,
 		undo = true,
+		cmd = true,
 		devhelpers = true,
 		playerdata = true,
 		waterlevel = true,
@@ -16,6 +18,7 @@ return {
 	['IceXuick'] = {
 		give = true,
 		undo = true,
+		cmd = true,
 		devhelpers = true,
 		playerdata = true,
 		waterlevel = true,
@@ -23,6 +26,7 @@ return {
 	['[teh]Beherith'] = {
 		give = true,
 		undo = true,
+		cmd = true,
 		devhelpers = true,
 		playerdata = true,
 		waterlevel = true,

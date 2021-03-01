@@ -15,6 +15,7 @@ end
 local singleplayerPermissions = {
 	give = true,
 	undo = true,
+	cmd = true,
 	devhelpers = true,
 	waterlevel = true,
 	playerdata = false,

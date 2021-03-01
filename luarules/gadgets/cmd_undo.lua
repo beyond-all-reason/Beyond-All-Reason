@@ -165,7 +165,6 @@ if gadgetHandler:IsSyncedCode() then
 
 			local playername, _, spec = Spring.GetPlayerInfo(playerID,false)
 			local authorized = false
-			local authorized = false
 			if _G.permissions.undo[playername] then
 				authorized = true
 			end
