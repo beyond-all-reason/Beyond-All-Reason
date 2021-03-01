@@ -173,32 +173,11 @@ function BossSpecAbiFighterWave(n)
 		local nearestEnemy = Spring.GetUnitNearestEnemy(FinalBossUnitID, 3000, false)
 		if nearestEnemy then
 			--Spring.Echo("[Scavengers] Boss Fighter Reinforcements Activated")
-			local r = math_random(1,4)
 			local fighters = {"armhawk_scav", "corvamp_scav",}
 			local fighter = fighters[math_random(1,2)]
 			local bossx, bossy, bossz = Spring.GetUnitPosition(FinalBossUnitID)
 			for i = 1,3*BossFightCurrentPhase*spawnmultiplier do
-				if r == 1 then
-					local posx = 0
-					local posz = math.random(0,mapsizeZ)
-					local posy = Spring.GetGroundHeight(posx, posz)+1000
-					QueueSpawn(fighter, posx, posy, posz, math_random(0,3),GaiaTeamID, n+i+1)
-				elseif r == 2 then
-					local posx = mapsizeX
-					local posz = math.random(0,mapsizeZ)
-					local posy = Spring.GetGroundHeight(posx, posz)+1000
-					QueueSpawn(fighter, posx, posy, posz, math_random(0,3),GaiaTeamID, n+i+1)
-				elseif r == 3 then
-					local posx = math.random(0,mapsizeX)
-					local posz = 0
-					local posy = Spring.GetGroundHeight(posx, posz)+1000
-					QueueSpawn(fighter, posx, posy, posz, math_random(0,3),GaiaTeamID, n+i+1)
-				elseif r == 4 then
-					local posx = math.random(0,mapsizeX)
-					local posz = mapsizeZ
-					local posy = Spring.GetGroundHeight(posx, posz)+1000
-					QueueSpawn(fighter, posx, posy, posz, math_random(0,3),GaiaTeamID, n+i+1)
-				end
+				QueueSpawn(fighter, bossx+(math.random(-300, 300)), bossy+2000, bossz+(math.random(-300, 300)), math_random(0,3),GaiaTeamID, n+i+1)
 			end
 		end
 	end

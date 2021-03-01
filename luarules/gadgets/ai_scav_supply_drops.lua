@@ -250,96 +250,98 @@ function gadget:GameFrame(n)
 				local posx,posy,posz = Spring.GetUnitPosition(lootboxID)
 				--Spring.Echo("posx "..posx)
 				--Spring.Echo("posz "..posz)
-				unitsAround = Spring.GetUnitsInCylinder(posx, posz, 256)
-				--Spring.Echo("#unitsAround "..#unitsAround)
-				CapturingUnits = {}
-				CapturingUnitsTeam = {}
-				CapturingUnitsTeamTest = {}
-				local TeamsCapturing = 0
-				CapturingUnits[lootboxID] = 0
-	
-				for j = 1,#unitsAround do
-					local unitID = unitsAround[j]
-					local unitTeamID = spGetUnitTeam(unitID)
-					local unitAllyTeam = Spring.GetUnitAllyTeam(unitID)
-					local LuaAI = Spring.GetTeamLuaAI(unitTeamID)
-					local _,_,_,isAI,_,_ = Spring.GetTeamInfo(unitTeamID)
-					if (not LuaAI) and unitTeamID ~= lootboxTeamID and unitTeamID ~= Spring.GetGaiaTeamID() and (not isAI) then
-						captureraiTeam = false
-					else
-						captureraiTeam = false -- true
-					end
-					if not CapturingUnitsTeamTest[unitAllyTeam] then
-						CapturingUnitsTeamTest[unitAllyTeam] = true
-						if unitTeamID ~= lootboxTeamID and captureraiTeam == false then
-							TeamsCapturing = TeamsCapturing + 1
-							if TeamsCapturing > 1 then
-								break
+				if posx then
+					unitsAround = Spring.GetUnitsInCylinder(posx, posz, 256)
+					--Spring.Echo("#unitsAround "..#unitsAround)
+					CapturingUnits = {}
+					CapturingUnitsTeam = {}
+					CapturingUnitsTeamTest = {}
+					local TeamsCapturing = 0
+					CapturingUnits[lootboxID] = 0
+		
+					for j = 1,#unitsAround do
+						local unitID = unitsAround[j]
+						local unitTeamID = spGetUnitTeam(unitID)
+						local unitAllyTeam = Spring.GetUnitAllyTeam(unitID)
+						local LuaAI = Spring.GetTeamLuaAI(unitTeamID)
+						local _,_,_,isAI,_,_ = Spring.GetTeamInfo(unitTeamID)
+						if (not LuaAI) and unitTeamID ~= lootboxTeamID and unitTeamID ~= Spring.GetGaiaTeamID() and (not isAI) then
+							captureraiTeam = false
+						else
+							captureraiTeam = false -- true
+						end
+						if not CapturingUnitsTeamTest[unitAllyTeam] then
+							CapturingUnitsTeamTest[unitAllyTeam] = true
+							if unitTeamID ~= lootboxTeamID and captureraiTeam == false then
+								TeamsCapturing = TeamsCapturing + 1
+								if TeamsCapturing > 1 then
+									break
+								end
 							end
 						end
-					end
-					captureraiTeam = nil
-				end
-	
-				for j = 1,#unitsAround do
-					local unitID = unitsAround[j]
-					local unitTeamID = spGetUnitTeam(unitID)
-					if not CapturingUnitsTeam[unitTeamID] then
-						CapturingUnitsTeam[unitTeamID] = 0
-					end
-					local unitDefID = Spring.GetUnitDefID(unitID)
-					local LuaAI = Spring.GetTeamLuaAI(unitTeamID)
-					local _,_,_,isAI,_,_ = Spring.GetTeamInfo(unitTeamID)
-	
-					if (not LuaAI) and unitTeamID ~= lootboxTeamID and unitTeamID ~= Spring.GetGaiaTeamID() and (not isAI) then
-						captureraiTeam = false
-					else
-						captureraiTeam = false -- true
-					end
-	
-					if not CapturingUnitsTeam[unitTeamID] then
-						CapturingUnitsTeam[unitTeamID] = 0
-					end
-	
-					for k = 1,#LootboxCaptureExcludedUnits do
-						if UnitDefs[unitDefID].name == LootboxCaptureExcludedUnits[k] then
-							IsUnitExcluded = true
-							break
-						else
-							IsUnitExcluded = false
-						end
-					end
-					
-					if unitDefID == lootboxDefID then
-						CaptureProgressForLootboxes[lootboxID] = CaptureProgressForLootboxes[lootboxID] - 0.0005
-						--Spring.Echo("uncapturing myself")
-					elseif unitTeamID == lootboxTeamID and (unitDefID ~= lootboxDefID) then
-						CaptureProgressForLootboxes[lootboxID] = CaptureProgressForLootboxes[lootboxID] - 1
-						--Spring.Echo("uncapturing our beacon")
-					elseif captureraiTeam == false and unitTeamID ~= lootboxTeamID and unitTeamID ~= Spring.GetGaiaTeamID() and IsUnitExcluded == false and (not UnitDefs[unitDefID].canFly) then
-						CaptureProgressForLootboxes[lootboxID] = CaptureProgressForLootboxes[lootboxID] + ((UnitDefs[unitDefID].metalCost)/800)*0.01
-						CapturingUnitsTeam[unitTeamID] = CapturingUnitsTeam[unitTeamID] + 1
-						--Spring.Echo("capturing scav beacon")
-					end
-					if CaptureProgressForLootboxes[lootboxID] < 0 then
-						CaptureProgressForLootboxes[lootboxID] = 0
-						--Spring.Echo("capture below 0")
-					end
-					if CaptureProgressForLootboxes[lootboxID] > 1 then
-						CaptureProgressForLootboxes[lootboxID] = 1
-						--Spring.Echo("capture above 1")
-					end
-					Spring.SetUnitHealth(lootboxID, {capture = CaptureProgressForLootboxes[lootboxID]})
-	
-					if TeamsCapturing < 2 and captureraiTeam == false and CaptureProgressForLootboxes[lootboxID] >= 1 then
-						CaptureProgressForLootboxes[lootboxID] = 0
-						Spring.SetUnitHealth(lootboxID, {capture = 0})
-						Spring.TransferUnit(lootboxID, unitTeamID, true)
 						captureraiTeam = nil
-						break
 					end
-					captureraiTeam = nil
-					IsUnitExcluded = nil
+		
+					for j = 1,#unitsAround do
+						local unitID = unitsAround[j]
+						local unitTeamID = spGetUnitTeam(unitID)
+						if not CapturingUnitsTeam[unitTeamID] then
+							CapturingUnitsTeam[unitTeamID] = 0
+						end
+						local unitDefID = Spring.GetUnitDefID(unitID)
+						local LuaAI = Spring.GetTeamLuaAI(unitTeamID)
+						local _,_,_,isAI,_,_ = Spring.GetTeamInfo(unitTeamID)
+		
+						if (not LuaAI) and unitTeamID ~= lootboxTeamID and unitTeamID ~= Spring.GetGaiaTeamID() and (not isAI) then
+							captureraiTeam = false
+						else
+							captureraiTeam = false -- true
+						end
+		
+						if not CapturingUnitsTeam[unitTeamID] then
+							CapturingUnitsTeam[unitTeamID] = 0
+						end
+		
+						for k = 1,#LootboxCaptureExcludedUnits do
+							if UnitDefs[unitDefID].name == LootboxCaptureExcludedUnits[k] then
+								IsUnitExcluded = true
+								break
+							else
+								IsUnitExcluded = false
+							end
+						end
+						
+						if unitDefID == lootboxDefID then
+							CaptureProgressForLootboxes[lootboxID] = CaptureProgressForLootboxes[lootboxID] - 0.0005
+							--Spring.Echo("uncapturing myself")
+						elseif unitTeamID == lootboxTeamID and (unitDefID ~= lootboxDefID) then
+							CaptureProgressForLootboxes[lootboxID] = CaptureProgressForLootboxes[lootboxID] - 1
+							--Spring.Echo("uncapturing our beacon")
+						elseif captureraiTeam == false and unitTeamID ~= lootboxTeamID and unitTeamID ~= Spring.GetGaiaTeamID() and IsUnitExcluded == false and (not UnitDefs[unitDefID].canFly) then
+							CaptureProgressForLootboxes[lootboxID] = CaptureProgressForLootboxes[lootboxID] + ((UnitDefs[unitDefID].metalCost)/800)*0.01
+							CapturingUnitsTeam[unitTeamID] = CapturingUnitsTeam[unitTeamID] + 1
+							--Spring.Echo("capturing scav beacon")
+						end
+						if CaptureProgressForLootboxes[lootboxID] < 0 then
+							CaptureProgressForLootboxes[lootboxID] = 0
+							--Spring.Echo("capture below 0")
+						end
+						if CaptureProgressForLootboxes[lootboxID] > 1 then
+							CaptureProgressForLootboxes[lootboxID] = 1
+							--Spring.Echo("capture above 1")
+						end
+						Spring.SetUnitHealth(lootboxID, {capture = CaptureProgressForLootboxes[lootboxID]})
+		
+						if TeamsCapturing < 2 and captureraiTeam == false and CaptureProgressForLootboxes[lootboxID] >= 1 then
+							CaptureProgressForLootboxes[lootboxID] = 0
+							Spring.SetUnitHealth(lootboxID, {capture = 0})
+							Spring.TransferUnit(lootboxID, unitTeamID, true)
+							captureraiTeam = nil
+							break
+						end
+						captureraiTeam = nil
+						IsUnitExcluded = nil
+					end
 				end
 				CapturingUnits = nil
 				CapturingUnitsTeam = nil
@@ -445,7 +447,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
 	end
 end
 
-function gadget:UnitTaken(unitID, unitDefID, unitOldTeam, unitNewTeam)
+function gadget:UnitGiven(unitID, unitDefID, unitOldTeam, unitNewTeam)
 	for i = 1,#aliveLootboxes do
 		if unitID == aliveLootboxes[i] then
 			Spring.SetUnitNeutral(unitID, true)

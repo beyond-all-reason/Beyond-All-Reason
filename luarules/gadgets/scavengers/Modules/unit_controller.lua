@@ -65,56 +65,8 @@ function ArmyMoveOrders(n, scav, scavDef)
 	else
 		UnitRange[scav] = 100
 	end
-	if not FinalBossUnitID then
 		attackTarget = Spring.GetUnitNearestEnemy(scav, 200000, false)
-	elseif FinalBossUnitID and scav == FinalBossUnitID then
-		attackTarget = Spring.GetUnitNearestEnemy(scav, 200000, false)
-		-- if AliveEnemyCommanders and AliveEnemyCommandersCount > 0 then
-			-- if AliveEnemyCommandersCount > 1 then
-				-- for i = 1,AliveEnemyCommandersCount do
-					-- -- let's get nearest commander
-					-- local separation = Spring.GetUnitSeparation(scav,AliveEnemyCommanders[i])
-					-- if not lowestSeparation then
-						-- lowestSeparation = separation
-						-- attackTarget = AliveEnemyCommanders[i]
-					-- end
-					-- if separation < lowestSeparation then
-						-- lowestSeparation = separation
-						-- attackTarget = AliveEnemyCommanders[i]
-					-- end
-				-- end
-				-- lowestSeparation = nil
-			-- elseif AliveEnemyCommandersCount == 1 then
-				-- attackTarget = AliveEnemyCommanders[1]
-			-- end
-		-- end
-	elseif FinalBossUnitID and scav ~= FinalBossUnitID then
-		attackTarget = FinalBossUnitID
 	end
-	
-	-- if not BossWaveStarted or BossWaveStarted == false then
-		-- attackTarget = Spring.GetUnitNearestEnemy(scav, 200000, false)
-	-- else
-		-- if AliveEnemyCommanders and AliveEnemyCommandersCount > 0 then
-			-- if AliveEnemyCommandersCount > 1 then
-				-- for i = 1,AliveEnemyCommandersCount do
-					-- -- let's get nearest commander
-					-- local separation = Spring.GetUnitSeparation(scav,AliveEnemyCommanders[i])
-					-- if not lowestSeparation then
-						-- lowestSeparation = separation
-						-- attackTarget = AliveEnemyCommanders[i]
-					-- end
-					-- if separation < lowestSeparation then
-						-- lowestSeparation = separation
-						-- attackTarget = AliveEnemyCommanders[i]
-					-- end
-				-- end
-				-- lowestSeparation = nil
-			-- elseif AliveEnemyCommandersCount == 1 then
-				-- attackTarget = AliveEnemyCommanders[1]
-			-- end
-		-- end
-	-- end
 	if attackTarget == nil then
 		attackTarget = Spring.GetUnitNearestEnemy(scav, 200000, false)
 	end
