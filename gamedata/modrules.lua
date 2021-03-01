@@ -11,7 +11,7 @@ end
 
 if gadgetXPEnabled == true then
   XPValues = {
-    experienceMult = 20,
+    experienceMult = 50,
     powerScale     = 0, -- keep it at 0
     healthScale    = 0, -- keep it at 0
     reloadScale    = 0, -- keep it at 0

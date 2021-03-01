@@ -660,16 +660,15 @@ if (gadgetHandler:IsSyncedCode()) then
 						}
 					end
 				end
+				points[1] = {
+					x = mapx / 2,
+					y = 0,
+					z = mapz / 2,
+					owner = nil,
+					aggressor = nil,
+					capture = 0,
+				}
 			end
-
-			points[1] = {
-				x = mapx / 2,
-				y = 0,
-				z = mapz / 2,
-				owner = nil,
-				aggressor = nil,
-				capture = 0,
-			}
 		end
 		_G.points = points
 		_G.score = score

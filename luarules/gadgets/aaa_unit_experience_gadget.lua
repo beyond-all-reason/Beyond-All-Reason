@@ -66,7 +66,9 @@ unitConfigs = { -- missing values default to 0
 
 }
 
-function ApplyBonuses(unitID)
+function ApplyBonuses(unitID, level)
+    local oldLevel = XPLevel[unitID]
+    local newLevel = oldLevel + 1
     local unitDefID = Spring.GetUnitDefID(unitID)
     local unitName = UnitDefs[unitDefID].name
     if unitConfigs[unitName] then
@@ -110,14 +112,14 @@ function ApplyBonuses(unitID)
         end
 
     end
-    XPLevel[unitID] = XPLevel[unitID] + 1
+    
     
 
     local posx, posy, posz = Spring.GetUnitPosition(unitID)
     local footprintx = UnitDefs[unitDefID].footprintx
     local footprintz = UnitDefs[unitDefID].footprintz
     if footprintx and footprintz then
-        if (footprintx > footprintz) or (footprintx == footprintz) then
+        if (footprintx >= footprintz) then
             if footprintx == 0 then
                 Spring.SpawnCEG("levelup_fp3",posx,posy,posz,0,0,0)
             elseif footprintx == 1 then
@@ -150,7 +152,7 @@ function ApplyBonuses(unitID)
     else
         Spring.SpawnCEG("levelup_fp3",posx,posy,posz,0,0,0)
     end
-    --Spring.SpawnCEG("scav-spawnexplo",posx,posy,posz,0,0,0)
+    XPLevel[unitID] = newlevel
 end
 
 
@@ -170,7 +172,7 @@ if gadgetHandler:IsSyncedCode() then -- Synced part
                 local xp = Spring.GetUnitExperience(unitID)
                 local level = XPLevel[unitID]
                 if level and xp > levelsTable[level + 1] then
-                    ApplyBonuses(unitID)
+                    ApplyBonuses(unitID, level)
                 end
             end
         end
