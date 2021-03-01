@@ -110,11 +110,8 @@ widgetHandler = {
 -- these call-ins are set to 'nil' if not used
 -- they are setup in UpdateCallIns()
 local flexCallIns = {
-	'GamePreload',
-	'GameStart',
 	'GameOver',
 	'GameFrame',
-	'GameProgress',
 	'GameSetup',
 	'GamePaused',
 	'TeamDied',
