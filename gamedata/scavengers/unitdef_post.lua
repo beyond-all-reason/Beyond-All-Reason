@@ -172,9 +172,9 @@ function scav_Udef_Post(name, uDef)
 		-- uDef.maxvelocity = uDef.maxvelocity*1.1
 	-- end
 
-	if uDef.radardistancejam then
-		uDef.radardistancejam = math.ceil(uDef.radardistancejam*1.25*randomMultiplier)
-	end
+	--if uDef.radardistancejam then
+		--uDef.radardistancejam = math.ceil(uDef.radardistancejam*1.25*randomMultiplier)
+	--end
 
 	if uDef.maxdamage then
 		if uDef.name and uDef.name ~= "Scavenger Epic Commander - Final Boss" then

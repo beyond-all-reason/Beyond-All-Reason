@@ -778,7 +778,6 @@ customDefs.armspy = {
 
 customDefs.corkarg = {
 	cloakcost = 24,
-	stealth = true,
 	mincloakdistance = 144,
 }
 
@@ -789,7 +788,6 @@ customDefs.corroach = {
 
 customDefs.corsktl = {
 	cloakcost = 6,
-	stealth = true,
 	mincloakdistance = 144,
 }
 
