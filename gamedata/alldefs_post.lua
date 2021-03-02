@@ -106,6 +106,46 @@ local function processWeapons(unitDefName, unitDef)
 end
 
 function UnitDef_Post(name, uDef)
+	-- Add scav units to normal factories and builders
+	if Spring.GetModOptions and Spring.GetModOptions().experimentalscavuniqueunits == "enabled" then
+		if name == "armshltx" then
+			local numBuildoptions = #uDef.buildoptions
+			uDef.buildoptions[numBuildoptions+1] = "armrattet4"
+			uDef.buildoptions[numBuildoptions+2] = "armsptkt4"
+			uDef.buildoptions[numBuildoptions+3] = "armpwt4"
+			uDef.buildoptions[numBuildoptions+4] = "armvadert4"
+			uDef.buildoptions[numBuildoptions+5] = "armlunchbox"
+			uDef.buildoptions[numBuildoptions+6] = "armmeatball"
+			uDef.buildoptions[numBuildoptions+7] = "armassimilator"
+			uDef.buildoptions[numBuildoptions+8] = "armrectrt4"
+		elseif name == "armshltxuw" then
+			local numBuildoptions = #uDef.buildoptions
+			uDef.buildoptions[numBuildoptions+1] = "armrattet4"
+			uDef.buildoptions[numBuildoptions+2] = "armpwt4"
+			uDef.buildoptions[numBuildoptions+3] = "armvadert4"
+			uDef.buildoptions[numBuildoptions+4] = "armmeatball"
+		elseif name == "corgant" then
+			local numBuildoptions = #uDef.buildoptions
+			uDef.buildoptions[numBuildoptions+1] = "cordemont4"
+			uDef.buildoptions[numBuildoptions+2] = "corkarganetht4"
+			uDef.buildoptions[numBuildoptions+3] = "corgolt4"
+		elseif name == "corgantuw" then
+			local numBuildoptions = #uDef.buildoptions
+			uDef.buildoptions[numBuildoptions+1] = "corgolt4"
+		elseif name == "coravp" then
+			local numBuildoptions = #uDef.buildoptions
+			uDef.buildoptions[numBuildoptions+1] = "corgatreap"
+		elseif name == "armaca" or name == "armack" or name == "armacv" then
+			local numBuildoptions = #uDef.buildoptions
+			uDef.buildoptions[numBuildoptions+1] = "armapt3"
+			uDef.buildoptions[numBuildoptions+2] = "armminivulc"
+		elseif name == "coraca" or name == "corack" or name == "coracv" then
+			local numBuildoptions = #uDef.buildoptions
+			uDef.buildoptions[numBuildoptions+1] = "corapt3"
+			uDef.buildoptions[numBuildoptions+2] = "corminibuzz"
+		end
+	end
+	
 	if Spring.GetModOptions and uDef.builddistance then
 		local x = tonumber(Spring.GetModOptions().experimentalbuildrange) or 1
 		uDef.builddistance = uDef.builddistance*x

@@ -979,6 +979,19 @@ local options={
 		step   = 0.1,
 	},
 
+	{
+		key    = 'experimentalscavuniqueunits',
+		name   = 'Scavenger Units Buildable by Players',
+		desc   = 'Scavenger Units Buildable by Players',
+		type   = 'list',
+		section = 'options_experimental',
+		def  = "disabled",
+		items={
+			{key="disabled", name="Disabled", desc="Disabled"},
+			{key="enabled", name="Enabled", desc="Enabled"},
+		}
+	},
+
 
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
