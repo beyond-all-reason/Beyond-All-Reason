@@ -24,17 +24,13 @@ function gadget:GameFrame(n)
 -- common foggy cliffs	
 	if n%360 == 0 then
 		SpawnCEGInPositionGround("fogdirty-green", 1900, 32, 1257)
-		SpawnCEGInPositionGround("fogdirty-green", 757, 32, 1554)
-		
+		SpawnCEGInPositionGround("fogdirty-green", 757, 32, 1554)		
 		SpawnCEGInPositionGround("fogdirty-green", 4608, 32, 1413)
 		SpawnCEGInPositionGround("fogdirty-green", 5459, 32, 1650)
-
 		SpawnCEGInPositionGround("fogdirty-green", 4536, 32, 4716)
 		SpawnCEGInPositionGround("fogdirty-green", 4730, 32, 5542)
-
 		SpawnCEGInPositionGround("fogdirty-green", 1757, 32, 4540)
 		SpawnCEGInPositionGround("fogdirty-green", 1295, 32, 5537)
-
 	end
 
 	if n%360 == 180 then
@@ -50,7 +46,6 @@ function gadget:GameFrame(n)
 		SpawnCEGInPositionGround("fogdirty-green", 1487, 32, 3747)
 		SpawnCEGInPositionGround("fogdirty-green", 3575, 32, 4326)
 		SpawnCEGInPositionGround("fogdirty-green", 3015, 32, 1447)
-
 		SpawnCEGInPositionGround("fogdirty-green", 798, 32, 2852)
 		SpawnCEGInPositionGround("fogdirty-green", 4634, 32, 2453)
 		SpawnCEGInPositionGround("fogdirty-green", 2983, 32, 5636)
@@ -65,12 +60,16 @@ function gadget:GameFrame(n)
 	end
 
 -- rare rain
-	if n%7800 == 5000 then
-		SpawnCEGInRandomMapPos("rain", 0, 10, _, 400, "rainlight", 1)
+	if n%6800 == 5000 then
+		SpawnCEGInRandomMapPos("rainlight-acid", 0, 15, _, 750, "rainlight", 1)
 	end
 
-	if n%7800 == 4500 then
-		SpawnCEGInRandomMapPos("rain", 0, 10, _, 400, "rainlight", 1)
+	if n%6800 == 4300 then
+		SpawnCEGInRandomMapPos("rainlight-acid", 0, 15, _, 750, "rainlight", 1)
+	end
+
+	if n%500 == 10 then
+		SpawnCEGInRandomMapPos("rainverylight-acid", 0, 15, _, 750, "rainlight", 1)
 	end
 
 -- -- random rain

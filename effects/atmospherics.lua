@@ -817,7 +817,7 @@ return {
       count              = 60,
       ground             = true,
       water              = true,
-      underwater         = false,
+      underwater         = true,
       properties = {
         delay              = [[1 r750]],
         explosiongenerator = [[custom:firefly]],
@@ -834,7 +834,7 @@ return {
       count              = 60,
       ground             = true,
       water              = true,
-      underwater         = false,
+      underwater         = true,
       properties = {
         delay              = [[1 r750]],
         explosiongenerator = [[custom:fireflygreen]],
@@ -1042,19 +1042,36 @@ return {
     },
   },
 
-    ["rainlight-acid"] = {
+  ["rainlight-acid"] = {
     usedefaultexplosions = false,
     raindrops = {
       air                = true,
       class              = [[CExpGenSpawner]],
-      count              = 400,
+      count              = 500,
       ground             = true,
       water              = true,
       underwater         = false,
       properties = {
         delay              = [[1 r1060]],
         explosiongenerator = [[custom:raindrop-acid]],
-        pos                = [[-400 r800, 1250 r150, -400 r800]],
+        pos                = [[-500 r1000, 1250 r150, -500 r1000]],
+      },
+    },
+  },
+
+  ["rainverylight-acid"] = {
+    usedefaultexplosions = false,
+    raindrops = {
+      air                = true,
+      class              = [[CExpGenSpawner]],
+      count              = 210,
+      ground             = true,
+      water              = true,
+      underwater         = false,
+      properties = {
+        delay              = [[1 r530]],
+        explosiongenerator = [[custom:raindrop-acid]],
+        pos                = [[-375 r750, 1250 r150, -375 r750]],
       },
     },
   },
