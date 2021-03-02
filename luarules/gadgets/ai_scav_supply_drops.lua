@@ -447,7 +447,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
 	end
 end
 
-function gadget:UnitGiven(unitID, unitDefID, unitOldTeam, unitNewTeam)
+function gadget:UnitGiven(unitID, unitDefID, unitNewTeam, unitOldTeam)
 	for i = 1,#aliveLootboxes do
 		if unitID == aliveLootboxes[i] then
 			Spring.SetUnitNeutral(unitID, true)

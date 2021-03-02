@@ -539,7 +539,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
 	end
 end
 
-function gadget:UnitTaken(unitID, unitDefID, unitOldTeam, unitNewTeam)
+function gadget:UnitGiven(unitID, unitDefID, unitNewTeam, unitOldTeam)
 	local UnitName = UnitDefs[unitDefID].name
 	if unitNewTeam == GaiaTeamID and unitOldTeam ~= GaiaTeamID then
 		MasterMindTargetListTargetGone(unitID, unitTeam, unitEnteredTeam, unitDefID)

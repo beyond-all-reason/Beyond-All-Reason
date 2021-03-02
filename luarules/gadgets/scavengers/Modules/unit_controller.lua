@@ -65,8 +65,7 @@ function ArmyMoveOrders(n, scav, scavDef)
 	else
 		UnitRange[scav] = 100
 	end
-		attackTarget = Spring.GetUnitNearestEnemy(scav, 200000, false)
-	end
+	attackTarget = Spring.GetUnitNearestEnemy(scav, 200000, false)
 	if attackTarget == nil then
 		attackTarget = Spring.GetUnitNearestEnemy(scav, 200000, false)
 	end
@@ -97,6 +96,6 @@ function ArmyMoveOrders(n, scav, scavDef)
 		else
 			Spring.GiveOrderToUnit(scav, CMD.MOVE,{x,y,z}, {"shift", "alt", "ctrl"})
 		end	
-		attackTarget = nil
 	end
+	attackTarget = nil
 end
