@@ -511,24 +511,24 @@ return {
 				substitutedPlayers = '%{incoming} was substituted in for %{outgoing}',
 			},
 			awards = {
-				awards = 'Awards',--XXX
-				score = 'Score',--XXX
-				resourcesProduced = '%{playerColor}%{player}%{textColor} produced the most resources (%{score}).',--XXX
-				notAwarded = 'not awarded',--XXX
-				unknown = 'unknown',--XXX
-				coop = 'co-op',--XXX
-				damageTaken = '%{playerColor}%{player}%{textColor} took the most damage (%{score}).',--XXX
-				sleptLongest = '%{playerColor}%{player}%{textColor} slept longest, for %{score} minutes.',--XXX
-				runnersUp = 'Runners up',--XXX
-				leave = 'Leave',--XXX
+				awards = 'Awards',
+				score = 'Score',
+				resourcesProduced = '%{playerColor}%{player}%{textColor} produced the most resources (%{score}).',
+				notAwarded = 'not awarded',
+				unknown = 'unknown',
+				coop = 'co-op',
+				damageTaken = '%{playerColor}%{player}%{textColor} took the most damage (%{score}).',
+				sleptLongest = '%{playerColor}%{player}%{textColor} slept longest, for %{score} minutes.',
+				runnersUp = 'Runners up',
+				leave = 'Leave',
 				quit = 'Quit',
 				close = 'Close',
-				showGraphs = 'Show Graphs',--XXX
-				resourcesDestroyed = 'Destroying enemy resource production',--XXX
-				enemiesDestroyed = 'Destroying enemy units and defences',--XXX
-				resourcesEfficiency = 'Efficient use of resources',--XXX
-				didEverything = 'Doing everything',--XXX
-				traitor = 'The Traitor - Destroying allied units',--XXX
+				showGraphs = 'Show Graphs',
+				resourcesDestroyed = 'Destroying enemy resource production',
+				enemiesDestroyed = 'Destroying enemy units and defences',
+				resourcesEfficiency = 'Efficient use of resources',
+				didEverything = 'Doing everything',
+				traitor = 'The Traitor - Destroying allied units',
 			},
 		}
 	}
