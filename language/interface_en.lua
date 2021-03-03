@@ -510,6 +510,26 @@ return {
 				substituted = 'Substitution occurred, revealed start positions to all',
 				substitutedPlayers = '%{incoming} was substituted in for %{outgoing}',
 			},
+			awards = {
+				awards = 'Awards',
+				score = 'Score',
+				resourcesProduced = '%{playerColor}%{player}%{textColor} produced the most resources (%{score}).',
+				notAwarded = 'not awarded',
+				unknown = 'unknown',
+				coop = 'co-op',
+				damageTaken = '%{playerColor}%{player}%{textColor} took the most damage (%{score}).',
+				sleptLongest = '%{playerColor}%{player}%{textColor} slept longest, for %{score} minutes.',
+				runnersUp = 'Runners up',
+				leave = 'Leave',
+				quit = 'Quit',
+				close = 'Close',
+				showGraphs = 'Show Graphs',
+				resourcesDestroyed = 'Destroying enemy resource production',
+				enemiesDestroyed = 'Destroying enemy units and defences',
+				resourcesEfficiency = 'Efficient use of resources',
+				didEverything = 'Doing everything',
+				traitor = 'The Traitor - Destroying allied units',
+			},
 		}
 	}
 }

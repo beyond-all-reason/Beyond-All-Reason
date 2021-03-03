@@ -404,34 +404,9 @@ if gadgetHandler:IsSyncedCode() then
 
 
 	-------------------------------------------------------------------------------------
-	-------------------------------------------------------------------------------------
 else
 	-- UNSYNCED
 	-------------------------------------------------------------------------------------
-	-------------------------------------------------------------------------------------
-
-	local texts = {        -- fallback (if you want to change this, also update: language/en.lua, or it will be overwritten)
-		awards = 'Awards',
-		score = 'Score',
-		producedthemostresources = 'produced the most resources',
-		notawarded = 'not awarded',
-		unknown = 'unknown',
-		coop = 'coop',
-		tookthemostdamage = 'took the most damage',
-		sleptlongestfor = 'slept longest, for',
-		runnersup = 'Runners up',
-		leave = 'Leave',
-		quit = 'Quit',
-		close = 'Close',
-		showgraphs = 'Show Graphs',
-		minutes = 'minutes',
-		destroyingresourceproduction = 'Destroying enemy resource production',
-		destroyingunitsdefences = 'Destroying enemy units and defences',
-		efficientuseofresources = 'Efficient use of resources',
-		doingeverything = 'Doing everything',
-		thetraitor = 'The Traitor - Destroying allied units',
-	}
-
 	local glCreateList = gl.CreateList
 	local glCallList = gl.CallList
 	local glDeleteList = gl.DeleteList
@@ -531,9 +506,6 @@ else
 	end
 
 	function gadget:Initialize()
-		if GG.lang then
-			texts = GG.lang.getText('awards')
-		end
 		if chobbyLoaded and showGraphsButton then
 			Spring.SendCommands('endgraph 2')
 		end
@@ -589,16 +561,16 @@ else
 			h = 600
 		end
 		CreateBackground()
-		FirstAward = CreateAward('fuscup', 0, texts.destroyingresourceproduction, white, ecoKillAward, ecoKillAwardSec, ecoKillAwardThi, ecoKillScore, ecoKillScoreSec, ecoKillScoreThi, 100)
-		SecondAward = CreateAward('bullcup', 0, texts.destroyingunitsdefences, white, fightKillAward, fightKillAwardSec, fightKillAwardThi, fightKillScore, fightKillScoreSec, fightKillScoreThi, 200)
-		ThirdAward = CreateAward('comwreath', 0, texts.efficientuseofresources, white, effKillAward, effKillAwardSec, effKillAwardThi, effKillScore, effKillScoreSec, effKillScoreThi, 300)
+		FirstAward = CreateAward('fuscup', 0, Spring.I18N('ui.awards.resourcesDestroyed'), white, ecoKillAward, ecoKillAwardSec, ecoKillAwardThi, ecoKillScore, ecoKillScoreSec, ecoKillScoreThi, 100)
+		SecondAward = CreateAward('bullcup', 0, Spring.I18N('ui.awards.enemiesDestroyed'), white, fightKillAward, fightKillAwardSec, fightKillAwardThi, fightKillScore, fightKillScoreSec, fightKillScoreThi, 200)
+		ThirdAward = CreateAward('comwreath', 0, Spring.I18N('ui.awards.resourcesEfficiency'), white, effKillAward, effKillAwardSec, effKillAwardThi, effKillScore, effKillScoreSec, effKillScoreThi, 300)
 		if cowAward ~= -1 then
-			CowAward = CreateAward('cow', 1, texts.doingeverything, white, ecoKillAward, 1, 1, 1, 1, 1, 400 + addy)
+			CowAward = CreateAward('cow', 1, Spring.I18N('ui.awards.didEverything'), white, ecoKillAward, 1, 1, 1, 1, 1, 400 + addy)
 		else
 			OtherAwards = CreateAward('', 2, '', white, ecoAward, dmgRecAward, sleepAward, ecoScore, dmgRecScore, sleepScore, 400 + addy)
 		end
 		if traitorScore > threshold then
-			FourthAward = CreateAward('traitor', 0, texts.thetraitor, white, traitorAward, traitorAwardSec, traitorAwardThi, traitorScore, traitorScoreSec, traitorScoreThi, 400)
+			FourthAward = CreateAward('traitor', 0, Spring.I18N('ui.awards.traitor'), white, traitorAward, traitorAwardSec, traitorAwardThi, traitorScore, traitorScoreSec, traitorScoreThi, 400)
 		end
 		drawAwards = true
 
@@ -623,7 +595,7 @@ else
 			glTexRect(bx + w / 2 - math.floor(220*widgetScale), by + h - math.floor(75*widgetScale), bx + w / 2 + math.floor(120*widgetScale), by + h - math.floor(5*widgetScale))
 
 			font:Begin()
-			font:Print(texts.score, bx + w / 2 + math.floor(275*widgetScale), by + h - math.floor(65*widgetScale), 15*widgetScale, "o")
+			font:Print(Spring.I18N('ui.awards.score'), bx + w / 2 + math.floor(275*widgetScale), by + h - math.floor(65*widgetScale), 15*widgetScale, "o")
 			font:End()
 		end)
 	end
@@ -658,10 +630,10 @@ else
 		if plList[1] then
 			name = plList[1]
 			if #plList > 1 then
-				name = name .. '( '..texts.coop..')'
+				name = name .. ' (' .. Spring.I18N('ui.awards.coop') .. ')'
 			end
 		else
-			name = '('..texts.unknown..')'
+			name = '(' .. Spring.I18N('ui.awards.unknown') .. ')'
 		end
 
 		return name
@@ -671,23 +643,24 @@ else
 		local winnerName, secondName, thirdName
 
 		--award is: 0 for a normal award, 1 for the cow award, 2 for the no-cow awards
+		local notAwardedText = '(' .. Spring.I18N('ui.awards.notAwarded') .. ')'
 
 		if winnerID >= 0 then
 			winnerName = FindPlayerName(winnerID)
 		else
-			winnerName = '('..texts.notawarded..')'
+			winnerName = notAwardedText
 		end
 
 		if secondID >= 0 then
 			secondName = FindPlayerName(secondID)
 		else
-			secondName = '('..texts.notawarded..')'
+			secondName = notAwardedText
 		end
 
 		if thirdID >= 0 then
 			thirdName = FindPlayerName(thirdID)
 		else
-			thirdName = '('..texts.notawarded..')'
+			thirdName = notAwardedText
 		end
 
 		thisAward = glCreateList(function()
@@ -707,15 +680,15 @@ else
 				--if the cow is not awarded, we replace it with minor awards (just text)
 				local heightoffset = 0
 				if winnerID >= 0 then
-					font:Print(colourNames(winnerID) .. winnerName .. white .. ' '..texts.producedthemostresources..' (' .. math.floor(winnerScore) .. ').', bx + math.floor(70*widgetScale), by + h - offset - math.floor(10*widgetScale) - heightoffset, 14*widgetScale, "o")
+					font:Print(Spring.I18N('ui.awards.resourcesProduced', { playerColor = colourNames(winnerID), player = winnerName, textColor = white, score = math.floor(winnerScore) }), bx + math.floor(70*widgetScale), by + h - offset - math.floor(10*widgetScale) - heightoffset, 14*widgetScale, "o")
 					heightoffset = heightoffset + (17 * widgetScale)
 				end
 				if secondID >= 0 then
-					font:Print(colourNames(secondID) .. secondName .. white .. ' '..texts.tookthemostdamage..' (' .. math.floor(secondScore) .. ').', bx + math.floor(70*widgetScale), by + h - offset - math.floor(10*widgetScale) - heightoffset, 14*widgetScale, "o")
+					font:Print(Spring.I18N('ui.awards.damageTaken', { playerColor = colourNames(secondID), player = secondName, textColor = white, score = math.floor(secondScore) }), bx + math.floor(70*widgetScale), by + h - offset - math.floor(10*widgetScale) - heightoffset, 14*widgetScale, "o")
 					heightoffset = heightoffset + (17 * widgetScale)
 				end
 				if thirdID >= 0 then
-					font:Print(colourNames(thirdID) .. thirdName .. white .. ' '..texts.sleptlongestfor..' ' .. math.floor(thirdScore / 60) .. ' '..texts.minutes..'.', bx + math.floor(70*widgetScale), by + h - offset - math.floor(10*widgetScale) - heightoffset, 14*widgetScale, "o")
+					font:Print(Spring.I18N('ui.awards.sleptLongest', { playerColor = colourNames(thirdID), player = thirdName, textColor = white, score = math.floor(thirdScore / 60) }), bx + math.floor(70*widgetScale), by + h - offset - math.floor(10*widgetScale) - heightoffset, 14*widgetScale, "o")
 				end
 			end
 
@@ -732,7 +705,7 @@ else
 				else
 					font:Print('-', bx + w / 2 + math.floor(275*widgetScale), by + h - offset - math.floor(5*widgetScale), 17*widgetScale, "o")
 				end
-				font:Print(texts.runnersup..':', bx + math.floor(500*widgetScale), by + h - offset - math.floor(5*widgetScale), 14*widgetScale, "o")
+				font:Print(Spring.I18N('ui.awards.runnersUp') .. ':', bx + math.floor(500*widgetScale), by + h - offset - math.floor(5*widgetScale), 14*widgetScale, "o")
 
 				if secondScore > 0 then
 					if pic == 'comwreath' then
@@ -767,17 +740,17 @@ else
 				return
 			end
 			if chobbyLoaded then
-				if (x > bx + w - quitX - math.floor(5*widgetScale) and (x < bx + w - quitX + math.floor(20*widgetScale) * font:GetTextWidth('Leave') + math.floor(5*widgetScale)) and (y > by + math.floor(45*widgetScale)) and (y < by + math.floor((50 + 16 + 5)*widgetScale))) then
+				if (x > bx + w - quitX - math.floor(5*widgetScale) and (x < bx + w - quitX + math.floor(20*widgetScale) * font:GetTextWidth(Spring.I18N('ui.awards.leave')) + math.floor(5*widgetScale)) and (y > by + math.floor(45*widgetScale)) and (y < by + math.floor((50 + 16 + 5)*widgetScale))) then
 					--leave button
 					Spring.Reload("")
 				end
 			else
-				if (x > bx + w - quitX - math.floor(5*widgetScale)) and (x < bx + w - quitX + math.floor(20*widgetScale) * font:GetTextWidth('Quit') + math.floor(5*widgetScale)) and (y > by + math.floor((50 - 5)*widgetScale) and (y < by + math.floor((50 + 16 + 5)*widgetScale))) then
+				if (x > bx + w - quitX - math.floor(5*widgetScale)) and (x < bx + w - quitX + math.floor(20*widgetScale) * font:GetTextWidth(Spring.I18N('ui.awards.quit')) + math.floor(5*widgetScale)) and (y > by + math.floor((50 - 5)*widgetScale) and (y < by + math.floor((50 + 16 + 5)*widgetScale))) then
 					--quit button
 					Spring.SendCommands("quitforce")
 				end
 			end
-			if (x > bx + w - graphsX - math.floor(5*widgetScale)) and (x < bx + w - graphsX + math.floor(20*widgetScale) * font:GetTextWidth((showGraphsButton and 'Show Graphs' or 'Close')) + math.floor(5*widgetScale)) and (y > by + math.floor((50 - 5)*widgetScale) and (y < by + math.floor((50 + 16 + 5)*widgetScale))) then
+			if (x > bx + w - graphsX - math.floor(5*widgetScale)) and (x < bx + w - graphsX + math.floor(20*widgetScale) * font:GetTextWidth((showGraphsButton and Spring.I18N('ui.awards.showGraphs') or Spring.I18N('ui.awards.close'))) + math.floor(5*widgetScale)) and (y > by + math.floor((50 - 5)*widgetScale) and (y < by + math.floor((50 + 16 + 5)*widgetScale))) then
 				if showGraphsButton then
 					if chobbyLoaded then
 						Spring.SendCommands('endgraph 2')
@@ -834,19 +807,19 @@ else
 		local quitColour
 		local graphColour
 
-		if (x > bx + w - quitX - math.floor(5*widgetScale)) and (x < bx + w - quitX + math.floor(20*widgetScale) * font2:GetTextWidth(texts.quit) + math.floor(5*widgetScale)) and (y > by + math.floor((50 - 5)*widgetScale)) and (y < by + math.floor((50 + 17 + 5)*widgetScale)) then
+		if (x > bx + w - quitX - math.floor(5*widgetScale)) and (x < bx + w - quitX + math.floor(20*widgetScale) * font2:GetTextWidth(Spring.I18N('ui.awards.quit')) + math.floor(5*widgetScale)) and (y > by + math.floor((50 - 5)*widgetScale)) and (y < by + math.floor((50 + 17 + 5)*widgetScale)) then
 			quitColour = "\255" .. string.char(201) .. string.char(51) .. string.char(51)
 		else
 			quitColour = "\255" .. string.char(201) .. string.char(201) .. string.char(201)
 		end
 		font2:Begin()
-		font2:Print(quitColour .. (chobbyLoaded and texts.leave or texts.quit), bx + w - quitX, by + math.floor(50*widgetScale), 20*widgetScale, "o")
-		if (x > bx + w - graphsX - (5*widgetScale)) and (x < bx + w - graphsX + math.floor(20*widgetScale) * font2:GetTextWidth((showGraphsButton and texts.showgraphs or texts.close)) + math.floor(5*widgetScale)) and (y > by + math.floor((50 - 5)*widgetScale)) and (y < by + math.floor((50 + 17 + 5))*widgetScale) then
+		font2:Print(quitColour .. (chobbyLoaded and Spring.I18N('ui.awards.leave') or Spring.I18N('ui.awards.quit')), bx + w - quitX, by + math.floor(50*widgetScale), 20*widgetScale, "o")
+		if (x > bx + w - graphsX - (5*widgetScale)) and (x < bx + w - graphsX + math.floor(20*widgetScale) * font2:GetTextWidth((showGraphsButton and Spring.I18N('ui.awards.showGraphs') or Spring.I18N('ui.awards.close'))) + math.floor(5*widgetScale)) and (y > by + math.floor((50 - 5)*widgetScale)) and (y < by + math.floor((50 + 17 + 5))*widgetScale) then
 			graphColour = "\255" .. string.char(201) .. string.char(51) .. string.char(51)
 		else
 			graphColour = "\255" .. string.char(201) .. string.char(201) .. string.char(201)
 		end
-		font2:Print(graphColour .. (showGraphsButton and texts.showgraphs or texts.close), bx + w - graphsX, by + math.floor(50*widgetScale), 20*widgetScale, "o")
+		font2:Print(graphColour .. (showGraphsButton and Spring.I18N('ui.awards.showGraphs') or Spring.I18N('ui.awards.close')), bx + w - graphsX, by + math.floor(50*widgetScale), 20*widgetScale, "o")
 		font2:End()
 
 		glPopMatrix()
