@@ -13,7 +13,6 @@ end
 --local localtestDebug = false        -- when true: ends game after 30 secs
 
 if gadgetHandler:IsSyncedCode() then
-
 	local spAreTeamsAllied = Spring.AreTeamsAllied
 	local gaiaTeamID = Spring.GetGaiaTeamID()
 
@@ -120,7 +119,6 @@ if gadgetHandler:IsSyncedCode() then
 		end
 		if spAreTeamsAllied(teamID, attackerTeamID) then
 			if teamID ~= attackerTeamID then
-				local curTime = Spring.GetGameSeconds()
 				--keep track of teamkilling
 				teamInfo[attackerTeamID].teamDmg = teamInfo[attackerTeamID].teamDmg + unitCombinedCost[unitDefID]
 			end
@@ -231,6 +229,7 @@ if gadgetHandler:IsSyncedCode() then
 		local dmgRecAward, dmgRecScore = -1, 0
 		local sleepAward, sleepScore = -1, 0
 		local traitorAward, traitorAwardSec, traitorAwardThi, traitorScore, traitorScoreSec, traitorScoreThi = -1, -1, -1, 0, 0, 0
+		
 		for teamID, _ in pairs(teamInfo) do
 			--deal with sleep times
 			local curTime = Spring.GetGameSeconds()
@@ -328,7 +327,6 @@ if gadgetHandler:IsSyncedCode() then
 		if ecoKillAward ~= -1 and (ecoKillAward == fightKillAward) and (fightKillAward == effKillAward) and ecoKillAward ~= -1 and nTeams > 3 then
 			--check if some team got all the awards + if more than 3 teams in the game
 			if winningAllyTeams and winningAllyTeams[1] then
-				local won = false
 				local _, _, _, _, _, cowAllyTeamID = Spring.GetTeamInfo(ecoKillAward, false)
 				for _, allyTeamID in pairs(winningAllyTeams) do
 					if cowAllyTeamID == allyTeamID then
@@ -349,7 +347,6 @@ if gadgetHandler:IsSyncedCode() then
 			sleepAward, sleepScore,
 			cowAward,
 			traitorAward, traitorAwardSec, traitorAwardThi, traitorScore, traitorScoreSec, traitorScoreThi)
-
 	end
 
 	-------------------------------------------------------------------------------------
@@ -359,18 +356,11 @@ else
 	local glCreateList = gl.CreateList
 	local glCallList = gl.CallList
 	local glDeleteList = gl.DeleteList
-	local glBeginEnd = gl.BeginEnd
 	local glPushMatrix = gl.PushMatrix
 	local glPopMatrix = gl.PopMatrix
-	local glTranslate = gl.Translate
 	local glColor = gl.Color
-	local glScale = gl.Scale
-	local glVertex = gl.Vertex
-	local glRect = gl.Rect
 	local glTexture = gl.Texture
 	local glTexRect = gl.TexRect
-	local GL_LINE_LOOP = GL.LINE_LOOP
-	local glText = gl.Text
 
 	local UiElement = Spring.FlowUI.Draw.Element
 
@@ -383,29 +373,20 @@ else
 	local bx, by --coords for top left hand corner of box
 	local width = 880
 	local height = 550
-	local bgMargin = 6
 	local w = math.floor(width * widgetScale)
 	local h = math.floor(height * widgetScale)
 	local quitX = math.floor(100 * widgetScale)
 	local graphsX = math.floor(250 * widgetScale)
 
 	local Background
-	local FirstAward
-	local SecondAward
-	local ThirdAward
-	local FourthAward
+	local FirstAward, SecondAward, ThirdAward, FourthAward
 	local threshold = 150000
 	local CowAward
 	local OtherAwards
 
-	local red = "\255" .. string.char(171) .. string.char(51) .. string.char(51)
-	local blue = "\255" .. string.char(51) .. string.char(51) .. string.char(151)
-	local green = "\255" .. string.char(51) .. string.char(151) .. string.char(51)
 	local white = "\255" .. string.char(251) .. string.char(251) .. string.char(251)
-	local yellow = "\255" .. string.char(251) .. string.char(251) .. string.char(11)
 
 	local playerListByTeam = {} --does not contain specs
-	local myPlayerID = Spring.GetMyPlayerID()
 
 	local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
 	local vsx, vsy = Spring.GetViewGeometry()
@@ -428,10 +409,6 @@ else
 			font2 = gl.LoadFont(fontfile2, fontfileSize * fontfileScale, fontfileOutlineSize * fontfileScale, fontfileOutlineStrength)
 		end
 
-		local ui_scale = Spring.GetConfigFloat("ui_scale", 1)
-		local widgetSpaceMargin = math.floor((0.0045 * (vsy/vsx))*vsx * ui_scale)
-		local bgpadding = math.ceil(widgetSpaceMargin * 0.66)
-
 		--fix geometry
 		widgetScale = (0.75 + (vsx * vsy / 7500000))
 		w = math.floor(width * widgetScale)
@@ -443,16 +420,12 @@ else
 
 		quitX = math.floor(100 * widgetScale)
 		graphsX = math.floor(250 * widgetScale)
-
-		--CreateBackground()
-		--drawAwards = true
 	end
 
 	function gadget:Initialize()
 		Spring.SendCommands('endgraph 2')
 
 		gadget:ViewResize()
-		--register actions to SendToUnsynced messages
 		gadgetHandler:AddSyncAction("ReceiveAwards", ProcessAwards)
 
 		--for testing
@@ -530,7 +503,6 @@ else
 		end
 
 		Background = glCreateList(function()
-
 			UiElement(bx, by, bx + w, by + h, 1,1,1,1, 1,1,1,1, Spring.GetConfigFloat("ui_opacity", 0.6) + 0.2)
 
 			glColor(1, 1, 1, 1)
@@ -699,21 +671,13 @@ else
 		end
 	end
 
-	local chipStackOffsets = {}
 	function gadget:DrawScreen()
-
 		if not drawAwards then
 			return
 		end
 
 		glPushMatrix()
-		--glTranslate(-(vsx * (widgetScale - 1)) / 2, -(vsy * (widgetScale - 1)) / 2, 0)
-		--glScale(widgetScale, widgetScale, 1)
 
-
-		--if Background == nil then
-		--	CreateBackground()
-		--end
 		if Background then
 			glCallList(Background)
 		end
