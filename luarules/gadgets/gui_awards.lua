@@ -22,8 +22,6 @@ if gadgetHandler:IsSyncedCode() then
 	local coopInfo = {}
 	local present = {}
 
-	local playerListByTeam = {}
-
 	local isEcon = {
 		--land t1
 		[UnitDefNames.armsolar.id] = true,
@@ -68,23 +66,6 @@ if gadgetHandler:IsSyncedCode() then
 		end
 		unitCombinedCost[unitDefID] = unitDef.energyCost + (60 * unitDef.metalCost)
 	end
-
-	function gadget:Initialize()
-		-- helpful for debugging/testing
-		local teamList = Spring.GetTeamList()
-		for _, teamID in pairs(teamList) do
-			local playerList = Spring.GetPlayerList(teamID)
-			local list = {} --without specs
-			for _, playerID in pairs(playerList) do
-				local name, _, isSpec = Spring.GetPlayerInfo(playerID, false)
-				if not isSpec then
-					table.insert(list, name)
-				end
-			end
-			playerListByTeam[teamID] = list
-		end
-	end
-
 
 	-----------------------------------
 	-- set up book keeping
@@ -165,43 +146,14 @@ if gadgetHandler:IsSyncedCode() then
 		else
 			teamInfo[attackerTeamID].otherDmg = teamInfo[attackerTeamID].otherDmg + cost --currently not using this but recording it for interest
 		end
-
-		--Spring.Echo(teamInfo[attackerTeamID].fightDmg, teamInfo[attackerTeamID].ecoDmg, teamInfo[attackerTeamID].otherDmg)
 	end
 
-	---------------------------------
 	-- for debugging/testing
 	--[[
-	function FindPlayerName(teamID)
-		local plList = playerListByTeam[teamID]
-		local name
-		if plList[1] then
-			name = plList[1]
-			if #plList > 1 then
-				name = name .. " (coop)"
-			end
-		else
-			name = "(unknown)"
-		end
-		return name
-	end
 	local effSampleRate = 15
 	function gadget:GameFrame(n)
 		if n%(30*effSampleRate)~=0 or n==0 then return end
-			 local topScore = -1
-		local topTeam = 0
-		local nDmg = 0
-		local nTeams = 0
-		for teamID,_ in pairs(teamInfo) do
-			local eff = CalculateEfficiency(teamID)
-			if eff > topScore then
-				topScore = eff
-				topTeam = teamID
-			end
-			nDmg = nDmg + teamInfo[teamID].allDmg
-			nTeams = nTeams + 1
-		end
-		Spring.Echo("> most eff: " .. FindPlayerName(topTeam) .. ", score " .. topScore, "nTeamDmg = " .. nDmg/nTeams)
+		
 		if localtestDebug and n==900 then
 			Spring.GameOver({1,0})
 		end
@@ -233,7 +185,6 @@ if gadgetHandler:IsSyncedCode() then
 		local pDmg = teamInfo[teamID].allDmg / totalDmg -- [0,infty), due to m/e excessed, but typically [0,1]
 		local effScore = nTeams * (pDmg - pEco)
 
-		--Spring.Echo("eff: scores " .. effScore, pDmg, pEco, " for " .. FindPlayerName(teamID))
 		return effScore
 	end
 
@@ -402,7 +353,6 @@ if gadgetHandler:IsSyncedCode() then
 
 	end
 
-
 	-------------------------------------------------------------------------------------
 else
 	-- UNSYNCED
@@ -515,11 +465,13 @@ else
 		gadgetHandler:AddSyncAction("ReceiveAwards", ProcessAwards)
 
 		--for testing
-		--FirstAward = CreateAward('fuscup',0,'Destroying enemy resource production', white, 1,1,1,24378,1324,132,100)
-		--SecondAward = CreateAward('bullcup',0,'Destroying enemy units and defences',white, 1,1,1,24378,1324,132,200)
-		--ThirdAward = CreateAward('comwreath',0,'Effective use of resources',white,1,1,1,24378,1324,132,300)
-		--CowAward = CreateAward('cow',1,'Doing everything',white,1,1,1,24378,1324,132,400)
-		--OtherAwards = CreateAward('',2,'',white,1,1,1,3,100,1000,400)
+		--[[
+		FirstAward = CreateAward('fuscup',0,'Destroying enemy resource production', white, 1,1,1,24378,1324,132,100)
+		SecondAward = CreateAward('bullcup',0,'Destroying enemy units and defences',white, 1,1,1,24378,1324,132,200)
+		ThirdAward = CreateAward('comwreath',0,'Effective use of resources',white,1,1,1,24378,1324,132,300)
+		CowAward = CreateAward('cow',1,'Doing everything',white,1,1,1,24378,1324,132,400)
+		OtherAwards = CreateAward('',2,'',white,1,1,1,3,100,1000,400)
+		]]
 
 		--load a list of players for each team into playerListByTeam
 		local teamList = Spring.GetTeamList()
