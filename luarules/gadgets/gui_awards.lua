@@ -11,7 +11,6 @@ function gadget:GetInfo()
 end
 
 --local localtestDebug = false        -- when true: ends game after 30 secs
-local showGraphsButton = true    -- when chobby is loaded this will be false
 
 if gadgetHandler:IsSyncedCode() then
 
@@ -449,16 +448,8 @@ else
 		--drawAwards = true
 	end
 
-	local chobbyLoaded = false
-	if Spring.GetMenuName and string.find(string.lower(Spring.GetMenuName()), 'chobby') ~= nil then
-		chobbyLoaded = true
-		--showGraphsButton = false    -- false -> Close button
-	end
-
 	function gadget:Initialize()
-		if chobbyLoaded and showGraphsButton then
-			Spring.SendCommands('endgraph 2')
-		end
+		Spring.SendCommands('endgraph 2')
 
 		gadget:ViewResize()
 		--register actions to SendToUnsynced messages
@@ -691,25 +682,15 @@ else
 			if button ~= 1 then
 				return
 			end
-			if chobbyLoaded then
-				if (x > bx + w - quitX - math.floor(5*widgetScale) and (x < bx + w - quitX + math.floor(20*widgetScale) * font:GetTextWidth(Spring.I18N('ui.awards.leave')) + math.floor(5*widgetScale)) and (y > by + math.floor(45*widgetScale)) and (y < by + math.floor((50 + 16 + 5)*widgetScale))) then
-					--leave button
-					Spring.Reload("")
-				end
-			else
-				if (x > bx + w - quitX - math.floor(5*widgetScale)) and (x < bx + w - quitX + math.floor(20*widgetScale) * font:GetTextWidth(Spring.I18N('ui.awards.quit')) + math.floor(5*widgetScale)) and (y > by + math.floor((50 - 5)*widgetScale) and (y < by + math.floor((50 + 16 + 5)*widgetScale))) then
-					--quit button
-					Spring.SendCommands("quitforce")
-				end
+
+			if (x > bx + w - quitX - math.floor(5*widgetScale) and (x < bx + w - quitX + math.floor(20*widgetScale) * font:GetTextWidth(Spring.I18N('ui.awards.leave')) + math.floor(5*widgetScale)) and (y > by + math.floor(45*widgetScale)) and (y < by + math.floor((50 + 16 + 5)*widgetScale))) then
+				--leave button
+				Spring.Reload("")
 			end
-			if (x > bx + w - graphsX - math.floor(5*widgetScale)) and (x < bx + w - graphsX + math.floor(20*widgetScale) * font:GetTextWidth((showGraphsButton and Spring.I18N('ui.awards.showGraphs') or Spring.I18N('ui.awards.close'))) + math.floor(5*widgetScale)) and (y > by + math.floor((50 - 5)*widgetScale) and (y < by + math.floor((50 + 16 + 5)*widgetScale))) then
-				if showGraphsButton then
-					if chobbyLoaded then
-						Spring.SendCommands('endgraph 2')
-					else
-						Spring.SendCommands('endgraph 1')
-					end
-				end
+
+			if (x > bx + w - graphsX - math.floor(5*widgetScale)) and (x < bx + w - graphsX + math.floor(20*widgetScale) * font:GetTextWidth(Spring.I18N('ui.awards.showGraphs')) + math.floor(5*widgetScale)) and (y > by + math.floor((50 - 5)*widgetScale) and (y < by + math.floor((50 + 16 + 5)*widgetScale))) then
+				Spring.SendCommands('endgraph 2')
+
 				if Script.LuaUI("GuishaderRemoveRect") then
 					Script.LuaUI.GuishaderRemoveRect('awards')
 				end
@@ -759,30 +740,27 @@ else
 		local quitColour
 		local graphColour
 
-		if (x > bx + w - quitX - math.floor(5*widgetScale)) and (x < bx + w - quitX + math.floor(20*widgetScale) * font2:GetTextWidth(Spring.I18N('ui.awards.quit')) + math.floor(5*widgetScale)) and (y > by + math.floor((50 - 5)*widgetScale)) and (y < by + math.floor((50 + 17 + 5)*widgetScale)) then
+		if (x > bx + w - quitX - math.floor(5*widgetScale)) and (x < bx + w - quitX + math.floor(20*widgetScale) * font2:GetTextWidth(Spring.I18N('ui.awards.leave')) + math.floor(5*widgetScale)) and (y > by + math.floor((50 - 5)*widgetScale)) and (y < by + math.floor((50 + 17 + 5)*widgetScale)) then
 			quitColour = "\255" .. string.char(201) .. string.char(51) .. string.char(51)
 		else
 			quitColour = "\255" .. string.char(201) .. string.char(201) .. string.char(201)
 		end
 		font2:Begin()
-		font2:Print(quitColour .. (chobbyLoaded and Spring.I18N('ui.awards.leave') or Spring.I18N('ui.awards.quit')), bx + w - quitX, by + math.floor(50*widgetScale), 20*widgetScale, "o")
-		if (x > bx + w - graphsX - (5*widgetScale)) and (x < bx + w - graphsX + math.floor(20*widgetScale) * font2:GetTextWidth((showGraphsButton and Spring.I18N('ui.awards.showGraphs') or Spring.I18N('ui.awards.close'))) + math.floor(5*widgetScale)) and (y > by + math.floor((50 - 5)*widgetScale)) and (y < by + math.floor((50 + 17 + 5))*widgetScale) then
+		font2:Print(quitColour .. Spring.I18N('ui.awards.leave'), bx + w - quitX, by + math.floor(50*widgetScale), 20*widgetScale, "o")
+		if (x > bx + w - graphsX - (5*widgetScale)) and (x < bx + w - graphsX + math.floor(20*widgetScale) * font2:GetTextWidth(Spring.I18N('ui.awards.showGraphs')) + math.floor(5*widgetScale)) and (y > by + math.floor((50 - 5)*widgetScale)) and (y < by + math.floor((50 + 17 + 5))*widgetScale) then
 			graphColour = "\255" .. string.char(201) .. string.char(51) .. string.char(51)
 		else
 			graphColour = "\255" .. string.char(201) .. string.char(201) .. string.char(201)
 		end
-		font2:Print(graphColour .. (showGraphsButton and Spring.I18N('ui.awards.showGraphs') or Spring.I18N('ui.awards.close')), bx + w - graphsX, by + math.floor(50*widgetScale), 20*widgetScale, "o")
+		font2:Print(graphColour .. Spring.I18N('ui.awards.showGraphs'), bx + w - graphsX, by + math.floor(50*widgetScale), 20*widgetScale, "o")
 		font2:End()
 
 		glPopMatrix()
 	end
 
 	function gadget:Shutdown()
-		if chobbyLoaded then
-			Spring.SendCommands('endgraph 2')
-		else
-			Spring.SendCommands('endgraph 1')
-		end
+		Spring.SendCommands('endgraph 2')
+
 		if Script.LuaUI("GuishaderRemoveRect") then
 			Script.LuaUI.GuishaderRemoveRect('awards')
 		end

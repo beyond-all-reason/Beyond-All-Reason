@@ -521,8 +521,6 @@ return {
 				sleptLongest = '%{playerColor}%{player}%{textColor} slept longest, for %{score} minutes.',
 				runnersUp = 'Runners up',
 				leave = 'Leave',
-				quit = 'Quit',
-				close = 'Close',
 				showGraphs = 'Show Graphs',
 				resourcesDestroyed = 'Destroying enemy resource production',
 				enemiesDestroyed = 'Destroying enemy units and defences',
