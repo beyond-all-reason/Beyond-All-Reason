@@ -39,11 +39,21 @@ VFS.Include(HANDLER_DIR .. 'system.lua', nil, VFSMODE)
 VFS.Include(HANDLER_DIR .. 'callins.lua', nil, VFSMODE)
 VFS.Include(SCRIPT_DIR .. 'utilities.lua', nil, VFSMODE)
 VFS.Include("modules/flowui/flowui.lua", nil, VFSMODE)
-VFS.Include("modules/i18n/i18n.lua", nil, VFSMODE)
 
 
 local actionHandler = VFS.Include(HANDLER_DIR .. 'actions.lua', nil, VFSMODE)
 
+-- Utility call
+local isSyncedCode = (SendToUnsynced ~= nil)
+local function IsSyncedCode()
+	return isSyncedCode
+end
+
+if not IsSyncedCode() then
+	-- i18n code has tables whose keys are functions, which is not compatible with synced code.
+	-- Since all i18n functionality is client side, can include in unsynced code only.
+	VFS.Include("modules/i18n/i18n.lua", nil, VFSMODE)
+end
 
 --------------------------------------------------------------------------------
 
@@ -94,13 +104,6 @@ do
 	for _, listname in ipairs(CALLIN_LIST) do
 		gadgetHandler[listname .. 'List'] = {}
 	end
-end
-
-
--- Utility call
-local isSyncedCode = (SendToUnsynced ~= nil)
-local function IsSyncedCode()
-	return isSyncedCode
 end
 
 
