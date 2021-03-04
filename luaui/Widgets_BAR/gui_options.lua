@@ -5389,19 +5389,22 @@ function widget:UnsyncedHeightMapUpdate(x1, z1, x2, z2)
 	end
 end
 
-function detectWater()
-	for x = 1, Game.mapSizeX do
-		for z = 1, Game.mapSizeZ do
+local function detectWater()
+	local x = 1
+	local z = 1
+	while x <= Game.mapSizeX do
+		z = 1
+		while z <= Game.mapSizeZ do
 			if spGetGroundHeight(x, z) <= 0 then
 				waterDetected = true
 				Spring.SendCommands("water " .. desiredWaterValue)
-				break
+				return true
 			end
+			z = z + 8
 		end
-		if waterDetected then
-			break
-		end
+		x = x + 8
 	end
+	return false
 end
 
 function widget:Initialize()
@@ -5603,6 +5606,9 @@ function widget:Initialize()
 		else
 			return false
 		end
+	end
+	WG['options'].waterDetected = function()
+		return waterDetected
 	end
 
 	presets = tableMerge(presets, customPresets)

@@ -75,6 +75,26 @@ local cellPadding, iconPadding, cornerSize, cellInnerSize, cellSize
 --local radariconSize, radariconOffset, groupiconSize, priceFontSize
 --local activeCmd, selBuildQueueDefID, rowPressedClock, rowPressed
 
+
+local spGetGroundHeight = Spring.GetGroundHeight
+
+local function mapHasWater()
+	local x = 1
+	local z = 1
+	while x <= Game.mapSizeX do
+		z = 1
+		while z <= Game.mapSizeZ do
+			if spGetGroundHeight(x, z) <= 0 then
+				return true
+			end
+			z = z + 8
+		end
+		x = x + 8
+	end
+	return false
+end
+local showWaterUnits = mapHasWater()
+
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 
@@ -296,10 +316,15 @@ local isFactory = {}
 local unitDescriptionLong = {}
 local unitIconType = {}
 local isMex = {}
+local isWaterUnit = {}
 local unitMaxWeaponRange = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
 	unitHumanName[unitDefID] = unitDef.humanName
 	unitGroup[unitDefID] = 'util'
+
+	if unitDef.name == 'armdl' or unitDef.name == 'cordl' or (unitDef.minWaterDepth > 0 or unitDef.modCategories['ship']) then
+		isWaterUnit[unitDefID] = true
+	end
 	if unitDef.customParams.objectify or unitDef.isTransport or string.find(unitDef.name, 'critter') then
 		unitGroup[unitDefID] = nil
 	end
@@ -416,9 +441,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	end
 
 	-- is water unit
-	local isWaterUnit = false
 	if unitDef.name ~= 'armmex' and unitDef.name ~= 'cormex' and (unitDef.minWaterDepth > 0 or unitDef.modCategories['ship'] or unitDef.modCategories['underwater']) then
-		isWaterUnit = true
 		unitOrder[unitDefID] = 500000
 	end
 
@@ -635,7 +658,9 @@ local function RefreshCommands()
 
 			local cmdUnitdefs = {}
 			for i, udefid in pairs(UnitDefs[startDefID].buildOptions) do
-				cmdUnitdefs[udefid] = i
+				if showWaterUnits or not isWaterUnit[udefid] then
+					cmdUnitdefs[udefid] = i
+				end
 			end
 			for k, uDefID in pairs(unitOrder) do
 				if cmdUnitdefs[uDefID] then
@@ -658,7 +683,9 @@ local function RefreshCommands()
 				if type(cmd) == "table" then
 					if string_sub(cmd.action, 1, 10) == 'buildunit_' then
 						-- not cmd.disabled and cmd.type == 20 or
-						cmdUnitdefs[cmd.id * -1] = index
+						if showWaterUnits or not isWaterUnit[cmd.id * -1] then
+							cmdUnitdefs[cmd.id * -1] = index
+						end
 					end
 				end
 			end
@@ -673,8 +700,10 @@ local function RefreshCommands()
 				if type(cmd) == "table" then
 					if string_sub(cmd.action, 1, 10) == 'buildunit_' then
 						-- not cmd.disabled and cmd.type == 20 or
-						cmdsCount = cmdsCount + 1
-						cmds[cmdsCount] = cmd
+						if showWaterUnits or not isWaterUnit[cmd] then
+							cmdsCount = cmdsCount + 1
+							cmds[cmdsCount] = cmd
+						end
 					end
 				end
 			end
@@ -964,6 +993,9 @@ function widget:Update(dt)
 			refreshUnitIconCache()
 			widget:ViewResize()
 			doUpdate = true
+		end
+		if WG['options'] and WG['options'].waterDetected then
+			showWaterUnits = WG['options'].waterDetected()
 		end
 
 		if stickToBottom then
