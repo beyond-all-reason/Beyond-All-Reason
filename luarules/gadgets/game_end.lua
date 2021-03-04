@@ -51,6 +51,7 @@ if gadgetHandler:IsSyncedCode() then
 	local GetTeamLuaAI = Spring.GetTeamLuaAI
 	local GameOver = Spring.GameOver
 	local AreTeamsAllied = Spring.AreTeamsAllied
+  local IsCheatingEnabled = Spring.IsCheatingEnabled
 
 	--------------------------------------------------------------------------------
 	--------------------------------------------------------------------------------
@@ -79,6 +80,7 @@ if gadgetHandler:IsSyncedCode() then
 	local playerIDtoAIs = {}
 	local playerQuitIsDead = true
 	local gaiaTeamID = Spring.GetGaiaTeamID()
+  local cheated = false
 
 	--------------------------------------------------------------------------------
 	--------------------------------------------------------------------------------
@@ -230,6 +232,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:GameFrame(gf)
+    if cheated == false then cheated = IsCheatingEnabled() end
 		for _,playerID in ipairs(GetPlayerList()) do
 			CheckPlayer(playerID) -- because not all events that we want to test call gadget:PlayerChanged (e.g. allying)
 		end
@@ -241,6 +244,10 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		if winners then
+      if Spring.GetModOptions("scenariooptions") then 
+      --Spring.Echo("winners", winners[1])
+        SendToUnsynced("scenariogameend", winners[1])
+      end
 			GameOver(winners)
 		end
 	end
@@ -345,16 +352,48 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-else
+else -- Unsynced
 
-	local sec = 0
-	function gadget:Update(dt)
-		if Spring.GetGameFrame() == 0 then
-			sec = sec + Spring.GetLastUpdateSeconds()
-			if sec > 3 then
-				sec = 0
-				Spring.SendLuaRulesMsg("pc")
-			end
-		end
-	end
+  local sec = 0
+  function gadget:Update(dt)
+    if Spring.GetGameFrame() == 0 then
+      sec = sec + Spring.GetLastUpdateSeconds()
+      if sec > 3 then
+        sec = 0
+        Spring.SendLuaRulesMsg("pc")
+      end
+    end
+  end
+
+
+  local function ScenarioGameEnd(_,winners)
+    local tID = Spring.GetMyAllyTeamID()
+    local cur_max = Spring.GetTeamStatsHistory(tID)
+    local stats = Spring.GetTeamStatsHistory(tID, cur_max, cur_max)
+    stats["cheated"]=cheated
+    if tid == winners then
+      stats["won"]= true
+    else
+      stats["won"] = false
+    end
+    local endtime = Spring.GetGameFrame()/30
+    --Spring.Echo("MyTeam ",tID,",winner",winners," at time",endtime,"m used:",stats[1].energyUsed + 60 * stats[1].metalUsed)
+    if Script.LuaUI("ScenarioGameEnd") then
+      Script.LuaUI.ScenarioGameEnd(winners, stats)
+    else
+      --Spring.Echo("Game was not started with the correct modoptions from Chobby for a scenario:D")
+    end
+  end
+  
+  function gadget:Initialize()
+    if Spring.GetModOptions("scenariooptions") then 
+      gadgetHandler:AddSyncAction("scenariogameend", ScenarioGameEnd)
+    end
+  end
+
+  function gadget:Shutdown()
+    if Spring.GetModOptions("scenariooptions") then 
+      gadgetHandler:RemoveSyncAction("scenariogameend")
+    end
+  end
 end
