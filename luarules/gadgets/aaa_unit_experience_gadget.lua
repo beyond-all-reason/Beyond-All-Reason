@@ -67,8 +67,6 @@ unitConfigs = { -- missing values default to 0
 }
 
 function ApplyBonuses(unitID, level)
-    local oldLevel = XPLevel[unitID]
-    local newLevel = oldLevel + 1
     local unitDefID = Spring.GetUnitDefID(unitID)
     local unitName = UnitDefs[unitDefID].name
     if unitConfigs[unitName] then
@@ -152,7 +150,7 @@ function ApplyBonuses(unitID, level)
     else
         Spring.SpawnCEG("levelup_fp3",posx,posy,posz,0,0,0)
     end
-    XPLevel[unitID] = newlevel
+    XPLevel[unitID] = XPLevel[unitID] + 1
 end
 
 
