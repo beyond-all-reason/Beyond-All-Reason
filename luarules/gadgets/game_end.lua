@@ -371,6 +371,7 @@ else -- Unsynced
     local cur_max = Spring.GetTeamStatsHistory(tID)
     local stats = Spring.GetTeamStatsHistory(tID, cur_max, cur_max)
     stats["cheated"]=cheated
+    stats["winners"] = winners
     if tid == winners then
       stats["won"]= true
     else
@@ -379,7 +380,7 @@ else -- Unsynced
     local endtime = Spring.GetGameFrame()/30
     --Spring.Echo("MyTeam ",tID,",winner",winners," at time",endtime,"m used:",stats[1].energyUsed + 60 * stats[1].metalUsed)
     if Script.LuaUI("ScenarioGameEnd") then
-      Script.LuaUI.ScenarioGameEnd(winners, stats)
+      Script.LuaUI.ScenarioGameEnd(stats)
     else
       --Spring.Echo("Game was not started with the correct modoptions from Chobby for a scenario:D")
     end
