@@ -46,7 +46,7 @@ local nonSavedCommands = {
 	--[CMD_PUSH_PULL] = true
 }
 local nonLoadedCommands = {
-	[CMD_PUSH_PULL] = true
+	--[CMD_PUSH_PULL] = true --bar does not use this
 }
 
 if (gadgetHandler:IsSyncedCode()) then
