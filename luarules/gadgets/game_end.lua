@@ -245,7 +245,7 @@ if gadgetHandler:IsSyncedCode() then
 
 		if winners then
       if Spring.GetModOptions("scenariooptions") then 
-      --Spring.Echo("winners", winners[1])
+        Spring.Echo("winners", winners[1])
         SendToUnsynced("scenariogameend", winners[1])
       end
 			GameOver(winners)
@@ -366,7 +366,7 @@ else -- Unsynced
   end
 
 
-  local function ScenarioGameEnd(_,winners)
+  function ScenarioGameEnd(_,winners)
     local tID = Spring.GetMyAllyTeamID()
     local cur_max = Spring.GetTeamStatsHistory(tID)
     local stats = Spring.GetTeamStatsHistory(tID, cur_max, cur_max)
@@ -381,11 +381,11 @@ else -- Unsynced
     end
     local endtime = Spring.GetGameFrame()/30
     stats["endtime"] = endtime
-    --Spring.Echo("MyTeam ",tID,",winner",winners," at time",endtime,"m used:",stats.energyUsed + 60 * stats.metalUsed)
+    Spring.Echo("MyTeam ",tID,",winner",winners," at time",endtime,"m used:",stats.energyUsed + 60 * stats.metalUsed)
     if Script.LuaUI("ScenarioGameEnd") then
       Script.LuaUI.ScenarioGameEnd(stats)
     else
-      --Spring.Echo("Game was not started with the correct modoptions from Chobby for a scenario:D")
+      Spring.Echo("Game was not started with the correct modoptions from Chobby for a scenario:D")
     end
   end
   
