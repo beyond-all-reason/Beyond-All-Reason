@@ -380,6 +380,7 @@ else -- Unsynced
       stats["won"] = false
     end
     local endtime = Spring.GetGameFrame()/30
+    stats["endtime"] = endtime
     --Spring.Echo("MyTeam ",tID,",winner",winners," at time",endtime,"m used:",stats.energyUsed + 60 * stats.metalUsed)
     if Script.LuaUI("ScenarioGameEnd") then
       Script.LuaUI.ScenarioGameEnd(stats)
