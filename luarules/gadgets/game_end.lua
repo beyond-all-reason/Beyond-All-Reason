@@ -370,15 +370,17 @@ else -- Unsynced
     local tID = Spring.GetMyAllyTeamID()
     local cur_max = Spring.GetTeamStatsHistory(tID)
     local stats = Spring.GetTeamStatsHistory(tID, cur_max, cur_max)
+    stats = stats[1]
     stats["cheated"]=cheated
     stats["winners"] = winners
+    stats["scenariooptions"] = Spring.GetModOptions("scenariooptions") -- pass it back so we know difficulty
     if tid == winners then
       stats["won"]= true
     else
       stats["won"] = false
     end
     local endtime = Spring.GetGameFrame()/30
-    --Spring.Echo("MyTeam ",tID,",winner",winners," at time",endtime,"m used:",stats[1].energyUsed + 60 * stats[1].metalUsed)
+    --Spring.Echo("MyTeam ",tID,",winner",winners," at time",endtime,"m used:",stats.energyUsed + 60 * stats.metalUsed)
     if Script.LuaUI("ScenarioGameEnd") then
       Script.LuaUI.ScenarioGameEnd(stats)
     else
