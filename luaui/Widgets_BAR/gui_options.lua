@@ -788,6 +788,24 @@ function deepcopy(orig)
 	return copy
 end
 
+local function detectWater()
+	local x = 1
+	local z = 1
+	while x <= Game.mapSizeX do
+		z = 1
+		while z <= Game.mapSizeZ do
+			if spGetGroundHeight(x, z) <= 0 then
+				waterDetected = true
+				Spring.SendCommands("water " .. desiredWaterValue)
+				return true
+			end
+			z = z + 8
+		end
+		x = x + 8
+	end
+	return false
+end
+
 function getOptionByID(id)
 	for i, option in pairs(options) do
 		if option.id == id then
@@ -5389,23 +5407,6 @@ function widget:UnsyncedHeightMapUpdate(x1, z1, x2, z2)
 	end
 end
 
-local function detectWater()
-	local x = 1
-	local z = 1
-	while x <= Game.mapSizeX do
-		z = 1
-		while z <= Game.mapSizeZ do
-			if spGetGroundHeight(x, z) <= 0 then
-				waterDetected = true
-				Spring.SendCommands("water " .. desiredWaterValue)
-				return true
-			end
-			z = z + 8
-		end
-		x = x + 8
-	end
-	return false
-end
 
 function widget:Initialize()
 
