@@ -322,7 +322,8 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	unitHumanName[unitDefID] = unitDef.humanName
 	unitGroup[unitDefID] = 'util'
 
-	if unitDef.name == 'armdl' or unitDef.name == 'cordl' or (unitDef.minWaterDepth > 0 or unitDef.modCategories['ship']) then
+	if unitDef.name == 'armdl' or unitDef.name == 'cordl' or unitDef.name == 'armlance' or unitDef.name == 'cortitan' or unitDef.name == 'armbeaver' or unitDef.name == 'cormuskrat'
+		or (unitDef.minWaterDepth > 0 or unitDef.modCategories['ship']) then
 		isWaterUnit[unitDefID] = true
 	end
 	if unitDef.customParams.objectify or unitDef.isTransport or string.find(unitDef.name, 'critter') then
