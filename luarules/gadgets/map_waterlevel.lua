@@ -41,31 +41,16 @@ if gadgetHandler:IsSyncedCode() then
 
 	function adjustFeatureHeight()
 		local featuretable = Spring.GetAllFeatures()
-		local x, y, z, rx, ry, rz, featureDefID
+		local x, y, z
 		for i = 1, #featuretable do
-			if not orgFeaturePosY[i] then
-				orgFeaturePosY[i] = select(2, Spring.GetFeaturePosition(featuretable[i]))
-			end
 			x, y, z = Spring.GetFeaturePosition(featuretable[i])
-			if math.abs(Spring.GetGroundHeight(x, z) - y) > 0.01 then
-				--Spring.Echo("Feature position wrong (",x,y,z,")", Spring.GetGroundHeight(x,z), orgFeaturePosY[i])
-
-				featureDefID = Spring.GetFeatureDefID(featuretable[i])
-
-				rx, ry, rz = Spring.GetFeatureRotation(featuretable[i])
-				Spring.DestroyFeature(featuretable[i])
-				if Spring.GetGroundHeight(x, z) >= 0 or FeatureDefs[featureDefID].geoThermal == true or FeatureDefs[featureDefID].metal > 0 then
-					-- Keep features (> 0 height) or (geovents) or (contains metal)
-					y = orgFeaturePosY[i] - waterlevel --Spring.GetGroundHeight(x,z)
-					local newfeatureID = Spring.CreateFeature(featureDefID, x, y, z)
-					Spring.SetFeatureRotation(newfeatureID, rx, ry, rz)
-				end
-			end
+      Spring.SetFeaturePosition(featuretable[i], x,  y,  z ,true) -- snaptoground = true
 		end
 	end
 
 	function adjustWaterlevel()
 		-- Spring.SetMapRenderingParams({ voidWater = false})
+    Spring.Echo("adjustWaterlevel: this might cause a lag spike.")
 		Spring.AdjustHeightMap(0, 0, Game.mapSizeX, Game.mapSizeZ, -waterlevel)
 		Spring.AdjustSmoothMesh(0, 0, Game.mapSizeX, Game.mapSizeZ, -waterlevel)
 		adjustFeatureHeight()
@@ -81,7 +66,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:GameFrame(gf)
 		-- Keeping this in forces feature recreation on frame 0, with a lag spike on init, also destroying all preexisting feature rotations.
-		adjustFeatureHeight()
+		-- adjustFeatureHeight() -- im removing this, this is stupid. B.
 		gadgetHandler:RemoveCallIn("GameFrame")
 	end
 
