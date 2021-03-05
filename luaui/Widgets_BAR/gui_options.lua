@@ -590,6 +590,9 @@ local skipUnpauseOnLobbyHide = false
 
 local desiredWaterValue = 4
 local waterDetected = false
+if select(3, Spring.GetGroundExtremes()) < 0 then
+	waterDetected = true
+end
 local heightmapChangeBuffer = {}
 
 local vsx, vsy = Spring.GetViewGeometry()
@@ -789,21 +792,11 @@ function deepcopy(orig)
 end
 
 local function detectWater()
-	local x = 1
-	local z = 1
-	while x <= Game.mapSizeX do
-		z = 1
-		while z <= Game.mapSizeZ do
-			if spGetGroundHeight(x, z) <= 0 then
-				waterDetected = true
-				Spring.SendCommands("water " .. desiredWaterValue)
-				return true
-			end
-			z = z + 8
-		end
-		x = x + 8
+	local _,_,mapMinHeight, mapMaxHeight = Spring.GetGroundExtremes()
+	if select(3, Spring.GetGroundExtremes()) <= -10 then
+		waterDetected = true
+		Spring.SendCommands("water " .. desiredWaterValue)
 	end
-	return false
 end
 
 function getOptionByID(id)
@@ -1244,7 +1237,7 @@ function widget:Update(dt)
 							break
 						end
 						z = z + 8
-					end
+				end
 					if waterDetected then
 						break
 					end
@@ -5608,9 +5601,6 @@ function widget:Initialize()
 			return false
 		end
 	end
-	WG['options'].waterDetected = function()
-		return waterDetected
-	end
 
 	presets = tableMerge(presets, customPresets)
 	for preset, _ in pairs(customPresets) do
@@ -5780,9 +5770,6 @@ function widget:SetConfigData(data)
 	end
 	if data.desiredWaterValue ~= nil then
 		desiredWaterValue = data.desiredWaterValue
-	end
-	if data.waterDetected and Spring.GetGameFrame() > 0 then
-		waterDetected = data.waterDetected
 	end
 	if data.firsttimesetupDone ~= nil then
 		firstlaunchsetupDone = data.firsttimesetupDone

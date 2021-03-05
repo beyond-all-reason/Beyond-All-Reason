@@ -76,24 +76,10 @@ local cellPadding, iconPadding, cornerSize, cellInnerSize, cellSize
 --local activeCmd, selBuildQueueDefID, rowPressedClock, rowPressed
 
 
-local spGetGroundHeight = Spring.GetGroundHeight
-
-local function mapHasWater()
-	local x = 1
-	local z = 1
-	while x <= Game.mapSizeX do
-		z = 1
-		while z <= Game.mapSizeZ do
-			if spGetGroundHeight(x, z) <= 0 then
-				return true
-			end
-			z = z + 8
-		end
-		x = x + 8
-	end
-	return false
+local showWaterUnits = false
+if select(3, Spring.GetGroundExtremes()) <= -10 then
+	showWaterUnits = true
 end
-local showWaterUnits = mapHasWater()
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
@@ -995,8 +981,9 @@ function widget:Update(dt)
 			widget:ViewResize()
 			doUpdate = true
 		end
-		if WG['options'] and WG['options'].waterDetected then
-			showWaterUnits = WG['options'].waterDetected()
+
+		if select(3, Spring.GetGroundExtremes()) <= -10 then
+			showWaterUnits = true
 		end
 
 		if stickToBottom then
