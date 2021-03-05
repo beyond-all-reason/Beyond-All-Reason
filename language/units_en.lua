@@ -1,7 +1,7 @@
 return {
 	en = {
 		units = {
-			unitnames = {
+			names = {
 				armaak = "Archangel",
 				armaap = "Advanced Aircraft Plant",
 				armaas = "Archer",
@@ -465,7 +465,7 @@ return {
 				ve_chickenq = "Chicken Queen",
 				vh_chickenq = "Chicken Queen",
 			},
-			unittooltips = {
+			descriptions = {
 				armaak = "Advanced Amphibious Anti-Air Bot",
 				armaap = "Produces Level 2 Aircraft",
 				armaas = "Anti-Air Ship",

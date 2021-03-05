@@ -321,15 +321,14 @@ end
 ------------------------------------------------------------------------------------
 
 function widget:Initialize()
+	for id, _ in pairs(UnitDefNames) do
+		unitHumanName[id] = Spring.I18N('units.names.' .. id)
+	end
+
 	if WG['lang'] then
 		texts = WG['lang'].getText('unitstats')
-		local translations = WG['lang'].getText('unitnames')
-		for name,text in pairs(translations) do
-			if UnitDefNames[name] then
-				unitHumanName[UnitDefNames[name].id] = text
-			end
-		end
 	end
+
 	font = WG['fonts'].getFont(fontfile)
 	init()
 	WG['unitstats'] = {}

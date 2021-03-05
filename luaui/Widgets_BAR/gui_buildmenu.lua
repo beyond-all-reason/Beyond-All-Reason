@@ -803,20 +803,11 @@ end
 
 
 function widget:Initialize()
-	if WG['lang'] then
-		local translations = WG['lang'].getText('unitnames')
-		for name,text in pairs(translations) do
-			if UnitDefNames[name] then
-				unitHumanName[UnitDefNames[name].id] = text
-			end
-		end
-		translations = WG['lang'].getText('unittooltips')
-		for name,text in pairs(translations) do
-			if UnitDefNames[name] then
-				unitTooltip[UnitDefNames[name].id] = text
-			end
-		end
+	for id, _ in pairs(UnitDefNames) do
+		unitHumanName[id] = Spring.I18N('units.names.' .. id)
+		unitTooltip[id] = Spring.I18N('units.descriptions.' .. id)
 	end
+
 	hijacklayout()
 
 	iconTypesMap = {}
