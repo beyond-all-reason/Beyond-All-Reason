@@ -381,11 +381,20 @@ else -- Unsynced
     end
     local endtime = Spring.GetGameFrame()/30
     stats["endtime"] = endtime
-    Spring.Echo("MyTeam ",tID,",winner",winners," at time",endtime,"m used:",stats.energyUsed + 60 * stats.metalUsed)
+    --Spring.Echo("MyTeam ",tID,",winner",winners," at time",endtime,"m used:",stats.energyUsed + 60 * stats.metalUsed)
+    
+    
+    local message = Spring.Utilities.json.encode(stats)
+    Spring.Echo("ScenarioGameEnd " ..message)
+    if Spring.GetMenuName and string.find(string.lower(Spring.GetMenuName()), 'chobby') ~= nil then
+      chobbyLoaded = true
+      Spring.SendLuaMenuMsg("ScenarioGameEnd "..message)
+    end
+
     if Script.LuaUI("ScenarioGameEnd") then
-      Script.LuaUI.ScenarioGameEnd(stats)
+      Script.LuaUI.ScenarioGameEnd(stats) -- this doesnt work, as chobby uses a different handler
     else
-      Spring.Echo("Game was not started with the correct modoptions from Chobby for a scenario:D")
+      --Spring.Echo("Game was not started with the correct modoptions from Chobby for a scenario:D")
     end
   end
   
