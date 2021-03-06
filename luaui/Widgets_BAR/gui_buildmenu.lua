@@ -76,24 +76,10 @@ local cellPadding, iconPadding, cornerSize, cellInnerSize, cellSize
 --local activeCmd, selBuildQueueDefID, rowPressedClock, rowPressed
 
 
-local spGetGroundHeight = Spring.GetGroundHeight
-
-local function mapHasWater()
-	local x = 1
-	local z = 1
-	while x <= Game.mapSizeX do
-		z = 1
-		while z <= Game.mapSizeZ do
-			if spGetGroundHeight(x, z) <= 0 then
-				return true
-			end
-			z = z + 8
-		end
-		x = x + 8
-	end
-	return false
+local showWaterUnits = false
+if select(3, Spring.GetGroundExtremes()) <= -10 then
+	showWaterUnits = true
 end
-local showWaterUnits = mapHasWater()
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
@@ -322,7 +308,8 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	unitHumanName[unitDefID] = unitDef.humanName
 	unitGroup[unitDefID] = 'util'
 
-	if unitDef.name == 'armdl' or unitDef.name == 'cordl' or (unitDef.minWaterDepth > 0 or unitDef.modCategories['ship']) then
+	if unitDef.name == 'armdl' or unitDef.name == 'cordl' or unitDef.name == 'armlance' or unitDef.name == 'cortitan' or unitDef.name == 'armbeaver' or unitDef.name == 'cormuskrat'
+		or (unitDef.minWaterDepth > 0 or unitDef.modCategories['ship']) then
 		isWaterUnit[unitDefID] = true
 	end
 	if unitDef.customParams.objectify or unitDef.isTransport or string.find(unitDef.name, 'critter') then
@@ -985,8 +972,9 @@ function widget:Update(dt)
 			widget:ViewResize()
 			doUpdate = true
 		end
-		if WG['options'] and WG['options'].waterDetected then
-			showWaterUnits = WG['options'].waterDetected()
+
+		if select(3, Spring.GetGroundExtremes()) <= -10 then
+			showWaterUnits = true
 		end
 
 		if stickToBottom then

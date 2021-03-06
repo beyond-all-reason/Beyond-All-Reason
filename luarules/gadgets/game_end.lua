@@ -244,7 +244,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		if winners then
-      if Spring.GetModOptions("scenariooptions") then 
+      if Spring.GetModOptions().scenariooptions then 
         Spring.Echo("winners", winners[1])
         SendToUnsynced("scenariogameend", winners[1])
       end
@@ -354,7 +354,10 @@ if gadgetHandler:IsSyncedCode() then
 
 else -- Unsynced
 
+  local IsCheatingEnabled = Spring.IsCheatingEnabled
   local sec = 0
+  local cheated = false
+  
   function gadget:Update(dt)
     if Spring.GetGameFrame() == 0 then
       sec = sec + Spring.GetLastUpdateSeconds()
@@ -366,6 +369,10 @@ else -- Unsynced
   end
 
 
+	function gadget:GameFrame(gf)
+    if cheated == false then cheated = IsCheatingEnabled() end
+  end
+
   function ScenarioGameEnd(_,winners)
     local tID = Spring.GetMyAllyTeamID()
     local cur_max = Spring.GetTeamStatsHistory(tID)
@@ -373,7 +380,7 @@ else -- Unsynced
     stats = stats[1]
     stats["cheated"]=cheated
     stats["winners"] = winners
-    stats["scenariooptions"] = Spring.GetModOptions("scenariooptions") -- pass it back so we know difficulty
+    stats["scenariooptions"] = Spring.GetModOptions().scenariooptions -- pass it back so we know difficulty
     if tid == winners then
       stats["won"]= true
     else
@@ -381,22 +388,24 @@ else -- Unsynced
     end
     local endtime = Spring.GetGameFrame()/30
     stats["endtime"] = endtime
-    Spring.Echo("MyTeam ",tID,",winner",winners," at time",endtime,"m used:",stats.energyUsed + 60 * stats.metalUsed)
-    if Script.LuaUI("ScenarioGameEnd") then
-      Script.LuaUI.ScenarioGameEnd(stats)
-    else
-      Spring.Echo("Game was not started with the correct modoptions from Chobby for a scenario:D")
+    --Spring.Echo("MyTeam ",tID,",winner",winners," at time",endtime,"m used:",stats.energyUsed + 60 * stats.metalUsed)
+    
+    local message = Spring.Utilities.json.encode(stats)
+    --Spring.Echo("ScenarioGameEnd " ..message)
+    if Spring.GetMenuName and string.find(string.lower(Spring.GetMenuName()), 'chobby') ~= nil then
+      chobbyLoaded = true
+      Spring.SendLuaMenuMsg("ScenarioGameEnd "..message)
     end
   end
   
   function gadget:Initialize()
-    if Spring.GetModOptions("scenariooptions") then 
+    if Spring.GetModOptions().scenariooptions then 
       gadgetHandler:AddSyncAction("scenariogameend", ScenarioGameEnd)
     end
   end
 
   function gadget:Shutdown()
-    if Spring.GetModOptions("scenariooptions") then 
+    if Spring.GetModOptions().scenariooptions then 
       gadgetHandler:RemoveSyncAction("scenariogameend")
     end
   end
