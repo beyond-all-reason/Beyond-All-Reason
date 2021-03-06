@@ -53,7 +53,7 @@ return {
 			useSelfDestruct = "If you are certain of losing a unit in enemy territory, Self-Destruct (CTRL+D) it to prevent leaving a valuable wreck.",
 			useMines = "Mines are super cheap and quick to build. Remember to build them away from the enemy's line of sight.",
 			useJuno = "Enemy mines, radars, and jammers may be disabled using the Juno - built by both factions with T1 constructors.",
-			autogroups = "Use Alt+(0-9) to assign selected unit type(s) to autogroups. Newly built units of the same type(s) will get automatically added to their autogroup. Alt+Backquote (`) removes units.",
+			autogroups = "Use ALT+(0-9) to assign selected unit type(s) to autogroups. Newly built units of the same type(s) will get automatically added to their autogroup. ALT+Backquote (`) removes units.",
 		},
 	}
 }
