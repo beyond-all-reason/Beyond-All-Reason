@@ -34,7 +34,7 @@ function scav_Udef_Post(name, uDef)
 	if not uDef.customparams then
 		uDef.customparams = {}
 	end
-	uDef.customparams.isscavenger == true
+	uDef.customparams.isscavenger = true
 	
 	-- add unit category
 	uDef.category = uDef.category..' SCAVENGER'
