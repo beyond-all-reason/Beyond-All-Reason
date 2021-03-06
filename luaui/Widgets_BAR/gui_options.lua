@@ -2406,7 +2406,7 @@ function init()
 		  onchange = function(i, value)
 			  vsyncLevel = value
 			  local vsync = 0
-			  if vsyncEnabled and (not isSpec or vsyncOnlyForSpec) then
+			  if vsyncEnabled and (not vsyncOnlyForSpec or isSpec) then
 				  vsync = vsyncLevel
 			  end
 			  Spring.SetConfigInt("VSync", vsync)
