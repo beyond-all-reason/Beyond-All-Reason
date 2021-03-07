@@ -321,15 +321,21 @@ end
 ------------------------------------------------------------------------------------
 
 function widget:Initialize()
+	local counterpartID
+
+	for id, _ in pairs(UnitDefNames) do
+		if UnitDefNames[id].customParams and UnitDefNames[id].customParams.isscavenger then
+			counterpartID = string.gsub(id, '_scav', '')
+			unitHumanName[id] = Spring.I18N('units.scavengers.name', { name = Spring.I18N('units.names.' .. counterpartID) })
+		else
+			unitHumanName[id] = Spring.I18N('units.names.' .. id)
+		end            
+	end
+
 	if WG['lang'] then
 		texts = WG['lang'].getText('unitstats')
-		local translations = WG['lang'].getText('unitnames')
-		for name,text in pairs(translations) do
-			if UnitDefNames[name] then
-				unitHumanName[UnitDefNames[name].id] = text
-			end
-		end
 	end
+
 	font = WG['fonts'].getFont(fontfile)
 	init()
 	WG['unitstats'] = {}

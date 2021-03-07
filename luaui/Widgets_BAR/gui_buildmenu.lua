@@ -790,20 +790,20 @@ end
 
 
 function widget:Initialize()
-	if WG['lang'] then
-		local translations = WG['lang'].getText('unitnames')
-		for name,text in pairs(translations) do
-			if UnitDefNames[name] then
-				unitHumanName[UnitDefNames[name].id] = text
-			end
+	local counterpartID
+
+	for id, _ in pairs(UnitDefNames) do
+		if UnitDefNames[id].customParams and UnitDefNames[id].customParams.isscavenger then
+			counterpartID = string.gsub(id, '_scav', '')
+			unitHumanName[id] = Spring.I18N('units.scavengers.name', { name = Spring.I18N('units.names.' .. counterpartID) })
+			unitTooltip[id] = Spring.I18N('units.descriptions.' .. counterpartID)
+		else
+			unitHumanName[id] = Spring.I18N('units.names.' .. id)
+			unitTooltip[id] = Spring.I18N('units.descriptions.' .. id)
 		end
-		translations = WG['lang'].getText('unittooltips')
-		for name,text in pairs(translations) do
-			if UnitDefNames[name] then
-				unitTooltip[UnitDefNames[name].id] = text
-			end
-		end
+
 	end
+
 	hijacklayout()
 
 	iconTypesMap = {}
