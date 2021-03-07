@@ -1,6 +1,9 @@
 return {
 	en = {
 		units = {
+			scavengers = {
+				name = "Scavenger %{name}",
+			},
 			names = {
 				armaak = "Archangel",
 				armaap = "Advanced Aircraft Plant",

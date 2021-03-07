@@ -790,9 +790,18 @@ end
 
 
 function widget:Initialize()
+	local counterpartID
+
 	for id, _ in pairs(UnitDefNames) do
-		unitHumanName[id] = Spring.I18N('units.names.' .. id)
-		unitTooltip[id] = Spring.I18N('units.descriptions.' .. id)
+		if UnitDefNames[id].customParams and UnitDefNames[id].customParams.isscavenger then
+			counterpartID = string.gsub(id, '_scav', '')
+			unitHumanName[id] = Spring.I18N('units.scavengers.name', { name = Spring.I18N('units.names.' .. counterpartID) })
+			unitTooltip[id] = Spring.I18N('units.descriptions.' .. counterpartID)
+		else
+			unitHumanName[id] = Spring.I18N('units.names.' .. id)
+			unitTooltip[id] = Spring.I18N('units.descriptions.' .. id)
+		end
+
 	end
 
 	hijacklayout()
