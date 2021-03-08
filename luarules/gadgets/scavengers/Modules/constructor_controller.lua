@@ -152,42 +152,47 @@ function ConstructNewBlueprint(n, scav)
 		ConstructorNumberOfRetries[scav] = 0
 	end
 	ConstructorNumberOfRetries[scav] = ConstructorNumberOfRetries[scav] + 1
-	for i = 1,20 do
+	
+	local spawnTier = math_random(1,100)
+	if spawnTier <= TierSpawnChances.T0 then
+		landblueprint = ScavengerConstructorBlueprintsT0[math_random(1,#ScavengerConstructorBlueprintsT0)]
+	elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 then
+		landblueprint = ScavengerConstructorBlueprintsT1[math_random(1,#ScavengerConstructorBlueprintsT1)]
+	elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 then
+		landblueprint = ScavengerConstructorBlueprintsT2[math_random(1,#ScavengerConstructorBlueprintsT2)]
+	elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 then
+		landblueprint = ScavengerConstructorBlueprintsT3[math_random(1,#ScavengerConstructorBlueprintsT3)]
+	elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 + TierSpawnChances.T4 then
+		landblueprint = ScavengerConstructorBlueprintsT3[math_random(1,#ScavengerConstructorBlueprintsT4)]
+	else
+		landblueprint = ScavengerConstructorBlueprintsT0[math_random(1,#ScavengerConstructorBlueprintsT0)]
+	end
+	
+	if spawnTier <= TierSpawnChances.T0 then
+		seablueprint = ScavengerConstructorBlueprintsT0Sea[math_random(1,#ScavengerConstructorBlueprintsT0Sea)]
+	elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 then
+		seablueprint = ScavengerConstructorBlueprintsT1Sea[math_random(1,#ScavengerConstructorBlueprintsT1Sea)]
+	elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 then
+		seablueprint = ScavengerConstructorBlueprintsT2Sea[math_random(1,#ScavengerConstructorBlueprintsT2Sea)]
+	elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 then
+		seablueprint = ScavengerConstructorBlueprintsT3Sea[math_random(1,#ScavengerConstructorBlueprintsT3Sea)]
+	elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 + TierSpawnChances.T4 then
+		seablueprint = ScavengerConstructorBlueprintsT3Sea[math_random(1,#ScavengerConstructorBlueprintsT4Sea)]
+	else
+		seablueprint = ScavengerConstructorBlueprintsT0Sea[math_random(1,#ScavengerConstructorBlueprintsT0Sea)]
+	end
+
+	for i = 1,50 do
 		local x,y,z = Spring.GetUnitPosition(scav)
 		local posx = math_random(x-(50*ConstructorNumberOfRetries[scav]),x+(50*ConstructorNumberOfRetries[scav]))
 		local posz = math_random(z-(50*ConstructorNumberOfRetries[scav]),z+(50*ConstructorNumberOfRetries[scav]))
 		local posy = Spring.GetGroundHeight(posx, posz)
-		local spawnTier = math_random(1,100)
 		local unitCount = Spring.GetTeamUnitCount(GaiaTeamID)
 		if unitCount + 200 < scavMaxUnits then
 			if posy > 0 then
-				if spawnTier <= TierSpawnChances.T0 then
-						blueprint = ScavengerConstructorBlueprintsT0[math_random(1,#ScavengerConstructorBlueprintsT0)]
-				elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 then
-						blueprint = ScavengerConstructorBlueprintsT1[math_random(1,#ScavengerConstructorBlueprintsT1)]
-				elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 then
-						blueprint = ScavengerConstructorBlueprintsT2[math_random(1,#ScavengerConstructorBlueprintsT2)]
-				elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 then
-						blueprint = ScavengerConstructorBlueprintsT3[math_random(1,#ScavengerConstructorBlueprintsT3)]
-				elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 + TierSpawnChances.T4 then
-						blueprint = ScavengerConstructorBlueprintsT3[math_random(1,#ScavengerConstructorBlueprintsT4)]
-				else
-					blueprint = ScavengerConstructorBlueprintsT0[math_random(1,#ScavengerConstructorBlueprintsT0)]
-				end
+				blueprint = landblueprint
 			elseif posy <= 0 then
-				if spawnTier <= TierSpawnChances.T0 then
-						blueprint = ScavengerConstructorBlueprintsT0Sea[math_random(1,#ScavengerConstructorBlueprintsT0Sea)]
-				elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 then
-						blueprint = ScavengerConstructorBlueprintsT1Sea[math_random(1,#ScavengerConstructorBlueprintsT1Sea)]
-				elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 then
-						blueprint = ScavengerConstructorBlueprintsT2Sea[math_random(1,#ScavengerConstructorBlueprintsT2Sea)]
-				elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 then
-						blueprint = ScavengerConstructorBlueprintsT3Sea[math_random(1,#ScavengerConstructorBlueprintsT3Sea)]
-				elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 + TierSpawnChances.T4 then
-						blueprint = ScavengerConstructorBlueprintsT3Sea[math_random(1,#ScavengerConstructorBlueprintsT4Sea)]
-				else
-					blueprint = ScavengerConstructorBlueprintsT0Sea[math_random(1,#ScavengerConstructorBlueprintsT0Sea)]
-				end
+				blueprint = seablueprint
 			end
 		else
 			local mapcenterX = mapsizeX/2
@@ -217,29 +222,6 @@ function ConstructNewBlueprint(n, scav)
 			break
 		end
 	end
-	-- if canConstructHere then
-		-- -- let's do this shit
-		-- blueprint(scav, posx, posy, posz, GaiaTeamID, false)
-		-- local x = math_random(x-1000,x+1000)
-		-- local z = math_random(z-1000,z+1000)
-		-- local y = Spring.GetGroundHeight(x,z)
-		-- Spring.GiveOrderToUnit(scav, CMD.MOVE,{x,y,z}, {"shift"})
-		-- local x = math_random(x-100,x+100)
-		-- local z = math_random(z-100,z+100)
-		-- local y = Spring.GetGroundHeight(x,z)
-		-- Spring.GiveOrderToUnit(scav, CMD.MOVE,{x,y,z}, {"shift"})
-	-- else
-		-- local x,y,z = Spring.GetUnitPosition(scav)
-		-- local x = math_random(x-500,x+500)
-		-- local z = math_random(z-500,z+500)
-		-- local y = Spring.GetGroundHeight(x,z)
-		-- Spring.GiveOrderToUnit(scav, CMD.MOVE,{x,y,z}, {"shift"})
-		-- local x,y,z = Spring.GetUnitPosition(scav)
-		-- local x = math_random(x-100,x+100)
-		-- local z = math_random(z-100,z+100)
-		-- local y = Spring.GetGroundHeight(x,z)
-		-- Spring.GiveOrderToUnit(scav, CMD.MOVE,{x,y,z}, {"shift"})
-	-- end
 end
 
 function SpawnResurrectorGroup(n)
