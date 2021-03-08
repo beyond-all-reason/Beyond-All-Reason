@@ -106,27 +106,91 @@ local function processWeapons(unitDefName, unitDef)
 end
 
 function UnitDef_Post(name, uDef)
+	if not uDef.customparams then
+		uDef.customparams = {}
+	end
 	
 	-- Unit Restrictions
 	if uDef.customparams then
 		if not uDef.customparams.techlevel then uDef.customparams.techlevel = 0 end
 		if not uDef.customparams.subfolder then uDef.customparams.subfolder = "none" end
 		
-		if Spring.GetModOptions and Spring.GetModOptions().unit_restrictions_notech2 == true then
+		if Spring.GetModOptions and tonumber(Spring.GetModOptions().unit_restrictions_notech2) == 1 then
 			if tonumber(uDef.customparams.techlevel) == 2 or tonumber(uDef.customparams.techlevel) == 3 then
 				uDef.unitrestricted = 0
 			end
 		end
 		
-		if Spring.GetModOptions and Spring.GetModOptions().unit_restrictions_notech3 == true then
+		if Spring.GetModOptions and tonumber(Spring.GetModOptions().unit_restrictions_notech3) == 1 then
 			if tonumber(uDef.customparams.techlevel) == 3 then
 				uDef.unitrestricted = 0
 			end
 		end
 		
-		if Spring.GetModOptions and Spring.GetModOptions().unit_restrictions_noair == true then
+		if Spring.GetModOptions and tonumber(Spring.GetModOptions().unit_restrictions_noair) == 1 then
 			if string.find(uDef.customparams.subfolder, "Aircraft") then
 				uDef.unitrestricted = 0
+			elseif uDef.canfly then
+				uDef.unitrestricted = 0
+			end
+			local AircraftFactories = {
+				"armap",
+				"armaap",
+				"armplat",
+				"corap",
+				"coraap",
+				"corplat",
+			}
+			for a = 1,#AircraftFactories do
+				if AircraftFactories[a] == name then
+					uDef.unitrestricted = 0
+				end
+			end
+		end
+
+		if Spring.GetModOptions and tonumber(Spring.GetModOptions().unit_restrictions_noconverters) == 1 then
+			local Converters = {
+				"armmakr",
+				"armmmkr",
+				"armfmkr",
+				"armuwmmm",
+				"cormakr",
+				"cormmkr",
+				"corfmkr",
+				"coruwmmm",
+			}
+			for a = 1,#Converters do
+				if Converters[a] == name then
+					uDef.unitrestricted = 0
+				end
+			end
+		end
+
+		if Spring.GetModOptions and tonumber(Spring.GetModOptions().unit_restrictions_nonukes) == 1 then
+			local Nukes = {
+				"armamd",
+				"armsilo",
+				"armscab",
+				"corfmd",
+				"corsilo",
+				"cormabm",
+			}
+			for a = 1,#Nukes do
+				if Nukes[a] == name then
+					uDef.unitrestricted = 0
+				end
+			end
+		end
+
+		if Spring.GetModOptions and tonumber(Spring.GetModOptions().unit_restrictions_notacnukes) == 1 then
+			local TacNukes = {
+				"armemp",
+				"cortron",
+			}
+			for a = 1,#TacNukes do
+				if TacNukes[a] == name then
+					uDef.unitrestricted = 0
+				end
 			end
 		end
 	end
@@ -220,10 +284,6 @@ function UnitDef_Post(name, uDef)
 		uDef.buildcostmetal = chickHealth*1
 		uDef.buildcostenergy = chickHealth*10
 		uDef.buildtime = chickHealth*10
-	end
-	
-	if not uDef.customparams then
-		uDef.customparams = {}
 	end
 
 	if (uDef.buildpic and uDef.buildpic == "") or not uDef.buildpic then
