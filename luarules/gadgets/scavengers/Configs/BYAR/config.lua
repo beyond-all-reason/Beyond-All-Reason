@@ -160,9 +160,9 @@ unitSpawnerModuleConfig = {
 }
 
 constructorControllerModuleConfig = {
-	constructortimerstart				= 120, -- ammount of seconds it skips from constructortimer for the first spawn (make first spawn earlier - this timer starts on timer-Timer1)
-	constructortimer 					= 480, -- time in seconds between commander/constructor spawns
-	constructortimerreductionframes		= 36000,
+	constructortimerstart				= 300, -- ammount of seconds it skips from constructortimer for the first spawn (make first spawn earlier - this timer starts on timer-Timer1)
+	constructortimer 					= 300, -- time in seconds between commander/constructor spawns
+	constructortimerreductionframes		= 36000, -- increase frequency of commander spawns every this many frames
 	minimumconstructors					= teamcount,
 	useresurrectors						= true,
 		searesurrectors					= true,
@@ -203,20 +203,20 @@ function SpawnBonusCommander(unitID, unitName, unitTeam)
 		if posy >= 0 then
 			--Spring.SetUnitPosition(unitID, posx-32, posz)
 			if unitName == "armcom" then
-				Spring.CreateUnit("armcv", posx-32, posy+48, posz, 3, unitTeam)
-				Spring.CreateUnit("armck", posx+32, posy+48, posz, 3, unitTeam)
+				Spring.CreateUnit("armcv", posx-32, posy+48, posz, 0, unitTeam)
+				Spring.CreateUnit("armck", posx+32, posy+48, posz, 0, unitTeam)
 			elseif unitName == "corcom" then
-				Spring.CreateUnit("corcv", posx-32, posy+48, posz, 3, unitTeam)
-				Spring.CreateUnit("corck", posx+32, posy+48, posz, 3, unitTeam)
+				Spring.CreateUnit("corcv", posx-32, posy+48, posz, 0, unitTeam)
+				Spring.CreateUnit("corck", posx+32, posy+48, posz, 0, unitTeam)
 			end
 		else
 			--Spring.SetUnitPosition(unitID, posx-32, posz)
 			if unitName == "armcom" then
-				Spring.CreateUnit("armca", posx-32, posy+48, posz, 3, unitTeam)
-				Spring.CreateUnit("armcs", posx+32, posy+48, posz, 3, unitTeam)
+				Spring.CreateUnit("armca", posx-32, posy+48, posz, 0, unitTeam)
+				Spring.CreateUnit("armcs", posx+32, posy+48, posz, 0, unitTeam)
 			elseif unitName == "corcom" then
-				Spring.CreateUnit("corca", posx-32, posy+48, posz, 3, unitTeam)
-				Spring.CreateUnit("corcs", posx+32, posy+48, posz, 3, unitTeam)
+				Spring.CreateUnit("corca", posx-32, posy+48, posz, 0, unitTeam)
+				Spring.CreateUnit("corcs", posx+32, posy+48, posz, 0, unitTeam)
 			end
 		end
 	end

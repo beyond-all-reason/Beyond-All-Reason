@@ -42,7 +42,7 @@ function ReclaimerOrders(n, scav)
 end
 
 function SpawnConstructor(n)
-	if (constructortimer > constructorControllerModuleConfig.constructortimer or CountScavConstructors() < constructorControllerModuleConfig.minimumconstructors ) and numOfSpawnBeacons > 0 and constructortimer > 10 then
+	if (constructortimer > constructorControllerModuleConfig.constructortimer or CountScavConstructors() < constructorControllerModuleConfig.minimumconstructors ) and numOfSpawnBeacons > 0 and constructortimer > (constructorControllerModuleConfig.constructortimer/10) then
 		local scavengerunits = Spring.GetTeamUnits(GaiaTeamID)
 		SpawnBeacons = {}
 		for i = 1,#scavengerunits do
@@ -153,9 +153,6 @@ function ConstructNewBlueprint(n, scav)
 	end
 	ConstructorNumberOfRetries[scav] = ConstructorNumberOfRetries[scav] + 1
 	local x,y,z = Spring.GetUnitPosition(scav)
-	local posx = math_random(x-(50*ConstructorNumberOfRetries[scav]),x+(50*ConstructorNumberOfRetries[scav]))
-	local posz = math_random(z-(50*ConstructorNumberOfRetries[scav]),z+(50*ConstructorNumberOfRetries[scav]))
-	local posy = Spring.GetGroundHeight(posx, posz)
 	local spawnTier = math_random(1,100)
 	local unitCount = Spring.GetTeamUnitCount(GaiaTeamID)
 	if unitCount + 200 < scavMaxUnits then
@@ -197,25 +194,28 @@ function ConstructNewBlueprint(n, scav)
 		Spring.GiveOrderToUnit(scav, CMD.RECLAIM,{mapcenterX+math_random(-100,100),mapcenterY,mapcenterZ+math_random(-100,100),mapdiagonal}, {"shift"})
 	end
 
-	posradius = blueprint(scav, posx, posy, posz, GaiaTeamID, true) + 48
-	canConstructHere = posOccupied(posx, posy, posz, posradius)
-	if canConstructHere then
-		canConstructHere = posCheck(posx, posy, posz, posradius)
-	end
-	if canConstructHere then
-		canConstructHere = posSafeAreaCheck(posx, posy, posz, posradius)
-	end
-	if canConstructHere then
-		canConstructHere = posMapsizeCheck(posx, posy, posz, posradius)
-	end
-
-	if canConstructHere then
-		-- let's do this shit
-		Spring.GiveOrderToUnit(scav, CMD.MOVE,{posx+math.random(-posradius,posradius),posy+500,posz+math.random(-posradius,posradius)}, {"shift"})
-		blueprint(scav, posx, posy, posz, GaiaTeamID, false)
-		ConstructorNumberOfRetries[scav] = 0
-	else
-		return
+	for i = 1,20 do
+		local posx = math_random(x-(50*ConstructorNumberOfRetries[scav]),x+(50*ConstructorNumberOfRetries[scav]))
+		local posz = math_random(z-(50*ConstructorNumberOfRetries[scav]),z+(50*ConstructorNumberOfRetries[scav]))
+		local posy = Spring.GetGroundHeight(posx, posz)
+		posradius = blueprint(scav, posx, posy, posz, GaiaTeamID, true) + 48
+		canConstructHere = posOccupied(posx, posy, posz, posradius)
+		if canConstructHere then
+			canConstructHere = posCheck(posx, posy, posz, posradius)
+		end
+		if canConstructHere then
+			canConstructHere = posSafeAreaCheck(posx, posy, posz, posradius)
+		end
+		if canConstructHere then
+			canConstructHere = posMapsizeCheck(posx, posy, posz, posradius)
+		end
+		if canConstructHere then
+			-- let's do this shit
+			Spring.GiveOrderToUnit(scav, CMD.MOVE,{posx+math.random(-posradius,posradius),posy+500,posz+math.random(-posradius,posradius)}, {"shift"})
+			blueprint(scav, posx, posy, posz, GaiaTeamID, false)
+			ConstructorNumberOfRetries[scav] = 0
+			break
+		end
 	end
 	-- if canConstructHere then
 		-- -- let's do this shit
