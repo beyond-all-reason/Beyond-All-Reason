@@ -106,6 +106,32 @@ local function processWeapons(unitDefName, unitDef)
 end
 
 function UnitDef_Post(name, uDef)
+	
+	-- Unit Restrictions
+	if uDef.customparams then
+		if not uDef.customparams.techlevel then uDef.customparams.techlevel = 0 end
+		if not uDef.customparams.subfolder then uDef.customparams.subfolder = "none" end
+		
+		if Spring.GetModOptions and Spring.GetModOptions().unit_restrictions_notech2 == true then
+			if tonumber(uDef.customparams.techlevel) == 2 or tonumber(uDef.customparams.techlevel) == 3 then
+				uDef.unitrestricted = 0
+			end
+		end
+		
+		if Spring.GetModOptions and Spring.GetModOptions().unit_restrictions_notech3 == true then
+			if tonumber(uDef.customparams.techlevel) == 3 then
+				uDef.unitrestricted = 0
+			end
+		end
+		
+		if Spring.GetModOptions and Spring.GetModOptions().unit_restrictions_noair == true then
+			if string.find(uDef.customparams.subfolder, "Aircraft") then
+				uDef.unitrestricted = 0
+			end
+		end
+	end
+	
+
 	-- Add scav units to normal factories and builders
 	if Spring.GetModOptions and Spring.GetModOptions().experimentalscavuniqueunits == "enabled" then
 		if name == "armshltx" then

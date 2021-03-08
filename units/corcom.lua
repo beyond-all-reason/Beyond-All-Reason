@@ -95,7 +95,7 @@ return {
 			normaltex = "unittextures/cor_normal.dds",
 			paralyzemultiplier = 0.025,
 			subfolder = "",
-			techlevel = 2,
+			techlevel = 1,
 		},
 		featuredefs = {
 			dead = {

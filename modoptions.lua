@@ -995,6 +995,72 @@ local options={
 
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	-- Unit Restrictions
+	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+	{
+		key			= "options_unit_restrictions",
+		name		= "UnitRestrictions",
+		desc		= "UnitRestrictions",
+		type		= "section",
+	},
+	{
+		key    		= 'unit_restrictions_notech2',
+		name   		= 'Disable Tech 2 (Also disables T3)',
+		desc   		= 'Disable Tech 2 (Also disables T3)',
+		type   		= "bool",
+		section		= 'options_unit_restrictions',
+		def    		= false,
+	},
+	{
+		key    		= 'unit_restrictions_notech3',
+		name   		= 'Disable Tech 3',
+		desc   		= 'Disable Tech 3',
+		type   		= "bool",
+		section		= 'options_unit_restrictions',
+		def    		= false,
+	},
+	{
+		key    		= 'unit_restrictions_noair',
+		name   		= 'Disable Air Units',
+		desc   		= 'Disable Air Units',
+		type   		= "bool",
+		section		= 'options_unit_restrictions',
+		def    		= false,
+	},
+	{
+		key    		= 'unit_restrictions_noconverters',
+		name   		= 'Disable Energy Converters',
+		desc   		= 'Disable Energy Converters',
+		type   		= "bool",
+		section		= 'options_unit_restrictions',
+		def    		= false,
+	},
+	{
+		key    		= 'unit_restrictions_nonukes',
+		name   		= 'Disable Nuclear Missiles',
+		desc   		= 'Disable Nuclear Missiles',
+		type   		= "bool",
+		section		= 'options_unit_restrictions',
+		def    		= false,
+	},
+	{
+		key    		= 'unit_restrictions_notacnukes',
+		name   		= 'Disable Tactical Nukes and EMPs',
+		desc   		= 'Disable Tactical Nukes and EMPs',
+		type   		= "bool",
+		section		= 'options_unit_restrictions',
+		def    		= false,
+	},
+	
+
+
+
+
+
+	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	-- Unused Options
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
