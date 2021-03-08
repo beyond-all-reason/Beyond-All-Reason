@@ -42,14 +42,16 @@ Air
  • Torpedo gunships: Targetting/tracking improvements, +17% los, added 535 range sonar
 
 Sea
- • Arm and Cor corvette health +25
- • Arm and Cor frigate damage and speed increased
- • Arm and Cor destroyer E cost increased 50% (7.5E/M instead of 5E/M)
+ • Arm and Cor corvette health +25, Cor corvette M cost reduced by 5 (150->145)
+ • Arm and Cor frigate damage, speed, and health increased
+ • Arm and Cor destroyer E cost increased 50% (7.5E/M instead of 5E/M), turret turnrates adjusted, and arm destroyer's reloadtime increased from 1.2 to 1.6 with its damage increased to keep the same dps
  • Cor Battleship and Black Hydra laser dps increased by 15%, and minor improvements to their speed/health/cost
  • T1 sub damage -30%
  • T2 sub killer reworked: speed increased, range decreased, reloadtime decreased, damage per shot decreased
  • T2 battle sub introduced: has a high cost, long range, high damage, long cooldown, and is slow
  • Arm and Cor depthcharge turrets: +31% health, +13% range, increased build time
+ • Arm and Cor hovertank speeds increased (+5% arm, +10% core), cor hovertank health increased 6%
+ 
 
 Renamed units:
  • Jeffy -> Ranger
