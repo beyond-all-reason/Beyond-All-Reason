@@ -150,7 +150,7 @@ if gadgetHandler:IsSyncedCode() then
 	local effSampleRate = 15
 	function gadget:GameFrame(n)
 		if n%(30*effSampleRate)~=0 or n==0 then return end
-		
+
 		if localtestDebug and n==900 then
 			Spring.GameOver({1,0})
 		end
@@ -229,7 +229,7 @@ if gadgetHandler:IsSyncedCode() then
 		local dmgRecAward, dmgRecScore = -1, 0
 		local sleepAward, sleepScore = -1, 0
 		local traitorAward, traitorAwardSec, traitorAwardThi, traitorScore, traitorScoreSec, traitorScoreThi = -1, -1, -1, 0, 0, 0
-		
+
 		for teamID, _ in pairs(teamInfo) do
 			--deal with sleep times
 			local curTime = Spring.GetGameSeconds()
@@ -384,6 +384,8 @@ else
 	local CowAward
 	local OtherAwards
 
+	local chobbyLoaded = (Spring.GetMenuName and string.find(string.lower(Spring.GetMenuName()), 'chobby') ~= nil)
+
 	local white = "\255" .. string.char(251) .. string.char(251) .. string.char(251)
 
 	local playerListByTeam = {} --does not contain specs
@@ -397,7 +399,7 @@ else
 	local font = gl.LoadFont(fontfile, fontfileSize * fontfileScale, fontfileOutlineSize * fontfileScale, fontfileOutlineStrength)
 	local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 	local font2 = gl.LoadFont(fontfile2, fontfileSize * fontfileScale, fontfileOutlineSize * fontfileScale, fontfileOutlineStrength)
-	
+
 	local function colourNames(teamID)
 		if teamID < 0 then
 			return ""
@@ -585,7 +587,7 @@ else
 			playerListByTeam[teamID] = list
 		end
 	end
-	
+
 	local function createBackground()
 		if Background then
 			glDeleteList(Background)
@@ -657,7 +659,11 @@ else
 
 			if (x > bx + w - quitX - math.floor(5*widgetScale) and (x < bx + w - quitX + math.floor(20*widgetScale) * font:GetTextWidth(Spring.I18N('ui.awards.leave')) + math.floor(5*widgetScale)) and (y > by + math.floor(45*widgetScale)) and (y < by + math.floor((50 + 16 + 5)*widgetScale))) then
 				--leave button
-				Spring.Reload("")
+				if chobbyLoaded then
+					Spring.Reload("")
+				else
+					Spring.SendCommands("quitforce")
+				end
 			end
 
 			if (x > bx + w - graphsX - math.floor(5*widgetScale)) and (x < bx + w - graphsX + math.floor(20*widgetScale) * font:GetTextWidth(Spring.I18N('ui.awards.showGraphs')) + math.floor(5*widgetScale)) and (y > by + math.floor((50 - 5)*widgetScale) and (y < by + math.floor((50 + 16 + 5)*widgetScale))) then
