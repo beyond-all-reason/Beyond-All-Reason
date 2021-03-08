@@ -381,7 +381,7 @@ else -- Unsynced
     stats["cheated"]=cheated
     stats["winners"] = winners
     stats["scenariooptions"] = Spring.GetModOptions().scenariooptions -- pass it back so we know difficulty
-    if tid == winners then
+    if tID == winners then
       stats["won"]= true
     else
       stats["won"] = false
