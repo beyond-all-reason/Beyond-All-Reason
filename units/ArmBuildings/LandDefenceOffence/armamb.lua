@@ -17,7 +17,7 @@ return {
 		cloakcost = 24,
 		corpse = "DEAD",
 		damagemodifier = 0.25,
-		description = "Cloakable Coastal Defense",
+		description = "Cloakable Pop-up Medium Plasma Artillery",
 		explodeas = "smallBuildingexplosiongeneric",
 		footprintx = 3,
 		footprintz = 3,

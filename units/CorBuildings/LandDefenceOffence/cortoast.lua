@@ -16,7 +16,7 @@ return {
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		corpse = "DEAD",
 		damagemodifier = 0.25,
-		description = "Coastal Defense",
+		description = "Pop-up Medium Plasma Artillery",
 		explodeas = "mediumBuildingExplosionGeneric",
 		footprintx = 3,
 		footprintz = 3,

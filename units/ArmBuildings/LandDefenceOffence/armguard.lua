@@ -18,7 +18,7 @@ return {
 		collisionvolumescales = "49 40 49",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		description = "Coastal Defense",
+		description = "Medium Plasma Artillery",
 		explodeas = "mediumBuildingExplosionGeneric",
 		footprintx = 4,
 		footprintz = 4,
