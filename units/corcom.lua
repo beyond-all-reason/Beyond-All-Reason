@@ -28,7 +28,7 @@ return {
 		footprintx = 2,
 		footprintz = 2,
 		hidedamage = true,
-    holdsteady = true,
+    	holdsteady = true,
 		icontype = "corcommander",
 		idleautoheal = 5,
 		idletime = 1800,
@@ -95,7 +95,6 @@ return {
 			normaltex = "unittextures/cor_normal.dds",
 			paralyzemultiplier = 0.025,
 			subfolder = "",
-			techlevel = 1,
 		},
 		featuredefs = {
 			dead = {

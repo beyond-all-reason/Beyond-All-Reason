@@ -28,7 +28,7 @@ return {
 		footprintx = 2,
 		footprintz = 2,
 		hidedamage = true,
-    holdsteady = true,
+    	holdsteady = true,
 		icontype = "armcommander",
 		idleautoheal = 5,
 		idletime = 1800,
@@ -48,7 +48,7 @@ return {
 		radardistance = 700,
 		radaremitheight = 40,
 		reclaimable = false,
-    releaseheld  = true,
+   		releaseheld  = true,
 		script = "Units/ARMCOM_lus.lua",
 		seismicsignature = 0,
 		selfdestructas = "commanderexplosion",
@@ -96,7 +96,6 @@ return {
 			normaltex = "unittextures/Arm_normal.dds",
 			paralyzemultiplier = 0.025,
 			subfolder = "",
-			techlevel = 1,
 		},
 		featuredefs = {
 			dead = {

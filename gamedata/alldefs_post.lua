@@ -78,10 +78,10 @@ local function round_to_frames(name, wd, key)
 		-- even reloadtime can be nil (shields, death explosions)
 		return
 	end
-  
+
   local Game_gameSpeed = 30 --for mission editor backwards compat (engine 104.0.1-287)
   if Game and Game.gameSpeed then Game_gameSpeed = Game.gameSpeed end
-  
+
 	local frames = math.max(1, math.floor((original_value + 1E-3) * Game_gameSpeed))
 
 	local sanitized_value = frames / Game_gameSpeed
@@ -109,24 +109,24 @@ function UnitDef_Post(name, uDef)
 	if not uDef.customparams then
 		uDef.customparams = {}
 	end
-	
+
 	-- Unit Restrictions
 	if uDef.customparams then
 		if not uDef.customparams.techlevel then uDef.customparams.techlevel = 0 end
 		if not uDef.customparams.subfolder then uDef.customparams.subfolder = "none" end
-		
+
 		if Spring.GetModOptions and tonumber(Spring.GetModOptions().unit_restrictions_notech2) == 1 then
 			if tonumber(uDef.customparams.techlevel) == 2 or tonumber(uDef.customparams.techlevel) == 3 then
 				uDef.unitrestricted = 0
 			end
 		end
-		
+
 		if Spring.GetModOptions and tonumber(Spring.GetModOptions().unit_restrictions_notech3) == 1 then
 			if tonumber(uDef.customparams.techlevel) == 3 then
 				uDef.unitrestricted = 0
 			end
 		end
-		
+
 		if Spring.GetModOptions and tonumber(Spring.GetModOptions().unit_restrictions_noair) == 1 then
 			if string.find(uDef.customparams.subfolder, "Aircraft") then
 				uDef.unitrestricted = 0
@@ -134,67 +134,49 @@ function UnitDef_Post(name, uDef)
 				uDef.unitrestricted = 0
 			end
 			local AircraftFactories = {
-				"armap",
-				"armaap",
-				"armplat",
-				"corap",
-				"coraap",
-				"corplat",
+				armap = true,
+				armaap = true,
+				armplat = true,
+				corap = true,
+				coraap = true,
+				corplat = true,
 			}
-			for a = 1,#AircraftFactories do
-				if AircraftFactories[a] == name then
-					uDef.unitrestricted = 0
-				end
+			if AircraftFactories[name] then
+				uDef.unitrestricted = 0
 			end
 		end
 
 		if Spring.GetModOptions and tonumber(Spring.GetModOptions().unit_restrictions_noconverters) == 1 then
-			local Converters = {
-				"armmakr",
-				"armmmkr",
-				"armfmkr",
-				"armuwmmm",
-				"cormakr",
-				"cormmkr",
-				"corfmkr",
-				"coruwmmm",
-			}
-			for a = 1,#Converters do
-				if Converters[a] == name then
-					uDef.unitrestricted = 0
-				end
+			if uDef.customparams.energyconv_capacity and uDef.customparams.energyconv_efficiency then
+				uDef.unitrestricted = 0
 			end
 		end
 
 		if Spring.GetModOptions and tonumber(Spring.GetModOptions().unit_restrictions_nonukes) == 1 then
 			local Nukes = {
-				"armamd",
-				"armsilo",
-				"armscab",
-				"corfmd",
-				"corsilo",
-				"cormabm",
+				armamd = true,
+				armsilo = true,
+				armscab = true,
+				corfmd = true,
+				corsilo = true,
+				cormabm = true,
 			}
-			for a = 1,#Nukes do
-				if Nukes[a] == name then
-					uDef.unitrestricted = 0
-				end
+			if Nukes[name] then
+				uDef.unitrestricted = 0
 			end
 		end
 
 		if Spring.GetModOptions and tonumber(Spring.GetModOptions().unit_restrictions_notacnukes) == 1 then
 			local TacNukes = {
-				"armemp",
-				"cortron",
+				armemp = true,
+				cortron = true,
 			}
-			for a = 1,#TacNukes do
-				if TacNukes[a] == name then
-					uDef.unitrestricted = 0
-				end
+			if TacNukes[name] then
+				uDef.unitrestricted = 0
 			end
 		end
 	end
-	
+
 
 	-- Add scav units to normal factories and builders
 	if Spring.GetModOptions and Spring.GetModOptions().experimentalscavuniqueunits == "enabled" then
@@ -235,7 +217,7 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions+2] = "corminibuzz"
 		end
 	end
-	
+
 	if Spring.GetModOptions and uDef.builddistance then
 		local x = tonumber(Spring.GetModOptions().experimentalbuildrange) or 1
 		uDef.builddistance = uDef.builddistance*x
@@ -564,9 +546,9 @@ end
 function WeaponDef_Post(name, wDef)
 
 	if not SaveDefsToCustomParams then
-		
 
-		-------------- EXPERIMENTAL MODOPTIONS 
+
+		-------------- EXPERIMENTAL MODOPTIONS
 		---- SHIELD CHANGES
 		if Spring.GetModOptions and Spring.GetModOptions() and Spring.GetModOptions().experimentalshields == "absorbplasma" then
 			if wDef.shield and wDef.shield.repulser and wDef.shield.repulser ~= false then
