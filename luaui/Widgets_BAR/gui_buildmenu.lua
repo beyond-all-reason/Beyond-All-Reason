@@ -377,7 +377,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	unitEnergyCost[unitDefID] = unitDef.energyCost
 	unitMetalCost[unitDefID] = unitDef.metalCost
 	unitBuildPic[unitDefID] = unitDef.buildpicname
-	if unitDef.restricted == 0 then--or unitDef.name == 'armllt' or unitDef.name == 'armmakr' then
+	if unitDef.maxThisUnit == 0 then --or unitDef.name == 'armllt' or unitDef.name == 'armmakr' then
 		unitRestricted[unitDefID] = true
 	end
 	if unitDef.buildSpeed > 0 and unitDef.buildOptions[1] then
