@@ -71,17 +71,20 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	if isAirplant[unitDefID] then
 		InsertUnitCmdDesc(unitID, 500, landCmd)
 		InsertUnitCmdDesc(unitID, 500, airCmd)
-		plantList[unitID] = { landAt = 0, repairAt = 1 }
+		plantList[unitID] = { landAt = 1, repairAt = 1 }
 	elseif plantList[builderID] then
 		GiveOrderToUnit(unitID, CMD_AUTOREPAIRLEVEL, { plantList[builderID].repairAt }, 0)
-		GiveOrderToUnit(unitID, CMD_IDLEMODE, { 0,}, 0)
+		GiveOrderToUnit(unitID, CMD_IDLEMODE, {plantList[builderID].landAt}, 0)
 		SetUnitNeutral(unitID, true)
 		buildingUnits[unitID] = true
 	end
-	if isAirplane[unitDefID] then
-		GiveOrderToUnit(unitID, CMD_IDLEMODE, {0,}, 0)
+	--if isAirplane[unitDefID] then
+	--	EditUnitCmdDesc(unitID, CMD_AUTOREPAIRLEVEL, airCmd)		-- I tried different variations, didnt work
+	--end
+	--if isAirplane[unitDefID] then
+		--GiveOrderToUnit(unitID, CMD_IDLEMODE, {0,}, 0)
 		--EditUnitCmdDesc(unitID, CMD_AUTOREPAIRLEVEL, airCmd)		-- I tried different variations, didnt work
-	end
+	--end
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
