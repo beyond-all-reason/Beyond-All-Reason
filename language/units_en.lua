@@ -1,6 +1,8 @@
 return {
 	en = {
 		units = {
+			dead = "%{name} Wreckage",
+			heap = "%{name} Debris",
 			scavengers = {
 				name = "Scavenger %{name}",
 			},
