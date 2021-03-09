@@ -42,6 +42,7 @@ return {
 		turninplacespeedlimit = 1.6,
 		turnrate = 270,
 		customparams = {
+			lumamult = "0.7",
 			model_author = "Flaka",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armgantry",
