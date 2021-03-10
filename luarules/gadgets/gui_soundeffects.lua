@@ -54,14 +54,14 @@ else -- Unsynced part
                    unitDefID = Spring.GetUnitDefID(selUnits[math.random(1,#selUnits)])
                 end
                 unitName = UnitDefs[unitDefID].name
-                Spring.Echo(unitName)
+                --Spring.Echo(unitName)
                 UsedFrame = CurrentFrame
 
                 if UnitSoundEffects[unitName] and UnitSoundEffects[unitName].BaseSound then
-                    Spring.Echo(unitName.." base sound")
+                    --Spring.Echo(unitName.." base sound")
                     Spring.PlaySoundFile(UnitSoundEffects[unitName].BaseSound, 0.75, 2)
                 else
-                    Spring.Echo("Generic base sound") 
+                    --Spring.Echo("Generic base sound") 
                     Spring.PlaySoundFile(DefaultSoundEffects.BaseSound, 0.75, 2)
                 end
 
