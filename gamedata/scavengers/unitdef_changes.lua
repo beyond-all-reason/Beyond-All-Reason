@@ -894,6 +894,29 @@ customDefs.cortron = {
 	}
 }
 
+customDefs.armmercury = {
+	description = "Customized Long Range AA",
+	weapondefs = {
+		arm_advsam = {
+			range = 1800,
+			reloadtime = 0.6,
+			stockpiletime = 28,
+		}
+	}
+}
+
+customDefs.corscreamer = {
+	description = "Customized Long Range AA",
+	weapondefs = {
+		cor_advsam = {
+			range = 1800,
+			reloadtime = 0.6,
+			stockpiletime = 28,
+		}
+	}
+}
+
+
 -- Faster LLT - unique sound - shorter beamtime
 customDefs.armllt = {
 	-- cloakcost = 6,
