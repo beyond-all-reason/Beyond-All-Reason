@@ -527,7 +527,6 @@ local units = {
 	armsb = { "air_bomber.png", 1.41750002 },
 	armmakr = { "metalmaker_t1_0.75.png", 0.78749996 },
 	armsilo = { "nuke.png", 2.51999998 },
-	banana = { "unknown.png", 2.0999999 },
 	armcomboss = { "armcomboss.png", 4.19999981 },
 	armlatnk = { "armlatnk_1.3.png", 1.36499989 },
 	armanac = { "hover_gun.png", 1.10249984 },
