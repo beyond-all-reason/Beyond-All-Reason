@@ -155,10 +155,10 @@ return {
 				[6] = "count1",
 			},
 			ok = {
-				[1] = "varmmove",
+				[1] = "veht1conok",
 			},
 			select = {
-				[1] = "varmsel",
+				[1] = "veht1consel",
 			},
 		},
 	},

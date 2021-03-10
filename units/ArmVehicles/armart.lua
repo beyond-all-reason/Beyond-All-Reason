@@ -130,10 +130,10 @@ return {
 				[6] = "count1",
 			},
 			ok = {
-				[1] = "tarmmove",
+				[1] = "tnkt1artyok",
 			},
 			select = {
-				[1] = "tarmsel",
+				[1] = "tnkt1artysel",
 			},
 		},
 		weapondefs = {
