@@ -97,7 +97,7 @@ AimWeapon1(heading, pitch)
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
 	//We can do this any time
-	turn turret to x-axis <10.000000> - pitch speed <45.000000>;
+	turn turret to x-axis <0.000000> - pitch speed <45.000000>;
 	
 	aimy1target = heading;
 	aimy1delta = aimy1position - aimy1target;
@@ -173,7 +173,7 @@ SweetSpot(piecenum)
 
 AimFromPrimary(piecenum)
 {
-	piecenum = aimpoint;
+	piecenum = spindle;
 }
 
 Killed(severity, corpsetype)

@@ -242,6 +242,15 @@ function widget:Initialize()
 		widgetHandler:RemoveWidget(self)
 		return
 	end
+  
+  if Spring.GetModOptions and Spring.GetModOptions().scenariooptions then
+    local scenarioopts = Spring.Utilities.Base64Decode(Spring.GetModOptions().scenariooptions)
+    scenarioopts = Spring.Utilities.json.decode(scenarioopts)
+    if scenarioopts and scenarioopts.scenariooptions and scenarioopts.scenariooptions.disablefactionpicker == true then
+      widgetHandler:RemoveWidget(self)
+      return
+    end
+  end
 
 	if WG['minimap'] then
 		altPosition = WG['minimap'].getEnlarged()
