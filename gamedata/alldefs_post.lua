@@ -110,6 +110,12 @@ function UnitDef_Post(name, uDef)
 		uDef.customparams = {}
 	end
 
+	if uDef.sounds then
+		if uDef.sounds.ok then
+			uDef.sounds.ok = nil 
+		end
+	end
+
 	-- Unit Restrictions
 	if uDef.customparams then
 		if not uDef.customparams.techlevel then uDef.customparams.techlevel = 0 end
