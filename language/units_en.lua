@@ -994,7 +994,7 @@ return {
 				lootdroppod_gold = "Drops LOOT in your battle",
 				lootdroppod_printer = "Drops PRINTER in your battle",
 				meteor = "Falls out of the sky and kills you",
-				mission_command_tower = "\0",
+				mission_command_tower = "\0", -- ASCII NULL character, empty string crashes i18n
 				n_chickenq = "Clucking Hell!",
 				nuketest = "Spawning a new nuke",
 				nuketestcor = "Spawning a new nuke",
@@ -1004,7 +1004,7 @@ return {
 				roost = "Spawns Chicken",
 				scavdrag = "Dragons Teeth",
 				scavempspawner = "Spawning a new nuke",
-				scavengerdroppod = "\0",
+				scavengerdroppod = "\0", --ASCII NULL character, empty string crashes i18n
 				scavengerdroppodbeacon = "Calls in Scavenger drops",
 				scavengerdroppodfriendly = "Spawning droppod for reinforments",
 				scavfort = "Fortification Wall",
@@ -1012,7 +1012,7 @@ return {
 				scavmistxl = "Heavy Scavenger Mist",
 				scavmistxxl = "Super Heavy Scavenger Mist",
 				scavsafeareabeacon = "Toxic cloud generator",
-				scavtacnukespawner = "\0",
+				scavtacnukespawner = "\0", --ASCII NULL character, empty string crashes i18n
 				ve_chickenq = "Clucking Hell! (Very Easy)",
 				vh_chickenq = "Clucking Hell! (Very Hard)",
 				xmasball = "Xmas ball",
