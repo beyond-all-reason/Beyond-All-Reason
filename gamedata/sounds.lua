@@ -219,10 +219,10 @@ for i=1,#files do
 		pitchmod = 0.02,
 		gainmod  = 0.2*0.3,
 		dopplerscale = 0,
-		maxconcurrent = 32,
+		maxconcurrent = 3,
 		rolloff = 0,
 		priority = 1,
-		in3d = false,
+		--in3d = false,
 	}
 end
 
@@ -237,10 +237,10 @@ for i=1,#files do
 		pitchmod = 0.02,
 		gainmod  = 0.2*0.3,
 		dopplerscale = 0,
-		maxconcurrent = 32,
+		maxconcurrent = 3,
 		rolloff = 0,
 		priority = 1,
-		in3d = false,
+		--in3d = false,
 	}
 end
 
