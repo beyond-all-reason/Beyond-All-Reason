@@ -28,7 +28,7 @@ return {
 				wind = {
 					nowind1 = 'No',
 					nowind2 = 'wind',
-					tooltip = '%{titleColor}Wind Display\nDisplays current wind strength (small numbers are minimum and maximum)\n%{warnColor}It is better to build Solar Collectors when average\n%{warnColor}5wind speed is below 5 (Armada) or 6 (Cortex)',
+					tooltip = '%{titleColor}Wind Display\nDisplays current wind strength (small numbers are minimum and maximum)\n%{warnColor}It is better to build Solar Collectors when average\n%{warnColor}wind speed is below 5 (Armada) or 6 (Cortex)',
 					worth1 = 'Wind is not worth it',
 					worth2 = 'Wind is viable',
 					worth3 = 'Wind is okay',
