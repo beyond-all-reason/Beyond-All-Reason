@@ -95,13 +95,15 @@ else -- Unsynced part
                 elseif cmdID == Groupselect then
                     Spring.PlaySoundFile(DefaultSoundEffects.Groupselect, 0.8, 2)
                 elseif cmdID == Repair then
-                    Spring.PlaySoundFile(DefaultSoundEffects.Repair, 0.8, 2)
+                    Spring.PlaySoundFile(DefaultSoundEffects.Repair, 0.6, 2)
                 elseif cmdID == Reclaim then
                     Spring.PlaySoundFile(DefaultSoundEffects.Reclaim, 0.8, 2)
                 elseif cmdID == Dgun then
                     Spring.PlaySoundFile(DefaultSoundEffects.Dgun, 0.8, 2)
                 elseif cmdID == Resurrect then
                     Spring.PlaySoundFile(DefaultSoundEffects.Resurrect, 1, 2)
+                elseif cmdID < 0 then
+                    Spring.PlaySoundFile(DefaultSoundEffects.Build, 0.5, 2) 
                 end
             end
         end
