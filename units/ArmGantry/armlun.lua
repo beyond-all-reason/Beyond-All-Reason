@@ -108,10 +108,10 @@ return {
 				[6] = "count1",
 			},
 			ok = {
-				[1] = "hovlgok1",
+				[1] = "hovt2lasok",
 			},
 			select = {
-				[1] = "hovlgsl1",
+				[1] = "hovt2lassel",
 			},
 		},
 		weapondefs = {

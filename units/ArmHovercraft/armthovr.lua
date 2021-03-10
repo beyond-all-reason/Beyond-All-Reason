@@ -91,10 +91,10 @@ return {
 				[6] = "count1",
 			},
 			ok = {
-				[1] = "hovlgok1",
+				[1] = "hovt1transok",
 			},
 			select = {
-				[1] = "hovlgsl1",
+				[1] = "hovt1transsel",
 			},
 		},
 	},

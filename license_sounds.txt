@@ -15,3 +15,6 @@ For the above mentioned folder the CC BY NC ND applies to all new sound effects 
 For the "chicken" sound effects created after july 2020
 
 /sounds/chickens
+
+CC BY NC ND applies to all sound effects in:
+/sounds/commands/
