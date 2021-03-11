@@ -10,6 +10,8 @@ static-var  bMoving, moveSpeed, currentSpeed, animSpeed, restore_delay, gun_1;
 
 // Signal definitions
 #define SIG_AIM				2
+#define SIG_AIM_2			4
+#define SIG_AIM_3			8
 
 UnitSpeed()
 {
@@ -140,7 +142,10 @@ ExecuteRestoreAfterDelay()
     }
 	turn turret to y-axis <0.000000> speed <45>;
 	turn sleeve to x-axis <0.000000> speed <15.000000>;
+	turn lempslv to y-axis <0> speed <45>;
+	turn rempslv to y-axis <0> speed <45>;
 }
+
 SetStunned(State)
 {
     Stunned = State;
@@ -148,13 +153,22 @@ SetStunned(State)
 	    start-script ExecuteRestoreAfterDelay();
 	}
 }
+
 RestoreAfterDelay()
 {
 	sleep restore_delay;
 	start-script ExecuteRestoreAfterDelay();
 }
 
-AimPrimary(heading, pitch)
+SweetSpot(piecenum)
+{
+	piecenum = base;
+}
+
+
+//Weapon 1: Double Heavy Tesla Cannon
+//===================================
+AimWeapon1(heading, pitch)
 {
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
@@ -166,13 +180,13 @@ AimPrimary(heading, pitch)
 	return (1);
 }
 
-FirePrimary()
+FireWeapon1()
 {
 	if( gun_1 == 0 )
 	{
 		move ltbarrel to z-axis [-2.400000] speed [500.000000];
 		spin ltbarrel around z-axis speed <360> accelerate <120>;
-		emit-sfx 1024 + 0 from flare1;
+		emit-sfx 1024 + 0 from flare2;
 		sleep 100;
 		wait-for-move ltbarrel along z-axis;
 		move ltbarrel to z-axis [0.000000] speed [3.000000];
@@ -183,7 +197,7 @@ FirePrimary()
 	{
 		move rtbarrel to z-axis [-2.400000] speed [500.000000];
 		spin rtbarrel around z-axis speed <360> accelerate <120>;
-		emit-sfx 1024 + 0 from flare2;
+		emit-sfx 1024 + 0 from flare1;
 		sleep 100;
 		wait-for-move rtbarrel along z-axis;
 		move rtbarrel to z-axis [0.000000] speed [3.000000];
@@ -194,20 +208,88 @@ FirePrimary()
 }
 
 
-AimFromPrimary(piecenum)
+AimFromWeapon1(piecenum)
 {
 	piecenum = sleeve;
 }
 
-QueryPrimary(piecenum)
+QueryWeapon1(piecenum)
 {
-	piecenum = gun_1;
+if (gun_1) piecenum = flare1;
+if (!gun_1) piecenum = flare2;
 }
 
-SweetSpot(piecenum)
+//Weapon 2: Left EMP
+//===================================
+
+AimWeapon2(heading, pitch)
 {
-	piecenum = base;
+	signal SIG_AIM_2;
+	set-signal-mask SIG_AIM_2;
+//	turn lshoulder to x-axis <0.000000> - pitch speed <15.000000>;
+	turn lempslv to y-axis heading speed <45.000000>;
+	wait-for-turn lempslv around y-axis;
+	start-script RestoreAfterDelay();
+	return (1);
 }
+
+FireWeapon2()
+{
+		move lempbarrel to z-axis [-2.400000] speed [100.000000];	
+		emit-sfx 1024 + 0 from flare3;
+		sleep 100;
+		wait-for-move lempbarrel along z-axis;
+		move lempbarrel to z-axis [0.000000] speed [3.000000];
+		wait-for-move lempbarrel along z-axis;
+}
+
+
+AimFromWeapon2(piecenum)
+{
+	piecenum = lempslv;
+}
+
+QueryWeapon2(piecenum)
+{
+piecenum = flare3;
+}
+
+//Weapon 3: Right EMP
+//===================================
+
+AimWeapon3(heading, pitch)
+{
+	signal SIG_AIM_3;
+	set-signal-mask SIG_AIM_3;
+//	turn lshoulder to x-axis <0.000000> - pitch speed <15.000000>;
+	turn rempslv to y-axis heading speed <45.000000>;
+	wait-for-turn rempslv around y-axis;
+	start-script RestoreAfterDelay();
+	return (1);
+}
+
+FireWeapon3()
+{
+		move rempbarrel to z-axis [-2.400000] speed [100.000000];	
+		emit-sfx 1024 + 0 from flare4;
+		sleep 100;
+		wait-for-move rempbarrel along z-axis;
+		move rempbarrel to z-axis [0.000000] speed [3.000000];
+		wait-for-move rempbarrel along z-axis;
+}
+
+
+AimFromWeapon3(piecenum)
+{
+	piecenum = rempslv;
+}
+
+QueryWeapon3(piecenum)
+{
+piecenum = flare4;
+}
+
+
 
 Killed(severity, corpsetype)
 {
