@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.corroach')
+
 return {
 	corroach = {
 		acceleration = 0.138,
@@ -12,7 +14,7 @@ return {
 		collisionvolumeoffsets = "0 3 0",
 		collisionvolumescales = "18 14 18",
 		collisionvolumetype = "CylY",
-		description = "Amphibious Crawling Bomb",
+		description = Spring.I18N('units.descriptions.corroach'),
 		energymake = 0.1,
 		energyuse = 0.1,
 		explodeas = "crawl_blastsml",
@@ -27,7 +29,7 @@ return {
 		maxvelocity = 2.7,
 		maxwaterdepth = 112,
 		movementclass = "ABOTBOMB2",
-		name = "Roach",
+		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/CORROACH.s3o",
 		script = "Units/CORROACH.cob",

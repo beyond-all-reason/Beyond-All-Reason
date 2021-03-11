@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.corptl')
+
 return {
 	corptl = {
 		acceleration = 0,
@@ -11,7 +13,7 @@ return {
 		canrepeat = false,
 		category = "ALL NOTLAND WEAPON NOTSHIP NOTSUB NOTAIR NOTHOVER SURFACE EMPABLE",
 		corpse = "DEAD",
-		description = "Pop-up Torpedo Launcher",
+		description = Spring.I18N('units.descriptions.corptl'),
 		energymake = 0.2,
 		energyuse = 0.2,
 		explodeas = "mediumBuildingExplosionGeneric",
@@ -23,7 +25,7 @@ return {
 		maxdamage = 1300,
 		maxslope = 999,
 		minwaterdepth = 12,
-		name = "Urchin",
+		name = unitName,
 		objectname = "Units/CORTL.s3o",
 		script = "Units/CORTL.cob",
 		seismicsignature = 0,
@@ -45,7 +47,7 @@ return {
 				collisionvolumescales = "30.8800354004 19.4210968018 32.1831512451",
 				collisionvolumetype = "Box",
 				damage = 912,
-				description = "Urchin Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				footprintx = 3,
 				footprintz = 3,

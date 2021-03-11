@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.armstump')
+
 return {
 	armstump = {
 		acceleration = 0.0438,
@@ -12,7 +14,7 @@ return {
 		collisionvolumescales = "34 18 40",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
-		description = "Medium Assault Tank",
+		description = Spring.I18N('units.descriptions.armstump'),
 		energymake = 0.6,
 		energyuse = 0.6,
 		explodeas = "smallExplosionGeneric",
@@ -27,7 +29,7 @@ return {
 		maxvelocity = 2.53,
 		maxwaterdepth = 12,
 		movementclass = "TANK3",
-		name = "Stumpy",
+		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMSTUMP.s3o",
 		script = "Units/ARMSTUMP.cob",
@@ -69,7 +71,7 @@ return {
 				collisionvolumescales = "25.7996826172 19.2875671387 29.4318847656",
 				collisionvolumetype = "Box",
 				damage = 1056,
-				description = "Stumpy Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -89,7 +91,7 @@ return {
 				collisionvolumescales = "35.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 528,
-				description = "Stumpy Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 2,

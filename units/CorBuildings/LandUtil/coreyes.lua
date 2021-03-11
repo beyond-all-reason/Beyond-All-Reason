@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.coreyes')
+
 return {
 	coreyes = {
 		acceleration = 0,
@@ -12,7 +14,7 @@ return {
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		cloakcost = 10,
 		corpse = "CDRAGONSEYES_DEAD",
-		description = "Perimeter Camera",
+		description = Spring.I18N('units.descriptions.coreyes'),
 		energyuse = 5,
 		footprintx = 1,
 		footprintz = 1,
@@ -25,7 +27,7 @@ return {
 		maxslope = 24,
 		maxwaterdepth = 0,
 		mincloakdistance = 36,
-		name = "Dragon's Eye",
+		name = unitName,
 		objectname = "Units/COREYES.s3o",
 		script = "Units/COREYES.cob",
 		seismicsignature = 0,
@@ -48,7 +50,7 @@ return {
 				collisionvolumescales = "21.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 120,
-				description = "Dragon's Eye Heap",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 1,

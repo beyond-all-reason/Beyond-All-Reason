@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.corfatf')
+
 return {
 	corfatf = {
 		acceleration = 0,
@@ -14,7 +16,7 @@ return {
 		collisionvolumescales = "60 30 60",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		description = "Enhanced Radar Targeting",
+		description = Spring.I18N('units.descriptions.corfatf'),
 		energyuse = 150,
 		explodeas = "largeBuildingexplosiongeneric",
 		footprintx = 4,
@@ -26,7 +28,7 @@ return {
 		maxdamage = 1375,
 		maxslope = 10,
 		minwaterdepth = 30,
-		name = "Floating Targeting Facility",
+		name = unitName,
 		objectname = "Units/CORFATF.s3o",
 		onoffable = true,
 		script = "Units/CORFATF.cob",
@@ -51,7 +53,7 @@ return {
 				collisionvolumescales = "61.8861541748 21.1415557861 54.7463684082",
 				collisionvolumetype = "Box",
 				damage = 825,
-				description = "Floating Targeting Facility Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -71,7 +73,7 @@ return {
 				collisionvolumescales = "85.0 14.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 413,
-				description = "Floating Targeting Facility Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 4,

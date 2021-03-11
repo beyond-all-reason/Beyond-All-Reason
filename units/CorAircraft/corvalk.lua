@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.corvalk')
+
 return {
 	corvalk = {
 		acceleration = 0.09,
@@ -12,7 +14,7 @@ return {
 		category = "ALL MOBILE WEAPON NOTLAND VTOL NOTSUB NOTSHIP NOTHOVER",
 		collide = false,
 		cruisealt = 100,
-		description = "Air Transport",
+		description = Spring.I18N('units.descriptions.corvalk'),
 		energymake = 0.7,
 		energyuse = 0.7,
 		explodeas = "mediumexplosiongeneric",
@@ -26,7 +28,7 @@ return {
 		maxslope = 10,
 		maxvelocity = 6.6,
 		maxwaterdepth = 0,
-		name = "Valkyrie",
+		name = unitName,
 		objectname = "Units/CORVALK.s3o",
 		releaseheld = true,
 		script = "Units/CORVALK.cob",

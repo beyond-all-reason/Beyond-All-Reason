@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.armvadert4')
+
 return {
 	armvadert4 = {
 		acceleration = 0.1518,
@@ -12,7 +14,7 @@ return {
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "91 91 91",
 		collisionvolumetype = "sphere",
-		description = "So it's a ball with nuke warhead inside",
+		description = Spring.I18N('units.descriptions.armvadert4'),
 		explodeas = "crawl_blastsmlscavboss",
 		firestate = 2,
 		footprintx = 4,
@@ -25,7 +27,7 @@ return {
 		maxvelocity = 0.67,
 		maxwaterdepth = 112,
 		movementclass = "BOSSPEEWEE4",
-		name = "Epic Invader",
+		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/scavboss/armvadert4.s3o",
 		pushresistant = true,
@@ -69,7 +71,7 @@ return {
 				collisionvolumescales = "21.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 200,
-				description = "Invader Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				footprintx = 1,
 				footprintz = 1,
 				height = 4,

@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.corbats')
+
 return {
 	corbats = {
 		acceleration = 0.01427,
@@ -13,7 +15,7 @@ return {
 		collisionvolumescales = "62 62 148",
 		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
-		description = "Battleship",
+		description = Spring.I18N('units.descriptions.corbats'),
 		energymake = 46,
 		energyuse = 44,
 		explodeas = "hugeexplosiongeneric",
@@ -27,7 +29,7 @@ return {
 		maxvelocity = 1.77,
 		minwaterdepth = 15,
 		movementclass = "BOAT7",
-		name = "Warlord",
+		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/CORBATS.s3o",
 		script = "Units/CORBATS.cob",
@@ -52,7 +54,7 @@ return {
 				collisionvolumescales = "86.1555786133 65.6982269287 150.99382019",
 				collisionvolumetype = "Box",
 				damage = 13662,
-				description = "Warlord Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				footprintx = 6,
@@ -69,7 +71,7 @@ return {
 				blocking = false,
 				category = "heaps",
 				damage = 4032,
-				description = "Warlord Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				footprintx = 2,
 				footprintz = 2,

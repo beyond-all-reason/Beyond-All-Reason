@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.armbanth')
+
 return {
 	armbanth = {
 		acceleration = 0.11845,
@@ -13,7 +15,7 @@ return {
 		collisionvolumescales = "60 88 60",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		description = "Assault Mech",
+		description = Spring.I18N('units.descriptions.armbanth'),
 		energymake = 12,
 		energystorage = 120,
 		explodeas = "bantha",
@@ -27,7 +29,7 @@ return {
 		maxvelocity = 1.52,
 		maxwaterdepth = 12,
 		movementclass = "VBOT3",
-		name = "Bantha",
+		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMBANTH.s3o",
 		pushresistant = true,
@@ -57,7 +59,7 @@ return {
 				collisionvolumescales = "66.5059539795 21.8749981689 69.125361816406",
 				collisionvolumetype = "Box",
 				damage = 21000,
-				description = "Bantha Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -77,7 +79,7 @@ return {
 				collisionvolumescales = "55.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 10500,
-				description = "Bantha Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 3,

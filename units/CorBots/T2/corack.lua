@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.corack')
+
 return {
 	corack = {
 		acceleration = 0.4692,
@@ -14,7 +16,7 @@ return {
 		collisionvolumescales = "22 33 25",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
-		description = "Tech Level 2",
+		description = Spring.I18N('units.descriptions.corack'),
 		energymake = 14,
 		energystorage = 100,
 		energyuse = 14,
@@ -30,7 +32,7 @@ return {
 		metalmake = 0.14,
 		metalstorage = 100,
 		movementclass = "BOT3",
-		name = "Advanced Construction Bot",
+		name = unitName,
 		objectname = "Units/CORACK.s3o",
 		radardistance = 50,
 		script = "Units/CORACK.cob",
@@ -90,7 +92,7 @@ return {
 				collisionvolumescales = "22.0 23.11277771 24.3265991211",
 				collisionvolumetype = "Box",
 				damage = 800,
-				description = "Advanced Construction Bot Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -110,7 +112,7 @@ return {
 				collisionvolumescales = "35.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 600,
-				description = "Advanced Construction Bot Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 2,

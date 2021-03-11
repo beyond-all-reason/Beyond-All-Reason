@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.corwolv')
+
 return {
 	corwolv = {
 		acceleration = 0.02293,
@@ -12,7 +14,7 @@ return {
 		collisionvolumescales = "31 15 43",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
-		description = "Light Mobile Artillery",
+		description = Spring.I18N('units.descriptions.corwolv'),
 		energymake = 0.5,
 		energyuse = 0.5,
 		explodeas = "smallexplosiongeneric",
@@ -28,7 +30,7 @@ return {
 		maxvelocity = 1.7,
 		maxwaterdepth = 8,
 		movementclass = "TANK3",
-		name = "Wolverine",
+		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/CORWOLV.s3o",
 		pushresistant = true,
@@ -76,7 +78,7 @@ return {
 				collisionvolumescales = "26.1215209961 9.12510681152 48.7677612305",
 				collisionvolumetype = "Box",
 				damage = 430,
-				description = "Wolverine Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 2,

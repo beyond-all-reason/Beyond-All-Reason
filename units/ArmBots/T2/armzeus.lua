@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.armzeus')
+
 return {
 	armzeus = {
 		acceleration = 0.138,
@@ -12,7 +14,7 @@ return {
 		collisionvolumescales = "27 36 20",
 		collisionvolumetype = "box",
 		corpse = "DEAD",
-		description = "Assault Bot",
+		description = Spring.I18N('units.descriptions.armzeus'),
 		energymake = 3.5,
 		explodeas = "mediumexplosiongeneric",
 		footprintx = 2,
@@ -24,7 +26,7 @@ return {
 		maxvelocity = 1.58,
 		maxwaterdepth = 23,
 		movementclass = "BOT3",
-		name = "Zeus",
+		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMZEUS.s3o",
 		script = "Units/ARMZEUS.cob",
@@ -50,7 +52,7 @@ return {
 				collisionvolumescales = "39.0425720215 11.3397369385 32.5729980469",
 				collisionvolumetype = "Box",
 				damage = 1300,
-				description = "Zeus Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -70,7 +72,7 @@ return {
 				collisionvolumescales = "35.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 800,
-				description = "Zeus Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 2,

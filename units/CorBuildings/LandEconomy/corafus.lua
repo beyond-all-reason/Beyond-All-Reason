@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.corafus')
+
 return {
 	corafus = {
 		acceleration = 0,
@@ -18,7 +20,7 @@ return {
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		damagemodifier = 0.95,
-		description = "Produces 3000 Energy (Hazardous)",
+		description = Spring.I18N('units.descriptions.corafus'),
 		energymake = 3000,
 		energystorage = 9000,
 		explodeas = "advancedFusionExplosion",
@@ -30,7 +32,7 @@ return {
 		maxdamage = 8500,
 		maxslope = 13,
 		maxwaterdepth = 0,
-		name = "Advanced Fusion Reactor",
+		name = unitName,
 		objectname = "Units/CORAFUS.s3o",
 		script = "Units/CORAFUS.cob",
 		seismicsignature = 0,
@@ -54,7 +56,7 @@ return {
 				collisionvolumescales = "114.264892578 89.6709289551 97.8311309814",
 				collisionvolumetype = "Box",
 				damage = 17100,
-				description = "Advanced Fusion Reactor Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -74,7 +76,7 @@ return {
 				collisionvolumescales = "85.0 14.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 8550,
-				description = "Advanced Fusion Reactor Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 5,

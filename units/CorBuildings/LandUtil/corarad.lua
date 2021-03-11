@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.corarad')
+
 return {
 	corarad = {
 		acceleration = 0,
@@ -19,7 +21,7 @@ return {
 		collisionvolumescales = "35 98 35",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		description = "Long-Range Radar",
+		description = Spring.I18N('units.descriptions.corarad'),
 		energymake = 17,
 		energyuse = 17,
 		explodeas = "smallBuildingExplosionGeneric",
@@ -32,7 +34,7 @@ return {
 		maxdamage = 330,
 		maxslope = 10,
 		maxwaterdepth = 0,
-		name = "Advanced Radar Tower",
+		name = unitName,
 		objectname = "Units/CORARAD.s3o",
 		onoffable = true,
 		radardistance = 3500,
@@ -59,7 +61,7 @@ return {
 				collisionvolumescales = "37.4503479004 89.5777740479 30.4736785889",
 				collisionvolumetype = "Box",
 				damage = 198,
-				description = "Advanced Radar Tower Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -79,7 +81,7 @@ return {
 				collisionvolumescales = "55.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 99,
-				description = "Advanced Radar Tower Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 3,

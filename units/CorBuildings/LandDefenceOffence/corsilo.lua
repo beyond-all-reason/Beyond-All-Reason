@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.corsilo')
+
 return {
 	corsilo = {
 		acceleration = 0,
@@ -16,7 +18,7 @@ return {
 		collisionvolumescales = "90 38 84",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
-		description = "Nuclear ICBM Launcher",
+		description = Spring.I18N('units.descriptions.corsilo'),
 		explodeas = "nukeBuilding",
 		footprintx = 7,
 		footprintz = 7,
@@ -26,7 +28,7 @@ return {
 		maxdamage = 5560,
 		maxslope = 10,
 		maxwaterdepth = 0,
-		name = "Silencer",
+		name = unitName,
 		objectname = "Units/CORSILO.s3o",
 		radardistance = 50,
 		script = "Units/CORSILO.cob",
@@ -50,7 +52,7 @@ return {
 				collisionvolumescales = "75.0 23.7250518799 77.7504577637",
 				collisionvolumetype = "Box",
 				damage = 3336,
-				description = "Silencer Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -70,7 +72,7 @@ return {
 				collisionvolumescales = "55.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 1668,
-				description = "Silencer Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 3,

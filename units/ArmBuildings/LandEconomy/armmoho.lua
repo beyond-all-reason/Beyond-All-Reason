@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.armmoho')
+
 return {
 	armmoho = {
 		acceleration = 0,
@@ -19,7 +21,7 @@ return {
 		collisionvolumescales = "70 46 70",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		description = "Advanced Metal Extractor / Storage",
+		description = Spring.I18N('units.descriptions.armmoho'),
 		energyuse = 20,
 		explodeas = "largeBuildingexplosiongeneric",
 		extractsmetal = 0.004,
@@ -32,7 +34,7 @@ return {
 		maxslope = 30,
 		maxwaterdepth = 20,
 		metalstorage = 1000,
-		name = "Moho Mine",
+		name = unitName,
 		objectname = "Units/ARMMOHO.s3o",
 		onoffable = true,
 		script = "Units/ARMMOHO.cob",
@@ -59,7 +61,7 @@ return {
 				collisionvolumescales = "77.4562835693 39.9696350098 91.8548431396",
 				collisionvolumetype = "Box",
 				damage = 1500,
-				description = "Moho Mine Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -77,7 +79,7 @@ return {
 				blocking = false,
 				category = "heaps",
 				damage = 750,
-				description = "Moho Mine Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 5,

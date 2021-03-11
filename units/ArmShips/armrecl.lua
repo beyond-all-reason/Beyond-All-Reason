@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.armrecl')
+
 return {
 	armrecl = {
 		acceleration = 0.05262,
@@ -16,7 +18,7 @@ return {
 		collisionvolumeoffsets = "0 0 2",
 		collisionvolumescales = "38 17 50",
 		collisionvolumetype = "box",
-		description = "Ressurection Sub",
+		description = Spring.I18N('units.descriptions.armrecl'),
 		explodeas = "smallexplosiongeneric-uw",
 		footprintx = 3,
 		footprintz = 3,
@@ -27,7 +29,7 @@ return {
 		maxvelocity = 2.2,
 		minwaterdepth = 15,
 		movementclass = "UBOAT3",
-		name = "Grim Reaper",
+		name = unitName,
 		objectname = "Units/ARMRECL.s3o",
 		reclaimspeed = 100,
 		script = "Units/ARMRECL.cob",

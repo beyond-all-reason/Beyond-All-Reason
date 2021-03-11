@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.corak')
+
 return {
 	corak = {
 		acceleration = 0.4416,
@@ -12,7 +14,7 @@ return {
 		collisionvolumescales = "24 28 24",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		description = "Fast Infantry Bot",
+		description = Spring.I18N('units.descriptions.corak'),
 		energymake = 0.3,
 		energyuse = 0.3,
 		explodeas = "smallexplosiongeneric",
@@ -25,7 +27,7 @@ return {
 		maxvelocity = 2.8,
 		maxwaterdepth = 25,
 		movementclass = "BOT2",
-		name = "A.K.",
+		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/CORAK.s3o",
 		script = "Units/CORAK.cob",
@@ -53,7 +55,7 @@ return {
 				collisionvolumescales = "32.2373809814 13.5927429199 29.8415679932",
 				collisionvolumetype = "Box",
 				damage = 156,
-				description = "A.K. Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -73,7 +75,7 @@ return {
 				collisionvolumescales = "35.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 83,
-				description = "A.K. Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 2,

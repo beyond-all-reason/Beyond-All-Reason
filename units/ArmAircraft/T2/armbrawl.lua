@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.armbrawl')
+
 return {
 	armbrawl = {
 		acceleration = 0.24,
@@ -12,7 +14,7 @@ return {
 		category = "ALL NOTLAND MOBILE WEAPON NOTSUB VTOL NOTSHIP NOTHOVER",
 		collide = true,
 		cruisealt = 100,
-		description = "Gunship",
+		description = Spring.I18N('units.descriptions.armbrawl'),
 		energymake = 0.8,
 		energyuse = 0.8,
 		explodeas = "mediumExplosionGeneric",
@@ -26,7 +28,7 @@ return {
 		maxslope = 10,
 		maxvelocity = 5.36,
 		maxwaterdepth = 0,
-		name = "Brawler",
+		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMBRAWL.s3o",
 		script = "Units/ARMBRAWL.cob",

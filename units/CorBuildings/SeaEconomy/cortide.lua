@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.cortide')
+
 return {
 	cortide = {
 		acceleration = 0,
@@ -14,7 +16,7 @@ return {
 		collisionvolumescales = "28 30 33",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
-		description = "Produces Energy (depends on map)",
+		description = Spring.I18N('units.descriptions.cortide'),
 		energystorage = 50,
 		explodeas = "tidal",
 		footprintx = 3,
@@ -25,7 +27,7 @@ return {
 		maxdamage = 354,
 		maxslope = 10,
 		minwaterdepth = 20,
-		name = "Tidal Generator",
+		name = unitName,
 		objectname = "Units/CORTIDE.s3o",
 		onoffable = false,
 		script = "Units/CORTIDE.cob",
@@ -50,7 +52,7 @@ return {
 				collisionvolumescales = "43.4789733887 28.4617004395 39.825012207",
 				collisionvolumetype = "Box",
 				damage = 145,
-				description = "Tidal Generator Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				footprintx = 4,
@@ -69,7 +71,7 @@ return {
 				collisionvolumescales = "35.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 185,
-				description = "Tidal Generator Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 2,

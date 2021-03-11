@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.armjanus')
+
 return {
 	armjanus = {
 		acceleration = 0.02111,
@@ -12,7 +14,7 @@ return {
 		collisionvolumescales = "25 22 33",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
-		description = "Twin Medium Rocket Launcher",
+		description = Spring.I18N('units.descriptions.armjanus'),
 		energymake = 0.5,
 		energyuse = 0.5,
 		explodeas = "mediumExplosionGeneric",
@@ -26,7 +28,7 @@ return {
 		maxvelocity = 1.8,
 		maxwaterdepth = 12,
 		movementclass = "TANK3",
-		name = "Janus",
+		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMJANUS.s3o",
 		script = "Units/ARMJANUS.cob",
@@ -55,7 +57,7 @@ return {
 				collisionvolumescales = "28.8743438721 18.1917877197 33.2305145264",
 				collisionvolumetype = "Box",
 				damage = 628,
-				description = "Janus Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -75,7 +77,7 @@ return {
 				collisionvolumescales = "35.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 364,
-				description = "Janus Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 2,

@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.coradvsol')
+
 return {
 	coradvsol = {
 		acceleration = 0,
@@ -19,7 +21,7 @@ return {
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		damagemodifier = 0.9,
-		description = "Produces 75 Energy",
+		description = Spring.I18N('units.descriptions.coradvsol'),
 		energymake = 75,
 		energystorage = 100,
 		explodeas = "mediumBuildingexplosiongeneric",
@@ -31,7 +33,7 @@ return {
 		maxdamage = 1080,
 		maxslope = 10,
 		maxwaterdepth = 0,
-		name = "Advanced Solar Collector",
+		name = unitName,
 		objectname = "Units/CORADVSOL.s3o",
 		script = "Units/CORADVSOL.cob",
 		seismicsignature = 0,
@@ -55,7 +57,7 @@ return {
 				collisionvolumescales = "60 112 58",
 				collisionvolumetype = "Ell",
 				damage = 648,
-				description = "Advanced Solar Collector Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -75,7 +77,7 @@ return {
 				collisionvolumescales = "85.0 14.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 324,
-				description = "Advanced Solar Collector Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 4,

@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.armfdrag')
+
 return {
 	armfdrag = {
 		acceleration = 0,
@@ -15,7 +17,7 @@ return {
 		collisionvolumescales = "37 70 37",
 		collisionvolumetype = "box",
 		crushresistance = 250,
-		description = "Shark's Teeth",
+		description = Spring.I18N('units.descriptions.armfdrag'),
 		footprintx = 2,
 		footprintz = 2,
 		hidedamage = true,
@@ -23,7 +25,7 @@ return {
 		maxdamage = 4000,
 		maxslope = 32,
 		minwaterdepth = 1,
-		name = "Shark's Teeth",
+		name = unitName,
 		objectname = "Units/ARMFDRAG.s3o",
 		repairable = false,
 		script = "Units/ARMFDRAG.cob",

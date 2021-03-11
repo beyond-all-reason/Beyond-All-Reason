@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.armcrus')
+
 return {
 	armcrus = {
 		acceleration = 0.02952,
@@ -14,7 +16,7 @@ return {
 		collisionvolumescales = "32 32 112",
 		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
-		description = "Cruiser",
+		description = Spring.I18N('units.descriptions.armcrus'),
 		energymake = 2.6,
 		energyuse = 2.5,
 		explodeas = "largeexplosiongeneric",
@@ -28,7 +30,7 @@ return {
 		maxvelocity = 2.4,
 		minwaterdepth = 30,
 		movementclass = "BOAT6",
-		name = "Conqueror",
+		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMCRUS.s3o",
 		script = "Units/ARMCRUS.cob",
@@ -54,7 +56,7 @@ return {
 				collisionvolumescales = "48.6282958984 40.4258880615 146.154632568",
 				collisionvolumetype = "Box",
 				damage = 5408,
-				description = "Conqueror Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				footprintx = 5,
@@ -73,7 +75,7 @@ return {
 				collisionvolumescales = "35.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 4032,
-				description = "Conqueror Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				footprintx = 2,
 				footprintz = 2,

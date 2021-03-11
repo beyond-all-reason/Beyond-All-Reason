@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.chickend1')
+
 return {
 	chickend1 = {
 		acceleration = 0.0115,
@@ -20,7 +22,7 @@ return {
 		collisionvolumescales = "14 50 14",
 		collisionvolumetype = "box",
 		corpse = "chicken_egg_m_pink",
-		description = "Defense",
+		description = Spring.I18N('units.descriptions.chickend1'),
 		energystorage = 500,
 		explodeas = "custom:blood_explode",
 		extractsmetal = 0.001,
@@ -35,7 +37,7 @@ return {
 		maxvelocity = 0,
 		maxwaterdepth = 0,
 		movementclass = "NANO",
-		name = "Chicken Tube",
+		name = unitName,
 		noautofire = false,
 		nochasecategory = "MOBILE",
 		objectname = "Chickens/tube.s3o",

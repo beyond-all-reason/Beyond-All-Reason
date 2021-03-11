@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.armrectrt4')
+
 return {
 	armrectrt4 = {
 		acceleration = 0.23,
@@ -16,7 +18,7 @@ return {
 		collisionvolumescales = "52 80 52",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		description = "Stealthy Rez/Repair/Reclaim Bot",
+		description = Spring.I18N('units.descriptions.armrectrt4'),
 		energymake = 1.75,
 		energyuse = 1.75,
 		explodeas = "smallbuilder",
@@ -30,7 +32,7 @@ return {
 		maxvelocity = 5,
 		maxwaterdepth = 22,
 		movementclass = "BOT2",
-		name = "Epic Rector",
+		name = unitName,
 		objectname = "Units/scavboss/ARMRECTRT4.s3o",
 		radardistance = 50,
 		script = "Units/ARMRECTRT4.cob",
@@ -59,7 +61,7 @@ return {
 				collisionvolumescales = "20.0 11.0 10.0759887695",
 				collisionvolumetype = "Box",
 				damage = 2500,
-				description = "Rector Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
 				footprintx = 2,
@@ -78,7 +80,7 @@ return {
 				collisionvolumescales = "35.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 1250,
-				description = "Rector Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				featurereclamate = "SMUDGE01",
 				footprintx = 2,
 				footprintz = 2,

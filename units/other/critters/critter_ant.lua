@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.critter_ant')
+
 return {
 	critter_ant = {
 		acceleration = 0.575,
@@ -17,7 +19,7 @@ return {
 		capturable = false,
 		category = "BOT MOBILE NOWEAPON NOTAIR NOTSUB",
 		defaultmissiontype = "Standby",
-		description = "chaos!",
+		description = Spring.I18N('units.descriptions.critter_ant'),
 		floater = true,
 		footprintx = 1,
 		footprintz = 1,
@@ -32,7 +34,7 @@ return {
 		maxwaterdepth = 2,
 		movementclass = "ANT",
 		movestate = -1,
-		name = "Ant",
+		name = unitName,
 		noautofire = false,
 		nochasecategory = "MOBILE ",
 		objectname = "Critters/critter_ant.s3o",

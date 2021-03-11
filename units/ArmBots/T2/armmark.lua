@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.armmark')
+
 return {
 	armmark = {
 		acceleration = 0.05175,
@@ -14,7 +16,7 @@ return {
 		collisionvolumescales = "26 24 16",
 		collisionvolumetype = "box",
 		corpse = "dead",
-		description = "Radar Bot",
+		description = Spring.I18N('units.descriptions.armmark'),
 		energymake = 8,
 		energyuse = 20,
 		explodeas = "smallexplosiongeneric",
@@ -27,7 +29,7 @@ return {
 		maxvelocity = 1.35,
 		maxwaterdepth = 0,
 		movementclass = "BOT3",
-		name = "Marky",
+		name = unitName,
 		objectname = "Units/ARMMARK.s3o",
 		onoffable = true,
 		radardistance = 2200,
@@ -53,7 +55,7 @@ return {
 				collisionvolumescales = "23.0599975586 13.375 26.6004943848",
 				collisionvolumetype = "Box",
 				damage = 280,
-				description = "Marky Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
 				footprintx = 2,
@@ -72,7 +74,7 @@ return {
 				collisionvolumescales = "35.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 256,
-				description = "Marky Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				featurereclamate = "SMUDGE01",
 				footprintx = 2,
 				footprintz = 2,

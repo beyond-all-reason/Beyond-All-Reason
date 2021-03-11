@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.corjamt')
+
 return {
 	corjamt = {
 		acceleration = 0,
@@ -19,7 +21,7 @@ return {
 		collisionvolumescales = "30 32 30",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		description = "Short-Range Jamming Device",
+		description = Spring.I18N('units.descriptions.corjamt'),
 		energyuse = 25,
 		explodeas = "smallexplosiongeneric",
 		footprintx = 2,
@@ -30,7 +32,7 @@ return {
 		maxdamage = 960,
 		maxslope = 10,
 		maxwaterdepth = 0,
-		name = "Castro",
+		name = unitName,
 		objectname = "Units/CORJAMT.s3o",
 		onoffable = true,
 		radardistancejam = 360,
@@ -55,7 +57,7 @@ return {
 				collisionvolumescales = "27.806640625 26.0538024902 41.8483276367",
 				collisionvolumetype = "Box",
 				damage = 576,
-				description = "Castro Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 2,

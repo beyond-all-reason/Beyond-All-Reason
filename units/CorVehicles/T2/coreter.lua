@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.coreter')
+
 return {
 	coreter = {
 		acceleration = 0.03583,
@@ -14,7 +16,7 @@ return {
 		collisionvolumescales = "26.5 26.5 47.5",
 		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
-		description = "Radar Jammer Vehicle",
+		description = Spring.I18N('units.descriptions.coreter'),
 		energyuse = 100,
 		explodeas = "smallexplosiongeneric",
 		footprintx = 3,
@@ -27,7 +29,7 @@ return {
 		maxvelocity = 1.38,
 		maxwaterdepth = 0,
 		movementclass = "TANK3",
-		name = "Deleter",
+		name = unitName,
 		nochasecategory = "MOBILE",
 		objectname = "Units/CORETER.s3o",
 		onoffable = true,
@@ -59,7 +61,7 @@ return {
 				collisionvolumescales = "29.8956298828 22.6313476563 49.5100708008",
 				collisionvolumetype = "Box",
 				damage = 450,
-				description = "Deleter Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -79,7 +81,7 @@ return {
 				collisionvolumescales = "55.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 350,
-				description = "Deleter Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 3,

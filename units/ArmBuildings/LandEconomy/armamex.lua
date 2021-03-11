@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.armamex')
+
 return {
 	armamex = {
 		acceleration = 0,
@@ -20,7 +22,7 @@ return {
 		collisionvolumescales = "49 26 49",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		description = "Stealthy Cloakable Metal Extractor",
+		description = Spring.I18N('units.descriptions.armamex'),
 		energyuse = 3,
 		explodeas = "empblast",
 		extractsmetal = 0.001,
@@ -35,7 +37,7 @@ return {
 		maxwaterdepth = 20,
 		metalstorage = 75,
 		mincloakdistance = 66,
-		name = "Twilight",
+		name = unitName,
 		objectname = "Units/ARMAMEX.s3o",
 		onoffable = true,
 		script = "Units/ARMAMEX.cob",
@@ -62,7 +64,7 @@ return {
 				collisionvolumescales = "54.8278198242 36.1557006836 47.4822998047",
 				collisionvolumetype = "Box",
 				damage = 870,
-				description = "Twilight Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -82,7 +84,7 @@ return {
 				collisionvolumescales = "55.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 435,
-				description = "Twilight Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 3,

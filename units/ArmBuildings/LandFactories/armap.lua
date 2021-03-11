@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.armap')
+
 return {
 	armap = {
 		acceleration = 0,
@@ -17,7 +19,7 @@ return {
 		collisionvolumescales = "134 49 82",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
-		description = "Produces Level 1 Aircraft",
+		description = Spring.I18N('units.descriptions.armap'),
 		energystorage = 100,
 		explodeas = "largeBuildingexplosiongeneric",
 		footprintx = 9,
@@ -29,7 +31,7 @@ return {
 		maxslope = 15,
 		maxwaterdepth = 0,
 		metalstorage = 100,
-		name = "Aircraft Plant",
+		name = unitName,
 		objectname = "Units/ARMAP.s3o",
 		radardistance = 500,
 		radaremitheight = 72,
@@ -62,7 +64,7 @@ return {
 				collisionvolumescales = "85 39 49",
 				collisionvolumetype = "Box",
 				damage = 1110,
-				description = "Aircraft Plant Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -80,7 +82,7 @@ return {
 				blocking = false,
 				category = "heaps",
 				damage = 555,
-				description = "Aircraft Plant Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 6,

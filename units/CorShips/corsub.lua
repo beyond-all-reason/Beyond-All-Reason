@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.corsub')
+
 return {
 	corsub = {
 		acceleration = 0.0451,
@@ -14,7 +16,7 @@ return {
 		collisionvolumescales = "35 17 50",
 		collisionvolumetype = "box",
 		corpse = "DEAD",
-		description = "Submarine",
+		description = Spring.I18N('units.descriptions.corsub'),
 		explodeas = "smallExplosionGeneric-uw",
 		footprintx = 3,
 		footprintz = 3,
@@ -25,7 +27,7 @@ return {
 		maxvelocity = 2.15,
 		minwaterdepth = 15,
 		movementclass = "UBOAT3",
-		name = "Snake",
+		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/CORSUB.s3o",
 		script = "Units/CORSUB.cob",
@@ -51,7 +53,7 @@ return {
 				collisionvolumescales = "24.2856140137 12.625 49.0312194824",
 				collisionvolumetype = "Box",
 				damage = 1002,
-				description = "Snake Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				footprintx = 3,
@@ -70,7 +72,7 @@ return {
 				collisionvolumescales = "85.0 14.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 4032,
-				description = "Snake Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				footprintx = 2,
 				footprintz = 2,

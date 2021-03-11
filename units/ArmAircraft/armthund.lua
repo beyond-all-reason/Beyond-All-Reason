@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.armthund')
+
 return {
 	armthund = {
 		acceleration = 0.05,
@@ -11,7 +13,7 @@ return {
 		category = "ALL MOBILE WEAPON NOTLAND NOTSUB VTOL NOTSHIP NOTHOVER",
 		collide = true,
 		cruisealt = 165,
-		description = "Bomber",
+		description = Spring.I18N('units.descriptions.armthund'),
 		energymake = 1.1,
 		energyuse = 1.1,
 		explodeas = "mediumexplosiongeneric",
@@ -30,7 +32,7 @@ return {
 		maxslope = 10,
 		maxvelocity = 8.5,
 		maxwaterdepth = 0,
-		name = "Thunder",
+		name = unitName,
 		noautofire = true,
 		nochasecategory = "MOBILE",
 		objectname = "Units/ARMTHUND.s3o",

@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.armamph')
+
 return {
 	armamph = {
 		acceleration = 0.138,
@@ -12,7 +14,7 @@ return {
 		collisionvolumescales = "27 27 21",
 		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
-		description = "Amphibious Bot",
+		description = Spring.I18N('units.descriptions.armamph'),
 		energymake = 0.4,
 		energyuse = 0.4,
 		explodeas = "smallExplosionGeneric-phib",
@@ -25,7 +27,7 @@ return {
 		maxslope = 14,
 		maxvelocity = 3,
 		movementclass = "HOVER5",
-		name = "Pelican",
+		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMAMPH.s3o",
 		script = "Units/ARMAMPH.cob",
@@ -51,7 +53,7 @@ return {
 				collisionvolumescales = "31.8423614502 16.689666748 36.9563140869",
 				collisionvolumetype = "Box",
 				damage = 800,
-				description = "Pelican Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				footprintx = 3,
@@ -70,7 +72,7 @@ return {
 				collisionvolumescales = "55.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 500,
-				description = "Pelican Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				footprintx = 3,
 				footprintz = 3,

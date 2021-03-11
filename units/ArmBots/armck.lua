@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.armck')
+
 return {
 	armck = {
 		acceleration = 0.552,
@@ -14,7 +16,7 @@ return {
 		collisionvolumescales = "27 27 27",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		description = "Tech Level 1",
+		description = Spring.I18N('units.descriptions.armck'),
 		energymake = 7,
 		energystorage = 50,
 		energyuse = 7,
@@ -30,7 +32,7 @@ return {
 		metalmake = 0.07,
 		metalstorage = 50,
 		movementclass = "BOT3",
-		name = "Construction Bot",
+		name = unitName,
 		objectname = "Units/ARMCK.s3o",
 		script = "Units/ARMCK.cob",
 		seismicsignature = 0,
@@ -90,7 +92,7 @@ return {
 				collisionvolumescales = "28.1473846436 25.0852355957 27.3032073975",
 				collisionvolumetype = "Box",
 				damage = 424,
-				description = "Construction Bot Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -110,7 +112,7 @@ return {
 				collisionvolumescales = "35.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 262,
-				description = "Construction Bot Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 2,

@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.corhp')
+
 return {
 	corhp = {
 		acceleration = 0,
@@ -16,7 +18,7 @@ return {
 		collisionvolumescales = "120 32 108",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
-		description = "Builds Hovercraft",
+		description = Spring.I18N('units.descriptions.corhp'),
 		energystorage = 200,
 		explodeas = "largeBuildingExplosionGeneric",
 		footprintx = 8,
@@ -28,7 +30,7 @@ return {
 		maxslope = 15,
 		maxwaterdepth = 0,
 		metalstorage = 200,
-		name = "Hovercraft Platform",
+		name = unitName,
 		objectname = "Units/CORHP.s3o",
 		radardistance = 50,
 		script = "Units/CORHP.cob",
@@ -61,7 +63,7 @@ return {
 				collisionvolumescales = "120 26 108",
 				collisionvolumetype = "Box",
 				damage = 2014,
-				description = "Hovercraft Platform Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -79,7 +81,7 @@ return {
 				blocking = false,
 				category = "heaps",
 				damage = 1007,
-				description = "Hovercraft Platform Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 8,

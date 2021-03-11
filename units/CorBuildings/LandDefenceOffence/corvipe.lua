@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.corvipe')
+
 return {
 	corvipe = {
 		acceleration = 0,
@@ -15,7 +17,7 @@ return {
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		corpse = "DEAD",
 		damagemodifier = 0.5,
-		description = "Pop-up Sabot Battery",
+		description = Spring.I18N('units.descriptions.corvipe'),
 		explodeas = "smallBuildingexplosiongeneric",
 		footprintx = 3,
 		footprintz = 3,
@@ -25,7 +27,7 @@ return {
 		maxdamage = 2719,
 		maxslope = 10,
 		maxwaterdepth = 0,
-		name = "Viper",
+		name = unitName,
 		nochasecategory = "MOBILE",
 		objectname = "Units/CORVIPE.s3o",
 		script = "Units/CORVIPE.lua",
@@ -49,7 +51,7 @@ return {
 				collisionvolumescales = "42.4275054932 38.4097137451 38.8498077393",
 				collisionvolumetype = "Box",
 				damage = 1631,
-				description = "Viper Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -69,7 +71,7 @@ return {
 				collisionvolumescales = "35.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 408,
-				description = "Viper Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 2,

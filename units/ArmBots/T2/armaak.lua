@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.armaak')
+
 return {
 	armaak = {
 		acceleration = 0.138,
@@ -13,7 +15,7 @@ return {
 		collisionvolumescales = "25 32 16",
 		collisionvolumetype = "box",
 		corpse = "DEAD",
-		description = "Advanced Amphibious Anti-Air Bot",
+		description = Spring.I18N('units.descriptions.armaak'),
 		explodeas = "mediumexplosiongeneric-phib",
 		footprintx = 2,
 		footprintz = 2,
@@ -23,7 +25,7 @@ return {
 		maxslope = 14,
 		maxvelocity = 1.58,
 		movementclass = "ABOT2",
-		name = "Archangel",
+		name = unitName,
 		nochasecategory = "NOTAIR",
 		objectname = "Units/ARMAAK.s3o",
 		script = "Units/ARMAAK.cob",
@@ -50,7 +52,7 @@ return {
 				collisionvolumescales = "30.0 14.3981628418 32.5845489502",
 				collisionvolumetype = "Box",
 				damage = 1212,
-				description = "Archangel Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -70,7 +72,7 @@ return {
 				collisionvolumescales = "85.0 14.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 606,
-				description = "Archangel Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 4,

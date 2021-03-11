@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.cormine3')
+
 return {
 	cormine3 = {
 		acceleration = 0,
@@ -17,7 +19,7 @@ return {
 		collisionvolumeoffsets = "0 -2 0",
 		collisionvolumescales = "15 6 15",
 		collisionvolumetype = "Ell",
-		description = "Heavy Mine",
+		description = Spring.I18N('units.descriptions.cormine3'),
 		explodeas = "MINE_HEAVY",
 		firestate = 2,
 		footprintx = 1,
@@ -31,7 +33,7 @@ return {
 		maxslope = 40,
 		maxwaterdepth = 0,
 		mincloakdistance = 8,
-		name = 1100,
+		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/CORMINE3.s3o",
 		script = "mines_lus.lua",

@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.armvader')
+
 return {
 	armvader = {
 		acceleration = 0.1518,
@@ -13,7 +15,7 @@ return {
 		collisionvolumescales = "17 13 17",
 		collisionvolumetype = "box",
 		corpse = "CORPSE",
-		description = "Amphibious Crawling Bomb",
+		description = Spring.I18N('units.descriptions.armvader'),
 		energymake = 0.1,
 		energyuse = 0.1,
 		explodeas = "crawl_blastsml",
@@ -28,7 +30,7 @@ return {
 		maxvelocity = 2.8,
 		maxwaterdepth = 112,
 		movementclass = "ABOTBOMB2",
-		name = "Invader",
+		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMVADER.s3o",
 		script = "Units/ARMVADER.cob",
@@ -69,7 +71,7 @@ return {
 				collisionvolumescales = "21.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 200,
-				description = "Invader Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				footprintx = 1,
 				footprintz = 1,
 				height = 4,

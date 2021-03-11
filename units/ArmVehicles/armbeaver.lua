@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.armbeaver')
+
 return {
 	armbeaver = {
 		acceleration = 0.01842,
@@ -14,7 +16,7 @@ return {
 		collisionvolumescales = "34 22 41",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
-		description = "Amphibious Construction Vehicle",
+		description = Spring.I18N('units.descriptions.armbeaver'),
 		energymake = 8,
 		energystorage = 50,
 		energyuse = 8,
@@ -31,7 +33,7 @@ return {
 		metalmake = 0.08,
 		metalstorage = 50,
 		movementclass = "ATANK3",
-		name = "Beaver",
+		name = unitName,
 		objectname = "Units/ARMBEAVER.s3o",
 		script = "Units/ARMBEAVER.cob",
 		seismicsignature = 0,
@@ -107,7 +109,7 @@ return {
 				collisionvolumescales = "34.8473205566 22.7869720459 36.573059082",
 				collisionvolumetype = "Box",
 				damage = 555,
-				description = "Beaver Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -127,7 +129,7 @@ return {
 				collisionvolumescales = "55.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 278,
-				description = "Beaver Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 3,

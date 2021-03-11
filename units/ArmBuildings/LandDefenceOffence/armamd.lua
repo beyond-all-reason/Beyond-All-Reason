@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.armamd')
+
 return {
 	armamd = {
 		acceleration = 0,
@@ -19,7 +21,7 @@ return {
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
 		damagemodifier = 0.5,
-		description = "Anti-Nuke System",
+		description = Spring.I18N('units.descriptions.armamd'),
 		explodeas = "largeexplosiongeneric",
 		footprintx = 4,
 		footprintz = 4,
@@ -29,7 +31,7 @@ return {
 		maxdamage = 3300,
 		maxslope = 10,
 		maxwaterdepth = 0,
-		name = "Protector",
+		name = unitName,
 		noautofire = true,
 		objectname = "Units/ARMAMD.s3o",
 		radardistance = 50,
@@ -55,7 +57,7 @@ return {
 				collisionvolumescales = "51.5827331543 42.1249847412 61.0397644043",
 				collisionvolumetype = "Box",
 				damage = 1980,
-				description = "Protector Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -73,7 +75,7 @@ return {
 				blocking = false,
 				category = "heaps",
 				damage = 990,
-				description = "Protector Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 5,

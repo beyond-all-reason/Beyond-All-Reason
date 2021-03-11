@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.scavmistxxl')
+
 return {
 	scavmistxxl = {
 		acceleration = 0.207,
@@ -13,7 +15,7 @@ return {
 		collisionvolumescales = "64 24 64",
 		collisionvolumetype = "CylY",
 		--corpse = "DEAD",
-		description = "Super Heavy Scavenger Mist",
+		description = Spring.I18N('units.descriptions.scavmistxxl'),
 		explodeas = "mistexplosm",
 		floater = true,
 		footprintx = 4,
@@ -26,7 +28,7 @@ return {
 		maxvelocity = 2.0,
 		maxwaterdepth = 0,
 		movementclass = "SCAVMIST",
-		name = "Super Heavy Mist",
+		name = unitName,
 		nochasecategory = "ALL",
 		objectname = "scavs/scavmistflare.s3o",
 		script = "scavs/SCAVMIST.cob",

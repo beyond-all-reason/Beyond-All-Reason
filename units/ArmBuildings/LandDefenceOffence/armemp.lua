@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.armemp')
+
 return {
 	armemp = {
 		acceleration = 0,
@@ -16,7 +18,7 @@ return {
 		collisionvolumescales = "112 80 80",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
-		description = "EMP Missile Launcher",
+		description = Spring.I18N('units.descriptions.armemp'),
 		explodeas = "largeBuildingexplosiongeneric",
 		footprintx = 4,
 		footprintz = 4,
@@ -26,7 +28,7 @@ return {
 		maxdamage = 3000,
 		maxslope = 10,
 		maxwaterdepth = 0,
-		name = "Detonator",
+		name = unitName,
 		objectname = "Units/ARMEMP.s3o",
 		script = "Units/ARMEMP.cob",
 		seismicsignature = 0,
@@ -50,7 +52,7 @@ return {
 				collisionvolumescales = "48.0 21.8883666992 48.0",
 				collisionvolumetype = "Box",
 				damage = 1800,
-				description = "Detonator Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -70,7 +72,7 @@ return {
 				collisionvolumescales = "55.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 900,
-				description = "Detonator Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 3,

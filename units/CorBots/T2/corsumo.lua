@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.corsumo')
+
 return {
 	corsumo = {
 		acceleration = 0.0552,
@@ -12,7 +14,7 @@ return {
 		collisionvolumescales = "38 34 36",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
-		description = "Heavily Armored Assault Bot",
+		description = Spring.I18N('units.descriptions.corsumo'),
 		energymake = 17.5,
 		energystorage = 100,
 		explodeas = "explosiont3med",
@@ -26,7 +28,7 @@ return {
 		maxvelocity = 0.75,
 		maxwaterdepth = 23,
 		movementclass = "HBOT3",
-		name = "Sumo",
+		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/CORSUMO.s3o",
 		pushresistant = true,
@@ -53,7 +55,7 @@ return {
 				collisionvolumescales = "60.9344787598 36.418548584 64.3249511719",
 				collisionvolumetype = "Box",
 				damage = 8400,
-				description = "Sumo Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -73,7 +75,7 @@ return {
 				collisionvolumescales = "55.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 4200,
-				description = "Sumo Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 3,

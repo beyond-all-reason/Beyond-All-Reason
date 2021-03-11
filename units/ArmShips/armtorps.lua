@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.armtorps')
+
 return {
 	armtorps = {
 		acceleration = 0.07,
@@ -14,7 +16,7 @@ return {
 		collisionvolumescales = "24 24 62",
 		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
-		description = "Torpedo Ship",
+		description = Spring.I18N('units.descriptions.armtorps'),
 		energymake = 0.2,
 		energyuse = 0.2,
 		explodeas = "mediumexplosiongeneric",
@@ -28,7 +30,7 @@ return {
 		maxvelocity = 3,
 		minwaterdepth = 12,
 		movementclass = "BOAT3",
-		name = "Torpedo Ship",
+		name = unitName,
 		nochasecategory = "UNDERWATER VTOL",
 		objectname = "Units/ARMMLS.s3o",
 		script = "Units/ARMMLS.cob",
@@ -53,7 +55,7 @@ return {
 				collisionvolumescales = "33.75 14.0462341309 88.0440979004",
 				collisionvolumetype = "Box",
 				damage = 1726,
-				description = "Pathfinder Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -73,7 +75,7 @@ return {
 				collisionvolumescales = "85.0 14.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 4032,
-				description = "Pathfinder Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				footprintx = 2,
 				footprintz = 2,

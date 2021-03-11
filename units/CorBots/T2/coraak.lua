@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.coraak')
+
 return {
 	coraak = {
 		acceleration = 0.138,
@@ -13,7 +15,7 @@ return {
 		collisionvolumescales = "27 29 22",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
-		description = "Heavy Amphibious Anti-Air Bot",
+		description = Spring.I18N('units.descriptions.coraak'),
 		explodeas = "smallexplosiongeneric-phib",
 		footprintx = 2,
 		footprintz = 2,
@@ -22,7 +24,7 @@ return {
 		maxdamage = 1280,
 		maxvelocity = 1.15,
 		movementclass = "ABOT2",
-		name = "Manticore",
+		name = unitName,
 		nochasecategory = "NOTAIR",
 		objectname = "Units/CORAAK.s3o",
 		script = "Units/CORAAK.cob",
@@ -49,7 +51,7 @@ return {
 				collisionvolumescales = "38.4586334229 17.0406036377 34.7582092285",
 				collisionvolumetype = "Box",
 				damage = 1548,
-				description = "Manticore Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -69,7 +71,7 @@ return {
 				collisionvolumescales = "85.0 14.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 774,
-				description = "Manticore Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 4,

@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.armsehak')
+
 return {
 	armsehak = {
 		acceleration = 0.2,
@@ -13,7 +15,7 @@ return {
 		category = "ALL NOTLAND MOBILE NOTSUB VTOL NOWEAPON NOTSHIP NOTHOVER",
 		collide = false,
 		cruisealt = 220,
-		description = "Advanced Radar/Sonar Plane",
+		description = Spring.I18N('units.descriptions.armsehak'),
 		energymake = 12,
 		energyuse = 12,
 		explodeas = "mediumexplosiongeneric",
@@ -32,7 +34,7 @@ return {
 		maxslope = 10,
 		maxvelocity = 11.27,
 		maxwaterdepth = 255,
-		name = "Seahawk",
+		name = unitName,
 		objectname = "Units/ARMSEHAK.s3o",
 		radardistance = 2250,
 		script = "Units/ARMSEHAK.cob",

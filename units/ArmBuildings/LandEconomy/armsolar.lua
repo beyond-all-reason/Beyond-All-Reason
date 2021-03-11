@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.armsolar')
+
 return {
 	armsolar = {
 		acceleration = 0,
@@ -19,7 +21,7 @@ return {
 		collisionvolumetype = "Ell",
 		corpse = "DEAD",
 		damagemodifier = 0.5,
-		description = "Produces 20 Energy",
+		description = Spring.I18N('units.descriptions.armsolar'),
 		energystorage = 50,
 		energyuse = -20,
 		explodeas = "smallBuildingexplosiongeneric",
@@ -31,7 +33,7 @@ return {
 		maxdamage = 306,
 		maxslope = 10,
 		maxwaterdepth = 0,
-		name = "Solar Collector",
+		name = unitName,
 		objectname = "Units/ARMSOLAR.s3o",
 		onoffable = true,
 		script = "Units/ARMSOLAR.cob",
@@ -56,7 +58,7 @@ return {
 				collisionvolumescales = "50 76 50",
 				collisionvolumetype = "Ell",
 				damage = 184,
-				description = "Solar Collector Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -74,7 +76,7 @@ return {
 				blocking = false,
 				category = "heaps",
 				damage = 92,
-				description = "Solar Collector Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 5,

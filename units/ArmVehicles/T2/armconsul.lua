@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.armconsul')
+
 return {
 	armconsul = {
 		acceleration = 0.07029,
@@ -14,7 +16,7 @@ return {
 		collisionvolumescales = "33 17 33",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		description = "Combat Engineer",
+		description = Spring.I18N('units.descriptions.armconsul'),
 		energymake = 15,
 		energystorage = 100,
 		energyuse = 15,
@@ -31,7 +33,7 @@ return {
 		metalmake = 0.15,
 		metalstorage = 100,
 		movementclass = "TANK2",
-		name = "Consul",
+		name = unitName,
 		objectname = "Units/ARMCONSUL.s3o",
 		script = "Units/ARMCONSUL.cob",
 		seismicsignature = 0,
@@ -86,7 +88,7 @@ return {
 				collisionvolumescales = "31.1572570801 15.4860076904 32.9478607178",
 				collisionvolumetype = "Box",
 				damage = 800,
-				description = "Consul Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -106,7 +108,7 @@ return {
 				collisionvolumescales = "55.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 700,
-				description = "Consul Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 3,

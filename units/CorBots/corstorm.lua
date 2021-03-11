@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.corstorm')
+
 return {
 	corstorm = {
 		acceleration = 0.1242,
@@ -12,7 +14,7 @@ return {
 		collisionvolumescales = "26.637012481689 28.637012481689 17.637012481689",
 		collisionvolumetype = "box",
 		corpse = "DEAD",
-		description = "Rocket Bot - good vs. static defenses",
+		description = Spring.I18N('units.descriptions.corstorm'),
 		energymake = 0.6,
 		energyuse = 0.6,
 		explodeas = "smallexplosiongeneric",
@@ -25,7 +27,7 @@ return {
 		maxvelocity = 1.59,
 		maxwaterdepth = 21,
 		movementclass = "BOT3",
-		name = "Storm",
+		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/CORSTORM.s3o",
 		script = "Units/CORSTORM.cob",
@@ -51,7 +53,7 @@ return {
 				collisionvolumescales = "22.6238861084 13.1411590576 35.857635498",
 				collisionvolumetype = "Box",
 				damage = 402,
-				description = "Storm Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -71,7 +73,7 @@ return {
 				collisionvolumescales = "35.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 251,
-				description = "Storm Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 2,

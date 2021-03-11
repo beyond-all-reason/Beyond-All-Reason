@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.corshark')
+
 return {
 	corshark = {
 		acceleration = 0.05,
@@ -13,7 +15,7 @@ return {
 		collisionvolumescales = "20 15 64",
 		collisionvolumetype = "box",
 		corpse = "DEAD",
-		description = "Submarine Killer",
+		description = Spring.I18N('units.descriptions.corshark'),
 		energymake = 0.5,
 		energyuse = 0.5,
 		explodeas = "mediumExplosionGeneric-uw",
@@ -26,7 +28,7 @@ return {
 		maxvelocity = 2.8,
 		minwaterdepth = 20,
 		movementclass = "UBOAT3",
-		name = "Shark",
+		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/CORSHARK.s3o",
 		script = "Units/CORSHARK.cob",
@@ -53,7 +55,7 @@ return {
 				collisionvolumescales = "20.0 15.5 55.0749969482",
 				collisionvolumetype = "Box",
 				damage = 1362,
-				description = "Shark Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				footprintx = 6,
@@ -72,7 +74,7 @@ return {
 				collisionvolumescales = "35.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 4032,
-				description = "Shark Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				footprintx = 2,
 				footprintz = 2,

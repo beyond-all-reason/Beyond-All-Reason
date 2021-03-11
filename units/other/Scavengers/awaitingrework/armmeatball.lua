@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.armmeatball')
+
 return {
 	armmeatball = {
 		acceleration = 0.253,
@@ -12,7 +14,7 @@ return {
 		collisionvolumescales = "34 68 38",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
-		description = "Amphibious Assault Mech",
+		description = Spring.I18N('units.descriptions.armmeatball'),
 		explodeas = "explosiont3med",
 		footprintx = 3,
 		footprintz = 3,
@@ -24,7 +26,7 @@ return {
 		maxvelocity = 2,
 		maxwaterdepth = 32,
 		movementclass = "ATANK3",
-		name = "Meatball",
+		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/scavboss/ARMMEATBALL.s3o",
 		script = "Units/scavboss/armmeatball.cob",
@@ -52,7 +54,7 @@ return {
 				collisionvolumescales = "32.1447906494 31.2162322998 37.0860900879",
 				collisionvolumetype = "Box",
 				damage = 2400,
-				description = "Meatball Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -72,7 +74,7 @@ return {
 				collisionvolumescales = "55.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 1200,
-				description = "Meatball Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 3,

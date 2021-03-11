@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.corthovr')
+
 return {
 	corthovr = {
 		acceleration = 0.03101,
@@ -14,7 +16,7 @@ return {
 		collisionvolumescales = "60 60 84",
 		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
-		description = "Heavy Transport Hovercraft",
+		description = Spring.I18N('units.descriptions.corthovr'),
 		energymake = 2.3,
 		energyuse = 2.3,
 		explodeas = "largeexplosiongeneric",
@@ -27,7 +29,7 @@ return {
 		maxvelocity = 1.84,
 		minwaterdepth = 12,
 		movementclass = "HOVER4",
-		name = "Turtle",
+		name = unitName,
 		nochasecategory = "ALL",
 		objectname = "Units/CORTHOVR.s3o",
 		releaseheld = true,
@@ -56,7 +58,7 @@ return {
 				collisionvolumescales = "72.0837402344 61.3697357178 89.0081481934",
 				collisionvolumetype = "Box",
 				damage = 3012,
-				description = "Turtle Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				footprintx = 4,
 				footprintz = 4,

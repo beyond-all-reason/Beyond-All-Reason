@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.critter_goldfish')
+
 return {
 	critter_goldfish = {
 		acceleration = 0.123,
@@ -16,7 +18,7 @@ return {
 		canstop = true,
 		capturable = false,
 		category = "NOWEAPON MOBILE NOTLAND NOTAIR UNDERWATER",
-		description = "shiny!",
+		description = Spring.I18N('units.descriptions.critter_goldfish'),
 		explodeas = "TINYBUG_DEATH",
 		footprintx = 1,
 		footprintz = 1,
@@ -29,7 +31,7 @@ return {
 		mincloakdistance = 75,
 		minwaterdepth = 15,
 		movementclass = "UBOAT3",
-		name = "Goldfish",
+		name = unitName,
 		noautofire = false,
 		nochasecategory = "MOBILE ",
 		objectname = "Critters/critter_goldfish.s3o",

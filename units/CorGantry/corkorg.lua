@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.corkorg')
+
 return {
 	corkorg = {
 		acceleration = 0.1242,
@@ -12,7 +14,7 @@ return {
 		collisionvolumescales = "97 160 97",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		description = "Experimental Assault Bot",
+		description = Spring.I18N('units.descriptions.corkorg'),
 		energymake = 35,
 		energystorage = 350,
 		explodeas = "korgExplosion",
@@ -27,7 +29,7 @@ return {
 		maxvelocity = 1.12,
 		maxwaterdepth = 12,
 		movementclass = "VBOT5",
-		name = "Korgoth",
+		name = unitName,
 		nochasecategory = "VTOL GROUNDSCOUT",
 		objectname = "Units/corkorg.s3o",
 		pushresistant = true,
@@ -57,7 +59,7 @@ return {
 				collisionvolumescales = "96 88 134",
 				collisionvolumetype = "box",
 				damage = 57600,
-				description = "Korgoth Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -77,7 +79,7 @@ return {
 				collisionvolumescales = "55.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 28800,
-				description = "Korgoth Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 3,

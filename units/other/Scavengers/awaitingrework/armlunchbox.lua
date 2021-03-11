@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.armlunchbox')
+
 return {
 	armlunchbox = {
 		acceleration = 0.02645,
@@ -12,7 +14,7 @@ return {
 		collisionvolumescales = "65 60 65",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		description = "All-Terrain Heavy Plasma Cannon",
+		description = Spring.I18N('units.descriptions.armlunchbox'),
 		explodeas = "explosiont3",
 		footprintx = 4,
 		footprintz = 4,
@@ -25,7 +27,7 @@ return {
 		maxvelocity = 1.1,
 		maxwaterdepth = 0,
 		movementclass = "HTBOT4",
-		name = "Lunchbox",
+		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/scavboss/armlunchbox.s3o",
 		script = "Units/scavboss/armlunchbox.cob",
@@ -50,7 +52,7 @@ return {
 				collisionvolumescales = "64.0154266357 41.4324188232 55.433883667",
 				collisionvolumetype = "Box",
 				damage = 3000,
-				description = "Lunchbox Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -70,7 +72,7 @@ return {
 				collisionvolumescales = "85.0 14.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 3015,
-				description = "Lunchbox Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 3,

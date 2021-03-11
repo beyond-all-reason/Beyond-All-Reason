@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.corsd')
+
 return {
 	corsd = {
 		activatewhenbuilt = true,
@@ -16,7 +18,7 @@ return {
 		collisionvolumescales = "65 10 60",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
-		description = "Intrusion Countermeasure System",
+		description = Spring.I18N('units.descriptions.corsd'),
 		energyuse = 125,
 		explodeas = "mediumBuildingexplosiongeneric",
 		footprintx = 4,
@@ -28,7 +30,7 @@ return {
 		maxdamage = 2500,
 		maxslope = 36,
 		maxwaterdepth = 0,
-		name = "Nemesis",
+		name = unitName,
 		objectname = "Units/CORSD.s3o",
 		onoffable = true,
 		script = "Units/CORSD.cob",
@@ -54,7 +56,7 @@ return {
 				collisionvolumescales = "68.8967437744 12.3805389404 66.8254699707",
 				collisionvolumetype = "Box",
 				damage = 1500,
-				description = "Nemesis Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -74,7 +76,7 @@ return {
 				collisionvolumescales = "85.0 14.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 750,
-				description = "Nemesis Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 4,

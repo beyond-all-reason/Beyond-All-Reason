@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.armpnix')
+
 return {
 	armpnix = {
 		acceleration = 0.04,
@@ -12,7 +14,7 @@ return {
 		category = "ALL NOTLAND MOBILE WEAPON NOTSUB VTOL NOTSHIP NOTHOVER",
 		collide = true,
 		cruisealt = 220,
-		description = "Strategic Bomber",
+		description = Spring.I18N('units.descriptions.armpnix'),
 		energymake = 1.8,
 		energyuse = 1.8,
 		explodeas = "largeexplosiongeneric",
@@ -31,7 +33,7 @@ return {
 		maxslope = 10,
 		maxvelocity = 8.6,
 		maxwaterdepth = 0,
-		name = "Phoenix",
+		name = unitName,
 		noautofire = true,
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMPNIX.s3o",

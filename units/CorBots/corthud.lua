@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.corthud')
+
 return {
 	corthud = {
 		acceleration = 0.12995,
@@ -12,7 +14,7 @@ return {
 		collisionvolumescales = "25 27 25",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		description = "Light Plasma Bot",
+		description = Spring.I18N('units.descriptions.corthud'),
 		energymake = 0.6,
 		energyuse = 0.6,
 		explodeas = "smallExplosionGeneric",
@@ -27,7 +29,7 @@ return {
 		maxvelocity = 1.5,
 		maxwaterdepth = 12,
 		movementclass = "BOT3",
-		name = "Thud",
+		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/CORTHUD.s3o",
 		script = "Units/CORTHUD.cob",
@@ -58,7 +60,7 @@ return {
 				collisionvolumescales = "27.809387207 16.8939208984 40.2852935791",
 				collisionvolumetype = "Box",
 				damage = 640,
-				description = "Thud Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -78,7 +80,7 @@ return {
 				collisionvolumescales = "35.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 370,
-				description = "Thud Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 2,

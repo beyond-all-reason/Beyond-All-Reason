@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.corgolt4')
+
 return {
 	corgolt4 = {
 		acceleration = 0.0138,
@@ -12,7 +14,7 @@ return {
 		collisionvolumescales = "87 60 96",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
-		description = "Goliath, but bigger.",
+		description = Spring.I18N('units.descriptions.corgolt4'),
 		energymake = 0.6,
 		energyuse = 0.6,
 		explodeas = "bantha",
@@ -28,7 +30,7 @@ return {
 		maxvelocity = 0.8,
 		maxwaterdepth = 12,
 		movementclass = "BOSSSTUMPY7",
-		name = "Epic Goliath",
+		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/scavboss/corgolt4.s3o",
 		script = "Units/scavboss/corgolt4.cob",
@@ -69,7 +71,7 @@ return {
 				collisionvolumescales = "30.4261322021 21.4884033203 31.1059265137",
 				collisionvolumetype = "Box",
 				damage = 100000,
-				description = "Epic Goliath Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 5,

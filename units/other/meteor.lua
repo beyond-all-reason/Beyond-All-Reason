@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.meteor')
+
 return {
 	meteor = {
 		acceleration = 0,
@@ -15,7 +17,7 @@ return {
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "56 11 56",
 		collisionvolumetype = "box",
-		description = "Falls out of the sky and kills you",
+		description = Spring.I18N('units.descriptions.meteor'),
 		explodeas = "",
 		footprintx = 2,
 		footprintz = 2,
@@ -26,7 +28,7 @@ return {
 		mass = 165.75,
 		maxdamage = 2,
 		maxvelocity = 0,
-		name = "meteor",
+		name = unitName,
 		noautofire = false,
 		objectname = "meteor.s3o",
 		radardistance = 900,

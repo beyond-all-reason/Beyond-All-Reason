@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.armuwfus')
+
 return {
 	armuwfus = {
 		acceleration = 0,
@@ -15,7 +17,7 @@ return {
 		canrepeat = false,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE UNDERWATER EMPABLE",
 		corpse = "DEAD",
-		description = "Produces 1200 Energy",
+		description = Spring.I18N('units.descriptions.armuwfus'),
 		energymake = 1200,
 		energystorage = 2500,
 		explodeas = "fusionExplosion-uw",
@@ -28,7 +30,7 @@ return {
 		maxdamage = 5000,
 		maxslope = 10,
 		minwaterdepth = 25,
-		name = "Underwater Fusion Plant",
+		name = unitName,
 		objectname = "Units/ARMUWFUS.s3o",
 		script = "Units/ARMUWFUS.cob",
 		selfdestructas = "fusionExplosionSelfd-uw",
@@ -51,7 +53,7 @@ return {
 				collisionvolumescales = "80.2949829102 38.3076019287 56.9153289795",
 				collisionvolumetype = "Box",
 				damage = 3000,
-				description = "Underwater Fusion Plant Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				footprintx = 5,
@@ -68,7 +70,7 @@ return {
 				blocking = false,
 				category = "heaps",
 				damage = 1500,
-				description = "Underwater Fusion Plant Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				footprintx = 5,
 				footprintz = 5,

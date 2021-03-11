@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.armepoch')
+
 return {
 	armepoch = {
 		acceleration = 0.01104,
@@ -14,7 +16,7 @@ return {
 		collisionvolumescales = "71 71 180",
 		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
-		description = "Flagship",
+		description = Spring.I18N('units.descriptions.armepoch'),
 		energymake = 150,
 		energystorage = 1000,
 		energyuse = 150,
@@ -31,7 +33,7 @@ return {
 		metalstorage = 100,
 		minwaterdepth = 15,
 		movementclass = "BOAT8",
-		name = "Epoch",
+		name = unitName,
 		objectname = "Units/ARMEPOCH.s3o",
 		pushresistant = true,
 		radardistance = 1530,
@@ -59,7 +61,7 @@ return {
 				collisionvolumescales = "75.0081939697 51.5621185303 178.425750732",
 				collisionvolumetype = "Box",
 				damage = 85500,
-				description = "Epoch Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -77,7 +79,7 @@ return {
 				blocking = false,
 				category = "heaps",
 				damage = 40032,
-				description = "Epoch Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				footprintx = 2,
 				footprintz = 2,

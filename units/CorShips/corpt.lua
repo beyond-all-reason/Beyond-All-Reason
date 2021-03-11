@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.corpt')
+
 return {
 	corpt = {
 		acceleration = 0.06473,
@@ -15,7 +17,7 @@ return {
 		collisionvolumescales = "18 18 54",
 		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
-		description = "Patrol Boat/Light Anti Air/Sonar",
+		description = Spring.I18N('units.descriptions.corpt'),
 		energymake = 0.23,
 		energyuse = 0.23,
 		explodeas = "smallExplosionGeneric",
@@ -29,7 +31,7 @@ return {
 		maxvelocity = 2.73,
 		minwaterdepth = 6,
 		movementclass = "BOAT3",
-		name = "Searcher",
+		name = unitName,
 		nochasecategory = "VTOL UNDERWATER",
 		objectname = "Units/CORPT.s3o",
 		script = "Units/CORPT.cob",
@@ -57,7 +59,7 @@ return {
 				collisionvolumescales = "32.8984222412 14.8354034424 64.0",
 				collisionvolumetype = "Box",
 				damage = 500,
-				description = "Searcher Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				footprintx = 2,
@@ -76,7 +78,7 @@ return {
 				collisionvolumescales = "55.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 1432,
-				description = "Searcher Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				footprintx = 2,
 				footprintz = 2,

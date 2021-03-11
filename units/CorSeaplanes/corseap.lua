@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.corseap')
+
 return {
 	corseap = {
 		acceleration = 0.22,
@@ -13,7 +15,7 @@ return {
 		category = "ALL NOTLAND MOBILE WEAPON VTOL NOTSUB NOTSHIP NOTHOVER",
 		collide = true,
 		cruisealt = 100,
-		description = "Torpedo Gunship",
+		description = Spring.I18N('units.descriptions.corseap'),
 		energymake = 0.7,
 		energyuse = 0.7,
 		explodeas = "mediumExplosionGeneric",
@@ -27,7 +29,7 @@ return {
 		maxslope = 10,
 		maxvelocity = 8.87,
 		maxwaterdepth = 255,
-		name = "Typhoon",
+		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/CORSEAP.s3o",
 		script = "Units/CORSEAP.cob",

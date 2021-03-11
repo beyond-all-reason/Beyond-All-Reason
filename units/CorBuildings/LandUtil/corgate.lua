@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.corgate')
+
 return {
 	corgate = {
 		acceleration = 0,
@@ -19,7 +21,7 @@ return {
 		collisionvolumescales = "57 38 57",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		description = "Plasma Deflector",
+		description = Spring.I18N('units.descriptions.corgate'),
 		energystorage = 1500,
 		explodeas = "hugeBuildingexplosiongeneric",
 		footprintx = 4,
@@ -30,7 +32,7 @@ return {
 		maxdamage = 3200,
 		maxslope = 10,
 		maxwaterdepth = 0,
-		name = "Overseer",
+		name = unitName,
 		noautofire = true,
 		objectname = "Units/CORGATE.s3o",
 		onoffable = false,
@@ -59,7 +61,7 @@ return {
 				collisionvolumescales = "65.7474060059 27.1259613037 55.6685791016",
 				collisionvolumetype = "Box",
 				damage = 1900,
-				description = "Overseer Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -79,7 +81,7 @@ return {
 				collisionvolumescales = "35.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 960,
-				description = "Overseer Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 2,

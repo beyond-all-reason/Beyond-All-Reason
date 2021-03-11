@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.corcrw')
+
 return {
 	corcrw = {
 		acceleration = 0.15,
@@ -17,7 +19,7 @@ return {
 		collisionvolumescales = "64 24 64",
 		collisionvolumetype = "CylY",
 		cruisealt = 75,
-		description = "Flying Fortress",
+		description = Spring.I18N('units.descriptions.corcrw'),
 		energymake = 50,
 		explodeas = "largeexplosiongeneric",
 		footprintx = 3,
@@ -30,7 +32,7 @@ return {
 		maxslope = 10,
 		maxvelocity = 3.83,
 		maxwaterdepth = 0,
-		name = "Krow",
+		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/CORCRW.s3o",
 		script = "Units/CORCRW.cob",

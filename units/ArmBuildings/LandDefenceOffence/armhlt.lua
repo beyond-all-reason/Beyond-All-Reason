@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.armhlt')
+
 return {
 	armhlt = {
 		acceleration = 0,
@@ -17,7 +19,7 @@ return {
 		collisionvolumescales = "36 89 36",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		description = "Heavy Laser Tower",
+		description = Spring.I18N('units.descriptions.armhlt'),
 		energystorage = 200,
 		explodeas = "mediumBuildingExplosionGeneric",
 		footprintx = 2,
@@ -28,7 +30,7 @@ return {
 		maxdamage = 2325,
 		maxslope = 10,
 		maxwaterdepth = 0,
-		name = "Sentinel",
+		name = unitName,
 		nochasecategory = "MOBILE",
 		objectname = "Units/ARMHLT.s3o",
 		script = "Units/ARMHLT.cob",
@@ -51,7 +53,7 @@ return {
 				collisionvolumescales = "42.0427246094 74.7609558105 56.8743896484",
 				collisionvolumetype = "Box",
 				damage = 1395,
-				description = "Sentinel Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -71,7 +73,7 @@ return {
 				collisionvolumescales = "35.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 698,
-				description = "Sentinel Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 2,

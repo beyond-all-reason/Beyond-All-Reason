@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.corfrt')
+
 return {
 	corfrt = {
 		acceleration = 0,
@@ -14,7 +16,7 @@ return {
 		collisionvolumescales = "40 64 40",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		description = "Floating Anti-air Tower",
+		description = Spring.I18N('units.descriptions.corfrt'),
 		energyuse = 0.1,
 		explodeas = "largeBuildingExplosionGeneric",
 		footprintx = 4,
@@ -24,7 +26,7 @@ return {
 		idletime = 1800,
 		maxdamage = 355,
 		minwaterdepth = 2,
-		name = "Stinger",
+		name = unitName,
 		nochasecategory = "ALL",
 		objectname = "Units/CORFRT.s3o",
 		script = "Units/CORFRT.cob",
@@ -48,7 +50,7 @@ return {
 				collisionvolumescales = "48.0115509033 52.983001709 47.76612854",
 				collisionvolumetype = "Box",
 				damage = 174,
-				description = "Stinger Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				footprintx = 4,
 				footprintz = 4,

@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.corvrad')
+
 return {
 	corvrad = {
 		acceleration = 0.01043,
@@ -14,7 +16,7 @@ return {
 		collisionvolumescales = "24 18 29",
 		collisionvolumetype = "box",
 		corpse = "dead",
-		description = "Radar Vehicle",
+		description = Spring.I18N('units.descriptions.corvrad'),
 		energymake = 8,
 		energyuse = 20,
 		explodeas = "smallexplosiongeneric",
@@ -28,7 +30,7 @@ return {
 		maxvelocity = 1.2,
 		maxwaterdepth = 0,
 		movementclass = "TANK3",
-		name = "Informer",
+		name = unitName,
 		objectname = "Units/CORVRAD.s3o",
 		onoffable = true,
 		radardistance = 2200,
@@ -57,7 +59,7 @@ return {
 				collisionvolumescales = "23.1105194092 8.20951843262 32.5806274414",
 				collisionvolumetype = "Box",
 				damage = 546,
-				description = "Informer Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -77,7 +79,7 @@ return {
 				collisionvolumescales = "35.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 450,
-				description = "Informer Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 2,

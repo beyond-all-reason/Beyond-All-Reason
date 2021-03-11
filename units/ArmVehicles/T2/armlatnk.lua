@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.armlatnk')
+
 return {
 	armlatnk = {
 		acceleration = 0.05833,
@@ -12,7 +14,7 @@ return {
 		collisionvolumescales = "30 22 30",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
-		description = "Lightning Tank",
+		description = Spring.I18N('units.descriptions.armlatnk'),
 		energymake = 1.5,
 		energyuse = 1.5,
 		explodeas = "smallExplosionGeneric",
@@ -26,7 +28,7 @@ return {
 		maxvelocity = 3,
 		maxwaterdepth = 12,
 		movementclass = "TANK2",
-		name = "Panther",
+		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMLATNK.s3o",
 		script = "Units/ARMLATNK.cob",
@@ -55,7 +57,7 @@ return {
 				collisionvolumescales = "31.8865509033 22.2328948975 29.3510131836",
 				collisionvolumetype = "Box",
 				damage = 800,
-				description = "Panther Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -75,7 +77,7 @@ return {
 				collisionvolumescales = "35.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 500,
-				description = "Panther Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 2,

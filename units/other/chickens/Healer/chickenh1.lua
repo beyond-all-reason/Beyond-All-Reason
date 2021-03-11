@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.chickenh1')
+
 return {
 	chickenh1 = {
 		acceleration = 0.0575,
@@ -24,7 +26,7 @@ return {
 		collisionvolumescales = "10 14 22",
 		collisionvolumetype = "box",
 		defaultmissiontype = "Standby",
-		description = "Chicken Healer",
+		description = Spring.I18N('units.descriptions.chickenh1'),
 		energymake = 25,
 		explodeas = "WEAVER_DEATH",
 		floater = false,
@@ -43,7 +45,7 @@ return {
 		metalstorage = 1000,
 		mobilestandorders = 1,
 		movementclass = "BOT2",
-		name = "Weaver",
+		name = unitName,
 		noautofire = 0,
 		objectname = "Chickens/chicken_drone.s3o",
 		reclaimspeed = 400,

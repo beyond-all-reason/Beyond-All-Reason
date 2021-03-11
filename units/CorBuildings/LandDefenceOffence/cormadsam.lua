@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.cormadsam')
+
 return {
 	cormadsam = {
 		acceleration = 0,
@@ -18,7 +20,7 @@ return {
 		collisionvolumescales = "45 54 45",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		description = "Hardened Anti-Air Missile Battery",
+		description = Spring.I18N('units.descriptions.cormadsam'),
 		energyuse = 5,
 		explodeas = "mediumBuildingexplosiongeneric",
 		footprintx = 3,
@@ -29,7 +31,7 @@ return {
 		maxdamage = 2500,
 		maxslope = 10,
 		maxwaterdepth = 0,
-		name = "SAM",
+		name = unitName,
 		objectname = "Units/CORMADSAM.s3o",
 		script = "Units/CORMADSAM.lua",
 		seismicsignature = 0,
@@ -52,7 +54,7 @@ return {
 				collisionvolumescales = "55.5325927734 38.388458252 42.4240570068",
 				collisionvolumetype = "Box",
 				damage = 1500,
-				description = "SAM Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -72,7 +74,7 @@ return {
 				collisionvolumescales = "35.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 750,
-				description = "SAM Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 3,

@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.freefusion')
+
 return {
 	freefusion = {
 		acceleration = 0,
@@ -11,7 +13,7 @@ return {
 		canrepeat = false,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
 		corpse = "FREE_FUSION_DEAD",
-		description = "Produces plenty of energy",
+		description = Spring.I18N('units.descriptions.freefusion'),
 		energymake = 850,
 		energystorage = 150,
 		explodeas = "fusionExplosion",
@@ -23,7 +25,7 @@ return {
 		maxdamage = 500,
 		maxslope = 20,
 		maxwaterdepth = 0,
-		name = "Free Fusion Reactor",
+		name = unitName,
 		objectname = "Units/freefusion.s3o",
 		seismicsignature = 0,
 		selfdestructas = "fusionExplosionSelfd",
@@ -40,7 +42,7 @@ return {
 				blocking = true,
 				category = "corpses",
 				damage = 2500,
-				description = "Free Fusion Reactor Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				footprintx = 5,
 				footprintz = 5,
@@ -59,7 +61,7 @@ return {
 				collisionvolumescales = "85.0 14.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 1350,
-				description = "Free Fusion Reactor Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 5,

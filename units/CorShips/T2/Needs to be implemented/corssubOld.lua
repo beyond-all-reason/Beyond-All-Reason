@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.corssubOld')
+
 return {
 	corssubOld = {
 		acceleration = 0.03609,
@@ -13,7 +15,7 @@ return {
 		collisionvolumescales = "52 14 67",
 		collisionvolumetype = "box",
 		corpse = "DEAD",
-		description = "Battle Submarine",
+		description = Spring.I18N('units.descriptions.corssubOld'),
 		energymake = 15,
 		energyuse = 15,
 		explodeas = "largeexplosiongeneric-uw",
@@ -27,7 +29,7 @@ return {
 		maxvelocity = 2.257,
 		minwaterdepth = 20,
 		movementclass = "UBOAT4",
-		name = "Leviathan",
+		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/CORSSUB.s3o",
 		script = "Units/CORSSUB.cob",
@@ -55,7 +57,7 @@ return {
 				collisionvolumescales = "39.0926055908 13.0902709961 63.9697265625",
 				collisionvolumetype = "Box",
 				damage = 2344,
-				description = "Leviathan Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				footprintx = 3,
@@ -74,7 +76,7 @@ return {
 				collisionvolumescales = "35.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 4032,
-				description = "Leviathan Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				footprintx = 2,
 				footprintz = 2,

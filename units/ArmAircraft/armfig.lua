@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.armfig')
+
 return {
 	armfig = {
 		acceleration = 0.3,
@@ -13,7 +15,7 @@ return {
 		category = "ALL MOBILE WEAPON NOTSUB NOTLAND VTOL NOTSHIP NOTHOVER",
 		collide = false,
 		cruisealt = 125,
-		description = "Fighter",
+		description = Spring.I18N('units.descriptions.armfig'),
 		explodeas = "smallExplosionGenericAir",
 		footprintx = 2,
 		footprintz = 2,
@@ -28,7 +30,7 @@ return {
 		maxslope = 10,
 		maxvelocity = 9.64,
 		maxwaterdepth = 0,
-		name = "Freedom Fighter",
+		name = unitName,
 		nochasecategory = "NOTAIR",
 		objectname = "Units/ARMFIG.s3o",
 		script = "Units/ARMFIG.cob",

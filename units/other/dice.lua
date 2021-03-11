@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.dice')
+
 return {
 	dice = {
 		blocking = true,
@@ -14,7 +16,7 @@ return {
 		collisionvolumescales = "14 14 14",
 		collisionvolumetype = "Box",
 		crushresistance = 2500,
-		description = "Dice",
+		description = Spring.I18N('units.descriptions.dice'),
 		explodeas = "blank",
 		footprintx = 1,
 		footprintz = 1,
@@ -26,7 +28,7 @@ return {
 		maxvelocity = 1,
 		maxwaterdepth = 0,
 		movementclass = "CRITTERH",
-		name = "Dice",
+		name = unitName,
 		objectname = "dice.s3o",
 		reclaimable = false,
 		repairable = false,

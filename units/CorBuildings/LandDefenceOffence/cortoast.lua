@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.cortoast')
+
 return {
 	cortoast = {
 		acceleration = 0,
@@ -16,7 +18,7 @@ return {
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		corpse = "DEAD",
 		damagemodifier = 0.25,
-		description = "Pop-up Medium Plasma Artillery",
+		description = Spring.I18N('units.descriptions.cortoast'),
 		explodeas = "mediumBuildingExplosionGeneric",
 		footprintx = 3,
 		footprintz = 3,
@@ -26,7 +28,7 @@ return {
 		maxdamage = 3840,
 		maxslope = 10,
 		maxwaterdepth = 0,
-		name = "Toaster",
+		name = unitName,
 		nochasecategory = "MOBILE",
 		objectname = "Units/CORTOAST.s3o",
 		onoffable = true,
@@ -52,7 +54,7 @@ return {
 				collisionvolumescales = "66.412979126 46.1585998535 60.6329803467",
 				collisionvolumetype = "Box",
 				damage = 2304,
-				description = "Toaster Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -72,7 +74,7 @@ return {
 				collisionvolumescales = "55.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 576,
-				description = "Toaster Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				footprintx = 3,
 				footprintz = 3,

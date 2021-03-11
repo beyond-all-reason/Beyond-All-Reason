@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.corah')
+
 return {
 	corah = {
 		acceleration = 0.06316,
@@ -13,7 +15,7 @@ return {
 		collisionvolumescales = "28 16 28",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		description = "Anti-Air Hovercraft",
+		description = Spring.I18N('units.descriptions.corah'),
 		energymake = 2.6,
 		energyuse = 2.6,
 		explodeas = "smallexplosiongeneric",
@@ -26,7 +28,7 @@ return {
 		maxvelocity = 2.95,
 		maxwaterdepth = 0,
 		movementclass = "HOVER3",
-		name = "Slinger",
+		name = unitName,
 		nochasecategory = "NOTAIR",
 		objectname = "Units/CORAH.s3o",
 		script = "Units/CORAH.cob",
@@ -52,7 +54,7 @@ return {
 				collisionvolumescales = "29.5848236084 21.4446258545 33.5151977539",
 				collisionvolumetype = "Box",
 				damage = 605,
-				description = "Slinger Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				footprintx = 3,
@@ -71,7 +73,7 @@ return {
 				collisionvolumescales = "55.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 303,
-				description = "Slinger Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				footprintx = 3,
 				footprintz = 3,

@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.armuwmme')
+
 return {
 	armuwmme = {
 		acceleration = 0,
@@ -16,7 +18,7 @@ return {
 		canrepeat = false,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE UNDERWATER EMPABLE",
 		corpse = "DEAD",
-		description = "Advanced Metal Extractor / Storage",
+		description = Spring.I18N('units.descriptions.armuwmme'),
 		energyuse = 20,
 		explodeas = "hugeBuildingExplosionGeneric-uw",
 		extractsmetal = 0.004,
@@ -29,7 +31,7 @@ return {
 		maxslope = 30,
 		metalstorage = 1000,
 		minwaterdepth = 15,
-		name = "Underwater Moho Mine",
+		name = unitName,
 		objectname = "Units/ARMUWMME.s3o",
 		onoffable = true,
 		script = "Units/ARMUWMME.cob",
@@ -56,7 +58,7 @@ return {
 				collisionvolumescales = "70.6470947266 41.1475219727 59.8421783447",
 				collisionvolumetype = "Box",
 				damage = 1232,
-				description = "Underwater Moho Mine Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -74,7 +76,7 @@ return {
 				blocking = false,
 				category = "heaps",
 				damage = 616,
-				description = "Underwater Moho Mine Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				footprintx = 5,
 				footprintz = 5,

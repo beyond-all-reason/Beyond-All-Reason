@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.armgplat')
+
 return {
 	armgplat = {
 		acceleration = 0,
@@ -14,7 +16,7 @@ return {
 		collisionvolumescales = "76 36 76",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		description = "Light Plasma Defense",
+		description = Spring.I18N('units.descriptions.armgplat'),
 		energymake = 1,
 		energystorage = 10,
 		explodeas = "mediumBuildingexplosiongeneric",
@@ -25,7 +27,7 @@ return {
 		idletime = 1800,
 		maxdamage = 680,
 		minwaterdepth = 1,
-		name = "Gun Platform",
+		name = unitName,
 		nochasecategory = "MOBILE",
 		objectname = "Units/ARMGPLAT.s3o",
 		script = "Units/ARMGPLAT.cob",
@@ -47,7 +49,7 @@ return {
 				collisionvolumescales = "50.0 45.7867279053 45.9999847412",
 				collisionvolumetype = "Box",
 				damage = 750,
-				description = "Gun Platform Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				footprintx = 4,
 				footprintz = 4,

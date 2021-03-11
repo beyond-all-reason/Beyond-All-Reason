@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.corck')
+
 return {
 	corck = {
 		acceleration = 0.5244,
@@ -14,7 +16,7 @@ return {
 		collisionvolumescales = "25 31 25",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		description = "Tech Level 1",
+		description = Spring.I18N('units.descriptions.corck'),
 		energymake = 7,
 		energystorage = 50,
 		energyuse = 7,
@@ -30,7 +32,7 @@ return {
 		metalmake = 0.07,
 		metalstorage = 50,
 		movementclass = "BOT3",
-		name = "Construction Bot",
+		name = unitName,
 		objectname = "Units/CORCK.s3o",
 		script = "Units/CORCK.cob",
 		seismicsignature = 0,
@@ -90,7 +92,7 @@ return {
 				collisionvolumescales = "23.7274780273 30.2996520996 30.1248321533",
 				collisionvolumetype = "Box",
 				damage = 454,
-				description = "Construction Bot Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -110,7 +112,7 @@ return {
 				collisionvolumescales = "35.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 277,
-				description = "Construction Bot Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 2,

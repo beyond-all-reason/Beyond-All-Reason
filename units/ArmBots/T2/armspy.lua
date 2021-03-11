@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.armspy')
+
 return {
 	armspy = {
 		acceleration = 0.276,
@@ -21,7 +23,7 @@ return {
 		collisionvolumescales = "23 25 34",
 		collisionvolumetype = "box",
 		corpse = "DEAD",
-		description = "Radar-Invisible Spy Bot",
+		description = Spring.I18N('units.descriptions.armspy'),
 		energymake = 5,
 		energyuse = 5,
 		explodeas = "smallExplosionGeneric",
@@ -35,7 +37,7 @@ return {
 		maxwaterdepth = 112,
 		mincloakdistance = 75,
 		movementclass = "BOT2",
-		name = "Infiltrator",
+		name = unitName,
 		objectname = "Units/ARMSPY.s3o",
 		onoffable = true,
 		script = "Units/ARMSPY.cob",
@@ -65,7 +67,7 @@ return {
 				collisionvolumescales = "31.7495880127 18.5738830566 32.936630249",
 				collisionvolumetype = "Box",
 				damage = 250,
-				description = "Infiltrator Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				footprintx = 2,
@@ -84,7 +86,7 @@ return {
 				collisionvolumescales = "35.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 150,
-				description = "Infiltrator Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				footprintx = 2,
 				footprintz = 2,

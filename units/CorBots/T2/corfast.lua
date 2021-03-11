@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.corfast')
+
 return {
 	corfast = {
 		acceleration = 0.23,
@@ -14,7 +16,7 @@ return {
 		collisionvolumescales = "22 37 19",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
-		description = "Combat Engineer",
+		description = Spring.I18N('units.descriptions.corfast'),
 		energymake = 15,
 		energystorage = 100,
 		energyuse = 15,
@@ -30,7 +32,7 @@ return {
 		metalmake = 0.15,
 		metalstorage = 100,
 		movementclass = "BOT2",
-		name = "Freaker",
+		name = unitName,
 		objectname = "Units/CORFAST.s3o",
 		script = "Units/CORFAST.cob",
 		seismicsignature = 0,
@@ -82,7 +84,7 @@ return {
 				collisionvolumescales = "37.4086914063 20.6713256836 39.1832122803",
 				collisionvolumetype = "Box",
 				damage = 600,
-				description = "Freaker Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -102,7 +104,7 @@ return {
 				collisionvolumescales = "35.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 500,
-				description = "Freaker Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 2,

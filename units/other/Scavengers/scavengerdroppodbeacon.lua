@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.scavengerdroppodbeacon')
+
 return {
 	scavengerdroppodbeacon = {
 		acceleration = 0,
@@ -18,7 +20,7 @@ return {
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "32 32 32",
 		collisionvolumetype = "CylY",
-		description = "Calls in Scavenger Drops.",
+		description = Spring.I18N('units.descriptions.scavengerdroppodbeacon'),
 		energystorage = 10,
 		explodeas = "mediumBuildingexplosiongeneric",
 		floater = false,
@@ -30,7 +32,7 @@ return {
 		mass = 10000,
 		maxdamage = 2000,
 		maxvelocity = 0,
-		name = "Spawn Beacon",
+		name = unitName,
 		noautofire = false,
 		objectname = "scavs/scavbeaconbyar.s3o",
 		script = "scavs/beaconbyar.cob",

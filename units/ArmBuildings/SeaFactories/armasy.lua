@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.armasy')
+
 return {
 	armasy = {
 		acceleration = 0,
@@ -13,7 +15,7 @@ return {
 		collisionvolumescales = "160 60 160",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
-		description = "Produces Level 2 Ships",
+		description = Spring.I18N('units.descriptions.armasy'),
 		energystorage = 200,
 		explodeas = "largeBuildingexplosiongeneric",
 		footprintx = 12,
@@ -24,7 +26,7 @@ return {
 		maxdamage = 5415,
 		metalstorage = 200,
 		minwaterdepth = 30,
-		name = "Advanced Shipyard",
+		name = unitName,
 		objectname = "Units/ARMASY.s3o",
 		script = "Units/ARMASY.cob",
 		seismicsignature = 0,
@@ -61,7 +63,7 @@ return {
 				collisionvolumescales = "180 60 176",
 				collisionvolumetype = "Box",
 				damage = 2707,
-				description = "Advanced Shipyard Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				footprintx = 12,
 				footprintz = 12,

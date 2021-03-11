@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.armpeep')
+
 return {
 	armpeep = {
 		acceleration = 0.3,
@@ -12,7 +14,7 @@ return {
 		category = "ALL MOBILE NOTLAND NOTSUB VTOL NOWEAPON NOTSHIP NOTHOVER LIGHTAIRSCOUT",
 		collide = false,
 		cruisealt = 180,
-		description = "Scout",
+		description = Spring.I18N('units.descriptions.armpeep'),
 		energymake = 0.2,
 		energyuse = 0.2,
 		explodeas = "tinyExplosionGeneric",
@@ -31,7 +33,7 @@ return {
 		maxslope = 10,
 		maxvelocity = 12.5,
 		maxwaterdepth = 0,
-		name = "Peeper",
+		name = unitName,
 		objectname = "Units/ARMPEEP.s3o",
 		radardistance = 1140,
 		script = "Units/ARMPEEP.cob",

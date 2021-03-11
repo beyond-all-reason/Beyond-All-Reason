@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.armrattet4')
+
 return {
 	armrattet4 = {
 		acceleration = 0.0138,
@@ -12,7 +14,7 @@ return {
 		collisionvolumescales = "80 51 98",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
-		description = "Brick with huge as #### gun.",
+		description = Spring.I18N('units.descriptions.armrattet4'),
 		energymake = 0.6,
 		energyuse = 0.6,
 		explodeas = "bantha",
@@ -28,7 +30,7 @@ return {
 		maxvelocity = 0.8,
 		maxwaterdepth = 12,
 		movementclass = "BOSSSTUMPY7",
-		name = "Ratte",
+		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/scavboss/armrattet4.s3o",
 		script = "Units/scavboss/armrattet4.cob",
@@ -70,7 +72,7 @@ return {
 				collisionvolumescales = "75.7996826172 57.2875671387 87.4318847656",
 				collisionvolumetype = "Box",
 				damage = 60000,
-				description = "Ratte Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 5,

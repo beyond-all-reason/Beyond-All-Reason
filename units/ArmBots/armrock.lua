@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.armrock')
+
 return {
 	armrock = {
 		acceleration = 0.138,
@@ -12,7 +14,7 @@ return {
 		collisionvolumescales = "26.637012481689 28.637012481689 17.637012481689",
 		collisionvolumetype = "box",
 		corpse = "DEAD",
-		description = "Rocket Bot - good vs. static defenses",
+		description = Spring.I18N('units.descriptions.armrock'),
 		energymake = 0.6,
 		energyuse = 0.6,
 		explodeas = "smallExplosionGeneric",
@@ -25,7 +27,7 @@ return {
 		maxvelocity = 1.69,
 		maxwaterdepth = 12,
 		movementclass = "BOT3",
-		name = "Rocko",
+		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMROCK.s3o",
 		script = "Units/ARMROCK.cob",
@@ -51,7 +53,7 @@ return {
 				collisionvolumescales = "29.8971862793 8.38395690918 32.6823883057",
 				collisionvolumetype = "Box",
 				damage = 490,
-				description = "Rocko Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -71,7 +73,7 @@ return {
 				collisionvolumescales = "35.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 295,
-				description = "Rocko Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 2,

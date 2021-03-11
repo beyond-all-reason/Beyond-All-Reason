@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.armfflak')
+
 return {
 	armfflak = {
 		acceleration = 0,
@@ -14,7 +16,7 @@ return {
 		collisionvolumescales = "42 64 42",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		description = "Anti-Air Flak Gun - Naval Series",
+		description = Spring.I18N('units.descriptions.armfflak'),
 		explodeas = "mediumExplosionGeneric",
 		footprintx = 3,
 		footprintz = 3,
@@ -23,7 +25,7 @@ return {
 		idletime = 1800,
 		maxdamage = 1730,
 		minwaterdepth = 5,
-		name = "Flakker NS",
+		name = unitName,
 		objectname = "Units/ARMFFLAK.s3o",
 		script = "Units/ARMFFLAK.cob",
 		seismicsignature = 0,
@@ -47,7 +49,7 @@ return {
 				collisionvolumescales = "33.5091247559 30.6275024414 44.9046173096",
 				collisionvolumetype = "Box",
 				damage = 1038,
-				description = "Flakker NS Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 1,

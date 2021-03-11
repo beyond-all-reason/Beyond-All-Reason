@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.cormuskrat')
+
 return {
 	cormuskrat = {
 		acceleration = 0.01722,
@@ -14,7 +16,7 @@ return {
 		collisionvolumescales = "22 16 41",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
-		description = "Amphibious Construction Vehicle",
+		description = Spring.I18N('units.descriptions.cormuskrat'),
 		energymake = 8,
 		energyuse = 8,
 		explodeas = "mediumexplosiongeneric-phib",
@@ -30,7 +32,7 @@ return {
 		metalmake = 0.08,
 		metalstorage = 50,
 		movementclass = "ATANK3",
-		name = "Muskrat",
+		name = unitName,
 		objectname = "Units/CORMUSKRAT.s3o",
 		script = "Units/CORMUSKRAT.cob",
 		seismicsignature = 0,
@@ -107,7 +109,7 @@ return {
 				collisionvolumescales = "25.27003479 12.0197296143 44.3021697998",
 				collisionvolumetype = "Box",
 				damage = 697,
-				description = "Muskrat Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -127,7 +129,7 @@ return {
 				collisionvolumescales = "55.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 299,
-				description = "Muskrat Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 3,

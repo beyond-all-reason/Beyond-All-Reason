@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.cormls')
+
 return {
 	cormls = {
 		acceleration = 0.03446,
@@ -14,7 +16,7 @@ return {
 		collisionvolumescales = "24 24 42",
 		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
-		description = "Naval Engineer",
+		description = Spring.I18N('units.descriptions.cormls'),
 		energymake = 0.5,
 		energyuse = 0.5,
 		explodeas = "mediumexplosiongeneric",
@@ -28,7 +30,7 @@ return {
 		maxvelocity = 1.925,
 		minwaterdepth = 15,
 		movementclass = "BOAT3",
-		name = "Pathfinder",
+		name = unitName,
 		objectname = "Units/CORMLS.s3o",
 		script = "Units/CORMLS.cob",
 		seismicsignature = 0,
@@ -70,7 +72,7 @@ return {
 				collisionvolumescales = "33.75 14.0462341309 88.0440979004",
 				collisionvolumetype = "Box",
 				damage = 1726,
-				description = "Pathfinder Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -90,7 +92,7 @@ return {
 				collisionvolumescales = "85.0 14.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 4032,
-				description = "Pathfinder Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				footprintx = 2,
 				footprintz = 2,

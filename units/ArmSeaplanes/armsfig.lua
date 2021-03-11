@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.armsfig')
+
 return {
 	armsfig = {
 		acceleration = 0.35,
@@ -14,7 +16,7 @@ return {
 		category = "ALL NOTLAND MOBILE WEAPON NOTSUB VTOL NOTSHIP NOTHOVER",
 		collide = false,
 		cruisealt = 140,
-		description = "Seaplane Swarmer",
+		description = Spring.I18N('units.descriptions.armsfig'),
 		explodeas = "smallExplosionGenericAir",
 		footprintx = 2,
 		footprintz = 2,
@@ -29,7 +31,7 @@ return {
 		maxslope = 10,
 		maxvelocity = 10.36,
 		maxwaterdepth = 255,
-		name = "Tornado",
+		name = unitName,
 		nochasecategory = "NOTAIR",
 		objectname = "Units/ARMSFIG.s3o",
 		script = "Units/ARMSFIG.cob",

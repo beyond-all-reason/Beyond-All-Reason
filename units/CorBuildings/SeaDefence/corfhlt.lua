@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.corfhlt')
+
 return {
 	corfhlt = {
 		acceleration = 0,
@@ -14,7 +16,7 @@ return {
 		collisionvolumescales = "73 67 73",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		description = "Floating Heavy Laser Tower",
+		description = Spring.I18N('units.descriptions.corfhlt'),
 		energymake = 5,
 		energystorage = 200,
 		explodeas = "mediumBuildingexplosiongeneric",
@@ -25,7 +27,7 @@ return {
 		idletime = 1800,
 		maxdamage = 3927,
 		minwaterdepth = 5,
-		name = "Thunderbolt",
+		name = unitName,
 		nochasecategory = "MOBILE",
 		objectname = "Units/CORFHLT.s3o",
 		script = "Units/CORFHLT.cob",
@@ -48,7 +50,7 @@ return {
 				collisionvolumescales = "44.3973846436 40.5940704346 42.9052734375",
 				collisionvolumetype = "Box",
 				damage = 2356,
-				description = "Thunderbolt Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				footprintx = 3,
 				footprintz = 3,

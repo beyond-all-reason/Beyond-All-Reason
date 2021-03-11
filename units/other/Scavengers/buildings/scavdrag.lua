@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.scavdrag')
+
 return {
 	scavdrag = {
 		acceleration = 0,
@@ -19,7 +21,7 @@ return {
 		collisionvolumetype = "CylY",
 		corpse = "ROCKTEETH",
 		crushresistance = 250,
-		description = "Dragons Teeth",
+		description = Spring.I18N('units.descriptions.scavdrag'),
 		footprintx = 2,
 		footprintz = 2,
 		hidedamage = true,
@@ -28,7 +30,7 @@ return {
 		maxdamage = 2500,
 		maxslope = 64,
 		maxwaterdepth = 0,
-		name = "Dragon's Teeth",
+		name = unitName,
 		objectname = "scavs/scavdrag.s3o",
 		repairable = false,
 		script = "Units/cordrag.cob",

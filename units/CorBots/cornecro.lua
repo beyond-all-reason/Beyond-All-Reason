@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.cornecro')
+
 return {
 	cornecro = {
 		acceleration = 0.23,
@@ -16,7 +18,7 @@ return {
 		collisionvolumescales = "30.5 36 30.5",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		description = "Stealthy Rez/Reclaim/Repair Bot",
+		description = Spring.I18N('units.descriptions.cornecro'),
 		energymake = 1.75,
 		energyuse = 1.75,
 		explodeas = "smallbuilder",
@@ -29,7 +31,7 @@ return {
 		maxvelocity = 2.6,
 		maxwaterdepth = 22,
 		movementclass = "BOT2",
-		name = "Necro",
+		name = unitName,
 		objectname = "Units/CORNECRO.s3o",
 		radardistance = 50,
 		script = "Units/CORNECRO.cob",
@@ -58,7 +60,7 @@ return {
 				collisionvolumescales = "33.9485473633 23.5305023193 36.0355987549",
 				collisionvolumetype = "Box",
 				damage = 794,
-				description = "Necro Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
 				footprintx = 2,
@@ -77,7 +79,7 @@ return {
 				collisionvolumescales = "35.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 394,
-				description = "Necro Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				featurereclamate = "SMUDGE01",
 				footprintx = 2,
 				footprintz = 2,

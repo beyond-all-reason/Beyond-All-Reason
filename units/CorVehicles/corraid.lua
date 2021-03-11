@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.corraid')
+
 return {
 	corraid = {
 		acceleration = 0.04056,
@@ -12,7 +14,7 @@ return {
 		collisionvolumescales = "32 16 32",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
-		description = "Medium Assault Tank",
+		description = Spring.I18N('units.descriptions.corraid'),
 		energymake = 0.6,
 		energyuse = 0.6,
 		explodeas = "smallexplosiongeneric",
@@ -26,7 +28,7 @@ return {
 		maxvelocity = 2.43,
 		maxwaterdepth = 12,
 		movementclass = "TANK3",
-		name = "Raider",
+		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/CORRAID.s3o",
 		script = "Units/CORRAID.cob",
@@ -67,7 +69,7 @@ return {
 				collisionvolumescales = "37.1564331055 16.4705352783 33.7862091064",
 				collisionvolumetype = "Box",
 				damage = 975,
-				description = "Raider Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -87,7 +89,7 @@ return {
 				collisionvolumescales = "35.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 488,
-				description = "Raider Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 2,
