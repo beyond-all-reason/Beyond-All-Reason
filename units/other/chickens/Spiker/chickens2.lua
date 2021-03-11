@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.chickens2')
+
 return {
 	chickens2 = {
 		acceleration = 3.45,
@@ -22,7 +24,7 @@ return {
 		collisionvolumetype = "box",
 		corpse = "chicken_egg_m_red",
 		defaultmissiontype = "Standby",
-		description = "Ghost Spiker",
+		description = Spring.I18N('units.descriptions.chickens2'),
 		explodeas = "BUG_DEATH",
 		floater = false,
 		footprintx = 3,
@@ -39,7 +41,7 @@ return {
 		maxwaterdepth = 15,
 		mincloakdistance = 200,
 		movementclass = "BOT2",
-		name = "Advanced Spiker",
+		name = unitName,
 		noautofire = false,
 		nochasecategory = "VTOL",
 		objectname = "Chickens/chickens2.s3o",

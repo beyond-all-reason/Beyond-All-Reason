@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.corspy')
+
 return {
 	corspy = {
 		acceleration = 0.276,
@@ -21,7 +23,7 @@ return {
 		collisionvolumescales = "26 25 30",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
-		description = "Radar-Invisible Spy Bot",
+		description = Spring.I18N('units.descriptions.corspy'),
 		energymake = 8,
 		energyuse = 8,
 		explodeas = "smallExplosionGeneric",
@@ -35,7 +37,7 @@ return {
 		maxwaterdepth = 112,
 		mincloakdistance = 75,
 		movementclass = "BOT2",
-		name = "Parasite",
+		name = unitName,
 		objectname = "Units/CORSPY.s3o",
 		onoffable = true,
 		script = "Units/CORSPY.cob",
@@ -65,7 +67,7 @@ return {
 				collisionvolumescales = "35.1202545166 24.5693511963 34.7390899658",
 				collisionvolumetype = "Box",
 				damage = 250,
-				description = "Parasite Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				footprintx = 2,
@@ -84,7 +86,7 @@ return {
 				collisionvolumescales = "21.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 150,
-				description = "Parasite Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				footprintx = 2,
 				footprintz = 2,

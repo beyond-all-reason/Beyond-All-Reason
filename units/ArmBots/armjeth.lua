@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.armjeth')
+
 return {
 	armjeth = {
 		acceleration = 0.138,
@@ -13,7 +15,7 @@ return {
 		collisionvolumescales = "22.337184906006 33.337184906006 17.337184906006",
 		collisionvolumetype = "box",
 		corpse = "DEAD",
-		description = "Amphibious Anti-air Bot",
+		description = Spring.I18N('units.descriptions.armjeth'),
 		energymake = 0.4,
 		energyuse = 0.4,
 		explodeas = "smallExplosionGeneric-phib",
@@ -25,7 +27,7 @@ return {
 		maxslope = 15,
 		maxvelocity = 1.875,
 		movementclass = "ABOT2",
-		name = "Jethro",
+		name = unitName,
 		nochasecategory = "NOTAIR",
 		objectname = "Units/ARMJETH.s3o",
 		script = "Units/ARMJETH.cob",
@@ -52,7 +54,7 @@ return {
 				collisionvolumescales = "29.3736572266 14.4243774414 27.4587402344",
 				collisionvolumetype = "Box",
 				damage = 442,
-				description = "Jethro Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -72,7 +74,7 @@ return {
 				collisionvolumescales = "35.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 271,
-				description = "Jethro Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 2,

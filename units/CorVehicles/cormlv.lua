@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.cormlv')
+
 return {
 	cormlv = {
 		acceleration = 0.05681,
@@ -21,7 +23,7 @@ return {
 		collisionvolumescales = "19 10 29",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
-		description = "Stealthy Minelayer/Minesweeper",
+		description = Spring.I18N('units.descriptions.cormlv'),
 		energymake = 1,
 		energyuse = 1,
 		explodeas = "smallexplosiongeneric",
@@ -36,7 +38,7 @@ return {
 		maxvelocity = 2.3,
 		maxwaterdepth = 0,
 		movementclass = "TANK2",
-		name = "Spoiler",
+		name = unitName,
 		nochasecategory = "ALL",
 		objectname = "Units/CORMLV.s3o",
 		radardistancejam = 64,
@@ -76,7 +78,7 @@ return {
 				collisionvolumescales = "14.9514923096 10.4727783203 25.2945709229",
 				collisionvolumetype = "Box",
 				damage = 133,
-				description = "Spoiler Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -96,7 +98,7 @@ return {
 				collisionvolumescales = "55.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 60,
-				description = "Spoiler Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 3,

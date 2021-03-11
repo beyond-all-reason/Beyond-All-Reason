@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.armuwes')
+
 return {
 	armuwes = {
 		acceleration = 0,
@@ -14,7 +16,7 @@ return {
 		canrepeat = false,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE UNDERWATER EMPABLE",
 		corpse = "DEAD",
-		description = "Increases Energy Storage (6000)",
+		description = Spring.I18N('units.descriptions.armuwes'),
 		energystorage = 6000,
 		explodeas = "hugeBuildingExplosionGeneric-uw",
 		footprintx = 4,
@@ -25,7 +27,7 @@ return {
 		maxdamage = 2980,
 		maxslope = 20,
 		minwaterdepth = 30,
-		name = "Underwater Energy Storage",
+		name = unitName,
 		objectname = "Units/ARMUWES.s3o",
 		script = "Units/ARMUWES.cob",
 		seismicsignature = 0,
@@ -48,7 +50,7 @@ return {
 				collisionvolumescales = "60.5 18.7805023193 63.6249847412",
 				collisionvolumetype = "Box",
 				damage = 1788,
-				description = "Underwater Energy Storage Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				footprintx = 4,
@@ -67,7 +69,7 @@ return {
 				collisionvolumescales = "85.0 14.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 894,
-				description = "Underwater Energy Storage Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				footprintx = 4,
 				footprintz = 4,

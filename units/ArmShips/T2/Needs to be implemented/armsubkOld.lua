@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.armsubkOld')
+
 return {
 	armsubkOld = {
 		acceleration = 0.02726,
@@ -13,7 +15,7 @@ return {
 		collisionvolumescales = "20 15 64",
 		collisionvolumetype = "box",
 		corpse = "DEAD",
-		description = "Submarine Killer",
+		description = Spring.I18N('units.descriptions.armsubkOld'),
 		energymake = 0.5,
 		energyuse = 0.5,
 		explodeas = "mediumExplosionGeneric-uw",
@@ -26,7 +28,7 @@ return {
 		maxvelocity = 1.9,
 		minwaterdepth = 20,
 		movementclass = "UBOAT4",
-		name = "Piranha",
+		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMSUBK.s3o",
 		script = "Units/ARMSUBK.cob",
@@ -53,7 +55,7 @@ return {
 				collisionvolumescales = "19.7231903076 16.8272399902 61.3809509277",
 				collisionvolumetype = "Box",
 				damage = 1434,
-				description = "Piranha Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				footprintx = 3,
@@ -72,7 +74,7 @@ return {
 				collisionvolumescales = "35.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 4032,
-				description = "Piranha Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				footprintx = 2,
 				footprintz = 2,

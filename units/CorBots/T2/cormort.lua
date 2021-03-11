@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.cormort')
+
 return {
 	cormort = {
 		acceleration = 0.1518,
@@ -12,7 +14,7 @@ return {
 		collisionvolumescales = "28 35 34",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
-		description = "Mobile Mortar Bot",
+		description = Spring.I18N('units.descriptions.cormort'),
 		energymake = 1,
 		energyuse = 1,
 		explodeas = "smallExplosionGeneric",
@@ -25,7 +27,7 @@ return {
 		maxvelocity = 1.68,
 		maxwaterdepth = 12,
 		movementclass = "BOT3",
-		name = "Morty",
+		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/CORMORT.s3o",
 		script = "Units/CORMORT.cob",
@@ -51,7 +53,7 @@ return {
 				collisionvolumescales = "41.948348999 14.0481719971 51.4421844482",
 				collisionvolumetype = "Box",
 				damage = 600,
-				description = "Morty Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -71,7 +73,7 @@ return {
 				collisionvolumescales = "35.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 400,
-				description = "Morty Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				footprintx = 2,
 				footprintz = 2,

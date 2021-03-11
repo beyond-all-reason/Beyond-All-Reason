@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.armfhp')
+
 return {
 	armfhp = {
 		acceleration = 0,
@@ -12,7 +14,7 @@ return {
 		collisionvolumescales = "120 32 106",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
-		description = "Builds Hovercraft",
+		description = Spring.I18N('units.descriptions.armfhp'),
 		energystorage = 200,
 		explodeas = "largeBuildingExplosionGeneric",
 		footprintx = 8,
@@ -23,7 +25,7 @@ return {
 		maxdamage = 3005,
 		metalstorage = 200,
 		minwaterdepth = 30,
-		name = "Floating Hovercraft Platform",
+		name = unitName,
 		objectname = "Units/ARMFHP.s3o",
 		radardistance = 50,
 		script = "Units/ARMFHP.cob",
@@ -55,7 +57,7 @@ return {
 				collisionvolumescales = "116 20 104",
 				collisionvolumetype = "Box",
 				damage = 1803,
-				description = "Floating Hovercraft Platform Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				footprintx = 8,
 				footprintz = 7,

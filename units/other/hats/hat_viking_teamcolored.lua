@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.hat_viking_teamcolored')
+
 return {
 	hat_viking_teamcolored = {
 		acceleration = 0,
@@ -16,7 +18,7 @@ return {
 		collisionvolumescales = "0.1 0.1 0.1",
 		collisionvolumetype = "CylY",
 		crushresistance = 2500,
-		description = "A fierce Viking helmet",
+		description = Spring.I18N('units.descriptions.hat_viking_teamcolored'),
 		footprintx = 1,
 		footprintz = 1,
 		hidedamage = true,
@@ -27,7 +29,7 @@ return {
 		maxslope = 64,
 		maxwaterdepth = 1000,
 		movementclass = "NANO",
-		name = "Viking Helmet",
+		name = unitName,
 		objectname = "hats/hat_viking_teamcolored.s3o",
 		reclaimable = false,
 		repairable = false,

@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.coruwadves')
+
 return {
 	coruwadves = {
 		buildangle = 7822,
@@ -15,7 +17,7 @@ return {
 		collisionvolumescales = "90 65 90",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		description = "Increases Energy Storage (40000)",
+		description = Spring.I18N('units.descriptions.coruwadves'),
 		energystorage = 40000,
 		explodeas = "advenergystorage",
 		footprintx = 5,
@@ -26,7 +28,7 @@ return {
 		maxdamage = 11400,
 		maxslope = 20,
 		maxwaterdepth = 9999,
-		name = "Hardened Energy Storage",
+		name = unitName,
 		objectname = "Units/CORUWADVES.s3o",
 		script = "Units/CORUWADVES.cob",
 		seismicsignature = 0,
@@ -50,7 +52,7 @@ return {
 				collisionvolumescales = "87.0777893066 35.5382843018 90.1298522949",
 				collisionvolumetype = "Box",
 				damage = 4560,
-				description = "Advanced Energy Storage Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -68,7 +70,7 @@ return {
 				blocking = false,
 				category = "heaps",
 				damage = 2280,
-				description = "Advanced Energy Storage Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 5,

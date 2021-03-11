@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.armjam')
+
 return {
 	armjam = {
 		acceleration = 0.02416,
@@ -14,7 +16,7 @@ return {
 		collisionvolumescales = "22.6 22.6 32.6",
 		collisionvolumetype = "CylZ",
 		corpse = "dead",
-		description = "Radar Jammer Vehicle",
+		description = Spring.I18N('units.descriptions.armjam'),
 		energymake = 16,
 		energyuse = 100,
 		explodeas = "smallexplosiongeneric",
@@ -28,7 +30,7 @@ return {
 		maxvelocity = 1.1,
 		maxwaterdepth = 0,
 		movementclass = "TANK3",
-		name = "Jammer",
+		name = unitName,
 		nochasecategory = "MOBILE",
 		objectname = "Units/ARMJAM.s3o",
 		onoffable = true,
@@ -59,7 +61,7 @@ return {
 				collisionvolumescales = "23.7459869385 3.61972045898 31.9999847412",
 				collisionvolumetype = "Box",
 				damage = 400,
-				description = "Jammer Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
 				footprintx = 3,
@@ -78,7 +80,7 @@ return {
 				collisionvolumescales = "55.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 368,
-				description = "Jammer Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				featurereclamate = "SMUDGE01",
 				footprintx = 3,
 				footprintz = 3,

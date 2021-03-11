@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.armlun')
+
 return {
 	armlun = {
 		acceleration = 0.01788,
@@ -15,7 +17,7 @@ return {
 		cantbetransported = true,
 		category = "ALL HOVER MOBILE WEAPON NOTSUB NOTSHIP NOTAIR SURFACE EMPABLE",
 		corpse = "dead",
-		description = "Heavy Hovertank",
+		description = Spring.I18N('units.descriptions.armlun'),
 		energymake = 2.8,
 		energyuse = 2.5,
 		explodeas = "largeexplosiongeneric",
@@ -28,7 +30,7 @@ return {
 		maxvelocity = 1.67,
 		maxwaterdepth = 0,
 		movementclass = "HHOVER4",
-		name = "Lun",
+		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMLUN.s3o",
 		radardistance = 0,
@@ -50,7 +52,7 @@ return {
 				blocking = true,
 				category = "corpses",
 				damage = 7000,
-				description = "Lun Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				featuredead = "heap",
 				featurereclamate = "smudge01",
 				footprintx = 4,
@@ -69,7 +71,7 @@ return {
 				collisionvolumescales = "85.0 14.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 3500,
-				description = "Lun Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				featurereclamate = "smudge01",
 				footprintx = 4,
 				footprintz = 4,

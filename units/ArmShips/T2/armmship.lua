@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.armmship')
+
 return {
 	armmship = {
 		acceleration = 0.0287,
@@ -13,7 +15,7 @@ return {
 		collisionvolumescales = "44 44 102",
 		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
-		description = "Missile Cruiser",
+		description = Spring.I18N('units.descriptions.armmship'),
 		energymake = 0.8,
 		energyuse = 0.8,
 		explodeas = "largeExplosionGeneric",
@@ -27,7 +29,7 @@ return {
 		maxvelocity = 2.1,
 		minwaterdepth = 12,
 		movementclass = "BOAT5",
-		name = "Ranger",
+		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMMSHIP.s3o",
 		radardistance = 1000,
@@ -53,7 +55,7 @@ return {
 				collisionvolumescales = "46.7322845459 37.6582489014 110.324981689",
 				collisionvolumetype = "Box",
 				damage = 2640,
-				description = "Ranger Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				footprintx = 5,
@@ -72,7 +74,7 @@ return {
 				collisionvolumescales = "85.0 14.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 4032,
-				description = "Ranger Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				footprintx = 2,
 				footprintz = 2,

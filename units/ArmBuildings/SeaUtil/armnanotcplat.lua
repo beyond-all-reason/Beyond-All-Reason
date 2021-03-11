@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.armnanotcplat')
+
 return {
 	armnanotcplat = {
 		acceleration = 0,
@@ -24,7 +26,7 @@ return {
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "31 50 31",
 		collisionvolumetype = "CylY",
-		description = "Repairs and builds in large radius",
+		description = Spring.I18N('units.descriptions.armnanotcplat'),
 		energyuse = 30,
 		explodeas = "nanoboom",
 		floater = true,
@@ -39,7 +41,7 @@ return {
 		maxwaterdepth = 50000000,
 		minwaterdepth = 12,
 		movementclass = "NANO",
-		name = "Nano Turret",
+		name = unitName,
 		objectname = "Units/ARMNANOTCPLAT.s3o",
 		script = "Units/ARMNANOTCPLAT.cob",
 		seismicsignature = 0,

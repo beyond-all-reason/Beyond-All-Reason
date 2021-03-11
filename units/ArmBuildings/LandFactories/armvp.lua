@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.armvp')
+
 return {
 	armvp = {
 		acceleration = 0,
@@ -17,7 +19,7 @@ return {
 		collisionvolumescales = "120 34 92",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
-		description = "Produces Level 1 Vehicles",
+		description = Spring.I18N('units.descriptions.armvp'),
 		energystorage = 100,
 		explodeas = "largeBuildingexplosiongeneric",
 		footprintx = 6,
@@ -30,7 +32,7 @@ return {
 		maxslope = 15,
 		maxwaterdepth = 0,
 		metalstorage = 100,
-		name = "Vehicle Plant",
+		name = unitName,
 		objectname = "Units/ARMVP.s3o",
 		radardistance = 50,
 		script = "Units/ARMVP.cob",
@@ -66,7 +68,7 @@ return {
 				collisionvolumescales = "110 34 92",
 				collisionvolumetype = "Box",
 				damage = 1668,
-				description = "Vehicle Plant Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -84,7 +86,7 @@ return {
 				blocking = false,
 				category = "heaps",
 				damage = 834,
-				description = "Vehicle Plant Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 6,

@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.chickenp1')
+
 return {
 	chickenp1 = {
 		acceleration = 1.15,
@@ -19,7 +21,7 @@ return {
 		collisionvolumescales = "30 38 60",
 		collisionvolumetype = "box",
 		defaultmissiontype = "Standby",
-		description = "Chicken Flamer",
+		description = Spring.I18N('units.descriptions.chickenp1'),
 		explodeas = "FLAMEBUG_DEATH",
 		footprintx = 3,
 		footprintz = 3,
@@ -29,7 +31,7 @@ return {
 		maxdamage = 2700,
 		maxvelocity = 2.5,
 		movementclass = "BOT3",
-		name = "Bombardier",
+		name = unitName,
 		noautofire = false,
 		nochasecategory = "VTOL",
 		objectname = "Chickens/chicken_listener.s3o",

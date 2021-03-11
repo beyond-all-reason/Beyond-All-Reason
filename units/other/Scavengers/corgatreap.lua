@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.corgatreap')
+
 return {
 	corgatreap = {
 		acceleration = 0.0362,
@@ -12,7 +14,7 @@ return {
 		collisionvolumescales = "34 34 38",
 		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
-		description = "Heavy Assault Tank",
+		description = Spring.I18N('units.descriptions.corgatreap'),
 		explodeas = "mediumexplosiongeneric",
 		footprintx = 3,
 		footprintz = 3,
@@ -25,7 +27,7 @@ return {
 		maxvelocity = 2.35,
 		maxwaterdepth = 100,
 		movementclass = "HTANK3",
-		name = "Gaat Reaper",
+		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/scavboss/CORGATREAP.s3o",
 		script = "Units/scavboss/CORGATREAP.cob",
@@ -68,7 +70,7 @@ return {
 				collisionvolumescales = "37.7348022461 25.9745025635 40.3383178711",
 				collisionvolumetype = "Box",
 				damage = 3000,
-				description = "Gaat Reaper Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -88,7 +90,7 @@ return {
 				collisionvolumescales = "55.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 2500,
-				description = "Gaat Reaper Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 3,

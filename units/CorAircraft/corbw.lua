@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.corbw')
+
 return {
 	corbw = {
 		acceleration = 0.25,
@@ -13,7 +15,7 @@ return {
 		category = "ALL WEAPON VTOL NOTSUB NOTHOVER",
 		collide = true,
 		cruisealt = 78,
-		description = "Light Paralyzer Drone",
+		description = Spring.I18N('units.descriptions.corbw'),
 		energymake = 2,
 		explodeas = "tinyExplosionGeneric",
 		footprintx = 2,
@@ -26,7 +28,7 @@ return {
 		maxslope = 10,
 		maxvelocity = 9.35,
 		maxwaterdepth = 0,
-		name = "Bladewing",
+		name = unitName,
 		nochasecategory = "COMMANDER VTOL",
 		objectname = "Units/CORBW.s3o",
 		script = "Units/CORBW.cob",

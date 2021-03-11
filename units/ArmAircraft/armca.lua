@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.armca')
+
 return {
 	armca = {
 		acceleration = 0.07,
@@ -14,7 +16,7 @@ return {
 		category = "ALL MOBILE NOTLAND NOTSUB VTOL NOWEAPON NOTSHIP NOTHOVER",
 		collide = false,
 		cruisealt = 70,
-		description = "Tech Level 1",
+		description = Spring.I18N('units.descriptions.armca'),
 		energymake = 5,
 		energystorage = 25,
 		energyuse = 5,
@@ -31,7 +33,7 @@ return {
 		maxwaterdepth = 0,
 		metalmake = 0.05,
 		metalstorage = 25,
-		name = "Construction Aircraft",
+		name = unitName,
 		objectname = "Units/ARMCA.s3o",
 		script = "Units/ARMCA.cob",
 		seismicsignature = 0,

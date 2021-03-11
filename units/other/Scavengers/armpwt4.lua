@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.armpwt4')
+
 return {
 	armpwt4 = {
 		acceleration = 0.414,
@@ -12,7 +14,7 @@ return {
 		collisionvolumescales = "55 80 55",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		description = "Holy #### it's huge Peewee!",
+		description = Spring.I18N('units.descriptions.armpwt4'),
 		energymake = 0.3,
 		energyuse = 0.3,
 		explodeas = "bantha",
@@ -26,7 +28,7 @@ return {
 		maxvelocity = 5,
 		maxwaterdepth = 120,
 		movementclass = "BOT2",
-		name = "Epic Peewee",
+		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/scavboss/armpwt4.s3o",
 		script = "Units/scavboss/armpwt4.cob",
@@ -54,7 +56,7 @@ return {
 				collisionvolumescales = "60.1392364502 36.4953460693 58.797164917",
 				collisionvolumetype = "Box",
 				damage = 7500,
-				description = "Epic Peewee Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 4,

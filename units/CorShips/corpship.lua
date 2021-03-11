@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.corpship')
+
 return {
 	corpship = {
 		acceleration = 0.04391,
@@ -15,7 +17,7 @@ return {
 		collisionvolumescales = "28 40 79",
 		collisionvolumetype = "box",
 		corpse = "DEAD",
-		description = "Assault Frigate",
+		description = Spring.I18N('units.descriptions.corpship'),
 		energymake = 0.2,
 		energyuse = 0.2,
 		explodeas = "mediumExplosionGeneric",
@@ -29,7 +31,7 @@ return {
 		maxvelocity = 2.75,
 		minwaterdepth = 6,
 		movementclass = "BOAT4",
-		name = "Era",
+		name = unitName,
 		nochasecategory = "VTOL UNDERWATER",
 		objectname = "Units/CORPSHIP.s3o",
 		script = "Units/CORPSHIP.cob",
@@ -52,7 +54,7 @@ return {
 				collisionvolumescales = "20.0704803467 16.0 67.0992736816",
 				collisionvolumetype = "Box",
 				damage = 500,
-				description = "Era Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				footprintx = 2,
@@ -71,7 +73,7 @@ return {
 				collisionvolumescales = "55.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 1032,
-				description = "Era Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				footprintx = 3,
 				footprintz = 3,

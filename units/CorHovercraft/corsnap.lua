@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.corsnap')
+
 return {
 	corsnap = {
 		acceleration = 0.04624,
@@ -12,7 +14,7 @@ return {
 		collisionvolumescales = "32 16 32",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		description = "Hovertank",
+		description = Spring.I18N('units.descriptions.corsnap'),
 		energymake = 2.1,
 		energyuse = 2.1,
 		explodeas = "mediumexplosiongeneric",
@@ -25,7 +27,7 @@ return {
 		maxvelocity = 2.233,
 		maxwaterdepth = 0,
 		movementclass = "HOVER3",
-		name = "Snapper",
+		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/CORSNAP.s3o",
 		script = "Units/CORSNAP.cob",
@@ -49,7 +51,7 @@ return {
 				collisionvolumescales = "30.8017425537 12.2691650391 33.1773986816",
 				collisionvolumetype = "Box",
 				damage = 877,
-				description = "Snapper Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				footprintx = 3,
@@ -68,7 +70,7 @@ return {
 				collisionvolumescales = "55.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 439,
-				description = "Snapper Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				footprintx = 3,
 				footprintz = 3,

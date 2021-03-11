@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.armpt')
+
 return {
 	armpt = {
 		acceleration = 0.07011,
@@ -15,7 +17,7 @@ return {
 		collisionvolumescales = "24 24 48",
 		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
-		description = "Patrol Boat/Light Anti Air/Sonar",
+		description = Spring.I18N('units.descriptions.armpt'),
 		energymake = 0.2,
 		energyuse = 0.2,
 		explodeas = "mediumExplosionGeneric",
@@ -29,7 +31,7 @@ return {
 		maxvelocity = 2.85,
 		minwaterdepth = 6,
 		movementclass = "BOAT3",
-		name = "Skeeter",
+		name = unitName,
 		nochasecategory = "VTOL UNDERWATER",
 		objectname = "Units/ARMPT.s3o",
 		script = "Units/ARMPT.cob",
@@ -57,7 +59,7 @@ return {
 				collisionvolumescales = "20.0704803467 16.0 67.0992736816",
 				collisionvolumetype = "Box",
 				damage = 500,
-				description = "Skeeter Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				footprintx = 2,
@@ -76,7 +78,7 @@ return {
 				collisionvolumescales = "55.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 1032,
-				description = "Skeeter Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				footprintx = 2,
 				footprintz = 2,

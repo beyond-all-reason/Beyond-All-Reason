@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.armguard')
+
 return {
 	armguard = {
 		acceleration = 0,
@@ -18,7 +20,7 @@ return {
 		collisionvolumescales = "49 40 49",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		description = "Medium Plasma Artillery",
+		description = Spring.I18N('units.descriptions.armguard'),
 		explodeas = "mediumBuildingExplosionGeneric",
 		footprintx = 4,
 		footprintz = 4,
@@ -28,7 +30,7 @@ return {
 		maxdamage = 2760,
 		maxslope = 10,
 		maxwaterdepth = 0,
-		name = "Guardian",
+		name = unitName,
 		nochasecategory = "MOBILE",
 		objectname = "Units/ARMGUARD.s3o",
 		onoffable = true,
@@ -52,7 +54,7 @@ return {
 				collisionvolumescales = "56.5218811035 34.070022583 54.9867858887",
 				collisionvolumetype = "Box",
 				damage = 1656,
-				description = "Guardian Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -72,7 +74,7 @@ return {
 				collisionvolumescales = "55.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 828,
-				description = "Guardian Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 3,

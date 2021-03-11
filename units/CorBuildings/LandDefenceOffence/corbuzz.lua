@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.corbuzz')
+
 return {
 	corbuzz = {
 		acceleration = 0,
@@ -17,7 +19,7 @@ return {
 		collisionvolumescales = "80 160 80",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		description = "Rapid-Fire Long-Range Plasma Cannon",
+		description = Spring.I18N('units.descriptions.corbuzz'),
 		explodeas = "advancedFusionExplosion",
 		firestate = 0,
 		footprintx = 8,
@@ -28,7 +30,7 @@ return {
 		maxdamage = 30000,
 		maxslope = 13,
 		maxwaterdepth = 0,
-		name = "Buzzsaw",
+		name = unitName,
 		objectname = "Units/CORBUZZ.s3o",
 		script = "Units/CORBUZZ.lua",
 		seismicsignature = 0,
@@ -51,7 +53,7 @@ return {
 				collisionvolumescales = "83.9113311768 124.753143311 117.611557007",
 				collisionvolumetype = "Box",
 				damage = 26000,
-				description = "Buzzsaw Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -69,7 +71,7 @@ return {
 				blocking = false,
 				category = "heaps",
 				damage = 12000,
-				description = "Buzzsaw Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 7,

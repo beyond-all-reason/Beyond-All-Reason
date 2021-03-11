@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.coruwmmm')
+
 return {
 	coruwmmm = {
 		acceleration = 0,
@@ -14,7 +16,7 @@ return {
 		collisionvolumescales = "120 120 120",
 		collisionvolumetype = "Ell",
 		corpse = "DEAD",
-		description = "Converts 650 energy into 11 metal per sec",
+		description = Spring.I18N('units.descriptions.coruwmmm'),
 		explodeas = "hugeBuildingExplosionGeneric",
 		floater = true,
 		footprintx = 5,
@@ -25,7 +27,7 @@ return {
 		maxdamage = 400,
 		maxslope = 16,
 		minwaterdepth = 15,
-		name = "Floating Energy Converter",
+		name = unitName,
 		objectname = "Units/CORUWMMM.s3o",
 		script = "Units/CORUWMMM.cob",
 		seismicsignature = 0,
@@ -52,7 +54,7 @@ return {
 				collisionvolumescales = "60.0 29.4457550049 60.0",
 				collisionvolumetype = "Box",
 				damage = 300,
-				description = "Underwater Metal Maker Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -70,7 +72,7 @@ return {
 				blocking = false,
 				category = "heaps",
 				damage = 150,
-				description = "Underwater Metal Maker Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 5,

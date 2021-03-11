@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.cordemont4')
+
 return {
 	cordemont4 = {
 		acceleration = 0.2208,
@@ -12,7 +14,7 @@ return {
 		collisionvolumescales = "112.0 120.0 80.0",
 		collisionvolumetype = "box",
 		corpse = "DEAD",
-		description = "Flamethrower Mech",
+		description = Spring.I18N('units.descriptions.cordemont4'),
 		explodeas = "explosiont3xl",
 		footprintx = 4,
 		footprintz = 4,
@@ -24,7 +26,7 @@ return {
 		maxvelocity = 2.5,
 		maxwaterdepth = 12,
 		movementclass = "BOT2",
-		name = "Demon",
+		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/scavboss/cordemont4.s3o",
 		script = "Units/scavboss/cordemont4.COB",
@@ -50,7 +52,7 @@ return {
 				collisionvolumescales = "77.9624938965 23.0893859863 76.4105682373",
 				collisionvolumetype = "Box",
 				damage = 25000,
-				description = "Demon Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 3,

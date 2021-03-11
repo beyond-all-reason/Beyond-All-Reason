@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.corawac')
+
 return {
 	corawac = {
 		acceleration = 0.25,
@@ -12,7 +14,7 @@ return {
 		category = "ALL NOTLAND MOBILE NOTSUB VTOL NOWEAPON NOTSHIP NOTHOVER",
 		collide = true,
 		cruisealt = 110,
-		description = "Radar/Sonar Plane",
+		description = Spring.I18N('units.descriptions.corawac'),
 		energymake = 20,
 		energyuse = 20,
 		explodeas = "mediumexplosiongeneric",
@@ -31,7 +33,7 @@ return {
 		maxslope = 10,
 		maxvelocity = 10.7,
 		maxwaterdepth = 0,
-		name = "Vulture",
+		name = unitName,
 		objectname = "Units/CORAWAC.s3o",
 		radardistance = 2400,
 		script = "Units/CORAWAC.cob",

@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.cormabm')
+
 return {
 	cormabm = {
 		acceleration = 0.03721,
@@ -14,7 +16,7 @@ return {
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		damagemodifier = 0.5,
-		description = "Mobile Anti-Nuke",
+		description = Spring.I18N('units.descriptions.cormabm'),
 		energymake = 100,
 		energystorage = 1000,
 		explodeas = "largeexplosiongeneric",
@@ -28,7 +30,7 @@ return {
 		maxvelocity = 1.7,
 		maxwaterdepth = 0,
 		movementclass = "TANK3",
-		name = "Hedgehog",
+		name = unitName,
 		noautofire = true,
 		nochasecategory = "ALL",
 		objectname = "Units/CORMABM.s3o",
@@ -59,7 +61,7 @@ return {
 				collisionvolumescales = "38.3428344727 9.39268493652 58.203125",
 				collisionvolumetype = "Box",
 				damage = 650,
-				description = "Hedgehog Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -79,7 +81,7 @@ return {
 				collisionvolumescales = "55.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 550,
-				description = "Hedgehog Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 3,

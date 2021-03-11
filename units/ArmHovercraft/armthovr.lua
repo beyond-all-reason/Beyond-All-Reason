@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.armthovr')
+
 return {
 	armthovr = {
 		acceleration = 0.02983,
@@ -14,7 +16,7 @@ return {
 		collisionvolumescales = "56 56 96",
 		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
-		description = "Heavy Transport Hovercraft",
+		description = Spring.I18N('units.descriptions.armthovr'),
 		energymake = 2.4,
 		energyuse = 2.4,
 		explodeas = "hugeExplosionGeneric",
@@ -27,7 +29,7 @@ return {
 		maxvelocity = 1.77,
 		minwaterdepth = 12,
 		movementclass = "HOVER4",
-		name = "Bear",
+		name = unitName,
 		nochasecategory = "ALL",
 		objectname = "Units/ARMTHOVR.s3o",
 		releaseheld = true,
@@ -56,7 +58,7 @@ return {
 				collisionvolumescales = "64.6317596436 60.2001953125 88.311706543",
 				collisionvolumetype = "Box",
 				damage = 3096,
-				description = "Bear Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				footprintx = 4,
 				footprintz = 4,

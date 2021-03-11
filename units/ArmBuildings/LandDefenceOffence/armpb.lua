@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.armpb')
+
 return {
 	armpb = {
 		acceleration = 0,
@@ -15,7 +17,7 @@ return {
 		cloakcost = 16,
 		corpse = "DEAD",
 		damagemodifier = 0.5,
-		description = "Pop-up Gauss Cannon",
+		description = Spring.I18N('units.descriptions.armpb'),
 		energystorage = 25,
 		explodeas = "smallBuildingExplosionGeneric",
 		footprintx = 3,
@@ -27,7 +29,7 @@ return {
 		maxslope = 10,
 		maxwaterdepth = 0,
 		mincloakdistance = 55,
-		name = "Pit Bull",
+		name = unitName,
 		nochasecategory = "MOBILE",
 		objectname = "Units/ARMPB.s3o",
 		script = "Units/ARMPB.cob",
@@ -51,7 +53,7 @@ return {
 				collisionvolumescales = "33.0 12.8524169922 33.0",
 				collisionvolumetype = "Box",
 				damage = 1519,
-				description = "Pit Bull Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -71,7 +73,7 @@ return {
 				collisionvolumescales = "55.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 760,
-				description = "Pit Bull Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 3,

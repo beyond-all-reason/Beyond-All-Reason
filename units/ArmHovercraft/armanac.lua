@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.armanac')
+
 return {
 	armanac = {
 		acceleration = 0.05333,
@@ -12,7 +14,7 @@ return {
 		collisionvolumescales = "40 16 40",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		description = "Hovertank",
+		description = Spring.I18N('units.descriptions.armanac'),
 		energymake = 2.6,
 		energyuse = 2.6,
 		explodeas = "mediumexplosiongeneric",
@@ -25,7 +27,7 @@ return {
 		maxvelocity = 2.333,
 		maxwaterdepth = 0,
 		movementclass = "HOVER3",
-		name = "Anaconda",
+		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMANAC.s3o",
 		script = "Units/ARMANAC.cob",
@@ -49,7 +51,7 @@ return {
 				collisionvolumescales = "34.1171112061 20.2492980957 33.3804016113",
 				collisionvolumetype = "Box",
 				damage = 826,
-				description = "Anaconda Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				footprintx = 3,
@@ -68,7 +70,7 @@ return {
 				collisionvolumescales = "55.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 413,
-				description = "Anaconda Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				footprintx = 3,
 				footprintz = 3,

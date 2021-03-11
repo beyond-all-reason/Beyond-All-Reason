@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.corfus')
+
 return {
 	corfus = {
 		acceleration = 0,
@@ -15,7 +17,7 @@ return {
 		canrepeat = false,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		corpse = "DEAD",
-		description = "Produces 1100 Energy",
+		description = Spring.I18N('units.descriptions.corfus'),
 		energymake = 1100,
 		energystorage = 2500,
 		explodeas = "fusionExplosion",
@@ -28,7 +30,7 @@ return {
 		maxdamage = 4500,
 		maxslope = 10,
 		maxwaterdepth = 1,
-		name = "Fusion Reactor",
+		name = unitName,
 		objectname = "Units/CORFUS.s3o",
 		script = "Units/CORFUS.cob",
 		seismicsignature = 0,
@@ -52,7 +54,7 @@ return {
 				collisionvolumescales = "116.287948608 73.0596313477 95.7222900391",
 				collisionvolumetype = "Box",
 				damage = 5100,
-				description = "Fusion Reactor Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -70,7 +72,7 @@ return {
 				blocking = false,
 				category = "heaps",
 				damage = 2550,
-				description = "Fusion Reactor Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 5,

@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.armamb')
+
 return {
 	armamb = {
 		acceleration = 0,
@@ -17,7 +19,7 @@ return {
 		cloakcost = 24,
 		corpse = "DEAD",
 		damagemodifier = 0.25,
-		description = "Cloakable Pop-up Medium Plasma Artillery",
+		description = Spring.I18N('units.descriptions.armamb'),
 		explodeas = "smallBuildingexplosiongeneric",
 		footprintx = 3,
 		footprintz = 3,
@@ -28,7 +30,7 @@ return {
 		maxslope = 10,
 		maxwaterdepth = 0,
 		mincloakdistance = 70,
-		name = "Ambusher",
+		name = unitName,
 		nochasecategory = "MOBILE",
 		objectname = "Units/ARMAMB.s3o",
 		onoffable = true,
@@ -54,7 +56,7 @@ return {
 				collisionvolumescales = "48.1152648926 38.0216522217 48.1152648926",
 				collisionvolumetype = "Box",
 				damage = 2160,
-				description = "Ambusher Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -75,7 +77,7 @@ return {
 				collisionvolumescales = "55.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 540,
-				description = "Ambusher Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 3,

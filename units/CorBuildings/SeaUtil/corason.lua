@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.corason')
+
 return {
 	corason = {
 		acceleration = 0,
@@ -19,7 +21,7 @@ return {
 		collisionvolumescales = "45 28 45",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		description = "Extended Sonar",
+		description = Spring.I18N('units.descriptions.corason'),
 		energymake = 18,
 		energyuse = 18,
 		explodeas = "mediumBuildingexplosiongeneric",
@@ -31,7 +33,7 @@ return {
 		maxdamage = 2140,
 		maxslope = 10,
 		minwaterdepth = 24,
-		name = "Advanced Sonar Station",
+		name = unitName,
 		objectname = "Units/CORASON.s3o",
 		onoffable = true,
 		script = "Units/CORASON.cob",
@@ -57,7 +59,7 @@ return {
 				collisionvolumescales = "43.173828125 10.1218109131 43.7690734863",
 				collisionvolumetype = "Box",
 				damage = 1284,
-				description = "Advanced Sonar Station Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				footprintx = 3,
 				footprintz = 3,

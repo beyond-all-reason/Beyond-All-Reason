@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.armdfly')
+
 return {
 	armdfly = {
 		acceleration = 0.2,
@@ -15,7 +17,7 @@ return {
 		collisionvolumescales = "52 21 52",
 		collisionvolumetype = "CylY",
 		cruisealt = 135,
-		description = "Stealthy Armed Heavy Transport",
+		description = Spring.I18N('units.descriptions.armdfly'),
 		energymake = 0.6,
 		energyuse = 0.6,
 		explodeas = "hugeexplosiongeneric",
@@ -29,7 +31,7 @@ return {
 		maxslope = 15,
 		maxvelocity = 8.05,
 		maxwaterdepth = 0,
-		name = "Dragonfly",
+		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMDFLY.s3o",
 		releaseheld = true,

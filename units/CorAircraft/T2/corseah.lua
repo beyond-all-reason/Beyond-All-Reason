@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.corseah')
+
 return {
 	corseah = {
 		acceleration = 0.15,
@@ -15,7 +17,7 @@ return {
 		collisionvolumescales = "52 21 52",
 		collisionvolumetype = "CylY",
 		cruisealt = 135,
-		description = "Assault Heavy Transport",
+		description = Spring.I18N('units.descriptions.corseah'),
 		energymake = 3,
 		explodeas = "hugeExplosionGeneric",
 		footprintx = 4,
@@ -28,7 +30,7 @@ return {
 		maxslope = 10,
 		maxvelocity = 7,
 		maxwaterdepth = 0,
-		name = "Seahook",
+		name = unitName,
 		objectname = "Units/CORSEAH.s3o",
 		releaseheld = true,
 		script = "Units/CORSEAH.cob",

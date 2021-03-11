@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.cortship')
+
 return {
 	cortship = {
 		acceleration = 0.02766,
@@ -15,7 +17,7 @@ return {
 		collisionvolumescales = "40 40 90",
 		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
-		description = "Armored Transport Ship",
+		description = Spring.I18N('units.descriptions.cortship'),
 		explodeas = "hugeexplosiongeneric",
 		floater = true,
 		footprintx = 6,
@@ -26,7 +28,7 @@ return {
 		maxvelocity = 2.313,
 		minwaterdepth = 0,
 		movementclass = "BOAT5",
-		name = "Envoy",
+		name = unitName,
 		nochasecategory = "ALL",
 		objectname = "Units/CORTSHIP.s3o",
 		pushresistant = true,
@@ -56,7 +58,7 @@ return {
 				collisionvolumescales = "66.6000061035 64.2990264893 117.277526855",
 				collisionvolumetype = "Box",
 				damage = 13704,
-				description = "Envoy Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				footprintx = 5,
@@ -73,7 +75,7 @@ return {
 				blocking = false,
 				category = "heaps",
 				damage = 4032,
-				description = "Envoy Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				footprintx = 2,
 				footprintz = 2,

@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.corsb')
+
 return {
 	corsb = {
 		acceleration = 0.055,
@@ -13,7 +15,7 @@ return {
 		category = "ALL NOTLAND MOBILE WEAPON VTOL NOTSUB NOTSHIP NOTHOVER",
 		collide = false,
 		cruisealt = 150,
-		description = "Seaplane Bomber",
+		description = Spring.I18N('units.descriptions.corsb'),
 		energymake = 0.9,
 		energyuse = 0.9,
 		explodeas = "mediumExplosionGeneric",
@@ -32,7 +34,7 @@ return {
 		maxslope = 10,
 		maxvelocity = 8,
 		maxwaterdepth = 255,
-		name = "Dam Buster",
+		name = unitName,
 		noautofire = true,
 		nochasecategory = "VTOL",
 		objectname = "Units/CORSB.s3o",

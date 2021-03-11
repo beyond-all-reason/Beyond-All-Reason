@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.corshad')
+
 return {
 	corshad = {
 		acceleration = 0.05,
@@ -12,7 +14,7 @@ return {
 		category = "ALL MOBILE WEAPON NOTLAND VTOL NOTSUB NOTSHIP NOTHOVER",
 		collide = true,
 		cruisealt = 165,
-		description = "Bomber",
+		description = Spring.I18N('units.descriptions.corshad'),
 		energymake = 0.9,
 		energyuse = 0.9,
 		explodeas = "mediumexplosiongeneric",
@@ -31,7 +33,7 @@ return {
 		maxslope = 10,
 		maxvelocity = 7.8,
 		maxwaterdepth = 0,
-		name = "Shadow",
+		name = unitName,
 		noautofire = true,
 		nochasecategory = "VTOL",
 		objectname = "Units/CORSHAD.s3o",

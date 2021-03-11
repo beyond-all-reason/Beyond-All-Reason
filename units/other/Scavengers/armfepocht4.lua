@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.armfepocht4')
+
 return {
 	armfepocht4 = {
 		acceleration = 0.015,
@@ -18,7 +20,7 @@ return {
 		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
 		cruisealt = 65,
-		description = "Flagship with Vtol thrusters... wait what?",
+		description = Spring.I18N('units.descriptions.armfepocht4'),
 		energymake = 150,
 		energystorage = 1000,
 		energyuse = 150,
@@ -36,7 +38,7 @@ return {
 		maxvelocity = 0.6,
 		maxwaterdepth = 15,
 		metalstorage = 100,
-		name = "Flying Epoch",
+		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/scavboss/armfepocht4.s3o",
 		script = "Units/scavboss/armfepocht4.cob",
@@ -64,7 +66,7 @@ return {
 				collisionvolumescales = "75.0081939697 51.5621185303 178.425750732",
 				collisionvolumetype = "Box",
 				damage = 30000,
-				description = "Flying Epoch Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -82,7 +84,7 @@ return {
 				blocking = false,
 				category = "heaps",
 				damage = 15000,
-				description = "Flying Epoch Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				footprintx = 2,
 				footprintz = 2,

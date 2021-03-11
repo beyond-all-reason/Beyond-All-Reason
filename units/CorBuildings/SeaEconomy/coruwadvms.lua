@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.coruwadvms')
+
 return {
 	coruwadvms = {
 		buildangle = 6093,
@@ -15,7 +17,7 @@ return {
 		collisionvolumescales = "46 40 58",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
-		description = "Increases Metal Storage (10000)",
+		description = Spring.I18N('units.descriptions.coruwadvms'),
 		explodeas = "mediumBuildingexplosiongeneric",
 		footprintx = 4,
 		footprintz = 4,
@@ -26,7 +28,7 @@ return {
 		maxslope = 20,
 		maxwaterdepth = 9999,
 		metalstorage = 10000,
-		name = "Hardened Metal Storage",
+		name = unitName,
 		objectname = "Units/CORUWADVMS.s3o",
 		script = "Units/CORUWADVMS.cob",
 		seismicsignature = 0,
@@ -50,7 +52,7 @@ return {
 				collisionvolumescales = "49.8645172119 42.9171142578 64.3353881836",
 				collisionvolumetype = "Box",
 				damage = 4020,
-				description = "Advanced Metal Storage Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -70,7 +72,7 @@ return {
 				collisionvolumescales = "85.0 14.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 2010,
-				description = "Advanced Metal Storage Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 4,

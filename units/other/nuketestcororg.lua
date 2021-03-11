@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.nuketestcororg')
+
 return {
 	nuketestcororg = {
 		acceleration = 0,
@@ -16,7 +18,7 @@ return {
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "0 0 0",
 		collisionvolumetype = "box",
-		description = "Spawning the original cor nuke",
+		description = Spring.I18N('units.descriptions.nuketestcororg'),
 		energystorage = 1000,
 		--explodeas = "custom:newnuke",
 		footprintx = 2,
@@ -27,7 +29,7 @@ return {
 		mass = 165.75,
 		maxdamage = 5560,
 		maxvelocity = 0,
-		name = "Original Nuke Spawner",
+		name = unitName,
 		noautofire = false,
 		objectname = "scavs/cube.s3o",
 		radardistance = 900,

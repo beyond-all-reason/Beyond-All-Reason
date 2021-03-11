@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.coracsub')
+
 return {
 	coracsub = {
 		acceleration = 0.042,
@@ -14,7 +16,7 @@ return {
 		collisionvolumescales = "38 9 72",
 		collisionvolumetype = "box",
 		corpse = "DEAD",
-		description = "Tech Level 2",
+		description = Spring.I18N('units.descriptions.coracsub'),
 		energymake = 30,
 		energystorage = 150,
 		energyuse = 30,
@@ -30,7 +32,7 @@ return {
 		metalstorage = 150,
 		minwaterdepth = 20,
 		movementclass = "UBOAT4",
-		name = "Advanced Construction Sub",
+		name = unitName,
 		objectname = "Units/CORACSUB.s3o",
 		radardistance = 50,
 		script = "Units/CORACSUB.cob",
@@ -72,7 +74,7 @@ return {
 				collisionvolumescales = "45.8502807617 11.0077514648 73.3929595947",
 				collisionvolumetype = "Box",
 				damage = 444,
-				description = "Advanced Construction Sub Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				footprintx = 4,
@@ -91,7 +93,7 @@ return {
 				collisionvolumescales = "85.0 14.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 1432,
-				description = "Advanced Construction Sub Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				footprintx = 2,
 				footprintz = 2,

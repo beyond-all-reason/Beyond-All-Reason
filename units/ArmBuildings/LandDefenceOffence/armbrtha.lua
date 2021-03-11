@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.armbrtha')
+
 return {
 	armbrtha = {
 		acceleration = 0,
@@ -17,7 +19,7 @@ return {
 		collisionvolumescales = "48 90 48",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		description = "Long Range Plasma Cannon",
+		description = Spring.I18N('units.descriptions.armbrtha'),
 		explodeas = "hugeBuildingExplosionGeneric",
 		footprintx = 4,
 		footprintz = 4,
@@ -27,7 +29,7 @@ return {
 		maxdamage = 4000,
 		maxslope = 12,
 		maxwaterdepth = 0,
-		name = "Big Bertha",
+		name = unitName,
 		objectname = "Units/ARMBRTHA.s3o",
 		script = "Units/ARMBRTHA.cob",
 		seismicsignature = 0,
@@ -52,7 +54,7 @@ return {
 				collisionvolumescales = "81.6838531494 113.772003174 72.5632324219",
 				collisionvolumetype = "Box",
 				damage = 2520,
-				description = "Big Bertha Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -72,7 +74,7 @@ return {
 				collisionvolumescales = "55.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 1260,
-				description = "Big Bertha Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 3,

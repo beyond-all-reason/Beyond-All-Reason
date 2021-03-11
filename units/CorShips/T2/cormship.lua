@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.cormship')
+
 return {
 	cormship = {
 		acceleration = 0.02799,
@@ -13,7 +15,7 @@ return {
 		collisionvolumescales = "43 43 101",
 		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
-		description = "Cruise Missile Ship",
+		description = Spring.I18N('units.descriptions.cormship'),
 		energymake = 0.9,
 		energyuse = 0.9,
 		explodeas = "largeexplosiongeneric",
@@ -27,7 +29,7 @@ return {
 		maxvelocity = 2.048,
 		minwaterdepth = 12,
 		movementclass = "BOAT5",
-		name = "Messenger",
+		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/CORMSHIP.s3o",
 		radardistance = 1000,
@@ -53,7 +55,7 @@ return {
 				collisionvolumescales = "46.75 27.25 110.75",
 				collisionvolumetype = "Box",
 				damage = 2700,
-				description = "Messenger Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				footprintx = 6,
@@ -70,7 +72,7 @@ return {
 				blocking = false,
 				category = "heaps",
 				damage = 4032,
-				description = "Messenger Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				footprintx = 2,
 				footprintz = 2,

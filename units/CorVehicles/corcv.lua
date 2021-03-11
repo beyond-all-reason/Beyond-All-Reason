@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.corcv')
+
 return {
 	corcv = {
 		acceleration = 0.03049,
@@ -14,7 +16,7 @@ return {
 		collisionvolumescales = "35 22 49",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
-		description = "Tech Level 1",
+		description = Spring.I18N('units.descriptions.corcv'),
 		energymake = 10,
 		energystorage = 50,
 		energyuse = 10,
@@ -31,7 +33,7 @@ return {
 		metalmake = 0.1,
 		metalstorage = 50,
 		movementclass = "TANK3",
-		name = "Construction Vehicle",
+		name = unitName,
 		objectname = "Units/CORCV.s3o",
 		radardistance = 50,
 		script = "Units/CORCV.cob",
@@ -95,7 +97,7 @@ return {
 				collisionvolumescales = "32.9147644043 17.5585021973 49.4168548584",
 				collisionvolumetype = "Box",
 				damage = 874,
-				description = "Construction Vehicle Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -115,7 +117,7 @@ return {
 				collisionvolumescales = "55.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 487,
-				description = "Construction Vehicle Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 3,

@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.coratl')
+
 return {
 	coratl = {
 		acceleration = 0,
@@ -11,7 +13,7 @@ return {
 		canrepeat = false,
 		category = "ALL NOTLAND WEAPON NOTSHIP NOTAIR NOTHOVER NOTSUB SURFACE EMPABLE",
 		corpse = "DEAD",
-		description = "Advanced Torpedo Launcher",
+		description = Spring.I18N('units.descriptions.coratl'),
 		energymake = 0.1,
 		energyuse = 0.1,
 		explodeas = "smallBuildingExplosionGeneric",
@@ -22,7 +24,7 @@ return {
 		idletime = 1800,
 		maxdamage = 2500,
 		minwaterdepth = 12,
-		name = "Lamprey",
+		name = unitName,
 		objectname = "Units/CORATL.s3o",
 		script = "Units/CORATL.cob",
 		seismicsignature = 0,
@@ -46,7 +48,7 @@ return {
 				collisionvolumescales = "44.8439941406 14.7038574219 41.8139953613",
 				collisionvolumetype = "Box",
 				damage = 337,
-				description = "Lamprey Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				footprintx = 3,
 				footprintz = 3,

@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.armflash')
+
 return {
 	armflash = {
 		acceleration = 0.06788,
@@ -12,7 +14,7 @@ return {
 		collisionvolumescales = "24 9 31",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
-		description = "Fast Assault Tank",
+		description = Spring.I18N('units.descriptions.armflash'),
 		energymake = 0.5,
 		energyuse = 0.5,
 		explodeas = "smallExplosionGeneric",
@@ -26,7 +28,7 @@ return {
 		maxvelocity = 3.3,
 		maxwaterdepth = 12,
 		movementclass = "TANK2",
-		name = "Flash",
+		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMFLASH.s3o",
 		script = "Units/ARMFLASH.cob",
@@ -69,7 +71,7 @@ return {
 				collisionvolumescales = "20.3918304443 9.5 30.2260284424",
 				collisionvolumetype = "Box",
 				damage = 396,
-				description = "Flash Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -89,7 +91,7 @@ return {
 				collisionvolumescales = "35.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 193,
-				description = "Flash Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 2,

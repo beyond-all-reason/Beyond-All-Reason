@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.corfrad')
+
 return {
 	corfrad = {
 		acceleration = 0,
@@ -15,7 +17,7 @@ return {
 		collisionvolumescales = "32 95 32",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		description = "Early Warning System",
+		description = Spring.I18N('units.descriptions.corfrad'),
 		energymake = 4,
 		energyuse = 4,
 		explodeas = "mediumBuildingexplosiongeneric",
@@ -28,7 +30,7 @@ return {
 		maxdamage = 103,
 		maxslope = 10,
 		minwaterdepth = 5,
-		name = "Floating Radar/Sonar Tower",
+		name = unitName,
 		objectname = "Units/CORFRAD.s3o",
 		onoffable = true,
 		radardistance = 2100,
@@ -55,7 +57,7 @@ return {
 				collisionvolumescales = "41.2277526855 50.2841644287 42.4677886963",
 				collisionvolumetype = "Box",
 				damage = 62,
-				description = "Floating Radar Tower Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				footprintx = 3,
 				footprintz = 3,

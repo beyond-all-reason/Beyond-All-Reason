@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.corseal')
+
 return {
 	corseal = {
 		acceleration = 0.05125,
@@ -13,7 +15,7 @@ return {
 		collisionvolumescales = "31 31 31",
 		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
-		description = "Medium Amphibious Tank",
+		description = Spring.I18N('units.descriptions.corseal'),
 		energymake = 0.5,
 		energyuse = 0.5,
 		explodeas = "smallexplosiongeneric-phib",
@@ -27,7 +29,7 @@ return {
 		maxvelocity = 2.4,
 		maxwaterdepth = 255,
 		movementclass = "ATANK3",
-		name = "Croc",
+		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/CORSEAL.s3o",
 		script = "Units/CORSEAL.cob",
@@ -71,7 +73,7 @@ return {
 				collisionvolumescales = "31.2236328125 16.1107177734 37.8449707031",
 				collisionvolumetype = "Box",
 				damage = 2000,
-				description = "Croc Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				featuredead = "HEAP",
 				footprintx = 2,
 				footprintz = 2,
@@ -89,7 +91,7 @@ return {
 				collisionvolumescales = "35.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 1500,
-				description = "Croc Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				footprintx = 2,
 				footprintz = 2,

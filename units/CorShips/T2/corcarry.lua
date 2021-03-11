@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.corcarry')
+
 return {
 	corcarry = {
 		acceleration = 0.01647,
@@ -19,7 +21,7 @@ return {
 		collisionvolumescales = "61 61 153",
 		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
-		description = "Aircraft Carrier with Anti-Nuke",
+		description = Spring.I18N('units.descriptions.corcarry'),
 		energymake = 300,
 		energystorage = 1500,
 		energyuse = 25,
@@ -37,7 +39,7 @@ return {
 		metalstorage = 800,
 		minwaterdepth = 15,
 		movementclass = "BOAT7",
-		name = "Hive",
+		name = unitName,
 		nochasecategory = "ALL",
 		objectname = "Units/CORCARRY.s3o",
 		radardistance = 2700,
@@ -68,7 +70,7 @@ return {
 				collisionvolumescales = "76.2124633789 40.5466918945 153.329818726",
 				collisionvolumetype = "Box",
 				damage = 9540,
-				description = "Hive Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				footprintx = 2,
@@ -87,7 +89,7 @@ return {
 				collisionvolumescales = "55.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 4032,
-				description = "Hive Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				footprintx = 2,
 				footprintz = 2,

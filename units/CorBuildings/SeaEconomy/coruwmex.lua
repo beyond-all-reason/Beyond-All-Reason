@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.coruwmex')
+
 return {
 	coruwmex = {
 		acceleration = 0,
@@ -15,7 +17,7 @@ return {
 		collisionvolumescales = "31 128 31",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		description = "Extracts Metal",
+		description = Spring.I18N('units.descriptions.coruwmex'),
 		energyuse = 3,
 		explodeas = "tinyBuildingExplosionGeneric-uw",
 		extractsmetal = 0.001,
@@ -29,7 +31,7 @@ return {
 		maxslope = 30,
 		metalstorage = 50,
 		minwaterdepth = 15,
-		name = "Offshore Metal Extractor",
+		name = unitName,
 		objectname = "Units/coruwmex.s3o",
 		onoffable = true,
 		script = "Units/coruwmex.cob",
@@ -56,7 +58,7 @@ return {
 				collisionvolumescales = "48.6033782959 20.3522796631 48.5289764404",
 				collisionvolumetype = "Box",
 				damage = 111,
-				description = "Underwater Metal Extractor Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				footprintx = 3,
@@ -75,7 +77,7 @@ return {
 				collisionvolumescales = "55.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 56,
-				description = "Underwater Metal Extractor Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				footprintx = 3,
 				footprintz = 3,

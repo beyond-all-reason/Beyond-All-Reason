@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.corvoyr')
+
 return {
 	corvoyr = {
 		acceleration = 0.05635,
@@ -14,7 +16,7 @@ return {
 		collisionvolumescales = "23 24 23",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		description = "Radar Bot",
+		description = Spring.I18N('units.descriptions.corvoyr'),
 		energymake = 8,
 		energyuse = 20,
 		explodeas = "smallexplosiongeneric",
@@ -27,7 +29,7 @@ return {
 		maxvelocity = 1.5,
 		maxwaterdepth = 0,
 		movementclass = "BOT3",
-		name = "Voyeur",
+		name = unitName,
 		objectname = "Units/CORVOYR.s3o",
 		onoffable = true,
 		radardistance = 2200,
@@ -53,7 +55,7 @@ return {
 				collisionvolumescales = "36.3329315186 19.9079589844 23.0387420654",
 				collisionvolumetype = "Box",
 				damage = 300,
-				description = "Voyeur Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -73,7 +75,7 @@ return {
 				collisionvolumescales = "35.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 250,
-				description = "Voyeur Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 2,

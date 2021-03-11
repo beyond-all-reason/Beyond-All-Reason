@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.chickenw1b')
+
 return {
 	chickenw1b = {
 		acceleration = 2,
@@ -26,7 +28,7 @@ return {
 		collisionvolumetype = "box",
 		cruisealt = 125,
 		defaultmissiontype = "VTOL_standby",
-		description = "Flying Spike Spitter",
+		description = Spring.I18N('units.descriptions.chickenw1b'),
 		explodeas = "TALON_DEATH",
 		floater = true,
 		footprintx = 1,
@@ -45,7 +47,7 @@ return {
 		maxrudder = 0.00893,
 		maxvelocity = 9,
 		moverate1 = "32",
-		name = "Claw",
+		name = unitName,
 		noautofire = false,
 		nochasecategory = "VTOL",
 		objectname = "Chickens/chicken_pidgeonb.s3o",

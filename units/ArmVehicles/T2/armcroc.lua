@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.armcroc')
+
 return {
 	armcroc = {
 		acceleration = 0.03452,
@@ -13,7 +15,7 @@ return {
 		collisionvolumescales = "53 23 53",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		description = "Heavy Amphibious Tank",
+		description = Spring.I18N('units.descriptions.armcroc'),
 		energymake = 0.5,
 		energyuse = 0.5,
 		explodeas = "largeExplosionGeneric-phib",
@@ -27,7 +29,7 @@ return {
 		maxvelocity = 1.9,
 		maxwaterdepth = 255,
 		movementclass = "ATANK3",
-		name = "Triton",
+		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMCROC.s3o",
 		script = "Units/ARMCROC.cob",
@@ -69,7 +71,7 @@ return {
 				collisionvolumescales = "50.9460906982 23.33152771 45.8317565918",
 				collisionvolumetype = "Box",
 				damage = 2000,
-				description = "Triton Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				featuredead = "HEAP",
 				footprintx = 2,
 				footprintz = 2,
@@ -87,7 +89,7 @@ return {
 				collisionvolumescales = "35.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 1500,
-				description = "Triton Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				footprintx = 2,
 				footprintz = 2,

@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.corintr')
+
 return {
 	corintr = {
 		acceleration = 0.01621,
@@ -14,7 +16,7 @@ return {
 		collisionvolumescales = "48.2 48.2 87.2",
 		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
-		description = "Amphibious Heavy Assault Transport",
+		description = Spring.I18N('units.descriptions.corintr'),
 		energymake = 2.6,
 		energyuse = 2.9,
 		explodeas = "hugeexplosiongeneric-phib",
@@ -29,7 +31,7 @@ return {
 		maxvelocity = 1.8,
 		maxwaterdepth = 255,
 		movementclass = "ATANK4",
-		name = "Intruder",
+		name = unitName,
 		objectname = "Units/CORINTR.s3o",
 		releaseheld = true,
 		script = "Units/CORINTR.cob",
@@ -63,7 +65,7 @@ return {
 				collisionvolumescales = "50.3999938965 38.8000030518 83.4750061035",
 				collisionvolumetype = "Box",
 				damage = 7500,
-				description = "Intruder Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -83,7 +85,7 @@ return {
 				collisionvolumescales = "85.0 14.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 3750,
-				description = "Intruder Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 4,

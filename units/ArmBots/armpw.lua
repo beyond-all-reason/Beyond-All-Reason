@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.armpw')
+
 return {
 	armpw = {
 		acceleration = 0.414,
@@ -12,7 +14,7 @@ return {
 		collisionvolumescales = "22 28 22",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		description = "Fast Infantry Bot",
+		description = Spring.I18N('units.descriptions.armpw'),
 		energymake = 0.3,
 		energyuse = 0.3,
 		explodeas = "smallExplosionGeneric",
@@ -25,7 +27,7 @@ return {
 		maxvelocity = 2.8,
 		maxwaterdepth = 12,
 		movementclass = "BOT2",
-		name = "Peewee",
+		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMPW.s3o",
 		script = "Units/ARMPW.cob",
@@ -53,7 +55,7 @@ return {
 				collisionvolumescales = "30.1392364502 18.4953460693 29.797164917",
 				collisionvolumetype = "Box",
 				damage = 192,
-				description = "Peewee Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -73,7 +75,7 @@ return {
 				collisionvolumescales = "35.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 96,
-				description = "Peewee Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 2,

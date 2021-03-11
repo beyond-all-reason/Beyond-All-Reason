@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.armminivulc')
+
 return {
 	armminivulc = {
 		acceleration = 0,
@@ -17,7 +19,7 @@ return {
 		collisionvolumescales = "32 64 32",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		description = "Mini Rapid-Fire Plasma Cannon",
+		description = Spring.I18N('units.descriptions.armminivulc'),
 		explodeas = "advancedFusionExplosion",
 		firestate = 0,
 		footprintx = 3,
@@ -28,7 +30,7 @@ return {
 		maxdamage = 6000,
 		maxslope = 13,
 		maxwaterdepth = 0,
-		name = "Mini Vulcan",
+		name = unitName,
 		objectname = "Units/scavbuildings/armminivulc.s3o",
 		script = "Units/scavbuildings/armminivulc.cob",
 		seismicsignature = 0,
@@ -52,7 +54,7 @@ return {
 				collisionvolumescales = "169.401870728 123.486465454 147.862945557",
 				collisionvolumetype = "Box",
 				damage = 3000,
-				description = "Vulcan Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -70,7 +72,7 @@ return {
 				blocking = false,
 				category = "heaps",
 				damage = 1500,
-				description = "Vulcan Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 3,

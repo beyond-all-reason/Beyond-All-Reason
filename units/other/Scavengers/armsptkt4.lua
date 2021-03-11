@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.armsptkt4')
+
 return {
 	armsptkt4 = {
 		acceleration = 0.207,
@@ -12,7 +14,7 @@ return {
 		collisionvolumescales = "75 50 75",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		description = "Recluse, but bigger.",
+		description = Spring.I18N('units.descriptions.armsptkt4'),
 		energymake = 0.7,
 		energyuse = 0.7,
 		explodeas = "empblast",
@@ -26,7 +28,7 @@ return {
 		maxwaterdepth = 12,
 		movementclass = "TBOT3",
 		mygravity = 10000,
-		name = "Epic Recluse",
+		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/scavboss/armsptkt4.s3o",
 		script = "Units/scavboss/armsptkt4.cob",
@@ -52,7 +54,7 @@ return {
 				collisionvolumescales = "47.3038787842 18.2459106445 47.0814971924",
 				collisionvolumetype = "Box",
 				damage = 12500,
-				description = "Epic Recluse Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -72,7 +74,7 @@ return {
 				collisionvolumescales = "55.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 6250,
-				description = "Epic Recluse Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 4,

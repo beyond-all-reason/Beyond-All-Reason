@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.cormaw')
+
 return {
 	cormaw = {
 		acceleration = 0,
@@ -15,7 +17,7 @@ return {
 		corpse = "DEAD",
 		damagemodifier = 0.25,
 		decoyfor = "cordrag",
-		description = "Pop-up Flamethrower Turret",
+		description = Spring.I18N('units.descriptions.cormaw'),
 		energystorage = 15,
 		explodeas = "flamethrower",
 		footprintx = 2,
@@ -29,7 +31,7 @@ return {
 		maxdamage = 1450,
 		maxslope = 18,
 		maxwaterdepth = 0,
-		name = "Dragon's Maw",
+		name = unitName,
 		nochasecategory = "MOBILE",
 		objectname = "Units/CORMAW.s3o",
 		radardistancejam = 8,
@@ -57,7 +59,7 @@ return {
 				collisionvolumescales = "32.042388916 19.5953521729 32.6287231445",
 				collisionvolumetype = "Box",
 				damage = 600,
-				description = "Dragon's Maw Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "ROCKTEETH",
 				featurereclamate = "SMUDGE01",

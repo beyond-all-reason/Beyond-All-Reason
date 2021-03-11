@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.cortitan')
+
 return {
 	cortitan = {
 		acceleration = 0.2,
@@ -12,7 +14,7 @@ return {
 		category = "ALL NOTLAND MOBILE WEAPON VTOL NOTSUB NOTSHIP NOTHOVER",
 		collide = true,
 		cruisealt = 90,
-		description = "Torpedo Bomber",
+		description = Spring.I18N('units.descriptions.cortitan'),
 		energymake = 1.5,
 		energyuse = 1.5,
 		explodeas = "mediumexplosiongeneric",
@@ -31,7 +33,7 @@ return {
 		maxslope = 10,
 		maxvelocity = 9.3,
 		maxwaterdepth = 0,
-		name = "Titan",
+		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/CORTITAN.s3o",
 		radardistance = 800,

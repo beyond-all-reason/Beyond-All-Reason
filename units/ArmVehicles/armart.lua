@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.armart')
+
 return {
 	armart = {
 		acceleration = 0.02727,
@@ -12,7 +14,7 @@ return {
 		collisionvolumescales = "31 20 39",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
-		description = "Light Artillery Vehicle",
+		description = Spring.I18N('units.descriptions.armart'),
 		energymake = 1,
 		energyuse = 1,
 		explodeas = "smallexplosiongeneric",
@@ -28,7 +30,7 @@ return {
 		maxvelocity = 1.8,
 		maxwaterdepth = 8,
 		movementclass = "TANK3",
-		name = "Shellshocker",
+		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/armart.s3o",
 		pushresistant = true,
@@ -70,7 +72,7 @@ return {
 				collisionvolumescales = "30.6000061035 17.1577606201 39.1929931641",
 				collisionvolumetype = "Box",
 				damage = 418,
-				description = "Shellshocker Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -90,7 +92,7 @@ return {
 				collisionvolumescales = "55.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 259,
-				description = "Shellshocker Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 3,

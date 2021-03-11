@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.cormando')
+
 return {
 	cormando = {
 		acceleration = 0.4025,
@@ -19,7 +21,7 @@ return {
 		collisionvolumeoffsets = "0 -6 0",
 		collisionvolumescales = "38 45 22",
 		collisionvolumetype = "box",
-		description = "Stealthy Paratrooper K-bot",
+		description = Spring.I18N('units.descriptions.cormando'),
 		energymake = 10,
 		energystorage = 20,
 		explodeas = "mediumexplosiongeneric",
@@ -31,7 +33,7 @@ return {
 		maxslope = 20,
 		maxvelocity = 2.5,
 		movementclass = "ABOT2",
-		name = "Commando",
+		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/CORMANDO.s3o",
 		radardistance = 900,

@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.cortermite')
+
 return {
 	cortermite = {
 		acceleration = 0.19665,
@@ -12,7 +14,7 @@ return {
 		collisionvolumescales = "37 38 56",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
-		description = "Heavy All-terrain Assault Spider",
+		description = Spring.I18N('units.descriptions.cortermite'),
 		energymake = 0.7,
 		energyuse = 0.7,
 		explodeas = "mediumexplosiongeneric",
@@ -26,7 +28,7 @@ return {
 		maxwaterdepth = 30,
 		movementclass = "TBOT3",
 		mygravity = 10000,
-		name = "Termite",
+		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/CORTERMITE.s3o",
 		script = "Units/CORTERMITE.cob",
@@ -53,7 +55,7 @@ return {
 				collisionvolumescales = "32.3684997559 15.844833374 33.5386505127",
 				collisionvolumetype = "Box",
 				damage = 2000,
-				description = "Termite Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -73,7 +75,7 @@ return {
 				collisionvolumescales = "55.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 1500,
-				description = "Termite Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 3,

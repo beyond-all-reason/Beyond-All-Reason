@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.armraz')
+
 return {
 	armraz = {
 		acceleration = 0.2369,
@@ -12,7 +14,7 @@ return {
 		collisionvolumescales = "50.0 60.0 50.0",
 		collisionvolumetype = "box",
 		corpse = "DEAD",
-		description = "Battle Mech",
+		description = Spring.I18N('units.descriptions.armraz'),
 		explodeas = "explosiont3",
 		footprintx = 4,
 		footprintz = 4,
@@ -24,7 +26,7 @@ return {
 		maxvelocity = 2.3,
 		maxwaterdepth = 22,
 		movementclass = "HBOT4",
-		name = "Razorback",
+		name = unitName,
 		objectname = "Units/ARMRAZ.s3o",
 		script = "Units/armraz.cob",
 		seismicsignature = 0,
@@ -53,7 +55,7 @@ return {
 				collisionvolumescales = "61.6002807617 54.8114776611 71.5794219971",
 				collisionvolumetype = "Box",
 				damage = 1500,
-				description = "Razorback Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -73,7 +75,7 @@ return {
 				collisionvolumescales = "55.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 2000,
-				description = "Razorback Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 3,

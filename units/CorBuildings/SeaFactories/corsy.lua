@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.corsy')
+
 return {
 	corsy = {
 		acceleration = 0,
@@ -13,7 +15,7 @@ return {
 		collisionvolumescales = "124 59 122",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
-		description = "Produces Level 1 Ships",
+		description = Spring.I18N('units.descriptions.corsy'),
 		energystorage = 100,
 		explodeas = "largeBuildingexplosiongeneric",
 		footprintx = 8,
@@ -24,7 +26,7 @@ return {
 		maxdamage = 3850,
 		metalstorage = 100,
 		minwaterdepth = 30,
-		name = "Shipyard",
+		name = unitName,
 		objectname = "Units/CORSY.s3o",
 		script = "Units/CORSY.cob",
 		seismicsignature = 0,
@@ -57,7 +59,7 @@ return {
 				collisionvolumescales = "116 56 120",
 				collisionvolumetype = "Box",
 				damage = 1794,
-				description = "Shipyard Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				footprintx = 7,
 				footprintz = 7,

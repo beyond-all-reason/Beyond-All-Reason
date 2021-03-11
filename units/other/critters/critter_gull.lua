@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.critter_gull')
+
 return {
 	critter_gull = {
 		acceleration = 0.2,
@@ -20,7 +22,7 @@ return {
 		collide = false,
 		collision = false,
 		cruisealt = 200,
-		description = "I´m so fly",
+		description = Spring.I18N('units.descriptions.critter_gull'),
 		footprintx = 1,
 		footprintz = 1,
 		hoverattack = true,
@@ -31,7 +33,7 @@ return {
 		maxdamage = 10,
 		maxpitch = 0.2,
 		maxvelocity = 1.8,
-		name = "SeaGull",
+		name = unitName,
 		objectname = "Critters/critter_gull.s3o",
 		reclaimable = false,
 		script = "Critters/critter_gull.lua",

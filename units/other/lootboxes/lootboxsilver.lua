@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.lootboxsilver')
+
 return {
 	lootboxsilver = {
 		acceleration = 0,
@@ -22,7 +24,7 @@ return {
 		collisionvolumescales = "31 32 16",
 		collisionvolumetype = "box",
 		corpse = "HEAP",
-		description = "Silver Resource Generator Capture & Transport",
+		description = Spring.I18N('units.descriptions.lootboxsilver'),
 		energymake = 400,
 		explodeas = "lootboxExplosion2",
 		floater = true,
@@ -40,7 +42,7 @@ return {
 		metalmake = 20,
 		movementclass = "HOVER3",
 		movestate = 0,
-		name = "T2 Resource Generator",
+		name = unitName,
 		noautofire = false,
 		objectname = "lootboxes/lootbox.s3o",
 		script = "lootboxes/lootboxgold.cob",
@@ -69,7 +71,7 @@ return {
 				collisionvolumescales = "0 0 0",
 				collisionvolumetype = "Box",
 				damage = 50000,
-				description = "Silver Lootbox Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 10000,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -89,7 +91,7 @@ return {
 				collisionvolumescales = "55.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 2000,
-				description = "Silver Lootbox Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 3,

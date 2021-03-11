@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.corban')
+
 return {
 	corban = {
 		acceleration = 0.02269,
@@ -12,7 +14,7 @@ return {
 		collisionvolumescales = "42 42 42",
 		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
-		description = "Heavy Missile Tank",
+		description = Spring.I18N('units.descriptions.corban'),
 		energymake = 1.1,
 		energystorage = 22,
 		energyuse = 1.1,
@@ -29,7 +31,7 @@ return {
 		maxwaterdepth = 20,
 		metalstorage = 4,
 		movementclass = "HTANK4",
-		name = "Banisher",
+		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/CORBAN.s3o",
 		script = "Units/CORBAN.cob",
@@ -72,7 +74,7 @@ return {
 				collisionvolumescales = "41.3831787109 15.9763793945 46.5609588623",
 				collisionvolumetype = "Box",
 				damage = 2000,
-				description = "Banisher Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -92,7 +94,7 @@ return {
 				collisionvolumescales = "55.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 1500,
-				description = "Banisher Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 3,

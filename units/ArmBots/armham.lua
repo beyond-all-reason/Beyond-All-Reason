@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.armham')
+
 return {
 	armham = {
 		acceleration = 0.138,
@@ -12,7 +14,7 @@ return {
 		collisionvolumescales = "29 28 29",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		description = "Light Plasma Bot",
+		description = Spring.I18N('units.descriptions.armham'),
 		energymake = 0.6,
 		energyuse = 0.6,
 		explodeas = "smallexplosiongeneric",
@@ -26,7 +28,7 @@ return {
 		maxvelocity = 1.54,
 		maxwaterdepth = 12,
 		movementclass = "BOT3",
-		name = "Hammer",
+		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMHAM.s3o",
 		script = "Units/ARMHAM.cob",
@@ -52,7 +54,7 @@ return {
 				collisionvolumescales = "31.0182495117 8.18759155273 36.3284454346",
 				collisionvolumetype = "Box",
 				damage = 586,
-				description = "Hammer Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -72,7 +74,7 @@ return {
 				collisionvolumescales = "35.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 343,
-				description = "Hammer Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 2,

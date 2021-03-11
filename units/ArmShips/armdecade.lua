@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.armdecade')
+
 return {
 	armdecade = {
 		acceleration = 0.1004,
@@ -13,7 +15,7 @@ return {
 		collisionvolumescales = "21 21 62",
 		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
-		description = "Fast Assault Corvette",
+		description = Spring.I18N('units.descriptions.armdecade'),
 		explodeas = "mediumexplosiongeneric",
 		floater = true,
 		footprintx = 3,
@@ -25,7 +27,7 @@ return {
 		maxvelocity = 3.49,
 		minwaterdepth = 12,
 		movementclass = "BOAT3",
-		name = "Decade",
+		name = unitName,
 		nochasecategory = "UNDERWATER VTOL",
 		objectname = "Units/ARMDECADE.s3o",
 		script = "Units/ARMDECADE.cob",
@@ -49,7 +51,7 @@ return {
 				collisionvolumescales = "32.7630615234 17.5484924316 65.1112213135",
 				collisionvolumetype = "Box",
 				damage = 300,
-				description = "Decade Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -69,7 +71,7 @@ return {
 				collisionvolumescales = "85.0 14.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 500,
-				description = "Decade Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				footprintx = 2,
 				footprintz = 2,

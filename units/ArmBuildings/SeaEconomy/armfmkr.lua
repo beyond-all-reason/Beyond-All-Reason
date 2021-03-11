@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.armfmkr')
+
 return {
 	armfmkr = {
 		acceleration = 0,
@@ -10,7 +12,7 @@ return {
 		buildtime = 2958,
 		canrepeat = false,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
-		description = "Converts 70 energy into 1.1 metal per sec",
+		description = Spring.I18N('units.descriptions.armfmkr'),
 		explodeas = "largeBuildingExplosionGeneric",
 		footprintx = 3,
 		footprintz = 3,
@@ -20,7 +22,7 @@ return {
 		maxdamage = 110,
 		maxslope = 10,
 		minwaterdepth = 11,
-		name = "Floating Energy Converter",
+		name = unitName,
 		objectname = "Units/ARMFMKR.s3o",
 		script = "Units/ARMFMKR.cob",
 		seismicsignature = 0,

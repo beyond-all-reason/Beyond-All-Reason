@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.corkarg')
+
 return {
 	corkarg = {
 		acceleration = 0.1104,
@@ -12,7 +14,7 @@ return {
 		collisionvolumescales = "56.0 60.0 40.0",
 		collisionvolumetype = "box",
 		corpse = "DEAD",
-		description = "All-Terrain Assault Mech",
+		description = Spring.I18N('units.descriptions.corkarg'),
 		explodeas = "explosiont3med",
 		footprintx = 4,
 		footprintz = 4,
@@ -24,7 +26,7 @@ return {
 		maxvelocity = 1.5,
 		maxwaterdepth = 12,
 		movementclass = "HTBOT4",
-		name = "Karganeth",
+		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/CORKARG.s3o",
 		script = "Units/CORKARG.COB",
@@ -50,7 +52,7 @@ return {
 				collisionvolumescales = "77.9624938965 23.0893859863 76.4105682373",
 				collisionvolumetype = "Box",
 				damage = 1200,
-				description = "Karganeth Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 4,

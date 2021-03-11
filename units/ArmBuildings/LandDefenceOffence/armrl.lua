@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.armrl')
+
 return {
 	armrl = {
 		acceleration = 0,
@@ -18,7 +20,7 @@ return {
 		collisionvolumescales = "42 57 42",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		description = "Light Anti-air Tower. Transportable (Heavy)",
+		description = Spring.I18N('units.descriptions.armrl'),
 		explodeas = "mediumBuildingExplosionGeneric",
 		footprintx = 3,
 		footprintz = 3,
@@ -29,7 +31,7 @@ return {
 		maxdamage = 295,
 		maxslope = 20,
 		maxwaterdepth = 0,
-		name = "Defender",
+		name = unitName,
 		nochasecategory = "ALL",
 		objectname = "Units/ARMRL.s3o",
 		script = "Units/ARMRL.cob",
@@ -53,7 +55,7 @@ return {
 				collisionvolumescales = "39.1805114746 61.4574127197 35.6334838867",
 				collisionvolumetype = "Box",
 				damage = 177,
-				description = "Defender Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -73,7 +75,7 @@ return {
 				collisionvolumescales = "55.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 89,
-				description = "Defender Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 3,

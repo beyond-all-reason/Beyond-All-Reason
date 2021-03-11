@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.corgarp')
+
 return {
 	corgarp = {
 		acceleration = 0.03226,
@@ -13,7 +15,7 @@ return {
 		collisionvolumescales = "30 21 36",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
-		description = "Light Amphibious Tank",
+		description = Spring.I18N('units.descriptions.corgarp'),
 		energymake = 0.9,
 		energyuse = 0.7,
 		explodeas = "smallexplosiongeneric-phib",
@@ -27,7 +29,7 @@ return {
 		maxvelocity = 1.95,
 		maxwaterdepth = 200,
 		movementclass = "ATANK3",
-		name = "Garpike",
+		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/CORGARP.s3o",
 		script = "Units/CORGARP.cob",
@@ -70,7 +72,7 @@ return {
 				collisionvolumescales = "30.1485290527 10.4821014404 33.694442749",
 				collisionvolumetype = "Box",
 				damage = 731,
-				description = "Garpike Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 2,

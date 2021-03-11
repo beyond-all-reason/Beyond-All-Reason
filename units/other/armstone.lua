@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.armstone')
+
 return {
 	armstone = {
 		acceleration = 0,
@@ -15,7 +17,7 @@ return {
 		collisionvolumescales = "24 24 24",
 		collisionvolumetype = "CylY",
 		crushresistance = 2500,
-		description = "Commander Tombstone",
+		description = Spring.I18N('units.descriptions.armstone'),
 		footprintx = 1,
 		footprintz = 1,
 		hidedamage = true,
@@ -24,7 +26,7 @@ return {
 		maxdamage = 5000000,
 		maxslope = 64,
 		maxwaterdepth = 250,
-		name = "Commander Tombstone",
+		name = unitName,
 		objectname = "Units/armstone.s3o",
 		reclaimable = false,
 		repairable = false,

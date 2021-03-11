@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.corcat')
+
 return {
 	corcat = {
 		acceleration = 0.1242,
@@ -12,7 +14,7 @@ return {
 		collisionvolumescales = "60 53 30",
 		collisionvolumetype = "box",
 		corpse = "DEAD",
-		description = "Heavy Rocket Bot",
+		description = Spring.I18N('units.descriptions.corcat'),
 		explodeas = "explosiont3",
 		footprintx = 4,
 		footprintz = 4,
@@ -24,7 +26,7 @@ return {
 		maxvelocity = 1.6,
 		maxwaterdepth = 12,
 		movementclass = "HBOT4",
-		name = "Catapult",
+		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/CORCAT.s3o",
 		script = "Units/CORCAT.cob",
@@ -50,7 +52,7 @@ return {
 				collisionvolumescales = "66.3871917725 26.0 41.4744720459",
 				collisionvolumetype = "Box",
 				damage = 3300,
-				description = "Catapult Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -70,7 +72,7 @@ return {
 				collisionvolumescales = "55.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 1650,
-				description = "Catapult Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 3,

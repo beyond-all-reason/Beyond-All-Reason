@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.armthundt4')
+
 return {
 	armthundt4 = {
 		acceleration = 0.020,
@@ -11,7 +13,7 @@ return {
 		category = "ALL MOBILE WEAPON NOTLAND NOTSUB VTOL NOTSHIP NOTHOVER",
 		collide = false,
 		cruisealt = 190,
-		description = "Epic T4 Carpet Bomber",
+		description = Spring.I18N('units.descriptions.armthundt4'),
 		energymake = 1.1,
 		energyuse = 1.1,
 		explodeas = "explosiont3xl",
@@ -30,7 +32,7 @@ return {
 		maxslope = 10,
 		maxvelocity = 12.25,
 		maxwaterdepth = 0,
-		name = "Epic Thunder",
+		name = unitName,
 		noautofire = true,
 		nochasecategory = "MOBILE",
 		objectname = "Units/scavboss/ARMTHUNDT4.s3o",

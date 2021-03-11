@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.cordoom')
+
 return {
 	cordoom = {
 		acceleration = 0,
@@ -19,7 +21,7 @@ return {
 		collisionvolumetype = "box",
 		corpse = "DEAD",
 		damagemodifier = 0.25,
-		description = "Energy Weapon",
+		description = Spring.I18N('units.descriptions.cordoom'),
 		energystorage = 2000,
 		explodeas = "largeBuildingexplosiongeneric",
 		footprintx = 4,
@@ -31,7 +33,7 @@ return {
 		maxdamage = 8500,
 		maxslope = 10,
 		maxwaterdepth = 0,
-		name = "Doomsday Machine",
+		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/CORDOOM.s3o",
 		onoffable = true,
@@ -58,7 +60,7 @@ return {
 				collisionvolumescales = "80.6815948486 91.7637634277 82.1471252441",
 				collisionvolumetype = "Box",
 				damage = 5400,
-				description = "Doomsday Machine Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -78,7 +80,7 @@ return {
 				collisionvolumescales = "55.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 2700,
-				description = "Doomsday Machine Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 3,

@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.corape')
+
 return {
 	corape = {
 		acceleration = 0.20,
@@ -15,7 +17,7 @@ return {
 		collisionvolumescales = "48 18 48",
 		collisionvolumetype = "CylY",
 		cruisealt = 100,
-		description = "Gunship",
+		description = Spring.I18N('units.descriptions.corape'),
 		energymake = 0.6,
 		energyuse = 0.6,
 		explodeas = "mediumexplosiongeneric",
@@ -29,7 +31,7 @@ return {
 		maxslope = 10,
 		maxvelocity = 5.3,
 		maxwaterdepth = 0,
-		name = "Rapier",
+		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/CORAPE.s3o",
 		script = "Units/CORAPE.cob",

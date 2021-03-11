@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.chickenr3')
+
 return {
 	chickenr3 = {
 		acceleration = 1.15,
@@ -20,7 +22,7 @@ return {
 		collisionvolumetype = "CylY",
 		corpse = "chicken_egg_l_red",
 		defaultmissiontype = "Standby",
-		description = "Meteor Launcher",
+		description = Spring.I18N('units.descriptions.chickenr3'),
 		explodeas = "LOBBER_MORPH",
 		footprintx = 4,
 		footprintz = 4,
@@ -36,7 +38,7 @@ return {
 		maxvelocity = 2,
 		maxwaterdepth = 15,
 		movementclass = "CHICKQUEEN",
-		name = "Chicken Colonizer",
+		name = unitName,
 		noautofire = false,
 		nochasecategory = "VTOL",
 		objectname = "Chickens/chicken_colonizer.s3o",

@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.armlab')
+
 return {
 	armlab = {
 		acceleration = 0,
@@ -18,7 +20,7 @@ return {
 		collisionvolumescales = "84 22 84",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
-		description = "Produces Level 1 Bots",
+		description = Spring.I18N('units.descriptions.armlab'),
 		energystorage = 100,
 		explodeas = "largeBuildingexplosiongeneric",
 		footprintx = 6,
@@ -30,7 +32,7 @@ return {
 		maxslope = 15,
 		maxwaterdepth = 0,
 		metalstorage = 100,
-		name = "Bot Lab",
+		name = unitName,
 		objectname = "Units/ARMLAB.s3o",
 		radardistance = 50,
 		script = "Units/ARMLAB.cob",
@@ -64,7 +66,7 @@ return {
 				collisionvolumescales = "95 22 95",
 				collisionvolumetype = "Box",
 				damage = 1614,
-				description = "Bot Lab Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -82,7 +84,7 @@ return {
 				blocking = false,
 				category = "heaps",
 				damage = 807,
-				description = "Bot Lab Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 5,

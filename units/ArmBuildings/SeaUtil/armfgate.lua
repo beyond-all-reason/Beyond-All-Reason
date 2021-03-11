@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.armfgate')
+
 return {
 	armfgate = {
 		acceleration = 0,
@@ -17,7 +19,7 @@ return {
 		collisionvolumescales = "53 65 53",
 		collisionvolumetype = "cyly",
 		corpse = "DEAD",
-		description = "Floating Plasma Deflector",
+		description = Spring.I18N('units.descriptions.armfgate'),
 		energystorage = 2000,
 		energyuse = 0,
 		explodeas = "hugeBuildingexplosiongeneric",
@@ -31,7 +33,7 @@ return {
 		maxvelocity = 0,
 		metalstorage = 0,
 		minwaterdepth = 16,
-		name = "Aurora",
+		name = unitName,
 		noautofire = true,
 		norestrict = 1,
 		objectname = "Units/armfgate.s3o",
@@ -64,7 +66,7 @@ return {
 				collisionvolumescales = "57.2399902344 32.5033416748 63.3298492432",
 				collisionvolumetype = "Box",
 				damage = 1800,
-				description = "Aurora Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -84,7 +86,7 @@ return {
 				collisionvolumescales = "35.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 900,
-				description = "Aurora Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 2,

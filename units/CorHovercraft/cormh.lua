@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.cormh')
+
 return {
 	cormh = {
 		acceleration = 0.04415,
@@ -12,7 +14,7 @@ return {
 		collisionvolumescales = "33 12 43",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		description = "Hovercraft Rocket Launcher",
+		description = Spring.I18N('units.descriptions.cormh'),
 		energymake = 2.6,
 		energyuse = 2.6,
 		explodeas = "mediumexplosiongeneric",
@@ -25,7 +27,7 @@ return {
 		maxvelocity = 2.13,
 		maxwaterdepth = 0,
 		movementclass = "HOVER3",
-		name = "Nixer",
+		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/CORMH.s3o",
 		script = "Units/CORMH.cob",
@@ -49,7 +51,7 @@ return {
 				collisionvolumescales = "30.0869903564 18.3419342041 34.3326873779",
 				collisionvolumetype = "Box",
 				damage = 297,
-				description = "Nixer Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				footprintx = 3,
@@ -68,7 +70,7 @@ return {
 				collisionvolumescales = "55.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 149,
-				description = "Nixer Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				footprintx = 3,
 				footprintz = 3,

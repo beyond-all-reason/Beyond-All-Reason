@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.corsjam')
+
 return {
 	corsjam = {
 		acceleration = 0.03574,
@@ -13,7 +15,7 @@ return {
 		collisionvolumescales = "28 28 65",
 		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
-		description = "Radar Jammer Ship",
+		description = Spring.I18N('units.descriptions.corsjam'),
 		energymake = 20,
 		energyuse = 20,
 		explodeas = "mediumexplosiongeneric",
@@ -27,7 +29,7 @@ return {
 		maxvelocity = 2.043,
 		minwaterdepth = 6,
 		movementclass = "BOAT3",
-		name = "Phantom",
+		name = unitName,
 		nochasecategory = "MOBILE",
 		objectname = "Units/CORSJAM.s3o",
 		onoffable = true,
@@ -54,7 +56,7 @@ return {
 				collisionvolumescales = "41.9625549316 13.4625854492 69.8010559082",
 				collisionvolumetype = "Box",
 				damage = 684,
-				description = "Phantom Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				footprintx = 4,
@@ -73,7 +75,7 @@ return {
 				collisionvolumescales = "85.0 14.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 4032,
-				description = "Phantom Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				footprintx = 2,
 				footprintz = 2,

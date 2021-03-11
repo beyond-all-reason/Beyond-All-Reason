@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.corfblackhyt4')
+
 return {
 	corfblackhyt4 = {
 		acceleration = 0.015,
@@ -18,7 +20,7 @@ return {
 		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
 		cruisealt = 65,
-		description = "Flagship with Vtol thrusters... wait what?",
+		description = Spring.I18N('units.descriptions.corfblackhyt4'),
 		explodeas = "FlagshipExplosion",
 		footprintx = 8,
 		footprintz = 8,
@@ -31,7 +33,7 @@ return {
 		maxdamage = 60000,
 		maxvelocity = 0.6,
 		maxwaterdepth = 15,
-		name = "Flying Black Hydra",
+		name = unitName,
 		objectname = "Units/scavboss/corfblackhyt4.s3o",
 		script = "Units/scavboss/corfblackhyt4.cob",
 		pushresistant = true,
@@ -59,7 +61,7 @@ return {
 				collisionvolumescales = "88.47706604 56.7307739258 178.029220581",
 				collisionvolumetype = "Box",
 				damage = 30000,
-				description = "Flying Black Hydra Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 6,

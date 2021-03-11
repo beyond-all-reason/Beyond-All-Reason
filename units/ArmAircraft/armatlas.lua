@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.armatlas')
+
 return {
 	armatlas = {
 		acceleration = 0.1,
@@ -12,7 +14,7 @@ return {
 		category = "ALL MOBILE WEAPON NOTLAND NOTSUB VTOL NOTSHIP NOTHOVER",
 		collide = false,
 		cruisealt = 100,
-		description = "Air Transport",
+		description = Spring.I18N('units.descriptions.armatlas'),
 		energymake = 0.6,
 		energyuse = 0.6,
 		explodeas = "mediumexplosiongeneric",
@@ -26,7 +28,7 @@ return {
 		maxslope = 10,
 		maxvelocity = 6.9,
 		maxwaterdepth = 0,
-		name = "Atlas",
+		name = unitName,
 		objectname = "Units/ARMATLAS.s3o",
 		releaseheld = true,
 		script = "Units/ARMATLAS.cob",

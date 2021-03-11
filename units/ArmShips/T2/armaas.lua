@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.armaas')
+
 return {
 	armaas = {
 		acceleration = 0.03875,
@@ -14,7 +16,7 @@ return {
 		collisionvolumescales = "31 31 74",
 		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
-		description = "Anti-Air Ship",
+		description = Spring.I18N('units.descriptions.armaas'),
 		energymake = 7,
 		energyuse = 7,
 		explodeas = "largeExplosionGeneric-uw",
@@ -28,7 +30,7 @@ return {
 		maxvelocity = 2.1,
 		minwaterdepth = 30,
 		movementclass = "BOAT4",
-		name = "Archer",
+		name = unitName,
 		nochasecategory = "NOTAIR",
 		objectname = "Units/ARMAAS.s3o",
 		script = "Units/ARMAAS.cob",
@@ -55,7 +57,7 @@ return {
 				collisionvolumescales = "36.1561584473 29.9421844482 83.5312347412",
 				collisionvolumetype = "Box",
 				damage = 8320,
-				description = "Archer Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				footprintx = 3,
@@ -74,7 +76,7 @@ return {
 				collisionvolumescales = "35.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 4032,
-				description = "Archer Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				footprintx = 2,
 				footprintz = 2,

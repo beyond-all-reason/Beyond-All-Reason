@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.armcir')
+
 return {
 	armcir = {
 		acceleration = 0,
@@ -15,7 +17,7 @@ return {
 		canrepeat = false,
 		category = "ALL WEAPON NOTSUB NOTAIR NOTHOVER SURFACE EMPABLE",
 		corpse = "DEAD",
-		description = "Bomb-Resistant Medium-Range Anti-Air Missile Battery",
+		description = Spring.I18N('units.descriptions.armcir'),
 		explodeas = "mediumBuildingExplosionGeneric",
 		footprintx = 4,
 		footprintz = 4,
@@ -25,7 +27,7 @@ return {
 		maxdamage = 4000,
 		maxslope = 10,
 		maxwaterdepth = 0,
-		name = "Chainsaw",
+		name = unitName,
 		objectname = "Units/ARMCIR.s3o",
 		script = "Units/ARMCIR.cob",
 		seismicsignature = 0,
@@ -48,7 +50,7 @@ return {
 				collisionvolumescales = "54.0 29.0774383545 56.486541748",
 				collisionvolumetype = "Box",
 				damage = 1500,
-				description = "Chainsaw Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -68,7 +70,7 @@ return {
 				collisionvolumescales = "55.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 750,
-				description = "Chainsaw Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 3,

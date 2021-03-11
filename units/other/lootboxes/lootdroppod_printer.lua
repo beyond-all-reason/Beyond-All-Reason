@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.lootdroppod_printer')
+
 return {
 	lootdroppod_printer = {
 		acceleration = 0,
@@ -16,7 +18,7 @@ return {
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "0 0 0",
 		collisionvolumetype = "box",
-		description = "Drops PRINTER in your battle",
+		description = Spring.I18N('units.descriptions.lootdroppod_printer'),
 		energystorage = 1000,
 		explodeas = "",
 		footprintx = 0,
@@ -27,7 +29,7 @@ return {
 		mass = 165.75,
 		maxdamage = 1800,
 		maxvelocity = 0,
-		name = "Lootbox Droppod",
+		name = unitName,
 		noautofire = false,
 		objectname = "scavs/cube.s3o",
 		radardistance = 900,

@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.armyork')
+
 return {
 	armyork = {
 		acceleration = 0.06111,
@@ -13,7 +15,7 @@ return {
 		collisionvolumescales = "31 31 38",
 		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
-		description = "Anti-Air Flak Vehicle",
+		description = Spring.I18N('units.descriptions.armyork'),
 		energymake = 0.5,
 		energyuse = 0.5,
 		explodeas = "mediumexplosiongeneric",
@@ -27,7 +29,7 @@ return {
 		maxvelocity = 2.35,
 		maxwaterdepth = 12,
 		movementclass = "TANK3",
-		name = "Phalanx",
+		name = unitName,
 		nochasecategory = "NOTAIR",
 		objectname = "Units/ARMYORK.s3o",
 		script = "Units/ARMYORK.cob",
@@ -57,7 +59,7 @@ return {
 				collisionvolumescales = "24.0 13.9999847412 43.189666748",
 				collisionvolumetype = "Box",
 				damage = 1900,
-				description = "Phalanx Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -77,7 +79,7 @@ return {
 				collisionvolumescales = "35.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 1500,
-				description = "Phalanx Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 2,

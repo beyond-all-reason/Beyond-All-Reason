@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.armsonar')
+
 return {
 	armsonar = {
 		acceleration = 0,
@@ -15,7 +17,7 @@ return {
 		collisionvolumescales = "28 41 28",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		description = "Locates Water Units",
+		description = Spring.I18N('units.descriptions.armsonar'),
 		energymake = 1,
 		energyuse = 1,
 		explodeas = "smallBuildingexplosiongeneric-uw",
@@ -27,7 +29,7 @@ return {
 		maxdamage = 50,
 		maxslope = 10,
 		minwaterdepth = 10,
-		name = "Sonar Station",
+		name = unitName,
 		objectname = "Units/ARMSONAR.s3o",
 		onoffable = true,
 		script = "Units/ARMSONAR.cob",
@@ -51,7 +53,7 @@ return {
 				collisionvolumescales = "31.3499755859 42.5373687744 28.2463684082",
 				collisionvolumetype = "Box",
 				damage = 30,
-				description = "Sonar Station Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				footprintx = 2,
 				footprintz = 2,

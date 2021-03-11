@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.chicken1x')
+
 return {
 	chicken1x = {
 		acceleration = 0.345,
@@ -20,7 +22,7 @@ return {
 		collisionvolumetype = "box",
 		corpse = "chicken_egg_s_red",
 		defaultmissiontype = "Standby",
-		description = "Swarmer Assault",
+		description = Spring.I18N('units.descriptions.chicken1x'),
 		explodeas = "BUG_DEATH",
 		floater = false,
 		footprintx = 1,
@@ -33,7 +35,7 @@ return {
 		maxvelocity = 4.5,
 		maxwaterdepth = 15,
 		movementclass = "BOT2",
-		name = "Chicken",
+		name = unitName,
 		noautofire = false,
 		nochasecategory = "VTOL",
 		objectname = "Chickens/chicken1x.s3o",

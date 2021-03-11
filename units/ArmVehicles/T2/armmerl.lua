@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.armmerl')
+
 return {
 	armmerl = {
 		acceleration = 0.02489,
@@ -12,7 +14,7 @@ return {
 		collisionvolumescales = "40 40 50",
 		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
-		description = "Stealthy Rocket Launcher",
+		description = Spring.I18N('units.descriptions.armmerl'),
 		energymake = 0.5,
 		energyuse = 0.5,
 		explodeas = "largexplosiongeneric",
@@ -26,7 +28,7 @@ return {
 		maxvelocity = 1.1,
 		maxwaterdepth = 12,
 		movementclass = "TANK3",
-		name = "Merl",
+		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMMERL.s3o",
 		script = "Units/ARMMERL.cob",
@@ -56,7 +58,7 @@ return {
 				collisionvolumescales = "41.7318725586 18.875 50.3305206299",
 				collisionvolumetype = "Box",
 				damage = 1812,
-				description = "Merl Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -76,7 +78,7 @@ return {
 				collisionvolumescales = "55.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 906,
-				description = "Merl Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 3,

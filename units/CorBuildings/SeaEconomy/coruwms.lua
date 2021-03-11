@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.coruwms')
+
 return {
 	coruwms = {
 		acceleration = 0,
@@ -14,7 +16,7 @@ return {
 		canrepeat = false,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE UNDERWATER EMPABLE",
 		corpse = "DEAD",
-		description = "Increases Metal Storage (3000)",
+		description = Spring.I18N('units.descriptions.coruwms'),
 		explodeas = "largeBuildingexplosiongeneric-uw",
 		footprintx = 4,
 		footprintz = 4,
@@ -25,7 +27,7 @@ return {
 		maxslope = 20,
 		metalstorage = 3000,
 		minwaterdepth = 40,
-		name = "Underwater Metal Storage",
+		name = unitName,
 		objectname = "Units/CORUWMS.s3o",
 		script = "Units/CORUWMS.cob",
 		seismicsignature = 0,
@@ -48,7 +50,7 @@ return {
 				collisionvolumescales = "80.0 48.7014160156 80.0",
 				collisionvolumetype = "Box",
 				damage = 2100,
-				description = "Underwater Metal Storage Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				footprintx = 4,
@@ -67,7 +69,7 @@ return {
 				collisionvolumescales = "85.0 14.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 1050,
-				description = "Underwater Metal Storage Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				footprintx = 4,
 				footprintz = 4,

@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.armestor')
+
 return {
 	armestor = {
 		acceleration = 0,
@@ -18,7 +20,7 @@ return {
 		collisionvolumescales = "42 34 42",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		description = "Increases Energy Storage (6000)",
+		description = Spring.I18N('units.descriptions.armestor'),
 		energystorage = 6000,
 		explodeas = "energystorage",
 		footprintx = 3,
@@ -29,7 +31,7 @@ return {
 		maxdamage = 1700,
 		maxslope = 10,
 		maxwaterdepth = 0,
-		name = "Energy Storage",
+		name = unitName,
 		objectname = "Units/ARMESTOR.s3o",
 		script = "Units/ARMESTOR.cob",
 		seismicsignature = 0,
@@ -52,7 +54,7 @@ return {
 				collisionvolumescales = "39.6697540283 34.9461364746 42.0973052979",
 				collisionvolumetype = "Box",
 				damage = 1020,
-				description = "Energy Storage Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 4,
@@ -71,7 +73,7 @@ return {
 				collisionvolumescales = "85.0 14.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 510,
-				description = "Energy Storage Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 4,

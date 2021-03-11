@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.corbhmth')
+
 return {
 	corbhmth = {
 		acceleration = 0,
@@ -15,7 +17,7 @@ return {
 		canrepeat = false,
 		category = "ALL NOTLAND NOTSUB WEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		corpse = "dead",
-		description = "Geothermal Plasma Battery",
+		description = Spring.I18N('units.descriptions.corbhmth'),
 		energymake = 450,
 		energystorage = 500,
 		explodeas = "largeBuildingExplosionGeneric",
@@ -27,7 +29,7 @@ return {
 		maxdamage = 7500,
 		maxslope = 10,
 		maxwaterdepth = 0,
-		name = "Behemoth",
+		name = unitName,
 		nochasecategory = "MOBILE",
 		objectname = "Units/CORBHMTH.s3o",
 		script = "Units/CORBHMTH.cob",
@@ -52,7 +54,7 @@ return {
 				collisionvolumescales = "83.4941711426 37.581817627 90.826675415",
 				collisionvolumetype = "Box",
 				damage = 4500,
-				description = "Behemoth Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -70,7 +72,7 @@ return {
 				blocking = false,
 				category = "heaps",
 				damage = 2250,
-				description = "Behemoth Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 5,

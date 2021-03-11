@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.corgeo')
+
 return {
 	corgeo = {
 		acceleration = 0,
@@ -18,7 +20,7 @@ return {
 		collisionvolumescales = "63 45 59",
 		collisionvolumetype = "Box",
 		corpse = "dead",
-		description = "Produces 300 Energy",
+		description = Spring.I18N('units.descriptions.corgeo'),
 		energymake = 300,
 		energystorage = 1000,
 		explodeas = "geo",
@@ -30,7 +32,7 @@ return {
 		maxdamage = 1850,
 		maxslope = 15,
 		maxwaterdepth = 99999,
-		name = "Geothermal Powerplant",
+		name = unitName,
 		objectname = "Units/CORGEO.s3o",
 		script = "Units/CORGEO.lua",
 		seismicsignature = 0,
@@ -54,7 +56,7 @@ return {
 				collisionvolumescales = "71.8282928467 49.0236968994 58.0464782715",
 				collisionvolumetype = "Box",
 				damage = 1110,
-				description = "Geothermal Powerplant Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -74,7 +76,7 @@ return {
 				collisionvolumescales = "85.0 14.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 555,
-				description = "Geothermal Powerplant Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 4,

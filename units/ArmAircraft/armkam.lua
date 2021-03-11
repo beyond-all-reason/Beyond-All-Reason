@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.armkam')
+
 return {
 	armkam = {
 		acceleration = 0.15,
@@ -12,7 +14,7 @@ return {
 		category = "ALL WEAPON NOTSUB VTOL NOTHOVER",
 		collide = true,
 		cruisealt = 70,
-		description = "Light Gunship",
+		description = Spring.I18N('units.descriptions.armkam'),
 		energyuse = 0.8,
 		explodeas = "smallExplosionGeneric",
 		footprintx = 2,
@@ -25,7 +27,7 @@ return {
 		maxslope = 10,
 		maxvelocity = 6.16,
 		maxwaterdepth = 0,
-		name = "Banshee",
+		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMKAM.s3o",
 		script = "Units/ARMKAM.cob",

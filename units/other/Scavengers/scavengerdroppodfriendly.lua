@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.scavengerdroppodfriendly')
+
 return {
 	scavengerdroppodfriendly = {
 		acceleration = 0,
@@ -16,7 +18,7 @@ return {
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "0 0 0",
 		collisionvolumetype = "box",
-		description = "Spawning droppod for reinforments",
+		description = Spring.I18N('units.descriptions.scavengerdroppodfriendly'),
 		explodeas = "",
 		footprintx = 0,
 		footprintz = 0,
@@ -26,7 +28,7 @@ return {
 		mass = 10,
 		maxdamage = 10,
 		maxvelocity = 0,
-		name = "Friendly Droppod",
+		name = unitName,
 		noautofire = false,
 		objectname = "scavs/cube.s3o",
 		script = "scavs/droppod.cob",

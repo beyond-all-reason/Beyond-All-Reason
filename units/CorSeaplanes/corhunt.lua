@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.corhunt')
+
 return {
 	corhunt = {
 		acceleration = 0.22,
@@ -13,7 +15,7 @@ return {
 		category = "ALL NOTLAND MOBILE NOTSUB VTOL NOWEAPON NOTSHIP NOTHOVER",
 		collide = false,
 		cruisealt = 190,
-		description = "Advanced Radar/Sonar Plane",
+		description = Spring.I18N('units.descriptions.corhunt'),
 		energymake = 15,
 		energyuse = 15,
 		explodeas = "mediumexplosiongeneric",
@@ -32,7 +34,7 @@ return {
 		maxslope = 10,
 		maxvelocity = 10.81,
 		maxwaterdepth = 255,
-		name = "Hunter",
+		name = unitName,
 		objectname = "Units/CORHUNT.s3o",
 		radardistance = 2200,
 		script = "Units/CORHUNT.cob",

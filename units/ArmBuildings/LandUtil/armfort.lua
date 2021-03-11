@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.armfort')
+
 return {
 	armfort = {
 		acceleration = 0,
@@ -20,7 +22,7 @@ return {
 		collisionvolumetype = "CylY",
 		corpse = "ROCKTEETHX",
 		crushresistance = 1000,
-		description = "Fortification Wall",
+		description = Spring.I18N('units.descriptions.armfort'),
 		footprintx = 2,
 		footprintz = 2,
 		hidedamage = true,
@@ -29,7 +31,7 @@ return {
 		maxdamage = 8000,
 		maxslope = 24,
 		maxwaterdepth = 0,
-		name = "Fortification Wall",
+		name = unitName,
 		objectname = "Units/ARMFORT.s3o",
 		repairable = false,
 		script = "Units/ARMFORT.cob",

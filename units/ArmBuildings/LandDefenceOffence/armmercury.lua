@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.armmercury')
+
 return {
 	armmercury = {
 		acceleration = 0,
@@ -18,7 +20,7 @@ return {
 		collisionvolumescales = "60 68 60",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		description = "Long Range Anti-Air Tower",
+		description = Spring.I18N('units.descriptions.armmercury'),
 		explodeas = "largeBuildingExplosionGeneric",
 		footprintx = 4,
 		footprintz = 4,
@@ -28,7 +30,7 @@ return {
 		maxdamage = 1500,
 		maxslope = 20,
 		maxwaterdepth = 0,
-		name = "Mercury",
+		name = unitName,
 		objectname = "Units/ARMMERCURY.s3o",
 		script = "Units/ARMMERCURY.cob",
 		seismicsignature = 0,
@@ -52,7 +54,7 @@ return {
 				collisionvolumescales = "51.8714294434 86.3341064453 50.9362335205",
 				collisionvolumetype = "Box",
 				damage = 900,
-				description = "Mercury Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -72,7 +74,7 @@ return {
 				collisionvolumescales = "55.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 450,
-				description = "Mercury Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 3,

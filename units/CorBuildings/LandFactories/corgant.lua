@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.corgant')
+
 return {
 	corgant = {
 		acceleration = 0,
@@ -17,7 +19,7 @@ return {
 		collisionvolumescales = "150 43 150",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		description = "Produces Level 3 Units",
+		description = Spring.I18N('units.descriptions.corgant'),
 		energystorage = 1400,
 		explodeas = "hugeBuildingexplosiongeneric",
 		footprintx = 9,
@@ -29,7 +31,7 @@ return {
 		maxslope = 18,
 		maxwaterdepth = 0,
 		metalstorage = 800,
-		name = "Experimental Gantry",
+		name = unitName,
 		objectname = "Units/CORGANT.s3o",
 		radardistance = 50,
 		script = "Units/CORGANT.cob",
@@ -64,7 +66,7 @@ return {
 				collisionvolumescales = "114 74 129",
 				collisionvolumetype = "CylZ",
 				damage = 9600,
-				description = "Experimental Gantry Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -82,7 +84,7 @@ return {
 				blocking = false,
 				category = "heaps",
 				damage = 4800,
-				description = "Experimental Gantry Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 9,

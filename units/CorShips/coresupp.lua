@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.coresupp')
+
 return {
 	coresupp = {
 		acceleration = 0.11054,
@@ -13,7 +15,7 @@ return {
 		collisionvolumescales = "19 19 58",
 		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
-		description = "Fast Assault Corvette",
+		description = Spring.I18N('units.descriptions.coresupp'),
 		energymake = 3,
 		explodeas = "mediumexplosiongeneric",
 		floater = true,
@@ -26,7 +28,7 @@ return {
 		maxvelocity = 3.66,
 		minwaterdepth = 12,
 		movementclass = "BOAT3",
-		name = "Supporter",
+		name = unitName,
 		nochasecategory = "UNDERWATER VTOL",
 		objectname = "Units/CORESUPP.s3o",
 		script = "Units/CORESUPP.cob",
@@ -50,7 +52,7 @@ return {
 				collisionvolumescales = "37.2419281006 12.2129974365 67.4956207275",
 				collisionvolumetype = "Box",
 				damage = 300,
-				description = "Supporter Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -70,7 +72,7 @@ return {
 				collisionvolumescales = "85.0 14.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 500,
-				description = "Supporter Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				footprintx = 2,
 				footprintz = 2,

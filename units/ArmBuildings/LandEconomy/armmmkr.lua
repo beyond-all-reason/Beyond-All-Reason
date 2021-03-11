@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.armmmkr')
+
 return {
 	armmmkr = {
 		acceleration = 0,
@@ -15,7 +17,7 @@ return {
 		canrepeat = false,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		corpse = "DEAD",
-		description = "Converts 600 energy into 10.3 metal",
+		description = Spring.I18N('units.descriptions.armmmkr'),
 		explodeas = "advmetalmaker",
 		footprintx = 4,
 		footprintz = 4,
@@ -25,7 +27,7 @@ return {
 		maxdamage = 400,
 		maxslope = 10,
 		maxwaterdepth = 0,
-		name = "Energy Converter",
+		name = unitName,
 		objectname = "Units/ARMMMKR.s3o",
 		script = "Units/ARMMMKR.cob",
 		seismicsignature = 0,
@@ -51,7 +53,7 @@ return {
 				collisionvolumescales = "60.6127624512 52.6148376465 60.6127624512",
 				collisionvolumetype = "Box",
 				damage = 240,
-				description = "Metal Maker Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -71,7 +73,7 @@ return {
 				collisionvolumescales = "85.0 14.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 120,
-				description = "Metal Maker Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 4,

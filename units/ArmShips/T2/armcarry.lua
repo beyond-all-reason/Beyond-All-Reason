@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.armcarry')
+
 return {
 	armcarry = {
 		acceleration = 0.01722,
@@ -19,7 +21,7 @@ return {
 		collisionvolumescales = "64 64 159",
 		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
-		description = "Aircraft Carrier with Anti-Nuke",
+		description = Spring.I18N('units.descriptions.armcarry'),
 		energymake = 300,
 		energypershot = 7500,
 		energystorage = 1500,
@@ -38,7 +40,7 @@ return {
 		metalstorage = 700,
 		minwaterdepth = 15,
 		movementclass = "BOAT8",
-		name = "Colossus",
+		name = unitName,
 		nochasecategory = "ALL",
 		objectname = "Units/ARMCARRY.s3o",
 		radardistance = 2950,
@@ -69,7 +71,7 @@ return {
 				collisionvolumescales = "61.8225860596 60.9250030518 154.450805664",
 				collisionvolumetype = "Box",
 				damage = 9168,
-				description = "Colossus Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				footprintx = 6,
@@ -86,7 +88,7 @@ return {
 				blocking = false,
 				category = "heaps",
 				damage = 4032,
-				description = "Colossus Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				footprintx = 2,
 				footprintz = 2,

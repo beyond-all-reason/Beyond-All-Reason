@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.corarch')
+
 return {
 	corarch = {
 		acceleration = 0.03127,
@@ -14,7 +16,7 @@ return {
 		collisionvolumescales = "37 37 74",
 		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
-		description = "Anti-Air Ship",
+		description = Spring.I18N('units.descriptions.corarch'),
 		energymake = 8,
 		energyuse = 8,
 		explodeas = "mediumexplosiongeneric",
@@ -28,7 +30,7 @@ return {
 		maxvelocity = 2.016,
 		minwaterdepth = 30,
 		movementclass = "BOAT4",
-		name = "Shredder",
+		name = unitName,
 		nochasecategory = "NOTAIR",
 		objectname = "Units/CORARCH.s3o",
 		script = "Units/CORARCH.cob",
@@ -54,7 +56,7 @@ return {
 				collisionvolumescales = "36.25 35.0674133301 81.875",
 				collisionvolumetype = "Box",
 				damage = 2940,
-				description = "Shredder Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				footprintx = 4,
@@ -73,7 +75,7 @@ return {
 				collisionvolumescales = "85.0 14.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 4032,
-				description = "Shredder Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				footprintx = 2,
 				footprintz = 2,

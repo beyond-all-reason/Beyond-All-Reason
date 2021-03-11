@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.corcomboss')
+
 return {
 	corcomboss = {
 		acceleration = 0.18,
@@ -23,7 +25,7 @@ return {
 		collisionvolumescales = "75 160 75",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		description = "Oh s##t we are so dead",
+		description = Spring.I18N('units.descriptions.corcomboss'),
 		energymake = 250,
 		explodeas = "ScavComBossExplo",
 		footprintx = 5,
@@ -41,7 +43,7 @@ return {
 		metalmake = 5,
 		--mincloakdistance = 120,
 		movementclass = "SCAVCOMMANDERBOT",
-		name = "Epic Commander - Final Boss",
+		name = unitName,
 		nochasecategory = "ALL",
 		objectname = "Units/scavboss/CORCOMBOSS.s3o",
 		pushresistant = true,
@@ -82,7 +84,7 @@ return {
 				collisionvolumescales = "85 33 100",
 				collisionvolumetype = "cylY",
 				damage = 10000,
-				description = "Commander Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -102,7 +104,7 @@ return {
 				collisionvolumescales = "35.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 5000,
-				description = "Commander Debris",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 2,

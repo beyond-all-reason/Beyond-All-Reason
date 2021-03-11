@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.armbats')
+
 return {
 	armbats = {
 		acceleration = 0.01583,
@@ -13,7 +15,7 @@ return {
 		collisionvolumescales = "63 63 144",
 		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
-		description = "Battleship",
+		description = Spring.I18N('units.descriptions.armbats'),
 		energymake = 50,
 		energyuse = 50,
 		explodeas = "hugeexplosiongeneric",
@@ -27,7 +29,7 @@ return {
 		maxvelocity = 1.93,
 		minwaterdepth = 15,
 		movementclass = "BOAT7",
-		name = "Millennium",
+		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMBATS.s3o",
 		script = "Units/ARMBATS.cob",
@@ -52,7 +54,7 @@ return {
 				collisionvolumescales = "74.9459686279 67.6992492676 151.322341919",
 				collisionvolumetype = "Box",
 				damage = 12972,
-				description = "Millennium Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				footprintx = 6,
@@ -69,7 +71,7 @@ return {
 				blocking = false,
 				category = "heaps",
 				damage = 4032,
-				description = "Millennium Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				footprintx = 2,
 				footprintz = 2,

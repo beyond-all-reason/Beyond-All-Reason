@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.corexp')
+
 return {
 	corexp = {
 		acceleration = 0,
@@ -20,7 +22,7 @@ return {
 		collisionvolumescales = "40 51 40",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		description = "Armed Metal Extractor",
+		description = Spring.I18N('units.descriptions.corexp'),
 		explodeas = "mediumBuildingExplosionGeneric",
 		extractsmetal = 0.001,
 		footprintx = 3,
@@ -32,7 +34,7 @@ return {
 		maxslope = 30,
 		maxwaterdepth = 20,
 		metalstorage = 75,
-		name = "Exploiter",
+		name = unitName,
 		nochasecategory = "MOBILE",
 		objectname = "Units/COREXP.s3o",
 		onoffable = false,
@@ -59,7 +61,7 @@ return {
 				collisionvolumescales = "38.0 18.0 38.0",
 				collisionvolumetype = "Box",
 				damage = 780,
-				description = "Exploiter Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -79,7 +81,7 @@ return {
 				collisionvolumescales = "55.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 390,
-				description = "Exploiter Heap",
+				description = Spring.I18N('units.heap', { name = unitName }),
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 3,

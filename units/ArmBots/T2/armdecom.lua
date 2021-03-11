@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.armdecom')
+
 return {
 	armdecom = {
 		acceleration = 0.18,
@@ -21,7 +23,7 @@ return {
 		collisionvolumescales = "28 52 28",
 		collisionvolumetype = "CylY",
 		decoyfor = "armcom",
-		description = "Decoy Commander",
+		description = Spring.I18N('units.descriptions.armdecom'),
 		energymake = 15,
 		energystorage = 50,
 		explodeas = "decoycommander",
@@ -41,7 +43,7 @@ return {
 		metalstorage = 50,
 		mincloakdistance = 50,
 		movementclass = "COMMANDERBOT",
-		name = "Commander",
+		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMCOM.s3o",
 		radardistance = 50,

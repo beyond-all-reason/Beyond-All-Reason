@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.corhurc')
+
 return {
 	corhurc = {
 		acceleration = 0.04,
@@ -12,7 +14,7 @@ return {
 		category = "ALL NOTLAND MOBILE WEAPON VTOL NOTSUB NOTSHIP NOTHOVER",
 		collide = true,
 		cruisealt = 220,
-		description = "Heavy Strategic Bomber",
+		description = Spring.I18N('units.descriptions.corhurc'),
 		energymake = 0.6,
 		energyuse = 0.6,
 		explodeas = "largeexplosiongeneric",
@@ -31,7 +33,7 @@ return {
 		maxslope = 10,
 		maxvelocity = 8.28,
 		maxwaterdepth = 0,
-		name = "Hurricane",
+		name = unitName,
 		noautofire = true,
 		nochasecategory = "VTOL",
 		objectname = "Units/CORHURC.s3o",

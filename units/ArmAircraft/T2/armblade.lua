@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.armblade')
+
 return {
 	armblade = {
 		acceleration = 0.6,
@@ -12,7 +14,7 @@ return {
 		category = "ALL WEAPON NOTSUB VTOL NOTHOVER",
 		collide = true,
 		cruisealt = 110,
-		description = "Rapid Assault Gunship",
+		description = Spring.I18N('units.descriptions.armblade'),
 		energymake = 0.8,
 		energyuse = 0.9,
 		explodeas = "mediumExplosionGeneric",
@@ -26,7 +28,7 @@ return {
 		maxslope = 10,
 		maxvelocity = 6.8,
 		maxwaterdepth = 0,
-		name = "Blade",
+		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMBLADE.s3o",
 		script = "Units/ARMBLADE.cob",

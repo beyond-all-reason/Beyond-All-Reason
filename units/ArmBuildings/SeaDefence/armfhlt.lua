@@ -1,3 +1,5 @@
+local unitName = Spring.I18N('units.names.armfhlt')
+
 return {
 	armfhlt = {
 		acceleration = 0,
@@ -14,7 +16,7 @@ return {
 		collisionvolumescales = "46 74 46",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		description = "Floating Heavy Laser Tower",
+		description = Spring.I18N('units.descriptions.armfhlt'),
 		energymake = 5,
 		energystorage = 200,
 		explodeas = "largeBuildingexplosiongeneric",
@@ -25,7 +27,7 @@ return {
 		idletime = 1800,
 		maxdamage = 3837,
 		minwaterdepth = 2,
-		name = "Stingray",
+		name = unitName,
 		nochasecategory = "MOBILE",
 		objectname = "Units/ARMFHLT.s3o",
 		script = "Units/ARMFHLT.cob",
@@ -48,7 +50,7 @@ return {
 				collisionvolumescales = "50.0 45.7867279053 45.9999847412",
 				collisionvolumetype = "Box",
 				damage = 2302,
-				description = "Stingray Wreckage",
+				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
 				footprintx = 4,
 				footprintz = 4,
