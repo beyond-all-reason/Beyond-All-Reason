@@ -72,6 +72,7 @@ local showOnceMore = false        -- used because of GUI shader delay
 
 local RectRound = Spring.FlowUI.Draw.RectRound
 local UiElement = Spring.FlowUI.Draw.Element
+local UiScroller = Spring.FlowUI.Draw.Scroller
 local elementCorner = Spring.FlowUI.elementCorner
 
 local versionOffsetX = 28
@@ -79,6 +80,7 @@ local versionOffsetY = 14
 local versionFontSize = 16
 
 local versionQuickLinks = {}
+local maxLines = 20
 
 local font, loadedFontSize, font2, changelogList, titleRect, chobbyInterface, backgroundGuishader, changelogList, dlistcreated, show, bgpadding
 
@@ -170,11 +172,11 @@ function DrawTextarea(x, y, width, height, scrollbar)
 	local fontColorLineBullet = { 0.9, 0.6, 0.2, 1 }
 
 	local textRightOffset = scrollbar and scrollbarMargin + scrollbarWidth + scrollbarWidth or 0
-	local maxLines = math.floor((height - (5 * widgetScale)) / fontSizeLine)
+	maxLines = math.floor(height / (lineSeparator + fontSizeTitle))
 
 	-- textarea scrollbar
 	if scrollbar then
-		if (totalChangelogLines > maxLines or startLine > 1) then
+		if totalChangelogLines > maxLines or startLine > 1 then
 			-- only show scroll above X lines
 			local scrollbarTop = y - scrollbarOffsetTop - scrollbarMargin - (scrollbarWidth - scrollbarPosWidth)
 			local scrollbarBottom = y - scrollbarOffsetBottom - height + scrollbarMargin + (scrollbarWidth - scrollbarPosWidth)
@@ -185,23 +187,13 @@ function DrawTextarea(x, y, width, height, scrollbar)
 			local scrollbarPos = scrollbarTop + (scrollbarBottom - scrollbarTop) * ((startLine - 1) / totalChangelogLines)
 			scrollbarPos = scrollbarPos + ((startLine - 1) / totalChangelogLines) * scrollbarPosHeight    -- correct position taking position bar height into account
 
-			-- background
-			gl.Color(scrollbarBackgroundColor)
-			RectRound(
-				x + width - scrollbarMargin - scrollbarWidth,
-				scrollbarBottom - (scrollbarWidth - scrollbarPosWidth),
-				x + width - scrollbarMargin,
-				scrollbarTop + (scrollbarWidth - scrollbarPosWidth),
-				scrollbarWidth / 2
-			)
-			-- bar
-			gl.Color(scrollbarBarColor)
-			RectRound(
-				x + width - scrollbarMargin - (scrollbarWidth * 0.75),
-				scrollbarPos - (scrollbarPosHeight),
-				x + width - scrollbarMargin - (scrollbarWidth * 0.25),
-				scrollbarPos,
-				scrollbarPosWidth / 2.5
+			UiScroller(
+				math.floor(x + width - scrollbarMargin - scrollbarWidth),
+				math.floor(scrollbarBottom - (scrollbarWidth - scrollbarPosWidth)),
+				math.floor(x + width - scrollbarMargin),
+				math.floor(scrollbarTop + (scrollbarWidth - scrollbarPosWidth)),
+				(#changelogLines-1) * (lineSeparator + fontSizeTitle),
+				(startLine-1) * (lineSeparator + fontSizeTitle)
 			)
 		end
 	end
@@ -211,13 +203,13 @@ function DrawTextarea(x, y, width, height, scrollbar)
 		font:Begin()
 		local lineKey = startLine
 		local j = 1
-		while j < maxLines do
+		while j < maxLines+1 do
 			-- maxlines is not exact, just a failsafe
 			if (lineSeparator + fontSizeTitle) * j > height then
-				break ;
+				break
 			end
 			if changelogLines[lineKey] == nil then
-				break ;
+				break
 			end
 
 			local line = changelogLines[lineKey]
@@ -249,7 +241,7 @@ function DrawTextarea(x, y, width, height, scrollbar)
 					line = string.upper(string.sub(line, firstLetterPos, firstLetterPos)) .. string.sub(line, firstLetterPos + 1)
 					line, numLines = font:WrapText(line, (width - (90*widgetScale) - textRightOffset) * (loadedFontSize / fontSizeLine))
 					if (lineSeparator + fontSizeTitle) * (j + numLines - 1) > height then
-						break ;
+						break
 					end
 					font:Print("   - ", x, y - (lineSeparator + fontSizeTitle) * j, fontSizeLine, "n")
 					font:Print(line, x + (26*widgetScale), y - (lineSeparator + fontSizeTitle) * j, fontSizeLine, "n")
@@ -258,7 +250,7 @@ function DrawTextarea(x, y, width, height, scrollbar)
 					line = "  " .. line
 					line, numLines = font:WrapText(line, (width - (50*widgetScale)) * (loadedFontSize / fontSizeLine))
 					if (lineSeparator + fontSizeTitle) * (j + numLines - 1) > height then
-						break ;
+						break
 					end
 					font:Print(line, x, y - (lineSeparator + fontSizeTitle) * j, fontSizeLine, "n")
 				end
@@ -403,8 +395,8 @@ function widget:MouseWheel(up, value)
 		local addLines = value * -3 -- direction is retarded
 
 		startLine = startLine + addLines
-		if startLine > totalChangelogLines - textareaMinLines then
-			startLine = totalChangelogLines - textareaMinLines
+		if startLine > totalChangelogLines - maxLines+1 then
+			startLine = totalChangelogLines - maxLines+1
 		end
 		if startLine < 1 then
 			startLine = 1
