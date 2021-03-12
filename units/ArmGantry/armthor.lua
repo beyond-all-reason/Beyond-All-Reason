@@ -129,7 +129,7 @@ return {
 				areaofeffect = 8,
 				avoidfeature = false,
 				beamttl = 1,
-				burst = 20,  		//10
+				burst = 10,
 				burstrate = 0.03333,
 				craterareaofeffect = 0,
 				craterboost = 0,
@@ -146,13 +146,13 @@ return {
 				name = "Heavy Lighting Cannon",
 				noselfdamage = true,
 				range = 640,
-				reloadtime = 2.0,   //1.4
+				reloadtime = 1.4,
 				rgbcolor = "0.5 0.5 1",
 				soundhit = "lashit",
 				soundhitwet = "sizzle",
 				soundstart = "lghthvy1",
 				soundtrigger = true,
-				thickness = 3.0,  //1.5
+				thickness = 1.5,
 				turret = true,
 				weapontype = "LightningCannon",
 				weaponvelocity = 400,
@@ -210,9 +210,10 @@ return {
 					default = 3000,
 				},
 			},
-		}, 
 
-		//weapons get assigned in following order
+
+
+		},
 		weapons = {
 			[1] = {
 				def = "LIGHTNING",
