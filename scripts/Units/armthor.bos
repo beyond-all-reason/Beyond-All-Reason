@@ -9,9 +9,9 @@ flare1, flare2, flare3, flare4, flare5;
 static-var  bMoving, moveSpeed, currentSpeed, animSpeed, restore_delay, gun_1;
 
 // Signal definitions
-#define SIG_AIM				2
-#define SIG_AIM_2			4
-#define SIG_AIM_3			8
+//#define SIG_AIM				2
+//#define SIG_AIM_2			4
+//#define SIG_AIM_3			8
 
 UnitSpeed()
 {
@@ -140,6 +140,7 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
+    set-signal-mask 2 | 4 | 8;
 	turn turret to y-axis <0.000000> speed <45>;
 	turn sleeve to x-axis <0.000000> speed <15.000000>;
 	turn lempslv to y-axis <0> speed <45>;
@@ -170,8 +171,8 @@ SweetSpot(piecenum)
 //===================================
 AimWeapon1(heading, pitch)
 {
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	signal 2; //SIG_AIM;
+	set-signal-mask 2; // SIG_AIM;
 	turn turret to y-axis heading speed <45.000000>;
 	turn sleeve to x-axis <0.000000> - pitch speed <15.000000>;
 	wait-for-turn turret around y-axis;
@@ -224,8 +225,8 @@ if (!gun_1) piecenum = flare2;
 
 AimWeapon2(heading, pitch)
 {
-	signal SIG_AIM_2;
-	set-signal-mask SIG_AIM_2;
+	signal 4; //SIG_AIM_2;
+	set-signal-mask 4; // SIG_AIM_2;
 //	turn lshoulder to x-axis <0.000000> - pitch speed <15.000000>;
 	turn lempslv to y-axis heading speed <45.000000>;
 	wait-for-turn lempslv around y-axis;
@@ -235,12 +236,12 @@ AimWeapon2(heading, pitch)
 
 FireWeapon2()
 {
-		move lempbarrel to z-axis [-2.400000] speed [100.000000];	
-		emit-sfx 1024 + 0 from flare3;
-		sleep 100;
-		wait-for-move lempbarrel along z-axis;
-		move lempbarrel to z-axis [0.000000] speed [3.000000];
-		wait-for-move lempbarrel along z-axis;
+	move lempbarrel to z-axis [-2.400000] speed [100.000000];	
+	emit-sfx 1024 + 0 from flare3;
+	sleep 100;
+	wait-for-move lempbarrel along z-axis;
+	move lempbarrel to z-axis [0.000000] speed [3.000000];
+	wait-for-move lempbarrel along z-axis;
 }
 
 
@@ -251,7 +252,7 @@ AimFromWeapon2(piecenum)
 
 QueryWeapon2(piecenum)
 {
-piecenum = flare3;
+	piecenum = flare3;
 }
 
 //Weapon 3: Right EMP
@@ -259,8 +260,8 @@ piecenum = flare3;
 
 AimWeapon3(heading, pitch)
 {
-	signal SIG_AIM_3;
-	set-signal-mask SIG_AIM_3;
+	signal 8; //SIG_AIM_3;
+	set-signal-mask 8; //SIG_AIM_3;
 //	turn lshoulder to x-axis <0.000000> - pitch speed <15.000000>;
 	turn rempslv to y-axis heading speed <45.000000>;
 	wait-for-turn rempslv around y-axis;
@@ -270,12 +271,12 @@ AimWeapon3(heading, pitch)
 
 FireWeapon3()
 {
-		move rempbarrel to z-axis [-2.400000] speed [100.000000];	
-		emit-sfx 1024 + 0 from flare4;
-		sleep 100;
-		wait-for-move rempbarrel along z-axis;
-		move rempbarrel to z-axis [0.000000] speed [3.000000];
-		wait-for-move rempbarrel along z-axis;
+	move rempbarrel to z-axis [-2.400000] speed [100.000000];	
+	emit-sfx 1024 + 0 from flare4;
+	sleep 100;
+	wait-for-move rempbarrel along z-axis;
+	move rempbarrel to z-axis [0.000000] speed [3.000000];
+	wait-for-move rempbarrel along z-axis;
 }
 
 
@@ -286,7 +287,7 @@ AimFromWeapon3(piecenum)
 
 QueryWeapon3(piecenum)
 {
-piecenum = flare4;
+	piecenum = flare4;
 }
 
 

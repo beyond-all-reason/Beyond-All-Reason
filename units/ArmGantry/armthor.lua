@@ -1,5 +1,3 @@
-local unitName = Spring.I18N('units.names.armthor')
-
 return {
 	armthor = {
 		acceleration = 0.02,
@@ -14,7 +12,7 @@ return {
 		collisionvolumescales = "30 22 30",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
-		description = Spring.I18N('units.descriptions.armthor'),
+		description = "T3 Terminator Tank",
 		energymake = 1.5,
 		energyuse = 1.5,
 		explodeas = "smallExplosionGeneric",
@@ -28,7 +26,7 @@ return {
 		maxvelocity = 2,
 		maxwaterdepth = 18,
 		movementclass = "HTank3",
-		name = unitName,
+		name = "Thor",
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMTHOR.s3o",
 		script = "Units/ARMTHOR.cob",
@@ -58,7 +56,7 @@ return {
 				collisionvolumescales = "31.8865509033 22.2328948975 29.3510131836",
 				collisionvolumetype = "Box",
 				damage = 25000,
-				description = Spring.I18N('units.dead', { name = unitName }),
+				description = "Thor Wreckage",
 				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
@@ -78,7 +76,7 @@ return {
 				collisionvolumescales = "35.0 4.0 6.0",
 				collisionvolumetype = "cylY",
 				damage = 500,
-				description = Spring.I18N('units.heap', { name = unitName }),
+				description = "Panther Heap",
 				energy = 0,
 				featurereclamate = "SMUDGE01",
 				footprintx = 4,
@@ -129,7 +127,7 @@ return {
 				areaofeffect = 8,
 				avoidfeature = false,
 				beamttl = 1,
-				burst = 10,
+				burst = 20,  		//10
 				burstrate = 0.03333,
 				craterareaofeffect = 0,
 				craterboost = 0,
@@ -146,13 +144,13 @@ return {
 				name = "Heavy Lighting Cannon",
 				noselfdamage = true,
 				range = 640,
-				reloadtime = 1.4,
+				reloadtime = 2.0,   //1.4
 				rgbcolor = "0.5 0.5 1",
 				soundhit = "lashit",
 				soundhitwet = "sizzle",
 				soundstart = "lghthvy1",
 				soundtrigger = true,
-				thickness = 1.5,
+				thickness = 3.0,  //1.5
 				turret = true,
 				weapontype = "LightningCannon",
 				weaponvelocity = 400,
@@ -210,16 +208,19 @@ return {
 					default = 3000,
 				},
 			},
+		}, 
 
-
-
-		},
+		//weapons get assigned in following order
 		weapons = {
 			[1] = {
 				def = "LIGHTNING",
 				onlytargetcategory = "SURFACE",
 			},
 			[2] = {
+				def = "EMP",
+				onlytargetcategory = "EMPABLE",
+			},
+			[3] = {
 				def = "EMP",
 				onlytargetcategory = "EMPABLE",
 			},
