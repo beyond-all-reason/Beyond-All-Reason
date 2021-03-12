@@ -9,9 +9,9 @@ flare1, flare2, flare3, flare4, flare5;
 static-var  bMoving, moveSpeed, currentSpeed, animSpeed, restore_delay, gun_1;
 
 // Signal definitions
-//#define SIG_AIM				2
-//#define SIG_AIM_2			4
-//#define SIG_AIM_3			8
+#define SIG_AIM				2
+#define SIG_AIM_2			4
+#define SIG_AIM_3			8
 
 UnitSpeed()
 {
@@ -140,11 +140,13 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-    set-signal-mask 2 | 4 | 8;
+    set-signal-mask 0;
 	turn turret to y-axis <0.000000> speed <45>;
 	turn sleeve to x-axis <0.000000> speed <15.000000>;
 	turn lempslv to y-axis <0> speed <45>;
+	turn lempslv to x-axis <0> speed <45>;
 	turn rempslv to y-axis <0> speed <45>;
+	turn rempslv to x-axis <0> speed <45>;
 }
 
 SetStunned(State)
@@ -171,8 +173,8 @@ SweetSpot(piecenum)
 //===================================
 AimWeapon1(heading, pitch)
 {
-	signal 2; //SIG_AIM;
-	set-signal-mask 2; // SIG_AIM;
+	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
 	turn turret to y-axis heading speed <45.000000>;
 	turn sleeve to x-axis <0.000000> - pitch speed <15.000000>;
 	wait-for-turn turret around y-axis;
@@ -225,11 +227,12 @@ if (!gun_1) piecenum = flare2;
 
 AimWeapon2(heading, pitch)
 {
-	signal 4; //SIG_AIM_2;
-	set-signal-mask 4; // SIG_AIM_2;
-//	turn lshoulder to x-axis <0.000000> - pitch speed <15.000000>;
+	signal SIG_AIM_2;
+	set-signal-mask SIG_AIM_2;
+	turn lempslv to x-axis <0.000000> - pitch speed <15.000000>;
 	turn lempslv to y-axis heading speed <45.000000>;
 	wait-for-turn lempslv around y-axis;
+	wait-for-turn lempslv around x-axis;
 	start-script RestoreAfterDelay();
 	return (1);
 }
@@ -260,11 +263,12 @@ QueryWeapon2(piecenum)
 
 AimWeapon3(heading, pitch)
 {
-	signal 8; //SIG_AIM_3;
-	set-signal-mask 8; //SIG_AIM_3;
-//	turn lshoulder to x-axis <0.000000> - pitch speed <15.000000>;
+	signal SIG_AIM_3;
+	set-signal-mask SIG_AIM_3;
+	turn rempslv to x-axis <0.000000> - pitch speed <15.000000>;
 	turn rempslv to y-axis heading speed <45.000000>;
 	wait-for-turn rempslv around y-axis;
+	wait-for-turn rempslv around x-axis;
 	start-script RestoreAfterDelay();
 	return (1);
 }
