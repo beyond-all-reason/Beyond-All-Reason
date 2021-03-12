@@ -3,8 +3,8 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, turret, shoulder, lempslv, lempbarrel, rempslv, rempbarrel, sleeve, rtbarrel, ltbarrel, tracks,
-flare1, flare2, flare3, flare4, flare5;
+piece  base, turret, lshoulder, rshoulder, lempslv, lempbarrel, rempslv, rempbarrel, sleeve, rtbarrel, ltbarrel, tracks,
+ltbeam, rtbeam, lempbeam, rempbeam, tlflare;
 
 static-var  bMoving, moveSpeed, currentSpeed, animSpeed, restore_delay, gun_1;
 
@@ -108,12 +108,12 @@ Create()
 	bMoving = FALSE;
 	moveSpeed = get (MAX_SPEED);
 	animSpeed = 100;
-	hide flare1;
-	hide flare2;
-	hide flare3;
-	hide flare4;
-	hide flare5;
-	gun_1 = flare1;
+	hide ltbeam;
+	hide rtbeam;
+	hide lempbeam;
+	hide rempbeam;
+	hide tlflare;
+	gun_1 = ltbeam;
 	restore_delay = 3000;
 	start-script SmokeUnit();
 }
@@ -144,9 +144,9 @@ ExecuteRestoreAfterDelay()
 	turn turret to y-axis <0.000000> speed <45>;
 	turn sleeve to x-axis <0.000000> speed <15.000000>;
 	turn lempslv to y-axis <0> speed <45>;
-	turn lempslv to x-axis <0> speed <45>;
+	turn lshoulder to x-axis <0> speed <45>;
 	turn rempslv to y-axis <0> speed <45>;
-	turn rempslv to x-axis <0> speed <45>;
+	turn rshoulder to x-axis <0> speed <45>;
 }
 
 SetStunned(State)
@@ -189,7 +189,7 @@ FireWeapon1()
 	{
 		move ltbarrel to z-axis [-2.400000] speed [500.000000];
 		spin ltbarrel around z-axis speed <360> accelerate <120>;
-		emit-sfx 1024 + 0 from flare2;
+		emit-sfx 1024 + 0 from rtbeam;
 		sleep 100;
 		wait-for-move ltbarrel along z-axis;
 		move ltbarrel to z-axis [0.000000] speed [3.000000];
@@ -200,7 +200,7 @@ FireWeapon1()
 	{
 		move rtbarrel to z-axis [-2.400000] speed [500.000000];
 		spin rtbarrel around z-axis speed <360> accelerate <120>;
-		emit-sfx 1024 + 0 from flare1;
+		emit-sfx 1024 + 0 from ltbeam;
 		sleep 100;
 		wait-for-move rtbarrel along z-axis;
 		move rtbarrel to z-axis [0.000000] speed [3.000000];
@@ -218,8 +218,8 @@ AimFromWeapon1(piecenum)
 
 QueryWeapon1(piecenum)
 {
-if (gun_1) piecenum = flare1;
-if (!gun_1) piecenum = flare2;
+if (gun_1) piecenum = ltbeam;
+if (!gun_1) piecenum = rtbeam;
 }
 
 //Weapon 2: Left EMP
@@ -229,7 +229,7 @@ AimWeapon2(heading, pitch)
 {
 	signal SIG_AIM_2;
 	set-signal-mask SIG_AIM_2;
-	turn lempslv to x-axis <0.000000> - pitch speed <15.000000>;
+	turn lshoulder to x-axis <0.000000> - pitch speed <15.000000>;
 	turn lempslv to y-axis heading speed <45.000000>;
 	wait-for-turn lempslv around y-axis;
 	wait-for-turn lempslv around x-axis;
@@ -240,7 +240,7 @@ AimWeapon2(heading, pitch)
 FireWeapon2()
 {
 	move lempbarrel to z-axis [-2.400000] speed [100.000000];	
-	emit-sfx 1024 + 0 from flare3;
+	emit-sfx 1024 + 0 from lempbeam;
 	sleep 100;
 	wait-for-move lempbarrel along z-axis;
 	move lempbarrel to z-axis [0.000000] speed [3.000000];
@@ -255,7 +255,7 @@ AimFromWeapon2(piecenum)
 
 QueryWeapon2(piecenum)
 {
-	piecenum = flare3;
+	piecenum = lempbeam;
 }
 
 //Weapon 3: Right EMP
@@ -265,7 +265,7 @@ AimWeapon3(heading, pitch)
 {
 	signal SIG_AIM_3;
 	set-signal-mask SIG_AIM_3;
-	turn rempslv to x-axis <0.000000> - pitch speed <15.000000>;
+	turn rshoulder to x-axis <0.000000> - pitch speed <15.000000>;
 	turn rempslv to y-axis heading speed <45.000000>;
 	wait-for-turn rempslv around y-axis;
 	wait-for-turn rempslv around x-axis;
@@ -276,7 +276,7 @@ AimWeapon3(heading, pitch)
 FireWeapon3()
 {
 	move rempbarrel to z-axis [-2.400000] speed [100.000000];	
-	emit-sfx 1024 + 0 from flare4;
+	emit-sfx 1024 + 0 from rempbeam;
 	sleep 100;
 	wait-for-move rempbarrel along z-axis;
 	move rempbarrel to z-axis [0.000000] speed [3.000000];
@@ -291,7 +291,7 @@ AimFromWeapon3(piecenum)
 
 QueryWeapon3(piecenum)
 {
-	piecenum = flare4;
+	piecenum = rempbeam;
 }
 
 
