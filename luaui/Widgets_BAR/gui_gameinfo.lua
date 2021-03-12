@@ -23,6 +23,7 @@ local vcolor = valuegreycolor
 local separator = "::"
 
 local font, font2, loadedFontSize, mainDList, titleRect, chobbyInterface, backgroundGuishader, show
+local maxLines = 20
 
 local teams = Spring.GetTeamList()
 for i = 1, #teams do
@@ -98,8 +99,6 @@ local screenWidthOrg = 540
 local screenHeight = screenHeightOrg
 local screenWidth = screenWidthOrg
 
-local textareaMinLines = 20        -- wont scroll down more, will show at least this amount of lines
-
 local customScale = 1.1
 
 local startLine = 1
@@ -129,6 +128,7 @@ local showOnceMore = false        -- used because of GUI shader delay
 
 local RectRound = Spring.FlowUI.Draw.RectRound
 local UiElement = Spring.FlowUI.Draw.Element
+local UiScroller = Spring.FlowUI.Draw.Scroller
 local elementCorner = Spring.FlowUI.elementCorner
 
 function widget:ViewResize()
@@ -166,7 +166,7 @@ function DrawTextarea(x, y, width, height, scrollbar)
 
 	local fontSizeTitle = 18 * widgetScale
 	local fontSizeDate = 14 * widgetScale
-	local fontSizeLine = 16 * widgetScale
+	local fontSizeLine = 15.5 * widgetScale
 	local lineSeparator = 2 * widgetScale
 
 	local fontColorTitle = { 1, 1, 1, 1 }
@@ -175,7 +175,7 @@ function DrawTextarea(x, y, width, height, scrollbar)
 	local fontColorCommand = { 0.9, 0.6, 0.2, 1 }
 
 	local textRightOffset = scrollbar and scrollbarMargin + scrollbarWidth + scrollbarWidth or 0
-	local maxLines = math.floor((height - 5) / fontSizeLine)
+	maxLines = math.floor(height / (lineSeparator + fontSizeTitle))
 
 	-- textarea scrollbar
 	if scrollbar then
@@ -183,33 +183,14 @@ function DrawTextarea(x, y, width, height, scrollbar)
 			-- only show scroll above X lines
 			local scrollbarTop = y - scrollbarOffsetTop - scrollbarMargin
 			local scrollbarBottom = y - scrollbarOffsetBottom - height + scrollbarMargin
-			local scrollbarPosHeight = math.max(((height - scrollbarMargin - scrollbarMargin) / totalFileLines) * ((height - scrollbarMargin - scrollbarMargin) / 25), scrollbarPosMinHeight)
-			if scrollbarPosHeight > scrollbarTop - scrollbarBottom then
-				scrollbarPosHeight = scrollbarTop - scrollbarBottom
-			end
-			local scrollbarPos = scrollbarTop + (scrollbarBottom - scrollbarTop) * ((startLine - 1) / totalFileLines)
-			scrollbarPos = scrollbarPos + ((startLine - 1) / totalFileLines) * scrollbarPosHeight    -- correct position taking position bar height into account
 
-			-- background
-			gl.Color(scrollbarBackgroundColor)
-			RectRound(
-				x + width - scrollbarMargin - scrollbarWidth,
-				scrollbarBottom - (scrollbarWidth - scrollbarPosWidth),
-				x + width - scrollbarMargin,
-				scrollbarTop + (scrollbarWidth - scrollbarPosWidth),
-				scrollbarWidth / 2.5
-				, 1, 1, 1, 1,
-				{ scrollbarBackgroundColor[1], scrollbarBackgroundColor[2], scrollbarBackgroundColor[3], scrollbarBackgroundColor[4] * 0.66 },
-				{ scrollbarBackgroundColor[1], scrollbarBackgroundColor[2], scrollbarBackgroundColor[3], scrollbarBackgroundColor[4] * 1.25 }
-			)
-			-- bar
-			gl.Color(scrollbarBarColor)
-			RectRound(
-				x + width - scrollbarMargin - (scrollbarWidth * 0.75),
-				scrollbarPos - (scrollbarPosHeight),
-				x + width - scrollbarMargin - (scrollbarWidth * 0.25),
-				scrollbarPos,
-				scrollbarPosWidth / 2.5
+			UiScroller(
+				math.floor(x + width - scrollbarMargin - scrollbarWidth),
+				math.floor(scrollbarBottom - (scrollbarWidth - scrollbarPosWidth)),
+				math.floor(x + width - scrollbarMargin),
+				math.floor(scrollbarTop + (scrollbarWidth - scrollbarPosWidth)),
+				(#fileLines-1) * (lineSeparator + fontSizeTitle),
+				(startLine-1) * (lineSeparator + fontSizeTitle)
 			)
 		end
 	end
@@ -219,13 +200,13 @@ function DrawTextarea(x, y, width, height, scrollbar)
 		font:Begin()
 		local lineKey = startLine
 		local j = 1
-		while j < maxLines do
+		while j < maxLines+1 do
 			-- maxlines is not exact, just a failsafe
 			if (lineSeparator + fontSizeTitle) * j > height then
-				break ;
+				break
 			end
 			if fileLines[lineKey] == nil then
-				break ;
+				break
 			end
 
 			local numLines
@@ -235,7 +216,7 @@ function DrawTextarea(x, y, width, height, scrollbar)
 				local descr = string.sub(line, string.len(string.match(line, '^[ %+a-zA-Z0-9_-]*::')) + 1)
 				descr, numLines = font:WrapText(descr, (width - scrollbarMargin - scrollbarWidth - 250 - textRightOffset) * (loadedFontSize / fontSizeLine))
 				if (lineSeparator + fontSizeTitle) * (j + numLines - 1) > height then
-					break ;
+					break
 				end
 
 				font:SetTextColor(fontColorCommand)
@@ -250,7 +231,7 @@ function DrawTextarea(x, y, width, height, scrollbar)
 				line = "" .. line
 				line, numLines = font:WrapText(line, (width - scrollbarMargin - scrollbarWidth) * (loadedFontSize / fontSizeLine))
 				if (lineSeparator + fontSizeTitle) * (j + numLines - 1) > height then
-					break ;
+					break
 				end
 				font:Print(line, x + (18*widgetScale), y - (lineSeparator + fontSizeTitle) * j, fontSizeLine, "n")
 				j = j + (numLines - 1)
@@ -371,8 +352,8 @@ function widget:MouseWheel(up, value)
 		if startLine < 1 then
 			startLine = 1
 		end
-		if startLine > totalFileLines - textareaMinLines then
-			startLine = totalFileLines - textareaMinLines
+		if startLine > totalFileLines-maxLines then
+			startLine = totalFileLines-maxLines
 		end
 
 		if mainDList then
