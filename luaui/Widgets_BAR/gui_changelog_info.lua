@@ -180,19 +180,13 @@ function DrawTextarea(x, y, width, height, scrollbar)
 			-- only show scroll above X lines
 			local scrollbarTop = y - scrollbarOffsetTop - scrollbarMargin - (scrollbarWidth - scrollbarPosWidth)
 			local scrollbarBottom = y - scrollbarOffsetBottom - height + scrollbarMargin + (scrollbarWidth - scrollbarPosWidth)
-			local scrollbarPosHeight = math.max(((height - scrollbarMargin - scrollbarMargin) / totalChangelogLines) * ((height - scrollbarMargin - scrollbarMargin) / 25), scrollbarPosMinHeight)
-			if scrollbarPosHeight > scrollbarTop - scrollbarBottom then
-				scrollbarPosHeight = scrollbarTop - scrollbarBottom
-			end
-			local scrollbarPos = scrollbarTop + (scrollbarBottom - scrollbarTop) * ((startLine - 1) / totalChangelogLines)
-			scrollbarPos = scrollbarPos + ((startLine - 1) / totalChangelogLines) * scrollbarPosHeight    -- correct position taking position bar height into account
 
 			UiScroller(
 				math.floor(x + width - scrollbarMargin - scrollbarWidth),
 				math.floor(scrollbarBottom - (scrollbarWidth - scrollbarPosWidth)),
 				math.floor(x + width - scrollbarMargin),
 				math.floor(scrollbarTop + (scrollbarWidth - scrollbarPosWidth)),
-				(#changelogLines-1) * (lineSeparator + fontSizeTitle),
+				(#changelogLines) * (lineSeparator + fontSizeTitle),
 				(startLine-1) * (lineSeparator + fontSizeTitle)
 			)
 		end
@@ -395,7 +389,7 @@ function widget:MouseWheel(up, value)
 		local addLines = value * -3 -- direction is retarded
 
 		startLine = startLine + addLines
-		if startLine > totalChangelogLines - maxLines+1 then
+		if startLine >= totalChangelogLines - maxLines then
 			startLine = totalChangelogLines - maxLines+1
 		end
 		if startLine < 1 then

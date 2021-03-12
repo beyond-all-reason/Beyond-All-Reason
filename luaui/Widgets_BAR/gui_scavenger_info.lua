@@ -87,6 +87,8 @@ local titleRect = {}
 local textLines = {}
 local totalTextLines = 0
 
+local maxLines = 20
+
 local myTeamID = Spring.GetMyTeamID()
 
 local showOnceMore = false		-- used because of GUI shader delay
@@ -95,6 +97,7 @@ local font, font2, loadedFontSize, chobbyInterface, titleRect, backgroundGuishad
 
 local RectRound = Spring.FlowUI.Draw.RectRound
 local UiElement = Spring.FlowUI.Draw.Element
+local UiScroller = Spring.FlowUI.Draw.Scroller
 local elementCorner = Spring.FlowUI.elementCorner
 
 function widget:ViewResize()
@@ -134,35 +137,21 @@ function DrawTextarea(x,y,width,height,scrollbar)
 	local fontColorTitle			= {1,1,1,1}
 	local fontColorLine				= {0.8,0.77,0.74,1}
 
-	local maxLines = math.floor((height-5)/fontSizeLine)
+	maxLines = math.floor(height / (lineSeparator + fontSizeTitle))
 
 	-- textarea scrollbar
 	if scrollbar then
 		if (totalTextLines > maxLines or startLine > 1) then	-- only show scroll above X lines
 			local scrollbarTop       = y-scrollbarOffsetTop-scrollbarMargin-(scrollbarWidth-scrollbarPosWidth)
 			local scrollbarBottom    = y-scrollbarOffsetBottom-height+scrollbarMargin+(scrollbarWidth-scrollbarPosWidth)
-			local scrollbarPosHeight = math.max(((height-scrollbarMargin-scrollbarMargin) / totalTextLines) * ((height-scrollbarMargin-scrollbarMargin) / 25), scrollbarPosMinHeight)
-			if scrollbarPosHeight > scrollbarTop-scrollbarBottom then scrollbarPosHeight = scrollbarTop-scrollbarBottom end
-			local scrollbarPos       = scrollbarTop + (scrollbarBottom - scrollbarTop) * ((startLine-1) / totalTextLines)
-			scrollbarPos             = scrollbarPos + ((startLine-1) / totalTextLines) * scrollbarPosHeight	-- correct position taking position bar height into account
 
-			-- background
-			gl.Color(scrollbarBackgroundColor)
-			RectRound(
-				x+width-scrollbarMargin-scrollbarWidth,
-				scrollbarBottom-(scrollbarWidth-scrollbarPosWidth),
-				x+width-scrollbarMargin,
-				scrollbarTop+(scrollbarWidth-scrollbarPosWidth),
-				scrollbarWidth/2
-			)
-			-- bar
-			gl.Color(scrollbarBarColor)
-			RectRound(
-				x+width-scrollbarMargin-scrollbarWidth + (scrollbarWidth - scrollbarPosWidth),
-				scrollbarPos,
-				x+width-scrollbarMargin-(scrollbarWidth - scrollbarPosWidth),
-				scrollbarPos - (scrollbarPosHeight),
-				scrollbarPosWidth/2
+			UiScroller(
+				math.floor(x + width - scrollbarMargin - scrollbarWidth),
+				math.floor(scrollbarBottom - (scrollbarWidth - scrollbarPosWidth)),
+				math.floor(x + width - scrollbarMargin),
+				math.floor(scrollbarTop + (scrollbarWidth - scrollbarPosWidth)),
+				(#textLines) * (lineSeparator + fontSizeTitle),
+				(startLine-1) * (lineSeparator + fontSizeTitle)
 			)
 		end
 	end
@@ -172,12 +161,13 @@ function DrawTextarea(x,y,width,height,scrollbar)
 		font:Begin()
 		local lineKey = startLine
 		local j = 1
-		while j < maxLines do	-- maxlines is not exact, just a failsafe
-			if (lineSeparator+fontSizeTitle)*j > height then
-				break;
+		while j < maxLines+1 do
+			-- maxlines is not exact, just a failsafe
+			if (lineSeparator + fontSizeTitle) * j > height then
+				break
 			end
 			if textLines[lineKey] == nil then
-				break;
+				break
 			end
 
 			local line = textLines[lineKey]
@@ -191,7 +181,7 @@ function DrawTextarea(x,y,width,height,scrollbar)
 				-- line
 				line, numLines = font:WrapText(line, (width-(50 * widgetScale))*(loadedFontSize/fontSizeLine))
 				if (lineSeparator+fontSizeTitle) * (j+numLines-1) > height then
-					break;
+					break
 				end
 				font:Print(line, x, y-(lineSeparator+fontSizeTitle)*j, fontSizeLine, "n")
 				j = j + (numLines - 1)
@@ -308,7 +298,9 @@ function widget:MouseWheel(up, value)
 		local addLines = value*-3 -- direction is retarded
 
 		startLine = startLine + addLines
-		if startLine > totalTextLines - textareaMinLines then startLine = totalTextLines - textareaMinLines end
+		if startLine >= totalTextLines - maxLines then
+			startLine = totalTextLines - maxLines+1
+		end
 		if startLine < 1 then startLine = 1 end
 
 		if textList then
