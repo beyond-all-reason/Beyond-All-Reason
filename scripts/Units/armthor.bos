@@ -227,6 +227,7 @@ if (!gun_1) piecenum = rtbeam;
 
 AimWeapon2(heading, pitch)
 {
+//	wait-for-turn turret around y-axis;
 	signal SIG_AIM_2;
 	set-signal-mask SIG_AIM_2;
 	turn lshoulder to x-axis <0.000000> - pitch speed <15.000000>;
@@ -239,6 +240,7 @@ AimWeapon2(heading, pitch)
 
 FireWeapon2()
 {
+	//set CHANGE_TARGET to 2;
 	move lempbarrel to z-axis [-2.400000] speed [100.000000];	
 	emit-sfx 1024 + 0 from lempbeam;
 	sleep 100;
@@ -250,7 +252,7 @@ FireWeapon2()
 
 AimFromWeapon2(piecenum)
 {
-	piecenum = lempslv;
+	piecenum =  lempslv;  //lempbeam;
 }
 
 QueryWeapon2(piecenum)
@@ -263,6 +265,7 @@ QueryWeapon2(piecenum)
 
 AimWeapon3(heading, pitch)
 {
+//	wait-for-turn turret around y-axis;
 	signal SIG_AIM_3;
 	set-signal-mask SIG_AIM_3;
 	turn rshoulder to x-axis <0.000000> - pitch speed <15.000000>;
@@ -275,6 +278,7 @@ AimWeapon3(heading, pitch)
 
 FireWeapon3()
 {
+	//set CHANGE_TARGET to 2;
 	move rempbarrel to z-axis [-2.400000] speed [100.000000];	
 	emit-sfx 1024 + 0 from rempbeam;
 	sleep 100;
@@ -286,7 +290,7 @@ FireWeapon3()
 
 AimFromWeapon3(piecenum)
 {
-	piecenum = rempslv;
+	piecenum =  rempslv; //rempbeam;
 }
 
 QueryWeapon3(piecenum)
