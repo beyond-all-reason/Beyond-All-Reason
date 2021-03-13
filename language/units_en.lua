@@ -3,9 +3,7 @@ return {
 		units = {
 			dead = "%{name} Wreckage",
 			heap = "%{name} Debris",
-			scavengers = {
-				name = "Scavenger %{name}",
-			},
+			scavenger = "Scavenger %{name}",
 			names = {
 				armaak = "Archangel",
 				armaap = "Advanced Aircraft Plant",

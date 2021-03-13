@@ -104,7 +104,7 @@ function scav_Udef_Post(name, uDef)
 		end
 	end
 
-	-- replace buillists with _scav units
+	-- replace buildlists with _scav units
 	if uDef.buildoptions then
         for k, v in pairs(uDef.buildoptions) do
             if UnitDefs[v..'_scav'] then
@@ -115,27 +115,18 @@ function scav_Udef_Post(name, uDef)
 
 	-- add Scavenger name prefix to wrecks
 	if uDef.featuredefs then
-		if uDef.featuredefs.dead then
-			if uDef.featuredefs.dead.description then
-				uDef.featuredefs.dead.description = "Scavenger "..uDef.featuredefs.dead.description
-			end
-			-- if uDef.featuredefs.dead.metal then
-				-- uDef.featuredefs.dead.metal = math.ceil(uDef.featuredefs.dead.metal*0.5)
-			-- end
+		if uDef.featuredefs.dead and uDef.featuredefs.dead.description then
+				uDef.featuredefs.dead.description = Spring.I18N('units.scavenger', { name = uDef.featuredefs.dead.description })
 		end
-		if uDef.featuredefs.heap then
-			if uDef.featuredefs.heap.description then
-				uDef.featuredefs.heap.description = "Scavenger "..uDef.featuredefs.heap.description
-			end
-			-- if uDef.featuredefs.heap.metal then
-				-- uDef.featuredefs.heap.metal = math.ceil(uDef.featuredefs.heap.metal*0.5)
-			-- end
+
+		if uDef.featuredefs.heap and uDef.featuredefs.heap.description then
+				uDef.featuredefs.heap.description = Spring.I18N('units.scavenger', { name = uDef.featuredefs.heap.description })
 		end
 	end
 
 	-- add Scavenger name prefix to units
 	if uDef.name then
-		uDef.name = "Scavenger "..uDef.name
+		uDef.name = Spring.I18N('units.scavenger', { name = uDef.name })
 	end
   
   if math and math.random then
