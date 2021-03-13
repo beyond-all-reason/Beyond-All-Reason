@@ -221,10 +221,14 @@ return {
 			},
 			[2] = {
 				def = "EMP",
+				maindir = "-1 0 4",
+				maxangledif = 90,
 				onlytargetcategory = "EMPABLE",
 			},
 			[3] = {
 				def = "EMP",
+				maindir = "1 0 4",
+				maxangledif = 90,
 				onlytargetcategory = "EMPABLE",
 			},
 		},
