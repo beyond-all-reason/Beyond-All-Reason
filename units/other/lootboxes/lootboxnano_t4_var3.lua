@@ -1,5 +1,5 @@
 unitName = "lootboxnano_t4_var3"
-humanName = "Printer T4"
+humanName = Spring.I18N('units.names.lootboxnano_t4')
 sizeMultiplier = 2.95
 collisionVolumeScales = "93 94 93"
 footprintx = 4
