@@ -199,7 +199,7 @@ return {
 				soundtrigger = 1,
 				targetmoveerror = 0.3,
 				thickness = 1.2,
-				turret = true,
+				turret = false,
 				weapontype = "BeamLaser",
 				weaponvelocity = 800,
 				customparams = {
