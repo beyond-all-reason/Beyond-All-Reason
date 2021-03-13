@@ -113,7 +113,7 @@ function gadget:FeatureDestroyed(featureID, allyteam)
 	local fx,fy,fz = Spring.GetFeaturePosition(featureID)
 	if fx ~= nil then
 		local fdef = featureList[Spring.GetFeatureDefID(featureID)]
-		if fdef and fdef.minx then
+		if fdef and fdef.minx and fdef.maxx then
 			local x,y,z = fx,fy,fz
 			local rm, mm, re, me, rl = Spring.GetFeatureResources(featureID)
 			if me ~= nil and me > 0 then
