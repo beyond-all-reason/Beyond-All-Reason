@@ -285,13 +285,6 @@ local groups = {
 	antinuke = folder..'antinuke.png',
 }
 
-local unitHumanName = {        -- fallback (if you want to change this, also update: language/en.lua, or it will be overwritten)
-	-- gets filled with unit names from unitdefs, then overwritten by language file names
-}
-local unitTooltip = {        -- fallback (if you want to change this, also update: language/en.lua, or it will be overwritten)
-	-- gets filled with unit tooltips for unitdefs, then overwritten by language file tooltips
-}
-
 local unitBuildPic = {}
 local unitEnergyCost = {}
 local unitMetalCost = {}
@@ -305,7 +298,6 @@ local isMex = {}
 local isWaterUnit = {}
 local unitMaxWeaponRange = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
-	unitHumanName[unitDefID] = unitDef.humanName
 	unitGroup[unitDefID] = 'util'
 
 	if unitDef.name == 'armdl' or unitDef.name == 'cordl' or unitDef.name == 'armlance' or unitDef.name == 'cortitan' or unitDef.name == 'armbeaver' or unitDef.name == 'cormuskrat'
@@ -372,7 +364,6 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.customParams.description_long then
 		unitDescriptionLong[unitDefID] = wrap(unitDef.customParams.description_long, 58)
 	end
-	unitTooltip[unitDefID] = unitDef.tooltip
 	unitIconType[unitDefID] = unitDef.iconType
 	unitEnergyCost[unitDefID] = unitDef.energyCost
 	unitMetalCost[unitDefID] = unitDef.metalCost
@@ -542,11 +533,6 @@ if not showOrderDebug then
 end
 unitOrder = unitsOrdered
 unitsOrdered = nil
-
---for k, unitDefID in pairs(unitOrder) do
---  Spring.Echo(k..'  '..unitHumanName[unitDefID])
---end
-
 
 -- load all icons to prevent briefly showing white unit icons (will happen due to the custom texture filtering options)
 local function cacheUnitIcons()
@@ -790,20 +776,6 @@ end
 
 
 function widget:Initialize()
-	local counterpartID
-
-	for id, _ in pairs(UnitDefNames) do
-		if UnitDefNames[id].customParams and UnitDefNames[id].customParams.isscavenger then
-			counterpartID = string.gsub(id, '_scav', '')
-			unitHumanName[id] = Spring.I18N('units.scavengers.name', { name = Spring.I18N('units.names.' .. counterpartID) })
-			unitTooltip[id] = Spring.I18N('units.descriptions.' .. counterpartID)
-		else
-			unitHumanName[id] = Spring.I18N('units.names.' .. id)
-			unitTooltip[id] = Spring.I18N('units.descriptions.' .. id)
-		end
-
-	end
-
 	hijacklayout()
 
 	iconTypesMap = {}
@@ -1425,7 +1397,7 @@ function widget:DrawScreen()
 							local alt, ctrl, meta, shift = Spring.GetModKeyState()
 							if showTooltip and WG['tooltip'] and not meta then
 								-- when meta: unitstats does the tooltip
-								local text = "\255\215\255\215" .. unitHumanName[uDefID] .. (unitRestricted[uDefID] and "  \255\166\166\166("..Spring.I18N('ui.buildMenu.disabled')..")" or "").. "\n\255\240\240\240" .. unitTooltip[uDefID]
+								local text = "\255\215\255\215" .. UnitDefs[uDefID].humanName .. (unitRestricted[uDefID] and "  \255\166\166\166(" .. Spring.I18N('ui.buildMenu.disabled') .. ")" or "") .. "\n\255\240\240\240" .. UnitDefs[uDefID].tooltip
 								WG['tooltip'].ShowTooltip('buildmenu', text)
 							end
 
@@ -1956,7 +1928,7 @@ function widget:MousePress(x, y, button)
 			end
 			if not disableInput then
 				for cellRectID, cellRect in pairs(cellRects) do
-					if cmds[cellRectID].id and unitHumanName[-cmds[cellRectID].id] and IsOnRect(x, y, cellRect[1], cellRect[2], cellRect[3], cellRect[4]) and not unitRestricted[-cmds[cellRectID].id] then
+					if cmds[cellRectID].id and UnitDefs[-cmds[cellRectID].id].humanName and IsOnRect(x, y, cellRect[1], cellRect[2], cellRect[3], cellRect[4]) and not unitRestricted[-cmds[cellRectID].id] then
 						if button ~= 3 then
 							Spring.PlaySoundFile(sound_queue_add, 0.75, 'ui')
 							if preGamestartPlayer then
