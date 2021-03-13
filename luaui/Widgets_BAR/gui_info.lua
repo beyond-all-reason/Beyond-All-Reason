@@ -482,22 +482,6 @@ function GetColor(colormap, slider)
 end
 
 function widget:Initialize()
-	local counterpartID
-
-	for id, _ in pairs(UnitDefNames) do
-		if unitDefInfo[id] then
-			if UnitDefNames[id].customParams and UnitDefNames[id].customParams.isscavenger then
-				counterpartID = string.gsub(id, '_scav', '')
-				unitDefInfo[id].humanName = Spring.I18N('units.scavengers.name', { name = Spring.I18N('units.names.' .. counterpartID) })
-				unitDefInfo[id].tooltip = Spring.I18N('units.descriptions.' .. counterpartID)
-			else
-				unitDefInfo[id].humanName = Spring.I18N('units.names.' .. id)
-				unitDefInfo[id].tooltip = Spring.I18N('units.descriptions.' .. id)
-			end
-
-		end
-	end
-
 	if WG['lang'] then
 		texts = WG['lang'].getText('info')
 	end
