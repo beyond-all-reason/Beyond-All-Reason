@@ -48,36 +48,35 @@ function addSound(name, file, minDelay, duration, message, unlisted)
 end
 
 -- commanders
-addSound('EnemyCommanderDied', 'EnemyCommanderDied.wav', 1, 1.7, 'An enemy commander has died')
-addSound('FriendlyCommanderDied', 'FriendlyCommanderDied.wav', 1, 1.75, 'A friendly commander has died')
-addSound('ComHeavyDamage', 'ComHeavyDamage.wav', 12, 2.25, 'Your commander is receiving heavy damage')
+addSound('EnemyCommanderDied', 'EnemyCommanderDied.wav', 1, 1.7, Spring.I18N('notifications.enemyCommanderDied'))
+addSound('FriendlyCommanderDied', 'FriendlyCommanderDied.wav', 1, 1.75, Spring.I18N('notifications.friendlyCommanderDied'))
+addSound('ComHeavyDamage', 'ComHeavyDamage.wav', 12, 2.25, Spring.I18N('notifications.commanderDamage'))
 
 -- game status
-addSound('ChooseStartLoc', 'ChooseStartLoc.wav', 90, 2.2, "Choose your starting location")
-addSound('GameStarted', 'GameStarted.wav', 1, 2, 'Battle started')
-addSound('GamePause', 'GamePause.wav', 5, 1, 'Battle paused')
-addSound('PlayerLeft', 'PlayerDisconnected.wav', 1, 1.65, 'A player has disconnected')
-addSound('PlayerAdded', 'PlayerAdded.wav', 1, 2.36, 'A player has been added to the game')
+addSound('ChooseStartLoc', 'ChooseStartLoc.wav', 90, 2.2, Spring.I18N('notifications.startingLocation'))
+addSound('GameStarted', 'GameStarted.wav', 1, 2, Spring.I18N('notifications.gameStarted'))
+addSound('GamePause', 'GamePause.wav', 5, 1, Spring.I18N('notifications.gamePaused'))
+addSound('PlayerLeft', 'PlayerDisconnected.wav', 1, 1.65, Spring.I18N('notifications.playerLeft'))
+addSound('PlayerAdded', 'PlayerAdded.wav', 1, 2.36,  Spring.I18N('notifications.playerAdded'))
 
 -- awareness
 --addSound('IdleBuilder', 'IdleBuilder.wav', 30, 1.9, 'A builder has finished building')
-addSound('UnitsReceived', 'UnitReceived.wav', 4, 1.75, "You've received new units")
-
-addSound('RadarLost', 'RadarLost.wav', 8, 1, 'Radar lost')
-addSound('AdvRadarLost', 'AdvRadarLost.wav', 8, 1.32, 'Advanced radar lost')
-addSound('MexLost', 'MexLost.wav', 8, 1.53, 'Metal extractor lost')
+addSound('UnitsReceived', 'UnitReceived.wav', 4, 1.75, Spring.I18N('notifications.unitsReceived'))
+addSound('RadarLost', 'RadarLost.wav', 8, 1, Spring.I18N('notifications.radarLost'))
+addSound('AdvRadarLost', 'AdvRadarLost.wav', 8, 1.32, Spring.I18N('notifications.advancedRadarLost'))
+addSound('MexLost', 'MexLost.wav', 8, 1.53, Spring.I18N('notifications.metalExtractorLost'))
 
 -- resources
-addSound('YouAreOverflowingMetal', 'YouAreOverflowingMetal.wav', 35, 1.63, 'Your are overflowing metal')
+addSound('YouAreOverflowingMetal', 'YouAreOverflowingMetal.wav', 35, 1.63, Spring.I18N('notifications.overflowingMetal'))
 --addSound('YouAreOverflowingEnergy', 'YouAreOverflowingEnergy.wav', 100, 1.7, 'Your are overflowing energy')
 --addSound('YouAreWastingMetal', 'YouAreWastingMetal.wav', 25, 1.5, 'Your are wasting metal')
 --addSound('YouAreWastingEnergy', 'YouAreWastingEnergy.wav', 35, 1.3, 'Your are wasting energy')
-addSound('WholeTeamWastingMetal', 'WholeTeamWastingMetal.wav', 22, 1.82, 'The whole team is wasting metal')
-addSound('WholeTeamWastingEnergy', 'WholeTeamWastingEnergy.wav', 100, 2.14, 'Your whole team is wasting energy')
+addSound('WholeTeamWastingMetal', 'WholeTeamWastingMetal.wav', 22, 1.82, Spring.I18N('notifications.teamWastingMetal'))
+addSound('WholeTeamWastingEnergy', 'WholeTeamWastingEnergy.wav', 100, 2.14, Spring.I18N('notifications.teamWastingEnergy'))
 --addSound('MetalStorageFull', 'metalstorefull.wav', 40, 1.62, 'Metal storage is full')
 --addSound('EnergyStorageFull', 'energystorefull.wav', 40, 1.65, 'Energy storage is full')
-addSound('LowPower', 'LowPower.wav', 20, 0.95, 'Low power')
-addSound('WindNotGood', 'WindNotGood.wav', 9999999, 3.76, 'On this map, wind is not good for energy production')
+addSound('LowPower', 'LowPower.wav', 20, 0.95, Spring.I18N('notifications.lowPower'))
+addSound('WindNotGood', 'WindNotGood.wav', 9999999, 3.76, Spring.I18N('notifications.lowWind'))
 
 -- added this so they wont get immediately triggered after gamestart
 LastPlay['YouAreOverflowingMetal'] = spGetGameFrame()+300
@@ -88,52 +87,52 @@ LastPlay['WholeTeamWastingMetal'] = spGetGameFrame()+300
 LastPlay['WholeTeamWastingEnergy'] = spGetGameFrame()+300
 
 -- alerts
-addSound('NukeLaunched', 'NukeLaunched.wav', 3, 2, 'Nuclear missile launch detected')
-addSound('LrpcTargetUnits', 'LrpcTargetUnits.wav', 9999999, 3.8, 'Enemy "Long Range Plasma Cannon(s)" (LRPC) are targeting your units')
+addSound('NukeLaunched', 'NukeLaunched.wav', 3, 2, Spring.I18N('notifications.nukeLaunched'))
+addSound('LrpcTargetUnits', 'LrpcTargetUnits.wav', 9999999, 3.8, Spring.I18N('notifications.lrpcAttacking'))
 
 -- unit ready
-addSound('VulcanIsReady', 'VulcanIsReady.wav', 30, 1.16, 'Vulcan is ready')
-addSound('BuzzsawIsReady', 'BuzzsawIsReady.wav', 30, 1.31, 'Buzzsaw is ready')
-addSound('Tech3UnitReady', 'Tech3UnitReady.wav', 9999999, 1.78, 'Tech 3 unit is ready')
+addSound('VulcanIsReady', 'VulcanIsReady.wav', 30, 1.16, Spring.I18N('notifications.vulcanReady'))
+addSound('BuzzsawIsReady', 'BuzzsawIsReady.wav', 30, 1.31, Spring.I18N('notifications.buzzsawReady'))
+addSound('Tech3UnitReady', 'Tech3UnitReady.wav', 9999999, 1.78, Spring.I18N('notifications.t3Ready'))
 
 -- detections
-addSound('T2Detected', 'T2UnitDetected.wav', 9999999, 1.5, 'Tech 2 unit detected')	-- top bar widget calls this
-addSound('T3Detected', 'T3UnitDetected.wav', 9999999, 1.94, 'Tech 3 unit detected')	-- top bar widget calls this
+addSound('T2Detected', 'T2UnitDetected.wav', 9999999, 1.5, Spring.I18N('notifications.t2Detected'))	-- top bar widget calls this
+addSound('T3Detected', 'T3UnitDetected.wav', 9999999, 1.94, Spring.I18N('notifications.t3Detected'))	-- top bar widget calls this
 
-addSound('AircraftSpotted', 'AircraftSpotted.wav', 9999999, 1.25, 'Aircraft spotted')	-- top bar widget calls this
-addSound('MinesDetected', 'MinesDetected.wav', 200, 2.6, 'Warning: mines have been detected')
-addSound('IntrusionCountermeasure', 'StealthyUnitsInRange.wav', 30, 4.8, 'Stealthy units detected within the "Intrusion countermeasure" range')
+addSound('AircraftSpotted', 'AircraftSpotted.wav', 9999999, 1.25, Spring.I18N('notifications.aircraftSpotted'))	-- top bar widget calls this
+addSound('MinesDetected', 'MinesDetected.wav', 200, 2.6, Spring.I18N('notifications.minesDetected'))
+addSound('IntrusionCountermeasure', 'StealthyUnitsInRange.wav', 30, 4.8, Spring.I18N('notifications.stealthDetected'))
 
 -- unit detections
-addSound('LrpcDetected', 'LrpcDetected.wav', 25, 2.3, '"Long Range Plasma Cannon(s)" (LRPC) detected')
-addSound('EMPmissilesiloDetected', 'EmpSiloDetected.wav', 4, 2.1, 'EMP missile silo detected')
-addSound('TacticalNukeSiloDetected', 'TacticalNukeDetected.wav', 4, 2, 'Tactical nuke silo detected')
-addSound('NuclearSiloDetected', 'NuclearSiloDetected.wav', 4, 1.7, 'Nuclear silo detected')
-addSound('NuclearBomberDetected', 'NuclearBomberDetected.wav', 60, 1.6, 'Nuclear bomber detected')
-addSound('JuggernautDetected', 'JuggernautDetected.wav', 9999999, 1.4, 'Juggernaut detected')
-addSound('KorgothDetected', 'KorgothDetected.wav', 9999999, 1.25, 'Korgoth detected')
-addSound('BanthaDetected', 'BanthaDetected.wav', 9999999, 1.25, 'Bantha detected')
-addSound('FlagshipDetected', 'FlagshipDetected.wav', 9999999, 1.4, 'Flagship detected')
-addSound('CommandoDetected', 'CommandoDetected.wav', 9999999, 1.28, 'Commando detected')
-addSound('TransportDetected', 'TransportDetected.wav', 9999999, 1.5, 'Transport located')
-addSound('AirTransportDetected', 'AirTransportDetected.wav', 9999999, 1.38, 'Air transport spotted')
-addSound('SeaTransportDetected', 'SeaTransportDetected.wav', 9999999, 1.95, 'Sea transport located')
+addSound('LrpcDetected', 'LrpcDetected.wav', 25, 2.3, Spring.I18N('notifications.lrpcDetected'))
+addSound('EMPmissilesiloDetected', 'EmpSiloDetected.wav', 4, 2.1, Spring.I18N('notifications.empSiloDetected'))
+addSound('TacticalNukeSiloDetected', 'TacticalNukeDetected.wav', 4, 2, Spring.I18N('notifications.tacticalSiloDetected'))
+addSound('NuclearSiloDetected', 'NuclearSiloDetected.wav', 4, 1.7, Spring.I18N('notifications.nukeSiloDetected'))
+addSound('NuclearBomberDetected', 'NuclearBomberDetected.wav', 60, 1.6, Spring.I18N('notifications.nukeBomberDetected'))
+addSound('JuggernautDetected', 'JuggernautDetected.wav', 9999999, 1.4, Spring.I18N('notifications.t3MobileTurretDetected'))
+addSound('KorgothDetected', 'KorgothDetected.wav', 9999999, 1.25, Spring.I18N('notifications.t3AssaultBotDetected'))
+addSound('BanthaDetected', 'BanthaDetected.wav', 9999999, 1.25, Spring.I18N('notifications.t3AssaultMechDetected'))
+addSound('FlagshipDetected', 'FlagshipDetected.wav', 9999999, 1.4, Spring.I18N('notifications.flagshipDetected'))
+addSound('CommandoDetected', 'CommandoDetected.wav', 9999999, 1.28, Spring.I18N('notifications.commandoDetected'))
+addSound('TransportDetected', 'TransportDetected.wav', 9999999, 1.5, Spring.I18N('notifications.transportDetected'))
+addSound('AirTransportDetected', 'AirTransportDetected.wav', 9999999, 1.38, Spring.I18N('notifications.airTransportDetected'))
+addSound('SeaTransportDetected', 'SeaTransportDetected.wav', 9999999, 1.95, Spring.I18N('notifications.seaTransportDetected'))
 
 -- tutorial explanations (unlisted)
 local td = 'tutorial/'
-addSound('t_welcome', td..'welcome.wav', 9999999, 9.19, "Welcome to BAR, it is your mission to win this battle with both strategic and tactical supremacy. First you need to produce metal and energy.", true)
-addSound('t_buildmex', td..'buildmex.wav', 9999999, 6.31, "Choose the metal extractor and build it on a metal spot, indicated by the rotating circles on the map.", true)
-addSound('t_buildenergy', td..'buildenergy.wav', 9999999, 6.47, "You will need to produce energy to efficiently construct units. Build windmills or solar panels. ", true)
-addSound('t_makefactory', td..'makefactory.wav', 9999999, 8.87, "Well done!  Now you have metal and energy income. It's time to produce mobile units. Choose and build your factory of choice.", true)
-addSound('t_factoryair', td..'factoryair.wav', 9999999, 8.2, "You can now produce aircraft. They are specifically a good support class and give great speed, radar and line of sight.", true)
-addSound('t_factoryairsea', td..'factoryairsea.wav', 9999999, 7.39, "You can now produce seaplanes. These are slightly stronger than t1 aircraft and are able to land under water.", true)
-addSound('t_factorybots', td..'factorybots.wav', 9999999, 8.54, "You can produce mobile bot units now. Bots are fast and light and can climb steeper hills than vehicles. They are cheaper than vehicles, but are also weaker.", true)
-addSound('t_factoryhovercraft', td..'factoryhovercraft.wav', 9999999, 6.91, "You can now make hovercraft. They are good for ambushing, but their armor will not endure in heavy battle.", true)
-addSound('t_factoryvehicles', td..'factoryvehicles.wav', 9999999, 11.92, "You can produce vehicles and tanks. Vehicles are well armored and have heavier weapons. They are slower and more expensive and cannot traverse steep pathways.", true)
-addSound('t_factoryships', td..'factoryships.wav', 9999999, 15.82, "You can now produce ships. The heaviest unit class with the most armor and weapon range. Be aware for submarines and torpedo aircraft that make ship graveyards.", true)
-addSound('t_readyfortech2', td..'readyfortecht2.wav', 9999999, 9.4, "Your economy is now strong enough to build a Tech 2 Factory and units. Or you can maximize t1 unit production and try to win in numbers.", true)
-addSound('t_duplicatefactory', td..'duplicatefactory.wav', 9999999, 6.1, "It is more efficient to assist the existing factory than to make multiple factories of the same kind.", true)
-addSound('t_paralyzer', td..'paralyzer.wav', 9999999, 9.66, "You are being attacked by paralyzer units. Units that have been paralyzed cannot function and wont be able to shoot or move until they have been restored.", true)
+addSound('t_welcome', td..'welcome.wav', 9999999, 9.19, Spring.I18N('notifications.tutorialWelcome'), true)
+addSound('t_buildmex', td..'buildmex.wav', 9999999, 6.31, Spring.I18N('notifications.tutorialBuildMetal'), true)
+addSound('t_buildenergy', td..'buildenergy.wav', 9999999, 6.47, Spring.I18N('notifications.tutorialBuildenergy'), true)
+addSound('t_makefactory', td..'makefactory.wav', 9999999, 8.87, Spring.I18N('notifications.tutorialBuildFactory'), true)
+addSound('t_factoryair', td..'factoryair.wav', 9999999, 8.2, Spring.I18N('notifications.tutorialFactoryAir'), true)
+addSound('t_factoryairsea', td..'factoryairsea.wav', 9999999, 7.39, Spring.I18N('notifications.tutorialFactorySeaplanes'), true)
+addSound('t_factorybots', td..'factorybots.wav', 9999999, 8.54, Spring.I18N('notifications.tutorialFactoryBots'), true)
+addSound('t_factoryhovercraft', td..'factoryhovercraft.wav', 9999999, 6.91, Spring.I18N('notifications.tutorialFactoryHovercraft'), true)
+addSound('t_factoryvehicles', td..'factoryvehicles.wav', 9999999, 11.92, Spring.I18N('notifications.tutorialFactoryVehicles'), true)
+addSound('t_factoryships', td..'factoryships.wav', 9999999, 15.82, Spring.I18N('notifications.tutorialFactoryShips'), true)
+addSound('t_readyfortech2', td..'readyfortecht2.wav', 9999999, 9.4, Spring.I18N('notifications.tutorialT2Ready'), true)
+addSound('t_duplicatefactory', td..'duplicatefactory.wav', 9999999, 6.1, Spring.I18N('notifications.tutorialDuplicateFactory'), true)
+addSound('t_paralyzer', td..'paralyzer.wav', 9999999, 9.66, Spring.I18N('notifications.tutorialParalyzer'), true)
 
 
 local unitsOfInterest = {}
