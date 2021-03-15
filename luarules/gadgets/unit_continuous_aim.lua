@@ -77,6 +77,7 @@ local convertedUnits = {
 	[UnitDefNames.corkarg.id] = 5,
 	[UnitDefNames.corbhmth.id] = 5,
 	[UnitDefNames.armguard.id] = 5,
+	[UnitDefNames.armamb.id] = 5,
 	[UnitDefNames.corpun.id] = 5,
 	[UnitDefNames.cortoast.id] = 5,
 	[UnitDefNames.corbats.id] = 5,
