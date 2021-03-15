@@ -4,64 +4,50 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base,flare,turret,door1,door2,barrel,bore,aimpoint;
+piece  base, flare, turret, door1, door2, barrel, bore, aimpoint;
 
-static-var  AIMING, Static_Var_1, Static_Var_2, gun_2, wpn1_lasthead, wpn2_lasthead, statechg_DesiredState, statechg_StateChanging,restore_delay,oldTurretOpen, oldrestore_delay, oldstatechg_DesiredState, oldstatechg_StateChanging, oldReloading;
-#define SIG_AIM				2
-#define SIG_AIM_2			8
+static-var  turretOpen, restoreDelay, stunned, trajectoryMode;
+#define SIGNAL_AIM			1
+#define LOW_TRAJECTORY		0
+#define HIGH_TRAJECTORY		1
 
-activatescr()
+openTurret()
 {
-	if( TRUE )
-	{
-		turn door1 to z-axis <0> speed <300>;
-		turn door2 to z-axis <0> speed <300>;
-		wait-for-turn door1 around z-axis;
-		sleep 100;
-	}
-	if( TRUE )
-	{
-		move door1 to y-axis [0] speed [17];
-		move door2 to y-axis [0] speed [17];
-		move turret to y-axis [0] speed [17];
-		sleep 700;
-	}
-	if( TRUE )
-	{
-		move bore to z-axis [0] speed [12];
-		move barrel to z-axis [0] speed [18];
-		sleep 316;
-	}
+	turn door1 to z-axis <0> speed <300>;
+	turn door2 to z-axis <0> speed <300>;
+	wait-for-turn door1 around z-axis;
+	sleep 100;
+
+	move door1 to y-axis [0] speed [17];
+	move door2 to y-axis [0] speed [17];
+	move turret to y-axis [0] speed [17];
+	sleep 700;
+
+	move bore to z-axis [0] speed [12];
+	move barrel to z-axis [0] speed [18];
+	sleep 316;
+
 	sleep 10;
 	return (0);
 }
 
-deactivatescr()
-{
-	
-	
-	if( TRUE )
-	{   
-		turn turret to y-axis <0> speed <100>;
-		move bore to z-axis [-6] speed [12];
-		move barrel to z-axis [-9] speed [18];
-		sleep 316;
-	}
+closeTurret()
+{ 
+	turn turret to y-axis <0> speed <100>;
+	move bore to z-axis [-6] speed [12];
+	move barrel to z-axis [-9] speed [18];
+	sleep 316;
 
-	if( TRUE )
-	{
-		move door1 to y-axis [17] speed [17];
-		move door2 to y-axis [17] speed [17];
-		move turret to y-axis [-17] speed [17];
-		sleep 700;
-	}
-	if( TRUE )
-	{
-		turn door1 to z-axis <-90> speed <300>;
-		turn door2 to z-axis <90> speed <300>;
-		wait-for-turn door1 around z-axis;
-		sleep 100;
-	}
+	move door1 to y-axis [17] speed [17];
+	move door2 to y-axis [17] speed [17];
+	move turret to y-axis [-17] speed [17];
+	sleep 700;
+
+	turn door1 to z-axis <-90> speed <300>;
+	turn door2 to z-axis <90> speed <300>;
+	wait-for-turn door1 around z-axis;
+	sleep 100;
+
 	sleep 10;
 	return (0);;
 }
@@ -91,16 +77,15 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 		}
 		sleep sleeptime;
 	}
-	return (0);
 }
 
 Go()
 {
-	if( !oldTurretOpen )
+	if( !turretOpen )
 	{
-		call-script activatescr();
+		call-script openTurret();
 	}
-	oldTurretOpen = 1;
+	turretOpen = 1;
 	set ARMORED to 0;
 	return (0);
 }
@@ -108,238 +93,147 @@ Go()
 Stop()
 {
 	set ARMORED to 1;
-	oldTurretOpen = 0;
-	call-script deactivatescr();
+	turretOpen = 0;
+	call-script closeTurret();
 	return (0);
 }
 
-InitState()
+RequestState(requestedstate)
 {
-	oldstatechg_DesiredState = FALSE;
-	oldstatechg_StateChanging = FALSE;
-	statechg_DesiredState = FALSE;
-	statechg_StateChanging = FALSE;
-	return (0);
+	trajectoryMode = requestedstate;
 }
 
-oldRequestState(requestedstate, currentstate)
-{
-	if( oldstatechg_StateChanging )
-	{
-		oldstatechg_DesiredState = requestedstate;
-		return (0);
-	}
-	oldstatechg_StateChanging = TRUE;
-	currentstate = oldstatechg_DesiredState;
-	oldstatechg_DesiredState = requestedstate;
-	while( oldstatechg_DesiredState != currentstate )
-	{
-		if( oldstatechg_DesiredState == 0 )
-		{
-			call-script Go();
-			currentstate = 0;
-		}
-		if( oldstatechg_DesiredState == 1 )
-		{
-			call-script Stop();
-			currentstate = 1;
-		}
-	}
-	oldstatechg_StateChanging = FALSE;
-}
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState )
-		{
-			Static_Var_2 = 0;
-			currentstate = 1;
-		}
-		else
-		{
-			Static_Var_2 = 1;
-			currentstate = 0;
-		}
-	}
-	statechg_StateChanging = FALSE;
-}
-
-static-var aimy1velocity, aimy1target, aimy1position, gameFrame;
-
-static-var  Stunned;
 ExecuteRestoreAfterDelay()
 {
-    if (Stunned) {
+    if (stunned)
+	{
         return (1);
     }
+
 	set-signal-mask 0;
 	turn turret to y-axis <0.000000> speed <100.016484>;
 	turn turret to x-axis <0.000000> speed <50.005495>;
 	wait-for-turn turret around y-axis;
 	wait-for-turn turret around x-axis;
 	
-	aimy1position = 0;
-	aimy1velocity = 0;
-	start-script oldRequestState(1);
+	start-script Stop();
 }
+
 SetStunned(State)
 {
-    Stunned = State;
-	if (!Stunned) {
+    stunned = State;
+	if (!stunned)
+	{
 	    start-script ExecuteRestoreAfterDelay();
 	}
 }
 RestoreAfterDelay()
 {
-	set-signal-mask SIG_AIM;
-	sleep oldrestore_delay;
+	set-signal-mask SIGNAL_AIM;
+	sleep restoreDelay;
 	start-script ExecuteRestoreAfterDelay();
 }
 
 Create()
 {
 	hide flare;
-	oldstatechg_DesiredState=1;
-	Static_Var_1 = 0;
-	Static_Var_2 = 0;
-	gun_2 = barrel;
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-	restore_delay = 100;
-	oldTurretOpen = 0;
-	oldReloading = 0;
-	oldrestore_delay = 10000;
-	AIMING = 0;
-	call-script InitState();
+	turretOpen = 0;
+	restoreDelay = 10000;
 	start-script SmokeUnit();
-	start-script oldRequestState(1);
-	start-script RequestState(1);
-	set-signal-mask 2;
+
 	while( get BUILD_PERCENT_LEFT )
 	{
 		sleep 1000;
 	}
-			//call-script Go();
+
 	start-script RestoreAfterDelay();
 	return (0);
 }
 
 Activate()
 {
-	start-script RequestState(0);
+	signal SIGNAL_AIM;
+	start-script RequestState(HIGH_TRAJECTORY);
 }
 
 Deactivate()
 {
-	start-script RequestState(1);
+	signal SIGNAL_AIM;
+	start-script RequestState(LOW_TRAJECTORY);
 }
 
-Reload1()
+aimCommon(heading, pitch)
 {
-	sleep 2100;
-	oldReloading = 0;
-	return (0);
-}
-
-Reload2()
-{
-	sleep 3780;
-	oldReloading = 0;
-	return (0);
-}
-
-/*SetMaxReloadTime(Func_Var_1)
-{
-	oldrestore_delay = Func_Var_1 * 5;
-	return (0);
-}*/
-
-//-------------------------------CONSTANT ACCELERATION TURRET TURNING---------------------------
-// MaxVelocity and acceleration are in degrees per frame (not second!)
-// Jerk is the minimum velocity of the turret
-// A high precision requirement can result in overshoots if desired 
-// (c) CC BY NC ND Beherith mysterme@gmail.com
-#define MAX_AIMY1_VELOCITY <4.00>
-#define AIMY1_ACCELERATION <0.25>
-#define AIMY1_JERK <1.0>
-#define AIMY1_PRECISION <1.2>
-#define AIMY1_RESTORE_SPEED <1.0>
-
-static-var aimy1delta, timetozero, deceleratethreshold;
-
-AimPrimary(heading, pitch)
-{
-	start-script oldRequestState(0);
-	signal SIG_AIM;
-	if(AIMING == 1 OR Static_Var_2 == 1 OR gun_2 == 1 )
-	 {
-	 	return(0);
-	 }
-	AIMING = 1;
-	while( oldTurretOpen == 0 )
+	while( turretOpen == 0 )
 	{
 		sleep 250;
 	}
+
 	turn turret to y-axis heading speed <30.000000>;
 	turn turret to x-axis <0.000000> - pitch speed <45.000000>;
 	wait-for-turn turret around y-axis;
 	wait-for-turn turret around x-axis;
+}
+
+AimPrimary(heading, pitch)
+{
+	start-script Go();
+
+	if(trajectoryMode != LOW_TRAJECTORY)
+	 {
+	 	return(0);
+	 }
+	
+	signal SIGNAL_AIM;
+	set-signal-mask SIGNAL_AIM;
+
+	call-script aimCommon(heading, pitch);
 	start-script RestoreAfterDelay();
-	wpn1_lasthead = heading;
-	AIMING = 0;
+
+	// Prevent low-trajectory "bonus shots" while high-trajectory is reloading
+	var reloading;
+	reloading = (get GAME_FRAME) < (get WEAPON_RELOADSTATE(2));
+	if( reloading )
+	{
+		return(0);
+	}
+	
 	return (1);
 }
 
 AimSecondary(heading, pitch)
 {
-	start-script oldRequestState(0);
-	signal SIG_AIM;
-	if(AIMING == 1 OR Static_Var_2 == 0 OR gun_2 == 1 )
+	start-script Go();
+
+	if(trajectoryMode != HIGH_TRAJECTORY)
 	{
 		return(0);
 	}
-	AIMING = 1;
-	while( oldTurretOpen == 0 )
-	{
-		sleep 250;
-	}
-	turn turret to y-axis heading speed <30.000000>;
-	turn turret to x-axis <0.000000> - pitch speed <45.000000>;
-	wait-for-turn turret around y-axis;
-	wait-for-turn turret around x-axis;
+
+	signal SIGNAL_AIM;
+	set-signal-mask SIGNAL_AIM;
+
+	call-script aimCommon(heading, pitch);
 	start-script RestoreAfterDelay();
-	wpn2_lasthead = heading;
-	AIMING = 0;
 	return (1);
+}
+
+fireCommon()
+{
+	emit-sfx 1024 + 0 from flare;
+	move barrel to z-axis [-4.000000] speed [500.000000];
+	sleep 150;
+	move barrel to z-axis [0.000000] speed [3.000000];
 }
 
 FirePrimary()
 {
-	oldReloading = 1;
-	start-script Reload1();
-	emit-sfx 1024 + 0 from flare;
-	move barrel to z-axis [-4.000000] speed [500.000000];
-	sleep 150;
-	move barrel to z-axis [0.000000] speed [3.000000];
+	call-script fireCommon();
 }
 
 FireSecondary()
 {
-	oldReloading = 1;
-	start-script Reload1();
-	emit-sfx 1024 + 0 from flare;
-	move barrel to z-axis [-4.000000] speed [500.000000];
-	sleep 150;
-	move barrel to z-axis [0.000000] speed [3.000000];
+	call-script fireCommon();
 }
 
 AimFromPrimary(piecenum)
@@ -365,7 +259,6 @@ QuerySecondary(piecenum)
 SweetSpot(piecenum)
 {
 	piecenum = base;
-	return (0);
 }
 
 Killed(severity, corpsetype)
