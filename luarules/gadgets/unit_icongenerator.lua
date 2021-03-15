@@ -979,9 +979,9 @@ else
 	local function GetFaction(unitdef)
 		local name = unitdef.name
 		if string.find(name, 'arm') then
-			return 'armada'
+			return 'arm'
 		elseif string.find(name, 'cor') then
-			return 'cortex'
+			return 'cor'
 		elseif string.find(name, 'chicken') then
 			return 'chicken'
 		end
