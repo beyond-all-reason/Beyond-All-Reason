@@ -18,3 +18,5 @@ For the "chicken" sound effects created after july 2020
 
 CC BY NC ND applies to all sound effects in:
 /sounds/commands/
+/sounds/function/
+/sounds/movement/
