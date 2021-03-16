@@ -200,7 +200,7 @@ function PutScavAlliesInScavTeam(n)
 		if (AI or LuaAI) and scavAllies[i] ~= GaiaTeamID then
 			local units = Spring.GetTeamUnits(scavAllies[i])
 			for u = 1,#units do
-				scavteamhasplayers = true
+				--scavteamhasplayers = true
 				Spring.DestroyUnit(units[u], false, true)
 				Spring.KillTeam(scavAllies[i])
 			end
