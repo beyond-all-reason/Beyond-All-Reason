@@ -158,25 +158,52 @@ else -- Unsynced part
                 --Spring.Echo(unitName)
                 UsedFrame = CurrentFrame
 
-                -- ENABLE SOUNDS (remove -- to enable new OK sound Movement + Weapon for units)
 
-                -- local posx, posy, posz = Spring.GetUnitPosition(unitID)
-                -- if UnitSoundEffects[unitName] and UnitSoundEffects[unitName].BaseSoundMovementType then
-                --     --Spring.Echo(unitName.." base sound")
-                --     Spring.PlaySoundFile(UnitSoundEffects[unitName].BaseSoundMovementType, 0.8, posx, posy, posz, 'unitreply')
-                -- else
-                --     --Spring.Echo("Generic base sound") 
-                --     Spring.PlaySoundFile(DefaultSoundEffects.BaseSoundMovementType, 0.8, posx, posy, posz, 'unitreply')
-                -- end
 
-                -- if UnitSoundEffects[unitName] and UnitSoundEffects[unitName].BaseSoundWeaponType then
-                --     --Spring.Echo(unitName.." base sound")
-                --     Spring.PlaySoundFile(UnitSoundEffects[unitName].BaseSoundWeaponType, 0.8, posx, posy, posz, 'sfx')
-                -- else
-                --     --Spring.Echo("Generic base sound") 
-                --     Spring.PlaySoundFile(DefaultSoundEffects.BaseSoundWeaponType, 0.8, posx, posy, posz, 'sfx')
-                -- end
+                local posx, posy, posz = Spring.GetUnitPosition(unitID)
 
+                --[[
+                if UnitSoundEffects[unitName] and UnitSoundEffects[unitName].BaseSoundMovementType then
+                    --Spring.Echo(unitName.." base sound")
+                    local sound = UnitSoundEffects[unitName].BaseSoundMovementType
+                    if sound[2] then
+                        Spring.PlaySoundFile(sound[math.random(1,#sound)], 0.8, posx, posy, posz, 'ui')
+                    else
+                        Spring.PlaySoundFile(sound, 0.8, posx, posy, posz, 'ui')
+                    end
+                    --Spring.PlaySoundFile(UnitSoundEffects[unitName].BaseSoundMovementType, 0.8, posx, posy, posz, 'unitreply')
+                else
+                    --Spring.Echo("Generic base sound") 
+                    local sound = DefaultSoundEffects.BaseSoundMovementType
+                    if sound[2] then
+                        Spring.PlaySoundFile(sound[math.random(1,#sound)], 0.8, posx, posy, posz, 'ui')
+                    else
+                        Spring.PlaySoundFile(sound, 0.8, posx, posy, posz, 'ui')
+                    end
+                    --Spring.PlaySoundFile(DefaultSoundEffects.BaseSoundMovementType, 0.8, posx, posy, posz, 'unitreply')
+                end
+
+
+                if UnitSoundEffects[unitName] and UnitSoundEffects[unitName].BaseSoundWeaponType then
+                    --Spring.Echo(unitName.." base sound")
+                    local sound = UnitSoundEffects[unitName].BaseSoundWeaponType
+                    if sound[2] then
+                        Spring.PlaySoundFile(sound[math.random(1,#sound)], 0.8, posx, posy, posz, 'ui')
+                    else
+                        Spring.PlaySoundFile(sound, 0.8, posx, posy, posz, 'ui')
+                    end
+                    --Spring.PlaySoundFile(UnitSoundEffects[unitName].BaseSoundWeaponType, 0.8, posx, posy, posz, 'sfx')
+                else
+                    --Spring.Echo("Generic base sound") 
+                    local sound = DefaultSoundEffects.BaseSoundWeaponType
+                    if sound[2] then
+                        Spring.PlaySoundFile(sound[math.random(1,#sound)], 0.8, posx, posy, posz, 'ui')
+                    else
+                        Spring.PlaySoundFile(sound, 0.8, posx, posy, posz, 'ui')
+                    end
+                    --Spring.PlaySoundFile(DefaultSoundEffects.BaseSoundWeaponType, 0.8, posx, posy, posz, 'sfx')
+                end
+                --]]
 
 
 
