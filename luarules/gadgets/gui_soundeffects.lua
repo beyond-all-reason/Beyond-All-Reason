@@ -33,93 +33,175 @@ DefaultSoundEffects = {
 }
 
 UnitSoundEffects = {
-    -- ARMADA BOTS
+    -- ARMCOM
+    armcom = {
+    BaseSoundSelectType   = "arm-com-sel",
+    BaseSoundMovementType = {"arm-com-ok-1","arm-com-ok-2","arm-com-ok-3","arm-com-ok-4",},
+    BaseSoundWeaponType   = "laser-tiny",
+    },
+
+    -- ARMADA HOVERCRAFT
+    armsh = {
+    BaseSoundSelectType   = "arm-hov-small-sel",
+    BaseSoundMovementType = "arm-hov-small-ok",
+    BaseSoundWeaponType   = "laser-tiny",
+    },
+    armmh = {
+    BaseSoundSelectType   = "arm-hov-small-sel",
+    BaseSoundMovementType = "arm-hov-small-ok",
+    BaseSoundWeaponType   = "rocket-small",
+    },
+    armch = {
+    BaseSoundSelectType   = "arm-hov-small-sel",
+    BaseSoundMovementType = "arm-hov-small-ok",
+    BaseSoundWeaponType   = "conalt-small",
+    },
+    armah = {
+    BaseSoundSelectType   = "arm-hov-small-sel",
+    BaseSoundMovementType = "arm-hov-small-ok",
+    BaseSoundWeaponType   = "aarocket-small",
+    },
+    armanac = {
+    BaseSoundSelectType   = "arm-hov-small-sel",
+    BaseSoundMovementType = "arm-hov-small-ok",
+    BaseSoundWeaponType   = "plasma-small",
+    },
+    armthovr = {
+    BaseSoundSelectType   = "arm-hov-large-sel",
+    BaseSoundMovementType = "arm-hov-large-ok",
+    BaseSoundWeaponType   = "transport-large",
+    },
+    armlun = {
+    BaseSoundSelectType   = "arm-hov-large-sel",
+    BaseSoundMovementType = "arm-hov-large-ok",
+    BaseSoundWeaponType   = "laser-large",
+    },
+
+
+    -- ARMADA T1 BOTS
     armflea = {
-    BaseSoundSelectType   = "arm-bot-tiny-sel",
+    BaseSoundSelectType   = "arm-bot-tiny-ok",
     BaseSoundMovementType = "arm-bot-tiny-ok",
-    BaseSoundWeaponType   = "arm-laser-tiny",
+    BaseSoundWeaponType   = "laser-tiny",
     },
     armpw = {
-    BaseSoundSelectType   = "arm-bot-tiny-sel",
+    BaseSoundSelectType   = "arm-bot-tiny-ok",
     BaseSoundMovementType = "arm-bot-tiny-ok",
-    BaseSoundWeaponType   = "arm-fastemgalt-small",
+    BaseSoundWeaponType   = "fastemgalt-small",
     },
     armham = {
-    BaseSoundSelectType   = "arm-bot-small-sel",
+    BaseSoundSelectType   = "arm-bot-small-ok",
     BaseSoundMovementType = "arm-bot-small-ok",
-    BaseSoundWeaponType   = "arm-plasma-small",
+    BaseSoundWeaponType   = "plasma-small",
     },
     armrock = {
-    BaseSoundSelectType   = "arm-bot-small-sel",
+    BaseSoundSelectType   = "arm-bot-small-ok",
     BaseSoundMovementType = "arm-bot-small-ok",
-    BaseSoundWeaponType   = "arm-rocket-small",
+    BaseSoundWeaponType   = "rocketalt-small",
     },
     armjeth = {
-    BaseSoundSelectType   = "arm-bot-small-sel",
+    BaseSoundSelectType   = "arm-bot-small-ok",
     BaseSoundMovementType = "arm-bot-small-ok",
-    BaseSoundWeaponType   = "arm-aarocket-small",
+    BaseSoundWeaponType   = "aarocket-small",
     },
     armwar = {
-    BaseSoundSelectType   = "arm-bot-small-sel",
+    BaseSoundSelectType   = "arm-bot-small-ok",
     BaseSoundMovementType = "arm-bot-medium-ok",
-    BaseSoundWeaponType   = "arm-laser-medium",
+    BaseSoundWeaponType   = "laser-medium",
     },
     armck = {
-    BaseSoundSelectType   = "arm-bot-small-sel",
+    BaseSoundSelectType   = "arm-bot-small-ok",
     BaseSoundMovementType = "arm-bot-small-ok",
-    BaseSoundWeaponType   = "arm-conalt-small",
+    BaseSoundWeaponType   = "conalt-small",
     },
     armrectr = {
-    BaseSoundSelectType   = "arm-bot-tiny-sel",
+    BaseSoundSelectType   = "arm-bot-tiny-ok",
     BaseSoundMovementType = "arm-bot-tiny-ok",
-    BaseSoundWeaponType   = "arm-rez-small",
+    BaseSoundWeaponType   = "rez-small",
+    },
+
+    -- CORTEX T1 BOTS
+    corak = {
+    BaseSoundSelectType   = "cor-bot-tiny-sel",
+    BaseSoundMovementType = "cor-bot-tiny-ok",
+    BaseSoundWeaponType   = "laser-small",
+    },
+    corthud = {
+    BaseSoundSelectType   = "cor-bot-small-sel",
+    BaseSoundMovementType = "cor-bot-small-ok",
+    BaseSoundWeaponType   = "plasma-small",
+    },
+    corstorm = {
+    BaseSoundSelectType   = "cor-bot-small-sel",
+    BaseSoundMovementType = "cor-bot-small-ok",
+    BaseSoundWeaponType   = "rocketalt-small",
+    },
+    corcrash = {
+    BaseSoundSelectType   = "cor-bot-small-sel",
+    BaseSoundMovementType = "cor-bot-small-ok",
+    BaseSoundWeaponType   = "aarocket-small",
+    },
+    corck = {
+    BaseSoundSelectType   = "cor-bot-small-sel",
+    BaseSoundMovementType = "cor-bot-small-ok",
+    BaseSoundWeaponType   = "conalt-small",
+    },
+    cornecro = {
+    BaseSoundSelectType   = "cor-bot-tiny-sel",
+    BaseSoundMovementType = "cor-bot-tiny-ok",
+    BaseSoundWeaponType   = "rez-small",
     },
 
     -- ARMADA VEHICLES
     armfav = {
     BaseSoundSelectType   = "arm-veh-tiny-sel",
     BaseSoundMovementType = "arm-veh-tiny-ok",
-    BaseSoundWeaponType   = "arm-laser-tiny",
+    BaseSoundWeaponType   = "laser-tiny",
     },
     armflash = {
     BaseSoundSelectType   = "arm-veh-small-sel",
     BaseSoundMovementType = "arm-veh-small-ok",
-    BaseSoundWeaponType   = "arm-fastemg-small",
+    BaseSoundWeaponType   = "fastemg-small",
     },
     armart = {
     BaseSoundSelectType   = "arm-tnk-small-sel",
     BaseSoundMovementType = "arm-tnk-small-ok",
-    BaseSoundWeaponType   = "arm-arty-small",
+    BaseSoundWeaponType   = "arty-small",
     },
     armsam = {
     BaseSoundSelectType   = "arm-veh-small-sel",
     BaseSoundMovementType = "arm-veh-small-ok",
-    BaseSoundWeaponType   = "arm-aarocket-small",
+    BaseSoundWeaponType   = "aarocket-small",
     },
     armpincer = {
     BaseSoundSelectType   = "arm-tnk-small-amph-sel",
     BaseSoundMovementType = "arm-tnk-small-amph-ok",
-    BaseSoundWeaponType   = "arm-plasma-small",
+    BaseSoundWeaponType   = "plasma-small",
     },
     armstump = {
     BaseSoundSelectType   = "arm-tnk-small-sel",
     BaseSoundMovementType = "arm-tnk-small-ok",
-    BaseSoundWeaponType   = "arm-plasma-small",
+    BaseSoundWeaponType   = "plasma-small",
     },
     armjanus = {
     BaseSoundSelectType   = "arm-tnk-small-sel",
     BaseSoundMovementType = "arm-tnk-small-ok",
-    BaseSoundWeaponType   = "arm-rocket-medium",
+    BaseSoundWeaponType   = "rocket-medium",
     },
     armcv = {
     BaseSoundSelectType   = "arm-tnk-small-sel",
     BaseSoundMovementType = "arm-tnk-small-ok",
-    BaseSoundWeaponType   = "arm-conalt-small",
+    BaseSoundWeaponType   = "conalt-small",
     },
     armbeaver = {
     BaseSoundSelectType   = "arm-tnk-small-amph-sel",
     BaseSoundMovementType = "arm-tnk-small-amph-ok",
-    BaseSoundWeaponType   = "arm-conalt-small",
+    BaseSoundWeaponType   = "conalt-small",
+    },
+    armmlv = {
+    BaseSoundSelectType   = "arm-veh-tiny-sel",
+    BaseSoundMovementType = "arm-veh-tiny-ok",
+    BaseSoundWeaponType   = "mine-small",
     },
 }
 
@@ -162,48 +244,48 @@ else -- Unsynced part
 
                 local posx, posy, posz = Spring.GetUnitPosition(unitID)
 
-                --[[
-                if UnitSoundEffects[unitName] and UnitSoundEffects[unitName].BaseSoundMovementType then
-                    --Spring.Echo(unitName.." base sound")
-                    local sound = UnitSoundEffects[unitName].BaseSoundMovementType
-                    if sound[2] then
-                        Spring.PlaySoundFile(sound[math.random(1,#sound)], 0.8, posx, posy, posz, 'ui')
-                    else
-                        Spring.PlaySoundFile(sound, 0.8, posx, posy, posz, 'ui')
-                    end
-                    --Spring.PlaySoundFile(UnitSoundEffects[unitName].BaseSoundMovementType, 0.8, posx, posy, posz, 'unitreply')
-                else
-                    --Spring.Echo("Generic base sound") 
-                    local sound = DefaultSoundEffects.BaseSoundMovementType
-                    if sound[2] then
-                        Spring.PlaySoundFile(sound[math.random(1,#sound)], 0.8, posx, posy, posz, 'ui')
-                    else
-                        Spring.PlaySoundFile(sound, 0.8, posx, posy, posz, 'ui')
-                    end
-                    --Spring.PlaySoundFile(DefaultSoundEffects.BaseSoundMovementType, 0.8, posx, posy, posz, 'unitreply')
-                end
+                
+                -- if UnitSoundEffects[unitName] and UnitSoundEffects[unitName].BaseSoundMovementType then
+                --     --Spring.Echo(unitName.." base sound")
+                --     local sound = UnitSoundEffects[unitName].BaseSoundMovementType
+                --     if sound[2] then
+                --         Spring.PlaySoundFile(sound[math.random(1,#sound)], 0.8, posx, posy, posz, 'ui')
+                --     else
+                --         Spring.PlaySoundFile(sound, 0.8, posx, posy, posz, 'ui')
+                --     end
+                --     --Spring.PlaySoundFile(UnitSoundEffects[unitName].BaseSoundMovementType, 0.8, posx, posy, posz, 'unitreply')
+                -- else
+                --     --Spring.Echo("Generic base sound") 
+                --     local sound = DefaultSoundEffects.BaseSoundMovementType
+                --     if sound[2] then
+                --         Spring.PlaySoundFile(sound[math.random(1,#sound)], 0.8, posx, posy, posz, 'ui')
+                --     else
+                --         Spring.PlaySoundFile(sound, 0.8, posx, posy, posz, 'ui')
+                --     end
+                --     --Spring.PlaySoundFile(DefaultSoundEffects.BaseSoundMovementType, 0.8, posx, posy, posz, 'unitreply')
+                -- end
 
 
-                if UnitSoundEffects[unitName] and UnitSoundEffects[unitName].BaseSoundWeaponType then
-                    --Spring.Echo(unitName.." base sound")
-                    local sound = UnitSoundEffects[unitName].BaseSoundWeaponType
-                    if sound[2] then
-                        Spring.PlaySoundFile(sound[math.random(1,#sound)], 0.8, posx, posy, posz, 'ui')
-                    else
-                        Spring.PlaySoundFile(sound, 0.8, posx, posy, posz, 'ui')
-                    end
-                    --Spring.PlaySoundFile(UnitSoundEffects[unitName].BaseSoundWeaponType, 0.8, posx, posy, posz, 'sfx')
-                else
-                    --Spring.Echo("Generic base sound") 
-                    local sound = DefaultSoundEffects.BaseSoundWeaponType
-                    if sound[2] then
-                        Spring.PlaySoundFile(sound[math.random(1,#sound)], 0.8, posx, posy, posz, 'ui')
-                    else
-                        Spring.PlaySoundFile(sound, 0.8, posx, posy, posz, 'ui')
-                    end
-                    --Spring.PlaySoundFile(DefaultSoundEffects.BaseSoundWeaponType, 0.8, posx, posy, posz, 'sfx')
-                end
-                --]]
+                -- if UnitSoundEffects[unitName] and UnitSoundEffects[unitName].BaseSoundWeaponType then
+                --     --Spring.Echo(unitName.." base sound")
+                --     local sound = UnitSoundEffects[unitName].BaseSoundWeaponType
+                --     if sound[2] then
+                --         Spring.PlaySoundFile(sound[math.random(1,#sound)], 0.8, posx, posy, posz, 'ui')
+                --     else
+                --         Spring.PlaySoundFile(sound, 0.8, posx, posy, posz, 'ui')
+                --     end
+                --     --Spring.PlaySoundFile(UnitSoundEffects[unitName].BaseSoundWeaponType, 0.8, posx, posy, posz, 'sfx')
+                -- else
+                --     --Spring.Echo("Generic base sound") 
+                --     local sound = DefaultSoundEffects.BaseSoundWeaponType
+                --     if sound[2] then
+                --         Spring.PlaySoundFile(sound[math.random(1,#sound)], 0.8, posx, posy, posz, 'ui')
+                --     else
+                --         Spring.PlaySoundFile(sound, 0.8, posx, posy, posz, 'ui')
+                --     end
+                --     --Spring.PlaySoundFile(DefaultSoundEffects.BaseSoundWeaponType, 0.8, posx, posy, posz, 'sfx')
+                -- end
+                
 
 
 

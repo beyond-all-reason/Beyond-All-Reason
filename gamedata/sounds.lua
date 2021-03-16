@@ -219,8 +219,46 @@ for i=1,#files do
 		pitchmod = 0.02,
 		gainmod  = 0.2*0.3,
 		dopplerscale = 0,
-		maxconcurrent = 3,
-		rolloff = 0,
+		maxconcurrent = 2,
+		rolloff = 0.05,
+		priority = 1,
+		--in3d = false,
+	}
+end
+
+-- UNIT MOVEMENT SOUNDS
+local files = VFS.DirList("sounds/movement/")
+local t = Sounds.SoundItems
+for i=1,#files do
+	local fileName = files[i]
+	fileNames = string.sub(fileName, 17, string.find(fileName, ".wav") -1)
+	t[fileNames] = {
+		file     = fileName;
+		gain = 1.2*0.3,
+		pitchmod = 0.04,
+		gainmod  = 0.2*0.3,
+		dopplerscale = 0,
+		maxconcurrent = 1,
+		rolloff = 0.05,
+		priority = 1,
+		--in3d = false,
+	}
+end
+
+-- UNIT FUNCTION/WEAPON SOUNDS
+local files = VFS.DirList("sounds/function/")
+local t = Sounds.SoundItems
+for i=1,#files do
+	local fileName = files[i]
+	fileNames = string.sub(fileName, 17, string.find(fileName, ".wav") -1)
+	t[fileNames] = {
+		file     = fileName;
+		gain = 1.2*0.3,
+		pitchmod = 0.02,
+		gainmod  = 0.2*0.3,
+		dopplerscale = 0,
+		maxconcurrent = 1,
+		rolloff = 0.1,
 		priority = 1,
 		--in3d = false,
 	}
