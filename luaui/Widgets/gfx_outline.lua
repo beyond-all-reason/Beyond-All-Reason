@@ -52,8 +52,8 @@ local USE_MATERIAL_INDICES = true -- for future material indices based outline e
 -- File path Constants
 -----------------------------------------------------------------
 
-local shadersDir = "LuaUI/Widgets_BAR/Shaders/"
-local luaShaderDir = "LuaUI/Widgets_BAR/Include/"
+local shadersDir = "LuaUI/Widgets/Shaders/"
+local luaShaderDir = "LuaUI/Widgets/Include/"
 
 -----------------------------------------------------------------
 -- Global Variables

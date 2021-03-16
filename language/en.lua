@@ -539,7 +539,7 @@ return {
 			singleplayerpause = 'Pause when in settings/quit/lobby',
 			singleplayerpause_descr = 'Exclusively in singleplayer mode...\n\nPauses the game when showing the settings/quit window or lobby',
 			customwidgets = 'Allow custom widgets',
-			customwidgets_descr = 'enable loading of custom widgets (placed inside spring/luaui/widgets_bar)',
+			customwidgets_descr = 'enable loading of custom widgets (placed inside spring/luaui/widgets)',
 			profiler = 'Widget profiler',
 			framegrapher = 'Frame grapher',
 			autocheat = 'Auto enable cheats for $VERSION',

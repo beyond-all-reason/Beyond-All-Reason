@@ -32,7 +32,7 @@ VFS.Include("modules/i18n/i18n.lua")
 local gl = gl
 
 local CONFIG_FILENAME = LUAUI_DIRNAME .. 'Config/' .. Game.gameShortName .. '.lua'
-local WIDGET_DIRNAME = LUAUI_DIRNAME .. 'Widgets_BAR/'
+local WIDGET_DIRNAME = LUAUI_DIRNAME .. 'Widgets/'
 local WIDGET_DIRNAME_MAP = LUAUI_DIRNAME .. 'Widgets/'
 
 local SELECTOR_BASENAME = 'selector.lua'

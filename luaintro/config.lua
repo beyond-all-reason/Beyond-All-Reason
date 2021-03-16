@@ -22,7 +22,7 @@ SAFEDRAW = false  --// requires SAFEWRAP to work
 
 --//
 VFSMODE = VFS.RAW_FIRST
-allow_map_mutators = (Spring.GetModOptions and tonumber(Spring.GetModOptions().allowmapmutators) or 1) ~= 0 
+allow_map_mutators = (Spring.GetModOptions and tonumber(Spring.GetModOptions().allowmapmutators) or 1) ~= 0
 if allow_map_mutators then
   VFSMODE = VFS.MAP .. VFS.MOD .. VFS.BASE
 end
@@ -39,7 +39,7 @@ if LUA_NAME == "LuaUI" then
 
 	ADDON_DIRS     = {
 		LUA_DIRNAME .. 'Addons/';
-		LUA_DIRNAME .. 'Widgets_BAR/';
+		LUA_DIRNAME .. 'Widgets/';
 		LUA_DIRNAME .. 'SystemAddons/';
 		LUA_DIRNAME .. 'SystemWidgets/';
 		LUA_DIRNAME .. 'chili/';

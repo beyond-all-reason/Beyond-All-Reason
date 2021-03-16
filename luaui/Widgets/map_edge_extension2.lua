@@ -43,7 +43,7 @@ local colorTex = (mapBorderStyle == 'texture' and realTex) or gridTex
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-local luaShaderDir = "LuaUI/Widgets_BAR/Include/"
+local luaShaderDir = "LuaUI/Widgets/Include/"
 local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
 
 --------------------------------------------------------------------------------
