@@ -24,10 +24,10 @@ return {
     name = 'ScavengersAI',
     desc = 'Infinite Games'
   },
-  {
-    name = 'STAI',
-    desc = 'STAI - Shard AI'
-  },
+  --{
+    --name = 'STAI',
+    --desc = 'STAI - Shard AI'
+  --},
   {
     name = 'Shard',
     desc = 'Shard - Basic Shard AI'
