@@ -112,7 +112,7 @@ local RectRound = Spring.FlowUI.Draw.RectRound
 local UiElement = Spring.FlowUI.Draw.Element
 local UiSelectHighlight = Spring.FlowUI.Draw.SelectHighlight
 
-local chobbyInterface, widgetScale, dlistGuishader, lastStart, receivedTexts
+local chobbyInterface, widgetScale, dlistGuishader, lastStart
 
 local texts = {
 	title = 'Widget Selector',
@@ -153,7 +153,7 @@ function widget:Initialize()
 		if widgetHandler.allowUserWidgets then
 			buttons[3] = texts.button_disallowuserwidgets
 		else
-			buttons[3] = texts.button_llowuserwidgets
+			buttons[3] = texts.button_allowuserwidgets
 		end
 	end
 
@@ -355,28 +355,6 @@ function widget:DrawScreen()
 			WG['guishader'].DeleteDlist('widgetselector')
 		end
 		return
-	end
-
-	if not receivedTexts and WG['lang'] then		-- not sure why but this seems not availible yet aperently
-		texts = WG['lang'].getText('widgetselector')
-		receivedTexts = true
-
-		buttons = { --see MouseRelease for which functions are called by which buttons
-			[1] = texts.button_reloadluaui,
-			[2] = texts.button_unloadallwidgets,
-			[3] = texts.button_disallowuserwidgets,
-			[4] = texts.button_resetluaui,
-			[5] = texts.button_factoryresetluaui,
-		}
-		if not allowuserwidgets then
-			buttons[3] = ''
-		else
-			if widgetHandler.allowUserWidgets then
-				buttons[3] = texts.button_disallowuserwidgets
-			else
-				buttons[3] = texts.button_llowuserwidgets
-			end
-		end
 	end
 
 	UpdateList()
