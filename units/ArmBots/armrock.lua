@@ -40,7 +40,7 @@ return {
 		turnrate = 1271.90002,
 		upright = true,
 		customparams = {
-			description_long = "Rocko is a light rocket Bot used mainly to push the frontline towards opponent's base. It can outrange light laser turrets so if your enemy expands solely with a Commander, Rockos can force him to retreat. In bigger numbers and with repairing support of resurrection Bots they are able to take down more advanced defensive structures. Very ineffective against fast mobile units, watch out for A.K./Peewees! To protect them use your Commander/Constructors to build progressing defense. In comparison to their CORTEX counterpart (Storms) they are a bit faster, but weaker at the same time",
+			longdescription = Spring.I18N('units.longDescriptions.armrock'),
 			model_author = "Kaiser",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armbots",

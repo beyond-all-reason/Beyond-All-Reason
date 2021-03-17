@@ -40,7 +40,7 @@ return {
 		turnrate = 1391.5,
 		upright = true,
 		customparams = {
-			description_long = "A.K. is a light infantry Bot which is cheap and quick to build. Proves useful for scouting and taking down unguarded structures like metal extractors and early eco. It is armed with light, but precise laser with a little longer range than PeeWee, so with  little microing skills you can outrange them eaisily. In late T1 warfare A.K.'s can be used for ambushing Commanders and speedy skirmishing. However, light armor and relatively short range makes them very vulnerable to defensive towers and riot tanks.",
+			longdescription = Spring.I18N('units.longDescriptions.corak'),
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "corbots",

@@ -96,7 +96,7 @@ return {
 		},
 		customparams = {
 			area_mex_def = "armmex",
-			description_long = "Beaver is an amphibious construction vehicle, which can travel on land and underwater equally well allowing easy expansion between islands, under rivers and across seas. Its build menu includes some water based units like underwater metal extractors, tidal generators and most importantly the amphibious complex, a lab that includes T2 amphibious tanks and Bots. As all amphibious units it can easily cross stepper hills unlike regular vehicles. It can be destroyed by torpedoes so avoid submarines, launchers and destroyers. It is wise to use pairs of cons for expansion, so they can heal each other and build defensive structures faster. This makes them immune to light assault units like fleas/jeffys.",
+			longdescription = Spring.I18N('units.longDescriptions.armbeaver'),
 			model_author = "Beherith",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armvehicles",

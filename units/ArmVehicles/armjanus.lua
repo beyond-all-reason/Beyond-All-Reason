@@ -44,7 +44,7 @@ return {
 		turninplacespeedlimit = 1.29228,
 		turnrate = 271,
 		customparams = {
-			description_long = "The Janus is a heavy dual rocket tank. Its slow moving speed and fire rate makes it susceptible to groups of fast moving units like PeeWees, but once it shoots it deals massive AoE damage, which can eliminate virtually all Bots (except Warriors) in a single blow. Combine with Samsons (rocket trucks) and repairing units to achieve devastating effect on enemy defenses. It is also a perfect unit for destroying Commanders, as only 5 shots is enough to deal lethal damage. It requires some good micro, so focus!",
+			longdescription = Spring.I18N('units.longDescriptions.armjanus'),
 			model_author = "Beherith",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armvehicles",

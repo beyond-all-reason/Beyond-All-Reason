@@ -47,7 +47,7 @@ return {
 		wingangle = 0.06315,
 		wingdrag = 0.135,
 		customparams = {
-			description_long = "The Thunder is a bomber, designed for destroying buildings. A little bit weaker than its CORTEX counterpart - Shadow. It drops bombs over the target and makes a flyby to reload its ammunition. It can strike every 9 seconds. Always scout first and combine with fighters to eliminate enemy's airwall before  bombing. Click A for attack and drag your RMB to execute a carpet bombing, or use area attack command to strike targets within a circle.",
+			longdescription = Spring.I18N('units.longDescriptions.armthund'),
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armaircraft",

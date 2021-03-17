@@ -292,7 +292,6 @@ local unitGroup = {}
 local unitRestricted = {}
 local isBuilder = {}
 local isFactory = {}
-local unitDescriptionLong = {}
 local unitIconType = {}
 local isMex = {}
 local isWaterUnit = {}
@@ -361,9 +360,6 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 		unitGroup[unitDefID] = 'aa'
 	end
 
-	if unitDef.customParams.description_long then
-		unitDescriptionLong[unitDefID] = wrap(unitDef.customParams.description_long, 58)
-	end
 	unitIconType[unitDefID] = unitDef.iconType
 	unitEnergyCost[unitDefID] = unitDef.energyCost
 	unitMetalCost[unitDefID] = unitDef.metalCost

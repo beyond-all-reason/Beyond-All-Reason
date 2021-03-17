@@ -48,7 +48,7 @@ return {
 		wingangle = 0.06315,
 		wingdrag = 0.06,
 		customparams = {
-			description_long = "Fink is a cheap and fast-moving air scout, that is not armed with any weapons, but a huge line of sight. It is used to gain intelligence on what your enemy is planning, and where he keeps his most important units. Information is the most valuable asset on the battlefield, knowing your opponent's plans you can prepare your counter strikes early, making his moves inefficient. In lategame a constant stream of scouts helps your artillery units, improving their aim. They can also be used as a cheap distraction swarm that takes the fire from anti-air during bombing runs.",
+			longdescription = Spring.I18N('units.longDescriptions.corfink'),
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "coraircraft",

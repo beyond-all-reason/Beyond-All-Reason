@@ -47,7 +47,7 @@ return {
 			basename = "base",
 			cannon1name = "flare1",
 			cannon2name = "flare2",
-			description_long = "Rovers are supercheap and fast to build vehicles used for scouting and damaging the early eco structures. It is the fastest arm vehicle but due to light armor any close confrontation will be lethal to it. Evade laser towers and destroy metal extractors to slow down your foe's expansion! In T2 warfare Jeffies come as an effective counter to slow shooting units, like snipers, penetrators and artillery. When produced constantly and sent to the front they can pull the heavy fire on themselves while your T2 units deal damage to artillery.",
+			longdescription = Spring.I18N('units.longDescriptions.armfav'),
 			driftratio = "0.6",
 			firingceg = "",
 			flare1name = "flare1",

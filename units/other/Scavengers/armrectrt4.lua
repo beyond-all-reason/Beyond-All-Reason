@@ -48,7 +48,7 @@ return {
 		upright = true,
 		workertime = 5000,
 		customparams = {
-			description_long = "Rector is a resurrection Bot which can turn wrecks into brand new army members or reclaim them to get back your metal! It is fast and cheap to build, therefore it can serve as and ideal solution for reclaiming trees, rocks and other structures scattered across the map. It is essential to combine resurrection Bots with any attacking units so they can repair and resurrect/reclaim wrecks in real-time constantly reinforcing your army. It can be used to obtain constructors of the other fraction by resurrecting enemies wrecks.",
+			longdescription = Spring.I18N('units.longDescriptions.armrectrt4'),
 			model_author = "Kaiser",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armbots",

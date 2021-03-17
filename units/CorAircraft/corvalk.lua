@@ -43,7 +43,7 @@ return {
 		turnrate = 550,
 		verticalspeed = 3.75,
 		customparams = {
-			description_long = "The Valkyrie is an airborne transportation unit. It can pick up all T1 land based units and T2, with exception of heavy ones, like Fatboy or Goliath. Use it for unexpected unit drops bypassing your enemy's defense line, but don't forget to scout first for any anti air units. Drop your commander into their bases to Dgun all structures and humiliate your opponents. Can be used for transporting nano towers too, which enables you to move your build power where you currently need it.",
+			longdescription = Spring.I18N('units.longDescriptions.corvalk'),
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			paralyzemultiplier = 0.025,

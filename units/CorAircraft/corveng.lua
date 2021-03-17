@@ -116,7 +116,7 @@ return {
 				weapontype = "MissileLauncher",
 				weaponvelocity = 850,
 				customparams = {
-					description_long = "Avenger is a fast-moving fighter jet that is designed for eliminating air units. It is the most effective form of T1 air defense that can access all parts of the map to get rid of any air threats. In large packs it is also able to destroy weak land based structures, like nano towers. Always put your fighters on patrol in front of your base, so they attack any aircraft moving in vicinity. Send fighters with your bombing runs to disable opponent's fighter wall.",
+					longdescription = Spring.I18N('units.longDescriptions.corveng'),
 					light_skip = true,
 				},
 				damage = {

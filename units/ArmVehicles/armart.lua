@@ -50,7 +50,7 @@ return {
 			basename = "base",
 			canareaattack = 1,
 			cannon1name = "gun",
-			description_long = "Shellshocker is an artillery vehicle used to take down T1 defenses, especially High Laser Turrets. It can outrange all T1 defense towers except coastal defense plasma batteries. Shooting its plasma shells along a parabolic trajectory they are obviously helpless in close quarters combat.  Always keep them protected by Stumpies/Flashes, or your own defensive structures. Don't forget to have targets in your radar's range or scouted.",
+			longdescription = Spring.I18N('units.longDescriptions.armart'),
 			driftratio = "0.2",
 			flare1name = "flare",
 			kickback = "-6.25",

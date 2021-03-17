@@ -40,7 +40,7 @@ return {
 		turnrate = 1285.69995,
 		upright = true,
 		customparams = {
-			description_long = "Jethro is a cheap mobile anti air (AA) Bot, that can easily take down light aircrafts, like scouts, or transporters. Always send a few with your army to protect it from EMP drones/gunships or commander drop tactics. Remember that it has no land-to-land weapons, so it is not able to defend itself. In bigger numbers it can even prevent bombing runs. It is able to walk underwater - combine it with amphibious units!",
+			longdescription = Spring.I18N('units.longDescriptions.armjeth'),
 			model_author = "Kaiser, PtaQ",
 			normaltex = "unittextures/Arm_normal.dds",
 			prioritytarget = "air",

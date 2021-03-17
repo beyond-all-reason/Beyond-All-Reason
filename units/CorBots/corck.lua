@@ -79,7 +79,7 @@ return {
 		},
 		customparams = {
 			area_mex_def = "cormex",
-			description_long = "A construction Bot is able to build basic T1 structures like the ones made by the Commander. Moreover it can build some more advanced land and air defense towers, advanced solar generators and most importantly the T2 Bot lab. It is slightly slower and weaker than vehicle constructor, but it can climb stepper hills, so it is effective in expansion on mountainous terrain. Each Construction Bot increases the player's energy and metal storage capacity by 50. It is wise to use pairs of cons for expansion, so they can heal each other and build defensive structures faster. This makes them immune to light assault units like fleas/jeffys.",
+			longdescription = Spring.I18N('units.longDescriptions.corck'),
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "corbots",
