@@ -47,7 +47,7 @@ return {
 		wingangle = 0.045,
 		wingdrag = 0.135,
 		customparams = {
-			description_long = "The Specialized Thunder T4 is a huge bomber with both matching strength and firepower.",
+			longdescription = Spring.I18N('units.longDescriptions.armthundt4'),
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armaircraft",

@@ -40,7 +40,7 @@ return {
 		turninplacespeedlimit = 2.904,
 		turnrate = 1807.79993,
 		customparams = {
-			description_long = "Fleas are supercheap and fast to build Bots used for scouting and damaging the early eco structures of enemies. It is faster than all Bots and most vehicles but any close confrontation will be lethal to it. Evade laser towers and destroy metal extractors to slow down your foe’s expansion! In T2 warfare fleas come as an effective counter to slow shooting units, like snipers, penetrators and artillery. When produced constantly and sent to the front they can pull the heavy fire on themselves while your T2 units deal damage to artillery.",
+			longdescription = Spring.I18N('units.longDescriptions.armflea'),
 			model_author = "Kaiser",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armbots",

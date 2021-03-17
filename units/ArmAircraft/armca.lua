@@ -78,7 +78,7 @@ return {
 		},
 		customparams = {
 			area_mex_def = "armmex",
-			description_long = "A Construction Aircraft is able to build basic T1 structures like the ones made by the Commander. Moreover it can build some more advanced land and air defense towers, advanced solar generators and most importantly the T2 Aircraft Plant. Due to their speed, the highest amongst constructors, it may be used for quick expansions and reclaiming in areas far from your base. It can also access the whole map, as it doesn't care about any natural obstacles. It has a very low HP, so keep away from enemy's anti air units. Due to little build power you may want to use multiple air cons at once. Each Construction Aircraft increases the player's energy and metal storage capacity by 25.",
+			longdescription = Spring.I18N('units.longDescriptions.armca'),
 			model_author = "FireStorm, Flaka",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armaircraft",

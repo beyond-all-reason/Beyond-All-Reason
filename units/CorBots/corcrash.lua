@@ -40,7 +40,7 @@ return {
 		turnrate = 1278.79993,
 		upright = true,
 		customparams = {
-			description_long = "The Crasher is a cheap mobile anti air (AA) Bot, that can easily take down light aircrafts, like scouts, or transporters. Always send a few with your army to protect it from EMP drones/gunships or commander drop tactics. Remember that it has no land-to-land weapons, so it is not able to defend itself. In bigger numbers it can prevent bombing runs. It is able to walk underwater - combine it with amphibious units!",
+			longdescription = Spring.I18N('units.longDescriptions.corcrash'),
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",
 			prioritytarget = "air",

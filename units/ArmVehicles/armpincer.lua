@@ -48,7 +48,7 @@ return {
 		customparams = {
 			basename = "base",
 			cannon1name = "barrel",
-			description_long = "A pincer is a light amphibious tank which can travel on land and underwater equally well. It is weaker than most land based tanks, so to use it effectively avoid direct fire exchange and try to surprise your opponent by destroying undefended targets near the shoreline. Don't forget to send one or two amphibious constructors with your assault to reclaim left wrecks and claim metal spots on the way.",
+			longdescription = Spring.I18N('units.longDescriptions.armpincer'),
 			driftratio = "0.3",
 			firingceg = "barrelshot-small",
 			flare1name = "emit",

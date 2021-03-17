@@ -48,7 +48,7 @@ return {
 		customparams = {
 			basename = "base",
 			cannon1name = "cannon1",
-			description_long = "It's an insanely huge variant of the Stumpy-Class assault tank, which has been modded and supersized to an enormous giant. Heavy Air Support is needed to effectively destroy these monsters",
+			longdescription = Spring.I18N('units.longDescriptions.armrattet4'),
 			driftratio = "0.3",
 			firingceg = "barrelshot-large",
 			flare1name = "flare1",

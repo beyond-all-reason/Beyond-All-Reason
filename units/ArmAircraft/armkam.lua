@@ -37,7 +37,7 @@ return {
 		turninplaceanglelimit = 360,
 		turnrate = 700,
 		customparams = {
-			description_long = "The Banshee is a light gunship that can deal damage to land based units. It has very weak armor, that can be shattered by T1 anti air with ease, so always send them in packs and scout before striking. It is a weapon of surprise, try to keep it away from your foe's radars before attacking. If you succeed to put your gunships into an unguarded base, or over hostile Commander it will have no chance to survive. An effective attacking order is: nano towers -> AA towers,units -> eco and labs.",
+			longdescription = Spring.I18N('units.longDescriptions.armkam'),
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armaircraft",

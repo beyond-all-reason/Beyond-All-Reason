@@ -44,7 +44,7 @@ return {
 		wingangle = 0.06315,
 		wingdrag = 0.185,
 		customparams = {
-			description_long = "The Freedom Fighter is a fast moving fighter jet that is designed for eliminating air units. It is the most effective form of T1 air defense that can access all parts of the map to get rid of any air threats. In large packs, it is also able to destroy weak land-based structures, like nano towers. Always put your fighters on patrol in front of your base, so they attack any aircraft moving in the vicinity. Send fighters with your bombing runs to disable opponent's fighter wall before your bombers come to deliver the final blow.",
+			longdescription = Spring.I18N('units.longDescriptions.armfig'),
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armaircraft",
