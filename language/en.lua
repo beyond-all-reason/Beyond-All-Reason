@@ -104,15 +104,6 @@ return {
 		persecond = 'per second',
 		totaldmg = 'Total Dmg',
 	},
-	widgetselector = {
-		title = 'Widget Selector',
-		button_reloadluaui = 'Reload LuaUI',
-		button_unloadallwidgets = 'Unload All Widgets',
-		button_disallowuserwidgets = 'Disallow User Widgets',
-		button_allowuserwidgets = 'Allow User Widgets',
-		button_resetluaui = 'Reset LuaUI',
-		button_factoryresetluaui = 'Factory Reset LuaUI',
-	},
 	options = {
 		basic = 'Basic',
 		advanced = 'Advanced',
