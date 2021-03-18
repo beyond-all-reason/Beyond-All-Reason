@@ -9,3 +9,8 @@ Spring.I18N.loadFile('language/tips_en.lua')
 Spring.I18N.languages = {
 	en = "English",
 }
+
+function Spring.I18N.setLanguage(language)
+	--TODO: set font file for Latin vs Asian glyphs here
+	Spring.I18N.setLocale(language)
+end
