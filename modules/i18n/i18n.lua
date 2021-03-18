@@ -6,12 +6,6 @@ Spring.I18N.loadFile('language/interface_en.lua')
 Spring.I18N.loadFile('language/units_en.lua')
 Spring.I18N.loadFile('language/tips_en.lua')
 
-local languages = {
-	en = {
-		name = "English"
-	}
+Spring.I18N.languages = {
+	en = "English",
 }
-
-function Spring.I18N.getLanguages()
-	return languages
-end
