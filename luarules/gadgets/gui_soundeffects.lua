@@ -13,8 +13,8 @@ function gadget:GetInfo()
 end
 
 CommandSoundEffects = {
-    Move = "cmd-move",
-    LineMove = "cmd-move-shorter",   
+    Move = "cmd-move-supershort",
+    LineMove = "cmd-none",   
     Fight = "cmd-fight",
     LineFight = "cmd-fight",
     Build = "cmd-build",
@@ -152,7 +152,7 @@ UnitSoundEffects = {
     BaseSoundWeaponType   = "rez-small",
     },
 
-    -- ARMADA VEHICLES
+    -- ARMADA T1 VEHICLES
     armfav = {
     BaseSoundSelectType   = "arm-veh-tiny-sel",
     BaseSoundMovementType = "arm-veh-tiny-ok",
@@ -203,6 +203,104 @@ UnitSoundEffects = {
     BaseSoundMovementType = "arm-veh-tiny-ok",
     BaseSoundWeaponType   = "mine-small",
     },
+
+    -- ARMADA T1 SHIPS-SUBS
+    armdecade = {
+    BaseSoundSelectType   = "arm-shp-small-sel",
+    BaseSoundMovementType = "arm-shp-small-ok",
+    BaseSoundWeaponType   = "plasma-small",
+    },
+    armpt = {
+    BaseSoundSelectType   = "arm-shp-small-sel",
+    BaseSoundMovementType = "arm-shp-small-ok",
+    BaseSoundWeaponType   = "aarocket-small",
+    },
+    armcs = {
+    BaseSoundSelectType   = "arm-shp-medium-sel",
+    BaseSoundMovementType = "arm-shp-medium-ok",
+    BaseSoundWeaponType   = "conalt-small",
+    },
+    armrecl = {
+    BaseSoundSelectType   = "arm-sub-small-sel",
+    BaseSoundMovementType = "arm-sub-small-ok",
+    BaseSoundWeaponType   = "rez-small",
+    },
+    armtship = {
+    BaseSoundSelectType   = "arm-shp-medium-sel",
+    BaseSoundMovementType = "arm-shp-medium-ok",
+    BaseSoundWeaponType   = "transport-large",
+    },
+    armpship = {
+    BaseSoundSelectType   = "arm-shp-medium-sel",
+    BaseSoundMovementType = "arm-shp-medium-ok",
+    BaseSoundWeaponType   = "plasma-small",
+    },
+    armsub = {
+    BaseSoundSelectType   = "arm-sub-small-sel",
+    BaseSoundMovementType = "arm-sub-small-ok",
+    BaseSoundWeaponType   = "torpedo-small",
+    },
+    armroy = {
+    BaseSoundSelectType   = "arm-shp-medium-sel",
+    BaseSoundMovementType = "arm-shp-medium-ok",
+    BaseSoundWeaponType   = "plasma-medium-torpedo",
+    },
+    armsjam = {
+    BaseSoundSelectType   = "arm-shp-small-sel",
+    BaseSoundMovementType = "arm-shp-small-ok",
+    BaseSoundWeaponType   = "jammer",
+    },
+    armmls = {
+    BaseSoundSelectType   = "arm-shp-small-sel",
+    BaseSoundMovementType = "arm-shp-small-ok",
+    BaseSoundWeaponType   = "conalt-small",
+    },
+    armacsub = {
+    BaseSoundSelectType   = "arm-sub-medium-sel",
+    BaseSoundMovementType = "arm-sub-medium-ok",
+    BaseSoundWeaponType   = "conalt-small",
+    },
+    armsubk = {
+    BaseSoundSelectType   = "arm-sub-medium-sel",
+    BaseSoundMovementType = "arm-sub-medium-ok",
+    BaseSoundWeaponType   = "torpedo-medium",
+    },
+    armaas = {
+    BaseSoundSelectType   = "arm-shp-medium-sel",
+    BaseSoundMovementType = "arm-shp-medium-ok",
+    BaseSoundWeaponType   = "flak",
+    },
+    armcrus = {
+    BaseSoundSelectType   = "arm-shp-large-sel",
+    BaseSoundMovementType = "arm-shp-large-ok",
+    BaseSoundWeaponType   = "plasma-medium-torpedo",
+    },
+    armcarry = {
+    BaseSoundSelectType   = "arm-shp-large-sel",
+    BaseSoundMovementType = "arm-shp-large-ok",
+    BaseSoundWeaponType   = "radar-support",
+    },
+    armserp = {
+    BaseSoundSelectType   = "arm-sub-large-sel",
+    BaseSoundMovementType = "arm-sub-large-ok",
+    BaseSoundWeaponType   = "torpedo-medium",
+    },
+    armmship = {
+    BaseSoundSelectType   = "arm-shp-large-sel",
+    BaseSoundMovementType = "arm-shp-large-ok",
+    BaseSoundWeaponType   = "rocketalt-large",
+    },
+    armbats = {
+    BaseSoundSelectType   = "arm-shp-large-sel",
+    BaseSoundMovementType = "arm-shp-large-ok",
+    BaseSoundWeaponType   = "plasma-large",
+    },
+    armepoch = {
+    BaseSoundSelectType   = "arm-shp-huge-sel",
+    BaseSoundMovementType = "arm-shp-huge-ok",
+    BaseSoundWeaponType   = "plasma-huge",
+    },
+    
 }
 
 
@@ -293,10 +391,10 @@ else -- Unsynced part
                 if cmdID == Move then
                     --local posx1, posy1, posz1 = cmdParams[1], cmdParams[2], cmdParams[3]
                     if UnitSoundEffects[unitName] and UnitSoundEffects[unitName].Move then
-                        Spring.PlaySoundFile(UnitSoundEffects[unitName].Move, 0.5, 2)
+                        Spring.PlaySoundFile(UnitSoundEffects[unitName].Move, 0.4, 2)
                         -- for cmd sounds in 3D use Spring.PlaySoundFile(UnitSoundEffects[unitName].Move, 0.75, posx1, posy1, posz1, 'sfx')
                     else
-                        Spring.PlaySoundFile(CommandSoundEffects.Move, 0.5, 2)
+                        Spring.PlaySoundFile(CommandSoundEffects.Move, 0.4, 2)
                     end
                 elseif cmdID == Fight then
                     Spring.PlaySoundFile(CommandSoundEffects.Fight, 0.8, 2)
