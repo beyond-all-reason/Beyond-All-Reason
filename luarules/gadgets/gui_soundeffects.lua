@@ -1,4 +1,5 @@
 local UsedFrame = 0
+local MouseButtonPressed = {}
 
 function gadget:GetInfo()
 	return {
@@ -386,7 +387,61 @@ if gadgetHandler:IsSyncedCode() then -- Synced part
 
 
 else -- Unsynced part
+
     
+    function gadget:MousePress(x, y, button)
+        MouseButtonPressed[button] = true
+    end
+
+    function gadget:MouseRelease(x, y, button)
+        MouseButtonPressed[button] = false
+    end
+
+
+    function gadget:SelectionChanged(sel)
+        local units = sel
+
+                
+        
+        
+        
+        
+        
+                -- if UnitSoundEffects[unitName] and UnitSoundEffects[unitName].BaseSoundMovementType then
+                --     --Spring.Echo(unitName.." base sound")
+                --     local sound = UnitSoundEffects[unitName].BaseSoundMovementType
+                --     if sound[2] then
+                --         Spring.PlaySoundFile(sound[math.random(1,#sound)], 0.8, posx, posy, posz, 'ui')
+                --     else
+                --         Spring.PlaySoundFile(sound, 0.8, posx, posy, posz, 'ui')
+                --     end
+                --     --Spring.PlaySoundFile(UnitSoundEffects[unitName].BaseSoundMovementType, 0.8, posx, posy, posz, 'unitreply')
+                -- else
+                --     --Spring.Echo("Generic base sound") 
+                --     local sound = DefaultSoundEffects.BaseSoundMovementType
+                --     if sound[2] then
+                --         Spring.PlaySoundFile(sound[math.random(1,#sound)], 0.8, posx, posy, posz, 'ui')
+                --     else
+                --         Spring.PlaySoundFile(sound, 0.8, posx, posy, posz, 'ui')
+                --     end
+                --     --Spring.PlaySoundFile(DefaultSoundEffects.BaseSoundMovementType, 0.8, posx, posy, posz, 'unitreply')
+                -- end
+
+
+
+
+
+        
+
+
+
+
+
+
+
+
+    end
+
     function gadget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOpts, cmdTag)
         CurrentFrame = Spring.GetGameFrame()
         if CurrentFrame ~= UsedFrame then
