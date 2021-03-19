@@ -110,7 +110,7 @@ function UnitDef_Post(name, uDef)
 		uDef.customparams = {}
 	end
 
--- Soon used for new sound system!
+--Soon used for new sound system!
 	-- if uDef.sounds then
 	-- 	if uDef.sounds.ok then
 	-- 		uDef.sounds.ok = nil 
@@ -120,6 +120,19 @@ function UnitDef_Post(name, uDef)
 	-- if uDef.sounds then
 	-- 	if uDef.sounds.select then
 	-- 		uDef.sounds.select = nil 
+	-- 	end
+	-- end
+
+	-- TEST for activate custom sounds in gui_soundeffects
+	-- if uDef.sounds then
+	-- 	if uDef.sounds.activate then
+	-- 		uDef.sounds.activate = nil 
+	-- 	end
+	-- end
+
+	-- if uDef.sounds then
+	-- 	if uDef.sounds.deactivate then
+	-- 		uDef.sounds.deactivate = nil 
 	-- 	end
 	-- end
 

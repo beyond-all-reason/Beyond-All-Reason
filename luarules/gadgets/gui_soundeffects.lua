@@ -20,17 +20,22 @@ end
 
 CommandSoundEffects = {
     Move = "cmd-move-supershort",
-    LineMove = "cmd-none",   
+    LineMove = "cmd-move-swoosh", -- not working yet
     Fight = "cmd-fight",
-    LineFight = "cmd-fight",
+    LineFight = "cmd-fight", -- not working yet
     Build = "cmd-build",
     Guard = "cmd-guard",
     Reclaim = "cmd-reclaim",
     Resurrect = "cmd-rez3",
     Repair = "cmd-repair",
-    Groupselect = "cmd-reclaim",
+    Groupselect = "cmd-reclaim", -- not working yet
     Dgun = "cmd-dgun",
-    Patrol = "cmd-fightxs", -- no patrol sound yet so i'm using fight
+    Patrol = "cmd-fightxs",
+    Repeat = "cmd-onoff",
+    SetTarget = "cmd-settarget", -- not working yet
+    Attack = "cmd-attack",
+    SelfD = "cmd-selfd"
+    --OnOff = "cmd-onoff",
 }
 
 DefaultSoundEffects = {
@@ -40,11 +45,24 @@ DefaultSoundEffects = {
 }
 
 UnitSoundEffects = {
-    -- ARMCOM
+    -- ARMADA COMMANDER
     armcom = {
     BaseSoundSelectType   = "arm-com-sel",
     BaseSoundMovementType = {"arm-com-ok-1","arm-com-ok-2","arm-com-ok-3","arm-com-ok-4",},
     BaseSoundWeaponType   = "laser-tiny",
+    },
+
+    -- ARMADA BUILDINGS
+    armrad = {
+    BaseSoundSelectType   = "arm-shp-small-sel",
+    BaseSoundMovementType = "laser-tiny",
+    BaseSoundWeaponType   = "arm-bld-radar",
+    },
+
+    armllt = {
+    BaseSoundSelectType   = "arm-shp-small-sel",
+    BaseSoundMovementType = "laser-tiny",
+    BaseSoundWeaponType   = "arm-bld-radar",
     },
 
     -- ARMADA HOVERCRAFT
@@ -260,7 +278,7 @@ UnitSoundEffects = {
     armmerl = {
     BaseSoundSelectType   = "arm-tnk-medium-sel",
     BaseSoundMovementType = "arm-tnk-medium-ok",
-    BaseSoundWeaponType   = "rocket-large",
+    BaseSoundWeaponType   = "rocketalt-large",
     },
     armbull = {
     BaseSoundSelectType   = "arm-tnk-large-sel",
@@ -269,7 +287,7 @@ UnitSoundEffects = {
     },
     armmanni = {
     BaseSoundSelectType   = "arm-tnk-large-sel",
-    BaseSoundMovementType = "arm-tnk-large-ok",
+    BaseSoundMovementType = "arm-tnk-largealt-ok",
     BaseSoundWeaponType   = "laser-large",
     },
 
@@ -277,7 +295,7 @@ UnitSoundEffects = {
     armdecade = {
     BaseSoundSelectType   = "arm-shp-small-sel",
     BaseSoundMovementType = "arm-shp-small-ok",
-    BaseSoundWeaponType   = "plasma-small",
+    BaseSoundWeaponType   = "fastemg-small",
     },
     armpt = {
     BaseSoundSelectType   = "arm-shp-small-sel",
@@ -350,8 +368,8 @@ UnitSoundEffects = {
     BaseSoundWeaponType   = "radar-support",
     },
     armserp = {
-    BaseSoundSelectType   = "arm-sub-large-sel",
-    BaseSoundMovementType = "arm-sub-large-ok",
+    BaseSoundSelectType   = "arm-sub-medium-sel",
+    BaseSoundMovementType = "arm-sub-medium-ok",
     BaseSoundWeaponType   = "torpedo-medium",
     },
     armmship = {
@@ -383,6 +401,11 @@ Repair = CMD.REPAIR
 Reclaim = CMD.RECLAIM
 Dgun = CMD.DGUN
 Resurrect = CMD.RESURRECT
+OnOff = CMD.ONOFF
+Repeat = CMD.REPEAT
+Attack = CMD.ATTACK
+SelfD = CMD.SELFD
+SetTarget = 34923
 
 -- create table with all unit sounds
 
@@ -400,25 +423,47 @@ else -- Unsynced part
         local unitDefID = Spring.GetUnitDefID(unitID)
         local posx, posy, posz = Spring.GetUnitPosition(unitID)
         local unitName = UnitDefs[unitDefID].name
+
+        -- DEACTIVATE BELOW FOR NORMAL SOUNDS
+
         -- if UnitSoundEffects[unitName] and UnitSoundEffects[unitName].BaseSoundSelectType then
         --     --Spring.Echo(unitName.." select sound")
         --     local sound = UnitSoundEffects[unitName].BaseSoundSelectType
         --     if sound[2] then
-        --         Spring.PlaySoundFile(sound[math.random(1,#sound)], 0.8, posx, posy, posz, 'ui')
+        --         Spring.PlaySoundFile(sound[math.random(1,#sound)], 0.2, posx, posy, posz, 'unitreply')
         --     else
-        --         Spring.PlaySoundFile(sound, 0.8, posx, posy, posz, 'ui')
+        --         Spring.PlaySoundFile(sound, 0.2, posx, posy, posz, 'unitreply')
         --     end
         -- else
         --     --Spring.Echo("Generic select sound") 
         --     local sound = DefaultSoundEffects.BaseSoundSelectType
         --     if sound[2] then
-        --         Spring.PlaySoundFile(sound[math.random(1,#sound)], 0.8, posx, posy, posz, 'ui')
+        --         Spring.PlaySoundFile(sound[math.random(1,#sound)], 0.2, posx, posy, posz, 'unitreply')
         --     else
-        --         Spring.PlaySoundFile(sound, 0.8, posx, posy, posz, 'ui')
+        --         Spring.PlaySoundFile(sound, 0.2, posx, posy, posz, 'unitreply')
         --     end
         -- end
-        selectionChanged = false
-    end
+    --     if UnitSoundEffects[unitName] and UnitSoundEffects[unitName].BaseSoundWeaponType then
+    --                 --Spring.Echo(unitName.." base sound")
+    --                 local sound = UnitSoundEffects[unitName].BaseSoundWeaponType
+    --                 if sound[2] then
+    --                     Spring.PlaySoundFile(sound[math.random(1,#sound)], 0.7, posx, posy, posz, 'unitreply')
+    --                 else
+    --                     Spring.PlaySoundFile(sound, 0.7, posx, posy, posz, 'unitreply')
+    --                 end
+    --                 --Spring.PlaySoundFile(UnitSoundEffects[unitName].BaseSoundWeaponType, 0.5, posx, posy, posz, 'sfx')
+    --             else
+    --                 --Spring.Echo("Generic base sound") 
+    --                 local sound = DefaultSoundEffects.BaseSoundWeaponType
+    --                 if sound[2] then
+    --                     Spring.PlaySoundFile(sound[math.random(1,#sound)], 0.7, posx, posy, posz, 'unitreply')
+    --                 else
+    --                     Spring.PlaySoundFile(sound, 0.7, posx, posy, posz, 'unitreply')
+    --                 end
+    --                 --Spring.PlaySoundFile(DefaultSoundEffects.BaseSoundWeaponType, 0.6, posx, posy, posz, 'sfx')
+    --             end
+    --     selectionChanged = false
+    -- end
 
     function gadget:GameFrame(n)
         if not selectionChanged then
@@ -475,7 +520,8 @@ else -- Unsynced part
 
                 local posx, posy, posz = Spring.GetUnitPosition(unitID)
 
-                
+                -- DEACTIVATE below to disable command-sounds
+
                 -- if UnitSoundEffects[unitName] and UnitSoundEffects[unitName].BaseSoundMovementType then
                 --     --Spring.Echo(unitName.." base sound")
                 --     local sound = UnitSoundEffects[unitName].BaseSoundMovementType
@@ -501,18 +547,18 @@ else -- Unsynced part
                 --     --Spring.Echo(unitName.." base sound")
                 --     local sound = UnitSoundEffects[unitName].BaseSoundWeaponType
                 --     if sound[2] then
-                --         Spring.PlaySoundFile(sound[math.random(1,#sound)], 0.8, posx, posy, posz, 'ui')
+                --         Spring.PlaySoundFile(sound[math.random(1,#sound)], 0.2, posx, posy, posz, 'ui')
                 --     else
-                --         Spring.PlaySoundFile(sound, 0.8, posx, posy, posz, 'ui')
+                --         Spring.PlaySoundFile(sound, 0.2, posx, posy, posz, 'ui')
                 --     end
                 --     --Spring.PlaySoundFile(UnitSoundEffects[unitName].BaseSoundWeaponType, 0.8, posx, posy, posz, 'sfx')
                 -- else
                 --     --Spring.Echo("Generic base sound") 
                 --     local sound = DefaultSoundEffects.BaseSoundWeaponType
                 --     if sound[2] then
-                --         Spring.PlaySoundFile(sound[math.random(1,#sound)], 0.8, posx, posy, posz, 'ui')
+                --         Spring.PlaySoundFile(sound[math.random(1,#sound)], 0.2, posx, posy, posz, 'ui')
                 --     else
-                --         Spring.PlaySoundFile(sound, 0.8, posx, posy, posz, 'ui')
+                --         Spring.PlaySoundFile(sound, 0.2, posx, posy, posz, 'ui')
                 --     end
                 --     --Spring.PlaySoundFile(DefaultSoundEffects.BaseSoundWeaponType, 0.8, posx, posy, posz, 'sfx')
                 -- end
@@ -540,11 +586,19 @@ else -- Unsynced part
                 elseif cmdID == Repair then
                     Spring.PlaySoundFile(CommandSoundEffects.Repair, 0.6, 2)
                 elseif cmdID == Reclaim then
-                    Spring.PlaySoundFile(CommandSoundEffects.Reclaim, 0.8, 2)
+                    Spring.PlaySoundFile(CommandSoundEffects.Reclaim, 0.3, 2)
                 elseif cmdID == Dgun then
                     Spring.PlaySoundFile(CommandSoundEffects.Dgun, 0.8, 2)
                 elseif cmdID == Resurrect then
                     Spring.PlaySoundFile(CommandSoundEffects.Resurrect, 0.7, 2)
+                elseif cmdID == Repeat then
+                    Spring.PlaySoundFile(CommandSoundEffects.Repeat, 0.8, 2)
+                elseif cmdID == Attack then
+                    Spring.PlaySoundFile(CommandSoundEffects.Attack, 0.8, 2)   
+                elseif cmdID == SelfD then
+                    Spring.PlaySoundFile(CommandSoundEffects.SelfD, 0.8, 2)
+                -- elseif cmdID == 34923 then
+                --     Spring.PlaySoundFile(CommandSoundEffects.SetTarget, 0.8, 2)
                 --elseif cmdID < 0 then
                 --    Spring.PlaySoundFile(CommandSoundEffects.Build, 0.5, 2) 
                 end
