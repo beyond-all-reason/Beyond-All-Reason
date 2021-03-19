@@ -204,6 +204,68 @@ UnitSoundEffects = {
     BaseSoundWeaponType   = "mine-small",
     },
 
+    -- ARMADA T2 VEHICLES
+    armjam = {
+    BaseSoundSelectType   = "arm-veh-small-sel",
+    BaseSoundMovementType = "arm-veh-small-ok",
+    BaseSoundWeaponType   = "jammer",
+    },
+    armseer = {
+    BaseSoundSelectType   = "arm-veh-small-sel",
+    BaseSoundMovementType = "arm-veh-small-ok",
+    BaseSoundWeaponType   = "radar",
+    },
+    armgremlin = {
+    BaseSoundSelectType   = "arm-tnk-small-sel",
+    BaseSoundMovementType = "arm-tnk-small-ok",
+    BaseSoundWeaponType   = "cloak",
+    },
+    armconsul = {
+    BaseSoundSelectType   = "arm-tnk-small-sel",
+    BaseSoundMovementType = "arm-tnk-small-ok",
+    BaseSoundWeaponType   = "con-small",
+    },
+    armmart = {
+    BaseSoundSelectType   = "arm-tnk-medium-sel",
+    BaseSoundMovementType = "arm-tnk-medium-ok",
+    BaseSoundWeaponType   = "arty-medium",
+    },
+    armlatnk = {
+    BaseSoundSelectType   = "arm-tnk-small-sel",
+    BaseSoundMovementType = "arm-tnk-small-ok",
+    BaseSoundWeaponType   = "lightning",
+    },
+    armyork = {
+    BaseSoundSelectType   = "arm-tnk-medium-sel",
+    BaseSoundMovementType = "arm-tnk-medium-ok",
+    BaseSoundWeaponType   = "flak",
+    },
+    armcroc = {
+    BaseSoundSelectType   = "arm-tnk-medium-sel",
+    BaseSoundMovementType = "arm-tnk-medium-ok",
+    BaseSoundWeaponType   = "plasma-medium",
+    },
+    armacv = {
+    BaseSoundSelectType   = "arm-tnk-small-sel",
+    BaseSoundMovementType = "arm-tnk-small-ok",
+    BaseSoundWeaponType   = "conalt-small",
+    },
+    armmerl = {
+    BaseSoundSelectType   = "arm-tnk-medium-sel",
+    BaseSoundMovementType = "arm-tnk-medium-ok",
+    BaseSoundWeaponType   = "rocket-large",
+    },
+    armbull = {
+    BaseSoundSelectType   = "arm-tnk-large-sel",
+    BaseSoundMovementType = "arm-tnk-large-ok",
+    BaseSoundWeaponType   = "plasma-medium",
+    },
+    armmanni = {
+    BaseSoundSelectType   = "arm-tnk-large-sel",
+    BaseSoundMovementType = "arm-tnk-large-ok",
+    BaseSoundWeaponType   = "laser-large",
+    },
+
     -- ARMADA T1 SHIPS-SUBS
     armdecade = {
     BaseSoundSelectType   = "arm-shp-small-sel",
