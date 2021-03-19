@@ -117,6 +117,12 @@ function UnitDef_Post(name, uDef)
 	-- 	end
 	-- end
 
+	-- if uDef.sounds then
+	-- 	if uDef.sounds.select then
+	-- 		uDef.sounds.select = nil 
+	-- 	end
+	-- end
+
 	-- Unit Restrictions
 	if uDef.customparams then
 		if not uDef.customparams.techlevel then uDef.customparams.techlevel = 0 end

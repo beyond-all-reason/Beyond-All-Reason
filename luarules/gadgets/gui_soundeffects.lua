@@ -1,5 +1,10 @@
 local UsedFrame = 0
-local MouseButtonPressed = {}
+local MouseButtonPressed = {
+    [1] = false,
+    [2] = false,
+    [3] = false,
+}
+local PreviouslySelectedUnits = {}
 
 function gadget:GetInfo()
 	return {
@@ -29,6 +34,7 @@ CommandSoundEffects = {
 }
 
 DefaultSoundEffects = {
+    BaseSoundSelectType   = "cmd-none", 
     BaseSoundMovementType = "cmd-none",
     BaseSoundWeaponType   = "cmd-none", 
 }
@@ -388,58 +394,68 @@ if gadgetHandler:IsSyncedCode() then -- Synced part
 
 else -- Unsynced part
 
-    
-    function gadget:MousePress(x, y, button)
-        MouseButtonPressed[button] = true
+    function PlaySelectSound(unitID)
+        Spring.Echo("hello world")
+        Spring.Echo(unitID)
+        local unitDefID = Spring.GetUnitDefID(unitID)
+        local posx, posy, posz = Spring.GetUnitPosition(unitID)
+        local unitName = UnitDefs[unitDefID].name
+        -- if UnitSoundEffects[unitName] and UnitSoundEffects[unitName].BaseSoundSelectType then
+        --     --Spring.Echo(unitName.." select sound")
+        --     local sound = UnitSoundEffects[unitName].BaseSoundSelectType
+        --     if sound[2] then
+        --         Spring.PlaySoundFile(sound[math.random(1,#sound)], 0.8, posx, posy, posz, 'ui')
+        --     else
+        --         Spring.PlaySoundFile(sound, 0.8, posx, posy, posz, 'ui')
+        --     end
+        -- else
+        --     --Spring.Echo("Generic select sound") 
+        --     local sound = DefaultSoundEffects.BaseSoundSelectType
+        --     if sound[2] then
+        --         Spring.PlaySoundFile(sound[math.random(1,#sound)], 0.8, posx, posy, posz, 'ui')
+        --     else
+        --         Spring.PlaySoundFile(sound, 0.8, posx, posy, posz, 'ui')
+        --     end
+        -- end
+        selectionChanged = false
     end
 
-    function gadget:MouseRelease(x, y, button)
-        MouseButtonPressed[button] = false
+    function gadget:GameFrame(n)
+        if not selectionChanged then
+            local units = Spring.GetSelectedUnits()
+            NewSelectedUnits = units
+            for i = 1,#NewSelectedUnits do
+                if PreviouslySelectedUnits[i] == nil then
+                    selectionChanged = true
+                elseif NewSelectedUnits[i] ~= PreviouslySelectedUnits[i] then
+                    selectionChanged = true
+                end
+            end
+            PreviouslySelectedUnits = units
+        end
+        
+        if selectionChanged then
+            Spring.Echo("1")
+            local _,_,LMBPress,_,_,offscreen = Spring.GetMouseState()
+            if (not LMBPress) and (not offscreen) then
+                Spring.Echo("2")
+                local units = Spring.GetSelectedUnits()
+                local unitcount = #units
+                if unitcount > 1 then
+                    Spring.Echo("3")
+                    local unitID = units[math.random(1,unitcount)]
+                    PlaySelectSound(unitID)
+                elseif unitcount == 1 then
+                    Spring.Echo("4")
+                    local unitID = units[1]
+                    PlaySelectSound(unitID)
+                end
+            end
+        end
     end
-
 
     function gadget:SelectionChanged(sel)
-        local units = sel
-
-                
-        
-        
-        
-        
-        
-                -- if UnitSoundEffects[unitName] and UnitSoundEffects[unitName].BaseSoundMovementType then
-                --     --Spring.Echo(unitName.." base sound")
-                --     local sound = UnitSoundEffects[unitName].BaseSoundMovementType
-                --     if sound[2] then
-                --         Spring.PlaySoundFile(sound[math.random(1,#sound)], 0.8, posx, posy, posz, 'ui')
-                --     else
-                --         Spring.PlaySoundFile(sound, 0.8, posx, posy, posz, 'ui')
-                --     end
-                --     --Spring.PlaySoundFile(UnitSoundEffects[unitName].BaseSoundMovementType, 0.8, posx, posy, posz, 'unitreply')
-                -- else
-                --     --Spring.Echo("Generic base sound") 
-                --     local sound = DefaultSoundEffects.BaseSoundMovementType
-                --     if sound[2] then
-                --         Spring.PlaySoundFile(sound[math.random(1,#sound)], 0.8, posx, posy, posz, 'ui')
-                --     else
-                --         Spring.PlaySoundFile(sound, 0.8, posx, posy, posz, 'ui')
-                --     end
-                --     --Spring.PlaySoundFile(DefaultSoundEffects.BaseSoundMovementType, 0.8, posx, posy, posz, 'unitreply')
-                -- end
-
-
-
-
-
-        
-
-
-
-
-
-
-
-
+        selectionChanged = true
     end
 
     function gadget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOpts, cmdTag)
