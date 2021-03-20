@@ -32,25 +32,25 @@
 --]]
 
 allyTeamDeathMessages = {
-	"XX has been obliterated",
-	"XX has been terminated",
-	"XX has been annihilated",
-	"XX has been eliminated",
-	"XX has been neutralized",
-	"XX has been vaporized",
+	'obliterate',
+	'terminate',
+	'annihilate',
+	'eliminate',
+	'neutralize',
+	'vaporize',
 }
 
 teamDeathMessages = {
-	"XX has bowed out",
-	"XX has gone to a better place",
-	"XX has been conquered",
-	"XX is toast",
-	"XX got taken out",
-	"XX is defeated",
-	"XX fought to the bitter end",
-	"XX rode on into the sunset",
-	"XX has been dismantled",
-    "XX was terminated",
-	"XX was totally annihilated",
-	"XX left a small crater",
+	'bowOut',
+	'gone',
+	'conquer',
+	'toast',
+	'takenOut',
+	'defeat',
+	'bitterEnd',
+	'rodeOff',
+	'dismantle',
+	'terminate',
+	'annihilate',
+	'crater',
 }

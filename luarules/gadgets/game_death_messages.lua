@@ -22,93 +22,55 @@ if (not gadgetHandler:IsSyncedCode()) then
 	return false
 end
 
-local slen = string.len
-local ssub = string.sub
-local sgsub = string.gsub
-
 local playerListByTeam = {} --loaded up at game start, doesn't include specs, doesn't change over time
-local toMsg = {}
-local msg
 
---include the teamDeathMessages and allyTeamDeathMessages tables
---format is table[i]="deathmsg"
 include("luarules/configs/death_messages.lua")
-local numTeamDeathMsgs = #teamDeathMessages
-local numAllyTeamDeathMsgs = #allyTeamDeathMessages
-local msgColour = "\255\255\255\255"
+local messageColour = "\255\255\255\255"
 
 --construct death message for team
 function TeamDeathMessage(teamID)
-	--choose msg
-	local n = math.random(numTeamDeathMsgs)
-	local msg = teamDeathMessages[n]
-	if msg == nil then
-		return "Team " .. teamID .. " got an error (no msg) instead of a death message!"
-	end
+	local playerList = playerListByTeam[teamID]
 
-	local plList = playerListByTeam[teamID]
-	if plList == nil then
+	if playerList == nil then
 		return --this team has already received a death message
 	end
-
-	--fill in XX
-	local plNames = ""
-	for _,name in pairs(plList) do
-		plNames = plNames .. name .. ", "
+	
+	if next(playerList) == nil then
+		return Spring.I18N('deathMessages.error', { team = teamID })
 	end
-	if slen(plNames)-2 < 1 then
-		return "Team " .. teamID .. " got an error (no names) instead of a death message!"
-	end
-	plNames = ssub(plNames, 1, slen(plNames)-2) --remove final ", "
-	if plNames ~= "" then
-		plNames = " (" .. plNames .. ")"
-	end
-	local toCut = "XX"
-	local toPaste = "Team " .. teamID .. plNames
-	local msg,_ = sgsub(msg, toCut, toPaste)
-
-	--send msg
-	msg = msgColour .. msg
-	Spring.SendMessage(msg)
+	
+	local playerNames = table.concat(playerList, ", ")	
+	local n = math.random(#teamDeathMessages)
+	local message = Spring.I18N('deathMessages.team.' .. teamDeathMessages[n], { team = teamID, playerList = playerNames })
+	
+	message = messageColour .. message
+	Spring.SendMessage(message)
 
 	--remove names from playerListByTeam
 	playerListByTeam[teamID] = nil
 end
 
 function AllyTeamDeathMessage(allyTeamID)
-	--choose msg
-	local n = math.random(numAllyTeamDeathMsgs)
-	local msg = allyTeamDeathMessages[n]
-	if msg == nil then
-		return "Allyteam " .. allyTeamID .. " got an error (no msg) instead of a death message!"
-	end
-
-	--fill in XX
 	local teamList = Spring.GetTeamList(allyTeamID)
-	local plNames = ""
+	local playerNames = ""
 	for _,teamID in pairs(teamList) do
-		local plList = playerListByTeam[teamID]
-		if plList ~= nil then --this team already received a death msg (and is dead), don't include it in the allyteam msg
-			for _,name in pairs(plList) do
-				plNames = plNames .. name .. ", "
-			end
+		local playerList = playerListByTeam[teamID]
+		
+		if next(playerList) == nil then
+			return Spring.I18N('deathMessages.error', { team = allyTeamID })
+		end
+		
+		if playerList ~= nil then --this team already received a death msg (and is dead), don't include it in the allyteam msg
+			playerNames = table.concat(playerList, ", ")
 			playerListByTeam[teamID] = nil --don't let this team get any more death messages
 		end
 	end
-	if slen(plNames)-2 < 1 then
-		return "Allyteam " .. allyTeamID .. " got an error (no names) instead of a death message!"
-	end
-	plNames = ssub(plNames, 1, slen(plNames)-2) --remove final ", "
-	if plNames ~= "" then
-		plNames = " (" .. plNames .. ")"
-	end
-	local toCut = "XX"
-	local toPaste = "Allyteam " .. allyTeamID .. plNames
-	local msg,_ = sgsub(msg, toCut, toPaste)
+	
+	local n = math.random(#allyTeamDeathMessages)
+	local message = Spring.I18N('deathMessages.allyTeam.' .. allyTeamDeathMessages[n], { team = allyTeamID, playerList = playerNames })
 
-	--send msg
-	msg = msgColour .. msg
-	Spring.SendMessage(msg)
+	message = messageColour .. message
+	Spring.SendMessage(message)
 end
 
 function gadget:Initialize()
@@ -135,9 +97,3 @@ function gadget:Shutdown()
 	gadgetHandler:DeregisterGlobal('TeamDeathMessage')
 	gadgetHandler:DeregisterGlobal('AllyTeamDeathMessage')
 end
-
-
-
-
-
-
