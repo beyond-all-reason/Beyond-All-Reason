@@ -30,27 +30,27 @@
  * And this one
  * ----------------------------------------------------------------------------
 --]]
-
-allyTeamDeathMessages = {
-	'obliterate',
-	'terminate',
-	'annihilate',
-	'eliminate',
-	'neutralize',
-	'vaporize',
-}
-
-teamDeathMessages = {
-	'bowOut',
-	'gone',
-	'conquer',
-	'toast',
-	'takenOut',
-	'defeat',
-	'bitterEnd',
-	'rodeOff',
-	'dismantle',
-	'terminate',
-	'annihilate',
-	'crater',
+return {
+	allyTeam = {
+		'obliterate',
+		'terminate',
+		'annihilate',
+		'eliminate',
+		'neutralize',
+		'vaporize',
+	},
+	team = {
+		'bowOut',
+		'gone',
+		'conquer',
+		'toast',
+		'takenOut',
+		'defeat',
+		'bitterEnd',
+		'rodeOff',
+		'dismantle',
+		'terminate',
+		'annihilate',
+		'crater',
+	},
 }

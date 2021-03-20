@@ -24,7 +24,7 @@ end
 
 local playerListByTeam = {} --loaded up at game start, doesn't include specs, doesn't change over time
 
-include("luarules/configs/death_messages.lua")
+local deathMessages = include("luarules/configs/death_messages.lua")
 local messageColour = "\255\255\255\255"
 
 --construct death message for team
@@ -40,8 +40,8 @@ function TeamDeathMessage(teamID)
 	end
 	
 	local playerNames = table.concat(playerList, ", ")	
-	local n = math.random(#teamDeathMessages)
-	local message = Spring.I18N('deathMessages.team.' .. teamDeathMessages[n], { team = teamID, playerList = playerNames })
+	local n = math.random(#deathMessages.team)
+	local message = Spring.I18N('deathMessages.team.' .. deathMessages.team[n], { team = teamID, playerList = playerNames })
 	
 	message = messageColour .. message
 	Spring.SendMessage(message)
@@ -66,8 +66,8 @@ function AllyTeamDeathMessage(allyTeamID)
 		end
 	end
 	
-	local n = math.random(#allyTeamDeathMessages)
-	local message = Spring.I18N('deathMessages.allyTeam.' .. allyTeamDeathMessages[n], { team = allyTeamID, playerList = playerNames })
+	local n = math.random(#deathMessages.allyTeam)
+	local message = Spring.I18N('deathMessages.allyTeam.' .. deathMessages.allyTeam[n], { team = allyTeamID, playerList = playerNames })
 
 	message = messageColour .. message
 	Spring.SendMessage(message)
