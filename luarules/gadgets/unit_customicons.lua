@@ -613,7 +613,5 @@ end
 
 function gadget:Initialize()
 	gadgetHandler:RegisterGlobal('GetIconTypes', GetIconTypes)
-	if Spring.GetGameFrame() == 0 then
-		loadUnitIcons()
-	end
+  loadUnitIcons()
 end
