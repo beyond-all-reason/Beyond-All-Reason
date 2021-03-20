@@ -36,12 +36,12 @@ function TeamDeathMessage(teamID)
 	end
 	
 	if next(playerList) == nil then
-		return Spring.I18N('deathMessages.error', { team = teamID })
+		return Spring.I18N('tips.deathMessages.error', { team = teamID })
 	end
 	
 	local playerNames = table.concat(playerList, ", ")	
 	local n = math.random(#deathMessages.team)
-	local message = Spring.I18N('deathMessages.team.' .. deathMessages.team[n], { team = teamID, playerList = playerNames })
+	local message = Spring.I18N('tips.deathMessages.team.' .. deathMessages.team[n], { team = teamID, playerList = playerNames })
 	
 	message = messageColour .. message
 	Spring.SendMessage(message)
@@ -57,7 +57,7 @@ function AllyTeamDeathMessage(allyTeamID)
 		local playerList = playerListByTeam[teamID]
 		
 		if next(playerList) == nil then
-			return Spring.I18N('deathMessages.error', { team = allyTeamID })
+			return Spring.I18N('tips.deathMessages.error', { team = allyTeamID })
 		end
 		
 		if playerList ~= nil then --this team already received a death msg (and is dead), don't include it in the allyteam msg
@@ -67,7 +67,7 @@ function AllyTeamDeathMessage(allyTeamID)
 	end
 	
 	local n = math.random(#deathMessages.allyTeam)
-	local message = Spring.I18N('deathMessages.allyTeam.' .. deathMessages.allyTeam[n], { team = allyTeamID, playerList = playerNames })
+	local message = Spring.I18N('tips.deathMessages.allyTeam.' .. deathMessages.allyTeam[n], { team = allyTeamID, playerList = playerNames })
 
 	message = messageColour .. message
 	Spring.SendMessage(message)
