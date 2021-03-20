@@ -1,6 +1,6 @@
 return {
 	en = {
-		tips = {
+		loadscreen = {
 			showMetalSpots = "Have trouble finding metal spots and geothermal vents?\nPress F4 to switch to the resource view.",
 			queues = "Queue up multiple consecutive unit actions by holding SHIFT.",
 			graphicsSettings = "Tweak graphics preferences in the settings menu.\nWhen your performance drops, switch to a lower graphics preset.",

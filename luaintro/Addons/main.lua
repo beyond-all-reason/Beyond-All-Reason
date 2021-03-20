@@ -110,7 +110,7 @@ local tipKeys = {
 local randomTip = ''
 if showTips then
 	local index = math.random(#tipKeys)
-	randomTip = Spring.I18N('tips.' .. tipKeys[index])
+	randomTip = Spring.I18N('loadscreen.' .. tipKeys[index])
 end
 
 -- for guishader
