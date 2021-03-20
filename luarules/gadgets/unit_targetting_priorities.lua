@@ -1,7 +1,7 @@
 function gadget:GetInfo()
 	return {
 		name = 'Units Targetting Prioritie',
-		desc = 'Adds a priority command/button to set the wanted target priritizing',
+		desc = 'Adds a priority command/button to set the wanted target prioritizing',
 		author = 'Doo',
 		version = 'v1.0',
 		date = 'May 2018',
