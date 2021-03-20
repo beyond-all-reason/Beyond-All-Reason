@@ -329,7 +329,19 @@ if gadgetHandler:IsSyncedCode() then
 
 		--spawn starting unit
 		local y = spGetGroundHeight(x,z)
-		local unitID = spCreateUnit(startUnit, x, y, z, 0, teamID)
+    local scenarioSpawnsUnits = false
+    
+    if  Spring.GetModOptions and  Spring.GetModOptions().scenariooptions then
+      local scenariooptions = Spring.Utilities.json.decode(Spring.Utilities.Base64Decode(Spring.GetModOptions().scenariooptions))
+      if scenariooptions and scenariooptions.unitloadout and next(scenariooptions.unitloadout) then
+        Spring.Echo("Scenario: Spawning loadout instead of regular commanders")
+        scenarioSpawnsUnits = true
+      end
+    end
+    
+    if not scenarioSpawnsUnits then
+      local unitID = spCreateUnit(startUnit, x, y, z, 0, teamID)
+    end
 
 		--share info
 		teamStartPoints[teamID] = {x,y,z}
