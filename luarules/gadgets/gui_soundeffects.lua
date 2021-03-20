@@ -1,10 +1,7 @@
 local UsedFrame = 0
-local MouseButtonPressed = {
-    [1] = false,
-    [2] = false,
-    [3] = false,
-}
+local UsedFrameSelect = 0
 local PreviouslySelectedUnits = {}
+local selectionChanged = false
 
 function gadget:GetInfo()
 	return {
@@ -418,80 +415,89 @@ if gadgetHandler:IsSyncedCode() then -- Synced part
 else -- Unsynced part
 
     function PlaySelectSound(unitID)
-        Spring.Echo("hello world")
-        Spring.Echo(unitID)
         local unitDefID = Spring.GetUnitDefID(unitID)
         local posx, posy, posz = Spring.GetUnitPosition(unitID)
         local unitName = UnitDefs[unitDefID].name
 
         -- DEACTIVATE BELOW FOR NORMAL SOUNDS
 
-        -- if UnitSoundEffects[unitName] and UnitSoundEffects[unitName].BaseSoundSelectType then
-        --     --Spring.Echo(unitName.." select sound")
-        --     local sound = UnitSoundEffects[unitName].BaseSoundSelectType
-        --     if sound[2] then
-        --         Spring.PlaySoundFile(sound[math.random(1,#sound)], 0.2, posx, posy, posz, 'unitreply')
-        --     else
-        --         Spring.PlaySoundFile(sound, 0.2, posx, posy, posz, 'unitreply')
-        --     end
-        -- else
-        --     --Spring.Echo("Generic select sound") 
-        --     local sound = DefaultSoundEffects.BaseSoundSelectType
-        --     if sound[2] then
-        --         Spring.PlaySoundFile(sound[math.random(1,#sound)], 0.2, posx, posy, posz, 'unitreply')
-        --     else
-        --         Spring.PlaySoundFile(sound, 0.2, posx, posy, posz, 'unitreply')
-        --     end
-        -- end
-    --     if UnitSoundEffects[unitName] and UnitSoundEffects[unitName].BaseSoundWeaponType then
-    --                 --Spring.Echo(unitName.." base sound")
-    --                 local sound = UnitSoundEffects[unitName].BaseSoundWeaponType
-    --                 if sound[2] then
-    --                     Spring.PlaySoundFile(sound[math.random(1,#sound)], 0.7, posx, posy, posz, 'unitreply')
-    --                 else
-    --                     Spring.PlaySoundFile(sound, 0.7, posx, posy, posz, 'unitreply')
-    --                 end
-    --                 --Spring.PlaySoundFile(UnitSoundEffects[unitName].BaseSoundWeaponType, 0.5, posx, posy, posz, 'sfx')
-    --             else
-    --                 --Spring.Echo("Generic base sound") 
-    --                 local sound = DefaultSoundEffects.BaseSoundWeaponType
-    --                 if sound[2] then
-    --                     Spring.PlaySoundFile(sound[math.random(1,#sound)], 0.7, posx, posy, posz, 'unitreply')
-    --                 else
-    --                     Spring.PlaySoundFile(sound, 0.7, posx, posy, posz, 'unitreply')
-    --                 end
-    --                 --Spring.PlaySoundFile(DefaultSoundEffects.BaseSoundWeaponType, 0.6, posx, posy, posz, 'sfx')
-    --             end
-    --     selectionChanged = false
-    -- end
+        if UnitSoundEffects[unitName] and UnitSoundEffects[unitName].BaseSoundSelectType then
+            local sound = UnitSoundEffects[unitName].BaseSoundSelectType
+            if sound[2] then
+                Spring.PlaySoundFile(sound[math.random(1,#sound)], 0.2, posx, posy, posz, 'ui')
+            else
+                Spring.PlaySoundFile(sound, 0.2, posx, posy, posz, 'ui')
+            end
+        else
+            local sound = DefaultSoundEffects.BaseSoundSelectType
+            if sound[2] then
+                Spring.PlaySoundFile(sound[math.random(1,#sound)], 0.2, posx, posy, posz, 'ui')
+            else
+                Spring.PlaySoundFile(sound, 0.2, posx, posy, posz, 'ui')
+            end
+        end
+        if UnitSoundEffects[unitName] and UnitSoundEffects[unitName].BaseSoundWeaponType then
+            local sound = UnitSoundEffects[unitName].BaseSoundWeaponType
+            if sound[2] then
+                Spring.PlaySoundFile(sound[math.random(1,#sound)], 0.7, posx, posy, posz, 'ui')
+            else
+                Spring.PlaySoundFile(sound, 0.7, posx, posy, posz, 'ui')
+            end
+        else
+            local sound = DefaultSoundEffects.BaseSoundWeaponType
+            if sound[2] then
+                Spring.PlaySoundFile(sound[math.random(1,#sound)], 0.7, posx, posy, posz, 'ui')
+            else
+                Spring.PlaySoundFile(sound, 0.7, posx, posy, posz, 'ui')
+            end
+        end
+        selectionChanged = false
+    end
 
     function gadget:GameFrame(n)
+        -- CurrentFrameSelect = Spring.GetGameFrame()
+        -- UsedFrameSelect
+
         if not selectionChanged then
-            local units = Spring.GetSelectedUnits()
-            NewSelectedUnits = units
-            for i = 1,#NewSelectedUnits do
-                if PreviouslySelectedUnits[i] == nil then
+            selectionChanged = false
+            local selectedUnits = Spring.GetSelectedUnits()
+            local selectedUnitsCount = #selectedUnits
+            if selectedUnitsCount == 0 then
+                selectionChanged = false
+                previouslySelectedUnits = nil
+            elseif selectedUnitsCount > 0 then
+                table.sort(selectedUnits)
+                if not previouslySelectedUnits then
                     selectionChanged = true
-                elseif NewSelectedUnits[i] ~= PreviouslySelectedUnits[i] then
-                    selectionChanged = true
+                    previouslySelectedUnits = selectedUnits
+                else
+                    for i = 1,selectedUnitsCount do
+                        if not previouslySelectedUnits[i] then
+                            selectionChanged = true
+                            previouslySelectedUnits = selectedUnits
+                        elseif selectedUnits[i] ~= previouslySelectedUnits[i] or #selectedUnits ~= #previouslySelectedUnits then
+                            selectionChanged = true
+                            previouslySelectedUnits = selectedUnits
+                            break
+                        else
+                            selectionChanged = false
+                            previouslySelectedUnits = selectedUnits
+                        end
+                    end
                 end
             end
-            PreviouslySelectedUnits = units
-        end
-        
-        if selectionChanged then
-            Spring.Echo("1")
+        elseif selectionChanged then
             local _,_,LMBPress,_,_,offscreen = Spring.GetMouseState()
             if (not LMBPress) and (not offscreen) then
-                Spring.Echo("2")
+                selectionChanged = false
                 local units = Spring.GetSelectedUnits()
+                table.sort(units)
+                previouslySelectedUnits = units
                 local unitcount = #units
                 if unitcount > 1 then
-                    Spring.Echo("3")
                     local unitID = units[math.random(1,unitcount)]
                     PlaySelectSound(unitID)
                 elseif unitcount == 1 then
-                    Spring.Echo("4")
                     local unitID = units[1]
                     PlaySelectSound(unitID)
                 end
@@ -499,9 +505,44 @@ else -- Unsynced part
         end
     end
 
-    function gadget:SelectionChanged(sel)
-        selectionChanged = true
+    function gadget:UnitFinished(unitID, unitDefID, unitTeam)
+        local myTeamID = Spring.GetMyTeamID()
+        if myTeamID == unitTeam then
+            local unitName = UnitDefs[unitDefID].name
+            local posx, posy, posz = Spring.GetUnitPosition(unitID)
+            if UnitSoundEffects[unitName] and UnitSoundEffects[unitName].BaseSoundMovementType then
+                local sound = UnitSoundEffects[unitName].BaseSoundMovementType
+                if sound[2] then
+                    Spring.PlaySoundFile(sound[math.random(1,#sound)], 0.8, posx, posy, posz, 'ui')
+                else
+                    Spring.PlaySoundFile(sound, 0.8, posx, posy, posz, 'ui')
+                end
+            else
+                local sound = DefaultSoundEffects.BaseSoundMovementType
+                if sound[2] then
+                    Spring.PlaySoundFile(sound[math.random(1,#sound)], 0.8, posx, posy, posz, 'ui')
+                else
+                    Spring.PlaySoundFile(sound, 0.8, posx, posy, posz, 'ui')
+                end
+            end
+            if UnitSoundEffects[unitName] and UnitSoundEffects[unitName].BaseSoundWeaponType then
+                local sound = UnitSoundEffects[unitName].BaseSoundWeaponType
+                if sound[2] then
+                    Spring.PlaySoundFile(sound[math.random(1,#sound)], 0.2, posx, posy, posz, 'ui')
+                else
+                    Spring.PlaySoundFile(sound, 0.2, posx, posy, posz, 'ui')
+                end
+            else
+                local sound = DefaultSoundEffects.BaseSoundWeaponType
+                if sound[2] then
+                    Spring.PlaySoundFile(sound[math.random(1,#sound)], 0.2, posx, posy, posz, 'ui')
+                else
+                    Spring.PlaySoundFile(sound, 0.2, posx, posy, posz, 'ui')
+                end
+            end
+        end
     end
+
 
     function gadget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOpts, cmdTag)
         CurrentFrame = Spring.GetGameFrame()
@@ -513,94 +554,126 @@ else -- Unsynced part
                    unitDefID = Spring.GetUnitDefID(selUnits[math.random(1,#selUnits)])
                 end
                 unitName = UnitDefs[unitDefID].name
-                --Spring.Echo(unitName)
                 UsedFrame = CurrentFrame
-
-
 
                 local posx, posy, posz = Spring.GetUnitPosition(unitID)
 
+                ValidCommandSound = false
+                if cmdID == Move then
+                    if UnitSoundEffects[unitName] and UnitSoundEffects[unitName].Move then
+                        Spring.PlaySoundFile(UnitSoundEffects[unitName].Move, 0.4, "ui")
+                    else
+                        Spring.PlaySoundFile(CommandSoundEffects.Move, 0.4, "ui")
+                    end
+                    ValidCommandSound = true
+                elseif cmdID == Fight then
+                    Spring.PlaySoundFile(CommandSoundEffects.Fight, 0.8, "ui")
+                    ValidCommandSound = true
+                elseif cmdID == Patrol then
+                    Spring.PlaySoundFile(CommandSoundEffects.Patrol, 0.8, "ui")
+                    ValidCommandSound = true
+                elseif cmdID == Guard then
+                    Spring.PlaySoundFile(CommandSoundEffects.Guard, 0.8, "ui")
+                    ValidCommandSound = true
+                elseif cmdID == Groupselect then
+                    Spring.PlaySoundFile(CommandSoundEffects.Groupselect, 0.8, "ui")
+                    ValidCommandSound = true
+                elseif cmdID == Repair then
+                    Spring.PlaySoundFile(CommandSoundEffects.Repair, 0.6, "ui")
+                    ValidCommandSound = true
+                elseif cmdID == Reclaim then
+                    Spring.PlaySoundFile(CommandSoundEffects.Reclaim, 0.3, "ui")
+                    ValidCommandSound = true
+                elseif cmdID == Dgun then
+                    Spring.PlaySoundFile(CommandSoundEffects.Dgun, 0.8, "ui")
+                    ValidCommandSound = true
+                elseif cmdID == Resurrect then
+                    Spring.PlaySoundFile(CommandSoundEffects.Resurrect, 0.7, "ui")
+                    ValidCommandSound = true
+                elseif cmdID == Repeat then
+                    Spring.PlaySoundFile(CommandSoundEffects.Repeat, 0.8, "ui")
+                    ValidCommandSound = true
+                elseif cmdID == Attack then
+                    Spring.PlaySoundFile(CommandSoundEffects.Attack, 0.8, "ui")
+                    ValidCommandSound = true   
+                elseif cmdID == SelfD then
+                    Spring.PlaySoundFile(CommandSoundEffects.SelfD, 0.8, "ui")
+                    ValidCommandSound = true
+                -- elseif cmdID == 34923 then
+                --    Spring.PlaySoundFile(CommandSoundEffects.SetTarget, 0.8, "ui")
+                --    ValidCommandSound = true
+                elseif cmdID < 0 then
+                    local unitDefID = -(cmdID)
+                    local unitName = UnitDefs[unitDefID].name
+                    if UnitSoundEffects[unitName] and UnitSoundEffects[unitName].BaseSoundSelectType then
+                        local sound = UnitSoundEffects[unitName].BaseSoundSelectType
+                        if sound[2] then
+                            Spring.PlaySoundFile(sound[math.random(1,#sound)], 0.2, posx, posy, posz, 'ui')
+                        else
+                            Spring.PlaySoundFile(sound, 0.2, posx, posy, posz, 'ui')
+                        end
+                    else
+                        local sound = DefaultSoundEffects.BaseSoundSelectType
+                        if sound[2] then
+                            Spring.PlaySoundFile(sound[math.random(1,#sound)], 0.2, posx, posy, posz, 'ui')
+                        else
+                            Spring.PlaySoundFile(sound, 0.2, posx, posy, posz, 'ui')
+                        end
+                    end
+                    if UnitSoundEffects[unitName] and UnitSoundEffects[unitName].BaseSoundWeaponType then
+                        local sound = UnitSoundEffects[unitName].BaseSoundWeaponType
+                        if sound[2] then
+                            Spring.PlaySoundFile(sound[math.random(1,#sound)], 0.35, posx, posy, posz, 'ui')
+                        else
+                            Spring.PlaySoundFile(sound, 0.35, posx, posy, posz, 'ui')
+                        end
+                    else
+                        local sound = DefaultSoundEffects.BaseSoundWeaponType
+                        if sound[2] then
+                            Spring.PlaySoundFile(sound[math.random(1,#sound)], 0.35, posx, posy, posz, 'ui')
+                        else
+                            Spring.PlaySoundFile(sound, 0.35, posx, posy, posz, 'ui')
+                        end
+                    end
+                    Spring.PlaySoundFile(CommandSoundEffects.Build, 0.5, 2)
+                    ValidCommandSound = false 
+                end
+
                 -- DEACTIVATE below to disable command-sounds
 
-                -- if UnitSoundEffects[unitName] and UnitSoundEffects[unitName].BaseSoundMovementType then
-                --     --Spring.Echo(unitName.." base sound")
-                --     local sound = UnitSoundEffects[unitName].BaseSoundMovementType
-                --     if sound[2] then
-                --         Spring.PlaySoundFile(sound[math.random(1,#sound)], 0.8, posx, posy, posz, 'ui')
-                --     else
-                --         Spring.PlaySoundFile(sound, 0.8, posx, posy, posz, 'ui')
-                --     end
-                --     --Spring.PlaySoundFile(UnitSoundEffects[unitName].BaseSoundMovementType, 0.8, posx, posy, posz, 'unitreply')
-                -- else
-                --     --Spring.Echo("Generic base sound") 
-                --     local sound = DefaultSoundEffects.BaseSoundMovementType
-                --     if sound[2] then
-                --         Spring.PlaySoundFile(sound[math.random(1,#sound)], 0.8, posx, posy, posz, 'ui')
-                --     else
-                --         Spring.PlaySoundFile(sound, 0.8, posx, posy, posz, 'ui')
-                --     end
-                --     --Spring.PlaySoundFile(DefaultSoundEffects.BaseSoundMovementType, 0.8, posx, posy, posz, 'unitreply')
-                -- end
-
-
-                -- if UnitSoundEffects[unitName] and UnitSoundEffects[unitName].BaseSoundWeaponType then
-                --     --Spring.Echo(unitName.." base sound")
-                --     local sound = UnitSoundEffects[unitName].BaseSoundWeaponType
-                --     if sound[2] then
-                --         Spring.PlaySoundFile(sound[math.random(1,#sound)], 0.2, posx, posy, posz, 'ui')
-                --     else
-                --         Spring.PlaySoundFile(sound, 0.2, posx, posy, posz, 'ui')
-                --     end
-                --     --Spring.PlaySoundFile(UnitSoundEffects[unitName].BaseSoundWeaponType, 0.8, posx, posy, posz, 'sfx')
-                -- else
-                --     --Spring.Echo("Generic base sound") 
-                --     local sound = DefaultSoundEffects.BaseSoundWeaponType
-                --     if sound[2] then
-                --         Spring.PlaySoundFile(sound[math.random(1,#sound)], 0.2, posx, posy, posz, 'ui')
-                --     else
-                --         Spring.PlaySoundFile(sound, 0.2, posx, posy, posz, 'ui')
-                --     end
-                --     --Spring.PlaySoundFile(DefaultSoundEffects.BaseSoundWeaponType, 0.8, posx, posy, posz, 'sfx')
-                -- end
-                
-
-
-
-
-                if cmdID == Move then
-                    --local posx1, posy1, posz1 = cmdParams[1], cmdParams[2], cmdParams[3]
-                    if UnitSoundEffects[unitName] and UnitSoundEffects[unitName].Move then
-                        Spring.PlaySoundFile(UnitSoundEffects[unitName].Move, 0.4, 2)
-                        -- for cmd sounds in 3D use Spring.PlaySoundFile(UnitSoundEffects[unitName].Move, 0.75, posx1, posy1, posz1, 'sfx')
+                if ValidCommandSound then
+                    if UnitSoundEffects[unitName] and UnitSoundEffects[unitName].BaseSoundMovementType then
+                        local sound = UnitSoundEffects[unitName].BaseSoundMovementType
+                        if sound[2] then
+                            Spring.PlaySoundFile(sound[math.random(1,#sound)], 0.8, posx, posy, posz, 'ui')
+                        else
+                            Spring.PlaySoundFile(sound, 0.8, posx, posy, posz, 'ui')
+                        end
                     else
-                        Spring.PlaySoundFile(CommandSoundEffects.Move, 0.4, 2)
+                        local sound = DefaultSoundEffects.BaseSoundMovementType
+                        if sound[2] then
+                            Spring.PlaySoundFile(sound[math.random(1,#sound)], 0.8, posx, posy, posz, 'ui')
+                        else
+                            Spring.PlaySoundFile(sound, 0.8, posx, posy, posz, 'ui')
+                        end
                     end
-                elseif cmdID == Fight then
-                    Spring.PlaySoundFile(CommandSoundEffects.Fight, 0.8, 2)
-                elseif cmdID == Patrol then
-                    Spring.PlaySoundFile(CommandSoundEffects.Patrol, 0.8, 2)
-                elseif cmdID == Guard then
-                    Spring.PlaySoundFile(CommandSoundEffects.Guard, 0.8, 2)
-                elseif cmdID == Groupselect then
-                    Spring.PlaySoundFile(CommandSoundEffects.Groupselect, 0.8, 2)
-                elseif cmdID == Repair then
-                    Spring.PlaySoundFile(CommandSoundEffects.Repair, 0.6, 2)
-                elseif cmdID == Reclaim then
-                    Spring.PlaySoundFile(CommandSoundEffects.Reclaim, 0.3, 2)
-                elseif cmdID == Dgun then
-                    Spring.PlaySoundFile(CommandSoundEffects.Dgun, 0.8, 2)
-                elseif cmdID == Resurrect then
-                    Spring.PlaySoundFile(CommandSoundEffects.Resurrect, 0.7, 2)
-                elseif cmdID == Repeat then
-                    Spring.PlaySoundFile(CommandSoundEffects.Repeat, 0.8, 2)
-                elseif cmdID == Attack then
-                    Spring.PlaySoundFile(CommandSoundEffects.Attack, 0.8, 2)   
-                elseif cmdID == SelfD then
-                    Spring.PlaySoundFile(CommandSoundEffects.SelfD, 0.8, 2)
-                -- elseif cmdID == 34923 then
-                --     Spring.PlaySoundFile(CommandSoundEffects.SetTarget, 0.8, 2)
-                --elseif cmdID < 0 then
-                --    Spring.PlaySoundFile(CommandSoundEffects.Build, 0.5, 2) 
+
+
+                    if UnitSoundEffects[unitName] and UnitSoundEffects[unitName].BaseSoundWeaponType then
+                        local sound = UnitSoundEffects[unitName].BaseSoundWeaponType
+                        if sound[2] then
+                            Spring.PlaySoundFile(sound[math.random(1,#sound)], 0.2, posx, posy, posz, 'ui')
+                        else
+                            Spring.PlaySoundFile(sound, 0.2, posx, posy, posz, 'ui')
+                        end
+                    else
+                        local sound = DefaultSoundEffects.BaseSoundWeaponType
+                        if sound[2] then
+                            Spring.PlaySoundFile(sound[math.random(1,#sound)], 0.2, posx, posy, posz, 'ui')
+                        else
+                            Spring.PlaySoundFile(sound, 0.2, posx, posy, posz, 'ui')
+                        end
+                    end
                 end
             end
         end
