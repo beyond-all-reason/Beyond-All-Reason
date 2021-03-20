@@ -1155,6 +1155,7 @@ local lastUpdate = 0
 --if Platform ~= nil and Platform.gpuVendor == 'Intel' then
 --	minGroundDetail = 2
 --end
+local ambientplayerCheck = false
 function widget:Update(dt)
 
 	if countDownOptionID and countDownOptionClock and countDownOptionClock < os_clock() then
@@ -1165,6 +1166,14 @@ function widget:Update(dt)
 
 	if not initialized then
 		return
+	end
+
+	-- disable ambient player widget, also doing this on initialize but hell... players somehow still have this enabled
+	if not ambientplayerCheck then
+		ambientplayerCheck = true
+		if widgetHandler:IsWidgetKnown("Ambient Player") then
+			widgetHandler:DisableWidget("Ambient Player")
+		end
 	end
 
 	if sceduleOptionApply then
