@@ -111,30 +111,33 @@ function UnitDef_Post(name, uDef)
 	end
 
 --Soon used for new sound system!
-	if uDef.sounds then
-		if uDef.sounds.ok then
-			uDef.sounds.ok = nil 
+	VFS.Include('luarules/configs/gui_soundeffects.lua')
+	if GUIUnitSoundEffects[name] then
+		if uDef.sounds then
+			if uDef.sounds.ok then
+				uDef.sounds.ok = nil 
+			end
 		end
-	end
 
-	if uDef.sounds then
-		if uDef.sounds.select then
-			uDef.sounds.select = nil 
+		if uDef.sounds then
+			if uDef.sounds.select then
+				uDef.sounds.select = nil 
+			end
 		end
+
+		-- TEST for activate custom sounds in gui_soundeffects
+		-- if uDef.sounds then
+		-- 	if uDef.sounds.activate then
+		-- 		uDef.sounds.activate = nil 
+		-- 	end
+		-- end
+
+		-- if uDef.sounds then
+		-- 	if uDef.sounds.deactivate then
+		-- 		uDef.sounds.deactivate = nil 
+		-- 	end
+		-- end
 	end
-
-	-- TEST for activate custom sounds in gui_soundeffects
-	-- if uDef.sounds then
-	-- 	if uDef.sounds.activate then
-	-- 		uDef.sounds.activate = nil 
-	-- 	end
-	-- end
-
-	-- if uDef.sounds then
-	-- 	if uDef.sounds.deactivate then
-	-- 		uDef.sounds.deactivate = nil 
-	-- 	end
-	-- end
 
 	-- Unit Restrictions
 	if uDef.customparams then
