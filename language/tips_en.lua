@@ -109,6 +109,31 @@ return {
 			tutorialT2Ready = "Your economy is now strong enough to build a Tech 2 Factory and units. Or you can maximize t1 unit production and try to win in numbers.",
 			tutorialDuplicateFactory = "It is more efficient to assist the existing factory than to make multiple factories of the same kind.",
 			tutorialParalyzer = "You are being attacked by paralyzer units. Units that have been paralyzed cannot function and wont be able to shoot or move until they have been restored.",
-		}
+		},
+		deathMessages = {
+			error = "Team %{team} got an error (no names) instead of a death message!",
+			allyTeam = {
+				obliterate = "Team %{team} (%{playerList}) has been obliterated",
+				terminate = "Team %{team} (%{playerList}) has been terminated",
+				annihilate = "Team %{team} (%{playerList}) has been annihilated",
+				eliminate = "Team %{team} (%{playerList}) has been eliminated",
+				neutralize = "Team %{team} (%{playerList}) has been neutralized",
+				vaporize = "Team %{team} (%{playerList}) has been vaporized",
+			},
+			team = {
+				bowOut = "Team %{team} (%{playerList}) has bowed out",
+				gone = "Team %{team} (%{playerList}) has gone to a better place",
+				conquer = "Team %{team} (%{playerList}) has been conquered",
+				toast = "Team %{team} (%{playerList}) is toast",
+				takenOut = "Team %{team} (%{playerList}) got taken out",
+				defeat = "Team %{team} (%{playerList}) is defeated",
+				bitterEnd = "Team %{team} (%{playerList}) fought to the bitter end",
+				rodeOff = "Team %{team} (%{playerList}) rode on into the sunset",
+				dismantle = "Team %{team} (%{playerList}) has been dismantled",
+				terminate = "Team %{team} (%{playerList}) was terminated",
+				annihilate = "Team %{team} (%{playerList}) was totally annihilated",
+				crater = "Team %{team} (%{playerList}) left a small crater",
+			},
+		},
 	}
 }
