@@ -30,7 +30,7 @@ function gadget:Initialize()
             -- make sure unitdefname is valid
             if UnitDefNames[unit.name] then
               local rot = tonumber(unit.rot) or 0
-              local unitID = Spring.CreateUnit(unit.name, unit.x, 0, unit.z, rot, unit.team)
+              local unitID = Spring.CreateUnit(unit.name, unit.x, Spring.GetGroundHeight(unit.x, unit.z), unit.z, rot, unit.team)
             else
               Spring.Echo("Scenario: UnitDef name is invalid:",unit.name)
             end
@@ -44,7 +44,7 @@ function gadget:Initialize()
           for k, feature in pairs(featureloadout) do  
             if FeatureDefNames[feature.name] then
               local rot = tonumber(feature.rot) or 0
-              local featureID = Spring.CreateFeature(feature.name, feature.x, 0, feature.z, rot, gaiateamid)
+              local featureID = Spring.CreateFeature(feature.name, feature.x, Spring.GetGroundHeight(feature.x, feature.z), feature.z, rot, gaiateamid)
               if feature.resurrectas and UnitDefNames[feature.resurrectas] then
                 Spring.SetFeatureResurrect(featureID,feature.resurrectas)
               end
