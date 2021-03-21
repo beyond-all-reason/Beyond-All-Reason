@@ -8,21 +8,70 @@ GUIUnitSoundEffects = {
 
     -- ARMADA BUILDINGS
     armrad = {
-    BaseSoundSelectType   = "arm-shp-small-sel",
+    --BaseSoundSelectType   = "",
     BaseSoundMovementType = "laser-tiny",
     BaseSoundWeaponType   = "arm-bld-radar",
     },
 
+    armwin = {
+    --BaseSoundSelectType   = "",
+    BaseSoundMovementType = "arm-bld-action",
+    BaseSoundWeaponType   = "arm-bld-windgen",
+    },
+
     armllt = {
-    BaseSoundSelectType   = "arm-shp-small-sel",
-    BaseSoundMovementType = "laser-tiny",
-    BaseSoundWeaponType   = "arm-bld-radar",
+    --BaseSoundSelectType   = "",
+    BaseSoundMovementType = "arm-bld-defense-action",
+    BaseSoundWeaponType   = "laser-small",
+    },
+
+    armlab = {
+    --BaseSoundSelectType   = "",
+    BaseSoundMovementType = "arm-bld-action",
+    BaseSoundWeaponType   = "arm-bld-lab",
+    },
+
+    armalab = {
+    --BaseSoundSelectType   = "",
+    BaseSoundMovementType = "arm-bld-action",
+    BaseSoundWeaponType   = "arm-bld-lab-t2",
+    },
+
+    armvp = {
+    --BaseSoundSelectType   = "",
+    BaseSoundMovementType = "arm-bld-action",
+    BaseSoundWeaponType   = "arm-bld-vp",
+    },
+
+    armavp = {
+    --BaseSoundSelectType   = "",
+    BaseSoundMovementType = "arm-bld-action",
+    BaseSoundWeaponType   = "arm-bld-vp-t2",
+    },
+
+    armap = {
+    --BaseSoundSelectType   = "",
+    BaseSoundMovementType = "arm-bld-action",
+    BaseSoundWeaponType   = "arm-bld-ap",
+    },
+
+    armaap = {
+    --BaseSoundSelectType   = "",
+    BaseSoundMovementType = "arm-bld-action",
+    BaseSoundWeaponType   = "arm-bld-ap-t2",
+    },
+
+    armshltx = {
+    --BaseSoundSelectType   = "",
+    BaseSoundMovementType = "arm-bld-gant-t3-ok",
+    BaseSoundWeaponType   = "arm-bld-gant-t3-sel",
     },
 
     -- ARMADA HOVERCRAFT
     armsh = {
     BaseSoundSelectType   = "arm-hov-small-sel",
     BaseSoundMovementType = "arm-hov-small-ok",
+    --BaseSoundMovementVol = 0.6,
     BaseSoundWeaponType   = "laser-tiny",
     },
     armmh = {

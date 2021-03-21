@@ -2,7 +2,7 @@
 local DelayRandomization = 1 -- frames
 
 local CommandUISoundDelayFrames = 1 
-local CommandUnitSoundDelayFrames = 30 -- don't make it smaller than CommandUISoundDelayFrames
+local CommandUnitSoundDelayFrames = 25 -- don't make it smaller than CommandUISoundDelayFrames
 local SelectSoundDelayFrames = 10
 local UnitFinishedSoundDelayFrames = 1
 local UnitBuildOrderSoundDelayFrames = 10
@@ -269,8 +269,8 @@ else -- Unsynced part
                                 end
                             end
                         end
-                        Spring.PlaySoundFile(CommandSoundEffects.Build, 0.5, 2)
-                        ValidCommandSound = false 
+                        --Spring.PlaySoundFile(CommandSoundEffects.Build, 0.5, 2)
+                        --ValidCommandSound = false 
                     end
                 end
 
@@ -297,6 +297,7 @@ else -- Unsynced part
                         end
                     end
                 end
+
             end
         end
     end
