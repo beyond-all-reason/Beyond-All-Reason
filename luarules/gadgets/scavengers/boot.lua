@@ -330,14 +330,14 @@ function gadget:GameFrame(n)
 		end
 		local scavUnits = Spring.GetTeamUnits(GaiaTeamID)
 		local scavUnitsCount = #scavUnits
-		if scavUnitsCount < 5 and n > 18000 then
+		if scavUnitsCount < 5 and n > scavconfig.gracePeriod + 9000 then
 			killedscavengers = killedscavengers + 100
 			if BossWaveStarted and (BossWaveTimeLeft and BossWaveTimeLeft > 20) then
 				BossWaveTimeLeft = 20
 			end
 		end
 	end
-	if n%1800 == 0 and n > 100 then
+	if n%900 == 0 and n > 100 then
 		teamsCheck()
 		UpdateTierChances(n)
 		if (BossWaveStarted == false) and globalScore > scavconfig.timers.BossFight and unitSpawnerModuleConfig.bossFightEnabled then
