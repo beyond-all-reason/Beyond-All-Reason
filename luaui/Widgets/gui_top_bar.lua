@@ -1165,6 +1165,7 @@ function widget:Update(dt)
 	if spec and spGetMyTeamID() ~= prevMyTeamID then
 		-- check if the team that we are spectating changed
 		checkStatus()
+		init()
 	end
 
 	local mx, my = spGetMouseState()

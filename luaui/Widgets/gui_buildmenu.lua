@@ -97,9 +97,9 @@ local buildKeys = {
 	112, -- P
 }
 
+local playSounds = true
 local sound_queue_add = 'LuaUI/Sounds/buildbar_add.wav'
 local sound_queue_rem = 'LuaUI/Sounds/buildbar_rem.wav'
---local sound_button = 'LuaUI/Sounds/buildbar_waypoint.wav'
 
 local fontFile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 
@@ -1926,14 +1926,16 @@ function widget:MousePress(x, y, button)
 				for cellRectID, cellRect in pairs(cellRects) do
 					if cmds[cellRectID].id and UnitDefs[-cmds[cellRectID].id].humanName and IsOnRect(x, y, cellRect[1], cellRect[2], cellRect[3], cellRect[4]) and not unitRestricted[-cmds[cellRectID].id] then
 						if button ~= 3 then
-							Spring.PlaySoundFile(sound_queue_add, 0.75, 'ui')
+							if playSounds then
+								Spring.PlaySoundFile(sound_queue_add, 0.75, 'ui')
+							end
 							if preGamestartPlayer then
 								setPreGamestartDefID(cmds[cellRectID].id * -1)
 							elseif spGetCmdDescIndex(cmds[cellRectID].id) then
 								Spring.SetActiveCommand(spGetCmdDescIndex(cmds[cellRectID].id), 1, true, false, Spring.GetModKeyState())
 							end
 						else
-							if cmds[cellRectID].params[1] then
+							if cmds[cellRectID].params[1] and playSounds then
 								-- has queue
 								Spring.PlaySoundFile(sound_queue_rem, 0.75, 'ui')
 							end
