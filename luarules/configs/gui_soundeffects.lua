@@ -6,64 +6,178 @@ GUIUnitSoundEffects = {
     BaseSoundWeaponType   = "laser-tiny",
     },
 
+    armdecom = {
+    BaseSoundSelectType   = "arm-com-sel",
+    BaseSoundMovementType = {"arm-com-ok-1","arm-com-ok-2","arm-com-ok-3","arm-com-ok-4",},
+    BaseSoundWeaponType   = "laser-tiny",
+    },
+
     -- ARMADA BUILDINGS
     armrad = {
-    --BaseSoundSelectType   = "",
+    BaseSoundSelectType   = "arm-bld-select",
     BaseSoundMovementType = "laser-tiny",
     BaseSoundWeaponType   = "arm-bld-radar",
     },
 
+    armmex = {
+    BaseSoundSelectType   = "arm-bld-metal",
+    --BaseSoundMovementType = "",
+    BaseSoundWeaponType   = "arm-bld-mex",
+    },
+
+    armmakr = {
+    BaseSoundSelectType   = "arm-bld-metal",
+    --BaseSoundMovementType = "",
+    BaseSoundWeaponType   = "arm-bld-metalmaker",
+    },
+
+    armmmkr = {
+    BaseSoundSelectType   = "arm-bld-metal",
+    --BaseSoundMovementType = "",
+    BaseSoundWeaponType   = "arm-bld-metalmaker-t2",
+    },
+
     armwin = {
-    --BaseSoundSelectType   = "",
-    BaseSoundMovementType = "arm-bld-action",
+    BaseSoundSelectType   = "arm-bld-nrg",
+    --BaseSoundMovementType = "",
     BaseSoundWeaponType   = "arm-bld-windgen",
     },
 
+    armsolar = {
+    BaseSoundSelectType   = "arm-bld-nrg",
+    --BaseSoundMovementType = "",
+    BaseSoundWeaponType   = "arm-bld-solar",
+    },
+
+    armmstor = {
+    BaseSoundSelectType   = "arm-bld-metal",
+    --BaseSoundMovementType = "",
+    BaseSoundWeaponType   = "arm-bld-storage",
+    },
+
+    armestor = {
+    BaseSoundSelectType   = "arm-bld-nrg",
+    --BaseSoundMovementType = "",
+    BaseSoundWeaponType   = "arm-bld-storage",
+    },
+
+    armdrag = {
+    BaseSoundSelectType   = "arm-bld-select",
+    --BaseSoundMovementType = "",
+    BaseSoundWeaponType   = "arm-bld-wall",
+    },
+
+    armeyes = {
+    BaseSoundSelectType   = "arm-bld-select",
+    --BaseSoundMovementType = "",
+    BaseSoundWeaponType   = "cloak",
+    },
+
     armllt = {
-    --BaseSoundSelectType   = "",
-    BaseSoundMovementType = "arm-bld-defense-action",
+    BaseSoundSelectType   = "arm-bld-defense-action",
+    --BaseSoundMovementType = "",
     BaseSoundWeaponType   = "laser-small",
     },
 
+    armbeamer = {
+    BaseSoundSelectType   = "arm-bld-defense-action",
+    --BaseSoundMovementType = "",
+    BaseSoundWeaponType   = "beamer",
+    },
+
+    armrl = {
+    BaseSoundSelectType   = "arm-bld-defense-action",
+    --BaseSoundMovementType = "",
+    BaseSoundWeaponType   = "aarocket-small",
+    },
+
+    armtl = {
+    BaseSoundSelectType   = "arm-bld-defense-action",
+    --BaseSoundMovementType = "",
+    BaseSoundWeaponType   = "torpedo-small",
+    },
+
+    armclaw = {
+    BaseSoundSelectType   = "arm-bld-defense-action",
+    --BaseSoundMovementType = "",
+    BaseSoundWeaponType   = "lightning",
+    },
+
+    armferret = {
+    BaseSoundSelectType   = "arm-bld-defense-action",
+    --BaseSoundMovementType = "",
+    BaseSoundWeaponType   = "aarocket-medium",
+    },
+
+    armcir = {
+    BaseSoundSelectType   = "arm-bld-defense-action",
+    --BaseSoundMovementType = "",
+    BaseSoundWeaponType   = "aarocket-medium",
+    },
+
+    armguard = {
+    BaseSoundSelectType   = "arm-bld-defense-action",
+    --BaseSoundMovementType = "",
+    BaseSoundWeaponType   = "arty-medium",
+    },
+
+    armflak = {
+    BaseSoundSelectType   = "arm-bld-defense-action",
+    --BaseSoundMovementType = "",
+    BaseSoundWeaponType   = "flak",
+    },
+
+    armmercury = {
+    BaseSoundSelectType   = "arm-bld-defense-action",
+    --BaseSoundMovementType = "",
+    BaseSoundWeaponType   = "aarocket-large",
+    },
+
+    armatl = {
+    BaseSoundSelectType   = "arm-bld-defense-action",
+    --BaseSoundMovementType = "",
+    BaseSoundWeaponType   = "torpedo-medium",
+    },
+
     armlab = {
-    --BaseSoundSelectType   = "",
-    BaseSoundMovementType = "arm-bld-action",
+    BaseSoundSelectType   = "arm-bld-factory",
+    --BaseSoundMovementType = "",
     BaseSoundWeaponType   = "arm-bld-lab",
     },
 
     armalab = {
-    --BaseSoundSelectType   = "",
-    BaseSoundMovementType = "arm-bld-action",
+    BaseSoundSelectType   = "arm-bld-factory-t2",
+    --BaseSoundMovementType = "",
     BaseSoundWeaponType   = "arm-bld-lab-t2",
     },
 
     armvp = {
-    --BaseSoundSelectType   = "",
-    BaseSoundMovementType = "arm-bld-action",
+    BaseSoundSelectType   = "arm-bld-factory",
+    --BaseSoundMovementType = "",
     BaseSoundWeaponType   = "arm-bld-vp",
     },
 
     armavp = {
-    --BaseSoundSelectType   = "",
-    BaseSoundMovementType = "arm-bld-action",
+    BaseSoundSelectType   = "arm-bld-factory-t2",
+    --BaseSoundMovementType = "",
     BaseSoundWeaponType   = "arm-bld-vp-t2",
     },
 
     armap = {
-    --BaseSoundSelectType   = "",
-    BaseSoundMovementType = "arm-bld-action",
+    BaseSoundSelectType   = "arm-bld-factory",
+    --BaseSoundMovementType = "",
     BaseSoundWeaponType   = "arm-bld-ap",
     },
 
     armaap = {
-    --BaseSoundSelectType   = "",
-    BaseSoundMovementType = "arm-bld-action",
+    BaseSoundSelectType   = "arm-bld-factory-t2",
+    --BaseSoundMovementType = "",
     BaseSoundWeaponType   = "arm-bld-ap-t2",
     },
 
     armshltx = {
-    --BaseSoundSelectType   = "",
-    BaseSoundMovementType = "arm-bld-gant-t3-ok",
+    BaseSoundSelectType   = "arm-bld-factory-t3",
+    --BaseSoundMovementType = "",
     BaseSoundWeaponType   = "arm-bld-gant-t3-sel",
     },
 
@@ -145,38 +259,6 @@ GUIUnitSoundEffects = {
     armrectr = {
     BaseSoundSelectType   = "arm-bot-tiny-ok",
     BaseSoundMovementType = "arm-bot-tiny-ok",
-    BaseSoundWeaponType   = "rez-small",
-    },
-
-    -- CORTEX T1 BOTS
-    corak = {
-    BaseSoundSelectType   = "cor-bot-tiny-sel",
-    BaseSoundMovementType = "cor-bot-tiny-ok",
-    BaseSoundWeaponType   = "laser-small",
-    },
-    corthud = {
-    BaseSoundSelectType   = "cor-bot-small-sel",
-    BaseSoundMovementType = "cor-bot-small-ok",
-    BaseSoundWeaponType   = "plasma-small",
-    },
-    corstorm = {
-    BaseSoundSelectType   = "cor-bot-small-sel",
-    BaseSoundMovementType = "cor-bot-small-ok",
-    BaseSoundWeaponType   = "rocketalt-small",
-    },
-    corcrash = {
-    BaseSoundSelectType   = "cor-bot-small-sel",
-    BaseSoundMovementType = "cor-bot-small-ok",
-    BaseSoundWeaponType   = "aarocket-small",
-    },
-    corck = {
-    BaseSoundSelectType   = "cor-bot-small-sel",
-    BaseSoundMovementType = "cor-bot-small-ok",
-    BaseSoundWeaponType   = "conalt-small",
-    },
-    cornecro = {
-    BaseSoundSelectType   = "cor-bot-tiny-sel",
-    BaseSoundMovementType = "cor-bot-tiny-ok",
     BaseSoundWeaponType   = "rez-small",
     },
 
@@ -276,7 +358,7 @@ GUIUnitSoundEffects = {
     armacv = {
     BaseSoundSelectType   = "arm-tnk-small-sel",
     BaseSoundMovementType = "arm-tnk-small-ok",
-    BaseSoundWeaponType   = "conalt-small",
+    BaseSoundWeaponType   = "conalt-medium",
     },
     armmerl = {
     BaseSoundSelectType   = "arm-tnk-medium-sel",
@@ -348,7 +430,7 @@ GUIUnitSoundEffects = {
     armacsub = {
     BaseSoundSelectType   = "arm-sub-medium-sel",
     BaseSoundMovementType = "arm-sub-medium-ok",
-    BaseSoundWeaponType   = "conalt-small",
+    BaseSoundWeaponType   = "conalt-medium",
     },
     armsubk = {
     BaseSoundSelectType   = "arm-sub-medium-sel",
@@ -390,5 +472,163 @@ GUIUnitSoundEffects = {
     BaseSoundMovementType = "arm-shp-huge-ok",
     BaseSoundWeaponType   = "plasma-huge",
     },
-    
+
+    -- ARMADA AIRCRAFT
+    armpeep = {
+    BaseSoundSelectType   = "arm-air-small-sel",
+    BaseSoundMovementType = "arm-air-small-ok",
+    BaseSoundWeaponType   = "radar",
+    },
+    armatlas = {
+    BaseSoundSelectType   = "arm-air-transport-small-sel",
+    BaseSoundMovementType = "arm-air-transport-small-ok",
+    BaseSoundWeaponType   = "transport-large",
+    },
+    armfig = {
+    BaseSoundSelectType   = "arm-air-small-sel",
+    BaseSoundMovementType = "arm-air-small-ok",
+    BaseSoundWeaponType   = "aarocket-air",
+    },
+    armsfig = {
+    BaseSoundSelectType   = "arm-air-small-sel",
+    BaseSoundMovementType = "arm-air-small-ok",
+    BaseSoundWeaponType   = "aarocket-air",
+    },
+    armca = {
+    BaseSoundSelectType   = "arm-air-small-sel",
+    BaseSoundMovementType = "arm-air-small-ok",
+    BaseSoundWeaponType   = "conalt-small",
+    },
+    armsehak = {
+    BaseSoundSelectType   = "arm-air-gunship-alt-sel-sel",
+    BaseSoundMovementType = "arm-air-gunship-alt-ok",
+    BaseSoundWeaponType   = "radar",
+    },
+    armkam = {
+    BaseSoundSelectType   = "arm-air-gunship-alt-sel",
+    BaseSoundMovementType = "arm-air-gunship-alt-ok",
+    BaseSoundWeaponType   = "fastemg-small",
+    },
+    armthund = {
+    BaseSoundSelectType   = "arm-air-bomber-sel",
+    BaseSoundMovementType = "arm-air-bomber-ok",
+    BaseSoundWeaponType   = "air-bomb-small",
+    },
+    armcsa = {
+    BaseSoundSelectType   = "arm-air-small-sel",
+    BaseSoundMovementType = "arm-air-small-ok",
+    BaseSoundWeaponType   = "conalt-small",
+    },
+    armsaber = {
+    BaseSoundSelectType   = "arm-air-gunship-sel",
+    BaseSoundMovementType = "arm-air-gunship-ok",
+    BaseSoundWeaponType   = "laser-medium",
+    },
+    armsb = {
+    BaseSoundSelectType   = "arm-air-bomber-sel",
+    BaseSoundMovementType = "arm-air-bomber-ok",
+    BaseSoundWeaponType   = "air-bomb-small",
+    },
+    armseap = {
+    BaseSoundSelectType   = "arm-air-gunship-ok-sel",
+    BaseSoundMovementType = "arm-air-gunship-ok",
+    BaseSoundWeaponType   = "air-bomb-small-torp",
+    },
+    armhawk = {
+    BaseSoundSelectType   = "arm-air-medium-sel",
+    BaseSoundMovementType = "arm-air-medium-ok",
+    BaseSoundWeaponType   = "aarocket-air",
+    },
+    armawac = {
+    BaseSoundSelectType   = "arm-air-medium-sel",
+    BaseSoundMovementType = "arm-air-medium-ok",
+    BaseSoundWeaponType   = "radar",
+    },
+    armpnix = {
+    BaseSoundSelectType   = "arm-air-bomber-sel",
+    BaseSoundMovementType = "arm-air-bomber-ok",
+    BaseSoundWeaponType   = "air-bomb-large",
+    },
+    armstil = {
+    BaseSoundSelectType   = "arm-air-bomber-sel",
+    BaseSoundMovementType = "arm-air-bomber-ok",
+    BaseSoundWeaponType   = "air-bomb-large-emp",
+    },
+    armaca = {
+    BaseSoundSelectType   = "arm-air-medium-sel",
+    BaseSoundMovementType = "arm-air-medium-ok",
+    BaseSoundWeaponType   = "conalt-medium",
+    },
+    armbrawl = {
+    BaseSoundSelectType   = "arm-air-gunship-alt-sel",
+    BaseSoundMovementType = "arm-air-gunship-alt-ok",
+    BaseSoundWeaponType   = "fastemg-medium",
+    },
+    armdfly = {
+    BaseSoundSelectType   = "arm-air-transport-large-sel",
+    BaseSoundMovementType = "arm-air-transport-large-ok",
+    BaseSoundWeaponType   = "transport-large",
+    },
+    armlance = {
+    BaseSoundSelectType   = "arm-air-bomber-sel",
+    BaseSoundMovementType = "arm-air-bomber-ok",
+    BaseSoundWeaponType   = "air-bomb-large-torp",
+    },
+    armblade = {
+    BaseSoundSelectType   = "arm-air-gunship-sel",
+    BaseSoundMovementType = "arm-air-gunship-ok",
+    BaseSoundWeaponType   = "rocket-large",
+    },
+    armliche = {
+    BaseSoundSelectType   = "arm-air-large-sel",
+    BaseSoundMovementType = "arm-air-large-ok",
+    BaseSoundWeaponType   = "air-bomb-large-nuclear",
+    },
+
+    -- CORTEX T1 BOTS
+    corak = {
+    BaseSoundSelectType   = "cor-bot-tiny-sel",
+    BaseSoundMovementType = "cor-bot-tiny-ok",
+    BaseSoundWeaponType   = "laser-small",
+    },
+    corthud = {
+    BaseSoundSelectType   = "cor-bot-small-sel",
+    BaseSoundMovementType = "cor-bot-small-ok",
+    BaseSoundWeaponType   = "plasma-small",
+    },
+    corstorm = {
+    BaseSoundSelectType   = "cor-bot-small-sel",
+    BaseSoundMovementType = "cor-bot-small-ok",
+    BaseSoundWeaponType   = "rocketalt-small",
+    },
+    corcrash = {
+    BaseSoundSelectType   = "cor-bot-small-sel",
+    BaseSoundMovementType = "cor-bot-small-ok",
+    BaseSoundWeaponType   = "aarocket-small",
+    },
+    corck = {
+    BaseSoundSelectType   = "cor-bot-small-sel",
+    BaseSoundMovementType = "cor-bot-small-ok",
+    BaseSoundWeaponType   = "conalt-small",
+    },
+    cornecro = {
+    BaseSoundSelectType   = "cor-bot-tiny-sel",
+    BaseSoundMovementType = "cor-bot-tiny-ok",
+    BaseSoundWeaponType   = "rez-small",
+    },
+
+    -- CORTEX VEHICLES
+
+    -- FUN MODE - made possible by Teifion and Basic
+    -- corfav = {
+    -- BaseSoundSelectType   = "cor-veh-tiny-sel",
+    -- BaseSoundMovementType = "cor-veh-tiny-ok",
+    -- BaseSoundWeaponType   = "laser-small",
+    -- },
+    -- corgol = {
+    -- BaseSoundSelectType   = "cor-tnk-large-sel",
+    -- BaseSoundMovementType = "cor-tnk-large-ok",
+    -- BaseSoundWeaponType   = "plasma-huge",
+    -- },
+
 }

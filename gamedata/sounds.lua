@@ -226,7 +226,7 @@ for i=1,#files do
 	}
 end
 
--- UNIT MOVEMENT SOUNDS
+-- LAND UNIT MOVEMENT SOUNDS
 local files = VFS.DirList("sounds/movement/")
 local t = Sounds.SoundItems
 for i=1,#files do
@@ -235,7 +235,26 @@ for i=1,#files do
 	t[fileNames] = {
 		file     = fileName;
 		gain = 1.2*0.3,
-		pitchmod = 0.075,
+		pitchmod = 0.062,
+		gainmod  = 0.2*0.3,
+		dopplerscale = 0,
+		maxconcurrent = 2,
+		rolloff = 0.05,
+		priority = 1,
+		--in3d = false,
+	}
+end
+
+-- AIR UNIT MOVEMENT SOUNDS
+local files = VFS.DirList("sounds/movement-air/")
+local t = Sounds.SoundItems
+for i=1,#files do
+	local fileName = files[i]
+	fileNames = string.sub(fileName, 21, string.find(fileName, ".wav") -1)
+	t[fileNames] = {
+		file     = fileName;
+		gain = 1.2*0.3,
+		pitchmod = 0.02,
 		gainmod  = 0.2*0.3,
 		dopplerscale = 0,
 		maxconcurrent = 2,
