@@ -1,4 +1,3 @@
-
 function widget:GetInfo()
   return {
     name      = "Snow",
@@ -12,15 +11,10 @@ function widget:GetInfo()
 end
 
 --------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
 -- /snow    -- toggles snow on current map (also remembers this)
-
---------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-local vsx,vsy = Spring.GetViewGeometry()
-local widgetScale = (0.55 + (vsx*vsy / 10000000))
+-- local vsx,vsy = Spring.GetViewGeometry()
 
 local minFps					= 22		-- stops snowing at
 local maxFps					= 55		-- max particles at
@@ -33,18 +27,12 @@ local gameFrameCountdown		= 120		-- on launch: wait this many frames before adju
 local particleScaleMultiplier	= 1
 
 -- pregame info message
-local showPreGameInfo = false
 local autoReduce = true
-local fadetime = 13
-local fadetimeThreshold = 30
-local textStartOpacity = 0.6
 
-local fpsDifference 			= (maxFps-minFps)/particleSteps		-- fps difference need before changing the dlist to one with fewer particles
+local fpsDifference = (maxFps-minFps)/particleSteps		-- fps difference need before changing the dlist to one with fewer particles
 
 local snowTexture = "LuaUI/Images/snow.dds"
-
 local snowKeywords = {'snow','frozen','cold','winter','ice','icy','arctic','frost','melt','glacier','mosh_pit','blindside','northernmountains','amarante','cervino'}
-
 local snowMaps = {}
 
 -- disable for maps that have a keyword but are not snowmaps
@@ -81,13 +69,7 @@ table.insert(particleTypes, {
 		scale = 6600
 })
 
-local avgFpsInit = false
 local widgetDisabledSnow = false
-
-local math_random = math.random
-local math_randomseed = math.randomseed
-
-local font, drawinfolist
 
 local shader
 local shaderTimeLoc
@@ -101,18 +83,13 @@ local diffTime = 0
 local spGetFPS					= Spring.GetFPS
 local averageFps				= 60
 
-local firstPos = 0
-local secondPos = 0
-local thirdPos = 0
 local camX,camY,camZ
 local vsx, vsy					= gl.GetViewSizes()
 local particleScale	= 1
-local startTime = os.clock()
 
 local offsetX = 0
 local offsetZ = 0
 local prevOsClock = os.clock()
-local gameStarted = false
 
 local enabled = false
 local previousFps				= (maxFps + minFps) / 1.75
@@ -128,55 +105,27 @@ local previousParticleAmount = particleDensity
 --------------------------------------------------------------------------------
 
 local spGetWind            = Spring.GetWind
-local spGetGameFrame       = Spring.GetGameFrame
 
-local glBeginEnd           = gl.BeginEnd
-local glVertex             = gl.Vertex
-local glColor              = gl.Color
 local glBlending           = gl.Blending
-local glTranslate          = gl.Translate
 local glCallList           = gl.CallList
 local glDepthTest          = gl.DepthTest
-local glCreateList         = gl.CreateList
 local glDeleteList         = gl.DeleteList
 local glTexture            = gl.Texture
 local glGetShaderLog       = gl.GetShaderLog
 local glCreateShader       = gl.CreateShader
 local glDeleteShader       = gl.DeleteShader
 local glUseShader          = gl.UseShader
-local glUniformMatrix      = gl.UniformMatrix
-local glUniformInt         = gl.UniformInt
 local glUniform            = gl.Uniform
 local glGetUniformLocation = gl.GetUniformLocation
-local glGetActiveUniforms  = gl.GetActiveUniforms
-local glBeginEnd = gl.BeginEnd
-local glPointSprite = gl.PointSprite
-local glPointSize = gl.PointSize
-local glPointParameter = gl.PointParameter
 local glResetState = gl.ResetState
-local GL_POINTS = GL.POINTS
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
-
 
 local windDirX, _, windDirZ, _ = spGetWind()
 local startOsClock = os.clock()
 
-
-function widget:Shutdown()
-	removeSnow()
-	WG['snow'] = nil
-end
-
-function removeSnow()
-	removeParticleLists()
-	if shader ~= nil then
-		glDeleteShader(shader)
-	end
-end
-
-function removeParticleLists()
+local function removeParticleLists()
 	if particleLists[1] ~= nil then
 		for layer=1, 3 do
 			for step=1, particleSteps do
@@ -185,6 +134,18 @@ function removeParticleLists()
 		end
 		particleLists = {}
 	end
+end
+
+local function removeSnow()
+	removeParticleLists()
+	if shader ~= nil then
+		glDeleteShader(shader)
+	end
+end
+
+function widget:Shutdown()
+	removeSnow()
+	WG['snow'] = nil
 end
 
 -- creating multiple lists per particleType so we can switch to less particles without causing lag
@@ -205,7 +166,6 @@ local function CreateParticleLists()
 					local x = math.random()
 					local y = math.random()
 					local z = math.random()
-					local w = math.random()
 					local w = 1
 					gl.Vertex(x, y, z, w)
 				  end
@@ -220,8 +180,7 @@ end
 --------------------------------------------------------------------------------
 
 
-function init()
-
+local function init()
 	-- abort if not enabled
 	if enabled == false then return end
 
@@ -297,8 +256,7 @@ function init()
 	end
 end
 
-
-function getWindSpeed()
+local function getWindSpeed()
 	windDirX, _, windDirZ, _ = spGetWind()
 
 	-- cap windspeed while preserving direction
@@ -335,7 +293,6 @@ function widget:Initialize()
 			particleStep = particleSteps
 			widgetDisabledSnow = false
 		else
-			avgFpsInit = true
 			averageFps = spGetFPS()
 		end
 	end
@@ -347,25 +304,6 @@ function widget:Initialize()
 		else
 			removeSnow()
 		end
-	end
-
-	if spGetGameFrame() > 0 then
-		gameStarted = true
-	end
-
-	if showPreGameInfo then
-		drawinfolist = gl.CreateList( function()
-			local text = "Snowing less when FPS gets lower \n"
-			local text2 = "/snow to toggle snow... for this map \n".."disable 'Snow' widget... for all maps "
-			local fontSize = 30
-			--local textWidth = font:GetTextWidth(text)*fontSize
-			local textHeight = font:GetTextHeight(text)*fontSize
-			--gl.Text(text, -textWidth/2, -textHeight/2, fontSize, "")
-			font:Begin()
-			font:Print(text, 0, textHeight/2, fontSize, "c")
-			font:Print(text2, 0, -textHeight/1.6, fontSize*0.8, "c")
-			font:End()
-		end)
 	end
 
 	startOsClock = os.clock()
@@ -399,13 +337,6 @@ end
 --------------------------------------------------------------------------------
 
 function widget:GameFrame(gameFrame)
-	if gameFrame == 1 then
-		gameStarted = true
-		if drawinfolist ~= nil then
-			gl.DeleteList(drawinfolist)
-		end
-	end
-
 	if not enabled and not widgetDisabledSnow then return end
 
 	if gameFrameCountdown <= 0 then
@@ -415,7 +346,6 @@ function widget:GameFrame(gameFrame)
 		if gameFrame%44==0 then
 			averageFps = ((averageFps * 19) + spGetFPS()) / 20
 			if averageFps < 1 then averageFps = 1 end
-			--Spring.Echo(particleStep.."  avg fps:  "..averageFps)
 		end
 		if gameFrame%88==0 and autoReduce then
 			if averageFps >= previousFps+fpsDifference or averageFps <= previousFps-fpsDifference then
@@ -447,38 +377,11 @@ end
 
 function widget:Shutdown()
 	enabled = false
-	if drawinfolist ~= nil then
-		gl.DeleteList(drawinfolist)
-	end
-end
-
-if showPreGameInfo then
-	function widget:DrawScreen()
-		if not enabled or not autoReduce then return end
-
-		if not gameStarted and snowMaps[currentMapname] ~= nil and snowMaps[currentMapname] then
-			if not avgFpsInit then
-				avgFpsInit = true
-				averageFps = spGetFPS()
-			end
-			local now = os.clock()
-			local opacityMultiplier = (((startTime+fadetimeThreshold) - now) / fadetime)
-			if opacityMultiplier > 1 then opacityMultiplier = 1 end
-
-			if opacityMultiplier > 0 then
-				gl.PushMatrix()
-				gl.Translate(vsx/2, vsy/1.5, 0)
-				gl.Scale(widgetScale,widgetScale,0)
-				gl.Color(1,1,1,textStartOpacity*opacityMultiplier)
-				gl.CallList(drawinfolist)
-				gl.PopMatrix()
-			end
-		end
-	end
 end
 
 local pausedTime = 0
 local lastFrametime = Spring.GetTimer()
+
 function widget:DrawWorld()
 	if not enabled then return end
 
@@ -531,9 +434,7 @@ end
 
 function widget:ViewResize()
 	vsx,vsy = Spring.GetViewGeometry()
-	widgetScale = (0.55 + (vsx*vsy / 10000000))
 
-	font = WG['fonts'].getFont(nil, 1.5, nil, 1.3)
 
 	if particleLists[#particleTypes] ~= nil then
 		CreateParticleLists()
@@ -563,7 +464,6 @@ function widget:SetConfigData(data)
 	if data.gameframe ~= nil and data.gameframe > 0	then
 		if data.averageFps ~= nil 	then
 			averageFps = data.averageFps
-			avgFpsInit = true
 		end
 		if data.particleStep ~= nil and data.gameframe ~= nil and Spring.GetGameFrame() > 0 then
 			particleStep = data.particleStep
