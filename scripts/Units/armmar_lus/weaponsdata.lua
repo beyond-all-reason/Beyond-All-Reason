@@ -76,6 +76,7 @@ function WeaponShot(weaponID)
 	if weapons[weaponID].kickback then
 		Move(weapons[weaponID].cannon[weapons[weaponID].counter], 3, -10)
 		Move(weapons[weaponID].cannon[weapons[weaponID].counter], 3, 0, 5)
+		EmitSfx(weapons[weaponID].flare[weapons[weaponID].counter], 1024+0)
 	end
 end
 
