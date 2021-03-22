@@ -89,7 +89,7 @@ local startboxDListColor = 0
 local isSpec = Spring.GetSpectatingState() or Spring.IsReplay()
 local myTeamID = Spring.GetMyTeamID()
 
-local placeVoiceNotifTimer = os.clock() + 60	-- reset in initialize()
+local placeVoiceNotifTimer = false
 local amPlaced = false
 
 local gaiaTeamID
@@ -249,7 +249,6 @@ function createInfotextList()
 end
 
 function widget:Initialize()
-	placeVoiceNotifTimer = os.clock() + 35
 
 	-- only show at the beginning
 	if (Spring.GetGameFrame() > 1) then
@@ -629,6 +628,10 @@ end
 
 local groundHeightPoint = Spring.GetGroundHeight(0, 0)
 function widget:Update(dt)
+	if not placeVoiceNotifTimer then
+		placeVoiceNotifTimer = os.clock() + 20
+	end
+
 	if (doWaterLevelCheck and not resetted) or (Spring.IsCheatingEnabled() and Spring.GetGroundHeight(0, 0) ~= groundHeightPoint) then
 		resetsec = resetsec + dt
 		if resetsec > 1 then
