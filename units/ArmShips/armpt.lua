@@ -37,7 +37,7 @@ return {
 		script = "Units/ARMPT.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
-		sightdistance = 700,
+		sightdistance = 750,
 		sonardistance = 400,
 		turninplace = true,
 		turninplaceanglelimit = 90,
