@@ -35,7 +35,7 @@ return {
 		script = "Units/CORPT.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd",
-		sightdistance = 700,
+		sightdistance = 750,
 		sonardistance = 400,
 		turninplace = true,
 		turninplaceanglelimit = 90,
