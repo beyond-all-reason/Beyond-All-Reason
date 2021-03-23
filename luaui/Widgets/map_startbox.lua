@@ -643,6 +643,7 @@ function widget:Update(dt)
 	end
 	if not isSpec and not amPlaced and placeVoiceNotifTimer < os.clock() and WG['notifications'] then
 		WG['notifications'].addEvent('ChooseStartLoc')
+		placeVoiceNotifTimer = os.clock() + 20
 	end
 end
 --------------------------------------------------------------------------------
