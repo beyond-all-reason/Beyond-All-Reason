@@ -612,6 +612,10 @@ function GetIconTypes()
 end
 
 function gadget:Initialize()
-	gadgetHandler:RegisterGlobal('GetIconTypes', GetIconTypes)
+  gadgetHandler:RegisterGlobal('GetIconTypes', GetIconTypes)
   loadUnitIcons()
 end
+
+function gadget:Shutdown()
+  gadgetHandler:DeregisterGlobal("GetIconTypes")
+end 
