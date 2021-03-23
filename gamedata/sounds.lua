@@ -302,6 +302,7 @@ for i=1,#files do
 	}
 end
 
+-- UI COMMANDS SOUNDS
 local files = VFS.DirList("sounds/commands/")
 local t = Sounds.SoundItems
 for i=1,#files do

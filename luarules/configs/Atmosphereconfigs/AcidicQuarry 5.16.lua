@@ -61,15 +61,15 @@ function gadget:GameFrame(n)
 
 -- rare rain
 	if n%6800 == 5000 then
-		SpawnCEGInRandomMapPos("rainlight-acid", 0, 15, _, 750, "rainlight", 1)
+		SpawnCEGInRandomMapPos("rainlight-acid", 0, 15, _, 750, "rainlight", 0.5)
 	end
 
 	if n%6800 == 4300 then
-		SpawnCEGInRandomMapPos("rainlight-acid", 0, 15, _, 750, "rainlight", 1)
+		SpawnCEGInRandomMapPos("rainlight-acid", 0, 15, _, 750, "rainlight", 0.5)
 	end
 
 	if n%500 == 10 then
-		SpawnCEGInRandomMapPos("rainverylight-acid", 0, 15, _, 750, "rainlight", 1)
+		SpawnCEGInRandomMapPos("rainverylight-acid", 0, 15, _, 750, "rainlight", 0.5)
 	end
 
 -- -- random rain

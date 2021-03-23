@@ -20,3 +20,5 @@ CC BY NC ND applies to all sound effects in:
 /sounds/commands/
 /sounds/function/
 /sounds/movement/
+/sounds/movement-air/
+/sounds/buildings/
