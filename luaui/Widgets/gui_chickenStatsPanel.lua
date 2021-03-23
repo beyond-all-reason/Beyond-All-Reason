@@ -12,9 +12,9 @@ end
 
 local customScale = 1
 local widgetScale = customScale
-
 local font, font2, waveMessage, chobbyInterface
 
+local chickensEnabled = false
 local teams = Spring.GetTeamList()
 for i = 1, #teams do
 	local luaAI = Spring.GetTeamLuaAI(teams[i])
@@ -23,10 +23,7 @@ for i = 1, #teams do
 	end
 end
 
-if chickensEnabled == true then
-	Spring.Echo("[ChickenDefense: Chicken Panel] Activated!")
-else
-	Spring.Echo("[ChickenDefense: Chicken Panel] Deactivated!")
+if not chickensEnabled then
 	return false
 end
 
@@ -39,7 +36,6 @@ local Spring = Spring
 local gl = gl
 local widgetHandler = widgetHandler
 local math = math
-local table = table
 
 local displayList
 local panelTexture = ":n:LuaUI/Images/chickenpanel.tga"
@@ -72,8 +68,6 @@ local scoreCount = 0
 local guiPanel --// a displayList
 local updatePanel
 local hasChickenEvent = false
-
-local white = "\255\255\255\255"
 
 local difficulties = {
 	[1] = Spring.I18N('ui.chickens.difficulty.veryEasy'),
@@ -132,23 +126,19 @@ waveColors[9] = "\255\100\100\255"
 waveColors[10] = "\255\200\050\050"
 waveColors[11] = "\255\255\255\255"
 
-local chickenColors = {
-	{ "chicken", "\255\184\100\255" },
-	{ "chickena", "\255\255\100\100" },
-	{ "chickenh", "\255\255\150\150" },
-	{ "chickens", "\255\100\255\100" },
-	{ "chickenw", "\255\184\075\200" },
-	{ "chicken_dodo", "\255\150\001\001" },
-	{ "chickenp", "\255\250\090\090" },
-	{ "chickenf", "\255\255\255\100" },
-	{ "chickenc", "\255\100\255\255" },
-	{ "chickenr", "\255\100\100\255" },
+local chickenTypes = {
+	"chicken",
+	"chickena",
+	"chickenh",
+	"chickens",
+	"chickenw",
+	"chicken_dodo",
+	"chickenp",
+	"chickenf",
+	"chickenc",
+	"chickenr",
+	"chickend",
 }
-
-local chickenColorSet = {}
-for _, t in ipairs(chickenColors) do
-	chickenColorSet[t[1]] = t[2]
-end
 
 local function commaValue(amount)
 	local formatted = amount
@@ -162,30 +152,19 @@ local function commaValue(amount)
 	return formatted
 end
 
-local function MakeCountString(type, showbreakdown)
-	local t = {}
-	local tcount = 0
+local function MakeCountString(type)
 	local total = 0
-	local showbrackets = false
-	for _, colorInfo in ipairs(chickenColors) do
-		local subTotal = gameInfo[colorInfo[1] .. type]
-		if subTotal > 0 then
-			tcount = tcount + 1
-			t[tcount] = colorInfo[2] .. subTotal
-			total = total + subTotal
-			showbrackets = true
-		end
+	local subtotal
+
+	for _, chickenType in ipairs(chickenTypes) do
+		subtotal = gameInfo[chickenType .. type]
+		total = total + subtotal
 	end
-	total = total + gameInfo["chickend" .. type]
-	if showbreakdown then
-		local breakDown = table.concat(t, white .. ",") .. white
-		if showbrackets then
-			return string.format(Spring.I18N('ui.chickens.chickens') .. ": %d (%s)", total, breakDown)
-		else
-			return string.format(Spring.I18N('ui.chickens.chickens') .. ": %d", total)
-		end
+
+	if type == "Count" then
+		return string.format(Spring.I18N('ui.chickens.chickens') .. ": %d", total)
 	else
-		return (Spring.I18N('ui.chickens.chickenKills') .. ": " .. white .. total)
+		return (Spring.I18N('ui.chickens.chickenKills') .. ": " .. total)
 	end
 end
 
@@ -222,16 +201,16 @@ local function CreatePanelDisplayList()
 	end
 
 	font:Begin()
-	font:Print(white .. techLevel, panelMarginX, PanelRow(1), panelFontSize, "")
-	font:Print(white .. gameInfo.unitCounts, panelMarginX, PanelRow(2), panelFontSize, "")
-	font:Print(white .. gameInfo.unitKills, panelMarginX, PanelRow(3), panelFontSize, "")
-	font:Print(white .. Spring.I18N('ui.chickens.burrows') .. ": " .. gameInfo.roostCount, panelMarginX, PanelRow(4), panelFontSize, "")
-	font:Print(white .. Spring.I18N('ui.chickens.burrowKills') .. ": " .. gameInfo.roostKills, panelMarginX, PanelRow(5), panelFontSize, "")
-	local s = white .. Spring.I18N('ui.chickens.mode') .. ": " .. difficulties[gameInfo.difficulty]
+	font:Print(techLevel, panelMarginX, PanelRow(1), panelFontSize, "")
+	font:Print(gameInfo.unitCounts, panelMarginX, PanelRow(2), panelFontSize, "")
+	font:Print(gameInfo.unitKills, panelMarginX, PanelRow(3), panelFontSize, "")
+	font:Print(Spring.I18N('ui.chickens.burrows') .. ": " .. gameInfo.roostCount, panelMarginX, PanelRow(4), panelFontSize, "")
+	font:Print(Spring.I18N('ui.chickens.burrowKills') .. ": " .. gameInfo.roostKills, panelMarginX, PanelRow(5), panelFontSize, "")
+	
 	if gotScore then
-		font:Print(white .. Spring.I18N('ui.chickens.score') .. ": " .. commaValue(scoreCount), 88, h - 170, panelFontSize "")
+		font:Print(Spring.I18N('ui.chickens.score') .. ": " .. commaValue(scoreCount), 88, h - 170, panelFontSize "")
 	else
-		font:Print(white .. Spring.I18N('ui.chickens.mode') .. ": " .. difficulties[gameInfo.difficulty], 120, h - 170, panelFontSize, "")
+		font:Print(Spring.I18N('ui.chickens.mode') .. ": " .. difficulties[gameInfo.difficulty], 120, h - 170, panelFontSize, "")
 	end
 	font:End()
 
@@ -282,8 +261,8 @@ local function UpdateRules()
 	for _, rule in ipairs(rules) do
 		gameInfo[rule] = Spring.GetGameRulesParam(rule) or 999
 	end
-	gameInfo.unitCounts = MakeCountString('Count', true)
-	gameInfo.unitKills = MakeCountString('Kills', false)
+	gameInfo.unitCounts = MakeCountString('Count')
+	gameInfo.unitKills = MakeCountString('Kills')
 
 	updatePanel = true
 end
