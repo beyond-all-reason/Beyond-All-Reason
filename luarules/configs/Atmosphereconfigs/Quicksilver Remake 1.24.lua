@@ -6,41 +6,41 @@ function gadget:GameFrame(n)
 -- SpawnCEGInAreaGround(cegname, midposx, groundOffset, midposz, radius, damage, paralyzedamage, damageradius, sound, soundvolume)
 
 -- SND water ocean 
-	if n%830 == 0 then
-		SpawnCEGInPositionGround("noceg", 3800, 60, 3800, _, _, _, "oceangentlesurf", 0.9)
+	if n%1030 == 0 then
+		SpawnCEGInPositionGround("noceg", 3800, 60, 3800, _, _, _, "oceangentlesurf", 0.3)
 	end
 
-	if n%840 == 150 then
-		SpawnCEGInPositionGround("noceg", 2700, 30, 1200, _, _, _, "oceangentlesurf", 0.9)
+	if n%1050 == 150 then
+		SpawnCEGInPositionGround("noceg", 2700, 30, 1200, _, _, _, "oceangentlesurf", 0.3)
 	end
 
-	if n%850 == 75 then
-		SpawnCEGInPositionGround("noceg", 5500, 30, 5900, _, _, _, "oceangentlesurf", 0.9)
+	if n%1070 == 75 then
+		SpawnCEGInPositionGround("noceg", 5500, 30, 5900, _, _, _, "oceangentlesurf", 0.3)
 	end
 
-	if n%860 == 20 then
-		SpawnCEGInPositionGround("noceg", 650, 100, 6550, _, _, _, "tropicalbeach", 0.9)
+	if n%1090 == 20 then
+		SpawnCEGInPositionGround("noceg", 650, 100, 6550, _, _, _, "tropicalbeach", 0.3)
 	end
 
-	if n%860 == 70 then
-		SpawnCEGInPositionGround("noceg", 600, 100, 800, _, _, _, "tropicalbeach", 0.9)
+	if n%1060 == 70 then
+		SpawnCEGInPositionGround("noceg", 600, 100, 800, _, _, _, "tropicalbeach", 0.3)
 	end
 
-	if n%860 == 50 then
-		SpawnCEGInPositionGround("noceg", 6450, 100, 800, _, _, _, "tropicalbeach", 0.9)
+	if n%1080 == 50 then
+		SpawnCEGInPositionGround("noceg", 6450, 100, 800, _, _, _, "tropicalbeach", 0.3)
 	end
 
-	if n%860 == 90 then
-		SpawnCEGInPositionGround("noceg", 6700, 100, 6700, _, _, _, "tropicalbeach", 0.9)
+	if n%1100 == 90 then
+		SpawnCEGInPositionGround("noceg", 6700, 100, 6700, _, _, _, "tropicalbeach", 0.3)
 	end
 
 -- SND windy locations
-	if n%960 == 0 then
-		SpawnCEGInPositionGround("noceg", 1300, 500, 6000, _, _, _, "windy", 0.7)
+	if n%1260 == 0 then
+		SpawnCEGInPositionGround("noceg", 1300, 500, 6000, _, _, _, "windy", 0.2)
 	end
 
-	if n%870 == 100 then
-		SpawnCEGInPositionGround("noceg", 5500, 500, 1150, _, _, _, "windy", 0.7)
+	if n%1320 == 100 then
+		SpawnCEGInPositionGround("noceg", 5500, 500, 1150, _, _, _, "windy", 0.2)
 	end
 
 -- ## Atmosphere Functions

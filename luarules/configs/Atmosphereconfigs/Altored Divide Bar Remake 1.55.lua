@@ -4,37 +4,31 @@ function gadget:GameFrame(n)
 	end
 
 -- SND windy locations
-	if n%850 == 0 then
-		SpawnCEGInPositionGround("noceg", 660, 500, 413, _, _, _, "windy", 0.5)
+	if n%1050 == 0 then
+		SpawnCEGInPositionGround("noceg", 660, 500, 413, _, _, _, "windy", 0.3)
 	end
-
-	if n%860 == 30 then
-		SpawnCEGInPositionGround("noceg", 7400, 600, 350, _, _, _, "windy", 0.5)
+	if n%1090 == 30 then
+		SpawnCEGInPositionGround("noceg", 7400, 600, 350, _, _, _, "windy", 0.3)
 	end
-
-	if n%870 == 60 then
-		SpawnCEGInPositionGround("noceg", 470, 500, 7900, _, _, _, "windy", 0.5)
+	if n%1170 == 60 then
+		SpawnCEGInPositionGround("noceg", 470, 500, 7900, _, _, _, "windy", 0.3)
 	end
-
-	if n%880 == 90 then
-		SpawnCEGInPositionGround("noceg", 7400, 600, 7800, _, _, _, "windy", 0.5)
+	if n%980 == 90 then
+		SpawnCEGInPositionGround("noceg", 7400, 600, 7800, _, _, _, "windy", 0.3)
 	end
 
 -- SND geos
 	if n%560 == 0 then
-		SpawnCEGInPositionGround("noceg", 2525, 300, 5383, _, _, _, "geovent", 0.75)
+		SpawnCEGInPositionGround("noceg", 2525, 300, 5383, _, _, _, "geovent", 0.5)
 	end
-
 	if n%560 == 30 then
-		SpawnCEGInPositionGround("noceg", 4992, 300, 3885, _, _, _, "geovent", 0.75)
+		SpawnCEGInPositionGround("noceg", 4992, 300, 3885, _, _, _, "geovent", 0.5)
 	end
-
 	if n%560 == 60 then
-		SpawnCEGInPositionGround("noceg", 5420, 300, 2693, _, _, _, "geovent", 0.75)
+		SpawnCEGInPositionGround("noceg", 5420, 300, 2693, _, _, _, "geovent", 0.5)
 	end
-
 	if n%560 == 15 then
-		SpawnCEGInPositionGround("noceg", 2513, 300, 3967, _, _, _, "geovent", 0.75)
+		SpawnCEGInPositionGround("noceg", 2513, 300, 3967, _, _, _, "geovent", 0.5)
 	end
 
 -- ## Atmosphere Functions

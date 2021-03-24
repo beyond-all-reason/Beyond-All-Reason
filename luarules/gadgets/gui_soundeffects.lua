@@ -2,8 +2,8 @@
 local DelayRandomization = 1 -- frames
 
 local CommandUISoundDelayFrames = 1 
-local CommandUnitSoundDelayFrames = 15 -- don't make it smaller than CommandUISoundDelayFrames
-local SelectSoundDelayFrames = 10
+local CommandUnitSoundDelayFrames = 12 -- don't make it smaller than CommandUISoundDelayFrames
+local SelectSoundDelayFrames = 8
 local UnitFinishedSoundDelayFrames = 1
 local UnitBuildOrderSoundDelayFrames = 10
 
@@ -54,7 +54,7 @@ CommandSoundEffects = {
     SelfD = "cmd-selfd",
     Stop = "cmd-stop",
     Wait = "cmd-wait",
-    OnOff = "cmd-onoff",
+    --OnOff = "cmd-onoff",
 }
 
 VFS.Include('luarules/configs/gui_soundeffects.lua')
@@ -69,7 +69,7 @@ Repair = CMD.REPAIR
 Reclaim = CMD.RECLAIM
 Dgun = CMD.DGUN
 Resurrect = CMD.RESURRECT
-OnOff = CMD.ONOFF
+--OnOff = CMD.ONOFF
 Stop = CMD.STOP
 Wait = CMD.WAIT
 Repeat = CMD.REPEAT
@@ -98,7 +98,7 @@ else -- Unsynced part
             if GUIUnitSoundEffects[unitName] and GUIUnitSoundEffects[unitName].BaseSoundSelectType then
                 local sound = GUIUnitSoundEffects[unitName].BaseSoundSelectType
                 if sound[2] then
-                    Spring.PlaySoundFile(sound[math.random(1,#sound)], 0.35, posx, posy, posz, 'ui')
+                    Spring.PlaySoundFile(sound[math.random(1,#sound)], 0.25, posx, posy, posz, 'ui')
                 else
                     Spring.PlaySoundFile(sound, 0.35, posx, posy, posz, 'ui')
                 end
@@ -106,7 +106,7 @@ else -- Unsynced part
             if GUIUnitSoundEffects[unitName] and GUIUnitSoundEffects[unitName].BaseSoundWeaponType then
                 local sound = GUIUnitSoundEffects[unitName].BaseSoundWeaponType
                 if sound[2] then
-                    Spring.PlaySoundFile(sound[math.random(1,#sound)], 0.7, posx, posy, posz, 'ui')
+                    Spring.PlaySoundFile(sound[math.random(1,#sound)], 0.75, posx, posy, posz, 'ui')
                 else
                     Spring.PlaySoundFile(sound, 0.7, posx, posy, posz, 'ui')
                 end
@@ -265,9 +265,9 @@ else -- Unsynced part
                             if GUIUnitSoundEffects[unitName] and GUIUnitSoundEffects[unitName].BaseSoundSelectType then
                                 local sound = GUIUnitSoundEffects[unitName].BaseSoundSelectType
                                 if sound[2] then
-                                    Spring.PlaySoundFile(sound[math.random(1,#sound)], 0.4, posx, posy, posz, 'ui')
+                                    Spring.PlaySoundFile(sound[math.random(1,#sound)], 0.3, posx, posy, posz, 'ui')
                                 else
-                                    Spring.PlaySoundFile(sound, 0.4, posx, posy, posz, 'ui')
+                                    Spring.PlaySoundFile(sound, 0.3, posx, posy, posz, 'ui')
                                 end
                             end
                             if GUIUnitSoundEffects[unitName] and GUIUnitSoundEffects[unitName].BaseSoundWeaponType then

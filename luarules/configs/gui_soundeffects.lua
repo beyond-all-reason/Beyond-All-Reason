@@ -15,8 +15,14 @@ GUIUnitSoundEffects = {
     -- ARMADA BUILDINGS
     armrad = {
     BaseSoundSelectType   = "arm-bld-select",
-    BaseSoundMovementType = "laser-tiny",
+    --BaseSoundMovementType = "",
     BaseSoundWeaponType   = "arm-bld-radar",
+    },
+
+    armarad = {
+    BaseSoundSelectType   = "arm-bld-select",
+    --BaseSoundMovementType = "",
+    BaseSoundWeaponType   = "arm-bld-radar-t2",
     },
 
     armmex = {
@@ -38,15 +44,15 @@ GUIUnitSoundEffects = {
     },
 
     armwin = {
-    BaseSoundSelectType   = "arm-bld-nrg",
+    BaseSoundSelectType   = "arm-bld-nrghum",
     --BaseSoundMovementType = "",
     BaseSoundWeaponType   = "arm-bld-windgen",
     },
 
     armsolar = {
-    BaseSoundSelectType   = "arm-bld-nrg",
+    BaseSoundSelectType   = "arm-bld-nrghum",
     --BaseSoundMovementType = "",
-    BaseSoundWeaponType   = "arm-bld-solar",
+    BaseSoundWeaponType   = "arm-bld-solar-alt",
     },
 
     armmstor = {
@@ -56,7 +62,7 @@ GUIUnitSoundEffects = {
     },
 
     armestor = {
-    BaseSoundSelectType   = "arm-bld-nrg",
+    BaseSoundSelectType   = "arm-bld-nrghum",
     --BaseSoundMovementType = "",
     BaseSoundWeaponType   = "arm-bld-storage",
     },

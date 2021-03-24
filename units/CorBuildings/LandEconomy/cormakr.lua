@@ -54,11 +54,11 @@ return {
 			},
 		},
 		sounds = {
-			activate = "metlon2",
+			activate = "arm-bld-mm-activate",
 			canceldestruct = "cancel2",
-			deactivate = "metloff2",
+			deactivate = "arm-bld-mm-deactivate",
 			underattack = "warning1",
-			working = "metlrun2",
+			working = "arm-bld-metalmaker",
 			count = {
 				[1] = "count6",
 				[2] = "count5",

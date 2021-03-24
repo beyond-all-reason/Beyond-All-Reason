@@ -99,9 +99,9 @@ return {
 			},
 		},
 		sounds = {
-			activate = "solar1",
+			activate = "arm-bld-solar-activate",
 			canceldestruct = "cancel2",
-			deactivate = "solar1",
+			deactivate = "arm-bld-solar-deactivate",
 			underattack = "warning1",
 			count = {
 				[1] = "count6",

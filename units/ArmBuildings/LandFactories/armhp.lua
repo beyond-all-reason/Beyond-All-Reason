@@ -106,7 +106,7 @@ return {
 			build = "hoverok1",
 			canceldestruct = "cancel2",
 			underattack = "warning1",
-			unitcomplete = "untdone",
+			unitcomplete = "unitready",
 			count = {
 				[1] = "count6",
 				[2] = "count5",
