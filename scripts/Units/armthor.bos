@@ -261,7 +261,8 @@ FireWeapon2()
 
 AimFromWeapon2(piecenum)
 {
-	piecenum = sleeve;
+	if (gun_1) piecenum = flare3;
+	if (!gun_1) piecenum = flare4;
 }
 
 QueryWeapon2(piecenum)
