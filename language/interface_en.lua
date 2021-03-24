@@ -92,7 +92,7 @@ return {
 			buildMenu = {
 				nextPage = 'Next page',
 				previousPage = 'Previous page',
-				disabled = 'disabled',
+				disabled = '%{textColor}%{unit} %{warnColor}(disabled)',
 			},
 			orderMenu = {
 				move = 'Move',
