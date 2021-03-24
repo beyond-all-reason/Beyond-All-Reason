@@ -162,9 +162,9 @@ local function MakeCountString(type)
 	end
 
 	if type == "Count" then
-		return string.format(Spring.I18N('ui.chickens.chickens') .. ": %d", total)
+		return Spring.I18N('ui.chickens.chickenCount', { count = total })
 	else
-		return (Spring.I18N('ui.chickens.chickenKills') .. ": " .. total)
+		return Spring.I18N('ui.chickens.chickenKillCount', { count = total })
 	end
 end
 
@@ -192,25 +192,25 @@ local function CreatePanelDisplayList()
 	local techLevel = ""
 	if currentTime > gameInfo.gracePeriod then
 		if gameInfo.queenAnger < 100 then
-			techLevel = Spring.I18N('ui.chickens.queenAnger') .. ": " .. gameInfo.queenAnger .. "%"
+			techLevel = Spring.I18N('ui.chickens.queenAnger', { anger = gameInfo.queenAnger })
 		else
-			techLevel = Spring.I18N('ui.chickens.queenHealth') .. ": " .. gameInfo.queenLife .. "%"
+			techLevel = Spring.I18N('ui.chickens.queenHealth', { health = gameInfo.queenLife })
 		end
 	else
-		techLevel = Spring.I18N('ui.chickens.gracePeriod') .. ": " .. math.ceil(((currentTime - gameInfo.gracePeriod) * -1) - 0.5)
+		techLevel = Spring.I18N('ui.chickens.gracePeriod', { time = math.ceil(((currentTime - gameInfo.gracePeriod) * -1) - 0.5) })
 	end
 
 	font:Begin()
 	font:Print(techLevel, panelMarginX, PanelRow(1), panelFontSize, "")
 	font:Print(gameInfo.unitCounts, panelMarginX, PanelRow(2), panelFontSize, "")
 	font:Print(gameInfo.unitKills, panelMarginX, PanelRow(3), panelFontSize, "")
-	font:Print(Spring.I18N('ui.chickens.burrows') .. ": " .. gameInfo.roostCount, panelMarginX, PanelRow(4), panelFontSize, "")
-	font:Print(Spring.I18N('ui.chickens.burrowKills') .. ": " .. gameInfo.roostKills, panelMarginX, PanelRow(5), panelFontSize, "")
+	font:Print(Spring.I18N('ui.chickens.burrowCount', { count = gameInfo.roostCount }), panelMarginX, PanelRow(4), panelFontSize, "")
+	font:Print(Spring.I18N('ui.chickens.burrowKillCount', { count = gameInfo.roostKills }), panelMarginX, PanelRow(5), panelFontSize, "")
 	
 	if gotScore then
-		font:Print(Spring.I18N('ui.chickens.score') .. ": " .. commaValue(scoreCount), 88, h - 170, panelFontSize "")
+		font:Print(Spring.I18N('ui.chickens.score', { score = commaValue(scoreCount) }), 88, h - 170, panelFontSize "")
 	else
-		font:Print(Spring.I18N('ui.chickens.mode') .. ": " .. difficulties[gameInfo.difficulty], 120, h - 170, panelFontSize, "")
+		font:Print(Spring.I18N('ui.chickens.mode', { mode = difficulties[gameInfo.difficulty] }), 120, h - 170, panelFontSize, "")
 	end
 	font:End()
 
@@ -274,8 +274,8 @@ function ChickenEvent(chickenEventArgs)
 		end
 		waveMessage = {}
 		waveCount = waveCount + 1
-		waveMessage[1] = Spring.I18N('ui.chickens.wave') .. " " .. waveCount
-		waveMessage[2] = waveColors[chickenEventArgs.tech] .. chickenEventArgs.number .. ' ' .. Spring.I18N('ui.chickens.chickens') .. '!'
+		waveMessage[1] = Spring.I18N('ui.chickens.wave', { waveNumber = waveCount })
+		waveMessage[2] = waveColors[chickenEventArgs.tech] .. Spring.I18N('ui.chickens.waveCount', { count = chickenEventArgs.number })
 		waveTime = Spring.GetTimer()
 	elseif chickenEventArgs.type == "burrowSpawn" then
 		UpdateRules()
