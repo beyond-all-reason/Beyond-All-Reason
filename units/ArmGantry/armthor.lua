@@ -4,8 +4,8 @@ return {
 	armthor = {
 		acceleration = 0.02,
 		brakerate = 0.04,
-		buildcostenergy = 300000,
-		buildcostmetal = 16000,
+		buildcostenergy = 220000,
+		buildcostmetal = 9000,
 		buildpic = "ARMLATNK.PNG",
 		buildtime = 300000,
 		canmove = true,
@@ -23,7 +23,7 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		leavetracks = true,
-		maxdamage = 75000,
+		maxdamage = 55000,
 		maxslope = 12,
 		maxvelocity = 2,
 		maxwaterdepth = 18,
@@ -164,7 +164,7 @@ return {
 					light_mult = "0.44",
 				},
 				damage = {
-					default = 200,
+					default = 110,
 					subs = 10,
 				},
 			},
@@ -219,7 +219,7 @@ return {
 					light_radius_mult = 1.4,
 				},
 				damage = {
-					default = 50000,
+					default = 70000,
 				},
 			},
 
@@ -281,14 +281,14 @@ return {
 			},
 			[3] = {
 				def = "EMP",
-				maindir = "-1 0 4",
-				maxangledif = 90,
+				--maindir = "-1 0 4",
+				--maxangledif = 90,
 				onlytargetcategory = "EMPABLE",
 			},
 			[4] = {
 				def = "EMP",
-				maindir = "1 0 4",
-				maxangledif = 90,
+				--maindir = "1 0 4",
+				--maxangledif = 90,
 				onlytargetcategory = "EMPABLE",
 			},
 		},
