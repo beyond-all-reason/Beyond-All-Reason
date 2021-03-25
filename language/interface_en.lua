@@ -411,7 +411,7 @@ return {
 				energy = 'E',
 			},
 			prospector = {
-				metalExtraction = 'Metal extraction',
+				metalExtraction = 'Metal extraction: %{amount}',
 			},
 			buildEstimate = {
 				time = 'ETA',
