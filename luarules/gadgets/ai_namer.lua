@@ -41,10 +41,12 @@ if gadgetHandler:IsSyncedCode() then
 		"Zecrus",
 		
 		-- Supporters ($20+ Donation)
+		"badosu",
 		"catraxx",
 		"Dave",
 		"Diana",
 		"EnJoY",
+		"FlorisXIV",
 		"Jazcash",
 		"JimmiBoy",
 		"Kodiak",
