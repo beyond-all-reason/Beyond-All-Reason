@@ -281,14 +281,14 @@ return {
 			},
 			[3] = {
 				def = "EMP",
-				--maindir = "-1 0 4",
-				--maxangledif = 90,
+				maindir = "-1 0 1",
+                maxangledif = 120,
 				onlytargetcategory = "EMPABLE",
 			},
 			[4] = {
 				def = "EMP",
-				--maindir = "1 0 4",
-				--maxangledif = 90,
+				maindir = "1 0 1",
+                maxangledif = 120,
 				onlytargetcategory = "EMPABLE",
 			},
 		},

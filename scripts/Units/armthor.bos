@@ -279,12 +279,16 @@ AimWeapon3(heading, pitch)
 //	wait-for-turn turret around y-axis;
 	signal SIG_AIM_3;
 	set-signal-mask SIG_AIM_3;
-	//turn lshoulder to x-axis <0.000000> - pitch speed <15.000000>;
-	turn lempslv to y-axis heading speed <45.000000>;
-	wait-for-turn lempslv around y-axis;
-	//wait-for-turn lempslv around x-axis;
-	start-script RestoreAfterDelay();
-	return (1);
+	if ((heading >= <0>) AND (heading < <180>)){
+		turn lempslv to y-axis heading speed <90>;
+		wait-for-turn lempslv around y-axis;
+		start-script RestoreAfterDelay();
+		return (1);
+	}
+	else 
+	{
+	return (0);
+	}
 }
 
 FireWeapon3()
