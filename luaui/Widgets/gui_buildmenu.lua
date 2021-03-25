@@ -1393,7 +1393,17 @@ function widget:DrawScreen()
 							local alt, ctrl, meta, shift = Spring.GetModKeyState()
 							if showTooltip and WG['tooltip'] and not meta then
 								-- when meta: unitstats does the tooltip
-								local text = "\255\215\255\215" .. UnitDefs[uDefID].humanName .. (unitRestricted[uDefID] and "  \255\166\166\166(" .. Spring.I18N('ui.buildMenu.disabled') .. ")" or "") .. "\n\255\240\240\240" .. UnitDefs[uDefID].tooltip
+								local text
+								local textColor = "\255\215\255\215"
+
+								if unitRestricted[uDefID] then
+									text = Spring.I18N('ui.buildMenu.disabled', { unit = UnitDefs[uDefID].humanName, textColor = textColor, warnColor = "\255\166\166\166" })
+								else
+									text = textColor .. UnitDefs[uDefID].humanName
+								end
+
+								text = text .. "\n\255\240\240\240" .. UnitDefs[uDefID].tooltip
+
 								WG['tooltip'].ShowTooltip('buildmenu', text)
 							end
 

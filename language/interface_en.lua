@@ -92,7 +92,7 @@ return {
 			buildMenu = {
 				nextPage = 'Next page',
 				previousPage = 'Previous page',
-				disabled = 'disabled',
+				disabled = '%{textColor}%{unit} %{warnColor}(disabled)',
 			},
 			orderMenu = {
 				move = 'Move',
@@ -411,7 +411,7 @@ return {
 				energy = 'E',
 			},
 			prospector = {
-				metalExtraction = 'Metal extraction',
+				metalExtraction = 'Metal extraction: %{amount}',
 			},
 			buildEstimate = {
 				time = 'ETA',
@@ -471,16 +471,17 @@ return {
 			},
 			chickens = {
 				queenIsAngry = 'The Queen is angered!',
-				wave = 'Wave',
-				chickens = 'Chickens',
-				chickenKills = 'Chicken Kills',
-				queenAnger = 'Queen Anger',
-				queenHealth = 'Queen Health',
-				gracePeriod = 'Grace Period',
-				burrows = 'Burrows',
-				burrowKills = 'Burrow Kills',
-				mode = 'Mode',
-				score = 'Your Score',
+				wave = 'Wave %{waveNumber}',
+				waveCount = '%{count} Chickens!',
+				chickenCount = 'Chickens: %{count}',
+				chickenKillCount = 'Chicken Kills: %{count}',
+				queenAnger = 'Queen Anger: %{anger}%%',
+				queenHealth = 'Queen Health: %{health}%%',
+				gracePeriod = 'Grace Period: %{time}',
+				burrowCount = 'Burrows: %{count}',
+				burrowKillCount = 'Burrow Kills: %{count}',
+				mode = 'Mode: %{mode}',
+				score = 'Your Score: %{score}',
 				difficulty = {
 					veryEasy = 'Very Easy',
 					easy = 'Easy',
