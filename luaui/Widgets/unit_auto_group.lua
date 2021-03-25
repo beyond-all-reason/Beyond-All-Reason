@@ -1,4 +1,4 @@
-local versionNum = '3.031'
+local versionNum = '3.032'
 
 function widget:GetInfo()
 	return {
@@ -120,15 +120,9 @@ local GetGameFrame = Spring.GetGameFrame
 local IsGuiHidden = Spring.IsGUIHidden
 local Echo = Spring.Echo
 
-function printDebug(value)
-	if debug then
-		Echo(value)
-	end
-end
-
 function widget:ViewResize()
 	vsx, vsy = Spring.GetViewGeometry()
-	font = WG['fonts'].getFont(nil, 1, 0.2, 1.3)
+	font = WG['fonts'].getFont(nil, 1.35, 0.35, 1.4)
 
 	if dlists then
 		for i, _ in ipairs(dlists) do
@@ -139,7 +133,7 @@ function widget:ViewResize()
 	for i = 0, 9 do
 		dlists[i] = gl.CreateList(function()
 			font:Begin()
-			font:Print("\255\200\255\200" .. i, 20.0, -10.0, textSize, "cns")
+			font:Print("\255\200\255\200" .. i, 20.0, -10.0, textSize, "cno")
 			font:End()
 		end)
 	end
@@ -169,10 +163,6 @@ function widget:Initialize()
 	WG['autogroup'].setImmediate = function(value)
 		options.immediate.value = value
 	end
-
-	--if Spring.IsReplay() or Spring.GetGameFrame() > 0 then
-	--	widget:PlayerChanged()
-	--end
 end
 
 function widget:Shutdown()
@@ -217,8 +207,8 @@ function widget:DrawWorld()
 end
 
 function widget:UnitFinished(unitID, unitDefID, unitTeam)
-	if (unitTeam == myTeam and unitID ~= nil) then
-		if (createdFrame[unitID] == GetGameFrame()) then
+	if unitTeam == myTeam and unitID ~= nil then
+		if createdFrame[unitID] == GetGameFrame() then
 			local gr = unit2group[unitDefID]
 			if gr ~= nil then
 				SetUnitGroup(unitID, gr)
@@ -483,4 +473,3 @@ function widget:SetConfigData(data)
 		end
 	end
 end
---------------------------------------------------------------------------------
