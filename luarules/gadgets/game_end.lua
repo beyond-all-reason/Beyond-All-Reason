@@ -374,6 +374,7 @@ else -- Unsynced
   end
 
   function ScenarioGameEnd(_,winners)
+    if Spring.IsReplay() then return end
     local tID = Spring.GetMyAllyTeamID()
     local cur_max = Spring.GetTeamStatsHistory(tID)
     local stats = Spring.GetTeamStatsHistory(tID, cur_max, cur_max)
