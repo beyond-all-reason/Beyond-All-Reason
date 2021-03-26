@@ -149,9 +149,9 @@ ExecuteRestoreAfterDelay()
     set-signal-mask 0;
 	turn turret to y-axis <0.000000> speed <45>;
 	turn sleeve to x-axis <0.000000> speed <15.000000>;
-	turn lempslv to y-axis <0> speed <45>;
+	turn lempslv to y-axis <0> speed <90>;
+	turn rempslv to y-axis <0> speed <90>;
 	turn rlauncher to x-axis <0> speed <45>;
-	turn rempslv to y-axis <0> speed <45>;
 
 }
 
@@ -276,11 +276,10 @@ if (!gun_1) piecenum = flare4;
 
 AimWeapon3(heading, pitch)
 {
-//	wait-for-turn turret around y-axis;
 	signal SIG_AIM_3;
 	set-signal-mask SIG_AIM_3;
-	if ((heading >= <0>) AND (heading < <180>)){
-		turn lempslv to y-axis heading speed <90>;
+	if ((heading >= <-20>) AND (heading < <120>)){
+		turn lempslv to y-axis heading speed <120>;
 		wait-for-turn lempslv around y-axis;
 		start-script RestoreAfterDelay();
 		return (1);
@@ -318,16 +317,20 @@ QueryWeapon3(piecenum)
 
 AimWeapon4(heading, pitch)
 {
-//	wait-for-turn turret around y-axis;
-	signal SIG_AIM_4;
-	set-signal-mask SIG_AIM_4;
-	//turn rshoulder to x-axis <0.000000> - pitch speed <15.000000>;
-	turn rempslv to y-axis heading speed <45.000000>;
-	wait-for-turn rempslv around y-axis;
-	//wait-for-turn rempslv around x-axis;
-	start-script RestoreAfterDelay();
-	return (1);
+	signal SIG_AIM_3;
+	set-signal-mask SIG_AIM_3;
+	if ((heading >= <-20>) AND (heading < <120>)){
+		turn lempslv to y-axis heading speed <120>;
+		wait-for-turn lempslv around y-axis;
+		start-script RestoreAfterDelay();
+		return (1);
+	}
+	else 
+	{
+	return (0);
+	}
 }
+
 
 FireWeapon4()
 {

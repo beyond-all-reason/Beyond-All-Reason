@@ -247,7 +247,7 @@ return {
 				paralyzer = true,
 				paralyzetime = 8,
 				range = 350,
-				reloadtime = 0.5,
+				reloadtime = 0.4,
 				rgbcolor = "0.7 0.7 1",
 				soundhitdry = "",
 				soundhitwet = "sizzle",
