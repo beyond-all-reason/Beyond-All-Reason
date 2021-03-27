@@ -156,7 +156,7 @@ function updateList()
 
 			UiElement(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], 1, 1, ((posY-height > 0 or posX <= 0) and 1 or 0), 0)
 
-			local hoveredGroup = 0
+			local hoveredGroup = -1
 			local x, y, b, b2, b3 = spGetMouseState()
 			if groupButtons then
 				for i,v in pairs(groupButtons) do
