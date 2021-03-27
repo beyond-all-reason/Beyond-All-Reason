@@ -35,6 +35,7 @@ local height = setHeight * uiScale
 local posX = 0
 local posY = 0
 local hovered = false
+local numGroups = 0
 
 local stickToBottom = false
 local altPosition = false
@@ -137,7 +138,7 @@ function updateList()
 	end
 
 	local existingGroups = spGetGroupList()
-	local numGroups = 0
+	numGroups = 0
 	for group, _ in pairs(existingGroups) do
 		numGroups = numGroups + 1
 	end
@@ -197,16 +198,16 @@ function updateList()
 					)
 
 					if group == hoveredGroup then
-						UiButton(groupRect[1]+iconMargin,groupRect[2]+iconMargin,groupRect[3]-iconMargin,groupRect[4]-iconMargin,  1,1,1,1,  1,1,1,1,  nil, {0,0,0,0}, nil, nil)
+						UiButton(groupRect[1]+iconMargin,groupRect[2]+iconMargin,groupRect[3]-iconMargin,groupRect[4]-iconMargin,  1,1,1,1,  1,1,1,1,  nil, {1,1,1,b and 0.22 or 0}, {1,1,1,b and 0.22 or 0}, nil)
 					end
 
 					local fontSize = height*vsy*0.3
 					font2:Begin()
 					font2:Print('\255\200\255\200'..group, groupRect[1]+iconMargin+(fontSize*0.18), groupRect[4]-iconMargin-(fontSize*0.94), fontSize*1, "o")
 					font2:End()
-					fontSize = fontSize * 0.85
+					fontSize = fontSize * 0.88
 					font:Begin()
-					font:Print('\255\200\200\200'..spGetGroupUnitsCount(group), groupRect[3]-iconMargin-(fontSize*0.16), groupRect[2] +iconMargin + (fontSize*0.28), fontSize, "ro")
+					font:Print('\255\210\210\210'..spGetGroupUnitsCount(group), groupRect[3]-iconMargin-(fontSize*0.16), groupRect[2] +iconMargin + (fontSize*0.28), fontSize, "ro")
 					font:End()
 					groupCounter = groupCounter + 1
 				end
@@ -235,7 +236,11 @@ function widget:Update(dt)
 	local x, y, b, b2, b3 = spGetMouseState()
 	if backgroundRect and IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
 		hovered = true
-		WG['tooltip'].ShowTooltip('info', 'unit groups')
+		local tooltipAddition = ''
+		if numGroups >= 1 then
+			tooltipAddition = '\n\255\190\190\190'..Spring.I18N('ui.unitGroups.shiftclick')..'\n\255\190\190\190'..Spring.I18N('ui.unitGroups.ctrlclick')
+		end
+		WG['tooltip'].ShowTooltip('unitgroups', Spring.I18N('ui.unitGroups.name')..tooltipAddition)
 		Spring.SetMouseCursor('cursornormal')
 	elseif hovered then
 		sec = sec + 0.5
@@ -274,17 +279,56 @@ function widget:Update(dt)
 	end
 end
 
+local function tableMerge(t1, t2)
+	for k, v in pairs(t2) do
+		if type(v) == "table" then
+			if type(t1[k] or false) == "table" then
+				tableMerge(t1[k] or {}, t2[k] or {})
+			else
+				t1[k] = v
+			end
+		else
+			t1[k] = v
+		end
+	end
+	return t1
+end
+
+
 function widget:MousePress(x, y, button)
 	if Spring.IsGUIHidden() then
 		return
 	end
 
 	if backgroundRect and IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
-		WG['tooltip'].ShowTooltip('info', 'unit groups')
+		local alt, ctrl, meta, shift = Spring.GetModKeyState()
 		if button == 1 then
 			for i,v in pairs(groupButtons) do
 				if IsOnRect(x, y, groupButtons[i][1], groupButtons[i][2], groupButtons[i][3], groupButtons[i][4]) then
-					Spring.SelectUnitArray(Spring.GetGroupUnits(groupButtons[i][5]))
+					if shift then
+						local units = Spring.GetSelectedUnits()
+						local groupUnits = Spring.GetGroupUnits(groupButtons[i][5])
+						for i=1, #groupUnits do
+							units[#units+1] = groupUnits[i]
+						end
+						Spring.SelectUnitArray(units)
+					elseif ctrl then
+						local units = Spring.GetSelectedUnits()
+						local groupUnits = Spring.GetGroupUnits(groupButtons[i][5])
+						local keyGroupUnits = {}
+						for i=1, #groupUnits do
+							keyGroupUnits[groupUnits[i]] = true
+						end
+						local newUnits = {}
+						for i=1, #units do
+							if not keyGroupUnits[units[i]] then
+								newUnits[#newUnits+1] = units[i]
+							end
+						end
+						Spring.SelectUnitArray(newUnits)
+					else
+						Spring.SelectUnitArray(Spring.GetGroupUnits(groupButtons[i][5]))
+					end
 					return true
 				end
 			end

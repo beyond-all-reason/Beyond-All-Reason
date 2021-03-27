@@ -196,7 +196,12 @@ return {
 			},
 			idleBuilders = {
 				idle = 'Idle',
-				shiftclick = 'shift+click to select all',
+				shiftclick = 'shift + click:   select all',
+			},
+			unitGroups = {
+				name = 'Unit groups',
+				shiftclick = 'shift + click:   add to selection',
+				ctrlclick = 'ctrl + click:   subtract from selection',
 			},
 			changelog = {
 				title = 'Changelog',
