@@ -196,6 +196,7 @@ return {
 			},
 			idleBuilders = {
 				idle = 'Idle',
+				shiftclick = 'shift+click to select all',
 			},
 			changelog = {
 				title = 'Changelog',

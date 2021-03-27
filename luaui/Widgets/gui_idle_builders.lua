@@ -499,7 +499,11 @@ function widget:DrawScreen()
 			if icon >= 0 then
 				if WG['tooltip'] then
 					local unitDefID = drawTable[icon + 1][1]
-					WG['tooltip'].ShowTooltip('idlebuilders', Spring.I18N('ui.idleBuilders.idle') .. ' ' .. unitHumanName[unitDefID])
+					local tooltipShift = ''
+					if drawTable[icon + 1][2] and #drawTable[icon + 1][2] > 1 then
+						tooltipShift = '\n\255\190\190\190'..Spring.I18N('ui.idleBuilders.shiftclick')
+					end
+					WG['tooltip'].ShowTooltip('idlebuilders', Spring.I18N('ui.idleBuilders.idle') .. ' ' .. unitHumanName[unitDefID]..tooltipShift)
 				end
 				if lb then
 					DrawIconQuad(icon, { 1, 1, 1, 0.85 }, 1.1)
@@ -602,6 +606,8 @@ function widget:MouseRelease(x, y, button)
 		return -1
 	end
 
+	local alt, ctrl, meta, shift = GetModKeyState()
+
 	local unitID = drawTable[iconNum + 1][2]
 	local unitDefID = drawTable[iconNum + 1][1]
 
@@ -611,14 +617,19 @@ function widget:MouseRelease(x, y, button)
 		else
 			Clicks[unitDefID] = 1
 		end
-		unitID = unitID[(Clicks[unitDefID]) % getn(unitID) + 1]
+		if not shift then
+			unitID = unitID[(Clicks[unitDefID]) % getn(unitID) + 1]
+		end
 	end
 
-	local alt, ctrl, meta, shift = GetModKeyState()
 
 	if button == 1 then
 		-- left mouse
-		SelectUnitArray({ unitID })
+		if shift then
+			SelectUnitArray(unitID)
+		else
+			SelectUnitArray({ unitID })
+		end
 		if playSounds then
 			Spring.PlaySoundFile(leftclick, 0.75, 'ui')
 		end

@@ -53,7 +53,7 @@ function widget:ViewResize()
 	vsx, vsy = Spring.GetViewGeometry()
 	height = setHeight * uiScale
 
-	font2 = WG['fonts'].getFont(nil, 1.35, 0.35, 1.4)
+	font2 = WG['fonts'].getFont(nil, 1.3, 0.35, 1.4)
 	font = WG['fonts'].getFont(fontFile)
 
 	elementCorner = Spring.FlowUI.elementCorner
@@ -192,7 +192,8 @@ function updateList()
 						math.ceil(backgroundPadding*0.5), 1,1,1,1,
 						group == hoveredGroup and (b and 0.15 or 0.105) or 0.05,
 						nil, nil,
-						':lr'..floor(groupSize*1.5)..','..floor(groupSize*1.5)..':unitpics/'..unitBuildPic[firstUdefID]
+						':lr'..floor(groupSize*1.5)..','..floor(groupSize*1.5)..':unitpics/'..unitBuildPic[firstUdefID],
+						nil, nil, nil, nil
 					)
 
 					if group == hoveredGroup then
@@ -201,7 +202,7 @@ function updateList()
 
 					local fontSize = height*vsy*0.3
 					font2:Begin()
-					font2:Print('\255\200\255\200'..group,groupRect[1]+iconMargin+(fontSize*0.18), groupRect[4]-iconMargin-(fontSize*0.94), fontSize*1, "o")
+					font2:Print('\255\200\255\200'..group, groupRect[1]+iconMargin+(fontSize*0.18), groupRect[4]-iconMargin-(fontSize*0.94), fontSize*1, "o")
 					font2:End()
 					fontSize = fontSize * 0.85
 					font:Begin()

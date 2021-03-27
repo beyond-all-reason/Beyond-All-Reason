@@ -122,7 +122,7 @@ local Echo = Spring.Echo
 
 function widget:ViewResize()
 	vsx, vsy = Spring.GetViewGeometry()
-	font = WG['fonts'].getFont(nil, 1.35, 0.35, 1.4)
+	font = WG['fonts'].getFont(nil, 1.4, 0.35, 1.4)
 
 	if dlists then
 		for i, _ in ipairs(dlists) do
