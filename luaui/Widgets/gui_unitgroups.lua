@@ -168,7 +168,7 @@ function updateList()
 
 			local groupCounter = 0
 			groupButtons = {}
-			for group=1, 9 do
+			for group=0, 9 do
 				if existingGroups[group] then
 					local groupRect = {
 						backgroundRect[1]+backgroundPadding+((groupSize-backgroundPadding)*groupCounter),
