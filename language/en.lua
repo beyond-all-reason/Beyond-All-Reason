@@ -358,6 +358,8 @@ return {
 			ordermenu_alwaysshow_descr = 'Not hiding when no buttons are available',
 			ordermenu_hideset = 'hide common commands',
 			ordermenu_hideset_descr = 'Hide the ordermenu commands that have shortcuts:\n\nMove, Stop, Attack, Patrol, Fight, Wait, Guard, Reclaim, Repair, D-Gun',
+			unitgroups = 'Unit groups',
+			unitgroups_descr = 'Show unit groups interface\nlocated at the bottom of the screen (unless you have the buildmenu there)',
 			advplayerlist = 'Playerlist',
 			advplayerlist_scale = 'scale',
 			advplayerlist_scale_descr = 'Resize the playerlist (and its addons)',

@@ -3477,6 +3477,7 @@ function init()
 		--  end,
 		--},
 
+		{ id = "unitgroups", group = "ui", basic = true, widget = "Unit Groups", name = texts.option.unitgroups, type = "bool", value = GetWidgetToggleValue("Unit Groups"), description = texts.option.unitgroups_descr },
 
 		{ id = "advplayerlist_scale", group = "ui", basic = true, name = texts.option.advplayerlist .. widgetOptionColor .. "  "..texts.option.advplayerlist_scale, min = 0.85, max = 1.2, step = 0.01, type = "slider", value = 1, description = texts.option.advplayerlist_scale_descr,
 		  onload = function(i)

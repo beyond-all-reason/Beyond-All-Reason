@@ -1,0 +1,298 @@
+
+function widget:GetInfo()
+	return {
+		name = "Unit Groups",
+		desc = "",
+		author = "Floris",
+		date = "March 2021",
+		license = "GNU GPL, v2 or later",
+		layer = 1,
+		enabled = true
+	}
+end
+
+
+local myTeam = Spring.GetMyTeamID()
+
+local vsx, vsy = Spring.GetViewGeometry()
+local fontFile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
+
+local widgetSpaceMargin = Spring.FlowUI.elementMargin
+local backgroundPadding = Spring.FlowUI.elementPadding
+local elementCorner = Spring.FlowUI.elementCorner
+local RectRound = Spring.FlowUI.Draw.RectRound
+local UiElement = Spring.FlowUI.Draw.Element
+local UiButton = Spring.FlowUI.Draw.Button
+local UiUnit = Spring.FlowUI.Draw.Unit
+
+local spGetUnitDefID = Spring.GetUnitDefID
+local spGetGroupList = Spring.GetGroupList
+local spGetGroupUnitsCounts = Spring.GetGroupUnitsCounts
+local spGetGroupUnitsCount = Spring.GetGroupUnitsCount
+local spGetMouseState = Spring.GetMouseState
+local floor = math.floor
+
+local uiOpacity = tonumber(Spring.GetConfigFloat("ui_opacity", 0.6) or 0.66)
+local uiScale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
+local setHeight = 0.055
+local height = setHeight * uiScale
+local posX = 0
+local posY = 0
+local hovered = false
+
+local stickToBottom = false
+local altPosition = false
+local groupButtons = {}
+
+local font, font2, chobbyInterface, buildmenuBottomPosition, dlist, dlistGuishader, backgroundRect
+
+local unitBuildPic = {}
+for unitDefID, unitDef in pairs(UnitDefs) do
+	if unitDef.buildpicname then
+		unitBuildPic[unitDefID] = unitDef.buildpicname
+	end
+end
+
+function widget:ViewResize()
+	vsx, vsy = Spring.GetViewGeometry()
+	height = setHeight * uiScale
+
+	font2 = WG['fonts'].getFont(nil, 1.35, 0.35, 1.4)
+	font = WG['fonts'].getFont(fontFile)
+
+	elementCorner = Spring.FlowUI.elementCorner
+	backgroundPadding = Spring.FlowUI.elementPadding
+	widgetSpaceMargin = Spring.FlowUI.elementMargin
+
+	if WG['buildmenu'] then
+		buildmenuBottomPosition = WG['buildmenu'].getBottomPosition()
+	end
+
+	local omPosX, omPosY, omWidth, omHeight = 0, 0, 0, 0
+	if WG['ordermenu'] then
+		omPosX, omPosY, omWidth, omHeight = WG['ordermenu'].getPosition()
+	end
+	ordermenuPosY = omPosY
+
+	if buildmenuBottomPosition then
+		posY = omHeight + (widgetSpaceMargin/vsy)
+		if omPosX <= 0.01 then
+			posX = omPosX + omWidth + (widgetSpaceMargin/vsx)
+		else
+			posX = 0
+		end
+	else
+		posY = 0
+		if omPosY-omHeight <= 0.01 then
+			posX = omPosX + omWidth + (widgetSpaceMargin/vsx)
+		else
+			posY = omHeight + (widgetSpaceMargin/vsy)
+		end
+	end
+end
+
+function widget:PlayerChanged(playerID)
+	if Spring.GetSpectatingState() then
+		widgetHandler:RemoveWidget(self)
+		return
+	end
+	myTeam = Spring.GetMyTeamID()
+end
+
+function widget:Initialize()
+	widget:ViewResize()
+	widget:PlayerChanged()
+end
+
+function widget:Shutdown()
+	if dlist then
+		gl.DeleteList(dlist)
+	end
+	if WG['guishader'] and dlistGuishader then
+		WG['guishader'].DeleteDlist('unitgroups')
+		dlistGuishader = nil
+	end
+end
+
+function widget:RecvLuaMsg(msg, playerID)
+	if msg:sub(1, 18) == 'LobbyOverlayActive' then
+		chobbyInterface = (msg:sub(1, 19) == 'LobbyOverlayActive1')
+	end
+end
+
+local function checkGuishader(force)
+	if WG['guishader'] then
+		if force and dlistGuishader then
+			dlistGuishader = gl.DeleteList(dlistGuishader)
+		end
+		if not dlistGuishader and backgroundRect then
+			dlistGuishader = gl.CreateList(function()
+				RectRound(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], elementCorner)
+			end)
+			WG['guishader'].InsertDlist(dlistGuishader, 'unitgroups')
+		end
+	elseif dlistGuishader then
+		dlistGuishader = gl.DeleteList(dlistGuishader)
+	end
+end
+
+function updateList()
+	if dlist then
+		dlist = gl.DeleteList(dlist)
+	end
+
+	local existingGroups = spGetGroupList()
+	local numGroups = 0
+	for group, _ in pairs(existingGroups) do
+		numGroups = numGroups + 1
+	end
+	if numGroups == 0 then
+		if backgroundRect then
+			backgroundRect = nil
+			checkGuishader(true)
+		end
+	else
+		dlist = gl.CreateList(function()
+			local groupSize = floor(height * vsy)
+			local groupPadding = 0
+			local width = (groupSize * numGroups + (groupPadding * (numGroups-1))) + backgroundPadding
+			local iconMargin = groupPadding
+			backgroundRect = {floor(posX * vsx), floor(posY * vsy), floor(posX * vsx + width), floor(posY * vsy) + groupSize}
+
+			UiElement(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], 1, 1, ((posY-height > 0 or posX <= 0) and 1 or 0), 0)
+
+			local hoveredGroup = 0
+			local x, y, b, b2, b3 = spGetMouseState()
+			if groupButtons then
+				for i,v in pairs(groupButtons) do
+					if IsOnRect(x, y, groupButtons[i][1], groupButtons[i][2], groupButtons[i][3], groupButtons[i][4]) then
+						hoveredGroup = groupButtons[i][5]
+						break
+					end
+				end
+			end
+
+			local groupCounter = 0
+			groupButtons = {}
+			for group, _ in pairs(existingGroups) do
+				local groupRect = {
+					backgroundRect[1]+backgroundPadding+((groupSize+groupPadding)*groupCounter),
+					backgroundRect[2],
+					backgroundRect[1]+backgroundPadding+(groupSize-backgroundPadding)+((groupSize+groupPadding)*groupCounter),
+					backgroundRect[4]-backgroundPadding
+				}
+
+				local unitdefCounts = spGetGroupUnitsCounts(group)
+				local orderedCounts = {}
+				local firstUdefID
+				local largestCount = 0
+				for uDefID, count in pairs(unitdefCounts) do
+					if count > largestCount then
+						firstUdefID = uDefID
+					end
+				end
+				gl.Color(1,1,1,1)
+				groupButtons[#groupButtons+1] = {groupRect[1],groupRect[2],groupRect[3],groupRect[4],group}
+				UiUnit(groupRect[1],groupRect[2],groupRect[3],groupRect[4],
+					math.ceil(backgroundPadding*0.5), 1,1,1,1,
+					group == hoveredGroup and (b and 0.15 or 0.105) or 0.05,
+					nil, nil,
+					':lr'..floor(groupSize*1.5)..','..floor(groupSize*1.5)..':unitpics/'..unitBuildPic[firstUdefID]
+				)
+
+				if group == hoveredGroup then
+					UiButton(groupRect[1],groupRect[2],groupRect[3],groupRect[4],  1,1,1,1,  1,1,1,1,  nil, {0,0,0,0}, nil, nil)
+				end
+
+				local fontSize = height*vsy*0.3
+				font2:Begin()
+				font2:Print('\255\200\255\200'..group,groupRect[1]+(fontSize*0.25), groupRect[4]-(fontSize*0.96), fontSize*1, "o")
+				font2:End()
+				fontSize = fontSize * 0.85
+				font:Begin()
+				--font:Print('\255\200\200\200'..spGetGroupUnitsCount(group), groupRect[1]+((groupRect[3]-groupRect[1])/2), groupRect[2] + (fontSize*0.4), fontSize, "co")
+				font:Print('\255\200\200\200'..spGetGroupUnitsCount(group), groupRect[3]-(fontSize*0.2), groupRect[2] + (fontSize*0.3), fontSize, "ro")
+				font:End()
+				groupCounter = groupCounter + 1
+			end
+		end)
+		checkGuishader(true)
+	end
+
+end
+
+function IsOnRect(x, y, BLcornerX, BLcornerY, TRcornerX, TRcornerY)
+	return x >= BLcornerX and x <= TRcornerX and y >= BLcornerY and y <= TRcornerY
+end
+
+function widget:DrawScreen()
+	if chobbyInterface then
+		return
+	end
+	if dlist then
+		gl.CallList(dlist)
+	end
+end
+
+local sec = 0
+function widget:Update(dt)
+	local x, y, b, b2, b3 = spGetMouseState()
+	if backgroundRect and IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
+		hovered = true
+		WG['tooltip'].ShowTooltip('info', 'unit groups')
+		Spring.SetMouseCursor('cursornormal')
+	elseif hovered then
+		sec = sec + 0.5
+		hovered = false
+	end
+
+	sec = sec + dt
+	if sec > 0.5 then
+		sec = 0
+
+		if WG['buildmenu'] and WG['buildmenu'].getBottomPosition then
+			local prevbuildmenuBottomPos = buildmenuBottomPos
+			buildmenuBottomPos = WG['buildmenu'].getBottomPosition()
+			if buildmenuBottomPos ~= prevbuildmenuBottomPos then
+				widget:ViewResize()
+			end
+		end
+		if WG['ordermenu'] then
+			local prevOrdermenuPosY = ordermenuPosY
+			ordermenuPosY = select(2, WG['ordermenu'].getPosition())
+			if ordermenuPosY ~= prevOrdermenuPosY then
+				widget:ViewResize()
+			end
+		end
+		if uiScale ~= Spring.GetConfigFloat("ui_scale", 1) then
+			uiScale = Spring.GetConfigFloat("ui_scale", 1)
+			widget:ViewResize()
+		end
+		if uiOpacity ~= Spring.GetConfigFloat("ui_opacity", 0.6) then
+			uiOpacity = Spring.GetConfigFloat("ui_opacity", 0.6)
+		end
+		updateList()
+	elseif hovered and sec > 0.05 then
+		sec = 0
+		updateList()
+	end
+end
+
+function widget:MousePress(x, y, button)
+	if Spring.IsGUIHidden() then
+		return
+	end
+
+	if backgroundRect and IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
+		WG['tooltip'].ShowTooltip('info', 'unit groups')
+		if button == 1 then
+			for i,v in pairs(groupButtons) do
+				if IsOnRect(x, y, groupButtons[i][1], groupButtons[i][2], groupButtons[i][3], groupButtons[i][4]) then
+					Spring.SelectUnitArray(Spring.GetGroupUnits(groupButtons[i][5]))
+					return true
+				end
+			end
+		end
+		return true
+	end
+end
