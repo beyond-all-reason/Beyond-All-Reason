@@ -4,7 +4,6 @@ function gadget:GetInfo()
         desc      = "Implements Old Style Reclaim.",
         author    = "TheFatController", -- lots of help from Lurker
         date      = "May 24th, 2009",
-        license   = "GNU GPL, v2 or later",
         layer     = 0,
         enabled   = true  --  loaded by default?
     }

@@ -6,7 +6,6 @@ function gadget:GetInfo()
 		desc      = "Yea, Dynamic Weather",
 		author    = "Damgam",
 		date      = "2020",
-		license   = "What?",
 		layer     = 0,
 		enabled   = enabled
 	}

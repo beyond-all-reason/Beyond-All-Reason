@@ -4,7 +4,6 @@ function widget:GetInfo()
 		desc = "Provides information on the controls",
 		author = "Bluestone",
 		date = "April 2015",
-		license = "Mouthwash",
 		layer = -99990,
 		enabled = true,
 	}

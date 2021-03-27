@@ -4,7 +4,6 @@ function gadget:GetInfo()
 		desc		= "Sets Maverick exp effect",
 		author		= "BrainDamage",
 		date		= "-",
-		license		= "WTFPL",
 		layer		= 0,
 		enabled		= true -- loaded by default?
 	}

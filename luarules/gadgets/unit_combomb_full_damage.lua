@@ -8,7 +8,6 @@ function gadget:GetInfo()
 		desc      = "Flying Combombs Do Less Damage",
 		author    = "TheFatController, Bluestone",
 		date      = "Dec 2012",
-		license   = "GNU GPL, v2 or later",
 		layer     = 0,
 		enabled   = true  --  loaded by default?
 	}

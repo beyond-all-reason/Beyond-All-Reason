@@ -4,7 +4,6 @@ function gadget:GetInfo()
 		desc = "Give area attack commands to ground units",
 		author = "KDR_11k (David Becker)",
 		date = "2008-01-20",
-		license = "Public domain",
 		layer = 1,
 		enabled = true
 	}

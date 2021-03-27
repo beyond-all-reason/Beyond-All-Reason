@@ -4,7 +4,6 @@ function widget:GetInfo()
 		desc      = "Shows buildings about to be built",
 		author    = "WarXperiment",
 		date      = "February 15, 2010",
-		license   = "GNU GPL, v2 or later",
         version   = 6,
         layer     = 55,
 		enabled   = true,  --  loaded by default?

@@ -4,7 +4,6 @@ function gadget:GetInfo()
 		desc	= "Used for AI scripts",
 		author	= "Doo",
 		date	= "August 2018",
-		license	= "GNU GPL, v2 or later",
 		layer	= 0,
 		enabled = true,
 	}

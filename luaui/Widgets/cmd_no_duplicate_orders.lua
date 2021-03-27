@@ -17,7 +17,6 @@ function widget:GetInfo()
     desc      = "Blocks duplicate Attack and Repair/Build orders 1.1b",
     author    = "TheFatController",
     date      = "16 April, 2008",
-    license   = "GNU GPL, v2 or later",
     layer     = 0,
     enabled   = true  --  loaded by default?
   }

@@ -8,7 +8,6 @@ function gadget:GetInfo()
 		desc = "a shared interface to recieve unit ranks",
 		author = "jK",
 		date = "Dec 19, 2007",
-		license = "GNU GPL, v2 or later",
 		layer = -math.huge,
 		enabled = true  --  loaded by default?
 	}

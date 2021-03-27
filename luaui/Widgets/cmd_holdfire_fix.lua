@@ -5,7 +5,6 @@ function widget:GetInfo()
 		desc      = "Holdfire holds fire immediately",
 		author    = "Niobium",
 		date      = "3 April 2010",
-		license   = "GNU GPL, v2 or later",
 		layer     = 0,
 		enabled   = true
 	}

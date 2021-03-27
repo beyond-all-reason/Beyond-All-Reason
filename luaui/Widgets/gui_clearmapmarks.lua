@@ -4,7 +4,6 @@ function widget:GetInfo()
 		desc		= "clears mapmarks, located next to advplayerlist",
 		author		= "Floris",
 		date		= "24 july 2016",
-		license		= "GNU GPL, v2 or later",
 		layer		= -3,			-- set to -5 to draw mascotte on top of advplayerlist
 		enabled		= true
 	}

@@ -9,7 +9,6 @@ function gadget:GetInfo()
 		author = "raaar",
 		version = "v1",
 		date = "2017",
-		license = "PD",
 		layer = -10,
 		enabled = true
 	}

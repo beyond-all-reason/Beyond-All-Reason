@@ -17,7 +17,6 @@ function widget:GetInfo()
     desc      = "Sets new factories, and all units they build, to hold position automatically (except aircraft)",
     author    = "Masta Ali",
     date      = "Mar 20, 2007",
-    license   = "GNU GPL, v2 or later",
     layer     = 0,
     enabled   = false  --  loaded by default?
   }

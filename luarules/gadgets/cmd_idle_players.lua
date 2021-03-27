@@ -4,7 +4,6 @@ function gadget:GetInfo()
         desc = "Handles players AFK and drops",
         author = "BrainDamage",
         date = "2012",
-        license = "WTFPL",
         layer = 1,
         enabled = true
     }

@@ -4,7 +4,6 @@ function widget:GetInfo()
       desc         = "Prevents dgun aim to snap onto ally units",
       author       = "Ceddral",
       date         = "2018-04-27",
-      license      = "GPL",
       layer        = 0,
       enabled      = true
    }

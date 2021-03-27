@@ -4,7 +4,6 @@ function widget:GetInfo()
 		desc = "Idle Indicator",
 		author = "Floris (original by Ray)",
 		date = "15 april 2015",
-		license = "GNU GPL, v2 or later",
 		layer = 0,
 		enabled = true  --  loaded by default?
 	}

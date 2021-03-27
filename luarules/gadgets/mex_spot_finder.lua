@@ -8,7 +8,6 @@ function gadget:GetInfo()
 		author    = "Niobium, modified by Google Frog",
 		version   = "v1.1",
 		date      = "November 2010",
-		license   = "GNU GPL, v2 or later",
 		layer     = -math.huge + 5,
 		enabled   = true
 	}

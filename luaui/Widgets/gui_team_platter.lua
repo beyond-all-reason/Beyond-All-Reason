@@ -17,7 +17,6 @@ function widget:GetInfo()
     desc      = "Shows a team color platter above all visible units",
     author    = "Floris (original: trepan)",
     date      = "Apr 16, 2007",
-    license   = "GNU GPL, v2 or later",
     layer     = 5,
     enabled   = false  --  loaded by default?
   }

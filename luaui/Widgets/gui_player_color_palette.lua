@@ -4,7 +4,6 @@ function widget:GetInfo()
 		desc = "Applies an evenly distributed color palette among players. Toggle randomized colors with",
 		author = "Floris",
 		date = "March 2017",
-		license = "GPL v2",
 		layer = -10001,
 		enabled = true,
 		handler = true,

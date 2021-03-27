@@ -13,7 +13,6 @@ function widget:GetInfo()
     desc      = "A sound control OSD",
     author    = "Jools",
     date      = "Jan 10, 2012",
-    license   = "GNU GPL, v2 or later",
     layer     = 0,
     enabled   = true  --  loaded by default?
   }

@@ -6,7 +6,6 @@ function widget:GetInfo()
 		desc      = "Displays blast radius while placing buildings (META)\nand of selected units (META+X)",
 		author    = "very_bad_soldier",
 		date      = "April 7, 2009",
-		license   = "GNU GPL v2",
 		layer     = 0,
 		enabled   = true
 	}

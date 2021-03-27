@@ -4,7 +4,6 @@ function gadget:GetInfo()
 		desc = "Adds falling damage = falling height * mass / 50",
 		author = "Pako",
 		date = "21 Feb 2010",
-		license = "GNU GPL, v2 or later",
 		layer = 0,
 		enabled = true  --  loaded by default?
 	}

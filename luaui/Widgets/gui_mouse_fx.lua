@@ -4,7 +4,6 @@ function widget:GetInfo()
       desc      = "Adds glow effect at mouse clicks",
       author    = "Floris",
       date      = "13 may 2015",
-      license   = "GNU GPL, v2 or later",
       layer     = 2,
       enabled   = true,
    }

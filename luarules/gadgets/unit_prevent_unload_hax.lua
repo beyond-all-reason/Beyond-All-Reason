@@ -4,7 +4,6 @@ function gadget:GetInfo()
         desc      = "removes unit velocity on unload (and prevents firing units across the map with 'stored' impulse)",
         author    = "Bluestone",
         date      = "12/08/2013",
-        license   = "horse has fallen over, again",
         layer     = 0,
         enabled   = true
     }

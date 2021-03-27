@@ -4,8 +4,6 @@ function widget:GetInfo()
         desc      = "Shows the range of commander death explosion and dgun ranges",
         author    = "Bluestone, very_bad_soldier, the fat controller, decay, Floris, BrainDamage",
         date      = "14 february 2015",
-        license   = "GPL v3 or later",
-        license   = "GPL v3 or later",
         layer     = 0,
         enabled   = true  -- loaded by default
     }

@@ -5,7 +5,6 @@ function widget:GetInfo()
 	desc      = "Drawing widget for Red UI Framework",
 	author    = "Regret",
 	date      = "29 may 2015",
-	license   = "GNU GPL, v2 or later",
 	layer     = -1,
 	enabled   = true,
 	}

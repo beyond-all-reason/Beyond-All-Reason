@@ -16,7 +16,6 @@ function widget:GetInfo()
         author = "Marmoth. (spiced up by Floris)",
         date = "25 april 2015",
         version = widgetVersion,
-        license = "GNU GPL, v2 or later",
         layer = -4,
         enabled = true, --  loaded by default?
     }

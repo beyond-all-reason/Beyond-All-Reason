@@ -4,7 +4,6 @@ function gadget:GetInfo()
 		desc = "builds them all slow-like",
 		author = "Beherith, Floris",
 		date = "2015",
-		license = "Horses",
 		layer = 0,
 		enabled = true  --  loaded by default?
 	}

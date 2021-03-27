@@ -4,7 +4,6 @@ function widget:GetInfo()
 		desc      = "handles font object creation",
 		author    = "Floris",
 		date      = "June 2020",
-		license   = "GNU GPL, v2 or later",
 		layer     = -math.huge,
 		enabled   = true
 	}

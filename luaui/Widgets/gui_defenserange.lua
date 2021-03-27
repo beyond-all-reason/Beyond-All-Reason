@@ -8,7 +8,6 @@ function widget:GetInfo()
 		desc      = "[v" .. string.format("%s", versionNumber ) .. "] Displays range of defenses (enemy and ally)",
 		author    = "very_bad_soldier",
 		date      = "October 21, 2007",
-		license   = "GNU GPL v2",
 		layer     = -100,
 		enabled   = true
 	}

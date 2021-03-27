@@ -28,7 +28,6 @@ function gadget:GetInfo()
 		desc = "/luarules buildicon(s) [unitdefname|all]",
 		author = "jK",
 		date = "Oct 01, 2008",
-		license = "GNU GPL, v2 or later",
 		layer = -10,
 		enabled = true  --  loaded by default?
 	}

@@ -5,7 +5,6 @@ function gadget:GetInfo()
         desc      = "makes unit stun status known to unit scripts",
         author    = "Floris",
         date      = "April 2020",
-        license   = "GNU GPL, v2 or later",
         layer     = 0,
         enabled   = true
     }

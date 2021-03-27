@@ -5,7 +5,6 @@ function gadget:GetInfo()
 		desc = "Disallow loading/unloading of underwater units",
 		author = "Doo",
 		date = "2018",
-		license = "PD",
 		layer = 0,
 		enabled = true,
 	}

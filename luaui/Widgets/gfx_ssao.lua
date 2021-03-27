@@ -6,7 +6,6 @@ function widget:GetInfo()
         desc      = "Screen-Space Ambient Occlusion",
         author    = "ivand",
         date      = "2019",
-        license   = "GPL",
         layer     = math.huge,
         enabled   = false, --true
     }

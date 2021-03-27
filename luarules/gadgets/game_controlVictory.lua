@@ -4,7 +4,6 @@ function gadget:GetInfo()
 		desc = "Enables a victory through capture and hold",
 		author = "KDR_11k (David Becker), Smoth, Lurker, Forboding Angel, Floris",
 		date = "2008-03-22 -- Major update July 11th, 2016",
-		license = "Public Domain",
 		layer = 1,
 		enabled = true
 	}

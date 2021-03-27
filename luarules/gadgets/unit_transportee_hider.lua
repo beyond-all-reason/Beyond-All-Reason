@@ -4,7 +4,6 @@ function gadget:GetInfo()
 		desc = "Hides units when inside a closed transport, issues stop command to units trying to enter a full transport",
 		author = "FLOZi",
 		date = "09/02/10",
-		license = "PD",
 		layer = 0,
 		enabled = true  --  loaded by default?
 	}

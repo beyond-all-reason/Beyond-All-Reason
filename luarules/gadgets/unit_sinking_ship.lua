@@ -4,7 +4,6 @@ function gadget:GetInfo()
 		desc = "Makes sinking ships go down faster",
 		author = "MaDDoX",
 		date = "Sep 2 2020",
-		license = "PD",
 		layer = 1000,
 		enabled = true,
 	}

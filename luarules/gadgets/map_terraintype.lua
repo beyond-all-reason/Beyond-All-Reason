@@ -6,7 +6,6 @@ function gadget:GetInfo()
 		desc      = "Allows to disable terraintypes movespeed buffs",
 		author    = "Doo",
 		date      = "Nov 2017",
-		license   = "GPL",
 		layer     = -1,	--higher layer is loaded last
 		enabled   = true,
 	}

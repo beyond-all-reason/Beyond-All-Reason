@@ -5,7 +5,6 @@ function widget:GetInfo()
 		desc	= "draw and crono stuff in-game that Shard tells me to",
 		author	= "eronoobos",
 		date 	= "June 2016",
-		license	= "whatever",
 		layer 	= 0,
 		enabled	= false
 	}

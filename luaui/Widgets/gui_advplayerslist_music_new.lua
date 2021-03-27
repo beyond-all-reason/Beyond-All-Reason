@@ -108,7 +108,6 @@ function widget:GetInfo()
 		desc	= "Plays music and offers volume controls",
 		author	= "Damgam",
 		date	= "2021",
-		license	= "i don't care",
 		layer	= -4,
 		enabled	= false	--	loaded by default?
 	}

@@ -4,7 +4,6 @@ function gadget:GetInfo()
 		desc = "Adds a command to set a priority attack target",
 		author = "Google Frog, adapted by BrainDamage, added priority to Dgun by doo",
 		date = "06/05/2013",
-		license = "GNU GPL, v2 or later",
 		layer = 0,
 		enabled = true,
 	}

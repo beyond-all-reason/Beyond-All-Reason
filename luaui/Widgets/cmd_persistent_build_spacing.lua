@@ -4,7 +4,6 @@ function widget:GetInfo()
     desc      = "Recalls last build spacing set for each building and game [v2.0]",
     author    = "Niobium & DrHash",
     date      = "Sep 6, 2011",
-    license   = "GNU GPL, v3 or later",
     layer     = 0,
     enabled   = true  --  loaded by default?
   }

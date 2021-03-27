@@ -4,7 +4,6 @@ function gadget:GetInfo()
         desc      = "Disallows sharing to enemies",
         author    = "TheFatController",
         date      = "19 Jan 2008",
-        license   = "GNU GPL, v2 or later",
         layer     = 0,
         enabled   = true  --  loaded by default?
     }

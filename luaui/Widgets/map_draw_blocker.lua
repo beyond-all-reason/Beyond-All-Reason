@@ -4,7 +4,6 @@ function widget:GetInfo()
 		desc	= "blocks map draws from spammers",
 		author	= "BrainDamage",
 		date	= "-",
-		license = "WTFPL",
 		layer	= 0,
 		enabled = false,
 	}

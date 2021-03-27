@@ -6,7 +6,6 @@ function gadget:GetInfo()
         desc      = "Plays various voice notifications",
         author    = "Doo, Floris",
         date      = "2018",
-        license   = "GNU GPL, v2 or later",
         version   = 1,
         layer     = 5,
         enabled   = true  --  loaded by default?

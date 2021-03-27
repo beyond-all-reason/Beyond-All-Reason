@@ -4,7 +4,6 @@ function widget:GetInfo()
 		desc = "Display team eco",
 		author = "Floris  (original by Jools)",
 		date = "nov, 2015",
-		license = "GNU GPL, v2 or later",
 		layer = 1,
 		enabled = true
 	}

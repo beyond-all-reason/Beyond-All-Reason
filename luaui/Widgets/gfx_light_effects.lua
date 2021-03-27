@@ -8,7 +8,6 @@ function widget:GetInfo()
 		desc      = "Creates projectile, laser and explosion lights and sends them to the deferred renderer.",
 		author    = "Floris (original by beherith)",
 		date      = "May 2017",
-		license   = "GPL V2",
 		layer     = 0,
 		enabled   = true,
 	}

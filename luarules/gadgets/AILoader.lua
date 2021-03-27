@@ -4,7 +4,6 @@ function gadget:GetInfo()
 		desc = "Shard by AF for Spring Lua",
 		author = "eronoobos, based on gadget by raaar, and original AI by AF",
 		date = "April 2020",
-		license = "GPL",
 		layer = 999999,
 		enabled = true,
 	}

@@ -4,7 +4,6 @@ function gadget:GetInfo()
 		desc = "",
 		author = "jK, Bluestone",
 		date = "2007+",
-		license = "GNU GPL, v2 or later",
 		layer = math.huge,
 		handler = true,
 		enabled = true,

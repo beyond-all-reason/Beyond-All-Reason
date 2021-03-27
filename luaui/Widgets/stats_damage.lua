@@ -4,7 +4,6 @@ function widget:GetInfo()
 	desc      = "Receive unit stats and write to file in /luaui/config \nIf your experiment needs statistics, you should have done a better experiment",
 	author    = "Bluestone",
 	date      = "", 
-	license   = "GNU GPL, v3 or later",
 	layer     = 0,
 	enabled   = true,
 	}

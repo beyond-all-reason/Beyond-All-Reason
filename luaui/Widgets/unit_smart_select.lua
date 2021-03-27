@@ -18,7 +18,6 @@ function widget:GetInfo()
 		desc = "Selects units as you drag over them. (SHIFT: select all, Z: same type, SPACE: new idle units, CTRL: invert selection) /selectionmode toggles filtering buildings in selection",
 		author = "aegis",
 		date = "Jan 2, 2011",
-		license = "Public Domain",
 		layer = -99999999999,
 		enabled = true
 	}

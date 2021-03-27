@@ -4,7 +4,6 @@ function widget:GetInfo()
 		desc    = "cruder than yo momma",
 		author  = "git blame",
 		date    = "git log",
-		license = "PD",
 		layer   = math.huge,
 		enabled = false,
 	}

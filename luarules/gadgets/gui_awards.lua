@@ -4,7 +4,6 @@ function gadget:GetInfo()
 		desc = "Awards Awards",
 		author = "Bluestone",
 		date = "2013-07-06",
-		license = "GPLv2",
 		layer = -1,
 		enabled = true -- loaded by default?
 	}

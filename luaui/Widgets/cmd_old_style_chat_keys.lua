@@ -4,7 +4,6 @@ function widget:GetInfo()
 		desc = "Binds alt/shift+enter for ally/spec chat, alt+backspace for fullscreen toggle" ,
 		author = "",
 		date = "",
-		license = "Anyone who uses this widget has to email me a horse",
 		layer = 0,
 		enabled = true
 	}
