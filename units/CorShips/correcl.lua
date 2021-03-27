@@ -41,7 +41,7 @@ return {
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turnrate = 525,
-		waterline = 17,
+		waterline = 22, --17,
 		workertime = 150,
 		customparams = {
 			model_author = "Beherith",
