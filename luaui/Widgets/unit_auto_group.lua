@@ -33,7 +33,8 @@ include("keysym.h.lua")
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
-
+local cutoffDistance = 3800
+local falloffDistance = 2400
 local vsx, vsy = Spring.GetViewGeometry()
 
 local debug = false --of true generates debug messages
@@ -48,51 +49,9 @@ for _, v in ipairs(groupableBuildingTypes) do
 	end
 end
 
-local options = {
-	loadgroups = {
-		name = 'Preserve Auto Groups',
-		desc = 'Preserve auto groupings for next game. Unchecking this clears the groups!',
-		type = 'bool',
-		value = true,
-		OnChange = function(self)
-			if not self.value then
-				unit2group = {}
-				Spring.Echo('Cleared Autogroups.')
-			end
-		end
-	},
-	addall = {
-		name = 'Add All',
-		desc = 'Existing units will be added to group# when setting autogroup#.',
-		type = 'bool',
-		value = true,
-	},
-	verbose = {
-		name = 'Verbose Mode',
-		type = 'bool',
-		value = true,
-	},
-	immediate = {
-		name = 'Immediate Mode',
-		desc = 'Units built/resurrected/received are added to autogroups immediately instead of waiting them to be idle.',
-		type = 'bool',
-		value = false,
-	},
-	groupnumbers = {
-		name = 'Display Group Numbers',
-		type = 'bool',
-		value = true,
-	},
-
-	cleargroups = {
-		name = 'Clear Auto Groups',
-		type = 'button',
-		OnChange = function()
-			unit2group = {}
-			Spring.Echo('Cleared Autogroups.')
-		end,
-	},
-}
+local addall = true
+local immediate = false
+local verbose = true
 
 local finiGroup = {}
 local myTeam = Spring.GetMyTeamID()
@@ -117,7 +76,12 @@ local GetGroupList = Spring.GetGroupList
 local GetGroupUnits = Spring.GetGroupUnits
 local GetGameFrame = Spring.GetGameFrame
 local IsGuiHidden = Spring.IsGUIHidden
+local spIsUnitInView = Spring.IsUnitInView
+local spGetUnitViewPosition = Spring.GetUnitViewPosition
+local spGetCameraPosition = Spring.GetCameraPosition
 local Echo = Spring.Echo
+local diag = math.diag
+local min = math.min
 
 function widget:ViewResize()
 	vsx, vsy = Spring.GetViewGeometry()
@@ -157,10 +121,10 @@ function widget:Initialize()
 
 	WG['autogroup'] = {}
 	WG['autogroup'].getImmediate = function()
-		return options.immediate.value
+		return immediate
 	end
 	WG['autogroup'].setImmediate = function(value)
-		options.immediate.value = value
+		immediate = value
 	end
 end
 
@@ -186,15 +150,22 @@ function widget:DrawWorld()
 	end
 	if not IsGuiHidden() then
 		local existingGroups = GetGroupList()
-		if options.groupnumbers.value then
-			for inGroup, _ in pairs(existingGroups) do
-				local units = GetGroupUnits(inGroup)
-				for i = 1, #units do
-					local unitID = units[i]
-					if Spring.IsUnitInView(unitID) then
-						local ux, uy, uz = Spring.GetUnitViewPosition(unitID)
+		local camX, camY, camZ = spGetCameraPosition()
+		local camDistance
+		for inGroup, _ in pairs(existingGroups) do
+			local units = GetGroupUnits(inGroup)
+			for i = 1, #units do
+				local unitID = units[i]
+				if spIsUnitInView(unitID) then
+					local ux, uy, uz = spGetUnitViewPosition(unitID)
+					local camDistance = diag(camX - ux, camY - uy, camZ - uz)
+					if camDistance < cutoffDistance then
+						local scale = min(1, 1 - (camDistance - falloffDistance) / cutoffDistance)
 						gl.PushMatrix()
 						gl.Translate(ux, uy, uz)
+						if scale <=1 then
+							gl.Scale(scale, scale, scale)
+						end
 						gl.Billboard()
 						gl.CallList(dlists[inGroup])
 						gl.PopMatrix()
@@ -219,13 +190,13 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
 end
 
 function widget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
-	if (unitTeam == myTeam) then
+	if unitTeam == myTeam then
 		createdFrame[unitID] = GetGameFrame()
 	end
 end
 
 function widget:UnitFromFactory(unitID, unitDefID, unitTeam)
-	if options.immediate.value or groupableBuildings[unitDefID] then
+	if immediate or groupableBuildings[unitDefID] then
 		if unitTeam == myTeam then
 			createdFrame[unitID] = GetGameFrame()
 			local gr = unit2group[unitDefID]
@@ -321,16 +292,6 @@ function widget:KeyPress(key, modifier, isRepeat)
 				local unitID = units[i]
 				local udid = GetUnitDefID(unitID)
 				if not UDefTab[udid]["isFactory"] and (groupableBuildings[udid] or not UDefTab[udid]["isBuilding"]) then
-					--if unit2group[udid] ~= nil then
-					--	unit2group[udid] = nil
-					--	unit2groupDeleted[udid] = true
-					--	SelectUnitArray({})
-					--	for _, uID in ipairs(Spring.GetTeamUnits(myTeam)) do -- ungroup all units of this unitdef
-					--		if GetUnitDefID(uID) == udid then
-					--			SetUnitGroup(uID, -1)
-					--		end
-					--	end
-					--elseif unit2groupDeleted[udid] == nil then
 					selUnitDefIDs[udid] = true
 					unit2group[udid] = gr
 					exec = true
@@ -339,14 +300,13 @@ function widget:KeyPress(key, modifier, isRepeat)
 					else
 						SetUnitGroup(unitID, gr)
 					end
-					--end
 				end
 			end
 			if exec == false then
 				return false --nothing to do
 			end
 			for udid, _ in pairs(selUnitDefIDs) do
-				if options.verbose.value then
+				if verbose then
 					if gr then
 						Echo('Added ' .. UnitDefs[udid].humanName .. ' to autogroup #' .. gr .. '.')
 					else
@@ -354,7 +314,7 @@ function widget:KeyPress(key, modifier, isRepeat)
 					end
 				end
 			end
-			if options.addall.value then
+			if addall then
 				local myUnits = Spring.GetTeamUnits(myTeam)
 				for i = 1, #myUnits do
 					local unitID = myUnits[i]
@@ -400,14 +360,6 @@ function widget:KeyPress(key, modifier, isRepeat)
 				SelectUnitArray({ muid })
 			end
 		end
-		--[[
-	   if (key == KEYSYMS.Q) then
-		   local units = GetSelectedUnits()
-		   for _, unitID in ipairs(units) do
-		   SetUnitGroup(unitID,-1)
-		 end
-	   end
-	   --]]
 	end
 	return false
 end
@@ -451,14 +403,12 @@ function widget:GetConfigData()
 	local ret = {
 		version = versionNum,
 		groups = groups,
-		options = options,
 	}
 	return ret
 end
 
 function widget:SetConfigData(data)
-	if data and type(data) == 'table' and data.version and (data.version + 0) > 2.1 and data.options then
-		options = tableMerge(deepcopy(options), deepcopy(data.options))
+	if data and type(data) == 'table' and data.version and (data.version + 0) > 2.1 then
 		local groupData = data.groups
 		if groupData and type(groupData) == 'table' then
 			for _, nam in ipairs(groupData) do
