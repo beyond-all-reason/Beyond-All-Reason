@@ -5,7 +5,6 @@ function gadget:GetInfo()
 		desc		= "Adds unit explosion xmas-balls and places candycanes randomly on the map",
 		author		= "Floris",
 		date		= "October 2017",
-		license		= "",
 		layer		= 0,
 		enabled		= true,
 	}

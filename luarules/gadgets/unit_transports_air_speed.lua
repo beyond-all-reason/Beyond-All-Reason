@@ -4,7 +4,6 @@ function gadget:GetInfo()
 		desc = "Slows down transport depending on loaded mass (up to 50%)",
 		author = "raaar",
 		date = "2015",
-		license = "PD",
 		layer = 0,
 		enabled = true,
 	}

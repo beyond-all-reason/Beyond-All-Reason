@@ -5,7 +5,6 @@ function widget:GetInfo()
 		desc	  = "Blurs far away objects.",
 		author	= "aeonios, Shadowfury333 (with some code from Kleber Garcia)",
 		date	  = "Feb. 2019",
-		license   = "GPL, MIT",
 		layer	 = -100000, --To run after gfx_deferred_rendering.lua
 		enabled   = false
 	}

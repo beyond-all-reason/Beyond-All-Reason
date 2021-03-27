@@ -8,7 +8,6 @@ function widget:GetInfo()
 		desc = "Collects and renders point and beam lights",
 		author = "beherith, aeonios",
 		date = "2015 Sept.",
-		license = "GPL V2",
 		layer = -99999990,
 		enabled = true
 	}

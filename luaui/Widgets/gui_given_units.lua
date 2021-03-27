@@ -4,7 +4,6 @@ function widget:GetInfo()
       desc      = "Tags given units with 'new' icon",
       author    = "Floris",
       date      = "24.04.2014",
-      license   = "GNU GPL, v2 or later",
       layer     = -50,
       enabled   = true
    }

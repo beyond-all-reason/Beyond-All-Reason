@@ -9,7 +9,6 @@ function gadget:GetInfo()
         desc	= "Prevents the use of widgets to build disabled buildoptions",
         author	= "Doo",
         date	= "2018-01-23",
-        license	= "GNU GPL, v2 or later",
         layer	= 0,
         enabled	= enablegadget,
     }

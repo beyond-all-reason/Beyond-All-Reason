@@ -5,7 +5,6 @@ if addon.InGetInfo then
 		desc    = "plays music",
 		author  = "jK",
 		date    = "2012,2013",
-		license = "GPL2",
 		layer   = 0,
 		--depend  = {"LoadProgress"},
 		enabled = true, -- loading makes it choppy towards the end; also, volume cannot be adjusted

@@ -7,7 +7,6 @@ function widget:GetInfo()
 		desc      = "Allows ghosted radar blips [v" .. string.format("%s", versionNumber ) .. "]",
 		author    = "very_bad_soldier",
 		date      = "July 21, 2008",
-		license   = "GNU GPL v2",
 		layer     = 0,
 		enabled   = true
 	}

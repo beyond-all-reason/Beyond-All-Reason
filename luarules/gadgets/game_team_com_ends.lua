@@ -4,7 +4,6 @@ function gadget:GetInfo()
 		desc = "Implements com ends for allyteams + blows up team if no players left",
 		author = "KDR_11k (David Becker)",
 		date = "2008-02-04",
-		license = "Public domain",
 		layer = 1,
 		enabled = true
 	}

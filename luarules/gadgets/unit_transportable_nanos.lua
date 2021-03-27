@@ -7,7 +7,6 @@ function gadget:GetInfo()
         desc      = "Prevent loading of ally and enemy nanos, prevent unloading onto cliffs and underwater",
         author    = "Beherith",
         date      = "Jul 2012",
-        license   = "GNU GPL, v2 or later",
         layer     = 0,
         enabled   = true  --  loaded by default?
     }

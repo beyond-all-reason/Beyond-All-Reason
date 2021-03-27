@@ -9,7 +9,6 @@ function widget:GetInfo()
 	desc      = "Requires Red UI Framework",
 	author    = "Regret + Doo edit",
 	date      = "29 may 2015",
-	license   = "GNU GPL, v2 or later",
 	layer     = -10,
 	enabled   = true, --enabled by default
 	handler   = true, --can use widgetHandler:x()

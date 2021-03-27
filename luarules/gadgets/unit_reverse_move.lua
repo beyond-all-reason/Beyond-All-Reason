@@ -4,7 +4,6 @@ function gadget:GetInfo()
 		desc = "Sets reverse speeds/angles/distances",
 		author = "[Fx]Doo",
 		date = "27 of July 2017",
-		license = "Free",
 		layer = 0,
 		enabled = true
 	}

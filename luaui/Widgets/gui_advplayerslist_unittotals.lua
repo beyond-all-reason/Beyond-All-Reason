@@ -17,7 +17,6 @@ function widget:GetInfo()
 		desc	= "Displays number of units",
 		author	= "Floris",
 		date	= "december 2019",
-		license	= "GNU GPL, v2 or later",
 		layer	= -3,
 		enabled	= false,	--	loaded by default?
 	}

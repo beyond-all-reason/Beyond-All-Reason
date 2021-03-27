@@ -4,7 +4,6 @@ function widget:GetInfo()
 		desc      = "Light Bloom Shader, simulates overbrightness",
 		author    = "Kloot, Beherith",
 		date      = "2018-05-13",
-		license   = "GPL V2",
 		layer     = 99999,
 		enabled   = true,
 	}

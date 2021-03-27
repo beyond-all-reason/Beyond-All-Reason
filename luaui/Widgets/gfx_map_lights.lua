@@ -4,7 +4,6 @@ function widget:GetInfo()
 		desc = "Adds static lights to maps",
 		author = "Beherith",
 		date = "2020",
-		license = "GNU GPL, v2 or later",
 		layer = 5,
 		enabled = false,
 	}

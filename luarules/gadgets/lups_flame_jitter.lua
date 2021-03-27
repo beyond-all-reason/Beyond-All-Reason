@@ -8,7 +8,6 @@ function gadget:GetInfo()
         desc      = "Flamethrower jitter FX with LUPS",
         author    = "jK",
         date      = "Apr, 2008",
-        license   = "GNU GPL, v2 or later",
         layer     = 0,
         enabled   = true,  --  loaded by default?
     }

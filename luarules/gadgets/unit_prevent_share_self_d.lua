@@ -4,7 +4,6 @@ function gadget:GetInfo()
 		desc      = "Prevents self-destruction when a unit changes hands or a player leaves",
 		author    = "quantum, Bluestone",
 		date      = "July 13, 2008",
-		license   = "GNU GPL, v2 or later",
 		layer     = 0,
 		enabled   = true  --  loaded by default?
 	}

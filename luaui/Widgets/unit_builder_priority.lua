@@ -20,7 +20,6 @@ local info = {
 	desc = "Allows to set builders (nanos, labs and cons) on low or high priority mode",
 	author = "[teh]decay",
 	date = "20 aug 2015",
-	license = "GNU GPL, v2 or later",
 	layer = 0,
 	version = 8,
 	enabled = true  -- loaded by default

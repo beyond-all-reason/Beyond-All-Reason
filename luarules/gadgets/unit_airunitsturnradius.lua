@@ -4,7 +4,6 @@ function gadget:GetInfo()
 		desc      = "Fixes TurnRadius Dynamically for bombers",
 		author    = "Doo",
 		date      = "Sept 19th 2017",
-		license   = "GNU GPL, v2 or later",
 		layer     = 0,
 		enabled   = true  --  loaded by default?
 	}

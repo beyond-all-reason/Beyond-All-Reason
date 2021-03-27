@@ -7,7 +7,6 @@ function widget:GetInfo()
 		desc      = "Shows units selected by teammates [v" .. string.format("%s", versionNumber ) .. "]",
 		author    = "very_bad_soldier",
 		date      = "August 1, 2008",
-		license   = "GNU GPL v2",
 		layer     = -10,
 		enabled   = true
 	}

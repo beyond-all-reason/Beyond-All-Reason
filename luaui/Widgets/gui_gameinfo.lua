@@ -4,7 +4,6 @@ function widget:GetInfo()
 		desc = "",
 		author = "Floris",
 		date = "May 2017",
-		license = "",
 		layer = 2,
 		enabled = true,
 	}

@@ -5,7 +5,6 @@ function widget:GetInfo()
     desc      = "VR grid around map",
     author    = "knorke, tweaked by KR",
     date      = "Sep 2011",
-    license   = "PD",
     layer     = -3,
     enabled   = false,
     --detailsDefault = 3,

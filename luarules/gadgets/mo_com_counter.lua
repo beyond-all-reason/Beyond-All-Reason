@@ -4,7 +4,6 @@ function gadget:GetInfo()
 		desc      = "Tells each team the total number of commanders alive in enemy allyteams",
 		author    = "Bluestone",
 		date      = "08/03/2014",
-		license   = "Horses",
 		layer     = 0,
 		enabled   = true  --  loaded by default?
 	}

@@ -6,7 +6,6 @@ function widget:GetInfo()
     desc      = versionNumber .." Draws map info on the bottom left of the map.  Toggle vertical position with /mapinfo_floor",
     author    = "Floris",
     date      = "20 May 2015",
-    license   = "GNU GPL, v2 or later",
     layer     = -10,
     enabled   = true,  --  loaded by default?
   }

@@ -4,7 +4,6 @@ function gadget:GetInfo()
 		desc      = "Makes callins for death messages",
 		author    = "Bluestone",
 		date      = "Sept 2013",
-		license   = "GNU GPL, v2 or later, BA/BAR only",
 		layer     = 0,
 		enabled   = true  --  loaded by default?
 	}

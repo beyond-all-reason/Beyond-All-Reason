@@ -4,7 +4,6 @@ function widget:GetInfo()
       desc      = "Draws transparant smoothed donuts under enemy units (with teamcolors or predefined colors, depending on situation)",
       author    = "Floris (original enemyspotter by TradeMark, who edited 'TeamPlatter' by Dave Rodgers)",
       date      = "18 february 2015",
-      license   = "GNU GPL, v2 or later",
       layer     = 5,
       enabled   = true
    }

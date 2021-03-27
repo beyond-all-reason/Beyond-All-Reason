@@ -4,7 +4,6 @@ function widget:GetInfo()
       desc      = "Shows commands given by allies",
       author    = "Floris (bluestone helped optimizing)",
       date      = "20 may 2015",
-      license   = "GNU GPL, v2 or later",
       layer     = 2,
       enabled   = true,
    }

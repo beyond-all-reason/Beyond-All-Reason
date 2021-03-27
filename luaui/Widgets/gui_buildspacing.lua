@@ -5,7 +5,6 @@ function widget:GetInfo()
       author    = "Auswaschbar",
       version   = "v1.0",
       date      = "Mar, 2010",
-      license   = "GNU GPL, v3 or later",
       layer     = 200,
       enabled   = true,
    }

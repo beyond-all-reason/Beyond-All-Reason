@@ -9,7 +9,6 @@ function gadget:GetInfo()
 		version = "tart",
 		author = "Floris",
 		date = "February 2018",
-		license = "GNU GPL, v3 or later",
 		layer = 0,
 		enabled = true, --  loaded by default?
 	}

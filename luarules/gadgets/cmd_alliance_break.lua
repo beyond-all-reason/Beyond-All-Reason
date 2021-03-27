@@ -4,7 +4,6 @@ function gadget:GetInfo()
 		desc = "Removes an alliance when a dynamic ally attemps to backstab",
 		author = "BrainDamage",
 		date = "-",
-		license = "GNU GPL, v2 or later",
 		layer = 0,
 		enabled = true  --  loaded by default?
 	}

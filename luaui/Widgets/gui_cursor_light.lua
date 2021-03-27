@@ -5,7 +5,6 @@ function widget:GetInfo()
         desc	= "adds light to the cursor",
         author	= "Floris",
         date	= "December 2017",
-        license	= "GNU GPL, v2 or later",
         layer	= 5,
         enabled	= false,
     }

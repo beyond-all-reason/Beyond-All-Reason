@@ -5,7 +5,6 @@ function widget:GetInfo()
 		desc = "auto sets a scale for the cursor based on screen resolution" ,
 		author = "Floris",
 		date = "",
-		license = "",
 		layer = 19000,
 		enabled = true
 	}

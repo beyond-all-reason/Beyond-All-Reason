@@ -29,7 +29,6 @@ function gadget:GetInfo()
 		desc	= "Custom sound effects for your units!",
 		author	= "Damgam",
 		date	= "2021",
-		license	= "GNU GPL, v2 or later",
 		layer	= 0,
 		enabled = true,
 	}

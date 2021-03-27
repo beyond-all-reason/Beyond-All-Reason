@@ -4,7 +4,6 @@ function gadget:GetInfo()
 		desc      = "Places initial units defined in scenariooptions.loadout",
 		author    = "Beherith",
 		date      = "2021.03.20",
-		license   = "CC BY NC ND",
 		layer     = 1000000,
 		enabled   = true,
 	}

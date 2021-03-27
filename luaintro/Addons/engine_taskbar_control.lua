@@ -7,7 +7,6 @@ function addon:GetInfo()
     desc      = 'Icon, name',
     author    = "KingRaptor",
     date      = "13 July 2011",
-    license   = "Public Domain",
     layer     = -math.huge,
     enabled   = true,
   }

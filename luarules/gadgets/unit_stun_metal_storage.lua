@@ -7,7 +7,6 @@ function gadget:GetInfo()
         desc      = "Makes stunned storage drop capactiy",
         author    = "Nixtux",
         date      = "June 15, 2014",
-        license   = "GNU GPL, v2 or later",
         layer     = 0,
         enabled   = true  --  loaded by default?
     }

@@ -4,7 +4,6 @@ function widget:GetInfo()
 		desc = "Displays what kind of screen mode you see",
 		author = "Floris",
 		date = "November 2020",
-		license = "GNU GPL, v2 or later",
 		layer = 0,
 		enabled = true  --  loaded by default?
 	}

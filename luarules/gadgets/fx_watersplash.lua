@@ -6,7 +6,6 @@ function gadget:GetInfo()
 		version   = "1.1",
 		author    = "Jools ,Nixtux",
 		date      = "April,2012",
-		license   = "GNU GPL, v2 or later",
 		layer     = 0,
 		enabled   = true,  --  loaded by default?
 	}

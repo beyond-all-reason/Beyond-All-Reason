@@ -5,7 +5,6 @@ function widget:GetInfo()
 		desc		= "Hold down Alt or Ctrl and give an area load order, centered on a unit of the type to load.",
 		author		= "Google Frog, doo edit for load commands",
 		date		= "May 12, 2008",
-		license	 	= "GNU GPL, v2 or later",
 		layer		= 0,
 		enabled	 	= true	--	loaded by default?
 	}

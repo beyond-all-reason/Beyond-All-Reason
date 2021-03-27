@@ -5,7 +5,6 @@ function gadget:GetInfo()
 		desc = "sends your selected units to others",
 		author    = "very_bad_soldier",
 		date      = "August 1, 2008",
-		license   = "GNU GPL v2",
 		layer     = 0,
 		enabled = true
 	}

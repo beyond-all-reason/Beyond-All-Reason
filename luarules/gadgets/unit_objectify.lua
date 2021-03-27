@@ -7,7 +7,6 @@ function gadget:GetInfo()
         desc      = "makes units neutral and stealthy when unit has customparam: objectify",
         author    = "Bluestone, Floris",
         date      = "Feb 2015",
-        license   = "Bacon",
         layer     = 0,
         enabled   = true  --  loaded by default?
     }

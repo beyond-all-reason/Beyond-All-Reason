@@ -22,7 +22,6 @@ function widget:GetInfo()
 		desc = "Widget selection widget",
 		author = "trepan, jK, Bluestone",
 		date = "Jan 8, 2007",
-		license = "GNU GPL, v2 or later",
 		layer = (-math.huge) + 1,
 		handler = true,
 		enabled = true
