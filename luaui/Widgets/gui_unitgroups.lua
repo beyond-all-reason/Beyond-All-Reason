@@ -1,4 +1,3 @@
-
 function widget:GetInfo()
 	return {
 		name = "Unit Groups",
@@ -10,9 +9,6 @@ function widget:GetInfo()
 		enabled = true
 	}
 end
-
-
-local myTeam = Spring.GetMyTeamID()
 
 local vsx, vsy = Spring.GetViewGeometry()
 local fontFile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
@@ -92,11 +88,10 @@ function widget:ViewResize()
 end
 
 function widget:PlayerChanged(playerID)
-	if Spring.GetSpectatingState() then
+	if Spring.GetGameFrame() > 1 and Spring.GetSpectatingState() then
 		widgetHandler:RemoveWidget(self)
 		return
 	end
-	myTeam = Spring.GetMyTeamID()
 end
 
 function widget:Initialize()
@@ -153,10 +148,9 @@ function updateList()
 		end
 	else
 		dlist = gl.CreateList(function()
+			local iconMargin = floor((backgroundPadding * 0.5) + 0.5)
 			local groupSize = floor(height * vsy)
-			local groupPadding = 0
-			local width = (groupSize * numGroups + (groupPadding * (numGroups-1))) + backgroundPadding
-			local iconMargin = groupPadding
+			local width = ((groupSize-backgroundPadding) * numGroups) + backgroundPadding + backgroundPadding
 			backgroundRect = {floor(posX * vsx), floor(posY * vsy), floor(posX * vsx + width), floor(posY * vsy) + groupSize}
 
 			UiElement(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], 1, 1, ((posY-height > 0 or posX <= 0) and 1 or 0), 0)
@@ -174,46 +168,47 @@ function updateList()
 
 			local groupCounter = 0
 			groupButtons = {}
-			for group, _ in pairs(existingGroups) do
-				local groupRect = {
-					backgroundRect[1]+backgroundPadding+((groupSize+groupPadding)*groupCounter),
-					backgroundRect[2],
-					backgroundRect[1]+backgroundPadding+(groupSize-backgroundPadding)+((groupSize+groupPadding)*groupCounter),
-					backgroundRect[4]-backgroundPadding
-				}
+			for group=1, 9 do
+				if existingGroups[group] then
+					local groupRect = {
+						backgroundRect[1]+backgroundPadding+((groupSize-backgroundPadding)*groupCounter),
+						backgroundRect[2],
+						backgroundRect[1]+backgroundPadding+(groupSize-backgroundPadding)+((groupSize-backgroundPadding)*groupCounter),
+						backgroundRect[4]-backgroundPadding
+					}
 
-				local unitdefCounts = spGetGroupUnitsCounts(group)
-				local orderedCounts = {}
-				local firstUdefID
-				local largestCount = 0
-				for uDefID, count in pairs(unitdefCounts) do
-					if count > largestCount then
-						firstUdefID = uDefID
+					local unitdefCounts = spGetGroupUnitsCounts(group)
+					local orderedCounts = {}
+					local firstUdefID
+					local largestCount = 0
+					for uDefID, count in pairs(unitdefCounts) do
+						if count > largestCount then
+							firstUdefID = uDefID
+						end
 					end
-				end
-				gl.Color(1,1,1,1)
-				groupButtons[#groupButtons+1] = {groupRect[1],groupRect[2],groupRect[3],groupRect[4],group}
-				UiUnit(groupRect[1],groupRect[2],groupRect[3],groupRect[4],
-					math.ceil(backgroundPadding*0.5), 1,1,1,1,
-					group == hoveredGroup and (b and 0.15 or 0.105) or 0.05,
-					nil, nil,
-					':lr'..floor(groupSize*1.5)..','..floor(groupSize*1.5)..':unitpics/'..unitBuildPic[firstUdefID]
-				)
+					gl.Color(1,1,1,1)
+					groupButtons[#groupButtons+1] = {groupRect[1],groupRect[2],groupRect[3],groupRect[4],group}
+					UiUnit(groupRect[1]+iconMargin,groupRect[2]+iconMargin,groupRect[3]-iconMargin,groupRect[4]-iconMargin,
+						math.ceil(backgroundPadding*0.5), 1,1,1,1,
+						group == hoveredGroup and (b and 0.15 or 0.105) or 0.05,
+						nil, nil,
+						':lr'..floor(groupSize*1.5)..','..floor(groupSize*1.5)..':unitpics/'..unitBuildPic[firstUdefID]
+					)
 
-				if group == hoveredGroup then
-					UiButton(groupRect[1],groupRect[2],groupRect[3],groupRect[4],  1,1,1,1,  1,1,1,1,  nil, {0,0,0,0}, nil, nil)
-				end
+					if group == hoveredGroup then
+						UiButton(groupRect[1]+iconMargin,groupRect[2]+iconMargin,groupRect[3]-iconMargin,groupRect[4]-iconMargin,  1,1,1,1,  1,1,1,1,  nil, {0,0,0,0}, nil, nil)
+					end
 
-				local fontSize = height*vsy*0.3
-				font2:Begin()
-				font2:Print('\255\200\255\200'..group,groupRect[1]+(fontSize*0.25), groupRect[4]-(fontSize*0.96), fontSize*1, "o")
-				font2:End()
-				fontSize = fontSize * 0.85
-				font:Begin()
-				--font:Print('\255\200\200\200'..spGetGroupUnitsCount(group), groupRect[1]+((groupRect[3]-groupRect[1])/2), groupRect[2] + (fontSize*0.4), fontSize, "co")
-				font:Print('\255\200\200\200'..spGetGroupUnitsCount(group), groupRect[3]-(fontSize*0.2), groupRect[2] + (fontSize*0.3), fontSize, "ro")
-				font:End()
-				groupCounter = groupCounter + 1
+					local fontSize = height*vsy*0.3
+					font2:Begin()
+					font2:Print('\255\200\255\200'..group,groupRect[1]+iconMargin+(fontSize*0.18), groupRect[4]-iconMargin-(fontSize*0.94), fontSize*1, "o")
+					font2:End()
+					fontSize = fontSize * 0.85
+					font:Begin()
+					font:Print('\255\200\200\200'..spGetGroupUnitsCount(group), groupRect[3]-iconMargin-(fontSize*0.16), groupRect[2] +iconMargin + (fontSize*0.28), fontSize, "ro")
+					font:End()
+					groupCounter = groupCounter + 1
+				end
 			end
 		end)
 		checkGuishader(true)
