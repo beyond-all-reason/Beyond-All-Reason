@@ -11,6 +11,7 @@ function widget:GetInfo()
 end
 
 local showStack = true	-- display different unitdef pics in a showStack
+local iconSizeMult = 0.97
 
 local vsx, vsy = Spring.GetViewGeometry()
 local fontFile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
@@ -43,7 +44,7 @@ local stickToBottom = false
 local altPosition = false
 local groupButtons = {}
 
-local font, font2, chobbyInterface, buildmenuBottomPosition, dlist, dlistGuishader, backgroundRect
+local font, font2, chobbyInterface, buildmenuBottomPosition, dlist, dlistGuishader, backgroundRect, ordermenuPosY
 
 local unitBuildPic = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
@@ -57,7 +58,7 @@ function widget:ViewResize()
 	height = setHeight * uiScale
 
 	font2 = WG['fonts'].getFont(nil, 1.3, 0.35, 1.4)
-	font = WG['fonts'].getFont(fontFile, 1.1, 0.25, 1.2)
+	font = WG['fonts'].getFont(fontFile, 1.15, 0.35, 1.25)
 
 	elementCorner = Spring.FlowUI.elementCorner
 	backgroundPadding = Spring.FlowUI.elementPadding
@@ -82,11 +83,7 @@ function widget:ViewResize()
 		end
 	else
 		posY = 0
-		if omPosY-omHeight <= 0.01 then
-			posX = omPosX + omWidth + (widgetSpaceMargin/vsx)
-		else
-			posY = omHeight + (widgetSpaceMargin/vsy)
-		end
+		posX = omPosX + omWidth + (widgetSpaceMargin/vsx)
 	end
 end
 
@@ -100,6 +97,10 @@ end
 function widget:Initialize()
 	widget:ViewResize()
 	widget:PlayerChanged()
+	WG['unitgroups'] = {}
+	WG['unitgroups'].getPosition = function()
+		return posX, posY, backgroundRect and backgroundRect[3] or posX, backgroundRect and backgroundRect[4] or posY
+	end
 end
 
 function widget:Shutdown()
@@ -110,6 +111,7 @@ function widget:Shutdown()
 		WG['guishader'].DeleteDlist('unitgroups')
 		dlistGuishader = nil
 	end
+	WG['unitgroups'] = nil
 end
 
 function widget:RecvLuaMsg(msg, playerID)
@@ -135,7 +137,7 @@ local function checkGuishader(force)
 	end
 end
 
-function updateList()
+local function updateList()
 	if dlist then
 		dlist = gl.DeleteList(dlist)
 	end
@@ -195,6 +197,12 @@ function updateList()
 					end
 					local udefID_2
 					local largestCount_2 = 0
+					local udefID_3
+					local largestCount_3 = 0
+					local udefID_4
+					local largestCount_4 = 0
+					local udefID_5
+					local largestCount_5 = 0
 					if unitdefCount > 1 then
 						for uDefID, count in pairs(unitdefCounts) do
 							if uDefID ~= udefID_1 and count > largestCount_2 then
@@ -202,24 +210,28 @@ function updateList()
 								largestCount_2 = count
 							end
 						end
-					end
-					local udefID_3
-					local largestCount_3 = 0
-					if unitdefCount > 2 then
-						for uDefID, count in pairs(unitdefCounts) do
-							if uDefID ~= udefID_1 and uDefID ~= udefID_2 and count > largestCount_3 then
-								udefID_3 = uDefID
-								largestCount_3 = count
+						if unitdefCount > 2 then
+							for uDefID, count in pairs(unitdefCounts) do
+								if uDefID ~= udefID_1 and uDefID ~= udefID_2 and count > largestCount_3 then
+									udefID_3 = uDefID
+									largestCount_3 = count
+								end
 							end
-						end
-					end
-					local udefID_4
-					local largestCount_4 = 0
-					if unitdefCount > 3 then
-						for uDefID, count in pairs(unitdefCounts) do
-							if uDefID ~= udefID_1 and uDefID ~= udefID_2 and uDefID ~= udefID_3 and count > largestCount_4 then
-								udefID_4 = uDefID
-								largestCount_4 = count
+							if unitdefCount > 3 then
+								for uDefID, count in pairs(unitdefCounts) do
+									if uDefID ~= udefID_1 and uDefID ~= udefID_2 and uDefID ~= udefID_3 and count > largestCount_4 then
+										udefID_4 = uDefID
+										largestCount_4 = count
+									end
+								end
+								if unitdefCount > 3 then
+									for uDefID, count in pairs(unitdefCounts) do
+										if uDefID ~= udefID_1 and uDefID ~= udefID_2 and uDefID ~= udefID_3 and uDefID ~= udefID_4 and count > largestCount_5 then
+											udefID_5 = uDefID
+											largestCount_5 = count
+										end
+									end
+								end
 							end
 						end
 					end
@@ -227,68 +239,69 @@ function updateList()
 					gl.Color(1,1,1,1)
 					groupButtons[#groupButtons+1] = {groupRect[1],groupRect[2],groupRect[3],groupRect[4],group}
 					local groupSize = groupRect[3]-groupRect[1]-iconMargin-iconMargin
-					local iconSize = floor(groupSize * 0.94)
+					local iconSize = groupSize * iconSizeMult
 					local offset = 0
 					if showStack then
-						if unitdefCount > 4 then
-							iconSize = floor(iconSize*0.81)
+						if udefID_5 then
+							iconSize = floor(iconSize*0.78)
 							offset = floor((groupSize - iconSize) / 4)
 						elseif udefID_4 then
-							iconSize = floor(iconSize*0.84)
+							iconSize = floor(iconSize*0.83)
 							offset = floor((groupSize - iconSize) / 3)
 						elseif udefID_3 then
-							iconSize = floor(iconSize*0.88)
+							iconSize = floor(iconSize*0.86)
 							offset = floor((groupSize - iconSize) / 2)
 						elseif udefID_2 then
-							iconSize = floor(iconSize*0.92)
-							offset = groupSize - iconSize
-						elseif udefID_4 then
-							iconSize = floor(iconSize*0.92)
+							iconSize = floor(iconSize*0.88)
+							offset = groupSize - (iconSize*1.06)
+						else
+							iconSize = floor(iconSize*0.94)
 							offset = groupSize - iconSize
 						end
 					end
 
-					if unitdefCount > 4 then
-						gl.Color(0.15,0.15,0.15,1)
+					local texSize = floor(groupSize*1.33)
+					if udefID_5 then
+						gl.Color(0.35,0.35,0.35,1)
 						UiUnit(
 							groupRect[1]+iconMargin+(offset*4), groupRect[4]-iconMargin-(offset*4)-iconSize, groupRect[1]+iconMargin+(offset*4)+iconSize, groupRect[4]-iconMargin-(offset*4),
 							math.ceil(backgroundPadding*0.5), 1,1,1,1,
 							group == hoveredGroup and (b and 0.15 or 0.105) or 0.05,
 							nil, nil,
-							':lr'..floor(groupSize*1.5)..','..floor(groupSize*1.5)..':unitpics/'..unitBuildPic[udefID_4],
+							':lr'..texSize..','..texSize..':unitpics/'..unitBuildPic[udefID_5],
 							nil, nil, nil, nil
 						)
 					end
 					if udefID_4 then
-						gl.Color(0.6,0.6,0.6,1)
+						gl.Color(0.5,0.5,0.5,1)
 						UiUnit(
 							groupRect[1]+iconMargin+(offset*3), groupRect[4]-iconMargin-(offset*3)-iconSize, groupRect[1]+iconMargin+(offset*3)+iconSize, groupRect[4]-iconMargin-(offset*3),
 							math.ceil(backgroundPadding*0.5), 1,1,1,1,
 							group == hoveredGroup and (b and 0.15 or 0.105) or 0.05,
 							nil, nil,
-							':lr'..floor(groupSize*1.5)..','..floor(groupSize*1.5)..':unitpics/'..unitBuildPic[udefID_4],
+							':lr'..texSize..','..texSize..':unitpics/'..unitBuildPic[udefID_4],
 							nil, nil, nil, nil
 						)
 					end
 					if udefID_3 then
-						gl.Color(0.66,0.66,0.66,1)
+						gl.Color(0.6,0.6,0.6,1)
 						UiUnit(
 							groupRect[1]+iconMargin+(offset*2), groupRect[4]-iconMargin-(offset*2)-iconSize, groupRect[1]+iconMargin+(offset*2)+iconSize, groupRect[4]-iconMargin-(offset*2),
 							math.ceil(backgroundPadding*0.5), 1,1,1,1,
 							group == hoveredGroup and (b and 0.15 or 0.105) or 0.05,
 							nil, nil,
-							':lr'..floor(groupSize*1.5)..','..floor(groupSize*1.5)..':unitpics/'..unitBuildPic[udefID_3],
+							':lr'..texSize..','..texSize..':unitpics/'..unitBuildPic[udefID_3],
 							nil, nil, nil, nil
 						)
 					end
 					if udefID_2 then
-						gl.Color(0.82,0.82,0.82,1)
+						gl.Color(0.75,0.75,0.75,1)
 						UiUnit(
 							groupRect[1]+iconMargin+offset, groupRect[4]-iconMargin-offset-iconSize, groupRect[1]+iconMargin+offset+iconSize, groupRect[4]-iconMargin-offset,
 							math.ceil(backgroundPadding*0.5), 1,1,1,1,
 							group == hoveredGroup and (b and 0.15 or 0.105) or 0.05,
 							nil, nil,
-							':lr'..floor(groupSize*1.5)..','..floor(groupSize*1.5)..':unitpics/'..unitBuildPic[udefID_2],
+							':lr'..texSize..','..texSize..':unitpics/'..unitBuildPic[udefID_2],
 							nil, nil, nil, nil
 						)
 					end
@@ -298,7 +311,7 @@ function updateList()
 						math.ceil(backgroundPadding*0.5), 1,1,1,1,
 						group == hoveredGroup and (b and 0.15 or 0.105) or 0.05,
 						nil, nil,
-						':lr'..floor(groupSize*1.5)..','..floor(groupSize*1.5)..':unitpics/'..unitBuildPic[udefID_1],
+						':lr'..texSize..','..texSize..':unitpics/'..unitBuildPic[udefID_1],
 						nil, nil, nil, nil
 					)
 
@@ -307,25 +320,13 @@ function updateList()
 					end
 
 					local fontSize = height*vsy*0.3
-					--font2:Begin()
-					--font2:Print('\255\200\255\200'..group, groupRect[1]+iconMargin+(fontSize*0.18), groupRect[4]-iconMargin-(fontSize*0.94), fontSize, "o")
-					--font2:End()
-					--font2:Begin()
-					--font2:Print('\255\200\255\200'..group, groupRect[3]-iconMargin-(fontSize*0.16), groupRect[2] +iconMargin + (fontSize*0.28), fontSize, "ro")
-					--font2:End()
 					font2:Begin()
 					font2:Print('\255\200\255\200'..group, groupRect[1]+((groupRect[3]-groupRect[1])/2), groupRect[2]+iconMargin + (fontSize*0.28), fontSize, "co")
 					font2:End()
 					fontSize = fontSize * 0.88
-					--font:Begin()
-					--font:Print('\255\210\210\210'..spGetGroupUnitsCount(group), groupRect[3]-iconMargin-(fontSize*0.16), groupRect[2] +iconMargin + (fontSize*0.28), fontSize, "ro")
-					--font:End()
 					font:Begin()
-					font:Print('\255\220\220\220'..largestCount_1, groupRect[1]+iconMargin+(fontSize*0.18), groupRect[4]-iconMargin-(fontSize*0.94), fontSize, "o")
+					font:Print('\255\230\230\230'..largestCount_1, groupRect[1]+iconMargin+(fontSize*0.18), groupRect[4]-iconMargin-(fontSize*0.92), fontSize, "o")
 					font:End()
-					--font:Begin()
-					--font:Print('\255\225\225\225'..spGetGroupUnitsCount(group), groupRect[1]+iconMargin+(fontSize*0.18), groupRect[4]-iconMargin-(fontSize*0.94), fontSize, "o")
-					--font:End()
 					groupCounter = groupCounter + 1
 				end
 			end
@@ -423,14 +424,14 @@ function widget:MousePress(x, y, button)
 			for i,v in pairs(groupButtons) do
 				if IsOnRect(x, y, groupButtons[i][1], groupButtons[i][2], groupButtons[i][3], groupButtons[i][4]) then
 					if shift then
-						local units = Spring.GetSelectedUnits()
+						local units = Spring.GetSelectedUnits() or {}
 						local groupUnits = Spring.GetGroupUnits(groupButtons[i][5])
 						for i=1, #groupUnits do
 							units[#units+1] = groupUnits[i]
 						end
 						Spring.SelectUnitArray(units)
 					elseif ctrl then
-						local units = Spring.GetSelectedUnits()
+						local units = Spring.GetSelectedUnits() or {}
 						local groupUnits = Spring.GetGroupUnits(groupButtons[i][5])
 						local keyGroupUnits = {}
 						for i=1, #groupUnits do
