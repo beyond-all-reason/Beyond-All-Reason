@@ -1,4 +1,4 @@
-local versionNum = '3.032'
+local versionNum = '4.000'
 
 function widget:GetInfo()
 	return {
@@ -33,11 +33,18 @@ include("keysym.h.lua")
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
-local cutoffDistance = 3800
-local falloffDistance = 2400
-local vsx, vsy = Spring.GetViewGeometry()
+
+local addall = true
+local immediate = false
+local verbose = true
+
+local cutoffDistance = 3500
+local falloffDistance = 2500
 
 local debug = false --of true generates debug messages
+
+local vsx, vsy = Spring.GetViewGeometry()
+
 local unit2group = {} -- list of unit types to group
 
 local groupableBuildingTypes = { 'tacnuke', 'empmissile', 'napalmmissile', 'seismic' }
@@ -49,14 +56,10 @@ for _, v in ipairs(groupableBuildingTypes) do
 	end
 end
 
-local addall = true
-local immediate = false
-local verbose = true
-
 local finiGroup = {}
 local myTeam = Spring.GetMyTeamID()
 local createdFrame = {}
-local textSize = 13.0
+local textSize = 13
 
 local font, dlists, gameStarted, chobbyInterface
 
@@ -362,37 +365,6 @@ function widget:KeyPress(key, modifier, isRepeat)
 		end
 	end
 	return false
-end
-
-function tableMerge(t1, t2)
-	for k, v in pairs(t2) do
-		if type(v) == "table" then
-			if type(t1[k] or false) == "table" then
-				tableMerge(t1[k] or {}, t2[k] or {})
-			else
-				t1[k] = v
-			end
-		else
-			t1[k] = v
-		end
-	end
-	return t1
-end
-
-function deepcopy(orig)
-	local orig_type = type(orig)
-	local copy
-	if orig_type == 'table' then
-		copy = {}
-		for orig_key, orig_value in next, orig, nil do
-			copy[deepcopy(orig_key)] = deepcopy(orig_value)
-		end
-		setmetatable(copy, deepcopy(getmetatable(orig)))
-	else
-		-- number, string, boolean, etc
-		copy = orig
-	end
-	return copy
 end
 
 function widget:GetConfigData()
