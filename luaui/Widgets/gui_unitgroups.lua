@@ -153,11 +153,11 @@ function updateList()
 	else
 		dlist = gl.CreateList(function()
 			local iconMargin = floor((backgroundPadding * 0.5) + 0.5)
-			local groupSize = floor(height * vsy)
+			local groupSize = floor((height * vsy) - (posY-height > 0 and backgroundPadding or 0))
 			local width = ((groupSize-backgroundPadding) * numGroups) + backgroundPadding + backgroundPadding
-			backgroundRect = {floor(posX * vsx), floor(posY * vsy), floor(posX * vsx + width), floor(posY * vsy) + groupSize}
+			backgroundRect = {floor(posX * vsx), floor(posY * vsy), floor(posX * vsx + width), floor(posY * vsy) + groupSize + (posY-height > 0 and backgroundPadding or 0)}
 
-			UiElement(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], 1, 1, ((posY-height > 0 or posX <= 0) and 1 or 0), 0)
+			UiElement(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], ((posX <= 0) and 0 or 1), 1, ((posY-height > 0 or posX <= 0) and 1 or 0), ((posY-height > 0 and posX > 0) and 1 or 0))
 
 			local hoveredGroup = -1
 			local x, y, b, b2, b3 = spGetMouseState()
@@ -176,7 +176,7 @@ function updateList()
 				if existingGroups[group] then
 					local groupRect = {
 						backgroundRect[1]+backgroundPadding+((groupSize-backgroundPadding)*groupCounter),
-						backgroundRect[2],
+						backgroundRect[2]+(posY-height > 0 and backgroundPadding or 0),
 						backgroundRect[1]+backgroundPadding+(groupSize-backgroundPadding)+((groupSize-backgroundPadding)*groupCounter),
 						backgroundRect[4]-backgroundPadding
 					}
@@ -303,7 +303,7 @@ function updateList()
 					)
 
 					if group == hoveredGroup then
-						UiButton(groupRect[1]+iconMargin,groupRect[2]+iconMargin,groupRect[3]-iconMargin,groupRect[4]-iconMargin,  1,1,1,1,  1,1,1,1,  nil, {1,1,1,b and 0.22 or 0}, {1,1,1,b and 0.22 or 0}, nil)
+						UiButton(groupRect[1],groupRect[2],groupRect[3],groupRect[4],  1,1,1,1,  1,1,1,1,  nil, {1,1,1,b and 0.22 or 0}, {1,1,1,b and 0.22 or 0}, nil)
 					end
 
 					local fontSize = height*vsy*0.3
