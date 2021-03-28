@@ -50,7 +50,7 @@ function BossWaveTimer(n)
 				pickedBeacon = 16000000 -- high number that UnitID should never pick
 			end
 			SpawnBeacons = nil
-			if noSpawnerForBoss ~= true and not Spring.ValidUnitID(pickedBeacon) or Spring.GetUnitIsDead(pickedBeacon) == true or Spring.GetUnitIsDead(pickedBeacon) == nil then
+			if noSpawnerForBoss ~= true and (not Spring.ValidUnitID(pickedBeacon) or Spring.GetUnitIsDead(pickedBeacon) == true or Spring.GetUnitIsDead(pickedBeacon) == nil) then
 				pickedBeacon = 16000000 -- high number that UnitID should never pick
 			end
 			if noSpawnerForBoss ~= true and pickedBeacon == 16000000 then
