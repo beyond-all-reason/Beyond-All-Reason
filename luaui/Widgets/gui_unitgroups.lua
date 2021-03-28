@@ -10,12 +10,15 @@ function widget:GetInfo()
 	}
 end
 
+local showWhenSpec = true
 local showStack = true	-- display different unitdef pics in a showStack
-local iconSizeMult = 0.97
+local iconSizeMult = 0.98
 local highlightSelectedGroups = true
 
 local vsx, vsy = Spring.GetViewGeometry()
 local fontFile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
+
+local spec = Spring.GetSpectatingState()
 
 local widgetSpaceMargin = Spring.FlowUI.elementMargin
 local backgroundPadding = Spring.FlowUI.elementPadding
@@ -99,8 +102,9 @@ function widget:ViewResize()
 end
 
 function widget:PlayerChanged(playerID)
-	if Spring.GetGameFrame() > 1 and Spring.GetSpectatingState() then
-		widgetHandler:RemoveWidget(self)
+	spec = Spring.GetSpectatingState()
+	if Spring.GetGameFrame() > 1 and spec then
+		--widgetHandler:RemoveWidget(self)
 		return
 	end
 end
@@ -298,34 +302,36 @@ local function updateList()
 						zoom = zoom + 0.08
 						highlightOpacity = 0.15
 					end
-					if udefID_5 then
-						drawIcon(
-							udefID_5,
-							{groupRect[1]+iconMargin+(offset*4), groupRect[4]-iconMargin-(offset*4)-iconSize, groupRect[1]+iconMargin+(offset*4)+iconSize, groupRect[4]-iconMargin-(offset*4)},
-							0.33, zoom, texSize, groupHighlighted
-						)
-					end
-					if udefID_4 then
-						drawIcon(
-							udefID_4,
-							{groupRect[1]+iconMargin+(offset*3), groupRect[4]-iconMargin-(offset*3)-iconSize, groupRect[1]+iconMargin+(offset*3)+iconSize, groupRect[4]-iconMargin-(offset*3)},
-							0.45, zoom, texSize, groupHighlighted
-						)
-					end
-					if udefID_3 then
-						drawIcon(
-							udefID_3,
-							{groupRect[1]+iconMargin+(offset*2), groupRect[4]-iconMargin-(offset*2)-iconSize, groupRect[1]+iconMargin+(offset*2)+iconSize, groupRect[4]-iconMargin-(offset*2)},
-							0.55, zoom, texSize, groupHighlighted
-						)
-						iconrect = {groupRect[1]+iconMargin+(offset*2), groupRect[4]-iconMargin-(offset*2)-iconSize, groupRect[1]+iconMargin+(offset*2)+iconSize, groupRect[4]-iconMargin-(offset*2)}
-					end
-					if udefID_2 then
-						drawIcon(
-							udefID_2,
-							{groupRect[1]+iconMargin+offset, groupRect[4]-iconMargin-offset-iconSize, groupRect[1]+iconMargin+offset+iconSize, groupRect[4]-iconMargin-offset},
-							0.7, zoom, texSize, groupHighlighted
-						)
+					if showStack then
+						if udefID_5 then
+							drawIcon(
+									udefID_5,
+									{groupRect[1]+iconMargin+(offset*4), groupRect[4]-iconMargin-(offset*4)-iconSize, groupRect[1]+iconMargin+(offset*4)+iconSize, groupRect[4]-iconMargin-(offset*4)},
+									0.33, zoom, texSize, groupHighlighted
+							)
+						end
+						if udefID_4 then
+							drawIcon(
+									udefID_4,
+									{groupRect[1]+iconMargin+(offset*3), groupRect[4]-iconMargin-(offset*3)-iconSize, groupRect[1]+iconMargin+(offset*3)+iconSize, groupRect[4]-iconMargin-(offset*3)},
+									0.45, zoom, texSize, groupHighlighted
+							)
+						end
+						if udefID_3 then
+							drawIcon(
+									udefID_3,
+									{groupRect[1]+iconMargin+(offset*2), groupRect[4]-iconMargin-(offset*2)-iconSize, groupRect[1]+iconMargin+(offset*2)+iconSize, groupRect[4]-iconMargin-(offset*2)},
+									0.55, zoom, texSize, groupHighlighted
+							)
+							iconrect = {groupRect[1]+iconMargin+(offset*2), groupRect[4]-iconMargin-(offset*2)-iconSize, groupRect[1]+iconMargin+(offset*2)+iconSize, groupRect[4]-iconMargin-(offset*2)}
+						end
+						if udefID_2 then
+							drawIcon(
+									udefID_2,
+									{groupRect[1]+iconMargin+offset, groupRect[4]-iconMargin-offset-iconSize, groupRect[1]+iconMargin+offset+iconSize, groupRect[4]-iconMargin-offset},
+									0.7, zoom, texSize, groupHighlighted
+							)
+						end
 					end
 					drawIcon(
 						udefID_1,
@@ -343,7 +349,7 @@ local function updateList()
 					font2:End()
 					fontSize = fontSize * 0.88
 					font:Begin()
-					font:Print('\255\230\230\230'..largestCount_1, groupRect[1]+iconMargin+(fontSize*0.18), groupRect[4]-iconMargin-(fontSize*0.92), fontSize, "o")
+					font:Print('\255\230\230\230'..(showStack and largestCount_1 or spGetGroupUnitsCount(group)), groupRect[1]+iconMargin+(fontSize*0.18), groupRect[4]-iconMargin-(fontSize*0.92), fontSize, "o")
 					font:End()
 
 					groupCounter = groupCounter + 1
@@ -363,7 +369,7 @@ function widget:DrawScreen()
 	if chobbyInterface then
 		return
 	end
-	if dlist then
+	if (not spec or showWhenSpec) and dlist then
 		gl.CallList(dlist)
 	end
 end
@@ -371,6 +377,9 @@ end
 local sec = 0
 local sec2 = 0
 function widget:Update(dt)
+	if not (not spec or showWhenSpec) then
+		return
+	end
 	local doUpdate = false
 	sec = sec + dt
 	sec2 = sec2 + dt

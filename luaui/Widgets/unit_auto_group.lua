@@ -376,12 +376,20 @@ function widget:GetConfigData()
 	local ret = {
 		version = versionNum,
 		groups = groups,
+		immediate = immediate,
+		verbose = verbose,
+		addall = addall,
 	}
 	return ret
 end
 
 function widget:SetConfigData(data)
 	if data and type(data) == 'table' and data.version and (data.version + 0) > 2.1 then
+		if data.immediate ~= nil then
+			immediate = data.immediate
+			verbose = data.verbose
+			addall = data.addall
+		end
 		local groupData = data.groups
 		if groupData and type(groupData) == 'table' then
 			for _, nam in ipairs(groupData) do
