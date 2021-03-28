@@ -75,9 +75,11 @@ local cellPadding, iconPadding, cornerSize, cellInnerSize, cellSize
 --local radariconSize, radariconOffset, groupiconSize, priceFontSize
 --local activeCmd, selBuildQueueDefID, rowPressedClock, rowPressed
 
+local minWaterUnitDepth = -11
 
 local showWaterUnits = false
-if select(3, Spring.GetGroundExtremes()) <= -10 then
+local _, _, mapMinWater, _ = Spring.GetGroundExtremes()
+if mapMinWater <= minWaterUnitDepth then
 	showWaterUnits = true
 end
 
@@ -950,7 +952,8 @@ function widget:Update(dt)
 			doUpdate = true
 		end
 
-		if select(3, Spring.GetGroundExtremes()) <= -10 then
+		local _, _, mapMinWater, _ = Spring.GetGroundExtremes()
+		if mapMinWater <= minWaterUnitDepth then
 			showWaterUnits = true
 		end
 
