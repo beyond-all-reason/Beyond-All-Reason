@@ -6,6 +6,7 @@ function widget:GetInfo()
 		desc = versionNumber .. " Adds a command to cap mexes in an area.",
 		author = "Google Frog, NTG (file handling), Chojin (metal map), Doo Edit on Dec 13, 2017 (multiple enhancements)",
 		date = "Oct 23, 2010",
+		license = "GNU GPL, v2 or later",
 		handler = true,
 		layer = 0,
 		enabled = true  --  loaded by default?

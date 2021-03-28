@@ -8,6 +8,7 @@ function gadget:GetInfo()
 	desc	= "Replaces On/Off tooggle with description",
 	author	= "Doo",
 	date	= "09 January 2018",
+	license	= "GNU GPL, v2 or later",
 	layer	= 0,
 	enabled = true,
   }

@@ -6,6 +6,7 @@ function widget:GetInfo()
 		desc = "An extended buildbar to access the BuildOptions of factories\neverywhere on the map without selecting them before",
 		author = "jK",
 		date = "Jul 11, 2007",
+		license = "GNU GPL, v2 or later",
 		layer = 1,
 		enabled = true  --  loaded by default?
 	}

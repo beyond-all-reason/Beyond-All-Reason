@@ -16,6 +16,7 @@ function gadget:GetInfo()
 		desc	= "Gadget based XP implementation that gives way more flexibility than engine one",
 		author	= "Damgam",
 		date	= "2021",
+		license	= "GNU GPL, v2 or later",
 		layer	= 0,
 		enabled = gadgetEnabled,
 	}

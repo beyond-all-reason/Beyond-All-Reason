@@ -4,6 +4,7 @@ function gadget:GetInfo()
 		desc	= "Prevents paralyzer units attacking anything other than empable units",
 		author	= "Floris",
 		date	= "February 2018",
+		license	= "GNU GPL, v2 or later",
 		layer	= 0,
 		enabled	= true,
 	}

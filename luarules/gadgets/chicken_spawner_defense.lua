@@ -7,6 +7,7 @@ function gadget:GetInfo()
 		desc = "Spawns burrows and chickens",
 		author = "TheFatController/quantum",
 		date = "27 February, 2012",
+		license = "GNU GPL, v2 or later",
 		layer = 0,
 		enabled = true --  loaded by default?
 	}

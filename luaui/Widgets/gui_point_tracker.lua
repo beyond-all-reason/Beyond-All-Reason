@@ -7,6 +7,7 @@ function widget:GetInfo()
 		desc = versionNumber .. " Tracks recently placed map points.",
 		author = "Evil4Zerggin",
 		date = "29 December 2008",
+		license = "GNU LGPL, v2.1 or later",
 		layer = 0,
 		enabled = true  --  loaded by default?
 	}

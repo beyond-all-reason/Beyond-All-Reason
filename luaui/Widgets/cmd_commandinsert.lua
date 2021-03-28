@@ -7,6 +7,7 @@ function widget:GetInfo()
     desc = "When pressing spacebar and shift, you can insert commands to arbitrary places in queue. When pressing spacebar alone, commands are inserted on front of queue. Based on FrontInsert by jK",
     author = "dizekat",
     date = "Jan,2008",
+    license = "GNU GPL, v2 or later",
     layer = 5,
     enabled = true
   }

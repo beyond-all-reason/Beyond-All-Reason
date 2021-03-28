@@ -4,6 +4,7 @@ function widget:GetInfo()
 	desc      = "Loads uikeys.txt file in LuaUI/Widgets to apply binds",
 	author    = "Doo",
 	date      = "2018",
+	license   = "GNU GPL, v2 or later",
 	layer     = 0,
 	enabled   = false, --enabled by default
 	}

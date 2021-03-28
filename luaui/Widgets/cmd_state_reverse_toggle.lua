@@ -4,6 +4,7 @@ function widget:GetInfo()
     desc      = "Makes all buttons with 3 or more states reverse toggleable",
     author    = "Google Frog, Deadnight Warrior",
     date      = "Oct 2, 2009",
+    license   = "GNU GPL, v2 or later",
     layer     = 0,
     enabled   = true  --  loaded by default?
   }

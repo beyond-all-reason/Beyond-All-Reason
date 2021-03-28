@@ -4,6 +4,7 @@ function widget:GetInfo()
 		desc = "Shows a rank icon depending on experience next to units",
 		author = "trepan (idea quantum,jK), Floris",
 		date = "Feb, 2008",
+		license = "GNU GPL, v2 or later",
 		layer = 5,
 		enabled = true  -- loaded by default?
 	}

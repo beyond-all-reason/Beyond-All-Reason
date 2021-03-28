@@ -4,6 +4,7 @@ function widget:GetInfo()
         desc      = "Typewrites messages at the center-bottom of the screen (missions, tutorials)",
         author    = "Floris",
         date      = "September 2019",
+        license   = "GNU GPL, v2 or later",
         layer     = 30000,
         enabled   = true
     }

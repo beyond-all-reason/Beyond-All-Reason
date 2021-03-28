@@ -6,6 +6,7 @@ function widget:GetInfo()
         desc      = "Setting fighters on Fly mode",
         author    = "Floris (original unit_air_allways_fly widget by [teh]Decay)",
         date      = "july 2017",
+        license   = "GNU GPL, v2 or later",
         version   = 1,
         layer     = 5,
         enabled   = true  --  loaded by default?

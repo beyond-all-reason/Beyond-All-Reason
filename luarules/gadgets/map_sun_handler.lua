@@ -8,6 +8,7 @@ function gadget:GetInfo()
 		desc      = "Removes additional groundSpecularColor from older maps (Pre 101)",
 		author    = "GoogleFrog, Beherith",
 		date      = "2 March 2016",
+		license   = "GPL",
 		layer     = -1,	--higher layer is loaded last
 		enabled   = true,
 	}

@@ -8,6 +8,7 @@ function widget:GetInfo()
 		author = "jK, Bluestone",
 		version = "2.0",
 		date = "2007+",
+		license = "GNU GPL, v2 or later",
 		layer = -math.huge,
 		handler = true,
 		enabled = false  --  loaded by default?

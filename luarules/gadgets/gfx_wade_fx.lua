@@ -12,6 +12,7 @@ function gadget:GetInfo()
 		desc      = "Spawn wakes when non-ship ground units move while partially, but not completely submerged",
 		author    = "Anarchid",
 		date      = "March 2016",
+		license   = "GNU GPL, v2 or later",
 		layer     = 0,
 		enabled   = true  --  loaded by default?
 	}

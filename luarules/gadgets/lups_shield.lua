@@ -7,6 +7,7 @@ function gadget:GetInfo()
 		desc    = "Draws variable shields for shielded units",
 		author  = "ivand, GoogleFrog",
 		date    = "2019",
+		license = "GNU GPL, v2 or later",
 		layer   = 1500, -- Call ShieldPreDamaged after gadgets which change whether interception occurs
 		enabled = true,
 	}

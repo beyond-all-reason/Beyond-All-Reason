@@ -18,6 +18,7 @@ function widget:GetInfo()
 		desc = "Displays Start Boxes and Start Points",
 		author = "trepan, jK",
 		date = "2007-2009",
+		license = "GNU GPL, v2 or later",
 		layer = 0,
 		enabled = true  --  loaded by default?
 	}

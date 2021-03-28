@@ -4,6 +4,7 @@ function widget:GetInfo()
 	desc      = "shortcuts: keypad 1/7 or CTRL+O/P",
 	author    = "",
 	date      = "",
+	license   = "GNU GPL, v2 or later",
 	layer     = 99999999,
 	enabled   = false  --  loaded by a horse?
 	}

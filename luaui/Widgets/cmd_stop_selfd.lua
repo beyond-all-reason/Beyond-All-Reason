@@ -4,6 +4,7 @@ function widget:GetInfo()
     desc      = "Cancels Self D orders when unit is given a stop command",
     author    = "enotseulB",
     date      = "GPL v3 or later",
+    license   = "Feb 2015",
     layer     = 0,
     enabled   = true  
   }

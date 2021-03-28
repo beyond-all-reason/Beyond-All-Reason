@@ -12,6 +12,7 @@ function gadget:GetInfo()
         desc      = "Fixes some aa/ground units not closing in on target when given attack order",
         author    = "Doo",
         date      = "06 dec 2017",
+        license   = "GNU GPL, v2 or later",
         layer     = 0,
         enabled   = true  --  loaded by default?
     }

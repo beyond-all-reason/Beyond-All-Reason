@@ -7,6 +7,7 @@ function gadget:GetInfo()
     desc      = "Manages Splitting Chickens",
     author    = "TheFatController",
     date      = "05 November, 2008",
+    license   = "GNU GPL, v2 or later",
     layer     = 0,
     enabled   = true --  loaded by default?
   }

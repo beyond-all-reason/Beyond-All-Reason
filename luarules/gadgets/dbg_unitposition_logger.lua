@@ -4,6 +4,7 @@ function gadget:GetInfo()
 		desc = "logs all unit positions in intervals",
 		author = "Floris",
 		date = "February 2021",
+		license = "GNU GPL, v2 or later",
 		layer = -math.huge,
 		enabled = true,
 	}

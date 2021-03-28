@@ -5,6 +5,7 @@ function widget:GetInfo()
 		author    = "",
 		version   = "",
 		date      = "",
+		license   = "",
 		layer     = -99990,
 		enabled   = true,
 	}

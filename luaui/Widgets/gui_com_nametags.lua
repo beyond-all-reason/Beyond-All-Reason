@@ -4,6 +4,7 @@ function widget:GetInfo()
 		desc = "Displays a name tags above commanders.",
 		author = "Bluestone, Floris",
 		date = "20 february 2015",
+		license = "GNU GPL, v2 or later",
 		layer = -2,
 		enabled = true, --  loaded by default?
 	}

@@ -6,6 +6,7 @@ function widget:GetInfo()
 		desc	= "Move around window position with the arrow keys or by dragging",
 		author	= "Floris",
 		date	= "August 2018",
+		license	= "GPL v2 or later",
 		layer	= -math.huge,
 		enabled	= false,
 		handler = true,

@@ -5,6 +5,7 @@ if addon.InGetInfo then
 		desc    = "",
 		author  = "jK",
 		date    = "2012",
+		license = "GPL2",
 		layer   = 1,
 		depend  = {"LoadProgress"},
 		enabled = not true,

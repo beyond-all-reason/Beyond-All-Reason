@@ -4,6 +4,7 @@ function gadget:GetInfo()
 		desc      = "Prevents nanoframes from blocking projectiles until they have reached x% build progress",
 		author    = "",
 		date      = "",
+		license   = "Hornswaggle",
 		layer     = 0,
 		enabled   = true  --  loaded by default?
 	}

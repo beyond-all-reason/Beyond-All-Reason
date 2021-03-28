@@ -4,6 +4,7 @@ function gadget:GetInfo()
         desc      = "Provides information on whether or not a unit is underconstruction",
         author    = "TheFatController",
         date      = "17 Feb 2010",
+        license   = "GNU GPL, v2 or later",
         layer     = 0,
         enabled   = true  --  loaded by default?
     }

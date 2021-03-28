@@ -20,6 +20,7 @@ local function GetInfo()
 		desc      = "Lua Particle System",
 		author    = "jK",
 		date      = "2008-2014",
+		license   = "GNU GPL, v2 or later",
 		layer     = 1000,
 		api       = true,
 		enabled   = true

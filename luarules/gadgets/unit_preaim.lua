@@ -4,6 +4,7 @@ function gadget:GetInfo()
 		desc = "Makes units preaim their weapons before its actually in range'",
 		author = "Doo, Floris",
 		date = "April 2018",
+		license = "",
 		layer = 0,
 		enabled = true,
 	}

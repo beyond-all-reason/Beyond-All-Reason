@@ -7,6 +7,7 @@ function gadget:GetInfo()
 		desc = "Prevent outside-of-map hax",
 		author = "Beherith",
 		date = "3 27 2011",
+		license = "CC BY SA",
 		layer = 0,
 		enabled = true  --  loaded by default?
 	}

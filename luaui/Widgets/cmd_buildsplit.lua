@@ -6,6 +6,7 @@ function widget:GetInfo()
 		author    = "Niobium",
 		version   = "v1.0",
 		date      = "Jan 11, 2009",
+		license   = "GNU GPL, v2 or later",
 		layer     = 0,
 		enabled = true  --  loaded by default?
 	}

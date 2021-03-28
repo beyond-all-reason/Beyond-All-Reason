@@ -4,6 +4,7 @@ function widget:GetInfo()
       desc      = "Adds glow/rings at map marks",
       author    = "Floris",
       date      = "7 june 2015",
+      license   = "GNU GPL, v2 or later",
       layer     = 2,
       enabled   = true,
    }

@@ -4,6 +4,7 @@ function gadget:GetInfo()
         desc      = "Prevents units carrying on with orders once shared/taken",
         author    = "Bluestone",
         date      = "Jan 2015",
+        license   = "SAUSAGE",
         layer     = 0,
         enabled   = true
     }

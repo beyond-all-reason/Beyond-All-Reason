@@ -4,6 +4,7 @@ function widget:GetInfo()
       desc         = "Prevents dgun aim to snap onto enemy ground units, holding SHIFT will still target units",
       author       = "Floris", -- (derivate of a Ceddral widget)
       date         = "",
+      license      = "GPL",
       layer        = 0,
       enabled      = false
    }

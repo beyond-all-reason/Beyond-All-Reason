@@ -4,6 +4,7 @@ function gadget:GetInfo()
 		desc      = "Unit/feature reclaim effect",
 		author    = "Floris",
 		date      = "December 2016",
+		license   = "PD",
 		layer     = 0,
 		enabled   = true,
 	}

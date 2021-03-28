@@ -4,6 +4,7 @@ function widget:GetInfo()
 		desc = "Shows statistics and progress when fighting vs Chickens",
 		author = "quantum",
 		date = "May 04, 2008",
+		license = "GNU GPL, v2 or later",
 		layer = -9,
 		enabled = true  --  loaded by default?
 	}

@@ -28,6 +28,7 @@ function widget:GetInfo()
     desc      = versionNumber .. " Automatically quits "..delay.."s after the game ends. Move mouse to postpone. (every "..mousemovedDelay.." seconds) ",
     author    = "Evil4Zerggin & zwzsg",
     date      = "25 December 2008",
+    license   = "GNU LGPL, v2.1 or later",
     layer     = 0,
     enabled   = true  --  loaded by default?
   }

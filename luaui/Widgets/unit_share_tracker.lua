@@ -6,6 +6,7 @@ function widget:GetInfo()
 		desc = versionNumber .. " Marks received units.",
 		author = "Evil4Zerggin/TheFatController",
 		date = "17 August 2009",
+		license = "GNU LGPL, v2.1 or later",
 		layer = 0,
 		enabled = true  --  loaded by default?
 	}

@@ -19,6 +19,7 @@ function widget:GetInfo()
 		desc	= "Only fighters go on factory's patrol route after leaving airlab. Reduces lag.",
 		author	= "dizekat",
 		date	= "2008-04-22",
+		license	= "GNU GPL, v2 or later",
 		layer	= 0,
 		enabled	= false,
 	}

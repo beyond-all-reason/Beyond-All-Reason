@@ -4,6 +4,7 @@ function widget:GetInfo()
 		desc = "",
 		author = "Floris",
 		date = "March 2021",
+		license = "GNU GPL, v2 or later",
 		layer = 1,
 		enabled = true
 	}

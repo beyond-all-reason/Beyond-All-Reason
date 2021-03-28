@@ -23,6 +23,7 @@ function gadget:GetInfo()
     desc      = "General save/load stuff",
     author    = "KingRaptor (L.J. Lim)",
     date      = "25 September 2011",
+    license   = "GNU LGPL, v2 or later",
     layer     = -math.huge + 1,	-- we want this to go first
     enabled   = true
   }

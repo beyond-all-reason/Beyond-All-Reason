@@ -7,6 +7,7 @@ function widget:GetInfo()
 		desc = "Thruster effects on air jet exhausts (auto limits and disables when low fps)",
 		author = "GoogleFrog, jK, Floris",
 		date = "9 May 2020",
+		license = "GNU GPL, v2 or later",
 		layer = -1,
 		enabled = true,
 	}

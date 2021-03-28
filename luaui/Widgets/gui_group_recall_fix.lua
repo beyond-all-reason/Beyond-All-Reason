@@ -7,6 +7,7 @@ function widget:GetInfo()
     desc      = "Fix to the group recall problem.",
     author    = "msafwan, GoogleFrog",
     date      = "30 Jan 2014",
+    license   = "GNU GPL, v2 or later",
     layer     = 1002,
 	handler   = true,
     enabled   = true,

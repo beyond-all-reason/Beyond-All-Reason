@@ -4,6 +4,7 @@ function widget:GetInfo()
 		desc      = "Sets Spring In Bloom",
 		author    = "Floris", -- orginal bloom shader: Kloot
 		date      = "24-9-2016",
+		license   = "",
 		layer     = -5,
 		enabled   = false,
 	}

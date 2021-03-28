@@ -6,6 +6,7 @@ function widget:GetInfo()
 		author = "knorke",
 		version = "1",
 		date = "June 2013",
+		license = "click button magic",
 		layer = 10,
 		enabled = true,
 	}

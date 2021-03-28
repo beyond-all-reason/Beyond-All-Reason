@@ -5,6 +5,7 @@ function gadget:GetInfo()
       desc         = "Increases costs and experience of units depending on the amount of unit built or active",
       author       = "Doo",
       date         = "17/04/2018",
+      license      = "GPL 2.0 or later", -- should be compatible with Spring
       layer        = 0,
       enabled      = false
    }

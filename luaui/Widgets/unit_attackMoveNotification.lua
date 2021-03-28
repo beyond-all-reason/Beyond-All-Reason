@@ -4,6 +4,7 @@ function widget:GetInfo()
 		desc = "v0.31 Notifes when a unit is attacked or a move command failed",
 		author = "knorke & very_bad_soldier",
 		date = "Dec , 2011",
+		license = "GPLv2",
 		layer = 0,
 		enabled = true
 	}

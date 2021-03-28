@@ -7,6 +7,7 @@ function gadget:GetInfo()
 		desc      = "Commanders survive commander blast and DGun",
 		author    = "TheFatController",
 		date      = "Aug 31, 2009",
+		license   = "GNU GPL, v2 or later",
 		layer     = 0,
 		enabled   = true  --  loaded by default?
 	}

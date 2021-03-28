@@ -195,6 +195,7 @@ else
 			desc    = "dynamic lighting in the Spring RTS engine",
 			author  = "Kloot",
 			date    = "January 15, 2011",
+			license = "GPL v2",
 			enabled = true,
 		}
 	end

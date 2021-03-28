@@ -4,6 +4,7 @@ function gadget:GetInfo()
 		desc = "Upgrades mexes.",
 		author = "author: BigHead, modified by DeadnightWarrior",
 		date = "September 13, 2007",
+		license = "GNU GPL, v2 or later",
 		layer = 100,
 		enabled = true -- loaded by default?
 	}

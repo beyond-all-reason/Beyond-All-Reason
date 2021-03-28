@@ -9,6 +9,7 @@ function gadget:GetInfo()
     desc      = "This prevents exiting units get stuck on the newly initiated (big) unit",
     author    = "Floris",
     date      = "September 2020",
+    license   = "GNU GPL, v2 or later",
     layer     = 0,
     enabled   = true --  loaded by default?
   }

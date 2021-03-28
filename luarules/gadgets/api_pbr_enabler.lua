@@ -4,6 +4,7 @@ function gadget:GetInfo()
 		desc      = "Generates BRDF Lookup table for PBR shaders and sets necessary spring configuration parameters",
 		author    = "ivand",
 		date      = "2019",
+		license   = "PD",
 		layer     = -1,
 		enabled   = true,
 	}

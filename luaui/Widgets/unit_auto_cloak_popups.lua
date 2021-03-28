@@ -4,6 +4,7 @@ function widget:GetInfo()
         desc      = "Auto cloaks Pit Bull and Ambusher",
         author    = "[teh]decay",
         date      = "29 dec 2013",
+        license   = "The BSD License",
         layer     = 0,
         enabled   = false  -- loaded by default
     }

@@ -4,6 +4,7 @@ if addon.InGetInfo then
 		desc    = "loadbar and tips",
 		author  = "jK, Floris",
 		date    = "2012",
+		license = "GPL2",
 		layer   = 0,
 		depend  = {"LoadProgress"},
 		enabled = true,

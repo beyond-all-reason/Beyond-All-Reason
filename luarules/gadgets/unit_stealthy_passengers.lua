@@ -5,6 +5,7 @@ function gadget:GetInfo()
 		desc      = "Makes passengers of stealthy transports stealthy themselves",
 		author    = "Niobium",
 		date      = "Jul 24, 2007",
+		license   = "GNU GPL, v2 or later",
 		layer     = 0,
 		enabled   = true
 	}

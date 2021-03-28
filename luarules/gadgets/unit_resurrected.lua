@@ -4,6 +4,7 @@ function gadget:GetInfo()
         desc      = "marks resurrected units as resurrected.",
         author    = "Floris",
         date      = "25 oct 2015",
+        license   = "GNU GPL, v2 or later",
         layer     = 5,
         enabled   = true
     }

@@ -20,6 +20,7 @@ function gadget:GetInfo()
 		desc = "Sets custom unit icons",
 		author = "trepan,BrainDamage,TheFatController,Floris,tovernaar123",
 		date = "dec 31, 2020", --Yes 1 day before 2021 :P
+		license = "GNU GPL, v2 or later",
 		layer = -100,
 		enabled = true  --  loaded by default?
 	}

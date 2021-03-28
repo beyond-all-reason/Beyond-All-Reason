@@ -4,6 +4,7 @@ function widget:GetInfo()
 		desc		= "Shows a mascot sitting on top of the adv-playerlist  (use /mascot to switch)",
 		author		= "Floris",
 		date		= "23 may 2015",
+		license		= "GNU GPL, v2 or later",
 		layer		= -2,			-- set to -5 to draw mascot on top of advplayerlist
 		enabled		= false,
 	}

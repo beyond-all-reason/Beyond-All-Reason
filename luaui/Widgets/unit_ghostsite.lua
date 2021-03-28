@@ -6,6 +6,7 @@ function widget:GetInfo()
 		desc      = "Displays ghosted buildings for buildings in progress",
 		author    = "very_bad_soldier, Bluestone",
 		date      = "April 7, 2009",
+		license   = "GNU GPL v2",
 		layer     = 0,
 		enabled   = true
 	}

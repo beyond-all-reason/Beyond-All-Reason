@@ -5,6 +5,7 @@ function gadget:GetInfo()
 		author    = "BrainDamage",
 		date      = "-",
 		version   = 1,
+		license   = "WTFPL",
 		layer     = -math.huge,
 		enabled   = false,  --  disabled, it doesnt reliably work most of the time
 	}

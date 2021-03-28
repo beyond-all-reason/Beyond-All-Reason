@@ -16,6 +16,7 @@ function gadget:GetInfo()
 		desc      = "allows to override the engine unit and feature shaders",
 		author    = "jK, gajop, ivand",
 		date      = "2008,2009,2010,2016, 2019",
+		license   = "GNU GPL, v2 or later",
 		layer     = 1,
 		enabled   = true  --  loaded by default?
 	}

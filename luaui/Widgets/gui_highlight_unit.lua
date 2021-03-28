@@ -19,6 +19,7 @@ function widget:GetInfo()
 		desc = "Highlights the unit or feature under the cursor\n",
 		author = "trepan",
 		date = "Apr 16, 2007",
+		license = "GNU GPL, v2 or later",
 		layer = 5,
 		enabled = true  --  loaded by default?
 	}

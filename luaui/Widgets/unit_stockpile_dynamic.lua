@@ -21,6 +21,7 @@ function widget:GetInfo()
     desc      = "keeps stockpiled units at max " .. MaxStockpile .. " in storage",
     author    = "BD",
     date      = "tomorrow",
+    license   = "WTFPL",
     layer     = 0,
     enabled   = true,  --  loaded by default?
   }

@@ -4,6 +4,7 @@ function gadget:GetInfo()
 		desc = "Draws energy balls for fusions and some other selective units",
 		author = "Floris",
 		date = "2020",
+		license = "GNU GPL, v2 or later",
 		layer = 1500,
 		enabled = true,
 	}

@@ -4,6 +4,7 @@ function gadget:GetInfo()
 		desc      = "api to handle translations",
 		author    = "Floris",
 		date      = "December 2020",
+		license   = "",
 		layer     = -math.huge,
 		enabled   = true,
 	}

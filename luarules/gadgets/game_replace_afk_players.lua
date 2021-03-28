@@ -4,6 +4,7 @@ function gadget:GetInfo()
 		desc = "Allows players absent at gamestart to be replaced by specs\nPrevents joinas to non-empty teams",
 		author = "Bluestone",
 		date = "June 2014",
+		license = "GNU GPL, v3 or later",
 		layer = 2, --run after game initial spawn and coop (because we use readyStates)
 		enabled = true
 	}

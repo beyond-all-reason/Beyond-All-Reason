@@ -4,6 +4,7 @@ function gadget:GetInfo()
 		desc      = "Prevent moving of Dying units",
 		author    = "Beherith",
 		date      = "2020",
+		license   = "CC BY NC ND",
 		layer     = 1000,
 		enabled   = true,
 	}

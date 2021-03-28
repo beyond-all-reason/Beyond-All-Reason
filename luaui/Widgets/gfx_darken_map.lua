@@ -8,6 +8,7 @@ function widget:GetInfo()
     desc      = "darkens the map, not units",
     author    = "Floris",
     date      = "2015",
+    license   = "GNU GPL, v2 or later",
     layer     = 10000,
     enabled   = true  --  loaded by default?
   }

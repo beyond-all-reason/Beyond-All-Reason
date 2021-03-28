@@ -17,6 +17,7 @@ function widget:GetInfo()
     desc      = "Assigns new builders to assist their source factory",
     author    = "trepan",
     date      = "Jan 8, 2007",
+    license   = "GNU GPL, v2 or later",
     layer     = 0,
     enabled   = false  --  loaded by default?
   }

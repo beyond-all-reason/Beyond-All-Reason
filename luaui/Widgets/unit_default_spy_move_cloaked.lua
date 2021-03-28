@@ -4,6 +4,7 @@ function widget:GetInfo()
 	desc	= "prevents accidental spy decloak\nmakes move the default command for spies when cloaked",
 	author	= "BrainDamage",
 	date	= "-",
+	license	= "WTFPL and horses",
 	layer	= -math.huge,
 	enabled	= true,
 	}

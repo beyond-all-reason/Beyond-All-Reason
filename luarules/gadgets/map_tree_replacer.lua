@@ -7,6 +7,7 @@ function gadget:GetInfo()
 		desc      = "",
 		author    = "Floris",
 		date      = "February 2018",
+		license   = "GPL",
 		layer     = -1,	--higher layer is loaded last
 		enabled   = true,
 	}

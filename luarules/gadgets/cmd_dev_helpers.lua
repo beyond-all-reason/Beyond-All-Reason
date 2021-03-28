@@ -11,6 +11,7 @@ function gadget:GetInfo()
 		desc = "provides various luarules commands to help developers, can only be used after /cheat",
 		author = "Bluestone",
 		date = "",
+		license = "Horses",
 		layer = 0,
 		enabled = true  --  loaded by default?
 	}

@@ -7,6 +7,7 @@ function widget:GetInfo()
 		desc      = "[v" .. string.format("%s", versionNumber ) .. "] Enables changing building facing by holding left mouse button. Hold the middle mouse button to change facing while queueing.",
 		author    = "very_bad_soldier",
 		date      = "2009.08.10",
+		license   = "GNU GPL v2",
 		layer     = 0,
 		enabled   = true
 	}

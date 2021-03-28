@@ -7,6 +7,7 @@ function gadget:GetInfo()
 		desc = "Like taking candy from a bomber",
 		author = "TheFatController",
 		date = "May 25, 2011",
+		license = "GNU GPL, v2 or later",
 		layer = 0,
 		enabled = false  --  loaded by default?
 	}

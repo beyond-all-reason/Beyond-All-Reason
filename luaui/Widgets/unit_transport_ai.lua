@@ -8,6 +8,7 @@ function widget:GetInfo()
 			"Adds embark=call for transport and disembark=unload from transport command",
 		author = "Licho",
 		date = "1.11.2007",
+		license = "GNU GPL, v2 or later",
 		layer = 0,
 		enabled = false
 	}

@@ -4,6 +4,7 @@ function gadget:GetInfo()
 		desc	= "Prevents attacking anything other than the only target category",
 		author	= "Floris",
 		date	= "September 2020",
+		license	= "GNU GPL, v2 or later",
 		layer	= 0,
 		enabled	= true,
 	}

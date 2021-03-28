@@ -5,6 +5,7 @@ function widget:GetInfo()
 		desc      = "Displays small outline around units based on deferred g-buffer",
 		author    = "ivand",
 		date      = "2019",
+		license   = "GNU GPL, v2 or later",
 		layer     = math.huge,
 		enabled   = false  --  loaded by default?
 	}

@@ -7,6 +7,7 @@ function gadget:GetInfo()
 		desc      = "Decloaks units when they are damged",
 		author    = "Google Frog",
 		date      = "Nov 25, 2009", -- Major rework 12 Feb 2014
+		license   = "GNU GPL, v2 or later",
 		layer     = 0,
 		enabled   = true  --  loaded by default?
 	}

@@ -7,6 +7,7 @@ function gadget:GetInfo()
         desc      = "Prevents Some units from damaging themselves.",
         author    = "quantum/TheFatController",
         date      = "Feb 1, 2008",
+        license   = "GNU GPL, v2 or later",
         layer     = 0,
         enabled   = true  --  loaded by default?
     }

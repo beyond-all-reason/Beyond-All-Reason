@@ -7,6 +7,7 @@ function widget:GetInfo()
 		desc = "Sets pre-defined units states.",
 		author = "quantum + Doo",
 		date = "2018",
+		license = "GNU GPL, v2 or later",
 		layer = math.huge,
 		enabled = false  --  loaded by default?
 	}

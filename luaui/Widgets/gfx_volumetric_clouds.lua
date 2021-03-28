@@ -6,6 +6,7 @@ function widget:GetInfo()
     desc      = "Fog/Dust clouds that scroll with wind along the map's surface. Requires GLSL, expensive even with.",
     author    = "Anarchid, consulted and optimized by jK",
     date      = "november 2014",
+    license   = "GNU GPL, v2 or later",
     layer     = -1,
     enabled   = false
   }

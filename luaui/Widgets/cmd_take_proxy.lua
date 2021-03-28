@@ -5,6 +5,7 @@ function widget:GetInfo()
     desc      = "Renames /luarules take2 to /take",
     author    = "BrainDamage",
     date      = "2012",
+    license   = "WTFPL",
     layer     = 0,
     enabled   = true  -- loaded by default
   }

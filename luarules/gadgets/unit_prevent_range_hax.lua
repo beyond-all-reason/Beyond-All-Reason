@@ -5,6 +5,7 @@ function gadget:GetInfo()
 		desc = "Prevent Range Hax",
 		author = "TheFatController",
 		date = "Jul 24, 2007",
+		license = "GNU GPL, v2 or later",
 		layer = 0,
 		enabled = true  --  loaded by default?
 	}

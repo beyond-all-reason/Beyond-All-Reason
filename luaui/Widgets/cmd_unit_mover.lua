@@ -17,6 +17,7 @@ function widget:GetInfo()
 		desc		= "Allows combat engineers to use repeat when building mobile units (use 2 or more build spots)",
 		author		= "TheFatController",
 		date		= "Mar 20, 2007",
+		license		= "GNU GPL, v2 or later",
 		layer		= 0,
 		enabled		= false	--	loaded by default?
 	}

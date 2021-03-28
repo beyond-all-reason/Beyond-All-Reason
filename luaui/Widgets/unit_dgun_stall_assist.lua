@@ -5,6 +5,7 @@ function widget:GetInfo()
 		desc      = "Waits cons/facs when trying to dgun and stalling",
 		author    = "Niobium",
 		date      = "2 April 2010",
+		license   = "GNU GPL, v2 or later",
 		layer     = 0,
 		enabled   = true  --  loaded by default?
 	}

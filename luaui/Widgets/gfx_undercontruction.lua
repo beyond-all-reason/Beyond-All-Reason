@@ -17,6 +17,7 @@ function widget:GetInfo()
     desc         = "",
     author       = "Floris",
     date         = "May 2018",
+    license      = "GPL",
     layer        = 50,
     enabled      = true
   }

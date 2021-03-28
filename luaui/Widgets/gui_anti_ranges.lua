@@ -5,6 +5,7 @@ function widget:GetInfo()
         desc      = "Draws circle to show anti defence ranges (options: /antiranges_glow, antiranges_fade)",
         author    = "[teh]decay, Floris",
         date      = "25 january 2015",
+        license   = "GNU GPL, v2 or later",
         version   = 3,
         layer     = 5,
         enabled   = true  --  loaded by default?

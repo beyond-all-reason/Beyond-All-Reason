@@ -5,6 +5,7 @@ function widget:GetInfo()
 		desc = "Changes the Chicken team colour as the queen gets angrier",
 		author = "TheFatController",
 		date = "Aug 07, 2011",
+		license = "MIT",
 		layer = -9,
 		enabled = false  --  loaded by default?
 	}

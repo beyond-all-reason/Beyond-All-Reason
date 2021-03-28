@@ -5,6 +5,7 @@ function widget:GetInfo()
 		desc      = "Turns LOS view on when playing and off when becomming spectator.",
 		author    = "Bluestone",
 		date      = "",
+		license   = "Round Objects",
 		layer     = 0,
 		enabled   = true
 	}

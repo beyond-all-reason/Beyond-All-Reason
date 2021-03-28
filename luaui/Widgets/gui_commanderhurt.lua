@@ -4,6 +4,7 @@ function widget:GetInfo()
         desc      = "Shows a red vignette when commander is out of view and gets damaged",
         author    = "Floris",
         date      = "February 2018",
+        license   = "GNU GPL, v2 or whatever",
         layer     = 111,
         enabled   = true
     }

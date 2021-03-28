@@ -5,6 +5,7 @@ function widget:GetInfo()
     desc      = "Set buildfacing toward map center on the first building placed",
     author    = "zwzsg with lotsa help from #lua channel",
     date      = "October 26, 2008",
+    license   = "Free",
     layer     = 0,
     enabled   = true  -- loaded by default
   }

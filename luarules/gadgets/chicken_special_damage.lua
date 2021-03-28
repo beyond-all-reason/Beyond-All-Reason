@@ -7,6 +7,7 @@ function gadget:GetInfo()
     desc      = "Nerfs some weapons vs Chickens",
     author    = "TheFatController",
     date      = "Aug 31, 2013",
+    license   = "GNU GPL, v2 or later",
     layer     = 0,
     enabled   = true  --  loaded by default?
   }

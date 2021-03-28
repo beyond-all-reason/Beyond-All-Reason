@@ -4,6 +4,7 @@ function widget:GetInfo()
 		desc      = "Shows ranges of all ally radars.",
 		author    = "Kev",
 		date      = "2020.11.14",
+		license   = "CC BY-NC",
 		layer     = 0,
 		enabled   = true
 	}

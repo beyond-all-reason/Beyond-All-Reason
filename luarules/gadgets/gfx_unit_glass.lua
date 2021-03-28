@@ -4,6 +4,7 @@ function gadget:GetInfo()
 		desc      = "Draws semitransparent glass-like unit pieces",
 		author    = "ivand",
 		date      = "2019",
+		license   = "PD",
 		layer     = 0,
 		enabled   = false,
 	}

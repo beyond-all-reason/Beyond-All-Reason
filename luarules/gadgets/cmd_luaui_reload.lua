@@ -4,6 +4,7 @@ function gadget:GetInfo()
     desc      = "Implements /luarules reloadluaui (because luaui cannot reload itself)",
     author    = "Bluestone",
     date      = "Feb 2015",
+    license   = "Round Objects",
     layer     = 0,
     enabled   = true  --  loaded by default?
   }

@@ -4,6 +4,7 @@ function widget:GetInfo()
       desc      = "Gives units have have been resurrected a little halo above it.",
       author    = "Floris",
       date      = "18 february 2015",
+      license   = "GNU GPL, v2 or later",
       layer     = -50,
       enabled   = true
    }

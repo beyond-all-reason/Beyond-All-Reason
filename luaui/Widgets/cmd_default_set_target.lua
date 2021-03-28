@@ -4,6 +4,7 @@ function widget:GetInfo()
 	desc	= "replaces default click from attack to set target",
 	author	= "BrainDamage",
 	date	= "-",
+	license	= "WTFPL",
 	layer	= -math.huge,
 	enabled	= false,
 	}

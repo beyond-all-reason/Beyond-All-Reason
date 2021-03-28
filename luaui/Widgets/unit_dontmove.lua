@@ -7,6 +7,7 @@ function widget:GetInfo()
     desc      = "Sets pre-defined units on hold position.",
     author    = "quantum",
     date      = "Jan 8, 2007",
+    license   = "GNU GPL, v2 or later",
     layer     = 0,
     enabled   = true  --  loaded by default?
   }

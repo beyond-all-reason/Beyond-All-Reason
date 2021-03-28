@@ -5,6 +5,7 @@ function widget:GetInfo()
 	desc      = "Red UI Framework",
 	author    = "Regret (enhanced by Floris)",
 	date      = "29 may 2015",
+	license   = "GNU GPL, v2 or later",
 	layer     = -9999998, --lowest go first
 	enabled   = true, --loaded by default
 	handler   = true, --access to handler

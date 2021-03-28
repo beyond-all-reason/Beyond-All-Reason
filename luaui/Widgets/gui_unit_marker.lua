@@ -5,6 +5,7 @@ function widget:GetInfo()
 		desc = "Marks spotted units of interest now with old-mark auto-remover",
 		author = "LEDZ",
 		date = "2012.10.01",
+		license = "GNU GPL v2",
 		layer = 0,
 		enabled = false
 	}

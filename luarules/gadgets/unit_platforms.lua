@@ -4,6 +4,7 @@ function gadget:GetInfo()
 		desc = "Handles buildings surfacing from sea bed behaviours",
 		author = "[Fx]Doo",
 		date = "25 of June 2017",
+		license = "Free",
 		layer = 0,
 		enabled = true
 	}

@@ -16,6 +16,7 @@ if customparamDefsDetected then
             desc      = "Bluestone",
             author    = "Robert De Bruce",
             date      = "-1",
+            license   = "Those stupid trees",
             layer     = 0,
             enabled   = true  --  loaded by default?
         }

@@ -6,6 +6,7 @@ function widget:GetInfo()
         author    = "Niobium", -- based on 'Custom Formations' by jK and gunblob
         version   = "v4.3",
         date      = "April, 2013",
+        license   = "GNU GPL, v2 or later",
         layer     = 10000,
         enabled   = true,
         handler   = true,

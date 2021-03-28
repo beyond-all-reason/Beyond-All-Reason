@@ -6,6 +6,7 @@ function widget:GetInfo()
     desc      = "Draws a mirrored map next to the edges of the real map",
     author    = "Pako",
     date      = "2010.10.27",
+    license   = "GPL",
     layer     = 0,
     enabled   = false,
     --detailsDefault = 3

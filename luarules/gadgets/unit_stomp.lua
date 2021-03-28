@@ -4,6 +4,7 @@ function gadget:GetInfo()
 		desc      = "Controls damages done by exp units footsteps",
 		author    = "Doo",
 		date      = "July 2017",
+		license   = "Whatever you want, lua will make it",
 		layer     = 0,
 		enabled   = true
 	}

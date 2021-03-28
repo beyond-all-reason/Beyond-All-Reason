@@ -4,6 +4,7 @@ function widget:GetInfo()
 		desc = "Automatically tracks players camera, (shows player-switch countdown on top of advplayerlist)",
 		author = "Floris",
 		date = "January 2018",
+		license = "GNU GPL, v2 or later",
 		layer = -2,
 		enabled = true,
 	}

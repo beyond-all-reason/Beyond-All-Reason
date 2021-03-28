@@ -7,6 +7,7 @@ function gadget:GetInfo()
         desc      = "Stops torpedo bombers from damaging units when they're on land.",
         author    = "TheFatController",
         date      = "Aug 31, 2009",
+        license   = "GNU GPL, v2 or later",
         layer     = 0,
         enabled   = true  --  loaded by default?
     }

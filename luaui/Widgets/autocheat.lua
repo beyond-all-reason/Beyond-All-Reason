@@ -6,6 +6,7 @@ if string.find(string.upper(Game.gameVersion), "$VERSION", nil, true) then
 			desc      = "Enables cheats for $VERSION game versions",
 			author    = "ivand",
 			date      = "2017",
+			license   = "GNU LGPL, v2.1 or later",
 			layer     = 0,
 			enabled   = false  --  loaded by default?
 		}

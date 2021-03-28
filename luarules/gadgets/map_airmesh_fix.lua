@@ -8,6 +8,7 @@ function gadget:GetInfo()
 		desc      = "Calculates and fixes garbage Airmesh",
 		author    = "Beherith",
 		date      = "2021 jan",
+		license   = "GPL",
 		layer     = 0,	--higher layer is loaded last
 		enabled   = true, --REMOVE THIS GADGET ONCE ENGINE IS FIXED
 	}

@@ -4,6 +4,7 @@ function widget:GetInfo()
 		desc = "",
 		author = "Floris (extracted from healthbars widget)",
 		date = "August 2020",
+		license = "GNU GPL, v2 or later",
 		layer = -10,
 		enabled = true
 	}

@@ -6,6 +6,7 @@ function gadget:GetInfo()
 		desc = "sends your camera to others",
 		author = "Evil4Zerggin",
 		date = "16 January 2009",
+		license = "GNU LGPL, v2.1 or later",
 		layer = -5,
 		enabled = true
 	}

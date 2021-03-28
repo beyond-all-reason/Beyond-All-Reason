@@ -4,6 +4,7 @@ function widget:GetInfo()
 		desc = "Press ctrl+shift+o to flip the camera \n(with overhead or smooth cam)",
 		author = "Bluestone",
 		date = "11/09/2013",
+		license = "WTFPL",
 		layer = 0,
 		enabled = true
 	}

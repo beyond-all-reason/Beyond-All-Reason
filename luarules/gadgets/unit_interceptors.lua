@@ -4,6 +4,7 @@ function gadget:GetInfo()
 		desc     = "bla",
 		author	 = "ashdnazg + [teh]decay",
 		date     = "Too late",
+		license	 = "GNU GPL, v2 or later",
 		layer    = 0,
 		enabled  = true
 	}
