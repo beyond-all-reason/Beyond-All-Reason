@@ -207,7 +207,7 @@ function updateList()
 					local largestCount_3 = 0
 					if unitdefCount > 2 then
 						for uDefID, count in pairs(unitdefCounts) do
-							if uDefID ~= udefID_1 and count > largestCount_3 then
+							if uDefID ~= udefID_1 and uDefID ~= udefID_2 and count > largestCount_3 then
 								udefID_3 = uDefID
 								largestCount_3 = count
 							end
@@ -217,7 +217,7 @@ function updateList()
 					local largestCount_4 = 0
 					if unitdefCount > 3 then
 						for uDefID, count in pairs(unitdefCounts) do
-							if uDefID ~= udefID_1 and count > largestCount_4 then
+							if uDefID ~= udefID_1 and uDefID ~= udefID_2 and uDefID ~= udefID_3 and count > largestCount_4 then
 								udefID_4 = uDefID
 								largestCount_4 = count
 							end
