@@ -10,6 +10,8 @@ function widget:GetInfo()
 	}
 end
 
+local showStack = true	-- display different unitdef pics in a showStack
+
 local vsx, vsy = Spring.GetViewGeometry()
 local fontFile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 
@@ -55,7 +57,7 @@ function widget:ViewResize()
 	height = setHeight * uiScale
 
 	font2 = WG['fonts'].getFont(nil, 1.3, 0.35, 1.4)
-	font = WG['fonts'].getFont(fontFile)
+	font = WG['fonts'].getFont(fontFile, 1.1, 0.25, 1.2)
 
 	elementCorner = Spring.FlowUI.elementCorner
 	backgroundPadding = Spring.FlowUI.elementPadding
@@ -119,6 +121,7 @@ end
 local function checkGuishader(force)
 	if WG['guishader'] then
 		if force and dlistGuishader then
+			--WG['guishader'].DeleteDlist('unitgroups')
 			dlistGuishader = gl.DeleteList(dlistGuishader)
 		end
 		if not dlistGuishader and backgroundRect then
@@ -179,21 +182,123 @@ function updateList()
 					}
 
 					local unitdefCounts = spGetGroupUnitsCounts(group)
-					local orderedCounts = {}
-					local firstUdefID
-					local largestCount = 0
+
+					local udefID_1
+					local largestCount_1 = 0
+					local unitdefCount = 0
 					for uDefID, count in pairs(unitdefCounts) do
-						if count > largestCount then
-							firstUdefID = uDefID
+						if count > largestCount_1 then
+							udefID_1 = uDefID
+							largestCount_1 = count
+						end
+						unitdefCount = unitdefCount + 1
+					end
+					local udefID_2
+					local largestCount_2 = 0
+					if unitdefCount > 1 then
+						for uDefID, count in pairs(unitdefCounts) do
+							if uDefID ~= udefID_1 and count > largestCount_2 then
+								udefID_2 = uDefID
+								largestCount_2 = count
+							end
 						end
 					end
+					local udefID_3
+					local largestCount_3 = 0
+					if unitdefCount > 2 then
+						for uDefID, count in pairs(unitdefCounts) do
+							if uDefID ~= udefID_1 and count > largestCount_3 then
+								udefID_3 = uDefID
+								largestCount_3 = count
+							end
+						end
+					end
+					local udefID_4
+					local largestCount_4 = 0
+					if unitdefCount > 3 then
+						for uDefID, count in pairs(unitdefCounts) do
+							if uDefID ~= udefID_1 and count > largestCount_4 then
+								udefID_4 = uDefID
+								largestCount_4 = count
+							end
+						end
+					end
+
 					gl.Color(1,1,1,1)
 					groupButtons[#groupButtons+1] = {groupRect[1],groupRect[2],groupRect[3],groupRect[4],group}
-					UiUnit(groupRect[1]+iconMargin,groupRect[2]+iconMargin,groupRect[3]-iconMargin,groupRect[4]-iconMargin,
+					local groupSize = groupRect[3]-groupRect[1]-iconMargin-iconMargin
+					local iconSize = floor(groupSize * 0.94)
+					local offset = 0
+					if showStack then
+						if unitdefCount > 4 then
+							iconSize = floor(iconSize*0.81)
+							offset = floor((groupSize - iconSize) / 4)
+						elseif udefID_4 then
+							iconSize = floor(iconSize*0.84)
+							offset = floor((groupSize - iconSize) / 3)
+						elseif udefID_3 then
+							iconSize = floor(iconSize*0.88)
+							offset = floor((groupSize - iconSize) / 2)
+						elseif udefID_2 then
+							iconSize = floor(iconSize*0.92)
+							offset = groupSize - iconSize
+						elseif udefID_4 then
+							iconSize = floor(iconSize*0.92)
+							offset = groupSize - iconSize
+						end
+					end
+
+					if unitdefCount > 4 then
+						gl.Color(0.15,0.15,0.15,1)
+						UiUnit(
+							groupRect[1]+iconMargin+(offset*4), groupRect[4]-iconMargin-(offset*4)-iconSize, groupRect[1]+iconMargin+(offset*4)+iconSize, groupRect[4]-iconMargin-(offset*4),
+							math.ceil(backgroundPadding*0.5), 1,1,1,1,
+							group == hoveredGroup and (b and 0.15 or 0.105) or 0.05,
+							nil, nil,
+							':lr'..floor(groupSize*1.5)..','..floor(groupSize*1.5)..':unitpics/'..unitBuildPic[udefID_4],
+							nil, nil, nil, nil
+						)
+					end
+					if udefID_4 then
+						gl.Color(0.6,0.6,0.6,1)
+						UiUnit(
+							groupRect[1]+iconMargin+(offset*3), groupRect[4]-iconMargin-(offset*3)-iconSize, groupRect[1]+iconMargin+(offset*3)+iconSize, groupRect[4]-iconMargin-(offset*3),
+							math.ceil(backgroundPadding*0.5), 1,1,1,1,
+							group == hoveredGroup and (b and 0.15 or 0.105) or 0.05,
+							nil, nil,
+							':lr'..floor(groupSize*1.5)..','..floor(groupSize*1.5)..':unitpics/'..unitBuildPic[udefID_4],
+							nil, nil, nil, nil
+						)
+					end
+					if udefID_3 then
+						gl.Color(0.66,0.66,0.66,1)
+						UiUnit(
+							groupRect[1]+iconMargin+(offset*2), groupRect[4]-iconMargin-(offset*2)-iconSize, groupRect[1]+iconMargin+(offset*2)+iconSize, groupRect[4]-iconMargin-(offset*2),
+							math.ceil(backgroundPadding*0.5), 1,1,1,1,
+							group == hoveredGroup and (b and 0.15 or 0.105) or 0.05,
+							nil, nil,
+							':lr'..floor(groupSize*1.5)..','..floor(groupSize*1.5)..':unitpics/'..unitBuildPic[udefID_3],
+							nil, nil, nil, nil
+						)
+					end
+					if udefID_2 then
+						gl.Color(0.82,0.82,0.82,1)
+						UiUnit(
+							groupRect[1]+iconMargin+offset, groupRect[4]-iconMargin-offset-iconSize, groupRect[1]+iconMargin+offset+iconSize, groupRect[4]-iconMargin-offset,
+							math.ceil(backgroundPadding*0.5), 1,1,1,1,
+							group == hoveredGroup and (b and 0.15 or 0.105) or 0.05,
+							nil, nil,
+							':lr'..floor(groupSize*1.5)..','..floor(groupSize*1.5)..':unitpics/'..unitBuildPic[udefID_2],
+							nil, nil, nil, nil
+						)
+					end
+					gl.Color(1,1,1,1)
+					UiUnit(
+						groupRect[1]+iconMargin, groupRect[4]-iconMargin-iconSize, groupRect[1]+iconMargin+iconSize, groupRect[4]-iconMargin,
 						math.ceil(backgroundPadding*0.5), 1,1,1,1,
 						group == hoveredGroup and (b and 0.15 or 0.105) or 0.05,
 						nil, nil,
-						':lr'..floor(groupSize*1.5)..','..floor(groupSize*1.5)..':unitpics/'..unitBuildPic[firstUdefID],
+						':lr'..floor(groupSize*1.5)..','..floor(groupSize*1.5)..':unitpics/'..unitBuildPic[udefID_1],
 						nil, nil, nil, nil
 					)
 
@@ -202,13 +307,25 @@ function updateList()
 					end
 
 					local fontSize = height*vsy*0.3
+					--font2:Begin()
+					--font2:Print('\255\200\255\200'..group, groupRect[1]+iconMargin+(fontSize*0.18), groupRect[4]-iconMargin-(fontSize*0.94), fontSize, "o")
+					--font2:End()
+					--font2:Begin()
+					--font2:Print('\255\200\255\200'..group, groupRect[3]-iconMargin-(fontSize*0.16), groupRect[2] +iconMargin + (fontSize*0.28), fontSize, "ro")
+					--font2:End()
 					font2:Begin()
-					font2:Print('\255\200\255\200'..group, groupRect[1]+iconMargin+(fontSize*0.18), groupRect[4]-iconMargin-(fontSize*0.94), fontSize*1, "o")
+					font2:Print('\255\200\255\200'..group, groupRect[1]+((groupRect[3]-groupRect[1])/2), groupRect[2]+iconMargin + (fontSize*0.28), fontSize, "co")
 					font2:End()
 					fontSize = fontSize * 0.88
+					--font:Begin()
+					--font:Print('\255\210\210\210'..spGetGroupUnitsCount(group), groupRect[3]-iconMargin-(fontSize*0.16), groupRect[2] +iconMargin + (fontSize*0.28), fontSize, "ro")
+					--font:End()
 					font:Begin()
-					font:Print('\255\210\210\210'..spGetGroupUnitsCount(group), groupRect[3]-iconMargin-(fontSize*0.16), groupRect[2] +iconMargin + (fontSize*0.28), fontSize, "ro")
+					font:Print('\255\220\220\220'..largestCount_1, groupRect[1]+iconMargin+(fontSize*0.18), groupRect[4]-iconMargin-(fontSize*0.94), fontSize, "o")
 					font:End()
+					--font:Begin()
+					--font:Print('\255\225\225\225'..spGetGroupUnitsCount(group), groupRect[1]+iconMargin+(fontSize*0.18), groupRect[4]-iconMargin-(fontSize*0.94), fontSize, "o")
+					--font:End()
 					groupCounter = groupCounter + 1
 				end
 			end
