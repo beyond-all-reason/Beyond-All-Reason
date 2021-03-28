@@ -108,7 +108,7 @@ return {
 				armjamt = "Sneaky Pete",
 				armjanus = "Janus",
 				armjeth = "Jethro",
-				armjuno = "Arm Juno",
+				armjuno = "Armada Juno",
 				armkam = "Banshee",
 				armlab = "Bot Lab",
 				armlance = "Lancet",
