@@ -2566,7 +2566,7 @@ function init()
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
-			  if value >= options[getOptionByID('fog_end')].value then
+			  if getOptionByID('fog_end') and value >= options[getOptionByID('fog_end')].value then
 				  options[getOptionByID('fog_end')].value = value + 0.01
 				  applyOptionValue(getOptionByID('fog_end'))
 			  end
@@ -2578,7 +2578,7 @@ function init()
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
-			  if value <= options[getOptionByID('fog_start')].value then
+			  if getOptionByID('fog_start') and value <= options[getOptionByID('fog_start')].value then
 				  options[getOptionByID('fog_start')].value = value - 0.01
 				  applyOptionValue(getOptionByID('fog_start'))
 			  end
@@ -2590,9 +2590,11 @@ function init()
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
-			  options[getOptionByID('fog_start')].value = defaultFog.fogStart
-			  options[getOptionByID('fog_end')].value = defaultFog.fogEnd
-			  options[getOptionByID('fog_reset')].value = false
+			  if getOptionByID('fog_start') then
+				  options[getOptionByID('fog_start')].value = defaultFog.fogStart
+				  options[getOptionByID('fog_end')].value = defaultFog.fogEnd
+				  options[getOptionByID('fog_reset')].value = false
+			  end
 			  Spring.SetAtmosphere({ fogStart = defaultFog.fogStart, fogEnd = defaultFog.fogEnd })
 			  Spring.Echo('resetted map fog defaults')
 			  customMapFog[Game.mapName] = nil
@@ -2916,7 +2918,7 @@ function init()
 			  loadWidgetData("Airjets", "airjets_limitfps", { 'limitAtAvgFps' })
 		  end,
 		  onchange = function(i, value)
-			  if value - 5 <= options[getOptionByID('airjets_disablefps')].value then
+			  if getOptionByID('airjets_disablefps') and value - 5 <= options[getOptionByID('airjets_disablefps')].value then
 				  options[getOptionByID('airjets_disablefps')].value = value - 6
 				  applyOptionValue(getOptionByID('airjets_disablefps'))
 			  end
@@ -2928,7 +2930,7 @@ function init()
 			  loadWidgetData("Airjets", "airjets_disablefps", { 'disableAtAvgFps' })
 		  end,
 		  onchange = function(i, value)
-			  if value + 5 >= options[getOptionByID('airjets_limitfps')].value then
+			  if getOptionByID('airjets_limitfps') and value + 5 >= options[getOptionByID('airjets_limitfps')].value then
 				  options[getOptionByID('airjets_limitfps')].value = value + 6
 				  applyOptionValue(getOptionByID('airjets_limitfps'))
 			  end
@@ -3215,7 +3217,7 @@ function init()
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
-			  if options[getOptionByID('scrollinverse')].value then
+			  if getOptionByID('scrollinverse') and options[getOptionByID('scrollinverse')].value then
 				  Spring.SetConfigInt("ScrollWheelSpeed", -value)
 			  else
 				  Spring.SetConfigInt("ScrollWheelSpeed", value)
@@ -3226,10 +3228,12 @@ function init()
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
-			  if value then
-				  Spring.SetConfigInt("ScrollWheelSpeed", -options[getOptionByID('scrollspeed')].value)
-			  else
-				  Spring.SetConfigInt("ScrollWheelSpeed", options[getOptionByID('scrollspeed')].value)
+			  if getOptionByID('scrollspeed') then
+				  if value then
+					  Spring.SetConfigInt("ScrollWheelSpeed", -options[getOptionByID('scrollspeed')].value)
+				  else
+					  Spring.SetConfigInt("ScrollWheelSpeed", options[getOptionByID('scrollspeed')].value)
+				  end
 			  end
 		  end,
 		},
@@ -3663,7 +3667,7 @@ function init()
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
-			  if value >= options[getOptionByID('uniticon_fadestart')].value then
+			  if getOptionByID('uniticon_fadestart') and value >= options[getOptionByID('uniticon_fadestart')].value then
 				  options[getOptionByID('uniticon_fadestart')].value = value + 1
 				  applyOptionValue(getOptionByID('uniticon_fadestart'))
 			  end
@@ -3675,7 +3679,7 @@ function init()
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
-			  if value <= options[getOptionByID('uniticon_fadevanish')].value then
+			  if getOptionByID('uniticon_fadevanish') and value <= options[getOptionByID('uniticon_fadevanish')].value then
 				  options[getOptionByID('uniticon_fadevanish')].value = value - 1
 				  applyOptionValue(getOptionByID('uniticon_fadevanish'))
 			  end
