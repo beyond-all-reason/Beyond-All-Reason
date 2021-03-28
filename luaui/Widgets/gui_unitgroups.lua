@@ -1,7 +1,7 @@
 function widget:GetInfo()
 	return {
 		name = "Unit Groups",
-		desc = "",
+		desc = "Interface shows unit groups via stacked icons",
 		author = "Floris",
 		date = "March 2021",
 		license = "GNU GPL, v2 or later",
@@ -12,6 +12,7 @@ end
 
 local showStack = true	-- display different unitdef pics in a showStack
 local iconSizeMult = 0.97
+local highlightSelectedGroups = true
 
 local vsx, vsy = Spring.GetViewGeometry()
 local fontFile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
@@ -30,6 +31,13 @@ local spGetGroupUnitsCounts = Spring.GetGroupUnitsCounts
 local spGetGroupUnitsCount = Spring.GetGroupUnitsCount
 local spGetMouseState = Spring.GetMouseState
 local floor = math.floor
+local ceil = math.ceil
+local min = math.min
+local max = math.max
+
+local GL_SRC_ALPHA = GL.SRC_ALPHA
+local GL_ONE = GL.ONE
+local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 
 local uiOpacity = tonumber(Spring.GetConfigFloat("ui_opacity", 0.6) or 0.66)
 local uiScale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
@@ -39,6 +47,9 @@ local posX = 0
 local posY = 0
 local hovered = false
 local numGroups = 0
+local selectedUnits = Spring.GetSelectedUnits() or {}
+local selectionHasChanged = true
+local highlightGroups = {}
 
 local stickToBottom = false
 local altPosition = false
@@ -137,6 +148,24 @@ local function checkGuishader(force)
 	end
 end
 
+local function drawIcon(unitDefID, rect, lightness, zoom, texSize, highlighted)
+	gl.Color(lightness,lightness,lightness,1)
+	UiUnit(
+		rect[1], rect[2], rect[3], rect[4],
+		ceil(backgroundPadding*0.5), 1,1,1,1,
+		zoom,
+		nil, highlighted and 0.25 or nil,
+		':lr'..texSize..','..texSize..':unitpics/'..unitBuildPic[unitDefID],
+		nil, nil, nil, nil
+	)
+	if highlighted then
+		gl.Blending(GL_SRC_ALPHA, GL_ONE)
+		gl.Color(1,1,1,0.15)
+		RectRound(rect[1], rect[2], rect[3], rect[4], min(max(1, floor((rect[3]-rect[1]) * 0.024)), floor((vsy*0.0015)+0.5)))
+		gl.Blending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+	end
+end
+
 local function updateList()
 	if dlist then
 		dlist = gl.DeleteList(dlist)
@@ -184,10 +213,17 @@ local function updateList()
 					}
 
 					local unitdefCounts = spGetGroupUnitsCounts(group)
-
-					local udefID_1
-					local largestCount_1 = 0
 					local unitdefCount = 0
+					local udefID_1
+					local udefID_2
+					local udefID_3
+					local udefID_4
+					local udefID_5
+					local largestCount_1 = 0
+					local largestCount_2 = 0
+					local largestCount_3 = 0
+					local largestCount_4 = 0
+					local largestCount_5 = 0
 					for uDefID, count in pairs(unitdefCounts) do
 						if count > largestCount_1 then
 							udefID_1 = uDefID
@@ -195,14 +231,6 @@ local function updateList()
 						end
 						unitdefCount = unitdefCount + 1
 					end
-					local udefID_2
-					local largestCount_2 = 0
-					local udefID_3
-					local largestCount_3 = 0
-					local udefID_4
-					local largestCount_4 = 0
-					local udefID_5
-					local largestCount_5 = 0
 					if unitdefCount > 1 then
 						for uDefID, count in pairs(unitdefCounts) do
 							if uDefID ~= udefID_1 and count > largestCount_2 then
@@ -261,58 +289,48 @@ local function updateList()
 					end
 
 					local texSize = floor(groupSize*1.33)
+					local borderOpacity, iconrect
+					local zoom = group == hoveredGroup and (b and 0.15 or 0.105) or 0.05
+					local highlightOpacity = 0
+					local groupHighlighted = highlightGroups[group]
+					if groupHighlighted then
+						borderOpacity = 0.2
+						zoom = zoom + 0.08
+						highlightOpacity = 0.15
+					end
 					if udefID_5 then
-						gl.Color(0.35,0.35,0.35,1)
-						UiUnit(
-							groupRect[1]+iconMargin+(offset*4), groupRect[4]-iconMargin-(offset*4)-iconSize, groupRect[1]+iconMargin+(offset*4)+iconSize, groupRect[4]-iconMargin-(offset*4),
-							math.ceil(backgroundPadding*0.5), 1,1,1,1,
-							group == hoveredGroup and (b and 0.15 or 0.105) or 0.05,
-							nil, nil,
-							':lr'..texSize..','..texSize..':unitpics/'..unitBuildPic[udefID_5],
-							nil, nil, nil, nil
+						drawIcon(
+							udefID_5,
+							{groupRect[1]+iconMargin+(offset*4), groupRect[4]-iconMargin-(offset*4)-iconSize, groupRect[1]+iconMargin+(offset*4)+iconSize, groupRect[4]-iconMargin-(offset*4)},
+							0.33, zoom, texSize, groupHighlighted
 						)
 					end
 					if udefID_4 then
-						gl.Color(0.5,0.5,0.5,1)
-						UiUnit(
-							groupRect[1]+iconMargin+(offset*3), groupRect[4]-iconMargin-(offset*3)-iconSize, groupRect[1]+iconMargin+(offset*3)+iconSize, groupRect[4]-iconMargin-(offset*3),
-							math.ceil(backgroundPadding*0.5), 1,1,1,1,
-							group == hoveredGroup and (b and 0.15 or 0.105) or 0.05,
-							nil, nil,
-							':lr'..texSize..','..texSize..':unitpics/'..unitBuildPic[udefID_4],
-							nil, nil, nil, nil
+						drawIcon(
+							udefID_4,
+							{groupRect[1]+iconMargin+(offset*3), groupRect[4]-iconMargin-(offset*3)-iconSize, groupRect[1]+iconMargin+(offset*3)+iconSize, groupRect[4]-iconMargin-(offset*3)},
+							0.45, zoom, texSize, groupHighlighted
 						)
 					end
 					if udefID_3 then
-						gl.Color(0.6,0.6,0.6,1)
-						UiUnit(
-							groupRect[1]+iconMargin+(offset*2), groupRect[4]-iconMargin-(offset*2)-iconSize, groupRect[1]+iconMargin+(offset*2)+iconSize, groupRect[4]-iconMargin-(offset*2),
-							math.ceil(backgroundPadding*0.5), 1,1,1,1,
-							group == hoveredGroup and (b and 0.15 or 0.105) or 0.05,
-							nil, nil,
-							':lr'..texSize..','..texSize..':unitpics/'..unitBuildPic[udefID_3],
-							nil, nil, nil, nil
+						drawIcon(
+							udefID_3,
+							{groupRect[1]+iconMargin+(offset*2), groupRect[4]-iconMargin-(offset*2)-iconSize, groupRect[1]+iconMargin+(offset*2)+iconSize, groupRect[4]-iconMargin-(offset*2)},
+							0.55, zoom, texSize, groupHighlighted
 						)
+						iconrect = {groupRect[1]+iconMargin+(offset*2), groupRect[4]-iconMargin-(offset*2)-iconSize, groupRect[1]+iconMargin+(offset*2)+iconSize, groupRect[4]-iconMargin-(offset*2)}
 					end
 					if udefID_2 then
-						gl.Color(0.75,0.75,0.75,1)
-						UiUnit(
-							groupRect[1]+iconMargin+offset, groupRect[4]-iconMargin-offset-iconSize, groupRect[1]+iconMargin+offset+iconSize, groupRect[4]-iconMargin-offset,
-							math.ceil(backgroundPadding*0.5), 1,1,1,1,
-							group == hoveredGroup and (b and 0.15 or 0.105) or 0.05,
-							nil, nil,
-							':lr'..texSize..','..texSize..':unitpics/'..unitBuildPic[udefID_2],
-							nil, nil, nil, nil
+						drawIcon(
+							udefID_2,
+							{groupRect[1]+iconMargin+offset, groupRect[4]-iconMargin-offset-iconSize, groupRect[1]+iconMargin+offset+iconSize, groupRect[4]-iconMargin-offset},
+							0.7, zoom, texSize, groupHighlighted
 						)
 					end
-					gl.Color(1,1,1,1)
-					UiUnit(
-						groupRect[1]+iconMargin, groupRect[4]-iconMargin-iconSize, groupRect[1]+iconMargin+iconSize, groupRect[4]-iconMargin,
-						math.ceil(backgroundPadding*0.5), 1,1,1,1,
-						group == hoveredGroup and (b and 0.15 or 0.105) or 0.05,
-						nil, nil,
-						':lr'..texSize..','..texSize..':unitpics/'..unitBuildPic[udefID_1],
-						nil, nil, nil, nil
+					drawIcon(
+						udefID_1,
+						{groupRect[1]+iconMargin, groupRect[4]-iconMargin-iconSize, groupRect[1]+iconMargin+iconSize, groupRect[4]-iconMargin},
+						1, zoom, texSize, groupHighlighted
 					)
 
 					if group == hoveredGroup then
@@ -327,6 +345,7 @@ local function updateList()
 					font:Begin()
 					font:Print('\255\230\230\230'..largestCount_1, groupRect[1]+iconMargin+(fontSize*0.18), groupRect[4]-iconMargin-(fontSize*0.92), fontSize, "o")
 					font:End()
+
 					groupCounter = groupCounter + 1
 				end
 			end
@@ -350,7 +369,12 @@ function widget:DrawScreen()
 end
 
 local sec = 0
+local sec2 = 0
 function widget:Update(dt)
+	local doUpdate = false
+	sec = sec + dt
+	sec2 = sec2 + dt
+
 	local x, y, b, b2, b3 = spGetMouseState()
 	if backgroundRect and IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
 		hovered = true
@@ -360,20 +384,68 @@ function widget:Update(dt)
 		end
 		WG['tooltip'].ShowTooltip('unitgroups', Spring.I18N('ui.unitGroups.name')..tooltipAddition)
 		Spring.SetMouseCursor('cursornormal')
+		if b then
+			sec = sec + 0.4
+		end
 	elseif hovered then
 		sec = sec + 0.5
 		hovered = false
+		doUpdate = true
 	end
 
-	sec = sec + dt
 	if sec > 0.5 then
 		sec = 0
+
+		if highlightSelectedGroups and selectionHasChanged then
+			selectionHasChanged = nil
+
+			local existingGroups = spGetGroupList()
+			local selectedUnitID = {}
+			for i = 1, #selectedUnits do
+				selectedUnitID[selectedUnits[i]] = true
+			end
+			local groupUnitCount = {}
+			local groupUnitSelectedCount = {}
+			for group, _ in pairs(existingGroups) do
+				groupUnitSelectedCount[group] = 0
+				local groupUnits = Spring.GetGroupUnits(group)
+				groupUnitCount[group] = #groupUnits
+				for i=1, #groupUnits do
+					if selectedUnitID[groupUnits[i]] then
+						groupUnitSelectedCount[group] = groupUnitSelectedCount[group] + 1
+					end
+				end
+			end
+			local prevHighlightGroups = highlightGroups
+			highlightGroups = {}
+			for group, _ in pairs(groupUnitSelectedCount) do
+				if groupUnitSelectedCount[group] == groupUnitCount[group] then
+					highlightGroups[group] = true
+				end
+			end
+			local changed = false
+			for group, _ in pairs(highlightGroups) do
+				if not prevHighlightGroups[group] then
+					doUpdate = true
+					break
+				end
+			end
+			if not doUpdate then
+				for group, _ in pairs(prevHighlightGroups) do
+					if not highlightGroups[group] then
+						doUpdate = true
+						break
+					end
+				end
+			end
+		end
 
 		if WG['buildmenu'] and WG['buildmenu'].getBottomPosition then
 			local prevbuildmenuBottomPos = buildmenuBottomPos
 			buildmenuBottomPos = WG['buildmenu'].getBottomPosition()
 			if buildmenuBottomPos ~= prevbuildmenuBottomPos then
 				widget:ViewResize()
+				doUpdate = true
 			end
 		end
 		if WG['ordermenu'] then
@@ -381,18 +453,25 @@ function widget:Update(dt)
 			ordermenuPosY = select(2, WG['ordermenu'].getPosition())
 			if ordermenuPosY ~= prevOrdermenuPosY then
 				widget:ViewResize()
+				doUpdate = true
 			end
 		end
 		if uiScale ~= Spring.GetConfigFloat("ui_scale", 1) then
 			uiScale = Spring.GetConfigFloat("ui_scale", 1)
 			widget:ViewResize()
+			doUpdate = true
 		end
 		if uiOpacity ~= Spring.GetConfigFloat("ui_opacity", 0.6) then
 			uiOpacity = Spring.GetConfigFloat("ui_opacity", 0.6)
+			doUpdate = true
 		end
-		updateList()
-	elseif hovered and sec > 0.05 then
-		sec = 0
+
+		doUpdate = true	-- TODO: find a way to detect group changes and only doUpdate then
+	elseif hovered and sec2 > 0.05 then
+		sec2 = 0
+		doUpdate = true
+	end
+	if doUpdate then
 		updateList()
 	end
 end
@@ -424,14 +503,16 @@ function widget:MousePress(x, y, button)
 			for i,v in pairs(groupButtons) do
 				if IsOnRect(x, y, groupButtons[i][1], groupButtons[i][2], groupButtons[i][3], groupButtons[i][4]) then
 					if shift then
-						local units = Spring.GetSelectedUnits() or {}
+						local units = selectedUnits
 						local groupUnits = Spring.GetGroupUnits(groupButtons[i][5])
 						for i=1, #groupUnits do
 							units[#units+1] = groupUnits[i]
 						end
+						selectedUnits = units
+						selectionHasChanged = true
 						Spring.SelectUnitArray(units)
 					elseif ctrl then
-						local units = Spring.GetSelectedUnits() or {}
+						local units = selectedUnits
 						local groupUnits = Spring.GetGroupUnits(groupButtons[i][5])
 						local keyGroupUnits = {}
 						for i=1, #groupUnits do
@@ -443,9 +524,13 @@ function widget:MousePress(x, y, button)
 								newUnits[#newUnits+1] = units[i]
 							end
 						end
-						Spring.SelectUnitArray(newUnits)
+						selectedUnits = newUnits
+						selectionHasChanged = true
+						Spring.SelectUnitArray(selectedUnits)
 					else
-						Spring.SelectUnitArray(Spring.GetGroupUnits(groupButtons[i][5]))
+						selectedUnits = Spring.GetGroupUnits(groupButtons[i][5])
+						selectionHasChanged = true
+						Spring.SelectUnitArray(selectedUnits)
 					end
 					return true
 				end
@@ -453,4 +538,9 @@ function widget:MousePress(x, y, button)
 		end
 		return true
 	end
+end
+
+function widget:SelectionChanged(sel)
+	selectedUnits = sel or {}
+	selectionHasChanged = true
 end
