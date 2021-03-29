@@ -520,7 +520,7 @@ function widget:MousePress(x, y, button)
 
 	if backgroundRect and IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
 		local alt, ctrl, meta, shift = Spring.GetModKeyState()
-		if button == 1 then
+		if button == 1 or button == 3 then
 			for i,v in pairs(groupButtons) do
 				if IsOnRect(x, y, groupButtons[i][1], groupButtons[i][2], groupButtons[i][3], groupButtons[i][4]) then
 					if shift then
@@ -552,6 +552,9 @@ function widget:MousePress(x, y, button)
 						selectedUnits = Spring.GetGroupUnits(groupButtons[i][5])
 						selectionHasChanged = true
 						Spring.SelectUnitArray(selectedUnits)
+					end
+					if button == 3 then
+						Spring.SendCommands({ "viewselection" })
 					end
 					return true
 				end
