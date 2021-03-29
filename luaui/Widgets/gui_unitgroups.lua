@@ -48,6 +48,10 @@ local setHeight = 0.055
 local height = setHeight * uiScale
 local posX = 0
 local posY = 0
+local iconMargin = 0
+local groupSize = 0
+local usedWidth = 0
+local usedHeight = 0
 local hovered = false
 local numGroups = 0
 local selectedUnits = Spring.GetSelectedUnits() or {}
@@ -99,6 +103,10 @@ function widget:ViewResize()
 		posY = 0
 		posX = omPosX + omWidth + (widgetSpaceMargin/vsx)
 	end
+
+	iconMargin = floor((backgroundPadding * 0.5) + 0.5)
+	groupSize = floor((height * vsy) - (posY-height > 0 and backgroundPadding or 0))
+	usedHeight = groupSize + (posY-height > 0 and backgroundPadding or 0)
 end
 
 function widget:PlayerChanged(playerID)
@@ -114,7 +122,7 @@ function widget:Initialize()
 	widget:PlayerChanged()
 	WG['unitgroups'] = {}
 	WG['unitgroups'].getPosition = function()
-		return posX, posY, backgroundRect and backgroundRect[3] or posX, backgroundRect and backgroundRect[4] or posY
+		return posX, posY, backgroundRect and backgroundRect[3] or posX, backgroundRect and backgroundRect[4] or posY + usedHeight
 	end
 end
 
@@ -138,7 +146,7 @@ end
 local function checkGuishader(force)
 	if WG['guishader'] then
 		if force and dlistGuishader then
-			--WG['guishader'].DeleteDlist('unitgroups')
+			WG['guishader'].RemoveDlist('unitgroups')
 			dlistGuishader = gl.DeleteList(dlistGuishader)
 		end
 		if not dlistGuishader and backgroundRect then
@@ -148,6 +156,7 @@ local function checkGuishader(force)
 			WG['guishader'].InsertDlist(dlistGuishader, 'unitgroups')
 		end
 	elseif dlistGuishader then
+		WG['guishader'].RemoveDlist('unitgroups')
 		dlistGuishader = gl.DeleteList(dlistGuishader)
 	end
 end
@@ -187,10 +196,13 @@ local function updateList()
 		end
 	else
 		dlist = gl.CreateList(function()
-			local iconMargin = floor((backgroundPadding * 0.5) + 0.5)
-			local groupSize = floor((height * vsy) - (posY-height > 0 and backgroundPadding or 0))
-			local width = ((groupSize-backgroundPadding) * numGroups) + backgroundPadding + backgroundPadding
-			backgroundRect = {floor(posX * vsx), floor(posY * vsy), floor(posX * vsx + width), floor(posY * vsy) + groupSize + (posY-height > 0 and backgroundPadding or 0)}
+			usedWidth = ((groupSize-backgroundPadding) * numGroups) + backgroundPadding + backgroundPadding
+			backgroundRect = {
+				floor(posX * vsx),
+				floor(posY * vsy),
+				floor(posX * vsx) + usedWidth,
+				floor(posY * vsy) + usedHeight
+			}
 
 			UiElement(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], ((posX <= 0) and 0 or 1), 1, ((posY-height > 0 or posX <= 0) and 1 or 0), ((posY-height > 0 and posX > 0) and 1 or 0))
 
