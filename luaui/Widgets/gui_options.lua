@@ -4236,18 +4236,14 @@ function init()
 
 		{ id = "autogroup_immediate", group = "game", basic = true, name = texts.option.autogroup_immediate, type = "bool", value = (WG['autogroup'] ~= nil and WG['autogroup'].getImmediate ~= nil and WG['autogroup'].getImmediate()), description = texts.option.autogroup_immediate_descr,
 		  onload = function(i)
-			  loadWidgetData("Auto Group", "autogroup_immediate", { 'config', 'immediate', 'value' })
+			  loadWidgetData("Auto Group", "autogroup_immediate", { 'immediate' })
 		  end,
 		  onchange = function(i, value)
 			  if widgetHandler.configData["Auto Group"] == nil then
 				  widgetHandler.configData["Auto Group"] = {}
 			  end
-			  if widgetHandler.configData["Auto Group"].config == nil then
-				  widgetHandler.configData["Auto Group"].config = { immediate = { value = value } }
-			  else
-				  widgetHandler.configData["Auto Group"].config.immediate.value = value
-			  end
-			  saveOptionValue('Auto Group', 'autogroup', 'setImmediate', { 'config', 'immediate', 'value' }, value)
+			  widgetHandler.configData["Auto Group"].immediate = value
+			  saveOptionValue('Auto Group', 'autogroup', 'setImmediate', { 'immediate' }, value)
 		  end,
 		},
 
