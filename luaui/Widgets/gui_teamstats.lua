@@ -365,14 +365,14 @@ function widget:GameFrame(n,forceupdate)
 					end
 					if gameStarted ~= nil then
 						if not playerName then
-							playerName = teamControllers[teamID] or Spring.I18N('ui.teamStats.gone')
+							playerName = teamControllers[teamID] or Spring.I18N('ui.teamStats.gone', { player = '' })
 						else
 							teamControllers[teamID] = playerName
 						end
 						if isDead then
-							playerName = playerName .. " (" .. Spring.I18N('ui.teamStats.dead') .. ")"
+							playerName = Spring.I18N('ui.teamStats.dead', { player = playerName })
 						elseif not isActive then
-							playerName = playerName .. " (" .. Spring.I18N('ui.teamStats.gone') .. ")"
+							playerName = Spring.I18N('ui.teamStats.gone', { player = playerName })
 						end
 					end
 					if history.damageReceived ~= 0 then
