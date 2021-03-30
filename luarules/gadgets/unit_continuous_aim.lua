@@ -83,6 +83,10 @@ local convertedUnits = {
 	[UnitDefNames.corbats.id] = 5,
 	[UnitDefNames.corblackhy.id] = 5,
 	[UnitDefNames.corscreamer.id] = 5,
+	[UnitDefNames.corcom.id] = 5,
+	[UnitDefNames.armcom.id] = 5,
+	[UnitDefNames.cordecom.id] = 5,
+	[UnitDefNames.armdecom.id] = 5,
 }
 
 for udid, ud in pairs(UnitDefs) do
