@@ -1,4 +1,4 @@
---INCREMENT THIS COUNTER FOR EVERY HOUR OF YOUR LIFE WASTED HERE: 25
+--INCREMENT THIS COUNTER FOR EVERY HOUR OF YOUR LIFE WASTED HERE: 29
 
 
 
@@ -53,8 +53,11 @@ local CEGLevelUp = "commander-levelup"
 local ValidID = Spring.ValidUnitID
 
 local function BelowWater(piecename)
-	x,y,z = Spring.GetUnitPiecePosition(unitID, piecename)
-	if y <= 0 then
+	local _,y,_ = Spring.GetUnitPiecePosition(unitID, piecename) 
+  -- this returns unit space, so why does it work for corcom?
+  local _, py, _ = Spring.GetUnitPosition(unitID)
+  --Spring.Echo(piecename, 'ypos', y, py)
+	if (y+ py) <= 0 then
 		return true
 	else
 		return false
@@ -102,9 +105,9 @@ function walk()
 				turn(rthigh, 2, -0.370374, 346.061345/animSpeed) --delta=11.54
 				if (rightArm) then turn(ruparm, 1, 21.424041, 98.073542/animSpeed) end--delta=3.27
 				if (rightArm) then turn(ruparm, 2, 1.762963, 52.888889/animSpeed) end--delta=1.76
-				turn(aimy1, 1, -4.288164, 60.727696/animSpeed) --delta=2.02
-				turn(aimy1, 3,  1.713372, 51.401158/animSpeed) --delta=-1.71
-				turn(aimy1, 2, 7.879434, 236.383029/animSpeed) --delta=7.88
+				turn(torso, 1, -4.288164, 60.727696/animSpeed) --delta=2.02
+				turn(torso, 3,  1.713372, 51.401158/animSpeed) --delta=-1.71
+				turn(torso, 2, 7.879434, 236.383029/animSpeed) --delta=7.88
 			Sleep( (33*animSpeed) -1)
 		end
 		while(bMoving) do
@@ -130,9 +133,9 @@ function walk()
 				turn(rthigh, 2, -5.809679, 163.179149/animSpeed) --delta=-5.44
 				if (rightArm) then turn(ruparm, 1, 16.696394, 141.829407/animSpeed) end--delta=4.73
 				if (rightArm) then turn(ruparm, 2, 5.908277, 124.359412/animSpeed) end--delta=4.15
-				turn(aimy1, 1, -3.674753, 18.402335/animSpeed) --delta=-0.61
-				turn(aimy1, 3,  4.188244, 74.246156/animSpeed) --delta=-2.47
-				turn(aimy1, 2, 13.926961, 181.425790/animSpeed) --delta=6.05
+				turn(torso, 1, -3.674753, 18.402335/animSpeed) --delta=-0.61
+				turn(torso, 3,  4.188244, 74.246156/animSpeed) --delta=-2.47
+				turn(torso, 2, 13.926961, 181.425790/animSpeed) --delta=6.05
 			Sleep( (33*animSpeed) -1)
 			end
 			if (bMoving) then --Frame:12
@@ -157,9 +160,9 @@ function walk()
 				turn(rthigh, 2, -5.182428, 18.817525/animSpeed) --delta=0.63
 				if (rightArm) then turn(ruparm, 1, 12.622570, 122.214735/animSpeed) end--delta=4.07
 				if (rightArm) then turn(ruparm, 2, 6.799999, 26.751678/animSpeed) end--delta=0.89
-				turn(aimy1, 1, -2.141225, 46.005832/animSpeed) --delta=-1.53
-				turn(aimy1, 3,  5.140116, 28.556180/animSpeed) --delta=-0.95
-				turn(aimy1, 2, 15.758869, 54.957239/animSpeed) --delta=1.83
+				turn(torso, 1, -2.141225, 46.005832/animSpeed) --delta=-1.53
+				turn(torso, 3,  5.140116, 28.556180/animSpeed) --delta=-0.95
+				turn(torso, 2, 15.758869, 54.957239/animSpeed) --delta=1.83
 			Sleep( (33*animSpeed) -1)
 			end
 			if (bMoving) then --Frame:16
@@ -185,9 +188,9 @@ function walk()
 				turn(rthigh, 2, 2.215249, 221.930321/animSpeed) --delta=7.40
 				if (rightArm) then turn(ruparm, 1, 12.782766, 4.805883/animSpeed) end--delta=-0.16
 				if (rightArm) then turn(ruparm, 2, 6.141609, 19.751703/animSpeed) end--delta=-0.66
-				turn(aimy1, 1, -3.061342, 27.603503/animSpeed) --delta=0.92
-				turn(aimy1, 3,  4.074019, 31.982933/animSpeed) --delta=1.07
-				turn(aimy1, 2, 13.926961, 54.957239/animSpeed) --delta=-1.83
+				turn(torso, 1, -3.061342, 27.603503/animSpeed) --delta=0.92
+				turn(torso, 3,  4.074019, 31.982933/animSpeed) --delta=1.07
+				turn(torso, 2, 13.926961, 54.957239/animSpeed) --delta=-1.83
 			Sleep( (33*animSpeed) -1)
 			end
 			if (bMoving) then --Frame:20
@@ -213,9 +216,9 @@ function walk()
 				turn(rthigh, 2, -1.498384, 111.408996/animSpeed) --delta=-3.71
 				if (rightArm) then turn(ruparm, 1, 13.904138, 33.641183/animSpeed) end--delta=-1.12
 				if (rightArm) then turn(ruparm, 2, 2.429630, 111.359389/animSpeed) end--delta=-3.71
-				turn(aimy1, 1, -3.981459, 27.603503/animSpeed) --delta=0.92
-				turn(aimy1, 3,  2.056047, 60.539158/animSpeed) --delta=2.02
-				turn(aimy1, 2, 7.879434, 181.425790/animSpeed) --delta=-6.05
+				turn(torso, 1, -3.981459, 27.603503/animSpeed) --delta=0.92
+				turn(torso, 3,  2.056047, 60.539158/animSpeed) --delta=2.02
+				turn(torso, 2, 7.879434, 181.425790/animSpeed) --delta=-6.05
 			Sleep( (33*animSpeed) -1)
 			end
 			if (bMoving) then --Frame:24
@@ -242,9 +245,9 @@ function walk()
 				turn(rthigh, 2, -9.866792, 251.052245/animSpeed) --delta=-8.37
 				if (rightArm) then turn(ruparm, 1, 16.947865, 91.311783/animSpeed) end--delta=-3.04
 				if (rightArm) then turn(ruparm, 2, 0.900000, 45.888888/animSpeed) end--delta=-1.53
-				turn(aimy1, 1, -4.594870, 18.402335/animSpeed) --delta=0.61
-				turn(aimy1, 3,  -0.000000, 61.681404/animSpeed) --delta=2.06
-				turn(aimy1, 2, 0.000000, 236.383029/animSpeed) --delta=-7.88
+				turn(torso, 1, -4.594870, 18.402335/animSpeed) --delta=0.61
+				turn(torso, 3,  -0.000000, 61.681404/animSpeed) --delta=2.06
+				turn(torso, 2, 0.000000, 236.383029/animSpeed) --delta=-7.88
 			Sleep( (33*animSpeed) -1)
 			end
 			if (bMoving) then --Frame:28
@@ -271,9 +274,9 @@ function walk()
 				turn(rthigh, 2, -16.084974, 186.545461/animSpeed) --delta=-6.22
 				if (rightArm) then turn(ruparm, 1, 22.234335, 158.594124/animSpeed) end--delta=-5.29
 				if (rightArm) then turn(ruparm, 2, -0.812436, 51.373077/animSpeed) end--delta=-1.71
-				turn(aimy1, 1, -4.288164, 9.201174/animSpeed) --delta=-0.31
-				turn(aimy1, 3,  -2.053859, 61.615764/animSpeed) --delta=2.05
-				turn(aimy1, 2, -7.879434, 236.383029/animSpeed) --delta=-7.88
+				turn(torso, 1, -4.288164, 9.201174/animSpeed) --delta=-0.31
+				turn(torso, 3,  -2.053859, 61.615764/animSpeed) --delta=2.05
+				turn(torso, 2, -7.879434, 236.383029/animSpeed) --delta=-7.88
 			Sleep( (33*animSpeed) -1)
 			end
 			if (bMoving) then --Frame:32
@@ -297,9 +300,9 @@ function walk()
 				turn(rthigh, 2, -18.341445, 67.694124/animSpeed) --delta=-2.26
 				if (rightArm) then turn(ruparm, 1, 27.520808, 158.594175/animSpeed) end--delta=-5.29
 				if (rightArm) then turn(ruparm, 2, -1.893975, 32.446164/animSpeed) end--delta=-1.08
-				turn(aimy1, 1, -3.674753, 18.402335/animSpeed) --delta=-0.61
-				turn(aimy1, 3,  -4.074748, 60.626684/animSpeed) --delta=2.02
-				turn(aimy1, 2, -13.926961, 181.425790/animSpeed) --delta=-6.05
+				turn(torso, 1, -3.674753, 18.402335/animSpeed) --delta=-0.61
+				turn(torso, 3,  -4.074748, 60.626684/animSpeed) --delta=2.02
+				turn(torso, 2, -13.926961, 181.425790/animSpeed) --delta=-6.05
 			Sleep( (33*animSpeed) -1)
 			end
 			if (bMoving) then --Frame:36
@@ -324,9 +327,9 @@ function walk()
 				turn(rthigh, 2, -18.495587, 4.624260/animSpeed) --delta=-0.15
 				if (rightArm) then turn(ruparm, 1, 29.923749, 72.088224/animSpeed) end--delta=-2.40
 				if (rightArm) then turn(ruparm, 2, -2.615000, 21.630765/animSpeed) end--delta=-0.72
-				turn(aimy1, 1, -2.141225, 46.005832/animSpeed) --delta=-1.53
-				turn(aimy1, 3,  -5.140116, 31.961046/animSpeed) --delta=1.07
-				turn(aimy1, 2, -15.758869, 54.957239/animSpeed) --delta=-1.83
+				turn(torso, 1, -2.141225, 46.005832/animSpeed) --delta=-1.53
+				turn(torso, 3,  -5.140116, 31.961046/animSpeed) --delta=1.07
+				turn(torso, 2, -15.758869, 54.957239/animSpeed) --delta=-1.83
 			Sleep( (33*animSpeed) -1)
 			end
 			if (bMoving) then --Frame:40
@@ -353,9 +356,9 @@ function walk()
 				turn(rthigh, 2, -17.767171, 21.852473/animSpeed) --delta=0.73
 				if (rightArm) then turn(ruparm, 1, 28.884286, 31.183878/animSpeed) end--delta=1.04
 				if (rightArm) then turn(ruparm, 2, -1.954060, 19.828204/animSpeed) end--delta=0.66
-				turn(aimy1, 1, -3.061342, 27.603503/animSpeed) --delta=0.92
-				turn(aimy1, 3,  -4.043559, 32.896722/animSpeed) --delta=-1.10
-				turn(aimy1, 2, -13.926961, 54.957239/animSpeed) --delta=1.83
+				turn(torso, 1, -3.061342, 27.603503/animSpeed) --delta=0.92
+				turn(torso, 3,  -4.043559, 32.896722/animSpeed) --delta=-1.10
+				turn(torso, 2, -13.926961, 54.957239/animSpeed) --delta=1.83
 			Sleep( (33*animSpeed) -1)
 			end
 			if (bMoving) then --Frame:44
@@ -381,9 +384,9 @@ function walk()
 				turn(rthigh, 2, -9.017982, 262.475666/animSpeed) --delta=8.75
 				if (rightArm) then turn(ruparm, 1, 26.384334, 74.998551/animSpeed) end--delta=2.50
 				if (rightArm) then turn(ruparm, 2, -0.722308, 36.952569/animSpeed) end--delta=1.23
-				turn(aimy1, 1, -3.981459, 27.603503/animSpeed) --delta=0.92
-				turn(aimy1, 3,  -2.147426, 56.883980/animSpeed) --delta=-1.90
-				turn(aimy1, 2, -7.879434, 181.425790/animSpeed) --delta=6.05
+				turn(torso, 1, -3.981459, 27.603503/animSpeed) --delta=0.92
+				turn(torso, 3,  -2.147426, 56.883980/animSpeed) --delta=-1.90
+				turn(torso, 2, -7.879434, 181.425790/animSpeed) --delta=6.05
 			Sleep( (33*animSpeed) -1)
 			end
 			if (bMoving) then --Frame:48
@@ -410,9 +413,9 @@ function walk()
 				turn(rthigh, 2, -1.531381, 224.598052/animSpeed) --delta=7.49
 				if (rightArm) then turn(ruparm, 1, 23.351554, 90.983396/animSpeed) end--delta=3.03
 				if (rightArm) then turn(ruparm, 2, 0.479402, 36.051284/animSpeed) end--delta=1.20
-				turn(aimy1, 1, -4.594870, 18.402335/animSpeed) --delta=0.61
-				turn(aimy1, 3,  -0.000000, 64.422792/animSpeed) --delta=-2.15
-				turn(aimy1, 2, 0.000000, 236.383029/animSpeed) --delta=7.88
+				turn(torso, 1, -4.594870, 18.402335/animSpeed) --delta=0.61
+				turn(torso, 3,  -0.000000, 64.422792/animSpeed) --delta=-2.15
+				turn(torso, 2, 0.000000, 236.383029/animSpeed) --delta=7.88
 			Sleep( (33*animSpeed) -1)
 			end
 			if (bMoving) then --Frame:52
@@ -439,9 +442,9 @@ function walk()
 				turn(rthigh, 2, -0.370374, 34.830198/animSpeed) --delta=1.16
 				if (rightArm) then turn(ruparm, 1, 21.424041, 57.825406/animSpeed) end--delta=1.93
 				if (rightArm) then turn(ruparm, 2, 1.762963, 38.506840/animSpeed) end--delta=1.28
-				turn(aimy1, 1, -4.288164, 9.201174/animSpeed) --delta=-0.31
-				turn(aimy1, 3,  1.713372, 51.401158/animSpeed) --delta=-1.71
-				turn(aimy1, 2, 7.879434, 236.383029/animSpeed) --delta=7.88
+				turn(torso, 1, -4.288164, 9.201174/animSpeed) --delta=-0.31
+				turn(torso, 3,  1.713372, 51.401158/animSpeed) --delta=-1.71
+				turn(torso, 2, 7.879434, 236.383029/animSpeed) --delta=7.88
 				Sleep( (33*animSpeed) -1)
 			end
 		end
@@ -487,9 +490,9 @@ function StopWalking()
 	if (rightArm) then turn(ruparm,1, 24.693159, 39.648544) end
 	if (rightArm) then turn(ruparm,2, 0.000000, 31.089853) end
 	if (rightArm) then turn(ruparm,3, 12.399998, -7.153845) end
-	turn(aimy1,1, -2.263907, 15.181924)
-	turn(aimy1,2, 0.000000, 59.095757)
-	turn(aimy1,3, 0.000000, 18.561539)
+	turn(torso,1, -2.263907, 15.181924)
+	turn(torso,2, 0.000000, 59.095757)
+	turn(torso,3, 0.000000, 18.561539)
 end
 
 function AmIBored()
@@ -525,16 +528,16 @@ end
 function ResumeBuilding()
 	Sleep(800)
 	if isBuilding and not isAiming then
-		Turn(torso, 2, buildHeading, rad(150.000000))
+		Turn(aimy1, 2, buildHeading, rad(150.000000))
 		Turn(luparm, 1, rad(-55) - buildPitch, rad(45.000000))
 	end
 	return (0)
 end
 
 function script.Create()
-	Turn(lflare, 1,math.rad(90))
-	Turn(nano, 1,math.rad(90))
-	Turn(laserflare, 1,math.rad(90))
+	--Turn(lflare, 1,math.rad(90)) -- WHY?
+	--Turn(nano, 1,math.rad(90)) -- WHY?
+	--Turn(laserflare, 1,math.rad(90)) -- WHY?
 	Spin(dish, 2, 2.5)
 	isAiming = false
 	isAimingDgun = false
@@ -571,6 +574,7 @@ function script.AimFromWeapon(weapon)
 end
 
 function script.AimWeapon(weapon, heading, pitch)
+  --Spring.Echo("Armcom aiming:",weapons[weapon])
 	if weapons[weapon] == "laser" then
 		if isAimingDgun == true then
 			return false
@@ -578,10 +582,10 @@ function script.AimWeapon(weapon, heading, pitch)
 			leftArm = false
 			SetSignalMask(SIG_AIM)
 			Signal(SIG_AIM)
-			Turn(torso, 2, heading, rad(300.0000)) -- Turn(torso, y-axis, heading, math.rad(300))
+			Turn(aimy1, 2, heading, rad(300.0000)) -- Turn(torso, y-axis, heading, math.rad(300))
 			Turn(rloarm, 1, rad(-55), rad(390.0000)) -- Turn(rloarm, x-axis, math.rad(-55), math.rad(390))
 			Turn(ruparm, 1, rad(-40)-pitch, rad(390.0000)) -- Turn(ruparm,	x-axis, math.rad(-55) - pitch, math.rad(390))
-			WaitForTurn(torso,2)
+			WaitForTurn(aimy1,2)
 			isAiming = true
 			if isBuilding == true then
 				StartThread(ResumeBuilding)
@@ -592,16 +596,18 @@ function script.AimWeapon(weapon, heading, pitch)
 	elseif weapons[weapon] == "uwlaser" then
 		if isAimingDgun == true then
 			return false
-		elseif not BelowWater(head) then
+		elseif not BelowWater(rloarm) then
 			return false
 		else
 			leftArm = false
 			SetSignalMask(SIG_AIM)
 			Signal(SIG_AIM)
-			Turn(torso, 2, heading, rad(300.0000)) -- Turn(torso, y-axis, heading, math.rad(300))
+      
+			Turn(aimy1, 2, heading, rad(300.0000)) -- Turn(torso, y-axis, heading, math.rad(300))
 			Turn(rloarm, 1, rad(-55), rad(390.0000)) -- Turn(rloarm, x-axis, math.rad(-55), math.rad(390))
 			Turn(ruparm, 1, rad(-40)-pitch, rad(390.0000)) -- Turn(ruparm,	x-axis, math.rad(-55) - pitch, math.rad(390))
-			WaitForTurn(torso,2)
+      
+			WaitForTurn(aimy1,2)
 			isAiming = true
 			if isBuilding == true then
 				StartThread(ResumeBuilding)
@@ -613,10 +619,10 @@ function script.AimWeapon(weapon, heading, pitch)
 		isAimingDgun = true
 		isAiming = true
 		leftArm = false
-		Turn(torso, 2, heading, rad(360.0000)) -- Turn(torso, y-axis, heading, math.rad(300))
+		Turn(aimy1, 2, heading, rad(360.0000)) -- Turn(torso, y-axis, heading, math.rad(300))
 		Turn(biggun, 1, rad(-105), rad(900.0000)) -- Turn(rloarm, x-axis, math.rad(-55), math.rad(390))
 		Turn(luparm, 1, rad(15)-pitch, rad(900.0000)) -- Turn(ruparm,	x-axis, math.rad(-55) - pitch, math.rad(390))
-		WaitForTurn(torso,2)
+		WaitForTurn(aimy1,2)
 		return true
 	end
 end
@@ -684,7 +690,7 @@ end
 function Restore()
 	SetSignalMask(SIG_AIM)
 	Sleep(3000)
-	turn(torso, 2, 0, 105)
+	turn(aimy1, 2, 0, 105)
 	turn(biggun, 1, -38, 95.0000)
 	turn(luparm, 1, 0, 95.0000)
 	turn(rloarm, 1, -38, 95.0000)
