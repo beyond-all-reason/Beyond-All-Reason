@@ -23,10 +23,6 @@ function widget:GetInfo()
 	}
 end
 
-local texts = {
-	title = 'Scavengers',
-}
-
 local show = true	-- gets disabled when it has been loaded before
 
 local vsx,vsy = Spring.GetViewGeometry()
@@ -200,9 +196,9 @@ function DrawWindow()
 	UiElement(screenX, screenY - screenHeight, screenX + screenWidth, screenY, 0, 1, 1, 1, 1,1,1,1, ui_opacity + 0.2)
 
 	-- title background
-	local title = texts.title
+	local title = Spring.I18N('ui.topbar.button.scavengers')
 	local titleFontSize = 18 * widgetScale
-	titleRect = { screenX, screenY, math.floor(screenX + (font2:GetTextWidth(texts.title) * titleFontSize) + (titleFontSize*1.5)), math.floor(screenY + (titleFontSize*1.7)) }
+	titleRect = { screenX, screenY, math.floor(screenX + (font2:GetTextWidth(title) * titleFontSize) + (titleFontSize*1.5)), math.floor(screenY + (titleFontSize*1.7)) }
 
 	gl.Color(0, 0, 0, Spring.GetConfigFloat("ui_opacity", 0.6) + 0.2)
 	RectRound(titleRect[1], titleRect[2], titleRect[3], titleRect[4], elementCorner, 1, 1, 0, 0)
@@ -347,9 +343,6 @@ function lines(str)
 end
 
 function widget:Initialize()
-	if WG['lang'] then
-		--texts = WG['lang'].getText('scavengers')
-	end
 	if textFile then
 
 		WG['scavengerinfo'] = {}

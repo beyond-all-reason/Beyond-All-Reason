@@ -398,7 +398,7 @@ local function updateRejoin()
 		local mins = math.floor(serverFrame / 30 / 60)
 		local secs = math.floor(((serverFrame / 30 / 60) - mins) * 60)
 		local gametime = mins..':'..(secs < 10 and '0'..secs or secs)
-		WG['tooltip'].AddTooltip('rejoin', area, Spring.I18N('ui.topbar.catchingUpTooltip')..'\n'..Spring.I18N('ui.topbar.catchingUpTooltipGametime')..' '..gametime)
+		WG['tooltip'].AddTooltip('rejoin', area, Spring.I18N('ui.topbar.catchingUpTooltip', { gameTime = gametime }))
 	end
 end
 

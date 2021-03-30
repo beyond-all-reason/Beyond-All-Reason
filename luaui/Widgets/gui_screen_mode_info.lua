@@ -51,7 +51,7 @@ function widget:DrawScreen()
 	local st = Spring.GetCameraState()
 	local screenmode = Spring.GetMapDrawMode()
 	if (screenmode ~= 'normal' and screenmode ~= 'los') or st.name == 'ov' then
-		local description = ''
+		local description, title = '', ''
 		glPushMatrix()
 		glTranslate((vsx * 0.5), (vsy * 0.21), 0) --has to be below where newbie info appears!
 
@@ -59,18 +59,24 @@ function widget:DrawScreen()
 		if st.name == 'ov' then
 			screenmode = ''
 		end
-		if screenmode ~= '' then
-			font:Print('\255\233\233\233' .. Spring.I18N('ui.screenMode.title') .. ':  \255\255\255\255' .. screenmode, 0, 15 * widgetScale, 20 * widgetScale, "oc")
-		end
+		
 		if st.name == 'ov' then
 			description = Spring.I18N('ui.screenMode.overview', { highlightColor = '\255\255\255\255', textColor = '\255\215\215\215' })
 		elseif screenmode == 'height' then
+			title = Spring.I18N('ui.screenMode.heightTitle')
 			description = Spring.I18N('ui.screenMode.heightmap')
 		elseif screenmode == 'pathTraversability' then
+			title = Spring.I18N('ui.screenMode.pathingTitle')
 			description = Spring.I18N('ui.screenMode.pathing')
 		elseif screenmode == 'metal' then
+			title = Spring.I18N('ui.screenMode.resourcesTitle')
 			description = Spring.I18N('ui.screenMode.resources')
 		end
+
+		if screenmode ~= '' then
+			font:Print('\255\233\233\233' .. Spring.I18N('ui.screenMode.title', { screenMode = title, highlightColor = "\255\255\255\255" }), 0, 15 * widgetScale, 20 * widgetScale, "oc")
+		end
+
 		if description ~= '' then
 			font:Print('\255\215\215\215' .. description, 0, -10 * widgetScale, 17 * widgetScale, "oc")
 		end
