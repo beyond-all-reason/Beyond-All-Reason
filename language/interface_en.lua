@@ -22,8 +22,7 @@ return {
 					reallyResignSpectate = 'Are you sure you want to resign and spectate?',
 				},
 				catchingUp = 'Catching up',
-				catchingUpTooltip = 'Displays the catch-up progress',
-				catchingUpTooltipGametime = 'Game time:',
+				catchingUpTooltip = 'Displays the catch-up progress\nGame time: %{gameTime}',
 				commanderCountTooltip = '%{titleColor}Commander Counter\nDisplays the number of ally\nand enemy commanders',
 				wind = {
 					nowind1 = 'No',
