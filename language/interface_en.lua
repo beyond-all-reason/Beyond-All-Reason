@@ -447,11 +447,14 @@ return {
 				startbox = "Pick a startspot within the green area, and click the Ready button. (F4 shows metal spots)",
 			},
 			screenMode = {
-				title = 'Screen mode',
+				title = 'Screen mode: %{highlightColor}%{screenMode}',
 				overview = 'Press %{highlightColor}[TAB]%{textColor} to zoom onto mouse position',
-				heightmap = '[F1] displays a different color for every height level',
-				pathing = '[F2] shows where the selected unit can path/move, Green: OK, Red: problematic, Purple: Cant path',
-				resources = '[F4] shows green areas on the map than contain metal',
+				heightTitle = 'Height',
+				heightmap = '[F1] Displays a different color for every height level',
+				pathingTitle = 'Traversability',
+				pathing = '[F2] Shows where the selected unit can move, Green: okay, Red: problematic, Purple: can\'t move',
+				resourcesTitle = 'Resources',
+				resources = '[F4] Highlights metal spots and geothermal vents',
 			},
 			pauseScreen = {
 				paused = 'GAME  PAUSED',
