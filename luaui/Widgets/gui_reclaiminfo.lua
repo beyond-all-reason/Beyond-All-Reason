@@ -154,7 +154,7 @@ function widget:DrawScreen()
 		end
 		metal = math.floor(metal)
 		energy = math.floor(energy)
-		local text = "   " .. Spring.I18N('ui.reclaimInfo.metal') .. ":" .. metal .. "\255\255\255\128" .. " " .. Spring.I18N('ui.reclaimInfo.energy') .. ":" .. energy
+		local text = "   " .. Spring.I18N('ui.reclaimInfo.metal', { metal = metal }) .. "\255\255\255\128" .. " " .. Spring.I18N('ui.reclaimInfo.energy', { energy = energy })
 		local textwidth = 12 * font:GetTextWidth(text)
 		if textwidth + x > vsx then
 			x = x - textwidth - 10
@@ -174,7 +174,7 @@ function widget:DrawScreen()
 			local unitDefID = Spring.GetUnitDefID(unitID)
 			local _, _, _, _, buildprogress = Spring.GetUnitHealth(unitID)
 			metal = math.floor(unitMetalCost[unitDefID] * buildprogress)
-			local text = "   " .. Spring.I18N('ui.reclaimInfo.metal') .. ":" .. metal
+			local text = "   " .. Spring.I18N('ui.reclaimInfo.metal', { metal = metal })
 			local textwidth = 12 * font:GetTextWidth(text)
 			if textwidth + x > vsx then
 				x = x - textwidth - 10

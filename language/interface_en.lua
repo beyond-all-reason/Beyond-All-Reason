@@ -413,8 +413,8 @@ return {
 				resourceExcess = 'Excess',
 			},
 			reclaimInfo = {
-				metal = 'M',
-				energy = 'E',
+				metal = 'Metal: %{metal}',
+				energy = 'Energy: %{energy}',
 			},
 			prospector = {
 				metalExtraction = 'Metal extraction: %{amount}',
