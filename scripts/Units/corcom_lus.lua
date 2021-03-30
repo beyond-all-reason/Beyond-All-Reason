@@ -52,8 +52,10 @@ local CEGLevelUp = "commander-levelup"
 local ValidID = Spring.ValidUnitID
 
 local function BelowWater(piecename)
-	x,y,z = Spring.GetUnitPiecePosition(unitID, piecename)
-	if y <= 0 then
+	local _,y,_ = Spring.GetUnitPiecePosition(unitID, piecename) 
+  -- this returns unit space, so why does it work for corcom?
+  local _, py, _ = Spring.GetUnitPosition(unitID)
+	if (y+ py) <= 0 then
 		return true
 	else
 		return false
@@ -560,7 +562,7 @@ function script.AimWeapon(weapon, heading, pitch)
 	elseif weapons[weapon] == "uwlaser" then
 		if isAimingDgun == true then
 			return false
-		elseif not BelowWater(head) then
+		elseif not BelowWater(nanolathe) then
 			return false
 		else
 			leftArm = false
