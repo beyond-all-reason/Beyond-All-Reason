@@ -404,7 +404,7 @@ local function checkGuishader(force)
 		end
 		if not dlistGuishader then
 			dlistGuishader = gl.CreateList(function()
-				RectRound(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], elementCorner)
+				RectRound(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], elementCorner, 0, 1, 0, 0)
 			end)
 			WG['guishader'].InsertDlist(dlistGuishader, 'info')
 		end
@@ -485,7 +485,7 @@ function widget:Initialize()
 	if WG['lang'] then
 		texts = WG['lang'].getText('info')
 	end
-	
+
 	widget:ViewResize()
 
 	WG['info'] = {}

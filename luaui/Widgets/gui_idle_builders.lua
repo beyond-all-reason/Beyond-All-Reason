@@ -1,63 +1,94 @@
 function widget:GetInfo()
 	return {
 		name = "Idle Builders",
-		desc = "Idle Indicator",
+		desc = "Interface shows unit groups via stacked icons",
 		author = "Floris (original by Ray)",
-		date = "15 april 2015",
+		date = "March 2021",
 		license = "GNU GPL, v2 or later",
-		layer = 0,
-		enabled = true  --  loaded by default?
+		layer = 2,
+		enabled = true
 	}
 end
 
--------------------------------------------------------------------------------
--------------------------------------------------------------------------------
-
-local vsx, vsy = Spring.GetViewGeometry()
-
-local enabledAsSpec = false
-
-local MAX_ICONS = 14
-local iconsize = 35
-local CONDENSE = true -- show one icon for all builders of same type
-local POSITION_X = 0.5 -- horizontal centre of screen
-local POSITION_Y = 0.178 -- near bottom
-local NEAR_IDLE = 0 -- this means that factories with only X build items left will be shown as idle
-
-local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity", 0.6) or 0.66)
-local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
-
-local ICON_SIZE = iconsize * (1 + (ui_scale - 1) / 1.5)
-ICON_SIZE = math.floor(ICON_SIZE/2) * 2	-- make sure it's divisible by 2
-
-local cornerSize = 7
-local bgcornerSize = cornerSize
-
+local alwaysShow = true		-- always show AT LEAST the label
+local alwaysShowLabel = true	-- always show the label regardless
+local showWhenSpec = false
+local showStack = false
+local iconSizeMult = 0.98
+local highlightSelectedGroups = true
 local playSounds = true
+local soundVolume = 0.5
+local setHeight = 0.048
+local aboveUnitgroups = false
+local maxGroups = 9
+
 local leftclick = 'LuaUI/Sounds/buildbar_add.wav'
 local rightclick = 'LuaUI/Sounds/buildbar_click.wav'
 
+local vsx, vsy = Spring.GetViewGeometry()
 local fontFile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
-local chobbyInterface, font
 
-local X_MIN = 0
-local X_MAX = 0
-local Y_MIN = 0
-local Y_MAX = 0
-local drawTable = {}
-local IdleList = {}
-local activePress = false
-local QCount = {}
-local noOfIcons = 0
-local displayList = {}
+local spec = Spring.GetSpectatingState()
 
-local spGetSpectatingState = Spring.GetSpectatingState
-local enabled = true
+local widgetSpaceMargin = Spring.FlowUI.elementMargin
+local backgroundPadding = Spring.FlowUI.elementPadding
+local elementCorner = Spring.FlowUI.elementCorner
+local RectRound = Spring.FlowUI.Draw.RectRound
+local TexturedRectRound = Spring.FlowUI.Draw.TexturedRectRound
+local UiElement = Spring.FlowUI.Draw.Element
+local UiButton = Spring.FlowUI.Draw.Button
+local UiUnit = Spring.FlowUI.Draw.Unit
+
+local spGetGroupList = Spring.GetGroupList
+local spGetGroupUnitsCounts = Spring.GetGroupUnitsCounts
+local spGetGroupUnitsCount = Spring.GetGroupUnitsCount
+local spGetMouseState = Spring.GetMouseState
+local spGetUnitDefID = Spring.GetUnitDefID
+local spGetFullBuildQueue = Spring.GetFullBuildQueue
+local spGetUnitHealth = Spring.GetUnitHealth
+local spGetCommandQueue = Spring.GetCommandQueue
+local spGetTeamUnitsSorted = Spring.GetTeamUnitsSorted
+local myTeamID = Spring.GetMyTeamID()
+
+local floor = math.floor
+local ceil = math.ceil
+local min = math.min
+local max = math.max
+
+local GL_SRC_ALPHA = GL.SRC_ALPHA
+local GL_ONE = GL.ONE
+local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
+
+local uiOpacity = tonumber(Spring.GetConfigFloat("ui_opacity", 0.6) or 0.66)
+local uiScale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
+local height = setHeight * uiScale
+local posX = 0
+local posY = 0
+local iconMargin = 0
+local groupSize = 0
+local usedWidth = 0
+local usedHeight = 0
+local hovered = false
+local numGroups = 0
+local selectedUnits = Spring.GetSelectedUnits() or {}
+local selectionHasChanged = true
+local selectedGroups = {}
+local unitgroupsActive = false
+
+local groupButtons = {}
+local existingGroups = {}
+local clicks = {}
+
+local nearIdle = 0 -- this means that factories with only X build items left will be shown as idle
+local qCount = {}
+local idleList = {}
+
+local font, font2, chobbyInterface, buildmenuBottomPosition, dlist, dlistGuishader, backgroundRect, ordermenuPosY
 
 local isBuilder = {}
 local isFactory = {}
 local unitBuildPic = {}
-local unitHumanName = {}
+local unitName = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.buildSpeed > 0 then --and unitDef.buildOptions[1] then
 		isBuilder[unitDefID] = true
@@ -68,138 +99,38 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.buildpicname then
 		unitBuildPic[unitDefID] = unitDef.buildpicname
 	end
-	if unitDef.humanName then
-		unitHumanName[unitDefID] = unitDef.humanName
+	if unitDef.name then
+		unitName[unitDefID] = unitDef.name
 	end
 end
 
--------------------------------------------------------------------------------
--------------------------------------------------------------------------------
-
-local glColor = gl.Color
-local glShape = gl.Shape
-local glBlending = gl.Blending
-local glMaterial = gl.Material
-local glTranslate = gl.Translate
-local glTexture = gl.Texture
-local glPushMatrix = gl.PushMatrix
-local glPopMatrix = gl.PopMatrix
-local glClear = gl.Clear
-local glText = gl.Text
-local glUnit = gl.Unit
-local glRotate = gl.Rotate
-local glRect = gl.Rect
-local glCallList = gl.CallList
-local glCreateList = gl.CreateList
-local glDeleteList = gl.DeleteList
-local glBeginEnd = gl.BeginEnd
-local glTexCoord = gl.TexCoord
-local glVertex = gl.Vertex
-local glGetScreenViewTrans = gl.GetScreenViewTrans
-
-local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
-local GL_LINE_LOOP = GL.LINE_LOOP
-local GL_FRONT = GL.FRONT
-local GL_SRC_ALPHA = GL.SRC_ALPHA
-local GL_ONE = GL.ONE
-local GL_QUADS = GL.QUADS
-local GL_DEPTH_BUFFER_BIT = GL.DEPTH_BUFFER_BIT
-
-local GetUnitDefID = Spring.GetUnitDefID
-local GetFullBuildQueue = Spring.GetFullBuildQueue
-local GetUnitHealth = Spring.GetUnitHealth
-local GetCommandQueue = Spring.GetCommandQueue
-local GetMyTeamID = Spring.GetMyTeamID
-local GetTeamUnitsSorted = Spring.GetTeamUnitsSorted
-local GetMouseState = Spring.GetMouseState
-local GetUnitPosition = Spring.GetUnitPosition
-local SendCommands = Spring.SendCommands
-local SelectUnitArray = Spring.SelectUnitArray
-local GetModKeyState = Spring.GetModKeyState
-local GetUnitDefDimensions = Spring.GetUnitDefDimensions
-
-local GetViewGeometry = Spring.GetViewGeometry
-local ValidUnitID = Spring.ValidUnitID
-local GetGameFrame = Spring.GetGameFrame
-
-local math_sin = math.sin
-local math_pi = math.pi
-
-local getn = table.getn
-
-local RectRound = Spring.FlowUI.Draw.RectRound
-local UiUnit = Spring.FlowUI.Draw.Unit
-local bgpadding = Spring.FlowUI.elementPadding
-
--------------------------------------------------------------------------------
--------------------------------------------------------------------------------
-
-local sizeMultiplier = 1
-local function init()
-	vsx, vsy = GetViewGeometry()
-	sizeMultiplier = (((vsy) / 750) * 1) * (1 + (ui_scale - 1) / 1.5)
-
-	ICON_SIZE = iconsize * sizeMultiplier
-	ICON_SIZE = math.floor(ICON_SIZE/2) * 2	-- make sure it's divisible by 2
-
-	bgcornerSize = cornerSize * (sizeMultiplier - 1)
-	noOfIcons = 0   -- this fixes positioning when resolution change
-end
-
-function widget:ViewResize()
-	vsx, vsy = Spring.GetViewGeometry()
-	font = WG['fonts'].getFont(fontFile, 1, 0.2, 1.3)
-	bgpadding = Spring.FlowUI.elementPadding
-	init()
-end
-
-function widget:PlayerChanged(playerID)
-	if enabledAsSpec == false and Spring.GetGameFrame() > 0 and Spring.GetSpectatingState() then
-		widgetHandler:RemoveWidget(self)
-	end
-end
-
-function widget:Initialize()
-	widget:ViewResize()
-	widget:PlayerChanged()
-	enabled = true
-	if not enabledAsSpec then
-		enabled = not spGetSpectatingState()
-	end
-	init()
-end
-
-function widget:GameOver()
-	widgetHandler:RemoveWidget(self)
-end
-
-local function IsIdleBuilder(unitID)
-	local udef = GetUnitDefID(unitID)
+local function isIdleBuilder(unitID)
+	local udef = spGetUnitDefID(unitID)
 	local qCount = 0
 	if isBuilder[udef] then
 		--- can build
-		local bQueue = GetFullBuildQueue(unitID)
-		if not bQueue[1] then
+		local buildQueue = spGetFullBuildQueue(unitID)
+		if not buildQueue[1] then
 			--- has no build queue
-			local _, _, _, _, buildProg = GetUnitHealth(unitID)
-			if buildProg == 1 then
+			local _, _, _, _, buildProgress = spGetUnitHealth(unitID)
+			if buildProgress == 1 then
 				--- isnt under construction
 				if isFactory[udef] then
 					return true
 				else
-					if GetCommandQueue(unitID, 0) == 0 then
+					if spGetCommandQueue(unitID, 0) == 0 then
 						return true
 					end
 				end
 			end
 		elseif isFactory[udef] then
-			for _, thing in ipairs(bQueue) do
+			for _, thing in ipairs(buildQueue) do
 				for _, count in pairs(thing) do
 					qCount = qCount + count
 				end
 			end
-			if qCount <= NEAR_IDLE then
-				QCount[unitID] = qCount
+			if qCount <= nearIdle then
+				qCount[unitID] = qCount
 				return true
 			end
 		end
@@ -207,260 +138,93 @@ local function IsIdleBuilder(unitID)
 	return false
 end
 
-local function DrawBoxes(number)
-	glColor({ 0, 0, 0, 0.85 })
-	local X1 = X_MIN
-	local ct = 0
-	while (ct < number) do
-		ct = ct + 1
-		local X2 = X1 + ICON_SIZE
-
-		if widgetHandler:InTweakMode() then
-			glShape(GL_LINE_LOOP, {
-				{ v = { X1, Y_MIN } },
-				{ v = { X2, Y_MIN } },
-				{ v = { X2, Y_MAX } },
-				{ v = { X1, Y_MAX } },
-			})
-			X1 = X2
+local function checkUnitGroupsPos()
+	if WG['unitgroups'] then
+		unitgroupsActive = true
+		local px, py, sx, sy = WG['unitgroups'].getPosition()
+		local oldPosX, oldPosY = posX, posY
+		if aboveUnitgroups then
+			posY = (sy + widgetSpaceMargin) / vsy
 		else
-			--DrawIconQuad((ct-1), { 0, 0, 0, 0.4 }, 1.2)
+			posX = (sx + widgetSpaceMargin) / vsx
 		end
-	end
-	--Spring.Echo(X2)
-end--]]
-
-
-local function MouseOverIcon(x, y)
-	if not drawTable then
-		return -1
-	end
-
-	local NumOfIcons = table.getn(drawTable)
-	if x < X_MIN then
-		return -1
-	end
-	if x > X_MAX then
-		return -1
-	end
-	if y < Y_MIN then
-		return -1
-	end
-	if y > Y_MAX then
-		return -1
-	end
-
-	local icon = math.floor((x - X_MIN) / ICON_SIZE)
-	if icon < 0 then
-		icon = 0
-	end
-	if icon >= NumOfIcons then
-		icon = (NumOfIcons - 1)
-	end
-	return icon
-end
-
-local function DrawUnitIcons(number)
-	if not drawTable then
-		return -1
-	end
-	local ct = 0
-	local X1, X2
-
-	local iconNum = MouseOverIcon(GetMouseState())
-
-	while ct < number do
-		ct = ct + 1
-		local unitID = drawTable[ct][2]
-
-		if (type(unitID) == 'number' and ValidUnitID(unitID)) or type(unitID) == 'table' then
-
-			if type(unitID) == 'table' then
-				unitID = unitID[1]
-			end
-
-			local unitDefID = GetUnitDefID(unitID)
-			if unitBuildPic[unitDefID] then
-				local iconPadding = math.floor(ICON_SIZE*0.05)
-				if ct-1 == iconNum then
-					iconPadding = math.floor(ICON_SIZE*0.02)
-				end
-
-				X1 = math.floor(X_MIN + (ICON_SIZE * (ct - 1)))
-				X2 = math.floor(X1 + ICON_SIZE)
-
-				local bordersize = math.max(1, math.floor(ICON_SIZE*0.02))
-				glColor(0,0,0,0.12)
-				RectRound(X1+iconPadding - bordersize, Y_MIN+iconPadding - bordersize, X2-iconPadding + bordersize, Y_MAX-iconPadding + bordersize, bgcornerSize*0.3)
-
-				glColor(1,1,1,1)
-				UiUnit(X1+iconPadding, Y_MIN+iconPadding, X2-iconPadding, Y_MAX-iconPadding,
-					math.ceil(bgpadding*0.5), 1,1,1,1,
-					0.05,
-					nil, nil,
-					':lr'..math.floor(ICON_SIZE*1.5)..','..math.floor(ICON_SIZE*1.5)..':unitpics/'..unitBuildPic[unitDefID]
-				)
-
-				if CONDENSE then
-					local NumberCondensed = table.getn(drawTable[ct][2])
-					if NumberCondensed > 1 then
-						font:Begin()
-						font:Print(NumberCondensed, X1+math.floor(ICON_SIZE*0.1), Y_MIN+math.floor(ICON_SIZE*0.13), 12 * sizeMultiplier, "o")
-						font:End()
-					end
-				end
-
-				if ValidUnitID(unitID) and QCount[unitID] then
-					font:Begin()
-					font:Print(QCount[unitID], X1 + (0.5 * ICON_SIZE), Y_MIN, 14 * sizeMultiplier, "ocn")
-					font:End()
-				end
-			end
+		if posX ~= oldPosX or posY ~= oldPosY then
+			doUpdate = true
 		end
+	elseif unitgroupsActive then
+		unitgroupsActive = false
+		doUpdate = true
+		widget:ViewResize()
 	end
-	glTexture(false)
 end
 
+function widget:ViewResize()
+	vsx, vsy = Spring.GetViewGeometry()
+	height = setHeight * uiScale
 
-function DrawIconQuad(iconPos, color, size)
-	local X1 =  math.floor(X_MIN + (ICON_SIZE * iconPos))
-	local X2 =  math.floor(X1 + ICON_SIZE)
+	font2 = WG['fonts'].getFont(nil, 1.3, 0.35, 1.4)
+	font = WG['fonts'].getFont(fontFile, 1.15, 0.35, 1.25)
 
-	local bordersize = math.max(1, math.floor(size*0.6))
+	elementCorner = Spring.FlowUI.elementCorner
+	backgroundPadding = Spring.FlowUI.elementPadding
+	widgetSpaceMargin = Spring.FlowUI.elementMargin
 
-	glColor(color)
-	RectRound(X1 - bordersize, Y_MIN - bordersize, X2 + bordersize, Y_MAX + bordersize, bgcornerSize/2)
-
-	if WG['guishader'] then
-		WG['guishader'].InsertDlist(glCreateList(function()
-			RectRound(X1 - bordersize, Y_MIN - bordersize, X2 + bordersize, Y_MAX + bordersize, bgcornerSize)
-		end), 'idlebuilders')
+	if WG['buildmenu'] then
+		buildmenuBottomPosition = WG['buildmenu'].getBottomPosition()
 	end
 
-end
-
-
-------------------------------------------------------------------------------------------------------------------------------------
-------------------------------------------------------------------------------------------------------------------------------------
-------------------------------------------------------------------------------------------------------------------------------------
-local Clicks = {}
-local mouseOnUnitID = nil
-
-function widget:GetConfigData(data)
-	return {
-		position_x = POSITION_X,
-		pposition_y = POSITION_Y,
-		--max_icons = MAX_ICONS
-	}
-end
-
-function widget:SetConfigData(data)
-	POSITION_X = data.position_x or POSITION_X
-	POSITION_Y = data.pposition_y or POSITION_Y
-	--MAX_ICONS = data.max_icons or MAX_ICONS
-end
-
-local sec = 0
-local doUpdate = true
-local uiOpacitySec = 0.5
-function widget:Update(dt)
-
-	if chobbyInterface then
-		return
+	local omPosX, omPosY, omWidth, omHeight = 0, 0, 0, 0
+	if WG['ordermenu'] then
+		omPosX, omPosY, omWidth, omHeight = WG['ordermenu'].getPosition()
 	end
+	ordermenuPosY = omPosY
 
-	if not enabled then
-		return
-	end
-
-	uiOpacitySec = uiOpacitySec + dt
-	if uiOpacitySec > 0.5 then
-		uiOpacitySec = 0
-		if ui_scale ~= Spring.GetConfigFloat("ui_scale", 1) then
-			ui_scale = Spring.GetConfigFloat("ui_scale", 1)
-			widget:ViewResize(Spring.GetViewGeometry())
+	if buildmenuBottomPosition then
+		posY = omHeight + (widgetSpaceMargin/vsy)
+		if omPosX <= 0.01 then
+			posX = omPosX + omWidth + (widgetSpaceMargin/vsx)
+		else
+			posX = 0
 		end
-		uiOpacitySec = 0
-		if ui_opacity ~= Spring.GetConfigFloat("ui_opacity", 0.6) then
-			ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.6)
-		end
-	end
-
-	local iconNum = MouseOverIcon(GetMouseState())
-	if iconNum < 0 then
-		mouseOnUnitID = nil
 	else
-		local unitID = drawTable[iconNum + 1][2]
-		local unitDefID = drawTable[iconNum + 1][1]
-		if not Clicks[unitDefID] then
-			Clicks[unitDefID] = 1
-		end
-		if type(unitID) == 'table' then
-			unitID = unitID[(Clicks[unitDefID] + 1) % getn(unitID) + 1]
-		end
-		mouseOnUnitID = unitID
+		posY = 0
+		posX = omPosX + omWidth + (widgetSpaceMargin/vsx)
 	end
 
-	sec = sec + dt
+	checkUnitGroupsPos()
 
-	if GetGameFrame() % 31 == 0 or doUpdate then
-		doUpdate = false
-		IdleList = {}
-		QCount = {}
-		local myUnits = GetTeamUnitsSorted(GetMyTeamID())
-		local unitCount = 0
-		for unitDefID, unitTable in pairs(myUnits) do
-			if type(unitTable) == 'table' then
-				for count, unitID in pairs(unitTable) do
-					if count ~= 'n' and IsIdleBuilder(unitID) then
-						unitCount = unitCount + 1
-						if IdleList[unitDefID] then
-							IdleList[unitDefID][#IdleList[unitDefID] + 1] = unitID
-						else
-							IdleList[unitDefID] = { unitID }
-						end
-					end
-				end
-			end
-		end
+	iconMargin = floor((backgroundPadding * 0.5) + 0.5)
+	groupSize = floor((height * vsy) - (posY-height > 0 and backgroundPadding or 0))
+	usedHeight = groupSize + (posY-height > 0 and backgroundPadding or 0)
+end
 
-		--if unitCount >= MAX_ICONS then
-		--	CONDENSE = true
-		--else
-		--	CONDENSE = false
-		--end
-
-		local oldNoOfIcons = noOfIcons
-		noOfIcons = 0
-		drawTable = {}
-		local drawTableCount = 0
-		for unitDefID, units in pairs(IdleList) do
-			if CONDENSE then
-				drawTableCount = drawTableCount + 1
-				drawTable[drawTableCount] = { unitDefID, units }
-				noOfIcons = noOfIcons + 1
-			else
-				for _, unitID in pairs(units) do
-					drawTableCount = drawTableCount + 1
-					drawTable[drawTableCount] = { unitDefID, unitID }
-				end
-				noOfIcons = noOfIcons + table.getn(units)
-			end
-		end
-		if noOfIcons > MAX_ICONS then
-			noOfIcons = MAX_ICONS
-		end
-		if noOfIcons ~= oldNoOfIcons then
-			calcSizes(noOfIcons)
-		end
+function widget:PlayerChanged(playerID)
+	spec = Spring.GetSpectatingState()
+	myTeamID = Spring.GetMyTeamID()
+	if not showWhenSpec and Spring.GetGameFrame() > 1 and spec then
+		widgetHandler:RemoveWidget(self)
+		return
 	end
 end
 
-function calcSizes(numIcons)
-	X_MIN = math.floor(POSITION_X * vsx - 0.5 * numIcons * ICON_SIZE)
-	X_MAX = math.floor(POSITION_X * vsx + 0.5 * numIcons * ICON_SIZE)
-	Y_MIN = math.floor(POSITION_Y * vsy - 0.5 * ICON_SIZE)
-	Y_MAX = math.floor(POSITION_Y * vsy + 0.5 * ICON_SIZE)
+function widget:Initialize()
+	widget:ViewResize()
+	widget:PlayerChanged()
+	WG['idlebuilders'] = {}
+	WG['idlebuilders'].getPosition = function()
+		return posX, posY, backgroundRect and backgroundRect[3] or posX, backgroundRect and backgroundRect[4] or posY + usedHeight
+	end
+end
+
+function widget:Shutdown()
+	if dlist then
+		gl.DeleteList(dlist)
+	end
+	if WG['guishader'] and dlistGuishader then
+		WG['guishader'].DeleteDlist('idlebuilders')
+		dlistGuishader = nil
+	end
+	WG['idlebuilders'] = nil
 end
 
 function widget:RecvLuaMsg(msg, playerID)
@@ -469,197 +233,411 @@ function widget:RecvLuaMsg(msg, playerID)
 	end
 end
 
+local function checkGuishader(force)
+	if WG['guishader'] then
+		if force and dlistGuishader then
+			WG['guishader'].RemoveDlist('idlebuilders')
+			dlistGuishader = gl.DeleteList(dlistGuishader)
+		end
+		if not dlistGuishader and backgroundRect then
+			dlistGuishader = gl.CreateList(function()
+				RectRound(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], elementCorner, ((posX <= 0) and 0 or 1), 1, ((posY-height > 0 or posX <= 0) and 1 or 0), ((posY-height > 0 and posX > 0) and 1 or 0))
+			end)
+			WG['guishader'].InsertDlist(dlistGuishader, 'idlebuilders')
+		end
+	elseif dlistGuishader then
+		WG['guishader'].RemoveDlist('idlebuilders')
+		dlistGuishader = gl.DeleteList(dlistGuishader)
+	end
+end
+
+local function drawIcon(unitDefID, rect, lightness, zoom, texSize, highlightOpacity)
+	gl.Color(lightness,lightness,lightness,1)
+	UiUnit(
+		rect[1], rect[2], rect[3], rect[4],
+		ceil(backgroundPadding*0.5), 1,1,1,1,
+		zoom,
+		nil, math.max(0.1, highlightOpacity or 0.1),
+		':lr'..texSize..','..texSize..':unitpics/'..unitBuildPic[unitDefID],
+		nil, nil, nil, nil
+	)
+	if highlightOpacity then
+		gl.Blending(GL_SRC_ALPHA, GL_ONE)
+		gl.Color(1,1,1,highlightOpacity)
+		RectRound(rect[1], rect[2], rect[3], rect[4], min(max(1, floor((rect[3]-rect[1]) * 0.024)), floor((vsy*0.0015)+0.5)))
+		gl.Blending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+	end
+end
+
+local function updateList()
+	if dlist then
+		dlist = gl.DeleteList(dlist)
+	end
+
+	idleList = {}
+	qCount = {}
+	local myUnits = spGetTeamUnitsSorted(myTeamID)
+	for unitDefID, units in pairs(myUnits) do
+		if type(units) == 'table' then
+			for count, unitID in pairs(units) do
+				if count ~= 'n' and isIdleBuilder(unitID) then
+					if idleList[unitDefID] then
+						idleList[unitDefID][#idleList[unitDefID] + 1] = unitID
+					else
+						idleList[unitDefID] = { unitID }
+					end
+				end
+			end
+		end
+	end
+
+	numGroups = 0
+	existingGroups = {}
+	for unitDefID, units in pairs(idleList) do
+		numGroups = numGroups + 1
+		existingGroups[numGroups] = unitDefID
+	end
+
+	if numGroups == 0 and not alwaysShow then
+		if backgroundRect then
+			backgroundRect = nil
+			checkGuishader(true)
+		end
+	else
+		dlist = gl.CreateList(function()
+			local mult = numGroups
+			if numGroups == 0 then
+				mult = 1
+			end
+
+			local groupWidth = groupSize - backgroundPadding
+			local startOffsetX = 0
+			if numGroups > 0 and alwaysShowLabel then
+				startOffsetX = groupWidth
+			end
+			usedWidth = (groupWidth * mult) + backgroundPadding + backgroundPadding + startOffsetX
+
+			backgroundRect = {
+				floor(posX * vsx),
+				floor(posY * vsy),
+				floor(posX * vsx) + usedWidth,
+				floor(posY * vsy) + usedHeight
+			}
+
+			UiElement(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], ((posX <= 0) and 0 or 1), 1, ((posY-height > 0 or posX <= 0) and 1 or 0), ((posY-height > 0 and posX > 0) and 1 or 0))
+
+			if numGroups == 0 or alwaysShowLabel then
+				local groupRect = {
+					floor(posX * vsx),
+					floor(posY * vsy),
+					floor(posX * vsx) + usedWidth - (groupWidth * numGroups),
+					floor(posY * vsy) + usedHeight
+				}
+				local fontSize = height*vsy*0.33
+				local offset = ((groupRect[3]-groupRect[1])/5)
+				local offsetY = -(fontSize*(posY > 0 and 0.22 or 0.31))
+				local style = 'c'
+				font2:Begin()
+				font2:SetTextColor(1,1,1,0.14)
+				offset = (fontSize*0.6)
+				font2:Print(Spring.I18N('ui.idleBuilders.z'), groupRect[1]+((groupRect[3]-groupRect[1])/2)-offset, groupRect[2]+((groupRect[4]-groupRect[2])/2)+offset+offsetY, fontSize, style)
+				fontSize = fontSize * 1.2
+				font2:Print(Spring.I18N('ui.idleBuilders.z'), groupRect[1]+((groupRect[3]-groupRect[1])/2), groupRect[2]+((groupRect[4]-groupRect[2])/2)+offsetY, fontSize, style)
+				fontSize = fontSize * 1.2
+				offset = (fontSize*0.48)
+				font2:Print(Spring.I18N('ui.idleBuilders.z'), groupRect[1]+((groupRect[3]-groupRect[1])/2)+offset, groupRect[2]+((groupRect[4]-groupRect[2])/2)-offset+offsetY, fontSize, style)
+				font2:End()
+			end
+
+			if numGroups > 0 then
+				local hoveredGroup = -1
+				local x, y, b, b2, b3 = spGetMouseState()
+				if groupButtons then
+					for i,v in pairs(groupButtons) do
+						if IsOnRect(x, y, groupButtons[i][1], groupButtons[i][2], groupButtons[i][3], groupButtons[i][4]) then
+							hoveredGroup = groupButtons[i][5]
+							break
+						end
+					end
+				end
+
+				local groupCounter = 0
+				groupButtons = {}
+				for group=1, maxGroups do
+					if existingGroups[group] then
+						local groupRect = {
+							backgroundRect[1]+backgroundPadding+((groupSize-backgroundPadding)*groupCounter)+startOffsetX,
+							backgroundRect[2]+(posY-height > 0 and backgroundPadding or 0),
+							backgroundRect[1]+backgroundPadding+(groupSize-backgroundPadding)+((groupSize-backgroundPadding)*groupCounter)+startOffsetX,
+							backgroundRect[4]-backgroundPadding
+						}
+
+						local unitCount = #idleList[existingGroups[group]]
+						local unitDefID = existingGroups[group]
+
+						gl.Color(1,1,1,1)
+						groupButtons[#groupButtons+1] = {groupRect[1],groupRect[2],groupRect[3],groupRect[4],group}
+						local groupSize = groupRect[3]-groupRect[1]-iconMargin-iconMargin
+						local iconSize = groupSize * iconSizeMult
+						local offset = 0
+						if showStack then
+							if unitCount > 4 then
+								iconSize = floor(iconSize*0.78)
+								offset = floor((groupSize - iconSize) / 4)
+							elseif unitCount > 3 then
+								iconSize = floor(iconSize*0.83)
+								offset = floor((groupSize - iconSize) / 3)
+							elseif unitCount> 2 then
+								iconSize = floor(iconSize*0.86)
+								offset = floor((groupSize - iconSize) / 2)
+							elseif unitCount > 1 then
+								iconSize = floor(iconSize*0.88)
+								offset = groupSize - (iconSize*1.06)
+							else
+								iconSize = floor(iconSize*0.94)
+								offset = groupSize - iconSize
+							end
+						end
+
+						local texSize = floor(groupSize*1.33)
+						local zoom = group == hoveredGroup and (b and 0.15 or 0.105) or 0.05
+						local highlightOpacity = 0
+						if selectedGroups[group] then
+							zoom = zoom + 0.08
+							highlightOpacity = 0.17
+						elseif group == hoveredGroup then
+							highlightOpacity = 0.22
+						end
+						if showStack then
+							if unitCount > 4 then
+								drawIcon(
+									unitDefID,
+									{groupRect[1]+iconMargin+(offset*4), groupRect[4]-iconMargin-(offset*4)-iconSize, groupRect[1]+iconMargin+(offset*4)+iconSize, groupRect[4]-iconMargin-(offset*4)},
+									0.33, zoom, texSize, highlightOpacity
+								)
+							end
+							if unitCount > 3 then
+								drawIcon(
+									unitDefID,
+									{groupRect[1]+iconMargin+(offset*3), groupRect[4]-iconMargin-(offset*3)-iconSize, groupRect[1]+iconMargin+(offset*3)+iconSize, groupRect[4]-iconMargin-(offset*3)},
+									0.45, zoom, texSize, highlightOpacity
+								)
+							end
+							if unitCount > 2 then
+								drawIcon(
+									unitDefID,
+									{groupRect[1]+iconMargin+(offset*2), groupRect[4]-iconMargin-(offset*2)-iconSize, groupRect[1]+iconMargin+(offset*2)+iconSize, groupRect[4]-iconMargin-(offset*2)},
+									0.55, zoom, texSize, highlightOpacity
+								)
+							end
+							if unitCount > 1 then
+								drawIcon(
+									unitDefID,
+									{groupRect[1]+iconMargin+offset, groupRect[4]-iconMargin-offset-iconSize, groupRect[1]+iconMargin+offset+iconSize, groupRect[4]-iconMargin-offset},
+									0.7, zoom, texSize, highlightOpacity
+								)
+							end
+						end
+						drawIcon(
+							unitDefID,
+							{groupRect[1]+iconMargin, groupRect[4]-iconMargin-iconSize, groupRect[1]+iconMargin+iconSize, groupRect[4]-iconMargin},
+							1, zoom, texSize, highlightOpacity
+						)
+
+						if unitCount > 1 then
+							local fontSize = height*vsy*0.39
+							font:Begin()
+							font:Print('\255\240\240\240'..unitCount, groupRect[1]+iconMargin+(fontSize*0.18), groupRect[4]-iconMargin-(fontSize*0.92), fontSize, "o")
+							font:End()
+						end
+
+						groupCounter = groupCounter + 1
+					end
+				end
+			end
+		end)
+		checkGuishader(true)
+	end
+
+end
+
+function IsOnRect(x, y, BLcornerX, BLcornerY, TRcornerX, TRcornerY)
+	return x >= BLcornerX and x <= TRcornerX and y >= BLcornerY and y <= TRcornerY
+end
+
 function widget:DrawScreen()
 	if chobbyInterface then
 		return
 	end
+	if (not spec or showWhenSpec) and dlist then
+		gl.CallList(dlist)
+	end
+end
 
-	if widgetHandler:InTweakMode() then
-		calcSizes(MAX_ICONS)
-		DrawBoxes(MAX_ICONS)
-		calcSizes(noOfIcons)
-		local line1 = "Idle cons tweak mode"
-		local line2 = "Click and drag here to move icons around, hover over icons and move mouse wheel to change max number of icons"
-		font:Begin()
-		font:Print(line1, POSITION_X * vsx, POSITION_Y * vsy, 16, "c")
-		font:Print(line2, POSITION_X * vsx, (POSITION_Y * vsy) - 10, 12, "c")
-		font:End()
+local sec = 0
+local sec2 = 0
+local doUpdate = true
+function widget:Update(dt)
+	if not (not spec or showWhenSpec) then
 		return
 	end
 
-	if WG['guishader'] then
-		WG['guishader'].DeleteDlist('idlebuilders')
+	if WG['topbar'] and WG['topbar'].showingQuit() then
+		return
 	end
 
-	if enabled and noOfIcons > 0 then
-		local x, y, lb, mb, rb = GetMouseState()
+	doUpdate = false
+	sec = sec + dt
+	sec2 = sec2 + dt
 
-		if not WG['topbar'] or not WG['topbar'].showingQuit() then
-			local icon = MouseOverIcon(x, y)
-			if icon >= 0 then
-				if WG['tooltip'] then
-					local unitDefID = drawTable[icon + 1][1]
-					local tooltipShift = ''
-					if drawTable[icon + 1][2] and #drawTable[icon + 1][2] > 1 then
-						tooltipShift = '\n\255\190\190\190'..Spring.I18N('ui.idleBuilders.shiftclick')
+	local x, y, b, b2, b3 = spGetMouseState()
+	if backgroundRect and IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
+		hovered = true
+
+		local tooltipTitle = Spring.I18N('ui.idleBuilders.name')
+		local tooltipAddition = ''
+		if backgroundRect and IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
+			local alt, ctrl, meta, shift = Spring.GetModKeyState()
+			for i,v in pairs(groupButtons) do
+				if IsOnRect(x, y, groupButtons[i][1], groupButtons[i][2], groupButtons[i][3], groupButtons[i][4]) then
+					local unitDefID = existingGroups[i]
+					if unitDefID then
+						tooltipTitle = '\255\255\255\255'..Spring.I18N('ui.idleBuilders.idle')..'\255\190\255\190 '..Spring.I18N('units.names.'..unitName[unitDefID])
+						if #idleList[unitDefID] > 1 then
+							tooltipAddition = '\n\255\190\190\190'..Spring.I18N('ui.idleBuilders.shiftclick')..'\n\255\190\190\190'..Spring.I18N('ui.idleBuilders.cycleclick')
+						end
 					end
-					WG['tooltip'].ShowTooltip('idlebuilders', Spring.I18N('ui.idleBuilders.idle') .. ' ' .. unitHumanName[unitDefID]..tooltipShift)
-				end
-				if lb then
-					DrawIconQuad(icon, { 1, 1, 1, 0.85 }, 1.1)
-				elseif rb then
-					DrawIconQuad(icon, { 0.4, 0.6, 0, 0.75 }, 1.1)
-				else
-					DrawIconQuad(icon, { 0, 0, 0.1, 0.45 }, 1.1)
+					break
 				end
 			end
 		end
-		glClear(GL_DEPTH_BUFFER_BIT)
-		DrawUnitIcons(noOfIcons)
+		WG['tooltip'].ShowTooltip('idlebuilders', tooltipTitle..tooltipAddition)
+
+		Spring.SetMouseCursor('cursornormal')
+		if b then
+			sec = sec + 0.4
+		end
+	elseif hovered then
+		sec = sec + 0.5
+		hovered = false
+		doUpdate = true
+	end
+
+	if sec > 0.5 then
+		sec = 0
+
+		if WG['buildmenu'] and WG['buildmenu'].getBottomPosition then
+			local prevbuildmenuBottomPos = buildmenuBottomPos
+			buildmenuBottomPos = WG['buildmenu'].getBottomPosition()
+			if buildmenuBottomPos ~= prevbuildmenuBottomPos then
+				widget:ViewResize()
+				doUpdate = true
+			end
+		end
+		if WG['ordermenu'] then
+			local prevOrdermenuPosY = ordermenuPosY
+			ordermenuPosY = select(2, WG['ordermenu'].getPosition())
+			if ordermenuPosY ~= prevOrdermenuPosY then
+				widget:ViewResize()
+				doUpdate = true
+			end
+		end
+		if uiScale ~= Spring.GetConfigFloat("ui_scale", 1) then
+			uiScale = Spring.GetConfigFloat("ui_scale", 1)
+			widget:ViewResize()
+			doUpdate = true
+		end
+		if uiOpacity ~= Spring.GetConfigFloat("ui_opacity", 0.6) then
+			uiOpacity = Spring.GetConfigFloat("ui_opacity", 0.6)
+			doUpdate = true
+		end
+
+		doUpdate = true	-- TODO: find a way to detect group changes and only doUpdate then
+	elseif hovered and sec2 > 0.05 then
+		sec2 = 0
+		doUpdate = true
+	end
+
+	checkUnitGroupsPos()
+
+	if doUpdate then
+		updateList()
 	end
 end
 
-function widget:TweakMouseMove(x, y, dx, dy, button)
-	local right = (x + (0.5 * MAX_ICONS * ICON_SIZE)) / vsx
-	local left = (x - (0.5 * MAX_ICONS * ICON_SIZE)) / vsx
-	local top = (y + (0.5 * ICON_SIZE)) / vsy
-	local bottom = (y - (0.5 * ICON_SIZE)) / vsy
-	if right > 1 then
-		right = 1
-		left = 1 - (MAX_ICONS * ICON_SIZE) / vsx
+local function tableMerge(t1, t2)
+	for k, v in pairs(t2) do
+		if type(v) == "table" then
+			if type(t1[k] or false) == "table" then
+				tableMerge(t1[k] or {}, t2[k] or {})
+			else
+				t1[k] = v
+			end
+		else
+			t1[k] = v
+		end
 	end
-	if left < 0 then
-		left = 0
-		right = (MAX_ICONS * ICON_SIZE) / vsx
-	end
-	if top > 1 then
-		top = 1
-		bottom = 1 - ICON_SIZE / vsy
-	end
-	if bottom < 0 then
-		bottom = 0
-		top = ICON_SIZE / vsy
-	end
-
-	POSITION_X = 0.5 * (right + left)
-	POSITION_Y = 0.5 * (top + bottom)
+	return t1
 end
 
-function widget:TweakMousePress(x, y, button)
-	local iconNum = MouseOverIcon(x, y)
-	if iconNum >= 0 then
+
+function widget:MousePress(x, y, button)
+	if Spring.IsGUIHidden() then
+		return
+	end
+
+	if backgroundRect and IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
+		local alt, ctrl, meta, shift = Spring.GetModKeyState()
+		if button == 1 or button == 3 then
+			for i,v in pairs(groupButtons) do
+				if IsOnRect(x, y, groupButtons[i][1], groupButtons[i][2], groupButtons[i][3], groupButtons[i][4]) then
+					local unitDefID = existingGroups[i]
+					if unitDefID then
+						local units = {}
+						if shift then
+							units = idleList[unitDefID]
+						else
+							local num = 1
+							if #idleList[unitDefID] > 1 then
+								if clicks[unitDefID] then
+									clicks[unitDefID] = clicks[unitDefID] + 1
+								else
+									clicks[unitDefID] = 1
+								end
+								num = (clicks[unitDefID]) % (#idleList[unitDefID]) + 1
+							end
+							units = { idleList[unitDefID][num] }
+						end
+						Spring.SelectUnitArray(units)
+					end
+					if button == 3 then
+						Spring.SendCommands("viewselection")
+					end
+					if playSounds then
+						Spring.PlaySoundFile((button == 3 and rightclick or leftclick), soundVolume, 'ui')
+					end
+					return true
+				end
+			end
+		end
 		return true
 	end
 end
 
-function widget:MouseWheel(up, value)
-	if not widgetHandler:InTweakMode() then
-		return false
-	end
-
-	local x, y, _, _, _ = GetMouseState()
-	local iconNum = MouseOverIcon(x, y)
-	if iconNum < 0 then
-		return false
-	end
-
-	if up then
-		MAX_ICONS = MAX_ICONS + 1
-	else
-		MAX_ICONS = MAX_ICONS - 1
-		if MAX_ICONS < 1 then
-			MAX_ICONS = 1
-		end
-	end
-	return true
+function widget:SelectionChanged(sel)
+	selectedUnits = sel or {}
+	selectionHasChanged = true
 end
 
-function widget:DrawInMiniMap(sx, sz)
-	if not mouseOnUnitID then
-		return -1
-	end
 
-	local ux, uy, uz = GetUnitPosition(mouseOnUnitID)
-	if not ux or not uy or not uz then
-		return
-	end
-	local xr = ux / (Game.mapSizeX)
-	local yr = 1 - uz / (Game.mapSizeZ)
-	glColor(1, 0, 0)
-	glRect(xr * sx, yr * sz, (xr * sx) + 5, (yr * sz) + 5)
+function widget:GetConfigData()
+	return {
+		alwaysShow = alwaysShow
+	}
 end
 
-function widget:MousePress(x, y, button)
-	local icon = MouseOverIcon(x, y)
-	activePress = (icon >= 0)
-	return activePress
-end
-
-function widget:MouseRelease(x, y, button)
-	if not activePress then
-		return -1
-	end
-	activePress = false
-
-	local iconNum = MouseOverIcon(x, y)
-	if iconNum < 0 then
-		return -1
-	end
-
-	local alt, ctrl, meta, shift = GetModKeyState()
-
-	local unitID = drawTable[iconNum + 1][2]
-	local unitDefID = drawTable[iconNum + 1][1]
-
-	if type(unitID) == 'table' then
-		if Clicks[unitDefID] then
-			Clicks[unitDefID] = Clicks[unitDefID] + 1
-		else
-			Clicks[unitDefID] = 1
-		end
-		if not shift then
-			unitID = unitID[(Clicks[unitDefID]) % getn(unitID) + 1]
-		end
-	end
-
-
-	if button == 1 then
-		-- left mouse
-		if shift then
-			SelectUnitArray(unitID)
-		else
-			SelectUnitArray({ unitID })
-		end
-		if playSounds then
-			Spring.PlaySoundFile(leftclick, 0.75, 'ui')
-		end
-	elseif button == 3 then
-		-- right mouse
-		SelectUnitArray({ unitID })
-		SendCommands({ "viewselection" })
-		if playSounds then
-			Spring.PlaySoundFile(rightclick, 0.75, 'ui')
-		end
-	end
-
-	return -1
-end
-
-function widget:DrawWorld()
-	if chobbyInterface then
-		return
-	end
-	if mouseOnUnitID and (not WG['topbar'] or not WG['topbar'].showingQuit()) then
-		if widgetHandler:InTweakMode() then
-			return -1
-		end
-		glColor(1, 1, 1, 0.22)
-		glUnit(mouseOnUnitID, true)
-	end
-end
-
-function widget:Shutdown()
-	if WG['guishader'] then
-		WG['guishader'].DeleteDlist('idlebuilders')
+function widget:SetConfigData(data)
+	if data.alwaysShow ~= nil then
+		alwaysShow = data.alwaysShow
 	end
 end

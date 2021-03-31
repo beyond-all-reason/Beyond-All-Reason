@@ -10,10 +10,18 @@ function widget:GetInfo()
 	}
 end
 
-local showWhenSpec = true
+local alwaysShow = true		-- always show AT LEAST the label
+local alwaysShowLabel = true	-- always show the label regardless
+local showWhenSpec = false
 local showStack = true	-- display different unitdef pics in a showStack
 local iconSizeMult = 0.98
 local highlightSelectedGroups = true
+local playSounds = true
+local soundVolume = 0.5
+local setHeight = 0.048
+
+local leftclick = 'LuaUI/Sounds/buildbar_add.wav'
+local rightclick = 'LuaUI/Sounds/buildbar_click.wav'
 
 local vsx, vsy = Spring.GetViewGeometry()
 local fontFile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
@@ -28,7 +36,6 @@ local UiElement = Spring.FlowUI.Draw.Element
 local UiButton = Spring.FlowUI.Draw.Button
 local UiUnit = Spring.FlowUI.Draw.Unit
 
-local spGetUnitDefID = Spring.GetUnitDefID
 local spGetGroupList = Spring.GetGroupList
 local spGetGroupUnitsCounts = Spring.GetGroupUnitsCounts
 local spGetGroupUnitsCount = Spring.GetGroupUnitsCount
@@ -44,7 +51,6 @@ local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 
 local uiOpacity = tonumber(Spring.GetConfigFloat("ui_opacity", 0.6) or 0.66)
 local uiScale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
-local setHeight = 0.055
 local height = setHeight * uiScale
 local posX = 0
 local posY = 0
@@ -56,10 +62,8 @@ local hovered = false
 local numGroups = 0
 local selectedUnits = Spring.GetSelectedUnits() or {}
 local selectionHasChanged = true
-local highlightGroups = {}
+local selectedGroups = {}
 
-local stickToBottom = false
-local altPosition = false
 local groupButtons = {}
 
 local font, font2, chobbyInterface, buildmenuBottomPosition, dlist, dlistGuishader, backgroundRect, ordermenuPosY
@@ -111,8 +115,8 @@ end
 
 function widget:PlayerChanged(playerID)
 	spec = Spring.GetSpectatingState()
-	if Spring.GetGameFrame() > 1 and spec then
-		--widgetHandler:RemoveWidget(self)
+	if not showWhenSpec and Spring.GetGameFrame() > 1 and spec then
+		widgetHandler:RemoveWidget(self)
 		return
 	end
 end
@@ -151,7 +155,7 @@ local function checkGuishader(force)
 		end
 		if not dlistGuishader and backgroundRect then
 			dlistGuishader = gl.CreateList(function()
-				RectRound(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], elementCorner)
+				RectRound(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], elementCorner, ((posX <= 0) and 0 or 1), 1, ((posY-height > 0 or posX <= 0) and 1 or 0), ((posY-height > 0 and posX > 0) and 1 or 0))
 			end)
 			WG['guishader'].InsertDlist(dlistGuishader, 'unitgroups')
 		end
@@ -161,19 +165,19 @@ local function checkGuishader(force)
 	end
 end
 
-local function drawIcon(unitDefID, rect, lightness, zoom, texSize, highlighted)
+local function drawIcon(unitDefID, rect, lightness, zoom, texSize, highlightOpacity)
 	gl.Color(lightness,lightness,lightness,1)
 	UiUnit(
 		rect[1], rect[2], rect[3], rect[4],
 		ceil(backgroundPadding*0.5), 1,1,1,1,
 		zoom,
-		nil, highlighted and 0.25 or nil,
+		nil, math.max(0.1, highlightOpacity or 0.1),
 		':lr'..texSize..','..texSize..':unitpics/'..unitBuildPic[unitDefID],
 		nil, nil, nil, nil
 	)
-	if highlighted then
+	if highlightOpacity then
 		gl.Blending(GL_SRC_ALPHA, GL_ONE)
-		gl.Color(1,1,1,0.15)
+		gl.Color(1,1,1,highlightOpacity)
 		RectRound(rect[1], rect[2], rect[3], rect[4], min(max(1, floor((rect[3]-rect[1]) * 0.024)), floor((vsy*0.0015)+0.5)))
 		gl.Blending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 	end
@@ -189,14 +193,25 @@ local function updateList()
 	for group, _ in pairs(existingGroups) do
 		numGroups = numGroups + 1
 	end
-	if numGroups == 0 then
+	if numGroups == 0 and not alwaysShow then
 		if backgroundRect then
 			backgroundRect = nil
 			checkGuishader(true)
 		end
 	else
 		dlist = gl.CreateList(function()
-			usedWidth = ((groupSize-backgroundPadding) * numGroups) + backgroundPadding + backgroundPadding
+			local mult = numGroups
+			if numGroups == 0 then
+				mult = 1
+			end
+
+			local groupWidth = groupSize - backgroundPadding
+			local startOffsetX = 0
+			if numGroups > 0 and alwaysShowLabel then
+				startOffsetX = groupWidth
+			end
+			usedWidth = (groupWidth * mult) + backgroundPadding + backgroundPadding + startOffsetX
+
 			backgroundRect = {
 				floor(posX * vsx),
 				floor(posY * vsy),
@@ -206,165 +221,191 @@ local function updateList()
 
 			UiElement(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], ((posX <= 0) and 0 or 1), 1, ((posY-height > 0 or posX <= 0) and 1 or 0), ((posY-height > 0 and posX > 0) and 1 or 0))
 
-			local hoveredGroup = -1
-			local x, y, b, b2, b3 = spGetMouseState()
-			if groupButtons then
-				for i,v in pairs(groupButtons) do
-					if IsOnRect(x, y, groupButtons[i][1], groupButtons[i][2], groupButtons[i][3], groupButtons[i][4]) then
-						hoveredGroup = groupButtons[i][5]
-						break
-					end
-				end
+			if numGroups == 0 or alwaysShowLabel then
+				local groupRect = {
+					floor(posX * vsx),
+					floor(posY * vsy),
+					floor(posX * vsx) + usedWidth - (groupWidth * numGroups),
+					floor(posY * vsy) + usedHeight
+				}
+				local fontSize = height*vsy*0.24
+				local offset = ((groupRect[3]-groupRect[1])/4.2)
+				local offsetY = -(fontSize*(posY > 0 and 0.31 or 0.44))
+				local style = 'c'
+				font2:Begin()
+				font2:SetTextColor(1,1,1,0.14)
+				font2:Print(Spring.I18N('ui.unitGroups.g1'), groupRect[1]+((groupRect[3]-groupRect[1])/2)-offset, groupRect[2]+((groupRect[4]-groupRect[2])/2)+offset+offsetY, fontSize, style)
+				font2:Print(Spring.I18N('ui.unitGroups.g2'), groupRect[1]+((groupRect[3]-groupRect[1])/2), groupRect[2]+((groupRect[4]-groupRect[2])/2)+offset+offsetY, fontSize, style)
+				font2:Print(Spring.I18N('ui.unitGroups.g3'), groupRect[1]+((groupRect[3]-groupRect[1])/2)+offset, groupRect[2]+((groupRect[4]-groupRect[2])/2)+offset+offsetY, fontSize, style)
+
+				font2:Print(Spring.I18N('ui.unitGroups.g4'), groupRect[1]+((groupRect[3]-groupRect[1])/2)-offset, groupRect[2]+((groupRect[4]-groupRect[2])/2)+offsetY, fontSize, style)
+				font2:Print(Spring.I18N('ui.unitGroups.g5'), groupRect[1]+((groupRect[3]-groupRect[1])/2), groupRect[2]+((groupRect[4]-groupRect[2])/2)+offsetY, fontSize, style)
+				font2:Print(Spring.I18N('ui.unitGroups.g6'), groupRect[1]+((groupRect[3]-groupRect[1])/2)+offset, groupRect[2]+((groupRect[4]-groupRect[2])/2)+offsetY, fontSize, style)
+
+				font2:Print(Spring.I18N('ui.unitGroups.g7'), groupRect[1]+((groupRect[3]-groupRect[1])/2)-offset, groupRect[2]+((groupRect[4]-groupRect[2])/2)-offset+offsetY, fontSize, style)
+				font2:Print(Spring.I18N('ui.unitGroups.g8'), groupRect[1]+((groupRect[3]-groupRect[1])/2), groupRect[2]+((groupRect[4]-groupRect[2])/2)-offset+offsetY, fontSize, "c")
+				font2:Print(Spring.I18N('ui.unitGroups.g9'), groupRect[1]+((groupRect[3]-groupRect[1])/2)+offset, groupRect[2]+((groupRect[4]-groupRect[2])/2)-offset+offsetY, fontSize, style)
+				font2:End()
 			end
 
-			local groupCounter = 0
-			groupButtons = {}
-			for group=0, 9 do
-				if existingGroups[group] then
-					local groupRect = {
-						backgroundRect[1]+backgroundPadding+((groupSize-backgroundPadding)*groupCounter),
-						backgroundRect[2]+(posY-height > 0 and backgroundPadding or 0),
-						backgroundRect[1]+backgroundPadding+(groupSize-backgroundPadding)+((groupSize-backgroundPadding)*groupCounter),
-						backgroundRect[4]-backgroundPadding
-					}
-
-					local unitdefCounts = spGetGroupUnitsCounts(group)
-					local unitdefCount = 0
-					local udefID_1
-					local udefID_2
-					local udefID_3
-					local udefID_4
-					local udefID_5
-					local largestCount_1 = 0
-					local largestCount_2 = 0
-					local largestCount_3 = 0
-					local largestCount_4 = 0
-					local largestCount_5 = 0
-					for uDefID, count in pairs(unitdefCounts) do
-						if count > largestCount_1 then
-							udefID_1 = uDefID
-							largestCount_1 = count
+			if numGroups > 0 then
+				local hoveredGroup = -1
+				local x, y, b, b2, b3 = spGetMouseState()
+				if groupButtons then
+					for i,v in pairs(groupButtons) do
+						if IsOnRect(x, y, groupButtons[i][1], groupButtons[i][2], groupButtons[i][3], groupButtons[i][4]) then
+							hoveredGroup = groupButtons[i][5]
+							break
 						end
-						unitdefCount = unitdefCount + 1
 					end
-					if unitdefCount > 1 then
+				end
+
+				local groupCounter = 0
+				groupButtons = {}
+				for group=0, 9 do
+					if existingGroups[group] then
+						local groupRect = {
+							backgroundRect[1]+backgroundPadding+((groupSize-backgroundPadding)*groupCounter)+startOffsetX,
+							backgroundRect[2]+(posY-height > 0 and backgroundPadding or 0),
+							backgroundRect[1]+backgroundPadding+(groupSize-backgroundPadding)+((groupSize-backgroundPadding)*groupCounter)+startOffsetX,
+							backgroundRect[4]-backgroundPadding
+						}
+
+						local unitdefCounts = spGetGroupUnitsCounts(group)
+						local unitdefCount = 0
+						local udefID_1
+						local udefID_2
+						local udefID_3
+						local udefID_4
+						local udefID_5
+						local largestCount_1 = 0
+						local largestCount_2 = 0
+						local largestCount_3 = 0
+						local largestCount_4 = 0
+						local largestCount_5 = 0
 						for uDefID, count in pairs(unitdefCounts) do
-							if uDefID ~= udefID_1 and count > largestCount_2 then
-								udefID_2 = uDefID
-								largestCount_2 = count
+							if count > largestCount_1 then
+								udefID_1 = uDefID
+								largestCount_1 = count
 							end
+							unitdefCount = unitdefCount + 1
 						end
-						if unitdefCount > 2 then
+						if unitdefCount > 1 then
 							for uDefID, count in pairs(unitdefCounts) do
-								if uDefID ~= udefID_1 and uDefID ~= udefID_2 and count > largestCount_3 then
-									udefID_3 = uDefID
-									largestCount_3 = count
+								if uDefID ~= udefID_1 and count > largestCount_2 then
+									udefID_2 = uDefID
+									largestCount_2 = count
 								end
 							end
-							if unitdefCount > 3 then
+							if unitdefCount > 2 then
 								for uDefID, count in pairs(unitdefCounts) do
-									if uDefID ~= udefID_1 and uDefID ~= udefID_2 and uDefID ~= udefID_3 and count > largestCount_4 then
-										udefID_4 = uDefID
-										largestCount_4 = count
+									if uDefID ~= udefID_1 and uDefID ~= udefID_2 and count > largestCount_3 then
+										udefID_3 = uDefID
+										largestCount_3 = count
 									end
 								end
 								if unitdefCount > 3 then
 									for uDefID, count in pairs(unitdefCounts) do
-										if uDefID ~= udefID_1 and uDefID ~= udefID_2 and uDefID ~= udefID_3 and uDefID ~= udefID_4 and count > largestCount_5 then
-											udefID_5 = uDefID
-											largestCount_5 = count
+										if uDefID ~= udefID_1 and uDefID ~= udefID_2 and uDefID ~= udefID_3 and count > largestCount_4 then
+											udefID_4 = uDefID
+											largestCount_4 = count
+										end
+									end
+									if unitdefCount > 3 then
+										for uDefID, count in pairs(unitdefCounts) do
+											if uDefID ~= udefID_1 and uDefID ~= udefID_2 and uDefID ~= udefID_3 and uDefID ~= udefID_4 and count > largestCount_5 then
+												udefID_5 = uDefID
+												largestCount_5 = count
+											end
 										end
 									end
 								end
 							end
 						end
-					end
 
-					gl.Color(1,1,1,1)
-					groupButtons[#groupButtons+1] = {groupRect[1],groupRect[2],groupRect[3],groupRect[4],group}
-					local groupSize = groupRect[3]-groupRect[1]-iconMargin-iconMargin
-					local iconSize = groupSize * iconSizeMult
-					local offset = 0
-					if showStack then
-						if udefID_5 then
-							iconSize = floor(iconSize*0.78)
-							offset = floor((groupSize - iconSize) / 4)
-						elseif udefID_4 then
-							iconSize = floor(iconSize*0.83)
-							offset = floor((groupSize - iconSize) / 3)
-						elseif udefID_3 then
-							iconSize = floor(iconSize*0.86)
-							offset = floor((groupSize - iconSize) / 2)
-						elseif udefID_2 then
-							iconSize = floor(iconSize*0.88)
-							offset = groupSize - (iconSize*1.06)
-						else
-							iconSize = floor(iconSize*0.94)
-							offset = groupSize - iconSize
+						gl.Color(1,1,1,1)
+						groupButtons[#groupButtons+1] = {groupRect[1],groupRect[2],groupRect[3],groupRect[4],group}
+						local groupSize = groupRect[3]-groupRect[1]-iconMargin-iconMargin
+						local iconSize = groupSize * iconSizeMult
+						local offset = 0
+						if showStack then
+							if udefID_5 then
+								iconSize = floor(iconSize*0.78)
+								offset = floor((groupSize - iconSize) / 4)
+							elseif udefID_4 then
+								iconSize = floor(iconSize*0.83)
+								offset = floor((groupSize - iconSize) / 3)
+							elseif udefID_3 then
+								iconSize = floor(iconSize*0.86)
+								offset = floor((groupSize - iconSize) / 2)
+							elseif udefID_2 then
+								iconSize = floor(iconSize*0.88)
+								offset = groupSize - (iconSize*1.06)
+							else
+								iconSize = floor(iconSize*0.94)
+								offset = groupSize - iconSize
+							end
 						end
-					end
 
-					local texSize = floor(groupSize*1.33)
-					local borderOpacity, iconrect
-					local zoom = group == hoveredGroup and (b and 0.15 or 0.105) or 0.05
-					local highlightOpacity = 0
-					local groupHighlighted = highlightGroups[group]
-					if groupHighlighted then
-						borderOpacity = 0.2
-						zoom = zoom + 0.08
-						highlightOpacity = 0.15
-					end
-					if showStack then
-						if udefID_5 then
-							drawIcon(
+						local texSize = floor(groupSize*1.33)
+						local zoom = group == hoveredGroup and (b and 0.15 or 0.105) or 0.05
+						local highlightOpacity = 0
+						if selectedGroups[group] then
+							highlightOpacity = 0.17
+							zoom = zoom + 0.08
+						elseif group == hoveredGroup then
+							highlightOpacity = 0.22
+						end
+						if showStack then
+							if udefID_5 then
+								drawIcon(
 									udefID_5,
 									{groupRect[1]+iconMargin+(offset*4), groupRect[4]-iconMargin-(offset*4)-iconSize, groupRect[1]+iconMargin+(offset*4)+iconSize, groupRect[4]-iconMargin-(offset*4)},
-									0.33, zoom, texSize, groupHighlighted
-							)
-						end
-						if udefID_4 then
-							drawIcon(
+									0.33, zoom, texSize, highlightOpacity
+								)
+							end
+							if udefID_4 then
+								drawIcon(
 									udefID_4,
 									{groupRect[1]+iconMargin+(offset*3), groupRect[4]-iconMargin-(offset*3)-iconSize, groupRect[1]+iconMargin+(offset*3)+iconSize, groupRect[4]-iconMargin-(offset*3)},
-									0.45, zoom, texSize, groupHighlighted
-							)
-						end
-						if udefID_3 then
-							drawIcon(
+									0.45, zoom, texSize, highlightOpacity
+								)
+							end
+							if udefID_3 then
+								drawIcon(
 									udefID_3,
 									{groupRect[1]+iconMargin+(offset*2), groupRect[4]-iconMargin-(offset*2)-iconSize, groupRect[1]+iconMargin+(offset*2)+iconSize, groupRect[4]-iconMargin-(offset*2)},
-									0.55, zoom, texSize, groupHighlighted
-							)
-							iconrect = {groupRect[1]+iconMargin+(offset*2), groupRect[4]-iconMargin-(offset*2)-iconSize, groupRect[1]+iconMargin+(offset*2)+iconSize, groupRect[4]-iconMargin-(offset*2)}
-						end
-						if udefID_2 then
-							drawIcon(
+									0.55, zoom, texSize, highlightOpacity
+								)
+							end
+							if udefID_2 then
+								drawIcon(
 									udefID_2,
 									{groupRect[1]+iconMargin+offset, groupRect[4]-iconMargin-offset-iconSize, groupRect[1]+iconMargin+offset+iconSize, groupRect[4]-iconMargin-offset},
-									0.7, zoom, texSize, groupHighlighted
-							)
+									0.7, zoom, texSize, highlightOpacity
+								)
+							end
 						end
+						drawIcon(
+							udefID_1,
+							{groupRect[1]+iconMargin, groupRect[4]-iconMargin-iconSize, groupRect[1]+iconMargin+iconSize, groupRect[4]-iconMargin},
+							1, zoom, texSize, highlightOpacity
+						)
+
+						local fontSize = height*vsy*0.4
+						font2:Begin()
+						font2:Print('\255\200\255\200'..group, groupRect[1]+((groupRect[3]-groupRect[1])/2), groupRect[2]+iconMargin + (fontSize*0.28), fontSize, "co")
+						font2:End()
+						local amount = (showStack and largestCount_1 or spGetGroupUnitsCount(group))
+						if amount > 1 then
+							fontSize = height*vsy*0.3
+							font:Begin()
+							font:Print('\255\240\240\240'..amount, groupRect[1]+iconMargin+(fontSize*0.18), groupRect[4]-iconMargin-(fontSize*0.92), fontSize, "o")
+							font:End()
+						end
+
+						groupCounter = groupCounter + 1
 					end
-					drawIcon(
-						udefID_1,
-						{groupRect[1]+iconMargin, groupRect[4]-iconMargin-iconSize, groupRect[1]+iconMargin+iconSize, groupRect[4]-iconMargin},
-						1, zoom, texSize, groupHighlighted
-					)
-
-					if group == hoveredGroup then
-						UiButton(groupRect[1],groupRect[2],groupRect[3],groupRect[4],  1,1,1,1,  1,1,1,1,  nil, {1,1,1,b and 0.22 or 0}, {1,1,1,b and 0.22 or 0}, nil)
-					end
-
-					local fontSize = height*vsy*0.3
-					font2:Begin()
-					font2:Print('\255\200\255\200'..group, groupRect[1]+((groupRect[3]-groupRect[1])/2), groupRect[2]+iconMargin + (fontSize*0.28), fontSize, "co")
-					font2:End()
-					fontSize = fontSize * 0.88
-					font:Begin()
-					font:Print('\255\230\230\230'..(showStack and largestCount_1 or spGetGroupUnitsCount(group)), groupRect[1]+iconMargin+(fontSize*0.18), groupRect[4]-iconMargin-(fontSize*0.92), fontSize, "o")
-					font:End()
-
-					groupCounter = groupCounter + 1
 				end
 			end
 		end)
@@ -392,6 +433,11 @@ function widget:Update(dt)
 	if not (not spec or showWhenSpec) then
 		return
 	end
+
+	if WG['topbar'] and WG['topbar'].showingQuit() then
+		return
+	end
+
 	local doUpdate = false
 	sec = sec + dt
 	sec2 = sec2 + dt
@@ -437,23 +483,23 @@ function widget:Update(dt)
 					end
 				end
 			end
-			local prevHighlightGroups = highlightGroups
-			highlightGroups = {}
+			local prevSelectedGroups = selectedGroups
+			selectedGroups = {}
 			for group, _ in pairs(groupUnitSelectedCount) do
 				if groupUnitSelectedCount[group] == groupUnitCount[group] then
-					highlightGroups[group] = true
+					selectedGroups[group] = true
 				end
 			end
 			local changed = false
-			for group, _ in pairs(highlightGroups) do
-				if not prevHighlightGroups[group] then
+			for group, _ in pairs(selectedGroups) do
+				if not prevSelectedGroups[group] then
 					doUpdate = true
 					break
 				end
 			end
 			if not doUpdate then
-				for group, _ in pairs(prevHighlightGroups) do
-					if not highlightGroups[group] then
+				for group, _ in pairs(prevSelectedGroups) do
+					if not selectedGroups[group] then
 						doUpdate = true
 						break
 					end
@@ -512,7 +558,6 @@ local function tableMerge(t1, t2)
 	return t1
 end
 
-
 function widget:MousePress(x, y, button)
 	if Spring.IsGUIHidden() then
 		return
@@ -554,7 +599,10 @@ function widget:MousePress(x, y, button)
 						Spring.SelectUnitArray(selectedUnits)
 					end
 					if button == 3 then
-						Spring.SendCommands({ "viewselection" })
+						Spring.SendCommands("viewselection")
+					end
+					if playSounds then
+						Spring.PlaySoundFile((button == 3 and rightclick or leftclick), soundVolume, 'ui')
 					end
 					return true
 				end
@@ -563,8 +611,20 @@ function widget:MousePress(x, y, button)
 		return true
 	end
 end
-
 function widget:SelectionChanged(sel)
 	selectedUnits = sel or {}
 	selectionHasChanged = true
+end
+
+
+function widget:GetConfigData()
+	return {
+		alwaysShow = alwaysShow
+	}
+end
+
+function widget:SetConfigData(data)
+	if data.alwaysShow ~= nil then
+		alwaysShow = data.alwaysShow
+	end
 end
