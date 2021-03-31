@@ -10,7 +10,7 @@ function gadget:GetInfo()
 	}
 end
 
-if  (gadgetHandler:IsSyncedCode()) then
+if gadgetHandler:IsSyncedCode() then
 
 	local math_sqrt = math.sqrt
 	local math_random = math.random
@@ -135,10 +135,10 @@ if  (gadgetHandler:IsSyncedCode()) then
         --Echo("gadget:FeatureDamaged(featureID, featureDefID, featureTeam,Damage, weaponDefID,projectileID,     attackerID, attackerDefID, attackerTeam)")
         --Echo(featureID, featureDefID, featureTeam,Damage, weaponDefID,   projectileID,  attackerID, attackerDefID, attackerTeam)
         --Echo('weaponDefID',WeaponDefs[weaponDefID])
-        if (fx ~= nil) then
+        if fx ~= nil then
             local health, maxhealth, _ = GetFeatureHealth(featureID)
             --Echo('health=',health,' fx=',fx)
-            if (Damage >= health) then
+            if Damage >= health then
                 local remainingMetal, maxMetal, remainingEnergy, maxEnergy, reclaimLeft= GetFeatureResources(featureID)
 				local dissapearSpeed = 1
 				local size = 'medium'
@@ -154,13 +154,13 @@ if  (gadgetHandler:IsSyncedCode()) then
 				end
 				local destroyFrame = GetGameFrame() + (falltime * (featureMass[featureDefID] / dmg)) + 150 + (dissapearSpeed*4000)
 
-                if (health ~= nil and maxMetal==0 and maxEnergy > 0 and (health <= Damage or weaponDefID==-7)) then -- weaponDefID == -7 is the weapon that crushes features
+                if health ~= nil and maxMetal==0 and maxEnergy > 0 and (health <= Damage or weaponDefID==-7) then -- weaponDefID == -7 is the weapon that crushes features
                     --if crushed, attackerID returns unit, but projectileID is nil, if projectile destroys feature, then attackerID is nil, but projectileID contains the projectile.
                     --Echo('tree dying...',featureID)
                     local dx, dy ,dz= GetFeatureDirection( featureID)
                     -- Echo(featureID,'direction:', dx, dy, dz)
                     SetFeatureBlocking(featureID, false,false,false,false,false,false,false) --doesnt block anything
-                    if (weaponDefID == -7) then --weapon is crush
+                    if weaponDefID == -7 then --weapon is crush
                         --Echo('tree crushed... ',featureID)
                         --crushed features cannot be saved by returning 0 damage. Must create new one!
 						DestroyFeature(featureID)
@@ -205,18 +205,10 @@ if  (gadgetHandler:IsSyncedCode()) then
 						end
 					end
 					local name = featureName[featureDefID]
-					if fire and string.find(name,"lowpoly_tree_") then
-						if not (string.find(name, "burnt")) then
-							name = string.sub(name, string.find(name, "pinetree"), string.len(name))
-							DestroyFeature(featureID)
-							treesdying[featureID]={frame = GetGameFrame(), posx=fx, posy=fy, posz=fz,fDefID=featureDefID, dirx=dx, diry=dy, dirz=dz, px = ppx, py = ppy, pz = ppz, strength = featureMass[featureDefID] / dmg, fire = fire, size = size, dissapearSpeed = dissapearSpeed, destroyFrame = destroyFrame } -- this prevents this tobedestroyed feature to be replaced multiple times
-							featureID = CreateFeature(("lowpoly_tree_"..name.."burnt"),fx,fy,fz)
-							SetFeatureDirection(featureID,dx, dy ,dz)
-							SetFeatureBlocking(featureID, false,false,false,false,false,false,false)
-						end
-					else
-						fire = false
-					end
+
+					-- NOTE: fire used to be reserved for the lowpoly trees
+					--fire = false
+
                     SetFeatureReclaim(featureID,0)
 					Spring.SetFeatureNoSelect(featureID, true)
                     treesdying[featureID]={ frame = GetGameFrame(), posx=fx, posy=fy, posz=fz,fDefID=featureDefID, dirx=dx, diry=dy, dirz=dz, px = ppx, py = ppy, pz = ppz, strength = featureMass[featureDefID] / dmg, fire = fire, size = size, dissapearSpeed = dissapearSpeed, destroyFrame = destroyFrame }
@@ -285,7 +277,7 @@ if  (gadgetHandler:IsSyncedCode()) then
 					end
 
 				-- fallen
-				elseif (featureinfo.frame + thisfeaturefalltime <= gf) then
+				elseif featureinfo.frame + thisfeaturefalltime <= gf then
 					local fx,fy,fz = GetFeaturePosition(featureID)
 					local dx, dy ,dz = GetFeatureDirection(featureID)
 					if fy ~= nil then
