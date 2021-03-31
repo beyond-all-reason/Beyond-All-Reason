@@ -84,7 +84,7 @@ function widget:Initialize()
     if Spring.IsReplay() or Spring.GetGameFrame() > 0 then
         maybeRemoveSelf()
     end
-	local unitnameToUnitDefID = {}	-- unit name -> unit def id
+	local unitnameToUnitDefID = {}--- unit name or humanName --> unit def id
 	for index,def in ipairs(UnitDefs) do
 		unitnameToUnitDefID[def.name]=index
 	end

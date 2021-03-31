@@ -32,7 +32,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
   if unitDef.customParams.iscommander then
     isCommander[unitDefID] = true
   end
-  unitHumanName[unitDefID] = Spring.I18N('units.names.'..unitDef.name)
+  unitHumanName[unitDefID] = unitDef.humanName
 end
 
 function widget:Initialize()

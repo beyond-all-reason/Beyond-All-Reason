@@ -468,7 +468,7 @@ function DrawBoxTitle(x, y, alpha, unitDef, selUnit)
 
 	DrawTexRect(x + boxIconBorder, y - boxIconBorder, x + boxHeightTitle + boxIconBorder, y - boxHeightTitle + boxIconBorder, "#" .. unitDef.id, alpha)
 
-	local text = Spring.I18N('units.names.'..unitDef.name)
+	local text = unitDef.humanName
 	font:Begin()
 	font:SetTextColor(0, 1, 0, alpha or 1)
 	font:Print(text, x + boxHeightTitle + titleTextXOff, y - boxHeightTitle / 2.0 - titleTextYOff, fontSizeTitle, "nd")
