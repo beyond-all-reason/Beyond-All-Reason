@@ -231,7 +231,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 		end
 	end
 
-	unitDefInfo[unitDefID].humanName = unitDef.humanName
+	unitDefInfo[unitDefID].humanName = Spring.I18N('units.names.'..unitDef.name)
 	if unitDef.maxWeaponRange > 16 then
 		unitDefInfo[unitDefID].maxWeaponRange = unitDef.maxWeaponRange
 	end

@@ -66,7 +66,7 @@ local unitBuildOptions = {}
 for udid, unitDef in pairs(UnitDefs) do
 	unitBuildPic[udid] = unitDef.buildpicname
 	unitName[udid] = unitDef.name
-	unitHumanName[udid] = unitDef.humanName
+	unitHumanName[udid] = Spring.I18N('units.names.'..unitDef.name)
 	unitTooltip[udid] = unitDef.tooltip
 	unitIconType[udid] = unitDef.iconType
 	if unitDef.isFactory and #unitDef.buildOptions > 0 then

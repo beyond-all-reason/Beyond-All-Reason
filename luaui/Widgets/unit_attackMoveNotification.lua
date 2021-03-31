@@ -34,8 +34,8 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef and unitDef.customParams and unitDef.customParams.iscommander then
 		isCommander[unitDefID] = true
 	end
-	unitHumanName[unitDefID] = unitDef.humanName
-	if (unitDef.sounds.underattack and (#unitDef.sounds.underattack > 0)) then
+	unitHumanName[unitDefID] = Spring.I18N('units.names.'..unitDef.name)
+	if unitDef.sounds.underattack and #unitDef.sounds.underattack > 0 then
 		unitUnderattackSounds[unitDefID] = unitDef.sounds.underattack
 	end
 end

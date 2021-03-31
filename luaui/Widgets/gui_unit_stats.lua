@@ -778,7 +778,7 @@ local function drawStats(uDefID, uID)
 	end
 
 	-- title
-	local text = "\255\190\255\190" .. UnitDefs[uDefID].humanName
+	local text = "\255\190\255\190" .. Spring.I18N('units.names.'..UnitDefs[uDefID].name)
 	if uID then
 		text = text .. "   " ..  grey ..  uDef.name .. "   #" .. uID .. "   "..GetTeamColorCode(uTeam) .. GetTeamName(uTeam) .. grey .. effectivenessRate
 	end

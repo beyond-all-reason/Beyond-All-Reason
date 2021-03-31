@@ -240,7 +240,7 @@ function widget:UnitTaken(unitID, unitDefID, oldTeam, newTeam)
 		local x, y, z = GetUnitPosition(unitID)
 		local r, g, b = Spring.GetTeamColor(oldTeam)
 		if x and r then
-			mapPoints[unitID] = { r = r, g = g, b = b, x = x, y = y, z = z, unitName = "*" .. UnitDefs[unitDefID].humanName, time = (timeNow + ttl), highlightSize = UnitDefs[unitDefID].radius * 0.6 }
+			mapPoints[unitID] = { r = r, g = g, b = b, x = x, y = y, z = z, unitName = "*" .. Spring.I18N('units.names.'..UnitDefs[unitDefID].name), time = (timeNow + ttl), highlightSize = UnitDefs[unitDefID].radius * 0.6 }
 			unitCount = unitCount + 1
 		end
 	end

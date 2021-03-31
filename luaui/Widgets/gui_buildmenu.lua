@@ -11,6 +11,8 @@ function widget:GetInfo()
 	}
 end
 
+-- NOTE: unitDef.humanName is still used to detect certain units (for ordering and whatnot)
+
 local stickToBottom = false
 
 local alwaysShow = false
@@ -1400,9 +1402,9 @@ function widget:DrawScreen()
 								local textColor = "\255\215\255\215"
 
 								if unitRestricted[uDefID] then
-									text = Spring.I18N('ui.buildMenu.disabled', { unit = UnitDefs[uDefID].humanName, textColor = textColor, warnColor = "\255\166\166\166" })
+									text = Spring.I18N('ui.buildMenu.disabled', { unit = Spring.I18N('units.names.'..UnitDefs[uDefID].name), textColor = textColor, warnColor = "\255\166\166\166" })
 								else
-									text = textColor .. UnitDefs[uDefID].humanName
+									text = textColor .. Spring.I18N('units.names.'..UnitDefs[uDefID].name)
 								end
 
 								text = text .. "\n\255\240\240\240" .. UnitDefs[uDefID].tooltip
