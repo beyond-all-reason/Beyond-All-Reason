@@ -90,8 +90,20 @@ function gadget:GameFrame(gf)
 			end
 		end
 		if type(projectiles[projectileID]) == 'number' then
-			--local dirX,dirY,dirZ = Spring.GetProjectileDirection(projectileID)
-			Spring.SpawnExplosion( x,y,z, nil,nil,nil, {weaponDef=dgunProjectileWeaponID, owner=projectiles[projectileID]} )
+			Spring.SpawnExplosion(
+				x,y,z, 0,0,0,
+				{
+					weaponDef = dgunProjectileWeaponID,
+					owner = projectiles[projectileID],
+					ignoreOwner = true,
+					edgeEffectiveness = 1,
+					damageAreaOfEffect = 8,
+					craterAreaOfEffect = 0,
+					explosionSpeed = 999,
+					impactOnly = false,
+					damageGround = false,
+				}
+			)
 		else
 			-- give up
 			projectiles[projectileID] = nil

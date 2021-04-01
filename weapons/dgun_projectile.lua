@@ -1,11 +1,10 @@
 return {
 	dgun_projectile = {
-		areaofeffect = 7,		-- probably needs AoE of around 7
+		areaofeffect = 8,
 		cratermult = 0,
-		edgeeffectiveness = 0.98,
+		edgeeffectiveness = 1,
 		impulseboost = 0,
-		range = 16,
-		noselfdamage = 1,
+		noselfdamage = true,
 		customparams = {
 			expl_light_skip = 1,
 		},
