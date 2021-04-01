@@ -191,7 +191,7 @@ StartBuilding(heading,pitch)
 	while( notBuilding ) sleep 100;
 	signal SIG_BUILD;
 	turn turret to y-axis heading speed <360.000000>;
-	turn beam to x-axis pitch speed <90>;
+	turn beam to x-axis <-45> -pitch speed <90>;
 	set INBUILDSTANCE to 1;
 	
 }
