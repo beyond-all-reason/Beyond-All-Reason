@@ -3,12 +3,12 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, beam, door1, door2, wake, nano1, nano2;
+piece  base, turret, arm, beam, lpump, rpump, nano1, nano2, wake;
 
-
+#define SIG_BUILD		2
 #define SIG_MOVE		4
 
-static-var  Static_Var_1, statechg_DesiredState, statechg_StateChanging;
+static-var  Static_Var_1, statechg_DesiredState, statechg_StateChanging, notBuilding, nano;
 
 
 
@@ -110,31 +110,25 @@ StopMoving()
 
 Go()
 {
-	turn door1 to z-axis <-180> speed <180.362637>;
-	turn door2 to z-axis <180> speed <180.362637>;
-	sleep 771;
-	move beam to y-axis [12] speed [24];
-	turn beam to y-axis Static_Var_1 speed <160.038462>;
-	wait-for-turn beam around y-axis;
 	set INBUILDSTANCE to 1;
+	
+	turn arm to x-axis <45> speed [90];
+	turn beam to x-axis <0> speed <180>;
+	wait-for-turn beam around x-axis;
+	sleep 500;
+
+
 }
 
 Stop()
 {	
-	turn beam to y-axis <0.000000> speed <160.038462>;
-	wait-for-turn beam around y-axis;
-	move beam to y-axis [0] speed [24];
 	set INBUILDSTANCE to 0;
-	turn door1 to z-axis <0> speed <180.362637>;
-	turn door2 to z-axis <0> speed <180.362637>;
-	sleep 771;
+	turn arm to x-axis <-90> speed [90];
+	turn beam to x-axis <-180> speed <180>;
+	turn turret to y-axis <0> speed [180];
+	wait-for-turn beam around x-axis;
+	sleep 200;
 
-}
-
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
 }
 
 RequestState(requestedstate, currentstate)
@@ -149,25 +143,36 @@ RequestState(requestedstate, currentstate)
 	statechg_DesiredState = requestedstate;
 	while( statechg_DesiredState != currentstate )
 	{
-		if( statechg_DesiredState == 0 )
-		{
-			call-script Go();
-			currentstate = 0;
-		}
-		if( statechg_DesiredState == 1 )
+		if( statechg_DesiredState )
 		{
 			call-script Stop();
+			notBuilding = 1;
 			currentstate = 1;
+		}
+		else
+		{
+			call-script Go();
+			notBuilding = 0;
+			currentstate = 0;
 		}
 	}
 	statechg_StateChanging = FALSE;
 }
 
+
 Create()
 {
 	Static_Var_1 = 0;
-	call-script InitState();
+	notBuilding = 1;
+	statechg_DesiredState = TRUE;
+	statechg_StateChanging = FALSE;
 	start-script SmokeUnit();
+	hide nano1;
+	hide nano2;
+	hide wake;
+	turn arm to x-axis <-90> now;
+	turn beam to x-axis <-180> now;
+	
 }
 
 Activate()
@@ -180,20 +185,38 @@ Deactivate()
 	start-script RequestState(1);
 }
 
-StartBuilding(Func_Var_1)
+StartBuilding(heading,pitch)
 {
-	Static_Var_1 = Func_Var_1;
 	start-script RequestState(0);
+	while( notBuilding ) sleep 100;
+	signal SIG_BUILD;
+	turn turret to y-axis heading speed <360.000000>;
+	turn beam to x-axis pitch speed <90>;
+	set INBUILDSTANCE to 1;
+	
 }
 
 StopBuilding()
 {
+	signal SIG_BUILD;	
+	set-signal-mask SIG_BUILD;
+	sleep 3000;
+	set-signal-mask 0;
+	signal SIG_BUILD;
 	start-script RequestState(1);
 }
 
 QueryNanoPiece(piecenum)
 {
-	piecenum = beam;
+	if(nano==1)
+	{
+		piecenum = nano1;
+	}
+	else
+	{
+		piecenum = nano2;
+	}
+	nano = !nano;
 }
 
 TargetHeading(Func_Var_1)
@@ -212,45 +235,36 @@ Killed(severity, corpsetype)
 	{
 		corpsetype = 1 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode door2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode arm type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode beam type BITMAPONLY | NOHEATCLOUD;
-		//explode nano1 type BITMAPONLY | NOHEATCLOUD;
 		explode nano2 type BITMAPONLY | NOHEATCLOUD;
-		//explode door1 type BITMAPONLY | NOHEATCLOUD;
-		//explode wake type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode door2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode arm type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode beam type FALL | NOHEATCLOUD;
 		explode nano1 type FALL | NOHEATCLOUD;
 		explode nano2 type FALL | NOHEATCLOUD;
-		//explode door1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode wake type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode door2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode arm type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode beam type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode nano1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode nano2 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		explode door1 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		//explode wake type SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode door2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode arm type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode beam type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode nano1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode nano2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode door1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode wake type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }

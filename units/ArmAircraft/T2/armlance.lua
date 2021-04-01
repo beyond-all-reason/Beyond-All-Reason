@@ -110,14 +110,14 @@ return {
 				name = "Light homing torpedo launcher",
 				noselfdamage = true,
 				range = 650,
-				reloadtime = 8,
+				reloadtime = 6, --8
 				soundhit = "xplodep3",
 				soundhitwet = "splsmed",
 				soundstart = "bombrel",
 				startvelocity = 35,
 				tolerance = 2000,
 				tracks = true,
-				turnrate = 17000,
+				turnrate = 20000, --17000
 				turret = false,
 				waterweapon = true,
 				weaponacceleration = 35,
@@ -125,7 +125,7 @@ return {
 				weapontype = "TorpedoLauncher",
 				weaponvelocity = 200,
 				damage = {
-					default = 500,
+					default = 375, --500
 				},
 				customparams = {
 					speceffect = "torpwaterpen",
