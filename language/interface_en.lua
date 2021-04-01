@@ -550,6 +550,10 @@ return {
 				didEverything = 'Doing everything',
 				traitor = 'The Traitor - Destroying allied units',
 			},
+			autogroups = {
+				unitAdded = 'Added %{unit} to autogroup #%{groupNumber}.',
+				unitRemoved = 'Removed %{unit} from autogroups.',
+			}
 		}
 	}
 }
