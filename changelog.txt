@@ -5,6 +5,7 @@ General
  • Wreckage/heaps have the same HP as regular unit HP (~33% increase)
  • Increased maxslope for all units 50% (the slope it allows to be build on)
  • Units gain xp (ranks) faster, also relatively more health/firerate compared the the same old xp
+ • Unit impulse/kickback on hits is be restored again
 
 Units
  • Commander wreckage is now 2000 metal instead of 2500
