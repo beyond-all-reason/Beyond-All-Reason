@@ -282,15 +282,15 @@ if gadgetHandler:IsSyncedCode() then
 	if luaAI == "Chicken: Very Easy" then
 		queenName = "ve_chickenq"
 	elseif luaAI == "Chicken: Easy" then
-		queenName = "e_chickenq" 
+		queenName = "e_chickenq"
 	elseif luaAI == "Chicken: Normal" then
-		queenName = "n_chickenq" 
+		queenName = "n_chickenq"
 	elseif luaAI == "Chicken: Hard" then
-		queenName = "h_chickenq" 
+		queenName = "h_chickenq"
 	elseif luaAI == "Chicken: Very Hard" then
-		queenName = "vh_chickenq" 
+		queenName = "vh_chickenq"
 	elseif luaAI == "Chicken: Epic!" then
-		queenName = "epic_chickenq" 
+		queenName = "epic_chickenq"
 	end
 
 	if (queenName == "asc") then
@@ -1035,8 +1035,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer,
-								   weaponID, projectileID, attackerID, attackerDefID, attackerTeam)
+	function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponID, projectileID, attackerID, attackerDefID, attackerTeam)
 
 		if disabledUnits[unitID] then
 			return 0, 0
@@ -1084,11 +1083,10 @@ if gadgetHandler:IsSyncedCode() then
 				return damage
 			end
 		end
-		return damage
+		return damage, 1
 	end
 
-	function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer,
-								weaponID, projectileID, attackerID, attackerDefID, attackerTeam)
+	function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponID, projectileID, attackerID, attackerDefID, attackerTeam)
 
 		if EMP_GOO[weaponID] and unitTeam ~= chickenTeamID and lobberEMPTime > 0 then
 			stunUnit(unitID, ((damage / EMP_GOO[weaponID]) * lobberEMPTime))

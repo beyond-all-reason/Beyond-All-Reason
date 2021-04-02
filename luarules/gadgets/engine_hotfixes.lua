@@ -75,7 +75,7 @@ if gadgetHandler:IsSyncedCode() then
 		if weaponDefID == -1 then
 			return 0, 0
 		end
-		return damage
+		return damage, 1
 	end
 
 end

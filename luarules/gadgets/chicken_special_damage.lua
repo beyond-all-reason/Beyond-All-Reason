@@ -1,20 +1,18 @@
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
 function gadget:GetInfo()
-  return {
-    name      = "Chicken Special Damage",
-    desc      = "Nerfs some weapons vs Chickens",
-    author    = "TheFatController",
-    date      = "Aug 31, 2013",
-    license   = "GNU GPL, v2 or later",
-    layer     = 0,
-    enabled   = true  --  loaded by default?
-  }
+	return {
+		name = "Chicken Special Damage",
+		desc = "Nerfs some weapons vs Chickens",
+		author = "TheFatController",
+		date = "Aug 31, 2013",
+		license = "GNU GPL, v2 or later",
+		layer = 0,
+		enabled = true  --  loaded by default?
+	}
 end
 
 local teams = Spring.GetTeamList()
-for i =1, #teams do
+local chickensEnabled
+for i = 1, #teams do
 	local luaAI = Spring.GetTeamLuaAI(teams[i])
 	if luaAI and luaAI ~= "" and string.sub(luaAI, 1, 9) == 'Chicken: ' then
 		chickensEnabled = true
@@ -28,13 +26,10 @@ else
 	return false
 end
 
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
 --There are some *A-isms in here, but they don't cause any issues, so I don't see the point in removing them and making some poor sap recreate them for his game.
 
-if (not gadgetHandler:IsSyncedCode()) then
-  return false  --  silent removal
+if not gadgetHandler:IsSyncedCode() then
+	return false  --  silent removal
 end
 
 local DAMAGE_LIMITS = {
@@ -96,24 +91,18 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	end
 end
 
-function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer,
-                            weaponID, projectileID, attackerID, attackerDefID, attackerTeam)
+function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponID, projectileID, attackerID, attackerDefID, attackerTeam)
+	if CHICKEN_RESISTS[unitDefID] and CHICKEN_RESISTS[unitDefID][weaponID] then
+		return damage * CHICKEN_RESISTS[unitDefID][weaponID], CHICKEN_RESISTS[unitDefID][weaponID]
+	end
 
-  if CHICKEN_RESISTS[unitDefID] and CHICKEN_RESISTS[unitDefID][weaponID] then
-	return damage * CHICKEN_RESISTS[unitDefID][weaponID], CHICKEN_RESISTS[unitDefID][weaponID]
-  end
-
-  if DAMAGE_LIMITS[weaponID] then
-		return math.min(DAMAGE_LIMITS[weaponID],damage),1
-  elseif DGUN[weaponID] and CHICKEN_QUEENS[unitDefID] then
-		return math.min(DGUN[weaponID],damage),1
-  elseif damage > 50000 and CHICKEN_QUEENS[unitDefID] then
-		return math.min(50000,damage),1
-  else
-		return damage,1
-  end
+	if DAMAGE_LIMITS[weaponID] then
+		return math.min(DAMAGE_LIMITS[weaponID], damage), 1
+	elseif DGUN[weaponID] and CHICKEN_QUEENS[unitDefID] then
+		return math.min(DGUN[weaponID], damage), 1
+	elseif damage > 50000 and CHICKEN_QUEENS[unitDefID] then
+		return math.min(50000, damage), 1
+	else
+		return damage, 1
+	end
 end
-
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
