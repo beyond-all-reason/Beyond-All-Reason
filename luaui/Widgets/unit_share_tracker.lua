@@ -240,7 +240,7 @@ function widget:UnitTaken(unitID, unitDefID, oldTeam, newTeam)
 		local x, y, z = GetUnitPosition(unitID)
 		local r, g, b = Spring.GetTeamColor(oldTeam)
 		if x and r then
-			mapPoints[unitID] = { r = r, g = g, b = b, x = x, y = y, z = z, unitName = "*" .. UnitDefs[unitDefID].humanName, time = (timeNow + ttl), highlightSize = UnitDefs[unitDefID].radius * 0.6 }
+			mapPoints[unitID] = { r = r, g = g, b = b, x = x, y = y, z = z, unitName = Spring.I18N('ui.unitShare.unit', { unit = UnitDefs[unitDefID].humanName }), time = (timeNow + ttl), highlightSize = UnitDefs[unitDefID].radius * 0.6 }
 			unitCount = unitCount + 1
 		end
 	end
@@ -262,7 +262,7 @@ function widget:Update(dt)
 	if unitCount > 0 then
 		msgTimer = msgTimer + dt
 		if msgTimer > 0.1 then
-			Spring.Echo("You received " .. unitCount .. " new unit(s)*")
+			Spring.Echo( Spring.I18N('ui.unitShare.received', { count = unitCount }) )
 			Spring.PlaySoundFile("beep4", 1, 'ui')
 			unitCount = 0
 			msgTimer = 0
