@@ -312,9 +312,9 @@ function widget:KeyPress(key, modifier, isRepeat)
 			for udid, _ in pairs(selUnitDefIDs) do
 				if verbose then
 					if gr then
-						Echo('Added ' .. UnitDefs[udid].humanName .. ' to autogroup #' .. gr .. '.')
+						Echo( Spring.I18N('ui.autogroups.unitAdded', { unit = UnitDefs[udid].humanName, groupNumber = gr }) )
 					else
-						Echo('Removed ' .. UnitDefs[udid].humanName .. ' from autogroups.')
+						Echo( Spring.I18N('ui.autogroups.unitRemoved', { unit = UnitDefs[udid].humanName }) )
 					end
 				end
 			end

@@ -540,6 +540,18 @@ return {
 				didEverything = 'Doing everything',
 				traitor = 'The Traitor - Destroying allied units',
 			},
+			autogroups = {
+				unitAdded = 'Added %{unit} to autogroup #%{groupNumber}.',
+				unitRemoved = 'Removed %{unit} from autogroups.',
+			},
+			moveAttackNotify = {
+				underAttack = '-> %{unit} is being attacked!',
+				cantMove = '%{unit}: Can\'t reach destination!',
+			},
+			unitShare = {
+				received = 'You received %{count} new unit(s)*',
+				unit = '*%{unit}'
+			},
 		}
 	}
 }
