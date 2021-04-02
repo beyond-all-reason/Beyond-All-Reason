@@ -84,7 +84,7 @@ function widget:UnitDamaged (unitID, unitDefID, unitTeam, damage, paralyzer)
 	end
 	lastAlarmTime = now
 
-	spEcho("-> " .. unitHumanName[unitDefID] .. " is being attacked!") --print notification
+	spEcho( Spring.I18N('ui.moveAttackNotify.underAttack', { unit = unitHumanName[unitDefID] }) )
 
 	if unitUnderattackSounds[unitDefID] then
 		local id = random(1, #unitUnderattackSounds[unitDefID]) --pick a sound from the table by random --(id 138, name warning2, volume 1)
@@ -101,5 +101,5 @@ function widget:UnitDamaged (unitID, unitDefID, unitTeam, damage, paralyzer)
 end
 
 function widget:UnitMoveFailed(unitID, unitDefID, unitTeam)
-	spEcho(unitHumanName[unitDefID] .. ": Can't reach destination!")
+	spEcho( Spring.I18N('ui.moveAttackNotify.cantMove', { unit = unitHumanName[unitDefID] }) )
 end

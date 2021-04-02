@@ -553,7 +553,11 @@ return {
 			autogroups = {
 				unitAdded = 'Added %{unit} to autogroup #%{groupNumber}.',
 				unitRemoved = 'Removed %{unit} from autogroups.',
-			}
+			},
+			moveAttackNotify = {
+				underAttack = '-> %{unit} is being attacked!',
+				cantMove = '%{unit}: Can\'t reach destination!',
+			},
 		}
 	}
 }
