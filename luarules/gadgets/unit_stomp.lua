@@ -61,5 +61,5 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 	elseif kargkickWeapon[weaponDefID] then
 		return 0, 0
 	end
-	return damage, nil
+	return damage, 1
 end

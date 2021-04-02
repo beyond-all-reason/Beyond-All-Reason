@@ -1,7 +1,7 @@
 function widget:GetInfo()
 	return {
 		name = "Idle Builders",
-		desc = "Interface shows unit groups via stacked icons",
+		desc = "Interface to display idle builders",
 		author = "Floris (original by Ray)",
 		date = "March 2021",
 		license = "GNU GPL, v2 or later",
@@ -88,7 +88,7 @@ local font, font2, chobbyInterface, buildmenuBottomPosition, dlist, dlistGuishad
 local isBuilder = {}
 local isFactory = {}
 local unitBuildPic = {}
-local unitName = {}
+local unitHumanName = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.buildSpeed > 0 then --and unitDef.buildOptions[1] then
 		isBuilder[unitDefID] = true
@@ -99,8 +99,8 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.buildpicname then
 		unitBuildPic[unitDefID] = unitDef.buildpicname
 	end
-	if unitDef.name then
-		unitName[unitDefID] = unitDef.name
+	if unitDef.humanName then
+		unitHumanName[unitDefID] = unitDef.humanName
 	end
 end
 
@@ -338,7 +338,7 @@ local function updateList()
 				local offsetY = -(fontSize*(posY > 0 and 0.22 or 0.31))
 				local style = 'c'
 				font2:Begin()
-				font2:SetTextColor(1,1,1,0.14)
+				font2:SetTextColor(1,1,1,0.15)
 				offset = (fontSize*0.6)
 				font2:Print(Spring.I18N('ui.idleBuilders.z'), groupRect[1]+((groupRect[3]-groupRect[1])/2)-offset, groupRect[2]+((groupRect[4]-groupRect[2])/2)+offset+offsetY, fontSize, style)
 				fontSize = fontSize * 1.2
@@ -502,7 +502,7 @@ function widget:Update(dt)
 				if IsOnRect(x, y, groupButtons[i][1], groupButtons[i][2], groupButtons[i][3], groupButtons[i][4]) then
 					local unitDefID = existingGroups[i]
 					if unitDefID then
-						tooltipTitle = '\255\255\255\255'..Spring.I18N('ui.idleBuilders.idle')..'\255\190\255\190 '..Spring.I18N('units.names.'..unitName[unitDefID])
+						tooltipTitle = '\255\255\255\255'..Spring.I18N('ui.idleBuilders.idle')..'\255\190\255\190 '..unitHumanName[unitDefID]
 						if #idleList[unitDefID] > 1 then
 							tooltipAddition = '\n\255\190\190\190'..Spring.I18N('ui.idleBuilders.shiftclick')..'\n\255\190\190\190'..Spring.I18N('ui.idleBuilders.cycleclick')
 						end
