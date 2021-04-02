@@ -233,18 +233,18 @@ local function updateList()
 				local offsetY = -(fontSize*(posY > 0 and 0.31 or 0.44))
 				local style = 'c'
 				font2:Begin()
-				font2:SetTextColor(1,1,1,0.14)
-				font2:Print(Spring.I18N('ui.unitGroups.g1'), groupRect[1]+((groupRect[3]-groupRect[1])/2)-offset, groupRect[2]+((groupRect[4]-groupRect[2])/2)+offset+offsetY, fontSize, style)
-				font2:Print(Spring.I18N('ui.unitGroups.g2'), groupRect[1]+((groupRect[3]-groupRect[1])/2), groupRect[2]+((groupRect[4]-groupRect[2])/2)+offset+offsetY, fontSize, style)
-				font2:Print(Spring.I18N('ui.unitGroups.g3'), groupRect[1]+((groupRect[3]-groupRect[1])/2)+offset, groupRect[2]+((groupRect[4]-groupRect[2])/2)+offset+offsetY, fontSize, style)
+				font2:SetTextColor(1,1,1,0.15)
+				font2:Print(1, groupRect[1]+((groupRect[3]-groupRect[1])/2)-offset, groupRect[2]+((groupRect[4]-groupRect[2])/2)+offset+offsetY, fontSize, style)
+				font2:Print(2, groupRect[1]+((groupRect[3]-groupRect[1])/2), groupRect[2]+((groupRect[4]-groupRect[2])/2)+offset+offsetY, fontSize, style)
+				font2:Print(3, groupRect[1]+((groupRect[3]-groupRect[1])/2)+offset, groupRect[2]+((groupRect[4]-groupRect[2])/2)+offset+offsetY, fontSize, style)
 
-				font2:Print(Spring.I18N('ui.unitGroups.g4'), groupRect[1]+((groupRect[3]-groupRect[1])/2)-offset, groupRect[2]+((groupRect[4]-groupRect[2])/2)+offsetY, fontSize, style)
-				font2:Print(Spring.I18N('ui.unitGroups.g5'), groupRect[1]+((groupRect[3]-groupRect[1])/2), groupRect[2]+((groupRect[4]-groupRect[2])/2)+offsetY, fontSize, style)
-				font2:Print(Spring.I18N('ui.unitGroups.g6'), groupRect[1]+((groupRect[3]-groupRect[1])/2)+offset, groupRect[2]+((groupRect[4]-groupRect[2])/2)+offsetY, fontSize, style)
+				font2:Print(4, groupRect[1]+((groupRect[3]-groupRect[1])/2)-offset, groupRect[2]+((groupRect[4]-groupRect[2])/2)+offsetY, fontSize, style)
+				font2:Print(5, groupRect[1]+((groupRect[3]-groupRect[1])/2), groupRect[2]+((groupRect[4]-groupRect[2])/2)+offsetY, fontSize, style)
+				font2:Print(6, groupRect[1]+((groupRect[3]-groupRect[1])/2)+offset, groupRect[2]+((groupRect[4]-groupRect[2])/2)+offsetY, fontSize, style)
 
-				font2:Print(Spring.I18N('ui.unitGroups.g7'), groupRect[1]+((groupRect[3]-groupRect[1])/2)-offset, groupRect[2]+((groupRect[4]-groupRect[2])/2)-offset+offsetY, fontSize, style)
-				font2:Print(Spring.I18N('ui.unitGroups.g8'), groupRect[1]+((groupRect[3]-groupRect[1])/2), groupRect[2]+((groupRect[4]-groupRect[2])/2)-offset+offsetY, fontSize, "c")
-				font2:Print(Spring.I18N('ui.unitGroups.g9'), groupRect[1]+((groupRect[3]-groupRect[1])/2)+offset, groupRect[2]+((groupRect[4]-groupRect[2])/2)-offset+offsetY, fontSize, style)
+				font2:Print(7, groupRect[1]+((groupRect[3]-groupRect[1])/2)-offset, groupRect[2]+((groupRect[4]-groupRect[2])/2)-offset+offsetY, fontSize, style)
+				font2:Print(8, groupRect[1]+((groupRect[3]-groupRect[1])/2), groupRect[2]+((groupRect[4]-groupRect[2])/2)-offset+offsetY, fontSize, "c")
+				font2:Print(9, groupRect[1]+((groupRect[3]-groupRect[1])/2)+offset, groupRect[2]+((groupRect[4]-groupRect[2])/2)-offset+offsetY, fontSize, style)
 				font2:End()
 			end
 
