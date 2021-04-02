@@ -1,7 +1,7 @@
 function widget:GetInfo()
 	return {
 		name = "Unit Groups",
-		desc = "Interface shows unit groups via stacked icons",
+		desc = "Interface to shows unit groups (via stacked icons)",
 		author = "Floris",
 		date = "March 2021",
 		license = "GNU GPL, v2 or later",
