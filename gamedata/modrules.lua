@@ -91,8 +91,9 @@ local modrules  = {
 	allowUnitCollisionDamage  = false,  -- default: true if using QTPFS pathfinder.  Do unit-unit (skidding) collisions cause damage?
 	allowUnitCollisionOverlap = false,  -- can mobile units collision volumes overlap one another? Allows unit movement like this (video http://www.youtube.com/watch?v=mRtePUdVk2o ) at the cost of more 'clumping'.
     allowCrushingAlliedUnits  = true,   -- default: false.  Can allied ground units crush each other during collisions? Units still have to be explicitly set as crushable using the crushable parameter of Spring.SetUnitBlocking.
-	allowGroundUnitGravity    = true,	-- default: true.   Allows fast moving mobile units to 'catch air' as they move over terrain.
+	allowGroundUnitGravity    = false,	-- default: true.   Allows fast moving mobile units to 'catch air' as they move over terrain.
 	--NOTE: allowGroundUnitGravity was set to false to "Fix units flying over hills and bumps", but this came at a cost for unit impulse which was a desired trait
+	--allowGroundUnitGravity = true, is possibly causing units getting stuck in labs
 
     allowAirPlanesToLeaveMap  = true,   -- Are (gunship) aircraft allowed to fly outside the bounds of the map?
     allowAircraftToHitGround  = true,   -- Are aircraft allowed to hit the ground whilst manoeuvring?
