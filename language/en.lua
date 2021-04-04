@@ -529,6 +529,8 @@ return {
 			settargetdefault_descr = 'Replace default attack command to a set-target command\n(when rightclicked on enemy unit)',
 			dgunnogroundenemies = 'Dont snap DGun to ground units',
 			dgunnogroundenemies_descr = 'Prevents dgun aim to snap onto enemy ground units.\nholding SHIFT will still target units\n\nWill still snap to air, ships and hovers (when on water)',
+			dgunstallassist = 'Conserve energy when DGunning',
+			dgunstallassist_descr = 'When pressing D with a Com selected, units that drain energy are put on wait for a while.',
 			singleplayerpause = 'Pause when in settings/quit/lobby',
 			singleplayerpause_descr = 'Exclusively in singleplayer mode...\n\nPauses the game when showing the settings/quit window or lobby',
 			customwidgets = 'Allow custom widgets',
