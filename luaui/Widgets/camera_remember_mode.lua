@@ -12,7 +12,7 @@ function widget:GetInfo()
 end
 
 local savedCamState
-local defaultCamState = {mode = 2} --spring
+local defaultCamState = {mode = 2, rx = 2.677, ry = 0.0, rz = 0.0} --spring
 
 local function deepcopy(orig)
 	local orig_type = type(orig)
@@ -31,7 +31,7 @@ local function deepcopy(orig)
 end
 
 function widget:SetConfigData(data)
-    savedCamState = data or defaultCamMode
+    savedCamState = data or defaultCamState
 end
 
 function widget:Initialize()
