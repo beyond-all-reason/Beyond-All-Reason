@@ -1,7 +1,7 @@
 function widget:GetInfo()
 	return {
 		name = "Unit Marker",
-		version = "1.0",
+		version = "1.1",
 		desc = "Marks spotted units of interest now with old-mark auto-remover",
 		author = "LEDZ",
 		date = "2012.10.01",
@@ -16,68 +16,30 @@ end
 --enhancements by LEDZ. The amount of units/events it marks has been reduced
 --substanially by Bluestone (by popular request).
 --Features:
---{x}Multilanguage support
 --{x}Marks units of interest with the colour of the unit's owner.
 --{x}Auto-deletes previous marks for units that have moved since.
 
-local unitList = {}
---MARKER LIST ------------------------------------
-unitList["BAR"] = {
-	--[UnitDefNames["armcom"].id] = true,
-	--[UnitDefNames["corcom"].id] = true,
+local unitsOfInterest = {
+	-- Anti-Nukes
+	[UnitDefNames["armamd"].id] = true,
+	[UnitDefNames["corfmd"].id] = true,
+	[UnitDefNames["cormabm"].id] = true,
+	[UnitDefNames["armscab"].id] = true,
 
-	[UnitDefNames["armamd"].id] = { ["en"] = "Anti-Nuke", ["de"] = "Anti-Atomwaffe", ["fr"] = "Contre l'Arme Nuclaire" },
-	[UnitDefNames["corfmd"].id] = { ["en"] = "Anti-Nuke", ["de"] = "Anti-Atomwaffe", ["fr"] = "Contre l'Arme Nuclaire" },
+	-- Missile Silos
+	[UnitDefNames["armsilo"].id] = true,
+	[UnitDefNames["corsilo"].id] = true,
+	[UnitDefNames["armemp"].id] = true,
+	[UnitDefNames["cortron"].id] = true,
 
-	[UnitDefNames["cormabm"].id] = { ["en"] = "Mobile Anti-Nuke", ["de"] = "Mobile Anti-Atomwaffe", ["fr"] = "Mobile Contre l'Arme Nuclaire" },
-	[UnitDefNames["armscab"].id] = { ["en"] = "Mobile Anti-Nuke", ["de"] = "Mobile Anti-Atomwaffe", ["fr"] = "Mobile Contre l'Arme Nuclaire" },
-
-	[UnitDefNames["armsilo"].id] = { ["en"] = "Nuke Missile Silo", ["de"] = "Atom-Raketensilo", ["fr"] = "l'Arme Nuclaire" },
-	[UnitDefNames["corsilo"].id] = { ["en"] = "Nuke Missile Silo", ["de"] = "Atom-Raketensilo", ["fr"] = "l'Arme Nuclaire" },
-
-	--[UnitDefNames["armfus"].id] = 	{["en"]="Fusion", ["de"]="Fusion", ["fr"]="Fusion" },
-	--[UnitDefNames["corfus"].id] = 	{["en"]="Fusion", ["de"]="Fusion", ["fr"]="Fusion" },
-	--[UnitDefNames["armckfus"].id] = {["en"]="Cloakable Fusion", 	["de"]="Unsichtbar Fusion", ["fr"]="Camoufle Fusion" },
-
-	--[UnitDefNames["armafus"].id] = 	{["en"]="Adv. Fusion", ["de"]="Fortgeschrittene Fusion", ["fr"]="Suprieur Fusion" },
-	--[UnitDefNames["corafus"].id] = 	{["en"]="Adv. Fusion", ["de"]="Fortgeschrittene Fusion", ["fr"]="Suprieur Fusion" },
-
-	--[UnitDefNames["armageo"].id] = 	{["en"]="Moho Geo", ["de"]="Moho Geo", ["fr"]="Moho Go" },
-	--[UnitDefNames["corageo"].id] = 	{["en"]="Moho Geo", ["de"]="Moho Geo", ["fr"]="Moho Go" },
-
-	--[UnitDefNames["armbrtha"].id] = {["en"]="LRPC", ["de"]="Groe Reichweite Plasmakanone", ["fr"]="Canon Plasma Longue Porte" },
-	--[UnitDefNames["corint"].id] = 	{["en"]="LRPC", ["de"]="Groe Reichweite Plasmakanone", ["fr"]="Canon Plasma Longue Porte" },
-
-	[UnitDefNames["armemp"].id] = { ["en"] = "EMP Silo", ["de"] = "EMP-Raketensilo", ["fr"] = "EMP Silo" },
-	[UnitDefNames["cortron"].id] = { ["en"] = "Tactical Nuke Silo", ["de"] = "Taktische Atom-Raketensilo", ["fr"] = "l'Arme Tactiques Nuclaire" },
-
-	[UnitDefNames["armvulc"].id] = { ["en"] = "Vulcan", ["de"] = "Schnellfeuer-Plasmakanone", ["fr"] = "Cadence de Tir lev Plasma Canon" },
-	[UnitDefNames["corbuzz"].id] = { ["en"] = "Buzzsaw", ["de"] = "Schnellfeuer-Plasmakanone", ["fr"] = "Cadence de Tir lev Plasma Canon" },
-
-	--[UnitDefNames["armshltx"].id] = {["en"]="Gantry", ["de"]="Experimentelle Fabrik", ["fr"]="Usine Exprimentale" },
-	--[UnitDefNames["corgant"].id] = 	{["en"]="Gantry", ["de"]="Experimentelle Fabrik", ["fr"]="Usine Exprimentale" },
-
-	--[UnitDefNames["corkorg"].id] = 	{["en"]="Korgoth", ["de"]="Korgoth", ["fr"]="Korgoth" },
-	--[UnitDefNames["armbanth"].id] = 	{["en"]="Bantha", ["de"]="Bantha", ["fr"]="Bantha" },
-
-	--[UnitDefNames["corshroud"].id] = 	{["en"]="Adv. Jammer", ["de"]="Fortgeschrittene Radarstrsender", ["fr"]="" },
-	--[UnitDefNames["armveil"].id] = 	{["en"]="Adv. Jammer", ["de"]="Fortgeschrittene Radarstrsender", ["fr"]="" },
-	--[UnitDefNames["armjamt"].id] = 	{["en"]="Cloakable Jammer", ["de"]="Unsichtbar Radarstrsender", ["fr"]="" },
-	--[UnitDefNames["coreter"].id] = 	{["en"]="Jammer", ["de"]="Radarstrsender", ["fr"]="" },
-
-	--[UnitDefNames["corspy"].id] = 	{["en"]="Spy", ["de"]="Spion", ["fr"]="" },
-	--[UnitDefNames["armspy"].id] = 	{["en"]="Spy", ["de"]="Spion", ["fr"]="" },
-
-	--[UnitDefNames["corblackhy"].id]={["en"]="Black Hydra", ["de"]="Flaggschiff", ["fr"]="" },
-	--[UnitDefNames["armepoch"].id]={["en"]="Epoch", ["de"]="Flaggschiff", ["fr"]="" }
+	-- Rapid Artilleries
+	[UnitDefNames["armvulc"].id] = true,
+	[UnitDefNames["corbuzz"].id] = true,
 }
 
---END OF MARKER LIST---------------------------------------
+-- Units previously tracked, but disabled because they were too annoying:
+-- Commanders, Fusion Plants, Advanced Geothermals, LRPCs, T3 Gantries, T3 Assault Bots, Jammers, Spy Bots, Flagships
 
-local myLang = "en" -- --set this if you want to bypass lobby country
-local myPlayerID
-local curModID
-local spEcho = Spring.Echo
 local spMarkerAddPoint = Spring.MarkerAddPoint--(x,y,z,"text",local? (1 or 0))
 local spMarkerErasePosition = Spring.MarkerErasePosition
 local spGetUnitTeam = Spring.GetUnitTeam
@@ -90,35 +52,9 @@ local prevMarkX = {}
 local prevMarkY = {}
 local prevMarkZ = {}
 
-local gameStarted, curUnitList
+local gameStarted
 
-local teamNames = {}
-
-local isCommander = {}
-for unitDefID, unitDef in pairs(UnitDefs) do
-	if unitDef.customParams.iscommander then
-		isCommander[unitDefID] = true
-	end
-end
-
-local function GetTeamName(teamID)
-	--need to rewrite this sloppy functionality
-	local name = teamNames[teamID]
-	if name then
-		return name
-	end
-
-	local teamNum, teamLeader = Spring.GetTeamInfo(teamID, false)
-	if teamLeader == nil then
-		return "Not sure what purpose this originally served" -- nor I -LEDZ -- I do but its effect is lost in time -Bluestone
-	end
-
-	name = Spring.GetPlayerInfo(teamLeader, false)
-	teamNames[teamID] = name
-	return name or "Gaia"
-end
-
-function maybeRemoveSelf()
+local function maybeRemoveSelf()
 	if Spring.GetSpectatingState() and (Spring.GetGameFrame() > 0 or gameStarted) then
 		widgetHandler:RemoveWidget(self)
 	end
@@ -137,19 +73,9 @@ function widget:Initialize()
 	if Spring.IsReplay() or Spring.GetGameFrame() > 0 then
 		maybeRemoveSelf()
 	end
-
-	curModID = string.upper(Game.gameShortName or "")
-	if unitList[curModID] == nil then
-		spEcho("<Unit Marker> Unsupported Game, shutting down...")
-		widgetHandler:RemoveWidget(self)
-		return
-	else
-		curUnitList = unitList[curModID] or {}
-	end
-	myLang = myLang or string.lower(select(8, Spring.GetPlayerInfo(Spring.GetMyPlayerID(), false)))
 end
 
-function colourNames(teamID)
+local function colourNames(teamID)
 	local nameColourR, nameColourG, nameColourB, nameColourA = spGetTeamColor(teamID)
 	local R255 = math.floor(nameColourR * 255)  --the first \255 is just a tag (not colour setting) no part can end with a zero due to engine limitation (C)
 	local G255 = math.floor(nameColourG * 255)
@@ -175,7 +101,7 @@ function widget:UnitEnteredLos(unitID, unitTeam)
 	local x, y, z = spGetUnitPosition(unitID)  --x and z on map floor, y is height
 
 	if udefID and x then
-		if curUnitList[udefID] then
+		if unitsOfInterest[udefID] then
 			prevX, prevY, prevZ = prevMarkX[unitID], prevMarkY[unitID], prevMarkZ[unitID]
 			if prevX == nil then
 				prevX, prevY, prevZ = 0, 0, 0
@@ -186,14 +112,9 @@ function widget:UnitEnteredLos(unitID, unitTeam)
 				local markName
 				local colouredMarkName
 				local markColour = colourNames(spGetUnitTeam(unitID))
-				if isCommander[udefID] then
-					markName = GetTeamName(spGetUnitTeam(unitID))
-					colouredMarkName = markColour .. markName
-				else
-					markName = curUnitList[udefID]
-					markName = markName[myLang] or markName["en"]
-					colouredMarkName = markColour .. markName
-				end
+				
+				markName = UnitDefs[udefID].tooltip
+				colouredMarkName = markColour .. markName
 				spMarkerErasePosition(prevX, prevY, prevZ)
 				spMarkerAddPoint(x, y, z, colouredMarkName)
 				prevX, prevY, prevZ = x, y, z
