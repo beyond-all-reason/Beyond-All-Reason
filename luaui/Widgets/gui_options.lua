@@ -2097,7 +2097,7 @@ local gpuMem = (Platform.gpuMemorySize and Platform.gpuMemorySize or 1000) / 100
 if Platform ~= nil and Platform.gpuVendor == 'Intel' then
 	isPotatoGpu = true
 end
-if gpuMem and gpuMem < 1800 then
+if gpuMem and gpuMem > 0 and gpuMem < 1800 then
 	isPotatoGpu = true
 end
 
@@ -2279,7 +2279,7 @@ function init()
 				local s_ram = string.match(line, '([0-9]*MB RAM)')
 				if s_ram ~= nil then
 					s_ram = string.gsub(s_ram, " RAM", "")
-					if tonumber(s_ram) and tonumber(s_ram) < 6500 then
+					if tonumber(s_ram) and tonumber(s_ram) > 0 and tonumber(s_ram) < 6500 then
 						isPotatoCpu = true
 					end
 				end
@@ -2293,15 +2293,12 @@ function init()
 	end
 
 
-	--isPotatoCpu = true	-- enable to test
-	--isPotatoGpu = true	-- enable to test
-
 	-- restrict options for potato systems
 	if isPotatoCpu or isPotatoGpu then
 		if isPotatoCpu then
 			Spring.Echo('potato CPU detected')
 		end
-		if isPotatoCpu then
+		if isPotatoGpu then
 			Spring.Echo('potato Graphics Card detected')
 		end
 		presetNames = { texts.option.preset_lowest, texts.option.preset_low, texts.option.preset_medium }
