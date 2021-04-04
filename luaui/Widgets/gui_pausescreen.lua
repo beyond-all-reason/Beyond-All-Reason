@@ -133,9 +133,9 @@ function widget:Update(dt)
 		paused = false
 	end
 
-	if spGetGameState and select(3, spGetGameState()) then
-		paused = true
-	end
+	--if spGetGameState and select(3, spGetGameState()) then	-- is locally paused? NOTE: returns true if you do /pause as spec regardless of game actually being paused of not
+	--	paused = true
+	--end
 
 	-- admin pause / game freeze
 	if not paused and gameFrame > 0 and not gameover then
