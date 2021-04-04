@@ -11,7 +11,6 @@ function widget:GetInfo()
 end
 
 --[[
---[[
 --   Add option, at:
 --   function init
 ]]--
