@@ -440,6 +440,8 @@ local texts = {        -- fallback (if you want to change this, also update: lan
 		settargetdefault_descr = 'Replace default attack command to a set-target command\n(when rightclicked on enemy unit)',
 		dgunnogroundenemies = 'Dont snap DGun to ground units',
 		dgunnogroundenemies_descr = 'Prevents dgun aim to snap onto enemy ground units.\nholding SHIFT will still target units\n\nWill still snap to air, ships and hovers (when on water)',
+		dgunstallassist = 'Conserve energy when DGunning',
+		dgunstallassist_descr = 'When pressing D with a Com selected, units that drain energy are put on wait for a while.',
 		singleplayerpause = 'Pause when in settings/quit/lobby',
 		singleplayerpause_descr = 'Exclusively in singleplayer mode...\n\nPauses the game when showing the settings/quit window or lobby',
 		customwidgets = 'Allow custom widgets',
@@ -4250,6 +4252,7 @@ function init()
 		{ id = "transportai", group = "game", basic = true, widget = "Transport AI", name = texts.option.transportai, type = "bool", value = GetWidgetToggleValue("Transport AI"), description = texts.option.transportai_descr },
 		{ id = "settargetdefault", group = "game", basic = true, widget = "Set target default", name = texts.option.settargetdefault, type = "bool", value = GetWidgetToggleValue("Set target default"), description = texts.option.settargetdefault_descr },
 		{ id = "dgunnogroundenemies", group = "game", widget = "DGun no ground enemies", name = texts.option.dgunnogroundenemies, type = "bool", value = GetWidgetToggleValue("DGun no ground enemies"), description = texts.option.dgunnogroundenemies_descr },
+		{ id = "dgunstallassist", group = "game", widget = "DGun Stall Assist", name = texts.option.dgunstallassist, type = "bool", value = GetWidgetToggleValue("DGun Stall Assist"), description = texts.option.dgunstallassist_descr },
 
 		{ id = "singleplayerpause", group = "game", name = texts.option.singleplayerpause, type = "bool", value = pauseGameWhenSingleplayer, description = texts.option.singleplayerpause_descr,
 		  onchange = function(i, value)
