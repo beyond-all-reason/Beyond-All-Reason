@@ -35,7 +35,7 @@ function widget:SetConfigData(data)
 end
 
 function widget:Initialize()
-	Spring.Echo("Hello!!!")
+	--Spring.Echo("Hello!!!")
     avoidOverviewCam() -- bug is when you switch from overview to spring
 
     --Spring.Echo("wanted", camName)
