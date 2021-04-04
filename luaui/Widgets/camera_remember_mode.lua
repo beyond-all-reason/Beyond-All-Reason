@@ -11,28 +11,36 @@ function widget:GetInfo()
   }
 end
 
-local camName
-local defaultCamName = 'ta'
+local savedCamState
+local defaultCamState = {mode = 2} --spring
 
-function GetModeFromName(name)
-    local camNames = Spring.GetCameraNames()
-    return camNames[name]
+local function deepcopy(orig)
+	local orig_type = type(orig)
+	local copy
+	if orig_type == 'table' then
+		copy = {}
+		for orig_key, orig_value in next, orig, nil do
+			copy[deepcopy(orig_key)] = deepcopy(orig_value)
+		end
+		setmetatable(copy, deepcopy(getmetatable(orig)))
+	else
+		-- number, string, boolean, etc
+		copy = orig
+	end
+	return copy
 end
 
 function widget:SetConfigData(data)
-    camName = data and data.name or defaultCamName
+    savedCamState = data or defaultCamMode
 end
 
 function widget:Initialize()
-    avoidOverviewCam(); -- bug is when you switch from overview to spring
+	Spring.Echo("Hello!!!")
+    avoidOverviewCam() -- bug is when you switch from overview to spring
 
     --Spring.Echo("wanted", camName)
-    if camName then
-        local camState = Spring.GetCameraState()
-        camState.name = camName
-        camState.mode = GetModeFromName(camName)
-        --Spring.Echo("set", camName, camState.mode)
-        Spring.SetCameraState(camState, 0)
+    if savedCamState then
+        Spring.SetCameraState(savedCamState, 0)
     end
 
     avoidOverviewCam() -- and we don't want to switch to overview at game start anyway
@@ -40,19 +48,16 @@ end
 
 function avoidOverviewCam()
     local camState = Spring.GetCameraState()
-    if camState.name == 'ov' then -- dirty workaround for https://springrts.com/mantis/view.php?id=5028
-        Spring.Echo("Warning: you have Overview camera as default. This camera is not intended to start game with. Switching to TA camera.");
-        camState.name = defaultCamName
-        camState.mode = GetModeFromName(defaultCamName)
-        Spring.SetCameraState(camState, 0)
+    if camState.mode == 5 then -- dirty workaround for https://springrts.com/mantis/view.php?id=5028
+        Spring.Echo("Warning: you have Overview camera as default. This camera is not intended to start game with. Switching to Spring camera.");
+        Spring.SetCameraState(defaultCamState, 0)
     end
 end
 
 function widget:GetConfigData()
     local camState = Spring.GetCameraState()
     local data = {}
-    data.name = camState.name
-    --Spring.Echo("saved", data.name, camState.mode)
+    data = deepcopy(camState)
     return data
 end
 
