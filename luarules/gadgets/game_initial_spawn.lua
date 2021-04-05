@@ -588,8 +588,8 @@ else
 			UiButton(readyX-(readyW/2), readyY-(readyH/2), readyX+(readyW/2), readyY+(readyH/2), 1,1,1,1, 1,1,1,1, nil, {0.15, 0.11, 0, 1}, {0.28, 0.21, 0, 1})
 		end)
 		readyButtonHover = gl.CreateList(function()
-			UiElement(readyX-(readyW/2)-elementPadding, (-readyH/2)-elementPadding, readyX+(readyW/2)+elementPadding, readyY+(readyH/2)+elementPadding, 1,1,1,1, 1,1,1,1)
-			UiButton(readyX-(readyW/2), readyY-(readyH/2), readyX+(readyW/2), readyY+(readyH/2), 1,1,1,1, 1,1,1,1, nil, {0.25, 0.2, 0, 1}, {0.44, 0.35, 0, 1})
+			UiElement(readyX-(readyW/2)-elementPadding, readyY-(readyH/2)-elementPadding, readyX+(readyW/2)+elementPadding, readyY+(readyH/2)+elementPadding, 1,1,1,1, 1,1,1,1)
+			UiButton(readyX-(readyW/2), readyY-(readyH/2), readyX+(readyW/2), readyY+(readyH/2), 1,1,1,1, 1,1,1,1, nil, {0.25, 0.20, 0, 1}, {0.44, 0.35, 0, 1})
 		end)
 	end
 
@@ -614,7 +614,7 @@ else
 			-- draw ready button and text
 			local x,y = Spring.GetMouseState()
 			local colorString
-			if x > readyX and x < readyX+readyW and y > readyY and y < readyY+readyH then
+			if x > readyX-(readyW/2) and x < readyX+(readyW/2) and y > readyY-(readyH/2) and y < readyY+(readyH/2) then
 				gl.CallList(readyButtonHover)
 				colorString = "\255\255\222\0"
 			else
