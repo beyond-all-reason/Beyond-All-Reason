@@ -20,8 +20,8 @@ end
 
 function gadget:GameFrame(n)
     if n%daylenght > nightlenght then
-		SendToUnsynced("MapAtmosphereConfigSetSun", 0.50, transitionSpeed, 0.50*atmosphere)
-	else	
+		SendToUnsynced("MapAtmosphereConfigSetSun", 0.65, transitionSpeed, 0.65*atmosphere)
+	else
 		SendToUnsynced("MapAtmosphereConfigSetSun", 1, transitionSpeed, 1)
 	end
 end
