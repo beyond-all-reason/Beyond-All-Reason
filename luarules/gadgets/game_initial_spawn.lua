@@ -474,6 +474,19 @@ else
 	local UiButton = Spring.FlowUI.Draw.Button
 	local elementPadding = Spring.FlowUI.elementPadding
 
+	local function createButton()
+		readyButton = gl.DeleteList(readyButton)
+		readyButton = gl.CreateList(function()
+			UiElement(readyX-(readyW/2)-elementPadding, readyY-(readyH/2)-elementPadding, readyX+(readyW/2)+elementPadding, readyY+(readyH/2)+elementPadding, 1,1,1,1, 1,1,1,1)
+			UiButton(readyX-(readyW/2), readyY-(readyH/2), readyX+(readyW/2), readyY+(readyH/2), 1,1,1,1, 1,1,1,1, nil, {0.15, 0.11, 0, 1}, {0.28, 0.21, 0, 1})
+		end)
+		readyButtonHover = gl.DeleteList(readyButtonHover)
+		readyButtonHover = gl.CreateList(function()
+			UiElement(readyX-(readyW/2)-elementPadding, readyY-(readyH/2)-elementPadding, readyX+(readyW/2)+elementPadding, readyY+(readyH/2)+elementPadding, 1,1,1,1, 1,1,1,1)
+			UiButton(readyX-(readyW/2), readyY-(readyH/2), readyX+(readyW/2), readyY+(readyH/2), 1,1,1,1, 1,1,1,1, nil, {0.25, 0.20, 0, 1}, {0.44, 0.35, 0, 1})
+		end)
+	end
+
 	function gadget:ViewResize(viewSizeX, viewSizeY)
 		vsx,vsy = Spring.GetViewGeometry()
 
@@ -494,6 +507,8 @@ else
 		UiElement = Spring.FlowUI.Draw.Element
 		UiButton = Spring.FlowUI.Draw.Button
 		elementPadding = Spring.FlowUI.elementPadding
+
+		createButton()
 	end
 
 	local pStates = {} --local copy of playerStates table
@@ -581,16 +596,6 @@ else
 
 		-- add function to receive when startpoints were chosen
 		gadgetHandler:AddSyncAction("StartPointChosen", StartPointChosen)
-
-		-- create ready button
-		readyButton = gl.CreateList(function()
-			UiElement(readyX-(readyW/2)-elementPadding, readyY-(readyH/2)-elementPadding, readyX+(readyW/2)+elementPadding, readyY+(readyH/2)+elementPadding, 1,1,1,1, 1,1,1,1)
-			UiButton(readyX-(readyW/2), readyY-(readyH/2), readyX+(readyW/2), readyY+(readyH/2), 1,1,1,1, 1,1,1,1, nil, {0.15, 0.11, 0, 1}, {0.28, 0.21, 0, 1})
-		end)
-		readyButtonHover = gl.CreateList(function()
-			UiElement(readyX-(readyW/2)-elementPadding, readyY-(readyH/2)-elementPadding, readyX+(readyW/2)+elementPadding, readyY+(readyH/2)+elementPadding, 1,1,1,1, 1,1,1,1)
-			UiButton(readyX-(readyW/2), readyY-(readyH/2), readyX+(readyW/2), readyY+(readyH/2), 1,1,1,1, 1,1,1,1, nil, {0.25, 0.20, 0, 1}, {0.44, 0.35, 0, 1})
-		end)
 	end
 
 	function gadget:DrawScreen()
@@ -621,13 +626,13 @@ else
 				gl.CallList(readyButton)
 				timer2 = timer2 + Spring.GetLastUpdateSeconds()
 				if timer2 % 0.75 <= 0.375 then
-					colorString = "\255\255\235\35"
+					colorString = "\255\255\233\33"
 				else
-					colorString = "\255\255\245\200"
+					colorString = "\255\255\250\210"
 				end
 			end
 			font:Begin()
-			font:Print(colorString .. Spring.I18N('ui.initialSpawn.ready'), readyX, readyY-(readyH*0.2), 25*uiScale, "co")
+			font:Print(colorString .. Spring.I18N('ui.initialSpawn.ready'), readyX, readyY-(readyH*0.2), 24*uiScale, "co")
 			font:End()
 			gl.Color(1,1,1,1)
 		end
@@ -636,13 +641,13 @@ else
 			timer = timer + Spring.GetLastUpdateSeconds()
 			local colorString
 			if timer % 0.75 <= 0.375 then
-				colorString = "\255\255\235\35"
+				colorString = "\255\255\233\33"
 			else
-				colorString = "\255\255\245\200"
+				colorString = "\255\255\250\210"
 			end
 			local text = colorString ..  Spring.I18N('ui.initialSpawn.startCountdown', { time = math.max(1,3-math.floor(timer)) })
 			font:Begin()
-			font:Print(text, vsx*0.5 - font:GetTextWidth(text)/2*17, vsy*0.75, 17*uiScale, "o")
+			font:Print(text, vsx*0.5, vsy*0.65, 18.5*uiScale, "co")
 			font:End()
 		end
 
