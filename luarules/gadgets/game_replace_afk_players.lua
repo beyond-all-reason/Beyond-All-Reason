@@ -260,6 +260,8 @@ else
 
 	local RectRound = Spring.FlowUI.Draw.RectRound
 	local UiElement = Spring.FlowUI.Draw.Element
+	local UiButton = Spring.FlowUI.Draw.Button
+	local elementPadding = Spring.FlowUI.elementPadding
 
 	function gadget:ViewResize(viewSizeX, viewSizeY)
 		vsx, vsy = Spring.GetViewGeometry()
@@ -269,6 +271,9 @@ else
 			gl.DeleteFont(font)
 			font = gl.LoadFont(fontfile, fontfileSize * fontfileScale, fontfileOutlineSize * fontfileScale, fontfileOutlineStrength)
 		end
+		UiElement = Spring.FlowUI.Draw.Element
+		UiButton = Spring.FlowUI.Draw.Button
+		elementPadding = Spring.FlowUI.elementPadding
 	end
 
 	local subsButton, subsButtonHover

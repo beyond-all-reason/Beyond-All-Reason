@@ -290,7 +290,6 @@ function widget:ViewResize()
 			posX = 0
 			posY = height + height + (widgetSpaceMargin/viewSizeY)
 		else
-			posY = 0.75
 			local posY2, _ = WG['buildmenu'].getSize()
 			posY2 = posY2 + (widgetSpaceMargin/viewSizeY)
 			posY = posY2 + height

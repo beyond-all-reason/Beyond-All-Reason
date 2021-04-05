@@ -330,7 +330,7 @@ if gadgetHandler:IsSyncedCode() then
 		--spawn starting unit
 		local y = spGetGroundHeight(x,z)
     local scenarioSpawnsUnits = false
-    
+
     if  Spring.GetModOptions and  Spring.GetModOptions().scenariooptions then
       local scenariooptions = Spring.Utilities.json.decode(Spring.Utilities.Base64Decode(Spring.GetModOptions().scenariooptions))
       if scenariooptions and scenariooptions.unitloadout and next(scenariooptions.unitloadout) then
@@ -338,7 +338,7 @@ if gadgetHandler:IsSyncedCode() then
         scenarioSpawnsUnits = true
       end
     end
-    
+
     if not scenarioSpawnsUnits then
       local unitID = spCreateUnit(startUnit, x, y, z, 0, teamID)
     end
@@ -427,10 +427,13 @@ if gadgetHandler:IsSyncedCode() then
 		gadgetHandler:RemoveGadget(self)
 	end
 
-----------------------------------------------------------------
--- Unsynced
+
 else
-----------------------------------------------------------------
+
+	----------------------------------------------------------------
+	-- Unsynced
+	----------------------------------------------------------------
+
 	local fontfile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 	local vsx,vsy = Spring.GetViewGeometry()
 	local fontfileScale = (0.5 + (vsx*vsy / 5700000))
@@ -463,13 +466,13 @@ else
 
 	local readyH = orgReadyH * uiScale
 	local readyW = orgReadyW * uiScale
-	local bgMargin = math.floor(math.max(1, readyH*0.04))
 
 	local readyButton, readyButtonHover
 
 	local RectRound = Spring.FlowUI.Draw.RectRound
 	local UiElement = Spring.FlowUI.Draw.Element
 	local UiButton = Spring.FlowUI.Draw.Button
+	local elementPadding = Spring.FlowUI.elementPadding
 
 	function gadget:ViewResize(viewSizeX, viewSizeY)
 		vsx,vsy = Spring.GetViewGeometry()
@@ -480,7 +483,6 @@ else
 		readyY = math.floor(vsy * 0.8)
 		readyW = math.floor(orgReadyW * uiScale / 2) * 2
 		readyH =  math.floor(orgReadyH * uiScale / 2) * 2
-		bgMargin = math.floor(math.max(1, readyH*0.04))
 
 		local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
 		if fontfileScale ~= newFontfileScale then
@@ -488,6 +490,10 @@ else
 			gl.DeleteFont(font)
 			font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 		end
+
+		UiElement = Spring.FlowUI.Draw.Element
+		UiButton = Spring.FlowUI.Draw.Button
+		elementPadding = Spring.FlowUI.elementPadding
 	end
 
 	local pStates = {} --local copy of playerStates table
@@ -548,7 +554,7 @@ else
 
 	function gadget:MousePress(sx,sy)
 		-- pressing ready
-		if sx > readyX-bgMargin and sx < readyX+readyW+bgMargin and sy > readyY-bgMargin and sy < readyY+readyH+bgMargin and Spring.GetGameFrame() <= 0 and Game.startPosType == 2 and gameStarting==nil and not spec then
+		if sx > readyX and sx < readyX+readyW and sy > readyY and sy < readyY+readyH and Spring.GetGameFrame() <= 0 and Game.startPosType == 2 and gameStarting==nil and not spec then
 			if startPointChosen then
 				readied = true
 				return true
@@ -578,11 +584,11 @@ else
 
 		-- create ready button
 		readyButton = gl.CreateList(function()
-			RectRound((-readyW/2)-bgMargin, (-readyH/2)-bgMargin, (readyW/2)+bgMargin, (readyH/2)+bgMargin, bgMargin*2, 1,1,1,1, {1, 0.97, 0.85, 0.85})
+			UiElement((-readyW/2)-elementPadding, (-readyH/2)-elementPadding, (readyW/2)+elementPadding, (readyH/2)+elementPadding)
 			UiButton((-readyW/2), (-readyH/2), (readyW/2), (readyH/2), 1,1,1,1, 1,1,1,1, nil, {0.15, 0.12, 0, 1}, {0.28, 0.23, 0, 1})
 		end)
 		readyButtonHover = gl.CreateList(function()
-			RectRound((-readyW/2)-bgMargin, (-readyH/2)-bgMargin, (readyW/2)+bgMargin, (readyH/2)+bgMargin, bgMargin*2, 1,1,1,1, {1, 0.97, 0.85, 0.85})
+			UiElement((-readyW/2)-elementPadding, (-readyH/2)-elementPadding, (readyW/2)+elementPadding, (readyH/2)+elementPadding)
 			UiButton((-readyW/2), (-readyH/2), (readyW/2), (readyH/2), 1,1,1,1, 1,1,1,1, nil, {0.25, 0.21, 0, 1}, {0.44, 0.37, 0, 1})
 		end)
 	end
@@ -600,10 +606,10 @@ else
 
 				if Script.LuaUI("GuishaderInsertRect") then
 					Script.LuaUI.GuishaderInsertRect(
-						readyX+(readyW/2)-(((readyW/2)+bgMargin)),
-						readyY+(readyH/2)-(((readyH/2)+bgMargin)),
-						readyX+(readyW/2)+(((readyW/2)+bgMargin)),
-						readyY+(readyH/2)+(((readyH/2)+bgMargin)),
+						readyX+(readyW/2)-(((readyW/2)+elementPadding)),
+						readyY+(readyH/2)-(((readyH/2)+elementPadding)),
+						readyX+(readyW/2)+(((readyW/2)+elementPadding)),
+						readyY+(readyH/2)+(((readyH/2)+elementPadding)),
 						'ready'
 					)
 				end
@@ -611,7 +617,7 @@ else
 				-- draw ready button and text
 				local x,y = Spring.GetMouseState()
 				local colorString
-				if x > readyX-bgMargin and x < readyX+readyW+bgMargin and y > readyY-bgMargin and y < readyY+readyH+bgMargin then
+				if x > readyX and x < readyX+readyW and y > readyY and y < readyY+readyH then
 					gl.CallList(readyButtonHover)
 					colorString = "\255\255\222\0"
 				else
@@ -660,6 +666,4 @@ else
 			Script.LuaUI.GuishaderRemoveRect('ready')
 		end
 	end
-----------------------------------------------------------------
 end
-----------------------------------------------------------------

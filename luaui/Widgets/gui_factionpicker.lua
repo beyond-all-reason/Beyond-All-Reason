@@ -87,7 +87,6 @@ local font, font2, bgpadding, chobbyInterface, dlistGuishader, dlistFactionpicke
 local RectRound = Spring.FlowUI.Draw.RectRound
 local UiElement = Spring.FlowUI.Draw.Element
 local UiUnit = Spring.FlowUI.Draw.Unit
-local elementCorner = Spring.FlowUI.elementCorner
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
@@ -205,16 +204,14 @@ function widget:ViewResize()
 
 	local widgetSpaceMargin = Spring.FlowUI.elementMargin
 	bgpadding = Spring.FlowUI.elementPadding
-	elementCorner = Spring.FlowUI.elementCorner
 	if stickToBottom or (altPosition and not buildmenuBottomPos) then
 		posY = height
 		posX = width + (widgetSpaceMargin/vsx)
 	else
 		if buildmenuBottomPos then
 			posX = 0
-			posY = height + height + (widgetSpaceMargin/vsx)
+			posY = height + height + (widgetSpaceMargin/vsy)
 		else
-			posY = 0.75
 			local posY2, _ = WG['buildmenu'].getSize()
 			posY2 = posY2 + (widgetSpaceMargin/vsy)
 			posY = posY2 + height
