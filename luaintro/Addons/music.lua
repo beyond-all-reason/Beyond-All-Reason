@@ -31,23 +31,27 @@ function addon.Shutdown()
 end
 
 function addon.Initialize()
-	math.randomseed( os.clock() )
-	math.random(); math.random(); math.random()
-	local musicvolume = Spring.GetConfigInt("snd_volmusic", 50) * 0.01
-	Spring.SetSoundStreamVolume(musicvolume)
-	local musicfiles = VFS.DirList("sounds/musicnew/intro", "*.ogg")
-	--Spring.Echo("musicfiles", #musicfiles)
-	if #musicfiles > 0 then
-		--local i = 1 + (math.floor((1000*os.clock())%#musicfiles))
+	-- orchestral setting only
+	if Spring.GetConfigInt('soundtrack', 2) == 3 then
+		math.randomseed( os.clock() )
+		math.random(); math.random(); math.random()
+		local musicvolume = Spring.GetConfigInt("snd_volmusic", 50) * 0.01
+		Spring.SetSoundStreamVolume(musicvolume)
 
-		--Spring.SetConfigInt('musictrack', i)
-		if #musicfiles > 1 then
-			local pickedTrack = math.ceil(#musicfiles*math.random())
-			Spring.PlaySoundStream(musicfiles[pickedTrack], 1)
-			Spring.SetSoundStreamVolume(musicvolume)
-		elseif #musicfiles == 1 then
-			Spring.PlaySoundStream(musicfiles[1], 1)
-			Spring.SetSoundStreamVolume(musicvolume)
-		end	
+		local musicfiles = VFS.DirList("sounds/musicnew/intro", "*.ogg")
+		--Spring.Echo("musicfiles", #musicfiles)
+		if #musicfiles > 0 then
+			--local i = 1 + (math.floor((1000*os.clock())%#musicfiles))
+
+			--Spring.SetConfigInt('musictrack', i)
+			if #musicfiles > 1 then
+				local pickedTrack = math.ceil(#musicfiles*math.random())
+				Spring.PlaySoundStream(musicfiles[pickedTrack], 1)
+				Spring.SetSoundStreamVolume(musicvolume)
+			elseif #musicfiles == 1 then
+				Spring.PlaySoundStream(musicfiles[1], 1)
+				Spring.SetSoundStreamVolume(musicvolume)
+			end
+		end
 	end
 end
