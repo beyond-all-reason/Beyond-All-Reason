@@ -442,7 +442,7 @@ else
 	local fontfileOutlineStrength = 1.4
 	local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
-	local uiScale = (0.8 + (vsx*vsy / 4500000))
+	local uiScale = (0.8 + (vsx*vsy / 5000000))
 	local myPlayerID = Spring.GetMyPlayerID()
 	local _,_,spec,myTeamID = Spring.GetPlayerInfo(myPlayerID,false)
 	local amNewbie
@@ -458,8 +458,8 @@ else
 	local timer = 0
 	local timer2 = 0
 
-	local readyX = vsx * 0.77
-	local readyY = vsy * 0.77
+	local readyX = math.floor(vsx * 0.78)
+	local readyY = math.floor(vsy * 0.78)
 
 	local orgReadyH = 35
 	local orgReadyW = 100
@@ -477,12 +477,12 @@ else
 	function gadget:ViewResize(viewSizeX, viewSizeY)
 		vsx,vsy = Spring.GetViewGeometry()
 
-		uiScale = (0.8 + (vsx*vsy / 4500000))
+		uiScale = (0.8 + (vsx*vsy / 5000000))
 
-		readyX = math.floor(vsx * 0.8)
-		readyY = math.floor(vsy * 0.8)
+		readyX = math.floor(vsx * 0.78)
+		readyY = math.floor(vsy * 0.78)
 		readyW = math.floor(orgReadyW * uiScale / 2) * 2
-		readyH =  math.floor(orgReadyH * uiScale / 2) * 2
+		readyH = math.floor(orgReadyH * uiScale / 2) * 2
 
 		local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
 		if fontfileScale ~= newFontfileScale then
@@ -584,12 +584,12 @@ else
 
 		-- create ready button
 		readyButton = gl.CreateList(function()
-			UiElement((-readyW/2)-elementPadding, (-readyH/2)-elementPadding, (readyW/2)+elementPadding, (readyH/2)+elementPadding)
-			UiButton((-readyW/2), (-readyH/2), (readyW/2), (readyH/2), 1,1,1,1, 1,1,1,1, nil, {0.15, 0.12, 0, 1}, {0.28, 0.23, 0, 1})
+			UiElement(readyX-(readyW/2)-elementPadding, readyY-(readyH/2)-elementPadding, readyX+(readyW/2)+elementPadding, readyY+(readyH/2)+elementPadding, 1,1,1,1, 1,1,1,1)
+			UiButton(readyX-(readyW/2), readyY-(readyH/2), readyX+(readyW/2), readyY+(readyH/2), 1,1,1,1, 1,1,1,1, nil, {0.15, 0.11, 0, 1}, {0.28, 0.21, 0, 1})
 		end)
 		readyButtonHover = gl.CreateList(function()
-			UiElement((-readyW/2)-elementPadding, (-readyH/2)-elementPadding, (readyW/2)+elementPadding, (readyH/2)+elementPadding)
-			UiButton((-readyW/2), (-readyH/2), (readyW/2), (readyH/2), 1,1,1,1, 1,1,1,1, nil, {0.25, 0.21, 0, 1}, {0.44, 0.37, 0, 1})
+			UiElement(readyX-(readyW/2)-elementPadding, (-readyH/2)-elementPadding, readyX+(readyW/2)+elementPadding, readyY+(readyH/2)+elementPadding, 1,1,1,1, 1,1,1,1)
+			UiButton(readyX-(readyW/2), readyY-(readyH/2), readyX+(readyW/2), readyY+(readyH/2), 1,1,1,1, 1,1,1,1, nil, {0.25, 0.2, 0, 1}, {0.44, 0.35, 0, 1})
 		end)
 	end
 
@@ -598,57 +598,53 @@ else
 			Script.LuaUI.GuishaderRemoveRect('ready')
 		end
 
-		gl.PushMatrix()
-			gl.Translate(readyX+(readyW/2), readyY+(readyH/2),0)
+		if not readied and readyButton and Game.startPosType == 2 and gameStarting==nil and not spec and not isReplay then
+		--if not readied and readyButton and not spec and not isReplay then
 
-			if not readied and readyButton and Game.startPosType == 2 and gameStarting==nil and not spec and not isReplay then
-			--if not readied and readyButton and not spec and not isReplay then
-
-				if Script.LuaUI("GuishaderInsertRect") then
-					Script.LuaUI.GuishaderInsertRect(
-						readyX+(readyW/2)-(((readyW/2)+elementPadding)),
-						readyY+(readyH/2)-(((readyH/2)+elementPadding)),
-						readyX+(readyW/2)+(((readyW/2)+elementPadding)),
-						readyY+(readyH/2)+(((readyH/2)+elementPadding)),
-						'ready'
-					)
-				end
-
-				-- draw ready button and text
-				local x,y = Spring.GetMouseState()
-				local colorString
-				if x > readyX and x < readyX+readyW and y > readyY and y < readyY+readyH then
-					gl.CallList(readyButtonHover)
-					colorString = "\255\255\222\0"
-				else
-					gl.CallList(readyButton)
-					timer2 = timer2 + Spring.GetLastUpdateSeconds()
-					if timer2 % 0.75 <= 0.375 then
-						colorString = "\255\255\235\50"
-					else
-						colorString = "\255\255\240\180"
-					end
-				end
-				font:Begin()
-				font:Print(colorString .. Spring.I18N('ui.initialSpawn.ready'), 0, -(readyH*0.2), 25*uiScale, "co")
-				font:End()
-				gl.Color(1,1,1,1)
+			if Script.LuaUI("GuishaderInsertRect") then
+				Script.LuaUI.GuishaderInsertRect(
+					readyX-((readyW/2)+elementPadding),
+					readyY-((readyH/2)+elementPadding),
+					readyX+((readyW/2)+elementPadding),
+					readyY+((readyH/2)+elementPadding),
+					'ready'
+				)
 			end
 
-			if gameStarting and not isReplay then
-				timer = timer + Spring.GetLastUpdateSeconds()
-				local colorString
-				if timer % 0.75 <= 0.375 then
-					colorString = "\255\255\235\50"
+			-- draw ready button and text
+			local x,y = Spring.GetMouseState()
+			local colorString
+			if x > readyX and x < readyX+readyW and y > readyY and y < readyY+readyH then
+				gl.CallList(readyButtonHover)
+				colorString = "\255\255\222\0"
+			else
+				gl.CallList(readyButton)
+				timer2 = timer2 + Spring.GetLastUpdateSeconds()
+				if timer2 % 0.75 <= 0.375 then
+					colorString = "\255\255\235\35"
 				else
-					colorString = "\255\255\240\180"
+					colorString = "\255\255\245\200"
 				end
-				local text = colorString ..  Spring.I18N('ui.initialSpawn.startCountdown', { time = math.max(1,3-math.floor(timer)) })
-				font:Begin()
-				font:Print(text, vsx*0.5 - font:GetTextWidth(text)/2*17, vsy*0.75, 17*uiScale, "o")
-				font:End()
 			end
-		gl.PopMatrix()
+			font:Begin()
+			font:Print(colorString .. Spring.I18N('ui.initialSpawn.ready'), readyX, readyY-(readyH*0.2), 25*uiScale, "co")
+			font:End()
+			gl.Color(1,1,1,1)
+		end
+
+		if gameStarting and not isReplay then
+			timer = timer + Spring.GetLastUpdateSeconds()
+			local colorString
+			if timer % 0.75 <= 0.375 then
+				colorString = "\255\255\235\35"
+			else
+				colorString = "\255\255\245\200"
+			end
+			local text = colorString ..  Spring.I18N('ui.initialSpawn.startCountdown', { time = math.max(1,3-math.floor(timer)) })
+			font:Begin()
+			font:Print(text, vsx*0.5 - font:GetTextWidth(text)/2*17, vsy*0.75, 17*uiScale, "o")
+			font:End()
+		end
 
 		--remove if after gamestart
 		if Spring.GetGameFrame() > 0 then

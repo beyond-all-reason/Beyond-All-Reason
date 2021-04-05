@@ -277,8 +277,8 @@ else
 	end
 
 	local subsButton, subsButtonHover
-	local bX = vsx * 0.8
-	local bY = vsy * 0.8
+	local bX = math.floor(vsx * 0.78)
+	local bY = math.floor(vsy * 0.78)
 	local bH = 30
 	local bW = 140
 	local bgMargin = 2.5
