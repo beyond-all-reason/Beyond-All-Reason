@@ -569,7 +569,7 @@ else
 
 	function gadget:MousePress(sx,sy)
 		-- pressing ready
-		if sx > readyX and sx < readyX+readyW and sy > readyY and sy < readyY+readyH and Spring.GetGameFrame() <= 0 and Game.startPosType == 2 and gameStarting==nil and not spec then
+		if sx > readyX-(readyW/2) and sx < readyX+(readyW/2) and sy > readyY-(readyH/2) and sy < readyY+(readyH/2) and Spring.GetGameFrame() <= 0 and Game.startPosType == 2 and gameStarting==nil and not spec then
 			if startPointChosen then
 				readied = true
 				return true
