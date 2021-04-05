@@ -618,6 +618,11 @@ function widget:Initialize()
 		widgetHandler:RemoveWidget()
 		return
 	end
+
+	if Game.windMax < 5 then
+		widgetHandler:RemoveWidget()
+		return
+	end
 end
 
 

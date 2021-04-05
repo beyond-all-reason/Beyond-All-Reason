@@ -72,7 +72,7 @@ if not gadgetHandler:IsSyncedCode() then
 		Spring.SetAtmosphere({ sunColor = { transition * suncr, transition * suncg, transitionblue * suncb } })
 		Spring.SetAtmosphere({ cloudColor = { transition * clocr, transition * clocg, transitionblue * clocb } })
 		Spring.SetAtmosphere({ fogColor = { transition * fogcr, transition * fogcg, transitionblue * fogcb } })
-
+		
 		Spring.SetSunLighting({ groundShadowDensity = transition * shadowdensity, modelShadowDensity = transition * shadowdensity })
 	end
 
@@ -386,8 +386,11 @@ else
 			end
 		end
 	end
-
-	VFS.Include("luarules/configs/Atmosphereconfigs/" .. Game.mapName .. ".lua")
+	if VFS.FileExists("luarules/configs/Atmosphereconfigs/" .. Game.mapName .. ".lua") then
+		VFS.Include("luarules/configs/Atmosphereconfigs/" .. Game.mapName .. ".lua")
+	else
+		VFS.Include("luarules/configs/Atmosphereconfigs/generic_config_setup.lua")
+	end
 end
 
 
