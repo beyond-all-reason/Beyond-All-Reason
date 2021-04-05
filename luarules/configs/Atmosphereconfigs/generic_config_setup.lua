@@ -6,7 +6,7 @@ local windmin = Game.windMin
 local windmax = Game.windMax
 
 local daylenght = math.ceil(mapsizex+mapsizez)*2
-local nightlenght = math.ceil(daylenght*0.4)
+local nightlenght = math.ceil(daylenght*0.35)
 
 if windmax < 5 then
     atmosphere = 1
@@ -20,7 +20,7 @@ end
 
 function gadget:GameFrame(n)
     if n%daylenght > nightlenght then
-		SendToUnsynced("MapAtmosphereConfigSetSun", 0.65, transitionSpeed, 0.65*atmosphere)
+		SendToUnsynced("MapAtmosphereConfigSetSun", 0.7, transitionSpeed, 0.7*atmosphere)
 	else
 		SendToUnsynced("MapAtmosphereConfigSetSun", 1, transitionSpeed, 1)
 	end

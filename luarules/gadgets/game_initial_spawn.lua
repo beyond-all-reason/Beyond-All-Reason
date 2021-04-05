@@ -647,7 +647,7 @@ else
 			end
 			local text = colorString ..  Spring.I18N('ui.initialSpawn.startCountdown', { time = math.max(1,3-math.floor(timer)) })
 			font:Begin()
-			font:Print(text, vsx*0.5, vsy*0.65, 18.5*uiScale, "co")
+			font:Print(text, vsx*0.5, vsy*0.67, 18.5*uiScale, "co")
 			font:End()
 		end
 
