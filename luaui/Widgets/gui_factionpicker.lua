@@ -5,7 +5,7 @@ function widget:GetInfo()
 		author = "Floris",
 		date = "May 2020",
 		license = "GNU GPL, v2 or later",
-		layer = 1,
+		layer = 0,
 		enabled = true
 	}
 end
@@ -242,7 +242,7 @@ function widget:Initialize()
 		widgetHandler:RemoveWidget(self)
 		return
 	end
-  
+
   if Spring.GetModOptions and Spring.GetModOptions().scenariooptions then
     local scenarioopts = Spring.Utilities.Base64Decode(Spring.GetModOptions().scenariooptions)
     scenarioopts = Spring.Utilities.json.decode(scenarioopts)
@@ -286,7 +286,7 @@ function widget:Update(dt)
 		doUpdate = true
 		sec = 0
 		checkGuishader()
-		
+
 		if ui_scale ~= Spring.GetConfigFloat("ui_scale", 1) then
 			ui_scale = Spring.GetConfigFloat("ui_scale", 1)
 			widget:ViewResize()

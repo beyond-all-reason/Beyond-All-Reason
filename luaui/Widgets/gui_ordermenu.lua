@@ -693,7 +693,7 @@ function widget:DrawScreen()
 		refreshCommands()
 	end
 
-	if #commands == 0 and not alwaysShow then
+	if #commands == 0 and (not alwaysShow or Spring.GetGameFrame() == 0) then	-- dont show pregame because factions interface is shown
 		if displayListGuiShader and WG['guishader'] then
 			WG['guishader'].RemoveDlist('ordermenu')
 		end
@@ -845,7 +845,7 @@ function widget:MousePress(x, y, button)
 				end
 			end
 			return true
-		elseif alwaysShow then
+		elseif alwaysShow and Spring.GetGameFrame() > 0 then
 			return true
 		end
 	end
