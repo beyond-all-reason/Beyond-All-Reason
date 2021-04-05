@@ -29,6 +29,7 @@ local bgMargin = 0.008
 local myTeamID = Spring.GetMyTeamID()
 local stickToBottom = false
 
+local startDefID = Spring.GetTeamRulesParam(myTeamID, 'startUnit')
 
 local backgroundTexture = "LuaUI/Images/backgroundtile.png"
 local ui_tileopacity = tonumber(Spring.GetConfigFloat("ui_tileopacity", 0.012) or 0.012)
@@ -384,7 +385,7 @@ function drawFactionpicker()
 			(Spring.GetTeamRulesParam(myTeamID, 'startUnit') == factions[i][1] and ":lr256,256:" or ":lgr256,256:") .. factions[i][3]
 		)
 		-- faction name
-		if Spring.GetTeamRulesParam(myTeamID, 'startUnit') == factions[i][1] then
+		if startDefID == factions[i][1] then
 			font2:Print(factions[i][2], factionRect[i][1] + ((factionRect[i][3] - factionRect[i][1]) * 0.5), factionRect[i][2] + ((factionRect[i][4] - factionRect[i][2]) * 0.22) - (fontSize * 0.5), fontSize * 0.96, "co")
 		else
 			font2:Print("\255\200\200\200"..factions[i][2], factionRect[i][1] + ((factionRect[i][3] - factionRect[i][1]) * 0.5), factionRect[i][2] + ((factionRect[i][4] - factionRect[i][2]) * 0.22) - (fontSize * 0.5), fontSize * 0.96, "co")
@@ -409,6 +410,11 @@ function widget:DrawScreen()
 		if IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
 			Spring.SetMouseCursor('cursornormal')
 		end
+	end
+
+	if startDefID ~= Spring.GetTeamRulesParam(myTeamID, 'startUnit') then
+		startDefID = Spring.GetTeamRulesParam(myTeamID, 'startUnit')
+		doUpdate = true
 	end
 
 	if doUpdate then
@@ -453,12 +459,8 @@ function widget:MousePress(x, y, button)
 				if playSounds then
 					Spring.PlaySoundFile(sound_button, 0.6, 'ui')
 				end
-				if WG["buildmenu"] then
-					WG["buildmenu"].factionChange(factions[i][1])
-				end
 				-- tell initial spawn
 				Spring.SendLuaRulesMsg('\138' .. tostring(factions[i][1]))
-				doUpdate = true
 				break
 			end
 		end

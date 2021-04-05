@@ -69,7 +69,7 @@ local bgtexScale = tonumber(Spring.GetConfigFloat("ui_tilescale", 7) or 7)	-- lo
 local bgtexSize
 
 local bgpadding, chobbyInterface, activeAreaMargin, textureDetail, iconTypesMap, radariconTextureDetail
-local dlistCache, dlistGuishader, dlistBuildmenuBg, dlistBuildmenu, startDefID, font, font2, cmdsCount
+local dlistCache, dlistGuishader, dlistBuildmenuBg, dlistBuildmenu, font, font2, cmdsCount
 local hijackedlayout, doUpdateClock, ordermenuHeight, advplayerlistPos, prevAdvplayerlistLeft
 local cellPadding, iconPadding, cornerSize, cellInnerSize, cellSize
 --local radariconSize, radariconOffset, groupiconSize, priceFontSize
@@ -119,6 +119,8 @@ local myTeamID = Spring.GetMyTeamID()
 local myPlayerID = Spring.GetMyPlayerID()
 
 local teamList = Spring.GetTeamList()
+
+local startDefID = Spring.GetTeamRulesParam(myTeamID, 'startUnit')
 
 local buildQueue = {}
 local disableInput = disableInputWhenSpec and isSpec
@@ -875,14 +877,11 @@ function widget:Initialize()
 	WG['buildmenu'].getDefaultColls = function()
 		return defaultColls
 	end
+
 	WG['buildmenu'].setDefaultColls = function(value)
 		defaultColls = value
 		doUpdate = true
 		refreshUnitIconCache()
-	end
-	WG['buildmenu'].factionChange = function(unitDefID)
-		startDefID = unitDefID
-		doUpdate = true
 	end
 	WG['buildmenu'].getBottomPosition = function()
 		return stickToBottom
@@ -1647,6 +1646,11 @@ function widget:DrawWorld()
 					local buildFacing = Spring.GetBuildFacing()
 					selBuildData = { selBuildQueueDefID, bx, by, bz, buildFacing }
 				end
+			end
+
+			if startDefID ~= Spring.GetTeamRulesParam(myTeamID, 'startUnit') then
+				startDefID = Spring.GetTeamRulesParam(myTeamID, 'startUnit')
+				doUpdate = true
 			end
 
 			local sx, sy, sz = Spring.GetTeamStartPosition(myTeamID) -- Returns -100, -100, -100 when none chosen
