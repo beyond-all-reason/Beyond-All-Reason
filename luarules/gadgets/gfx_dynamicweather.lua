@@ -17,8 +17,8 @@ if not gadgetHandler:IsSyncedCode() then
 	local defaultMapSunPos = {gl.GetSun("pos")}
 
 	local MapMaxSunHeight = defaultMapSunPos[2]
-	local MapMaxSunX = 2
-	local MapMaxSunZ = 2
+	local MapMaxSunX = 1.6
+	local MapMaxSunZ = 1.6
 	local MapSunSpeed = 0.0005
 
 	local nighttime = 10 -- higher = shorter
