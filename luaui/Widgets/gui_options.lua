@@ -297,6 +297,8 @@ local texts = {        -- fallback (if you want to change this, also update: lan
 		console = 'Console',
 		consolemaxlines = 'max lines',
 		consolefontsize = 'font size',
+		consolehidespecchat = 'hide spectator chat',
+		consolehidespecchat_descr = 'Not showing any spectator chat',
 		idlebuilders = 'Idle builders bar',
 		idlebuilders_descr = 'Displays a row of idle builder units at the bottom of the screen',
 		buildbar = 'Factory build bar',
@@ -3598,6 +3600,17 @@ function init()
 			  saveOptionValue('Red Console (In-game chat only)', 'red_chatonlyconsole', 'setFontsize', { 'fontsizeMultiplier' }, value)
 			  saveOptionValue('Red Console (old)', 'red_console', 'setFontsize', { 'fontsizeMultiplier' }, value)
 		  end,
+		},
+		{ id = "consolehidespecchat", group = "ui", name = widgetOptionColor .. "   "..texts.option.consolehidespecchat, type = "bool", value = (Spring.GetConfigInt("HideSpecChat", 0) == 1), description = texts.option.consolehidespecchat_descr,
+			onload = function(i)
+			end,
+			onchange = function(i, value)
+				Spring.SetConfigInt("HideSpecChat", value and 1 or 0)
+				widgetHandler:DisableWidget("Red Console (In-game chat only)")
+				widgetHandler:DisableWidget("Red Console (Battle and autohosts)")
+				widgetHandler:EnableWidget("Red Console (In-game chat only)")
+				widgetHandler:EnableWidget("Red Console (Battle and autohosts)")
+			end,
 		},
 
 		--{id="commanderhurt", group="ui", widget="Commander Hurt Vignette", name="Commander hurt vignette", type="bool", value=GetWidgetToggleValue("Commander Hurt Vignette"), description='Shows a red vignette when commander is out of view and gets damaged'},

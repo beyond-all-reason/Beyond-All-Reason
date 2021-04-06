@@ -386,6 +386,8 @@ return {
 			console = 'Console',
 			consolemaxlines = 'max lines',
 			consolefontsize = 'font size',
+			consolehidespecchat = 'hide spectator chat',
+			consolehidespecchat_descr = 'Not showing any spectator chat',
 			idlebuilders = 'Idle builders bar',
 			idlebuilders_descr = 'Displays a row of idle builder units at the bottom of the screen',
 			buildbar = 'Factory build bar',

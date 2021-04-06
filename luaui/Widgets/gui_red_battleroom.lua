@@ -25,6 +25,7 @@ local gameOver = false
 local lastConnectionAttempt = ''
 --todo: dont cut words apart when clipping text
 
+local filterSpecs = (Spring.GetConfigInt('HideSpecChat', 0) == 1)
 
 local clock = os.clock
 local slen = string.len
@@ -718,6 +719,11 @@ local function processLine(line,g,cfg,newlinecolor)
         playSound = true
 
 	elseif (linetype==2) then --spectatormessage
+
+		if filterSpecs then
+			bypassThisMessage = true
+		end
+
 		local c = cfg.cothertext
 		local misccolor = convertColor(c[1],c[2],c[3])
 		if (sfind(text,"Allies: ", nil, true) == 1) then
