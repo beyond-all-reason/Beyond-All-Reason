@@ -392,7 +392,7 @@ end
 
 local function clipHistory(g,oneline)
 	if g.vars.consolehistory == nil then
-		g.vars.consolehistory = {}
+		g.vars.consolehistory = consolehistory or {}
 	end
 	local history = g.vars.consolehistory
 	local maxsize = g.background.sx - (g.lines.px-g.background.px)
@@ -536,10 +536,14 @@ local function processLine(line,g,cfg,newlinecolor)
 
 	-- battleroom chat
 	elseif sfind(line,"^(> <.*>)") then
+		-- will not check for name, user might not have connected before
 		local endChar = sfind(line, "> ", nil, true)
 		if endChar then
-			-- will not check for name, user might not have connected before
-			bypassThisMessage = false
+			if filterSpecs then
+				bypassThisMessage = true
+			else
+				bypassThisMessage = false
+			end
 		end
 
 	-- player chat
@@ -558,7 +562,11 @@ local function processLine(line,g,cfg,newlinecolor)
 		if endChar then
 			local name = ssub(line, 2, endChar-1)
 			if name and names[name] then
-				bypassThisMessage = false
+				if filterSpecs then
+					bypassThisMessage = true
+				else
+					bypassThisMessage = false
+				end
 			end
 		end
 	end
@@ -737,7 +745,7 @@ local function processLine(line,g,cfg,newlinecolor)
 	end
 
 	if g.vars.consolehistory == nil then
-		g.vars.consolehistory = {}
+		g.vars.consolehistory = consolehistory or {}
 	end
 	local history = g.vars.consolehistory
 	local historyCount = #history
@@ -1012,19 +1020,19 @@ end
 --save/load stuff
 --currently only position
 function widget:GetConfigData() --save config
-	if (console ~= nil) then
+	if console ~= nil then
 		local vsy = Screen.vsy
 		Config.console.px = console.background.px
 		Config.console.py = console.background.py
-		return {Config=Config, fontsizeMultiplier=fontsizeMultiplier, showBackground2=showBackground}
+		return {Config=Config, fontsizeMultiplier=fontsizeMultiplier, showBackground2=showBackground, consolehistory=console.vars.consolehistory}
 	end
 end
 function widget:SetConfigData(data) --load config
-	if (data.Config ~= nil) then
+	if data.Config ~= nil then
 		--Config.console.px = data.Config.console.px
 		--Config.console.py = data.Config.console.py
-		if data.Config.console.maxlines ~= nil then
-			Config.console.maxlines = data.Config.console.maxlines
+		if data.consolehistory ~= nil and Spring.GetGameFrame() > 0 then
+			consolehistory = data.consolehistory
 		end
 		if data.fontsizeMultiplier ~= nil then
 			fontsizeMultiplier = data.fontsizeMultiplier

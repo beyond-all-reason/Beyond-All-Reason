@@ -1,12 +1,12 @@
 local mapsizex = Game.mapSizeX
 local mapsizez = Game.mapSizeZ
-local transitionSpeed = mapsizez/mapsizex
+local transitionSpeed = (mapsizez/mapsizex) * 0.66
 
 local windmin = Game.windMin
 local windmax = Game.windMax
 
 local daylenght = math.ceil(mapsizex+mapsizez)*2
-local nightlenght = math.ceil(daylenght*0.50) -- higher = shorter night (yes, i know, counterintuitive)
+local nightlenght = math.ceil(daylenght*0.66) -- higher = shorter night (yes, i know, counterintuitive)
 
 local lightningsounds = {
 	"thunder1",
@@ -15,7 +15,7 @@ local lightningsounds = {
 	"thunder4",
 	"thunder5",
 	"thunder6",
-}  
+}
 
 local badweatherplanned = false
 
@@ -24,20 +24,20 @@ if windmax < 5 then
     badweatherchance = 0
     fireflieschance = 0
 elseif windmax < 10 then
-    atmospherelevelmult = 1.1
+    atmospherelevelmult = 1.08
     badweatherchance = 10
     fireflieschance = 10
 elseif windmax < 15 then
-    atmospherelevelmult = 1.2
-    badweatherchance = 30
+    atmospherelevelmult = 1.16
+    badweatherchance = 20
     fireflieschance = 50
 elseif windmax < 20 then
-    atmospherelevelmult = 1.3
-    badweatherchance = 40
+    atmospherelevelmult = 1.24
+    badweatherchance = 25
     fireflieschance = 75
 else
-    atmospherelevelmult = 1.4
-    badweatherchance = 60
+    atmospherelevelmult = 1.32
+    badweatherchance = 30
     fireflieschance = 100
 end
 
@@ -48,7 +48,7 @@ end
 
 function gadget:GameFrame(n)
     local clock = n%daylenght
-    
+
     if clock == 10 then -- new day
         if math.random(0,100) < badweatherchance then
             badweatherplanned = true
@@ -65,7 +65,7 @@ function gadget:GameFrame(n)
     end
 
     if badweatherplanned and clock > badweatherclockstart and clock < badweatherclockend then
-        if thunderstormenabled and math.random(1,15) == 1 then
+        if thunderstormenabled and math.random(1,40) == 1 then
             SpawnCEGInRandomMapPosAvoidUnits("lightningstrike", 0, 128, lightningsounds[math.random(1,#lightningsounds)], 1)
         end
         if clock > nightlenght then
