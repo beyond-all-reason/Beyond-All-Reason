@@ -52,7 +52,7 @@ function gadget:GameFrame(n)
     if clock == 10 then -- new day
         if math.random(0,100) < badweatherchance then
             badweatherplanned = true
-            badweatherclockstart = math.random(1,daylenght*0.75)
+            badweatherclockstart = math.random(1,math.floor(daylenght*0.75))
             badweatherclockend = math.random(badweatherclockstart,daylenght-1)
             if math.random(1,2) == 1 then
                 thunderstormenabled = true
