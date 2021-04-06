@@ -30,7 +30,7 @@ if not gadgetHandler:IsSyncedCode() then
 
 	local shadowdensity = gl.GetSun("shadowDensity")
 
-	local function MapAtmosphereConfigSetSun(_, targetbrightness, transitionspeed, bluelevel)
+	local function MapAtmosphereConfigSetSun(_, targetbrightness, transitionspeed, bluelevel, greenlevel, redlevel)
 		local transitionspeedpercented = transitionspeed * 0.000333
 		if not transition then
 			transition = 1
@@ -38,20 +38,44 @@ if not gadgetHandler:IsSyncedCode() then
 		if not transitionblue then
 			transitionblue = 1
 		end
+		if not transitiongreen then
+			transitiongreen = 1
+		end
+		if not transitionred then
+			transitionred = 1
+		end
 		if not bluelevel then
-			bluelevel = 0.40
+			bluelevel = targetbrightness
+		end
+		if not greenlevel then
+			greenlevel = targetbrightness
+		end
+		if not redlevel then
+			redlevel = targetbrightness
 		end
 
 		if transition < targetbrightness then
 			transition = transition + transitionspeedpercented
-		elseif transition > targetbrightness then
+		elseif transition >= targetbrightness then
 			transition = transition - transitionspeedpercented
 		end
 
-		if transitionblue < targetbrightness then
+		if transitionblue < bluelevel then
 			transitionblue = transitionblue + transitionspeedpercented
-		elseif transitionblue > targetbrightness and transitionblue > bluelevel then
+		elseif transitionblue >= bluelevel then
 			transitionblue = transitionblue - transitionspeedpercented
+		end
+
+		if transitiongreen < greenlevel then
+			transitiongreen = transitiongreen + transitionspeedpercented
+		elseif transitiongreen >= greenlevel then
+			transitiongreen = transitiongreen - transitionspeedpercented
+		end
+
+		if transitionred < redlevel then
+			transitionred = transitionred + transitionspeedpercented
+		elseif transitionred >= redlevel then
+			transitionred = transitionred - transitionspeedpercented
 		end
 
 		if transition > 1 then
@@ -60,18 +84,24 @@ if not gadgetHandler:IsSyncedCode() then
 		if transitionblue > 1 then
 			transitionblue = 1
 		end
+		if transitiongreen > 1 then
+			transitiongreen = 1
+		end
+		if transitionred > 1 then
+			transitionred = 1
+		end
 
-		Spring.SetSunLighting({ groundAmbientColor = { transition * gar, transition * gag, transitionblue * gab } })
-		Spring.SetSunLighting({ unitAmbientColor = { transition * uar, transition * uag, transitionblue * uab } })
-		Spring.SetSunLighting({ groundDiffuseColor = { transition * gdr, transition * gdg, transitionblue * gdb } })
-		Spring.SetSunLighting({ unitDiffuseColor = { transition * udr, transition * udg, transitionblue * udb } })
-		Spring.SetSunLighting({ groundSpecularColor = { transition * gsr, transition * gsg, transitionblue * gsb } })
-		Spring.SetSunLighting({ unitSpecularColor = { transition * usr, transition * usg, transitionblue * usb } })
+		Spring.SetSunLighting({ groundAmbientColor = { transitionred * gar, transitiongreen * gag, transitionblue * gab } })
+		Spring.SetSunLighting({ unitAmbientColor = { transitionred * uar, transitiongreen * uag, transitionblue * uab } })
+		Spring.SetSunLighting({ groundDiffuseColor = { transitionred * gdr, transitiongreen * gdg, transitionblue * gdb } })
+		Spring.SetSunLighting({ unitDiffuseColor = { transitionred * udr, transitiongreen * udg, transitionblue * udb } })
+		Spring.SetSunLighting({ groundSpecularColor = { transitionred * gsr, transitiongreen * gsg, transitionblue * gsb } })
+		Spring.SetSunLighting({ unitSpecularColor = { transitionred * usr, transitiongreen * usg, transitionblue * usb } })
 
-		Spring.SetAtmosphere({ skyColor = { transition * skycr, transition * skycg, transitionblue * skycb } })
-		Spring.SetAtmosphere({ sunColor = { transition * suncr, transition * suncg, transitionblue * suncb } })
-		Spring.SetAtmosphere({ cloudColor = { transition * clocr, transition * clocg, transitionblue * clocb } })
-		Spring.SetAtmosphere({ fogColor = { transition * fogcr, transition * fogcg, transitionblue * fogcb } })
+		Spring.SetAtmosphere({ skyColor = { transitionred * skycr, transitiongreen * skycg, transitionblue * skycb } })
+		Spring.SetAtmosphere({ sunColor = { transitionred * suncr, transitiongreen * suncg, transitionblue * suncb } })
+		Spring.SetAtmosphere({ cloudColor = { transitionred * clocr, transitiongreen * clocg, transitionblue * clocb } })
+		Spring.SetAtmosphere({ fogColor = { transitionred * fogcr, transitiongreen * fogcg, transitionblue * fogcb } })
 		
 		Spring.SetSunLighting({ groundShadowDensity = transition * shadowdensity, modelShadowDensity = transition * shadowdensity })
 	end
@@ -80,10 +110,10 @@ if not gadgetHandler:IsSyncedCode() then
 		local transitionspeedpercentedstart = transitionspeedstart * 0.000333
 		local transitionspeedpercentedend = transitionspeedend * 0.000333
 		if not transitionstart then
-			transitionstart = fogstartdefault or 1
+			transitionstart = 1
 		end
 		if not transitionend then
-			transitionend = fogenddefault or 1
+			transitionend = 1
 		end
 
 		if transitionstart < targetstart then
@@ -306,6 +336,22 @@ else
 						Spring.SetUnitHealth(units[i], { paralyze = paralyzedamage })
 					end
 				end
+			end
+		end
+	end
+
+	function SpawnCEGInRandomMapPosAvoidUnits(cegname, groundOffset, radius, sound, soundvolume)
+		for y = 1,50 do
+			local posx = math_random(0, mapsizeX)
+			local posz = math_random(0, mapsizeZ)
+			local posy = spGetGroundHeight(posx, posz) + (groundOffset or 0)
+			local units = Spring.GetUnitsInCylinder(posx, posz, radius)
+			if #units == 0 then
+				spSpawnCEG(cegname, posx, posy, posz)
+				if sound then
+					Spring.PlaySoundFile(sound, soundvolume, posx, posy, posz, 'sfx')
+				end
+				break
 			end
 		end
 	end
