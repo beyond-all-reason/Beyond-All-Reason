@@ -299,7 +299,8 @@ if gadgetHandler:IsSyncedCode() then
                 Spring.SpawnExplosion(firex, firey, firez, 0, 0, 0, treefireExplosion[featureinfo.size])
               end
             end
-            SetFeatureDirection(featureID, dx, dy, dz)		-- gets reset so we re-apply
+			--- disabled because this created twitchy tree movement, (also not sure why reset direction was needed)
+            --SetFeatureDirection(featureID, dx, dy, dz)		-- gets reset so we re-apply
 
             if featureinfo.destroyFrame <= gf then
               treesdying[featureID]=nil
@@ -312,7 +313,8 @@ if gadgetHandler:IsSyncedCode() then
               else
                 SetFeaturePosition(featureID, fx, fy-treesdying[featureID].dissapearSpeed*6, fz, false)
               end
-              SetFeatureDirection(featureID, dx, dy, dz)		-- gets reset so we re-apply
+			  --- disabled because this created twitchy tree movement, (also not sure why reset direction was needed)
+              --SetFeatureDirection(featureID, dx, dy, dz)		-- gets reset so we re-apply
             end
           end
         end
