@@ -30,7 +30,7 @@ if not gadgetHandler:IsSyncedCode() then
 
 	local shadowdensity = gl.GetSun("shadowDensity")
 
-	local function MapAtmosphereConfigSetSun(_, targetbrightness, transitionspeed, bluelevel, greenlevel, redlevel)
+	local function MapAtmosphereConfigSetSun(_, targetbrightness, transitionspeed, redlevel, greenlevel, bluelevel)
 		local transitionspeedpercented = transitionspeed * 0.000333
 		if not transition then
 			transition = 1

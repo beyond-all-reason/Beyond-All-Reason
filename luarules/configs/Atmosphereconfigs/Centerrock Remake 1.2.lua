@@ -99,9 +99,9 @@ local lightningsounds = {
 -- Thunderstorm Darkness Cycle
 
 	if n%6400 < 4800 then
-		SendToUnsynced("MapAtmosphereConfigSetSun", 1, 2, 1)
+		SendToUnsynced("MapAtmosphereConfigSetSun", 1, 2, 1, 1, 1)
 	else
-		SendToUnsynced("MapAtmosphereConfigSetSun", 0.5, 3, 0.25)
+		SendToUnsynced("MapAtmosphereConfigSetSun", 0.5, 3, 0.5, 0.5, 0.5)
 	end
 
 	if n %6400 == 5400 then

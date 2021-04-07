@@ -69,15 +69,15 @@ function gadget:GameFrame(n)
             SpawnCEGInRandomMapPosAvoidUnits("lightningstrike", 0, 128, lightningsounds[math.random(1,#lightningsounds)], 1)
         end
         if clock > nightlenght then
-            SendToUnsynced("MapAtmosphereConfigSetSun", 0.5, transitionSpeed, 1, 0.5*atmospherelevelmult, 0.5, 0.5)
+            SendToUnsynced("MapAtmosphereConfigSetSun", 0.5, transitionSpeed, 1, 0.5, 0.5, 0.5*atmospherelevelmult)
             SendToUnsynced("MapAtmosphereConfigSetFog", -0.5, 1, transitionSpeed*2.5, transitionSpeed*1.5)
         else
-            SendToUnsynced("MapAtmosphereConfigSetSun", 0.8, transitionSpeed, 0.8*atmospherelevelmult, 0.8, 0.8)
+            SendToUnsynced("MapAtmosphereConfigSetSun", 0.8, transitionSpeed, 0.8, 0.8, 0.8*atmospherelevelmult)
             SendToUnsynced("MapAtmosphereConfigSetFog", -0.5, 1, transitionSpeed*2.5, transitionSpeed*1.5)
         end
     else
         if clock > nightlenght then
-            SendToUnsynced("MapAtmosphereConfigSetSun", 0.7, transitionSpeed, 0.7*atmospherelevelmult, 0.7, 0.7)
+            SendToUnsynced("MapAtmosphereConfigSetSun", 0.7, transitionSpeed, 0.7, 0.7, 0.7*atmospherelevelmult)
             SendToUnsynced("MapAtmosphereConfigSetFog", 1, 1, transitionSpeed*2.5, transitionSpeed*1.5)
         else
             SendToUnsynced("MapAtmosphereConfigSetSun", 1, transitionSpeed, 1, 1, 1)

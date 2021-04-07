@@ -50,10 +50,10 @@ function gadget:GameFrame(n)
 -- DayNight Cycle
 
 	if n%18000 < 15000 then
-		SendToUnsynced("MapAtmosphereConfigSetSun", 1, 0.8, 1)
+		SendToUnsynced("MapAtmosphereConfigSetSun", 1, 0.8, 1, 1, 1)
 		SendToUnsynced("MapAtmosphereConfigSetFog", 0.8, 0.8, 3, 2)
 	else
-		SendToUnsynced("MapAtmosphereConfigSetSun", 0.7, 0.8, 0.65)
+		SendToUnsynced("MapAtmosphereConfigSetSun", 0.7, 0.8, 0.7, 0.7, 0.65)
 		SendToUnsynced("MapAtmosphereConfigSetFog", 0.18, 0.6, 3.9, 3.2)
 	end
 
