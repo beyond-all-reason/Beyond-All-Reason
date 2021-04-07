@@ -1040,6 +1040,19 @@ local options={
 			{key="enabled", name="Enabled", desc="Enabled"},
 		}
 	},
+
+	{
+		key    = 'experimentalimprovedtransports',
+		name   = 'Transport Units Rework',
+		desc   = 'Transport Units Rework',
+		type   = 'list',
+		section = 'options_experimental',
+		def  = "disabled",
+		items={
+			{key="disabled", name="Disabled", desc="Disabled"},
+			{key="enabled", name="Enabled", desc="Enabled"},
+		}
+	},
 	
 
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
