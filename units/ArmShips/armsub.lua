@@ -39,7 +39,7 @@ return {
 		turninplaceanglelimit = 90,
 		turnrate = 480,
 		upright = true,
-		waterline = 30,
+		waterline = 120,
 		customparams = {
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",

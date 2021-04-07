@@ -8,7 +8,7 @@ piece  base, turret, arm, beam, lpump, rpump, nano1, nano2, wake;
 #define SIG_BUILD		2
 #define SIG_MOVE		4
 
-static-var  Static_Var_1, statechg_DesiredState, statechg_StateChanging, notBuilding, nano;
+static-var  Static_Var_1, statechg_DesiredState, statechg_StateChanging, notBuilding, nano, pump;
 
 
 
@@ -108,28 +108,47 @@ StopMoving()
 	signal SIG_MOVE;
 }
 
+MovementControl()
+{
+	while (pump)
+	{ 
+			move lpump to y-axis [1] speed [1];
+			move lpump to x-axis [1] speed [1];
+			sleep 2000;
+			move lpump to y-axis [0] speed [1];
+			move lpump to x-axis [0] speed [1];
+			sleep 2000;
+	}
+
+}
+
+
 Go()
 {
 	set INBUILDSTANCE to 1;
+	pump = 1;
 	
 	turn arm to x-axis <45> speed <90>;
 	turn beam to x-axis <-45> speed <180>;
 	wait-for-turn beam around x-axis;
 	sleep 500;
-
-
+	start-script MovementControl();
 }
 
 Stop()
 {	
 	set INBUILDSTANCE to 0;
+	pump = 0;
+	
 	turn arm to x-axis <-90> speed <90>;
 	turn beam to x-axis <-180> speed <180>;
 	turn turret to y-axis <0> speed <180>;
 	wait-for-turn beam around x-axis;
-	sleep 200;
-
+	move lpump to y-axis [0] speed [1];
+	move lpump to x-axis [0] speed [1];
+	sleep 200;	
 }
+
 
 RequestState(requestedstate, currentstate)
 {
