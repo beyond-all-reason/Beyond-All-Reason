@@ -679,9 +679,9 @@ function ReGenerateTextDisplayList()
 						value = "-"
 					elseif tonumber(value) then
 						if varName:sub(1,5) ~= "units" and varName ~= "aggressionLevel" then
-							value = convertSIPrefix(value,1,true,1)
+							value = convertSIPrefix(tonumber(value),1,true,1)
 						else
-							value = convertSIPrefix(value)
+							value = convertSIPrefix(tonumber(value))
 						end
 					end
 					if varName == "damageEfficiency" or varName == "killEfficiency" then
