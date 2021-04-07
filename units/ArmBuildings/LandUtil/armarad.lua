@@ -102,11 +102,11 @@ return {
 			},
 		},
 		sounds = {
-			activate = "radadvn1",
+			activate = "cmd-on",
 			canceldestruct = "cancel2",
-			deactivate = "radadde1",
+			deactivate = "cmd-off",
 			underattack = "warning1",
-			working = "radar2",
+			working = "cmd-on",
 			count = {
 				[1] = "count6",
 				[2] = "count5",

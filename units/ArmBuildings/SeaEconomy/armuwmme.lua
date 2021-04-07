@@ -98,11 +98,11 @@ return {
 			},
 		},
 		sounds = {
-			activate = "waterex1",
+			activate = "cmd-on",
 			canceldestruct = "cancel2",
-			deactivate = "waterex1",
+			deactivate = "cmd-off",
 			underattack = "warning1",
-			working = "waterex1",
+			working = "cmd-on",
 			count = {
 				[1] = "count6",
 				[2] = "count5",

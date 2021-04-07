@@ -78,9 +78,9 @@ return {
 			},
 		},
 		sounds = {
-			activate = "sonar1",
+			activate = "cmd-on",
 			canceldestruct = "cancel2",
-			deactivate = "sonarde1",
+			deactivate = "cmd-off",
 			underattack = "warning1",
 			count = {
 				[1] = "count6",

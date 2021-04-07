@@ -62,6 +62,12 @@ GUIUnitSoundEffects = {
     BaseSoundWeaponType   = "arm-bld-windgen",
     },
 
+    armtide = {
+    BaseSoundSelectType   = "arm-bld-select-small-water",
+    --BaseSoundMovementType = "",
+    BaseSoundWeaponType   = "arm-bld-nrghum",
+    },
+
     armsolar = {
     BaseSoundSelectType   = "arm-bld-nrghum",
     --BaseSoundMovementType = "",
@@ -96,6 +102,18 @@ GUIUnitSoundEffects = {
     BaseSoundSelectType   = "arm-sub-small-sel",
     --BaseSoundMovementType = "",
     BaseSoundWeaponType   = "arm-bld-storage-nrg",
+    },
+
+    armnanotc = {
+    BaseSoundSelectType   = "arm-bld-select-small",
+    --BaseSoundMovementType = "",
+    BaseSoundWeaponType   = "conalt-small",
+    },
+
+    armnanotcplat = {
+    BaseSoundSelectType   = "arm-bld-select-small-water",
+    --BaseSoundMovementType = "",
+    BaseSoundWeaponType   = "conalt-small",
     },
 
     armfdrag = {
@@ -176,6 +194,12 @@ GUIUnitSoundEffects = {
     BaseSoundWeaponType   = "aarocket-medium",
     },
 
+    armfrock = {
+    BaseSoundSelectType   = "arm-bld-defense-action-water-t1",
+    --BaseSoundMovementType = "",
+    BaseSoundWeaponType   = "aarocket-medium",
+    },
+
     armcir = {
     BaseSoundSelectType   = "arm-bld-defense-action-t1",
     --BaseSoundMovementType = "",
@@ -186,6 +210,12 @@ GUIUnitSoundEffects = {
     BaseSoundSelectType   = "arm-bld-defense-action-t1",
     --BaseSoundMovementType = "",
     BaseSoundWeaponType   = "arty-medium",
+    },
+
+    armjuno = {
+    BaseSoundSelectType   = "arm-bld-defense-action-t1",
+    --BaseSoundMovementType = "",
+    BaseSoundWeaponType   = "bld-juno",
     },
 
 -- ARMADA T2 BUILDINGS
@@ -200,6 +230,12 @@ GUIUnitSoundEffects = {
     BaseSoundSelectType   = "arm-bld-select-large",
     --BaseSoundMovementType = "",
     BaseSoundWeaponType   = "jammer-t2",
+    },
+
+    armason = {
+    BaseSoundSelectType   = "arm-sub-medium-sel",
+    --BaseSoundMovementType = "",
+    BaseSoundWeaponType   = "arm-bld-sonar-t2",
     },
 
     armtarg = {
@@ -248,6 +284,48 @@ GUIUnitSoundEffects = {
     BaseSoundSelectType   = "arm-bld-nrghum",
     --BaseSoundMovementType = "",
     BaseSoundWeaponType   = "arm-bld-storage-nrg",
+    },
+
+    armgmm = {
+    BaseSoundSelectType   = "arm-bld-select-large",
+    --BaseSoundMovementType = "",
+    BaseSoundWeaponType   = "arm-bld-geo-t2-safe",
+    },
+
+    armageo = {
+    BaseSoundSelectType   = "arm-bld-select-large",
+    --BaseSoundMovementType = "",
+    BaseSoundWeaponType   = "arm-bld-geo-t2-explo",
+    },
+
+    armfus = {
+    BaseSoundSelectType   = "arm-bld-select-large",
+    --BaseSoundMovementType = "",
+    BaseSoundWeaponType   = "arm-bld-nrg-fusion",
+    },
+
+    armckfus = {
+    BaseSoundSelectType   = "cloak",
+    --BaseSoundMovementType = "",
+    BaseSoundWeaponType   = "arm-bld-nrg-fusion",
+    },
+
+    armdf = {
+    BaseSoundSelectType   = "arm-bld-select",
+    --BaseSoundMovementType = "",
+    BaseSoundWeaponType   = "arm-bld-nrg-fusion-decoy",
+    },
+
+    armafus = {
+    BaseSoundSelectType   = "arm-bld-select-large",
+    --BaseSoundMovementType = "",
+    BaseSoundWeaponType   = "arm-bld-nrg-fusion-adv",
+    },
+
+    armuwfus = {
+    BaseSoundSelectType   = "arm-bld-select-large-water",
+    --BaseSoundMovementType = "",
+    BaseSoundWeaponType   = "arm-bld-nrg-fusion-uw",
     },
 
     armfort = {
@@ -304,6 +382,24 @@ GUIUnitSoundEffects = {
     BaseSoundWeaponType   = "emp-rocket",
     },
 
+    armsd = {
+    BaseSoundSelectType   = "arm-bld-defense-action-t2",
+    --BaseSoundMovementType = "",
+    BaseSoundWeaponType   = "arm-bld-ics",
+    },
+
+    armgate = {
+    BaseSoundSelectType   = "arm-bld-defense-action-t2",
+    --BaseSoundMovementType = "",
+    BaseSoundWeaponType   = "arm-bld-shield",
+    },
+
+    armfgate = {
+    BaseSoundSelectType   = "arm-bld-defense-action-water-t2",
+    --BaseSoundMovementType = "",
+    BaseSoundWeaponType   = "arm-bld-shield",
+    },
+
     armsilo = {
     BaseSoundSelectType   = "arm-bld-defense-action-t3",
     --BaseSoundMovementType = "",
@@ -323,7 +419,7 @@ GUIUnitSoundEffects = {
     },
 
     armvulc = {
-    BaseSoundSelectType   = "arm-bld-defense-action-t3",
+    BaseSoundSelectType   = "arm-bld-lolcannon",
     --BaseSoundMovementType = "",
     BaseSoundWeaponType   = "lrpc",
     },
@@ -381,6 +477,12 @@ GUIUnitSoundEffects = {
 
     armshltx = {
     BaseSoundSelectType   = "arm-bld-factory-t3",
+    --BaseSoundMovementType = "",
+    BaseSoundWeaponType   = "arm-bld-gant-t3-sel",
+    },
+
+    armshltxuw = {
+    BaseSoundSelectType   = "arm-sub-medium-sel",
     --BaseSoundMovementType = "",
     BaseSoundWeaponType   = "arm-bld-gant-t3-sel",
     },

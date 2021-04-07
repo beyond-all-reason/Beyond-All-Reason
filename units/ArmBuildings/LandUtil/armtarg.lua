@@ -97,11 +97,11 @@ return {
 			},
 		},
 		sounds = {
-			activate = "targon1",
+			activate = "cmd-on",
 			canceldestruct = "cancel2",
-			deactivate = "targoff1",
+			deactivate = "cmd-off",
 			underattack = "warning1",
-			working = "targsel1",
+			working = "cmd-on",
 			count = {
 				[1] = "count6",
 				[2] = "count5",
