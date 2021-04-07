@@ -50,7 +50,7 @@ GUIUnitSoundEffects = {
     BaseSoundWeaponType   = "arm-bld-metalmaker",
     },
 
-    armfmakr = {
+    armfmkr = {
     BaseSoundSelectType   = "arm-bld-select-small-water",
     --BaseSoundMovementType = "",
     BaseSoundWeaponType   = "arm-bld-metalmaker",
