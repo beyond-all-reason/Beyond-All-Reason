@@ -55,6 +55,7 @@ local currentassignablecapacity = {}    --// { [transportID] = number, ...} shou
 local currenttransportcapacity = {}
 local unitisintransport = {}
 local passengers = {}                   --// [transportID]={ passengerUID1 = true, passengerUID2 = true, ... }
+local passengerscount = {}
 local queueMovePassengers = {}      --// { [unitID] = frame, ... }
 local queuedMoveCommands = {}       --// { unitID=unitID, shift=shift, pos={x,y,z}}
 
@@ -78,14 +79,15 @@ local mcDisable             = Spring.MoveCtrl.Disable
 local mcEnable              = Spring.MoveCtrl.Enable
 
 local rand = math.random
-local unloadScatterDist = 80 -- Max scatter move distance after unit is unloaded
+local unloadScatterDist = 30 -- Max scatter move distance after unit is unloaded
 
 local function sqr (x)
     return math.pow(x, 2)
 end
 
 function gadget:Initialize()
-    _G.currentassignablecapacity = currentassignablecapacity   --// making it global for unsynced access via SYNCED table
+    _G.currentassignablecapacity = currentassignablecapacity
+    _G.passengerscount = passengerscount   --// making it global for unsynced access via SYNCED table
     local allUnits = spGetAllUnits()
     for i = 1, #allUnits do
         local unitID    = allUnits[i]
@@ -106,6 +108,9 @@ function gadget:UnitCreated(unitID, unitDefID) --, team, builderID
     end
     currenttransportcapacity[unitID] = transportcapacity
     currentassignablecapacity[unitID] = transportcapacity
+    if not passengerscount[unitID] then
+        passengerscount[unitID] = 0
+    end
     --_G.currentassignablecapacity = currentassignablecapacity
     --Spring.Echo("Assignable capacity table count: "..pairs_len(currentassignablecapacity))
     transportmovingtoload[unitID] = nil
@@ -322,6 +327,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, team, attacker)
     loadtheseunits[unitID] = nil
     transportstounload[unitID] = nil
     passengermovingtoload[unitID] = nil
+    passengerscount[transportID] = nil
     for pUnitID, tunitID in pairs(loadtheseunits) do	-- check if transporter was killed
         if (unitID == tunitID) then
             loadtheseunits[pUnitID] = nil
@@ -354,6 +360,9 @@ function gadget:UnitLoaded(unitID, unitDefID, unitTeam, transportID, transportTe
     else
         --Spring.Echo("current transport capacity not initialized for "..transportID)
     end
+    if passengerscount[transportID] then
+        passengerscount[transportID] = passengerscount[transportID]+1
+    end
 end
 
 function gadget:UnitUnloaded(unitID, unitDefID, unitTeam, transportID, transportTeam)
@@ -367,6 +376,9 @@ function gadget:UnitUnloaded(unitID, unitDefID, unitTeam, transportID, transport
     end
     currenttransportcapacity[transportID] = (currenttransportcapacity[transportID] + 1)
     currentassignablecapacity[transportID] = (currentassignablecapacity[transportID] + 1)
+    if passengerscount[transportID] then
+        passengerscount[transportID] = passengerscount[transportID]-1
+    end
 
 
     local transportToUnload = transportstounload[transportID]   --transport to unload
@@ -398,10 +410,15 @@ function gadget:GameFrame(f)
                 -- Issue a move command instead of setting offset position directly (or units might get stuck)
                 mcSetPosition( unitID, px, clickPos.y, pz) -- clickPos.y || px
                 mcDisable(unitID)
-                spGiveOrderToUnit(unitID, CMD_MOVE, { px+ rand (-unloadScatterDist,unloadScatterDist), py,
-                                                      pz + rand (-unloadScatterDist,unloadScatterDist) }, {})
+                local scatpx = px + rand(-unloadScatterDist,unloadScatterDist)
+                local scatpz = pz + rand(-unloadScatterDist,unloadScatterDist)
+                local scatpy = Spring.GetGroundHeight(scatpx, scatpz)
+                if scatpy < 0 then scatpy = 0 end
+                spGiveOrderToUnit(unitID, CMD_MOVE, { scatpx, py, scatpz }, {})
+                Spring.SpawnCEG("scav-spawnexplo",scatpx,scatpy,scatpz,0,0,0)
                 ShowUnit(unitID, true)
                 table.remove(queueMovePassengers, i)
+                scatpy = nil
             end
         end
     end
@@ -424,7 +441,8 @@ function gadget:GameFrame(f)
                 -- Re-issue unload command here, to prevent air transports getting stuck
                 spGiveOrderToUnit(transpUID, CMD_UNLOAD_UNIT, { data.x, data.y, data.z }, {})
                 --local minUnloadDistance = tonumber(transportuDef.loadingRadius) / 2 or 150
-                local minUnloadDistance = transportuDef.customParams.minunloaddistance or 300
+                local minUnloadDistance = transportuDef.customParams.unloaddistance or 100
+                --local minUnloadDistance = 100
                 if (minUnloadDistance) then
                     local distance = math.sqrt(sqr(tx- data.x) + sqr(ty- data.y) + sqr(tz- data.z))
                     --Spring.Echo("current/min: "..distance.." / "..minUnloadDistance)
@@ -452,12 +470,15 @@ function gadget:GameFrame(f)
         local x, y, z = spGetUnitPosition(transpUID) -- transport position
         local transportuDef = UnitDefs[spGetUnitDefID(transpUID)]
         --local transportcapacity = transportuDef.transportCapacity
-        local loadingradius = tonumber(transportuDef.loadingRadius) or 300
+        --local loadingradius = tonumber(transportuDef.loadingRadius) or 100
+        local loadingradius = transportuDef.customParams.mloaddistance or 100
         local UnitsAroundTransport = spGetUnitsInCylinder(x,z,loadingradius)
         for _, thisuID in ipairs(UnitsAroundTransport) do
             local thisUDID = spGetUnitDefID(thisuID)
             if thisuID == passengerUID and canBeTransported(thisUDID) then
                 -- Actually "load" the unit:
+                local cegposx, cegposy, cegposz = Spring.GetUnitPosition(passengerUID)
+                Spring.SpawnCEG("scav-spawnexplo",cegposx,cegposy,cegposz,0,0,0)
                 spSetUnitLoadingTransport(transpUID, thisuID)
                 spUnitAttach(transpUID, passengerUID, 0)          -- Currently only attach to the 'root' object
                 loadtheseunits[passengerUID] = nil
@@ -527,34 +548,36 @@ local UItextSize = 14.0
 
 local snext = snext
 
--- function gadget:DrawWorld()
---    if not snext(SYNCED.currentassignablecapacity) then
---        return --//no transports to draw
---    end
+function gadget:DrawWorld()
+   if not snext(SYNCED.currentassignablecapacity) then
+       return --//no transports to draw
+   end
 
---    glBlending(GL_SRC_ALPHA, GL_ONE)
---    glDepthTest(GL_LEQUAL)
+   glBlending(GL_SRC_ALPHA, GL_ONE)
+   glDepthTest(GL_LEQUAL)
 
---    --- [BEGIN] Draw Transports current assignable capacity
---    --Spring.Echo("Len: "..pairs_len(SYNCED.currentassignablecapacity))
---    local localTeam = spGetLocalTeamID()
---    for unitID, capacity in pairsByKeys(SYNCED.currentassignablecapacity) do
---        --local capacity = SYNCED.currentassignablecapacity[unitID]
---        if spIsUnitInView(unitID) and spGetUnitTeam(unitID) == localTeam then
---            local ux, uy, uz = spGetUnitViewPosition(unitID)
---            glPushMatrix()
---            glTranslate(ux, uy, uz)
---            glBillboard()
---            glColor(UItextColor)
---            glText("<" .. capacity..">", 20.0, -25.0, UItextSize, "cno")
---            glPopMatrix()
---        end
---    end
---    --- [END] Draw Transports current assignable capacity
+   --- [BEGIN] Draw Transports current assignable capacity
+   --Spring.Echo("Len: "..pairs_len(SYNCED.currentassignablecapacity))
+   local localTeam = spGetLocalTeamID()
+   for unitID, capacity in pairsByKeys(SYNCED.currentassignablecapacity) do
+       --local capacity = SYNCED.currentassignablecapacity[unitID]
+       if spIsUnitInView(unitID) and spGetUnitTeam(unitID) == localTeam then
+           local ux, uy, uz = spGetUnitViewPosition(unitID)
+           glPushMatrix()
+           glTranslate(ux, uy, uz)
+           glBillboard()
+           glColor(UItextColor)
+           local passengerscount = SYNCED.passengerscount[unitID]
+           --glText("<" .. capacity..">", 20.0, -25.0, UItextSize, "cno")
+           glText("[" .. passengerscount.."]", 0.0, -15.0, UItextSize, "cno")
+           glPopMatrix()
+       end
+   end
+   --- [END] Draw Transports current assignable capacity
 
---    glDepthTest(false)
---    glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
--- end
+   glDepthTest(false)
+   glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+end
 
 --------------------------------------------------------------------------------
 --endregion  END UNSYNCED
