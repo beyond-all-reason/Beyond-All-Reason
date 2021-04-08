@@ -327,7 +327,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, team, attacker)
     loadtheseunits[unitID] = nil
     transportstounload[unitID] = nil
     passengermovingtoload[unitID] = nil
-    passengerscount[transportID] = nil
+    passengerscount[unitID] = nil
     for pUnitID, tunitID in pairs(loadtheseunits) do	-- check if transporter was killed
         if (unitID == tunitID) then
             loadtheseunits[pUnitID] = nil
