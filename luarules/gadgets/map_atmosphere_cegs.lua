@@ -9,6 +9,8 @@ function gadget:GetInfo()
 	}
 end
 
+if Spring.GetModOptions().mapatmospherics ~= "enabled" then return end
+
 if not gadgetHandler:IsSyncedCode() then
 
 	local gar, gag, gab = gl.GetSun("ambient")
