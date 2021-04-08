@@ -303,10 +303,14 @@ local unitMaxWeaponRange = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
 	unitGroup[unitDefID] = 'util'
 
-	if unitDef.name == 'armdl' or unitDef.name == 'cordl' or unitDef.name == 'armlance' or unitDef.name == 'cortitan' or unitDef.name == 'armbeaver' or unitDef.name == 'cormuskrat'
+	if unitDef.name == 'armdl' or unitDef.name == 'cordl' or unitDef.name == 'armlance' or unitDef.name == 'cortitan'	-- or unitDef.name == 'armbeaver' or unitDef.name == 'cormuskrat'
 		or (unitDef.minWaterDepth > 0 or unitDef.modCategories['ship']) then
 		isWaterUnit[unitDefID] = true
 	end
+	if unitDef.name == 'armthovr' or unitDef.name == 'corintr' then
+		isWaterUnit[unitDefID] = nil
+	end
+
 	if unitDef.customParams.objectify or unitDef.isTransport or string.find(unitDef.name, 'critter') then
 		unitGroup[unitDefID] = nil
 	end
