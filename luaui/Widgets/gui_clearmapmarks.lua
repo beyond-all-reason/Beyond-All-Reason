@@ -31,6 +31,8 @@ local usedImgSize = iconSize
 
 local chobbyInterface
 
+local continuouslyClean = false
+
 ---------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------
 
@@ -60,7 +62,7 @@ local function createList(size)
 		gl.Texture(false)
 	end)
 	if WG['tooltip'] ~= nil then
-		WG['tooltip'].AddTooltip('clearmapmarks', {xPos-usedImgSize, yPos, xPos, yPos+usedImgSize}, Spring.I18N('ui.clearMapmarks.tooltip'))
+		WG['tooltip'].AddTooltip('clearmapmarks', {xPos-usedImgSize, yPos, xPos, yPos+usedImgSize}, Spring.I18N('ui.clearMapmarks.tooltip')..'\n\255\190\190\190'..Spring.I18N('ui.clearMapmarks.tooltipctrl'))
 	end
 end
 
@@ -99,6 +101,9 @@ function widget:Update(dt)
 		sec = 0
 		updatePosition()
 	end
+	if continuouslyClean then
+		Spring.SendCommands({"clearmapmarks"})
+	end
 end
 
 function widget:RecvLuaMsg(msg, playerID)
@@ -115,6 +120,7 @@ function widget:DrawScreen()
 		glPushMatrix()
 			glTranslate(xPos, yPos, 0)
 				if isInBox(mx, my, {xPos-usedImgSize, yPos, xPos, yPos+usedImgSize}) then
+					--Spring.SetMouseCursor('cursornormal')
 					gl.Color(1,1,1,1)
 				else
 					gl.Color(0.96,0.96,0.96,0.92)
@@ -138,5 +144,15 @@ function widget:MouseRelease(mx, my, mb)
 	if mb == 1 and isInBox(mx, my, {xPos-usedImgSize, yPos, xPos, yPos+usedImgSize}) then
 		Spring.SendCommands({"clearmapmarks"})
 		updatePosition(true)
+
+		local alt, ctrl, meta, shift = Spring.GetModKeyState()
+		if ctrl then
+			continuouslyClean = not continuouslyClean
+			if continuouslyClean then
+				Spring.Echo("clearmapmarks: continously cleaning all mapmarks enabled (for current game)")
+			else
+				Spring.Echo("clearmapmarks: continously cleaning all mapmarks disabled")
+			end
+		end
 	end
 end
