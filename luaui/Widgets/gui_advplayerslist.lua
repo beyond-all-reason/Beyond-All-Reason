@@ -1407,27 +1407,14 @@ function CreatePlayer(playerID)
 end
 
 function GetAIName(teamID)
-    local _, _, _, name, version, options = Spring_GetAIInfo(teamID)
-
+    local _, _, _, name, _, _ = Spring_GetAIInfo(teamID)
     local niceName = Spring.GetGameRulesParam('ainame_' .. teamID)
-    if niceName then
+
+	if niceName then
         name = niceName
+	end
 
-        local prof = options.profile
-        if prof then
-            name = name .. ' (' .. prof:sub(1, 1):upper() .. prof:sub(2) .. ' AI)'
-        else
-            name = name .. ' (AI)'
-        end
-    else
-        if type(version) == "string" then
-            name = "AI:" .. name .. "-" .. version
-        else
-            name = "AI:" .. name
-        end
-    end
-
-    return name
+    return Spring.I18N('ui.playersList.aiName', { name = name })
 end
 
 function CreatePlayerFromTeam(teamID)
@@ -2054,12 +2041,12 @@ function CreateMainList(tip)
                 if numberOfSpecs == 0 or (specListShow and numberOfSpecs < 10) then
                     specAmount = ""
                 end
-                DrawLabel(" ".. Spring.I18N('ui.playersList.spectators') .. "  " .. specAmount, drawListOffset[i], specListShow)
+                DrawLabel(" ".. Spring.I18N('ui.playersList.spectators', { amount = specAmount }), drawListOffset[i], specListShow)
                 if Spring.GetGameFrame() <= 0 then
                     if specListShow then
-                        DrawLabelTip("(" .. Spring.I18N('ui.playersList.hideSpecs') .. ")", drawListOffset[i], 95)
+                        DrawLabelTip( Spring.I18N('ui.playersList.hideSpecs'), drawListOffset[i], 95)
                     else
-                        DrawLabelTip("(" .. Spring.I18N('ui.playersList.showSpecs') .. ")", drawListOffset[i], 95)
+                        DrawLabelTip(Spring.I18N('ui.playersList.showSpecs'), drawListOffset[i], 95)
                     end
                 end
             elseif drawObject == -4 then
@@ -2069,7 +2056,7 @@ function CreateMainList(tip)
             elseif drawObject == -2 then
                 DrawLabel(" " .. Spring.I18N('ui.playersList.allies'), drawListOffset[i], true)
                 if Spring.GetGameFrame() <= 0 then
-                    DrawLabelTip("(" .. Spring.I18N('ui.playersList.trackPlayer') .. ")", drawListOffset[i], 46)
+                    DrawLabelTip(Spring.I18N('ui.playersList.trackPlayer'), drawListOffset[i], 46)
                 end
             elseif drawObject == -1 then
                 leader = true
@@ -2834,65 +2821,63 @@ function AllyTip(mouseX, playerID)
     end
 end
 
-function ResourcesTip(mouseX, e, es, ei, m, ms, mi)
+function ResourcesTip(mouseX, energy, energyStorage, energyIncome, metal, metalStorage, metalIncome)
     if mouseX >= widgetPosX + (m_resources.posX + 1) * widgetScale and mouseX <= widgetPosX + (m_resources.posX + m_resources.width) * widgetScale then
-        if e > 1000 then
-            e = math.floor(e / 100) * 100
+        if energy > 1000 then
+            energy = math.floor(energy / 100) * 100
         else
-            e = math.floor(e / 10) * 10
+            energy = math.floor(energy / 10) * 10
         end
-        if m > 1000 then
-            m = math.floor(m / 100) * 100
+        if metal > 1000 then
+            metal = math.floor(metal / 100) * 100
         else
-            m = math.floor(m / 10) * 10
+            metal = math.floor(metal / 10) * 10
         end
-        if ei == nil then
-            ei = 0
-            mi = 0
+        if energyIncome == nil then
+            energyIncome = 0
+            metalIncome = 0
         end
-        ei = math.floor(ei)
-        mi = math.floor(mi)
-        if ei > 1000 then
-            ei = math.floor(ei / 100) * 100
-        elseif ei > 100 then
-            ei = math.floor(ei / 10) * 10
+        energyIncome = math.floor(energyIncome)
+        metalIncome = math.floor(metalIncome)
+        if energyIncome > 1000 then
+            energyIncome = math.floor(energyIncome / 100) * 100
+        elseif energyIncome > 100 then
+            energyIncome = math.floor(energyIncome / 10) * 10
         end
-        if mi > 200 then
-            mi = math.floor(mi / 10) * 10
+        if metalIncome > 200 then
+            metalIncome = math.floor(metalIncome / 10) * 10
         end
-        if e >= 10000 then
-            e = math.floor(e / 1000) .. Spring.I18N('ui.playersList.thousands')
+        if energy >= 10000 then
+            energy =  Spring.I18N('ui.playersList.thousands', { number = math.floor(energy / 1000) })
         end
-        if m >= 10000 then
-            e = math.floor(m / 1000) .. Spring.I18N('ui.playersList.thousands')
+        if metal >= 10000 then
+            metal = Spring.I18N('ui.playersList.thousands', { number = math.floor(metal / 1000) })
         end
-        if ei >= 10000 then
-            ei = math.floor(ei / 1000) .. Spring.I18N('ui.playersList.thousands')
+        if energyIncome >= 10000 then
+            energyIncome = Spring.I18N('ui.playersList.thousands', { number = math.floor(energyIncome / 1000) })
         end
-        if mi >= 10000 then
-            ei = math.floor(mi / 1000) .. Spring.I18N('ui.playersList.thousands')
+        if metalIncome >= 10000 then
+            metalIncome = Spring.I18N('ui.playersList.thousands', { number = math.floor(metalIncome / 1000) })
         end
-        tipText = "\255\255\255\000+" .. ei .. "\n\255\255\255\000" .. e .. "\n\255\255\255\255" .. m .. "\n\255\255\255\255+" .. mi
+        tipText = "\255\255\255\000+" .. energyIncome .. "\n\255\255\255\000" .. energy .. "\n\255\255\255\255" .. metal .. "\n\255\255\255\255+" .. metalIncome
     end
 end
 
 function PingCpuTip(mouseX, pingLvl, cpuLvl, fps, gpumem, system, name, teamID, spec)
     if mouseX >= widgetPosX + (m_cpuping.posX + 13) * widgetScale and mouseX <= widgetPosX + (m_cpuping.posX + 23) * widgetScale then
         if pingLvl < 2000 then
-            pingLvl = pingLvl .. " " .. Spring.I18N('ui.playersList.milliseconds')
-        elseif pingLvl >= 2000 and pingLvl < 60000 then
-            pingLvl = round(pingLvl / 1000, 0) .. " " .. Spring.I18N('ui.playersList.seconds')
-        elseif pingLvl >= 60000 then
-            pingLvl = round(pingLvl / 60000, 0) .. " " .. Spring.I18N('ui.playersList.minutes')
+            pingLvl = Spring.I18N('ui.playersList.milliseconds', { number = pingLvl })
+        elseif pingLvl >= 2000 then
+            pingLvl = Spring.I18N('ui.playersList.seconds', { number = round(pingLvl / 1000, 0) })
         end
-        tipText = "\255\190\190\190" .. Spring.I18N('ui.playersList.commandDelay') .. ":  \255\255\255\255" .. pingLvl
+        tipText = Spring.I18N('ui.playersList.commandDelay', { labelColor = "\255\190\190\190", delayColor = "\255\255\255\255", delay = pingLvl })
     elseif mouseX >= widgetPosX + (m_cpuping.posX + 1) * widgetScale and mouseX <= widgetPosX + (m_cpuping.posX + 11) * widgetScale then
-        tipText = Spring.I18N('ui.playersList.cpu') .. ": " .. cpuLvl .. "%"
+        tipText = Spring.I18N('ui.playersList.cpu', { cpuUsage = cpuLvl })
         if fps ~= nil then
-            tipText = Spring.I18N('ui.playersList.framerate') .. ": " .. fps .. "    " .. tipText
+            tipText = Spring.I18N('ui.playersList.framerate', { fps = fps }) .. "    " .. tipText
         end
         if gpumem ~= nil then
-            tipText = tipText .. "    " .. Spring.I18N('ui.playersList.gpuMemory') .. ": " .. gpumem .. "%"
+            tipText = tipText .. "    " .. Spring.I18N('ui.playersList.gpuMemory', { gpuUsage = gpumem })
         end
         if system ~= nil then
             tipText = (spec and "\255\240\240\240" or colourNames(teamID)) .. name .. "\n\255\215\255\215" .. tipText .. "\n\255\240\240\240" .. system
@@ -3188,19 +3173,15 @@ function widget:MousePress(x, y, button)
                             if IsOnRect(x, y, m_share.posX + widgetPosX + 1, posY, m_share.posX + widgetPosX + 17, posY + 16) then
                                 -- share units button
                                 if release ~= nil then
-                                    --
                                     if release >= now then
-                                        --
                                         if clickedPlayer.team == myTeamID then
-                                            --
-                                            Spring_SendCommands("say a: I need unit support!")                                        -- (ask)
+                                            Spring_SendCommands("say a: " .. Spring.I18N('ui.playersList.chat.needSupport'))
                                         else
-                                            --
-                                            local suc = Spring.GetSelectedUnitsCount()
-                                            Spring_SendCommands("say a: I gave " .. suc .. " units to " .. clickedPlayer.name .. ".")
-                                            local su = Spring.GetSelectedUnits()
-                                            for i = 1, #su do
-                                                local ux, uy, uz = Spring.GetUnitPosition(su[i])
+                                            local unitsCount = Spring.GetSelectedUnitsCount()
+                                            Spring_SendCommands("say a: " .. Spring.I18N('ui.playersList.chat.giveUnits', { count = unitsCount, name = clickedPlayer.name }))
+                                            local selectedUnits = Spring.GetSelectedUnits()
+                                            for i = 1, #selectedUnits do
+                                                local ux, uy, uz = Spring.GetUnitPosition(selectedUnits[i])
                                                 Spring.MarkerAddPoint(ux, uy, uz)
                                             end
                                             Spring_ShareResources(clickedPlayer.team, "units")                                                            --
@@ -3341,13 +3322,13 @@ function widget:MouseRelease(x, y, button)
             -- share energy/metal mouse release
             if energyPlayer.team == myTeamID then
                 if amountEM == 0 then
-                    Spring_SendCommands("say a: I need Energy!")
+                    Spring_SendCommands("say a:" .. Spring.I18N('ui.playersList.chat.needEnergy'))
                 else
-                    Spring_SendCommands("say a: I need " .. amountEM .. " Energy!")
+                    Spring_SendCommands("say a:" .. Spring.I18N('ui.playersList.chat.needEnergyAmount', { amount = amountEM }))
                 end
             elseif amountEM > 0 then
                 Spring_ShareResources(energyPlayer.team, "energy", amountEM)
-                Spring_SendCommands("say a: I sent " .. amountEM .. " energy to " .. energyPlayer.name)
+                Spring_SendCommands("say a:" .. Spring.I18N('ui.playersList.chat.giveEnergy', { amount = amountEM, name = energyPlayer.name }))
             end
             sliderOrigin = nil
             amountEMMax = nil
@@ -3359,13 +3340,13 @@ function widget:MouseRelease(x, y, button)
         if metalPlayer ~= nil then
             if metalPlayer.team == myTeamID then
                 if amountEM == 0 then
-                    Spring_SendCommands("say a: I need Metal!")
+                    Spring_SendCommands("say a:" .. Spring.I18N('ui.playersList.chat.needMetal'))
                 else
-                    Spring_SendCommands("say a: I need " .. amountEM .. " Metal!")
+                    Spring_SendCommands("say a:" .. Spring.I18N('ui.playersList.chat.needMetalAmount', { amount = amountEM }))
                 end
             elseif amountEM > 0 then
                 Spring_ShareResources(metalPlayer.team, "metal", amountEM)
-                Spring_SendCommands("say a: I sent " .. amountEM .. " metal to " .. metalPlayer.name)
+                Spring_SendCommands("say a:" .. Spring.I18N('ui.playersList.chat.giveMetal', { amount = amountEM, name = metalPlayer.name }))
             end
             sliderOrigin = nil
             amountEMMax = nil
@@ -4031,11 +4012,11 @@ function widget:Update(delta)
             local afterM = Spring_GetTeamResources(teamID, "metal")
             local afterU = Spring_GetTeamUnitCount(teamID)
 
-            local toSay = "say a: I took " .. tookTeamName .. ". "
+            local toSay = "say a:" .. Spring.I18N('ui.playersList.chat.takeTeam', { name = tookTeamName })
 
             if afterE and afterM and afterU then
                 if afterE > 1.0 or afterM > 1.0 or afterU > 0 then
-                    toSay = toSay .. "Left  " .. math.floor(afterU) .. " units, " .. math.floor(afterE) .. " energy and " .. math.floor(afterM) .. " metal."
+                    toSay = "say a:" .. Spring.I18N('ui.playersList.chat.takeTeamAmount', { name = tookTeamName, units = math.floor(afterU), energy = math.floor(afterE), metal = math.floor(afterM) })
                 end
             end
 
