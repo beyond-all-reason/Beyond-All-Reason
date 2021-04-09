@@ -40,7 +40,7 @@ return {
 		turninplaceanglelimit = 90,
 		turnrate = 540,
 		upright = true,
-		waterline = 40,
+		waterline = 120,
 		customparams = {
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",
@@ -138,7 +138,7 @@ return {
 				model = "cortorpedo.s3o",
 				name = "AdvancedTorpedo",
 				noselfdamage = true,
-				range = 400,
+				range = 750,
 				reloadtime = 2.8,
 				soundhit = "xplodep1",
 				soundstart = "torpedo1",
@@ -153,7 +153,7 @@ return {
 				weapontype = "TorpedoLauncher",
 				weaponvelocity = 200,
 				damage = {
-					default = 400,
+					default = 543,
 				},
 			},
 		},

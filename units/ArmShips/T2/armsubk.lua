@@ -40,7 +40,7 @@ return {
 		turninplaceanglelimit = 90,
 		turnrate = 540,
 		upright = true,
-		waterline = 40,
+		waterline = 90,
 		customparams = {
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
@@ -138,7 +138,7 @@ return {
 				model = "torpedo.s3o",
 				name = "Rapid armor-piercing torpedoes",
 				noselfdamage = true,
-				range = 400,
+				range = 750,
 				reloadtime = 2.5,
 				soundhit = "xplodep1",
 				soundstart = "torpedo1",
@@ -153,7 +153,7 @@ return {
 				weapontype = "TorpedoLauncher",
 				weaponvelocity = 200,
 				damage = {
-					default = 400,
+					default = 485,
 				},
 			},
 		},
