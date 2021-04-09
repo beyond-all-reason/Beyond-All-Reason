@@ -13,8 +13,8 @@ end
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 local factions = {
-	{ UnitDefNames.corcom.id, 'Cortex', 'unitpics/corcom.png' },
-	{ UnitDefNames.armcom.id, 'Armada', 'unitpics/armcom.png' },
+	{ UnitDefNames.corcom.id, Spring.I18N('units.factions.cor'), 'unitpics/corcom.png' },
+	{ UnitDefNames.armcom.id, Spring.I18N('units.factions.arm'), 'unitpics/armcom.png' },
 }
 local altPosition = false
 local playSounds = true

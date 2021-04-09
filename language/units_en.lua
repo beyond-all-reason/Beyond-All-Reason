@@ -1,6 +1,11 @@
 return {
 	en = {
 		units = {
+			factions = {
+				arm = 'Armada',
+				cor = 'Cortex',
+				random = 'Random',
+			},
 			dead = "%{name} Wreckage",
 			heap = "%{name} Debris",
 			scavenger = "Scavenger %{name}",

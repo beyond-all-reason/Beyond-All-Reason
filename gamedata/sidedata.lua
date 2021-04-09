@@ -1,15 +1,16 @@
+VFS.Include('modules/i18n/i18n.lua')
 
 return {
     {
-        name = 'Armada',
+        name = Spring.I18N('units.factions.arm'),
         startunit = 'armcom',
     },
     {
-        name = 'Cortex',
+        name = Spring.I18N('units.factions.cor'),
         startunit = 'corcom',
     },
     {
-        name = 'Random',
+        name = Spring.I18N('units.factions.random'),
         startunit = 'armcom',
     },
 }
