@@ -721,7 +721,7 @@ local function processLine(line,g,cfg,newlinecolor)
 	elseif (linetype==2) then --spectatormessage
 
 		if filterSpecs then
-			bypassThisMessage = true
+			ignoreThisMessage = true
 		end
 
 		local c = cfg.cothertext
@@ -791,12 +791,12 @@ local function processLine(line,g,cfg,newlinecolor)
 	end
 
 	if not ignoreThisMessage then		--mute--
-	if g.vars.browsinghistory then
-		if g.vars.historyoffset == nil then
-			g.vars.historyoffset = 0
+		if g.vars.browsinghistory then
+			if g.vars.historyoffset == nil then
+				g.vars.historyoffset = 0
+			end
+			g.vars.historyoffset = g.vars.historyoffset + 1
 		end
-		g.vars.historyoffset = g.vars.historyoffset + 1
-	end
 		historyCount = historyCount + 1
 		history[historyCount] = {line,clock(),historyCount,textcolor,linetype}
 
