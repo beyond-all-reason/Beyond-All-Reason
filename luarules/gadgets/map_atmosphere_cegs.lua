@@ -9,7 +9,7 @@ function gadget:GetInfo()
 	}
 end
 
-if Spring.GetModOptions().mapatmospherics ~= "enabled" then return end
+local enableGenericConfig = Spring.GetModOptions().mapatmospherics or "disabled"
 
 if not gadgetHandler:IsSyncedCode() then
 
@@ -436,7 +436,7 @@ else
 	end
 	if VFS.FileExists("luarules/configs/Atmosphereconfigs/" .. Game.mapName .. ".lua") then
 		VFS.Include("luarules/configs/Atmosphereconfigs/" .. Game.mapName .. ".lua")
-	else
+	elseif enableGenericConfig ~= "disabled" then
 		VFS.Include("luarules/configs/Atmosphereconfigs/generic_config_setup.lua")
 	end
 end
