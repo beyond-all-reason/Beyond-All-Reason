@@ -5010,6 +5010,12 @@ function init()
 			end
 			options[id] = nil
 			options[getOptionByID('could_opacity')] = nil
+
+			-- set lowest quality shadows for Intel GPU (they eat fps but dont show)
+			if Platform ~= nil and Platform.gpuVendor == 'Intel' then
+				options[getOptionByID('shadowslider')] = nil
+				options[getOptionByID('shadows_opacity')] = nil
+			end
 		end
 	end
 
