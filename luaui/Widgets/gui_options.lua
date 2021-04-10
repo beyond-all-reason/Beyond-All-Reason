@@ -487,6 +487,8 @@ local texts = {        -- fallback (if you want to change this, also update: lan
 	},
 }
 
+local orchestralDefaulted = false
+
 local newEngineIconsInitialized = false
 
 local ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.6)
@@ -2094,6 +2096,7 @@ function loadAllWidgetData()
 end
 
 -- detect potatos
+local engine64 = true
 local isPotatoCpu = false
 local isPotatoGpu = false
 local gpuMem = (Platform.gpuMemorySize and Platform.gpuMemorySize or 1000) / 1000
@@ -2104,8 +2107,17 @@ if gpuMem and gpuMem > 0 and gpuMem < 1800 then
 	isPotatoGpu = true
 end
 
-local engine64 = true
 function init()
+
+	-- make the orchestral soundtrack the new default retrospectively
+	if not orchestralDefaulted then
+		Spring.SetConfigInt('soundtrack', 2)
+		-- dont enable when they turned off music widget
+		if widgetHandler.orderList["AdvPlayersList Music Player"] ~= nil or widgetHandler.orderList["AdvPlayersList Music Player"] ~= 0 then
+			widgetHandler:DisableWidget('AdvPlayersList Music Player')
+			widgetHandler:EnableWidget('AdvPlayersList Music Player (orchestral)')
+		end
+	end
 
 	presetNames = { texts.option.preset_lowest, texts.option.preset_low, texts.option.preset_medium, texts.option.preset_high, texts.option.preset_ultra }
 	presets = {
@@ -2288,7 +2300,7 @@ function init()
 				end
 			end
 		end
-		-- adding some widescreen resolutions for local testing
+		-- Add some widescreen resolutions for local testing
 		--supportedResolutions[#supportedResolutions+1] = '3840 x 1440'
 		--supportedResolutions[#supportedResolutions+1] = '2560 x 1200'
 		--supportedResolutions[#supportedResolutions+1] = '2560 x 1080'
@@ -3000,7 +3012,7 @@ function init()
 		  end,
 		},
 
-		  { id = "soundtrack", group = "snd", basic = true, name = texts.option.soundtrack, type = "select", options = {'---', 'modern', 'orchestral'}, value = Spring.GetConfigInt('soundtrack', 2), description = texts.option.soundtrack_descr,
+		  { id = "soundtrack", group = "snd", basic = true, name = texts.option.soundtrack, type = "select", options = {'---', 'orchestral', 'modern'}, value = Spring.GetConfigInt('soundtrack', 2), description = texts.option.soundtrack_descr,
 			onchange = function(i, value)
 				Spring.SetConfigString("soundtrack", value)
 				Spring.StopSoundStream()
@@ -3009,12 +3021,12 @@ function init()
 					widgetHandler:DisableWidget('AdvPlayersList Music Player (orchestral)')
 					init()
 				elseif value == 2 then
-					widgetHandler:DisableWidget('AdvPlayersList Music Player (orchestral)')
-					widgetHandler:EnableWidget('AdvPlayersList Music Player')
-					init()
-				elseif value == 3 then
 					widgetHandler:DisableWidget('AdvPlayersList Music Player')
 					widgetHandler:EnableWidget('AdvPlayersList Music Player (orchestral)')
+					init()
+				elseif value == 3 then
+					widgetHandler:DisableWidget('AdvPlayersList Music Player (orchestral)')
+					widgetHandler:EnableWidget('AdvPlayersList Music Player')
 					init()
 				end
 			end,
@@ -5105,7 +5117,7 @@ function init()
 		options[getOptionByID('label_notif_messages_spacer')] = nil
 	end
 
-	if Spring.GetConfigInt('soundtrack', 2) == 2 and widgetHandler.knownWidgets["AdvPlayersList Music Player"] then
+	if Spring.GetConfigInt('soundtrack', 2) == 3 and widgetHandler.knownWidgets["AdvPlayersList Music Player"] then
 		local tracksConfig = {}
 		if WG['music'] ~= nil and WG['music'].getTracksConfig ~= nil then
 			tracksConfig = WG['music'].getTracksConfig()
@@ -5529,11 +5541,11 @@ function widget:Initialize()
 			widgetHandler:DisableWidget('AdvPlayersList Music Player')
 			widgetHandler:DisableWidget('AdvPlayersList Music Player (orchestral)')
 		elseif value == 2 then
-			widgetHandler:DisableWidget('AdvPlayersList Music Player (orchestral)')
-			widgetHandler:EnableWidget('AdvPlayersList Music Player')
-		elseif value == 3 then
 			widgetHandler:DisableWidget('AdvPlayersList Music Player')
 			widgetHandler:EnableWidget('AdvPlayersList Music Player (orchestral)')
+		elseif value == 3 then
+			widgetHandler:DisableWidget('AdvPlayersList Music Player (orchestral)')
+			widgetHandler:EnableWidget('AdvPlayersList Music Player')
 		end
 	end
 	if not waterDetected then
@@ -5761,9 +5773,10 @@ function getSelectKey(i, value)
 	return false
 end
 
+
 function widget:GetConfigData(data)
 	return {
-		newEngineInitialized = newEngineInitialized,
+		orchestralDefaulted = true,
 		vsyncLevel = vsyncLevel,
 		vsyncOnlyForSpec = vsyncOnlyForSpec,
 		vsyncEnabled = vsyncEnabled,
@@ -5810,7 +5823,9 @@ function widget:SetConfigData(data)
 	if data.newEngineIconsInitialized then
 		newEngineIconsInitialized = data.newEngineIconsInitialized
 	end
-
+	if data.orchestralDefaulted then
+		orchestralDefaulted = true
+	end
 	if data.vsyncEnabled ~= nil then
 		vsyncEnabled = data.vsyncEnabled
 	end

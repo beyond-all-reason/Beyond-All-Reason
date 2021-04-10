@@ -1,6 +1,14 @@
-
-
-
+function widget:GetInfo()
+	return {
+		name	= "AdvPlayersList Music Player (orchestral)",
+		desc	= "Plays music and offers volume controls",
+		author	= "Damgam",
+		date	= "2021",
+		license	= "i don't care",
+		layer	= -4,
+		enabled	= true	--	loaded by default?
+	}
+end
 
 local defaultMusicVolume = 50
 
@@ -28,8 +36,8 @@ local playedTime, totalTime = Spring.GetSoundStreamTime()
 local curTrackName	= "no name"
 local prevTrackName = "no name"
 local appliedSilence = true
-local minSilenceTime = 10
-local maxSilenceTime = 60
+local minSilenceTime = 8
+local maxSilenceTime = 18
 
 
 --- config
@@ -102,20 +110,8 @@ local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 local GL_ONE = GL.ONE
 
 
-function widget:GetInfo()
-	return {
-		name	= "AdvPlayersList Music Player (orchestral)",
-		desc	= "Plays music and offers volume controls",
-		author	= "Damgam",
-		date	= "2021",
-		license	= "i don't care",
-		layer	= -4,
-		enabled	= false	--	loaded by default?
-	}
-end
-
 function widget:Initialize()
-	appliedSilence = true 
+	appliedSilence = true
 	silenceTimer = 0
 	widget:ViewResize()
 	--Spring.StopSoundStream() -- only for testing purposes
@@ -518,7 +514,7 @@ function widget:UnitDamaged(unitID,unitDefID,_,damage)
 		else
 			warMeter = math.ceil(warMeter + damage)
 		end
-	end             
+	end
 end
 
 function widget:GameFrame(n)
