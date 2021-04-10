@@ -241,9 +241,9 @@ function widget:Initialize()
 		updatePosition(force)
 		return {top,left,bottom,right,widgetScale}
 	end
-	WG['music'].playTrack = function(track)
-		PlayNewTrack(track)
-	end
+	--WG['music'].playTrack = function(track)
+	--	PlayNewTrack(track)
+	--end
 	WG['music'].GetMusicVolume = function()
 		return maxMusicVolume
 	end
@@ -252,6 +252,35 @@ function widget:Initialize()
 		Spring.SetConfigInt("snd_volmusic", math.floor(maxMusicVolume))
 		createList()
 	end
+	WG['music'].getTracksConfig = function(value)
+		local tracksConfig = {}
+		for k,v in pairs(introTracks) do
+			tracksConfig[#tracksConfig+1] = {true, 'intro', k, v}
+		end
+		for k,v in pairs(peaceTracks) do
+			tracksConfig[#tracksConfig+1] = {true, 'peace', k, v}
+		end
+		for k,v in pairs(warlowTracks) do
+			tracksConfig[#tracksConfig+1] = {true, 'warlow', k, v}
+		end
+		for k,v in pairs(warhighTracks) do
+			tracksConfig[#tracksConfig+1] = {true, 'warhigh', k, v}
+		end
+		for k,v in pairs(gameOverTracks) do
+			tracksConfig[#tracksConfig+1] = {true, 'gameover', k, v}
+		end
+		return tracksConfig
+	end
+	--for track, params in pairs(tracksConfig) do
+	--	-- get track
+	--	WG['music']['getTrack'..track] = function()
+	--		return params[1]
+	--	end
+	--	-- set track
+	--	WG['music']['setTrack'..track] = function(value)
+	--		toggleTrack(track, value)
+	--	end
+	--end
 end
 
 function widget:Shutdown()
@@ -503,6 +532,8 @@ function PlayNewTrack()
 		Spring.SetSoundStreamVolume(musicVolume)
 	end
 	warMeter = 0
+
+	createList()
 end
 
 
