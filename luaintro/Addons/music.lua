@@ -32,13 +32,13 @@ end
 
 function addon.Initialize()
 	-- orchestral setting only
-	if Spring.GetConfigInt('soundtrack', 2) == 3 then
+	if Spring.GetConfigInt('soundtrack', 2) == 2 or Spring.GetConfigInt('soundtrack', 2) == 3 then
 		math.randomseed( os.clock() )
 		math.random(); math.random(); math.random()
 		local musicvolume = Spring.GetConfigInt("snd_volmusic", 50) * 0.01
 		Spring.SetSoundStreamVolume(musicvolume)
 
-		local musicfiles = VFS.DirList("sounds/musicnew/intro", "*.ogg")
+		local musicfiles = VFS.DirList("sounds/music"..(Spring.GetConfigInt('soundtrack', 2) == 2 and 'new').."/intro", "*.ogg")
 		--Spring.Echo("musicfiles", #musicfiles)
 		if #musicfiles > 0 then
 			--local i = 1 + (math.floor((1000*os.clock())%#musicfiles))
