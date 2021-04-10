@@ -86,8 +86,8 @@ return {
 				tooltip = 'Team metal/energy income\n(Lighter portion is income from reclaiming)',
 			},
 			clearMapmarks = {
-				tooltip = 'Clear mapmarks/drawings\nCTRL-click to continuously clear',
-				 = 'CTRL-click to continuously clear',
+				tooltip = 'Clear mapmarks/drawings',
+				tooltipctrl = 'CTRL-click to continuously clear',
 			},
 			buildMenu = {
 				nextPage = 'Next page',
