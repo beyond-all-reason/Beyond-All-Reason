@@ -822,7 +822,7 @@ end
 
 local function detectWater()
 	local _,_,mapMinHeight, mapMaxHeight = Spring.GetGroundExtremes()
-	if select(3, Spring.GetGroundExtremes()) <= -10 then
+	if select(3, Spring.GetGroundExtremes()) <= -2 then
 		waterDetected = true
 		Spring.SendCommands("water " .. desiredWaterValue)
 	end

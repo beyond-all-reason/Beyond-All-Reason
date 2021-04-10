@@ -19,7 +19,7 @@ local vsx, vsy = gl.GetViewSizes()
 
 local NeededFrameworkVersion = 8
 local SoundIncomingChat  = 'beep4'
-local SoundIncomingChatVolume = 1.0
+local SoundIncomingChatVolume = 0.85
 
 local gameOver = false
 local lastConnectionAttempt = ''
@@ -760,7 +760,7 @@ local function processLine(line,g,cfg,newlinecolor)
 		historyCount = historyCount + 1
 		history[historyCount] = {line,clock(),historyCount,textcolor,linetype}
 
-        if playSound and not bypassThisMessage == true and not Spring.IsGUIHidden() then
+        if playSound and not Spring.IsGUIHidden() then
             spPlaySoundFile( SoundIncomingChat, SoundIncomingChatVolume, nil, "ui" )
         end
 	end

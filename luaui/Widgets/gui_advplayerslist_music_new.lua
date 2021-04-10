@@ -176,8 +176,11 @@ local function createList()
 		trackname = curTrack or ''
 		glColor(0.45,0.45,0.45,1)
 		trackname = string.gsub(trackname, ".ogg", "")
+		trackname = string.gsub(trackname, musicDir.."intro/", "")
 		trackname = string.gsub(trackname, musicDir.."peace/", "")
-		trackname = string.gsub(trackname, musicDir.."war/", "")
+		trackname = string.gsub(trackname, musicDir.."warlow/", "")
+		trackname = string.gsub(trackname, musicDir.."warhigh/", "")
+		trackname = string.gsub(trackname, musicDir.."gameover/", "")
 		local text = ''
 		for i=1, #trackname do
 			local c = string.sub(trackname, i,i)

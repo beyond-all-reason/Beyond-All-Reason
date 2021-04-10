@@ -1,7 +1,7 @@
 local Sounds = {
 	SoundItems = {
 		IncomingChat = {
-			file = "sounds/ui/chat.wav",
+			file = "",
 			in3d = "false",
 		},
 		MultiSelect = {
@@ -12,10 +12,10 @@ local Sounds = {
 			file = "sounds/ui/mappoint.wav",
 			--rolloff = 0.1,
 			--dopplerscale = 0,
-			in3d = "false",       
+			in3d = "false",
 		},
 		FailedCommand = {
-			file = "sounds/replies/cantdo4.wav",       
+			file = "sounds/replies/cantdo4.wav",
 		},
 	},
 }
@@ -123,7 +123,7 @@ for i=1,#files do
       maxconcurrent = 8,
       rolloff = 1.0,
    }
-   
+
    if fileNames == "disigun1" then
     t[fileNames].gain = 0.075*0.3
     end
@@ -133,7 +133,7 @@ for i=1,#files do
    -- if fileNames == "newboom" then
    --  t[fileNames].gain = 0.045*0.3
    --  end
-    if fileNames == "beamershot2" then 
+    if fileNames == "beamershot2" then
     t[fileNames].gain = 0.5*0.3
     t[fileNames].pitchmod = 0.04
     end
@@ -142,7 +142,7 @@ for i=1,#files do
     end
    if string.sub(fileNames, 1, 8) == "lrpcshot" then
     t[fileNames].pitchmod = 0.12
-    end 
+    end
    if string.sub(fileNames, 1, 7) == "heatray" then
     t[fileNames].pitchmod = 0
     end
@@ -151,13 +151,13 @@ for i=1,#files do
     end
    if string.sub(fileNames, 1, 6) == "mavgun" then
     t[fileNames].pitchmod = 0.06
-    end 
+    end
    if string.sub(fileNames, 1, 7) == "nanlath" then
     t[fileNames].pitchmod = 0.02
-    end 
+    end
    if string.sub(fileNames, 1, 4) == "mgun" then
     t[fileNames].pitchmod = 0.08
-    end 
+    end
    if string.sub(fileNames, 1, 7) == "xplolrg" then
     t[fileNames].pitchmod = 0.3
     end
@@ -184,7 +184,7 @@ for i=1,#files do
     	maxconcurrent = 6,
 		rolloff = 1.1,
 	}
-	
+
 	if fileNames == "talonattack" then
     t[fileNames].pitchmod = 0.07
     end
