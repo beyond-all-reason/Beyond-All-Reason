@@ -109,7 +109,7 @@ function gadget:FeatureDestroyed(featureID, allyteam)
 		damagedFeatures[featureID] = nil
 	end
 	local fx,fy,fz = Spring.GetFeaturePosition(featureID)
-	if fy ~= nil and fy > Spring.GetGroundHeight(fx, fy) then
+	if fy ~= nil and fy+15 > Spring.GetGroundHeight(fx, fz) then
 		local fdef = featureList[Spring.GetFeatureDefID(featureID)]
 		if fdef and fdef.minx then
 			local x,y,z = fx,fy,fz
