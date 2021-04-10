@@ -109,48 +109,6 @@ local GL_SRC_ALPHA = GL.SRC_ALPHA
 local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 local GL_ONE = GL.ONE
 
-
-function widget:Initialize()
-	appliedSilence = true
-	silenceTimer = 0
-	widget:ViewResize()
-	--Spring.StopSoundStream() -- only for testing purposes
-
-	WG['music'] = {}
-	WG['music'].GetPosition = function()
-		if shutdown then
-			return false
-		end
-		updatePosition(force)
-		return {top,left,bottom,right,widgetScale}
-	end
-	WG['music'].playTrack = function(track)
-		PlayNewTrack(track)
-	end
-	WG['music'].GetMusicVolume = function()
-		return maxMusicVolume
-	end
-	WG['music'].SetMusicVolume = function(value)
-		maxMusicVolume = value
-	end
-end
-
-function widget:Shutdown()
-	shutdown = true
-	Spring.SetConfigInt('music', (playing and 1 or 0))
-
-	if WG['guishader'] then
-		WG['guishader'].RemoveDlist('music')
-	end
-	if WG['tooltip'] ~= nil then
-		WG['tooltip'].RemoveTooltip('music')
-	end
-	for i=1,#drawlist do
-		glDeleteList(drawlist[i])
-	end
-	WG['music'] = nil
-end
-
 function isInBox(mx, my, box)
 	return mx > box[1] and my > box[2] and mx < box[3] and my < box[4]
 end
@@ -267,6 +225,49 @@ local function createList()
 			WG['tooltip'].RemoveTooltip('music')
 		end
 	end
+end
+
+function widget:Initialize()
+	appliedSilence = true
+	silenceTimer = 0
+	widget:ViewResize()
+	--Spring.StopSoundStream() -- only for testing purposes
+
+	WG['music'] = {}
+	WG['music'].GetPosition = function()
+		if shutdown then
+			return false
+		end
+		updatePosition(force)
+		return {top,left,bottom,right,widgetScale}
+	end
+	WG['music'].playTrack = function(track)
+		PlayNewTrack(track)
+	end
+	WG['music'].GetMusicVolume = function()
+		return maxMusicVolume
+	end
+	WG['music'].SetMusicVolume = function(value)
+		maxMusicVolume = value
+		Spring.SetConfigInt("snd_volmusic", math.floor(maxMusicVolume))
+		createList()
+	end
+end
+
+function widget:Shutdown()
+	shutdown = true
+	Spring.SetConfigInt('music', (playing and 1 or 0))
+
+	if WG['guishader'] then
+		WG['guishader'].RemoveDlist('music')
+	end
+	if WG['tooltip'] ~= nil then
+		WG['tooltip'].RemoveTooltip('music')
+	end
+	for i=1,#drawlist do
+		glDeleteList(drawlist[i])
+	end
+	WG['music'] = nil
 end
 
 function updatePosition(force)

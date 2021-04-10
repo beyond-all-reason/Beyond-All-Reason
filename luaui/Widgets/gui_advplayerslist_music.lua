@@ -207,50 +207,6 @@ function isInBox(mx, my, box)
 	return mx > box[1] and my > box[2] and mx < box[3] and my < box[4]
 end
 
-function widget:Initialize()
-	widget:ViewResize()
-	updateMusicVolume()
-
-	if #tracks == 0 then
-		Spring.Echo("[Music Player] No music was found, Shutting Down")
-		widgetHandler:RemoveWidget()
-		return
-	end
-
-	updatePosition()
-
-	WG['music'] = {}
-	WG['music'].GetPosition = function()
-		if shutdown then
-			return false
-		end
-		updatePosition(force)
-		return {top,left,bottom,right,widgetScale}
-	end
-	WG['music'].playTrack = function(track)
-		PlayNewTrack(track)
-	end
-	WG['music'].GetMusicVolume = function()
-		return maxMusicVolume
-	end
-	WG['music'].SetMusicVolume = function(value)
-		maxMusicVolume = value
-	end
-	WG['music'].getTracksConfig = function(value)
-		return tracksConfig
-	end
-	for track, params in pairs(tracksConfig) do
-		-- get track
-		WG['music']['getTrack'..track] = function()
-			return params[1]
-		end
-		-- set track
-		WG['music']['setTrack'..track] = function(value)
-			toggleTrack(track, value)
-		end
-	end
-end
-
 local function createList()
 
 	local padding = math.floor(2.75*widgetScale) -- button background margin
@@ -376,6 +332,53 @@ local function createList()
 			WG['tooltip'].AddTooltip('music', {left, bottom, right, top}, trackname, 0.8)
 		else
 			WG['tooltip'].RemoveTooltip('music')
+		end
+	end
+end
+
+
+function widget:Initialize()
+	widget:ViewResize()
+	updateMusicVolume()
+
+	if #tracks == 0 then
+		Spring.Echo("[Music Player] No music was found, Shutting Down")
+		widgetHandler:RemoveWidget()
+		return
+	end
+
+	updatePosition()
+
+	WG['music'] = {}
+	WG['music'].GetPosition = function()
+		if shutdown then
+			return false
+		end
+		updatePosition(force)
+		return {top,left,bottom,right,widgetScale}
+	end
+	WG['music'].playTrack = function(track)
+		PlayNewTrack(track)
+	end
+	WG['music'].GetMusicVolume = function()
+		return maxMusicVolume
+	end
+	WG['music'].SetMusicVolume = function(value)
+		maxMusicVolume = value
+		Spring.SetConfigInt("snd_volmusic", math.floor(maxMusicVolume * fadeMult))
+		createList()
+	end
+	WG['music'].getTracksConfig = function(value)
+		return tracksConfig
+	end
+	for track, params in pairs(tracksConfig) do
+		-- get track
+		WG['music']['getTrack'..track] = function()
+			return params[1]
+		end
+		-- set track
+		WG['music']['setTrack'..track] = function(value)
+			toggleTrack(track, value)
 		end
 	end
 end
