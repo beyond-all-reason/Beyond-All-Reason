@@ -350,7 +350,7 @@ local texts = {        -- fallback (if you want to change this, also update: lan
 		allycursors_playername_descr = 'Shows the player name next to the cursor',
 		allycursors_spectatorname = 'spectator name',
 		allycursors_spectatorname_descr = 'Shows the spectator name next to the cursor',
-		allycursors_showdot = 'cursor dot',
+		allycursors_showdot = 'player cursor dot',
 		allycursors_showdot_descr = 'Shows a dot at the center of ally cursor position',
 		allycursors_lights = 'lights (non-specs)',
 		allycursors_lights_descr = 'Adds a colored light to every ally cursor',
@@ -3904,20 +3904,20 @@ function init()
 			  saveOptionValue('AllyCursors', 'allycursors', 'setPlayerNames', { 'showPlayerName' }, value)
 		  end,
 		},
+		{ id = "allycursors_showdot", group = "ui", name = widgetOptionColor .. "   "..texts.option.allycursors_showdot, type = "bool", value = true, description = texts.option.allycursors_showdot_descr,
+		  onload = function(i)
+		  	loadWidgetData("AllyCursors", "allycursors_showdot", { 'showCursorDot' })
+		  end,
+		  onchange = function(i, value)
+		  	saveOptionValue('AllyCursors', 'allycursors', 'setCursorDot', { 'showCursorDot' }, value)
+		  end,
+		},
 		{ id = "allycursors_spectatorname", group = "ui", name = widgetOptionColor .. "   "..texts.option.allycursors_spectatorname, type = "bool", value = true, description = texts.option.allycursors_spectatorname_descr,
 		  onload = function(i)
 			  loadWidgetData("AllyCursors", "allycursors_spectatorname", { 'showSpectatorName' })
 		  end,
 		  onchange = function(i, value)
 			  saveOptionValue('AllyCursors', 'allycursors', 'setSpectatorNames', { 'showSpectatorName' }, value)
-		  end,
-		},
-		{ id = "allycursors_showdot", group = "ui", name = widgetOptionColor .. "   "..texts.option.allycursors_showdot, type = "bool", value = true, description = texts.option.allycursors_showdot_descr,
-		  onload = function(i)
-			  loadWidgetData("AllyCursors", "allycursors_showdot", { 'showCursorDot' })
-		  end,
-		  onchange = function(i, value)
-			  saveOptionValue('AllyCursors', 'allycursors', 'setCursorDot', { 'showCursorDot' }, value)
 		  end,
 		},
 		{ id = "allycursors_lights", group = "ui", name = widgetOptionColor .. "   "..texts.option.allycursors_lights, type = "bool", value = true, description = texts.option.allycursors_lights_descr,

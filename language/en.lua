@@ -439,7 +439,7 @@ return {
 			allycursors_playername_descr = 'Shows the player name next to the cursor',
 			allycursors_spectatorname = 'spectator name',
 			allycursors_spectatorname_descr = 'Shows the spectator name next to the cursor',
-			allycursors_showdot = 'cursor dot',
+			allycursors_showdot = 'player cursor dot',
 			allycursors_showdot_descr = 'Shows a dot at the center of ally cursor position',
 			allycursors_lights = 'lights (non-specs)',
 			allycursors_lights_descr = 'Adds a colored light to every ally cursor',
