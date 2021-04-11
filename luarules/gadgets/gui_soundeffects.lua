@@ -189,8 +189,8 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 				local unitName = UnitDefs[unitDefID].name
 				local posx, posy, posz = Spring.GetUnitPosition(unitID)
 				if CurrentGameFrame >= UnitCreatedSoundDelayLastFrame + UnitCreatedSoundDelayFrames then
-					if GUIUnitSoundEffects[unitName] and GUIUnitSoundEffects[unitName].BaseSoundMovementType then
-						local sound = GUIUnitSoundEffects[unitName].BaseSoundMovementType
+					if GUIUnitSoundEffects[unitName] and GUIUnitSoundEffects[unitName].BaseSoundSelectType then
+						local sound = GUIUnitSoundEffects[unitName].BaseSoundSelectType
 						if sound[2] then
 							Spring.PlaySoundFile(sound[math.random(1,#sound)], 0.4, posx, posy, posz, 'ui')
 							UnitCreatedSoundDelayLastFrame = CurrentGameFrame + (math.random(-DelayRandomization,DelayRandomization))
@@ -199,8 +199,8 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 							UnitCreatedSoundDelayLastFrame = CurrentGameFrame + (math.random(-DelayRandomization,DelayRandomization))
 						end
 					end
-					if GUIUnitSoundEffects[unitName] and GUIUnitSoundEffects[unitName].BaseSoundWeaponType then
-						local sound = GUIUnitSoundEffects[unitName].BaseSoundWeaponType
+					if GUIUnitSoundEffects[unitName] and GUIUnitSoundEffects[unitName].BaseSoundSelectType then
+						local sound = GUIUnitSoundEffects[unitName].BaseSoundSelectType
 						if sound[2] then
 							Spring.PlaySoundFile(sound[math.random(1,#sound)], 0.1, posx, posy, posz, 'ui')
 							UnitCreatedSoundDelayLastFrame = CurrentGameFrame + (math.random(-DelayRandomization,DelayRandomization))
@@ -214,23 +214,23 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 				local unitName = UnitDefs[unitDefID].name
 				local posx, posy, posz = Spring.GetUnitPosition(unitID)
 				if CurrentGameFrame >= AllyUnitFinishedSoundDelayLastFrame + AllyUnitCreatedSoundDelayFrames and Spring.IsUnitInView(unitID) then
-					if GUIUnitSoundEffects[unitName] and GUIUnitSoundEffects[unitName].BaseSoundMovementType then
-						local sound = GUIUnitSoundEffects[unitName].BaseSoundMovementType
+					if GUIUnitSoundEffects[unitName] and GUIUnitSoundEffects[unitName].BaseSoundSelectType then
+						local sound = GUIUnitSoundEffects[unitName].BaseSoundSelectType
 						if sound[2] then
-							Spring.PlaySoundFile(sound[math.random(1,#sound)], 0.1, posx, posy, posz, 'ui')
+							Spring.PlaySoundFile(sound[math.random(1,#sound)], 0.2, posx, posy, posz, 'ui')
 							AllyUnitCreatedSoundDelayLastFrame = CurrentGameFrame + (math.random(-DelayRandomization,DelayRandomization))
 						else
-							Spring.PlaySoundFile(sound, 0.1, posx, posy, posz, 'ui')
+							Spring.PlaySoundFile(sound, 0.2, posx, posy, posz, 'ui')
 							AllyUnitCreatedSoundDelayLastFrame = CurrentGameFrame + (math.random(-DelayRandomization,DelayRandomization))
 						end
 					end
-					if GUIUnitSoundEffects[unitName] and GUIUnitSoundEffects[unitName].BaseSoundWeaponType then
-						local sound = GUIUnitSoundEffects[unitName].BaseSoundWeaponType
+					if GUIUnitSoundEffects[unitName] and GUIUnitSoundEffects[unitName].BaseSoundSelectType then
+						local sound = GUIUnitSoundEffects[unitName].BaseSoundSelectType
 						if sound[2] then
-							Spring.PlaySoundFile(sound[math.random(1,#sound)], 0.025, posx, posy, posz, 'ui')
+							Spring.PlaySoundFile(sound[math.random(1,#sound)], 0.05, posx, posy, posz, 'ui')
 							AllyUnitCreatedSoundDelayLastFrame = CurrentGameFrame + (math.random(-DelayRandomization,DelayRandomization))
 						else
-							Spring.PlaySoundFile(sound, 0.025, posx, posy, posz, 'ui')
+							Spring.PlaySoundFile(sound, 0.05, posx, posy, posz, 'ui')
 							AllyUnitCreatedSoundDelayLastFrame = CurrentGameFrame + (math.random(-DelayRandomization,DelayRandomization))
 						end
 					end
@@ -247,8 +247,8 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 		local posx, posy, posz = Spring.GetUnitPosition(unitID)
 		if CurrentGameFrame >= UnitFinishedSoundDelayLastFrame + UnitFinishedSoundDelayFrames then
 			UnitFinishedSoundDelayLastFrame = CurrentGameFrame + (math.random(-DelayRandomization,DelayRandomization))
-			if GUIUnitSoundEffects[unitName] and GUIUnitSoundEffects[unitName].BaseSoundMovementType then
-				local sound = GUIUnitSoundEffects[unitName].BaseSoundMovementType
+			if GUIUnitSoundEffects[unitName] and GUIUnitSoundEffects[unitName].BaseSoundSelectType then
+				local sound = GUIUnitSoundEffects[unitName].BaseSoundSelectType
 				if sound[2] then
 					Spring.PlaySoundFile(sound[math.random(1,#sound)], 0.8, posx, posy, posz, 'ui')
 					UnitFinishedSoundDelayLastFrame = CurrentGameFrame + (math.random(-DelayRandomization,DelayRandomization))
@@ -257,8 +257,8 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 					UnitFinishedSoundDelayLastFrame = CurrentGameFrame + (math.random(-DelayRandomization,DelayRandomization))
 				end
 			end
-			if GUIUnitSoundEffects[unitName] and GUIUnitSoundEffects[unitName].BaseSoundWeaponType then
-				local sound = GUIUnitSoundEffects[unitName].BaseSoundWeaponType
+			if GUIUnitSoundEffects[unitName] and GUIUnitSoundEffects[unitName].BaseSoundSelectType then
+				local sound = GUIUnitSoundEffects[unitName].BaseSoundSelectType
 				if sound[2] then
 					Spring.PlaySoundFile(sound[math.random(1,#sound)], 0.2, posx, posy, posz, 'ui')
 					UnitFinishedSoundDelayLastFrame = CurrentGameFrame + (math.random(-DelayRandomization,DelayRandomization))
@@ -272,23 +272,23 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 		local unitName = UnitDefs[unitDefID].name
 		local posx, posy, posz = Spring.GetUnitPosition(unitID)
 		if CurrentGameFrame >= UnitFinishedSoundDelayLastFrame + AllyUnitFinishedSoundDelayFrames and Spring.IsUnitInView(unitID) then
-			if GUIUnitSoundEffects[unitName] and GUIUnitSoundEffects[unitName].BaseSoundMovementType then
-				local sound = GUIUnitSoundEffects[unitName].BaseSoundMovementType
+			if GUIUnitSoundEffects[unitName] and GUIUnitSoundEffects[unitName].BaseSoundSelectType then
+				local sound = GUIUnitSoundEffects[unitName].BaseSoundSelectType
 				if sound[2] then
-					Spring.PlaySoundFile(sound[math.random(1,#sound)], 0.2, posx, posy, posz, 'ui')
+					Spring.PlaySoundFile(sound[math.random(1,#sound)], 0.4, posx, posy, posz, 'ui')
 					AllyUnitFinishedSoundDelayLastFrame = CurrentGameFrame + (math.random(-DelayRandomization,DelayRandomization))
 				else
-					Spring.PlaySoundFile(sound, 0.2, posx, posy, posz, 'ui')
+					Spring.PlaySoundFile(sound, 0.4, posx, posy, posz, 'ui')
 					AllyUnitFinishedSoundDelayLastFrame = CurrentGameFrame + (math.random(-DelayRandomization,DelayRandomization))
 				end
 			end
-			if GUIUnitSoundEffects[unitName] and GUIUnitSoundEffects[unitName].BaseSoundWeaponType then
-				local sound = GUIUnitSoundEffects[unitName].BaseSoundWeaponType
+			if GUIUnitSoundEffects[unitName] and GUIUnitSoundEffects[unitName].BaseSoundSelectType then
+				local sound = GUIUnitSoundEffects[unitName].BaseSoundSelectType
 				if sound[2] then
-					Spring.PlaySoundFile(sound[math.random(1,#sound)], 0.05, posx, posy, posz, 'ui')
+					Spring.PlaySoundFile(sound[math.random(1,#sound)], 0.1, posx, posy, posz, 'ui')
 					AllyUnitFinishedSoundDelayLastFrame = CurrentGameFrame + (math.random(-DelayRandomization,DelayRandomization))
 				else
-					Spring.PlaySoundFile(sound, 0.05, posx, posy, posz, 'ui')
+					Spring.PlaySoundFile(sound, 0.1, posx, posy, posz, 'ui')
 					AllyUnitFinishedSoundDelayLastFrame = CurrentGameFrame + (math.random(-DelayRandomization,DelayRandomization))
 				end
 			end
@@ -447,10 +447,10 @@ function gadget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOp
 			if GUIUnitSoundEffects[unitName] and GUIUnitSoundEffects[unitName].BaseSoundMovementType then
 				local sound = GUIUnitSoundEffects[unitName].BaseSoundMovementType
 				if sound[2] then
-					Spring.PlaySoundFile(sound[math.random(1,#sound)], 0.15, posx, posy, posz, 'ui')
+					Spring.PlaySoundFile(sound[math.random(1,#sound)], 0.3, posx, posy, posz, 'ui')
 					AllyCommandUnitDelayLastFrame = CurrentGameFrame + (math.random(-DelayRandomization,DelayRandomization))
 				else
-					Spring.PlaySoundFile(sound, 0.15, posx, posy, posz, 'ui')
+					Spring.PlaySoundFile(sound, 0.3, posx, posy, posz, 'ui')
 					AllyCommandUnitDelayLastFrame = CurrentGameFrame + (math.random(-DelayRandomization,DelayRandomization))
 				end
 			end
@@ -458,10 +458,10 @@ function gadget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOp
 			if GUIUnitSoundEffects[unitName] and GUIUnitSoundEffects[unitName].BaseSoundWeaponType then
 				local sound = GUIUnitSoundEffects[unitName].BaseSoundWeaponType
 				if sound[2] then
-					Spring.PlaySoundFile(sound[math.random(1,#sound)], 0.0375, posx, posy, posz, 'ui')
+					Spring.PlaySoundFile(sound[math.random(1,#sound)], 0.075, posx, posy, posz, 'ui')
 					AllyCommandUnitDelayLastFrame = CurrentGameFrame + (math.random(-DelayRandomization,DelayRandomization))
 				else
-					Spring.PlaySoundFile(sound, 0.0375, posx, posy, posz, 'ui')
+					Spring.PlaySoundFile(sound, 0.075, posx, posy, posz, 'ui')
 					AllyCommandUnitDelayLastFrame = CurrentGameFrame + (math.random(-DelayRandomization,DelayRandomization))
 				end
 			end

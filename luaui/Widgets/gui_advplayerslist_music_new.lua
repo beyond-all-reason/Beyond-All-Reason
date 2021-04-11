@@ -36,8 +36,8 @@ local playedTime, totalTime = Spring.GetSoundStreamTime()
 local curTrackName	= "no name"
 local prevTrackName = "no name"
 local appliedSilence = true
-local minSilenceTime = 8
-local maxSilenceTime = 18
+local minSilenceTime = 1
+local maxSilenceTime = 180
 
 
 --- config
@@ -549,6 +549,7 @@ function widget:UnitDamaged(unitID,unitDefID,_,damage)
 		else
 			warMeter = math.ceil(warMeter + damage)
 		end
+		silenceTimer = silenceTimer - math.ceil(damage/1000)
 	end
 end
 
