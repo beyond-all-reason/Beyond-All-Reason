@@ -26,7 +26,7 @@ return {
 		icontype = "sea",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 400,
+		maxdamage = 1000, --400,
 		maxvelocity = 2.4,
 		metalmake = 0.3,
 		metalstorage = 150,
@@ -43,7 +43,7 @@ return {
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turnrate = 405,
-		waterline = 35,
+		waterline = 120, --35,
 		workertime = 300,
 		buildoptions = {
 			[1] = "armuwfus",

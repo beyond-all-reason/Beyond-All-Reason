@@ -148,7 +148,7 @@ return {
 					bombers = 3,
 					default = 9,
 					fighters = 3,
-					subs = 3,
+					--subs = 3,
 					vtol = 3,
 				},
 			},

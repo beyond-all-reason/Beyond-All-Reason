@@ -24,7 +24,7 @@ return {
 		icontype = "sea",
 		idleautoheal = 15,
 		idletime = 900,
-		maxdamage = 2000,
+		maxdamage = 4000, --2000,
 		maxvelocity = 1.5,
 		minwaterdepth = 20,
 		movementclass = "UBOAT4",
@@ -41,7 +41,7 @@ return {
 		turninplaceanglelimit = 90,
 		turnrate = 270,
 		upright = true,
-		waterline = 45,
+		waterline = 120, --45,
 		customparams = {
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
@@ -151,8 +151,8 @@ return {
 				weapontype = "TorpedoLauncher",
 				weaponvelocity = 220,
 				damage = {
-					default = 1650,
-					subs = 825,
+					default = 1238, --1650,
+					--subs = 825,
 					commanders = 750,
 				},
 			},

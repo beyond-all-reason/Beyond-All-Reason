@@ -23,7 +23,7 @@ return {
 		icontype = "sea",
 		idleautoheal = 8,
 		idletime = 900,
-		maxdamage = 635,
+		maxdamage = 1270, --635
 		maxvelocity = 2.1,
 		minwaterdepth = 15,
 		movementclass = "UBOAT3",
@@ -148,13 +148,16 @@ return {
 				turret = false,
 				waterweapon = true,
 				weaponacceleration = 15,
+
+
+
 				weapontimer = 3.25,
 				weapontype = "TorpedoLauncher",
 				weaponvelocity = 160,
 				damage = {
-					commanders = 420,
-					default = 455,
-					subs = 126,
+					--commanders = 420,
+					default = 342 --455,
+					--subs = 126,
 				},
 			},
 		},

@@ -23,7 +23,7 @@ return {
 		icontype = "sea",
 		idleautoheal = 8,
 		idletime = 900,
-		maxdamage = 635,
+		maxdamage = 1270, -- 635,
 		maxvelocity = 2.15,
 		minwaterdepth = 15,
 		movementclass = "UBOAT3",
@@ -39,7 +39,7 @@ return {
 		turninplaceanglelimit = 90,
 		turnrate = 460.5,
 		upright = true,
-		waterline = 30,
+		waterline = 120, --30
 		customparams = {
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
@@ -152,9 +152,9 @@ return {
 				weapontype = "TorpedoLauncher",
 				weaponvelocity = 160,
 				damage = {
-					commanders = 420,
-					default = 455,
-					subs = 126,
+					-- commanders = 420,
+					default = 342,
+					-- subs = 126,
 				},
 			},
 		},
