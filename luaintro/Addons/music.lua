@@ -46,10 +46,10 @@ function addon.Initialize()
 			--Spring.SetConfigInt('musictrack', i)
 			if #musicfiles > 1 then
 				local pickedTrack = math.ceil(#musicfiles*math.random())
-				Spring.PlaySoundStream(musicfiles[pickedTrack], 1)
+				Spring.PlaySoundStream(musicfiles[pickedTrack], 0.5)
 				Spring.SetSoundStreamVolume(musicvolume)
 			elseif #musicfiles == 1 then
-				Spring.PlaySoundStream(musicfiles[1], 1)
+				Spring.PlaySoundStream(musicfiles[1], 0.5)
 				Spring.SetSoundStreamVolume(musicvolume)
 			end
 		end
