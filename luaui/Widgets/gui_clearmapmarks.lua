@@ -62,7 +62,7 @@ local function createList(size)
 		gl.Texture(false)
 	end)
 	if WG['tooltip'] ~= nil then
-		WG['tooltip'].AddTooltip('clearmapmarks', {xPos-usedImgSize, yPos, xPos, yPos+usedImgSize}, Spring.I18N('ui.clearMapmarks.tooltip')..'\n\255\190\190\190'..Spring.I18N('ui.clearMapmarks.tooltipctrl'))
+		WG['tooltip'].AddTooltip('clearmapmarks', {xPos-usedImgSize, yPos, xPos, yPos+usedImgSize}, Spring.I18N('ui.clearMapmarks.tooltip')..'\n\255\200\200\200'..Spring.I18N('ui.clearMapmarks.tooltipctrl'))
 	end
 end
 

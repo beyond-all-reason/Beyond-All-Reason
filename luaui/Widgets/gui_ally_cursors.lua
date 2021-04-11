@@ -10,6 +10,8 @@ function widget:GetInfo()
 	}
 end
 
+-- TODO: hide (enemy) cursor light when not specfullview
+
 local cursorSize = 11
 local drawNamesCursorSize = 8.5
 

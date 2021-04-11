@@ -640,8 +640,8 @@ local function DrawBox(hOffset, vOffset,r,g,b)
 		widgetPosY + widgetHeight - vOffset + dy,
 		widgetPosX + hOffset + dx,
 		widgetPosY + widgetHeight - vOffset + dy + h,
-		h*0.2,
-		1,1,1,1, {r*0.6,g*0.6,b*0.6,0.4}, {r,g,b,0.4}
+		h*0.055,
+		1,1,1,1, {r*0.75,g*0.75,b*0.75,0.4}, {r,g,b,0.4}
 	)
 	glColor(1,1,1,1)
 end
@@ -653,18 +653,18 @@ local function DrawSideImage(sideImage, hOffset, vOffset, r, g, b, a, small, mou
 	local dx
 	local dy
 	if small then
-		w = tH*0.36
-		h = tH*0.36
-		dx = 0-(tH*0.06)
-		dy = tH - (tH*0.43)
+		w = floor((tH*0.36)+0.5)
+		h = floor((tH*0.36)+0.5)
+		dx = -floor((tH*0.06)+0.5)
+		dy = floor((tH - (tH*0.43))+0.5)
 	else
-		w = tH*0.46
-		h = tH*0.46
+		w = floor((tH*0.46)+0.5)
+		h = floor((tH*0.46)+0.5)
 		dx = 0
-		dy = tH - h
+		dy = floor((tH - h)+0.5)
 	end
 
-	if not inSpecMode then dx = dx -(10*sizeMultiplier) end
+	if not inSpecMode then dx = floor(dx -(10*sizeMultiplier)) end
 
 	if isZombie then
 		r = 1
@@ -683,10 +683,10 @@ local function DrawSideImage(sideImage, hOffset, vOffset, r, g, b, a, small, mou
 		glColor(r,g,b,a)
 	end
 	local area = {
-		widgetPosX + hOffset + dx - w,
-		widgetPosY + widgetHeight - vOffset + dy,
-		widgetPosX + hOffset + dx,
-		widgetPosY + widgetHeight - vOffset + dy + h,
+		floor((widgetPosX + hOffset + dx - w)+0.5),
+		floor((widgetPosY + widgetHeight - vOffset + dy)+0.5),
+		floor((widgetPosX + hOffset + dx)+0.5),
+		floor((widgetPosY + widgetHeight - vOffset + dy + h)+0.5),
 	}
 	if enableStartposbuttons then
 		Button["player"][tID]["x1"] = area[1]
@@ -699,9 +699,13 @@ local function DrawSideImage(sideImage, hOffset, vOffset, r, g, b, a, small, mou
 		WG['tooltip'].AddTooltip('ecostats_team_'..tID, area, teamData[tID]["leaderName"])
 	end
 	--glTexture(sideImage)
-	glTexRect(area[1],area[2]+(borderPadding*0.5),area[3],area[4]+(borderPadding*0.5))
-	glTexture(false)
-	glColor(1,1,1,1)
+	RectRound(
+		area[1],area[2]+floor(borderPadding*0.5),area[3],area[4]+floor(borderPadding*0.5),
+		(area[3]-area[1])*0.055,
+		1,1,1,1, {r*0.75,g*0.75,b*0.75,1}, {r,g,b,1}
+	)
+	--glTexRect(area[1],area[2]+(borderPadding*0.5),area[3],area[4]+(borderPadding*0.5))
+	--glTexture(false)
 end
 
 
@@ -739,7 +743,7 @@ function DrawSideImages()
 					local b = tData.blue or 1
 					local alpha, sideImg
 					local side = tData.side
-					local posx = -(WBadge*(i-1))+(WBadge*0.3)
+					local posx = floor(-(WBadge*(i-1))+(WBadge*0.3))
 
 					local isZombie = haveZombies and tID == gaiaID
 					sideImg = images[side] or images["default"]
@@ -750,10 +754,10 @@ function DrawSideImages()
 					if GetGameSeconds() > 0 then
 						if not tData.isDead then
 							alpha = tData.active and 1 or 0.3
-							DrawSideImage(sideImg,posx,posy+(tH*0.125), r, g, b,alpha,not hasCom,Button["player"][tID]["mouse"],t, false,isZombie,tID)
+							DrawSideImage(sideImg,posx,posy+floor(tH*0.125), r, g, b,alpha,not hasCom,Button["player"][tID]["mouse"],t, false,isZombie,tID)
 						else
 							alpha = 0.8
-							DrawSideImage(images["dead"],posx,posy+(tH*0.125), r, g, b,alpha,true,Button["player"][tID]["mouse"],t, true,isZombie,tID) --dead, big icon
+							DrawSideImage(images["dead"],posx,posy+floor(tH*0.125), r, g, b,alpha,true,Button["player"][tID]["mouse"],t, true,isZombie,tID) --dead, big icon
 						end
 					else
 						DrawBox(posx, posy, r, g, b)

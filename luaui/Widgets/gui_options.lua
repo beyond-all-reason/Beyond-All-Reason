@@ -5186,7 +5186,7 @@ function init()
 							end
 							optionName = optionName..'...'
 						end
-						newOptions[count] = { id = "music_track" .. v[1], group = "snd", basic = true, name = musicOptionColor .. optionName, type = "bool", value = v[2], description = trackName..'\n'..v[3],
+						newOptions[count] = { id = "music_track" .. v[1], group = "snd", basic = true, name = musicOptionColor .. optionName, type = "bool", value = v[2], description = trackName..'\n\255\200\200\200'..v[3],
 											  onchange = function(i, value)
 												  if not WG['music'] and widgetHandler.configData[widgetName] ~= nil and widgetHandler.configData[widgetName].tracksConfig ~= nil then
 													  if widgetHandler.configData[widgetName].tracksConfig[ v[1] ] then
