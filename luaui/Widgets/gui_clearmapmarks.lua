@@ -85,6 +85,8 @@ function updatePosition(force)
 end
 
 function widget:Initialize()
+	WG.clearmapmarks = {}
+	WG.clearmapmarks.continuous = continuouslyClean
 	updatePosition(true)
 end
 
@@ -92,6 +94,7 @@ function widget:Shutdown()
 	if drawlist[1] ~= nil then
 		glDeleteList(drawlist[1])
 	end
+	WG.clearmapmarks = nil
 end
 
 local sec = 0
@@ -148,6 +151,7 @@ function widget:MouseRelease(mx, my, mb)
 		local alt, ctrl, meta, shift = Spring.GetModKeyState()
 		if ctrl then
 			continuouslyClean = not continuouslyClean
+			WG.clearmapmarks.continuous = continuouslyClean
 			if continuouslyClean then
 				Spring.Echo("clearmapmarks: continously cleaning all mapmarks enabled (for current game)")
 			else
