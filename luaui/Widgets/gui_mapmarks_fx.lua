@@ -10,14 +10,12 @@ function widget:GetInfo()
    }
 end
 
-
-local vsx,vsy = Spring.GetViewGeometry()
-
 local commands					= {}
 local mapDrawNicknameTime		= {}	-- this table is used to filter out previous map drawing nicknames if user has drawn something new
 local mapEraseNicknameTime		= {}
 
-local ownPlayerID				= Spring.GetMyPlayerID()
+local ownPlayerID = Spring.GetMyPlayerID()
+local vsx,vsy = Spring.GetViewGeometry()
 
 -- spring vars
 local spGetPlayerInfo			= Spring.GetPlayerInfo
@@ -171,6 +169,7 @@ end
 function widget:DrawWorldPreUnit()
 	if chobbyInterface then return end
 	if Spring.IsGUIHidden() then return end
+	if WG.clearmapmarks and WG.clearmapmarks.continuous then return end
 
 	local osClock = os.clock()
 	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)

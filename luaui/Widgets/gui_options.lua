@@ -350,7 +350,7 @@ local texts = {        -- fallback (if you want to change this, also update: lan
 		allycursors_playername_descr = 'Shows the player name next to the cursor',
 		allycursors_spectatorname = 'spectator name',
 		allycursors_spectatorname_descr = 'Shows the spectator name next to the cursor',
-		allycursors_showdot = 'cursor dot',
+		allycursors_showdot = 'player cursor dot',
 		allycursors_showdot_descr = 'Shows a dot at the center of ally cursor position',
 		allycursors_lights = 'lights (non-specs)',
 		allycursors_lights_descr = 'Adds a colored light to every ally cursor',
@@ -486,6 +486,8 @@ local texts = {        -- fallback (if you want to change this, also update: lan
 		blue = 'blue',
 	},
 }
+
+local orchestralDefaulted = false
 
 local newEngineIconsInitialized = false
 
@@ -820,7 +822,7 @@ end
 
 local function detectWater()
 	local _,_,mapMinHeight, mapMaxHeight = Spring.GetGroundExtremes()
-	if select(3, Spring.GetGroundExtremes()) <= -10 then
+	if select(3, Spring.GetGroundExtremes()) <= -2 then
 		waterDetected = true
 		Spring.SendCommands("water " .. desiredWaterValue)
 	end
@@ -2094,6 +2096,7 @@ function loadAllWidgetData()
 end
 
 -- detect potatos
+local engine64 = true
 local isPotatoCpu = false
 local isPotatoGpu = false
 local gpuMem = (Platform.gpuMemorySize and Platform.gpuMemorySize or 1000) / 1000
@@ -2104,8 +2107,17 @@ if gpuMem and gpuMem > 0 and gpuMem < 1800 then
 	isPotatoGpu = true
 end
 
-local engine64 = true
 function init()
+
+	-- make the orchestral soundtrack the new default retrospectively
+	if not orchestralDefaulted then
+		Spring.SetConfigInt('soundtrack', 2)
+		-- dont enable when they turned off music widget
+		if widgetHandler.orderList["AdvPlayersList Music Player"] ~= nil or widgetHandler.orderList["AdvPlayersList Music Player"] ~= 0 then
+			widgetHandler:DisableWidget('AdvPlayersList Music Player')
+			widgetHandler:EnableWidget('AdvPlayersList Music Player (orchestral)')
+		end
+	end
 
 	presetNames = { texts.option.preset_lowest, texts.option.preset_low, texts.option.preset_medium, texts.option.preset_high, texts.option.preset_ultra }
 	presets = {
@@ -2288,7 +2300,7 @@ function init()
 				end
 			end
 		end
-		-- adding some widescreen resolutions for local testing
+		-- Add some widescreen resolutions for local testing
 		--supportedResolutions[#supportedResolutions+1] = '3840 x 1440'
 		--supportedResolutions[#supportedResolutions+1] = '2560 x 1200'
 		--supportedResolutions[#supportedResolutions+1] = '2560 x 1080'
@@ -3000,7 +3012,7 @@ function init()
 		  end,
 		},
 
-		  { id = "soundtrack", group = "snd", basic = true, name = texts.option.soundtrack, type = "select", options = {'---', 'modern', 'orchestral'}, value = Spring.GetConfigInt('soundtrack', 2), description = texts.option.soundtrack_descr,
+		  { id = "soundtrack", group = "snd", basic = true, name = texts.option.soundtrack, type = "select", options = {'---', 'orchestral', 'modern'}, value = Spring.GetConfigInt('soundtrack', 2), description = texts.option.soundtrack_descr,
 			onchange = function(i, value)
 				Spring.SetConfigString("soundtrack", value)
 				Spring.StopSoundStream()
@@ -3009,12 +3021,12 @@ function init()
 					widgetHandler:DisableWidget('AdvPlayersList Music Player (orchestral)')
 					init()
 				elseif value == 2 then
-					widgetHandler:DisableWidget('AdvPlayersList Music Player (orchestral)')
-					widgetHandler:EnableWidget('AdvPlayersList Music Player')
-					init()
-				elseif value == 3 then
 					widgetHandler:DisableWidget('AdvPlayersList Music Player')
 					widgetHandler:EnableWidget('AdvPlayersList Music Player (orchestral)')
+					init()
+				elseif value == 3 then
+					widgetHandler:DisableWidget('AdvPlayersList Music Player (orchestral)')
+					widgetHandler:EnableWidget('AdvPlayersList Music Player')
 					init()
 				end
 			end,
@@ -3892,20 +3904,20 @@ function init()
 			  saveOptionValue('AllyCursors', 'allycursors', 'setPlayerNames', { 'showPlayerName' }, value)
 		  end,
 		},
+		{ id = "allycursors_showdot", group = "ui", name = widgetOptionColor .. "   "..texts.option.allycursors_showdot, type = "bool", value = true, description = texts.option.allycursors_showdot_descr,
+		  onload = function(i)
+		  	loadWidgetData("AllyCursors", "allycursors_showdot", { 'showCursorDot' })
+		  end,
+		  onchange = function(i, value)
+		  	saveOptionValue('AllyCursors', 'allycursors', 'setCursorDot', { 'showCursorDot' }, value)
+		  end,
+		},
 		{ id = "allycursors_spectatorname", group = "ui", name = widgetOptionColor .. "   "..texts.option.allycursors_spectatorname, type = "bool", value = true, description = texts.option.allycursors_spectatorname_descr,
 		  onload = function(i)
 			  loadWidgetData("AllyCursors", "allycursors_spectatorname", { 'showSpectatorName' })
 		  end,
 		  onchange = function(i, value)
 			  saveOptionValue('AllyCursors', 'allycursors', 'setSpectatorNames', { 'showSpectatorName' }, value)
-		  end,
-		},
-		{ id = "allycursors_showdot", group = "ui", name = widgetOptionColor .. "   "..texts.option.allycursors_showdot, type = "bool", value = true, description = texts.option.allycursors_showdot_descr,
-		  onload = function(i)
-			  loadWidgetData("AllyCursors", "allycursors_showdot", { 'showCursorDot' })
-		  end,
-		  onchange = function(i, value)
-			  saveOptionValue('AllyCursors', 'allycursors', 'setCursorDot', { 'showCursorDot' }, value)
 		  end,
 		},
 		{ id = "allycursors_lights", group = "ui", name = widgetOptionColor .. "   "..texts.option.allycursors_lights, type = "bool", value = true, description = texts.option.allycursors_lights_descr,
@@ -5010,6 +5022,12 @@ function init()
 			end
 			options[id] = nil
 			options[getOptionByID('could_opacity')] = nil
+
+			-- set lowest quality shadows for Intel GPU (they eat fps but dont show)
+			if Platform ~= nil and Platform.gpuVendor == 'Intel' then
+				options[getOptionByID('shadowslider')] = nil
+				options[getOptionByID('shadows_opacity')] = nil
+			end
 		end
 	end
 
@@ -5099,12 +5117,15 @@ function init()
 		options[getOptionByID('label_notif_messages_spacer')] = nil
 	end
 
-	if Spring.GetConfigInt('soundtrack', 2) == 2 and widgetHandler.knownWidgets["AdvPlayersList Music Player"] then
+	if (Spring.GetConfigInt('soundtrack', 2) == 2 and widgetHandler.knownWidgets["AdvPlayersList Music Player (orchestral)"]) or
+		(Spring.GetConfigInt('soundtrack', 2) == 3 and widgetHandler.knownWidgets["AdvPlayersList Music Player"]) then
+
+		local widgetName = Spring.GetConfigInt('soundtrack', 2) == 2 and "AdvPlayersList Music Player (orchestral)" or "AdvPlayersList Music Player"
 		local tracksConfig = {}
 		if WG['music'] ~= nil and WG['music'].getTracksConfig ~= nil then
 			tracksConfig = WG['music'].getTracksConfig()
-		elseif widgetHandler.configData["AdvPlayersList Music Player"] ~= nil and widgetHandler.configData["AdvPlayersList Music Player"].tracksConfig ~= nil then
-			tracksConfig = widgetHandler.configData["AdvPlayersList Music Player"].tracksConfig
+		elseif widgetHandler.configData[widgetName] ~= nil and widgetHandler.configData[widgetName].tracksConfig ~= nil then
+			tracksConfig = widgetHandler.configData[widgetName].tracksConfig
 		end
 		local musicList = {}
 		if type(tracksConfig) == 'table' then
@@ -5114,16 +5135,23 @@ function init()
 			end
 			table.sort(tracksConfigSorted)
 
-			for i, track in ipairs(tracksConfigSorted) do
-				local params = tracksConfig[track]
-				if params[2] == 'peace' then
-					musicList[#musicList + 1] = { track, params[1], params[2] }
+			if Spring.GetConfigInt('soundtrack', 2) == 3 then
+				for i, track in ipairs(tracksConfigSorted) do
+					local params = tracksConfig[track]
+					if params[2] == 'peace' then
+						musicList[#musicList + 1] = { track, params[1], params[2] }
+					end
 				end
-			end
-			for i, track in ipairs(tracksConfigSorted) do
-				local params = tracksConfig[track]
-				if params[2] == 'war' then
-					musicList[#musicList + 1] = { track, params[1], params[2] }
+				for i, track in ipairs(tracksConfigSorted) do
+					local params = tracksConfig[track]
+					if params[2] == 'war' then
+						musicList[#musicList + 1] = { track, params[1], params[2] }
+					end
+				end
+			else
+				for i, track in ipairs(tracksConfigSorted) do
+					local params = tracksConfig[track]
+					musicList[#musicList + 1] = { track, params[1], params[2], params[3], params[4] }
 				end
 			end
 		end
@@ -5135,33 +5163,52 @@ function init()
 			if option.id == 'label_snd_tracks_spacer' then
 				for k, v in pairs(musicList) do
 					count = count + 1
-					local trackName = string.gsub(v[1], "sounds/music/peace/", "")
-					trackName = string.gsub(trackName, "sounds/music/war/", "")
-					trackName = string.gsub(trackName, ".ogg", "")
-
-					local optionName = trackName
-					if font:GetTextWidth(optionName) * math.floor(15 * widgetScale) > screenWidth * 0.25 then
-						while font:GetTextWidth(optionName) * math.floor(15 * widgetScale) > screenWidth * 0.245 do
-							optionName = string.sub(optionName, 1, string.len(optionName)-1)
-						end
-						optionName = optionName..'...'
+					local optionName = ''
+					local trackName = ''
+					if Spring.GetConfigInt('soundtrack', 2) == 3 then
+						trackName = string.gsub(v[1], "sounds/music/peace/", "")
+						trackName = string.gsub(trackName, "sounds/music/war/", "")
+						trackName = string.gsub(trackName, ".ogg", "")
+					elseif musicList[k][5] then
+						trackName = musicList[k][5]
+						trackName = string.gsub(trackName, "sounds/musicnew/intro/", "")
+						trackName = string.gsub(trackName, "sounds/musicnew/peace/", "")
+						trackName = string.gsub(trackName, "sounds/musicnew/warlow/", "")
+						trackName = string.gsub(trackName, "sounds/musicnew/warhigh/", "")
+						trackName = string.gsub(trackName, "sounds/musicnew/gameover/", "")
+						trackName = string.gsub(trackName, ".ogg", "")
 					end
-					newOptions[count] = { id = "music_track" .. v[1], group = "snd", basic = true, name = musicOptionColor .. optionName, type = "bool", value = v[2], description = v[3] .. '\n\n' .. trackName,
-					  onchange = function(i, value)
-						  if not WG['music'] and widgetHandler.configData["AdvPlayersList Music Player"] ~= nil and widgetHandler.configData["AdvPlayersList Music Player"].tracksConfig ~= nil then
-							  if widgetHandler.configData["AdvPlayersList Music Player"].tracksConfig[ v[1] ] then
-								  widgetHandler.configData["AdvPlayersList Music Player"].tracksConfig[ v[1] ][1] = value
-							  end
-						  else
-							  saveOptionValue('AdvPlayersList Music Player', 'music', 'setTrack' .. v[1], { 'tracksConfig' }, value)
-						  end
-					  end,
-					  onclick = function()
-						  if WG['music'] ~= nil and WG['music'].playTrack then
-							  WG['music'].playTrack(v[1])
-						  end
-					  end,
-					}
+					if trackName ~= '' then
+						optionName = trackName
+						if font:GetTextWidth(optionName) * math.floor(15 * widgetScale) > screenWidth * 0.25 then
+							while font:GetTextWidth(optionName) * math.floor(15 * widgetScale) > screenWidth * 0.245 do
+								optionName = string.sub(optionName, 1, string.len(optionName)-1)
+							end
+							optionName = optionName..'...'
+						end
+						newOptions[count] = { id = "music_track" .. v[1], group = "snd", basic = true, name = musicOptionColor .. optionName, type = "bool", value = v[2], description = trackName..'\n'..v[3],
+											  onchange = function(i, value)
+												  if not WG['music'] and widgetHandler.configData[widgetName] ~= nil and widgetHandler.configData[widgetName].tracksConfig ~= nil then
+													  if widgetHandler.configData[widgetName].tracksConfig[ v[1] ] then
+														  widgetHandler.configData[widgetName].tracksConfig[ v[1] ][1] = value
+													  end
+												  else
+													  saveOptionValue(widgetName, 'music', 'setTrack' .. v[1], { 'tracksConfig' }, value)
+												  end
+											  end,
+											  onclick = function()
+												  WG['music'].playTrack(v[1])
+											  end,
+						}
+						if WG['music'] == nil or not WG['music'].playTrack then
+							newOptions[count].onclick = nil
+						end
+						if Spring.GetConfigInt('soundtrack', 2) == 2 then
+							newOptions[count].onchange = nil
+							newOptions[count].type = 'text'
+							newOptions[count].value = nil
+						end
+					end
 				end
 			end
 		end
@@ -5176,7 +5223,7 @@ function init()
 	end
 
 	-- cursors
-	if (WG['cursors'] == nil) then
+	if WG['cursors'] == nil then
 		options[getOptionByID('cursor')] = nil
 		options[getOptionByID('cursorsize')] = nil
 	else
@@ -5523,11 +5570,11 @@ function widget:Initialize()
 			widgetHandler:DisableWidget('AdvPlayersList Music Player')
 			widgetHandler:DisableWidget('AdvPlayersList Music Player (orchestral)')
 		elseif value == 2 then
-			widgetHandler:DisableWidget('AdvPlayersList Music Player (orchestral)')
-			widgetHandler:EnableWidget('AdvPlayersList Music Player')
-		elseif value == 3 then
 			widgetHandler:DisableWidget('AdvPlayersList Music Player')
 			widgetHandler:EnableWidget('AdvPlayersList Music Player (orchestral)')
+		elseif value == 3 then
+			widgetHandler:DisableWidget('AdvPlayersList Music Player (orchestral)')
+			widgetHandler:EnableWidget('AdvPlayersList Music Player')
 		end
 	end
 	if not waterDetected then
@@ -5755,9 +5802,10 @@ function getSelectKey(i, value)
 	return false
 end
 
+
 function widget:GetConfigData(data)
 	return {
-		newEngineInitialized = newEngineInitialized,
+		orchestralDefaulted = true,
 		vsyncLevel = vsyncLevel,
 		vsyncOnlyForSpec = vsyncOnlyForSpec,
 		vsyncEnabled = vsyncEnabled,
@@ -5804,7 +5852,9 @@ function widget:SetConfigData(data)
 	if data.newEngineIconsInitialized then
 		newEngineIconsInitialized = data.newEngineIconsInitialized
 	end
-
+	if data.orchestralDefaulted then
+		orchestralDefaulted = true
+	end
 	if data.vsyncEnabled ~= nil then
 		vsyncEnabled = data.vsyncEnabled
 	end

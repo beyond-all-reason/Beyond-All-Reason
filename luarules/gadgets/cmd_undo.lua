@@ -121,7 +121,7 @@ if gadgetHandler:IsSyncedCode() then
 					local featureID = features[i]
 					if UnitDefs[params[2]] ~= nil then
 						local wreckName = UnitDefs[params[2]].wreckName
-						if wreckName ~= nil then
+						if wreckName ~= nil and FeatureDefNames[wreckName] then
 							local wreckageID = FeatureDefNames[wreckName].id
 							if wreckageID ~= nil and wreckageID == Spring.GetFeatureDefID(featureID) then
 								Spring.DestroyFeature(featureID, false)

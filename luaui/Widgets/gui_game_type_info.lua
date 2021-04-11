@@ -50,7 +50,7 @@ function widget:ViewResize()
 	vsx, vsy = Spring.GetViewGeometry()
 	widgetScale = (0.80 + (vsx * vsy / 6000000))
 
-	font = WG['fonts'].getFont(nil, 1, 0.2, 1.3)
+	font = WG['fonts'].getFont(nil, 1.5, 0.25, 1.25)
 end
 
 function widget:Initialize()

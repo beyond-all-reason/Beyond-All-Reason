@@ -25,7 +25,7 @@ return {
 		icontype = "sea",
 		idleautoheal = 3,
 		idletime = 300,
-		maxdamage = 420,
+		maxdamage = 1050 --420,
 		maxvelocity = 2.23,
 		minwaterdepth = 15,
 		movementclass = "UBOAT3",
@@ -41,7 +41,7 @@ return {
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turnrate = 525,
-		waterline = 22, --17,
+		waterline = 120, --22,
 		workertime = 150,
 		customparams = {
 			model_author = "Beherith",

@@ -99,6 +99,7 @@ return {
 			},
 			clearMapmarks = {
 				tooltip = 'Clear mapmarks/drawings',
+				tooltipctrl = 'CTRL-click to continuously clear',
 			},
 			buildMenu = {
 				nextPage = 'Next page',

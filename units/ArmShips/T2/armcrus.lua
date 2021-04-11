@@ -152,7 +152,7 @@ return {
 				weapontype = "TorpedoLauncher",
 				weaponvelocity = 200,
 				damage = {
-					default = 300,
+					default = 400, --300,
 				},
 			},
 			gauss = {
@@ -180,7 +180,7 @@ return {
 					bombers = 40,
 					default = 220,
 					fighters = 40,
-					subs = 5,
+					subs = 220, --5,
 					vtol = 40,
 				},
 			},
@@ -219,7 +219,7 @@ return {
 					bombers = 15,
 					default = 75,
 					fighters = 15,
-					subs = 5,
+					subs = 75, --5,
 					vtol = 15,
 				},
 			},

@@ -29,7 +29,7 @@ local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold
 -- being set at gamestart again:
 local myPlayerID = Spring.GetMyPlayerID()
 local myName, _, mySpec, myTeamID, myAllyTeamID = Spring.GetPlayerInfo(myPlayerID, false)
-local startedAsPlayer = not mycSpec
+local startedAsPlayer = not mySpec
 
 local glBlending = gl.Blending
 local GL_SRC_ALPHA = GL.SRC_ALPHA
@@ -67,11 +67,11 @@ local sec = 0
 local uiOpacitySec = 0
 function widget:Update(dt)
 	-- Uncomment for testing in singleplayer
-	-- myName,_,mySpec,myTeamID,myAllyTeamID = Spring.GetPlayerInfo(1,false)
-	-- sec = sec + dt
-	-- if sec > 1 and not voteDlist then
-	-- 	StartVote('testvote yeah!', 'somebody')
-	-- end
+	--myName,_,mySpec,myTeamID,myAllyTeamID = Spring.GetPlayerInfo(1,false)
+	--sec = sec + dt
+	--if sec > 1 and not voteDlist then
+	--	StartVote('testvote yeah!', 'somebody')
+	--end
 
 	uiOpacitySec = uiOpacitySec + dt
 	if uiOpacitySec > 0.5 then
@@ -192,7 +192,7 @@ function StartVote(name, owner)
 				local topbarArea = WG['topbar'].GetPosition()
 				--xpos = vsx-(width/2)
 				xpos = math.floor(topbarArea[1] + (width/2) + widgetSpaceMargin + ((topbarArea[3] - topbarArea[1])/2))
-				ypos = math.floor(topbarArea[2] - (5 * topbarArea[5]) - (height / 2))
+				ypos = math.floor(topbarArea[2] - widgetSpaceMargin - (height / 2))
 			end
 
 			hovered = nil
