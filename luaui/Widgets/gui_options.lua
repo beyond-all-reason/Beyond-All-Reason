@@ -5169,7 +5169,7 @@ function init()
 						trackName = string.gsub(v[1], "sounds/music/peace/", "")
 						trackName = string.gsub(trackName, "sounds/music/war/", "")
 						trackName = string.gsub(trackName, ".ogg", "")
-					else
+					elseif musicList[k][5] then
 						trackName = musicList[k][5]
 						trackName = string.gsub(trackName, "sounds/musicnew/intro/", "")
 						trackName = string.gsub(trackName, "sounds/musicnew/peace/", "")
@@ -5178,34 +5178,36 @@ function init()
 						trackName = string.gsub(trackName, "sounds/musicnew/gameover/", "")
 						trackName = string.gsub(trackName, ".ogg", "")
 					end
-					optionName = trackName
-					if font:GetTextWidth(optionName) * math.floor(15 * widgetScale) > screenWidth * 0.25 then
-						while font:GetTextWidth(optionName) * math.floor(15 * widgetScale) > screenWidth * 0.245 do
-							optionName = string.sub(optionName, 1, string.len(optionName)-1)
+					if trackName ~= '' then
+						optionName = trackName
+						if font:GetTextWidth(optionName) * math.floor(15 * widgetScale) > screenWidth * 0.25 then
+							while font:GetTextWidth(optionName) * math.floor(15 * widgetScale) > screenWidth * 0.245 do
+								optionName = string.sub(optionName, 1, string.len(optionName)-1)
+							end
+							optionName = optionName..'...'
 						end
-						optionName = optionName..'...'
-					end
-					newOptions[count] = { id = "music_track" .. v[1], group = "snd", basic = true, name = musicOptionColor .. optionName, type = "bool", value = v[2], description = trackName..'\n'..v[3],
-					  onchange = function(i, value)
-						  if not WG['music'] and widgetHandler.configData[widgetName] ~= nil and widgetHandler.configData[widgetName].tracksConfig ~= nil then
-							  if widgetHandler.configData[widgetName].tracksConfig[ v[1] ] then
-								  widgetHandler.configData[widgetName].tracksConfig[ v[1] ][1] = value
-							  end
-						  else
-							  saveOptionValue(widgetName, 'music', 'setTrack' .. v[1], { 'tracksConfig' }, value)
-						  end
-					  end,
-					  onclick = function()
-						  WG['music'].playTrack(v[1])
-					  end,
-					}
-					if WG['music'] == nil or not WG['music'].playTrack then
-						newOptions[count].onclick = nil
-					end
-					if Spring.GetConfigInt('soundtrack', 2) == 2 then
-						newOptions[count].onchange = nil
-						newOptions[count].type = 'text'
-						newOptions[count].value = nil
+						newOptions[count] = { id = "music_track" .. v[1], group = "snd", basic = true, name = musicOptionColor .. optionName, type = "bool", value = v[2], description = trackName..'\n'..v[3],
+											  onchange = function(i, value)
+												  if not WG['music'] and widgetHandler.configData[widgetName] ~= nil and widgetHandler.configData[widgetName].tracksConfig ~= nil then
+													  if widgetHandler.configData[widgetName].tracksConfig[ v[1] ] then
+														  widgetHandler.configData[widgetName].tracksConfig[ v[1] ][1] = value
+													  end
+												  else
+													  saveOptionValue(widgetName, 'music', 'setTrack' .. v[1], { 'tracksConfig' }, value)
+												  end
+											  end,
+											  onclick = function()
+												  WG['music'].playTrack(v[1])
+											  end,
+						}
+						if WG['music'] == nil or not WG['music'].playTrack then
+							newOptions[count].onclick = nil
+						end
+						if Spring.GetConfigInt('soundtrack', 2) == 2 then
+							newOptions[count].onchange = nil
+							newOptions[count].type = 'text'
+							newOptions[count].value = nil
+						end
 					end
 				end
 			end
@@ -5221,7 +5223,7 @@ function init()
 	end
 
 	-- cursors
-	if (WG['cursors'] == nil) then
+	if WG['cursors'] == nil then
 		options[getOptionByID('cursor')] = nil
 		options[getOptionByID('cursorsize')] = nil
 	else
