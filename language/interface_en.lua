@@ -208,10 +208,9 @@ return {
 			},
 			idleBuilders = {
 				name = 'Idle builders',
-				idle = 'Idle',
-				shiftclick = 'shift + click:   select all',
-				cycleclick = 'click:   cycle through all',
-				z = 'z',
+				idle = '%{textColor}Idle %{highlightColor}%{unit}',
+				controls = '%{textColor}Click:   Cycle next builder\n%{textColor}Shift + Click:   Select all',
+				sleeping = 'z',
 			},
 			unitGroups = {
 				name = 'Unit groups',
