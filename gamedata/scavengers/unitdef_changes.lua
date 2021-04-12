@@ -879,8 +879,8 @@ customDefs.corhllt = {
 customDefs.armemp = {
 	weapondefs = {
 		armemp_weapon = {
-			range = 1800,
-			stockpiletime = 25,
+			--range = 1800,
+			stockpiletime = 120, --25,
 		}
 	}
 }
@@ -888,8 +888,8 @@ customDefs.armemp = {
 customDefs.cortron = {
 	weapondefs = {
 		cortron_weapon = {
-			range = 1500,
-			stockpiletime = 45,
+			--range = 1500,
+			stockpiletime = 180, --45,
 		}
 	}
 }
