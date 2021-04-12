@@ -107,6 +107,8 @@ return {
 				disabled = '%{textColor}%{unit} %{warnColor}(disabled)',
 			},
 			orderMenu = {
+				hotkeyTooltip = '%{highlightColor}%{hotkey}%{textColor} - %{tooltip}',
+
 				move = 'Move',
 				move_tooltip = 'Move a unit towards a position or follow other units',
 				stop = 'Stop',
