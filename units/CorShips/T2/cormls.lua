@@ -4,7 +4,7 @@ return {
 		brakerate = 0.03446,
 		buildcostenergy = 3300,
 		buildcostmetal = 200,
-		builddistance = 136,
+		builddistance = 250,
 		builder = true,
 		buildpic = "CORMLS.PNG",
 		buildtime = 4816.80029,
@@ -54,6 +54,7 @@ return {
 			[11] = "coresupp",
 			[12] = "corroy",
 			[13] = "corfmine3",
+			[14] = "cortoast",
 		},
 		customparams = {
 			area_mex_def = "cormex",

@@ -34,7 +34,7 @@ return {
 		script = "Units/ARMCRUS.cob",
 		seismicsignature = 0,
 		selfdestructas = "largeexplosiongenericSelfd",
-		sightdistance = 572,
+		sightdistance = 650,
 		sonardistance = 375,
 		turninplace = true,
 		turninplaceanglelimit = 90,

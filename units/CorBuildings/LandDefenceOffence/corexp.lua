@@ -145,7 +145,7 @@ return {
 				name = "Light close-quarters g2g laser turret",
 				noselfdamage = true,
 				proximitypriority = 3,
-				range = 430,
+				range = 435,
 				reloadtime = 0.46667,
 				rgbcolor = "1 0 0",
 				soundhitdry = "",
