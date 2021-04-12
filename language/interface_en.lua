@@ -565,6 +565,9 @@ return {
 				received = 'You received %{count} new unit(s)*',
 				unit = '*%{unit}'
 			},
+			messages = {
+				scroll = '%{textColor}Press %{highlightColor}CTRL %{textColor}to activate chatlog viewing/scrolling',
+			},
 		}
 	}
 }
