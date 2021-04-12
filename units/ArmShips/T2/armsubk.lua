@@ -138,7 +138,7 @@ return {
 				model = "torpedo.s3o",
 				name = "Rapid armor-piercing torpedoes",
 				noselfdamage = true,
-				range = 750, --400,
+				range = 400,
 				reloadtime = 2.5,
 				soundhit = "xplodep1",
 				soundstart = "torpedo1",

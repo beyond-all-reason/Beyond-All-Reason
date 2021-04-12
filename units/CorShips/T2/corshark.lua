@@ -138,7 +138,7 @@ return {
 				model = "cortorpedo.s3o",
 				name = "AdvancedTorpedo",
 				noselfdamage = true,
-				range = 750, --400,
+				range = 400,
 				reloadtime = 2.8,
 				soundhit = "xplodep1",
 				soundstart = "torpedo1",
