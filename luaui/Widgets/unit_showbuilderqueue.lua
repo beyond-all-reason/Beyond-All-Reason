@@ -84,7 +84,7 @@ local function checkBuilder(unitID)
 	local queueDepth = spGetCommandQueue(unitID, 0)
 	if queueDepth and queueDepth > 0 then
 		local queue = spGetCommandQueue(unitID, math.min(queueDepth, 200))
-		for i=1,#queue do
+		for i=1, #queue do
 			local cmd = queue[i]
 			if cmd.id < 0 then
 				local myCmd = {
@@ -112,7 +112,7 @@ end
 local function init()
 	command = {}
 	local allUnits = Spring.GetAllUnits()
-	for i=1,#allUnits do
+	for i=1, #allUnits do
 		local unitID = allUnits[i]
 		if isBuilder[ spGetUnitDefID(unitID) ] then
 			checkBuilder(unitID)
@@ -164,11 +164,10 @@ end
 function widget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	local x,_,z = spGetUnitPosition(unitID)
 	local id = unitTeam..'_'..unitDefID..'_'..floor(x)..'_'..floor(z)
-	if command[id] then
-		command[id] = nil
-		createdUnit[id] = true
-		createdUnitID[unitID] = id
-	end
+	command[id] = nil
+	-- we need to store all newly created units cause unitcreated can be earlier than our delayed processing of widget:UnitCommand (when a newly queued cmd is first and withing builder range)
+	createdUnit[id] = true
+	createdUnitID[unitID] = id
 end
 
 local function clearCommandUnit(unitID)
