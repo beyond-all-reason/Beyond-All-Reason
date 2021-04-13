@@ -340,12 +340,12 @@ local function updateList()
 				font2:Begin()
 				font2:SetTextColor(1,1,1,0.15)
 				offset = (fontSize*0.6)
-				font2:Print(Spring.I18N('ui.idleBuilders.z'), groupRect[1]+((groupRect[3]-groupRect[1])/2)-offset, groupRect[2]+((groupRect[4]-groupRect[2])/2)+offset+offsetY, fontSize, style)
+				font2:Print(Spring.I18N('ui.idleBuilders.sleeping'), groupRect[1]+((groupRect[3]-groupRect[1])/2)-offset, groupRect[2]+((groupRect[4]-groupRect[2])/2)+offset+offsetY, fontSize, style)
 				fontSize = fontSize * 1.2
-				font2:Print(Spring.I18N('ui.idleBuilders.z'), groupRect[1]+((groupRect[3]-groupRect[1])/2), groupRect[2]+((groupRect[4]-groupRect[2])/2)+offsetY, fontSize, style)
+				font2:Print(Spring.I18N('ui.idleBuilders.sleeping'), groupRect[1]+((groupRect[3]-groupRect[1])/2), groupRect[2]+((groupRect[4]-groupRect[2])/2)+offsetY, fontSize, style)
 				fontSize = fontSize * 1.2
 				offset = (fontSize*0.48)
-				font2:Print(Spring.I18N('ui.idleBuilders.z'), groupRect[1]+((groupRect[3]-groupRect[1])/2)+offset, groupRect[2]+((groupRect[4]-groupRect[2])/2)-offset+offsetY, fontSize, style)
+				font2:Print(Spring.I18N('ui.idleBuilders.sleeping'), groupRect[1]+((groupRect[3]-groupRect[1])/2)+offset, groupRect[2]+((groupRect[4]-groupRect[2])/2)-offset+offsetY, fontSize, style)
 				font2:End()
 			end
 
@@ -502,9 +502,9 @@ function widget:Update(dt)
 				if IsOnRect(x, y, groupButtons[i][1], groupButtons[i][2], groupButtons[i][3], groupButtons[i][4]) then
 					local unitDefID = existingGroups[i]
 					if unitDefID then
-						tooltipTitle = '\255\255\255\255'..Spring.I18N('ui.idleBuilders.idle')..'\255\190\255\190 '..unitHumanName[unitDefID]
+						tooltipTitle = Spring.I18N('ui.idleBuilders.idle', { unit = unitHumanName[unitDefID], textColor = "\255\255\255\255", highlightColor = "\255\190\255\190" })
 						if #idleList[unitDefID] > 1 then
-							tooltipAddition = '\n\255\190\190\190'..Spring.I18N('ui.idleBuilders.shiftclick')..'\n\255\190\190\190'..Spring.I18N('ui.idleBuilders.cycleclick')
+							tooltipAddition = '\n' .. Spring.I18N('ui.idleBuilders.controls', { textColor = "\255\190\190\190" })
 						end
 					end
 					break

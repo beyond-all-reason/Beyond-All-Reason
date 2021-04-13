@@ -107,6 +107,8 @@ return {
 				disabled = '%{textColor}%{unit} %{warnColor}(disabled)',
 			},
 			orderMenu = {
+				hotkeyTooltip = '%{highlightColor}%{hotkey}%{textColor} - %{tooltip}',
+
 				move = 'Move',
 				move_tooltip = 'Move a unit towards a position or follow other units',
 				stop = 'Stop',
@@ -208,10 +210,9 @@ return {
 			},
 			idleBuilders = {
 				name = 'Idle builders',
-				idle = 'Idle',
-				shiftclick = 'shift + click:   select all',
-				cycleclick = 'click:   cycle through all',
-				z = 'z',
+				idle = '%{textColor}Idle %{highlightColor}%{unit}',
+				controls = '%{textColor}Click:   Cycle next builder\n%{textColor}Shift + Click:   Select all',
+				sleeping = 'z',
 			},
 			unitGroups = {
 				name = 'Unit groups',
@@ -564,6 +565,9 @@ return {
 			unitShare = {
 				received = 'You received %{count} new unit(s)*',
 				unit = '*%{unit}'
+			},
+			messages = {
+				scroll = '%{textColor}Press %{highlightColor}CTRL %{textColor}to activate chatlog viewing/scrolling',
 			},
 		}
 	}

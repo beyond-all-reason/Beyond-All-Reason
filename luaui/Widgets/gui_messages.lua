@@ -328,7 +328,7 @@ end
 function widget:WorldTooltip(ttType,data1,data2,data3)
 	local x,y,_ = Spring.GetMouseState()
 	if #messageLines > 0 and isOnRect(x, y, activationArea[1],activationArea[2],activationArea[3],activationArea[4]) then
-		return "Press\255\255\255\001 CTRL \255\255\255\255to activate chatlog viewing/scrolling"
+		return Spring.I18N('ui.messages.scroll', { textColor = "\255\255\255\255", highlightColor = "\255\255\255\001" })
 	end
 end
 
