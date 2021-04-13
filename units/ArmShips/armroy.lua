@@ -151,7 +151,7 @@ return {
 				weapontype = "TorpedoLauncher",
 				weaponvelocity = 140,
 				damage = {
-					default = 253 --190,
+					default = 225, --253 --190,
 				},
 			},
 			plasma = {

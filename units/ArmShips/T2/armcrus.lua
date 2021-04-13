@@ -138,7 +138,7 @@ return {
 				name = "Medium depthcharge launcher",
 				noselfdamage = true,
 				range = 450,
-				reloadtime = 3,
+				reloadtime = 3.5,
 				soundhit = "xplodep2",
 				soundstart = "torpedo1",
 				startvelocity = 110,
@@ -152,7 +152,7 @@ return {
 				weapontype = "TorpedoLauncher",
 				weaponvelocity = 200,
 				damage = {
-					default = 400, --300,
+					default = 450, --400, --300,
 				},
 			},
 			gauss = {
