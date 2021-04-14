@@ -1,229 +1,223 @@
--- $Id: lups_flame_jitter.lua 3643 2009-01-03 03:00:52Z jk $
--------------------------------------------------------------------------------------
--------------------------------------------------------------------------------------
-
 function gadget:GetInfo()
-    return {
-        name      = "Lups Flamethrower Jitter",
-        desc      = "Flamethrower jitter FX with LUPS",
-        author    = "jK",
-        date      = "Apr, 2008",
-        license   = "GNU GPL, v2 or later",
-        layer     = 0,
-        enabled   = true,  --  loaded by default?
-    }
+	return {
+		name = "Lups Flamethrower Jitter",
+		desc = "Flamethrower jitter FX with LUPS",
+		author = "jK",
+		date = "Apr, 2008",
+		license = "GNU GPL, v2 or later",
+		layer = 0,
+		enabled = true, --  loaded by default?
+	}
 end
 
-local MIN_EFFECT_INTERVAL = 3
 
 if gadgetHandler:IsSyncedCode() then
--------------------------------------------------------------------------------------
--- -> SYNCED
--------------------------------------------------------------------------------------
 
-  --// Speed-ups
-  local SendToUnsynced = SendToUnsynced
+	local MIN_EFFECT_INTERVAL = 3
 
-  -------------------------------------------------------------------------------------
-  -------------------------------------------------------------------------------------
+	local SendToUnsynced = SendToUnsynced
 
-  local thisGameFrame = 0
-  local lastLupsSpawn = {}
+	local thisGameFrame = 0
+	local lastLupsSpawn = {}
 
-  function FlameShot(unitID,unitDefID,_, weapon)
-    lastLupsSpawn[unitID] = lastLupsSpawn[unitID] or {}
-    if ( ((lastLupsSpawn[unitID][weapon] or 0) - thisGameFrame) <= -MIN_EFFECT_INTERVAL ) then
-      lastLupsSpawn[unitID][weapon] = thisGameFrame
-      SendToUnsynced("flame_FlameShot", unitID, unitDefID, weapon)
-    end
-  end
+	function FlameShot(unitID, unitDefID, _, weapon)
+		lastLupsSpawn[unitID] = lastLupsSpawn[unitID] or {}
+		if ((lastLupsSpawn[unitID][weapon] or 0) - thisGameFrame) <= -MIN_EFFECT_INTERVAL then
+			lastLupsSpawn[unitID][weapon] = thisGameFrame
+			SendToUnsynced("flame_FlameShot", unitID, unitDefID, weapon)
+		end
+	end
 
-  GG.LUPS = GG.LUPS or {}
-  GG.LUPS.FlameShot = FlameShot
+	GG.LUPS = GG.LUPS or {}
+	GG.LUPS.FlameShot = FlameShot
 
-  function gadget:GameFrame(n)
-    thisGameFrame = n
-    SendToUnsynced("flame_GameFrame")
-  end
+	function gadget:GameFrame(n)
+		thisGameFrame = n
+		SendToUnsynced("flame_GameFrame")
+	end
 
-  -------------------------------------------------------------------------------------
-  -------------------------------------------------------------------------------------
+	function gadget:Initialize()
+		gadgetHandler:RegisterGlobal("FlameShot", FlameShot)
+		--gadgetHandler:RegisterGlobal("FlameSetDir",FlameSetDir)
+		--gadgetHandler:RegisterGlobal("FlameSetFirePoint",FlameSetFirePoint)
+	end
 
-  function gadget:Initialize()
-    gadgetHandler:RegisterGlobal("FlameShot",FlameShot)
-    --gadgetHandler:RegisterGlobal("FlameSetDir",FlameSetDir)
-    --gadgetHandler:RegisterGlobal("FlameSetFirePoint",FlameSetFirePoint)
-  end
-
-  function gadget:Shutdown()
-    gadgetHandler:DeregisterGlobal("FlameShot")
-    --gadgetHandler:DeregisterGlobal("FlameSetDir")
-    --gadgetHandler:DeregisterGlobal("FlameSetFirePoint")
-  end
+	function gadget:Shutdown()
+		gadgetHandler:DeregisterGlobal("FlameShot")
+		--gadgetHandler:DeregisterGlobal("FlameSetDir")
+		--gadgetHandler:DeregisterGlobal("FlameSetFirePoint")
+	end
 
 else
--------------------------------------------------------------------------------------
--- -> UNSYNCED
--------------------------------------------------------------------------------------
+	-------------------------------------------------------------------------------------
+	-- -> UNSYNCED
+	-------------------------------------------------------------------------------------
 
-  local particleCnt  = 1
-  local particleList = {}
+	local particleCnt = 1
+	local particleList = {}
 
-  local lastShoot = {}
+	local lastShoot = {}
 
-  local weaponRange = {}
-  local altflametex = {}
-  for weaponDefID, def in pairs(WeaponDefs) do
-    weaponRange[weaponDefID] = def.range*def.duration*15
-    if def.customParams.altflametex then
-      altflametex[weaponDefID] = def.customParams.altflametex
-    end
-  end
+	local weaponRange = {}
+	local altflametex = {}
+	for weaponDefID, def in pairs(WeaponDefs) do
+		weaponRange[weaponDefID] = def.range * def.duration * 15
+		if def.customParams.altflametex then
+			altflametex[weaponDefID] = def.customParams.altflametex
+		end
+	end
 
-  function FlameShot(_,unitID, unitDefID, weapon)
- 		if Spring.IsUnitIcon(unitID) then return end
-	-- why is this even needed? we limited frequency of fire FX back in synced
-	--[[
-    local n = Spring.GetGameFrame()
-	lastShoot[unitID] = lastShoot[unitID] or {}
-    if ((lastShoot[unitID][weapon] or 0) > (n-MIN_EFFECT_INTERVAL) ) then
-      return
-    end
-    lastShoot[unitID][weapon] = n
-	]]--
+	local unitWeapons = {}
+	for unitDefID, unitDef in pairs(UnitDefs) do
+		local weapons = unitDef.weapons
+		if #weapons > 0 then
+			unitWeapons[unitDefID] = weapons
+		end
+	end
 
-    local posx,posy,posz, dirx,diry,dirz = Spring.GetUnitWeaponVectors(unitID,weapon)
-    local wd = UnitDefs[unitDefID].weapons[weapon].weaponDef
-    local weaponRange = weaponRange[wd]
+	function FlameShot(_, unitID, unitDefID, weapon)
+		if Spring.IsUnitIcon(unitID) then
+			return
+		end
+		-- why is this even needed? we limited frequency of fire FX back in synced
+		--[[
+		local n = Spring.GetGameFrame()
+		lastShoot[unitID] = lastShoot[unitID] or {}
+		if ((lastShoot[unitID][weapon] or 0) > (n-MIN_EFFECT_INTERVAL) ) then
+		  return
+		end
+		lastShoot[unitID][weapon] = n
+		]]--
 
-    local speedx,speedy,speedz = Spring.GetUnitVelocity(unitID)
-    local partpos = "x*delay,y*delay,z*delay|x="..speedx..",y="..speedy..",z="..speedz
+		local posx, posy, posz, dirx, diry, dirz = Spring.GetUnitWeaponVectors(unitID, weapon)
+		local wd = unitWeapons[unitDefID][weapon]
+		local weaponRange = weaponRange[wd]
 
-	local altFlameTexture = altflametex[wd]	-- FIXME: more elegant solution when this is actually implemented (as in, one that doesn't rely on different unitdef)
+		local speedx, speedy, speedz = Spring.GetUnitVelocity(unitID)
+		local partpos = "x*delay,y*delay,z*delay|x=" .. speedx .. ",y=" .. speedy .. ",z=" .. speedz
 
-    particleList[particleCnt] = {
-      class        = 'JitterParticles2',
-      colormap     = { {1,1,1,1},{1,1,1,1} },
-      count        = 1,
-      life         = weaponRange / 330,
-      lifeSpread   = 6,
-      delaySpread  = 3,
-      force        = {0,0.6,0},
-      --forceExp     = 0.2,
+		local altFlameTexture = altflametex[wd]    -- FIXME: more elegant solution when this is actually implemented (as in, one that doesn't rely on different unitdef)
 
-      partpos      = partpos,
-      pos          = {posx,posy,posz},
+		particleList[particleCnt] = {
+			class = 'JitterParticles2',
+			colormap = { { 1, 1, 1, 1 }, { 1, 1, 1, 1 } },
+			count = 1,
+			life = weaponRange / 330,
+			lifeSpread = 6,
+			delaySpread = 3,
+			force = { 0, 0.6, 0 },
+			--forceExp     = 0.2,
 
-      emitVector   = {dirx,diry,dirz},
-      emitRotSpread= 2.5,
+			partpos = partpos,
+			pos = { posx, posy, posz },
 
-      speed        = 8,
-      speedSpread  = 1.5,
-      speedExp     = 1.5,
+			emitVector = { dirx, diry, dirz },
+			emitRotSpread = 2.5,
 
-      size         = 28,
-      sizeGrowth   = 4.7,
+			speed = 8,
+			speedSpread = 1.5,
+			speedExp = 1.5,
 
-      scale        = 1.5,
-      strength     = 1.0,
-      heat         = 2,
-    }
-    particleCnt = particleCnt + 1
+			size = 28,
+			sizeGrowth = 4.7,
 
-    particleList[particleCnt] = {
-      class        = 'SimpleParticles2',
-      colormap     = { {1, 1, 1, 0.01},
-                       {1, 1, 1, 0.01},
-                       {0.75, 0.5, 0.5, 0.01},
-                       {0, 0, 0, 0.01} },
-      count        = 1,
-      life         = weaponRange / 360,
-      lifeSpread   = 6,
-      delaySpread  = 3,
+			scale = 1.5,
+			strength = 1.0,
+			heat = 2,
+		}
+		particleCnt = particleCnt + 1
 
-      force        = {0,0.4,0},
-      --forceExp     = 0.2,
+		particleList[particleCnt] = {
+			class = 'SimpleParticles2',
+			colormap = { { 1, 1, 1, 0.01 },
+						 { 1, 1, 1, 0.01 },
+						 { 0.75, 0.5, 0.5, 0.01 },
+						 { 0, 0, 0, 0.01 } },
+			count = 1,
+			life = weaponRange / 360,
+			lifeSpread = 6,
+			delaySpread = 3,
 
-      partpos      = partpos,
-      pos          = {posx,posy,posz},
+			force = { 0, 0.4, 0 },
+			--forceExp     = 0.2,
 
-      emitVector   = {dirx,diry,dirz},
-      emitRotSpread= 1.5,
+			partpos = partpos,
+			pos = { posx, posy, posz },
 
-      rotSpeed     = 1,
-      rotSpread    = 360,
-      rotExp       = 9,
+			emitVector = { dirx, diry, dirz },
+			emitRotSpread = 1.5,
 
-      speed        = 8,
-      speedSpread  = 1.5,
-      speedExp     = -1.5,
+			rotSpeed = 1,
+			rotSpread = 360,
+			rotExp = 9,
 
-      size         = 7,
-      sizeGrowth   = 1.5,
-      sizeExp      = 0.7,
+			speed = 8,
+			speedSpread = 1.5,
+			speedExp = -1.5,
 
-      --texture     = "bitmaps/smoke/smoke06.tga",
-      texture     = altFlameTexture and "bitmaps/GPL/flame_alt.png" or "bitmaps/GPL/flame.png",
-    }
-    particleCnt = particleCnt + 1
+			size = 7,
+			sizeGrowth = 1.5,
+			sizeExp = 0.7,
 
-    particleList[particleCnt] = {
-      class        = 'SimpleParticles2',
-      colormap     = { {1, 1, 1, 0.01}, {0, 0, 0, 0.01} },
-      count        = 4,
-      --delay        = 20,
-      life         = weaponRange / 480,
-      lifeSpread   = 6,
-      delaySpread  = 3,
+			--texture     = "bitmaps/smoke/smoke06.tga",
+			texture = altFlameTexture and "bitmaps/GPL/flame_alt.png" or "bitmaps/GPL/flame.png",
+		}
+		particleCnt = particleCnt + 1
 
-      force        = {0,0.4,0},
-      --forceExp     = 0.2,
+		particleList[particleCnt] = {
+			class = 'SimpleParticles2',
+			colormap = { { 1, 1, 1, 0.01 }, { 0, 0, 0, 0.01 } },
+			count = 4,
+			--delay        = 20,
+			life = weaponRange / 480,
+			lifeSpread = 6,
+			delaySpread = 3,
 
-      partpos      = partpos,
-      pos          = {posx,posy,posz},
+			force = { 0, 0.4, 0 },
+			--forceExp     = 0.2,
 
-      emitVector   = {dirx,diry,dirz},
-      emitRotSpread= 1.5,
+			partpos = partpos,
+			pos = { posx, posy, posz },
 
-      rotSpeed     = 1,
-      rotSpread    = 360,
-      rotExp       = 9,
+			emitVector = { dirx, diry, dirz },
+			emitRotSpread = 1.5,
 
-      speed        = 8,
-      speedSpread  = 1.5,
-      speedExp     = -1.5,
+			rotSpeed = 1,
+			rotSpread = 360,
+			rotExp = 9,
 
-      size         = 9,
-      sizeGrowth   = 1.5,
-      sizeExp      = 0.65,
+			speed = 8,
+			speedSpread = 1.5,
+			speedExp = -1.5,
 
-      --texture     = "bitmaps/smoke/smoke06.tga",
-      texture     = altFlameTexture and "bitmaps/GPL/flame_alt.png" or "bitmaps/GPL/flame.png",
-    }
-    particleCnt = particleCnt + 1
+			size = 9,
+			sizeGrowth = 1.5,
+			sizeExp = 0.65,
 
-  end
+			--texture     = "bitmaps/smoke/smoke06.tga",
+			texture = altFlameTexture and "bitmaps/GPL/flame_alt.png" or "bitmaps/GPL/flame.png",
+		}
+		particleCnt = particleCnt + 1
 
-  function GameFrame()
-    if (particleCnt>1) then
-      particleList.n = particleCnt
-      GG.Lups.AddParticlesArray(particleList)
-      particleList = {}
-      particleCnt  = 1
-    end
-  end
+	end
 
-  -------------------------------------------------------------------------------------
-  -------------------------------------------------------------------------------------
+	function GameFrame()
+		if particleCnt > 1 then
+			particleList.n = particleCnt
+			GG.Lups.AddParticlesArray(particleList)
+			particleList = {}
+			particleCnt = 1
+		end
+	end
 
-  function gadget:Initialize()
-    gl.DeleteTexture("bitmaps/GPL/flame.png")
-    gadgetHandler:AddSyncAction("flame_GameFrame", GameFrame)
-    gadgetHandler:AddSyncAction("flame_FlameShot", FlameShot)
-  end
+	function gadget:Initialize()
+		gl.DeleteTexture("bitmaps/GPL/flame.png")
+		gadgetHandler:AddSyncAction("flame_GameFrame", GameFrame)
+		gadgetHandler:AddSyncAction("flame_FlameShot", FlameShot)
+	end
 
-  function gadget:Shutdown()
-    gadgetHandler:RemoveSyncAction("flame_FlameShot")
-  end
+	function gadget:Shutdown()
+		gadgetHandler:RemoveSyncAction("flame_FlameShot")
+	end
 
 end

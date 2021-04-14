@@ -89,25 +89,20 @@ local convertedUnits = {
 	[UnitDefNames.armdecom.id] = 5,
 }
 
-for udid, ud in pairs(UnitDefs) do
-	for id, v in pairs(convertedUnits) do
-		if string.find(ud.name, UnitDefs[id].name) then
-			convertedUnits[udid] = v
-		end
+-- add for scavengers copies
+for id, v in pairs(convertedUnits) do
+	if UnitDefNames[UnitDefs[id].name..'_scav'] then
+		convertedUnits[UnitDefNames[UnitDefs[id].name..'_scav'].id] = v
 	end
 end
 
 local unitWeapons = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
-	if unitDef.scriptName == "scripts/BASICTANKSCRIPT.LUA" then
-		convertedUnits[unitDefID] = true
-	end
-	if #unitDef.weapons > 0 then
-		for id, table in pairs(unitDef.weapons) do
-			if not unitWeapons[unitDefID] then
-				unitWeapons[unitDefID] = {}
-			end
-			unitWeapons[unitDefID][id] = table.weaponDef
+	local weapons = unitDef.weapons
+	if #weapons > 0 then
+		unitWeapons[unitDefID] = {}
+		for id, _ in pairs(weapons) do
+			unitWeapons[unitDefID][id] = true	-- no need to store weapondefid
 		end
 	end
 end

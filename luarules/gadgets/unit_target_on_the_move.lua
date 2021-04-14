@@ -10,7 +10,6 @@ function gadget:GetInfo()
 	}
 end
 
-
 --include("LuaRules/Configs/customcmds.h.lua")
 
 local CMD_UNIT_SET_TARGET_NO_GROUND = 34922
@@ -45,12 +44,15 @@ function GG.GetUnitTarget(unitID)
 	end
 	return targetID
 end
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-if (gadgetHandler:IsSyncedCode()) then
-	--SYNCED
-	--------------------------------------------------------------------------------
-	--------------------------------------------------------------------------------
+
+
+if gadgetHandler:IsSyncedCode() then
+
+	-- Unseen targets will be removed after at least UNSEEN_TIMEOUT*USEEN_UPDATE_FREQUENCY frames
+	-- and at most (UNSEEN_TIMEOUT+1)*USEEN_UPDATE_FREQUENCY frames/
+	local USEEN_UPDATE_FREQUENCY = 150
+	local UNSEEN_TIMEOUT = 2
+
 
 	local spInsertUnitCmdDesc = Spring.InsertUnitCmdDesc
 	local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
@@ -84,27 +86,18 @@ if (gadgetHandler:IsSyncedCode()) then
 	local CMD_STOP = CMD.STOP
 	local CMD_DGUN = CMD.DGUN
 
-	local SlowUpdate = 15
-
-
-	--------------------------------------------------------------------------------
-	-- Config
-
-	-- Unseen targets will be removed after at least UNSEEN_TIMEOUT*USEEN_UPDATE_FREQUENCY frames
-	-- and at most (UNSEEN_TIMEOUT+1)*USEEN_UPDATE_FREQUENCY frames/
-	local USEEN_UPDATE_FREQUENCY = 150
-	local UNSEEN_TIMEOUT = 2
-
-	--------------------------------------------------------------------------------
-	-- Globals
-
 	local validUnits = {}
-
-	for i = 1, #UnitDefs do
-		local ud = UnitDefs[i]
-		if (ud.canAttack and ud.maxWeaponRange and ud.maxWeaponRange > 0) or ud.isFactory then
-			validUnits[i] = true
+	local unitWeapons = {}
+	local unitAlwaysSeen = {}
+	for unitDefID, unitDef in pairs(UnitDefs) do
+		if (unitDef.canAttack and unitDef.maxWeaponRange and unitDef.maxWeaponRange > 0) or unitDef.isFactory then
+			validUnits[unitDefID] = true
 		end
+		local weapons = unitDef.weapons
+		if #weapons > 0 then
+			unitWeapons[unitDefID] = weapons
+		end
+		unitAlwaysSeen[unitDefID] = unitDef.isBuilding or unitDef.speed == 0
 	end
 
 	unitTargets = {} -- data holds all unitID data
@@ -267,7 +260,7 @@ if (gadgetHandler:IsSyncedCode()) then
 					targets = {},
 					teamID = spGetUnitTeam(unitID),
 					allyTeam = spGetUnitAllyTeam(unitID),
-					weapons = UnitDefs[unitDefID].weapons,
+					weapons = unitWeapons[unitDefID],
 				}
 			end
 			if not append then
@@ -366,7 +359,7 @@ if (gadgetHandler:IsSyncedCode()) then
 	local function processCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions)
 		if cmdID == CMD_UNIT_SET_TARGET_NO_GROUND or cmdID == CMD_UNIT_SET_TARGET or cmdID == CMD_UNIT_SET_TARGET_RECTANGLE then
 			if validUnits[unitDefID] then
-				local weaponList = UnitDefs[unitDefID].weapons
+				local weaponList = unitWeapons[unitDefID]
 				local append = cmdOptions.shift or false
 				local userTarget = not cmdOptions.internal
 				local ignoreStop = cmdOptions.ctrl
@@ -479,7 +472,7 @@ if (gadgetHandler:IsSyncedCode()) then
 							if validTarget then
 								addUnitTargets(unitID, unitDefID, {
 									{
-										alwaysSeen = UnitDefs[spGetUnitDefID(target)].isBuilding or UnitDefs[spGetUnitDefID(target)].speed == 0,
+										alwaysSeen = unitAlwaysSeen[spGetUnitDefID(target)],
 										ignoreStop = ignoreStop,
 										userTarget = userTarget,
 										target = target,

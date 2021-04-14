@@ -10,13 +10,7 @@ function gadget:GetInfo()
 	}
 end
 
-
--- changelog:
--- 17 jul 2015 [teh]decay - fixed error: unit_interceptors.lua"]:27: bad argument #1 to 'unpack' (table expected, got number)
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
-if (not gadgetHandler:IsSyncedCode()) then
+if not gadgetHandler:IsSyncedCode() then
 	return false	--	no unsynced code
 end
 

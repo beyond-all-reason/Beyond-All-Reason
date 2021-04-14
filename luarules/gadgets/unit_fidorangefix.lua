@@ -20,18 +20,19 @@ local CMD_WAIT = CMD.WAIT
 
 local isFido = {}
 local Ranges = {}
-for unitDefID, defs in pairs(UnitDefs) do
-	if string.find(defs.name, 'armfido') then
-		local hplasmarange = ((WeaponDefs[defs.weapons[1].weaponDef].projectilespeed*30) ^2 ) / Game.gravity
-		if hplasmarange >= WeaponDefs[defs.weapons[1].weaponDef].range then
-			hplasmarange = WeaponDefs[defs.weapons[1].weaponDef].range
+for unitDefID, unitDef in pairs(UnitDefs) do
+	if string.sub(unitDef.name, 1,7) == 'armfido' then
+		local hplasmarange = ((WeaponDefs[unitDef.weapons[1].weaponDef].projectilespeed*30) ^2 ) / Game.gravity
+		if hplasmarange >= WeaponDefs[unitDef.weapons[1].weaponDef].range then
+			hplasmarange = WeaponDefs[unitDef.weapons[1].weaponDef].range
 		end
-		isFido[unitDefID] = {WeaponDefs[defs.weapons[1].weaponDef].range, hplasmarange}
+		isFido[unitDefID] = {WeaponDefs[unitDef.weapons[1].weaponDef].range, hplasmarange}
 	end
 	local maxRange = 0
 	local maxAARange = 0
-	for i, weapon in pairs (defs.weapons) do
-		local wDef = WeaponDefs[weapon.weaponDef]
+	local weapons = unitDef.weapons
+	for i=1, #weapons do
+		local wDef = WeaponDefs[weapons[i].weaponDef]
 		if wDef.range >= maxRange and wDef.canAttackGround == true then
 			maxRange = wDef.range
 		elseif wDef.range >= maxAARange and not wDef.canAttackGround == true then
@@ -43,8 +44,8 @@ for unitDefID, defs in pairs(UnitDefs) do
 	else
 		Ranges[unitDefID] = maxAARange
 	end
-	if defs.customParams.customrange then
-		Ranges[unitDefID] = tonumber(defs.customParams.customrange)
+	if unitDef.customParams.customrange then
+		Ranges[unitDefID] = tonumber(unitDef.customParams.customrange)
 	end
 end
 

@@ -130,6 +130,17 @@ colorConfig["enemy"]["nuke"] =  { 1.0, 1.0, 1.0 }
 colorConfig["ally"] = colorConfig["enemy"]
 --end of DEFAULT COLOR CONFIG
 
+-- cache only what we use
+local weapTab = {}	--WeaponDefs
+local wdefParams = {'salvoSize', 'reload', 'coverageRange', 'damages', 'range', 'type', 'projectilespeed', 'heightBoostFactor', 'heightMod', 'heightBoostFactor', 'projectilespeed', 'myGravity'}
+for weaponDefID, weaponDef in pairs(WeaponDefs) do
+	weapTab[weaponDefID] = {}
+	for i, param in ipairs(wdefParams) do
+		weapTab[weaponDefID][param] = weaponDef[param]
+	end
+end
+wdefParams = nil
+
 local unitRadius = {}
 local unitNumWeapons = {}
 local canMove = {}
@@ -137,17 +148,18 @@ local unitName = {}
 local unitWeapons = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
 	unitRadius[unitDefID] = unitDef.radius
-	if #unitDef.weapons > 0 then
-		unitNumWeapons[unitDefID] = #unitDef.weapons
+	local weapons = unitDef.weapons
+	if #weapons > 0 then
+		unitNumWeapons[unitDefID] = #weapons
+		for i=1, #weapons do
+			if not unitWeapons[unitDefID] then
+				unitWeapons[unitDefID] = {}
+			end
+			unitWeapons[unitDefID][i] = weapons[i].weaponDef
+		end
 	end
 	canMove[unitDefID] = unitDef.canMove
 	unitName[unitDefID] = unitDef.name
-	for i=1, #unitDef.weapons do
-		if not unitWeapons[unitDefID] then
-			unitWeapons[unitDefID] = {}
-		end
-		unitWeapons[unitDefID][i] = unitDef.weapons[i].weaponDef
-	end
 end
 
 --Button display configuration
@@ -238,7 +250,6 @@ local spGetActiveCmdDesc 	= Spring.GetActiveCmdDesc
 local spIsSphereInView  	= Spring.IsSphereInView
 
 local udefTab				= UnitDefs
-local weapTab				= WeaponDefs
 
 local chobbyInterface
 
