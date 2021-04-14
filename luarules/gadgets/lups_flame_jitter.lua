@@ -58,12 +58,14 @@ else
 
 	local lastShoot = {}
 
-	local weaponRange = {}
 	local altflametex = {}
-	for weaponDefID, def in pairs(WeaponDefs) do
-		weaponRange[weaponDefID] = def.range * def.duration * 15
-		if def.customParams.altflametex then
-			altflametex[weaponDefID] = def.customParams.altflametex
+	local flameWeaponParticleLife = {}
+	for weaponDefID, weaponDef in pairs(WeaponDefs) do
+		if weaponDef.type == "Flame" then
+			flameWeaponParticleLife[weaponDefID] = (weaponDef.range * weaponDef.duration) / 15
+			if weaponDef.customParams.altflametex then
+				altflametex[weaponDefID] = weaponDef.customParams.altflametex
+			end
 		end
 	end
 
@@ -71,7 +73,10 @@ else
 	for unitDefID, unitDef in pairs(UnitDefs) do
 		local weapons = unitDef.weapons
 		if #weapons > 0 then
-			unitWeapons[unitDefID] = weapons
+			unitWeapons[unitDefID] = {}
+			for i, _ in pairs(weapons) do
+				unitWeapons[unitDefID][i] = weapons[i].weaponDef
+			end
 		end
 	end
 
@@ -91,7 +96,7 @@ else
 
 		local posx, posy, posz, dirx, diry, dirz = Spring.GetUnitWeaponVectors(unitID, weapon)
 		local wd = unitWeapons[unitDefID][weapon]
-		local weaponRange = weaponRange[wd]
+		local particleLife = flameWeaponParticleLife[wd]
 
 		local speedx, speedy, speedz = Spring.GetUnitVelocity(unitID)
 		local partpos = "x*delay,y*delay,z*delay|x=" .. speedx .. ",y=" .. speedy .. ",z=" .. speedz
@@ -102,7 +107,7 @@ else
 			class = 'JitterParticles2',
 			colormap = { { 1, 1, 1, 1 }, { 1, 1, 1, 1 } },
 			count = 1,
-			life = weaponRange / 330,
+			life = particleLife,
 			lifeSpread = 6,
 			delaySpread = 3,
 			force = { 0, 0.6, 0 },
@@ -134,7 +139,7 @@ else
 						 { 0.75, 0.5, 0.5, 0.01 },
 						 { 0, 0, 0, 0.01 } },
 			count = 1,
-			life = weaponRange / 360,
+			life = particleLife*0.8,
 			lifeSpread = 6,
 			delaySpread = 3,
 
@@ -169,7 +174,7 @@ else
 			colormap = { { 1, 1, 1, 0.01 }, { 0, 0, 0, 0.01 } },
 			count = 4,
 			--delay        = 20,
-			life = weaponRange / 480,
+			life = particleLife*0.6,
 			lifeSpread = 6,
 			delaySpread = 3,
 
