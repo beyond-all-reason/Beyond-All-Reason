@@ -9,7 +9,7 @@ function gadget:GetInfo()
 	}
 end
 
-local enableGenericConfig = Spring.GetModOptions().mapatmospherics or "disabled"
+local enableGenericConfig = Spring.GetModOptions().mapatmospherics or "enabled"
 
 if not gadgetHandler:IsSyncedCode() then
 

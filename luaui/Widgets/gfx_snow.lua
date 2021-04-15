@@ -32,6 +32,9 @@ local autoReduce = true
 local fpsDifference = (maxFps-minFps)/particleSteps		-- fps difference need before changing the dlist to one with fewer particles
 
 local snowTexture = "LuaUI/Images/snow.dds"
+
+VFS.Include("luarules/configs/map_biomes.lua")
+--[[
 local snowKeywords = {'snow','frozen','cold','winter','ice','icy','arctic','frost','melt','glacier','mosh_pit','blindside','northernmountains','amarante','cervino','avalanche'}
 local snowMaps = {}
 
@@ -41,7 +44,7 @@ snowMaps['sacrifice_v1'] = false
 -- disable for maps already containing a snow widget
 snowMaps['xenolithic_v4'] = false
 snowMaps['thecoldplace'] = false
-
+]]
 
 local particleTypes = {}
 table.insert(particleTypes, {
