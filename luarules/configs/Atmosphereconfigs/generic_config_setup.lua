@@ -35,32 +35,32 @@ local lightningsounds = {
 
 local badweatherplanned = false
 
--- if windmax < 5 then
---     atmospherelevelmult = 1
---     badweatherchance = 0
---     fireflieschance = 0
--- elseif windmax < 10 then
---     atmospherelevelmult = 1.05
---     badweatherchance = 10
---     fireflieschance = 25
--- elseif windmax < 15 then
---     atmospherelevelmult = 1.10
---     badweatherchance = 20
---     fireflieschance = 50
--- elseif windmax < 20 then
---     atmospherelevelmult = 1.15
---     badweatherchance = 30
---     fireflieschance = 75
--- else
---     atmospherelevelmult = 1.20
---     badweatherchance = 50
---     fireflieschance = 100
--- end
+if windmax < 5 then
+    atmospherelevelmult = 1
+    badweatherchance = 0
+    fireflieschance = 0
+elseif windmax < 10 then
+    atmospherelevelmult = 1.05
+    badweatherchance = 10
+    fireflieschance = 25
+elseif windmax < 15 then
+    atmospherelevelmult = 1.10
+    badweatherchance = 20
+    fireflieschance = 50
+elseif windmax < 20 then
+    atmospherelevelmult = 1.15
+    badweatherchance = 30
+    fireflieschance = 75
+else
+    atmospherelevelmult = 1.20
+    badweatherchance = 50
+    fireflieschance = 100
+end
 
 -- testing stuff
-atmospherelevelmult = 1.2
-badweatherchance = 100
-fireflieschance = 100
+-- atmospherelevelmult = 1.2
+-- badweatherchance = 100
+-- fireflieschance = 100
 
 function gadget:GameFrame(n)
     local clock = n%fullcyclelenght
