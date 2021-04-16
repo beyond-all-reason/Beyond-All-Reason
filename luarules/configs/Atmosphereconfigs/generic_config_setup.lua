@@ -36,23 +36,23 @@ local lightningsounds = {
 local badweatherplanned = false
 
 if windmax < 5 then
-    atmospherelevelmult = 0.6
+    atmospherelevelmult = 1
     badweatherchance = 0
     fireflieschance = 0
 elseif windmax < 10 then
-    atmospherelevelmult = 0.65
+    atmospherelevelmult = 1.05
     badweatherchance = 10
     fireflieschance = 25
 elseif windmax < 15 then
-    atmospherelevelmult = 0.7
+    atmospherelevelmult = 1.10
     badweatherchance = 20
     fireflieschance = 50
 elseif windmax < 20 then
-    atmospherelevelmult = 0.75
+    atmospherelevelmult = 1.15
     badweatherchance = 30
     fireflieschance = 75
 else
-    atmospherelevelmult = 0.8
+    atmospherelevelmult = 1.20
     badweatherchance = 50
     fireflieschance = 100
 end
@@ -85,15 +85,15 @@ function gadget:GameFrame(n)
             SpawnCEGInRandomMapPosAvoidUnits("lightningstrike", 0, 128, lightningsounds[math.random(1,#lightningsounds)], 1)
         end
         if clock > nightlenght then
-            SendToUnsynced("MapAtmosphereConfigSetSun", 0.3, transitionSpeed, 0.3, 0.3, 0.3*atmospherelevelmult)
-            SendToUnsynced("MapAtmosphereConfigSetFog", -0.1, 0.8, transitionSpeed*2.5, transitionSpeed*1.5)
+            SendToUnsynced("MapAtmosphereConfigSetSun", 0.8, transitionSpeed, 0.8, 0.8, 0.8*atmospherelevelmult)
+            SendToUnsynced("MapAtmosphereConfigSetFog", 0.5, 0.9, transitionSpeed*2.5, transitionSpeed*1.5)
         else
-            SendToUnsynced("MapAtmosphereConfigSetSun", 0.8, transitionSpeed, 0.8, 0.8, 0.8)
-            SendToUnsynced("MapAtmosphereConfigSetFog", -0.1, 0.8, transitionSpeed*2.5, transitionSpeed*1.5)
+            SendToUnsynced("MapAtmosphereConfigSetSun", 0.9, transitionSpeed, 0.9, 0.9, 0.9)
+            SendToUnsynced("MapAtmosphereConfigSetFog", 0.5, 0.9, transitionSpeed*2.5, transitionSpeed*1.5)
         end
     else
         if clock > nightlenght then
-            SendToUnsynced("MapAtmosphereConfigSetSun", 0.5, transitionSpeed, 0.5, 0.5, 0.5*atmospherelevelmult)
+            SendToUnsynced("MapAtmosphereConfigSetSun", 0.9, transitionSpeed, 0.9, 0.9, 0.9*atmospherelevelmult)
             SendToUnsynced("MapAtmosphereConfigSetFog", 1, 1, transitionSpeed*2.5, transitionSpeed*1.5)
         else
             SendToUnsynced("MapAtmosphereConfigSetSun", 1, transitionSpeed, 1, 1, 1)
