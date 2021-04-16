@@ -32,8 +32,6 @@ local hoveredFac = -1
 local hoveredBOpt = -1
 local pressedFac = -1
 local pressedBOpt = -1
-local waypointFac = -1
-local waypointMode = 0   -- 0 = off; 1=lazy; 2=greedy (greedy means: you have to left click once before leaving waypoint mode and you can have units selected)
 
 local dlists = {}
 
@@ -106,7 +104,6 @@ local elementCorner = Spring.FlowUI.elementCorner
 -- SOUNDS
 -------------------------------------------------------------------------------
 
-local sound_waypoint = 'LuaUI/Sounds/buildbar_waypoint.wav'
 local sound_click = 'LuaUI/Sounds/buildbar_click.wav'
 local sound_hover = 'LuaUI/Sounds/buildbar_hover.wav'
 local sound_queue_add = 'LuaUI/Sounds/buildbar_add.wav'
@@ -350,7 +347,7 @@ local function DrawBackground()
 	UiElement(backgroundRect[1],backgroundRect[2],backgroundRect[3],backgroundRect[4], 1,0,0,1)
 end
 
-local function DrawButton(rect, unitDefID, options, isFac)	-- options = {pressed,hovered,selected,repeat,hovered_repeat,waypoint,progress,amount,alpha}
+local function DrawButton(rect, unitDefID, options, isFac)	-- options = {pressed,hovered,selected,repeat,hovered_repeat,progress,amount,alpha}
 	cornerSize = (rect[3] - rect[1]) * 0.03
 
 	-- hover or pressed?
@@ -516,7 +513,6 @@ function widget:Update(dt)
 				options.hovered = true
 			end
 			-- border
-			options.waypoint = (waypointMode > 1) and (i == waypointFac + 1)
 			options.selected = (i == openedMenu + 1)
 
 			dlistsCount = dlistsCount + 1
@@ -696,13 +692,10 @@ function widget:DrawWorld()
 	end
 
 	-- Draw factories command lines
-	if waypointMode > 1 or openedMenu >= 0 then
+	if openedMenu >= 0 then
 		local fac
-		if waypointMode > 1 then
-			fac = facs[waypointFac + 1]
-		else
-			fac = facs[openedMenu + 1]
-		end
+		fac = facs[openedMenu + 1]
+		
 		if fac ~= nil then
 			DrawUnitCommands(fac.unitID)
 		end
@@ -922,54 +915,27 @@ function widget:MousePress(x, y, button)
 	pressedFac = hoveredFac
 	pressedBOpt = hoveredBOpt
 
-	if hoveredFac + hoveredBOpt >= -1 then
-		if waypointMode > 1 then
-			Spring.Echo("BuildBar: Exited greedy waypoint mode")
-			Spring.PlaySoundFile(sound_waypoint, 0.9, 'ui')
-		end
-		waypointFac = -1
-		waypointMode = 0
-	else
-		--todo: close hovered
-		if waypointMode > 1 then
-			-- greedy waypointMode
-			return (button ~= 2) -- we allow middle click scrolling in greedy waypoint mode
-		elseif (button == 3) and (openedMenu >= 0) and (#GetSelectedUnits() == 0) then
-			-- lazy waypointMode
-			waypointMode = 1   -- lazy mode
-			waypointFac = openedMenu
-			return true
-		end
-
-		if waypointMode > 1 then
-			Spring.Echo("BuildBar: Exited greedy waypoint mode")
-			Spring.PlaySoundFile(sound_waypoint, 0.9, 'ui')
-		end
-		waypointFac = -1
-		waypointMode = 0
-
+	if hoveredFac + hoveredBOpt < -1 then
 		if button ~= 2 then
 			openedMenu = -1
 			menuHovered = false
 		end
+
 		return false
 	end
+
 	return true
 end
 
 function widget:MouseRelease(x, y, button)
-	if pressedFac == hoveredFac and
-		pressedBOpt == hoveredBOpt and
-		waypointMode < 1
-	then
-		if hoveredFac >= 0 and waypointMode < 1 then
+	if pressedFac == hoveredFac and pressedBOpt == hoveredBOpt then
+		if hoveredFac >= 0 then
 			MenuHandler(x, y, button)
 		else
 			BuildHandler(button)
 		end
-	elseif waypointMode > 0 and waypointFac >= 0 then
-		WaypointHandler(x, y, button)
 	end
+
 	return -1
 end
 
@@ -1008,10 +974,6 @@ function MenuHandler(x, y, button)
 		local x, y, z = Spring.GetUnitPosition(facs[pressedFac + 1].unitID)
 		Spring.SetCameraTarget(x, y, z)
 	elseif button == 3 then
-		Spring.Echo("BuildBar: Entered greedy waypoint mode")
-		Spring.PlaySoundFile(sound_waypoint, 0.9, 'ui')
-		waypointMode = 2 -- greedy mode
-		waypointFac = openedMenu
 		openedMenu = -1
 		pressedFac = -1
 		hoveredFac = -1
@@ -1043,44 +1005,6 @@ function BuildHandler(button)
 		opt[#opt + 1] = "right"
 		Spring.GiveOrderToUnit(facs[openedMenu + 1].unitID, -(facs[openedMenu + 1].buildList[pressedBOpt + 1]), {}, opt)
 		Spring.PlaySoundFile(sound_queue_rem, 0.75, 'ui')
-	end
-end
-
-function WaypointHandler(x, y, button)
-	if button == 1 or button > 3 then
-		Spring.Echo("BuildBar: Exited greedy waypoint mode")
-		Spring.PlaySoundFile(sound_waypoint, 0.9, 'ui')
-		menuHovered = false
-		waypointFac = -1
-		waypointMode = 0
-		openedMenu = -1
-		return
-	end
-
-	local alt, ctrl, meta, shift = Spring.GetModKeyState()
-	local opt = { "right" }
-	if alt then
-		opt[#opt + 1] = "alt"
-	end
-	if ctrl then
-		opt[#opt + 1] = "ctrl"
-	end
-	if meta then
-		opt[#opt + 1] = "meta"
-	end
-	if shift then
-		opt[#opt + 1] = "shift"
-	end
-
-	local type, param = Spring.TraceScreenRay(x, y)
-	if type == 'ground' then
-		Spring.GiveOrderToUnit(facs[waypointFac + 1].unitID, CMD.MOVE, param, opt)
-	elseif type == 'unit' then
-		Spring.GiveOrderToUnit(facs[waypointFac + 1].unitID, CMD.GUARD, { param }, opt)
-	else
-		--feature
-		type, param = Spring.TraceScreenRay(x, y, true)
-		Spring.GiveOrderToUnit(facs[waypointFac + 1].unitID, CMD.MOVE, param, opt)
 	end
 end
 
@@ -1136,7 +1060,7 @@ function widget:IsAbove(x, y)
 	end
 
 	local _, _, lb, mb, rb, moffscreen = GetMouseState()
-	if ((lb or mb or rb) and openedMenu == -1) or waypointMode == 2 then
+	if ((lb or mb or rb) and openedMenu == -1) then
 		return false
 	end
 
