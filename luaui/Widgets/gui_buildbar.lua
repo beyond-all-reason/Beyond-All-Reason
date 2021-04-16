@@ -458,13 +458,6 @@ function widget:Update(dt)
 				doupdate = true
 			end
 		end
-
-		local graceSpace = math.floor((factoriesArea[3]-factoriesArea[1])*0.3)
-		if not (IsInRect(mx, my, { factoriesArea[1]-graceSpace, factoriesArea[2], factoriesArea[3], factoriesArea[4] }) or (backgroundOptionsRect and
-			IsInRect(mx, my, { backgroundOptionsRect[1], backgroundOptionsRect[4], backgroundOptionsRect[3], backgroundOptionsRect[2] })))
-		then
-			openedMenu = -1
-		end
 	end
 
 	if setInfoDisplayUnitID then
