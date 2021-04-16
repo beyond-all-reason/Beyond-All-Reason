@@ -1,5 +1,3 @@
--- $Id$
-
 function widget:GetInfo()
 	return {
 		name = "BuildBar",
@@ -8,27 +6,22 @@ function widget:GetInfo()
 		date = "Jul 11, 2007",
 		license = "GNU GPL, v2 or later",
 		layer = 1,
-		enabled = true  --  loaded by default?
+		enabled = true
 	}
 end
 
 local removeWhenSpec = true		-- for debug purpose
 
 local fontFile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
-
 local vsx, vsy = Spring.GetViewGeometry()
-
 local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity", 0.6) or 0.66)
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
-local glossMult = 1 + (2-(ui_opacity*2))
 
 -- saved values
 local bar_side = 1     --left:0,top:2,right:1,bottom:3
 local bar_horizontal = false --(not saved) if sides==top v bottom -> horizontal:=true  else-> horizontal:=false
 local bar_offset = 0     --relative offset side middle (i.e., bar_pos := vsx*0.5+bar_offset)
 local bar_align = 1     --aligns icons to bar_pos: center=0; left/top=+1; right/bottom=-1
-local bar_openByClick = false --needs a click to open the buildbar or is a hover enough?
-local bar_autoclose = true  --autoclose buildbar on mouseleave?
 
 -- list and interface vars
 local facs = {}
@@ -57,25 +50,14 @@ local bopt_inext = { 0, 0 }
 
 local myTeamID = 0
 
-local unitBuildPic = {}
-local unitName = {}
-local unitHumanName = {}
-local unitTooltip = {}
-local unitIconType = {}
 local unitBuildOptions = {}
 for udid, unitDef in pairs(UnitDefs) do
-	unitBuildPic[udid] = unitDef.buildpicname
-	unitName[udid] = unitDef.name
-	unitHumanName[udid] = unitDef.humanName
-	unitTooltip[udid] = unitDef.tooltip
-	unitIconType[udid] = unitDef.iconType
 	if unitDef.isFactory and #unitDef.buildOptions > 0 then
 		unitBuildOptions[udid] = unitDef.buildOptions
 	end
 end
 
-local blured = false
-
+local blurred = false
 local repeatPic = ":l:LuaUI/Images/repeat.png"
 
 local iconSizeY = 65		-- reset in ViewResize
@@ -84,7 +66,6 @@ local repIcoSize = math.floor(iconSizeY * 0.6)   --repeat iconsize
 local fontSize = iconSizeY * 0.31
 local maxVisibleBuilds = 3
 
-local startTimer = Spring.GetTimer()
 local msx = Game.mapX * 512
 local msz = Game.mapY * 512
 
@@ -103,17 +84,7 @@ local GL_ONE = GL.ONE
 local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 local GL_SRC_ALPHA = GL.SRC_ALPHA
 local glBlending = gl.Blending
-
-local math_pi = math.pi
-local math_tan = math.tan
-local math_rad = math.rad
 local math_floor = math.floor
-local math_max = math.max
-local math_min = math.min
-
-local glVertex = gl.Vertex
-local glBeginEnd = gl.BeginEnd
-
 local GetUnitDefID = Spring.GetUnitDefID
 local GetMouseState = Spring.GetMouseState
 local GetUnitHealth = Spring.GetUnitHealth
@@ -122,17 +93,11 @@ local DrawUnitCommands = Spring.DrawUnitCommands
 local GetSelectedUnits = Spring.GetSelectedUnits
 local GetFullBuildQueue = Spring.GetFullBuildQueue
 local GetUnitIsBuilding = Spring.GetUnitIsBuilding
-local glText = gl.Text
-local glRect = gl.Rect
-local glShape = gl.Shape
 local glColor = gl.Color
 local glTexture = gl.Texture
 local glTexRect = gl.TexRect
-local glLineWidth = gl.LineWidth
-local tan = math.tan
-local GL_TRIANGLE_FAN = GL.TRIANGLE_FAN
-
 local RectRound = Spring.FlowUI.Draw.RectRound
+local RectRoundProgress = Spring.FlowUI.Draw.RectRoundProgress
 local UiElement = Spring.FlowUI.Draw.Element
 local UiUnit = Spring.FlowUI.Draw.Unit
 local elementCorner = Spring.FlowUI.elementCorner
@@ -150,17 +115,6 @@ local sound_queue_rem = 'LuaUI/Sounds/buildbar_rem.wav'
 -------------------------------------------------------------------------------
 -- SOME THINGS NEEDED IN DRAWINMINIMAP
 -------------------------------------------------------------------------------
-
-local teamColors = {}
-local GetTeamColor = Spring.GetTeamColor or function(teamID)
-	local color = teamColors[teamID]
-	if (color) then
-		return unpack(color)
-	end
-	local _, _, _, _, _, _, r, g, b = Spring.GetTeamInfo(teamID)  ---?
-	teamColors[teamID] = { r, g, b }
-	return r, g, b
-end
 
 local function checkGuishader(force)
 	if WG['guishader'] and backgroundRect then
@@ -201,8 +155,6 @@ function widget:ViewResize()
 
 	bgpadding = Spring.FlowUI.elementPadding
 	elementCorner = Spring.FlowUI.elementCorner
-
-	glossMult = 1 + (2-(ui_opacity*2))
 
 	font = WG['fonts'].getFont(fontFile, 1, 0.2, 1.3)
 
@@ -309,8 +261,6 @@ function widget:GetConfigData()
 		side = bar_side,
 		offset = bar_offset,
 		align = bar_align,
-		openByClick = bar_openByClick,
-		autoclose = bar_autoclose,
 	}
 end
 
@@ -318,14 +268,10 @@ function widget:SetConfigData(data)
 	bar_side = data.side or 2
 	bar_offset = data.offset or 0
 	bar_align = data.align or 0
-	bar_openByClick = data.openByClick or false
-	bar_autoclose = data.autoclose or (not bar_openByClick)
 
 	bar_side = math.min(math.max(bar_side, 0), 3)
 	bar_align = math.min(math.max(bar_align, -1), 1)
 end
-
-
 
 -------------------------------------------------------------------------------
 -- RECTANGLE FUNCTIONS
@@ -357,63 +303,6 @@ end
 -- DRAW FUNCTIONS
 -------------------------------------------------------------------------------
 
--- cs (corner size) is not implemented yet
-local function RectRoundProgress(left,bottom,right,top, cs, progress, color)
-
-	local xcen = (left+right) / 2
-	local ycen = (top+bottom) / 2
-
-	local alpha = 360 * (progress)
-	local alpha_rad = math_rad(alpha)
-	local beta_rad  = math_pi/2 - alpha_rad
-	local list = {}
-	local listCount = 1
-	list[listCount] = {v = {xcen, ycen}}
-	listCount = listCount + 1
-	list[#list+1] = {v = {xcen, top}}
-
-	local x,y
-	x = (top-ycen) * math_tan(alpha_rad) + xcen
-	if alpha < 90 and x < right then   -- < 25%
-		listCount = listCount + 1
-		list[listCount] = {v = {x,  top}}
-	else
-		listCount = listCount + 1
-		list[listCount] = {v = {right, top}}
-		y = (right-xcen) * math_tan(beta_rad) + ycen
-		if alpha < 180 and y > bottom then   -- < 50%
-			listCount = listCount + 1
-			list[listCount] = {v = {right, y}}
-		else
-			listCount = listCount + 1
-			list[listCount] = {v = {right, bottom}}
-			x = (top-ycen) * math_tan(-alpha_rad) + xcen
-			if alpha < 270 and x > left then   -- < 75%
-				listCount = listCount + 1
-				list[listCount] = {v = {x, bottom}}
-			else
-				listCount = listCount + 1
-				list[listCount] = {v = {left, bottom}}
-				y = (right-xcen) * math_tan(-beta_rad) + ycen
-				if alpha < 350 and y < top then   -- < 97%
-					listCount = listCount + 1
-					list[listCount] = {v = {left, y}}
-				else
-					listCount = listCount + 1
-					list[listCount] = {v = {left, top}}
-					x = (top-ycen) * math_tan(alpha_rad) + xcen
-					listCount = listCount + 1
-					list[listCount] = {v = {x, top}}
-				end
-			end
-		end
-	end
-
-	glColor(color[1],color[2],color[3],color[4])
-	glShape(GL_TRIANGLE_FAN, list)
-	glColor(1,1,1,1)
-end
-
 local function DrawTexRect(rect, texture, color)
 	if color ~= nil then
 		glColor(color)
@@ -426,73 +315,12 @@ local function DrawTexRect(rect, texture, color)
 	glTexture(false)
 end
 
-local function DrawBuildProgress(left, top, right, bottom, progress, color)
-	glColor(color)
-	local xcen = (left + right) / 2
-	local ycen = (top + bottom) / 2
-
-	local alpha = 360 * (progress)
-	local alpha_rad = math.rad(alpha)
-	local beta_rad = math.pi / 2 - alpha_rad
-	local list = {}
-	local listCount = 1
-	list[listCount] = { v = { xcen, ycen } }
-	listCount = listCount + 1
-	list[#list + 1] = { v = { xcen, top } }
-
-	local x, y
-	x = (top - ycen) * tan(alpha_rad) + xcen
-	if (alpha < 90) and (x < right) then
-		listCount = listCount + 1
-		list[listCount] = { v = { x, top } }
-	else
-		listCount = listCount + 1
-		list[listCount] = { v = { right, top } }
-		y = (right - xcen) * tan(beta_rad) + ycen
-		if (alpha < 180) and (y > bottom) then
-			listCount = listCount + 1
-			list[listCount] = { v = { right, y } }
-		else
-			listCount = listCount + 1
-			list[listCount] = { v = { right, bottom } }
-			x = (top - ycen) * tan(-alpha_rad) + xcen
-			if (alpha < 270) and (x > left) then
-				listCount = listCount + 1
-				list[listCount] = { v = { x, bottom } }
-			else
-				listCount = listCount + 1
-				list[listCount] = { v = { left, bottom } }
-				y = (right - xcen) * tan(-beta_rad) + ycen
-				if (alpha < 350) and (y < top) then
-					listCount = listCount + 1
-					list[listCount] = { v = { left, y } }
-				else
-					listCount = listCount + 1
-					list[listCount] = { v = { left, top } }
-					x = (top - ycen) * tan(alpha_rad) + xcen
-					listCount = listCount + 1
-					list[listCount] = { v = { x, top } }
-				end
-			end
-		end
-	end
-
-	glShape(GL.TRIANGLE_FAN, list)
-
-	-- adding additive overlay
-	glColor(color[1], color[2], color[3], color[4] / 10)
-	glBlending(GL_SRC_ALPHA, GL_ONE)
-	glShape(GL_TRIANGLE_FAN, list)
-	glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-
-	glColor(1, 1, 1, 1)
-end
-
 local function drawIcon(udid, rect, tex, color, zoom, isfactory)
 	local radarIconSize = math.floor((rect[3]-rect[1])*0.4)
 	local radarIcon
-	if unitIconType[udid] and iconTypesMap[unitIconType[udid]] then
-		radarIcon = ':lr'..radarIconSize..','..radarIconSize..':'..iconTypesMap[unitIconType[udid]]
+	local unitIconType = UnitDefs[udid].iconType
+	if unitIconType and iconTypesMap[unitIconType] then
+		radarIcon = ':lr'..radarIconSize..','..radarIconSize..':'..iconTypesMap[unitIconType]
 	end
 	if isfactory then
 		radarIcon = nil
@@ -536,14 +364,14 @@ local function DrawButton(rect, unitDefID, options, isFac)	-- options = {pressed
 		iconAlpha = 1
 		zoom = 0.12
 		if WG.tooltip then
-			WG.tooltip.ShowTooltip('buildbar', '\255\215\255\215'..unitHumanName[unitDefID]..'\n'..unitTooltip[unitDefID])
+			WG.tooltip.ShowTooltip('buildbar', '\255\215\255\215' .. UnitDefs[unitDefID].humanName .. '\n' .. UnitDefs[unitDefID].tooltip)
 		end
 	end
 
 	-- draw icon
 	local imgRect = { rect[1] + (hoverPadding*1), rect[2] - hoverPadding, rect[3] - (hoverPadding*1), rect[4] + hoverPadding }
 
-	local tex = ':lr128,128:unitpics/' .. unitBuildPic[unitDefID]
+	local tex = ':lr128,128:unitpics/' .. UnitDefs[unitDefID].buildpicname
 	drawIcon(unitDefID, {imgRect[1], imgRect[4], imgRect[3], imgRect[2]}, tex, {1, 1, 1, iconAlpha}, zoom, (unitBuildOptions[unitDefID]~=nil))
 
 	-- Progress
@@ -585,7 +413,6 @@ end
 local sec = 0
 local uiOpacitySec = 0.5
 function widget:Update(dt)
-
 	if chobbyInterface then
 		return
 	end
@@ -614,7 +441,6 @@ function widget:Update(dt)
 		UpdateFactoryList()
 	end
 
-	local icon
 	local mx, my, lb, mb, rb, moffscreen = GetMouseState()
 
 	sec = sec + dt
@@ -631,13 +457,6 @@ function widget:Update(dt)
 				factoriesAreaHovered = nil
 				doupdate = true
 			end
-		end
-
-		local graceSpace = math.floor((factoriesArea[3]-factoriesArea[1])*0.3)
-		if not (IsInRect(mx, my, { factoriesArea[1]-graceSpace, factoriesArea[2], factoriesArea[3], factoriesArea[4] }) or (backgroundOptionsRect and
-			IsInRect(mx, my, { backgroundOptionsRect[1], backgroundOptionsRect[4], backgroundOptionsRect[3], backgroundOptionsRect[2] })))
-		then
-			openedMenu = -1
 		end
 	end
 
@@ -752,12 +571,10 @@ function widget:RecvLuaMsg(msg, playerID)
 end
 
 function widget:DrawScreen()
-	local t0 = Spring.GetTimer()
 	if chobbyInterface then
 		return
 	end
 
-	local icon
 	local mx, my, lb, mb, rb, moffscreen = GetMouseState()
 
 	if WG['guishader'] then
@@ -765,16 +582,10 @@ function widget:DrawScreen()
 			if dlistGuishader then
 				WG['guishader'].RemoveDlist('buildbar')
 			end
-			--if dlistGuishader2 then
-			--	WG['guishader'].RemoveDlist('buildbar2')
-			--end
 		else
 			if dlistGuishader then
 				WG['guishader'].InsertDlist(dlistGuishader, 'buildbar')
 			end
-			--if dlistGuishader2 and openedMenu >= 0 then
-			--	WG['guishader'].InsertDlist(dlistGuishader2, 'buildbar2')
-			--end
 		end
 	end
 
@@ -834,11 +645,6 @@ function widget:DrawScreen()
 					end
 					-- setup next icon pos
 					OffsetRect(bopt_rec, bopt_inext[1], bopt_inext[2])
-
-					--if j % 3==0 then
-					--  xmin_,xmax_ = xmin   + bopt_inext[1],xmin_ + iconSizeX
-					--  ymax_,ymin_ = ymax_  - iconSizeY, ymin_ - iconSizeY
-					--end
 				end
 			else
 				-- draw buildqueue
@@ -858,7 +664,6 @@ function widget:DrawScreen()
 							local xPad = yPad
 							local zoom = 0.04
 							drawIcon(unitBuildDefID, {bopt_rec[3] - xPad, bopt_rec[2] - yPad, bopt_rec[1] + xPad, bopt_rec[4] + yPad}, "#" .. unitBuildDefID, {1, 1, 1, 0.5}, zoom)
-							--TexRectRound(bopt_rec[1] + xPad, bopt_rec[4] + yPad, bopt_rec[3] - xPad, bopt_rec[2] - yPad, (bopt_rec[3] - bopt_rec[1]) * 0.05)
 							if count > 1 then
 								font:Begin()
 								font:SetTextColor(1, 1, 1, 0.66)
@@ -905,7 +710,6 @@ function widget:DrawWorld()
 end
 
 function widget:DrawInMiniMap(sx, sy)
-
 	if openedMenu > -1 then
 		gl.PushMatrix()
 		local pt = math.min(sx, sy)
@@ -914,7 +718,7 @@ function widget:DrawInMiniMap(sx, sy)
 		gl.Translate(0, 1, 0)
 		gl.Scale(1 / msx, -1 / msz, 1)
 
-		local r, g, b = GetTeamColor(myTeamID)
+		local r, g, b = Spring.GetTeamColor(myTeamID)
 		local alpha = 0.5 + math.abs((Spring.GetGameSeconds() % 0.25) * 4 - 0.5)
 		local x, _, z = Spring.GetUnitBasePosition(facs[openedMenu + 1].unitID)
 
@@ -958,7 +762,7 @@ local function _adjustSecondaryAxis(bar_side, vsd, iconSizeD)
 end
 
 function SetupDimensions(count)
-	local length, mid, vsd, iconSizeA, iconSizeB, vsa, vsb
+	local length, mid, iconSizeA, iconSizeB, vsa, vsb
 	if bar_horizontal then
 		-- horizontal (top or bottom bar)
 		vsa, iconSizeA, vsb, iconSizeB = vsx, iconSizeX, vsy, iconSizeY
@@ -1007,9 +811,7 @@ function SetupSubDimensions()
 			boptRect[4] = iconSizeY
 			boptRect[2] = iconSizeY + math.floor(iconSizeY * buildListn)
 		end
-
 	else
-
 		boptRect[2] = math.floor(facRect[2] - iconSizeY * openedMenu)
 		boptRect[4] = boptRect[2] - iconSizeY
 		if bar_side == 0 then
@@ -1021,10 +823,8 @@ function SetupSubDimensions()
 			boptRect[3] = vsx - iconSizeX
 			boptRect[1] = boptRect[3] - math.floor(iconSizeX * buildListn)
 		end
-
 	end
 end
-
 
 -------------------------------------------------------------------------------
 -- UNIT FUNCTIONS
@@ -1044,7 +844,6 @@ function GetBuildQueue(unitID)
 	end
 	return result
 end
-
 
 -------------------------------------------------------------------------------
 -- UNIT INITIALIZTION FUNCTIONS
@@ -1068,8 +867,6 @@ function UpdateFactoryList()
 	end
 end
 
-
---function widget:UnitFinished(unitID, unitDefID, unitTeam)
 function widget:UnitCreated(unitID, unitDefID, unitTeam)
 	if unitTeam ~= myTeamID then
 		return
@@ -1117,13 +914,11 @@ function widget:PlayerChanged()
 	end
 end
 
-
 -------------------------------------------------------------------------------
 -- MOUSE PRESS FUNCTIONS
 -------------------------------------------------------------------------------
 
 function widget:MousePress(x, y, button)
-
 	pressedFac = hoveredFac
 	pressedBOpt = hoveredBOpt
 
@@ -1200,7 +995,6 @@ function MenuHandler(x, y, button)
 			Spring.GiveOrderToUnit(unitID, CMD.REPEAT, onoff, 0)
 			Spring.PlaySoundFile(sound_click, 0.8, 'ui')
 		else
-			--if (bar_openByClick) then
 			if not menuHovered and openedMenu == pressedFac then
 				openedMenu = -1
 				Spring.PlaySoundFile(sound_click, 0.75, 'ui')
@@ -1221,7 +1015,7 @@ function MenuHandler(x, y, button)
 		openedMenu = -1
 		pressedFac = -1
 		hoveredFac = -1
-		blured = false
+		blurred = false
 	end
 	return
 end
@@ -1290,7 +1084,6 @@ function WaypointHandler(x, y, button)
 	end
 end
 
-
 function MouseOverIcon(x, y)
 	if x >= facRect[1] and x <= facRect[3] and y >= facRect[4] and y <= facRect[2] then
 		local icon
@@ -1330,13 +1123,10 @@ function MouseOverSubIcon(x, y)
 		elseif icon < 0 then
 			icon = 0
 		end
-
 		return icon
 	end
 	return -1
 end
-
-
 
 function widget:IsAbove(x, y)
 	if WG['topbar'] and WG['topbar'].showingQuit() then
@@ -1361,40 +1151,38 @@ function widget:IsAbove(x, y)
 				WG['info'].displayUnitID(setInfoDisplayUnitID)
 			end
 		elseif hoveredBOpt >= 0 then
-			if hoveredBOpt >= 0 then
-				WG['buildmenu'].hoverID = facs[openedMenu + 1].buildList[hoveredBOpt + 1]
-			end
+			WG['buildmenu'].hoverID = facs[openedMenu + 1].buildList[hoveredBOpt + 1]
 		end
 	end
 
 	if hoveredFac >= 0 then
 		--factory icon
-		if not moffscreen and (not bar_openByClick and (openedMenu < 0 or menuHovered)) then
+		if not moffscreen and (openedMenu < 0 or menuHovered) then
 			menuHovered = true
 			openedMenu = hoveredFac
 		end
-		if not blured then
+		if not blurred then
 			Spring.PlaySoundFile(sound_hover, 0.8, 'ui')
-			blured = true
+			blurred = true
 		end
 		return true
 	elseif openedMenu >= 0 and IsInRect(x, y, boptRect) then
 		--buildoption icon
-		if not blured then
+		if not blurred then
 			Spring.PlaySoundFile(sound_hover, 0.8, 'ui')
-			blured = true
+			blurred = true
 		end
 		return true
 	else
-		if bar_autoclose and (bar_openByClick or not bar_openByClick and menuHovered) then
+		if menuHovered then
 			menuHovered = false
 			openedMenu = -1
 		end
 	end
 
-	if blured then
+	if blurred then
 		Spring.PlaySoundFile(sound_hover, 0.8, 'ui')
-		blured = false
+		blurred = false
 	end
 	return false
 end
