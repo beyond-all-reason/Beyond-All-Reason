@@ -36,23 +36,23 @@ local lightningsounds = {
 local badweatherplanned = false
 
 if windmax < 5 then
-    atmospherelevelmult = 1
+    atmospherelevelmult = 0.6
     badweatherchance = 0
     fireflieschance = 0
 elseif windmax < 10 then
-    atmospherelevelmult = 1.05
+    atmospherelevelmult = 0.65
     badweatherchance = 10
     fireflieschance = 25
 elseif windmax < 15 then
-    atmospherelevelmult = 1.10
+    atmospherelevelmult = 0.7
     badweatherchance = 20
     fireflieschance = 50
 elseif windmax < 20 then
-    atmospherelevelmult = 1.15
+    atmospherelevelmult = 0.75
     badweatherchance = 30
     fireflieschance = 75
 else
-    atmospherelevelmult = 1.20
+    atmospherelevelmult = 0.8
     badweatherchance = 50
     fireflieschance = 100
 end
