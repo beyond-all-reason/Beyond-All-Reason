@@ -183,6 +183,159 @@ function widget:ViewResize()
 end
 
 -------------------------------------------------------------------------------
+-- GEOMETRIC FUNCTIONS
+-------------------------------------------------------------------------------
+
+local function _clampScreen(mid, half, vsd)
+	if mid - half < 0 then
+		return 0, half * 2
+	elseif mid + half > vsd then
+		return vsd - half * 2, vsd
+	else
+		local val = math.floor(mid - half)
+		return val, val + half * 2
+	end
+end
+
+local function _adjustSecondaryAxis(bar_side, vsd, iconSizeD)
+	-- bar_side is 0 for left and top, and 1 for right and bottom
+	local val = bar_side * (vsd - iconSizeD)
+	return val, iconSizeD + val
+end
+
+local function setupDimensions(count)
+	local length, mid, iconSizeA, iconSizeB, vsa, vsb
+	if bar_horizontal then
+		-- horizontal (top or bottom bar)
+		vsa, iconSizeA, vsb, iconSizeB = vsx, iconSizeX, vsy, iconSizeY
+	else
+		-- vertical (left or right bar)
+		vsa, iconSizeA, vsb, iconSizeB = vsy, iconSizeY, vsx, iconSizeX
+	end
+	length = math.floor(iconSizeA * count)
+	mid = vsa * 0.5 + bar_offset
+
+	-- setup expanding direction
+	mid = mid + bar_align * length * 0.5
+
+	-- clamp screen
+	local v1, v2 = _clampScreen(mid, length * 0.5, vsa)
+
+	-- adjust SecondaryAxis
+	local v3, v4 = _adjustSecondaryAxis(bar_side % 2, vsb, iconSizeB)
+
+	-- assign rect
+	if bar_horizontal then
+		facRect[1], facRect[3], facRect[4], facRect[2] = v1, v2, v3, v4
+	else
+		facRect[4], facRect[2], facRect[1], facRect[3] = v1, v2, v3, v4
+	end
+end
+
+local function setupSubDimensions()
+	if openedMenu < 0 then
+		boptRect = { -1, -1, -1, -1 }
+		return
+	end
+
+	local buildListn = #facs[openedMenu + 1].buildList
+	if bar_horizontal then
+		--please note the factorylist is horizontal not the buildlist!!!
+
+		boptRect[1] = math.floor(facRect[1] + iconSizeX * openedMenu)
+		boptRect[3] = boptRect[1] + iconSizeX
+		if bar_side == 2 then
+			--top
+			boptRect[2] = vsy - iconSizeY
+			boptRect[4] = boptRect[2] - math.floor(iconSizeY * buildListn)
+		else
+			--bottom
+			boptRect[4] = iconSizeY
+			boptRect[2] = iconSizeY + math.floor(iconSizeY * buildListn)
+		end
+	else
+		boptRect[2] = math.floor(facRect[2] - iconSizeY * openedMenu)
+		boptRect[4] = boptRect[2] - iconSizeY
+		if bar_side == 0 then
+			--left
+			boptRect[1] = iconSizeX
+			boptRect[3] = iconSizeX + math.floor(iconSizeX * buildListn)
+		else
+			--right
+			boptRect[3] = vsx - iconSizeX
+			boptRect[1] = boptRect[3] - math.floor(iconSizeX * buildListn)
+		end
+	end
+end
+
+-------------------------------------------------------------------------------
+-- UNIT INITIALIZATION FUNCTIONS
+-------------------------------------------------------------------------------
+
+local function updateFactoryList()
+	facs = {}
+	local count = 0
+
+	local teamUnits = Spring.GetTeamUnits(myTeamID)
+	for num = 1, #teamUnits do
+		local unitID = teamUnits[num]
+		local unitDefID = GetUnitDefID(unitID)
+		if unitBuildOptions[unitDefID] then
+			count = count + 1
+			facs[count] = { unitID = unitID, unitDefID = unitDefID, buildList = unitBuildOptions[unitDefID] }
+			local _, _, _, _, buildProgress = GetUnitHealth(unitID)
+			if buildProgress and buildProgress < 1 then
+				unfinished_facs[unitID] = true
+			end
+		end
+	end
+end
+
+function widget:UnitCreated(unitID, unitDefID, unitTeam)
+	if unitTeam ~= myTeamID then
+		return
+	end
+
+	if unitBuildOptions[unitDefID] then
+		facs[#facs + 1] = { unitID = unitID, unitDefID = unitDefID, buildList = unitBuildOptions[unitDefID] }
+	end
+	unfinished_facs[unitID] = true
+end
+
+function widget:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
+	widget:UnitCreated(unitID, unitDefID, unitTeam)
+end
+
+function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
+	if unitTeam ~= myTeamID then
+		return
+	end
+
+	if unitBuildOptions[unitDefID] then
+		for i, facInfo in ipairs(facs) do
+			if unitID == facInfo.unitID then
+				if openedMenu + 1 == i and openedMenu > #facs - 2 then
+					openedMenu = openedMenu - 1
+				end
+				table.remove(facs, i)
+				unfinished_facs[unitID] = nil
+				return
+			end
+		end
+	end
+end
+
+function widget:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
+	widget:UnitDestroyed(unitID, unitDefID, unitTeam)
+end
+
+function widget:PlayerChanged()
+	if removeWhenSpec and Spring.GetSpectatingState() then
+		widgetHandler:RemoveWidget(self)
+	end
+end
+
+-------------------------------------------------------------------------------
 -- INITIALIZTION FUNCTIONS
 -------------------------------------------------------------------------------
 
@@ -222,7 +375,7 @@ function widget:Initialize()
 
 	myTeamID = Spring.GetMyTeamID()
 
-	UpdateFactoryList()
+	updateFactoryList()
 
 	if removeWhenSpec and Spring.GetGameFrame() > 0 and Spring.GetSpectatingState() then
 		widgetHandler:RemoveWidget(self)
@@ -434,7 +587,7 @@ function widget:Update(dt)
 
 	if myTeamID ~= Spring.GetMyTeamID() then
 		myTeamID = Spring.GetMyTeamID()
-		UpdateFactoryList()
+		updateFactoryList()
 	end
 
 	local mx, my, lb, mb, rb, moffscreen = GetMouseState()
@@ -464,8 +617,8 @@ function widget:Update(dt)
 	end
 	if doupdate then
 		sec = 0
-		SetupDimensions(#facs)
-		SetupSubDimensions()
+		setupDimensions(#facs)
+		setupSubDimensions()
 		for i = 1, #dlists do
 			gl.DeleteList(dlists[i])
 		end
@@ -556,6 +709,26 @@ function widget:Update(dt)
 end
 
 -------------------------------------------------------------------------------
+-- UNIT FUNCTIONS
+-------------------------------------------------------------------------------
+
+local function getBuildQueue(unitID)
+	local result = {}
+	local queue = GetFullBuildQueue(unitID)
+	if queue ~= nil then
+		for _, buildPair in ipairs(queue) do
+			local udef, count = next(buildPair, nil)
+			if result[udef] ~= nil then
+				result[udef] = result[udef] + count
+			else
+				result[udef] = count
+			end
+		end
+	end
+	return result
+end
+
+-------------------------------------------------------------------------------
 -- DRAWSCREEN
 -------------------------------------------------------------------------------
 
@@ -601,7 +774,7 @@ function widget:DrawScreen()
 				local bopt_rec = RectWH(fac_rec[1] + bopt_inext[1],fac_rec[2] + bopt_inext[2], iconSizeX, iconSizeY)
 
 				local buildList = facInfo.buildList
-				local buildQueue = GetBuildQueue(facInfo.unitID)
+				local buildQueue = getBuildQueue(facInfo.unitID)
 				local unitBuildID = GetUnitIsBuilding(facInfo.unitID)
 				local unitBuildDefID
 				if unitBuildID then
@@ -726,211 +899,9 @@ function widget:DrawInMiniMap(sx, sy)
 end
 
 -------------------------------------------------------------------------------
--- GEOMETRIC FUNCTIONS
 -------------------------------------------------------------------------------
 
-local function _clampScreen(mid, half, vsd)
-	if mid - half < 0 then
-		return 0, half * 2
-	elseif mid + half > vsd then
-		return vsd - half * 2, vsd
-	else
-		local val = math.floor(mid - half)
-		return val, val + half * 2
-	end
-end
-
-local function _adjustSecondaryAxis(bar_side, vsd, iconSizeD)
-	-- bar_side is 0 for left and top, and 1 for right and bottom
-	local val = bar_side * (vsd - iconSizeD)
-	return val, iconSizeD + val
-end
-
-function SetupDimensions(count)
-	local length, mid, iconSizeA, iconSizeB, vsa, vsb
-	if bar_horizontal then
-		-- horizontal (top or bottom bar)
-		vsa, iconSizeA, vsb, iconSizeB = vsx, iconSizeX, vsy, iconSizeY
-	else
-		-- vertical (left or right bar)
-		vsa, iconSizeA, vsb, iconSizeB = vsy, iconSizeY, vsx, iconSizeX
-	end
-	length = math.floor(iconSizeA * count)
-	mid = vsa * 0.5 + bar_offset
-
-	-- setup expanding direction
-	mid = mid + bar_align * length * 0.5
-
-	-- clamp screen
-	local v1, v2 = _clampScreen(mid, length * 0.5, vsa)
-
-	-- adjust SecondaryAxis
-	local v3, v4 = _adjustSecondaryAxis(bar_side % 2, vsb, iconSizeB)
-
-	-- assign rect
-	if bar_horizontal then
-		facRect[1], facRect[3], facRect[4], facRect[2] = v1, v2, v3, v4
-	else
-		facRect[4], facRect[2], facRect[1], facRect[3] = v1, v2, v3, v4
-	end
-end
-
-function SetupSubDimensions()
-	if openedMenu < 0 then
-		boptRect = { -1, -1, -1, -1 }
-		return
-	end
-
-	local buildListn = #facs[openedMenu + 1].buildList
-	if bar_horizontal then
-		--please note the factorylist is horizontal not the buildlist!!!
-
-		boptRect[1] = math.floor(facRect[1] + iconSizeX * openedMenu)
-		boptRect[3] = boptRect[1] + iconSizeX
-		if bar_side == 2 then
-			--top
-			boptRect[2] = vsy - iconSizeY
-			boptRect[4] = boptRect[2] - math.floor(iconSizeY * buildListn)
-		else
-			--bottom
-			boptRect[4] = iconSizeY
-			boptRect[2] = iconSizeY + math.floor(iconSizeY * buildListn)
-		end
-	else
-		boptRect[2] = math.floor(facRect[2] - iconSizeY * openedMenu)
-		boptRect[4] = boptRect[2] - iconSizeY
-		if bar_side == 0 then
-			--left
-			boptRect[1] = iconSizeX
-			boptRect[3] = iconSizeX + math.floor(iconSizeX * buildListn)
-		else
-			--right
-			boptRect[3] = vsx - iconSizeX
-			boptRect[1] = boptRect[3] - math.floor(iconSizeX * buildListn)
-		end
-	end
-end
-
--------------------------------------------------------------------------------
--- UNIT FUNCTIONS
--------------------------------------------------------------------------------
-function GetBuildQueue(unitID)
-	local result = {}
-	local queue = GetFullBuildQueue(unitID)
-	if queue ~= nil then
-		for _, buildPair in ipairs(queue) do
-			local udef, count = next(buildPair, nil)
-			if result[udef] ~= nil then
-				result[udef] = result[udef] + count
-			else
-				result[udef] = count
-			end
-		end
-	end
-	return result
-end
-
--------------------------------------------------------------------------------
--- UNIT INITIALIZTION FUNCTIONS
--------------------------------------------------------------------------------
-function UpdateFactoryList()
-	facs = {}
-	local count = 0
-
-	local teamUnits = Spring.GetTeamUnits(myTeamID)
-	for num = 1, #teamUnits do
-		local unitID = teamUnits[num]
-		local unitDefID = GetUnitDefID(unitID)
-		if unitBuildOptions[unitDefID] then
-			count = count + 1
-			facs[count] = { unitID = unitID, unitDefID = unitDefID, buildList = unitBuildOptions[unitDefID] }
-			local _, _, _, _, buildProgress = GetUnitHealth(unitID)
-			if buildProgress and buildProgress < 1 then
-				unfinished_facs[unitID] = true
-			end
-		end
-	end
-end
-
-function widget:UnitCreated(unitID, unitDefID, unitTeam)
-	if unitTeam ~= myTeamID then
-		return
-	end
-
-	if unitBuildOptions[unitDefID] then
-		facs[#facs + 1] = { unitID = unitID, unitDefID = unitDefID, buildList = unitBuildOptions[unitDefID] }
-	end
-	unfinished_facs[unitID] = true
-end
-
-function widget:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
-	widget:UnitCreated(unitID, unitDefID, unitTeam)
-end
-
-function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
-	if unitTeam ~= myTeamID then
-		return
-	end
-
-	if unitBuildOptions[unitDefID] then
-		for i, facInfo in ipairs(facs) do
-			if unitID == facInfo.unitID then
-				if openedMenu + 1 == i and openedMenu > #facs - 2 then
-					openedMenu = openedMenu - 1
-				end
-				table.remove(facs, i)
-				unfinished_facs[unitID] = nil
-				return
-			end
-		end
-	end
-end
-
-function widget:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
-	widget:UnitDestroyed(unitID, unitDefID, unitTeam)
-end
-
-function widget:PlayerChanged()
-	if removeWhenSpec and Spring.GetSpectatingState() then
-		widgetHandler:RemoveWidget(self)
-	end
-end
-
--------------------------------------------------------------------------------
--- MOUSE PRESS FUNCTIONS
--------------------------------------------------------------------------------
-
-function widget:MousePress(x, y, button)
-	pressedFac = hoveredFac
-	pressedBOpt = hoveredBOpt
-
-	if hoveredFac + hoveredBOpt < -1 then
-		if button ~= 2 then
-			openedMenu = -1
-		end
-
-		return false
-	end
-
-	return true
-end
-
-function widget:MouseRelease(x, y, button)
-	if pressedFac == hoveredFac and pressedBOpt == hoveredBOpt then
-		if hoveredFac >= 0 then
-			MenuHandler(x, y, button)
-		else
-			BuildHandler(button)
-		end
-	end
-
-	return -1
-end
-
--------------------------------------------------------------------------------
--------------------------------------------------------------------------------
-
-function MenuHandler(x, y, button)
+local function menuHandler(x, y, button)
 	local factoryUnitID = facs[pressedFac + 1].unitID
 
 	if button == 1 then
@@ -956,7 +927,7 @@ function MenuHandler(x, y, button)
 	return
 end
 
-function BuildHandler(button)
+local function buildHandler(button)
 	local alt, ctrl, meta, shift = Spring.GetModKeyState()
 	local opt = {}
 	if alt then
@@ -982,7 +953,39 @@ function BuildHandler(button)
 	end
 end
 
-function MouseOverIcon(x, y)
+-------------------------------------------------------------------------------
+-- MOUSE PRESS FUNCTIONS
+-------------------------------------------------------------------------------
+
+function widget:MousePress(x, y, button)
+	pressedFac = hoveredFac
+	pressedBOpt = hoveredBOpt
+
+	if hoveredFac + hoveredBOpt < -1 then
+		if button ~= 2 then
+			openedMenu = -1
+		end
+
+		return false
+	end
+
+	return true
+end
+
+function widget:MouseRelease(x, y, button)
+	if pressedFac == hoveredFac and pressedBOpt == hoveredBOpt then
+		if hoveredFac >= 0 then
+			menuHandler(x, y, button)
+		else
+			buildHandler(button)
+		end
+	end
+
+	return -1
+end
+
+
+local function mouseOverIcon(x, y)
 	if x >= facRect[1] and x <= facRect[3] and y >= facRect[4] and y <= facRect[2] then
 		local icon
 		if bar_horizontal then
@@ -1002,7 +1005,7 @@ function MouseOverIcon(x, y)
 	return -1
 end
 
-function MouseOverSubIcon(x, y)
+local function mouseOverSubIcon(x, y)
 	if openedMenu >= 0 and x >= boptRect[1] and x <= boptRect[3] and y >= boptRect[4] and y <= boptRect[2] then
 		local icon
 		if bar_side == 0 then
@@ -1037,8 +1040,8 @@ function widget:IsAbove(x, y)
 		return false
 	end
 
-	hoveredFac = MouseOverIcon(x, y)
-	hoveredBOpt = MouseOverSubIcon(x, y)
+	hoveredFac = mouseOverIcon(x, y)
+	hoveredBOpt = mouseOverSubIcon(x, y)
 
 	-- set hover unitdef id for buildmenu so info widget can show it
 	if WG['buildmenu'] then
