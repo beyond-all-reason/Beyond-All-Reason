@@ -10,8 +10,6 @@ function widget:GetInfo()
 	}
 end
 
-local removeWhenSpec = true		-- for debug purpose
-
 local fontFile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 local vsx, vsy = Spring.GetViewGeometry()
 local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity", 0.6) or 0.66)
@@ -87,7 +85,6 @@ local GetMouseState = Spring.GetMouseState
 local GetUnitHealth = Spring.GetUnitHealth
 local GetUnitStates = Spring.GetUnitStates
 local DrawUnitCommands = Spring.DrawUnitCommands
-local GetSelectedUnits = Spring.GetSelectedUnits
 local GetFullBuildQueue = Spring.GetFullBuildQueue
 local GetUnitIsBuilding = Spring.GetUnitIsBuilding
 local glColor = gl.Color
@@ -186,7 +183,7 @@ end
 -- GEOMETRIC FUNCTIONS
 -------------------------------------------------------------------------------
 
-local function _clampScreen(mid, half, vsd)
+local function clampScreen(mid, half, vsd)
 	if mid - half < 0 then
 		return 0, half * 2
 	elseif mid + half > vsd then
@@ -219,7 +216,7 @@ local function setupDimensions(count)
 	mid = mid + bar_align * length * 0.5
 
 	-- clamp screen
-	local v1, v2 = _clampScreen(mid, length * 0.5, vsa)
+	local v1, v2 = clampScreen(mid, length * 0.5, vsa)
 
 	-- adjust SecondaryAxis
 	local v3, v4 = _adjustSecondaryAxis(bar_side % 2, vsb, iconSizeB)
@@ -330,7 +327,7 @@ function widget:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
 end
 
 function widget:PlayerChanged()
-	if removeWhenSpec and Spring.GetSpectatingState() then
+	if Spring.GetSpectatingState() then
 		widgetHandler:RemoveWidget(self)
 	end
 end
@@ -377,13 +374,13 @@ function widget:Initialize()
 
 	updateFactoryList()
 
-	if removeWhenSpec and Spring.GetGameFrame() > 0 and Spring.GetSpectatingState() then
+	if Spring.GetGameFrame() > 0 and Spring.GetSpectatingState() then
 		widgetHandler:RemoveWidget(self)
 	end
 end
 
 function widget:GameStart()
-	if removeWhenSpec and Spring.GetSpectatingState() then
+	if Spring.GetSpectatingState() then
 		widgetHandler:RemoveWidget(self)
 	end
 end
@@ -581,7 +578,7 @@ function widget:Update(dt)
 		end
 	end
 
-	if removeWhenSpec and Spring.GetGameFrame() > 0 and Spring.GetSpectatingState() then
+	if Spring.GetGameFrame() > 0 and Spring.GetSpectatingState() then
 		widgetHandler:RemoveWidget(self)
 	end
 
@@ -647,7 +644,7 @@ function widget:Update(dt)
 				unitDefID = unitBuildDefID
 			elseif (unfinished_facs[facInfo.unitID]) then
 				_, _, _, _, options.progress = GetUnitHealth(facInfo.unitID)
-				if (options.progress >= 1) then
+				if options.progress >= 1 then
 					options.progress = -1
 					unfinished_facs[facInfo.unitID] = nil
 				end
@@ -766,8 +763,8 @@ function widget:DrawScreen()
 		(buildoptionsArea ~= nil and IsInRect(mx, my, { buildoptionsArea[1], buildoptionsArea[2], buildoptionsArea[3], buildoptionsArea[4] })) then
 		local fac_rec = RectWH(math_floor(facRect[1]), math_floor(facRect[2]), iconSizeX, iconSizeY)
 		buildoptionsArea = nil
+		
 		for i, facInfo in ipairs(facs) do
-
 			-- draw build list
 			if i == openedMenu + 1 then
 				-- draw buildoptions
@@ -858,8 +855,7 @@ function widget:DrawWorld()
 
 	-- Draw factories command lines
 	if openedMenu >= 0 then
-		local fac
-		fac = facs[openedMenu + 1]
+		local fac = facs[openedMenu + 1]
 		
 		if fac ~= nil then
 			DrawUnitCommands(fac.unitID)
