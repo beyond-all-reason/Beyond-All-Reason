@@ -931,36 +931,26 @@ end
 -------------------------------------------------------------------------------
 
 function MenuHandler(x, y, button)
+	local factoryUnitID = facs[pressedFac + 1].unitID
+
 	if button == 1 then
 		local icoRect = {}
 		_, icoRect[2], icoRect[3], _ = GetFacIconRect(pressedFac)
 		icoRect[1], icoRect[4] = icoRect[3] - repIcoSize, icoRect[2] - repIcoSize
 		if IsInRect(x, y, icoRect) then
 			--repeat icon clicked
-			local unitID = facs[pressedFac + 1].unitID
 			local onoff = { 1 }
-			if select(4, GetUnitStates(unitID, false, true)) then
+			if select(4, GetUnitStates(factoryUnitID, false, true)) then
 				onoff = { 0 }
 			end
-			Spring.GiveOrderToUnit(unitID, CMD.REPEAT, onoff, 0)
+			Spring.GiveOrderToUnit(factoryUnitID, CMD.REPEAT, onoff, 0)
 			Spring.PlaySoundFile(sound_click, 0.8, 'ui')
 		else
-			if not menuHovered and openedMenu == pressedFac then
-				openedMenu = -1
-				Spring.PlaySoundFile(sound_click, 0.75, 'ui')
-			else
-				openedMenu = pressedFac
-				Spring.PlaySoundFile(sound_click, 0.75, 'ui')
-			end
+			Spring.SelectUnitArray({ factoryUnitID })
 		end
-	elseif button == 2 then
-		local x, y, z = Spring.GetUnitPosition(facs[pressedFac + 1].unitID)
-		Spring.SetCameraTarget(x, y, z)
 	elseif button == 3 then
-		openedMenu = -1
-		pressedFac = -1
-		hoveredFac = -1
-		blurred = false
+		Spring.SelectUnitArray({ factoryUnitID })
+		Spring.SetCameraTarget( Spring.GetUnitPosition(factoryUnitID) )
 	end
 
 	return
