@@ -36,7 +36,7 @@ function gadget:GameFrame(n)
 -- SendToUnsynced("MapAtmosphereConfigSetFog", targetfogstart, targetfogend, transitionspeedfogstart, transitionspeedfogend)
 
 	-- DayNight Cycle
-	
+	--[[
 	if n%9000 > 3600 and thunderstormactive == true then
 		SendToUnsynced("MapAtmosphereConfigSetSun", 0.65, 2.5, 0.65, 0.65, 0.65)
 		SendToUnsynced("MapAtmosphereConfigSetFog", 0.15, 0.7, 2.5, 1.5)
@@ -44,6 +44,7 @@ function gadget:GameFrame(n)
 		SendToUnsynced("MapAtmosphereConfigSetSun", 1, 3, 1, 1, 1)
 		SendToUnsynced("MapAtmosphereConfigSetFog", 1, 1, 3.5, 3)
 	end
+	--]]
 
 -- ## Atmosphere CEG Functions
 
@@ -58,6 +59,7 @@ function gadget:GameFrame(n)
 -- Use _ for damage, paralyzedamage, damageradius if you want to disable
 
 -- Lightningstorm clusters
+--[[
 local lightningsounds = {
 	"thunder1",
 	"thunder2",
@@ -132,6 +134,7 @@ if n%9000 > 4500  then
        end
     end 
 end
+]]
 
 -- common foggy cliffs	
 	if n%360 == 0 then

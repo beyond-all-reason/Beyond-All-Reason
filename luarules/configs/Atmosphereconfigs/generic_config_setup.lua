@@ -93,6 +93,9 @@ function gadget:GameFrame(n)
         end
     else
         if clock > nightlenght then
+            if (not snowyMap) and math.random(0,(101-fireflieschance)*2) == 0 then
+                SpawnCEGInRandomMapPosAvoidUnits("fireflies", 0, 32)
+            end
             SendToUnsynced("MapAtmosphereConfigSetSun", 0.9, transitionSpeed, 0.9, 0.9, 0.9*atmospherelevelmult)
             SendToUnsynced("MapAtmosphereConfigSetFog", 1, 1, transitionSpeed*2.5, transitionSpeed*1.5)
         else
