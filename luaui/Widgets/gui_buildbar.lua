@@ -26,7 +26,6 @@ local bar_align = 1     --aligns icons to bar_pos: center=0; left/top=+1; right/
 -- list and interface vars
 local facs = {}
 local unfinished_facs = {}
-local menuHovered = false --opened a buildlist by hover? (if true-> close the menu on mouseleave)
 local openedMenu = -1
 local hoveredFac = -1
 local hoveredBOpt = -1
@@ -622,17 +621,10 @@ function widget:DrawScreen()
 					-- hover or pressed?
 					if not moffscreen and j == hoveredBOpt + 1 then
 						options.pressed = (lb or mb or rb)
-						if lb then
-							options.pressed = 1
-						elseif rb then
-							options.pressed = 2
-						elseif mb then
-							options.pressed = 3
-						end
 						options.hovered = true
 					end
 					options.alpha = 0.85
-					-----------------------------------------------------------------------------------------
+
 					DrawButton(bopt_rec, unitDefID, options)
 					if buildoptionsArea == nil then
 						buildoptionsArea = { bopt_rec[1], bopt_rec[2], bopt_rec[3], bopt_rec[4] }
@@ -885,9 +877,6 @@ function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
 			if unitID == facInfo.unitID then
 				if openedMenu + 1 == i and openedMenu > #facs - 2 then
 					openedMenu = openedMenu - 1
-					if openedMenu < 0 then
-						menuHovered = false
-					end
 				end
 				table.remove(facs, i)
 				unfinished_facs[unitID] = nil
@@ -918,7 +907,6 @@ function widget:MousePress(x, y, button)
 	if hoveredFac + hoveredBOpt < -1 then
 		if button ~= 2 then
 			openedMenu = -1
-			menuHovered = false
 		end
 
 		return false
@@ -943,10 +931,6 @@ end
 -------------------------------------------------------------------------------
 
 function MenuHandler(x, y, button)
-	if button > 3 then
-		return
-	end
-
 	if button == 1 then
 		local icoRect = {}
 		_, icoRect[2], icoRect[3], _ = GetFacIconRect(pressedFac)
@@ -965,7 +949,6 @@ function MenuHandler(x, y, button)
 				openedMenu = -1
 				Spring.PlaySoundFile(sound_click, 0.75, 'ui')
 			else
-				menuHovered = false
 				openedMenu = pressedFac
 				Spring.PlaySoundFile(sound_click, 0.75, 'ui')
 			end
@@ -979,6 +962,7 @@ function MenuHandler(x, y, button)
 		hoveredFac = -1
 		blurred = false
 	end
+
 	return
 end
 
@@ -1054,7 +1038,6 @@ end
 
 function widget:IsAbove(x, y)
 	if WG['topbar'] and WG['topbar'].showingQuit() then
-		menuHovered = false
 		openedMenu = -1
 		return false
 	end
@@ -1081,8 +1064,7 @@ function widget:IsAbove(x, y)
 
 	if hoveredFac >= 0 then
 		--factory icon
-		if not moffscreen and (openedMenu < 0 or menuHovered) then
-			menuHovered = true
+		if not moffscreen then
 			openedMenu = hoveredFac
 		end
 		if not blurred then
@@ -1098,10 +1080,7 @@ function widget:IsAbove(x, y)
 		end
 		return true
 	else
-		if menuHovered then
-			menuHovered = false
-			openedMenu = -1
-		end
+		openedMenu = -1
 	end
 
 	if blurred then
