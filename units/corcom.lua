@@ -89,6 +89,9 @@ return {
 			[23] = "cortl",
 			[24] = "corfrt",
 			[25] = "corfrad",
+			-- Experimental:
+			[26] = "corhp",
+			[27] = "corfhp",
 		},
 		customparams = {
 			area_mex_def = "cormex",
