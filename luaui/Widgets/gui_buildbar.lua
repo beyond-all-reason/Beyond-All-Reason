@@ -194,7 +194,7 @@ local function clampScreen(mid, half, vsd)
 	end
 end
 
-local function _adjustSecondaryAxis(bar_side, vsd, iconSizeD)
+local function adjustSecondaryAxis(bar_side, vsd, iconSizeD)
 	-- bar_side is 0 for left and top, and 1 for right and bottom
 	local val = bar_side * (vsd - iconSizeD)
 	return val, iconSizeD + val
@@ -219,7 +219,7 @@ local function setupDimensions(count)
 	local v1, v2 = clampScreen(mid, length * 0.5, vsa)
 
 	-- adjust SecondaryAxis
-	local v3, v4 = _adjustSecondaryAxis(bar_side % 2, vsb, iconSizeB)
+	local v3, v4 = adjustSecondaryAxis(bar_side % 2, vsb, iconSizeB)
 
 	-- assign rect
 	if bar_horizontal then
@@ -423,25 +423,25 @@ end
 -- RECTANGLE FUNCTIONS
 -------------------------------------------------------------------------------
 
-local function OffsetRect(rect, x_offset, y_offset)
+local function offsetRect(rect, x_offset, y_offset)
 	rect[3], rect[1] = rect[3] + x_offset, rect[1] + x_offset
 	rect[2], rect[4] = rect[2] + y_offset, rect[4] + y_offset
 end
 
-local function RectWH(left, top, width, height)
+local function rectWH(left, top, width, height)
 	local rect = { left, top }
 	rect[3] = rect[1] + width
 	rect[4] = rect[2] - height
 	return rect
 end
 
-local function GetFacIconRect(i)
+local function getFacIconRect(i)
 	local xmin = facRect[1] + i * fac_inext[1]
 	local ymax = facRect[2] + i * fac_inext[2]
 	return xmin, ymax, xmin + iconSizeX, ymax - iconSizeY
 end
 
-local function IsInRect(left, top, rect)
+local function isInRect(left, top, rect)
 	return left >= rect[1] and left <= rect[3] and top <= rect[2] and top >= rect[4]
 end
 
@@ -449,7 +449,7 @@ end
 -- DRAW FUNCTIONS
 -------------------------------------------------------------------------------
 
-local function DrawTexRect(rect, texture, color)
+local function drawTexRect(rect, texture, color)
 	if color ~= nil then
 		glColor(color)
 	else
@@ -484,19 +484,19 @@ local function drawIcon(udid, rect, tex, color, zoom, isfactory)
 	)
 end
 
-local function DrawOptionsBackground()
+local function drawOptionsBackground()
 	local addDist = math_floor(bgpadding*0.5)
 	backgroundOptionsRect = {boptRect[1]-addDist, boptRect[4]-addDist, boptRect[3] - math.floor(bgpadding/2), boptRect[2]+addDist}
 	UiElement(backgroundOptionsRect[1],backgroundOptionsRect[2],backgroundOptionsRect[3],backgroundOptionsRect[4], 1,1,1,1)
 end
 
-local function DrawBackground()
+local function drawBackground()
 	local addDist = math_floor(bgpadding*0.5)
 	backgroundRect = {factoriesArea[1]-addDist, factoriesArea[4]-addDist, factoriesArea[3], factoriesArea[2]+addDist}
 	UiElement(backgroundRect[1],backgroundRect[2],backgroundRect[3],backgroundRect[4], 1,0,0,1)
 end
 
-local function DrawButton(rect, unitDefID, options, isFac)	-- options = {pressed,hovered,selected,repeat,hovered_repeat,progress,amount,alpha}
+local function drawButton(rect, unitDefID, options, isFac)	-- options = {pressed,hovered,selected,repeat,hovered_repeat,progress,amount,alpha}
 	cornerSize = (rect[3] - rect[1]) * 0.03
 
 	-- hover or pressed?
@@ -535,7 +535,7 @@ local function DrawButton(rect, unitDefID, options, isFac)	-- options = {pressed
 		end
 		glTexture(repeatPic)
 		glColor(1, 1, 1, 0.65)
-		DrawTexRect({imgRect[3]-repIcoSize-4,imgRect[2]-4,imgRect[3]-4,imgRect[2]-repIcoSize-4}, repeatPic, color)
+		drawTexRect({imgRect[3]-repIcoSize-4,imgRect[2]-4,imgRect[3]-4,imgRect[2]-repIcoSize-4}, repeatPic, color)
 	elseif isFac then
 		local color = { 1, 1, 1, 0.35 }
 		if options.hovered_repeat then
@@ -543,7 +543,7 @@ local function DrawButton(rect, unitDefID, options, isFac)	-- options = {pressed
 		end
 		glTexture(repeatPic)
 		glColor(1, 1, 1, 0.5)
-		DrawTexRect({imgRect[3]-repIcoSize-4,imgRect[2]-4,imgRect[3]-4,imgRect[2]-repIcoSize-4}, repeatPic, color)
+		drawTexRect({imgRect[3]-repIcoSize-4,imgRect[2]-4,imgRect[3]-4,imgRect[2]-repIcoSize-4}, repeatPic, color)
 	end
 
 	-- amount
@@ -596,7 +596,7 @@ function widget:Update(dt)
 	end
 	if factoriesArea ~= nil then
 		if not moffscreen then
-			if IsInRect(mx, my, { factoriesArea[1], factoriesArea[2], factoriesArea[3], factoriesArea[4] }) then
+			if isInRect(mx, my, { factoriesArea[1], factoriesArea[2], factoriesArea[3], factoriesArea[4] }) then
 				doupdate = true
 				factoriesAreaHovered = true
 			elseif factoriesAreaHovered then
@@ -626,7 +626,7 @@ function widget:Update(dt)
 		factoriesArea = nil
 
 		-- draw factory list
-		local fac_rec = RectWH(math_floor(facRect[1]), math_floor(facRect[2]), iconSizeX, iconSizeY)
+		local fac_rec = rectWH(math_floor(facRect[1]), math_floor(facRect[2]), iconSizeX, iconSizeY)
 		for i, facInfo in ipairs(facs) do
 
 			local unitDefID = facInfo.unitDefID
@@ -657,7 +657,7 @@ function widget:Update(dt)
 			end
 			-- hover or pressed?
 			if not moffscreen and i == hoveredFac + 1 then
-				options.hovered_repeat = IsInRect(mx, my, { fac_rec[3] - repIcoSize, fac_rec[2], fac_rec[3], fac_rec[2] - repIcoSize })
+				options.hovered_repeat = isInRect(mx, my, { fac_rec[3] - repIcoSize, fac_rec[2], fac_rec[3], fac_rec[2] - repIcoSize })
 				options.pressed = (lb or mb or rb) or (options.hovered_repeat)
 				options.hovered = true
 			end
@@ -665,7 +665,7 @@ function widget:Update(dt)
 			options.selected = (i == openedMenu + 1)
 
 			dlistsCount = dlistsCount + 1
-			dlists[dlistsCount] = gl.CreateList(DrawButton, fac_rec, unitDefID, options, true)
+			dlists[dlistsCount] = gl.CreateList(drawButton, fac_rec, unitDefID, options, true)
 			if factoriesArea == nil then
 				factoriesArea = { fac_rec[1], fac_rec[2], fac_rec[3], fac_rec[4] }
 			else
@@ -673,14 +673,14 @@ function widget:Update(dt)
 			end
 
 			-- setup next icon pos
-			OffsetRect(fac_rec, fac_inext[1], fac_inext[2])
+			offsetRect(fac_rec, fac_inext[1], fac_inext[2])
 		end
 
 		if factoriesArea then
-			dlists[1] = gl.CreateList(DrawBackground)
+			dlists[1] = gl.CreateList(drawBackground)
 			if WG['guishader'] then
 				if openedMenu >= 0 then
-					dlists[dlistsCount+1] = gl.CreateList(DrawOptionsBackground)
+					dlists[dlistsCount+1] = gl.CreateList(drawOptionsBackground)
 
 					if dlistGuishader2 then
 						dlistGuishader2 = gl.DeleteList(dlistGuishader2)
@@ -759,16 +759,16 @@ function widget:DrawScreen()
 	end
 
 	-- draw factory list
-	if (factoriesArea ~= nil and IsInRect(mx, my, { factoriesArea[1], factoriesArea[2], factoriesArea[3], factoriesArea[4] })) or
-		(buildoptionsArea ~= nil and IsInRect(mx, my, { buildoptionsArea[1], buildoptionsArea[2], buildoptionsArea[3], buildoptionsArea[4] })) then
-		local fac_rec = RectWH(math_floor(facRect[1]), math_floor(facRect[2]), iconSizeX, iconSizeY)
+	if (factoriesArea ~= nil and isInRect(mx, my, { factoriesArea[1], factoriesArea[2], factoriesArea[3], factoriesArea[4] })) or
+		(buildoptionsArea ~= nil and isInRect(mx, my, { buildoptionsArea[1], buildoptionsArea[2], buildoptionsArea[3], buildoptionsArea[4] })) then
+		local fac_rec = rectWH(math_floor(facRect[1]), math_floor(facRect[2]), iconSizeX, iconSizeY)
 		buildoptionsArea = nil
 		
 		for i, facInfo in ipairs(facs) do
 			-- draw build list
 			if i == openedMenu + 1 then
 				-- draw buildoptions
-				local bopt_rec = RectWH(fac_rec[1] + bopt_inext[1],fac_rec[2] + bopt_inext[2], iconSizeX, iconSizeY)
+				local bopt_rec = rectWH(fac_rec[1] + bopt_inext[1],fac_rec[2] + bopt_inext[2], iconSizeX, iconSizeY)
 
 				local buildList = facInfo.buildList
 				local buildQueue = getBuildQueue(facInfo.unitID)
@@ -795,20 +795,20 @@ function widget:DrawScreen()
 					end
 					options.alpha = 0.85
 
-					DrawButton(bopt_rec, unitDefID, options)
+					drawButton(bopt_rec, unitDefID, options)
 					if buildoptionsArea == nil then
 						buildoptionsArea = { bopt_rec[1], bopt_rec[2], bopt_rec[3], bopt_rec[4] }
 					else
 						buildoptionsArea[1] = bopt_rec[1]
 					end
 					-- setup next icon pos
-					OffsetRect(bopt_rec, bopt_inext[1], bopt_inext[2])
+					offsetRect(bopt_rec, bopt_inext[1], bopt_inext[2])
 				end
 			else
 				-- draw buildqueue
 				local buildQueue = Spring.GetFullBuildQueue(facInfo.unitID, maxVisibleBuilds + 1)
 				if buildQueue ~= nil then
-					local bopt_rec = RectWH(fac_rec[1] + bopt_inext[1], fac_rec[2] + bopt_inext[2], iconSizeX, iconSizeY)
+					local bopt_rec = rectWH(fac_rec[1] + bopt_inext[1], fac_rec[2] + bopt_inext[2], iconSizeX, iconSizeY)
 
 					local n, j = 1, maxVisibleBuilds
 					while buildQueue[n] do
@@ -829,7 +829,7 @@ function widget:DrawScreen()
 								font:End()
 							end
 
-							OffsetRect(bopt_rec, bopt_inext[1], bopt_inext[2])
+							offsetRect(bopt_rec, bopt_inext[1], bopt_inext[2])
 							j = j - 1
 							if j == 0 then
 								break
@@ -841,7 +841,7 @@ function widget:DrawScreen()
 			end
 
 			-- setup next icon pos
-			OffsetRect(fac_rec, fac_inext[1], fac_inext[2])
+			offsetRect(fac_rec, fac_inext[1], fac_inext[2])
 		end
 	else
 		buildoptionsArea = nil
@@ -902,9 +902,9 @@ local function menuHandler(x, y, button)
 
 	if button == 1 then
 		local icoRect = {}
-		_, icoRect[2], icoRect[3], _ = GetFacIconRect(pressedFac)
+		_, icoRect[2], icoRect[3], _ = getFacIconRect(pressedFac)
 		icoRect[1], icoRect[4] = icoRect[3] - repIcoSize, icoRect[2] - repIcoSize
-		if IsInRect(x, y, icoRect) then
+		if isInRect(x, y, icoRect) then
 			--repeat icon clicked
 			local onoff = { 1 }
 			if select(4, GetUnitStates(factoryUnitID, false, true)) then
@@ -1061,7 +1061,7 @@ function widget:IsAbove(x, y)
 			blurred = true
 		end
 		return true
-	elseif openedMenu >= 0 and IsInRect(x, y, boptRect) then
+	elseif openedMenu >= 0 and isInRect(x, y, boptRect) then
 		--buildoption icon
 		if not blurred then
 			Spring.PlaySoundFile(sound_hover, 0.8, 'ui')
