@@ -28,7 +28,7 @@ return {
 		idletime = 1800,
 		maxdamage = 1650,
 		maxslope = 10,
-		maxvelocity = 7,
+		maxvelocity = 5,25, --7
 		maxwaterdepth = 0,
 		name = unitName,
 		objectname = "Units/CORSEAH.s3o",
