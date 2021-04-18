@@ -26,7 +26,7 @@ return {
 		loadingradius = 300,
 		maxdamage = 240,
 		maxslope = 10,
-		maxvelocity = 5.2, --6.9
+		maxvelocity = 6.9,
 		maxwaterdepth = 0,
 		name = unitName,
 		objectname = "Units/ARMATLAS.s3o",

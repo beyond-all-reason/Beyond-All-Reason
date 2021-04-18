@@ -29,7 +29,7 @@ return {
 		idletime = 1800,
 		maxdamage = 1050,
 		maxslope = 15,
-		maxvelocity = 6.04, --8.05
+		maxvelocity = 8.05,
 		maxwaterdepth = 0,
 		name = unitName,
 		nochasecategory = "VTOL",

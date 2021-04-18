@@ -26,7 +26,7 @@ return {
 		loadingradius = 300,
 		maxdamage = 250,
 		maxslope = 10,
-		maxvelocity = 4.95, --6.6
+		maxvelocity = 6.6,
 		maxwaterdepth = 0,
 		name = unitName,
 		objectname = "Units/CORVALK.s3o",
