@@ -10,8 +10,6 @@ function widget:GetInfo()
 	}
 end
 
-local removeWhenSpec = true		-- for debug purpose
-
 local fontFile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 local vsx, vsy = Spring.GetViewGeometry()
 local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity", 0.6) or 0.66)
@@ -26,14 +24,11 @@ local bar_align = 1     --aligns icons to bar_pos: center=0; left/top=+1; right/
 -- list and interface vars
 local facs = {}
 local unfinished_facs = {}
-local menuHovered = false --opened a buildlist by hover? (if true-> close the menu on mouseleave)
 local openedMenu = -1
 local hoveredFac = -1
 local hoveredBOpt = -1
 local pressedFac = -1
 local pressedBOpt = -1
-local waypointFac = -1
-local waypointMode = 0   -- 0 = off; 1=lazy; 2=greedy (greedy means: you have to left click once before leaving waypoint mode and you can have units selected)
 
 local dlists = {}
 
@@ -90,7 +85,6 @@ local GetMouseState = Spring.GetMouseState
 local GetUnitHealth = Spring.GetUnitHealth
 local GetUnitStates = Spring.GetUnitStates
 local DrawUnitCommands = Spring.DrawUnitCommands
-local GetSelectedUnits = Spring.GetSelectedUnits
 local GetFullBuildQueue = Spring.GetFullBuildQueue
 local GetUnitIsBuilding = Spring.GetUnitIsBuilding
 local glColor = gl.Color
@@ -106,7 +100,6 @@ local elementCorner = Spring.FlowUI.elementCorner
 -- SOUNDS
 -------------------------------------------------------------------------------
 
-local sound_waypoint = 'LuaUI/Sounds/buildbar_waypoint.wav'
 local sound_click = 'LuaUI/Sounds/buildbar_click.wav'
 local sound_hover = 'LuaUI/Sounds/buildbar_hover.wav'
 local sound_queue_add = 'LuaUI/Sounds/buildbar_add.wav'
@@ -187,564 +180,10 @@ function widget:ViewResize()
 end
 
 -------------------------------------------------------------------------------
--- INITIALIZTION FUNCTIONS
--------------------------------------------------------------------------------
-
-function widget:Initialize()
-	if WG['buildmenu'] then
-		if WG['buildmenu'].getGroups then
-			groups, unitGroup = WG['buildmenu'].getGroups()
-		end
-		if WG['buildmenu'].getOrder then
-			unitOrder = WG['buildmenu'].getOrder()
-
-			-- order buildoptions
-			for uDefID, def in pairs(unitBuildOptions) do
-				local temp = {}
-				for i, udid in pairs(def) do
-					temp[udid] = i
-				end
-				local newBuildOptions = {}
-				local newBuildOptionsCount = 0
-				for k, orderUDefID in pairs(unitOrder) do
-					if temp[orderUDefID] then
-						newBuildOptionsCount = newBuildOptionsCount + 1
-						newBuildOptions[newBuildOptionsCount] = orderUDefID
-					end
-				end
-				unitBuildOptions[uDefID] = newBuildOptions
-			end
-		end
-	end
-
-	iconTypesMap = {}
-	if Script.LuaRules('GetIconTypes') then
-		iconTypesMap = Script.LuaRules.GetIconTypes()
-	end
-
-	widget:ViewResize()
-
-	myTeamID = Spring.GetMyTeamID()
-
-	UpdateFactoryList()
-
-	if removeWhenSpec and Spring.GetGameFrame() > 0 and Spring.GetSpectatingState() then
-		widgetHandler:RemoveWidget(self)
-	end
-end
-
-function widget:GameStart()
-	if removeWhenSpec and Spring.GetSpectatingState() then
-		widgetHandler:RemoveWidget(self)
-	end
-end
-
-function widget:Shutdown()
-	for i = 1, #dlists do
-		gl.DeleteList(dlists[i])
-	end
-	dlists = {}
-	if WG['guishader'] then
-		WG['guishader'].RemoveDlist('buildbar')
-		WG['guishader'].RemoveDlist('buildbar2')
-		if dlistGuishader then
-			dlistGuishader = gl.DeleteList(dlistGuishader)
-		end
-		if dlistGuishader2 then
-			dlistGuishader2 = gl.DeleteList(dlistGuishader2)
-		end
-	end
-end
-
-function widget:GetConfigData()
-	return {
-		side = bar_side,
-		offset = bar_offset,
-		align = bar_align,
-	}
-end
-
-function widget:SetConfigData(data)
-	bar_side = data.side or 2
-	bar_offset = data.offset or 0
-	bar_align = data.align or 0
-
-	bar_side = math.min(math.max(bar_side, 0), 3)
-	bar_align = math.min(math.max(bar_align, -1), 1)
-end
-
--------------------------------------------------------------------------------
--- RECTANGLE FUNCTIONS
--------------------------------------------------------------------------------
-
-local function OffsetRect(rect, x_offset, y_offset)
-	rect[3], rect[1] = rect[3] + x_offset, rect[1] + x_offset
-	rect[2], rect[4] = rect[2] + y_offset, rect[4] + y_offset
-end
-
-local function RectWH(left, top, width, height)
-	local rect = { left, top }
-	rect[3] = rect[1] + width
-	rect[4] = rect[2] - height
-	return rect
-end
-
-local function GetFacIconRect(i)
-	local xmin = facRect[1] + i * fac_inext[1]
-	local ymax = facRect[2] + i * fac_inext[2]
-	return xmin, ymax, xmin + iconSizeX, ymax - iconSizeY
-end
-
-local function IsInRect(left, top, rect)
-	return left >= rect[1] and left <= rect[3] and top <= rect[2] and top >= rect[4]
-end
-
--------------------------------------------------------------------------------
--- DRAW FUNCTIONS
--------------------------------------------------------------------------------
-
-local function DrawTexRect(rect, texture, color)
-	if color ~= nil then
-		glColor(color)
-	else
-		glColor(1, 1, 1, 1)
-	end
-	glTexture(texture)
-	glTexRect(rect[1], rect[4], rect[3], rect[2])
-	glColor(1, 1, 1, 1)
-	glTexture(false)
-end
-
-local function drawIcon(udid, rect, tex, color, zoom, isfactory)
-	local radarIconSize = math.floor((rect[3]-rect[1])*0.4)
-	local radarIcon
-	local unitIconType = UnitDefs[udid].iconType
-	if unitIconType and iconTypesMap[unitIconType] then
-		radarIcon = ':lr'..radarIconSize..','..radarIconSize..':'..iconTypesMap[unitIconType]
-	end
-	if isfactory then
-		radarIcon = nil
-	end
-	glColor(1,1,1,1)
-	UiUnit(
-		rect[1], rect[2], rect[3], rect[4],
-		cornerSize,
-		1,1,1,1,
-		zoom,
-		nil, nil,
-		tex,
-		radarIcon,
-		groups[unitGroup[udid]]
-	)
-end
-
-local function DrawOptionsBackground()
-	local addDist = math_floor(bgpadding*0.5)
-	backgroundOptionsRect = {boptRect[1]-addDist, boptRect[4]-addDist, boptRect[3] - math.floor(bgpadding/2), boptRect[2]+addDist}
-	UiElement(backgroundOptionsRect[1],backgroundOptionsRect[2],backgroundOptionsRect[3],backgroundOptionsRect[4], 1,1,1,1)
-end
-
-local function DrawBackground()
-	local addDist = math_floor(bgpadding*0.5)
-	backgroundRect = {factoriesArea[1]-addDist, factoriesArea[4]-addDist, factoriesArea[3], factoriesArea[2]+addDist}
-	UiElement(backgroundRect[1],backgroundRect[2],backgroundRect[3],backgroundRect[4], 1,0,0,1)
-end
-
-local function DrawButton(rect, unitDefID, options, isFac)	-- options = {pressed,hovered,selected,repeat,hovered_repeat,waypoint,progress,amount,alpha}
-	cornerSize = (rect[3] - rect[1]) * 0.03
-
-	-- hover or pressed?
-	local zoom = 0.04
-	local hoverPadding = bgpadding*0.5
-	local iconAlpha = (options.alpha or 1)
-	if options.pressed then
-		iconAlpha = 1
-		zoom = 0.17
-	elseif options.hovered then
-		iconAlpha = 1
-		zoom = 0.12
-		if WG.tooltip then
-			WG.tooltip.ShowTooltip('buildbar', '\255\215\255\215' .. UnitDefs[unitDefID].humanName .. '\n' .. UnitDefs[unitDefID].tooltip)
-		end
-	end
-
-	-- draw icon
-	local imgRect = { rect[1] + (hoverPadding*1), rect[2] - hoverPadding, rect[3] - (hoverPadding*1), rect[4] + hoverPadding }
-
-	local tex = ':lr128,128:unitpics/' .. UnitDefs[unitDefID].buildpicname
-	drawIcon(unitDefID, {imgRect[1], imgRect[4], imgRect[3], imgRect[2]}, tex, {1, 1, 1, iconAlpha}, zoom, (unitBuildOptions[unitDefID]~=nil))
-
-	-- Progress
-	if (options.progress or -1) > -1 then
-		glBlending(GL_SRC_ALPHA, GL_ONE)
-		RectRoundProgress(imgRect[1], imgRect[4], imgRect[3], imgRect[2], cornerSize, options.progress, { 1, 1, 1, 0.22 })
-		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-	end
-
-	-- loop status?
-	if options['repeat'] then
-		local color = { 1, 1, 1, 0.8 }
-		if options.hovered_repeat then
-			color = { 1, 1, 1, 0.65 }
-		end
-		glTexture(repeatPic)
-		glColor(1, 1, 1, 0.65)
-		DrawTexRect({imgRect[3]-repIcoSize-4,imgRect[2]-4,imgRect[3]-4,imgRect[2]-repIcoSize-4}, repeatPic, color)
-	elseif isFac then
-		local color = { 1, 1, 1, 0.35 }
-		if options.hovered_repeat then
-			color = { 1, 1, 1, 0.5 }
-		end
-		glTexture(repeatPic)
-		glColor(1, 1, 1, 0.5)
-		DrawTexRect({imgRect[3]-repIcoSize-4,imgRect[2]-4,imgRect[3]-4,imgRect[2]-repIcoSize-4}, repeatPic, color)
-	end
-
-	-- amount
-	if (options.amount or 0) > 0 then
-		font:Begin()
-		font:Print(options.amount, rect[1] + ((rect[3] - rect[1]) * 0.22), rect[4] - ((rect[4] - rect[2]) * 0.22), fontSize, "o")
-		font:End()
-	end
-	glTexture(false)
-	glColor(1,1,1,1)
-end
-
-local sec = 0
-local uiOpacitySec = 0.5
-function widget:Update(dt)
-	if chobbyInterface then
-		return
-	end
-
-	uiOpacitySec = uiOpacitySec + dt
-	if uiOpacitySec > 0.5 then
-		uiOpacitySec = 0
-		if ui_scale ~= Spring.GetConfigFloat("ui_scale", 1) then
-			ui_scale = Spring.GetConfigFloat("ui_scale", 1)
-			widget:ViewResize(Spring.GetViewGeometry())
-			widget:Shutdown()
-			widget:Initialize()
-		end
-		uiOpacitySec = 0
-		if ui_opacity ~= Spring.GetConfigFloat("ui_opacity", 0.6) then
-			ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.6)
-		end
-	end
-
-	if removeWhenSpec and Spring.GetGameFrame() > 0 and Spring.GetSpectatingState() then
-		widgetHandler:RemoveWidget(self)
-	end
-
-	if myTeamID ~= Spring.GetMyTeamID() then
-		myTeamID = Spring.GetMyTeamID()
-		UpdateFactoryList()
-	end
-
-	local mx, my, lb, mb, rb, moffscreen = GetMouseState()
-
-	sec = sec + dt
-	local doupdate = false
-	if sec > 0.1 then
-		doupdate = true
-	end
-	if factoriesArea ~= nil then
-		if not moffscreen then
-			if IsInRect(mx, my, { factoriesArea[1], factoriesArea[2], factoriesArea[3], factoriesArea[4] }) then
-				doupdate = true
-				factoriesAreaHovered = true
-			elseif factoriesAreaHovered then
-				factoriesAreaHovered = nil
-				doupdate = true
-			end
-		end
-	end
-
-	if setInfoDisplayUnitID then
-		setInfoDisplayUnitID = nil
-		if WG['info'] then
-			WG['info'].clearDisplayUnitID()
-		end
-	end
-	if doupdate then
-		sec = 0
-		SetupDimensions(#facs)
-		SetupSubDimensions()
-		for i = 1, #dlists do
-			gl.DeleteList(dlists[i])
-		end
-		dlists = {}
-
-		local dlistsCount = 1
-
-		factoriesArea = nil
-
-		-- draw factory list
-		local fac_rec = RectWH(math_floor(facRect[1]), math_floor(facRect[2]), iconSizeX, iconSizeY)
-		for i, facInfo in ipairs(facs) do
-
-			local unitDefID = facInfo.unitDefID
-			local options = {}
-
-			local unitBuildDefID = -1
-			local unitBuildID = -1
-
-			-- determine options -------------------------------------------------------------------
-			-- building?
-			unitBuildID = GetUnitIsBuilding(facInfo.unitID)
-			if unitBuildID then
-				unitBuildDefID = GetUnitDefID(unitBuildID)
-				_, _, _, _, options.progress = GetUnitHealth(unitBuildID)
-				unitDefID = unitBuildDefID
-			elseif (unfinished_facs[facInfo.unitID]) then
-				_, _, _, _, options.progress = GetUnitHealth(facInfo.unitID)
-				if (options.progress >= 1) then
-					options.progress = -1
-					unfinished_facs[facInfo.unitID] = nil
-				end
-			end
-			-- repeat mode?
-			if select(4, GetUnitStates(facInfo.unitID, false, true)) then
-				options['repeat'] = true
-			else
-				options['repeat'] = false
-			end
-			-- hover or pressed?
-			if not moffscreen and i == hoveredFac + 1 then
-				options.hovered_repeat = IsInRect(mx, my, { fac_rec[3] - repIcoSize, fac_rec[2], fac_rec[3], fac_rec[2] - repIcoSize })
-				options.pressed = (lb or mb or rb) or (options.hovered_repeat)
-				options.hovered = true
-			end
-			-- border
-			options.waypoint = (waypointMode > 1) and (i == waypointFac + 1)
-			options.selected = (i == openedMenu + 1)
-
-			dlistsCount = dlistsCount + 1
-			dlists[dlistsCount] = gl.CreateList(DrawButton, fac_rec, unitDefID, options, true)
-			if factoriesArea == nil then
-				factoriesArea = { fac_rec[1], fac_rec[2], fac_rec[3], fac_rec[4] }
-			else
-				factoriesArea[4] = fac_rec[4]
-			end
-
-			-- setup next icon pos
-			OffsetRect(fac_rec, fac_inext[1], fac_inext[2])
-		end
-
-		if factoriesArea then
-			dlists[1] = gl.CreateList(DrawBackground)
-			if WG['guishader'] then
-				if openedMenu >= 0 then
-					dlists[dlistsCount+1] = gl.CreateList(DrawOptionsBackground)
-
-					if dlistGuishader2 then
-						dlistGuishader2 = gl.DeleteList(dlistGuishader2)
-					end
-					dlistGuishader2 = gl.CreateList( function()
-						RectRound(backgroundOptionsRect[1],backgroundOptionsRect[2],backgroundOptionsRect[3],backgroundOptionsRect[4], elementCorner * ui_scale)
-					end)
-
-					if dlistGuishader2 then
-						WG['guishader'].RemoveDlist('buildbar2')
-						WG['guishader'].InsertDlist(dlistGuishader2, 'buildbar2')
-					end
-				else
-					backgroundOptionsRect = nil
-					WG['guishader'].RemoveDlist('buildbar2')
-				end
-			end
-		end
-
-		checkGuishader(forceGuishader)
-		forceGuishader = nil
-	end
-end
-
--------------------------------------------------------------------------------
--- DRAWSCREEN
--------------------------------------------------------------------------------
-
-function widget:RecvLuaMsg(msg, playerID)
-	if msg:sub(1, 18) == 'LobbyOverlayActive' then
-		chobbyInterface = (msg:sub(1, 19) == 'LobbyOverlayActive1')
-	end
-end
-
-function widget:DrawScreen()
-	if chobbyInterface then
-		return
-	end
-
-	local mx, my, lb, mb, rb, moffscreen = GetMouseState()
-
-	if WG['guishader'] then
-		if #dlists == 0 then
-			if dlistGuishader then
-				WG['guishader'].RemoveDlist('buildbar')
-			end
-		else
-			if dlistGuishader then
-				WG['guishader'].InsertDlist(dlistGuishader, 'buildbar')
-			end
-		end
-	end
-
-	for i = 1, #dlists do
-		gl.CallList(dlists[i])
-	end
-
-	-- draw factory list
-	if (factoriesArea ~= nil and IsInRect(mx, my, { factoriesArea[1], factoriesArea[2], factoriesArea[3], factoriesArea[4] })) or
-		(buildoptionsArea ~= nil and IsInRect(mx, my, { buildoptionsArea[1], buildoptionsArea[2], buildoptionsArea[3], buildoptionsArea[4] })) then
-		local fac_rec = RectWH(math_floor(facRect[1]), math_floor(facRect[2]), iconSizeX, iconSizeY)
-		buildoptionsArea = nil
-		for i, facInfo in ipairs(facs) do
-
-			-- draw build list
-			if i == openedMenu + 1 then
-				-- draw buildoptions
-				local bopt_rec = RectWH(fac_rec[1] + bopt_inext[1],fac_rec[2] + bopt_inext[2], iconSizeX, iconSizeY)
-
-				local buildList = facInfo.buildList
-				local buildQueue = GetBuildQueue(facInfo.unitID)
-				local unitBuildID = GetUnitIsBuilding(facInfo.unitID)
-				local unitBuildDefID
-				if unitBuildID then
-					unitBuildDefID = GetUnitDefID(unitBuildID)
-				end
-				for j, unitDefID in ipairs(buildList) do
-					local unitDefID = unitDefID
-					local options = {}
-					-- determine options -------------------------------------------------------------------
-					-- building?
-
-					if unitDefID == unitBuildDefID then
-						_, _, _, _, options.progress = GetUnitHealth(unitBuildID)
-					end
-					-- amount
-					options.amount = buildQueue[unitDefID]
-					-- hover or pressed?
-					if not moffscreen and j == hoveredBOpt + 1 then
-						options.pressed = (lb or mb or rb)
-						if lb then
-							options.pressed = 1
-						elseif rb then
-							options.pressed = 2
-						elseif mb then
-							options.pressed = 3
-						end
-						options.hovered = true
-					end
-					options.alpha = 0.85
-					-----------------------------------------------------------------------------------------
-					DrawButton(bopt_rec, unitDefID, options)
-					if buildoptionsArea == nil then
-						buildoptionsArea = { bopt_rec[1], bopt_rec[2], bopt_rec[3], bopt_rec[4] }
-					else
-						buildoptionsArea[1] = bopt_rec[1]
-					end
-					-- setup next icon pos
-					OffsetRect(bopt_rec, bopt_inext[1], bopt_inext[2])
-				end
-			else
-				-- draw buildqueue
-				local buildQueue = Spring.GetFullBuildQueue(facInfo.unitID, maxVisibleBuilds + 1)
-				if buildQueue ~= nil then
-					local bopt_rec = RectWH(fac_rec[1] + bopt_inext[1], fac_rec[2] + bopt_inext[2], iconSizeX, iconSizeY)
-
-					local n, j = 1, maxVisibleBuilds
-					while buildQueue[n] do
-						local unitBuildDefID, count = next(buildQueue[n], nil)
-						if n == 1 then
-							count = count - 1
-						end -- cause we show the actual in building unit instead of the factory icon
-
-						if count > 0 then
-							local yPad = math_floor(iconSizeY * 0.88)
-							local xPad = yPad
-							local zoom = 0.04
-							drawIcon(unitBuildDefID, {bopt_rec[3] - xPad, bopt_rec[2] - yPad, bopt_rec[1] + xPad, bopt_rec[4] + yPad}, "#" .. unitBuildDefID, {1, 1, 1, 0.5}, zoom)
-							if count > 1 then
-								font:Begin()
-								font:SetTextColor(1, 1, 1, 0.66)
-								font:Print(count, bopt_rec[1] + ((bopt_rec[3] - bopt_rec[1]) * 0.22), bopt_rec[4] - ((bopt_rec[4] - bopt_rec[2]) * 0.22), fontSize, "o")
-								font:End()
-							end
-
-							OffsetRect(bopt_rec, bopt_inext[1], bopt_inext[2])
-							j = j - 1
-							if j == 0 then
-								break
-							end
-						end
-						n = n + 1
-					end
-				end
-			end
-
-			-- setup next icon pos
-			OffsetRect(fac_rec, fac_inext[1], fac_inext[2])
-		end
-	else
-		buildoptionsArea = nil
-	end
-end
-
-function widget:DrawWorld()
-	if chobbyInterface then
-		return
-	end
-
-	-- Draw factories command lines
-	if waypointMode > 1 or openedMenu >= 0 then
-		local fac
-		if waypointMode > 1 then
-			fac = facs[waypointFac + 1]
-		else
-			fac = facs[openedMenu + 1]
-		end
-		if fac ~= nil then
-			DrawUnitCommands(fac.unitID)
-		end
-	end
-end
-
-function widget:DrawInMiniMap(sx, sy)
-	if openedMenu > -1 then
-		gl.PushMatrix()
-		local pt = math.min(sx, sy)
-
-		gl.LoadIdentity()
-		gl.Translate(0, 1, 0)
-		gl.Scale(1 / msx, -1 / msz, 1)
-
-		local r, g, b = Spring.GetTeamColor(myTeamID)
-		local alpha = 0.5 + math.abs((Spring.GetGameSeconds() % 0.25) * 4 - 0.5)
-		local x, _, z = Spring.GetUnitBasePosition(facs[openedMenu + 1].unitID)
-
-		if x ~= nil then
-			gl.PointSize(pt * 0.066)
-			gl.Color(0, 0, 0)
-			gl.BeginEnd(GL.POINTS, function()
-				gl.Vertex(x, z)
-			end)
-			gl.PointSize(pt * 0.051)
-			gl.Color(r, g, b, alpha)
-			gl.BeginEnd(GL.POINTS, function()
-				gl.Vertex(x, z)
-			end)
-			gl.PointSize(1)
-			gl.Color(1, 1, 1, 1)
-		end
-		gl.PopMatrix()
-	end
-end
-
--------------------------------------------------------------------------------
 -- GEOMETRIC FUNCTIONS
 -------------------------------------------------------------------------------
 
-local function _clampScreen(mid, half, vsd)
+local function clampScreen(mid, half, vsd)
 	if mid - half < 0 then
 		return 0, half * 2
 	elseif mid + half > vsd then
@@ -755,13 +194,13 @@ local function _clampScreen(mid, half, vsd)
 	end
 end
 
-local function _adjustSecondaryAxis(bar_side, vsd, iconSizeD)
+local function adjustSecondaryAxis(bar_side, vsd, iconSizeD)
 	-- bar_side is 0 for left and top, and 1 for right and bottom
 	local val = bar_side * (vsd - iconSizeD)
 	return val, iconSizeD + val
 end
 
-function SetupDimensions(count)
+local function setupDimensions(count)
 	local length, mid, iconSizeA, iconSizeB, vsa, vsb
 	if bar_horizontal then
 		-- horizontal (top or bottom bar)
@@ -777,10 +216,10 @@ function SetupDimensions(count)
 	mid = mid + bar_align * length * 0.5
 
 	-- clamp screen
-	local v1, v2 = _clampScreen(mid, length * 0.5, vsa)
+	local v1, v2 = clampScreen(mid, length * 0.5, vsa)
 
 	-- adjust SecondaryAxis
-	local v3, v4 = _adjustSecondaryAxis(bar_side % 2, vsb, iconSizeB)
+	local v3, v4 = adjustSecondaryAxis(bar_side % 2, vsb, iconSizeB)
 
 	-- assign rect
 	if bar_horizontal then
@@ -790,7 +229,7 @@ function SetupDimensions(count)
 	end
 end
 
-function SetupSubDimensions()
+local function setupSubDimensions()
 	if openedMenu < 0 then
 		boptRect = { -1, -1, -1, -1 }
 		return
@@ -827,28 +266,10 @@ function SetupSubDimensions()
 end
 
 -------------------------------------------------------------------------------
--- UNIT FUNCTIONS
+-- UNIT INITIALIZATION FUNCTIONS
 -------------------------------------------------------------------------------
-function GetBuildQueue(unitID)
-	local result = {}
-	local queue = GetFullBuildQueue(unitID)
-	if queue ~= nil then
-		for _, buildPair in ipairs(queue) do
-			local udef, count = next(buildPair, nil)
-			if result[udef] ~= nil then
-				result[udef] = result[udef] + count
-			else
-				result[udef] = count
-			end
-		end
-	end
-	return result
-end
 
--------------------------------------------------------------------------------
--- UNIT INITIALIZTION FUNCTIONS
--------------------------------------------------------------------------------
-function UpdateFactoryList()
+local function updateFactoryList()
 	facs = {}
 	local count = 0
 
@@ -892,9 +313,6 @@ function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
 			if unitID == facInfo.unitID then
 				if openedMenu + 1 == i and openedMenu > #facs - 2 then
 					openedMenu = openedMenu - 1
-					if openedMenu < 0 then
-						menuHovered = false
-					end
 				end
 				table.remove(facs, i)
 				unfinished_facs[unitID] = nil
@@ -909,118 +327,603 @@ function widget:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
 end
 
 function widget:PlayerChanged()
-	if removeWhenSpec and Spring.GetSpectatingState() then
+	if Spring.GetSpectatingState() then
 		widgetHandler:RemoveWidget(self)
 	end
 end
 
 -------------------------------------------------------------------------------
--- MOUSE PRESS FUNCTIONS
+-- INITIALIZTION FUNCTIONS
 -------------------------------------------------------------------------------
 
-function widget:MousePress(x, y, button)
-	pressedFac = hoveredFac
-	pressedBOpt = hoveredBOpt
-
-	if hoveredFac + hoveredBOpt >= -1 then
-		if waypointMode > 1 then
-			Spring.Echo("BuildBar: Exited greedy waypoint mode")
-			Spring.PlaySoundFile(sound_waypoint, 0.9, 'ui')
+function widget:Initialize()
+	if WG['buildmenu'] then
+		if WG['buildmenu'].getGroups then
+			groups, unitGroup = WG['buildmenu'].getGroups()
 		end
-		waypointFac = -1
-		waypointMode = 0
+		if WG['buildmenu'].getOrder then
+			unitOrder = WG['buildmenu'].getOrder()
+
+			-- order buildoptions
+			for uDefID, def in pairs(unitBuildOptions) do
+				local temp = {}
+				for i, udid in pairs(def) do
+					temp[udid] = i
+				end
+				local newBuildOptions = {}
+				local newBuildOptionsCount = 0
+				for k, orderUDefID in pairs(unitOrder) do
+					if temp[orderUDefID] then
+						newBuildOptionsCount = newBuildOptionsCount + 1
+						newBuildOptions[newBuildOptionsCount] = orderUDefID
+					end
+				end
+				unitBuildOptions[uDefID] = newBuildOptions
+			end
+		end
+	end
+
+	iconTypesMap = {}
+	if Script.LuaRules('GetIconTypes') then
+		iconTypesMap = Script.LuaRules.GetIconTypes()
+	end
+
+	widget:ViewResize()
+
+	myTeamID = Spring.GetMyTeamID()
+
+	updateFactoryList()
+
+	if Spring.GetGameFrame() > 0 and Spring.GetSpectatingState() then
+		widgetHandler:RemoveWidget(self)
+	end
+end
+
+function widget:GameStart()
+	if Spring.GetSpectatingState() then
+		widgetHandler:RemoveWidget(self)
+	end
+end
+
+function widget:Shutdown()
+	for i = 1, #dlists do
+		gl.DeleteList(dlists[i])
+	end
+	dlists = {}
+	if WG['guishader'] then
+		WG['guishader'].RemoveDlist('buildbar')
+		WG['guishader'].RemoveDlist('buildbar2')
+		if dlistGuishader then
+			dlistGuishader = gl.DeleteList(dlistGuishader)
+		end
+		if dlistGuishader2 then
+			dlistGuishader2 = gl.DeleteList(dlistGuishader2)
+		end
+	end
+end
+
+function widget:GetConfigData()
+	return {
+		side = bar_side,
+		offset = bar_offset,
+		align = bar_align,
+	}
+end
+
+function widget:SetConfigData(data)
+	bar_side = data.side or 2
+	bar_offset = data.offset or 0
+	bar_align = data.align or 0
+
+	bar_side = math.min(math.max(bar_side, 0), 3)
+	bar_align = math.min(math.max(bar_align, -1), 1)
+end
+
+-------------------------------------------------------------------------------
+-- RECTANGLE FUNCTIONS
+-------------------------------------------------------------------------------
+
+local function offsetRect(rect, x_offset, y_offset)
+	rect[3], rect[1] = rect[3] + x_offset, rect[1] + x_offset
+	rect[2], rect[4] = rect[2] + y_offset, rect[4] + y_offset
+end
+
+local function rectWH(left, top, width, height)
+	local rect = { left, top }
+	rect[3] = rect[1] + width
+	rect[4] = rect[2] - height
+	return rect
+end
+
+local function getFacIconRect(i)
+	local xmin = facRect[1] + i * fac_inext[1]
+	local ymax = facRect[2] + i * fac_inext[2]
+	return xmin, ymax, xmin + iconSizeX, ymax - iconSizeY
+end
+
+local function isInRect(left, top, rect)
+	return left >= rect[1] and left <= rect[3] and top <= rect[2] and top >= rect[4]
+end
+
+-------------------------------------------------------------------------------
+-- DRAW FUNCTIONS
+-------------------------------------------------------------------------------
+
+local function drawTexRect(rect, texture, color)
+	if color ~= nil then
+		glColor(color)
 	else
-		--todo: close hovered
-		if waypointMode > 1 then
-			-- greedy waypointMode
-			return (button ~= 2) -- we allow middle click scrolling in greedy waypoint mode
-		elseif (button == 3) and (openedMenu >= 0) and (#GetSelectedUnits() == 0) then
-			-- lazy waypointMode
-			waypointMode = 1   -- lazy mode
-			waypointFac = openedMenu
-			return true
-		end
-
-		if waypointMode > 1 then
-			Spring.Echo("BuildBar: Exited greedy waypoint mode")
-			Spring.PlaySoundFile(sound_waypoint, 0.9, 'ui')
-		end
-		waypointFac = -1
-		waypointMode = 0
-
-		if button ~= 2 then
-			openedMenu = -1
-			menuHovered = false
-		end
-		return false
+		glColor(1, 1, 1, 1)
 	end
-	return true
+	glTexture(texture)
+	glTexRect(rect[1], rect[4], rect[3], rect[2])
+	glColor(1, 1, 1, 1)
+	glTexture(false)
 end
 
-function widget:MouseRelease(x, y, button)
-	if pressedFac == hoveredFac and
-		pressedBOpt == hoveredBOpt and
-		waypointMode < 1
-	then
-		if hoveredFac >= 0 and waypointMode < 1 then
-			MenuHandler(x, y, button)
-		else
-			BuildHandler(button)
-		end
-	elseif waypointMode > 0 and waypointFac >= 0 then
-		WaypointHandler(x, y, button)
+local function drawIcon(udid, rect, tex, color, zoom, isfactory)
+	local radarIconSize = math.floor((rect[3]-rect[1])*0.4)
+	local radarIcon
+	local unitIconType = UnitDefs[udid].iconType
+	if unitIconType and iconTypesMap[unitIconType] then
+		radarIcon = ':lr'..radarIconSize..','..radarIconSize..':'..iconTypesMap[unitIconType]
 	end
-	return -1
+	if isfactory then
+		radarIcon = nil
+	end
+	glColor(1,1,1,1)
+	UiUnit(
+		rect[1], rect[2], rect[3], rect[4],
+		cornerSize,
+		1,1,1,1,
+		zoom,
+		nil, nil,
+		tex,
+		radarIcon,
+		groups[unitGroup[udid]]
+	)
 end
 
--------------------------------------------------------------------------------
--------------------------------------------------------------------------------
+local function drawOptionsBackground()
+	local addDist = math_floor(bgpadding*0.5)
+	backgroundOptionsRect = {boptRect[1]-addDist, boptRect[4]-addDist, boptRect[3] - math.floor(bgpadding/2), boptRect[2]+addDist}
+	UiElement(backgroundOptionsRect[1],backgroundOptionsRect[2],backgroundOptionsRect[3],backgroundOptionsRect[4], 1,1,1,1)
+end
 
-function MenuHandler(x, y, button)
-	if button > 3 then
+local function drawBackground()
+	local addDist = math_floor(bgpadding*0.5)
+	backgroundRect = {factoriesArea[1]-addDist, factoriesArea[4]-addDist, factoriesArea[3], factoriesArea[2]+addDist}
+	UiElement(backgroundRect[1],backgroundRect[2],backgroundRect[3],backgroundRect[4], 1,0,0,1)
+end
+
+local function drawButton(rect, unitDefID, options, isFac)	-- options = {pressed,hovered,selected,repeat,hovered_repeat,progress,amount,alpha}
+	cornerSize = (rect[3] - rect[1]) * 0.03
+
+	-- hover or pressed?
+	local zoom = 0.04
+	local hoverPadding = bgpadding*0.5
+	local iconAlpha = (options.alpha or 1)
+	if options.pressed then
+		iconAlpha = 1
+		zoom = 0.17
+	elseif options.hovered then
+		iconAlpha = 1
+		zoom = 0.12
+		if WG.tooltip then
+			WG.tooltip.ShowTooltip('buildbar', '\255\215\255\215' .. UnitDefs[unitDefID].humanName .. '\n' .. UnitDefs[unitDefID].tooltip)
+		end
+	end
+
+	-- draw icon
+	local imgRect = { rect[1] + (hoverPadding*1), rect[2] - hoverPadding, rect[3] - (hoverPadding*1), rect[4] + hoverPadding }
+
+	local tex = ':lr128,128:unitpics/' .. UnitDefs[unitDefID].buildpicname
+	drawIcon(unitDefID, {imgRect[1], imgRect[4], imgRect[3], imgRect[2]}, tex, {1, 1, 1, iconAlpha}, zoom, (unitBuildOptions[unitDefID]~=nil))
+
+	-- Progress
+	if (options.progress or -1) > -1 then
+		glBlending(GL_SRC_ALPHA, GL_ONE)
+		RectRoundProgress(imgRect[1], imgRect[4], imgRect[3], imgRect[2], cornerSize, options.progress, { 1, 1, 1, 0.22 })
+		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+	end
+
+	-- loop status?
+	if options['repeat'] then
+		local color = { 1, 1, 1, 0.8 }
+		if options.hovered_repeat then
+			color = { 1, 1, 1, 0.65 }
+		end
+		glTexture(repeatPic)
+		glColor(1, 1, 1, 0.65)
+		drawTexRect({imgRect[3]-repIcoSize-4,imgRect[2]-4,imgRect[3]-4,imgRect[2]-repIcoSize-4}, repeatPic, color)
+	elseif isFac then
+		local color = { 1, 1, 1, 0.35 }
+		if options.hovered_repeat then
+			color = { 1, 1, 1, 0.5 }
+		end
+		glTexture(repeatPic)
+		glColor(1, 1, 1, 0.5)
+		drawTexRect({imgRect[3]-repIcoSize-4,imgRect[2]-4,imgRect[3]-4,imgRect[2]-repIcoSize-4}, repeatPic, color)
+	end
+
+	-- amount
+	if (options.amount or 0) > 0 then
+		font:Begin()
+		font:Print(options.amount, rect[1] + ((rect[3] - rect[1]) * 0.22), rect[4] - ((rect[4] - rect[2]) * 0.22), fontSize, "o")
+		font:End()
+	end
+	glTexture(false)
+	glColor(1,1,1,1)
+end
+
+local sec = 0
+local uiOpacitySec = 0.5
+function widget:Update(dt)
+	if chobbyInterface then
 		return
 	end
 
-	if button == 1 then
-		local icoRect = {}
-		_, icoRect[2], icoRect[3], _ = GetFacIconRect(pressedFac)
-		icoRect[1], icoRect[4] = icoRect[3] - repIcoSize, icoRect[2] - repIcoSize
-		if IsInRect(x, y, icoRect) then
-			--repeat icon clicked
-			local unitID = facs[pressedFac + 1].unitID
-			local onoff = { 1 }
-			if select(4, GetUnitStates(unitID, false, true)) then
-				onoff = { 0 }
-			end
-			Spring.GiveOrderToUnit(unitID, CMD.REPEAT, onoff, 0)
-			Spring.PlaySoundFile(sound_click, 0.8, 'ui')
-		else
-			if not menuHovered and openedMenu == pressedFac then
-				openedMenu = -1
-				Spring.PlaySoundFile(sound_click, 0.75, 'ui')
-			else
-				menuHovered = false
-				openedMenu = pressedFac
-				Spring.PlaySoundFile(sound_click, 0.75, 'ui')
+	uiOpacitySec = uiOpacitySec + dt
+	if uiOpacitySec > 0.5 then
+		uiOpacitySec = 0
+		if ui_scale ~= Spring.GetConfigFloat("ui_scale", 1) then
+			ui_scale = Spring.GetConfigFloat("ui_scale", 1)
+			widget:ViewResize(Spring.GetViewGeometry())
+			widget:Shutdown()
+			widget:Initialize()
+		end
+		uiOpacitySec = 0
+		if ui_opacity ~= Spring.GetConfigFloat("ui_opacity", 0.6) then
+			ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.6)
+		end
+	end
+
+	if Spring.GetGameFrame() > 0 and Spring.GetSpectatingState() then
+		widgetHandler:RemoveWidget(self)
+	end
+
+	if myTeamID ~= Spring.GetMyTeamID() then
+		myTeamID = Spring.GetMyTeamID()
+		updateFactoryList()
+	end
+
+	local mx, my, lb, mb, rb, moffscreen = GetMouseState()
+
+	sec = sec + dt
+	local doupdate = false
+	if sec > 0.1 then
+		doupdate = true
+	end
+	if factoriesArea ~= nil then
+		if not moffscreen then
+			if isInRect(mx, my, { factoriesArea[1], factoriesArea[2], factoriesArea[3], factoriesArea[4] }) then
+				doupdate = true
+				factoriesAreaHovered = true
+			elseif factoriesAreaHovered then
+				factoriesAreaHovered = nil
+				doupdate = true
 			end
 		end
-	elseif button == 2 then
-		local x, y, z = Spring.GetUnitPosition(facs[pressedFac + 1].unitID)
-		Spring.SetCameraTarget(x, y, z)
-	elseif button == 3 then
-		Spring.Echo("BuildBar: Entered greedy waypoint mode")
-		Spring.PlaySoundFile(sound_waypoint, 0.9, 'ui')
-		waypointMode = 2 -- greedy mode
-		waypointFac = openedMenu
-		openedMenu = -1
-		pressedFac = -1
-		hoveredFac = -1
-		blurred = false
 	end
+
+	if setInfoDisplayUnitID then
+		setInfoDisplayUnitID = nil
+		if WG['info'] then
+			WG['info'].clearDisplayUnitID()
+		end
+	end
+	if doupdate then
+		sec = 0
+		setupDimensions(#facs)
+		setupSubDimensions()
+		for i = 1, #dlists do
+			gl.DeleteList(dlists[i])
+		end
+		dlists = {}
+
+		local dlistsCount = 1
+
+		factoriesArea = nil
+
+		-- draw factory list
+		local fac_rec = rectWH(math_floor(facRect[1]), math_floor(facRect[2]), iconSizeX, iconSizeY)
+		for i, facInfo in ipairs(facs) do
+
+			local unitDefID = facInfo.unitDefID
+			local options = {}
+
+			local unitBuildDefID = -1
+			local unitBuildID = -1
+
+			-- determine options -------------------------------------------------------------------
+			-- building?
+			unitBuildID = GetUnitIsBuilding(facInfo.unitID)
+			if unitBuildID then
+				unitBuildDefID = GetUnitDefID(unitBuildID)
+				_, _, _, _, options.progress = GetUnitHealth(unitBuildID)
+				unitDefID = unitBuildDefID
+			elseif (unfinished_facs[facInfo.unitID]) then
+				_, _, _, _, options.progress = GetUnitHealth(facInfo.unitID)
+				if options.progress >= 1 then
+					options.progress = -1
+					unfinished_facs[facInfo.unitID] = nil
+				end
+			end
+			-- repeat mode?
+			if select(4, GetUnitStates(facInfo.unitID, false, true)) then
+				options['repeat'] = true
+			else
+				options['repeat'] = false
+			end
+			-- hover or pressed?
+			if not moffscreen and i == hoveredFac + 1 then
+				options.hovered_repeat = isInRect(mx, my, { fac_rec[3] - repIcoSize, fac_rec[2], fac_rec[3], fac_rec[2] - repIcoSize })
+				options.pressed = (lb or mb or rb) or (options.hovered_repeat)
+				options.hovered = true
+			end
+			-- border
+			options.selected = (i == openedMenu + 1)
+
+			dlistsCount = dlistsCount + 1
+			dlists[dlistsCount] = gl.CreateList(drawButton, fac_rec, unitDefID, options, true)
+			if factoriesArea == nil then
+				factoriesArea = { fac_rec[1], fac_rec[2], fac_rec[3], fac_rec[4] }
+			else
+				factoriesArea[4] = fac_rec[4]
+			end
+
+			-- setup next icon pos
+			offsetRect(fac_rec, fac_inext[1], fac_inext[2])
+		end
+
+		if factoriesArea then
+			dlists[1] = gl.CreateList(drawBackground)
+			if WG['guishader'] then
+				if openedMenu >= 0 then
+					dlists[dlistsCount+1] = gl.CreateList(drawOptionsBackground)
+
+					if dlistGuishader2 then
+						dlistGuishader2 = gl.DeleteList(dlistGuishader2)
+					end
+					dlistGuishader2 = gl.CreateList( function()
+						RectRound(backgroundOptionsRect[1],backgroundOptionsRect[2],backgroundOptionsRect[3],backgroundOptionsRect[4], elementCorner * ui_scale)
+					end)
+
+					if dlistGuishader2 then
+						WG['guishader'].RemoveDlist('buildbar2')
+						WG['guishader'].InsertDlist(dlistGuishader2, 'buildbar2')
+					end
+				else
+					backgroundOptionsRect = nil
+					WG['guishader'].RemoveDlist('buildbar2')
+				end
+			end
+		end
+
+		checkGuishader(forceGuishader)
+		forceGuishader = nil
+	end
+end
+
+-------------------------------------------------------------------------------
+-- UNIT FUNCTIONS
+-------------------------------------------------------------------------------
+
+local function getBuildQueue(unitID)
+	local result = {}
+	local queue = GetFullBuildQueue(unitID)
+	if queue ~= nil then
+		for _, buildPair in ipairs(queue) do
+			local udef, count = next(buildPair, nil)
+			if result[udef] ~= nil then
+				result[udef] = result[udef] + count
+			else
+				result[udef] = count
+			end
+		end
+	end
+	return result
+end
+
+-------------------------------------------------------------------------------
+-- DRAWSCREEN
+-------------------------------------------------------------------------------
+
+function widget:RecvLuaMsg(msg, playerID)
+	if msg:sub(1, 18) == 'LobbyOverlayActive' then
+		chobbyInterface = (msg:sub(1, 19) == 'LobbyOverlayActive1')
+	end
+end
+
+function widget:DrawScreen()
+	if chobbyInterface then
+		return
+	end
+
+	local mx, my, lb, mb, rb, moffscreen = GetMouseState()
+
+	if WG['guishader'] then
+		if #dlists == 0 then
+			if dlistGuishader then
+				WG['guishader'].RemoveDlist('buildbar')
+			end
+		else
+			if dlistGuishader then
+				WG['guishader'].InsertDlist(dlistGuishader, 'buildbar')
+			end
+		end
+	end
+
+	for i = 1, #dlists do
+		gl.CallList(dlists[i])
+	end
+
+	-- draw factory list
+	if (factoriesArea ~= nil and isInRect(mx, my, { factoriesArea[1], factoriesArea[2], factoriesArea[3], factoriesArea[4] })) or
+		(buildoptionsArea ~= nil and isInRect(mx, my, { buildoptionsArea[1], buildoptionsArea[2], buildoptionsArea[3], buildoptionsArea[4] })) then
+		local fac_rec = rectWH(math_floor(facRect[1]), math_floor(facRect[2]), iconSizeX, iconSizeY)
+		buildoptionsArea = nil
+		
+		for i, facInfo in ipairs(facs) do
+			-- draw build list
+			if i == openedMenu + 1 then
+				-- draw buildoptions
+				local bopt_rec = rectWH(fac_rec[1] + bopt_inext[1],fac_rec[2] + bopt_inext[2], iconSizeX, iconSizeY)
+
+				local buildList = facInfo.buildList
+				local buildQueue = getBuildQueue(facInfo.unitID)
+				local unitBuildID = GetUnitIsBuilding(facInfo.unitID)
+				local unitBuildDefID
+				if unitBuildID then
+					unitBuildDefID = GetUnitDefID(unitBuildID)
+				end
+				for j, unitDefID in ipairs(buildList) do
+					local unitDefID = unitDefID
+					local options = {}
+					-- determine options -------------------------------------------------------------------
+					-- building?
+
+					if unitDefID == unitBuildDefID then
+						_, _, _, _, options.progress = GetUnitHealth(unitBuildID)
+					end
+					-- amount
+					options.amount = buildQueue[unitDefID]
+					-- hover or pressed?
+					if not moffscreen and j == hoveredBOpt + 1 then
+						options.pressed = (lb or mb or rb)
+						options.hovered = true
+					end
+					options.alpha = 0.85
+
+					drawButton(bopt_rec, unitDefID, options)
+					if buildoptionsArea == nil then
+						buildoptionsArea = { bopt_rec[1], bopt_rec[2], bopt_rec[3], bopt_rec[4] }
+					else
+						buildoptionsArea[1] = bopt_rec[1]
+					end
+					-- setup next icon pos
+					offsetRect(bopt_rec, bopt_inext[1], bopt_inext[2])
+				end
+			else
+				-- draw buildqueue
+				local buildQueue = Spring.GetFullBuildQueue(facInfo.unitID, maxVisibleBuilds + 1)
+				if buildQueue ~= nil then
+					local bopt_rec = rectWH(fac_rec[1] + bopt_inext[1], fac_rec[2] + bopt_inext[2], iconSizeX, iconSizeY)
+
+					local n, j = 1, maxVisibleBuilds
+					while buildQueue[n] do
+						local unitBuildDefID, count = next(buildQueue[n], nil)
+						if n == 1 then
+							count = count - 1
+						end -- cause we show the actual in building unit instead of the factory icon
+
+						if count > 0 then
+							local yPad = math_floor(iconSizeY * 0.88)
+							local xPad = yPad
+							local zoom = 0.04
+							drawIcon(unitBuildDefID, {bopt_rec[3] - xPad, bopt_rec[2] - yPad, bopt_rec[1] + xPad, bopt_rec[4] + yPad}, "#" .. unitBuildDefID, {1, 1, 1, 0.5}, zoom)
+							if count > 1 then
+								font:Begin()
+								font:SetTextColor(1, 1, 1, 0.66)
+								font:Print(count, bopt_rec[1] + ((bopt_rec[3] - bopt_rec[1]) * 0.22), bopt_rec[4] - ((bopt_rec[4] - bopt_rec[2]) * 0.22), fontSize, "o")
+								font:End()
+							end
+
+							offsetRect(bopt_rec, bopt_inext[1], bopt_inext[2])
+							j = j - 1
+							if j == 0 then
+								break
+							end
+						end
+						n = n + 1
+					end
+				end
+			end
+
+			-- setup next icon pos
+			offsetRect(fac_rec, fac_inext[1], fac_inext[2])
+		end
+	else
+		buildoptionsArea = nil
+	end
+end
+
+function widget:DrawWorld()
+	if chobbyInterface then
+		return
+	end
+
+	-- Draw factories command lines
+	if openedMenu >= 0 then
+		local fac = facs[openedMenu + 1]
+		
+		if fac ~= nil then
+			DrawUnitCommands(fac.unitID)
+		end
+	end
+end
+
+function widget:DrawInMiniMap(sx, sy)
+	if openedMenu > -1 then
+		gl.PushMatrix()
+		local pt = math.min(sx, sy)
+
+		gl.LoadIdentity()
+		gl.Translate(0, 1, 0)
+		gl.Scale(1 / msx, -1 / msz, 1)
+
+		local r, g, b = Spring.GetTeamColor(myTeamID)
+		local alpha = 0.5 + math.abs((Spring.GetGameSeconds() % 0.25) * 4 - 0.5)
+		local x, _, z = Spring.GetUnitBasePosition(facs[openedMenu + 1].unitID)
+
+		if x ~= nil then
+			gl.PointSize(pt * 0.066)
+			gl.Color(0, 0, 0)
+			gl.BeginEnd(GL.POINTS, function()
+				gl.Vertex(x, z)
+			end)
+			gl.PointSize(pt * 0.051)
+			gl.Color(r, g, b, alpha)
+			gl.BeginEnd(GL.POINTS, function()
+				gl.Vertex(x, z)
+			end)
+			gl.PointSize(1)
+			gl.Color(1, 1, 1, 1)
+		end
+		gl.PopMatrix()
+	end
+end
+
+-------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
+
+local function menuHandler(x, y, button)
+	local factoryUnitID = facs[pressedFac + 1].unitID
+
+	if button == 1 then
+		local icoRect = {}
+		_, icoRect[2], icoRect[3], _ = getFacIconRect(pressedFac)
+		icoRect[1], icoRect[4] = icoRect[3] - repIcoSize, icoRect[2] - repIcoSize
+		if isInRect(x, y, icoRect) then
+			--repeat icon clicked
+			local onoff = { 1 }
+			if select(4, GetUnitStates(factoryUnitID, false, true)) then
+				onoff = { 0 }
+			end
+			Spring.GiveOrderToUnit(factoryUnitID, CMD.REPEAT, onoff, 0)
+			Spring.PlaySoundFile(sound_click, 0.8, 'ui')
+		else
+			Spring.SelectUnitArray({ factoryUnitID })
+		end
+	elseif button == 3 then
+		Spring.SelectUnitArray({ factoryUnitID })
+		Spring.SetCameraTarget( Spring.GetUnitPosition(factoryUnitID) )
+	end
+
 	return
 end
 
-function BuildHandler(button)
+local function buildHandler(button)
 	local alt, ctrl, meta, shift = Spring.GetModKeyState()
 	local opt = {}
 	if alt then
@@ -1046,45 +949,39 @@ function BuildHandler(button)
 	end
 end
 
-function WaypointHandler(x, y, button)
-	if button == 1 or button > 3 then
-		Spring.Echo("BuildBar: Exited greedy waypoint mode")
-		Spring.PlaySoundFile(sound_waypoint, 0.9, 'ui')
-		menuHovered = false
-		waypointFac = -1
-		waypointMode = 0
-		openedMenu = -1
-		return
+-------------------------------------------------------------------------------
+-- MOUSE PRESS FUNCTIONS
+-------------------------------------------------------------------------------
+
+function widget:MousePress(x, y, button)
+	pressedFac = hoveredFac
+	pressedBOpt = hoveredBOpt
+
+	if hoveredFac + hoveredBOpt < -1 then
+		if button ~= 2 then
+			openedMenu = -1
+		end
+
+		return false
 	end
 
-	local alt, ctrl, meta, shift = Spring.GetModKeyState()
-	local opt = { "right" }
-	if alt then
-		opt[#opt + 1] = "alt"
-	end
-	if ctrl then
-		opt[#opt + 1] = "ctrl"
-	end
-	if meta then
-		opt[#opt + 1] = "meta"
-	end
-	if shift then
-		opt[#opt + 1] = "shift"
-	end
-
-	local type, param = Spring.TraceScreenRay(x, y)
-	if type == 'ground' then
-		Spring.GiveOrderToUnit(facs[waypointFac + 1].unitID, CMD.MOVE, param, opt)
-	elseif type == 'unit' then
-		Spring.GiveOrderToUnit(facs[waypointFac + 1].unitID, CMD.GUARD, { param }, opt)
-	else
-		--feature
-		type, param = Spring.TraceScreenRay(x, y, true)
-		Spring.GiveOrderToUnit(facs[waypointFac + 1].unitID, CMD.MOVE, param, opt)
-	end
+	return true
 end
 
-function MouseOverIcon(x, y)
+function widget:MouseRelease(x, y, button)
+	if pressedFac == hoveredFac and pressedBOpt == hoveredBOpt then
+		if hoveredFac >= 0 then
+			menuHandler(x, y, button)
+		else
+			buildHandler(button)
+		end
+	end
+
+	return -1
+end
+
+
+local function mouseOverIcon(x, y)
 	if x >= facRect[1] and x <= facRect[3] and y >= facRect[4] and y <= facRect[2] then
 		local icon
 		if bar_horizontal then
@@ -1104,7 +1001,7 @@ function MouseOverIcon(x, y)
 	return -1
 end
 
-function MouseOverSubIcon(x, y)
+local function mouseOverSubIcon(x, y)
 	if openedMenu >= 0 and x >= boptRect[1] and x <= boptRect[3] and y >= boptRect[4] and y <= boptRect[2] then
 		local icon
 		if bar_side == 0 then
@@ -1130,18 +1027,17 @@ end
 
 function widget:IsAbove(x, y)
 	if WG['topbar'] and WG['topbar'].showingQuit() then
-		menuHovered = false
 		openedMenu = -1
 		return false
 	end
 
 	local _, _, lb, mb, rb, moffscreen = GetMouseState()
-	if ((lb or mb or rb) and openedMenu == -1) or waypointMode == 2 then
+	if ((lb or mb or rb) and openedMenu == -1) then
 		return false
 	end
 
-	hoveredFac = MouseOverIcon(x, y)
-	hoveredBOpt = MouseOverSubIcon(x, y)
+	hoveredFac = mouseOverIcon(x, y)
+	hoveredBOpt = mouseOverSubIcon(x, y)
 
 	-- set hover unitdef id for buildmenu so info widget can show it
 	if WG['buildmenu'] then
@@ -1157,8 +1053,7 @@ function widget:IsAbove(x, y)
 
 	if hoveredFac >= 0 then
 		--factory icon
-		if not moffscreen and (openedMenu < 0 or menuHovered) then
-			menuHovered = true
+		if not moffscreen then
 			openedMenu = hoveredFac
 		end
 		if not blurred then
@@ -1166,7 +1061,7 @@ function widget:IsAbove(x, y)
 			blurred = true
 		end
 		return true
-	elseif openedMenu >= 0 and IsInRect(x, y, boptRect) then
+	elseif openedMenu >= 0 and isInRect(x, y, boptRect) then
 		--buildoption icon
 		if not blurred then
 			Spring.PlaySoundFile(sound_hover, 0.8, 'ui')
@@ -1174,10 +1069,7 @@ function widget:IsAbove(x, y)
 		end
 		return true
 	else
-		if menuHovered then
-			menuHovered = false
-			openedMenu = -1
-		end
+		openedMenu = -1
 	end
 
 	if blurred then
