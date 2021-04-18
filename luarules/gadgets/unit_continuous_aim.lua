@@ -24,6 +24,7 @@ local convertedUnits = {
 	--[UnitDefNames.armsam.id] = true,
 	--[UnitDefNames.armstump.id] = true,
 	[UnitDefNames.armpw.id] = 1,
+	[UnitDefNames.armpwt4.id] = 1,
 	[UnitDefNames.armflea.id] = 1,
 	[UnitDefNames.armrock.id] = 1,
 	[UnitDefNames.armham.id] = 1,
