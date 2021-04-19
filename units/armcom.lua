@@ -90,6 +90,9 @@ return {
 			[23] = "armtl",
 			[24] = "armfrt",
 			[25] = "armfrad",
+			-- Experimental:
+			[26] = "armhp",
+			[27] = "armfhp",
 		},
 		customparams = {
 			area_mex_def = "armmex",

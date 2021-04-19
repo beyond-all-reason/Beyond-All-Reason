@@ -10,15 +10,12 @@ function gadget:GetInfo()
 	}
 end
 
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
 if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
 if Spring.GetModOptions() and tonumber(Spring.GetModOptions().fixedallies) and (tonumber(Spring.GetModOptions().fixedallies) ~= 0) then
-	return --no use if alliances are disabled
+	return -- no use if alliances are disabled
 end
 
 local GetUnitDefID = Spring.GetUnitDefID
@@ -51,11 +48,14 @@ local attackDamages = {}
 local allianceStatus = {}
 local unitArmorType = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
-	for weaponIndex, weaponProperties in pairs(unitDef.weapons) do
-		local weaponDef = WeaponDefs[weaponProperties.weaponDef]
-		if weaponDef.damageAreaOfEffect > (attackAOEs[unitDefID] or 0) then
-			attackAOEs[unitDefID] = weaponDef.damageAreaOfEffect
-			attackDamages[unitDefID] = weaponDef.damages
+	local weapons = unitDef.weapons
+	if #weapons > 0 then
+		for i = 1, #weapons do
+			local weaponDef = WeaponDefs[weapons[i].weaponDef]
+			if weaponDef.damageAreaOfEffect > (attackAOEs[unitDefID] or 0) then
+				attackAOEs[unitDefID] = weaponDef.damageAreaOfEffect
+				attackDamages[unitDefID] = weaponDef.damages
+			end
 		end
 	end
 	unitArmorType[unitDefID] = unitDef.armorType
@@ -151,8 +151,3 @@ function gadget:UnitCommand(unitID, unitDefID, attackerTeam, cmdID, cmdParams, c
 		end
 	end
 end
-
-
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------

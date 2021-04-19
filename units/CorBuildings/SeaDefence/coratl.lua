@@ -106,7 +106,7 @@ return {
 				name = "Long-range advanced torpedo launcher",
 				noselfdamage = true,
 				range = 890,
-				reloadtime = 3.13333,
+				reloadtime = 2.45, --3.13333,
 				soundhit = "xplodep1",
 				soundstart = "torpedo1",
 				startvelocity = 100,
@@ -119,7 +119,8 @@ return {
 				weapontype = "TorpedoLauncher",
 				weaponvelocity = 580,
 				damage = {
-					default = 1400,
+					default = 1100,--1400,
+					--subs = 1860,
 				},
 			},
 		},

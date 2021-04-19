@@ -315,15 +315,16 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 		unitDefInfo[unitDefID].mex = true
 	end
 	local totalDps = 0
-	for i = 1, #unitDef.weapons do
+	local weapons = unitDef.weapons
+	for i = 1, #weapons do
 		if not unitDefInfo[unitDefID].weapons then
 			unitDefInfo[unitDefID].weapons = {}
 			unitDefInfo[unitDefID].dps = 0
 			unitDefInfo[unitDefID].reloadTime = 0
 			unitDefInfo[unitDefID].mainWeapon = i
 		end
-		unitDefInfo[unitDefID].weapons[i] = unitDef.weapons[i].weaponDef
-		local weaponDef = WeaponDefs[unitDef.weapons[i].weaponDef]
+		unitDefInfo[unitDefID].weapons[i] = weapons[i].weaponDef
+		local weaponDef = WeaponDefs[weapons[i].weaponDef]
 		if weaponDef.damages then
 			-- get highest damage category
 			local maxDmg = 0
@@ -343,7 +344,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 			totalDps = totalDps + dps
 			unitDefInfo[unitDefID].dps = totalDps
 		end
-		if unitDef.weapons[i].onlyTargets['vtol'] ~= nil then
+		if weapons[i].onlyTargets['vtol'] ~= nil then
 			unitDefInfo[unitDefID].isAaUnit = true
 		end
 		if weaponDef.energyCost > 0 and (not unitDefInfo[unitDefID].energyPerShot or weaponDef.energyCost > unitDefInfo[unitDefID].energyPerShot) then

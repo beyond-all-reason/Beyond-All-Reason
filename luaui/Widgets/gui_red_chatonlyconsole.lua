@@ -19,7 +19,7 @@ local vsx, vsy = gl.GetViewSizes()
 
 local NeededFrameworkVersion = 8
 local SoundIncomingChat  = 'beep4'
-local SoundIncomingChatVolume = 1.0
+local SoundIncomingChatVolume = 0.85
 
 local gameOver = false
 local lastConnectionAttempt = ''
@@ -476,8 +476,8 @@ local function processLine(line,g,cfg,newlinecolor)
 		bypassThisMessage = true
 	end
 
-	if (not newlinecolor) then
-		if (names[ssub(line,2,(sfind(line,"> ", nil, true) or 1)-1)] ~= nil) then
+	if not newlinecolor then
+		if names[ssub(line,2,(sfind(line,"> ", nil, true) or 1)-1)] ~= nil then
 			bypassThisMessage = false
 			linetype = 1 --playermessage
 			name = ssub(line,2,sfind(line,"> ", nil, true)-1)
@@ -485,7 +485,15 @@ local function processLine(line,g,cfg,newlinecolor)
 			if ssub(text,1,1) == "!" and  ssub(text, 1,2) ~= "!!" then --bot command
 				bypassThisMessage = true
 			end
-		elseif (names[ssub(line,2,(sfind(line,"] ", nil, true) or 1)-1)] ~= nil) then
+		elseif names[ssub(line,2,(sfind(line," (replay)] ", nil, true) or 1)-1)] ~= nil then
+			bypassThisMessage = false
+			linetype = 2 --spectatormessage
+			name = ssub(line,2,sfind(line," (replay)] ", nil, true)-1)
+			text = ssub(line,slen(name)+13)
+			if ssub(text,1,1) == "!" and  ssub(text, 1,2) ~= "!!" then --bot command
+				bypassThisMessage = true
+			end
+		elseif names[ssub(line,2,(sfind(line,"] ", nil, true) or 1)-1)] ~= nil then
 			bypassThisMessage = false
 			linetype = 2 --spectatormessage
 			name = ssub(line,2,sfind(line,"] ", nil, true)-1)
@@ -493,15 +501,7 @@ local function processLine(line,g,cfg,newlinecolor)
 			if ssub(text,1,1) == "!" and  ssub(text, 1,2) ~= "!!" then --bot command
 				bypassThisMessage = true
 			end
-		elseif (names[ssub(line,2,(sfind(line,"(replay)", nil, true) or 3)-3)] ~= nil) then
-			bypassThisMessage = false
-			linetype = 2 --spectatormessage
-			name = ssub(line,2,sfind(line,"(replay)", nil, true)-3)
-			text = ssub(line,slen(name)+13)
-			if ssub(text,1,1) == "!" and  ssub(text, 1,2) ~= "!!" then --bot command
-				bypassThisMessage = true
-			end
-		elseif (names[ssub(line,1,(sfind(line," added point: ", nil, true) or 1)-1)] ~= nil) then
+		elseif names[ssub(line,1,(sfind(line," added point: ", nil, true) or 1)-1)] ~= nil then
 			bypassThisMessage = false
 			linetype = 3 --playerpoint
 			name = ssub(line,1,sfind(line," added point: ", nil, true)-1)
@@ -509,7 +509,7 @@ local function processLine(line,g,cfg,newlinecolor)
 			if text == "" then
 				text = "Look here!"
 			end
-		elseif (ssub(line,1,1) == ">") then
+		elseif ssub(line,1,1) == ">" then
 			linetype = 4 --gamemessage
 			text = ssub(line,3)
 			bypassThisMessage = true
@@ -558,9 +558,13 @@ local function processLine(line,g,cfg,newlinecolor)
 
 	-- spectator chat
 	elseif sfind(line,"^(\[\[.*\])") then	-- somehow adding space at end doesnt work
+
 		local endChar = sfind(line, "] ", nil, true)
 		if endChar then
 			local name = ssub(line, 2, endChar-1)
+			if sfind(name," (replay)", nil, true) then
+				name = ssub(line, 2, sfind(name," (replay)", nil, true))
+			end
 			if name and names[name] then
 				if filterSpecs then
 					bypassThisMessage = true
@@ -760,7 +764,7 @@ local function processLine(line,g,cfg,newlinecolor)
 		historyCount = historyCount + 1
 		history[historyCount] = {line,clock(),historyCount,textcolor,linetype}
 
-        if playSound and not bypassThisMessage == true and not Spring.IsGUIHidden() then
+        if playSound and not Spring.IsGUIHidden() then
             spPlaySoundFile( SoundIncomingChat, SoundIncomingChatVolume, nil, "ui" )
         end
 	end

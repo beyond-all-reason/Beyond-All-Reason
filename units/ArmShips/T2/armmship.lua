@@ -158,7 +158,7 @@ return {
 				},
 				damage = {
 					default = 138,
-					subs = 5,
+					-- subs = 5,
 				},
 			},
 			rocket = {

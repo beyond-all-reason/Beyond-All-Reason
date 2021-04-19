@@ -27,16 +27,10 @@ function gadget:GetInfo()
     }
 end
 
-----------------------------------------------------------------
--- Synced only
-----------------------------------------------------------------
 if not gadgetHandler:IsSyncedCode() then
-    return false
+    return
 end
 
-----------------------------------------------------------------
--- Var
-----------------------------------------------------------------
 local CMD_PRIORITY = 34571
 
 local stallMarginInc = 0.2
@@ -229,6 +223,7 @@ function GetUpdateInterval(teamID)
 end
 
 function UpdatePassiveBuilders(teamID, interval)
+
     --calculate how much expense each passive con would require, and how much total expense the non-passive cons require
     local nonPassiveConsTotalExpense = {}
     local passiveConsExpense = {}

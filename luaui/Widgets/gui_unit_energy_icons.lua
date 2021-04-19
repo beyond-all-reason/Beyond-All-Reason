@@ -50,10 +50,11 @@ function SetUnitConf()
 		local scale = 6*( xsize^2 + zsize^2 )^0.5
 		local buildingNeedingUpkeep = false
 		local neededEnergy = 0
-		if table.getn(unitDef.weapons) > 0 then
-			for i=1, #unitDef.weapons do
-				local weaponDefID = unitDef.weapons[i].weaponDef
-				local weaponDef   = WeaponDefs[weaponDefID]
+		local weapons = unitDef.weapons
+		if #weapons > 0 then
+			for i=1, #weapons do
+				local weaponDefID = weapons[i].weaponDef
+				local weaponDef = WeaponDefs[weaponDefID]
                 if weaponDef then
                     if weaponDef.stockpile then
                         neededEnergy = math.floor(weaponDef.energyCost / (weaponDef.stockpileTime/30))

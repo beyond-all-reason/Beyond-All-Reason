@@ -1060,7 +1060,7 @@ local options={
 		desc   = 'Map Atmospherics',
 		type   = 'list',
 		section = 'options_experimental',
-		def  = "disabled",
+		def  = "enabled",
 		items={
 			{key="disabled", name="Disabled", desc="Disabled"},
 			{key="enabled", name="Enabled", desc="Enabled"},

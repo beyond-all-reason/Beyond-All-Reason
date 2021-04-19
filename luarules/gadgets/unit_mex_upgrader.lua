@@ -83,18 +83,18 @@ local upgradeMexCmdDesc = {
 	params = {}
 }
 
-function determine(ud, wd)
+function determine()
 	local tmpbuilders = {}
-	for unitDefID, unitDef in pairs(ud) do
-		if isBuilder(unitDef) then
+	for unitDefID, unitDef in pairs(UnitDefs) do
+		if unitDef.isBuilder and unitDef.canAssist then
 			tmpbuilders[#tmpbuilders + 1] = unitDefID
 		else
 			local extractsMetal = unitDef.extractsMetal
-			if (extractsMetal > 0) then
+			if extractsMetal > 0 then
 				local mexDef = {}
 				mexDef.extractsMetal = extractsMetal
 				if #unitDef.weapons <= 1 then
-					if (#unitDef.weapons == 1 and wd[unitDef.weapons[1].weaponDef].isShield) then
+					if #unitDef.weapons == 1 and WeaponDefs[unitDef.weapons[1].weaponDef].isShield then
 						mexDef.armed = #unitDef.weapons < 0
 					else
 						mexDef.armed = #unitDef.weapons > 0
@@ -111,7 +111,7 @@ function determine(ud, wd)
 
 	for _, unitDefID in ipairs(tmpbuilders) do
 		local upgradePairs = nil
-		for _, optionID in ipairs(ud[unitDefID].buildOptions) do
+		for _, optionID in ipairs(UnitDefs[unitDefID].buildOptions) do
 			local mexDef = mexDefs[optionID]
 			if mexDef then
 				upgradePairs = processMexData(optionID, mexDef, upgradePairs)
@@ -143,10 +143,6 @@ function processMexData(mexDefID, mexDef, upgradePairs)
 	return upgradePairs
 end
 
-function isBuilder(unitDef)
-	return (unitDef.isBuilder and unitDef.canAssist)
-end
-
 if gadgetHandler:IsSyncedCode() then
 
 	local isCommander = {}
@@ -158,10 +154,8 @@ if gadgetHandler:IsSyncedCode() then
 		unitXsize[unitDefID] = unitDef.xsize
 	end
 
-	-- This part of the code determines who should upgrade what
-	---------------------------------------------------------------------------------------------------------------------------
 	function gadget:Initialize()
-		determine(UnitDefs, WeaponDefs)
+		determine()
 		registerUnits()
 	end
 
@@ -180,7 +174,6 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	-- This part of the code actually does somethings (upgrades mexes)
-	---------------------------------------------------------------------------------------------------------------------------
 	function gadget:GameFrame(n)
 
 		for unitID, data in pairs(addCommands) do
@@ -611,7 +604,7 @@ else
 	end
 
 	function gadget:Initialize()
-		determine(UnitDefs, WeaponDefs)
+		determine()
 
 		for k, v in pairs(builderDefs) do
 			local upgradePairs = {}

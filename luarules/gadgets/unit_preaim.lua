@@ -14,21 +14,22 @@ if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
+local weaponRange = {}
 local isPreaimUnit = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
-	if #unitDef.weapons > 0 then
-		for id, table in pairs(unitDef.weapons) do
-			if not isPreaimUnit[unitDefID] then
-				isPreaimUnit[unitDefID] = {}
+	if not unitDef.canFly then
+		local weapons = unitDef.weapons
+		if #weapons > 0 then
+			for i=1, #weapons do
+				if not isPreaimUnit[unitDefID] then
+					isPreaimUnit[unitDefID] = {}
+				end
+				local weaponDefID = weapons[i].weaponDef
+				isPreaimUnit[unitDefID][i] = weaponDefID
+				weaponRange[weaponDefID] = WeaponDefs[weaponDefID].range
 			end
-			isPreaimUnit[unitDefID][id] = table.weaponDef
 		end
 	end
-end
-
-local weaponRange = {}
-for weaponDefID, def in pairs(WeaponDefs) do
-	weaponRange[weaponDefID] = def.range
 end
 
 local exludedUnits = {    -- exclude auto target range boost for popup units
@@ -43,7 +44,6 @@ local exludedUnits = {    -- exclude auto target range boost for popup units
 	[UnitDefNames.corllt.id] = true,
 	[UnitDefNames.armllt.id] = true,
 }
-
 local scavengerPopups = {}
 for k, v in pairs(exludedUnits) do
 	scavengerPopups[k .. '_scav'] = v
@@ -52,13 +52,6 @@ for k, v in pairs(scavengerPopups) do
 	exludedUnits[k] = v
 end
 scavengerPopups = nil
-
-for unitDefID, unitDef in pairs(UnitDefs) do
-	if unitDef.canFly then
-		exludedUnits[unitDefID] = true
-	end
-end
-
 for k, v in pairs(exludedUnits) do
 	isPreaimUnit[k] = nil
 end

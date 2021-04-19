@@ -52,11 +52,11 @@ return {
 			},
 			playersList = {
 				playerList = 'Player list',
-				spectators = 'Spectators',
+				spectators = 'Spectators %{amount}',
 				enemies = 'Enemies',
 				allies = 'Allies',
-				hideSpecs = 'Click to hide specs',
-				showSpecs = 'Click to show specs',
+				hideSpecs = 'Click to hide spectators',
+				showSpecs = 'Click to show spectators',
 				trackPlayer = 'Double-click player name to track',
 				takeUnits = 'Click to take abandoned units',
 				requestSupport = 'Double-click to ask for support',
@@ -67,15 +67,27 @@ return {
 				shareMetal = 'Click-and-drag to share metal',
 				becomeEnemy = 'Click to become enemy',
 				becomeAlly = 'Click to become ally',
-				thousands = 'k',
-				milliseconds = 'ms',
-				seconds = 'sec',
-				minutes = 'min',
-				commandDelay = 'Total command delay',
-				cpu = 'CPU',
-				framerate = 'FPS',
-				gpuMemory = 'GPU memory',
+				thousands = '%{number}k',
+				milliseconds = '%{number} ms',
+				seconds = '%{number} sec',
+				commandDelay = '%{labelColor}Total command delay: %{delayColor}%{delay}',
+				cpu = 'CPU: %{cpuUsage}%%',
+				framerate = 'FPS: %{fps}',
+				gpuMemory = 'GPU Memory: %{gpuUsage}%%',
 				pointClickTooltip = 'Click to go to the last point set by the player',
+				aiName = '%{name} (AI)',
+				chat = {
+					needSupport = 'I need unit support!',
+					needEnergy = 'I need energy!',
+					needEnergyAmount = 'I need %{amount} energy!',
+					needMetal = 'I need metal!',
+					needMetalAmount = 'I need %{amount} metal!',
+					giveUnits = 'I gave %{count} units to %{name}.',
+					giveEnergy = 'I sent %{amount} energy to %{name}',
+					giveMetal = 'I sent %{amount} metal to %{name}',
+					takeTeam = 'I took %{name}.',
+					takeTeamAmount = 'I took %{name}: %{units} units, %{energy} energy and %{metal} metal.',
+				},
 			},
 			playerTV = {
 				playerTV = 'Player TV',
@@ -95,6 +107,8 @@ return {
 				disabled = '%{textColor}%{unit} %{warnColor}(disabled)',
 			},
 			orderMenu = {
+				hotkeyTooltip = '%{highlightColor}%{hotkey}%{textColor} - %{tooltip}',
+
 				move = 'Move',
 				move_tooltip = 'Move a unit towards a position or follow other units',
 				stop = 'Stop',
@@ -196,10 +210,9 @@ return {
 			},
 			idleBuilders = {
 				name = 'Idle builders',
-				idle = 'Idle',
-				shiftclick = 'shift + click:   select all',
-				cycleclick = 'click:   cycle through all',
-				z = 'z',
+				idle = '%{textColor}Idle %{highlightColor}%{unit}',
+				controls = '%{textColor}Click:   Cycle next builder\n%{textColor}Shift + Click:   Select all',
+				sleeping = 'z',
 			},
 			unitGroups = {
 				name = 'Unit groups',
@@ -552,6 +565,9 @@ return {
 			unitShare = {
 				received = 'You received %{count} new unit(s)*',
 				unit = '*%{unit}'
+			},
+			messages = {
+				scroll = '%{textColor}Press %{highlightColor}CTRL %{textColor}to activate chatlog viewing/scrolling',
 			},
 		}
 	}
