@@ -208,7 +208,6 @@ return {
 				},
 				damage = {
 					default = 22.7,
-					subs = 0.5,
 				},
 			},
 		},

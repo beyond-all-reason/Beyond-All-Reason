@@ -162,7 +162,7 @@ return {
 				badtargetcategory = "HOVER NOTSHIP",
 				def = "ARMSERP_WEAPON",
 				maindir = "0 0.2 1",
-				maxangledif = 55,
+				maxangledif = 80,
 				onlytargetcategory = "NOTHOVER",
 			},
 		},
