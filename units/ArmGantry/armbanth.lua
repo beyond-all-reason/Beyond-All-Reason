@@ -167,7 +167,6 @@ return {
 				},
 				damage = {
 					default = 730,
-					subs = 5,
 				},
 			},
 			bantha_rocket = {
@@ -216,7 +215,7 @@ return {
 				},
 				damage = {
 					default = 900,
-					subs = 5,
+					subs = 500,
 				},
 			},
 			tehlazerofdewm = {
@@ -259,7 +258,6 @@ return {
 				damage = {
 					commanders = 1800,
 					default = 6000,
-					subs = 5,
 					vtol = 3000,
 				},
 			},
