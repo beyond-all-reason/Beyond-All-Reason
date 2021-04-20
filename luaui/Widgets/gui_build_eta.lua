@@ -1,35 +1,18 @@
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
---
---  file:    gui_build_eta.lua
---  brief:   display estimated time of arrival for builds
---  author:  Dave Rodgers
---
---  >> modified by: jK <<
---
---  Copyright (C) 2007,2008.
---  Licensed under the terms of the GNU GPL, v2 or later.
---
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
 function widget:GetInfo()
 	return {
 		name = "BuildETA",
 		desc = "Displays estimated time of arrival for builds",
 		author = "trepan (modified by jK)",
-		date = "Feb, 2008",
+		date = "2007",
 		license = "GNU GPL, v2 or later",
 		layer = -9,
 		enabled = true  --  loaded by default?
 	}
 end
 
-local vsx, vsy = Spring.GetViewGeometry()
 local lastGameUpdate = Spring.GetGameSeconds()
 
 local spGetUnitViewPosition = Spring.GetUnitViewPosition
-local spGetUnitDefID = Spring.GetUnitDefID
 local spGetGameSeconds = Spring.GetGameSeconds
 local spGetUnitHealth = Spring.GetUnitHealth
 local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
@@ -40,30 +23,17 @@ local myAllyTeam = Spring.GetMyAllyTeamID()
 
 local gl = gl  --  use a local copy for faster access
 local Spring = Spring
-local table = table
 
 local font, chobbyInterface
 
 local etaTable = {}
 local etaMaxDist = 750000 -- max dist at which to draw ETA
 
-local isOmex = {}
-local unitHeight = {}
-for unitDefID, unitDef in pairs(UnitDefs) do
-	if unitDef.name == "armomex" or unitDef.name == "coromoex" then
-		isOmex[unitDefID] = true
-	end
-	unitHeight[unitDefID] = unitDef.height
-end
-
 function widget:ViewResize()
-	vsx, vsy = Spring.GetViewGeometry()
-
 	font = WG['fonts'].getFont(nil, 1, 0.2, 1.3)
 end
 
-
-local function MakeETA(unitID, unitDefID)
+local function makeETA(unitID, unitDefID)
 	if unitDefID == nil then
 		return nil
 	end
@@ -78,28 +48,20 @@ local function MakeETA(unitID, unitDefID)
 		lastProg = buildProgress,
 		rate = nil,
 		timeLeft = nil,
-		yoffset = unitHeight[unitDefID] + 14
+		yoffset = UnitDefs[unitDefID].height + 14
 	}
 end
 
-function init()
+local function init()
 	etaTable = {}
 	local units = Spring.GetAllUnits()
 	for i=1, #units do
 		local unitID = units[i]
-		local unitAllyTeam = spGetUnitAllyTeam(unitID)
 
 		if fullview or spGetUnitAllyTeam(unitID) == myAllyTeam then
-			etaTable[unitID] = MakeETA(unitID, Spring.GetUnitDefID(unitID))
+			etaTable[unitID] = makeETA(unitID, Spring.GetUnitDefID(unitID))
 		end
 	end
-	--local myUnits = Spring.GetTeamUnits(Spring.GetMyTeamID())
-	--for _, unitID in ipairs(myUnits) do
-	--	local _, _, _, _, buildProgress = Spring.GetUnitHealth(unitID)
-	--	if buildProgress < 1 then
-	--		etaTable[unitID] = MakeETA(unitID, Spring.GetUnitDefID(unitID))
-	--	end
-	--end
 end
 
 function widget:Initialize()
@@ -176,6 +138,7 @@ function widget:Update(dt)
 			end
 		end
 	end
+
 	for _, unitID in pairs(killTable) do
 		etaTable[unitID] = nil
 	end
@@ -191,7 +154,7 @@ end
 
 function widget:UnitCreated(unitID, unitDefID, unitTeam)
 	if fullview or spGetUnitAllyTeam(unitID) == myAllyTeam then
-		etaTable[unitID] = MakeETA(unitID, unitDefID)
+		etaTable[unitID] = makeETA(unitID, unitDefID)
 	end
 end
 
@@ -207,7 +170,7 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
 	etaTable[unitID] = nil
 end
 
-local function DrawEtaText(timeLeft, yoffset)
+local function drawEtaText(timeLeft, yoffset)
 	local etaText
 	local etaPrefix = "\255\255\255\1" .. Spring.I18N('ui.buildEstimate.time') .. "\255\255\255\255:"
 	if timeLeft == nil then
@@ -247,10 +210,7 @@ function widget:DrawWorld()
 				local dx, dy, dz = ux - cx, uy - cy, uz - cz
 				local dist = dx * dx + dy * dy + dz * dz
 				if dist < etaMaxDist then
-					if isOmex[spGetUnitDefID(unitID)] then
-						bi.yoffset = 25
-					end
-					gl.DrawFuncAtUnit(unitID, false, DrawEtaText, bi.timeLeft, bi.yoffset)
+					gl.DrawFuncAtUnit(unitID, false, drawEtaText, bi.timeLeft, bi.yoffset)
 				end
 			end
 		end
@@ -259,4 +219,3 @@ function widget:DrawWorld()
 		gl.DepthTest(false)
 	end
 end
-
