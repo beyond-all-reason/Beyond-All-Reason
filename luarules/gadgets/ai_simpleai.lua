@@ -6,6 +6,8 @@ local SimpleCheaterAITeamIDs = {}
 local SimpleCheaterAITeamIDsCount = 0
 local UDN = UnitDefNames
 local wind = Game.windMax
+local mapsizeX = Game.mapSizeX
+local mapsizeZ = Game.mapSizeZ
 
 -- team locals
 SimpleFactories = {}
@@ -232,7 +234,7 @@ local function SimpleConstructionProjectSelection(unitID, unitDefID, unitName, u
 	for b1 = 1,100 do
 		if type == "Builder" or type == "Commander" then
 			SimpleFactoryDelay[unitTeam] = SimpleFactoryDelay[unitTeam]-1
-			local r = math.random(0, 11)
+			local r = math.random(0, 20)
 			local mexspotpos = SimpleGetClosestMexSpot(unitposx, unitposz)
 			if (mexspotpos and SimpleT1Mexes[unitTeam] < 3) and type == "Commander" then
 				local project = SimpleExtractorDefs[math.random(1, #SimpleExtractorDefs)]
@@ -255,7 +257,7 @@ local function SimpleConstructionProjectSelection(unitID, unitDefID, unitName, u
 					end
 				end
 			
-			elseif mcurrent < mstorage * 0.75 or r == 1 then
+			elseif mcurrent < mstorage * 0.30 or r == 1 then
 				if type == "Commander" then
 					for t = 1,10 do
 						local targetUnit = units[math.random(1,#units)]
@@ -318,6 +320,20 @@ local function SimpleConstructionProjectSelection(unitID, unitDefID, unitName, u
 						break
 					end
 				end
+			elseif r == 12 and type ~= "Commander" then
+				local mapcenterX = mapsizeX/2
+				local mapcenterZ = mapsizeZ/2
+				local mapcenterY = Spring.GetGroundHeight(mapcenterX, mapcenterZ)
+				local mapdiagonal = math.ceil(math.sqrt((mapsizeX*mapsizeX)+(mapsizeZ*mapsizeZ)))
+				Spring.GiveOrderToUnit(unitID, CMD.RECLAIM,{mapcenterX+math.random(-100,100),mapcenterY,mapcenterZ+math.random(-100,100),mapdiagonal}, 0)
+				success = true
+			elseif r == 13 and type ~= "Commander" then
+				local mapcenterX = mapsizeX/2
+				local mapcenterZ = mapsizeZ/2
+				local mapcenterY = Spring.GetGroundHeight(mapcenterX, mapcenterZ)
+				local mapdiagonal = math.ceil(math.sqrt((mapsizeX*mapsizeX)+(mapsizeZ*mapsizeZ)))
+				Spring.GiveOrderToUnit(unitID, CMD.REPAIR,{mapcenterX+math.random(-100,100),mapcenterY,mapcenterZ+math.random(-100,100),mapdiagonal}, 0)
+				success = true
 			else
 				local r2 = math.random(0, 1)
 				if r2 == 0 then
@@ -421,7 +437,7 @@ if gadgetHandler:IsSyncedCode() then
 						-- builders
 						for u = 1, #SimpleCommanderDefs do
 							if unitDefID == SimpleCommanderDefs[u] then
-								local nearestEnemy = Spring.GetUnitNearestEnemy(unitID, 750, true)
+								local nearestEnemy = Spring.GetUnitNearestEnemy(unitID, 500, true)
 								local unitHealthPercentage = (unitHealth/unitMaxHealth)*100
 
 								if nearestEnemy and unitHealthPercentage > 30 then
@@ -429,7 +445,7 @@ if gadgetHandler:IsSyncedCode() then
 										Spring.SetTeamResource(teamID, "e", estorage*0.9)
 									end
 									Spring.GiveOrderToUnit(unitID, CMD.DGUN, {nearestEnemy}, 0)
-									local nearestEnemies = Spring.GetUnitsInCylinder(unitposx, unitposz, 1000)
+									local nearestEnemies = Spring.GetUnitsInCylinder(unitposx, unitposz, 750)
 									for x = 1,#nearestEnemies do
 										local enemy = nearestEnemies[x]
 										if Spring.GetUnitTeam(enemy) == Spring.GetUnitTeam(nearestEnemy) and enemy ~= nearestEnemy then
@@ -452,8 +468,11 @@ if gadgetHandler:IsSyncedCode() then
 
 						for u = 1, #SimpleConstructorDefs do
 							if unitDefID == SimpleConstructorDefs[u] then
+								local unitHealthPercentage = (unitHealth/unitMaxHealth)*100
 								local nearestEnemy = Spring.GetUnitNearestEnemy(unitID, 500, true)
-								if nearestEnemy then
+								if nearestEnemy and unitHealthPercentage > 90 then
+									Spring.GiveOrderToUnit(unitID, CMD.RECLAIM, {nearestEnemy}, 0)
+								elseif nearestEnemy then
 									for x = 1,100 do
 										local targetUnit = units[math.random(1,#units)]
 										if UnitDefs[Spring.GetUnitDefID(targetUnit)].isBuilding == true then
