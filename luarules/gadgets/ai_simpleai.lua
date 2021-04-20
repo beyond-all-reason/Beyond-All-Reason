@@ -239,7 +239,7 @@ local function SimpleConstructionProjectSelection(unitID, unitDefID, unitName, u
 				for i2 = 1,#buildOptions do
 					if buildOptions[i2] == project then
 						Spring.GiveOrderToUnit(unitID, -project, { mexspotpos.x, mexspotpos.y, mexspotpos.z, 0 }, { "shift" })
-						Spring.Echo("Success! Project Type: Extractor.")
+						--Spring.Echo("Success! Project Type: Extractor.")
 						success = true
 						break
 					end
@@ -249,7 +249,7 @@ local function SimpleConstructionProjectSelection(unitID, unitDefID, unitName, u
 				for i2 = 1,#buildOptions do
 					if buildOptions[i2] == project then
 						SimpleBuildOrder(unitID, project)
-						Spring.Echo("Success! Project Type: Generator.")
+						--Spring.Echo("Success! Project Type: Generator.")
 						success = true
 						break
 					end
@@ -271,7 +271,7 @@ local function SimpleConstructionProjectSelection(unitID, unitDefID, unitName, u
 					for i2 = 1,#buildOptions do
 						if buildOptions[i2] == project then
 							SimpleBuildOrder(unitID, project)
-							Spring.Echo("Success! Project Type: Converter.")
+							--Spring.Echo("Success! Project Type: Converter.")
 							success = true
 							break
 						end
@@ -281,7 +281,7 @@ local function SimpleConstructionProjectSelection(unitID, unitDefID, unitName, u
 					for i2 = 1,#buildOptions do
 						if buildOptions[i2] == project then
 							Spring.GiveOrderToUnit(unitID, -project, { mexspotpos.x, mexspotpos.y, mexspotpos.z, 0 }, { "shift" })
-							Spring.Echo("Success! Project Type: Extractor.")
+							--Spring.Echo("Success! Project Type: Extractor.")
 							success = true
 							break
 						end
@@ -292,7 +292,7 @@ local function SimpleConstructionProjectSelection(unitID, unitDefID, unitName, u
 				for i2 = 1,#buildOptions do
 					if buildOptions[i2] == project then
 						SimpleBuildOrder(unitID, project)
-						Spring.Echo("Success! Project Type: Turret.")
+						--Spring.Echo("Success! Project Type: Turret.")
 						success = true
 						break
 					end
@@ -303,7 +303,7 @@ local function SimpleConstructionProjectSelection(unitID, unitDefID, unitName, u
 					if buildOptions[i2] == project then
 						SimpleBuildOrder(unitID, project)
 						SimpleFactoryDelay[unitTeam] = 30
-						Spring.Echo("Success! Project Type: Factory.")
+						--Spring.Echo("Success! Project Type: Factory.")
 						success = true
 						break
 					end
@@ -325,7 +325,7 @@ local function SimpleConstructionProjectSelection(unitID, unitDefID, unitName, u
 					for i2 = 1,#buildOptions do
 						if buildOptions[i2] == project then
 							SimpleBuildOrder(unitID, project)
-							Spring.Echo("Success! Project Type: Other.")
+							--Spring.Echo("Success! Project Type: Other.")
 							success = true
 							break
 						end
@@ -335,7 +335,7 @@ local function SimpleConstructionProjectSelection(unitID, unitDefID, unitName, u
 					for i2 = 1,#buildOptions do
 						if buildOptions[i2] == project then
 							SimpleBuildOrder(unitID, project)
-							Spring.Echo("Success! Project Type: Turret.")
+							--Spring.Echo("Success! Project Type: Turret.")
 							success = true
 							break
 						end
@@ -350,7 +350,7 @@ local function SimpleConstructionProjectSelection(unitID, unitDefID, unitName, u
 					if buildOptions[i2] == project then
 						local x, y, z = Spring.GetUnitPosition(unitID)
 						Spring.GiveOrderToUnit(unitID, -project, { x, y, z, 0 }, 0)
-						Spring.Echo("Success! Project Type: Unit.")
+						--Spring.Echo("Success! Project Type: Unit.")
 						success = true
 						break
 					end
@@ -361,7 +361,7 @@ local function SimpleConstructionProjectSelection(unitID, unitDefID, unitName, u
 						if buildOptions[i2] == project then
 							local x, y, z = Spring.GetUnitPosition(unitID)
 							Spring.GiveOrderToUnit(unitID, -project, { x, y, z, 0 }, 0)
-							Spring.Echo("Success! Project Type: Constructor.")
+							--Spring.Echo("Success! Project Type: Constructor.")
 							success = true
 							break
 						end
