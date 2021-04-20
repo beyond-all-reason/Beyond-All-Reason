@@ -194,7 +194,7 @@ return {
 				texture2 = "coresmoketrail",
 				tolerance = 8000,
 				tracks = true,
-				turnrate = 63000,
+				turnrate = 600,
 				turret = true,
 				weaponacceleration = 110,
 				weapontimer = 5,

@@ -130,7 +130,7 @@ return {
 				impulsefactor = 0.123,
 				name = "BattleshipCannon",
 				noselfdamage = true,
-				range = 900,
+				range = 950,
 				reloadtime = 0.5,
 				soundhit = "xplomed2",
 				soundhitwet = "splsmed",
