@@ -126,7 +126,7 @@ return {
 				cratermult = 0,
 				edgeeffectiveness = 1,
 				energypershot = 12000,
-				explosiongenerator = "custom:junoexplo",
+				explosiongenerator = "custom:juno-explo",
 				flighttime = 400,
 				impulseboost = 0,
 				impulsefactor = 0,
