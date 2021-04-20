@@ -408,6 +408,20 @@ local definitions = {
         alwaysvisible      = true,
       },
     },
+    -- junocloudspawn = {
+        --     air                = true,
+        --     class              = [[CExpGenSpawner]],
+        --     count              = 15,
+        --     ground             = true,
+        --     water              = true,
+        --     underwater         = false,
+        --     properties = {
+        --         delay              = [[1 r770]],
+        --         explosiongenerator = [[custom:junocloud]],
+        --         pos                = [[-50 r100, 10 r25, 0 r150]],
+        --         alwaysvisible      = true,
+        --     },
+        -- },
         electricstorm = {
             air                = true,
             class              = [[CExpGenSpawner]],
@@ -423,20 +437,7 @@ local definitions = {
             },
         },
 
-        -- junocloudspawn = {
-        --     air                = true,
-        --     class              = [[CExpGenSpawner]],
-        --     count              = 15,
-        --     ground             = true,
-        --     water              = true,
-        --     underwater         = false,
-        --     properties = {
-        --         delay              = [[1 r770]],
-        --         explosiongenerator = [[custom:junocloud]],
-        --         pos                = [[-50 r100, 10 r25, 0 r150]],
-        --         alwaysvisible      = true,
-        --     },
-        -- },
+        
     },
   --   ["junoring"] = {
   --   levelupring = {
