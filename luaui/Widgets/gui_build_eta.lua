@@ -213,13 +213,9 @@ local function DrawEtaText(timeLeft, yoffset)
 	if timeLeft == nil then
 		etaText = etaPrefix .. "\255\1\1\255???"
 	else
-		if timeLeft > 60 then
-			etaText = etaPrefix .. string.format('\255\1\255\1%d', timeLeft / 60) .. Spring.I18N('ui.buildEstimate.minutes') .. ", " .. string.format('\255\1\255\1%.1f', timeLeft % 60) .. Spring.I18N('ui.buildEstimate.seconds')
-		elseif timeLeft > 0 then
-			etaText = etaPrefix .. string.format('\255\1\255\1%.1f', timeLeft) .. Spring.I18N('ui.buildEstimate.seconds')
-		else
-			etaText = etaPrefix .. string.format('\255\255\1\1%.1f', -timeLeft) .. Spring.I18N('ui.buildEstimate.seconds')
-		end
+		local minutes = timeLeft / 60
+		local seconds = timeLeft % 60
+		etaText = etaPrefix .. string.format("\255\1\255\1%02d:%02d", minutes, seconds)
 	end
 
 	gl.Translate(0, yoffset, 10)
