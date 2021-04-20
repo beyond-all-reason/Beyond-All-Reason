@@ -242,7 +242,7 @@ return {
 				laserflaresize = 5.5,
 				name = "J7NSLaser",
 				noselfdamage = true,
-				range = 260,
+				range = 300,
 				reloadtime = 1,
 				rgbcolor = "0.2 0.2 0.6",
 				rgbcolor2 = "0.2 0.2 0.2",
@@ -258,8 +258,8 @@ return {
 				weapontype = "BeamLaser",
 				weaponvelocity = 900,
 				damage = {
-					default = 150,
-					subs = 75,
+					default = 225,
+					subs = 150,
 				},
 			},
 			disintegrator = {
