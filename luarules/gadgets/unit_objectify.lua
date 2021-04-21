@@ -16,7 +16,7 @@ end
 -- make them neutral, radar stealthy, not appear on the minimap
 -- make them vulnerable while being built
 -- would be good if they were omitted from area attacks but this is not currently possible
--- specified as non-repairable in unitdef (dragonteeth are now an exception and are repairable)
+-- specified as non-repairable in unitdef
 
 
 local isObject = {}

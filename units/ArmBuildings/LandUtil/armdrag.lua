@@ -32,7 +32,7 @@ return {
 		maxwaterdepth = 0,
 		name = unitName,
 		objectname = "Units/armdrag.s3o",
-		repairable = true,
+		repairable = false,
 		script = "Units/armdrag.cob",
 		seismicsignature = 0,
 		sightdistance = 1,
