@@ -33,6 +33,8 @@ local AllyCommandUnitDelayFrames = 1
 
 -- InitValues
 local PreviouslySelectedUnits = {}
+local ActiveStateTrackingUnitList = {}
+local ActiveStatePrevFrameTrackingUnitList = {}
 local selectionChanged = false
 
 local CommandUISoundDelayLastFrame = 0
@@ -173,6 +175,76 @@ function gadget:GameFrame(n)
 			end
 		end
 	end
+
+	local units = Spring.GetAllUnits()
+	local myTeamID = Spring.GetMyTeamID()
+	for i = 1, #units do
+		local unitID = units[i]
+		if ActiveStateTrackingUnitList[unitID] then
+			local activeBool = Spring.GetUnitIsActive(unitID)
+			if activeBool == false then
+				currentlyActive = 1
+			elseif activeBool == true then
+				currentlyActive = 2
+			else
+				currentlyActive = 1
+			end
+
+			if ActiveStateTrackingUnitList[unitID] ~= currentlyActive then
+				local unitDefID = Spring.GetUnitDefID(unitID)
+				local unitName = UnitDefs[unitDefID].name
+				local unitTeam = Spring.GetUnitTeam(unitID)
+				local posx, posy, posz = Spring.GetUnitPosition(unitID)
+				local visible = Spring.IsUnitInView(unitID)
+				if currentlyActive == 1 then
+					ActiveStateTrackingUnitList[unitID] = 1
+					if (not GUIUnitSoundEffects[unitName].BaseSoundDeactivate) and GUIUnitSoundEffects[unitName].BaseSoundActivate then
+						GUIUnitSoundEffects[unitName].BaseSoundDeactivate = GUIUnitSoundEffects[unitName].BaseSoundActivate
+					end
+					if myTeamID == unitTeam then
+						if GUIUnitSoundEffects[unitName] and GUIUnitSoundEffects[unitName].BaseSoundDeactivate then
+							local sound = GUIUnitSoundEffects[unitName].BaseSoundDeactivate
+							if sound[2] then
+								Spring.PlaySoundFile(sound[math.random(1,#sound)], 1, posx, posy, posz, 'ui')
+							else
+								Spring.PlaySoundFile(sound, 1, posx, posy, posz, 'ui')
+							end
+						end
+					elseif visible then
+						if GUIUnitSoundEffects[unitName] and GUIUnitSoundEffects[unitName].BaseSoundDeactivate then
+							local sound = GUIUnitSoundEffects[unitName].BaseSoundDeactivate
+							if sound[2] then
+								Spring.PlaySoundFile(sound[math.random(1,#sound)], 0.5, posx, posy, posz, 'ui')
+							else
+								Spring.PlaySoundFile(sound, 0.5, posx, posy, posz, 'ui')
+							end
+						end
+					end
+				elseif currentlyActive == 2 then 
+					ActiveStateTrackingUnitList[unitID] = 2
+					if myTeamID == unitTeam then
+						if GUIUnitSoundEffects[unitName] and GUIUnitSoundEffects[unitName].BaseSoundActivate then
+							local sound = GUIUnitSoundEffects[unitName].BaseSoundActivate
+							if sound[2] then
+								Spring.PlaySoundFile(sound[math.random(1,#sound)], 1, posx, posy, posz, 'ui')
+							else
+								Spring.PlaySoundFile(sound, 1, posx, posy, posz, 'ui')
+							end
+						end
+					elseif visible then
+						if GUIUnitSoundEffects[unitName] and GUIUnitSoundEffects[unitName].BaseSoundActivate then
+							local sound = GUIUnitSoundEffects[unitName].BaseSoundActivate
+							if sound[2] then
+								Spring.PlaySoundFile(sound[math.random(1,#sound)], 0.5, posx, posy, posz, 'ui')
+							else
+								Spring.PlaySoundFile(sound, 0.5, posx, posy, posz, 'ui')
+							end
+						end
+					end
+				end
+			end
+		end
+	end
 end
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
@@ -242,8 +314,8 @@ end
 
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 	local myTeamID = Spring.GetMyTeamID()
+	local unitName = UnitDefs[unitDefID].name
 	if myTeamID == unitTeam then
-		local unitName = UnitDefs[unitDefID].name
 		local posx, posy, posz = Spring.GetUnitPosition(unitID)
 		if CurrentGameFrame >= UnitFinishedSoundDelayLastFrame + UnitFinishedSoundDelayFrames then
 			UnitFinishedSoundDelayLastFrame = CurrentGameFrame + (math.random(-DelayRandomization,DelayRandomization))
@@ -269,7 +341,6 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 			end
 		end
 	else
-		local unitName = UnitDefs[unitDefID].name
 		local posx, posy, posz = Spring.GetUnitPosition(unitID)
 		if CurrentGameFrame >= UnitFinishedSoundDelayLastFrame + AllyUnitFinishedSoundDelayFrames and Spring.IsUnitInView(unitID) then
 			if GUIUnitSoundEffects[unitName] and GUIUnitSoundEffects[unitName].BaseSoundSelectType then
@@ -294,6 +365,16 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 			end
 		end
 	end
+	if GUIUnitSoundEffects[unitName] and GUIUnitSoundEffects[unitName].BaseSoundActivate then
+		ActiveStateTrackingUnitList[unitID] = 1
+	end
+end
+
+function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
+	if ActiveStateTrackingUnitList[unitID] then
+		ActiveStateTrackingUnitList[unitID] = nil
+	end
+
 end
 
 

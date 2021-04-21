@@ -72,6 +72,8 @@ GUIUnitSoundEffects = {
     BaseSoundSelectType   = "arm-bld-nrghum",
     --BaseSoundMovementType = "",
     BaseSoundWeaponType   = "arm-bld-solar-alt",
+    BaseSoundActivate     = "arm-bld-solar-activate",
+    BaseSoundDeactivate     = "arm-bld-solar-deactivate",
     },
 
     armadvsol = {

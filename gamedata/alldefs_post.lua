@@ -125,6 +125,17 @@ function UnitDef_Post(name, uDef)
 			end
 		end
 
+		if GUIUnitSoundEffects[name] and GUIUnitSoundEffects[name].BaseSoundActivate then
+			if uDef.sounds then
+				if uDef.sounds.activate then
+					uDef.sounds.activate = nil 
+				end
+				if uDef.sounds.deactivate then
+					uDef.sounds.deactivate = nil 
+				end
+			end
+		end
+
 		-- TEST for activate custom sounds in gui_soundeffects
 		-- if uDef.sounds then
 		-- 	if uDef.sounds.activate then
