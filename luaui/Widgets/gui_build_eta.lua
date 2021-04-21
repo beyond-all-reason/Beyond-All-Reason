@@ -18,7 +18,6 @@ local spGetUnitHealth = Spring.GetUnitHealth
 local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
 local spGetSpectatingState = Spring.GetSpectatingState
 local spec, fullview = spGetSpectatingState()
-
 local myAllyTeam = Spring.GetMyAllyTeamID()
 
 local gl = gl  --  use a local copy for faster access
@@ -74,11 +73,6 @@ function widget:Update(dt)
 		return
 	end
 
-	local userSpeed, _, pause = Spring.GetGameSpeed()
-	if pause then
-		return
-	end
-
 	local gs = spGetGameSeconds()
 	if gs == lastGameUpdate then
 		return
@@ -101,7 +95,7 @@ function widget:Update(dt)
 				bi.timeLeft = nil
 			end
 
-			local rate = (dp / dt) * userSpeed
+			local rate = dp / dt
 
 			if rate ~= 0 then
 				if bi.firstSet then
