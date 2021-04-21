@@ -172,7 +172,7 @@ end
 
 local function drawEtaText(timeLeft, yoffset)
 	local etaText
-	local etaPrefix = "\255\255\255\1" .. Spring.I18N('ui.buildEstimate.time') .. "\255\255\255\255:"
+	local etaPrefix = "\255\255\255\1" .. Spring.I18N('ui.buildEstimate.time') .. "\255\255\255\255 "
 	if timeLeft == nil then
 		etaText = etaPrefix .. "\255\1\1\255???"
 	else
