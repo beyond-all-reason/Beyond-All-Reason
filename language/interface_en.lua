@@ -437,8 +437,6 @@ return {
 			},
 			buildEstimate = {
 				time = 'ETA',
-				minutes = 'm',
-				seconds = 's',
 			},
 			statusBars = {
 				shield = 'Shield',
