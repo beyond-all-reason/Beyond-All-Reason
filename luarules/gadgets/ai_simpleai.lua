@@ -17,7 +17,7 @@ SimpleFactoryDelay = {}
 for i = 1, #teams do
 	local teamID = teams[i]
 	local luaAI = Spring.GetTeamLuaAI(teamID)
-	if luaAI and luaAI ~= "" and (string.sub(luaAI, 1, 8) == 'SimpleAI' or string.sub(luaAI, 1, 15) == 'SimpleCheaterAI' or string.sub(luaAI, 1, 16) == 'SimpleDefenderAI') then
+	if luaAI and luaAI ~= "" and (string.sub(luaAI, 1, 8) == 'SimpleAI' or string.sub(luaAI, 1, 15) == 'SimpleCheaterAI' or string.sub(luaAI, 1, 16) == 'SimpleDefenderAI' or string.sub(luaAI, 1, 15) == 'SimpleVampireAI') then
 		enabled = true
 		SimpleAITeamIDsCount = SimpleAITeamIDsCount + 1
 		SimpleAITeamIDs[SimpleAITeamIDsCount] = teamID
@@ -26,7 +26,7 @@ for i = 1, #teams do
 		SimpleT1Mexes[teamID] = 0
 		SimpleFactoryDelay[teamID] = 0
 
-		if string.sub(luaAI, 1, 15) == 'SimpleCheaterAI' or string.sub(luaAI, 1, 16) == 'SimpleDefenderAI' then
+		if string.sub(luaAI, 1, 15) == 'SimpleCheaterAI' or string.sub(luaAI, 1, 16) == 'SimpleDefenderAI' or string.sub(luaAI, 1, 15) == 'SimpleVampireAI' then
 			SimpleCheaterAITeamIDsCount = SimpleCheaterAITeamIDsCount + 1
 			SimpleCheaterAITeamIDs[SimpleCheaterAITeamIDsCount] = teamID
 		end
@@ -361,23 +361,25 @@ local function SimpleConstructionProjectSelection(unitID, unitDefID, unitName, u
 		elseif type == "Factory" then
 			if #Spring.GetFullBuildQueue(unitID, 0) < 5 then
 				local r = math.random(0, 5)
-				local project = SimpleUndefinedUnitDefs[math.random(1, #SimpleUndefinedUnitDefs)]
-				for i2 = 1,#buildOptions do
-					if buildOptions[i2] == project then
-						local x, y, z = Spring.GetUnitPosition(unitID)
-						Spring.GiveOrderToUnit(unitID, -project, { x, y, z, 0 }, 0)
-						--Spring.Echo("Success! Project Type: Unit.")
-						success = true
-						break
-					end
-				end
-				if r == 0 then
+				local luaAI = Spring.GetTeamLuaAI(unitTeam)
+				if r == 0 or string.sub(luaAI, 1, 15) == 'SimpleVampireAI' then
 					local project = SimpleConstructorDefs[math.random(1, #SimpleConstructorDefs)]
 					for i2 = 1,#buildOptions do
 						if buildOptions[i2] == project then
 							local x, y, z = Spring.GetUnitPosition(unitID)
 							Spring.GiveOrderToUnit(unitID, -project, { x, y, z, 0 }, 0)
 							--Spring.Echo("Success! Project Type: Constructor.")
+							success = true
+							break
+						end
+					end
+				else
+					local project = SimpleUndefinedUnitDefs[math.random(1, #SimpleUndefinedUnitDefs)]
+					for i2 = 1,#buildOptions do
+						if buildOptions[i2] == project then
+							local x, y, z = Spring.GetUnitPosition(unitID)
+							Spring.GiveOrderToUnit(unitID, -project, { x, y, z, 0 }, 0)
+							--Spring.Echo("Success! Project Type: Unit.")
 							success = true
 							break
 						end
