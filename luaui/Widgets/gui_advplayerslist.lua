@@ -1523,7 +1523,11 @@ end
 
 function GetDark(red, green, blue)
     -- Determines if the player color is dark (i.e. if a white outline for the sidePic is needed)
-    if red + green * 1.2 + blue * 0.4 < 0.8 then
+    --
+    -- Threshold was changed since the new SPADS colors include green and blue which were
+    -- just below the old threshold of 0.8
+    -- https://github.com/Yaribz/SPADS/commit/e95f4480b98aafd03420ba3de19feb5494ef0b7e
+    if red + green * 1.2 + blue * 0.4 < 0.68 then
         return true
     end
     return false
@@ -2592,7 +2596,7 @@ function DrawName(name, team, posY, dark, playerID)
         xPadding = 16
         DrawState(playerID, m_name.posX + widgetPosX, posY)
     end
-    if nameColourR + nameColourG * 1.2 + nameColourB * 0.4 < 0.8 then
+    if dark then
         font2:Begin()
         font2:Print(colourNames(team) .. nameText, m_name.posX + widgetPosX + 3 + xPadding, posY + 4, 14, "o")
         font2:End()
@@ -2638,7 +2642,7 @@ function DrawSmallName(name, team, posY, dark, playerID, alpha)
 
     if playerSpecs[playerID] ~= nil then
         nameColourR, nameColourG, nameColourB, nameColourA = Spring_GetTeamColor(team)
-        if nameColourR + nameColourG * 1.2 + nameColourB * 0.4 < 0.8 then
+        if dark then
             font2:Begin()
             font2:Print(colourNames(team) .. name, m_name.posX + textindent + explayerindent + widgetPosX + 3, posY + 4, 11, "o")
             font2:End()
