@@ -37,13 +37,12 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 
 Bob(){
 	while (1){
-	move sphere to y-axis [-5] speed [3];
+	move sphere to y-axis [-3] speed [2];
 	wait-for-move sphere along y-axis;
 	
-	move sphere to y-axis [0] speed [3];
+	move sphere to y-axis [0] speed [2];
 	wait-for-move sphere along y-axis;
 	}
-
 }
 
 Create(Func_Var_1)
@@ -57,11 +56,11 @@ Create(Func_Var_1)
 	Func_Var_1 = Rand( 1, 2 );
 	if( Func_Var_1 == 1 )
 	{
-		spin sphere around y-axis speed <-100.021978>;
+		spin sphere around y-axis speed <-66>;
 	}
 	if( Func_Var_1 == 2 )
 	{
-		spin sphere around y-axis speed <100.021978>;
+		spin sphere around y-axis speed <66>;
 	}
 	return (0);
 }
