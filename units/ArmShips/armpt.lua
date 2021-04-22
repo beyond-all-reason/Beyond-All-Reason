@@ -39,6 +39,7 @@ return {
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 750,
 		sonardistance = 400,
+		stealth = true,
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turnrate = 540,
