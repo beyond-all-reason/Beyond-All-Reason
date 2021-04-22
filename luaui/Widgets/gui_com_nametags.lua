@@ -127,7 +127,7 @@ local function GetCommAttributes(unitID, unitDefID)
 
 	local r, g, b, a = GetTeamColor(team)
 	local bgColor = { 0, 0, 0, 1 }
-	if (r + g * 1.2 + b * 0.4) < 0.8 then
+	if (r + g * 1.2 + b * 0.4) < 0.68 then
 		-- try to keep these values the same as the playerlist
 		bgColor = { 1, 1, 1, 1 }
 	end
