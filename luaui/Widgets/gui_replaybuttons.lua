@@ -66,7 +66,7 @@ local function point_in_rect(x1, y1, x2, y2, px, py)
 	return false
 end
 
-local function clicked_button (b)
+local function clicked_button(b)
 	local mx, my, click = Spring.GetMouseState()
 	local mousex = mx / vsx
 	local mousey = my / vsy
@@ -80,7 +80,7 @@ local function clicked_button (b)
 	return "NOBUTTONCLICKED"
 end
 
-local function setReplaySpeed (speed, i)
+local function setReplaySpeed(speed, i)
 	local s = Spring.GetGameSpeed()
 	--Spring.Echo ("setting speed to: " , speed , " current is " , s)
 	if speed > s then
@@ -93,20 +93,12 @@ local function setReplaySpeed (speed, i)
 	end
 end
 
-local function uiText(text, x, y, s, options)
-	if text == " " or text == "  " then
-		return
-	end
-	font:Begin()
-	font:Print(text, math.floor((x * vsx) + 0.5), math.floor((y * vsy) + 0.5), math.floor((s * vsx) + 0.5), options)
-	font:End()
-end
-
 local function uiRect(x, y, x2, y2, cs, tl, tr, br, bl, c1, c2)
 	RectRound(math.floor((x * vsx) + 0.5), math.floor((y * vsy) + 0.5), math.floor((x2 * vsx) + 0.5), math.floor((y2 * vsy) + 0.5), cs, tl, tr, br, bl, c1, c2)
 end
 
 local function draw_buttons(b)
+	font:Begin()
 	for i = 1, #b do
 		--UiButton(b[i].x, b[i].y, b[i].x + b[i].w, b[i].y + b[i].h, 0,1,1,0, 1,1,1,1, nil, { 0, 0, 0, 0.8 }, { 0.2, 0.2, 0.2, 0.8 }, bgpadding * 0.5)
 		gl.Color(1, 0, 0, 0.66)
@@ -118,8 +110,9 @@ local function draw_buttons(b)
 		uiRect(b[i].x, b[i].y, b[i].x + b[i].w - (bgpadding / vsx), b[i].y + (b[i].h * 0.4), elementCorner * 0.66, 0, 0, 1, 1, { 1, 1, 1, 0.04 * glossMult }, { 1, 1, 1, 0 })
 		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
-		uiText(b[i].text, b[i].x, b[i].y + b[i].h / 2, (0.0115), 'vo')
+		font:Print(b[i].text, math.floor((b[i].x * vsx) + 0.5), math.floor(((b[i].y + b[i].h / 2) * vsy) + 0.5), math.floor((0.0115 * vsx) + 0.5), 'vo')
 	end
+	font:End()
 end
 
 function widget:ViewResize()
@@ -148,8 +141,7 @@ function widget:Initialize()
 	end
 	speedbuttons[2].color = { 0.75, 0, 0, 0.66 }
 	dy = dy + h
-	local text = (Spring.GetGameFrame() > 0 and "  ||" or "  skip")
-	add_button(buttons, wPos.x, wPos.y, 0.037, 0.033, text, "playpauseskip", { 0, 0, 0, 0.6 })
+	add_button(buttons, wPos.x, wPos.y, 0.037, 0.033, (Spring.GetGameFrame() > 0 and "  ||" or "  skip"), "playpauseskip", { 0, 0, 0, 0.6 })
 end
 
 function widget:Shutdown()
@@ -206,6 +198,7 @@ function widget:DrawScreen()
 	local mousex, mousey, buttonstate = Spring.GetMouseState()
 	local b = speedbuttons
 	local topbutton = #speedbuttons
+	font:Begin()
 	if point_in_rect(buttons[1].x, buttons[1].y, b[topbutton].x + b[topbutton].w, b[topbutton].y + b[topbutton].h, mousex / vsx, mousey / vsy) then
 		for i = 1, #b, 1 do
 			if point_in_rect(b[i].x, b[i].y, b[i].x + b[i].w, b[i].y + b[i].h, mousex / vsx, mousey / vsy) or i == active_button then
@@ -215,7 +208,7 @@ function widget:DrawScreen()
 				uiRect(b[i].x, b[i].y + (b[i].h * 0.55), b[i].x + b[i].w - (bgpadding / vsx), b[i].y + b[i].h - (bgpadding / vsy), elementCorner * 0.66, 1, 1, 0, 0, { 1, 1, 1, 0.06 }, { 1, 1, 1, buttonstate and 0.4 or 0.25 })
 				uiRect(b[i].x, b[i].y, b[i].x + b[i].w - (bgpadding / vsx), b[i].y + (b[i].h * 0.4), elementCorner * 0.66, 0, 0, 1, 1, { 1, 1, 1, buttonstate and 0.25 or 0.15 }, { 1, 1, 1, 0 })
 				glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-				uiText(b[i].text, b[i].x, b[i].y + b[i].h / 2, (0.0115), 'vo')
+				font:Print(b[i].text, math.floor((b[i].x * vsx) + 0.5), math.floor(((b[i].y + b[i].h / 2) * vsy) + 0.5), math.floor((0.0115 * vsx) + 0.5), 'vo')
 				break
 			end
 		end
@@ -228,11 +221,12 @@ function widget:DrawScreen()
 				uiRect(b[i].x, b[i].y + (b[i].h * 0.55), b[i].x + b[i].w - (bgpadding / vsx), b[i].y + b[i].h - (bgpadding / vsy), elementCorner * 0.66, 1, 1, 0, 0, { 1, 1, 1, 0.06 }, { 1, 1, 1, buttonstate and 0.4 or 0.25 })
 				uiRect(b[i].x, b[i].y, b[i].x + b[i].w - (bgpadding / vsx), b[i].y + (b[i].h * 0.4), elementCorner * 0.66, 0, 0, 1, 1, { 1, 1, 1, buttonstate and 0.25 or 0.15 }, { 1, 1, 1, 0 })
 				glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-				uiText(b[i].text, b[i].x, b[i].y + b[i].h / 2, (0.0115), 'vo')
+				font:Print(b[i].text, math.floor((b[i].x * vsx) + 0.5), math.floor(((b[i].y + b[i].h / 2) * vsy) + 0.5), math.floor((0.0115 * vsx) + 0.5), 'vo')
 				break
 			end
 		end
 	end
+	font:End()
 end
 
 function widget:MousePress(x, y, button)
@@ -254,7 +248,7 @@ function widget:MousePress(x, y, button)
 	local cb, i = clicked_button(buttons)
 	if cb == "playpauseskip" then
 		if Spring.GetGameFrame() > 1 then
-			if (isPaused) then
+			if isPaused then
 				Spring.SendCommands("pause 0")
 				buttons[i].text = "  ||"
 				isPaused = false
