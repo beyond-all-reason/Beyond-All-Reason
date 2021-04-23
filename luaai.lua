@@ -21,7 +21,7 @@ return {
     desc = 'EasyAI'
   },
   {
-    name = 'SimpleVampireAI',
+    name = 'SimpleConstructorAI',
     desc = 'EasyAI'
   },
   {

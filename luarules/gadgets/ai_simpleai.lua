@@ -10,6 +10,7 @@ local mapsizeX = Game.mapSizeX
 local mapsizeZ = Game.mapSizeZ
 
 -- team locals
+SimpleFactoriesCount = {}
 SimpleFactories = {}
 SimpleT1Mexes = {}
 SimpleFactoryDelay = {}
@@ -17,16 +18,17 @@ SimpleFactoryDelay = {}
 for i = 1, #teams do
 	local teamID = teams[i]
 	local luaAI = Spring.GetTeamLuaAI(teamID)
-	if luaAI and luaAI ~= "" and (string.sub(luaAI, 1, 8) == 'SimpleAI' or string.sub(luaAI, 1, 15) == 'SimpleCheaterAI' or string.sub(luaAI, 1, 16) == 'SimpleDefenderAI' or string.sub(luaAI, 1, 15) == 'SimpleVampireAI') then
+	if luaAI and luaAI ~= "" and (string.sub(luaAI, 1, 8) == 'SimpleAI' or string.sub(luaAI, 1, 15) == 'SimpleCheaterAI' or string.sub(luaAI, 1, 16) == 'SimpleDefenderAI' or string.sub(luaAI, 1, 15) == 'SimpleConstructorAI') then
 		enabled = true
 		SimpleAITeamIDsCount = SimpleAITeamIDsCount + 1
 		SimpleAITeamIDs[SimpleAITeamIDsCount] = teamID
 
-		SimpleFactories[teamID] = 0
+		SimpleFactoriesCount[teamID] = 0
+		SimpleFactories[teamID] = {}
 		SimpleT1Mexes[teamID] = 0
 		SimpleFactoryDelay[teamID] = 0
 
-		if string.sub(luaAI, 1, 15) == 'SimpleCheaterAI' or string.sub(luaAI, 1, 16) == 'SimpleDefenderAI' or string.sub(luaAI, 1, 15) == 'SimpleVampireAI' then
+		if string.sub(luaAI, 1, 15) == 'SimpleCheaterAI' or string.sub(luaAI, 1, 16) == 'SimpleDefenderAI' or string.sub(luaAI, 1, 15) == 'SimpleConstructorAI' then
 			SimpleCheaterAITeamIDsCount = SimpleCheaterAITeamIDsCount + 1
 			SimpleCheaterAITeamIDs[SimpleCheaterAITeamIDsCount] = teamID
 		end
@@ -80,6 +82,9 @@ local BadUnitsList = {
 
 	"armdl",
 	"cordl",
+
+	"armdt",
+	"cordt",
 }
 
 local BadUnitDefs = {}
@@ -147,15 +152,14 @@ local function SimpleGetClosestMexSpot(x, z)
 				bestDist = dist
 			end
 		end
-
 	end
 	return bestSpot
 end
 
 local function SimpleBuildOrder(cUnitID, building)
 	searchRange = 0
-	for b2 = 1,500 do
-		searchRange = searchRange + 25
+	for b2 = 1,20 do
+		searchRange = searchRange + 300
 		local team = Spring.GetUnitTeam(cUnitID)
 		local cunitposx, _, cunitposz = Spring.GetUnitPosition(cUnitID)
 		local units = Spring.GetUnitsInCylinder(cunitposx, cunitposz, searchRange, team)
@@ -231,7 +235,7 @@ local function SimpleConstructionProjectSelection(unitID, unitDefID, unitName, u
 	local unitCommands = Spring.GetCommandQueue(unitID, 0)
 	local buildOptions = UnitDefs[unitDefID].buildOptions
 	-- Builders
-	for b1 = 1,100 do
+	for b1 = 1,10 do
 		if type == "Builder" or type == "Commander" then
 			SimpleFactoryDelay[unitTeam] = SimpleFactoryDelay[unitTeam]-1
 			local r = math.random(0, 20)
@@ -258,17 +262,18 @@ local function SimpleConstructionProjectSelection(unitID, unitDefID, unitName, u
 				end
 			
 			elseif mcurrent < mstorage * 0.30 or r == 1 then
-				if type == "Commander" then
-					for t = 1,10 do
-						local targetUnit = units[math.random(1,#units)]
-						if UnitDefs[Spring.GetUnitDefID(targetUnit)].isBuilding == true then
-							local tUnitX, tUnitY, tUnitZ = Spring.GetUnitPosition(targetUnit)
-							Spring.GiveOrderToUnit(unitID, CMD.MOVE, { tUnitX + math.random(-100, 100), tUnitY, tUnitZ + math.random(-100, 100) }, { "shift", "alt", "ctrl" })
-							success = true
-							break
-						end
-					end
-				elseif ecurrent > estorage * 0.85 or (not mexspotpos) then
+				-- if type == "Commander" then
+				-- 	for t = 1,10 do
+				-- 		local targetUnit = units[math.random(1,#units)]
+				-- 		if UnitDefs[Spring.GetUnitDefID(targetUnit)].isBuilding == true then
+				-- 			local tUnitX, tUnitY, tUnitZ = Spring.GetUnitPosition(targetUnit)
+				-- 			Spring.GiveOrderToUnit(unitID, CMD.MOVE, { tUnitX + math.random(-100, 100), tUnitY, tUnitZ + math.random(-100, 100) }, { "shift", "alt", "ctrl" })
+				-- 			success = true
+				-- 			break
+				-- 		end
+				-- 	end
+				-- elseif
+				if (not mexspotpos) and (ecurrent > estorage * 0.85 or r == 1) then
 					local project = SimpleConverterDefs[math.random(1, #SimpleConverterDefs)]
 					for i2 = 1,#buildOptions do
 						if buildOptions[i2] == project then
@@ -284,10 +289,67 @@ local function SimpleConstructionProjectSelection(unitID, unitDefID, unitName, u
 						if buildOptions[i2] == project then
 							Spring.GiveOrderToUnit(unitID, -project, { mexspotpos.x, mexspotpos.y, mexspotpos.z, 0 }, { "shift" })
 							--Spring.Echo("Success! Project Type: Extractor.")
+							for i3 = 1,50 do
+								local projectturret = SimpleTurretDefs[math.random(1, #SimpleTurretDefs)]
+								if buildOptions[i3] == projectturret then
+									Spring.GiveOrderToUnit(unitID, -projectturret, { mexspotpos.x+100, mexspotpos.y, mexspotpos.z, math.random(0,3) }, { "shift" })
+									break
+								end
+							end
+							for i3 = 1,50 do
+								local projectturret = SimpleTurretDefs[math.random(1, #SimpleTurretDefs)]
+								if buildOptions[i3] == projectturret then
+									Spring.GiveOrderToUnit(unitID, -projectturret, { mexspotpos.x-100, mexspotpos.y, mexspotpos.z, math.random(0,3) }, { "shift" })
+									break
+								end
+							end
+							for i3 = 1,50 do
+								local projectturret = SimpleTurretDefs[math.random(1, #SimpleTurretDefs)]
+								if buildOptions[i3] == projectturret then
+									Spring.GiveOrderToUnit(unitID, -projectturret, { mexspotpos.x, mexspotpos.y, mexspotpos.z-100, math.random(0,3) }, { "shift" })
+									break
+								end
+							end
+							for i3 = 1,50 do
+								local projectturret = SimpleTurretDefs[math.random(1, #SimpleTurretDefs)]
+								if buildOptions[i3] == projectturret then
+									Spring.GiveOrderToUnit(unitID, -projectturret, { mexspotpos.x, mexspotpos.y, mexspotpos.z-100, math.random(0,3) }, { "shift" })
+									break
+								end
+							end
+							for i3 = 1,50 do
+								local projectturret = SimpleTurretDefs[math.random(1, #SimpleTurretDefs)]
+								if buildOptions[i3] == projectturret then
+									Spring.GiveOrderToUnit(unitID, -projectturret, { mexspotpos.x+100, mexspotpos.y, mexspotpos.z+100, math.random(0,3) }, { "shift" })
+									break
+								end
+							end
+							for i3 = 1,50 do
+								local projectturret = SimpleTurretDefs[math.random(1, #SimpleTurretDefs)]
+								if buildOptions[i3] == projectturret then
+									Spring.GiveOrderToUnit(unitID, -projectturret, { mexspotpos.x-100, mexspotpos.y, mexspotpos.z+100, math.random(0,3) }, { "shift" })
+									break
+								end
+							end
+							for i3 = 1,50 do
+								local projectturret = SimpleTurretDefs[math.random(1, #SimpleTurretDefs)]
+								if buildOptions[i3] == projectturret then
+									Spring.GiveOrderToUnit(unitID, -projectturret, { mexspotpos.x+100, mexspotpos.y, mexspotpos.z-100, math.random(0,3) }, { "shift" })
+									break
+								end
+							end
+							for i3 = 1,50 do
+								local projectturret = SimpleTurretDefs[math.random(1, #SimpleTurretDefs)]
+								if buildOptions[i3] == projectturret then
+									Spring.GiveOrderToUnit(unitID, -projectturret, { mexspotpos.x-100, mexspotpos.y, mexspotpos.z-100, math.random(0,3) }, { "shift" })
+									break
+								end
+							end
 							success = true
 							break
 						end
 					end
+					
 				end
 			elseif r == 2 or r == 3 or r == 4 or r == 5 then
 				local project = SimpleTurretDefs[math.random(1, #SimpleTurretDefs)]
@@ -299,10 +361,10 @@ local function SimpleConstructionProjectSelection(unitID, unitDefID, unitName, u
 						break
 					end
 				end
-			elseif (mcurrent > mstorage * 0.75 and ecurrent > estorage * 0.75) and SimpleFactoryDelay[unitTeam] <= 0 then
+			elseif SimpleFactoriesCount[unitTeam] < 1 or ((mcurrent > mstorage * 0.75 and ecurrent > estorage * 0.75) and SimpleFactoryDelay[unitTeam] <= 0) then
 				local project = SimpleFactoriesDefs[math.random(1, #SimpleFactoriesDefs)]
 				for i2 = 1,#buildOptions do
-					if buildOptions[i2] == project then
+					if buildOptions[i2] == project and (not SimpleFactories[unitTeam][project]) then
 						SimpleBuildOrder(unitID, project)
 						SimpleFactoryDelay[unitTeam] = 30
 						--Spring.Echo("Success! Project Type: Factory.")
@@ -362,7 +424,7 @@ local function SimpleConstructionProjectSelection(unitID, unitDefID, unitName, u
 			if #Spring.GetFullBuildQueue(unitID, 0) < 5 then
 				local r = math.random(0, 5)
 				local luaAI = Spring.GetTeamLuaAI(unitTeam)
-				if r == 0 or string.sub(luaAI, 1, 15) == 'SimpleVampireAI' then
+				if r == 0 or string.sub(luaAI, 1, 15) == 'SimpleConstructorAI' then
 					local project = SimpleConstructorDefs[math.random(1, #SimpleConstructorDefs)]
 					for i2 = 1,#buildOptions do
 						if buildOptions[i2] == project then
@@ -412,10 +474,10 @@ if gadgetHandler:IsSyncedCode() then
 					for j = 1, #SimpleCheaterAITeamIDs do
 						if teamID == SimpleCheaterAITeamIDs[j] then
 							-- --cheats
-							if mcurrent < mstorage * 0.25 then
+							if mcurrent < mstorage * 0.20 then
 								Spring.SetTeamResource(teamID, "m", mstorage * 0.25)
 							end
-							if ecurrent < estorage * 0.25 then
+							if ecurrent < estorage * 0.20 then
 								Spring.SetTeamResource(teamID, "e", estorage * 0.25)
 							end
 						end
@@ -439,7 +501,15 @@ if gadgetHandler:IsSyncedCode() then
 						-- builders
 						for u = 1, #SimpleCommanderDefs do
 							if unitDefID == SimpleCommanderDefs[u] then
-								local nearestEnemy = Spring.GetUnitNearestEnemy(unitID, 500, true)
+								local nearestEnemyCloak = Spring.GetUnitNearestEnemy(unitID, 2000, false)
+								if nearestEnemyCloak and ecurrent > 1000 then
+									Spring.GiveOrderToUnit(unitID, 37382, {1}, 0)
+								else
+									Spring.GiveOrderToUnit(unitID, 37382, {0}, 0)
+								end
+								
+								
+								local nearestEnemy = Spring.GetUnitNearestEnemy(unitID, 250, true)
 								local unitHealthPercentage = (unitHealth/unitMaxHealth)*100
 
 								if nearestEnemy and unitHealthPercentage > 30 then
@@ -447,7 +517,7 @@ if gadgetHandler:IsSyncedCode() then
 										Spring.SetTeamResource(teamID, "e", estorage*0.9)
 									end
 									Spring.GiveOrderToUnit(unitID, CMD.DGUN, {nearestEnemy}, 0)
-									local nearestEnemies = Spring.GetUnitsInCylinder(unitposx, unitposz, 750)
+									local nearestEnemies = Spring.GetUnitsInCylinder(unitposx, unitposz, 300)
 									for x = 1,#nearestEnemies do
 										local enemy = nearestEnemies[x]
 										if Spring.GetUnitTeam(enemy) == Spring.GetUnitTeam(nearestEnemy) and enemy ~= nearestEnemy then
@@ -456,7 +526,7 @@ if gadgetHandler:IsSyncedCode() then
 									end
 									Spring.GiveOrderToUnit(unitID, CMD.MOVE, {unitposx, unitposy, unitposz}, {"shift"})
 								elseif nearestEnemy then
-									for x = 1,100 do
+									for x = 1,10 do
 										local targetUnit = units[math.random(1,#units)]
 										if UnitDefs[Spring.GetUnitDefID(targetUnit)].isBuilding == true then
 											local tUnitX, tUnitY, tUnitZ = Spring.GetUnitPosition(targetUnit)
@@ -550,7 +620,8 @@ if gadgetHandler:IsSyncedCode() then
 			if SimpleAITeamIDs[i] == unitTeam then
 				for u = 1, #SimpleFactoriesDefs do
 					if unitDefID == SimpleFactoriesDefs[u] then
-						SimpleFactories[unitTeam] = SimpleFactories[unitTeam] + 1
+						SimpleFactoriesCount[unitTeam] = SimpleFactoriesCount[unitTeam] + 1
+						SimpleFactories[unitTeam][unitDefID] = true
 						break
 					end
 				end
@@ -570,7 +641,8 @@ if gadgetHandler:IsSyncedCode() then
 			if SimpleAITeamIDs[i] == unitTeam then
 				for u = 1, #SimpleFactoriesDefs do
 					if unitDefID == SimpleFactoriesDefs[u] then
-						SimpleFactories[unitTeam] = SimpleFactories[unitTeam] - 1
+						SimpleFactoriesCount[unitTeam] = SimpleFactoriesCount[unitTeam] - 1
+						SimpleFactories[unitTeam][unitDefID] = nil
 						break
 					end
 				end
