@@ -14,30 +14,30 @@ function gadget:GameFrame(n)
 
 -- Use _ for damage, paralyzedamage, damageradius if you want to disable
 
--- common foggy cliffs	
+-- common foggy cliffs
 	if n%540 == 0 then
 		SpawnCEGInPositionGround("fogdirty-red", 3298, 32, 2811)
 		SpawnCEGInPositionGround("fogdirty-red", 6957, 32, 2772)
 		SpawnCEGInPositionGround("fogdirty-red", 346, 32, 1550)
 	end
 
---rare foggy cliffs	
+--rare foggy cliffs
 	if n%610 == 305 then
 		SpawnCEGInPositionGround("fogdirty-red", 1799, 32, 440)
 		SpawnCEGInPositionGround("fogdirty-red", 8569, 32, 535)
 	end
 
---foggy canyon	
+--foggy canyon
 	if n%300 == 100 then
 		SpawnCEGInPositionGround("fogdirty-red", 5344, 32, 488)
 		SpawnCEGInPositionGround("fogdirty-red", 5497, 32, 1299)
-	end	
+	end
 
 --foggy canyon alt
 	if n%310 == 250 then
-		SpawnCEGInPositionGround("fogdirty-red", 5507, 0, 767)		
+		SpawnCEGInPositionGround("fogdirty-red", 5507, 0, 767)
 		SpawnCEGInPositionGround("fogdirty-red", 5228, 0, 1589)
-	end	
+	end
 
 -- fireflies
 	if n%1500 == 0 then
@@ -52,27 +52,27 @@ function gadget:GameFrame(n)
 	end
 
 -- lightningstorms
-	local lightningsounds = {
-	"thunder1",
-	"thunder2",
-	"thunder3",
-	"thunder4",
-	"thunder5",
-	"thunder6",
-	}    
+	--local lightningsounds = {
+	--"thunder1",
+	--"thunder2",
+	--"thunder3",
+	--"thunder4",
+	--"thunder5",
+	--"thunder6",
+	--}
 
-	if n%5000 == 2100 then
-		SpawnCEGInRandomMapPos("lightningstrike", 0, 100, 200, 128, lightningsounds[math.random(1,#lightningsounds)], 1)
-	end
-	if n%5300 == 2540 then
-		SpawnCEGInRandomMapPos("lightningstrike", 0, 100, 200, 128, lightningsounds[math.random(1,#lightningsounds)], 1)
-	end
-	if n%5700 == 2810 then
-		SpawnCEGInRandomMapPos("lightningstrike", 0, 100, 200, 128, lightningsounds[math.random(1,#lightningsounds)], 1)
-	end
-	if n%5900 == 3400 then
-		SpawnCEGInRandomMapPos("lightningstrike", 0, 100, 200, 128, lightningsounds[math.random(1,#lightningsounds)], 1)
-	end
+	--if n%5000 == 2100 then
+	--	SpawnCEGInRandomMapPos("lightningstrike", 0, _, _, _, lightningsounds[math.random(1,#lightningsounds)], 1)
+	--end
+	--if n%5300 == 2540 then
+	--	SpawnCEGInRandomMapPos("lightningstrike", 0, _, _, _, lightningsounds[math.random(1,#lightningsounds)], 1)
+	--end
+	--if n%5700 == 2810 then
+	--	SpawnCEGInRandomMapPos("lightningstrike", 0, _, _, _, lightningsounds[math.random(1,#lightningsounds)], 1)
+	--end
+	--if n%5900 == 3400 then
+	--	SpawnCEGInRandomMapPos("lightningstrike", 0, _, _, _, lightningsounds[math.random(1,#lightningsounds)], 1)
+	--end
 
-	
+
 end
