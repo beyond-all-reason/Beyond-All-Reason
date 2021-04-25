@@ -135,7 +135,7 @@ return {
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				model = "torpedo.s3o",
-				name = "Light homing torpedo launcher",
+				name = "Light torpedo launcher",
 				noselfdamage = true,
 				predictboost = 1,
 				range = 500,
@@ -148,15 +148,12 @@ return {
 				turret = false,
 				waterweapon = true,
 				weaponacceleration = 15,
-
-
-
 				weapontimer = 3.25,
 				weapontype = "TorpedoLauncher",
 				weaponvelocity = 160,
 				damage = {
 					--commanders = 420,
-					default = 342 --455,
+					default = 342, --455,
 					--subs = 126,
 				},
 			},
