@@ -40,7 +40,7 @@ return {
 		turninplaceanglelimit = 90,
 		turnrate = 540,
 		upright = true,
-		waterline = 120,
+		waterline = 40,
 		customparams = {
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",
@@ -136,7 +136,7 @@ return {
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				model = "cortorpedo.s3o",
-				name = "AdvancedTorpedo",
+				name = "Rapid armor-piercing torpedoes",
 				noselfdamage = true,
 				range = 400,
 				reloadtime = 2.8,
