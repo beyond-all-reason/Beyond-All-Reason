@@ -9,6 +9,8 @@ local wind = Game.windMax
 local mapsizeX = Game.mapSizeX
 local mapsizeZ = Game.mapSizeZ
 
+local gameShortName = Game.gameShortName
+
 -- team locals
 SimpleFactoriesCount = {}
 SimpleFactories = {}
@@ -47,45 +49,53 @@ function gadget:GetInfo()
 end
 
 -------- lists
+BadUnitsList = {}
+if gameShortName == "BYAR" then
+	BadUnitsList = {
+		-- transports
+		"armthovr",
+		"corthovr",
+		"armatlas",
+		"armtship",
+		"corvalk",
+		"cortship",
+		"armdfly",
+		"corseah",
+		"corint",
 
-local BadUnitsList = {
-	-- transports
-	"armthovr",
-	"corthovr",
-	"armatlas",
-	"armtship",
-	"corvalk",
-	"cortship",
-	"armdfly",
-	"corseah",
-	"corint",
+		-- stockpilers
+		"armscab",
+		"armemp",
+		"armjuno",
+		"armamd",
+		"armmercury",
+		"armsilo",
+		"armcarry",
+		"corfmd",
+		"corjuno",
+		"corscreamer",
+		"corsilo",
+		"cortron",
+		"corcarry",
+		"cormabm",
 
-	-- stockpilers
-	"armscab",
-	"armemp",
-	"armjuno",
-	"armamd",
-	"armmercury",
-	"armsilo",
-	"armcarry",
-	"corfmd",
-	"corjuno",
-	"corscreamer",
-	"corsilo",
-	"cortron",
-	"corcarry",
-	"cormabm",
+		-- minelayers
+		"armmlv",
+		"cormlv",
 
-	-- minelayers
-	"armmlv",
-	"cormlv",
+		-- depth charge launchers
+		"armdl",
+		"cordl",
 
-	"armdl",
-	"cordl",
+		-- walls
+		"armdrag",
+		"cordrag",
+	}
+end
 
-	"armdt",
-	"cordt",
-}
+if gameShortName == "EvoRTS" then
+	BadUnitsList = {}
+end
 
 local BadUnitDefs = {}
 local SimpleCommanderDefs = {}
@@ -115,7 +125,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 			SimpleFactoriesDefs[#SimpleFactoriesDefs + 1] = unitDefID
 		elseif unitDef.canMove and unitDef.isBuilder and #unitDef.buildOptions > 0 then
 			SimpleConstructorDefs[#SimpleConstructorDefs + 1] = unitDefID
-		elseif unitDef.extractsMetal > 0 then
+		elseif unitDef.extractsMetal > 0 or (unitDef.customParams and unitDef.customParams.metal_extractor) then
 			SimpleExtractorDefs[#SimpleExtractorDefs + 1] = unitDefID
 		elseif (unitDef.energyMake > 19 and (not unitDef.energyUpkeep or unitDef.energyUpkeep < 10)) or (unitDef.windGenerator > 0 and wind > 10) or unitDef.tidalGenerator > 0 or (unitDef.customParams and unitDef.customParams.solar) then
 			SimpleGeneratorDefs[#SimpleGeneratorDefs + 1] = unitDefID
