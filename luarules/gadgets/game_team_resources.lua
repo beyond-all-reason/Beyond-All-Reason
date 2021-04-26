@@ -16,10 +16,6 @@ end
 
 local function setup(addResources)
 
-	if Spring.GetGameFrame() > 0 then
-		return
-	end
-
 	local modOptions = Spring.GetModOptions() or {}
 	local startMetal = tonumber(modOptions.startmetal) or 1000
 	local startEnergy = tonumber(modOptions.startenergy) or 1000
@@ -64,6 +60,9 @@ local function setup(addResources)
 end
 
 function gadget:Initialize()
+	if Spring.GetGameFrame() > 0 then
+		return
+	end
 	setup(true)
 end
 
