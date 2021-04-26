@@ -30,7 +30,7 @@ return {
 		idletime = 1800,
 		maxdamage = 2072,
 		maxslope = 30,
-		metalstorage = 1000,
+		metalstorage = 600,
 		minwaterdepth = 15,
 		name = unitName,
 		objectname = "Units/CORUWMME.s3o",
