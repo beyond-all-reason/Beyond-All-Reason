@@ -213,7 +213,11 @@ function widget:MousePress(x, y, button)
 		end
 		sceduleUpdate = true
 		return true
-	end
+    elseif cb ~= "NOBUTTONCLICKED" then
+        setReplaySpeed(speeds[i], i)
+        sceduleUpdate = true
+        return true
+    end
 end
 
 local uiOpacitySec = 0
