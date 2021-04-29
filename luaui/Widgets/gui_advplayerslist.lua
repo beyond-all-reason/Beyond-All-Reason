@@ -1407,11 +1407,15 @@ function CreatePlayer(playerID)
 end
 
 function GetAIName(teamID)
-    local _, _, _, name, _, _ = Spring_GetAIInfo(teamID)
+    local _, _, _, name, _, options = Spring_GetAIInfo(teamID)
     local niceName = Spring.GetGameRulesParam('ainame_' .. teamID)
 
 	if niceName then
         name = niceName
+
+		if options.profile then
+			name = name .. " [" .. options.profile .. "]"
+		end
 	end
 
     return Spring.I18N('ui.playersList.aiName', { name = name })
