@@ -3,7 +3,7 @@ local widgetVersion = 24
 function widget:GetInfo()
     return {
         name = "AdvPlayersList",
-        desc = "Playerlist. Use tweakmode (ctrl+F11) to customize.",
+        desc = "List of players and spectators",
         author = "Marmoth. (spiced up by Floris)",
         date = "2008",
         version = widgetVersion,
@@ -88,7 +88,6 @@ local GetCameraState = Spring.GetCameraState
 local SetCameraState = Spring.SetCameraState
 
 local gl_Texture = gl.Texture
-local gl_Rect = gl.Rect
 local gl_Color = gl.Color
 local gl_CreateList = gl.CreateList
 local gl_DeleteList = gl.DeleteList
@@ -103,7 +102,6 @@ local elementCorner = Spring.FlowUI.elementCorner
 --------------------------------------------------------------------------------
 
 local imageDirectory = ":l:" .. LUAUI_DIRNAME .. "Images/advplayerslist/"
-
 local flagsDirectory = imageDirectory .. "flags/"
 
 local pics = {
@@ -257,7 +255,6 @@ local gameStarted = false
 -- Button check variable
 --------------------------------------------------------------------------------
 
-local clickToMove    -- click detection for moving the widget
 local energyPlayer    -- player to share energy with (nil when no energy sharing)
 local metalPlayer    -- player to share metal with(nil when no metal sharing)
 local amountEM = 0      -- amount of metal/energy to share/ask
@@ -3247,10 +3244,6 @@ function Spec(teamID)
     SortList()
 end
 
----------------------------------------------------------------------------------------------------
---  Tweak mode
----------------------------------------------------------------------------------------------------
-
 function IsOnRectPlain(x, y, BLcornerX, BLcornerY, TRcornerX, TRcornerY)
     return x >= BLcornerX and x <= TRcornerX and y >= BLcornerY and y <= TRcornerY
 end
@@ -3266,182 +3259,6 @@ function IsOnRect(x, y, BLcornerX, BLcornerY, TRcornerX, TRcornerY)
     return x >= BLcornerX and x <= TRcornerX
             and y >= BLcornerY
             and y <= TRcornerY
-end
-
-local function DrawTweakButton(module, localLeft, localOffset, localBottom)
-    gl_Texture(module.pic)
-    DrawRect(localLeft + localOffset, localBottom + 11, localLeft + localOffset + 16, localBottom + 27)
-    if module.active ~= true and module.alwaysActive == nil then
-        gl_Texture(pics["crossPic"])
-        DrawRect(localLeft + localOffset, localBottom + 11, localLeft + localOffset + 16, localBottom + 27)
-    end
-end
-
-local function DrawTweakButtons()
-    local localLeft = widgetPosX
-    local localBottom = widgetPosY + widgetHeight - 28
-    local localOffset = 1 --see func above, these track how far right we've got TODO: pass values
-
-    gl_Color(0, 0, 0, 0.5)
-    RectRound(localLeft - 3, localBottom + 8, localLeft + widgetWidth + 3, localBottom + 30, 5, true)
-
-    gl_Color(1, 1, 1, 1)
-
-    if localBottom < 0 then
-        localBottom = 0
-    end
-
-    for n, module in pairs(modules) do
-        if module.noPic == nil or module.noPic == false then
-            if mySpecStatus == false or mySpecStatus == true and module.spec then
-                DrawTweakButton(module, localLeft, localOffset, localBottom)
-                localOffset = localOffset + 16
-            end
-        end
-        if module.picGap ~= nil then
-            if mySpecStatus == false or mySpecStatus == true and module.spec then
-                localOffset = localOffset + module.picGap
-            end
-        end
-    end
-
-end
-
-function widget:TweakDrawScreen()
-    if collapsed then
-        return
-    end
-
-    local scaleDiffX = -((widgetPosX * widgetScale) - widgetPosX) / widgetScale
-    local scaleDiffY = -((widgetPosY * widgetScale) - widgetPosY) / widgetScale
-    gl.Scale(widgetScale, widgetScale, 0)
-    gl.Translate(scaleDiffX, scaleDiffY, 0)
-
-    DrawTweakButtons()
-
-    CreateMainList()
-    CreateBackground()
-
-    local scaleReset = widgetScale / widgetScale / widgetScale
-    gl.Translate(-scaleDiffX, -scaleDiffY, 0)
-    gl.Scale(scaleReset, scaleReset, 0)
-end
-
-function checkButton(module, x, y, localLeft, localOffset, localBottom)
-    if IsOnRect(x, y, localLeft + localOffset, localBottom + 11, localLeft + localOffset + 16, localBottom + 27) then
-        if module.alwaysActive == nil then
-            module.active = not module.active
-            SetModulesPositionX() --why?
-            SortList()
-            -- adjust because of widget scaling
-            local widthDiff = (module.width * widgetScale) - module.width
-            if module.active then
-                widgetRight = widgetRight - widthDiff
-            else
-                widgetRight = widgetRight + widthDiff
-            end
-        else
-            if module.name == "sizedn" then
-                customScaleDown()
-            elseif module.name == "sizeup" then
-                customScaleUp()
-            end
-        end
-        CreateLists()
-        return true
-    else
-        return false
-    end
-end
-
-function widget:TweakMousePress(x, y, button)
-    if collapsed then
-        return
-    end
-
-    if button == 1 then
-        local localLeft = widgetPosX
-        local localBottom = widgetPosY + widgetHeight - 28
-        local localOffset = 1
-        if localBottom < 0 then
-            localBottom = 0
-        end
-
-        for _, module in pairs(modules) do
-            if module.noPic == nil or module.noPic == false then
-                if mySpecStatus == false or mySpecStatus == true and module.spec then
-                    if checkButton(module, x, y, localLeft, localOffset, localBottom) then
-                        return true
-                    end
-                    localOffset = localOffset + 16
-                end
-            end
-            if module.picGap ~= nil then
-                if mySpecStatus == false or mySpecStatus == true and module.spec then
-                    localOffset = localOffset + module.picGap
-                end
-            end
-        end
-    elseif button == 2 or button == 3 then
-        if IsOnRect(x, y, widgetPosX, widgetPosY, widgetPosX + widgetWidth, widgetPosY + widgetHeight) then
-            clickToMove = true
-            return true
-        end
-
-    end
-end
-
-function widget:TweakMouseMove(x, y, dx, dy, button)
-    if collapsed then
-        return
-    end
-
-    if clickToMove ~= nil then
-        if moveStartX == nil then
-            -- move widget on y axis
-            moveStartX = x - widgetPosX
-        end
-        if moveStartY == nil then
-            -- move widget on y axis
-            moveStartY = y - widgetPosY
-        end
-        widgetPosX = widgetPosX + dx
-        widgetPosY = widgetPosY + dy
-
-        if widgetPosY <= (backgroundMargin * widgetScale) then
-            widgetPosY = (backgroundMargin * widgetScale)
-            expandDown = false --expandDown=false only if we are right on the bottom of the screen
-        end
-        if widgetPosY + (widgetHeight * widgetScale) >= vsy - (backgroundMargin * widgetScale) then
-            widgetPosY = vsy - (widgetHeight * widgetScale) - (backgroundMargin * widgetScale)
-            expandDown = true
-        end
-        if widgetPosX <= (backgroundMargin * widgetScale) then
-            --expandLeft=false only when we are precisely on the left edge of the screen
-            widgetPosX = (backgroundMargin * widgetScale)
-            expandLeft = false
-        end
-        if widgetPosX + (widgetWidth * widgetScale) >= vsx - (backgroundMargin * widgetScale) then
-            widgetPosX = vsx - (widgetWidth * widgetScale) - (backgroundMargin * widgetScale)
-            expandLeft = true
-        end
-        widgetTop = widgetPosY + widgetHeight
-        widgetRight = widgetPosX + widgetWidth
-        widgetRelRight = vsx - (widgetPosX + (widgetWidth * widgetScale))
-        if widgetRight > vsx / 2 then
-            right = true
-        else
-            right = false
-        end
-    end
-end
-
-function widget:TweakMouseRelease(x, y, button)
-    if collapsed then
-        return
-    end
-
-    clickToMove = nil -- ends the share slider process
 end
 
 ---------------------------------------------------------------------------------------------------
