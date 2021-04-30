@@ -96,6 +96,9 @@ SelfD = CMD.SELFD
 
 
 local CurrentGameFrame = Spring.GetGameFrame()
+local myTeamID = Spring.GetMyTeamID()
+local myAllyTeamID = Spring.GetMyAllyTeamID()
+local spectator = Spring.GetSpectatingState()
 
 function PlaySelectSound(unitID)
 	local unitDefID = Spring.GetUnitDefID(unitID)
@@ -129,6 +132,13 @@ function PlaySelectSound(unitID)
 end
 
 function gadget:GameFrame(n)
+	if n%30 == 15 then
+		myTeamID = Spring.GetMyTeamID()
+		myAllyTeamID = Spring.GetMyAllyTeamID()
+		spectator = Spring.GetSpectatingState()
+	end
+
+	
 	CurrentGameFrame = Spring.GetGameFrame()
 	if not selectionChanged then
 		selectionChanged = false
@@ -177,7 +187,6 @@ function gadget:GameFrame(n)
 	end
 
 	local units = Spring.GetAllUnits()
-	local myTeamID = Spring.GetMyTeamID()
 	for i = 1, #units do
 		local unitID = units[i]
 		if ActiveStateTrackingUnitList[unitID] then
@@ -195,7 +204,8 @@ function gadget:GameFrame(n)
 				local unitName = UnitDefs[unitDefID].name
 				local unitTeam = Spring.GetUnitTeam(unitID)
 				local posx, posy, posz = Spring.GetUnitPosition(unitID)
-				local visible = Spring.IsUnitInView(unitID)
+				local onScreen = Spring.IsUnitInView(unitID)
+				local inLoS = Spring.IsUnitInLos(unitID, myAllyTeamID)
 				if currentlyActive == 1 then
 					ActiveStateTrackingUnitList[unitID] = 1
 					if (not GUIUnitSoundEffects[unitName].BaseSoundDeactivate) and GUIUnitSoundEffects[unitName].BaseSoundActivate then
@@ -210,7 +220,7 @@ function gadget:GameFrame(n)
 								Spring.PlaySoundFile(sound, 1, posx, posy, posz, 'ui')
 							end
 						end
-					elseif visible then
+					elseif (onScreen == true and inLos == true) or (onScreen == true and spectator == true) then
 						if GUIUnitSoundEffects[unitName] and GUIUnitSoundEffects[unitName].BaseSoundDeactivate then
 							local sound = GUIUnitSoundEffects[unitName].BaseSoundDeactivate
 							if sound[2] then
@@ -231,7 +241,7 @@ function gadget:GameFrame(n)
 								Spring.PlaySoundFile(sound, 1, posx, posy, posz, 'ui')
 							end
 						end
-					elseif visible then
+					elseif (onScreen == true and inLos == true) or (onScreen == true and spectator == true) then
 						if GUIUnitSoundEffects[unitName] and GUIUnitSoundEffects[unitName].BaseSoundActivate then
 							local sound = GUIUnitSoundEffects[unitName].BaseSoundActivate
 							if sound[2] then
@@ -254,10 +264,10 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 		builderTeam = nil
 	end
 	if builderTeam then
-		local myTeamID = Spring.GetMyTeamID()
 		local _,_,_,_,buildProgress = Spring.GetUnitHealth(unitID)
 		if buildProgress < 0.05 then
-			local allied = Spring.AreTeamsAllied(myTeamID, unitTeam)
+			local onScreen = Spring.IsUnitInView(unitID)
+			local inLoS = Spring.IsUnitInLos(unitID, myAllyTeamID)
 			if myTeamID == builderTeam then
 				local unitName = UnitDefs[unitDefID].name
 				local posx, posy, posz = Spring.GetUnitPosition(unitID)
@@ -283,7 +293,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 						end
 					end
 				end
-			elseif allied then
+			elseif (onScreen == true and inLos == true) or (onScreen == true and spectator == true) then
 				local unitName = UnitDefs[unitDefID].name
 				local posx, posy, posz = Spring.GetUnitPosition(unitID)
 				if CurrentGameFrame >= AllyUnitFinishedSoundDelayLastFrame + AllyUnitCreatedSoundDelayFrames and Spring.IsUnitInView(unitID) then
@@ -314,9 +324,9 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 end
 
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)
-	local myTeamID = Spring.GetMyTeamID()
 	local unitName = UnitDefs[unitDefID].name
-	local allied = Spring.AreTeamsAllied(myTeamID, unitTeam)
+	local onScreen = Spring.IsUnitInView(unitID)
+	local inLoS = Spring.IsUnitInLos(unitID, myAllyTeamID)
 	if myTeamID == unitTeam then
 		local posx, posy, posz = Spring.GetUnitPosition(unitID)
 		if CurrentGameFrame >= UnitFinishedSoundDelayLastFrame + UnitFinishedSoundDelayFrames then
@@ -342,7 +352,7 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 				end
 			end
 		end
-	elseif allied then
+	elseif (onScreen == true and inLos == true) or (onScreen == true and spectator == true) then
 		local posx, posy, posz = Spring.GetUnitPosition(unitID)
 		if CurrentGameFrame >= UnitFinishedSoundDelayLastFrame + AllyUnitFinishedSoundDelayFrames and Spring.IsUnitInView(unitID) then
 			if GUIUnitSoundEffects[unitName] and GUIUnitSoundEffects[unitName].BaseSoundSelectType then
@@ -520,9 +530,10 @@ function gadget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOp
 		end
 	end
 
-	local myTeamID = Spring.GetMyTeamID()
-	local allied = Spring.AreTeamsAllied(myTeamID, unitTeam)
-	if ((unitTeam ~= myTeamID and allied) or (Spring.IsUnitSelected(unitID) == false)) and Spring.IsUnitInView(unitID) then
+
+	local onScreen = Spring.IsUnitInView(unitID)
+	local inLoS = Spring.IsUnitInLos(unitID, myAllyTeamID)
+	if (unitTeam ~= myTeamID and onScreen == true and inLoS == true) then
 		if CurrentGameFrame >= AllyCommandUnitDelayLastFrame + AllyCommandUnitDelayFrames then
 			local unitName = UnitDefs[unitDefID].name
 			local posx, posy, posz = Spring.GetUnitPosition(unitID)
