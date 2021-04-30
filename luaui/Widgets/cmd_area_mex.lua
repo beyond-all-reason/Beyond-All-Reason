@@ -317,7 +317,8 @@ function widget:CommandNotify(id, params, options)
 						local newx, newz = command.x, command.z
 						if not buildable ~= 0 then
 							-- If location unavailable, check surroundings (extractorRadius - 25). Should consider replacing 25 with avg mex x,z sizes
-							local bestPos = GetClosestMexPosition(GetClosestMetalSpot(newx, newz), newx - 2 * Game.extractorRadius, newz - 2 * Game.extractorRadius, -mexBuilder[id].building[j], "s")
+							--local bestPos = GetClosestMexPosition(GetClosestMetalSpot(newx, newz), newx - 2 * Game.extractorRadius, newz - 2 * Game.extractorRadius, -mexBuilder[id].building[j], "s")
+							local bestPos = GetClosestMexPosition(GetClosestMetalSpot(newx, newz), newx, newz, -mexBuilder[id].building[j], "s")
 							if bestPos then
 								newx, newz = bestPos[1], bestPos[3]
 								buildable = true
