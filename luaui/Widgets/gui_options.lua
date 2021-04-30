@@ -2139,7 +2139,6 @@ function init()
 			decals = 0,
 			--grounddetail = 70,
 			darkenmap_darkenfeatures = false,
-			enemyspotter_highlight = false,
 		},
 		[presetNames[2]] = {
 			bloom = false,
@@ -2159,7 +2158,6 @@ function init()
 			decals = 0,
 			--grounddetail = 100,
 			darkenmap_darkenfeatures = false,
-			enemyspotter_highlight = false,
 		},
 		[presetNames[3]] = {
 			bloom = true,
@@ -2179,7 +2177,6 @@ function init()
 			decals = 2,
 			--grounddetail = 140,
 			darkenmap_darkenfeatures = false,
-			enemyspotter_highlight = false,
 		},
 		[presetNames[4]] = {
 			bloom = true,
@@ -2199,7 +2196,6 @@ function init()
 			decals = 4,
 			--grounddetail = 180,
 			darkenmap_darkenfeatures = false,
-			enemyspotter_highlight = false,
 		},
 		[presetNames[5]] = {
 			bloom = true,
@@ -2219,7 +2215,6 @@ function init()
 			decals = 5,
 			--grounddetail = 200,
 			darkenmap_darkenfeatures = true,
-			enemyspotter_highlight = true,
 		},
 	}
 	customPresets = {}
@@ -3768,11 +3763,6 @@ function init()
 			  saveOptionValue('EnemySpotter', 'enemyspotter', 'setOpacity', { 'spotterOpacity' }, value)
 		  end,
 		},
-		--{id="enemyspotter_highlight", group="ui", name=widgetOptionColor.."   unit highlight", type="bool", value=false, description='Colorize/highlight enemy units',
-		--		 onload = function(i) loadWidgetData("EnemySpotter", "enemyspotter_highlight", {'useXrayHighlight'}) end,
-		--		 onchange = function(i, value) saveOptionValue('EnemySpotter', 'enemyspotter', 'setHighlight', {'useXrayHighlight'}, value) end,
-		--		},
-
 
 		{ id = "fancyselectedunits", group = "ui", basic = true, widget = "Fancy Selected Units", name = "Selection Unit Platters", type = "bool", value = GetWidgetToggleValue("Fancy Selected Units"), description = texts.option.fancyselectedunits_descr },
 		--{id="fancyselectedunits_opacity", group="ui", name=widgetOptionColor.."   line opacity", min=0.8, max=1, step=0.01, type="slider", value=0.95, description='Set the opacity of the highlight on selected units',
@@ -5370,7 +5360,6 @@ function init()
 
 	if widgetHandler.knownWidgets["EnemySpotter"] == nil then
 		options[getOptionByID('enemyspotter_opacity')] = nil
-		options[getOptionByID('enemyspotter_highlight')] = nil
 	end
 
 	local processedOptions = {}
