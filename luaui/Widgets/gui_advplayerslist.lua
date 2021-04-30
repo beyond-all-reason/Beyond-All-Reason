@@ -105,7 +105,6 @@ local imageDirectory = ":l:" .. LUAUI_DIRNAME .. "Images/advplayerslist/"
 local flagsDirectory = imageDirectory .. "flags/"
 
 local pics = {
-    chipPic = imageDirectory .. "chip.dds",
     currentPic = imageDirectory .. "indicator.dds",
     unitsPic = imageDirectory .. "units.dds",
     energyPic = imageDirectory .. "energy.dds",
@@ -113,20 +112,16 @@ local pics = {
     notFirstPic = imageDirectory .. "notfirst.dds",
     pingPic = imageDirectory .. "ping.dds",
     cpuPic = imageDirectory .. "cpu.dds",
-    selectPic = imageDirectory .. "select.png",
     barPic = imageDirectory .. "bar.png",
     amountPic = imageDirectory .. "amount.png",
     pointPic = imageDirectory .. "point.dds",
     lowPic = imageDirectory .. "low.dds",
     arrowPic = imageDirectory .. "arrow.dds",
-    arrowdPic = imageDirectory .. "arrowd.png",
     takePic = imageDirectory .. "take.dds",
-    crossPic = imageDirectory .. "cross.dds",
     indentPic = imageDirectory .. "indent.png",
     cameraPic = imageDirectory .. "camera.dds",
     countryPic = imageDirectory .. "country.dds",
     readyTexture = imageDirectory .. "indicator.dds",
-    drawPic = imageDirectory .. "draw.dds",
     allyPic = imageDirectory .. "ally.dds",
     resourcesPic = imageDirectory .. "res.png",
     resbarPic = imageDirectory .. "resbar.png",
@@ -134,7 +129,6 @@ local pics = {
     barGlowCenterPic = imageDirectory .. "barglow-center.png",
     barGlowEdgePic = imageDirectory .. "barglow-edge.png",
 
-    specPic = imageDirectory .. "spec.png",
     chatPic = imageDirectory .. "chat.dds",
     sidePic = imageDirectory .. "side.dds",
     sharePic = imageDirectory .. "share.dds",
@@ -200,7 +194,7 @@ local aliveAllyTeams = {}
 local screenshotVars = {} -- containing: finished, width, height, gameframe, data, dataLast, dlist, pixels, player, filename, saved, saveQueued, posX, posY
 
 --local Background, ShareSlider, specJoinedOnce, chobbyInterface, BackgroundGuishader, drawTipText, drawTipMouseX, drawTipMouseY, DrawLabelRightside, tipY, clickedName, myLastCameraState, sceduledSpecFullView, bgtexSize, curFrame, tipText, prevClickedName
-local lockPlayerID, leftPosX, lastSliderSound, release, specTarget
+local lockPlayerID, leftPosX, lastSliderSound, release
 local PrevGameFrame, MainList, desiredLosmode, drawListOffset
 
 local deadPlayerHeightReduction = 10
@@ -1389,8 +1383,8 @@ function CreatePlayerFromTeam(teamID)
     -- resources
     local energy, energyStorage, energyIncome, metal, metalStorage, metalIncome = 0, 1, 0, 1, 0, 0
     if aliveAllyTeams[tallyteam] ~= nil and (mySpecStatus or myAllyTeamID == tallyteam) then
-        energy, energyStorage, _, energyIncome = Spring_GetTeamResources(teamID, "energy") or 0
-        metal, metalStorage, _, metalIncome = Spring_GetTeamResources(teamID, "metal") or 0
+        energy, energyStorage, _, energyIncome = Spring_GetTeamResources(teamID, "energy")
+        metal, metalStorage, _, metalIncome = Spring_GetTeamResources(teamID, "metal")
         energy = math.floor(energy or 0)
         metal = math.floor(metal or 0)
         if energy < 0 then
@@ -2804,7 +2798,7 @@ function stringToLines(str)
         t[#t + 1] = line
         return ""
     end
-    helper((str:gsub("(.-)\r?\n", helper)))
+    helper( str:gsub("(.-)\r?\n", helper) )
     return t
 end
 
@@ -2954,7 +2948,6 @@ function GetPingLvl(ping)
         return 5
     end
 end
-
 
 ---------------------------------------------------------------------------------------------------
 --  Mouse
@@ -3240,7 +3233,6 @@ end
 
 function Spec(teamID)
     Spring_SendCommands { "specteam " .. teamID }
-    specTarget = teamID
     SortList()
 end
 
@@ -3734,16 +3726,6 @@ function updateWidgetScale()
     widgetRight = vsx - bgpadding
     widgetPosY = bgpadding
     widgetTop = widgetPosY + widgetHeight + bgpadding
-end
-
-function customScaleUp()
-    customScale = customScale + customScaleStep
-    updateWidgetScale()
-end
-
-function customScaleDown()
-    customScale = customScale - customScaleStep
-    updateWidgetScale()
 end
 
 function widget:ViewResize()
