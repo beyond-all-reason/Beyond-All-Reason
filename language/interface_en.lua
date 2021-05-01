@@ -566,6 +566,10 @@ return {
 			messages = {
 				scroll = '%{textColor}Press %{highlightColor}CTRL %{textColor}to activate chatlog viewing/scrolling',
 			},
+			mapDrawBlocker = {
+				block = 'Ignoring map drawing from %{player}',
+				unblock = 'Showing map drawing from %{player}',
+			},
 		}
 	}
 }

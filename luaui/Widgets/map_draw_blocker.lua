@@ -58,12 +58,12 @@ local function CheckTresholds()
 			local wasBlocked = data.blocked
 			data.blocked = timerCmd
 			if not wasBlocked then
-				Echo("Blocking map draw for " .. GetPlayerInfo(player,false))
+				Echo( Spring.I18N('ui.mapDrawBlocker.block', { player = GetPlayerInfo(player,false) }) )
 			end
 		end
 		if sum < unblocklimit and data.blocked and (currentCounter-data.blocked > unblocklimit ) then
 			data.blocked = false
-			Echo("Unblocking map draw for " .. GetPlayerInfo(player,false))
+			Echo( Spring.I18N('ui.mapDrawBlocker.unblock', { player = GetPlayerInfo(player,false) }) )
 		end
 	end
 end
