@@ -51,7 +51,7 @@ return {
 		},
 		featuredefs = {
 			dead = {
-				blocking = false,
+				blocking = true,
 				category = "corpses",
 				collisionvolumeoffsets = "0.0 -14.8080587891 -0.125",
 				collisionvolumescales = "45.9999694824 25.4694824219 42.75",
