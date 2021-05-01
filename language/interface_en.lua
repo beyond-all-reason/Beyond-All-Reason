@@ -51,7 +51,6 @@ return {
 				},
 			},
 			playersList = {
-				playerList = 'Player list',
 				spectators = 'Spectators %{amount}',
 				enemies = 'Enemies',
 				allies = 'Allies',

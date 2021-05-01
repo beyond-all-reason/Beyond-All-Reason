@@ -132,8 +132,6 @@ local pics = {
     sharePic = imageDirectory .. "share.dds",
     idPic = imageDirectory .. "id.dds",
     tsPic = imageDirectory .. "ts.dds",
-    sizednPic = imageDirectory .. "sizedn.dds",
-    sizeupPic = imageDirectory .. "sizeup.dds",
 
     rank0 = imageDirectory .. "ranks/1.png",
     rank1 = imageDirectory .. "ranks/2.png",
@@ -814,10 +812,10 @@ local function LockCamera(playerID)
         if lockcameraHideEnemies and not select(3, Spring_GetPlayerInfo(playerID)) then
             Spring.SendCommands("specteam " .. select(4, Spring_GetPlayerInfo(playerID)))
             if not fullView then
-                sceduledSpecFullView = 1    -- this is needed else the minimap/world doesnt update properly
+                sceduledSpecFullView = 1 -- this is needed else the minimap/world doesnt update properly
                 Spring.SendCommands("specfullview")
             else
-                sceduledSpecFullView = 2    -- this is needed else the minimap/world doesnt update properly
+                sceduledSpecFullView = 2 -- this is needed else the minimap/world doesnt update properly
                 Spring.SendCommands("specfullview")
             end
             if lockcameraLos and mySpecStatus and Spring.GetMapDrawMode() ~= "los" then
@@ -1058,7 +1056,6 @@ end
 function widget:Shutdown()
     if WG['guishader'] then
         WG['guishader'].RemoveDlist('advplayerlist')
-        --WG['guishader'].RemoveRect('advplayerlist')
         WG['guishader'].RemoveRect('advplayerlist_screenshot')
     end
     WG['advplayerlist_api'] = nil
@@ -1314,9 +1311,7 @@ function CreatePlayerFromTeam(teamID)
         ttotake = false
         tdead = false
         tai = true
-
     else
-
         if Spring_GetGameSeconds() < 0.1 then
             tname = absentName
             ttotake = false
@@ -1463,9 +1458,7 @@ function SortList()
     vOffset = SortAllyTeams(vOffset)
 
     -- calls the sortings for specs if see spec is on
-    --if m_chat.active == true then
     vOffset = SortSpecs(vOffset)
-    --end
 
     -- set the widget height according to space needed to show team
     widgetHeight = vOffset + 3
@@ -1521,7 +1514,7 @@ end
 
 function SortTeams(allyTeamID, vOffset)
     -- Adds teams to the draw list (own team first)
-    --(teams are not visible as such unless they are empty or AI)
+    -- (teams are not visible as such unless they are empty or AI)
     local teamsList = Spring_GetTeamList(allyTeamID)
 
     --add teams
@@ -1813,7 +1806,6 @@ function CreateBackground()
             RectRound(absLeft, absBottom, absRight, absTop, elementCorner, math.min(paddingLeft, paddingTop), math.min(paddingTop, paddingRight), math.min(paddingRight, paddingBottom), math.min(paddingBottom, paddingLeft))
         end)
         WG['guishader'].InsertDlist(BackgroundGuishader, 'advplayerlist')
-        --WG['guishader'].InsertRect(absLeft,absBottom,absRight,absTop,'advplayerlist')
     end
     Background = gl_CreateList(function()
 		UiElement(absLeft, absBottom, absRight, absTop, math.min(paddingLeft, paddingTop), math.min(paddingTop, paddingRight), math.min(paddingRight, paddingBottom), math.min(paddingBottom, paddingLeft))
@@ -2086,7 +2078,6 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY)
         if m_country.active == true and country ~= "" then
             DrawCountry(country, posY)
         end
-        --gl_Color(red,green,blue,1)
         gl_Color(1, 1, 1, 0.45)
         if name ~= absentName and m_side.active == true then
             DrawSidePic(team, playerID, posY, leader, dark, ai)
@@ -2322,7 +2313,6 @@ local function RectQuad(px, py, sx, sy)
 end
 
 function DrawRect(px, py, sx, sy)
-    --local px,py,sx,sy,cs = math.floor(px),math.floor(py),math.ceil(sx),math.ceil(sy),math.floor(cs)
     gl.BeginEnd(GL.QUADS, RectQuad, px, py, sx, sy)
 end
 
@@ -3170,7 +3160,6 @@ function IsOnRect(x, y, BLcornerX, BLcornerY, TRcornerX, TRcornerY)
     TRcornerX = TRcornerX - ((widgetPosX - TRcornerX) * (widgetScale - 1))
     TRcornerY = TRcornerY - ((widgetPosY - TRcornerY) * (widgetScale - 1))
 
-    -- check if the mouse is in a rectangle
     return x >= BLcornerX and x <= TRcornerX
             and y >= BLcornerY
             and y <= TRcornerY
@@ -3183,7 +3172,6 @@ end
 function widget:GetConfigData(data)
     -- save
     if m_side ~= nil then
-        --put module.active into a table
         local m_active_Table = {}
         for n, module in pairs(modules) do
             m_active_Table[module.name] = module.active
@@ -3310,10 +3298,9 @@ function widget:SetConfigData(data)
         if data.m_takeActive ~= nil then
             m_take.active = data.m_takeActive
         end
-        --load module.active from table
+
         local m_active_Table = data.m_active_Table or {}
         for name, active in pairs(m_active_Table) do
-            --find module with matching name
             for _, module in pairs(modules) do
                 if module.name == name then
                     if name == "ally" then
@@ -3461,7 +3448,6 @@ function updateTake(allyTeamID)
 end
 
 function Take(teamID, name, i)
-    -- sends the /take command to spring
     reportTake = true
     tookTeamID = teamID
     tookTeamName = name
