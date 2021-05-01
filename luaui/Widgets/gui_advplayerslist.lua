@@ -152,12 +152,12 @@ local apiAbsPosition = { 0, 0, 0, 0, 1, 1, false }
 -- Colors
 --------------------------------------------------------------------------------
 
-local pingCpuColors = {
-    [1] = { r = 0.25, g = 0.82, b = 0.25 },
-    [2] = { r = 0.45, g = 0.75, b = 0.33 },
-    [3] = { r = 0.75, g = 0.75, b = 0.33 },
-    [4] = { r = 0.85, g = 0.33, b = 0.33 },
-    [5] = { r = 1, g = 0.2, b = 0.35 }
+local pingLevelData = {
+    [1] = { r = 0.25, g = 0.82, b = 0.25, cpuThreshold = 0.15, pingThreshold = 0.15 },
+    [2] = { r = 0.45, g = 0.75, b = 0.33, cpuThreshold = 0.3,  pingThreshold = 0.3  },
+    [3] = { r = 0.75, g = 0.75, b = 0.33, cpuThreshold = 0.45, pingThreshold = 0.7  },
+    [4] = { r = 0.85, g = 0.33, b = 0.33, cpuThreshold = 0.65, pingThreshold = 1.5  },
+    [5] = { r = 1,    g = 0.2,  b = 0.35, cpuThreshold = math.huge, pingThreshold = math.huge }
 }
 
 --------------------------------------------------------------------------------
@@ -2539,7 +2539,7 @@ function DrawPingCpu(pingLvl, cpuLvl, posY, spec, alpha, cpu, fps)
         gl_Color(grayvalue, grayvalue, grayvalue, (0.2 * pingLvl))
         DrawRect(m_cpuping.posX + widgetPosX + 12, posY + 1, m_cpuping.posX + widgetPosX + 21, posY + 14)
     else
-        gl_Color(pingCpuColors[pingLvl].r, pingCpuColors[pingLvl].g, pingCpuColors[pingLvl].b)
+        gl_Color(pingLevelData[pingLvl].r, pingLevelData[pingLvl].g, pingLevelData[pingLvl].b)
         DrawRect(m_cpuping.posX + widgetPosX + 12, posY + 1, m_cpuping.posX + widgetPosX + 24, posY + 15)
     end
 
@@ -2569,7 +2569,7 @@ function DrawPingCpu(pingLvl, cpuLvl, posY, spec, alpha, cpu, fps)
             gl_Color(grayvalue, grayvalue, grayvalue, 0.1 + (0.14 * cpuLvl))
             DrawRect(m_cpuping.posX + widgetPosX + 2, posY + 1, m_cpuping.posX + widgetPosX + 13, posY + 14)
         else
-            gl_Color(pingCpuColors[cpuLvl].r, pingCpuColors[cpuLvl].g, pingCpuColors[cpuLvl].b)
+            gl_Color(pingLevelData[cpuLvl].r, pingLevelData[cpuLvl].g, pingLevelData[cpuLvl].b)
             DrawRect(m_cpuping.posX + widgetPosX + 1, posY + 1, m_cpuping.posX + widgetPosX + 14, posY + 15)
         end
         gl_Color(1, 1, 1, 1)
@@ -2845,33 +2845,19 @@ function CreateShareSlider()
 end
 
 function GetCpuLvl(cpuUsage)
-    -- set the 5 cpu usage levels (green to red)
-    if cpuUsage < 0.15 then
-        return 1
-    elseif cpuUsage < 0.3 then
-        return 2
-    elseif cpuUsage < 0.45 then
-        return 3
-    elseif cpuUsage < 0.65 then
-        return 4
-    else
-        return 5
-    end
+	for level, data in pairs(pingLevelData) do
+		if cpuUsage < data.cpuThreshold then
+			return level
+		end
+	end
 end
 
 function GetPingLvl(ping)
-    -- set the 5 ping levels (green to red)
-    if ping < 0.15 then
-        return 1
-    elseif ping < 0.3 then
-        return 2
-    elseif ping < 0.7 then
-        return 3
-    elseif ping < 1.5 then
-        return 4
-    else
-        return 5
-    end
+	for level, data in pairs(pingLevelData) do
+		if ping < data.pingThreshold then
+			return level
+		end
+	end
 end
 
 ---------------------------------------------------------------------------------------------------
