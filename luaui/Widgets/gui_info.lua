@@ -931,7 +931,7 @@ local function drawUnitInfo()
 	local fontSize = (height * vsy * 0.123) * (0.94 - ((1 - math.max(1.05, ui_scale)) * 0.4))
 
 	local iconSize = math.floor(fontSize * 4.4)
-	local iconPadding = math.floor(fontSize * 0.28)
+	local iconPadding = math.floor(fontSize * 0.22)
 
 	if unitDefInfo[displayUnitDefID].buildPic then
 		local iconX = backgroundRect[1] + iconPadding

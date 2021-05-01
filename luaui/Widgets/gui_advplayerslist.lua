@@ -837,7 +837,7 @@ local function LockCamera(playerID)
         end
     else
         if myLastCameraState then
-            SetCameraState(myLastCameraState, transitionTime)
+            SetCameraState(nil, transitionTime)
             myLastCameraState = nil
         end
         if lockcameraHideEnemies and lockPlayerID and not select(3, Spring_GetPlayerInfo(lockPlayerID)) then
@@ -1667,7 +1667,7 @@ function widget:DrawScreen()
 		CreateLists()
 		PrevGameFrame = CurGameFrame
 	end
-    
+
     -- draws the background
     if Background then
         gl_CallList(Background)

@@ -1214,9 +1214,9 @@ function widget:Update(dt)
 
 	if WG['advplayerlist_api'] and not WG['advplayerlist_api'].GetLockPlayerID() then
 		--if select(7, Spring.GetMouseState()) then	-- when camera panning
-		--	Spring.SetCameraState(Spring.GetCameraState(), cameraPanTransitionTime)
+		--	Spring.SetCameraState(nil, cameraPanTransitionTime)
 		--else
-		Spring.SetCameraState(Spring.GetCameraState(), cameraTransitionTime)
+		Spring.SetCameraState(nil, cameraTransitionTime)
 		--end
 	end
 	sec = sec + dt
@@ -3251,7 +3251,7 @@ function init()
 		--	local current_cam_state = Spring.GetCameraState()
 		--	if (current_cam_state.fov) then
 		--		current_cam_state.fov = value
-		--		Spring.SetCameraState(current_cam_state,0)
+		--		Spring.SetCameraState(nil,0)
 		--	end
 		-- end,
 		--},

@@ -351,6 +351,11 @@ local critterConfig = {
   { spawnBox = {x1=100, z1=100, x2=16200, z2=8150}, unitNames = {["critter_gull"]=rnd(15,20)} },
 },
 
+["Paradise_Lost_V4"] = {
+	{ spawnBox = {x1=50, z1=50, x2=10200, z2=5050}, unitNames = {["critter_gull"]=rnd(15,25)} },
+	{ spawnBox = {x1=50, z1=50, x2=10200, z2=5050}, unitNames = {["critter_goldfish"]=rnd(100,150)} },
+},
+
 ["Parched_mesa-v04"] = {
   { spawnBox = {x1=50, z1=50, x2=8150, z2=8150}, unitNames = {["critter_ant"]=rnd(7,14)} },
 },
