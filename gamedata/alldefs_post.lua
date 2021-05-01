@@ -268,6 +268,56 @@ function UnitDef_Post(name, uDef)
 		uDef.workertime = uDef.workertime*x
 	end
 
+
+	if Spring.GetModOptions and Spring.GetModOptions().experimentalmassoverride and Spring.GetModOptions().experimentalmassoverride == "enabled" then
+		-- mass override
+		Spring.Echo("-------------------------")
+		if uDef.name then
+			Spring.Echo("Processing Mass Override for unit: "..uDef.name)
+		else
+			Spring.Echo("Processing Mass Override for unit: unknown-unit")
+		end
+		Spring.Echo("-------------------------")
+
+		massoverrideFootprintX = 1
+		if uDef.footprintx and uDef.footprintx > 0 then
+			massoverrideFootprintX = uDef.footprintx
+			Spring.Echo("Footprint X: "..uDef.footprintx)
+		else
+			Spring.Echo("Missing Footprint X")
+		end
+		
+		massoverrideFootprintZ = 1
+		if uDef.footprintz and uDef.footprintz > 0 then
+			massoverrideFootprintZ = uDef.footprintz
+			Spring.Echo("Footprint Z: "..uDef.footprintz)
+		else
+			Spring.Echo("Missing Footprint Z")
+		end
+
+		massoverrideMetalCost = 1
+		if uDef.buildcostmetal and uDef.buildcostmetal > 0 then
+			massoverrideMetalCost = uDef.buildcostmetal
+			Spring.Echo("Metal Cost: "..uDef.buildcostmetal)
+		else
+			Spring.Echo("Missing Metal Cost")
+		end
+
+		massoverrideHealth = 1
+		if uDef.maxdamage and uDef.maxdamage > 0 then
+			massoverrideHealth = uDef.maxdamage
+			Spring.Echo("Max Health: "..uDef.maxdamage)
+		else
+			Spring.Echo("Missing Max Health")
+		end
+
+		uDef.mass = math.ceil((massoverrideFootprintX * massoverrideFootprintZ * (massoverrideMetalCost + massoverrideHealth))*0.33)
+		Spring.Echo("-------------------------")
+		Spring.Echo("Result Mass: "..uDef.mass)
+		Spring.Echo("-------------------------")
+	end
+
+
 	-- mass remove push resistance
 	if uDef.pushresistant and uDef.pushresistant == true then
 		uDef.pushresistant = false

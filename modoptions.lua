@@ -1066,6 +1066,19 @@ local options={
 			{key="enabled", name="Enabled", desc="Enabled"},
 		}
 	},
+
+	{
+		key    = 'experimentalmassoverride',
+		name   = 'Mass Override',
+		desc   = 'Mass Override',
+		type   = 'list',
+		section = 'options_experimental',
+		def  = "disabled",
+		items={
+			{key="disabled", name="Disabled", desc="Disabled"},
+			{key="enabled", name="Enabled", desc="Enabled"},
+		}
+	},
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	-- Unused Options
