@@ -1,2 +1,2 @@
 hotspot topleft
-frame  anims/cursorBomb.png  5 
+frame  anims/icexuick_75/cursorBomb.png  5 
