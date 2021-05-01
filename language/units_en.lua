@@ -963,7 +963,7 @@ return {
 				cortoast = "Pop-up Plasma Artillery",
 				cortoast_scav = "Powerfull Stealthy Defense",
 				cortrem = "Heavy Artillery Vehicle",
-				cortron = "Tactical Nuke Launcher",
+				cortron = "Tactical Missile Launcher",
 				cortship = "Armored Transport Ship",
 				coruwadves = "Increases Energy Storage (40000)",
 				coruwadvms = "Increases Metal Storage (10000)",
