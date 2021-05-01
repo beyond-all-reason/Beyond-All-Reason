@@ -47,7 +47,6 @@ local drawAlliesLabel = false
 local alwaysHideSpecs = false
 local lockcameraHideEnemies = true            -- specfullview
 local lockcameraLos = true                    -- togglelos
-local collapsable = false
 
 local bgtexScale = tonumber(Spring.GetConfigFloat("ui_tilescale", 7) or 7)	-- lower = smaller tiles
 
@@ -286,9 +285,6 @@ local drawList = {}
 local teamN
 local prevClickTime = os.clock()
 local specListShow = true
-
-local collapsed = false
-local collapsedHeight = 42
 
 --------------------------------------------------
 -- Modules
@@ -971,17 +967,6 @@ function widget:Initialize()
     WG['advplayerlist_api'].GetPosition = function()
         return apiAbsPosition
     end
-    WG['advplayerlist_api'].GetCollapsable = function()
-        return collapsable
-    end
-    WG['advplayerlist_api'].SetCollapsable = function(value)
-        collapsable = value
-        if not collapsable and collapsed then
-            collapsed = false
-            CreateBackground()
-        end
-    end
-
     WG['advplayerlist_api'].GetLockPlayerID = function()
         return lockPlayerID
     end
@@ -1055,7 +1040,7 @@ function widget:Initialize()
 end
 
 function widget:GameFrame(n)
-    if n > 0 and not gameStarted and not collapsed then
+    if n > 0 and not gameStarted then
         if mySpecStatus and not alwaysHideSpecs then
             specListShow = true
         else
@@ -1671,25 +1656,25 @@ function widget:DrawScreen()
     end
 
     local mouseX, mouseY, mouseButtonL = Spring_GetMouseState()
-    if not collapsed then
-        -- update lists frequently if there is mouse interaction
-        local NeedUpdate = false
-        local CurGameFrame = Spring_GetGameFrame()
-        if mouseX > widgetPosX + m_name.posX + m_name.width - 5 and mouseX < widgetPosX + widgetWidth and mouseY > widgetPosY - 16 and mouseY < widgetPosY + widgetHeight then
-            local DrawFrame = Spring_GetDrawFrame()
-            if PrevGameFrame == nil then
-                PrevGameFrame = CurGameFrame
-            end
-            if DrawFrame % 5 == 0 or CurGameFrame > PrevGameFrame + 1 then
-                NeedUpdate = true
-            end
-        end
+	-- update lists frequently if there is mouse interaction
+	local NeedUpdate = false
+	local CurGameFrame = Spring_GetGameFrame()
 
-        if NeedUpdate then
-            CreateLists()
-            PrevGameFrame = CurGameFrame
-        end
-    end
+	if mouseX > widgetPosX + m_name.posX + m_name.width - 5 and mouseX < widgetPosX + widgetWidth and mouseY > widgetPosY - 16 and mouseY < widgetPosY + widgetHeight then
+		local DrawFrame = Spring_GetDrawFrame()
+		if PrevGameFrame == nil then
+			PrevGameFrame = CurGameFrame
+		end
+		if DrawFrame % 5 == 0 or CurGameFrame > PrevGameFrame + 1 then
+			NeedUpdate = true
+		end
+	end
+
+	if NeedUpdate then
+		CreateLists()
+		PrevGameFrame = CurGameFrame
+	end
+    
     -- draws the background
     if Background then
         gl_CallList(Background)
@@ -1702,21 +1687,19 @@ function widget:DrawScreen()
     gl.Scale(widgetScale, widgetScale, 0)
     gl.Translate(scaleDiffX, scaleDiffY, 0)
 
-    if not collapsed then
-        -- draws the main list
-        if MainList then
-            gl_CallList(MainList)
-        else
-            CreateMainList()
-        end
+	-- draws the main list
+	if MainList then
+		gl_CallList(MainList)
+	else
+		CreateMainList()
+	end
 
-        -- draws share energy/metal sliders
-        if ShareSlider then
-            gl_CallList(ShareSlider)
-        else
-            CreateShareSlider()
-        end
-    end
+	-- draws share energy/metal sliders
+	if ShareSlider then
+		gl_CallList(ShareSlider)
+	else
+		CreateShareSlider()
+	end
 
     local scaleReset = widgetScale / widgetScale / widgetScale
     gl.Translate(-scaleDiffX, -scaleDiffY, 0)
@@ -1802,15 +1785,11 @@ function CreateBackground()
     local TRcornerX = widgetPosX + widgetWidth + margin
     local TRcornerY = widgetPosY + widgetHeight - 1 + margin
 
-    if collapsed then
-        TRcornerY = widgetPosY - margin + collapsedHeight
-    end
-
     local absLeft = math.floor(BLcornerX - ((widgetPosX - BLcornerX) * (widgetScale - 1)))
     local absBottom = math.floor(BLcornerY - ((widgetPosY - BLcornerY) * (widgetScale - 1)))
     local absRight = math.ceil(TRcornerX - ((widgetPosX - TRcornerX) * (widgetScale - 1)))
     local absTop = math.ceil(TRcornerY - ((widgetPosY - TRcornerY) * (widgetScale - 1)))
-    apiAbsPosition = { absTop, absLeft, absBottom, absRight, widgetScale, right, collapsed }
+    apiAbsPosition = { absTop, absLeft, absBottom, absRight, widgetScale, right, false }
 
     local paddingBottom = bgpadding
     local paddingRight = bgpadding
@@ -1838,19 +1817,6 @@ function CreateBackground()
     end
     Background = gl_CreateList(function()
 		UiElement(absLeft, absBottom, absRight, absTop, math.min(paddingLeft, paddingTop), math.min(paddingTop, paddingRight), math.min(paddingRight, paddingBottom), math.min(paddingBottom, paddingLeft))
-
-        if collapsed then
-            font:Begin()
-            local text = Spring.I18N('ui.playerslist.playerList')
-            local yOffset = collapsedHeight * 0.5
-            local xOffset = collapsedHeight / 6
-            font:SetTextColor(0, 0, 0, 0.2)
-            font:Print(text, widgetPosX - 1 + xOffset, TRcornerY - bgpadding - yOffset, 13, "")
-            font:Print(text, widgetPosX + 1 + xOffset, TRcornerY - bgpadding - yOffset, 13, "")
-            font:SetTextColor(0.87, 0.87, 0.87, 1)
-            font:Print(text, widgetPosX + xOffset, TRcornerY - bgpadding - yOffset + 0.8, 13, "n")
-            font:End()
-        end
         gl_Color(1, 1, 1, 1)
     end)
 end
@@ -2924,10 +2890,6 @@ end
 
 function widget:MousePress(x, y, button)
     --super ugly code here
-    if collapsed then
-        return
-    end
-
     local t = false       -- true if the object is a team leader
     local clickedPlayer
     local posY
@@ -3123,10 +3085,6 @@ function widget:MousePress(x, y, button)
 end
 
 function widget:MouseMove(x, y, dx, dy, button)
-    if collapsed then
-        return
-    end
-
     if energyPlayer ~= nil or metalPlayer ~= nil then
         -- move energy/metal share slider
         if sliderOrigin == nil then
@@ -3149,10 +3107,6 @@ function widget:MouseMove(x, y, dx, dy, button)
 end
 
 function widget:MouseRelease(x, y, button)
-    if collapsed then
-        return
-    end
-
     if button == 1 then
         if firstclick ~= nil then
             -- double click system for share units
@@ -3256,7 +3210,6 @@ function widget:GetConfigData(data)
             gameFrame = Spring.GetGameFrame(),
             lastSystemData = lastSystemData,
             alwaysHideSpecs = alwaysHideSpecs,
-            collapsable = collapsable,
             transitionTime = transitionTime,
             lockcameraHideEnemies = lockcameraHideEnemies,
             lockcameraLos = lockcameraLos,
@@ -3291,10 +3244,6 @@ function widget:SetConfigData(data)
 
         if data.lockcameraLos ~= nil then
             transitionTime = data.transitionTime
-        end
-
-        if data.collapsable ~= nil then
-            collapsable = data.collapsable
         end
 
         --view
@@ -3481,7 +3430,7 @@ function CheckPlayersChange()
         end
     end
 
-    if sorting == true and not collapsed then
+    if sorting == true then
         -- sorts the list again if change needs it
         SortList()
         SetModulesPositionX()    -- change the X size if needed (change of widest name)
@@ -3574,23 +3523,6 @@ function widget:Update(delta)
             ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.66)
             CreateBackground()
         end
-    end
-
-    if collapsable then
-        if collapsed and hoverPlayerlist then
-            collapsed = false
-            CreateBackground()
-        elseif not collapsed and not energyPlayer and not metalPlayer then
-            local graceDistance = 85 * widgetScale
-            if not isInBox(mx, my, { apiAbsPosition[2] - graceDistance, apiAbsPosition[3] - graceDistance, apiAbsPosition[4] + graceDistance, apiAbsPosition[1] + graceDistance }) then
-                collapsed = true
-                CreateBackground()
-            end
-        end
-    end
-
-    if collapsed then
-        return
     end
 
     totalTime = totalTime + delta
