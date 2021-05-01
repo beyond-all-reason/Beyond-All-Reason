@@ -117,7 +117,7 @@ end
 
 function widget:MapDrawCmd(playerID, cmdType, startx, starty, startz, a, b, c)
 	if continuouslyClean then
-		return false
+		return true
 	end
 end
 
