@@ -42,7 +42,6 @@ end
 --------------------------------------------------------------------------------
 
 local customScale = 1
-local customScaleStep = 0.03
 local pointDuration = 45
 local drawAlliesLabel = false
 local alwaysHideSpecs = false
@@ -304,8 +303,6 @@ local m_name
 local m_share
 local m_chat
 local m_cpuping
-local m_sizedn
-local m_sizeup
 local m_country
 local m_alliance
 local m_skill
@@ -477,32 +474,6 @@ end
 
 position = position + 1
 
-m_sizedn = {
-    name = "sizedn",
-    spec = true,
-    play = true,
-    active = true,
-    alwaysActive = true,
-    width = 0,
-    position = position,
-    posX = 0,
-    pic = pics["sizednPic"],
-}
-position = position + 1
-
-m_sizeup = {
-    name = "sizeup",
-    spec = true,
-    play = true,
-    active = true,
-    alwaysActive = true,
-    width = 0,
-    position = position,
-    posX = 0,
-    pic = pics["sizeupPic"],
-}
-position = position + 1
-
 modules = {
     m_indent,
     m_rank,
@@ -516,8 +487,6 @@ modules = {
     m_alliance,
     m_share,
     m_chat,
-    m_sizedn,
-    m_sizeup,
 }
 
 m_point = {
