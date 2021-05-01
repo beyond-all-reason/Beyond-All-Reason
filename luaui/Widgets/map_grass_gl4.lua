@@ -38,9 +38,6 @@ end
 --------------------------------------------------------------------------------
 -- Todo:
 -- do all of this in geom shader to do early LOD culling
--- fade culling
--- better shadow control?
--- better color blending
 -- customizable shadowmap sample size
 -- grass UV offsets multiplier
 
@@ -114,7 +111,7 @@ Spring.Echo("Map is",Game.mapName)
 -----------------------Old Map Overrides-------------------
 local mapoverrides  = {
   ["DSDR 4.0"] = {
-    grassDistTGA = "DSDR 4.0_grassDist.tga",
+    --grassDistTGA = "DSDR 4.0_grassDist.tga",
     grassMaxSize = 2.0	; -- Size for grassmap value of 254
     grassShaderParams = {
         MAPCOLORFACTOR = 0.6,
