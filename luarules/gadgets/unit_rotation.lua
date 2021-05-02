@@ -21,11 +21,11 @@ if gadgetHandler:IsSyncedCode() then
 end
 
 local maxRotation = Spring.GetConfigInt('unitRotation', 0)
-local maxAllowedRotation = 10	-- allowing higher gets odd with wind blades and decals
+local maxAllowedRotation = 10
 
--- limit rotation for factories/wind/tidal to reduce oddness
-local limitedMult = 0.5
-local limitedMax = 4.5
+-- limit rotation for factories to reduce oddness
+local limitedMult = 0.55
+local limitedMax = 4
 
 local unitRotation = {}
 
@@ -35,14 +35,15 @@ local spurSetUnitLuaDraw  = Spring.UnitRendering.SetUnitLuaDraw
 local rotateUnitDefs = {}
 local limitedRotation = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
-	if unitDef.isBuilding and not unitDef.canCloak then
+	if (unitDef.isBuilding or string.find(unitDef.name, "nanotc")) and not unitDef.canCloak then
 		rotateUnitDefs[unitDefID] = true
 
 		if unitDef.isFactory and #unitDef.buildOptions > 0 then
 			limitedRotation[unitDefID] = true
 		end
 		if unitDef.tidalGenerator > 0 or unitDef.windGenerator > 0 then
-			rotateUnitDefs[unitDefID] = nil
+			--rotateUnitDefs[unitDefID] = nil
+			limitedRotation[unitDefID] = true
 		end
 	end
 end
