@@ -26,6 +26,8 @@ end
 local windDefs = {
   [ UnitDefNames['armwint2'].id ] = true,
   [ UnitDefNames['corwint2'].id ] = true,
+  [ UnitDefNames['armwint2_scav'].id ] = true,
+  [ UnitDefNames['corwint2_scav'].id ] = true,
 }
 
 --local tllDefs = UnitDefNames['tllawindtrap'].id
