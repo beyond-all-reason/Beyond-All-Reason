@@ -257,6 +257,7 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions+1] = "corapt3"
 			uDef.buildoptions[numBuildoptions+2] = "corminibuzz"
 			uDef.buildoptions[numBuildoptions+3] = "corwint2"
+			uDef.buildoptions[numBuildoptions+4] = "corhllllt"
 		end
 	end
 
