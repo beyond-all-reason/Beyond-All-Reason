@@ -1,7 +1,7 @@
 function gadget:GetInfo()
 	return {
 		name    = "Unit Rotation",
-		desc    = "",
+		desc    = "Rotate all buildings slightly randomly (visually only))",
 		author  = "Floris",
 		date    = "May 2021",
 		license = "GNU LGPL, v2.1 or later",
@@ -11,7 +11,8 @@ function gadget:GetInfo()
 end
 
 -- decals dont rotate along
--- factories produce non rotated units
+-- cloaked units arent rendered, so have to be skipped
+-- factories still produce non rotated units
 -- wreckage dont inherit rotation (but is possible via method in unit_rez_xp.lua)
 -- other gadgets/widgets dont know the active rotation value per unit
 
@@ -29,7 +30,7 @@ local spurSetUnitLuaDraw  = Spring.UnitRendering.SetUnitLuaDraw
 
 local rotateUnitDefs = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
-	if unitDef.isBuilding then
+	if unitDef.isBuilding and not unitDef.canCloak then
 		rotateUnitDefs[unitDefID] = true
 	end
 end
@@ -70,6 +71,9 @@ end
 
 function gadget:Shutdown()
 	gadgetHandler:RemoveChatAction('unitrotation')
+	for unitID, rot in pairs(unitRotation) do
+		spurSetUnitLuaDraw(unitID, false)
+	end
 end
 
 function setUnitRotation(cmd, line, words, playerID)
