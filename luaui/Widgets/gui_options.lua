@@ -2911,7 +2911,14 @@ function init()
 		  end,
 		},
 
-		{ id = "airjets", group = "gfx", widget = "Airjets", name = texts.option.airjets, type = "bool", value = GetWidgetToggleValue("Airjets"), description = texts.option.airjets_descr },
+		  { id = "unitRotation", group = "gfx", name = texts.option.unitrotation, min = 0, max = 10, step = 1, type = "slider", value = Spring.GetConfigInt("unitRotation", 0), description = texts.option.unitrotation_descr,
+			onchange = function(i, value)
+				Spring.SetConfigInt("unitRotation", value)
+				Spring.SendCommands("luarules unitrotation " .. value)
+			end
+		  },
+
+		  { id = "airjets", group = "gfx", widget = "Airjets", name = texts.option.airjets, type = "bool", value = GetWidgetToggleValue("Airjets"), description = texts.option.airjets_descr },
 		{ id = "jetenginefx_lights", group = "gfx", name = widgetOptionColor .. "   "..texts.option.jetenginefx_lights, type = "bool", value = true, description = texts.option.jetenginefx_lights_descr,
 		  onload = function(i)
 			  loadWidgetData("Light Effects", "lups_jetenginefx_lights", { 'enableThrusters' })
