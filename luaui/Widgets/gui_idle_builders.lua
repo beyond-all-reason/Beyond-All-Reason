@@ -309,6 +309,9 @@ local function updateList()
 			if numGroups == 0 then
 				mult = 1
 			end
+			if mult > maxGroups then
+				mult = maxGroups
+			end
 
 			local groupWidth = groupSize - backgroundPadding
 			local startOffsetX = 0
