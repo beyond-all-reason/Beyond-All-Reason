@@ -23,21 +23,41 @@ end
 local maxRotation = Spring.GetConfigInt('unitRotation', 0)
 local maxAllowedRotation = 10	-- allowing higher gets odd with wind blades and decals
 
+-- limit rotation for factories/wind/tidal to reduce oddness
+local limitedMult = 0.5
+local limitedMax = 4.5
+
 local unitRotation = {}
 
 local glRotate = gl.Rotate
 local spurSetUnitLuaDraw  = Spring.UnitRendering.SetUnitLuaDraw
 
 local rotateUnitDefs = {}
+local limitedRotation = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.isBuilding and not unitDef.canCloak then
 		rotateUnitDefs[unitDefID] = true
+
+		if unitDef.isFactory and #unitDef.buildOptions > 0 then
+			limitedRotation[unitDefID] = true
+		end
+		if unitDef.tidalGenerator > 0 or unitDef.windGenerator > 0 then
+			rotateUnitDefs[unitDefID] = nil
+		end
 	end
 end
 
 function gadget:UnitCreated(unitID, unitDefID, team)
 	if rotateUnitDefs[unitDefID] then
 		unitRotation[unitID] = math.random(-maxRotation, maxRotation)
+		if limitedRotation[unitDefID] then
+			unitRotation[unitID] = unitRotation[unitID] * limitedMult
+			if unitRotation[unitID] > limitedMax then
+				unitRotation[unitID] = limitedMax
+			elseif unitRotation[unitID] < -limitedMax then
+				unitRotation[unitID] = -limitedMax
+			end
+		end
 		spurSetUnitLuaDraw(unitID, true)
 	end
 end
