@@ -72,19 +72,20 @@ return {
 				interceptedbyshieldtype = 4,
 				metalpershot = 0,
 				model = "scavs/scavbeacondroppodbyar.s3o",
+        mygravity = 0.1, -- to ensure consistent speed
 				name = "Droppod",
 				range = 29999,
 				reloadtime = 5,
 				rgbcolor = "0 1 0",
 				smoketrail = 1,
 				soundhit = "voice/scavengers/scavspawn",
-				startvelocity = 1,
+				startvelocity = 2000, -- === weaponvelocity to ensure consistent speed
 				targetborder = 0.75,
 				turret = 1,
 				weaponacceleration = 450,
 				weapontimer = 2,
 				weapontype = "MissileLauncher",
-				weaponvelocity = 900,
+				weaponvelocity = 2000, -- elmos/sec
 				wobble = 50,
 				customparams = {
 					expl_light_color = "0.1 0.95 0.1",
