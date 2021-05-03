@@ -1330,13 +1330,14 @@ function widget:Update(dt)
 	
 	for unitID, mobileantiinfo in pairs(mobileAntiUnits) do
 		local px, py, pz = spGetUnitPosition(unitID)
-		local vbodata = getElementInstanceData(defenseRangeVAOs[mobileantiinfo[1]],mobileantiinfo[2])
-		--Spring.Echo("Anti at",unitID, px, pz,mobileantiinfo[1],mobileantiinfo[2],vbodata[1],vbodata[2])
-		vbodata[1] = px
-		vbodata[2] = py
-		vbodata[3] = pz
-		pushElementInstance(defenseRangeVAOs[mobileantiinfo[1]],vbodata,mobileantiinfo[2],true)
-		
+		if px then
+			local vbodata = getElementInstanceData(defenseRangeVAOs[mobileantiinfo[1]],mobileantiinfo[2])
+			--Spring.Echo("Anti at",unitID, px, pz,mobileantiinfo[1],mobileantiinfo[2],vbodata[1],vbodata[2])
+			vbodata[1] = px
+			vbodata[2] = py
+			vbodata[3] = pz
+			pushElementInstance(defenseRangeVAOs[mobileantiinfo[1]],vbodata,mobileantiinfo[2],true)
+		end
 	end
 
 	-- update timers once every <updateInt> seconds
