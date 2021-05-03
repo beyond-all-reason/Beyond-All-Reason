@@ -84,6 +84,9 @@ T3SeaUnits = {
 	--"armcs",
 	--"cormuskrat",
 	--"corcs",
+	"corslrpc",
+	"armdecadet3",
+	"armpshipt3",
 }
 
 T4SeaUnits = {
@@ -92,4 +95,5 @@ T4SeaUnits = {
 	"armvadert4",
 	"corkorg",
 	"armbanth",
+	"coresuppt3",
 }

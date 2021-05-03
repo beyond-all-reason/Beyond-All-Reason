@@ -330,6 +330,9 @@ T3ReinforcementSeaUnits = {
 	-- "armcs",
 	-- "cormuskrat",
 	-- "corcs",
+	"corslrpc",
+	"armdecadet3",
+	"armpshipt3",
 }
 
 T4ReinforcementSeaUnits = {
@@ -341,4 +344,5 @@ T4ReinforcementSeaUnits = {
 	"armvadert4",
 	"corkorg",
 	"armbanth",
+	"coresuppt3",
 }
