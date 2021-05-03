@@ -131,6 +131,13 @@ local mapoverrides  = {
      },
      
   },
+  ["Taldarim_V3"] = {
+    patchResolution = 32,
+    grassShaderParams = {
+        MAPCOLORFACTOR = 0.5,
+     },
+     grassDistTGA = "LuaUI/Images/luagrass/Taldarim_V3_grassDist.tga",
+  },
   ["Altair_Crossing_V4"] = {
     patchResolution = 32,
 	grassMinSize = 0.5; --Size for grassmap value of 1 , min and max should be equal for old style binary grassmap (because its only 0,1)
