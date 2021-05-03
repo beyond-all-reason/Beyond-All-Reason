@@ -1,0 +1,14 @@
+hotspot topleft
+frame anims/icexuick_100/cursorupgmex_0.png 0.02
+frame anims/icexuick_100/cursorupgmex_1.png 0.02
+frame anims/icexuick_100/cursorupgmex_2.png 0.02
+frame anims/icexuick_100/cursorupgmex_3.png 0.02
+frame anims/icexuick_100/cursorupgmex_4.png 0.02
+frame anims/icexuick_100/cursorupgmex_5.png 0.02
+frame anims/icexuick_100/cursorupgmex_6.png 0.02
+frame anims/icexuick_100/cursorupgmex_7.png 0.02
+frame anims/icexuick_100/cursorupgmex_8.png 0.02
+frame anims/icexuick_100/cursorupgmex_9.png 0.02
+frame anims/icexuick_100/cursorupgmex_10.png 0.02
+frame anims/icexuick_100/cursorupgmex_11.png 0.02
+frame anims/icexuick_100/cursorupgmex_12.png 0.02
