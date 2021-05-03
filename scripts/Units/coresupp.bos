@@ -117,10 +117,8 @@ ExecuteRestoreAfterDelay()
     }
 	turn turret1 to y-axis <0.> speed <90.>;
 	turn turret2 to y-axis <0.> speed <90.>;
-	turn abarrela to x-axis <0.> speed <50.>;
-	turn abarrelb to x-axis <0.> speed <50.>;
-	turn bbarrela to x-axis <0.> speed <50.>;
-	turn bbarrelb to x-axis <0.> speed <50.>;
+	turn turret1 to x-axis <0.> speed <90.>;
+	turn turret2 to x-axis <0.> speed <90.>;
 }
 SetStunned(State)
 {
@@ -158,11 +156,9 @@ AimPrimary(heading, pitch)
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
 	turn turret1 to y-axis heading speed <270.>;
-	turn abarrela to x-axis <0.> - pitch speed <150.>;
-	turn abarrelb to x-axis <0.> - pitch speed <150.>;
+	turn turret1 to x-axis -1*pitch speed <150.>;
 	wait-for-turn turret1 around y-axis;
-	wait-for-turn abarrela around x-axis;
-	wait-for-turn abarrelb around x-axis;
+	wait-for-turn turret1 around x-axis;
 	start-script RestoreAfterDelay();
 	return (1);
 }
@@ -206,11 +202,9 @@ AimSecondary(heading, pitch)
 	signal SIG_AIM_2;
 	set-signal-mask SIG_AIM_2;
 	turn turret2 to y-axis heading speed <270.>;
-	turn bbarrela to x-axis <0.> - pitch speed <150.>;
-	turn bbarrelb to x-axis <0.> - pitch speed <150.>;
+	turn turret2 to x-axis -1*pitch speed <150.>;
 	wait-for-turn turret2 around y-axis;
-	wait-for-turn bbarrela around x-axis;
-	wait-for-turn bbarrelb around x-axis;
+	wait-for-turn turret2 around x-axis;
 	start-script RestoreAfterDelay();
 	return (1);
 }
