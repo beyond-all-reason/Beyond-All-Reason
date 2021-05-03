@@ -162,17 +162,17 @@ modConfig["BYAR"]["dps"]["cannon"]["max"] = 500
 local colorConfig = { --An array of R, G, B, MouseAlpha, FadeStart, FadeEnd, StartAlpha, EndAlpha
 	enemy = {
 		ground = {
-			min = {1.0, 0.0, 0.0, 1.0, 3000, 5000, 1.0, 0.2},
-			max = {1.0, 1.0, 0.0, 1.0, 3000, 5000, 1.0, 0.2},
+			min = {1.0, 0.2, 0.0, 1.0, 2000, 6000, 1.0, 0.2},
+			max = {1.0, 1.0, 0.0, 1.0, 2000, 6000, 1.0, 0.2},
 		},
 		air = {
-			min = {0.5, 0.0, 0.5, 1.0, 3000, 6000, 1.0, 0.2},
-			max = {1.0, 0.0, 1.0, 1.0, 3000, 6000, 1.0, 0.2},
+			min = {0.5, 0.0, 1.0, 1.0, 2000, 6000, 0.8, 0.2},
+			max = {0.5, 0.0, 1.0, 1.0, 3000, 6000, 0.8, 0.2},
 		},
-		nuke =        {1.0, 1.0, 1.0, 1.0, 4000, 2000, 1.0, 0.2},
+		nuke =        {1.0, 1.0, 1.0, 1.0, 5000, 4000, 0.6, 0.2},
 		cannon = {
-			min = {1.0, 1.0, 0.0, 1.0, 3000, 5000, 1.0, 0.2},
-			max = {1.0, 1.0, 0.0, 1.0, 10000, 15000, 1.0, 0.2},
+			min = {1.0, 1.0, 0.0, 1.0, 2000, 6000, 0.8, 0.2},
+			max = {1.0, 1.0, 0.0, 1.0, 10000, 15000, 0.8, 0.2},
 		}
 	}
 }
@@ -825,7 +825,7 @@ void main() {
 	vec4 camPos = cameraViewInv[3];
 	float distToCam = length(posscale.xyz - camPos.xyz); //dist from cam 
 	
-	alphaControl.z  = clamp((visibility.x - distToCam)/(visibility.y - visibility.x + 1.0),visibility.z,visibility.w);
+	alphaControl.z  = clamp((visibility.y -distToCam)/(visibility.y - visibility.x + 1.0),visibility.z,visibility.w);
 	#ifdef CANNON
 	// cannons should fade distance based on their range
 		float cvmin = max(visibility.x, 2* RANGE);
@@ -850,7 +850,7 @@ void main() {
 	blendedcolor.a = color1.a; // pass over teamID 
 	
 	// -- MOUSE DISTANCE ALPHA
-	float disttomousefromcenter = RANGE *1.33 - length(posscale.xz - mouseWorldPos.xz); 
+	float disttomousefromcenter = RANGE *1.5 - length(posscale.xz - mouseWorldPos.xz); 
 	// this will be positive if in mouse, negative else
 	float mousealpha = clamp( disttomousefromcenter / (RANGE * 0.33), 0.0, 1.0);
 	alphaControl.w = mousealpha;
@@ -947,15 +947,12 @@ void main() {
 	
 	//mousepos alpha override
 	
-	fragColor.a = max(alphaControl.z,clamp(alphaControl.w,0.0,1.0));
+	fragColor.a = clamp((alphaControl.z+clamp(alphaControl.w,0.0,1.0))*0.5, 0.0,1.0);
+	//	fragColor.a = clamp(alphaControl.z, 0.0,1.0);
 	
 	
 	
-	// DISTANCE FadeEnd
-	
-	fragColor.a *= alphaControl.y;		
-	
-	// OUTOFBOUNDS
+	// outofbounds
 	fragColor.a *= alphaControl.y;		
 	
 	
