@@ -20,7 +20,7 @@ if gadgetHandler:IsSyncedCode() then
 	return
 end
 
-local maxRotation = Spring.GetConfigInt('unitRotation', 0)
+local maxRotation = tonumber(Spring.GetConfigInt('unitRotation', 0) or 0)
 local maxAllowedRotation = 10
 
 -- limit rotation for factories to reduce oddness
@@ -68,7 +68,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, team)
 end
 
 function init()
-	maxRotation = Spring.GetConfigInt('unitRotation', 0)
+	maxRotation = tonumber(Spring.GetConfigInt('unitRotation', 0) or 0)
 	if maxRotation <= 0 then
 		for unitID, rot in pairs(unitRotation) do
 			spurSetUnitLuaDraw(unitID, false)

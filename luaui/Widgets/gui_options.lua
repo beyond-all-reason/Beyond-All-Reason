@@ -2911,9 +2911,9 @@ function init()
 		  end,
 		},
 
-		  { id = "unitRotation", group = "gfx", name = texts.option.unitrotation, min = 0, max = 10, step = 1, type = "slider", value = Spring.GetConfigInt("unitRotation", 0), description = texts.option.unitrotation_descr,
+		  { id = "unitRotation", group = "gfx", name = texts.option.unitrotation, min = 0, max = 10, step = 1, type = "slider", value = tonumber(Spring.GetConfigInt("unitRotation", 0)), description = texts.option.unitrotation_descr,
 			onchange = function(i, value)
-				Spring.SetConfigInt("unitRotation", value)
+				Spring.SetConfigInt("unitRotation", value or 0)
 				Spring.SendCommands("luarules unitrotation " .. value)
 			end
 		  },
