@@ -86,6 +86,7 @@ local upgradeMexCmdDesc = {
 function determine()
 	-- register cursor
 	Spring.AssignMouseCursor("upgmex", "cursorupgmex", false)
+	Spring.AssignMouseCursor("areamex", "cursorareamex", false)
 	-- show the command in the queue
 	Spring.SetCustomCommandDrawData(CMD_UPGRADEMEX, "upgrademex", { 0.75, 0.75, 0.75, 0.7 }, true)
 	Spring.SetCustomCommandDrawData(CMD_AUTOMEX, "automex", { 0.75, 0.75, 0.75, 0.7 }, true)

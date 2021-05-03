@@ -114,7 +114,7 @@ function SetCursor(cursorSet)
 			'cursorgather','cursordefend','cursorpickup',
 			'cursorrepair','cursorrevive','cursorrestore',
 			'cursormove','cursorpatrol','cursorreclamate','cursorselfd',
-			'cursornumber','cursorsettarget','cursorupgmex',
+			'cursornumber','cursorsettarget','cursorupgmex','cursorareamex',
 		}
 		for i=1, #cursorNames do
 			Spring.ReplaceMouseCursor(cursorNames[i], cursorDir..'/'..cursorNames[i], (cursorNames[i] == 'cursornormal'))
