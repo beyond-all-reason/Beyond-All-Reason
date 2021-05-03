@@ -5,7 +5,7 @@ function gadget:GetInfo()
 		author = "author: BigHead, modified by DeadnightWarrior",
 		date = "September 13, 2007",
 		license = "GNU GPL, v2 or later",
-		layer = 100,
+		layer = 0,
 		enabled = true -- loaded by default?
 	}
 end
@@ -84,6 +84,12 @@ local upgradeMexCmdDesc = {
 }
 
 function determine()
+	-- register cursor
+	Spring.AssignMouseCursor("upgmex", "cursorupgmex", false)
+	-- show the command in the queue
+	Spring.SetCustomCommandDrawData(CMD_UPGRADEMEX, "upgrademex", { 0.75, 0.75, 0.75, 0.7 }, true)
+	Spring.SetCustomCommandDrawData(CMD_AUTOMEX, "automex", { 0.75, 0.75, 0.75, 0.7 }, true)
+
 	local tmpbuilders = {}
 	for unitDefID, unitDef in pairs(UnitDefs) do
 		if unitDef.isBuilder and unitDef.canAssist then
@@ -155,12 +161,6 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:Initialize()
-		-- register cursor
-		Spring.AssignMouseCursor("upgmex", "cursorupgmex", false)
-		-- show the command in the queue
-		Spring.SetCustomCommandDrawData(CMD_UPGRADEMEX, "upgrademex", { 0.75, 0.75, 0.75, 0.7 }, true)
-		Spring.SetCustomCommandDrawData(CMD_AUTOMEX, "automex", { 0.75, 0.75, 0.75, 0.7 }, true)
-
 		determine()
 		registerUnits()
 	end
@@ -610,6 +610,7 @@ else
 	end
 
 	function gadget:Initialize()
+
 		determine()
 
 		for k, v in pairs(builderDefs) do

@@ -403,7 +403,7 @@ function widget:CommandsChanged()
 					type = CMDTYPE.ICON_AREA,
 					tooltip = 'Define an area (with metal spots in it) to make metal extractors in',
 					name = 'Mex',
-					cursor = 'upgmex',
+					cursor = 'normal',
 					action = 'areamex',
 				}
 				return
