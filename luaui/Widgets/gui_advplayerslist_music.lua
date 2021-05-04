@@ -312,7 +312,7 @@ local function createList()
 		glTexture(false)
 
 		button = 'musicvolume'
-		UiSlider(buttons[button][1], sliderY-ineHeight, buttons[button][3], sliderY+lineHeight)
+		UiSlider(buttons[button][1], sliderY-lineHeight, buttons[button][3], sliderY+lineHeight)
 		UiSliderKnob(buttons[button][5]-(sliderWidth/2), sliderY, sliderWidth)
 
 		button = 'volumeicon'
