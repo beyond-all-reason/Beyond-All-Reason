@@ -23,10 +23,6 @@ end
 local maxRotation = tonumber(Spring.GetConfigInt('unitRotation', 0) or 0)
 local maxAllowedRotation = 10
 
--- limit rotation for factories to reduce oddness
-local limitedMult = 0.55
-local limitedMax = 4
-
 local unitRotation = {}
 
 local glRotate = gl.Rotate
@@ -36,27 +32,28 @@ local rotateUnitDefs = {}
 local limitedRotation = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
 	if (unitDef.isBuilding or string.find(unitDef.name, "nanotc")) and not unitDef.canCloak then
-		rotateUnitDefs[unitDefID] = true
+		-- reduce rotation for larger buildings
+		rotateUnitDefs[unitDefID] = 1 / math.max(1, math.max(unitDef.xsize-2, unitDef.zsize-2) * 0.2)
 
+		-- limit rotation for factories
 		if unitDef.isFactory and #unitDef.buildOptions > 0 then
-			limitedRotation[unitDefID] = true
+			limitedRotation[unitDefID] = 4
 		end
+		-- limit rotation for winds/tidals
 		if unitDef.tidalGenerator > 0 or unitDef.windGenerator > 0 then
-			--rotateUnitDefs[unitDefID] = nil
-			limitedRotation[unitDefID] = true
+			limitedRotation[unitDefID] = 4
 		end
 	end
 end
 
 function gadget:UnitCreated(unitID, unitDefID, team)
 	if rotateUnitDefs[unitDefID] then
-		unitRotation[unitID] = math.random(-maxRotation, maxRotation)
+		unitRotation[unitID] = math.random(-maxRotation, maxRotation) * rotateUnitDefs[unitDefID]
 		if limitedRotation[unitDefID] then
-			unitRotation[unitID] = unitRotation[unitID] * limitedMult
-			if unitRotation[unitID] > limitedMax then
-				unitRotation[unitID] = limitedMax
-			elseif unitRotation[unitID] < -limitedMax then
-				unitRotation[unitID] = -limitedMax
+			if unitRotation[unitID] > limitedRotation[unitDefID] then
+				unitRotation[unitID] = limitedRotation[unitDefID]
+			elseif unitRotation[unitID] < -limitedRotation[unitDefID] then
+				unitRotation[unitID] = -limitedRotation[unitDefID]
 			end
 		end
 		spurSetUnitLuaDraw(unitID, true)
