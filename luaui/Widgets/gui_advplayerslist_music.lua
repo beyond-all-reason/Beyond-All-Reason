@@ -302,8 +302,7 @@ local function createList()
 		--RectRound(left, bottom, right, top, 5.5*widgetScale)
 
 		local sliderWidth = math.floor((4.5*widgetScale)+0.5)
-		local sliderHeight = math.floor((4.5*widgetScale)+0.5)
-		local lineHeight = math.floor((1.5*widgetScale)+0.5)
+		local lineHeight = math.floor((1.65*widgetScale)+0.5)
 
 		local button = 'musicvolumeicon'
 		local sliderY = math.floor(buttons[button][2] + (buttons[button][4] - buttons[button][2])/2)
@@ -313,7 +312,7 @@ local function createList()
 		glTexture(false)
 
 		button = 'musicvolume'
-		UiSlider(buttons[button][1], sliderY-math.ceil(lineHeight*1.15), buttons[button][3], sliderY+lineHeight)
+		UiSlider(buttons[button][1], sliderY-ineHeight, buttons[button][3], sliderY+lineHeight)
 		UiSliderKnob(buttons[button][5]-(sliderWidth/2), sliderY, sliderWidth)
 
 		button = 'volumeicon'
@@ -323,7 +322,7 @@ local function createList()
 		glTexture(false)
 
 		button = 'volume'
-		UiSlider(buttons[button][1], sliderY-math.ceil(lineHeight*1.15), buttons[button][3], sliderY+lineHeight)
+		UiSlider(buttons[button][1], sliderY-lineHeight, buttons[button][3], sliderY+lineHeight)
 		UiSliderKnob(buttons[button][5]-(sliderWidth/2), sliderY, sliderWidth)
 
 	end)
