@@ -87,6 +87,7 @@ T3SeaUnits = {
 	"corslrpc",
 	"armdecadet3",
 	"armpshipt3",
+	"armptt2",
 }
 
 T4SeaUnits = {

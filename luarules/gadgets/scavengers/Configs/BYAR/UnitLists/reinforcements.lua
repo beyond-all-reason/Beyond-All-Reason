@@ -333,6 +333,7 @@ T3ReinforcementSeaUnits = {
 	"corslrpc",
 	"armdecadet3",
 	"armpshipt3",
+	"armptt2",
 }
 
 T4ReinforcementSeaUnits = {
