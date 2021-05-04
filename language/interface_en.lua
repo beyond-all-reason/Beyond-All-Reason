@@ -467,7 +467,7 @@ return {
 				pathingTitle = 'Traversability',
 				pathing = '[F2] Shows where the selected unit can move, Green: okay, Red: problematic, Purple: can\'t move',
 				resourcesTitle = 'Resources',
-				resources = '[F4] Highlights metal spots and geothermal vents',
+				resources = '[F4] Highlights metal spots in green and geothermal vents in yellow.\n    Occupied metal spots are shown in red.',
 			},
 			pauseScreen = {
 				paused = 'GAME  PAUSED',
