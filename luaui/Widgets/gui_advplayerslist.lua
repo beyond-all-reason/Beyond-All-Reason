@@ -2078,7 +2078,7 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY)
         if m_country.active == true and country ~= "" then
             DrawCountry(country, posY)
         end
-        gl_Color(1, 1, 1, 0.45)
+        gl_Color(1, 1, 1, 1)
         if name ~= absentName and m_side.active == true then
             DrawSidePic(team, playerID, posY, leader, dark, ai)
         end
