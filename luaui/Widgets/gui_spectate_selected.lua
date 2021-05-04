@@ -32,7 +32,7 @@ function widget:SelectionChanged(sel)
 		if selTeam and selTeam ~= myTeamID then
 			switchToTeam = selTeam
 		end
-    end
+	end
 end
 
 local sec = 0
@@ -40,9 +40,19 @@ function widget:Update(dt)
 	if spec then
 		sec = sec + dt
 		if sec > 1.5 and switchToTeam ~= nil then	-- added a delay cause doing too quick changes is perf costly, happens when you area drag lots of mixed team units
+
+			local oldMapDrawMode = Spring.GetMapDrawMode()
+
 			sec = 0
 			Spring.SendCommands('specteam ' .. switchToTeam)
 			myTeamID = switchToTeam
+
+			local newMapDrawMode = Spring.GetMapDrawMode()
+
+			if oldMapDrawMode == 'los' and oldMapDrawMode ~= newMapDrawMode then
+				Spring.SendCommands("togglelos")
+			end
+
 			switchToTeam = nil
 		end
 	end
