@@ -244,7 +244,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.stealth then
 		unitDefInfo[unitDefID].stealth = true
 	end
-	if unitDef.cloakCost then
+	if unitDef.cloakCost and unitDef.canCloak then
 		unitDefInfo[unitDefID].cloakCost = unitDef.cloakCost
 		if unitDef.cloakCostMoving > unitDef.cloakCost then
 			unitDefInfo[unitDefID].cloakCostMoving = unitDef.cloakCostMoving
