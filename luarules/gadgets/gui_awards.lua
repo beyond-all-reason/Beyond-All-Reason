@@ -59,8 +59,9 @@ if gadgetHandler:IsSyncedCode() then
 	local unitNumWeapons = {}
 	local unitCombinedCost = {}
 	for unitDefID, unitDef in pairs(UnitDefs) do
-		if #unitDef.weapons > 0 then
-			unitNumWeapons[unitDefID] = #unitDef.weapons
+		local weapons = unitDef.weapons
+		if #weapons > 0 then
+			unitNumWeapons[unitDefID] = #weapons
 		end
 		unitCombinedCost[unitDefID] = unitDef.energyCost + (60 * unitDef.metalCost)
 	end

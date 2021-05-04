@@ -660,16 +660,17 @@ function widget:DrawScreen()
 						local cmd = commands[cell]
 						if WG['tooltip'] then
 							local tooltipKey = cmd.action .. '_tooltip'
-							local shortcut = ''
-							if commandInfo[cmd.action] and commandInfo[cmd.action].shortcut then
-								shortcut = '\255\255\215\100'..commandInfo[cmd.action].shortcut
-							end
 							local tooltip = Spring.I18N('ui.orderMenu.' .. tooltipKey)
-							if tooltip ~= '' then
-								tooltip = '\255\240\240\240 ' .. (shortcut ~= '' and '- ' or '') .. tooltip
+							local shortcut = ''
+
+							if commandInfo[cmd.action] and commandInfo[cmd.action].shortcut then
+								shortcut =  commandInfo[cmd.action].shortcut
 							end
-							if shortcut .. tooltip ~= '' then
-								WG['tooltip'].ShowTooltip('ordermenu', shortcut .. tooltip)
+							if tooltip ~= '' and shortcut ~= '' then
+								tooltip = Spring.I18N('ui.orderMenu.hotkeyTooltip', { hotkey = shortcut, tooltip = tooltip, highlightColor = "\255\255\215\100", textColor = "\255\240\240\240" })
+							end
+							if tooltip ~= '' then
+								WG['tooltip'].ShowTooltip('ordermenu', tooltip)
 							end
 						end
 						cellHovered = cell

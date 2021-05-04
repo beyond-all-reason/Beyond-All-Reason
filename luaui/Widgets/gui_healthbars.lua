@@ -946,8 +946,9 @@ do
 		unitDef.reloadTime = 0
 		unitDef.primaryWeapon = 0
 		unitDef.shieldPower = 0
-		for i = 1, #unitDef.weapons do
-			local WeaponDefID = unitDef.weapons[i].weaponDef
+		local weapons = unitDef.weapons
+		for i = 1, #weapons do
+			local WeaponDefID = weapons[i].weaponDef
 			local WeaponDef = WeaponDefs[WeaponDefID]
 			if WeaponDef.reload > unitDef.reloadTime then
 				unitDef.reloadTime = WeaponDef.reload

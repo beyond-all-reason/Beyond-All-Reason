@@ -610,6 +610,7 @@ customDefs.armaca = {
 	buildoptions = {
 		[numBuildoptions+1] = "armapt3",
 		[numBuildoptions+2] = "armminivulc",
+		[numBuildoptions+3] = "armwint2",
 	},
 }
 
@@ -618,6 +619,7 @@ customDefs.armack = {
 	buildoptions = {
 		[numBuildoptions+1] = "armapt3",
 		[numBuildoptions+2] = "armminivulc",
+		[numBuildoptions+3] = "armwint2",
 	},
 }
 
@@ -626,6 +628,7 @@ customDefs.armacv = {
 	buildoptions = {
 		[numBuildoptions+1] = "armapt3",
 		[numBuildoptions+2] = "armminivulc",
+		[numBuildoptions+3] = "armwint2",
 	},
 }
 
@@ -634,6 +637,8 @@ customDefs.coraca = {
 	buildoptions = {
 		[numBuildoptions+1] = "corapt3",
 		[numBuildoptions+2] = "corminibuzz",
+		[numBuildoptions+3] = "corwint2",
+		[numBuildoptions+4] = "corhllllt",
 	},
 }
 
@@ -642,6 +647,8 @@ customDefs.corack = {
 	buildoptions = {
 		[numBuildoptions+1] = "corapt3",
 		[numBuildoptions+2] = "corminibuzz",
+		[numBuildoptions+3] = "corwint2",
+		[numBuildoptions+4] = "corhllllt",
 	},
 }
 
@@ -650,6 +657,8 @@ customDefs.coracv = {
 	buildoptions = {
 		[numBuildoptions+1] = "corapt3",
 		[numBuildoptions+2] = "corminibuzz",
+		[numBuildoptions+3] = "corwint2",
+		[numBuildoptions+4] = "corhllllt",
 	},
 }
 

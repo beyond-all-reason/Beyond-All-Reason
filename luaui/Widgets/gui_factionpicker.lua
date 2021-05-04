@@ -10,8 +10,10 @@ function widget:GetInfo()
 	}
 end
 
--------------------------------------------------------------------------------
--------------------------------------------------------------------------------
+local chobbyLoaded = (Spring.GetMenuName and string.find(string.lower(Spring.GetMenuName()), 'chobby') ~= nil)
+
+local restorePreviousFaction = false
+
 local factions = {
 	{ UnitDefNames.corcom.id, Spring.I18N('units.factions.cor'), 'unitpics/corcom.png' },
 	{ UnitDefNames.armcom.id, Spring.I18N('units.factions.arm'), 'unitpics/armcom.png' },
@@ -462,5 +464,26 @@ function widget:MousePress(x, y, button)
 			end
 		end
 		return true
+	end
+end
+
+function widget:GetConfigData()
+	return { startDefID = startDefID }
+end
+
+function widget:SetConfigData(data)
+	if restorePreviousFaction then
+		if data ~= nil and data.startDefID then
+
+			-- loop factions to make sure startDefID is legit
+			for i,v in pairs(factions) do
+				if factions[i][1] == startDefID then
+					startDefID = factions[i][1]
+					-- tell initial spawn
+					Spring.SendLuaRulesMsg('\138' .. tostring(factions[i][1]))
+					break
+				end
+			end
+		end
 	end
 end

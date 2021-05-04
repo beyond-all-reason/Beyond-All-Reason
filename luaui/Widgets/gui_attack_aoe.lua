@@ -139,28 +139,31 @@ end
 local function GetMouseTargetPosition(dgun)
 	local mx, my = GetMouseState()
 	local mouseTargetType, mouseTarget = TraceScreenRay(mx, my)
-
-	if mouseTargetType == "ground" then
-		return mouseTarget[1], mouseTarget[2], mouseTarget[3]
-	elseif mouseTargetType == "unit" then
-		if ((dgun and WG['dgunnoally'] ~= nil) or (not dgun and WG['attacknoally'] ~= nil)) and Spring.IsUnitAllied(mouseTarget) then
-			mouseTargetType, mouseTarget = TraceScreenRay(mx, my, true)
+	if mouseTarget and mouseTargetType then
+		if mouseTargetType == "ground" then
 			return mouseTarget[1], mouseTarget[2], mouseTarget[3]
-		elseif ((dgun and WG['dgunnoenemy'] ~= nil) or (not dgun and WG['attacknoenemy'] ~= nil)) and not Spring.IsUnitAllied(mouseTarget) then
-			local unitDefID = Spring.GetUnitDefID(mouseTarget)
-			local mouseTargetType2, mouseTarget2 = TraceScreenRay(mx, my, true)
-			if isAirUnit[unitDefID] or isShip[unitDefID] or isUnderwater[unitDefID] or (Spring.GetGroundHeight(mouseTarget2[1], mouseTarget2[3]) < 0 and isHover[unitDefID]) then
-				return GetUnitPosition(mouseTarget)
+		elseif mouseTargetType == "unit" then
+			if ((dgun and WG['dgunnoally'] ~= nil) or (not dgun and WG['attacknoally'] ~= nil)) and Spring.IsUnitAllied(mouseTarget) then
+				mouseTargetType, mouseTarget = TraceScreenRay(mx, my, true)
+				return mouseTarget[1], mouseTarget[2], mouseTarget[3]
+			elseif ((dgun and WG['dgunnoenemy'] ~= nil) or (not dgun and WG['attacknoenemy'] ~= nil)) and not Spring.IsUnitAllied(mouseTarget) then
+				local unitDefID = Spring.GetUnitDefID(mouseTarget)
+				local mouseTargetType2, mouseTarget2 = TraceScreenRay(mx, my, true)
+				if isAirUnit[unitDefID] or isShip[unitDefID] or isUnderwater[unitDefID] or (Spring.GetGroundHeight(mouseTarget2[1], mouseTarget2[3]) < 0 and isHover[unitDefID]) then
+					return GetUnitPosition(mouseTarget)
+				else
+					return mouseTarget2[1], mouseTarget2[2], mouseTarget2[3]
+				end
 			else
-				return mouseTarget2[1], mouseTarget2[2], mouseTarget2[3]
+				return GetUnitPosition(mouseTarget)
 			end
+		elseif mouseTargetType == "feature" then
+			local mouseTargetType, mouseTarget = TraceScreenRay(mx, my, true)
+			return mouseTarget[1], mouseTarget[2], mouseTarget[3]
+			--return GetFeaturePosition(mouseTarget)
 		else
-			return GetUnitPosition(mouseTarget)
+			return nil
 		end
-	elseif mouseTargetType == "feature" then
-		local mouseTargetType, mouseTarget = TraceScreenRay(mx, my, true)
-		return mouseTarget[1], mouseTarget[2], mouseTarget[3]
-		--return GetFeaturePosition(mouseTarget)
 	else
 		return nil
 	end

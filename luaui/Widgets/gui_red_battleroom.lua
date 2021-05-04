@@ -340,7 +340,7 @@ local function clipLine(line,fontsize,maxwidth)
 		local linelen = slen(line)
 		local i=1
 		while (1) do -- loop through potential positions where we might need to clip
-			if (font and font:GetTextWidth(ssub(line,1,i+1))*fontsize > maxwidth) then
+			if font and font:GetTextWidth(ssub(line,1,i+1))*fontsize > maxwidth then
 				local test = line
 				local newlinecolour = ""
 
@@ -354,7 +354,7 @@ local function clipLine(line,fontsize,maxwidth)
 				clipped[clippedCount] = newline
 				line = ssub(line,i+1)
 
-				if (firstpass) then
+				if firstpass then
 					firstclip = i
 					firstpass = nil
 				end
@@ -362,7 +362,7 @@ local function clipLine(line,fontsize,maxwidth)
 				break
 			end
 			i=i+1
-			if (i > linelen) then
+			if i > linelen then
 				break
 			end
 		end
@@ -478,48 +478,48 @@ local function processLine(line,g,cfg,newlinecolor)
 		ignoreThisMessage = true
 	end
 
-	if (not newlinecolor) then
-		if (names[ssub(line,2,(sfind(line,"> ", nil, true) or 1)-1)] ~= nil) then
-				ignoreThisMessage = true
+	if not newlinecolor then
+		if names[ssub(line,2,(sfind(line,"> ", nil, true) or 1)-1)] ~= nil then
+			ignoreThisMessage = true
 			linetype = 1 --playermessage
 			name = ssub(line,2,sfind(line,"> ", nil, true)-1)
 			text = ssub(line,slen(name)+4)
 		if ssub(text,1,1) == "!" then
 			ignoreThisMessage = true
-				if myname and myname == name then
+			if myname and myname == name then
 				waitbotanswer = true
-				end
+			end
 		end
-		elseif (names[ssub(line,2,(sfind(line,"] ", nil, true) or 1)-1)] ~= nil) then
+		elseif names[ssub(line,2,(sfind(line," (replay)] ", nil, true) or 1)-1)] ~= nil then
+			ignoreThisMessage = true
+			linetype = 2 --spectatormessage
+			name = ssub(line,2,sfind(line," (replay)] ", nil, true)-1)
+			text = ssub(line,slen(name)+13)
+			if ssub(text,1,1) == "!" then
 				ignoreThisMessage = true
+				if myname and myname == name then
+					waitbotanswer = true
+				end
+			end
+		elseif names[ssub(line,2,(sfind(line,"] ", nil, true) or 1)-1)] ~= nil then
+			ignoreThisMessage = true
 			linetype = 2 --spectatormessage
 			name = ssub(line,2,sfind(line,"] ", nil, true)-1)
 			text = ssub(line,slen(name)+4)
-		if ssub(text,1,1) == "!" then
-			ignoreThisMessage = true
+			if ssub(text,1,1) == "!" then
+				ignoreThisMessage = true
 			-- Spring.Echo(name)
 			-- Spring.Echo(myname)
 				if myname and myname == name then
 				waitbotanswer = true
 				end
-		end
-		elseif (names[ssub(line,2,(sfind(line,"(replay)", nil, true) or 3)-3)] ~= nil) then
-				ignoreThisMessage = true
-			linetype = 2 --spectatormessage
-			name = ssub(line,2,sfind(line,"(replay)", nil, true)-3)
-			text = ssub(line,slen(name)+13)
-		if ssub(text,1,1) == "!" then
+			end
+		elseif names[ssub(line,1,(sfind(line," added point: ", nil, true) or 1)-1)] ~= nil then
 			ignoreThisMessage = true
-				if myname and myname == name then
-				waitbotanswer = true
-				end
-		end
-		elseif (names[ssub(line,1,(sfind(line," added point: ", nil, true) or 1)-1)] ~= nil) then
-				ignoreThisMessage = true
 			linetype = 3 --playerpoint
 			name = ssub(line,1,sfind(line," added point: ", nil, true)-1)
 			text = ssub(line,slen(name.." added point: ")+1)
-		elseif (ssub(line,1,1) == ">") then
+		elseif ssub(line,1,1) == ">" then
 			linetype = 4 --gamemessage
 			playSound = true
 			text = ssub(line,3)
@@ -695,17 +695,17 @@ local function processLine(line,g,cfg,newlinecolor)
 	local textcolor = nil
 
 
-	if (linetype==1) then --playermessage
+	if linetype==1 then --playermessage
 		local c = cfg.cothertext
 		local misccolor = convertColor(c[1],c[2],c[3])
-		if (sfind(text,"Allies: ", nil, true) == 1) then
+		if sfind(text,"Allies: ", nil, true) == 1 then
 			text = ssub(text,9)
 			if (names[name][1] == MyAllyTeamID) then
 				c = cfg.callytext
 			else
 				c = cfg.cotherallytext
 			end
-		elseif (sfind(text,"Spectators: ", nil, true) == 1) then
+		elseif sfind(text,"Spectators: ", nil, true) == 1 then
 			text = ssub(text,13)
 			c = cfg.cspectext
 		end
@@ -718,7 +718,7 @@ local function processLine(line,g,cfg,newlinecolor)
 
         playSound = true
 
-	elseif (linetype==2) then --spectatormessage
+	elseif linetype==2 then --spectatormessage
 
 		if filterSpecs then
 			ignoreThisMessage = true
@@ -726,10 +726,10 @@ local function processLine(line,g,cfg,newlinecolor)
 
 		local c = cfg.cothertext
 		local misccolor = convertColor(c[1],c[2],c[3])
-		if (sfind(text,"Allies: ", nil, true) == 1) then
+		if sfind(text,"Allies: ", nil, true) == 1 then
 			text = ssub(text,9)
 			c = cfg.cspectext
-		elseif (sfind(text,"Spectators: ", nil, true) == 1) then
+		elseif sfind(text,"Spectators: ", nil, true) == 1 then
 			text = ssub(text,13)
 			c = cfg.cspectext
 		end
@@ -741,15 +741,15 @@ local function processLine(line,g,cfg,newlinecolor)
 
         playSound = true
 
-	elseif (linetype==3) then --playerpoint
+	elseif linetype==3 then --playerpoint
 		local c = cfg.cspectext
 		local namecolor = convertColor(c[1],c[2],c[3])
 
 		local spectator = true
-		if (names[name] ~= nil) then
+		if names[name] ~= nil then
 			spectator = names[name][2]
 		end
-		if (spectator) then
+		if spectator then
             name = "(s) "..name
 		else
             local r,g,b,a = sGetTeamColor(names[name][3])
@@ -757,9 +757,9 @@ local function processLine(line,g,cfg,newlinecolor)
 		end
 
 		c = cfg.cotherallytext
-		if (spectator) then
+		if spectator then
 			c = cfg.cspectext
-		elseif (names[name][1] == MyAllyTeamID) then
+		elseif names[name][1] == MyAllyTeamID then
 			c = cfg.callytext
 		end
 		textcolor = convertColor(c[1],c[2],c[3])
@@ -768,7 +768,7 @@ local function processLine(line,g,cfg,newlinecolor)
 
 		line = namecolor..name..misccolor.." * "..textcolor..text
 
-	elseif (linetype==4) then --gamemessage
+	elseif linetype==4 then --gamemessage
 		local c = cfg.cgametext
 		textcolor = convertColor(c[1],c[2],c[3])
 
@@ -812,17 +812,17 @@ local function updateconsole(g,cfg)
 	local forceupdate = g.vars._forceupdate
 	local justforcedupdate = g.vars._justforcedupdate
 
-	if (forceupdate and (not justforcedupdate)) then
+	if forceupdate and not justforcedupdate then
 		g.vars._justforcedupdate = true
 		g.vars._forceupdate = nil
 	else
 		g.vars._justforcedupdate = nil
 		g.vars._forceupdate = nil
 
-		if (g.vars.nextupdate == nil) then
+		if g.vars.nextupdate == nil then
 			g.vars.nextupdate = 0
 		end
-		if ((g.vars.nextupdate < 0) or (clock() < g.vars.nextupdate)) then
+		if g.vars.nextupdate < 0 or clock() < g.vars.nextupdate then
 			return
 		end
 	end
@@ -833,15 +833,15 @@ local function updateconsole(g,cfg)
 	local maxlines = cfg.maxlines
 
 	local historyoffset = 0
-	if (g.vars.browsinghistory) then
-		if (g.vars.historyoffset == nil) then
+	if g.vars.browsinghistory then
+		if g.vars.historyoffset == nil then
 			g.vars.historyoffset = 0
 		end
 		historyoffset = g.vars.historyoffset
 		maxlines = cfg.maxlinesScrollmode
 	end
 
-	if (usecounters == nil) then
+	if usecounters == nil then
 		usecounters = cfg.filterduplicates
 	end
 
@@ -866,14 +866,14 @@ local function updateconsole(g,cfg)
 	local history = g.vars.consolehistory or {}
 
 	while (count < maxlines) do
-		if (history[#history-i-historyoffset]) then
+		if history[#history-i-historyoffset] then
 			local line = history[#history-i-historyoffset]
-			if (skipagecheck or ((clock()-line[2]) <= maxage)) then
-				if (count == 0) then
+			if skipagecheck or (clock()-line[2]) <= maxage then
+				if count == 0 then
 					count = count + 1
 					display = line[1]
 				else
-					if (usecounters and (lastID > 0) and (lastID~=line[3]) and (line[1] == lastLine)) then
+					if usecounters and lastID > 0 and lastID~=line[3] and line[1] == lastLine then
 						counters[count] = counters[count] + 1
 					else
 						count = count + 1
@@ -884,7 +884,7 @@ local function updateconsole(g,cfg)
 				lastLine = line[1]
 				lastID = line[3]
 
-				if (skipagecheck) then
+				if skipagecheck then
 					g.vars.nextupdate = -1
 				else
 					g.vars.nextupdate = line[2]+maxage
@@ -898,9 +898,9 @@ local function updateconsole(g,cfg)
 		end
 	end
 
-	if (usecounters) then
+	if usecounters then
 		for i=1,#counters do
-			if (counters[i] ~= 1) then
+			if counters[i] ~= 1 then
 				local counter = count-i+1
 				g.counters[counter].active = nil
 				g.counters[counter].caption = counters[i].."x"
@@ -908,7 +908,7 @@ local function updateconsole(g,cfg)
 		end
 	end
 
-	if (count == 0) then
+	if count == 0 then
 		g.vars.nextupdate = -1 --no update until new console line
 		g.background.active = false
 		g.lines.active = false
@@ -931,7 +931,7 @@ function widget:Initialize()
 	end
 	regID = tostring(Spring.GetMyPlayerID())
 	PassedStartupCheck = RedUIchecks()
-	if (not PassedStartupCheck) then return end
+	if not PassedStartupCheck then return end
 
 	console = createconsole(Config.console)
 	Spring.SendCommands("console 0")
@@ -1003,7 +1003,7 @@ end
 --save/load stuff
 --currently only position
 function widget:GetConfigData() --save config
-	if (PassedStartupCheck) then
+	if PassedStartupCheck then
 		local vsy = Screen.vsy
 		Config.console.px = console.background.px
 		Config.console.py = console.background.py
@@ -1011,7 +1011,7 @@ function widget:GetConfigData() --save config
 	end
 end
 function widget:SetConfigData(data) --load config
-	if (data.Config ~= nil) then
+	if data.Config ~= nil then
 		--Config.console.px = data.Config.console.px
 		--Config.console.py = data.Config.console.py
 	end

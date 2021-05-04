@@ -104,14 +104,20 @@ function widget:Update(dt)
 		sec = 0
 		updatePosition()
 	end
-	if continuouslyClean then
-		Spring.SendCommands({"clearmapmarks"})
-	end
+	--if continuouslyClean then
+	--	Spring.SendCommands({"clearmapmarks"})
+	--end
 end
 
 function widget:RecvLuaMsg(msg, playerID)
 	if msg:sub(1,18) == 'LobbyOverlayActive' then
 		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
+	end
+end
+
+function widget:MapDrawCmd(playerID, cmdType, startx, starty, startz, a, b, c)
+	if continuouslyClean then
+		return true
 	end
 end
 

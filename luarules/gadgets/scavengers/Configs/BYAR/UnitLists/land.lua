@@ -131,6 +131,7 @@ T3LandUnits = {
 	"armmanni",
 	"cortrem",
 	"corhrk",
+	"armthor",
 	--bots
 	"armmar",
 	"armvang",
@@ -169,6 +170,7 @@ T4LandUnits = {
 	"corkorg",
 	"corjugg",
 	"armbanth",
+	"armthor",
 	--superboss
 	"armpwt4",
 	"armrattet4",
@@ -177,4 +179,5 @@ T4LandUnits = {
 	"corkarganetht4",
 	"armrectrt4",
 	"corgolt4",
+	
 }

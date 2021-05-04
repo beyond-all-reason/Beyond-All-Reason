@@ -14,45 +14,18 @@ end
 local counterNum = 25
 local blocklimit = 8
 local unblocklimit = 0.5
-local unblocktime = 30
 
 local GetPlayerList = Spring.GetPlayerList
 local GetPlayerInfo = Spring.GetPlayerInfo
-local GetTeamColor  = Spring.GetTeamColor
-local GetPlayerTraffic = Spring.GetPlayerTraffic
 local Echo = Spring.Echo
-local floor = math.floor
-local fmod = math.fmod
-
--- see rts/System/BaseNetProtocol.h for message ids
-local traffic = {
-	NETMSG_MAPDRAW = {
-		id = 31,
-		playerdata = {},
-	},
-}
 
 -- drawCmds[playerid] = {counters = {point = {}, line = {}, erase = {}}, labels = {...}, blocked = false}
 local drawCmds = {}
-local drawTypes = { "point", "line", "erase" }
-local validTypes = {line=true}
-local timeCounter = 1
 local drawLinedistanceWeight = 0.02
 local currentCounter = -1
 local timerCmd = 0
 local timeFrame = 1
 local secondTimer = 0
-
-local myPlayerNum = Spring.GetMyPlayerID()
-
-local action_unblock = "mapdrawunblock"
-local action_block = "mapdrawblock"
-local action_list = "mapdrawlistblocked"
-
-local action_unlock, AutoUnblock
-
--- helper functions
-
 
 local function ClearCurrentBuffer()
 	for i,p in pairs(GetPlayerList()) do
@@ -70,9 +43,7 @@ local function ClearCurrentBuffer()
 		end
 		drawCmds[p] = playerDraw
 	end
-
 end
-
 
 local function CheckTresholds()
 	for player,data in pairs(drawCmds) do
@@ -87,67 +58,18 @@ local function CheckTresholds()
 			local wasBlocked = data.blocked
 			data.blocked = timerCmd
 			if not wasBlocked then
-				Echo("Blocking map draw for " .. GetPlayerInfo(player,false))
+				Echo( Spring.I18N('ui.mapDrawBlocker.block', { player = GetPlayerInfo(player,false) }) )
 			end
 		end
 		if sum < unblocklimit and data.blocked and (currentCounter-data.blocked > unblocklimit ) then
 			data.blocked = false
-			Echo("Unblocking map draw for " .. GetPlayerInfo(player,false))
+			Echo( Spring.I18N('ui.mapDrawBlocker.unblock', { player = GetPlayerInfo(player,false) }) )
 		end
 	end
 end
-
-
-function ActionUnBlock(_,_,parms)
-	local p = tonumber(parms[1])
-	if not p then return end
-	if drawCmds[p] then
-		drawCmds[p].blocked = false
-		Echo("unblocking map draw for " .. GetPlayerInfo(p,false))
-	end
-end
-
-function ActionBlock(_,_,parms)
-	local p = tonumber(parms[1])
-	if not p then return end
-	if drawCmds[p] then
-		drawCmds[p].blocked = timerCmd
-		Echo("blocking map draw for " .. GetPlayerInfo(p,false))
-	end
-end
-
-
-function ActionList()
-	for player,data in pairs(drawCmds) do
-		if data.blocked then
-			Echo(GetPlayerInfo(player,false) .. " is blocked ")
-		end
-	end
-end
-
--- callins
-
 
 function widget:Initialize()
-
 	ClearCurrentBuffer()
-
-	widgetHandler:AddAction(action_unblock, ActionUnBlock, nil, "t")
-	widgetHandler:AddAction(action_block, ActionBlock, nil, "t")
-	widgetHandler:AddAction(action_list, ActionList, nil, "t")
-
-end
-
-
-function widget:Shutdown()
-	widgetHandler:RemoveAction(action_unlock)
-	widgetHandler:RemoveAction(action_block)
-	widgetHandler:RemoveAction(action_list)
-
-end
-
-
-function AutoUnblock()
 end
 
 function widget:Update(dt)
@@ -160,9 +82,7 @@ function widget:Update(dt)
 		ClearCurrentBuffer()
 		CheckTresholds()
 	end
-
 end
-
 
 --[[
 point x y z str

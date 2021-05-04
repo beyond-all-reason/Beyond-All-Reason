@@ -5,7 +5,7 @@ function gadget:GetInfo()
 		author = "author: BigHead, modified by DeadnightWarrior",
 		date = "September 13, 2007",
 		license = "GNU GPL, v2 or later",
-		layer = 100,
+		layer = 0,
 		enabled = true -- loaded by default?
 	}
 end
@@ -66,7 +66,7 @@ local autoMexCmdDesc = {
 	id = CMD_AUTOMEX,
 	type = CMDTYPE.ICON_MODE,
 	name = 'Auto Mex Upgrade',
-	cursor = 'AutoMex',
+	cursor = 'upgmex',
 	action = 'automex',
 	tooltip = ONTooltip,
 	params = { '0', 'UpgMex OFF', 'UpgMex ON' }
@@ -76,25 +76,32 @@ local upgradeMexCmdDesc = {
 	id = CMD_UPGRADEMEX,
 	type = CMDTYPE.ICON_UNIT_OR_AREA,
 	name = 'Upgrade Mex',
-	cursor = 'Attack',
+	cursor = 'upgmex',
 	action = 'upgrademex',
 	tooltip = 'Upgrade Mex',
 	hidden = false,
 	params = {}
 }
 
-function determine(ud, wd)
+function determine()
+	-- register cursor
+	Spring.AssignMouseCursor("upgmex", "cursorupgmex", false)
+	Spring.AssignMouseCursor("areamex", "cursorareamex", false)
+	-- show the command in the queue
+	Spring.SetCustomCommandDrawData(CMD_UPGRADEMEX, "upgrademex", { 0.75, 0.75, 0.75, 0.7 }, true)
+	Spring.SetCustomCommandDrawData(CMD_AUTOMEX, "automex", { 0.75, 0.75, 0.75, 0.7 }, true)
+
 	local tmpbuilders = {}
-	for unitDefID, unitDef in pairs(ud) do
-		if isBuilder(unitDef) then
+	for unitDefID, unitDef in pairs(UnitDefs) do
+		if unitDef.isBuilder and unitDef.canAssist then
 			tmpbuilders[#tmpbuilders + 1] = unitDefID
 		else
 			local extractsMetal = unitDef.extractsMetal
-			if (extractsMetal > 0) then
+			if extractsMetal > 0 then
 				local mexDef = {}
 				mexDef.extractsMetal = extractsMetal
 				if #unitDef.weapons <= 1 then
-					if (#unitDef.weapons == 1 and wd[unitDef.weapons[1].weaponDef].isShield) then
+					if #unitDef.weapons == 1 and WeaponDefs[unitDef.weapons[1].weaponDef].isShield then
 						mexDef.armed = #unitDef.weapons < 0
 					else
 						mexDef.armed = #unitDef.weapons > 0
@@ -111,7 +118,7 @@ function determine(ud, wd)
 
 	for _, unitDefID in ipairs(tmpbuilders) do
 		local upgradePairs = nil
-		for _, optionID in ipairs(ud[unitDefID].buildOptions) do
+		for _, optionID in ipairs(UnitDefs[unitDefID].buildOptions) do
 			local mexDef = mexDefs[optionID]
 			if mexDef then
 				upgradePairs = processMexData(optionID, mexDef, upgradePairs)
@@ -143,10 +150,6 @@ function processMexData(mexDefID, mexDef, upgradePairs)
 	return upgradePairs
 end
 
-function isBuilder(unitDef)
-	return (unitDef.isBuilder and unitDef.canAssist)
-end
-
 if gadgetHandler:IsSyncedCode() then
 
 	local isCommander = {}
@@ -158,10 +161,8 @@ if gadgetHandler:IsSyncedCode() then
 		unitXsize[unitDefID] = unitDef.xsize
 	end
 
-	-- This part of the code determines who should upgrade what
-	---------------------------------------------------------------------------------------------------------------------------
 	function gadget:Initialize()
-		determine(UnitDefs, WeaponDefs)
+		determine()
 		registerUnits()
 	end
 
@@ -180,7 +181,6 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	-- This part of the code actually does somethings (upgrades mexes)
-	---------------------------------------------------------------------------------------------------------------------------
 	function gadget:GameFrame(n)
 
 		for unitID, data in pairs(addCommands) do
@@ -611,7 +611,8 @@ else
 	end
 
 	function gadget:Initialize()
-		determine(UnitDefs, WeaponDefs)
+
+		determine()
 
 		for k, v in pairs(builderDefs) do
 			local upgradePairs = {}

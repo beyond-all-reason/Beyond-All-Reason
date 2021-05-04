@@ -8,7 +8,10 @@ General
 
 Units
  • Commander wreckage is now 2000 metal instead of 2500
+ • Commander has 500 metal/energy storage (lose commander and default storage is also 500)
+ • Commander produces 2 metal (was 1.5)
  • T1 metal extractors use 3 Energy to operate, also slightly reduced buildprice
+ • T2 metal extractors have 40% less metal storage (600)
  • Ground scouts (vehicles/bot): 10% more LoS
  • T1 vehicle artillery has faster projectile and does 2x more damage per shot, but also has 2x reloadtime.
  • Decreased cormaw damage 27%

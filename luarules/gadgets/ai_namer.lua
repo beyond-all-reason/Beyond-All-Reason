@@ -17,6 +17,7 @@ if gadgetHandler:IsSyncedCode() then
 	local namelist = {
 		-- Contributors
 		"AF",
+		"AlexS",
 		"Beherith",
 		"Damgam",
 		"Doo",
@@ -32,12 +33,17 @@ if gadgetHandler:IsSyncedCode() then
 		"Krogoth",
 		"lamer",
 		"MaDDoX",
+		"Monty",
 		"pandaro",
 		"PtaQ",
 		"rossco",
+		"skynet",
 		"Sprung",
 		"Teifion",
-		"WTF",
+		"tovernaar123",
+		"Vache",
+		"Watch The Fort",
+		"Yaribz",
 		"Zecrus",
 		
 		-- Supporters ($20+ Donation)
@@ -47,6 +53,7 @@ if gadgetHandler:IsSyncedCode() then
 		"Diana",
 		"EnJoY",
 		"FlorisXIV",
+		"Hershy",
 		"Jazcash",
 		"JimmiBoy",
 		"Kodiak",
@@ -55,11 +62,16 @@ if gadgetHandler:IsSyncedCode() then
 		"Raghna",
 		"Rezol",
 		"Rikerss", --Merch $20+
+		"Spanker",
 		"Woody",
 		"zGeneral",
 
+		-- BAR Content Creators 
+		"Requiem_TV",
+		"gamerangela911",
+
 		
-		-- AI Nicknames
+		-- AI Names
 		"Chris",
 		"Crewmate",
 		"HiMom",

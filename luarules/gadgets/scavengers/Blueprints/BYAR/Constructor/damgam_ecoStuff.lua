@@ -1193,3 +1193,19 @@ table.insert(ScavengerConstructorBlueprintsT3,DamgamEcoStuff7T3)
 	-- end
 -- end
 -- table.insert(ScavengerConstructorBlueprintsT3,DamgamEcoStuff8T3)
+
+local function DamgamEcoStuffSoloT2Wind(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
+local posradius = 48
+	if radiusCheck then
+		return posradius
+	else 
+		if math.random(0,1) == 0 then
+			Spring.GiveOrderToUnit(scav, -(UDN.armwint2_scav.id), {posx+(0), posy, posz+(0), 1}, {"shift"})
+		else
+			Spring.GiveOrderToUnit(scav, -(UDN.corwint2_scav.id), {posx+(0), posy, posz+(0), 1}, {"shift"})
+		end
+	end
+end
+table.insert(ScavengerConstructorBlueprintsT1,DamgamEcoStuffSoloT2Wind)
+table.insert(ScavengerConstructorBlueprintsT2,DamgamEcoStuffSoloT2Wind)
+table.insert(ScavengerConstructorBlueprintsT3,DamgamEcoStuffSoloT2Wind)

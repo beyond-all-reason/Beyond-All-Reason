@@ -10,7 +10,7 @@ function gadget:GetInfo()
 	}
 end
 
-if (not gadgetHandler:IsSyncedCode()) then
+if not gadgetHandler:IsSyncedCode() then
 	return
 end
 

@@ -35,7 +35,7 @@ return {
 		maxdamage = 3500,
 		maxslope = 30,
 		maxwaterdepth = 20,
-		metalstorage = 500,
+		metalstorage = 600,
 		name = unitName,
 		nochasecategory = "MOBILE",
 		objectname = "Units/CORMEXP.s3o",

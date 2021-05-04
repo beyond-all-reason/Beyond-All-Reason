@@ -95,17 +95,18 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:UnitDamaged(uID, uDefID, uTeam, damage, paralyzer, weaponID, projID, aID, aDefID, aTeam)
 		if junoWeapons[weaponID] and tokillUnits[uDefID] then
 			if uID and SpValidUnitID(uID) then
+        local px, py, pz = Spring.GetUnitPosition(uID)
+        if px then Spring.SpawnCEG("juno-damage", px, py+8, pz, 0, 1, 0) end
 				if aID and SpValidUnitID(aID) then
 					SpDestroyUnit(uID, false, false, aID)
 				else
-					SpDestroyUnit(uID, false, false)
+					SpDestroyUnit(uID, false, false) -- leavewreck, makeselfdexplosion
 				end
 			end
 		end
 	end
 
 	-- area denial --
-
 	local centers = {} --table of where juno missiles hit etc
 	local counter = 1 --index each explosion of juno missile with this counter
 
@@ -119,7 +120,7 @@ if gadgetHandler:IsSyncedCode() then
 			local curtime = SpGetGameSeconds()
 			local junoExpl = { x = px, y = py, z = pz, t = curtime, o = ownerID }
 			centers[counter] = junoExpl
-			SendToUnsynced("AddToCenters", counter, px, py, pz, curtime)
+			--SendToUnsynced("AddToCenters", counter, px, py, pz, curtime)
 			counter = counter + 1
 		end
 	end
@@ -130,12 +131,11 @@ if gadgetHandler:IsSyncedCode() then
 	local update = true
 
 	function gadget:GameFrame(frame)
-
-		if frame == 10 then
+    --if frame == 10 then
 			--seems that SendToUnsynced has to happen after
-			SendToUnsynced("RecieveConstants", width, radius, effectlength, fadetime)
-		end
-
+			--SendToUnsynced("RecieveConstants", width, radius, effectlength, fadetime)
+		--end
+    
 		local curtime = SpGetGameSeconds()
 
 		for counter, expl in pairs(centers) do
@@ -146,30 +146,22 @@ if gadgetHandler:IsSyncedCode() then
 				end
 
 				local unitIDsBig = SpGetUnitsInCylinder(expl.x, expl.z, q * radius)
-				local unitIDsSmall = SpGetUnitsInCylinder(expl.x, expl.z, q * (radius - width))
 
-				for i = 1, #unitIDsBig do
+				for i = 1, #unitIDsBig do -- linear and not O(n^2)
 					local unitID = unitIDsBig[i]
 					local unitDefID = SpGetUnitDefID(unitID)
 					if todenyUnits[unitDefID] then
-						local foundmatch = false
-						for i = 1, #unitIDsSmall do
-							local testUnitID = unitIDsSmall[i]
-							if unitID == testUnitID then
-								foundmatch = true
-								break
-							end
-						end
-
-						if not foundmatch then
-							if unitID and SpValidUnitID(unitID) then
-								SpDestroyUnit(unitID, true, false)
-							end
-						end
+            local px, py, pz = Spring.GetUnitPosition(unitID)
+            local dx = expl.x - px
+            local dz = expl.z - pz
+            if (dx*dx + dz*dz) > (q*(radius-width))*(q*(radius-width)) then  -- linear and not O(n^2)
+              Spring.SpawnCEG("juno-damage", px, py+8, pz, 0, 1, 0)
+              SpDestroyUnit(unitID, true, false)
+            end
 					end
 				end
 			else
-				SendToUnsynced("RemoveFromCenters", counter)
+        --SendToUnsynced("RemoveFromCenters", counter)
 				table.remove(centers, counter)
 			end
 
@@ -185,13 +177,17 @@ if gadgetHandler:IsSyncedCode() then
 
 		if update == true and curtime - lastupdate > updategrain then
 			lastupdate = curtime
-			SendToUnsynced("UpdateList", curtime)
+      --SendToUnsynced("UpdateList", curtime)
 			update = false
 		end
 	end
 
 	-----------------------------------------------------
 else
+-- entire unsynced draw side is no longer needed as its ceg based now
+
+--[[
+
 	-- UNSYNCED
 	------- the code here is heavily optimized, be careful
 	-----------------------------------------------------
@@ -441,6 +437,8 @@ else
 		end
 	end
 
+
+]]--
 
 end
 
