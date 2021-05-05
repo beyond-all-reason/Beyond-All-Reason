@@ -119,7 +119,7 @@ end
 
 local function RemoveMe(msg)
 	Spring.Echo(msg)
-	widgetHandler:RemoveWidget(self)
+	widgetHandler:RemoveWidget()
 end
 
 local function MakeBloomShaders()

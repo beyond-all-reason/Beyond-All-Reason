@@ -415,7 +415,7 @@ end
 function widget:Initialize()
 	if not WG.metalSpots then
 		Spring.Echo("<Area Mex> This widget requires the 'Metalspot Finder' widget to run.")
-		widgetHandler:RemoveWidget(self)
+		widgetHandler:RemoveWidget()
 		return
 	end
 	local units = spGetTeamUnits(spGetMyTeamID())

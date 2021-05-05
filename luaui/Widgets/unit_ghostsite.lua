@@ -130,5 +130,5 @@ function widget:PlayerChanged()
 end
 
 function widget:GameOver()
-    widgetHandler:RemoveWidget(self)
+    widgetHandler:RemoveWidget()
 end

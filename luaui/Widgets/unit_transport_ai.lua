@@ -175,7 +175,7 @@ end
 
 function widget:PlayerChanged(playerID)
 	if Spring.GetSpectatingState() then
-		widgetHandler:RemoveWidget(self)
+		widgetHandler:RemoveWidget()
 	end
 end
 

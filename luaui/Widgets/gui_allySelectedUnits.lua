@@ -241,7 +241,7 @@ function widget:PlayerChanged(playerID)
 		spec = true
 		setPlayerColours()
 		if not showAsSpectator then
-			widgetHandler:RemoveWidget(self)
+			widgetHandler:RemoveWidget()
 			return
 		end
 	end

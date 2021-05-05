@@ -143,7 +143,7 @@ function widget:Initialize()
 
 	if gl.CreateShader == nil then
 		Spring.Echo("CAS: createshader not supported, removing")
-		widgetHandler:RemoveWidget(self)
+		widgetHandler:RemoveWidget()
 		return
 	end
 

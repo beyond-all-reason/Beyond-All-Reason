@@ -34,7 +34,7 @@ local gameStarted, chobbyInterface
 
 function maybeRemoveSelf()
     if Spring.GetSpectatingState() and (Spring.GetGameFrame() > 0 or gameStarted) then
-        widgetHandler:RemoveWidget(self)
+        widgetHandler:RemoveWidget()
     end
 end
 
@@ -65,7 +65,7 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts) -- 3 of 3 parameters
 
 	local areSpec = spGetSpecState()
 	if areSpec then
-		widgetHandler:RemoveWidget(self)
+		widgetHandler:RemoveWidget()
 		return false
 	end
 

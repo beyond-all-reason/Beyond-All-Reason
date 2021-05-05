@@ -109,7 +109,7 @@ end
 function widget:Initialize()
 	if not WG.metalSpots then
 		Spring.Echo("<metalspots> This widget requires the 'Metalspot Finder' widget to run.")
-		widgetHandler:RemoveWidget(self)
+		widgetHandler:RemoveWidget()
 	end
 
 	WG.metalspots = {}

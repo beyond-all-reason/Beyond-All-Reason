@@ -89,7 +89,7 @@ function widget:ViewResize(viewSizeX, viewSizeY)
 
 	if blurtex == nil or blurtex2 == nil or screencopy == nil then
 		Spring.Log(widget:GetInfo().name, LOG.ERROR, "guishader api: texture error")
-		widgetHandler:RemoveWidget(self)
+		widgetHandler:RemoveWidget()
 		return false
 	end
 
@@ -125,7 +125,7 @@ local function DrawStencilTexture(world, fullscreen)
 
 			if (usedStencilTex == nil) then
 				Spring.Log(widget:GetInfo().name, LOG.ERROR, "guishader api: texture error")
-				widgetHandler:RemoveWidget(self)
+				widgetHandler:RemoveWidget()
 				return false
 			end
 		end
@@ -172,37 +172,37 @@ end
 local function CheckHardware()
 	if not canCTT then
 		Spring.Echo("guishader api: your hardware is missing the necessary CopyToTexture feature")
-		widgetHandler:RemoveWidget(self)
+		widgetHandler:RemoveWidget()
 		return false
 	end
 
 	if not canRTT then
 		Spring.Echo("guishader api: your hardware is missing the necessary RenderToTexture feature")
-		widgetHandler:RemoveWidget(self)
+		widgetHandler:RemoveWidget()
 		return false
 	end
 
 	if not canShader then
 		Spring.Echo("guishader api: your hardware does not support shaders, OR: change springsettings: \"enable lua shaders\" ")
-		widgetHandler:RemoveWidget(self)
+		widgetHandler:RemoveWidget()
 		return false
 	end
 
 	if not canFBO then
 		Spring.Echo("guishader api: your hardware does not fbo textures")
-		widgetHandler:RemoveWidget(self)
+		widgetHandler:RemoveWidget()
 		return false
 	end
 
 	if not NON_POWER_OF_TWO then
 		Spring.Echo("guishader api: your hardware does not non-2^n-textures")
-		widgetHandler:RemoveWidget(self)
+		widgetHandler:RemoveWidget()
 		return false
 	end
 
 	--if Platform ~= nil then
 	--   if Platform.gpuVendor == 'Intel' then
-	--       widgetHandler:RemoveWidget(self)
+	--       widgetHandler:RemoveWidget()
 	--       Spring.SendCommands("luaui disablewidget GUI Shader")
 	--       return false
 	--   end
@@ -258,7 +258,7 @@ function CreateShaders()
 
 	if blurShader == nil then
 		Spring.Log(widget:GetInfo().name, LOG.ERROR, "guishader blurShader: shader error: " .. gl.GetShaderLog())
-		widgetHandler:RemoveWidget(self)
+		widgetHandler:RemoveWidget()
 		return false
 	end
 
@@ -286,7 +286,7 @@ function CreateShaders()
 	-- debug?
 	if blurtex == nil or blurtex2 == nil or screencopy == nil then
 		Spring.Log(widget:GetInfo().name, LOG.ERROR, "guishader api: texture error")
-		widgetHandler:RemoveWidget(self)
+		widgetHandler:RemoveWidget()
 		return false
 	end
 end

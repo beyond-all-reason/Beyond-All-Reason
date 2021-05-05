@@ -328,7 +328,7 @@ end
 
 function widget:PlayerChanged()
 	if Spring.GetSpectatingState() then
-		widgetHandler:RemoveWidget(self)
+		widgetHandler:RemoveWidget()
 	end
 end
 
@@ -375,13 +375,13 @@ function widget:Initialize()
 	updateFactoryList()
 
 	if Spring.GetGameFrame() > 0 and Spring.GetSpectatingState() then
-		widgetHandler:RemoveWidget(self)
+		widgetHandler:RemoveWidget()
 	end
 end
 
 function widget:GameStart()
 	if Spring.GetSpectatingState() then
-		widgetHandler:RemoveWidget(self)
+		widgetHandler:RemoveWidget()
 	end
 end
 
@@ -579,7 +579,7 @@ function widget:Update(dt)
 	end
 
 	if Spring.GetGameFrame() > 0 and Spring.GetSpectatingState() then
-		widgetHandler:RemoveWidget(self)
+		widgetHandler:RemoveWidget()
 	end
 
 	if myTeamID ~= Spring.GetMyTeamID() then

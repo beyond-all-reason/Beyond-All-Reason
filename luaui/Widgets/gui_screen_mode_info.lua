@@ -87,5 +87,5 @@ function widget:DrawScreen()
 end
 
 function widget:GameOver()
-	widgetHandler:RemoveWidget(self)
+	widgetHandler:RemoveWidget()
 end

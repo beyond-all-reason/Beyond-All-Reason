@@ -204,7 +204,7 @@ local function goodbye(reason)
   if grassInstanceVBO then grassInstanceVBO = nil end
   if grassVAO then grassVAO = nil end
   --if grassShader then grassShader:Finalize() end
-  widgetHandler:RemoveWidget(self)
+  widgetHandler:RemoveWidget()
 end
 --------------------------------------------------------------------------------
 -- using: http://ogldev.atspace.co.uk/www/tutorial33/tutorial33.html

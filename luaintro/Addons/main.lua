@@ -281,7 +281,7 @@ function CreateShaders()
 
     if (blurShader == nil) then
         --Spring.Log(widget:GetInfo().name, LOG.ERROR, "guishader blurShader: shader error: "..gl.GetShaderLog())
-        --widgetHandler:RemoveWidget(self)
+        --widgetHandler:RemoveWidget()
         return false
     end
 

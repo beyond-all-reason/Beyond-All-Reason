@@ -269,7 +269,7 @@ function widget:Initialize()
 	isSpec = Spring.GetSpectatingState()
 	if WG['advplayerlist_api'] == nil then
 		Spring.Echo("Top TS camera tracker: AdvPlayerlist not found! ...exiting")
-		widgetHandler:RemoveWidget(self)
+		widgetHandler:RemoveWidget()
 		return
 	end
 
@@ -285,7 +285,7 @@ function widget:Initialize()
 		end
 	end
 	if humanPlayers == 0 then
-		widgetHandler:RemoveWidget(self)
+		widgetHandler:RemoveWidget()
 		return
 	end
 

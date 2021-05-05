@@ -42,7 +42,7 @@ local gameStarted
 
 function maybeRemoveSelf()
     if spec and (Spring.GetGameFrame() > 0 or gameStarted) then
-        widgetHandler:RemoveWidget(self)
+        widgetHandler:RemoveWidget()
     end
 end
 

@@ -25,7 +25,7 @@ local CMD_MOVE = CMD.MOVE
 
 function maybeRemoveSelf()
     if Spring.GetSpectatingState() and (Spring.GetGameFrame() > 0 or gameStarted) then
-        widgetHandler:RemoveWidget(self)
+        widgetHandler:RemoveWidget()
     end
 end
 

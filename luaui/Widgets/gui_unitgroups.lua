@@ -116,7 +116,7 @@ end
 function widget:PlayerChanged(playerID)
 	spec = Spring.GetSpectatingState()
 	if not showWhenSpec and Spring.GetGameFrame() > 1 and spec then
-		widgetHandler:RemoveWidget(self)
+		widgetHandler:RemoveWidget()
 		return
 	end
 end
