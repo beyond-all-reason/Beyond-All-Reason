@@ -91,7 +91,7 @@ T3SeaUnits = {
 }
 
 T4SeaUnits = {
-	"armserpt3"
+	"armserpt3",
 	"armepoch",
 	"corblackhy",
 	"armvadert4",

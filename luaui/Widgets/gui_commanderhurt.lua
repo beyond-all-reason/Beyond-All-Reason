@@ -52,7 +52,7 @@ end
 function widget:PlayerChanged(playerID)
 	myTeamID = Spring.GetMyTeamID()
 	if Spring.GetSpectatingState() and Spring.GetGameFrame() > 0 then
-		widgetHandler:RemoveWidget(self)
+		widgetHandler:RemoveWidget()
 	end
 end
 
@@ -60,7 +60,7 @@ end
 function widget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
 	if damage > 3 and unitTeam == myTeamID and comUnitDefIDs[unitDefID] and not Spring.IsUnitVisible(unitID) then
 		if Spring.GetSpectatingState() then
-			widgetHandler:RemoveWidget(self)
+			widgetHandler:RemoveWidget()
 			return
 		end
 		opacity = maxOpacity

@@ -202,7 +202,7 @@ function widget:PlayerChanged(playerID)
 	spec = Spring.GetSpectatingState()
 	myTeamID = Spring.GetMyTeamID()
 	if not showWhenSpec and Spring.GetGameFrame() > 1 and spec then
-		widgetHandler:RemoveWidget(self)
+		widgetHandler:RemoveWidget()
 		return
 	end
 end
@@ -341,7 +341,7 @@ local function updateList()
 				local offsetY = -(fontSize*(posY > 0 and 0.22 or 0.31))
 				local style = 'c'
 				font2:Begin()
-				font2:SetTextColor(1,1,1,0.15)
+				font2:SetTextColor(1,1,1,0.2)
 				offset = (fontSize*0.6)
 				font2:Print(Spring.I18N('ui.idleBuilders.sleeping'), groupRect[1]+((groupRect[3]-groupRect[1])/2)-offset, groupRect[2]+((groupRect[4]-groupRect[2])/2)+offset+offsetY, fontSize, style)
 				fontSize = fontSize * 1.2

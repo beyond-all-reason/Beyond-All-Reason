@@ -322,31 +322,31 @@ function widget:Initialize()
 
 	if gl.GetMapRendering("voidGround") then
 		restoreMapBorder = false
-		widgetHandler:RemoveWidget(self)
+		widgetHandler:RemoveWidget()
 	end
 
 	if gl.GetMapRendering("voidWater") then
 		restoreMapBorder = false
-		widgetHandler:RemoveWidget(self)
+		widgetHandler:RemoveWidget()
 	end
 
 	-----------
 	terrainVAO = gl.GetVAO()
 	if terrainVAO == nil then
 		Spring.SendCommands("luaui enablewidget Map Edge Extension Old")
-		widgetHandler:RemoveWidget(self)
+		widgetHandler:RemoveWidget()
 	end
 
 	terrainVertexVBO = gl.GetVBO() -- GL.ARRAY_BUFFER, false
 	if terrainVertexVBO == nil then
 		Spring.SendCommands("luaui enablewidget Map Edge Extension Old")
-		widgetHandler:RemoveWidget(self)
+		widgetHandler:RemoveWidget()
 	end
 
 	terrainInstanceVBO = gl.GetVBO() -- GL.ARRAY_BUFFER, false
 	if terrainInstanceVBO == nil then
 		Spring.SendCommands("luaui enablewidget Map Edge Extension Old")
-		widgetHandler:RemoveWidget(self)
+		widgetHandler:RemoveWidget()
 	end
 	-----------
 
@@ -417,7 +417,7 @@ function widget:Initialize()
 
 	if not shaderCompiled then
 		Spring.SendCommands("luaui enablewidget Map Edge Extension Old")
-		widgetHandler:RemoveWidget(self)
+		widgetHandler:RemoveWidget()
 	end
 
 	Spring.SendCommands("luaui disablewidget External VR Grid")

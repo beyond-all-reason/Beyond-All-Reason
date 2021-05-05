@@ -32,7 +32,7 @@ if Game.startPosType ~= 2 then
 end
 
 if Spring.GetGameFrame() > 1 then
-	widgetHandler:RemoveWidget(self)
+	widgetHandler:RemoveWidget()
 end
 
 --------------------------------------------------------------------------------
@@ -90,6 +90,7 @@ local isSpec = Spring.GetSpectatingState() or Spring.IsReplay()
 local myTeamID = Spring.GetMyTeamID()
 
 local placeVoiceNotifTimer = false
+local playedChooseStartLoc = false
 local amPlaced = false
 
 local gaiaTeamID
@@ -252,7 +253,7 @@ function widget:Initialize()
 
 	-- only show at the beginning
 	if (Spring.GetGameFrame() > 1) then
-		widgetHandler:RemoveWidget(self)
+		widgetHandler:RemoveWidget()
 		return
 	end
 
@@ -534,7 +535,7 @@ end
 function widget:DrawInMiniMap(sx, sz)
 	-- only show at the beginning
 	if (Spring.GetGameFrame() > 1) then
-		widgetHandler:RemoveWidget(self)
+		widgetHandler:RemoveWidget()
 	end
 
 	gl.PushMatrix()
@@ -628,6 +629,9 @@ end
 
 local groundHeightPoint = Spring.GetGroundHeight(0, 0)
 function widget:Update(dt)
+	if Spring.GetGameFrame() > 1 then
+		widgetHandler:RemoveWidget()
+	end
 	if not placeVoiceNotifTimer then
 		placeVoiceNotifTimer = os.clock() + 20
 	end
@@ -641,9 +645,9 @@ function widget:Update(dt)
 			widget:Initialize()
 		end
 	end
-	if not isSpec and not amPlaced and placeVoiceNotifTimer < os.clock() and WG['notifications'] then
+	if not isSpec and not amPlaced and not playedChooseStartLoc and placeVoiceNotifTimer < os.clock() and WG['notifications'] then
+		playedChooseStartLoc = true
 		WG['notifications'].addEvent('ChooseStartLoc')
-		placeVoiceNotifTimer = os.clock() + 20
 	end
 end
 --------------------------------------------------------------------------------

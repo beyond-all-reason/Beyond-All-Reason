@@ -116,7 +116,7 @@ end
 function widget:PlayerChanged(playerID)
 	spec = Spring.GetSpectatingState()
 	if not showWhenSpec and Spring.GetGameFrame() > 1 and spec then
-		widgetHandler:RemoveWidget(self)
+		widgetHandler:RemoveWidget()
 		return
 	end
 end
@@ -233,7 +233,7 @@ local function updateList()
 				local offsetY = -(fontSize*(posY > 0 and 0.31 or 0.44))
 				local style = 'c'
 				font2:Begin()
-				font2:SetTextColor(1,1,1,0.15)
+				font2:SetTextColor(1,1,1,0.2)
 				font2:Print(1, groupRect[1]+((groupRect[3]-groupRect[1])/2)-offset, groupRect[2]+((groupRect[4]-groupRect[2])/2)+offset+offsetY, fontSize, style)
 				font2:Print(2, groupRect[1]+((groupRect[3]-groupRect[1])/2), groupRect[2]+((groupRect[4]-groupRect[2])/2)+offset+offsetY, fontSize, style)
 				font2:Print(3, groupRect[1]+((groupRect[3]-groupRect[1])/2)+offset, groupRect[2]+((groupRect[4]-groupRect[2])/2)+offset+offsetY, fontSize, style)

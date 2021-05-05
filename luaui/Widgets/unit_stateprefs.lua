@@ -78,7 +78,7 @@ end
 function widget:GameOver()
 	Spring.Echo("Recorded States Prefs")
 	table.save(unitSet, "LuaUI/config/StatesPrefs.lua", "--States prefs")
-	widgetHandler:RemoveWidget(self)
+	widgetHandler:RemoveWidget()
 end
 
 --------------------------------------------------------------------------------

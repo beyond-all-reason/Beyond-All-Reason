@@ -116,7 +116,7 @@ end
 function widget:Initialize()
 	widget:ViewResize()
 	if not Spring.IsReplay() then
-		widgetHandler:RemoveWidget(self)
+		widgetHandler:RemoveWidget()
 		return
 	end
 

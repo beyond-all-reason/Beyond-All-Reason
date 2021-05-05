@@ -159,7 +159,7 @@ function widget:Initialize()
 
 	if gl.CreateShader == nil then
 		Spring.Echo("CAS: createshader not supported, removing")
-		widgetHandler:RemoveWidget(self)
+		widgetHandler:RemoveWidget()
 		return
 	end
 
@@ -189,7 +189,7 @@ function widget:Initialize()
 
 	fullTexQuad = gl.GetVAO()
 	if fullTexQuad == nil then
-		widgetHandler:RemoveWidget(self) --no fallback for potatoes
+		widgetHandler:RemoveWidget() --no fallback for potatoes
 		return
 	end
 

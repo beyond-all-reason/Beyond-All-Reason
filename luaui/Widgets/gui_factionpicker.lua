@@ -239,7 +239,7 @@ end
 
 function widget:Initialize()
 	if isSpec or Spring.GetGameFrame() > 0 then
-		widgetHandler:RemoveWidget(self)
+		widgetHandler:RemoveWidget()
 		return
 	end
 
@@ -247,7 +247,7 @@ function widget:Initialize()
     local scenarioopts = Spring.Utilities.Base64Decode(Spring.GetModOptions().scenariooptions)
     scenarioopts = Spring.Utilities.json.decode(scenarioopts)
     if scenarioopts and scenarioopts.scenariooptions and scenarioopts.scenariooptions.disablefactionpicker == true then
-      widgetHandler:RemoveWidget(self)
+      widgetHandler:RemoveWidget()
       return
     end
   end
@@ -276,7 +276,7 @@ function widget:Shutdown()
 end
 
 function widget:GameFrame(n)
-	widgetHandler:RemoveWidget(self)
+	widgetHandler:RemoveWidget()
 end
 
 local sec = 0

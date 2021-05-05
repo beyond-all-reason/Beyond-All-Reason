@@ -288,7 +288,7 @@ if customparamDefsDetected then
         -- handle standalone weapondefs
         -- TODO
 
-        widgetHandler:RemoveWidget(self)
+        widgetHandler:RemoveWidget()
     end
 
 

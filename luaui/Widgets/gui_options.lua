@@ -3143,15 +3143,17 @@ function init()
 		  end,
 		},
 
-		{ id = "containmouse", group = "control", basic = true, name = texts.option.containmouse, type = "bool", value = (Spring.GetConfigInt("grabinput", 1) ~= 0), description = texts.option.containmouse_descr ,
-			onload = function(i)
-				updateGrabinput()
-			end,
-			onchange = function(i, value)
-			  Spring.SendCommands("grabinput "..(value and 1 or 0))
-			  Spring.SetConfigInt("grabinput", (value and 1 or 0))
-		  end,
-		},
+		 { id = "containmouse", group = "control", basic = true, widget = "Grabinput", name = texts.option.containmouse, type = "bool", value = GetWidgetToggleValue("Grabinput"), description = texts.option.containmouse_descr },
+
+		--{ id = "containmouse", group = "control", basic = true, name = texts.option.containmouse, type = "bool", value = (Spring.GetConfigInt("grabinput", 1) ~= 0), description = texts.option.containmouse_descr ,
+		--	onload = function(i)
+		--		updateGrabinput()
+		--	end,
+		--	onchange = function(i, value)
+		--	  Spring.SendCommands("grabinput "..(value and 1 or 0))
+		--	  Spring.SetConfigInt("grabinput", (value and 1 or 0))
+		--  end,
+		--},
 
 		  { id = "screenedgemove", group = "control", basic = true, name = texts.option.screenedgemove, type = "bool", restart = true, value = tonumber(Spring.GetConfigInt("FullscreenEdgeMove", 1) or 1) == 1, description = texts.option.screenedgemove_descr,
 		  onchange = function(i, value)

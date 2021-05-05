@@ -81,7 +81,7 @@ local GL_TRIANGLES			= GL.TRIANGLES
 
 function maybeRemoveSelf()
     if Spring.GetSpectatingState() and (Spring.GetGameFrame() > 0 or gameStarted) then
-        widgetHandler:RemoveWidget(self)
+        widgetHandler:RemoveWidget()
     end
 end
 
@@ -387,7 +387,7 @@ end
 
 function CheckSpecState()
 	if select(3,spGetPlayerInfo(spGetMyPlayerID(),false)) == true then
-		widgetHandler:RemoveWidget(self)
+		widgetHandler:RemoveWidget()
 		return false
 	end
 

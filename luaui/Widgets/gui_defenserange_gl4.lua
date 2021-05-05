@@ -359,7 +359,7 @@ local cannonShader = nil
 
 local function goodbye(reason)
   Spring.Echo("DefenseRange GL4 widget exiting with reason: "..reason)
-  widgetHandler:RemoveWidget(self)
+  widgetHandler:RemoveWidget()
 end
 
 local function makeCircleVBO(circleSegments)
@@ -979,7 +979,7 @@ end
 function CheckSpecState()
 	local playerID = spGetMyPlayerID()
 	if select(3,spGetPlayerInfo(playerID,false)) == true then
-		widgetHandler:RemoveWidget(self)
+		widgetHandler:RemoveWidget()
 		return false
 	end
 
@@ -1051,7 +1051,7 @@ function DetectMod()
 
 	if modConfig[state["curModID"]] == nil then
 		spEcho("<DefenseRange> Unsupported Game, shutting down...")
-		widgetHandler:RemoveWidget(self)
+		widgetHandler:RemoveWidget()
 		return
 	end
 

@@ -59,7 +59,7 @@ function widget:Initialize()
 	if Spring.GetModOptions().deathmode == "killall" then
 		message = Spring.I18N('ui.gametypeInfo.killAllUnits')
 	elseif Spring.GetModOptions().deathmode == "neverend" then
-		widgetHandler:RemoveWidget(self)
+		widgetHandler:RemoveWidget()
 	else
 		message = Spring.I18N('ui.gametypeInfo.killAllCommanders')
 	end
@@ -98,7 +98,7 @@ function widget:DrawScreen()
 		return
 	end
 	if spGetGameSeconds() > 0 then
-		widgetHandler:RemoveWidget(self)
+		widgetHandler:RemoveWidget()
 		return
 	end
 
@@ -123,5 +123,5 @@ function widget:DrawScreen()
 end
 
 function widget:GameOver()
-	widgetHandler:RemoveWidget(self)
+	widgetHandler:RemoveWidget()
 end
