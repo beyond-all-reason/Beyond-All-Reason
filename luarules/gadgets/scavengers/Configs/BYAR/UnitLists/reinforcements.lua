@@ -337,7 +337,7 @@ T3ReinforcementSeaUnits = {
 }
 
 T4ReinforcementSeaUnits = {
-	"armserpt3"
+	"armserpt3",
 	"armepoch",
 	"corblackhy",
 	"corcrwt4",
