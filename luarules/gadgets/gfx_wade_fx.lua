@@ -1,10 +1,7 @@
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
+
 if not gadgetHandler:IsSyncedCode() then
 	return
 end
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
 
 function gadget:GetInfo()
 	return {
@@ -14,7 +11,7 @@ function gadget:GetInfo()
 		date      = "March 2016",
 		license   = "GNU GPL, v2 or later",
 		layer     = 0,
-		enabled   = true  --  loaded by default?
+		enabled   = true
 	}
 end
 
@@ -22,58 +19,54 @@ local unit = {}
 local unitsCount = 0
 local unitsData = {}
 
-local fold_frames = 4 -- every seventh frame
-local n_folds = 3 -- check every fourth unit
+local fold_frames = 4 -- every X-th frame
+local n_folds = 3 -- check every X-th unit
 local current_fold = 1
 
 local spGetUnitIsCloaked = Spring.GetUnitIsCloaked
 local spGetUnitPosition  = Spring.GetUnitPosition
 local spGetUnitVelocity  = Spring.GetUnitVelocity
+local spGetUnitDefDimensions = Spring.GetUnitDefDimensions
 
 local spusCallAsUnit = Spring.UnitScript.CallAsUnit
 local spusEmitSfx    = Spring.UnitScript.EmitSfx
 
 local wadeDepth = {}
 local wadeSfxID = {}
-do
-	local smc = Game.speedModClasses		-- Accepted values are 0 = Tank, 1 = KBot, 2 = Hover, 3 = Ship.
-	local wadingSMC = {
-		[smc.Tank] = true,
-		[smc.KBot] = true,
-	}
-	local SFXTYPE_WAKE1 = 2
-	local SFXTYPE_WAKE2 = 3
 
-	local UD = UnitDefs
-	local function checkCanWade(unitDef)
-		local moveDef = unitDef.moveDef
-		if not moveDef then
-			return false
-		end
+local smc = Game.speedModClasses		-- Accepted values are 0 = Tank, 1 = KBot, 2 = Hover, 3 = Ship.
+local wadingSMC = {
+	[smc.Tank] = true,
+	[smc.KBot] = true,
+}
+local SFXTYPE_WAKE1 = 2
+local SFXTYPE_WAKE2 = 3
 
-		local smClass = moveDef.smClass
-		if not smClass or not wadingSMC[smClass] then
-			return false
-		end
-
-		return true
+local function checkCanWade(unitDef)
+	local moveDef = unitDef.moveDef
+	if not moveDef then
+		return false
 	end
+	local smClass = moveDef.smClass
+	if not smClass or not wadingSMC[smClass] then
+		return false
+	end
+	return true
+end
 
-	local spGetUnitDefDimensions = Spring.GetUnitDefDimensions
-	for unitDefID = 1, #UD do
-		local unitDef = UD[unitDefID]
-		if checkCanWade(unitDef) then
-			wadeDepth[unitDefID] = -spGetUnitDefDimensions(unitDefID).height
+for unitDefID = 1, #UnitDefs do
+	local unitDef = UnitDefs[unitDefID]
+	if checkCanWade(unitDef) then
+		wadeDepth[unitDefID] = -spGetUnitDefDimensions(unitDefID).height
 
-			local cpR = unitDef.customParams.modelradius
-			local r = cpR and tonumber(cpR) or unitDef.radius
-			wadeSfxID[unitDefID] = (((r > 50) or unitDef.customParams.floattoggle) and SFXTYPE_WAKE2) or SFXTYPE_WAKE1
-		else
-			-- there are ~400 wadables but the highest one's ID is >512, so we also assign `false`
-			-- instead of keeping them `nil` to keep the internal representation an array (faster)
-			wadeDepth[unitDefID] = false
-			wadeSfxID[unitDefID] = false
-		end
+		local cpR = unitDef.customParams.modelradius
+		local r = cpR and tonumber(cpR) or unitDef.radius
+		wadeSfxID[unitDefID] = (((r > 50) or unitDef.customParams.floattoggle) and SFXTYPE_WAKE2) or SFXTYPE_WAKE1
+	else
+		-- there are ~400 wadables but the highest one's ID is >512, so we also assign `false`
+		-- instead of keeping them `nil` to keep the internal representation an array (faster)
+		wadeDepth[unitDefID] = false
+		wadeSfxID[unitDefID] = false
 	end
 end
 

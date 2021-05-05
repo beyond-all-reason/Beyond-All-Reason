@@ -107,14 +107,14 @@ function SetCursor(cursorSet)
 	if cursorDir ~= oldSetName or force then
 		force = false
 		local cursorNames = {
-			'cursornormal','cursorareaattack','cursorattack','cursorattack',
+			'cursornormal','cursorareaattack','cursorattack',
 			'cursorbuildbad','cursorbuildgood','cursorcapture','cursorcentroid',
-			'cursorwait','cursortime','cursorwait','cursorunload','cursorwait',
-			'cursordwatch','cursorwait','cursordgun','cursorattack','cursorfight',
-			'cursorattack','cursorgather','cursorwait','cursordefend','cursorpickup',
-			'cursorrepair','cursorrevive','cursorrepair','cursorrestore','cursorrepair',
-			'cursormove','cursorpatrol','cursorreclamate','cursorselfd','cursornumber',
-			'cursorsettarget','cursorupgmex',
+			'cursorwait','cursortime','cursorunload',
+			'cursordwatch','cursordgun','cursorfight',
+			'cursorgather','cursordefend','cursorpickup',
+			'cursorrepair','cursorrevive','cursorrestore',
+			'cursormove','cursorpatrol','cursorreclamate','cursorselfd',
+			'cursornumber','cursorsettarget','cursorupgmex','cursorareamex',
 		}
 		for i=1, #cursorNames do
 			Spring.ReplaceMouseCursor(cursorNames[i], cursorDir..'/'..cursorNames[i], (cursorNames[i] == 'cursornormal'))

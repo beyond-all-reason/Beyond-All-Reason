@@ -6,7 +6,7 @@ return {
 		brakerate = 0.04059,
 		buildcostenergy = 3200,
 		buildcostmetal = 190,
-		builddistance = 135,
+		builddistance = 250,
 		builder = true,
 		buildpic = "ARMMLS.PNG",
 		buildtime = 4722.30029,
@@ -57,6 +57,7 @@ return {
 			[12] = "armroy",
 			[13] = "armamph",
 			[14] = "armfmine3",
+			[15] = "armamb",
 		},
 		customparams = {
 			area_mex_def = "armmex",

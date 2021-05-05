@@ -10,15 +10,19 @@
 return {
   {
     name = 'SimpleAI',
-    desc = 'Infinite Games'
+    desc = 'EasyAI'
   },
   {
     name = 'SimpleCheaterAI',
-    desc = 'Infinite Games'
+    desc = 'EasyAI'
   },
   {
     name = 'SimpleDefenderAI',
-    desc = 'Infinite Games'
+    desc = 'EasyAI'
+  },
+  {
+    name = 'SimpleConstructorAI',
+    desc = 'EasyAI'
   },
   {
     name = 'ScavengersAI',

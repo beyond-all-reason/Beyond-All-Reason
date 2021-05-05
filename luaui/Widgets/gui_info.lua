@@ -244,7 +244,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.stealth then
 		unitDefInfo[unitDefID].stealth = true
 	end
-	if unitDef.cloakCost then
+	if unitDef.cloakCost and unitDef.canCloak then
 		unitDefInfo[unitDefID].cloakCost = unitDef.cloakCost
 		if unitDef.cloakCostMoving > unitDef.cloakCost then
 			unitDefInfo[unitDefID].cloakCostMoving = unitDef.cloakCostMoving
@@ -315,15 +315,16 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 		unitDefInfo[unitDefID].mex = true
 	end
 	local totalDps = 0
-	for i = 1, #unitDef.weapons do
+	local weapons = unitDef.weapons
+	for i = 1, #weapons do
 		if not unitDefInfo[unitDefID].weapons then
 			unitDefInfo[unitDefID].weapons = {}
 			unitDefInfo[unitDefID].dps = 0
 			unitDefInfo[unitDefID].reloadTime = 0
 			unitDefInfo[unitDefID].mainWeapon = i
 		end
-		unitDefInfo[unitDefID].weapons[i] = unitDef.weapons[i].weaponDef
-		local weaponDef = WeaponDefs[unitDef.weapons[i].weaponDef]
+		unitDefInfo[unitDefID].weapons[i] = weapons[i].weaponDef
+		local weaponDef = WeaponDefs[weapons[i].weaponDef]
 		if weaponDef.damages then
 			-- get highest damage category
 			local maxDmg = 0
@@ -343,7 +344,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 			totalDps = totalDps + dps
 			unitDefInfo[unitDefID].dps = totalDps
 		end
-		if unitDef.weapons[i].onlyTargets['vtol'] ~= nil then
+		if weapons[i].onlyTargets['vtol'] ~= nil then
 			unitDefInfo[unitDefID].isAaUnit = true
 		end
 		if weaponDef.energyCost > 0 and (not unitDefInfo[unitDefID].energyPerShot or weaponDef.energyCost > unitDefInfo[unitDefID].energyPerShot) then
@@ -930,7 +931,7 @@ local function drawUnitInfo()
 	local fontSize = (height * vsy * 0.123) * (0.94 - ((1 - math.max(1.05, ui_scale)) * 0.4))
 
 	local iconSize = math.floor(fontSize * 4.4)
-	local iconPadding = math.floor(fontSize * 0.28)
+	local iconPadding = math.floor(fontSize * 0.22)
 
 	if unitDefInfo[displayUnitDefID].buildPic then
 		local iconX = backgroundRect[1] + iconPadding

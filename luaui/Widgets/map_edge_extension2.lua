@@ -372,7 +372,7 @@ function widget:Initialize()
 	terrainVertexVBO:Define(numPoints, {
 		{id = 0, name = "pos", size = 2}, --only update {x,z} once
 	})
-	terrainVertexVBO:Upload(posArray, 0)
+	terrainVertexVBO:Upload(posArray)
 
 	terrainInstanceVBO:Define(8, {
 		{id = 1, name = "mirrorParams", size = 4},
@@ -391,7 +391,7 @@ function widget:Initialize()
 		1, 0,  1,  0, --MR
 		1, 1,  1,  1, --BR
 	}
-	terrainInstanceVBO:Upload(mirrorParams, 0)
+	terrainInstanceVBO:Upload(mirrorParams)
 
 	terrainVAO:AttachVertexBuffer(terrainVertexVBO)
 	terrainVAO:AttachInstanceBuffer(terrainInstanceVBO)

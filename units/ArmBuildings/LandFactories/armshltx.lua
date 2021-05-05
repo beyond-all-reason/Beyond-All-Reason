@@ -47,6 +47,7 @@ return {
 			[3] = "armmar",
 			[4] = "armvang",
 			[5] = "armlun",
+			[6] = "armthor",
 		},
 		customparams = {
 			model_author = "Cremuss",

@@ -1214,9 +1214,9 @@ function widget:Update(dt)
 
 	if WG['advplayerlist_api'] and not WG['advplayerlist_api'].GetLockPlayerID() then
 		--if select(7, Spring.GetMouseState()) then	-- when camera panning
-		--	Spring.SetCameraState(Spring.GetCameraState(), cameraPanTransitionTime)
+		--	Spring.SetCameraState(nil, cameraPanTransitionTime)
 		--else
-		Spring.SetCameraState(Spring.GetCameraState(), cameraTransitionTime)
+		Spring.SetCameraState(nil, cameraTransitionTime)
 		--end
 	end
 	sec = sec + dt
@@ -2139,7 +2139,6 @@ function init()
 			decals = 0,
 			--grounddetail = 70,
 			darkenmap_darkenfeatures = false,
-			enemyspotter_highlight = false,
 		},
 		[presetNames[2]] = {
 			bloom = false,
@@ -2159,7 +2158,6 @@ function init()
 			decals = 0,
 			--grounddetail = 100,
 			darkenmap_darkenfeatures = false,
-			enemyspotter_highlight = false,
 		},
 		[presetNames[3]] = {
 			bloom = true,
@@ -2179,7 +2177,6 @@ function init()
 			decals = 2,
 			--grounddetail = 140,
 			darkenmap_darkenfeatures = false,
-			enemyspotter_highlight = false,
 		},
 		[presetNames[4]] = {
 			bloom = true,
@@ -2199,7 +2196,6 @@ function init()
 			decals = 4,
 			--grounddetail = 180,
 			darkenmap_darkenfeatures = false,
-			enemyspotter_highlight = false,
 		},
 		[presetNames[5]] = {
 			bloom = true,
@@ -2219,7 +2215,6 @@ function init()
 			decals = 5,
 			--grounddetail = 200,
 			darkenmap_darkenfeatures = true,
-			enemyspotter_highlight = true,
 		},
 	}
 	customPresets = {}
@@ -2916,7 +2911,14 @@ function init()
 		  end,
 		},
 
-		{ id = "airjets", group = "gfx", widget = "Airjets", name = texts.option.airjets, type = "bool", value = GetWidgetToggleValue("Airjets"), description = texts.option.airjets_descr },
+		  { id = "unitRotation", group = "gfx", name = texts.option.unitrotation, min = 0, max = 10, step = 1, type = "slider", value = tonumber(Spring.GetConfigInt("unitRotation", 0)), description = texts.option.unitrotation_descr,
+			onchange = function(i, value)
+				Spring.SetConfigInt("unitRotation", value or 0)
+				Spring.SendCommands("luarules unitrotation " .. value)
+			end
+		  },
+
+		  { id = "airjets", group = "gfx", widget = "Airjets", name = texts.option.airjets, type = "bool", value = GetWidgetToggleValue("Airjets"), description = texts.option.airjets_descr },
 		{ id = "jetenginefx_lights", group = "gfx", name = widgetOptionColor .. "   "..texts.option.jetenginefx_lights, type = "bool", value = true, description = texts.option.jetenginefx_lights_descr,
 		  onload = function(i)
 			  loadWidgetData("Light Effects", "lups_jetenginefx_lights", { 'enableThrusters' })
@@ -3256,7 +3258,7 @@ function init()
 		--	local current_cam_state = Spring.GetCameraState()
 		--	if (current_cam_state.fov) then
 		--		current_cam_state.fov = value
-		--		Spring.SetCameraState(current_cam_state,0)
+		--		Spring.SetCameraState(nil,0)
 		--	end
 		-- end,
 		--},
@@ -3768,11 +3770,6 @@ function init()
 			  saveOptionValue('EnemySpotter', 'enemyspotter', 'setOpacity', { 'spotterOpacity' }, value)
 		  end,
 		},
-		--{id="enemyspotter_highlight", group="ui", name=widgetOptionColor.."   unit highlight", type="bool", value=false, description='Colorize/highlight enemy units',
-		--		 onload = function(i) loadWidgetData("EnemySpotter", "enemyspotter_highlight", {'useXrayHighlight'}) end,
-		--		 onchange = function(i, value) saveOptionValue('EnemySpotter', 'enemyspotter', 'setHighlight', {'useXrayHighlight'}, value) end,
-		--		},
-
 
 		{ id = "fancyselectedunits", group = "ui", basic = true, widget = "Fancy Selected Units", name = "Selection Unit Platters", type = "bool", value = GetWidgetToggleValue("Fancy Selected Units"), description = texts.option.fancyselectedunits_descr },
 		--{id="fancyselectedunits_opacity", group="ui", name=widgetOptionColor.."   line opacity", min=0.8, max=1, step=0.01, type="slider", value=0.95, description='Set the opacity of the highlight on selected units',
@@ -5370,7 +5367,6 @@ function init()
 
 	if widgetHandler.knownWidgets["EnemySpotter"] == nil then
 		options[getOptionByID('enemyspotter_opacity')] = nil
-		options[getOptionByID('enemyspotter_highlight')] = nil
 	end
 
 	local processedOptions = {}

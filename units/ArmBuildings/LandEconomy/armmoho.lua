@@ -33,7 +33,7 @@ return {
 		maxdamage = 2500,
 		maxslope = 30,
 		maxwaterdepth = 20,
-		metalstorage = 1000,
+		metalstorage = 600,
 		name = unitName,
 		objectname = "Units/ARMMOHO.s3o",
 		onoffable = true,

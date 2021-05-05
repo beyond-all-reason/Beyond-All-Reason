@@ -335,8 +335,10 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	end
 	local aaWeapons = 0
 	local weaponCount = 0
-	for i = 1, #unitDef.weapons do
-		local weaponDef = WeaponDefs[unitDef.weapons[i].weaponDef]
+
+	local weapons = unitDef.weapons
+	for i = 1, #weapons do
+		local weaponDef = WeaponDefs[weapons[i].weaponDef]
 		if weaponDef then
 			if weaponDef.damages then
 				-- get highest damage category
@@ -348,7 +350,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 				end
 				if maxDmg > 1 then	-- filter away bogus weapons
 					weaponCount = weaponCount + 1
-					if unitDef.weapons[i].onlyTargets and unitDef.weapons[i].onlyTargets['vtol'] then
+					if weapons[i].onlyTargets and weapons[i].onlyTargets['vtol'] then
 						aaWeapons = aaWeapons + 1
 					end
 				end

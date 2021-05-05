@@ -195,7 +195,7 @@ local function createComnameList(x, y, name, teamID, color)
 	comnameList[teamID]['y'] = math.floor(y)
 	comnameList[teamID]['list'] = gl.CreateList(function()
 		local outlineColor = { 0, 0, 0, 1 }
-		if (color[1] + color[2] * 1.2 + color[3] * 0.4) < 0.8 then
+		if (color[1] + color[2] * 1.2 + color[3] * 0.4) < 0.68 then
 			outlineColor = { 1, 1, 1, 1 }
 		end
 		if useThickLeterring then
