@@ -18,7 +18,7 @@ end
 -- Any values in mapinfo.lua s  mapinfo.custom.grassConfig table is merged into the default
 -- Any further params in mapOverrides table is merged into grassConfig table
 -- The distribution of grass by default is taken (smartly) from the maps original grass map, or the grassDistTGA param of the config
--- grassDistTGA _must_ be 8 bit greyscale tga, mapSize* / patchResolution sized
+-- grassDistTGA _must_ be 8 bit greyscale tga, mapSize[X|Z] / patchResolution sized
 -- Commands to load/save grass:
 -- /loadgrass [filename] : loads a grass distribution from filename path, defaults to VFS_root [mapName]_grassDist.tga
 -- /savegrass [filename] : saves the grass distribution to filename path, defaults to VFS_root [mapName]_grassDist.tga
@@ -32,20 +32,7 @@ end
 	-- hold shift to paint max height grass/ fully remove grass
 	-- I also recommend binding toggle grass widget to alt+f for fast colorization reloading in uikeys.txt
 	-- If you want to change colorization, and want to save your 'painting progress', do /savegrass, reload the widget, then /loadgrass
-	-- NOTE: Shader load is MUCH higher in editing mode, and especially on large maps (pushing 10's of millions of vertices'
-
-
---------------------------------------------------------------------------------
--- Todo:
--- do all of this in geom shader to do early LOD culling
--- customizable shadowmap sample size
--- grass UV offsets multiplier
-
--- issues: 
---	Pretty high vertex shader load :/ 
--- 	anisotropic transparency - where quads viewed from their edge should be transparent :)
--- 	fix visibility checking by checking for sides in view
--- 	fix darkening on distort to be better?
+	-- NOTE: Shader load is MUCH higher in editing mode, and especially on large maps (pushing 10's of millions of vertices)
 
 -- Load Order
 -- 1. Parse Mapinfo
@@ -57,8 +44,19 @@ end
 -- 5. Separate autograss function
 -- 6. GrassDistTexture overrides builtin grass
 
+--------- TODO/ DEVNOTES: -------------------------------------------
+-- Todo:
+-- do all of this in geom shader to do early LOD culling
+-- customizable shadowmap sample size
+-- grass UV offsets multiplier
 
---------------------------------------------------------------------------------
+-- issues: 
+--	Pretty high vertex shader load :/ 
+-- 	anisotropic transparency - where quads viewed from their edge should be transparent :)
+-- 	fix darkening on distort to be better?
+
+
+--------- HOW TO CONFIGURE GRASS (also important!) -------------------------
 local grassConfig = {
   patchResolution = 32, -- distance between patches, default is 32, which matches the SpringRTS grass map resolution. If using external .tga, you can use any resolution you wish
   patchPlacementJitter = 0.66, -- how much each patch should be randomized in XZ position, in fraction of patchResolution
