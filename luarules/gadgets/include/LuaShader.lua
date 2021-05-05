@@ -53,6 +53,88 @@ local function GetAdvShadingActive()
 	return advUnitShading and advMapShading
 end
 
+local function GetEngineUniformBufferDefs()
+    local eubs = [[
+  layout(std140, binding = 0) uniform UniformMatrixBuffer {
+	mat4 screenView;
+	mat4 screenProj;
+	mat4 screenViewProj;
+
+	mat4 cameraView;
+	mat4 cameraProj;
+	mat4 cameraViewProj;
+	mat4 cameraBillboardProj;
+
+	mat4 cameraViewInv;
+	mat4 cameraProjInv;
+	mat4 cameraViewProjInv;
+
+	mat4 shadowView;
+	mat4 shadowProj;
+	mat4 shadowViewProj;
+};
+
+layout(std140, binding = 1) uniform UniformParamsBuffer {
+	vec3 rndVec3; //new every draw frame.
+	uint renderCaps; //various render booleans
+
+	vec4 timeInfo; //gameFrame, gameSeconds, drawFrame, frameTimeOffset
+	vec4 viewGeometry; //vsx, vsy, vpx, vpy
+	vec4 mapSize; //xz, xzPO2
+
+	vec4 fogColor; //fog color
+	vec4 fogParams; //fog {start, end, 0.0, scale}
+	
+	vec4 sunAmbientModel;
+	vec4 sunAmbientMap;
+	vec4 sunDiffuseModel;
+	vec4 sunDiffuseMap;
+	vec4 sunSpecularModel;
+	vec4 sunSpecularMap;
+
+	vec4 windInfo; // windx, windy, windz, windStrength
+	vec2 mouseScreenPos; //x, y. Screen space.
+	uint mouseStatus; // bits 0th to 32th: LMB, MMB, RMB, offscreen, mmbScroll, locked
+	uint mouseUnused;
+	vec4 mouseWorldPos; //x,y,z; w=0 -- offmap. Ignores water, doesn't ignore units/features under the mouse cursor
+
+	vec4 teamColor[32]; //all team colors
+};
+
+// glsl rotate convencience funcs: https://github.com/dmnsgn/glsl-rotate
+
+mat3 rotation3dY(float a) {
+	float s = sin(a);
+	float c = cos(a);
+
+  return mat3(
+    c, 0.0, -s,
+    0.0, 1.0, 0.0,
+    s, 0.0, c);
+}
+
+mat4 scaleMat(vec3 s) {
+	return mat4(
+		s.x, 0.0, 0.0, 0.0,
+		0.0, s.y, 0.0, 0.0,
+		0.0, 0.0, s.z, 0.0,
+		0.0, 0.0, 0.0, 1.0
+	);
+}
+
+mat4 translationMat(vec3 t) {
+	return mat4(
+		1.0, 0.0, 0.0, 0.0,
+		0.0, 1.0, 0.0, 0.0,
+		0.0, 0.0, 1.0, 0.0,
+		t.x, t.y, t.z, 1.0
+	);
+}
+    ]]
+    
+    return eubs
+end
+
 
 local LuaShader = setmetatable({}, {
 	__call = function(self, ...) return new(self, ...) end,
@@ -62,6 +144,8 @@ LuaShader.isGeometryShaderSupported = IsGeometryShaderSupported()
 LuaShader.isTesselationShaderSupported = IsTesselationShaderSupported()
 LuaShader.isDeferredShadingEnabled = IsDeferredShadingEnabled()
 LuaShader.GetAdvShadingActive = GetAdvShadingActive
+LuaShader.GetEngineUniformBufferDefs = GetEngineUniformBufferDefs
+
 
 -----------------============ Warnings & Error Gandling ============-----------------
 function LuaShader:OutputLogEntry(text, isError)
