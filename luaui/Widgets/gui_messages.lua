@@ -21,7 +21,7 @@ end
 local vsx, vsy = gl.GetViewSizes()
 local posY = 0.16
 local charSize = 19.5 - (3.5 * ((vsx/vsy) - 1.78))
-local charDelay = 0.022
+local charDelay = 0.02
 local maxLines = 6
 local maxLinesScroll = 9
 local lineTTL = 14
