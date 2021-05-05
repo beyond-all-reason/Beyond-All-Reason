@@ -126,7 +126,15 @@ local moveDatas = {
 		crushstrength = 5,
 		subMarine = 1,
 	},
-
+-- T3 Scav Sub
+	UBOAT6 = {
+		footprintx = 6,
+		footprintz = 6,
+		minwaterdepth = 15,
+		crushstrength = 5,
+		subMarine = 1,
+	},
+	
 	HOVER2 = {
 		badslope = 22,
 		badwaterslope = 255,
