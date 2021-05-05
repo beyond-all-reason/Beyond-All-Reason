@@ -330,32 +330,18 @@ end
 
 ------ GL4 THINGS  -----
 -- nukes and cannons:
-largeCircleVBO = nil
-largeCircleSegments = 1024
+local largeCircleVBO = nil
+local largeCircleSegments = 1024
 
 -- others:
-smallCircleVBO = nil
-smallCircleSegments = 256
+local smallCircleVBO = nil
+local smallCircleSegments = 256
 
-circleInstanceVBO = nil
-circleInstanceVBOSize = 1000
-circleInstanceVBONextFree = 1 -- index of the next 'free' element
-circleInstanceData = {}
+local weaponTypeToString = {"ground","air","nuke","ground","cannon"}
+local defenseRangeClasses = {'enemyair','enemyground','enemynuke','allyair','allyground','allynuke', 'enemycannon', 'allycannon'}
+local defenseRangeVAOs = {}
 
-
-weaponTypeToString = {"ground","air","nuke","ground","cannon"}
-defenseRangeClasses = {'enemyair','enemyground','enemynuke','allyair','allyground','allynuke', 'enemycannon', 'allycannon'}
-defenseRangeVAOs = {}
-
-defenseRangeSphCylIT = nil
-defenseRangeCannonIT = nil
-defenseRangeNow = nil
-
-fadestart = 3000 -- these should be updated, to fade nooks in, and fade other shit out
-fadeend = 4000
-
-circleInstanceVBOStep = 16
-circleInstanceVBOLayout = {
+local circleInstanceVBOLayout = {
 		  {id = 1, name = 'posscale', size = 4}, -- a vec4 for pos + scale
 		  {id = 2, name = 'color1', size = 4}, --  vec4 the color of this new
 		  {id = 3, name = 'visibility', size = 4}, --- vec4 heightdrawstart, heightdrawend, fadefactorin, fadefactorout. 
@@ -365,8 +351,8 @@ circleInstanceVBOLayout = {
 local luaShaderDir = "LuaUI/Widgets/Include/"
 local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
 VFS.Include(luaShaderDir.."instancevbotable.lua")
-sphereCylinderShader = nil
-cannonShader = nil
+local sphereCylinderShader = nil
+local cannonShader = nil
 
 
 
@@ -703,7 +689,6 @@ local function initGL4()
 	smallCircleVBO = makeCircleVBO(smallCircleSegments)
 	largeCircleVBO = makeCircleVBO(largeCircleSegments)
 	for i,defRangeClass in ipairs(defenseRangeClasses) do
-		--local instanceVBO, instanceData = makeInstanceVBO(circleInstanceVBOLayout,circleInstanceVBOSize)
 		defenseRangeVAOs[defRangeClass] = makeInstanceVBOTable(circleInstanceVBOLayout,16,defRangeClass)
 		if defRangeClass:find("cannon", nil, true) or defRangeClass:find("nuke", nil, true) then
 			defenseRangeVAOs[defRangeClass].vertexVBO = largeCircleVBO
