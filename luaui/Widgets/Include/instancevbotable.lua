@@ -42,11 +42,11 @@ function clearInstanceTable(iT)
 	iT.instanceIDtoIndex = {}
 end
 
-function makeVAOandAttach(circleVBO, instanceVBO) -- return a VAO
+function makeVAOandAttach(vertexVBO, instanceVBO) -- return a VAO
 	local newVAO = nil 
 	newVAO = gl.GetVAO()
 	if newVAO == nil then goodbye("Failed to create newVAO") end
-	newVAO:AttachVertexBuffer(circleVBO)
+	newVAO:AttachVertexBuffer(vertexVBO)
 	newVAO:AttachInstanceBuffer(instanceVBO)
 	return newVAO
 end
@@ -181,4 +181,108 @@ end
 
 function uploadAllElements(iT)
   iT.instanceVBO:Upload(iT.instanceData)
+end
+
+
+--------- HELPERS FOR PRIMITIVES ------------------
+
+function makeConeVBO(numSegments, height, radius) -- make a cone that points up, (y = 1), with radius 1
+	if not height then height = 1 end
+	if not radius then radius = 1 end 
+	local coneVBO = gl.GetVBO(GL.ARRAY_BUFFER,true)
+	if coneVBO == nil then return nil end
+	
+	local VBOData = {}
+	
+	for i = 1, numSegments do 
+		-- center vertex
+		VBOData[#VBOData+1] = 0 
+		VBOData[#VBOData+1] = 0
+		VBOData[#VBOData+1] = 0
+		VBOData[#VBOData+1] = (i - 1) / numSegments
+		
+		--- first cone flat
+		VBOData[#VBOData+1] = math.sin(math.pi*2* (i - 1) / numSegments) * radius -- X
+		VBOData[#VBOData+1] = 0
+		VBOData[#VBOData+1] = math.cos(math.pi*2* (i - 1) / numSegments) * radius-- Y
+		VBOData[#VBOData+1] =(i - 1) / numSegments
+		
+		--- second cone flat
+		VBOData[#VBOData+1] = math.sin(math.pi*2* (i - 0) / numSegments) * radius-- X
+		VBOData[#VBOData+1] = 0
+		VBOData[#VBOData+1] = math.cos(math.pi*2* (i - 0) / numSegments) * radius -- Y
+		VBOData[#VBOData+1] =(i - 0) / numSegments
+		
+		-- top vertex
+		VBOData[#VBOData+1] = 0 
+		VBOData[#VBOData+1] = height
+		VBOData[#VBOData+1] = 0
+		VBOData[#VBOData+1] = (i - 1) / numSegments
+		
+		--- first cone flat
+		VBOData[#VBOData+1] = math.sin(math.pi*2* (i - 1) / numSegments) * radius -- X
+		VBOData[#VBOData+1] = 0
+		VBOData[#VBOData+1] = math.cos(math.pi*2* (i - 1) / numSegments) * radius -- Y
+		VBOData[#VBOData+1] =(i - 1) / numSegments
+		
+		--- second cone flat
+		VBOData[#VBOData+1] = math.sin(math.pi*2* (i - 0) / numSegments) * radius -- X
+		VBOData[#VBOData+1] = 0
+		VBOData[#VBOData+1] = math.cos(math.pi*2* (i - 0) / numSegments) * radius -- Y
+		VBOData[#VBOData+1] =(i - 0) / numSegments
+	end
+	
+	
+	coneVBO:Define(#VBOData/4,	{{id = 0, name = "localpos_progress", size = 4}})
+	coneVBO:Upload(VBOData)
+	return coneVBO, #VBOData/4
+end
+
+
+function makeBoxVBO(minX, minY, minZ, maxX, maxY, maxZ) -- make a box
+
+	local boxVBO = gl.GetVBO(GL.ARRAY_BUFFER,true)
+	if boxVBO == nil then return nil end
+	
+	local VBOData = {
+	minX,minY,minZ,0
+	,minX,minY,maxZ,0
+	,minX,maxY,maxZ,0
+	,maxX,maxY,minZ,0
+	,minX,minY,minZ,0
+	,minX,maxY,minZ,0
+	,maxX,minY,maxZ,0
+	,minX,minY,minZ,0
+	,maxX,minY,minZ,0
+	,maxX,maxY,minZ,0
+	,maxX,minY,minZ,0
+	,minX,minY,minZ,0
+	,minX,minY,minZ,0
+	,minX,maxY,maxZ,0
+	,minX,maxY,minZ,0
+	,maxX,minY,maxZ,0
+	,minX,minY,maxZ,0
+	,minX,minY,minZ,0
+	,minX,maxY,maxZ,0
+	,minX,minY,maxZ,0
+	,maxX,minY,maxZ,0
+	,maxX,maxY,maxZ,0
+	,maxX,minY,minZ,0
+	,maxX,maxY,minZ,0
+	,maxX,minY,minZ,0
+	,maxX,maxY,maxZ,0
+	,maxX,minY,maxZ,0
+	,maxX,maxY,maxZ,0
+	,maxX,maxY,minZ,0
+	,minX,maxY,minZ,0
+	,maxX,maxY,maxZ,0
+	,minX,maxY,minZ,0
+	,minX,maxY,maxZ,0
+	,maxX,maxY,maxZ,0
+	,minX,maxY,maxZ,0
+	,maxX,minY,maxZ,0
+	}
+	boxVBO:Define(#VBOData/4,	{{id = 0, name = "localpos_progress", size = 4}})
+	boxVBO:Upload(VBOData)
+	return boxVBO, #VBOData/4
 end
