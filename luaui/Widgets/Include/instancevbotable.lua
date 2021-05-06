@@ -105,7 +105,7 @@ function pushElementInstance(iT,thisInstance, instanceID, updateExisting, noUplo
 	end
 	
 	if noUpload ~= true then --upload or mark as dirty
-		iT.instanceVBO:Upload(thisInstance,nil,(iT.instanceIDtoIndex[instanceID] -1))
+		iT.instanceVBO:Upload(thisInstance,nil,(thisInstanceIndex -1))
 	else
 		iT.dirty = true
 	end
@@ -155,9 +155,10 @@ function popElementInstance(iT, instanceID, noUpload)
 			iT.instanceData[oldOffset + i ] = data
 		end
 		--size_t LuaVBOImpl::Upload(const sol::stack_table& luaTblData, const sol::optional<int> attribIdxOpt, const sol::optional<int> elemOffsetOpt, const sol::optional<int> luaStartIndexOpt, const sol::optional<int> luaFinishIndexOpt)
-		--Spring.Echo("Removing instanceID",instanceID,"from iT at position", oldElementIndex, "shuffling back at", iT.usedElements,"endoffset=",endOffset)
+		--Spring.Echo("Removing instanceID",instanceID,"from iT at position", oldElementIndex, "shuffling back at", iT.usedElements,"endoffset=",endOffset,'oldOffset=',oldOffset)
 		if noUpload ~= true then
-			iT.instanceVBO:Upload(iT.instanceData,nil,oldElementIndex,oldElementIndex * iTStep + 1,oldElementIndex * iTStep + iTStep)
+			--Spring.Echo("Upload", oldElementIndex -1, oldOffset+1, oldOffset+iTStep)
+			iT.instanceVBO:Upload(iT.instanceData,nil,oldElementIndex-1,oldOffset +1,oldOffset + iTStep)
 		else
 			iT.dirty = true
 		end
@@ -180,13 +181,45 @@ function getElementInstanceData(iT, instanceID)
 end
 
 function uploadAllElements(iT)
-  iT.instanceVBO:Upload(iT.instanceData)
+  -- upload all USED elements
+  iT.instanceVBO:Upload(iT.instanceData,nil,0, 1, iT.usedElements * iT.instanceStep)
 end
 
 
 --------- HELPERS FOR PRIMITIVES ------------------
 
-function makeConeVBO(numSegments, height, radius) -- make a cone that points up, (y = 1), with radius 1
+function makeCircleVBO(circleSegments, radius)
+	-- Makes unit circle in xy space
+	if not radius then radius = 1 end
+	circleSegments  = circleSegments -1 -- for po2 buffers
+	local circleVBO = gl.GetVBO(GL.ARRAY_BUFFER,true)
+	if circleVBO == nil then goodbye("Failed to create circleVBO") end
+	
+	local VBOLayout = {
+	 {id = 0, name = "position", size = 4},
+	}
+	
+	local VBOData = {}
+	
+	for i = 0, circleSegments  do -- this is +1
+		VBOData[#VBOData+1] = math.sin(math.pi*2* i / circleSegments) * radius -- X
+		VBOData[#VBOData+1] = math.cos(math.pi*2* i / circleSegments) * radius-- Y
+		VBOData[#VBOData+1] = i / circleSegments -- circumference [0-1]
+		VBOData[#VBOData+1] = radius
+	end	
+	
+	circleVBO:Define(
+		circleSegments + 1,
+		VBOLayout
+	)
+	circleVBO:Upload(VBOData)
+	return circleVBO, #VBOData/4
+end
+
+
+function makeConeVBO(numSegments, height, radius) 
+	-- make a cone that points up, (y = height), with radius specified
+	-- returns the VBO object, and the number of elements in it (usually ==  numvertices)
 	if not height then height = 1 end
 	if not radius then radius = 1 end 
 	local coneVBO = gl.GetVBO(GL.ARRAY_BUFFER,true)
@@ -245,42 +278,42 @@ function makeBoxVBO(minX, minY, minZ, maxX, maxY, maxZ) -- make a box
 	if boxVBO == nil then return nil end
 	
 	local VBOData = {
-	minX,minY,minZ,0
-	,minX,minY,maxZ,0
-	,minX,maxY,maxZ,0
-	,maxX,maxY,minZ,0
-	,minX,minY,minZ,0
-	,minX,maxY,minZ,0
-	,maxX,minY,maxZ,0
-	,minX,minY,minZ,0
-	,maxX,minY,minZ,0
-	,maxX,maxY,minZ,0
-	,maxX,minY,minZ,0
-	,minX,minY,minZ,0
-	,minX,minY,minZ,0
-	,minX,maxY,maxZ,0
-	,minX,maxY,minZ,0
-	,maxX,minY,maxZ,0
-	,minX,minY,maxZ,0
-	,minX,minY,minZ,0
-	,minX,maxY,maxZ,0
-	,minX,minY,maxZ,0
-	,maxX,minY,maxZ,0
-	,maxX,maxY,maxZ,0
-	,maxX,minY,minZ,0
-	,maxX,maxY,minZ,0
-	,maxX,minY,minZ,0
-	,maxX,maxY,maxZ,0
-	,maxX,minY,maxZ,0
-	,maxX,maxY,maxZ,0
-	,maxX,maxY,minZ,0
-	,minX,maxY,minZ,0
-	,maxX,maxY,maxZ,0
-	,minX,maxY,minZ,0
-	,minX,maxY,maxZ,0
-	,maxX,maxY,maxZ,0
-	,minX,maxY,maxZ,0
-	,maxX,minY,maxZ,0
+		minX,minY,minZ,0
+		,minX,minY,maxZ,0
+		,minX,maxY,maxZ,0
+		,maxX,maxY,minZ,0
+		,minX,minY,minZ,0
+		,minX,maxY,minZ,0
+		,maxX,minY,maxZ,0
+		,minX,minY,minZ,0
+		,maxX,minY,minZ,0
+		,maxX,maxY,minZ,0
+		,maxX,minY,minZ,0
+		,minX,minY,minZ,0
+		,minX,minY,minZ,0
+		,minX,maxY,maxZ,0
+		,minX,maxY,minZ,0
+		,maxX,minY,maxZ,0
+		,minX,minY,maxZ,0
+		,minX,minY,minZ,0
+		,minX,maxY,maxZ,0
+		,minX,minY,maxZ,0
+		,maxX,minY,maxZ,0
+		,maxX,maxY,maxZ,0
+		,maxX,minY,minZ,0
+		,maxX,maxY,minZ,0
+		,maxX,minY,minZ,0
+		,maxX,maxY,maxZ,0
+		,maxX,minY,maxZ,0
+		,maxX,maxY,maxZ,0
+		,maxX,maxY,minZ,0
+		,minX,maxY,minZ,0
+		,maxX,maxY,maxZ,0
+		,minX,maxY,minZ,0
+		,minX,maxY,maxZ,0
+		,maxX,maxY,maxZ,0
+		,minX,maxY,maxZ,0
+		,maxX,minY,maxZ,0
 	}
 	boxVBO:Define(#VBOData/4,	{{id = 0, name = "localpos_progress", size = 4}})
 	boxVBO:Upload(VBOData)
