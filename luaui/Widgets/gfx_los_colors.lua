@@ -144,11 +144,6 @@ function setLosWithoutColors()
 end
 
 function toggleLOSRadars()
-    if specDetected and losWithRadarEnabled then
-        losWithRadarEnabled = false
-    end
-    specDetected = false
-
     if losWithRadarEnabled then
         setLosWithoutRadars()
     else
