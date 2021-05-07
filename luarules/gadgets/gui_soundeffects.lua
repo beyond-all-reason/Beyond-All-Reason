@@ -71,10 +71,15 @@ local CMD_MOVE = CMD.MOVE
 
 VFS.Include('luarules/configs/gui_soundeffects.lua')
 
-local unitNames = {}
-for unitDefID, defs in pairs(UnitDefs) do
-	unitNames[unitDefID] = defs.name
+-- convert key: name -> unitdefid
+local newGUIUnitSoundEffects = {}
+for name, defs in pairs(GUIUnitSoundEffects) do
+	if UnitDefNames[name] then
+		newGUIUnitSoundEffects[UnitDefNames[name].id] = defs
+	end
 end
+GUIUnitSoundEffects = newGUIUnitSoundEffects
+newGUIUnitSoundEffects = nil
 
 local CurrentGameFrame = Spring.GetGameFrame()
 local myTeamID = Spring.GetMyTeamID()
@@ -98,25 +103,40 @@ local spGetMouseState = Spring.GetMouseState
 local math_random = math.random
 
 local UsedFrame
+local units = {}
+local unitsTeam = {}
 
 local function PlaySelectSound(unitID)
-	local unitName = unitNames[spGetUnitDefID(unitID)]
+	local unitDefID = spGetUnitDefID(unitID)
 
 	-- DEACTIVATE BELOW FOR NORMAL SOUNDS
-	if GUIUnitSoundEffects[unitName] and CurrentGameFrame >= SelectSoundDelayLastFrame + SelectSoundDelayFrames then
+	if GUIUnitSoundEffects[unitDefID] and CurrentGameFrame >= SelectSoundDelayLastFrame + SelectSoundDelayFrames then
 		local posx, posy, posz = spGetUnitPosition(unitID)
-		if GUIUnitSoundEffects[unitName].BaseSoundSelectType then
-			local sound = GUIUnitSoundEffects[unitName].BaseSoundSelectType
+		if GUIUnitSoundEffects[unitDefID].BaseSoundSelectType then
+			local sound = GUIUnitSoundEffects[unitDefID].BaseSoundSelectType
 			spPlaySoundFile(sound[2] and sound[math_random(1,#sound)] or sound, 0.35, posx, posy, posz, 'ui')
 			SelectSoundDelayLastFrame = CurrentGameFrame + (math_random(-DelayRandomization,DelayRandomization))
 		end
-		if GUIUnitSoundEffects[unitName].BaseSoundWeaponType then
-			local sound = GUIUnitSoundEffects[unitName].BaseSoundWeaponType
+		if GUIUnitSoundEffects[unitDefID].BaseSoundWeaponType then
+			local sound = GUIUnitSoundEffects[unitDefID].BaseSoundWeaponType
 			spPlaySoundFile(sound[2] and sound[math_random(1,#sound)] or sound, 0.7, posx, posy, posz, 'ui')
 			SelectSoundDelayLastFrame = CurrentGameFrame + (math_random(-DelayRandomization,DelayRandomization))
 		end
 	end
 	selectionChanged = false
+end
+
+function gadget:Initialize()
+	units = {}
+	local allUnits = Spring.GetAllUnits()
+	for i = 1, #allUnits do
+		local unitID = allUnits[i]
+		local unitDefID = spGetUnitDefID(unitID)
+		if GUIUnitSoundEffects[unitDefID] then
+			units[unitID] = unitDefID
+			unitsTeam[unitID] = spGetUnitTeam(unitID)
+		end
+	end
 end
 
 function gadget:GameFrame(n)
@@ -173,45 +193,39 @@ function gadget:GameFrame(n)
 		end
 	end
 
-	local units = Spring.GetAllUnits()
-	for i = 1, #units do
-		local unitID = units[i]
+	for unitID, unitDefID in pairs(units) do
 		if ActiveStateTrackingUnitList[unitID] then
 			local currentlyActive = spGetUnitIsActive(unitID) and 2 or 1
 
 			if ActiveStateTrackingUnitList[unitID] ~= currentlyActive then
-				local unitName = unitNames[spGetUnitDefID(unitID)]
-				if GUIUnitSoundEffects[unitName] then
-					local unitTeam = spGetUnitTeam(unitID)
-					local posx, posy, posz = spGetUnitPosition(unitID)
-					if currentlyActive == 1 then
-						ActiveStateTrackingUnitList[unitID] = 1
-						if not GUIUnitSoundEffects[unitName].BaseSoundDeactivate and GUIUnitSoundEffects[unitName].BaseSoundActivate then
-							GUIUnitSoundEffects[unitName].BaseSoundDeactivate = GUIUnitSoundEffects[unitName].BaseSoundActivate
+				local posx, posy, posz = spGetUnitPosition(unitID)
+				if currentlyActive == 1 then
+					ActiveStateTrackingUnitList[unitID] = 1
+					if not GUIUnitSoundEffects[unitDefID].BaseSoundDeactivate and GUIUnitSoundEffects[unitDefID].BaseSoundActivate then
+						GUIUnitSoundEffects[unitDefID].BaseSoundDeactivate = GUIUnitSoundEffects[unitDefID].BaseSoundActivate
+					end
+					if myTeamID == unitsTeam[unitID] then
+						if GUIUnitSoundEffects[unitDefID].BaseSoundDeactivate then
+							local sound = GUIUnitSoundEffects[unitDefID].BaseSoundDeactivate
+							spPlaySoundFile(sound[2] and sound[math_random(1,#sound)] or sound, 1, posx, posy, posz, 'ui')
 						end
-						if myTeamID == unitTeam then
-							if GUIUnitSoundEffects[unitName].BaseSoundDeactivate then
-								local sound = GUIUnitSoundEffects[unitName].BaseSoundDeactivate
-								spPlaySoundFile(sound[2] and sound[math_random(1,#sound)] or sound, 1, posx, posy, posz, 'ui')
-							end
-						elseif spIsUnitInView(unitID) and (spIsUnitInLos(unitID, myAllyTeamID) or fullview) then
-							if GUIUnitSoundEffects[unitName].BaseSoundDeactivate then
-								local sound = GUIUnitSoundEffects[unitName].BaseSoundDeactivate
-								spPlaySoundFile(sound[2] and sound[math_random(1,#sound)] or sound, 0.5, posx, posy, posz, 'ui')
-							end
+					elseif spIsUnitInView(unitID) and (spIsUnitInLos(unitID, myAllyTeamID) or fullview) then
+						if GUIUnitSoundEffects[unitDefID].BaseSoundDeactivate then
+							local sound = GUIUnitSoundEffects[unitDefID].BaseSoundDeactivate
+							spPlaySoundFile(sound[2] and sound[math_random(1,#sound)] or sound, 0.5, posx, posy, posz, 'ui')
 						end
-					elseif currentlyActive == 2 then
-						ActiveStateTrackingUnitList[unitID] = 2
-						if myTeamID == unitTeam then
-							if GUIUnitSoundEffects[unitName].BaseSoundActivate then
-								local sound = GUIUnitSoundEffects[unitName].BaseSoundActivate
-								spPlaySoundFile(sound[2] and sound[math_random(1,#sound)] or sound, 1, posx, posy, posz, 'ui')
-							end
-						elseif spIsUnitInView(unitID) and (spIsUnitInLos(unitID, myAllyTeamID) or fullview) then
-							if GUIUnitSoundEffects[unitName].BaseSoundActivate then
-								local sound = GUIUnitSoundEffects[unitName].BaseSoundActivate
-								spPlaySoundFile(sound[2] and sound[math_random(1,#sound)] or sound, 0.5, posx, posy, posz, 'ui')
-							end
+					end
+				elseif currentlyActive == 2 then
+					ActiveStateTrackingUnitList[unitID] = 2
+					if myTeamID == unitsTeam[unitID] then
+						if GUIUnitSoundEffects[unitDefID].BaseSoundActivate then
+							local sound = GUIUnitSoundEffects[unitDefID].BaseSoundActivate
+							spPlaySoundFile(sound[2] and sound[math_random(1,#sound)] or sound, 1, posx, posy, posz, 'ui')
+						end
+					elseif spIsUnitInView(unitID) and (spIsUnitInLos(unitID, myAllyTeamID) or fullview) then
+						if GUIUnitSoundEffects[unitDefID].BaseSoundActivate then
+							local sound = GUIUnitSoundEffects[unitDefID].BaseSoundActivate
+							spPlaySoundFile(sound[2] and sound[math_random(1,#sound)] or sound, 0.5, posx, posy, posz, 'ui')
 						end
 					end
 				end
@@ -222,34 +236,32 @@ end
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	if builderID then
-		local unitName = unitNames[unitDefID]
-		if GUIUnitSoundEffects[unitName] then
+		if GUIUnitSoundEffects[unitDefID] then
 			if select(5, spGetUnitHealth(unitID)) < 0.05 then	--buildProgress
 				if myTeamID == spGetUnitTeam(builderID) then
 					local posx, posy, posz = spGetUnitPosition(unitID)
 					if CurrentGameFrame >= UnitCreatedSoundDelayLastFrame + UnitCreatedSoundDelayFrames then
-						if GUIUnitSoundEffects[unitName].BaseSoundSelectType then
-							local sound = GUIUnitSoundEffects[unitName].BaseSoundSelectType
+						if GUIUnitSoundEffects[unitDefID].BaseSoundSelectType then
+							local sound = GUIUnitSoundEffects[unitDefID].BaseSoundSelectType
 							spPlaySoundFile(sound[2] and sound[math_random(1,#sound)] or sound, 0.4, posx, posy, posz, 'ui')
 							UnitCreatedSoundDelayLastFrame = CurrentGameFrame + (math_random(-DelayRandomization,DelayRandomization))
 						end
-						if GUIUnitSoundEffects[unitName].BaseSoundWeaponType then
-							local sound = GUIUnitSoundEffects[unitName].BaseSoundWeaponType
+						if GUIUnitSoundEffects[unitDefID].BaseSoundWeaponType then
+							local sound = GUIUnitSoundEffects[unitDefID].BaseSoundWeaponType
 							spPlaySoundFile(sound[2] and sound[math_random(1,#sound)] or sound, 0.1, posx, posy, posz, 'ui')
 							UnitCreatedSoundDelayLastFrame = CurrentGameFrame + (math_random(-DelayRandomization,DelayRandomization))
 						end
 					end
 				elseif spIsUnitInView(unitID) and (spIsUnitInLos(unitID, myAllyTeamID) or fullview) then
-					local unitName = unitNames[unitDefID]
 					local posx, posy, posz = spGetUnitPosition(unitID)
 					if CurrentGameFrame >= AllyUnitFinishedSoundDelayLastFrame + AllyUnitCreatedSoundDelayFrames and spIsUnitInView(unitID) then
-						if GUIUnitSoundEffects[unitName].BaseSoundSelectType then
-							local sound = GUIUnitSoundEffects[unitName].BaseSoundSelectType
+						if GUIUnitSoundEffects[unitDefID].BaseSoundSelectType then
+							local sound = GUIUnitSoundEffects[unitDefID].BaseSoundSelectType
 							spPlaySoundFile(sound[2] and sound[math_random(1,#sound)] or sound, 0.2, posx, posy, posz, 'ui')
 							AllyUnitCreatedSoundDelayLastFrame = CurrentGameFrame + (math_random(-DelayRandomization,DelayRandomization))
 						end
-						if GUIUnitSoundEffects[unitName].BaseSoundWeaponType then
-							local sound = GUIUnitSoundEffects[unitName].BaseSoundWeaponType
+						if GUIUnitSoundEffects[unitDefID].BaseSoundWeaponType then
+							local sound = GUIUnitSoundEffects[unitDefID].BaseSoundWeaponType
 							spPlaySoundFile(sound[2] and sound[math_random(1,#sound)] or sound, 0.05, posx, posy, posz, 'ui')
 							AllyUnitCreatedSoundDelayLastFrame = CurrentGameFrame + (math_random(-DelayRandomization,DelayRandomization))
 						end
@@ -261,14 +273,17 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 end
 
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)
-	local unitName = unitNames[unitDefID]
-	if GUIUnitSoundEffects[unitName] then
+
+	if GUIUnitSoundEffects[unitDefID] then
+		units[unitID] = unitDefID
+		unitsTeam[unitID] = unitTeam
+
 		if myTeamID == unitTeam then
 			local posx, posy, posz = spGetUnitPosition(unitID)
 			if CurrentGameFrame >= UnitFinishedSoundDelayLastFrame + UnitFinishedSoundDelayFrames then
 				UnitFinishedSoundDelayLastFrame = CurrentGameFrame + (math_random(-DelayRandomization,DelayRandomization))
-				if GUIUnitSoundEffects[unitName].BaseSoundSelectType then
-					local sound = GUIUnitSoundEffects[unitName].BaseSoundSelectType
+				if GUIUnitSoundEffects[unitDefID].BaseSoundSelectType then
+					local sound = GUIUnitSoundEffects[unitDefID].BaseSoundSelectType
 					if sound[2] then
 						spPlaySoundFile(sound[math_random(1,#sound)], 0.8, posx, posy, posz, 'ui')
 						UnitFinishedSoundDelayLastFrame = CurrentGameFrame + (math_random(-DelayRandomization,DelayRandomization))
@@ -277,8 +292,8 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 						UnitFinishedSoundDelayLastFrame = CurrentGameFrame + (math_random(-DelayRandomization,DelayRandomization))
 					end
 				end
-				if GUIUnitSoundEffects[unitName].BaseSoundWeaponType then
-					local sound = GUIUnitSoundEffects[unitName].BaseSoundWeaponType
+				if GUIUnitSoundEffects[unitDefID].BaseSoundWeaponType then
+					local sound = GUIUnitSoundEffects[unitDefID].BaseSoundWeaponType
 					if sound[2] then
 						spPlaySoundFile(sound[math_random(1,#sound)], 0.2, posx, posy, posz, 'ui')
 						UnitFinishedSoundDelayLastFrame = CurrentGameFrame + (math_random(-DelayRandomization,DelayRandomization))
@@ -291,25 +306,27 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 		elseif spIsUnitInView(unitID) and (spIsUnitInLos(unitID, myAllyTeamID) or fullview) then
 			if CurrentGameFrame >= UnitFinishedSoundDelayLastFrame + AllyUnitFinishedSoundDelayFrames and spIsUnitInView(unitID) then
 				local posx, posy, posz = spGetUnitPosition(unitID)
-				if GUIUnitSoundEffects[unitName].BaseSoundSelectType then
-					local sound = GUIUnitSoundEffects[unitName].BaseSoundSelectType
+				if GUIUnitSoundEffects[unitDefID].BaseSoundSelectType then
+					local sound = GUIUnitSoundEffects[unitDefID].BaseSoundSelectType
 					spPlaySoundFile(sound[2] and sound[math_random(1,#sound)] or sound, 0.4, posx, posy, posz, 'ui')
 					AllyUnitFinishedSoundDelayLastFrame = CurrentGameFrame + (math_random(-DelayRandomization,DelayRandomization))
 				end
-				if GUIUnitSoundEffects[unitName].BaseSoundWeaponType then
-					local sound = GUIUnitSoundEffects[unitName].BaseSoundWeaponType
+				if GUIUnitSoundEffects[unitDefID].BaseSoundWeaponType then
+					local sound = GUIUnitSoundEffects[unitDefID].BaseSoundWeaponType
 					spPlaySoundFile(sound[2] and sound[math_random(1,#sound)] or sound, 0.1, posx, posy, posz, 'ui')
 					AllyUnitFinishedSoundDelayLastFrame = CurrentGameFrame + (math_random(-DelayRandomization,DelayRandomization))
 				end
 			end
 		end
-		if GUIUnitSoundEffects[unitName].BaseSoundActivate then
+		if GUIUnitSoundEffects[unitDefID].BaseSoundActivate then
 			ActiveStateTrackingUnitList[unitID] = 1
 		end
 	end
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
+	units[unitID] = nil
+	unitsTeam[unitID] = nil
 	if ActiveStateTrackingUnitList[unitID] then
 		ActiveStateTrackingUnitList[unitID] = nil
 	end
@@ -324,15 +341,14 @@ function gadget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOp
 			   unitDefID = spGetUnitDefID(selUnits[math_random(1,#selUnits)])
 			end
 
-			local unitName = unitNames[unitDefID]
 			local posx, posy, posz = spGetUnitPosition(unitID)
 			local ValidCommandSound = false
 
 			if CurrentGameFrame >= CommandUISoundDelayLastFrame + CommandUISoundDelayFrames then
 
 				if CommandSoundEffects[cmdID] then
-					if cmdID == CMD_MOVE and GUIUnitSoundEffects[unitName] and GUIUnitSoundEffects[unitName].Move then
-						spPlaySoundFile(GUIUnitSoundEffects[unitName].Move, CommandSoundEffects[cmdID][2], 'ui')
+					if cmdID == CMD_MOVE and GUIUnitSoundEffects[unitDefID] and GUIUnitSoundEffects[unitDefID].Move then
+						spPlaySoundFile(GUIUnitSoundEffects[unitDefID].Move, CommandSoundEffects[cmdID][2], 'ui')
 					else
 						spPlaySoundFile(CommandSoundEffects[cmdID][1], CommandSoundEffects[cmdID][2], 'ui')
 					end
@@ -340,15 +356,15 @@ function gadget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOp
 					ValidCommandSound = true
 
 				elseif cmdID < 0 then	-- unit build
-					local unitName = unitNames[-(cmdID)]
-					if GUIUnitSoundEffects[unitName] and CurrentGameFrame >= UnitBuildOrderSoundDelayLastFrame + UnitBuildOrderSoundDelayFrames then
-						if GUIUnitSoundEffects[unitName].BaseSoundSelectType then
-							local sound = GUIUnitSoundEffects[unitName].BaseSoundSelectType
+					local buildingDefID = -cmdID
+					if GUIUnitSoundEffects[buildingDefID] and CurrentGameFrame >= UnitBuildOrderSoundDelayLastFrame + UnitBuildOrderSoundDelayFrames then
+						if GUIUnitSoundEffects[buildingDefID].BaseSoundSelectType then
+							local sound = GUIUnitSoundEffects[buildingDefID].BaseSoundSelectType
 							spPlaySoundFile(sound[2] and sound[math_random(1,#sound)] or sound, 0.3, posx, posy, posz, 'ui')
 							UnitBuildOrderSoundDelayLastFrame = CurrentGameFrame + (math_random(-DelayRandomization,DelayRandomization))
 						end
-						if GUIUnitSoundEffects[unitName].BaseSoundWeaponType then
-							local sound = GUIUnitSoundEffects[unitName].BaseSoundWeaponType
+						if GUIUnitSoundEffects[buildingDefID].BaseSoundWeaponType then
+							local sound = GUIUnitSoundEffects[buildingDefID].BaseSoundWeaponType
 							spPlaySoundFile(sound[2] and sound[math_random(1,#sound)] or sound, 0.5, posx, posy, posz, 'ui')
 							UnitBuildOrderSoundDelayLastFrame = CurrentGameFrame + (math_random(-DelayRandomization,DelayRandomization))
 						end
@@ -359,17 +375,17 @@ function gadget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOp
 			end
 
 			if CurrentGameFrame >= CommandUnitSoundDelayLastFrame + CommandUnitSoundDelayFrames then
-				if ValidCommandSound and GUIUnitSoundEffects[unitName] then
+				if ValidCommandSound and GUIUnitSoundEffects[unitDefID] then
 
-					if GUIUnitSoundEffects[unitName].BaseSoundMovementType then
-						local sound = GUIUnitSoundEffects[unitName].BaseSoundMovementType
+					if GUIUnitSoundEffects[unitDefID].BaseSoundMovementType then
+						local sound = GUIUnitSoundEffects[unitDefID].BaseSoundMovementType
 						spPlaySoundFile(sound[2] and sound[math_random(1,#sound)] or sound, 0.8, posx, posy, posz, 'ui')
 						UsedFrame = CurrentGameFrame
 						CommandUnitSoundDelayLastFrame = CurrentGameFrame + (math_random(-DelayRandomization,DelayRandomization))
 					end
 
-					if GUIUnitSoundEffects[unitName].BaseSoundWeaponType then
-						local sound = GUIUnitSoundEffects[unitName].BaseSoundWeaponType
+					if GUIUnitSoundEffects[unitDefID].BaseSoundWeaponType then
+						local sound = GUIUnitSoundEffects[unitDefID].BaseSoundWeaponType
 						spPlaySoundFile(sound[2] and sound[math_random(1,#sound)] or sound, 0.2, posx, posy, posz, 'ui')
 						UsedFrame = CurrentGameFrame
 						CommandUnitSoundDelayLastFrame = CurrentGameFrame + (math_random(-DelayRandomization,DelayRandomization))
@@ -384,19 +400,18 @@ function gadget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOp
 		if spIsUnitInView(unitID) and spIsUnitInLos(unitID, myAllyTeamID) then
 
 			if CurrentGameFrame >= AllyCommandUnitDelayLastFrame + AllyCommandUnitDelayFrames then
-				local unitName = unitNames[unitDefID]
 
-				if GUIUnitSoundEffects[unitName] then
+				if GUIUnitSoundEffects[unitDefID] then
 					local posx, posy, posz = spGetUnitPosition(unitID)
 
-					if GUIUnitSoundEffects[unitName].BaseSoundMovementType then
-						local sound = GUIUnitSoundEffects[unitName].BaseSoundMovementType
+					if GUIUnitSoundEffects[unitDefID].BaseSoundMovementType then
+						local sound = GUIUnitSoundEffects[unitDefID].BaseSoundMovementType
 						spPlaySoundFile(sound[2] and sound[math_random(1,#sound)] or sound, 0.3, posx, posy, posz, 'ui')
 						AllyCommandUnitDelayLastFrame = CurrentGameFrame + (math_random(-DelayRandomization,DelayRandomization))
 					end
 
-					if GUIUnitSoundEffects[unitName].BaseSoundWeaponType then
-						local sound = GUIUnitSoundEffects[unitName].BaseSoundWeaponType
+					if GUIUnitSoundEffects[unitDefID].BaseSoundWeaponType then
+						local sound = GUIUnitSoundEffects[unitDefID].BaseSoundWeaponType
 						spPlaySoundFile(sound[2] and sound[math_random(1,#sound)] or sound, 0.075, posx, posy, posz, 'ui')
 						AllyCommandUnitDelayLastFrame = CurrentGameFrame + (math_random(-DelayRandomization,DelayRandomization))
 					end
