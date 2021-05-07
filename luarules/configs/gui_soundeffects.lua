@@ -53,7 +53,7 @@ GUIUnitSoundEffects = {
 	armfmkr = {
 		BaseSoundSelectType = "arm-bld-select-small-water",
 		--BaseSoundMovementType = "",
-		BaseSoundWeaponType = "arm-bld-metalmaker",
+		--BaseSoundWeaponType = "arm-bld-metalmaker",	-- this gets spammed (possibly)
 	},
 
 	armwin = {
@@ -273,7 +273,7 @@ GUIUnitSoundEffects = {
 	armuwmmm = {
 		BaseSoundSelectType = "arm-bld-select-large-water",
 		--BaseSoundMovementType = "",
-		BaseSoundWeaponType = "arm-bld-metalmaker-t2",
+		--BaseSoundWeaponType = "arm-bld-metalmaker-t2",	-- this gets spammed (possibly)
 	},
 
 	armuwadvms = {
@@ -1063,7 +1063,7 @@ GUIUnitSoundEffects = {
 	corfmkr = {
 		BaseSoundSelectType = "arm-bld-select-small-water",
 		--BaseSoundMovementType = "",
-		BaseSoundWeaponType = "arm-bld-metalmaker",
+		--BaseSoundWeaponType = "arm-bld-metalmaker",	-- this gets spammed (possibly)
 	},
 
 	corwin = {
@@ -1283,7 +1283,7 @@ GUIUnitSoundEffects = {
 	coruwmmm = {
 		BaseSoundSelectType = "arm-bld-select-large-water",
 		--BaseSoundMovementType = "",
-		BaseSoundWeaponType = "arm-bld-metalmaker-t2",
+		--BaseSoundWeaponType = "arm-bld-metalmaker-t2", 	-- this gets spammed (possibly)
 	},
 
 	coruwadvms = {
