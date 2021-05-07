@@ -311,6 +311,7 @@ local function updateList()
 			end
 			if mult > maxGroups then
 				mult = maxGroups
+				numGroups = mult
 			end
 
 			local groupWidth = groupSize - backgroundPadding

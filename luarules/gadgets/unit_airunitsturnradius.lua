@@ -14,11 +14,15 @@ end
 --------------------------------------------------------------------------------
 
 if gadgetHandler:IsSyncedCode() then
+
+	local CMD_ATTACK = CMD.ATTACK
 	local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
+	local spGetUnitMoveTypeData = Spring.GetUnitMoveTypeData
+
 	local unitTurnRadius = {}
-	local isBomber = {}
 	local Bombers = {}
 	local isFighter = {}
+	local isBomber = {}
 	local isBomb = {}
 	for id, wDef in pairs(WeaponDefs) do
 		if wDef.type == "AircraftBomb" then
@@ -42,8 +46,8 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:UnitCreated(unitID, unitDefID)
-		if isBomber[Spring.GetUnitDefID(unitID)] then
-			Bombers[unitID] = true
+		if isBomber[unitDefID] then
+			Bombers[unitID] = unitDefID
 		end
 		if isFighter[unitDefID] then
 			local curMoveCtrl = Spring.MoveCtrl.IsEnabled(unitID)
@@ -65,9 +69,9 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:GameFrame(n)
 		if n % 5 == 1 then
-			for unitID, isbomber in pairs (Bombers) do
+			for unitID, unitDefID in pairs(Bombers) do
 				local nextCmdID = spGetUnitCurrentCommand(unitID)
-				if not nextCmdID or nextCmdID == CMD.ATTACK then
+				if not nextCmdID or nextCmdID == CMD_ATTACK then
 					local curMoveCtrl = Spring.MoveCtrl.IsEnabled(unitID)
 					if curMoveCtrl then
 						Spring.MoveCtrl.Disable(unitID)
@@ -76,12 +80,12 @@ if gadgetHandler:IsSyncedCode() then
 					if curMoveCtrl then
 						Spring.MoveCtrl.Enable(unitID)
 					end
-				elseif Spring.GetUnitMoveTypeData(unitID).turnRadius then
+				elseif spGetUnitMoveTypeData(unitID).turnRadius then
 					local curMoveCtrl = Spring.MoveCtrl.IsEnabled(unitID)
 					if curMoveCtrl then
 						Spring.MoveCtrl.Disable(unitID)
 					end
-					Spring.MoveCtrl.SetAirMoveTypeData(unitID, "turnRadius", unitTurnRadius[Spring.GetUnitDefID(unitID)])
+					Spring.MoveCtrl.SetAirMoveTypeData(unitID, "turnRadius", unitTurnRadius[unitDefID])
 					if curMoveCtrl then
 						Spring.MoveCtrl.Enable(unitID)
 					end
@@ -92,7 +96,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
 		if Bombers[unitID] and not Spring.GetUnitMoveTypeData(unitID).aircraftState == "crashing" then
-			if cmdID == CMD.ATTACK then
+			if cmdID == CMD_ATTACK then
 				local curMoveCtrl = Spring.MoveCtrl.IsEnabled(unitID)
 				if curMoveCtrl then
 					Spring.MoveCtrl.Disable(unitID)
