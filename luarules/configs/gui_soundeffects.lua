@@ -1082,8 +1082,8 @@ GUIUnitSoundEffects = {
     BaseSoundSelectType   = "arm-bld-nrghum",
     --BaseSoundMovementType = "",
     BaseSoundWeaponType   = "arm-bld-solar-alt",
-    BaseSoundActivate     = "arm-bld-solar-activate",
-    BaseSoundDeactivate     = "arm-bld-solar-deactivate",
+    BaseSoundActivate     = "cor-bld-solar-activate",
+    BaseSoundDeactivate   = "cor-bld-solar-deactivate",
     },
 
     coradvsol = {
@@ -1688,7 +1688,7 @@ GUIUnitSoundEffects = {
     BaseSoundMovementType = "cor-veh-small-ok",
     BaseSoundWeaponType   = "laser-small-cor",
     },
-    corwolf = {
+    corwolv = {
     BaseSoundSelectType   = "cor-tnk-small-sel",
     BaseSoundMovementType = "cor-tnk-small-ok",
     BaseSoundWeaponType   = "arty-small",
