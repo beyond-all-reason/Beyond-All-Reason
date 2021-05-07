@@ -559,6 +559,7 @@ local units = {
 	vh_chickenq = { "chicken_queen.png", 4.19999981 },
 	xmasball = { "blank.png", 1.04999995 },
 	xmasball2 = { "blank.png", 1.04999995 },
+	corfdoom = { "cordoom_1.95.png", 1.5 },
 }
 
 setmetatable(units, { __index =

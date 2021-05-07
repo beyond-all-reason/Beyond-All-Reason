@@ -80,6 +80,7 @@ modConfig["BYAR"]["unitList"] = {
 	coratl = { weapons = { 1 } }, --T2 torp launcher
 	corfrt = { weapons = { 2 } }, --floating rocket laucher
 	corenaa = { weapons = { 2 } }, --floating flak AA
+	corfdoom = { weapons = { 1 } }, --floating devastator
 
 	cortoast = { weapons = { 1 } },
 	corvipe = { weapons = { 1 } },
