@@ -58,6 +58,7 @@ return {
 			[10] = "corfatf",
 			[11] = "coratl",
 			[12] = "corenaa",
+			[13]= "corfdoom",
 		},
 		customparams = {
 			area_mex_def = "coruwmme",
