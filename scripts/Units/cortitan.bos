@@ -132,7 +132,7 @@ SweetSpot(piecenum)
 
 QueryPrimary(piecenum)
 {
-	piecenum = base;
+	piecenum = flare1;
 }
 
 Killed(severity, corpsetype)

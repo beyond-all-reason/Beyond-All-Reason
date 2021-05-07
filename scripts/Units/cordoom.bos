@@ -6,7 +6,7 @@
 piece  base, flarer1, flarer2, body1, body2, turretg, boreg, barrelg, flareg, neck,
  turretb, boreb, barrelb, flareb, turretr, borer, barrelr, aimpoint;
 
-static-var  gun_3, restore_delay, Static_Var_3, statechg_DesiredState, statechg_StateChanging;
+static-var  closed, gun_3, restore_delay, Static_Var_3, statechg_DesiredState, statechg_StateChanging;
 
 // Signal definitions
 #define SIG_AIM				2
@@ -69,10 +69,12 @@ activatescr()
 		wait-for-turn turretg around x-axis;
 	}
 	sleep 22;
+	closed = FALSE;
 }
 
 deactivatescr()
 {
+	closed = TRUE;
 	if( TRUE )
 	{
 		turn turretb to x-axis <0> speed <180>;
@@ -206,6 +208,7 @@ Create()
     hide flareb;
     hide flareg;
 	gun_3 = 0;
+	closed = FALSE;
 	call-script InitState();
 	Static_Var_3 = 0;
 	restore_delay = 2000;
@@ -237,6 +240,10 @@ SetMaxReloadTime(Func_Var_1)
 
 AimWeapon1(heading, pitch)
 {
+	if (closed == TRUE)
+	{
+		return (0);
+	}	
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
 	//We can do this any time
@@ -294,6 +301,10 @@ AimWeapon1(heading, pitch)
 
 AimWeapon2(heading, pitch)
 {
+	if (closed == TRUE)
+	{
+		return (0);
+	}	
 	signal SIG_AIM_2;
 	set-signal-mask SIG_AIM_2;
 	//We can do this any time
