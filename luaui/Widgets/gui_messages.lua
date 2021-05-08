@@ -22,11 +22,11 @@ local vsx, vsy = gl.GetViewSizes()
 local posY = 0.16
 local charSize = 19.5 - (3.5 * ((vsx/vsy) - 1.78))
 local charDelay = 0.018
-local maxLines = 6
-local maxLinesScroll = 9
-local lineTTL = 14
-local fadeTime = 0.4
-local fadeDelay = 0.25   -- need to hover this long in order to fadein and respond to CTRL
+local maxLines = 4
+local maxLinesScroll = 10
+local lineTTL = 15
+local fadeTime = 0.3
+local fadeDelay = 0.22   -- need to hover this long in order to fadein and respond to CTRL
 local backgroundOpacity = 0.18
 
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale",1) or 1)
@@ -52,6 +52,9 @@ local font, chobbyInterface, hovering, startFadeTime
 
 local RectRound = Spring.FlowUI.Draw.RectRound
 local elementCorner = Spring.FlowUI.elementCorner
+
+local hideSpecChat = tonumber(Spring.GetConfigInt("HideSpecChat", 0) or 0) == 1
+
 
 local function lines(str)
 	local text = {}
@@ -177,6 +180,9 @@ function widget:Update(dt)
 		if ui_scale ~= Spring.GetConfigFloat("ui_scale",1) then
 			ui_scale = Spring.GetConfigFloat("ui_scale",1)
 			widget:ViewResize()
+		end
+		if hideSpecChat ~= tonumber(Spring.GetConfigInt("HideSpecChat", 0) or 0) == 1 then
+			hideSpecChat = tonumber(Spring.GetConfigInt("HideSpecChat", 0) or 0) == 1
 		end
 	end
 
@@ -311,13 +317,17 @@ end
 
 function widget:MouseWheel(up, value)
 	if scrolling then
+		local alt, ctrl, meta, shift = Spring.GetModKeyState()
 		if up then
-			currentLine = currentLine - 1
+			currentLine = currentLine - (shift and maxLinesScroll or (ctrl and 3 or 1))
 			if currentLine < maxLinesScroll then
 				currentLine = maxLinesScroll
+				if currentLine > #messageLines then
+					currentLine = #messageLines
+				end
 			end
 		else
-			currentLine = currentLine + 1
+			currentLine = currentLine + (shift and maxLinesScroll or (ctrl and 3 or 1))
 			if currentLine > #messageLines then
 				currentLine = #messageLines
 			end

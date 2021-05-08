@@ -3599,35 +3599,46 @@ function init()
 		--},
 		{ id = "mascot", group = "ui", basic = true, widget = "AdvPlayersList Mascot", name = widgetOptionColor .. "   "..texts.option.mascot, type = "bool", value = GetWidgetToggleValue("AdvPlayersList Mascot"), description = texts.option.mascot_descr },
 
-		{ id = "consolemaxlines", group = "ui", name = texts.option.console .. widgetOptionColor .. "  "..texts.option.consolemaxlines, type = "slider", min = 3, max = 9, step = 1, value = 6, description = '',
-		  onload = function(i)
-			  loadWidgetData("Red Console (In-game chat only)", "consolemaxlines", { 'Config', 'console', 'maxlines' })
-		  end,
-		  onchange = function(i, value)
-			  saveOptionValue('Red Console (In-game chat only)', 'red_chatonlyconsole', 'setMaxLines', { 'Config', 'console', 'maxlines' }, value)
-			  saveOptionValue('Red Console (old)', 'red_console', 'setMaxLines', { 'Config', 'console', 'maxlines' }, value)
-		  end,
-		},
-		{ id = "consolefontsize", group = "ui", name = widgetOptionColor .. "   "..texts.option.consolefontsize, type = "slider", min = 0.9, max = 1.1, step = 0.05, value = 1, description = '',
-		  onload = function(i)
-			  loadWidgetData("Red Console (In-game chat only)", "consolefontsize", { 'fontsizeMultiplier' })
-		  end,
-		  onchange = function(i, value)
-			  saveOptionValue('Red Console (In-game chat only)', 'red_chatonlyconsole', 'setFontsize', { 'fontsizeMultiplier' }, value)
-			  saveOptionValue('Red Console (old)', 'red_console', 'setFontsize', { 'fontsizeMultiplier' }, value)
-		  end,
-		},
-		{ id = "consolehidespecchat", group = "ui", name = widgetOptionColor .. "   "..texts.option.consolehidespecchat, type = "bool", value = (Spring.GetConfigInt("HideSpecChat", 0) == 1), description = texts.option.consolehidespecchat_descr,
+		  { id = "console_hidespecchat", group = "ui", name = texts.option.console .."   "..widgetOptionColor..texts.option.console_hidespecchat, type = "bool", value = (Spring.GetConfigInt("HideSpecChat", 0) == 1), description = texts.option.console_hidespecchat_descr,
 			onload = function(i)
 			end,
 			onchange = function(i, value)
 				Spring.SetConfigInt("HideSpecChat", value and 1 or 0)
-				widgetHandler:DisableWidget("Red Console (In-game chat only)")
-				widgetHandler:DisableWidget("Red Console (Battle and autohosts)")
-				widgetHandler:EnableWidget("Red Console (In-game chat only)")
-				widgetHandler:EnableWidget("Red Console (Battle and autohosts)")
+				widgetHandler:DisableWidget("Chat")
+				widgetHandler:EnableWidget("Chat")
+				--widgetHandler:DisableWidget("Red Console (Battle and autohosts)")
+				--widgetHandler:DisableWidget("Red Console (In-game chat only)")
+				--widgetHandler:DisableWidget("Red Console (Battle and autohosts)")
+				--widgetHandler:EnableWidget("Red Console (In-game chat only)")
+				--widgetHandler:EnableWidget("Red Console (Battle and autohosts)")
 			end,
-		},
+		  },
+		  { id = "console_showbackground", group = "ui", name = widgetOptionColor .."   "..texts.option.console_showbackground, type = "bool", value = false, description = texts.option.console_showbackground_descr,
+			onload = function(i)
+				loadWidgetData("Chat", "console_showbackground", { 'alwaysShowBackground' })
+			end,
+			onchange = function(i, value)
+				saveOptionValue('Chat', 'chat', 'setAlwaysShowBackground', { 'alwaysShowBackground' }, value)
+			end,
+		  },
+		--{ id = "consolemaxlines", group = "ui", name = widgetOptionColor .. "   "..texts.option.consolemaxlines, type = "slider", min = 3, max = 9, step = 1, value = 6, description = '',
+		--  onload = function(i)
+		--	  loadWidgetData("Red Console (In-game chat only)", "consolemaxlines", { 'Config', 'console', 'maxlines' })
+		--  end,
+		--  onchange = function(i, value)
+		--	  saveOptionValue('Red Console (In-game chat only)', 'red_chatonlyconsole', 'setMaxLines', { 'Config', 'console', 'maxlines' }, value)
+		--	  saveOptionValue('Red Console (old)', 'red_console', 'setMaxLines', { 'Config', 'console', 'maxlines' }, value)
+		--  end,
+		--},
+		--{ id = "consolefontsize", group = "ui", name = widgetOptionColor .. "   "..texts.option.consolefontsize, type = "slider", min = 0.9, max = 1.1, step = 0.05, value = 1, description = '',
+		--  onload = function(i)
+		--	  loadWidgetData("Red Console (In-game chat only)", "consolefontsize", { 'fontsizeMultiplier' })
+		--  end,
+		--  onchange = function(i, value)
+		--	  saveOptionValue('Red Console (In-game chat only)', 'red_chatonlyconsole', 'setFontsize', { 'fontsizeMultiplier' }, value)
+		--	  saveOptionValue('Red Console (old)', 'red_console', 'setFontsize', { 'fontsizeMultiplier' }, value)
+		--  end,
+		--},
 
 		--{id="commanderhurt", group="ui", widget="Commander Hurt Vignette", name="Commander hurt vignette", type="bool", value=GetWidgetToggleValue("Commander Hurt Vignette"), description='Shows a red vignette when commander is out of view and gets damaged'},
 
