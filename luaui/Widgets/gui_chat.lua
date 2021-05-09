@@ -16,7 +16,7 @@ local posYoffset = 0.04 --0.01	-- add extra distance (non scrolling)
 local posX = 0.3
 local posX2 = 0.74
 local charSize = 21 - (3.5 * ((vsx/vsy) - 1.78))
-local charDelay = 0.003
+local charDelay = 0.0025
 local maxLines = 5
 local maxLinesScroll = 15
 local lineHeightMult = 1.27
@@ -24,18 +24,18 @@ local lineTTL = 45
 
 local fadeTime = 0.3
 local fadeDelay = 0.15   -- need to hover this long in order to fadein and respond to CTRL
-local backgroundOpacity = 0.18
-local alwaysShowBackground = false
+
+local backgroundOpacity = 0
+local hoverShowBackground = false
 
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale",1) or 1)
 local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity",0.66) or 0.66)
 local widgetScale = (((vsx+vsy) / 2000) * 0.55) * (0.95+(ui_scale-1)/1.5)
 
-local usedFontSize = charSize*widgetScale
 local fontsizeMult = 1
+local usedFontSize = charSize*widgetScale*fontsizeMult
 local chatLines = {}
 local activationArea = {0,0,0,0}
-local activatedHeight = 0
 local currentLine = 0
 local currentTypewriterLine = 0
 local scrolling = false
@@ -132,7 +132,7 @@ function widget:ViewResize()
 			maxPlayernameWidth = font:GetTextWidth(namePrefix..longestPlayername) * usedFontSize
 		end
 	end
-	maxTimeWidth = font:GetTextWidth('00:00') * charSize*widgetScale
+	maxTimeWidth = font:GetTextWidth('00:00') * usedFontSize
 	lineSpaceWidth = 24*widgetScale
 	lineHeight = floor(usedFontSize*lineHeightMult)
 	backgroundPadding = elementPadding + floor(lineHeight*0.5)
@@ -165,7 +165,6 @@ function widget:ViewResize()
 	end
 
 	lineMaxWidth = floor((activationArea[3] - activationArea[1]) * 0.65)
-	activatedHeight = (1+maxLinesScroll)*usedFontSize*1.15
 end
 
 local function addChat(ignore, type, name, text)
@@ -255,17 +254,18 @@ function widget:Initialize()
 	Spring.SendCommands("console 0")
 
 	WG['chat'] = {}
-	WG['chat'].getAlwaysShowBackground = function()
-		return alwaysShowBackground
+	WG['chat'].getBackgroundOpacity = function()
+		return backgroundOpacity
 	end
-	WG['chat'].setAlwaysShowBackground = function(value)
-		alwaysShowBackground = value
+	WG['chat'].setBackgroundOpacity = function(value)
+		backgroundOpacity = value
 	end
 	WG['chat'].getMaxLines = function()
 		return maxLines
 	end
 	WG['chat'].setMaxLines = function(value)
 		maxLines = value
+		widget:ViewResize()
 	end
 	WG['chat'].getFontsize = function()
 		return fontsizeMult
@@ -298,7 +298,7 @@ function widget:Update(dt)
 		if ctrl and startFadeTime and clock() > startFadeTime+fadeDelay then
 			scrolling = true
 		end
-	elseif scrolling and isOnRect(x, y, activationArea[1], activationArea[2]+heightDiff, activationArea[3], activationArea[2]+activatedHeight) then
+	elseif scrolling and isOnRect(x, y, activationArea[1], activationArea[2]+heightDiff, activationArea[3], activationArea[2]) then
 		-- do nothing
 	else
 		scrolling = false
@@ -382,7 +382,7 @@ function widget:DrawScreen()
 	if hovering and WG['guishader'] then
 		WG['guishader'].RemoveRect('chat')
 	end
-	if isOnRect(x, y, activationArea[1], activationArea[2]+heightDiff, activationArea[3], activationArea[4]) or  (scrolling and isOnRect(x, y, activationArea[1], activationArea[2]+heightDiff, activationArea[3], activationArea[2]+activatedHeight))  then
+	if isOnRect(x, y, activationArea[1], activationArea[2]+heightDiff, activationArea[3], activationArea[4]) or  (scrolling and isOnRect(x, y, activationArea[1], activationArea[2]+heightDiff, activationArea[3], activationArea[2]))  then
 		hovering = true
 		if not startFadeTime then
 			startFadeTime = clock()
@@ -416,16 +416,17 @@ function widget:DrawScreen()
 				WG['guishader'].InsertRect(activationArea[1], activationArea[2]+heightDiff, activationArea[3], activationArea[4], 'chat')
 			end
 		else
-			if alwaysShowBackground then
+			if backgroundOpacity > 0 then
 				glColor(0,0,0,backgroundOpacity)
-			else
+				RectRound(activationArea[1], activationArea[2]+heightDiff, activationArea[3], activationArea[4], elementCorner)
+			elseif hoverShowBackground then
 				local opacity = ((clock() - (startFadeTime+fadeDelay)) / fadeTime) * backgroundOpacity
 				if opacity > backgroundOpacity then
 					opacity = backgroundOpacity
 				end
 				glColor(0,0,0,opacity)
+				RectRound(activationArea[1], activationArea[2]+heightDiff, activationArea[3], activationArea[4], elementCorner)
 			end
-			RectRound(activationArea[1], activationArea[2]+heightDiff, activationArea[3], activationArea[4], elementCorner)
 		end
 	else
 		if hovering then
@@ -433,10 +434,10 @@ function widget:DrawScreen()
 			startFadeTime = clock() - math.max((1-opacityPercentage)*fadeTime, 0)
 		end
 		hovering = false
-		if alwaysShowBackground then
+		if backgroundOpacity > 0 then
 			glColor(0,0,0,backgroundOpacity)
 			RectRound(activationArea[1], activationArea[2]+heightDiff, activationArea[3], activationArea[4], elementCorner)
-		elseif startFadeTime then
+		elseif hoverShowBackground and startFadeTime then
 			local opacity = backgroundOpacity - (((clock() - startFadeTime) / fadeTime) * backgroundOpacity)
 			if opacity > 1 then
 				opacity = 1
@@ -751,9 +752,8 @@ local function processConsoleLine(line)
 		--else
 		--	line = textcolor.."> "..text
 		--end
-		text = ssub(text, slen(name)+5)
 		name = textcolor..'<'..name..'>'
-		line = textcolor..text
+		line = textcolor..ssub(text, slen(name)+4)
 
 
 	else	-- every other message
@@ -780,7 +780,7 @@ function widget:GetConfigData(data)
 	for i, _ in ipairs(chatLines) do
 		chatLines[i][9] = nil
 	end
-	return {chatLines = chatLines, fontsizeMult = fontsizeMult, alwaysShowBackground = alwaysShowBackground}
+	return {chatLines = chatLines, fontsizeMult = fontsizeMult, backgroundOpacity = backgroundOpacity}
 end
 
 function widget:SetConfigData(data)
@@ -789,7 +789,7 @@ function widget:SetConfigData(data)
 		currentLine = #chatLines
 		currentTypewriterLine = currentLine
 	end
-	if data.alwaysShowBackground ~= nil then
-		alwaysShowBackground = data.alwaysShowBackground
+	if data.backgroundOpacity ~= nil then
+		backgroundOpacity = data.backgroundOpacity
 	end
 end
