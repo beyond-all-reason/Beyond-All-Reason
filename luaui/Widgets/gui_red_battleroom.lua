@@ -944,7 +944,7 @@ function widget:GameOver()
 end
 
 function widget:Shutdown()
-	Spring.SendCommands("console 1")
+	--Spring.SendCommands("console 1")
 end
 
 function widget:AddConsoleLine(lines,priority)

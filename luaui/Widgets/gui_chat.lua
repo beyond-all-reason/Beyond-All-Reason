@@ -14,13 +14,14 @@ local vsx, vsy = gl.GetViewSizes()
 local posY = 0.81
 local posYoffset = 0.04 --0.01	-- add extra distance (non scrolling)
 local posX = 0.3
-local posX2 = 0.71
-local fontsizeMult = 1
+local posX2 = 0.74
 local charSize = 21 - (3.5 * ((vsx/vsy) - 1.78))
-local charDelay = 0.0055
-local maxLines = 6
+local charDelay = 0.003
+local maxLines = 5
 local maxLinesScroll = 15
+local lineHeightMult = 1.27
 local lineTTL = 45
+
 local fadeTime = 0.3
 local fadeDelay = 0.15   -- need to hover this long in order to fadein and respond to CTRL
 local backgroundOpacity = 0.18
@@ -31,6 +32,7 @@ local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity",0.66) or 0.66)
 local widgetScale = (((vsx+vsy) / 2000) * 0.55) * (0.95+(ui_scale-1)/1.5)
 
 local usedFontSize = charSize*widgetScale
+local fontsizeMult = 1
 local chatLines = {}
 local activationArea = {0,0,0,0}
 local activatedHeight = 0
@@ -54,21 +56,21 @@ local playSound = true
 local SoundIncomingChat  = 'beep4'
 local SoundIncomingChatVolume = 0.85
 
-local colorOther = {1,1,1} --normal chat color
-local colorAlly = {0,1,0} --ally chat
-local colorspectext = {1,1,0} --spectator chat
+local colorOther = {1,1,1} -- normal chat color
+local colorAlly = {0,1,0}
+local colorSpec = {1,1,0}
+local colorOtherAlly = {1,0.5,0.5} -- enemy ally messages (seen only when spectating)
+local colorMisc = {0.85,0.85,0.85} -- everything else
+local colorGame = {0.4,1,1} -- server (autohost) chat
 
-local colorOtherAlly = {1,0.5,0.5} --enemy ally messages (seen only when spectating)
-local colorMisc = {0.85,0.85,0.85} --everything else
-local colorGame = {0.4,1,1} --server (autohost) chat
-
+local chatSeparator = '\255\210\210\210:'
 local pointSeparator = '\255\255\255\255*'
-local longestPlayername = '[xxx]playername'
+local longestPlayername = '(s) [xx]playername'	-- setting a default minimum width
+
 local maxPlayernameWidth = 50
 local maxTimeWidth = 20
 local lineSpaceWidth = 24*widgetScale
 local lineMaxWidth = 0
-local lineHeightMult = 1.3
 local lineHeight = math.floor(usedFontSize*lineHeightMult)
 local backgroundPadding = usedFontSize
 
@@ -83,7 +85,6 @@ local glTranslate      = gl.Translate
 local glColor          = gl.Color
 
 local floor = math.floor
-
 local clock = os.clock
 local schar = string.char
 local slen = string.len
@@ -121,13 +122,14 @@ function widget:ViewResize()
 	font = WG['fonts'].getFont(nil, (charSize/18)*fontsizeMult, 0.165, 1.15)
 
 	-- get longest playername and calc its width
-	maxPlayernameWidth = font:GetTextWidth(longestPlayername) * usedFontSize
+	local namePrefix = '(s)'
+	maxPlayernameWidth = font:GetTextWidth(namePrefix..longestPlayername) * usedFontSize
 	local playersList = Spring.GetPlayerList()
 	for _, playerID in ipairs(playersList) do
 		local name = Spring.GetPlayerInfo(playerID, false)
-		if name ~= longestPlayername and font:GetTextWidth(name)*usedFontSize > maxPlayernameWidth then
+		if name ~= longestPlayername and font:GetTextWidth(namePrefix..name)*usedFontSize > maxPlayernameWidth then
 			longestPlayername = name
-			maxPlayernameWidth = font:GetTextWidth(longestPlayername) * usedFontSize
+			maxPlayernameWidth = font:GetTextWidth(namePrefix..longestPlayername) * usedFontSize
 		end
 	end
 	maxTimeWidth = font:GetTextWidth('00:00') * charSize*widgetScale
@@ -162,7 +164,7 @@ function widget:ViewResize()
 		activationArea[1] = topbarArea[1]
 	end
 
-	lineMaxWidth = floor((activationArea[3] - activationArea[1]) * 0.66)
+	lineMaxWidth = floor((activationArea[3] - activationArea[1]) * 0.65)
 	activatedHeight = (1+maxLinesScroll)*usedFontSize*1.15
 end
 
@@ -336,7 +338,10 @@ local function processLine(i)
 				-- mapmark point
 				if chatLines[i][3] == 3 then
 					font:Print(pointSeparator, maxPlayernameWidth+(lineSpaceWidth/2), 0, usedFontSize, "oc")
+				else
+					font:Print(chatSeparator, maxPlayernameWidth+(lineSpaceWidth/3.8), fontHeightOffset, usedFontSize, "oc")
 				end
+
 			end
 			font:Print(text, maxPlayernameWidth+lineSpaceWidth, fontHeightOffset, usedFontSize, "o")
 			font:End()
@@ -534,7 +539,7 @@ function widget:Shutdown()
 		end
 	end
 	WG['chat'] = nil
-	--Spring.SendCommands("console 1")
+	Spring.SendCommands("console 1")
 end
 
 local function convertColor(r,g,b)
@@ -675,7 +680,7 @@ local function processConsoleLine(line)
 			end
 		elseif sfind(text,"Spectators: ", nil, true) == 1 then
 			text = ssub(text,13)
-			c = colorspectext
+			c = colorSpec
 		end
 
 		if ignoreThisMessage then text = ignoredText end
@@ -694,13 +699,13 @@ local function processConsoleLine(line)
 		local misccolor = convertColor(c[1],c[2],c[3])
 		if sfind(text,"Allies: ", nil, true) == 1 then
 			text = ssub(text,9)
-			c = colorspectext
+			c = colorSpec
 		elseif sfind(text,"Spectators: ", nil, true) == 1 then
 			text = ssub(text,13)
-			c = colorspectext
+			c = colorSpec
 		end
 		textcolor = convertColor(c[1],c[2],c[3])
-		c = colorspectext
+		c = colorSpec
 		local namecolor = convertColor(c[1],c[2],c[3])
 		if ignoreThisMessage then text = ignoredText end
 
@@ -709,10 +714,13 @@ local function processConsoleLine(line)
 
 
 	elseif linetype == 3 then	-- playerpoint
-		local c = colorspectext
+		local c = colorSpec
 		local namecolor = convertColor(c[1],c[2],c[3])
 
-		local spectator = names[name] and names[name][2] or true
+		local spectator = true
+		if names[name] ~= nil then
+			spectator = names[name][2]
+		end
 		if spectator then
 			name = "(s) "..name
 		else
@@ -722,7 +730,7 @@ local function processConsoleLine(line)
 
 		c = colorOtherAlly
 		if spectator then
-			c = colorspectext
+			c = colorSpec
 		elseif names[name][1] == MyAllyTeamID then
 			c = colorAlly
 		end
