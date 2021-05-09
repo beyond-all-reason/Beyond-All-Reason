@@ -37,6 +37,9 @@ T1SeaUnits = {
 	"armcs",
 	"cormuskrat",
 	"corcs",
+	--air
+	"armseap",
+	"corseap",
 }
 
 T2SeaUnits = {
@@ -67,6 +70,9 @@ T2SeaUnits = {
 	"armcs",
 	"cormuskrat",
 	"corcs",
+	--air
+	"armlance",
+	"cortitan",
 }
 
 T3SeaUnits = {

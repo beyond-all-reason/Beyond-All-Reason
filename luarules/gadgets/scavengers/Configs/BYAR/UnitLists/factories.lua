@@ -61,4 +61,6 @@ FactoriesExcludedUnits = {
 	-- "cortship",
 	-- "corthovr",
 	-- "cormabm",
+	"armthovr",
+	"corthovr",
 }
