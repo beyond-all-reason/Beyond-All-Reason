@@ -81,7 +81,7 @@ local grassConfig = {
   grassWindMult = 4.5, -- how 'strong' the perturbation effect is
   maxWindSpeed = 20, -- the fastest the wind noise texture will ever move, 
   -- The grassdisttex overrides the default map grass, if specified!
-  --grassDistTGA = "LuaUI/Image/luagrass/DRDR 4.0_grass.tga", -- MUST BE 8 bit uncompressed TGA, sized Game.mapSize* / patchResolution, where 0 is no grass, and 1<= controls grass size. 
+  grassDistTGA = "", -- MUST BE 8 bit uncompressed TGA, sized Game.mapSize* / patchResolution, where 0 is no grass, and 1<= controls grass size. 
 }
 
 --------------------------------------------------------------------------------
@@ -92,10 +92,20 @@ local success, mapcfg = pcall(VFS.Include,"mapinfo.lua") -- load mapinfo.lua con
 if not success then
   Spring.Echo("Map Grass GL4 failed to find a mapinfo.lua, using default configs")
 else
-  if mapcfg and mapcfg.custom and mapcfg.custom.grassConfig then
-    for k,v in pairs(mapcfg.custom.grassConfig) do
-      if k == "grassShaderParams" then
+  if mapcfg and mapcfg.custom and mapcfg.custom.grassconfig then
+	Spring.Echo("Loading LuaGrass custom parameters from mapinfo.lua")
+    for k,v in pairs(mapcfg.custom.grassconfig) do
+		
+      for kUp, _ in pairs(grassConfig) do
+		if k == string.lower(kUp) then k = kUp end
+	  end
+	--Spring.Echo("Found grass params",k,v)
+
+      if string.lower(k) == "grassshaderparams" then
         for k2,v2 in pairs(v) do
+			for k2Up, _ in pairs(grassConfig) do
+				if k2 == string.lower(k2Up) then k2 = k2Up end
+			end
           grassConfig[k][k2]=v2
         end
       else
@@ -622,7 +632,7 @@ local function makeGrassInstanceVBO()
 	grassInstanceData= {}
 	grassRowInstance = {0}
 	-- upload image type if exists
-	if grassConfig.grassDistTGA then 
+	if grassConfig.grassDistTGA and grassConfig.grassDistTGA ~= "" then 
 		LoadGrassTGA(grassConfig.grassDistTGA)
 		
 		defineUploadGrassInstanceVBOData()
