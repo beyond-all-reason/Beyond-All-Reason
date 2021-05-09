@@ -18,6 +18,8 @@ GUIUnitSoundEffects = {
 		BaseSoundSelectType = "arm-bld-select-small",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-radar",
+        BaseSoundActivate   = "cmd-on",
+        BaseSoundDeactivate = "cmd-off",
 	},
 
 	armfrad = {
@@ -36,24 +38,32 @@ GUIUnitSoundEffects = {
 		BaseSoundSelectType = "arm-bld-metal",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-mex",
+        BaseSoundActivate   = "mexon",
+        BaseSoundDeactivate = "mexoff",
 	},
 
 	armamex = {
 		BaseSoundSelectType = "arm-bld-metal",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "cloak",
+        BaseSoundActivate   = "mexon",
+        BaseSoundDeactivate = "mexoff",
 	},
 
 	armmakr = {
 		BaseSoundSelectType = "arm-bld-metal",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-metalmaker",
+        BaseSoundActivate   = "arm-bld-mm-activate",
+        BaseSoundDeactivate = "arm-bld-mm-deactivate",
 	},
 
 	armfmkr = {
 		BaseSoundSelectType = "arm-bld-select-small-water",
 		--BaseSoundMovementType = "",
-		--BaseSoundWeaponType = "arm-bld-metalmaker",	-- this gets spammed (possibly)
+		BaseSoundWeaponType = "arm-bld-metalmaker",
+        BaseSoundActivate   = "arm-bld-mm-activate",
+        BaseSoundDeactivate = "arm-bld-mm-deactivate",
 	},
 
 	armwin = {
@@ -72,7 +82,7 @@ GUIUnitSoundEffects = {
 		BaseSoundSelectType = "arm-bld-nrghum",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-solar-alt",
-		BaseSoundActivate = "arm-bld-solar-activate",
+		BaseSoundActivate   = "arm-bld-solar-activate",
 		BaseSoundDeactivate = "arm-bld-solar-deactivate",
 	},
 
@@ -226,6 +236,8 @@ GUIUnitSoundEffects = {
 		BaseSoundSelectType = "arm-bld-select",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-radar-alt-t2",
+        BaseSoundActivate   = "cmd-on",
+        BaseSoundDeactivate = "cmd-off",
 	},
 
 	armveil = {
@@ -244,36 +256,48 @@ GUIUnitSoundEffects = {
 		BaseSoundSelectType = "arm-bld-select-large",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "targeting",
+        BaseSoundActivate   = "cmd-on",
+        BaseSoundDeactivate = "cmd-off",
 	},
 
 	armfatf = {
 		BaseSoundSelectType = "arm-bld-select-large-water",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "targeting",
+        BaseSoundActivate   = "cmd-on",
+        BaseSoundDeactivate = "cmd-off",
 	},
 
 	armmoho = {
 		BaseSoundSelectType = "arm-bld-select-large",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-metal-t2",
+        BaseSoundActivate   = "mohorun1",
+        BaseSoundDeactivate = "mohooff1",
 	},
 
 	armuwmme = {
 		BaseSoundSelectType = "arm-sub-medium-sel",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-metal-t2",
+        BaseSoundActivate   = "mohorun1",
+        BaseSoundDeactivate = "mohooff1",
 	},
 
 	armmmkr = {
 		BaseSoundSelectType = "arm-bld-metal",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-metalmaker-t2",
+        BaseSoundActivate   = "arm-bld-mm-activate",
+        BaseSoundDeactivate = "arm-bld-mm-deactivate",
 	},
 
 	armuwmmm = {
 		BaseSoundSelectType = "arm-bld-select-large-water",
 		--BaseSoundMovementType = "",
-		--BaseSoundWeaponType = "arm-bld-metalmaker-t2",	-- this gets spammed (possibly)
+		BaseSoundWeaponType = "arm-bld-metalmaker-t2",
+        BaseSoundActivate   = "arm-bld-mm-activate",
+        BaseSoundDeactivate = "arm-bld-mm-deactivate",
 	},
 
 	armuwadvms = {
@@ -388,6 +412,8 @@ GUIUnitSoundEffects = {
 		BaseSoundSelectType = "arm-bld-defense-action-t2",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-ics",
+        BaseSoundActivate   = "cmd-on",
+        BaseSoundDeactivate = "cmd-off",
 	},
 
 	armgate = {
@@ -1028,12 +1054,16 @@ GUIUnitSoundEffects = {
 		BaseSoundSelectType = "arm-bld-select-small",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-radar",
+        BaseSoundActivate   = "cmd-on",
+        BaseSoundDeactivate = "cmd-off",
 	},
 
 	corfrad = {
 		BaseSoundSelectType = "arm-bld-select-small-water",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-radar-sonar",
+        BaseSoundActivate   = "cmd-on",
+        BaseSoundDeactivate = "cmd-off",
 	},
 
 	corjamt = {
@@ -1046,24 +1076,32 @@ GUIUnitSoundEffects = {
 		BaseSoundSelectType = "arm-bld-metal",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-mex",
+        BaseSoundActivate   = "mexon",
+        BaseSoundDeactivate = "mexoff",
 	},
 
 	coramex = {
 		BaseSoundSelectType = "arm-bld-metal",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "cloak",
+        BaseSoundActivate   = "mexon",
+        BaseSoundDeactivate = "mexoff",
 	},
 
 	cormakr = {
 		BaseSoundSelectType = "arm-bld-metal",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-metalmaker",
+        BaseSoundActivate = "arm-bld-mm-activate",
+        BaseSoundDeactivate = "arm-bld-mm-deactivate",
 	},
 
 	corfmkr = {
 		BaseSoundSelectType = "arm-bld-select-small-water",
 		--BaseSoundMovementType = "",
-		--BaseSoundWeaponType = "arm-bld-metalmaker",	-- this gets spammed (possibly)
+		BaseSoundWeaponType = "arm-bld-metalmaker",
+        BaseSoundActivate = "arm-bld-mm-activate",
+        BaseSoundDeactivate = "arm-bld-mm-deactivate",
 	},
 
 	corwin = {
@@ -1236,6 +1274,8 @@ GUIUnitSoundEffects = {
 		BaseSoundSelectType = "arm-bld-select",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-radar-alt-t2",
+        BaseSoundActivate = "cmd-on",
+        BaseSoundDeactivate = "cmd-off",
 	},
 
 	corshroud = {
@@ -1254,36 +1294,55 @@ GUIUnitSoundEffects = {
 		BaseSoundSelectType = "arm-bld-select-large",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "targeting",
+        BaseSoundActivate   = "cmd-on",
+        BaseSoundDeactivate = "cmd-off",
 	},
 
 	corfatf = {
 		BaseSoundSelectType = "arm-bld-select-large-water",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "targeting",
+        BaseSoundActivate   = "cmd-on",
+        BaseSoundDeactivate = "cmd-off",
 	},
 
 	cormoho = {
 		BaseSoundSelectType = "arm-bld-select-large",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-metal-t2",
+        BaseSoundActivate   = "mohorun1",
+        BaseSoundDeactivate = "mohooff1",
 	},
+    cormexp = {
+        BaseSoundSelectType = "arm-bld-metal",
+        --BaseSoundMovementType = "",
+        BaseSoundWeaponType = "laser-large",
+        BaseSoundActivate   = "mohorun1",
+        BaseSoundDeactivate = "mohooff1",
+    },
 
 	coruwmme = {
 		BaseSoundSelectType = "arm-sub-medium-sel",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-metal-t2",
+        BaseSoundActivate   = "mohorun1",
+        BaseSoundDeactivate = "mohooff1",
 	},
 
 	cormmkr = {
 		BaseSoundSelectType = "arm-bld-metal",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-metalmaker-t2",
+        BaseSoundActivate   = "arm-bld-mm-activate",
+        BaseSoundDeactivate = "arm-bld-mm-deactivate",
 	},
 
 	coruwmmm = {
 		BaseSoundSelectType = "arm-bld-select-large-water",
 		--BaseSoundMovementType = "",
-		--BaseSoundWeaponType = "arm-bld-metalmaker-t2", 	-- this gets spammed (possibly)
+		BaseSoundWeaponType = "arm-bld-metalmaker-t2",
+        BaseSoundActivate   = "cor-bld-mm-t2-activate",
+        BaseSoundDeactivate = "cor-bld-mm-t2-deactivate",
 	},
 
 	coruwadvms = {
@@ -1386,6 +1445,8 @@ GUIUnitSoundEffects = {
 		BaseSoundSelectType = "arm-bld-defense-action-t2",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-ics",
+        BaseSoundActivate = "cmd-on",
+        BaseSoundDeactivate = "cmd-off",
 	},
 
 	corgate = {

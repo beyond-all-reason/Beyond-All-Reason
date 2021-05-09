@@ -63,6 +63,7 @@ ImAMetalMaker()
 		{
 			if (mmState != 1) {
 				call-script Go();
+				set ACTIVATION to 1;
 				mmState = 1;
 			}
 		}
@@ -70,6 +71,7 @@ ImAMetalMaker()
 		{
 			if (mmState != 0) {
 				call-script Stop();
+				set ACTIVATION to 0;
 				mmState = 0;
 			}
 		}
