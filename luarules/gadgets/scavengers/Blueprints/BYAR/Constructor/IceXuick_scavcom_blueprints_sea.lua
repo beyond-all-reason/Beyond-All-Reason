@@ -23,13 +23,13 @@ local function scavamphfactoryt1(scav, posx, posy, posz, GaiaTeamID, radiusCheck
 		return posradius
 	else
 		if r == 0 then
-			Spring.GiveOrderToUnit(scav, -(UDN.corhp_scav.id), {posx, posy, posz, math_random(0,3)}, {"shift"})
+			Spring.GiveOrderToUnit(scav, -(UDN.corfhp_scav.id), {posx, posy, posz, math_random(0,3)}, {"shift"})
 		elseif r == 1 then
-			Spring.GiveOrderToUnit(scav, -(UDN.armhp_scav.id), {posx, posy, posz, math_random(0,3)}, {"shift"})
+			Spring.GiveOrderToUnit(scav, -(UDN.armfhp_scav.id), {posx, posy, posz, math_random(0,3)}, {"shift"})
 		elseif r == 2 then
-			Spring.GiveOrderToUnit(scav, -(UDN.corhp_scav.id), {posx, posy, posz, math_random(0,3)}, {"shift"})
+			Spring.GiveOrderToUnit(scav, -(UDN.corfhp_scav.id), {posx, posy, posz, math_random(0,3)}, {"shift"})
 		else
-			Spring.GiveOrderToUnit(scav, -(UDN.armhp_scav.id), {posx, posy, posz, math_random(0,3)}, {"shift"})
+			Spring.GiveOrderToUnit(scav, -(UDN.armfhp_scav.id), {posx, posy, posz, math_random(0,3)}, {"shift"})
 		end
 	end
 end
@@ -37,8 +37,8 @@ table.insert(ScavengerConstructorBlueprintsT0Sea,scavamphfactoryt1)
 table.insert(ScavengerConstructorBlueprintsT1Sea,scavamphfactoryt1)
 
 local function scavamphfactoryt2(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
-	local unitoptions = {UDN.corgantuw_scav.id, UDN.armshltxuw_scav.id,}
-	local r = math_random(0,8)
+	local unitoptions = {}
+	local r = math_random(0,7)
 	local posradius = 70
 	if radiusCheck then
 		return posradius
@@ -51,14 +51,78 @@ local function scavamphfactoryt2(scav, posx, posy, posz, GaiaTeamID, radiusCheck
 			Spring.GiveOrderToUnit(scav, -(UDN.coramsub_scav.id), {posx, posy, posz, math_random(0,3)}, {"shift"})
 		elseif r == 6 or r == 7 then
 			Spring.GiveOrderToUnit(scav, -(UDN.armamsub_scav.id), {posx, posy, posz, math_random(0,3)}, {"shift"})
-		else
-			Spring.GiveOrderToUnit(scav, -(unitoptions[math_random(1,#unitoptions)]), {posx, posy, posz, math_random(0,3)}, {"shift"})
 		end
 	end
 end
 table.insert(ScavengerConstructorBlueprintsT2Sea,scavamphfactoryt2)
 table.insert(ScavengerConstructorBlueprintsT3Sea,scavamphfactoryt2)
 table.insert(ScavengerConstructorBlueprintsT4Sea,scavamphfactoryt2)
+
+local function scavamphfactoryt3(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
+	local unitoptions = {UDN.corgantuw_scav.id, UDN.armshltxuw_scav.id,}
+	local r = math_random(0,4)
+	local posradius = 70
+	if radiusCheck then
+		return posradius
+	else
+		if r == 0 then
+			Spring.GiveOrderToUnit(scav, -(UDN.corplat_scav.id), {posx, posy, posz, math_random(0,3)}, {"shift"})
+		elseif r == 1 then
+			Spring.GiveOrderToUnit(scav, -(UDN.armplat_scav.id), {posx, posy, posz, math_random(0,3)}, {"shift"})
+		elseif r == 2 then
+			Spring.GiveOrderToUnit(scav, -(UDN.coramsub_scav.id), {posx, posy, posz, math_random(0,3)}, {"shift"})
+		elseif r == 3 then
+			Spring.GiveOrderToUnit(scav, -(UDN.armamsub_scav.id), {posx, posy, posz, math_random(0,3)}, {"shift"})
+		else
+			Spring.GiveOrderToUnit(scav, -(unitoptions[math_random(1,#unitoptions)]), {posx, posy, posz, math_random(0,3)}, {"shift"})
+		end
+	end
+end
+table.insert(ScavengerConstructorBlueprintsT3Sea,scavamphfactoryt3)
+table.insert(ScavengerConstructorBlueprintsT4Sea,scavamphfactoryt3)
+
+local function scavsyt1(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
+	local unitoptions = {}
+	local r = math_random(0,3)
+	local posradius = 60
+	if radiusCheck then
+		return posradius
+	else
+		if r == 0 then
+			Spring.GiveOrderToUnit(scav, -(UDN.corsy_scav.id), {posx, posy, posz, math_random(0,3)}, {"shift"})
+		elseif r == 1 then
+			Spring.GiveOrderToUnit(scav, -(UDN.armsy_scav.id), {posx, posy, posz, math_random(0,3)}, {"shift"})
+		elseif r == 2 then
+			Spring.GiveOrderToUnit(scav, -(UDN.corsy_scav.id), {posx, posy, posz, math_random(0,3)}, {"shift"})
+		else
+			Spring.GiveOrderToUnit(scav, -(UDN.armsy_scav.id), {posx, posy, posz, math_random(0,3)}, {"shift"})
+		end
+	end
+end
+table.insert(ScavengerConstructorBlueprintsT0Sea,scavsyt1)
+table.insert(ScavengerConstructorBlueprintsT1Sea,scavsyt1)
+
+local function scavsyt2(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
+	local unitoptions = {}
+	local r = math_random(0,3)
+	local posradius = 60
+	if radiusCheck then
+		return posradius
+	else
+		if r == 0 then
+			Spring.GiveOrderToUnit(scav, -(UDN.corasy_scav.id), {posx, posy, posz, math_random(0,3)}, {"shift"})
+		elseif r == 1 then
+			Spring.GiveOrderToUnit(scav, -(UDN.armasy_scav.id), {posx, posy, posz, math_random(0,3)}, {"shift"})
+		elseif r == 2 then
+			Spring.GiveOrderToUnit(scav, -(UDN.corasy_scav.id), {posx, posy, posz, math_random(0,3)}, {"shift"})
+		else
+			Spring.GiveOrderToUnit(scav, -(UDN.armasy_scav.id), {posx, posy, posz, math_random(0,3)}, {"shift"})
+		end
+	end
+end
+table.insert(ScavengerConstructorBlueprintsT2Sea,scavsyt2)
+table.insert(ScavengerConstructorBlueprintsT3Sea,scavsyt2)
+table.insert(ScavengerConstructorBlueprintsT4Sea,scavsyt2)
 
 local function waterblocks(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
 	local unitoptionsblue = {UDN.armfdrag_scav.id,}

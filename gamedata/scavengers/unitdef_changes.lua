@@ -603,7 +603,22 @@ customDefs.coravp = {
 	},
 }
 
+numBuildoptions = #UnitDefs.corasy.buildoptions
+customDefs.corasy = {
+	buildoptions = {
+		[numBuildoptions+1] = "corslrpc",
+		[numBuildoptions+2] = "coresuppt3",
+	},
+}
 
+numBuildoptions = #UnitDefs.armasy.buildoptions
+customDefs.armasy = {
+	buildoptions = {
+		[numBuildoptions+1] = "armptt2",
+		[numBuildoptions+2] = "armdecadet3",
+		[numBuildoptions+3] = "armpshipt3",
+	},
+}
 
 numBuildoptions = #UnitDefs.armaca.buildoptions
 customDefs.armaca = {
