@@ -42,6 +42,11 @@ StockpilingUnitNames = {
 	"corjuno",
 	"armjuno",
 	"cormabm",
+	"armthor",
+	"armscab",
+	"armcarry",
+	"corcarry",
+	"cormabm",
 }
 
 NukingUnitNames = {
