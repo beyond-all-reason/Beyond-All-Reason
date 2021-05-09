@@ -12,7 +12,7 @@ end
 
 local vsx, vsy = gl.GetViewSizes()
 local posY = 0.81
-local posYoffset = 0.04	--0.01	-- add extra distance (non scrolling)
+local posYoffset = 0.04 --0.01	-- add extra distance (non scrolling)
 local posX = 0.3
 local posX2 = 0.71
 local fontsizeMult = 1
@@ -678,14 +678,10 @@ local function processConsoleLine(line)
 			c = colorspectext
 		end
 
-		textcolor = convertColor(c[1],c[2],c[3])
-		local r,g,b,a = spGetTeamColor(names[name][3])
-		local namecolor = convertColor(r,g,b)
 		if ignoreThisMessage then text = ignoredText end
 
-		--line = namecolor..name..misccolor..": "..textcolor..text
-		name = namecolor..name
-		line = textcolor..text
+		name = convertColor(spGetTeamColor(names[name][3]))..name
+		line = convertColor(c[1],c[2],c[3])..text
 
 
 	elseif linetype == 2 then	-- spectatormessage
@@ -708,8 +704,7 @@ local function processConsoleLine(line)
 		local namecolor = convertColor(c[1],c[2],c[3])
 		if ignoreThisMessage then text = ignoredText end
 
-		--line = namecolor.."(s) "..name..misccolor..": "..textcolor..text
-		name = namecolor..name
+		name = namecolor..'(s) '..name
 		line = textcolor..text
 
 
@@ -717,10 +712,7 @@ local function processConsoleLine(line)
 		local c = colorspectext
 		local namecolor = convertColor(c[1],c[2],c[3])
 
-		local spectator = true
-		if names[name] ~= nil then
-			spectator = names[name][2]
-		end
+		local spectator = names[name] and names[name][2] or true
 		if spectator then
 			name = "(s) "..name
 		else
@@ -739,7 +731,6 @@ local function processConsoleLine(line)
 		local misccolor = convertColor(c[1],c[2],c[3])
 		if ignoreThisMessage then text = ignoredText end
 
-		--line = namecolor..name..misccolor.." * "..textcolor..text
 		name = namecolor..name
 		line = textcolor..text
 
@@ -755,6 +746,7 @@ local function processConsoleLine(line)
 		text = ssub(text, slen(name)+5)
 		name = textcolor..'<'..name..'>'
 		line = textcolor..text
+
 
 	else	-- every other message
 		local c = colorMisc
