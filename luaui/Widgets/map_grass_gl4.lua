@@ -794,11 +794,11 @@ void main() {
 
 
   vec3 grassVertWorldPos = vertexPos * instancePosRotSize.w; // scale it
-
   mat3 rotY = rotation3dY(instancePosRotSize.y); // poor mans random rotate
   
   grassVertWorldPos.xz = (rotY * grassVertWorldPos).xz + instancePosRotSize.xz; // rotate Y and move to world pos
   
+  debuginfo.xyz = rotY*vertexNormal;
   //--- Heightmap sampling
   vec2 ts = vec2(textureSize(heightmapTex, 0));
   vec2 uvHM =   vec2(clamp(grassVertWorldPos.x,8.0,mapSize.x-8.0),clamp(grassVertWorldPos.z,8.0, mapSize.y-8.0))/ mapSize.xy; // this proves to be an actually useable heightmap i think.
@@ -867,6 +867,7 @@ void main() {
   float distToCam = length(grassVertWorldPos.xyz - camPos.xyz); //dist from cam
   instanceParamsVS.x = clamp((FADEEND - distToCam)/(FADEEND- FADESTART),0.0,1.0);
   
+  debuginfo.w = dot(rotY*vertexNormal, normalize(camPos.xyz - grassVertWorldPos.xyz));
   
   //--- ALPHA CULLING BASED ON QUAD NORMAL
   // float cosnormal = dot(normalize(grassVertWorldPos.xyz - camPos.xyz), rotY * vertexNormal);
@@ -1091,6 +1092,8 @@ void main() {
 	//fragColor.a = 1;
 	//fragColor = vec4(debuginfo.r,debuginfo.g, 0, (debuginfo.g)*5	);
 	//fragColor = vec4(1.0, 1.0, 1.0, 1.0);
+	//fragColor = vec4(debuginfo.w*5, 1.0 - debuginfo.w*5.0, 0,1.0);	
+	fragColor.a *= clamp(debuginfo.w *3,0.0,1.0);
 	if (fragColor.a < ALPHATHRESHOLD) // needed for depthmask
 	discard;
 }
