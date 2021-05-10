@@ -408,6 +408,9 @@ return {
 					pause = 'Pause',
 				},
 			},
+			chat = {
+				ignored = 'ignored'
+			},
 			teamStats = {
 				player = 'Player',
 				dead = '%{player} (dead)',

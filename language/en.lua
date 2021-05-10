@@ -392,7 +392,7 @@ return {
 			console_hidespecchat_descr = 'Not showing any spectator chat',
 			console_showbackground = 'show background',
 			console_showbackground_descr = 'Always show background (faintly)',
-			console_backgroundopacity = 'set background opacity',
+			console_backgroundopacity = 'background opacity',
 			console_backgroundopacity_descr = 'Show a transparent background',
 			idlebuilders = 'Idle builders bar',
 			idlebuilders_descr = 'Displays a row of idle builder units at the bottom of the screen',

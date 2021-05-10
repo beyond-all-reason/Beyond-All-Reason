@@ -16,7 +16,7 @@ local posYoffset = 0.04 --0.01	-- add extra distance (non scrolling)
 local posX = 0.3
 local posX2 = 0.74
 local charSize = 21 - (3.5 * ((vsx/vsy) - 1.78))
-local charDelay = 0.0025
+local charDelay = 0.0015
 local maxLines = 5
 local maxLinesScroll = 15
 local lineHeightMult = 1.27
@@ -59,7 +59,7 @@ local SoundIncomingChatVolume = 0.85
 local colorOther = {1,1,1} -- normal chat color
 local colorAlly = {0,1,0}
 local colorSpec = {1,1,0}
-local colorOtherAlly = {1,0.5,0.5} -- enemy ally messages (seen only when spectating)
+local colorOtherAlly = {1,0.75,0.45} -- enemy ally messages (seen only when spectating)
 local colorMisc = {0.85,0.85,0.85} -- everything else
 local colorGame = {0.4,1,1} -- server (autohost) chat
 
@@ -74,8 +74,6 @@ local lineMaxWidth = 0
 local lineHeight = math.floor(usedFontSize*lineHeightMult)
 local backgroundPadding = usedFontSize
 
-local myPlayerID = Spring.GetMyPlayerID()
-
 local glPopMatrix      = gl.PopMatrix
 local glPushMatrix     = gl.PushMatrix
 local glDeleteList     = gl.DeleteList
@@ -89,13 +87,12 @@ local clock = os.clock
 local schar = string.char
 local slen = string.len
 local ssub = string.sub
-local sgsub = string.gsub
 local sfind = string.find
 local spGetPlayerRoster = Spring.GetPlayerRoster
 local spGetTeamColor = Spring.GetTeamColor
 local spGetMyAllyTeamID = Spring.GetMyAllyTeamID
 local spPlaySoundFile = Spring.PlaySoundFile
-local spGetGameFrame= Spring.GetGameFrame
+local spGetGameFrame = Spring.GetGameFrame
 
 local function lines(str)
 	local text = {}
@@ -556,13 +553,13 @@ local function processConsoleLine(line)
 
 	local name = ''
 	local text = ''
-	local linetype = 0
+	local ignoredText = '(ignored)'	--'('..Spring.I18N('ui.chat.ignored')..')'
+	local lineType = 0
 	local bypassThisMessage = false
 	local ignoreThisMessage = false
-	local ignoredText = '(ignored)'
 	if names[ssub(line,2,(sfind(line,"> ", nil, true) or 1)-1)] ~= nil then
 		bypassThisMessage = false
-		linetype = 1 --playermessage
+		lineType = 1 --playermessage
 		name = ssub(line,2,sfind(line,"> ", nil, true)-1)
 		text = ssub(line,slen(name)+4)
 		if ssub(text,1,1) == "!" and  ssub(text, 1,2) ~= "!!" then --bot command
@@ -570,7 +567,7 @@ local function processConsoleLine(line)
 		end
 	elseif names[ssub(line,2,(sfind(line," (replay)] ", nil, true) or 1)-1)] ~= nil then
 		bypassThisMessage = false
-		linetype = 2 --spectatormessage
+		lineType = 2 --spectatormessage
 		name = ssub(line,2,sfind(line," (replay)] ", nil, true)-1)
 		text = ssub(line,slen(name)+13)
 		if ssub(text,1,1) == "!" and  ssub(text, 1,2) ~= "!!" then --bot command
@@ -578,7 +575,7 @@ local function processConsoleLine(line)
 		end
 	elseif names[ssub(line,2,(sfind(line,"] ", nil, true) or 1)-1)] ~= nil then
 		bypassThisMessage = false
-		linetype = 2 --spectatormessage
+		lineType = 2 --spectatormessage
 		name = ssub(line,2,sfind(line,"] ", nil, true)-1)
 		text = ssub(line,slen(name)+4)
 		if ssub(text,1,1) == "!" and  ssub(text, 1,2) ~= "!!" then --bot command
@@ -586,14 +583,14 @@ local function processConsoleLine(line)
 		end
 	elseif names[ssub(line,1,(sfind(line," added point: ", nil, true) or 1)-1)] ~= nil then
 		bypassThisMessage = false
-		linetype = 3 --playerpoint
+		lineType = 3 --playerpoint
 		name = ssub(line,1,sfind(line," added point: ", nil, true)-1)
 		text = ssub(line,slen(name.." added point: ")+1)
 		if text == "" then
 			text = "Look here!"
 		end
 	elseif ssub(line,1,1) == ">" then
-		linetype = 4 --gamemessage
+		lineType = 4 --gamemessage
 		text = ssub(line,3)
 		bypassThisMessage = true
 		if ssub(line,1,3) == "> <" then -- player speaking in battleroom
@@ -669,9 +666,8 @@ local function processConsoleLine(line)
 	local textcolor = nil
 
 
-	if linetype == 1 then	-- playermessage
-		local c = colorOther
-		local misccolor = convertColor(c[1],c[2],c[3])
+	if lineType == 1 then	-- player message
+		local c
 		if sfind(text,"Allies: ", nil, true) == 1 then
 			text = ssub(text,9)
 			if names[name][1] == MyAllyTeamID then
@@ -682,6 +678,8 @@ local function processConsoleLine(line)
 		elseif sfind(text,"Spectators: ", nil, true) == 1 then
 			text = ssub(text,13)
 			c = colorSpec
+		else
+			c = colorOther
 		end
 
 		if ignoreThisMessage then text = ignoredText end
@@ -690,80 +688,70 @@ local function processConsoleLine(line)
 		line = convertColor(c[1],c[2],c[3])..text
 
 
-	elseif linetype == 2 then	-- spectatormessage
+	elseif lineType == 2 then	-- spectator chat
 
 		if filterSpecs then
 			bypassThisMessage = true
 		end
 
-		local c = colorOther
-		local misccolor = convertColor(c[1],c[2],c[3])
+		local c
 		if sfind(text,"Allies: ", nil, true) == 1 then
 			text = ssub(text,9)
 			c = colorSpec
 		elseif sfind(text,"Spectators: ", nil, true) == 1 then
 			text = ssub(text,13)
 			c = colorSpec
+		else
+			c = colorOther
 		end
 		textcolor = convertColor(c[1],c[2],c[3])
-		c = colorSpec
-		local namecolor = convertColor(c[1],c[2],c[3])
+		local namecolor = convertColor(colorSpec[1],colorSpec[2],colorSpec[3])
+		
 		if ignoreThisMessage then text = ignoredText end
 
 		name = namecolor..'(s) '..name
 		line = textcolor..text
 
 
-	elseif linetype == 3 then	-- playerpoint
-		local c = colorSpec
-		local namecolor = convertColor(c[1],c[2],c[3])
-
+	elseif lineType == 3 then	-- mapmark point
+		local namecolor
 		local spectator = true
 		if names[name] ~= nil then
 			spectator = names[name][2]
 		end
 		if spectator then
-			name = "(s) "..name
+			name = '(s) '..name
+			namecolor = convertColor(colorSpec[1],colorSpec[2],colorSpec[3])
+			textcolor = convertColor(colorSpec[1],colorSpec[2],colorSpec[3])
 		else
-			local r,g,b,a = spGetTeamColor(names[name][3])
-			namecolor =  convertColor(r,g,b)
+			namecolor =  convertColor(spGetTeamColor(names[name][3]))
+
+			if names[name][1] == MyAllyTeamID then
+				textcolor = convertColor(colorAlly[1],colorAlly[2],colorAlly[3])
+			else
+				textcolor = convertColor(colorOtherAlly[1],colorOtherAlly[2],colorOtherAlly[3])
+			end
 		end
 
-		c = colorOtherAlly
-		if spectator then
-			c = colorSpec
-		elseif names[name][1] == MyAllyTeamID then
-			c = colorAlly
-		end
-		textcolor = convertColor(c[1],c[2],c[3])
-		c = colorOther
-		local misccolor = convertColor(c[1],c[2],c[3])
 		if ignoreThisMessage then text = ignoredText end
 
 		name = namecolor..name
 		line = textcolor..text
 
 
-	elseif linetype == 4 then	-- game message
-		local c = colorGame
-		textcolor = convertColor(c[1],c[2],c[3])
-		--if ignoreThisMessage and name then  -- ignored player talking in battleroom
-		--	line = textcolor.."> <"..name.."> "..ignoredText
-		--else
-		--	line = textcolor.."> "..text
-		--end
-		name = textcolor..'<'..name..'>'
-		line = textcolor..ssub(text, slen(name)+4)
+	elseif lineType == 4 then	-- battleroom message
+		text = ssub(text, slen(name)-1)
+		if ignoreThisMessage and name then text = ignoredText end
 
+		textcolor = convertColor(colorGame[1],colorGame[2],colorGame[3])
+		name = textcolor..'<'..name..'>'
+		line = textcolor..text
 
 	else	-- every other message
-		local c = colorMisc
-		textcolor = convertColor(c[1],c[2],c[3])
-
-		line = textcolor..line
+		line = convertColor(colorMisc[1],colorMisc[2],colorMisc[3])..line
 	end
 
-	return bypassThisMessage, ignoreThisMessage, linetype, name, line
+	return bypassThisMessage, ignoreThisMessage, lineType, name, line
 end
 
 function widget:AddConsoleLine(lines, priority)
@@ -780,7 +768,11 @@ function widget:GetConfigData(data)
 	for i, _ in ipairs(chatLines) do
 		chatLines[i][9] = nil
 	end
-	return {chatLines = chatLines, fontsizeMult = fontsizeMult, backgroundOpacity = backgroundOpacity}
+	return {
+		chatLines = chatLines,
+		fontsizeMult = fontsizeMult,
+		backgroundOpacity = backgroundOpacity
+	}
 end
 
 function widget:SetConfigData(data)
