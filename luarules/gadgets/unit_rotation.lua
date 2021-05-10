@@ -47,7 +47,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 end
 
 function gadget:UnitCreated(unitID, unitDefID, team)
-	if rotateUnitDefs[unitDefID] then
+	if maxRotation > 0 and rotateUnitDefs[unitDefID] then
 		unitRotation[unitID] = math.random(-maxRotation, maxRotation) * rotateUnitDefs[unitDefID]
 		if limitedRotation[unitDefID] then
 			if unitRotation[unitID] > limitedRotation[unitDefID] then
@@ -105,7 +105,7 @@ function setUnitRotation(cmd, line, words, playerID)
 end
 
 function gadget:DrawUnit(unitID, drawMode)
-	if maxRotation > 0 and unitRotation[unitID] then
+	if unitRotation[unitID] then
 		glRotate(unitRotation[unitID], 0,  1, 0 )
 		return false
 	end
