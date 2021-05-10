@@ -59,7 +59,7 @@ local SoundIncomingChatVolume = 0.85
 local colorOther = {1,1,1} -- normal chat color
 local colorAlly = {0,1,0}
 local colorSpec = {1,1,0}
-local colorOtherAlly = {1,0.75,0.45} -- enemy ally messages (seen only when spectating)
+local colorOtherAlly = {1,0.7,0.45} -- enemy ally messages (seen only when spectating)
 local colorMisc = {0.85,0.85,0.85} -- everything else
 local colorGame = {0.4,1,1} -- server (autohost) chat
 
@@ -116,7 +116,7 @@ function widget:ViewResize()
 	elementMargin = Spring.FlowUI.elementMargin
 
 	usedFontSize = charSize*widgetScale*fontsizeMult
-	font = WG['fonts'].getFont(nil, (charSize/18)*fontsizeMult, 0.165, 1.15)
+	font = WG['fonts'].getFont(nil, (charSize/18)*fontsizeMult, 0.18, 2)
 
 	-- get longest playername and calc its width
 	local namePrefix = '(s)'
@@ -557,40 +557,50 @@ local function processConsoleLine(line)
 	local lineType = 0
 	local bypassThisMessage = false
 	local ignoreThisMessage = false
+
+	-- player message
 	if names[ssub(line,2,(sfind(line,"> ", nil, true) or 1)-1)] ~= nil then
 		bypassThisMessage = false
-		lineType = 1 --playermessage
+		lineType = 1
 		name = ssub(line,2,sfind(line,"> ", nil, true)-1)
 		text = ssub(line,slen(name)+4)
 		if ssub(text,1,1) == "!" and  ssub(text, 1,2) ~= "!!" then --bot command
 			bypassThisMessage = true
 		end
+
+		-- spectator message
 	elseif names[ssub(line,2,(sfind(line," (replay)] ", nil, true) or 1)-1)] ~= nil then
 		bypassThisMessage = false
-		lineType = 2 --spectatormessage
+		lineType = 2
 		name = ssub(line,2,sfind(line," (replay)] ", nil, true)-1)
 		text = ssub(line,slen(name)+13)
 		if ssub(text,1,1) == "!" and  ssub(text, 1,2) ~= "!!" then --bot command
 			bypassThisMessage = true
 		end
+
+		-- spectator message
 	elseif names[ssub(line,2,(sfind(line,"] ", nil, true) or 1)-1)] ~= nil then
 		bypassThisMessage = false
-		lineType = 2 --spectatormessage
+		lineType = 2
 		name = ssub(line,2,sfind(line,"] ", nil, true)-1)
 		text = ssub(line,slen(name)+4)
 		if ssub(text,1,1) == "!" and  ssub(text, 1,2) ~= "!!" then --bot command
 			bypassThisMessage = true
 		end
+
+		-- point
 	elseif names[ssub(line,1,(sfind(line," added point: ", nil, true) or 1)-1)] ~= nil then
 		bypassThisMessage = false
-		lineType = 3 --playerpoint
+		lineType = 3
 		name = ssub(line,1,sfind(line," added point: ", nil, true)-1)
 		text = ssub(line,slen(name.." added point: ")+1)
 		if text == "" then
 			text = "Look here!"
 		end
+
+		-- battleroom message
 	elseif ssub(line,1,1) == ">" then
-		lineType = 4 --gamemessage
+		lineType = 4
 		text = ssub(line,3)
 		bypassThisMessage = true
 		if ssub(line,1,3) == "> <" then -- player speaking in battleroom
@@ -601,6 +611,7 @@ local function processConsoleLine(line)
 			local i = sfind(ssub(line,4,slen(line)), ">", nil, true)
 			if i then
 				name = ssub(line,4,i+2)
+				text = ssub(line,i+5)
 			else
 				name = "unknown"
 			end
@@ -706,7 +717,7 @@ local function processConsoleLine(line)
 		end
 		textcolor = convertColor(c[1],c[2],c[3])
 		local namecolor = convertColor(colorSpec[1],colorSpec[2],colorSpec[3])
-		
+
 		if ignoreThisMessage then text = ignoredText end
 
 		name = namecolor..'(s) '..name
@@ -740,12 +751,11 @@ local function processConsoleLine(line)
 
 
 	elseif lineType == 4 then	-- battleroom message
-		text = ssub(text, slen(name)-1)
 		if ignoreThisMessage and name then text = ignoredText end
-
 		textcolor = convertColor(colorGame[1],colorGame[2],colorGame[3])
 		name = textcolor..'<'..name..'>'
 		line = textcolor..text
+
 
 	else	-- every other message
 		line = convertColor(colorMisc[1],colorMisc[2],colorMisc[3])..line
