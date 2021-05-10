@@ -43,7 +43,8 @@ local scrollingPosY = 0.66
 
 local filterSpecs = (Spring.GetConfigInt('HideSpecChat', 0) == 1)
 
-local font, chobbyInterface, hovering, startFadeTime
+local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
+local font, font2, chobbyInterface, hovering, startFadeTime
 
 local RectRound = Spring.FlowUI.Draw.RectRound
 local UiElement = Spring.FlowUI.Draw.Element
@@ -116,17 +117,19 @@ function widget:ViewResize()
 	elementMargin = Spring.FlowUI.elementMargin
 
 	usedFontSize = charSize*widgetScale*fontsizeMult
-	font = WG['fonts'].getFont(nil, (charSize/18)*fontsizeMult, 0.18, 2)
+	--font = WG['fonts'].getFont(nil, (charSize/18)*fontsizeMult, 0.18, 1.9)
+	font = WG['fonts'].getFont(fontfile2, (charSize/18)*fontsizeMult, 0.18, 1.9)
+	font2 = WG['fonts'].getFont(fontfile2, (charSize/18)*fontsizeMult, 0.18, 2.3)
 
 	-- get longest playername and calc its width
 	local namePrefix = '(s)'
-	maxPlayernameWidth = font:GetTextWidth(namePrefix..longestPlayername) * usedFontSize
+	maxPlayernameWidth = font2:GetTextWidth(namePrefix..longestPlayername) * usedFontSize
 	local playersList = Spring.GetPlayerList()
 	for _, playerID in ipairs(playersList) do
 		local name = Spring.GetPlayerInfo(playerID, false)
-		if name ~= longestPlayername and font:GetTextWidth(namePrefix..name)*usedFontSize > maxPlayernameWidth then
+		if name ~= longestPlayername and font2:GetTextWidth(namePrefix..name)*usedFontSize > maxPlayernameWidth then
 			longestPlayername = name
-			maxPlayernameWidth = font:GetTextWidth(namePrefix..longestPlayername) * usedFontSize
+			maxPlayernameWidth = font2:GetTextWidth(namePrefix..longestPlayername) * usedFontSize
 		end
 	end
 	maxTimeWidth = font:GetTextWidth('00:00') * usedFontSize
@@ -326,20 +329,24 @@ local function processLine(i)
 		local fontHeightOffset = usedFontSize*0.24
 		chatLines[i][9] = glCreateList(function()
 			local text = ssub(chatLines[i][5], 1, chatLines[i][7])
-			font:Begin()
 			if chatLines[i][2] then
 
 				-- player name
-				font:Print(chatLines[i][4], maxPlayernameWidth, fontHeightOffset, usedFontSize, "or")
+				font2:Begin()
+				font2:Print(chatLines[i][4], maxPlayernameWidth, fontHeightOffset, usedFontSize, "or")
+				font2:End()
 
 				-- mapmark point
+				font:Begin()
 				if chatLines[i][3] == 3 then
 					font:Print(pointSeparator, maxPlayernameWidth+(lineSpaceWidth/2), 0, usedFontSize, "oc")
 				else
 					font:Print(chatSeparator, maxPlayernameWidth+(lineSpaceWidth/3.8), fontHeightOffset, usedFontSize, "oc")
 				end
+				font:End()
 
 			end
+			font:Begin()
 			font:Print(text, maxPlayernameWidth+lineSpaceWidth, fontHeightOffset, usedFontSize, "o")
 			font:End()
 		end)
