@@ -105,7 +105,7 @@ function setUnitRotation(cmd, line, words, playerID)
 end
 
 function gadget:DrawUnit(unitID, drawMode)
-	if unitRotation[unitID] then
+	if maxRotation > 0 and unitRotation[unitID] then
 		glRotate(unitRotation[unitID], 0,  1, 0 )
 		return false
 	end

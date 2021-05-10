@@ -75,7 +75,7 @@ function widget:ViewResize()
 
 	elementCorner = Spring.FlowUI.elementCorner
 
-	font = WG['fonts'].getFont(nil, 1, 0.2, 1.8)
+	font = WG['fonts'].getFont(nil, 1, 0.18, 1.4)
 
 	for i, _ in ipairs(messageLines) do
 		if messageLines[i][6] then
