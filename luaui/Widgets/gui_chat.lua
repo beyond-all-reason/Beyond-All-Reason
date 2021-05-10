@@ -117,9 +117,10 @@ function widget:ViewResize()
 	elementMargin = Spring.FlowUI.elementMargin
 
 	usedFontSize = charSize*widgetScale*fontsizeMult
-	--font = WG['fonts'].getFont(nil, (charSize/18)*fontsizeMult, 0.18, 1.9)
-	font = WG['fonts'].getFont(fontfile2, (charSize/18)*fontsizeMult, 0.18, 1.9)
-	font2 = WG['fonts'].getFont(fontfile2, (charSize/18)*fontsizeMult, 0.18, 2.3)
+	font = WG['fonts'].getFont(nil, (charSize/18)*fontsizeMult, 0.18, 1.9)
+	font2 = WG['fonts'].getFont(nil, (charSize/18)*fontsizeMult, 0.18, 1.9)
+	--font = WG['fonts'].getFont(fontfile2, (charSize/18)*fontsizeMult, 0.17, 1.8)
+	--font2 = WG['fonts'].getFont(fontfile2, (charSize/18)*fontsizeMult, 0.17, 2.2)
 
 	-- get longest playername and calc its width
 	local namePrefix = '(s)'
