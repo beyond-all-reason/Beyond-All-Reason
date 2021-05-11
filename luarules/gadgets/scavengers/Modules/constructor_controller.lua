@@ -114,29 +114,29 @@ function SpawnConstructor(n)
 				Spring.CreateUnit("scavengerdroppod_scav", posx+32, posy, posz-32, math_random(0,3),GaiaTeamID)
 				if posy > 0 then
 					local r2 = Resurrectors[math_random(1,#Resurrectors)]
-					QueueSpawn(r2..scavconfig.unitnamesuffix, posx+32, posy, posz, math_random(0,3),GaiaTeamID,n+90+1)
-					QueueSpawn(r2..scavconfig.unitnamesuffix, posx-32, posy, posz, math_random(0,3),GaiaTeamID,n+90+2)
-					QueueSpawn(r2..scavconfig.unitnamesuffix, posx, posy, posz+32, math_random(0,3),GaiaTeamID,n+90+3)
-					QueueSpawn(r2..scavconfig.unitnamesuffix, posx, posy, posz-32, math_random(0,3),GaiaTeamID,n+90+4)
-					QueueSpawn(r2..scavconfig.unitnamesuffix, posx+32, posy, posz+32, math_random(0,3),GaiaTeamID,n+90+5)
-					QueueSpawn(r2..scavconfig.unitnamesuffix, posx-32, posy, posz-32, math_random(0,3),GaiaTeamID,n+90+6)
-					QueueSpawn(r2..scavconfig.unitnamesuffix, posx-32, posy, posz+32, math_random(0,3),GaiaTeamID,n+90+7)
-					QueueSpawn(r2..scavconfig.unitnamesuffix, posx+32, posy, posz-32, math_random(0,3),GaiaTeamID,n+90+8)
+					QueueSpawn(r2..scavconfig.unitnamesuffix, posx+32, posy, posz, math_random(0,3),GaiaTeamID,n+150+1)
+					QueueSpawn(r2..scavconfig.unitnamesuffix, posx-32, posy, posz, math_random(0,3),GaiaTeamID,n+150+2)
+					QueueSpawn(r2..scavconfig.unitnamesuffix, posx, posy, posz+32, math_random(0,3),GaiaTeamID,n+150+3)
+					QueueSpawn(r2..scavconfig.unitnamesuffix, posx, posy, posz-32, math_random(0,3),GaiaTeamID,n+150+4)
+					QueueSpawn(r2..scavconfig.unitnamesuffix, posx+32, posy, posz+32, math_random(0,3),GaiaTeamID,n+150+5)
+					QueueSpawn(r2..scavconfig.unitnamesuffix, posx-32, posy, posz-32, math_random(0,3),GaiaTeamID,n+150+6)
+					QueueSpawn(r2..scavconfig.unitnamesuffix, posx-32, posy, posz+32, math_random(0,3),GaiaTeamID,n+150+7)
+					QueueSpawn(r2..scavconfig.unitnamesuffix, posx+32, posy, posz-32, math_random(0,3),GaiaTeamID,n+150+8)
 				elseif constructorControllerModuleConfig.searesurrectors == true then
 					local r3 = ResurrectorsSea[math_random(1,#ResurrectorsSea)]
-					QueueSpawn(r3..scavconfig.unitnamesuffix, posx+32, posy, posz+32, math_random(0,3),GaiaTeamID,n+90+1)
-					QueueSpawn(r3..scavconfig.unitnamesuffix, posx-32, posy, posz-32, math_random(0,3),GaiaTeamID,n+90+2)
-					QueueSpawn(r3..scavconfig.unitnamesuffix, posx-32, posy, posz+32, math_random(0,3),GaiaTeamID,n+90+3)
-					QueueSpawn(r3..scavconfig.unitnamesuffix, posx+32, posy, posz-32, math_random(0,3),GaiaTeamID,n+90+4)
-					QueueSpawn(r3..scavconfig.unitnamesuffix, posx+32, posy, posz+32, math_random(0,3),GaiaTeamID,n+90+5)
-					QueueSpawn(r3..scavconfig.unitnamesuffix, posx-32, posy, posz-32, math_random(0,3),GaiaTeamID,n+90+6)
-					QueueSpawn(r3..scavconfig.unitnamesuffix, posx-32, posy, posz+32, math_random(0,3),GaiaTeamID,n+90+7)
-					QueueSpawn(r3..scavconfig.unitnamesuffix, posx+32, posy, posz-32, math_random(0,3),GaiaTeamID,n+90+8)
+					QueueSpawn(r3..scavconfig.unitnamesuffix, posx+32, posy, posz+32, math_random(0,3),GaiaTeamID,n+150+1)
+					QueueSpawn(r3..scavconfig.unitnamesuffix, posx-32, posy, posz-32, math_random(0,3),GaiaTeamID,n+150+2)
+					QueueSpawn(r3..scavconfig.unitnamesuffix, posx-32, posy, posz+32, math_random(0,3),GaiaTeamID,n+150+3)
+					QueueSpawn(r3..scavconfig.unitnamesuffix, posx+32, posy, posz-32, math_random(0,3),GaiaTeamID,n+150+4)
+					QueueSpawn(r3..scavconfig.unitnamesuffix, posx+32, posy, posz+32, math_random(0,3),GaiaTeamID,n+150+5)
+					QueueSpawn(r3..scavconfig.unitnamesuffix, posx-32, posy, posz-32, math_random(0,3),GaiaTeamID,n+150+6)
+					QueueSpawn(r3..scavconfig.unitnamesuffix, posx-32, posy, posz+32, math_random(0,3),GaiaTeamID,n+150+7)
+					QueueSpawn(r3..scavconfig.unitnamesuffix, posx+32, posy, posz-32, math_random(0,3),GaiaTeamID,n+150+8)
 				end
 			end
 			constructortimer = 0
 			local r = ConstructorsList[math_random(1,#ConstructorsList)]
-			QueueSpawn(r..scavconfig.unitnamesuffix, posx, posy, posz, math_random(0,3),GaiaTeamID,n+90)
+			QueueSpawn(r..scavconfig.unitnamesuffix, posx, posy, posz, math_random(0,3),GaiaTeamID,n+150)
 			Spring.CreateUnit("scavengerdroppod_scav", posx, posy, posz, math_random(0,3),GaiaTeamID)
 		else
 			constructortimer = constructortimer +  math.ceil(n/constructorControllerModuleConfig.constructortimerreductionframes)
@@ -257,10 +257,10 @@ function SpawnResurrectorGroup(n)
 				for y = 1,ResurrectorSpawnCount do
 					if posy > -20 then
 						local r2 = Resurrectors[math_random(1,#Resurrectors)]
-						QueueSpawn(r2..scavconfig.unitnamesuffix, posx, posy, posz, math_random(0,3),GaiaTeamID,n+(y*1)+90)
+						QueueSpawn(r2..scavconfig.unitnamesuffix, posx, posy, posz, math_random(0,3),GaiaTeamID,n+(y*1)+150)
 					else
 						local r3 = ResurrectorsSea[math_random(1,#ResurrectorsSea)]
-						QueueSpawn(r3..scavconfig.unitnamesuffix, posx, posy, posz, math_random(0,3),GaiaTeamID,n+(y*1)+90)
+						QueueSpawn(r3..scavconfig.unitnamesuffix, posx, posy, posz, math_random(0,3),GaiaTeamID,n+(y*1)+150)
 					end
 				end
 				break

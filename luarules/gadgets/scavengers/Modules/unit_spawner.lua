@@ -272,24 +272,7 @@ function UnitGroupSpawn(n)
 				local newTypeNumber = math.random(2,20)
 				--Spring.Echo(newTypeNumber)
 				if (posy <= -20 and aircraftchanceonsea == 0) or (aircraftchance == 0 and (not BossWaveTimeLeft)) or (bossaircraftchance == 0 and BossWaveTimeLeft and BossWaveTimeLeft > 0) then
-					if unitSpawnerModuleConfig.bossFightEnabled and BossWaveTimeLeft then
-						groupsize = math.ceil(groupsize*unitSpawnerModuleConfig.airmultiplier*unitSpawnerModuleConfig.t4multiplier)
-						if spawnTier < 80 then
-							for i = 1,groupsize do
-								if i%newTypeNumber == 1 then
-									numOfTypes = numOfTypes+1
-									groupunit[numOfTypes] = T4AirUnits[math_random(1,#T4AirUnits)]
-								end
-							end
-						else
-							for i = 1,groupsize do
-								if i%newTypeNumber == 1 then
-									numOfTypes = numOfTypes+1
-									groupunit[numOfTypes] = T3AirUnits[math_random(1,#T3AirUnits)]
-								end
-							end
-						end
-					elseif spawnTier <= TierSpawnChances.T0 then
+					if spawnTier <= TierSpawnChances.T0 then
 						groupsize = math.ceil(groupsize*unitSpawnerModuleConfig.airmultiplier*unitSpawnerModuleConfig.t0multiplier)
 						for i = 1,groupsize do
 							if i%newTypeNumber == 1 then
@@ -339,24 +322,7 @@ function UnitGroupSpawn(n)
 						end
 					end
 				elseif posy > -20 then
-					if unitSpawnerModuleConfig.bossFightEnabled and BossWaveTimeLeft then
-						groupsize = math.ceil(groupsize*unitSpawnerModuleConfig.landmultiplier*unitSpawnerModuleConfig.t4multiplier)
-						if spawnTier < 80 then
-							for i = 1,groupsize do
-								if i%newTypeNumber == 1 then
-									numOfTypes = numOfTypes+1
-									groupunit[numOfTypes] = T4LandUnits[math_random(1,#T4LandUnits)]
-								end
-							end
-						else
-							for i = 1,groupsize do
-								if i%newTypeNumber == 1 then
-									numOfTypes = numOfTypes+1
-									groupunit[numOfTypes] = T3LandUnits[math_random(1,#T3LandUnits)]
-								end
-							end
-						end
-					elseif spawnTier <= TierSpawnChances.T0 then
+					if spawnTier <= TierSpawnChances.T0 then
 						groupsize = math.ceil(groupsize*unitSpawnerModuleConfig.landmultiplier*unitSpawnerModuleConfig.t0multiplier)
 						for i = 1,groupsize do
 							if i%newTypeNumber == 1 then
@@ -406,24 +372,7 @@ function UnitGroupSpawn(n)
 						end
 					end
 				elseif posy <= -20 then
-					if unitSpawnerModuleConfig.bossFightEnabled and BossWaveTimeLeft then
-						groupsize = math.ceil(groupsize*unitSpawnerModuleConfig.seamultiplier*unitSpawnerModuleConfig.t4multiplier)
-						if spawnTier < 80 then
-							for i = 1,groupsize do
-								if i%newTypeNumber == 1 then
-									numOfTypes = numOfTypes+1
-									groupunit[numOfTypes] = T4SeaUnits[math_random(1,#T4SeaUnits)]
-								end
-							end
-						else
-							for i = 1,groupsize do
-								if i%newTypeNumber == 1 then
-									numOfTypes = numOfTypes+1
-									groupunit[numOfTypes] = T3SeaUnits[math_random(1,#T3SeaUnits)]
-								end
-							end
-						end
-					elseif spawnTier <= TierSpawnChances.T0 then
+					if spawnTier <= TierSpawnChances.T0 then
 						groupsize = math.ceil(groupsize*unitSpawnerModuleConfig.seamultiplier*unitSpawnerModuleConfig.t0multiplier)
 						for i = 1,groupsize do
 							if i%newTypeNumber == 1 then
@@ -481,18 +430,18 @@ function UnitGroupSpawn(n)
 					if posy >= -20 and newposy >= -20 then
 						if i then
 							QueueSpawn("scavengerdroppod_scav", posx, posy, posz, math_random(0,3),GaiaTeamID, n+(i*5))
-							QueueSpawn(groupunit[math.ceil(i/newTypeNumber)]..scavconfig.unitnamesuffix, posx, posy, posz, math_random(0,3),GaiaTeamID, n+90+(i*5))
+							QueueSpawn(groupunit[math.ceil(i/newTypeNumber)]..scavconfig.unitnamesuffix, posx, posy, posz, math_random(0,3),GaiaTeamID, n+150+(i*5))
 						else
 							QueueSpawn("scavengerdroppod_scav", posx, posy, posz, math_random(0,3),GaiaTeamID, n)
-							QueueSpawn(groupunit[math.ceil(i/newTypeNumber)]..scavconfig.unitnamesuffix, posx, posy, posz, math_random(0,3),GaiaTeamID, n+90)
+							QueueSpawn(groupunit[math.ceil(i/newTypeNumber)]..scavconfig.unitnamesuffix, posx, posy, posz, math_random(0,3),GaiaTeamID, n+150)
 						end
 					elseif posy < -20 and newposy < -20 then
 						if i then
 							QueueSpawn("scavengerdroppod_scav", posx, posy, posz, math_random(0,3),GaiaTeamID, n+(i*5))
-							QueueSpawn(groupunit[math.ceil(i/newTypeNumber)]..scavconfig.unitnamesuffix, posx, posy, posz, math_random(0,3),GaiaTeamID, n+90+(i*5))
+							QueueSpawn(groupunit[math.ceil(i/newTypeNumber)]..scavconfig.unitnamesuffix, posx, posy, posz, math_random(0,3),GaiaTeamID, n+150+(i*5))
 						else
 							QueueSpawn("scavengerdroppod_scav", posx, posy, posz, math_random(0,3),GaiaTeamID, n)
-							QueueSpawn(groupunit[math.ceil(i/newTypeNumber)]..scavconfig.unitnamesuffix, posx, posy, posz, math_random(0,3),GaiaTeamID, n+90)
+							QueueSpawn(groupunit[math.ceil(i/newTypeNumber)]..scavconfig.unitnamesuffix, posx, posy, posz, math_random(0,3),GaiaTeamID, n+150)
 						end
 					end
 					--Spring.CreateUnit("scavengerdroppod_scav", posx, posy, posz, math_random(0,3),GaiaTeamID)
