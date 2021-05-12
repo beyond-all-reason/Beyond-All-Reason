@@ -84,6 +84,11 @@ function CaptureBeacons(n)
 					end
 				end
 				
+
+				local _,_,_,testCaptureProgress = Spring.GetUnitHealth(scav)
+				if testCaptureProgress ~= CaptureProgressForBeacons[scav] then
+					CaptureProgressForBeacons[scav] = testCaptureProgress
+				end
 				if unitDefID == scavDef then
 					CaptureProgressForBeacons[scav] = CaptureProgressForBeacons[scav] - 0.0005
 					--Spring.Echo("uncapturing myself")

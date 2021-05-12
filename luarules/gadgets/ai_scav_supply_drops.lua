@@ -311,6 +311,10 @@ function gadget:GameFrame(n)
 							end
 						end
 						
+						local _,_,_,testCaptureProgress = Spring.GetUnitHealth(lootboxID)
+						if testCaptureProgress ~= CaptureProgressForLootboxes[lootboxID] then
+							CaptureProgressForLootboxes[lootboxID] = testCaptureProgress
+						end
 						if unitDefID == lootboxDefID then
 							CaptureProgressForLootboxes[lootboxID] = CaptureProgressForLootboxes[lootboxID] - 0.0005
 							--Spring.Echo("uncapturing myself")
