@@ -37,18 +37,30 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 
 		-- limit rotation for factories
 		if unitDef.isFactory and #unitDef.buildOptions > 0 then
+			rotateUnitDefs[unitDefID] = rotateUnitDefs[unitDefID] * 0.5
 			limitedRotation[unitDefID] = 4
 		end
 		-- limit rotation for winds/tidals
 		if unitDef.tidalGenerator > 0 or unitDef.windGenerator > 0 then
+			rotateUnitDefs[unitDefID] = rotateUnitDefs[unitDefID] * 0.5
 			limitedRotation[unitDefID] = 4
+		end
+		-- nanos
+		if string.find(unitDef.name, "nanotc") then
+			rotateUnitDefs[unitDefID] = rotateUnitDefs[unitDefID] * 0.5
+			limitedRotation[unitDefID] = 4
+		end
+		-- unit with weapons
+		if #unitDef.weapons > 0 then
+			rotateUnitDefs[unitDefID] = rotateUnitDefs[unitDefID] * 0.5
+			limitedRotation[unitDefID] = 3
 		end
 	end
 end
 
 function gadget:UnitCreated(unitID, unitDefID, team)
 	if maxRotation > 0 and rotateUnitDefs[unitDefID] then
-		unitRotation[unitID] = math.random(-maxRotation, maxRotation) * rotateUnitDefs[unitDefID]
+		unitRotation[unitID] = (((unitID%(200))-100) * rotateUnitDefs[unitDefID]) * (maxRotation/100)
 		if limitedRotation[unitDefID] then
 			if unitRotation[unitID] > limitedRotation[unitDefID] then
 				unitRotation[unitID] = limitedRotation[unitDefID]
