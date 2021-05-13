@@ -47,7 +47,7 @@ return {
 					incomeTooltip = '%{resource} income (per second)',
 					expenseTooltip = '%{resource} potential spending  (per second)',
 					storageTooltip = '%{resource} storage',
-					conversionTooltip = '%{titleColor}Energy Conversion Slider\nUse excess energy above this point\nto power your Energy Converters',
+					conversionTooltip = '%{titleColor}Energy Conversion Slider\nExcess energy above this point\nwill power your Energy Converters',
 				},
 			},
 			playersList = {
@@ -409,7 +409,8 @@ return {
 				},
 			},
 			chat = {
-				ignored = 'ignored'
+				ignored = 'ignored',
+				scroll = '%{textColor}Press %{highlightColor}CTRL %{textColor}+ %{highlightColor}SHIFT %{textColor}to activate chatlog viewing/scrolling',
 			},
 			teamStats = {
 				player = 'Player',

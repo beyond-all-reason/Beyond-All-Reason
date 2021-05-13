@@ -35,6 +35,7 @@ local widgetScale = (((vsx+vsy) / 2000) * 0.55) * (0.95+(ui_scale-1)/1.5)
 local fontsizeMult = 1
 local usedFontSize = charSize*widgetScale*fontsizeMult
 local chatLines = {}
+local displayLines = {}
 local activationArea = {0,0,0,0}
 local currentLine = 0
 local currentTypewriterLine = 0
@@ -44,7 +45,8 @@ local scrollingPosY = 0.66
 local filterSpecs = (Spring.GetConfigInt('HideSpecChat', 0) == 1)
 
 local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
-local font, font2, chobbyInterface, hovering, startFadeTime
+local fontfile3 = "fonts/monospaced/" .. Spring.GetConfigString("bar_font3", "SourceCodePro-Medium.otf")
+local font, font2, font3, chobbyInterface, hovering, startFadeTime
 
 local RectRound = Spring.FlowUI.Draw.RectRound
 local UiElement = Spring.FlowUI.Draw.Element
@@ -118,6 +120,7 @@ function widget:ViewResize()
 
 	usedFontSize = charSize*widgetScale*fontsizeMult
 	font = WG['fonts'].getFont(nil, (charSize/18)*fontsizeMult, 0.17, 1.65)
+	font3 = WG['fonts'].getFont(fontfile3, (charSize/18)*fontsizeMult, 0.17, 1.65)
 
 	-- get longest playername and calc its width
 	local namePrefix = '(s)'
@@ -130,7 +133,7 @@ function widget:ViewResize()
 			maxPlayernameWidth = font:GetTextWidth(namePrefix..longestPlayername) * usedFontSize
 		end
 	end
-	maxTimeWidth = font:GetTextWidth('00:00') * usedFontSize
+	maxTimeWidth = font3:GetTextWidth('00:00') * usedFontSize
 	lineSpaceWidth = 24*widgetScale
 	lineHeight = floor(usedFontSize*lineHeightMult)
 	backgroundPadding = elementPadding + floor(lineHeight*0.5)
@@ -166,6 +169,9 @@ function widget:ViewResize()
 end
 
 local function addChat(ignore, type, name, text)
+
+	if ignore then return end
+
 	if not text or text == '' then return end
 
 	-- determine text typing start time
@@ -293,7 +299,7 @@ function widget:Update(dt)
 		scrolling = false
 	elseif isOnRect(x, y, activationArea[1], activationArea[2], activationArea[3], activationArea[4]) then
 		local alt, ctrl, meta, shift = Spring.GetModKeyState()
-		if ctrl and startFadeTime and clock() > startFadeTime+fadeDelay then
+		if ctrl and shift and startFadeTime and clock() > startFadeTime+fadeDelay then
 			scrolling = true
 		end
 	elseif scrolling and isOnRect(x, y, activationArea[1], activationArea[2]+heightDiff, activationArea[3], activationArea[2]) then
@@ -356,10 +362,14 @@ local function processLine(i)
 				elseif seconds < 10 then
 					seconds = '0'..seconds
 				end
+				local offset = 0
+				if minutes >= 100 then
+					offset = (usedFontSize*0.2*widgetScale)
+				end
 				local gameTime = '\255\200\200\200'..minutes..':'..seconds
-				font:Begin()
-				font:Print(gameTime, backgroundPadding, fontHeightOffset, usedFontSize*0.82, "o")
-				font:End()
+				font3:Begin()
+				font3:Print(gameTime, maxTimeWidth+offset, fontHeightOffset, usedFontSize*0.82, "ro")
+				font3:End()
 			end)
 		end
 	end
@@ -525,7 +535,7 @@ function widget:WorldTooltip(ttType,data1,data2,data3)
 	local x,y,_ = Spring.GetMouseState()
 	local heightDiff = scrolling and floor(vsy*(scrollingPosY-posY)) or 0
 	if #chatLines > 0 and isOnRect(x, y, activationArea[1],activationArea[2]+heightDiff,activationArea[3],activationArea[4]) then
-		return Spring.I18N('ui.messages.scroll', { textColor = "\255\255\255\255", highlightColor = "\255\255\255\001" })
+		return Spring.I18N('ui.chat.scroll', { textColor = "\255\255\255\255", highlightColor = "\255\255\255\001" })
 	end
 end
 
@@ -554,178 +564,72 @@ local function processConsoleLine(line)
 
 	local name = ''
 	local text = ''
-	local ignoredText = '(ignored)'	--'('..Spring.I18N('ui.chat.ignored')..')'
 	local lineType = 0
 	local bypassThisMessage = false
 	local ignoreThisMessage = false
+	local textcolor, c
 
 	-- player message
 	if names[ssub(line,2,(sfind(line,"> ", nil, true) or 1)-1)] ~= nil then
-		bypassThisMessage = false
 		lineType = 1
 		name = ssub(line,2,sfind(line,"> ", nil, true)-1)
 		text = ssub(line,slen(name)+4)
-		if ssub(text,1,1) == "!" and  ssub(text, 1,2) ~= "!!" then --bot command
-			bypassThisMessage = true
-		end
 
-		-- spectator message
-	elseif names[ssub(line,2,(sfind(line," (replay)] ", nil, true) or 1)-1)] ~= nil then
-		bypassThisMessage = false
-		lineType = 2
-		name = ssub(line,2,sfind(line," (replay)] ", nil, true)-1)
-		text = ssub(line,slen(name)+13)
-		if ssub(text,1,1) == "!" and  ssub(text, 1,2) ~= "!!" then --bot command
-			bypassThisMessage = true
-		end
-
-		-- spectator message
-	elseif names[ssub(line,2,(sfind(line,"] ", nil, true) or 1)-1)] ~= nil then
-		bypassThisMessage = false
-		lineType = 2
-		name = ssub(line,2,sfind(line,"] ", nil, true)-1)
-		text = ssub(line,slen(name)+4)
-		if ssub(text,1,1) == "!" and  ssub(text, 1,2) ~= "!!" then --bot command
-			bypassThisMessage = true
-		end
-
-		-- point
-	elseif names[ssub(line,1,(sfind(line," added point: ", nil, true) or 1)-1)] ~= nil then
-		bypassThisMessage = false
-		lineType = 3
-		name = ssub(line,1,sfind(line," added point: ", nil, true)-1)
-		text = ssub(line,slen(name.." added point: ")+1)
-		if text == "" then
-			text = "Look here!"
-		end
-
-		-- battleroom message
-	elseif ssub(line,1,1) == ">" then
-		lineType = 4
-		text = ssub(line,3)
-		bypassThisMessage = true
-		if ssub(line,1,3) == "> <" then -- player speaking in battleroom
-			bypassThisMessage = false
-			if ssub(text,1,1) == "!" and  ssub(text, 1,2) ~= "!!" then --bot command
-				bypassThisMessage = true
-			end
-			local i = sfind(ssub(line,4,slen(line)), ">", nil, true)
-			if i then
-				name = ssub(line,4,i+2)
-				text = ssub(line,i+5)
-			else
-				name = "unknown"
-			end
-		end
-	end
-
-	-- filter all but chat messages and map-markers
-	bypassThisMessage = true
-
-	if sfind(line, "My player ID is", nil, true) then
-		bypassThisMessage = true
-
-	elseif sfind(line," added point: ", nil, true) then
-		bypassThisMessage = false
-
-		-- battleroom chat
-	elseif sfind(line,"^(> <.*>)") then
-		-- will not check for name, user might not have connected before
-		local endChar = sfind(line, "> ", nil, true)
-		if endChar then
-			if filterSpecs then
-				bypassThisMessage = true
-			else
-				bypassThisMessage = false
-			end
-		end
-
-		-- player chat
-	elseif sfind(line,"^(<.*>)") then
-		local endChar = sfind(line, "> ", nil, true)
-		if endChar then
-			local name = ssub(line, sfind(line, "<", nil, true)+1, endChar-1)
-			if name and names[name] then
-				bypassThisMessage = false
-			end
-		end
-
-		-- spectator chat
-	elseif sfind(line,"^(\[\[.*\])") then	-- somehow adding space at end doesnt work
-
-		local endChar = sfind(line, "] ", nil, true)
-		if endChar then
-			local name = ssub(line, 2, endChar-1)
-			if sfind(name," (replay)", nil, true) then
-				name = ssub(line, 2, sfind(name," (replay)", nil, true))
-			end
-			if name and names[name] then
-				if filterSpecs then
-					bypassThisMessage = true
-				else
-					bypassThisMessage = false
-				end
-			end
-		end
-	end
-
-	-- ignore muted players
-	if WG.ignoredPlayers and WG.ignoredPlayers[name] then
-		bypassThisMessage = true
-	end
-
-	local MyAllyTeamID = spGetMyAllyTeamID()
-	local textcolor = nil
-
-
-	if lineType == 1 then	-- player message
-		local c
-		if sfind(text,"Allies: ", nil, true) == 1 then
+		if sfind(text,'Allies: ', nil, true) == 1 then
 			text = ssub(text,9)
-			if names[name][1] == MyAllyTeamID then
+			if names[name][1] == spGetMyAllyTeamID() then
 				c = colorAlly
 			else
 				c = colorOtherAlly
 			end
-		elseif sfind(text,"Spectators: ", nil, true) == 1 then
+		elseif sfind(text,'Spectators: ', nil, true) == 1 then
 			text = ssub(text,13)
 			c = colorSpec
 		else
 			c = colorOther
 		end
-
-		if ignoreThisMessage then text = ignoredText end
 
 		name = convertColor(spGetTeamColor(names[name][3]))..name
 		line = convertColor(c[1],c[2],c[3])..text
 
-
-	elseif lineType == 2 then	-- spectator chat
-
-		if filterSpecs then
-			bypassThisMessage = true
+		-- spectator message
+	elseif names[ssub(line,2,(sfind(line,"] ", nil, true) or 1)-1)] ~= nil  or  names[ssub(line,2,(sfind(line," (replay)] ", nil, true) or 1)-1)] ~= nil then
+		lineType = 2
+		if names[ssub(line,2,(sfind(line,"] ", nil, true) or 1)-1)] ~= nil then
+			name = ssub(line,2,sfind(line,"] ", nil, true)-1)
+			text = ssub(line,slen(name)+4)
+		else
+			name = ssub(line,2,sfind(line," (replay)] ", nil, true)-1)
+			text = ssub(line,slen(name)+13)
 		end
 
-		local c
-		if sfind(text,"Allies: ", nil, true) == 1 then
+		-- filter specs
+		if filterSpecs then
+			ignoreThisMessage = true
+		end
+
+		if sfind(text,'Allies: ', nil, true) == 1 then
 			text = ssub(text,9)
 			c = colorSpec
-		elseif sfind(text,"Spectators: ", nil, true) == 1 then
+		elseif sfind(text,'Spectators: ', nil, true) == 1 then
 			text = ssub(text,13)
 			c = colorSpec
 		else
 			c = colorOther
 		end
-		textcolor = convertColor(c[1],c[2],c[3])
-		local namecolor = convertColor(colorSpec[1],colorSpec[2],colorSpec[3])
 
-		if ignoreThisMessage then text = ignoredText end
+		name = convertColor(colorSpec[1],colorSpec[2],colorSpec[3])..'(s) '..name
+		line = convertColor(c[1],c[2],c[3])..text
 
-		name = namecolor..'(s) '..name
-		line = textcolor..text
+		-- point
+	elseif names[ssub(line,1,(sfind(line," added point: ", nil, true) or 1)-1)] ~= nil then
+		lineType = 3
+		name = ssub(line,1,sfind(line," added point: ", nil, true)-1)
+		text = ssub(line,slen(name.." added point: ")+1)
+		if text == '' then
+			text = 'Look here!'
+		end
 
-
-	elseif lineType == 3 then	-- mapmark point
 		local namecolor
 		local spectator = true
 		if names[name] ~= nil then
@@ -738,28 +642,56 @@ local function processConsoleLine(line)
 		else
 			namecolor =  convertColor(spGetTeamColor(names[name][3]))
 
-			if names[name][1] == MyAllyTeamID then
+			if names[name][1] == spGetMyAllyTeamID() then
 				textcolor = convertColor(colorAlly[1],colorAlly[2],colorAlly[3])
 			else
 				textcolor = convertColor(colorOtherAlly[1],colorOtherAlly[2],colorOtherAlly[3])
 			end
 		end
 
-		if ignoreThisMessage then text = ignoredText end
-
 		name = namecolor..name
 		line = textcolor..text
 
+		-- battleroom message
+	elseif ssub(line,1,1) == ">" then
+		lineType = 4
+		text = ssub(line,3)
+		if ssub(line,1,3) == "> <" then -- player speaking in battleroom
+			local i = sfind(ssub(line,4,slen(line)), ">", nil, true)
+			if i then
+				name = ssub(line,4,i+2)
+				text = ssub(line,i+5)
+			else
+				name = "unknown"
+			end
+		else
+			bypassThisMessage = true
+		end
 
-	elseif lineType == 4 then	-- battleroom message
-		if ignoreThisMessage and name then text = ignoredText end
-		textcolor = convertColor(colorGame[1],colorGame[2],colorGame[3])
-		name = textcolor..'<'..name..'>'
-		line = textcolor..text
+		name = convertColor(colorGame[1],colorGame[2],colorGame[3])..'<'..name..'>'
+		line = convertColor(colorGame[1],colorGame[2],colorGame[3])..text
+	else
+		--line = convertColor(colorMisc[1],colorMisc[2],colorMisc[3])..line
+		bypassThisMessage = true
+	end
 
+	-- bot command
+	if ssub(text,1,1) == '!' and  ssub(text, 1,2) ~= '!!' then
+		bypassThisMessage = true
+	end
 
-	else	-- every other message
-		line = convertColor(colorMisc[1],colorMisc[2],colorMisc[3])..line
+	if sfind(line, 'My player ID is', nil, true) then
+		bypassThisMessage = true
+	end
+
+	-- ignore muted players
+	if WG.ignoredPlayers and WG.ignoredPlayers[name] then
+		ignoreThisMessage = true
+	end
+
+	-- ignore muted players
+	if WG.ignoredPlayers and WG.ignoredPlayers[name] then
+		bypassThisMessage = true
 	end
 
 	return bypassThisMessage, ignoreThisMessage, lineType, name, line
