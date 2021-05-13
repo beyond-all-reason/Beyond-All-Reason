@@ -2,7 +2,7 @@ local UDN = UnitDefNames
 local nameSuffix = '_scav'
 
 local function DamBasicSeaT1_1(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
-    local posradius = 24
+    local posradius = 100
 	if radiusCheck then
 		return posradius
 	else
@@ -27,7 +27,7 @@ table.insert(ScavengerConstructorBlueprintsT3Sea,DamBasicSeaT1_1)
 table.insert(ScavengerConstructorBlueprintsT4Sea,DamBasicSeaT1_1)
 
 local function DamBasicSeaT1_2(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
-    local posradius = 32
+    local posradius = 100
 	if radiusCheck then
 		return posradius
 	else
@@ -52,7 +52,7 @@ table.insert(ScavengerConstructorBlueprintsT3Sea,DamBasicSeaT1_2)
 table.insert(ScavengerConstructorBlueprintsT4Sea,DamBasicSeaT1_2)
 
 local function DamBasicSeaT1_3(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
-    local posradius = 24
+    local posradius = 100
 	if radiusCheck then
 		return posradius
 	else
@@ -77,7 +77,7 @@ table.insert(ScavengerConstructorBlueprintsT3Sea,DamBasicSeaT1_3)
 table.insert(ScavengerConstructorBlueprintsT4Sea,DamBasicSeaT1_3)
 
 local function DamBasicSeaT1_4(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
-    local posradius = 32
+    local posradius = 100
 	if radiusCheck then
 		return posradius
 	else
@@ -102,7 +102,7 @@ table.insert(ScavengerConstructorBlueprintsT3Sea,DamBasicSeaT1_4)
 table.insert(ScavengerConstructorBlueprintsT4Sea,DamBasicSeaT1_4)
 
 local function DamBasicSeaT1_5(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
-    local posradius = 24
+    local posradius = 100
 	if radiusCheck then
 		return posradius
 	else
@@ -127,7 +127,7 @@ table.insert(ScavengerConstructorBlueprintsT3Sea,DamBasicSeaT1_5)
 table.insert(ScavengerConstructorBlueprintsT4Sea,DamBasicSeaT1_5)
 
 local function DamBasicSeaT1_6(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
-    local posradius = 48
+    local posradius = 100
 	if radiusCheck then
 		return posradius
 	else
@@ -170,7 +170,7 @@ table.insert(ScavengerConstructorBlueprintsT3Sea,DamBasicSeaT1_6)
 table.insert(ScavengerConstructorBlueprintsT4Sea,DamBasicSeaT1_6)
 
 local function DamBasicSeaT1_7(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
-    local posradius = 48
+    local posradius = 100
 	if radiusCheck then
 		return posradius
 	else
@@ -193,7 +193,7 @@ table.insert(ScavengerConstructorBlueprintsT3Sea,DamBasicSeaT1_7)
 table.insert(ScavengerConstructorBlueprintsT4Sea,DamBasicSeaT1_7)
 
 local function DamBasicSeaT1_8(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
-    local posradius = 48
+    local posradius = 100
 	if radiusCheck then
 		return posradius
 	else
@@ -226,7 +226,7 @@ table.insert(ScavengerConstructorBlueprintsT4Sea,DamBasicSeaT1_8)
 ------------------------------------------------------------------------ Tech 2
 
 local function DamBasicSeaT2_1(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
-    local posradius = 40
+    local posradius = 100
 	if radiusCheck then
 		return posradius
 	else
@@ -249,7 +249,7 @@ table.insert(ScavengerConstructorBlueprintsT3Sea,DamBasicSeaT2_1)
 table.insert(ScavengerConstructorBlueprintsT4Sea,DamBasicSeaT2_1)
 
 local function DamBasicSeaT2_2(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
-    local posradius = 32
+    local posradius = 100
 	if radiusCheck then
 		return posradius
 	else
@@ -272,7 +272,7 @@ table.insert(ScavengerConstructorBlueprintsT3Sea,DamBasicSeaT2_2)
 table.insert(ScavengerConstructorBlueprintsT4Sea,DamBasicSeaT2_2)
 
 local function DamBasicSeaT2_3(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
-    local posradius = 48
+    local posradius = 100
 	if radiusCheck then
 		return posradius
 	else
@@ -295,7 +295,7 @@ table.insert(ScavengerConstructorBlueprintsT3Sea,DamBasicSeaT2_3)
 table.insert(ScavengerConstructorBlueprintsT4Sea,DamBasicSeaT2_3)
 
 local function DamBasicSeaT2_4(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
-    local posradius = 40
+    local posradius = 100
 	if radiusCheck then
 		return posradius
 	else
@@ -318,7 +318,7 @@ table.insert(ScavengerConstructorBlueprintsT3Sea,DamBasicSeaT2_4)
 table.insert(ScavengerConstructorBlueprintsT4Sea,DamBasicSeaT2_4)
 
 local function DamBasicSeaT2_5(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
-    local posradius = 80
+    local posradius = 100
 	if radiusCheck then
 		return posradius
 	else
