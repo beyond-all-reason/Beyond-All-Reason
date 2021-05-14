@@ -34,15 +34,16 @@ local widgetScale = (((vsx+vsy) / 2000) * 0.55) * (0.95+(ui_scale-1)/1.5)
 
 local fontsizeMult = 1
 local usedFontSize = charSize*widgetScale*fontsizeMult
+local orgLines = {}
 local chatLines = {}
-local displayLines = {}
+local consoleLines = {}
 local activationArea = {0,0,0,0}
-local currentLine = 0
-local currentTypewriterLine = 0
+local currentChatLine = 0
+local currentChatTypewriterLine = 0
 local scrolling = false
 local scrollingPosY = 0.66
 
-local filterSpecs = (Spring.GetConfigInt('HideSpecChat', 0) == 1)
+local hideSpecChat = (Spring.GetConfigInt('HideSpecChat', 0) == 1)
 
 local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 local fontfile3 = "fonts/monospaced/" .. Spring.GetConfigString("bar_font3", "SourceCodePro-Medium.otf")
@@ -63,8 +64,8 @@ local colorOther = {1,1,1} -- normal chat color
 local colorAlly = {0,1,0}
 local colorSpec = {1,1,0}
 local colorOtherAlly = {1,0.7,0.45} -- enemy ally messages (seen only when spectating)
-local colorMisc = {0.85,0.85,0.85} -- everything else
 local colorGame = {0.4,1,1} -- server (autohost) chat
+local colorConsole = {0.85,0.85,0.85}
 
 local chatSeparator = '\255\210\210\210:'
 local pointSeparator = '\255\255\255\255*'
@@ -108,82 +109,25 @@ local function isOnRect(x, y, leftX, bottomY,rightX,TopY)
 	return x >= leftX and x <= rightX and y >= bottomY and y <= TopY
 end
 
-function widget:ViewResize()
-	vsx,vsy = Spring.GetViewGeometry()
-	widgetScale = (((vsx+vsy) / 2000) * 0.55) * (0.95+(ui_scale-1)/1.5)
 
-	UiElement = Spring.FlowUI.Draw.Element
-	UiScroller = Spring.FlowUI.Draw.Scroller
-	elementCorner = Spring.FlowUI.elementCorner
-	elementPadding = Spring.FlowUI.elementPadding
-	elementMargin = Spring.FlowUI.elementMargin
+local function addConsoleChat(type, text)
+	if not text or text == '' then return end
 
-	usedFontSize = charSize*widgetScale*fontsizeMult
-	font = WG['fonts'].getFont(nil, (charSize/18)*fontsizeMult, 0.17, 1.65)
-	font3 = WG['fonts'].getFont(fontfile3, (charSize/18)*fontsizeMult, 0.17, 1.65)
-
-	-- get longest playername and calc its width
-	local namePrefix = '(s)'
-	maxPlayernameWidth = font:GetTextWidth(namePrefix..longestPlayername) * usedFontSize
-	local playersList = Spring.GetPlayerList()
-	for _, playerID in ipairs(playersList) do
-		local name = Spring.GetPlayerInfo(playerID, false)
-		if name ~= longestPlayername and font:GetTextWidth(namePrefix..name)*usedFontSize > maxPlayernameWidth then
-			longestPlayername = name
-			maxPlayernameWidth = font:GetTextWidth(namePrefix..longestPlayername) * usedFontSize
-		end
-	end
-	maxTimeWidth = font3:GetTextWidth('00:00') * usedFontSize
-	lineSpaceWidth = 24*widgetScale
-	lineHeight = floor(usedFontSize*lineHeightMult)
-	backgroundPadding = elementPadding + floor(lineHeight*0.5)
-
-	if WG['topbar'] ~= nil then
-		local topbarArea = WG['topbar'].GetPosition()
-		activationArea[4] = topbarArea[2] - elementMargin
-		posY = floor(topbarArea[2] - elementMargin - backgroundPadding - backgroundPadding - (posYoffset * vsy) - (lineHeight*maxLines)) / vsy
-		scrollingPosY = floor(topbarArea[2] - elementMargin - backgroundPadding - backgroundPadding - (lineHeight*maxLinesScroll)) / vsy
-	end
-
-	-- clear old displaylists
-	for i, _ in ipairs(chatLines) do
-		if chatLines[i][9] then
-			glDeleteList(chatLines[i][9])
-			chatLines[i][9] = nil
-		end
-	end
-
-	activationArea = {
-		floor(vsx * posX),
-		floor(vsy * posY),
-		floor(vsx * posX2),
-		floor(vsy * (posY+0.12))
-	}
-	if WG['topbar'] ~= nil then
-		local topbarArea = WG['topbar'].GetPosition()
-		activationArea[4] = topbarArea[2] - elementMargin
-		activationArea[1] = topbarArea[1]
-	end
-
-	lineMaxWidth = floor((activationArea[3] - activationArea[1]) * 0.65)
 end
 
-local function addChat(ignore, type, name, text)
-
-	if ignore then return end
-
+local function addChat(gameFrame, type, name, text, isLive)
 	if not text or text == '' then return end
 
 	-- determine text typing start time
 	local startTime = clock()
 	if chatLines[#chatLines] then
-		if startTime < chatLines[#chatLines][1] + chatLines[#chatLines][6]*charDelay then
-			startTime = chatLines[#chatLines][1] + chatLines[#chatLines][6]*charDelay
+		if startTime < chatLines[#chatLines].startTime + chatLines[#chatLines].textChars*charDelay then
+			startTime = chatLines[#chatLines].startTime + chatLines[#chatLines].textChars*charDelay
 		else
-			currentTypewriterLine = currentTypewriterLine + 1
+			currentChatTypewriterLine = currentChatTypewriterLine + 1
 		end
 	else
-		currentTypewriterLine = currentTypewriterLine + 1
+		currentChatTypewriterLine = currentChatTypewriterLine + 1
 	end
 
 	-- convert /n into lines
@@ -218,6 +162,8 @@ local function addChat(ignore, type, name, text)
 		end
 	end
 
+	local doTypewrite = (isLive and charDelay > 0)
+
 	local chatLinesCount = #chatLines
 	local lineColor = ''
 	if #wordwrappedText > 1 then
@@ -226,25 +172,26 @@ local function addChat(ignore, type, name, text)
 	for i, line in ipairs(wordwrappedText) do
 		chatLinesCount = chatLinesCount + 1
 		chatLines[chatLinesCount] = {
-			startTime,
-			i == 1 and spGetGameFrame(),
-			type,
-			name,
-			(i > 1 and lineColor or '')..line,
-			slen(line),
-			0,  -- num typed chars
-			0,  -- time passed during typing chars (used to calc 'num typed chars')
-			glCreateList(function() end),
-			0   -- num chars the displaylist contains
+			startTime = startTime,
+			gameFrame = i == 1 and gameFrame,
+			lineType = type,
+			playerName = name,
+			text = (i > 1 and lineColor or '')..line,
+			textChars = slen(line),
+			typedTextChars = doTypewrite and 0 or slen(line),  -- num typed chars
+			typedTimePassed = 0,  -- time passed during typing chars (used to calc 'num typed chars')
+			displayListChars = 0,   -- num chars the displaylist contains
+			lineDisplayList = glCreateList(function() end),
+			--timeDisplayList = glCreateList(function() end),
 		}
 		startTime = startTime + (slen(line)*charDelay)
 	end
 
-	if currentTypewriterLine > chatLinesCount then
-		currentTypewriterLine = chatLinesCount
+	if currentChatTypewriterLine > chatLinesCount then
+		currentChatTypewriterLine = chatLinesCount
 	end
 	if not scrolling then
-		currentLine = currentTypewriterLine
+		currentChatLine = currentChatTypewriterLine
 	end
 
 	-- play sound for player/spectator chat
@@ -290,6 +237,10 @@ function widget:Update(dt)
 			ui_opacity = Spring.GetConfigFloat("ui_opacity",0.65)
 			widget:ViewResize()
 		end
+		if hideSpecChat ~= (Spring.GetConfigInt('HideSpecChat', 0) == 1) then
+			hideSpecChat = (Spring.GetConfigInt('HideSpecChat', 0) == 1)
+			widget:ViewResize()
+		end
 	end
 
 	local x,y,b = Spring.GetMouseState()
@@ -306,41 +257,42 @@ function widget:Update(dt)
 		-- do nothing
 	else
 		scrolling = false
-		currentLine = #chatLines
+		currentChatLine = #chatLines
 	end
 
-	if chatLines[currentTypewriterLine] ~= nil then
+	if chatLines[currentChatTypewriterLine] ~= nil then
 		-- continue typewriting line
-		if chatLines[currentTypewriterLine][7] <= chatLines[currentTypewriterLine][6] then
-			chatLines[currentTypewriterLine][8] = chatLines[currentTypewriterLine][8] + dt
-			chatLines[currentTypewriterLine][7] = math.ceil(chatLines[currentTypewriterLine][8]/charDelay)
+		if chatLines[currentChatTypewriterLine].typedTextChars <= chatLines[currentChatTypewriterLine].textChars then
+			chatLines[currentChatTypewriterLine].typedTimePassed = chatLines[currentChatTypewriterLine].typedTimePassed + dt
+			chatLines[currentChatTypewriterLine].typedTextChars = math.ceil(chatLines[currentChatTypewriterLine].typedTimePassed/charDelay)
 
 			-- typewrite next line when complete
-			if chatLines[currentTypewriterLine][7] >= chatLines[currentTypewriterLine][6] then
-				currentTypewriterLine = currentTypewriterLine + 1
-				if currentTypewriterLine > #chatLines then
-					currentTypewriterLine = #chatLines
+			if chatLines[currentChatTypewriterLine].typedTextChars >= chatLines[currentChatTypewriterLine].textChars then
+				currentChatTypewriterLine = currentChatTypewriterLine + 1
+				if currentChatTypewriterLine > #chatLines then
+					currentChatTypewriterLine = #chatLines
 				end
 			end
 		end
 	end
 end
 
+
 local function processLine(i)
-	if chatLines[i][9] == nil or chatLines[i][7] ~= chatLines[i][10] then
-		chatLines[i][10] = chatLines[i][7]
-		glDeleteList(chatLines[i][9])
+	if chatLines[i].lineDisplayList == nil or chatLines[i].typedTextChars ~= chatLines[i].lineDisplayListChars then
+		chatLines[i].lineDisplayListChars = chatLines[i].typedTextChars
+		glDeleteList(chatLines[i].lineDisplayList)
 		local fontHeightOffset = usedFontSize*0.24
-		chatLines[i][9] = glCreateList(function()
-			local text = ssub(chatLines[i][5], 1, chatLines[i][7])
+		chatLines[i].lineDisplayList = glCreateList(function()
+			local text = ssub(chatLines[i].text, 1, chatLines[i].typedTextChars)
 			font:Begin()
-			if chatLines[i][2] then
+			if chatLines[i].gameFrame then
 
 				-- player name
-				font:Print(chatLines[i][4], maxPlayernameWidth, fontHeightOffset, usedFontSize, "or")
+				font:Print(chatLines[i].playerName, maxPlayernameWidth, fontHeightOffset, usedFontSize, "or")
 
 				-- mapmark point
-				if chatLines[i][3] == 3 then
+				if chatLines[i].lineType == 3 then
 					font:Print(pointSeparator, maxPlayernameWidth+(lineSpaceWidth/2), 0, usedFontSize, "oc")
 				else
 					font:Print(chatSeparator, maxPlayernameWidth+(lineSpaceWidth/3.8), fontHeightOffset, usedFontSize, "oc")
@@ -352,11 +304,11 @@ local function processLine(i)
 		end)
 
 		-- game time (for when viewing history)
-		if chatLines[i][2] then
-			glDeleteList(chatLines[i][11])
-			chatLines[i][11] = glCreateList(function()
-				local minutes = floor((chatLines[i][2] / 30 / 60))
-				local seconds = floor((chatLines[i][2] - ((minutes*60)*30)) / 30)
+		if chatLines[i].gameFrame then
+			glDeleteList(chatLines[i].timeDisplayList)
+			chatLines[i].timeDisplayList = glCreateList(function()
+				local minutes = floor((chatLines[i].gameFrame / 30 / 60))
+				local seconds = floor((chatLines[i].gameFrame - ((minutes*60)*30)) / 30)
 				if seconds == 0 then
 					seconds = '00'
 				elseif seconds < 10 then
@@ -417,7 +369,7 @@ function widget:DrawScreen()
 					floor(activationArea[3]-scrollbarMargin),
 					floor(activationArea[4]-scrollbarMargin),
 					#chatLines*lineHeight,
-					(currentLine-maxLinesScroll)*lineHeight
+					(currentChatLine-maxLinesScroll)*lineHeight
 			)
 
 			if WG['guishader'] then
@@ -458,32 +410,32 @@ function widget:DrawScreen()
 			end
 		end
 		scrolling = false
-		currentLine = #chatLines
+		currentChatLine = #chatLines
 	end
 
-	if chatLines[currentLine] then
+	if chatLines[currentChatLine] then
 		glPushMatrix()
 		glTranslate((vsx * posX) + backgroundPadding, vsy * (scrolling and scrollingPosY or posY) + backgroundPadding, 0)
 		local displayedLines = 0
-		local i = currentLine
+		local i = currentChatLine
 		local usedMaxLines = maxLines
 		if scrolling then
 			usedMaxLines = maxLinesScroll
 		end
 		local width = floor(maxTimeWidth+(lineHeight*0.75))
 		while i > 0 do
-			if scrolling or clock() - chatLines[i][1] < lineTTL then
+			if scrolling or clock() - chatLines[i].startTime < lineTTL then
 				processLine(i)
 				if scrolling then
-					if chatLines[i][11] then
-						glCallList(chatLines[i][11])
+					if chatLines[i].timeDisplayList then
+						glCallList(chatLines[i].timeDisplayList)
 					end
 					glTranslate(width, 0, 0)
 				end
 				--if scrolling then
 				--	RectRound(0, 0, (activationArea[3]-activationArea[1])-backgroundPadding-backgroundPadding-maxTimeWidth, lineHeight, elementCorner*0.66, 0,0,0,0, {1,1,1,0.03}, {1,1,1,0})
 				--end
-				glCallList(chatLines[i][9])
+				glCallList(chatLines[i].lineDisplayList)
 				if scrolling  then
 					glTranslate(-width, 0, 0)
 				end
@@ -498,11 +450,11 @@ function widget:DrawScreen()
 		glPopMatrix()
 
 		-- show newly written line when in scrolling mode
-		if scrolling and currentLine < #chatLines and clock() - chatLines[currentTypewriterLine][1] < lineTTL then
+		if scrolling and currentChatLine < #chatLines and clock() - chatLines[currentChatTypewriterLine].startTime < lineTTL then
 			glPushMatrix()
 			glTranslate(vsx * posX, vsy * ((scrolling and scrollingPosY or posY)-0.02)-backgroundPadding, 0)
-			processLine(currentTypewriterLine, true)
-			glCallList(chatLines[currentTypewriterLine][9])
+			processLine(currentChatTypewriterLine, true)
+			glCallList(chatLines[currentChatTypewriterLine].lineDisplayList)
 			glPopMatrix()
 		end
 	end
@@ -512,17 +464,17 @@ function widget:MouseWheel(up, value)
 	if scrolling then
 		local alt, ctrl, meta, shift = Spring.GetModKeyState()
 		if up then
-			currentLine = currentLine - (shift and maxLinesScroll or (ctrl and 3 or 1))
-			if currentLine < maxLinesScroll then
-				currentLine = maxLinesScroll
-				if currentLine > #chatLines then
-					currentLine = #chatLines
+			currentChatLine = currentChatLine - (shift and maxLinesScroll or (ctrl and 3 or 1))
+			if currentChatLine < maxLinesScroll then
+				currentChatLine = maxLinesScroll
+				if currentChatLine > #chatLines then
+					currentChatLine = #chatLines
 				end
 			end
 		else
-			currentLine = currentLine + (shift and maxLinesScroll or (ctrl and 3 or 1))
-			if currentLine > #chatLines then
-				currentLine = #chatLines
+			currentChatLine = currentChatLine + (shift and maxLinesScroll or (ctrl and 3 or 1))
+			if currentChatLine > #chatLines then
+				currentChatLine = #chatLines
 			end
 		end
 		return true
@@ -539,23 +491,13 @@ function widget:WorldTooltip(ttType,data1,data2,data3)
 	end
 end
 
-
-function widget:Shutdown()
-	for i, _ in ipairs(chatLines) do
-		if chatLines[i][9] then
-			glDeleteList(chatLines[i][9])
-			chatLines[i][9] = nil
-		end
-	end
-	WG['chat'] = nil
-	Spring.SendCommands("console 1")
-end
-
 local function convertColor(r,g,b)
 	return schar(255, (r*255), (g*255), (b*255))
 end
 
-local function processConsoleLine(line)
+local function processConsoleLine(gameFrame, line, addOrgLine)
+	local orgLine = line
+
 	local roster = spGetPlayerRoster()
 	local names = {}
 	for i=1, #roster do
@@ -566,7 +508,7 @@ local function processConsoleLine(line)
 	local text = ''
 	local lineType = 0
 	local bypassThisMessage = false
-	local ignoreThisMessage = false
+	local skipThisMessage = false
 	local textcolor, c
 
 	-- player message
@@ -604,8 +546,8 @@ local function processConsoleLine(line)
 		end
 
 		-- filter specs
-		if filterSpecs then
-			ignoreThisMessage = true
+		if hideSpecChat then
+			skipThisMessage = true
 		end
 
 		if sfind(text,'Allies: ', nil, true) == 1 then
@@ -686,7 +628,7 @@ local function processConsoleLine(line)
 
 	-- ignore muted players
 	if WG.ignoredPlayers and WG.ignoredPlayers[name] then
-		ignoreThisMessage = true
+		skipThisMessage = true
 	end
 
 	-- ignore muted players
@@ -694,35 +636,121 @@ local function processConsoleLine(line)
 		bypassThisMessage = true
 	end
 
-	return bypassThisMessage, ignoreThisMessage, lineType, name, line
+	if not bypassThisMessage and line ~= '' then
+		if addOrgLine then
+			orgLines[#orgLines+1] = {gameFrame, orgLine}
+		end
+		if lineType < 1 then
+			addConsoleChat(gameFrame, lineType, line)
+		elseif not skipThisMessage then
+			addChat(gameFrame, lineType, name, line, addOrgLine)
+		end
+	end
 end
 
 function widget:AddConsoleLine(lines, priority)
 	lines = lines:match('^\[f=[0-9]+\] (.*)$') or lines
 	for line in lines:gmatch("[^\n]+") do
-		local bypass, ignore, type, name, line = processConsoleLine(line)
-		if not bypass then
-			addChat(ignore, type, name, line)
+		processConsoleLine(spGetGameFrame(), line, true)
+	end
+end
+
+
+local function clearDisplayLists()
+	for i, _ in ipairs(chatLines) do
+		if chatLines[i].lineDisplayList then
+			glDeleteList(chatLines[i].lineDisplayList)
+			chatLines[i].lineDisplayList = nil
+		end
+		if chatLines[i].timeDisplayList then
+			glDeleteList(chatLines[i].timeDisplayList)
+			chatLines[i].timeDisplayList = nil
 		end
 	end
 end
 
-function widget:GetConfigData(data)
-	for i, _ in ipairs(chatLines) do
-		chatLines[i][9] = nil
+local function processLines()
+	clearDisplayLists()
+	chatLines = {}
+	consoleLines = {}
+	for _, params in ipairs(orgLines) do
+		processConsoleLine(params[1], params[2])
 	end
+	currentChatLine = #chatLines
+	currentChatTypewriterLine = currentChatLine
+end
+
+function widget:ViewResize()
+	vsx,vsy = Spring.GetViewGeometry()
+	widgetScale = (((vsx+vsy) / 2000) * 0.55) * (0.95+(ui_scale-1)/1.5)
+
+	UiElement = Spring.FlowUI.Draw.Element
+	UiScroller = Spring.FlowUI.Draw.Scroller
+	elementCorner = Spring.FlowUI.elementCorner
+	elementPadding = Spring.FlowUI.elementPadding
+	elementMargin = Spring.FlowUI.elementMargin
+
+	usedFontSize = charSize*widgetScale*fontsizeMult
+	font = WG['fonts'].getFont(nil, (charSize/18)*fontsizeMult, 0.17, 1.65)
+	font3 = WG['fonts'].getFont(fontfile3, (charSize/18)*fontsizeMult, 0.17, 1.65)
+
+	-- get longest playername and calc its width
+	local namePrefix = '(s)'
+	maxPlayernameWidth = font:GetTextWidth(namePrefix..longestPlayername) * usedFontSize
+	local playersList = Spring.GetPlayerList()
+	for _, playerID in ipairs(playersList) do
+		local name = Spring.GetPlayerInfo(playerID, false)
+		if name ~= longestPlayername and font:GetTextWidth(namePrefix..name)*usedFontSize > maxPlayernameWidth then
+			longestPlayername = name
+			maxPlayernameWidth = font:GetTextWidth(namePrefix..longestPlayername) * usedFontSize
+		end
+	end
+	maxTimeWidth = font3:GetTextWidth('00:00') * usedFontSize
+	lineSpaceWidth = 24*widgetScale
+	lineHeight = floor(usedFontSize*lineHeightMult)
+	backgroundPadding = elementPadding + floor(lineHeight*0.5)
+
+	if WG['topbar'] ~= nil then
+		local topbarArea = WG['topbar'].GetPosition()
+		activationArea[4] = topbarArea[2] - elementMargin
+		posY = floor(topbarArea[2] - elementMargin - backgroundPadding - backgroundPadding - (posYoffset * vsy) - (lineHeight*maxLines)) / vsy
+		scrollingPosY = floor(topbarArea[2] - elementMargin - backgroundPadding - backgroundPadding - (lineHeight*maxLinesScroll)) / vsy
+	end
+
+	activationArea = {
+		floor(vsx * posX),
+		floor(vsy * posY),
+		floor(vsx * posX2),
+		floor(vsy * (posY+0.12))
+	}
+	if WG['topbar'] ~= nil then
+		local topbarArea = WG['topbar'].GetPosition()
+		activationArea[4] = topbarArea[2] - elementMargin
+		activationArea[1] = topbarArea[1]
+	end
+
+	lineMaxWidth = floor((activationArea[3] - activationArea[1]) * 0.65)
+
+	processLines()
+end
+
+function widget:Shutdown()
+	clearDisplayLists()
+	WG['chat'] = nil
+	Spring.SendCommands("console 1")
+end
+
+function widget:GetConfigData(data)
 	return {
-		chatLines = chatLines,
+		orgLines = orgLines,
 		fontsizeMult = fontsizeMult,
 		backgroundOpacity = backgroundOpacity
 	}
 end
 
 function widget:SetConfigData(data)
-	if Spring.GetGameFrame() > 0 and data.chatLines ~= nil then
-		chatLines = data.chatLines
-		currentLine = #chatLines
-		currentTypewriterLine = currentLine
+	if Spring.GetGameFrame() > 0 and data.orgLines ~= nil then
+		orgLines = data.orgLines
 	end
 	if data.backgroundOpacity ~= nil then
 		backgroundOpacity = data.backgroundOpacity
