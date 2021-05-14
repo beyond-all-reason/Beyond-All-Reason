@@ -36,7 +36,7 @@ function SpawnBeacon(n)
 			canSpawnBeaconHere = posCheck(posx, posy, posz, 80)
 			if canSpawnBeaconHere then
 				if globalScore then
-					local g = math_random(0,5)
+					local g = math_random(0,20)
 					--ScavSafeAreaMinX
 					--ScavSafeAreaMaxX
 					--ScavSafeAreaMinZ
