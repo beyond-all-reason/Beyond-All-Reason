@@ -581,6 +581,11 @@ local function processConsoleLine(gameFrame, line, addOrgLine)
 			name = '(s) '..name
 			namecolor = convertColor(colorSpec[1],colorSpec[2],colorSpec[3])
 			textcolor = convertColor(colorSpec[1],colorSpec[2],colorSpec[3])
+
+			-- filter specs
+			if hideSpecChat then
+				skipThisMessage = true
+			end
 		else
 			namecolor =  convertColor(spGetTeamColor(names[name][3]))
 
@@ -608,6 +613,15 @@ local function processConsoleLine(gameFrame, line, addOrgLine)
 			end
 		else
 			bypassThisMessage = true
+		end
+
+		-- filter specs
+		local spectator = false
+		if names[name] ~= nil then
+			spectator = names[name][2]
+		end
+		if hideSpecChat and (not names[name] or spectator) then
+			skipThisMessage = true
 		end
 
 		name = convertColor(colorGame[1],colorGame[2],colorGame[3])..'<'..name..'>'
@@ -742,6 +756,7 @@ end
 
 function widget:GetConfigData(data)
 	return {
+		clock = os.clock(),
 		orgLines = orgLines,
 		fontsizeMult = fontsizeMult,
 		backgroundOpacity = backgroundOpacity
@@ -749,8 +764,10 @@ function widget:GetConfigData(data)
 end
 
 function widget:SetConfigData(data)
-	if Spring.GetGameFrame() > 0 and data.orgLines ~= nil then
-		orgLines = data.orgLines
+	if data.orgLines ~= nil then
+		if Spring.GetGameFrame() > 0 or (data.clock and data.clock < os.clock()) then
+			orgLines = data.orgLines
+		end
 	end
 	if data.backgroundOpacity ~= nil then
 		backgroundOpacity = data.backgroundOpacity
