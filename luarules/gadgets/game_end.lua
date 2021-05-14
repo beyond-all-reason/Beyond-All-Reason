@@ -35,6 +35,7 @@ if gadgetHandler:IsSyncedCode() then
 	local GetTeamLuaAI = Spring.GetTeamLuaAI
 	local GameOver = Spring.GameOver
 	local AreTeamsAllied = Spring.AreTeamsAllied
+	local GetGameFrame = Spring.GetGameFrame
 
 	--------------------------------------------------------------------------------
 	--------------------------------------------------------------------------------
@@ -232,8 +233,14 @@ if gadgetHandler:IsSyncedCode() then
 	function CheckPlayer(playerID)
 		local _, active, spectator, teamID, allyTeamID = GetPlayerInfo(playerID, false)
 		local teamInfo = allyTeamInfos[allyTeamID].teams[teamID]
-		teamInfo.players[playerID] = active and not spectator
-		teamInfo.hasLeader = select(2, GetTeamInfo(teamID, false)) >= 0
+
+		local gf = GetGameFrame()
+		if not spectator and active then 
+			teamInfo.players[playerID] = gf
+		end
+		--teamInfo.players[playerID] = active and not spectator -- old and bad, see below
+		teamInfo.hasLeader = select(2,GetTeamInfo(teamID,false)) >= 0
+
 		if not teamInfo.hasLeader and not teamInfo.dead then
 			KillTeam(teamID)
 			Script.LuaRules.TeamDeathMessage(teamID)
@@ -242,8 +249,8 @@ if gadgetHandler:IsSyncedCode() then
 		-- if team isn't AI controlled, then we need to check if we have attached players
 		if not teamInfo.isAI then
 			teamInfo.isControlled = false
-			for _, isControlling in pairs(teamInfo.players) do
-				if isControlling then
+			for _,isControlling in pairs(teamInfo.players) do
+				if isControlling and isControlling > (gf - 60) then -- this entire crap is needed because GetPlayerInfo returns active = false for the next 30 gameframes after savegame load, and results in immediate end of loaded games if > 1v1 game
 					teamInfo.isControlled = true
 					break
 				end
