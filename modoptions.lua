@@ -312,7 +312,7 @@ local options={
 	},
 	{
 		key    = 'scavtechcurve',
-		name   = 'Scavenger Tech Progression Lenght Multiplier (higher = slower scav tech = longer game)',
+		name   = 'Scavenger Tech Progression Length Multiplier (higher = slower scav tech = longer game)',
 		desc   = '',
 		type   = 'number',
 		section= 'options_scavengers',
