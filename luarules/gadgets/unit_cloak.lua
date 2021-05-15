@@ -1,10 +1,8 @@
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
 
 function gadget:GetInfo()
 	return {
-		name      = "Decloak when damaged",
-		desc      = "Decloaks units when they are damged",
+		name      = "Cloak",	-- gadget copy from: Decloak when damaged
+		desc      = "optionally: decloaks units when they are damged",
 		author    = "Google Frog",
 		date      = "Nov 25, 2009", -- Major rework 12 Feb 2014
 		license   = "GNU GPL, v2 or later",
@@ -13,12 +11,13 @@ function gadget:GetInfo()
 	}
 end
 
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
+if not gadgetHandler:IsSyncedCode() then
+	return false
+end
+
+local decloakWhenDamaged = false
 
 include("LuaRules/Configs/customcmds.h.lua")
-
-local CMD_CLOAK = CMD.CLOAK
 
 local unitWantCloakCommandDesc = {
 	id      = CMD_WANT_CLOAK,
@@ -29,13 +28,6 @@ local unitWantCloakCommandDesc = {
 	tooltip	= 'invisiblility state',
 	params 	= {0, 'Decloaked', 'Cloaked'}
 }
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
-if not gadgetHandler:IsSyncedCode() then
-  return false  --  silent removal
-end
 
 local alliedTrueTable = {allied = true}
 
@@ -55,32 +47,24 @@ local spUseUnitResource = Spring.UseUnitResource
 local spFindUnitCmdDesc = Spring.FindUnitCmdDesc
 local spEditUnitCmdDesc = Spring.EditUnitCmdDesc
 
-local recloakUnit = {}
-local recloakFrame = {}
-
-local noFFWeaponDefs = {}
-for i = 1, #WeaponDefs do
-	local wd = WeaponDefs[i]
-	if wd.customParams and wd.customParams.nofriendlyfire then
-		noFFWeaponDefs[i] = true
-	end
-end
-
+local CMD_CLOAK = CMD.CLOAK
 local DEFAULT_DECLOAK_TIME = 128
 local UPDATE_FREQUENCY = 10
 local CLOAK_MOVE_THRESHOLD = math.sqrt(0.2)
-
+local recloakUnit = {}
+local recloakFrame = {}
 local currentFrame = 0
 
-local cloakUnitDefID = {}
+local canCloak = {}
 for udid, ud in pairs(UnitDefs) do
 	if ud.canCloak then
-		cloakUnitDefID[udid] = ud.startCloaked and '1' or '0'
+		canCloak[udid] = {
+			ud.startCloaked,
+			ud.cloakCostMoving,
+			ud.cloakCost,
+		}
 	end
 end
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
 
 function PokeDecloakUnit(unitID, duration)
 	if recloakUnit[unitID] then
@@ -95,17 +79,25 @@ end
 
 GG.PokeDecloakUnit = PokeDecloakUnit
 
---function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer,  weaponID, attackerID, attackerDefID, attackerTeam)
-	-- if damage > 0 and
-		-- not (attackerTeam and
-		-- weaponID and
-		-- noFFWeaponDefs[weaponID] and
-		-- attackerID ~= unitID and
-		-- spAreTeamsAllied(unitTeam, attackerTeam)) then
-		-- PokeDecloakUnit(unitID)
-	-- end
---end
-
+if decloakWhenDamaged then
+	local noFFWeaponDefs = {}
+	for i = 1, #WeaponDefs do
+		local wd = WeaponDefs[i]
+		if wd.customParams and wd.customParams.nofriendlyfire then
+			noFFWeaponDefs[i] = true
+		end
+	end
+	function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer,  weaponID, attackerID, attackerDefID, attackerTeam)
+		if damage > 0 and
+			not (attackerTeam and
+				weaponID and
+				noFFWeaponDefs[weaponID] and
+				attackerID ~= unitID and
+				spAreTeamsAllied(unitTeam, attackerTeam)) then
+			PokeDecloakUnit(unitID)
+		end
+	end
+end
 
 function gadget:GameFrame(n)
 	currentFrame = n
@@ -149,8 +141,7 @@ function gadget:AllowUnitCloak(unitID, enemyID)
 	end
 
 	local unitDefID = unitID and spGetUnitDefID(unitID)
-	local ud = unitDefID and UnitDefs[unitDefID]
-	if not ud then
+	if not canCloak[unitDefID] then
 		return false
 	end
 
@@ -158,7 +149,7 @@ function gadget:AllowUnitCloak(unitID, enemyID)
 	if not areaCloaked then
 		local speed = select(4, spGetUnitVelocity(unitID))
 		local moving = speed and speed > CLOAK_MOVE_THRESHOLD
-		local cost = moving and ud.cloakCostMoving or ud.cloakCost
+		local cost = moving and canCloak[unitDefID][2] or canCloak[unitDefID][3]
 
 		if not spUseUnitResource(unitID, "e", cost/2) then -- SlowUpdate happens twice a second.
 			return false
@@ -172,17 +163,14 @@ function gadget:AllowUnitDecloak(unitID, objectID, weaponID)
 	recloakFrame[unitID] = currentFrame + DEFAULT_DECLOAK_TIME
 end
 
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
 local function SetWantedCloaked(unitID, state)
-	if (not unitID) or spGetUnitIsDead(unitID) then
+	if not unitID or spGetUnitIsDead(unitID) then
 		return
 	end
 
 	local wantCloakState = spGetUnitRulesParam(unitID, 'wantcloak')
 	local cmdDescID = spFindUnitCmdDesc(unitID, CMD_WANT_CLOAK)
-	if (cmdDescID) then
+	if cmdDescID then
 		spEditUnitCmdDesc(unitID, cmdDescID, { params = {state, 'Decloaked', 'Cloaked'}})
 	end
 
@@ -214,8 +202,8 @@ end
 
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
 	if cmdID == CMD_WANT_CLOAK then
-		if cloakUnitDefID[unitDefID] then
-			SetWantedCloaked(unitID,cmdParams[1])
+		if canCloak[unitDefID] then
+			SetWantedCloaked(unitID, cmdParams[1])
 		end
 		return true
 	elseif cmdID == CMD_CLOAK then
@@ -224,17 +212,14 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpt
 	return true
 end
 
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
 function gadget:UnitCreated(unitID, unitDefID)
-	if cloakUnitDefID[unitDefID] then
+	if canCloak[unitDefID] then
 		local cloakDescID = spFindUnitCmdDesc(unitID, CMD_CLOAK)
 		if cloakDescID then
 			spInsertUnitCmdDesc(unitID, unitWantCloakCommandDesc)
 			spRemoveUnitCmdDesc(unitID, cloakDescID)
 			spSetUnitRulesParam(unitID, 'wantcloak', 0, alliedTrueTable)
-			if cloakUnitDefID[unitDefID] == '1' then
+			if canCloak[unitDefID][1] then
 				SetWantedCloaked(unitID, 1)
 			end
 			return
@@ -244,7 +229,6 @@ end
 
 function gadget:Initialize()
 	for _, unitID in ipairs(Spring.GetAllUnits()) do
-		local unitDefID = spGetUnitDefID(unitID)
-		gadget:UnitCreated(unitID, unitDefID)
+		gadget:UnitCreated(unitID, spGetUnitDefID(unitID))
 	end
 end

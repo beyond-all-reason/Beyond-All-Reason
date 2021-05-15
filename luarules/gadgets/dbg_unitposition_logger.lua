@@ -102,19 +102,22 @@ if not gadgetHandler:IsSyncedCode() then
 		}
 		local part = 1
 		local i = 0
+		local teamID
 		for unitID, params in pairs(allUnits) do
-			i = i + 1
 			local px, py, pz = spGetUnitPosition(unitID)
-			part = math_ceil(i / (allUnitsTotal/numParticipants))
-			if log[frame].parts[part] == nil then
-				log[frame].parts[part] = {}
+			if px then
+				i = i + 1
+				part = math_ceil(i / (allUnitsTotal/numParticipants))
+				if log[frame].parts[part] == nil then
+					log[frame].parts[part] = {}
+				end
+				teamID = params[2]
+				if log[frame].parts[part][teamID] == nil then
+					log[frame].parts[part][teamID] = {}
+				end
+				local count = #log[frame].parts[part][teamID]+1
+				log[frame].parts[part][teamID][count] = {unitID, params[1], math_floor(px), math_floor(pz)}--, math_floor(py)}	-- put height last so it can be left out easier
 			end
-			local teamID = params[2]
-			if log[frame].parts[part][teamID] == nil then
-				log[frame].parts[part][teamID] = {}
-			end
-			local count = #log[frame].parts[part][teamID]+1
-			log[frame].parts[part][teamID][count] = {unitID, params[1], math_floor(px), math_floor(pz)}--, math_floor(py)}	-- put height last so it can be left out easier
 		end
 	end
 
