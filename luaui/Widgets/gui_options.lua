@@ -3134,13 +3134,6 @@ function init()
 			end,
 			onchange = function(i, value)
 				Spring.SetConfigInt("HideSpecChat", value and 1 or 0)
-				widgetHandler:DisableWidget("Chat")
-				widgetHandler:EnableWidget("Chat")
-				--widgetHandler:DisableWidget("Red Console (Battle and autohosts)")
-				--widgetHandler:DisableWidget("Red Console (In-game chat only)")
-				--widgetHandler:DisableWidget("Red Console (Battle and autohosts)")
-				--widgetHandler:EnableWidget("Red Console (In-game chat only)")
-				--widgetHandler:EnableWidget("Red Console (Battle and autohosts)")
 			end,
 		  },
 		  { id = "console_backgroundopacity", group = "ui", basic = true, name = widgetOptionColor .. "   "..texts.option.console_backgroundopacity, type = "slider", min = 0, max = 0.3, step = 0.01, value = (WG['chat'] ~= nil and WG['chat'].getBackgroundOpacity() or 0), description = texts.option.console_backgroundopacity_descr,
