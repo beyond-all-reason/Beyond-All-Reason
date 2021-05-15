@@ -102,7 +102,7 @@ local function DisableUnit(unitID)
 	Spring.MoveCtrl.Enable(unitID)
 	Spring.MoveCtrl.SetNoBlocking(unitID, true)
 	Spring.MoveCtrl.SetPosition(unitID, Game.mapSizeX+1900, 2000, Game.mapSizeZ+1900) --don't move too far out or prevent_aicraft_hax will explode it!
-	Spring.SetUnitNeutral(unit, true)
+	Spring.SetUnitNeutral(unitID, true)
 	Spring.SetUnitCloak(unitID, true)
 	--Spring.SetUnitHealth(unitID, {paralyze=99999999})
 	Spring.SetUnitMaxHealth(unitID, 10000000)
