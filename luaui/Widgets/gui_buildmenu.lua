@@ -1496,14 +1496,14 @@ function widget:DrawScreen()
 								unsetShowPrice = true
 								showPrice = true
 							end
-							if not showRadarIcon then
-								unsetShowRadarIcon = true
-								showRadarIcon = true
-							end
-							if not showGroupIcon then
-								unsetShowGroupIcon = true
-								showGroupIcon = true
-							end
+							--if not showRadarIcon then
+							--	unsetShowRadarIcon = true
+							--	showRadarIcon = true
+							--end
+							--if not showGroupIcon then
+							--	unsetShowGroupIcon = true
+							--	showGroupIcon = true
+							--end
 							-- re-draw cell with hover zoom (and price shown)
 							drawCell(cellRectID, usedZoom, cellColor, nil, { cellColor[1], cellColor[2], cellColor[3], 0.045 + (usedZoom * 0.45) }, 0.15, unitRestricted[uDefID])
 
@@ -1511,19 +1511,14 @@ function widget:DrawScreen()
 								showPrice = false
 								unsetShowPrice = nil
 							end
-							if unsetShowRadarIcon then
-								showRadarIcon = false
-								unsetShowRadarIcon = nil
-							end
-							if unsetShowGroupIcon then
-								showGroupIcon = false
-								unsetShowGroupIcon = nil
-							end
-							-- gloss highlight
-							--glBlending(GL_SRC_ALPHA, GL_ONE)
-							--RectRound(cellRects[cellRectID][1]+cellPadding, cellRects[cellRectID][4]-cellPadding-(cellInnerSize*0.5), cellRects[cellRectID][3]-cellPadding, cellRects[cellRectID][4]-cellPadding, cellSize*0.03, 1,1,0,0,{1,1,1,0.0}, {1,1,1,0.09})
-							--RectRound(cellRects[cellRectID][1]+cellPadding, cellRects[cellRectID][2]+cellPadding, cellRects[cellRectID][3]-cellPadding, cellRects[cellRectID][2]+cellPadding+(cellInnerSize*0.15), cellSize*0.03, 0,0,1,1,{1,1,1,0.07}, {1,1,1,0})
-							--glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+							--if unsetShowRadarIcon then
+							--	showRadarIcon = false
+							--	unsetShowRadarIcon = nil
+							--end
+							--if unsetShowGroupIcon then
+							--	showGroupIcon = false
+							--	unsetShowGroupIcon = nil
+							--end
 						end
 					end
 				end
