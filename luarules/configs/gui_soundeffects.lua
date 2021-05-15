@@ -980,7 +980,7 @@ GUIUnitSoundEffects = {
 		BaseSoundWeaponType = "air-bomb-small",
 	},
 	armseap = {
-		BaseSoundSelectType = "arm-air-gunship-ok-sel",
+		BaseSoundSelectType = "arm-air-gunship-sel",
 		BaseSoundMovementType = "arm-air-gunship-ok",
 		BaseSoundWeaponType = "air-bomb-small-torp",
 	},
@@ -2036,7 +2036,7 @@ GUIUnitSoundEffects = {
 		BaseSoundWeaponType = "air-bomb-small",
 	},
 	corseap = {
-		BaseSoundSelectType = "arm-air-gunship-ok-sel",
+		BaseSoundSelectType = "arm-air-gunship-sel",
 		BaseSoundMovementType = "arm-air-gunship-ok",
 		BaseSoundWeaponType = "air-bomb-small-torp",
 	},
