@@ -101,7 +101,7 @@ VFS.Include("luarules/gadgets/scavengers/Modules/bossfight_module.lua")
 local function DisableUnit(unitID)
 	Spring.MoveCtrl.Enable(unitID)
 	Spring.MoveCtrl.SetNoBlocking(unitID, true)
-	Spring.MoveCtrl.SetPosition(unitID, Game.mapSizeX+9900, 2000, Game.mapSizeZ+9900) --don't move too far out or prevent_aicraft_hax will explode it!
+	Spring.MoveCtrl.SetPosition(unitID, Game.mapSizeX+1900, 2000, Game.mapSizeZ+1900) --don't move too far out or prevent_aicraft_hax will explode it!
 	Spring.SetUnitNeutral(unit, true)
 	Spring.SetUnitCloak(unitID, true)
 	--Spring.SetUnitHealth(unitID, {paralyze=99999999})
@@ -193,7 +193,7 @@ function PutScavAlliesInScavTeam(n)
 			end
 		end
 	end
-	
+
 	local scavAllies = Spring.GetTeamList(GaiaAllyTeamID)
 	for i = 1,#scavAllies do
 		local _,_,_,AI = Spring.GetTeamInfo(scavAllies[i])
@@ -218,7 +218,7 @@ function gadget:GameFrame(n)
 	if n == 1 then
 		-- PutSpectatorsInScavTeam(n)
 		PutScavAlliesInScavTeam(n)
-		
+
 	end
 
 	if n == 150 and unitSpawnerModuleConfig.initialbonuscommander == true then
@@ -238,7 +238,7 @@ function gadget:GameFrame(n)
 		ScavSafeAreaMaxZ = ScavengerStartboxZMax
 		ScavSafeAreaSize = math.ceil(((ScavengerStartboxXMax - ScavengerStartboxXMin) + (ScavengerStartboxZMax - ScavengerStartboxZMin))*0.175)
 	end
-	
+
 	if n%900 then
 		MasterMindLandTargetsListUpdate(n)
 		MasterMindSeaTargetsListUpdate(n)
@@ -508,7 +508,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
 			killedscavengers = killedscavengers + ((scavconfig.scoreConfig.scorePerKilledSpawner+scavconfig.scoreConfig.baseScorePerKill)*4*ScavSafeAreaGenerator)
 		end
 	else
-		
+
 		if #ActiveReinforcementUnits > 0 then
 			for i = 1,#ActiveReinforcementUnits do
 				if unitID == ActiveReinforcementUnits[i] then

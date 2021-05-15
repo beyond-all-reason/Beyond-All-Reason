@@ -17,7 +17,7 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
-local rangeLimit = 3000
+local rangeLimit = 2100
 
 local gaiaTeamID = Spring.GetGaiaTeamID()
 local mapX = Game.mapSizeX
