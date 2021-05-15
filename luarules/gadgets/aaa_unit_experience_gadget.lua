@@ -46,10 +46,8 @@ for i = 1, #levelsTable do
 end
 
 -- cache
-local unitName = {}
 local unitWeapons = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
-	unitName[unitDefID] = unitDef.name
 	local weapons = unitDef.weapons
 	if #weapons > 0 then
 		unitWeapons[unitDefID] = {}
@@ -75,26 +73,25 @@ local defaultConfig = {
 
 local unitConfigs = { -- missing values default to 0
 	-- example:
-	-- armpw = {maxSpeed = 10, turnRate = 10,}
+	-- UnitDefNames.armpw.id = {maxSpeed = 10, turnRate = 10,}
 }
 
 local function ApplyBonuses(unitID)
 	local unitDefID = unitsDefID[unitID]
-	local unitName = unitName[unitDefID]
-	if unitConfigs[unitName] then
+	if unitConfigs[unitDefID] then
 
-		if unitConfigs[unitName].health then
+		if unitConfigs[unitDefID].health then
 			local curhealth, curmaxhealth = Spring.GetUnitHealth(unitID)
-			Spring.SetUnitMaxHealth(unitID, curmaxhealth * (1 + (unitConfigs[unitName].health * 0.01)))
-			Spring.SetUnitHealth(unitID, curhealth * (1 + (unitConfigs[unitName].health * 0.01)))
+			Spring.SetUnitMaxHealth(unitID, curmaxhealth * (1 + (unitConfigs[unitDefID].health * 0.01)))
+			Spring.SetUnitHealth(unitID, curhealth * (1 + (unitConfigs[unitDefID].health * 0.01)))
 		end
 
 		local weapons = unitWeapons[unitDefID]
 		if weapons then
 			for i = 1, #weapons do
-				if unitConfigs[unitName].reloadTime then
+				if unitConfigs[unitDefID].reloadTime then
 					local weaponReloadTime = Spring.GetUnitWeaponState(unitID, i, "reloadTime")
-					Spring.SetUnitWeaponState(unitID, i, "reloadTime", weaponReloadTime * (1 - (unitConfigs[unitName].reloadTime * 0.01)))
+					Spring.SetUnitWeaponState(unitID, i, "reloadTime", weaponReloadTime * (1 - (unitConfigs[unitDefID].reloadTime * 0.01)))
 				end
 			end
 		end
@@ -158,8 +155,10 @@ local function ApplyBonuses(unitID)
 end
 
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)
-	XPLevel[unitID] = 1
-	unitsDefID[unitID] = unitDefID
+	if unitWeapons[unitDefID] then
+		XPLevel[unitID] = 1
+		unitsDefID[unitID] = unitDefID
+	end
 end
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
 	XPLevel[unitID] = nil
@@ -167,11 +166,8 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 end
 
 function gadget:GameFrame(n)
-	local units = Spring.GetAllUnits()
-	for i = 1, #units do
-		local unitID = units[i]
-		local level = XPLevel[unitID]
-		if level and unitID % 30 == n % 30 then
+	for unitID, level in pairs(XPLevel) do
+		if unitID % 30 == n % 30 then
 			if spGetUnitExperience(unitID) > levelsTable[level + 1] then
 				ApplyBonuses(unitID)
 			end

@@ -195,7 +195,7 @@ local function addChat(gameFrame, type, name, text, isLive)
 	end
 
 	-- play sound for player/spectator chat
-	if (type == 1 or type == 2) and playSound and not Spring.IsGUIHidden() then
+	if isLive and (type == 1 or type == 2) and playSound and not Spring.IsGUIHidden() then
 		spPlaySoundFile( SoundIncomingChat, SoundIncomingChatVolume, nil, "ui" )
 	end
 end
