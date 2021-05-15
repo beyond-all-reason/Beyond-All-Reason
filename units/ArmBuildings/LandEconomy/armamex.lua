@@ -43,6 +43,7 @@ return {
 		script = "Units/ARMAMEX.cob",
 		seismicsignature = 0,
 		selfdestructas = "empblast",
+		selfdestructcountdown = 1,
 		sightdistance = 286,
 		stealth = true,
 		usebuildinggrounddecal = true,
