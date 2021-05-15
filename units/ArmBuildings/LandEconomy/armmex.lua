@@ -40,7 +40,6 @@ return {
 		script = "Units/ARMMEX.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallBuildingExplosionGenericSelfd",
-		selfdestructcountdown = 1,
 		sightdistance = 273,
 		usebuildinggrounddecal = true,
 		--waterline = 0,

@@ -36,7 +36,6 @@ return {
 		onoffable = true,
 		script = "Units/armuwmex.cob",
 		seismicsignature = 0,
-		selfdestructcountdown = 1,
 		sightdistance = 182,
 		usepiececollisionvolumes = true,
 		waterline = 0,

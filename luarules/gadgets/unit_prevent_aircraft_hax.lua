@@ -33,7 +33,7 @@ for unitDefID, udef in pairs(UnitDefs) do
 end
 
 function gadget:Initialize()
-	for ct, unitID in pairs(Spring.GetAllUnits()) do
+	for _, unitID in pairs(Spring.GetAllUnits()) do
 		gadget:UnitFinished(unitID, Spring.GetUnitDefID(unitID), Spring.GetUnitTeam(unitID))
 	end
 end
