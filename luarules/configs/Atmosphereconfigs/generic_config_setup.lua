@@ -1,7 +1,11 @@
 Spring.Echo("Enabled generic atmosphere config")
 
+local math_random = math.random
+local GaiaTeamID = Spring.GetGaiaTeamID()
+
 local mapsizex = Game.mapSizeX
 local mapsizez = Game.mapSizeZ
+local mapheightmin, mapheightmax = Spring.GetGroundExtremes()
 local transitionSpeed = (mapsizez/mapsizex) * 0.66
 
 local windmin = Game.windMin
@@ -66,10 +70,10 @@ function gadget:GameFrame(n)
     local clock = n%fullcyclelenght
 
     if clock == 10 then -- new day
-        if math.random(0,100) < badweatherchance then
+        if math_random(0,100) < badweatherchance then
             badweatherplanned = true
-            badweatherclockstart = math.random(1,math.floor(fullcyclelenght*0.75))
-            badweatherclockend = math.random(badweatherclockstart,fullcyclelenght-1)
+            badweatherclockstart = math_random(1,math.floor(fullcyclelenght*0.75))
+            badweatherclockend = math_random(badweatherclockstart,fullcyclelenght-1)
             if snowyMap then
                 thunderstormenabled = false
             else
@@ -81,8 +85,8 @@ function gadget:GameFrame(n)
     end
 
     if badweatherplanned and clock > badweatherclockstart and clock < badweatherclockend then
-        if thunderstormenabled and math.random(1,30) == 1 then
-            SpawnCEGInRandomMapPosAvoidUnits("lightningstrike", 0, 128, lightningsounds[math.random(1,#lightningsounds)], 1)
+        if thunderstormenabled and math_random(1,30) == 1 then
+            SpawnCEGInRandomMapPosAvoidUnits("lightningstrike", 0, 128, lightningsounds[math_random(1,#lightningsounds)], 1)
         end
         if clock > nightlenght then
             SendToUnsynced("MapAtmosphereConfigSetSun", 0.8, transitionSpeed, 0.8, 0.8, 0.8*atmospherelevelmult)

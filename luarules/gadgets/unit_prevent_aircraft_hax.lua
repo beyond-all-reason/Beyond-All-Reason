@@ -29,8 +29,8 @@ function gadget:GameFrame(f)
 		for _, unitID in pairs(all_units) do
 			local x, y, z = spGetUnitPosition(unitID)
 			if not (z == nil or x == nil) then
-				if z < -1500 or x < -1500 or z > mapZ + 1500 or x > mapX + 1500 then
-					Spring.DestroyUnit(unitID)
+				if z < -10000 or x < -10000 or z > mapZ + 10000 or x > mapX + 10000 then
+					Spring.DestroyUnit(unitID, false, true)
 				end
 			end
 		end

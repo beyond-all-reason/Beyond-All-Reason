@@ -101,7 +101,8 @@ VFS.Include("luarules/gadgets/scavengers/Modules/bossfight_module.lua")
 local function DisableUnit(unitID)
 	Spring.MoveCtrl.Enable(unitID)
 	Spring.MoveCtrl.SetNoBlocking(unitID, true)
-	Spring.MoveCtrl.SetPosition(unitID, Game.mapSizeX+1000, 2000, Game.mapSizeZ+1000) --don't move too far out or prevent_aicraft_hax will explode it!
+	Spring.MoveCtrl.SetPosition(unitID, Game.mapSizeX+9900, 2000, Game.mapSizeZ+9900) --don't move too far out or prevent_aicraft_hax will explode it!
+	Spring.SetUnitNeutral(unit, true)
 	Spring.SetUnitCloak(unitID, true)
 	--Spring.SetUnitHealth(unitID, {paralyze=99999999})
 	Spring.SetUnitMaxHealth(unitID, 10000000)
