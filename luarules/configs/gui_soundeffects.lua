@@ -950,7 +950,7 @@ GUIUnitSoundEffects = {
 		BaseSoundWeaponType = "conalt-small",
 	},
 	armsehak = {
-		BaseSoundSelectType = "arm-air-gunship-alt-sel-sel",
+		BaseSoundSelectType = "arm-air-gunship-alt-sel",
 		BaseSoundMovementType = "arm-air-gunship-alt-ok",
 		BaseSoundWeaponType = "radar",
 	},
@@ -2006,7 +2006,7 @@ GUIUnitSoundEffects = {
 		BaseSoundWeaponType = "conalt-small",
 	},
 	corhunt = {
-		BaseSoundSelectType = "arm-air-gunship-alt-sel-sel",
+		BaseSoundSelectType = "arm-air-gunship-alt-sel",
 		BaseSoundMovementType = "arm-air-gunship-alt-ok",
 		BaseSoundWeaponType = "radar",
 	},
