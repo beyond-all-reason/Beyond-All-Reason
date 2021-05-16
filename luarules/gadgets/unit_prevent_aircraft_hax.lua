@@ -1,7 +1,3 @@
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
-local spGetUnitTeam = Spring.GetUnitTeam
 
 function gadget:GetInfo()
 	return {
@@ -27,6 +23,7 @@ local mapX = Game.mapSizeX
 local mapZ = Game.mapSizeZ
 local allMobileUnits = {}
 local spGetUnitPosition = Spring.GetUnitPosition
+local spGetUnitTeam = Spring.GetUnitTeam
 
 local isMobileUnit = {}
 for unitDefID, udef in pairs(UnitDefs) do
@@ -37,7 +34,7 @@ end
 
 function gadget:Initialize()
 	for _, unitID in pairs(Spring.GetAllUnits()) do
-		gadget:UnitFinished(unitID, Spring.GetUnitDefID(unitID), spGetUnitTeam(unitID))
+		gadget:UnitCreated(unitID, Spring.GetUnitDefID(unitID), spGetUnitTeam(unitID))
 	end
 end
 
