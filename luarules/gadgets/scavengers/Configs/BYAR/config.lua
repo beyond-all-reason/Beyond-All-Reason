@@ -11,6 +11,27 @@ Spring.Echo("[Scavengers] Config initialized")
 	local ScavUnitVeterancyModoption = tonumber(Spring.GetModOptions().scavunitspawnmultiplier) or 1
 	local ScavGracePeriodModoption = tonumber(Spring.GetModOptions().scavgraceperiod) or 5
 
+	scavDifficulty = (Spring.GetModOptions and Spring.GetModOptions().scavdifficulty) or "veryeasy"
+	if scavDifficulty == "noob" then
+		spawnmultiplier = 0.1
+	elseif scavDifficulty == "veryeasy" then
+		spawnmultiplier = 0.5
+	elseif scavDifficulty == "easy" then
+		spawnmultiplier = 0.75
+	elseif scavDifficulty == "medium" then
+		spawnmultiplier = 1
+	elseif scavDifficulty == "hard" then
+		spawnmultiplier = 1.25
+	elseif scavDifficulty == "veryhard" then
+		spawnmultiplier = 1.5
+	elseif scavDifficulty == "expert" then
+		spawnmultiplier = 2
+	elseif scavDifficulty == "brutal" then
+		spawnmultiplier = 3
+	else
+		spawnmultiplier = 0.5
+	end
+
 
 
 	-- Strings
@@ -142,9 +163,9 @@ unitSpawnerModuleConfig = {
 	aircraftchance 						= 6, -- higher number = lower chance
 	globalscoreperoneunit 				= 1200/ScavUnitCountModoption,
 	spawnchance							= 360/ScavUnitSpawnFrequencyModoption,
-	beaconspawnchance					= 240,
+	beaconspawnchance					= 480,
 	beacondefences						= true,
-	minimumspawnbeacons					= teamcount*2,
+	minimumspawnbeacons					= math.ceil(teamcount*2*spawnmultiplier),
 	landmultiplier 						= 0.75,
 	airmultiplier 						= 1.5,
 	seamultiplier 						= 0.75,
@@ -163,7 +184,7 @@ constructorControllerModuleConfig = {
 	constructortimerstart				= 600, -- ammount of seconds it skips from constructortimer for the first spawn (make first spawn earlier - this timer starts on timer-Timer1)
 	constructortimer 					= 600, -- time in seconds between commander/constructor spawns
 	constructortimerreductionframes		= 36000, -- increase frequency of commander spawns every this many frames
-	minimumconstructors					= teamcount*2,
+	minimumconstructors					= math.ceil(teamcount*2*spawnmultiplier),
 	useresurrectors						= true,
 		searesurrectors					= true,
 	useconstructors						= true,

@@ -479,7 +479,7 @@ end
 function widget:UnitEnteredLos(unitID, unitTeam)
 	if not displayMessages and not spoken then return end
 
-	if spIsUnitAllied(unitID) or unitTeam ~= gaiaTeamID then return end
+	if spIsUnitAllied(unitID) or unitTeam == gaiaTeamID then return end
 
 	local udefID = spGetUnitDefID(unitID)
 

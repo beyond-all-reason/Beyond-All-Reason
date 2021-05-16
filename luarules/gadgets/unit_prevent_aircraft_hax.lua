@@ -1,6 +1,8 @@
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
+local spGetUnitTeam = Spring.GetUnitTeam
+
 function gadget:GetInfo()
 	return {
 		name = "Prevent outside-of-map hax",
@@ -18,6 +20,7 @@ if not gadgetHandler:IsSyncedCode() then
 end
 
 local rangeLimit = 2100
+local rangeLimitGaia = 20000
 
 local gaiaTeamID = Spring.GetGaiaTeamID()
 local mapX = Game.mapSizeX
@@ -34,12 +37,12 @@ end
 
 function gadget:Initialize()
 	for _, unitID in pairs(Spring.GetAllUnits()) do
-		gadget:UnitFinished(unitID, Spring.GetUnitDefID(unitID), Spring.GetUnitTeam(unitID))
+		gadget:UnitFinished(unitID, Spring.GetUnitDefID(unitID), spGetUnitTeam(unitID))
 	end
 end
 
-function gadget:UnitFinished(unitID, unitDefID, unitTeam)
-	if isMobileUnit[unitDefID] and unitTeam ~= gaiaTeamID then
+function gadget:UnitCreated(unitID, unitDefID, unitTeam)
+	if isMobileUnit[unitDefID] then
 		allMobileUnits[unitID] = true
 	end
 end
@@ -53,11 +56,21 @@ function gadget:GameFrame(f)
 		local minMap = -rangeLimit
 		local maxMapX = mapX + rangeLimit
 		local maxMapZ = mapZ + rangeLimit
+		local minMapGaia = -rangeLimitGaia
+		local maxMapXGaia = mapX + rangeLimitGaia
+		local maxMapZGaia = mapZ + rangeLimitGaia
 		for unitID, _ in pairs(allMobileUnits) do
 			local x, y, z = spGetUnitPosition(unitID)
 			if not (z == nil or x == nil) then
-				if z < minMap or x < minMap or z > maxMapZ or x > maxMapX then
-					Spring.DestroyUnit(unitID, false, true)
+				local unitTeam = spGetUnitTeam(unitID)
+				if unitTeam == gaiaTeamID then
+					if z < minMapGaia or x < minMapGaia or z > maxMapZGaia or x > maxMapXGaia then
+						Spring.DestroyUnit(unitID, false, true)
+					end
+				else
+					if z < minMap or x < minMap or z > maxMapZ or x > maxMapX then
+						Spring.DestroyUnit(unitID, false, true)
+					end
 				end
 			end
 		end

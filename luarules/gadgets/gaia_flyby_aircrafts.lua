@@ -1,3 +1,20 @@
+local scavengersAIEnabled = false
+local scavengerAllyTeamID
+local teams = Spring.GetTeamList()
+for i = 1,#teams do
+	local luaAI = Spring.GetTeamLuaAI(teams[i])
+	if luaAI and luaAI ~= "" and string.sub(luaAI, 1, 12) == 'ScavengersAI' then
+		scavengersAIEnabled = true
+		scavengerAllyTeamID = select(6, Spring.GetTeamInfo(i - 1))
+		break
+	end
+end
+
+local ruinSpawnEnabled = false
+if (Spring.GetModOptions and (Spring.GetModOptions().ruins or "disabled") == "enabled") or (Spring.GetModOptions and (Spring.GetModOptions().scavonlyruins or "enabled") == "enabled" and scavengersAIEnabled == true) then
+	ruinSpawnEnabled = true
+end
+
 function gadget:GetInfo()
     return {
       name      = "flyby aircraft spawner",
@@ -5,7 +22,7 @@ function gadget:GetInfo()
       author    = "Damgam",
       date      = "2021",
       layer     = -100,
-      enabled   = false,
+      enabled   = ruinSpawnEnabled,
     }
 end
 
@@ -144,7 +161,7 @@ function gadget:GameFrame(n)
         local flyByRandom = math_random(1,flyByChance)
         if flyByRandom == 1 and n > lastFlyByFrame+minimumFlyByDelay then
             lastFlyByFrame = n
-            local flyByZPosition = math_random(-3000,mapsizez+3000)
+            local flyByZPosition = math_random(-1000,mapsizez+1000)
             local flyByFormation = flyByFormations[math_random(1,#flyByFormations)]
             local flyByUnit = flyByUnits[math_random(1,#flyByUnits)]
             local speed = UnitDefNames[flyByUnit].speed
@@ -156,9 +173,9 @@ function gadget:GameFrame(n)
             local posz = flyByZPosition
             local posy = mapheightmax+math_random(100,1000)
             for i = 1,#flyByFormation do
-                local unit = Spring.CreateUnit(flyByUnit, posx, posy, posz, 1, GaiaTeamID)
+                local unit = Spring.CreateUnit(flyByUnit.."_scav", posx, posy, posz, 1, GaiaTeamID)
                 Spring.SetUnitNoDraw(unit, true)
-                local posx = posx+flyByFormation[i][1]-9000
+                local posx = posx+flyByFormation[i][1]-15000
                 local posz = posz+flyByFormation[i][2]
                 Spring.MoveCtrl.Enable(unit)
                 Spring.MoveCtrl.SetNoBlocking(unit, true)

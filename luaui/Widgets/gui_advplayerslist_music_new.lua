@@ -29,7 +29,7 @@ local currentTrackList = introTracks
 local gameOver = false
 local playedGameOverTrack = false
 local endfadelevel = 999
-local silenceTimer = 0
+
 
 local playedTime, totalTime = Spring.GetSoundStreamTime()
 
@@ -38,6 +38,7 @@ local prevTrackName = "no name"
 local appliedSilence = true
 local minSilenceTime = 1
 local maxSilenceTime = 180
+local silenceTimer = math.random(minSilenceTime,maxSilenceTime)
 
 
 --- config
@@ -231,7 +232,7 @@ end
 
 function widget:Initialize()
 	appliedSilence = true
-	silenceTimer = 0
+	silenceTimer = math.random(minSilenceTime,maxSilenceTime)
 	widget:ViewResize()
 	--Spring.StopSoundStream() -- only for testing purposes
 
@@ -548,7 +549,9 @@ function widget:UnitDamaged(unitID,unitDefID,_,damage)
 		else
 			warMeter = math.ceil(warMeter + damage)
 		end
-		silenceTimer = silenceTimer - math.ceil(damage/1000)
+		if math.random(1,5) == 1 then
+			silenceTimer = silenceTimer - math.ceil(damage/1000)
+		end
 	end
 end
 

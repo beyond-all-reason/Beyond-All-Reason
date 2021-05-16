@@ -11,29 +11,6 @@ ScavengerStartboxXMax = mapsizeX + 1
 ScavengerStartboxZMax = mapsizeZ + 1
 ScavengerStartboxExists = false
 
-scavDifficulty = (Spring.GetModOptions and Spring.GetModOptions().scavdifficulty) or "veryeasy"
-if scavDifficulty == "noob" then
-	spawnmultiplier = 0.1
-elseif scavDifficulty == "veryeasy" then
-	spawnmultiplier = 0.5
-elseif scavDifficulty == "easy" then
-	spawnmultiplier = 0.75
-elseif scavDifficulty == "medium" then
-	spawnmultiplier = 1
-elseif scavDifficulty == "hard" then
-	spawnmultiplier = 1.25
-elseif scavDifficulty == "veryhard" then
-	spawnmultiplier = 1.5
-elseif scavDifficulty == "expert" then
-	spawnmultiplier = 2
-elseif scavDifficulty == "brutal" then
-	spawnmultiplier = 3
-else
-	spawnmultiplier = 0.5
-end
-
-
-
 
 --spawnmultiplier = tonumber(Spring.GetModOptions().scavengers) or 1
 
