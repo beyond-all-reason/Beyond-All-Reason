@@ -28,10 +28,10 @@ return {
     name = 'ScavengersAI',
     desc = 'Infinite Games'
   },
-  --{
-    --name = 'STAI',
-    --desc = 'STAI - Shard AI'
-  --},
+  {
+    name = 'STAI',
+    desc = 'shard testing, unstable. please report any bug @pandaro on discord'
+  },
   {
     name = 'Shard',
     desc = 'Shard - Basic Shard AI'
