@@ -997,10 +997,11 @@ end
 local function getParalyzer(unitDefID)
 	local unitDef = UnitDefs[unitDefID]
 	local weapons = unitDef["weapons"]
+	local paralyzer = nil
 	for i=1, #weapons do
 		local weaponDefID = weapons[i]["weaponDef"]
 		local weaponDef = WeaponDefs[weaponDefID]
-		local paralyzer  =  weaponDef['paralyzer']
+		paralyzer  =  weaponDef['paralyzer']
 	end
 	----Spring.Echo('paralyzer',paralyzer)
 	return paralyzer
@@ -1382,6 +1383,3 @@ getTechTree(armTechLv)
 getTechTree(corTechLv)
 for k,v in pairs(corTechLv) do unitsLevels[k] = v end
 for k,v in pairs(armTechLv) do unitsLevels[k] = v end
-
-wrecks = nil
-

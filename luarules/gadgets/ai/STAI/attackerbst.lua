@@ -94,7 +94,7 @@ function AttackerBST:Update()
 	end
 	if self.timeout then
 		if self.game:Frame() >= self.timeout	then
-			game:SendToConsole("timeout triggered")
+			self.game:SendToConsole("timeout triggered")
 			self.timeout = nil
 			-- self.ai.attackhst:RemoveMember(self)
 			self.ai.attackhst:AddRecruit(self)

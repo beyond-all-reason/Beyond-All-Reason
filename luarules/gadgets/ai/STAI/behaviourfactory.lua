@@ -22,7 +22,7 @@ function BehaviourFactory:AddBehaviours(unit)
 		b = self:defaultBehaviours(unit)
 	end
 	for i,behaviour in ipairs(b) do
-		t = behaviour()
+		local t = behaviour()
 		t:SetAI(self.ai)
 		t:SetUnit(unit)
 		t:Init()
