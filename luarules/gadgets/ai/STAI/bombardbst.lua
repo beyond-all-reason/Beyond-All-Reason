@@ -52,7 +52,7 @@ function BombardBST:Update()
 			if bestCell then
 				local newTarget
 				if buildingID then
-					local building = game:GetUnitByID(buildingID)
+					local building = self.game:GetUnitByID(buildingID)
 					if building then
 						newTarget = building:GetPosition()
 					end

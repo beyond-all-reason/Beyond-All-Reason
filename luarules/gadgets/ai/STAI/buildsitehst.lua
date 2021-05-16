@@ -5,7 +5,7 @@ local DebugEnabledDraw = false
 
 local function EchoDebugPlans(inStr)
 	if DebugEnabledPlans then
-		game:SendToConsole("BuildSiteHST Plans: " .. inStr)
+		self.game:SendToConsole("BuildSiteHST Plans: " .. inStr)
 	end
 end
 
@@ -39,6 +39,7 @@ end
 function BuildSiteHST:GetFacing(p)
 	local x = p.x
 	local z = p.z
+	local facing = 3
 	if math.abs(Game.mapSizeX - 2*x) > math.abs(Game.mapSizeZ - 2*z) then
 		if (2*x>Game.mapSizeX) then
 			facing=3
@@ -655,7 +656,7 @@ function BuildSiteHST:ClearMyPlans(behaviour)
 	for i = #self.plans, 1, -1 do
 		local plan = self.plans[i]
 		if plan.behaviour == behaviour then
-			if not plan.resurrect and (self.ai.armyhst.unitTable[plan.unitName].isBuilding or self.ai.armyhst._nano_[unitName]) then
+			if not plan.resurrect and (self.ai.armyhst.unitTable[plan.unitName].isBuilding or self.ai.armyhst._nano_[plan.unitName]) then
 				self.ai.turtlehst:PlanCancelled(plan)
 			end
 			table.remove(self.plans, i)

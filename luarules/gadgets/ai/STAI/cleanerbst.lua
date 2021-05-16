@@ -87,11 +87,11 @@ end
 
 function CleanerBST:ecoCondition()
 	if self.ai.Metal.full < 0.5  or self.ai.Energy.income > 5000 then
-		local team = game:GetTeamID()
+		local team = self.game:GetTeamID()
 		local counter = 0
 		for name,v in pairs(self.ai.armyhst._fus_) do
 			local id = self.ai.armyhst.unitTable[name].defId
-			counter = counter +game:GetTeamUnitDefCount(team,id)
+			counter = counter + self.game:GetTeamUnitDefCount(team,id)
 		end
 		self:EchoDebug('counter',counter)
 		if counter > 2 then
