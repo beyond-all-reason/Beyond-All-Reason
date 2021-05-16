@@ -1000,7 +1000,7 @@ local function getParalyzer(unitDefID)
 	for i=1, #weapons do
 		local weaponDefID = weapons[i]["weaponDef"]
 		local weaponDef = WeaponDefs[weaponDefID]
-		paralyzer  =  weaponDef['paralyzer']
+		local paralyzer  =  weaponDef['paralyzer']
 	end
 	----Spring.Echo('paralyzer',paralyzer)
 	return paralyzer
@@ -1082,35 +1082,35 @@ local function GetBuiltBy()
 	return builtBy
 end
 
-local function GetWeaponParams(weaponDefID)
-	local WD = WeaponDefs[weaponDefID]
-	local WDCP = WD.customParams
-	local weaponDamageSingle = tonumber(WDCP.statsdamage) or WD.damages[0] or 0
-	local weaponDamageMult = tonumber(WDCP.statsprojectiles) or ((tonumber(WDCP.script_burst) or WD.salvoSize) * WD.projectiles)
-	local weaponDamage = weaponDamageSingle * weaponDamageMult
-	local weaponRange = WD.range
-
-	local reloadTime = tonumber(WD.customParams.script_reload) or WD.reload
-
-	if WD.dyndamageexp and WD.dyndamageexp > 0 then
-		local dynDamageExp = WD.dyndamageexp
-		local dynDamageMin = WD.dyndamagemin or 0.0001
-		local dynDamageRange = WD.dyndamagerange or weaponRange
-		local dynDamageInverted = WD.dyndamageinverted or false
-		local dynMod
-
-		if dynDamageInverted then
-			dynMod = math.pow(distance3D / dynDamageRange, dynDamageExp)
-		else
-			dynMod = 1 - math.pow(distance3D / dynDamageRange, dynDamageExp)
-		end
-
-		weaponDamage = math.max(weaponDamage * dynMod, dynDamageMin)
-	end
-
-	local dps = weaponDamage / reloadTime
-	return dps, weaponDamage, reloadTime
-end
+-- local function GetWeaponParams(weaponDefID)
+-- 	local WD = WeaponDefs[weaponDefID]
+-- 	local WDCP = WD.customParams
+-- 	local weaponDamageSingle = tonumber(WDCP.statsdamage) or WD.damages[0] or 0
+-- 	local weaponDamageMult = tonumber(WDCP.statsprojectiles) or ((tonumber(WDCP.script_burst) or WD.salvoSize) * WD.projectiles)
+-- 	local weaponDamage = weaponDamageSingle * weaponDamageMult
+-- 	local weaponRange = WD.range
+--
+-- 	local reloadTime = tonumber(WD.customParams.script_reload) or WD.reload
+--
+-- 	if WD.dyndamageexp and WD.dyndamageexp > 0 then
+-- 		local dynDamageExp = WD.dyndamageexp
+-- 		local dynDamageMin = WD.dyndamagemin or 0.0001
+-- 		local dynDamageRange = WD.dyndamagerange or weaponRange
+-- 		local dynDamageInverted = WD.dyndamageinverted or false
+-- 		local dynMod
+--
+-- 		if dynDamageInverted then
+-- 			dynMod = math.pow(distance3D / dynDamageRange, dynDamageExp)
+-- 		else
+-- 			dynMod = 1 - math.pow(distance3D / dynDamageRange, dynDamageExp)
+-- 		end
+--
+-- 		weaponDamage = math.max(weaponDamage * dynMod, dynDamageMin)
+-- 	end
+--
+-- 	local dps = weaponDamage / reloadTime
+-- 	return dps, weaponDamage, reloadTime
+-- end
 
 
 
@@ -1133,7 +1133,7 @@ local function getTechTree(sideTechLv)
 		if lv == false then
 			sideTechLv[name] = parent
 			if ArmyHST.techPenalty[name] then sideTechLv[name] = sideTechLv[name] + ArmyHST.techPenalty[name] end--here cause some not corresponding at true and seaplane maybe
-			canBuild = UnitDefNames[name].buildOptions
+			local canBuild = UnitDefNames[name].buildOptions
 			if canBuild and #canBuild > 0 then
 				for index,id in pairs(UnitDefNames[name].buildOptions) do
 					if not sideTechLv[UnitDefs[id].name] then
