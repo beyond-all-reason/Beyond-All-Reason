@@ -11,7 +11,7 @@ piece  ground, base, dish,
        turretmis1, turretmis2, misbox1, misbox2, misflare1, misflare2;
 
 static-var  Static_Var_1, Static_Var_2, Static_Var_3, Static_Var_4, Static_Var_5,
-            Static_Var_6, Static_Var_7, restore_delay, oldHead;
+            Static_Var_7, restore_delay, oldHead;
 
 // Signal definitions
 #define SIG_MOVE			256
@@ -136,7 +136,6 @@ Create()
 	Static_Var_3 = 0;
 	Static_Var_4 = 0;
 	Static_Var_5 = 0;
-	Static_Var_6 = 0;
 	Static_Var_7 = 0;
 	spin dish around y-axis speed <100.021978>;
 	restore_delay = 6000;
@@ -473,7 +472,7 @@ AimWeapon6(heading, pitch)
 	signal 64;
 	set-signal-mask 64;
 	turn turretmis1 to y-axis heading speed <250.000000>;
-	turn misbox1 to x-axis <0.000000> - pitch speed <200.000000>;
+	turn misbox1 to x-axis <0> - pitch speed <200.000000>;
 	wait-for-turn turretmis1 around y-axis;
 	wait-for-turn misbox1 around x-axis;
 	start-script RestoreAfterDelay3();
@@ -482,25 +481,17 @@ AimWeapon6(heading, pitch)
 
 FireWeapon6()
 {
-	if( Static_Var_6 )
-	{
-	    emit-sfx 1024 + 2 from misflare1;	
-	}
-//	else
-//	{
-//	    emit-sfx 1024 + 2 from misflare2;
-//	}
-	Static_Var_6 = !Static_Var_6;
+	emit-sfx 1024 + 2 from misflare1;	
 }
 
 AimFromWeapon6(piecenum)
 {
-	piecenum = turretmis1;
+	piecenum = misflare1;
 }
 
 QueryWeapon6(piecenum)
 {
-	piecenum = misflare1 + Static_Var_6;
+	piecenum = misflare1;
 }
 
 AimWeapon7(heading, pitch)
@@ -508,7 +499,7 @@ AimWeapon7(heading, pitch)
 	signal 128;
 	set-signal-mask 128;
 	turn turretmis2 to y-axis heading speed <250.000000>;
-	turn misbox2 to x-axis <0.000000> - pitch speed <200.000000>;
+	turn misbox2 to x-axis <0> - pitch speed <200.000000>;
 	wait-for-turn turretmis2 around y-axis;
 	wait-for-turn misbox2 around x-axis;
 	start-script RestoreAfterDelay3();

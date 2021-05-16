@@ -243,7 +243,7 @@ return {
 				def = "CANNON",
 				maindir = "0 1 0",
 				maxangledif = 270,
-				onlytargetcategory = "",
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},
