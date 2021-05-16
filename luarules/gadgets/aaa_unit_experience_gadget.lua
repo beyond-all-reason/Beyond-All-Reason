@@ -47,9 +47,13 @@ end
 
 -- cache
 local unitWeapons = {}
+local unitFootprintX = {}
+local unitFootprintZ = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
 	local weapons = unitDef.weapons
 	if #weapons > 0 then
+		unitFootprintX[unitDefID] = unitDef.footprintx
+		unitFootprintZ[unitDefID] = unitDef.footprintz
 		unitWeapons[unitDefID] = {}
 		for id, _ in pairs(weapons) do
 			unitWeapons[unitDefID][id] = true    -- no need to store weapondefid
@@ -115,8 +119,8 @@ local function ApplyBonuses(unitID)
 	end
 
 	local posx, posy, posz = Spring.GetUnitPosition(unitID)
-	local footprintx = UnitDefs[unitDefID].footprintx
-	local footprintz = UnitDefs[unitDefID].footprintz
+	local footprintx = unitFootprintX[unitDefID]
+	local footprintz = unitFootprintZ[unitDefID]
 	if footprintx and footprintz then
 		if footprintx >= footprintz then
 			if footprintx == 0 then

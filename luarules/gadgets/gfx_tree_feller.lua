@@ -81,6 +81,7 @@ if gadgetHandler:IsSyncedCode() then
 			noFireWeapons[id] = true
 		end
 	end
+
 	local GetFeaturePosition = Spring.GetFeaturePosition
 	local GetFeatureHealth = Spring.GetFeatureHealth
 	local GetFeatureDirection = Spring.GetFeatureDirection
@@ -108,6 +109,11 @@ if gadgetHandler:IsSyncedCode() then
 				treeScaleY[featureDefID] = featureDef.collisionVolume.scaleY
 			end
 		end
+	end
+
+	local unitMass = {}
+	for unitDefID, unitDef in pairs(UnitDefs) do
+		unitMass[unitDefID] = unitDef.mass
 	end
 
 	function gadget:Initialize()
@@ -203,7 +209,7 @@ if gadgetHandler:IsSyncedCode() then
 						ppx = ppx - 2 * vpx
 						ppy = ppy - 2 * vpy
 						ppz = ppz - 2 * vpz
-						dmg = math.min(treeMass[featureDefID] * 2, UnitDefs[attackerDefID].mass)
+						dmg = math.min(treeMass[featureDefID] * 2, unitMass[attackerDefID])
 						fire = false
 
 					-- UNITEXPLOSION

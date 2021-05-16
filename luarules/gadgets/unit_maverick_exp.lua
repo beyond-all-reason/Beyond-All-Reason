@@ -3,7 +3,7 @@ function gadget:GetInfo()
 		name		= "Maverick Exp",
 		desc		= "Sets Maverick exp effect",
 		author		= "BrainDamage",
-		date		= "-",
+		date		= "",
 		license		= "WTFPL",
 		layer		= 0,
 		enabled		= true -- loaded by default?
@@ -52,11 +52,9 @@ function GG.requestMaverickExpUpdate(unitID)
 end
 
 function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
-	if not isMaverick[attackerDefID] then
-		return
+	if isMaverick[attackerDefID] then
+		updateList[attackerID] = true	--schedule an update of range next frame when exp has been updated
 	end
-	--schedule an update of range next frame when exp has been updated
-    updateList[attackerID] = true
 end
 
 function gadget:UnitDestroyed(unitID)

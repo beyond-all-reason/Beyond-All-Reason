@@ -37,7 +37,13 @@ if gadgetHandler:IsSyncedCode() then  --Sync?
 	local expvalues = {}
 
 	local categories = {}
+	local unitMetalCost = {}
+	local unitEnergyCost = {}
+	local unitBuildTime = {}
 	for unitDefID, uDef in pairs(UnitDefs) do
+		unitMetalCost = uDef.metalCost
+		unitEnergyCost = uDef.energyCost
+		unitBuildTime = uDef.buildTime
 
 		if uDef.decoyFor ~= '' and UnitDefNames[uDef.decoyFor] then
 			uDef = UnitDefNames[uDef.decoyFor]
@@ -143,7 +149,7 @@ if gadgetHandler:IsSyncedCode() then  --Sync?
 		if taxes[team] and taxes[team][cat] then
 			local ct = taxes[team][cat]
 			local unitDefID = Spring.GetUnitDefID(unitID)
-			Spring.SetUnitCosts(unitID, { metalCost = UnitDefs[unitDefID].metalCost*ct, energyCost = UnitDefs[unitDefID].energyCost*ct, buildTime = UnitDefs[unitDefID].buildTime*ct})
+			Spring.SetUnitCosts(unitID, { metalCost = unitMetalCost[unitDefID]*ct, energyCost = unitEnergyCost[unitDefID]*ct, buildTime = unitBuildTime[unitDefID]*ct})
 		end
 	end
 

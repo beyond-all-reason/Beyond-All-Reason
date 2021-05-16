@@ -151,11 +151,13 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	local unitName = {}
+	local unitHumanName = {}
 	local unitShortName = {}
 	local unitSpeed = {}
 	local unitCanFly = {}
 	for unitDefID, unitDef in pairs(UnitDefs) do
 		unitName[unitDefID] = unitDef.name
+		unitHumanName[unitDefID] = unitDef.humanName
 		unitShortName[unitDefID] = string.match(unitDef.name, "%D*")
 		unitSpeed[unitDefID] = unitDef.speed
 		if unitDef.canFly then
@@ -373,7 +375,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		for unitDefID, number in pairs(teamUnitCounts) do
-			if UnitDefs[unitDefID] then
+			if unitShortName[unitDefID] then
 				local shortName = unitShortName[unitDefID]
 				if unitCounts[shortName] then
 					unitCounts[shortName].count = unitCounts[shortName].count + number
@@ -1067,7 +1069,7 @@ if gadgetHandler:IsSyncedCode() then
 					if queenResistance[weaponID].notify == 0 then
 						--Bruh, just because you call a variable "WeaponName" doesn't mean that it magically goes and gets the weaponname from the def
 						--local weaponName
-						Spring.Echo("The Queen is becoming resistant to " .. UnitDefs[attackerDefID].humanName .. "'s attacks!")
+						Spring.Echo("The Queen is becoming resistant to " .. unitHumanName[attackerDefID] .. "'s attacks!")
 						queenResistance[weaponID].notify = 1
 						for i = 1, 12, 1 do
 							table.insert(spawnQueue, { burrow = queenID, unitName = "chickenw2", team = chickenTeamID })
