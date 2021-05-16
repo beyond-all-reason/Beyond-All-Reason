@@ -284,6 +284,7 @@ return {
 					bombers = 150,
 					fighters = 150,
 					vtol = 150,
+					commanders = 1,
 				},
 			},
 		},
@@ -317,14 +318,16 @@ return {
 				onlytargetcategory = "SURFACE",
 			},
 			[6] = {
+				badtargetcategory = "NOTAIR GROUNDSCOUT"
 				maindir = "0 -1 -2",
 				maxangledif = 270,
 				def = "FERRET_MISSILE",
-				onlytargetcategory = "VTOL",
+				onlytargetcategory = "VTOL COMMANDER",
 			},
 			[7] = {
+				badtargetcategory = "NOTAIR GROUNDSCOUT"
 				def = "FERRET_MISSILE",
-				onlytargetcategory = "VTOL",
+				onlytargetcategory = "VTOL COMMANDER",
 			},
 		},
 	},
