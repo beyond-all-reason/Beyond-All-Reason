@@ -77,6 +77,7 @@ local lineSpaceWidth = 24*widgetScale
 local lineMaxWidth = 0
 local lineHeight = math.floor(usedFontSize*lineHeightMult)
 local backgroundPadding = usedFontSize
+local gameOver = false
 
 local glPopMatrix      = gl.PopMatrix
 local glPushMatrix     = gl.PushMatrix
@@ -754,10 +755,14 @@ function widget:Shutdown()
 	Spring.SendCommands("console 1")
 end
 
+function widget:GameOver()
+	gameOver = true
+end
+
 function widget:GetConfigData(data)
 	return {
-		clock = os.clock(),
-		orgLines = orgLines,
+		gameFrame = Spring.GetGameFrame(),
+		orgLines = gameOver and nil or orgLines,
 		fontsizeMult = fontsizeMult,
 		backgroundOpacity = backgroundOpacity
 	}
@@ -765,7 +770,7 @@ end
 
 function widget:SetConfigData(data)
 	if data.orgLines ~= nil then
-		if Spring.GetGameFrame() > 0 or (data.clock and data.clock < os.clock()) then
+		if Spring.GetGameFrame() > 0 or (data.gameFrame and data.gameFrame == 0) then
 			orgLines = data.orgLines
 		end
 	end
