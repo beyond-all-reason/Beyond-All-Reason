@@ -5515,6 +5515,10 @@ function widget:Initialize()
 		widgetHandler:DisableWidget("Ambient Player")
 	end
 
+	if widgetHandler.orderList["Language"] < 0.5 then
+		widgetHandler:EnableWidget("Language")
+	end
+
 	if WG['lang'] then
 		texts = WG['lang'].getText('options')
 	end

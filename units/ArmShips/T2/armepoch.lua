@@ -318,14 +318,14 @@ return {
 				onlytargetcategory = "SURFACE",
 			},
 			[6] = {
-				badtargetcategory = "NOTAIR GROUNDSCOUT"
+				badtargetcategory = "NOTAIR GROUNDSCOUT",
 				maindir = "0 -1 -2",
 				maxangledif = 270,
 				def = "FERRET_MISSILE",
 				onlytargetcategory = "VTOL T4AIR",
 			},
 			[7] = {
-				badtargetcategory = "NOTAIR GROUNDSCOUT"
+				badtargetcategory = "NOTAIR GROUNDSCOUT",
 				def = "FERRET_MISSILE",
 				onlytargetcategory = "VTOL T4AIR",
 			},
