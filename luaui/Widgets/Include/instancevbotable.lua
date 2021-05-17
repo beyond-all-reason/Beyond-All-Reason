@@ -31,6 +31,7 @@ function makeInstanceVBOTable(layout, maxElements, myName)
 		layout = layout,
 		dirty = false,
 		numVertices = 0,
+		primitiveType = GL.TRIANGLES,
 	}
 	newInstanceVBO:Upload(instanceData)
 	return instanceTable
@@ -185,15 +186,22 @@ function uploadAllElements(iT)
   iT.instanceVBO:Upload(iT.instanceData,nil,0, 1, iT.usedElements * iT.instanceStep)
 end
 
+function drawInstanceVBO(iT)
+  if iT.usedElements > 0 then 
+    iT.VAO:DrawArrays(iT.primitiveType, iT.numVertices, 0, iT.usedElements,0)
+  end
+end
+
 
 --------- HELPERS FOR PRIMITIVES ------------------
 
 function makeCircleVBO(circleSegments, radius)
-	-- Makes unit circle in xy space
+	-- Makes circle of radius in xy space
+	-- can be used in both GL.LINES and GL.TRIANGLE_FAN mode
 	if not radius then radius = 1 end
 	circleSegments  = circleSegments -1 -- for po2 buffers
 	local circleVBO = gl.GetVBO(GL.ARRAY_BUFFER,true)
-	if circleVBO == nil then goodbye("Failed to create circleVBO") end
+	if circleVBO == nil then return nil end
 	
 	local VBOLayout = {
 	 {id = 0, name = "position", size = 4},
@@ -216,10 +224,70 @@ function makeCircleVBO(circleSegments, radius)
 	return circleVBO, #VBOData/4
 end
 
+function makePointVBO(numPoints)
+	-- makes points with xyzw
+	-- can be used in both GL.LINES and GL.TRIANGLE_FAN mode
+	if not numPoints then numPoints = 1 end
+	local pointVBO = gl.GetVBO(GL.ARRAY_BUFFER,true)
+	if pointVBO == nil then return nil end
+	
+	local VBOLayout = {
+	 {id = 0, name = "position_w", size = 4},
+	}
+	
+	local VBOData = {}
+	
+	for i = 1, numPoints  do -- 
+		VBOData[#VBOData+1] = 0-- X
+		VBOData[#VBOData+1] = 0-- Y
+		VBOData[#VBOData+1] = 0---Z
+		VBOData[#VBOData+1] = numPoints -- index for lolz?
+	end	
+	
+	pointVBO:Define(
+		numPoints,
+		VBOLayout
+	)
+	pointVBO:Upload(VBOData)
+	return pointVBO, numPoints
+end
+
+function makeRectVBO(minX,minY, maxX, maxY, minU, minV, maxU, maxV)
+	if minX == nil then
+		minX, minY, maxX, maxY, minU, minV, maxU, maxV  = 0,0,1,1,0,0,1,1
+	end
+	-- makes points with xyzw
+	-- can be used in both GL.LINES and GL.TRIANGLE_FAN mode
+	local rectVBO = gl.GetVBO(GL.ARRAY_BUFFER,true)
+	if rectVBO == nil then return nil end
+	
+	local VBOLayout = {
+	 {id = 0, name = "position_xy_uv", size = 4},
+	}
+	
+	local VBOData = {
+		--bl
+		minX,minY, minU, minV, --bl
+		minX,maxY, minU, maxV, --tr
+		maxX,maxY, maxU, maxV, --tr
+		maxX,maxY, maxU, maxV, --tr
+		maxX,minY, maxU, minV, --br
+		minX,minY, minU, minV, --bl
+	}
+	
+	rectVBO:Define(
+		6,
+		VBOLayout
+	)
+	rectVBO:Upload(VBOData)
+	return rectVBO, 6
+end
+
 
 function makeConeVBO(numSegments, height, radius) 
 	-- make a cone that points up, (y = height), with radius specified
 	-- returns the VBO object, and the number of elements in it (usually ==  numvertices)
+	-- needs GL.TRIANGLES
 	if not height then height = 1 end
 	if not radius then radius = 1 end 
 	local coneVBO = gl.GetVBO(GL.ARRAY_BUFFER,true)
@@ -237,13 +305,13 @@ function makeConeVBO(numSegments, height, radius)
 		--- first cone flat
 		VBOData[#VBOData+1] = math.sin(math.pi*2* (i - 1) / numSegments) * radius -- X
 		VBOData[#VBOData+1] = 0
-		VBOData[#VBOData+1] = math.cos(math.pi*2* (i - 1) / numSegments) * radius-- Y
-		VBOData[#VBOData+1] =(i - 1) / numSegments
+		VBOData[#VBOData+1] = -1* math.cos(math.pi*2* (i - 1) / numSegments) * radius-- Y
+		VBOData[#VBOData+1] = (i - 1) / numSegments
 		
 		--- second cone flat
 		VBOData[#VBOData+1] = math.sin(math.pi*2* (i - 0) / numSegments) * radius-- X
 		VBOData[#VBOData+1] = 0
-		VBOData[#VBOData+1] = math.cos(math.pi*2* (i - 0) / numSegments) * radius -- Y
+		VBOData[#VBOData+1] = -1* math.cos(math.pi*2* (i - 0) / numSegments) * radius -- Y
 		VBOData[#VBOData+1] =(i - 0) / numSegments
 		
 		-- top vertex
@@ -255,13 +323,13 @@ function makeConeVBO(numSegments, height, radius)
 		--- first cone flat
 		VBOData[#VBOData+1] = math.sin(math.pi*2* (i - 1) / numSegments) * radius -- X
 		VBOData[#VBOData+1] = 0
-		VBOData[#VBOData+1] = math.cos(math.pi*2* (i - 1) / numSegments) * radius -- Y
+		VBOData[#VBOData+1] = -1*math.cos(math.pi*2* (i - 1) / numSegments) * radius -- Y
 		VBOData[#VBOData+1] =(i - 1) / numSegments
 		
 		--- second cone flat
 		VBOData[#VBOData+1] = math.sin(math.pi*2* (i - 0) / numSegments) * radius -- X
 		VBOData[#VBOData+1] = 0
-		VBOData[#VBOData+1] = math.cos(math.pi*2* (i - 0) / numSegments) * radius -- Y
+		VBOData[#VBOData+1] = -1*math.cos(math.pi*2* (i - 0) / numSegments) * radius -- Y
 		VBOData[#VBOData+1] =(i - 0) / numSegments
 	end
 	
@@ -273,12 +341,12 @@ end
 
 
 function makeBoxVBO(minX, minY, minZ, maxX, maxY, maxZ) -- make a box
-
+	-- needs GL.TRIANGLES
 	local boxVBO = gl.GetVBO(GL.ARRAY_BUFFER,true)
 	if boxVBO == nil then return nil end
 	
 	local VBOData = {
-		minX,minY,minZ,0
+		 minX,minY,minZ,0
 		,minX,minY,maxZ,0
 		,minX,maxY,maxZ,0
 		,maxX,maxY,minZ,0
@@ -319,3 +387,4 @@ function makeBoxVBO(minX, minY, minZ, maxX, maxY, maxZ) -- make a box
 	boxVBO:Upload(VBOData)
 	return boxVBO, #VBOData/4
 end
+
