@@ -10,7 +10,7 @@ return {
 		buildtime = 315000,
 		canfly = true,
 		canmove = true,
-		category = "ALL MOBILE WEAPON NOTLAND NOTSUB VTOL NOTSHIP NOTHOVER",
+		category = "ALL MOBILE WEAPON NOTLAND NOTSUB VTOL NOTSHIP NOTHOVER T4AIR",
 		collide = false,
 		cruisealt = 190,
 		description = Spring.I18N('units.descriptions.armthundt4'),

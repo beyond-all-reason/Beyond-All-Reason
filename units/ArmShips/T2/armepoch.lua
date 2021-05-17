@@ -322,12 +322,12 @@ return {
 				maindir = "0 -1 -2",
 				maxangledif = 270,
 				def = "FERRET_MISSILE",
-				onlytargetcategory = "VTOL COMMANDER",
+				onlytargetcategory = "VTOL T4AIR",
 			},
 			[7] = {
 				badtargetcategory = "NOTAIR GROUNDSCOUT"
 				def = "FERRET_MISSILE",
-				onlytargetcategory = "VTOL COMMANDER",
+				onlytargetcategory = "VTOL T4AIR",
 			},
 		},
 	},
