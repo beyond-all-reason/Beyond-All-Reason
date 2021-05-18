@@ -262,7 +262,7 @@ function TaskQueueBST:CategoryEconFilter(cat,param,name)
 end
 
 function TaskQueueBST:specialFilter(cat,param,name)
-	self:EchoDebug(cat ,value,self.role, " (before special filter)")
+	self:EchoDebug(cat ,self.role, " (before special filter)")
 	if not name then return end
 	local tasks = self.ai.taskshst
 	local check = false
@@ -377,6 +377,7 @@ function TaskQueueBST:findPlace(utype, value,cat)
 -- 				site:searchPosNearThing(utype, builder,'extractsMetal',nil, 'radarRadius',20)
 	elseif cat == '_mex_' then
 		local uw
+		local reclaimEnemyMex
 		POS, uw, reclaimEnemyMex = self.ai.maphst:ClosestFreeSpot(utype, builder)
 		if POS  then
 			if reclaimEnemyMex then
@@ -529,9 +530,9 @@ end
 function TaskQueueBST:limitedNumber(name,number)
 	if not name then return end
 	self:EchoDebug(number,'limited for ',name)
-	local team = game:GetTeamID()
+	local team = self.game:GetTeamID()
 	local id = self.ai.armyhst.unitTable[name].defId
-	local counter = game:GetTeamUnitDefCount(team,id)
+	local counter = self.game:GetTeamUnitDefCount(team,id)
 	if counter < number then
 		self:EchoDebug('limited OK',name)
 		return name
@@ -565,9 +566,9 @@ end
 function TaskQueueBST:GetQueue()
 -- 	self.unit:ElectBehaviour()
 	local buildersRole = self.ai.armyhst.buildersRole
-	local team = game:GetTeamID()
+	local team = self.game:GetTeamID()
 	local id = self.ai.armyhst.unitTable[self.name].defId
-	local counter = game:GetTeamUnitDefCount(team,id)
+	local counter = self.game:GetTeamUnitDefCount(team,id)
 	if self.role then
 		return self.ai.taskshst.roles[self.role]
 	elseif self.isCommander then
@@ -617,7 +618,7 @@ function TaskQueueBST:ProgressQueue()
 	self:EchoDebug(idx , val)
 	self.idx = idx
 	if idx == nil then
-		self.queue = self:GetQueue(name)
+		self.queue = self:GetQueue(name)--TODO ?????????????????????self.name?
 		self.progress = true
 
 		return
@@ -650,7 +651,7 @@ function TaskQueueBST:ProgressQueue()
 			self:specialFilter(val[1],val[6],value)
 		end
 		if value  then
-			utype = game:GetTypeByName(value)
+			utype = self.game:GetTypeByName(value)
 		end
 		if value and not utype   then
 			self:EchoDebug('warning' , self.name , " cannot build:",value,", couldnt grab the unit type from the engine")
@@ -698,7 +699,7 @@ function TaskQueueBST:ProgressQueue()
 				self.unit:ElectBehaviour()
 			end
 			if self.role == 'eco' then
-				local unitsNear = game:getUnitsInCylinder(self.unit:Internal():GetPosition(), 5000)
+				local unitsNear = self.game:getUnitsInCylinder(self.unit:Internal():GetPosition(), 5000)
 				for idx, typeDef in pairs(unitsNear) do
 					local unitNear = self.game:GetUnitByID(typeDef)
 					local unitNearName = unitNear:Name()

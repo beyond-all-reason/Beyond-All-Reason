@@ -60,6 +60,7 @@ function WardBST:Update()
 		if f % 30 == 0 then
 			-- run away preemptively from positions within range of enemy weapons, and notify defenders that the unit is in danger
 			local unit = self.unit:Internal()
+			local position
 			if not self.mobile then
 				position = self.initialLocation
 			else

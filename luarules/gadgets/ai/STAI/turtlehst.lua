@@ -454,7 +454,7 @@ function TurtleHST:LeastTurtled(builder, unitName, bombard, oneOnly)
 	if unitName == nil then return end
 	local position = builder:GetPosition()
 	local ut = self.ai.armyhst.unitTable[unitName]
-	local Metal = game:GetResourceByName("Metal")
+	local Metal = self.game:GetResourceByName("Metal")
 	local priorityFloor = 1
 	local layer
 	if ut.isWeapon and not self.ai.armyhst.antinukes[unitName] then

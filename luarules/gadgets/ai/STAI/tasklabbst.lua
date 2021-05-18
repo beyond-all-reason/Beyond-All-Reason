@@ -25,7 +25,7 @@ function TaskLabBST:Init()
 		local uName = UnitDefs[unit].name
 		self.units[uName] = {}
 		self.units[uName].name = uName
-		self.units[uName].type = game:GetTypeByName(uName)
+		self.units[uName].type = self.game:GetTypeByName(uName)
 		self.units[uName].army = self.ai.armyhst.unitTable[uName]
 		self.units[uName].defId = unit
 	end
@@ -152,7 +152,7 @@ function TaskLabBST:ecoCheck(soldiers)
 		mMax = math.max(mMax,army[uname].metalCost)
 		soldier = uname
 	end
-	self:EchoDebug('eco Mmax',Mmax)
+	self:EchoDebug('eco Mmax',mMax)
 	for index, uname in pairs (soldiers) do
 
 		if army[uname].metalCost / mMax < threshold and army[uname].metalCost / mMax > mRatio then
@@ -172,10 +172,10 @@ function TaskLabBST:countCheck(soldier,Min,mType,Max)
 	if not soldier then return end
 	Min = Min or 0
 	Max = Max or 1 / 0
-	local team = game:GetTeamID()
+	local team = self.game:GetTeamID()
 	local func = 0
 	local spec = self.ai.armyhst.unitTable[soldier]
-	local counter = game:GetTeamUnitDefCount(team,spec.defId)
+	local counter = self.game:GetTeamUnitDefCount(team,spec.defId)
 	local mtypeLv = self.ai.taskshst:GetMtypedLv(soldier)
 
 	if mType then
@@ -184,7 +184,7 @@ function TaskLabBST:countCheck(soldier,Min,mType,Max)
 	else
 		func = math.max(Min,Max)
 	end
-	self:EchoDebug('mmType',mmType , '/',counter,'func',func)
+	self:EchoDebug('mmType',mType , '/',counter,'func',func)
 	if counter < func then
 		self:EchoDebug('counter',soldier)
 		return soldier
@@ -275,7 +275,7 @@ function TaskLabBST:Update()
 	if f % 111 == 0 then
 		if not self:preFilter() then return end
 		self:GetAmpOrGroundWeapon()
-		self.isBuilding = game:GetUnitIsBuilding(self.id)--TODO better this?
+		self.isBuilding = self.game:GetUnitIsBuilding(self.id)--TODO better this?
 		if Spring.GetFactoryCommands(self.id,0) > 0 then return end
 		local soldier, param = self:getSoldier()
 		self:EchoDebug('update',soldier)

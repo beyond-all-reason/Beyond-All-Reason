@@ -40,7 +40,7 @@ function MexUpBST:OwnerIdle()
 			if builder:CanBuild(tmpType) then
 				mohoName = "coruwmme"
 			end
-			tmpType = game:GetTypeByName("armuwmme")
+			tmpType = self.game:GetTypeByName("armuwmme")
 			if builder:CanBuild(tmpType) then
 				mohoName = "armuwmme"
 			end

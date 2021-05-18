@@ -432,7 +432,7 @@ function TargetHST:UpdateEnemies()
 				self.cells[px][pz] = NewCell(px, pz)
 				table.insert(self.cellList, self.cells[px][pz])
 			end
-			cell = self.cells[px][pz]
+			local cell = self.cells[px][pz]
 			if los == 1 then
 				if ut.isBuilding then
 					cell.value = cell.value + baseBuildingValue

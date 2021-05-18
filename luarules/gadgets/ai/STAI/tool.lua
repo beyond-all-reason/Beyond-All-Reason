@@ -91,7 +91,7 @@ function Tool:distance(pos1,pos2)
 	if yd < 0 then
 		yd = -yd
 	end
-	dist = math.sqrt(xd*xd + zd*zd + yd*yd*yd)
+	local dist = math.sqrt(xd*xd + zd*zd + yd*yd*yd)
 	return dist
 end
 
@@ -232,25 +232,25 @@ function Tool:dictHasKey( value, list )
 end
 
 function Tool:countMyUnit( targets )
-	local team = game:GetTeamID()
+	local team = self.game:GetTeamID()
 	local counter = 0
 	for i,target in pairs(targets) do
 		self:EchoDebug('target',target)
 
 		if type(target) == 'number' then
 			self:EchoDebug()
-			local id = self.ai.armyhst.unitTable[name].defId
-			counter = counter + game:GetTeamUnitDefCount(team,id)
+			local id = self.ai.armyhst.unitTable[name].defId --TODO ????? self.name????
+			counter = counter + self.game:GetTeamUnitDefCount(team,id)
 		elseif self.ai.armyhst[target] then
 			for name,t in pairs(self.ai.armyhst[target]) do
 				local id = self.ai.armyhst.unitTable[name].defId
-				counter = counter + game:GetTeamUnitDefCount(team,id)
+				counter = counter + self.game:GetTeamUnitDefCount(team,id)
 			end
 		else
 			for name,spec in pairs(self.ai.armyhst.unitTable) do
 				if spec.target or name == target then
 					local id = spec.defId
-					counter = counter + game:GetTeamUnitDefCount(team,id)
+					counter = counter + self.game:GetTeamUnitDefCount(team,id)
 				end
 			end
 		end
