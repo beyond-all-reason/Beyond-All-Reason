@@ -10,6 +10,7 @@ end
 
 MapHST.DebugEnabled = false
 MapHST.lastDataResetFrame = 0
+local DebugDrawEnabled = false
 
 local mapColors = {
 	veh = { 1, 0, 0 },
@@ -74,7 +75,7 @@ end
 
 local function MapDataFilename()
 	local mapName = string.gsub(map:MapName(), "%W", "_")
-	return "cache/Shard-" .. game:GameName() .. "-" .. mapName .. ".lua"
+	return "cache/Shard-" .. self.game:GameName() .. "-" .. mapName .. ".lua"
 end
 
 local function EchoData(name, o)
@@ -443,7 +444,7 @@ function MapHST:Init()
 		if tmpFeatures then
 			for _, feature in pairs(tmpFeatures) do
 				if feature then
-					tmpName = feature:Name()
+					local tmpName = feature:Name()
 					if tmpName == "geovent" then
 						self.ai.mapHasGeothermal = true
 						table.insert(geoSpots, feature:GetPosition())

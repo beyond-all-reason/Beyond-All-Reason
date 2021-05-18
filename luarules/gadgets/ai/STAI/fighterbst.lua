@@ -1,13 +1,13 @@
 shard_include( "attackers")
 
-function IsFighter(unit)
-	for i,name in ipairs(fighterlist) do
-		if name == unit:Internal():Name() then
-			return true
-		end
-	end
-	return false
-end
+-- function IsFighter(unit) TODO maybe this file is not STAI related, not bad idea but need implementation
+-- 	for i,name in ipairs(fighterlist) do
+-- 		if name == unit:Internal():Name() then
+-- 			return true
+-- 		end
+-- 	end
+-- 	return false
+-- end
 
 FighterBST = class(Behaviour)
 
