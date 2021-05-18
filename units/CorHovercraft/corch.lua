@@ -3,10 +3,10 @@ local unitName = Spring.I18N('units.names.corch')
 return {
 	corch = {
 		acceleration = 0.03792,
-		brakerate = 0.03792,
+		brakerate = 0.11,
 		buildcostenergy = 3000,
 		buildcostmetal = 190,
-		builddistance = 112,
+		builddistance = 150,
 		builder = true,
 		buildpic = "CORCH.PNG",
 		buildtime = 4576,

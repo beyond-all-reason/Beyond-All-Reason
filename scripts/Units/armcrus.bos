@@ -287,28 +287,6 @@ QuerySecondary(piecenum)
 	}
 }
 
-AimTertiary(heading, pitch)
-{
-	return (1);
-}
-
-FireTertiary()
-{
-	sleep 150;
-}
-
-AimFromTertiary(piecenum)
-{
-	piecenum = base;
-}
-
-QueryTertiary(piecenum)
-{
-	piecenum = base;
-}
-
-
-
 AimWeapon4(heading, pitch)
 {
 	return (1);

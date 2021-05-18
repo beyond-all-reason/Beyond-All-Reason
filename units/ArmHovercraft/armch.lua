@@ -3,10 +3,10 @@ local unitName = Spring.I18N('units.names.armch')
 return {
 	armch = {
 		acceleration = 0.04318,
-		brakerate = 0.04318,
+		brakerate = 0.12,
 		buildcostenergy = 2700,
 		buildcostmetal = 200,
-		builddistance = 112,
+		builddistance = 150,
 		builder = true,
 		buildpic = "ARMCH.PNG",
 		buildtime = 4472,
