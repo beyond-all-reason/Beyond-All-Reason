@@ -120,6 +120,7 @@ function CommanderBST:FindSafeHouse()
 	if self.active and factoryUnit and factoryUnit ~= self.factoryToHelp then
 		helpNew = true
 	end
+	local safeNew = false
 	if self.active and safePos and safePos ~= self.safeHouse then
 		safeNew = true
 	end

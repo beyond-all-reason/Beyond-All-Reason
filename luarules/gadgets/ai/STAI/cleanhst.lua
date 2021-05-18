@@ -1,6 +1,6 @@
 CleanHST = class(Module)
 
-distancePerPriority = 100
+-- distancePerPriority = 100
 
 function CleanHST:Name()
 	return "CleanHST"
