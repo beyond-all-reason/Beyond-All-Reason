@@ -4,10 +4,10 @@ return {
 	armsh = {
 		acceleration = 0.1105,
 		brakerate = 0.1105,
-		buildcostenergy = 1400,
-		buildcostmetal = 95,
+		buildcostenergy = 1250,
+		buildcostmetal = 85,
 		buildpic = "ARMSH.PNG",
-		buildtime = 1900,
+		buildtime = 1700,
 		canmove = true,
 		category = "ALL HOVER MOBILE WEAPON NOTSUB NOTSHIP NOTAIR SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 1 0",
