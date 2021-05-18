@@ -129,7 +129,7 @@ return {
 				impulsefactor = 0.123,
 				name = "MediumPlasmaCannon",
 				noselfdamage = true,
-				range = 320,
+				range = 370,
 				reloadtime = 1.4,
 				soundhit = "xplosml3",
 				soundhitwet = "splshbig",

@@ -203,7 +203,7 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-	turn turret to y-axis <0.000000> speed <150.000000>;
+	turn turret to y-axis <0.000000> speed <200.000000>;
 	turn barrel to x-axis <0.000000> speed <100.000000>;
 }
 SetStunned(State)
@@ -223,7 +223,7 @@ AimPrimary(heading, pitch)
 {
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
-	turn turret to y-axis heading speed <150.000000>;
+	turn turret to y-axis heading speed <200.000000>;
 	turn barrel to x-axis <0.000000> - pitch speed <100.000000>;
 	wait-for-turn turret around y-axis;
 	wait-for-turn barrel around x-axis;
