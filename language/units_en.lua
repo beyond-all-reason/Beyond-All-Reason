@@ -732,6 +732,7 @@ return {
 				armwar = "Medium Infantry Bot",
 				armwar_scav = "Cloaked Medium Infantry Bot with Improved Laser",
 				armwin = "Produces Energy. Depends on wind strength.",
+				armwint2="Advanced Wind Generator",
 				armyork = "Anti-Air Flak Vehicle",
 				armzeus = "Assault Bot",
 				chicken_dodo1 = "Chicken Bomb",
