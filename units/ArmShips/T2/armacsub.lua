@@ -58,6 +58,7 @@ return {
 			[10] = "armfatf",
 			[11] = "armatl",
 			[12] = "armfflak",
+			[13] = "armkraken",
 		},
 		customparams = {
 			area_mex_def = "armuwmme",
