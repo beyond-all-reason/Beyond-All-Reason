@@ -390,6 +390,7 @@ local units = {
 	corgplat = { "defence_0_0.8.png", 0.83999997 },
 	corhal = { "corhal_1.33.png", 1.39649999 },
 	corhllt = { "defence_0_laser2_0.94.png", 0.98699993 },
+	corhllllt = { "defence_1_laser.png", 1.28699993 },
 	corhlt = { "defence_1_laser_1.05.png", 1.10249984 },
 	corhp = { "factory_hover.png", 1.52250004 },
 	corhrk = { "corhrk_1.35.png", 1.41750002 },
