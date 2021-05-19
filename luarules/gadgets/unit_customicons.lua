@@ -254,6 +254,7 @@ local units = {
 	armwin = { "wind.png", 1.04999995 },
 	armyork = { "vehicle_t2_aa.png", 1.36499989 },
 	armzeus = { "armzeus_1.28.png", 1.34399986 },
+	armkraken = { "armpb_1.4.png", 1.46999991 },
 	chicken1 = { "chicken.png", 0.94499993 },
 	chicken1b = { "chicken.png", 0.94499993 },
 	chicken1c = { "chicken.png", 0.94499993 },
