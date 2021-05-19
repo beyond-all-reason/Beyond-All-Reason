@@ -11,7 +11,7 @@ return {
 		buildinggrounddecalsizex = 7.5,
 		buildinggrounddecalsizey = 7.5,
 		--buildinggrounddecaltype = "decals/armvulc_aoplane.dds",
-		buildpic = "ARMVULC.PNG",
+		buildpic = "ARMMINIVULC.PNG",
 		buildtime = 120000,
 		canrepeat = false,
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",

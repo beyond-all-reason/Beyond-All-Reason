@@ -11,7 +11,7 @@ return {
 		buildinggrounddecalsizex = 4.5,
 		buildinggrounddecalsizey = 4.5,
 		buildinggrounddecaltype = "decals/corwin_aoplane.dds",
-		buildpic = "CORWIN.PNG",
+		buildpic = "CORWINT2.PNG",
 		buildtime = 11250,
 		canrepeat = false,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
