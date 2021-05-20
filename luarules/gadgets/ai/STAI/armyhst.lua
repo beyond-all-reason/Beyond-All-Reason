@@ -335,14 +335,10 @@ function ArmyHST:Init()
 	}
 
 	self._solar_ = {
-		corsolar = true ,
-		armsolar = true ,
+		corsolar = 'coradvsol' ,
+		armsolar = 'armadvsol' ,
 	}
 
-	self._advsol_ = {
-		coradvsol = true ,
-		armadvsol = true ,
-	}
 
 	self._mex_ = {
 		cormex = 'cormoho' ,
@@ -400,13 +396,14 @@ function ArmyHST:Init()
 
 
 	self._fus_ = {
-		armfus = true ,
+		armfus = 'armafus' ,--will become afus in taskqueuebst:specialfilter()
 		armuwfus = true ,
-		armckfus = true ,
-		corfus = true ,
+		corfus = 'corafus' ,--will become afus in taskqueuebst:specialfilter()
 		coruwfus = true ,
-		armafus = true ,
-		corafus = true ,
+-- 		armckfus = true , --clackable, better to think about it later
+
+-- 		armafus = true ,
+-- 		corafus = true ,
 		--armdf = true, --fake fus
 	}
 
@@ -820,57 +817,6 @@ ArmyHST.nukeList = {
 	armemp = 2700,
 	cortron = 2250,
 }
-
-
-
--- ArmyHST.Eco1={
--- 	armsolar=1,
--- 	armwin=1,
--- 	armadvsol=1,
--- 	armtide=1,
---
--- 	corsolar=1,
--- 	corwin=1,
--- 	coradvsol=1,
--- 	cortide=1,
---
--- 	corgeo=1,
--- 	armgeo=1,
---
--- 	--store
---
--- 	armestor=1,
--- 	armmstor=1,
--- 	armuwes=1,
--- 	armuwms=1,
---
--- 	corestor=1,
--- 	cormstor=1,
--- 	coruwes=1,
--- 	coruwms=1,
---
--- 	--conv
--- 	armmakr=1,
--- 	cormakr=1,
--- 	armfmkr=1,
--- 	corfmkr=1,
---
---
--- 	--metalli
--- 	corexp=1,
--- 	armamex=1,
---
--- 	cormex=1,
--- 	armmex=1,
---
--- 	armuwmex=1,
--- 	coruwmex=1,
---
--- 	armnanotc=1,
--- 	cornanotc=1,
--- 	armnanotcplat = 1,
--- 	cornanotcplat = 1,
--- }
 
 ArmyHST.cleanable = {
 	armsolar= 'ground',

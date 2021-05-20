@@ -65,11 +65,11 @@ local game = {}
 		return Spring.GetTeamUnitDefCount(team,unitDef)
 	end
 
-	function GetTeamUnitsByDefs(team,unitDef)
-		return Spring(GetTeamUnitsByDefs(team,unitDef))
+	function game:GetTeamUnitsByDefs(team,unitDef)
+		return Spring.GetTeamUnitsByDefs(team,unitDef)
 	end
 
-	function GetUnitSeparation(Id1,Id2,d2d,surface)
+	function game:GetUnitSeparation(Id1,Id2,d2d,surface)
 		return Spring.GetUnitSeparation(Id1,Id2,d2d,surface)
 	end
 

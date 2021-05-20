@@ -77,7 +77,7 @@ function ShardAI:Update()
 		if m == nil then
 			self:Warn("nil module!")
 		else
-			print(m:Name())
+-- 			print(m:Name())
 			m:Update()
 		end
 	end

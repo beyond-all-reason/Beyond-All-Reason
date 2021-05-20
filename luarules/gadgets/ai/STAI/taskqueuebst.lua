@@ -167,7 +167,6 @@ function TaskQueueBST:Update()
 			end
 		end
 	end
-	end
 end
 
 function TaskQueueBST:CategoryEconFilter(cat,param,name)
@@ -281,7 +280,7 @@ function TaskQueueBST:specialFilter(cat,param,name)
 	elseif cat == '_solar_' then
 		local newName = self.ai.armyhst[cat][name]
 		self:EchoDebug('newName',newName)
-		if self.unit:Internal():CanBuild(game:GetTypeByName(newName)) then
+		if self.unit:Internal():CanBuild(self.game:GetTypeByName(newName)) then
 			if self.ai.Metal.reserves > 100 and self.ai.Energy.income > 200 and self.role == 'eco' then
 				name = newName
 			end
@@ -672,7 +671,6 @@ function TaskQueueBST:ProgressQueue()
 		if value and utype and not p then
 			utype, value, p = self:findPlace(utype, value,val[1])
 			self:EchoDebug('p',p)
-		end
 		end
 		if value and not utype   then
 			self:EchoDebug('warning' , self.name , " cannot build:",value,", couldnt grab the unit type from the engine")
