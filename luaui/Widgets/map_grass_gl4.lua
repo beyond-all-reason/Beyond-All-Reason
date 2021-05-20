@@ -867,11 +867,11 @@ void main() {
   float distToCam = length(grassVertWorldPos.xyz - camPos.xyz); //dist from cam
   instanceParamsVS.x = clamp((FADEEND - distToCam)/(FADEEND- FADESTART),0.0,1.0);
   
-  debuginfo.w = dot(rotY*vertexNormal, normalize(camPos.xyz - grassVertWorldPos.xyz));
   
   //--- ALPHA CULLING BASED ON QUAD NORMAL
   // float cosnormal = dot(normalize(grassVertWorldPos.xyz - camPos.xyz), rotY * vertexNormal);
   //instanceParamsVS.x *= clamp(cosnormal,0.0,1.0);
+  debuginfo.w = dot(rotY*vertexNormal, normalize(camPos.xyz - grassVertWorldPos.xyz));
 
   // ------------ dump the stuff for FS --------------------
   texCoord0 = texcoords0;
