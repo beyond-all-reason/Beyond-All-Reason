@@ -96,6 +96,7 @@ local spectator, fullview = Spring.GetSpectatingState()
 local spGetUnitIsActive = Spring.GetUnitIsActive
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitTeam = Spring.GetUnitTeam
+local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
 local spGetUnitPosition = Spring.GetUnitPosition
 local spIsUnitInView = Spring.IsUnitInView
 local spIsUnitInLos = Spring.IsUnitInLos
@@ -112,6 +113,7 @@ local math_random = math.random
 local UsedFrame
 local units = {}
 local unitsTeam = {}
+local unitsAllyTeam = {}
 
 local function PlaySelectSound(unitID)
 	local unitDefID = spGetUnitDefID(unitID)
@@ -142,6 +144,7 @@ function gadget:Initialize()
 		if GUIUnitSoundEffects[unitDefID] then
 			units[unitID] = unitDefID
 			unitsTeam[unitID] = spGetUnitTeam(unitID)
+			unitsAllyTeam[unitID] = spGetUnitAllyTeam(unitID)
 		end
 	end
 end
@@ -261,7 +264,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 						UnitCreatedSoundDelayLastFrame = CurrentGameFrame + (math_random(-DelayRandomization,DelayRandomization))
 					end
 				end
-			elseif spIsUnitInView(unitID) and (spIsUnitInLos(unitID, myAllyTeamID) or fullview) then
+			elseif spIsUnitInView(unitID) and (unitsAllyTeam[unitID] == myAllyTeamID or (spectator and fullview)) then
 				local posx, posy, posz = spGetUnitPosition(unitID)
 				if CurrentGameFrame >= AllyUnitFinishedSoundDelayLastFrame + AllyUnitCreatedSoundDelayFrames and spIsUnitInView(unitID) then
 					if GUIUnitSoundEffects[unitDefID].BaseSoundSelectType then
@@ -284,6 +287,7 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 	if GUIUnitSoundEffects[unitDefID] then
 		units[unitID] = unitDefID
 		unitsTeam[unitID] = unitTeam
+		unitsAllyTeam[unitID] = spGetUnitAllyTeam(unitID)
 
 		if enabled then
 			if myTeamID == unitTeam then
@@ -311,7 +315,7 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 						end
 					end
 				end
-			elseif spIsUnitInView(unitID) and (spIsUnitInLos(unitID, myAllyTeamID) or fullview) then
+			elseif spIsUnitInView(unitID) and (unitsAllyTeam[unitID] == myAllyTeamID or (spectator and fullview)) then
 				if CurrentGameFrame >= UnitFinishedSoundDelayLastFrame + AllyUnitFinishedSoundDelayFrames and spIsUnitInView(unitID) then
 					local posx, posy, posz = spGetUnitPosition(unitID)
 					if GUIUnitSoundEffects[unitDefID].BaseSoundSelectType then
@@ -336,6 +340,7 @@ end
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
 	units[unitID] = nil
 	unitsTeam[unitID] = nil
+	unitsAllyTeam[unitID] = nil
 	if ActiveStateTrackingUnitList[unitID] then
 		ActiveStateTrackingUnitList[unitID] = nil
 	end
@@ -408,7 +413,7 @@ function gadget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOp
 
 	if unitTeam ~= myTeamID then
 
-		if spIsUnitInView(unitID) and spIsUnitInLos(unitID, myAllyTeamID) then
+		if spIsUnitInView(unitID) and (unitsAllyTeam[unitID] == myAllyTeamID or (spectator and fullview)) then
 
 			if CurrentGameFrame >= AllyCommandUnitDelayLastFrame + AllyCommandUnitDelayFrames then
 
