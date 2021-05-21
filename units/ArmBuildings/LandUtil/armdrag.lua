@@ -22,6 +22,7 @@ return {
 		corpse = "ROCKTEETH",
 		crushresistance = 250,
 		description = Spring.I18N('units.descriptions.armdrag'),
+		explodeas = "WallExplosionMetal",
 		footprintx = 2,
 		footprintz = 2,
 		hidedamage = true,
@@ -35,6 +36,8 @@ return {
 		repairable = false,
 		script = "Units/armdrag.cob",
 		seismicsignature = 0,
+		selfdestructas = "WallExplosionMetal",
+		selfdestructcountdown = 1,
 		sightdistance = 1,
 		usebuildinggrounddecal = true,
 		yardmap = "ffff",
@@ -71,7 +74,10 @@ return {
 			},
 		},
 		sfxtypes = {
-			pieceexplosiongenerators = {},
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+			},
 		},
 	},
 }
