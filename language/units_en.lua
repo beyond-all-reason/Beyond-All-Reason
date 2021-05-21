@@ -652,7 +652,7 @@ return {
 				armminivulc = "Mini Rapid-Fire Plasma Cannon",
 				armmls = "Naval Engineer",
 				armmlv = "Stealthy Minelayer/Minesweeper",
-				armmmkr = "Converts 600 energy into 10.3 metal",
+				armmmkr = "Converts 600 energy into 10.3 metal per sec",
 				armmoho = "Advanced Metal Extractor / Storage",
 				armmship = "Missile Cruiser",
 				armmstor = "Increases Metal Storage (3000)",
