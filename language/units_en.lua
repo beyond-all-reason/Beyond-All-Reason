@@ -993,7 +993,7 @@ return {
 				critter_ant = "Chaos!",
 				critter_duck = "Quack Quack!",
 				critter_goldfish = "Shiny!",
-				critter_gull = "I´m so fly!",
+				critter_gull = "I'm so fly!",
 				critter_penguin = "So cool!",
 				critter_penguinbro = "So cool!",
 				critter_penguinking = "So cool!",
