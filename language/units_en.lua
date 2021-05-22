@@ -301,7 +301,7 @@ return {
 				corcat = "Catapult",
 				corch = "Construction Hovercraft",
 				corck = "Construction Bot",
-				corcom = "Commander",
+				corcom = "Cortex Commander",
 				corcomboss = "Epic Commander - Final Boss",
 				corcrash = "Crasher",
 				corcrus = "Executioner",
