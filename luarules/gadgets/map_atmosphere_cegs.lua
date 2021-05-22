@@ -438,7 +438,12 @@ else
 	local currentMapname = Game.mapName:lower()
 	local mapList = VFS.DirList("luarules/configs/Atmosphereconfigs/", "*.lua")
 	Spring.Echo("[ATMOSPHERIC] Current map: "..currentMapname)
-	for i = 1,#mapList do
+	for i = 1,#mapList+1 do
+		if i == #mapList+1 then
+			Spring.Echo("[ATMOSPHERIC] No map config found. Turning off the gadget")
+			gadgetHandler:RemoveGadget(self)
+			--VFS.Include("luarules/configs/Atmosphereconfigs/generic_config_setup.lua")
+		end
 		local testMapName = string.sub(mapList[i], 36, string.len(mapList[i])-4):lower()
 		if string.find(currentMapname, testMapName) then
 			Spring.Echo("[ATMOSPHERIC] Success! Map names match!: " ..testMapName)
@@ -446,10 +451,6 @@ else
 			break
 		else
 			Spring.Echo("[ATMOSPHERIC] Map names don't match: " ..testMapName)
-		end
-		if i == #mapList then
-			Spring.Echo("[ATMOSPHERIC] No map config found. Using generic config.")
-			VFS.Include("luarules/configs/Atmosphereconfigs/generic_config_setup.lua")
 		end
 	end
 
