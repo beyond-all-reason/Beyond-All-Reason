@@ -716,7 +716,11 @@ local function processConsoleLine(gameFrame, line, addOrgLine)
 		end
 
 		local namecolor
-		if (names[name] ~= nil and names[name][2]) or true then		--spectator
+		local spectator = true
+		if names[name] ~= nil then
+			spectator = names[name][2]
+		end
+		if spectator then
 			name = '(s) '..name
 			namecolor = convertColor(colorSpec[1],colorSpec[2],colorSpec[3])
 			textcolor = convertColor(colorSpec[1],colorSpec[2],colorSpec[3])
@@ -757,9 +761,11 @@ local function processConsoleLine(gameFrame, line, addOrgLine)
 		else
 			bypassThisMessage = true
 		end
-
 		-- filter specs
-		local spectator = names[name] ~= nil and names[name][2] or false
+		local spectator = false
+		if names[name] ~= nil then
+			spectator = names[name][2]
+		end
 		if hideSpecChat and (not names[name] or spectator) then
 			skipThisMessage = true
 		end
@@ -775,10 +781,41 @@ local function processConsoleLine(gameFrame, line, addOrgLine)
 
 		name = convertColor(colorGame[1],colorGame[2],colorGame[3])..'<'..name..'>'
 		line = convertColor(colorGame[1],colorGame[2],colorGame[3])..text
+
+		-- console chat
 	else
 		lineType = -1
+
+		if sfind(line, "Input grabbing is ", nil, true) then
+			bypassThisMessage = true
+		elseif sfind(line," to access the quit menu", nil, true) then
+			bypassThisMessage = true
+		elseif sfind(line,"VSync::SetInterval", nil, true) then
+			bypassThisMessage = true
+		elseif sfind(line," now spectating team ", nil, true) then
+			bypassThisMessage = true
+		elseif sfind(line,"TotalHideLobbyInterface, ", nil, true) then	-- filter lobby on/off message
+			bypassThisMessage = true
+		elseif sfind(line,"HandleLobbyOverlay", nil, true) then
+			bypassThisMessage = true
+		elseif sfind(line,"->", nil, true) then
+			bypassThisMessage = true
+		elseif sfind(line,"server=[0-9a-z][0-9a-z][0-9a-z][0-9a-z]") or sfind(line,"client=[0-9a-z][0-9a-z][0-9a-z][0-9a-z]") then	-- filter hash messages: server= / client=
+			bypassThisMessage = true
+
+		--2 lines (instead of 4) appears when player connects
+		elseif sfind(line,'-> Version', nil, true) or sfind(line,'ClientReadNet', nil, true) or sfind(line,'Address', nil, true) then
+			bypassThisMessage = true
+		elseif sfind(line,"Wrong network version", nil, true) then
+			local n,_ = sfind(line,"Message", nil, true)
+			if n ~= nil then
+				line = ssub(line,1,n-3) --shorten so as these messages don't get clipped and can be detected as duplicates
+			end
+		elseif gameOver and sfind(line,'left the game', nil, true) then
+			bypassThisMessage = true
+		end
+
 		line = convertColor(colorConsole[1],colorConsole[2],colorConsole[3])..line
-		--bypassThisMessage = true
 	end
 
 	-- bot command
