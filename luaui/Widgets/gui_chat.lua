@@ -16,11 +16,14 @@ local posYoffset = 0.04 --0.01	-- add extra distance (non scrolling)
 local posX = 0.3
 local posX2 = 0.74
 local charSize = 21 - (3.5 * ((vsx/vsy) - 1.78))
+local consoleFontSizeMult = 0.85
 local charDelay = 0.0015
 local maxLines = 5
+local maxConsoleLines = 3
 local maxLinesScroll = 15
 local lineHeightMult = 1.27
 local lineTTL = 45
+local capitalize = true
 
 local fadeTime = 0.3
 local fadeDelay = 0.15   -- need to hover this long in order to fadein and respond to CTRL
@@ -34,12 +37,14 @@ local widgetScale = (((vsx+vsy) / 2000) * 0.55) * (0.95+(ui_scale-1)/1.5)
 
 local fontsizeMult = 1
 local usedFontSize = charSize*widgetScale*fontsizeMult
+local usedConsoleFontSize = charSize*widgetScale*fontsizeMult*consoleFontSizeMult
 local orgLines = {}
 local chatLines = {}
 local consoleLines = {}
 local activationArea = {0,0,0,0}
 local currentChatLine = 0
 local currentChatTypewriterLine = 0
+local currentConsoleLine = 0
 local scrolling = false
 local scrollingPosY = 0.66
 
@@ -99,6 +104,11 @@ local spGetMyAllyTeamID = Spring.GetMyAllyTeamID
 local spPlaySoundFile = Spring.PlaySoundFile
 local spGetGameFrame = Spring.GetGameFrame
 
+
+local function isOnRect(x, y, leftX, bottomY,rightX,TopY)
+	return x >= leftX and x <= rightX and y >= bottomY and y <= TopY
+end
+
 local function lines(str)
 	local text = {}
 	local function helper(line) text[#text+1] = line return "" end
@@ -106,17 +116,68 @@ local function lines(str)
 	return text
 end
 
-local function isOnRect(x, y, leftX, bottomY,rightX,TopY)
-	return x >= leftX and x <= rightX and y >= bottomY and y <= TopY
+local function wordWrap(text, maxWidth, fontSize)
+	local lines = {}
+	local lineCount = 0
+	for _, line in ipairs(text) do
+		local words = {}
+		local wordsCount = 0
+		local linebuffer = ''
+		for w in line:gmatch("%S+") do
+			wordsCount = wordsCount + 1
+			words[wordsCount] = w
+		end
+		for _, word in ipairs(words) do
+			if font:GetTextWidth(linebuffer..' '..word)*fontSize > maxWidth then
+				lineCount = lineCount + 1
+				lines[lineCount] = linebuffer
+				linebuffer = ''
+			end
+			linebuffer = (linebuffer ~= '' and linebuffer..' '..word or word)
+		end
+		if linebuffer ~= '' then
+			lineCount = lineCount + 1
+			lines[lineCount] = linebuffer
+		end
+	end
+	return lines
 end
 
-
-local function addConsoleChat(type, text)
+local function addConsoleChat(gameFrame, lineType, text, isLive)
 	if not text or text == '' then return end
 
+	-- convert /n into lines
+	local textLines = lines(text)
+
+	-- word wrap text into lines
+	local wordwrappedText = wordWrap(textLines, lineMaxWidth, usedFontSize)
+
+	local consoleLinesCount = #consoleLines
+	local lineColor = #wordwrappedText > 1 and ssub(wordwrappedText[1], 1, 4) or ''
+	local startTime = clock()
+	for i, line in ipairs(wordwrappedText) do
+		consoleLinesCount = consoleLinesCount + 1
+		consoleLines[consoleLinesCount] = {
+			startTime = startTime,
+			gameFrame = i == 1 and gameFrame,
+			lineType = lineType,
+			text = (i > 1 and lineColor or '')..line,
+			--lineDisplayList = glCreateList(function() end),
+			--timeDisplayList = glCreateList(function() end),
+		}
+	end
+
+	if not scrolling then
+		currentConsoleLine = consoleLinesCount
+	end
+
+	-- play sound for ...
+	--if isLive and playSound and not Spring.IsGUIHidden() then
+	--	spPlaySoundFile( SoundIncomingChat, SoundIncomingChatVolume, nil, "ui" )
+	--end
 end
 
-local function addChat(gameFrame, type, name, text, isLive)
+local function addChat(gameFrame, lineType, name, text, isLive)
 	if not text or text == '' then return end
 
 	-- determine text typing start time
@@ -135,54 +196,25 @@ local function addChat(gameFrame, type, name, text, isLive)
 	local textLines = lines(text)
 
 	-- word wrap text into lines
-	local wordwrappedText = {}
-	local wordwrappedTextCount = 0
-	for _, line in ipairs(textLines) do
-		local words = {}
-		local wordsCount = 0
-		local linebuffer = ''
-		for w in line:gmatch("%S+") do
-			wordsCount = wordsCount + 1
-			words[wordsCount] = w
-		end
-		for _, word in ipairs(words) do
-			if font:GetTextWidth(linebuffer..' '..word)*usedFontSize > lineMaxWidth then
-				wordwrappedTextCount = wordwrappedTextCount + 1
-				wordwrappedText[wordwrappedTextCount] = linebuffer
-				linebuffer = ''
-			end
-			if linebuffer == '' then
-				linebuffer = word
-			else
-				linebuffer = linebuffer..' '..word
-			end
-		end
-		if linebuffer ~= '' then
-			wordwrappedTextCount = wordwrappedTextCount + 1
-			wordwrappedText[wordwrappedTextCount] = linebuffer
-		end
-	end
+	local wordwrappedText = wordWrap(textLines, lineMaxWidth, usedFontSize)
 
 	local doTypewrite = (isLive and charDelay > 0)
 
 	local chatLinesCount = #chatLines
-	local lineColor = ''
-	if #wordwrappedText > 1 then
-		lineColor = ssub(wordwrappedText[1], 1, 4)
-	end
+	local lineColor = #wordwrappedText > 1 and ssub(wordwrappedText[1], 1, 4) or ''
 	for i, line in ipairs(wordwrappedText) do
 		chatLinesCount = chatLinesCount + 1
 		chatLines[chatLinesCount] = {
 			startTime = startTime,
 			gameFrame = i == 1 and gameFrame,
-			lineType = type,
+			lineType = lineType,
 			playerName = name,
 			text = (i > 1 and lineColor or '')..line,
 			textChars = slen(line),
 			typedTextChars = doTypewrite and 0 or slen(line),  -- num typed chars
 			typedTimePassed = 0,  -- time passed during typing chars (used to calc 'num typed chars')
 			displayListChars = 0,   -- num chars the displaylist contains
-			lineDisplayList = glCreateList(function() end),
+			--lineDisplayList = glCreateList(function() end),
 			--timeDisplayList = glCreateList(function() end),
 		}
 		startTime = startTime + (slen(line)*charDelay)
@@ -196,7 +228,7 @@ local function addChat(gameFrame, type, name, text, isLive)
 	end
 
 	-- play sound for player/spectator chat
-	if isLive and (type == 1 or type == 2) and playSound and not Spring.IsGUIHidden() then
+	if isLive and (lineType == 1 or lineType == 2) and playSound and not Spring.IsGUIHidden() then
 		spPlaySoundFile( SoundIncomingChat, SoundIncomingChatVolume, nil, "ui" )
 	end
 end
@@ -532,6 +564,15 @@ local function processConsoleLine(gameFrame, line, addOrgLine)
 			c = colorOther
 		end
 
+
+		-- filter occasional starting space
+		if ssub(text,1,1) == ' ' then
+			text = ssub(text,2)
+		end
+		if capitalize then
+			text = ssub(text,1,1):upper()..ssub(text,2)
+		end
+
 		name = convertColor(spGetTeamColor(names[name][3]))..name
 		line = convertColor(c[1],c[2],c[3])..text
 
@@ -561,6 +602,14 @@ local function processConsoleLine(gameFrame, line, addOrgLine)
 			c = colorOther
 		end
 
+		-- filter occasional starting space
+		if ssub(text,1,1) == ' ' then
+			text = ssub(text,2)
+		end
+		if capitalize then
+			text = ssub(text,1,1):upper()..ssub(text,2)
+		end
+
 		name = convertColor(colorSpec[1],colorSpec[2],colorSpec[3])..'(s) '..name
 		line = convertColor(c[1],c[2],c[3])..text
 
@@ -574,11 +623,7 @@ local function processConsoleLine(gameFrame, line, addOrgLine)
 		end
 
 		local namecolor
-		local spectator = true
-		if names[name] ~= nil then
-			spectator = names[name][2]
-		end
-		if spectator then
+		if (names[name] ~= nil and names[name][2]) or true then		--spectator
 			name = '(s) '..name
 			namecolor = convertColor(colorSpec[1],colorSpec[2],colorSpec[3])
 			textcolor = convertColor(colorSpec[1],colorSpec[2],colorSpec[3])
@@ -595,6 +640,10 @@ local function processConsoleLine(gameFrame, line, addOrgLine)
 			else
 				textcolor = convertColor(colorOtherAlly[1],colorOtherAlly[2],colorOtherAlly[3])
 			end
+		end
+
+		if capitalize then
+			text = ssub(text,1,1):upper()..ssub(text,2)
 		end
 
 		name = namecolor..name
@@ -617,13 +666,19 @@ local function processConsoleLine(gameFrame, line, addOrgLine)
 		end
 
 		-- filter specs
-		local spectator = false
-		if names[name] ~= nil then
-			spectator = names[name][2]
-		end
+		local spectator = names[name] ~= nil and names[name][2] or false
 		if hideSpecChat and (not names[name] or spectator) then
 			skipThisMessage = true
 		end
+
+		-- filter occasional starting space
+		if ssub(text,1,1) == ' ' then
+			text = ssub(text,2)
+		end
+
+		--if capitalize then
+		--	text = ssub(text,1,1):upper()..ssub(text,2)
+		--end
 
 		name = convertColor(colorGame[1],colorGame[2],colorGame[3])..'<'..name..'>'
 		line = convertColor(colorGame[1],colorGame[2],colorGame[3])..text
@@ -656,7 +711,7 @@ local function processConsoleLine(gameFrame, line, addOrgLine)
 			orgLines[#orgLines+1] = {gameFrame, orgLine}
 		end
 		if lineType < 1 then
-			addConsoleChat(gameFrame, lineType, line)
+			addConsoleChat(gameFrame, lineType, line, addOrgLine)
 		elseif not skipThisMessage then
 			addChat(gameFrame, lineType, name, line, addOrgLine)
 		end
@@ -706,6 +761,7 @@ function widget:ViewResize()
 	elementMargin = Spring.FlowUI.elementMargin
 
 	usedFontSize = charSize*widgetScale*fontsizeMult
+	usedConsoleFontSize = charSize*widgetScale*fontsizeMult*consoleFontSizeMult
 	font = WG['fonts'].getFont(nil, (charSize/18)*fontsizeMult, 0.17, 1.65)
 	font3 = WG['fonts'].getFont(fontfile3, (charSize/18)*fontsizeMult, 0.17, 1.65)
 
