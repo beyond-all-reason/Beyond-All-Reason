@@ -298,7 +298,9 @@ texts = {
 		musicplayer = 'music player',
 		musicplayer_descr = 'Show music player on top of playerlist',
 		console = 'Console',
-		console_maxlines = 'max lines',
+		console_maxlines = 'max chat lines',
+		console_maxconsolelines = 'max console lines',
+		console_capitalize = 'capitalize chat text',
 		console_fontsize = 'font size',
 		console_hidespecchat = 'hide spectator chat',
 		console_hidespecchat_descr = 'Not showing any spectator chat',
@@ -3610,22 +3612,30 @@ function init()
 				Spring.SetConfigInt("HideSpecChat", value and 1 or 0)
 			end,
 		  },
-		  { id = "console_backgroundopacity", group = "ui", basic = true, name = widgetOptionColor .. "   "..texts.option.console_backgroundopacity, type = "slider", min = 0, max = 0.3, step = 0.01, value = (WG['chat'] ~= nil and WG['chat'].getBackgroundOpacity() or 0), description = texts.option.console_backgroundopacity_descr,
-			onload = function(i)
-				loadWidgetData("Chat", "console_backgroundopacity", { 'backgroundOpacity' })
-			end,
-			onchange = function(i, value)
-				saveOptionValue('Chat', 'chat', 'setBackgroundOpacity', { 'backgroundOpacity' }, value)
-			end,
-		  },
 		{ id = "console_maxlines", group = "ui", name = widgetOptionColor .. "   "..texts.option.console_maxlines, type = "slider", min = 3, max = 7, step = 1, value = (WG['chat'] ~= nil and WG['chat'].getMaxLines() or 5), description = '',
 		  onload = function(i)
-			  loadWidgetData("Chat", "console_maxlines", { 'maxlines' })
+			  loadWidgetData("Chat", "console_maxlines", { 'maxLines' })
 		  end,
 		  onchange = function(i, value)
-			  saveOptionValue('Chat', 'chat', 'setMaxLines', { 'maxlines' }, value)
+			  saveOptionValue('Chat', 'chat', 'setMaxLines', { 'maxLines' }, value)
 		  end,
 		},
+		  { id = "console_maxconsolelines", group = "ui", name = widgetOptionColor .. "   "..texts.option.console_maxconsolelines, type = "slider", min = 2, max = 5, step = 1, value = (WG['chat'] ~= nil and WG['chat'].getMaxConsoleLines() or 2), description = '',
+			onload = function(i)
+				loadWidgetData("Chat", "console_maxconsolelines", { 'maxConsoleLines' })
+			end,
+			onchange = function(i, value)
+				saveOptionValue('Chat', 'chat', 'setMaxConsoleLines', { 'maxConsoleLines' }, value)
+			end,
+		  },
+		  --{ id = "console_capitalize", group = "ui", name = widgetOptionColor .. "   "..texts.option.console_capitalize, type = "bool", value = (WG['chat'] ~= nil and WG['chat'].getCapitalize() or false), description = '',
+		--	onload = function(i)
+		--		loadWidgetData("Chat", "console_capitalize", { 'capitalize' })
+		--	end,
+		--	onchange = function(i, value)
+		--		saveOptionValue('Chat', 'chat', 'setCapitalize', { 'capitalize' }, value)
+		--	end,
+		  --},
 		{ id = "console_fontsize", group = "ui", name = widgetOptionColor .. "   "..texts.option.console_fontsize, type = "slider", min = 0.92, max = 1.08, step = 0.02, value = (WG['chat'] ~= nil and WG['chat'].getFontsize() or 1), description = '',
 		  onload = function(i)
 			  loadWidgetData("Chat", "console_fontsize", { 'fontsizeMult' })
@@ -3634,6 +3644,14 @@ function init()
 			  saveOptionValue('Chat', 'chat', 'setFontsize', { 'fontsizeMult' }, value)
 		  end,
 		},
+		  { id = "console_backgroundopacity", group = "ui", basic = true, name = widgetOptionColor .. "   "..texts.option.console_backgroundopacity, type = "slider", min = 0, max = 0.3, step = 0.01, value = (WG['chat'] ~= nil and WG['chat'].getBackgroundOpacity() or 0), description = texts.option.console_backgroundopacity_descr,
+			onload = function(i)
+				loadWidgetData("Chat", "console_backgroundopacity", { 'backgroundOpacity' })
+			end,
+			onchange = function(i, value)
+				saveOptionValue('Chat', 'chat', 'setBackgroundOpacity', { 'backgroundOpacity' }, value)
+			end,
+		  },
 
 		--{id="commanderhurt", group="ui", widget="Commander Hurt Vignette", name="Commander hurt vignette", type="bool", value=GetWidgetToggleValue("Commander Hurt Vignette"), description='Shows a red vignette when commander is out of view and gets damaged'},
 

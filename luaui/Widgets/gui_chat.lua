@@ -1,7 +1,7 @@
 function widget:GetInfo()
 	return {
 		name      = "Chat",
-		desc      = "Typewrites chat",
+		desc      = "chat/console (do /clearconsole to wipe history)",
 		author    = "Floris",
 		date      = "May 2021",
 		license   = "GNU GPL, v2 or later",
@@ -12,7 +12,6 @@ end
 
 local vsx, vsy = gl.GetViewSizes()
 local posY = 0.81
-local posYoffset = 0.04 --0.01	-- add extra distance (non scrolling)
 local posX = 0.3
 local posX2 = 0.74
 local charSize = 21 - (3.5 * ((vsx/vsy) - 1.78))
@@ -23,7 +22,7 @@ local maxConsoleLines = 2
 local maxLinesScroll = 15
 local lineHeightMult = 1.27
 local lineTTL = 45
-local capitalize = true
+local capitalize = false	-- capitalize first letter of chat text
 
 local fadeTime = 0.3
 local fadeDelay = 0.15   -- need to hover this long in order to fadein and respond to CTRL
@@ -247,11 +246,25 @@ function widget:Initialize()
 	WG['chat'].setBackgroundOpacity = function(value)
 		backgroundOpacity = value
 	end
+	WG['chat'].getCapitalize = function()
+		return capitalize
+	end
+	WG['chat'].setCapitalize = function(value)
+		capitalize = value
+		widget:ViewResize()
+	end
 	WG['chat'].getMaxLines = function()
 		return maxLines
 	end
 	WG['chat'].setMaxLines = function(value)
 		maxLines = value
+		widget:ViewResize()
+	end
+	WG['chat'].getMaxConsoleLines = function()
+		return maxLines
+	end
+	WG['chat'].setMaxConsoleLines = function(value)
+		maxConsoleLines = value
 		widget:ViewResize()
 	end
 	WG['chat'].getFontsize = function()
@@ -317,6 +330,26 @@ function widget:Update(dt)
 	end
 end
 
+local function createGameTimeDisplayList(gametime)
+	return glCreateList(function()
+		local minutes = floor((gametime / 30 / 60))
+		local seconds = floor((gametime - ((minutes*60)*30)) / 30)
+		if seconds == 0 then
+			seconds = '00'
+		elseif seconds < 10 then
+			seconds = '0'..seconds
+		end
+		local offset = 0
+		if minutes >= 100 then
+			offset = (usedFontSize*0.2*widgetScale)
+		end
+		local gameTime = '\255\200\200\200'..minutes..':'..seconds
+		font3:Begin()
+		font3:Print(gameTime, maxTimeWidth+offset, usedFontSize*0.3, usedFontSize*0.82, "ro")
+		font3:End()
+	end)
+end
+
 local function processConsoleLine(i)
 	if consoleLines[i].lineDisplayList == nil then
 		glDeleteList(consoleLines[i].lineDisplayList)
@@ -331,23 +364,7 @@ local function processConsoleLine(i)
 		-- game time (for when viewing history)
 		if consoleLines[i].gameFrame then
 			glDeleteList(consoleLines[i].timeDisplayList)
-			consoleLines[i].timeDisplayList = glCreateList(function()
-				local minutes = floor((consoleLines[i].gameFrame / 30 / 60))
-				local seconds = floor((consoleLines[i].gameFrame - ((minutes*60)*30)) / 30)
-				if seconds == 0 then
-					seconds = '00'
-				elseif seconds < 10 then
-					seconds = '0'..seconds
-				end
-				local offset = 0
-				if minutes >= 100 then
-					offset = (usedFontSize*0.2*widgetScale)
-				end
-				local gameTime = '\255\200\200\200'..minutes..':'..seconds
-				font3:Begin()
-				font3:Print(gameTime, maxTimeWidth+offset, fontHeightOffset, usedFontSize*0.82, "ro")
-				font3:End()
-			end)
+			consoleLines[i].timeDisplayList = createGameTimeDisplayList(consoleLines[i].gameFrame)
 		end
 	end
 end
@@ -372,7 +389,6 @@ local function processLine(i)
 				else
 					font:Print(chatSeparator, maxPlayernameWidth+(lineSpaceWidth/3.8), fontHeightOffset, usedFontSize, "oc")
 				end
-
 			end
 			font:Print(text, maxPlayernameWidth+lineSpaceWidth, fontHeightOffset, usedFontSize, "o")
 			font:End()
@@ -381,23 +397,7 @@ local function processLine(i)
 		-- game time (for when viewing history)
 		if chatLines[i].gameFrame then
 			glDeleteList(chatLines[i].timeDisplayList)
-			chatLines[i].timeDisplayList = glCreateList(function()
-				local minutes = floor((chatLines[i].gameFrame / 30 / 60))
-				local seconds = floor((chatLines[i].gameFrame - ((minutes*60)*30)) / 30)
-				if seconds == 0 then
-					seconds = '00'
-				elseif seconds < 10 then
-					seconds = '0'..seconds
-				end
-				local offset = 0
-				if minutes >= 100 then
-					offset = (usedFontSize*0.2*widgetScale)
-				end
-				local gameTime = '\255\200\200\200'..minutes..':'..seconds
-				font3:Begin()
-				font3:Print(gameTime, maxTimeWidth+offset, fontHeightOffset, usedFontSize*0.82, "ro")
-				font3:End()
-			end)
+			chatLines[i].timeDisplayList = createGameTimeDisplayList(chatLines[i].gameFrame)
 		end
 	end
 end
@@ -541,8 +541,8 @@ function widget:DrawScreen()
 					end
 					glTranslate(width, 0, 0)
 				end
-				--if scrolling then
-				--	RectRound(0, 0, (activationArea[3]-activationArea[1])-backgroundPadding-backgroundPadding-maxTimeWidth, lineHeight, elementCorner*0.66, 0,0,0,0, {1,1,1,0.03}, {1,1,1,0})
+				--if scrolling == 'chat' and isOnRect(x, y, activationArea[1]+backgroundPadding, activationArea[4], activationArea[3]-backgroundPadding, activationArea[4]+(lineHeight*(maxLinesScroll-displayedLines))) then
+				--	RectRound(0, 0, (activationArea[3]-activationArea[1])-backgroundPadding-backgroundPadding-maxTimeWidth, lineHeight, elementCorner*0.66, 0,0,0,0, {1,1,1,0.15}, {0.8,0.8,0.8,0.15})
 				--end
 				glCallList(scrolling == 'console' and consoleLines[i].lineDisplayList or chatLines[i].lineDisplayList)
 				if scrolling  then
@@ -849,6 +849,18 @@ local function processConsoleLine(gameFrame, line, addOrgLine)
 	end
 end
 
+function widget:MapDrawCmd(playerID, cmdType, x, y, z, a, b, c)
+	local time = clock()
+	local gameFrame = spGetGameFrame()
+	if cmdType == 'point' then
+
+	elseif cmdType == 'line' then
+
+	elseif cmdType == 'erase' then
+
+	end
+end
+
 function widget:AddConsoleLine(lines, priority)
 	lines = lines:match('^\[f=[0-9]+\] (.*)$') or lines
 	for line in lines:gmatch("[^\n]+") do
@@ -891,6 +903,13 @@ local function processLines()
 	currentChatTypewriterLine = currentChatLine
 end
 
+function widget:TextCommand(command)
+	if string.find(command, "clearconsole", nil, true) == 1  and  string.len(command) == 12 then
+		orgLines = {}
+		processLines()
+	end
+end
+
 function widget:ViewResize()
 	vsx,vsy = Spring.GetViewGeometry()
 	widgetScale = (((vsx+vsy) / 2000) * 0.55) * (0.95+(ui_scale-1)/1.5)
@@ -906,7 +925,7 @@ function widget:ViewResize()
 	font = WG['fonts'].getFont(nil, (charSize/18)*fontsizeMult, 0.17, 1.65)
 	font3 = WG['fonts'].getFont(fontfile3, (charSize/18)*fontsizeMult, 0.17, 1.65)
 
-	-- get longest playername and calc its width
+	-- get longest player name and calc its width
 	local namePrefix = '(s)'
 	maxPlayernameWidth = font:GetTextWidth(namePrefix..longestPlayername) * usedFontSize
 	local playersList = Spring.GetPlayerList()
@@ -965,6 +984,9 @@ function widget:GetConfigData(data)
 	return {
 		gameFrame = Spring.GetGameFrame(),
 		orgLines = gameOver and nil or orgLines,
+		maxLines = maxLines,
+		maxConsoleLines = maxConsoleLines,
+		capitalize = capitalize,
 		fontsizeMult = fontsizeMult,
 		backgroundOpacity = backgroundOpacity
 	}
@@ -978,5 +1000,14 @@ function widget:SetConfigData(data)
 	end
 	if data.backgroundOpacity ~= nil then
 		backgroundOpacity = data.backgroundOpacity
+	end
+	if data.maxLines ~= nil then
+		maxLines = data.maxLines
+	end
+	if data.maxConsoleLines ~= nil then
+		maxConsoleLines = data.maxConsoleLines
+	end
+	if data.capitalize ~= nil then
+		capitalize = data.capitalize
 	end
 end
