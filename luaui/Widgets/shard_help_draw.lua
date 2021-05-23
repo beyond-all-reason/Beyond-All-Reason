@@ -832,17 +832,18 @@ local function ClearShapes(teamID, channel)
 	UpdateShapesByType()
 end
 
-local function DisplayOnOff(onOff)
+local function DisplayOnOff(onOff)--boolean
+
 	displayOnOff = onOff
 end
 
 local function StartTimer(name)
-	-- spEcho("start timer", name)
+	--spEcho("start timer", name)
 	timers[name] = spGetTimer()
 end
 
 local function StopTimer(name)
-	-- spEcho("stop timer", name, timers[name])
+	--spEcho("stop timer", name, timers[name])
 	if not timers[name] then return end
 	local ms = spDiffTimers(spGetTimer(), timers[name])
 	if ms > 100 then

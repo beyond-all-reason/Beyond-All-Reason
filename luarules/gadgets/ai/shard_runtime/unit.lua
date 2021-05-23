@@ -49,8 +49,11 @@ function Unit:Update()
 
 	-- Pass the update event to the behaviours
 	for k,behaviour in pairs(self.behaviours) do
+		self.game:StartTimer(behaviour:Name() .. ' U')
 		behaviour:Update()
+		self.game:StopTimer(behaviour:Name() .. ' U')
 	end
+	self.game:DrawDisplay(true)
 end
 
 function Unit:GameEnd()
@@ -65,7 +68,10 @@ function Unit:UnitCreated(unit)
 			return
 		end
 		for k,v in pairs(self.behaviours) do
+			self.game:StartTimer(v:Name() .. 'C')
 			v:UnitCreated(unit)
+			self.game:StopTimer(v:Name() .. 'C')
+
 		end
 	end
 end
@@ -106,11 +112,15 @@ end
 function Unit:UnitDamaged(unit,attacker,damage)
 	if unit.engineID == self.engineID then
 		for k,v in pairs(self.behaviours) do
+			self.game:StartTimer(v:Name() .. 'G')
 			v:OwnerDamaged(attacker,damage)
+			self.game:StopTimer(v:Name() .. 'G')
 		end
 	else
 		for k,v in pairs(self.behaviours) do
+			self.game:StartTimer(v:Name() .. 'G')
 			v:UnitDamaged(unit,attacker,damage)
+			self.game:StopTimer(v:Name() .. 'G')
 		end
 	end
 end
@@ -118,11 +128,15 @@ end
 function Unit:UnitIdle(unit)
 	if unit.engineID == self.engineID then
 		for k,v in pairs(self.behaviours) do
+			self.game:StartTimer(v:Name() .. 'I')
 			v:OwnerIdle()
+			self.game:StopTimer(v:Name() .. 'I')
 		end
 	else
 		for k,v in pairs(self.behaviours) do
+			self.game:StartTimer(v:Name() .. 'I')
 			v:UnitIdle(unit)
+			self.game:StopTimer(v:Name() .. 'I')
 		end
 	end
 end

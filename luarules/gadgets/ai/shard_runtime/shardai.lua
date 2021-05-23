@@ -77,8 +77,9 @@ function ShardAI:Update()
 		if m == nil then
 			self:Warn("nil module!")
 		else
--- 			print(m:Name())
+ 			self.game:StartTimer(m:Name() .. ' U')
 			m:Update()
+ 			self.game:StopTimer(m:Name() .. ' U')
 		end
 	end
 end
@@ -91,7 +92,9 @@ function ShardAI:GameMessage(text)
 		if m == nil then
 			self:Warn("nil module!")
 		else
+			self.game:StartTimer(m:Name() .. ' M')
 			m:GameMessage(text)
+			self.game:StopTimer(m:Name() .. ' M')
 		end
 	end
 end
@@ -109,7 +112,10 @@ function ShardAI:UnitCreated(engineunit)
 		return
 	end
 	for i,m in ipairs(self.modules) do
+		self.game:StartTimer(m:Name() .. ' C')
 		m:UnitCreated(engineunit)
+		self.game:StopTimer(m:Name() .. ' C')
+
 	end
 end
 
@@ -122,7 +128,9 @@ function ShardAI:UnitBuilt(engineunit)
 		return
 	end
 	for i,m in ipairs(self.modules) do
+		self.game:StartTimer(m:Name() .. ' B')
 		m:UnitBuilt(engineunit)
+		self.game:StopTimer(m:Name() .. ' B')
 	end
 end
 
@@ -134,7 +142,9 @@ function ShardAI:UnitDead(engineunit)
 		return
 	end
 	for i,m in ipairs(self.modules) do
+		self.game:StartTimer(m:Name() .. ' D')
 		m:UnitDead(engineunit)
+		self.game:StopTimer(m:Name() .. ' D')
 	end
 end
 
@@ -148,7 +158,9 @@ function ShardAI:UnitIdle(engineunit)
 	end
 
 	for i,m in ipairs(self.modules) do
+		self.game:StartTimer(m:Name() .. ' I')
 		m:UnitIdle(engineunit)
+		self.game:StopTimer(m:Name() .. ' I')
 	end
 end
 
@@ -161,7 +173,9 @@ function ShardAI:UnitDamaged(engineunit,engineattacker,enginedamage)
 	end
 	-- self.game:SendToConsole("UnitDamage for " .. enginedamage:Damage())
 	for i,m in ipairs(self.modules) do
+		self.game:StartTimer(m:Name() .. ' G')
 		m:UnitDamaged(engineunit,engineattacker,enginedamage)
+		self.game:StopTimer(m:Name() .. ' G')
 	end
 end
 
@@ -173,7 +187,9 @@ function ShardAI:UnitMoveFailed(engineunit)
 		return
 	end
 	for i,m in ipairs(self.modules) do
+		self.game:StartTimer(m:Name() .. ' F')
 		m:UnitMoveFailed(engineunit)
+		self.game:StopTimer(m:Name() .. ' F')
 	end
 end
 

@@ -4,6 +4,10 @@ function CountBST:Name()
 	return "CountBST"
 end
 
+function CountBST:Updade()
+	--nothing to do
+end
+
 function CountBST:Init()
 	self.DebugEnabled = false
 	self.finished = false

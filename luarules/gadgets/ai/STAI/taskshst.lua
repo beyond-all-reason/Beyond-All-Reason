@@ -20,7 +20,6 @@ function TasksHST:Init()
 		{'_mex_',true,false,false,true,true},
 		{'_llt_',true,false,false,true,true},
 		{'_nano_',true,false,false,true,true},
-		{'_advsol_',true,false,false,true,true},
 		{'_aa1_',true,false,false,true,true},
 		{'_flak_',true,false,false,true,true},
 		{'_specialt_',true,false,false,true,true},--limited number % Energy
@@ -61,11 +60,10 @@ function TasksHST:Init()
 
 	self.roles.eco = {
 		{'factoryMobilities',true,true,false,true,true},
-		{'_llt_',true,false,false,true,true},
+		{'_specialt_',true,false,false,true,true},
 		{'_wind_',true,false,false,true,true},
 		{'_tide_',true,false,false,true,true},
 		{'_solar_',true,false,false,true,true},
-		{'_advsol_',true,false,false,true,true},
 		{'_fus_',true,true,false,true,true},
 		{'_nano_',true,false,false,true,true},
 		{'_estor_',true,true,1,true,true},

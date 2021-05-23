@@ -185,6 +185,7 @@ function UnitHST:Update()
 			self.reallyActuallyDead[uID] = nil
 		end
 	end
+
 end
 
 function UnitHST:GameEnd()

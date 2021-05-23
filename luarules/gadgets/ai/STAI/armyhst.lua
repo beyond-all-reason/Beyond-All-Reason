@@ -342,8 +342,8 @@ function ArmyHST:Init()
 
 	self._mex_ = {
 		cormex = 'cormoho' ,
-		armuwmex = 'armuwmme' ,
-		coruwmex = 'coruwmme' ,
+-- 		armuwmex = 'armuwmme' ,
+-- 		coruwmex = 'coruwmme' ,
 		cormexp = true ,
 		armmex = "armmoho" ,
 		armamex = 'armmoho' ,

@@ -134,6 +134,7 @@ end
 
 function TaskQueueBST:Update()
 	local f = self.game:Frame()
+
 -- 	if f % 180 == 0 then
 -- 		self:VisualDBG()
 -- 	end
@@ -166,7 +167,9 @@ function TaskQueueBST:Update()
 				return
 			end
 		end
+
 	end
+
 end
 
 function TaskQueueBST:CategoryEconFilter(cat,param,name)
