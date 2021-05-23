@@ -23,6 +23,7 @@ function gadget:GetInfo()
       date      = "2021",
       layer     = -100,
       enabled   = ruinSpawnEnabled,
+      -- enabled = true,
     }
 end
 
@@ -37,9 +38,14 @@ local mapsizex = Game.mapSizeX
 local mapsizez = Game.mapSizeZ
 local mapheightmin, mapheightmax = Spring.GetGroundExtremes()
 
-local flyByChance = 60 -- bigger = less
 local lastFlyByFrame = 0
-local minimumFlyByDelay = 30*30 -- seconds*framesPerSecond
+
+local flyByChance = 45 -- bigger = less
+local minimumFlyByDelay = 15*30 -- seconds*framesPerSecond
+
+-- for testing
+-- local flyByChance = 1 -- bigger = less
+-- local minimumFlyByDelay = 1*30 -- seconds*framesPerSecond
 
 local moveCtrlQueue = {}
 
@@ -49,65 +55,65 @@ local flyByFormations = { -- {x,z}
     },
     [2] = {
         {0,0},
-        {-32,128},
-        {-32,-128},
+        {-64,128},
+        {-64,-128},
     },
     [3] = {
         {0,0},
-        {-32,128},
-        {-32,-128},
-        {-64,-256},
-        {-64,256},
+        {-64,128},
+        {-64,-128},
+        {-128,-256},
+        {-128,256},
     },
     [4] = {
         {0,0},
-        {-32,128},
-        {-32,-128},
-        {-64,-256},
-        {-64,256},
-        {-96,-384},
-        {-96,384},
+        {-64,128},
+        {-64,-128},
+        {-128,-256},
+        {-128,256},
+        {-192,-384},
+        {-192,384},
     },
     [5] = {
         {0,0},
-        {-32,128},
-        {-32,-128},
+        {-64,128},
+        {-64,-128},
         {-200,0},
-        {-232,128},
-        {-232,-128},
-        {-264,-256},
-        {-264,256},
+        {-264,128},
+        {-264,-128},
+        {-328,-256},
+        {-328,256},
     },
     [6] = {
         {0,0},
-        {-32,128},
-        {-32,-128},
-        {-64,-256},
-        {-64,256},
+        {-64,128},
+        {-64,-128},
+        {-128,-256},
+        {-128,256},
         {-200,0},
-        {-232,128},
-        {-232,-128},
-        {-264,-256},
-        {-264,256},
-        {-296,-384},
-        {-296,384},
+        {-264,128},
+        {-264,-128},
+        {-328,-256},
+        {-328,256},
+        {-392,-384},
+        {-392,384},
     },
     [7] = {
         {0,0},
-        {-32,128},
-        {-32,-128},
+        {-64,128},
+        {-64,-128},
         {-200,0},
-        {-232,128},
-        {-232,-128},
-        {-264,-256},
-        {-264,256},
+        {-264,128},
+        {-264,-128},
+        {-328,-256},
+        {-328,256},
         {-400,0},
-        {-432,128},
-        {-432,-128},
-        {-464,-256},
-        {-464,256},
-        {-496,-384},
-        {-496,384},
+        {-464,128},
+        {-464,-128},
+        {-528,-256},
+        {-528,256},
+        {-596,-384},
+        {-596,384},
     },
 }
 
@@ -161,22 +167,60 @@ function gadget:GameFrame(n)
         local flyByRandom = math_random(1,flyByChance)
         if flyByRandom == 1 and n > lastFlyByFrame+minimumFlyByDelay then
             lastFlyByFrame = n
-            local flyByZPosition = math_random(-1000,mapsizez+1000)
+            
+            local flipRandom = math_random(0,3)
+            if flipRandom == 0 then
+                swapXandZ = false
+                flipXorZ = 1 -- don't
+                flyByHeading = 16384
+            end
+            if flipRandom == 1 then
+                swapXandZ = false
+                flipXorZ = -1 -- flip
+                flyByHeading = -16384
+            end
+            if flipRandom == 2 then
+                swapXandZ = true
+                flipXorZ = 1 -- don't
+                flyByHeading = 0
+            end
+            if flipRandom == 3 then
+                swapXandZ = true
+                flipXorZ = -1 -- flip
+                flyByHeading = 32768
+            end
+            
+            if swapXandZ == false then
+                flyByPosZ = math_random(-1000,mapsizez+1000)
+                flyByPosX = 0
+            else
+                flyByPosX = math_random(-1000,mapsizex+1000)
+                flyByPosZ = 0
+            end
+
             local flyByFormation = flyByFormations[math_random(1,#flyByFormations)]
             local flyByUnit = flyByUnits[math_random(1,#flyByUnits)]
+            
             local speed = UnitDefNames[flyByUnit].speed
             if not speed or speed < 1 then
                 speed = 1
             end
             speed = speed*0.04
-            local posx = 0
-            local posz = flyByZPosition
+
+            local posx = flyByPosX
+            local posz = flyByPosZ
             local posy = mapheightmax+math_random(100,1000)
+
             for i = 1,#flyByFormation do
                 local unit = Spring.CreateUnit(flyByUnit.."_scav", posx, posy, posz, 1, GaiaTeamID)
                 Spring.SetUnitNoDraw(unit, true)
-                local posx = posx+flyByFormation[i][1]-15000
-                local posz = posz+flyByFormation[i][2]
+                if swapXandZ == false then
+                    posx = flyByPosX+(flyByFormation[i][1]*flipXorZ)-15000*flipXorZ
+                    posz = flyByPosZ+flyByFormation[i][2]
+                else
+                    posx = flyByPosX+flyByFormation[i][2]
+                    posz = flyByPosZ+(flyByFormation[i][1]*flipXorZ)-15000*flipXorZ
+                end
                 Spring.MoveCtrl.Enable(unit)
                 Spring.MoveCtrl.SetNoBlocking(unit, true)
                 Spring.MoveCtrl.SetProgressState(unit, "active")
@@ -197,7 +241,7 @@ function gadget:GameFrame(n)
 
                 Spring.GiveOrderToUnit(unit, CMD.MOVE, {mapsizex*0.5,posy,mapsizez*0.5}, {})
 
-                moveCtrlQueue[#moveCtrlQueue+1] = {unit, speed, posx, posy, posz}
+                moveCtrlQueue[#moveCtrlQueue+1] = {unit, speed, posx, posy, posz, swapXandZ, flipXorZ, flyByHeading}
             end
         end
     end
@@ -209,11 +253,26 @@ function gadget:GameFrame(n)
                 local posx = moveCtrlQueue[i][3]
                 local posy = moveCtrlQueue[i][4]
                 local posz = moveCtrlQueue[i][5]
+                local swapXandZ = moveCtrlQueue[i][6]
+                local flipXorZ = moveCtrlQueue[i][7]
+                local flyByHeading = moveCtrlQueue[i][8]
                 Spring.MoveCtrl.Enable(unit)
                 Spring.MoveCtrl.SetPosition(unit, posx, posy, posz)
                 Spring.MoveCtrl.SetRotation(unit, 0, 0, 0)
-                Spring.MoveCtrl.SetHeading(unit, 16384)
-                Spring.MoveCtrl.SetVelocity(unit, speed, 0, 0)
+                Spring.MoveCtrl.SetHeading(unit, flyByHeading)
+                if swapXandZ == false then
+                    if flipXorZ == 1 then
+                        Spring.MoveCtrl.SetVelocity(unit, speed, 0, 0)
+                    else
+                        Spring.MoveCtrl.SetVelocity(unit, -speed, 0, 0)
+                    end
+                else
+                    if flipXorZ == -1 then
+                        Spring.MoveCtrl.SetVelocity(unit, 0, 0, -speed)
+                    else
+                        Spring.MoveCtrl.SetVelocity(unit, 0, 0, speed)
+                    end
+                end
 
                 Spring.SetUnitNoDraw(unit, false)
             end
