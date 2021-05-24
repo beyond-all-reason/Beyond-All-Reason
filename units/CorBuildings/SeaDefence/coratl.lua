@@ -106,7 +106,7 @@ return {
 				name = "Long-range advanced torpedo launcher",
 				noselfdamage = true,
 				range = 890,
-				reloadtime = 2.45, --3.13333,
+				reloadtime = 3.06,
 				soundhit = "xplodep1",
 				soundstart = "torpedo1",
 				startvelocity = 100,
