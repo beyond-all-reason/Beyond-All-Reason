@@ -312,6 +312,7 @@ StartboxDefenceStructuresT2Sea = {
 	"coratl",
 	"armatl",
 	"corfdoom",
+	"armkraken",
 }
 
 StartboxDefenceStructuresT3Sea = {
@@ -322,6 +323,7 @@ StartboxDefenceStructuresT3Sea = {
 	"coratl",
 	"armatl",
 	"corfdoom",
+	"armkraken",
 	--"corfflak",
 	"armfflak",
 }
@@ -330,6 +332,7 @@ StartboxDefenceStructuresT4Sea = {
 	"coratl",
 	"armatl",
 	"corfdoom",
+	"armkraken",
 	--"corfflak",
 	"armfflak",
 }

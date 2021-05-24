@@ -106,7 +106,7 @@ return {
 				name = "Heavy long-range homing torpedo launcher",
 				noselfdamage = true,
 				range = 915,
-				reloadtime = 1.73333,
+				reloadtime = 2.166,
 				soundhit = "xplodep1",
 				soundstart = "torpedo1",
 				startvelocity = 80,
