@@ -27,7 +27,7 @@ return {
 		maxslope = 12,
 		maxvelocity = 1.8,
 		maxwaterdepth = 20,
-		movementclass = "HTank3",
+		movementclass = "HTANK5",
 		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMTHOR.s3o",
