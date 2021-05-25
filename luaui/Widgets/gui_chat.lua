@@ -21,14 +21,9 @@ local maxLines = 5
 local maxConsoleLines = 2
 local maxLinesScroll = 15
 local lineHeightMult = 1.27
-local lineTTL = 45
+local lineTTL = 40
 local capitalize = false	-- capitalize first letter of chat text
-
-local fadeTime = 0.3
-local fadeDelay = 0.15   -- need to hover this long in order to fadein and respond to CTRL
-
 local backgroundOpacity = 0
-local hoverShowBackground = false
 
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale",1) or 1)
 local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity",0.66) or 0.66)
@@ -48,11 +43,12 @@ local currentConsoleLine = 0
 local scrolling = false
 local scrollingPosY = 0.66
 local consolePosY = 0.9
+local displayedChatLines = 0
 local hideSpecChat = (Spring.GetConfigInt('HideSpecChat', 0) == 1)
 
 local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 local fontfile3 = "fonts/monospaced/" .. Spring.GetConfigString("bar_font3", "SourceCodePro-Medium.otf")
-local font, font2, font3, chobbyInterface, hovering, startFadeTime
+local font, font2, font3, chobbyInterface, hovering
 
 local RectRound = Spring.FlowUI.Draw.RectRound
 local UiElement = Spring.FlowUI.Draw.Element
@@ -299,7 +295,7 @@ function widget:Update(dt)
 		scrolling = false
 	elseif isOnRect(x, y, activationArea[1], activationArea[2], activationArea[3], activationArea[4]) then
 		local alt, ctrl, meta, shift = Spring.GetModKeyState()
-		if ctrl and shift and startFadeTime and clock() > startFadeTime+fadeDelay then
+		if ctrl and shift then
 			if isOnRect(x, y, consoleActivationArea[1], consoleActivationArea[2], consoleActivationArea[3], consoleActivationArea[4]) then
 				scrolling = 'console'
 			else
@@ -410,7 +406,7 @@ end
 
 function widget:DrawScreen()
 	if chobbyInterface then return end
-	if not chatLines[1] then return end
+	if not chatLines[1] and not consoleLines[1] then return end
 
 	local x,y,b = Spring.GetMouseState()
 	local heightDiff = scrolling and floor(vsy*(scrollingPosY-posY)) or 0
@@ -419,9 +415,6 @@ function widget:DrawScreen()
 	end
 	if isOnRect(x, y, activationArea[1], activationArea[2]+heightDiff, activationArea[3], activationArea[4]) or  (scrolling and isOnRect(x, y, activationArea[1], activationArea[2]+heightDiff, activationArea[3], activationArea[2]))  then
 		hovering = true
-		if not startFadeTime then
-			startFadeTime = clock()
-		end
 		if scrolling then
 			glColor(0,0,0,backgroundOpacity)
 			UiElement(activationArea[1], activationArea[2]+heightDiff, activationArea[3], activationArea[4])
@@ -441,50 +434,30 @@ function widget:DrawScreen()
 			local scrollbarMargin = floor(16 * widgetScale)
 			local scrollbarWidth = floor(11 * widgetScale)
 			UiScroller(
-					floor(activationArea[3]-scrollbarMargin-scrollbarWidth),
-					floor(activationArea[2]+heightDiff+scrollbarMargin),
-					floor(activationArea[3]-scrollbarMargin),
-					floor(activationArea[4]-scrollbarMargin),
-					scrolling == 'console' and #consoleLines*lineHeight or #chatLines*lineHeight,
-					scrolling == 'console' and (currentConsoleLine-maxLinesScroll)*lineHeight or (currentChatLine-maxLinesScroll)*lineHeight
+				floor(activationArea[3]-scrollbarMargin-scrollbarWidth),
+				floor(activationArea[2]+heightDiff+scrollbarMargin),
+				floor(activationArea[3]-scrollbarMargin),
+				floor(activationArea[4]-scrollbarMargin),
+				scrolling == 'console' and #consoleLines*lineHeight or #chatLines*lineHeight,
+				scrolling == 'console' and (currentConsoleLine-maxLinesScroll)*lineHeight or (currentChatLine-maxLinesScroll)*lineHeight
 			)
 
 			if WG['guishader'] then
 				WG['guishader'].InsertRect(activationArea[1], activationArea[2]+heightDiff, activationArea[3], activationArea[4], 'chat')
 			end
 		else
-			if backgroundOpacity > 0 then
+			if backgroundOpacity > 0 and displayedChatLines > 0  then
 				glColor(0,0,0,backgroundOpacity)
-				RectRound(activationArea[1], activationArea[2]+heightDiff, activationArea[3], activationArea[4], elementCorner)
-			elseif hoverShowBackground then
-				local opacity = ((clock() - (startFadeTime+fadeDelay)) / fadeTime) * backgroundOpacity
-				if opacity > backgroundOpacity then
-					opacity = backgroundOpacity
-				end
-				glColor(0,0,0,opacity)
-				RectRound(activationArea[1], activationArea[2]+heightDiff, activationArea[3], activationArea[4], elementCorner)
+				--RectRound(activationArea[1], activationArea[2]+heightDiff, activationArea[3], activationArea[4], elementCorner)
+				RectRound(activationArea[1], activationArea[2], activationArea[3], activationArea[2]+((displayedChatLines+1)*lineHeight), elementCorner)
 			end
 		end
 	else
-		if hovering then
-			local opacityPercentage = (clock() - (startFadeTime+fadeDelay)) / fadeTime
-			startFadeTime = clock() - math.max((1-opacityPercentage)*fadeTime, 0)
-		end
 		hovering = false
-		if backgroundOpacity > 0 then
+		if backgroundOpacity > 0 and displayedChatLines > 0 then
 			glColor(0,0,0,backgroundOpacity)
-			RectRound(activationArea[1], activationArea[2]+heightDiff, activationArea[3], activationArea[4], elementCorner)
-		elseif hoverShowBackground and startFadeTime then
-			local opacity = backgroundOpacity - (((clock() - startFadeTime) / fadeTime) * backgroundOpacity)
-			if opacity > 1 then
-				opacity = 1
-			end
-			if opacity <= 0 then
-				startFadeTime = nil
-			else
-				glColor(0,0,0,opacity)
-				RectRound(activationArea[1], activationArea[2]+heightDiff, activationArea[3], activationArea[4], elementCorner)
-			end
+			--RectRound(activationArea[1], activationArea[2]+heightDiff, activationArea[3], activationArea[4], elementCorner)
+			RectRound(activationArea[1], activationArea[2], activationArea[3], activationArea[2]+((displayedChatLines+1)*lineHeight), elementCorner)
 		end
 		scrolling = false
 		currentChatLine = #chatLines
@@ -494,15 +467,17 @@ function widget:DrawScreen()
 	if not scrolling and consoleLines[1] then
 		glPushMatrix()
 		glTranslate((vsx * posX) + backgroundPadding, (consolePosY*vsy)+(usedConsoleFontSize*0.24), 0)
-		local displayedLines = 0
+		local checkedLines = 0
 		local i = #consoleLines
 		while i > 0 do
 			if clock() - consoleLines[i].startTime < lineTTL then
 				processConsoleLine(i)
 				glCallList(consoleLines[i].lineDisplayList)
+			else
+				break
 			end
-			displayedLines = displayedLines + 1
-			if displayedLines >= maxConsoleLines then
+			checkedLines = checkedLines + 1
+			if checkedLines >= maxConsoleLines then
 				break
 			end
 			i = i - 1
@@ -513,9 +488,10 @@ function widget:DrawScreen()
 
 	-- draw chat lines / panel
 	if scrolling or chatLines[currentChatLine] then
+		local checkedLines = 0
+		displayedChatLines = 0
 		glPushMatrix()
 		glTranslate((vsx * posX) + backgroundPadding, vsy * (scrolling and scrollingPosY or posY) + backgroundPadding, 0)
-		local displayedLines = 0
 		local i = scrolling == 'console' and currentConsoleLine or currentChatLine
 		local usedMaxLines = maxLines
 		if scrolling then
@@ -548,9 +524,12 @@ function widget:DrawScreen()
 				if scrolling  then
 					glTranslate(-width, 0, 0)
 				end
+				displayedChatLines = displayedChatLines + 1
+			else
+				break
 			end
-			displayedLines = displayedLines + 1
-			if displayedLines >= usedMaxLines then
+			checkedLines = checkedLines + 1
+			if checkedLines >= usedMaxLines then
 				break
 			end
 			i = i - 1
@@ -662,7 +641,7 @@ local function processConsoleLine(gameFrame, line, addOrgLine)
 		if ssub(text,1,1) == ' ' then
 			text = ssub(text,2)
 		end
-		if capitalize then
+		if capitalize and text:len() >= 10 then
 			text = ssub(text,1,1):upper()..ssub(text,2)
 		end
 
@@ -699,7 +678,7 @@ local function processConsoleLine(gameFrame, line, addOrgLine)
 		if ssub(text,1,1) == ' ' then
 			text = ssub(text,2)
 		end
-		if capitalize then
+		if capitalize and text:len() >= 10 then
 			text = ssub(text,1,1):upper()..ssub(text,2)
 		end
 
@@ -739,7 +718,7 @@ local function processConsoleLine(gameFrame, line, addOrgLine)
 			end
 		end
 
-		if capitalize then
+		if capitalize and text:len() >= 10 then
 			text = ssub(text,1,1):upper()..ssub(text,2)
 		end
 
@@ -775,7 +754,7 @@ local function processConsoleLine(gameFrame, line, addOrgLine)
 			text = ssub(text,2)
 		end
 
-		--if capitalize then
+		--if capitalize and text:len() >= 10 then
 		--	text = ssub(text,1,1):upper()..ssub(text,2)
 		--end
 
@@ -817,7 +796,6 @@ local function processConsoleLine(gameFrame, line, addOrgLine)
 
 		line = convertColor(colorConsole[1],colorConsole[2],colorConsole[3])..line
 	end
-
 	-- bot command
 	if ssub(text,1,1) == '!' and  ssub(text, 1,2) ~= '!!' then
 		bypassThisMessage = true
@@ -826,7 +804,6 @@ local function processConsoleLine(gameFrame, line, addOrgLine)
 	if sfind(line, 'My player ID is', nil, true) then
 		bypassThisMessage = true
 	end
-
 	-- ignore muted players
 	if WG.ignoredPlayers and WG.ignoredPlayers[name] then
 		skipThisMessage = true
@@ -922,8 +899,8 @@ function widget:ViewResize()
 
 	usedFontSize = charSize*widgetScale*fontsizeMult
 	usedConsoleFontSize = charSize*widgetScale*fontsizeMult*consoleFontSizeMult
-	font = WG['fonts'].getFont(nil, (charSize/18)*fontsizeMult, 0.17, 1.65)
-	font3 = WG['fonts'].getFont(fontfile3, (charSize/18)*fontsizeMult, 0.17, 1.65)
+	font = WG['fonts'].getFont(nil, (charSize/18)*fontsizeMult, 0.18, 1.7)
+	font3 = WG['fonts'].getFont(fontfile3, (charSize/18)*fontsizeMult, 0.18, 1.7)
 
 	-- get longest player name and calc its width
 	local namePrefix = '(s)'

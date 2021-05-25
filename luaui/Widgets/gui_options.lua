@@ -3620,7 +3620,7 @@ function init()
 			  saveOptionValue('Chat', 'chat', 'setMaxLines', { 'maxLines' }, value)
 		  end,
 		},
-		  { id = "console_maxconsolelines", group = "ui", name = widgetOptionColor .. "   "..texts.option.console_maxconsolelines, type = "slider", min = 2, max = 5, step = 1, value = (WG['chat'] ~= nil and WG['chat'].getMaxConsoleLines() or 2), description = '',
+		  { id = "console_maxconsolelines", group = "ui", name = widgetOptionColor .. "   "..texts.option.console_maxconsolelines, type = "slider", min = 2, max = 6, step = 1, value = (WG['chat'] ~= nil and WG['chat'].getMaxConsoleLines() or 2), description = '',
 			onload = function(i)
 				loadWidgetData("Chat", "console_maxconsolelines", { 'maxConsoleLines' })
 			end,
@@ -3644,7 +3644,7 @@ function init()
 			  saveOptionValue('Chat', 'chat', 'setFontsize', { 'fontsizeMult' }, value)
 		  end,
 		},
-		  { id = "console_backgroundopacity", group = "ui", basic = true, name = widgetOptionColor .. "   "..texts.option.console_backgroundopacity, type = "slider", min = 0, max = 0.3, step = 0.01, value = (WG['chat'] ~= nil and WG['chat'].getBackgroundOpacity() or 0), description = texts.option.console_backgroundopacity_descr,
+		  { id = "console_backgroundopacity", group = "ui", basic = true, name = widgetOptionColor .. "   "..texts.option.console_backgroundopacity, type = "slider", min = 0, max = 0.33, step = 0.01, value = (WG['chat'] ~= nil and WG['chat'].getBackgroundOpacity() or 0), description = texts.option.console_backgroundopacity_descr,
 			onload = function(i)
 				loadWidgetData("Chat", "console_backgroundopacity", { 'backgroundOpacity' })
 			end,
