@@ -1,4 +1,3 @@
-comIcon.png
 energy.png
 info_health.png
 metal.png
