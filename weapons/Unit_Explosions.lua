@@ -1038,7 +1038,7 @@ unitDeaths = {
 
 	WallExplosionMetal = {
 		weaponType = "Cannon",
-		AreaOfEffect = 0,
+		AreaOfEffect = 36,
 		cameraShake = 0,
 		impulseboost = impulseboost,
 		impulsefactor = impulsefactor,
@@ -1046,7 +1046,29 @@ unitDeaths = {
 		--soundstart = "metalhit",
 		explosiongenerator = "custom:wallexplosion-metal",
 		damage = {
-			default = 0,
+			default = 550,
+			walls = 0,
+		},
+		-- customparams = {
+		-- 	expl_light_color = "1 0.45 0.25",
+		-- 	expl_light_mult = 1.03,
+		-- 	expl_light_radius_mult = 1.03,
+		-- 	expl_light_life_mult = 1.05,
+		-- 	expl_light_heat_radius_mult = 1.1,
+		-- },
+	},
+	WallExplosionMetalXL = {
+		weaponType = "Cannon",
+		AreaOfEffect = 38,
+		cameraShake = 0,
+		impulseboost = impulseboost,
+		impulsefactor = impulsefactor,
+		soundhit = "xplodragmetal",
+		--soundstart = "metalhit",
+		explosiongenerator = "custom:wallexplosion-metal",
+		damage = {
+			default = 1375,
+			walls = 0,
 		},
 		-- customparams = {
 		-- 	expl_light_color = "1 0.45 0.25",
@@ -1058,7 +1080,7 @@ unitDeaths = {
 	},
 	WallExplosionConcrete = {
 		weaponType = "Cannon",
-		AreaOfEffect = 0,
+		AreaOfEffect = 36,
 		cameraShake = 0,
 		impulseboost = impulseboost,
 		impulsefactor = impulsefactor,
@@ -1066,7 +1088,29 @@ unitDeaths = {
 		--soundstart = "metalhit",
 		explosiongenerator = "custom:wallexplosion-concrete",
 		damage = {
-			default = 0,
+			default = 550,
+			walls = 0,
+		},
+		-- customparams = {
+		-- 	expl_light_color = "1 0.45 0.25",
+		-- 	expl_light_mult = 1.03,
+		-- 	expl_light_radius_mult = 1.03,
+		-- 	expl_light_life_mult = 1.05,
+		-- 	expl_light_heat_radius_mult = 1.1,
+		-- },
+	},
+	WallExplosionConcreteXL = {
+		weaponType = "Cannon",
+		AreaOfEffect = 38,
+		cameraShake = 0,
+		impulseboost = impulseboost,
+		impulsefactor = impulsefactor,
+		soundhit = "xplodragconcrete",
+		--soundstart = "metalhit",
+		explosiongenerator = "custom:wallexplosion-concrete",
+		damage = {
+			default = 1375,
+			walls = 0,
 		},
 		-- customparams = {
 		-- 	expl_light_color = "1 0.45 0.25",
@@ -1078,7 +1122,7 @@ unitDeaths = {
 	},
 	WallExplosionWater = {
 		weaponType = "Cannon",
-		AreaOfEffect = 0,
+		AreaOfEffect = 48,
 		cameraShake = 0,
 		impulseboost = impulseboost,
 		impulsefactor = impulsefactor,
@@ -1086,7 +1130,8 @@ unitDeaths = {
 		--soundstart = "metalhit",
 		explosiongenerator = "custom:wallexplosion-water",
 		damage = {
-			default = 0,
+			default = 500,
+			walls = 0,
 		},
 		-- customparams = {
 		-- 	expl_light_color = "1 0.45 0.25",

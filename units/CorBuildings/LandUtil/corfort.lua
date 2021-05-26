@@ -23,7 +23,7 @@ return {
 		corpse = "ROCKTEETHX",
 		crushresistance = 1000,
 		description = Spring.I18N('units.descriptions.corfort'),
-		explodeas = "WallExplosionConcrete",
+		explodeas = "WallExplosionConcreteXL",
 		footprintx = 2,
 		footprintz = 2,
 		hidedamage = true,

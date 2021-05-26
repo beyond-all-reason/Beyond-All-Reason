@@ -23,7 +23,7 @@ return {
 		corpse = "ROCKTEETHX",
 		crushresistance = 1000,
 		description = Spring.I18N('units.descriptions.armfort'),
-		explodeas = "WallExplosionMetal",
+		explodeas = "WallExplosionMetalXL",
 		footprintx = 2,
 		footprintz = 2,
 		hidedamage = true,
