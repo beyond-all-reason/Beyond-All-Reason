@@ -546,6 +546,8 @@ function BuildSiteHST:BuildNearLastNano(builder, utype)
 end
 
 function BuildSiteHST:UnitCreated(unit)
+
+	self.game:StartTimer('unitCreatedt')
 	local unitName = unit:Name()
 	local position = unit:GetPosition()
 	local unitID = unit:ID()
@@ -584,6 +586,7 @@ function BuildSiteHST:UnitCreated(unit)
 		self.ai.turtlehst:NewUnit(unitName, position, unitID)
 	end
 	self:PlotAllDebug()
+	self.game:StopTimer('unitCreatedt')
 end
 
 -- prevents duplication of expensive buildings and building more than one factory at once

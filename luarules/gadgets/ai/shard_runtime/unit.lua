@@ -68,9 +68,9 @@ function Unit:UnitCreated(unit)
 			return
 		end
 		for k,v in pairs(self.behaviours) do
-			self.game:StartTimer(v:Name() .. 'C')
+			self.game:StartTimer(v:Name() .. 'Created')
 			v:UnitCreated(unit)
-			self.game:StopTimer(v:Name() .. 'C')
+			self.game:StopTimer(v:Name() .. 'Created')
 
 		end
 	end
@@ -111,17 +111,19 @@ end
 
 function Unit:UnitDamaged(unit,attacker,damage)
 	if unit.engineID == self.engineID then
+-- 		self.game:StartTimer(v:Name() .. 'G')
 		for k,v in pairs(self.behaviours) do
-			self.game:StartTimer(v:Name() .. 'G')
+
 			v:OwnerDamaged(attacker,damage)
-			self.game:StopTimer(v:Name() .. 'G')
+
 		end
 	else
 		for k,v in pairs(self.behaviours) do
-			self.game:StartTimer(v:Name() .. 'G')
+
 			v:UnitDamaged(unit,attacker,damage)
-			self.game:StopTimer(v:Name() .. 'G')
+
 		end
+-- 		self.game:StopTimer(v:Name() .. 'G')
 	end
 end
 

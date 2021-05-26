@@ -199,11 +199,18 @@ end
 function UnitHST:UnitCreated(engineUnit)
 	local u = self:AIRepresentation(engineUnit)
 	if u == nil then return end
-	for k,unit in pairs(self.myActiveUnits) do
-		if unit:HasBehaviours() then
-			unit:UnitCreated(u)
-		end
-	end
+	u:UnitCreated()
+	--TODO fix this expensive load
+-- 	self.game:StartTimer(u:Internal():Name()..' UC')
+-- 	for k,unit in pairs(self.myActiveUnits) do
+-- 		if unit:HasBehaviours() then
+-- 			self.game:StartTimer(unit:Internal():Name()..' crea')
+-- 			unit:UnitCreated(u)
+-- 			print(u:Internal():Name() .. ' UC ' .. unit:Internal():Name())
+-- 			self.game:StopTimer(unit:Internal():Name()..' crea')
+-- 		end
+-- 	end
+-- 	self.game:StopTimer(u:Internal():Name()..' UC')
 end
 
 function UnitHST:UnitBuilt(engineUnit)

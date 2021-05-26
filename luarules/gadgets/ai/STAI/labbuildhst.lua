@@ -201,6 +201,7 @@ function LabBuildHST:ConditionsToBuildFactories(builder)
 end
 
 function LabBuildHST:GetBuilderFactory(builder)
+	self.game:StartTimer('GetBuilderFactory'  .. '1')
 	local builderID = builder:ID()
 	local builderName = builder:Name()
 	local f = self.game:Frame()
@@ -212,13 +213,18 @@ function LabBuildHST:GetBuilderFactory(builder)
 	local factories = self:ConditionsToBuildFactories(builder)
 	self.lastCheckFrameForConName[builderName] = f
 	self.lastFactoriesForConName[builderName] = factories
+	self.game:StopTimer('GetBuilderFactory'  .. '1')
 	if not factories then return false end
+
 	for order = 1, #factories do
+
 		local factoryName = factories[order]
 		if not self.ai.buildsitehst:CheckForDuplicates(factoryName) then -- need to check for duplicates right now, not 15 seconds ago
+			self.game:StartTimer('GetBuilderFactory'  .. '3')
 			self:EchoDebug(factoryName .. ' not duplicated')
 			self:EchoDebug(builder:Name())
 			local p = self:FactoryPosition(factoryName,builder)
+			self.game:StopTimer('GetBuilderFactory'  .. '3')
 			if p then
 				if self:PostPositionalFilter(factoryName,p) then
 					self:EchoDebug(factoryName .. ' position passed filter')
