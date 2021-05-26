@@ -267,14 +267,14 @@ local moveDatas = {
 			maxValue = 0.7,
 		}
 	},
-	-- banisher/goliath/tremor
+	-- thor
 	HTANK5 = {
 		crushstrength = 1400,
-		footprintx = 4,
-		footprintz = 4,
+		footprintx = 5,
+		footprintz = 5,
 		maxslope = 18,
 		--slopeMod = 32,
-		maxwaterdepth = 22,
+		maxwaterdepth = 24,
 		depthModParams = {
 			minHeight = 4,
 			linearCoeff = 0.03,
