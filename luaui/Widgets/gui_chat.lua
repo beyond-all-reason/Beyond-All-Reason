@@ -38,7 +38,6 @@ local consoleLines = {}
 local activationArea = {0,0,0,0}
 local consoleActivationArea = {0,0,0,0}
 local currentChatLine = 0
-local currentChatTypewriterLine = 0
 local currentConsoleLine = 0
 local scrolling = false
 local scrollingPosY = 0.66
@@ -180,15 +179,6 @@ local function addChat(gameFrame, lineType, name, text, isLive)
 
 	-- determine text typing start time
 	local startTime = clock()
-	if chatLines[#chatLines] then
-		if startTime < chatLines[#chatLines].startTime + chatLines[#chatLines].textChars*charDelay then
-			startTime = chatLines[#chatLines].startTime + chatLines[#chatLines].textChars*charDelay
-		else
-			currentChatTypewriterLine = currentChatTypewriterLine + 1
-		end
-	else
-		currentChatTypewriterLine = currentChatTypewriterLine + 1
-	end
 
 	-- convert /n into lines
 	local textLines = lines(text)
@@ -196,7 +186,6 @@ local function addChat(gameFrame, lineType, name, text, isLive)
 	-- word wrap text into lines
 	local wordwrappedText = wordWrap(textLines, lineMaxWidth, usedFontSize)
 
-	local doTypewrite = (isLive and charDelay > 0)
 
 	local chatLinesCount = #chatLines
 	local lineColor = #wordwrappedText > 1 and ssub(wordwrappedText[1], 1, 4) or ''
@@ -208,21 +197,14 @@ local function addChat(gameFrame, lineType, name, text, isLive)
 			lineType = lineType,
 			playerName = name,
 			text = (i > 1 and lineColor or '')..line,
-			textChars = slen(line),
-			typedTextChars = doTypewrite and 0 or slen(line),  -- num typed chars
-			typedTimePassed = 0,  -- time passed during typing chars (used to calc 'num typed chars')
-			displayListChars = 0,   -- num chars the displaylist contains
 			--lineDisplayList = glCreateList(function() end),
 			--timeDisplayList = glCreateList(function() end),
 		}
 		startTime = startTime + (slen(line)*charDelay)
 	end
 
-	if currentChatTypewriterLine > chatLinesCount then
-		currentChatTypewriterLine = chatLinesCount
-	end
 	if scrolling ~= 'chat' then
-		currentChatLine = currentChatTypewriterLine
+		currentChatLine = #chatLines
 	end
 
 	-- play sound for player/spectator chat
@@ -308,22 +290,6 @@ function widget:Update(dt)
 		scrolling = false
 		currentChatLine = #chatLines
 	end
-
-	if chatLines[currentChatTypewriterLine] ~= nil then
-		-- continue typewriting line
-		if chatLines[currentChatTypewriterLine].typedTextChars <= chatLines[currentChatTypewriterLine].textChars then
-			chatLines[currentChatTypewriterLine].typedTimePassed = chatLines[currentChatTypewriterLine].typedTimePassed + dt
-			chatLines[currentChatTypewriterLine].typedTextChars = math.ceil(chatLines[currentChatTypewriterLine].typedTimePassed/charDelay)
-
-			-- typewrite next line when complete
-			if chatLines[currentChatTypewriterLine].typedTextChars >= chatLines[currentChatTypewriterLine].textChars then
-				currentChatTypewriterLine = currentChatTypewriterLine + 1
-				if currentChatTypewriterLine > #chatLines then
-					currentChatTypewriterLine = #chatLines
-				end
-			end
-		end
-	end
 end
 
 local function createGameTimeDisplayList(gametime)
@@ -351,9 +317,8 @@ local function processConsoleLine(i)
 		glDeleteList(consoleLines[i].lineDisplayList)
 		local fontHeightOffset = usedFontSize*0.24
 		consoleLines[i].lineDisplayList = glCreateList(function()
-			local text = ssub(consoleLines[i].text, 1, consoleLines[i].typedTextChars)
 			font:Begin()
-			font:Print(text, 0, fontHeightOffset, usedConsoleFontSize, "o")
+			font:Print(consoleLines[i].text, 0, fontHeightOffset, usedConsoleFontSize, "o")
 			font:End()
 		end)
 
@@ -367,12 +332,10 @@ end
 
 
 local function processLine(i)
-	if chatLines[i].lineDisplayList == nil or chatLines[i].typedTextChars ~= chatLines[i].lineDisplayListChars then
-		chatLines[i].lineDisplayListChars = chatLines[i].typedTextChars
+	if chatLines[i].lineDisplayList == nil then
 		glDeleteList(chatLines[i].lineDisplayList)
 		local fontHeightOffset = usedFontSize*0.24
 		chatLines[i].lineDisplayList = glCreateList(function()
-			local text = ssub(chatLines[i].text, 1, chatLines[i].typedTextChars)
 			font:Begin()
 			if chatLines[i].gameFrame then
 
@@ -386,7 +349,7 @@ local function processLine(i)
 					font:Print(chatSeparator, maxPlayernameWidth+(lineSpaceWidth/3.8), fontHeightOffset, usedFontSize, "oc")
 				end
 			end
-			font:Print(text, maxPlayernameWidth+lineSpaceWidth, fontHeightOffset, usedFontSize, "o")
+			font:Print(chatLines[i].text, maxPlayernameWidth+lineSpaceWidth, fontHeightOffset, usedFontSize, "o")
 			font:End()
 		end)
 
@@ -538,11 +501,11 @@ function widget:DrawScreen()
 		glPopMatrix()
 
 		-- show new chat when in scrolling mode
-		if scrolling and currentChatLine < #chatLines and clock() - chatLines[currentChatTypewriterLine].startTime < lineTTL then
+		if scrolling and currentChatLine < #chatLines and clock() - chatLines[currentChatLine].startTime < lineTTL then
 			glPushMatrix()
 			glTranslate(vsx * posX, vsy * ((scrolling and scrollingPosY or posY)-0.02)-backgroundPadding, 0)
-			processLine(currentChatTypewriterLine)
-			glCallList(chatLines[currentChatTypewriterLine].lineDisplayList)
+			processLine(currentChatLine)
+			glCallList(chatLines[currentChatLine].lineDisplayList)
 			glPopMatrix()
 		end
 	end
@@ -877,7 +840,6 @@ local function processLines()
 		processConsoleLine(params[1], params[2])
 	end
 	currentChatLine = #chatLines
-	currentChatTypewriterLine = currentChatLine
 end
 
 function widget:TextCommand(command)
