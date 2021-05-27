@@ -41,6 +41,7 @@ for udid, ud in pairs(UnitDefs) do
 	end
 	unitTurnRadius[udid] = ud.turnRadius
 end
+isBomb = nil
 
 function gadget:Initialize()
 	for ct, unitID in pairs(Spring.GetAllUnits()) do

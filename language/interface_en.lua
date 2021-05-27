@@ -568,7 +568,7 @@ return {
 				unit = '*%{unit}'
 			},
 			messages = {
-				scroll = '%{textColor}Press %{highlightColor}CTRL %{textColor}to activate chatlog viewing/scrolling',
+				scroll = '%{textColor}Press %{highlightColor}CTRL+SHIFT %{textColor}to activate chatlog viewing/scrolling',
 			},
 			mapDrawBlocker = {
 				block = 'Ignoring map drawing from %{player}',

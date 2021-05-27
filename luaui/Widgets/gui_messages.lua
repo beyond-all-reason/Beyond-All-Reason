@@ -191,7 +191,7 @@ function widget:Update(dt)
 		scrolling = false
 	elseif isOnRect(x, y, activationArea[1], activationArea[2], activationArea[3], activationArea[4]) then
 		local alt, ctrl, meta, shift = Spring.GetModKeyState()
-		if ctrl and startFadeTime and os.clock() > startFadeTime+fadeDelay then
+		if ctrl and shift and startFadeTime and os.clock() > startFadeTime+fadeDelay then
 			scrolling = true
 		end
 	elseif scrolling and isOnRect(x, y, activationArea[1], activationArea[2], activationArea[1]+lineMaxWidth+(charSize*2*widgetScale), activationArea[2]+activatedHeight) then
