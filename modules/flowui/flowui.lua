@@ -698,17 +698,18 @@ end
 Spring.FlowUI.Draw.Scroller = function(px, py, sx, sy, contentHeight, position)
 
 	local padding = math.floor(((sx-px)*0.25) + 0.5)
-	local sliderHeight =  (sy - py - padding - padding) / contentHeight
+	local sliderAreaHeight = (sy - py - padding - padding)
+	local sliderHeight = sliderAreaHeight / contentHeight
 	if sliderHeight < 1 then
 		position = position or 0
-		sliderHeight = math.floor((sliderHeight * (sy - py)) + 0.5)
-		local sliderPos = math.floor((sy - ((sy - py) * (position / contentHeight))) + 0.5)
+		sliderHeight = math.floor((sliderHeight * sliderAreaHeight) + 0.5)
+		local sliderPos = math.floor((sy - padding - ((sy - py) * (position / contentHeight))) + 0.5)
 
 		-- background
 		Spring.FlowUI.Draw.RectRound(px, py, sx, sy, (sx-px)*0.2, 1,1,1,1, { 0,0,0,0.2 })
 
 		-- slider
-		Spring.FlowUI.Draw.RectRound(px+padding, sliderPos-sliderHeight-padding, sx-padding, sliderPos-padding, (sx-px-padding-padding)*0.2, 1,1,1,1, { 1, 1, 1, 0.16 })
+		Spring.FlowUI.Draw.RectRound(px+padding, sliderPos-sliderHeight, sx-padding, sliderPos, (sx-px-padding-padding)*0.2, 1,1,1,1, { 1, 1, 1, 0.16 })
 	end
 end
 

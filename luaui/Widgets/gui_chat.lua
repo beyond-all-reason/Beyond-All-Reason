@@ -16,7 +16,6 @@ local posX = 0.3
 local posX2 = 0.74
 local charSize = 21 - (3.5 * ((vsx/vsy) - 1.78))
 local consoleFontSizeMult = 0.85
-local charDelay = 0.0015
 local maxLines = 5
 local maxConsoleLines = 2
 local maxLinesScroll = 15
@@ -200,7 +199,6 @@ local function addChat(gameFrame, lineType, name, text, isLive)
 			--lineDisplayList = glCreateList(function() end),
 			--timeDisplayList = glCreateList(function() end),
 		}
-		startTime = startTime + (slen(line)*charDelay)
 	end
 
 	if scrolling ~= 'chat' then
@@ -501,11 +499,11 @@ function widget:DrawScreen()
 		glPopMatrix()
 
 		-- show new chat when in scrolling mode
-		if scrolling and currentChatLine < #chatLines and clock() - chatLines[currentChatLine].startTime < lineTTL then
+		if scrolling and currentChatLine < #chatLines and clock() - chatLines[#chatLines].startTime < lineTTL then
 			glPushMatrix()
 			glTranslate(vsx * posX, vsy * ((scrolling and scrollingPosY or posY)-0.02)-backgroundPadding, 0)
-			processLine(currentChatLine)
-			glCallList(chatLines[currentChatLine].lineDisplayList)
+			processLine(#chatLines)
+			glCallList(chatLines[#chatLines].lineDisplayList)
 			glPopMatrix()
 		end
 	end
