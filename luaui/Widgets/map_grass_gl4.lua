@@ -103,7 +103,8 @@ else
 
       if string.lower(k) == "grassshaderparams" then
         for k2,v2 in pairs(v) do
-			for k2Up, _ in pairs(grassConfig) do
+			for k2Up, _ in pairs(grassConfig.grassShaderParams) do
+				--Spring.Echo("Found grass params",k2,k2Up,v2)
 				if k2 == string.lower(k2Up) then k2 = k2Up end
 			end
           grassConfig[k][k2]=v2
@@ -576,13 +577,15 @@ local function defineUploadGrassInstanceVBOData()
 	grassInstanceVBO = gl.GetVBO(GL.ARRAY_BUFFER,true)
 	if grassInstanceVBO == nil then goodbye("Failed to create grassInstanceVBO") end
 	grassInstanceVBO:Define(
-		#grassInstanceData/grassInstanceVBOStep,--?we dont know how big yet!
+		math.max(1,#grassInstanceData/grassInstanceVBOStep),--?we dont know how big yet!
 		{
 		  {id = 7, name = 'instanceposrotscale', size = 4}, -- a vec4 for pos + random rotation + scale
 		  }
 		)
 	grassInstanceVBOSize = #grassInstanceData
-	grassInstanceVBO:Upload(grassInstanceData)
+	if grassInstanceVBOSize > 0 then 
+		grassInstanceVBO:Upload(grassInstanceData)
+	end
 end
 
 local function LoadGrassTGA(filename)
@@ -1335,7 +1338,7 @@ function widget:DrawWorldPreUnit()
   
   local cx, cy, cz = Spring.GetCameraPosition()
   local gh = (Spring.GetGroundHeight(cx,cz) or 0)
-  if cy  < (grassConfig.grassShaderParams.FADEEND + gh) and grassVAO ~= nil then
+  if cy  < (grassConfig.grassShaderParams.FADEEND + gh) and grassVAO ~= nil and #grassInstanceData > 0 then
 	local startInstanceIndex = 0
 	local instanceCount =  #grassInstanceData/4
     if not placementMode then 
