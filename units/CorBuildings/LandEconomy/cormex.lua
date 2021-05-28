@@ -40,6 +40,7 @@ return {
 		script = "Units/CORMEX.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallBuildingExplosionGenericSelfd",
+		selfdestructcountdown = 1,
 		sightdistance = 273,
 		usebuildinggrounddecal = true,
 		yardmap = "ooooooooo",

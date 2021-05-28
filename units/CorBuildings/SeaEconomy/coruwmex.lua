@@ -36,6 +36,7 @@ return {
 		onoffable = true,
 		script = "Units/coruwmex.cob",
 		seismicsignature = 0,
+		selfdestructcountdown = 1,
 		sightdistance = 169,
 		usepiececollisionvolumes = true,
 		waterline = 0,
