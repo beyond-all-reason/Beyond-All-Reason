@@ -39,7 +39,7 @@ return {
 		onoffable = true,
 		script = "Units/ARMMEX.cob",
 		seismicsignature = 0,
-		selfdestructas = "smallBuildingExplosionGenericSelfd",
+		selfdestructas = "smallMex",
 		selfdestructcountdown = 1,
 		sightdistance = 273,
 		usebuildinggrounddecal = true,

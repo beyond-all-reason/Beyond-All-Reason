@@ -1260,6 +1260,26 @@ unitDeaths = {
 			expl_light_heat_radius_mult = 1.2,
 		},
 	},
+	smallMex = {
+		weaponType = "Cannon",
+		AreaOfEffect = 240,
+		cameraShake = 240,
+		impulseboost = impulseboost,
+		impulsefactor = impulsefactor,
+		soundhit = "xplosml3",
+		soundstart = "largegun",
+		explosiongenerator = "custom:genericbuildingexplosion-small",
+		damage = {
+			default = 350,
+		},
+		customparams = {
+			expl_light_color = "1 0.45 0.25",
+			expl_light_mult = 1.07,
+			expl_light_radius_mult = 1.07,
+			expl_light_life_mult = 1.11,
+			expl_light_heat_radius_mult = 1.2,
+		},
+	},
 	['smallBuildingExplosionGeneric-uw'] = {
 		weaponType = "Cannon",
 		AreaOfEffect = 180,
