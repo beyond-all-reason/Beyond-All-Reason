@@ -6,7 +6,7 @@ function gadget:GetInfo()
 		date = "march 201",
 		license = "CC BY NC ND",
 		layer = 0,
-		enabled = true,
+		enabled = false,
 	}
 end
 
@@ -221,7 +221,6 @@ if gadgetHandler:IsSyncedCode() then
 						end
 					end
 					local name = treeName[featureDefID]
-
 					--SetFeatureReclaim(featureID,0) -- dont disable reclaim on them as area reclaim operations will 'block' (the reclaimer will just stand there doing nothing) until the tree dies
 					Spring.SetFeatureNoSelect(featureID, true)
 					treesdying[featureID] = {
