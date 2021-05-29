@@ -264,7 +264,7 @@ if gadgetHandler:IsSyncedCode() then
 			local sameTeam = (teamID == otherTeamID)
 			local sameAllyTeam = (allyTeamID == select(6,Spring.GetTeamInfo(otherTeamID,false)))
 			if (sx>0) and tooClose and sameAllyTeam and not sameTeam then
-				Spring.SendMessageToPlayer(playerID, Spring.I18N('ui.initialSpawn.tooClose'))
+				SendToUnsynced("SendTooCloseMessage", playerID)
 				return false
 			end
 		end
@@ -513,13 +513,17 @@ else
 
 	local pStates = {} --local copy of playerStates table
 
-	function StartPointChosen(_,playerID)
+	local function StartPointChosen(_,playerID)
 		if playerID == myPlayerID then
 			startPointChosen = true
 			if not readied and Script.LuaUI("PlayerReadyStateChanged") then
 				Script.LuaUI.PlayerReadyStateChanged(playerID, 4)
 			end
 		end
+	end
+
+	local function SendTooCloseMessage(_, playerID)
+		Spring.SendMessageToPlayer(playerID, Spring.I18N('ui.initialSpawn.tooClose'))
 	end
 
 	function gadget:GameSetup(state,ready,playerStates)
@@ -596,6 +600,7 @@ else
 
 		-- add function to receive when startpoints were chosen
 		gadgetHandler:AddSyncAction("StartPointChosen", StartPointChosen)
+		gadgetHandler:AddSyncAction("SendTooCloseMessage", SendTooCloseMessage)
 	end
 
 	function gadget:DrawScreen()
