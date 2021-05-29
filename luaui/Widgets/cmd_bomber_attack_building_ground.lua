@@ -2,7 +2,7 @@ function widget:GetInfo()
    return {
       name         = "Bomber Attack Building Ground",
       desc         = "Bombers attack ground under buildings instead of snapping on the unit itself (which disappears when out of los)",
-      author       = "Ceddral, Floris",
+      author       = "Floris",
       date         = "May 2021",
       license      = "GPL",
       layer        = 0,

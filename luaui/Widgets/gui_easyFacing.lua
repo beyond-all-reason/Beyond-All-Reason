@@ -24,7 +24,6 @@ local drawForAll = false --draw facing direction also for other buildings than l
 --------------------------------------------------------------------------------
 
 local inDrag = false
-local rmbStart = false
 local mouseDeltaX = 0
 local mouseDeltaY = 0
 local mouseXStartRotate = 0
@@ -32,7 +31,7 @@ local mouseYStartRotate = 0
 local mouseXStartDrag = 0
 local mouseYStartDrag = 0
 local mouseLbLast = false
-
+local ineffect = false
 local gameStarted, chobbyInterface, lastTimeUpdate
 
 -------------------------------------------------------------------------------
@@ -203,7 +202,6 @@ function getFacingByMouseDelta( mouseDeltaX,mouseDeltaY )
 	return newFacing
 end
 
-local ineffect = false
 function manipulateFacing()
 	ineffect = false
 
@@ -226,7 +224,6 @@ function manipulateFacing()
             mouseXStartDrag = mx
             mouseYStartDrag = my
         end
-
 		inDrag = true
 	else
 		inDrag = false
