@@ -837,7 +837,7 @@ local function LockCamera(playerID)
         end
     else
         if myLastCameraState then
-            SetCameraState(nil, transitionTime)
+            SetCameraState(myLastCameraState, transitionTime)
             myLastCameraState = nil
         end
         if lockcameraHideEnemies and lockPlayerID and not select(3, Spring_GetPlayerInfo(lockPlayerID)) then
