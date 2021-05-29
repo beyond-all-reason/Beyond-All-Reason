@@ -49,21 +49,23 @@ function widget:GameFrame(gf)
 					spIsPosInLos(params[1]+losGraceRadius,params[2],params[3]-losGraceRadius) and
 					spIsPosInLos(params[1]+losGraceRadius,params[2],params[3]+losGraceRadius)
 				then
-					for unitID, _ in pairs(params[4]) do
-						local cmds = spGetCommandQueue(unitID,100)
+					for bomberID, _ in pairs(params[4]) do
+						if spValidUnitID(bomberID) then
+							local cmds = spGetCommandQueue(bomberID,100)
 
-						-- remove commands
-						spGiveOrderToUnit(unitID, CMD_STOP, {}, 0)
+							-- remove commands
+							spGiveOrderToUnit(bomberID, CMD_STOP, {}, 0)
 
-						-- reinsert commands
-						for i=1, #cmds do
-							local cmd = cmds[i]
-							if cmd.id ~= CMD_ATTACK or (cmd.params[1] ~= params[1] and cmd.params[1] ~= params[1] and cmd.params[1] ~= params[1]) then
-								spGiveOrderToUnit(unitID, cmd.id, cmd.params, {"shift"} )
+							-- reinsert commands
+							for i=1, #cmds do
+								local cmd = cmds[i]
+								if cmd.id ~= CMD_ATTACK or (cmd.params[1] ~= params[1] and cmd.params[1] ~= params[1] and cmd.params[1] ~= params[1]) then
+									spGiveOrderToUnit(bomberID, cmd.id, cmd.params, {"shift"} )
+								end
 							end
 						end
+						monitorTargets[unitID] = nil
 					end
-					monitorTargets[unitID] = nil
 				end
 			end
 		end
