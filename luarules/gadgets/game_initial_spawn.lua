@@ -264,7 +264,7 @@ if gadgetHandler:IsSyncedCode() then
 			local sameTeam = (teamID == otherTeamID)
 			local sameAllyTeam = (allyTeamID == select(6,Spring.GetTeamInfo(otherTeamID,false)))
 			if (sx>0) and tooClose and sameAllyTeam and not sameTeam then
-				SendToUnsynced("SendTooCloseMessage", playerID)
+				SendToUnsynced("PositionTooClose", playerID)
 				return false
 			end
 		end
@@ -522,7 +522,7 @@ else
 		end
 	end
 
-	local function SendTooCloseMessage(_, playerID)
+	local function positionTooClose(_, playerID)
 		Spring.SendMessageToPlayer(playerID, Spring.I18N('ui.initialSpawn.tooClose'))
 	end
 
@@ -600,7 +600,7 @@ else
 
 		-- add function to receive when startpoints were chosen
 		gadgetHandler:AddSyncAction("StartPointChosen", StartPointChosen)
-		gadgetHandler:AddSyncAction("SendTooCloseMessage", SendTooCloseMessage)
+		gadgetHandler:AddSyncAction("PositionTooClose", positionTooClose)
 	end
 
 	function gadget:DrawScreen()
