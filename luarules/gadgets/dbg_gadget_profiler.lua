@@ -196,6 +196,9 @@ end
 
 local function StartHook()
 	if hookset then
+		if not running then 
+			KillHook()
+		end
 		return false
 	end
 
@@ -241,7 +244,7 @@ local function RemoveHook(gadget, callin)
 end
 
 function KillHook()
-	if not (hookset) then
+	if not hookset then
 		return true
 	end
 
@@ -304,7 +307,9 @@ else
 	end
 
 	local function Start(_, _, _, pID, _)
-		if pID == Spring.GetMyPlayerID() then
+		if running then 
+			Kill(nil, nil, nil, pID, nil)
+		elseif pID == Spring.GetMyPlayerID() then
 			running = true
 
 			StartHook() -- the unsynced one!
@@ -318,11 +323,11 @@ else
 
 	function Kill(_, _, _, pID, _)
 		if running then
+			running = false
+
 			Spring.Echo("Killing...")
 			SetDrawCallin(nil)
 			KillHook()
-
-			running = false
 
 			startTickTimer = nil
 			timersSynced = {}
