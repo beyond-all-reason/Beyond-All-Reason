@@ -41,132 +41,106 @@ local function MergeTable(table1, table2)
 	return result
 end
 
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
-local corafusShieldSphere = {
+local defaults = {
 	layer = -35,
 	life = 20,
+	light = 2,
+	repeatEffect = true,
+}
+
+local corafusShieldSphere = {
 	pos = { 0, 60, 0 },
 	size = 32,
 	light = 3.25,
 	--colormap1 = { {0.9, 0.9, 1, 0.75},{0.9, 0.9, 1, 1.0},{0.9, 0.9, 1, 1.0},{0.9, 0.9, 1, 0.75} },
 	--colormap2 = { {0.2, 0.2, 1, 0.7},{0.2, 0.2, 1, 0.75},{0.2, 0.2, 1, 0.75},{0.2, 0.2, 1, 0.7} },
-	repeatEffect = true
 }
+corafusShieldSphere = MergeTable(defaults, corafusShieldSphere)
 
 local armafusShieldSphere = {
-	layer = -35,
-	life = 20,
 	pos = { 0, 60, 0 },
 	size = 28,
 	light = 3.5,
 	--colormap1 = { {0.9, 0.9, 1, 0.75},{0.9, 0.9, 1, 1.0},{0.9, 0.9, 1, 1.0},{0.9, 0.9, 1, 0.75} },
 	--colormap2 = { {0.2, 0.2, 1, 0.7},{0.2, 0.2, 1, 0.75},{0.2, 0.2, 1, 0.75},{0.2, 0.2, 1, 0.7} },
-	repeatEffect = true
 }
+armafusShieldSphere = MergeTable(defaults, armafusShieldSphere)
 
 local corfusShieldSphere = {
-	layer = -35,
-	life = 20,
 	pos = { 0, 51, 0 },
 	size = 23,
 	light = 2.75,
 	--colormap1 = { {0.9, 0.9, 1, 0.75},{0.9, 0.9, 1, 1.0},{0.9, 0.9, 1, 1.0},{0.9, 0.9, 1, 0.75} },
 	--colormap2 = { {0.2, 0.6, 0.2, 0.4},{0.2, 0.6, 0.2, 0.45},{0.2, 0.6, 0.2, 0.45},{0.2, 0.6, 0.2, 0.4} },
-	repeatEffect = true
 }
+corfusShieldSphere = MergeTable(defaults, corfusShieldSphere)
 
 local corgateShieldSphere = {
-	layer = -35,
-	life = 20,
 	pos = { 0, 42, 0 },
 	size = 11,
 	light = 2.5,
 	colormap1 = { { 0.9, 0.9, 1, 0.75 }, { 0.9, 0.9, 1, 1.0 }, { 0.9, 0.9, 1, 1.0 }, { 0.9, 0.9, 1, 0.75 } },
 	colormap2 = { { 0.2, 0.6, 0.2, 0.4 }, { 0.2, 0.6, 0.2, 0.45 }, { 0.2, 0.6, 0.2, 0.45 }, { 0.2, 0.6, 0.2, 0.4 } },
-	repeatEffect = true
 }
+corgateShieldSphere = MergeTable(defaults, corgateShieldSphere)
 
 local armjunoShieldSphere = {
-	layer = -35,
-	life = 20,
 	pos = { 0, 72, 0 },
 	size = 13,
-	light = 2,
 	colormap1 = { { 0.9, 0.9, 1, 0.75 }, { 0.9, 0.9, 1, 1.0 }, { 0.9, 0.9, 1, 1.0 }, { 0.9, 0.9, 1, 0.75 } },
 	colormap2 = { { 0.8, 0.2, 0.2, 0.4 }, { 0.8, 0.2, 0.2, 0.45 }, { 0.9, 0.2, 0.2, 0.45 }, { 0.9, 0.1, 0.2, 0.4 } },
-	repeatEffect = true
 }
+armjunoShieldSphere = MergeTable(defaults, armjunoShieldSphere)
 
 local corjunoShieldSphere = {
-	layer = -35,
-	life = 20,
 	pos = { 0, 72, 0 },
 	size = 13,
-	light = 2,
 	colormap1 = { { 0.9, 0.9, 1, 0.75 }, { 0.9, 0.9, 1, 1.0 }, { 0.9, 0.9, 1, 1.0 }, { 0.9, 0.9, 1, 0.75 } },
 	colormap2 = { { 0.8, 0.2, 0.2, 0.4 }, { 0.8, 0.2, 0.2, 0.45 }, { 0.9, 0.2, 0.2, 0.45 }, { 0.9, 0.1, 0.2, 0.4 } },
-	repeatEffect = true
 }
+corjunoShieldSphere = MergeTable(defaults, corjunoShieldSphere)
 
 local armgateShieldSphere = {
-	layer = -35,
-	life = 20,
 	pos = { 0, 23.5, -5 },
 	size = 14.5,
-	light = 2,
 	colormap1 = { { 0.9, 0.9, 1, 0.75 }, { 0.9, 0.9, 1, 1.0 }, { 0.9, 0.9, 1, 1.0 }, { 0.9, 0.9, 1, 0.75 } },
 	colormap2 = { { 0.2, 0.6, 0.2, 0.4 }, { 0.2, 0.6, 0.2, 0.45 }, { 0.2, 0.6, 0.2, 0.45 }, { 0.2, 0.6, 0.2, 0.4 } },
-	repeatEffect = true
 }
+armgateShieldSphere = MergeTable(defaults, armgateShieldSphere)
+
 local corgateShieldSphere = {
-	layer = -35,
-	life = 20,
 	pos = { 0, 42, 0 },
 	size = 11,
-	light = 2,
 	colormap1 = { { 0.9, 0.9, 1, 0.75 }, { 0.9, 0.9, 1, 1.0 }, { 0.9, 0.9, 1, 1.0 }, { 0.9, 0.9, 1, 0.75 } },
 	colormap2 = { { 0.2, 0.6, 0.2, 0.4 }, { 0.2, 0.6, 0.2, 0.45 }, { 0.2, 0.6, 0.2, 0.45 }, { 0.2, 0.6, 0.2, 0.4 } },
-	repeatEffect = true
 }
+corgateShieldSphere = MergeTable(defaults, corgateShieldSphere)
 
 local armjunoShieldSphere = {
-	layer = -35,
-	life = 20,
 	pos = { 0, 72, 0 },
 	size = 13,
-	light = 2,
 	colormap1 = { { 0.9, 0.9, 1, 0.75 }, { 0.9, 0.9, 1, 1.0 }, { 0.9, 0.9, 1, 1.0 }, { 0.9, 0.9, 1, 0.75 } },
 	colormap2 = { { 0.8, 0.2, 0.2, 0.4 }, { 0.8, 0.2, 0.2, 0.45 }, { 0.9, 0.2, 0.2, 0.45 }, { 0.9, 0.1, 0.2, 0.4 } },
-	repeatEffect = true
 }
+armjunoShieldSphere = MergeTable(defaults, armjunoShieldSphere)
 
 local corjunoShieldSphere = {
-	layer = -35,
-	life = 20,
 	pos = { 0, 72, 0 },
 	size = 13,
-	light = 2,
 	colormap1 = { { 0.9, 0.9, 1, 0.75 }, { 0.9, 0.9, 1, 1.0 }, { 0.9, 0.9, 1, 1.0 }, { 0.9, 0.9, 1, 0.75 } },
 	colormap2 = { { 0.8, 0.2, 0.2, 0.4 }, { 0.8, 0.2, 0.2, 0.45 }, { 0.9, 0.2, 0.2, 0.45 }, { 0.9, 0.1, 0.2, 0.4 } },
-	repeatEffect = true
 }
+corjunoShieldSphere = MergeTable(defaults, corjunoShieldSphere)
 
 local armgateShieldSphere = {
-	layer = -35,
-	life = 20,
 	pos = { 0, 23.5, -5 },
 	size = 14.5,
-	light = 2,
 	colormap1 = { { 0.9, 0.9, 1, 0.75 }, { 0.9, 0.9, 1, 1.0 }, { 0.9, 0.9, 1, 1.0 }, { 0.9, 0.9, 1, 0.75 } },
 	colormap2 = { { 0.2, 0.6, 0.2, 0.4 }, { 0.2, 0.6, 0.2, 0.45 }, { 0.2, 0.6, 0.2, 0.45 }, { 0.2, 0.6, 0.2, 0.4 } },
-	repeatEffect = true
 }
+armgateShieldSphere = MergeTable(defaults, armgateShieldSphere)
 
 local UnitEffects = {
-
 	["armjuno"] = {
 		{ class = 'ShieldSphere', options = armjunoShieldSphere },
 		{ class = 'ShieldJitter', options = { life = math.huge, pos = { 0, 72, 0 }, size = 14, precision = 22, repeatEffect = true } },
@@ -347,21 +321,6 @@ local function CheckForExistingUnits()
 		end
 	end
 end
-
---function gadget:PlayerChanged(playerID)
---	myTeamID = Spring.GetMyTeamID()
---	mySpec, fullview = Spring.GetSpectatingState()
---	if playerID == Spring.GetMyPlayerID() then
---		--// clear all FXs
---		for _, unitFxIDs in pairs(particleIDs) do
---			for _, fxID in ipairs(unitFxIDs) do
---				Lups.RemoveParticles(fxID)
---			end
---		end
---		particleIDs = {}
---		CheckForExistingUnits()
---	end
---end
 
 function gadget:Initialize()
 	if not Lups then
