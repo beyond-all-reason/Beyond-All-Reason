@@ -254,7 +254,7 @@ local function AddFxs(unitID, fxID)
 end
 
 local function addUnit(unitID, unitDefID)
-	if not CallAsTeam(myTeamID, IsPosInLos, GetUnitPosition(unitID)) then
+	if not fullview and not CallAsTeam(myTeamID, IsPosInLos, GetUnitPosition(unitID)) then
 		return
 	end
 
@@ -303,7 +303,7 @@ function gadget:UnitEnteredLos(unitID, unitTeam, allyTeam, unitDefID)
 end
 
 function gadget:UnitLeftLos(unitID, unitTeam, allyTeam, unitDefID)
-	if UnitEffects[unitDefID] and not CallAsTeam(myTeamID, IsPosInLos, GetUnitPosition(unitID)) then
+	if UnitEffects[unitDefID] and not fullview and not CallAsTeam(myTeamID, IsPosInLos, GetUnitPosition(unitID)) then
 		ClearFxs(unitID)
 	end
 end
