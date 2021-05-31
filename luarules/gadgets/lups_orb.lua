@@ -221,6 +221,7 @@ UnitEffects = newEffects
 newEffects = nil
 
 local myTeamID = Spring.GetMyTeamID()
+local myPlayerID = Spring.GetMyPlayerID()
 local mySpec, fullview = Spring.GetSpectatingState()
 
 local abs = math.abs
@@ -322,6 +323,26 @@ local function CheckForExistingUnits()
 	end
 end
 
+local function removeParticles()
+	for _, unitFxIDs in pairs(particleIDs) do
+		for _, fxID in ipairs(unitFxIDs) do
+			Lups.RemoveParticles(fxID)
+		end
+	end
+	particleIDs = {}
+end
+
+function gadget:PlayerChanged(playerID)
+	if playerID == myPlayerID then
+		myTeamID = Spring.GetMyTeamID()
+		if fullview ~= select(2, Spring.GetSpectatingState()) then
+			mySpec, fullview = Spring.GetSpectatingState()
+			removeParticles()
+			CheckForExistingUnits()
+		end
+	end
+end
+
 function gadget:Initialize()
 	if not Lups then
 		Lups = GG['Lups']
@@ -331,11 +352,6 @@ function gadget:Initialize()
 end
 
 function gadget:Shutdown()
-	for _, unitFxIDs in pairs(particleIDs) do
-		for _, fxID in ipairs(unitFxIDs) do
-			Lups.RemoveParticles(fxID)
-		end
-	end
-	particleIDs = {}
+	removeParticles()
 	Spring.SendLuaRulesMsg("lups shutdown", "allies")
 end
