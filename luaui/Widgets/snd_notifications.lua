@@ -353,9 +353,9 @@ function widget:Initialize()
 	WG['notifications'].addSound = function(name, file, minDelay, duration, message, unlisted)
 		addSound(name, file, minDelay, duration, message, unlisted)
 	end
-	WG['notifications'].addEvent = function(value)
+	WG['notifications'].addEvent = function(value, force)
 		if Sound[value] then
-			QueueNotification(value)
+			QueueNotification(value, force)
 		end
 	end
 end
@@ -678,8 +678,6 @@ function widget:Update(dt)
 
 	if not displayMessages and not spoken then return end
 
-	if gameframe < 60 then return end	-- dont alert stuff for first 2 secs so gadgets can still spawn stuff without it triggering notifications
-
 	sec = sec + dt
 
     passedTime = passedTime + dt
@@ -748,11 +746,13 @@ function isInQueue(event)
 end
 
 function QueueNotification(event, forceplay)
-	if not isSpec or (isSpec and playTrackedPlayerNotifs and lockPlayerID ~= nil) or forceplay then
-		if soundList[event] and Sound[event] then
-			if not LastPlay[event] or (spGetGameFrame() >= LastPlay[event] + (Sound[event][2] * 30)) then
-				if not isInQueue(event) then
-					soundQueue[#soundQueue+1] = event
+	if Spring.GetGameFrame() > 20 or forceplay then
+		if not isSpec or (isSpec and playTrackedPlayerNotifs and lockPlayerID ~= nil) or forceplay then
+			if soundList[event] and Sound[event] then
+				if not LastPlay[event] or (spGetGameFrame() >= LastPlay[event] + (Sound[event][2] * 30)) then
+					if not isInQueue(event) then
+						soundQueue[#soundQueue+1] = event
+					end
 				end
 			end
 		end
