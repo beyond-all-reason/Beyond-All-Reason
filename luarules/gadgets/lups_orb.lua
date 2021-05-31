@@ -15,8 +15,6 @@ if gadgetHandler:IsSyncedCode() then
 end
 
 
-local Lups, LupsAddFX
-
 local function MergeTable(table1, table2)
 	local result = {}
 	for i, v in pairs(table2) do
@@ -48,97 +46,86 @@ local defaults = {
 	repeatEffect = true,
 }
 
-local corafusShieldSphere = {
+local corafusShieldSphere = MergeTable(defaults, {
 	pos = { 0, 60, 0 },
 	size = 32,
 	light = 3.25,
 	--colormap1 = { {0.9, 0.9, 1, 0.75},{0.9, 0.9, 1, 1.0},{0.9, 0.9, 1, 1.0},{0.9, 0.9, 1, 0.75} },
 	--colormap2 = { {0.2, 0.2, 1, 0.7},{0.2, 0.2, 1, 0.75},{0.2, 0.2, 1, 0.75},{0.2, 0.2, 1, 0.7} },
-}
-corafusShieldSphere = MergeTable(defaults, corafusShieldSphere)
+})
 
-local armafusShieldSphere = {
+local armafusShieldSphere = MergeTable(defaults, {
 	pos = { 0, 60, 0 },
 	size = 28,
 	light = 3.5,
 	--colormap1 = { {0.9, 0.9, 1, 0.75},{0.9, 0.9, 1, 1.0},{0.9, 0.9, 1, 1.0},{0.9, 0.9, 1, 0.75} },
 	--colormap2 = { {0.2, 0.2, 1, 0.7},{0.2, 0.2, 1, 0.75},{0.2, 0.2, 1, 0.75},{0.2, 0.2, 1, 0.7} },
-}
-armafusShieldSphere = MergeTable(defaults, armafusShieldSphere)
+})
 
-local corfusShieldSphere = {
+local corfusShieldSphere = MergeTable(defaults, {
 	pos = { 0, 51, 0 },
 	size = 23,
 	light = 2.75,
 	--colormap1 = { {0.9, 0.9, 1, 0.75},{0.9, 0.9, 1, 1.0},{0.9, 0.9, 1, 1.0},{0.9, 0.9, 1, 0.75} },
 	--colormap2 = { {0.2, 0.6, 0.2, 0.4},{0.2, 0.6, 0.2, 0.45},{0.2, 0.6, 0.2, 0.45},{0.2, 0.6, 0.2, 0.4} },
-}
-corfusShieldSphere = MergeTable(defaults, corfusShieldSphere)
+})
 
-local corgateShieldSphere = {
+local corgateShieldSphere = MergeTable(defaults, {
 	pos = { 0, 42, 0 },
 	size = 11,
 	light = 2.5,
 	colormap1 = { { 0.9, 0.9, 1, 0.75 }, { 0.9, 0.9, 1, 1.0 }, { 0.9, 0.9, 1, 1.0 }, { 0.9, 0.9, 1, 0.75 } },
 	colormap2 = { { 0.2, 0.6, 0.2, 0.4 }, { 0.2, 0.6, 0.2, 0.45 }, { 0.2, 0.6, 0.2, 0.45 }, { 0.2, 0.6, 0.2, 0.4 } },
-}
-corgateShieldSphere = MergeTable(defaults, corgateShieldSphere)
+})
 
-local armjunoShieldSphere = {
+local armjunoShieldSphere = MergeTable(defaults, {
 	pos = { 0, 72, 0 },
 	size = 13,
 	colormap1 = { { 0.9, 0.9, 1, 0.75 }, { 0.9, 0.9, 1, 1.0 }, { 0.9, 0.9, 1, 1.0 }, { 0.9, 0.9, 1, 0.75 } },
 	colormap2 = { { 0.8, 0.2, 0.2, 0.4 }, { 0.8, 0.2, 0.2, 0.45 }, { 0.9, 0.2, 0.2, 0.45 }, { 0.9, 0.1, 0.2, 0.4 } },
-}
-armjunoShieldSphere = MergeTable(defaults, armjunoShieldSphere)
+})
 
-local corjunoShieldSphere = {
+local corjunoShieldSphere = MergeTable(defaults, {
 	pos = { 0, 72, 0 },
 	size = 13,
 	colormap1 = { { 0.9, 0.9, 1, 0.75 }, { 0.9, 0.9, 1, 1.0 }, { 0.9, 0.9, 1, 1.0 }, { 0.9, 0.9, 1, 0.75 } },
 	colormap2 = { { 0.8, 0.2, 0.2, 0.4 }, { 0.8, 0.2, 0.2, 0.45 }, { 0.9, 0.2, 0.2, 0.45 }, { 0.9, 0.1, 0.2, 0.4 } },
-}
-corjunoShieldSphere = MergeTable(defaults, corjunoShieldSphere)
+})
 
-local armgateShieldSphere = {
+local armgateShieldSphere = MergeTable(defaults, {
 	pos = { 0, 23.5, -5 },
 	size = 14.5,
 	colormap1 = { { 0.9, 0.9, 1, 0.75 }, { 0.9, 0.9, 1, 1.0 }, { 0.9, 0.9, 1, 1.0 }, { 0.9, 0.9, 1, 0.75 } },
 	colormap2 = { { 0.2, 0.6, 0.2, 0.4 }, { 0.2, 0.6, 0.2, 0.45 }, { 0.2, 0.6, 0.2, 0.45 }, { 0.2, 0.6, 0.2, 0.4 } },
-}
-armgateShieldSphere = MergeTable(defaults, armgateShieldSphere)
+})
 
-local corgateShieldSphere = {
+local corgateShieldSphere = MergeTable(defaults, {
 	pos = { 0, 42, 0 },
 	size = 11,
 	colormap1 = { { 0.9, 0.9, 1, 0.75 }, { 0.9, 0.9, 1, 1.0 }, { 0.9, 0.9, 1, 1.0 }, { 0.9, 0.9, 1, 0.75 } },
 	colormap2 = { { 0.2, 0.6, 0.2, 0.4 }, { 0.2, 0.6, 0.2, 0.45 }, { 0.2, 0.6, 0.2, 0.45 }, { 0.2, 0.6, 0.2, 0.4 } },
-}
-corgateShieldSphere = MergeTable(defaults, corgateShieldSphere)
+})
 
-local armjunoShieldSphere = {
+local armjunoShieldSphere = MergeTable(defaults, {
 	pos = { 0, 72, 0 },
 	size = 13,
 	colormap1 = { { 0.9, 0.9, 1, 0.75 }, { 0.9, 0.9, 1, 1.0 }, { 0.9, 0.9, 1, 1.0 }, { 0.9, 0.9, 1, 0.75 } },
 	colormap2 = { { 0.8, 0.2, 0.2, 0.4 }, { 0.8, 0.2, 0.2, 0.45 }, { 0.9, 0.2, 0.2, 0.45 }, { 0.9, 0.1, 0.2, 0.4 } },
-}
-armjunoShieldSphere = MergeTable(defaults, armjunoShieldSphere)
+})
 
-local corjunoShieldSphere = {
+local corjunoShieldSphere = MergeTable(defaults, {
 	pos = { 0, 72, 0 },
 	size = 13,
 	colormap1 = { { 0.9, 0.9, 1, 0.75 }, { 0.9, 0.9, 1, 1.0 }, { 0.9, 0.9, 1, 1.0 }, { 0.9, 0.9, 1, 0.75 } },
 	colormap2 = { { 0.8, 0.2, 0.2, 0.4 }, { 0.8, 0.2, 0.2, 0.45 }, { 0.9, 0.2, 0.2, 0.45 }, { 0.9, 0.1, 0.2, 0.4 } },
-}
-corjunoShieldSphere = MergeTable(defaults, corjunoShieldSphere)
+})
 
-local armgateShieldSphere = {
+local armgateShieldSphere = MergeTable(defaults, {
 	pos = { 0, 23.5, -5 },
 	size = 14.5,
 	colormap1 = { { 0.9, 0.9, 1, 0.75 }, { 0.9, 0.9, 1, 1.0 }, { 0.9, 0.9, 1, 1.0 }, { 0.9, 0.9, 1, 0.75 } },
 	colormap2 = { { 0.2, 0.6, 0.2, 0.4 }, { 0.2, 0.6, 0.2, 0.45 }, { 0.2, 0.6, 0.2, 0.45 }, { 0.2, 0.6, 0.2, 0.4 } },
-}
-armgateShieldSphere = MergeTable(defaults, armgateShieldSphere)
+})
 
 local UnitEffects = {
 	["armjuno"] = {
@@ -234,6 +221,7 @@ local IsPosInLos = Spring.IsPosInLos
 local GetUnitPosition = Spring.GetUnitPosition
 
 local particleIDs = {}
+local Lups, LupsAddFX
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -281,6 +269,16 @@ function gadget:UnitDestroyed(unitID, unitDefID)
 	if UnitEffects[unitDefID] then
 		ClearFxs(unitID)
 	end
+end
+
+function gadget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
+	gadget:UnitDestroyed(unitID, unitDefID, oldTeam)
+	gadget:UnitFinished(unitID, unitDefID, newTeam)
+end
+
+function gadget:UnitTaken(unitID, unitDefID, oldTeam, newTeam)
+	gadget:UnitDestroyed(unitID, unitDefID, oldTeam)
+	gadget:UnitFinished(unitID, unitDefID, newTeam)
 end
 
 function gadget:UnitEnteredLos(unitID, unitTeam, allyTeam, unitDefID)
