@@ -132,7 +132,7 @@ function AssistHST:AssignIDByName(assistbst)
 			self.IDByNameTaken[uname][assistbst.IDByName] = nil
 		end
 		local id = 1
-		while id <= self.ai.nameCount[uname] do
+		while id <= self.ai.tool:countMyUnit(uname) do
 			id = id + 1
 			if not self.IDByNameTaken[uname][id] then break end
 		end

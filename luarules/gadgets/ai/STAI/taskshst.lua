@@ -272,24 +272,25 @@ function TasksHST:BuildBattleIfNeeded(unitName)
 	end
 end
 
-function TasksHST:CountOwnUnits(tmpUnitName)
-	if tmpUnitName == self.ai.armyhst.DummyUnitName then return 0 end -- don't count no-units
-	if self.ai.nameCount[tmpUnitName] == nil then return 0 end
-	return self.ai.nameCount[tmpUnitName]
-end
+-- function TasksHST:CountOwnUnits(tmpUnitName)
+-- 	if tmpUnitName == self.ai.armyhst.DummyUnitName then return 0 end -- don't count no-units
+-- 	if self.ai.nameCount[tmpUnitName] == nil then return 0 end
+-- 	return self.ai.nameCount[tmpUnitName]
+-- end
 
 function TasksHST:BuildWithLimitedNumber(tmpUnitName, minNumber)
 	if tmpUnitName == self.ai.armyhst.DummyUnitName then return self.ai.armyhst.DummyUnitName end
 	if minNumber == 0 then return self.ai.armyhst.DummyUnitName end
-	if self.ai.nameCount[tmpUnitName] == nil then
-		return tmpUnitName
-	else
-		if self.ai.nameCount[tmpUnitName] == 0 or self.ai.nameCount[tmpUnitName] < minNumber then
-			return tmpUnitName
-		else
-			return self.ai.armyhst.DummyUnitName
-		end
-	end
+-- 	if self.ai.nameCount[tmpUnitName] == nil then
+-- 		return tmpUnitName
+-- 	else
+-- 		if self.ai.nameCount[tmpUnitName] == 0 or self.ai.nameCount[tmpUnitName] < minNumber then
+-- 			return tmpUnitName
+-- 		else
+-- 			return self.ai.armyhst.DummyUnitName
+-- 		end
+-- 	end
+	return self.ai.tool:countMyUnit(tmpUnitName)
 end
 
 function TasksHST:GroundDefenseIfNeeded(unitName)

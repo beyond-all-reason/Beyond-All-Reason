@@ -53,7 +53,7 @@ function OverviewHST:EvaluateSituation()
 	local couldAttack = self.ai.couldAttack >= 1 or self.ai.couldBomb >= 1
 	local bombingTooExpensive = self.ai.bomberhst:GetCounter() == self.ai.armyhst.maxBomberCounter
 	local attackTooExpensive = attackCounter == self.ai.armyhst.maxAttackCounter
-	local controlMetalSpots = self.ai.mexCount > #self.ai.mobNetworkMetals["air"][1] * 0.4
+	local controlMetalSpots = self.ai.tool:countMyUnit('extractsMetal') > #self.ai.mobNetworkMetals["air"][1] * 0.4
 	local needUpgrade = couldAttack or bombingTooExpensive or attackTooExpensive
 
 	self.keepCommanderSafe = self.ai.totalEnemyThreat > 3000 -- turn commander into assistant, for now above paranoidCommander because the assistant behaviour isn't helpful or safe
@@ -129,7 +129,7 @@ function OverviewHST:SetEconomyAliases()
 
 	self.ai.LittleEco = self.ai.Energy.income < 1000 and self.ai.Metal.income < 30
 	self.ai.BigEco = self.ai.Energy.income > 5000 and self.ai.Metal.income > 100 and self.ai.Metal.reserves > 4000 and self.ai.factoryBuilded['air'][1] > 2 and self.ai.combatCount > 40
-	self.ai.lotsOfMetal = self.ai.Metal.income > 30 and self.ai.Metal.full > 0.75 and self.ai.mexCount > #self.ai.mobNetworkMetals["air"][1] * 0.5
+	self.ai.lotsOfMetal = self.ai.Metal.income > 30 and self.ai.Metal.full > 0.75 and self.ai:tool.countMyUnit('extractsMetal') > #self.ai.mobNetworkMetals["air"][1] * 0.5
 end
 
 function OverviewHST:StaticEvaluate()
