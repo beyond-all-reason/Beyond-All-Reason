@@ -47,14 +47,14 @@ end
 -- 	end
 -- end
 
-function CountHST:UnitDamaged(unit, attacker,damage)
-	if unit:Team() ~= self.game:GetTeamID() then
-		self:EchoDebug("unit damaged", unit:Team(), unit:Name(), unit:ID())
-	end
-	local aname = "nil"
-	if attacker then
-		if attacker:Team() ~= self.game:GetTeamID() then
-			self:EchoDebug(unit:Name() .. " on team " .. unit:Team() .. " damaged by " .. attacker:Name() .. " on team " .. attacker:Team())
-		end
-	end
-end
+-- function CountHST:UnitDamaged(unit, attacker,damage)
+-- 	if unit:Team() ~= self.game:GetTeamID() then
+-- 		self:EchoDebug("unit damaged", unit:Team(), unit:Name(), unit:ID())
+-- 	end
+-- 	local aname = "nil"
+-- 	if attacker then
+-- 		if attacker:Team() ~= self.game:GetTeamID() then
+-- 			self:EchoDebug(unit:Name() .. " on team " .. unit:Team() .. " damaged by " .. attacker:Name() .. " on team " .. attacker:Team())
+-- 		end
+-- 	end
+-- end

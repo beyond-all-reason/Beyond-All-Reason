@@ -48,7 +48,7 @@ function LabRegisterBST:OwnerDead()
 end
 
 function LabRegisterBST:Unregister()
-	self.ai.factories = self.ai.factories - 1
+
 	local un = self.name
     local level = self.level
    	self:EchoDebug("factory " .. un .. " level " .. level .. " unregistering")
@@ -66,7 +66,7 @@ function LabRegisterBST:Unregister()
     	end
     end
     self.ai.maxFactoryLevel = maxLevel
-	-- game:SendToConsole(self.ai.factories .. " factories")
+	-- game:SendToConsole(self.ai.tool:countMyUnit(['factoryMobilities']) .. " factories")
 
 	if self.ai.factoryUnderConstruction == self.id then self.ai.factoryUnderConstruction = false end
 	local mtype = self.ai.armyhst.factoryMobilities[self.name][1]
@@ -79,11 +79,6 @@ function LabRegisterBST:Unregister()
 end
 
 function LabRegisterBST:Register()
-	if self.ai.factories ~= nil then
-		self.ai.factories = self.ai.factories + 1
-	else
-		self.ai.factories = 1
-	end
 	-- register maximum factory level
     local un = self.name
     local level = self.level
@@ -101,7 +96,7 @@ function LabRegisterBST:Register()
 		-- set the current maximum factory level
 		self.ai.maxFactoryLevel = level
 	end
-	-- game:SendToConsole(self.ai.factories .. " factories")
+	-- game:SendToConsole(self.ai.tool:countMyUnit(['factoryMobilities']) .. " factories")
 
 	if self.ai.factoryUnderConstruction == self.id then self.ai.factoryUnderConstruction = false end
 	local mtype = self.ai.armyhst.factoryMobilities[self.name][1]

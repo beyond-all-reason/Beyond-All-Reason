@@ -239,8 +239,8 @@ function Tool:countMyUnit( targets )
 
 		if type(target) == 'number' then
 			self:EchoDebug()
-			local id = self.ai.armyhst.unitTable[name].defId --TODO ????? self.name????
-			counter = counter + self.game:GetTeamUnitDefCount(team,id)
+-- 			local id = self.ai.armyhst.unitTable[name].defId --TODO ????? self.name????
+			counter = counter + self.game:GetTeamUnitDefCount(team,target)
 		elseif self.ai.armyhst[target] then
 			for name,t in pairs(self.ai.armyhst[target]) do
 				local id = self.ai.armyhst.unitTable[name].defId

@@ -92,7 +92,7 @@ function LabBuildHST:PrePositionFilter()
 			self:EchoDebug(factoryName ..' already have ')
 			buildMe = false
 		end
-		if mtype == 'air' and not isAdvanced and self.ai.factories == 1 then
+		if mtype == 'air' and not isAdvanced and self.ai.tool:countMyUnit(['factoryMobilities']) == 1 then
 			self:EchoDebug(factoryName ..' dont build air before advanced ')
 			buildMe = false
 		end
@@ -159,22 +159,22 @@ function LabBuildHST:ConditionsToBuildFactories(builder)
 	for order = 1, #self.factories do
 		local factoryName = self.factories[order]
 		local uTn = self.ai.armyhst.unitTable[factoryName]
-		--if self.ai.scaledMetal > uTn.metalCost * order and self.ai.scaledEnergy > uTn.energyCost * order and self.ai.combatCount >= self.ai.factories * 20 then
-		local factoryCountSq = self.ai.factories * self.ai.factories
+		--if self.ai.scaledMetal > uTn.metalCost * order and self.ai.scaledEnergy > uTn.energyCost * order and self.ai.combatCount >= self.ai.tool:countMyUnit(['factoryMobilities']) * 20 then
+		local factoryCountSq = self.ai.tool:countMyUnit(['factoryMobilities']) * self.ai.tool:countMyUnit(['factoryMobilities'])
 		local sameFactoryCount = self.ai.nameCountFinished[factoryName] or 0
 		local sameFactoryMetal = sameFactoryCount * 20
 		local sameFactoryEnergy = sameFactoryCount * 500
 		if
 			(self.ai.Metal.income > (factoryCountSq * 10) + 3 + sameFactoryMetal
 				and self.ai.Energy.income > (factoryCountSq * 100) + 25 + sameFactoryEnergy
-				and self.ai.combatCount >= self.ai.factories * 20)
+				and self.ai.combatCount >= self.ai.tool:countMyUnit(['factoryMobilities']) * 20)
 			or (
 				self.ai.Metal.income > (factoryCountSq * 20) + (sameFactoryMetal * 2)
 				and self.ai.Energy.income > (factoryCountSq * 200) + (sameFactoryEnergy * 2)
 			or  (uTn.metalCost * 1.2 < self.ai.Metal.reserves
 					and  uTn.energyCost  < self.ai.Energy.reserves
 					and self.ai.combatCount >= 50
-					and self.ai.factories >= 1)
+					and self.ai.tool:countMyUnit(['factoryMobilities']) >= 1)
 
 		)then
 
