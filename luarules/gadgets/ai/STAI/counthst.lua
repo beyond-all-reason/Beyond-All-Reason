@@ -38,7 +38,7 @@ function CountHST:Init()
 	self.ai.mtypeLvCount = {}
 	self.ai.mtypeCount = {veh = 0, bot = 0, air = 0, shp = 0, sub = 0, amp = 0, hov = 0 }
 
-	self:InitializeNameCounts()
+-- 	self:InitializeNameCounts()
 end
 
 -- function CountHST:InitializeNameCounts()

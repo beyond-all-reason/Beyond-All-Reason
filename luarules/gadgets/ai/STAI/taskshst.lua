@@ -290,7 +290,7 @@ function TasksHST:BuildWithLimitedNumber(tmpUnitName, minNumber)
 -- 			return self.ai.armyhst.DummyUnitName
 -- 		end
 -- 	end
-	return self.ai.tool:countMyUnit(tmpUnitName)
+	return self.ai.tool:countMyUnit({tmpUnitName})
 end
 
 function TasksHST:GroundDefenseIfNeeded(unitName)

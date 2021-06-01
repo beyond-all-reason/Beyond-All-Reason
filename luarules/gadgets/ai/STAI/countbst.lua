@@ -42,7 +42,7 @@ function CountBST:Init()
 -- 	else
 -- 		self.ai.nameCount[self.name] = self.ai.nameCount[self.name] + 1
 -- 	end
-	self:EchoDebug(self.ai.nameCount[self.name] .. " " .. self.name .. " created")
+-- 	self:EchoDebug(self.ai.nameCount[self.name] .. " " .. self.name .. " created")
 	self.ai.lastNameCreated[self.name] = self.game:Frame()
 	self.unit:ElectBehaviour()
 end

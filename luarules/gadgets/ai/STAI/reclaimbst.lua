@@ -144,7 +144,7 @@ function ReclaimBST:Check()
 	local doreclaim = false
 	if self.dedicated and not self.resurrecting then
 		doreclaim = true
-	elseif self.ai.tool:countMyUnit('isMobileBuilder') > 2 and self.ai.needToReclaim and self.ai.reclaimerCount == 0 and self.ai.IDByName[self.id] ~= 1 and self.ai.IDByName[self.id] == self.ai.nameCount[self.name] then
+	elseif self.ai.tool:countMyUnit({'isMobileBuilder'}) > 2 and self.ai.needToReclaim and self.ai.reclaimerCount == 0 and self.ai.IDByName[self.id] ~= 1 and self.ai.IDByName[self.id] == self.ai.nameCount[self.name] then
 		self:EchoDebug("check reclaim status 1")
 		if not self.ai.haveExtraReclaimer then
 			self.ai.haveExtraReclaimer = true
