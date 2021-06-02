@@ -38,8 +38,10 @@ function BehaviourFactory:defaultBehaviours(unit)
 	-- game:SendToConsole(un, "getting default behaviours")
 
 	-- keep track of how many of each kind of unit we have
-	table.insert(b, CountBST)
-	table.insert(b, BootBST)
+-- 	table.insert(b, CountBST)
+	if army.unitTable[un].isBuilder or army.unitTable[un].speed > 0 then
+		table.insert(b, BootBST)
+	end
 
 	if army.commanderList[un] then
 		table.insert(b, CommanderBST)

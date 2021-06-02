@@ -61,10 +61,10 @@ function AttackHST:Update()
 end
 
 function AttackHST:DraftSquads()
-	-- if self.ai.incomingThreat > 0 then game:SendToConsole(self.ai.incomingThreat .. " " .. (self.ai.tool:countMyUnit(['battles']) + self.ai.tool:countMyUnit(['breaks'])) * 75) end
-	-- if self.ai.incomingThreat > (self.ai.tool:countMyUnit(['battles']) + self.ai.tool:countMyUnit(['breaks'])) * 75 then
+	-- if self.ai.incomingThreat > 0 then game:SendToConsole(self.ai.incomingThreat .. " " .. (self.ai.tool:countMyUnit({'battles'}) + self.ai.tool:countMyUnit({'breaks'})) * 75) end
+	-- if self.ai.incomingThreat > (self.ai.tool:countMyUnit({'battles'}) + self.ai.tool:countMyUnit({'breaks'})) * 75 then
 		-- do not attack if we're in trouble
-		-- self:EchoDebug("not a good time to attack " .. tostring(self.ai.tool:countMyUnit(['battles']) + self.ai.tool:countMyUnit(['breaks'])) .. " " .. self.ai.incomingThreat .. " > " .. tostring((self.ai.tool:countMyUnit(['battles']) + self.ai.tool:countMyUnit(['breaks']))*75))
+		-- self:EchoDebug("not a good time to attack " .. tostring(self.ai.tool:countMyUnit({'battles'}) + self.ai.tool:countMyUnit({'breaks'})) .. " " .. self.ai.incomingThreat .. " > " .. tostring((self.ai.tool:countMyUnit({'battles'}) + self.ai.tool:countMyUnit({'breaks'}))*75))
 		-- return
 	-- end
 	local needtarget = {}

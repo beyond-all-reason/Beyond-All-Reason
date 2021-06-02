@@ -231,6 +231,24 @@ function Tool:dictHasKey( value, list )
 	return false
 end
 
+function Tool:countFinished( nameORid )
+	local team = self.game:GetTeamID()
+	local counter = 0
+	if type(nameORid ) == 'string' then
+		nameORid = self.ai.armyhst.unitTable[nameORid].defId
+	end
+	if type(nameORid ) ~= 'number' then
+		self:EchoDebug('type not valid in count finish unit')
+	end
+	local targetList = self.ai.game:GetTeamUnitsByDefs(self.ai.id, nameORid)
+	for index , value in pairs(targetList) do
+		if value:internal():IsBeingBuilt() == 1 then
+			counter = counter +1
+		end
+	end
+	return counter
+end
+
 function Tool:countMyUnit( targets )
 	local team = self.game:GetTeamID()
 	local counter = 0

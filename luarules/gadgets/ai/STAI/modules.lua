@@ -2,7 +2,7 @@
 shard_include ("armyhst")
 shard_include ("maphst")
 shard_include ("buildsitehst")
-shard_include ("counthst")
+-- shard_include ("counthst")
 shard_include ("unithst")
 shard_include ("labbuildhst")
 shard_include ("attackhst")
@@ -34,7 +34,7 @@ return {
 	RaidHST,
 	BuildSiteHST,
 	LabBuildHST,
-	CountHST,
+-- 	CountHST,
 	TurtleHST,
 	TacticalHST,
 	LosHST,

@@ -1139,7 +1139,7 @@ function ArmyHST:GetUnitTable()
 			utable.isBuilder = unitDef.isBuilder
 			utable.isMobileBuilder = unitDef.isMobileBuilder
 			utable.isStaticBuilder = unitDef.isStaticBuilder
-			utable.isFactory = unitDef.isLab
+			utable.isLab = unitDef.isLab
 			utable.isExtractor = unitDef.Extractor
 			utable.isGroundUnit = unitDef.isGroundUnit
 			utable.isAirUnit = unitDef.isAirUnit
@@ -1295,6 +1295,7 @@ function ArmyHST:GetUnitTable()
 					end
 				end
 			end
+			utable.mtypedLv = tostring(utable.mtype)..utable.techLevel
 			if self.scouts[utable.name] or self.raiders[utable.name] or self.battles[utable.name] or self.breaks[utable.name] or self.airgun[utable.name] or self.cloakables[utable.name] or self.amphibious[utable.name] or self.subkillers[utable.name] or self.spiders[utable.name] or self.paralyzers[utable.name] or self.artillerys[utable.name] or self.crawlings[utable.name]then
 				utable.isAttacker = true
 				--Spring:Echo(utable.name, 'isAttacker')

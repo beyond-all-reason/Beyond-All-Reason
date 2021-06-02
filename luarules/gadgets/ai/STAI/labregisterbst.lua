@@ -66,7 +66,7 @@ function LabRegisterBST:Unregister()
     	end
     end
     self.ai.maxFactoryLevel = maxLevel
-	-- game:SendToConsole(self.ai.tool:countMyUnit(['factoryMobilities']) .. " factories")
+	-- game:SendToConsole(self.ai.tool:countMyUnit({'factoryMobilities'}) .. " factories")
 
 	if self.ai.factoryUnderConstruction == self.id then self.ai.factoryUnderConstruction = false end
 	local mtype = self.ai.armyhst.factoryMobilities[self.name][1]
@@ -96,7 +96,7 @@ function LabRegisterBST:Register()
 		-- set the current maximum factory level
 		self.ai.maxFactoryLevel = level
 	end
-	-- game:SendToConsole(self.ai.tool:countMyUnit(['factoryMobilities']) .. " factories")
+	-- game:SendToConsole(self.ai.tool:countMyUnit({'factoryMobilities'}) .. " factories")
 
 	if self.ai.factoryUnderConstruction == self.id then self.ai.factoryUnderConstruction = false end
 	local mtype = self.ai.armyhst.factoryMobilities[self.name][1]
