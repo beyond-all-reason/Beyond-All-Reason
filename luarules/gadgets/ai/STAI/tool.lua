@@ -264,6 +264,7 @@ function Tool:countMyUnit( targets )
 				local id = self.ai.armyhst.unitTable[name].defId
 				counter = counter + self.game:GetTeamUnitDefCount(team,id)
 			end
+
 		else
 			for name,spec in pairs(self.ai.armyhst.unitTable) do
 				if spec.target or name == target then
@@ -277,6 +278,17 @@ function Tool:countMyUnit( targets )
 	return counter
 end
 
+function Tool:mtypedLvCount(tpLv)
+	local team = self.game:GetTeamID()
+	local counter = 0
+	for name,spec in pairs(self.ai.armyhst.unitTable) do
+		if spec.mtypedLv and spec.mtypedLv == tpLv then
+			local id = spec.defId
+			counter = counter + self.game:GetTeamUnitDefCount(team,id)
+		end
+	end
+	return counter
+end
 
 function Tool:CustomCommand(unit, cmdID, cmdParams)
 	local floats = api.vectorFloat()

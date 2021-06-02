@@ -392,11 +392,12 @@ function TaskQueueBST:findPlace(utype, value,cat)
 	local site = self.ai.buildsitehst
 	local closestFactory = self.ai.buildsitehst:ClosestHighestLevelFactory(builderPos)
 	if cat == 'factoryMobilities' then
-		POS =  site:BuildNearLastNano(builder, utype) or
-				site:searchPosNearCategories(utype, builder,builderPos,400, nil,50,{'_nano_'}) or
-				site:searchPosNearCategories(utype, builder,closestFactory,400, nil,50,{'_nano_'}) or
-				site:searchPosNearCategories(utype, builder,builderPos,400, nil,50,{'factoryMobilities'}) or
-				site:searchPosNearCategories(utype, builder,builderPos,400, nil,50,{'_llt_'})
+		---theorical pos is get
+-- 		POS =  site:BuildNearLastNano(builder, utype) or
+-- 				site:searchPosNearCategories(utype, builder,builderPos,400, nil,50,{'_nano_'}) or
+-- 				site:searchPosNearCategories(utype, builder,closestFactory,400, nil,50,{'_nano_'}) or
+-- 				site:searchPosNearCategories(utype, builder,builderPos,400, nil,50,{'factoryMobilities'}) or
+-- 				site:searchPosNearCategories(utype, builder,builderPos,400, nil,50,{'_llt_'})
 -- 				site:searchPosNearCategories(utype, builder,'extractsMetal',nil, 'radarRadius',20)
 	elseif cat == '_mex_' then
 		local uw
@@ -521,8 +522,8 @@ function TaskQueueBST:findPlace(utype, value,cat)
 	elseif cat == '_torpedoground_' then
 		POS = site:searchPosNearCategories(utype, builder,builderPos,400, 'losRadius',20,{'_mex_'})
 	elseif cat == '_aabomb_' then
-		POS =  site:searchPosNearCategories(utype, builder,builderPos,400, 'losRadius',20,'_heavyt_') or
-				site:searchPosNearCategories(utype, builder,builderPos,400, 'losRadius',20,'_laser2_')
+		POS =  site:searchPosNearCategories(utype, builder,builderPos,400, 'losRadius',20,{'_heavyt_'}) or
+				site:searchPosNearCategories(utype, builder,builderPos,400, 'losRadius',20,{'_laser2_'})
 	elseif cat == '_aaheavy_' then
 		POS = site:searchPosNearCategories(utype, builder,builderPos,400, 'losRadius',50,{'factoryMobilities'})
 	elseif cat == '_aa2_' then
@@ -675,10 +676,10 @@ function TaskQueueBST:ProgressQueue()
 		if val[6] and value then
 			value = self:specialFilter(val[1],val[6],value)
 		end
-		if val[4] then
+		if val[4] and value then
 			value = self:limitedNumber(value, val[4])
 		end
-		if val[3] then
+		if val[3] and value then
 			if self.ai.buildsitehst:CheckForDuplicates(value) then
 				value = nil
 			end

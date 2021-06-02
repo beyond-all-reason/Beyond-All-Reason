@@ -164,7 +164,7 @@ function TasksHST:GetMtypedLv(unitName)
 -- 	local mtypedLv = mtype .. tostring(level)
 --
 -- 	local counter = self.ai.mtypeLvCount[mtypedLv] or 0
-	local counter = self.ai.tool:countMyUnit({'mtypedLv'})
+	local counter = self.ai.tool:mtypedLvCount(self.ai.armyhst.unitTable[unitName].mtypedLv)
 	self:EchoDebug('mtypedLvmtype ' , counter)
 	return counter
 end
