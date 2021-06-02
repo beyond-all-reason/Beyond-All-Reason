@@ -308,13 +308,13 @@ function BuildSiteHST:ClosestHighestLevelFactory(builderPos, maxDist)
 	local factorybhvr
 	if self.ai.factoriesAtLevel[maxLevel] ~= nil then
 		for i, factory in pairs(self.ai.factoriesAtLevel[maxLevel]) do
-			if not self.ai.outmodedFactoryID[factory.id] then
+-- 			if not self.ai.outmodedFactoryID[factory.id] then
 				local dist = self.ai.tool:Distance(builderPos, factory.position)
 				if dist < minDist then
 					minDist = dist
 					factorybhvr = factory
 				end
-			end
+-- 			end
 		end
 	end
 	if factorybhvr then

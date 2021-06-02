@@ -120,38 +120,3 @@ function CleanerBST:Search2()
 		end
 	end
 end
-
-
--- function CleanerBST:Search()
--- 	if self.cleanThis then return end
--- 	local cleanables = self.ai.cleanhst:GetCleanables(self)
--- 	if not cleanables or #cleanables == 0 then
--- 		self:EchoDebug('no cleanables')
--- 		return
--- 	end
--- 	local myPos = self.unit:Internal():GetPosition()
--- 	for i = #cleanables, 1, -1 do
--- 		local cleanable = cleanables[i]
--- 		if not self.ignore[cleanable:ID()] then
--- 			local p = cleanable:GetPosition()
--- 			if p then
--- 				local dist = self.ai.tool:Distance(myPos, p)
--- 				self:EchoDebug('cleanable dist ', dist)
--- 				if dist < self.cleaningRadius then
--- 					self:Clean(cleanable)
--- 					return
--- 				elseif self.isStationary then
--- 					self.ignore[cleanable:ID()] = true
--- 				end
--- 			else
--- 				self:EchoDebug('nil cleanable pos ')
--- 				self.ignore[cleanable:ID()] = nil
--- 				self.ai.cleanhst:RemoveCleanable(cleanable)
--- 			end
--- 		end
--- 	end
--- end
-
--- function CleanerBST:OwnerMoveFailed()
--- 	self.moveFailed = true
--- end

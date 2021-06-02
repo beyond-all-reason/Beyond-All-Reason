@@ -12,27 +12,27 @@ function CountHST:Init()
 	--self.ai.game:SendToConsole("counting handler!!!")
 	self.DebugEnabled = false
 
-	self.ai.factories = 0
-	self.ai.maxFactoryLevel = 0
-	self.ai.factoriesAtLevel = {}
-	self.ai.outmodedFactoryID = {}
+-- 	self.ai.factories = 0
+-- 	self.ai.maxFactoryLevel = 0
+-- 	self.ai.factoriesAtLevel = {}
+-- 	self.ai.outmodedFactoryID = {}
 
 -- 	self.ai.nameCount = {}
 	self.ai.nameCountFinished = {}
-	self.ai.lastNameCreated = {}
-	self.ai.lastNameFinished = {}
-	self.ai.lastNameDead = {}
+-- 	self.ai.lastNameCreated = {}
+-- 	self.ai.lastNameFinished = {}
+-- 	self.ai.lastNameDead = {}
 -- 	self.ai.mexCount = 0
 -- 	self.ai.conCount = 0
-	self.ai.conList = {}
-	self.ai.combatCount = 0
-	self.ai.battleCount = 0
-	self.ai.breakthroughCount = 0
-	self.ai.siegeCount = 0
+-- 	self.ai.conList = {}
+-- 	self.ai.combatCount = 0
+-- 	self.ai.battleCount = 0
+-- 	self.ai.breakthroughCount = 0
+-- 	self.ai.siegeCount = 0
 -- 	self.ai.reclaimerCount = 0
-	self.ai.cleanable = {}
+-- 	self.ai.cleanable = {}
 -- 	self.ai.assistCount = 0
-	self.ai.nanoList = {}
+-- 	self.ai.nanoList = {}
 -- 	self.ai.attackerCount = 0
 
 	self.ai.mtypeLvCount = {}

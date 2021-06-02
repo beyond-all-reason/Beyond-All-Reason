@@ -1115,7 +1115,7 @@ function ArmyHST:GetUnitTable()
 			-- --Spring.Echo(unitDef.name, "move slope", unitDef.moveDef.maxSlope)
 			-- end
 			self.unitTable[unitDef.name] = {}
-
+-- 			Spring:Echo(unitDef.name)
 			local utable = self.unitTable[unitDef.name]
 			utable.name = unitDef.name
 			utable.side = side
@@ -1171,7 +1171,6 @@ function ArmyHST:GetUnitTable()
 			utable.antiNuke = getInterceptor(unitDefID)
 			utable.targetableWeapon = getTargetableWeapon(unitDefID)
 			utable.paralyzer = getParalyzer(unitDefID)
--- 			Spring:Echo(unitDef.name)
 			utable.techLevel = unitsLevels[unitDef["name"]]
 			if unitDef["modCategories"]["weapon"] then
 				utable.isWeapon = true

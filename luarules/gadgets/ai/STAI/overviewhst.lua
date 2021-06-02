@@ -16,6 +16,8 @@ function OverviewHST:Init()
 	self.nukeLimit = 1
 	self.tacticalNukeLimit = 1
 
+	self.ai.maxFactoryLevel = 0
+
 	self.lastCheckFrame = 0
 	self.lastEconCheckFrame = 0
 
@@ -45,9 +47,9 @@ function OverviewHST:EvaluateSituation()
 
 	self.ai.needToReclaim = self.ai.Metal.full < 0.5 and self.ai.wreckCount > 0
 	self.AAUnitPerTypeLimit = math.min(10,math.ceil(self.ai.turtlehst:GetTotalPriority() / 4))
-	self.heavyPlasmaLimit = math.ceil(self.ai.combatCount / 10)
-	self.nukeLimit = math.ceil(self.ai.combatCount / 50)
-	self.tacticalNukeLimit = math.ceil(self.ai.combatCount / 40)
+	self.heavyPlasmaLimit = math.ceil(self.ai.tool:countMyUnit(['isWeapon']) / 10)
+	self.nukeLimit = math.ceil(self.ai.tool:countMyUnit(['isWeapon']) / 50)
+	self.tacticalNukeLimit = math.ceil(self.ai.tool:countMyUnit(['isWeapon']) / 40)
 
 	local attackCounter = self.ai.attackhst:GetCounter()
 	local couldAttack = self.ai.couldAttack >= 1 or self.ai.couldBomb >= 1
@@ -68,7 +70,7 @@ function OverviewHST:EvaluateSituation()
 	end
 	self.needSiege = (self.ai.totalEnemyImmobileThreat > self.ai.totalEnemyMobileThreat * 3.5 and self.ai.totalEnemyImmobileThreat > 50000) or attackCounter >= self.ai.armyhst.siegeAttackCounter or controlMetalSpots
 
-	local needAdvanced = self.ai.combatCount > 35 and (self.ai.Metal.income > 18 or controlMetalSpots) and self.ai.tool:countMyUnit(['factoryMobilities']) > 0 and (needUpgrade or self.ai.lotsOfMetal)
+	local needAdvanced = self.ai.tool:countMyUnit(['isWeapon']) > 35 and (self.ai.Metal.income > 18 or controlMetalSpots) and self.ai.tool:countMyUnit(['factoryMobilities']) > 0 and (needUpgrade or self.ai.lotsOfMetal)
 	if needAdvanced ~= self.ai.needAdvanced then
 		self.ai.needAdvanced = needAdvanced
 		self.ai.labbuildhst:UpdateFactories()
@@ -96,7 +98,7 @@ function OverviewHST:EvaluateSituation()
 	end
 	self.ai.needExperimental = needExperimental
 	self:EchoDebug("need experimental? " .. tostring(self.ai.needExperimental) .. ", need nukes? " .. tostring(self.ai.needNukes) .. ", have advanced? " .. tostring(self.ai.haveAdvFactory) .. ", need upgrade? " .. tostring(needUpgrade) .. ", have enemy base position? " .. tostring(self.ai.enemyBasePosition))
-	self:EchoDebug("metal income: " .. self.ai.Metal.income .. "  combat units: " .. self.ai.combatCount)
+	self:EchoDebug("metal income: " .. self.ai.Metal.income .. "  combat units: " .. self.ai.tool:countMyUnit(['isWeapon']))
 	self:EchoDebug("have advanced? " .. tostring(self.ai.haveAdvFactory) .. " have experimental? " .. tostring(self.ai.haveExpFactory))
 	self:EchoDebug("need advanced? " .. tostring(self.ai.needAdvanced) .. "  need experimental? " .. tostring(self.ai.needExperimental))
 	self:EchoDebug("need advanced? " .. tostring(self.ai.needAdvanced) .. ", need upgrade? " .. tostring(needUpgrade) .. ", have attacked enough? " .. tostring(couldAttack) .. " (" .. self.ai.couldAttack .. "), have " .. self.ai.tool:countMyUnit(['factoryMobilities']) .. " factories, " .. math.floor(self.ai.Metal.income) .. " metal income")
@@ -120,15 +122,15 @@ function OverviewHST:SetEconomyAliases()
 	self.metalBelowHalf = self.ai.Metal.reserves < lotsMetalReserves
 	self.metalAboveHalf = self.ai.Metal.reserves >= lotsMetalReserves
 	local attackCounter = self.ai.attackhst:GetCounter()
-	self.notEnoughCombats = self.ai.combatCount < attackCounter * 0.6
-	self.farTooFewCombats = self.ai.combatCount < attackCounter * 0.2
+	self.notEnoughCombats = self.ai.tool:countMyUnit(['isWeapon']) < attackCounter * 0.6
+	self.farTooFewCombats = self.ai.tool:countMyUnit(['isWeapon']) < attackCounter * 0.2
 
 	self.ai.underReserves = self.ai.Metal.full < 0.3 or self.ai.Energy.full < 0.3
 	self.ai.aboveReserves = self.ai.Metal.full > 0.7 and self.ai.Energy.full > 0.7
 	self.ai.normalReserves = self.ai.Metal.full > 0.5 and self.ai.Energy.full > 0.5
 
 	self.ai.LittleEco = self.ai.Energy.income < 1000 and self.ai.Metal.income < 30
-	self.ai.BigEco = self.ai.Energy.income > 5000 and self.ai.Metal.income > 100 and self.ai.Metal.reserves > 4000 and self.ai.factoryBuilded['air'][1] > 2 and self.ai.combatCount > 40
+	self.ai.BigEco = self.ai.Energy.income > 5000 and self.ai.Metal.income > 100 and self.ai.Metal.reserves > 4000 and self.ai.factoryBuilded['air'][1] > 2 and self.ai.tool:countMyUnit(['isWeapon']) > 40
 	self.ai.lotsOfMetal = self.ai.Metal.income > 30 and self.ai.Metal.full > 0.75 and self.ai.tool:countMyUnit({'extractsMetal'}) > #self.ai.mobNetworkMetals["air"][1] * 0.5
 end
 
