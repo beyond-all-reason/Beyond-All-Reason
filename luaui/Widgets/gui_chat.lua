@@ -100,6 +100,13 @@ local spGetMyAllyTeamID = Spring.GetMyAllyTeamID
 local spPlaySoundFile = Spring.PlaySoundFile
 local spGetGameFrame = Spring.GetGameFrame
 
+local teamColorKeys = {}
+local teams = Spring.GetTeamList()
+for i = 1, #teams do
+	local r, g, b, a = spGetTeamColor(teams[i])
+	teamColorKeys[teams[i]] = r..'_'..g..'_'..b
+end
+teams = nil
 
 local function isOnRect(x, y, leftX, bottomY,rightX,TopY)
 	return x >= leftX and x <= rightX and y >= bottomY and y <= TopY
@@ -255,7 +262,7 @@ end
 local uiSec = 0
 function widget:Update(dt)
 	uiSec = uiSec + dt
-	if uiSec > 0.5 then
+	if uiSec > 1 then
 		uiSec = 0
 		if ui_scale ~= Spring.GetConfigFloat("ui_scale",1) or ui_opacity ~= Spring.GetConfigFloat("ui_opacity",0.66)  then
 			ui_scale = Spring.GetConfigFloat("ui_scale",1)
@@ -264,6 +271,20 @@ function widget:Update(dt)
 		end
 		if hideSpecChat ~= (Spring.GetConfigInt('HideSpecChat', 0) == 1) then
 			hideSpecChat = (Spring.GetConfigInt('HideSpecChat', 0) == 1)
+			widget:ViewResize()
+		end
+
+		-- check if team colors have changed
+		local teams = Spring.GetTeamList()
+		local detectedChanges = false
+		for i = 1, #teams do
+			local r, g, b, a = spGetTeamColor(teams[i])
+			if teamColorKeys[teams[i]] ~= r..'_'..g..'_'..b then
+				teamColorKeys[teams[i]] = r..'_'..g..'_'..b
+				detectedChanges = true
+			end
+		end
+		if detectedChanges then
 			widget:ViewResize()
 		end
 	end

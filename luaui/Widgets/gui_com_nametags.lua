@@ -189,6 +189,41 @@ local function createComnameList(attributes)
 	end)
 end
 
+
+
+local function CheckCom(unitID, unitDefID, unitTeam)
+	if comDefs[unitDefID] and unitTeam ~= GaiaTeam then
+		comms[unitID] = GetCommAttributes(unitID, unitDefID)
+	end
+end
+
+local function CheckAllComs()
+
+	-- check if team colors have changed
+	local teams = Spring.GetTeamList()
+	local detectedChanges = false
+	for i = 1, #teams do
+		local r, g, b, a = GetTeamColor(teams[i])
+		if teamColorKeys[teams[i]] ~= r..'_'..g..'_'..b then
+			detectedChanges = true
+		end
+	end
+	if detectedChanges then
+		RemoveLists()
+	end
+
+	-- check commanders
+	local allUnits = GetAllUnits()
+	for i = 1, #allUnits do
+		local unitID = allUnits[i]
+		local unitDefID = GetUnitDefID(unitID)
+		local unitTeam = GetUnitTeam(unitID)
+		if comDefs[unitDefID] and unitTeam ~= GaiaTeam then
+			comms[unitID] = GetCommAttributes(unitID, unitDefID)
+		end
+	end
+end
+
 local sec = 0
 function widget:Update(dt)
 	sec = sec + dt
@@ -381,40 +416,6 @@ function widget:DrawWorld()
 	glAlphaTest(false)
 	glColor(1, 1, 1, 1)
 	glDepthTest(false)
-end
-
---------------------------------------------------------------------------------
-
-
-
-function CheckCom(unitID, unitDefID, unitTeam)
-	if comDefs[unitDefID] and unitTeam ~= GaiaTeam then
-		comms[unitID] = GetCommAttributes(unitID, unitDefID)
-	end
-end
-
-function CheckAllComs()
-
-	-- check if team colors are changed
-	local teams = Spring.GetTeamList()
-	for i = 1, #teams do
-		local r, g, b, a = GetTeamColor(teams[i])
-		if teamColorKeys[teams[i]] ~= r..'_'..g..'_'..b then
-			RemoveLists()
-			break
-		end
-	end
-
-	-- check commanders
-	local allUnits = GetAllUnits()
-	for i = 1, #allUnits do
-		local unitID = allUnits[i]
-		local unitDefID = GetUnitDefID(unitID)
-		local unitTeam = GetUnitTeam(unitID)
-		if comDefs[unitDefID] and unitTeam ~= GaiaTeam then
-			comms[unitID] = GetCommAttributes(unitID, unitDefID)
-		end
-	end
 end
 
 function widget:Initialize()

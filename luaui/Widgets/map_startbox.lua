@@ -33,9 +33,6 @@ local shadowFont = gl.LoadFont(fontfile, fontfileSize * fontfileScale, 35 * font
 local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 local font2 = gl.LoadFont(fontfile2, fontfileSize * fontfileScale, fontfileOutlineSize * fontfileScale, fontfileOutlineStrength2)
 
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
 local useThickLeterring = false
 local heightOffset = 50
 local fontSize = 18
@@ -76,6 +73,14 @@ local texName = LUAUI_DIRNAME .. 'Images/highlight_strip.png'
 local texScale = 512
 
 local infotextList, chobbyInterface
+
+local teamColorKeys = {}
+local teams = Spring.GetTeamList()
+for i = 1, #teams do
+	local r, g, b, a = GetTeamColor(teams[i])
+	teamColorKeys[teams[i]] = r..'_'..g..'_'..b
+end
+teams = nil
 
 local GetUnitTeam = Spring.GetUnitTeam
 local GetTeamInfo = Spring.GetTeamInfo
@@ -334,14 +339,6 @@ function widget:Shutdown()
 	gl.DeleteFont(shadowFont)
 end
 
-local teamColorKeys = {}
-local teams = Spring.GetTeamList()
-for i = 1, #teams do
-	local r, g, b, a = GetTeamColor(teams[i])
-	teamColorKeys[teams[i]] = r..'_'..g..'_'..b
-end
-teams = nil
-
 local teamColors = {}
 local function GetTeamColor(teamID)
 	local color = teamColors[teamID]
@@ -445,23 +442,18 @@ function widget:DrawWorld()
 	end
 end
 
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
 function widget:DrawScreenEffects()
 	-- show the names over the team start positions
 	for _, teamID in ipairs(Spring.GetTeamList()) do
 		local name, _, spec = Spring.GetPlayerInfo(select(2, Spring.GetTeamInfo(teamID, false)), false)
 		local isNewbie = (Spring.GetTeamRulesParam(teamID, 'isNewbie') == 1) -- =1 means the startpoint will be replaced and chosen by initial_spawn
-		if (name ~= nil) and ((not spec) and (teamID ~= gaiaTeamID)) and not isNewbie then
+		if name ~= nil and not spec and teamID ~= gaiaTeamID and not isNewbie then
 			local colorStr, outlineStr = GetTeamColorStr(teamID)
 			local x, y, z = Spring.GetTeamStartPosition(teamID)
-			if (x ~= nil and x > 0 and z > 0 and y > -500) then
+			if x ~= nil and x > 0 and z > 0 and y > -500 then
 				local sx, sy, sz = Spring.WorldToScreenCoords(x, y + 120, z)
-				if (sz < 1) then
-
+				if sz < 1 then
 					DrawName(sx, sy, name, teamID, GetTeamColor(teamID))
-
 				end
 			end
 		end
@@ -611,14 +603,18 @@ function widget:Update(dt)
 	if sec > 1 then
 		sec = 0
 
-		-- check if team colors are changed
+		-- check if team colors have changed
 		local teams = Spring.GetTeamList()
+		local detectedChanges = false
 		for i = 1, #teams do
 			local r, g, b, a = GetTeamColor(teams[i])
 			if teamColorKeys[teams[i]] ~= r..'_'..g..'_'..b then
-				removeLists()
-				break
+				teamColorKeys[teams[i]] = r..'_'..g..'_'..b
+				detectedChanges = true
 			end
+		end
+		if detectedChanges then
+			removeLists()
 		end
 	end
 end
