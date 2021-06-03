@@ -26,19 +26,20 @@ local myPlayerID = Spring.GetMyPlayerID()
 local allyCounter = 0
 local enemyCounter = 0
 
-PlayerColor = {0, 80, 255} -- Armada Blue
+SimplePlayerColor = {0, 80, 255} -- Armada Blue
 SimpleAllyColor = {0,255,0} -- Full Green
 SimpleEnemyColor = {255, 16, 5} -- Cortex Red
 
 
 AllyColors = {
-    [1] = {82, 151, 255}, -- Light Blue
-    [2] = {94, 9, 178}, -- Purple
-    [3] = {191, 169, 255}, -- Lavender
-    [4] = {81, 66, 251}, -- Royal Blue
-    [5] = {11, 232, 18}, -- Light Green
-    [6] = {178, 255, 227}, -- Aqua
-    [7] = {0, 170, 99}, -- Grass
+    [1] = {0, 80, 255} -- Armada Blue
+    [2] = {82, 151, 255}, -- Light Blue
+    [3] = {94, 9, 178}, -- Purple
+    [4] = {191, 169, 255}, -- Lavender
+    [5] = {81, 66, 251}, -- Royal Blue
+    [6] = {11, 232, 18}, -- Light Green
+    [7] = {178, 255, 227}, -- Aqua
+    [8] = {0, 170, 99}, -- Grass
     [8] = {0, 255, 0},
     [9] = {0, 255, 0},
     [10] = {0, 255, 0},
@@ -122,8 +123,8 @@ local function UpdatePlayerColors()
             end
         elseif spGetGaiaTeamID() == teamID then
             spSetTeamColor(teamID, GaiaColor[1]/255, GaiaColor[2]/255, GaiaColor[3]/255)
-        elseif teamID == myTeam then
-            spSetTeamColor(teamID, PlayerColor[1]/255, PlayerColor[2]/255, PlayerColor[3]/255)
+        --elseif teamID == myTeam then
+            --spSetTeamColor(teamID, PlayerColor[1]/255, PlayerColor[2]/255, PlayerColor[3]/255)
         else
             if allyTeam == myAllyTeam then
                 allyCounter = allyCounter+1
