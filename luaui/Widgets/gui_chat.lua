@@ -880,8 +880,8 @@ function widget:ViewResize()
 
 	usedFontSize = charSize*widgetScale*fontsizeMult
 	usedConsoleFontSize = charSize*widgetScale*fontsizeMult*consoleFontSizeMult
-	font = WG['fonts'].getFont(nil, (charSize/18)*fontsizeMult, 0.18, 1.7)
-	font3 = WG['fonts'].getFont(fontfile3, (charSize/18)*fontsizeMult, 0.18, 1.7)
+	font = WG['fonts'].getFont(nil, (charSize/18)*fontsizeMult, 0.19, 1.75)
+	font3 = WG['fonts'].getFont(fontfile3, (charSize/18)*fontsizeMult, 0.19, 1.75)
 
 	-- get longest player name and calc its width
 	local namePrefix = '(s)'
@@ -967,5 +967,8 @@ function widget:SetConfigData(data)
 	end
 	if data.capitalize ~= nil then
 		capitalize = data.capitalize
+	end
+	if data.fontsizeMult ~= nil then
+		fontsizeMult = data.fontsizeMult
 	end
 end

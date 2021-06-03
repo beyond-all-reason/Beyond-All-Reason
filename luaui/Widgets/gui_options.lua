@@ -3636,7 +3636,7 @@ function init()
 		--		saveOptionValue('Chat', 'chat', 'setCapitalize', { 'capitalize' }, value)
 		--	end,
 		  --},
-		{ id = "console_fontsize", group = "ui", name = widgetOptionColor .. "   "..texts.option.console_fontsize, type = "slider", min = 0.92, max = 1.08, step = 0.02, value = (WG['chat'] ~= nil and WG['chat'].getFontsize() or 1), description = '',
+		{ id = "console_fontsize", group = "ui", name = widgetOptionColor .. "   "..texts.option.console_fontsize, type = "slider", min = 0.92, max = 1.1, step = 0.02, value = (WG['chat'] ~= nil and WG['chat'].getFontsize() or 1), description = '',
 		  onload = function(i)
 			  loadWidgetData("Chat", "console_fontsize", { 'fontsizeMult' })
 		  end,
