@@ -18,6 +18,8 @@ local spGetTeamList = Spring.GetTeamList
 local spGetMyTeamID = Spring.GetMyTeamID
 local spGetMyAllyTeamID = Spring.GetMyAllyTeamID
 local spSetTeamColor = Spring.SetTeamColor
+local spGetTeamLuaAI = Spring.GetTeamLuaAI
+local spGetGaiaTeamID = Spring.GetGaiaTeamID
 
 local myPlayerID = Spring.GetMyPlayerID()
 
@@ -30,48 +32,78 @@ SimpleEnemyColor = {255, 16, 5} -- Cortex Red
 
 
 AllyColors = {
-    [1] = {53, 189, 240}, -- Light Blue
-    [2] = {147, 226, 251}, -- Very Light Blue
-    [3] = {29, 249, 170}, -- Blueish Green
-    [4] = {0,255,0}, -- Full Green
-    [5] = {151, 255, 151}, -- Bleached Green
-    [6] = {0, 100, 0}, -- Dark Green
-    [7] = {118, 0, 225}, -- Purple
-    [8] = {185, 106, 255}, -- Light Purple
-    -- Do we need more?
-    [9] = {56, 0, 106}, -- Dark Purple
-    [10] = {0, 0, 0},
-    [11] = {0, 0, 0},
-    [12] = {0, 0, 0},
-    [13] = {0, 0, 0},
-    [14] = {0, 0, 0},
-    [15] = {0, 0, 0},
-    [16] = {0, 0, 0},
+    [1] = {82, 151, 255}, -- Light Blue
+    [2] = {94, 9, 178}, -- Purple
+    [3] = {191, 169, 255}, -- Lavender
+    [4] = {81, 66, 251}, -- Royal Blue
+    [5] = {11, 232, 18}, -- Light Green
+    [6] = {178, 255, 227}, -- Aqua
+    [7] = {0, 170, 99}, -- Grass
+    [8] = {0, 255, 0},
+    [9] = {0, 255, 0},
+    [10] = {0, 255, 0},
+    [11] = {0, 255, 0},
+    [12] = {0, 255, 0},
+    [13] = {0, 255, 0},
+    [14] = {0, 255, 0},
+    [15] = {0, 255, 0},
+    [16] = {0, 255, 0},
+    [17] = {0, 255, 0},
+    [18] = {0, 255, 0},
+    [19] = {0, 255, 0},
+    [20] = {0, 255, 0},
+    [21] = {0, 255, 0},
+    [22] = {0, 255, 0},
+    [23] = {0, 255, 0},
+    [24] = {0, 255, 0},
+    [25] = {0, 255, 0},
+    [26] = {0, 255, 0},
+    [27] = {0, 255, 0},
+    [28] = {0, 255, 0},
+    [29] = {0, 255, 0},
+    [30] = {0, 255, 0},
+    [31] = {0, 255, 0},
+    [32] = {0, 255, 0},
 }
 
 EnemyColors = {
     [1] = {255, 16, 5}, -- Cortex Red
     [2] = {255, 220, 34}, -- Yellow
-    [3] = {255, 125, 32}, -- Orange
-    [4] = {229, 18, 120}, -- Pink
+    [3] = {255, 125, 32}, -- Pumpkin
+    [4] = {229, 18, 120}, -- Hot Pink
     [5] = {255, 243, 135}, -- Light Yellow
-    [6] = {118, 39, 6}, -- Brown
-    [7] = {220, 139, 104}, -- Light Brown
-    [8] = {175, 32, 0}, -- Brownish Orange
-    -- Do we need more?
-    [9] = {0, 0, 0},
-    [10] = {0, 0, 0},
-    [11] = {0, 0, 0},
-    [12] = {0, 0, 0},
-    [13] = {0, 0, 0},
-    [14] = {0, 0, 0},
-    [15] = {0, 0, 0},
-    [16] = {0, 0, 0},
+    [6] = {118, 39, 6}, -- Rust
+    [7] = {251, 167, 120}, -- Salmon
+    [8] = {166, 14, 5}, -- Blood
+    [9] = {255, 0, 0},
+    [10] = {255, 0, 0},
+    [11] = {255, 0, 0},
+    [12] = {255, 0, 0},
+    [13] = {255, 0, 0},
+    [14] = {255, 0, 0},
+    [15] = {255, 0, 0},
+    [16] = {255, 0, 0},
+    [17] = {255, 0, 0},
+    [18] = {255, 0, 0},
+    [19] = {255, 0, 0},
+    [20] = {255, 0, 0},
+    [21] = {255, 0, 0},
+    [22] = {255, 0, 0},
+    [23] = {255, 0, 0},
+    [24] = {255, 0, 0},
+    [25] = {255, 0, 0},
+    [26] = {255, 0, 0},
+    [27] = {255, 0, 0},
+    [28] = {255, 0, 0},
+    [29] = {255, 0, 0},
+    [30] = {255, 0, 0},
+    [31] = {255, 0, 0},
+    [32] = {255, 0, 0},
 }
 
-ScavColor = {0.38, 0.14, 0.38}
-ChickenColor = {1, 0, 0}
-GaiaColor = {0.5, 0.5, 0.5}
+ScavColor = {97, 36, 97}
+ChickenColor = {255, 0, 0}
+GaiaColor = {127, 127, 127}
 
 
 local function UpdatePlayerColors()
@@ -80,10 +112,19 @@ local function UpdatePlayerColors()
     local myAllyTeam = spGetMyAllyTeamID()
     for i = 1,#teams do
         local teamID = teams[i]
-        if teamID == myTeam then
+        local _, leader, isDead, isAiTeam, side, allyTeam, incomeMultiplier, customTeamKeys = spGetTeamInfo(teamID)
+        local luaAI = spGetTeamLuaAI(teamID)
+        if isAiTeam and (luaAI and (string.find(luaAI, "Scavenger") or string.find(luaAI, "Chicken"))) then
+            if string.find(luaAI, "Scavenger") then
+                spSetTeamColor(teamID, ScavColor[1]/255, ScavColor[2]/255, ScavColor[3]/255)
+            elseif string.find(luaAI, "Chicken") then
+                spSetTeamColor(teamID, ChickenColor[1]/255, ChickenColor[2]/255, ChickenColor[3]/255)
+            end
+        elseif spGetGaiaTeamID() == teamID then
+            spSetTeamColor(teamID, GaiaColor[1]/255, GaiaColor[2]/255, GaiaColor[3]/255)
+        elseif teamID == myTeam then
             spSetTeamColor(teamID, PlayerColor[1]/255, PlayerColor[2]/255, PlayerColor[3]/255)
         else
-            local _, leader, isDead, isAiTeam, side, allyTeam, incomeMultiplier, customTeamKeys = spGetTeamInfo(teamID)
             if allyTeam == myAllyTeam then
                 allyCounter = allyCounter+1
                 spSetTeamColor(teamID, AllyColors[allyCounter][1] /255, AllyColors[allyCounter][2] /255, AllyColors[allyCounter][3] /255)
