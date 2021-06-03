@@ -1,5 +1,3 @@
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
 function widget:GetInfo()
     return {
         name      = "Notifications",
@@ -12,8 +10,6 @@ function widget:GetInfo()
         enabled   = true  --  loaded by default?
     }
 end
-
---------------------------------------------------------------------------------
 
 local silentTime = 0.7	-- silent time between queued notifications
 local globalVolume = 0.7

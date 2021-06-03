@@ -78,6 +78,14 @@ local diag = math.diag
 local comms = {}
 local comnameList = {}
 local comnameIconList = {}
+local teamColorKeys = {}
+local teams = Spring.GetTeamList()
+for i = 1, #teams do
+	local r, g, b, a = GetTeamColor(teams[i])
+	teamColorKeys[teams[i]] = r..'_'..g..'_'..b
+end
+teams = nil
+
 local drawScreenUnits = {}
 local CheckedForSpec = false
 local myTeamID = Spring.GetMyTeamID()
@@ -386,6 +394,18 @@ function CheckCom(unitID, unitDefID, unitTeam)
 end
 
 function CheckAllComs()
+
+	-- check if team colors are changed
+	local teams = Spring.GetTeamList()
+	for i = 1, #teams do
+		local r, g, b, a = GetTeamColor(teams[i])
+		if teamColorKeys[teams[i]] ~= r..'_'..g..'_'..b then
+			RemoveLists()
+			break
+		end
+	end
+
+	-- check commanders
 	local allUnits = GetAllUnits()
 	for i = 1, #allUnits do
 		local unitID = allUnits[i]
@@ -398,13 +418,13 @@ function CheckAllComs()
 end
 
 function widget:Initialize()
-	WG['nametags'] = {}
-	WG['nametags'].getDrawForIcon = function()
-		return drawForIcon
-	end
-	WG['nametags'].setDrawForIcon = function(value)
-		drawForIcon = value
-	end
+	--WG['nametags'] = {}
+	--WG['nametags'].getDrawForIcon = function()
+	--	return drawForIcon
+	--end
+	--WG['nametags'].setDrawForIcon = function(value)
+	--	drawForIcon = value
+	--end
 	CheckAllComs()
 end
 
@@ -460,7 +480,7 @@ end
 function widget:GetConfigData()
 	return {
 		nameScaling = nameScaling,
-		drawForIcon = drawForIcon
+		--drawForIcon = drawForIcon
 	}
 end
 
@@ -470,7 +490,7 @@ function widget:SetConfigData(data)
 	if data.nameScaling ~= nil then
 		nameScaling = data.nameScaling
 	end
-	if data.drawForIcon ~= nil then
-		drawForIcon = data.drawForIcon
-	end
+	--if data.drawForIcon ~= nil then
+	--	drawForIcon = data.drawForIcon
+	--end
 end

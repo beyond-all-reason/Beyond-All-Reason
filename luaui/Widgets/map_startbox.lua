@@ -334,13 +334,21 @@ function widget:Shutdown()
 	gl.DeleteFont(shadowFont)
 end
 
+local teamColorKeys = {}
+local teams = Spring.GetTeamList()
+for i = 1, #teams do
+	local r, g, b, a = GetTeamColor(teams[i])
+	teamColorKeys[teams[i]] = r..'_'..g..'_'..b
+end
+teams = nil
+
 local teamColors = {}
 local function GetTeamColor(teamID)
 	local color = teamColors[teamID]
 	if color then
 		return color
 	end
-	local r, g, b = Spring.GetTeamColor(teamID)
+	local r, g, b = GetTeamColor(teamID)
 	color = { r, g, b }
 	teamColors[teamID] = color
 	return color
@@ -355,7 +363,7 @@ local function GetTeamColorStr(teamID)
 	end
 
 	local outlineChar = ''
-	local r, g, b = Spring.GetTeamColor(teamID)
+	local r, g, b = GetTeamColor(teamID)
 	if r and g and b then
 		local function ColorChar(x)
 			local c = math.floor(x * 255)
@@ -574,6 +582,7 @@ if Spring.GetModOptions() ~= nil and Spring.GetModOptions().map_waterlevel ~= 0 
 end
 
 local groundHeightPoint = Spring.GetGroundHeight(0, 0)
+local sec = 0
 function widget:Update(dt)
 	if Spring.GetGameFrame() > 1 then
 		widgetHandler:RemoveWidget()
@@ -595,5 +604,21 @@ function widget:Update(dt)
 	if not isSpec and not amPlaced and not playedChooseStartLoc and placeVoiceNotifTimer < os.clock() and WG['notifications'] then
 		playedChooseStartLoc = true
 		WG['notifications'].addEvent('ChooseStartLoc', true)
+	end
+
+
+	sec = sec + dt
+	if sec > 1 then
+		sec = 0
+
+		-- check if team colors are changed
+		local teams = Spring.GetTeamList()
+		for i = 1, #teams do
+			local r, g, b, a = GetTeamColor(teams[i])
+			if teamColorKeys[teams[i]] ~= r..'_'..g..'_'..b then
+				removeLists()
+				break
+			end
+		end
 	end
 end

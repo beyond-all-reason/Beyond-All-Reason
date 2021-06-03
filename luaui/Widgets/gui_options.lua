@@ -3999,14 +3999,14 @@ function init()
 		},
 
 
-		{ id = "nametags_icon", group = "ui", name = texts.option.nametags_icon, type = "bool", value = (WG['nametags'] ~= nil and WG['nametags'].getDrawForIcon()), description = texts.option.nametags_icon_descr,
-		  onload = function(i)
-			  loadWidgetData("Commander Name Tags", "nametags_icon", { 'drawForIcon' })
-		  end,
-		  onchange = function(i, value)
-			  saveOptionValue('Commander Name Tags', 'nametags', 'setDrawForIcon', { 'drawForIcon' }, value)
-		  end,
-		},
+		--{ id = "nametags_icon", group = "ui", name = texts.option.nametags_icon, type = "bool", value = (WG['nametags'] ~= nil and WG['nametags'].getDrawForIcon()), description = texts.option.nametags_icon_descr,
+		--  onload = function(i)
+		--	  loadWidgetData("Commander Name Tags", "nametags_icon", { 'drawForIcon' })
+		--  end,
+		--  onchange = function(i, value)
+		--	  saveOptionValue('Commander Name Tags', 'nametags', 'setDrawForIcon', { 'drawForIcon' }, value)
+		--  end,
+		--},
 
 		{ id = "commandsfx", group = "ui", basic = true, widget = "Commands FX", name = texts.option.commandsfx, type = "bool", value = GetWidgetToggleValue("Commands FX"), description = texts.option.commandsfx_descr },
 		{ id = "commandsfxfilterai", group = "ui", name = widgetOptionColor .. "   "..texts.option.commandsfxfilterai, type = "bool", value = true, description = texts.option.commandsfxfilterai_descr,
