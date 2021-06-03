@@ -1203,6 +1203,9 @@ function ArmyHST:GetUnitTable()
 
 
 			--Spring:Echo(unitDef.name,utable.antiNuke)
+			if unitDef.speed > 0 and utable.isWeapon then
+				utable.isMobileWeapon = true
+			end
 			if unitDef.speed == 0 and utable.isWeapon then
 				utable.isTurret = true
 				if unitDef.modCategories.mine then

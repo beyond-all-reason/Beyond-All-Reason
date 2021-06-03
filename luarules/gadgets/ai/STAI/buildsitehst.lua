@@ -388,7 +388,6 @@ function BuildSiteHST:searchPosNearCategories(utype,builder,point,range,spaceEqu
 
 	if not range then
 		range = self.ai.armyhst.unitTable[builderName].losRadius
-
 	end
 	local sortedUnits = {}
 	for i,cat in pairs(categories) do
@@ -427,54 +426,6 @@ function BuildSiteHST:searchPosNearCategories(utype,builder,point,range,spaceEqu
 		if p then return p end
 	end
 end
--- function BuildSiteHST:searchPosNearThing(utype,builder,thing,range,spaceEquals,minDist,cat)
--- 	self:EchoDebug(thing,cat,'searcing')
--- 	local pos = builder:GetPosition()
--- 	local builderName = builder:Name()
--- 	if not range then
--- 		range = self.ai.armyhst.unitTable[builderName].losRadius
--- 		if type(spaceEquals) == 'string' then
--- 			range = self.ai.armyhst.unitTable[builderName][spaceEquals]
--- 		elseif type(spaceEquals) == 'number' then
--- 			range = spaceEquals
--- 		end
--- 	end
--- 	local unitsNear = self.game:getUnitsInCylinder(pos, range)
--- 	if not unitsNear then return nil end
--- 	for idx, typeDef in pairs(unitsNear) do
--- 		local unitNear = self.game:GetUnitByID(typeDef)
--- 		local unitNearName = unitNear:Name()
--- 		self:EchoDebug('around there ', unitNearName)
--- 		local tg
--- 		if thing and self.ai.armyhst.unitTable[unitNearName][thing] then
--- 			if type(self.ai.armyhst.unitTable[unitNearName][thing]) ~= 'number' then
--- 				tg = self.ai.armyhst.unitTable[unitNearName][thing]
--- 			else
--- 				tg = self.ai.armyhst.unitTable[unitNearName][thing] > 0
--- 			end
--- 		end
--- 		tg = tg or self.ai.armyhst[cat]
--- 		if tg then
--- 			local tgPos = unitNear:GetPosition()
--- 			self:EchoDebug('tg',tgPos)
--- 			if  spaceEquals then
--- 				if not self:unitNearCheck(utype,tgPos,spaceEquals)then
--- 					self:EchoDebug('no same unit near: pass')
--- 					local p = self.ai.buildsitehst:ClosestBuildSpot(builder, tgPos, utype , minDist, nil, nil, self.ai.armyhst.unitTable[builderName].losRadius)
--- 					self:EchoDebug('is ok')
--- 					if p then return p end
--- 				else
--- 					self:EchoDebug('same unit near: skip')
--- 				end
--- 			else
--- 				local p = self.ai.buildsitehst:ClosestBuildSpot(builder, tgPos, utype , minDist, nil, nil, self.ai.armyhst.unitTable[builderName].losRadius or range)
--- 				if p then return p end
--- 			end
--- 		end
--- 	end
--- 	return nil
--- end
-
 
 function BuildSiteHST:ClosestBuildSpot(builder, position, unitTypeToBuild, minimumDistance, attemptNumber, buildDistance, maximumDistance)
 	maximumDistance = maximumDistance or 400

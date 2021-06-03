@@ -1,5 +1,9 @@
 MexUpBST = class(Behaviour)
 
+function MexUpBST:Name()
+	return "MexUpBST"
+end
+
 MexUpBST.DebugEnabled = false
 
 function MexUpBST:Init()

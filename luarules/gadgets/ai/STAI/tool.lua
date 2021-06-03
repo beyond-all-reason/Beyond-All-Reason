@@ -266,8 +266,10 @@ function Tool:countMyUnit( targets )
 			end
 
 		else
+			self:EchoDebug('search for spec')
 			for name,spec in pairs(self.ai.armyhst.unitTable) do
-				if spec.target or name == target then
+				self:EchoDebug(name,spec)
+				if spec[target] or name == target then
 					local id = spec.defId
 					counter = counter + self.game:GetTeamUnitDefCount(team,id)
 				end

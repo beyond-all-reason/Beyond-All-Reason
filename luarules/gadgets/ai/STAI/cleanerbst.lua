@@ -27,7 +27,7 @@ function CleanerBST:Update()
 	local cleanH =self.ai.cleanhst
 		if not cleanH.theCleaner[self.id]   then
 			self:EchoDebug(self.id,'do update')
-			self:Search2()
+			self:Search()
 		else
 			self:EchoDebug('cleanthis', cleanH.theCleaner[self.id])
 			self:Clean(cleanH.theCleaner[self.id])
@@ -40,7 +40,7 @@ end
 function CleanerBST:OwnerIdle()
 	self:EchoDebug("idle",self.id)
 	if not self.ai.cleanhst.theCleaner[self.id] then
-		self:Search2()
+		self:Search()
 	end
 	self.unit:ElectBehaviour()
 end
@@ -102,7 +102,7 @@ function CleanerBST:ecoCondition()
 
 end
 
-function CleanerBST:Search2()
+function CleanerBST:Search()
 	self:EchoDebug(self.id,'search fo cleanables')
 	if not self:ecoCondition() then return end
 	local unitsNear = self.game:getUnitsInCylinder(self.unit:Internal():GetPosition(), self.cleaningRadius)

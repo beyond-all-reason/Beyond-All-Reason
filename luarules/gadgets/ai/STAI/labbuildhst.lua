@@ -9,7 +9,7 @@ function LabBuildHST:internalName()
 end
 
 function LabBuildHST:Init()
-	self.DebugEnabled = false
+	self.DebugEnabled = true
 	self.lastCheckFrameForConName = {}
 	self.lastFactoriesForConName = {}
 	self.conTypesByName = {}
@@ -165,6 +165,7 @@ function LabBuildHST:ConditionsToBuildFactories(builder)
 		local sameFactoryCount = self.ai.tool:countFinished(factoryName)
 		local sameFactoryMetal = sameFactoryCount * 20
 		local sameFactoryEnergy = sameFactoryCount * 500
+		self:EchoDebug('labparams',factoryCountSq,sameFactoryCount,sameFactoryMetal,sameFactoryEnergy)
 		if
 			(self.ai.Metal.income > (factoryCountSq * 10) + 3 + sameFactoryMetal
 				and self.ai.Energy.income > (factoryCountSq * 100) + 25 + sameFactoryEnergy

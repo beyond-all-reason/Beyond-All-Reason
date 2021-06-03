@@ -176,7 +176,7 @@ function BehaviourFactory:defaultBehaviours(unit)
 	end
 	if army._nano_[un] then
 		table.insert(b, AssistBST)
-		table.insert(b, WardBST) -- TODO testing sometime nano stuck
+		table.insert(b, WardBST)
 		table.insert(b, CleanerBST)
 	end
 
