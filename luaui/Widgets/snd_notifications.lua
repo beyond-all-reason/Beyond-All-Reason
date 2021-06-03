@@ -63,24 +63,24 @@ addSound('AdvRadarLost', 'AdvRadarLost.wav', 8, 1.32, Spring.I18N('tips.notifica
 addSound('MexLost', 'MexLost.wav', 8, 1.53, Spring.I18N('tips.notifications.metalExtractorLost'))
 
 -- resources
-addSound('YouAreOverflowingMetal', 'YouAreOverflowingMetal.wav', 35, 1.63, Spring.I18N('tips.notifications.overflowingMetal'))
+addSound('YouAreOverflowingMetal', 'YouAreOverflowingMetal.wav', 45, 1.63, Spring.I18N('tips.notifications.overflowingMetal'))
 --addSound('YouAreOverflowingEnergy', 'YouAreOverflowingEnergy.wav', 100, 1.7, 'Your are overflowing energy')
 --addSound('YouAreWastingMetal', 'YouAreWastingMetal.wav', 25, 1.5, 'Your are wasting metal')
 --addSound('YouAreWastingEnergy', 'YouAreWastingEnergy.wav', 35, 1.3, 'Your are wasting energy')
-addSound('WholeTeamWastingMetal', 'WholeTeamWastingMetal.wav', 22, 1.82, Spring.I18N('tips.notifications.teamWastingMetal'))
-addSound('WholeTeamWastingEnergy', 'WholeTeamWastingEnergy.wav', 100, 2.14, Spring.I18N('tips.notifications.teamWastingEnergy'))
+addSound('WholeTeamWastingMetal', 'WholeTeamWastingMetal.wav', 30, 1.82, Spring.I18N('tips.notifications.teamWastingMetal'))
+addSound('WholeTeamWastingEnergy', 'WholeTeamWastingEnergy.wav', 110, 2.14, Spring.I18N('tips.notifications.teamWastingEnergy'))
 --addSound('MetalStorageFull', 'metalstorefull.wav', 40, 1.62, 'Metal storage is full')
 --addSound('EnergyStorageFull', 'energystorefull.wav', 40, 1.65, 'Energy storage is full')
-addSound('LowPower', 'LowPower.wav', 20, 0.95, Spring.I18N('tips.notifications.lowPower'))
+addSound('LowPower', 'LowPower.wav', 30, 0.95, Spring.I18N('tips.notifications.lowPower'))
 addSound('WindNotGood', 'WindNotGood.wav', 9999999, 3.76, Spring.I18N('tips.notifications.lowWind'))
 
 -- added this so they wont get immediately triggered after gamestart
-LastPlay['YouAreOverflowingMetal'] = spGetGameFrame()+300
+LastPlay['YouAreOverflowingMetal'] = spGetGameFrame()+400
 --LastPlay['YouAreOverflowingEnergy'] = spGetGameFrame()+300
 --LastPlay['YouAreWastingMetal'] = spGetGameFrame()+300
 --LastPlay['YouAreWastingEnergy'] = spGetGameFrame()+300
-LastPlay['WholeTeamWastingMetal'] = spGetGameFrame()+300
-LastPlay['WholeTeamWastingEnergy'] = spGetGameFrame()+300
+LastPlay['WholeTeamWastingMetal'] = spGetGameFrame()+400
+LastPlay['WholeTeamWastingEnergy'] = spGetGameFrame()+400
 
 -- alerts
 addSound('NukeLaunched', 'NukeLaunched.wav', 3, 2, Spring.I18N('tips.notifications.nukeLaunched'))

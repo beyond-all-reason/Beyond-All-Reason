@@ -702,7 +702,7 @@ local function updateResbarText(res)
 			-- display overflow notification
 			if (res == 'metal' and (allyteamOverflowingMetal or overflowingMetal)) or (res == 'energy' and (allyteamOverflowingEnergy or overflowingEnergy)) then
 				if showOverflowTooltip[res] == nil then
-					showOverflowTooltip[res] = os.clock() + 0.5
+					showOverflowTooltip[res] = os.clock() + 1.1
 				end
 				if showOverflowTooltip[res] < os.clock() then
 					local bgpadding2 = 2.2 * widgetScale
