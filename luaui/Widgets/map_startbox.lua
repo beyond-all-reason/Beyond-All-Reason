@@ -74,14 +74,6 @@ local texScale = 512
 
 local infotextList, chobbyInterface
 
-local teamColorKeys = {}
-local teams = Spring.GetTeamList()
-for i = 1, #teams do
-	local r, g, b, a = GetTeamColor(teams[i])
-	teamColorKeys[teams[i]] = r..'_'..g..'_'..b
-end
-teams = nil
-
 local GetUnitTeam = Spring.GetUnitTeam
 local GetTeamInfo = Spring.GetTeamInfo
 local GetPlayerInfo = Spring.GetPlayerInfo
@@ -126,6 +118,14 @@ GL.INVERT = 0x150A
 local stencilBit1 = 0x01
 local stencilBit2 = 0x10
 local hasStartbox = false
+
+local teamColorKeys = {}
+local teams = Spring.GetTeamList()
+for i = 1, #teams do
+	local r, g, b, a = GetTeamColor(teams[i])
+	teamColorKeys[teams[i]] = r..'_'..g..'_'..b
+end
+teams = nil
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
