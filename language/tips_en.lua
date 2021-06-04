@@ -112,7 +112,6 @@ return {
 				tutorialParalyzer = "You are being attacked by paralyzer units. Units that have been paralyzed cannot function and wont be able to shoot or move until they have been restored.",
 			},
 			deathMessages = {
-				error = "Team %{team} got an error (no names) instead of a death message!",
 				allyTeam = {
 					obliterate = "Team %{team} (%{playerList}) has been obliterated",
 					terminate = "Team %{team} (%{playerList}) has been terminated",
