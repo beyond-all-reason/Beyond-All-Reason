@@ -345,7 +345,7 @@ local function GetTeamColor(teamID)
 	if color then
 		return color
 	end
-	local r, g, b = GetTeamColor(teamID)
+	local r, g, b = Spring.GetTeamColor(teamID)
 	color = { r, g, b }
 	teamColors[teamID] = color
 	return color
@@ -360,7 +360,7 @@ local function GetTeamColorStr(teamID)
 	end
 
 	local outlineChar = ''
-	local r, g, b = GetTeamColor(teamID)
+	local r, g, b = Spring.GetTeamColor(teamID)
 	if r and g and b then
 		local function ColorChar(x)
 			local c = math.floor(x * 255)
@@ -607,7 +607,8 @@ function widget:Update(dt)
 		local teams = Spring.GetTeamList()
 		local detectedChanges = false
 		for i = 1, #teams do
-			local r, g, b, a = GetTeamColor(teams[i])
+			local color = GetTeamColor(teams[i])
+			local r, g, b = color[1], color[2], color[3]
 			if teamColorKeys[teams[i]] ~= r..'_'..g..'_'..b then
 				teamColorKeys[teams[i]] = r..'_'..g..'_'..b
 				detectedChanges = true
