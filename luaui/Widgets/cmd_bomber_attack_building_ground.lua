@@ -89,6 +89,7 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOptions)
 	local targetBuildingPosX, targetBuildingPosY, targetBuildingPosZ = Spring.GetUnitPosition(targetBuildingID)
 
 	local units = Spring.GetSelectedUnits()
+	local hasBomber = false
 	for i=1, #units do
 		local unitID = units[i]
 		if isBomber[spGetUnitDefID(unitID)] then
@@ -97,7 +98,8 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOptions)
 				monitorTargets[targetBuildingID] = { targetBuildingPosX, targetBuildingPosY, targetBuildingPosZ, {} }
 			end
 			monitorTargets[targetBuildingID][4][unitID] = true
+			hasBomber = true
 		end
 	end
-	return true
+	return hasBomber
 end

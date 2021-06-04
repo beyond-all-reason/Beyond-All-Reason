@@ -298,19 +298,15 @@ function drawOrientation()
 
 	if not coords then return end
 
-	local centerX = coords[1]
-	local centerY = coords[2]
-	local centerZ = coords[3]
-
-	centerX, centerY, centerZ = spPos2BuildPos( unitDefID, centerX, centerY, centerZ )
+	local centerX, centerY, centerZ = spPos2BuildPos( unitDefID, coords[1], coords[2], coords[3] )
 
 	glLineWidth(1)
 	glColor( 0.0, 1.0, 0.0, 0.45 )
 
 	local function drawFunc()
-		glVertex( 0, 0, -23)
-		glVertex( 0, 0, 23)
-		glVertex( 15, 0, 0)
+		glVertex( 0, 0, -32)
+		glVertex( 0, 0, 32)
+		glVertex( 24, 0, 0)
 	end
 
 	local transSpace = udef["zsize"] * 4   --should be ysize but its not there?!?
