@@ -22,7 +22,7 @@ local maxLinesScroll = 15
 local lineHeightMult = 1.27
 local lineTTL = 40
 local capitalize = false	-- capitalize first letter of chat text
-local backgroundOpacity = 0
+local backgroundOpacity = 0.18
 
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale",1) or 1)
 local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity",0.66) or 0.66)
@@ -431,7 +431,7 @@ function widget:DrawScreen()
 			if backgroundOpacity > 0 and displayedChatLines > 0  then
 				glColor(0,0,0,backgroundOpacity)
 				--RectRound(activationArea[1], activationArea[2]+heightDiff, activationArea[3], activationArea[4], elementCorner)
-				RectRound(activationArea[1], activationArea[2], activationArea[3], activationArea[2]+((displayedChatLines+1)*lineHeight), elementCorner)
+				RectRound(activationArea[1], activationArea[2], activationArea[3], activationArea[2]+((displayedChatLines+1)*lineHeight)+(displayedChatLines==maxLines and 0 or elementPadding), elementCorner)
 			end
 		end
 	else
@@ -439,7 +439,7 @@ function widget:DrawScreen()
 		if backgroundOpacity > 0 and displayedChatLines > 0 then
 			glColor(0,0,0,backgroundOpacity)
 			--RectRound(activationArea[1], activationArea[2]+heightDiff, activationArea[3], activationArea[4], elementCorner)
-			RectRound(activationArea[1], activationArea[2], activationArea[3], activationArea[2]+((displayedChatLines+1)*lineHeight), elementCorner)
+			RectRound(activationArea[1], activationArea[2], activationArea[3], activationArea[2]+((displayedChatLines+1)*lineHeight)+(displayedChatLines==maxLines and 0 or elementPadding), elementCorner)
 		end
 		scrolling = false
 		currentChatLine = #chatLines
@@ -946,7 +946,7 @@ function widget:GetConfigData(data)
 		maxConsoleLines = maxConsoleLines,
 		capitalize = capitalize,
 		fontsizeMult = fontsizeMult,
-		backgroundOpacity = backgroundOpacity
+		chatBackgroundOpacity = backgroundOpacity
 	}
 end
 
@@ -956,8 +956,8 @@ function widget:SetConfigData(data)
 			orgLines = data.orgLines
 		end
 	end
-	if data.backgroundOpacity ~= nil then
-		backgroundOpacity = data.backgroundOpacity
+	if data.chatBackgroundOpacity ~= nil then
+		backgroundOpacity = data.chatBackgroundOpacity
 	end
 	if data.maxLines ~= nil then
 		maxLines = data.maxLines

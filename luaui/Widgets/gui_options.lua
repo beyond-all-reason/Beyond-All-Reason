@@ -3636,7 +3636,7 @@ function init()
 		--		saveOptionValue('Chat', 'chat', 'setCapitalize', { 'capitalize' }, value)
 		--	end,
 		  --},
-		{ id = "console_fontsize", group = "ui", name = widgetOptionColor .. "   "..texts.option.console_fontsize, type = "slider", min = 0.92, max = 1.1, step = 0.02, value = (WG['chat'] ~= nil and WG['chat'].getFontsize() or 1), description = '',
+		{ id = "console_fontsize", group = "ui", name = widgetOptionColor .. "   "..texts.option.console_fontsize, type = "slider", min = 0.92, max = 1.12, step = 0.02, value = (WG['chat'] ~= nil and WG['chat'].getFontsize() or 1), description = '',
 		  onload = function(i)
 			  loadWidgetData("Chat", "console_fontsize", { 'fontsizeMult' })
 		  end,
@@ -3644,12 +3644,12 @@ function init()
 			  saveOptionValue('Chat', 'chat', 'setFontsize', { 'fontsizeMult' }, value)
 		  end,
 		},
-		  { id = "console_backgroundopacity", group = "ui", basic = true, name = widgetOptionColor .. "   "..texts.option.console_backgroundopacity, type = "slider", min = 0, max = 0.33, step = 0.01, value = (WG['chat'] ~= nil and WG['chat'].getBackgroundOpacity() or 0), description = texts.option.console_backgroundopacity_descr,
+		  { id = "console_backgroundopacity", group = "ui", basic = true, name = widgetOptionColor .. "   "..texts.option.console_backgroundopacity, type = "slider", min = 0, max = 0.35, step = 0.01, value = (WG['chat'] ~= nil and WG['chat'].getBackgroundOpacity() or 0), description = texts.option.console_backgroundopacity_descr,
 			onload = function(i)
-				loadWidgetData("Chat", "console_backgroundopacity", { 'backgroundOpacity' })
+				loadWidgetData("Chat", "console_backgroundopacity", { 'chatBackgroundOpacity' })
 			end,
 			onchange = function(i, value)
-				saveOptionValue('Chat', 'chat', 'setBackgroundOpacity', { 'backgroundOpacity' }, value)
+				saveOptionValue('Chat', 'chat', 'setBackgroundOpacity', { 'chatBackgroundOpacity' }, value)
 			end,
 		  },
 
