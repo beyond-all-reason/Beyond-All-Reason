@@ -1,3 +1,7 @@
+if gadgetHandler:IsSyncedCode() then
+    return
+end
+
 function gadget:GetInfo()
 	return {
 		name = "AutoColorPicker",
@@ -9,10 +13,6 @@ function gadget:GetInfo()
 	}
 end
 
-if gadgetHandler:IsSyncedCode() then
-    return
-end
-
 local spGetTeamInfo = Spring.GetTeamInfo
 local spGetTeamList = Spring.GetTeamList
 local spGetAllyTeamList= Spring.GetAllyTeamList
@@ -21,14 +21,18 @@ local spGetMyAllyTeamID = Spring.GetMyAllyTeamID
 local spSetTeamColor = Spring.SetTeamColor
 local spGetTeamLuaAI = Spring.GetTeamLuaAI
 local spGetGaiaTeamID = Spring.GetGaiaTeamID
+local spGetSpectatingState = Spring.GetSpectatingState
+local spGetConfigInt = Spring.GetConfigInt
+local spGetLastUpdateSeconds = Spring.GetLastUpdateSeconds
 
 local myPlayerID = Spring.GetMyPlayerID()
 
 local ffaCounter = 0
 local allyCounter = 0
 local enemyCounter = 0
+local simpleColorsUpdateCounter = 0
 
-SimpleColorsEnabled = false -- Floris plz add option here
+SimpleColorsEnabled = Spring.GetConfigInt("simple_auto_colors", 0) -- Floris plz add option here
 AnonymousModeEnabled = false -- needs modoption
 
 SimplePlayerColor = {0, 80, 255} -- Armada Blue
@@ -58,10 +62,10 @@ FFAColors = {
 
 AllyColors = {
     [2] = { -- TwoTeams
-        [1] = {82,      151,    255 },      -- Blue
+        [1] = {0,       80,     255 },      -- Armada Blue
         [2] = {10,      232,    18  },      -- Green
         [3] = {94,      9,      178 },      -- Purple
-        [4] = {47,      66,     238 },      -- Darker Blue
+        [4] = {82,      151,    255 },      -- Darker Blue
         [5] = {191,     169,    255 },      -- Lavender
         [6] = {0,       170,    99  },      -- Grass
         [7] = {178,     255,    227 },      -- Aqua
@@ -71,7 +75,7 @@ AllyColors = {
 
 EnemyColors = {
     [2] = { -- TwoTeams
-        [1] = {255,     0,      0   },      -- Red
+        [1] = {255,     16,     5   },      -- Cortex Red
         [2] = {255,     232,    22  },      -- Yellow
         [3] = {255,     125,    32  },      -- Orange
         [4] = {229,     18,     120 },      -- Pink
@@ -97,7 +101,11 @@ local function MissingColorHandler(teamID, allyTeam, myTeam, myAllyTeam)
     Spring.Echo("Missing Team Color for TeamID: ".. teamID)
 end
 
-local function EnemyColorHandler()
+local function EnemyColorHandler(teamID, allyTeam)
+    local myTeam = spGetMyTeamID()
+    local myAllyTeam = spGetMyAllyTeamID()
+    local spectator = spGetSpectatingState()
+    
     -- planned
 end
 
@@ -106,6 +114,7 @@ local function UpdatePlayerColors()
     local allyteams = spGetAllyTeamList()
     local myTeam = spGetMyTeamID()
     local myAllyTeam = spGetMyAllyTeamID()
+    local spectator = spGetSpectatingState()
     for i = 1,#teams do
         local teamID = teams[i]
         local _, leader, isDead, isAiTeam, side, allyTeam, incomeMultiplier, customTeamKeys = spGetTeamInfo(teamID)
@@ -119,7 +128,7 @@ local function UpdatePlayerColors()
         elseif spGetGaiaTeamID() == teamID then
             spSetTeamColor(teamID, GaiaColor[1]/255, GaiaColor[2]/255, GaiaColor[3]/255)
         else
-            if SimpleColorsEnabled or AnonymousModeEnabled then -- SimpleColors
+            if SimpleColorsEnabled == 1 then -- SimpleColors
                 if teamID == myTeam then
                     spSetTeamColor(teamID, SimplePlayerColor[1]/255, SimplePlayerColor[2]/255, SimplePlayerColor[3]/255)
                 elseif allyTeam == myAllyTeam then
@@ -127,9 +136,13 @@ local function UpdatePlayerColors()
                 else
                     spSetTeamColor(teamID, SimpleEnemyColor[1]/255, SimpleEnemyColor[2]/255, SimpleEnemyColor[3]/255)
                 end
+            elseif (AnonymousModeEnabled and allyTeam ~= myAllyTeam) and (not spectator) then
+                spSetTeamColor(teamID, SimpleEnemyColor[1]/255, SimpleEnemyColor[2]/255, SimpleEnemyColor[3]/255)
             elseif #teams == #allyteams then -- FFA
                 ffaCounter = ffaCounter+1
-                if FFAColors[ffaCounter] then
+                if AnonymousModeEnabled and teamID == myTeam and (not spectator) then
+                    spSetTeamColor(teamID, SimplePlayerColor[1]/255, SimplePlayerColor[2]/255, SimplePlayerColor[3]/255)
+                elseif FFAColors[ffaCounter] then
                     spSetTeamColor(teamID, FFAColors[ffaCounter][1] /255, FFAColors[ffaCounter][2] /255, FFAColors[ffaCounter][3] /255)
                 else
                     MissingColorHandler(teamID, allyTeam, myTeam, myAllyTeam)
@@ -165,6 +178,18 @@ end
 function gadget:PlayerChanged(playerID)
     if playerID == myPlayerID then
         UpdatePlayerColors()
+    end
+end
+
+function gadget:Update()
+    simpleColorsUpdateCounter = simpleColorsUpdateCounter + spGetLastUpdateSeconds()
+    if simpleColorsUpdateCounter > 1 then
+        simpleColorsUpdateCounter = 0
+        local PreviousSimpleColorsEnabled = SimpleColorsEnabled
+        SimpleColorsEnabled = spGetConfigInt("simple_auto_colors", 0)
+        if PreviousSimpleColorsEnabled ~= SimpleColorsEnabled then
+            UpdatePlayerColors()
+        end
     end
 end
 
