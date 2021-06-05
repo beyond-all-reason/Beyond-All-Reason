@@ -427,22 +427,24 @@ function widget:DrawScreen()
 			if WG['guishader'] then
 				WG['guishader'].InsertRect(activationArea[1], activationArea[2]+heightDiff, activationArea[3], activationArea[4], 'chat')
 			end
-		else
-			if backgroundOpacity > 0 and displayedChatLines > 0  then
-				glColor(0,0,0,backgroundOpacity)
-				--RectRound(activationArea[1], activationArea[2]+heightDiff, activationArea[3], activationArea[4], elementCorner)
-				RectRound(activationArea[1], activationArea[2], activationArea[3], activationArea[2]+((displayedChatLines+1)*lineHeight)+(displayedChatLines==maxLines and 0 or elementPadding), elementCorner)
-			end
 		end
 	else
 		hovering = false
-		if backgroundOpacity > 0 and displayedChatLines > 0 then
-			glColor(0,0,0,backgroundOpacity)
-			--RectRound(activationArea[1], activationArea[2]+heightDiff, activationArea[3], activationArea[4], elementCorner)
-			RectRound(activationArea[1], activationArea[2], activationArea[3], activationArea[2]+((displayedChatLines+1)*lineHeight)+(displayedChatLines==maxLines and 0 or elementPadding), elementCorner)
-		end
 		scrolling = false
 		currentChatLine = #chatLines
+	end
+
+	-- draw background
+	if not scrolling and backgroundOpacity > 0 and displayedChatLines > 0 then
+		glColor(0,0,0,backgroundOpacity)
+		--RectRound(activationArea[1], activationArea[2]+heightDiff, activationArea[3], activationArea[4], elementCorner)
+		RectRound(activationArea[1], activationArea[2], activationArea[3], activationArea[2]+((displayedChatLines+1)*lineHeight)+(displayedChatLines==maxLines and 0 or elementPadding), elementCorner)
+		if hovering then
+			font:Begin()
+			font:SetTextColor(0.1,0.1,0.1,0.5)
+			font:Print(Spring.I18N('ui.chat.shortcut'), activationArea[3]-elementPadding-elementPadding, activationArea[2]+elementPadding+elementPadding, usedConsoleFontSize, "r")
+			font:End()
+		end
 	end
 
 	-- draw console lines

@@ -411,6 +411,7 @@ return {
 			chat = {
 				ignored = 'ignored',
 				scroll = '%{textColor}Press %{highlightColor}CTRL %{textColor}+ %{highlightColor}SHIFT %{textColor}to activate chatlog viewing/scrolling',
+				shortcut = 'CTRL + SHIFT',
 			},
 			teamStats = {
 				player = 'Player',
