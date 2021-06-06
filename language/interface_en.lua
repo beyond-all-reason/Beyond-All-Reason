@@ -52,10 +52,12 @@ return {
 			},
 			playersList = {
 				spectators = 'Spectators %{amount}',
-				enemies = 'Enemies',
+				enemies = 'Enemies %{amount}',
 				allies = 'Allies',
 				hideSpecs = 'Click to hide spectators',
 				showSpecs = 'Click to show spectators',
+				hideEnemies = 'Click to hide enemies',
+				showEnemies = 'Click to show enemies',
 				trackPlayer = 'Double-click player name to track',
 				takeUnits = 'Click to take abandoned units',
 				requestSupport = 'Double-click to ask for support',

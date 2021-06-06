@@ -1,4 +1,4 @@
-local widgetVersion = 24
+local widgetVersion = 25
 
 function widget:GetInfo()
     return {
@@ -36,6 +36,7 @@ end
 -- v22   (Floris): added auto collapse function
 -- v23   (Floris): hiding share buttons when you are alone
 -- v24   (Floris): cleanup and removed betting system
+-- v25   (Floris): added enemy collapse function
 
 --------------------------------------------------------------------------------
 -- Config
@@ -229,6 +230,7 @@ local player = {}
 local playerSpecs = {}
 local playerReadyState = {}
 local numberOfSpecs = 0
+local numberOfEnemies = 0
 
 --To determine faction at start
 local sideOneDefID = UnitDefNames.armcom.id
@@ -283,6 +285,7 @@ local drawList = {}
 local teamN
 local prevClickTime = os.clock()
 local specListShow = true
+local enemyListShow = true
 
 --------------------------------------------------
 -- Modules
@@ -495,6 +498,7 @@ m_take = {
 }
 
 local specsLabelOffset = 0
+local enemyLabelOffset = 0
 
 local hideShareIcons = false
 local numTeamsInAllyTeam = #Spring.GetTeamList(myAllyTeamID)
@@ -570,18 +574,6 @@ function SetMaxPlayerNameWidth()
     return maxWidth
 end
 
-function GetNumberOfSpecs()
-    local pList = Spring_GetPlayerList()
-    local count = 0
-    local active, spec
-    for _, playerID in ipairs(pList) do
-        _, active, spec = Spring_GetPlayerInfo(playerID)
-        if spec and active then
-            count = count + 1
-        end
-    end
-    return count
-end
 
 function GeometryChange()
     --check if disappeared off the edge of screen
@@ -1553,11 +1545,13 @@ function SortPlayers(teamID, allyTeamID, vOffset)
         if playerID ~= myPlayerID then
             if player[playerID].name ~= nil then
                 if player[playerID].spec ~= true then
-                    vOffset = vOffset + playerOffset
-                    drawListOffset[#drawListOffset + 1] = vOffset
-                    drawList[#drawList + 1] = playerID -- new player (with ID)
-                    player[playerID].posY = vOffset
-                    noPlayer = false
+                    if enemyListShow or player[playerID].allyteam == myAllyTeamID then
+                        vOffset = vOffset + playerOffset
+                        drawListOffset[#drawListOffset + 1] = vOffset
+                        drawList[#drawList + 1] = playerID -- new player (with ID)
+                        player[playerID].posY = vOffset
+                        noPlayer = false
+                    end
                 end
             end
         end
@@ -1575,12 +1569,14 @@ function SortPlayers(teamID, allyTeamID, vOffset)
 
     -- add no player token if no player found in this team at this point
     if noPlayer == true then
-        vOffset = vOffset + playerOffset - (deadPlayerHeightReduction / 2)
-        drawListOffset[#drawListOffset + 1] = vOffset
-        drawList[#drawList + 1] = 64 + teamID  -- no players team
-        player[64 + teamID].posY = vOffset
-        if Spring_GetGameFrame() > 0 then
-            player[64 + teamID].totake = IsTakeable(teamID)
+        if enemyListShow or player[64 + teamID].allyteam == myAllyTeamID then
+            vOffset = vOffset + playerOffset - (deadPlayerHeightReduction / 2)
+            drawListOffset[#drawListOffset + 1] = vOffset
+            drawList[#drawList + 1] = 64 + teamID  -- no players team
+            player[64 + teamID].posY = vOffset
+            if Spring_GetGameFrame() > 0 then
+                player[64 + teamID].totake = IsTakeable(teamID)
+            end
         end
     end
 
@@ -1592,7 +1588,7 @@ function SortSpecs(vOffset)
     local playersList = Spring_GetPlayerList(-1, true)
     local noSpec = true
     for _, playerID in ipairs(playersList) do
-        _, active, spec = Spring_GetPlayerInfo(playerID, false)
+        local _, active, spec = Spring_GetPlayerInfo(playerID, false)
         if spec and active then
             if player[playerID].name ~= nil then
 
@@ -1868,7 +1864,23 @@ function CheckTime()
 end
 
 function CreateMainList(tip)
-    numberOfSpecs = GetNumberOfSpecs()
+
+    numberOfSpecs = 0
+    numberOfEnemies = 0
+    local pList = Spring_GetPlayerList()
+    local count = 0
+    local active, spec
+    for _, playerID in ipairs(pList) do
+        _, active, spec = Spring_GetPlayerInfo(playerID)
+        if active then
+            if spec then
+                numberOfSpecs = numberOfSpecs + 1
+            elseif player[playerID].allyteam ~= myAllyTeamID then
+                numberOfEnemies = numberOfEnemies + 1
+            end
+
+        end
+    end
 
     local mouseX, mouseY = Spring_GetMouseState()
     local leader
@@ -1897,7 +1909,19 @@ function CreateMainList(tip)
             elseif drawObject == -4 then
                 DrawSeparator(drawListOffset[i])
             elseif drawObject == -3 then
-                DrawLabel(" "..Spring.I18N('ui.playersList.enemies'), drawListOffset[i], true)
+                enemyLabelOffset = drawListOffset[i]
+                local enemyAmount = numberOfEnemies
+                if numberOfEnemies == 0 or (enemyListShow and numberOfEnemies < 10) then
+                    enemyAmount = ""
+                end
+                DrawLabel(" "..Spring.I18N('ui.playersList.enemies', { amount = enemyAmount }), drawListOffset[i], true)
+                if Spring.GetGameFrame() <= 0 then
+                    if enemyListShow then
+                        DrawLabelTip( Spring.I18N('ui.playersList.hideEnemies'), drawListOffset[i], 95)
+                    else
+                        DrawLabelTip(Spring.I18N('ui.playersList.showEnemies'), drawListOffset[i], 95)
+                    end
+                end
             elseif drawObject == -2 then
                 DrawLabel(" " .. Spring.I18N('ui.playersList.allies'), drawListOffset[i], true)
                 if Spring.GetGameFrame() <= 0 then
@@ -2874,10 +2898,21 @@ function widget:MousePress(x, y, button)
         local alt, ctrl, meta, shift = Spring.GetModKeyState()
         sliderPosition = 0
         amountEM = 0
+
         -- spectators label onclick
         posY = widgetPosY + widgetHeight - specsLabelOffset
         if numberOfSpecs > 0 and IsOnRect(x, y, widgetPosX + 2, posY + 2, widgetPosX + widgetWidth - 2, posY + 20) then
             specListShow = not specListShow
+            SetModulesPositionX() --why?
+            SortList()
+            CreateLists()
+            return true
+        end
+
+        -- enemies label onclick
+        posY = widgetPosY + widgetHeight - enemyLabelOffset
+        if IsOnRect(x, y, widgetPosX + 2, posY + 2, widgetPosX + widgetWidth - 2, posY + 20) then
+            enemyListShow = not enemyListShow
             SetModulesPositionX() --why?
             SortList()
             CreateLists()
@@ -3181,6 +3216,7 @@ function widget:GetConfigData(data)
             m_active_Table = m_active_Table,
             lockPlayerID = lockPlayerID,
             specListShow = specListShow,
+            enemyListShow = enemyListShow,
             gameFrame = Spring.GetGameFrame(),
             lastSystemData = lastSystemData,
             alwaysHideSpecs = alwaysHideSpecs,
@@ -3202,6 +3238,10 @@ function widget:SetConfigData(data)
 
         if data.specListShow ~= nil then
             specListShow = data.specListShow
+        end
+
+        if data.enemyListShow ~= nil then
+            enemyListShow = data.enemyListShow
         end
 
         if data.alwaysHideSpecs ~= nil then
@@ -3305,18 +3345,6 @@ function widget:SetConfigData(data)
 
         if data.lastSystemData ~= nil and data.gameFrame ~= nil and data.gameFrame <= Spring.GetGameFrame() and data.gameFrame > Spring.GetGameFrame() - 300 then
             lastSystemData = data.lastSystemData
-        end
-    end
-end
-
-function widget:TextCommand(command)
-    if string.find(command, "alwayshidespecs", nil, true) == 1 and string.len(command) == 15 then
-        alwaysHideSpecs = not alwaysHideSpecs
-        if alwaysHideSpecs then
-            Spring.Echo("AdvPlayersList: always hiding specs")
-            specListShow = false
-        else
-            Spring.Echo("AdvPlayersList: not always hiding specs")
         end
     end
 end
