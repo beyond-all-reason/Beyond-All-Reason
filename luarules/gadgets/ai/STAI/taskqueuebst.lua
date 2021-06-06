@@ -434,13 +434,13 @@ function TaskQueueBST:findPlace(utype, value,cat)
 		if target then
 			self:EchoDebug(self.name..' search position for nano near ' ..target.unit:Internal():Name())
 			local factoryPos = target.unit:Internal():GetPosition()
-			POS = self.ai.buildsitehst:ClosestBuildSpot(builder, factoryPos, utype)
+			POS = self.ai.buildsitehst:ClosestBuildSpot(builder, factoryPos, utype,nil,nil,nil,390)
 		end
 		if not POS then
 			local factoryPos = self.ai.buildsitehst:ClosestHighestLevelFactory(builder:GetPosition(), 5000)
 			if factoryPos then
 				self:EchoDebug("searching for top level factory")
-				POS = self.ai.buildsitehst:ClosestBuildSpot(builder, factoryPos, utype)
+				POS = self.ai.buildsitehst:ClosestBuildSpot(builder, factoryPos, utype,nil,nil,nil,390)
 			end
 		end
 	elseif cat == '_wind_' then
@@ -633,16 +633,12 @@ end
 
 function TaskQueueBST:ProgressQueue()
 	self.game:StartTimer('tqb1')
-	self.game:StartTimer('tqb2')
-	self.game:StartTimer('tqb6')
 	self:EchoDebug(self.name," progress queue")
 	self.lastWatchdogCheck = self.game:Frame()
 	self.constructing = false
 	self.progress = false
 	self.ai.buildsitehst:ClearMyPlans(self)
-	self.game:StopTimer('tqb6')
 	self.game:StartTimer('tqb7')
-	self.game:StartTimer('tqb8')
 	local builder = self.unit:Internal()
 	local idx, val = next(self.queue,self.idx)
 	self:EchoDebug(idx , val)
@@ -653,16 +649,12 @@ function TaskQueueBST:ProgressQueue()
 
 		return
 	end
-	self.game:StopTimer('tqb8')
-	self.game:StartTimer('tqb9')
 	local utype = nil
 	local value = val
 	local utype = nil
 	local p
 	local value, p = self:getOrder(builder,val)
 	self:EchoDebug('value',value)
-	self.game:StopTimer('tqb9')
-	self.game:StopTimer('tqb2')
 	self.game:StartTimer('tqb3')
 	self.game:StopTimer('tqb7')
 	if type(value) == "table" then

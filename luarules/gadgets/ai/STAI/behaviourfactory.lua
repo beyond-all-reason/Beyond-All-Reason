@@ -39,7 +39,7 @@ function BehaviourFactory:defaultBehaviours(unit)
 
 	-- keep track of how many of each kind of unit we have
 -- 	table.insert(b, CountBST)
-	if army.unitTable[un].isBuilder or army.unitTable[un].speed > 0 then
+	if army.unitTable[un].isFactory or army.unitTable[un].speed > 0 then
 		table.insert(b, BootBST)
 	end
 

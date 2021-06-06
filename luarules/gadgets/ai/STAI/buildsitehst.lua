@@ -102,33 +102,26 @@ function BuildSiteHST:LandWaterFilter(pos, unitTypeToBuild, builder)
 	end
 end
 
-function BuildSiteHST:CheckBuildPos(pos, unitTypeToBuild, builder, originalPosition)
-	-- make sure it's on the map
+function BuildSiteHST:isInMap(pos)
 	local mapSize = self.ai.map:MapDimensions()
 	local maxElmosX = mapSize.x * 8
 	local maxElmosZ = mapSize.z * 8
-	if pos ~= nil then
-		if self.ai.armyhst.unitTable[unitTypeToBuild:Name()].buildOptions then
-			-- don't build factories too close to south map edge because they face south
-			-- Spring.Echo(pos.x, pos.z, maxElmosX, maxElmosZ)
-			if (pos.x <= 0) or (pos.x > maxElmosX) or (pos.z <= 0) or (pos.z > maxElmosZ - 240) then
-				self:EchoDebug("bad position: " .. pos.x .. ", " .. pos.z)
-				return nil
-			end
-		else
-			if (pos.x <= 0) or (pos.x > maxElmosX) or (pos.z <= 0) or (pos.z > maxElmosZ) then
-				self:EchoDebug("bad position: " .. pos.x .. ", " .. pos.z)
-				return nil
-			end
-		end
+	if (pos.x <= 0) or (pos.x > maxElmosX) or (pos.z <= 0) or (pos.z > maxElmosZ) then
+		self:EchoDebug("bad position: " .. pos.x .. ", " .. pos.z)
+		return nil
+	else
+		return pos
 	end
+end
+
+function BuildSiteHST:CheckBuildPos(pos, unitTypeToBuild, builder, originalPosition) --TODO clean this
+	if not pos then return end
+	if not self:isInMap(pos) then return end
 	-- sanity check: is it REALLY possible to build here?
-	if pos ~= nil then
-		local s = self.ai.map:CanBuildHere(unitTypeToBuild, pos)
-		if not s then
-			self:EchoDebug("cannot build " .. unitTypeToBuild:Name() .. " here: " .. pos.x .. ", " .. pos.z)
-			return nil
-		end
+	local s = self.ai.map:CanBuildHere(unitTypeToBuild, pos)
+	if not s then
+		self:EchoDebug("cannot build " .. unitTypeToBuild:Name() .. " here: " .. pos.x .. ", " .. pos.z)
+		return nil
 	end
 	local rect
 	if pos ~= nil then
@@ -164,25 +157,6 @@ function BuildSiteHST:CheckBuildPos(pos, unitTypeToBuild, builder, originalPosit
 		if not self.ai.maphst:UnitCanGoHere(builder, pos) then
 			self:EchoDebug(builder:Name() .. " can't go there: " .. pos.x .. "," .. pos.z)
 			return nil
-		end
-	end
-	if pos ~= nil then
-		local uname = unitTypeToBuild:Name()
-		if self.ai.armyhst._nano_[uname] then
-			-- don't build nanos too far away from factory
-			local dist = self.ai.tool:Distance(originalPosition, pos)
-			self:EchoDebug("nano self.ai.tool:distance: " .. dist)
-			if dist > 390 then
-				self:EchoDebug("nano too far from factory")
-				return nil
-			end
-		elseif self.ai.armyhst.bigPlasmaList[uname] or self.ai.armyhst.littlePlasmaList[uname] or self.ai.armyhst.nukeList[uname] then
-			-- don't build bombarding units outside of bombard positions
-			local b = self.ai.targethst:IsBombardPosition(pos, uname)
-			if not b then
-				self:EchoDebug("bombard not in bombard position")
-				return nil
-			end
 		end
 	end
 	return pos
@@ -378,8 +352,10 @@ function BuildSiteHST:unitNearCheck(utype,pos,range,number)
 	end
 	return false
 end
+
 function BuildSiteHST:searchPosNearCategories(utype,builder,point,range,spaceEquals,minDist,categories)
 	if not categories then return end
+	self.game:StartTimer('bst1')
 	self:EchoDebug(categories,'searcing')
 
 	local pos = builder:GetPosition()
@@ -423,25 +399,31 @@ function BuildSiteHST:searchPosNearCategories(utype,builder,point,range,spaceEqu
 			p = self:ClosestBuildSpot(builder, unitPos, utype , minDist, nil, nil, range or self.ai.armyhst.unitTable[builderName].losRadius)
 			self:EchoDebug('p = ',p)
 		end
+		self.game:StopTimer('bst1')
 		if p then return p end
 	end
 end
 
 function BuildSiteHST:ClosestBuildSpot(builder, position, unitTypeToBuild, minimumDistance, attemptNumber, buildDistance, maximumDistance)
-	maximumDistance = maximumDistance or 400
+	self.game:StartTimer('bst4')
+	maximumDistance = maximumDistance or 390
 	-- return self:ClosestBuildSpotInSpiral(builder, unitTypeToBuild, position)
 	if attemptNumber == nil then self:EchoDebug("looking for build spot for " .. builder:Name() .. " to build " .. unitTypeToBuild:Name()) end
 	local minDistance = minimumDistance or self:GetBuildSpacing(unitTypeToBuild)
 	buildDistance = buildDistance or 100
 	local function validFunction(pos)
+		self.game:StartTimer('bst5')
 		local vpos = self:CheckBuildPos(pos, unitTypeToBuild, builder, position)
 		-- Spring.Echo(pos.x, pos.y, pos.z, unitTypeToBuild:Name(), builder:Name(), position.x, position.y, position.z, vpos)
+		self.game:StopTimer('bst5')
 		return vpos
 	end
+	self.game:StopTimer('bst4')
 	return self.map:FindClosestBuildSite(unitTypeToBuild, position, maximumDistance, minDistance, validFunction)
 end
 
 function BuildSiteHST:searchPosInList(list,utype, builder, spaceEquals,minDist)
+	self.game:StartTimer('bst2')
 	local d = 1/0
 	local p = nil
 	if list and #list > 0 then
@@ -461,12 +443,14 @@ function BuildSiteHST:searchPosInList(list,utype, builder, spaceEquals,minDist)
 			end
 		end
 	end
+	self.game:StopTimer('bst2')
 	return p
 end
 
 
 function BuildSiteHST:BuildNearNano(builder, utype)
 	self:EchoDebug("looking for spot near nano hotspots")
+	self.game:StartTimer('bst3')
 	local nanoHots = self.ai.nanohst:GetHotSpots()
 	if nanoHots then
 		self:EchoDebug("got " .. #nanoHots .. " nano hotspots")
@@ -477,10 +461,12 @@ function BuildSiteHST:BuildNearNano(builder, utype)
 			local p = self:ClosestBuildSpot(builder, hotPos, utype, 10, nil, nil, hotRadius)
 			if p then
 				self:EchoDebug('found Position for near nano hotspot at: ' .. hotPos.x ..' ' ..hotPos.z)
+				self.game:StopTimer('bst3')
 				return p
 			end
 		end
 	end
+	self.game:StopTimer('bst3')
 	return self:BuildNearLastNano(builder, utype)
 
 end
@@ -496,7 +482,7 @@ function BuildSiteHST:BuildNearLastNano(builder, utype)
 	return p
 end
 
-function BuildSiteHST:UnitCreated(unit)
+function BuildSiteHST:UnitCreated(unit)---TODO track test from unithandler
 
 	self.game:StartTimer('unitCreatedt')
 	local unitName = unit:Name()

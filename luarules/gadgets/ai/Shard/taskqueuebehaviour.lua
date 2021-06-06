@@ -1,5 +1,9 @@
 TaskQueueBehaviour = class(Behaviour)
 
+function TaskQueueBehaviour:Name()
+	return "TaskQueueBehaviour"
+end
+
 function TaskQueueBehaviour:Init()
 	self.active = false
 	u = self.unit

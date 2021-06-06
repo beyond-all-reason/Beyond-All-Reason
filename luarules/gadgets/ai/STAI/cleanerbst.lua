@@ -45,17 +45,17 @@ function CleanerBST:OwnerIdle()
 	self.unit:ElectBehaviour()
 end
 
-function CleanerBST:UnitDead(unit)
-	if not unit.engineID then
-		self:EchoDebug("nil engineID")
-	elseif self.ignore[unit.engineID] then
-		self:EchoDebug("dead unit in ignore table")
-		self.ignore[unit.engineID] = nil
-	elseif self.cleanThis and self.cleanThis.id == unit.engineID then
-		self:EchoDebug("what i was dirtg died")
-		self.cleanThis = nil
-	end
-end
+-- function CleanerBST:UnitDead(unit)
+-- 	if not unit.engineID then
+-- 		self:EchoDebug("nil engineID")
+-- 	elseif self.ignore[unit.engineID] then
+-- 		self:EchoDebug("dead unit in ignore table")
+-- 		self.ignore[unit.engineID] = nil
+-- 	elseif self.cleanThis and self.cleanThis.id == unit.engineID then
+-- 		self:EchoDebug("what i was dirtg died")
+-- 		self.cleanThis = nil
+-- 	end
+-- end
 
 function CleanerBST:Activate()
 	self:EchoDebug('activate command',self.ai.cleanhst.theCleaner[self.id])
