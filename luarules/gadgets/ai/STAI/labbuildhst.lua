@@ -296,7 +296,7 @@ function LabBuildHST:FactoryPosition(factoryName,builder)
 	end
 	if p == nil then
 		self:EchoDebug("trying near builder for " .. factoryName)
-		p = self.ai.buildsitehst:ClosestBuildSpot(builder, builderPos, utype, 10, nil, nil, 1500) -- check at most 1500 elmos away
+ 		p = self.ai.buildsitehst:ClosestBuildSpot(builder, builderPos, utype, 10, nil, nil, 1500)
 	end
 	if p then
 		self:EchoDebug("position found for " .. factoryName)

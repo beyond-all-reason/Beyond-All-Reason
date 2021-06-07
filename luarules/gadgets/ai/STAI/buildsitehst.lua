@@ -419,31 +419,51 @@ function BuildSiteHST:ClosestBuildSpot(builder, position, unitTypeToBuild, minim
 		return vpos
 	end
 	self.game:StopTimer('bst4')
-	return self.map:FindClosestBuildSite(unitTypeToBuild, position, maximumDistance, minDistance, validFunction)
+ 	return self.map:FindClosestBuildSite(unitTypeToBuild, position, maximumDistance, minDistance, validFunction) --TODO under heavy test
+-- 	local buildFacing = self.ai.buildsitehst:GetFacing(position)
+-- 	return self.ai.tool:ClosestBuildSpot(unitTypeToBuild, position,maximumDistance,  minDistance,buildFacing, validFunction) --TODO under test
+
 end
 
-function BuildSiteHST:searchPosInList(list,utype, builder, spaceEquals,minDist)
+function BuildSiteHST:searchPosInList(list,utype, builder, spaceEquals,minDist,maxDist)
+	self.DebugEnabled = true
 	self.game:StartTimer('bst2')
-	local d = 1/0
-	local p = nil
-	if list and #list > 0 then
-		self:EchoDebug('list ok')
-		for index, pos in pairs(list) do
-			if not spaceEquals or not self:unitNearCheck(utype,pos,spaceEquals)then
-				self:EchoDebug('ok space')
-				local tmpPos = self.ai.buildsitehst:ClosestBuildSpot(builder, pos, utype , minDist, nil, nil, nil)
-				if p then
-					local tmpDist = self.ai.tool:Distance(pos,builder:GetPosition())
+	local maxDist = maxDist or 390
+	local d = math.huge
+	local p
+	local tmpDist
+	local tmpOos
+	if not list then return end
+	for index, pos in pairs(list) do
+
+		self:EchoDebug(index,pos)
+		if not spaceEquals or not self:unitNearCheck(utype,pos,spaceEquals)then
+
+			tmpPos = self:ClosestBuildSpot(builder, pos, utype , minDist, nil, nil, maxDist)
+			if tmpPos then
+
+				tmpDist = self.ai.tool:Distance(pos,builder:GetPosition())
+				self:EchoDebug('tmpdist',tmpDist)
+				if tmpDist < 1000 then --  here is used to exit the cycle if builder is sufficient near to go here without search more
+
+					self:EchoDebug(index,'dist < 1000')
+					p = tmpPos
+					break --exit the cycle
+				else
 					if tmpDist < d then
 						d = tmpDist
 						p = tmpPos
-						self:EchoDebug('Found pos in list')
+						self:EchoDebug('Found pos in list for ', index)
 					end
 				end
+
 			end
 		end
+
 	end
 	self.game:StopTimer('bst2')
+	self.DebugEnabled= false
+	self:EchoDebug('posinlist',p)
 	return p
 end
 

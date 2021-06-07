@@ -453,6 +453,67 @@ function Tool:BehaviourPosition(behaviour)
 	return unit:GetPosition()
 end
 
+function Tool:ClosestBuildPos( utype,pos, searchRadius, minDistance, buildFacing, validFunction)
+	self.DebugEnabled = true
+	unitdefID = utype.id
+-- 	if type(unitdefID) == 'table' then
+-- 		for i,v in pairs (unitdefID) do
+-- 			self:EchoDebug('i',i,'v',v)
+-- 		end
+-- 		unitdefID = unitdefID.id
+-- 		self:EchoDebug(id , unitdefID)
+--
+-- 	end
+	--Spring.ClosestBuildPos(teamID, unitdefID, worldx,worldy,worldz, searchRadius, minDistance, buildFacing) -> buildx,buildy,buildz  to LuaSyncedRead
+	if not unitdefID then
+		self:EchoDebug('non-valid unit def ID')
+		self.DebugEnabled = false
+		return
+	end
+	if not pos then
+		self:EchoDebug('non-valid unit def ID')
+		self.DebugEnabled = false
+		return
+	end
+	self.DebugEnabled = false
+	buildFacing = buildFacing or 1
+	teamID = self.ai.id
+	searchRadius = searchRadius or 5000
+	minDistance = minDistance or 0
+	pos.y = pos.y or Spring.GetGroundHeight(pos.x,pos.z)
+	self.game:StartTimer('toolpos')
+	local position = Spring.ClosestBuildPos(teamID, unitdefID, pos.x,pos.y,pos.z, searchRadius, minDistance, buildFacing)
+	self.game:StopTimer('toolpos')
+	if not position then
+		self:EchoDebug('no position')
+		self.DebugEnabled = false
+		return end
+
+	local buildable, position = self.ai.map:CanBuildHere(utype, {x = pos.x, y = pos.y, z = pos.z})
+	if not buildable then
+		self:EchoDebug('not buildable')
+		self.DebugEnabled = false
+		return
+	end
+
+-- 	local lastDitch, lastDitchPos = self:CanBuildHere(unitdefID, builderpos)
+-- 	if not lastDitch then return end
+	validFunction = validFunction or function (position) return position end
+	position = validFunction(position)
+	if not position then
+
+		self:EchoDebug('position not valid')
+		self.DebugEnabled = false
+		return
+	end
+	self.DebugEnabled = false
+	return position
+end
+
+
+
+
+
 function Tool:HorizontalLine(grid, x, z, tx, sets, adds)
 	for ix = x, tx do
 		grid[ix] = grid[ix] or {}
