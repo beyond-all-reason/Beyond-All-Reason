@@ -1052,7 +1052,7 @@ function DrawWindow()
 	if changesRequireRestart then
 		font:SetTextColor(1, 0.35, 0.35, 1)
 		font:SetOutlineColor(0, 0, 0, 0.4)
-		font:Print("...made changes that require restart", screenX + screenWidth - (3 * widgetScale), screenY - screenHeight + (3 * widgetScale), 15 * widgetScale, "rn")
+		font:Print("made changes that require restart", screenX + math.floor(bgpadding*2.5), screenY - screenHeight + (3 * widgetScale) + math.floor(bgpadding*2), 15 * widgetScale, "n")
 	end
 
 	-- draw options
