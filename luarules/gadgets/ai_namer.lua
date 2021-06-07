@@ -358,6 +358,8 @@ if gadgetHandler:IsSyncedCode() then
 		if chicken and takenNamesChicken[aiName] == nil then
 			takenNamesChicken[aiName] = teamID
 			return aiName
+		elseif scavenger then
+			return aiName
 		elseif not chicken and takenNames[aiName] == nil then
 			takenNames[aiName] = teamID
 			return aiName
