@@ -154,7 +154,7 @@ if gadgetHandler:IsSyncedCode() then
 
 					local incoming, _ = Spring.GetPlayerInfo(sID, false)
 					local outgoing, _ = Spring.GetPlayerInfo(playerID, false)
-					Spring.Echo(Spring.I18N('ui.substitutePlayers.substitutedPlayers', { incoming = incoming, outgoing = outgoing }))
+					SendToUnsynced("SubstitutionOccurred", incoming, outgoing)
 				end
 				substitutesLocal[sID] = nil
 				wouldSub = true
@@ -321,6 +321,10 @@ else
 		end)
 	end
 
+	local function substitutionOccurred(incoming, outgoing)
+		Spring.Echo(Spring.I18N('ui.substitutePlayers.substitutedPlayers', { incoming = incoming, outgoing = outgoing }))
+	end
+
 	function gadget:Initialize()
 		if isReplay or (tonumber(Spring.GetModOptions().ffa_mode) or 0) == 1 or Spring.GetGameFrame() > 6 then
 			gadgetHandler:RemoveGadget() -- don't run in FFA mode
@@ -328,6 +332,7 @@ else
 		end
 
 		gadgetHandler:AddSyncAction("MarkStartPoint", MarkStartPoint)
+		gadgetHandler:AddSyncAction("SubstitutionOccurred", substitutionOccurred)
 		--gadgetHandler:AddSyncAction("ForceSpec", ForceSpec)
 
 		-- match the equivalent check in synced
@@ -464,6 +469,7 @@ else
 		gl.DeleteList(subsButtonHover)
 		gl.DeleteFont(font)
 		gadgetHandler:RemoveSyncAction("MarkStartPoint")
+		gadgetHandler:RemoveSyncAction("SubstitutionOccurred")
 		--gadgetHandler:RemoveSyncAction("ForceSpec")
 	end
 
