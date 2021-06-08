@@ -1,5 +1,4 @@
 local enabled = false
-local scavengersEnabled = false
 local teams = Spring.GetTeamList()
 for i = 1,#teams do
 	local luaAI = Spring.GetTeamLuaAI(teams[i])
@@ -24,22 +23,22 @@ function gadget:GetInfo()
   }
 end
 
-
 function gadget:GameOver()
 	gadgetHandler:RemoveGadget(self)
 end
 
-if not gadgetHandler:IsSyncedCode() then
+if gadgetHandler:IsSyncedCode() then
+		
+	if enabled then
+		VFS.Include('luarules/gadgets/scavengers/boot.lua')
+	end
 
-	local isSpec = Spring.GetSpectatingState()
-	local myTeamID = Spring.GetMyTeamID()
+else
+
 	local myPlayerID = Spring.GetMyPlayerID()
-	local myAllyTeamID = Spring.GetMyAllyTeamID()
+
 	function gadget:PlayerChanged(playerID)
-		isSpec = Spring.GetSpectatingState()
-		myTeamID = Spring.GetMyTeamID()
 		myPlayerID = Spring.GetMyPlayerID()
-		myAllyTeamID = Spring.GetMyAllyTeamID()
 	end
 
 	function SendMessage(_,msg)
@@ -49,6 +48,7 @@ if not gadgetHandler:IsSyncedCode() then
 			end
 		end
 	end
+
 	function SendNotification(_,msg)
 		if Spring.GetConfigInt("scavmessages",1) == 1 then
 			if Script.LuaUI("EventBroadcast") then
@@ -59,7 +59,8 @@ if not gadgetHandler:IsSyncedCode() then
 	end
 
 	local addedNotifications = false
-	function addNotifications()
+
+	local function addNotifications()
 		if Script.LuaUI("AddNotification") then
 			addedNotifications = true
 			local unlisted = true	-- prevent these notifications showing in the game settings notifications tab
@@ -125,12 +126,4 @@ if not gadgetHandler:IsSyncedCode() then
 		gadgetHandler:RemoveSyncAction("SendMessage")
 		gadgetHandler:RemoveSyncAction("SendNotification")
 	end
-
-
-else
-
-	if enabled then
-		VFS.Include('luarules/gadgets/scavengers/boot.lua')
-	end
-
 end
