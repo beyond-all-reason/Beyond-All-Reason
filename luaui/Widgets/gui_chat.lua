@@ -751,8 +751,6 @@ local function processConsoleLine(gameFrame, line, addOrgLine)
 
 		if sfind(line, "Input grabbing is ", nil, true) then
 			bypassThisMessage = true
-		elseif sfind(line,"scenario_complete_", nil, true) then
-			bypassThisMessage = true
 		elseif sfind(line," to access the quit menu", nil, true) then
 			bypassThisMessage = true
 		elseif sfind(line,"VSync::SetInterval", nil, true) then
