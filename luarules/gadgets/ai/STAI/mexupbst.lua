@@ -22,10 +22,10 @@ function MexUpBST:OwnerIdle()
 		local builder = self.unit:Internal()
 		self:EchoDebug("MexUpBST: unit ".. self.name .." is idle")
 		-- release assistants
-		if not self.released then
-			self.ai.assisthst:Release(builder)
-			self.released = true
-		end
+-- 		if not self.released then
+-- 			self.ai.assisthst:Release(builder)
+-- 			self.released = true
+-- 		end
 		-- maybe we've just finished a moho?
 		if self.mohoStarted then
 			self.mohoStarted = false
