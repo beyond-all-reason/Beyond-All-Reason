@@ -25,6 +25,7 @@ Units
  • Claw/Zeus: lightning chains again (up to 2 neighbouring units *0.5dmg for zeus, *0.325 for claw)
  • Juggernaut: main weapon does 4x old damage/reloadtime
  • EMP launcher: reduced range 10%
+ • Spies are much more resistant to emp damage
  • T2 Bot/Air Constructors can build Advanced Fusion + cost: +60 metal
  • T2 Vehicle/Air Constructors can make the T3 Experimental Gantry
  • Arm Guardian: Removed special damage to ships and commander, reduced low trajectory aoe from 128 to 100, increased low trajectory default damage by 20%, increased high trajectory default damage by 9%

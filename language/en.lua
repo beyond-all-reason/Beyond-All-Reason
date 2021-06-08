@@ -107,6 +107,7 @@ return {
 	options = {
 		basic = 'Basic',
 		advanced = 'Advanced',
+		madechanges = "made changes that require restart",
 		group = {
 			graphics = 'Graphics',
 			interface = 'Interface',
