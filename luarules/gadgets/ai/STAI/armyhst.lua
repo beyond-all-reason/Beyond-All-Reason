@@ -178,7 +178,7 @@ function ArmyHST:Init()
 		corjugg = true,
 		corban = true,
 
-	} -- sturdy, cheap units to be built in larger numbers than siege units
+	}
 	self.breaks = {
 
 		armjanus = true,
@@ -228,7 +228,7 @@ function ArmyHST:Init()
 		corhurc = true,
 		armpnix = true,
 		armliche = true,
-		corsb = true,
+		corsb = true,--plat
 	}
 
 	self.fighterairs = {

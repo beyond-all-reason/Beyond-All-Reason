@@ -419,9 +419,7 @@ function BuildSiteHST:ClosestBuildSpot(builder, position, unitTypeToBuild, minim
 		return vpos
 	end
 	self.game:StopTimer('bst4')
- 	return self.map:FindClosestBuildSite(unitTypeToBuild, position, maximumDistance, minDistance, validFunction) --TODO under heavy test
--- 	local buildFacing = self.ai.buildsitehst:GetFacing(position)
--- 	return self.ai.tool:ClosestBuildSpot(unitTypeToBuild, position,maximumDistance,  minDistance,buildFacing, validFunction) --TODO under test
+ 	return self.map:FindClosestBuildSite(unitTypeToBuild, position, maximumDistance, minDistance, validFunction)
 
 end
 

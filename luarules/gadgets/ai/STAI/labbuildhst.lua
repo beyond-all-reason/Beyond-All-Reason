@@ -71,10 +71,8 @@ function LabBuildHST:AvailableFactories(factoriesPreCleaned)
 			end
 		end
 	end
-	if self.DebugEnabled then
-		for i, v in pairs(self.factories) do
-			self:EchoDebug(i .. ' ' .. v  .. ' is available Factories' )
-		end
+	for i, v in pairs(self.factories) do
+		self:EchoDebug(i .. ' ' .. v  .. ' is available Factories' )
 	end
 end
 
@@ -89,21 +87,22 @@ function LabBuildHST:PrePositionFilter()
 		local isAdvanced = self.ai.armyhst.advFactories[factoryName]
 		local isExperimental = self.ai.armyhst.expFactories[factoryName] or self.ai.armyhst.leadsToExpFactories[factoryName]
 		local mtype = self.ai.armyhst.factoryMobilities[factoryName][1]
-		if self.game:GetTeamUnitDefCount(self.ai.id,self.ai.armyhst.unitTable[factoryName].defId) > 0 then
+		local team = self.ai.id
+		if self.game:GetTeamUnitDefCount(self.ai.id,utn.defId) > 0 then
 			self:EchoDebug(factoryName ..' already have ')
 			buildMe = false
 		end
-		if mtype == 'air' and not isAdvanced and self.ai.tool:countMyUnit({'factoryMobilities'}) == 1 then
-			self:EchoDebug(factoryName ..' dont build air before advanced ')
-			buildMe = false
-		end
-		if mtype == 'air' then
-			local counter = self.game:GetTeamUnitDefCount(self.ai.id,self.ai.armyhst.unitTable[factoryName].defId)
-			if counter > 0 then
-				self:EchoDebug(factoryName ..' never build more than 1 air factory per name, units can go anywhare ')
-				buildMe = false
-			end
-		end
+-- 		if mtype == 'air' and not isAdvanced and self.ai.tool:countMyUnit({'factoryMobilities'}) == 1 then
+-- 			self:EchoDebug(factoryName ..' dont build air before advanced ')
+-- 			buildMe = false
+-- 		end
+-- 		if mtype == 'air' then
+-- 			local counter = self.game:GetTeamUnitDefCount(self.ai.id,utn.defId)
+-- 			if counter > 0 then
+-- 				self:EchoDebug(factoryName ..' never build more than 1 air factory per name, units can go anywhare ')
+-- 				buildMe = false
+-- 			end
+-- 		end
 		if self.ai.needAdvanced and not self.ai.haveAdvFactory and not isAdvanced then
 			self:EchoDebug(factoryName ..' not advanced when i need it')
 			buildMe = false
@@ -139,10 +138,8 @@ function LabBuildHST:PrePositionFilter()
 		end
 		if buildMe then table.insert(factoriesPreCleaned,factoryName) end
 	end
-	if self.DebugEnabled then
-		for i, v in pairs(factoriesPreCleaned) do
-			self:EchoDebug('rank ' .. i .. ' ' .. v .. ' in factoryPreCleaned')
-		end
+	for i, v in pairs(factoriesPreCleaned) do
+		self:EchoDebug('rank ' .. i .. ' ' .. v .. ' in factoryPreCleaned')
 	end
 	return factoriesPreCleaned
 end
@@ -160,7 +157,6 @@ function LabBuildHST:ConditionsToBuildFactories(builder)
 	for order = 1, #self.factories do
 		local factoryName = self.factories[order]
 		local uTn = self.ai.armyhst.unitTable[factoryName]
-		--if self.ai.scaledMetal > uTn.metalCost * order and self.ai.scaledEnergy > uTn.energyCost * order and self.ai.tool:countMyUnit({'isWeapon'}) >= self.ai.tool:countMyUnit({'factoryMobilities'}) * 20 then
 		local factoryCountSq = self.ai.tool:countMyUnit({'factoryMobilities'}) * self.ai.tool:countMyUnit({'factoryMobilities'})
 		local sameFactoryCount = self.ai.tool:countFinished(factoryName)
 		local sameFactoryMetal = sameFactoryCount * 20
@@ -241,66 +237,76 @@ end
 function LabBuildHST:FactoryPosition(factoryName,builder)
 	local utype = self.game:GetTypeByName(factoryName)
 	local mtype = self.ai.armyhst.factoryMobilities[factoryName][1]
+	local site = self.ai.buildsitehst
 	local builderPos = builder:GetPosition()
+	local closestFactory = self.ai.buildsitehst:ClosestHighestLevelFactory(builderPos)
 	local factoryPos
 	local p
-	if p == nil then
-		self:EchoDebug("looking next to nano turrets for " .. factoryName)
-		p = self.ai.buildsitehst:BuildNearNano(builder, utype)
-	end
-	if p == nil then
-		self:EchoDebug("looking next to factory for " .. factoryName)
-		factoryPos = self.ai.buildsitehst:ClosestHighestLevelFactory(builderPos, 10000)
-		if factoryPos then
-			p = self.ai.buildsitehst:ClosestBuildSpot(builder, factoryPos, utype)
-		end
-	end
+	p = 	site:BuildNearLastNano(builder, utype) or
+			site:BuildNearNano(builder, utype) or
+			site:searchPosNearCategories(utype, builder,builderPos,400, nil,50,{'_nano_'}) or
+			site:searchPosNearCategories(utype, builder,closestFactory,400, nil,50,{'_nano_'}) or
+			site:searchPosNearCategories(utype, builder,builderPos,400, nil,50,{'factoryMobilities'}) or
+			site:searchPosNearCategories(utype, builder,builderPos,400, nil,50,{'_llt_'}) or
+			site:searchPosNearCategories(utype, builder,'extractsMetal',nil, 'radarRadius',20)
+
+			---theorical pos is get
+-- 		POS =  site:BuildNearLastNano(builder, utype) or
+-- 				site:searchPosNearCategories(utype, builder,builderPos,400, nil,50,{'_nano_'}) or
+-- 				site:searchPosNearCategories(utype, builder,closestFactory,400, nil,50,{'_nano_'}) or
+-- 				site:searchPosNearCategories(utype, builder,builderPos,400, nil,50,{'factoryMobilities'}) or
+-- 				site:searchPosNearCategories(utype, builder,builderPos,400, nil,50,{'_llt_'})
+-- 				site:searchPosNearCategories(utype, builder,'extractsMetal',nil, 'radarRadius',20)
 -- 	if p == nil then
--- 		self:EchoDebug("looking next to llt for " .. factoryName)
--- 		p = self.ai.buildsitehst:searchPosNearThing(utype, builder,nil,1000, nil,100,'_llt_')
+-- 		self:EchoDebug("looking next to nano turrets for " .. factoryName)
+-- 		p = self.ai.buildsitehst:BuildNearNano(builder, utype)
+-- 	end
+-- 	if p == nil then
+-- 		self:EchoDebug("looking next to factory for " .. factoryName)
+-- 		factoryPos = self.ai.buildsitehst:ClosestHighestLevelFactory(builderPos, 10000)
 -- 		if factoryPos then
 -- 			p = self.ai.buildsitehst:ClosestBuildSpot(builder, factoryPos, utype)
 -- 		end
 -- 	end
-	if p == nil then
-		self:EchoDebug('builfactory near hotSpot')
-		local place = false
-		local distance = 99999
-		if factoryPos then
-			for index, hotSpot in pairs(self.ai.hotSpot) do
-				if self.ai.maphst:MobilityNetworkHere(mtype,hotSpot) then
-
-					local dist = math.min(distance, self.ai.tool:Distance(hotSpot,factoryPos))
-					if dist < distance then
-						place = hotSpot
-						distance  = dist
-					end
-				end
-			end
-		end
-		if place then
-			p = self.ai.buildsitehst:ClosestBuildSpot(builder, place, utype)
-		end
-	end
-	if p == nil then
-		self:EchoDebug("looking for most turtled position for " .. factoryName)
-		local turtlePosList = self.ai.turtlehst:MostTurtled(builder, factoryName)
-		if turtlePosList then
-			if #turtlePosList ~= 0 then
-				for i, turtlePos in ipairs(turtlePosList) do
-					p = self.ai.buildsitehst:ClosestBuildSpot(builder, turtlePos, utype)
-					if p ~= nil then break end
-				end
-			end
-		end
-	end
-	if p == nil then
-		self:EchoDebug("trying near builder for " .. factoryName)
- 		p = self.ai.buildsitehst:ClosestBuildSpot(builder, builderPos, utype, 10, nil, nil, 1500)
-	end
-	if p then
-		self:EchoDebug("position found for " .. factoryName)
-	end
+-- 	if p == nil then
+-- 		self:EchoDebug('builfactory near hotSpot')
+-- 		local place = false
+-- 		local distance = 99999
+-- 		if factoryPos then
+-- 			for index, hotSpot in pairs(self.ai.hotSpot) do
+-- 				if self.ai.maphst:MobilityNetworkHere(mtype,hotSpot) then
+--
+-- 					local dist = math.min(distance, self.ai.tool:Distance(hotSpot,factoryPos))
+-- 					if dist < distance then
+-- 						place = hotSpot
+-- 						distance  = dist
+-- 					end
+-- 				end
+-- 			end
+-- 		end
+-- 		if place then
+-- 			p = self.ai.buildsitehst:ClosestBuildSpot(builder, place, utype)
+-- 		end
+-- 	end
+-- 	if p == nil then
+-- 		self:EchoDebug("looking for most turtled position for " .. factoryName)
+-- 		local turtlePosList = self.ai.turtlehst:MostTurtled(builder, factoryName)
+-- 		if turtlePosList then
+-- 			if #turtlePosList ~= 0 then
+-- 				for i, turtlePos in ipairs(turtlePosList) do
+-- 					p = self.ai.buildsitehst:ClosestBuildSpot(builder, turtlePos, utype)
+-- 					if p ~= nil then break end
+-- 				end
+-- 			end
+-- 		end
+-- 	end
+-- 	if p == nil then
+-- 		self:EchoDebug("trying near builder for " .. factoryName)
+--  		p = self.ai.buildsitehst:ClosestBuildSpot(builder, builderPos, utype, 10, nil, nil, 1500)
+-- 	end
+-- 	if p then
+-- 		self:EchoDebug("position found for " .. factoryName)
+-- 	end
 	return p
 end
 
@@ -347,11 +353,7 @@ function LabBuildHST:PostPositionalFilter(factoryName,p)
 			self:EchoDebug('dont build bot where are already veh not on top of tech level')
 			return false
 		end
-
-
 	elseif mtype == 'veh' then
-
-
 		if self.ai.tool:countFinished(factoryName) > 0 and self.ai.armyhst.unitTable[factoryName].techLevel == 1 then
 			local sameLabs = Spring.GetTeamUnitsByDefs(self.ai.id, UnitDefNames[factoryName].id)
 			for ct, id in pairs(sameLabs) do

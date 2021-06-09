@@ -62,6 +62,7 @@ function CleanerBST:Activate()
 
 end
 function CleanerBST:Deactivate()
+	self:Patroling()
 	self:EchoDebug('deactivate command',self.ai.cleanhst.theCleaner[self.id])
 end
 
@@ -69,6 +70,7 @@ function CleanerBST:Priority()
 	if self.ai.cleanhst.theCleaner[self.id] then
 		return 103
 	else
+		self:Deactivate()
 		return 0
 	end
 end
@@ -119,4 +121,16 @@ function CleanerBST:Search()
 			return
 		end
 	end
+end
+
+function CleanerBST:Patroling() --TODO move nano patroling to another place (activate-deactivate behaviour)
+	-- set nano turrets to patrol
+	local upos = self.ai.tool:RandomAway( self.unit:Internal():GetPosition(), 50)
+	local floats = api.vectorFloat()
+	-- populate with x, y, z of the position
+	floats:push_back(upos.x)
+	floats:push_back(upos.y)
+	floats:push_back(upos.z)
+-- 	self.unit:Internal():ExecuteCustomCommand(CMD_PATROL, floats)
+	self.unit:Internal():Patrol(upos)
 end

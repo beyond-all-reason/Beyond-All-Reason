@@ -175,7 +175,6 @@ function BehaviourFactory:defaultBehaviours(unit)
 		--self:EchoDebug()
 	end
 	if army._nano_[un] then
-		--table.insert(b, AssistBST)
 		table.insert(b, WardBST)
 		table.insert(b, CleanerBST)
 	end

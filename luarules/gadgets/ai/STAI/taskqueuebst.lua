@@ -391,15 +391,8 @@ function TaskQueueBST:findPlace(utype, value,cat)
 	local army = self.ai.armyhst
 	local site = self.ai.buildsitehst
 	local closestFactory = self.ai.buildsitehst:ClosestHighestLevelFactory(builderPos)
-	if cat == 'factoryMobilities' then
-		---theorical pos is get
--- 		POS =  site:BuildNearLastNano(builder, utype) or
--- 				site:searchPosNearCategories(utype, builder,builderPos,400, nil,50,{'_nano_'}) or
--- 				site:searchPosNearCategories(utype, builder,closestFactory,400, nil,50,{'_nano_'}) or
--- 				site:searchPosNearCategories(utype, builder,builderPos,400, nil,50,{'factoryMobilities'}) or
--- 				site:searchPosNearCategories(utype, builder,builderPos,400, nil,50,{'_llt_'})
--- 				site:searchPosNearCategories(utype, builder,'extractsMetal',nil, 'radarRadius',20)
-	elseif cat == '_mex_' then
+	--factory will get position in labbuildhst
+	if cat == '_mex_' then
 		local uw
 		local reclaimEnemyMex
 		POS, uw, reclaimEnemyMex = self.ai.maphst:ClosestFreeSpot(utype, builder)
