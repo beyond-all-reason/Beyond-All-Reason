@@ -26,6 +26,19 @@ function ResurrectorOrders(n, scav)
 	Spring.GiveOrderToUnit(scav, CMD.RESURRECT,{mapcenterX+math_random(-100,100),mapcenterY,mapcenterZ+math_random(-100,100),mapdiagonal}, 0)
 end
 
+function CapturerOrders(n, scav)
+	local mapcenterX = mapsizeX/2
+	local mapcenterZ = mapsizeZ/2
+	local mapcenterY = Spring.GetGroundHeight(mapcenterX, mapcenterZ)
+	local mapdiagonal = math.ceil(math.sqrt((mapsizeX*mapsizeX)+(mapsizeZ*mapsizeZ)))
+	Spring.GiveOrderToUnit(scav, CMD.CAPTURE,{mapcenterX+math_random(-100,100),mapcenterY,mapcenterZ+math_random(-100,100),mapdiagonal}, 0)
+	
+	local nearestenemy = Spring.GetUnitNearestEnemy(scav, 999999, false)
+	Spring.GiveOrderToUnit(scav, CMD.CAPTURE,{nearestenemy}, {"shift"})
+	local x,y,z = Spring.GetUnitPosition(nearestenemy)
+	Spring.GiveOrderToUnit(scav, CMD.FIGHT,{x,y,z}, {"meta", "shift", "alt"})
+end
+
 function CollectorOrders(n, scav)
 	local mapcenterX = mapsizeX/2
 	local mapcenterZ = mapsizeZ/2

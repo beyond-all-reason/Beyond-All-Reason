@@ -424,6 +424,9 @@ function gadget:GameFrame(n)
 						if scavCollector[scav] then
 							CollectorOrders(n, scav)
 						end
+						if scavCapturer[scav] then
+							CapturerOrders(n, scav)
+						end
 						if scavReclaimer[scav] then
 							ReclaimerOrders(n, scav)
 						end
@@ -444,7 +447,7 @@ function gadget:GameFrame(n)
 				if scavteamhasplayers == false and n%900 == 0 and not scavStructure[scav] and not scavAssistant[scav] and not scavFactory[scav] and not scavSpawnBeacon[scav] then
 					SelfDestructionControls(n, scav, scavDef, false)
 				end
-				if scavteamhasplayers == false and Spring.GetCommandQueue(scav, 0) <= 1 and not scavStructure[scav] and not scavConstructor[scav] and not scavReclaimer[scav] and not scavResurrector[scav] and not scavAssistant[scav] and not scavCollector[scav] and not scavFactory[scav] and not scavSpawnBeacon[scav] then
+				if scavteamhasplayers == false and Spring.GetCommandQueue(scav, 0) <= 1 and not scavStructure[scav] and not scavConstructor[scav] and not scavReclaimer[scav] and not scavResurrector[scav] and not scavAssistant[scav] and not scavCollector[scav] and not scavCapturer[scav] and not scavFactory[scav] and not scavSpawnBeacon[scav] then
 					ArmyMoveOrders(n, scav, scavDef)
 				end
 			end
@@ -494,6 +497,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
 		scavAssistant[unitID] = nil
 		scavResurrector[unitID] = nil
 		scavCollector[unitID] = nil
+		scavCapturer[unitID] = nil
 		scavReclaimer[unitID] = nil
 		scavStructure[unitID] = nil
 		scavFactory[unitID] = nil
@@ -571,6 +575,7 @@ function gadget:UnitGiven(unitID, unitDefID, unitNewTeam, unitOldTeam)
 		scavAssistant[unitID] = nil
 		scavResurrector[unitID] = nil
 		scavCollector[unitID] = nil
+		scavCapturer[unitID] = nil
 		scavReclaimer[unitID] = nil
 		scavStructure[unitID] = nil
 		scavFactory[unitID] = nil
@@ -647,8 +652,11 @@ function gadget:UnitGiven(unitID, unitDefID, unitNewTeam, unitOldTeam)
 				if constructorControllerModuleConfig.usecollectors then
 					for i = 1,#Collectors do
 						if string.sub(UnitName, 1, string.len(UnitName)-UnitSuffixLenght[unitID]) == Collectors[i] then
-							if math_random(0,100) <= 10 then
+							local r = math_random(0,100)
+							if r <= 10 then
 								scavCollector[unitID] = true
+							elseif r <= 50 then
+								scavCapturer[unitID] = true
 							else
 								scavReclaimer[unitID] = true
 							end
@@ -811,8 +819,11 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 			if constructorControllerModuleConfig.usecollectors then
 				for i = 1,#Collectors do
 					if string.sub(UnitName, 1, string.len(UnitName)-UnitSuffixLenght[unitID]) == Collectors[i] then
-						if math_random(0,100) <= 10 then
+						local r = math_random(0,100)
+						if r <= 10 then
 							scavCollector[unitID] = true
+						elseif r <= 75 then
+							scavCapturer[unitID] = true
 						else
 							scavReclaimer[unitID] = true
 						end

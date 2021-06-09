@@ -199,6 +199,7 @@ function scav_Udef_Post(name, uDef)
 			uDef.maxvelocity = uDef.maxvelocity*2*randomMultiplier
 		end
 		if uDef.canmove == true then
+			uDef.cancapture = true
 			if uDef.workertime then
 				uDef.workertime = uDef.workertime*1.5*ScavDifficultyMultiplier
 			end
