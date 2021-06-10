@@ -577,6 +577,11 @@ return {
 				block = 'Ignoring map drawing from %{player}',
 				unblock = 'Showing map drawing from %{player}',
 			},
+			dynamicAlly = {
+				create = "%{player} has allied with you.",
+				destroy = "%{player} broke their alliance with you.",
+				backstab = "%{player} attempted to attack you!",
+			},
 		}
 	}
 }
