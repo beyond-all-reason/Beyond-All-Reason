@@ -47,7 +47,7 @@ return {
 		upright = true,
 		usebuildinggrounddecal = true,
 		customparams = {
-			decoyfor = "scavrag",
+			decoyfor = "scavdrag",
 			model_author = "FireStorm",
 			normaltex = "unittextures/cor_normal.dds",
 			removewait = true,
