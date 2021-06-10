@@ -3620,7 +3620,7 @@ function init()
 			  saveOptionValue('Chat', 'chat', 'setMaxLines', { 'maxLines' }, value)
 		  end,
 		},
-		  { id = "console_maxconsolelines", group = "ui", name = widgetOptionColor .. "   "..texts.option.console_maxconsolelines, type = "slider", min = 2, max = 6, step = 1, value = (WG['chat'] ~= nil and WG['chat'].getMaxConsoleLines() or 2), description = '',
+		  { id = "console_maxconsolelines", group = "ui", name = widgetOptionColor .. "   "..texts.option.console_maxconsolelines, type = "slider", min = 2, max = 12, step = 1, value = (WG['chat'] ~= nil and WG['chat'].getMaxConsoleLines() or 2), description = '',
 			onload = function(i)
 				loadWidgetData("Chat", "console_maxconsolelines", { 'maxConsoleLines' })
 			end,
