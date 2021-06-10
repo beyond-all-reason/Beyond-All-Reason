@@ -38,7 +38,7 @@ return {
 		nochasecategory = "MOBILE",
 		objectname = "scavs/SCAVDTL.s3o",
 		radardistancejam = 8,
-		script = "scavs/SCAVDTL.cob",
+		script = "units/scavbuildings/SCAVDTL.cob",
 		seismicsignature = 0,
 		selfdestructas = "tinyBuildingExplosionGenericSelfd",
 		sightdistance = 440,
