@@ -121,7 +121,8 @@ local pics = {
     cameraPic = imageDirectory .. "camera.dds",
     countryPic = imageDirectory .. "country.dds",
     readyTexture = imageDirectory .. "indicator.dds",
-    allyPic = imageDirectory .. "ally.dds",
+	allyPic = imageDirectory .. "ally.dds",
+	unallyPic = imageDirectory .. "unally.dds",
     resourcesPic = imageDirectory .. "res.png",
     resbarPic = imageDirectory .. "resbar.png",
     resbarBgPic = imageDirectory .. "resbarBg.png",
@@ -2342,11 +2343,12 @@ end
 
 function DrawAlly(posY, team)
     if Spring_AreTeamsAllied(team, myTeamID) then
-        gl_Color(0, 1, 0, 0.44)
+        gl_Color(1, 1, 1, 0.66)
+		gl_Texture(pics["unallyPic"])
     else
-        gl_Color(1, 0, 0, 0.44)
+        gl_Color(1, 1, 1, 0.66)
+		gl_Texture(pics["allyPic"])
     end
-    gl_Texture(pics["allyPic"])
     DrawRect(m_alliance.posX + widgetPosX + 3, posY + 1, m_alliance.posX + widgetPosX + 17, posY + 15)
 end
 
