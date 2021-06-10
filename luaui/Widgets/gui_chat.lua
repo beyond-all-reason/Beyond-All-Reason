@@ -439,9 +439,9 @@ function widget:DrawScreen()
 		glColor(0,0,0,backgroundOpacity)
 		--RectRound(activationArea[1], activationArea[2]+heightDiff, activationArea[3], activationArea[4], elementCorner)
 		RectRound(activationArea[1], activationArea[2], activationArea[3], activationArea[2]+((displayedChatLines+1)*lineHeight)+(displayedChatLines==maxLines and 0 or elementPadding), elementCorner)
-		if hovering and Spring.GetGameFrame() < 30*60*6 then
+		if hovering and Spring.GetGameFrame() < 30*60*7 then
 			font:Begin()
-			font:SetTextColor(0.1,0.1,0.1,0.5)
+			font:SetTextColor(0.1,0.1,0.1,0.6)
 			font:Print(Spring.I18N('ui.chat.shortcut'), activationArea[3]-elementPadding-elementPadding, activationArea[2]+elementPadding+elementPadding, usedConsoleFontSize, "r")
 			font:End()
 		end

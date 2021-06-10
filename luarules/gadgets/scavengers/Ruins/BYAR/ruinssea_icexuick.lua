@@ -131,7 +131,6 @@ local posradius = 76
 SpawnRuin("armfdrag", posx+(-12), posy, posz+(43), 0)
 SpawnRuin("armfdrag", posx+(-76), posy, posz+(11), 0)
 SpawnRuin("armfdrag", posx+(20), posy, posz+(43), 0)
-SpawnRuin("armnanotcplat", posx+(-36), posy, posz+(-61), 0)
 SpawnRuin("armfdrag", posx+(52), posy, posz+(-21), 0)
 SpawnRuin("armfdrag", posx+(-44), posy, posz+(43), 0)
 SpawnRuin("armfdrag", posx+(52), posy, posz+(-53), 0)
@@ -291,28 +290,6 @@ SpawnRuin("armfdrag", posx+(125), posy, posz+(7), 0)
 	end
 end
 table.insert(RuinsListSea,ixadvatol0)
-
-local function ixadvatol1(posx, posy, posz, GaiaTeamID, radiusCheck)
-local posradius = 92
-	if radiusCheck then
-		return posradius
-	else
-SpawnRuin("armfdrag", posx+(0), posy, posz+(56), 0)
-SpawnRuin("armfdrag", posx+(32), posy, posz+(56), 0)
-SpawnRuin("armfdrag", posx+(80), posy, posz+(8), 0)
-SpawnRuin("armnanotcplat", posx+(24), posy, posz+(-48), 0)
-SpawnRuin("armnanotcplat", posx+(-24), posy, posz+(-48), 0)
-SpawnRuin("armfdrag", posx+(-32), posy, posz+(56), 0)
-SpawnRuin("armfdrag", posx+(64), posy, posz+(40), 0)
-SpawnRuin("armfdrag", posx+(-64), posy, posz+(40), 0)
-SpawnRuin("armnanotcplat", posx+(-24), posy, posz+(0), 0)
-SpawnRuin("armfdrag", posx+(-80), posy, posz+(8), 0)
-SpawnRuin("armfflak", posx+(-88), posy, posz+(-80), 0)
-SpawnRuin("armnanotcplat", posx+(24), posy, posz+(0), 0)
-SpawnRuin("armfflak", posx+(88), posy, posz+(-80), 0)
-	end
-end
-table.insert(RuinsListSea,ixadvatol1)
 
 local function ixatolaa2(posx, posy, posz, GaiaTeamID, radiusCheck)
 local posradius = 48
