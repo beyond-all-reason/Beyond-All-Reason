@@ -207,8 +207,7 @@ function processVisibleUnit(unitID)
     end
 end
 
-function widget:UnitLeftLos(unitID)
-    local unitDefId = spGetUnitDefID(unitID);
+function widget:UnitLeftLos(unitID, unitTeam, allyTeam, unitDefID)
     if unitDefId == arm_anti or unitDefId == cor_anti or unitDefId == arm_mobile_anti or unitDefId == cor_mobile_anti or unitDefId == arm_mobile_anti_water or unitDefId == cor_mobile_anti_water then
         local x, y, z = spGetUnitPosition(unitID)
         local pos = {(x or antiInLos[unitID][1]), (y or antiInLos[unitID][2]), (z or antiInLos[unitID][3])}

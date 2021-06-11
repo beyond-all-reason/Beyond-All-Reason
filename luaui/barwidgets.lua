@@ -1898,30 +1898,30 @@ function widgetHandler:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyze
 	return
 end
 
-function widgetHandler:UnitEnteredRadar(unitID, unitTeam)
+function widgetHandler:UnitEnteredRadar(unitID, unitTeam, allyTeam, unitDefID)
 	for _, w in ipairs(self.UnitEnteredRadarList) do
 		w:UnitEnteredRadar(unitID, unitTeam)
 	end
 	return
 end
 
-function widgetHandler:UnitEnteredLos(unitID, unitTeam)
+function widgetHandler:UnitEnteredLos(unitID, unitTeam, allyTeam, unitDefID)
 	for _, w in ipairs(self.UnitEnteredLosList) do
-		w:UnitEnteredLos(unitID, unitTeam)
+		w:UnitEnteredLos(unitID, unitTeam, allyTeam, unitDefID)
 	end
 	return
 end
 
-function widgetHandler:UnitLeftRadar(unitID, unitTeam)
+function widgetHandler:UnitLeftRadar(unitID, unitTeam, allyTeam, unitDefID)
 	for _, w in ipairs(self.UnitLeftRadarList) do
-		w:UnitLeftRadar(unitID, unitTeam)
+		w:UnitLeftRadar(unitID, unitTeam, allyTeam, unitDefID)
 	end
 	return
 end
 
-function widgetHandler:UnitLeftLos(unitID, unitTeam)
+function widgetHandler:UnitLeftLos(unitID, unitTeam, allyTeam, unitDefID)
 	for _, w in ipairs(self.UnitLeftLosList) do
-		w:UnitLeftLos(unitID, unitTeam)
+		w:UnitLeftLos(unitID, unitTeam, allyTeam, unitDefID)
 	end
 	return
 end

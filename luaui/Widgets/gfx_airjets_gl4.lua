@@ -822,12 +822,11 @@ function widget:Update(dt)
 	end]]--
 end
 
-function widget:UnitEnteredLos(unitID, unitTeam, param1, param2)
-	Spring.Echo("widget:UnitEnteredLos(unitID, unitTeam, param1, param2)",unitID, unitTeam, param1, param2)
-	AddUnit(unitID, spGetUnitDefID(unitID), unitTeam)
+function widget:UnitEnteredLos(unitID, unitTeam, allyTeam, unitDefID)
+	AddUnit(unitID, unitDefID, unitTeam)
 end
 
-function widget:UnitLeftLos(unitID, unitDefID, unitTeam)
+function widget:UnitLeftLos(unitID, unitTeam, allyTeam, unitDefID)
 	RemoveUnit(unitID, unitDefID, unitTeam)
 end
 
