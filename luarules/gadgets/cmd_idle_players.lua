@@ -57,6 +57,7 @@ if gadgetHandler:IsSyncedCode() then
 		for c = 65, 90  do table.insert(charset, string.char(c)) end
 		for c = 97, 122 do table.insert(charset, string.char(c)) end
 	end
+
 	local function randomString(length)
 		if not length or length <= 0 then return '' end
 		return randomString(length - 1) .. charset[math.random(1, #charset)]
@@ -78,7 +79,7 @@ if gadgetHandler:IsSyncedCode() then
 		return ok
 	end
 
-	local function UpdatePlayerInfos()
+	local function updatePlayersInfo()
 		local TeamToRemainingPlayers = {}
 		local aiOwners = {}
 		for _,teamID in ipairs(GetTeamList()) do --initialize team count
@@ -142,60 +143,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	function gadget:Initialize()
-		gadgetHandler:AddChatAction(takeCommand, TakeTeam, "Take control of units and resouces from inactive players")
-		UpdatePlayerInfos()
-	end
-
-	function gadget:Shutdown()
-		gadgetHandler:RemoveChatAction(takeCommand)
-	end
-
-
-	function gadget:GameFrame(currentFrame)
-		currentGameFrame = currentFrame
-		if currentFrame == 10 then
-			SendToUnsynced("onGameStart")
-		end
-		if currentFrame%15 ~= 0 then
-			return
-		end
-		UpdatePlayerInfos()
-	end
-
-	function gadget:RecvLuaMsg(msg, playerID)
-		if msg:sub(1,2)~=validation and msg:sub(3,AFKMessageSize) ~= AFKMessage then --invalid message
-			return
-		end
-		local afk = tonumber(msg:sub(2+AFKMessageSize+1))
-		local playerInfoTableEntry = playerInfoTable[playerID] or {}
-		local previousPresent = playerInfoTableEntry.present
-		playerInfoTableEntry.present = afk == 0
-		playerInfoTable[playerID] = playerInfoTableEntry
-		local name,active,spectator,teamID,allyTeamID,ping = GetPlayerInfo(playerID,false)
-		if not spectator and name ~= nil then
-			if currentGameFrame > minTimeToTake*gameSpeed then
-				if previousPresent and not playerInfoTableEntry.present then
-					SendMessageToAllyTeam(allyTeamID,"Player " .. name .. " went AFK")
-				elseif not previousPresent and playerInfoTableEntry.present then
-					SendMessageToAllyTeam(allyTeamID,"Player " .. name .. " came back")
-				end
-			end
-		end
-	end
-
-	function gadget:AllowResourceTransfer(fromTeamID, toTeamID, restype, level)
-		-- prevent resources to leak to uncontrolled teams
-		return GetTeamRulesParam(toTeamID,"numActivePlayers") ~= 0 or IsCheatingEnabled()
-	end
-
-	function gadget:AllowUnitTransfer(unitID, unitDefID, fromTeamID, toTeamID, capture)
-		-- prevent units to be shared to uncontrolled teams
-		return capture or GetTeamRulesParam(toTeamID,"numActivePlayers") ~= 0 or IsCheatingEnabled()
-	end
-
-
-	function TakeTeam(cmd, line, words, playerID)
+	local function takeTeam(cmd, line, words, playerID)
 		if not CheckPlayerState(playerID) then
 			SendMessageToPlayer(playerID,"Cannot share to afk players")
 			return -- exclude taking rights from lagged players, etc
@@ -234,6 +182,58 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
+	function gadget:Initialize()
+		gadgetHandler:AddChatAction(takeCommand, takeTeam, "Take control of units and resouces from inactive players")
+		updatePlayersInfo()
+	end
+
+	function gadget:Shutdown()
+		gadgetHandler:RemoveChatAction(takeCommand)
+	end
+
+
+	function gadget:GameFrame(currentFrame)
+		currentGameFrame = currentFrame
+		if currentFrame == 10 then
+			SendToUnsynced("onGameStart")
+		end
+		if currentFrame%15 ~= 0 then
+			return
+		end
+		updatePlayersInfo()
+	end
+
+	function gadget:RecvLuaMsg(msg, playerID)
+		if msg:sub(1,2)~=validation and msg:sub(3,AFKMessageSize) ~= AFKMessage then --invalid message
+			return
+		end
+		local afk = tonumber(msg:sub(2+AFKMessageSize+1))
+		local playerInfoTableEntry = playerInfoTable[playerID] or {}
+		local previousPresent = playerInfoTableEntry.present
+		playerInfoTableEntry.present = afk == 0
+		playerInfoTable[playerID] = playerInfoTableEntry
+		local name,active,spectator,teamID,allyTeamID,ping = GetPlayerInfo(playerID,false)
+		if not spectator and name ~= nil then
+			if currentGameFrame > minTimeToTake*gameSpeed then
+				if previousPresent and not playerInfoTableEntry.present then
+					SendMessageToAllyTeam(allyTeamID,"Player " .. name .. " went AFK")
+				elseif not previousPresent and playerInfoTableEntry.present then
+					SendMessageToAllyTeam(allyTeamID,"Player " .. name .. " came back")
+				end
+			end
+		end
+	end
+
+	function gadget:AllowResourceTransfer(fromTeamID, toTeamID, restype, level)
+		-- prevent resources to leak to uncontrolled teams
+		return GetTeamRulesParam(toTeamID,"numActivePlayers") ~= 0 or IsCheatingEnabled()
+	end
+
+	function gadget:AllowUnitTransfer(unitID, unitDefID, fromTeamID, toTeamID, capture)
+		-- prevent units to be shared to uncontrolled teams
+		return capture or GetTeamRulesParam(toTeamID,"numActivePlayers") ~= 0 or IsCheatingEnabled()
+	end
+
 else
 	-------------------
 	-- UNSYNCED code --
@@ -269,6 +269,38 @@ else
 		unitBuildSpeedTime[unitDefID] = unitDef.buildTime / unitDef.buildSpeed
 	end
 
+	local function onInitialQueueTime(_,_,words)
+		initialQueueTime = tonumber(words[1])
+		if initialQueueTime then
+			initialQueueTime = min(initialQueueTime,maxInitialQueueSlack)
+		end
+		return true
+	end
+
+	local function notIdle()
+		lastActionTime = max(timer,lastActionTime)
+		if isIdle then
+			SendLuaRulesMsg(validation..AFKMessage.. "0")
+			isIdle = false
+		end
+	end
+
+	local function onGameStart()
+		if initialQueueTime then
+			notIdle()
+			-- allow the user to slack while initial queue is unrolling
+			lastActionTime = timer + initialQueueTime
+		end
+		gameStartTime = timer
+	end
+
+	local function wentIdle()
+		if not isIdle then
+			SendLuaRulesMsg(validation..AFKMessage.. "1")
+			isIdle = true
+		end
+	end
+
 	function gadget:Initialize()
 		gadgetHandler:AddSyncAction("onGameStart", onGameStart)
 		gadgetHandler:AddChatAction("initialQueueTime",onInitialQueueTime)
@@ -277,38 +309,6 @@ else
 	function gadget:Shutdown()
 		gadgetHandler:RemoveChatAction('initialQueueTime')
 		gadgetHandler:RemoveSyncAction("onGameStart")
-	end
-
-	function onInitialQueueTime(_,_,words)
-		initialQueueTime = tonumber(words[1])
-		if initialQueueTime then
-			initialQueueTime = min(initialQueueTime,maxInitialQueueSlack)
-		end
-		return true
-	end
-
-	function onGameStart()
-		if initialQueueTime then
-			NotIdle()
-			-- allow the user to slack while initial queue is unrolling
-			lastActionTime = timer + initialQueueTime
-		end
-		gameStartTime = timer
-	end
-
-	function WentIdle()
-		if not isIdle then
-			SendLuaRulesMsg(validation..AFKMessage.. "1")
-			isIdle = true
-		end
-	end
-
-	function NotIdle()
-		lastActionTime = max(timer,lastActionTime)
-		if isIdle then
-			SendLuaRulesMsg(validation..AFKMessage.. "0")
-			isIdle = false
-		end
 	end
 
 	function gadget:Update()
@@ -347,31 +347,31 @@ else
 		-- ugly code to check if the mouse moved since the call-in doesn't work
 		local x,y = GetMouseState()
 		if mx ~= x or my ~= y then
-			NotIdle()
+			notIdle()
 		end
 		my = y
 		mx = x
 
 		if timer-lastActionTime > maxIdleTreshold then
-			WentIdle()
+			wentIdle()
 		end
 	end
 
 	-- MouseMove isn't called either??!
 	function gadget:MouseMove()
-		NotIdle()
+		notIdle()
 	end
 
 	function gadget:MousePress()
-		NotIdle()
+		notIdle()
 	end
 
 	function gadget:MouseWheel()
-		NotIdle()
+		notIdle()
 	end
 
 	function gadget:KeyPress()
-		NotIdle()
+		notIdle()
 	end
 
 end
