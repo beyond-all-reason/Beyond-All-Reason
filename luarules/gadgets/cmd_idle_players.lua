@@ -36,13 +36,11 @@ if gadgetHandler:IsSyncedCode() then
 	local ShareTeamResource = Spring.ShareTeamResource
 	local GetTeamResources = Spring.GetTeamResources
 	local GetPlayerInfo = Spring.GetPlayerInfo
-	local GetTeamList = Spring.GetTeamList
 	local GetTeamLuaAI = Spring.GetTeamLuaAI
 	local GetAIInfo = Spring.GetAIInfo
 	local SetTeamRulesParam = Spring.SetTeamRulesParam
 	local GetTeamRulesParam = Spring.GetTeamRulesParam
 	local GetTeamUnits = Spring.GetTeamUnits
-	local SetTeamShareLevel = Spring.SetTeamShareLevel
 	local GetTeamInfo = Spring.GetTeamInfo
 	local GetTeamList = Spring.GetTeamList
 	local SendMessageToPlayer = Spring.SendMessageToPlayer
@@ -53,9 +51,6 @@ if gadgetHandler:IsSyncedCode() then
 	local resourceList = {"metal","energy"}
 	local gaiaTeamID = Spring.GetGaiaTeamID()
 	local gameSpeed = Game.gameSpeed
-
-	local min = math.min
-	local max = math.max
 
 	local charset = {}  do -- [0-9a-zA-Z]
 		for c = 48, 57  do table.insert(charset, string.char(c)) end
@@ -229,7 +224,7 @@ if gadgetHandler:IsSyncedCode() then
 				for _,resourceName in ipairs(resourceList) do
 					local shareAmount = GetTeamResources( teamID, resourceName)
 					local current,storage,_,_,_,shareSlider = GetTeamResources(takerID,resourceName)
-					shareAmount = min(shareAmount,shareSlider*storage-current)
+					shareAmount = math.min(shareAmount,shareSlider*storage-current)
 					ShareTeamResource( teamID, takerID, resourceName, shareAmount )
 				end
 			end
@@ -254,8 +249,6 @@ else
 	local min = math.min
 	local max = math.max
 
-	local nameEnclosingPatterns = {{""," added point"},{"<","> "},{"> <","> "},{"[","] "}}
-	local myPlayerName = Spring.GetPlayerInfo(Spring.GetMyPlayerID(),false)
 	local lastActionTime = 0
 	local timer = 0
 	local updateTimer = 0
@@ -268,6 +261,7 @@ else
 
 	local isBuilder = {}
 	local unitBuildSpeedTime = {}
+
 	for unitDefID, unitDef in pairs(UnitDefs) do
 		if unitDef.isBuilder then
 			isBuilder[unitDefID] = true
@@ -328,7 +322,6 @@ else
 
 		--
 		if checkQueueTime and GetGameSeconds() > checkQueueTime then
-			local playerID = Spring.GetMyPlayerID()
 			local teamID = Spring.GetMyTeamID()
 			local myUnits = Spring.GetTeamUnits(teamID)
 			local queueTime = 0
@@ -381,39 +374,4 @@ else
 		NotIdle()
 	end
 
-	-- extract a player name from a text message
-	--function getPlayerName(playerMessage)
-	--    local pos
-	--    local retVal = ""
-	--    for index,pattern in pairs(nameEnclosingPatterns) do
-	--        local prefix = pattern[1]
-	--        local suffix = pattern[2]
-	--        local prefixstart,prefixend
-	--        local suffixstart,suffixend
-	--        if prefix ~= "" then
-	--            prefixstart,prefixend = playerMessage:find(prefix,1,true)
-	--        end
-	--        prefixend = (prefixend or 0 ) + 1
-	--        if suffix ~= "" then
-	--            suffixstart,suffixend = playerMessage:find(suffix,prefixend,true)
-	--        end
-	--        if suffixstart then
-	--            suffixstart = suffixstart - 1
-	--            return playerMessage:sub(prefixend,suffixstart)
-	--        end
-	--    end
-	--    return ""
-	--end
-
-	--this callin has never been implemented!
-	--[[
-	function gadget:AddConsoleLine(line)
-		if line:len() == 0 then
-			return
-		end
-		if getPlayerName(line) == myPlayerName then
-			NotIdle()
-		end
-	end
-	]]--
 end
