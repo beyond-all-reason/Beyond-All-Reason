@@ -36,7 +36,7 @@ local chobbyInterface
 	-- TextElements{} -- this one is kinda hard, but well figure it out
 	-- bool mousehits()
 		-- A nice recursive call, 
-
+	-- highlightchild?
 	-- bool visible 
 
 -- element functions:
@@ -70,10 +70,44 @@ local chobbyInterface
 
 local FBElement = {}
 
-FB
+FBElement.__index = FBElement
 
+function FBElement.new(name, px, py, sx, sy)
+	return setmetatable({}, FBElement)
+end
 
----
+function FBElement:SetVisible(visible)
+	self.visible = visible
+	for i, child in ipairs(self.children) do child:SetVisible(visible) end
+end
+
+function FBElement:Toggle()
+	self.visible = not self.visible
+	for i, child in ipairs(self.children) do child:SetVisible(self.visible)	end
+end
+
+function FBElement:IsMouseOver(mx, my)
+	local hitsme = self.visible and mx >= self.px and mx <= self.sx and my >= self.py and my <= self.sy
+	if hitsme then
+		if #self.children > 1 then
+			for i, child in ipairs(self.children) do
+				local childhit = child:IsMouseOver(mx,my)
+				if childhit then
+					return childhit
+				end
+			end
+		else
+			return self
+		end
+	else
+		return
+	end
+end
+
+function FBElement.Remove()
+
+end
+	
 
 
 ----------------------------------------------------------------
