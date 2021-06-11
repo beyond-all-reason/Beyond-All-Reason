@@ -15,6 +15,7 @@ end
 local atlasID = nil
 local atlassedImages = {}
 
+
 local function addDirToAtlas(atlas, path)
 	local imgExts = {bmp = true,tga = true,jpg = true,png = true,dds = true, tif = true}
 	local numadded = 0
@@ -43,6 +44,7 @@ local function makeAtlas()
 	--gl.AddAtlasTexture(atlasID,'unitpics/corcom.png')
 
 	addDirToAtlas(atlasID, "unitpics/")
+	addDirToAtlas(atlasID, "modules/flowui/images/")
 	addDirToAtlas(atlasID, "luaui/images")
 	addDirToAtlas(atlasID, "luaui/images/advplayerslist")
 	addDirToAtlas(atlasID, "luaui/images/advplayerslist/flags")
