@@ -3,6 +3,7 @@ function widget:GetInfo()
     name      = "Snow GL4",
     desc      = "Lets it automaticly snow on snow maps! - also togglable with /snow  (remembers per map)",
     author    = "Floris, Beherith GL4",
+    author    = "Floris, Beherith GL4 (original: trepan, Argh)",
     date      = "2021.04.12",
     license   = "GNU GPL, v2 or later",
     layer     = -24,
@@ -11,20 +12,13 @@ function widget:GetInfo()
 end
 
 
+
 -- TODO:
 
 -- fix up for rain too? needs long ass vertical billboards for that
 -- fix pause and pregame time calcs
 
--- configurable params:
--- particle count --done
--- particle texture --done
--- particle size --done
--- particle gravity factor --done
--- particle wind factor --done
--- instance count --done
--- fadeout with alpha -- done
--- 
+
 --------------------------------------------------------------------------------
 -- /snow    -- toggles snow on current map (also remembers this)
 --------------------------------------------------------------------------------
@@ -38,18 +32,19 @@ local customParticleMultiplier  = 1
 local windMultiplier			= 4.5
 local maxWindSpeed				= 25		-- to keep it real
 local gameFrameCountdown		= 120		-- on launch: wait this many frames before adjusting the average fps calc
-local particleSize	= 2
-local particleSizeSpread	= 2 -- adds on top of particleSize
+local particleSize	= 1.2
+local particleSizeSpread	= 0.5 -- adds on top of particleSize
 local gravityMultiplier = 1.0
 local gravitySpread = 5 -- adds on top of Gravity Multiplier
 local snowFlakesPerInstance = 5000
-local maxInstances = 10
+local maxInstances = 20
 local snowTexture = "LuaUI/Images/snow.dds" -- would be superb if this was configurable mapside
 
 -- pregame info message
 local autoReduce = false
 
 local fpsDifference = (maxFps-minFps)/particleSteps		-- fps difference need before changing the dlist to one with fewer particles
+
 
 local snowKeywords = {'snow','frozen','cold','winter','ice','icy','arctic','frost','melt','glacier','mosh_pit','blindside','northernmountains','amarante','cervino','avalanche'}
 local snowMaps = {}
@@ -59,6 +54,7 @@ local snowVBO = nil
 local snowVBOSize = snowFlakesPerInstance -- we will create an ambitious 1000 flake vbo,
 local snowInstanceVBO = nil
 local snowInstanceVBOSize = maxInstances  -- And will modulate snowfall perf by the number of times we redraw the whole shebang
+
 local snowVAO = nil
 local snowShader = nil
 local shaderCompiled = nil
@@ -119,7 +115,7 @@ out DataVS {
 void main(void)
 {
 	vec3 scalePos = snowCoords.xyz *SCALE -2500 ;//* SCALE;
-  
+
   vec4 cameraPos = cameraViewInv[3]; // this is the camera position in world coords
 
 	vec3 pos = scalePos - mod(cameraPos.xyz, SCALE); // I think this tries put the camera and snow into the same world chunk
@@ -143,7 +139,9 @@ void main(void)
 
 ]]
 
+
 -- billboarding info: https://www.geeks3d.com/20140815/particle-billboarding-with-the-geometry-shader-glsl/
+
 local gsSrc = [[
 #version 420 core
 
@@ -168,7 +166,6 @@ layout(std140, binding = 0) uniform UniformMatrixBuffer {
 in DataVS {
 	//vec4 cameraPos;
   float cameraDist;
-  
   float instanceAlpha;
 } dataIn[];
 
@@ -229,6 +226,7 @@ local fsSrc = [[
 #version 420 core
 
 layout(binding = 0) uniform sampler2D colorTexture;
+
 in DataGS {
 	vec2 texCoord;
   float instanceAlpha;
@@ -253,7 +251,6 @@ snowMaps['sacrifice_v1'] = false
 snowMaps['xenolithic_v4'] = false
 snowMaps['thecoldplace'] = false
 
-
 local widgetDisabledSnow = false
 
 local startTimer = Spring.GetTimer()
@@ -261,6 +258,7 @@ local diffTime = 0
 
 local spGetFPS					= Spring.GetFPS
 local averageFps				= 60
+
 
 local offsetX = 0
 local offsetZ = 0
@@ -276,6 +274,7 @@ local particleDensityMax = 0
 local particleDensity = 0
 local previousParticleAmount = particleDensity
 
+
 ----------------------------------------------------------------
 
 local spGetWind            = Spring.GetWind
@@ -283,7 +282,7 @@ local glBlending           = gl.Blending
 local glDepthTest          = gl.DepthTest
 local glTexture            = gl.Texture
 
-----------------------------------------------------------------
+
 
 local windDirX, _, windDirZ, _ = spGetWind()
 local startOsClock = os.clock()
@@ -301,7 +300,6 @@ function widget:Shutdown()
 end
 
 -- creating multiple lists per particleType so we can switch to less particles without causing lag
-
 --------------------------------------------------------------------------------
 
 local function init()
@@ -333,6 +331,7 @@ local function init()
       snowVertices[#snowVertices+1] = math.random()
       snowVertices[#snowVertices+1] = math.random()
       snowVertices[#snowVertices+1] = particleSize + math.random() * particleSizeSpread
+
   end
   snowVBO:Upload(snowVertices)
 
@@ -523,6 +522,9 @@ function widget:DrawWorld()
 				offsetZ = offsetZ + ((windDirZ * windMultiplier) * timePassed)
 			end
 
+
+      glDepthTest(GL.ALWAYS)
+
       glDepthTest(GL.LEQUAL)
       glBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA) -- this allows blending darker colored snowflake types, not just lighter, e.g ash, volcanic snow, meterorites
       
@@ -541,6 +543,7 @@ function widget:DrawWorld()
       gl.Blending(GL.SRC_ALPHA, GL.ONE)
       glTexture(0,false)
       glDepthTest(GL.ALWAYS)
+
 		end
 	end
 end
