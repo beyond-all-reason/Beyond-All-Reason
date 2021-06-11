@@ -1,7 +1,8 @@
-function makeInstanceVBOTable(layout, maxElements, myName)
+function makeInstanceVBOTable(layout, maxElements, myName, unitIDattribID)
 	-- layout: this must be an array of tables with at least the following specified: {{id = 1, name = 'optional', size = 4}}
 	-- maxElements: will be dynamic anyway, but defaults to 64
 	-- myName: optional name, useful for debugging
+	-- unitIDattribID: the attribute ID in the layout of the uvec4 of unitID bindings (e.g. 4 for  {id = 4, name = 'instData', type = GL.UNSIGNED_INT, size= 4} )
 	-- returns: nil | instanceTable
 	if maxElements == nil then maxElements = 64 end -- default size
 	if myName == nil then myName = "InstanceVBOTable" end
@@ -20,19 +21,26 @@ function makeInstanceVBOTable(layout, maxElements, myName)
 		instanceData[i] = 0
 	end
 	local instanceTable = {
-		instanceVBO = newInstanceVBO,
-		instanceData = instanceData,
-		instanceStep = instanceStep,
-		usedElements = 0,
-		maxElements = maxElements,
-		myName = myName,
-		instanceIDtoIndex = {}, -- this maps each instance ID to where it is in the buffer, 1 based
-		indextoInstanceID = {}, -- this tells us what instanceID is located in any given pos
-		layout = layout,
-		dirty = false,
-		numVertices = 0,
-		primitiveType = GL.TRIANGLES,
+		instanceVBO 		= newInstanceVBO,
+		instanceData 		= instanceData,
+		instanceStep 		= instanceStep,
+		usedElements 		= 0,
+		maxElements 		= maxElements,
+		myName 				= myName,
+		instanceIDtoIndex 	= {}, -- this maps each instance ID to where it is in the buffer, 1 based
+		indextoInstanceID 	= {}, -- this tells us what instanceID is located in any given pos
+		layout 				= layout,
+		dirty 				= false,
+		numVertices 		= 0,
+		primitiveType 		= GL.TRIANGLES,
 	}
+	
+	if unitIDattribID ~= nil then
+		instanceTable.indextoUnitID = {}
+		instanceTable.unitIDattribID = unitIDattribID
+		
+	end
+	
 	newInstanceVBO:Upload(instanceData)
 	return instanceTable
 end
@@ -41,6 +49,8 @@ function clearInstanceTable(iT)
 	-- this wont resize it, but quickly sets it to empty
 	iT.usedElements = 0
 	iT.instanceIDtoIndex = {}
+	iT.indextoInstanceID = {}
+	if iT.indextoUnitID then iT.indextoUnitID = {} end
 end
 
 function makeVAOandAttach(vertexVBO, instanceVBO) -- return a VAO
@@ -67,19 +77,38 @@ function resizeInstanceVBOTable(iT)
 		iT.VAO = makeVAOandAttach(iT.vertexVBO,iT.instanceVBO)
 	end
 	Spring.Echo("instanceVBOTable full, resizing to double size",iT.myName, iT.usedElements,iT.maxElements)
-	--return nil
+	
+	if iT.indextoUnitID then
+		for index, unitID in ipairs(iT.indextoUnitID) do
+			iT.instanceVBO:InstanceDataFromUnitIDs({unitID}, iT.unitIDattribID, index-1)
+		end
+		-- OR:
+		--iT.instanceVBO:InstanceDataFromUnitIDs(iT.indextoUnitID, iT.unitIDattribID)
+	end
+	return iT.maxElements
 end
 
-function pushElementInstance(iT,thisInstance, instanceID, updateExisting, noUpload) 
+--[[ from Ivand:
+instVBO:Upload({
+        100, 0, 0,
+        -100, 0, 0,
+        0, 0, 100,
+        0, 0, -100,
+    }, 7, 1, 4, 6)
+Here is how you upload starting from 1st element and starting from 4th element in Lua array (-100) and finishing with 6th element (0), essentially it will upload (-100, 0, 0) into 7th attribute of 2nd instance.
+]]--
+
+function pushElementInstance(iT,thisInstance, instanceID, updateExisting, noUpload, unitID) 
 	-- iT: instanceTable created with makeInstanceTable
 	-- thisInstance: is a lua array of values to add to table, MUST BE INSTANCESTEP SIZED LUA ARRAY
 	-- instanceID: an optional key given to the item, so it can be easily removed/updated by reference, defaults to the index of the instance in the buffer (1 based)
 	-- updateExisting: allow updating an existing element (same instanceID key)
 	-- noUpload: prevent the VBO from being uploaded, if you feel like you are going to do a lot of ops and wish to manually upload when done instead
+	-- unitID: if given, it will store then unitID corresponding to this instance, and will try to update the InstanceDataFromUnitIDs for this unit
 	-- returns: the index of the instanceID in the table on success, else nil
 	local iTusedElements = iT.usedElements
 	local iTStep    = iT.instanceStep 
-	local endOffset = iTusedElements*iTStep
+	local endOffset = iTusedElements * iTStep
 	if instanceID == nil then instanceID = iTusedElements + 1 end
 	local thisInstanceIndex = iT.instanceIDtoIndex[instanceID] 
 
@@ -97,7 +126,7 @@ function pushElementInstance(iT,thisInstance, instanceID, updateExisting, noUplo
 			Spring.Echo("Tried to add existing element to an instanceTable",iT.myName, instanceID)
 			return nil
 		else
-			endOffset = (thisInstanceIndex - 1)*iTStep
+			endOffset = (thisInstanceIndex - 1) * iTStep
 		end
 	end
 	
@@ -106,10 +135,16 @@ function pushElementInstance(iT,thisInstance, instanceID, updateExisting, noUplo
 	end
 	
 	if noUpload ~= true then --upload or mark as dirty
-		iT.instanceVBO:Upload(thisInstance,nil,(thisInstanceIndex -1))
+		iT.instanceVBO:Upload(thisInstance, nil, thisInstanceIndex - 1)
+		if unitID ~= nil then --always upload?
+			iT.indextoUnitID[thisInstanceIndex] = unitID
+			--Spring.Echo("pushElementInstance,unitID, iT.unitIDattribID, thisInstanceIndex",unitID, iT.unitIDattribID, thisInstanceIndex)
+			iT.instanceVBO:InstanceDataFromUnitIDs({unitID}, iT.unitIDattribID, thisInstanceIndex-1)
+		end
 	else
 		iT.dirty = true
 	end
+	
 	
 	return thisInstanceIndex
 end
@@ -121,26 +156,31 @@ function popElementInstance(iT, instanceID, noUpload)
 	-- returns nil on failure, the the index of the element on success
 	if instanceID == nil then instanceID = iT.usedElements  end
 	
-	if iT.instanceIDtoIndex[instanceID] == nil then -- sanity
+	if iT.instanceIDtoIndex[instanceID] == nil then -- if key is instanceID yet does not exist, then warn and bail
 		Spring.Echo("Tried to remove element ",instanceID,'From instanceTable', iT.myName, 'but it does not exist in it')
 		return nil 
 	end
-	if iT.usedElements == 0 then -- sanity
+	if iT.usedElements == 0 then -- Dont remove the last element
 		Spring.Echo("Tried to remove element ",instanceID,'From instanceTable', iT.myName, 'but it should be empty')
 		return nil 
 	end
-	-- BUG BUG, while the data itself is being shuffled back, the instanceIDtoIndex is not being updated, as we dont know the last element being added?
+	
+	--Fetch the position of the element we want to remove from the 'middle' of the table
 	local oldElementIndex = iT.instanceIDtoIndex[instanceID]
 	iT.instanceIDtoIndex[instanceID] = nil -- clean these out
 	iT.indextoInstanceID[oldElementIndex] = nil 
 	
+	-- if it had a related unitID stored, remove that:
+
+	
 	-- get the data of the last ones:
 	local lastElementIndex = iT.usedElements
 	
-		-- if this one was already at the end of the queue, do nothing but decrement usedElements and clear mappings 
+	-- if this one was already at the end of the queue, do nothing but decrement usedElements and clear mappings 
 	if oldElementIndex == lastElementIndex then -- EARLY OPT DEVILRY BAD!
 		--Spring.Echo("Removed end element of instanceTable", iT.myName)
 		iT.usedElements = iT.usedElements - 1
+		if iT.indextoUnitID then iT.indextoUnitID[iT.usedElements] = nil end
 	else
 		local lastElementInstanceID = iT.indextoInstanceID[lastElementIndex]
 		local iTStep = iT.instanceStep
@@ -160,9 +200,19 @@ function popElementInstance(iT, instanceID, noUpload)
 		if noUpload ~= true then
 			--Spring.Echo("Upload", oldElementIndex -1, oldOffset+1, oldOffset+iTStep)
 			iT.instanceVBO:Upload(iT.instanceData,nil,oldElementIndex-1,oldOffset +1,oldOffset + iTStep)
+			-- Do the unitID shuffle if needed:
+			if iT.indextoUnitID then
+				--Spring.Echo("Shuffling",lastElementIndex,"->", oldElementIndex)
+				--Spring.Echo("popElementInstance,unitID, iT.unitIDattribID, thisInstanceIndex",unitID, iT.unitIDattribID, oldElementIndex)
+				local myunitID = iT.indextoUnitID[lastElementIndex]
+				iT.indextoUnitID[oldElementIndex] = myunitID
+				iT.indextoUnitID[lastElementIndex] = nil
+				iT.instanceVBO:InstanceDataFromUnitIDs({myunitID}, iT.unitIDattribID, oldElementIndex-1)
+			end
 		else
 			iT.dirty = true
 		end
+		
 		iT.usedElements = iT.usedElements - 1
 	end
 end
@@ -184,6 +234,9 @@ end
 function uploadAllElements(iT)
   -- upload all USED elements
   iT.instanceVBO:Upload(iT.instanceData,nil,0, 1, iT.usedElements * iT.instanceStep)
+  if iT.indextoUnitID then
+		iT.instanceVBO:InstanceDataFromUnitIDs(iT.indextoUnitID, iT.unitIDattribID)
+	end
 end
 
 function drawInstanceVBO(iT)
@@ -258,7 +311,7 @@ function makeRectVBO(minX,minY, maxX, maxY, minU, minV, maxU, maxV)
 	end
 	-- makes points with xyzw
 	-- can be used in both GL.LINES and GL.TRIANGLE_FAN mode
-	local rectVBO = gl.GetVBO(GL.ARRAY_BUFFER,true)
+	local rectVBO = gl.GetVBO(GL.ARRAY_BUFFER,false)
 	if rectVBO == nil then return nil end
 	
 	local VBOLayout = {
@@ -282,6 +335,18 @@ function makeRectVBO(minX,minY, maxX, maxY, minU, minV, maxU, maxV)
 	rectVBO:Upload(VBOData)
 	return rectVBO, 6
 end
+
+function makeRectIndexVBO()
+	local rectIndexVBO = gl.GetVBO(GL.ELEMENT_ARRAY_BUFFER,false)
+	if rectIndexVBO == nil then return nil end
+	
+	rectIndexVBO:Define(
+		6
+	)
+	rectIndexVBO:Upload({0,1,2,3,4,5})
+	return rectIndexVBO,6
+end
+
 
 
 function makeConeVBO(numSegments, height, radius) 
