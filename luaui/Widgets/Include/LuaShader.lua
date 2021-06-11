@@ -55,50 +55,66 @@ end
 
 local function GetEngineUniformBufferDefs()
     local eubs = [[
-  layout(std140, binding = 0) uniform UniformMatrixBuffer {
-	mat4 screenView;
-	mat4 screenProj;
-	mat4 screenViewProj;
+layout(std140, binding = 0) uniform UniformMatrixBuffer {
+    mat4 screenView;
+    mat4 screenProj;
+    mat4 screenViewProj;
 
-	mat4 cameraView;
-	mat4 cameraProj;
-	mat4 cameraViewProj;
-	mat4 cameraBillboardProj;
+    mat4 cameraView;
+    mat4 cameraProj;
+    mat4 cameraViewProj;
+    mat4 cameraBillboardView;
 
-	mat4 cameraViewInv;
-	mat4 cameraProjInv;
-	mat4 cameraViewProjInv;
+    mat4 cameraViewInv;
+    mat4 cameraProjInv;
+    mat4 cameraViewProjInv;
 
-	mat4 shadowView;
-	mat4 shadowProj;
-	mat4 shadowViewProj;
+    mat4 shadowView;
+    mat4 shadowProj;
+    mat4 shadowViewProj;
+
+    mat4 orthoProj01;
+
+    // transforms for [0] := Draw, [1] := DrawInMiniMap, [2] := Lua DrawInMiniMap
+    mat4 mmDrawView; //world to MM
+    mat4 mmDrawProj; //world to MM
+    mat4 mmDrawViewProj; //world to MM
+
+    mat4 mmDrawIMMView; //heightmap to MM
+    mat4 mmDrawIMMProj; //heightmap to MM
+    mat4 mmDrawIMMViewProj; //heightmap to MM
+
+    mat4 mmDrawDimView; //mm dims
+    mat4 mmDrawDimProj; //mm dims
+    mat4 mmDrawDimViewProj; //mm dims
 };
 
 layout(std140, binding = 1) uniform UniformParamsBuffer {
-	vec3 rndVec3; //new every draw frame.
-	uint renderCaps; //various render booleans
+    vec3 rndVec3; //new every draw frame.
+    uint renderCaps; //various render booleans
 
-	vec4 timeInfo; //gameFrame, gameSeconds, drawFrame, frameTimeOffset
-	vec4 viewGeometry; //vsx, vsy, vpx, vpy
-	vec4 mapSize; //xz, xzPO2
+    vec4 timeInfo; //gameFrame, gameSeconds, drawFrame, frameTimeOffset
+    vec4 viewGeometry; //vsx, vsy, vpx, vpy
+    vec4 mapSize; //xz, xzPO2
+    vec4 mapHeight; //height minCur, maxCur, minInit, maxInit
 
-	vec4 fogColor; //fog color
-	vec4 fogParams; //fog {start, end, 0.0, scale}
-	
-	vec4 sunAmbientModel;
-	vec4 sunAmbientMap;
-	vec4 sunDiffuseModel;
-	vec4 sunDiffuseMap;
-	vec4 sunSpecularModel;
-	vec4 sunSpecularMap;
+    vec4 fogColor; //fog color
+    vec4 fogParams; //fog {start, end, 0.0, scale}
+    
+    vec4 sunAmbientModel;
+    vec4 sunAmbientMap;
+    vec4 sunDiffuseModel;
+    vec4 sunDiffuseMap;
+    vec4 sunSpecularModel;
+    vec4 sunSpecularMap;
 
-	vec4 windInfo; // windx, windy, windz, windStrength
-	vec2 mouseScreenPos; //x, y. Screen space.
-	uint mouseStatus; // bits 0th to 32th: LMB, MMB, RMB, offscreen, mmbScroll, locked
-	uint mouseUnused;
-	vec4 mouseWorldPos; //x,y,z; w=0 -- offmap. Ignores water, doesn't ignore units/features under the mouse cursor
+    vec4 windInfo; // windx, windy, windz, windStrength
+    vec2 mouseScreenPos; //x, y. Screen space.
+    uint mouseStatus; // bits 0th to 32th: LMB, MMB, RMB, offscreen, mmbScroll, locked
+    uint mouseUnused;
+    vec4 mouseWorldPos; //x,y,z; w=0 -- offmap. Ignores water, doesn't ignore units/features under the mouse cursor
 
-	vec4 teamColor[32]; //all team colors
+    vec4 teamColor[255]; //all team colors
 };
 
 // glsl rotate convencience funcs: https://github.com/dmnsgn/glsl-rotate
