@@ -17,7 +17,7 @@ end
 
 function widget:GetInfo()
 	return {
-		name = "Frame Grapher V2",
+		name = "Frame Grapher GL4",
 		desc = "Draw frame time graph in bottom right",
 		author = "Beherith",
 		date = "2021.mar.29",
@@ -64,7 +64,8 @@ out DataVS {
 };
 
 void main() {
-	gl_Position = vec4(coords.xy, 0.0, 1.0);
+
+	gl_Position = vec4(coords.xy * 2.0 - 1.0, 0.0, 1.0);
 	rectColor = vec4(1.0,0.0,1.0,0.0);
   rectPos = vec2(coords.xy);
 }
@@ -145,7 +146,7 @@ function widget:Initialize()
          }
        }
      )
-  rectInstanceVBO:Upload({1},0) -- First param is our data, second is the index
+  rectInstanceVBO:Upload({1},1) -- First param is our data, second is the index
   
   rectVAO:AttachVertexBuffer(rectVertexVBO) -- Attach the vertex data to the VAO, only attach once!
   rectVAO:AttachInstanceBuffer(rectInstanceVBO) -- Attach the instance data to the VAO
@@ -260,9 +261,9 @@ function widget:DrawScreen()
   if rectVertexVBOPTR <1 then return end -- bail out, empty VBOS do not like being defined or uploaded or drawn!
   
  
-   if numdeltats % 600 ==0 then
+  -- if numdeltats % 600 ==0 then
     rectVertexVBO:Upload(rectVertexVBOTable,0) -- The second param is probably an offset into the VBO
-  end
+  --end
    
    -- We should be setting uniforms before activate, but I think I have none yet
    rectShader:Activate()
