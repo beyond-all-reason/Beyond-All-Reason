@@ -181,15 +181,37 @@ customDefs.armcom = {
 customDefs.armdecom = {
 	decoyfor = "armcom_scav",
 }
+
 customDefs.cordecom = {
 	decoyfor = "cordecom_scav",
 }
+
 customDefs.armclaw = {
-	decoyfor = "armdrag_scav"
+	buildpic = "SCAVDTL.PNG",
+	objectname = "scavs/SCAVDTL.s3o",
+	script = "units/scavbuildings/SCAVDTL.cob",
+	featuredefs = {
+		dead = {
+			object = "scavs/scavdrag.s3o",
+		},
+	},
+	
+	decoyfor = "armdrag_scav",
 }
+
 customDefs.cormaw = {
+	buildpic = "SCAVDTF.PNG",
+	objectname = "scavs/SCAVDTF.s3o",
+	script = "units/scavbuildings/SCAVDTF.cob",
+	featuredefs = {
+		dead = {
+			object = "scavs/scavdrag.s3o",
+		},
+	},
+
 	decoyfor = "cordrag_scav"
 }
+
 customDefs.armdf = {
 	decoyfor = "armfus_scav"
 }
