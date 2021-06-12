@@ -1898,28 +1898,36 @@ function widgetHandler:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyze
 	return
 end
 
-function widgetHandler:UnitEnteredRadar(unitID, unitTeam, allyTeam, unitDefID)
+function widgetHandler:UnitEnteredRadar(unitID, allyTeam)
+  local unitTeam = Spring.GetUnitTeam(unitID)
+  local unitDefID = Spring.GetUnitDefID(unitID)
 	for _, w in ipairs(self.UnitEnteredRadarList) do
 		w:UnitEnteredRadar(unitID, unitTeam)
 	end
 	return
 end
 
-function widgetHandler:UnitEnteredLos(unitID, unitTeam, allyTeam, unitDefID)
+function widgetHandler:UnitEnteredLos(unitID, allyTeam)
+  local unitTeam = Spring.GetUnitTeam(unitID)
+  local unitDefID = Spring.GetUnitDefID(unitID)
 	for _, w in ipairs(self.UnitEnteredLosList) do
 		w:UnitEnteredLos(unitID, unitTeam, allyTeam, unitDefID)
 	end
 	return
 end
 
-function widgetHandler:UnitLeftRadar(unitID, unitTeam, allyTeam, unitDefID)
+function widgetHandler:UnitLeftRadar(unitID, allyTeam)
+  local unitTeam = Spring.GetUnitTeam(unitID)
+  local unitDefID = Spring.GetUnitDefID(unitID)
 	for _, w in ipairs(self.UnitLeftRadarList) do
 		w:UnitLeftRadar(unitID, unitTeam, allyTeam, unitDefID)
 	end
 	return
 end
 
-function widgetHandler:UnitLeftLos(unitID, unitTeam, allyTeam, unitDefID)
+function widgetHandler:UnitLeftLos(unitID, allyTeam)
+  local unitTeam = Spring.GetUnitTeam(unitID)
+  local unitDefID = Spring.GetUnitDefID(unitID)
 	for _, w in ipairs(self.UnitLeftLosList) do
 		w:UnitLeftLos(unitID, unitTeam, allyTeam, unitDefID)
 	end
