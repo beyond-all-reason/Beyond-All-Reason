@@ -418,5 +418,18 @@ function BPWallOrPopup(faction)
 		else
 			return UDN.cordrag_scav.id
 		end
+	elseif faction == "scav" then
+		if r == 0 then
+			local r2 = math.random(1,3)
+			if r2 == 1 then
+				return UDN.corscavdtf_scav.id
+			elseif r2 == 2 then
+				return UDN.corscavdtl_scav.id
+			elseif r2 == 3 then
+				return UDN.corscavdtm_scav.id
+			end
+		else
+			return UDN.corscavdrag_scav.id
+		end
 	end
 end

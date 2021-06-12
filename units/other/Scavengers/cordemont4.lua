@@ -4,10 +4,10 @@ return {
 	cordemont4 = {
 		acceleration = 0.2208,
 		brakerate = 1,
-		buildcostenergy = 320000,
-		buildcostmetal = 30000,
+		buildcostenergy = 250000,
+		buildcostmetal = 25000,
 		buildpic = "CORKARGCLASSIC.PNG",
-		buildtime = 320000,
+		buildtime = 250000,
 		canmove = true,
 		category = "BOT WEAPON ALL NOTSUB NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0.0 0.0 0.1",

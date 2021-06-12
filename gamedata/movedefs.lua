@@ -487,7 +487,7 @@ local moveDatas = {
 	
 	-- Scavenger Boss units
 	SCAVCOMMANDERBOT = {
-		crushstrength = 9999,
+		crushstrength = 50,
 		depthModParams = {
 			minHeight = 0,
 			maxScale = 1.5,

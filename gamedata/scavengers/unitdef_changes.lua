@@ -190,6 +190,9 @@ customDefs.armclaw = {
 	buildpic = "SCAVDTL.PNG",
 	objectname = "scavs/SCAVDTL.s3o",
 	script = "units/scavbuildings/SCAVDTL.cob",
+	customparams = {
+		normaltex = "unittextures/Cor_normal.dds",
+	},
 	featuredefs = {
 		dead = {
 			object = "scavs/scavdrag.s3o",
@@ -223,6 +226,9 @@ customDefs.armfort = {
 	corpse = "ROCKTEETHX",
 	objectname = "scavs/SCAVFORT.s3o",
 	script = "scavs/SCAVFORT.cob",
+	customparams = {
+		normaltex = "unittextures/Cor_normal.dds",
+	},
 }
 
 customDefs.corfort = {
@@ -232,6 +238,7 @@ customDefs.corfort = {
 	corpse = "ROCKTEETHX",
 	objectname = "scavs/SCAVFORT.s3o",
 	script = "scavs/SCAVFORT.cob",
+	
 }
 
 customDefs.armdrag = {
@@ -241,6 +248,9 @@ customDefs.armdrag = {
 	corpse = "ROCKTEETH",
 	objectname = "scavs/scavdrag.s3o",
 	script = "Units/cordrag.cob",
+	customparams = {
+		normaltex = "unittextures/Cor_normal.dds",
+	},
 }
 
 customDefs.cordrag = {
@@ -642,12 +652,73 @@ customDefs.armasy = {
 	},
 }
 
+numBuildoptions = #UnitDefs.armca.buildoptions
+customDefs.armaca = {
+	buildoptions = {
+		[numBuildoptions+1] = "corscavdrag",
+		[numBuildoptions+2] = "corscavdtl",
+		[numBuildoptions+3] = "corscavdtf",
+		[numBuildoptions+4] = "corscavdtm",
+	},
+}
+
+numBuildoptions = #UnitDefs.armck.buildoptions
+customDefs.armaca = {
+	buildoptions = {
+		[numBuildoptions+1] = "corscavdrag",
+		[numBuildoptions+2] = "corscavdtl",
+		[numBuildoptions+3] = "corscavdtf",
+		[numBuildoptions+4] = "corscavdtm",
+	},
+}
+
+numBuildoptions = #UnitDefs.armcv.buildoptions
+customDefs.armaca = {
+	buildoptions = {
+		[numBuildoptions+1] = "corscavdrag",
+		[numBuildoptions+2] = "corscavdtl",
+		[numBuildoptions+3] = "corscavdtf",
+		[numBuildoptions+4] = "corscavdtm",
+	},
+}
+
+numBuildoptions = #UnitDefs.corca.buildoptions
+customDefs.armaca = {
+	buildoptions = {
+		[numBuildoptions+1] = "corscavdrag",
+		[numBuildoptions+2] = "corscavdtl",
+		[numBuildoptions+3] = "corscavdtf",
+		[numBuildoptions+4] = "corscavdtm",
+	},
+}
+
+numBuildoptions = #UnitDefs.corck.buildoptions
+customDefs.armaca = {
+	buildoptions = {
+		[numBuildoptions+1] = "corscavdrag",
+		[numBuildoptions+2] = "corscavdtl",
+		[numBuildoptions+3] = "corscavdtf",
+		[numBuildoptions+4] = "corscavdtm",
+	},
+}
+
+numBuildoptions = #UnitDefs.corcv.buildoptions
+customDefs.armaca = {
+	buildoptions = {
+		[numBuildoptions+1] = "corscavdrag",
+		[numBuildoptions+2] = "corscavdtl",
+		[numBuildoptions+3] = "corscavdtf",
+		[numBuildoptions+4] = "corscavdtm",
+	},
+}
+
 numBuildoptions = #UnitDefs.armaca.buildoptions
 customDefs.armaca = {
 	buildoptions = {
 		[numBuildoptions+1] = "armapt3",
 		[numBuildoptions+2] = "armminivulc",
 		[numBuildoptions+3] = "armwint2",
+		[numBuildoptions+4] = "corscavfort",
 	},
 }
 
@@ -657,6 +728,7 @@ customDefs.armack = {
 		[numBuildoptions+1] = "armapt3",
 		[numBuildoptions+2] = "armminivulc",
 		[numBuildoptions+3] = "armwint2",
+		[numBuildoptions+4] = "corscavfort",
 	},
 }
 
@@ -666,6 +738,7 @@ customDefs.armacv = {
 		[numBuildoptions+1] = "armapt3",
 		[numBuildoptions+2] = "armminivulc",
 		[numBuildoptions+3] = "armwint2",
+		[numBuildoptions+4] = "corscavfort",
 	},
 }
 
@@ -676,6 +749,7 @@ customDefs.coraca = {
 		[numBuildoptions+2] = "corminibuzz",
 		[numBuildoptions+3] = "corwint2",
 		[numBuildoptions+4] = "corhllllt",
+		[numBuildoptions+5] = "corscavfort",
 	},
 }
 
@@ -686,6 +760,7 @@ customDefs.corack = {
 		[numBuildoptions+2] = "corminibuzz",
 		[numBuildoptions+3] = "corwint2",
 		[numBuildoptions+4] = "corhllllt",
+		[numBuildoptions+5] = "corscavfort",
 	},
 }
 
@@ -696,6 +771,7 @@ customDefs.coracv = {
 		[numBuildoptions+2] = "corminibuzz",
 		[numBuildoptions+3] = "corwint2",
 		[numBuildoptions+4] = "corhllllt",
+		[numBuildoptions+5] = "corscavfort",
 	},
 }
 

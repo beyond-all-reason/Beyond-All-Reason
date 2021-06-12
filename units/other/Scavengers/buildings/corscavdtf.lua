@@ -1,7 +1,7 @@
-local unitName = Spring.I18N('units.names.scavdtf')
+local unitName = Spring.I18N('units.names.corscavdtf')
 
 return {
-	scavdtf = {
+	corscavdtf = {
 		acceleration = 0,
 		buildangle = 8192,
 		buildcostenergy = 1550,
@@ -44,7 +44,7 @@ return {
 		upright = true,
 		usebuildinggrounddecal = true,
 		customparams = {
-			decoyfor = "scavdrag",
+			decoyfor = "corscavdrag",
 			model_author = "FireStorm",
 			normaltex = "unittextures/cor_normal.dds",
 			removewait = true,
