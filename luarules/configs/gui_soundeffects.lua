@@ -2076,8 +2076,8 @@ GUIUnitSoundEffects = {
 		BaseSoundWeaponType = "air-bomb-large-torp",
 	},
 	corcrw = {
-		BaseSoundSelectType = "arm-air-gunship-sel",
-		BaseSoundMovementType = "arm-air-gunship-ok",
+		BaseSoundSelectType = "cor-air-gunship-large-sel",
+		BaseSoundMovementType = "cor-air-gunship-large-ok",
 		BaseSoundWeaponType = "laser-large",
 	},
 
