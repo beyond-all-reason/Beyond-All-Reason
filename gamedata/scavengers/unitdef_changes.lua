@@ -601,7 +601,7 @@ customDefs.armasy = {
 }
 
 numBuildoptions = #UnitDefs.armca.buildoptions
-customDefs.armaca = {
+customDefs.armca = {
 	buildoptions = {
 		[numBuildoptions+1] = "corscavdrag",
 		[numBuildoptions+2] = "corscavdtl",
@@ -611,7 +611,7 @@ customDefs.armaca = {
 }
 
 numBuildoptions = #UnitDefs.armck.buildoptions
-customDefs.armaca = {
+customDefs.armck = {
 	buildoptions = {
 		[numBuildoptions+1] = "corscavdrag",
 		[numBuildoptions+2] = "corscavdtl",
@@ -621,7 +621,7 @@ customDefs.armaca = {
 }
 
 numBuildoptions = #UnitDefs.armcv.buildoptions
-customDefs.armaca = {
+customDefs.armcv = {
 	buildoptions = {
 		[numBuildoptions+1] = "corscavdrag",
 		[numBuildoptions+2] = "corscavdtl",
@@ -631,7 +631,7 @@ customDefs.armaca = {
 }
 
 numBuildoptions = #UnitDefs.corca.buildoptions
-customDefs.armaca = {
+customDefs.corca = {
 	buildoptions = {
 		[numBuildoptions+1] = "corscavdrag",
 		[numBuildoptions+2] = "corscavdtl",
@@ -641,7 +641,7 @@ customDefs.armaca = {
 }
 
 numBuildoptions = #UnitDefs.corck.buildoptions
-customDefs.armaca = {
+customDefs.corck = {
 	buildoptions = {
 		[numBuildoptions+1] = "corscavdrag",
 		[numBuildoptions+2] = "corscavdtl",
@@ -651,7 +651,7 @@ customDefs.armaca = {
 }
 
 numBuildoptions = #UnitDefs.corcv.buildoptions
-customDefs.armaca = {
+customDefs.corcv = {
 	buildoptions = {
 		[numBuildoptions+1] = "corscavdrag",
 		[numBuildoptions+2] = "corscavdtl",
