@@ -258,8 +258,10 @@ function widget:Shutdown()
 end
 
 function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
-	unitList[unitID] = nil
-	popElementInstance(circleInstanceVBO,unitID)
+  if 	unitList[unitID] then
+    unitList[unitID] = nil
+    popElementInstance(circleInstanceVBO,unitID)
+  end
 end
 
 function widget:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
