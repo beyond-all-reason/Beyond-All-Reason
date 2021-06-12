@@ -187,79 +187,27 @@ customDefs.cordecom = {
 }
 
 customDefs.armclaw = {
-	buildpic = "SCAVDTL.PNG",
-	objectname = "scavs/SCAVDTL.s3o",
-	script = "units/scavbuildings/SCAVDTL.cob",
-	customparams = {
-		normaltex = "unittextures/Cor_normal.dds",
-	},
-	featuredefs = {
-		dead = {
-			object = "scavs/scavdrag.s3o",
-		},
-	},
-	
 	decoyfor = "armdrag_scav",
 }
 
 customDefs.cormaw = {
-	buildpic = "SCAVDTF.PNG",
-	objectname = "scavs/SCAVDTF.s3o",
-	script = "units/scavbuildings/SCAVDTF.cob",
-	featuredefs = {
-		dead = {
-			object = "scavs/scavdrag.s3o",
-		},
-	},
-
-	decoyfor = "cordrag_scav"
+	decoyfor = "cordrag_scav",
 }
 
 customDefs.armdf = {
-	decoyfor = "armfus_scav"
+	decoyfor = "armfus_scav",
 }
 
-customDefs.armfort = {
-	collisionvolumeoffsets = "0 -3 0",
-	collisionvolumescales = "32 50 32",
-	collisionvolumetype = "CylY",
-	corpse = "ROCKTEETHX",
-	objectname = "scavs/SCAVFORT.s3o",
-	script = "scavs/SCAVFORT.cob",
-	customparams = {
-		normaltex = "unittextures/Cor_normal.dds",
-	},
+customDefs.corscavdtf = {
+	decoyfor = "corscavdrag_scav",
 }
 
-customDefs.corfort = {
-	collisionvolumeoffsets = "0 -3 0",
-	collisionvolumescales = "32 50 32",
-	collisionvolumetype = "CylY",
-	corpse = "ROCKTEETHX",
-	objectname = "scavs/SCAVFORT.s3o",
-	script = "scavs/SCAVFORT.cob",
-	
+customDefs.corscavdtm = {
+	decoyfor = "corscavdrag_scav",
 }
 
-customDefs.armdrag = {
-	collisionvolumeoffsets = "0 0 0",
-	collisionvolumescales = "32 22 32",
-	collisionvolumetype = "CylY",
-	corpse = "ROCKTEETH",
-	objectname = "scavs/scavdrag.s3o",
-	script = "Units/cordrag.cob",
-	customparams = {
-		normaltex = "unittextures/Cor_normal.dds",
-	},
-}
-
-customDefs.cordrag = {
-	collisionvolumeoffsets = "0 0 0",
-	collisionvolumescales = "32 22 32",
-	collisionvolumetype = "CylY",
-	corpse = "ROCKTEETH",
-	objectname = "scavs/scavdrag.s3o",
-	script = "Units/cordrag.cob",
+customDefs.corscavdtl = {
+	decoyfor = "corscavdrag_scav",
 }
 
 -- M/E storages T1 give rewarding amounts of metal / energy for reclaim
