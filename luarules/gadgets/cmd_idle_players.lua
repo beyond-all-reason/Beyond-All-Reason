@@ -23,6 +23,12 @@ minTimeToTake = Spring.GetModOptions().startpostype == 2 and 1 or minTimeToTake
 local AFKMessage = 'idleplayers '
 local AFKMessageSize = #AFKMessage
 
+local errorKeys = {
+	shareAFK = 'shareAFK',
+	takeEnemies = 'takeEnemies',
+	nothingToTake = 'nothingToTake',
+}
+
 if gadgetHandler:IsSyncedCode() then
 	
 	-----------------
@@ -43,9 +49,6 @@ if gadgetHandler:IsSyncedCode() then
 	local GetTeamUnits = Spring.GetTeamUnits
 	local GetTeamInfo = Spring.GetTeamInfo
 	local GetTeamList = Spring.GetTeamList
-	local SendMessageToPlayer = Spring.SendMessageToPlayer
-	local SendMessageToAllyTeam = Spring.SendMessageToAllyTeam
-	local Echo = Spring.Echo
 	local IsCheatingEnabled = Spring.IsCheatingEnabled
 
 	local resourceList = {"metal","energy"}
@@ -111,9 +114,9 @@ if gadgetHandler:IsSyncedCode() then
 			playerInfoTableEntry.pingOK = ping < pingTreshold
 			if not spectator then
 				if oldPingOk and not playerInfoTableEntry.pingOK then
-					Echo("Player " .. name .. " is lagging behind")
+					SendToUnsynced("PlayerLagging", name)
 				elseif oldPingOk == false and playerInfoTableEntry.pingOK and playerInfoTableEntry.connected then
-					Echo("Player " .. name .. " has finished resuming")
+					SendToUnsynced("PlayerResumed", name)
 				end
 			end
 			if playerInfoTableEntry.present == nil then
@@ -145,7 +148,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	local function takeTeam(cmd, line, words, playerID)
 		if not CheckPlayerState(playerID) then
-			SendMessageToPlayer(playerID,"Cannot share to afk players")
+			SendToUnsynced("NotifyError", playerID, errorKeys.shareAFK)
 			return -- exclude taking rights from lagged players, etc
 		end
 		local targetTeam = tonumber(words[1])
@@ -154,7 +157,7 @@ if gadgetHandler:IsSyncedCode() then
 		if targetTeam then
 			if select(6,GetTeamInfo(targetTeam,false)) ~= allyTeamID then
 				--don't let enemies take
-				SendMessageToPlayer(playerID,"Cannot take enemy players")
+				SendToUnsynced("NotifyError", playerID, errorKeys.takeEnemies)
 				return
 			end
 			teamList = {targetTeam}
@@ -178,7 +181,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 		if numToTake == 0 then
-			SendMessageToPlayer(playerID,"Nothing to take")
+			SendToUnsynced("NotifyError", playerID, errorKeys.nothingToTake)
 		end
 	end
 
@@ -195,7 +198,7 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:GameFrame(currentFrame)
 		currentGameFrame = currentFrame
 		if currentFrame == 10 then
-			SendToUnsynced("onGameStart")
+			SendToUnsynced("OnGameStart")
 		end
 		if currentFrame%15 ~= 0 then
 			return
@@ -216,9 +219,9 @@ if gadgetHandler:IsSyncedCode() then
 		if not spectator and name ~= nil then
 			if currentGameFrame > minTimeToTake*gameSpeed then
 				if previousPresent and not playerInfoTableEntry.present then
-					SendMessageToAllyTeam(allyTeamID,"Player " .. name .. " went AFK")
+					SendToUnsynced("PlayerAFK", allyTeamID, name)
 				elseif not previousPresent and playerInfoTableEntry.present then
-					SendMessageToAllyTeam(allyTeamID,"Player " .. name .. " came back")
+					SendToUnsynced("PlayerReturned", allyTeamID, name)
 				end
 			end
 		end
@@ -301,14 +304,40 @@ else
 		end
 	end
 
+	local function notifyError(_, playerID, errorKey)
+		local translationKey = 'ui.idlePlayers.' .. errorKey
+		Spring.SendMessageToPlayer(playerID, Spring.I18N(translationKey))
+	end
+
+	local function playerLagging(_, playerName)
+		Spring.Echo(Spring.I18N('ui.idlePlayers.lagging', { name = playerName }))
+	end
+
+	local function playerResumed(_, playerName)
+		Spring.Echo(Spring.I18N('ui.idlePlayers.resumed', { name = playerName }))
+	end
+
+	local function playerAFK(_, allyTeamID, playerName)
+		Spring.SendMessageToAllyTeam(allyTeamID, Spring.I18N('ui.idlePlayers.afk', { name = playerName }))
+	end
+
+	local function playerReturned(_, allyTeamID, playerName)
+		Spring.SendMessageToAllyTeam(allyTeamID, Spring.I18N('ui.idlePlayers.returned', { name = playerName }))
+	end
+
 	function gadget:Initialize()
-		gadgetHandler:AddSyncAction("onGameStart", onGameStart)
+		gadgetHandler:AddSyncAction("OnGameStart", onGameStart)
+		gadgetHandler:AddSyncAction("NotifyError", notifyError)
+		gadgetHandler:AddSyncAction("PlayerLagging", playerLagging)
+		gadgetHandler:AddSyncAction("PlayerResumed", playerResumed)
+		gadgetHandler:AddSyncAction("PlayerAFK", playerAFK)
+		gadgetHandler:AddSyncAction("PlayerReturned", playerReturned)
 		gadgetHandler:AddChatAction("initialQueueTime",onInitialQueueTime)
 	end
 
 	function gadget:Shutdown()
-		gadgetHandler:RemoveChatAction('initialQueueTime')
-		gadgetHandler:RemoveSyncAction("onGameStart")
+		gadgetHandler:RemoveChatAction("initialQueueTime")
+		gadgetHandler:RemoveSyncAction("OnGameStart")
 	end
 
 	function gadget:Update()
@@ -320,7 +349,6 @@ else
 		end
 		updateTimer = 0
 
-		--
 		if checkQueueTime and GetGameSeconds() > checkQueueTime then
 			local teamID = Spring.GetMyTeamID()
 			local myUnits = Spring.GetTeamUnits(teamID)

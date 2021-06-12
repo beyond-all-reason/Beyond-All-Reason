@@ -578,9 +578,18 @@ return {
 				unblock = 'Showing map drawing from %{player}',
 			},
 			dynamicAlly = {
-				create = "%{player} has allied with you.",
-				destroy = "%{player} broke their alliance with you.",
-				backstab = "%{player} attempted to attack you!",
+				create = '%{player} has allied with you.',
+				destroy = '%{player} broke their alliance with you.',
+				backstab = '%{player} attempted to attack you!',
+			},
+			idlePlayers = {
+				shareAFK = 'Cannot share to afk players',
+				takeEnemies = 'Cannot take enemy players',
+				nothingToTake = 'Nothing to take',
+				lagging = '%{name} is lagging behind',
+				resumed = '%{name} has finished resuming',
+				afk = '%{name} went AFK',
+				returned = '%{name} came back',
 			},
 		}
 	}
