@@ -1,7 +1,7 @@
 function widget:GetInfo()
   return {
     name      = "Logo adjuster",
-    desc      = "Changes taskbar logo",
+    desc      = "Changes taskbar icon",
     author    = "Floris",
     date      = "June 2021",
     layer     = 0,
@@ -12,13 +12,14 @@ end
 local doNotify = true
 local doBlink = true
 
-local imagePlain = "bitmaps/logo.png"
-local imageBattle = "bitmaps/logo_battle.png"
-local imageBattleNotif = "bitmaps/logo_battlenotif.png"
-local imageBattleNotif2 = "bitmaps/logo_battlenotif2.png"
-local imageBattlePaused = "bitmaps/logo_battlepaused.png"
-local imageBattlePausedNotif = "bitmaps/logo_battlepausednotif.png"
-local imageBattlePausedNotif2 = "bitmaps/logo_battlepausednotif2.png"
+local imgPrefix = 'bitmaps/logo'
+local imagePlain = ".png"
+local imageBattle = ".png"
+local imageBattleNotif = "_notif.png"
+local imageBattleNotif2 = "_notif2.png"
+local imageBattlePaused = "_battlepaused.png"
+local imageBattlePausedNotif = "_battlepausednotif.png"
+local imageBattlePausedNotif2 = "_battlepausednotif2.png"
 
 local previousGameFrame = Spring.GetGameFrame()
 local paused = false
@@ -26,11 +27,16 @@ local notif = false
 local blink = false
 local sec = 0
 
+local faction = '_a'
+if UnitDefs[Spring.GetTeamRulesParam(Spring.GetMyTeamID(), 'startUnit')].name == 'corcom' then
+	faction = '_c'
+end
+
 local mouseOffscreen = select(6, Spring.GetMouseState())
 local prevMouseOffscreen = mouseOffscreen
 
 function widget:Initialize()
-    Spring.SetWMIcon(imageBattle)
+    Spring.SetWMIcon(imgPrefix..faction..imageBattle)
 	WG.logo = {}
 	WG.logo.mention = function()
 		if mouseOffscreen then
@@ -40,7 +46,7 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
-    Spring.SetWMIcon(imagePlain)
+    Spring.SetWMIcon(imgPrefix..imagePlain)
 end
 
 -- possibly display gameover/trophy icon when being the winner?
@@ -57,15 +63,25 @@ function widget:Update(dt)
 		if gameFrame > 0 then
 			if not paused then
 				if gameFrame == previousGameFrame then
-					Spring.SetWMIcon(imageBattlePaused)
+					Spring.SetWMIcon(imgPrefix..faction..imageBattlePaused)
 					paused = true
 
 				end
 			else
 				if gameFrame ~= previousGameFrame then
-					Spring.SetWMIcon(imageBattle)
+					Spring.SetWMIcon(imgPrefix..faction..imageBattle)
 					paused = false
 				end
+			end
+		else
+			local prevFaction = faction
+			if UnitDefs[Spring.GetTeamRulesParam(Spring.GetMyTeamID(), 'startUnit')].name == 'corcom' then
+				faction = '_c'
+			else
+				faction = '_a'
+			end
+			if prevFaction ~= faction then
+				Spring.SetWMIcon(imgPrefix..faction..imageBattle)
 			end
 		end
 		previousGameFrame = gameFrame
@@ -77,15 +93,15 @@ function widget:Update(dt)
 			if not mouseOffscreen then
 				if prevMouseOffscreen then
 					notif = false
-					Spring.SetWMIcon(paused and imageBattlePaused or imageBattle)
+					Spring.SetWMIcon(imgPrefix..faction..(paused and imageBattlePaused or imageBattle))
 				end
 			else
 				blink = not blink
 				if mouseOffscreen and notif then
 					if paused then
-						Spring.SetWMIcon((doBlink and blink) and imageBattlePausedNotif2 or imageBattlePausedNotif)
+						Spring.SetWMIcon(imgPrefix..faction..((doBlink and blink) and imageBattlePausedNotif2 or imageBattlePausedNotif))
 					else
-						Spring.SetWMIcon((doBlink and blink) and imageBattleNotif2 or imageBattleNotif)
+						Spring.SetWMIcon(imgPrefix..faction..((doBlink and blink) and imageBattleNotif2 or imageBattleNotif))
 					end
 				end
 			end
