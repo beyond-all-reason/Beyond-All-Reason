@@ -112,10 +112,11 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 
 Create()
 {
-	hide thrustrra;
-	hide thrustrla;
-	hide thrustfra;
-	hide thrustfla;
+
+	turn thrustrra to x-axis <-90> now;
+	turn thrustrla to x-axis <-90> now;
+	turn thrustfra to x-axis <-90> now;
+	turn thrustfla to x-axis <-90> now;
 	unitviewer = FALSE;
 	Static_Var_1 = 0;
 	call-script InitState();
