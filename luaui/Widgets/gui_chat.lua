@@ -44,6 +44,8 @@ local consolePosY = 0.9
 local displayedChatLines = 0
 local hideSpecChat = (Spring.GetConfigInt('HideSpecChat', 0) == 1)
 
+local myName = Spring.GetPlayerInfo(Spring.GetMyPlayerID(), false)
+
 local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 local fontfile3 = "fonts/monospaced/" .. Spring.GetConfigString("bar_font3", "SourceCodePro-Medium.otf")
 local font, font2, font3, chobbyInterface, hovering
@@ -801,6 +803,10 @@ local function processConsoleLine(gameFrame, line, addOrgLine)
 	if not bypassThisMessage and line ~= '' then
 		if addOrgLine then
 			orgLines[#orgLines+1] = {gameFrame, orgLine}
+			-- if you have been mentioned, pass it on
+			if lineType > 0 and WG.logo and sfind(text, myName, nil, true) then -- and myName ~= "Player"
+				WG.logo.mention()
+			end
 		end
 		if lineType < 1 then
 			addConsoleLine(gameFrame, lineType, line, addOrgLine)
