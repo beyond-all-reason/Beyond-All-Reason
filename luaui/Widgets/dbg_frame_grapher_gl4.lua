@@ -3,25 +3,13 @@
 -- reading on LuaVBO: https://github.com/beyond-all-reason/spring/blob/BAR/rts/Lua/LuaVBOImpl.cpp
 -- Quick video on what VAO/VBO are: https://www.youtube.com/watch?v=WMiggUPst-Q
 
-local function D(a) -- nasty-ass debug function to wrap anything into
-  local called_from = "Called from: " .. tostring(debug.getinfo(2).name) .. " args:"
-  Spring.Echo(called_from)
-  --for i,v in ipairs(arg) do
-  if type(a) == "table" then
-    Spring.Echo( Spring.Utilities.TableToString(a))
-  else
-    Spring.Echo(tostring(a))
-  end
-  return a
-end
-
 function widget:GetInfo()
 	return {
 		name = "Frame Grapher GL4",
 		desc = "Draw frame time graph in bottom right",
 		author = "Beherith",
 		date = "2021.mar.29",
-		layer = -10000000000000000000,
+		layer = -100000,
 		enabled = false, --  loaded by default
 	}
 end
@@ -29,45 +17,53 @@ end
 ---------------------------Speedups-----------------------------
 local spGetTimer = Spring.GetTimer
 local spDiffTimers = Spring.DiffTimers 
----------------------------Config vars--------------------------
-local yPixelPerMS = 4
-local graphDurationMS = 2000
-local viewSizeX, viewSizeY = 0, 0
 ---------------------------Internal vars---------------------------
-local deltats = nil
-local deltatsGf = nil
-local numdeltats = 0
-local timerold = nil
-local startframe, oldframe
-local xPixelPerMS = nil
-----------------------------OpenGL vars----------------------------
-local rectVAO = nil
-local rectVertexVBO = nil
-local rectVertexVBOSize = 4000
-local rectVertexVBOTable = {} -- this will mirror our shit, and hopefully work well. 
-local rectVertexVBOPTR = 0 -- 0 based cause im scum
-local rectInstanceVBO = nil
-local luaShaderDir = "LuaUI/Widgets/Include/"
-local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
+local timerstart = nil
+----------------------------GL4 vars----------------------------
+
 local rectShader = nil
 
-local vsSrc = [[
-#version 330
+local luaShaderDir = "LuaUI/Widgets/Include/"
+local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
+VFS.Include(luaShaderDir.."instancevbotable.lua")
+local maxframes = 500
 
-in vec2 coords;
-//layout (location = 0) in vec2 aPos;
-//layout (location = 1) in vec4 aMirrorParams;
+local rectInstanceTable = nil
+local rectInstancePtr = 0
+
+local vsSrc = [[
+#version 420
+
+layout (location = 0) in vec4 coords; // a set of coords coming from vertex buffer
+layout (location = 1) in vec2 time_duration; // a 'time' for the frame, in milliseconds, and a duration also in ms
+
+uniform vec4 shaderparams; // .y contains the current actual time
+
+//__ENGINEUNIFORMBUFFERDEFS__
 
 out DataVS {
-	vec4 rectColor;
-  vec2 rectPos;
+  vec2 v_time_duration;
 };
 
 void main() {
+	// current time will be equal to full right, e.g an x coord of 1
+  
+  float rect_width_pixels  = time_duration.y / viewGeometry.x - 1 / viewGeometry.x; 
+  float rect_height_pixels = 8 * time_duration.y / viewGeometry.y;
+  float rect_bottom_right  = 1.0 -  (shaderparams.x * 1.0 - time_duration.x  ) / viewGeometry.x;
 
-	gl_Position = vec4(coords.xy * 2.0 - 1.0, 0.0, 1.0);
-	rectColor = vec4(1.0,0.0,1.0,0.0);
-  rectPos = vec2(coords.xy);
+  gl_Position = vec4(
+    rect_bottom_right - coords.x*rect_width_pixels,
+    -1.0 + coords.y * rect_height_pixels,
+    0.5,
+    1.0
+  );
+  
+  if (rect_bottom_right < 0 ) gl_Position.xy = vec2(-1.0);
+  
+  //gl_Position = vec4(coords.x , coords.y, 0.5, 1.0); // easy debugging
+  
+  v_time_duration = time_duration ;
 }
 ]]
 
@@ -77,204 +73,68 @@ local fsSrc = [[
 #extension GL_ARB_uniform_buffer_object : require
 #extension GL_ARB_shading_language_420pack: require
 
-layout(std140, binding = 1) uniform UniformParamsBuffer {
-	vec3 rndVec3; //new every draw frame.
-	uint renderCaps; //various render booleans
+//__ENGINEUNIFORMBUFFERDEFS__
 
-	vec4 timeInfo; //gameFrame, gameSeconds, drawFrame, frameTimeOffset
-	vec4 viewGeometry; //vsx, vsy, vpx, vpy
-	vec4 mapSize; //xz, xzPO2
-
-	vec4 fogColor; //fog color
-	vec4 fogParams; //fog {start, end, 0.0, scale}
-};
-
-uniform vec4 shaderParams;
+uniform vec4 shaderparams;
 
 in DataVS {
-	vec4 rectColor;
-  vec2 rectPos;
+  vec2 v_time_duration;
 };
 
 out vec4 fragColor;
 
 void main() {
-	fragColor = vec4(1.0,1.0,1.0,0.5);// vec4(rectColor.r, fract(rectPos.x*10000),0.0,1.0);
+  float green = clamp(v_time_duration.y/16.6, 0.0, 1.0);
+  float red = clamp((v_time_duration.y-16.6)/16.6, 0.0, 1.0);
+  if (v_time_duration.y > 16.6) green = clamp(1.0-(v_time_duration.y-16.6)/16.6, 0.0, 1.0);
+	fragColor = vec4(red,green,0,0.75);
 }
 ]]
 --------------------------------------------------------------------------------
---------------------------------------------------------------------------------
 
 function widget:Initialize()
-  deltats = {}
-  deltatsGf = {}
-  
-	startframe = Spring.GetGameFrame()
-	oldframe = startframe
-	viewSizeX, viewSizeY = gl.GetViewSizes()
-  
-  rectVAO = gl.GetVAO()
-  rectVertexVBO = gl.GetVBO()
-  rectInstanceVBO = gl.GetVBO()
-  
-  if rectVAO == nil  or rectVertexVBO == nil or rectInstanceVBO == nil then 
-      Spring.Echo("LuaVAO not supported, disabling frame grapher v2")
-      widgetHandler:RemoveWidget(self)
-  end
-  
-  rectVertexVBO:Define(
-    rectVertexVBOSize, -- this is the MAX number of vertices we are pushing
-    { --second param is an an array of tables, one for each attribute? Or does the ID here refer to the VAO attribute index?
-      {id = 0, -- which attribute we should be attaching to, number consecutively from 0, max 15
-      name = "pos", -- im hoping this is just a helper name
-      size = 2, -- the number of floats in this array that constitute 1 element. So for an xyz pos, its 3 floats
-      },
-    }
-  )
-  
-  for i = 1, rectVertexVBOSize do
-    rectVertexVBOTable [i] = 0.0
-  end
-  
-  rectInstanceVBO:Define( -- we are only going to define 1 for now, this should be done in init if static
-    -- Instances: use 0 (or nothing) it forces non instanced
-     1, -- number of instances
-     {
-       {id = 1,
-         name = "instances",
-         size = 1, -- number of elements per instance
-         }
-       }
-     )
-  rectInstanceVBO:Upload({1},1) -- First param is our data, second is the index
-  
-  rectVAO:AttachVertexBuffer(rectVertexVBO) -- Attach the vertex data to the VAO, only attach once!
-  rectVAO:AttachInstanceBuffer(rectInstanceVBO) -- Attach the instance data to the VAO
-  
+  local rectvbo, numVertices = makeRectVBO(0,0,1,1,0,0,1,1)
+  rectInstanceTable = makeInstanceVBOTable( {{id = 1,  name = "instances",size = 2}}, maxframes+1, "framegraphervbotable")
+  rectInstanceTable.VAO = makeVAOandAttach(rectvbo,rectInstanceTable.instanceVBO)
+  rectInstanceTable.numVertices = numVertices
+
+  local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()
   rectShader = LuaShader({
-      vertex = vsSrc,
-      fragment = fsSrc,
+      vertex = vsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs) ,
+      fragment = fsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs),
       uniformInt = {}, --  usually textures go here
-      uniformFloat = { -- other static params
-        alpha = 1, 
+      uniformFloat = { -- other uniform params
+        shaderparams = {alpha, 0.5, 0.5, 0.5}, 
         }
       })
+    
   local shaderCompiled = rectShader:Initialize()
   if not shaderCompiled then
    Spring.Echo("Failed to compile shaders for: frame grapher v2")
    widgetHandler:RemoveWidget(self)
   end
-
-  xPixelPerMS = (viewSizeX / 2.0) / 2000.0
+  timerstart = Spring.GetTimer()
   timerold = Spring.GetTimer()
 end 
 
 function widget:Shutdown()
 	if rectShader then rectShader:Finalize() end
-  if rectVAO then
-    rectVAO:Delete()
-    rectVAO = nil
-  end
-  if rectVertexVBO then 
-    rectVertexVBO:Delete()
-    rectVertexVBO = nil
-  end
-end
-
-function widget:ViewResize(vsx, vsy)
-	widget:Shutdown()
-	widget:Initialize()
-end
-
-local function AddVertexToArray( x,y,z)
-  rectVertexVBOPTR = rectVertexVBOPTR + 1
-  rectVertexVBOTable[rectVertexVBOPTR] = x / viewSizeX
-  
-  rectVertexVBOPTR = rectVertexVBOPTR + 1
-  rectVertexVBOTable[rectVertexVBOPTR] = y / viewSizeY
-  
-  
-  
-  --[[verts[#verts+1] = x / viewSizeX
-  verts[#verts+1] = 
-  verts[#verts+1] = z]]--
-end
-
-local function AddRectXYtoArray(left, bottom, right, top)
-  -- Top left triangle
-  AddVertexToArray( left  ,bottom)
-  AddVertexToArray( left  ,top   )
-  AddVertexToArray( right ,top   )
-  -- bottom right triangle
-  AddVertexToArray( left   ,bottom)
-  AddVertexToArray( right  ,top   )
-  AddVertexToArray( right  ,bottom )
 end
 
 function widget:DrawScreen()
-	local timernew = Spring.GetTimer()
-  numdeltats = numdeltats+1
-	deltats[numdeltats] = Spring.DiffTimers(timernew, timerold)*1000
+	local timernew = spGetTimer()
+	local lastframeduration = spDiffTimers(timernew, timerold)*1000 -- in MILLISECONDS
 	timerold = timernew
+  local lastframetime = spDiffTimers(timernew, timerstart) * 1000 -- in MILLISECONDS
   
-  -- do the vao magic:
-  --rectVAO:AttachVertexBuffer(rectVertexVBO) -- attach it to first attribute of VAO
-  local tricoords = {} -- we will store triangle coords here
+  rectInstancePtr = rectInstancePtr+1
+  if rectInstancePtr >= maxframes then rectInstancePtr = 0 end
   
-  local rectangles = {} -- for now we will do this the slow way, storing an array of rectangle {left, bototm, right, top}
+  pushElementInstance(rectInstanceTable, {lastframetime, lastframeduration}, rectInstancePtr, true)
   
-  local leftpos = viewSizeX
-  local timeindex = numdeltats
-  
-  rectVertexVBOPTR = 0
-  
-  while leftpos > (viewSizeX/2) and timeindex > 1 do
-      local deltat_ms = deltats[timeindex]
-      
-      --[[rectangles[#rectangles+1] = {
-        leftpos - 1, 
-        0,
-        leftpos - deltat_ms * xPixelPerMS, 
-        deltat_ms * yPixelPerMS
-      }]]--
-      
-      AddRectXYtoArray( leftpos - 1, 
-        0,
-        leftpos - deltat_ms * xPixelPerMS, 
-        deltat_ms * yPixelPerMS )
-      leftpos = leftpos - deltat_ms * xPixelPerMS
-      timeindex = timeindex - 1
-  end
-  
-  
-  while deltats[timeindex] do -- keep our table neat
-    deltats[timeindex] = nil
-    timeindex = timeindex - 1
-  end
-  
-  for i, rect in ipairs(rectangles) do
-    AddRectXYtoArray(rect[1],rect[2],rect[3],rect[4])
-  end
-  
-  --Upload vertices to VBO:
-  --Spring.Echo("We have N rectangles:",#rectangles, " tricoords:",#tricoords,leftpos,timeindex)
-  if rectVertexVBOPTR <1 then return end -- bail out, empty VBOS do not like being defined or uploaded or drawn!
-  
- 
-  -- if numdeltats % 600 ==0 then
-    rectVertexVBO:Upload(rectVertexVBOTable,0) -- The second param is probably an offset into the VBO
-  --end
-   
-   -- We should be setting uniforms before activate, but I think I have none yet
-   rectShader:Activate()
-   
-   rectVAO:DrawArrays(
-     GL.TRIANGLES,  -- primitive type, GL.TRIANGLES for vertex shaders, GL.POINTS for geometry shaders
-     rectVertexVBOPTR, -- the number of elements for one array
-     0, -- probably an offset into the array
-     1 -- instance count, if you have instances, you also need an instance VBO attached to VAO
-    ) 
-  
-   rectShader:Deactivate()
-
+  rectShader:Activate()
+   -- We should be setting individual uniforms AFTER activate
+  rectShader:SetUniform("shaderparams", lastframetime,0,0,0)
+  drawInstanceVBO(rectInstanceTable)
+  rectShader:Deactivate()
 end
