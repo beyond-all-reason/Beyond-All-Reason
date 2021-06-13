@@ -173,10 +173,10 @@ local effectDefs = {
 		{ color = { 0.2, 0.8, 0.2 }, width = 3, length = 32, piece = "thrust", light = 1 },
 	},
 	["corcrw"] = {
-		{ color = { 0.1, 0.4, 0.6 }, width = 12, length = 36, piece = "thrustrra", emitVector = { 0, 1, 0 }, light = 0.6 },
-		{ color = { 0.1, 0.4, 0.6 }, width = 12, length = 36, piece = "thrustrla", emitVector = { 0, 1, 0 }, light = 0.6 },
-		{ color = { 0.1, 0.4, 0.6 }, width = 10, length = 30, piece = "thrustfra", emitVector = { 0, 1, 0 }, light = 0.6 },
-		{ color = { 0.1, 0.4, 0.6 }, width = 10, length = 30, piece = "thrustfla", emitVector = { 0, 1, 0 }, light = 0.6 },
+		{ color = { 0.1, 0.4, 0.6 }, width = 12, length = 36, piece = "thrustrra", emitVector = { 0, 1, -1 }, light = 0.6 },
+		{ color = { 0.1, 0.4, 0.6 }, width = 12, length = 36, piece = "thrustrla", emitVector = { 0, 1, -1 }, light = 0.6 },
+		{ color = { 0.1, 0.4, 0.6 }, width = 10, length = 30, piece = "thrustfra", emitVector = { 0, 1, -1 }, light = 0.6 },
+		{ color = { 0.1, 0.4, 0.6 }, width = 10, length = 30, piece = "thrustfla", emitVector = { 0, 1, -1 }, light = 0.6 },
 	},
 	["corcrwt4"] = {
 		{ color = { 0.1, 0.4, 0.6 }, width = 19, length = 50, piece = "thrustrra", emitVector = { 0, 1, 0 }, light = 0.6 },
@@ -313,7 +313,8 @@ local jitterWidthScale = 3
 local jitterLengthScale = 3
 local drawReflectionPass = true	-- should be free now :D
 
-local texture1 = "bitmaps/GPL/Lups/perlin_noise.jpg"    -- noise texture
+local texture1 = "bitmaps/GPL/Lups/perlin_noise.jpg"    -- noise texture 
+--local texture1 = "luaui/images/perlin_noise_rgba_512.png"    -- noise texture
 local texture2 = ":c:bitmaps/gpl/lups/jet2.bmp"        -- shape
 local texture3 = ":c:bitmaps/GPL/Lups/jet.bmp"        -- jitter shape
 
@@ -402,11 +403,9 @@ layout (location = 5) in uint instData; // unitID, teamID, ??
 
 #define JITTERWIDTHSCALE 3
 #define JITTERLENGTHSCALE 3
-#define DISTORTION 0.008
 #define ANIMATION_SPEED 0.1 
 
 out DataVS {
-	float distortion;
 	vec4 texCoords;
 	vec4 jetcolor;
 };
@@ -476,7 +475,9 @@ void main()
 	mat4 pieceMatrix = mat4mix(mat4(1.0), UnitPieces[baseIndex + pieceIndex ], modelMatrix[3][3]);
 	pieceMatrix = UnitPieces[baseIndex + pieceIndex ]; // mat4mix(mat4(1.0), UnitPieces[baseIndex + pieceIndex ], modelMatrix[3][3]);
 
-	vec4 vertexPos = vec4(position_xy_uv.x * widthlengthtime.x , 0, position_xy_uv.y*widthlengthtime.y ,1.0);
+	vec2 modulatedsize = widthlengthtime.xy;
+	// modulatedsize += rndVec3.xy * modulatedsize * 0.25; // not very pretty
+	vec4 vertexPos = vec4(position_xy_uv.x * modulatedsize.x , 0, position_xy_uv.y*modulatedsize.y ,1.0);
 
 	mat4 worldMat = modelMatrix * pieceMatrix;
 	mat4 worldMatInv = transpose(worldMat);
@@ -507,10 +508,8 @@ void main()
 	texCoords.pq = position_xy_uv.zw;
 	texCoords.q += timeInfo.x * ANIMATION_SPEED;
 
-	distortion = DISTORTION;
 	jetcolor.rgb = color;
-	jetcolor.a = clamp((timeInfo.x - widthlengthtime.z)*0.033, 0.0, 1.0);
-	//jetcolor.a = clamp(( widthlengthtime.z - timeInfo.x)*0.0033, 0.2, 1.0);
+	jetcolor.a = clamp((timeInfo.x - widthlengthtime.z)*0.053, 0.0, 1.0);
 }
 ]]
 
@@ -526,8 +525,8 @@ uniform sampler2D mask;
 #extension GL_ARB_uniform_buffer_object : require
 #extension GL_ARB_shading_language_420pack: require
 
+#define DISTORTION 0.01
 in DataVS {
-	float distortion;
 	vec4 texCoords;
 	vec4 jetcolor;
 };
@@ -539,8 +538,8 @@ void main(void)
 		vec2 displacement = texCoords.pq;
 
 		vec2 txCoord = texCoords.st;
-		txCoord.s += (texture2D(noiseMap, displacement * distortion * 20.0).y - 0.5) * 40.0 * distortion;
-		txCoord.t +=  texture2D(noiseMap, displacement).x * (1.0-texCoords.t)        * 15.0 * distortion;
+		txCoord.s += (texture2D(noiseMap, displacement * DISTORTION * 20.0).y - 0.5) * 40.0 * DISTORTION;
+		txCoord.t +=  texture2D(noiseMap, displacement).x * (1.0-texCoords.t)        * 15.0 * DISTORTION;
 		float opac = texture2D(mask,txCoord.st).r;
 
 		fragColor.rgb  = opac * jetcolor.rgb; //color
@@ -671,19 +670,26 @@ local function ValidateUnitIDs(unitIDkeys)
 	local numunitids = 0
 	local validunitids = 0
 	local invalidunitids = {}
-	for indexpos, unitid in pairs(unitIDkeys) do
+	local invalidstr = ''
+	for indexpos, unitID in pairs(unitIDkeys) do
 		numunitids = numunitids + 1 
-		if Spring.ValidUnitID(unitid) then
+		if Spring.ValidUnitID(unitID) then
 			validunitids = validunitids + 1 
 		else
+			invalidunitids[#invalidunitids + 1] = unitID
+			invalidstr = tostring(unitID) .. " " .. invalidstr
 		end
 	end
-	Spring.Echo(numunitids, "Valid", numunitids- validunitids, "invalid")
+	if numunitids- validunitids > 0 then
+		Spring.Echo("Airjets GL4", numunitids, "Valid", numunitids- validunitids, "invalid", invalidstr)
+	end
+	if #invalidunitids > 0 then 
+	--	Spring.Echo(invalidunitids)
+	end
 end
 
 local function DrawParticles()
 	if not enabled then return false end
-	ValidateUnitIDs(jetInstanceVBO.indextoUnitID)
 	-- validate unitID buffer
 	
 	glDepthTest(true)
@@ -720,7 +726,7 @@ local function RemoveLights(unitID)
 	end
 end
 
-local function Activate(unitID, unitDefID, who)
+local function Activate(unitID, unitDefID, who, when)
 	--Spring.Echo(Spring.GetGameFrame(), who, "Activate(unitID, unitDefID)",unitID, unitDefID)
 	
 	inactivePlanes[unitID] = nil
@@ -729,6 +735,8 @@ local function Activate(unitID, unitDefID, who)
 	
 	activePlanes[unitID] = unitDefID
 	
+	if when ==  nil then when = 0 end --
+	
 	local unitEffects = effectDefs[unitDefID]
 	for i = 1, #unitEffects do
 		local effectDef = unitEffects[i]
@@ -736,7 +744,7 @@ local function Activate(unitID, unitDefID, who)
 		local color = effectDef.color
 		local emitVector = effectDef.emitVector
 		local effectdata = {
-			effectDef.width,effectDef.length, spGetGameFrame(),
+			effectDef.width,effectDef.length, when,
 			emitVector[1],emitVector[2],emitVector[3],
 			color[1],color[2],color[3],
 			effectDef.piecenum ,
@@ -754,10 +762,6 @@ local function Deactivate(unitID, unitDefID, who)
 	--Spring.Echo(Spring.GetGameFrame(),who, "Deactivate(unitID, unitDefID)",unitID, unitDefID)
 	
 	activePlanes[unitID] = nil
-	-- if already deactive, dont deact again
-	--if inactivePlanes[unitID] == unitDefID then return end
-	
-	--if inactivePlanes[unitID] == nil then return end
 	
 	inactivePlanes[unitID] = unitDefID
 	RemoveLights(unitID)
@@ -773,7 +777,7 @@ local function Deactivate(unitID, unitDefID, who)
 end
 
 local function RemoveUnit(unitID, unitDefID, unitTeamID)
-	Spring.Echo("RemoveUnit(unitID, unitDefID, unitTeamID)",unitID, unitDefID, unitTeamID)
+	--Spring.Echo("RemoveUnit(unitID, unitDefID, unitTeamID)",unitID, unitDefID, unitTeamID)
 	if effectDefs[unitDefID] then
 		Deactivate(unitID, unitDefID, "died")
 		inactivePlanes[unitID] = nil
@@ -794,6 +798,8 @@ local function FinishInitialization(unitID, effectDef)
 		if fx.piece then
 			fx.piecenum = pieceMap[fx.piece]
 		end
+		fx.width = fx.width*1.2
+		fx.length = fx.length*1.5
 	end
 	effectDef.finishedInit = true
 end
@@ -806,18 +812,7 @@ local function AddUnit(unitID, unitDefID, unitTeamID)
 		FinishInitialization(unitID, effectDefs[unitDefID])
 	end
 	Activate(unitID, unitDefID, "addunit")
-	--[[ TODO NOT FOR DEBUG!
-	if spGetUnitIsActive(unitID) and not spGetUnitIsStunned(unitID) and (not limit or not limitDefs[unitDefID]) then
-		local uvx,_,uvz = spGetUnitVelocity(unitID)
-		if xzVelocityUnits[unitDefID] and math.abs(uvx)+math.abs(uvz) < xzVelocityUnits[unitDefID] then
-			Deactivate(unitID, unitDefID, "addunit")
-		else
-			Activate(unitID, unitDefID, "addunit")
-		end
-	else
-		Deactivate(unitID, unitDefID, "addunit")
-	end
-	]]--
+
 	if lighteffectsEnabled and lightDefs[unitDefID] then
 		for i = 1, #effectDefs[unitDefID] do
 			if effectDefs[unitDefID][i].piecenum then
@@ -832,17 +827,23 @@ end
 --------------------------------------------------------------------------------
 
 function widget:Update(dt)
-	if Spring.GetGameFrame() % 30 ==0 then
-		local activecnt = 0
-		local inactivecnt = 0
-		for i, v in pairs(inactivePlanes) do inactivecnt = inactivecnt + 1 end
-		for i, v in pairs(activePlanes) do activecnt = activecnt + 1 end
-		Spring.Echo( Spring.GetGameFrame (), "airjetcount", jetInstanceVBO.usedElements, "active:", activecnt, "inactive", inactivecnt)
-	end
-	if true then return end
+
+	--if true then return end
 	updateSec = updateSec + dt
 	local gf = Spring.GetGameFrame()
 	if gf ~= lastGameFrame and updateSec > 0.51 then		-- to limit the number of unit status checks
+		--[[
+		if Spring.GetGameFrame() > 0 then
+		
+			ValidateUnitIDs(jetInstanceVBO.indextoUnitID)
+			local activecnt = 0
+			local inactivecnt = 0
+			for i, v in pairs(inactivePlanes) do inactivecnt = inactivecnt + 1 end
+			for i, v in pairs(activePlanes) do activecnt = activecnt + 1 end
+			Spring.Echo( Spring.GetGameFrame (), "airjetcount", jetInstanceVBO.usedElements, "active:", activecnt, "inactive", inactivecnt)
+		end
+		]]--
+		ValidateUnitIDs(jetInstanceVBO.indextoUnitID)
 		lastGameFrame = gf
 		updateSec = 0
 		for unitID, unitDefID in pairs(inactivePlanes) do
@@ -850,23 +851,27 @@ function widget:Update(dt)
 				if xzVelocityUnits[unitDefID] then
 					local uvx,_,uvz = spGetUnitVelocity(unitID)
 					if uvx * uvx + uvz * uvz > xzVelocityUnits[unitDefID] * xzVelocityUnits[unitDefID] then
-						Activate(unitID, unitDefID,"updatewasinactive")
+						Activate(unitID, unitDefID,"updatewasinactive", spGetGameFrame() )
 					end
 				else
-					Activate(unitID, unitDefID,"updatewasinactive")
+					Activate(unitID, unitDefID,"updatewasinactive", spGetGameFrame())
 				end
 			end
 		end
 		for unitID, unitDefID in pairs(activePlanes) do
-			if not spGetUnitIsActive(unitID) then 
-				Deactivate(unitID, unitDefID,"updatewasinactive")
-			else
-				if xzVelocityUnits[unitDefID] then
-					local uvx,_,uvz = spGetUnitVelocity(unitID)
-					if uvx * uvx + uvz * uvz <= xzVelocityUnits[unitDefID] * xzVelocityUnits[unitDefID] then
-						Deactivate(unitID, unitDefID,"updatewasinactive")
+			if Spring.ValidUnitID(unitID) then
+				if not spGetUnitIsActive(unitID) then 
+					Deactivate(unitID, unitDefID,"updatewasinactive")
+				else
+					if xzVelocityUnits[unitDefID] then
+						local uvx,_,uvz = spGetUnitVelocity(unitID)
+						if uvx * uvx + uvz * uvz <= xzVelocityUnits[unitDefID] * xzVelocityUnits[unitDefID] then
+							Deactivate(unitID, unitDefID,"tooslow")
+						end
 					end
 				end
+			else
+				RemoveUnit(unitID, unitDefID, "invalid")
 			end
 		end
 	end
@@ -911,19 +916,28 @@ function widget:Update(dt)
 end
 
 function widget:UnitEnteredLos(unitID, unitTeam, allyTeam, unitDefID)
-	Spring.Echo("UnitEnteredLos(unitID, unitTeam, allyTeam, unitDefID)",unitID, unitTeam, allyTeam, unitDefID)
+	--Spring.Echo("UnitEnteredLos(unitID, unitTeam, allyTeam, unitDefID)",unitID, unitTeam, allyTeam, unitDefID)
 	AddUnit(unitID, unitDefID, unitTeam)
 end
 
 function widget:UnitLeftLos(unitID, unitTeam, allyTeam, unitDefID)
+	--Spring.Echo("UnitLeftLos(unitID, unitDefID, unitTeam)",unitID, unitTeam, allyTeam, unitDefID)
 	RemoveUnit(unitID, unitDefID, unitTeam)
 end
 
 function widget:UnitCreated(unitID, unitDefID, unitTeam)
+	--Spring.Echo("UnitCreated(unitID, unitDefID, unitTeam)",unitID, unitDefID, unitTeam)
 	AddUnit(unitID, unitDefID, unitTeam)
 end
 
 function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
+	--Spring.Echo("UnitDestroyed(unitID, unitDefID, unitTeam)",unitID, unitDefID, unitTeam)
+	RemoveUnit(unitID, unitDefID, unitTeam)
+end
+
+
+function widget.RenderUnitDestroyed(unitID, unitDefID, unitTeam) 	
+	--Spring.Echo("RenderUnitDestroyed(unitID, unitDefID, unitTeam)",unitID, unitDefID, unitTeam)
 	RemoveUnit(unitID, unitDefID, unitTeam)
 end
 
@@ -998,7 +1012,6 @@ function widget:Shutdown()
 	for unitID, unitDefID in pairs(activePlanes) do
 		RemoveUnit(unitID, unitDefID, spGetUnitTeam(unitID))
 	end
-
 	
 end
 
