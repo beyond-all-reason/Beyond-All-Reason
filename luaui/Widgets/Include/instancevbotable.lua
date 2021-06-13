@@ -180,7 +180,7 @@ function popElementInstance(iT, instanceID, noUpload)
 	if oldElementIndex == lastElementIndex then -- EARLY OPT DEVILRY BAD!
 		--Spring.Echo("Removed end element of instanceTable", iT.myName)
 		iT.usedElements = iT.usedElements - 1
-		if iT.indextoUnitID then iT.indextoUnitID[iT.usedElements] = nil end
+		if iT.indextoUnitID then iT.indextoUnitID[oldElementIndex] = nil end
 	else
 		local lastElementInstanceID = iT.indextoInstanceID[lastElementIndex]
 		local iTStep = iT.instanceStep
