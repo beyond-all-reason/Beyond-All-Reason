@@ -101,12 +101,12 @@ end
 
 
 function teamsCheck()
-
 	bestTeamScore = 0
 	bestTeam = 0
 	if scavTechDifficulty == "adaptive" or globalScore == nil then
 		globalScore = 0
 	end
+	local previousGlobalScore = globalScore
 	nonFinalGlobalScore = 0
 	scoreTeamCount = 0
 	scorePerTeam = {}
@@ -155,6 +155,9 @@ function teamsCheck()
 		globalScore = math.ceil(globalScore + 10*scavconfig.difficulty.hard*(Spring.GetGameSeconds()/60))
 	elseif scavTechDifficulty == "brutal" then
 		globalScore = math.ceil(globalScore + 10*scavconfig.difficulty.brutal*(Spring.GetGameSeconds()/60))
+	end
+	if globalScore < previousGlobalScore then
+		globalScore = previousGlobalScore
 	end
 	nonFinalGlobalScore = nil
 	scoreTeamCount = nil
