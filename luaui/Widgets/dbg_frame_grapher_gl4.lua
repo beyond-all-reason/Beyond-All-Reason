@@ -60,6 +60,7 @@ void main() {
   );
   
   if (rect_bottom_right < 0 ) gl_Position.xy = vec2(-1.0);
+  if (time_duration.y > 200.0 ) gl_Position.xy = vec2(-1.0);
   
   //gl_Position = vec4(coords.x , coords.y, 0.5, 1.0); // easy debugging
   
