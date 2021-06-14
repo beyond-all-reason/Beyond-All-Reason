@@ -53,8 +53,8 @@ function TasksHST:Init()
 	}
 
 	self.roles.expand = {
-		{'_mex_',true,false,false,true,true},
 		{'_llt_',true,false,false,true,true},
+		{'_mex_',true,false,false,true,true},
 		{'_popup2_',true,false,false,true,true},
 	}
 

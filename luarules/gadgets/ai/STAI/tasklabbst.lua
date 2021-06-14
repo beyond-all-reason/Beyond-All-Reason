@@ -82,7 +82,7 @@ function TaskLabBST:getSoldier()
 	local soldier
 	for index,param in ipairs(self.queue) do
 		local soldiers = self:scanRanks(param[1])
-		soldier = self:ecoCheck2(soldiers)
+		soldier = self:ecoCheck(soldiers)
 		soldier = self:countCheck(soldier,param[2],param[3],param[4])
 		soldier = self:toAmphibious(soldier)
 		if soldier then
@@ -108,7 +108,7 @@ function TaskLabBST:scanRanks(rank)
 	end
 end
 
-function TaskLabBST:ecoCheck2(soldiers)
+function TaskLabBST:ecoCheck(soldiers)
 	if not soldiers then return end
 	self:EchoDebug('ecoCheck')
 	local metal = self.ai.Metal.full
@@ -137,34 +137,6 @@ function TaskLabBST:ecoCheck2(soldiers)
 
 	self:EchoDebug(unpack(tmp),metal,threshold,idx,idxN,target)
 	return target
-end
-
-function TaskLabBST:ecoCheck(soldiers)
-	if not soldiers then return end
-	self:EchoDebug('ecoCheck')
-	local metal = self.ai.Metal.full
-	local threshold = 1 / #soldiers
-	local army = self.ai.armyhst.unitTable
-	local mMax = 0
-	local mRatio = 0
-	local soldier = false
-	for index, uname in pairs (soldiers) do
-		mMax = math.max(mMax,army[uname].metalCost)
-		soldier = uname
-	end
-	self:EchoDebug('eco Mmax',mMax)
-	for index, uname in pairs (soldiers) do
-
-		if army[uname].metalCost / mMax < threshold and army[uname].metalCost / mMax > mRatio then
-			mRatio = army[uname].metalCost
-			soldier = uname
-		end
-	end
-	if soldier then
-		self:EchoDebug('eco',soldier)
-		return soldier
-
-	end
 end
 
 function TaskLabBST:countCheck(soldier,Min,mType,Max)
@@ -225,13 +197,14 @@ end
 
 
 TaskLabBST.queue = {
-
+--
 		{'techs',1,6,15},
-		{'scouts',nil,5,10,2},
-		{'raiders',2,5,10,8},
-		{'battles',3,7,12,5},
-		{'breaks',2,5,20,5},
+		{'raiders',1,nil,10,8},
+		{'battles',3,nil,15,10},
 		{'artillerys',1,10,5},
+		{'scouts',nil,5,2,2},
+		{'breaks',2,nil,15,5},
+
 
 
 		{'rezs',1,8,10}, -- rezzers
@@ -265,7 +238,7 @@ function TaskLabBST:preFilter()
 -- 	local threshold = 1 - (techLv / self.ai.maxFactoryLevel)
 	local threshold = techLv / 20 --TODO this is a shit
 	self:EchoDebug('prefilter threshold', threshold)
-	if self.ai.Metal.full > threshold and self.ai.Energy.full > 0.05 and self.ai.Metal.full > 0.05 then
+	if self.ai.Metal.full > threshold and self.ai.Energy.full > 0.05  then
 		return true
 	end
 end

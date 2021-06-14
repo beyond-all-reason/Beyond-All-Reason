@@ -19,9 +19,8 @@ function BuildSiteHST:internalName()
 	return "buildsitehst"
 end
 
-BuildSiteHST.DebugEnabled = false
-
 function BuildSiteHST:Init()
+	self.DebugEnabled = false
 	self.debugPlotDrawn = {}
 	local mapSize = self.map:MapDimensions()
 	self.ai.maxElmosX = mapSize.x * 8
@@ -292,7 +291,6 @@ function BuildSiteHST:ClosestHighestLevelFactory(builderPos, maxDist)
 		end
 	end
 	if factorybhvr then
-
 		local factoryPos = factorybhvr.position
 		local newpos = api.Position()
 		newpos.x = factoryPos.x
@@ -329,79 +327,6 @@ function BuildSiteHST:DontBuildOnMetalOrGeoSpots()
 		self:DontBuildRectangle(p.x-40, p.z-40, p.x+40, p.z+40)
 	end
 	self:PlotAllDebug()
-
-end
-
-function BuildSiteHST:unitNearCheck(utype,pos,range,number)
-	number = number or 1
-	if type(range) ~= 'number' then
-		range = self.ai.armyhst.unitTable[utype:Name()][range]
-	end
-	local unitsNear = self.game:getUnitsInCylinder(pos, range)
-	if not unitsNear  then return false end
-	local counter = 0
-	for idx, typeDef in pairs(unitsNear) do
-		local unitName = self.game:GetUnitByID(typeDef):Name()
-		if utype:Name() == unitName  then
-			counter = counter +1
-			if counter >= number then
-				self:EchoDebug(utype:Name(),' block by ',counter ,unitName)
-				return true
-			end
-		end
-	end
-	return false
-end
-
-function BuildSiteHST:searchPosNearCategories(utype,builder,point,range,spaceEquals,minDist,categories)
-	if not categories then return end
-	self.game:StartTimer('bst1')
-	self:EchoDebug(categories,'searcing')
-
-	local pos = builder:GetPosition()
-	local builderName = builder:Name()
-	local p = nil
-
-	if not range then
-		range = self.ai.armyhst.unitTable[builderName].losRadius
-	end
-	local sortedUnits = {}
-	for i,cat in pairs(categories) do
-		for name, _ in pairs(self.ai.armyhst[cat]) do
-			local defId =self.ai.armyhst.unitTable[name].defId
-			local units = self.game:GetTeamUnitsByDefs(self.ai.id,defId)
-			for index,uID in pairs(units) do
-				self:EchoDebug('unit', index,uId)
-				self.ai.tool:Distance(point,self.game:GetUnitByID(uID):GetPosition())
-				local dist = self.game:GetUnitSeparation(uID,builder:ID())
-				self:EchoDebug('dist = ', dist)
-				table.insert(sortedUnits,dist,uID)
-			end
-		end
-	end
-	for dist, uID in pairs(sortedUnits) do
-		local unit = self.game:GetUnitByID(uID)
-		local unitName = unit:Name()
-		local unitPos = unit:GetPosition()
-		self:EchoDebug('around there ', unitNearName)
-		if  spaceEquals then
-			if type(spaceEquals) == 'string' then
-				range = self.ai.armyhst.unitTable[unitName][spaceEquals]
-			end
-			if not self:unitNearCheck(utype,unitPos,spaceEquals)then
-				self:EchoDebug('no same unit near: pass',builder,unitPos,minDist,range,self.ai.armyhst.unitTable[builderName].losRadius)
-				p = self:ClosestBuildSpot(builder, unitPos, utype , minDist, nil, nil, range or self.ai.armyhst.unitTable[builderName].losRadius)
-				self:EchoDebug('p = ',p)
-			else
-				self:EchoDebug('same unit near: skip')
-			end
-		else
-			p = self:ClosestBuildSpot(builder, unitPos, utype , minDist, nil, nil, range or self.ai.armyhst.unitTable[builderName].losRadius)
-			self:EchoDebug('p = ',p)
-		end
-		self.game:StopTimer('bst1')
-		if p then return p end
-	end
 end
 
 function BuildSiteHST:ClosestBuildSpot(builder, position, unitTypeToBuild, minimumDistance, attemptNumber, buildDistance, maximumDistance)
@@ -420,11 +345,45 @@ function BuildSiteHST:ClosestBuildSpot(builder, position, unitTypeToBuild, minim
 	end
 	self.game:StopTimer('bst4')
  	return self.map:FindClosestBuildSite(unitTypeToBuild, position, maximumDistance, minDistance, validFunction)
-
 end
 
-function BuildSiteHST:searchPosInList(list,utype, builder, spaceEquals,minDist,maxDist)
-	self.DebugEnabled = true
+function BuildSiteHST:searchPosNearCategories(utype,builder,minDist,maxDist,categories,neighbours,number)
+	if not categories then return end
+	self.game:StartTimer('bst1')
+	self:EchoDebug(categories,'searcing')
+	local army = self.ai.armyhst
+	local builderName = builder:Name()
+	local p = nil
+	maxDist = maxDist or 390
+	if type(maxDist) == 'string' then
+		maxDist = army.unitTable[builderName][maxDist]
+	end
+	local sortedUnits = {}
+	for i,cat in pairs(categories) do
+		for name, _ in pairs(army[cat]) do
+			local defId = army.unitTable[name].defId
+			local units = self.game:GetTeamUnitsByDefs(self.ai.id,defId)
+			for index,uID in pairs(units) do
+				self:EchoDebug('unit', index,uId)
+				local dist = self.game:GetUnitSeparation(uID,builder:ID())
+				self:EchoDebug('dist = ', dist)
+				table.insert(sortedUnits,dist,uID)
+			end
+		end
+	end
+	for dist, uID in pairs(sortedUnits) do
+		local unit = self.game:GetUnitByID(uID)
+		local unitName = unit:Name()
+		local unitPos = unit:GetPosition()
+		if not neighbours or not self:unitsNearCheck(unitPos, maxDist,number,neighbours) then
+			p = self:ClosestBuildSpot(builder, unitPos, utype , minDist, nil, nil, maxDist )
+		end
+		self.game:StopTimer('bst1')
+		if p then return p end
+	end
+end
+
+function BuildSiteHST:searchPosInList(utype, builder,minDist,maxDist,list,neighbours,number)
 	self.game:StartTimer('bst2')
 	local maxDist = maxDist or 390
 	local d = math.huge
@@ -433,18 +392,15 @@ function BuildSiteHST:searchPosInList(list,utype, builder, spaceEquals,minDist,m
 	local tmpOos
 	if not list then return end
 	for index, pos in pairs(list) do
-
 		self:EchoDebug(index,pos)
-		if not spaceEquals or not self:unitNearCheck(utype,pos,spaceEquals)then
 
+		if not neighbours or not self:unitsNearCheck(pos, maxDist,number,neighbours)then
 			tmpPos = self:ClosestBuildSpot(builder, pos, utype , minDist, nil, nil, maxDist)
 			if tmpPos then
-
 				tmpDist = self.ai.tool:Distance(pos,builder:GetPosition())
 				self:EchoDebug('tmpdist',tmpDist)
-				if tmpDist < 1000 then --  here is used to exit the cycle if builder is sufficient near to go here without search more
-
-					self:EchoDebug(index,'dist < 1000')
+				if tmpDist < 389 then --  here is used to exit the cycle if builder is sufficient near to go here without search more
+					self:EchoDebug(index,'dist < 389')
 					p = tmpPos
 					break --exit the cycle
 				else
@@ -457,14 +413,11 @@ function BuildSiteHST:searchPosInList(list,utype, builder, spaceEquals,minDist,m
 
 			end
 		end
-
 	end
 	self.game:StopTimer('bst2')
-	self.DebugEnabled= false
 	self:EchoDebug('posinlist',p)
 	return p
 end
-
 
 function BuildSiteHST:BuildNearNano(builder, utype)
 	self:EchoDebug("looking for spot near nano hotspots")
@@ -500,8 +453,28 @@ function BuildSiteHST:BuildNearLastNano(builder, utype)
 	return p
 end
 
-function BuildSiteHST:UnitCreated(unit)---TODO track test from unithandler
+function BuildSiteHST:unitsNearCheck(pos,range,number,targets)
+	number = number or 1
+	local neighbours = self.game:getUnitsInCylinder(pos, range)
+	if not neighbours  then return false end
+	local counter = 0
+	for idx, typeDef in pairs(neighbours) do
+		local unitName = self.game:GetUnitByID(typeDef):Name()
+		for i,target in pairs(targets) do
+			if unitName ==  target or (self.ai.armyhst[target] and self.ai.armyhst[target][unitName]) then
+				counter = counter +1
+				if counter >= number then
+					self:EchoDebug(' block by ',counter ,unitName)
+					return true
+				end
+				break
+			end
+		end
+	end
+	return false
+end
 
+function BuildSiteHST:UnitCreated(unit)---TODO track test from unithandler
 	self.game:StartTimer('unitCreatedt')
 	local unitName = unit:Name()
 	local position = unit:GetPosition()

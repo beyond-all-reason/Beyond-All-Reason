@@ -126,7 +126,6 @@ function ArmyHST:Init()
 		armflash = true,
 		corak = true,
 		armpw = true,
-
 		armlatnk = true,
 		corgator = true,
 		corseal = true,
@@ -141,6 +140,7 @@ function ArmyHST:Init()
 
 	}
 	self.artillerys = {
+		armrock = true,
 		armart = true,
 		armfido = true,
 		cormort = true,
@@ -168,7 +168,7 @@ function ArmyHST:Init()
 		armbull = true,
 		corraid = true,
 		corstorm = true,
-		armrock = true,
+		corthud = true,
 		corcan = true,
 		armraz = true,
 		corsnap = true,
@@ -188,7 +188,7 @@ function ArmyHST:Init()
 		armmanni = true,
 		corblackhy = true,
 		armepoch = true,
-		corthud = true,
+
 		corsumo = true,
 		armham = true,
 		armwar = true,

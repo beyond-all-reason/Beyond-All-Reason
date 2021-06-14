@@ -1164,6 +1164,7 @@ function MapHST:ClosestFreeGeo(unittype, builder, position)
 end
 
 function MapHST:MobilityNetworkHere(mtype, position)
+	if not mtype or not position then return nil end
 	if mtype == "air" then return 1 end
 	local x = math.ceil(position.x / mobilityGridSize)
 	local z = math.ceil(position.z / mobilityGridSize)

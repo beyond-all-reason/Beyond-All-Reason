@@ -92,10 +92,10 @@ function LabBuildHST:PrePositionFilter()
 			self:EchoDebug(factoryName ..' already have ')
 			buildMe = false
 		end
--- 		if mtype == 'air' and not isAdvanced and self.ai.tool:countMyUnit({'factoryMobilities'}) == 1 then
--- 			self:EchoDebug(factoryName ..' dont build air before advanced ')
--- 			buildMe = false
--- 		end
+ 		if mtype == 'air' and not isAdvanced and self.ai.tool:countMyUnit({'factoryMobilities'}) == 1 then
+ 			self:EchoDebug(factoryName ..' dont build air before advanced ')
+ 			buildMe = false
+ 		end
 -- 		if mtype == 'air' then
 -- 			local counter = self.game:GetTeamUnitDefCount(self.ai.id,utn.defId)
 -- 			if counter > 0 then
@@ -235,83 +235,19 @@ function LabBuildHST:GetBuilderFactory(builder)
 end
 
 function LabBuildHST:FactoryPosition(factoryName,builder)
+	local utype = game:GetTypeByName(factoryName)
 	local utype = self.game:GetTypeByName(factoryName)
-	local mtype = self.ai.armyhst.factoryMobilities[factoryName][1]
 	local site = self.ai.buildsitehst
-	local builderPos = builder:GetPosition()
-	local closestFactory = self.ai.buildsitehst:ClosestHighestLevelFactory(builderPos)
-	local factoryPos
 	local p
-	p = 	site:BuildNearLastNano(builder, utype) or
-			site:BuildNearNano(builder, utype) or
-			site:searchPosNearCategories(utype, builder,builderPos,400, nil,50,{'_nano_'}) or
-			site:searchPosNearCategories(utype, builder,closestFactory,400, nil,50,{'_nano_'}) or
-			site:searchPosNearCategories(utype, builder,builderPos,400, nil,50,{'factoryMobilities'}) or
-			site:searchPosNearCategories(utype, builder,builderPos,400, nil,50,{'_llt_'}) or
-			site:searchPosNearCategories(utype, builder,'extractsMetal',nil, 'radarRadius',20)
-
-			---theorical pos is get
--- 		POS =  site:BuildNearLastNano(builder, utype) or
--- 				site:searchPosNearCategories(utype, builder,builderPos,400, nil,50,{'_nano_'}) or
--- 				site:searchPosNearCategories(utype, builder,closestFactory,400, nil,50,{'_nano_'}) or
--- 				site:searchPosNearCategories(utype, builder,builderPos,400, nil,50,{'factoryMobilities'}) or
--- 				site:searchPosNearCategories(utype, builder,builderPos,400, nil,50,{'_llt_'})
--- 				site:searchPosNearCategories(utype, builder,'extractsMetal',nil, 'radarRadius',20)
--- 	if p == nil then
--- 		self:EchoDebug("looking next to nano turrets for " .. factoryName)
--- 		p = self.ai.buildsitehst:BuildNearNano(builder, utype)
--- 	end
--- 	if p == nil then
--- 		self:EchoDebug("looking next to factory for " .. factoryName)
--- 		factoryPos = self.ai.buildsitehst:ClosestHighestLevelFactory(builderPos, 10000)
--- 		if factoryPos then
--- 			p = self.ai.buildsitehst:ClosestBuildSpot(builder, factoryPos, utype)
--- 		end
--- 	end
--- 	if p == nil then
--- 		self:EchoDebug('builfactory near hotSpot')
--- 		local place = false
--- 		local distance = 99999
--- 		if factoryPos then
--- 			for index, hotSpot in pairs(self.ai.hotSpot) do
--- 				if self.ai.maphst:MobilityNetworkHere(mtype,hotSpot) then
---
--- 					local dist = math.min(distance, self.ai.tool:Distance(hotSpot,factoryPos))
--- 					if dist < distance then
--- 						place = hotSpot
--- 						distance  = dist
--- 					end
--- 				end
--- 			end
--- 		end
--- 		if place then
--- 			p = self.ai.buildsitehst:ClosestBuildSpot(builder, place, utype)
--- 		end
--- 	end
--- 	if p == nil then
--- 		self:EchoDebug("looking for most turtled position for " .. factoryName)
--- 		local turtlePosList = self.ai.turtlehst:MostTurtled(builder, factoryName)
--- 		if turtlePosList then
--- 			if #turtlePosList ~= 0 then
--- 				for i, turtlePos in ipairs(turtlePosList) do
--- 					p = self.ai.buildsitehst:ClosestBuildSpot(builder, turtlePos, utype)
--- 					if p ~= nil then break end
--- 				end
--- 			end
--- 		end
--- 	end
--- 	if p == nil then
--- 		self:EchoDebug("trying near builder for " .. factoryName)
---  		p = self.ai.buildsitehst:ClosestBuildSpot(builder, builderPos, utype, 10, nil, nil, 1500)
--- 	end
--- 	if p then
--- 		self:EchoDebug("position found for " .. factoryName)
--- 	end
+	p = 	site:BuildNearNano(builder, utype) or
+			site:searchPosNearCategories(utype, builder,50,nil,{'_nano_'}) or
+			site:searchPosNearCategories(utype, builder,50,1000,{'factoryMobilities'}) or
+			site:searchPosNearCategories(utype, builder,50,nil,{'_mex_'}) or
+			site:searchPosNearCategories(utype, builder,50,nil,{'_llt_'})
 	return p
 end
 
 function LabBuildHST:PostPositionalFilter(factoryName,p)
-
 	local mobNetOkay = false
 	for i, mtype in pairs(self.ai.armyhst.factoryMobilities[factoryName]) do
 		local network = self.ai.maphst:MobilityNetworkHere(mtype, p)

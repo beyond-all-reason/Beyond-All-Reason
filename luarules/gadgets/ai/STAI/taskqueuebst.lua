@@ -183,7 +183,8 @@ function TaskQueueBST:CategoryEconFilter(cat,param,name)
 	elseif cat == '_mex_' then
 		check =   (M.full < 0.5 or M.income < 6) or self.role == 'expand'
 	elseif cat == '_nano_' then
-		check =  (E.full > 0.3  and M.full > 0.3 and M.income > 10 and E.income > 100)
+		check =  (E.full > 0.3  and M.full > 0.3 and M.income > 10 and E.income > 100) or
+				(self.ai.tool:countMyUnit({name}) == 0 and (M.income > 10 and E.income > 100))
 	elseif cat == '_wind_' then
 		check =   map:AverageWind() > 7 and ((E.full < 0.5 or E.income < E.usage )  or E.income < 30)
 	elseif cat == '_tide_' then
@@ -437,96 +438,89 @@ function TaskQueueBST:findPlace(utype, value,cat)
 			end
 		end
 	elseif cat == '_wind_' then
-		POS = 	site:searchPosNearCategories(utype, builder,builderPos,500, nil,100,{'_nano_'}) or
-				site:searchPosNearCategories(utype, builder,builderPos,1000, nil,100,{'factoryMobilities'}) or
+		POS = 	site:searchPosNearCategories(utype, builder,nil, nil,{'_nano_'}) or
+				site:searchPosNearCategories(utype, builder,nil, nil,{'factoryMobilities'}) or
 				site:ClosestBuildSpot(builder, builderPos, utype)
 	elseif cat == '_tide_' then
-		POS =  	site:searchPosNearCategories(utype, builder,builderPos,500, nil,100,{'_nano_'}) or
-				site:searchPosNearCategories(utype, builder,builderPos,500, nil,100,{'factoryMobilities'}) or
+		POS = 	site:searchPosNearCategories(utype, builder,nil, nil,{'_nano_'}) or
+				site:searchPosNearCategories(utype, builder,nil, nil,{'factoryMobilities'}) or
 				site:ClosestBuildSpot(builder, builderPos, utype)
 	elseif cat == '_solar_' then
-		POS = 	site:searchPosNearCategories(utype, builder,builderPos,500, nil,100,{'_nano_'}) or
-				site:searchPosNearCategories(utype, builder,builderPos,1000, nil,100,{'factoryMobilities'}) or
+		POS = 	site:searchPosNearCategories(utype, builder,nil, nil,{'_nano_'}) or
+				site:searchPosNearCategories(utype, builder,nil, nil,{'factoryMobilities'}) or
 				site:ClosestBuildSpot(builder, builderPos, utype)
 	elseif cat == '_fus_' then
-		POS = site:searchPosNearCategories(utype, builder,builderPos,400, nil,50,{'_nano_'}) or
-				site:BuildNearLastNano(builder, utype) or
-				site:searchPosNearCategories(utype, builder,builderPos,400, nil,100,{'factoryMobilities'})
--- 				site:ClosestBuildSpot(builder, builderPos, utype)
+		POS = 	site:searchPosNearCategories(utype, builder,nil, nil,{'_nano_'}) or
+				site:searchPosNearCategories(utype, builder,nil, nil,{'factoryMobilities'})
 
 	elseif cat == '_estor_' then
-		POS = site:searchPosNearCategories(utype, builder,builderPos,400, nil,100,{'_nano_'}) or
-				site:searchPosNearCategories(utype, builder,builderPos,400, nil,100,{'factoryMobilities'}) or
+		POS = 	site:searchPosNearCategories(utype, builder,nil, nil,{'_nano_'}) or
+				site:searchPosNearCategories(utype, builder,nil, nil,{'factoryMobilities'}) or
 				site:ClosestBuildSpot(builder, builderPos, utype)
 	elseif cat == '_mstor_' then
-		POS = site:searchPosNearCategories(utype, builder,builderPos,500, nil,100,{'_nano_'}) or
-				site:searchPosNearCategories(utype, builder,builderPos,500, nil,100,{'factoryMobilities'}) or
+		POS = 	site:searchPosNearCategories(utype, builder,nil, nil,{'_nano_'}) or
+				site:searchPosNearCategories(utype, builder,nil, nil,{'factoryMobilities'}) or
 				site:ClosestBuildSpot(builder, builderPos, utype)
 	elseif cat == '_convs_' then
-		POS = site:searchPosNearCategories(utype, builder,builderPos,350, nil,100,{'_nano_'}) or
-				site:searchPosNearCategories(utype, builder,builderPos,500, nil,100,{'factoryMobilities'}) or
+		POS = 	site:searchPosNearCategories(utype, builder,nil, nil,{'_nano_'}) or
+				site:searchPosNearCategories(utype, builder,nil, nil,{'factoryMobilities'}) or
 				site:ClosestBuildSpot(builder, builderPos, utype)
 	elseif cat == '_llt_' then
-		POS = site:searchPosNearCategories(utype, builder,builderPos, 300,'losRadius',50,{'_mex_'})
+		POS = site:searchPosInList(utype, builder, 50,nil,self.map:GetMetalSpots(),{'_llt_','_popup2_','_popup1_'}) or
+		site:searchPosNearCategories(utype, builder, 50, nil,{'_mex_'},{'_llt_','_popup2_','_popup1_'})
+
 	elseif cat == '_popup1_' then
-		POS = site:searchPosNearCategories(utype, builder,closestFactory,400, 'losRadius',50,{'_mex_'}) or
-				site:searchPosInList(self.map:GetMetalSpots(),utype, builder,200, 50)
+		POS = site:searchPosNearCategories(utype, builder, 50, nil,{'_mex_'},{'_llt_','_popup2_','_popup1_'})
 	elseif cat == '_specialt_' then
-		POS = site:searchPosNearCategories(utype, builder,builderPos,400, 'losRadius',100,{'factoryMobilities'})
+		POS = site:searchPosNearCategories(utype, builder,100,nil,{'factoryMobilities'},{'_specialt_'})
 	elseif cat == '_heavyt_' then
-		POS = site:searchPosInList(self.ai.hotSpot,utype, builder, 400,200)
+		POS = site:searchPosInList(utype, builder, nil,nil,self.ai.hotSpot,{'_heavyt_','_laser2_'})
 	elseif cat == '_popup2_' then
-		POS = site:searchPosNearCategories(utype, builder,closestFactory,400, 'losRadius',50,{'_mex_'}) or
-		site:searchPosInList(self.map:GetMetalSpots(),utype, builder, 200,20)
+		POS = site:searchPosNearCategories(utype, builder,50,nil,{'_mex_'},{'_popup2_'})
 	elseif cat == '_jam_' then
-		POS =  site:searchPosNearCategories(utype, builder,builderPos,400, 'losRadius',100,{'factoryMobilities'})
+		POS =  site:searchPosNearCategories(utype, builder,100,nil,{'factoryMobilities'},{'_jam_'})
 	elseif cat == '_radar_' then
-		POS = site:searchPosNearCategories(utype, builder,builderPos,400, 'losRadius',50,{'_mex_'}) or
-				site:searchPosInList(self.map:GetMetalSpots(),utype, builder,200,20)
+		POS = site:searchPosNearCategories(utype, builder,50,'radarRadius',{'_mex_'},{'_radar_'})
+	elseif cat == '_sonar_' then
+		POS = site:searchPosNearCategories(utype, builder,50,nil,{'_mex_'},{'_sonar_'})
 	elseif cat == '_geo_' then
 		POS =  self.ai.maphst:ClosestFreeGeo(utype, builder)
 	elseif cat == '_silo_' then
-		POS =  site:searchPosNearCategories(utype, builder,builderPos,400,'losRadius',200,{'factoryMobilities'})
+		POS =  site:searchPosNearCategories(utype, builder,100,nil,{'_nano_'})
 	elseif cat == '_antinuke_' then
-		POS =  site:searchPosNearCategories(utype, builder,builderPos,400, 'losRadius',200)
-	elseif cat == '_sonar_' then
-		POS = site:searchPosNearCategories(utype, builder,builderPos,400, 'losRadius',50,{'_mex_'}) or
-		site:searchPosInList(self.map:GetMetalSpots(),utype, builder, 200,20)
+		POS =  site:searchPosNearCategories(utype, builder,100,nil,{'_nano_'})
 	elseif cat == '_shield_' then
-		POS =  site:searchPosNearCategories(utype, builder,builderPos,400, 'losRadius',50,{'factoryMobilities'})
+		POS =  site:searchPosNearCategories(utype, builder,50,nil,{'_nano_'},{'_shield_'})
 	elseif cat == '_juno_' then
-		POS =  site:searchPosNearCategories(utype, builder,builderPos,400, 'losRadius',50,{'factoryMobilities'})
+		POS =  site:searchPosNearCategories(utype, builder,50,nil,{'_nano_'})
 	elseif cat == '_laser2_' then
-		POS =   site:searchPosNearCategories(utype, builder,builderPos,400, 'losRadius',50,{'factoryMobilities'})
+		POS =   site:searchPosNearCategories(utype, builder,50,nil,{'_nano_'},{'_laser2_'}) or
+		site:searchPosInList(utype, builder, nil,nil,self.ai.hotSpot,{'_laser2_'})
 	elseif cat == '_lol_' then
-		POS =  site:searchPosNearCategories(utype, builder,builderPos,400, 'losRadius',50,{'factoryMobilities'})
-	elseif cat == '_coast1_' then
-		POS = site:searchPosInList(self.ai.turtlehst:LeastTurtled(builder, value),utype, builder, 200,20)
-	elseif cat == '_coast2_' then
-		POS = site:searchPosInList(self.ai.turtlehst:LeastTurtled(builder, value),utype, builder, 200,20)
+		POS =  site:searchPosNearCategories(utype, builder,50,nil,{'_nano_'})
+ 	elseif cat == '_coast1_' then
+ 		POS = site:searchPosInList(utype, builder, nil,nil,self.ai.turtlehst:LeastTurtled(builder, value),{'_coast1_','_coast2_'})
+ 	elseif cat == '_coast2_' then
+ 		POS = site:searchPosInList(utype, builder, nil,nil,self.ai.turtlehst:LeastTurtled(builder, value),{'_coast2_'})
 	elseif cat == '_plasma_' then
-		POS =  site:searchPosNearCategories(utype, builder,builderPos,400, 'losRadius',500,{'factoryMobilities'})
+		POS =  site:searchPosNearCategories(utype, builder,50,nil,{'_nano_'})
 	elseif cat == '_torpedo1_' then
-		POS = site:searchPosNearCategories(utype, builder,builderPos,400, 'losRadius',20,{'_mex_'}) or
-		site:searchPosInList(self.map:GetMetalSpots(),utype, builder, 200,20)
+		POS = site:searchPosNearCategories(utype, builder,50,nil,{'_mex_'})
 	elseif cat == '_torpedo2_' then
-		POS = site:searchPosNearCategories(utype, builder,closestFactory,closestFactory, 'losRadius',20,{'_mex_'}) or
-				site:searchPosInList(self.map:GetMetalSpots(),utype, builder, 400,20)
+		POS = site:searchPosNearCategories(utype, builder,50,nil,{'_mex_'},{'_torpedo2_'})
 	elseif cat == '_torpedoground_' then
-		POS = site:searchPosNearCategories(utype, builder,builderPos,400, 'losRadius',20,{'_mex_'})
+		POS = site:searchPosNearCategories(utype, builder,50,nil,{'_mex_'},{'_torpedoground_'})
 	elseif cat == '_aabomb_' then
-		POS =  site:searchPosNearCategories(utype, builder,builderPos,400, 'losRadius',20,{'_heavyt_'}) or
-				site:searchPosNearCategories(utype, builder,builderPos,400, 'losRadius',20,{'_laser2_'})
+		POS =  site:searchPosNearCategories(utype, builder,50,nil,{'_heavyt_'},{'_aabomb_'}) or
+			site:searchPosNearCategories(utype, builder,50,nil,{'_laser2_'},{'_aabomb_'})
 	elseif cat == '_aaheavy_' then
-		POS = site:searchPosNearCategories(utype, builder,builderPos,400, 'losRadius',50,{'factoryMobilities'})
+		POS = site:searchPosNearCategories(utype, builder,50,nil,{'factoryMobilities'},{'_aaheavy_'})
 	elseif cat == '_aa2_' then
-		POS =  site:searchPosNearCategories(utype, builder,builderPos,400, 'losRadius',50,{'factoryMobilities'})
+		POS =  site:searchPosNearCategories(utype, builder,50,nil,{'factoryMobilities'},{'_aa2_'})
 	elseif cat == '_aa1_' then
-		POS = site:searchPosNearCategories(utype, builder,builderPos,400, 'losRadius',20,{'_mex_'}) or
-				site:searchPosInList(self.map:GetMetalSpots(),utype, builder, 200,20)
+		POS = site:searchPosNearCategories(utype, builder,20,nil,{'_mex_'},{'_aa1_'})
 	elseif cat == '_flak_' then
-		POS = site:searchPosNearCategories(utype, builder,closestFactory,400, 'losRadius',20,{'_mex_'}) or
-				site:searchPosInList(self.map:GetMetalSpots(),utype, builder,'losRadius',20)
+		POS = site:searchPosNearCategories(utype, builder,20,nil,{'_mex_'},{'_flak_'})
 	else
 		self:EchoDebug(' cant manage POS for ',value,cat)
 	end
