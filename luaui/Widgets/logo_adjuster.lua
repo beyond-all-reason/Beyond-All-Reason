@@ -21,6 +21,7 @@ local imageBattleNotif2 = "_notif2.png"
 local imageBattlePaused = "_paused.png"
 local imageBattlePausedNotif = "_pausednotif.png"
 local imageBattlePausedNotif2 = "_pausednotif2.png"
+local imageBattleGameover = "_gameover.png"
 
 local previousGameFrame = Spring.GetGameFrame()
 local paused = false
@@ -63,9 +64,8 @@ function widget:Shutdown()
     Spring.SetWMIcon(imgPrefix..imagePlain2, true)
 end
 
--- possibly display gameover/trophy icon when being the winner?
 function widget:GameOver()
-
+	Spring.SetWMIcon(imgPrefix..faction..imageBattleGameover, true)
 end
 
 function widget:Update(dt)
@@ -81,13 +81,13 @@ function widget:Update(dt)
 		if gameFrame > 0 then
 			if not paused then
 				if gameFrame == previousGameFrame then
-					Spring.SetWMIcon(imgPrefix..faction..imageBattlePaused)
+					Spring.SetWMIcon(imgPrefix..faction..imageBattlePaused, true)
 					paused = true
 
 				end
 			else
 				if gameFrame ~= previousGameFrame then
-					Spring.SetWMIcon(imgPrefix..faction..imageBattle)
+					Spring.SetWMIcon(imgPrefix..faction..imageBattle, true)
 					paused = false
 				end
 			end
