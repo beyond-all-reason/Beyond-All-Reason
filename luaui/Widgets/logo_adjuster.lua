@@ -17,9 +17,9 @@ local imagePlain = ".png"
 local imageBattle = ".png"
 local imageBattleNotif = "_notif.png"
 local imageBattleNotif2 = "_notif2.png"
-local imageBattlePaused = "_battlepaused.png"
-local imageBattlePausedNotif = "_battlepausednotif.png"
-local imageBattlePausedNotif2 = "_battlepausednotif2.png"
+local imageBattlePaused = "_paused.png"
+local imageBattlePausedNotif = "_pausednotif.png"
+local imageBattlePausedNotif2 = "_pausednotif2.png"
 
 local previousGameFrame = Spring.GetGameFrame()
 local paused = false
