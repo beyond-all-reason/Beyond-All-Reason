@@ -39,7 +39,7 @@ return {
 		turninplaceanglelimit = 90,
 		turnrate = 460.5,
 		upright = true,
-		waterline = 120, --30
+		waterline = 45,
 		customparams = {
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",

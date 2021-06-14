@@ -265,8 +265,8 @@ return {
 				weapontype = "BeamLaser",
 				weaponvelocity = 900,
 				damage = {
-					default = 225,
-					subs = 150,
+					default = 200,
+					subs = 100,
 				},
 			},
 			disintegrator = {
@@ -365,6 +365,7 @@ return {
 			[2] = {
 				badtargetcategory = "VTOL",
 				def = "CORCOMSEALASER",
+				onlytargetcategory = "NOTAIR"
 			},
 			[3] = {
 				def = "DISINTEGRATOR",

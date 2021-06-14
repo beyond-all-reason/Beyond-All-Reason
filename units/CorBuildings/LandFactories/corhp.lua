@@ -12,7 +12,7 @@ return {
 		buildinggrounddecalsizey = 9,
 		buildinggrounddecaltype = "decals/corhp_aoplane.dds",
 		buildpic = "CORHP.PNG",
-		buildtime = 14253,
+		buildtime = 11000,
 		canmove = true,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumescales = "120 32 108",
