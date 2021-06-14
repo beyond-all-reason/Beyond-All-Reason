@@ -234,6 +234,7 @@ end
 function uploadAllElements(iT)
   -- upload all USED elements
   iT.instanceVBO:Upload(iT.instanceData,nil,0, 1, iT.usedElements * iT.instanceStep)
+  iT.dirty = false
   if iT.indextoUnitID then
 		iT.instanceVBO:InstanceDataFromUnitIDs(iT.indextoUnitID, iT.unitIDattribID)
 	end
