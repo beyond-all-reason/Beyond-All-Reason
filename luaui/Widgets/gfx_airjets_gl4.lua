@@ -311,7 +311,7 @@ local distortion = 0.008
 local animSpeed = 3
 local jitterWidthScale = 3
 local jitterLengthScale = 3
-local drawReflectionPass = true	-- should be free now :D
+local drawReflectionPass = false	-- should be free now :D, but is strangely ugly on bumpwater
 
 local texture1 = "bitmaps/GPL/Lups/perlin_noise.jpg"    -- noise texture 
 --local texture1 = "luaui/images/perlin_noise_rgba_512.png"    -- noise texture
