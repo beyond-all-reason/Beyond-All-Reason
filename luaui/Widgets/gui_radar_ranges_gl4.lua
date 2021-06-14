@@ -11,9 +11,9 @@ function widget:GetInfo()
 end
  
 local myrangeColor = { 0.0, 1.0, 1.0, 0.98 }
-local rangeColor = { 0.0, 1.0, 0.0, 0.28 }
+local rangeColor = { 0.0, 1.0, 0.0, 0.19 }
 local allyrangeColor = { 0.25, 0.75, 1.0, 0.98 }
-local rangeLineWidth = 4.0 -- (note: will end up larger for larger vertical screen resolution size)
+local rangeLineWidth = 2.0 -- (note: will end up larger for larger vertical screen resolution size)
 local minRadarDistance = 500
 
 
@@ -108,7 +108,8 @@ out vec4 fragColor;
 
 void main() {
 	fragColor.rgba = blendedcolor.rgba;
-	fragColor.a *= sin((worldPos.x+worldPos.z)*0.12	 - timeInfo.z*0.033415);
+	fragColor.a *= sin((worldPos.x+worldPos.z)*0.06	- timeInfo.z*0.012);
+	//fragColor.a = min(fragColor.a, 0.8);	 // alpha of the line
 }
 ]]
 
