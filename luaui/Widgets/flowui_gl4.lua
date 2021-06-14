@@ -68,12 +68,26 @@ local chobbyInterface
 -- Only textures that are actually in the atlas are renderable
 -- the atlas is built once, and queried
 
+local FBElement_metatable = { -- this is the root element
+	SetVisible = function(self) end,
+}
+
+FBElement_metatable.__index = FBElement_metatable
 local FBElement = {}
-
-FBElement.__index = FBElement
-
 function FBElement.new(name, px, py, sx, sy)
-	return setmetatable({}, FBElement)
+	local mytable = {
+		name = name or "myelement",
+		visible = true,
+		px = px or 0;
+		py = py or 0;
+		sx = sx or 0;
+		sy = sy or 0;
+		children = {},
+	}
+	setmetatable(mytable, FBElement_metatable)
+	
+	
+	return mytable
 end
 
 function FBElement:SetVisible(visible)
@@ -560,6 +574,10 @@ Draw.RectRound = function (VBO, instanceID, z, px, py, sx, sy,  cs,  tl, tr, br,
 	if c1 == nil then c1 = {1.0,1.0,1.0,1.0} end
 	if c2 == nil then c2 = c1 end
 	progress = progress or 1
+	if tl == nil then tl = 1.0 end
+	if tr == nil then tr = 1.0 end
+	if br == nil then br = 1.0 end
+	if bl == nil then bl = 1.0 end
 	--Spring.Echo(c1)
 	--Spring.Echo(c2)
 	
@@ -634,15 +652,14 @@ Draw.TexturedRectRound =  function (VBO, instanceID, z, px, py, sx, sy,  cs,  tl
 		--Spring.Echo(texture)
 	end 
 	
-	if color == nil then color = {1,1,1,0.5} end
+	if color == nil then color = {1,1,1,1.0} end
 	--uvs = Draw.TransformUVAtlasxXyY(texture, uvs) -- DO OFFSET!
-	local scale = size and (size / (sx-px)) or 1
+	--local scale = size and (size / (sx-px)) or 1
 	--local offset = offset or 0
-	local csyMult = 1 / ((sy - py) / cs)
-	local ycMult = (sy-py) / (sx-px)
+	--local csyMult = 1 / ((sy - py) / cs)
+	--local ycMult = (sy-py) / (sx-px)
 	
 	if z == nil then z = 0.50 end  -- fools depth sort
-	if c2 == nil then c2 = c1 end
 	local VBOData = {
 		px, py, sx, sy, 
 		cs*tl, cs*tr, cs*br, cs*bl, 
@@ -785,9 +802,9 @@ Draw.Element = function(VBO, instanceID, z,px, py, sx, sy,  tl, tr, br, bl,  ptl
 
 	-- highlight edges thinly
 	-- top
-	local topgloss = Draw.RectRound(VBO, nil, z-0.004,px + pxPad, sy - syPad - (cs*2.5), sx - sxPad, sy - syPad, cs, tl, tr, 0, 0, { 1, 1, 1, 0 }, { 1, 1, 1, 0.04 * glossMult })
+	local topgloss2 = Draw.RectRound(VBO, nil, z-0.004,px + pxPad, sy - syPad - (cs*2.5), sx - sxPad, sy - syPad, cs, tl, tr, 0, 0, { 1, 1, 1, 0 }, { 1, 1, 1, 0.04 * glossMult })
 	-- bottom
-	local botgloss = Draw.RectRound(VBO, nil, z-0.005,px + pxPad, py + pyPad, sx - sxPad, py + pyPad + (cs*2), cs, 0, 0, br, bl, { 1, 1, 1, 0.02 * glossMult }, { 1 ,1 ,1 , 0 })
+	local botgloss2 = Draw.RectRound(VBO, nil, z-0.005,px + pxPad, py + pyPad, sx - sxPad, py + pyPad + (cs*2), cs, 0, 0, br, bl, { 1, 1, 1, 0.02 * glossMult }, { 1 ,1 ,1 , 0 })
 	-- left
 	--Spring.FlowUI.Draw.RectRound(px + pxPad, py + syPad, px + pxPad + (cs*2), sy - syPad, cs, tl, tr, 0, 0, { 1, 1, 1, 0.02 * glossMult }, { 1, 1, 1, 0 })
 	-- right
@@ -798,7 +815,7 @@ Draw.Element = function(VBO, instanceID, z,px, py, sx, sy,  tl, tr, br, bl,  ptl
 
 	-- darkening bottom
 	local botdark = Draw.RectRound(VBO, nil, z-0.006,px, py, sx, py + ((sy-py)*0.75), cs*1.66, 0, 0, br, bl, { 0,0,0, 0.05 * glossMult }, { 0,0,0, 0 })
-	local instanceIDs = {background1, background2, topgloss, botgloss, botdark}
+	local instanceIDs = {background1, background2, topgloss, botgloss, topgloss2, botgloss2, botdark}
 	-- tile
 	if tileopacity > 0 then
 		--gl.Color(1,1,1, tileopacity)
@@ -1320,7 +1337,7 @@ function widget:DrawScreen()
 		atlassedImages = WG['flowui_atlassedImages'] 
 		Spring.Utilities.TableEcho({gl.GetAtlasTexture(atlasID, "unitpics/armcom.png")})
 	end
-	if elems < 100 then
+	if elems < 1000 then
 		elems = elems+1
 		local x = math.floor(math.random()*vsx) 
 		local y = math.floor(math.random()*vsy)
@@ -1368,7 +1385,7 @@ function widget:DrawScreen()
 		end
 	end
 	local UiButton = Spring.FlowUI.Draw.Button
-	UiButton(500, 500, 600, 550, 1,1,1,1, 1,1,1,1, nil, { 0, 0, 0, 0.8 }, { 0.2, 0.8, 0.2, 0.8 }, Spring.FlowUI.elementCorner * 0.5)
+	--UiButton(500, 500, 600, 550, 1,1,1,1, 1,1,1,1, nil, { 0, 0, 0, 0.8 }, { 0.2, 0.8, 0.2, 0.8 }, Spring.FlowUI.elementCorner * 0.5)
 	if chobbyInterface then return end
 	
 	
