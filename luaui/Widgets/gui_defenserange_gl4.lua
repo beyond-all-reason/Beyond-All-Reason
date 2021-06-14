@@ -853,12 +853,12 @@ function UnitDetected( unitID, allyTeam, teamId , unitDefID )
 				
 				local newkey = tostring(unitID) .. tostring( unitDefID) .. tostring( i) .. '_' .. tostring(x) .. '_' .. tostring(z)
 				--Spring.Echo("weaponType", weaponType, "weaponDef.projectilespeed",weaponDef.projectilespeed,"weaponDef.heightBoostFactor",weaponDef.heightBoostFactor,"weaponDef.heightMod",weaponDef.heightMod)
-				
+	
 				local myData = {
 					x,y,z,range,
 					color1[1],color1[2],color1[3],teamId,
 					-- // fadeend, fadestart
-					color1[5],color1[6],color[8],color[7], 
+					color1[5],color1[6],color1[8],color1[7], 
 					
 					--//projectileParams : projectileSpeed, rangeFactor, heightBoostFactor , heightMod
 					weaponDef.projectilespeed,isCylinder,weaponDef.heightBoostFactor,weaponDef.heightMod
