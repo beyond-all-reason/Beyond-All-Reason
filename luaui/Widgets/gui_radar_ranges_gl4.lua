@@ -135,7 +135,7 @@ local function initgl4()
         circleuniforms = {1,1,1,1},
       },
     },
-    "circleShader GL4"
+    "radarrange shader GL4"
   )
   shaderCompiled = circleShader:Initialize()
   if not shaderCompiled then goodbye("Failed to compile circleShader GL4 ") end
@@ -145,7 +145,7 @@ local function initgl4()
 		  {id = 2, name = 'endposrad', size = 4}, --  end pos + radius
 		  {id = 3, name = 'color', size = 4}, --- color
 		}
-  circleInstanceVBO = makeInstanceVBOTable(circleInstanceVBOLayout,12, "circleInstanceVBO")
+  circleInstanceVBO = makeInstanceVBOTable(circleInstanceVBOLayout,32, "radarrangeVBO")
   circleInstanceVBO.numVertices = numVertices
   circleInstanceVBO.vertexVBO = circleVBO
   circleInstanceVBO.VAO = makeVAOandAttach(circleInstanceVBO.vertexVBO, circleInstanceVBO.instanceVBO)
@@ -155,6 +155,7 @@ end
 local spGetGameSeconds      = Spring.GetGameSeconds
 local spGetGroundHeight 	= Spring.GetGroundHeight
 local spGetSpectatingState  = Spring.GetSpectatingState
+local spGetUnitIsActive 	= Spring.GetUnitIsActive
 local spGetUnitDefID        = Spring.GetUnitDefID
 local spGetUnitPosition     = Spring.GetUnitPosition
 local spIsGUIHidden 		= Spring.IsGUIHidden
@@ -184,6 +185,7 @@ local GL_TRIANGLE_FAN       = GL.TRIANGLE_FAN
 local vsx, vsy = Spring.GetViewGeometry()
 local lineScale = 1
 local unitList = {} -- all ally units and their coordinates and radar ranges
+local activeUnits = {}
 local spec, fullview = spGetSpectatingState()
 local allyTeamID = Spring.GetMyAllyTeamID()
 
@@ -240,6 +242,7 @@ local function processUnit(unitID, unitDefID)
     local height = unitRange[unitDefID]['height']
 	
     unitList[unitID] = unitDefID
+	activeUnits[unitID] = false
 	-- shall we jam it straight into the table?
 	pushElementInstance(circleInstanceVBO,{x,y,z,range, x,y,z,range,rangeColor[1],rangeColor[2],rangeColor[3],rangeColor[4] },unitID)
 end
@@ -261,6 +264,7 @@ end
 function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
   if 	unitList[unitID] then
     unitList[unitID] = nil
+	activeUnits[unitID] = nil
     popElementInstance(circleInstanceVBO,unitID)
   end
 end
@@ -290,10 +294,10 @@ function widget:GameFrame(n)
 	if n % 15 == 0 then -- this 15 frames is important, as the vertex shader is interpolating at this rate too!
 		local instanceData = circleInstanceVBO.instanceData -- ok this is so nasty that it makes all my prev pop-push work obsolete
 		for unitID, unitDefID in pairs(unitList) do
-				if not isBuilding[unitDefID] then 
+			local instanceDataOffset = (circleInstanceVBO.instanceIDtoIndex[unitID] - 1)* circleInstanceVBO.instanceStep
+			if not isBuilding[unitDefID] then 
 				local x, y, z = spGetUnitPosition(unitID)
 				
-				local instanceDataOffset = (circleInstanceVBO.instanceIDtoIndex[unitID] - 1)* circleInstanceVBO.instanceStep
 				
 				for i=instanceDataOffset + 1, instanceDataOffset+4 do
 					instanceData[i] = instanceData[i+4]
@@ -303,6 +307,23 @@ function widget:GameFrame(n)
 				instanceData[instanceDataOffset+7] = z
 		
 			end
+			
+
+			local range = unitRange[unitDefID]['range'] 
+			local active = spGetUnitIsActive(unitID) 
+			if active then
+				instanceData[instanceDataOffset+8] = range
+			else
+				instanceData[instanceDataOffset+8] = 0
+			end
+			if activeUnits[unitID] then 
+				instanceData[instanceDataOffset+4] = range
+			else
+				instanceData[instanceDataOffset+4] = 0
+			end
+			activeUnits[unitID] = active
+
+			
 			--pushElementInstance(circleInstanceVBO,instanceData,unitID, true, true) -- overwrite data and dont upload!, but i am scum and am directly modifying the table
 		end
 		uploadAllElements(circleInstanceVBO)
