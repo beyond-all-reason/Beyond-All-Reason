@@ -14,6 +14,7 @@ local doBlink = true
 
 local imgPrefix = 'bitmaps/logo'
 local imagePlain = ".png"
+local imagePlain2 = "2.png"
 local imageBattle = ".png"
 local imageBattleNotif = "_notif.png"
 local imageBattleNotif2 = "_notif2.png"
@@ -53,13 +54,13 @@ function widget:GameStart()
 		faction = '_a'
 	end
 	if prevFaction ~= faction then
-		Spring.SetWMIcon(imgPrefix..faction..imageBattle)
+		Spring.SetWMIcon(imgPrefix..faction..imageBattle, true)
 	end
 end
 
 
 function widget:Shutdown()
-    Spring.SetWMIcon(imgPrefix..imagePlain)
+    Spring.SetWMIcon(imgPrefix..imagePlain2, true)
 end
 
 -- possibly display gameover/trophy icon when being the winner?
@@ -70,7 +71,7 @@ end
 function widget:Update(dt)
 	if not initialized then		-- this prevents icon being changed when still on loadscreen instead of doing it in widget:initialized
 		initialized = true
-		Spring.SetWMIcon(imgPrefix..faction..imageBattle)
+		Spring.SetWMIcon(imgPrefix..faction..imageBattle, true)
 	end
 	sec = sec + dt
 	if sec > 0.75 then
@@ -98,7 +99,7 @@ function widget:Update(dt)
 				faction = '_a'
 			end
 			if prevFaction ~= faction then
-				Spring.SetWMIcon(imgPrefix..faction..imageBattle)
+				Spring.SetWMIcon(imgPrefix..faction..imageBattle, true)
 			end
 		end
 		previousGameFrame = gameFrame
@@ -110,15 +111,15 @@ function widget:Update(dt)
 			if not mouseOffscreen then
 				if prevMouseOffscreen then
 					notif = false
-					Spring.SetWMIcon(imgPrefix..faction..(paused and imageBattlePaused or imageBattle))
+					Spring.SetWMIcon(imgPrefix..faction..(paused and imageBattlePaused or imageBattle), true)
 				end
 			else
 				blink = not blink
 				if mouseOffscreen and notif then
 					if paused then
-						Spring.SetWMIcon(imgPrefix..faction..((doBlink and blink) and imageBattlePausedNotif2 or imageBattlePausedNotif))
+						Spring.SetWMIcon(imgPrefix..faction..((doBlink and blink) and imageBattlePausedNotif2 or imageBattlePausedNotif), true)
 					else
-						Spring.SetWMIcon(imgPrefix..faction..((doBlink and blink) and imageBattleNotif2 or imageBattleNotif))
+						Spring.SetWMIcon(imgPrefix..faction..((doBlink and blink) and imageBattleNotif2 or imageBattleNotif), true)
 					end
 				end
 			end
