@@ -64,7 +64,7 @@ float heightAtWorldPos(vec2 w){
 
 void main() {
 	// blend start to end on mod gf%15
-	float timemix = mod(timeInfo.x,15)*0.06666;
+	float timemix = mod(timeInfo.x,10)*(0.1);
 	vec4 circleWorldPos = mix(startposrad, endposrad, timemix);
 	circleWorldPos.xz = circlepointposition.xy * circleWorldPos.w +  circleWorldPos.xz;
 	
@@ -292,7 +292,7 @@ end
 
 function widget:GameFrame(n)
 	if spec and fullview then return end
-	if n % 15 == 0 then -- this 15 frames is important, as the vertex shader is interpolating at this rate too!
+	if n % 10 == 0 then -- this 15 frames is important, as the vertex shader is interpolating at this rate too!
 		local instanceData = circleInstanceVBO.instanceData -- ok this is so nasty that it makes all my prev pop-push work obsolete
 		for unitID, unitDefID in pairs(unitList) do
 				if not isBuilding[unitDefID] then 
