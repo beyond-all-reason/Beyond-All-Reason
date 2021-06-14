@@ -135,17 +135,17 @@ local function initgl4()
         circleuniforms = {1,1,1,1},
       },
     },
-    "circleShader GL4"
+    "losrange shader GL4"
   )
   shaderCompiled = circleShader:Initialize()
-  if not shaderCompiled then goodbye("Failed to compile circleShader GL4 ") end
+  if not shaderCompiled then goodbye("Failed to compile losrange shader GL4 ") end
   local circleVBO,numVertices = makeCircleVBO(circleSegments)
   local circleInstanceVBOLayout = {
 		  {id = 1, name = 'startposrad', size = 4}, -- the start pos + radius
 		  {id = 2, name = 'endposrad', size = 4}, --  end pos + radius
 		  {id = 3, name = 'color', size = 4}, --- color
 		}
-  circleInstanceVBO = makeInstanceVBOTable(circleInstanceVBOLayout,12, "circleInstanceVBO")
+  circleInstanceVBO = makeInstanceVBOTable(circleInstanceVBOLayout,128, "losrangeVBO")
   circleInstanceVBO.numVertices = numVertices
   circleInstanceVBO.vertexVBO = circleVBO
   circleInstanceVBO.VAO = makeVAOandAttach(circleInstanceVBO.vertexVBO, circleInstanceVBO.instanceVBO)
