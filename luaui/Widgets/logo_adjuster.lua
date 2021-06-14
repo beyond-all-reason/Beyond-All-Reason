@@ -26,6 +26,7 @@ local paused = false
 local notif = false
 local blink = false
 local sec = 0
+local initialized = false
 
 local faction = '_a'
 if UnitDefs[Spring.GetTeamRulesParam(Spring.GetMyTeamID(), 'startUnit')].name == 'corcom' then
@@ -36,7 +37,6 @@ local mouseOffscreen = select(6, Spring.GetMouseState())
 local prevMouseOffscreen = mouseOffscreen
 
 function widget:Initialize()
-    Spring.SetWMIcon(imgPrefix..faction..imageBattle)
 	WG.logo = {}
 	WG.logo.mention = function()
 		if mouseOffscreen then
@@ -44,6 +44,19 @@ function widget:Initialize()
 		end
 	end
 end
+
+function widget:GameStart()
+	local prevFaction = faction
+	if UnitDefs[Spring.GetTeamRulesParam(Spring.GetMyTeamID(), 'startUnit')].name == 'corcom' then
+		faction = '_c'
+	else
+		faction = '_a'
+	end
+	if prevFaction ~= faction then
+		Spring.SetWMIcon(imgPrefix..faction..imageBattle)
+	end
+end
+
 
 function widget:Shutdown()
     Spring.SetWMIcon(imgPrefix..imagePlain)
@@ -55,6 +68,10 @@ function widget:GameOver()
 end
 
 function widget:Update(dt)
+	if not initialized then		-- this prevents icon being changed when still on loadscreen instead of doing it in widget:initialized
+		initialized = true
+		Spring.SetWMIcon(imgPrefix..faction..imageBattle)
+	end
 	sec = sec + dt
 	if sec > 0.75 then
 		sec = 0
