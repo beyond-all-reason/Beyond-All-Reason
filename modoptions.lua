@@ -750,7 +750,6 @@ local options={
 		section= "controlvictoryoptions",
 		type="list",
 		def="13",
-		section= "controlvictoryoptions",
 		items={
 			{key="7", name="7", desc=""},
 			{key="13", name="13", desc=""},
