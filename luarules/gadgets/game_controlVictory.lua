@@ -16,18 +16,18 @@ if modOptions == nil or modOptions.scoremode == nil or modOptions.scoremode == "
 end
 
 local useMapConfig = modOptions.usemapconfig or "enabled"
-local numberOfControlPoints = modOptions.numberofcontrolpoints or 13
-local captureRadius = modOptions.captureradius or 250
-local decapSpeed = modOptions.decapspeed or 2
-local startTime = modOptions.starttime or 0
-local metalPerPoint = modOptions.metalperpoint or 0
-local energyPerPoint = modOptions.energyperpoint or 0
-local tugofWarModifier = modOptions.tugofwarmodifier or 2
-local limitScore = modOptions.limitscore or 10000
-local captureTime = modOptions.capturetime or 60
-local captureBonus = (modOptions.capturebonus or 5) * 0.01 -- modoption number is percentage 0%-100%
-local dominationScoreTime = modOptions.dominationscoretime or 30
-local dominationScore = modOptions.dominationscore or 1000
+local numberOfControlPoints = tonumber(modOptions.numberofcontrolpoints) or 13
+local captureRadius = tonumber(modOptions.captureradius) or 250
+local decapSpeed = tonumber(modOptions.decapspeed) or 2
+local startTime = tonumber(modOptions.starttime) or 0
+local metalPerPoint = tonumber(modOptions.metalperpoint) or 0
+local energyPerPoint = tonumber(modOptions.energyperpoint) or 0
+local tugofWarModifier = tonumber(modOptions.tugofwarmodifier) or 2
+local limitScore = tonumber(modOptions.limitscore) or 10000
+local captureTime = tonumber(modOptions.capturetime) or 60
+local captureBonus = tonumber((modOptions).capturebonus or 5) * 0.01 -- modoption number is percentage 0%-100%
+local dominationScoreTime = tonumber(modOptions.dominationscoretime) or 30
+local dominationScore = tonumber(modOptions.dominationscore) or 1000
 local scoreModeName
 
 --[[
