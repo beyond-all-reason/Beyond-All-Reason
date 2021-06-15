@@ -591,6 +591,12 @@ return {
 				afk = '%{name} went AFK',
 				returned = '%{name} came back',
 			},
+			ffaNoOwner = {
+				removed = "No Owner Mode: Removing Team %{team}",
+				destroyed = "No Owner Mode: Destroying Team %{team}",
+				disconnected = "No Owner Mode: Team %{team} has %{gracePeriod} minute(s) to reconnect",
+				reconnected= "No Owner Mode: Team %{team} reconnected",
+			},
 		}
 	}
 }
