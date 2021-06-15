@@ -86,37 +86,9 @@ local nonCapturingUnits = {
 
 return nonCapturingUnits
 
-////
-!!!!THIS IS NOW DEPRECATED IN LEIU OF BUILDINGMASK!!!!
-The code has, however, been kept (commented out) in case other game developers end up having a use for it.
-
-The buildableUnits.lua config file is structured like this:
-These are units that are allowed to be built within control points.
-
-////
-
-local buildableUnits = {
-	"armamex",
-	"armmex",
-	"armmoho",
-	"armuwmex",
-	"armuwmme",
-	"corexp",
-	"cormex",
-	"cormexp",
-	"cormoho",
-	"coruwmex",
-	"coruwmme",
-}
-
-return buildableUnits
-
-////
-
 ]]--
 
 local nonCapturingUnits = VFS.Include "LuaRules/Configs/cv_nonCapturingUnits.lua"
---local buildableUnits = VFS.Include"LuaRules/Configs/cv_buildableUnits.lua"
 
 --Make controlvictory exit if chickens are present
 local chickensEnabled = false
@@ -242,10 +214,6 @@ if (gadgetHandler:IsSyncedCode()) then
 		return nonCapturingUnits or {}
 	end
 
-	-- local function gBuildableUnits()
-	-- 	return buildableUnits or {}
-	-- end
-
 	local function gCaptureRadius()
 		return captureRadius or 0
 	end
@@ -255,7 +223,6 @@ if (gadgetHandler:IsSyncedCode()) then
 	function gadget:Initialize()
 		gadgetHandler:RegisterGlobal('ControlPoints', gControlPoints)
 		gadgetHandler:RegisterGlobal('NonCapturingUnits', gNonCapturingUnits)
-		-- gadgetHandler:RegisterGlobal('BuildableUnits', gBuildableUnits)
 		gadgetHandler:RegisterGlobal('CaptureRadius', gCaptureRadius)
 
 		for _, a in ipairs(Spring.GetAllyTeamList()) do
@@ -677,28 +644,6 @@ if (gadgetHandler:IsSyncedCode()) then
 			end
 		end
 	end
-
-	-- Allow units listed in the buildableUnits config to be built in control points
-	-- This is deprecated in leiu of buildingMask
-	-- local allowedBuildableUnits = {}
-	-- for i = 1, #buildableUnits do
-	-- if UnitDefNames[buildableUnits[i]] then
-	-- allowedBuildableUnits[UnitDefNames[buildableUnits[i]].id] = true
-	-- end
-	-- end
-
-	-- function gadget:AllowUnitCreation(unit, builder, team, x, y, z)
-	-- if allowedBuildableUnits[unit] then
-	-- return true
-	-- end
-	-- for _, p in pairs(points) do
-	-- if x and math.sqrt((x - p.x) * (x - p.x) + (z - p.z) * (z - p.z)) < captureRadius then
-	-- Spring.SendMessageToPlayer(team, "This unit is not allowed to be built in Control Points")
-	-- return false
-	-- end
-	-- end
-	-- return true
-	-- end
 
 else
 	--------------
