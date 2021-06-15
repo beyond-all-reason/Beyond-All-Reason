@@ -213,7 +213,7 @@ if (gadgetHandler:IsSyncedCode()) then
 		dominationTime = nil,
 	}
 
-	local function Loser(team)
+	local function declareLoser(team)
 		if team == gaia then
 			return
 		end
@@ -224,10 +224,10 @@ if (gadgetHandler:IsSyncedCode()) then
 		end
 	end
 
-	local function Winner(team)
+	local function declareWinner(team)
 		for _, a in ipairs(Spring.GetAllyTeamList()) do
 			if a ~= team and a ~= gaia then
-				Loser(a)
+				declareLoser(a)
 			end
 		end
 	end
@@ -625,7 +625,7 @@ if (gadgetHandler:IsSyncedCode()) then
 				end
 				for allyTeamID, teamScore in pairs(score) do
 					if teamScore <= 0 then
-						Loser(allyTeamID)
+						declareLoser(allyTeamID)
 					end
 				end
 			elseif scoreMode == 2 then
@@ -640,7 +640,7 @@ if (gadgetHandler:IsSyncedCode()) then
 				end
 				for allyTeamID, teamScore in pairs(score) do
 					if teamScore <= 0 then
-						Loser(allyTeamID)
+						declareLoser(allyTeamID)
 					end
 				end
 			elseif scoreMode == 3 then
@@ -667,7 +667,7 @@ if (gadgetHandler:IsSyncedCode()) then
 						end
 						score[dom.dominator] = score[dom.dominator] + Spring.GetModOptions().dominationscore
 						if score[dom.dominator] >= limitScore then
-							Winner(dom.dominator)
+							declareWinner(dom.dominator)
 							Spring.Echo([[-------------------------------]])
 							Spring.Echo([[A domination has been scored!!!]])
 							Spring.Echo([[-------------------------------]])
@@ -813,7 +813,7 @@ else
 		return playerEntries
 	end
 
-	local function DrawCircleLine(innersize, outersize)
+	local function drawCircleLine(innersize, outersize)
 		BeginEnd(QUADS, function()
 			local detailPartWidth, a1, a2, a3, a4
 			local width = OPTIONS.circleSpaceUsage
@@ -840,7 +840,7 @@ else
 		end)
 	end
 
-	function DrawCircleSolid(size, pieces, drawPieces, innercolor, outercolor, revert)
+	local function drawCircleSolid(size, pieces, drawPieces, innercolor, outercolor, revert)
 		BeginEnd(TRIANGLE_FAN, function()
 			local radstep = (2.0 * math.pi) / pieces
 			local a1
@@ -861,172 +861,8 @@ else
 			end
 		end)
 	end
-
-	local function viewResize(force)
-		local vsx2, vsy2 = Spring.GetViewGeometry()
-		if force or vsx2 ~= vsy or vsx2 ~= vsy then
-			vsx, vsy = vsx2, vsy2
-			ui_scale = Spring.GetConfigFloat("ui_scale", 1)
-			uiScale = (0.75 + (vsx * vsy / 7500000)) * ui_scale
-
-			screenX = (vsx * 0.5) - (screenWidth / 2)
-			screenY = (vsy * 0.5) + (screenHeight / 2)
-
-			elementCorner = Spring.FlowUI.elementCorner
-
-			scoreboardX = floor(vsx * scoreboardRelX)
-			scoreboardY = floor(vsy * scoreboardRelY)
-
-			if infoList then
-				gl.DeleteList(infoList)
-			end
-			infoList = CreateList(drawGameModeInfo)
-		end
-	end
-
-	function gadget:Initialize()
-		playerListEntry = createPlayerList()
-
-		viewResize(true)
-
-		controlPointList = CreateList(DrawCircleLine, captureRadius - ringThickness, captureRadius)
-		if Spring.GetGameFrame() > 0 then
-			showGameModeInfo = false
-		end
-
-		for i, capturePoint in spairs(SYNCED.points) do
-			if capturePoints[i] == nil then
-				capturePoints[i] = {}
-				capturePoints[i].color = { 1, 1, 1 }
-				capturePoints[i].aggressorColor = { 1, 1, 1 }
-				capturePoints[i].x = capturePoint.x
-				capturePoints[i].y = Spring.GetGroundHeight(capturePoint.x, capturePoint.z) + 2
-				capturePoints[i].z = capturePoint.z
-			end
-			if capturePoint.owner and capturePoint.owner ~= gaia then
-				capturePoints[i].color[1], capturePoints[i].color[2], capturePoints[i].color[3] = Spring.GetTeamColor(Spring.GetTeamList(capturePoint.owner)[1])
-			else
-				capturePoints[i].color = { 1, 1, 1 }
-			end
-			if capturePoint.aggressor and capturePoint.aggressor ~= gaia then
-				capturePoints[i].aggressorColor[1], capturePoints[i].aggressorColor[2], capturePoints[i].aggressorColor[3] = Spring.GetTeamColor(Spring.GetTeamList(capturePoint.aggressor)[1])
-			else
-				capturePoints[i].aggressorColor = { 1, 1, 1 }
-			end
-			capturePoints[i].capture = capturePoint.capture
-		end
-	end
-
-	function gadget:DrawInMiniMap()
-		PushMatrix()
-		gl.LoadIdentity()
-		Translate(0, 1, 0)
-		Scale(1 / Game.mapSizeX, 1 / Game.mapSizeZ, 0)
-		Rotate(90, 1, 0, 0)
-		DrawPoints(true)
-		PopMatrix()
-	end
-
-	function gadget:Update()
-		local clockDifference = Spring.DiffTimers(Spring.GetTimer(), prevTimer)
-		prevTimer = Spring.GetTimer()
-
-		-- animate rotation
-		if OPTIONS.rotationSpeed > 0 then
-			local angleDifference = (OPTIONS.rotationSpeed) * (clockDifference * 5)
-			currentRotationAngle = currentRotationAngle + (angleDifference * 0.6)
-			if currentRotationAngle > 360 then
-				currentRotationAngle = currentRotationAngle - 360
-			end
-		end
-	end
-
-	function gadget:GameFrame()
-
-		for i, capturePoint in spairs(SYNCED.points) do
-			if capturePoints[i] == nil then
-				capturePoints[i] = {}
-				capturePoints[i].color = { 1, 1, 1 }
-				capturePoints[i].aggressorColor = { 1, 1, 1 }
-				capturePoints[i].x = capturePoint.x
-				capturePoints[i].y = Spring.GetGroundHeight(capturePoint.x, capturePoint.z) + 2
-				capturePoints[i].z = capturePoint.z
-			end
-			if capturePoint.owner and capturePoint.owner ~= gaia then
-				capturePoints[i].color[1], capturePoints[i].color[2], capturePoints[i].color[3] = Spring.GetTeamColor(Spring.GetTeamList(capturePoint.owner)[1])
-			else
-				capturePoints[i].color = { 1, 1, 1 }
-			end
-			if capturePoint.aggressor and capturePoint.aggressor ~= gaia then
-				capturePoints[i].aggressorColor[1], capturePoints[i].aggressorColor[2], capturePoints[i].aggressorColor[3] = Spring.GetTeamColor(Spring.GetTeamList(capturePoint.aggressor)[1])
-			else
-				capturePoints[i].aggressorColor = { 1, 1, 1 }
-			end
-			capturePoints[i].capture = capturePoint.capture
-		end
-	end
-
-	function DrawPoints(simplified)
-		local capturedAlpha, capturingAlpha, prefix, parts
-		if simplified then
-			-- for minimap
-			capturedAlpha = 0.6
-			capturingAlpha = 0.9
-			prefix = 'm_'        -- so it uses different displaylists
-			parts = math.ceil((OPTIONS.circlePieces * OPTIONS.circlePieceDetail) / 2)
-		else
-			capturedAlpha = 0.3
-			capturingAlpha = 0.6
-			prefix = ''
-			parts = (OPTIONS.circlePieces * OPTIONS.circlePieceDetail)
-		end
-		for i, point in pairs(capturePoints) do
-			PushMatrix()
-			Translate(point.x, point.y, point.z)
-			-- owner circle backgroundcolor
-			if controlPointSolidList[prefix .. point.color[1] .. '_' .. point.color[2] .. '_' .. point.color[3]] == nil then
-				controlPointSolidList[prefix .. point.color[1] .. '_' .. point.color[2] .. '_' .. point.color[3]] = CreateList(DrawCircleSolid, captureRadius + ringThickness, parts, parts, { 0, 0, 0, 0 }, { point.color[1], point.color[2], point.color[3], capturedAlpha })
-			end
-			CallList(controlPointSolidList[prefix .. point.color[1] .. '_' .. point.color[2] .. '_' .. point.color[3]])
-
-			-- captured percentage
-			if point.capture > 0 then
-				local revert = false
-				if point.aggressorColor[1] .. '_' .. point.aggressorColor[2] .. '_' .. point.aggressorColor[3] == '1_1_1' then
-					revert = true
-				end
-				local piesize = floor(((point.capture / captureTime) / (1 / capturePieParts)) + 0.5)
-				if controlPointSolidList[prefix .. point.aggressorColor[1] .. '_' .. point.aggressorColor[2] .. '_' .. point.aggressorColor[3] .. '_' .. piesize] == nil then
-					controlPointSolidList[prefix .. point.aggressorColor[1] .. '_' .. point.aggressorColor[2] .. '_' .. point.aggressorColor[3] .. '_' .. piesize] = CreateList(DrawCircleSolid, (captureRadius - ringThickness * 2), capturePieParts, piesize, { 0, 0, 0, 0 }, { point.aggressorColor[1], point.aggressorColor[2], point.aggressorColor[3], capturingAlpha }, revert)
-				end
-				CallList(controlPointSolidList[prefix .. point.aggressorColor[1] .. '_' .. point.aggressorColor[2] .. '_' .. point.aggressorColor[3] .. '_' .. piesize])
-			end
-			if not simplified then
-				-- not for minimap
-				--ring
-				Rotate(currentRotationAngle, 0, 1, 0)
-				Color(1, 1, 1, 0.6)
-				CallList(controlPointList)
-			end
-			PopMatrix()
-		end
-	end
-
-	function gadget:DrawWorldPreUnit()
-		PolygonOffset(-10000, -1)  -- draw on top of water/map - sideeffect: will shine through terrain/mountains
-		DrawPoints(false)        -- Todo: use DrawWorldPreUnit make it so that it colorizes the map/ground
-		PolygonOffset(false)
-	end
-
-	function gadget:Shutdown()
-		if Script.LuaUI("GuishaderRemoveRect") then
-			Script.LuaUI.GuishaderRemoveRect('cv_scoreboard')
-			Script.LuaUI.GuishaderRemoveRect('cv_scoreboardtitle')
-		end
-		gl.DeleteFont(font)
-	end
-
-	function drawGameModeInfo()
+	
+	local function drawGameModeInfo()
 		local white = "\255\255\255\255"
 		local offwhite = "\255\210\210\210"
 		local yellow = "\255\255\255\0"
@@ -1094,7 +930,170 @@ There are various options available in the lobby bsettings (use ]] .. yellow .. 
 		PopMatrix()
 	end
 
-	function drawMouseoverScoreboard()
+	local function viewResize(force)
+		local vsx2, vsy2 = Spring.GetViewGeometry()
+		if force or vsx2 ~= vsy or vsx2 ~= vsy then
+			vsx, vsy = vsx2, vsy2
+			ui_scale = Spring.GetConfigFloat("ui_scale", 1)
+			uiScale = (0.75 + (vsx * vsy / 7500000)) * ui_scale
+
+			screenX = (vsx * 0.5) - (screenWidth / 2)
+			screenY = (vsy * 0.5) + (screenHeight / 2)
+
+			elementCorner = Spring.FlowUI.elementCorner
+
+			scoreboardX = floor(vsx * scoreboardRelX)
+			scoreboardY = floor(vsy * scoreboardRelY)
+
+			if infoList then
+				gl.DeleteList(infoList)
+			end
+			infoList = CreateList(drawGameModeInfo)
+		end
+	end
+
+	function gadget:Initialize()
+		playerListEntry = createPlayerList()
+
+		viewResize(true)
+
+		controlPointList = CreateList(drawCircleLine, captureRadius - ringThickness, captureRadius)
+		if Spring.GetGameFrame() > 0 then
+			showGameModeInfo = false
+		end
+
+		for i, capturePoint in spairs(SYNCED.points) do
+			if capturePoints[i] == nil then
+				capturePoints[i] = {}
+				capturePoints[i].color = { 1, 1, 1 }
+				capturePoints[i].aggressorColor = { 1, 1, 1 }
+				capturePoints[i].x = capturePoint.x
+				capturePoints[i].y = Spring.GetGroundHeight(capturePoint.x, capturePoint.z) + 2
+				capturePoints[i].z = capturePoint.z
+			end
+			if capturePoint.owner and capturePoint.owner ~= gaia then
+				capturePoints[i].color[1], capturePoints[i].color[2], capturePoints[i].color[3] = Spring.GetTeamColor(Spring.GetTeamList(capturePoint.owner)[1])
+			else
+				capturePoints[i].color = { 1, 1, 1 }
+			end
+			if capturePoint.aggressor and capturePoint.aggressor ~= gaia then
+				capturePoints[i].aggressorColor[1], capturePoints[i].aggressorColor[2], capturePoints[i].aggressorColor[3] = Spring.GetTeamColor(Spring.GetTeamList(capturePoint.aggressor)[1])
+			else
+				capturePoints[i].aggressorColor = { 1, 1, 1 }
+			end
+			capturePoints[i].capture = capturePoint.capture
+		end
+	end
+	
+	local function drawPoints(simplified)
+		local capturedAlpha, capturingAlpha, prefix, parts
+		if simplified then
+			-- for minimap
+			capturedAlpha = 0.6
+			capturingAlpha = 0.9
+			prefix = 'm_'        -- so it uses different displaylists
+			parts = math.ceil((OPTIONS.circlePieces * OPTIONS.circlePieceDetail) / 2)
+		else
+			capturedAlpha = 0.3
+			capturingAlpha = 0.6
+			prefix = ''
+			parts = (OPTIONS.circlePieces * OPTIONS.circlePieceDetail)
+		end
+		for i, point in pairs(capturePoints) do
+			PushMatrix()
+			Translate(point.x, point.y, point.z)
+			-- owner circle backgroundcolor
+			if controlPointSolidList[prefix .. point.color[1] .. '_' .. point.color[2] .. '_' .. point.color[3]] == nil then
+				controlPointSolidList[prefix .. point.color[1] .. '_' .. point.color[2] .. '_' .. point.color[3]] = CreateList(drawCircleSolid, captureRadius + ringThickness, parts, parts, { 0, 0, 0, 0 }, { point.color[1], point.color[2], point.color[3], capturedAlpha })
+			end
+			CallList(controlPointSolidList[prefix .. point.color[1] .. '_' .. point.color[2] .. '_' .. point.color[3]])
+
+			-- captured percentage
+			if point.capture > 0 then
+				local revert = false
+				if point.aggressorColor[1] .. '_' .. point.aggressorColor[2] .. '_' .. point.aggressorColor[3] == '1_1_1' then
+					revert = true
+				end
+				local piesize = floor(((point.capture / captureTime) / (1 / capturePieParts)) + 0.5)
+				if controlPointSolidList[prefix .. point.aggressorColor[1] .. '_' .. point.aggressorColor[2] .. '_' .. point.aggressorColor[3] .. '_' .. piesize] == nil then
+					controlPointSolidList[prefix .. point.aggressorColor[1] .. '_' .. point.aggressorColor[2] .. '_' .. point.aggressorColor[3] .. '_' .. piesize] = CreateList(drawCircleSolid, (captureRadius - ringThickness * 2), capturePieParts, piesize, { 0, 0, 0, 0 }, { point.aggressorColor[1], point.aggressorColor[2], point.aggressorColor[3], capturingAlpha }, revert)
+				end
+				CallList(controlPointSolidList[prefix .. point.aggressorColor[1] .. '_' .. point.aggressorColor[2] .. '_' .. point.aggressorColor[3] .. '_' .. piesize])
+			end
+			if not simplified then
+				-- not for minimap
+				--ring
+				Rotate(currentRotationAngle, 0, 1, 0)
+				Color(1, 1, 1, 0.6)
+				CallList(controlPointList)
+			end
+			PopMatrix()
+		end
+	end
+
+	function gadget:DrawInMiniMap()
+		PushMatrix()
+		gl.LoadIdentity()
+		Translate(0, 1, 0)
+		Scale(1 / Game.mapSizeX, 1 / Game.mapSizeZ, 0)
+		Rotate(90, 1, 0, 0)
+		drawPoints(true)
+		PopMatrix()
+	end
+
+	function gadget:Update()
+		local clockDifference = Spring.DiffTimers(Spring.GetTimer(), prevTimer)
+		prevTimer = Spring.GetTimer()
+
+		-- animate rotation
+		if OPTIONS.rotationSpeed > 0 then
+			local angleDifference = (OPTIONS.rotationSpeed) * (clockDifference * 5)
+			currentRotationAngle = currentRotationAngle + (angleDifference * 0.6)
+			if currentRotationAngle > 360 then
+				currentRotationAngle = currentRotationAngle - 360
+			end
+		end
+	end
+
+	function gadget:GameFrame()
+		for i, capturePoint in spairs(SYNCED.points) do
+			if capturePoints[i] == nil then
+				capturePoints[i] = {}
+				capturePoints[i].color = { 1, 1, 1 }
+				capturePoints[i].aggressorColor = { 1, 1, 1 }
+				capturePoints[i].x = capturePoint.x
+				capturePoints[i].y = Spring.GetGroundHeight(capturePoint.x, capturePoint.z) + 2
+				capturePoints[i].z = capturePoint.z
+			end
+			if capturePoint.owner and capturePoint.owner ~= gaia then
+				capturePoints[i].color[1], capturePoints[i].color[2], capturePoints[i].color[3] = Spring.GetTeamColor(Spring.GetTeamList(capturePoint.owner)[1])
+			else
+				capturePoints[i].color = { 1, 1, 1 }
+			end
+			if capturePoint.aggressor and capturePoint.aggressor ~= gaia then
+				capturePoints[i].aggressorColor[1], capturePoints[i].aggressorColor[2], capturePoints[i].aggressorColor[3] = Spring.GetTeamColor(Spring.GetTeamList(capturePoint.aggressor)[1])
+			else
+				capturePoints[i].aggressorColor = { 1, 1, 1 }
+			end
+			capturePoints[i].capture = capturePoint.capture
+		end
+	end
+
+	function gadget:DrawWorldPreUnit()
+		PolygonOffset(-10000, -1)  -- draw on top of water/map - sideeffect: will shine through terrain/mountains
+		drawPoints(false)        -- Todo: use DrawWorldPreUnit make it so that it colorizes the map/ground
+		PolygonOffset(false)
+	end
+
+	function gadget:Shutdown()
+		if Script.LuaUI("GuishaderRemoveRect") then
+			Script.LuaUI.GuishaderRemoveRect('cv_scoreboard')
+			Script.LuaUI.GuishaderRemoveRect('cv_scoreboardtitle')
+		end
+		gl.DeleteFont(font)
+	end
+
+	local function drawMouseoverScoreboard()
 		-- background
 		Color(0, 0, 0, 0.75)
 		RectRound(elementRect[1], elementRect[2], elementRect[3], elementRect[4], elementCorner, 0, 1, 1, 1)
@@ -1103,7 +1102,7 @@ There are various options available in the lobby bsettings (use ]] .. yellow .. 
 		Text("\255\200\200\200Middlemouse\nto move", scoreboardX, scoreboardY + 7, 15*uiScale, "co")
 	end
 
-	function drawScoreboard()
+	local function drawScoreboard()
 		PushMatrix()
 		local maxWidth = scoreboardWidth
 		local maxHeight = scoreboardHeight
@@ -1192,6 +1191,12 @@ There are various options available in the lobby bsettings (use ]] .. yellow .. 
 		PopMatrix()
 	end
 
+	local function isOnRect(x, y, BLcornerX, BLcornerY, TRcornerX, TRcornerY)
+		return x >= BLcornerX and x <= TRcornerX
+			and y >= BLcornerY
+			and y <= TRcornerY
+	end
+
 	function gadget:DrawScreen(vsx, vsy)
 		local mouseoverScoreboard = false
 
@@ -1220,7 +1225,7 @@ There are various options available in the lobby bsettings (use ]] .. yellow .. 
 			CallList(scoreboardList)
 
 			local x, y = Spring.GetMouseState()
-			if elementRect and IsOnRect(x, y, elementRect[1], elementRect[2], elementRect[3], elementRect[4]) then
+			if elementRect and isOnRect(x, y, elementRect[1], elementRect[2], elementRect[3], elementRect[4]) then
 				if not mouseoverScoreboard then
 					mouseoverScoreboard = true
 					if mouseoverScoreboardList ~= nil then
@@ -1243,14 +1248,6 @@ There are various options available in the lobby bsettings (use ]] .. yellow .. 
 		end
 	end
 
-	function IsOnRect(x, y, BLcornerX, BLcornerY, TRcornerX, TRcornerY)
-
-		-- check if the mouse is in a rectangle
-		return x >= BLcornerX and x <= TRcornerX
-			and y >= BLcornerY
-			and y <= TRcornerY
-	end
-
 	function gadget:MouseMove(x, y, dx, dy)
 		if draggingScoreboard then
 			scoreboardRelX = scoreboardRelX + (dx / vsx)
@@ -1267,15 +1264,7 @@ There are various options available in the lobby bsettings (use ]] .. yellow .. 
 		end
 	end
 
-	function gadget:MousePress(x, y, button)
-		return mouseEvent(x, y, button, false)
-	end
-
-	function gadget:MouseRelease(x, y, button)
-		return mouseEvent(x, y, button, true)
-	end
-
-	function mouseEvent(x, y, button, release)
+	local function mouseEvent(x, y, button, release)
 		if Spring.IsGUIHidden() then
 			return false
 		end
@@ -1283,7 +1272,7 @@ There are various options available in the lobby bsettings (use ]] .. yellow .. 
 			draggingScoreboard = false
 		end
 		if not release and Spring.GetGameFrame() > 0 then
-			if button == 2 and elementRect and (IsOnRect(x, y, elementRect[1], elementRect[2], elementRect[3], elementRect[4]) or IsOnRect(x, y, titleRect[1], titleRect[2], titleRect[3], titleRect[4])) then
+			if button == 2 and elementRect and (isOnRect(x, y, elementRect[1], elementRect[2], elementRect[3], elementRect[4]) or isOnRect(x, y, titleRect[1], titleRect[2], titleRect[3], titleRect[4])) then
 				draggingScoreboard = true
 				return true
 			end
@@ -1294,12 +1283,12 @@ There are various options available in the lobby bsettings (use ]] .. yellow .. 
 			local rectY1 = ((screenY + bgMargin) * uiScale) - ((vsy * (uiScale - 1)) / 2)
 			local rectX2 = ((screenX + screenWidth + bgMargin) * uiScale) - ((vsx * (uiScale - 1)) / 2)
 			local rectY2 = ((screenY - screenHeight - bgMargin) * uiScale) - ((vsy * (uiScale - 1)) / 2)
-			if IsOnRect(x, y, rectX1, rectY2, rectX2, rectY1) then
+			if isOnRect(x, y, rectX1, rectY2, rectX2, rectY1) then
 
 				-- on close button
 				local brectX1 = rectX2 - ((closeButtonSize + bgMargin + bgMargin) * uiScale)
 				local brectY2 = rectY1 - ((closeButtonSize + bgMargin + bgMargin) * uiScale)
-				if IsOnRect(x, y, brectX1, brectY2, rectX2, rectY1) then
+				if isOnRect(x, y, brectX1, brectY2, rectX2, rectY1) then
 					if release then
 						showGameModeInfo = false
 					end
@@ -1307,6 +1296,14 @@ There are various options available in the lobby bsettings (use ]] .. yellow .. 
 				end
 			end
 		end
+	end
+
+	function gadget:MousePress(x, y, button)
+		return mouseEvent(x, y, button, false)
+	end
+
+	function gadget:MouseRelease(x, y, button)
+		return mouseEvent(x, y, button, true)
 	end
 
 end
