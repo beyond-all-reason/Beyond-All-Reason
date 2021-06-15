@@ -15,6 +15,7 @@ if modOptions == nil or modOptions.scoremode == nil or modOptions.scoremode == "
 	return
 end
 
+local selectedScoreMode = modOptions.scoremode
 local useMapConfig = modOptions.usemapconfig or "enabled"
 local numberOfControlPoints = tonumber(modOptions.numberofcontrolpoints) or 13
 local captureRadius = tonumber(modOptions.captureradius) or 250
@@ -28,7 +29,6 @@ local captureTime = tonumber(modOptions.capturetime) or 60
 local captureBonus = tonumber((modOptions).capturebonus or 5) * 0.01 -- modoption number is percentage 0%-100%
 local dominationScoreTime = tonumber(modOptions.dominationscoretime) or 30
 local dominationScore = tonumber(modOptions.dominationscore) or 1000
-local scoreModeName
 
 --[[
 -------------------
@@ -119,26 +119,12 @@ end
 local buildingMask = 2
 
 local scoreModes = {
-	disabled = 0, -- none (duh)
-	countdown = 1, -- A point decreases all opponents' scores, zero means defeat
-	tugofwar = 2, -- A point steals enemy score, zero means defeat
-	domination = 3, -- Holding all points will grant 100 score, first to reach the score limit wins
+	disabled = { name = "Disabled" }, -- none (duh)
+	countdown = { name = "Countdown" }, -- A point decreases all opponents' scores, zero means defeat
+	tugofwar = { name = "Tug of War" }, -- A point steals enemy score, zero means defeat
+	domination = { name = "Domination" }, -- Holding all points will grant 100 score, first to reach the score limit wins
 }
-local scoreMode = scoreModes[Spring.GetModOptions().scoremode or "countdown"]
-
---Lets add a pretty way to access scoremodes
-if scoreMode == 0 then
-	scoreModeName = "Disabled"
-end
-if scoreMode == 1 then
-	scoreModeName = "Countdown"
-end
-if scoreMode == 2 then
-	scoreModeName = "Tug of War"
-end
-if scoreMode == 3 then
-	scoreModeName = "Domination"
-end
+local scoreMode = scoreModes[selectedScoreMode]
 
 local gaia = Spring.GetGaiaTeamID()
 local mapx, mapz = Game.mapSizeX, Game.mapSizeZ
@@ -197,7 +183,7 @@ if (gadgetHandler:IsSyncedCode()) then
 		gadgetHandler:RegisterGlobal('CaptureRadius', gCaptureRadius)
 
 		for _, a in ipairs(Spring.GetAllyTeamList()) do
-			if scoreMode ~= 3 then
+			if scoreMode ~= scoreModes.domination then
 				score[a] = limitScore
 			else
 				score[a] = 0
@@ -206,7 +192,7 @@ if (gadgetHandler:IsSyncedCode()) then
 
 		score[gaia] = 0
 
-		if scoreModeName == "Domination" then
+		if scoreMode == scoreModes.domination then
 			local angle = math.random() * math.pi * 2
 			points = {}
 			for i = 1, 3 do
@@ -552,8 +538,7 @@ if (gadgetHandler:IsSyncedCode()) then
 				end
 			end
 
-			if scoreMode == 1 then
-				-- Countdown
+			if scoreMode == scoreModes.countdown then
 				for owner, count in pairs(owned) do
 					for _, allyTeamID in ipairs(Spring.GetAllyTeamList()) do
 						if allyTeamID ~= owner and score[allyTeamID] > 0 then
@@ -566,8 +551,7 @@ if (gadgetHandler:IsSyncedCode()) then
 						declareLoser(allyTeamID)
 					end
 				end
-			elseif scoreMode == 2 then
-				-- Tug of War
+			elseif scoreMode == scoreModes.tugofwar then
 				for owner, count in pairs(owned) do
 					for _, a in ipairs(Spring.GetAllyTeamList()) do
 						if a ~= owner and score[a] > 0 then
@@ -581,8 +565,7 @@ if (gadgetHandler:IsSyncedCode()) then
 						declareLoser(allyTeamID)
 					end
 				end
-			elseif scoreMode == 3 then
-				-- Domination
+			elseif scoreMode == scoreModes.domination then
 				local prevDominator = dom.dominator
 				dom.dominator = nil
 				for owner, count in pairs(owned) do
@@ -808,7 +791,7 @@ else
 		PopMatrix()
 
 		-- title
-		local title = offwhite .. [[Area Capture Mode    ]] .. yellow .. scoreModeName
+		local title = offwhite .. [[Area Capture Mode    ]] .. yellow .. scoreMode.name
 		local titleFontSize = 18
 		Color(0, 0, 0, 0.8)
 		titleRect = { screenX - bgMargin, screenY + bgMargin, screenX + (gl.GetTextWidth(title) * titleFontSize) + 27 - bgMargin, screenY + 37 }
@@ -832,7 +815,7 @@ else
 		local infotext = offwhite .. [[Controlpoints are spread across the map. They can be captured by moving units into the circles.
 Note that you can only build certain units inside them (e.g. Metal Extractors/Resource Node Generators).
 
-There are 3 modes (Current mode is ]] .. yellow .. scoreModeName .. offwhite .. [[):
+There are 3 modes (Current mode is ]] .. yellow .. scoreMode.name .. offwhite .. [[):
 - Countdown:  Your score counts down until zero based upon how many points your enemy owns.
 - Tug of War: Score is transferred between teams. Score transferred is multiplied by ]] .. yellow .. tugofWarModifier .. offwhite .. [[.
 - Domination: Capture all controlpoints on the map for ]] .. yellow .. dominationScoreTime .. offwhite .. [[ seconds in order to gain ]] .. yellow .. dominationScore .. offwhite .. [[ score. Goal ]] .. yellow .. limitScore .. offwhite .. [[.
@@ -1031,7 +1014,7 @@ There are various options available in the lobby bsettings (use ]] .. yellow .. 
 		end
 
 		-- title
-		local title = "\255\255\255\255" .. scoreModeName
+		local title = "\255\255\255\255" .. scoreMode.name
 		local titleFontSize = 18
 		Color(0, 0, 0, 0.8)
 		titleRect = { scoreboardX - floor((bgMargin + (scoreboardWidth/2))*uiScale), scoreboardY + floor((bgMargin + (scoreboardHeight/2))*uiScale), scoreboardX - floor(((scoreboardWidth/2) - (gl.GetTextWidth(title) * titleFontSize) - 27 + bgMargin)*uiScale), scoreboardY + floor(((scoreboardHeight/2) + 37)*uiScale) }
