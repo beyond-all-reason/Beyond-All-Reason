@@ -118,35 +118,6 @@ end
 -- local moveSpeed = .5
 local buildingMask = 2
 
---Here we mitigate potential issues caused by wonky options settings
-
-if numberOfControlPoints == 7 then
-	limitScore = limitScore * 0.5
-	captureRadius = captureRadius * 1.25
-end
-
-if numberOfControlPoints == 13 then
-	limitScore = limitScore * 1
-	captureRadius = captureRadius * 1
-end
-
-if numberOfControlPoints == 19 then
-	limitScore = limitScore * 1.5
-	captureRadius = captureRadius * 0.75
-end
-
-if numberOfControlPoints == 25 then
-	limitScore = limitScore * 2
-	captureRadius = captureRadius * 0.5
-end
-
---Smaller than 250 gets really hard to see on the minimap
-if captureRadius < 250 then
-	captureRadius = 250
-end
-
---End Mitigation of wonky options settings
-
 local scoreModes = {
 	disabled = 0, -- none (duh)
 	countdown = 1, -- A point decreases all opponents' scores, zero means defeat
