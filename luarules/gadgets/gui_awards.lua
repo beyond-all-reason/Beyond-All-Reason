@@ -506,7 +506,7 @@ else
 				else
 					font:Print('-', bx + w / 2 + math.floor(275*widgetScale), by + h - offset - math.floor(5*widgetScale), 17*widgetScale, "o")
 				end
-				font:Print(Spring.I18N('ui.awards.runnersUp') .. ':', bx + math.floor(500*widgetScale), by + h - offset - math.floor(5*widgetScale), 14*widgetScale, "o")
+				font:Print(Spring.I18N('ui.awards.runnersUp'), bx + math.floor(500*widgetScale), by + h - offset - math.floor(5*widgetScale), 14*widgetScale, "o")
 
 				if secondScore > 0 then
 					if pic == 'comwreath' then
