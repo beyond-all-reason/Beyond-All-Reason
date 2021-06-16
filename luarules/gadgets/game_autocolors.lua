@@ -191,7 +191,6 @@ EnemyColors = {
 }
 
 ScavColor = {97, 36, 97}
-ChickenColor = {255, 0, 0}
 GaiaColor = {127, 127, 127}
 
 local function MissingColorHandler(teamID, allyTeam, myTeam, myAllyTeam)
@@ -205,10 +204,7 @@ local function MissingColorHandler(teamID, allyTeam, myTeam, myAllyTeam)
     Spring.Echo("Missing Team Color for TeamID: ".. teamID)
 end
 
-local function EnemyColorHandler(teamID, allyTeam, allyTeamCount)
-    local myTeam = spGetMyTeamID()
-    local myAllyTeam = spGetMyAllyTeamID()
-    --local spectator = spGetSpectatingState()
+local function EnemyColorHandler(teamID, allyTeam, allyTeamCount, myTeam, myAllyTeam)
     if not EATeams[allyTeam] then
         EATeams[allyTeam] = true
         if EACountNumber then
@@ -249,8 +245,10 @@ end
 local function UpdatePlayerColors()
     local teams = spGetTeamList()
     local allyteams = spGetAllyTeamList()
-    local myTeam = spGetMyTeamID()
-    local myAllyTeam = spGetMyAllyTeamID()
+    --local myTeam = spGetMyTeamID()
+    --local myAllyTeam = spGetMyAllyTeamID()
+    local myTeam = 0
+    local myAllyTeam = 0
     local spectator = spGetSpectatingState()
     EATeams = {}
     EACount = {}
@@ -259,11 +257,9 @@ local function UpdatePlayerColors()
         local teamID = teams[i]
         local _, leader, isDead, isAiTeam, side, allyTeam, incomeMultiplier, customTeamKeys = spGetTeamInfo(teamID)
         local luaAI = spGetTeamLuaAI(teamID)
-        if isAiTeam and (luaAI and (string.find(luaAI, "Scavenger") or string.find(luaAI, "Chicken"))) then
+        if isAiTeam and (luaAI and (string.find(luaAI, "Scavenger"))) then
             if string.find(luaAI, "Scavenger") then
                 spSetTeamColor(teamID, ScavColor[1]/255, ScavColor[2]/255, ScavColor[3]/255)
-            elseif string.find(luaAI, "Chicken") then
-                spSetTeamColor(teamID, ChickenColor[1]/255, ChickenColor[2]/255, ChickenColor[3]/255)
             end
         elseif spGetGaiaTeamID() == teamID then
             spSetTeamColor(teamID, GaiaColor[1]/255, GaiaColor[2]/255, GaiaColor[3]/255)
@@ -300,7 +296,7 @@ local function UpdatePlayerColors()
                         MissingColorHandler(teamID, allyTeam, myTeam, myAllyTeam)
                     end
                 else
-                    EnemyColorHandler(teamID, allyTeam, #allyteams-1)
+                    EnemyColorHandler(teamID, allyTeam, #allyteams-1, myTeam, myAllyTeam)
                 end
             end
         end
