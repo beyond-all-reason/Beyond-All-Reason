@@ -9,7 +9,7 @@ function gadget:GetInfo()
 		author = "Damgam",
 		date = "2021",
 		layer = -100,
-		enabled = false,
+		enabled = true,
 	}
 end
 
@@ -71,11 +71,24 @@ AllyColors = {
         [7] = {178,     255,    227 },      -- Aqua
         [8] = {8,       37,     190 },      -- Dark Blue
     },
-    -- [3] = { -- Three Teams
-    --     [1] = {10,      232,    18  },      -- Green
-    --     [2] = {10,      232,    18  },      -- Green
-    --     etc..
-    -- },
+    [3] = { -- Three Teams
+        [1] = {82,      151,    255  },
+        [2] = {47,      66,     238  },
+        [3] = {147,     226,    251  },
+        [4] = {8,       37,     190  },
+        [5] = {35,      11,     129  },
+    },
+    [4] = { -- Four Teams
+        [1] = {82,      151,    255  },
+        [2] = {47,      66,     238  },
+        [3] = {147,     226,    251  },
+        [4] = {8,       37,     190  },
+    },
+    [5] = { -- Five Teams
+        [1] = {82,      151,    255  },
+        [2] = {47,      66,     238  },
+        [3] = {147,     226,    251  },
+    },
 }
 
 EnemyColors = {
@@ -91,18 +104,64 @@ EnemyColors = {
             [8] = {118,     39,     6   },      -- Brown
         },
     },
-    -- [3] = { -- Three Teams
-    --     [1] = { -- First Enemy Team
-    --         [1] = {255,     16,     5   },      -- Cortex Red
-    --         [2] = {255,     16,     5   },      -- Cortex Red
-    --         etc..
-    --     }
-    --     [2] = { -- Second Enemy Team
-    --         [1] = {255,     16,     5   },      -- Cortex Red
-    --         [2] = {255,     16,     5   },      -- Cortex Red
-    --         etc..
-    --     }
-    -- }
+    [3] = { -- Three Teams
+        [1] = { -- First Enemy Team
+            [1] = {231,     0,      0   },
+            [2] = {255,     125,    32  },
+            [3] = {255,     232,    22  },
+            [4] = {166,     14,     5   },
+            [5] = {118,     39,     6   },
+        },
+        [2] = { -- Second Enemy Team
+            [1] = {10,      232,    32  },
+            [2] = {10,      142,    7   },
+            [3] = {117,     253,    147 },
+            [4] = {5,       84,     13  },
+            [5] = {45,      57,     9   },
+        },
+    },
+    [4] = { -- Four Teams
+        [1] = { -- First Enemy Team
+            [1] = {231,     0,      0   },
+            [2] = {255,     125,    32  },
+            [3] = {255,     232,    22  },
+            [4] = {166,     14,     5   },
+        },
+        [2] = { -- Second Enemy Team
+            [1] = {10,      232,    32  },
+            [2] = {10,      142,    7   },
+            [3] = {117,     253,    147 },
+            [4] = {5,       84,     13  },
+        },
+        [3] = { -- Third Enemy Team
+            [1] = {200,     102,    246 },
+            [2] = {134,     10,     232 },
+            [3] = {191,     169,    255 },
+            [4] = {94,      9,      178 },
+        },
+    },
+    [5] = { -- Four Teams
+        [1] = { -- First Enemy Team
+            [1] = {231,     0,      0   },
+            [2] = {255,     125,    32  },
+            [3] = {166,     14,     5   },
+        },
+        [2] = { -- Second Enemy Team
+            [1] = {10,      232,    32  },
+            [2] = {10,      142,    7   },
+            [3] = {117,     253,    147 },
+        },
+        [3] = { -- Third Enemy Team
+            [1] = {200,     102,    246 },
+            [2] = {134,     10,     232 },
+            [3] = {191,     169,    255 },
+        },
+        [4] = { -- Fourth Enemy Team
+            [1] = {255,     232,    22  },
+            [2] = {191,     151,    8   },
+            [3] = {255,     243,    135 },
+        },
+    },
 }
 
 ScavColor = {97, 36, 97}
@@ -126,10 +185,12 @@ local function EnemyColorHandler(teamID, allyTeam, allyTeamCount)
     --local spectator = spGetSpectatingState()
     if not EATeams[allyTeam] then
         EATeams[allyTeam] = true
-        if EACount then
-            EACount[allyTeam] = #EACount + 1
+        if EACountNumber then
+            EACount[allyTeam] = EACountNumber + 1
+            EACountNumber = EACountNumber + 1
         else
             EACount[allyTeam] = 1
+            EACountNumber = 1
         end
         EATeamsCount[allyTeam] = 0
     end
@@ -203,29 +264,27 @@ local function UpdatePlayerColors()
             else
                 if allyTeam == myAllyTeam then
                     allyCounter = allyCounter+1
-                    if AllyColors[#allyteams-1][allyCounter] then
-                        spSetTeamColor(teamID, AllyColors[#allyteams-1][allyCounter][1] /255, AllyColors[#allyteams-1][allyCounter][2] /255, AllyColors[#allyteams-1][allyCounter][3] /255)
+                    if AllyColors[#allyteams-1] then
+                        if AllyColors[#allyteams-1][allyCounter] then
+                            spSetTeamColor(teamID, AllyColors[#allyteams-1][allyCounter][1] /255, AllyColors[#allyteams-1][allyCounter][2] /255, AllyColors[#allyteams-1][allyCounter][3] /255)
+                        else
+                            MissingColorHandler(teamID, allyTeam, myTeam, myAllyTeam)
+                        end
                     else
                         MissingColorHandler(teamID, allyTeam, myTeam, myAllyTeam)
                     end
                 else
-                    enemyCounter = enemyCounter+1
-                    if EnemyColors[#allyteams-1][1] then
-                        EnemyColorHandler(teamID, allyTeam, #allyteams-1)
-                        --spSetTeamColor(teamID, EnemyColors[2][enemyCounter][1] /255, EnemyColors[2][enemyCounter][2] /255, EnemyColors[2][enemyCounter][3] /255)
-                    else
-                        MissingColorHandler(teamID, allyTeam, myTeam, myAllyTeam)
-                    end
+                    EnemyColorHandler(teamID, allyTeam, #allyteams-1)
                 end
             end
         end
     end
     ffaCounter = 0
     allyCounter = 0
-    enemyCounter = 0
     EATeams = nil
     EACount = nil
     EATeamsCount = nil
+    EACountNumber = nil
 end
 
 function gadget:Initialize()
