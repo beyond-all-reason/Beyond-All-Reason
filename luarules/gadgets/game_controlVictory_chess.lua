@@ -73,8 +73,8 @@ LandUnitsList = {
     [1] = {
         [1] = {"armpw", 2},
         [2] = {"corak", 2},
-        [3] = {"armrectr", 1}
-        [4] = {"cornecro", 1}
+        [3] = {"armrectr", 1},
+        [4] = {"cornecro", 1},
     },
 }
 
