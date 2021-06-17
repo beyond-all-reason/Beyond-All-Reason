@@ -91,7 +91,7 @@ local maxPhases = #LandUnitsList
 local phaseTime = 9000 -- frames
 local addUpFrequency = 1800
 local spawnTimer = 5
-local respawnTimer = 150
+local respawnTimer = 90
 
 
 
@@ -105,7 +105,7 @@ local respawnTimer = 150
 
 -- Functions to hide commanders
 
-local canResurrect = {}
+canResurrect = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
     if unitDef.canResurrect then
         canResurrect[unitDefID] = true
@@ -152,6 +152,17 @@ local function IntroSetUp()
     phase = 1
 end
 
+local function AddInfiniteResources()
+    local teams = spGetTeamList()
+    for i = 1,#teams do
+        local teamID = teams[i]
+        Spring.SetTeamResource(teamID, "ms", 1000000)
+        Spring.SetTeamResource(teamID, "es", 1000000)
+        Spring.SetTeamResource(teamID, "m", 500000)
+        Spring.SetTeamResource(teamID, "e", 500000)
+    end
+end
+
 local function SpawnUnitsFromQueue()
     local teams = spGetTeamList()
     for i = 1,#teams do
@@ -188,15 +199,21 @@ end
 
 local function AddNewUnitsToQueue(starter)
     if starter then
-        landUnit = StarterLandUnitsList[math.random(1,#StarterLandUnitsList)][1]
-        landUnitCount = StarterLandUnitsList[math.random(1,#StarterLandUnitsList)][2]
-        seaUnit = StarterSeaUnitsList[math.random(1,#StarterSeaUnitsList)][1]
-        seaUnitCount = StarterSeaUnitsList[math.random(1,#StarterSeaUnitsList)][2]
+        landRandom = math.random(1,#StarterLandUnitsList)
+        landUnit = StarterLandUnitsList[landRandom][1]
+        landUnitCount = StarterLandUnitsList[landRandom][2]
+
+        seaRandom = math.random(1,#StarterSeaUnitsList)
+        seaUnit = StarterSeaUnitsList[seaRandom][1]
+        seaUnitCount = StarterSeaUnitsList[seaRandom][2]
     else
-        landUnit = LandUnitsList[phase][math.random(1,#LandUnitsList[phase])][1]
-        landUnitCount = LandUnitsList[phase][math.random(1,#LandUnitsList[phase])][2]
-        seaUnit = SeaUnitsList[phase][math.random(1,#SeaUnitsList[phase])][1]
-        seaUnitCount = SeaUnitsList[phase][math.random(1,#SeaUnitsList[phase])][2]
+        landRandom = math.random(1,#LandUnitsList[phase])
+        landUnit = LandUnitsList[phase][landRandom][1]
+        landUnitCount = LandUnitsList[phase][landRandom][2]
+
+        seaRandom = math.random(1,#SeaUnitsList[phase])
+        seaUnit = SeaUnitsList[phase][seaRandom][1]
+        seaUnitCount = SeaUnitsList[phase][seaRandom][2]
     end
     
     local teams = spGetTeamList()
@@ -247,6 +264,9 @@ function gadget:GameFrame(n)
     if n == 25 then
         AddNewUnitsToQueue(true)
     end
+    if n%900 == 1 then
+        AddInfiniteResources()
+    end
     if n > 25 and n%phaseTime == 1 then
         phase = phase + 1
         if phase > maxPhases then
@@ -271,10 +291,10 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
-    if not ResurrectedUnits[unitID] then
+    if ResurrectedUnits[unitID] then
+        ResurrectedUnits[unitID] = nil
+    else
         local UnitName = UnitDefs[unitDefID].name
         RespawnDeadUnit(UnitName, unitTeam)
-    else
-        ResurrectedUnits[unitID] = nil
     end
 end
