@@ -27,13 +27,32 @@ local spGetLastUpdateSeconds = Spring.GetLastUpdateSeconds
 
 local myPlayerID = Spring.GetMyPlayerID()
 
+
+
 local ffaCounter = 0
 local allyCounter = 0
 local enemyCounter = 0
 local simpleColorsUpdateCounter = 0
 
 SimpleColorsEnabled = Spring.GetConfigInt("simple_auto_colors", 0) -- Floris plz add option here
-AnonymousModeEnabled = false -- needs modoption
+local DynamicTeamColorsEnabled = (Spring.GetModOptions and Spring.GetModOptions().teamcolors_dynamic) or "enabled"
+if DynamicTeamColorsEnabled == "enabled" then
+    DynamicTeamColorsEnabled = true
+else
+    DynamicTeamColorsEnabled = false
+end
+local DynamicTeamColorsSpectatorsEnabled = (Spring.GetModOptions and Spring.GetModOptions().teamcolors_dynamic_spectators) or "disabled"
+if DynamicTeamColorsSpectatorsEnabled == "enabled" then
+    DynamicTeamColorsSpectatorsEnabled = true
+else
+    DynamicTeamColorsSpectatorsEnabled = false
+end
+local AnonymousModeEnabled = (Spring.GetModOptions and Spring.GetModOptions().teamcolors_anonymous_mode) or "disabled"
+if AnonymousModeEnabled == "enabled" then
+    AnonymousModeEnabled = true
+else
+    AnonymousModeEnabled = false
+end
 
 SimplePlayerColor = {0, 80, 255} -- Armada Blue
 SimpleAllyColor = {0,255,0} -- Full Green
@@ -193,7 +212,9 @@ EnemyColors = {
 ScavColor = {97, 36, 97}
 GaiaColor = {127, 127, 127}
 
-local function MissingColorHandler(teamID, allyTeam, myTeam, myAllyTeam)
+local function MissingColorHandler(teamID, allyTeam)
+    local myTeam = spGetMyTeamID()
+    local myAllyTeam = spGetMyAllyTeamID()
     if teamID == myTeam then
         spSetTeamColor(teamID, SimplePlayerColor[1]/255, SimplePlayerColor[2]/255, SimplePlayerColor[3]/255)
     elseif allyTeam == myAllyTeam then
@@ -201,7 +222,6 @@ local function MissingColorHandler(teamID, allyTeam, myTeam, myAllyTeam)
     else
         spSetTeamColor(teamID, SimpleEnemyColor[1]/255, SimpleEnemyColor[2]/255, SimpleEnemyColor[3]/255)
     end
-    Spring.Echo("Missing Team Color for TeamID: ".. teamID)
 end
 
 local function EnemyColorHandler(teamID, allyTeam, allyTeamCount, myTeam, myAllyTeam)
@@ -231,13 +251,13 @@ local function EnemyColorHandler(teamID, allyTeam, allyTeamCount, myTeam, myAlly
                     EnemyColors[allyTeamCount][EACount[allyTeam]][EATeamsCount[allyTeam]][3] /255
                 )
             else
-                MissingColorHandler(teamID, allyTeam, myTeam, myAllyTeam)
+                MissingColorHandler(teamID, allyTeam)
             end
         else
-            MissingColorHandler(teamID, allyTeam, myTeam, myAllyTeam)
+            MissingColorHandler(teamID, allyTeam)
         end
     else
-        MissingColorHandler(teamID, allyTeam, myTeam, myAllyTeam)
+        MissingColorHandler(teamID, allyTeam)
     end
     -- planned
 end
@@ -245,10 +265,8 @@ end
 local function UpdatePlayerColors()
     local teams = spGetTeamList()
     local allyteams = spGetAllyTeamList()
-    --local myTeam = spGetMyTeamID()
-    --local myAllyTeam = spGetMyAllyTeamID()
-    local myTeam = 0
-    local myAllyTeam = 0
+    local myTeam = spGetMyTeamID()
+    local myAllyTeam = spGetMyAllyTeamID()
     local spectator = spGetSpectatingState()
     EATeams = {}
     EACount = {}
@@ -265,13 +283,7 @@ local function UpdatePlayerColors()
             spSetTeamColor(teamID, GaiaColor[1]/255, GaiaColor[2]/255, GaiaColor[3]/255)
         else
             if SimpleColorsEnabled == 1 then -- SimpleColors
-                if teamID == myTeam then
-                    spSetTeamColor(teamID, SimplePlayerColor[1]/255, SimplePlayerColor[2]/255, SimplePlayerColor[3]/255)
-                elseif allyTeam == myAllyTeam then
-                    spSetTeamColor(teamID, SimpleAllyColor[1]/255, SimpleAllyColor[2]/255, SimpleAllyColor[3]/255)
-                else
-                    spSetTeamColor(teamID, SimpleEnemyColor[1]/255, SimpleEnemyColor[2]/255, SimpleEnemyColor[3]/255)
-                end
+                MissingColorHandler(teamID, allyTeam)
             elseif (AnonymousModeEnabled and allyTeam ~= myAllyTeam) and (not spectator) then
                 spSetTeamColor(teamID, SimpleEnemyColor[1]/255, SimpleEnemyColor[2]/255, SimpleEnemyColor[3]/255)
             elseif #teams == #allyteams then -- FFA
@@ -281,19 +293,23 @@ local function UpdatePlayerColors()
                 elseif FFAColors[ffaCounter] then
                     spSetTeamColor(teamID, FFAColors[ffaCounter][1] /255, FFAColors[ffaCounter][2] /255, FFAColors[ffaCounter][3] /255)
                 else
-                    MissingColorHandler(teamID, allyTeam, myTeam, myAllyTeam)
+                    MissingColorHandler(teamID, allyTeam)
                 end
             else
+                if (not AnonymousModeEnabled and (not DynamicTeamColorsEnabled)) or (spectator and (not DynamicTeamColorsSpectatorsEnabled)) then
+                    myTeam = 0
+                    myAllyTeam = 0
+                end
                 if allyTeam == myAllyTeam then
                     allyCounter = allyCounter+1
                     if AllyColors[#allyteams-1] then
                         if AllyColors[#allyteams-1][allyCounter] then
                             spSetTeamColor(teamID, AllyColors[#allyteams-1][allyCounter][1] /255, AllyColors[#allyteams-1][allyCounter][2] /255, AllyColors[#allyteams-1][allyCounter][3] /255)
                         else
-                            MissingColorHandler(teamID, allyTeam, myTeam, myAllyTeam)
+                            MissingColorHandler(teamID, allyTeam)
                         end
                     else
-                        MissingColorHandler(teamID, allyTeam, myTeam, myAllyTeam)
+                        MissingColorHandler(teamID, allyTeam)
                     end
                 else
                     EnemyColorHandler(teamID, allyTeam, #allyteams-1, myTeam, myAllyTeam)
@@ -301,6 +317,8 @@ local function UpdatePlayerColors()
             end
         end
     end
+    myTeam = nil
+    myAllyTeam = nil
     ffaCounter = 0
     allyCounter = 0
     EATeams = nil
@@ -328,6 +346,10 @@ function gadget:Update()
         if PreviousSimpleColorsEnabled ~= SimpleColorsEnabled then
             UpdatePlayerColors()
         end
+    end
+
+    if math.random(0,60) == 0 then
+        UpdatePlayerColors()
     end
 end
 

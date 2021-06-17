@@ -589,11 +589,62 @@ local options={
 		section= "chicken_defense_custom_settings",
 	},
 	]]
+	
+	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	-- TeamColoring
+	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	
+	{
+		key		= "teamcoloring_options",
+		name	= "TeamColors",
+		desc	= "TeamColors",
+		type	= "section",
+	},
+	{
+		key    = 'teamcolors_dynamic',
+		name   = 'Dynamic TeamColors (Player team is always blue)',
+		desc   = 'description',
+		type   = 'list',
+		section = 'teamcoloring_options',
+		def  = "enabled",
+		items={
+			{key="enabled", name="Enabled", desc="description"},
+			{key="disabled", name="Disabled", desc="description"},
+		}
+	},
+	{
+		key    = 'teamcolors_dynamic_spectators',
+		name   = 'Dynamic TeamColors for spectators (Selected player team is always blue, forced OFF if Dynamic TeamColors is disabled)',
+		desc   = 'description',
+		type   = 'list',
+		section = 'teamcoloring_options',
+		def  = "disabled",
+		items={
+			{key="enabled", name="Enabled", desc="description"},
+			{key="disabled", name="Disabled", desc="description"},
+		}
+	},
+	{
+		key    = 'teamcolors_anonymous_mode',
+		name   = 'Anonymous Mode (All your enemies are colored with the same color so you cannot recognize them. Forces Dynamic TeamColors to be enabled)',
+		desc   = 'description',
+		type   = 'list',
+		section = 'teamcoloring_options',
+		def  = "disabled",
+		items={
+			{key="enabled", name="Enabled", desc="description"},
+			{key="disabled", name="Disabled", desc="description"},
+		}
+	},
+	
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	-- Other Options
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	
 	{
 		key		= "options",
 		name	= "Other",
