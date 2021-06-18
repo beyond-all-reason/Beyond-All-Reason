@@ -118,7 +118,7 @@ out vec4 fragColor;
 void main() {
 	fragColor.rgba = blendedcolor.rgba;
 	#if USE_STIPPLE > 0
-		fragColor.a *= 2.0 * sin(worldscale_circumference); // PERFECT STIPPLING!
+		fragColor.a *= 2.0 * sin(worldscale_circumference + timeInfo.x*0.1); // PERFECT STIPPLING!
 	#endif
 }
 ]]
