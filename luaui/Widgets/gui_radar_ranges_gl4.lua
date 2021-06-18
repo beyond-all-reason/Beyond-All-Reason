@@ -3,20 +3,23 @@ function widget:GetInfo()
 		name      = "Radar Range GL4",
 		desc      = "Shows ranges of all ally radars.",
 		author    = "Kev, Beherith GL4",
-		date      = "2020.11.14",
+		date      = "2021.06.18",
 		license   = "CC BY-NC",
 		layer     = 0,
 		enabled   = true
 	}
 end
  
-local myrangeColor = { 0.0, 1.0, 1.0, 0.98 }
-local rangeColor = { 0.0, 1.0, 0.0, 0.19 }
-local allyrangeColor = { 0.25, 0.75, 1.0, 0.98 }
+-------   Configurables: ------------------- 
 local rangeLineWidth = 2.0 -- (note: will end up larger for larger vertical screen resolution size)
 local minRadarDistance = 500
 
+local gaiaTeamID = Spring.GetGaiaTeamID()
+local rangeColor = { 0.0, 1.0, 0.0, 0.2 } -- default range color
+local usestipple = 1 -- 0 or 1resolution size)
+							
 
+local circleSegments = 64
 ------- GL4 NOTES -----
 --only update every 15th frame, and interpolate pos in shader!
 --Each instance has:
@@ -31,7 +34,6 @@ VFS.Include(luaShaderDir.."instancevbotable.lua")
 
 local circleShader = nil
 local circleInstanceVBO = nil
-local circleSegments = 128
 
 
 local vsSrc = [[
@@ -51,6 +53,7 @@ uniform sampler2D heightmapTex;
 out DataVS {
 	vec4 worldPos; // pos and radius
 	vec4 blendedcolor;
+	float worldscale_circumference;
 };
 
 //__ENGINEUNIFORMBUFFERDEFS__
@@ -76,9 +79,10 @@ void main() {
 	float inboundsness = min(mymin.x, mymin.y);
 	
 	// dump to FS
+	worldscale_circumference = startposrad.w * circlepointposition.z * 0.62831853;
 	worldPos = circleWorldPos;
 	blendedcolor = color;
-	blendedcolor.a *= 1.0 - clamp(inboundsness*(-0.003),0.0,1.0);
+	blendedcolor.a *= 1.0 - clamp(inboundsness*(-0.03),0.0,1.0);
 	gl_Position = cameraViewProj * vec4(circleWorldPos.xyz, 1.0);
 }
 ]]
@@ -89,7 +93,6 @@ local fsSrc =  [[
 #extension GL_ARB_uniform_buffer_object : require
 #extension GL_ARB_shading_language_420pack: require
 
-//__DEFINES__
 
 #line 20000
 
@@ -99,17 +102,20 @@ uniform sampler2D heightmapTex;
 
 //__ENGINEUNIFORMBUFFERDEFS__
 
+//__DEFINES__
 in DataVS {
 	vec4 worldPos; // w = range
 	vec4 blendedcolor;
+	float worldscale_circumference;
 };
 
 out vec4 fragColor;
 
 void main() {
 	fragColor.rgba = blendedcolor.rgba;
-	fragColor.a *= sin((worldPos.x+worldPos.z)*0.06	- timeInfo.z*0.012);
-	//fragColor.a = min(fragColor.a, 0.8);	 // alpha of the line
+	#if USE_STIPPLE > 0
+		fragColor.a *= 2.0 * sin(worldscale_circumference + timeInfo.x*0.1); // PERFECT STIPPLING!
+	#endif
 }
 ]]
 
@@ -126,7 +132,7 @@ local function initgl4()
 	circleShader =  LuaShader(
     {
       vertex = vsSrc:gsub("//__DEFINES__", "#define MYGRAVITY "..tostring(Game.gravity+0.1)),
-      fragment = fsSrc,
+	  fragment = fsSrc:gsub("//__DEFINES__", "#define USE_STIPPLE ".. tostring(usestipple) ),
       --geometry = gsSrc, no geom shader for now
       uniformInt = {
         heightmapTex = 0,
@@ -152,28 +158,19 @@ local function initgl4()
 end
 
 -- Functions shortcuts
-local spGetGameSeconds      = Spring.GetGameSeconds
-local spGetGroundHeight 	= Spring.GetGroundHeight
 local spGetSpectatingState  = Spring.GetSpectatingState
 local spGetUnitIsActive 	= Spring.GetUnitIsActive
 local spGetUnitDefID        = Spring.GetUnitDefID
 local spGetUnitPosition     = Spring.GetUnitPosition
 local spIsGUIHidden 		= Spring.IsGUIHidden
-local spIsSphereInView  	= Spring.IsSphereInView
 local spIsUnitAllied		= Spring.IsUnitAllied
-local glBeginEnd            = gl.BeginEnd
-local glCallList		 	= gl.CallList
 local glColor               = gl.Color
 local glColorMask           = gl.ColorMask
-local glCreateList			= gl.CreateList
-local glDeleteList			= gl.DeleteList
 local glDepthTest           = gl.DepthTest
 local glLineWidth           = gl.LineWidth
 local glStencilFunc         = gl.StencilFunc
 local glStencilOp           = gl.StencilOp
 local glStencilTest         = gl.StencilTest
-local glTranslate           = gl.Translate
-local glVertex              = gl.Vertex
 local GL_ALWAYS             = GL.ALWAYS
 local GL_EQUAL              = GL.EQUAL
 local GL_LINE_LOOP          = GL.LINE_LOOP
@@ -227,14 +224,17 @@ function widget:ViewResize(newX,newY)
 end
 
 -- collect data about the unit and store it into unitList
-local function processUnit(unitID, unitDefID)
-	if not spIsUnitAllied(unitID) then return end
+local function processUnit(unitID, unitDefID, noUpload)
+	if (not (spec and fullview )) and ( not spIsUnitAllied(unitID)) then return end -- display mode for specs
 
 	local unitDefID = spGetUnitDefID(unitID)
 
     if not unitRange[unitDefID] then
         return
     end
+	
+	local teamID = Spring.GetUnitTeam(unitID)
+	if teamID == gaiaTeamID then return end -- no gaia units
 
 	local x, y, z = spGetUnitPosition(unitID)
 
@@ -244,7 +244,8 @@ local function processUnit(unitID, unitDefID)
     unitList[unitID] = unitDefID
 	activeUnits[unitID] = false
 	-- shall we jam it straight into the table?
-	pushElementInstance(circleInstanceVBO,{x,y,z,range, x,y,z,range,rangeColor[1],rangeColor[2],rangeColor[3],rangeColor[4] },unitID)
+	pushElementInstance(circleInstanceVBO,{x,y,z,0, x,y,z,0,rangeColor[1],rangeColor[2],rangeColor[3],rangeColor[4] },unitID, true, noUpload)
+
 end
 
 
@@ -254,8 +255,9 @@ function widget:Initialize()
 	unitList = {}
     local units = Spring.GetAllUnits()
 	for i=1,#units do
-		processUnit( units[i], spGetUnitDefID(units[i]))
+		processUnit( units[i], spGetUnitDefID(units[i]), true)
     end
+	uploadAllElements(circleInstanceVBO) --upload initialized at once
 end
 
 function widget:Shutdown()
@@ -282,12 +284,6 @@ function widget:UnitFinished( unitID,  unitDefID,  unitTeam)
 end
 
 
-
--- resets gl color and line width to default values
-local function resetGl()
-	glColor( 1.0, 1.0, 1.0, 1.0 )
-	glLineWidth( 1.0 )
-end
 
 function widget:GameFrame(n)
 	if spec and fullview then return end
@@ -371,5 +367,7 @@ function widget:DrawWorld()
 	
 	glStencilTest(false)
 	
-	resetGl()
+	glDepthTest(true)
+	glColor( 1.0, 1.0, 1.0, 1.0 ) --reset like a nice boi
+	glLineWidth( 1.0 )
 end

@@ -3,7 +3,7 @@ function widget:GetInfo()
 		name      = "LOS Range GL4",
 		desc      = "Shows LOS ranges of all ally units.",
 		author    = "Beherith GL4",
-		date      = "2021.11.14",
+		date      = "2021.06.18",
 		license   = "CC BY-NC",
 		layer     = 0,
 		enabled   = true
@@ -15,8 +15,8 @@ end
 local rangeColor = { 1.0, 1.0, 1.0, 0.07 } -- default range color
 
 local teamColorAlpha = 0.2
-local useTeamColors = true
-local usestipple = 1 -- 0 or 1
+local useTeamColors = false
+local usestipple = 0 -- 0 or 1
 local rangeLineWidth = 3.5 -- (note: will end up larger for larger vertical screen resolution size)
 
 local circleSegments = 64
@@ -70,8 +70,8 @@ float heightAtWorldPos(vec2 w){
 }
 
 void main() {
-	// blend start to end on mod gf%15
-	float timemix = mod(timeInfo.x,10)*(0.1);
+	// blend start to end on mod gf%10
+	float timemix = clamp( mod(timeInfo.x,10)*(0.1), 0.0, 1.0);
 	vec4 circleWorldPos = mix(startposrad, endposrad, timemix);
 	circleWorldPos.xz = circlepointposition.xy * circleWorldPos.w +  circleWorldPos.xz;
 	
@@ -267,7 +267,7 @@ local function processUnit(unitID, unitDefID, caller)
 		true,-- updateExisting
 		caller == "Initialize" -- dont upload on init
 		) 
-	 if  caller == "Initialize" then uploadAllElements(circleInstanceVBO) end --upload initialized at once
+
 end
 
 
@@ -279,6 +279,7 @@ function widget:Initialize()
 	for i=1,#units do
 		processUnit( units[i], spGetUnitDefID(units[i]), "Initialize")
 	end
+	uploadAllElements(circleInstanceVBO) --upload initialized at once
 end
 
 function widget:Shutdown()
