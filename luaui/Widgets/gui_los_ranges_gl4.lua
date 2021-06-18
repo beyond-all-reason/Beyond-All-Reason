@@ -10,12 +10,21 @@ function widget:GetInfo()
 	}
 end
  
-local myrangeColor = { 0.0, 1.0, 1.0, 0.98 }
-local rangeColor = { 1.0, 1.0, 1.0, 0.07 }
-local allyrangeColor = { 0.25, 0.75, 1.0, 0.3 }
-local rangeLineWidth = 3.5 -- (note: will end up larger for larger vertical screen resolution size)
-local minSightDistance = 100
 
+-------   Configurables: ------------------- 
+local rangeColor = { 1.0, 1.0, 1.0, 0.07 } -- default range color
+
+local teamColorAlpha = 0.2
+local useTeamColors = true
+local usestipple = 1 -- 0 or 1
+local rangeLineWidth = 3.5 -- (note: will end up larger for larger vertical screen resolution size)
+
+local circleSegments = 64
+local rangecorrectionelmos = 16 -- how much smaller they are drawn than truth due to LOS mipping
+--------- End configurables ------ 
+
+local minSightDistance = 100
+local gaiaTeamID = Spring.GetGaiaTeamID()
 
 ------- GL4 NOTES -----
 --only update every 15th frame, and interpolate pos in shader!
@@ -31,14 +40,11 @@ VFS.Include(luaShaderDir.."instancevbotable.lua")
 
 local circleShader = nil
 local circleInstanceVBO = nil
-local circleSegments = 64
 
 
 local vsSrc = [[
 #version 420
 #line 10000
-
-//__DEFINES__
 
 layout (location = 0) in vec4 circlepointposition;
 layout (location = 1) in vec4 startposrad;
@@ -51,6 +57,7 @@ uniform sampler2D heightmapTex;
 out DataVS {
 	vec4 worldPos; // pos and radius
 	vec4 blendedcolor;
+	float worldscale_circumference;
 };
 
 //__ENGINEUNIFORMBUFFERDEFS__
@@ -76,9 +83,10 @@ void main() {
 	float inboundsness = min(mymin.x, mymin.y);
 	
 	// dump to FS
+	worldscale_circumference = startposrad.w * circlepointposition.z;
 	worldPos = circleWorldPos;
 	blendedcolor = color;
-	blendedcolor.a *= 1.0 - clamp(inboundsness*(-0.003),0.0,1.0);
+	blendedcolor.a *= 1.0 - clamp(inboundsness*(-0.02),0.0,1.0);
 	gl_Position = cameraViewProj * vec4(circleWorldPos.xyz, 1.0);
 }
 ]]
@@ -89,8 +97,6 @@ local fsSrc =  [[
 #extension GL_ARB_uniform_buffer_object : require
 #extension GL_ARB_shading_language_420pack: require
 
-//__DEFINES__
-
 #line 20000
 
 uniform vec4 circleuniforms; 
@@ -99,17 +105,21 @@ uniform sampler2D heightmapTex;
 
 //__ENGINEUNIFORMBUFFERDEFS__
 
+//__DEFINES__
+
 in DataVS {
 	vec4 worldPos; // w = range
 	vec4 blendedcolor;
+	float worldscale_circumference;
 };
 
 out vec4 fragColor;
 
 void main() {
 	fragColor.rgba = blendedcolor.rgba;
-	fragColor.a = min(fragColor.a, 0.95);	 // alpha of the line
-	//fragColor.a *= sin((worldPos.x+worldPos.z)*0.12	 - timeInfo.z*0.033415); // stippling
+	#if USE_STIPPLE > 0
+		fragColor.a *= 2.0 * sin(worldscale_circumference); // PERFECT STIPPLING!
+	#endif
 }
 ]]
 
@@ -120,22 +130,24 @@ local function goodbye(reason)
 end
 
 local function initgl4()
+	if circleShader then circleShader:Finalize() end 
+	if circleInstanceVBO then clearInstanceTable(circleInstanceVBO) end
 	local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()
 	vsSrc = vsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
 	fsSrc = fsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
 	circleShader =  LuaShader(
-    {
-      vertex = vsSrc:gsub("//__DEFINES__", "#define MYGRAVITY "..tostring(Game.gravity+0.1)),
-      fragment = fsSrc,
-      --geometry = gsSrc, no geom shader for now
-      uniformInt = {
-        heightmapTex = 0,
-        },
-      uniformFloat = {
-        circleuniforms = {1,1,1,1},
-      },
-    },
-    "losrange shader GL4"
+	{
+	  vertex = vsSrc:gsub("//__DEFINES__", "#define MYGRAVITY "..tostring(Game.gravity+0.1)),
+	  fragment = fsSrc:gsub("//__DEFINES__", "#define USE_STIPPLE ".. tostring(usestipple) ),
+	  --geometry = gsSrc, no geom shader for now
+	  uniformInt = {
+		heightmapTex = 0,
+		},
+	  uniformFloat = {
+		circleuniforms = {1,1,1,1},
+	  },
+	},
+	"losrange shader GL4"
   )
   shaderCompiled = circleShader:Initialize()
   if not shaderCompiled then goodbye("Failed to compile losrange shader GL4 ") end
@@ -152,27 +164,18 @@ local function initgl4()
 end
 
 -- Functions shortcuts
-local spGetGameSeconds      = Spring.GetGameSeconds
-local spGetGroundHeight 	= Spring.GetGroundHeight
 local spGetSpectatingState  = Spring.GetSpectatingState
 local spGetUnitDefID        = Spring.GetUnitDefID
 local spGetUnitPosition     = Spring.GetUnitPosition
 local spIsGUIHidden 		= Spring.IsGUIHidden
-local spIsSphereInView  	= Spring.IsSphereInView
 local spIsUnitAllied		= Spring.IsUnitAllied
-local glBeginEnd            = gl.BeginEnd
-local glCallList		 	= gl.CallList
 local glColor               = gl.Color
 local glColorMask           = gl.ColorMask
-local glCreateList			= gl.CreateList
-local glDeleteList			= gl.DeleteList
 local glDepthTest           = gl.DepthTest
 local glLineWidth           = gl.LineWidth
 local glStencilFunc         = gl.StencilFunc
 local glStencilOp           = gl.StencilOp
 local glStencilTest         = gl.StencilTest
-local glTranslate           = gl.Translate
-local glVertex              = gl.Vertex
 local GL_ALWAYS             = GL.ALWAYS
 local GL_EQUAL              = GL.EQUAL
 local GL_LINE_LOOP          = GL.LINE_LOOP
@@ -194,9 +197,7 @@ local unitRange = {} -- table of unit types with their radar ranges
 local isBuilding = {} -- unitDefID keys
 for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.losRadius and unitDef.losRadius > minSightDistance then	-- save perf by excluding low radar range units
-		if not unitRange[unitDefID] then unitRange[unitDefID] = unitDef.losRadius end
-		--unitRange[unitDefID]['range'] = unitDef.sightdistance
-
+		if not unitRange[unitDefID] then unitRange[unitDefID] = unitDef.losRadius - rangecorrectionelmos end
 		if unitDef.isBuilding or unitDef.isFactory or unitDef.speed==0 then
 			isBuilding[unitDefID] = true
 		end
@@ -225,28 +226,48 @@ function widget:ViewResize(newX,newY)
 end
 
 -- collect data about the unit and store it into unitList
-local function processUnit(unitID, unitDefID)
-	if not spIsUnitAllied(unitID) then return end
-
-	local unitDefID = spGetUnitDefID(unitID)
-
-    if not unitRange[unitDefID] then
-        return
-    end
-
-	local x, y, z = spGetUnitPosition(unitID)
-
-    local range = unitRange[unitDefID]
-    --local height = unitRange[unitDefID]['height']
+local unitIDtoaddreason = {}
+local function processUnit(unitID, unitDefID, caller)
+	if (not (spec and fullview )) and ( not spIsUnitAllied(unitID)) then return end -- display mode for specs
 	
-    unitList[unitID] = unitDefID
+	local teamID = Spring.GetUnitTeam(unitID)
+	if teamID == gaiaTeamID then return end -- no gaia units
+	
+	local range = unitRange[unitDefID]
+	if range == nil then return end -- not enough LOS to be drawn
+	
+	local _,_,_,_,buildProgress = Spring.GetUnitHealth(unitID)
+	if buildProgress < 0.99 then return end
+	
+	local x, y, z = spGetUnitPosition(unitID)
+	local r,g,b,a 
+	if useTeamColors then
+		r, g, b = Spring.GetTeamColor(teamID)
+		a = teamColorAlpha
+	else
+		r =  rangeColor[1]
+		g =  rangeColor[2]
+		b =  rangeColor[3]
+		a =  rangeColor[4]
+	end
+	
+	
+	unitList[unitID] = unitDefID
 	-- shall we jam it straight into the table?
-	pushElementInstance(circleInstanceVBO,{
-      x,y,z,range, -- start pos
-      x,y,z,range, -- end positions
-	  --math.random(),math.random(),math.random(),1.0, -- color
-	  rangeColor[1],rangeColor[2],rangeColor[3],rangeColor[4] -- color
-	  },unitID) -- key
+	--if circleInstanceVBO.instanceIDtoIndex[unitID] then S pring.Echo("Duplicate unit added", unitID, caller, unitIDtoaddreason[unitID]) end
+	unitIDtoaddreason[unitID] = caller
+	pushElementInstance(circleInstanceVBO,
+		{
+			x,y,z,range, -- start pos
+			x,y,z,range, -- end positions
+			--math.random(),math.random(),math.random(),1.0, -- color
+			r,g,b,a,-- color
+		},
+		unitID, --key
+		true,-- updateExisting
+		caller == "Initialize" -- dont upload on init
+		) 
+	 if  caller == "Initialize" then uploadAllElements(circleInstanceVBO) end --upload initialized at once
 end
 
 
@@ -254,44 +275,36 @@ function widget:Initialize()
 	initgl4()
 	widget:ViewResize()
 	unitList = {}
-    local units = Spring.GetAllUnits()
+	local units = Spring.GetAllUnits()
 	for i=1,#units do
-		processUnit( units[i], spGetUnitDefID(units[i]))
-    end
+		processUnit( units[i], spGetUnitDefID(units[i]), "Initialize")
+	end
 end
 
 function widget:Shutdown()
 end
 
 function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
-  if 	unitList[unitID] then
-    unitList[unitID] = nil
-    popElementInstance(circleInstanceVBO,unitID)
+  if unitList[unitID] then
+	unitList[unitID] = nil
+	popElementInstance(circleInstanceVBO,unitID)
   end
 end
 
 function widget:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
-	processUnit( unitID, unitDefID )
+	processUnit( unitID, unitDefID ,"UnitTaken")
 end
 
 function widget:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
-	processUnit( unitID, unitDefID )
+	processUnit( unitID, unitDefID ,"UnitGiven")
 end
 
 function widget:UnitFinished( unitID,  unitDefID,  unitTeam)
-	processUnit( unitID, unitDefID )
-end
-
-
-
--- resets gl color and line width to default values
-local function resetGl()
-	glColor( 1.0, 1.0, 1.0, 1.0 )
-	glLineWidth( 1.0 )
+	processUnit( unitID, unitDefID, "UnitFinished"  )
 end
 
 function widget:GameFrame(n)
-	if spec and fullview then return end
+	--if spec and fullview then return end
 	if n % 10 == 0 then -- this 15 frames is important, as the vertex shader is interpolating at this rate too!
 		local instanceData = circleInstanceVBO.instanceData -- ok this is so nasty that it makes all my prev pop-push work obsolete
 		for unitID, unitDefID in pairs(unitList) do
@@ -308,21 +321,20 @@ function widget:GameFrame(n)
 				instanceData[instanceDataOffset+7] = z
 		
 			end
-			--pushElementInstance(circleInstanceVBO,instanceData,unitID, true, true) -- overwrite data and dont upload!, but i am scum and am directly modifying the table
 		end
 		uploadAllElements(circleInstanceVBO)
 	end
 end
 
 function widget:DrawWorld()
-    if chobbyInterface then return end
-    if spec and fullview then return end
-    if spIsGUIHidden() or (WG['topbar'] and WG['topbar'].showingQuit()) then return end
+	if chobbyInterface then return end
+	--if spec and fullview then return end
+	if spIsGUIHidden() or (WG['topbar'] and WG['topbar'].showingQuit()) then return end
 
 	if circleInstanceVBO.usedElements == 0 then return end
 	
 	--if true then return end
-	glColorMask(false, false, false, false)
+	glColorMask(false, false, false, false) -- disable color drawing
 	glStencilTest(true)
 	glDepthTest(false)
 
@@ -342,6 +354,8 @@ function widget:DrawWorld()
 
 
 	glColorMask(true, true, true, true)
+	
+	glDepthTest(true)
 	glStencilFunc(GL_EQUAL, 1, 1)
 	glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP)
 
@@ -355,5 +369,7 @@ function widget:DrawWorld()
 	
 	glStencilTest(false)
 	
-	resetGl()
+	glDepthTest(true)
+	glColor( 1.0, 1.0, 1.0, 1.0 ) --reset like a nice boi
+	glLineWidth( 1.0 )
 end
