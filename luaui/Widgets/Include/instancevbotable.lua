@@ -67,7 +67,7 @@ function resizeInstanceVBOTable(iT)
 	iT.maxElements = iT.maxElements * 2
 	local newInstanceVBO = gl.GetVBO(GL.ARRAY_BUFFER,true)
 	newInstanceVBO:Define(iT.maxElements, iT.layout)
-	for i = (iT.maxElements/2)*iT.instanceStep, (iT.maxElements)*iT.instanceStep do
+	for i = (iT.maxElements/2) * iT.instanceStep + 1, (iT.maxElements) * iT.instanceStep do
 		iT.instanceData[i] = 0
 	end
 	iT.instanceVBO = nil
