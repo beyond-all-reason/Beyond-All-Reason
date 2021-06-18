@@ -604,8 +604,8 @@ local options={
 	},
 	{
 		key    = 'teamcolors_dynamic',
-		name   = 'Dynamic TeamColors (Player team is always blue)',
-		desc   = 'description',
+		name   = 'Dynamic TeamColors',
+		desc   = 'Player team is always blue',
 		type   = 'list',
 		section = 'teamcoloring_options',
 		def  = "enabled",
@@ -615,9 +615,9 @@ local options={
 		}
 	},
 	{
-		key    = 'teamcolors_dynamic_spectators',
-		name   = 'Dynamic TeamColors for spectators (Selected player team is always blue, forced OFF if Dynamic TeamColors is disabled)',
-		desc   = 'description',
+		key    = 'teamcolors_anonymous_mode',
+		name   = 'Anonymous Mode',
+		desc   = 'All your enemies are colored with the same color so you cannot recognize them. Forces Dynamic TeamColors to be enabled',
 		type   = 'list',
 		section = 'teamcoloring_options',
 		def  = "disabled",
@@ -627,15 +627,19 @@ local options={
 		}
 	},
 	{
-		key    = 'teamcolors_anonymous_mode',
-		name   = 'Anonymous Mode (All your enemies are colored with the same color so you cannot recognize them. Forces Dynamic TeamColors to be enabled)',
-		desc   = 'description',
+		key    = 'teamcolors_icon_dev_mode',
+		name   = "Icon Dev Mode (Don't use in normal games)",
+		desc   = 'Forces teamcolors to be an specific one, for all teams',
 		type   = 'list',
 		section = 'teamcoloring_options',
 		def  = "disabled",
 		items={
-			{key="enabled", name="Enabled", desc="description"},
 			{key="disabled", name="Disabled", desc="description"},
+			{key="armblue", name="Armada Blue", desc="description"},
+			{key="corred", name="Cortex Red", desc="description"},
+			{key="scavpurp", name="Scavenger Purple", desc="description"},
+			{key="chickenorange", name="Chicken Orange", desc="description"},
+			{key="gaiagray", name="Gaia Gray", desc="description"},
 		}
 	},
 	
