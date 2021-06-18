@@ -9,7 +9,7 @@ function gadget:GetInfo()
 		author = "Damgam",
 		date = "2021",
 		layer = -100,
-		enabled = false,
+		enabled = true,
 	}
 end
 
@@ -27,13 +27,32 @@ local spGetLastUpdateSeconds = Spring.GetLastUpdateSeconds
 
 local myPlayerID = Spring.GetMyPlayerID()
 
+
+
 local ffaCounter = 0
 local allyCounter = 0
 local enemyCounter = 0
 local simpleColorsUpdateCounter = 0
 
 SimpleColorsEnabled = Spring.GetConfigInt("simple_auto_colors", 0) -- Floris plz add option here
-AnonymousModeEnabled = false -- needs modoption
+local DynamicTeamColorsEnabled = (Spring.GetModOptions and Spring.GetModOptions().teamcolors_dynamic) or "enabled"
+if DynamicTeamColorsEnabled == "enabled" then
+    DynamicTeamColorsEnabled = true
+else
+    DynamicTeamColorsEnabled = false
+end
+local DynamicTeamColorsSpectatorsEnabled = (Spring.GetModOptions and Spring.GetModOptions().teamcolors_dynamic_spectators) or "disabled"
+if DynamicTeamColorsSpectatorsEnabled == "enabled" then
+    DynamicTeamColorsSpectatorsEnabled = true
+else
+    DynamicTeamColorsSpectatorsEnabled = false
+end
+local AnonymousModeEnabled = (Spring.GetModOptions and Spring.GetModOptions().teamcolors_anonymous_mode) or "disabled"
+if AnonymousModeEnabled == "enabled" then
+    AnonymousModeEnabled = true
+else
+    AnonymousModeEnabled = false
+end
 
 SimplePlayerColor = {0, 80, 255} -- Armada Blue
 SimpleAllyColor = {0,255,0} -- Full Green
@@ -61,7 +80,7 @@ FFAColors = {
 
 
 AllyColors = {
-    [2] = { -- TwoTeams
+    [2] = { -- Two Teams
         [1] = {0,       80,     255 },      -- Armada Blue
         [2] = {10,      232,    18  },      -- Green
         [3] = {94,      9,      178 },      -- Purple
@@ -71,26 +90,131 @@ AllyColors = {
         [7] = {178,     255,    227 },      -- Aqua
         [8] = {8,       37,     190 },      -- Dark Blue
     },
+    [3] = { -- Three Teams
+        [1] = {82,      151,    255  },
+        [2] = {47,      66,     238  },
+        [3] = {147,     226,    251  },
+        [4] = {8,       37,     190  },
+        [5] = {35,      11,     129  },
+    },
+    [4] = { -- Four Teams
+        [1] = {82,      151,    255  },
+        [2] = {47,      66,     238  },
+        [3] = {147,     226,    251  },
+        [4] = {8,       37,     190  },
+    },
+    [5] = { -- Five Teams
+        [1] = {82,      151,    255  },
+        [2] = {47,      66,     238  },
+        [3] = {147,     226,    251  },
+    },
+    [6] = { -- Six Teams
+        [1] = {82,      151,    255  },
+        [2] = {47,      66,     238  },
+    },
 }
 
 EnemyColors = {
-    [2] = { -- TwoTeams
-        [1] = {255,     16,     5   },      -- Cortex Red
-        [2] = {255,     232,    22  },      -- Yellow
-        [3] = {255,     125,    32  },      -- Orange
-        [4] = {229,     18,     120 },      -- Pink
-        [5] = {255,     243,    135 },      -- Bleached Yellow
-        [6] = {166,     14,     5   },      -- Blood
-        [7] = {251,     167,    120 },      -- Skin? lol
-        [8] = {118,     39,     6   },      -- Brown
+    [2] = { -- Two Teams
+        [1] = {
+            [1] = {255,     16,     5   },      -- Cortex Red
+            [2] = {255,     232,    22  },      -- Yellow
+            [3] = {255,     125,    32  },      -- Orange
+            [4] = {229,     18,     120 },      -- Pink
+            [5] = {255,     243,    135 },      -- Bleached Yellow
+            [6] = {166,     14,     5   },      -- Blood
+            [7] = {251,     167,    120 },      -- Skin? lol
+            [8] = {118,     39,     6   },      -- Brown
+        },
+    },
+    [3] = { -- Three Teams
+        [1] = { -- First Enemy Team
+            [1] = {231,     0,      0   },
+            [2] = {255,     125,    32  },
+            [3] = {255,     232,    22  },
+            [4] = {166,     14,     5   },
+            [5] = {118,     39,     6   },
+        },
+        [2] = { -- Second Enemy Team
+            [1] = {10,      232,    32  },
+            [2] = {10,      142,    7   },
+            [3] = {117,     253,    147 },
+            [4] = {5,       84,     13  },
+            [5] = {45,      57,     9   },
+        },
+    },
+    [4] = { -- Four Teams
+        [1] = { -- First Enemy Team
+            [1] = {231,     0,      0   },
+            [2] = {255,     125,    32  },
+            [3] = {255,     232,    22  },
+            [4] = {166,     14,     5   },
+        },
+        [2] = { -- Second Enemy Team
+            [1] = {10,      232,    32  },
+            [2] = {10,      142,    7   },
+            [3] = {117,     253,    147 },
+            [4] = {5,       84,     13  },
+        },
+        [3] = { -- Third Enemy Team
+            [1] = {200,     102,    246 },
+            [2] = {134,     10,     232 },
+            [3] = {191,     169,    255 },
+            [4] = {94,      9,      178 },
+        },
+    },
+    [5] = { -- Five Teams
+        [1] = { -- First Enemy Team
+            [1] = {231,     0,      0   },
+            [2] = {255,     125,    32  },
+            [3] = {166,     14,     5   },
+        },
+        [2] = { -- Second Enemy Team
+            [1] = {10,      232,    32  },
+            [2] = {10,      142,    7   },
+            [3] = {117,     253,    147 },
+        },
+        [3] = { -- Third Enemy Team
+            [1] = {200,     102,    246 },
+            [2] = {134,     10,     232 },
+            [3] = {191,     169,    255 },
+        },
+        [4] = { -- Fourth Enemy Team
+            [1] = {255,     232,    22  },
+            [2] = {191,     151,    8   },
+            [3] = {255,     243,    135 },
+        },
+    },
+    [6] = { -- Six Teams
+        [1] = { -- First Enemy Team
+            [1] = {231,     0,      0   },
+            [2] = {166,     14,     5   },
+        },
+        [2] = { -- Second Enemy Team
+            [1] = {10,      232,    32  },
+            [2] = {10,      142,    7   },
+        },
+        [3] = { -- Third Enemy Team
+            [1] = {200,     102,    246 },
+            [2] = {134,     10,     232 },
+        },
+        [4] = { -- Fourth Enemy Team
+            [1] = {255,     232,    22  },
+            [2] = {191,     151,    8   },
+        },
+        [5] = { -- Fifth Enemy Team
+            [1] = {255,     161,    73  },
+            [2] = {222,     93,     0   },
+        },
     },
 }
 
 ScavColor = {97, 36, 97}
-ChickenColor = {255, 0, 0}
 GaiaColor = {127, 127, 127}
 
-local function MissingColorHandler(teamID, allyTeam, myTeam, myAllyTeam)
+local function MissingColorHandler(teamID, allyTeam)
+    local myTeam = spGetMyTeamID()
+    local myAllyTeam = spGetMyAllyTeamID()
     if teamID == myTeam then
         spSetTeamColor(teamID, SimplePlayerColor[1]/255, SimplePlayerColor[2]/255, SimplePlayerColor[3]/255)
     elseif allyTeam == myAllyTeam then
@@ -98,14 +222,43 @@ local function MissingColorHandler(teamID, allyTeam, myTeam, myAllyTeam)
     else
         spSetTeamColor(teamID, SimpleEnemyColor[1]/255, SimpleEnemyColor[2]/255, SimpleEnemyColor[3]/255)
     end
-    Spring.Echo("Missing Team Color for TeamID: ".. teamID)
 end
 
-local function EnemyColorHandler(teamID, allyTeam)
-    local myTeam = spGetMyTeamID()
-    local myAllyTeam = spGetMyAllyTeamID()
-    local spectator = spGetSpectatingState()
-    
+local function EnemyColorHandler(teamID, allyTeam, allyTeamCount, myTeam, myAllyTeam)
+    if not EATeams[allyTeam] then
+        EATeams[allyTeam] = true
+        if EACountNumber then
+            EACount[allyTeam] = EACountNumber + 1
+            EACountNumber = EACountNumber + 1
+        else
+            EACount[allyTeam] = 1
+            EACountNumber = 1
+        end
+        EATeamsCount[allyTeam] = 0
+    end
+    EATeamsCount[allyTeam] = EATeamsCount[allyTeam] + 1
+    --Spring.Echo("allyTeamCount "..allyTeamCount)
+    --Spring.Echo("EACount[allyTeam] "..EACount[allyTeam])
+    --Spring.Echo("EATeams[allyTeam] "..EATeams[allyTeam])
+    --Spring.Echo("EATeamsCount[allyTeam] "..EATeamsCount[allyTeam])
+    if EnemyColors[allyTeamCount] then
+        if EnemyColors[allyTeamCount][EACount[allyTeam]] then
+            if EnemyColors[allyTeamCount][EACount[allyTeam]][EATeamsCount[allyTeam]] then
+                spSetTeamColor(
+                    teamID, 
+                    EnemyColors[allyTeamCount][EACount[allyTeam]][EATeamsCount[allyTeam]][1] /255, 
+                    EnemyColors[allyTeamCount][EACount[allyTeam]][EATeamsCount[allyTeam]][2] /255,
+                    EnemyColors[allyTeamCount][EACount[allyTeam]][EATeamsCount[allyTeam]][3] /255
+                )
+            else
+                MissingColorHandler(teamID, allyTeam)
+            end
+        else
+            MissingColorHandler(teamID, allyTeam)
+        end
+    else
+        MissingColorHandler(teamID, allyTeam)
+    end
     -- planned
 end
 
@@ -115,27 +268,22 @@ local function UpdatePlayerColors()
     local myTeam = spGetMyTeamID()
     local myAllyTeam = spGetMyAllyTeamID()
     local spectator = spGetSpectatingState()
+    EATeams = {}
+    EACount = {}
+    EATeamsCount = {}
     for i = 1,#teams do
         local teamID = teams[i]
         local _, leader, isDead, isAiTeam, side, allyTeam, incomeMultiplier, customTeamKeys = spGetTeamInfo(teamID)
         local luaAI = spGetTeamLuaAI(teamID)
-        if isAiTeam and (luaAI and (string.find(luaAI, "Scavenger") or string.find(luaAI, "Chicken"))) then
+        if isAiTeam and (luaAI and (string.find(luaAI, "Scavenger"))) then
             if string.find(luaAI, "Scavenger") then
                 spSetTeamColor(teamID, ScavColor[1]/255, ScavColor[2]/255, ScavColor[3]/255)
-            elseif string.find(luaAI, "Chicken") then
-                spSetTeamColor(teamID, ChickenColor[1]/255, ChickenColor[2]/255, ChickenColor[3]/255)
             end
         elseif spGetGaiaTeamID() == teamID then
             spSetTeamColor(teamID, GaiaColor[1]/255, GaiaColor[2]/255, GaiaColor[3]/255)
         else
             if SimpleColorsEnabled == 1 then -- SimpleColors
-                if teamID == myTeam then
-                    spSetTeamColor(teamID, SimplePlayerColor[1]/255, SimplePlayerColor[2]/255, SimplePlayerColor[3]/255)
-                elseif allyTeam == myAllyTeam then
-                    spSetTeamColor(teamID, SimpleAllyColor[1]/255, SimpleAllyColor[2]/255, SimpleAllyColor[3]/255)
-                else
-                    spSetTeamColor(teamID, SimpleEnemyColor[1]/255, SimpleEnemyColor[2]/255, SimpleEnemyColor[3]/255)
-                end
+                MissingColorHandler(teamID, allyTeam)
             elseif (AnonymousModeEnabled and allyTeam ~= myAllyTeam) and (not spectator) then
                 spSetTeamColor(teamID, SimpleEnemyColor[1]/255, SimpleEnemyColor[2]/255, SimpleEnemyColor[3]/255)
             elseif #teams == #allyteams then -- FFA
@@ -145,30 +293,38 @@ local function UpdatePlayerColors()
                 elseif FFAColors[ffaCounter] then
                     spSetTeamColor(teamID, FFAColors[ffaCounter][1] /255, FFAColors[ffaCounter][2] /255, FFAColors[ffaCounter][3] /255)
                 else
-                    MissingColorHandler(teamID, allyTeam, myTeam, myAllyTeam)
+                    MissingColorHandler(teamID, allyTeam)
                 end
             else
+                if (not AnonymousModeEnabled and (not DynamicTeamColorsEnabled)) or (spectator and (not DynamicTeamColorsSpectatorsEnabled)) then
+                    myTeam = 0
+                    myAllyTeam = 0
+                end
                 if allyTeam == myAllyTeam then
                     allyCounter = allyCounter+1
-                    if AllyColors[2][allyCounter] then
-                        spSetTeamColor(teamID, AllyColors[2][allyCounter][1] /255, AllyColors[2][allyCounter][2] /255, AllyColors[2][allyCounter][3] /255)
+                    if AllyColors[#allyteams-1] then
+                        if AllyColors[#allyteams-1][allyCounter] then
+                            spSetTeamColor(teamID, AllyColors[#allyteams-1][allyCounter][1] /255, AllyColors[#allyteams-1][allyCounter][2] /255, AllyColors[#allyteams-1][allyCounter][3] /255)
+                        else
+                            MissingColorHandler(teamID, allyTeam)
+                        end
                     else
-                        MissingColorHandler(teamID, allyTeam, myTeam, myAllyTeam)
+                        MissingColorHandler(teamID, allyTeam)
                     end
                 else
-                    enemyCounter = enemyCounter+1
-                    if EnemyColors[2][enemyCounter] then
-                        spSetTeamColor(teamID, EnemyColors[2][enemyCounter][1] /255, EnemyColors[2][enemyCounter][2] /255, EnemyColors[2][enemyCounter][3] /255)
-                    else
-                        MissingColorHandler(teamID, allyTeam, myTeam, myAllyTeam)
-                    end
+                    EnemyColorHandler(teamID, allyTeam, #allyteams-1, myTeam, myAllyTeam)
                 end
             end
         end
     end
+    myTeam = nil
+    myAllyTeam = nil
     ffaCounter = 0
     allyCounter = 0
-    enemyCounter = 0
+    EATeams = nil
+    EACount = nil
+    EATeamsCount = nil
+    EACountNumber = nil
 end
 
 function gadget:Initialize()
@@ -190,6 +346,10 @@ function gadget:Update()
         if PreviousSimpleColorsEnabled ~= SimpleColorsEnabled then
             UpdatePlayerColors()
         end
+    end
+
+    if math.random(0,60) == 0 then
+        UpdatePlayerColors()
     end
 end
 

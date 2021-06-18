@@ -31,51 +31,8 @@ if gadgetHandler:IsSyncedCode() then
 	-- Setting up
 	----------------------------------------------------------------
 
-	-- for debug echos
-   	local function to_string(data, indent)
-		local str = ""
-
-		if(indent == nil) then
-			indent = 0
-		end
-
-		-- Check the type
-		if(type(data) == "string") then
-			str = str .. (" "):rep(indent) .. data .. "\n"
-		elseif(type(data) == "number") then
-			str = str .. (" "):rep(indent) .. data .. "\n"
-		elseif(type(data) == "boolean") then
-			if(data == true) then
-				str = str .. "true\n"
-			else
-				str = str .. "false\n"
-			end
-		elseif(type(data) == "table") then
-			local i, v
-			for i, v in pairs(data) do
-				-- Check for a table in a table
-				if(type(v) == "table") then
-					str = str .. (" "):rep(indent) .. i .. ":\n"
-					str = str .. to_string(v, indent + 2)
-				else
-			str = str .. (" "):rep(indent) .. i .. ": " ..to_string(v, 0)
-			end
-			end
-		elseif (data ==nil) then
-			str=str..'nil'
-		else
-		   -- print_debug(1, "Error: unknown data type: %s", type(data))
-			--str=str.. "Error: unknown data type:" .. type(data)
-			Spring.Echo(type(data) .. 'X data type')
-		end
-
-		return str
-	end
-
-
 	local function SetCoopStartPoint(playerID, x, y, z)
 		coopStartPoints[playerID] = {x, y, z}
-		--Spring.Echo('coop dbg6',playerID,x,y,z,to_string(coopStartPoints))
 
 		SendToUnsynced("CoopStartPoint", playerID, x, y, z)
 	end
@@ -102,17 +59,13 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-
 	----------------------------------------------------------------
 	-- Synced Callins
 	----------------------------------------------------------------
 
-
 	function gadget:AllowStartPosition(playerID,teamID,readyState,x,y,z)
-		--Spring.Echo('allowstart',x,z,playerID)
 		for otherplayerID, startPos in pairs(coopStartPoints) do
 			if startPos[1]==x and startPos[3]==z then
-				--Spring.Echo('coop dbg8',playerID,'a real start was attempted to be placed on a coop start ',otherplayerID,'at',x,z,'disallowing!')
 				return false
 			end
 		end
@@ -135,7 +88,6 @@ if gadgetHandler:IsSyncedCode() then
 				--NewbiePlacer
 				local _,_,_,teamID = Spring.GetPlayerInfo(playerID,false)
 				if (Spring.GetTeamRulesParam(teamID, 'isNewbie') == 1) then
-					Spring.SendMessageToPlayer(playerID,"In this match, teams containing newbies (rank 0) will have factions and startpoints chosen for them!")
 					coopStartPoints[playerID] = {-1,-1,-1} --record an invalid coop startpoint, to be picked up and assigned properly later; don't display anything
 					return true --because if we don't the cooped players won't appear readied (even though they are)
 				else
@@ -144,7 +96,6 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			end
 		end
-		---Spring.Echo('allowstart true',x,z,playerID)
 
 		return true
 	end
@@ -222,7 +173,6 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:GameFrame(n)
 		--spawn cooped coms
 		if n==0 and GG.coopMode then
-			--Spring.Echo('coop dbg7',to_string(coopStartPoints))
 			for playerID, startPos in pairs(coopStartPoints) do
 				local _, _, _, teamID, allyID = Spring.GetPlayerInfo(playerID,false)
 				SpawnTeamStartUnit(playerID,teamID, allyID, startPos[1], startPos[3])
@@ -293,8 +243,6 @@ else
 	end
 
 	local function CoopStartPoint(epicwtf, playerID, x, y, z) --this epicwtf param is used because it seem that when a registered function is locaal, then the registration name is  passed too. if the function is part of gadget: then it is not passed.
-		--Spring.Echo('coop dbg5',epicwtf,playerID,x,y,z,to_string(coopStartPoints))
-
 		coopStartPoints[playerID] = {x, y, z}
 	end
 
@@ -320,7 +268,6 @@ else
 			local playerName, _, _, teamID = Spring.GetPlayerInfo(playerID,false)
 			playerNames[playerID] = playerName
 			playerTeams[playerID] = teamID
-			--Spring.Echo('coop dbg2',i,playerName,playerID,teamID,#playerList)
 		end
 
 		-- Cone code taken directly from minimap_startbox.lua
@@ -350,11 +297,9 @@ else
 		local areSpec = spGetSpectatingState()
 		local myPlayerID = spGetMyPlayerID()
 		for playerID, startPosition in pairs(coopStartPoints) do
-		--	Spring.Echo('coop dbg3',myPlayerID,playerID,'klj\n',to_string(coopStartPoints))
 			if areSpec or spArePlayersAllied(myPlayerID, playerID) then
 				local sx, sy, sz = startPosition[1], startPosition[2], startPosition[3]
 				if sx > 0 or sz > 0 then
-					--Spring.Echo('coop dbg',playerID,playerTeams[playerID])
 					local tr, tg, tb = spGetTeamColor(playerTeams[playerID])
 					glPushMatrix()
 						glTranslate(sx, sy, sz)
@@ -371,8 +316,6 @@ else
 		local areSpec = spGetSpectatingState()
 		local myPlayerID = spGetMyPlayerID()
 		for playerID, startPosition in pairs(coopStartPoints) do
-			--Spring.Echo('coop dbg4',myPlayerID,playerID)
-
 			if areSpec or spArePlayersAllied(myPlayerID, playerID) then
 				local sx, sy, sz = startPosition[1], startPosition[2], startPosition[3]
 				if sx > 0 or sz > 0 then
@@ -395,45 +338,5 @@ else
 		end
 	end
 
-	-- for debug echos
-	function to_string(data, indent)
-		local str = ""
-
-		if(indent == nil) then
-			indent = 0
-		end
-
-		-- Check the type
-		if(type(data) == "string") then
-			str = str .. (" "):rep(indent) .. data .. "\n"
-		elseif(type(data) == "number") then
-			str = str .. (" "):rep(indent) .. data .. "\n"
-		elseif(type(data) == "boolean") then
-			if(data == true) then
-				str = str .. "true\n"
-			else
-				str = str .. "false\n"
-			end
-		elseif(type(data) == "table") then
-			local i, v
-			for i, v in pairs(data) do
-				-- Check for a table in a table
-				if(type(v) == "table") then
-					str = str .. (" "):rep(indent) .. i .. ":\n"
-					str = str .. to_string(v, indent + 2)
-				else
-			str = str .. (" "):rep(indent) .. i .. ": " ..to_string(v, 0)
-			end
-			end
-		elseif (data ==nil) then
-			str=str..'nil'
-		else
-		   -- print_debug(1, "Error: unknown data type: %s", type(data))
-			--str=str.. "Error: unknown data type:" .. type(data)
-			Spring.Echo(type(data) .. 'X data type')
-		end
-
-		return str
-	end
 end
 

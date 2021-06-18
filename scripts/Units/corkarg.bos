@@ -1152,7 +1152,7 @@ Killed(severity, corpsetype)
 		explode lbarrel2 type BITMAPONLY | NOHEATCLOUD;
 		explode flare4 type BITMAPONLY | NOHEATCLOUD;
 		explode aacover type BITMAPONLY | NOHEATCLOUD;
-		return(0);
+		return(corpsetype);
 	}
 	if( severity <= 50 )
 	{
@@ -1190,7 +1190,7 @@ Killed(severity, corpsetype)
 		explode lbarrel2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode flare4 type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode aacover type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		return(0);
+		return(corpsetype);
 	}
 	if( severity <= 99 )
 	{
@@ -1229,7 +1229,7 @@ Killed(severity, corpsetype)
 		explode lbarrel2 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		explode flare4 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode aacover type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		return(0);
+		return(corpsetype);
 	}
 	corpsetype = 3 ;
 		explode pelvis type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
@@ -1266,4 +1266,5 @@ Killed(severity, corpsetype)
 		explode lbarrel2 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode flare4 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode aacover type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		return(corpsetype);
 }

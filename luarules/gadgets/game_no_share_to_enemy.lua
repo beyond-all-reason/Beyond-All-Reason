@@ -18,7 +18,6 @@ if not gadgetHandler:IsSyncedCode() then
 end
 
 local AreTeamsAllied = Spring.AreTeamsAllied
-local SendMessageToTeam = Spring.SendMessageToTeam
 local IsCheatingEnabled = Spring.IsCheatingEnabled
 
 local isNonPlayerTeam = { [Spring.GetGaiaTeamID()] = true }
@@ -35,7 +34,7 @@ function gadget:AllowResourceTransfer(oldTeam, newTeam, type, amount)
     if isNonPlayerTeam[oldTeam] or AreTeamsAllied(newTeam, oldTeam) or IsCheatingEnabled() then
         return true
     end
-    SendMessageToTeam(oldTeam, "Resource sharing to enemies has been disabled.")
+
     return false
 end
 
@@ -43,9 +42,6 @@ function gadget:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, capture)
     if isNonPlayerTeam[oldTeam] or AreTeamsAllied(newTeam, oldTeam) or capture or IsCheatingEnabled() then
         return true
     end
-    SendMessageToTeam(oldTeam, "Unit sharing to enemies has been disabled.")
+
     return false
 end
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------

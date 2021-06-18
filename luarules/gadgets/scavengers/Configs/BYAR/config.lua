@@ -247,10 +247,10 @@ function UpdateTierChances(n)
 	-- Must be 100 in total
 	if globalScore > scavconfig.timers.Endless then
 		TierSpawnChances.T0 = 0
-		TierSpawnChances.T1 = 0
-		TierSpawnChances.T2 = 33
-		TierSpawnChances.T3 = 33
-		TierSpawnChances.T4 = 34
+		TierSpawnChances.T1 = 25
+		TierSpawnChances.T2 = 25
+		TierSpawnChances.T3 = 25
+		TierSpawnChances.T4 = 25
 		TierSpawnChances.Message = "Current tier: Endless"
 	elseif globalScore > scavconfig.timers.T4top then
 		TierSpawnChances.T0 = 0
@@ -417,6 +417,19 @@ function BPWallOrPopup(faction)
 			return UDN.cormaw_scav.id
 		else
 			return UDN.cordrag_scav.id
+		end
+	elseif faction == "scav" then
+		if r == 0 then
+			local r2 = math.random(1,3)
+			if r2 == 1 then
+				return UDN.corscavdtf_scav.id
+			elseif r2 == 2 then
+				return UDN.corscavdtl_scav.id
+			elseif r2 == 3 then
+				return UDN.corscavdtm_scav.id
+			end
+		else
+			return UDN.corscavdrag_scav.id
 		end
 	end
 end

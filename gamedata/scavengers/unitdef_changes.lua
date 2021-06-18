@@ -181,53 +181,33 @@ customDefs.armcom = {
 customDefs.armdecom = {
 	decoyfor = "armcom_scav",
 }
+
 customDefs.cordecom = {
 	decoyfor = "cordecom_scav",
 }
+
 customDefs.armclaw = {
-	decoyfor = "armdrag_scav"
+	decoyfor = "armdrag_scav",
 }
+
 customDefs.cormaw = {
-	decoyfor = "cordrag_scav"
+	decoyfor = "cordrag_scav",
 }
+
 customDefs.armdf = {
-	decoyfor = "armfus_scav"
+	decoyfor = "armfus_scav",
 }
 
-customDefs.armfort = {
-	collisionvolumeoffsets = "0 -3 0",
-	collisionvolumescales = "32 50 32",
-	collisionvolumetype = "CylY",
-	corpse = "ROCKTEETHX",
-	objectname = "scavs/SCAVFORT.s3o",
-	script = "scavs/SCAVFORT.cob",
+customDefs.corscavdtf = {
+	decoyfor = "corscavdrag_scav",
 }
 
-customDefs.corfort = {
-	collisionvolumeoffsets = "0 -3 0",
-	collisionvolumescales = "32 50 32",
-	collisionvolumetype = "CylY",
-	corpse = "ROCKTEETHX",
-	objectname = "scavs/SCAVFORT.s3o",
-	script = "scavs/SCAVFORT.cob",
+customDefs.corscavdtm = {
+	decoyfor = "corscavdrag_scav",
 }
 
-customDefs.armdrag = {
-	collisionvolumeoffsets = "0 0 0",
-	collisionvolumescales = "32 22 32",
-	collisionvolumetype = "CylY",
-	corpse = "ROCKTEETH",
-	objectname = "scavs/scavdrag.s3o",
-	script = "Units/cordrag.cob",
-}
-
-customDefs.cordrag = {
-	collisionvolumeoffsets = "0 0 0",
-	collisionvolumescales = "32 22 32",
-	collisionvolumetype = "CylY",
-	corpse = "ROCKTEETH",
-	objectname = "scavs/scavdrag.s3o",
-	script = "Units/cordrag.cob",
+customDefs.corscavdtl = {
+	decoyfor = "corscavdrag_scav",
 }
 
 -- M/E storages T1 give rewarding amounts of metal / energy for reclaim
@@ -620,12 +600,73 @@ customDefs.armasy = {
 	},
 }
 
+numBuildoptions = #UnitDefs.armca.buildoptions
+customDefs.armca = {
+	buildoptions = {
+		[numBuildoptions+1] = "corscavdrag",
+		[numBuildoptions+2] = "corscavdtl",
+		[numBuildoptions+3] = "corscavdtf",
+		[numBuildoptions+4] = "corscavdtm",
+	},
+}
+
+numBuildoptions = #UnitDefs.armck.buildoptions
+customDefs.armck = {
+	buildoptions = {
+		[numBuildoptions+1] = "corscavdrag",
+		[numBuildoptions+2] = "corscavdtl",
+		[numBuildoptions+3] = "corscavdtf",
+		[numBuildoptions+4] = "corscavdtm",
+	},
+}
+
+numBuildoptions = #UnitDefs.armcv.buildoptions
+customDefs.armcv = {
+	buildoptions = {
+		[numBuildoptions+1] = "corscavdrag",
+		[numBuildoptions+2] = "corscavdtl",
+		[numBuildoptions+3] = "corscavdtf",
+		[numBuildoptions+4] = "corscavdtm",
+	},
+}
+
+numBuildoptions = #UnitDefs.corca.buildoptions
+customDefs.corca = {
+	buildoptions = {
+		[numBuildoptions+1] = "corscavdrag",
+		[numBuildoptions+2] = "corscavdtl",
+		[numBuildoptions+3] = "corscavdtf",
+		[numBuildoptions+4] = "corscavdtm",
+	},
+}
+
+numBuildoptions = #UnitDefs.corck.buildoptions
+customDefs.corck = {
+	buildoptions = {
+		[numBuildoptions+1] = "corscavdrag",
+		[numBuildoptions+2] = "corscavdtl",
+		[numBuildoptions+3] = "corscavdtf",
+		[numBuildoptions+4] = "corscavdtm",
+	},
+}
+
+numBuildoptions = #UnitDefs.corcv.buildoptions
+customDefs.corcv = {
+	buildoptions = {
+		[numBuildoptions+1] = "corscavdrag",
+		[numBuildoptions+2] = "corscavdtl",
+		[numBuildoptions+3] = "corscavdtf",
+		[numBuildoptions+4] = "corscavdtm",
+	},
+}
+
 numBuildoptions = #UnitDefs.armaca.buildoptions
 customDefs.armaca = {
 	buildoptions = {
 		[numBuildoptions+1] = "armapt3",
 		[numBuildoptions+2] = "armminivulc",
 		[numBuildoptions+3] = "armwint2",
+		[numBuildoptions+4] = "corscavfort",
 	},
 }
 
@@ -635,6 +676,7 @@ customDefs.armack = {
 		[numBuildoptions+1] = "armapt3",
 		[numBuildoptions+2] = "armminivulc",
 		[numBuildoptions+3] = "armwint2",
+		[numBuildoptions+4] = "corscavfort",
 	},
 }
 
@@ -644,6 +686,7 @@ customDefs.armacv = {
 		[numBuildoptions+1] = "armapt3",
 		[numBuildoptions+2] = "armminivulc",
 		[numBuildoptions+3] = "armwint2",
+		[numBuildoptions+4] = "corscavfort",
 	},
 }
 
@@ -654,6 +697,7 @@ customDefs.coraca = {
 		[numBuildoptions+2] = "corminibuzz",
 		[numBuildoptions+3] = "corwint2",
 		[numBuildoptions+4] = "corhllllt",
+		[numBuildoptions+5] = "corscavfort",
 	},
 }
 
@@ -664,6 +708,7 @@ customDefs.corack = {
 		[numBuildoptions+2] = "corminibuzz",
 		[numBuildoptions+3] = "corwint2",
 		[numBuildoptions+4] = "corhllllt",
+		[numBuildoptions+5] = "corscavfort",
 	},
 }
 
@@ -674,6 +719,7 @@ customDefs.coracv = {
 		[numBuildoptions+2] = "corminibuzz",
 		[numBuildoptions+3] = "corwint2",
 		[numBuildoptions+4] = "corhllllt",
+		[numBuildoptions+5] = "corscavfort",
 	},
 }
 

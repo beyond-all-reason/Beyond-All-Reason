@@ -48,10 +48,10 @@ if gadgetHandler:IsSyncedCode() then
 	local isComWreck = {}
 	local xmasComwreckDefID
 	for fdefID,def in ipairs(FeatureDefs) do
-		if def.tooltip == "Commander Wreckage" then
+		if def.name == "armcom_dead" or def.name == "corcom_dead" then
 			isComWreck[fdefID] = true
 		end
-		if def.tooltip == "Xmas Commander Wreckage" then
+		if def.name == "xmascomwreck" then
 			xmasComwreckDefID = fdefID
 			break
 		end
