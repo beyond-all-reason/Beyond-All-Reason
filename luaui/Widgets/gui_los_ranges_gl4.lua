@@ -83,7 +83,7 @@ void main() {
 	float inboundsness = min(mymin.x, mymin.y);
 	
 	// dump to FS
-	worldscale_circumference = startposrad.w * circlepointposition.z;
+	worldscale_circumference = startposrad.w * circlepointposition.z * 6.2831853;
 	worldPos = circleWorldPos;
 	blendedcolor = color;
 	blendedcolor.a *= 1.0 - clamp(inboundsness*(-0.02),0.0,1.0);
