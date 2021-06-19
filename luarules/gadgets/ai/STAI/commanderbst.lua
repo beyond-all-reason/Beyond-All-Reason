@@ -5,7 +5,7 @@ function CommanderBST:Name()
 end
 
 function CommanderBST:Init()
-	self.DebugEnabled = false
+	self.DebugEnabled = true
 	local u = self.unit:Internal()
 	self.id = u:ID()
 
@@ -17,7 +17,6 @@ local CMD_PATROL = 15
 
 function CommanderBST:Update()
 	local f = self.game:Frame()
-
 	if self.lowHealth and f >= self.nextHealthCheck then
 		if self.unit:Internal():GetHealth() >= self.unit:Internal():GetMaxHealth() * 0.75 then
 			self.lowHealth = false
@@ -72,9 +71,11 @@ function CommanderBST:Priority()
 
 	local _, queueL = Spring.GetRealBuildQueue(self.id)
 	self:EchoDebug('Spring.GetRealBuildQueue(self.id)',Spring.GetRealBuildQueue(self.id),'queueL',queueL)
+
 	if (self.ai.Metal.income > 15 and self.ai.Energy.full > 0.5 and queueL == 0) or
 			self.ai.haveAdvFactory or
 			((self.lowHealth or self.ai.overviewhst.paranoidCommander) and self.safeHouse) then
+		print(200)
 		return 200
 	else
 		return 0

@@ -80,32 +80,32 @@ end
 function TaskLabBST:getSoldier()
 	self:EchoDebug('soldier')
 	print(self.qIndex)
--- 	local param = self.queue[self.qIndex]
--- 	local soldiers = self:scanRanks(param[1])
--- 	soldier = self:ecoCheck(soldiers)
--- 	soldier = self:countCheck(soldier,param[2],param[3],param[4])
--- 	soldier = self:toAmphibious(soldier)
--- 	self.qIndex = self.qIndex + 1
--- 	if self.qIndex > #self.queue then
--- 		self.qIndex = 1
--- 	end
--- 	if soldier then
--- 		return soldier,param
--- 	end
-
-
-
- 	for index,param in ipairs(self.queue) do
- 		local soldiers = self:scanRanks(param[1])
- 		soldier = self:ecoCheck(soldiers)
- 		soldier = self:countCheck(soldier,param[2],param[3],param[4])
- 		soldier = self:toAmphibious(soldier)
- 		if soldier then
- 			self.fails = 0
- 			return soldier,param
- 		end
+ 	local param = self.queue[self.qIndex]
+ 	local soldiers = self:scanRanks(param[1])
+ 	soldier = self:ecoCheck(soldiers)
+ 	soldier = self:countCheck(soldier,param[2],param[3],param[4])
+ 	soldier = self:toAmphibious(soldier)
+ 	self.qIndex = self.qIndex + 1
+ 	if self.qIndex > #self.queue then
+ 		self.qIndex = 1
  	end
- 	self.fails = self.fails +1
+ 	if soldier then
+ 		return soldier,param
+ 	end
+
+
+
+--  	for index,param in ipairs(self.queue) do
+--  		local soldiers = self:scanRanks(param[1])
+--  		soldier = self:ecoCheck(soldiers)
+--  		soldier = self:countCheck(soldier,param[2],param[3],param[4])
+--  		soldier = self:toAmphibious(soldier)
+--  		if soldier then
+--  			self.fails = 0
+--  			return soldier,param
+--  		end
+--  	end
+--  	self.fails = self.fails +1
 end
 
 function TaskLabBST:scanRanks(rank)

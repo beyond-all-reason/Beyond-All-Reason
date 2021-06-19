@@ -28,7 +28,7 @@ local function MaxBuildDist(unitName, speed)
 end
 
 function TaskQueueBST:Init()
-	self.DebugEnabled = false
+	self.DebugEnabled = true
 	self.role = nil
 	self.active = false
 	self.currentProject = nil
@@ -97,7 +97,6 @@ end
 
 function TaskQueueBST:ConstructionComplete()
 	self:EchoDebug(self.name, self.id," completed construction of ", self.constructing.unitName ,self.constructing.unitID)
-
 	self.constructing = nil
 end
 
@@ -702,7 +701,7 @@ function TaskQueueBST:ProgressQueue()
 		if success then
 			self:EchoDebug(self.name , " successful build command for ", utype:Name())
 			self.target = p
-			self.watchdogTimeout = math.max(self.ai.tool:Distance(self.unit:Internal():GetPosition(), p) * 1.5, 360)
+			self.watchdogTimeout = math.max(self.ai.tool:Distance(self.unit:Internal():GetPosition(), p) * 1.5, 460)
 			self.currentProject = value
 			self.fails = 0
 			self.failOut = false

@@ -66,7 +66,7 @@ function LosHST:internalName()
 	return "loshst"
 end
 
-LosHST.DebugEnabled = false
+LosHST.DebugEnabled = true
 
 function LosHST:Init()
 	self.losGrid = {}
