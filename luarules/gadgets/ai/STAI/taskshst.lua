@@ -12,7 +12,7 @@ function TasksHST:Init()
 	self.DebugEnabled = false
 	self.roles = {}
 	self.roles.default = {
-		--group, eco,duplicate,limitedNumber,location,special
+		--category, eco,duplicate,limitedNumber,location,special
 		{'factoryMobilities',true,true,false,true,true},
 		{'_wind_',true,false,false,true,true},
 		{'_tide_',true,false,false,true,true},
@@ -53,8 +53,8 @@ function TasksHST:Init()
 	}
 
 	self.roles.expand = {
-		{'_llt_',true,false,false,true,true},
 		{'_mex_',true,false,false,true,true},
+		{'_llt_',true,false,false,true,true},
 		{'_popup2_',true,false,false,true,true},
 	}
 

@@ -549,7 +549,7 @@ end
 
 function TaskQueueBST:getOrder(builder,params)
 	if params[1] == 'factoryMobilities' then
-		self.game:StartTimer('getOrder1')
+		--self.game:StartTimer('getOrder1')
 		if params[2] then
 			local p = nil
 			local  value = nil
@@ -561,7 +561,7 @@ function TaskQueueBST:getOrder(builder,params)
 		end
 		self.game:StopTimer('getOrder1')
 	else
-		self.game:StartTimer('getOrder2')
+		--self.game:StartTimer('getOrder2')
 		self:EchoDebug(params[1])
 		local army = self.ai.armyhst
 		for index, uName in pairs (army.unitTable[self.name].buildingsCanBuild) do
@@ -619,13 +619,13 @@ function TaskQueueBST:GetQueue()
 end
 
 function TaskQueueBST:ProgressQueue()
-	self.game:StartTimer('tqb1')
+	--self.game:StartTimer('tqb1')
 	self:EchoDebug(self.name," progress queue")
 	self.lastWatchdogCheck = self.game:Frame()
 	self.constructing = false
 	self.progress = false
 	self.ai.buildsitehst:ClearMyPlans(self)
-	self.game:StartTimer('tqb7')
+	--self.game:StartTimer('tqb7')
 	local builder = self.unit:Internal()
 	local idx, val = next(self.queue,self.idx)
 	self:EchoDebug(idx , val)
@@ -642,13 +642,13 @@ function TaskQueueBST:ProgressQueue()
 	local p
 	local value, p = self:getOrder(builder,val)
 	self:EchoDebug('value',value)
-	self.game:StartTimer('tqb3')
+	--self.game:StartTimer('tqb3')
 	self.game:StopTimer('tqb7')
 	if type(value) == "table" then
 		self:EchoDebug('table queue ', value,value[1],'think about mex upgrade')
 		-- not using this except for upgrading things
 	else
-		self.game:StartTimer('tqb4')
+		--self.game:StartTimer('tqb4')
 		self:EchoDebug(self.name .. " filtering...")
 
 		local success = false
@@ -670,14 +670,14 @@ function TaskQueueBST:ProgressQueue()
 			utype = self.game:GetTypeByName(value)
 		end
 		self.game:StopTimer('tqb4')
-		self.game:StartTimer('tqbPOS')
+		--self.game:StartTimer('tqbPOS')
 		if value and utype and not p then
 			utype, value, p = self:findPlace(utype, value,val[1])
 			self:EchoDebug('p',p)
 
 		end
 		self.game:StopTimer('tqbPOS')
-		self.game:StartTimer('tqb5')
+		--self.game:StartTimer('tqb5')
 		if value and not utype   then
 			self:EchoDebug('warning' , self.name , " cannot build:",value,", couldnt grab the unit type from the engine")
 			self.progress = true

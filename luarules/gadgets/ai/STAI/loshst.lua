@@ -80,7 +80,6 @@ end
 
 function LosHST:Update()
 	local f = self.game:Frame()
-
 	if f % 23 == 0 then
         self.ai.friendlyTeamID = {}
         self.ai.friendlyTeamID[self.game:GetTeamID()] = true
@@ -215,7 +214,7 @@ function LosHST:UpdateEnemies(enemyList)
 					if self:IsInLos(gpos) or self:IsInRadar(gpos) then
 						-- the ghost is not where it was last seen, but it's still somewhere
 						e.ghost.position = nil
-						if DebugDrawEnabled then self.map:ErasePoint(nil, nil, id, 3) end
+						--if DebugDrawEnabled then self.map:ErasePoint(nil, nil, id, 3) end
 					end
 				end
 				-- expire ghost

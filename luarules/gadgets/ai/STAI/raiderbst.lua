@@ -101,8 +101,8 @@ function RaiderBST:Update()
 			self:CheckPath()
 		end
 		if self.moveNextUpdate then
--- 			self.unit:Internal():Move(self.moveNextUpdate)
-			self.unit:Internal():AttackMove(self.moveNextUpdate)--need to check
+ 			self.unit:Internal():Move(self.moveNextUpdate)
+-- 			self.unit:Internal():AttackMove(self.moveNextUpdate)--need to check
 			self.moveNextUpdate = nil
 		elseif f > self.lastMovementFrame + 30 then
 			self.ai.targethst:RaiderHere(self)

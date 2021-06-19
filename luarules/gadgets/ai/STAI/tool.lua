@@ -481,7 +481,7 @@ function Tool:ClosestBuildPos( utype,pos, searchRadius, minDistance, buildFacing
 	searchRadius = searchRadius or 5000
 	minDistance = minDistance or 0
 	pos.y = pos.y or Spring.GetGroundHeight(pos.x,pos.z)
-	self.game:StartTimer('toolpos')
+	--self.game:StartTimer('toolpos')
 	local position = Spring.ClosestBuildPos(teamID, unitdefID, pos.x,pos.y,pos.z, searchRadius, minDistance, buildFacing)
 	self.game:StopTimer('toolpos')
 	if not position then

@@ -12,7 +12,6 @@ function TaskLabBST:Init()
 	self.name = u:Name()
 	self.position = u:GetPosition()
 	self.army = self.ai.armyhst.unitTable[self.name]
-	self.fails = 0
 	self:EchoDebug(self.name)
 	self.uDef = UnitDefNames[self.name]
 	self:EchoDebug(self.uDef)
@@ -29,6 +28,7 @@ function TaskLabBST:Init()
 		self.units[uName].army = self.ai.armyhst.unitTable[uName]
 		self.units[uName].defId = unit
 	end
+	self.qIndex = 1
 	self:resetCounters()
 	self:ampRating()
 end
@@ -79,18 +79,33 @@ end
 
 function TaskLabBST:getSoldier()
 	self:EchoDebug('soldier')
-	local soldier
-	for index,param in ipairs(self.queue) do
-		local soldiers = self:scanRanks(param[1])
-		soldier = self:ecoCheck(soldiers)
-		soldier = self:countCheck(soldier,param[2],param[3],param[4])
-		soldier = self:toAmphibious(soldier)
-		if soldier then
-			self.fails = 0
-			return soldier,param
-		end
-	end
-	self.fails = self.fails +1
+	print(self.qIndex)
+-- 	local param = self.queue[self.qIndex]
+-- 	local soldiers = self:scanRanks(param[1])
+-- 	soldier = self:ecoCheck(soldiers)
+-- 	soldier = self:countCheck(soldier,param[2],param[3],param[4])
+-- 	soldier = self:toAmphibious(soldier)
+-- 	self.qIndex = self.qIndex + 1
+-- 	if self.qIndex > #self.queue then
+-- 		self.qIndex = 1
+-- 	end
+-- 	if soldier then
+-- 		return soldier,param
+-- 	end
+
+
+
+ 	for index,param in ipairs(self.queue) do
+ 		local soldiers = self:scanRanks(param[1])
+ 		soldier = self:ecoCheck(soldiers)
+ 		soldier = self:countCheck(soldier,param[2],param[3],param[4])
+ 		soldier = self:toAmphibious(soldier)
+ 		if soldier then
+ 			self.fails = 0
+ 			return soldier,param
+ 		end
+ 	end
+ 	self.fails = self.fails +1
 end
 
 function TaskLabBST:scanRanks(rank)
@@ -197,7 +212,6 @@ end
 
 
 TaskLabBST.queue = {
---
 		{'techs',1,6,15},
 		{'raiders',1,nil,10,8},
 		{'battles',3,nil,15,10},

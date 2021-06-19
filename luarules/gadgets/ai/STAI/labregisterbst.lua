@@ -75,7 +75,7 @@ function LabRegisterBST:Unregister()
 	if self.ai.factoryBuilded[mtype] and self.ai.factoryBuilded[mtype][network] then
 		self.ai.factoryBuilded[mtype][network] = self.ai.factoryBuilded[mtype][network] - self.level
 	end
-	self:EchoDebug('factory '  ..self.name.. ' network '  .. mtype .. '-' .. network .. ' level ' .. self.ai.factoryBuilded[mtype][network] .. ' subtract tech '.. self.level)
+	self:EchoDebug('factory '  ,self.name, ' network '  ,mtype , '-' , network , ' level ' ,self.ai.factoryBuilded[mtype][network] , ' subtract tech ', self.level)
 end
 
 function LabRegisterBST:Register()

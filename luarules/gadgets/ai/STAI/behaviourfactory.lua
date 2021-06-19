@@ -41,7 +41,6 @@ function BehaviourFactory:defaultBehaviours(unit)
 -- 	table.insert(b, CountBST)
 	if army.unitTable[un].isFactory or army.unitTable[un].speed > 0 then
 		table.insert(b, BootBST)
-		print(un)
 	end
 
 	if army.commanderList[un] then

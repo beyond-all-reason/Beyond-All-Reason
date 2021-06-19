@@ -330,14 +330,14 @@ function BuildSiteHST:DontBuildOnMetalOrGeoSpots()
 end
 
 function BuildSiteHST:ClosestBuildSpot(builder, position, unitTypeToBuild, minimumDistance, attemptNumber, buildDistance, maximumDistance)
-	self.game:StartTimer('bst4')
+	--self.game:StartTimer('bst4')
 	maximumDistance = maximumDistance or 390
 	-- return self:ClosestBuildSpotInSpiral(builder, unitTypeToBuild, position)
 	if attemptNumber == nil then self:EchoDebug("looking for build spot for " .. builder:Name() .. " to build " .. unitTypeToBuild:Name()) end
 	local minDistance = minimumDistance or self:GetBuildSpacing(unitTypeToBuild)
 	buildDistance = buildDistance or 100
 	local function validFunction(pos)
-		self.game:StartTimer('bst5')
+		--self.game:StartTimer('bst5')
 		local vpos = self:CheckBuildPos(pos, unitTypeToBuild, builder, position)
 		-- Spring.Echo(pos.x, pos.y, pos.z, unitTypeToBuild:Name(), builder:Name(), position.x, position.y, position.z, vpos)
 		self.game:StopTimer('bst5')
@@ -349,7 +349,7 @@ end
 
 function BuildSiteHST:searchPosNearCategories(utype,builder,minDist,maxDist,categories,neighbours,number)
 	if not categories then return end
-	self.game:StartTimer('bst1')
+	--self.game:StartTimer('bst1')
 	self:EchoDebug(categories,'searcing')
 	local army = self.ai.armyhst
 	local builderName = builder:Name()
@@ -384,7 +384,7 @@ function BuildSiteHST:searchPosNearCategories(utype,builder,minDist,maxDist,cate
 end
 
 function BuildSiteHST:searchPosInList(utype, builder,minDist,maxDist,list,neighbours,number)
-	self.game:StartTimer('bst2')
+	--self.game:StartTimer('bst2')
 	local maxDist = maxDist or 390
 	local d = math.huge
 	local p
@@ -421,7 +421,7 @@ end
 
 function BuildSiteHST:BuildNearNano(builder, utype)
 	self:EchoDebug("looking for spot near nano hotspots")
-	self.game:StartTimer('bst3')
+	--self.game:StartTimer('bst3')
 	local nanoHots = self.ai.nanohst:GetHotSpots()
 	if nanoHots then
 		self:EchoDebug("got " .. #nanoHots .. " nano hotspots")
@@ -475,7 +475,7 @@ function BuildSiteHST:unitsNearCheck(pos,range,number,targets)
 end
 
 function BuildSiteHST:UnitCreated(unit)---TODO track test from unithandler
-	self.game:StartTimer('unitCreatedt')
+	--self.game:StartTimer('unitCreatedt')
 	local unitName = unit:Name()
 	local position = unit:GetPosition()
 	local unitID = unit:ID()
@@ -553,6 +553,7 @@ function BuildSiteHST:MyUnitBuilt(unit)
 		-- table.insert(self.history, done)
 		self.constructing[unitID] = nil
 	end
+	self:calculateEcoCenter()
 end
 
 function BuildSiteHST:UnitDead(unit)
@@ -653,6 +654,23 @@ end
 
 function BuildSiteHST:ResurrectionRepairedBy(unitID)
 	return self.resurrectionRepair[unitID]
+end
+
+function BuildSiteHST:calculateEcoCenter()
+	local count = 0
+	local x,y,z = 0,0,0
+	for i,v in pairs(self.game:GetUnits()) do
+		if self.ai.armyhst.unitTable[v:Name()].speed == 0 then
+			count = count + 1
+			local p = v:GetPosition()
+			x,y,z = x+p.x, y+p.y,z+p.z
+		end
+
+
+	end
+	x,y,z = x/count, y/count, z/count
+-- 	map:DrawPoint({x=x,y=y,z=z}, {255,255,255,255}, 'center', 1)
+
 end
 
 function BuildSiteHST:PlotRectDebug(rect)

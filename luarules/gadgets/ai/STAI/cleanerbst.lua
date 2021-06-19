@@ -100,8 +100,6 @@ function CleanerBST:ecoCondition()
 			return true
 		end
 	end
--- 	self:reset()
-
 end
 
 function CleanerBST:Search()
@@ -125,13 +123,13 @@ end
 
 function CleanerBST:Patroling() --TODO move nano patroling to another place (activate-deactivate behaviour)
 	-- set nano turrets to patrol
-	local upos = self.ai.tool:RandomAway( self.unit:Internal():GetPosition(), 50)
+ 	local upos = self.ai.tool:RandomAway( self.unit:Internal():GetPosition(), 50)
+	local uPos = self.unit:Internal():GetPosition()
+	local PatrolPos = upos
 	local floats = api.vectorFloat()
 	-- populate with x, y, z of the position
-	floats:push_back(upos.x)
-	floats:push_back(upos.y)
-	floats:push_back(upos.z)
--- 	self.unit:Internal():ExecuteCustomCommand(CMD_PATROL, floats)
-	print('patroling')
-	self.unit:Internal():Patrol(upos)
+	floats:push_back(PatrolPos.x)
+	floats:push_back(PatrolPos.y)
+	floats:push_back(PatrolPos.z)
+	self.unit:Internal():Patrol(PatrolPos)
 end
