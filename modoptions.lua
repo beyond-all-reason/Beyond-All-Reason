@@ -129,18 +129,18 @@ local options={
 		max    = 50,
 		step   = 0.1,
 	},
-	{
-		key="transportenemy",
-		name="Enemy Transporting",
-		desc="Toggle which enemy units you can kidnap with an air transport",
-		type="list",
-		def="notcoms",
-		section="restrictions",
-		items={
-			{key="notcoms", name="All But Commanders", desc="Only commanders are immune to napping"},
-			{key="none", name="Disallow All", desc="No enemy units can be napped"},
-		}
-	},
+	-- {
+	-- 	key="transportenemy",
+	-- 	name="Enemy Transporting",
+	-- 	desc="Toggle which enemy units you can kidnap with an air transport",
+	-- 	type="list",
+	-- 	def="notcoms",
+	-- 	section="restrictions",
+	-- 	items={
+	-- 		{key="notcoms", name="All But Commanders", desc="Only commanders are immune to napping"},
+	-- 		{key="none", name="Disallow All", desc="No enemy units can be napped"},
+	-- 	}
+	-- },
 	{
 		key    = "allowuserwidgets",
 		name   = "Allow user widgets",
@@ -165,7 +165,14 @@ local options={
 		def    = true,
 		section= "restrictions",
 	},
-
+	{
+		key    		= 'disable_fogofwar',
+		name   		= 'Disable Fog of War',
+		desc   		= 'Disable Fog of War',
+		type   		= "bool",
+		section		= 'restrictions',
+		def    		= false,
+	},
 	{
 		key    		= 'unit_restrictions_notech2',
 		name   		= 'Disable Tech 2',
