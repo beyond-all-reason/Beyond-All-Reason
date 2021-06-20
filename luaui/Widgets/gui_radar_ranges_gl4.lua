@@ -15,7 +15,7 @@ local rangeLineWidth = 2.0 -- (note: will end up larger for larger vertical scre
 local minRadarDistance = 500
 
 local gaiaTeamID = Spring.GetGaiaTeamID()
-local rangeColor = { 0.0, 1.0, 0.0, 0.2 } -- default range color
+local rangeColor = { 0.0, 1.0, 0.0, 0.18 } -- default range color
 local usestipple = 1 -- 0 or 1resolution size)
 							
 

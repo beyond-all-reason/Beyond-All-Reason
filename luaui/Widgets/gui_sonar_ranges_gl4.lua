@@ -1,7 +1,7 @@
 function widget:GetInfo()
 	return {
 		name      = "Sonar Range GL4",
-		desc      = "Shows ranges of all ally sonars.",
+		desc      = "Shows ranges of all ally sonar.",
 		author    = "Kev, Beherith GL4",
 		date      = "2021.06.20",
 		license   = "CC BY-NC",
@@ -12,10 +12,10 @@ end
  
 -------   Configurables: ------------------- 
 local rangeLineWidth = 2.0 -- (note: will end up larger for larger vertical screen resolution size)
-local minSonarDistance = 100
+local minSonarDistance = 250
 
 local gaiaTeamID = Spring.GetGaiaTeamID()
-local rangeColor = { 0.0, 0.0, 1.0, 0.4 } -- default range color
+local rangeColor = { 0.5, 0.7, 0.9, 0.17 } -- default range color
 local usestipple = 1 -- 0 or 1resolution size)
 							
 
@@ -82,7 +82,7 @@ void main() {
 	float inboundsness = min(mymin.x, mymin.y);
 	
 	// dump to FS
-	worldscale_circumference = startposrad.w * circlepointposition.z;
+	worldscale_circumference = startposrad.w * circlepointposition.z * 0.62831853;
 	worldPos = circleWorldPos;
 	blendedcolor = color;
 	blendedcolor.a *= 1.0 - clamp(inboundsness*(-0.03),0.0,1.0);
@@ -118,7 +118,7 @@ out vec4 fragColor;
 void main() {
 	fragColor.rgba = blendedcolor.rgba;
 	#if USE_STIPPLE > 0
-		fragColor.a *= 2.0 * (fract(-1.0*worldscale_circumference*0.1 - timeInfo.x*0.01)-0.5); // PERFECT STIPPLING!
+		fragColor.a *= 2.0 * sin(worldscale_circumference + timeInfo.x*0.05); // PERFECT STIPPLING!
 	#endif
 }
 ]]

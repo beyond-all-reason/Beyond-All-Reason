@@ -12,7 +12,7 @@ end
  
 
 -------   Configurables: ------------------- 
-local rangeColor = { 1.0, 1.0, 1.0, 0.07 } -- default range color
+local rangeColor = { 0.9, 0.9, 0.9, 0.06 } -- default range color
 
 local teamColorAlpha = 0.2
 local useTeamColors = false
