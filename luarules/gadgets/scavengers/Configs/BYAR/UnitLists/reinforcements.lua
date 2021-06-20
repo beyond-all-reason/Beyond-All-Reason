@@ -11,6 +11,7 @@ T1ReinforcementLandUnits = {
 	"corthud",
 	"corstorm",
 	"corcrash",
+	"corkark",
 	--vechicles
 	"armflash",
 	"armstump",

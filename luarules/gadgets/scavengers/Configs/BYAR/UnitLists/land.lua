@@ -29,6 +29,7 @@ T1LandUnits = {
 	"corthud",
 	"corstorm",
 	"corcrash",
+	"corkark",
 	--vechicles
 	"armflash",
 	"armstump",

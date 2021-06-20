@@ -41,6 +41,7 @@ local convertedUnits = {
 	[UnitDefNames.corthud.id] = 1,
 	[UnitDefNames.corstorm.id] = 1,
 	[UnitDefNames.corcrash.id] = 1,
+	[UnitDefNames.corkark.id] = 1,
 	[UnitDefNames.armsnipe.id] = 1,
 	[UnitDefNames.armfido.id] = 1,
 	[UnitDefNames.armfboy.id] = 1,
