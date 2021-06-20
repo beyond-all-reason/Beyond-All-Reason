@@ -70,20 +70,102 @@ StarterSeaUnitsList = {
 }
 
 LandUnitsList = {
-    [1] = {
-        [1] = {"armpw", 2},
-        [2] = {"corak", 2},
-        [3] = {"armrectr", 1},
-        [4] = {"cornecro", 1},
+    [1] = { -- Early T1
+        -- Bots
+            -- Raider
+        [1] = {"armpw", 5},
+        [2] = {"corak", 5},
+            -- Rezzers
+        [3] = {"armrectr", 2},
+        [4] = {"cornecro", 2},
+    },
+    [2] = { -- Late T1
+        -- Bots
+        [1] = {"armrock", 5},
+        [2] = {"armham", 5},
+        [3] = {"armwar", 5},
+        [4] = {"corstorm", 5},
+        [5] = {"corthud", 5},
+    },
+    [3] = { -- Early T2
+        -- Bots
+            -- Raider
+        [1] = {"corpyro", 5},
+        [2] = {"armfast", 5},
+        [3] = {"armfido", 5},
+        [4] = {"cormort", 5},
+            -- Crawling Bombs
+        [5] = {"armvader", 3},
+        [6] = {"corroach", 3},
+        
+            -- Radar/Stealth Bots
+        [7] = {"armaser", 1},
+        [8] = {"armmark", 1},
+        [9] = {"corspec", 1},
+        [10] = {"corvoyr", 1},
     },
 }
 
 SeaUnitsList = {
-    [1] = {
-        [1] = {"armdecade", 2},
-        [2] = {"coresupp", 2},
-        [3] = {"armrecl", 1},
-        [4] = {"correcl", 1},
+    [1] = { -- placeholder
+        [1] = {"armdecade", 4},
+        [2] = {"coresupp", 4},
+        [3] = {"armrecl", 2},
+        [4] = {"correcl", 2},
+    },
+    [2] = { -- placeholder
+        [1] = {"armdecade", 4},
+        [2] = {"coresupp", 4},
+        [3] = {"armrecl", 2},
+        [4] = {"correcl", 2},
+    },
+    [3] = { -- placeholder
+        [1] = {"armdecade", 4},
+        [2] = {"coresupp", 4},
+        [3] = {"armrecl", 2},
+        [4] = {"correcl", 2},
+    },
+    [4] = { -- placeholder
+        [1] = {"armdecade", 4},
+        [2] = {"coresupp", 4},
+        [3] = {"armrecl", 2},
+        [4] = {"correcl", 2},
+    },
+    [5] = { -- placeholder
+        [1] = {"armdecade", 4},
+        [2] = {"coresupp", 4},
+        [3] = {"armrecl", 2},
+        [4] = {"correcl", 2},
+    },
+    [6] = { -- placeholder
+        [1] = {"armdecade", 4},
+        [2] = {"coresupp", 4},
+        [3] = {"armrecl", 2},
+        [4] = {"correcl", 2},
+    },
+    [7] = { -- placeholder
+        [1] = {"armdecade", 4},
+        [2] = {"coresupp", 4},
+        [3] = {"armrecl", 2},
+        [4] = {"correcl", 2},
+    },
+    [8] = { -- placeholder
+        [1] = {"armdecade", 4},
+        [2] = {"coresupp", 4},
+        [3] = {"armrecl", 2},
+        [4] = {"correcl", 2},
+    },
+    [9] = { -- placeholder
+        [1] = {"armdecade", 4},
+        [2] = {"coresupp", 4},
+        [3] = {"armrecl", 2},
+        [4] = {"correcl", 2},
+    },
+    [10] = { -- placeholder
+        [1] = {"armdecade", 4},
+        [2] = {"coresupp", 4},
+        [3] = {"armrecl", 2},
+        [4] = {"correcl", 2},
     },
 }
 
