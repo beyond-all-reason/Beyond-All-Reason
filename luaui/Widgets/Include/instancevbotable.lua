@@ -37,14 +37,14 @@ function makeInstanceVBOTable(layout, maxElements, myName)
 	return instanceTable
 end
 
-function clearInstanceTable(iT) 
+function clearInstanceTable(iT)
 	-- this wont resize it, but quickly sets it to empty
 	iT.usedElements = 0
 	iT.instanceIDtoIndex = {}
 end
 
 function makeVAOandAttach(vertexVBO, instanceVBO) -- return a VAO
-	local newVAO = nil 
+	local newVAO = nil
 	newVAO = gl.GetVAO()
 	if newVAO == nil then goodbye("Failed to create newVAO") end
 	newVAO:AttachVertexBuffer(vertexVBO)
@@ -70,7 +70,7 @@ function resizeInstanceVBOTable(iT)
 	--return nil
 end
 
-function pushElementInstance(iT,thisInstance, instanceID, updateExisting, noUpload) 
+function pushElementInstance(iT,thisInstance, instanceID, updateExisting, noUpload)
 	-- iT: instanceTable created with makeInstanceTable
 	-- thisInstance: is a lua array of values to add to table, MUST BE INSTANCESTEP SIZED LUA ARRAY
 	-- instanceID: an optional key given to the item, so it can be easily removed/updated by reference, defaults to the index of the instance in the buffer (1 based)
@@ -78,15 +78,15 @@ function pushElementInstance(iT,thisInstance, instanceID, updateExisting, noUplo
 	-- noUpload: prevent the VBO from being uploaded, if you feel like you are going to do a lot of ops and wish to manually upload when done instead
 	-- returns: the index of the instanceID in the table on success, else nil
 	local iTusedElements = iT.usedElements
-	local iTStep    = iT.instanceStep 
+	local iTStep    = iT.instanceStep
 	local endOffset = iTusedElements*iTStep
 	if instanceID == nil then instanceID = iTusedElements + 1 end
-	local thisInstanceIndex = iT.instanceIDtoIndex[instanceID] 
+	local thisInstanceIndex = iT.instanceIDtoIndex[instanceID]
 
 	if iTusedElements >= iT.maxElements then
 		resizeInstanceVBOTable(iT)
 	end
-	
+
 	if thisInstanceIndex == nil then -- new, register it
 		thisInstanceIndex = iTusedElements + 1
 		iT.usedElements   = iTusedElements + 1 --THE WHOLE THING IS PROBABLY OFF BY 1 !!!
@@ -100,58 +100,58 @@ function pushElementInstance(iT,thisInstance, instanceID, updateExisting, noUplo
 			endOffset = (thisInstanceIndex - 1)*iTStep
 		end
 	end
-	
+
 	for i =1, iTStep  do -- copy data, but fast
 		iT.instanceData[endOffset + i] =  thisInstance[i]
 	end
-	
+
 	if noUpload ~= true then --upload or mark as dirty
 		iT.instanceVBO:Upload(thisInstance,nil,(thisInstanceIndex -1))
 	else
 		iT.dirty = true
 	end
-	
+
 	return thisInstanceIndex
 end
 
-function popElementInstance(iT, instanceID, noUpload) 
+function popElementInstance(iT, instanceID, noUpload)
 	-- iT: instanceTable created with makeInstanceTable
 	-- instanceID: an optional key given to the item, so it can be easily removed by reference, defaults to the last element of the buffer, but this will screw up the instanceIDtoIndex table if used in mixed keys mode
 	-- noUpload: prevent the VBO from being uploaded, if you feel like you are going to do a lot of ops and wish to manually upload when done instead
 	-- returns nil on failure, the the index of the element on success
 	if instanceID == nil then instanceID = iT.usedElements  end
-	
+
 	if iT.instanceIDtoIndex[instanceID] == nil then -- sanity
 		Spring.Echo("Tried to remove element ",instanceID,'From instanceTable', iT.myName, 'but it does not exist in it')
-		return nil 
+		return nil
 	end
 	if iT.usedElements == 0 then -- sanity
 		Spring.Echo("Tried to remove element ",instanceID,'From instanceTable', iT.myName, 'but it should be empty')
-		return nil 
+		return nil
 	end
 	-- BUG BUG, while the data itself is being shuffled back, the instanceIDtoIndex is not being updated, as we dont know the last element being added?
 	local oldElementIndex = iT.instanceIDtoIndex[instanceID]
 	iT.instanceIDtoIndex[instanceID] = nil -- clean these out
-	iT.indextoInstanceID[oldElementIndex] = nil 
-	
+	iT.indextoInstanceID[oldElementIndex] = nil
+
 	-- get the data of the last ones:
 	local lastElementIndex = iT.usedElements
-	
-		-- if this one was already at the end of the queue, do nothing but decrement usedElements and clear mappings 
+
+		-- if this one was already at the end of the queue, do nothing but decrement usedElements and clear mappings
 	if oldElementIndex == lastElementIndex then -- EARLY OPT DEVILRY BAD!
 		--Spring.Echo("Removed end element of instanceTable", iT.myName)
 		iT.usedElements = iT.usedElements - 1
 	else
 		local lastElementInstanceID = iT.indextoInstanceID[lastElementIndex]
 		local iTStep = iT.instanceStep
-		local endOffset = (iT.usedElements - 1)*iTStep 
-		
+		local endOffset = (iT.usedElements - 1)*iTStep
+
 		iT.instanceIDtoIndex[lastElementInstanceID] = oldElementIndex
 		iT.indextoInstanceID[oldElementIndex] = lastElementInstanceID
-		
+
 		--oldElementIndex = (oldElementIndex)*iTStep
-		local oldOffset = (oldElementIndex-1)*iTStep 
-		for i= 1, iTStep do 
+		local oldOffset = (oldElementIndex-1)*iTStep
+		for i= 1, iTStep do
 			local data =  iT.instanceData[endOffset + i]
 			iT.instanceData[oldOffset + i ] = data
 		end
@@ -170,7 +170,7 @@ end
 function getElementInstanceData(iT, instanceID)
 	-- iT: instanceTable created with makeInstanceTable
 	-- instanceID: an optional key given to the item, so it can be easily removed by reference, defaults to the index of the instance in the buffer (1 based)
-	local instanceIndex = iT.instanceIDtoIndex[instanceID] 
+	local instanceIndex = iT.instanceIDtoIndex[instanceID]
 	if instanceIndex == nil then return nil end
 	local iData = {}
 	local iTStep = iT.instanceStep
@@ -187,7 +187,7 @@ function uploadAllElements(iT)
 end
 
 function drawInstanceVBO(iT)
-  if iT.usedElements > 0 then 
+  if iT.usedElements > 0 then
     iT.VAO:DrawArrays(iT.primitiveType, iT.numVertices, 0, iT.usedElements,0)
   end
 end
@@ -202,20 +202,20 @@ function makeCircleVBO(circleSegments, radius)
 	circleSegments  = circleSegments -1 -- for po2 buffers
 	local circleVBO = gl.GetVBO(GL.ARRAY_BUFFER,true)
 	if circleVBO == nil then return nil end
-	
+
 	local VBOLayout = {
 	 {id = 0, name = "position", size = 4},
 	}
-	
+
 	local VBOData = {}
-	
+
 	for i = 0, circleSegments  do -- this is +1
 		VBOData[#VBOData+1] = math.sin(math.pi*2* i / circleSegments) * radius -- X
 		VBOData[#VBOData+1] = math.cos(math.pi*2* i / circleSegments) * radius-- Y
 		VBOData[#VBOData+1] = i / circleSegments -- circumference [0-1]
 		VBOData[#VBOData+1] = radius
-	end	
-	
+	end
+
 	circleVBO:Define(
 		circleSegments + 1,
 		VBOLayout
@@ -230,20 +230,20 @@ function makePointVBO(numPoints)
 	if not numPoints then numPoints = 1 end
 	local pointVBO = gl.GetVBO(GL.ARRAY_BUFFER,true)
 	if pointVBO == nil then return nil end
-	
+
 	local VBOLayout = {
 	 {id = 0, name = "position_w", size = 4},
 	}
-	
+
 	local VBOData = {}
-	
-	for i = 1, numPoints  do -- 
+
+	for i = 1, numPoints  do --
 		VBOData[#VBOData+1] = 0-- X
 		VBOData[#VBOData+1] = 0-- Y
 		VBOData[#VBOData+1] = 0---Z
 		VBOData[#VBOData+1] = numPoints -- index for lolz?
-	end	
-	
+	end
+
 	pointVBO:Define(
 		numPoints,
 		VBOLayout
@@ -260,11 +260,11 @@ function makeRectVBO(minX,minY, maxX, maxY, minU, minV, maxU, maxV)
 	-- can be used in both GL.LINES and GL.TRIANGLE_FAN mode
 	local rectVBO = gl.GetVBO(GL.ARRAY_BUFFER,true)
 	if rectVBO == nil then return nil end
-	
+
 	local VBOLayout = {
 	 {id = 0, name = "position_xy_uv", size = 4},
 	}
-	
+
 	local VBOData = {
 		--bl
 		minX,minY, minU, minV, --bl
@@ -274,7 +274,7 @@ function makeRectVBO(minX,minY, maxX, maxY, minU, minV, maxU, maxV)
 		maxX,minY, maxU, minV, --br
 		minX,minY, minU, minV, --bl
 	}
-	
+
 	rectVBO:Define(
 		6,
 		VBOLayout
@@ -284,56 +284,56 @@ function makeRectVBO(minX,minY, maxX, maxY, minU, minV, maxU, maxV)
 end
 
 
-function makeConeVBO(numSegments, height, radius) 
+function makeConeVBO(numSegments, height, radius)
 	-- make a cone that points up, (y = height), with radius specified
 	-- returns the VBO object, and the number of elements in it (usually ==  numvertices)
 	-- needs GL.TRIANGLES
 	if not height then height = 1 end
-	if not radius then radius = 1 end 
+	if not radius then radius = 1 end
 	local coneVBO = gl.GetVBO(GL.ARRAY_BUFFER,true)
 	if coneVBO == nil then return nil end
-	
+
 	local VBOData = {}
-	
-	for i = 1, numSegments do 
+
+	for i = 1, numSegments do
 		-- center vertex
-		VBOData[#VBOData+1] = 0 
+		VBOData[#VBOData+1] = 0
 		VBOData[#VBOData+1] = 0
 		VBOData[#VBOData+1] = 0
 		VBOData[#VBOData+1] = (i - 1) / numSegments
-		
+
 		--- first cone flat
 		VBOData[#VBOData+1] = math.sin(math.pi*2* (i - 1) / numSegments) * radius -- X
 		VBOData[#VBOData+1] = 0
 		VBOData[#VBOData+1] = -1* math.cos(math.pi*2* (i - 1) / numSegments) * radius-- Y
 		VBOData[#VBOData+1] = (i - 1) / numSegments
-		
+
 		--- second cone flat
 		VBOData[#VBOData+1] = math.sin(math.pi*2* (i - 0) / numSegments) * radius-- X
 		VBOData[#VBOData+1] = 0
 		VBOData[#VBOData+1] = -1* math.cos(math.pi*2* (i - 0) / numSegments) * radius -- Y
 		VBOData[#VBOData+1] =(i - 0) / numSegments
-		
+
 		-- top vertex
-		VBOData[#VBOData+1] = 0 
+		VBOData[#VBOData+1] = 0
 		VBOData[#VBOData+1] = height
 		VBOData[#VBOData+1] = 0
 		VBOData[#VBOData+1] = (i - 1) / numSegments
-		
+
 		--- first cone flat
-		VBOData[#VBOData+1] = math.sin(math.pi*2* (i - 1) / numSegments) * radius -- X
-		VBOData[#VBOData+1] = 0
-		VBOData[#VBOData+1] = -1*math.cos(math.pi*2* (i - 1) / numSegments) * radius -- Y
-		VBOData[#VBOData+1] =(i - 1) / numSegments
-		
-		--- second cone flat
 		VBOData[#VBOData+1] = math.sin(math.pi*2* (i - 0) / numSegments) * radius -- X
 		VBOData[#VBOData+1] = 0
 		VBOData[#VBOData+1] = -1*math.cos(math.pi*2* (i - 0) / numSegments) * radius -- Y
 		VBOData[#VBOData+1] =(i - 0) / numSegments
+
+		--- second cone flat
+		VBOData[#VBOData+1] = math.sin(math.pi*2* (i - 1) / numSegments) * radius -- X
+		VBOData[#VBOData+1] = 0
+		VBOData[#VBOData+1] = -1*math.cos(math.pi*2* (i - 1) / numSegments) * radius -- Y
+		VBOData[#VBOData+1] =(i - 1) / numSegments
 	end
-	
-	
+
+
 	coneVBO:Define(#VBOData/4,	{{id = 0, name = "localpos_progress", size = 4}})
 	coneVBO:Upload(VBOData)
 	return coneVBO, #VBOData/4
@@ -344,7 +344,7 @@ function makeBoxVBO(minX, minY, minZ, maxX, maxY, maxZ) -- make a box
 	-- needs GL.TRIANGLES
 	local boxVBO = gl.GetVBO(GL.ARRAY_BUFFER,true)
 	if boxVBO == nil then return nil end
-	
+
 	local VBOData = {
 		 minX,minY,minZ,0
 		,minX,minY,maxZ,0
