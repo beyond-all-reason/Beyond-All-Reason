@@ -250,17 +250,31 @@ function UnitDef_Post(name, uDef)
 		elseif name == "corlab" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "corkark"
+		elseif name == "armca" or name == "armck" or name == "armcv" then
+			local numBuildoptions = #uDef.buildoptions
+			uDef.buildoptions[numBuildoptions+1] = "corscavdrag"
+			uDef.buildoptions[numBuildoptions+2] = "corscavdtl"
+			uDef.buildoptions[numBuildoptions+3] = "corscavdtf"
+			uDef.buildoptions[numBuildoptions+4] = "corscavdtm"
+		elseif name == "corca" or name == "corck" or name == "corcv" then
+			local numBuildoptions = #uDef.buildoptions
+			uDef.buildoptions[numBuildoptions+1] = "corscavdrag"
+			uDef.buildoptions[numBuildoptions+2] = "corscavdtl"
+			uDef.buildoptions[numBuildoptions+3] = "corscavdtf"
+			uDef.buildoptions[numBuildoptions+4] = "corscavdtm"
 		elseif name == "armaca" or name == "armack" or name == "armacv" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "armapt3"
 			uDef.buildoptions[numBuildoptions+2] = "armminivulc"
 			uDef.buildoptions[numBuildoptions+3] = "armwint2"
+			uDef.buildoptions[numBuildoptions+4] = "corscavfort"
 		elseif name == "coraca" or name == "corack" or name == "coracv" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "corapt3"
 			uDef.buildoptions[numBuildoptions+2] = "corminibuzz"
-      uDef.buildoptions[numBuildoptions+3] = "corwint2"
+      		uDef.buildoptions[numBuildoptions+3] = "corwint2"
 			uDef.buildoptions[numBuildoptions+4] = "corhllllt"
+			uDef.buildoptions[numBuildoptions+4] = "corscavfort"
 		elseif name == "armasy" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "armptt2"
