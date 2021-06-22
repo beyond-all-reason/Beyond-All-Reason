@@ -94,7 +94,7 @@ function LosHST:Update()
 				local uname = e:Name()
 				local upos = e:GetPosition()
 				-- so that we only have to poll GetEnemies() once
-				table.insert(enemyList, { unit = e, unitName = uname, position = upos, unitID = e:ID(), cloaked = e:IsCloaked(), beingBuilt = e:IsBeingBuilt(), health = e:GetHealth(), los = 0 })
+				table.insert(enemyList, { unit = e, unitName = uname, position = upos, unitID = e:ID(), cloaked = e:IsCloaked(), beingBuilt = e:IsBeingBuilt(), health = e:GetHealth(), los = 0 , blip = 0})
 			end
 			-- update known enemies
 			self:UpdateEnemies(enemyList)
@@ -112,6 +112,7 @@ function LosHST:UpdateEnemies(enemyList)
 	local known = {}
 	local exists = {}
 	for i, e  in pairs(enemyList) do
+
 		local id = e.unitID
 		local ename = e.unitName
 		local pos = e.position
@@ -174,12 +175,8 @@ function LosHST:UpdateEnemies(enemyList)
 				e.los = los
 				known[id] = los
 			end
-			if self.ai.knownEnemies[id] ~= nil and DebugDrawEnabled then
+			if self.ai.knownEnemies[id] ~= nil  then
 				if known[id] == 2 and self.ai.knownEnemies[id].los == 2 then
-					e.unit:EraseHighlight({1,0,0}, 'known', 3)
-					e.unit:DrawHighlight({1,0,0}, 'known', 3)
-					-- self.map:DrawUnit(id, {1,0,0}, 'known', 3)
-					-- PlotDebug(pos.x, pos.z, "known")
 				end
 			end
 		end
@@ -205,7 +202,9 @@ function LosHST:UpdateEnemies(enemyList)
 				self.ai.attackhst:NeedLess(mtype)
 				if mtype == "air" then self.ai.bomberhst:NeedLess() end
 			end
-			if DebugDrawEnabled then self.map:ErasePoint(nil, nil, id, 3) end
+			if DebugDrawEnabled then
+				self.map:ErasePoint(nil, nil, id, 3)
+			end
 			self.ai.knownEnemies[id] = nil
 		elseif not known[id] then
 			if e.ghost then
@@ -214,7 +213,6 @@ function LosHST:UpdateEnemies(enemyList)
 					if self:IsInLos(gpos) or self:IsInRadar(gpos) then
 						-- the ghost is not where it was last seen, but it's still somewhere
 						e.ghost.position = nil
-						--if DebugDrawEnabled then self.map:ErasePoint(nil, nil, id, 3) end
 					end
 				end
 				-- expire ghost
@@ -241,7 +239,6 @@ function LosHST:UpdateEnemies(enemyList)
 				end
 				if count then table.insert(blips, e) end
 			end
-			if DebugDrawEnabled then self.map:ErasePoint(nil, nil, id, 3) end
 			e.ghost = nil
 		end
 	end

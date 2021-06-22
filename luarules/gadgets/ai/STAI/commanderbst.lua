@@ -5,7 +5,7 @@ function CommanderBST:Name()
 end
 
 function CommanderBST:Init()
-	self.DebugEnabled = true
+	self.DebugEnabled = false
 	local u = self.unit:Internal()
 	self.id = u:ID()
 
@@ -75,7 +75,6 @@ function CommanderBST:Priority()
 	if (self.ai.Metal.income > 15 and self.ai.Energy.full > 0.5 and queueL == 0) or
 			self.ai.haveAdvFactory or
 			((self.lowHealth or self.ai.overviewhst.paranoidCommander) and self.safeHouse) then
-		print(200)
 		return 200
 	else
 		return 0

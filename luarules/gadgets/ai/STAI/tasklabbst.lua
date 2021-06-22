@@ -5,7 +5,7 @@ function TaskLabBST:Name()
 end
 
 function TaskLabBST:Init()
-	self.DebugEnabled = false
+	self.DebugEnabled = true
 	self:EchoDebug('initialize tasklab')
 	local u = self.unit:Internal()
 	self.id = u:ID()
@@ -80,15 +80,31 @@ end
 function TaskLabBST:getSoldier()
 	self:EchoDebug('soldier')
 	print(self.qIndex)
- 	local param = self.queue[self.qIndex]
- 	local soldiers = self:scanRanks(param[1])
+	local param
+	local soldiers
+	for i=0,#self.queue do
+
+		param = self.queue[self.qIndex]
+
+		soldiers = self:scanRanks(param[1])
+		if soldiers then
+			self.qIndex = self.qIndex + 1
+			break
+
+		end
+		self.qIndex = self.qIndex + 1
+		if self.qIndex > #self.queue then
+			self.qIndex = 1
+		end
+	end
+
  	soldier = self:ecoCheck(soldiers)
+	self:EchoDebug('eco',soldier)
  	soldier = self:countCheck(soldier,param[2],param[3],param[4])
- 	soldier = self:toAmphibious(soldier)
- 	self.qIndex = self.qIndex + 1
- 	if self.qIndex > #self.queue then
- 		self.qIndex = 1
- 	end
+ 	self:EchoDebug('count',soldier)
+	soldier = self:toAmphibious(soldier)
+	self:EchoDebug('amp',soldier)
+
  	if soldier then
  		return soldier,param
  	end
@@ -213,18 +229,18 @@ end
 
 TaskLabBST.queue = {
 		{'techs',1,6,15},
-		{'raiders',1,nil,10,8},
-		{'battles',3,nil,15,10},
-		{'artillerys',1,10,5},
-		{'scouts',nil,5,2,2},
-		{'breaks',2,nil,15,5},
+		{'raiders',1,6,10,3},
+		{'battles',3,nil,20,3},
+		{'artillerys',1,10,5,3},
+		{'scouts',1,10,2,2},
+		{'breaks',2,nil,15,3},
 
 
 
-		{'rezs',1,8,10}, -- rezzers
+		{'rezs',1,8,10,2}, -- rezzers
 		{'engineers',1,8,10}, --help builders and build thinghs
-		{'antiairs',nil,7,10},
-		{'amptechs',1,7,5}, --amphibious builders
+		{'antiairs',1,7,8,2},
+		{'amptechs',1,7,5,1}, --amphibious builders
 		{'jammers',1,nil,1	},
 		{'radars',1,nil,1},
 		{'airgun',1,5,10,5},
@@ -234,7 +250,7 @@ TaskLabBST.queue = {
 
 		{'wartechs',1,nil,1}, --decoy etc
 		{'subkillers',1,7,5}, -- submarine weaponed
-		{'breaks',nil,nil,40},
+		{'breaks',nil,nil,40,3},
 		{'amphibious',0,7,20}, -- weapon amphibious
 -- 		{'transports',1,nil,nil},
 -- 		{'spys',1,nil,1}, -- spy bot
@@ -252,7 +268,7 @@ function TaskLabBST:preFilter()
 -- 	local threshold = 1 - (techLv / self.ai.maxFactoryLevel)
 	local threshold = techLv / 20 --TODO this is a shit
 	self:EchoDebug('prefilter threshold', threshold)
-	if self.ai.Metal.full > threshold and self.ai.Energy.full > 0.05  then
+	if self.ai.Energy.full > 0.05  then
 		return true
 	end
 end
@@ -263,7 +279,7 @@ function TaskLabBST:Update()
 		if not self:preFilter() then return end
 		self:GetAmpOrGroundWeapon()
 		self.isBuilding = self.game:GetUnitIsBuilding(self.id)--TODO better this?
-		if Spring.GetFactoryCommands(self.id,0) > 0 then return end
+		if Spring.GetFactoryCommands(self.id,0) > 1 then return end
 		local soldier, param = self:getSoldier()
 		self:EchoDebug('update',soldier)
 		if soldier then
