@@ -11,7 +11,7 @@ return {
 		buildinggrounddecalsizex = 4,
 		buildinggrounddecalsizey = 4,
 		-- buildinggrounddecaltype = "decals/scavdrag_aoplane.dds",
-		buildpic = "scavengers/SCAVDRAG.PNG",
+		buildpic = "scavengers/CORSCAVDRAG.PNG",
 		buildtime = 255,
 		canattack = false,
 		canrepeat = false,
