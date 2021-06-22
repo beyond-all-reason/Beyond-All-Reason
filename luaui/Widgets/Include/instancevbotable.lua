@@ -240,6 +240,15 @@ function uploadAllElements(iT)
 	end
 end
 
+function uploadElementRange(iT,startElementIndex, endElementIndex)
+	iT.instanceVBO:Upload(iT.instanceData, -- The lua mirrored VBO data
+		nil, -- the attribute index, nil for all attributes
+		startElementIndex, -- vboOffset optional, , what ELEMENT offset of the VBO to start uploading into, 0 based
+		startElementIndex * iT.instanceStep + 1, --  luaStartIndex, default 1, what element of the lua array to start uploading from. 1 is the 1st element of a lua table. 
+		endElementIndex * iT.instanceStep --] luaEndIndex, default #{array}, what element of the lua array to upload up to, inclusively
+		)
+end
+
 function drawInstanceVBO(iT)
   if iT.usedElements > 0 then 
     iT.VAO:DrawArrays(iT.primitiveType, iT.numVertices, 0, iT.usedElements,0)
@@ -387,16 +396,16 @@ function makeConeVBO(numSegments, height, radius)
 		VBOData[#VBOData+1] = (i - 1) / numSegments
 		
 		--- first cone flat
-		VBOData[#VBOData+1] = math.sin(math.pi*2* (i - 1) / numSegments) * radius -- X
-		VBOData[#VBOData+1] = 0
-		VBOData[#VBOData+1] = -1*math.cos(math.pi*2* (i - 1) / numSegments) * radius -- Y
-		VBOData[#VBOData+1] =(i - 1) / numSegments
-		
-		--- second cone flat
 		VBOData[#VBOData+1] = math.sin(math.pi*2* (i - 0) / numSegments) * radius -- X
 		VBOData[#VBOData+1] = 0
 		VBOData[#VBOData+1] = -1*math.cos(math.pi*2* (i - 0) / numSegments) * radius -- Y
 		VBOData[#VBOData+1] =(i - 0) / numSegments
+		
+		--- second cone flat
+		VBOData[#VBOData+1] = math.sin(math.pi*2* (i - 1) / numSegments) * radius -- X
+		VBOData[#VBOData+1] = 0
+		VBOData[#VBOData+1] = -1*math.cos(math.pi*2* (i - 1) / numSegments) * radius -- Y
+		VBOData[#VBOData+1] =(i - 1) / numSegments
 	end
 	
 	
