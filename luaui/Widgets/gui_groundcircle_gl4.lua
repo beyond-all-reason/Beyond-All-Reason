@@ -1,7 +1,3 @@
-include("keysym.h.lua")
-
-local versionNumber = "6.32"
-
 function widget:GetInfo()
 	return {
 		name      = "Ground Circle GL4",
@@ -14,274 +10,65 @@ function widget:GetInfo()
 	}
 end
 
--- GL4 Notes and TODO:
--- AA should be purple :D
--- heightboost is going to be a bitch - > use $heightmap and hope that heightboost is kinda linear
--- Vertex Buffer should have: a circle with 64 subdivs
-  -- basically a set of vec2's  
-  -- each elem of this vec2 should also have a normal vector, for ez heightboost
--- whole thing needs an 'override' type thing, 
--- needs masking of the instance buffer
--- Instance buffer params:
---  - 1k elements static
---  - vec4 pos,radius
---  - vec4 rgb, alpha
---  - vec4 heightdrawstart, heightdrawend, fadefactorin, fadefactorout. 
---  - vec4 bitmask of type?
-
--- jobs of the vertex shader:
-  -- pass butter, maybe discard early with even going into geom shader?
--- job of the geom shader
-  -- circle generation
-  -- sample heightmap, use heightboost?
-  -- put heightboost into 
--- job of the fragment shader
-  -- colorize ba
--- Uniforms:
-  -- DrawType (ground, air, nuke, ally), a bitmask
-  -- camheight ? -- in uniformmatrices
-  -- globalalpha?
-  -- heightmap need to be bound as 'texture'
-  
--- Quick update: 
-  -- store a table of instance buffer params, as to which unitID is slaved to which instance
-  -- Also use a table as a reverse stack of free instance buffer elements - O(1) !!
-  
--- configurability:
-  -- have multiple VBOs' for each unit type?
-  -- 
-  
------- GL4 THINGS  -----
-
-circleVBO = nil
-circleVBOSize = 0
-circleSegments = 127
-
-circleInstanceVBO = nil
-circleInstanceVBOSize = 1000
-circleInstanceVBOStep = 16
-circleInstanceVBONextFree = 1 -- index of the next 'free' element
-circleInstanceData = {}
-
-cVBOWrapper = {
-	maxVBOSize = 1000,
-	VBOStep = 1000,
-	nextFree = 1,
-	VBOData = {},
-	instanceVBO = {}
-}
-
-
-circleVAO = nil
+local circleSegments = 64
 
 local luaShaderDir = "LuaUI/Widgets/Include/"
 local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
-circleShader = nil
+VFS.Include(luaShaderDir.."instancevbotable.lua")
+
+local circleShader = nil
+local circleInstanceVBO = nil
 
 local function goodbye(reason)
-  Spring.Echo("Map Grass GL4 widget exiting with reason: "..reason)
-  if grassPatchVBO then grassPatchVBO = nil end
-  if grassInstanceVBO then grassInstanceVBO = nil end
-  if grassVAO then grassVAO = nil end
-  --if grassShader then grassShader:Finalize() end
+  Spring.Echo("Ground Circle GL4 widget exiting with reason: "..reason)
+  if circleShader then circleShader:Finalize() end
   widgetHandler:RemoveWidget(self)
-end
-
-local function pushInstance(VBO, VBOData, VBOSize, VBOStep, NextFree, newElem)
-	for i=1, #newElem do
-		
-	end
-end
-
-local function makeCircleVBO()
-	circleVBO = gl.GetVBO(GL.ARRAY_BUFFER,true)
-	if circleVBO == nil then goodbye("Failed to create circleVBO") end
-	
-	local VBOLayout = {
-	 {id = 0, name = "position", size = 2},
-	}
-	
-	local VBOData = {}
-	circleVBOSize = (circleSegments + 1) 
-	for i = 0, circleSegments  do -- this is +1
-		VBOData[#VBOData+1] = math.sin(math.pi*2* i / circleSegments)
-		VBOData[#VBOData+1] = math.cos(math.pi*2* i / circleSegments)
-	end	
-	circleVBO:Define(
-		circleVBOSize,
-		VBOLayout
-	)
-	circleVBO:Upload(VBOData)
-end
-
-local function makeInstanceVBO()
-	-- we are gonna over allocate 
-	circleInstanceVBO = gl.GetVBO(GL.ARRAY_BUFFER,true)
-	if circleInstanceVBO == nil then goodbye("Failed to create circleInstanceVBO") end
-	
-	circleInstanceVBO:Define(
-		circleInstanceVBOSize,--?we dont know how big yet!
-		{
-		  {id = 1, name = 'posscale', size = 4}, -- a vec4 for pos + scale
-		  {id = 2, name = 'color1', size = 4}, --  vec4 the color of this circle
-		  {id = 3, name = 'visibility', size = 4}, --- vec4 heightdrawstart, heightdrawend, fadefactorin, fadefactorout. 
-		  {id = 4, name = 'circleparams', size = 4}, --- heightboost gradient
-		  
-		})
-	
-	for i = 1, circleInstanceVBOSize do
-		--for j = 1, 16 do
-			local px = math.random() * Game.mapSizeX
-			local pz = math.random() * Game.mapSizeZ
-			circleInstanceData[#circleInstanceData + 1] = px
-			circleInstanceData[#circleInstanceData + 1] = Spring.GetGroundHeight(px,pz)
-			circleInstanceData[#circleInstanceData + 1] = pz
-			circleInstanceData[#circleInstanceData + 1] = 500 * math.random()
-			circleInstanceData[#circleInstanceData + 1] =  math.random()
-			circleInstanceData[#circleInstanceData + 1] =  math.random()
-			circleInstanceData[#circleInstanceData + 1] = math.random()
-			circleInstanceData[#circleInstanceData + 1] =  math.random()
-			circleInstanceData[#circleInstanceData + 1] = 0 -- zero fill init
-			circleInstanceData[#circleInstanceData + 1] = 0 -- zero fill init
-			circleInstanceData[#circleInstanceData + 1] = 0 -- zero fill init
-			circleInstanceData[#circleInstanceData + 1] = 0 -- zero fill init
-			circleInstanceData[#circleInstanceData + 1] = 0 -- zero fill init
-			circleInstanceData[#circleInstanceData + 1] = 0 -- zero fill init
-			circleInstanceData[#circleInstanceData + 1] = 0 -- zero fill init
-			circleInstanceData[#circleInstanceData + 1] = 0 -- zero fill init
-		--end
-	end
-	circleInstanceVBO:Upload(circleInstanceData)
 end
 
 local vsSrc = [[
 #version 420
 #line 10000
 
-layout (location = 0) in vec2 circlepointposition;
-layout (location = 1) in vec4 posscale;
-layout (location = 2) in vec4 color1;
-layout (location = 3) in vec4 visibility;
-layout (location = 4) in vec4 circleparams;
+//__DEFINES__
 
+layout (location = 0) in vec4 circlepointposition; // points of the circle
+layout (location = 1) in vec4 posrad; // per-instance parameters
+layout (location = 2) in vec4 color;  // per-instance
 uniform vec4 circleuniforms; // none yet
 
 uniform sampler2D heightmapTex;
-uniform sampler2D losTex; // hmm maybe?
 
 out DataVS {
-	vec4 worldPos;
+	vec4 worldPos; // pos and radius
 	vec4 blendedcolor;
-	vec4 debuginfo;
+	float worldscale_circumference;
 };
 
-layout(std140, binding = 0) uniform UniformMatrixBuffer {
-	mat4 screenView;
-	mat4 screenProj;
-	mat4 screenViewProj;
-
-	mat4 cameraView;
-	mat4 cameraProj;
-	mat4 cameraViewProj;
-	mat4 cameraBillboardProj;
-
-	mat4 cameraViewInv;
-	mat4 cameraProjInv;
-	mat4 cameraViewProjInv;
-
-	mat4 shadowView;
-	mat4 shadowProj;
-	mat4 shadowViewProj;
-};
-
-layout(std140, binding = 1) uniform UniformParamsBuffer {
-	vec3 rndVec3; //new every draw frame.
-	uint renderCaps; //various render booleans
-
-	vec4 timeInfo; //gameFrame, gameSeconds, drawFrame, frameTimeOffset
-	vec4 viewGeometry; //vsx, vsy, vpx, vpy
-	vec4 mapSize; //xz, xzPO2
-
-	vec4 fogColor; //fog color
-	vec4 fogParams; //fog {start, end, 0.0, scale}
-};
-
-// glsl rotate convencience funcs: https://github.com/dmnsgn/glsl-rotate
-
-mat3 rotation3dY(float a) {
-	float s = sin(a);
-	float c = cos(a);
-
-  return mat3(
-    c, 0.0, -s,
-    0.0, 1.0, 0.0,
-    s, 0.0, c);
-}
-
-mat4 scaleMat(vec3 s) {
-	return mat4(
-		s.x, 0.0, 0.0, 0.0,
-		0.0, s.y, 0.0, 0.0,
-		0.0, 0.0, s.z, 0.0,
-		0.0, 0.0, 0.0, 1.0
-	);
-}
-
-mat4 translationMat(vec3 t) {
-	return mat4(
-		1.0, 0.0, 0.0, 0.0,
-		0.0, 1.0, 0.0, 0.0,
-		0.0, 0.0, 1.0, 0.0,
-		t.x, t.y, t.z, 1.0
-	);
-}
+//__ENGINEUNIFORMBUFFERDEFS__
 
 #line 11000
 
+float heightAtWorldPos(vec2 w){
+	vec2 uvhm =   vec2(clamp(w.x,8.0,mapSize.x-8.0),clamp(w.y,8.0, mapSize.y-8.0))/ mapSize.xy; 
+	return textureLod(heightmapTex, uvhm, 0.0).x;
+}
+
 void main() {
-	// translate to world pos:
-	vec4 circleWorldPos = vec4(1.0);
-	circleWorldPos.xz = circlepointposition * posscale.w +  posscale.xz;
-	
-	debuginfo = vec4(1.0);
+	vec4 circleWorldPos = posrad;
+	circleWorldPos.xz = circlepointposition.xy * circleWorldPos.w +  circleWorldPos.xz;
 	
 	// get heightmap 
-	vec2 uvHM =   vec2(clamp(circleWorldPos.x,8.0,mapSize.x-8.0),clamp(circleWorldPos.z,8.0, mapSize.y-8.0))/ mapSize.xy; // this proves to be an actually useable heightmap i think.
-	float heightAtPoint = textureLod(heightmapTex, uvHM, 0.0).x;
+	circleWorldPos.y = max(0.0,heightAtWorldPos(circleWorldPos.xz))+32.0;
 	
-	// boost out the circleworldpos by heightboostfactor
-	float deltaheight = posscale.y - heightAtPoint;
+	// -- MAP OUT OF BOUNDS
+	vec2 mymin = min(circleWorldPos.xz,mapSize.xy - circleWorldPos.xz);
+	float inboundsness = min(mymin.x, mymin.y);
 	
-	// this probably needs weighting by radius?
-	
-	vec2 deltaX = circlepointposition * deltaheight * circleparams.x;
-	circleWorldPos.xz += deltaX; 
-	
-	// re-sample heightmap at new boosted pos
-	uvHM =   vec2(clamp(circleWorldPos.x,8.0,mapSize.x-8.0),clamp(circleWorldPos.z,8.0, mapSize.y-8.0))/ mapSize.xy; // this proves to be an actually useable heightmap i think.
-	
-	float newHeight = textureLod(heightmapTex, uvHM, 0.0).x;
-	// keep it above world height?
-	circleWorldPos.y = newHeight + 6;
-	
-	// find distance of center point to cameraBillboardProj
-	
-	vec4 camPos = cameraViewInv[3];
-	
-	//--- DISTANCE FADE ---
-	float distToCam = length(circleWorldPos.xyz - camPos.xyz); //dist from cam
-	blendedcolor.a = clamp((visibility.x - distToCam)/(visibility.x- visibility.y + 1.0),0.0,1.0);
-	
-	// --- Fog like  a bitch?
-	float fogDist = length((cameraView * vec4(circleWorldPos.xyz,1.0)).xyz);
-	float fogFactor = (fogParams.y - fogDist) * fogParams.w;
-	blendedcolor.rgb = mix(color1.rgb, fogColor.rgb, fogFactor);
-	
-	
-	
-	// ------------ dump the stuff for FS --------------------
+	// dump to FS
+	worldscale_circumference = posrad.w * circlepointposition.z * 0.62831853;
 	worldPos = circleWorldPos;
-
+	blendedcolor = color;
+	blendedcolor.a *= 1.0 - clamp(inboundsness*(-0.03),0.0,1.0);
 	gl_Position = cameraViewProj * vec4(circleWorldPos.xyz, 1.0);
 }
 ]]
@@ -294,140 +81,93 @@ local fsSrc =  [[
 
 #line 20000
 
-uniform vec4 circleuniforms; //windx, windz, windstrength, globalalpha
+uniform vec4 circleuniforms; 
 
 uniform sampler2D heightmapTex;
-uniform sampler2D losTex; // hmm maybe?
+
+//__ENGINEUNIFORMBUFFERDEFS__
+
+//__DEFINES__
 
 in DataVS {
-	vec4 worldPos;
+	vec4 worldPos; // w = range
 	vec4 blendedcolor;
-	vec4 debuginfo;
-};
-
-layout(std140, binding = 0) uniform UniformMatrixBuffer {
-	mat4 screenView;
-	mat4 screenProj;
-	mat4 screenViewProj;
-
-	mat4 cameraView;
-	mat4 cameraProj;
-	mat4 cameraViewProj;
-	mat4 cameraBillboardProj;
-
-	mat4 cameraViewInv;
-	mat4 cameraProjInv;
-	mat4 cameraViewProjInv;
-
-	mat4 shadowView;
-	mat4 shadowProj;
-	mat4 shadowViewProj;
-};
-
-layout(std140, binding = 1) uniform UniformParamsBuffer {
-	vec3 rndVec3; //new every draw frame.
-	uint renderCaps; //various render booleans
-
-	vec4 timeInfo; //gameFrame, gameSeconds, drawFrame, frameTimeOffset
-	vec4 viewGeometry; //vsx, vsy, vpx, vpy
-	vec4 mapSize; //xz, xzPO2
-
-	vec4 fogColor; //fog color
-	vec4 fogParams; //fog {start, end, 0.0, scale}
+	float worldscale_circumference;
 };
 
 out vec4 fragColor;
 
 void main() {
-	fragColor.rgba = vec4(1.0);
-	fragColor.rgb = blendedcolor.rgb;
-	if (fragColor.a < 0.0001) // needed for depthmask
-	discard;
+	fragColor.rgba = blendedcolor.rgba;
+  //fragColor.a *= 2.0 * sin(worldscale_circumference + timeInfo.x*0.1); // stipple
 }
 ]]
 
-
-local function makeShader()
+local function initgl4()
+	local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()
+	vsSrc = vsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
+	fsSrc = fsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
 	circleShader =  LuaShader(
-    {
-      vertex = vsSrc,
-      fragment = fsSrc,
-      --geometry = gsSrc, no geom shader for now
-      uniformInt = {
-        heightmapTex = 0, -- perlin
-        losTex = 1, -- perlin
-        },
-      uniformFloat = {
-        circleuniforms = {1,1,1,1},
-      },
-    },
-    "circleShader GL4"
+	{
+	  vertex = vsSrc:gsub("//__DEFINES__", "#define MYGRAVITY " .. tostring(Game.gravity+0.1)),
+	  fragment = fsSrc:gsub("//__DEFINES__", "#define USE_STIPPLE ".. tostring(0) ),
+	  --geometry = gsSrc, no geom shader for now
+	  uniformInt = {
+      heightmapTex = 0,
+		},
+	  uniformFloat = {
+      circleuniforms = {1,1,1,1}, -- unused
+	  },
+	},
+	"ground circles shader GL4"
   )
   shaderCompiled = circleShader:Initialize()
-  
   if not shaderCompiled then goodbye("Failed to compile circleShader GL4 ") end
+  local circleVBO,numVertices = makeCircleVBO(circleSegments)
+  local circleInstanceVBOLayout = {
+		  {id = 1, name = 'posrad', size = 4}, -- the start pos + radius
+		  {id = 2, name = 'color', size = 4}, --- color
+		}
+  circleInstanceVBO = makeInstanceVBOTable(circleInstanceVBOLayout,32, "groundcirclevbo")
+  circleInstanceVBO.numVertices = numVertices
+  circleInstanceVBO.vertexVBO = circleVBO
+  circleInstanceVBO.VAO = makeVAOandAttach(circleInstanceVBO.vertexVBO,       circleInstanceVBO.instanceVBO)
 end
-
-local function makeAndAttachToVAO()
-	if circleVAO then
-		circleVAO = nil 
-	end
-	circleVAO = gl.GetVAO()
-	if circleVAO == nil then goodbye("Failed to create circleVAO") end
-	circleVAO:AttachVertexBuffer(circleVBO)
-	circleVAO:AttachInstanceBuffer(circleInstanceVBO)
-end
-
 
 function widget:Initialize()
-	makeCircleVBO()
-	makeInstanceVBO()
-	makeShader()
-	makeAndAttachToVAO()
+  initgl4()
+  for i = 1, 500 do
+    pushElementInstance(circleInstanceVBO,
+      {math.random()* Game.mapSizeX, 0, math.random()* Game.mapSizeZ, math.random() * 500,
+      math.random(),math.random(),math.random(),math.random(),
+      },
+      i  -- key is gonna be i
+    )
+  end
 end
-
 
 function widget:DrawWorld()
-	gl.DepthTest(GL.LEQUAL)
-	gl.DepthMask(true)
-	gl.Culling(GL.BACK) -- needs better front and back instead of using this
+    pushElementInstance(circleInstanceVBO,
+      {math.random()* Game.mapSizeX, 0, math.random()* Game.mapSizeZ, math.random() * 500,
+      math.random(),math.random(),math.random(),math.random(),
+      },
+      math.ceil(math.random() * 500),  -- key is gonna be i
+      true -- updateexising
+    )
+  
+  gl.DepthTest(GL.LEQUAL)
 
-    gl.Texture(0, "$heightmap")
-    gl.Texture(1, "$info")
-	
-    circleShader:Activate()
-    --Spring.Echo("globalgrassfade",globalgrassfade)
-    
-    circleShader:SetUniform("circleuniforms", 1.0, 1.0, 1.0, 1.0)
-    
-    circleVAO:DrawArrays(GL.LINE_STRIP, 127, 0, circleInstanceVBOSize, 0)
-	
-    circleShader:Deactivate()
-    gl.Texture(0, false)
-    gl.Texture(1, false)
+  gl.Texture(0, "$heightmap")
 
+  circleShader:Activate()
+  --circleShader:SetUniform("circleuniforms", 1.0, 1.0, 1.0, 1.0) -- unused
 
-    gl.DepthTest(GL.ALWAYS)
-    gl.DepthMask(false)
-    gl.Culling(GL.BACK)
+  circleInstanceVBO.VAO:DrawArrays(GL.LINE_STRIP, circleInstanceVBO.numVertices, 0, circleInstanceVBO.usedElements, 0) -- could be GL.TRIANGLE_FAN too
+
+  circleShader:Deactivate()
+  gl.Texture(0, false)
+
+  gl.DepthTest(GL.ALWAYS)
 end
 
-
---SAVE / LOAD CONFIG FILE
-function widget:GetConfigData()
-	--[[
-	local data = {}
-	data["enabled"] = buttonConfig["enabled"]
-	return data]]--
-end
-
-function widget:SetConfigData(data)
-	--[[
-	if data ~= nil then
-		if data["enabled"] ~= nil then
-			buttonConfig["enabled"] = data["enabled"]
-			printDebug("enabled config found...")
-		end
-	end]]--
-end
 
