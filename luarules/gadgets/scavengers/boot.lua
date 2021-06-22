@@ -593,6 +593,35 @@ function gadget:UnitGiven(unitID, unitDefID, unitNewTeam, unitOldTeam)
 				UnitSuffixLenght[unitID] = string.len(scavconfig.unitnamesuffix)
 			else
 				UnitSuffixLenght[unitID] = 0
+				local frame = Spring.GetGameFrame()
+				if frame > 300 then
+					local heading = Spring.GetUnitHeading(unitID)
+					local suffix = scavconfig.unitnamesuffix
+					-- Spring.Echo(UnitName)
+					-- Spring.Echo(UnitName..suffix)
+					if UnitDefNames[UnitName..suffix] then
+						local posx, posy, posz = Spring.GetUnitPosition(unitID)
+						Spring.DestroyUnit(unitID, false, true)
+						if heading >= -24576 and heading < -8192 then -- west
+							-- 3
+							QueueSpawn(UnitName..suffix, posx, posy, posz, 3 ,GaiaTeamID, frame+1)
+							--Spring.CreateUnit(UnitName..suffix, posx, posy, posz, 3,GaiaTeamID)
+						elseif heading >= -8192 and heading < 8192 then -- south
+							-- 0
+							QueueSpawn(UnitName..suffix, posx, posy, posz, 0 ,GaiaTeamID, frame+1)
+							--Spring.CreateUnit(UnitName..suffix, posx, posy, posz, 0,GaiaTeamID)
+						elseif heading >= 8192 and heading < 24576 then -- east
+							-- 1
+							QueueSpawn(UnitName..suffix, posx, posy, posz, 1 ,GaiaTeamID, frame+1)
+							--Spring.CreateUnit(UnitName..suffix, posx, posy, posz, 1,GaiaTeamID)
+						else -- north
+							-- 2
+							QueueSpawn(UnitName..suffix, posx, posy, posz, 2 ,GaiaTeamID, frame+1)
+							--Spring.CreateUnit(UnitName..suffix, posx, posy, posz, 2,GaiaTeamID)
+						end
+						return
+					end
+				end
 			end
 			--Spring.Echo("Scavs just captured me " .. UnitName .. " and my suffix lenght is " .. UnitSuffixLenght[unitID])
 			if UnitDefs[unitDefID].name == "scavengerdroppodbeacon_scav" or UnitDefs[unitDefID].name == "scavsafeareabeacon_scav" then
