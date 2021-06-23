@@ -416,7 +416,7 @@ return {
 				corscavfort="Scav fortification wall",
 				corscavdtm="Scav missile wall",
 				corscavdtl="Scav Dragon's claw",
-				corscavdtf="Scav fire teeth",
+				corscavdtf="Scav Dragon's Maw",
 				corsd = "Nemesis",
 				corseah = "Seahook",
 				corseal = "Croc",
