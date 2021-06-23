@@ -615,7 +615,7 @@ local options={
 		desc   = 'Player team is always blue',
 		type   = 'list',
 		section = 'teamcoloring_options',
-		def  = "enabled",
+		def  = "disabled",
 		items={
 			{key="enabled", name="Enabled", desc="description"},
 			{key="disabled", name="Disabled", desc="description"},
