@@ -167,6 +167,7 @@ end
 local spGetSpectatingState  = Spring.GetSpectatingState
 local spGetUnitDefID        = Spring.GetUnitDefID
 local spGetUnitPosition     = Spring.GetUnitPosition
+local spGetUnitSensorRadius = Spring.GetUnitSensorRadius
 local spIsGUIHidden 		= Spring.IsGUIHidden
 local spIsUnitAllied		= Spring.IsUnitAllied
 local glColor               = gl.Color
@@ -195,6 +196,8 @@ local chobbyInterface
 -- find all unit types with radar in the game and place ranges into unitRange table
 local unitRange = {} -- table of unit types with their radar ranges
 local isBuilding = {} -- unitDefID keys
+local crashable = {}
+
 for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.losRadius and unitDef.losRadius > minSightDistance then	-- save perf by excluding low radar range units
 		if not unitRange[unitDefID] then unitRange[unitDefID] = unitDef.losRadius - rangecorrectionelmos end
@@ -203,6 +206,24 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 		end
 	end
 end
+
+--crashable aircraft
+for _,UnitDef in pairs(UnitDefs) do
+	if UnitDef.canFly == true and UnitDef.transportSize == 0 and string.sub(UnitDef.name, 1, 7) ~= "critter" and string.sub(UnitDef.name, 1, 7) ~= "chicken" then
+		crashable[UnitDef.id] = true
+	end
+end
+
+--local nonCrashable = {'armpeep', 'corfink', 'corbw', 'armfig', 'armsfig', 'armhawk', 'corveng', 'corsfig', 'corvamp'}
+local nonCrashable = {'armpeep', 'corfink', 'corbw'}
+for udid, ud in pairs(UnitDefs) do
+	for _, unitname in pairs(nonCrashable) do
+		if string.find(ud.name, unitname) then
+			crashable[udid] = nil
+		end
+	end
+end
+
 
 function widget:RecvLuaMsg(msg, playerID)
 	if msg:sub(1,18) == 'LobbyOverlayActive' then
@@ -320,6 +341,9 @@ function widget:GameFrame(n)
 				instanceData[instanceDataOffset+5] = x
 				instanceData[instanceDataOffset+6] = y
 				instanceData[instanceDataOffset+7] = z
+				if crashable[unitDefID] then 
+					instanceData[instanceDataOffset+8] = spGetUnitSensorRadius(unitID, "los")
+				end
 		
 			end
 		end
