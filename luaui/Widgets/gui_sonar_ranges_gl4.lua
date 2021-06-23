@@ -82,7 +82,7 @@ void main() {
 	float inboundsness = min(mymin.x, mymin.y);
 	
 	// dump to FS
-	worldscale_circumference = startposrad.w * circlepointposition.z * 0.62831853;
+	worldscale_circumference = startposrad.w * circlepointposition.z * 5.2345;
 	worldPos = circleWorldPos;
 	blendedcolor = color;
 	blendedcolor.a *= 1.0 - clamp(inboundsness*(-0.03),0.0,1.0);
@@ -118,7 +118,7 @@ out vec4 fragColor;
 void main() {
 	fragColor.rgba = blendedcolor.rgba;
 	#if USE_STIPPLE > 0
-		fragColor.a *= 2.0 * sin(worldscale_circumference + timeInfo.x*0.05); // PERFECT STIPPLING!
+		fragColor.a *= 2.0 * sin(worldscale_circumference + timeInfo.x*0.2); // PERFECT STIPPLING!
 	#endif
 }
 ]]
