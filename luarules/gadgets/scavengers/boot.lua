@@ -89,9 +89,7 @@ if scavconfig.modules.stockpilers == true then
 	VFS.Include("luarules/gadgets/scavengers/Modules/stockpiling.lua")
 end
 
-if scavconfig.modules.nukes == true then
-	VFS.Include("luarules/gadgets/scavengers/Modules/nuke_controller.lua")
-end
+local nukeModule = VFS.Include("luarules/gadgets/scavengers/Modules/nuke_controller.lua")
 
 VFS.Include("luarules/gadgets/scavengers/Modules/spawn_beacons.lua")
 VFS.Include("luarules/gadgets/scavengers/Modules/messenger.lua")
@@ -393,9 +391,9 @@ function gadget:GameFrame(n)
 					end
 				end
 
-				if scavteamhasplayers == false and scavconfig.modules.nukes == true then
-					if scavNuke[scav] == true then
-						SendRandomNukeOrder(n, scav)
+				if not scavteamhasplayers and scavconfig.modules.nukes then
+					if scavNuke[scav] then
+						nukeModule.SendRandomNukeOrder(n, scav)
 					end
 				end
 
