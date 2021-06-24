@@ -45,7 +45,6 @@ function gadget:GetInfo()
     }
 end
 
-
 local spGetTeamInfo = Spring.GetTeamInfo
 local spGetTeamList = Spring.GetTeamList
 local spGetAllyTeamList= Spring.GetAllyTeamList
@@ -61,113 +60,113 @@ local resurrectedUnits = {}
 -- {unitName, amount}
 
 local starterLandUnitsList = {
-    [1] = {"armflea", 5},
-    [2] = {"armfav", 5},
-    [3] = {"corfav", 5},
+    [1] = {unitID = "armflea", quantity = 5},
+    [2] = {unitID = "armfav", quantity = 5},
+    [3] = {unitID = "corfav", quantity = 5},
 }
 
 local starterSeaUnitsList = {
-    [1] = {"armpt", 5},
-    [2] = {"corpt", 5},
+    [1] = {unitID = "armpt", quantity = 5},
+    [2] = {unitID = "corpt", quantity = 5},
 }
 
 local landUnitsList = {
     [1] = { -- Early T1
         -- Bots
             -- Raider
-        [1] = {"armpw", 5},
-        [2] = {"corak", 5},
+        [1] = {unitID = "armpw", quantity = 5},
+        [2] = {unitID = "corak", quantity = 5},
             -- Rezzers
-        [3] = {"armrectr", 2},
-        [4] = {"cornecro", 2},
+        [3] = {unitID = "armrectr", quantity = 2},
+        [4] = {unitID = "cornecro", quantity = 2},
     },
     [2] = { -- Late T1
         -- Bots
-        [1] = {"armrock", 5},
-        [2] = {"armham", 5},
-        [3] = {"armwar", 5},
-        [4] = {"corstorm", 5},
-        [5] = {"corthud", 5},
+        [1] = {unitID = "armrock", quantity = 5},
+        [2] = {unitID = "armham", quantity = 5},
+        [3] = {unitID = "armwar", quantity = 5},
+        [4] = {unitID = "corstorm", quantity = 5},
+        [5] = {unitID = "corthud", quantity = 5},
     },
     [3] = { -- Early T2
         -- Bots
             -- Raider
-        [1] = {"corpyro", 5},
-        [2] = {"armfast", 5},
-        [3] = {"armfido", 5},
-        [4] = {"cormort", 5},
+        [1] = {unitID = "corpyro", quantity = 5},
+        [2] = {unitID = "armfast", quantity = 5},
+        [3] = {unitID = "armfido", quantity = 5},
+        [4] = {unitID = "cormort", quantity = 5},
             -- Crawling Bombs
-        [5] = {"armvader", 3},
-        [6] = {"corroach", 3},
+        [5] = {unitID = "armvader", quantity = 3},
+        [6] = {unitID = "corroach", quantity = 3},
 
             -- Radar/Stealth Bots
-        [7] = {"armaser", 1},
-        [8] = {"armmark", 1},
-        [9] = {"corspec", 1},
-        [10] = {"corvoyr", 1},
+        [7] = {unitID = "armaser", quantity = 1},
+        [8] = {unitID = "armmark", quantity = 1},
+        [9] = {unitID = "corspec", quantity = 1},
+        [10] = {unitID = "corvoyr", quantity = 1},
     },
 }
 
 local seaUnitsList = {
     [1] = { -- placeholder
-        [1] = {"armdecade", 4},
-        [2] = {"coresupp", 4},
-        [3] = {"armrecl", 2},
-        [4] = {"correcl", 2},
+        [1] = {unitID = "armdecade", quantity = 4},
+        [2] = {unitID = "coresupp", quantity = 4},
+        [3] = {unitID = "armrecl", quantity = 2},
+        [4] = {unitID = "correcl", quantity = 2},
     },
     [2] = { -- placeholder
-        [1] = {"armdecade", 4},
-        [2] = {"coresupp", 4},
-        [3] = {"armrecl", 2},
-        [4] = {"correcl", 2},
+        [1] = {unitID = "armdecade", quantity = 4},
+        [2] = {unitID = "coresupp", quantity = 4},
+        [3] = {unitID = "armrecl", quantity = 2},
+        [4] = {unitID = "correcl", quantity = 2},
     },
     [3] = { -- placeholder
-        [1] = {"armdecade", 4},
-        [2] = {"coresupp", 4},
-        [3] = {"armrecl", 2},
-        [4] = {"correcl", 2},
+        [1] = {unitID = "armdecade", quantity = 4},
+        [2] = {unitID = "coresupp", quantity = 4},
+        [3] = {unitID = "armrecl", quantity = 2},
+        [4] = {unitID = "correcl", quantity = 2},
     },
     [4] = { -- placeholder
-        [1] = {"armdecade", 4},
-        [2] = {"coresupp", 4},
-        [3] = {"armrecl", 2},
-        [4] = {"correcl", 2},
+        [1] = {unitID = "armdecade", quantity = 4},
+        [2] = {unitID = "coresupp", quantity = 4},
+        [3] = {unitID = "armrecl", quantity = 2},
+        [4] = {unitID = "correcl", quantity = 2},
     },
     [5] = { -- placeholder
-        [1] = {"armdecade", 4},
-        [2] = {"coresupp", 4},
-        [3] = {"armrecl", 2},
-        [4] = {"correcl", 2},
+        [1] = {unitID = "armdecade", quantity = 4},
+        [2] = {unitID = "coresupp", quantity = 4},
+        [3] = {unitID = "armrecl", quantity = 2},
+        [4] = {unitID = "correcl", quantity = 2},
     },
     [6] = { -- placeholder
-        [1] = {"armdecade", 4},
-        [2] = {"coresupp", 4},
-        [3] = {"armrecl", 2},
-        [4] = {"correcl", 2},
+        [1] = {unitID = "armdecade", quantity = 4},
+        [2] = {unitID = "coresupp", quantity = 4},
+        [3] = {unitID = "armrecl", quantity = 2},
+        [4] = {unitID = "correcl", quantity = 2},
     },
     [7] = { -- placeholder
-        [1] = {"armdecade", 4},
-        [2] = {"coresupp", 4},
-        [3] = {"armrecl", 2},
-        [4] = {"correcl", 2},
+        [1] = {unitID = "armdecade", quantity = 4},
+        [2] = {unitID = "coresupp", quantity = 4},
+        [3] = {unitID = "armrecl", quantity = 2},
+        [4] = {unitID = "correcl", quantity = 2},
     },
     [8] = { -- placeholder
-        [1] = {"armdecade", 4},
-        [2] = {"coresupp", 4},
-        [3] = {"armrecl", 2},
-        [4] = {"correcl", 2},
+        [1] = {unitID = "armdecade", quantity = 4},
+        [2] = {unitID = "coresupp", quantity = 4},
+        [3] = {unitID = "armrecl", quantity = 2},
+        [4] = {unitID = "correcl", quantity = 2},
     },
     [9] = { -- placeholder
-        [1] = {"armdecade", 4},
-        [2] = {"coresupp", 4},
-        [3] = {"armrecl", 2},
-        [4] = {"correcl", 2},
+        [1] = {unitID = "armdecade", quantity = 4},
+        [2] = {unitID = "coresupp", quantity = 4},
+        [3] = {unitID = "armrecl", quantity = 2},
+        [4] = {unitID = "correcl", quantity = 2},
     },
     [10] = { -- placeholder
-        [1] = {"armdecade", 4},
-        [2] = {"coresupp", 4},
-        [3] = {"armrecl", 2},
-        [4] = {"correcl", 2},
+        [1] = {unitID = "armdecade", quantity = 4},
+        [2] = {unitID = "coresupp", quantity = 4},
+        [3] = {unitID = "armrecl", quantity = 2},
+        [4] = {unitID = "correcl", quantity = 2},
     },
 }
 
@@ -271,26 +270,26 @@ local function respawnUnitsFromQueue()
     end
 end
 
-local function AddNewUnitsToQueue(starter)
+local function addNewUnitsToQueue(starter)
 	local landRandom, landUnit, landUnitCount
 	local seaRandom, seaUnit, seaUnitCount
 
     if starter then
         landRandom = math.random(1,#starterLandUnitsList)
-        landUnit = starterLandUnitsList[landRandom][1]
-        landUnitCount = starterLandUnitsList[landRandom][2]
+        landUnit = starterLandUnitsList[landRandom].unitID
+        landUnitCount = starterLandUnitsList[landRandom].quantity
 
         seaRandom = math.random(1,#starterSeaUnitsList)
-        seaUnit = starterSeaUnitsList[seaRandom][1]
-        seaUnitCount = starterSeaUnitsList[seaRandom][2]
+        seaUnit = starterSeaUnitsList[seaRandom].unitID
+        seaUnitCount = starterSeaUnitsList[seaRandom].quantity
     else
         landRandom = math.random(1,#landUnitsList[phase])
-        landUnit = landUnitsList[phase][landRandom][1]
-        landUnitCount = landUnitsList[phase][landRandom][2]
+        landUnit = landUnitsList[phase][landRandom].unitID
+        landUnitCount = landUnitsList[phase][landRandom].quantity
 
         seaRandom = math.random(1,#seaUnitsList[phase])
-        seaUnit = seaUnitsList[phase][seaRandom][1]
-        seaUnitCount = seaUnitsList[phase][seaRandom][2]
+        seaUnit = seaUnitsList[phase][seaRandom].unitID
+        seaUnitCount = seaUnitsList[phase][seaRandom].quantity
     end
     
     local teams = spGetTeamList()
@@ -339,7 +338,7 @@ function gadget:GameFrame(n)
         introSetUp()
     end
     if n == 25 then
-        AddNewUnitsToQueue(true)
+        addNewUnitsToQueue(true)
     end
     if n%900 == 1 then
         addInfiniteResources()
@@ -357,7 +356,7 @@ function gadget:GameFrame(n)
         respawnUnitsFromQueue()
     end
     if n > 25 and n%addUpFrequency == 1 then
-        AddNewUnitsToQueue(false)
+        addNewUnitsToQueue(false)
     end
 end
 
