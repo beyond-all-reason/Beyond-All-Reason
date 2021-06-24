@@ -1,4 +1,4 @@
-RandomEventsFileList = VFS.DirList('luarules/gadgets/scavengers/RandomEvents/'..GameShortName..'/','*.lua')
+RandomEventsFileList = VFS.DirList('luarules/gadgets/scavengers/RandomEvents/' .. Game.gameShortName .. '/','*.lua')
 for i = 1,#RandomEventsFileList do
 	VFS.Include(RandomEventsFileList[i])
 	Spring.Echo("Scav Random Events Directory: " ..RandomEventsFileList[i])

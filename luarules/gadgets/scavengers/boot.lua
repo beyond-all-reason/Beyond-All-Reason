@@ -2,8 +2,7 @@ if (not gadgetHandler:IsSyncedCode()) then
 	return false
 end
 VFS.Include("luarules/gadgets/scavengers/API/init.lua")
-GameShortName = Game.gameShortName
-VFS.Include("luarules/gadgets/scavengers/Configs/"..GameShortName.."/config.lua")
+VFS.Include("luarules/gadgets/scavengers/Configs/" .. Game.gameShortName .. "/config.lua")
 --for i = 1,#scavconfig do
 --Spring.Echo("scavconfig value "..i.." = "..scavconfig[i])
 --end
@@ -31,7 +30,7 @@ VFS.Include('luarules/gadgets/scavengers/API/poschecks.lua')
 VFS.Include("luarules/gadgets/scavengers/Modules/mastermind_controller.lua")
 VFS.Include("luarules/gadgets/scavengers/Modules/unit_controller.lua")
 
-local UnitLists = VFS.DirList('luarules/gadgets/scavengers/Configs/'..GameShortName..'/UnitLists/','*.lua')
+local UnitLists = VFS.DirList('luarules/gadgets/scavengers/Configs/' .. Game.gameShortName .. '/UnitLists/','*.lua')
 for i = 1,#UnitLists do
 	VFS.Include(UnitLists[i])
 	Spring.Echo("Scav Units Directory: " ..UnitLists[i])
