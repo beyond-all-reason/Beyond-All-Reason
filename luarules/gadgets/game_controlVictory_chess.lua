@@ -57,8 +57,6 @@ local teamRespawnQueue = {}
 local teamIsLandPlayer = {}
 local resurrectedUnits = {}
 
--- {unitName, amount}
-
 local starterLandUnitsList = {
     [1] = {unitID = "armflea", quantity = 5},
     [2] = {unitID = "armfav", quantity = 5},
@@ -216,8 +214,8 @@ local function introSetUp()
                 else
                     teamIsLandPlayer[teamID] = false
                 end
-                teamSpawnQueue[teamID] = {[1] = "dummyentry",}
-                teamRespawnQueue[teamID] = {[1] = "dummyentry",}
+				teamSpawnQueue[teamID] = {}
+				teamRespawnQueue[teamID] = {}
                 disableUnit(unitID)
             end
         --end
@@ -241,13 +239,13 @@ local function spawnUnitsFromQueue()
     for i = 1,#teams do
         local teamID = teams[i]
         if teamSpawnQueue[teamID] then
-            if teamSpawnQueue[teamID][2] then
+            if teamSpawnQueue[teamID][1] then
                 local x = teamSpawnPositions[teamID].x + math.random(-32,32)
                 local z = teamSpawnPositions[teamID].z + math.random(-32,32)
                 local y = Spring.GetGroundHeight(x,z)
-                Spring.CreateUnit(teamSpawnQueue[teamID][2], x, y, z, 0, teamID)
+                Spring.CreateUnit(teamSpawnQueue[teamID][1], x, y, z, 0, teamID)
                 Spring.SpawnCEG("scav-spawnexplo",x,y,z,0,0,0)
-                table.remove(teamSpawnQueue[teamID], 2)
+                table.remove(teamSpawnQueue[teamID], 1)
             end
         end
     end
@@ -258,13 +256,13 @@ local function respawnUnitsFromQueue()
     for i = 1,#teams do
         local teamID = teams[i]
         if teamRespawnQueue[teamID] then
-            if teamRespawnQueue[teamID][2] then
+            if teamRespawnQueue[teamID][1] then
                 local x = teamSpawnPositions[teamID].x + math.random(-32,32)
                 local z = teamSpawnPositions[teamID].z + math.random(-32,32)
                 local y = Spring.GetGroundHeight(x,z)
-                Spring.CreateUnit(teamRespawnQueue[teamID][2], x, y, z, 0, teamID)
+                Spring.CreateUnit(teamRespawnQueue[teamID][1], x, y, z, 0, teamID)
                 Spring.SpawnCEG("scav-spawnexplo",x,y,z,0,0,0)
-                table.remove(teamRespawnQueue[teamID], 2)
+                table.remove(teamRespawnQueue[teamID], 1)
             end
         end
     end
@@ -298,20 +296,20 @@ local function addNewUnitsToQueue(starter)
         if teamIsLandPlayer[teamID] then
             for j = 1,landUnitCount do
                 if teamSpawnQueue[teamID] then
-                    if teamSpawnQueue[teamID][2] then
+                    if teamSpawnQueue[teamID][1] then
                         teamSpawnQueue[teamID][#teamSpawnQueue[teamID]+1] = landUnit
                     else
-                        teamSpawnQueue[teamID][2] = landUnit
+                        teamSpawnQueue[teamID][1] = landUnit
                     end
                 end
             end
         else
             for j = 1,seaUnitCount do
                 if teamSpawnQueue[teamID] then
-                    if teamSpawnQueue[teamID][2] then
+                    if teamSpawnQueue[teamID][1] then
                         teamSpawnQueue[teamID][#teamSpawnQueue[teamID]+1] = seaUnit
                     else
-                        teamSpawnQueue[teamID][2] = seaUnit
+                        teamSpawnQueue[teamID][1] = seaUnit
                     end
                 end
             end
@@ -325,10 +323,10 @@ end
 
 local function respawnDeadUnit(unitName, unitTeam)
     if teamSpawnQueue[unitTeam] then
-        if teamRespawnQueue[unitTeam][2] then
+        if teamRespawnQueue[unitTeam][1] then
             teamRespawnQueue[unitTeam][#teamRespawnQueue[unitTeam]+1] = unitName
         else
-            teamRespawnQueue[unitTeam][2] = unitName
+            teamRespawnQueue[unitTeam][1] = unitName
         end
     end
 end
