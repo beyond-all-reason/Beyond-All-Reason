@@ -210,8 +210,8 @@ local function introSetUp()
         --if (not spGetGaiaTeamID() == teamID) then
             for _, unitID in ipairs(teamUnits) do
                 local x,y,z = Spring.GetUnitPosition(unitID)
-                teamSpawnPositions[teamID] = {x, y, z}
-                if teamSpawnPositions[teamID][2] > 0 then
+                teamSpawnPositions[teamID] = { x = x, y = y, z = z}
+                if teamSpawnPositions[teamID].y > 0 then
                     teamIsLandPlayer[teamID] = true
                 else
                     teamIsLandPlayer[teamID] = false
@@ -242,8 +242,8 @@ local function spawnUnitsFromQueue()
         local teamID = teams[i]
         if teamSpawnQueue[teamID] then
             if teamSpawnQueue[teamID][2] then
-                local x = teamSpawnPositions[teamID][1]+math.random(-32,32)
-                local z = teamSpawnPositions[teamID][3]+math.random(-32,32)
+                local x = teamSpawnPositions[teamID].x + math.random(-32,32)
+                local z = teamSpawnPositions[teamID].z + math.random(-32,32)
                 local y = Spring.GetGroundHeight(x,z)
                 Spring.CreateUnit(teamSpawnQueue[teamID][2], x, y, z, 0, teamID)
                 Spring.SpawnCEG("scav-spawnexplo",x,y,z,0,0,0)
@@ -259,8 +259,8 @@ local function respawnUnitsFromQueue()
         local teamID = teams[i]
         if teamRespawnQueue[teamID] then
             if teamRespawnQueue[teamID][2] then
-                local x = teamSpawnPositions[teamID][1]+math.random(-32,32)
-                local z = teamSpawnPositions[teamID][3]+math.random(-32,32)
+                local x = teamSpawnPositions[teamID].x + math.random(-32,32)
+                local z = teamSpawnPositions[teamID].z + math.random(-32,32)
                 local y = Spring.GetGroundHeight(x,z)
                 Spring.CreateUnit(teamRespawnQueue[teamID][2], x, y, z, 0, teamID)
                 Spring.SpawnCEG("scav-spawnexplo",x,y,z,0,0,0)
