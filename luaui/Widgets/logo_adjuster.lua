@@ -29,6 +29,7 @@ local notif = false
 local blink = false
 local sec = 0
 local initialized = false
+local gameover = false
 
 local faction = '_a'
 if UnitDefs[Spring.GetTeamRulesParam(Spring.GetMyTeamID(), 'startUnit')].name == 'corcom' then
@@ -65,16 +66,19 @@ function widget:Shutdown()
 end
 
 function widget:GameOver()
+	gameover = true
 	Spring.SetWMIcon(imgPrefix..faction..imageBattleGameover, true)
 end
 
 function widget:Update(dt)
+	if gameover then return end
+
 	if not initialized then		-- this prevents icon being changed when still on loadscreen instead of doing it in widget:initialized
 		initialized = true
 		Spring.SetWMIcon(imgPrefix..faction..imageBattle, true)
 	end
 	sec = sec + dt
-	if sec > 0.75 then
+	if sec > 1.25 then
 		sec = 0
 		local now = os.clock()
 		local gameFrame = Spring.GetGameFrame()

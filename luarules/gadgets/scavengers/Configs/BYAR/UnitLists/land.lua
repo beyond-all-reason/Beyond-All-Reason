@@ -29,6 +29,7 @@ T1LandUnits = {
 	"corthud",
 	"corstorm",
 	"corcrash",
+	"corkark",
 	--vechicles
 	"armflash",
 	"armstump",
@@ -179,5 +180,4 @@ T4LandUnits = {
 	"corkarganetht4",
 	"armrectrt4",
 	"corgolt4",
-	
 }

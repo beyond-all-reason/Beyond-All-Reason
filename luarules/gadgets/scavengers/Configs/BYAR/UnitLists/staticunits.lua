@@ -31,6 +31,8 @@ WallUnitNames = {
 	"corfdrag",
 	"armfort",
 	"corfort",
+	"scavdrag",
+	"scavfort",
 }
 
 StockpilingUnitNames = {

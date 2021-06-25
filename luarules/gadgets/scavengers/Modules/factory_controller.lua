@@ -1,4 +1,4 @@
-VFS.Include("luarules/gadgets/scavengers/Configs/"..GameShortName.."/UnitLists/factories.lua")
+VFS.Include("luarules/gadgets/scavengers/Configs/" .. Game.gameShortName .. "/UnitLists/factories.lua")
 
 function FactoryProduction(n, scav, scavDef)
 	local buildOptions = UnitDefs[scavDef].buildOptions

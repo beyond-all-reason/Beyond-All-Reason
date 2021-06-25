@@ -2,6 +2,8 @@ if not gadgetHandler:IsSyncedCode() then
     return
 end
 
+local gadgetEnabled
+
 if Spring.GetModOptions and (Spring.GetModOptions().scoremode or "disabled") ~= "disabled" then
     gadgetEnabled = true
 else
@@ -43,76 +45,145 @@ function gadget:GetInfo()
     }
 end
 
-
 local spGetTeamInfo = Spring.GetTeamInfo
 local spGetTeamList = Spring.GetTeamList
 local spGetAllyTeamList= Spring.GetAllyTeamList
 local spGetTeamLuaAI = Spring.GetTeamLuaAI
 local spGetGaiaTeamID = Spring.GetGaiaTeamID
 
-TeamSpawnPositions = {}
-TeamSpawnQueue = {}
-TeamRespawnQueue = {}
-TeamIsLandPlayer = {}
-ResurrectedUnits = {}
+local teamSpawnPositions = {}
+local teamSpawnQueue = {}
+local teamRespawnQueue = {}
+local teamIsLandPlayer = {}
+local resurrectedUnits = {}
 
--- {unitName, amount}
-
-StarterLandUnitsList = {
-    [1] = {"armflea", 5},
-    [2] = {"armfav", 5},
-    [3] = {"corfav", 5},
+local starterLandUnitsList = {
+    [1] = {unitID = "armflea", quantity = 5},
+    [2] = {unitID = "armfav", quantity = 5},
+    [3] = {unitID = "corfav", quantity = 5},
 }
 
-StarterSeaUnitsList = {
-    [1] = {"armpt", 5},
-    [2] = {"corpt", 5},
+local starterSeaUnitsList = {
+    [1] = {unitID = "armpt", quantity = 5},
+    [2] = {unitID = "corpt", quantity = 5},
 }
 
-LandUnitsList = {
-    [1] = {
-        [1] = {"armpw", 2},
-        [2] = {"corak", 2},
-        [3] = {"armrectr", 1},
-        [4] = {"cornecro", 1},
+local landUnitsList = {
+    [1] = { -- Early T1
+        -- Bots
+            -- Raider
+        [1] = {unitID = "armpw", quantity = 5},
+        [2] = {unitID = "corak", quantity = 5},
+            -- Rezzers
+        [3] = {unitID = "armrectr", quantity = 2},
+        [4] = {unitID = "cornecro", quantity = 2},
+    },
+    [2] = { -- Late T1
+        -- Bots
+        [1] = {unitID = "armrock", quantity = 5},
+        [2] = {unitID = "armham", quantity = 5},
+        [3] = {unitID = "armwar", quantity = 5},
+        [4] = {unitID = "corstorm", quantity = 5},
+        [5] = {unitID = "corthud", quantity = 5},
+    },
+    [3] = { -- Early T2
+        -- Bots
+            -- Raider
+        [1] = {unitID = "corpyro", quantity = 5},
+        [2] = {unitID = "armfast", quantity = 5},
+        [3] = {unitID = "armfido", quantity = 5},
+        [4] = {unitID = "cormort", quantity = 5},
+            -- Crawling Bombs
+        [5] = {unitID = "armvader", quantity = 3},
+        [6] = {unitID = "corroach", quantity = 3},
+
+            -- Radar/Stealth Bots
+        [7] = {unitID = "armaser", quantity = 1},
+        [8] = {unitID = "armmark", quantity = 1},
+        [9] = {unitID = "corspec", quantity = 1},
+        [10] = {unitID = "corvoyr", quantity = 1},
     },
 }
 
-SeaUnitsList = {
-    [1] = {
-        [1] = {"armdecade", 2},
-        [2] = {"coresupp", 2},
-        [3] = {"armrecl", 1},
-        [4] = {"correcl", 1},
+local seaUnitsList = {
+    [1] = { -- placeholder
+        [1] = {unitID = "armdecade", quantity = 4},
+        [2] = {unitID = "coresupp", quantity = 4},
+        [3] = {unitID = "armrecl", quantity = 2},
+        [4] = {unitID = "correcl", quantity = 2},
+    },
+    [2] = { -- placeholder
+        [1] = {unitID = "armdecade", quantity = 4},
+        [2] = {unitID = "coresupp", quantity = 4},
+        [3] = {unitID = "armrecl", quantity = 2},
+        [4] = {unitID = "correcl", quantity = 2},
+    },
+    [3] = { -- placeholder
+        [1] = {unitID = "armdecade", quantity = 4},
+        [2] = {unitID = "coresupp", quantity = 4},
+        [3] = {unitID = "armrecl", quantity = 2},
+        [4] = {unitID = "correcl", quantity = 2},
+    },
+    [4] = { -- placeholder
+        [1] = {unitID = "armdecade", quantity = 4},
+        [2] = {unitID = "coresupp", quantity = 4},
+        [3] = {unitID = "armrecl", quantity = 2},
+        [4] = {unitID = "correcl", quantity = 2},
+    },
+    [5] = { -- placeholder
+        [1] = {unitID = "armdecade", quantity = 4},
+        [2] = {unitID = "coresupp", quantity = 4},
+        [3] = {unitID = "armrecl", quantity = 2},
+        [4] = {unitID = "correcl", quantity = 2},
+    },
+    [6] = { -- placeholder
+        [1] = {unitID = "armdecade", quantity = 4},
+        [2] = {unitID = "coresupp", quantity = 4},
+        [3] = {unitID = "armrecl", quantity = 2},
+        [4] = {unitID = "correcl", quantity = 2},
+    },
+    [7] = { -- placeholder
+        [1] = {unitID = "armdecade", quantity = 4},
+        [2] = {unitID = "coresupp", quantity = 4},
+        [3] = {unitID = "armrecl", quantity = 2},
+        [4] = {unitID = "correcl", quantity = 2},
+    },
+    [8] = { -- placeholder
+        [1] = {unitID = "armdecade", quantity = 4},
+        [2] = {unitID = "coresupp", quantity = 4},
+        [3] = {unitID = "armrecl", quantity = 2},
+        [4] = {unitID = "correcl", quantity = 2},
+    },
+    [9] = { -- placeholder
+        [1] = {unitID = "armdecade", quantity = 4},
+        [2] = {unitID = "coresupp", quantity = 4},
+        [3] = {unitID = "armrecl", quantity = 2},
+        [4] = {unitID = "correcl", quantity = 2},
+    },
+    [10] = { -- placeholder
+        [1] = {unitID = "armdecade", quantity = 4},
+        [2] = {unitID = "coresupp", quantity = 4},
+        [3] = {unitID = "armrecl", quantity = 2},
+        [4] = {unitID = "correcl", quantity = 2},
     },
 }
 
-local maxPhases = #LandUnitsList
+local maxPhases = #landUnitsList
 local phaseTime = 9000 -- frames
 local addUpFrequency = 1800
 local spawnTimer = 5
 local respawnTimer = 90
-
-
-
-
-
-
-
-
-
-
+local phase
+local canResurrect = {}
 
 -- Functions to hide commanders
-
-canResurrect = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
     if unitDef.canResurrect then
         canResurrect[unitDefID] = true
     end
 end
 
-local function DisableUnit(unitID)
+local function disableUnit(unitID)
 	Spring.MoveCtrl.Enable(unitID)
 	Spring.MoveCtrl.SetNoBlocking(unitID, true)
     Spring.MoveCtrl.SetPosition(unitID, Game.mapSizeX+1900, 2000, Game.mapSizeZ+1900)
@@ -129,7 +200,7 @@ local function DisableUnit(unitID)
 	Spring.GiveOrderToUnit(unitID, CMD.FIRE_STATE, { 0 }, 0)
 end
 
-local function IntroSetUp()
+local function introSetUp()
     local teams = spGetTeamList()
     for i = 1,#teams do
         local teamID = teams[i]
@@ -137,22 +208,22 @@ local function IntroSetUp()
         --if (not spGetGaiaTeamID() == teamID) then
             for _, unitID in ipairs(teamUnits) do
                 local x,y,z = Spring.GetUnitPosition(unitID)
-                TeamSpawnPositions[teamID] = {x, y, z}
-                if TeamSpawnPositions[teamID][2] > 0 then
-                    TeamIsLandPlayer[teamID] = true
+                teamSpawnPositions[teamID] = { x = x, y = y, z = z}
+                if teamSpawnPositions[teamID].y > 0 then
+                    teamIsLandPlayer[teamID] = true
                 else
-                    TeamIsLandPlayer[teamID] = false
+                    teamIsLandPlayer[teamID] = false
                 end
-                TeamSpawnQueue[teamID] = {[1] = "dummyentry",}
-                TeamRespawnQueue[teamID] = {[1] = "dummyentry",}
-                DisableUnit(unitID)
+				teamSpawnQueue[teamID] = {}
+				teamRespawnQueue[teamID] = {}
+                disableUnit(unitID)
             end
         --end
     end
     phase = 1
 end
 
-local function AddInfiniteResources()
+local function addInfiniteResources()
     local teams = spGetTeamList()
     for i = 1,#teams do
         local teamID = teams[i]
@@ -163,79 +234,82 @@ local function AddInfiniteResources()
     end
 end
 
-local function SpawnUnitsFromQueue()
+local function spawnUnitsFromQueue()
     local teams = spGetTeamList()
     for i = 1,#teams do
         local teamID = teams[i]
-        if TeamSpawnQueue[teamID] then
-            if TeamSpawnQueue[teamID][2] then
-                local x = TeamSpawnPositions[teamID][1]+math.random(-32,32)
-                local z = TeamSpawnPositions[teamID][3]+math.random(-32,32)
+        if teamSpawnQueue[teamID] then
+            if teamSpawnQueue[teamID][1] then
+                local x = teamSpawnPositions[teamID].x + math.random(-32,32)
+                local z = teamSpawnPositions[teamID].z + math.random(-32,32)
                 local y = Spring.GetGroundHeight(x,z)
-                Spring.CreateUnit(TeamSpawnQueue[teamID][2], x, y, z, 0, teamID)
+                Spring.CreateUnit(teamSpawnQueue[teamID][1], x, y, z, 0, teamID)
                 Spring.SpawnCEG("scav-spawnexplo",x,y,z,0,0,0)
-                table.remove(TeamSpawnQueue[teamID], 2)
+                table.remove(teamSpawnQueue[teamID], 1)
             end
         end
     end
 end
 
-local function RespawnUnitsFromQueue()
+local function respawnUnitsFromQueue()
     local teams = spGetTeamList()
     for i = 1,#teams do
         local teamID = teams[i]
-        if TeamRespawnQueue[teamID] then
-            if TeamRespawnQueue[teamID][2] then
-                local x = TeamSpawnPositions[teamID][1]+math.random(-32,32)
-                local z = TeamSpawnPositions[teamID][3]+math.random(-32,32)
+        if teamRespawnQueue[teamID] then
+            if teamRespawnQueue[teamID][1] then
+                local x = teamSpawnPositions[teamID].x + math.random(-32,32)
+                local z = teamSpawnPositions[teamID].z + math.random(-32,32)
                 local y = Spring.GetGroundHeight(x,z)
-                Spring.CreateUnit(TeamRespawnQueue[teamID][2], x, y, z, 0, teamID)
+                Spring.CreateUnit(teamRespawnQueue[teamID][1], x, y, z, 0, teamID)
                 Spring.SpawnCEG("scav-spawnexplo",x,y,z,0,0,0)
-                table.remove(TeamRespawnQueue[teamID], 2)
+                table.remove(teamRespawnQueue[teamID], 1)
             end
         end
     end
 end
 
-local function AddNewUnitsToQueue(starter)
+local function addNewUnitsToQueue(starter)
+	local landRandom, landUnit, landUnitCount
+	local seaRandom, seaUnit, seaUnitCount
+
     if starter then
-        landRandom = math.random(1,#StarterLandUnitsList)
-        landUnit = StarterLandUnitsList[landRandom][1]
-        landUnitCount = StarterLandUnitsList[landRandom][2]
+        landRandom = math.random(1,#starterLandUnitsList)
+        landUnit = starterLandUnitsList[landRandom].unitID
+        landUnitCount = starterLandUnitsList[landRandom].quantity
 
-        seaRandom = math.random(1,#StarterSeaUnitsList)
-        seaUnit = StarterSeaUnitsList[seaRandom][1]
-        seaUnitCount = StarterSeaUnitsList[seaRandom][2]
+        seaRandom = math.random(1,#starterSeaUnitsList)
+        seaUnit = starterSeaUnitsList[seaRandom].unitID
+        seaUnitCount = starterSeaUnitsList[seaRandom].quantity
     else
-        landRandom = math.random(1,#LandUnitsList[phase])
-        landUnit = LandUnitsList[phase][landRandom][1]
-        landUnitCount = LandUnitsList[phase][landRandom][2]
+        landRandom = math.random(1,#landUnitsList[phase])
+        landUnit = landUnitsList[phase][landRandom].unitID
+        landUnitCount = landUnitsList[phase][landRandom].quantity
 
-        seaRandom = math.random(1,#SeaUnitsList[phase])
-        seaUnit = SeaUnitsList[phase][seaRandom][1]
-        seaUnitCount = SeaUnitsList[phase][seaRandom][2]
+        seaRandom = math.random(1,#seaUnitsList[phase])
+        seaUnit = seaUnitsList[phase][seaRandom].unitID
+        seaUnitCount = seaUnitsList[phase][seaRandom].quantity
     end
     
     local teams = spGetTeamList()
     for i = 1,#teams do
         local teamID = teams[i]
-        if TeamIsLandPlayer[teamID] then
+        if teamIsLandPlayer[teamID] then
             for j = 1,landUnitCount do
-                if TeamSpawnQueue[teamID] then
-                    if TeamSpawnQueue[teamID][2] then
-                        TeamSpawnQueue[teamID][#TeamSpawnQueue[teamID]+1] = landUnit
+                if teamSpawnQueue[teamID] then
+                    if teamSpawnQueue[teamID][1] then
+                        teamSpawnQueue[teamID][#teamSpawnQueue[teamID]+1] = landUnit
                     else
-                        TeamSpawnQueue[teamID][2] = landUnit
+                        teamSpawnQueue[teamID][1] = landUnit
                     end
                 end
             end
         else
             for j = 1,seaUnitCount do
-                if TeamSpawnQueue[teamID] then
-                    if TeamSpawnQueue[teamID][2] then
-                        TeamSpawnQueue[teamID][#TeamSpawnQueue[teamID]+1] = seaUnit
+                if teamSpawnQueue[teamID] then
+                    if teamSpawnQueue[teamID][1] then
+                        teamSpawnQueue[teamID][#teamSpawnQueue[teamID]+1] = seaUnit
                     else
-                        TeamSpawnQueue[teamID][2] = seaUnit
+                        teamSpawnQueue[teamID][1] = seaUnit
                     end
                 end
             end
@@ -247,25 +321,25 @@ local function AddNewUnitsToQueue(starter)
     seaUnitCount = nil
 end
 
-local function RespawnDeadUnit(unitName, unitTeam)
-    if TeamSpawnQueue[unitTeam] then
-        if TeamRespawnQueue[unitTeam][2] then
-            TeamRespawnQueue[unitTeam][#TeamRespawnQueue[unitTeam]+1] = unitName
+local function respawnDeadUnit(unitName, unitTeam)
+    if teamSpawnQueue[unitTeam] then
+        if teamRespawnQueue[unitTeam][1] then
+            teamRespawnQueue[unitTeam][#teamRespawnQueue[unitTeam]+1] = unitName
         else
-            TeamRespawnQueue[unitTeam][2] = unitName
+            teamRespawnQueue[unitTeam][1] = unitName
         end
     end
 end
 
 function gadget:GameFrame(n)
     if n == 20 then
-        IntroSetUp()
+        introSetUp()
     end
     if n == 25 then
-        AddNewUnitsToQueue(true)
+        addNewUnitsToQueue(true)
     end
     if n%900 == 1 then
-        AddInfiniteResources()
+        addInfiniteResources()
     end
     if n > 25 and n%phaseTime == 1 then
         phase = phase + 1
@@ -274,27 +348,27 @@ function gadget:GameFrame(n)
         end
     end
     if n > 25 and n%spawnTimer == 1 then
-        SpawnUnitsFromQueue()
+        spawnUnitsFromQueue()
     end
     if n > 25 and n%respawnTimer == 1 then
-        RespawnUnitsFromQueue()
+        respawnUnitsFromQueue()
     end
     if n > 25 and n%addUpFrequency == 1 then
-        AddNewUnitsToQueue(false)
+        addNewUnitsToQueue(false)
     end
 end
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
     if builderID and canResurrect[Spring.GetUnitDefID(builderID)] then
-        ResurrectedUnits[unitID] = true
+        resurrectedUnits[unitID] = true
     end
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
-    if ResurrectedUnits[unitID] then
-        ResurrectedUnits[unitID] = nil
+    if resurrectedUnits[unitID] then
+        resurrectedUnits[unitID] = nil
     else
         local UnitName = UnitDefs[unitDefID].name
-        RespawnDeadUnit(UnitName, unitTeam)
+        respawnDeadUnit(UnitName, unitTeam)
     end
 end

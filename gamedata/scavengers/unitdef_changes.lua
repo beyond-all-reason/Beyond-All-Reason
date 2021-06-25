@@ -576,6 +576,13 @@ customDefs.corgantuw = {
 	},
 }
 
+numBuildoptions = #UnitDefs.corlab.buildoptions
+customDefs.corlab = {
+	buildoptions = {
+		[numBuildoptions+1] = "corkark",
+	},
+}
+
 numBuildoptions = #UnitDefs.coravp.buildoptions
 customDefs.coravp = {
 	buildoptions = {

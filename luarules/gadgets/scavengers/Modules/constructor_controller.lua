@@ -1,7 +1,7 @@
 Spring.Echo("[Scavengers] Constructor Controller initialized")
 
-VFS.Include("luarules/gadgets/scavengers/Configs/"..GameShortName.."/UnitLists/constructors.lua")
-Blueprints2List = VFS.DirList('luarules/gadgets/scavengers/Blueprints/'..GameShortName..'/Constructor/','*.lua')
+VFS.Include("luarules/gadgets/scavengers/Configs/" .. Game.gameShortName .. "/UnitLists/constructors.lua")
+Blueprints2List = VFS.DirList('luarules/gadgets/scavengers/Blueprints/' .. Game.gameShortName .. '/Constructor/','*.lua')
 for i = 1,#Blueprints2List do
 	VFS.Include(Blueprints2List[i])
 	Spring.Echo("Scav Blueprints Directory: " ..Blueprints2List[i])

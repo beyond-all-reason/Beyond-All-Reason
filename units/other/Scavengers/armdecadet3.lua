@@ -159,13 +159,13 @@ return {
 			[1] = {
 				def = "ARMMINIVULC_WEAPON",
 				maindir = "0 0 1",
-				maxangledif = 285,
+				maxangledif = 320,
 				onlytargetcategory = "NOTSUB",
 			},
 			[2] = {
 				def = "ARMMINIVULC_WEAPON",
 				maindir = "0 0 -1",
-				maxangledif = 285,
+				maxangledif = 320,
 				onlytargetcategory = "NOTSUB",
 			},
 		},

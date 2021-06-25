@@ -864,6 +864,7 @@ void main() {
   float fogDist = length((cameraView * vec4(grassVertWorldPos,1.0)).xyz);
   float fogFactor = (fogParams.y - fogDist) * fogParams.w;
   mapColor.a = smoothstep(0.0,1.0,fogFactor);
+  mapColor.a = 1.0; // DEBUG FOR NOW AS FOG IS BORKED
   
   //--- DISTANCE FADE ---
   vec4 camPos = cameraViewInv[3];

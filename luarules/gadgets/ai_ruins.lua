@@ -4,7 +4,6 @@ mapsizeZ = Game.mapSizeZ
 GaiaTeamID = Spring.GetGaiaTeamID()
 GaiaAllyTeamID = select(6, Spring.GetTeamInfo(GaiaTeamID))
 
-local GameShortName = Game.gameShortName
 local RuinSpawns = (math.ceil(math.ceil(mapsizeX+mapsizeZ)/750)+30)*3
 
 local scavengersAIEnabled = false
@@ -87,7 +86,7 @@ function SpawnRuin(name, posx, posy, posz, facing, patrol)
 	end
 end
 
-local BlueprintsList = VFS.DirList('luarules/gadgets/scavengers/Ruins/'..GameShortName..'/','*.lua')
+local BlueprintsList = VFS.DirList('luarules/gadgets/scavengers/Ruins/' .. Game.gameShortName .. '/','*.lua')
 RuinsList = {}
 RuinsListSea = {}
 for i = 1,#BlueprintsList do

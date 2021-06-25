@@ -18,6 +18,7 @@ end
 local damagedelay = 0 -- number of frames before the damage starts to kick in
 local additionalradius = 8 -- extra radius above the units standard radius to scan for
 local damageAmount = 100 -- amount of damage, applied only once per projectile per unit
+local dGunRange = 250 -- This is so that we dont deal 'extra' damage outside of the range of the unit
 local killfriendly = true -- only different allyteams get hit
 
 
@@ -85,9 +86,10 @@ end
 
 function gadget:ProjectileCreated(proID, proOwnerID, weaponDefID)
     if weapons[weaponDefID] then
-		--Spring.Echo("Dgun fired!")
-		local ownerallyteam = Spring.GetUnitAllyTeam(proOwnerID)
-        projectiles[proID] = {owner = proOwnerID, gameframe = Spring.GetGameFrame(), alreadydamaged = {}, ownerallyteam = ownerallyteam}
+        --Spring.Echo("Dgun fired!")
+        local ownerallyteam = Spring.GetUnitAllyTeam(proOwnerID)
+        local x,y,z = Spring.GetProjectilePosition(proID)
+        projectiles[proID] = {owner = proOwnerID, gameframe = Spring.GetGameFrame(), alreadydamaged = {}, ownerallyteam = ownerallyteam, startx = x, starty = y , startz = z}
     end
 end
 
@@ -117,9 +119,12 @@ function gadget:GameFrame(gf)
 				
 				-- order by likelyhood
 				if commanders[unitID] == nil 
-					and (killfriendly or Spring.GetUnitAllyTeam(unitID) ~= projectile.ownerallyteam )
-					and projectile.alreadydamaged[unitID] == nil 
-					and distancesq(x,y,z,ux,uy,uz) < radius * radius then
+					and (killfriendly or Spring.GetUnitAllyTeam(unitID) ~= projectile.ownerallyteam ) -- dont kill friendlies with this
+					and projectile.alreadydamaged[unitID] == nil  -- only once per unit
+					and distancesq(x,y,z,ux,uy,uz) < radius * radius   -- its inside the units radius
+          and distancesq(projectile.startx, projectile.starty, projectile.startz, ux, uy, uz) < dGunRange*dGunRange then -- so they dont damage too far outside of their range
+            
+            
 					--Spring.Echo("RAMPAGE")
 					Spring.AddUnitDamage(unitID, damageAmount, 0, projectile.owner, -7) -- why -7, dunno, but doesnt work without it
 					projectile.alreadydamaged[unitID] = true

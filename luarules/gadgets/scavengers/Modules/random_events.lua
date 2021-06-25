@@ -1,16 +1,23 @@
-RandomEventsFileList = VFS.DirList('luarules/gadgets/scavengers/RandomEvents/'..GameShortName..'/','*.lua')
-for i = 1,#RandomEventsFileList do
-	VFS.Include(RandomEventsFileList[i])
-	Spring.Echo("Scav Random Events Directory: " ..RandomEventsFileList[i])
+local eventFile
+
+local randomEventsFileList = VFS.DirList('luarules/gadgets/scavengers/RandomEvents/' .. Game.gameShortName .. '/','*.lua')
+for i = 1, #randomEventsFileList do
+	eventFile = VFS.Include(randomEventsFileList[i])
+
+	for _, event in pairs(eventFile) do
+		table.insert(RandomEventsList, event)
+	end
+
+	Spring.Echo("[Scavengers] Loading random event file: " .. randomEventsFileList[i])
 end
 
-local function RefreshEventsList()
+local function refreshEventsList()
 	UsedRandomEventsList = {}
 	for i = 1,#RandomEventsList do
 		table.insert(UsedRandomEventsList,RandomEventsList[i])
 	end
 end
-RefreshEventsList()
+refreshEventsList()
 
 function RandomEventTrigger(CurrentFrame)
 	if not LastRandomEventFrame then LastRandomEventFrame = 1 end
@@ -31,7 +38,7 @@ function RandomEventTrigger(CurrentFrame)
 			table.remove(UsedRandomEventsList, EventNumber)
 			EventNumber = nil
 			if #UsedRandomEventsList == 0 then
-				RefreshEventsList()
+				refreshEventsList()
 			end
 		end
 	end

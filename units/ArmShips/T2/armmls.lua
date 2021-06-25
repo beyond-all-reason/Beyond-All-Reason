@@ -58,6 +58,7 @@ return {
 			[13] = "armamph",
 			[14] = "armfmine3",
 			[15] = "armamb",
+			[16] = "armkraken",
 		},
 		customparams = {
 			area_mex_def = "armmex",

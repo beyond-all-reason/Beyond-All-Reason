@@ -1,7 +1,7 @@
 
 Spring.Echo("[Scavengers] Building spawner initialized")
 
-BlueprintsList = VFS.DirList('luarules/gadgets/scavengers/Blueprints/'..GameShortName..'/Spawner/','*.lua')
+BlueprintsList = VFS.DirList('luarules/gadgets/scavengers/Blueprints/' .. Game.gameShortName .. '/Spawner/','*.lua')
 for i = 1,#BlueprintsList do
 	VFS.Include(BlueprintsList[i])
 	Spring.Echo("Scav Blueprints Directory: " ..BlueprintsList[i])

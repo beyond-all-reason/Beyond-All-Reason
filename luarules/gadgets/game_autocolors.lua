@@ -35,23 +35,34 @@ local enemyCounter = 0
 local simpleColorsUpdateCounter = 0
 
 SimpleColorsEnabled = Spring.GetConfigInt("simple_auto_colors", 0) -- Floris plz add option here
-local DynamicTeamColorsEnabled = (Spring.GetModOptions and Spring.GetModOptions().teamcolors_dynamic) or "enabled"
-if DynamicTeamColorsEnabled == "enabled" then
+local DynamicTeamColorsEnabledModoption = (Spring.GetModOptions and Spring.GetModOptions().teamcolors_dynamic) or "enabled"
+if DynamicTeamColorsEnabledModoption == "enabled" then
     DynamicTeamColorsEnabled = true
 else
     DynamicTeamColorsEnabled = false
 end
-local DynamicTeamColorsSpectatorsEnabled = (Spring.GetModOptions and Spring.GetModOptions().teamcolors_dynamic_spectators) or "disabled"
-if DynamicTeamColorsSpectatorsEnabled == "enabled" then
-    DynamicTeamColorsSpectatorsEnabled = true
-else
-    DynamicTeamColorsSpectatorsEnabled = false
-end
-local AnonymousModeEnabled = (Spring.GetModOptions and Spring.GetModOptions().teamcolors_anonymous_mode) or "disabled"
-if AnonymousModeEnabled == "enabled" then
+local AnonymousModeEnabledModoption = (Spring.GetModOptions and Spring.GetModOptions().teamcolors_anonymous_mode) or "disabled"
+if AnonymousModeEnabledModoption == "enabled" then
     AnonymousModeEnabled = true
 else
     AnonymousModeEnabled = false
+end
+local IconDevModeEnabledModoption = (Spring.GetModOptions and Spring.GetModOptions().teamcolors_icon_dev_mode) or "disabled"
+if IconDevModeEnabledModoption == "disabled" then
+    IconDevModeEnabled = false
+else
+    if IconDevModeEnabledModoption == "armblue" then
+        IconDevModeColor = {0, 80, 255}
+    elseif IconDevModeEnabledModoption == "corred" then
+        IconDevModeColor = {255, 16, 5}
+    elseif IconDevModeEnabledModoption == "scavpurp" then
+        IconDevModeColor = {97, 36, 97}
+    elseif IconDevModeEnabledModoption == "chickenorange" then
+        IconDevModeColor = {255, 125, 32}
+    elseif IconDevModeEnabledModoption == "gaiagray" then
+        IconDevModeColor = {127, 127, 127}
+    end
+    IconDevModeEnabled = true
 end
 
 SimplePlayerColor = {0, 80, 255} -- Armada Blue
@@ -296,7 +307,7 @@ local function UpdatePlayerColors()
                     MissingColorHandler(teamID, allyTeam)
                 end
             else
-                if (not AnonymousModeEnabled and (not DynamicTeamColorsEnabled)) or (spectator and (not DynamicTeamColorsSpectatorsEnabled)) then
+                if spectator or (not AnonymousModeEnabled and (not DynamicTeamColorsEnabled)) then
                     myTeam = 0
                     myAllyTeam = 0
                 end
@@ -315,6 +326,9 @@ local function UpdatePlayerColors()
                     EnemyColorHandler(teamID, allyTeam, #allyteams-1, myTeam, myAllyTeam)
                 end
             end
+        end
+        if IconDevModeEnabled == true then
+            spSetTeamColor(teamID, IconDevModeColor[1] /255, IconDevModeColor[2] /255, IconDevModeColor[3] /255)
         end
     end
     myTeam = nil
