@@ -19,6 +19,7 @@ if gadgetHandler:IsSyncedCode() then
 		"AF",
 		"AlexS",
 		"Beherith",
+		"Born2Crawl",
 		"Damgam",
 		"Doo",
 		"FireStorm",
