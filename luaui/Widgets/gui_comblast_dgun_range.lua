@@ -165,15 +165,15 @@ function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
     end
 end
 
-function widget:UnitEnteredLos(unitID, unitTeam, allyTeam, unitDefID)
+function widget:UnitEnteredLos(unitID, unitTeam)
     if not amSpec then
-        if isCommander[unitDefID] then
+        if isCommander[spGetUnitDefID(unitID)] then
             addCom(unitID)
         end
     end
 end
 
-function widget:UnitLeftLos(unitID, unitTeam, allyTeam, unitDefID)
+function widget:UnitLeftLos(unitID, unitDefID, unitTeam)
     if not amSpec then
         if comCenters[unitID] then
             removeCom(unitID)

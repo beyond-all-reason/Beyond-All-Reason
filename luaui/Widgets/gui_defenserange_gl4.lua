@@ -362,6 +362,31 @@ local function goodbye(reason)
   widgetHandler:RemoveWidget()
 end
 
+local function makeCircleVBO(circleSegments)
+	circleSegments  = circleSegments -1 -- for po2 buffers
+	local circleVBO = gl.GetVBO(GL.ARRAY_BUFFER,true)
+	if circleVBO == nil then goodbye("Failed to create circleVBO") end
+	
+	local VBOLayout = {
+	 {id = 0, name = "position", size = 4},
+	}
+	
+	local VBOData = {}
+	
+	for i = 0, circleSegments  do -- this is +1
+		VBOData[#VBOData+1] = math.sin(math.pi*2* i / circleSegments) -- X
+		VBOData[#VBOData+1] = math.cos(math.pi*2* i / circleSegments) -- Y
+		VBOData[#VBOData+1] = i / circleSegments -- circumference [0-1]
+		VBOData[#VBOData+1] = 0
+	end	
+	
+	circleVBO:Define(
+		circleSegments + 1,
+		VBOLayout
+	)
+	circleVBO:Upload(VBOData)
+	return circleVBO
+end
 
 local vsSrc = [[
 #version 420
@@ -617,6 +642,7 @@ void main() {
 
 
 local function makeShaders()
+	local blen = LuaShader.GetAdvShadingActive()
 	local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()
 	vsSrc = vsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
 	fsSrc = fsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
@@ -853,12 +879,12 @@ function UnitDetected( unitID, allyTeam, teamId , unitDefID )
 				
 				local newkey = tostring(unitID) .. tostring( unitDefID) .. tostring( i) .. '_' .. tostring(x) .. '_' .. tostring(z)
 				--Spring.Echo("weaponType", weaponType, "weaponDef.projectilespeed",weaponDef.projectilespeed,"weaponDef.heightBoostFactor",weaponDef.heightBoostFactor,"weaponDef.heightMod",weaponDef.heightMod)
-	
+				
 				local myData = {
 					x,y,z,range,
 					color1[1],color1[2],color1[3],teamId,
 					-- // fadeend, fadestart
-					color1[5],color1[6],color1[8],color1[7], 
+					color1[5],color1[6],0.0,1.0, 
 					
 					--//projectileParams : projectileSpeed, rangeFactor, heightBoostFactor , heightMod
 					weaponDef.projectilespeed,isCylinder,weaponDef.heightBoostFactor,weaponDef.heightMod

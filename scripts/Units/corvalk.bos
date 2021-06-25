@@ -122,10 +122,6 @@ Create()
 {
 	unitviewer = FALSE;
 	Static_Var_1 = 0;
-	turn thrust1 to x-axis <-90> now;
-	turn thrust2 to x-axis <-90> now;
-	turn thrust3 to x-axis <-90> now;
-	turn thrust4 to x-axis <-90> now;
 	call-script InitState();
 	start-script SmokeUnit();
 	return (0);

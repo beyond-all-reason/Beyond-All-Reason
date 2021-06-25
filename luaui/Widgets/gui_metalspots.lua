@@ -6,7 +6,7 @@ function widget:GetInfo()
 	date    = "October 2019",
 	license = "",
 	layer   = 2,
-	enabled = false,
+	enabled = true,
   }
 end
 

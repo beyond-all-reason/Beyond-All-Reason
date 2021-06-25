@@ -70,12 +70,12 @@ function widget:DrawWorld()
 	ResetGl()
 end
 
-function widget:UnitEnteredLos(unitID, unitTeam, allyTeam, unitDefID)
+function widget:UnitEnteredLos(unitID, teamID)
 	if spec or spIsUnitAllied(unitID) then
 		return
 	end
 
-    local uDID = unitDefID
+    local uDID = spGetUnitDefID(unitID)
 	if isBuilding[uDID] and spGetUnitRulesParam(unitID,"under_construction")==1 then
 		local x, y, z = spGetUnitBasePosition(unitID)
 		local dx,_,dz = spGetUnitDirection(unitID)

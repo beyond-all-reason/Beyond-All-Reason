@@ -1846,13 +1846,6 @@ function widgetHandler:UnitDestroyed(unitID, unitDefID, unitTeam)
 	return
 end
 
-function widgetHandler:RenderUnitDestroyed(unitID, unitDefID, unitTeam)
-	for _, w in ipairs(self.RenderUnitDestroyedList) do
-		w:RenderUnitDestroyed(unitID, unitDefID, unitTeam)
-	end
-	return
-end
-
 function widgetHandler:UnitExperience(unitID, unitDefID, unitTeam, experience, oldExperience)
 	for _, w in ipairs(self.UnitExperienceList) do
 		w:UnitExperience(unitID, unitDefID, unitTeam,
@@ -1905,38 +1898,30 @@ function widgetHandler:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyze
 	return
 end
 
-function widgetHandler:UnitEnteredRadar(unitID, allyTeam)
-  local unitTeam = Spring.GetUnitTeam(unitID)
-  local unitDefID = Spring.GetUnitDefID(unitID)
+function widgetHandler:UnitEnteredRadar(unitID, unitTeam)
 	for _, w in ipairs(self.UnitEnteredRadarList) do
 		w:UnitEnteredRadar(unitID, unitTeam)
 	end
 	return
 end
 
-function widgetHandler:UnitEnteredLos(unitID, allyTeam)
-  local unitTeam = Spring.GetUnitTeam(unitID)
-  local unitDefID = Spring.GetUnitDefID(unitID)
+function widgetHandler:UnitEnteredLos(unitID, unitTeam)
 	for _, w in ipairs(self.UnitEnteredLosList) do
-		w:UnitEnteredLos(unitID, unitTeam, allyTeam, unitDefID)
+		w:UnitEnteredLos(unitID, unitTeam)
 	end
 	return
 end
 
-function widgetHandler:UnitLeftRadar(unitID, allyTeam)
-  local unitTeam = Spring.GetUnitTeam(unitID)
-  local unitDefID = Spring.GetUnitDefID(unitID)
+function widgetHandler:UnitLeftRadar(unitID, unitTeam)
 	for _, w in ipairs(self.UnitLeftRadarList) do
-		w:UnitLeftRadar(unitID, unitTeam, allyTeam, unitDefID)
+		w:UnitLeftRadar(unitID, unitTeam)
 	end
 	return
 end
 
-function widgetHandler:UnitLeftLos(unitID, allyTeam)
-  local unitTeam = Spring.GetUnitTeam(unitID)
-  local unitDefID = Spring.GetUnitDefID(unitID)
+function widgetHandler:UnitLeftLos(unitID, unitTeam)
 	for _, w in ipairs(self.UnitLeftLosList) do
-		w:UnitLeftLos(unitID, unitTeam, allyTeam, unitDefID)
+		w:UnitLeftLos(unitID, unitTeam)
 	end
 	return
 end

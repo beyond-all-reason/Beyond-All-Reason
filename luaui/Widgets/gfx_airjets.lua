@@ -597,11 +597,11 @@ function widget:Update(dt)
 	end
 end
 
-function widget:UnitEnteredLos(unitID, unitTeam, allyTeam, unitDefID)
-	AddUnit(unitID, unitDefID, unitTeam)
+function widget:UnitEnteredLos(unitID, unitTeam)
+	AddUnit(unitID, spGetUnitDefID(unitID), unitTeam)
 end
 
-function widget:UnitLeftLos(unitID, unitTeam, allyTeam, unitDefID)
+function widget:UnitLeftLos(unitID, unitDefID, unitTeam)
 	RemoveUnit(unitID, unitDefID, unitTeam)
 end
 

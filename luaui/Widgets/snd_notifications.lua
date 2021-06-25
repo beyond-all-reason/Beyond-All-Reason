@@ -472,12 +472,12 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
 end
 
 
-function widget:UnitEnteredLos(unitID, unitTeam, allyTeam, unitDefID)
+function widget:UnitEnteredLos(unitID, unitTeam)
 	if not displayMessages and not spoken then return end
 
 	if spIsUnitAllied(unitID) or unitTeam == gaiaTeamID then return end
 
-	local udefID = unitDefID
+	local udefID = spGetUnitDefID(unitID)
 
 	-- single detection events below
 	if isAircraft[udefID] then

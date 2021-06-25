@@ -375,7 +375,7 @@ function widget:UnitCreated( unitID,  unitDefID,  unitTeam)
 	UnitDetected( unitID, true )
 end
 
-function widget:UnitEnteredLos(unitID, unitTeam, allyTeam, unitDefID)
+function widget:UnitEnteredLos(unitID, allyTeam)
 	UnitDetected( unitID, false, allyTeam )
 end
 

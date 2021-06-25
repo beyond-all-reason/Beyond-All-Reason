@@ -108,8 +108,9 @@ function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
     end
 end
 
-function widget:UnitEnteredLos(unitID, unitTeam, allyTeam, unitDefID)
+function widget:UnitEnteredLos(unitID, unitTeam)
     if not fullview then
+        local unitDefID = GetUnitDefID(unitID)
         if isSpy[unitDefID] then
 			addSpy(unitID, unitDefID)
         end
