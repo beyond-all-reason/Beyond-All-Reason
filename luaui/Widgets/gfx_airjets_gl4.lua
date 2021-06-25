@@ -1,12 +1,14 @@
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
+--https://gist.github.com/lhog/77f3fb10fed0c4e054b6c67eb24efeed#file-test_unitshape_instancing-lua-L177-L178
 
+--------------------------------------------OLD AIRJETS---------------------------
 function widget:GetInfo()
 	return {
-		name = "Airjets",
+		name = "Airjets GL4",
 		desc = "Thruster effects on air jet exhausts (auto limits and disables when low fps)",
-		author = "GoogleFrog, jK, Floris",
-		date = "9 May 2020",
+		author = "GoogleFrog, jK, Floris, Beherith",
+		date = "2021.05.16",
 		license = "GNU GPL, v2 or later",
 		layer = -1,
 		enabled = true,
@@ -17,17 +19,12 @@ end
 -- 'Speedups'
 --------------------------------------------------------------------------------
 
-local spGetUnitPosition = Spring.GetUnitPosition
-local spGetUnitRotation = Spring.GetUnitRotation
 local spGetUnitPieceInfo = Spring.GetUnitPieceInfo
 
-local math_cos = math.cos
-local math_sin = math.sin
-local math_rad = math.rad
-local math_random = math.random
 
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetGameSeconds = Spring.GetGameSeconds
+local spGetGameFrame = Spring.GetGameFrame
 local spGetUnitPieceMap = Spring.GetUnitPieceMap
 local spIsUnitVisible = Spring.IsUnitVisible
 local spGetUnitIsActive = Spring.GetUnitIsActive
@@ -36,6 +33,8 @@ local spGetUnitMoveTypeData = Spring.GetUnitMoveTypeData
 local spGetUnitVelocity = Spring.GetUnitVelocity
 local spGetUnitTeam = Spring.GetUnitTeam
 local spGetFPS = Spring.GetFPS
+
+local math_abs = math.abs
 
 local glUseShader = gl.UseShader
 local glUniform = gl.Uniform
@@ -73,9 +72,9 @@ local gaiaID = Spring.GetGaiaTeamID()
 
 local enableLights = true
 
-local disableAtAvgFps = 8
-local limitAtAvgFps = 16	-- filter spammy units: fighters/scouts
-local avgFpsThreshold = 6   -- have this more fps than disableAtAvgFps to re-enable
+local disableAtAvgFps = 1
+local limitAtAvgFps = 1	-- filter spammy units: fighters/scouts
+local avgFpsThreshold = 1   -- have this more fps than disableAtAvgFps to re-enable
 
 local lightMult = 1.4
 
@@ -174,10 +173,10 @@ local effectDefs = {
 		{ color = { 0.2, 0.8, 0.2 }, width = 3, length = 32, piece = "thrust", light = 1 },
 	},
 	["corcrw"] = {
-		{ color = { 0.1, 0.4, 0.6 }, width = 12, length = 36, piece = "thrustrra", emitVector = { 0, 1, 0 }, light = 0.6 },
-		{ color = { 0.1, 0.4, 0.6 }, width = 12, length = 36, piece = "thrustrla", emitVector = { 0, 1, 0 }, light = 0.6 },
-		{ color = { 0.1, 0.4, 0.6 }, width = 10, length = 30, piece = "thrustfra", emitVector = { 0, 1, 0 }, light = 0.6 },
-		{ color = { 0.1, 0.4, 0.6 }, width = 10, length = 30, piece = "thrustfla", emitVector = { 0, 1, 0 }, light = 0.6 },
+		{ color = { 0.1, 0.4, 0.6 }, width = 12, length = 36, piece = "thrustrra", emitVector = { 0, 1, -1 }, light = 0.6 },
+		{ color = { 0.1, 0.4, 0.6 }, width = 12, length = 36, piece = "thrustrla", emitVector = { 0, 1, -1 }, light = 0.6 },
+		{ color = { 0.1, 0.4, 0.6 }, width = 10, length = 30, piece = "thrustfra", emitVector = { 0, 1, -1 }, light = 0.6 },
+		{ color = { 0.1, 0.4, 0.6 }, width = 10, length = 30, piece = "thrustfla", emitVector = { 0, 1, -1 }, light = 0.6 },
 	},
 	["corcrwt4"] = {
 		{ color = { 0.1, 0.4, 0.6 }, width = 19, length = 50, piece = "thrustrra", emitVector = { 0, 1, 0 }, light = 0.6 },
@@ -312,9 +311,10 @@ local distortion = 0.008
 local animSpeed = 3
 local jitterWidthScale = 3
 local jitterLengthScale = 3
-local drawReflectionPass = false	-- eats quite a bit extra perf
+local drawReflectionPass = false	-- should be free now :D, but is strangely ugly on bumpwater
 
-local texture1 = "bitmaps/GPL/Lups/perlin_noise.jpg"    -- noise texture
+local texture1 = "bitmaps/GPL/Lups/perlin_noise.jpg"    -- noise texture 
+--local texture1 = "luaui/images/perlin_noise_rgba_512.png"    -- noise texture
 local texture2 = ":c:bitmaps/gpl/lups/jet2.bmp"        -- shape
 local texture3 = ":c:bitmaps/GPL/Lups/jet.bmp"        -- jitter shape
 
@@ -369,31 +369,267 @@ local updateSec = 0
 local enabled = true
 local limit = false
 local averageFps = 100
-local lighteffectsEnabled = (enableLights and WG['lighteffects'] ~= nil and WG['lighteffects'].enableThrusters)
+local lighteffectsEnabled = false -- TODO (enableLights and WG['lighteffects'] ~= nil and WG['lighteffects'].enableThrusters)
+-- GL4 Notes/TODO:
+-- xzVelocityUnits is disabled
+-- no FPS limited
+-- draw in refract/reflect too?
+-- A crashing aircraft can be neither destroyed nor go out ouf LOS before becoming an invalid unitID
+
+-- GL4 Variables:
+
+local quadVBO = nil
+local jetInstanceVBO = nil
+local jetShader = nil
+local jitterShader = nil
+
+local luaShaderDir = "LuaUI/Widgets/Include/"
+local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
+VFS.Include(luaShaderDir.."instancevbotable.lua")
+
+local vsSrc =  
+[[#version 420
+#line 10000
+uniform float timer;
+
+
+layout (location = 0) in vec4 position_xy_uv; 
+
+layout (location = 1) in vec3 widthlengthtime; // time is gameframe spawned :D
+layout (location = 2) in vec3 emitdir;
+layout (location = 3) in vec3 color;
+layout (location = 4) in uint pieceIndex;
+layout (location = 5) in uint instData; // unitID, teamID, ??
+
+#define JITTERWIDTHSCALE 3
+#define JITTERLENGTHSCALE 3
+#define ANIMATION_SPEED 0.1 
+
+out DataVS {
+	vec4 texCoords;
+	vec4 jetcolor;
+};
+
+const vec4 centerPos = vec4(0.0,0.0,0.0,1.0);
+
+//#define WIDTH  gl_Vertex.x
+//#define LENGTH gl_Vertex.y
+//#define TEXCOORD gl_Vertex.zw
+// gl_MultiTexCoord0.xy := jitter width/length scale (i.e jitter quad length = gl_vertex.x * gl_MultiTexCoord0.x)
+// gl_MultiTexCoord0.z  := (quad_width) / (quad_length) (used to normalize the texcoord dimensions)
+//#define DISTORTION_STRENGTH gl_MultiTexCoord0.w
+//#define EMITDIR gl_MultiTexCoord1
+//#define COLOR gl_MultiTexCoord2.rgb
+//#define ANIMATION_SPEED gl_MultiTexCoord2.w
+//	glMultiTexCoord(0, jitterWidthScale, jitterLengthScale, self.width / self.length, distortion)
+//	glMultiTexCoord(1, ev[1], ev[2], ev[3], 1)
+//	glMultiTexCoord(2, color[1], color[2], color[3], animSpeed)
+
+
+#extension GL_ARB_uniform_buffer_object : require
+#extension GL_ARB_shader_storage_buffer_object : require
+#extension GL_ARB_shading_language_420pack: require
+
+//__ENGINEUNIFORMBUFFERDEFS__
+
+
+layout(std140, binding=0) readonly buffer MatrixBuffer {
+	mat4 UnitPieces[];
+};
+
+mat4 mat4mix(mat4 a, mat4 b, float alpha) {
+	return (a * (1.0 - alpha) + b * alpha);
+}
+
+mat4 rotationMatrix(vec3 axis, float angle)
+{
+    axis = normalize(axis);
+    float s = sin(angle);
+    float c = cos(angle);
+    float oc = 1.0 - c;
+    
+    return mat4(oc * axis.x * axis.x + c,           oc * axis.x * axis.y - axis.z * s,  oc * axis.z * axis.x + axis.y * s,  0.0,
+                oc * axis.x * axis.y + axis.z * s,  oc * axis.y * axis.y + c,           oc * axis.y * axis.z - axis.x * s,  0.0,
+                oc * axis.z * axis.x - axis.y * s,  oc * axis.y * axis.z + axis.x * s,  oc * axis.z * axis.z + c,           0.0,
+                0.0,                                0.0,                                0.0,                                1.0);
+}
+
+//I've got different signs than https://github.com/dmnsgn/glsl-rotate/blob/master/rotation-3d-z.glsl (by applying the above to (0,0,1) axis
+mat4 rotationMatrixZ(float angle)
+{
+    float s = sin(angle);
+    float c = cos(angle);
+    
+    return mat4(  c,  -s, 0.0, 0.0,
+				  s,   c, 0.0, 0.0,
+				0.0, 0.0, 1.0, 0.0,
+				0.0, 0.0, 0.0, 1.0);
+}
+
+#line 10468
+void main()
+{
+	uint baseIndex = instData.x; // grab the correct offset into UnitPieces SSBO
+	mat4 modelMatrix = UnitPieces[baseIndex]; //Find our matrix
+
+	mat4 pieceMatrix = mat4mix(mat4(1.0), UnitPieces[baseIndex + pieceIndex ], modelMatrix[3][3]);
+	pieceMatrix = UnitPieces[baseIndex + pieceIndex ]; // mat4mix(mat4(1.0), UnitPieces[baseIndex + pieceIndex ], modelMatrix[3][3]);
+
+	vec2 modulatedsize = widthlengthtime.xy;
+	// modulatedsize += rndVec3.xy * modulatedsize * 0.25; // not very pretty
+	vec4 vertexPos = vec4(position_xy_uv.x * modulatedsize.x , 0, position_xy_uv.y*modulatedsize.y ,1.0);
+
+	mat4 worldMat = modelMatrix * pieceMatrix;
+	mat4 worldMatInv = transpose(worldMat);
+	
+	vec4 worldPos  = worldMat * vertexPos;
+	//vec4 worldPosM = worldMat * centerPos;
+	
+	vec3 modelNormal = vec3(0.0, 1.0, 0.0);
+	vec3 modelAxis   = vec3(0.0, 0.0, 1.0);
+
+	vec4 worldCamPos = cameraViewInv * vec4(0.0, 0.0, 0.0, 1.0);
+
+	vec3 worldCamDir = normalize(worldCamPos.xyz - worldPos.xyz); //can use worldPosM instead of worldPos.xyz to prevent close-up distortion
+	vec3 modelCamDir = normalize(mat3(worldMatInv) * worldCamDir);
+	
+	float s = modelCamDir.x < 0.0 ? -1.0 : 1.0; //go figure why
+	
+	vec3 modelCamDirProj = normalize(modelCamDir - dot(modelCamDir, modelAxis) * modelAxis);
+	float dotP = dot(modelCamDirProj, modelNormal);
+	float angle = acos(dot(modelCamDirProj, modelNormal));
+	
+	//mat4 rotMat = rotationMatrix(modelAxis, s * angle);
+	mat4 rotMat = rotationMatrixZ(s * angle);
+
+	gl_Position = cameraViewProj * worldMat * rotMat * vertexPos;
+
+	texCoords.st = position_xy_uv.zw;
+	texCoords.pq = position_xy_uv.zw;
+	texCoords.q += timeInfo.x * ANIMATION_SPEED;
+
+	jetcolor.rgb = color;
+	jetcolor.a = clamp((timeInfo.x - widthlengthtime.z)*0.053, 0.0, 1.0);
+}
+]]
+
+local fsSrc =
+[[
+#version 420
+#line 20000
+uniform sampler2D noiseMap;
+uniform sampler2D mask;
+
+//__ENGINEUNIFORMBUFFERDEFS__
+
+#extension GL_ARB_uniform_buffer_object : require
+#extension GL_ARB_shading_language_420pack: require
+
+#define DISTORTION 0.01
+in DataVS {
+	vec4 texCoords;
+	vec4 jetcolor;
+};
+
+out vec4 fragColor;
+
+void main(void)
+{
+		vec2 displacement = texCoords.pq;
+
+		vec2 txCoord = texCoords.st;
+		txCoord.s += (texture2D(noiseMap, displacement * DISTORTION * 20.0).y - 0.5) * 40.0 * DISTORTION;
+		txCoord.t +=  texture2D(noiseMap, displacement).x * (1.0-texCoords.t)        * 15.0 * DISTORTION;
+		float opac = texture2D(mask,txCoord.st).r;
+
+		fragColor.rgb  = opac * jetcolor.rgb; //color
+		fragColor.rgb += pow(opac, 5.0 );     //white flame
+		fragColor.a    = min(opac*1.5, 1.0); // 
+		fragColor.rgba = clamp(fragColor, 0.0, 1.0);
+		
+		fragColor.rgba *= jetcolor.a;
+		//	fragColor.rgb = vec3(jetcolor.a);
+		
+}
+
+]]
+	
+	
+
+
+local function goodbye(reason)
+  Spring.Echo("Airjet GL4 widget exiting with reason: "..reason)
+  widgetHandler:RemoveWidget()
+end
+
+
+local function initGL4()
+
+	local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()
+	vsSrc = vsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
+	fsSrc = fsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
+	jetShader =  LuaShader(
+    {
+      vertex = vsSrc,
+      fragment = fsSrc,
+      --geometry = gsSrc, no geom shader for now
+      uniformInt = {
+        noiseMap = 0,
+        mask = 1,
+        },
+	uniformFloat = {
+        jetuniforms = {1,1,1,1}, --unused
+      },
+    },
+    "jetShader GL4"
+  )
+  shaderCompiled = jetShader:Initialize()
+  if not shaderCompiled then goodbye("Failed to compile jetShader GL4 ") end
+  local quadVBO,numVertices = makeRectVBO(-1,0,1,-1,0,1,1,0) --(minX,minY, maxX, maxY, minU, minV, maxU, maxV)
+  local jetInstanceVBOLayout = {
+		  {id = 1, name = 'widthlengthtime', size = 3}, -- widthlength
+		  {id = 2, name = 'emitdir', size = 3}, --  emit dir
+		  {id = 3, name = 'color', size = 3}, --- color
+		  {id = 4, name = 'pieceIndex', type = GL.UNSIGNED_INT, size= 1}, 
+		  {id = 5, name = 'instData', type = GL.UNSIGNED_INT, size= 4}, 
+		}
+  jetInstanceVBO = makeInstanceVBOTable(jetInstanceVBOLayout,256, "jetInstanceVBO", 5)
+  jetInstanceVBO.numVertices = numVertices
+  jetInstanceVBO.vertexVBO = quadVBO
+  jetInstanceVBO.VAO = makeVAOandAttach(jetInstanceVBO.vertexVBO, jetInstanceVBO.instanceVBO)
+  jetInstanceVBO.primitiveType = GL.TRIANGLES
+  jetInstanceVBO.indexVBO = makeRectIndexVBO()
+  jetInstanceVBO.VAO:AttachIndexBuffer(jetInstanceVBO.indexVBO)
+  
+end
+
+
 
 --------------------------------------------------------------------------------
 -- Draw Iteration
 --------------------------------------------------------------------------------
 
-local function Draw(unitID, unitDefID)
+local function DrawLights(unitID, unitDefID)
 	local unitEffects = effectDefs[unitDefID]
 
-	glPushMatrix()
-	glUnitMultMatrix(unitID)
+	--glPushMatrix()
+	--glUnitMultMatrix(unitID)
 	for i = 1, #unitEffects do
 		local fx = unitEffects[i]
 		if fx.piecenum then
 			--Spring.Echo(UnitDefs[unitDefID].name)		-- echo to find out which unit is has wrongly configured piecenames
 			--// enter piece space
-			glPushMatrix()
-			glUnitPieceMultMatrix(unitID, fx.piecenum)
-			glScale(1, 1, -1)
-			glTexture(1, texture1)
-			glTexture(2, texture2)
-			glCallList(fx.dList)
-			glPopMatrix()
+			--glPushMatrix()
+			--glUnitPieceMultMatrix(unitID, fx.piecenum)
+			--glScale(1, 1, -1)
+			--glTexture(1, texture1)
+			--glTexture(2, texture2)
+			--glCallList(fx.dList)
+			--glPopMatrix()
 
 			-- add deferred light
+			
+			--[[
 			if lighteffectsEnabled and lightDefs[unitDefID] then
 				local unitPosX, unitPosY, unitPosZ = spGetUnitPosition(unitID)
 				if unitPosZ then
@@ -421,35 +657,59 @@ local function Draw(unitID, unitDefID)
 					end
 				end
 			end
+			]]--
 		end
 		--// leave piece space
 	end
 
 	--// leave unit space
-	glPopMatrix()
+	--glPopMatrix()
+end
+
+local function ValidateUnitIDs(unitIDkeys)
+	local numunitids = 0
+	local validunitids = 0
+	local invalidunitids = {}
+	local invalidstr = ''
+	for indexpos, unitID in pairs(unitIDkeys) do
+		numunitids = numunitids + 1 
+		if Spring.ValidUnitID(unitID) then
+			validunitids = validunitids + 1 
+		else
+			invalidunitids[#invalidunitids + 1] = unitID
+			invalidstr = tostring(unitID) .. " " .. invalidstr
+		end
+	end
+	if numunitids- validunitids > 0 then
+		Spring.Echo("Airjets GL4", numunitids, "Valid", numunitids- validunitids, "invalid", invalidstr)
+	end
+	if #invalidunitids > 0 then 
+	--	Spring.Echo(invalidunitids)
+	end
 end
 
 local function DrawParticles()
 	if not enabled then return false end
-
+	-- validate unitID buffer
+	
 	glDepthTest(true)
-	glAlphaTest(false)
-
 	glAlphaTest(GL_GREATER, 0)
 
-	glUseShader(shaders.jet)
-	glUniform(shaders.timerUniform, spGetGameSeconds())
+	glTexture(0, texture1)
+	glTexture(1, texture2)
 	glBlending(GL_ONE, GL_ONE)
-	for unitID, unitDefID in pairs(activePlanes) do
-		Draw(unitID, unitDefID)
-	end
-	glUseShader(0)
+	jetShader:Activate()
+	
+	drawInstanceVBO(jetInstanceVBO)
+	
+	jetShader:Deactivate()
+	glTexture(0, false)
 	glTexture(1, false)
-	glTexture(2, false)
 	glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
 	glAlphaTest(false)
-	glDepthTest(false)
+	--glDepthTest(false)
+	
 end
 
 
@@ -466,21 +726,62 @@ local function RemoveLights(unitID)
 	end
 end
 
-local function Activate(unitID, unitDefID)
-	activePlanes[unitID] = unitDefID
+local function Activate(unitID, unitDefID, who, when)
+	--Spring.Echo(Spring.GetGameFrame(), who, "Activate(unitID, unitDefID)",unitID, unitDefID)
+	
 	inactivePlanes[unitID] = nil
+	-- this unit already has lights assigned to it, clear it from inactive and done
+	--if activePlanes[unitID] == unitDefID then return end
+	
+	activePlanes[unitID] = unitDefID
+	
+	if when ==  nil then when = 0 end --
+	
+	local unitEffects = effectDefs[unitDefID]
+	for i = 1, #unitEffects do
+		local effectDef = unitEffects[i]
+		--Spring.Utilities.TableEcho(effectDef)
+		local color = effectDef.color
+		local emitVector = effectDef.emitVector
+		local effectdata = {
+			effectDef.width,effectDef.length, when,
+			emitVector[1],emitVector[2],emitVector[3],
+			color[1],color[2],color[3],
+			effectDef.piecenum ,
+			0,0,0,0, -- this is needed to keep the lua copy of the vbo the correct size
+			
+		}
+		pushElementInstance(jetInstanceVBO,effectdata,tostring(unitID).."_"..tostring(effectDef.piecenum), true, nil, unitID)
+	end
 end
 
-local function Deactivate(unitID, unitDefID)
+
+	
+
+local function Deactivate(unitID, unitDefID, who)
+	--Spring.Echo(Spring.GetGameFrame(),who, "Deactivate(unitID, unitDefID)",unitID, unitDefID)
+	
 	activePlanes[unitID] = nil
+	
 	inactivePlanes[unitID] = unitDefID
 	RemoveLights(unitID)
+	
+	local unitEffects = effectDefs[unitDefID]
+	for i = 1, #unitEffects do
+		local effectDef = unitEffects[i]
+		airjetkey = tostring(unitID).."_"..tostring(effectDef.piecenum)
+		if jetInstanceVBO.instanceIDtoIndex[airjetkey] then
+			popElementInstance(jetInstanceVBO,tostring(unitID).."_"..tostring(effectDef.piecenum))
+		end
+	end
 end
 
 local function RemoveUnit(unitID, unitDefID, unitTeamID)
+	--Spring.Echo("RemoveUnit(unitID, unitDefID, unitTeamID)",unitID, unitDefID, unitTeamID)
 	if effectDefs[unitDefID] then
-		activePlanes[unitID] = nil
+		Deactivate(unitID, unitDefID, "died")
 		inactivePlanes[unitID] = nil
+		activePlanes[unitID] = nil
 		RemoveLights(unitID)
 		for i = 1, #effectDefs[unitDefID] do
 			if effectDefs[unitDefID][i].piecenum then
@@ -497,6 +798,8 @@ local function FinishInitialization(unitID, effectDef)
 		if fx.piece then
 			fx.piecenum = pieceMap[fx.piece]
 		end
+		fx.width = fx.width*1.2
+		fx.length = fx.length*1.5
 	end
 	effectDef.finishedInit = true
 end
@@ -508,16 +811,8 @@ local function AddUnit(unitID, unitDefID, unitTeamID)
 	if not effectDefs[unitDefID].finishedInit then
 		FinishInitialization(unitID, effectDefs[unitDefID])
 	end
-	if spGetUnitIsActive(unitID) and not spGetUnitIsStunned(unitID) and (not limit or not limitDefs[unitDefID]) then
-		local uvx,_,uvz = spGetUnitVelocity(unitID)
-		if xzVelocityUnits[unitDefID] and math.abs(uvx)+math.abs(uvz) < xzVelocityUnits[unitDefID] then
-			Deactivate(unitID, unitDefID)
-		else
-			Activate(unitID, unitDefID)
-		end
-	else
-		Deactivate(unitID, unitDefID)
-	end
+	Activate(unitID, unitDefID, "addunit")
+
 	if lighteffectsEnabled and lightDefs[unitDefID] then
 		for i = 1, #effectDefs[unitDefID] do
 			if effectDefs[unitDefID][i].piecenum then
@@ -532,28 +827,51 @@ end
 --------------------------------------------------------------------------------
 
 function widget:Update(dt)
+
+	--if true then return end
 	updateSec = updateSec + dt
 	local gf = Spring.GetGameFrame()
-	if gf ~= lastGameFrame and updateSec > 0.22 then		-- to limit the number of unit status checks
+	if gf ~= lastGameFrame and updateSec > 0.51 then		-- to limit the number of unit status checks
+		--[[
+		if Spring.GetGameFrame() > 0 then
+		
+			ValidateUnitIDs(jetInstanceVBO.indextoUnitID)
+			local activecnt = 0
+			local inactivecnt = 0
+			for i, v in pairs(inactivePlanes) do inactivecnt = inactivecnt + 1 end
+			for i, v in pairs(activePlanes) do activecnt = activecnt + 1 end
+			Spring.Echo( Spring.GetGameFrame (), "airjetcount", jetInstanceVBO.usedElements, "active:", activecnt, "inactive", inactivecnt)
+		end
+		]]--
+		ValidateUnitIDs(jetInstanceVBO.indextoUnitID)
 		lastGameFrame = gf
 		updateSec = 0
 		for unitID, unitDefID in pairs(inactivePlanes) do
-			if not limit or not limitDefs[unitDefID] then
-				if spGetUnitIsActive(unitID) then
-					Activate(unitID, unitDefID)
+			if spGetUnitIsActive(unitID) then
+				if xzVelocityUnits[unitDefID] then
+					local uvx,_,uvz = spGetUnitVelocity(unitID)
+					if uvx * uvx + uvz * uvz > xzVelocityUnits[unitDefID] * xzVelocityUnits[unitDefID] then
+						Activate(unitID, unitDefID,"updatewasinactive", spGetGameFrame() )
+					end
+				else
+					Activate(unitID, unitDefID,"updatewasinactive", spGetGameFrame())
 				end
 			end
 		end
 		for unitID, unitDefID in pairs(activePlanes) do
-			if not limit or not limitDefs[unitDefID] then
-				if not spGetUnitIsActive(unitID) or not spIsUnitVisible(unitID, 50, true) or spGetUnitIsStunned(unitID) then
-					Deactivate(unitID, unitDefID)
-				elseif xzVelocityUnits[unitDefID] then
-					local uvx,_,uvz = spGetUnitVelocity(unitID)
-					if math.abs(uvx)+math.abs(uvz) < xzVelocityUnits[unitDefID] then
-						Deactivate(unitID, unitDefID)
+			if Spring.ValidUnitID(unitID) then
+				if not spGetUnitIsActive(unitID) then 
+					Deactivate(unitID, unitDefID,"updatewasinactive")
+				else
+					if xzVelocityUnits[unitDefID] then
+						local uvx,_,uvz = spGetUnitVelocity(unitID)
+						if uvx * uvx + uvz * uvz <= xzVelocityUnits[unitDefID] * xzVelocityUnits[unitDefID] then
+							Deactivate(unitID, unitDefID,"tooslow")
+						end
 					end
 				end
+			else
+				RemoveUnit(unitID, unitDefID, "invalid")
 			end
 		end
 	end
@@ -567,7 +885,7 @@ function widget:Update(dt)
 			AddUnit(unitID, unitDefID, spGetUnitTeam(unitID))
 		end
 	end
-
+	--[[
 	if gf >= sceduledFpsCheckGf then
 		sceduledFpsCheckGf = gf + 30
 		averageFps = ((averageFps * 19) + spGetFPS()) / 20
@@ -580,7 +898,7 @@ function widget:Update(dt)
 					limit = true
 					for unitID, unitDefID in pairs(activePlanes) do
 						if limitDefs[unitDefID] then
-							Deactivate(unitID, unitDefID)
+							Deactivate(unitID, unitDefID, "lowfps")
 						end
 					end
 				end
@@ -594,22 +912,32 @@ function widget:Update(dt)
 				enabled = true
 			end
 		end
-	end
+	end]]--
 end
 
 function widget:UnitEnteredLos(unitID, unitTeam, allyTeam, unitDefID)
+	--Spring.Echo("UnitEnteredLos(unitID, unitTeam, allyTeam, unitDefID)",unitID, unitTeam, allyTeam, unitDefID)
 	AddUnit(unitID, unitDefID, unitTeam)
 end
 
 function widget:UnitLeftLos(unitID, unitTeam, allyTeam, unitDefID)
+	--Spring.Echo("UnitLeftLos(unitID, unitDefID, unitTeam)",unitID, unitTeam, allyTeam, unitDefID)
 	RemoveUnit(unitID, unitDefID, unitTeam)
 end
 
 function widget:UnitCreated(unitID, unitDefID, unitTeam)
+	--Spring.Echo("UnitCreated(unitID, unitDefID, unitTeam)",unitID, unitDefID, unitTeam)
 	AddUnit(unitID, unitDefID, unitTeam)
 end
 
 function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
+	--Spring.Echo("UnitDestroyed(unitID, unitDefID, unitTeam)",unitID, unitDefID, unitTeam)
+	RemoveUnit(unitID, unitDefID, unitTeam)
+end
+
+
+function widget.RenderUnitDestroyed(unitID, unitDefID, unitTeam) 	
+	--Spring.Echo("RenderUnitDestroyed(unitID, unitDefID, unitTeam)",unitID, unitDefID, unitTeam)
 	RemoveUnit(unitID, unitDefID, unitTeam)
 end
 
@@ -620,7 +948,6 @@ function widget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
 	end
 end
 
-
 widget.DrawWorld = DrawParticles
 
 if drawReflectionPass then
@@ -628,191 +955,11 @@ if drawReflectionPass then
 	widget.DrawWorldRefraction = DrawParticles
 end
 
---------------------------------------------------------------------------------
--- Initialization
---------------------------------------------------------------------------------
-
-local function CreateShader()
-	local jetShader = gl.CreateShader({
-		vertex = [[
-			uniform float timer;
-
-			varying float distortion;
-			varying vec4 texCoords;
-
-			const vec4 centerPos = vec4(0.0,0.0,0.0,1.0);
-
-			#define WIDTH  gl_Vertex.x
-			#define LENGTH gl_Vertex.y
-			#define TEXCOORD gl_Vertex.zw
-			// gl_MultiTexCoord0.xy := jitter width/length scale (i.e jitter quad length = gl_vertex.x * gl_MultiTexCoord0.x)
-			// gl_MultiTexCoord0.z  := (quad_width) / (quad_length) (used to normalize the texcoord dimensions)
-			#define DISTORTION_STRENGTH gl_MultiTexCoord0.w
-			#define EMITDIR gl_MultiTexCoord1
-			#define COLOR gl_MultiTexCoord2.rgb
-			#define ANIMATION_SPEED gl_MultiTexCoord2.w
-
-			void main()
-			{
-				texCoords.st = TEXCOORD;
-				texCoords.pq = TEXCOORD;
-				texCoords.q += timer * ANIMATION_SPEED;
-
-				gl_Position = gl_ModelViewMatrix * centerPos ;
-				vec3 dir3   = vec3(gl_ModelViewMatrix * EMITDIR) - gl_Position.xyz;
-				vec3 v = normalize( dir3 );
-				vec3 w = normalize( -vec3(gl_Position) );
-				vec3 u = normalize( cross(w,v) );
-				gl_Position.xyz += WIDTH*v + LENGTH*u;
-				gl_Position      = gl_ProjectionMatrix * gl_Position;
-
-				gl_FrontColor.rgb = COLOR;
-
-				distortion = DISTORTION_STRENGTH;
-			}
-		]],
-		fragment = [[
-			uniform sampler2D noiseMap;
-			uniform sampler2D mask;
-
-			varying float distortion;
-			varying vec4 texCoords;
-
-			void main(void)
-			{
-					vec2 displacement = texCoords.pq;
-
-					vec2 txCoord = texCoords.st;
-					txCoord.s += (texture2D(noiseMap, displacement * distortion * 20.0).y - 0.5) * 40.0 * distortion;
-					txCoord.t +=  texture2D(noiseMap, displacement).x * (1.0-texCoords.t)        * 15.0 * distortion;
-					float opac = texture2D(mask,txCoord.st).r;
-
-					gl_FragColor.rgb  = opac * gl_Color.rgb; //color
-					gl_FragColor.rgb += pow(opac, 5.0 );     //white flame
-					gl_FragColor.a    = opac*1.5;
-			}
-
-		]],
-		uniformInt = {
-			noiseMap = 1,
-			mask = 2,
-		},
-		uniform = {
-			timer = 0,
-		}
-	})
-
-	if jetShader == nil then
-		print( "airjets: (color-)shader error: " .. gl.GetShaderLog() )
-		return false
-	end
-
-	local jitterShader = gl.CreateShader({
-		vertex = [[
-			uniform float timer;
-
-			varying float distortion;
-			varying vec4 texCoords;
-
-			const vec4 centerPos = vec4(0.0,0.0,0.0,1.0);
-
-			#define WIDTH  gl_Vertex.x
-			#define LENGTH gl_Vertex.y
-			#define TEXCOORD gl_Vertex.zw
-			// gl_MultiTexCoord0.xy := jitter width/length scale (i.e jitter quad length = gl_vertex.x * gl_MultiTexCoord0.x)
-			// gl_MultiTexCoord0.z  := (quad_width) / (quad_length) (used to normalize the texcoord dimensions)
-			#define DISTORTION_STRENGTH gl_MultiTexCoord0.w
-			#define EMITDIR gl_MultiTexCoord1
-			#define COLOR gl_MultiTexCoord2.rgb
-			#define ANIMATION_SPEED gl_MultiTexCoord2.w
-
-			void main()
-			{
-				texCoords.st  = TEXCOORD;
-				texCoords.pq  = TEXCOORD*0.8;
-				texCoords.p  *= gl_MultiTexCoord0.z;
-				texCoords.pq += 0.2*timer*ANIMATION_SPEED;
-
-				gl_Position = gl_ModelViewMatrix * centerPos;
-				vec3 dir3   = vec3(gl_ModelViewMatrix * EMITDIR) - gl_Position.xyz;
-				vec3 v = normalize( dir3 );
-				vec3 w = normalize( -vec3(gl_Position) );
-				vec3 u = normalize( cross(w,v) );
-				float length = LENGTH * gl_MultiTexCoord0.x;
-				float width  = WIDTH * gl_MultiTexCoord0.y;
-				gl_Position.xyz += width*v + length*u;
-				gl_Position      = gl_ProjectionMatrix * gl_Position;
-
-				distortion = DISTORTION_STRENGTH;
-			}
-		]],
-		fragment = [[
-			uniform sampler2D noiseMap;
-			uniform sampler2D mask;
-
-			varying float distortion;
-			varying vec4 texCoords;
-
-			void main(void)
-			{
-					float opac    = texture2D(mask,texCoords.st).r;
-					vec2 noiseVec = (texture2D(noiseMap, texCoords.pq).st - 0.5) * distortion * opac;
-					gl_FragColor  = vec4(noiseVec.xy,0.0,gl_FragCoord.z);
-			}
-
-		]],
-		uniformInt = {
-			noiseMap = 1,
-			mask = 2,
-		},
-		uniform = {
-			timer = 0,
-		}
-	})
-
-	if jitterShader == nil then
-		print( "airjets: (jitter-)shader error: " .. gl.GetShaderLog() )
-		return false
-	end
-
-	local timerUniform = gl.GetUniformLocation(jetShader, 'timer')
-	local timer2Uniform = gl.GetUniformLocation(jitterShader, 'timer')
-
-	return {
-		jet = jetShader,
-		jitter = jitterShader,
-		timerUniform = timerUniform,
-		timer2Uniform = timer2Uniform,
-	}
-end
-
-local function BeginEndDrawList(self)
-	local color = self.color
-	local ev = self.emitVector
-	glMultiTexCoord(0, jitterWidthScale, jitterLengthScale, self.width / self.length, distortion)
-	glMultiTexCoord(1, ev[1], ev[2], ev[3], 1)
-	glMultiTexCoord(2, color[1], color[2], color[3], animSpeed)
-
-	--// xy = width/length ; zw = texcoord
-	local w = self.width
-	local l = self.length
-	glVertex(-l, -w, 1, 0)
-	glVertex(0, -w, 1, 1)
-	glVertex(0, w, 0, 1)
-	glVertex(-l, w, 0, 0)
-end
-
-local function InitializeParticleLists()
-	for unitDefID, data in pairs(effectDefs) do
-		for i = 1, #data do
-			data[i].dList = glCreateList(glBeginEnd, GL_QUADS, BeginEndDrawList, data[i])
-		end
-	end
-end
 
 function widget:Initialize()
-	shaders = CreateShader()
-	InitializeParticleLists()
+	--shaders = CreateShader()
+	
+	initGL4()
 
 	for _, unitID in ipairs(Spring.GetAllUnits()) do
 		local unitDefID = Spring.GetUnitDefID(unitID)
@@ -832,6 +979,32 @@ function widget:Initialize()
 	WG['airjets'].setDisableFps = function(value)
 		disableAtAvgFps = value
 	end
+	
+
+	WG['airjets'].addAirJet = function (unitID, piecenum, width, length, color3, emitVector) -- for WG external calls
+		local airjetkey = tostring(unitID).."_"..tostring(piecenum)
+		if emitVector == nil then emitVector = {0,0,-1} end
+		pushElementInstance(
+			jetInstanceVBO,
+			{
+				width, length, spGetGameFrame(),
+				emitVector[1], emitVector[2], emitVector[3],
+				color[1], color[2], color[3],
+				piecenum,
+				0,0,0,0 -- this is needed to keep the lua copy of the vbo the correct size
+			},
+			airjetkey,
+			true, -- update exisiting
+			nil,  -- noupload
+			unitID -- unitID
+			)
+		return airjetkey
+	end
+
+	WG['airjets'].removeAirJet =  function (airjetkey) ---- for WG external calls
+		return popElementInstance(jetInstanceVBO,airjetkey)
+	end
+
 end
 
 
@@ -839,17 +1012,8 @@ function widget:Shutdown()
 	for unitID, unitDefID in pairs(activePlanes) do
 		RemoveUnit(unitID, unitDefID, spGetUnitTeam(unitID))
 	end
-	for unitDefID, data in pairs(effectDefs) do
-		for i = 1, #data do
-			gl.DeleteList(data[i].dList)
-		end
-	end
-	if shaders then
-		gl.DeleteShader(shaders.jet)
-		gl.DeleteShader(shaders.jitter)
-	end
+	
 end
-
 
 function widget:GetConfigData(data)
 	return {

@@ -56,6 +56,7 @@ end
 local function GetEngineUniformBufferDefs()
     local eubs = [[
 layout(std140, binding = 0) uniform UniformMatrixBuffer {
+
 	mat4 screenView;
 	mat4 screenProj;
 	mat4 screenViewProj;
