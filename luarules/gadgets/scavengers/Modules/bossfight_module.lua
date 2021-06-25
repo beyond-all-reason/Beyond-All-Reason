@@ -38,4 +38,4 @@ BossSpecialAbilitiesEarlyList = {}
 BossSpecialAbilitiesMidgameList = {}
 BossSpecialAbilitiesEndgameList = {}
 
-VFS.Include("luarules/gadgets/scavengers/BossFight/"..GameShortName.."/abilities.lua")
+VFS.Include("luarules/gadgets/scavengers/BossFight/" .. Game.gameShortName .. "/abilities.lua")

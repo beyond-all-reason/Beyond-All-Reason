@@ -1,6 +1,6 @@
 Spring.Echo("[Scavengers] Unit Controller initialized")
 
-VFS.Include("luarules/gadgets/scavengers/Configs/"..GameShortName.."/UnitLists/staticunits.lua")
+VFS.Include("luarules/gadgets/scavengers/Configs/" .. Game.gameShortName .. "/UnitLists/staticunits.lua")
 
 function SelfDestructionControls(n, scav, scavDef, friendly)
 	UnitRange = {}

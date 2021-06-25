@@ -1,5 +1,5 @@
 local BeaconSpawnChance = unitSpawnerModuleConfig.beaconspawnchance
-local UnitLists = VFS.DirList('luarules/gadgets/scavengers/Configs/'..GameShortName..'/UnitLists/','*.lua')
+local UnitLists = VFS.DirList('luarules/gadgets/scavengers/Configs/' .. Game.gameShortName .. '/UnitLists/','*.lua')
 for i = 1,#UnitLists do
 	VFS.Include(UnitLists[i])
 	Spring.Echo("Scav Units Directory: " ..UnitLists[i])
