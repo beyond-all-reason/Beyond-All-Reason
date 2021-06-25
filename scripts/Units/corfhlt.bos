@@ -122,7 +122,7 @@ AimWeapon1(heading, pitch)
 	turn turret2 to x-axis <10.000000> - pitch speed <45.000000>;
 	
 	aimy1target = heading;
-	aimy1delta = aimy1position - aimy1target;
+	aimy1delta =aimy1position - aimy1target;
 		
 	while( ( get ABS(aimy1delta) > AIMY1_PRECISION ) OR (get ABS(aimy1velocity) > AIMY1_JERK)){
 		if (gameFrame != get(GAME_FRAME)){ //this is to make sure we dont get double-called, as previous aimweapon thread runs before new aimweaponthread can signal-kill previous one 
@@ -162,6 +162,9 @@ AimWeapon1(heading, pitch)
 			aimy1position = aimy1position + aimy1velocity; 
 			turn turret1 to y-axis aimy1position now;
 			aimy1delta = aimy1target - aimy1position ; 	
+			if ((aimy1delta < <7>) AND (aimy1delta > <-7>)){
+				return (1);
+			}
 		}
 		sleep 30;
 	}

@@ -140,6 +140,9 @@ AimWeapon1(heading, pitch)
 			aimy1position = aimy1position + aimy1velocity; 
 			turn turret to y-axis aimy1position now;
 			aimy1delta = aimy1target - aimy1position ; 	
+			if ((aimy1delta < <7>) AND (aimy1delta > <-7>)){
+				return (1);
+			}
 		}
 		sleep 30;
 	}
