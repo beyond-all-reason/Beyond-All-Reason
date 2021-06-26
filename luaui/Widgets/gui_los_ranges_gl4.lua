@@ -12,12 +12,12 @@ end
  
 
 -------   Configurables: ------------------- 
-local rangeColor = { 0.9, 0.9, 0.9, 0.06 } -- default range color
+local rangeColor = { 0.9, 0.9, 0.9, 0.08 } -- default range color
 
 local teamColorAlpha = 0.2
 local useTeamColors = false
 local usestipple = 0 -- 0 or 1
-local rangeLineWidth = 3.5 -- (note: will end up larger for larger vertical screen resolution size)
+local rangeLineWidth = 4.5 -- (note: will end up larger for larger vertical screen resolution size)
 
 local circleSegments = 64
 local rangecorrectionelmos = 16 -- how much smaller they are drawn than truth due to LOS mipping
