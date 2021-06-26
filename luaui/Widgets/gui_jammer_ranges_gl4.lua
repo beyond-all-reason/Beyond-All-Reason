@@ -15,7 +15,7 @@ local rangeLineWidth = 1.0 -- (note: will end up larger for larger vertical scre
 local minJammerDistance = 60
 
 local gaiaTeamID = Spring.GetGaiaTeamID()
-local rangeColor = { 1.0, 0.3, 0.0, 0.2 } -- default range color
+local rangeColor = { 1.0, 0.35, 0.0, 0.35 } -- default range color
 local usestipple = 1 -- 0 or 1 
 
 local circleSegments = 64
