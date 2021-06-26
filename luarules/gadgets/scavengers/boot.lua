@@ -64,10 +64,7 @@ if scavconfig.modules.constructorControllerModule then
 	VFS.Include("luarules/gadgets/scavengers/Modules/constructor_controller.lua")
 end
 
-if scavconfig.modules.randomEventsModule then
-	RandomEventsList = {}
-	VFS.Include("luarules/gadgets/scavengers/Modules/random_events.lua")
-end
+local randomEventsModule = VFS.Include("luarules/gadgets/scavengers/Modules/random_events.lua")
 
 if scavconfig.modules.factoryControllerModule then
 	VFS.Include("luarules/gadgets/scavengers/Modules/factory_controller.lua")
@@ -252,8 +249,8 @@ function gadget:GameFrame(n)
 		pregameMessages(n)
 	end
 
-	if n%30 == 20 and n > scavconfig.gracePeriod and scavconfig.modules.randomEventsModule == true then
-		RandomEventTrigger(n)
+	if n%30 == 20 and n > scavconfig.gracePeriod and scavconfig.modules.randomEventsModule then
+		randomEventsModule.TriggerRandomEvent(n)
 	end
 
 	if n%30 == 0 and FinalBossUnitSpawned and FinalBossKilled == false then
