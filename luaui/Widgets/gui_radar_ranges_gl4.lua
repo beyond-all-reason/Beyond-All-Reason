@@ -11,7 +11,7 @@ function widget:GetInfo()
 end
  
 -------   Configurables: ------------------- 
-local rangeLineWidth = 1.0 -- (note: will end up larger for larger vertical screen resolution size)
+local rangeLineWidth = 3.5 -- (note: will end up larger for larger vertical screen resolution size)
 local minRadarDistance = 500
 
 local gaiaTeamID = Spring.GetGaiaTeamID()
