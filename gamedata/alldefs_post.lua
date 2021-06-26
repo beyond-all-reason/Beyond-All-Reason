@@ -115,23 +115,23 @@ function UnitDef_Post(name, uDef)
 	if GUIUnitSoundEffects[name] then
 		if uDef.sounds then
 			if uDef.sounds.ok then
-				uDef.sounds.ok = nil 
+				uDef.sounds.ok = nil
 			end
 		end
 
 		if uDef.sounds then
 			if uDef.sounds.select then
-				uDef.sounds.select = nil 
+				uDef.sounds.select = nil
 			end
 		end
 
 		if GUIUnitSoundEffects[name] and GUIUnitSoundEffects[name].BaseSoundActivate then
 			if uDef.sounds then
 				if uDef.sounds.activate then
-					uDef.sounds.activate = nil 
+					uDef.sounds.activate = nil
 				end
 				if uDef.sounds.deactivate then
-					uDef.sounds.deactivate = nil 
+					uDef.sounds.deactivate = nil
 				end
 			end
 		end
@@ -139,13 +139,13 @@ function UnitDef_Post(name, uDef)
 		-- TEST for activate custom sounds in gui_soundeffects
 		-- if uDef.sounds then
 		-- 	if uDef.sounds.activate then
-		-- 		uDef.sounds.activate = nil 
+		-- 		uDef.sounds.activate = nil
 		-- 	end
 		-- end
 
 		-- if uDef.sounds then
 		-- 	if uDef.sounds.deactivate then
-		-- 		uDef.sounds.deactivate = nil 
+		-- 		uDef.sounds.deactivate = nil
 		-- 	end
 		-- end
 	end
@@ -316,7 +316,7 @@ function UnitDef_Post(name, uDef)
 		else
 			Spring.Echo("Missing Footprint X")
 		end
-		
+
 		massoverrideFootprintZ = 1
 		if uDef.footprintz and uDef.footprintz > 0 then
 			massoverrideFootprintZ = uDef.footprintz
@@ -822,7 +822,7 @@ function ModOptions_Post (UnitDefs, WeaponDefs)
 		end
 
 		-- transporting enemy coms
-		if modOptions.transportenemy == "notcoms" then
+		if not modOptions.transportenemy or modOptions.transportenemy == "notcoms" then
 			for name,ud in pairs(UnitDefs) do
 				if name == "armcom" or name == "corcom" or name == "armdecom" or name == "cordecom" then
 					ud.transportbyenemy = false
