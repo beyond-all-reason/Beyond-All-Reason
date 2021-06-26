@@ -15,7 +15,7 @@ local rangeLineWidth = 3.5 -- (note: will end up larger for larger vertical scre
 local minRadarDistance = 500
 
 local gaiaTeamID = Spring.GetGaiaTeamID()
-local rangeColor = { 0.0, 1.0, 0.0, 0.18 } -- default range color
+local rangeColor = { 0.0, 1.0, 0.0, 0.16 } -- default range color
 local usestipple = 1 -- 0 or 1resolution size)
 							
 
@@ -114,7 +114,7 @@ out vec4 fragColor;
 void main() {
 	fragColor.rgba = blendedcolor.rgba;
 	#if USE_STIPPLE > 0
-		fragColor.a *= 2.5 * sin(worldscale_circumference + timeInfo.x*0.2); // PERFECT STIPPLING!
+		fragColor.a *= 2.0 * sin(worldscale_circumference + timeInfo.x*0.2); // PERFECT STIPPLING!
 	#endif
 }
 ]]
