@@ -83,11 +83,18 @@ function widget:Update(dt)
 		local now = os.clock()
 		local gameFrame = Spring.GetGameFrame()
 		if gameFrame > 0 then
-			if not paused then
+
+			local _, gameSpeed, isPaused = Spring.GetGameSpeed()
+			local springPaused = false
+			if not gameover and gameSpeed == 0 then
+				-- when host (admin) paused its just gamespeed 0
+				springPaused = true
+			end
+
+			if not paused and not springPaused then
 				if gameFrame == previousGameFrame then
 					Spring.SetWMIcon(imgPrefix..faction..imageBattlePaused, true)
 					paused = true
-
 				end
 			else
 				if gameFrame ~= previousGameFrame then
