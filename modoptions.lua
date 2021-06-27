@@ -59,20 +59,20 @@ local options={
 		max    = 10000,
 		step   = 1,
 	},
-	{
-		key="map_tidal",
-		name="Tidal Strength",
-		desc="Unchanged = map setting, low = 13e/sec, medium = 18e/sec, high = 23e/sec.",
-		type="list",
-		def="unchanged",
-		section="resources_options",
-		items={
-			{key="unchanged", name="Unchanged", desc="Use map settings"},
-			{key="low", name="Low", desc="Set tidal incomes to 13 energy per second"},
-			{key="medium", name="Medium", desc="Set tidal incomes to 18 energy per second"},
-			{key="high", name="High", desc="Set tidal incomes to 23 energy per second"},
-		}
-	},
+	-- {
+	-- 	key="map_tidal",
+	-- 	name="Tidal Strength",
+	-- 	desc="Unchanged = map setting, low = 13e/sec, medium = 18e/sec, high = 23e/sec.",
+	-- 	type="list",
+	-- 	def="unchanged",
+	-- 	section="resources_options",
+	-- 	items={
+	-- 		{key="unchanged", name="Unchanged", desc="Use map settings"},
+	-- 		{key="low", name="Low", desc="Set tidal incomes to 13 energy per second"},
+	-- 		{key="medium", name="Medium", desc="Set tidal incomes to 18 energy per second"},
+	-- 		{key="high", name="High", desc="Set tidal incomes to 23 energy per second"},
+	-- 	}
+	-- },
 
 	{
 		key    = 'resourceincomemultiplier',
@@ -417,7 +417,7 @@ local options={
 		name="Burrow Placement",
 		desc="Control where burrows spawn",
 		type="list",
-		def="alwaysbox",
+		def="initialbox",
 		section="chicken_defense_options",
 		items={
 			{key="anywhere", name="Anywhere", desc="Burrows can spawn anywhere"},
@@ -686,17 +686,17 @@ local options={
 			{key="disabled", name="Disabled", desc="description"},
 		}
 	},
-	{
-		key    = 'critters',
-		name   = 'Animal amount',
-		desc   = 'This multiplier will be applied on the amount of critters a map will end up with',
-		type   = 'number',
-		section= 'options',
-		def    = 1,
-		min    = 0,
-		max    = 2,
-		step   = 0.2,
-	},
+	-- {
+	-- 	key    = 'critters',
+	-- 	name   = 'Animal amount',
+	-- 	desc   = 'This multiplier will be applied on the amount of critters a map will end up with',
+	-- 	type   = 'number',
+	-- 	section= 'options',
+	-- 	def    = 1,
+	-- 	min    = 0,
+	-- 	max    = 2,
+	-- 	step   = 0.2,
+	-- },
 	{
 		key="deathmode",
 		name="Game End Mode",
@@ -710,18 +710,18 @@ local options={
 			{key="killall", name="Kill everything", desc="Every last unit must be eliminated, no exceptions!"},
 		}
 	},
-	{
-		key="map_terraintype",
-		name="Map TerrainTypes",
-		desc="Allows to cancel the TerrainType movespeed buffs of a map.",
-		type="list",
-		def="enabled",
-		section="options",
-		items={
-			{key="disabled", name="Disabled", desc="Disable TerrainTypes related MoveSpeed Buffs"},
-			{key="enabled", name="Enabled", desc="Enable TerrainTypes related MoveSpeed Buffs"},
-		}
-	},
+	-- {
+	-- 	key="map_terraintype",
+	-- 	name="Map TerrainTypes",
+	-- 	desc="Allows to cancel the TerrainType movespeed buffs of a map.",
+	-- 	type="list",
+	-- 	def="enabled",
+	-- 	section="options",
+	-- 	items={
+	-- 		{key="disabled", name="Disabled", desc="Disable TerrainTypes related MoveSpeed Buffs"},
+	-- 		{key="enabled", name="Enabled", desc="Enable TerrainTypes related MoveSpeed Buffs"},
+	-- 	}
+	-- },
 	{
 		key="map_waterlevel",
 		name="Water Level",
@@ -733,22 +733,22 @@ local options={
 		step   = 1,
 		section="options",
 	},
-	{
-		key    = "ffa_mode",
-		name   = "FFA Mode",
-		desc   = "Units with no player control are removed/destroyed \nUse FFA spawning mode",
-		type   = "bool",
-		def    = false,
-		section= "options",
-	},
-	{
-		key    = 'coop',
-		name   = 'Cooperative mode',
-		desc   = 'Adds extra commanders to id-sharing teams, 1 com per player',
-		type   = 'bool',
-		def    = false,
-		section= 'options',
-	},
+	-- {
+	-- 	key    = "ffa_mode",
+	-- 	name   = "FFA Mode",
+	-- 	desc   = "Units with no player control are removed/destroyed \nUse FFA spawning mode",
+	-- 	type   = "bool",
+	-- 	def    = false,
+	-- 	section= "options",
+	-- },
+	-- {
+	-- 	key    = 'coop',
+	-- 	name   = 'Cooperative mode',
+	-- 	desc   = 'Adds extra commanders to id-sharing teams, 1 com per player',
+	-- 	type   = 'bool',
+	-- 	def    = false,
+	-- 	section= 'options',
+	-- },
 	{
 		key    = 'DisableMapDamage',
 		name   = 'Undeformable map',
@@ -757,14 +757,14 @@ local options={
 		def    = false,
 		section= "options",
 	},
-	{
-		key    = "newbie_placer",
-		name   = "Newbie Placer",
-		desc   = "Chooses a startpoint and a random faction for all rank 1 accounts (online only)",
-		type   = "bool",
-		def    = false,
-		section= "options",
-	},
+	-- {
+	-- 	key    = "newbie_placer",
+	-- 	name   = "Newbie Placer",
+	-- 	desc   = "Chooses a startpoint and a random faction for all rank 1 accounts (online only)",
+	-- 	type   = "bool",
+	-- 	def    = false,
+	-- 	section= "options",
+	-- },
 
 
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -974,19 +974,19 @@ local options={
 		type	= "section",
 	},
 
-	{
-		key    = 'experimentalnoaircollisions',
-		name   = 'Aircraft Collisions Override',
-		desc   = 'Aircraft Collisions Override',
-		type   = 'list',
-		section = 'options_experimental',
-		def  = "unchanged",
-		items={
-			{key="unchanged", name="Unchanged", desc="Unchanged"},
-			{key="disabled", name="Force Disabled", desc="Collisions Disabled"},
-			{key="enabled", name="Force Enabled", desc="Collisions Enabled"},
-		}
-	},
+	-- {
+	-- 	key    = 'experimentalnoaircollisions',
+	-- 	name   = 'Aircraft Collisions Override',
+	-- 	desc   = 'Aircraft Collisions Override',
+	-- 	type   = 'list',
+	-- 	section = 'options_experimental',
+	-- 	def  = "unchanged",
+	-- 	items={
+	-- 		{key="unchanged", name="Unchanged", desc="Unchanged"},
+	-- 		{key="disabled", name="Force Disabled", desc="Collisions Disabled"},
+	-- 		{key="enabled", name="Force Enabled", desc="Collisions Enabled"},
+	-- 	}
+	-- },
 
 	{
 		key    = 'experimentalshields',
@@ -1016,30 +1016,30 @@ local options={
 	},
 
 
-	{
-		key    = 'experimentalxpgain',
-		name   = 'XP Gain Multiplier',
-		desc   = 'XP Gain Multiplier',
-		type   ="number",
-		section = 'options_experimental',
-		def    = 1,
-		min    = 0.1,
-		max    = 10,
-		step   = 0.1,
-	},
+	-- {
+	-- 	key    = 'experimentalxpgain',
+	-- 	name   = 'XP Gain Multiplier',
+	-- 	desc   = 'XP Gain Multiplier',
+	-- 	type   ="number",
+	-- 	section = 'options_experimental',
+	-- 	def    = 1,
+	-- 	min    = 0.1,
+	-- 	max    = 10,
+	-- 	step   = 0.1,
+	-- },
 
-	{
-		key    = 'experimentalxpsystem',
-		name   = 'New XP System',
-		desc   = 'New XP System',
-		type   = 'list',
-		section = 'options_experimental',
-		def  = "disabled",
-		items={
-			{key="disabled", name="Disabled", desc="Using old XP system"},
-			{key="enabled", name="Enabled", desc="Using new XP system"},
-		}
-	},
+	-- {
+	-- 	key    = 'experimentalxpsystem',
+	-- 	name   = 'New XP System',
+	-- 	desc   = 'New XP System',
+	-- 	type   = 'list',
+	-- 	section = 'options_experimental',
+	-- 	def  = "disabled",
+	-- 	items={
+	-- 		{key="disabled", name="Disabled", desc="Using old XP system"},
+	-- 		{key="enabled", name="Enabled", desc="Using new XP system"},
+	-- 	}
+	-- },
 	--[[
 	{
 		key    = 'experimentalbuildrange',
@@ -1102,44 +1102,44 @@ local options={
 		}
 	},
 
-	{
-		key    = 'experimentalimprovedtransports',
-		name   = 'Transport Units Rework',
-		desc   = 'Transport Units Rework',
-		type   = 'list',
-		section = 'options_experimental',
-		def  = "disabled",
-		items={
-			{key="disabled", name="Disabled", desc="Disabled"},
-			{key="enabled", name="Enabled", desc="Enabled"},
-		}
-	},
+	-- {
+	-- 	key    = 'experimentalimprovedtransports',
+	-- 	name   = 'Transport Units Rework',
+	-- 	desc   = 'Transport Units Rework',
+	-- 	type   = 'list',
+	-- 	section = 'options_experimental',
+	-- 	def  = "disabled",
+	-- 	items={
+	-- 		{key="disabled", name="Disabled", desc="Disabled"},
+	-- 		{key="enabled", name="Enabled", desc="Enabled"},
+	-- 	}
+	-- },
 
-	{
-		key    = 'mapatmospherics',
-		name   = 'Map Atmospherics',
-		desc   = 'Map Atmospherics',
-		type   = 'list',
-		section = 'options_experimental',
-		def  = "enabled",
-		items={
-			{key="disabled", name="Disabled", desc="Disabled"},
-			{key="enabled", name="Enabled", desc="Enabled"},
-		}
-	},
+	-- {
+	-- 	key    = 'mapatmospherics',
+	-- 	name   = 'Map Atmospherics',
+	-- 	desc   = 'Map Atmospherics',
+	-- 	type   = 'list',
+	-- 	section = 'options_experimental',
+	-- 	def  = "enabled",
+	-- 	items={
+	-- 		{key="disabled", name="Disabled", desc="Disabled"},
+	-- 		{key="enabled", name="Enabled", desc="Enabled"},
+	-- 	}
+	-- },
 
-	{
-		key    = 'experimentalmassoverride',
-		name   = 'Mass Override',
-		desc   = 'Mass Override',
-		type   = 'list',
-		section = 'options_experimental',
-		def  = "disabled",
-		items={
-			{key="disabled", name="Disabled", desc="Disabled"},
-			{key="enabled", name="Enabled", desc="Enabled"},
-		}
-	},
+	-- {
+	-- 	key    = 'experimentalmassoverride',
+	-- 	name   = 'Mass Override',
+	-- 	desc   = 'Mass Override',
+	-- 	type   = 'list',
+	-- 	section = 'options_experimental',
+	-- 	def  = "disabled",
+	-- 	items={
+	-- 		{key="disabled", name="Disabled", desc="Disabled"},
+	-- 		{key="enabled", name="Enabled", desc="Enabled"},
+	-- 	}
+	-- },
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	-- Unused Options
