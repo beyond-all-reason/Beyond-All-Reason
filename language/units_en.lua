@@ -1031,6 +1031,8 @@ return {
 				resourcecheat = "INFINITE RESOURCES",
 				roost = "Spawns Chicken",
 				scavdrag = "Dragon's Teeth",
+        scavdtf = "Flamethrower Turret", 
+        scavdtl = "Lightning Turret", 
 				scavempspawner = "Spawning a new nuke",
 				scavengerdroppod = "\0", --ASCII NULL character, empty string crashes i18n
 				scavengerdroppodbeacon = "Calls in Scavenger drops",
