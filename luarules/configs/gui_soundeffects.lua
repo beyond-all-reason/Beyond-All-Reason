@@ -1,9 +1,3 @@
-local BlankSoundEffect = {
-		BaseSoundSelectType = "blanksound",
-		BaseSoundMovementType = "blanksound",
-		BaseSoundWeaponType = "blanksound",
-}
-
 GUIUnitSoundEffects = {
 	-- ARMADA COMMANDER
 	armcom = {
@@ -2107,21 +2101,21 @@ GUIUnitSoundEffects = {
 		BaseSoundWeaponType = "arm-bld-nrg-fusion-adv",
 	},
 
-	dbg_sphere = BlankSoundEffect,
-	dbg_sphere_fullmetal = BlankSoundEffect,
-	chip = BlankSoundEffect,
-	dice = BlankSoundEffect,
-	meteor = BlankSoundEffect,
-	nuketestorg = BlankSoundEffect,
-	nuketest = BlankSoundEffect,
-	nuketestcor = BlankSoundEffect,
-	nuketestcororg = BlankSoundEffect,
-	scavempspawner = BlankSoundEffect,
-	scavtacnukespawner = BlankSoundEffect,
-	xmasball = BlankSoundEffect,
-	xmasball2 = BlankSoundEffect,
-	armstone = BlankSoundEffect,
-	corstone = BlankSoundEffect,
-	resourcecheat = BlankSoundEffect,
+	dbg_sphere = {},
+	dbg_sphere_fullmetal = {},
+	chip = {},
+	dice = {},
+	meteor = {},
+	nuketestorg = {},
+	nuketest = {},
+	nuketestcor = {},
+	nuketestcororg = {},
+	scavempspawner = {},
+	scavtacnukespawner = {},
+	xmasball = {},
+	xmasball2 = {},
+	armstone = {},
+	corstone = {},
+	resourcecheat = {},
 
 }
