@@ -763,6 +763,15 @@ local function processConsoleLine(gameFrame, line, addOrgLine)
 			bypassThisMessage = true
 		elseif sfind(line,"HandleLobbyOverlay", nil, true) then
 			bypassThisMessage = true
+
+		-- filter chobby debug messages
+		elseif sfind(line,"ClientMessage]", nil, true) then
+			bypassThisMessage = true
+		elseif sfind(line,"ServerMessage]", nil, true) then
+			bypassThisMessage = true
+		elseif sfind(line,"LibLobby]", nil, true) then
+			bypassThisMessage = true
+
 		elseif sfind(line,"->", nil, true) then
 			bypassThisMessage = true
 		elseif sfind(line,"server=[0-9a-z][0-9a-z][0-9a-z][0-9a-z]") or sfind(line,"client=[0-9a-z][0-9a-z][0-9a-z][0-9a-z]") then	-- filter hash messages: server= / client=

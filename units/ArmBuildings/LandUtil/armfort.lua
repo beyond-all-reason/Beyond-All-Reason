@@ -68,7 +68,7 @@ return {
 				height = 20,
 				hitdensity = 100,
 				metal = 7,
-				object = "",
+				object = "Units/arm1X1A.s3o",
 				reclaimable = true,
 				resurrectable = 0,
 				shadtrans = 1,

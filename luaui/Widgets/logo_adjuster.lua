@@ -40,6 +40,7 @@ local mouseOffscreen = select(6, Spring.GetMouseState())
 local prevMouseOffscreen = mouseOffscreen
 
 function widget:Initialize()
+	if Platform.osName == "Windows 7" then widgetHandler.RemoveWidget() end	-- changing the taskbar icon causes a few secs of freezing there
 	WG.logo = {}
 	WG.logo.mention = function()
 		if mouseOffscreen then
@@ -83,14 +84,20 @@ function widget:Update(dt)
 		local now = os.clock()
 		local gameFrame = Spring.GetGameFrame()
 		if gameFrame > 0 then
-			if not paused then
-				if gameFrame == previousGameFrame then
+
+			local _, gameSpeed, isPaused = Spring.GetGameSpeed()
+			local newPaused = false
+			if not gameover and (gameFrame == previousGameFrame or gameSpeed == 0) then	-- when host (admin) paused its just gamespeed 0
+				newPaused = true
+			end
+
+			if newPaused then
+				if not paused then
 					Spring.SetWMIcon(imgPrefix..faction..imageBattlePaused, true)
 					paused = true
-
 				end
 			else
-				if gameFrame ~= previousGameFrame then
+				if paused then
 					Spring.SetWMIcon(imgPrefix..faction..imageBattle, true)
 					paused = false
 				end

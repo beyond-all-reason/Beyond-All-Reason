@@ -112,26 +112,26 @@ function UnitDef_Post(name, uDef)
 
 --Soon used for new sound system!
 	VFS.Include('luarules/configs/gui_soundeffects.lua')
-	if GUIUnitSoundEffects[name] then
+	if GUIUnitSoundEffects[name] or (GUIUnitSoundEffects[string.sub(name, 1, string.len(name)-5)] and string.find(name, "_scav")) then
 		if uDef.sounds then
 			if uDef.sounds.ok then
-				uDef.sounds.ok = nil 
+				uDef.sounds.ok = nil
 			end
 		end
 
 		if uDef.sounds then
 			if uDef.sounds.select then
-				uDef.sounds.select = nil 
+				uDef.sounds.select = nil
 			end
 		end
 
 		if GUIUnitSoundEffects[name] and GUIUnitSoundEffects[name].BaseSoundActivate then
 			if uDef.sounds then
 				if uDef.sounds.activate then
-					uDef.sounds.activate = nil 
+					uDef.sounds.activate = nil
 				end
 				if uDef.sounds.deactivate then
-					uDef.sounds.deactivate = nil 
+					uDef.sounds.deactivate = nil
 				end
 			end
 		end
@@ -139,15 +139,17 @@ function UnitDef_Post(name, uDef)
 		-- TEST for activate custom sounds in gui_soundeffects
 		-- if uDef.sounds then
 		-- 	if uDef.sounds.activate then
-		-- 		uDef.sounds.activate = nil 
+		-- 		uDef.sounds.activate = nil
 		-- 	end
 		-- end
 
 		-- if uDef.sounds then
 		-- 	if uDef.sounds.deactivate then
-		-- 		uDef.sounds.deactivate = nil 
+		-- 		uDef.sounds.deactivate = nil
 		-- 	end
 		-- end
+	else
+		Spring.Echo("[gui_soundeffects.lua] Missing Sound Effects for unit: "..name)
 	end
 
 	-- Unit Restrictions
@@ -299,60 +301,60 @@ function UnitDef_Post(name, uDef)
 	end
 
 
-	if Spring.GetModOptions and Spring.GetModOptions().experimentalmassoverride and Spring.GetModOptions().experimentalmassoverride == "enabled" then
-		-- mass override
-		Spring.Echo("-------------------------")
-		if uDef.name then
-			Spring.Echo("Processing Mass Override for unit: "..uDef.name)
-		else
-			Spring.Echo("Processing Mass Override for unit: unknown-unit")
-		end
-		Spring.Echo("-------------------------")
+	-- if Spring.GetModOptions and Spring.GetModOptions().experimentalmassoverride and Spring.GetModOptions().experimentalmassoverride == "enabled" then
+	-- 	-- mass override
+	-- 	Spring.Echo("-------------------------")
+	-- 	if uDef.name then
+	-- 		Spring.Echo("Processing Mass Override for unit: "..uDef.name)
+	-- 	else
+	-- 		Spring.Echo("Processing Mass Override for unit: unknown-unit")
+	-- 	end
+	-- 	Spring.Echo("-------------------------")
 
-		massoverrideFootprintX = 1
-		if uDef.footprintx and uDef.footprintx > 0 then
-			massoverrideFootprintX = uDef.footprintx
-			Spring.Echo("Footprint X: "..uDef.footprintx)
-		else
-			Spring.Echo("Missing Footprint X")
-		end
-		
-		massoverrideFootprintZ = 1
-		if uDef.footprintz and uDef.footprintz > 0 then
-			massoverrideFootprintZ = uDef.footprintz
-			Spring.Echo("Footprint Z: "..uDef.footprintz)
-		else
-			Spring.Echo("Missing Footprint Z")
-		end
+	-- 	massoverrideFootprintX = 1
+	-- 	if uDef.footprintx and uDef.footprintx > 0 then
+	-- 		massoverrideFootprintX = uDef.footprintx
+	-- 		Spring.Echo("Footprint X: "..uDef.footprintx)
+	-- 	else
+	-- 		Spring.Echo("Missing Footprint X")
+	-- 	end
 
-		massoverrideMetalCost = 1
-		if uDef.buildcostmetal and uDef.buildcostmetal > 0 then
-			massoverrideMetalCost = uDef.buildcostmetal
-			Spring.Echo("Metal Cost: "..uDef.buildcostmetal)
-		else
-			Spring.Echo("Missing Metal Cost")
-		end
+	-- 	massoverrideFootprintZ = 1
+	-- 	if uDef.footprintz and uDef.footprintz > 0 then
+	-- 		massoverrideFootprintZ = uDef.footprintz
+	-- 		Spring.Echo("Footprint Z: "..uDef.footprintz)
+	-- 	else
+	-- 		Spring.Echo("Missing Footprint Z")
+	-- 	end
 
-		massoverrideHealth = 1
-		if uDef.maxdamage and uDef.maxdamage > 0 then
-			massoverrideHealth = uDef.maxdamage
-			Spring.Echo("Max Health: "..uDef.maxdamage)
-		else
-			Spring.Echo("Missing Max Health")
-		end
+	-- 	massoverrideMetalCost = 1
+	-- 	if uDef.buildcostmetal and uDef.buildcostmetal > 0 then
+	-- 		massoverrideMetalCost = uDef.buildcostmetal
+	-- 		Spring.Echo("Metal Cost: "..uDef.buildcostmetal)
+	-- 	else
+	-- 		Spring.Echo("Missing Metal Cost")
+	-- 	end
 
-		uDef.mass = math.ceil((massoverrideFootprintX * massoverrideFootprintZ * (massoverrideMetalCost + massoverrideHealth))*0.33)
-		Spring.Echo("-------------------------")
-		Spring.Echo("Result Mass: "..uDef.mass)
-		Spring.Echo("-------------------------")
-	end
+	-- 	massoverrideHealth = 1
+	-- 	if uDef.maxdamage and uDef.maxdamage > 0 then
+	-- 		massoverrideHealth = uDef.maxdamage
+	-- 		Spring.Echo("Max Health: "..uDef.maxdamage)
+	-- 	else
+	-- 		Spring.Echo("Missing Max Health")
+	-- 	end
+
+	-- 	uDef.mass = math.ceil((massoverrideFootprintX * massoverrideFootprintZ * (massoverrideMetalCost + massoverrideHealth))*0.33)
+	-- 	Spring.Echo("-------------------------")
+	-- 	Spring.Echo("Result Mass: "..uDef.mass)
+	-- 	Spring.Echo("-------------------------")
+	-- end
 
 
 	-- mass remove push resistance
 	if uDef.pushresistant and uDef.pushresistant == true then
 		uDef.pushresistant = false
 		if not uDef.mass then
-			Spring.Echo("Push Resistant Unit with no mass: "..uDef.name)
+			Spring.Echo("[PUSH RESISTANCE REMOVER] Push Resistant Unit with no mass: "..name)
 			uDef.mass = 4999
 		end
 	end
@@ -389,7 +391,7 @@ function UnitDef_Post(name, uDef)
 	end
 
 	if (uDef.buildpic and uDef.buildpic == "") or not uDef.buildpic then
-		Spring.Echo("Missing Buildpic: ".. uDef.name)
+		Spring.Echo("[BUILDPIC] Missing Buildpic: ".. uDef.name)
 	end
 
 	--[[ Sanitize to whole frames (plus leeways because float arithmetic is bonkers).
@@ -822,7 +824,7 @@ function ModOptions_Post (UnitDefs, WeaponDefs)
 		end
 
 		-- transporting enemy coms
-		if modOptions.transportenemy == "notcoms" then
+		if not modOptions.transportenemy or modOptions.transportenemy == "notcoms" then
 			for name,ud in pairs(UnitDefs) do
 				if name == "armcom" or name == "corcom" or name == "armdecom" or name == "cordecom" then
 					ud.transportbyenemy = false

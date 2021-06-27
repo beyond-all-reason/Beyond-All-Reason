@@ -42,6 +42,8 @@ local currentRotation = 0
 local checkspots = true
 local sceduledCheckedSpotsFrame = Spring.GetGameFrame()
 
+local waterlevel = ((Spring.GetModOptions() and tonumber(Spring.GetModOptions().map_waterlevel)) or 0)
+
 local isSpec, fullview = Spring.GetSpectatingState()
 local myAllyTeamID = Spring.GetMyAllyTeamID()
 
@@ -135,6 +137,12 @@ function widget:Initialize()
 	local currentClock = os.clock()
 	local mSpots = WG.metalSpots
 	local metalSpotsCount = #metalSpots
+
+	local addHeight = 0
+	if Spring.GetGameFrame() == 0 then
+		addHeight = -waterlevel
+	end
+
 	for i = 1, #mSpots do
 		local spot = mSpots[i]
 		local value = string.format("%0.1f",math.round(spot.worth/1000,1))
@@ -150,7 +158,7 @@ function widget:Initialize()
 				end
 			end
 			metalSpotsCount = metalSpotsCount + 1
-			metalSpots[metalSpotsCount] = {spot.x, spGetGroundHeight(spot.x,spot.z), spot.z, value, scale, occupied, currentClock}
+			metalSpots[metalSpotsCount] = {spot.x, spGetGroundHeight(spot.x,spot.z) + addHeight, spot.z, value, scale, occupied, currentClock}
 			if not valueList[value] then
 				valueList[value] = gl.CreateList(function()
 					font:Begin()
@@ -200,9 +208,13 @@ function widget:PlayerChanged(playerID)
 end
 
 function checkMetalspots()
+	local addHeight = 0
+	if Spring.GetGameFrame() == 0 then
+		addHeight = -waterlevel
+	end
 	local now = os.clock()
 	for i=1, #metalSpots do
-		metalSpots[i][2] = spGetGroundHeight(metalSpots[i][1],metalSpots[i][3])
+		metalSpots[i][2] = spGetGroundHeight(metalSpots[i][1],metalSpots[i][3]) + addHeight
 		local spot = metalSpots[i]
 		local units = spGetUnitsInSphere(spot[1], spot[2], spot[3], 110*spot[5])
 		local occupied = false
