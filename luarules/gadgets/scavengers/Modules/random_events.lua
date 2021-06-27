@@ -6,7 +6,7 @@ local randomEventsFileList = VFS.DirList('luarules/gadgets/scavengers/RandomEven
 for i = 1, #randomEventsFileList do
 	eventFile = VFS.Include(randomEventsFileList[i])
 
-	for _, event in pairs(eventFile) do
+	for _, event in ipairs(eventFile) do
 		table.insert(randomEvents, event)
 	end
 
