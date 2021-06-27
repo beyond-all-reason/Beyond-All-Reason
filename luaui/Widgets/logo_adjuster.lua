@@ -40,6 +40,7 @@ local mouseOffscreen = select(6, Spring.GetMouseState())
 local prevMouseOffscreen = mouseOffscreen
 
 function widget:Initialize()
+  if Platform.osName == "Windows 7" then widgetHandler.RemoveWidget() end
 	WG.logo = {}
 	WG.logo.mention = function()
 		if mouseOffscreen then
