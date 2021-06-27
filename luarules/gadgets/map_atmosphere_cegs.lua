@@ -450,7 +450,7 @@ else
 			VFS.Include("luarules/configs/Atmosphereconfigs/" .. testMapName .. ".lua")
 			break
 		else
-			Spring.Echo("[ATMOSPHERIC] Map names don't match: " ..testMapName)
+			--Spring.Echo("[ATMOSPHERIC] Map names don't match: " ..testMapName)
 		end
 	end
 
