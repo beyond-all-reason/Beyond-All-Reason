@@ -412,7 +412,7 @@ end
 
 local cusFeaturesMaterials = GG.CUS.featureMaterialDefs
 local featureMaterials = {}
-
+local failedwrecknormaltex = {}
 --metallic features & trees
 for id = 1, #FeatureDefs do
 	local featureDef = FeatureDefs[id]
@@ -441,12 +441,21 @@ for id = 1, #FeatureDefs do
 
 				--Spring.Echo("featureDef.name", featureDef.name)
 				--Spring.Echo("featureDef.model.textures", featureDef.model.textures)
+        local lowercasetex1 = ""
+        if featureDef.model.textures.tex1 == nil then 
+          Spring.Echo("nil texture 1 detected for",featureDef.name) 
+        else
+          lowercasetex1 = string.lower( featureDef.model.textures.tex1)
+        end
 				local wreckNormalTex = featureDef.model.textures.tex1  and
-					((featureDef.model.textures.tex1:find("Arm_wreck") and "unittextures/Arm_wreck_color_normal.dds") or
-					(featureDef.model.textures.tex1:find("cor_color_wreck") and "unittextures/cor_color_wreck_normal.dds"))
+					((lowercasetex1:find("arm_wreck") and "unittextures/Arm_wreck_color_normal.dds") or
+					(lowercasetex1:find("arm_color") and "unittextures/Arm_normal.dds") or -- for things like dead dragons claw armclaw
+					(lowercasetex1:find("cor_color.dds",1,true) and "unittextures/cor_normal.dds") or -- for things like dead dragons maw cormaw
+					(lowercasetex1:find("cor_color_wreck") and "unittextures/cor_color_wreck_normal.dds"))
 
 				if not wreckNormalTex then
-					Spring.Echo("Failed to find normal map for unit wreck: ", featureDef.name)
+          table.insert(failedwrecknormaltex, 1, featureDef.name)
+					Spring.Echo("Failed to find normal map for unit wreck: ", featureDef.name,lowercasetex1)
 				end
 
 				featureMaterials[id] = {"featuresMetalDeadOrHeap", NORMALTEX = wreckNormalTex}
@@ -460,6 +469,9 @@ for id = 1, #FeatureDefs do
 	end
 end
 
+if #failedwrecknormaltex > 0 then 
+	Spring.Echo("Failed to find normal map for unit wreck: ", table.concat(failedwrecknormaltex,','))
+end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
