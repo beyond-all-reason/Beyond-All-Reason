@@ -1,3 +1,9 @@
+local BlankSoundEffect = {
+		BaseSoundSelectType = "blanksound",
+		BaseSoundMovementType = "blanksound",
+		BaseSoundWeaponType = "blanksound",
+}
+
 GUIUnitSoundEffects = {
 	-- ARMADA COMMANDER
 	armcom = {
@@ -183,6 +189,12 @@ GUIUnitSoundEffects = {
 	},
 
 	armtl = {
+		BaseSoundSelectType = "arm-bld-defense-action-water-t1",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "torpedo-small",
+	},
+
+	armptl = {
 		BaseSoundSelectType = "arm-bld-defense-action-water-t1",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "torpedo-small",
@@ -1226,6 +1238,12 @@ GUIUnitSoundEffects = {
 		BaseSoundWeaponType = "torpedo-small",
 	},
 
+	corptl = {
+		BaseSoundSelectType = "arm-bld-defense-action-water-t1",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "torpedo-small",
+	},
+
 	cordl = {
 		BaseSoundSelectType = "arm-bld-defense-action-t1",
 		--BaseSoundMovementType = "",
@@ -2080,5 +2098,30 @@ GUIUnitSoundEffects = {
 		BaseSoundMovementType = "cor-air-gunship-large-ok",
 		BaseSoundWeaponType = "laser-large",
 	},
+
+	--Various Random Units
+
+	freefusion = {
+		BaseSoundSelectType = "arm-bld-select-large",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "arm-bld-nrg-fusion-adv",
+	},
+
+	dbg_sphere = BlankSoundEffect,
+	dbg_sphere_fullmetal = BlankSoundEffect,
+	chip = BlankSoundEffect,
+	dice = BlankSoundEffect,
+	meteor = BlankSoundEffect,
+	nuketestorg = BlankSoundEffect,
+	nuketest = BlankSoundEffect,
+	nuketestcor = BlankSoundEffect,
+	nuketestcororg = BlankSoundEffect,
+	scavempspawner = BlankSoundEffect,
+	scavtacnukespawner = BlankSoundEffect,
+	xmasball = BlankSoundEffect,
+	xmasball2 = BlankSoundEffect,
+	armstone = BlankSoundEffect,
+	corstone = BlankSoundEffect,
+	resourcecheat = BlankSoundEffect,
 
 }
