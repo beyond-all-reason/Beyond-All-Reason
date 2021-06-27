@@ -90,7 +90,7 @@ return {
 				height = 4,
 				hitdensity = 100,
 				metal = 1923,
-				object = "",
+				object = "Units/arm7X7D.s3o",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",

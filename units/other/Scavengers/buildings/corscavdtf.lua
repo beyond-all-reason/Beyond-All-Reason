@@ -87,7 +87,7 @@ return {
 				height = 20,
 				hitdensity = 100,
 				metal = 2,
-				object = "",
+				object = "Units/cor1X1B.s3o",
 				reclaimable = true,
 				shadtrans = 1,
 				world = "greenworld",

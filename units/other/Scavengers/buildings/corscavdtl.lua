@@ -90,7 +90,7 @@ return {
 				height = 20,
 				hitdensity = 100,
 				metal = 2,
-				object = "",
+				object = "Units/cor1X1A.s3o",
 				reclaimable = true,
 				resurrectable = 0,
 				shadtrans = 1,
