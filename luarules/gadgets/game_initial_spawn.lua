@@ -458,11 +458,11 @@ else
 	local timer = 0
 	local timer2 = 0
 
-	local readyX = math.floor(vsx * 0.78)
-	local readyY = math.floor(vsy * 0.78)
+	local readyX = math.floor(vsx * 0.75)
+	local readyY = math.floor(vsy * 0.75)
 
-	local orgReadyH = 35
-	local orgReadyW = 100
+	local orgReadyH = 40
+	local orgReadyW = 115
 
 	local readyH = orgReadyH * uiScale
 	local readyW = orgReadyW * uiScale
@@ -473,16 +473,17 @@ else
 	local UiElement = Spring.FlowUI.Draw.Element
 	local UiButton = Spring.FlowUI.Draw.Button
 	local elementPadding = Spring.FlowUI.elementPadding
+	local uiPadding = math.floor(elementPadding * 4.5)
 
 	local function createButton()
 		readyButton = gl.DeleteList(readyButton)
 		readyButton = gl.CreateList(function()
-			UiElement(readyX-(readyW/2)-elementPadding, readyY-(readyH/2)-elementPadding, readyX+(readyW/2)+elementPadding, readyY+(readyH/2)+elementPadding, 1,1,1,1, 1,1,1,1)
+			UiElement(readyX-(readyW/2)-uiPadding, readyY-(readyH/2)-uiPadding, readyX+(readyW/2)+uiPadding, readyY+(readyH/2)+uiPadding, 1,1,1,1, 1,1,1,1)
 			UiButton(readyX-(readyW/2), readyY-(readyH/2), readyX+(readyW/2), readyY+(readyH/2), 1,1,1,1, 1,1,1,1, nil, {0.15, 0.11, 0, 1}, {0.28, 0.21, 0, 1})
 		end)
 		readyButtonHover = gl.DeleteList(readyButtonHover)
 		readyButtonHover = gl.CreateList(function()
-			UiElement(readyX-(readyW/2)-elementPadding, readyY-(readyH/2)-elementPadding, readyX+(readyW/2)+elementPadding, readyY+(readyH/2)+elementPadding, 1,1,1,1, 1,1,1,1)
+			UiElement(readyX-(readyW/2)-uiPadding, readyY-(readyH/2)-uiPadding, readyX+(readyW/2)+uiPadding, readyY+(readyH/2)+uiPadding, 1,1,1,1, 1,1,1,1)
 			UiButton(readyX-(readyW/2), readyY-(readyH/2), readyX+(readyW/2), readyY+(readyH/2), 1,1,1,1, 1,1,1,1, nil, {0.25, 0.20, 0, 1}, {0.44, 0.35, 0, 1})
 		end)
 	end
@@ -507,6 +508,7 @@ else
 		UiElement = Spring.FlowUI.Draw.Element
 		UiButton = Spring.FlowUI.Draw.Button
 		elementPadding = Spring.FlowUI.elementPadding
+		uiPadding = math.floor(elementPadding * 4.5)
 
 		createButton()
 	end
@@ -572,16 +574,18 @@ else
 	end
 
 	function gadget:MousePress(sx,sy)
-		-- pressing ready
-		if sx > readyX-(readyW/2) and sx < readyX+(readyW/2) and sy > readyY-(readyH/2) and sy < readyY+(readyH/2) and Spring.GetGameFrame() <= 0 and Game.startPosType == 2 and gameStarting==nil and not spec then
-			if startPointChosen then
-				readied = true
-				return true
-			else
-				Spring.Echo(Spring.I18N('ui.initialSpawn.choosePoint'))
+		-- pressing ready element
+		if sx > readyX-(readyW/2)-uiPadding and sx < readyX+(readyW/2)+uiPadding and sy > readyY-(readyH/2)-uiPadding and sy < readyY+(readyH/2)+uiPadding and Spring.GetGameFrame() <= 0 and Game.startPosType == 2 and gameStarting==nil and not spec then
+			-- pressing ready button
+			if sx > readyX-(readyW/2) and sx < readyX+(readyW/2) and sy > readyY-(readyH/2) and sy < readyY+(readyH/2) then
+				if startPointChosen then
+					readied = true
+				else
+					Spring.Echo(Spring.I18N('ui.initialSpawn.choosePoint'))
+				end
 			end
+			return true
 		end
-
 		-- message when trying to place startpoint but can't
 		if amNewbie then
 			local target,_ = Spring.TraceScreenRay(sx,sy)
@@ -613,10 +617,10 @@ else
 
 			if Script.LuaUI("GuishaderInsertRect") then
 				Script.LuaUI.GuishaderInsertRect(
-					readyX-((readyW/2)+elementPadding),
-					readyY-((readyH/2)+elementPadding),
-					readyX+((readyW/2)+elementPadding),
-					readyY+((readyH/2)+elementPadding),
+					readyX-((readyW/2)+uiPadding),
+					readyY-((readyH/2)+uiPadding),
+					readyX+((readyW/2)+uiPadding),
+					readyY+((readyH/2)+uiPadding),
 					'ready'
 				)
 			end
@@ -637,7 +641,7 @@ else
 				end
 			end
 			font:Begin()
-			font:Print(colorString .. Spring.I18N('ui.initialSpawn.ready'), readyX, readyY-(readyH*0.2), 24*uiScale, "co")
+			font:Print(colorString .. Spring.I18N('ui.initialSpawn.ready'), readyX, readyY-(readyH*0.16), 24*uiScale, "co")
 			font:End()
 			gl.Color(1,1,1,1)
 		end
