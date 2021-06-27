@@ -112,7 +112,7 @@ function UnitDef_Post(name, uDef)
 
 --Soon used for new sound system!
 	VFS.Include('luarules/configs/gui_soundeffects.lua')
-	if GUIUnitSoundEffects[name] then
+	if GUIUnitSoundEffects[name] or (GUIUnitSoundEffects[string.sub(name, 1, string.len(name)-5)] and string.find(name, "_scav")) then
 		if uDef.sounds then
 			if uDef.sounds.ok then
 				uDef.sounds.ok = nil
@@ -148,6 +148,8 @@ function UnitDef_Post(name, uDef)
 		-- 		uDef.sounds.deactivate = nil
 		-- 	end
 		-- end
+	else
+		Spring.Echo("[gui_soundeffects.lua] Missing Sound Effects for unit: "..name)
 	end
 
 	-- Unit Restrictions
@@ -299,60 +301,60 @@ function UnitDef_Post(name, uDef)
 	end
 
 
-	if Spring.GetModOptions and Spring.GetModOptions().experimentalmassoverride and Spring.GetModOptions().experimentalmassoverride == "enabled" then
-		-- mass override
-		Spring.Echo("-------------------------")
-		if uDef.name then
-			Spring.Echo("Processing Mass Override for unit: "..uDef.name)
-		else
-			Spring.Echo("Processing Mass Override for unit: unknown-unit")
-		end
-		Spring.Echo("-------------------------")
+	-- if Spring.GetModOptions and Spring.GetModOptions().experimentalmassoverride and Spring.GetModOptions().experimentalmassoverride == "enabled" then
+	-- 	-- mass override
+	-- 	Spring.Echo("-------------------------")
+	-- 	if uDef.name then
+	-- 		Spring.Echo("Processing Mass Override for unit: "..uDef.name)
+	-- 	else
+	-- 		Spring.Echo("Processing Mass Override for unit: unknown-unit")
+	-- 	end
+	-- 	Spring.Echo("-------------------------")
 
-		massoverrideFootprintX = 1
-		if uDef.footprintx and uDef.footprintx > 0 then
-			massoverrideFootprintX = uDef.footprintx
-			Spring.Echo("Footprint X: "..uDef.footprintx)
-		else
-			Spring.Echo("Missing Footprint X")
-		end
+	-- 	massoverrideFootprintX = 1
+	-- 	if uDef.footprintx and uDef.footprintx > 0 then
+	-- 		massoverrideFootprintX = uDef.footprintx
+	-- 		Spring.Echo("Footprint X: "..uDef.footprintx)
+	-- 	else
+	-- 		Spring.Echo("Missing Footprint X")
+	-- 	end
 
-		massoverrideFootprintZ = 1
-		if uDef.footprintz and uDef.footprintz > 0 then
-			massoverrideFootprintZ = uDef.footprintz
-			Spring.Echo("Footprint Z: "..uDef.footprintz)
-		else
-			Spring.Echo("Missing Footprint Z")
-		end
+	-- 	massoverrideFootprintZ = 1
+	-- 	if uDef.footprintz and uDef.footprintz > 0 then
+	-- 		massoverrideFootprintZ = uDef.footprintz
+	-- 		Spring.Echo("Footprint Z: "..uDef.footprintz)
+	-- 	else
+	-- 		Spring.Echo("Missing Footprint Z")
+	-- 	end
 
-		massoverrideMetalCost = 1
-		if uDef.buildcostmetal and uDef.buildcostmetal > 0 then
-			massoverrideMetalCost = uDef.buildcostmetal
-			Spring.Echo("Metal Cost: "..uDef.buildcostmetal)
-		else
-			Spring.Echo("Missing Metal Cost")
-		end
+	-- 	massoverrideMetalCost = 1
+	-- 	if uDef.buildcostmetal and uDef.buildcostmetal > 0 then
+	-- 		massoverrideMetalCost = uDef.buildcostmetal
+	-- 		Spring.Echo("Metal Cost: "..uDef.buildcostmetal)
+	-- 	else
+	-- 		Spring.Echo("Missing Metal Cost")
+	-- 	end
 
-		massoverrideHealth = 1
-		if uDef.maxdamage and uDef.maxdamage > 0 then
-			massoverrideHealth = uDef.maxdamage
-			Spring.Echo("Max Health: "..uDef.maxdamage)
-		else
-			Spring.Echo("Missing Max Health")
-		end
+	-- 	massoverrideHealth = 1
+	-- 	if uDef.maxdamage and uDef.maxdamage > 0 then
+	-- 		massoverrideHealth = uDef.maxdamage
+	-- 		Spring.Echo("Max Health: "..uDef.maxdamage)
+	-- 	else
+	-- 		Spring.Echo("Missing Max Health")
+	-- 	end
 
-		uDef.mass = math.ceil((massoverrideFootprintX * massoverrideFootprintZ * (massoverrideMetalCost + massoverrideHealth))*0.33)
-		Spring.Echo("-------------------------")
-		Spring.Echo("Result Mass: "..uDef.mass)
-		Spring.Echo("-------------------------")
-	end
+	-- 	uDef.mass = math.ceil((massoverrideFootprintX * massoverrideFootprintZ * (massoverrideMetalCost + massoverrideHealth))*0.33)
+	-- 	Spring.Echo("-------------------------")
+	-- 	Spring.Echo("Result Mass: "..uDef.mass)
+	-- 	Spring.Echo("-------------------------")
+	-- end
 
 
 	-- mass remove push resistance
 	if uDef.pushresistant and uDef.pushresistant == true then
 		uDef.pushresistant = false
 		if not uDef.mass then
-			Spring.Echo("Push Resistant Unit with no mass: "..uDef.name)
+			Spring.Echo("[PUSH RESISTANCE REMOVER] Push Resistant Unit with no mass: "..name)
 			uDef.mass = 4999
 		end
 	end
@@ -389,7 +391,7 @@ function UnitDef_Post(name, uDef)
 	end
 
 	if (uDef.buildpic and uDef.buildpic == "") or not uDef.buildpic then
-		Spring.Echo("Missing Buildpic: ".. uDef.name)
+		Spring.Echo("[BUILDPIC] Missing Buildpic: ".. uDef.name)
 	end
 
 	--[[ Sanitize to whole frames (plus leeways because float arithmetic is bonkers).
