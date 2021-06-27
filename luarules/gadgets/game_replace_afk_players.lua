@@ -262,11 +262,12 @@ else
 	local UiElement = Spring.FlowUI.Draw.Element
 	local UiButton = Spring.FlowUI.Draw.Button
 	local elementPadding = Spring.FlowUI.elementPadding
+	local uiPadding = math.floor(elementPadding * 4.5)
 
 	function gadget:ViewResize(viewSizeX, viewSizeY)
 		vsx, vsy = Spring.GetViewGeometry()
 		local newFontfileScale = (0.5 + (vsx * vsy / 5700000))
-		if (fontfileScale ~= newFontfileScale) then
+		if fontfileScale ~= newFontfileScale then
 			fontfileScale = newFontfileScale
 			gl.DeleteFont(font)
 			font = gl.LoadFont(fontfile, fontfileSize * fontfileScale, fontfileOutlineSize * fontfileScale, fontfileOutlineStrength)
@@ -274,11 +275,12 @@ else
 		UiElement = Spring.FlowUI.Draw.Element
 		UiButton = Spring.FlowUI.Draw.Button
 		elementPadding = Spring.FlowUI.elementPadding
+		uiPadding = math.floor(elementPadding * 4.5)
 	end
 
 	local subsButton, subsButtonHover
-	local bX = math.floor(vsx * 0.78)
-	local bY = math.floor(vsy * 0.78)
+	local bX = math.floor(vsx * 0.77)
+	local bY = math.floor(vsy * 0.77)
 	local bH = 30
 	local bW = 140
 	local bgMargin = 2.5
@@ -292,7 +294,8 @@ else
 		return x, y
 	end
 
-	function MakeButton()
+	local function MakeButton()
+		subsButton = gl.DeleteList(subsButton)
 		subsButton = gl.CreateList(function()
 			-- draws background rectangle
 			gl.Color(0, 0, 0, 0.8)
@@ -306,6 +309,7 @@ else
 			gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 			gl.Color(1, 1, 1, 1)
 		end)
+		subsButtonHover = gl.DeleteList(subsButtonHover)
 		subsButtonHover = gl.CreateList(function()
 			-- draws background rectangle
 			gl.Color(0.15, 0.12, 0, 0.8)

@@ -1,13 +1,13 @@
 function gadget:GetInfo()
 	return {
-		name	= 'Initial Spawn',
-		desc	= 'Handles initial spawning of units',
-		author	= 'Niobium',
-		version	= 'v1.0',
-		date	= 'April 2011',
-		license	= 'GNU GPL, v2 or later',
-		layer	= 0,
-		enabled	= true
+		name = 'Initial Spawn',
+		desc = 'Handles initial spawning of units',
+		author = 'Niobium',
+		version = 'v1.0',
+		date = 'April 2011',
+		license = 'GNU GPL, v2 or later',
+		layer = 0,
+		enabled = true
 	}
 end
 
@@ -94,13 +94,14 @@ if gadgetHandler:IsSyncedCode() then
 
 	--check if a player is to be considered as a 'newbie', in terms of startpoint placements
 	local function isPlayerNewbie(pID)
-		local name,_,isSpec,tID,_,_,_,_,pRank = Spring.GetPlayerInfo(pID,false)
+		local name, _, isSpec, tID, _, _, _, _, pRank = Spring.GetPlayerInfo(pID, false)
 		pRank = tonumber(pRank) or 0
-		local customtable = select(11,Spring.GetPlayerInfo(pID)) or {} -- player custom table
+		local customtable = select(11, Spring.GetPlayerInfo(pID)) or {} -- player custom table
 		local tsMu = tostring(customtable.skill) or ""
 		local tsSigma = tonumber(customtable.skilluncertainty) or 3
 		local isNewbie
-		if pRank == 0 and (string.find(tsMu, ")") or tsSigma >= 3) then --rank 0 and not enough ts data
+		if pRank == 0 and (string.find(tsMu, ")") or tsSigma >= 3) then
+			--rank 0 and not enough ts data
 			isNewbie = true
 		else
 			isNewbie = false
@@ -110,12 +111,14 @@ if gadgetHandler:IsSyncedCode() then
 
 	--a team is a newbie team if it contains at least one newbie player
 	local function isTeamNewbie(teamID)
-		if not NewbiePlacer then return false end
+		if not NewbiePlacer then
+			return false
+		end
 		local playerList = Spring.GetPlayerList(teamID) or {}
 		local isNewbie = false
-		for _,playerID in pairs(playerList) do
+		for _, playerID in pairs(playerList) do
 			if playerID then
-				if not select(3,Spring.GetPlayerInfo(playerID,false)) then
+				if not select(3, Spring.GetPlayerInfo(playerID, false)) then
 					isNewbie = isNewbie or isPlayerNewbie(playerID)
 				end
 			end
@@ -133,7 +136,7 @@ if gadgetHandler:IsSyncedCode() then
 			local teamID = teamList[i]
 			if teamID ~= gaiaTeamID then
 				--set & broadcast (current) start unit
-				local _, _, _, _, teamSide, teamAllyID = spGetTeamInfo(teamID,false)
+				local _, _, _, _, teamSide, teamAllyID = spGetTeamInfo(teamID, false)
 				if teamSide == 'cortex' then
 					spSetTeamRulesParam(teamID, startUnitParamName, corcomDefID)
 				else
@@ -148,22 +151,22 @@ if gadgetHandler:IsSyncedCode() then
 				else
 					newbieParam = 0
 				end
-				spSetTeamRulesParam(teamID, 'isNewbie', newbieParam, {public=true}) --visible to all; some widgets (faction choose, initial queue) need to know if its a newbie -> they unload
+				spSetTeamRulesParam(teamID, 'isNewbie', newbieParam, { public = true }) --visible to all; some widgets (faction choose, initial queue) need to know if its a newbie -> they unload
 
 				--record that this allyteam will spawn something
-				local _,_,_,_,_,allyTeamID = Spring.GetTeamInfo(teamID,false)
+				local _, _, _, _, _, allyTeamID = Spring.GetTeamInfo(teamID, false)
 				allyTeams[allyTeamID] = allyTeamID
 			end
 		end
 		processedNewbies = true
 
 		allyTeamsCount = 0
-		for k,v in pairs(allyTeams) do
+		for k, v in pairs(allyTeams) do
 			allyTeamsCount = allyTeamsCount + 1
 		end
 
 		spawnTeamsCount = 0
-		for k,v in pairs(spawnTeams) do
+		for k, v in pairs(spawnTeams) do
 			spawnTeamsCount = spawnTeamsCount + 1
 		end
 
@@ -184,8 +187,8 @@ if gadgetHandler:IsSyncedCode() then
 			initState = 0 -- players will be allowed to place startpoints
 		end
 		local playerList = Spring.GetPlayerList()
-		for _,playerID in pairs(playerList) do
-			Spring.SetGameRulesParam("player_" .. playerID .. "_readyState" , initState)
+		for _, playerID in pairs(playerList) do
+			Spring.SetGameRulesParam("player_" .. playerID .. "_readyState", initState)
 		end
 	end
 
@@ -196,10 +199,10 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:RecvLuaMsg(msg, playerID)
 		local startUnit = tonumber(msg:match(changeStartUnitRegex))
 		if startUnit and validStartUnits[startUnit] then
-			local _, _, playerIsSpec, playerTeam = spGetPlayerInfo(playerID,false)
+			local _, _, playerIsSpec, playerTeam = spGetPlayerInfo(playerID, false)
 			if not playerIsSpec then
 				playerStartingUnits[playerID] = startUnit
-				spSetTeamRulesParam(playerTeam, startUnitParamName, startUnit, {allied=true, public=false}) -- visible to allies only, set visible to all on GameStart
+				spSetTeamRulesParam(playerTeam, startUnitParamName, startUnit, { allied = true, public = false }) -- visible to allies only, set visible to all on GameStart
 				return true
 			end
 		end
@@ -208,7 +211,7 @@ if gadgetHandler:IsSyncedCode() then
 	----------------------------------------------------------------
 	-- Startpoints
 	----------------------------------------------------------------
-	function gadget:AllowStartPosition(playerID,teamID,readyState,x,y,z)
+	function gadget:AllowStartPosition(playerID, teamID, readyState, x, y, z)
 		-- readyState:
 		-- 0: player did not place startpoint, is unready
 		-- 1: game starting, player is ready
@@ -220,7 +223,7 @@ if gadgetHandler:IsSyncedCode() then
 		--  4: player has placed a startpoint but is not yet ready
 
 		-- communicate readyState to all
-		Spring.SetGameRulesParam("player_" .. playerID .. "_readyState" , readyState)
+		Spring.SetGameRulesParam("player_" .. playerID .. "_readyState", readyState)
 
 		--[[
 		-- for debugging
@@ -229,27 +232,37 @@ if gadgetHandler:IsSyncedCode() then
 		Spring.MarkerAddPoint(x,y,z,name .. " " .. readyState)
 		--]]
 
-		if Game.startPosType ~= 2 then return true end -- accept blindly unless we are in choose-in-game mode
-		if useFFAStartPoints then return true end
+		if Game.startPosType ~= 2 then
+			return true
+		end -- accept blindly unless we are in choose-in-game mode
+		if useFFAStartPoints then
+			return true
+		end
 
-		local _,_,_,teamID,allyTeamID = Spring.GetPlayerInfo(playerID,false)
-		if not teamID or not allyTeamID then return false end --fail
+		local _, _, _, teamID, allyTeamID = Spring.GetPlayerInfo(playerID, false)
+		if not teamID or not allyTeamID then
+			return false
+		end --fail
 
 		-- NewbiePlacer
 		if NewbiePlacer then
-			if not processedNewbies then return false end
+			if not processedNewbies then
+				return false
+			end
 			if readyState == 0 and Spring.GetTeamRulesParam(teamID, 'isNewbie') == 1 then
 				return false
 			end
 		end
 
 		-- don't allow player to place startpoint unless its inside the startbox, if we have a startbox
-		if allyTeamID == nil then return false end
+		if allyTeamID == nil then
+			return false
+		end
 		local xmin, zmin, xmax, zmax = spGetAllyTeamStartBox(allyTeamID)
-		if xmin>=xmax or zmin>=zmax then
+		if xmin >= xmax or zmin >= zmax then
 			return true
 		else
-			local isOutsideStartbox = (xmin+1 >= x) or (x >= xmax-1) or (zmin+1 >= z) or (z >= zmax-1) -- the engine rounds startpoints to integers but does not round the startbox (wtf)
+			local isOutsideStartbox = (xmin + 1 >= x) or (x >= xmax - 1) or (zmin + 1 >= z) or (z >= zmax - 1) -- the engine rounds startpoints to integers but does not round the startbox (wtf)
 			if isOutsideStartbox then
 				return false
 			end
@@ -258,12 +271,12 @@ if gadgetHandler:IsSyncedCode() then
 		-- NoCloseSpawns
 		local closeSpawnDist = 350
 
-		for otherTeamID,startpoint in pairs(startPointTable) do
-			local sx,sz = startpoint[1],startpoint[2]
-			local tooClose = ((x-sx)^2+(z-sz)^2 <= closeSpawnDist^2)
+		for otherTeamID, startpoint in pairs(startPointTable) do
+			local sx, sz = startpoint[1], startpoint[2]
+			local tooClose = ((x - sx) ^ 2 + (z - sz) ^ 2 <= closeSpawnDist ^ 2)
 			local sameTeam = (teamID == otherTeamID)
-			local sameAllyTeam = (allyTeamID == select(6,Spring.GetTeamInfo(otherTeamID,false)))
-			if (sx>0) and tooClose and sameAllyTeam and not sameTeam then
+			local sameAllyTeam = (allyTeamID == select(6, Spring.GetTeamInfo(otherTeamID, false)))
+			if (sx > 0) and tooClose and sameAllyTeam and not sameTeam then
 				SendToUnsynced("PositionTooClose", playerID)
 				return false
 			end
@@ -273,14 +286,14 @@ if gadgetHandler:IsSyncedCode() then
 		if readyState == 2 then
 			-- player pressed ready (we have already recorded their startpoint when they placed it) OR game was force started and player is forcibly readied
 			if not startPointTable[teamID] then
-				startPointTable[teamID]={-5000,-5000} -- if the player was forcibly readied without having placed a startpoint, place an invalid one far away (thats what the StartPointGuesser wants)
+				startPointTable[teamID] = { -5000, -5000 } -- if the player was forcibly readied without having placed a startpoint, place an invalid one far away (thats what the StartPointGuesser wants)
 			end
 		else
 			-- player placed startpoint OR game is starting and player is ready
-			startPointTable[teamID]={x,z}
+			startPointTable[teamID] = { x, z }
 			if readyState ~= 1 then
 				-- game is not starting (therefore, player cannot yet have pressed ready)
-				Spring.SetGameRulesParam("player_" .. playerID .. "_readyState" , 4)
+				Spring.SetGameRulesParam("player_" .. playerID .. "_readyState", 4)
 				SendToUnsynced("StartPointChosen", playerID)
 			end
 		end
@@ -294,11 +307,11 @@ if gadgetHandler:IsSyncedCode() then
 
 		-- first, construct a random permutation of [1,...,nSpawns] using a Knuth shuffle
 		local perm = {}
-		for i=1,nSpawns do
+		for i = 1, nSpawns do
 			perm[i] = i
 		end
-		for i=1,nSpawns-1 do
-			local j = math.random(i,nSpawns)
+		for i = 1, nSpawns - 1 do
+			local j = math.random(i, nSpawns)
 			local temp = perm[i]
 			perm[i] = perm[j]
 			perm[j] = temp
@@ -306,7 +319,7 @@ if gadgetHandler:IsSyncedCode() then
 
 		local permutedSpawns = {}
 		local slot = 1
-		for id,_ in pairs(idsToSpawn) do
+		for id, _ in pairs(idsToSpawn) do
 			permutedSpawns[id] = perm[slot]
 			slot = slot + 1
 		end
@@ -318,7 +331,7 @@ if gadgetHandler:IsSyncedCode() then
 		local startUnit = spGetTeamRulesParam(teamID, startUnitParamName)
 
 		--overwrite startUnit with random faction for newbies
-		local _,_,_,isAI,sideName = Spring.GetTeamInfo(teamID)
+		local _, _, _, isAI, sideName = Spring.GetTeamInfo(teamID)
 		if Spring.GetTeamRulesParam(teamID, 'isNewbie') == 1 or sideName == "random" then
 			if math.random() > 0.5 then
 				startUnit = corcomDefID
@@ -328,24 +341,24 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		--spawn starting unit
-		local y = spGetGroundHeight(x,z)
-    local scenarioSpawnsUnits = false
+		local y = spGetGroundHeight(x, z)
+		local scenarioSpawnsUnits = false
 
-    if  Spring.GetModOptions and  Spring.GetModOptions().scenariooptions then
-      local scenariooptions = Spring.Utilities.json.decode(Spring.Utilities.Base64Decode(Spring.GetModOptions().scenariooptions))
-      if scenariooptions and scenariooptions.unitloadout and next(scenariooptions.unitloadout) then
-        Spring.Echo("Scenario: Spawning loadout instead of regular commanders")
-        scenarioSpawnsUnits = true
-      end
-    end
+		if Spring.GetModOptions and Spring.GetModOptions().scenariooptions then
+			local scenariooptions = Spring.Utilities.json.decode(Spring.Utilities.Base64Decode(Spring.GetModOptions().scenariooptions))
+			if scenariooptions and scenariooptions.unitloadout and next(scenariooptions.unitloadout) then
+				Spring.Echo("Scenario: Spawning loadout instead of regular commanders")
+				scenarioSpawnsUnits = true
+			end
+		end
 
-    if not scenarioSpawnsUnits then
-      local unitID = spCreateUnit(startUnit, x, y, z, 0, teamID)
-    end
+		if not scenarioSpawnsUnits then
+			local unitID = spCreateUnit(startUnit, x, y, z, 0, teamID)
+		end
 
 		--share info
-		teamStartPoints[teamID] = {x,y,z}
-		spSetTeamRulesParam(teamID, startUnitParamName, startUnit, {public=true}) -- visible to all (and picked up by advpllist)
+		teamStartPoints[teamID] = { x, y, z }
+		spSetTeamRulesParam(teamID, startUnitParamName, startUnit, { public = true }) -- visible to all (and picked up by advpllist)
 
 		--team storage is set up by game_team_resources
 	end
@@ -357,11 +370,12 @@ if gadgetHandler:IsSyncedCode() then
 		local z = startPos.z
 
 		-- get team start pos; randomly move slightly to make it look nicer and (w.h.p.) avoid coms in same place in team ffa
-		local r = math.random(50,120)
+		local r = math.random(50, 120)
 		local theta = math.random(100) / 100 * 2 * math.pi
-		local cx = x + r*math.cos(theta)
-		local cz = z + r*math.sin(theta)
-		if not IsSteep(cx,cz) then --IsSteep comes from lib_startpoint_guesser, returns true if pos is too steep for com to walk on
+		local cx = x + r * math.cos(theta)
+		local cz = z + r * math.sin(theta)
+		if not IsSteep(cx, cz) then
+			--IsSteep comes from lib_startpoint_guesser, returns true if pos is too steep for com to walk on
 			x = cx
 			z = cz
 		end
@@ -371,17 +385,17 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	local function spawnTeamStartUnit(teamID, allyTeamID)
-		local x,_,z = Spring.GetTeamStartPosition(teamID)
+		local x, _, z = Spring.GetTeamStartPosition(teamID)
 		local xmin, zmin, xmax, zmax = spGetAllyTeamStartBox(allyTeamID)
 
 		-- if its choose-in-game mode, see if we need to autoplace anyone
-		if Game.startPosType==2 then
+		if Game.startPosType == 2 then
 			if not startPointTable[teamID] or startPointTable[teamID][1] < 0 then
 				-- guess points for the ones classified in startPointTable as not genuine (newbies will not have a genuine startpoint)
-				x,z=GuessStartSpot(teamID, allyTeamID, xmin, zmin, xmax, zmax, startPointTable)
+				x, z = GuessStartSpot(teamID, allyTeamID, xmin, zmin, xmax, zmax, startPointTable)
 			else
 				--fallback
-				if x<=0 or z<=0 then
+				if x <= 0 or z <= 0 then
 					x = (xmin + xmax) / 2
 					z = (zmin + zmax) / 2
 				end
@@ -398,17 +412,17 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:GameStart()
 
 		-- ffa mode spawning
-		if useFFAStartPoints and ffaStartPoints and ffaStartPoints[allyTeamsCount] and #(ffaStartPoints[allyTeamsCount])==allyTeamsCount then
+		if useFFAStartPoints and ffaStartPoints and ffaStartPoints[allyTeamsCount] and #(ffaStartPoints[allyTeamsCount]) == allyTeamsCount then
 			-- cycle over ally teams and spawn starting units
 			local allyTeamSpawn = setPermutedSpawns(allyTeamsCount, allyTeams)
-				for teamID, allyTeamID in pairs(spawnTeams) do
+			for teamID, allyTeamID in pairs(spawnTeams) do
 				spawnFFAStartUnit(allyTeamsCount, allyTeamSpawn[allyTeamID], teamID)
-				end
-				return
 			end
+			return
+		end
 
 		-- use ffa mode startpoints for random spawning, if possible, but per team instead of per allyTeam
-		if Game.startPosType==1 and ffaStartPoints and ffaStartPoints[spawnTeamsCount] and #(ffaStartPoints[spawnTeamsCount])==spawnTeamsCount then
+		if Game.startPosType == 1 and ffaStartPoints and ffaStartPoints[spawnTeamsCount] and #(ffaStartPoints[spawnTeamsCount]) == spawnTeamsCount then
 			local teamSpawn = setPermutedSpawns(spawnTeamsCount, spawnTeams)
 			for teamID, allyTeamID in pairs(spawnTeams) do
 				spawnFFAStartUnit(spawnTeamsCount, teamSpawn[teamID], teamID)
@@ -435,16 +449,16 @@ else
 	----------------------------------------------------------------
 
 	local fontfile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
-	local vsx,vsy = Spring.GetViewGeometry()
-	local fontfileScale = (0.5 + (vsx*vsy / 5700000))
+	local vsx, vsy = Spring.GetViewGeometry()
+	local fontfileScale = (0.5 + (vsx * vsy / 5700000))
 	local fontfileSize = 50
 	local fontfileOutlineSize = 10
 	local fontfileOutlineStrength = 1.4
-	local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+	local font = gl.LoadFont(fontfile, fontfileSize * fontfileScale, fontfileOutlineSize * fontfileScale, fontfileOutlineStrength)
 
-	local uiScale = (0.8 + (vsx*vsy / 5000000))
+	local uiScale = (0.8 + (vsx * vsy / 5000000))
 	local myPlayerID = Spring.GetMyPlayerID()
-	local _,_,spec,myTeamID = Spring.GetPlayerInfo(myPlayerID,false)
+	local _, _, spec, myTeamID = Spring.GetPlayerInfo(myPlayerID, false)
 	local amNewbie
 	local ffaMode = (tonumber(Spring.GetModOptions().ffa_mode) or 0) == 1
 	local isReplay = Spring.IsReplay()
@@ -458,16 +472,16 @@ else
 	local timer = 0
 	local timer2 = 0
 
-	local readyX = math.floor(vsx * 0.75)
-	local readyY = math.floor(vsy * 0.75)
+	local buttonX = math.floor(vsx * 0.77)
+	local buttonY = math.floor(vsy * 0.77)
 
-	local orgReadyH = 40
-	local orgReadyW = 115
+	local orgbuttonH = 40
+	local orgbuttonW = 115
 
-	local readyH = orgReadyH * uiScale
-	local readyW = orgReadyW * uiScale
+	local buttonH = orgbuttonH * uiScale
+	local buttonW = orgbuttonW * uiScale
 
-	local readyButton, readyButtonHover
+	local buttonList, buttonHoverList
 
 	local RectRound = Spring.FlowUI.Draw.RectRound
 	local UiElement = Spring.FlowUI.Draw.Element
@@ -476,33 +490,35 @@ else
 	local uiPadding = math.floor(elementPadding * 4.5)
 
 	local function createButton()
-		readyButton = gl.DeleteList(readyButton)
-		readyButton = gl.CreateList(function()
-			UiElement(readyX-(readyW/2)-uiPadding, readyY-(readyH/2)-uiPadding, readyX+(readyW/2)+uiPadding, readyY+(readyH/2)+uiPadding, 1,1,1,1, 1,1,1,1)
-			UiButton(readyX-(readyW/2), readyY-(readyH/2), readyX+(readyW/2), readyY+(readyH/2), 1,1,1,1, 1,1,1,1, nil, {0.15, 0.11, 0, 1}, {0.28, 0.21, 0, 1})
+		buttonList = gl.DeleteList(buttonList)
+		buttonList = gl.CreateList(function()
+			UiElement(buttonX - (buttonW / 2) - uiPadding, buttonY - (buttonH / 2) - uiPadding, buttonX + (buttonW / 2) + uiPadding, buttonY + (buttonH / 2) + uiPadding, 1, 1, 1, 1, 1, 1, 1, 1)
+			UiButton(buttonX - (buttonW / 2), buttonY - (buttonH / 2), buttonX + (buttonW / 2), buttonY + (buttonH / 2), 1, 1, 1, 1, 1, 1, 1, 1, nil, { 0.15, 0.11, 0, 1 }, { 0.28, 0.21, 0, 1 })
 		end)
-		readyButtonHover = gl.DeleteList(readyButtonHover)
-		readyButtonHover = gl.CreateList(function()
-			UiElement(readyX-(readyW/2)-uiPadding, readyY-(readyH/2)-uiPadding, readyX+(readyW/2)+uiPadding, readyY+(readyH/2)+uiPadding, 1,1,1,1, 1,1,1,1)
-			UiButton(readyX-(readyW/2), readyY-(readyH/2), readyX+(readyW/2), readyY+(readyH/2), 1,1,1,1, 1,1,1,1, nil, {0.25, 0.20, 0, 1}, {0.44, 0.35, 0, 1})
+		buttonHoverList = gl.DeleteList(buttonHoverList)
+		buttonHoverList = gl.CreateList(function()
+			UiElement(buttonX - (buttonW / 2) - uiPadding, buttonY - (buttonH / 2) - uiPadding, buttonX + (buttonW / 2) + uiPadding, buttonY + (buttonH / 2) + uiPadding, 1, 1, 1, 1, 1, 1, 1, 1)
+			UiButton(buttonX - (buttonW / 2), buttonY - (buttonH / 2), buttonX + (buttonW / 2), buttonY + (buttonH / 2), 1, 1, 1, 1, 1, 1, 1, 1, nil, { 0.25, 0.20, 0, 1 }, { 0.44, 0.35, 0, 1 })
 		end)
 	end
 
 	function gadget:ViewResize(viewSizeX, viewSizeY)
-		vsx,vsy = Spring.GetViewGeometry()
+		vsx, vsy = Spring.GetViewGeometry()
 
-		uiScale = (0.8 + (vsx*vsy / 5000000))
+		uiScale = (0.8 + (vsx * vsy / 5000000))
 
-		readyX = math.floor(vsx * 0.78)
-		readyY = math.floor(vsy * 0.78)
-		readyW = math.floor(orgReadyW * uiScale / 2) * 2
-		readyH = math.floor(orgReadyH * uiScale / 2) * 2
+		buttonX = math.floor(vsx * 0.78)
+		buttonY = math.floor(vsy * 0.78)
 
-		local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
+		orgbuttonW = font:GetTextWidth('       '..Spring.I18N('ui.initialSpawn.ready')) * 24
+		buttonW = math.floor(orgbuttonW * uiScale / 2) * 2
+		buttonH = math.floor(orgbuttonH * uiScale / 2) * 2
+
+		local newFontfileScale = (0.5 + (vsx * vsy / 5700000))
 		if fontfileScale ~= newFontfileScale then
 			fontfileScale = newFontfileScale
 			gl.DeleteFont(font)
-			font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+			font = gl.LoadFont(fontfile, fontfileSize * fontfileScale, fontfileOutlineSize * fontfileScale, fontfileOutlineStrength)
 		end
 
 		UiElement = Spring.FlowUI.Draw.Element
@@ -515,7 +531,7 @@ else
 
 	local pStates = {} --local copy of playerStates table
 
-	local function StartPointChosen(_,playerID)
+	local function StartPointChosen(_, playerID)
 		if playerID == myPlayerID then
 			startPointChosen = true
 			if not readied and Script.LuaUI("PlayerReadyStateChanged") then
@@ -528,19 +544,20 @@ else
 		Spring.SendMessageToPlayer(playerID, Spring.I18N('ui.initialSpawn.tooClose'))
 	end
 
-	function gadget:GameSetup(state,ready,playerStates)
+	function gadget:GameSetup(state, ready, playerStates)
 		-- check when the 3.2.1 countdown starts
-		if gameStarting==nil and ((Spring.GetPlayerTraffic(SYSTEM_ID, NETMSG_STARTPLAYING) or 0) > 0) then --ugly but effective (can also detect by parsing state string)
+		if gameStarting == nil and ((Spring.GetPlayerTraffic(SYSTEM_ID, NETMSG_STARTPLAYING) or 0) > 0) then
+			--ugly but effective (can also detect by parsing state string)
 			gameStarting = true
 		end
 
 		-- if we can't choose startpositions, no need for ready button etc
 		if Game.startPosType ~= 2 or ffaMode then
-			return true,true
+			return true, true
 		end
 
 		-- notify LuaUI if readyStates have changed
-		for playerID,readyState in pairs(playerStates) do
+		for playerID, readyState in pairs(playerStates) do
 			if pStates[playerID] ~= readyState then
 				if Script.LuaUI("PlayerReadyStateChanged") then
 					if readyState == "ready" then
@@ -564,20 +581,22 @@ else
 			end
 		end
 
-		if not ready and readied then -- check if we just readied
+		if not ready and readied then
+			-- check if we just readied
 			ready = true
-		elseif ready and not readied then	-- check if we just reconnected/dropped
+		elseif ready and not readied then
+			-- check if we just reconnected/dropped
 			ready = false
 		end
 
 		return true, ready
 	end
 
-	function gadget:MousePress(sx,sy)
+	function gadget:MousePress(sx, sy)
 		-- pressing ready element
-		if sx > readyX-(readyW/2)-uiPadding and sx < readyX+(readyW/2)+uiPadding and sy > readyY-(readyH/2)-uiPadding and sy < readyY+(readyH/2)+uiPadding and Spring.GetGameFrame() <= 0 and Game.startPosType == 2 and gameStarting==nil and not spec then
+		if sx > buttonX - (buttonW / 2) - uiPadding and sx < buttonX + (buttonW / 2) + uiPadding and sy > buttonY - (buttonH / 2) - uiPadding and sy < buttonY + (buttonH / 2) + uiPadding and Spring.GetGameFrame() <= 0 and Game.startPosType == 2 and gameStarting == nil and not spec then
 			-- pressing ready button
-			if sx > readyX-(readyW/2) and sx < readyX+(readyW/2) and sy > readyY-(readyH/2) and sy < readyY+(readyH/2) then
+			if sx > buttonX - (buttonW / 2) and sx < buttonX + (buttonW / 2) and sy > buttonY - (buttonH / 2) and sy < buttonY + (buttonH / 2) then
 				if startPointChosen then
 					readied = true
 				else
@@ -588,14 +607,14 @@ else
 		end
 		-- message when trying to place startpoint but can't
 		if amNewbie then
-			local target,_ = Spring.TraceScreenRay(sx,sy)
+			local target, _ = Spring.TraceScreenRay(sx, sy)
 			if target == "ground" then
 				Spring.Echo(Spring.I18N('ui.initialSpawn.newbiePlacer'))
 			end
 		end
 	end
 
-	function gadget:MouseRelease(x,y)
+	function gadget:MouseRelease(x, y)
 		return false
 	end
 
@@ -612,27 +631,27 @@ else
 			Script.LuaUI.GuishaderRemoveRect('ready')
 		end
 
-		if not readied and readyButton and Game.startPosType == 2 and gameStarting==nil and not spec and not isReplay then
-		--if not readied and readyButton and not spec and not isReplay then
+		if not readied and buttonList and Game.startPosType == 2 and gameStarting == nil and not spec and not isReplay then
+			--if not readied and buttonList and not spec and not isReplay then
 
 			if Script.LuaUI("GuishaderInsertRect") then
 				Script.LuaUI.GuishaderInsertRect(
-					readyX-((readyW/2)+uiPadding),
-					readyY-((readyH/2)+uiPadding),
-					readyX+((readyW/2)+uiPadding),
-					readyY+((readyH/2)+uiPadding),
+					buttonX - ((buttonW / 2) + uiPadding),
+					buttonY - ((buttonH / 2) + uiPadding),
+					buttonX + ((buttonW / 2) + uiPadding),
+					buttonY + ((buttonH / 2) + uiPadding),
 					'ready'
 				)
 			end
 
 			-- draw ready button and text
-			local x,y = Spring.GetMouseState()
+			local x, y = Spring.GetMouseState()
 			local colorString
-			if x > readyX-(readyW/2) and x < readyX+(readyW/2) and y > readyY-(readyH/2) and y < readyY+(readyH/2) then
-				gl.CallList(readyButtonHover)
+			if x > buttonX - (buttonW / 2) and x < buttonX + (buttonW / 2) and y > buttonY - (buttonH / 2) and y < buttonY + (buttonH / 2) then
+				gl.CallList(buttonHoverList)
 				colorString = "\255\255\222\0"
 			else
-				gl.CallList(readyButton)
+				gl.CallList(buttonList)
 				timer2 = timer2 + Spring.GetLastUpdateSeconds()
 				if timer2 % 0.75 <= 0.375 then
 					colorString = "\255\255\233\33"
@@ -641,9 +660,9 @@ else
 				end
 			end
 			font:Begin()
-			font:Print(colorString .. Spring.I18N('ui.initialSpawn.ready'), readyX, readyY-(readyH*0.16), 24*uiScale, "co")
+			font:Print(colorString .. Spring.I18N('ui.initialSpawn.ready'), buttonX, buttonY - (buttonH * 0.16), 24 * uiScale, "co")
 			font:End()
-			gl.Color(1,1,1,1)
+			gl.Color(1, 1, 1, 1)
 		end
 
 		if gameStarting and not isReplay then
@@ -654,9 +673,9 @@ else
 			else
 				colorString = "\255\255\250\210"
 			end
-			local text = colorString ..  Spring.I18N('ui.initialSpawn.startCountdown', { time = math.max(1,3-math.floor(timer)) })
+			local text = colorString .. Spring.I18N('ui.initialSpawn.startCountdown', { time = math.max(1, 3 - math.floor(timer)) })
 			font:Begin()
-			font:Print(text, vsx*0.5, vsy*0.67, 18.5*uiScale, "co")
+			font:Print(text, vsx * 0.5, vsy * 0.67, 18.5 * uiScale, "co")
 			font:End()
 		end
 
@@ -668,8 +687,8 @@ else
 	end
 
 	function gadget:Shutdown()
-		gl.DeleteList(readyButton)
-		gl.DeleteList(readyButtonHover)
+		gl.DeleteList(buttonList)
+		gl.DeleteList(buttonHoverList)
 		gl.DeleteFont(font)
 
 		if Script.LuaUI("GuishaderRemoveRect") then
