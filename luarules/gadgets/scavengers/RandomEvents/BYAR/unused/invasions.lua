@@ -1,5 +1,5 @@
 
-local function invasion(CurrentFrame)
+local function invasion(currentFrame)
 ScavSendNotification("scav_eventswarm")
 local invasionUnitsLand = {"armflea_scav", "armfav_scav", "corfav_scav", "armbeaver_scav", "cormuskrat_scav",}
 local invasionUnitsSea = {"armbeaver_scav","cormuskrat_scav",}
@@ -25,12 +25,12 @@ local groupsize = math.ceil(groupsize*(teamcount/2))
 			end
 			if CanSpawnEvent then
 				if CanSpawnLand == true then
-					QueueSpawn("scavengerdroppod_scav", posx, posy, posz, math_random(0,3),GaiaTeamID, CurrentFrame+(i))
-					QueueSpawn(invasionUnitsLand[math.random(1,#invasionUnitsLand)], posx, posy, posz, math_random(0,3),GaiaTeamID, CurrentFrame+90+(i))
+					QueueSpawn("scavengerdroppod_scav", posx, posy, posz, math_random(0,3),GaiaTeamID, currentFrame+(i))
+					QueueSpawn(invasionUnitsLand[math.random(1,#invasionUnitsLand)], posx, posy, posz, math_random(0,3),GaiaTeamID, currentFrame+90+(i))
 					--Spring.CreateUnit(invasionUnitsLand[pickedInvasionUnitLand], posx, posy, posz, math_random(0,3),GaiaTeamID)
 				elseif CanSpawnSea == true then
-					QueueSpawn("scavengerdroppod_scav", posx, posy, posz, math_random(0,3),GaiaTeamID, CurrentFrame+(i))
-					QueueSpawn(invasionUnitsSea[math.random(1,#invasionUnitsSea)], posx, posy, posz, math_random(0,3),GaiaTeamID, CurrentFrame+90+(i))
+					QueueSpawn("scavengerdroppod_scav", posx, posy, posz, math_random(0,3),GaiaTeamID, currentFrame+(i))
+					QueueSpawn(invasionUnitsSea[math.random(1,#invasionUnitsSea)], posx, posy, posz, math_random(0,3),GaiaTeamID, currentFrame+90+(i))
 					--Spring.CreateUnit(invasionUnitsSea[pickedInvasionUnitLand], posx, posy, posz, math_random(0,3),GaiaTeamID)
 				end
 				break
@@ -40,7 +40,7 @@ local groupsize = math.ceil(groupsize*(teamcount/2))
 end
 
 
-local function chickenInvasion1(CurrentFrame)
+local function chickenInvasion1(currentFrame)
 	Spring.Echo("Chicken Invasion Event")
 	local scavUnits = Spring.GetTeamUnits(GaiaTeamID)
 	local chickens = {"chicken1_scav","chicken1b_scav","chicken1c_scav","chicken1d_scav","chicken1x_scav","chicken1y_scav","chicken1z_scav","chickens1_scav","chicken_dodo1_scav","chickenc3_scav","chickenc3b_scav","chickenc3c_scav","chickenw2_scav",}

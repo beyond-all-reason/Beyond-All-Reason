@@ -1,4 +1,4 @@
-local function transport1(CurrentFrame)
+local function transport1(currentFrame)
 	local transportsT1 = {"armatlas_scav", "corvalk_scav",}
 	local unitsT1 = {
 		"armpw_scav",

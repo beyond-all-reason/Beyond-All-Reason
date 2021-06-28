@@ -1,41 +1,59 @@
+local bossAbilities = VFS.Include("luarules/gadgets/scavengers/BossFight/" .. Game.gameShortName .. "/abilities.lua")
+local currentPhaseBossAbilities = {}
 
--- phase control
-function ScavBossPhaseControl(bosshealthpercentage)
-	if bosshealthpercentage >= 90 then
+local function bossPhaseControl(bossHealthPercent)
+	if bossHealthPercent >= 90 then
 		BossFightCurrentPhase = 1
-		BossSpecialAbilitiesUsedList = BossSpecialAbilitiesEarlyList
-	elseif bosshealthpercentage >= 80 then
+		currentPhaseBossAbilities = bossAbilities.Early
+	elseif bossHealthPercent >= 80 then
 		BossFightCurrentPhase = 2
-		BossSpecialAbilitiesUsedList = BossSpecialAbilitiesMidgameList
-	elseif bosshealthpercentage >= 70 then
+		currentPhaseBossAbilities = bossAbilities.Midgame
+	elseif bossHealthPercent >= 70 then
 		BossFightCurrentPhase = 3
-		BossSpecialAbilitiesUsedList = BossSpecialAbilitiesMidgameList
-	elseif bosshealthpercentage >= 60 then
+		currentPhaseBossAbilities = bossAbilities.Midgame
+	elseif bossHealthPercent >= 60 then
 		BossFightCurrentPhase = 4
-		BossSpecialAbilitiesUsedList = BossSpecialAbilitiesMidgameList
-	elseif bosshealthpercentage >= 50 then
+		currentPhaseBossAbilities = bossAbilities.Midgame
+	elseif bossHealthPercent >= 50 then
 		BossFightCurrentPhase = 5
-		BossSpecialAbilitiesUsedList = BossSpecialAbilitiesMidgameList
-	elseif bosshealthpercentage >= 40 then
+		currentPhaseBossAbilities = bossAbilities.Midgame
+	elseif bossHealthPercent >= 40 then
 		BossFightCurrentPhase = 6
-		BossSpecialAbilitiesUsedList = BossSpecialAbilitiesMidgameList
-	elseif bosshealthpercentage >= 30 then
+		currentPhaseBossAbilities = bossAbilities.Midgame
+	elseif bossHealthPercent >= 30 then
 		BossFightCurrentPhase = 7
-		BossSpecialAbilitiesUsedList = BossSpecialAbilitiesMidgameList
-	elseif bosshealthpercentage >= 20 then
+		currentPhaseBossAbilities = bossAbilities.Midgame
+	elseif bossHealthPercent >= 20 then
 		BossFightCurrentPhase = 8
-		BossSpecialAbilitiesUsedList = BossSpecialAbilitiesEndgameList
-	elseif bosshealthpercentage >= 10 then
+		currentPhaseBossAbilities = bossAbilities.Endgame
+	elseif bossHealthPercent >= 10 then
 		BossFightCurrentPhase = 9
-		BossSpecialAbilitiesUsedList = BossSpecialAbilitiesEndgameList
+		currentPhaseBossAbilities = bossAbilities.Endgame
 	else
 		BossFightCurrentPhase = 10
-		BossSpecialAbilitiesUsedList = BossSpecialAbilitiesEndgameList
+		currentPhaseBossAbilities = bossAbilities.Endgame
 	end
 end
 
-BossSpecialAbilitiesEarlyList = {}
-BossSpecialAbilitiesMidgameList = {}
-BossSpecialAbilitiesEndgameList = {}
+local function activatePassiveAbilities(currentFrame)
+	return bossAbilities.Passive(currentFrame)
+end
 
-VFS.Include("luarules/gadgets/scavengers/BossFight/" .. Game.gameShortName .. "/abilities.lua")
+local specialAbilityCountdown = 10
+
+local function activateAbility(currentFrame)
+	specialAbilityCountdown = specialAbilityCountdown - 1
+	if specialAbilityCountdown <= 0 then
+		local ability = currentPhaseBossAbilities[math_random(1,#currentPhaseBossAbilities)]
+		if ability then
+			specialAbilityCountdown = (10 - BossFightCurrentPhase) * 4
+			ability(currentFrame)
+		end
+	end
+end
+
+return {
+	UpdateFightPhase = bossPhaseControl,
+	ActivatePassiveAbilities = activatePassiveAbilities,
+	ActivateAbility = activateAbility,
+}
