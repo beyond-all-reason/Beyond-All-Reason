@@ -35,7 +35,34 @@ for name,uDef in pairs(UnitDefs) do
 	end
 end
 
--- Scav Commanders
+local scavConstructorsList = {
+	-- rezzers
+	"armrectr",
+	"cornecro",
+	-- builders
+	"armca",
+	"corca",
+	"armaca",
+	"coraca",
+	"armck",
+	"corck",
+	"armack",
+	"corack",
+	"armch",
+	"corch",
+	"armcsa",
+	"corcsa",
+	"armcs",
+	"corcs",
+	"armacsub",
+	"coracsub",
+	"armcv",
+	"corcv",
+	"armacv",
+	"coracv",
+}
+
+
 
 customDefs.scavengerdroppodbeacon = {
 	maxdamage = 5000*ScavDifficultyMultiplier,
@@ -44,6 +71,8 @@ customDefs.scavengerdroppodbeacon = {
 customDefs.scavsafeareabeacon = {
 	maxdamage = 10000*ScavDifficultyMultiplier,
 }
+
+-- Scav Commanders
 
 customDefs.corcom = {
 	autoheal = 15,
@@ -58,7 +87,7 @@ customDefs.corcom = {
 	footprintz = 0,
 	hidedamage = true,
 	idleautoheal = 20,
-	maxdamage = 4500*ScavDifficultyMultiplier,
+	maxdamage = 9000*ScavDifficultyMultiplier,
 	maxvelocity = 0.55,
 	turnrate = 50000,
 	mincloakdistance = 20,
@@ -72,11 +101,78 @@ customDefs.corcom = {
 	},
 	featuredefs = {
 		dead = {
-			resurrectable = 0,
+			--resurrectable = 0,
 			metal = 1500,
 		},
 		heap = {
-			resurrectable = 0,
+			--resurrectable = 0,
+			metal = 750,
+		},
+	},
+	weapondefs = {
+		corcomlaser = {
+			range = 400,
+			damage = {
+				bombers = 320,
+				default = 75,
+				fighters = 220,
+				vtol = 320,
+				subs = 5,
+			},
+		},
+		disintegrator = {
+			commandfire = false,
+			reloadtime = 1.5/ScavDifficultyMultiplier,
+			weaponvelocity = 350,
+			damage = {
+				bombers = 9000,
+				default = 2250,
+				fighters = 9000,
+				vtol = 9000,
+				commanders = 225,
+			},
+		},
+	},
+	-- Extra Shield
+	-- weapons = {
+	-- 		[4] = {
+	-- 			def = "REPULSOR1",
+	-- 		},
+	-- 	},
+}
+
+customDefs.corcomcon = {
+	autoheal = 15,
+	--blocking = false,
+	buildoptions = scavConstructorsList,
+	builddistance = 175,
+	cloakcost = 50,
+	cloakcostmoving = 100,
+	description = Spring.I18N('units.descriptions.corcom_scav'),
+	explodeas = "scavcomexplosion",
+	footprintx = 0,
+	footprintz = 0,
+	hidedamage = true,
+	idleautoheal = 20,
+	maxdamage = 9000*ScavDifficultyMultiplier,
+	maxvelocity = 0.55,
+	--turnrate = 50000,
+	mincloakdistance = 20,
+	movementclass = "SCAVCOMMANDERBOT",
+	selfdestructas = "scavcomexplosion",
+	showplayername = false,
+	stealth = false,
+	workertime = 1000*ScavDifficultyMultiplier,				-- can get multiplied in unitdef_post
+	customparams = {
+		iscommander = 'nil',		-- since you cant actually remove parameters normally, it will do it when you set string: 'nil' as value
+	},
+	featuredefs = {
+		dead = {
+			--resurrectable = 0,
+			metal = 1500,
+		},
+		heap = {
+			--resurrectable = 0,
 			metal = 750,
 		},
 	},
@@ -124,7 +220,7 @@ customDefs.armcom = {
 	footprintz = 0,
 	hidedamage = true,
 	idleautoheal = 20,
-	maxdamage = 4500*ScavDifficultyMultiplier,
+	maxdamage = 9000*ScavDifficultyMultiplier,
 	maxvelocity = 0.55,
 	turnrate = 50000,
 	mincloakdistance = 20,
@@ -138,11 +234,77 @@ customDefs.armcom = {
 	},
 	featuredefs = {
 		dead = {
-			resurrectable = 0,
+			--resurrectable = 0,
 			metal = 1500,
 		},
 		heap = {
-			resurrectable = 0,
+			--resurrectable = 0,
+			metal = 750,
+		},
+	},
+	weapondefs = {
+		armcomlaser = {
+			range = 400,
+			damage = {
+				bombers = 320,
+				default = 75,
+				fighters = 220,
+				vtol = 320,
+				subs = 5,
+			},
+		},
+		disintegrator = {
+			commandfire = false,
+			reloadtime = 1.5/ScavDifficultyMultiplier,
+			weaponvelocity = 350,
+			damage = {
+				bombers = 9000,
+				default = 2250,
+				fighters = 9000,
+				vtol = 9000,
+				commanders = 225,
+			},
+		},
+	},
+	-- Extra Shield
+	--weapons = {
+	--		[4] = {
+	--			def = "REPULSOR1",
+	--		},
+	--	},
+}
+
+customDefs.armcomcon = {
+	autoheal = 15,
+	buildoptions = scavConstructorsList,
+	builddistance = 175,
+	cloakcost = 50,
+	cloakcostmoving = 100,
+	description = Spring.I18N('units.descriptions.armcom_scav'),
+	explodeas = "scavcomexplosion",
+	footprintx = 0,
+	footprintz = 0,
+	hidedamage = true,
+	idleautoheal = 20,
+	maxdamage = 9000*ScavDifficultyMultiplier,
+	maxvelocity = 0.55,
+	--turnrate = 50000,
+	mincloakdistance = 20,
+	movementclass = "SCAVCOMMANDERBOT",
+	selfdestructas = "scavcomexplosion",
+	showplayername = false,
+	stealth = false,
+	workertime = 1000*ScavDifficultyMultiplier,				-- can get multiplied in unitdef_post
+	customparams = {
+		iscommander = 'nil',		-- since you cant actually remove parameters normally, it will do it when you set string: 'nil' as value
+	},
+	featuredefs = {
+		dead = {
+			--resurrectable = 0,
+			metal = 1500,
+		},
+		heap = {
+			--resurrectable = 0,
 			metal = 750,
 		},
 	},
