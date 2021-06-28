@@ -1,11 +1,9 @@
 if (not gadgetHandler:IsSyncedCode()) then
 	return false
 end
+
 VFS.Include("luarules/gadgets/scavengers/API/init.lua")
 VFS.Include("luarules/gadgets/scavengers/Configs/" .. Game.gameShortName .. "/config.lua")
---for i = 1,#scavconfig do
---Spring.Echo("scavconfig value "..i.." = "..scavconfig[i])
---end
 
 function ScavSendMessage(message)
 	if scavconfig.messenger then
@@ -203,16 +201,11 @@ function PutScavAlliesInScavTeam(n)
 	end
 end
 
-
-
 local minionFramerate = math.ceil(unitSpawnerModuleConfig.FinalBossMinionsPassive/(teamcount*spawnmultiplier))
 function gadget:GameFrame(n)
-
-
 	if n == 1 then
 		-- PutSpectatorsInScavTeam(n)
 		PutScavAlliesInScavTeam(n)
-
 	end
 
 	if n == 150 and unitSpawnerModuleConfig.initialbonuscommander == true then
@@ -249,9 +242,7 @@ function gadget:GameFrame(n)
 		pregameMessages(n)
 	end
 
-	if n%30 == 20 and n > scavconfig.gracePeriod and scavconfig.modules.randomEventsModule then
-		randomEventsController.TriggerRandomEvent(n)
-	end
+	randomEventsController.GameFrame(n)
 
 	if n%30 == 0 and FinalBossUnitSpawned and not FinalBossKilled then
 		local currentbosshealth = Spring.GetUnitHealth(FinalBossUnitID)
@@ -270,7 +261,6 @@ function gadget:GameFrame(n)
 	if n%minionFramerate == 0 and FinalBossUnitSpawned and FinalBossKilled == false then
 		BossMinionsSpawn(n)
 	end
-
 
 	if n > scavconfig.gracePeriod and scavconfig.modules.startBoxProtection == true and ScavSafeAreaExist == true and FinalBossKilled == false then
 		if n%30 == 0 then
@@ -325,6 +315,7 @@ function gadget:GameFrame(n)
 			end
 		end
 	end
+
 	if n%900 == 0 and n > 100 then
 		teamsCheck()
 		UpdateTierChances(n)
