@@ -764,12 +764,14 @@ local function processConsoleLine(gameFrame, line, addOrgLine)
 		elseif sfind(line,"HandleLobbyOverlay", nil, true) then
 			bypassThisMessage = true
 
-		-- filter chobby debug messages
+		-- filter chobby (debug) messages
+		elseif sfind(line,"Chobby]", nil, true) then
+			bypassThisMessage = true
+		elseif sfind(line,"liblobby]", nil, true) then
+			bypassThisMessage = true
 		elseif sfind(line,"ClientMessage]", nil, true) then
 			bypassThisMessage = true
 		elseif sfind(line,"ServerMessage]", nil, true) then
-			bypassThisMessage = true
-		elseif sfind(line,"LibLobby]", nil, true) then
 			bypassThisMessage = true
 
 		elseif sfind(line,"->", nil, true) then

@@ -6,9 +6,14 @@ function gadget:GetInfo()
 		date = "February 2021",
 		license = "GNU GPL, v2 or later",
 		layer = -math.huge,
-		enabled = true,
+		enabled = false,
 	}
 end
+
+--[[
+	disabled cause there is missing data, presumingly because or rejoining specs and whatnot.
+]]
+
 
 --[[
 	this gadget logs unit positions at intervals within the replay

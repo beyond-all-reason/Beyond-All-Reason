@@ -87,7 +87,7 @@ function widget:Update(dt)
 
 			local _, gameSpeed, isPaused = Spring.GetGameSpeed()
 			local newPaused = false
-			if not gameover and (gameFrame == previousGameFrame or gameSpeed == 0) then	-- when host (admin) paused its just gamespeed 0
+			if gameFrame == previousGameFrame or gameSpeed == 0 then	-- when host (admin) paused its just gamespeed 0
 				newPaused = true
 			end
 
