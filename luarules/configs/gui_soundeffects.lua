@@ -188,6 +188,12 @@ GUIUnitSoundEffects = {
 		BaseSoundWeaponType = "torpedo-small",
 	},
 
+	armptl = {
+		BaseSoundSelectType = "arm-bld-defense-action-water-t1",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "torpedo-small",
+	},
+
 	armdl = {
 		BaseSoundSelectType = "arm-bld-defense-action-t1",
 		--BaseSoundMovementType = "",
@@ -1226,6 +1232,12 @@ GUIUnitSoundEffects = {
 		BaseSoundWeaponType = "torpedo-small",
 	},
 
+	corptl = {
+		BaseSoundSelectType = "arm-bld-defense-action-water-t1",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "torpedo-small",
+	},
+
 	cordl = {
 		BaseSoundSelectType = "arm-bld-defense-action-t1",
 		--BaseSoundMovementType = "",
@@ -2080,5 +2092,30 @@ GUIUnitSoundEffects = {
 		BaseSoundMovementType = "cor-air-gunship-large-ok",
 		BaseSoundWeaponType = "laser-large",
 	},
+
+	--Various Random Units
+
+	freefusion = {
+		BaseSoundSelectType = "arm-bld-select-large",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "arm-bld-nrg-fusion-adv",
+	},
+
+	dbg_sphere = {},
+	dbg_sphere_fullmetal = {},
+	chip = {},
+	dice = {},
+	meteor = {},
+	nuketestorg = {},
+	nuketest = {},
+	nuketestcor = {},
+	nuketestcororg = {},
+	scavempspawner = {},
+	scavtacnukespawner = {},
+	xmasball = {},
+	xmasball2 = {},
+	armstone = {},
+	corstone = {},
+	resourcecheat = {},
 
 }

@@ -110,46 +110,31 @@ function UnitDef_Post(name, uDef)
 		uDef.customparams = {}
 	end
 
---Soon used for new sound system!
+	-- New sound system!
 	VFS.Include('luarules/configs/gui_soundeffects.lua')
-	if GUIUnitSoundEffects[name] or (GUIUnitSoundEffects[string.sub(name, 1, string.len(name)-5)] and string.find(name, "_scav")) then
-		if uDef.sounds then
-			if uDef.sounds.ok then
-				uDef.sounds.ok = nil
-			end
-		end
-
-		if uDef.sounds then
-			if uDef.sounds.select then
-				uDef.sounds.select = nil
-			end
-		end
-
-		if GUIUnitSoundEffects[name] and GUIUnitSoundEffects[name].BaseSoundActivate then
-			if uDef.sounds then
-				if uDef.sounds.activate then
-					uDef.sounds.activate = nil
-				end
-				if uDef.sounds.deactivate then
-					uDef.sounds.deactivate = nil
-				end
-			end
-		end
-
-		-- TEST for activate custom sounds in gui_soundeffects
-		-- if uDef.sounds then
-		-- 	if uDef.sounds.activate then
-		-- 		uDef.sounds.activate = nil
-		-- 	end
-		-- end
-
-		-- if uDef.sounds then
-		-- 	if uDef.sounds.deactivate then
-		-- 		uDef.sounds.deactivate = nil
-		-- 	end
-		-- end
-	else
+	if not (GUIUnitSoundEffects[name] or (GUIUnitSoundEffects[string.sub(name, 1, string.len(name)-5)] and string.find(name, "_scav"))) then
 		Spring.Echo("[gui_soundeffects.lua] Missing Sound Effects for unit: "..name)
+	end
+
+	if uDef.sounds then
+		if uDef.sounds.ok then
+			uDef.sounds.ok = nil
+		end
+	end
+
+	if uDef.sounds then
+		if uDef.sounds.select then
+			uDef.sounds.select = nil
+		end
+	end
+
+	if uDef.sounds then
+		if uDef.sounds.activate then
+			uDef.sounds.activate = nil
+		end
+		if uDef.sounds.deactivate then
+			uDef.sounds.deactivate = nil
+		end
 	end
 
 	-- Unit Restrictions
