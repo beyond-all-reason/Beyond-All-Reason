@@ -1,5 +1,7 @@
 if not scavconfig.modules.randomEventsModule then
-	return
+	return {
+		GameFrame = function () end,
+	}
 end
 
 local randomEvents = {}
