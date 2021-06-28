@@ -64,10 +64,7 @@ if scavconfig.modules.constructorControllerModule then
 	VFS.Include("luarules/gadgets/scavengers/Modules/constructor_controller.lua")
 end
 
-if scavconfig.modules.randomEventsModule then
-	RandomEventsList = {}
-	VFS.Include("luarules/gadgets/scavengers/Modules/random_events.lua")
-end
+local randomEventsController = VFS.Include("luarules/gadgets/scavengers/Modules/random_events.lua")
 
 if scavconfig.modules.factoryControllerModule then
 	VFS.Include("luarules/gadgets/scavengers/Modules/factory_controller.lua")
@@ -89,11 +86,11 @@ if scavconfig.modules.stockpilers == true then
 	VFS.Include("luarules/gadgets/scavengers/Modules/stockpiling.lua")
 end
 
-local nukeModule = VFS.Include("luarules/gadgets/scavengers/Modules/nuke_controller.lua")
+local nukeController = VFS.Include("luarules/gadgets/scavengers/Modules/nuke_controller.lua")
 
 VFS.Include("luarules/gadgets/scavengers/Modules/spawn_beacons.lua")
 VFS.Include("luarules/gadgets/scavengers/Modules/messenger.lua")
-VFS.Include("luarules/gadgets/scavengers/Modules/bossfight_module.lua")
+local bossController = VFS.Include("luarules/gadgets/scavengers/Modules/bossfight_module.lua")
 
 local function DisableUnit(unitID)
 	Spring.MoveCtrl.Enable(unitID)
@@ -252,29 +249,22 @@ function gadget:GameFrame(n)
 		pregameMessages(n)
 	end
 
-	if n%30 == 20 and n > scavconfig.gracePeriod and scavconfig.modules.randomEventsModule == true then
-		RandomEventTrigger(n)
+	if n%30 == 20 and n > scavconfig.gracePeriod and scavconfig.modules.randomEventsModule then
+		randomEventsController.TriggerRandomEvent(n)
 	end
 
-	if n%30 == 0 and FinalBossUnitSpawned and FinalBossKilled == false then
-		if not SpecialAbilityCountdown then SpecialAbilityCountdown = 10 end
+	if n%30 == 0 and FinalBossUnitSpawned and not FinalBossKilled then
 		local currentbosshealth = Spring.GetUnitHealth(FinalBossUnitID)
 		local initialbosshealth = unitSpawnerModuleConfig.FinalBossHealth*teamcount*spawnmultiplier
 		local bosshealthpercentage = math.floor(currentbosshealth/(initialbosshealth*0.01))
 		ScavSendMessage("Boss Health: "..math.ceil(currentbosshealth).. " ("..bosshealthpercentage.."%)")
-		ScavBossPhaseControl(bosshealthpercentage)
-		SpecialAbilityCountdown = SpecialAbilityCountdown - 1
-		if SpecialAbilityCountdown <= 0 then
-			local SpecAbi = BossSpecialAbilitiesUsedList[math_random(1,#BossSpecialAbilitiesUsedList)]
-			if SpecAbi then
-				SpecialAbilityCountdown = (10 - BossFightCurrentPhase)*4
-				SpecAbi(n)
-			end
-		end
+
+		bossController.UpdateFightPhase(bosshealthpercentage)
+		bossController.ActivateAbility(n)
 	end
 
-	if n%10 == 0 and FinalBossUnitSpawned and FinalBossKilled == false then
-		BossPassiveAbilityController(n)
+	if n%10 == 0 and FinalBossUnitSpawned and not FinalBossKilled then
+		bossController.ActivatePassiveAbilities(n)
 	end
 
 	if n%minionFramerate == 0 and FinalBossUnitSpawned and FinalBossKilled == false then
@@ -393,7 +383,7 @@ function gadget:GameFrame(n)
 
 				if not scavteamhasplayers and scavconfig.modules.nukes then
 					if scavNuke[scav] then
-						nukeModule.SendRandomNukeOrder(n, scav)
+						nukeController.SendRandomNukeOrder(n, scav)
 					end
 				end
 
@@ -462,7 +452,6 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
 		if FinalBossUnitSpawned == true then
 			for i = 1,#BossUnits do
 				if string.sub(UnitName, 1, string.len(UnitName)) == BossUnits[i] then
-					Spring.Echo("GG")
 					FinalBossKilled = true
 					FinalBossUnitID = nil
 				end

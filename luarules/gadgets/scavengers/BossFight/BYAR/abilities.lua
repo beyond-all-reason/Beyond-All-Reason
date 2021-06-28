@@ -1,28 +1,11 @@
-----------------------------------------------------------------------------------------------------------------------------------------
---   If you don't want to have special abilities for your boss, uncomment out the code below so script has something to choose from   --
-----------------------------------------------------------------------------------------------------------------------------------------
-
--- function BossSpecAbiDoNothing(n)
-
--- end
--- table.insert(BossSpecialAbilitiesEarlyList,BossSpecAbiDoNothing)
--- table.insert(BossSpecialAbilitiesMidgameList,BossSpecAbiDoNothing)
--- table.insert(BossSpecialAbilitiesEndgameList,BossSpecAbiDoNothing)
--- table.insert(BossSpecialAbilitiesEarlyList,BossSpecAbiDoNothing)
--- table.insert(BossSpecialAbilitiesMidgameList,BossSpecAbiDoNothing)
--- table.insert(BossSpecialAbilitiesEndgameList,BossSpecAbiDoNothing)
-
--------------------------------------------------------------------------------------------------
-
--- Passive Abilities -- leave the controller function empty if you don't have any passive abilities.
-function BossPassiveAbilityController(n)
+local function passiveAbilityController(currentFrame)
 	if not AbilityTimer then AbilityTimer = 0 end
 	if AbilityTimer < 1 then CurrentlyUsedPassiveAbility = "none" end
 	AbilityTimer = AbilityTimer - 1
 	
 	if CurrentlyUsedPassiveAbility == "none" then
 		return
-	elseif CurrentlyUsedPassiveAbility == "selfrepair" then -- Gonna need sound and visual effects here
+	elseif CurrentlyUsedPassiveAbility == "selfrepair" then -- TODO: Add sound and visual effects here
 		local currentbosshealth = Spring.GetUnitHealth(FinalBossUnitID)
 		local initialbosshealth = unitSpawnerModuleConfig.FinalBossHealth*teamcount*spawnmultiplier
 		local healing = initialbosshealth*0.0000125*BossFightCurrentPhase
@@ -32,11 +15,9 @@ function BossPassiveAbilityController(n)
 	end
 end
 
+local abilities = {}
 
-
--- Abilities
-
-function BossSpecAbiDGun(n)
+abilities.dGun = function(currentFrame)
 	if FinalBossUnitID then
 		local nearestEnemy = Spring.GetUnitNearestEnemy(FinalBossUnitID, 1500, false)
 		if nearestEnemy then
@@ -48,22 +29,8 @@ function BossSpecAbiDGun(n)
 		end
 	end
 end
-table.insert(BossSpecialAbilitiesEarlyList,BossSpecAbiDGun)
-table.insert(BossSpecialAbilitiesEarlyList,BossSpecAbiDGun)
-table.insert(BossSpecialAbilitiesEarlyList,BossSpecAbiDGun)
-table.insert(BossSpecialAbilitiesEarlyList,BossSpecAbiDGun)
-table.insert(BossSpecialAbilitiesEarlyList,BossSpecAbiDGun)
-table.insert(BossSpecialAbilitiesEarlyList,BossSpecAbiDGun)
-table.insert(BossSpecialAbilitiesEarlyList,BossSpecAbiDGun)
-table.insert(BossSpecialAbilitiesEarlyList,BossSpecAbiDGun)
-table.insert(BossSpecialAbilitiesEarlyList,BossSpecAbiDGun)
-table.insert(BossSpecialAbilitiesEarlyList,BossSpecAbiDGun)
-table.insert(BossSpecialAbilitiesMidgameList,BossSpecAbiDGun)
-table.insert(BossSpecialAbilitiesMidgameList,BossSpecAbiDGun)
-table.insert(BossSpecialAbilitiesMidgameList,BossSpecAbiDGun)
-table.insert(BossSpecialAbilitiesEndgameList,BossSpecAbiDGun)
 
-function BossSpecAbiDGunFrenzy(n)
+abilities.dGunFrenzy = function(currentFrame)
 	if FinalBossUnitID then
 		local nearestEnemy = Spring.GetUnitNearestEnemy(FinalBossUnitID, 750, false)
 		if nearestEnemy then
@@ -126,10 +93,8 @@ function BossSpecAbiDGunFrenzy(n)
 		end
 	end
 end
-table.insert(BossSpecialAbilitiesMidgameList,BossSpecAbiDGunFrenzy)
-table.insert(BossSpecialAbilitiesEndgameList,BossSpecAbiDGunFrenzy)
 
-function BossSpecAbiSuperDGun(n)
+abilities.superDGun = function(currentFrame)
 	if FinalBossUnitID then
 		local nearestEnemy = Spring.GetUnitNearestEnemy(FinalBossUnitID, 750, false)
 		if nearestEnemy then
@@ -153,22 +118,16 @@ function BossSpecAbiSuperDGun(n)
 		end
 	end
 end
-table.insert(BossSpecialAbilitiesEarlyList,BossSpecAbiSuperDGun)
-table.insert(BossSpecialAbilitiesMidgameList,BossSpecAbiSuperDGun)
-table.insert(BossSpecialAbilitiesEndgameList,BossSpecAbiSuperDGun)
 
-function BossSpecAbiSelfRepair(n)
+abilities.selfRepair = function(currentFrame)
 	if FinalBossUnitID then
 		--Spring.Echo("[Scavengers] Boss Self Repair Activated")
 		CurrentlyUsedPassiveAbility = "selfrepair"
 		AbilityTimer = BossFightCurrentPhase*3
 	end
 end
-table.insert(BossSpecialAbilitiesEarlyList,BossSpecAbiSelfRepair)
-table.insert(BossSpecialAbilitiesMidgameList,BossSpecAbiSelfRepair)
-table.insert(BossSpecialAbilitiesEndgameList,BossSpecAbiSelfRepair)
 
-function BossSpecAbiFighterWave(n)
+abilities.fighterWave = function(n)
 	if FinalBossUnitID then
 		local nearestEnemy = Spring.GetUnitNearestEnemy(FinalBossUnitID, 3000, false)
 		if nearestEnemy then
@@ -182,11 +141,8 @@ function BossSpecAbiFighterWave(n)
 		end
 	end
 end
-table.insert(BossSpecialAbilitiesEarlyList,BossSpecAbiFighterWave)
-table.insert(BossSpecialAbilitiesMidgameList,BossSpecAbiFighterWave)
-table.insert(BossSpecialAbilitiesEndgameList,BossSpecAbiFighterWave)
 
-function BossSpecAbiNearbyTacNuke(n)
+abilities.tacticalNuke = function(currentFrame)
 	if FinalBossUnitID then
 		local nearestEnemy = Spring.GetUnitNearestEnemy(FinalBossUnitID, 2000, false)
 		if nearestEnemy then
@@ -200,7 +156,7 @@ function BossSpecAbiNearbyTacNuke(n)
 						local targetTeam = Spring.GetUnitTeam(target)
 						if targetTeam ~= GaiaTeamID then
 							local x,y,z = Spring.GetUnitPosition(target)
-							QueueSpawn("scavtacnukespawner_scav", x+math_random(-50,50), y, z+math_random(-50,50), math_random(0,3),GaiaTeamID, n+i+math.random(0,60))
+							QueueSpawn("scavtacnukespawner_scav", x+math_random(-50,50), y, z+math_random(-50,50), math_random(0,3),GaiaTeamID, currentFrame+i+math.random(0,60))
 							break
 						end
 					end
@@ -209,10 +165,8 @@ function BossSpecAbiNearbyTacNuke(n)
 		end
 	end
 end
-table.insert(BossSpecialAbilitiesMidgameList,BossSpecAbiNearbyTacNuke)
-table.insert(BossSpecialAbilitiesEndgameList,BossSpecAbiNearbyTacNuke)
 
-function BossSpecAbiNearbyEMP(n)
+abilities.EMP = function(currentFrame)
 	if FinalBossUnitID then
 		local nearestEnemy = Spring.GetUnitNearestEnemy(FinalBossUnitID, 2000, false)
 		if nearestEnemy then
@@ -226,7 +180,7 @@ function BossSpecAbiNearbyEMP(n)
 						local targetTeam = Spring.GetUnitTeam(target)
 						if targetTeam ~= GaiaTeamID then
 							local x,y,z = Spring.GetUnitPosition(target)
-							QueueSpawn("scavempspawner_scav", x+math_random(-50,50), y, z+math_random(-50,50), math_random(0,3),GaiaTeamID, n+i+math.random(0,60))
+							QueueSpawn("scavempspawner_scav", x+math_random(-50,50), y, z+math_random(-50,50), math_random(0,3),GaiaTeamID, currentFrame+i+math.random(0,60))
 							break
 						end
 					end
@@ -235,6 +189,48 @@ function BossSpecAbiNearbyEMP(n)
 		end
 	end
 end
-table.insert(BossSpecialAbilitiesMidgameList,BossSpecAbiNearbyEMP)
-table.insert(BossSpecialAbilitiesEndgameList,BossSpecAbiNearbyEMP)
 
+local earlyAbilities = {
+	abilities.dGun,
+	abilities.dGun,
+	abilities.dGun,
+	abilities.dGun,
+	abilities.dGun,
+	abilities.dGun,
+	abilities.dGun,
+	abilities.dGun,
+	abilities.dGun,
+	abilities.dGun,
+	abilities.superDGun,
+	abilities.selfRepair,
+	abilities.fighterWave,
+}
+
+local midgameAbilities = {
+	abilities.dGun,
+	abilities.dGun,
+	abilities.dGun,
+	abilities.dGunFrenzy,
+	abilities.superDGun,
+	abilities.selfRepair,
+	abilities.fighterWave,
+	abilities.tacticalNuke,
+	abilities.EMP,
+}
+
+local endGameAbilities = {
+	abilities.dGun,
+	abilities.dGunFrenzy,
+	abilities.superDGun,
+	abilities.selfRepair,
+	abilities.fighterWave,
+	abilities.tacticalNuke,
+	abilities.EMP,
+}
+
+return {
+	Passive = passiveAbilityController,
+	Early   = earlyAbilities,
+	Midgame = midgameAbilities,
+	Endgame = endGameAbilities,
+}

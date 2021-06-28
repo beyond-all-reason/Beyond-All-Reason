@@ -1,5 +1,5 @@
 
-local function rebellion1(CurrentFrame)
+local function rebellion1(currentFrame)
 	ScavSendNotification("scav_eventmalfunctions")
 	local scavUnits = Spring.GetTeamUnits(GaiaTeamID)
 	for y = 1,#scavUnits do
@@ -22,7 +22,7 @@ local function rebellion1(CurrentFrame)
 	end
 end
 
-local function rebellion2(CurrentFrame)
+local function rebellion2(currentFrame)
 	ScavSendNotification("scav_eventmalfunctions")
 	local scavUnits = Spring.GetTeamUnits(GaiaTeamID)
 	local rebelionCenter = scavUnits[math.random(1,#scavUnits)]
@@ -49,7 +49,7 @@ local function rebellion2(CurrentFrame)
 	end
 end
 
-local function blueScreenOfDeath(CurrentFrame)
+local function blueScreenOfDeath(currentFrame)
 	ScavSendNotification("scav_eventmalfunctions")
 	local scavUnits = Spring.GetTeamUnits(GaiaTeamID)
 	for y = 1,#scavUnits do
