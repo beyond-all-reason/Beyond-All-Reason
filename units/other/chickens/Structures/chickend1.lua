@@ -21,7 +21,7 @@ return {
 		collisionvolumeoffsets = "0 15 0",
 		collisionvolumescales = "14 50 14",
 		collisionvolumetype = "box",
-		corpse = "chicken_egg_m_pink",
+		-- handled gadget side -- corpse = "chicken_egg_m_pink",
 		description = Spring.I18N('units.descriptions.chickend1'),
 		energystorage = 500,
 		explodeas = "custom:blood_explode",
