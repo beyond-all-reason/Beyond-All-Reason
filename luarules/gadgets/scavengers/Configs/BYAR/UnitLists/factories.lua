@@ -1,4 +1,4 @@
-Factories = {
+local factories = {
 	"armaap",
 	"armalab",
 	"armap",
@@ -45,22 +45,6 @@ Factories = {
 	"lootboxnano_t4_var4",
 }
 
-FactoriesExcludedUnits = {
-	-- "armatlas",
-	-- "armdfly",
-	-- "armmlv",
-	-- "armbeaver",
-	-- "armtship",
-	-- "armthovr",
-	"armscab",
-	-- "corape",
-	-- "corvalk",
-	-- "corseah",
-	-- "cormuskrat",
-	-- "corintr",
-	-- "cortship",
-	-- "corthovr",
-	-- "cormabm",
-	"armthovr",
-	"corthovr",
+return {
+	Factories = factories,
 }

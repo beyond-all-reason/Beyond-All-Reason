@@ -64,9 +64,7 @@ end
 
 local randomEventsController = VFS.Include("luarules/gadgets/scavengers/Modules/random_events.lua")
 
-if scavconfig.modules.factoryControllerModule then
-	VFS.Include("luarules/gadgets/scavengers/Modules/factory_controller.lua")
-end
+local factoryController = VFS.Include("luarules/gadgets/scavengers/Modules/factory_controller.lua")
 
 if scavconfig.modules.unitSpawnerModule then
 	VFS.Include("luarules/gadgets/scavengers/Modules/unit_spawner.lua")
@@ -356,8 +354,7 @@ function gadget:GameFrame(n)
 		end
 		local scavengerunits = Spring.GetTeamUnits(GaiaTeamID)
 		if scavengerunits then
-			for i = 1,#scavengerunits do
-				local scav = scavengerunits[i]
+			for _, scav in ipairs(scavengerunits) do
 				local scavDef = Spring.GetUnitDefID(scav)
 				local collectorRNG = math_random(0,2)
 				local scavFirestate = Spring.GetUnitStates(scav)["firestate"]
@@ -415,10 +412,8 @@ function gadget:GameFrame(n)
 					end
 				end
 
-				if scavteamhasplayers == false and scavconfig.modules.factoryControllerModule then
-					if scavFactory[scav] and #Spring.GetFullBuildQueue(scav, 0) <= 0 then
-						FactoryProduction(n, scav, scavDef)
-					end
+				if not scavteamhasplayers then
+					factoryController.BuildUnit(scav, scavDef)
 				end
 
 				-- backup -- and not scavConstructor[scav] and not scavResurrector[scav] and not scavCollector[scav]
@@ -677,13 +672,7 @@ function gadget:UnitGiven(unitID, unitDefID, unitNewTeam, unitOldTeam)
 				end
 			end
 
-			if scavconfig.modules.factoryControllerModule then
-				for i = 1,#Factories do
-					if string.sub(UnitName, 1, string.len(UnitName)-UnitSuffixLenght[unitID]) == Factories[i] then
-						scavFactory[unitID] = true
-					end
-				end
-			end
+			factoryController.CheckNewUnit(unitID, unitDefID)
 		elseif UnitDefs[unitDefID].name == "scavengerdroppodbeacon_scav" or UnitDefs[unitDefID].name == "scavsafeareabeacon_scav" then
 			numOfSpawnBeaconsTeams[unitOldTeam] = numOfSpawnBeaconsTeams[unitOldTeam] - 1
 			numOfSpawnBeaconsTeams[unitNewTeam] = numOfSpawnBeaconsTeams[unitNewTeam] + 1
@@ -844,13 +833,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 			end
 		end
 
-		if scavconfig.modules.factoryControllerModule then
-			for i = 1,#Factories do
-				if string.sub(UnitName, 1, string.len(UnitName)-UnitSuffixLenght[unitID]) == Factories[i] then
-					scavFactory[unitID] = true
-				end
-			end
-		end
+		factoryController.CheckNewUnit(unitID, unitDefID)
 	else
 		--AliveEnemyCommanders
 		for i = 1,#CommandersList do
