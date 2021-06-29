@@ -45,6 +45,15 @@ local factories = {
 	"lootboxnano_t4_var4",
 }
 
+local scavFactories = {}
+for _, name in ipairs(factories) do
+	table.insert(scavFactories, name .. scavconfig.unitnamesuffix)
+end
+
+for _, name in ipairs(scavFactories) do
+	table.insert(factories, name)
+end
+
 return {
 	Factories = factories,
 }
