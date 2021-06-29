@@ -1,3 +1,9 @@
+if not scavconfig.modules.randomEventsModule then
+	return {
+		GameFrame = function () end,
+	}
+end
+
 local randomEvents = {}
 local availableRandomEvents = {}
 
@@ -23,29 +29,35 @@ end
 refreshEventsList()
 
 local lastRandomEventFrame = 1
+local randomEventMinimumDelay = randomEventsConfig.randomEventMinimumDelay
+local randomEventChance = randomEventsConfig.randomEventChance
 
 local function triggerRandomEvent(currentFrame)
-	if not RandomEventMinimumDelay then RandomEventMinimumDelay = randomEventsConfig.randomEventMinimumDelay end
-	if not RandomEventChance then RandomEventChance = randomEventsConfig.randomEventChance end
-	local randomEventDice = math_random(1, RandomEventChance)
 	local eventNumber
-	
-	if currentFrame - lastRandomEventFrame > RandomEventMinimumDelay then
-		if randomEventDice == 1 then
-			eventNumber = math_random(1,#availableRandomEvents)
+	eventNumber = math.random(1,#availableRandomEvents)
 
-			local event = availableRandomEvents[eventNumber]
-			event(currentFrame)
-			lastRandomEventFrame = currentFrame
-			table.remove(availableRandomEvents, eventNumber)
+	local eventFunction = availableRandomEvents[eventNumber]
+	eventFunction(currentFrame)
+	lastRandomEventFrame = currentFrame
+	table.remove(availableRandomEvents, eventNumber)
 
-			if #availableRandomEvents == 0 then
-				refreshEventsList()
+	if #availableRandomEvents == 0 then
+		refreshEventsList()
+	end
+end
+
+local function gameFrame(n)
+	if n%30 == 20 and n > scavconfig.gracePeriod then
+		local randomEventDice = math.random(1, randomEventChance)
+
+		if n - lastRandomEventFrame > randomEventMinimumDelay then
+			if randomEventDice == 1 then
+				triggerRandomEvent(n)
 			end
 		end
 	end
 end
 
 return {
-	TriggerRandomEvent = triggerRandomEvent
+	GameFrame = gameFrame,
 }

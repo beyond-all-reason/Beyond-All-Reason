@@ -1,11 +1,9 @@
 if (not gadgetHandler:IsSyncedCode()) then
 	return false
 end
+
 VFS.Include("luarules/gadgets/scavengers/API/init.lua")
 VFS.Include("luarules/gadgets/scavengers/Configs/" .. Game.gameShortName .. "/config.lua")
---for i = 1,#scavconfig do
---Spring.Echo("scavconfig value "..i.." = "..scavconfig[i])
---end
 
 function ScavSendMessage(message)
 	if scavconfig.messenger then
@@ -66,9 +64,7 @@ end
 
 local randomEventsController = VFS.Include("luarules/gadgets/scavengers/Modules/random_events.lua")
 
-if scavconfig.modules.factoryControllerModule then
-	VFS.Include("luarules/gadgets/scavengers/Modules/factory_controller.lua")
-end
+local factoryController = VFS.Include("luarules/gadgets/scavengers/Modules/factory_controller.lua")
 
 if scavconfig.modules.unitSpawnerModule then
 	VFS.Include("luarules/gadgets/scavengers/Modules/unit_spawner.lua")
@@ -203,16 +199,11 @@ function PutScavAlliesInScavTeam(n)
 	end
 end
 
-
-
 local minionFramerate = math.ceil(unitSpawnerModuleConfig.FinalBossMinionsPassive/(teamcount*spawnmultiplier))
 function gadget:GameFrame(n)
-
-
 	if n == 1 then
 		-- PutSpectatorsInScavTeam(n)
 		PutScavAlliesInScavTeam(n)
-
 	end
 
 	if n == 150 and unitSpawnerModuleConfig.initialbonuscommander == true then
@@ -249,9 +240,7 @@ function gadget:GameFrame(n)
 		pregameMessages(n)
 	end
 
-	if n%30 == 20 and n > scavconfig.gracePeriod and scavconfig.modules.randomEventsModule then
-		randomEventsController.TriggerRandomEvent(n)
-	end
+	randomEventsController.GameFrame(n)
 
 	if n%30 == 0 and FinalBossUnitSpawned and not FinalBossKilled then
 		local currentbosshealth = Spring.GetUnitHealth(FinalBossUnitID)
@@ -270,7 +259,6 @@ function gadget:GameFrame(n)
 	if n%minionFramerate == 0 and FinalBossUnitSpawned and FinalBossKilled == false then
 		BossMinionsSpawn(n)
 	end
-
 
 	if n > scavconfig.gracePeriod and scavconfig.modules.startBoxProtection == true and ScavSafeAreaExist == true and FinalBossKilled == false then
 		if n%30 == 0 then
@@ -325,6 +313,7 @@ function gadget:GameFrame(n)
 			end
 		end
 	end
+
 	if n%900 == 0 and n > 100 then
 		teamsCheck()
 		UpdateTierChances(n)
@@ -365,8 +354,7 @@ function gadget:GameFrame(n)
 		end
 		local scavengerunits = Spring.GetTeamUnits(GaiaTeamID)
 		if scavengerunits then
-			for i = 1,#scavengerunits do
-				local scav = scavengerunits[i]
+			for _, scav in ipairs(scavengerunits) do
 				local scavDef = Spring.GetUnitDefID(scav)
 				local collectorRNG = math_random(0,2)
 				local scavFirestate = Spring.GetUnitStates(scav)["firestate"]
@@ -424,10 +412,8 @@ function gadget:GameFrame(n)
 					end
 				end
 
-				if scavteamhasplayers == false and scavconfig.modules.factoryControllerModule then
-					if scavFactory[scav] and #Spring.GetFullBuildQueue(scav, 0) <= 0 then
-						FactoryProduction(n, scav, scavDef)
-					end
+				if not scavteamhasplayers then
+					factoryController.BuildUnit(scav, scavDef)
 				end
 
 				-- backup -- and not scavConstructor[scav] and not scavResurrector[scav] and not scavCollector[scav]
@@ -711,13 +697,7 @@ function gadget:UnitGiven(unitID, unitDefID, unitNewTeam, unitOldTeam)
 				end
 			end
 
-			if scavconfig.modules.factoryControllerModule then
-				for i = 1,#Factories do
-					if string.sub(UnitName, 1, string.len(UnitName)-UnitSuffixLenght[unitID]) == Factories[i] then
-						scavFactory[unitID] = true
-					end
-				end
-			end
+			factoryController.CheckNewUnit(unitID, unitDefID)
 		elseif UnitDefs[unitDefID].name == "scavengerdroppodbeacon_scav" or UnitDefs[unitDefID].name == "scavsafeareabeacon_scav" then
 			numOfSpawnBeaconsTeams[unitOldTeam] = numOfSpawnBeaconsTeams[unitOldTeam] - 1
 			numOfSpawnBeaconsTeams[unitNewTeam] = numOfSpawnBeaconsTeams[unitNewTeam] + 1
@@ -890,13 +870,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 			end
 		end
 
-		if scavconfig.modules.factoryControllerModule then
-			for i = 1,#Factories do
-				if string.sub(UnitName, 1, string.len(UnitName)-UnitSuffixLenght[unitID]) == Factories[i] then
-					scavFactory[unitID] = true
-				end
-			end
-		end
+		factoryController.CheckNewUnit(unitID, unitDefID)
 	else
 		--AliveEnemyCommanders
 		for i = 1,#CommandersList do
