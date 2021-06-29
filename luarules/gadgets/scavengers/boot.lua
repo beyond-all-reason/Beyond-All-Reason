@@ -536,6 +536,18 @@ function gadget:UnitGiven(unitID, unitDefID, unitNewTeam, unitOldTeam)
 		if UnitName == "scavsafeareabeacon_scav" then
 			ScavSafeAreaExist = false
 		end
+		if UnitName == "corcom"..scavconfig.unitnamesuffix then
+			local frame = Spring.GetGameFrame()
+			local posx, posy, posz = Spring.GetUnitPosition(unitID)
+			Spring.DestroyUnit(unitID, false, true)
+			QueueSpawn("corcomcon"..scavconfig.unitnamesuffix, posx, posy, posz, 3 ,unitNewTeam, frame+1)
+		end
+		if UnitName == "armcom"..scavconfig.unitnamesuffix then
+			local frame = Spring.GetGameFrame()
+			local posx, posy, posz = Spring.GetUnitPosition(unitID)
+			Spring.DestroyUnit(unitID, false, true)
+			QueueSpawn("armcomcon"..scavconfig.unitnamesuffix, posx, posy, posz, 3 ,unitNewTeam, frame+1)
+		end
 		selfdx[unitID] = nil
 		selfdy[unitID] = nil
 		selfdz[unitID] = nil
@@ -558,7 +570,6 @@ function gadget:UnitGiven(unitID, unitDefID, unitNewTeam, unitOldTeam)
 		ConstructorNumberOfRetries[unitID] = nil
 		CaptureProgressForBeacons[unitID] = nil
 		Spring.SetUnitHealth(unitID, {capture = 0})
-
 	else
 		if unitNewTeam == GaiaTeamID then
 			if string.find(UnitName, scavconfig.unitnamesuffix) then
@@ -600,6 +611,20 @@ function gadget:UnitGiven(unitID, unitDefID, unitNewTeam, unitOldTeam)
 				numOfSpawnBeaconsTeams[unitOldTeam] = numOfSpawnBeaconsTeams[unitOldTeam] - 1
 				numOfSpawnBeacons = numOfSpawnBeacons + 1
 				scavSpawnBeacon[unitID] = true
+			end
+			if UnitName == "corcomcon"..scavconfig.unitnamesuffix then
+				local frame = Spring.GetGameFrame()
+				local posx, posy, posz = Spring.GetUnitPosition(unitID)
+				Spring.DestroyUnit(unitID, false, true)
+				QueueSpawn("corcom"..scavconfig.unitnamesuffix, posx, posy, posz, 3 ,GaiaTeamID, frame+1)
+				return
+			end
+			if UnitName == "armcomcon"..scavconfig.unitnamesuffix then
+				local frame = Spring.GetGameFrame()
+				local posx, posy, posz = Spring.GetUnitPosition(unitID)
+				Spring.DestroyUnit(unitID, false, true)
+				QueueSpawn("armcom"..scavconfig.unitnamesuffix, posx, posy, posz, 3 ,GaiaTeamID, frame+1)
+				return
 			end
 			-- CMD.CLOAK = 37382
 			Spring.GiveOrderToUnit(unitID,37382,{1},0)
@@ -730,6 +755,18 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 				Spring.SetUnitHealth(unitID, bosshealth)
 			end
 		end
+		if UnitName == "corcomcon"..scavconfig.unitnamesuffix then
+			local frame = Spring.GetGameFrame()
+			local posx, posy, posz = Spring.GetUnitPosition(unitID)
+			Spring.DestroyUnit(unitID, false, true)
+			QueueSpawn("corcom"..scavconfig.unitnamesuffix, posx, posy, posz, 3 ,unitTeam, frame+1)
+		end
+		if UnitName == "armcomcon"..scavconfig.unitnamesuffix then
+			local frame = Spring.GetGameFrame()
+			local posx, posy, posz = Spring.GetUnitPosition(unitID)
+			Spring.DestroyUnit(unitID, false, true)
+			QueueSpawn("armcom"..scavconfig.unitnamesuffix, posx, posy, posz, 3 ,unitTeam, frame+1)
+		end
 		if UnitName == "scavsafeareabeacon_scav" then
 			ScavSafeAreaExist = true
 			if not ScavSafeAreaGenerator then
@@ -841,6 +878,18 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 				AliveEnemyCommandersCount = AliveEnemyCommandersCount + 1
 				table.insert(AliveEnemyCommanders,unitID)
 			end
+		end
+		if UnitName == "corcom"..scavconfig.unitnamesuffix then
+			local frame = Spring.GetGameFrame()
+			local posx, posy, posz = Spring.GetUnitPosition(unitID)
+			Spring.DestroyUnit(unitID, false, true)
+			QueueSpawn("corcomcon"..scavconfig.unitnamesuffix, posx, posy, posz, 3 ,unitTeam, frame+1)
+		end
+		if UnitName == "armcom"..scavconfig.unitnamesuffix then
+			local frame = Spring.GetGameFrame()
+			local posx, posy, posz = Spring.GetUnitPosition(unitID)
+			Spring.DestroyUnit(unitID, false, true)
+			QueueSpawn("armcomcon"..scavconfig.unitnamesuffix, posx, posy, posz, 3 ,unitTeam, frame+1)
 		end
 		if UnitDefs[unitDefID].name == "scavengerdroppodbeacon_scav" or UnitDefs[unitDefID].name == "scavsafeareabeacon_scav" then
 			numOfSpawnBeaconsTeams[unitTeam] = numOfSpawnBeaconsTeams[unitTeam] + 1

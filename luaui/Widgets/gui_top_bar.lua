@@ -369,6 +369,9 @@ local function updateButtons()
 
 	local text = '    '
 
+	if isSinglePlayer and WG['savegame'] ~= nil then
+		text = text .. Spring.I18N('ui.topbar.button.save') .. '   '
+	end
 	if WG['scavengerinfo'] ~= nil then
 		text = text .. Spring.I18N('ui.topbar.button.scavengers') .. '   '
 	end
@@ -431,6 +434,17 @@ local function updateButtons()
 			local width = 0
 			local buttons = 0
 			firstButton = nil
+			if isSinglePlayer and WG['savegame'] ~= nil then
+				buttons = buttons + 1
+				if buttons > 1 then
+					offset = math_floor(offset + width + 0.5)
+				end
+				width = math_floor((font2:GetTextWidth('   ' .. Spring.I18N('ui.topbar.button.save')) * fontsize) + 0.5)
+				buttonsArea['buttons']['save'] = { area[1] + offset, area[2] + margin, area[1] + offset + width, area[4] }
+				if not firstButton then
+					firstButton = 'save'
+				end
+			end
 			if WG['scavengerinfo'] ~= nil then
 				buttons = buttons + 1
 				if buttons > 1 then
@@ -1718,6 +1732,19 @@ local function applyButtonAction(button)
 		hideWindows()
 		if WG['options'] ~= nil and isvisible ~= true then
 			WG['options'].toggle()
+		end
+	elseif button == 'save' then
+		if WG['savegame'] ~= nil and isSinglePlayer then
+			--local gameframe = Spring.GetGameFrame()
+			--local minutes = math.floor((gameframe / 30 / 60))
+			--local seconds = math.floor((gameframe - ((minutes*60)*30)) / 30)
+			--if seconds == 0 then
+			--	seconds = '00'
+			--elseif seconds < 10 then
+			--	seconds = '0'..seconds
+			--end
+			local time = os.date("%Y%m%d_%H%M%S")
+			Spring.SendCommands("savegame "..time)
 		end
 	elseif button == 'scavengers' then
 		if WG['scavengerinfo'] ~= nil then

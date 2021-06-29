@@ -466,6 +466,17 @@ local options={
 		section= "chicken_defense_options",
 	},
 	{
+		key    = "chicken_spawncountmult",
+		name   = "Chicken Spawn Multiplier",
+		desc   = "How many times more chickens spawn than normal.",
+		type   = "number",
+		def    = 1,
+		min    = 1,
+		max    = 20,
+		step   = 1,
+		section= "chicken_defense_options",
+	},
+	{
 		key    = "chicken_graceperiod",
 		name   = "Grace Period (Seconds)",
 		desc   = "Time before chickens become active.",

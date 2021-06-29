@@ -135,6 +135,9 @@ function UnitDef_Post(name, uDef)
 		if uDef.sounds.deactivate then
 			uDef.sounds.deactivate = nil
 		end
+		if uDef.sounds.build then
+			uDef.sounds.build = nil
+		end
 	end
 
 	-- Unit Restrictions
