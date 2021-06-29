@@ -266,7 +266,7 @@ function widget:TextCommand(msg)
 		
     		Spring.Echo("Trying to save:",msg)
 		  local savefilename = string.sub(msg, 10)
-		  SaveGame(savefilename, "BAR IS GREAT", true)
+		  SaveGame(savefilename, savefilename, true)
 		end
 end
 
