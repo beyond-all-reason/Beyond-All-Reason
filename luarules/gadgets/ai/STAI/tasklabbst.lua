@@ -5,7 +5,7 @@ function TaskLabBST:Name()
 end
 
 function TaskLabBST:Init()
-	self.DebugEnabled = true
+	self.DebugEnabled = false
 	self:EchoDebug('initialize tasklab')
 	local u = self.unit:Internal()
 	self.id = u:ID()
@@ -79,7 +79,6 @@ end
 
 function TaskLabBST:getSoldier()
 	self:EchoDebug('soldier')
-	print(self.qIndex)
 	local param
 	local soldiers
 	for i=0,#self.queue do
@@ -104,6 +103,8 @@ function TaskLabBST:getSoldier()
  	self:EchoDebug('count',soldier)
 	soldier = self:toAmphibious(soldier)
 	self:EchoDebug('amp',soldier)
+	soldier = self:specialFilters(soldier,param[1])
+	self:EchoDebug('special',soldier)
 
  	if soldier then
  		return soldier,param
@@ -122,6 +123,14 @@ function TaskLabBST:getSoldier()
 --  		end
 --  	end
 --  	self.fails = self.fails +1
+end
+
+function TaskLabBST:specialFilters(soldier,category)
+
+	if category == 'antiairs' and not self.ai.needAntiAir then
+		return nil
+	end
+	return soldier
 end
 
 function TaskLabBST:scanRanks(rank)
@@ -228,12 +237,16 @@ end
 
 
 TaskLabBST.queue = {
-		{'techs',1,6,15},
-		{'raiders',1,6,10,3},
-		{'battles',3,nil,20,3},
-		{'artillerys',1,10,5,3},
+
+		{'techs',3,6,10,1},
 		{'scouts',1,10,2,2},
-		{'breaks',2,nil,15,3},
+		{'raiders',1,6,10,5},
+		{'battles',3,nil,25,5},
+		{'techs',3,6,7,2},
+
+		{'artillerys',1,10,10,3},
+
+		{'breaks',2,5,15,2},
 
 
 
@@ -249,6 +262,7 @@ TaskLabBST.queue = {
 		{'paralyzers',1,10,5}, --have paralyzer weapon
 
 		{'wartechs',1,nil,1}, --decoy etc
+		{'techs',3,6,5,3},
 		{'subkillers',1,7,5}, -- submarine weaponed
 		{'breaks',nil,nil,40,3},
 		{'amphibious',0,7,20}, -- weapon amphibious

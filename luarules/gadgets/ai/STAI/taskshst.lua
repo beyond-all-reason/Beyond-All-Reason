@@ -60,7 +60,7 @@ function TasksHST:Init()
 
 	self.roles.eco = {
 		{'factoryMobilities',true,true,false,true,true},
-		{'_specialt_',true,false,false,true,true},
+-- 		{'_specialt_',true,false,false,true,true},
 		{'_wind_',true,false,false,true,true},
 		{'_tide_',true,false,false,true,true},
 		{'_solar_',true,false,false,true,true},
@@ -74,6 +74,7 @@ function TasksHST:Init()
 	}
 	self.roles.support = {
 		{'_radar_',true,true,false,true,true},
+		{'_specialt_',true,false,false,true,true},
 		{'_popup1_',true,false,false,true,true},
 		{'_popup2_',true,false,false,true,true},
 		{'_heavyt_',true,true,false,true,true},

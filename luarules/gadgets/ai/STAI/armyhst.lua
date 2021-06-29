@@ -188,9 +188,8 @@ function ArmyHST:Init()
 		armmanni = true,
 		corblackhy = true,
 		armepoch = true,
-
+		corthud = true,
 		corsumo = true,
-		armham = true,
 		armwar = true,
 		armbanth = true,
 		armanac = true,

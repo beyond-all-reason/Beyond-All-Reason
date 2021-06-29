@@ -4,6 +4,8 @@ function CleanerBST:Name()
 	return "CleanerBST"
 end
 
+local CMD_PATROL = 15
+
 function CleanerBST:Init()
 	self.DebugEnabled = false
 
@@ -128,8 +130,9 @@ function CleanerBST:Patroling() --TODO move nano patroling to another place (act
 	local PatrolPos = upos
 	local floats = api.vectorFloat()
 	-- populate with x, y, z of the position
-	floats:push_back(PatrolPos.x)
-	floats:push_back(PatrolPos.y)
-	floats:push_back(PatrolPos.z)
-	self.unit:Internal():Patrol(PatrolPos)
+	floats:push_back(uPos.x + 200)
+	floats:push_back(uPos.y)
+	floats:push_back(uPos.z)
+-- 	self.unit:Internal():Patrol(floats)
+	self.unit:Internal():ExecuteCustomCommand(CMD_PATROL, floats)
 end

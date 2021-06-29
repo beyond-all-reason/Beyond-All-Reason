@@ -824,7 +824,7 @@ function TargetHST:GetBestRaidCell(representative)
  		if value > 0 and threat < minThreat  and self.ai.maphst:UnitCanGoHere(representative, cell.pos) then
  			minThreat = threat
  			best = cell
- 			map:DrawCircle(best.pos, 100, {255,0,0,255}, 'raid', true, 3)
+--  			map:DrawCircle(best.pos, 100, {255,0,0,255}, 'raid', true, 3)
  		end
  	end
 --  	for i, cell in pairs(self.cellList) do

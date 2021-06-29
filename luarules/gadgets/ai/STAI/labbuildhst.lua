@@ -211,7 +211,7 @@ function LabBuildHST:GetBuilderFactory(builder)
 	local factories = self:ConditionsToBuildFactories(builder)
 	self.lastCheckFrameForConName[builderName] = f
 	self.lastFactoriesForConName[builderName] = factories
-	self.game:StopTimer('GetBuilderFactory'  .. '1')
+	--self.game:StopTimer('GetBuilderFactory'  .. '1')
 	if not factories then return false end
 
 	for order = 1, #factories do
@@ -222,7 +222,7 @@ function LabBuildHST:GetBuilderFactory(builder)
 			self:EchoDebug(factoryName .. ' not duplicated')
 			self:EchoDebug(builder:Name())
 			local p = self:FactoryPosition(factoryName,builder)
-			self.game:StopTimer('GetBuilderFactory'  .. '3')
+			----self.game:StopTimer('GetBuilderFactory'  .. '3')
 			if p then
 				if self:PostPositionalFilter(factoryName,p) then
 					self:EchoDebug(factoryName .. ' position passed filter')

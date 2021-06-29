@@ -103,6 +103,7 @@ function BehaviourFactory:defaultBehaviours(unit)
 -- 		table.insert(b, AttackerBST)
 		table.insert(b, RaiderBST)
  		table.insert(b, ScoutBST)
+		table.insert(b, DefendBST)
 		--self:EchoDebug()
 	end
 	if army.breaks[un] then

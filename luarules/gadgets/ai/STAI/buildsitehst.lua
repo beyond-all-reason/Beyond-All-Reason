@@ -340,10 +340,10 @@ function BuildSiteHST:ClosestBuildSpot(builder, position, unitTypeToBuild, minim
 		--self.game:StartTimer('bst5')
 		local vpos = self:CheckBuildPos(pos, unitTypeToBuild, builder, position)
 		-- Spring.Echo(pos.x, pos.y, pos.z, unitTypeToBuild:Name(), builder:Name(), position.x, position.y, position.z, vpos)
-		self.game:StopTimer('bst5')
+		--self.game:StopTimer('bst5')
 		return vpos
 	end
-	self.game:StopTimer('bst4')
+	--self.game:StopTimer('bst4')
  	return self.map:FindClosestBuildSite(unitTypeToBuild, position, maximumDistance, minDistance, validFunction)
 end
 
@@ -378,7 +378,7 @@ function BuildSiteHST:searchPosNearCategories(utype,builder,minDist,maxDist,cate
 		if not neighbours or not self:unitsNearCheck(unitPos, maxDist,number,neighbours) then
 			p = self:ClosestBuildSpot(builder, unitPos, utype , minDist, nil, nil, maxDist )
 		end
-		self.game:StopTimer('bst1')
+		--self.game:StopTimer('bst1')
 		if p then return p end
 	end
 end
@@ -414,7 +414,7 @@ function BuildSiteHST:searchPosInList(utype, builder,minDist,maxDist,list,neighb
 			end
 		end
 	end
-	self.game:StopTimer('bst2')
+	--self.game:StopTimer('bst2')
 	self:EchoDebug('posinlist',p)
 	return p
 end
@@ -432,12 +432,12 @@ function BuildSiteHST:BuildNearNano(builder, utype)
 			local p = self:ClosestBuildSpot(builder, hotPos, utype, 10, nil, nil, hotRadius)
 			if p then
 				self:EchoDebug('found Position for near nano hotspot at: ' .. hotPos.x ..' ' ..hotPos.z)
-				self.game:StopTimer('bst3')
+				--self.game:StopTimer('bst3')
 				return p
 			end
 		end
 	end
-	self.game:StopTimer('bst3')
+	--self.game:StopTimer('bst3')
 	return self:BuildNearLastNano(builder, utype)
 
 end
@@ -514,7 +514,7 @@ function BuildSiteHST:UnitCreated(unit)---TODO track test from unithandler
 		self.ai.turtlehst:NewUnit(unitName, position, unitID)
 	end
 	self:PlotAllDebug()
-	self.game:StopTimer('unitCreatedt')
+	--self.game:StopTimer('unitCreatedt')
 end
 
 -- prevents duplication of expensive buildings and building more than one factory at once

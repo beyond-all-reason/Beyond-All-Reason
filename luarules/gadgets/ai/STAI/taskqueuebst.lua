@@ -465,8 +465,9 @@ function TaskQueueBST:findPlace(utype, value,cat)
 				site:searchPosNearCategories(utype, builder,nil, nil,{'factoryMobilities'}) or
 				site:ClosestBuildSpot(builder, builderPos, utype)
 	elseif cat == '_llt_' then
-		POS = site:searchPosInList(utype, builder, 50,nil,self.map:GetMetalSpots(),{'_llt_','_popup2_','_popup1_'}) or
-		site:searchPosNearCategories(utype, builder, 50, nil,{'_mex_'},{'_llt_','_popup2_','_popup1_'})
+		POS = site:searchPosNearCategories(utype, builder, 50, nil,{'_mex_'},{'_llt_','_popup2_','_popup1_'}) or
+				site:searchPosInList(utype, builder, 50,nil,self.map:GetMetalSpots(),{'_llt_','_popup2_','_popup1_'})
+
 
 	elseif cat == '_popup1_' then
 		POS = site:searchPosNearCategories(utype, builder, 50, nil,{'_mex_'},{'_llt_','_popup2_','_popup1_'})
@@ -558,7 +559,7 @@ function TaskQueueBST:getOrder(builder,params)
 				return  value, p
 			end
 		end
-		self.game:StopTimer('getOrder1')
+		--self.game:StopTimer('getOrder1')
 	else
 		--self.game:StartTimer('getOrder2')
 		self:EchoDebug(params[1])
@@ -568,7 +569,7 @@ function TaskQueueBST:getOrder(builder,params)
 				return uName
 			end
 		end
-		self.game:StopTimer('getOrder2')
+		----self.game:StopTimer('getOrder2')
 	end
 
 end
@@ -642,7 +643,7 @@ function TaskQueueBST:ProgressQueue()
 	local value, p = self:getOrder(builder,val)
 	self:EchoDebug('value',value)
 	--self.game:StartTimer('tqb3')
-	self.game:StopTimer('tqb7')
+	--self.game:StopTimer('tqb7')
 	if type(value) == "table" then
 		self:EchoDebug('table queue ', value,value[1],'think about mex upgrade')
 		-- not using this except for upgrading things
@@ -668,14 +669,14 @@ function TaskQueueBST:ProgressQueue()
 		if value  then
 			utype = self.game:GetTypeByName(value)
 		end
-		self.game:StopTimer('tqb4')
+		--self.game:StopTimer('tqb4')
 		--self.game:StartTimer('tqbPOS')
 		if value and utype and not p then
 			utype, value, p = self:findPlace(utype, value,val[1])
 			self:EchoDebug('p',p)
 
 		end
-		self.game:StopTimer('tqbPOS')
+		--self.game:StopTimer('tqbPOS')
 		--self.game:StartTimer('tqb5')
 		if value and not utype   then
 			self:EchoDebug('warning' , self.name , " cannot build:",value,", couldnt grab the unit type from the engine")
@@ -723,10 +724,10 @@ function TaskQueueBST:ProgressQueue()
 				self:assist()
 			end
 		end
-		self.game:StopTimer('tqb5')
+		--self.game:StopTimer('tqb5')
 	end
-	self.game:StopTimer('tqb3')
-	self.game:StopTimer('tqb1')
+	--self.game:StopTimer('tqb3')
+	--self.game:StopTimer('tqb1')
 end
 
 function TaskQueueBST:assist()

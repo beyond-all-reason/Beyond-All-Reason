@@ -57,7 +57,6 @@ function OverviewHST:EvaluateSituation()
 	local attackTooExpensive = attackCounter == self.ai.armyhst.maxAttackCounter
 	local controlMetalSpots = self.ai.tool:countMyUnit({'extractsMetal'}) > #self.ai.mobNetworkMetals["air"][1] * 0.4
 	local needUpgrade = couldAttack or bombingTooExpensive or attackTooExpensive
-
 	self.keepCommanderSafe = self.ai.totalEnemyThreat > 3000 -- turn commander into assistant, for now above paranoidCommander because the assistant behaviour isn't helpful or safe
 	self.paranoidCommander = self.ai.totalEnemyThreat > 2500 -- move commander to safest place assisting a factory
 
