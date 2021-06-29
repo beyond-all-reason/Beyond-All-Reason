@@ -54,7 +54,7 @@ local game = {}
 	end
 
 	function game:getUnitsInCylinder(pos, range)
-		return Spring.GetUnitsInCylinder(pos.x, pos.z, range, game:GetTeamID())
+		return Spring.GetUnitsInCylinder(pos.x, pos.z, range, team)
 	end
 
 	function game:GetUnitIsBuilding(id)

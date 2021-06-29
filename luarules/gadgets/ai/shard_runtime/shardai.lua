@@ -79,7 +79,7 @@ function ShardAI:Update()
 		else
  			--self.game:StartTimer(m:Name() .. ' U')
 			m:Update()
- 			--self.game:StopTimer(m:Name() .. ' U')
+ 			----self.game:StopTimer(m:Name() .. ' U')
 		end
 	end
 end
