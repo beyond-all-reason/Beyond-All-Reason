@@ -1,97 +1,241 @@
-unitDef = {
-	acceleration = 0,
-	brakerate = 4.5,
-	buildcostenergy = 3200*sizeMultiplier,
-	buildcostmetal = 210*sizeMultiplier,
-	builddistance = 750,
-	builder = true,
-	buildinggrounddecaldecayspeed = 30,
-	buildinggrounddecalsizex = 5,
-	buildinggrounddecalsizey = 5,
-	buildinggrounddecaltype = "decals/armnanotc_aoplane.dds",
-	buildpic = "ARMNANOTC.PNG",
-	buildtime = 5312*sizeMultiplier,
-	buildoptions = buildlistRNG,
-	canassist = true,
-	canfight = true,
-	canguard = true,
-	canpatrol = true,
-	canreclaim = true,
-	canrepeat = true,
-	canstop = true,
-	cantbetransported = false,
-	capturable = true,
-	canhover = true,
-	category = "ALL NOTSUB NOWEAPON NOTAIR NOTHOVER SURFACE EMPABLE",
-	collisionvolumeoffsets = "0 0 0",
-	collisionvolumescales = collisionVolumeScales,
-	collisionvolumetype = "CylY",
-	description = Spring.I18N('units.descriptions.lootboxnano'),
-	energyuse = 0,
-	explodeas = "lootboxExplosion4",
-	footprintx = footprintx,
-	footprintz = footprintz,
-	--floater = true,
-	icontype = "building",
-	idleautoheal = 5*sizeMultiplier,
-	idletime = 1800,
-	levelground = false,
-	mass = 4999,
-	maxdamage = 5000*sizeMultiplier,
-	maxslope = 18,
-	maxwaterdepth = 0,
-	movementclass = "NANOLOOTBOX",
-	name = humanName,
-	objectname = objectName,
-	script = script,
-	seismicsignature = 0,
-	selfdestructas = "lootboxExplosion4",
-	sightdistance = 750,
-	terraformspeed = 1000*sizeMultiplier,
-	turnrate = 1,
-	upright = true,
-	usebuildinggrounddecal = true,
-	workertime = 100*sizeMultiplier,
-	reclaimable = false,
-	--yardmap = "oooo",
-	
-	sfxtypes = {
-		pieceexplosiongenerators = {
-			[1] = "deathceg2-builder",
-			[2] = "deathceg3-builder",
-			[3] = "deathceg4-builder",
-		},
-	},
-	
-	sounds = {
-		build = "nanlath1",
-		canceldestruct = "cancel2",
-		repair = "repair1",
-		underattack = "warning1",
-		working = "reclaim1",
-		cant = {
-			[1] = "cantdo4",
-		},
-		count = {
-			[1] = "count6",
-			[2] = "count5",
-			[3] = "count4",
-			[4] = "count3",
-			[5] = "count2",
-			[6] = "count1",
-		},
-		ok = {
-			[1] = "varmmove",
-		},
-		select = {
-			[1] = "varmsel",
-		},
-	},
-	
-	customparams = {
-		model_author = "Beherith",
-		normaltex = "unittextures/Arm_normal.dds",
-		subfolder = "armbuildings/landutil",
-	},
+-- Workaround for engine bug https://github.com/beyond-all-reason/spring/issues/45
+local math_random = function(x, y)
+	return x + math.floor( y * math.random() )
+end
+
+local tiers = {
+	T1 = 1,
+	T2 = 2,
+	T3 = 3,
+	T4 = 4,
 }
 
+local buildOptionsList = VFS.Include("unitbasedefs/lootboxes/lootboxnanounitlists.lua")
+local buildOptions = {
+	[tiers.T1] = buildOptionsList.T1,
+	[tiers.T2] = buildOptionsList.T2,
+	[tiers.T3] = buildOptionsList.T3,
+	[tiers.T4] = buildOptionsList.T4,
+}
+
+local createCustomBuildList = function(tier)
+	local buildListSize = 10
+	local buildList = {}
+
+	for i = 1, buildListSize do
+		local buildOption = buildOptions[tier][math_random(1, #buildOptions[tier])]
+		buildList[i] = buildOption
+	end
+
+	return buildList
+end
+
+local function getRandomModel(tier)
+	local models = {
+		[tiers.T1] = {
+			[1] = { 
+				objectName = "lootboxes/lootboxnanoarmT1.s3o",
+				script = "lootboxes/lootboxnanoarm.cob",
+			},
+			[2] = {
+				objectName = "lootboxes/lootboxnanocorT1.s3o",
+				script = "lootboxes/lootboxnanocor.cob",
+			},
+		},
+
+		[tiers.T2] = {
+			[1] = {
+				objectName = "lootboxes/lootboxnanoarmT2.s3o",
+				script = "lootboxes/lootboxnanoarm.cob",
+			},
+			[2] = {
+				objectName = "lootboxes/lootboxnanocorT2.s3o",
+				script = "lootboxes/lootboxnanocor.cob",
+			},
+		},
+
+		[tiers.T3] = {
+			[1] = {
+				objectName = "lootboxes/lootboxnanoarmT3.s3o",
+				script = "lootboxes/lootboxnanoarm.cob",
+			},
+			[2] = {
+				objectName = "lootboxes/lootboxnanocorT3.s3o",
+				script = "lootboxes/lootboxnanocor.cob",
+			},
+		},
+
+		[tiers.T4] = {
+			[1] = {
+				objectName = "lootboxes/lootboxnanoarmT4.s3o",
+				script = "lootboxes/lootboxnanoarm.cob",
+			},
+			[2] = {
+				objectName = "lootboxes/lootboxnanocorT4.s3o",
+				script = "lootboxes/lootboxnanocor.cob",
+			},
+		},
+	}
+
+	local randomModel = math_random(1, 2)
+
+	return models[tier][randomModel].objectName, models[tier][randomModel].script
+end
+
+local generateParameters = function(tier)
+	local objectName, script = getRandomModel(tier)
+	local buildList = createCustomBuildList(tier)
+
+	local parameters = {
+		[tiers.T1] = {
+			humanName = Spring.I18N('units.names.lootboxnano_t1'),
+			sizeMultiplier = 2,
+			collisionVolumeScales = "47 48 47",
+			footprintx = 3,
+			footprintz = 3,
+			buildList = buildList,
+			objectName = objectName,
+			script = script,
+		},
+
+		[tiers.T2] = {
+			humanName = Spring.I18N('units.names.lootboxnano_t2'),
+			sizeMultiplier = 4,
+			collisionVolumeScales = "59 60 59",
+			footprintx = 3,
+			footprintz = 3,
+			buildList = buildList,
+			objectName = objectName,
+			script = script,
+		},
+
+		[tiers.T3] = {
+			humanName = Spring.I18N('units.names.lootboxnano_t3'),
+			sizeMultiplier = 8,
+			collisionVolumeScales = "74 75 74",
+			footprintx = 4,
+			footprintz = 4,
+			buildList = buildList,
+			objectName = objectName,
+			script = script,
+		},
+
+		[tiers.T4] = {
+			humanName = Spring.I18N('units.names.lootboxnano_t4'),
+			sizeMultiplier = 16,
+			collisionVolumeScales = "93 94 93",
+			footprintx = 4,
+			footprintz = 4,
+			buildList = buildList,
+			objectName = objectName,
+			script = script,
+		},
+	}
+	return parameters[tier]
+end
+
+local createNanoUnitDef = function(tier)	
+	local parameters = generateParameters(tier)
+
+	return {
+		acceleration = 0,
+		brakerate = 4.5,
+		buildcostenergy = 3200 * parameters.sizeMultiplier,
+		buildcostmetal = 210 * parameters.sizeMultiplier,
+		builddistance = 750,
+		builder = true,
+		buildinggrounddecaldecayspeed = 30,
+		buildinggrounddecalsizex = 5,
+		buildinggrounddecalsizey = 5,
+		buildinggrounddecaltype = "decals/armnanotc_aoplane.dds",
+		buildpic = "ARMNANOTC.PNG",
+		buildtime = 5312 * parameters.sizeMultiplier,
+		buildoptions = parameters.buildList,
+		canassist = true,
+		canfight = true,
+		canguard = true,
+		canpatrol = true,
+		canreclaim = true,
+		canrepeat = true,
+		canstop = true,
+		cantbetransported = false,
+		capturable = true,
+		canhover = true,
+		category = "ALL NOTSUB NOWEAPON NOTAIR NOTHOVER SURFACE EMPABLE",
+		collisionvolumeoffsets = "0 0 0",
+		collisionvolumescales = parameters.collisionVolumeScales,
+		collisionvolumetype = "CylY",
+		description = Spring.I18N('units.descriptions.lootboxnano'),
+		energyuse = 0,
+		explodeas = "lootboxExplosion4",
+		footprintx = parameters.footprintx,
+		footprintz = parameters.footprintz,
+		--floater = true,
+		icontype = "building",
+		idleautoheal = 5 * parameters.sizeMultiplier,
+		idletime = 1800,
+		levelground = false,
+		mass = 4999,
+		maxdamage = 5000 * parameters.sizeMultiplier,
+		maxslope = 18,
+		maxwaterdepth = 0,
+		movementclass = "NANOLOOTBOX",
+		name = parameters.humanName,
+		objectname = parameters.objectName,
+		script = parameters.script,
+		seismicsignature = 0,
+		selfdestructas = "lootboxExplosion4",
+		sightdistance = 750,
+		terraformspeed = 1000 * parameters.sizeMultiplier,
+		turnrate = 1,
+		upright = true,
+		usebuildinggrounddecal = true,
+		workertime = 100 * parameters.sizeMultiplier,
+		reclaimable = false,
+		--yardmap = "oooo",
+
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg2-builder",
+				[2] = "deathceg3-builder",
+				[3] = "deathceg4-builder",
+			},
+		},
+
+		sounds = {
+			build = "nanlath1",
+			canceldestruct = "cancel2",
+			repair = "repair1",
+			underattack = "warning1",
+			working = "reclaim1",
+			cant = {
+				[1] = "cantdo4",
+			},
+			count = {
+				[1] = "count6",
+				[2] = "count5",
+				[3] = "count4",
+				[4] = "count3",
+				[5] = "count2",
+				[6] = "count1",
+			},
+			ok = {
+				[1] = "varmmove",
+			},
+			select = {
+				[1] = "varmsel",
+			},
+		},
+	
+		customparams = {
+			model_author = "Beherith",
+			normaltex = "unittextures/Arm_normal.dds",
+			subfolder = "armbuildings/landutil",
+		},
+	}
+end
+
+return {
+	Tiers = tiers,
+	CreateNanoUnitDef = createNanoUnitDef,
+}
