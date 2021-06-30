@@ -635,11 +635,15 @@ local function ProcessSoundDefaults(wd)
 		return
 	end
 	
+	-- The very old formula 
 	-- local soundVolume = math.sqrt(math.min(2000, defaultDamage) * 0.5) 
-	-- The old formula 
+	
+	-- The old formula
+	-- local soundVolume = math.sqrt(defaultDamage * 0.5)
+	-- soundVolume = math.min(math.max(soundVolume, 5), 25)
 
-	local soundVolume = math.sqrt(defaultDamage * 0.5)
-	soundVolume = math.min(math.max(soundVolume, 5), 25)
+	local soundVolume = math.floor( defaultDamage ^ 0.41 + 2 )
+	soundVolume = math.min(math.max(soundVolume, 5), 40)
 
 	if wd.weapontype == "LaserCannon" then
 		soundVolume = soundVolume*0.5
