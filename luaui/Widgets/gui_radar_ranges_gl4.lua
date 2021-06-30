@@ -1,7 +1,7 @@
 function widget:GetInfo()
 	return {
-		name      = "Radar Range GL4",
-		desc      = "Shows ranges of all ally radars.",
+		name      = "Sensor Ranges Radar",
+		desc      = "Shows ranges of all ally radars. (GL4)",
 		author    = "Kev, Beherith GL4",
 		date      = "2021.06.18",
 		license   = "CC BY-NC",

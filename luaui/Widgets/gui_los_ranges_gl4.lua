@@ -1,7 +1,7 @@
 function widget:GetInfo()
 	return {
-		name      = "LOS Range GL4",
-		desc      = "Shows LOS ranges of all ally units.",
+		name      = "Sensor Ranges LOS",
+		desc      = "Shows LOS ranges of all ally units. (GL4)",
 		author    = "Beherith GL4",
 		date      = "2021.06.18",
 		license   = "CC BY-NC",

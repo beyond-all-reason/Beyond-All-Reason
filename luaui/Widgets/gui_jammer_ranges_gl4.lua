@@ -1,7 +1,7 @@
 function widget:GetInfo()
 	return {
-		name      = "Jammer Range GL4",
-		desc      = "Shows ranges of all radar jammers",
+		name      = "Sensor Ranges Jammer",
+		desc      = "Shows ranges of all radar jammers. (GL4)",
 		author    = "Kev, Beherith GL4",
 		date      = "2021.06.18",
 		license   = "CC BY-NC",
