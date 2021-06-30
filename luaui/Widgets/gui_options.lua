@@ -4048,7 +4048,24 @@ function init()
 
           { id = "radarrange", group = "ui", widget = "Radar Range", name = texts.option.radarrange, type = "bool", value = GetWidgetToggleValue("Radar Range"), description = texts.option.radarrange_descr },
 
-         -- { id = "losrange", group = "ui", widget = "Radar Range", name = texts.option.radarrange, type = "bool", value = GetWidgetToggleValue("Radar Range"), description = texts.option.radarrange_descr },
+         { id = "losrange", group = "ui", widget = "LoS Range", name = texts.option.losrange, type = "bool", value = GetWidgetToggleValue("LoS Range"), description = texts.option.losrange_descr },
+
+		  { id = "losrangeopacity", group = "ui", name = widgetOptionColor .. "   "..texts.option.losrangeopacity, type = "slider", min = 0.03, max = 0.33, step = 0.01, value = (WG['losrange'] ~= nil and WG['losrange'].getOpacity ~= nil and WG['losrange'].getOpacity()) or 0.08, description = '',
+			onload = function(i)
+				loadWidgetData("LoS Range", "losrangeopacity", { 'opacity' })
+			end,
+			onchange = function(i, value)
+				saveOptionValue('LoS Range', 'losrange', 'setOpacity', { 'opacity' }, value)
+			end,
+		  },
+		  { id = "losrangeteamcolors", group = "ui", name = widgetOptionColor .. "   "..texts.option.losrangeteamcolors, type = "bool", value = (WG['losrange'] ~= nil and WG['losrange'].getUseTeamColors ~= nil and WG['losrange'].getUseTeamColors()), description = '',
+			onload = function(i)
+				loadWidgetData("LoS Range", "losrangeteamcolors", { 'useTeamColors' })
+			end,
+			onchange = function(i, value)
+				saveOptionValue('LoS Range', 'losrange', 'setUseTeamColors', { 'useTeamColors' }, value)
+			end,
+		  },
 
           { id = "defrange", group = "ui", widget = "Defense Range", name = texts.option.defrange, type = "bool", value = GetWidgetToggleValue("Defense Range"), description = texts.option.displaydps_descr },
 		{ id = "defrange_allyair", group = "ui", name = widgetOptionColor .. "   "..texts.option.defrange_allyair, type = "bool", value = (WG['defrange'] ~= nil and WG['defrange'].getAllyAir ~= nil and WG['defrange'].getAllyAir()), description = texts.option.defrange_allyair_descr,
