@@ -4045,10 +4045,58 @@ function init()
 		  end,
 		},
 		{ id = "givenunits", group = "ui", widget = "Given Units", name = texts.option.givenunits, type = "bool", value = GetWidgetToggleValue("Given Units"), description = texts.option.giveunits_descr },
+		-- Radar range rings:
+          { id = "radarrange", group = "ui", widget = "Sensor Ranges Radar", name = texts.option.radarrange, type = "bool", value = GetWidgetToggleValue("Sensor Ranges Radar"), description = texts.option.radarrange_descr },
+		  
+		  { id = "radarrangeopacity", group = "ui", name = widgetOptionColor .. "   "..texts.option.radarrangeopacity, type = "slider", min = 0.01, max = 0.33, step = 0.01, value = (WG['radarrange'] ~= nil and WG['radarrange'].getOpacity ~= nil and WG['radarrange'].getOpacity()) or 0.08, description = '',
+			onload = function(i)
+				loadWidgetData("Sensor Ranges Radar", "radarrangeopacity", { 'opacity' })
+			end,
+			onchange = function(i, value)
+				saveOptionValue('Sensor Ranges Radar', 'radarrange', 'setOpacity', { 'opacity' }, value)
+			end,
+		  },
+		-- Sonar range
+		   { id = "sonarrange", group = "ui", widget = "Sensor Ranges Sonar", name = texts.option.sonarrange, type = "bool", value = GetWidgetToggleValue("Sensor Ranges Sonar"), description = texts.option.sonarrange_descr },
+		  
+		  { id = "sonarrangeopacity", group = "ui", name = widgetOptionColor .. "   "..texts.option.sonarrangeopacity, type = "slider", min = 0.01, max = 0.33, step = 0.01, value = (WG['sonarrange'] ~= nil and WG['sonarrange'].getOpacity ~= nil and WG['sonarrange'].getOpacity()) or 0.08, description = '',
+			onload = function(i)
+				loadWidgetData("Sensor Ranges Sonar", "sonarrangeopacity", { 'opacity' })
+			end,
+			onchange = function(i, value)
+				saveOptionValue('Sensor Ranges Sonar', 'sonarrange', 'setOpacity', { 'opacity' }, value)
+			end,
+		  },
+		-- Jammer range
+		   { id = "jammerrange", group = "ui", widget = "Sensor Ranges Jammer", name = texts.option.jammerrange, type = "bool", value = GetWidgetToggleValue("Sensor Ranges Jammer"), description = texts.option.jammerrange_descr },
+		  
+		  { id = "jammerrangeopacity", group = "ui", name = widgetOptionColor .. "   "..texts.option.jammerrangeopacity, type = "slider", min = 0.01, max = 0.66, step = 0.01, value = (WG['jammerrange'] ~= nil and WG['jammerrange'].getOpacity ~= nil and WG['jammerrange'].getOpacity()) or 0.08, description = '',
+			onload = function(i)
+				loadWidgetData("Sensor Ranges Jammer", "jammerrangeopacity", { 'opacity' })
+			end,
+			onchange = function(i, value)
+				saveOptionValue('Sensor Ranges Jammer', 'jammerrange', 'setOpacity', { 'opacity' }, value)
+			end,
+		  },
+		-- LOS Range:
+         { id = "losrange", group = "ui", widget = "Sensor Ranges LOS", name = texts.option.losrange, type = "bool", value = GetWidgetToggleValue("Sensor Ranges LOS"), description = texts.option.losrange_descr },
 
-          { id = "radarrange", group = "ui", widget = "Radar Range", name = texts.option.radarrange, type = "bool", value = GetWidgetToggleValue("Radar Range"), description = texts.option.radarrange_descr },
-
-         -- { id = "losrange", group = "ui", widget = "Radar Range", name = texts.option.radarrange, type = "bool", value = GetWidgetToggleValue("Radar Range"), description = texts.option.radarrange_descr },
+		  { id = "losrangeopacity", group = "ui", name = widgetOptionColor .. "   "..texts.option.losrangeopacity, type = "slider", min = 0.01, max = 0.33, step = 0.01, value = (WG['losrange'] ~= nil and WG['losrange'].getOpacity ~= nil and WG['losrange'].getOpacity()) or 0.08, description = '',
+			onload = function(i)
+				loadWidgetData("Sensor Ranges LOS", "losrangeopacity", { 'opacity' })
+			end,
+			onchange = function(i, value)
+				saveOptionValue('Sensor Ranges LOS', 'losrange', 'setOpacity', { 'opacity' }, value)
+			end,
+		  },
+		  { id = "losrangeteamcolors", group = "ui", name = widgetOptionColor .. "   "..texts.option.losrangeteamcolors, type = "bool", value = (WG['losrange'] ~= nil and WG['losrange'].getUseTeamColors ~= nil and WG['losrange'].getUseTeamColors()), description = '',
+			onload = function(i)
+				loadWidgetData("Sensor Ranges LOS", "losrangeteamcolors", { 'useteamcolors' })
+			end,
+			onchange = function(i, value)
+				saveOptionValue('Sensor Ranges LOS', 'losrange', 'setUseTeamColors', { 'useteamcolors' }, value)
+			end,
+		  },
 
           { id = "defrange", group = "ui", widget = "Defense Range", name = texts.option.defrange, type = "bool", value = GetWidgetToggleValue("Defense Range"), description = texts.option.displaydps_descr },
 		{ id = "defrange_allyair", group = "ui", name = widgetOptionColor .. "   "..texts.option.defrange_allyair, type = "bool", value = (WG['defrange'] ~= nil and WG['defrange'].getAllyAir ~= nil and WG['defrange'].getAllyAir()), description = texts.option.defrange_allyair_descr,
