@@ -12,10 +12,11 @@ end
  
 
 -------   Configurables: ------------------- 
-local rangeColor = { 0.9, 0.9, 0.9, 0.08 } -- default range color
-
-local teamColorAlpha = 0.2
-local useTeamColors = false
+local rangeColor = { 0.9, 0.9, 0.9, 0.24 } -- default range color
+local opacity = 0.08
+local teamColorAlpha = 0.6
+local useteamcolors = false
+local olduseteamcolors = false -- needs re-init when teamcolor prefs are changed
 local usestipple = 0 -- 0 or 1
 local rangeLineWidth = 4.5 -- (note: will end up larger for larger vertical screen resolution size)
 
@@ -50,7 +51,7 @@ layout (location = 0) in vec4 circlepointposition;
 layout (location = 1) in vec4 startposrad;
 layout (location = 2) in vec4 endposrad;
 layout (location = 3) in vec4 color; 
-uniform vec4 circleuniforms; // none yet
+uniform float circleopacity;
 
 uniform sampler2D heightmapTex;
 
@@ -86,6 +87,7 @@ void main() {
 	worldscale_circumference = startposrad.w * circlepointposition.z * 6.2831853;
 	worldPos = circleWorldPos;
 	blendedcolor = color;
+	blendedcolor.a = 1.0;
 	blendedcolor.a *= 1.0 - clamp(inboundsness*(-0.02),0.0,1.0);
 	gl_Position = cameraViewProj * vec4(circleWorldPos.xyz, 1.0);
 }
@@ -99,7 +101,7 @@ local fsSrc =  [[
 
 #line 20000
 
-uniform vec4 circleuniforms; 
+uniform float circleopacity; 
 
 uniform sampler2D heightmapTex;
 
@@ -117,8 +119,9 @@ out vec4 fragColor;
 
 void main() {
 	fragColor.rgba = blendedcolor.rgba;
+	fragColor.a *= circleopacity;
 	#if USE_STIPPLE > 0
-		fragColor.a *= 2.0 * sin(worldscale_circumference + timeInfo.x*0.1); // PERFECT STIPPLING!
+		fragColor.a *= 2.0 * sin(worldscale_circumference + timeInfo.x*0.1) * circleopacity; // PERFECT STIPPLING!
 	#endif
 }
 ]]
@@ -144,7 +147,7 @@ local function initgl4()
 		heightmapTex = 0,
 		},
 	  uniformFloat = {
-		circleuniforms = {1,1,1,1},
+        circleopacity = {1},
 	  },
 	},
 	"losrange shader GL4"
@@ -262,7 +265,7 @@ local function processUnit(unitID, unitDefID, caller)
 	
 	local x, y, z = spGetUnitPosition(unitID)
 	local r,g,b,a 
-	if useTeamColors then
+	if useteamcolors then
 		r, g, b = Spring.GetTeamColor(teamID)
 		a = teamColorAlpha
 	else
@@ -355,8 +358,17 @@ function widget:DrawWorld()
 	if chobbyInterface then return end
 	--if spec and fullview then return end
 	if spIsGUIHidden() or (WG['topbar'] and WG['topbar'].showingQuit()) then return end
+	
+	if useteamcolors ~= olduseteamcolors then
+		olduseteamcolors = useteamcolors
+		widget:Initialize()
+	end
 
 	if circleInstanceVBO.usedElements == 0 then return end
+	
+	if opacity < 0.01 then return end
+	
+	
 	
 	--if true then return end
 	glColorMask(false, false, false, false) -- disable color drawing
@@ -365,6 +377,7 @@ function widget:DrawWorld()
 
 	gl.Texture(0, "$heightmap")
 	circleShader:Activate()
+	circleShader:SetUniform("circleopacity", opacity)
 	
 	-- Draw outer circles into stencil buffer
 		glStencilFunc(GL_ALWAYS, 1, 1) -- Always Passes, 1 Bit Plane, 1 As Mask
@@ -397,4 +410,22 @@ function widget:DrawWorld()
 	glDepthTest(true)
 	glColor( 1.0, 1.0, 1.0, 1.0 ) --reset like a nice boi
 	glLineWidth( 1.0 )
+	gl.Clear( GL.STENCIL_BUFFER_BIT)
 end
+
+function widget:GetConfigData(data)
+	return {
+		opacity = opacity,
+		teamcolorized = teamcolorized,
+	}
+end
+
+function widget:SetConfigData(data)
+	if data.opacity ~= nil then
+		opacity = data.opacity
+	end
+	if data.teamcolorized ~= nil then
+		teamcolorized = data.teamcolorized
+	end
+end
+

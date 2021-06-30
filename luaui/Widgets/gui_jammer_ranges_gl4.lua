@@ -17,6 +17,7 @@ local minJammerDistance = 60
 local gaiaTeamID = Spring.GetGaiaTeamID()
 local rangeColor = { 1.0, 0.35, 0.0, 0.35 } -- default range color
 local usestipple = 1 -- 0 or 1 
+local opacity = 0.35
 
 local circleSegments = 64
 ------- GL4 NOTES -----
@@ -45,7 +46,7 @@ layout (location = 0) in vec4 circlepointposition;
 layout (location = 1) in vec4 startposrad;
 layout (location = 2) in vec4 endposrad;
 layout (location = 3) in vec4 color; 
-uniform vec4 circleuniforms; // none yet
+uniform float circleopacity; 
 
 uniform sampler2D heightmapTex;
 
@@ -81,6 +82,7 @@ void main() {
 	worldscale_circumference = startposrad.w * circlepointposition.z * 5.2345;
 	worldPos = circleWorldPos;
 	blendedcolor = color;
+	blendedcolor.a = 1.0; // opacity override!
 	blendedcolor.a *= 1.0 - clamp(inboundsness*(-0.03),0.0,1.0);
 	gl_Position = cameraViewProj * vec4(circleWorldPos.xyz, 1.0);
 }
@@ -95,7 +97,7 @@ local fsSrc =  [[
 
 #line 20000
 
-uniform vec4 circleuniforms; 
+uniform float circleopacity; 
 
 uniform sampler2D heightmapTex;
 
@@ -112,6 +114,7 @@ out vec4 fragColor;
 
 void main() {
 	fragColor.rgba = blendedcolor.rgba;
+	fragColor.a *= circleopacity;
 	#if USE_STIPPLE > 0
 		fragColor.a *= 3.0 * sin(worldscale_circumference + timeInfo.x*-0.2); // PERFECT STIPPLING!
 	#endif
@@ -137,20 +140,20 @@ local function initgl4()
 		heightmapTex = 0,
 		},
 	  uniformFloat = {
-		circleuniforms = {1,1,1,1},
+        circleopacity = {1},
 	  },
 	},
-	"radarrange shader GL4"
+	"jammerrange shader GL4"
   )
   shaderCompiled = circleShader:Initialize()
-  if not shaderCompiled then goodbye("Failed to compile circleShader GL4 ") end
+  if not shaderCompiled then goodbye("Failed to compile jammerrange shader GL4 ") end
   local circleVBO,numVertices = makeCircleVBO(circleSegments)
   local circleInstanceVBOLayout = {
 		  {id = 1, name = 'startposrad', size = 4}, -- the start pos + radius
 		  {id = 2, name = 'endposrad', size = 4}, --  end pos + radius
 		  {id = 3, name = 'color', size = 4}, --- color
 		}
-  circleInstanceVBO = makeInstanceVBOTable(circleInstanceVBOLayout,32, "radarrangeVBO")
+  circleInstanceVBO = makeInstanceVBOTable(circleInstanceVBOLayout,32, "jammerrangeVBO")
   circleInstanceVBO.numVertices = numVertices
   circleInstanceVBO.vertexVBO = circleVBO
   circleInstanceVBO.VAO = makeVAOandAttach(circleInstanceVBO.vertexVBO, circleInstanceVBO.instanceVBO)
@@ -329,6 +332,9 @@ function widget:DrawWorld()
 
 	if circleInstanceVBO.usedElements == 0 then return end
 	
+	if opacity < 0.01 then return end
+	
+	
 	--if true then return end
 	glColorMask(false, false, false, false)
 	glStencilTest(true)
@@ -336,6 +342,7 @@ function widget:DrawWorld()
 
 	gl.Texture(0, "$heightmap")
 	circleShader:Activate()
+	circleShader:SetUniform("circleopacity", opacity)
 	
 	-- Draw outer circles into stencil buffer
 		glStencilFunc(GL_ALWAYS, 1, 1) -- Always Passes, 1 Bit Plane, 1 As Mask
@@ -366,4 +373,5 @@ function widget:DrawWorld()
 	glDepthTest(true)
 	glColor( 1.0, 1.0, 1.0, 1.0 ) --reset like a nice boi
 	glLineWidth( 1.0 )
+	gl.Clear( GL.STENCIL_BUFFER_BIT)
 end
