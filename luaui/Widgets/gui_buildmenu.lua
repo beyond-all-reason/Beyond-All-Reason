@@ -285,6 +285,7 @@ local groups = {
 	weapon = folder..'weapon.png',
 	emp = folder..'emp.png',
 	aa = folder..'aa.png',
+	sub = folder..'sub.png',
 	nuke = folder..'nuke.png',
 	antinuke = folder..'antinuke.png',
 }
@@ -356,6 +357,10 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 				end
 				if weaponDef.paralyzer then
 					unitGroup[unitDefID] = 'emp'
+				end
+
+				if weaponDef.type == "TorpedoLauncher" then
+					unitGroup[unitDefID] = 'sub'
 				end
 			end
 			if weaponDef.shieldRepulser then
