@@ -1,3 +1,6 @@
+local scavConfig = VFS.Include('luarules/gadgets/scavengers/Configs/BYAR/config.lua')
+local tiers = scavConfig.Tiers
+local types = scavConfig.BlueprintTypes
 local UDN = UnitDefNames
 
 -- Tech 1
@@ -21,6 +24,8 @@ local function t1SeaBase1()
 	end
 
 	return {
+		type = types.Sea,
+		tiers = { tiers.T0, tiers.T1, tiers.T2, tiers.T3, tiers.T4 },
 		radius = 100,
 		buildings = buildings,
 	}
@@ -46,6 +51,8 @@ local function t1SeaBase2()
 	end
 
     return {
+		type = types.Sea,
+		tiers = { tiers.T0, tiers.T1, tiers.T2, tiers.T3, tiers.T4 },
 		radius = 100,
 		buildings = buildings,
 	}
@@ -71,6 +78,8 @@ local function t1SeaBase3()
 	end
 
     return {
+		type = types.Sea,
+		tiers = { tiers.T0, tiers.T1, tiers.T2, tiers.T3, tiers.T4 },
 		radius = 100,
 		buildings = buildings,
 	}
@@ -96,6 +105,8 @@ local function t1SeaBase4()
 	end
 
 	return {
+		type = types.Sea,
+		tiers = { tiers.T0, tiers.T1, tiers.T2, tiers.T3, tiers.T4 },
 		radius = 100,
 		buildings = buildings,
 	}
@@ -121,6 +132,8 @@ local function t1SeaBase5()
 	end
 
 	return {
+		type = types.Sea,
+		tiers = { tiers.T0, tiers.T1, tiers.T2, tiers.T3, tiers.T4 },
 		radius = 100,
 		buildings = buildings,
 	}
@@ -164,6 +177,8 @@ local function t1seaBase6()
 	end
 
 	return {
+		type = types.Sea,
+		tiers = { tiers.T0, tiers.T1, tiers.T2, tiers.T3, tiers.T4 },
 		radius = 100,
 		buildings = buildings,
 	}
@@ -187,6 +202,8 @@ local function t1SeaBase7()
 	end
 
 	return {
+		type = types.Sea,
+		tiers = { tiers.T0, tiers.T1, tiers.T2, tiers.T3, tiers.T4 },
 		radius = 100,
 		buildings = buildings,
 	}
@@ -210,6 +227,8 @@ local function t1SeaBase8()
 	end
 
 	return {
+		type = types.Sea,
+		tiers = { tiers.T0, tiers.T1, tiers.T2, tiers.T3, tiers.T4 },
 		radius = 100,
 		buildings = buildings,
 	}
@@ -236,6 +255,8 @@ local function t2SeaBase1()
 	end
 
 	return {
+		type = types.Sea,
+		tiers = { tiers.T2, tiers.T3, tiers.T4 },
 		radius = 100,
 		buildings = buildings,
 	}
@@ -261,6 +282,8 @@ local function t2SeaBase2()
 	end
 
 	return {
+		type = types.Sea,
+		tiers = { tiers.T2, tiers.T3, tiers.T4 },
 		radius = 100,
 		buildings = buildings,
 	}
@@ -286,6 +309,8 @@ local function t2SeaBase3()
 	end
 
 	return {
+		type = types.Sea,
+		tiers = { tiers.T2, tiers.T3, tiers.T4 },
 		radius = 100,
 		buildings = buildings,
 	}
@@ -312,6 +337,8 @@ local function t2SeaBase4()
 	end
 
 	return {
+		type = types.Sea,
+		tiers = { tiers.T2, tiers.T3, tiers.T4 },
 		radius = 100,
 		buildings = buildings,
 	}
@@ -339,6 +366,8 @@ local function t2SeaBase5()
 	end
 
 	return {
+		type = types.Sea,
+		tiers = { tiers.T2, tiers.T3, tiers.T4 },
 		radius = 100,
 		buildings = buildings,
 	}
@@ -362,6 +391,8 @@ local function t2SeaFactory1()
 	end
 
 	return {
+		type = types.Sea,
+		tiers = { tiers.T2, tiers.T3, tiers.T4 },
 		radius = 104,
 		buildings = buildings,
 	}
@@ -385,6 +416,8 @@ local function t2SeaFactory2()
 	end
 
 	return {
+		type = types.Sea,
+		tiers = { tiers.T2, tiers.T3, tiers.T4 },
 		radius = 104,
 		buildings = buildings,
 	}
@@ -408,6 +441,8 @@ local function t2SeaFactory3()
 	end
 
 	return {
+		type = types.Sea,
+		tiers = { tiers.T2, tiers.T3, tiers.T4 },
 		radius = 104,
 		buildings = buildings,
 	}
@@ -431,6 +466,8 @@ local function t2SeaFactory4()
 	end
 
 	return {
+		type = types.Sea,
+		tiers = { tiers.T2, tiers.T3, tiers.T4 },
 		radius = 96,
 		buildings = buildings,
 	}
@@ -454,6 +491,8 @@ local function t2SeaFactory5()
 	end
 
 	return {
+		type = types.Sea,
+		tiers = { tiers.T2, tiers.T3, tiers.T4 },
 		radius = 136,
 		buildings = buildings,
 	}
@@ -486,29 +525,31 @@ local function t3SeaFactory1()
 	end
 
 	return {
+		type = types.Sea,
+		tiers = { tiers.T3, tiers.T4 },
 		radius = 112,
 		buildings = buildings,
 	}
 end
 
 return {
-	T1SeaBase1 = t1SeaBase1,
-	T1SeaBase2 = t1SeaBase2,
-	T1SeaBase3 = t1SeaBase3,
-	T1SeaBase4 = t1SeaBase4,
-	T1SeaBase5 = t1SeaBase5,
-	T1seaBase6 = t1seaBase6,
-	T1SeaBase7 = t1SeaBase7,
-	T1SeaBase8 = t1SeaBase8,
-	T2SeaBase1 = t2SeaBase1,
-	T2SeaBase2 = t2SeaBase2,
-	T2SeaBase3 = t2SeaBase3,
-	T2SeaBase4 = t2SeaBase4,
-	T2SeaBase5 = t2SeaBase5,
-	T2SeaFactory1 = t2SeaFactory1,
-	T2SeaFactory2 = t2SeaFactory2,
-	T2SeaFactory3 = t2SeaFactory3,
-	T2SeaFactory4 = t2SeaFactory4,
-	T2SeaFactory5 = t2SeaFactory5,
-	T3SeaFactory1 = t3SeaFactory1,
+	t1SeaBase1,
+	t1SeaBase2,
+	t1SeaBase3,
+	t1SeaBase4,
+	t1SeaBase5,
+	t1seaBase6,
+	t1SeaBase7,
+	t1SeaBase8,
+	t2SeaBase1,
+	t2SeaBase2,
+	t2SeaBase3,
+	t2SeaBase4,
+	t2SeaBase5,
+	t2SeaFactory1,
+	t2SeaFactory2,
+	t2SeaFactory3,
+	t2SeaFactory4,
+	t2SeaFactory5,
+	t3SeaFactory1,
 }

@@ -1,158 +1,67 @@
 local scavConfig = VFS.Include('luarules/gadgets/scavengers/Configs/BYAR/config.lua')
 local tiers = scavConfig.Tiers
+local types = scavConfig.BlueprintTypes
 
-local landBases = VFS.Include('luarules/gadgets/scavengers/Blueprints/BYAR/Constructor/damgam_bases.lua')
-local basicSeaBases = VFS.Include('luarules/gadgets/scavengers/Blueprints/BYAR/Constructor/Damgam_Basic_Sea.lua')
-local landEco = VFS.Include('luarules/gadgets/scavengers/Blueprints/BYAR/Constructor/damgam_ecoStuff.lua')
+local dummyBlueprint = function()
+	return {
+		type = types.Land,
+		tiers = { },
+		radius = 0,
+		buildings = { }
+	}
+end
 
-
-local blueprintTypes = {
-	Land = 1,
-	Sea = 2,
-}
-
-local landBlueprintLists = {
-	[tiers.T0] = {
+local blueprints = {
+	[types.Land] = {
+		[tiers.T0] = { },
+		[tiers.T1] = { },
+		[tiers.T2] = { },
+		[tiers.T3] = { },
+		[tiers.T4] = { },
 	},
 
-	[tiers.T1] = {
-		landBases.RedBase2,
-		landBases.BlueBase2,
-		landEco.T1Energy1,
-		landEco.T1Energy2,
-		landEco.T1Energy3,
-		landEco.T1Energy4,
-		landEco.T1Energy5,
-		landEco.T1Energy6,
-		landEco.T2Wind1,
-	},
-
-	[tiers.T2] = {
-		landBases.RedBase1,
-		landBases.RedBase2,
-		landBases.BlueBase1,
-		landBases.BlueBase2,
-		landEco.T2Energy1,
-		landEco.T2Energy2,
-		landEco.T2Energy3,
-		landEco.T2Energy4,
-		landEco.T2Wind1,
-	},
-
-	[tiers.T3] = {
-		landBases.RedBase1,
-		landBases.RedBase2,
-		landBases.BlueBase1,
-		landBases.BlueBase2,
-		landEco.T2ResourcesBase1,
-		landEco.T2ResourcesBase2,
-		landEco.T2EnergyBase1,
-		landEco.T2MetalBase1,
-		landEco.T2ResourceBase3,
-		landEco.T2EnergyBase2,
-		landEco.T2Wind1,
-	},
-
-	[tiers.T4] = {
+	[types.Sea] = {
+		[tiers.T0] = { },
+		[tiers.T1] = { },
+		[tiers.T2] = { },
+		[tiers.T3] = { },
+		[tiers.T4] = { },
 	},
 }
 
-local seaBlueprintLists = {
-	[tiers.T0] = {
-		basicSeaBases.T1SeaBase1,
-		basicSeaBases.T2SeaBase2,
-		basicSeaBases.T3SeaBase3,
-		basicSeaBases.T1SeaBase4,
-		basicSeaBases.T1SeaBase5,
-		basicSeaBases.T1seaBase6,
-		basicSeaBases.T1SeaBase7,
-		basicSeaBases.T1SeaBase8,
-	},
-
-	[tiers.T1] = {
-		basicSeaBases.T1SeaBase1,
-		basicSeaBases.T2SeaBase2,
-		basicSeaBases.T3SeaBase3,
-		basicSeaBases.T1SeaBase4,
-		basicSeaBases.T1SeaBase5,
-		basicSeaBases.T1seaBase6,
-		basicSeaBases.T1SeaBase7,
-		basicSeaBases.T1SeaBase8,
-	},
-
-	[tiers.T2] = {
-		basicSeaBases.T1SeaBase1,
-		basicSeaBases.T2SeaBase2,
-		basicSeaBases.T3SeaBase3,
-		basicSeaBases.T1SeaBase4,
-		basicSeaBases.T1SeaBase5,
-		basicSeaBases.T1seaBase6,
-		basicSeaBases.T1SeaBase7,
-		basicSeaBases.T1SeaBase8,
-		basicSeaBases.T2SeaBase1,
-		basicSeaBases.T2SeaBase2,
-		basicSeaBases.T2SeaBase3,
-		basicSeaBases.T2SeaBase4,
-		basicSeaBases.T2SeaBase5,
-		basicSeaBases.T2SeaFactory1,
-		basicSeaBases.T2SeaFactory2,
-		basicSeaBases.T2SeaFactory3,
-		basicSeaBases.T2SeaFactory4,
-		basicSeaBases.T2SeaFactory5,
-	},
-
-	[tiers.T3] = {
-		basicSeaBases.T1SeaBase1,
-		basicSeaBases.T2SeaBase2,
-		basicSeaBases.T3SeaBase3,
-		basicSeaBases.T1SeaBase4,
-		basicSeaBases.T1SeaBase5,
-		basicSeaBases.T1seaBase6,
-		basicSeaBases.T1SeaBase7,
-		basicSeaBases.T1SeaBase8,
-		basicSeaBases.T2SeaBase1,
-		basicSeaBases.T2SeaBase2,
-		basicSeaBases.T2SeaBase3,
-		basicSeaBases.T2SeaBase4,
-		basicSeaBases.T2SeaBase5,
-		basicSeaBases.T2SeaFactory1,
-		basicSeaBases.T2SeaFactory2,
-		basicSeaBases.T2SeaFactory3,
-		basicSeaBases.T2SeaFactory4,
-		basicSeaBases.T2SeaFactory5,
-		basicSeaBases.T3SeaFactory1,
-	},
-
-	[tiers.T4] = {
-		basicSeaBases.T1SeaBase1,
-		basicSeaBases.T2SeaBase2,
-		basicSeaBases.T3SeaBase3,
-		basicSeaBases.T1SeaBase4,
-		basicSeaBases.T1SeaBase5,
-		basicSeaBases.T1seaBase6,
-		basicSeaBases.T1SeaBase7,
-		basicSeaBases.T1SeaBase8,
-		basicSeaBases.T2SeaBase1,
-		basicSeaBases.T2SeaBase2,
-		basicSeaBases.T2SeaBase3,
-		basicSeaBases.T2SeaBase4,
-		basicSeaBases.T2SeaBase5,
-		basicSeaBases.T2SeaFactory1,
-		basicSeaBases.T2SeaFactory2,
-		basicSeaBases.T2SeaFactory3,
-		basicSeaBases.T2SeaFactory4,
-		basicSeaBases.T2SeaFactory5,
-		basicSeaBases.T3SeaFactory1,
-	},
+-- local blueprintsDirectory = VFS.DirList('luarules/gadgets/scavengers/Blueprints/' .. Game.gameShortName .. '/Constructor/','*.lua')
+local blueprintsDirectory = {
+	'luarules/gadgets/scavengers/Blueprints/BYAR/Constructor/damgam_bases.lua',
+	'luarules/gadgets/scavengers/Blueprints/BYAR/Constructor/Damgam_Basic_Sea.lua',
+	'luarules/gadgets/scavengers/Blueprints/BYAR/Constructor/damgam_ecoStuff.lua',
 }
+for _, blueprintFile in ipairs(blueprintsDirectory) do
+	local fileContents = VFS.Include(blueprintFile)
+	for _, blueprintFunction in ipairs(fileContents) do
+		local blueprint = blueprintFunction()
+		for _, tier in ipairs(blueprint.tiers) do
+			table.insert(blueprints[blueprint.type][tier], blueprintFunction)
+		end
+	end
+
+	Spring.Echo("[Scavengers] Loading constructor blueprint file: " .. blueprintFile)
+end
+
+for _, blueprintType in pairs(types) do
+	for _, tier in pairs(tiers) do
+		if #blueprints[blueprintType][tier] == 0 then
+			table.insert(blueprints[blueprintType][tier], dummyBlueprint)
+		end
+	end
+end
 
 local getRandomBluePrint = function(tier, type)
 	local blueprintList, blueprintFunction, blueprint
 
-	if type == blueprintTypes.Land then
-		blueprintList = landBlueprintLists[tier]
-	elseif type == blueprintTypes.Sea then
-		blueprintList = seaBlueprintLists[tier]
+	if type == types.Land then
+		blueprintList = blueprints[types.Land][tier]
+	elseif type == types.Sea then
+		blueprintList = blueprints[types.Sea][tier]
 	end
 
 	blueprintFunction = blueprintList[math.random(1, #blueprintList)]
@@ -162,11 +71,11 @@ local getRandomBluePrint = function(tier, type)
 end
 
 local getRandomLandBlueprint = function(tier)
-	return getRandomBluePrint(tier, blueprintTypes.Land)
+	return getRandomBluePrint(tier, types.Land)
 end
 
 local getRandomSeaBlueprint = function(tier)
-	return getRandomBluePrint(tier, blueprintTypes.Sea)
+	return getRandomBluePrint(tier, types.Sea)
 end
 
 return {

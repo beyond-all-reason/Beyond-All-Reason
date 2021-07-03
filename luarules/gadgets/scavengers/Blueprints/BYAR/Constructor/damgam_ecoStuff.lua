@@ -1,14 +1,19 @@
+local scavConfig = VFS.Include('luarules/gadgets/scavengers/Configs/BYAR/config.lua')
+local tiers = scavConfig.Tiers
+local types = scavConfig.BlueprintTypes
+local UDN = UnitDefNames
+
 --	facing:
 --  0 - south
 --  1 - east
 --  2 - north
 --  3 - west
 
-local UDN = UnitDefNames
-
 -- ARM T1
 local function t1Energy1()
 	return {
+		type = types.Land,
+		tiers = { tiers.T1 },
 		radius = 160,
 		buildings = {
 			{ unitDefID = BPWallOrPopup("scav"), xOffset = -112, yOffset = 0, zOffset = -128, direction = 1 },
@@ -35,6 +40,8 @@ end
 
 local function t1Energy2()
 	return {
+		type = types.Land,
+		tiers = { tiers.T1 },
 		radius = 168,
 		buildings = {
 			{ unitDefID = BPWallOrPopup("scav"), xOffset =  -88, yOffset = 0, zOffset = -168, direction = 1 },
@@ -61,6 +68,8 @@ end
 
 local function t1Energy3()
 	return {
+		type = types.Land,
+		tiers = { tiers.T1 },
 		radius = 121,
 		buildings = {
 			{ unitDefID = BPWallOrPopup("scav"), xOffset = -103, yOffset = 0, zOffset =   80, direction = 1 },
@@ -89,6 +98,8 @@ end
 -- COR T1
 local function t1Energy4()
 	return {
+		type = types.Land,
+		tiers = { tiers.T1 },
 		radius = 160,
 		buildings = {
 			{ unitDefID = UDN.coradvsol_scav.id, xOffset =  -48, yOffset = 0, zOffset =  -96, direction = 1 },
@@ -115,6 +126,8 @@ end
 
 local function t1Energy5()
 	return {
+		type = types.Land,
+		tiers = { tiers.T1 },
 		radius = 168,
 		buildings = {
 			{ unitDefID = UDN.corsolar_scav.id,  xOffset =   48, yOffset = 0, zOffset =    0, direction = 1 },
@@ -141,6 +154,8 @@ end
 
 local function t1Energy6()
 	return {
+		type = types.Land,
+		tiers = { tiers.T1 },
 		radius = 112,
 		buildings = {
 			{ unitDefID = BPWallOrPopup("scav"), xOffset =   56, yOffset = 0, zOffset =  112, direction = 1 },
@@ -167,6 +182,8 @@ end
 -- ARM T2
 local function t2Energy1()
 	return {
+		type = types.Land,
+		tiers = { tiers.T2 },
 		radius = 128,
 		buildings = {
 			{ unitDefID = BPWallOrPopup("scav"), xOffset = -128, yOffset = 0, zOffset =  -48, direction = 3 },
@@ -189,6 +206,8 @@ end
 
 local function t2Energy2()
 	return {
+		type = types.Land,
+		tiers = { tiers.T2 },
 		radius =  80,
 		buildings = {
 			{ unitDefID = UDN.armafus_scav.id,   xOffset =    0, yOffset = 0, zOffset =    0, direction = 3 },
@@ -211,6 +230,8 @@ end
 -- COR T2
 local function t2Energy3()
 	return {
+		type = types.Land,
+		tiers = { tiers.T2 },
 		radius = 128,
 		buildings = {
 			{ unitDefID = BPWallOrPopup("scav"), xOffset =  -96, yOffset = 0, zOffset =   72, direction = 3 },
@@ -233,6 +254,8 @@ end
 
 local function t2Energy4()
 	return {
+		type = types.Land,
+		tiers = { tiers.T2 },
 		radius =  80,
 		buildings = {
 			{ unitDefID = BPWallOrPopup("scav"), xOffset =  -48, yOffset = 0, zOffset =   80, direction = 3 },
@@ -255,6 +278,8 @@ end
 -- ARM T3
 local function t2ResourcesBase1()
 	return {
+		type = types.Land,
+		tiers = { tiers.T3 },
 		radius = 208,
 		buildings = {
 			{ unitDefID = BPWallOrPopup("scav"), xOffset =  208, yOffset = 0, zOffset =  112, direction = 0 },
@@ -306,6 +331,8 @@ end
 
 local function t2ResourcesBase2()
 	return {
+		type = types.Land,
+		tiers = { tiers.T3 },
 		radius = 270,
 		buildings = {
 			{ unitDefID = BPWallOrPopup("scav"), xOffset =  174, yOffset = 0, zOffset =  192, direction = 1 },
@@ -362,6 +389,8 @@ end
 
 local function t2EnergyBase1()
 	return {
+		type = types.Land,
+		tiers = { tiers.T3 },
 		radius = 214,
 		buildings = {
 			{ unitDefID = BPWallOrPopup("scav"),  xOffset = -138, yOffset = 0, zOffset = -122, direction = 1 },
@@ -407,6 +436,8 @@ end
 -- COR T3
 local function t2MetalBase1()
 	return {
+		type = types.Land,
+		tiers = { tiers.T3 },
 		radius = 208,
 		buildings = {
 			{ unitDefID = BPWallOrPopup("scav"), xOffset =  208, yOffset = 0, zOffset =  -16, direction = 0 },
@@ -458,6 +489,8 @@ end
 
 local function t2ResourceBase3()
 	return {
+		type = types.Land,
+		tiers = { tiers.T3 },
 		radius = 170,
 		buildings = {
 			{ unitDefID = BPWallOrPopup("scav"), xOffset =  110, yOffset = 0, zOffset = -141, direction = 1 },
@@ -490,6 +523,8 @@ end
 
 local function t2EnergyBase2()
 	return {
+		type = types.Land,
+		tiers = { tiers.T3 },
 		radius = 181,
 		buildings = {
 			{ unitDefID = BPWallOrPopup("scav"),   xOffset = -149, yOffset = 0, zOffset = -153, direction = 2 },
@@ -537,6 +572,8 @@ local function t2Wind1()
 	end
 
 	return {
+		type = types.Land,
+		tiers = { tiers.T1, tiers.T2, tiers.T3 },
 		radius =  48,
 		buildings = {
 			{ unitDefID = unitDefID, xOffset = 0, yOffset = 0, zOffset = 0, direction = 1 },
@@ -545,21 +582,21 @@ local function t2Wind1()
 end
 
 return {
-	T1Energy1 = t1Energy1,
-	T1Energy2 = t1Energy2,
-	T1Energy3 = t1Energy3,
-	T1Energy4 = t1Energy4,
-	T1Energy5 = t1Energy5,
-	T1Energy6 = t1Energy6,
-	T2Energy1 = t2Energy1,
-	T2Energy2 = t2Energy2,
-	T2Energy3 = t2Energy3,
-	T2Energy4 = t2Energy4,
-	T2ResourcesBase1 = t2ResourcesBase1,
-	T2ResourcesBase2 = t2ResourcesBase2,
-	T2EnergyBase1 = t2EnergyBase1,
-	T2MetalBase1 = t2MetalBase1,
-	T2ResourceBase3 = t2ResourceBase3,
-	T2EnergyBase2 = t2EnergyBase2,
-	T2Wind1 = t2Wind1,
+	t1Energy1,
+	t1Energy2,
+	t1Energy3,
+	t1Energy4,
+	t1Energy5,
+	t1Energy6,
+	t2Energy1,
+	t2Energy2,
+	t2Energy3,
+	t2Energy4,
+	t2ResourcesBase1,
+	t2ResourcesBase2,
+	t2EnergyBase1,
+	t2MetalBase1,
+	t2ResourceBase3,
+	t2EnergyBase2,
+	t2Wind1,
 }

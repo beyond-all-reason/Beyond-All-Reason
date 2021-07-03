@@ -194,19 +194,19 @@ function ConstructNewBlueprint(n, unitID)
 		landBlueprint = blueprintsController.GetRandomLandBlueprint(scavConfig.Tiers.T0)
 	end
 
-	-- if spawnTierChance <= TierSpawnChances.T0 then
-	-- 	seaBlueprint = blueprintsController.GetRandomSeaBlueprint(scavConfig.Tiers.T0)
-	-- elseif spawnTierChance <= TierSpawnChances.T0 + TierSpawnChances.T1 then
-	-- 	seaBlueprint = blueprintsController.GetRandomSeaBlueprint(scavConfig.Tiers.T1)
-	-- elseif spawnTierChance <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 then
-	-- 	seaBlueprint = blueprintsController.GetRandomSeaBlueprint(scavConfig.Tiers.T2)
-	-- elseif spawnTierChance <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 then
-	-- 	seaBlueprint = blueprintsController.GetRandomSeaBlueprint(scavConfig.Tiers.T3)
-	-- elseif spawnTierChance <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 + TierSpawnChances.T4 then
-	-- 	seaBlueprint = blueprintsController.GetRandomSeaBlueprint(scavConfig.Tiers.T4)
-	-- else
-	-- 	seaBlueprint = blueprintsController.GetRandomSeaBlueprint(scavConfig.Tiers.T0)
-	-- end
+	if spawnTierChance <= TierSpawnChances.T0 then
+		seaBlueprint = blueprintsController.GetRandomSeaBlueprint(scavConfig.Tiers.T0)
+	elseif spawnTierChance <= TierSpawnChances.T0 + TierSpawnChances.T1 then
+		seaBlueprint = blueprintsController.GetRandomSeaBlueprint(scavConfig.Tiers.T1)
+	elseif spawnTierChance <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 then
+		seaBlueprint = blueprintsController.GetRandomSeaBlueprint(scavConfig.Tiers.T2)
+	elseif spawnTierChance <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 then
+		seaBlueprint = blueprintsController.GetRandomSeaBlueprint(scavConfig.Tiers.T3)
+	elseif spawnTierChance <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 + TierSpawnChances.T4 then
+		seaBlueprint = blueprintsController.GetRandomSeaBlueprint(scavConfig.Tiers.T4)
+	else
+		seaBlueprint = blueprintsController.GetRandomSeaBlueprint(scavConfig.Tiers.T0)
+	end
 
 	for i = 1,50 do
 		local x,y,z = Spring.GetUnitPosition(unitID)
@@ -217,8 +217,7 @@ function ConstructNewBlueprint(n, unitID)
 		if posY > 0 then
 			blueprint = landBlueprint
 		elseif posY <= 0 then
-			-- blueprint = seaBlueprint
-			break
+			blueprint = seaBlueprint
 		end
 
 		local blueprintRadiusBuffer = 48

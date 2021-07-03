@@ -1,10 +1,13 @@
+local scavConfig = VFS.Include('luarules/gadgets/scavengers/Configs/BYAR/config.lua')
+local tiers = scavConfig.Tiers
+local types = scavConfig.BlueprintTypes
+local UDN = UnitDefNames
+
 --	facing:
 --  0 - south
 --  1 - east
 --  2 - north
 --  3 - west
-
-local UDN = UnitDefNames
 
 local function redBase1()
 	local randomturrets = {UDN.corllt_scav.id, UDN.corllt_scav.id, UDN.corhllt_scav.id, UDN.corhlt_scav.id, BPWallOrPopup("scav"), UDN.corrl_scav.id, UDN.cornanotc_scav.id,}
@@ -18,6 +21,8 @@ local function redBase1()
 	end
 
 	return {
+		type = types.Land,
+		tiers = { tiers.T2, tiers.T3 },
 		radius = 196,
 		buildings = {
 			-- Defences / Nanos
@@ -68,6 +73,8 @@ local function blueBase1()
 	end
 
 	return {
+		type = types.Land,
+		tiers = { tiers.T2, tiers.T3 },
 		radius = 196,
 		buildings = {
 			-- Defences / Nanos
@@ -108,6 +115,8 @@ end
 
 local function blueBase2()
 	return {
+		type = types.Land,
+		tiers = { tiers.T1, tiers.T2, tiers.T3 },
 		radius = 192,
 		buildings = {
 			-- Nanos
@@ -181,6 +190,8 @@ end
 
 local function redBase2()
 	return {
+		type = types.Land,
+		tiers = { tiers.T1, tiers.T2, tiers.T3 },
 		radius = 192,
 		buildings = {
 			-- Nanos
@@ -251,8 +262,8 @@ local function redBase2()
 end
 
 return {
-	RedBase1 = redBase1,
-	RedBase2 = redBase2,
-	BlueBase1 = blueBase1,
-	BlueBase2 = blueBase2,
+	redBase1,
+	redBase2,
+	blueBase1,
+	blueBase2,
 }
