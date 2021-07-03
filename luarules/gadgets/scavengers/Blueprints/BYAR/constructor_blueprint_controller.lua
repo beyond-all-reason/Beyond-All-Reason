@@ -1,14 +1,10 @@
+local scavConfig = VFS.Include('luarules/gadgets/scavengers/Configs/BYAR/config.lua')
+local tiers = scavConfig.Tiers
+
 local landBases = VFS.Include('luarules/gadgets/scavengers/Blueprints/BYAR/Constructor/damgam_bases.lua')
 local basicSeaBases = VFS.Include('luarules/gadgets/scavengers/Blueprints/BYAR/Constructor/Damgam_Basic_Sea.lua')
 local landEco = VFS.Include('luarules/gadgets/scavengers/Blueprints/BYAR/Constructor/damgam_ecoStuff.lua')
 
-local tiers = {
-	T0 = 0,
-	T1 = 1,
-	T2 = 2,
-	T3 = 3,
-	T4 = 4,
-}
 
 local blueprintTypes = {
 	Land = 1,
@@ -22,6 +18,13 @@ local landBlueprintLists = {
 	[tiers.T1] = {
 		landBases.RedBase2,
 		landBases.BlueBase2,
+		landEco.T1Energy1,
+		landEco.T1Energy2,
+		landEco.T1Energy3,
+		landEco.T1Energy4,
+		landEco.T1Energy5,
+		landEco.T1Energy6,
+		landEco.T2Wind1,
 	},
 
 	[tiers.T2] = {
@@ -29,6 +32,11 @@ local landBlueprintLists = {
 		landBases.RedBase2,
 		landBases.BlueBase1,
 		landBases.BlueBase2,
+		landEco.T2Energy1,
+		landEco.T2Energy2,
+		landEco.T2Energy3,
+		landEco.T2Energy4,
+		landEco.T2Wind1,
 	},
 
 	[tiers.T3] = {
@@ -36,6 +44,13 @@ local landBlueprintLists = {
 		landBases.RedBase2,
 		landBases.BlueBase1,
 		landBases.BlueBase2,
+		landEco.T2ResourcesBase1,
+		landEco.T2ResourcesBase2,
+		landEco.T2EnergyBase1,
+		landEco.T2MetalBase1,
+		landEco.T2ResourceBase3,
+		landEco.T2EnergyBase2,
+		landEco.T2Wind1,
 	},
 
 	[tiers.T4] = {
@@ -63,13 +78,6 @@ local seaBlueprintLists = {
 		basicSeaBases.T1seaBase6,
 		basicSeaBases.T1SeaBase7,
 		basicSeaBases.T1SeaBase8,
-		landEco.T1Energy1,
-		landEco.T1Energy2,
-		landEco.T1Energy3,
-		landEco.T1Energy4,
-		landEco.T1Energy5,
-		landEco.T1Energy6,
-		landEco.T2Wind1,
 	},
 
 	[tiers.T2] = {
@@ -91,11 +99,6 @@ local seaBlueprintLists = {
 		basicSeaBases.T2SeaFactory3,
 		basicSeaBases.T2SeaFactory4,
 		basicSeaBases.T2SeaFactory5,
-		landEco.T2Energy1,
-		landEco.T2Energy2,
-		landEco.T2Energy3,
-		landEco.T2Energy4,
-		landEco.T2Wind1,
 	},
 
 	[tiers.T3] = {
@@ -118,13 +121,6 @@ local seaBlueprintLists = {
 		basicSeaBases.T2SeaFactory4,
 		basicSeaBases.T2SeaFactory5,
 		basicSeaBases.T3SeaFactory1,
-		landEco.T2ResourcesBase1,
-		landEco.T2ResourcesBase2,
-		landEco.T2EnergyBase1,
-		landEco.T2MetalBase1,
-		landEco.T2ResourceBase3,
-		landEco.T2EnergyBase2,
-		landEco.T2Wind1,
 	},
 
 	[tiers.T4] = {
@@ -174,7 +170,6 @@ local getRandomSeaBlueprint = function(tier)
 end
 
 return {
-	Tiers = tiers,
 	GetRandomLandBlueprint = getRandomLandBlueprint,
 	GetRandomSeaBlueprint = getRandomSeaBlueprint,
 }

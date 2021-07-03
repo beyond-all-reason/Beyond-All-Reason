@@ -1,5 +1,6 @@
 Spring.Echo("[Scavengers] Constructor Controller initialized")
 
+local scavConfig = VFS.Include('luarules/gadgets/scavengers/Configs/BYAR/config.lua')
 VFS.Include("luarules/gadgets/scavengers/Configs/" .. Game.gameShortName .. "/UnitLists/constructors.lua")
 local blueprintsController = VFS.Include("luarules/gadgets/scavengers/Blueprints/BYAR/constructor_blueprint_controller.lua")
 local constructortimer = constructorControllerModuleConfig.constructortimerstart
@@ -180,31 +181,31 @@ function ConstructNewBlueprint(n, unitID)
 
 	local spawnTierChance = math_random(1,100)
 	if spawnTierChance <= TierSpawnChances.T0 then
-		landBlueprint = blueprintsController.GetRandomLandBlueprint(blueprintsController.Tiers.T0)
+		landBlueprint = blueprintsController.GetRandomLandBlueprint(scavConfig.Tiers.T0)
 	elseif spawnTierChance <= TierSpawnChances.T0 + TierSpawnChances.T1 then
-		landBlueprint = blueprintsController.GetRandomLandBlueprint(blueprintsController.Tiers.T1)
+		landBlueprint = blueprintsController.GetRandomLandBlueprint(scavConfig.Tiers.T1)
 	elseif spawnTierChance <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 then
-		landBlueprint = blueprintsController.GetRandomLandBlueprint(blueprintsController.Tiers.T2)
+		landBlueprint = blueprintsController.GetRandomLandBlueprint(scavConfig.Tiers.T2)
 	elseif spawnTierChance <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 then
-		landBlueprint = blueprintsController.GetRandomLandBlueprint(blueprintsController.Tiers.T3)
+		landBlueprint = blueprintsController.GetRandomLandBlueprint(scavConfig.Tiers.T3)
 	elseif spawnTierChance <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 + TierSpawnChances.T4 then
-		landBlueprint = blueprintsController.GetRandomLandBlueprint(blueprintsController.Tiers.T4)
+		landBlueprint = blueprintsController.GetRandomLandBlueprint(scavConfig.Tiers.T4)
 	else
-		landBlueprint = blueprintsController.GetRandomLandBlueprint(blueprintsController.Tiers.T0)
+		landBlueprint = blueprintsController.GetRandomLandBlueprint(scavConfig.Tiers.T0)
 	end
 
 	-- if spawnTierChance <= TierSpawnChances.T0 then
-	-- 	seaBlueprint = blueprintsController.GetRandomSeaBlueprint(blueprintsController.Tiers.T0)
+	-- 	seaBlueprint = blueprintsController.GetRandomSeaBlueprint(scavConfig.Tiers.T0)
 	-- elseif spawnTierChance <= TierSpawnChances.T0 + TierSpawnChances.T1 then
-	-- 	seaBlueprint = blueprintsController.GetRandomSeaBlueprint(blueprintsController.Tiers.T1)
+	-- 	seaBlueprint = blueprintsController.GetRandomSeaBlueprint(scavConfig.Tiers.T1)
 	-- elseif spawnTierChance <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 then
-	-- 	seaBlueprint = blueprintsController.GetRandomSeaBlueprint(blueprintsController.Tiers.T2)
+	-- 	seaBlueprint = blueprintsController.GetRandomSeaBlueprint(scavConfig.Tiers.T2)
 	-- elseif spawnTierChance <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 then
-	-- 	seaBlueprint = blueprintsController.GetRandomSeaBlueprint(blueprintsController.Tiers.T3)
+	-- 	seaBlueprint = blueprintsController.GetRandomSeaBlueprint(scavConfig.Tiers.T3)
 	-- elseif spawnTierChance <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 + TierSpawnChances.T4 then
-	-- 	seaBlueprint = blueprintsController.GetRandomSeaBlueprint(blueprintsController.Tiers.T4)
+	-- 	seaBlueprint = blueprintsController.GetRandomSeaBlueprint(scavConfig.Tiers.T4)
 	-- else
-	-- 	seaBlueprint = blueprintsController.GetRandomSeaBlueprint(blueprintsController.Tiers.T0)
+	-- 	seaBlueprint = blueprintsController.GetRandomSeaBlueprint(scavConfig.Tiers.T0)
 	-- end
 
 	for i = 1,50 do
