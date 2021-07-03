@@ -2303,6 +2303,10 @@ function init()
 					end
 				end
 			end
+
+			if string.find(line, "=-000001] Game starts!") then
+				break
+			end
 		end
 		-- Add some widescreen resolutions for local testing
 		--supportedResolutions[#supportedResolutions+1] = '3840 x 1440'
@@ -4047,7 +4051,7 @@ function init()
 		{ id = "givenunits", group = "ui", widget = "Given Units", name = texts.option.givenunits, type = "bool", value = GetWidgetToggleValue("Given Units"), description = texts.option.giveunits_descr },
 		-- Radar range rings:
           { id = "radarrange", group = "ui", widget = "Sensor Ranges Radar", name = texts.option.radarrange, type = "bool", value = GetWidgetToggleValue("Sensor Ranges Radar"), description = texts.option.radarrange_descr },
-		  
+
 		  { id = "radarrangeopacity", group = "ui", name = widgetOptionColor .. "   "..texts.option.radarrangeopacity, type = "slider", min = 0.01, max = 0.33, step = 0.01, value = (WG['radarrange'] ~= nil and WG['radarrange'].getOpacity ~= nil and WG['radarrange'].getOpacity()) or 0.08, description = '',
 			onload = function(i)
 				loadWidgetData("Sensor Ranges Radar", "radarrangeopacity", { 'opacity' })
@@ -4058,7 +4062,7 @@ function init()
 		  },
 		-- Sonar range
 		   { id = "sonarrange", group = "ui", widget = "Sensor Ranges Sonar", name = texts.option.sonarrange, type = "bool", value = GetWidgetToggleValue("Sensor Ranges Sonar"), description = texts.option.sonarrange_descr },
-		  
+
 		  { id = "sonarrangeopacity", group = "ui", name = widgetOptionColor .. "   "..texts.option.sonarrangeopacity, type = "slider", min = 0.01, max = 0.33, step = 0.01, value = (WG['sonarrange'] ~= nil and WG['sonarrange'].getOpacity ~= nil and WG['sonarrange'].getOpacity()) or 0.08, description = '',
 			onload = function(i)
 				loadWidgetData("Sensor Ranges Sonar", "sonarrangeopacity", { 'opacity' })
@@ -4069,7 +4073,7 @@ function init()
 		  },
 		-- Jammer range
 		   { id = "jammerrange", group = "ui", widget = "Sensor Ranges Jammer", name = texts.option.jammerrange, type = "bool", value = GetWidgetToggleValue("Sensor Ranges Jammer"), description = texts.option.jammerrange_descr },
-		  
+
 		  { id = "jammerrangeopacity", group = "ui", name = widgetOptionColor .. "   "..texts.option.jammerrangeopacity, type = "slider", min = 0.01, max = 0.66, step = 0.01, value = (WG['jammerrange'] ~= nil and WG['jammerrange'].getOpacity ~= nil and WG['jammerrange'].getOpacity()) or 0.08, description = '',
 			onload = function(i)
 				loadWidgetData("Sensor Ranges Jammer", "jammerrangeopacity", { 'opacity' })
