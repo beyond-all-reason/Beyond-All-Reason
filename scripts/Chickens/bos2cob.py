@@ -1079,7 +1079,7 @@ def preprocess(code, include_path, defs = {"TRUE" : "1", "FALSE" : "0", "UNKNOWN
 
 
 
-def main(path):
+def main(path, output_path = None):
 	if path[-1] == '/':
 		input_path = path[:-1]
 	else:
@@ -1102,7 +1102,7 @@ def main(path):
 		result = try_parse(pump, root, '_file')
 		if len(pump.next()) != 0:
 			print "Syntax Error!"
-			print pump._leftovers[pump._index - 1:pump._max_index]
+			print pump._leftovers[pump._index - 1:pump._max_index], pump._index, pump._max_index
 			exit(1)
 
 		# root.print_node()
@@ -1110,22 +1110,22 @@ def main(path):
 		# sys.stdout = output_file
 		comp = Compiler(root)
 
-
-
 		#OUTPUT NEW COB
 
 		data = comp.get_cob()
-		output_path = "%s.%s" % (os.path.splitext(bos_file_path)[0], COB_EXT)
+		print (len(data))
+		if output_path == None:
+			output_path = "%s.%s" % (os.path.splitext(bos_file_path)[0], COB_EXT)
 		output_file = open(output_path, "wb")
 		output_file.write(data)
 
 
 
-		# DEBUG FUNCTIONS
+		#DEBUG FUNCTIONS
 
 		# for f in comp._functions:
-			# func_path = "%s_%s.%s" % (os.path.splitext(bos_file_path)[0], f, COB_EXT)
-			# open(func_path, "wb").write(comp._functions_code[f])
+		# 	func_path = "%s_%s.%s" % (os.path.splitext(bos_file_path)[0], f, COB_EXT)
+		# 	open(func_path, "wb").write(comp._functions_code[f])
 
 
 
