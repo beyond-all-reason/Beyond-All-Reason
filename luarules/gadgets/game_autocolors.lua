@@ -94,11 +94,11 @@ AllyColors = {
     [2] = { -- Two Teams
         [1] = {0,       80,     255 },      -- Armada Blue
         [2] = {10,      232,    18  },      -- Green
-        [3] = {94,      9,      178 },      -- Purple
+        [3] = {147,     226,    251 },      -- Light Blue
         [4] = {82,      151,    255 },      -- Darker Blue
         [5] = {191,     169,    255 },      -- Lavender
         [6] = {0,       170,    99  },      -- Grass
-        [7] = {178,     255,    227 },      -- Aqua
+        [7] = {117,     253,    147 },      -- Aqua Green
         [8] = {8,       37,     190 },      -- Dark Blue
     },
     [3] = { -- Three Teams
