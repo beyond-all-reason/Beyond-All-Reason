@@ -140,6 +140,9 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 local function SaveGame(filename, description, requireOverwrite)
+  if WG.Analytics and WG.Analytics.SendRepeatEvent then
+			WG.Analytics.SendRepeatEvent("game_start:savegame",filename)
+  end
 	local success, err = pcall(
 		function()
 			Spring.CreateDir(SAVE_DIR)
@@ -170,7 +173,7 @@ local function SaveGame(filename, description, requireOverwrite)
 			end
 			Spring.Log(widget:GetInfo().name, LOG.INFO, "Saved game to " .. path)
 
-			DisposeWindow()
+			--DisposeWindow()
 		end
 	)
 	if (not success) then
@@ -242,8 +245,6 @@ end
 --------------------------------------------------------------------------------
 
 
-
-
 --------------------------------------------------------------------------------
 -- Make Chili controls
 --------------------------------------------------------------------------------
@@ -270,8 +271,9 @@ function widget:TextCommand(msg)
 		end
 end
 
+--[[
 function widget:GameFrame(n)
-  --[[
+
 	if not options.enableautosave.value then
 		return
 	end
@@ -284,6 +286,6 @@ function widget:GameFrame(n)
 		end
 		Spring.Log(widget:GetInfo().name, LOG.INFO, "Autosaving")
 		SaveGame("autosave", "", true)
-	end]]--
+	end
 end
-
+]]--
