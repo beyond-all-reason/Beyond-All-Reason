@@ -37,7 +37,7 @@ static-var maxSpeed, animFramesPerKeyframe, bMoving, animSpeed,isDying,gun_1;
 #define MAXTILT 100
 #include "chicken_hitbyweapon.h"
 
-#include "chicken_death_2legged_ptaq.h"
+//#include "chicken_death_2legged_ptaq.h"
 
 #include "chicken_killed_2legged.h"
 

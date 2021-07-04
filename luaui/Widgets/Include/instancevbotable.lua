@@ -76,7 +76,7 @@ function resizeInstanceVBOTable(iT)
 	if iT.VAO and iT.vertexVBO then -- reattach new if updated :D
 		iT.VAO = makeVAOandAttach(iT.vertexVBO,iT.instanceVBO)
 	end
-	Spring.Echo("instanceVBOTable full, resizing to double size",iT.myName, iT.usedElements,iT.maxElements)
+	--Spring.Echo("instanceVBOTable full, resizing to double size",iT.myName, iT.usedElements,iT.maxElements)
 	
 	if iT.indextoUnitID then
 		for index, unitID in ipairs(iT.indextoUnitID) do
