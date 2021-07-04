@@ -1,244 +1,221 @@
+local scavConfig = VFS.Include('luarules/gadgets/scavengers/Configs/BYAR/config.lua')
+local tiers = scavConfig.Tiers
+local types = scavConfig.BlueprintTypes
+local UDN = UnitDefNames
+
 --	facing:
 --  0 - south
 --  1 - east
 --  2 - north
 --  3 - west
 
-local UDN = UnitDefNames
-local nameSuffix = '_scav'
-
-local function DamgamNukeOutpost1(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
-	local posradius = 80
-	if radiusCheck then
-		return posradius
-	else
-		Spring.GiveOrderToUnit(scav, -(UDN.corshroud_scav.id), {posx+(72), posy, posz+(72), 3}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.corvipe_scav.id), {posx+(0), posy, posz+(80), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.corsilo_scav.id), {posx+(0), posy, posz+(0), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.corshroud_scav.id), {posx+(-72), posy, posz+(-72), 3}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.corshroud_scav.id), {posx+(-72), posy, posz+(72), 3}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.corvipe_scav.id), {posx+(0), posy, posz+(-80), 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.corshroud_scav.id), {posx+(72), posy, posz+(-72), 3}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.corvipe_scav.id), {posx+(80), posy, posz+(0), 3}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.corvipe_scav.id), {posx+(-80), posy, posz+(0), 1}, {"shift"})
-	end
+local function nukeOutpost1()
+	return {
+		type = types.Land,
+		tiers = { tiers.T3, tiers.T4 },
+		radius =   80,
+		buildings = {
+			{ unitDefID = UDN.corshroud_scav.id, xOffset = 72, yOffset = 0, zOffset = 72, direction = 3 },
+			{ unitDefID = UDN.corvipe_scav.id,   xOffset =  0, yOffset = 0, zOffset = 80, direction = 2 },
+			{ unitDefID = UDN.corsilo_scav.id,   xOffset =  0, yOffset = 0, zOffset =  0, direction = 1 },
+			{ unitDefID = UDN.corshroud_scav.id, xOffset = 72, yOffset = 0, zOffset = 72, direction = 3 },
+			{ unitDefID = UDN.corshroud_scav.id, xOffset = 72, yOffset = 0, zOffset = 72, direction = 3 },
+			{ unitDefID = UDN.corvipe_scav.id,   xOffset =  0, yOffset = 0, zOffset = 80, direction = 0 },
+			{ unitDefID = UDN.corshroud_scav.id, xOffset = 72, yOffset = 0, zOffset = 72, direction = 3 },
+			{ unitDefID = UDN.corvipe_scav.id,   xOffset = 80, yOffset = 0, zOffset =  0, direction = 3 },
+			{ unitDefID = UDN.corvipe_scav.id,   xOffset = 80, yOffset = 0, zOffset =  0, direction = 1 },
+		},
+	}
 end
-table.insert(ScavengerConstructorBlueprintsT3,DamgamNukeOutpost1)
-table.insert(ScavengerConstructorBlueprintsT4,DamgamNukeOutpost1)
 
-local function DamgamNukeOutpost2(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
-	local posradius = 112
-	if radiusCheck then
-		return posradius
-	else
-		Spring.GiveOrderToUnit(scav, -(UDN.corfmd_scav.id), {posx+(104), posy, posz+(24), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.cordoom_scav.id), {posx+(104), posy, posz+(-56), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.corvipe_scav.id), {posx+(-112), posy, posz+(-96), 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.corsilo_scav.id), {posx+(0), posy, posz+(0), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.corfmd_scav.id), {posx+(-104), posy, posz+(-24), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.corscreamer_scav.id), {posx+(-24), posy, posz+(104), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.corvipe_scav.id), {posx+(-48), posy, posz+(-96), 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.corvipe_scav.id), {posx+(48), posy, posz+(96), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.cordoom_scav.id), {posx+(-104), posy, posz+(56), 3}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.corvipe_scav.id), {posx+(112), posy, posz+(96), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.corscreamer_scav.id), {posx+(24), posy, posz+(-104), 1}, {"shift"})
-	end
+local function nukeOutpost2()
+	return {
+		type = types.Land,
+		tiers = { tiers.T3, tiers.T4 },
+		radius =  112,
+		buildings = {
+			{ unitDefID = UDN.corfmd_scav.id,      xOffset =  104, yOffset = 0, zOffset =   24, direction = 1 },
+			{ unitDefID = UDN.cordoom_scav.id,     xOffset =  104, yOffset = 0, zOffset =   56, direction = 1 },
+			{ unitDefID = UDN.corvipe_scav.id,     xOffset = -112, yOffset = 0, zOffset =   96, direction = 0 },
+			{ unitDefID = UDN.corsilo_scav.id,     xOffset =    0, yOffset = 0, zOffset =    0, direction = 1 },
+			{ unitDefID = UDN.corfmd_scav.id,      xOffset = -104, yOffset = 0, zOffset =   24, direction = 1 },
+			{ unitDefID = UDN.corscreamer_scav.id, xOffset =   24, yOffset = 0, zOffset =  104, direction = 1 },
+			{ unitDefID = UDN.corvipe_scav.id,     xOffset =   48, yOffset = 0, zOffset =   96, direction = 0 },
+			{ unitDefID = UDN.corvipe_scav.id,     xOffset =   48, yOffset = 0, zOffset =   96, direction = 2 },
+			{ unitDefID = UDN.cordoom_scav.id,     xOffset = -104, yOffset = 0, zOffset =   56, direction = 3 },
+			{ unitDefID = UDN.corvipe_scav.id,     xOffset =  112, yOffset = 0, zOffset =   96, direction = 2 },
+			{ unitDefID = UDN.corscreamer_scav.id, xOffset =   24, yOffset = 0, zOffset = -104, direction = 1 },
+		},
+	}
 end
-table.insert(ScavengerConstructorBlueprintsT3,DamgamNukeOutpost2)
-table.insert(ScavengerConstructorBlueprintsT4,DamgamNukeOutpost2)
 
-local function DamgamNukeOutpost3(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
-	local posradius = 192
-	if radiusCheck then
-		return posradius
-	else
-		Spring.GiveOrderToUnit(scav, -(UDN.cordoom_scav.id), {posx+(-104), posy, posz+(-56), 3}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.corsilo_scav.id), {posx+(0), posy, posz+(0), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.cortron_scav.id), {posx+(-24), posy, posz+(-104), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.corfmd_scav.id), {posx+(56), posy, posz+(-104), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.corvipe_scav.id), {posx+(128), posy, posz+(-96), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.cortron_scav.id), {posx+(104), posy, posz+(-24), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.cordoom_scav.id), {posx+(104), posy, posz+(56), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.corvipe_scav.id), {posx+(96), posy, posz+(128), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.corvipe_scav.id), {posx+(-96), posy, posz+(-128), 3}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.cortron_scav.id), {posx+(-104), posy, posz+(24), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.corfmd_scav.id), {posx+(-56), posy, posz+(104), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.cortron_scav.id), {posx+(24), posy, posz+(104), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.corint_scav.id), {posx+(16), posy, posz+(-192), 3}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.corvipe_scav.id), {posx+(-128), posy, posz+(96), 3}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.corint_scav.id), {posx+(-16), posy, posz+(192), 1}, {"shift"})
-	end
+local function nukeOutpost3()
+	return {
+		type = types.Land,
+		tiers = { tiers.T3, tiers.T4 },
+		radius =  192,
+		buildings = {
+			{ unitDefID = UDN.cordoom_scav.id, xOffset = -104, yOffset = 0, zOffset =   56, direction = 3 },
+			{ unitDefID = UDN.corsilo_scav.id, xOffset =    0, yOffset = 0, zOffset =    0, direction = 2 },
+			{ unitDefID = UDN.cortron_scav.id, xOffset =   24, yOffset = 0, zOffset = -104, direction = 2 },
+			{ unitDefID = UDN.corfmd_scav.id,  xOffset =   56, yOffset = 0, zOffset = -104, direction = 2 },
+			{ unitDefID = UDN.corvipe_scav.id, xOffset =  128, yOffset = 0, zOffset =   96, direction = 1 },
+			{ unitDefID = UDN.cortron_scav.id, xOffset =  104, yOffset = 0, zOffset =   24, direction = 2 },
+			{ unitDefID = UDN.cordoom_scav.id, xOffset =  104, yOffset = 0, zOffset =   56, direction = 1 },
+			{ unitDefID = UDN.corvipe_scav.id, xOffset =   96, yOffset = 0, zOffset =  128, direction = 1 },
+			{ unitDefID = UDN.corvipe_scav.id, xOffset =   96, yOffset = 0, zOffset = -128, direction = 3 },
+			{ unitDefID = UDN.cortron_scav.id, xOffset = -104, yOffset = 0, zOffset =   24, direction = 2 },
+			{ unitDefID = UDN.corfmd_scav.id,  xOffset =   56, yOffset = 0, zOffset =  104, direction = 2 },
+			{ unitDefID = UDN.cortron_scav.id, xOffset =   24, yOffset = 0, zOffset =  104, direction = 2 },
+			{ unitDefID = UDN.corint_scav.id,  xOffset =   16, yOffset = 0, zOffset = -192, direction = 3 },
+			{ unitDefID = UDN.corvipe_scav.id, xOffset = -128, yOffset = 0, zOffset =   96, direction = 3 },
+			{ unitDefID = UDN.corint_scav.id,  xOffset =   16, yOffset = 0, zOffset =  192, direction = 1 },
+		},
+	}
 end
-table.insert(ScavengerConstructorBlueprintsT3,DamgamNukeOutpost3)
-table.insert(ScavengerConstructorBlueprintsT4,DamgamNukeOutpost3)
 
-local function DamgamNukeOutpost4(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
-	local posradius = 80
-	if radiusCheck then
-		return posradius
-	else
-		Spring.GiveOrderToUnit(scav, -(UDN.armveil_scav.id), {posx+(-72), posy, posz+(-72), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.armpb_scav.id), {posx+(0), posy, posz+(80), 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.armsilo_scav.id), {posx+(0), posy, posz+(0), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.armveil_scav.id), {posx+(-72), posy, posz+(72), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.armpb_scav.id), {posx+(80), posy, posz+(0), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.armveil_scav.id), {posx+(72), posy, posz+(-72), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.armpb_scav.id), {posx+(-80), posy, posz+(0), 3}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.armpb_scav.id), {posx+(0), posy, posz+(-80), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.armveil_scav.id), {posx+(72), posy, posz+(72), 2}, {"shift"})
-	end
+local function nukeOutpost4()
+	return {
+		type = types.Land,
+		tiers = { tiers.T3, tiers.T4 },
+		radius =   80,
+		buildings = {
+			{ unitDefID = UDN.armveil_scav.id, xOffset = 72, yOffset = 0, zOffset = 72, direction = 2 },
+			{ unitDefID = UDN.armpb_scav.id,   xOffset =  0, yOffset = 0, zOffset = 80, direction = 0 },
+			{ unitDefID = UDN.armsilo_scav.id, xOffset =  0, yOffset = 0, zOffset =  0, direction = 1 },
+			{ unitDefID = UDN.armveil_scav.id, xOffset = 72, yOffset = 0, zOffset = 72, direction = 2 },
+			{ unitDefID = UDN.armpb_scav.id,   xOffset = 80, yOffset = 0, zOffset =  0, direction = 1 },
+			{ unitDefID = UDN.armveil_scav.id, xOffset = 72, yOffset = 0, zOffset = 72, direction = 2 },
+			{ unitDefID = UDN.armpb_scav.id,   xOffset = 80, yOffset = 0, zOffset =  0, direction = 3 },
+			{ unitDefID = UDN.armpb_scav.id,   xOffset =  0, yOffset = 0, zOffset = 80, direction = 2 },
+			{ unitDefID = UDN.armveil_scav.id, xOffset = 72, yOffset = 0, zOffset = 72, direction = 2 },
+		},
+	}
 end
-table.insert(ScavengerConstructorBlueprintsT3,DamgamNukeOutpost4)
-table.insert(ScavengerConstructorBlueprintsT4,DamgamNukeOutpost4)
 
-local function DamgamNukeOutpost5(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
-	local posradius = 112
-	if radiusCheck then
-		return posradius
-	else
-		Spring.GiveOrderToUnit(scav, -(UDN.armanni_scav.id), {posx+(104), posy, posz+(-56), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.armamd_scav.id), {posx+(104), posy, posz+(24), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.armamd_scav.id), {posx+(-104), posy, posz+(-24), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.armmercury_scav.id), {posx+(-24), posy, posz+(104), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.armsilo_scav.id), {posx+(0), posy, posz+(0), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.armmercury_scav.id), {posx+(24), posy, posz+(-104), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.armpb_scav.id), {posx+(-112), posy, posz+(-96), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.armpb_scav.id), {posx+(112), posy, posz+(96), 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.armpb_scav.id), {posx+(48), posy, posz+(96), 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.armanni_scav.id), {posx+(-104), posy, posz+(56), 3}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.armpb_scav.id), {posx+(-48), posy, posz+(-96), 2}, {"shift"})
-	end
+local function nukeOutpost5()
+	return {
+		type = types.Land,
+		tiers = { tiers.T3, tiers.T4 },
+		radius =  112,
+		buildings = {
+			{ unitDefID = UDN.armanni_scav.id,    xOffset =  104, yOffset = 0, zOffset =   56, direction = 1 },
+			{ unitDefID = UDN.armamd_scav.id,     xOffset =  104, yOffset = 0, zOffset =   24, direction = 2 },
+			{ unitDefID = UDN.armamd_scav.id,     xOffset = -104, yOffset = 0, zOffset =   24, direction = 2 },
+			{ unitDefID = UDN.armmercury_scav.id, xOffset =   24, yOffset = 0, zOffset =  104, direction = 1 },
+			{ unitDefID = UDN.armsilo_scav.id,    xOffset =    0, yOffset = 0, zOffset =    0, direction = 2 },
+			{ unitDefID = UDN.armmercury_scav.id, xOffset =   24, yOffset = 0, zOffset = -104, direction = 1 },
+			{ unitDefID = UDN.armpb_scav.id,      xOffset = -112, yOffset = 0, zOffset =   96, direction = 2 },
+			{ unitDefID = UDN.armpb_scav.id,      xOffset =  112, yOffset = 0, zOffset =   96, direction = 0 },
+			{ unitDefID = UDN.armpb_scav.id,      xOffset =   48, yOffset = 0, zOffset =   96, direction = 0 },
+			{ unitDefID = UDN.armanni_scav.id,    xOffset = -104, yOffset = 0, zOffset =   56, direction = 3 },
+			{ unitDefID = UDN.armpb_scav.id,      xOffset =   48, yOffset = 0, zOffset =   96, direction = 2 },
+		},
+	}
 end
-table.insert(ScavengerConstructorBlueprintsT3,DamgamNukeOutpost5)
-table.insert(ScavengerConstructorBlueprintsT4,DamgamNukeOutpost5)
 
-local function DamgamNukeOutpost6(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
-	local posradius = 184
-	if radiusCheck then
-		return posradius
-	else
-		Spring.GiveOrderToUnit(scav, -(UDN.armpb_scav.id), {posx+(-96), posy, posz+(-128), 3}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.armbrtha_scav.id), {posx+(-8), posy, posz+(184), 3}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.armamd_scav.id), {posx+(-104), posy, posz+(-56), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.armamd_scav.id), {posx+(104), posy, posz+(56), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.armpb_scav.id), {posx+(-128), posy, posz+(96), 3}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.armemp_scav.id), {posx+(24), posy, posz+(104), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.armemp_scav.id), {posx+(-104), posy, posz+(24), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.armsilo_scav.id), {posx+(0), posy, posz+(0), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.armemp_scav.id), {posx+(-24), posy, posz+(-104), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.armpb_scav.id), {posx+(96), posy, posz+(128), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.armanni_scav.id), {posx+(-56), posy, posz+(104), 3}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.armemp_scav.id), {posx+(104), posy, posz+(-24), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.armanni_scav.id), {posx+(56), posy, posz+(-104), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.armbrtha_scav.id), {posx+(8), posy, posz+(-184), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.armpb_scav.id), {posx+(128), posy, posz+(-96), 1}, {"shift"})
-	end
+local function nukeOutpost6()
+	return {
+		type = types.Land,
+		tiers = { tiers.T3, tiers.T4 },
+		radius =  184,
+		buildings = {
+			{ unitDefID = UDN.armpb_scav.id,    xOffset =   96, yOffset = 0, zOffset = -128, direction = 3 },
+			{ unitDefID = UDN.armbrtha_scav.id, xOffset =    8, yOffset = 0, zOffset =  184, direction = 3 },
+			{ unitDefID = UDN.armamd_scav.id,   xOffset = -104, yOffset = 0, zOffset =   56, direction = 1 },
+			{ unitDefID = UDN.armamd_scav.id,   xOffset =  104, yOffset = 0, zOffset =   56, direction = 1 },
+			{ unitDefID = UDN.armpb_scav.id,    xOffset = -128, yOffset = 0, zOffset =   96, direction = 3 },
+			{ unitDefID = UDN.armemp_scav.id,   xOffset =   24, yOffset = 0, zOffset =  104, direction = 1 },
+			{ unitDefID = UDN.armemp_scav.id,   xOffset = -104, yOffset = 0, zOffset =   24, direction = 1 },
+			{ unitDefID = UDN.armsilo_scav.id,  xOffset =    0, yOffset = 0, zOffset =    0, direction = 1 },
+			{ unitDefID = UDN.armemp_scav.id,   xOffset =   24, yOffset = 0, zOffset = -104, direction = 1 },
+			{ unitDefID = UDN.armpb_scav.id,    xOffset =   96, yOffset = 0, zOffset =  128, direction = 1 },
+			{ unitDefID = UDN.armanni_scav.id,  xOffset =   56, yOffset = 0, zOffset =  104, direction = 3 },
+			{ unitDefID = UDN.armemp_scav.id,   xOffset =  104, yOffset = 0, zOffset =   24, direction = 1 },
+			{ unitDefID = UDN.armanni_scav.id,  xOffset =   56, yOffset = 0, zOffset = -104, direction = 1 },
+			{ unitDefID = UDN.armbrtha_scav.id, xOffset =    8, yOffset = 0, zOffset = -184, direction = 1 },
+			{ unitDefID = UDN.armpb_scav.id,    xOffset =  128, yOffset = 0, zOffset =   96, direction = 1 },
+		},
+	}
 end
-table.insert(ScavengerConstructorBlueprintsT3,DamgamNukeOutpost6)
-table.insert(ScavengerConstructorBlueprintsT4,DamgamNukeOutpost6)
 
-local function DamgamNukeOutpost7(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
-	local posradius = 64
-	if radiusCheck then
-		return posradius
-	else
-		Spring.GiveOrderToUnit(scav, -(UDN.cordoom_scav.id), {posx+(-64), posy, posz+(64), 3}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.cortron_scav.id), {posx+(-64), posy, posz+(-64), 3}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.cordoom_scav.id), {posx+(64), posy, posz+(-64), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.cortron_scav.id), {posx+(64), posy, posz+(64), 3}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.corshroud_scav.id), {posx+(0), posy, posz+(0), 3}, {"shift"})
-	end
+local function nukeOutpost7()
+	return {
+		type = types.Land,
+		tiers = { tiers.T3, tiers.T4 },
+		radius =   64,
+		buildings = {
+			{ unitDefID = UDN.cordoom_scav.id,   xOffset = 64, yOffset = 0, zOffset = 64, direction = 3 },
+			{ unitDefID = UDN.cortron_scav.id,   xOffset = 64, yOffset = 0, zOffset = 64, direction = 3 },
+			{ unitDefID = UDN.cordoom_scav.id,   xOffset = 64, yOffset = 0, zOffset = 64, direction = 1 },
+			{ unitDefID = UDN.cortron_scav.id,   xOffset = 64, yOffset = 0, zOffset = 64, direction = 3 },
+			{ unitDefID = UDN.corshroud_scav.id, xOffset =  0, yOffset = 0, zOffset =  0, direction = 3 },
+		},
+	}
 end
-table.insert(ScavengerConstructorBlueprintsT3,DamgamNukeOutpost7)
-table.insert(ScavengerConstructorBlueprintsT4,DamgamNukeOutpost7)
 
-local function DamgamNukeOutpost8(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
-	local posradius = 64
-	if radiusCheck then
-		return posradius
-	else
-		Spring.GiveOrderToUnit(scav, -(UDN.armanni_scav.id), {posx+(-64), posy, posz+(64), 3}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.armemp_scav.id), {posx+(-64), posy, posz+(-64), 3}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.armemp_scav.id), {posx+(64), posy, posz+(64), 3}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.armveil_scav.id), {posx+(0), posy, posz+(0), 3}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.armanni_scav.id), {posx+(64), posy, posz+(-64), 1}, {"shift"})
-	end
+local function nukeOutpost8()
+	return {
+		type = types.Land,
+		tiers = { tiers.T3, tiers.T4 },
+		radius =   64,
+		buildings = {
+			{ unitDefID = UDN.armanni_scav.id, xOffset = 64, yOffset = 0, zOffset = 64, direction = 3 },
+			{ unitDefID = UDN.armemp_scav.id,  xOffset = 64, yOffset = 0, zOffset = 64, direction = 3 },
+			{ unitDefID = UDN.armemp_scav.id,  xOffset = 64, yOffset = 0, zOffset = 64, direction = 3 },
+			{ unitDefID = UDN.armveil_scav.id, xOffset =  0, yOffset = 0, zOffset =  0, direction = 3 },
+			{ unitDefID = UDN.armanni_scav.id, xOffset = 64, yOffset = 0, zOffset = 64, direction = 1 },
+		},
+	}
 end
-table.insert(ScavengerConstructorBlueprintsT3,DamgamNukeOutpost8)
-table.insert(ScavengerConstructorBlueprintsT4,DamgamNukeOutpost8)
 
-local function DamgamNukeOutpost9(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
-	local posradius = 112
-	if radiusCheck then
-		return posradius
-	else
-		Spring.GiveOrderToUnit(scav, -(UDN.corscreamer_scav.id), {posx+(-112), posy, posz+(112), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.cortron_scav.id), {posx+(0), posy, posz+(0), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.corscreamer_scav.id), {posx+(112), posy, posz+(-112), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.corscreamer_scav.id), {posx+(0), posy, posz+(112), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.corscreamer_scav.id), {posx+(112), posy, posz+(0), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.corscreamer_scav.id), {posx+(-112), posy, posz+(-112), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.corscreamer_scav.id), {posx+(-112), posy, posz+(0), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.corscreamer_scav.id), {posx+(112), posy, posz+(112), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.corscreamer_scav.id), {posx+(0), posy, posz+(-112), 1}, {"shift"})
-	end
+local function nukeOutpost9()
+	return {
+		type = types.Land,
+		tiers = { tiers.T3, tiers.T4 },
+		radius =  112,
+		buildings = {
+			{ unitDefID = UDN.corscreamer_scav.id, xOffset = -112, yOffset = 0, zOffset =  112, direction = 1 },
+			{ unitDefID = UDN.cortron_scav.id,     xOffset =    0, yOffset = 0, zOffset =    0, direction = 1 },
+			{ unitDefID = UDN.corscreamer_scav.id, xOffset =  112, yOffset = 0, zOffset = -112, direction = 1 },
+			{ unitDefID = UDN.corscreamer_scav.id, xOffset =    0, yOffset = 0, zOffset =  112, direction = 1 },
+			{ unitDefID = UDN.corscreamer_scav.id, xOffset =  112, yOffset = 0, zOffset =    0, direction = 1 },
+			{ unitDefID = UDN.corscreamer_scav.id, xOffset = -112, yOffset = 0, zOffset = -112, direction = 1 },
+			{ unitDefID = UDN.corscreamer_scav.id, xOffset = -112, yOffset = 0, zOffset =    0, direction = 1 },
+			{ unitDefID = UDN.corscreamer_scav.id, xOffset =  112, yOffset = 0, zOffset =  112, direction = 1 },
+			{ unitDefID = UDN.corscreamer_scav.id, xOffset =    0, yOffset = 0, zOffset = -112, direction = 1 },
+		},
+	}
 end
-table.insert(ScavengerConstructorBlueprintsT3,DamgamNukeOutpost9)
-table.insert(ScavengerConstructorBlueprintsT4,DamgamNukeOutpost9)
 
-local function DamgamNukeOutpost10(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
-	local posradius = 96
-	if radiusCheck then
-		return posradius
-	else
-		Spring.GiveOrderToUnit(scav, -(UDN.armmercury_scav.id), {posx+(96), posy, posz+(96), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.armemp_scav.id), {posx+(0), posy, posz+(0), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.armmercury_scav.id), {posx+(-96), posy, posz+(0), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.armmercury_scav.id), {posx+(0), posy, posz+(96), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.armmercury_scav.id), {posx+(-96), posy, posz+(-96), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.armmercury_scav.id), {posx+(96), posy, posz+(-96), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.armmercury_scav.id), {posx+(-96), posy, posz+(96), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.armmercury_scav.id), {posx+(0), posy, posz+(-96), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.armmercury_scav.id), {posx+(96), posy, posz+(0), 1}, {"shift"})
-	end
+local function nukeOutpost10()
+	return {
+		type = types.Land,
+		tiers = { tiers.T3, tiers.T4 },
+		radius =   96,
+		buildings = {
+			{ unitDefID = UDN.armmercury_scav.id, xOffset = 96, yOffset = 0, zOffset = 96, direction = 1 },
+			{ unitDefID = UDN.armemp_scav.id,     xOffset =  0, yOffset = 0, zOffset =  0, direction = 1 },
+			{ unitDefID = UDN.armmercury_scav.id, xOffset = 96, yOffset = 0, zOffset =  0, direction = 1 },
+			{ unitDefID = UDN.armmercury_scav.id, xOffset =  0, yOffset = 0, zOffset = 96, direction = 1 },
+			{ unitDefID = UDN.armmercury_scav.id, xOffset = 96, yOffset = 0, zOffset = 96, direction = 1 },
+			{ unitDefID = UDN.armmercury_scav.id, xOffset = 96, yOffset = 0, zOffset = 96, direction = 1 },
+			{ unitDefID = UDN.armmercury_scav.id, xOffset = 96, yOffset = 0, zOffset = 96, direction = 1 },
+			{ unitDefID = UDN.armmercury_scav.id, xOffset =  0, yOffset = 0, zOffset = 96, direction = 1 },
+			{ unitDefID = UDN.armmercury_scav.id, xOffset = 96, yOffset = 0, zOffset =  0, direction = 1 },
+		},
+	}
 end
-table.insert(ScavengerConstructorBlueprintsT3,DamgamNukeOutpost10)
-table.insert(ScavengerConstructorBlueprintsT4,DamgamNukeOutpost10)
 
--- local function DamgamNukeOutpost11(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
-	-- local posradius = 72
-	-- if radiusCheck then
-		-- return posradius
-	-- else
-		-- Spring.GiveOrderToUnit(scav, -(UDN.cortoast_scav.id), {posx+(72), posy, posz+(24), 1}, {"shift"})
-		-- Spring.GiveOrderToUnit(scav, -(UDN.cortoast_scav.id), {posx+(24), posy, posz+(72), 0}, {"shift"})
-		-- Spring.GiveOrderToUnit(scav, -(UDN.cortoast_scav.id), {posx+(-24), posy, posz+(-72), 2}, {"shift"})
-		-- Spring.GiveOrderToUnit(scav, -(UDN.cortoast_scav.id), {posx+(-24), posy, posz+(72), 0}, {"shift"})
-		-- Spring.GiveOrderToUnit(scav, -(UDN.cortoast_scav.id), {posx+(24), posy, posz+(-72), 2}, {"shift"})
-		-- Spring.GiveOrderToUnit(scav, -(UDN.cortoast_scav.id), {posx+(72), posy, posz+(-24), 1}, {"shift"})
-		-- Spring.GiveOrderToUnit(scav, -(UDN.cortoast_scav.id), {posx+(-72), posy, posz+(24), 3}, {"shift"})
-		-- Spring.GiveOrderToUnit(scav, -(UDN.corfmd_scav.id), {posx+(0), posy, posz+(0), 1}, {"shift"})
-		-- Spring.GiveOrderToUnit(scav, -(UDN.cortoast_scav.id), {posx+(-72), posy, posz+(-24), 3}, {"shift"})
-	-- end
--- end
--- table.insert(ScavengerConstructorBlueprintsT3,DamgamNukeOutpost11)
--- table.insert(ScavengerConstructorBlueprintsT4,DamgamNukeOutpost11)
-
--- local function DamgamNukeOutpost12(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
-	-- local posradius = 72
-	-- if radiusCheck then
-		-- return posradius
-	-- else
-		-- Spring.GiveOrderToUnit(scav, -(UDN.armamb_scav.id), {posx+(72), posy, posz+(-24), 1}, {"shift"})
-		-- Spring.GiveOrderToUnit(scav, -(UDN.armamb_scav.id), {posx+(-72), posy, posz+(-24), 3}, {"shift"})
-		-- Spring.GiveOrderToUnit(scav, -(UDN.armamb_scav.id), {posx+(-24), posy, posz+(72), 0}, {"shift"})
-		-- Spring.GiveOrderToUnit(scav, -(UDN.armamb_scav.id), {posx+(-72), posy, posz+(24), 3}, {"shift"})
-		-- Spring.GiveOrderToUnit(scav, -(UDN.armamb_scav.id), {posx+(72), posy, posz+(24), 1}, {"shift"})
-		-- Spring.GiveOrderToUnit(scav, -(UDN.armamb_scav.id), {posx+(-24), posy, posz+(-72), 2}, {"shift"})
-		-- Spring.GiveOrderToUnit(scav, -(UDN.armamb_scav.id), {posx+(24), posy, posz+(-72), 2}, {"shift"})
-		-- Spring.GiveOrderToUnit(scav, -(UDN.armamb_scav.id), {posx+(24), posy, posz+(72), 0}, {"shift"})
-		-- Spring.GiveOrderToUnit(scav, -(UDN.armamd_scav.id), {posx+(0), posy, posz+(0), 0}, {"shift"})
-	-- end
--- end
--- table.insert(ScavengerConstructorBlueprintsT3,DamgamNukeOutpost12)
--- table.insert(ScavengerConstructorBlueprintsT4,DamgamNukeOutpost12)
+return {
+	nukeOutpost1,
+	nukeOutpost2,
+	nukeOutpost3,
+	nukeOutpost4,
+	nukeOutpost5,
+	nukeOutpost6,
+	nukeOutpost7,
+	nukeOutpost8,
+	nukeOutpost9,
+	nukeOutpost10,
+}

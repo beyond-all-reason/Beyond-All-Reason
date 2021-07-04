@@ -1,338 +1,269 @@
+local scavConfig = VFS.Include('luarules/gadgets/scavengers/Configs/BYAR/config.lua')
+local tiers = scavConfig.Tiers
+local types = scavConfig.BlueprintTypes
+local UDN = UnitDefNames
+
 --	facing:
 --  0 - south
 --  1 - east
 --  2 - north
 --  3 - west
--- randompopups[math_random(1,#randompopups)]
 
-local UDN = UnitDefNames
-local nameSuffix = '_scav'
-
-local function DamBase1Red(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
-	--local randompopups = {BPWallOrPopup("scav"), BPWallOrPopup("scav"), BPWallOrPopup("scav"), BPWallOrPopup("scav"), BPWallOrPopup("scav"),}
+local function redBase1()
 	local randomturrets = {UDN.corllt_scav.id, UDN.corllt_scav.id, UDN.corhllt_scav.id, UDN.corhlt_scav.id, BPWallOrPopup("scav"), UDN.corrl_scav.id, UDN.cornanotc_scav.id,}
-	local r = math_random(0,1)
-	local posradius = 196
-	if radiusCheck then
-		return posradius
+	local factoryID
+
+	local r = math.random(0,1)
+	if r == 0 then
+		factoryID = UDN.corlab_scav.id
 	else
-		-- Defences
-		Spring.GiveOrderToUnit(scav, -randomturrets[math_random(1,#randomturrets)], {posx-196, posy, posz-64, 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -randomturrets[math_random(1,#randomturrets)], {posx-196, posy, posz+64, 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -randomturrets[math_random(1,#randomturrets)], {posx-196, posy, posz, 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -randomturrets[math_random(1,#randomturrets)], {posx-196, posy, posz-128, 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -randomturrets[math_random(1,#randomturrets)], {posx-196, posy, posz+128, 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -randomturrets[math_random(1,#randomturrets)], {posx+196, posy, posz-64, 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -randomturrets[math_random(1,#randomturrets)], {posx+196, posy, posz+64, 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -randomturrets[math_random(1,#randomturrets)], {posx+196, posy, posz, 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -randomturrets[math_random(1,#randomturrets)], {posx+196, posy, posz-128, 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -randomturrets[math_random(1,#randomturrets)], {posx+196, posy, posz+128, 0}, {"shift"})
-
-
-		-- Nanos
-		Spring.GiveOrderToUnit(scav, -randomturrets[math_random(1,#randomturrets)], {posx-96, posy, posz-48, 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -randomturrets[math_random(1,#randomturrets)], {posx-96, posy, posz+48, 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -randomturrets[math_random(1,#randomturrets)], {posx-96, posy, posz, 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -randomturrets[math_random(1,#randomturrets)], {posx+96, posy, posz-48, 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -randomturrets[math_random(1,#randomturrets)], {posx+96, posy, posz+48, 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -randomturrets[math_random(1,#randomturrets)], {posx+96, posy, posz, 0}, {"shift"})
-
-		-- Utility
-		if r == 0 then
-			Spring.GiveOrderToUnit(scav, -(UDN.corlab_scav.id), {posx, posy, posz, 0}, {"shift"})
-		elseif r == 1 then
-			Spring.GiveOrderToUnit(scav, -(UDN.corvp_scav.id), {posx, posy, posz, 0}, {"shift"})
-		end
-
-		-- Walls
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx-136, posy, posz-32, 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx-136, posy, posz+32, 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx-136, posy, posz, 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx-136, posy, posz-64, 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx-136, posy, posz+64, 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+136, posy, posz-32, 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+136, posy, posz+32, 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+136, posy, posz, 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+136, posy, posz-64, 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+136, posy, posz+64, 0}, {"shift"})
+		factoryID = UDN.corvp_scav.id
 	end
-end
-	table.insert(ScavengerConstructorBlueprintsT2,DamBase1Red)
-	table.insert(ScavengerConstructorBlueprintsT3,DamBase1Red)
 
-local function DamBase1Blue(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
---local randompopups = {BPWallOrPopup("scav"), BPWallOrPopup("scav"), BPWallOrPopup("scav"), BPWallOrPopup("scav"), BPWallOrPopup("scav"),}
-local randomturrets = {UDN.armllt_scav.id, UDN.armllt_scav.id, UDN.armhlt_scav.id, BPWallOrPopup("scav"), UDN.armrl_scav.id, UDN.armnanotc_scav.id,}
-local r = math_random(0,1)
-local posradius = 196
-	if radiusCheck then
-		return posradius
-	else
-		-- Defences
-		Spring.GiveOrderToUnit(scav, -randomturrets[math_random(1,#randomturrets)], {posx-196, posy, posz-64, 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -randomturrets[math_random(1,#randomturrets)], {posx-196, posy, posz+64, 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -randomturrets[math_random(1,#randomturrets)], {posx-196, posy, posz, 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -randomturrets[math_random(1,#randomturrets)], {posx-196, posy, posz-128, 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -randomturrets[math_random(1,#randomturrets)], {posx-196, posy, posz+128, 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -randomturrets[math_random(1,#randomturrets)], {posx+196, posy, posz-64, 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -randomturrets[math_random(1,#randomturrets)], {posx+196, posy, posz+64, 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -randomturrets[math_random(1,#randomturrets)], {posx+196, posy, posz, 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -randomturrets[math_random(1,#randomturrets)], {posx+196, posy, posz-128, 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -randomturrets[math_random(1,#randomturrets)], {posx+196, posy, posz+128, 0}, {"shift"})
+	return {
+		type = types.Land,
+		tiers = { tiers.T2, tiers.T3 },
+		radius = 196,
+		buildings = {
+			-- Defences / Nanos
+			{ unitDefID = randomturrets[math.random(1, #randomturrets)], xOffset = -196, yOffset = 0, zOffset =  -64, direction = 0 },
+			{ unitDefID = randomturrets[math.random(1, #randomturrets)], xOffset = -196, yOffset = 0, zOffset =   64, direction = 0 },
+			{ unitDefID = randomturrets[math.random(1, #randomturrets)], xOffset = -196, yOffset = 0, zOffset =    0, direction = 0 },
+			{ unitDefID = randomturrets[math.random(1, #randomturrets)], xOffset = -196, yOffset = 0, zOffset = -128, direction = 0 },
+			{ unitDefID = randomturrets[math.random(1, #randomturrets)], xOffset = -196, yOffset = 0, zOffset =  128, direction = 0 },
+			{ unitDefID = randomturrets[math.random(1, #randomturrets)], xOffset =  196, yOffset = 0, zOffset =  -64, direction = 0 },
+			{ unitDefID = randomturrets[math.random(1, #randomturrets)], xOffset =  196, yOffset = 0, zOffset =   64, direction = 0 },
+			{ unitDefID = randomturrets[math.random(1, #randomturrets)], xOffset =  196, yOffset = 0, zOffset =    0, direction = 0 },
+			{ unitDefID = randomturrets[math.random(1, #randomturrets)], xOffset =  196, yOffset = 0, zOffset = -128, direction = 0 },
+			{ unitDefID = randomturrets[math.random(1, #randomturrets)], xOffset =  196, yOffset = 0, zOffset =  128, direction = 0 },
+			{ unitDefID = randomturrets[math.random(1, #randomturrets)], xOffset =   96, yOffset = 0, zOffset =  -48, direction = 0 },
+			{ unitDefID = randomturrets[math.random(1, #randomturrets)], xOffset =   96, yOffset = 0, zOffset =   48, direction = 0 },
+			{ unitDefID = randomturrets[math.random(1, #randomturrets)], xOffset =   96, yOffset = 0, zOffset =    0, direction = 0 },
+			{ unitDefID = randomturrets[math.random(1, #randomturrets)], xOffset =   96, yOffset = 0, zOffset =  -48, direction = 0 },
+			{ unitDefID = randomturrets[math.random(1, #randomturrets)], xOffset =   96, yOffset = 0, zOffset =   48, direction = 0 },
+			{ unitDefID = randomturrets[math.random(1, #randomturrets)], xOffset =   96, yOffset = 0, zOffset =    0, direction = 0 },
 
+			-- Utility
+			{ unitDefID = factoryID, xOffset = 0, yOffset = 0, zOffset = 0, direction = 0 },
 
-		-- Nanos
-		Spring.GiveOrderToUnit(scav, -randomturrets[math_random(1,#randomturrets)], {posx-96, posy, posz-48, 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -randomturrets[math_random(1,#randomturrets)], {posx-96, posy, posz+48, 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -randomturrets[math_random(1,#randomturrets)], {posx-96, posy, posz, 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -randomturrets[math_random(1,#randomturrets)], {posx+96, posy, posz-48, 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -randomturrets[math_random(1,#randomturrets)], {posx+96, posy, posz+48, 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -randomturrets[math_random(1,#randomturrets)], {posx+96, posy, posz, 0}, {"shift"})
-
-		-- Utility
-		if r == 0 then
-			Spring.GiveOrderToUnit(scav, -(UDN.armlab_scav.id), {posx, posy, posz, 0}, {"shift"})
-		elseif r == 1 then
-			Spring.GiveOrderToUnit(scav, -(UDN.armvp_scav.id), {posx, posy, posz, 0}, {"shift"})
-		end
-
-		-- Walls
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx-136, posy, posz-32, 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx-136, posy, posz+32, 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx-136, posy, posz, 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx-136, posy, posz-64, 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx-136, posy, posz+64, 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+136, posy, posz-32, 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+136, posy, posz+32, 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+136, posy, posz, 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+136, posy, posz-64, 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+136, posy, posz+64, 0}, {"shift"})
-
-	end
-end
-table.insert(ScavengerConstructorBlueprintsT2,DamBase1Blue)
-table.insert(ScavengerConstructorBlueprintsT3,DamBase1Blue)
-
-local function DamBase2Blue(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
-local posradius = 192
-	if radiusCheck then
-		return posradius
-	else
-		Spring.GiveOrderToUnit(scav, -(UDN.armnanotc_scav.id), {posx+(-24), posy, posz+(24), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.armnanotc_scav.id), {posx+(-24), posy, posz+(-24), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.armnanotc_scav.id), {posx+(24), posy, posz+(24), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.armnanotc_scav.id), {posx+(24), posy, posz+(-24), 1}, {"shift"})
-
-		Spring.GiveOrderToUnit(scav, -(UDN.armllt_scav.id), {posx+(-64), posy, posz+(-160), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.armferret_scav.id), {posx+(72), posy, posz+(72), 3}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.armbeamer_scav.id), {posx+(-160), posy, posz+(-128), 3}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.armllt_scav.id), {posx+(128), posy, posz+(160), 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.armllt_scav.id), {posx+(160), posy, posz+(64), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.armllt_scav.id), {posx+(64), posy, posz+(160), 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.armferret_scav.id), {posx+(72), posy, posz+(-72), 3}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.armbeamer_scav.id), {posx+(128), posy, posz+(-160), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.armferret_scav.id), {posx+(-72), posy, posz+(72), 3}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.armllt_scav.id), {posx+(-160), posy, posz+(128), 3}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.armllt_scav.id), {posx+(-160), posy, posz+(-64), 3}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.armllt_scav.id), {posx+(-128), posy, posz+(-160), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.armllt_scav.id), {posx+(64), posy, posz+(-160), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.armbeamer_scav.id), {posx+(160), posy, posz+(128), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.armbeamer_scav.id), {posx+(-128), posy, posz+(160), 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.armllt_scav.id), {posx+(-64), posy, posz+(160), 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.armferret_scav.id), {posx+(-72), posy, posz+(-72), 3}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.armllt_scav.id), {posx+(160), posy, posz+(-64), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.armllt_scav.id), {posx+(160), posy, posz+(-128), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.armllt_scav.id), {posx+(-160), posy, posz+(64), 3}, {"shift"})
-
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(160), posy, posz+(192), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-192), posy, posz+(64), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(128), posy, posz+(192), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-128), posy, posz+(-192), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(64), posy, posz+(-192), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-64), posy, posz+(192), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-192), posy, posz+(-160), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-64), posy, posz+(-192), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-192), posy, posz+(-96), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(192), posy, posz+(-128), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-96), posy, posz+(-192), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-192), posy, posz+(128), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(64), posy, posz+(192), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-192), posy, posz+(-192), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(192), posy, posz+(64), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-192), posy, posz+(96), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-160), posy, posz+(192), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-160), posy, posz+(-192), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-192), posy, posz+(-64), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(96), posy, posz+(-192), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(160), posy, posz+(-192), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-192), posy, posz+(192), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(192), posy, posz+(-192), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-192), posy, posz+(-128), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-128), posy, posz+(192), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(96), posy, posz+(192), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(192), posy, posz+(-96), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(192), posy, posz+(128), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(192), posy, posz+(-160), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(192), posy, posz+(-64), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(192), posy, posz+(160), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-192), posy, posz+(160), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(192), posy, posz+(96), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(128), posy, posz+(-192), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-96), posy, posz+(192), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(192), posy, posz+(192), 1}, {"shift"})
-	end
+			-- Walls
+			{ unitDefID = BPWallOrPopup("scav"), xOffset = -136, yOffset = 0, zOffset = -32, direction = 0 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset = -136, yOffset = 0, zOffset =  32, direction = 0 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset = -136, yOffset = 0, zOffset =   0, direction = 0 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset = -136, yOffset = 0, zOffset = -64, direction = 0 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset = -136, yOffset = 0, zOffset =  64, direction = 0 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  136, yOffset = 0, zOffset = -32, direction = 0 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  136, yOffset = 0, zOffset =  32, direction = 0 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  136, yOffset = 0, zOffset =   0, direction = 0 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  136, yOffset = 0, zOffset = -64, direction = 0 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  136, yOffset = 0, zOffset =  64, direction = 0 },
+		}
+	}
 end
 
-table.insert(ScavengerConstructorBlueprintsT1,DamBase2Blue)
-table.insert(ScavengerConstructorBlueprintsT2,DamBase2Blue)
-table.insert(ScavengerConstructorBlueprintsT3,DamBase2Blue)
+local function blueBase1()
+	local randomturrets = {UDN.armllt_scav.id, UDN.armllt_scav.id, UDN.armhlt_scav.id, BPWallOrPopup("scav"), UDN.armrl_scav.id, UDN.armnanotc_scav.id,}
+	local factoryID
 
-local function DamBase2Red(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
-local posradius = 192
-	if radiusCheck then
-		return posradius
+	local r = math.random(0,1)
+	if r == 0 then
+		factoryID = UDN.armlab_scav.id
 	else
-		Spring.GiveOrderToUnit(scav, -(UDN.cornanotc_scav.id), {posx+(24), posy, posz+(24), 3}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.cornanotc_scav.id), {posx+(24), posy, posz+(-24), 3}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.cornanotc_scav.id), {posx+(-24), posy, posz+(24), 3}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.cornanotc_scav.id), {posx+(-24), posy, posz+(-24), 3}, {"shift"})
-		
-		Spring.GiveOrderToUnit(scav, -(UDN.corerad_scav.id), {posx+(-80), posy, posz+(-80), 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.corhllt_scav.id), {posx+(-128), posy, posz+(160), 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.corerad_scav.id), {posx+(80), posy, posz+(-80), 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.corllt_scav.id), {posx+(-160), posy, posz+(-64), 3}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.corllt_scav.id), {posx+(-160), posy, posz+(64), 3}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.corhllt_scav.id), {posx+(128), posy, posz+(-160), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.corllt_scav.id), {posx+(-160), posy, posz+(128), 3}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.corllt_scav.id), {posx+(160), posy, posz+(-64), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.corllt_scav.id), {posx+(64), posy, posz+(160), 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.corllt_scav.id), {posx+(64), posy, posz+(-160), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.corerad_scav.id), {posx+(-80), posy, posz+(80), 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.corllt_scav.id), {posx+(128), posy, posz+(160), 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.corllt_scav.id), {posx+(-64), posy, posz+(160), 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.corerad_scav.id), {posx+(80), posy, posz+(80), 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.corhllt_scav.id), {posx+(-160), posy, posz+(-128), 3}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.corhllt_scav.id), {posx+(160), posy, posz+(128), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.corllt_scav.id), {posx+(160), posy, posz+(-128), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.corllt_scav.id), {posx+(-128), posy, posz+(-160), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.corllt_scav.id), {posx+(-64), posy, posz+(-160), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.corllt_scav.id), {posx+(160), posy, posz+(64), 1}, {"shift"})
-		
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-160), posy, posz+(192), 3}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-192), posy, posz+(-128), 3}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(160), posy, posz+(192), 3}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(128), posy, posz+(192), 3}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-192), posy, posz+(96), 3}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(96), posy, posz+(-192), 3}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(64), posy, posz+(-192), 3}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-192), posy, posz+(-96), 3}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(192), posy, posz+(128), 3}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-96), posy, posz+(-192), 3}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-192), posy, posz+(-192), 3}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-192), posy, posz+(128), 3}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-192), posy, posz+(-160), 3}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(192), posy, posz+(-128), 3}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-192), posy, posz+(192), 3}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(160), posy, posz+(-192), 3}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(192), posy, posz+(160), 3}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(192), posy, posz+(-192), 3}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-96), posy, posz+(192), 3}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(192), posy, posz+(192), 3}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-128), posy, posz+(-192), 3}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(128), posy, posz+(-192), 3}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(192), posy, posz+(96), 3}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-160), posy, posz+(-192), 3}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(96), posy, posz+(192), 3}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(192), posy, posz+(-64), 3}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-128), posy, posz+(192), 3}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(64), posy, posz+(192), 3}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(192), posy, posz+(64), 3}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(192), posy, posz+(-96), 3}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-64), posy, posz+(-192), 3}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(192), posy, posz+(-160), 3}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-192), posy, posz+(64), 3}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-192), posy, posz+(-64), 3}, {"shift"})
+		factoryID = UDN.armvp_scav.id
 	end
+
+	return {
+		type = types.Land,
+		tiers = { tiers.T2, tiers.T3 },
+		radius = 196,
+		buildings = {
+			-- Defences / Nanos
+			{ unitDefID = randomturrets[math.random(1,#randomturrets)], xOffset = -196, yOffset = 0, zOffset =  -64, direction = 0 },
+			{ unitDefID = randomturrets[math.random(1,#randomturrets)], xOffset = -196, yOffset = 0, zOffset =   64, direction = 0 },
+			{ unitDefID = randomturrets[math.random(1,#randomturrets)], xOffset = -196, yOffset = 0, zOffset =    0, direction = 0 },
+			{ unitDefID = randomturrets[math.random(1,#randomturrets)], xOffset = -196, yOffset = 0, zOffset = -128, direction = 0 },
+			{ unitDefID = randomturrets[math.random(1,#randomturrets)], xOffset = -196, yOffset = 0, zOffset =  128, direction = 0 },
+			{ unitDefID = randomturrets[math.random(1,#randomturrets)], xOffset =  196, yOffset = 0, zOffset =  -64, direction = 0 },
+			{ unitDefID = randomturrets[math.random(1,#randomturrets)], xOffset =  196, yOffset = 0, zOffset =   64, direction = 0 },
+			{ unitDefID = randomturrets[math.random(1,#randomturrets)], xOffset =  196, yOffset = 0, zOffset =    0, direction = 0 },
+			{ unitDefID = randomturrets[math.random(1,#randomturrets)], xOffset =  196, yOffset = 0, zOffset = -128, direction = 0 },
+			{ unitDefID = randomturrets[math.random(1,#randomturrets)], xOffset =  196, yOffset = 0, zOffset =  128, direction = 0 },
+			{ unitDefID = randomturrets[math.random(1,#randomturrets)], xOffset =  -96, yOffset = 0, zOffset =  -48, direction = 0 },
+			{ unitDefID = randomturrets[math.random(1,#randomturrets)], xOffset =  -96, yOffset = 0, zOffset =   48, direction = 0 },
+			{ unitDefID = randomturrets[math.random(1,#randomturrets)], xOffset =  -96, yOffset = 0, zOffset =    0, direction = 0 },
+			{ unitDefID = randomturrets[math.random(1,#randomturrets)], xOffset =   96, yOffset = 0, zOffset =  -48, direction = 0 },
+			{ unitDefID = randomturrets[math.random(1,#randomturrets)], xOffset =   96, yOffset = 0, zOffset =   48, direction = 0 },
+			{ unitDefID = randomturrets[math.random(1,#randomturrets)], xOffset =   96, yOffset = 0, zOffset =    0, direction = 0 },
+
+			-- Utility
+			{ unitDefID = factoryID, xOffset = 0, yOffset = 0, zOffset = 0, direction = 0 },
+
+			-- Walls
+			{ unitDefID = BPWallOrPopup("scav"), xOffset = -136, yOffset = 0, zOffset = -32, direction = 0 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset = -136, yOffset = 0, zOffset =  32, direction = 0 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset = -136, yOffset = 0, zOffset =   0, direction = 0 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset = -136, yOffset = 0, zOffset = -64, direction = 0 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset = -136, yOffset = 0, zOffset =  64, direction = 0 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  136, yOffset = 0, zOffset = -32, direction = 0 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  136, yOffset = 0, zOffset =  32, direction = 0 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  136, yOffset = 0, zOffset =   0, direction = 0 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  136, yOffset = 0, zOffset = -64, direction = 0 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  136, yOffset = 0, zOffset =  64, direction = 0 },
+		}
+	}
 end
 
-table.insert(ScavengerConstructorBlueprintsT1,DamBase2Red)
-table.insert(ScavengerConstructorBlueprintsT2,DamBase2Red)
-table.insert(ScavengerConstructorBlueprintsT3,DamBase2Red)
+local function blueBase2()
+	return {
+		type = types.Land,
+		tiers = { tiers.T1, tiers.T2, tiers.T3 },
+		radius = 192,
+		buildings = {
+			-- Nanos
+			{ unitDefID = UDN.armnanotc_scav.id, xOffset = -24, yOffset = 0, zOffset =  24, direction = 1 },
+			{ unitDefID = UDN.armnanotc_scav.id, xOffset = -24, yOffset = 0, zOffset = -24, direction = 1 },
+			{ unitDefID = UDN.armnanotc_scav.id, xOffset =  24, yOffset = 0, zOffset =  24, direction = 1 },
+			{ unitDefID = UDN.armnanotc_scav.id, xOffset =  24, yOffset = 0, zOffset = -24, direction = 1 },
 
---[[
-local function DamTrap1Blue(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
-local posradius = 96
-	if radiusCheck then
-		return posradius
-	else
-		local unitOptions = {BPWallOrPopup("scav"), BPWallOrPopup("scav"), BPWallOrPopup("scav"), BPWallOrPopup("scav"), BPWallOrPopup("scav"), BPWallOrPopup("scav")}
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-32), posy, posz+(32), 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(32), posy, posz+(-32), 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-32), posy, posz+(-32), 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(32), posy, posz+(32), 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(96), posy, posz+(-32), 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-32), posy, posz+(96), 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(32), posy, posz+(96), 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(96), posy, posz+(-96), 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(64), posy, posz+(-64), 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(0), posy, posz+(64), 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-32), posy, posz+(-96), 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(64), posy, posz+(0), 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-96), posy, posz+(-96), 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(0), posy, posz+(0), 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-64), posy, posz+(-64), 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(64), posy, posz+(64), 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-64), posy, posz+(0), 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(96), posy, posz+(32), 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-96), posy, posz+(-32), 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(96), posy, posz+(96), 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(0), posy, posz+(-64), 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-96), posy, posz+(32), 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-64), posy, posz+(64), 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(32), posy, posz+(-96), 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-96), posy, posz+(96), 0}, {"shift"})
-	end
+			-- Defences
+			{ unitDefID = UDN.armllt_scav.id,	 xOffset =  -64, yOffset = 0, zOffset = -160, direction = 2 },
+			{ unitDefID = UDN.armferret_scav.id, xOffset =   72, yOffset = 0, zOffset =   72, direction = 3 },
+			{ unitDefID = UDN.armbeamer_scav.id, xOffset = -160, yOffset = 0, zOffset = -128, direction = 3 },
+			{ unitDefID = UDN.armllt_scav.id,	 xOffset =  128, yOffset = 0, zOffset =  160, direction = 0 },
+			{ unitDefID = UDN.armllt_scav.id,	 xOffset =  160, yOffset = 0, zOffset =   64, direction = 1 },
+			{ unitDefID = UDN.armllt_scav.id,	 xOffset =   64, yOffset = 0, zOffset =  160, direction = 0 },
+			{ unitDefID = UDN.armferret_scav.id, xOffset =   72, yOffset = 0, zOffset =  -72, direction = 3 },
+			{ unitDefID = UDN.armbeamer_scav.id, xOffset =  128, yOffset = 0, zOffset = -160, direction = 2 },
+			{ unitDefID = UDN.armferret_scav.id, xOffset =  -72, yOffset = 0, zOffset =   72, direction = 3 },
+			{ unitDefID = UDN.armllt_scav.id,	 xOffset = -160, yOffset = 0, zOffset =  128, direction = 3 },
+			{ unitDefID = UDN.armllt_scav.id,	 xOffset = -160, yOffset = 0, zOffset =  -64, direction = 3 },
+			{ unitDefID = UDN.armllt_scav.id,	 xOffset = -128, yOffset = 0, zOffset = -160, direction = 2 },
+			{ unitDefID = UDN.armllt_scav.id,	 xOffset =   64, yOffset = 0, zOffset = -160, direction = 2 },
+			{ unitDefID = UDN.armbeamer_scav.id, xOffset =  160, yOffset = 0, zOffset =  128, direction = 1 },
+			{ unitDefID = UDN.armbeamer_scav.id, xOffset = -128, yOffset = 0, zOffset =  160, direction = 0 },
+			{ unitDefID = UDN.armllt_scav.id,	 xOffset =  -64, yOffset = 0, zOffset =  160, direction = 0 },
+			{ unitDefID = UDN.armferret_scav.id, xOffset =  -72, yOffset = 0, zOffset =  -72, direction = 3 },
+			{ unitDefID = UDN.armllt_scav.id,	 xOffset =  160, yOffset = 0, zOffset =  -64, direction = 1 },
+			{ unitDefID = UDN.armllt_scav.id,	 xOffset =  160, yOffset = 0, zOffset = -128, direction = 1 },
+			{ unitDefID = UDN.armllt_scav.id,	 xOffset = -160, yOffset = 0, zOffset =   64, direction = 3 },
+
+			-- Walls
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  160, yOffset = 0, zOffset =  192, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset = -192, yOffset = 0, zOffset =   64, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  128, yOffset = 0, zOffset =  192, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset = -128, yOffset = 0, zOffset = -192, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =   64, yOffset = 0, zOffset = -192, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  -64, yOffset = 0, zOffset =  192, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset = -192, yOffset = 0, zOffset = -160, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  -64, yOffset = 0, zOffset = -192, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset = -192, yOffset = 0, zOffset =  -96, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  192, yOffset = 0, zOffset = -128, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  -96, yOffset = 0, zOffset = -192, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset = -192, yOffset = 0, zOffset =  128, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =   64, yOffset = 0, zOffset =  192, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset = -192, yOffset = 0, zOffset = -192, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  192, yOffset = 0, zOffset =   64, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset = -192, yOffset = 0, zOffset =   96, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset = -160, yOffset = 0, zOffset =  192, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset = -160, yOffset = 0, zOffset = -192, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset = -192, yOffset = 0, zOffset =  -64, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =   96, yOffset = 0, zOffset = -192, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  160, yOffset = 0, zOffset = -192, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset = -192, yOffset = 0, zOffset =  192, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  192, yOffset = 0, zOffset = -192, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset = -192, yOffset = 0, zOffset = -128, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset = -128, yOffset = 0, zOffset =  192, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =   96, yOffset = 0, zOffset =  192, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  192, yOffset = 0, zOffset =  -96, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  192, yOffset = 0, zOffset =  128, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  192, yOffset = 0, zOffset = -160, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  192, yOffset = 0, zOffset =  -64, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  192, yOffset = 0, zOffset =  160, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset = -192, yOffset = 0, zOffset =  160, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  192, yOffset = 0, zOffset =   96, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  128, yOffset = 0, zOffset = -192, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  -96, yOffset = 0, zOffset =  192, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  192, yOffset = 0, zOffset =  192, direction = 1 },
+		}
+	}
 end
 
-table.insert(ScavengerConstructorBlueprintsT1,DamTrap1Blue)
-table.insert(ScavengerConstructorBlueprintsT2,DamTrap1Blue)
-table.insert(ScavengerConstructorBlueprintsT3,DamTrap1Blue)
+local function redBase2()
+	return {
+		type = types.Land,
+		tiers = { tiers.T1, tiers.T2, tiers.T3 },
+		radius = 192,
+		buildings = {
+			-- Nanos
+			{ unitDefID = UDN.cornanotc_scav.id, xOffset =  24, yOffset = 0, zOffset =  24, direction = 3 },
+			{ unitDefID = UDN.cornanotc_scav.id, xOffset =  24, yOffset = 0, zOffset = -24, direction = 3 },
+			{ unitDefID = UDN.cornanotc_scav.id, xOffset = -24, yOffset = 0, zOffset =  24, direction = 3 },
+			{ unitDefID = UDN.cornanotc_scav.id, xOffset = -24, yOffset = 0, zOffset = -24, direction = 3 },
 
-local function DamTrap1Red(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
-local posradius = 96
-	if radiusCheck then
-		return posradius
-	else
-		local unitOptions = {BPWallOrPopup("scav"), BPWallOrPopup("scav"), BPWallOrPopup("scav"), BPWallOrPopup("scav"), BPWallOrPopup("scav"), BPWallOrPopup("scav")}
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(32), posy, posz+(32), 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(32), posy, posz+(-32), 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-32), posy, posz+(-32), 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-32), posy, posz+(32), 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-32), posy, posz+(-96), 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(64), posy, posz+(0), 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-64), posy, posz+(0), 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(0), posy, posz+(-64), 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(64), posy, posz+(-64), 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-96), posy, posz+(96), 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(32), posy, posz+(96), 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-32), posy, posz+(96), 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-64), posy, posz+(-64), 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(0), posy, posz+(64), 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(96), posy, posz+(32), 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-64), posy, posz+(64), 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(96), posy, posz+(-32), 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-96), posy, posz+(32), 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-96), posy, posz+(-32), 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(64), posy, posz+(64), 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(96), posy, posz+(-96), 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(32), posy, posz+(-96), 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(96), posy, posz+(96), 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-96), posy, posz+(-96), 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(0), posy, posz+(0), 0}, {"shift"})
-	end
+			-- Defences
+			{ unitDefID = UDN.corerad_scav.id, xOffset =  -80, yOffset = 0, zOffset =  -80, direction = 0 },
+			{ unitDefID = UDN.corhllt_scav.id, xOffset = -128, yOffset = 0, zOffset =  160, direction = 0 },
+			{ unitDefID = UDN.corerad_scav.id, xOffset =   80, yOffset = 0, zOffset =  -80, direction = 0 },
+			{ unitDefID = UDN.corllt_scav.id,  xOffset = -160, yOffset = 0, zOffset =  -64, direction = 3 },
+			{ unitDefID = UDN.corllt_scav.id,  xOffset = -160, yOffset = 0, zOffset =   64, direction = 3 },
+			{ unitDefID = UDN.corhllt_scav.id, xOffset =  128, yOffset = 0, zOffset = -160, direction = 2 },
+			{ unitDefID = UDN.corllt_scav.id,  xOffset = -160, yOffset = 0, zOffset =  128, direction = 3 },
+			{ unitDefID = UDN.corllt_scav.id,  xOffset =  160, yOffset = 0, zOffset =  -64, direction = 1 },
+			{ unitDefID = UDN.corllt_scav.id,  xOffset =   64, yOffset = 0, zOffset =  160, direction = 0 },
+			{ unitDefID = UDN.corllt_scav.id,  xOffset =   64, yOffset = 0, zOffset = -160, direction = 2 },
+			{ unitDefID = UDN.corerad_scav.id, xOffset =  -80, yOffset = 0, zOffset =   80, direction = 0 },
+			{ unitDefID = UDN.corllt_scav.id,  xOffset =  128, yOffset = 0, zOffset =  160, direction = 0 },
+			{ unitDefID = UDN.corllt_scav.id,  xOffset =  -64, yOffset = 0, zOffset =  160, direction = 0 },
+			{ unitDefID = UDN.corerad_scav.id, xOffset =   80, yOffset = 0, zOffset =   80, direction = 0 },
+			{ unitDefID = UDN.corhllt_scav.id, xOffset = -160, yOffset = 0, zOffset = -128, direction = 3 },
+			{ unitDefID = UDN.corhllt_scav.id, xOffset =  160, yOffset = 0, zOffset =  128, direction = 1 },
+			{ unitDefID = UDN.corllt_scav.id,  xOffset =  160, yOffset = 0, zOffset = -128, direction = 1 },
+			{ unitDefID = UDN.corllt_scav.id,  xOffset = -128, yOffset = 0, zOffset = -160, direction = 2 },
+			{ unitDefID = UDN.corllt_scav.id,  xOffset =  -64, yOffset = 0, zOffset = -160, direction = 2 },
+			{ unitDefID = UDN.corllt_scav.id,  xOffset =  160, yOffset = 0, zOffset =   64, direction = 1 },
+
+			-- Walls
+			{ unitDefID = BPWallOrPopup("scav"), xOffset = -160, yOffset = 0, zOffset =  192, direction = 3 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset = -192, yOffset = 0, zOffset = -128, direction = 3 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  160, yOffset = 0, zOffset =  192, direction = 3 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  128, yOffset = 0, zOffset =  192, direction = 3 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset = -192, yOffset = 0, zOffset =   96, direction = 3 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =   96, yOffset = 0, zOffset = -192, direction = 3 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =   64, yOffset = 0, zOffset = -192, direction = 3 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset = -192, yOffset = 0, zOffset =  -96, direction = 3 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  192, yOffset = 0, zOffset =  128, direction = 3 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  -96, yOffset = 0, zOffset = -192, direction = 3 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset = -192, yOffset = 0, zOffset = -192, direction = 3 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset = -192, yOffset = 0, zOffset =  128, direction = 3 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset = -192, yOffset = 0, zOffset = -160, direction = 3 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  192, yOffset = 0, zOffset = -128, direction = 3 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset = -192, yOffset = 0, zOffset =  192, direction = 3 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  160, yOffset = 0, zOffset = -192, direction = 3 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  192, yOffset = 0, zOffset =  160, direction = 3 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  192, yOffset = 0, zOffset = -192, direction = 3 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  -96, yOffset = 0, zOffset =  192, direction = 3 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  192, yOffset = 0, zOffset =  192, direction = 3 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset = -128, yOffset = 0, zOffset = -192, direction = 3 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  128, yOffset = 0, zOffset = -192, direction = 3 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  192, yOffset = 0, zOffset =   96, direction = 3 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset = -160, yOffset = 0, zOffset = -192, direction = 3 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =   96, yOffset = 0, zOffset =  192, direction = 3 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  192, yOffset = 0, zOffset =  -64, direction = 3 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset = -128, yOffset = 0, zOffset =  192, direction = 3 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =   64, yOffset = 0, zOffset =  192, direction = 3 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  192, yOffset = 0, zOffset =   64, direction = 3 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  192, yOffset = 0, zOffset =  -96, direction = 3 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  -64, yOffset = 0, zOffset = -192, direction = 3 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  192, yOffset = 0, zOffset = -160, direction = 3 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset = -192, yOffset = 0, zOffset =   64, direction = 3 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset = -192, yOffset = 0, zOffset =  -64, direction = 3 },
+		}
+	}
 end
 
-table.insert(ScavengerConstructorBlueprintsT1,DamTrap1Red)
-table.insert(ScavengerConstructorBlueprintsT2,DamTrap1Red)
-table.insert(ScavengerConstructorBlueprintsT3,DamTrap1Red)
---]]
+return {
+	redBase1,
+	redBase2,
+	blueBase1,
+	blueBase2,
+}

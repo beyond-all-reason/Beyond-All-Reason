@@ -1,11 +1,8 @@
 Spring.Echo("[Scavengers] Constructor Controller initialized")
 
+local scavConfig = VFS.Include('luarules/gadgets/scavengers/Configs/BYAR/config.lua')
 VFS.Include("luarules/gadgets/scavengers/Configs/" .. Game.gameShortName .. "/UnitLists/constructors.lua")
-Blueprints2List = VFS.DirList('luarules/gadgets/scavengers/Blueprints/' .. Game.gameShortName .. '/Constructor/','*.lua')
-for i = 1,#Blueprints2List do
-	VFS.Include(Blueprints2List[i])
-	Spring.Echo("Scav Blueprints Directory: " ..Blueprints2List[i])
-end
+local blueprintsController = VFS.Include("luarules/gadgets/scavengers/Blueprints/BYAR/constructor_blueprint_controller.lua")
 local constructortimer = constructorControllerModuleConfig.constructortimerstart
 
 scavvoicenotif = 2
@@ -160,78 +157,84 @@ function SpawnConstructor(n)
 end
 
 ConstructorNumberOfRetries = {}
-function ConstructNewBlueprint(n, scav)
-	if not ConstructorNumberOfRetries[scav] then
-		ConstructorNumberOfRetries[scav] = 0
+function ConstructNewBlueprint(n, unitID)
+	local unitCount = Spring.GetTeamUnitCount(GaiaTeamID)
+	local unitCountBuffer = 200
+
+	if unitCount + unitCountBuffer >= scavMaxUnits then
+		local mapCenterX = mapsizeX / 2
+		local mapCenterZ = mapsizeZ / 2
+		local mapCenterY = Spring.GetGroundHeight(mapCenterX, mapCenterZ)
+		local mapDiagonal = math.ceil(math.sqrt((mapsizeX*mapsizeX)+(mapsizeZ*mapsizeZ)))
+		Spring.GiveOrderToUnit(unitID, CMD.RECLAIM, { mapCenterX + math_random(-100, 100), mapCenterY, mapCenterZ + math_random(-100, 100), mapDiagonal}, 0)
+		Spring.GiveOrderToUnit(unitID, CMD.RECLAIM, { mapCenterX + math_random(-100, 100), mapCenterY, mapCenterZ + math_random(-100, 100), mapDiagonal}, {"shift"})
+
+		return
 	end
-	ConstructorNumberOfRetries[scav] = ConstructorNumberOfRetries[scav] + 1
-	
-	local spawnTier = math_random(1,100)
-	if spawnTier <= TierSpawnChances.T0 then
-		landblueprint = ScavengerConstructorBlueprintsT0[math_random(1,#ScavengerConstructorBlueprintsT0)]
-	elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 then
-		landblueprint = ScavengerConstructorBlueprintsT1[math_random(1,#ScavengerConstructorBlueprintsT1)]
-	elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 then
-		landblueprint = ScavengerConstructorBlueprintsT2[math_random(1,#ScavengerConstructorBlueprintsT2)]
-	elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 then
-		landblueprint = ScavengerConstructorBlueprintsT3[math_random(1,#ScavengerConstructorBlueprintsT3)]
-	elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 + TierSpawnChances.T4 then
-		landblueprint = ScavengerConstructorBlueprintsT4[math_random(1,#ScavengerConstructorBlueprintsT4)]
-	else
-		landblueprint = ScavengerConstructorBlueprintsT0[math_random(1,#ScavengerConstructorBlueprintsT0)]
+
+	local landBlueprint, seaBlueprint, blueprint
+
+	if not ConstructorNumberOfRetries[unitID] then
+		ConstructorNumberOfRetries[unitID] = 0
 	end
-	
-	if spawnTier <= TierSpawnChances.T0 then
-		seablueprint = ScavengerConstructorBlueprintsT0Sea[math_random(1,#ScavengerConstructorBlueprintsT0Sea)]
-	elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 then
-		seablueprint = ScavengerConstructorBlueprintsT1Sea[math_random(1,#ScavengerConstructorBlueprintsT1Sea)]
-	elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 then
-		seablueprint = ScavengerConstructorBlueprintsT2Sea[math_random(1,#ScavengerConstructorBlueprintsT2Sea)]
-	elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 then
-		seablueprint = ScavengerConstructorBlueprintsT3Sea[math_random(1,#ScavengerConstructorBlueprintsT3Sea)]
-	elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 + TierSpawnChances.T4 then
-		seablueprint = ScavengerConstructorBlueprintsT4Sea[math_random(1,#ScavengerConstructorBlueprintsT4Sea)]
+	ConstructorNumberOfRetries[unitID] = ConstructorNumberOfRetries[unitID] + 1
+
+	local spawnTierChance = math_random(1,100)
+	if spawnTierChance <= TierSpawnChances.T0 then
+		landBlueprint = blueprintsController.GetRandomLandBlueprint(scavConfig.Tiers.T0)
+	elseif spawnTierChance <= TierSpawnChances.T0 + TierSpawnChances.T1 then
+		landBlueprint = blueprintsController.GetRandomLandBlueprint(scavConfig.Tiers.T1)
+	elseif spawnTierChance <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 then
+		landBlueprint = blueprintsController.GetRandomLandBlueprint(scavConfig.Tiers.T2)
+	elseif spawnTierChance <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 then
+		landBlueprint = blueprintsController.GetRandomLandBlueprint(scavConfig.Tiers.T3)
+	elseif spawnTierChance <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 + TierSpawnChances.T4 then
+		landBlueprint = blueprintsController.GetRandomLandBlueprint(scavConfig.Tiers.T4)
 	else
-		seablueprint = ScavengerConstructorBlueprintsT0Sea[math_random(1,#ScavengerConstructorBlueprintsT0Sea)]
+		landBlueprint = blueprintsController.GetRandomLandBlueprint(scavConfig.Tiers.T0)
+	end
+
+	if spawnTierChance <= TierSpawnChances.T0 then
+		seaBlueprint = blueprintsController.GetRandomSeaBlueprint(scavConfig.Tiers.T0)
+	elseif spawnTierChance <= TierSpawnChances.T0 + TierSpawnChances.T1 then
+		seaBlueprint = blueprintsController.GetRandomSeaBlueprint(scavConfig.Tiers.T1)
+	elseif spawnTierChance <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 then
+		seaBlueprint = blueprintsController.GetRandomSeaBlueprint(scavConfig.Tiers.T2)
+	elseif spawnTierChance <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 then
+		seaBlueprint = blueprintsController.GetRandomSeaBlueprint(scavConfig.Tiers.T3)
+	elseif spawnTierChance <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 + TierSpawnChances.T4 then
+		seaBlueprint = blueprintsController.GetRandomSeaBlueprint(scavConfig.Tiers.T4)
+	else
+		seaBlueprint = blueprintsController.GetRandomSeaBlueprint(scavConfig.Tiers.T0)
 	end
 
 	for i = 1,50 do
-		local x,y,z = Spring.GetUnitPosition(scav)
-		local posx = math_random(x-(50*ConstructorNumberOfRetries[scav]),x+(50*ConstructorNumberOfRetries[scav]))
-		local posz = math_random(z-(50*ConstructorNumberOfRetries[scav]),z+(50*ConstructorNumberOfRetries[scav]))
-		local posy = Spring.GetGroundHeight(posx, posz)
-		local unitCount = Spring.GetTeamUnitCount(GaiaTeamID)
-		if unitCount + 200 < scavMaxUnits then
-			if posy > 0 then
-				blueprint = landblueprint
-			elseif posy <= 0 then
-				blueprint = seablueprint
+		local x,y,z = Spring.GetUnitPosition(unitID)
+		local posX = math_random( x - (50 * ConstructorNumberOfRetries[unitID]), x + (50 * ConstructorNumberOfRetries[unitID]))
+		local posZ = math_random( z - (50 * ConstructorNumberOfRetries[unitID]), z + (50 * ConstructorNumberOfRetries[unitID]))
+		local posY = Spring.GetGroundHeight(posX, posZ)
+
+		if posY > 0 then
+			blueprint = landBlueprint
+		elseif posY <= 0 then
+			blueprint = seaBlueprint
+		end
+
+		local blueprintRadiusBuffer = 48
+		local blueprintRadius = blueprint.radius + blueprintRadiusBuffer
+		local canConstructHere = posOccupied(posX, posY, posZ, blueprintRadius)
+									and posCheck(posX, posY, posZ, blueprintRadius)
+									and posSafeAreaCheck(posX, posY, posZ, blueprintRadius)
+									and posMapsizeCheck(posX, posY, posZ, blueprintRadius)
+
+		if canConstructHere then
+			Spring.GiveOrderToUnit(unitID, CMD.MOVE,{posX+math.random(-blueprintRadius,blueprintRadius),posY+500,posZ+math.random(-blueprintRadius,blueprintRadius)}, {"shift"})
+
+			for _, building in ipairs(blueprint.buildings) do
+				Spring.GiveOrderToUnit(unitID, -building.unitDefID, { posX + building.xOffset, posY + building.yOffset, posZ + building.zOffset, building.direction }, {"shift"})
 			end
-		else
-			local mapcenterX = mapsizeX/2
-			local mapcenterZ = mapsizeZ/2
-			local mapcenterY = Spring.GetGroundHeight(mapcenterX, mapcenterZ)
-			local mapdiagonal = math.ceil(math.sqrt((mapsizeX*mapsizeX)+(mapsizeZ*mapsizeZ)))
-			Spring.GiveOrderToUnit(scav, CMD.RECLAIM,{mapcenterX+math_random(-100,100),mapcenterY,mapcenterZ+math_random(-100,100),mapdiagonal}, 0)
-			Spring.GiveOrderToUnit(scav, CMD.RECLAIM,{mapcenterX+math_random(-100,100),mapcenterY,mapcenterZ+math_random(-100,100),mapdiagonal}, {"shift"})
-		end
-		
-		posradius = blueprint(scav, posx, posy, posz, GaiaTeamID, true) + 48
-		canConstructHere = posOccupied(posx, posy, posz, posradius)
-		if canConstructHere then
-			canConstructHere = posCheck(posx, posy, posz, posradius)
-		end
-		if canConstructHere then
-			canConstructHere = posSafeAreaCheck(posx, posy, posz, posradius)
-		end
-		if canConstructHere then
-			canConstructHere = posMapsizeCheck(posx, posy, posz, posradius)
-		end
-		if canConstructHere then
-			-- let's do this shit
-			Spring.GiveOrderToUnit(scav, CMD.MOVE,{posx+math.random(-posradius,posradius),posy+500,posz+math.random(-posradius,posradius)}, {"shift"})
-			blueprint(scav, posx, posy, posz, GaiaTeamID, false)
-			ConstructorNumberOfRetries[scav] = 0
+
+			ConstructorNumberOfRetries[unitID] = 0
 			break
 		end
 	end
@@ -240,16 +243,16 @@ end
 function SpawnResurrectorGroup(n)
 	if ScavSafeAreaExist then 
 		--ResurrectorSpawnCount = math.ceil(math.random(0,math.ceil(teamcount*spawnmultiplier))+1)
-		local spawnTier = math.random(1,100)
-		if spawnTier <= TierSpawnChances.T0 then
+		local spawnTierChance = math.random(1,100)
+		if spawnTierChance <= TierSpawnChances.T0 then
 			ResurrectorSpawnCount = 1
-		elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 then
+		elseif spawnTierChance <= TierSpawnChances.T0 + TierSpawnChances.T1 then
 			ResurrectorSpawnCount = math.random(1,2)
-		elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 then
+		elseif spawnTierChance <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 then
 			ResurrectorSpawnCount = math.random(3,5)
-		elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 then
+		elseif spawnTierChance <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 then
 			ResurrectorSpawnCount = math.random(6,10)
-		elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 + TierSpawnChances.T4 then
+		elseif spawnTierChance <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 + TierSpawnChances.T4 then
 			ResurrectorSpawnCount = math.random(11,20)
 		else
 			ResurrectorSpawnCount = 0

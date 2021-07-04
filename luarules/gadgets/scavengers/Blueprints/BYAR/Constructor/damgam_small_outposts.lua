@@ -1,769 +1,775 @@
+local scavConfig = VFS.Include('luarules/gadgets/scavengers/Configs/BYAR/config.lua')
+local tiers = scavConfig.Tiers
+local types = scavConfig.BlueprintTypes
+local UDN = UnitDefNames
+
 --	facing:
 --  0 - south
 --  1 - east
 --  2 - north
 --  3 - west
--- randompopups[math_random(1,#randompopups)]
 
-local UDN = UnitDefNames
-local nameSuffix = '_scav'
-
--- local function CopyPasteFunction(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
--- local posradius = 0
-	-- if radiusCheck then
-		-- return posradius
-	-- else
-	-- -- blueprint here
-	-- end
--- end
---table.insert(ScavengerConstructorBlueprintsT0,CopyPasteFunction)
-
-
-
-
-local function DamSmallOutpost2(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
-local posradius = 72
-local r = math_random(0,3)
-	if radiusCheck then
-		return posradius
-	else
-		if r == 0 then
-			Spring.GiveOrderToUnit(scav, -(UDN.armguard_scav.id), {posx+(0), posy, posz+(0), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-72), posy, posz+(72), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(72), posy, posz+(-72), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(72), posy, posz+(40), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(72), posy, posz+(8), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(8), posy, posz+(72), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-72), posy, posz+(-40), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-40), posy, posz+(-72), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-8), posy, posz+(-72), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(40), posy, posz+(72), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(72), posy, posz+(72), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-72), posy, posz+(-8), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-72), posy, posz+(-72), 1}, {"shift"})
-		elseif r == 1 then
-			Spring.GiveOrderToUnit(scav, -(UDN.armguard_scav.id), {posx+(0), posy, posz+(0), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(72), posy, posz+(72), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-72), posy, posz+(-72), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(8), posy, posz+(-72), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(40), posy, posz+(-72), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-40), posy, posz+(72), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-72), posy, posz+(8), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-72), posy, posz+(72), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-72), posy, posz+(40), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(72), posy, posz+(-72), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(72), posy, posz+(-8), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-8), posy, posz+(72), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(72), posy, posz+(-40), 1}, {"shift"})
-		elseif r == 2 then
-			Spring.GiveOrderToUnit(scav, -(UDN.corpun_scav.id), {posx+(0), posy, posz+(0), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(80), posy, posz+(-80), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-80), posy, posz+(80), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-80), posy, posz+(-48), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(80), posy, posz+(48), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-48), posy, posz+(-80), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-80), posy, posz+(-80), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(80), posy, posz+(80), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-16), posy, posz+(-80), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(16), posy, posz+(80), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-80), posy, posz+(-16), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(80), posy, posz+(16), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(48), posy, posz+(80), 1}, {"shift"})
-			
-		else
-			Spring.GiveOrderToUnit(scav, -(UDN.corpun_scav.id), {posx+(0), posy, posz+(0), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(80), posy, posz+(80), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-80), posy, posz+(-80), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(80), posy, posz+(-16), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(80), posy, posz+(-48), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-80), posy, posz+(48), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(48), posy, posz+(-80), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-16), posy, posz+(80), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-48), posy, posz+(80), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(80), posy, posz+(-80), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-80), posy, posz+(16), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-80), posy, posz+(80), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(16), posy, posz+(-80), 1}, {"shift"})
-		end
-	end
+local function getRandomNanoTowerID()
+	return math.random(0, 1) == 0 and UDN.armnanotc_scav.id or UDN.cornanotc_scav.id
 end
-table.insert(ScavengerConstructorBlueprintsT1,DamSmallOutpost2)
 
-
-local function DamWindfarm1(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
-local posradius = 96
-local r = math_random(0,3)
-	if radiusCheck then
-		return posradius
+local function t1Firebase1()
+	local buildings
+	local r = math.random(0,3)
+	if r == 0 then
+		buildings = {
+			{ unitDefID = UDN.armguard_scav.id,  xOffset =    0, yOffset = 0, zOffset =    0, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  -72, yOffset = 0, zOffset =   72, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =   72, yOffset = 0, zOffset =  -72, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =   72, yOffset = 0, zOffset =   40, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =   72, yOffset = 0, zOffset =    8, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =    8, yOffset = 0, zOffset =   72, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  -72, yOffset = 0, zOffset =  -40, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  -40, yOffset = 0, zOffset =  -72, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =   -8, yOffset = 0, zOffset =  -72, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =   40, yOffset = 0, zOffset =   72, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =   72, yOffset = 0, zOffset =   72, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  -72, yOffset = 0, zOffset =   -8, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  -72, yOffset = 0, zOffset =  -72, direction = 1 },
+		}
+	elseif r == 1 then
+		buildings = {
+			{ unitDefID = UDN.armguard_scav.id,  xOffset =    0, yOffset = 0, zOffset =    0, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =   72, yOffset = 0, zOffset =   72, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  -72, yOffset = 0, zOffset =  -72, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =    8, yOffset = 0, zOffset =  -72, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =   40, yOffset = 0, zOffset =  -72, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  -40, yOffset = 0, zOffset =   72, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  -72, yOffset = 0, zOffset =    8, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  -72, yOffset = 0, zOffset =   72, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  -72, yOffset = 0, zOffset =   40, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =   72, yOffset = 0, zOffset =  -72, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =   72, yOffset = 0, zOffset =   -8, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =   -8, yOffset = 0, zOffset =   72, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =   72, yOffset = 0, zOffset =  -40, direction = 1 },
+		}
+	elseif r == 2 then
+		buildings = {
+			{ unitDefID = UDN.corpun_scav.id,    xOffset =    0, yOffset = 0, zOffset =    0, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =   80, yOffset = 0, zOffset =  -80, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  -80, yOffset = 0, zOffset =   80, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  -80, yOffset = 0, zOffset =  -48, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =   80, yOffset = 0, zOffset =   48, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  -48, yOffset = 0, zOffset =  -80, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  -80, yOffset = 0, zOffset =  -80, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =   80, yOffset = 0, zOffset =   80, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  -16, yOffset = 0, zOffset =  -80, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =   16, yOffset = 0, zOffset =   80, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  -80, yOffset = 0, zOffset =  -16, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =   80, yOffset = 0, zOffset =   16, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =   48, yOffset = 0, zOffset =   80, direction = 1 },
+		}
 	else
-		if r == 0 then
-			Spring.GiveOrderToUnit(scav, -(UDN.armwin_scav.id), {posx+(-48), posy, posz+(0), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(UDN.armwin_scav.id), {posx+(0), posy, posz+(0), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(UDN.armwin_scav.id), {posx+(96), posy, posz+(0), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(UDN.armwin_scav.id), {posx+(0), posy, posz+(80), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(UDN.armwin_scav.id), {posx+(48), posy, posz+(-80), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(UDN.armwin_scav.id), {posx+(-96), posy, posz+(80), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(UDN.armwin_scav.id), {posx+(-96), posy, posz+(-80), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(UDN.armwin_scav.id), {posx+(-48), posy, posz+(80), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(UDN.armwin_scav.id), {posx+(48), posy, posz+(80), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(UDN.armwin_scav.id), {posx+(96), posy, posz+(80), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(UDN.armwin_scav.id), {posx+(48), posy, posz+(0), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(UDN.armwin_scav.id), {posx+(96), posy, posz+(-80), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(UDN.armwin_scav.id), {posx+(0), posy, posz+(-80), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(UDN.armwin_scav.id), {posx+(-96), posy, posz+(0), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(UDN.armwin_scav.id), {posx+(-48), posy, posz+(-80), 1}, {"shift"})
-		elseif r == 1 then
-			Spring.GiveOrderToUnit(scav, -(UDN.armwin_scav.id), {posx+(-80), posy, posz+(48), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(UDN.armwin_scav.id), {posx+(0), posy, posz+(0), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(UDN.armwin_scav.id), {posx+(80), posy, posz+(-96), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(UDN.armwin_scav.id), {posx+(0), posy, posz+(-48), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(UDN.armwin_scav.id), {posx+(80), posy, posz+(0), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(UDN.armwin_scav.id), {posx+(80), posy, posz+(-48), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(UDN.armwin_scav.id), {posx+(0), posy, posz+(-96), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(UDN.armwin_scav.id), {posx+(0), posy, posz+(48), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(UDN.armwin_scav.id), {posx+(0), posy, posz+(96), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(UDN.armwin_scav.id), {posx+(80), posy, posz+(96), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(UDN.armwin_scav.id), {posx+(-80), posy, posz+(96), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(UDN.armwin_scav.id), {posx+(-80), posy, posz+(-48), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(UDN.armwin_scav.id), {posx+(-80), posy, posz+(0), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(UDN.armwin_scav.id), {posx+(80), posy, posz+(48), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(UDN.armwin_scav.id), {posx+(-80), posy, posz+(-96), 1}, {"shift"})
-		elseif r == 2 then
-			Spring.GiveOrderToUnit(scav, -(UDN.corwin_scav.id), {posx+(48), posy, posz+(0), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(UDN.corwin_scav.id), {posx+(0), posy, posz+(-80), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(UDN.corwin_scav.id), {posx+(-48), posy, posz+(-80), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(UDN.corwin_scav.id), {posx+(-96), posy, posz+(80), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(UDN.corwin_scav.id), {posx+(48), posy, posz+(-80), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(UDN.corwin_scav.id), {posx+(48), posy, posz+(80), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(UDN.corwin_scav.id), {posx+(96), posy, posz+(80), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(UDN.corwin_scav.id), {posx+(96), posy, posz+(0), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(UDN.corwin_scav.id), {posx+(0), posy, posz+(80), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(UDN.corwin_scav.id), {posx+(0), posy, posz+(0), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(UDN.corwin_scav.id), {posx+(-48), posy, posz+(0), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(UDN.corwin_scav.id), {posx+(-96), posy, posz+(-80), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(UDN.corwin_scav.id), {posx+(-96), posy, posz+(0), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(UDN.corwin_scav.id), {posx+(-48), posy, posz+(80), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(UDN.corwin_scav.id), {posx+(96), posy, posz+(-80), 1}, {"shift"})
-		else
-			Spring.GiveOrderToUnit(scav, -(UDN.corwin_scav.id), {posx+(80), posy, posz+(0), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(UDN.corwin_scav.id), {posx+(0), posy, posz+(-48), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(UDN.corwin_scav.id), {posx+(0), posy, posz+(48), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(UDN.corwin_scav.id), {posx+(80), posy, posz+(48), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(UDN.corwin_scav.id), {posx+(-80), posy, posz+(48), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(UDN.corwin_scav.id), {posx+(0), posy, posz+(-96), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(UDN.corwin_scav.id), {posx+(-80), posy, posz+(0), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(UDN.corwin_scav.id), {posx+(80), posy, posz+(-48), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(UDN.corwin_scav.id), {posx+(-80), posy, posz+(96), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(UDN.corwin_scav.id), {posx+(-80), posy, posz+(-48), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(UDN.corwin_scav.id), {posx+(0), posy, posz+(96), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(UDN.corwin_scav.id), {posx+(80), posy, posz+(-96), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(UDN.corwin_scav.id), {posx+(-80), posy, posz+(-96), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(UDN.corwin_scav.id), {posx+(0), posy, posz+(0), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(UDN.corwin_scav.id), {posx+(80), posy, posz+(96), 1}, {"shift"})
-		end
+		buildings = {
+			{ unitDefID = UDN.corpun_scav.id,    xOffset =    0, yOffset = 0, zOffset =    0, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =   80, yOffset = 0, zOffset =   80, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  -80, yOffset = 0, zOffset =  -80, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =   80, yOffset = 0, zOffset =  -16, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =   80, yOffset = 0, zOffset =  -48, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  -80, yOffset = 0, zOffset =   48, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =   48, yOffset = 0, zOffset =  -80, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  -16, yOffset = 0, zOffset =   80, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  -48, yOffset = 0, zOffset =   80, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =   80, yOffset = 0, zOffset =  -80, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  -80, yOffset = 0, zOffset =   16, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  -80, yOffset = 0, zOffset =   80, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =   16, yOffset = 0, zOffset =  -80, direction = 1 },
+		}
 	end
+
+	return {
+		type = types.Land,
+		tiers = { tiers.T1 },
+		radius = 72,
+		buildings = buildings,
+	}
 end
-table.insert(ScavengerConstructorBlueprintsT0,DamWindfarm1)
-table.insert(ScavengerConstructorBlueprintsT1,DamWindfarm1)
 
-
-local function DamMinefield1(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
-local posradius = 192
-	if radiusCheck then
-		return posradius
+local function windFarm1()
+	local buildings
+	local r = math.random(0,3)
+	if r == 0 then
+		buildings = {
+			{ unitDefID = UDN.armwin_scav.id, xOffset =  -48, yOffset = 0, zOffset =    0, direction = 1 },
+			{ unitDefID = UDN.armwin_scav.id, xOffset =    0, yOffset = 0, zOffset =    0, direction = 1 },
+			{ unitDefID = UDN.armwin_scav.id, xOffset =   96, yOffset = 0, zOffset =    0, direction = 1 },
+			{ unitDefID = UDN.armwin_scav.id, xOffset =    0, yOffset = 0, zOffset =   80, direction = 1 },
+			{ unitDefID = UDN.armwin_scav.id, xOffset =   48, yOffset = 0, zOffset =  -80, direction = 1 },
+			{ unitDefID = UDN.armwin_scav.id, xOffset =  -96, yOffset = 0, zOffset =   80, direction = 1 },
+			{ unitDefID = UDN.armwin_scav.id, xOffset =  -96, yOffset = 0, zOffset =  -80, direction = 1 },
+			{ unitDefID = UDN.armwin_scav.id, xOffset =  -48, yOffset = 0, zOffset =   80, direction = 1 },
+			{ unitDefID = UDN.armwin_scav.id, xOffset =   48, yOffset = 0, zOffset =   80, direction = 1 },
+			{ unitDefID = UDN.armwin_scav.id, xOffset =   96, yOffset = 0, zOffset =   80, direction = 1 },
+			{ unitDefID = UDN.armwin_scav.id, xOffset =   48, yOffset = 0, zOffset =    0, direction = 1 },
+			{ unitDefID = UDN.armwin_scav.id, xOffset =   96, yOffset = 0, zOffset =  -80, direction = 1 },
+			{ unitDefID = UDN.armwin_scav.id, xOffset =    0, yOffset = 0, zOffset =  -80, direction = 1 },
+			{ unitDefID = UDN.armwin_scav.id, xOffset =  -96, yOffset = 0, zOffset =    0, direction = 1 },
+			{ unitDefID = UDN.armwin_scav.id, xOffset =  -48, yOffset = 0, zOffset =  -80, direction = 1 },
+		}
+	elseif r == 1 then
+		buildings = {
+			{ unitDefID = UDN.armwin_scav.id, xOffset =  -80, yOffset = 0, zOffset =   48, direction = 1 },
+			{ unitDefID = UDN.armwin_scav.id, xOffset =    0, yOffset = 0, zOffset =    0, direction = 1 },
+			{ unitDefID = UDN.armwin_scav.id, xOffset =   80, yOffset = 0, zOffset =  -96, direction = 1 },
+			{ unitDefID = UDN.armwin_scav.id, xOffset =    0, yOffset = 0, zOffset =  -48, direction = 1 },
+			{ unitDefID = UDN.armwin_scav.id, xOffset =   80, yOffset = 0, zOffset =    0, direction = 1 },
+			{ unitDefID = UDN.armwin_scav.id, xOffset =   80, yOffset = 0, zOffset =  -48, direction = 1 },
+			{ unitDefID = UDN.armwin_scav.id, xOffset =    0, yOffset = 0, zOffset =  -96, direction = 1 },
+			{ unitDefID = UDN.armwin_scav.id, xOffset =    0, yOffset = 0, zOffset =   48, direction = 1 },
+			{ unitDefID = UDN.armwin_scav.id, xOffset =    0, yOffset = 0, zOffset =   96, direction = 1 },
+			{ unitDefID = UDN.armwin_scav.id, xOffset =   80, yOffset = 0, zOffset =   96, direction = 1 },
+			{ unitDefID = UDN.armwin_scav.id, xOffset =  -80, yOffset = 0, zOffset =   96, direction = 1 },
+			{ unitDefID = UDN.armwin_scav.id, xOffset =  -80, yOffset = 0, zOffset =  -48, direction = 1 },
+			{ unitDefID = UDN.armwin_scav.id, xOffset =  -80, yOffset = 0, zOffset =    0, direction = 1 },
+			{ unitDefID = UDN.armwin_scav.id, xOffset =   80, yOffset = 0, zOffset =   48, direction = 1 },
+			{ unitDefID = UDN.armwin_scav.id, xOffset =  -80, yOffset = 0, zOffset =  -96, direction = 1 },
+		}
+	elseif r == 2 then
+		buildings = {
+			{ unitDefID = UDN.corwin_scav.id, xOffset =   48, yOffset = 0, zOffset =    0, direction = 1 },
+			{ unitDefID = UDN.corwin_scav.id, xOffset =    0, yOffset = 0, zOffset =  -80, direction = 1 },
+			{ unitDefID = UDN.corwin_scav.id, xOffset =  -48, yOffset = 0, zOffset =  -80, direction = 1 },
+			{ unitDefID = UDN.corwin_scav.id, xOffset =  -96, yOffset = 0, zOffset =   80, direction = 1 },
+			{ unitDefID = UDN.corwin_scav.id, xOffset =   48, yOffset = 0, zOffset =  -80, direction = 1 },
+			{ unitDefID = UDN.corwin_scav.id, xOffset =   48, yOffset = 0, zOffset =   80, direction = 1 },
+			{ unitDefID = UDN.corwin_scav.id, xOffset =   96, yOffset = 0, zOffset =   80, direction = 1 },
+			{ unitDefID = UDN.corwin_scav.id, xOffset =   96, yOffset = 0, zOffset =    0, direction = 1 },
+			{ unitDefID = UDN.corwin_scav.id, xOffset =    0, yOffset = 0, zOffset =   80, direction = 1 },
+			{ unitDefID = UDN.corwin_scav.id, xOffset =    0, yOffset = 0, zOffset =    0, direction = 1 },
+			{ unitDefID = UDN.corwin_scav.id, xOffset =  -48, yOffset = 0, zOffset =    0, direction = 1 },
+			{ unitDefID = UDN.corwin_scav.id, xOffset =  -96, yOffset = 0, zOffset =  -80, direction = 1 },
+			{ unitDefID = UDN.corwin_scav.id, xOffset =  -96, yOffset = 0, zOffset =    0, direction = 1 },
+			{ unitDefID = UDN.corwin_scav.id, xOffset =  -48, yOffset = 0, zOffset =   80, direction = 1 },
+			{ unitDefID = UDN.corwin_scav.id, xOffset =   96, yOffset = 0, zOffset =  -80, direction = 1 },
+		}
 	else
-		Spring.GiveOrderToUnit(scav, -(UDN.armmine1_scav.id), {posx+(math_random(-192,192)), posy, posz+(math_random(-192,192)), 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.cormine1_scav.id), {posx+(math_random(-192,192)), posy, posz+(math_random(-192,192)), 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.armmine3_scav.id), {posx+(math_random(-192,192)), posy, posz+(math_random(-192,192)), 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.cormine3_scav.id), {posx+(math_random(-192,192)), posy, posz+(math_random(-192,192)), 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.armmine1_scav.id), {posx+(math_random(-192,192)), posy, posz+(math_random(-192,192)), 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.cormine1_scav.id), {posx+(math_random(-192,192)), posy, posz+(math_random(-192,192)), 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.armmine3_scav.id), {posx+(math_random(-192,192)), posy, posz+(math_random(-192,192)), 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.cormine3_scav.id), {posx+(math_random(-192,192)), posy, posz+(math_random(-192,192)), 0}, {"shift"})
+		buildings = {
+			{ unitDefID = UDN.corwin_scav.id, xOffset =   80, yOffset = 0, zOffset =    0, direction = 1 },
+			{ unitDefID = UDN.corwin_scav.id, xOffset =    0, yOffset = 0, zOffset =  -48, direction = 1 },
+			{ unitDefID = UDN.corwin_scav.id, xOffset =    0, yOffset = 0, zOffset =   48, direction = 1 },
+			{ unitDefID = UDN.corwin_scav.id, xOffset =   80, yOffset = 0, zOffset =   48, direction = 1 },
+			{ unitDefID = UDN.corwin_scav.id, xOffset =  -80, yOffset = 0, zOffset =   48, direction = 1 },
+			{ unitDefID = UDN.corwin_scav.id, xOffset =    0, yOffset = 0, zOffset =  -96, direction = 1 },
+			{ unitDefID = UDN.corwin_scav.id, xOffset =  -80, yOffset = 0, zOffset =    0, direction = 1 },
+			{ unitDefID = UDN.corwin_scav.id, xOffset =   80, yOffset = 0, zOffset =  -48, direction = 1 },
+			{ unitDefID = UDN.corwin_scav.id, xOffset =  -80, yOffset = 0, zOffset =   96, direction = 1 },
+			{ unitDefID = UDN.corwin_scav.id, xOffset =  -80, yOffset = 0, zOffset =  -48, direction = 1 },
+			{ unitDefID = UDN.corwin_scav.id, xOffset =    0, yOffset = 0, zOffset =   96, direction = 1 },
+			{ unitDefID = UDN.corwin_scav.id, xOffset =   80, yOffset = 0, zOffset =  -96, direction = 1 },
+			{ unitDefID = UDN.corwin_scav.id, xOffset =  -80, yOffset = 0, zOffset =  -96, direction = 1 },
+			{ unitDefID = UDN.corwin_scav.id, xOffset =    0, yOffset = 0, zOffset =    0, direction = 1 },
+			{ unitDefID = UDN.corwin_scav.id, xOffset =   80, yOffset = 0, zOffset =   96, direction = 1 },
+		}
 	end
-end
-table.insert(ScavengerConstructorBlueprintsT0,DamMinefield1)
-table.insert(ScavengerConstructorBlueprintsT1,DamMinefield1)
-table.insert(ScavengerConstructorBlueprintsT2,DamMinefield1)
-table.insert(ScavengerConstructorBlueprintsT3,DamMinefield1)
 
-local function DamMinefield2(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
-local posradius = 96
-	if radiusCheck then
-		return posradius
-	else
-		Spring.GiveOrderToUnit(scav, -(UDN.armmine1_scav.id), {posx+(math_random(-96,96)), posy, posz+(math_random(-96,96)), 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.cormine1_scav.id), {posx+(math_random(-96,96)), posy, posz+(math_random(-96,96)), 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.armmine3_scav.id), {posx+(math_random(-96,96)), posy, posz+(math_random(-96,96)), 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.cormine3_scav.id), {posx+(math_random(-96,96)), posy, posz+(math_random(-96,96)), 0}, {"shift"})
-	end
+	return {
+		type = types.Land,
+		tiers = { tiers.T0, tiers.T1 },
+		radius = 96,
+		buildings = buildings,
+	}
 end
-table.insert(ScavengerConstructorBlueprintsT0,DamMinefield2)
-table.insert(ScavengerConstructorBlueprintsT1,DamMinefield2)
-table.insert(ScavengerConstructorBlueprintsT2,DamMinefield2)
-table.insert(ScavengerConstructorBlueprintsT3,DamMinefield2)
 
-local function DamMinefield3(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
-local posradius = 384
-	if radiusCheck then
-		return posradius
-	else
-		Spring.GiveOrderToUnit(scav, -(UDN.armmine1_scav.id), {posx+(math_random(-384,384)), posy, posz+(math_random(-384,384)), 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.cormine1_scav.id), {posx+(math_random(-384,384)), posy, posz+(math_random(-384,384)), 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.armmine3_scav.id), {posx+(math_random(-384,384)), posy, posz+(math_random(-384,384)), 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.cormine3_scav.id), {posx+(math_random(-384,384)), posy, posz+(math_random(-384,384)), 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.armmine1_scav.id), {posx+(math_random(-384,384)), posy, posz+(math_random(-384,384)), 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.cormine1_scav.id), {posx+(math_random(-384,384)), posy, posz+(math_random(-384,384)), 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.armmine3_scav.id), {posx+(math_random(-384,384)), posy, posz+(math_random(-384,384)), 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.cormine3_scav.id), {posx+(math_random(-384,384)), posy, posz+(math_random(-384,384)), 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.armmine1_scav.id), {posx+(math_random(-384,384)), posy, posz+(math_random(-384,384)), 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.cormine1_scav.id), {posx+(math_random(-384,384)), posy, posz+(math_random(-384,384)), 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.armmine3_scav.id), {posx+(math_random(-384,384)), posy, posz+(math_random(-384,384)), 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.cormine3_scav.id), {posx+(math_random(-384,384)), posy, posz+(math_random(-384,384)), 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.armmine1_scav.id), {posx+(math_random(-384,384)), posy, posz+(math_random(-384,384)), 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.cormine1_scav.id), {posx+(math_random(-384,384)), posy, posz+(math_random(-384,384)), 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.armmine3_scav.id), {posx+(math_random(-384,384)), posy, posz+(math_random(-384,384)), 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.cormine3_scav.id), {posx+(math_random(-384,384)), posy, posz+(math_random(-384,384)), 0}, {"shift"})
-	end
+local function minefield1()
+	return {
+		type = types.Land,
+		tiers = { tiers.T0, tiers.T1, tiers.T2, tiers.T3 },
+		radius = 192,
+		buildings = {
+			{ unitDefID = UDN.armmine1_scav.id, xOffset = math.random(-192,192), yOffset = 0, zOffset = math.random(-192,192), direction = 0 },
+			{ unitDefID = UDN.cormine1_scav.id, xOffset = math.random(-192,192), yOffset = 0, zOffset = math.random(-192,192), direction = 0 },
+			{ unitDefID = UDN.armmine3_scav.id, xOffset = math.random(-192,192), yOffset = 0, zOffset = math.random(-192,192), direction = 0 },
+			{ unitDefID = UDN.cormine3_scav.id, xOffset = math.random(-192,192), yOffset = 0, zOffset = math.random(-192,192), direction = 0 },
+			{ unitDefID = UDN.armmine1_scav.id, xOffset = math.random(-192,192), yOffset = 0, zOffset = math.random(-192,192), direction = 0 },
+			{ unitDefID = UDN.cormine1_scav.id, xOffset = math.random(-192,192), yOffset = 0, zOffset = math.random(-192,192), direction = 0 },
+			{ unitDefID = UDN.armmine3_scav.id, xOffset = math.random(-192,192), yOffset = 0, zOffset = math.random(-192,192), direction = 0 },
+			{ unitDefID = UDN.cormine3_scav.id, xOffset = math.random(-192,192), yOffset = 0, zOffset = math.random(-192,192), direction = 0 },
+		},
+	}
 end
-table.insert(ScavengerConstructorBlueprintsT0,DamMinefield3)
-table.insert(ScavengerConstructorBlueprintsT1,DamMinefield3)
-table.insert(ScavengerConstructorBlueprintsT2,DamMinefield3)
-table.insert(ScavengerConstructorBlueprintsT3,DamMinefield3)
 
-local function DamRandomTurretfieldT1(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
-local posradius = 96
-local randomturrets = {UDN.armllt_scav.id, BPWallOrPopup("scav"), UDN.armbeamer_scav.id, UDN.armhlt_scav.id, UDN.armguard_scav.id, UDN.armrl_scav.id, UDN.armferret_scav.id, UDN.armcir_scav.id, UDN.armnanotc_scav.id, BPWallOrPopup("scav"), UDN.corllt_scav.id, UDN.corhllt_scav.id, UDN.corhlt_scav.id, UDN.corpun_scav.id, UDN.corrl_scav.id, UDN.cormadsam_scav.id, UDN.corerad_scav.id, UDN.cornanotc_scav.id,}
-	if radiusCheck then
-		return posradius
-	else
-		Spring.GiveOrderToUnit(scav, -randomturrets[math_random(1,#randomturrets)], {posx+(math_random(-96,96)), posy, posz+(math_random(-96,96)), 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -randomturrets[math_random(1,#randomturrets)], {posx+(math_random(-96,96)), posy, posz+(math_random(-96,96)), 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -randomturrets[math_random(1,#randomturrets)], {posx+(math_random(-96,96)), posy, posz+(math_random(-96,96)), 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -randomturrets[math_random(1,#randomturrets)], {posx+(math_random(-96,96)), posy, posz+(math_random(-96,96)), 0}, {"shift"})
-	end
+local function minefield2()
+	return {
+		type = types.Land,
+		tiers = { tiers.T0, tiers.T1, tiers.T2, tiers.T3 },
+		radius = 96,
+		buildings = {
+			{ unitDefID = UDN.armmine1_scav.id, xOffset = math.random(-96,96), yOffset = 0, zOffset = math.random(-96,96), direction = 0 },
+			{ unitDefID = UDN.cormine1_scav.id, xOffset = math.random(-96,96), yOffset = 0, zOffset = math.random(-96,96), direction = 0 },
+			{ unitDefID = UDN.armmine3_scav.id, xOffset = math.random(-96,96), yOffset = 0, zOffset = math.random(-96,96), direction = 0 },
+			{ unitDefID = UDN.cormine3_scav.id, xOffset = math.random(-96,96), yOffset = 0, zOffset = math.random(-96,96), direction = 0 },
+		},
+	}
 end
-table.insert(ScavengerConstructorBlueprintsT0,DamRandomTurretfieldT1)
-table.insert(ScavengerConstructorBlueprintsT1,DamRandomTurretfieldT1)
 
-local function DamRandomTurretfieldT2(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
-local posradius = 96
-local randomturrets = {UDN.armamb_scav.id, UDN.armpb_scav.id, UDN.armanni_scav.id, UDN.armflak_scav.id, UDN.armmercury_scav.id, UDN.armbrtha_scav.id, UDN.armtarg_scav.id, UDN.armveil_scav.id, UDN.armgate_scav.id, UDN.cortoast_scav.id, UDN.corvipe_scav.id, UDN.cordoom_scav.id, UDN.corflak_scav.id, UDN.corscreamer_scav.id, UDN.corint_scav.id, UDN.cortarg_scav.id, UDN.corshroud_scav.id, UDN.corgate_scav.id, UDN.cortron_scav.id, UDN.armemp_scav.id, UDN.corjuno_scav.id, UDN.armjuno_scav.id, UDN.armminivulc_scav.id, UDN.corminibuzz_scav.id, }
-	if radiusCheck then
-		return posradius
-	else
-		Spring.GiveOrderToUnit(scav, -randomturrets[math_random(1,#randomturrets)], {posx+(math_random(-96,96)), posy, posz+(math_random(-96,96)), 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -randomturrets[math_random(1,#randomturrets)], {posx+(math_random(-96,96)), posy, posz+(math_random(-96,96)), 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -randomturrets[math_random(1,#randomturrets)], {posx+(math_random(-96,96)), posy, posz+(math_random(-96,96)), 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -randomturrets[math_random(1,#randomturrets)], {posx+(math_random(-96,96)), posy, posz+(math_random(-96,96)), 0}, {"shift"})
-	end
+local function minefield3()
+	return {
+		type = types.Land,
+		tiers = { tiers.T0, tiers.T1, tiers.T2, tiers.T3 },
+		radius = 384,
+		buildings = {
+			{ unitDefID = UDN.armmine1_scav.id, xOffset = math.random(-384,384), yOffset = 0, zOffset = math.random(-384,384), direction = 0 },
+			{ unitDefID = UDN.cormine1_scav.id, xOffset = math.random(-384,384), yOffset = 0, zOffset = math.random(-384,384), direction = 0 },
+			{ unitDefID = UDN.armmine3_scav.id, xOffset = math.random(-384,384), yOffset = 0, zOffset = math.random(-384,384), direction = 0 },
+			{ unitDefID = UDN.cormine3_scav.id, xOffset = math.random(-384,384), yOffset = 0, zOffset = math.random(-384,384), direction = 0 },
+			{ unitDefID = UDN.armmine1_scav.id, xOffset = math.random(-384,384), yOffset = 0, zOffset = math.random(-384,384), direction = 0 },
+			{ unitDefID = UDN.cormine1_scav.id, xOffset = math.random(-384,384), yOffset = 0, zOffset = math.random(-384,384), direction = 0 },
+			{ unitDefID = UDN.armmine3_scav.id, xOffset = math.random(-384,384), yOffset = 0, zOffset = math.random(-384,384), direction = 0 },
+			{ unitDefID = UDN.cormine3_scav.id, xOffset = math.random(-384,384), yOffset = 0, zOffset = math.random(-384,384), direction = 0 },
+			{ unitDefID = UDN.armmine1_scav.id, xOffset = math.random(-384,384), yOffset = 0, zOffset = math.random(-384,384), direction = 0 },
+			{ unitDefID = UDN.cormine1_scav.id, xOffset = math.random(-384,384), yOffset = 0, zOffset = math.random(-384,384), direction = 0 },
+			{ unitDefID = UDN.armmine3_scav.id, xOffset = math.random(-384,384), yOffset = 0, zOffset = math.random(-384,384), direction = 0 },
+			{ unitDefID = UDN.cormine3_scav.id, xOffset = math.random(-384,384), yOffset = 0, zOffset = math.random(-384,384), direction = 0 },
+			{ unitDefID = UDN.armmine1_scav.id, xOffset = math.random(-384,384), yOffset = 0, zOffset = math.random(-384,384), direction = 0 },
+			{ unitDefID = UDN.cormine1_scav.id, xOffset = math.random(-384,384), yOffset = 0, zOffset = math.random(-384,384), direction = 0 },
+			{ unitDefID = UDN.armmine3_scav.id, xOffset = math.random(-384,384), yOffset = 0, zOffset = math.random(-384,384), direction = 0 },
+			{ unitDefID = UDN.cormine3_scav.id, xOffset = math.random(-384,384), yOffset = 0, zOffset = math.random(-384,384), direction = 0 },
+		},
+	}
 end
-table.insert(ScavengerConstructorBlueprintsT2,DamRandomTurretfieldT2)
 
-local function DamRandomTurretfieldT3(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
-local posradius = 96
-local randomturrets = {UDN.armamb_scav.id, UDN.armpb_scav.id, UDN.armanni_scav.id, UDN.armflak_scav.id, UDN.armmercury_scav.id, UDN.armbrtha_scav.id, UDN.armvulc_scav.id, UDN.armtarg_scav.id, UDN.armveil_scav.id, UDN.armgate_scav.id, UDN.cortoast_scav.id, UDN.corvipe_scav.id, UDN.cordoom_scav.id, UDN.corflak_scav.id, UDN.corscreamer_scav.id, UDN.corint_scav.id, UDN.corbuzz_scav.id, UDN.cortarg_scav.id, UDN.corshroud_scav.id, UDN.corgate_scav.id, UDN.corsilo_scav.id, UDN.armsilo_scav.id, UDN.cortron_scav.id, UDN.armemp_scav.id, UDN.corjuno_scav.id, UDN.armjuno_scav.id, UDN.corminibuzz_scav.id }
-	if radiusCheck then
-		return posradius
-	else
-		Spring.GiveOrderToUnit(scav, -randomturrets[math_random(1,#randomturrets)], {posx+(math_random(-96,96)), posy, posz+(math_random(-96,96)), 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -randomturrets[math_random(1,#randomturrets)], {posx+(math_random(-96,96)), posy, posz+(math_random(-96,96)), 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -randomturrets[math_random(1,#randomturrets)], {posx+(math_random(-96,96)), posy, posz+(math_random(-96,96)), 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -randomturrets[math_random(1,#randomturrets)], {posx+(math_random(-96,96)), posy, posz+(math_random(-96,96)), 0}, {"shift"})
-	end
+local function t1Firebase2()
+	local randomTurrets = {UDN.armllt_scav.id, BPWallOrPopup("scav"), UDN.armbeamer_scav.id, UDN.armhlt_scav.id, UDN.armguard_scav.id, UDN.armrl_scav.id, UDN.armferret_scav.id, UDN.armcir_scav.id, UDN.armnanotc_scav.id, BPWallOrPopup("scav"), UDN.corllt_scav.id, UDN.corhllt_scav.id, UDN.corhlt_scav.id, UDN.corpun_scav.id, UDN.corrl_scav.id, UDN.cormadsam_scav.id, UDN.corerad_scav.id, UDN.cornanotc_scav.id,}
+	return {
+		type = types.Land,
+		tiers = { tiers.T0, tiers.T1 },
+		radius = 96,
+		buildings = {
+			{ unitDefID = randomTurrets[math.random(1, #randomTurrets)], xOffset = math.random(-96,96), yOffset = 0, zOffset = math.random(-96,96), direction = 0 },
+			{ unitDefID = randomTurrets[math.random(1, #randomTurrets)], xOffset = math.random(-96,96), yOffset = 0, zOffset = math.random(-96,96), direction = 0 },
+			{ unitDefID = randomTurrets[math.random(1, #randomTurrets)], xOffset = math.random(-96,96), yOffset = 0, zOffset = math.random(-96,96), direction = 0 },
+			{ unitDefID = randomTurrets[math.random(1, #randomTurrets)], xOffset = math.random(-96,96), yOffset = 0, zOffset = math.random(-96,96), direction = 0 },
+		},
+	}
 end
-table.insert(ScavengerConstructorBlueprintsT3,DamRandomTurretfieldT3)
-table.insert(ScavengerConstructorBlueprintsT4,DamRandomTurretfieldT3)
-
-local function DamRandomNanoTower(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
-local posradius = 24
---local randomturrets = {UDN.armamb_scav.id, UDN.armpb_scav.id, UDN.armanni_scav.id, UDN.armflak_scav.id, UDN.armmercury_scav.id, UDN.armbrtha_scav.id, UDN.armvulc_scav.id, UDN.armtarg_scav.id, UDN.armveil_scav.id, UDN.armgate_scav.id, UDN.cortoast_scav.id, UDN.corvipe_scav.id, UDN.cordoom_scav.id, UDN.corflak_scav.id, UDN.corscreamer_scav.id, UDN.corint_scav.id, UDN.corbuzz_scav.id, UDN.cortarg_scav.id, UDN.corshroud_scav.id, UDN.corgate_scav.id,}
-	if radiusCheck then
-		return posradius
-	else
-		local r = math_random(0,1)
-		if r == 0 then
-			Spring.GiveOrderToUnit(scav, -UDN.cornanotc_scav.id, {posx+(math_random(-96,96)), posy, posz+(math_random(-96,96)), 0}, {"shift"})
-		else
-			Spring.GiveOrderToUnit(scav, -UDN.armnanotc_scav.id, {posx+(math_random(-96,96)), posy, posz+(math_random(-96,96)), 0}, {"shift"})
-		end
-	end
-end
-table.insert(ScavengerConstructorBlueprintsT0,DamRandomNanoTower)
-
-local function DamIceRandomNanoTowerDuo(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
-local posradius = 48
---local randomturrets = {UDN.armamb_scav.id, UDN.armpb_scav.id, UDN.armanni_scav.id, UDN.armflak_scav.id, UDN.armmercury_scav.id, UDN.armbrtha_scav.id, UDN.armvulc_scav.id, UDN.armtarg_scav.id, UDN.armveil_scav.id, UDN.armgate_scav.id, UDN.cortoast_scav.id, UDN.corvipe_scav.id, UDN.cordoom_scav.id, UDN.corflak_scav.id, UDN.corscreamer_scav.id, UDN.corint_scav.id, UDN.corbuzz_scav.id, UDN.cortarg_scav.id, UDN.corshroud_scav.id, UDN.corgate_scav.id,}
-	if radiusCheck then
-		return posradius
-	else
-		local r = math_random(0,1)
-		if r == 0 then
-			Spring.GiveOrderToUnit(scav, -(UDN.armnanotc_scav.id), {posx+(24), posy, posz, 0}, {"shift"})
-	        Spring.GiveOrderToUnit(scav, -(UDN.armnanotc_scav.id), {posx+(-24), posy, posz, 0}, {"shift"})
-		else
-			Spring.GiveOrderToUnit(scav, -(UDN.cornanotc_scav.id), {posx+(24), posy, posz, 0}, {"shift"})
-	        Spring.GiveOrderToUnit(scav, -(UDN.cornanotc_scav.id), {posx+(-24), posy, posz, 0}, {"shift"})
-		end
-	end
-end
-table.insert(ScavengerConstructorBlueprintsT1,DamIceRandomNanoTowerDuo)
-table.insert(ScavengerConstructorBlueprintsT2,DamIceRandomNanoTowerDuo)
-
-local function DamIceRandomNanoTowerQuad(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
-local posradius = 56
---local randomturrets = {UDN.armamb_scav.id, UDN.armpb_scav.id, UDN.armanni_scav.id, UDN.armflak_scav.id, UDN.armmercury_scav.id, UDN.armbrtha_scav.id, UDN.armvulc_scav.id, UDN.armtarg_scav.id, UDN.armveil_scav.id, UDN.armgate_scav.id, UDN.cortoast_scav.id, UDN.corvipe_scav.id, UDN.cordoom_scav.id, UDN.corflak_scav.id, UDN.corscreamer_scav.id, UDN.corint_scav.id, UDN.corbuzz_scav.id, UDN.cortarg_scav.id, UDN.corshroud_scav.id, UDN.corgate_scav.id,}
-	if radiusCheck then
-		return posradius
-	else
-		local r = math_random(0,1)
-		if r == 0 then
-			Spring.GiveOrderToUnit(scav, -(UDN.armnanotc_scav.id), {posx+(24), posy, posz+(24), 0}, {"shift"})
-	        Spring.GiveOrderToUnit(scav, -(UDN.armnanotc_scav.id), {posx+(-24), posy, posz+(24), 0}, {"shift"})
-	        Spring.GiveOrderToUnit(scav, -(UDN.armnanotc_scav.id), {posx+(24), posy, posz+(-24), 0}, {"shift"})
-	        Spring.GiveOrderToUnit(scav, -(UDN.armnanotc_scav.id), {posx+(-24), posy, posz+(-24), 0}, {"shift"})
-		else
-			Spring.GiveOrderToUnit(scav, -(UDN.cornanotc_scav.id), {posx+(24), posy, posz+(24), 0}, {"shift"})
-	        Spring.GiveOrderToUnit(scav, -(UDN.cornanotc_scav.id), {posx+(-24), posy, posz+(24), 0}, {"shift"})
-	        Spring.GiveOrderToUnit(scav, -(UDN.cornanotc_scav.id), {posx+(24), posy, posz+(-24), 0}, {"shift"})
-	        Spring.GiveOrderToUnit(scav, -(UDN.cornanotc_scav.id), {posx+(-24), posy, posz+(-24), 0}, {"shift"})
-		end
-	end
-end
-table.insert(ScavengerConstructorBlueprintsT2,DamIceRandomNanoTowerQuad)
-table.insert(ScavengerConstructorBlueprintsT3,DamIceRandomNanoTowerQuad)
-table.insert(ScavengerConstructorBlueprintsT4,DamIceRandomNanoTowerQuad)
-
-local function DamLandGantry1(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
-local posradius = 112
---local randomturrets = {UDN.armamb_scav.id, UDN.armpb_scav.id, UDN.armanni_scav.id, UDN.armflak_scav.id, UDN.armmercury_scav.id, UDN.armbrtha_scav.id, UDN.armvulc_scav.id, UDN.armtarg_scav.id, UDN.armveil_scav.id, UDN.armgate_scav.id, UDN.cortoast_scav.id, UDN.corvipe_scav.id, UDN.cordoom_scav.id, UDN.corflak_scav.id, UDN.corscreamer_scav.id, UDN.corint_scav.id, UDN.corbuzz_scav.id, UDN.cortarg_scav.id, UDN.corshroud_scav.id, UDN.corgate_scav.id,}
-	if radiusCheck then
-		return posradius
-	else
-		local r = math_random(0,1)
-		if r == 0 then
-			Spring.GiveOrderToUnit(scav, -(UDN.armnanotc_scav.id), {posx+(-112), posy, posz+(-32), 0}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(UDN.armnanotc_scav.id), {posx+(112), posy, posz+(-32), 0}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(UDN.armnanotc_scav.id), {posx+(-112), posy, posz+(16), 0}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(UDN.armnanotc_scav.id), {posx+(112), posy, posz+(16), 0}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(UDN.armgate_scav.id), {posx+(40), posy, posz+(-24), 0}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(UDN.armamd_scav.id), {posx+(-40), posy, posz+(-24), 0}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(UDN.armshltx_scav.id), {posx+(0), posy, posz+(80), 0}, {"shift"})
-		else
-			Spring.GiveOrderToUnit(scav, -(UDN.cornanotc_scav.id), {posx+(-112), posy, posz+(16), 0}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(UDN.cornanotc_scav.id), {posx+(112), posy, posz+(16), 0}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(UDN.cornanotc_scav.id), {posx+(-112), posy, posz+(-32), 0}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(UDN.cornanotc_scav.id), {posx+(112), posy, posz+(-32), 0}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(UDN.corgant_scav.id), {posx+(0), posy, posz+(80), 0}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(UDN.corgate_scav.id), {posx+(40), posy, posz+(-24), 0}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(UDN.corfmd_scav.id), {posx+(-40), posy, posz+(-24), 0}, {"shift"})
-		end
-	end
-end
-table.insert(ScavengerConstructorBlueprintsT3,DamLandGantry1)
-table.insert(ScavengerConstructorBlueprintsT4,DamLandGantry1)
-
-local function DamLandAircraftGantry1(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
-local posradius = 204
-	if radiusCheck then
-		return posradius
-	else
-		local r = math_random(0,1)
-		if r == 0 then
-			Spring.GiveOrderToUnit(scav, -(UDN.armapt3_scav.id), {posx+(0), posy, posz+(20), 0}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(UDN.armnanotc_scav.id), {posx+(-116), posy, posz+(-128), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(UDN.armnanotc_scav.id), {posx+(-196), posy, posz+(-64), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(UDN.armnanotc_scav.id), {posx+(188), posy, posz+(-64), 3}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(UDN.armnanotc_scav.id), {posx+(124), posy, posz+(-128), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(UDN.armflak_scav.id), {posx+(-204), posy, posz+(-8), 3}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(UDN.armbrtha_scav.id), {posx+(4), posy, posz+(184), 0}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(UDN.armgate_scav.id), {posx+(4), posy, posz+(-136), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(UDN.armflak_scav.id), {posx+(196), posy, posz+(88), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(UDN.armflak_scav.id), {posx+(196), posy, posz+(-8), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(UDN.armmercury_scav.id), {posx+(-188), posy, posz+(40), 3}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(UDN.armmercury_scav.id), {posx+(180), posy, posz+(40), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(UDN.armamb_scav.id), {posx+(60), posy, posz+(-144), 2}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(UDN.armamb_scav.id), {posx+(-52), posy, posz+(-144), 2}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(UDN.armanni_scav.id), {posx+(-108), posy, posz+(184), 0}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(UDN.armanni_scav.id), {posx+(116), posy, posz+(184), 0}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(UDN.armflak_scav.id), {posx+(-204), posy, posz+(88), 3}, {"shift"})
-			
-		else
-			Spring.GiveOrderToUnit(scav, -(UDN.corapt3_scav.id), {posx+(1), posy, posz+(11), 0}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(UDN.cornanotc_scav.id), {posx+(-96), posy, posz+(-140), 0}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(UDN.cornanotc_scav.id), {posx+(192), posy, posz+(-60), 0}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(UDN.cornanotc_scav.id), {posx+(-192), posy, posz+(-60), 0}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(UDN.cornanotc_scav.id), {posx+(96), posy, posz+(-140), 0}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(UDN.cordoom_scav.id), {posx+(104), posy, posz+(172), 0}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(UDN.corint_scav.id), {posx+(0), posy, posz+(180), 0}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(UDN.corflak_scav.id), {posx+(-200), posy, posz+(76), 3}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(UDN.corscreamer_scav.id), {posx+(-184), posy, posz+(28), 3}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(UDN.cordoom_scav.id), {posx+(-104), posy, posz+(172), 0}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(UDN.cortoast_scav.id), {posx+(32), posy, posz+(-140), 2}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(UDN.corflak_scav.id), {posx+(200), posy, posz+(-20), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(UDN.corflak_scav.id), {posx+(200), posy, posz+(76), 1}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(UDN.corgate_scav.id), {posx+(-24), posy, posz+(-148), 0}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(UDN.corflak_scav.id), {posx+(-200), posy, posz+(-20), 3}, {"shift"})
-			Spring.GiveOrderToUnit(scav, -(UDN.corscreamer_scav.id), {posx+(184), posy, posz+(28), 1}, {"shift"})
-		end
-	end
-end
-table.insert(ScavengerConstructorBlueprintsT3,DamLandAircraftGantry1)
-table.insert(ScavengerConstructorBlueprintsT4,DamLandAircraftGantry1)
-
-local function DamLandMiniVulcan1(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
-local posradius = 134
-	if radiusCheck then
-		return posradius
-	else
-		Spring.GiveOrderToUnit(scav, -(UDN.armminivulc_scav.id), {posx+(-14), posy, posz+(13), 0}, {"shift"})
 		
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(26), posy, posz+(-91), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(90), posy, posz+(-59), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(26), posy, posz+(101), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-134), posy, posz+(53), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-86), posy, posz+(-43), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(58), posy, posz+(-75), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(58), posy, posz+(85), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(122), posy, posz+(53), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(90), posy, posz+(69), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-118), posy, posz+(21), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-102), posy, posz+(-11), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-6), posy, posz+(-107), 2}, {"shift"})
+local function t2Firebase1()
+	local randomTurrets = {UDN.armamb_scav.id, UDN.armpb_scav.id, UDN.armanni_scav.id, UDN.armflak_scav.id, UDN.armmercury_scav.id, UDN.armbrtha_scav.id, UDN.armtarg_scav.id, UDN.armveil_scav.id, UDN.armgate_scav.id, UDN.cortoast_scav.id, UDN.corvipe_scav.id, UDN.cordoom_scav.id, UDN.corflak_scav.id, UDN.corscreamer_scav.id, UDN.corint_scav.id, UDN.cortarg_scav.id, UDN.corshroud_scav.id, UDN.corgate_scav.id, UDN.cortron_scav.id, UDN.armemp_scav.id, UDN.corjuno_scav.id, UDN.armjuno_scav.id, UDN.armminivulc_scav.id, UDN.corminibuzz_scav.id, }
+	return {
+		type = types.Land,
+		tiers = { tiers.T2 },
+		radius = 96,
+		buildings = {
+			{ unitDefID = randomTurrets[math.random(1, #randomTurrets)], xOffset = math.random(-96,96), yOffset = 0, zOffset = math.random(-96,96), direction = 0 },
+			{ unitDefID = randomTurrets[math.random(1, #randomTurrets)], xOffset = math.random(-96,96), yOffset = 0, zOffset = math.random(-96,96), direction = 0 },
+			{ unitDefID = randomTurrets[math.random(1, #randomTurrets)], xOffset = math.random(-96,96), yOffset = 0, zOffset = math.random(-96,96), direction = 0 },
+			{ unitDefID = randomTurrets[math.random(1, #randomTurrets)], xOffset = math.random(-96,96), yOffset = 0, zOffset = math.random(-96,96), direction = 0 },
+		},
+	}
+end
 		
-	end
+local function t2Firebase2()
+	local randomTurrets = {UDN.armamb_scav.id, UDN.armpb_scav.id, UDN.armanni_scav.id, UDN.armflak_scav.id, UDN.armmercury_scav.id, UDN.armbrtha_scav.id, UDN.armvulc_scav.id, UDN.armtarg_scav.id, UDN.armveil_scav.id, UDN.armgate_scav.id, UDN.cortoast_scav.id, UDN.corvipe_scav.id, UDN.cordoom_scav.id, UDN.corflak_scav.id, UDN.corscreamer_scav.id, UDN.corint_scav.id, UDN.corbuzz_scav.id, UDN.cortarg_scav.id, UDN.corshroud_scav.id, UDN.corgate_scav.id, UDN.corsilo_scav.id, UDN.armsilo_scav.id, UDN.cortron_scav.id, UDN.armemp_scav.id, UDN.corjuno_scav.id, UDN.armjuno_scav.id, UDN.corminibuzz_scav.id }
+	return {
+		type = types.Land,
+		tiers = { tiers.T3, tiers.T4 },
+		radius = 96,
+		buildings = {
+			{ unitDefID = randomTurrets[math.random(1, #randomTurrets)], xOffset = math.random(-96,96), yOffset = 0, zOffset = math.random(-96,96), direction = 0 },
+			{ unitDefID = randomTurrets[math.random(1, #randomTurrets)], xOffset = math.random(-96,96), yOffset = 0, zOffset = math.random(-96,96), direction = 0 },
+			{ unitDefID = randomTurrets[math.random(1, #randomTurrets)], xOffset = math.random(-96,96), yOffset = 0, zOffset = math.random(-96,96), direction = 0 },
+			{ unitDefID = randomTurrets[math.random(1, #randomTurrets)], xOffset = math.random(-96,96), yOffset = 0, zOffset = math.random(-96,96), direction = 0 },
+		},
+	}
 end
-table.insert(ScavengerConstructorBlueprintsT2,DamLandMiniVulcan1)
-table.insert(ScavengerConstructorBlueprintsT3,DamLandMiniVulcan1)
-table.insert(ScavengerConstructorBlueprintsT4,DamLandMiniVulcan1)
-
-local function DamLandMiniVulcan2(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
-local posradius = 172
-	if radiusCheck then
-		return posradius
-	else
-		Spring.GiveOrderToUnit(scav, -(UDN.armminivulc_scav.id), {posx+(-14), posy, posz+(20), 2}, {"shift"})
 		
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(138), posy, posz+(-132), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(138), posy, posz+(12), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(138), posy, posz+(76), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-102), posy, posz+(156), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(10), posy, posz+(-100), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-150), posy, posz+(-52), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-70), posy, posz+(156), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-6), posy, posz+(172), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-134), posy, posz+(-84), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-38), posy, posz+(172), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(74), posy, posz+(-132), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(138), posy, posz+(44), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(122), posy, posz+(108), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-118), posy, posz+(-116), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(122), posy, posz+(-20), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-134), posy, posz+(140), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(42), posy, posz+(-116), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-166), posy, posz+(-20), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-86), posy, posz+(-132), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(106), posy, posz+(-148), 2}, {"shift"})
-	end
-end
-table.insert(ScavengerConstructorBlueprintsT2,DamLandMiniVulcan2)
-table.insert(ScavengerConstructorBlueprintsT3,DamLandMiniVulcan2)
-table.insert(ScavengerConstructorBlueprintsT4,DamLandMiniVulcan2)
+local function randomNanoTowerSingle()
+	local unitID = getRandomNanoTowerID()
 
-local function DamLandMiniVulcan3(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
-local posradius = 196
-	if radiusCheck then
-		return posradius
-	else
-		Spring.GiveOrderToUnit(scav, -(UDN.armminivulc_scav.id), {posx+(-4), posy, posz+(-11), 3}, {"shift"})
+	return {
+		type = types.Land,
+		tiers = { tiers.T0 },
+		radius = 24,
+		buildings = {
+			{ unitDefID = unitID, xOffset = math.random(-96,96), yOffset = 0, zOffset = math.random(-96,96), direction = 0 },
+		},
+	}
+end
 		
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(148), posy, posz+(157), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(100), posy, posz+(-131), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(212), posy, posz+(13), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-12), posy, posz+(-163), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(132), posy, posz+(-131), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(180), posy, posz+(93), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-172), posy, posz+(-147), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-140), posy, posz+(-147), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-172), posy, posz+(-35), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-124), posy, posz+(93), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.armrad_scav.id), {posx+(180), posy, posz+(-115), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.armferret_scav.id), {posx+(-132), posy, posz+(-107), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(180), posy, posz+(157), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(132), posy, posz+(-99), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.armjamt_scav.id), {posx+(-92), posy, posz+(93), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.armrad_scav.id), {posx+(-172), posy, posz+(109), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-44), posy, posz+(-147), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-156), posy, posz+(29), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-108), posy, posz+(-147), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-124), posy, posz+(125), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(180), posy, posz+(125), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(20), posy, posz+(173), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-12), posy, posz+(157), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-172), posy, posz+(-3), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.armferret_scav.id), {posx+(140), posy, posz+(117), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(20), posy, posz+(-179), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-172), posy, posz+(-115), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.armjamt_scav.id), {posx+(100), posy, posz+(-99), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-172), posy, posz+(-83), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(196), posy, posz+(-19), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(52), posy, posz+(173), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-92), posy, posz+(125), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(116), posy, posz+(157), 2}, {"shift"})
-	end
-end
-table.insert(ScavengerConstructorBlueprintsT2,DamLandMiniVulcan3)
-table.insert(ScavengerConstructorBlueprintsT3,DamLandMiniVulcan3)
-table.insert(ScavengerConstructorBlueprintsT4,DamLandMiniVulcan3)
+local function randomNanoTowerDuo()
+	local unitID = getRandomNanoTowerID()
 
-local function DamLandMiniVulcan4(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
-local posradius = 328
-	if radiusCheck then
-		return posradius
-	else
-		Spring.GiveOrderToUnit(scav, -(UDN.armnanotc_scav.id), {posx+(-208), posy, posz+(9), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.armnanotc_scav.id), {posx+(160), posy, posz+(-39), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.armnanotc_scav.id), {posx+(-160), posy, posz+(9), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.armnanotc_scav.id), {posx+(-208), posy, posz+(-39), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.armnanotc_scav.id), {posx+(160), posy, posz+(9), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.armnanotc_scav.id), {posx+(208), posy, posz+(-39), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.armnanotc_scav.id), {posx+(-160), posy, posz+(-39), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.armnanotc_scav.id), {posx+(208), posy, posz+(9), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.armminivulc_scav.id), {posx+(-16), posy, posz+(-7), 2}, {"shift"})
+	return {
+		type = types.Land,
+		tiers = { tiers.T1, tiers.T2 },
+		radius = 48,
+		buildings = {
+			{ unitDefID = unitID, xOffset =   24, yOffset = 0, zOffset =    0, direction = 0 },
+			{ unitDefID = unitID, xOffset =  -24, yOffset = 0, zOffset =    0, direction = 0 },
+		},
+	}
+end
 		
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(312), posy, posz+(49), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(312), posy, posz+(17), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(8), posy, posz+(177), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-328), posy, posz+(-15), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(312), posy, posz+(81), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.armferret_scav.id), {posx+(48), posy, posz+(105), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-312), posy, posz+(-47), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(232), posy, posz+(-111), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(168), posy, posz+(-143), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(136), posy, posz+(145), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-152), posy, posz+(97), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.armrad_scav.id), {posx+(152), posy, posz+(81), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-56), posy, posz+(-143), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(136), posy, posz+(-159), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-248), posy, posz+(81), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(296), posy, posz+(-15), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(168), posy, posz+(129), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(72), posy, posz+(161), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(104), posy, posz+(145), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-216), posy, posz+(81), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-120), posy, posz+(-127), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-360), posy, posz+(1), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(200), posy, posz+(113), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.armferret_scav.id), {posx+(112), posy, posz+(-103), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(40), posy, posz+(177), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-120), posy, posz+(113), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.armferret_scav.id), {posx+(-272), posy, posz+(25), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.armjamt_scav.id), {posx+(232), posy, posz+(65), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-88), posy, posz+(113), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(232), posy, posz+(97), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-280), posy, posz+(-111), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-24), posy, posz+(-159), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(296), posy, posz+(-47), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.armjamt_scav.id), {posx+(-168), posy, posz+(49), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-296), posy, posz+(-79), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-152), posy, posz+(-127), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(104), posy, posz+(-175), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-280), posy, posz+(81), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-88), posy, posz+(-143), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(72), posy, posz+(-191), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-184), posy, posz+(-127), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-184), posy, posz+(97), 2}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(200), posy, posz+(-127), 2}, {"shift"})
+local function randomNanoTowerQuad()
+	local unitID = getRandomNanoTowerID()
+
+	return {
+		type = types.Land,
+		tiers = { tiers.T2, tiers.T3, tiers.T4 },
+		radius = 56,
+		buildings = {
+			{ unitDefID = unitID, xOffset =   24, yOffset = 0, zOffset =   24, direction = 0 },
+			{ unitDefID = unitID, xOffset =  -24, yOffset = 0, zOffset =   24, direction = 0 },
+			{ unitDefID = unitID, xOffset =   24, yOffset = 0, zOffset =  -24, direction = 0 },
+			{ unitDefID = unitID, xOffset =  -24, yOffset = 0, zOffset =  -24, direction = 0 },
+		},
+	}
+end
 		
-	end
-end
-table.insert(ScavengerConstructorBlueprintsT2,DamLandMiniVulcan4)
-table.insert(ScavengerConstructorBlueprintsT3,DamLandMiniVulcan4)
-table.insert(ScavengerConstructorBlueprintsT4,DamLandMiniVulcan4)
-
-
-local function DamLandMiniBuzzsaw1(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
-local posradius = 110
-	if radiusCheck then
-		return posradius
+local function t3Gantry1()
+	local buildings
+	local r = math.random(0,1)
+	if r == 0 then
+		buildings = {
+			{ unitDefID = UDN.armnanotc_scav.id, xOffset = -112, yOffset = 0, zOffset =  -32, direction = 0 },
+			{ unitDefID = UDN.armnanotc_scav.id, xOffset =  112, yOffset = 0, zOffset =  -32, direction = 0 },
+			{ unitDefID = UDN.armnanotc_scav.id, xOffset = -112, yOffset = 0, zOffset =   16, direction = 0 },
+			{ unitDefID = UDN.armnanotc_scav.id, xOffset =  112, yOffset = 0, zOffset =   16, direction = 0 },
+			{ unitDefID = UDN.armgate_scav.id,   xOffset =   40, yOffset = 0, zOffset =  -24, direction = 0 },
+			{ unitDefID = UDN.armamd_scav.id,    xOffset =  -40, yOffset = 0, zOffset =  -24, direction = 0 },
+			{ unitDefID = UDN.armshltx_scav.id,  xOffset =    0, yOffset = 0, zOffset =   80, direction = 0 },
+		}
 	else
-		Spring.GiveOrderToUnit(scav, -(UDN.corminibuzz_scav.id), {posx+(3), posy, posz+(-10), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(11), posy, posz+(110), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-53), posy, posz+(-98), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-53), posy, posz+(62), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-21), posy, posz+(94), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(91), posy, posz+(-18), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(91), posy, posz+(14), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-85), posy, posz+(-34), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-69), posy, posz+(-66), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(91), posy, posz+(-50), 1}, {"shift"})
+		buildings = {
+			{ unitDefID = UDN.cornanotc_scav.id, xOffset = -112, yOffset = 0, zOffset =   16, direction = 0 },
+			{ unitDefID = UDN.cornanotc_scav.id, xOffset =  112, yOffset = 0, zOffset =   16, direction = 0 },
+			{ unitDefID = UDN.cornanotc_scav.id, xOffset = -112, yOffset = 0, zOffset =  -32, direction = 0 },
+			{ unitDefID = UDN.cornanotc_scav.id, xOffset =  112, yOffset = 0, zOffset =  -32, direction = 0 },
+			{ unitDefID = UDN.corgant_scav.id,   xOffset =    0, yOffset = 0, zOffset =   80, direction = 0 },
+			{ unitDefID = UDN.corgate_scav.id,   xOffset =   40, yOffset = 0, zOffset =  -24, direction = 0 },
+			{ unitDefID = UDN.corfmd_scav.id,    xOffset =  -40, yOffset = 0, zOffset =  -24, direction = 0 },
+		}
 	end
-end
-table.insert(ScavengerConstructorBlueprintsT2,DamLandMiniBuzzsaw1)
-table.insert(ScavengerConstructorBlueprintsT3,DamLandMiniBuzzsaw1)
-table.insert(ScavengerConstructorBlueprintsT4,DamLandMiniBuzzsaw1)
 
-local function DamLandMiniBuzzsaw2(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
-local posradius = 245
-	if radiusCheck then
-		return posradius
-	else
-		Spring.GiveOrderToUnit(scav, -(UDN.corminibuzz_scav.id), {posx+(19), posy, posz+(8), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(123), posy, posz+(-96), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-245), posy, posz+(-48), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-5), posy, posz+(-160), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-181), posy, posz+(64), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(187), posy, posz+(-32), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-165), posy, posz+(-128), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(139), posy, posz+(128), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(59), posy, posz+(-128), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-101), posy, posz+(-176), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.corerad_scav.id), {posx+(-85), posy, posz+(64), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(203), posy, posz+(32), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-213), posy, posz+(48), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.corrad_scav.id), {posx+(-69), posy, posz+(-96), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-197), posy, posz+(-112), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(203), posy, posz+(0), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(187), posy, posz+(-64), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-149), posy, posz+(96), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-85), posy, posz+(144), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.corjamt_scav.id), {posx+(139), posy, posz+(0), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(219), posy, posz+(64), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(107), posy, posz+(144), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(11), posy, posz+(192), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-133), posy, posz+(-160), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(91), posy, posz+(-112), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-229), posy, posz+(-80), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(43), posy, posz+(176), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(27), posy, posz+(-144), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-117), posy, posz+(128), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(75), posy, posz+(160), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(171), posy, posz+(112), 1}, {"shift"})
-	end
+	return {
+		type = types.Land,
+		tiers = { tiers.T3, tiers.T4 },
+		radius = 112,
+		buildings = buildings,
+	}
 end
-table.insert(ScavengerConstructorBlueprintsT2,DamLandMiniBuzzsaw2)
-table.insert(ScavengerConstructorBlueprintsT3,DamLandMiniBuzzsaw2)
-table.insert(ScavengerConstructorBlueprintsT4,DamLandMiniBuzzsaw2)
 
-local function DamLandMiniBuzzsaw3(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
-local posradius = 325
-	if radiusCheck then
-		return posradius
+local function t3Gantry2()
+	local buildings	
+	local r = math.random(0,1)
+	if r == 0 then
+		buildings = {
+			{ unitDefID = UDN.armapt3_scav.id,    xOffset =    0, yOffset = 0, zOffset =   20, direction = 0 },
+			{ unitDefID = UDN.armnanotc_scav.id,  xOffset = -116, yOffset = 0, zOffset = -128, direction = 1 },
+			{ unitDefID = UDN.armnanotc_scav.id,  xOffset = -196, yOffset = 0, zOffset =  -64, direction = 1 },
+			{ unitDefID = UDN.armnanotc_scav.id,  xOffset =  188, yOffset = 0, zOffset =  -64, direction = 3 },
+			{ unitDefID = UDN.armnanotc_scav.id,  xOffset =  124, yOffset = 0, zOffset = -128, direction = 1 },
+			{ unitDefID = UDN.armflak_scav.id,    xOffset = -204, yOffset = 0, zOffset =   -8, direction = 3 },
+			{ unitDefID = UDN.armbrtha_scav.id,   xOffset =    4, yOffset = 0, zOffset =  184, direction = 0 },
+			{ unitDefID = UDN.armgate_scav.id,    xOffset =    4, yOffset = 0, zOffset = -136, direction = 1 },
+			{ unitDefID = UDN.armflak_scav.id,    xOffset =  196, yOffset = 0, zOffset =   88, direction = 1 },
+			{ unitDefID = UDN.armflak_scav.id,    xOffset =  196, yOffset = 0, zOffset =   -8, direction = 1 },
+			{ unitDefID = UDN.armmercury_scav.id, xOffset = -188, yOffset = 0, zOffset =   40, direction = 3 },
+			{ unitDefID = UDN.armmercury_scav.id, xOffset =  180, yOffset = 0, zOffset =   40, direction = 1 },
+			{ unitDefID = UDN.armamb_scav.id,     xOffset =   60, yOffset = 0, zOffset = -144, direction = 2 },
+			{ unitDefID = UDN.armamb_scav.id,     xOffset =  -52, yOffset = 0, zOffset = -144, direction = 2 },
+			{ unitDefID = UDN.armanni_scav.id,    xOffset = -108, yOffset = 0, zOffset =  184, direction = 0 },
+			{ unitDefID = UDN.armanni_scav.id,    xOffset =  116, yOffset = 0, zOffset =  184, direction = 0 },
+			{ unitDefID = UDN.armflak_scav.id,    xOffset = -204, yOffset = 0, zOffset =   88, direction = 3 },
+		}
 	else
-		Spring.GiveOrderToUnit(scav, -(UDN.cornanotc_scav.id), {posx+(-3), posy, posz+(140), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.cornanotc_scav.id), {posx+(-131), posy, posz+(12), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.cornanotc_scav.id), {posx+(-3), posy, posz+(-116), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.cornanotc_scav.id), {posx+(125), posy, posz+(12), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.corminibuzz_scav.id), {posx+(-3), posy, posz+(12), 1}, {"shift"})
-		
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(277), posy, posz+(100), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.corhllt_scav.id), {posx+(149), posy, posz+(-188), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(133), posy, posz+(260), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(117), posy, posz+(-252), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-107), posy, posz+(292), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-235), posy, posz+(-124), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(213), posy, posz+(164), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-123), posy, posz+(260), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-75), posy, posz+(-268), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.corrad_scav.id), {posx+(85), posy, posz+(116), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-331), posy, posz+(52), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-155), posy, posz+(228), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.corhllt_scav.id), {posx+(-139), posy, posz+(-188), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(309), posy, posz+(-76), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-219), posy, posz+(180), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.corhllt_scav.id), {posx+(245), posy, posz+(-108), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-283), posy, posz+(116), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.corhllt_scav.id), {posx+(149), posy, posz+(196), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-107), posy, posz+(-252), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(325), posy, posz+(36), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(245), posy, posz+(132), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(213), posy, posz+(-172), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.corjamt_scav.id), {posx+(-75), posy, posz+(100), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-251), posy, posz+(148), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.corhllt_scav.id), {posx+(-283), posy, posz+(84), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.corhllt_scav.id), {posx+(277), posy, posz+(68), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.corjamt_scav.id), {posx+(85), posy, posz+(-76), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(149), posy, posz+(228), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-187), posy, posz+(196), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.corrad_scav.id), {posx+(-91), posy, posz+(-60), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-299), posy, posz+(-92), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-315), posy, posz+(84), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(149), posy, posz+(-220), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-171), posy, posz+(-188), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(85), posy, posz+(-268), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(277), posy, posz+(-108), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.corhllt_scav.id), {posx+(-203), posy, posz+(-124), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-139), posy, posz+(-220), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-203), posy, posz+(-156), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(245), posy, posz+(-140), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(309), posy, posz+(68), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(181), posy, posz+(196), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(181), posy, posz+(-188), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-267), posy, posz+(-92), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.corhllt_scav.id), {posx+(-123), posy, posz+(228), 1}, {"shift"})
+		buildings = {
+			{ unitDefID = UDN.corapt3_scav.id,     xOffset =    1, yOffset = 0, zOffset =   11, direction = 0 },
+			{ unitDefID = UDN.cornanotc_scav.id,   xOffset =  -96, yOffset = 0, zOffset = -140, direction = 0 },
+			{ unitDefID = UDN.cornanotc_scav.id,   xOffset =  192, yOffset = 0, zOffset =  -60, direction = 0 },
+			{ unitDefID = UDN.cornanotc_scav.id,   xOffset = -192, yOffset = 0, zOffset =  -60, direction = 0 },
+			{ unitDefID = UDN.cornanotc_scav.id,   xOffset =   96, yOffset = 0, zOffset = -140, direction = 0 },
+			{ unitDefID = UDN.cordoom_scav.id,     xOffset =  104, yOffset = 0, zOffset =  172, direction = 0 },
+			{ unitDefID = UDN.corint_scav.id,      xOffset =    0, yOffset = 0, zOffset =  180, direction = 0 },
+			{ unitDefID = UDN.corflak_scav.id,     xOffset = -200, yOffset = 0, zOffset =   76, direction = 3 },
+			{ unitDefID = UDN.corscreamer_scav.id, xOffset = -184, yOffset = 0, zOffset =   28, direction = 3 },
+			{ unitDefID = UDN.cordoom_scav.id,     xOffset = -104, yOffset = 0, zOffset =  172, direction = 0 },
+			{ unitDefID = UDN.cortoast_scav.id,    xOffset =   32, yOffset = 0, zOffset = -140, direction = 2 },
+			{ unitDefID = UDN.corflak_scav.id,     xOffset =  200, yOffset = 0, zOffset =  -20, direction = 1 },
+			{ unitDefID = UDN.corflak_scav.id,     xOffset =  200, yOffset = 0, zOffset =   76, direction = 1 },
+			{ unitDefID = UDN.corgate_scav.id,     xOffset =  -24, yOffset = 0, zOffset = -148, direction = 0 },
+			{ unitDefID = UDN.corflak_scav.id,     xOffset = -200, yOffset = 0, zOffset =  -20, direction = 3 },
+			{ unitDefID = UDN.corscreamer_scav.id, xOffset =  184, yOffset = 0, zOffset =   28, direction = 1 },
+		}
 	end
-end
-table.insert(ScavengerConstructorBlueprintsT2,DamLandMiniBuzzsaw3)
-table.insert(ScavengerConstructorBlueprintsT3,DamLandMiniBuzzsaw3)
-table.insert(ScavengerConstructorBlueprintsT4,DamLandMiniBuzzsaw3)
 
-local function DamLandMiniBuzzsaw4(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
-local posradius = 333
-	if radiusCheck then
-		return posradius
-	else
-		Spring.GiveOrderToUnit(scav, -(UDN.cornanotc_scav.id), {posx+(-75), posy, posz+(131), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.cornanotc_scav.id), {posx+(-123), posy, posz+(83), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.cornanotc_scav.id), {posx+(-75), posy, posz+(83), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.cornanotc_scav.id), {posx+(85), posy, posz+(-61), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.cornanotc_scav.id), {posx+(133), posy, posz+(-61), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.cornanotc_scav.id), {posx+(-123), posy, posz+(131), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.cornanotc_scav.id), {posx+(133), posy, posz+(-109), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.cornanotc_scav.id), {posx+(85), posy, posz+(-109), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.corminibuzz_scav.id), {posx+(5), posy, posz+(3), 1}, {"shift"})
-		
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(93), posy, posz+(-325), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-163), posy, posz+(-53), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.corjamt_scav.id), {posx+(189), posy, posz+(-69), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-83), posy, posz+(299), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(61), posy, posz+(139), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-99), posy, posz+(-117), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(221), posy, posz+(-21), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-19), posy, posz+(-213), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.cormadsam_scav.id), {posx+(-123), posy, posz+(211), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(189), posy, posz+(11), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(269), posy, posz+(-85), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.cormadsam_scav.id), {posx+(133), posy, posz+(-189), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-179), posy, posz+(-21), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-67), posy, posz+(-149), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-243), posy, posz+(43), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-19), posy, posz+(235), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-259), posy, posz+(75), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(237), posy, posz+(-53), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(157), posy, posz+(43), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-211), posy, posz+(11), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-323), posy, posz+(123), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(13), posy, posz+(-245), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(29), posy, posz+(-277), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.cormadsam_scav.id), {posx+(85), posy, posz+(-189), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-115), posy, posz+(315), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(93), posy, posz+(107), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(29), posy, posz+(171), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-51), posy, posz+(267), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.corrad_scav.id), {posx+(-179), posy, posz+(139), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.corjamt_scav.id), {posx+(-179), posy, posz+(91), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.corrad_scav.id), {posx+(189), posy, posz+(-117), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-131), posy, posz+(-85), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.cormadsam_scav.id), {posx+(-75), posy, posz+(211), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(61), posy, posz+(-309), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(13), posy, posz+(203), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-291), posy, posz+(107), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(-51), posy, posz+(-181), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(125), posy, posz+(75), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(301), posy, posz+(-117), 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(BPWallOrPopup("scav")), {posx+(333), posy, posz+(-133), 1}, {"shift"})
-	end
+	return {
+		type = types.Land,
+		tiers = { tiers.T3, tiers.T4 },
+		radius = 204,
+		buildings = buildings,
+	}
 end
-table.insert(ScavengerConstructorBlueprintsT2,DamLandMiniBuzzsaw4)
-table.insert(ScavengerConstructorBlueprintsT3,DamLandMiniBuzzsaw4)
-table.insert(ScavengerConstructorBlueprintsT4,DamLandMiniBuzzsaw4)
+
+local function t2HeavyFirebase1()
+	return {
+		type = types.Land,
+		tiers = { tiers.T2, tiers.T3, tiers.T4 },
+		radius = 134,
+		buildings = {
+			{ unitDefID = UDN.armminivulc_scav.id, xOffset =  -14, yOffset = 0, zOffset =   13, direction = 0 },		
+			{ unitDefID = BPWallOrPopup("scav"),   xOffset =   26, yOffset = 0, zOffset =  -91, direction = 2 },
+			{ unitDefID = BPWallOrPopup("scav"),   xOffset =   90, yOffset = 0, zOffset =  -59, direction = 2 },
+			{ unitDefID = BPWallOrPopup("scav"),   xOffset =   26, yOffset = 0, zOffset =  101, direction = 2 },
+			{ unitDefID = BPWallOrPopup("scav"),   xOffset = -134, yOffset = 0, zOffset =   53, direction = 2 },
+			{ unitDefID = BPWallOrPopup("scav"),   xOffset =  -86, yOffset = 0, zOffset =  -43, direction = 2 },
+			{ unitDefID = BPWallOrPopup("scav"),   xOffset =   58, yOffset = 0, zOffset =  -75, direction = 2 },
+			{ unitDefID = BPWallOrPopup("scav"),   xOffset =   58, yOffset = 0, zOffset =   85, direction = 2 },
+			{ unitDefID = BPWallOrPopup("scav"),   xOffset =  122, yOffset = 0, zOffset =   53, direction = 2 },
+			{ unitDefID = BPWallOrPopup("scav"),   xOffset =   90, yOffset = 0, zOffset =   69, direction = 2 },
+			{ unitDefID = BPWallOrPopup("scav"),   xOffset = -118, yOffset = 0, zOffset =   21, direction = 2 },
+			{ unitDefID = BPWallOrPopup("scav"),   xOffset = -102, yOffset = 0, zOffset =  -11, direction = 2 },
+			{ unitDefID = BPWallOrPopup("scav"),   xOffset =   -6, yOffset = 0, zOffset = -107, direction = 2 },
+		},
+	}
+end
+
+local function t2HeavyFirebase2()
+	return {
+		type = types.Land,
+		tiers = { tiers.T2, tiers.T3, tiers.T4 },
+		radius = 172,
+		buildings = {
+			{ unitDefID = UDN.armminivulc_scav.id, xOffset =  -14, yOffset = 0, zOffset =   20, direction = 2 },
+			{ unitDefID = BPWallOrPopup("scav"),   xOffset =  138, yOffset = 0, zOffset = -132, direction = 2 },
+			{ unitDefID = BPWallOrPopup("scav"),   xOffset =  138, yOffset = 0, zOffset =   12, direction = 2 },
+			{ unitDefID = BPWallOrPopup("scav"),   xOffset =  138, yOffset = 0, zOffset =   76, direction = 2 },
+			{ unitDefID = BPWallOrPopup("scav"),   xOffset = -102, yOffset = 0, zOffset =  156, direction = 2 },
+			{ unitDefID = BPWallOrPopup("scav"),   xOffset =   10, yOffset = 0, zOffset = -100, direction = 2 },
+			{ unitDefID = BPWallOrPopup("scav"),   xOffset = -150, yOffset = 0, zOffset =  -52, direction = 2 },
+			{ unitDefID = BPWallOrPopup("scav"),   xOffset =  -70, yOffset = 0, zOffset =  156, direction = 2 },
+			{ unitDefID = BPWallOrPopup("scav"),   xOffset =   -6, yOffset = 0, zOffset =  172, direction = 2 },
+			{ unitDefID = BPWallOrPopup("scav"),   xOffset = -134, yOffset = 0, zOffset =  -84, direction = 2 },
+			{ unitDefID = BPWallOrPopup("scav"),   xOffset =  -38, yOffset = 0, zOffset =  172, direction = 2 },
+			{ unitDefID = BPWallOrPopup("scav"),   xOffset =   74, yOffset = 0, zOffset = -132, direction = 2 },
+			{ unitDefID = BPWallOrPopup("scav"),   xOffset =  138, yOffset = 0, zOffset =   44, direction = 2 },
+			{ unitDefID = BPWallOrPopup("scav"),   xOffset =  122, yOffset = 0, zOffset =  108, direction = 2 },
+			{ unitDefID = BPWallOrPopup("scav"),   xOffset = -118, yOffset = 0, zOffset = -116, direction = 2 },
+			{ unitDefID = BPWallOrPopup("scav"),   xOffset =  122, yOffset = 0, zOffset =  -20, direction = 2 },
+			{ unitDefID = BPWallOrPopup("scav"),   xOffset = -134, yOffset = 0, zOffset =  140, direction = 2 },
+			{ unitDefID = BPWallOrPopup("scav"),   xOffset =   42, yOffset = 0, zOffset = -116, direction = 2 },
+			{ unitDefID = BPWallOrPopup("scav"),   xOffset = -166, yOffset = 0, zOffset =  -20, direction = 2 },
+			{ unitDefID = BPWallOrPopup("scav"),   xOffset =  -86, yOffset = 0, zOffset = -132, direction = 2 },
+			{ unitDefID = BPWallOrPopup("scav"),   xOffset =  106, yOffset = 0, zOffset = -148, direction = 2 },
+		},
+	}
+end
+
+local function t2HeavyFirebase3()
+	return {
+		type = types.Land,
+		tiers = { tiers.T2, tiers.T3, tiers.T4 },
+		radius = 196,
+		buildings = {
+			{ unitDefID = UDN.armminivulc_scav.id, xOffset =   -4, yOffset = 0, zOffset =  -11, direction = 3 },
+			{ unitDefID = BPWallOrPopup("scav"),   xOffset =  148, yOffset = 0, zOffset =  157, direction = 2 },
+			{ unitDefID = BPWallOrPopup("scav"),   xOffset =  100, yOffset = 0, zOffset = -131, direction = 2 },
+			{ unitDefID = BPWallOrPopup("scav"),   xOffset =  212, yOffset = 0, zOffset =   13, direction = 2 },
+			{ unitDefID = BPWallOrPopup("scav"),   xOffset =  -12, yOffset = 0, zOffset = -163, direction = 2 },
+			{ unitDefID = BPWallOrPopup("scav"),   xOffset =  132, yOffset = 0, zOffset = -131, direction = 2 },
+			{ unitDefID = BPWallOrPopup("scav"),   xOffset =  180, yOffset = 0, zOffset =   93, direction = 2 },
+			{ unitDefID = BPWallOrPopup("scav"),   xOffset = -172, yOffset = 0, zOffset = -147, direction = 2 },
+			{ unitDefID = BPWallOrPopup("scav"),   xOffset = -140, yOffset = 0, zOffset = -147, direction = 2 },
+			{ unitDefID = BPWallOrPopup("scav"),   xOffset = -172, yOffset = 0, zOffset =  -35, direction = 2 },
+			{ unitDefID = BPWallOrPopup("scav"),   xOffset = -124, yOffset = 0, zOffset =   93, direction = 2 },
+			{ unitDefID = UDN.armrad_scav.id,      xOffset =  180, yOffset = 0, zOffset = -115, direction = 2 },
+			{ unitDefID = UDN.armferret_scav.id,   xOffset = -132, yOffset = 0, zOffset = -107, direction = 2 },
+			{ unitDefID = BPWallOrPopup("scav"),   xOffset =  180, yOffset = 0, zOffset =  157, direction = 2 },
+			{ unitDefID = BPWallOrPopup("scav"),   xOffset =  132, yOffset = 0, zOffset =  -99, direction = 2 },
+			{ unitDefID = UDN.armjamt_scav.id,     xOffset =  -92, yOffset = 0, zOffset =   93, direction = 2 },
+			{ unitDefID = UDN.armrad_scav.id,      xOffset = -172, yOffset = 0, zOffset =  109, direction = 2 },
+			{ unitDefID = BPWallOrPopup("scav"),   xOffset =  -44, yOffset = 0, zOffset = -147, direction = 2 },
+			{ unitDefID = BPWallOrPopup("scav"),   xOffset = -156, yOffset = 0, zOffset =   29, direction = 2 },
+			{ unitDefID = BPWallOrPopup("scav"),   xOffset = -108, yOffset = 0, zOffset = -147, direction = 2 },
+			{ unitDefID = BPWallOrPopup("scav"),   xOffset = -124, yOffset = 0, zOffset =  125, direction = 2 },
+			{ unitDefID = BPWallOrPopup("scav"),   xOffset =  180, yOffset = 0, zOffset =  125, direction = 2 },
+			{ unitDefID = BPWallOrPopup("scav"),   xOffset =   20, yOffset = 0, zOffset =  173, direction = 2 },
+			{ unitDefID = BPWallOrPopup("scav"),   xOffset =  -12, yOffset = 0, zOffset =  157, direction = 2 },
+			{ unitDefID = BPWallOrPopup("scav"),   xOffset = -172, yOffset = 0, zOffset =   -3, direction = 2 },
+			{ unitDefID = UDN.armferret_scav.id,   xOffset =  140, yOffset = 0, zOffset =  117, direction = 2 },
+			{ unitDefID = BPWallOrPopup("scav"),   xOffset =   20, yOffset = 0, zOffset = -179, direction = 2 },
+			{ unitDefID = BPWallOrPopup("scav"),   xOffset = -172, yOffset = 0, zOffset = -115, direction = 2 },
+			{ unitDefID = UDN.armjamt_scav.id,     xOffset =  100, yOffset = 0, zOffset =  -99, direction = 2 },
+			{ unitDefID = BPWallOrPopup("scav"),   xOffset = -172, yOffset = 0, zOffset =  -83, direction = 2 },
+			{ unitDefID = BPWallOrPopup("scav"),   xOffset =  196, yOffset = 0, zOffset =  -19, direction = 2 },
+			{ unitDefID = BPWallOrPopup("scav"),   xOffset =   52, yOffset = 0, zOffset =  173, direction = 2 },
+			{ unitDefID = BPWallOrPopup("scav"),   xOffset =  -92, yOffset = 0, zOffset =  125, direction = 2 },
+			{ unitDefID = BPWallOrPopup("scav"),   xOffset =  116, yOffset = 0, zOffset =  157, direction = 2 },
+		},
+	}
+end
+
+local function t2HeavyFirebase4()
+	return {
+		type = types.Land,
+		tiers = { tiers.T2, tiers.T3, tiers.T4 },
+		radius = 328,
+		buildings = {
+			{ unitDefID = UDN.armnanotc_scav.id,   xOffset = -208, yOffset = 0, zOffset =    9, direction = 2 },
+			{ unitDefID = UDN.armnanotc_scav.id,   xOffset =  160, yOffset = 0, zOffset =  -39, direction = 2 },
+			{ unitDefID = UDN.armnanotc_scav.id,   xOffset = -160, yOffset = 0, zOffset =    9, direction = 2 },
+			{ unitDefID = UDN.armnanotc_scav.id,   xOffset = -208, yOffset = 0, zOffset =  -39, direction = 2 },
+			{ unitDefID = UDN.armnanotc_scav.id,   xOffset =  160, yOffset = 0, zOffset =    9, direction = 2 },
+			{ unitDefID = UDN.armnanotc_scav.id,   xOffset =  208, yOffset = 0, zOffset =  -39, direction = 2 },
+			{ unitDefID = UDN.armnanotc_scav.id,   xOffset = -160, yOffset = 0, zOffset =  -39, direction = 2 },
+			{ unitDefID = UDN.armnanotc_scav.id,   xOffset =  208, yOffset = 0, zOffset =    9, direction = 2 },
+			{ unitDefID = UDN.armminivulc_scav.id, xOffset =  -16, yOffset = 0, zOffset =   -7, direction = 2 },
+
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  312, yOffset = 0, zOffset =   49, direction = 2 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  312, yOffset = 0, zOffset =   17, direction = 2 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =    8, yOffset = 0, zOffset =  177, direction = 2 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset = -328, yOffset = 0, zOffset =  -15, direction = 2 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  312, yOffset = 0, zOffset =   81, direction = 2 },
+			{ unitDefID = UDN.armferret_scav.id, xOffset =   48, yOffset = 0, zOffset =  105, direction = 2 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset = -312, yOffset = 0, zOffset =  -47, direction = 2 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  232, yOffset = 0, zOffset = -111, direction = 2 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  168, yOffset = 0, zOffset = -143, direction = 2 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  136, yOffset = 0, zOffset =  145, direction = 2 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset = -152, yOffset = 0, zOffset =   97, direction = 2 },
+			{ unitDefID = UDN.armrad_scav.id,    xOffset =  152, yOffset = 0, zOffset =   81, direction = 2 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  -56, yOffset = 0, zOffset = -143, direction = 2 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  136, yOffset = 0, zOffset = -159, direction = 2 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset = -248, yOffset = 0, zOffset =   81, direction = 2 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  296, yOffset = 0, zOffset =  -15, direction = 2 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  168, yOffset = 0, zOffset =  129, direction = 2 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =   72, yOffset = 0, zOffset =  161, direction = 2 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  104, yOffset = 0, zOffset =  145, direction = 2 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset = -216, yOffset = 0, zOffset =   81, direction = 2 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset = -120, yOffset = 0, zOffset = -127, direction = 2 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset = -360, yOffset = 0, zOffset =    1, direction = 2 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  200, yOffset = 0, zOffset =  113, direction = 2 },
+			{ unitDefID = UDN.armferret_scav.id, xOffset =  112, yOffset = 0, zOffset = -103, direction = 2 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =   40, yOffset = 0, zOffset =  177, direction = 2 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset = -120, yOffset = 0, zOffset =  113, direction = 2 },
+			{ unitDefID = UDN.armferret_scav.id, xOffset = -272, yOffset = 0, zOffset =   25, direction = 2 },
+			{ unitDefID = UDN.armjamt_scav.id,   xOffset =  232, yOffset = 0, zOffset =   65, direction = 2 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  -88, yOffset = 0, zOffset =  113, direction = 2 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  232, yOffset = 0, zOffset =   97, direction = 2 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset = -280, yOffset = 0, zOffset = -111, direction = 2 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  -24, yOffset = 0, zOffset = -159, direction = 2 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  296, yOffset = 0, zOffset =  -47, direction = 2 },
+			{ unitDefID = UDN.armjamt_scav.id,   xOffset = -168, yOffset = 0, zOffset =   49, direction = 2 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset = -296, yOffset = 0, zOffset =  -79, direction = 2 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset = -152, yOffset = 0, zOffset = -127, direction = 2 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  104, yOffset = 0, zOffset = -175, direction = 2 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset = -280, yOffset = 0, zOffset =   81, direction = 2 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  -88, yOffset = 0, zOffset = -143, direction = 2 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =   72, yOffset = 0, zOffset = -191, direction = 2 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset = -184, yOffset = 0, zOffset = -127, direction = 2 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset = -184, yOffset = 0, zOffset =   97, direction = 2 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  200, yOffset = 0, zOffset = -127, direction = 2 },
+		},
+	}
+end
+
+
+local function t2HeavyFirebase5()
+	return {
+		type = types.Land,
+		tiers = { tiers.T2, tiers.T3, tiers.T4 },
+		radius = 110,
+		buildings = {
+			{ unitDefID = UDN.corminibuzz_scav.id, xOffset =    3, yOffset = 0, zOffset =  -10, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"),   xOffset =   11, yOffset = 0, zOffset =  110, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"),   xOffset =  -53, yOffset = 0, zOffset =  -98, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"),   xOffset =  -53, yOffset = 0, zOffset =   62, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"),   xOffset =  -21, yOffset = 0, zOffset =   94, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"),   xOffset =   91, yOffset = 0, zOffset =  -18, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"),   xOffset =   91, yOffset = 0, zOffset =   14, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"),   xOffset =  -85, yOffset = 0, zOffset =  -34, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"),   xOffset =  -69, yOffset = 0, zOffset =  -66, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"),   xOffset =   91, yOffset = 0, zOffset =  -50, direction = 1 },
+		},
+	}
+end
+
+local function t2HeavyFirebase6()
+	return {
+		type = types.Land,
+		tiers = { tiers.T2, tiers.T3, tiers.T4 },
+		radius = 245,
+		buildings = {
+			{ unitDefID = UDN.corminibuzz_scav.id, xOffset =   19, yOffset = 0, zOffset =    8, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"),   xOffset =  123, yOffset = 0, zOffset =  -96, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"),   xOffset = -245, yOffset = 0, zOffset =  -48, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"),   xOffset =   -5, yOffset = 0, zOffset = -160, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"),   xOffset = -181, yOffset = 0, zOffset =   64, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"),   xOffset =  187, yOffset = 0, zOffset =  -32, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"),   xOffset = -165, yOffset = 0, zOffset = -128, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"),   xOffset =  139, yOffset = 0, zOffset =  128, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"),   xOffset =   59, yOffset = 0, zOffset = -128, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"),   xOffset = -101, yOffset = 0, zOffset = -176, direction = 1 },
+			{ unitDefID = UDN.corerad_scav.id,     xOffset =  -85, yOffset = 0, zOffset =   64, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"),   xOffset =  203, yOffset = 0, zOffset =   32, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"),   xOffset = -213, yOffset = 0, zOffset =   48, direction = 1 },
+			{ unitDefID = UDN.corrad_scav.id,      xOffset =  -69, yOffset = 0, zOffset =  -96, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"),   xOffset = -197, yOffset = 0, zOffset = -112, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"),   xOffset =  203, yOffset = 0, zOffset =    0, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"),   xOffset =  187, yOffset = 0, zOffset =  -64, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"),   xOffset = -149, yOffset = 0, zOffset =   96, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"),   xOffset =  -85, yOffset = 0, zOffset =  144, direction = 1 },
+			{ unitDefID = UDN.corjamt_scav.id,     xOffset =  139, yOffset = 0, zOffset =    0, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"),   xOffset =  219, yOffset = 0, zOffset =   64, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"),   xOffset =  107, yOffset = 0, zOffset =  144, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"),   xOffset =   11, yOffset = 0, zOffset =  192, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"),   xOffset = -133, yOffset = 0, zOffset = -160, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"),   xOffset =   91, yOffset = 0, zOffset = -112, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"),   xOffset = -229, yOffset = 0, zOffset =  -80, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"),   xOffset =   43, yOffset = 0, zOffset =  176, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"),   xOffset =   27, yOffset = 0, zOffset = -144, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"),   xOffset = -117, yOffset = 0, zOffset =  128, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"),   xOffset =   75, yOffset = 0, zOffset =  160, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"),   xOffset =  171, yOffset = 0, zOffset =  112, direction = 1 },
+		}
+	}
+end
+
+local function t2HeavyFirebase7()
+	return {
+		type = types.Land,
+		tiers = { tiers.T2, tiers.T3, tiers.T4 },
+		radius = 325,
+		buildings = {
+			{ unitDefID = UDN.cornanotc_scav.id,   xOffset =   -3, yOffset = 0, zOffset =  140, direction = 1 },
+			{ unitDefID = UDN.cornanotc_scav.id,   xOffset = -131, yOffset = 0, zOffset =   12, direction = 1 },
+			{ unitDefID = UDN.cornanotc_scav.id,   xOffset =   -3, yOffset = 0, zOffset = -116, direction = 1 },
+			{ unitDefID = UDN.cornanotc_scav.id,   xOffset =  125, yOffset = 0, zOffset =   12, direction = 1 },
+			{ unitDefID = UDN.corminibuzz_scav.id, xOffset =   -3, yOffset = 0, zOffset =   12, direction = 1 },
+
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  277, yOffset = 0, zOffset =  100, direction = 1 },
+			{ unitDefID = UDN.corhllt_scav.id,   xOffset =  149, yOffset = 0, zOffset = -188, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  133, yOffset = 0, zOffset =  260, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  117, yOffset = 0, zOffset = -252, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset = -107, yOffset = 0, zOffset =  292, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset = -235, yOffset = 0, zOffset = -124, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  213, yOffset = 0, zOffset =  164, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset = -123, yOffset = 0, zOffset =  260, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  -75, yOffset = 0, zOffset = -268, direction = 1 },
+			{ unitDefID = UDN.corrad_scav.id,    xOffset =   85, yOffset = 0, zOffset =  116, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset = -331, yOffset = 0, zOffset =   52, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset = -155, yOffset = 0, zOffset =  228, direction = 1 },
+			{ unitDefID = UDN.corhllt_scav.id,   xOffset = -139, yOffset = 0, zOffset = -188, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  309, yOffset = 0, zOffset =  -76, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset = -219, yOffset = 0, zOffset =  180, direction = 1 },
+			{ unitDefID = UDN.corhllt_scav.id,   xOffset =  245, yOffset = 0, zOffset = -108, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset = -283, yOffset = 0, zOffset =  116, direction = 1 },
+			{ unitDefID = UDN.corhllt_scav.id,   xOffset =  149, yOffset = 0, zOffset =  196, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset = -107, yOffset = 0, zOffset = -252, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  325, yOffset = 0, zOffset =   36, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  245, yOffset = 0, zOffset =  132, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  213, yOffset = 0, zOffset = -172, direction = 1 },
+			{ unitDefID = UDN.corjamt_scav.id,   xOffset =  -75, yOffset = 0, zOffset =  100, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset = -251, yOffset = 0, zOffset =  148, direction = 1 },
+			{ unitDefID = UDN.corhllt_scav.id,   xOffset = -283, yOffset = 0, zOffset =   84, direction = 1 },
+			{ unitDefID = UDN.corhllt_scav.id,   xOffset =  277, yOffset = 0, zOffset =   68, direction = 1 },
+			{ unitDefID = UDN.corjamt_scav.id,   xOffset =   85, yOffset = 0, zOffset =  -76, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  149, yOffset = 0, zOffset =  228, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset = -187, yOffset = 0, zOffset =  196, direction = 1 },
+			{ unitDefID = UDN.corrad_scav.id,    xOffset =  -91, yOffset = 0, zOffset =  -60, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset = -299, yOffset = 0, zOffset =  -92, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset = -315, yOffset = 0, zOffset =   84, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  149, yOffset = 0, zOffset = -220, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset = -171, yOffset = 0, zOffset = -188, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =   85, yOffset = 0, zOffset = -268, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  277, yOffset = 0, zOffset = -108, direction = 1 },
+			{ unitDefID = UDN.corhllt_scav.id,   xOffset = -203, yOffset = 0, zOffset = -124, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset = -139, yOffset = 0, zOffset = -220, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset = -203, yOffset = 0, zOffset = -156, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  245, yOffset = 0, zOffset = -140, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  309, yOffset = 0, zOffset =   68, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  181, yOffset = 0, zOffset =  196, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  181, yOffset = 0, zOffset = -188, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset = -267, yOffset = 0, zOffset =  -92, direction = 1 },
+			{ unitDefID = UDN.corhllt_scav.id,   xOffset = -123, yOffset = 0, zOffset =  228, direction = 1 },
+		}
+	}
+end
+
+local function t2HeavyFirebase8()
+	return {
+		type = types.Land,
+		tiers = { tiers.T2, tiers.T3, tiers.T4 },
+		radius = 333,
+		buildings = {
+			{ unitDefID = UDN.cornanotc_scav.id,   xOffset =  -75, yOffset = 0, zOffset =  131, direction = 1 },
+			{ unitDefID = UDN.cornanotc_scav.id,   xOffset = -123, yOffset = 0, zOffset =   83, direction = 1 },
+			{ unitDefID = UDN.cornanotc_scav.id,   xOffset =  -75, yOffset = 0, zOffset =   83, direction = 1 },
+			{ unitDefID = UDN.cornanotc_scav.id,   xOffset =   85, yOffset = 0, zOffset =  -61, direction = 1 },
+			{ unitDefID = UDN.cornanotc_scav.id,   xOffset =  133, yOffset = 0, zOffset =  -61, direction = 1 },
+			{ unitDefID = UDN.cornanotc_scav.id,   xOffset = -123, yOffset = 0, zOffset =  131, direction = 1 },
+			{ unitDefID = UDN.cornanotc_scav.id,   xOffset =  133, yOffset = 0, zOffset = -109, direction = 1 },
+			{ unitDefID = UDN.cornanotc_scav.id,   xOffset =   85, yOffset = 0, zOffset = -109, direction = 1 },
+			{ unitDefID = UDN.corminibuzz_scav.id, xOffset =    5, yOffset = 0, zOffset =    3, direction = 1 },
+
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =   93, yOffset = 0, zOffset = -325, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset = -163, yOffset = 0, zOffset =  -53, direction = 1 },
+			{ unitDefID = UDN.corjamt_scav.id,   xOffset =  189, yOffset = 0, zOffset =  -69, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  -83, yOffset = 0, zOffset =  299, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =   61, yOffset = 0, zOffset =  139, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  -99, yOffset = 0, zOffset = -117, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  221, yOffset = 0, zOffset =  -21, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  -19, yOffset = 0, zOffset = -213, direction = 1 },
+			{ unitDefID = UDN.cormadsam_scav.id, xOffset = -123, yOffset = 0, zOffset =  211, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  189, yOffset = 0, zOffset =   11, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  269, yOffset = 0, zOffset =  -85, direction = 1 },
+			{ unitDefID = UDN.cormadsam_scav.id, xOffset =  133, yOffset = 0, zOffset = -189, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset = -179, yOffset = 0, zOffset =  -21, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  -67, yOffset = 0, zOffset = -149, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset = -243, yOffset = 0, zOffset =   43, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  -19, yOffset = 0, zOffset =  235, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset = -259, yOffset = 0, zOffset =   75, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  237, yOffset = 0, zOffset =  -53, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  157, yOffset = 0, zOffset =   43, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset = -211, yOffset = 0, zOffset =   11, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset = -323, yOffset = 0, zOffset =  123, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =   13, yOffset = 0, zOffset = -245, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =   29, yOffset = 0, zOffset = -277, direction = 1 },
+			{ unitDefID = UDN.cormadsam_scav.id, xOffset =   85, yOffset = 0, zOffset = -189, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset = -115, yOffset = 0, zOffset =  315, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =   93, yOffset = 0, zOffset =  107, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =   29, yOffset = 0, zOffset =  171, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  -51, yOffset = 0, zOffset =  267, direction = 1 },
+			{ unitDefID = UDN.corrad_scav.id,    xOffset = -179, yOffset = 0, zOffset =  139, direction = 1 },
+			{ unitDefID = UDN.corjamt_scav.id,   xOffset = -179, yOffset = 0, zOffset =   91, direction = 1 },
+			{ unitDefID = UDN.corrad_scav.id,    xOffset =  189, yOffset = 0, zOffset = -117, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset = -131, yOffset = 0, zOffset =  -85, direction = 1 },
+			{ unitDefID = UDN.cormadsam_scav.id, xOffset =  -75, yOffset = 0, zOffset =  211, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =   61, yOffset = 0, zOffset = -309, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =   13, yOffset = 0, zOffset =  203, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset = -291, yOffset = 0, zOffset =  107, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  -51, yOffset = 0, zOffset = -181, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  125, yOffset = 0, zOffset =   75, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  301, yOffset = 0, zOffset = -117, direction = 1 },
+			{ unitDefID = BPWallOrPopup("scav"), xOffset =  333, yOffset = 0, zOffset = -133, direction = 1 },
+		}
+	}
+end
+
+return {
+	t1Firebase1,
+	windFarm1,
+	minefield1,
+	minefield2,
+	minefield3,
+	t1Firebase2,
+	t2Firebase1,
+	t2Firebase2,
+	randomNanoTowerSingle,
+	randomNanoTowerDuo,
+	randomNanoTowerQuad,
+	t3Gantry1,
+	t3Gantry2,
+	t2HeavyFirebase1,
+	t2HeavyFirebase2,
+	t2HeavyFirebase3,
+	t2HeavyFirebase4,
+	t2HeavyFirebase5,
+	t2HeavyFirebase6,
+	t2HeavyFirebase7,
+	t2HeavyFirebase8,
+}
