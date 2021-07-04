@@ -29,12 +29,7 @@ local blueprints = {
 	},
 }
 
--- local blueprintsDirectory = VFS.DirList('luarules/gadgets/scavengers/Blueprints/' .. Game.gameShortName .. '/Constructor/','*.lua')
-local blueprintsDirectory = {
-	'luarules/gadgets/scavengers/Blueprints/BYAR/Constructor/damgam_bases.lua',
-	'luarules/gadgets/scavengers/Blueprints/BYAR/Constructor/Damgam_Basic_Sea.lua',
-	'luarules/gadgets/scavengers/Blueprints/BYAR/Constructor/damgam_ecoStuff.lua',
-}
+local blueprintsDirectory = VFS.DirList('luarules/gadgets/scavengers/Blueprints/' .. Game.gameShortName .. '/Constructor/','*.lua')
 for _, blueprintFile in ipairs(blueprintsDirectory) do
 	local fileContents = VFS.Include(blueprintFile)
 	for _, blueprintFunction in ipairs(fileContents) do
