@@ -39,7 +39,7 @@ function gadget:GetInfo()
       name      = "Control Victory Chess Mode",
       desc      = "123",
       author    = "Damgam",
-      date      = "2020",
+      date      = "2021",
       layer     = -100,
       enabled   = gadgetEnabled,
     }
