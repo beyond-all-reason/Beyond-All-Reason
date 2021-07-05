@@ -16,10 +16,10 @@ local nonCapturingUnits = {
 "armmine3",
 }
 
-for name, uDef in pairs(UnitDefs) do
-	if uDef.canFly then
-		table.insert(nonCapturingUnits, uDef.name)
-	end
-end
+-- for name, uDef in pairs(UnitDefs) do
+-- 	if uDef.canFly then
+-- 		table.insert(nonCapturingUnits, uDef.name)
+-- 	end
+-- end
 
 return nonCapturingUnits

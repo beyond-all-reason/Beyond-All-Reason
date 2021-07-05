@@ -57,122 +57,272 @@ local teamRespawnQueue = {}
 local teamIsLandPlayer = {}
 local resurrectedUnits = {}
 
+local function pickRandomUnit(list, quantity)
+    if #list > 1 then
+        r = math.random(1,#list)
+    else
+        r = 1
+    end
+    pickedTable = {}
+    for i = 1,quantity do
+        table.insert(pickedTable, list[r])
+    end
+    r = nil
+    return pickedTable
+end
+
+
 local starterLandUnitsList = {
-    [1] = {unitID = "armflea", quantity = 5},
-    [2] = {unitID = "armfav", quantity = 5},
-    [3] = {unitID = "corfav", quantity = 5},
+    [1] = {
+        [1] = { 
+            table = {"armflea", "armfav", "corfav"},              
+            quantity = 3,
+        },
+        [2] = { 
+            table = {"armpw", "corak", "armflash", "corgator", "armsh", "corsh"},                          
+            quantity = 5,
+        },
+        [3] = { 
+            table = {"armjeth", "corcrash", "armsam", "cormist", "armah", "corah"},              
+            quantity = 1,
+        },
+        [4] = { 
+            table = {"armpeep", "corfink"},                      
+            quantity = 1,
+        },
+    },
 }
 
 local starterSeaUnitsList = {
-    [1] = {unitID = "armpt", quantity = 5},
-    [2] = {unitID = "corpt", quantity = 5},
+    [1] = {
+        [1] = { 
+            table = {"armpt", "corpt",},                          
+            quantity = 10,
+        },
+        [2] = { 
+            table = {"armpeep", "corfink"},                       
+            quantity = 1,
+        },
+    },
 }
-
+    
 local landUnitsList = {
-    [1] = { -- Early T1
-        -- Bots
-            -- Raider
-        [1] = {unitID = "armpw", quantity = 5},
-        [2] = {unitID = "corak", quantity = 5},
-            -- Rezzers
-        [3] = {unitID = "armrectr", quantity = 2},
-        [4] = {unitID = "cornecro", quantity = 2},
-    },
-    [2] = { -- Late T1
-        -- Bots
-        [1] = {unitID = "armrock", quantity = 5},
-        [2] = {unitID = "armham", quantity = 5},
-        [3] = {unitID = "armwar", quantity = 5},
-        [4] = {unitID = "corstorm", quantity = 5},
-        [5] = {unitID = "corthud", quantity = 5},
-    },
-    [3] = { -- Early T2
-        -- Bots
-            -- Raider
-        [1] = {unitID = "corpyro", quantity = 5},
-        [2] = {unitID = "armfast", quantity = 5},
-        [3] = {unitID = "armfido", quantity = 5},
-        [4] = {unitID = "cormort", quantity = 5},
-            -- Crawling Bombs
-        [5] = {unitID = "armvader", quantity = 3},
-        [6] = {unitID = "corroach", quantity = 3},
-
-            -- Radar/Stealth Bots
-        [7] = {unitID = "armaser", quantity = 1},
-        [8] = {unitID = "armmark", quantity = 1},
-        [9] = {unitID = "corspec", quantity = 1},
-        [10] = {unitID = "corvoyr", quantity = 1},
+    -- PHASE 1
+    [1] = {
+        [1] = {    
+            table = {"armpw", "corak", "armflash", "corgator", "armsh", "corsh"},                           
+            quantity = 10,
+        },
+        [2] = { 
+            table = {"armjeth", "corcrash", "armsam", "cormist", "armah", "corah"},              
+            quantity = 2,
+        },
+        [3] = { 
+            table = {"armfig", "corveng", "armthund", "corshad", "armkam", "corbw",}, 
+            quantity = 5,
+        },
     },
 }
+
+
+
+
 
 local seaUnitsList = {
-    [1] = { -- placeholder
-        [1] = {unitID = "armdecade", quantity = 4},
-        [2] = {unitID = "coresupp", quantity = 4},
-        [3] = {unitID = "armrecl", quantity = 2},
-        [4] = {unitID = "correcl", quantity = 2},
+    -- PHASE 1 -- Early T1
+    [1] = {
+        [1] = {
+            table = {"armpt", "corpt",},                          
+            quantity = 10,
+        },
+        [2] = {
+            table = {"armfig", "corveng", "armthund", "corshad"},                       
+            quantity = 5,
+        },
     },
-    [2] = { -- placeholder
-        [1] = {unitID = "armdecade", quantity = 4},
-        [2] = {unitID = "coresupp", quantity = 4},
-        [3] = {unitID = "armrecl", quantity = 2},
-        [4] = {unitID = "correcl", quantity = 2},
+
+    -- PHASE 1 -- Late T1
+    [2] = {
+        [1] = {
+            table = {"armpt", "corpt",},                          
+            quantity = 10,
+        },
+        [2] = {
+            table = {"armfig", "corveng", "armthund", "corshad"},                       
+            quantity = 5,
+        },
     },
-    [3] = { -- placeholder
-        [1] = {unitID = "armdecade", quantity = 4},
-        [2] = {unitID = "coresupp", quantity = 4},
-        [3] = {unitID = "armrecl", quantity = 2},
-        [4] = {unitID = "correcl", quantity = 2},
+
+    -- PHASE 3 -- Early T2
+    [3] = {
+        [1] = {
+            table = {"armpt", "corpt",},                          
+            quantity = 10,
+        },
+        [2] = {
+            table = {"armfig", "corveng", "armthund", "corshad"},                       
+            quantity = 5,
+        },
     },
-    [4] = { -- placeholder
-        [1] = {unitID = "armdecade", quantity = 4},
-        [2] = {unitID = "coresupp", quantity = 4},
-        [3] = {unitID = "armrecl", quantity = 2},
-        [4] = {unitID = "correcl", quantity = 2},
+
+    -- PHASE 4 -- Late T2
+    [4] = {
+        [1] = {
+            table = {"armpt", "corpt",},                          
+            quantity = 10,
+        },
+        [2] = {
+            table = {"armfig", "corveng", "armthund", "corshad"},                       
+            quantity = 5,
+        },
     },
-    [5] = { -- placeholder
-        [1] = {unitID = "armdecade", quantity = 4},
-        [2] = {unitID = "coresupp", quantity = 4},
-        [3] = {unitID = "armrecl", quantity = 2},
-        [4] = {unitID = "correcl", quantity = 2},
+
+    -- PHASE 5 -- Early T3
+    [4] = {
+        [1] = {
+            table = {"armpt", "corpt",},                          
+            quantity = 10,
+        },
+        [2] = {
+            table = {"armfig", "corveng", "armthund", "corshad"},                       
+            quantity = 5,
+        },
     },
-    [6] = { -- placeholder
-        [1] = {unitID = "armdecade", quantity = 4},
-        [2] = {unitID = "coresupp", quantity = 4},
-        [3] = {unitID = "armrecl", quantity = 2},
-        [4] = {unitID = "correcl", quantity = 2},
-    },
-    [7] = { -- placeholder
-        [1] = {unitID = "armdecade", quantity = 4},
-        [2] = {unitID = "coresupp", quantity = 4},
-        [3] = {unitID = "armrecl", quantity = 2},
-        [4] = {unitID = "correcl", quantity = 2},
-    },
-    [8] = { -- placeholder
-        [1] = {unitID = "armdecade", quantity = 4},
-        [2] = {unitID = "coresupp", quantity = 4},
-        [3] = {unitID = "armrecl", quantity = 2},
-        [4] = {unitID = "correcl", quantity = 2},
-    },
-    [9] = { -- placeholder
-        [1] = {unitID = "armdecade", quantity = 4},
-        [2] = {unitID = "coresupp", quantity = 4},
-        [3] = {unitID = "armrecl", quantity = 2},
-        [4] = {unitID = "correcl", quantity = 2},
-    },
-    [10] = { -- placeholder
-        [1] = {unitID = "armdecade", quantity = 4},
-        [2] = {unitID = "coresupp", quantity = 4},
-        [3] = {unitID = "armrecl", quantity = 2},
-        [4] = {unitID = "correcl", quantity = 2},
+
+    -- PHASE 6 -- Late T3
+    [4] = {
+        [1] = {
+            table = {"armpt", "corpt",},                          
+            quantity = 10,
+        },
+        [2] = {
+            table = {"armfig", "corveng", "armthund", "corshad"},                       
+            quantity = 5,
+        },
     },
 }
 
+
+
+
+-- local starterLandUnitsList = {
+--     [1] = {unitID = "armflea", quantity = 5},
+--     [2] = {unitID = "armfav", quantity = 5},
+--     [3] = {unitID = "corfav", quantity = 5},
+-- }
+
+-- local starterSeaUnitsList = {
+--     [1] = {unitID = "armpt", quantity = 5},
+--     [2] = {unitID = "corpt", quantity = 5},
+-- }
+
+
+-- local landUnitsList = {
+--     [1] = { -- Early T1
+--         -- Bots
+--             -- Raider
+--         [1] = {unitID = "armpw", quantity = 5},
+--         [2] = {unitID = "corak", quantity = 5},
+--             -- Rezzers
+--         [3] = {unitID = "armrectr", quantity = 2},
+--         [4] = {unitID = "cornecro", quantity = 2},
+--     },
+--     [2] = { -- Late T1
+--         -- Bots
+--         [1] = {unitID = "armrock", quantity = 5},
+--         [2] = {unitID = "armham", quantity = 5},
+--         [3] = {unitID = "armwar", quantity = 5},
+--         [4] = {unitID = "corstorm", quantity = 5},
+--         [5] = {unitID = "corthud", quantity = 5},
+--     },
+--     [3] = { -- Early T2
+--         -- Bots
+--             -- Raider
+--         [1] = {unitID = "corpyro", quantity = 5},
+--         [2] = {unitID = "armfast", quantity = 5},
+--         [3] = {unitID = "armfido", quantity = 5},
+--         [4] = {unitID = "cormort", quantity = 5},
+--             -- Crawling Bombs
+--         [5] = {unitID = "armvader", quantity = 3},
+--         [6] = {unitID = "corroach", quantity = 3},
+
+--             -- Radar/Stealth Bots
+--         [7] = {unitID = "armaser", quantity = 1},
+--         [8] = {unitID = "armmark", quantity = 1},
+--         [9] = {unitID = "corspec", quantity = 1},
+--         [10] = {unitID = "corvoyr", quantity = 1},
+--     },
+-- }
+
+-- local seaUnitsList = {
+--     [1] = { -- placeholder
+--         [1] = {unitID = "armdecade", quantity = 4},
+--         [2] = {unitID = "coresupp", quantity = 4},
+--         [3] = {unitID = "armrecl", quantity = 2},
+--         [4] = {unitID = "correcl", quantity = 2},
+--     },
+--     [2] = { -- placeholder
+--         [1] = {unitID = "armdecade", quantity = 4},
+--         [2] = {unitID = "coresupp", quantity = 4},
+--         [3] = {unitID = "armrecl", quantity = 2},
+--         [4] = {unitID = "correcl", quantity = 2},
+--     },
+--     [3] = { -- placeholder
+--         [1] = {unitID = "armdecade", quantity = 4},
+--         [2] = {unitID = "coresupp", quantity = 4},
+--         [3] = {unitID = "armrecl", quantity = 2},
+--         [4] = {unitID = "correcl", quantity = 2},
+--     },
+--     [4] = { -- placeholder
+--         [1] = {unitID = "armdecade", quantity = 4},
+--         [2] = {unitID = "coresupp", quantity = 4},
+--         [3] = {unitID = "armrecl", quantity = 2},
+--         [4] = {unitID = "correcl", quantity = 2},
+--     },
+--     [5] = { -- placeholder
+--         [1] = {unitID = "armdecade", quantity = 4},
+--         [2] = {unitID = "coresupp", quantity = 4},
+--         [3] = {unitID = "armrecl", quantity = 2},
+--         [4] = {unitID = "correcl", quantity = 2},
+--     },
+--     [6] = { -- placeholder
+--         [1] = {unitID = "armdecade", quantity = 4},
+--         [2] = {unitID = "coresupp", quantity = 4},
+--         [3] = {unitID = "armrecl", quantity = 2},
+--         [4] = {unitID = "correcl", quantity = 2},
+--     },
+--     [7] = { -- placeholder
+--         [1] = {unitID = "armdecade", quantity = 4},
+--         [2] = {unitID = "coresupp", quantity = 4},
+--         [3] = {unitID = "armrecl", quantity = 2},
+--         [4] = {unitID = "correcl", quantity = 2},
+--     },
+--     [8] = { -- placeholder
+--         [1] = {unitID = "armdecade", quantity = 4},
+--         [2] = {unitID = "coresupp", quantity = 4},
+--         [3] = {unitID = "armrecl", quantity = 2},
+--         [4] = {unitID = "correcl", quantity = 2},
+--     },
+--     [9] = { -- placeholder
+--         [1] = {unitID = "armdecade", quantity = 4},
+--         [2] = {unitID = "coresupp", quantity = 4},
+--         [3] = {unitID = "armrecl", quantity = 2},
+--         [4] = {unitID = "correcl", quantity = 2},
+--     },
+--     [10] = { -- placeholder
+--         [1] = {unitID = "armdecade", quantity = 4},
+--         [2] = {unitID = "coresupp", quantity = 4},
+--         [3] = {unitID = "armrecl", quantity = 2},
+--         [4] = {unitID = "correcl", quantity = 2},
+--     },
+-- }
+
 local maxPhases = #landUnitsList
-local phaseTime = 9000 -- frames
-local addUpFrequency = 1800
+local phaseSpawns = 0
+local spawnsPerPhase = 2
+local addUpFrequency = 5400
 local spawnTimer = 5
-local respawnTimer = 90
+local respawnTimer = 300
 local phase
 local canResurrect = {}
 
@@ -240,8 +390,8 @@ local function spawnUnitsFromQueue()
         local teamID = teams[i]
         if teamSpawnQueue[teamID] then
             if teamSpawnQueue[teamID][1] then
-                local x = teamSpawnPositions[teamID].x + math.random(-32,32)
-                local z = teamSpawnPositions[teamID].z + math.random(-32,32)
+                local x = teamSpawnPositions[teamID].x + math.random(-64,64)
+                local z = teamSpawnPositions[teamID].z + math.random(-64,64)
                 local y = Spring.GetGroundHeight(x,z)
                 Spring.CreateUnit(teamSpawnQueue[teamID][1], x, y, z, 0, teamID)
                 Spring.SpawnCEG("scav-spawnexplo",x,y,z,0,0,0)
@@ -257,8 +407,8 @@ local function respawnUnitsFromQueue()
         local teamID = teams[i]
         if teamRespawnQueue[teamID] then
             if teamRespawnQueue[teamID][1] then
-                local x = teamSpawnPositions[teamID].x + math.random(-32,32)
-                local z = teamSpawnPositions[teamID].z + math.random(-32,32)
+                local x = teamSpawnPositions[teamID].x + math.random(-64,64)
+                local z = teamSpawnPositions[teamID].z + math.random(-64,64)
                 local y = Spring.GetGroundHeight(x,z)
                 Spring.CreateUnit(teamRespawnQueue[teamID][1], x, y, z, 0, teamID)
                 Spring.SpawnCEG("scav-spawnexplo",x,y,z,0,0,0)
@@ -269,52 +419,79 @@ local function respawnUnitsFromQueue()
 end
 
 local function addNewUnitsToQueue(starter)
-	local landRandom, landUnit, landUnitCount
-	local seaRandom, seaUnit, seaUnitCount
+	--local landRandom, landUnit, landUnitCount
+	--local seaRandom, seaUnit, seaUnitCount
+
+    
 
     if starter then
-        landRandom = math.random(1,#starterLandUnitsList)
-        landUnit = starterLandUnitsList[landRandom].unitID
-        landUnitCount = starterLandUnitsList[landRandom].quantity
+        landPhase = starterLandUnitsList[1]
+        landPhaseQuantity = #starterLandUnitsList[1]
 
-        seaRandom = math.random(1,#starterSeaUnitsList)
-        seaUnit = starterSeaUnitsList[seaRandom].unitID
-        seaUnitCount = starterSeaUnitsList[seaRandom].quantity
+        seaPhase = starterSeaUnitsList[1]
+        seaPhaseQuantity = #starterSeaUnitsList[1]
     else
-        landRandom = math.random(1,#landUnitsList[phase])
-        landUnit = landUnitsList[phase][landRandom].unitID
-        landUnitCount = landUnitsList[phase][landRandom].quantity
+        landPhase = landUnitsList[phase]
+        landPhaseQuantity = #landUnitsList[phase]
 
-        seaRandom = math.random(1,#seaUnitsList[phase])
-        seaUnit = seaUnitsList[phase][seaRandom].unitID
-        seaUnitCount = seaUnitsList[phase][seaRandom].quantity
+        seaPhase = seaUnitsList[phase]
+        seaPhaseQuantity = #seaUnitsList[phase]
     end
     
+
     local teams = spGetTeamList()
+    landUnit = {}
+    seaUnit = {}
+    for j = 1,landPhaseQuantity do
+        landUnit[j] = pickRandomUnit(landPhase[j].table, landPhase[j].quantity)
+    end
+    for j = 1,seaPhaseQuantity do
+        seaUnit[j] = pickRandomUnit(seaPhase[j].table, seaPhase[j].quantity)
+    end
+    
+    
+    
+    
     for i = 1,#teams do
         local teamID = teams[i]
         if teamIsLandPlayer[teamID] then
-            for j = 1,landUnitCount do
-                if teamSpawnQueue[teamID] then
-                    if teamSpawnQueue[teamID][1] then
-                        teamSpawnQueue[teamID][#teamSpawnQueue[teamID]+1] = landUnit
-                    else
-                        teamSpawnQueue[teamID][1] = landUnit
+            for j = 1,landPhaseQuantity do
+                for k = 1, #landUnit[j] do
+                    if teamSpawnQueue[teamID] then
+                        if teamSpawnQueue[teamID][1] then
+                            teamSpawnQueue[teamID][#teamSpawnQueue[teamID]+1] = landUnit[j][k]
+                        else
+                            teamSpawnQueue[teamID][1] = landUnit[j][k]
+                        end
                     end
                 end
             end
         else
-            for j = 1,seaUnitCount do
-                if teamSpawnQueue[teamID] then
-                    if teamSpawnQueue[teamID][1] then
-                        teamSpawnQueue[teamID][#teamSpawnQueue[teamID]+1] = seaUnit
-                    else
-                        teamSpawnQueue[teamID][1] = seaUnit
+            for j = 1,seaPhaseQuantity do
+                for k = 1, #seaUnit[j] do
+                    if teamSpawnQueue[teamID] then
+                        if teamSpawnQueue[teamID][1] then
+                            teamSpawnQueue[teamID][#teamSpawnQueue[teamID]+1] = seaUnit[j][k]
+                        else
+                            teamSpawnQueue[teamID][1] = seaUnit[j][k]
+                        end
                     end
                 end
             end
         end
     end
+    
+    if not starter then
+        phaseSpawns = phaseSpawns + 1
+        if phaseSpawns == spawnsPerPhase then
+            phaseSpawns = 0
+            phase = phase + 1
+        end
+        if phase > maxPhases then
+            phase = maxPhases
+        end
+    end
+
     landUnit = nil
     landUnitCount = nil
     seaUnit = nil
@@ -341,12 +518,6 @@ function gadget:GameFrame(n)
     if n%900 == 1 then
         addInfiniteResources()
     end
-    if n > 25 and n%phaseTime == 1 then
-        phase = phase + 1
-        if phase > maxPhases then
-            phase = maxPhases
-        end
-    end
     if n > 25 and n%spawnTimer == 1 then
         spawnUnitsFromQueue()
     end
@@ -359,7 +530,7 @@ function gadget:GameFrame(n)
 end
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
-    if builderID and canResurrect[Spring.GetUnitDefID(builderID)] then
+    if builderID then-- and canResurrect[Spring.GetUnitDefID(builderID)] then
         resurrectedUnits[unitID] = true
     end
 end
