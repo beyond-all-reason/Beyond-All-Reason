@@ -48,22 +48,8 @@ if scavconfig.modules.buildingSpawnerModule then
 	VFS.Include("luarules/gadgets/scavengers/Modules/building_spawner.lua")
 end
 
-if scavconfig.modules.constructorControllerModule then
-	ScavengerConstructorBlueprintsT0 = {}
-	ScavengerConstructorBlueprintsT1 = {}
-	ScavengerConstructorBlueprintsT2 = {}
-	ScavengerConstructorBlueprintsT3 = {}
-	ScavengerConstructorBlueprintsT4 = {}
-	ScavengerConstructorBlueprintsT0Sea = {}
-	ScavengerConstructorBlueprintsT1Sea = {}
-	ScavengerConstructorBlueprintsT2Sea = {}
-	ScavengerConstructorBlueprintsT3Sea = {}
-	ScavengerConstructorBlueprintsT4Sea = {}
-	VFS.Include("luarules/gadgets/scavengers/Modules/constructor_controller.lua")
-end
-
+local constructorController = VFS.Include("luarules/gadgets/scavengers/Modules/constructor_controller.lua")
 local randomEventsController = VFS.Include("luarules/gadgets/scavengers/Modules/random_events.lua")
-
 local factoryController = VFS.Include("luarules/gadgets/scavengers/Modules/factory_controller.lua")
 
 if scavconfig.modules.unitSpawnerModule then
@@ -340,8 +326,8 @@ function gadget:GameFrame(n)
 		SpawnBlueprint(n)
 	end
 
-	if n%(math.ceil(300/spawnmultiplier)) == 0 and scavteamhasplayers == false and n > scavconfig.gracePeriod and constructorControllerModuleConfig.useresurrectors then
-		SpawnResurrectorGroup(n)
+	if n%(math.ceil(300/spawnmultiplier)) == 0 and not scavteamhasplayers and n > scavconfig.gracePeriod and constructorControllerModuleConfig.useresurrectors then
+		constructorController.SpawnResurrectorGroup(n)
 	end
 
 	if n%30 == 0 then
@@ -349,8 +335,8 @@ function gadget:GameFrame(n)
 			SpawnBeacon(n)
 			UnitGroupSpawn(n)
 		end
-		if scavconfig.modules.constructorControllerModule and constructorControllerModuleConfig.useconstructors and n > scavconfig.gracePeriod then --and (not FinalBossUnitSpawned) then
-			SpawnConstructor(n)
+		if scavconfig.modules.constructorControllerModule and constructorControllerModuleConfig.useconstructors and n > scavconfig.gracePeriod then
+			constructorController.SpawnConstructor(n)
 		end
 		local scavengerunits = Spring.GetTeamUnits(GaiaTeamID)
 		if scavengerunits then
@@ -379,36 +365,31 @@ function gadget:GameFrame(n)
 					if constructorControllerModuleConfig.useconstructors then
 						if scavConstructor[scav] then
 							if Spring.GetCommandQueue(scav, 0) <= 0 then
-								-- if n%1800 == 0 then
-									-- if (not HiddenCommander) or (scav ~= HiddenCommander) then
-										-- SelfDestructionControls(n, scav, scavDef)
-									-- end
-								-- end
-								ConstructNewBlueprint(n, scav)
+								constructorController.ConstructNewBlueprint(n, scav)
 							end
 						end
 					end
 
-					if scavteamhasplayers == false and constructorControllerModuleConfig.useresurrectors and collectorRNG == 0 then
+					if not scavteamhasplayers and constructorControllerModuleConfig.useresurrectors and collectorRNG == 0 then
 						if scavResurrector[scav] then
-							ResurrectorOrders(n, scav)
+							constructorController.ResurrectorOrders(n, scav)
 						end
 					end
 
-					if scavteamhasplayers == false and constructorControllerModuleConfig.usecollectors and collectorRNG == 0 then
+					if not scavteamhasplayers and constructorControllerModuleConfig.usecollectors and collectorRNG == 0 then
 						if scavCollector[scav] then
-							CollectorOrders(n, scav)
+							constructorController.CollectorOrders(n, scav)
 						end
 						if scavCapturer[scav] then
-							CapturerOrders(n, scav)
+							constructorController.CapturerOrders(n, scav)
 						end
 						if scavReclaimer[scav] then
-							ReclaimerOrders(n, scav)
+							constructorController.ReclaimerOrders(n, scav)
 						end
 					end
 
 					if scavAssistant[scav] and Spring.GetCommandQueue(scav, 0) <= 0 then
-						AssistantOrders(n, scav)
+						constructorController.AssistantOrders(n, scav)
 					end
 				end
 

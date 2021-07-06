@@ -186,7 +186,7 @@ constructorControllerModuleConfig = {
 	constructortimerreductionframes		= 36000, -- increase frequency of commander spawns every this many frames
 	minimumconstructors					= math.ceil(teamcount*2*spawnmultiplier),
 	useresurrectors						= true,
-		searesurrectors					= true,
+	searesurrectors						= true,
 	useconstructors						= true,
 	usecollectors						= true,
 }
@@ -210,12 +210,6 @@ randomEventsConfig = {
 
 
 -- Functions which you can configure
-function CountScavConstructors()
-	local UDC = Spring.GetTeamUnitDefCount
-	local result = UDC(GaiaTeamID, UDN.corcom_scav.id) + UDC(GaiaTeamID, UDN.armcom_scav.id)
-	return result
-end
-
 function SpawnBonusCommander(unitID, unitName, unitTeam)
 	if unitName == "armcom" or unitName == "corcom" then
 		local posx, posy, posz = Spring.GetUnitPosition(unitID)
