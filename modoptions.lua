@@ -752,14 +752,15 @@ local options={
 	-- 	def    = false,
 	-- 	section= "options",
 	-- },
-	-- {
-	-- 	key    = 'coop',
-	-- 	name   = 'Cooperative mode',
-	-- 	desc   = 'Adds extra commanders to id-sharing teams, 1 com per player',
-	-- 	type   = 'bool',
-	-- 	def    = false,
-	-- 	section= 'options',
-	-- },
+  
+	 {
+	 	key    = 'coop',
+	 	name   = 'Cooperative mode',
+	 	desc   = 'Adds extra commanders to id-sharing teams, 1 com per player',
+	 	type   = 'bool',
+	 	def    = false,
+	 	section= 'options',
+	 },
 	{
 		key    = 'DisableMapDamage',
 		name   = 'Undeformable map',
