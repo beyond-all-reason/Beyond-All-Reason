@@ -136,7 +136,7 @@ local function createCommanderNameList(x, y, name, teamID)
 	commanderNameList[teamID]['list'] = gl.CreateList(function()
 		local r, g, b = GetTeamColor(teamID)
 		local outlineColor = { 0, 0, 0, 1 }
-		if (r + g * 1.2 + b * 0.4) < 0.68 then
+		if (r + g * 1.2 + b * 0.4) < 0.65 then
 			outlineColor = { 1, 1, 1, 1 }
 		end
 		if useThickLeterring then
@@ -273,7 +273,7 @@ function widget:Initialize()
 			end
 		end
 	end)
-	
+
 
 	createInfotextList()
 end

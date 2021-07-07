@@ -1397,7 +1397,7 @@ function GetDark(red, green, blue)
     -- Threshold was changed since the new SPADS colors include green and blue which were
     -- just below the old threshold of 0.8
     -- https://github.com/Yaribz/SPADS/commit/e95f4480b98aafd03420ba3de19feb5494ef0b7e
-    if red + green * 1.2 + blue * 0.4 < 0.68 then
+    if red + green * 1.2 + blue * 0.4 < 0.65 then
         return true
     end
     return false
