@@ -127,6 +127,7 @@ local scoreModes = {
 local scoreMode = scoreModes[selectedScoreMode]
 
 local gaia = Spring.GetGaiaTeamID()
+local _,_,_,_,_,gaia = Spring.GetTeamInfo(gaia)
 local mapx, mapz = Game.mapSizeX, Game.mapSizeZ
 
 if (gadgetHandler:IsSyncedCode()) then

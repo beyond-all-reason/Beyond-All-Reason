@@ -194,8 +194,8 @@ function gadget:GameFrame(n)
 						local rawPos = GetClosestEnemyPoint(unitID)
 						if rawPos then
 							local posx = rawPos.x
-							local posy = rawPos.y
 							local posz = rawPos.z
+							local posy = Spring.GetGroundHeight(posx, posz)
 							if posx then
 								Spring.GiveOrderToUnit(unitID, CMD.FIGHT,  {posx+math.random(-capturePointRadius,capturePointRadius), posy, posz+math.random(-capturePointRadius,capturePointRadius)}, {"alt", "ctrl"})
 							end
@@ -205,15 +205,17 @@ function gadget:GameFrame(n)
 						local rawPos = GetRandomEnemyPoint(unitID)
 						if rawPos then
 							local posx = rawPos.x
-							local posy = rawPos.y
 							local posz = rawPos.z
+							local posy = Spring.GetGroundHeight(posx, posz)
 							if posx then
-								Spring.GiveOrderToUnit(unitID, CMD.FIGHT,  {posx+math.random(-capturePointRadius,capturePointRadius), posy, posz+math.random(-capturePointRadius,capturePointRadius)}, {"alt", "ctrl"})
-								Spring.GiveOrderToUnit(unitID, CMD.PATROL,  {posx+math.random(-capturePointRadius,capturePointRadius), posy, posz+math.random(-capturePointRadius,capturePointRadius)}, {"shift", "alt", "ctrl"})
-								Spring.GiveOrderToUnit(unitID, CMD.PATROL,  {posx+math.random(-capturePointRadius,capturePointRadius), posy, posz+math.random(-capturePointRadius,capturePointRadius)}, {"shift", "alt", "ctrl"})
-								Spring.GiveOrderToUnit(unitID, CMD.PATROL,  {posx+math.random(-capturePointRadius,capturePointRadius), posy, posz+math.random(-capturePointRadius,capturePointRadius)}, {"shift", "alt", "ctrl"})
-								Spring.GiveOrderToUnit(unitID, CMD.PATROL,  {posx+math.random(-capturePointRadius,capturePointRadius), posy, posz+math.random(-capturePointRadius,capturePointRadius)}, {"shift", "alt", "ctrl"})
-								Spring.GiveOrderToUnit(unitID, CMD.PATROL,  {posx+math.random(-capturePointRadius,capturePointRadius), posy, posz+math.random(-capturePointRadius,capturePointRadius)}, {"shift", "alt", "ctrl"})
+								Spring.GiveOrderToUnit(unitID, CMD.FIGHT,  {posx-(capturePointRadius*0.8), posy, posz-(capturePointRadius*0.8)}, {"alt", "ctrl"})
+								Spring.GiveOrderToUnit(unitID, CMD.PATROL,  {posx, posy, posz-(capturePointRadius*0.95)}, {"shift", "alt", "ctrl"})
+								Spring.GiveOrderToUnit(unitID, CMD.PATROL,  {posx+(capturePointRadius*0.8), posy, posz-(capturePointRadius*0.8)}, {"shift", "alt", "ctrl"})
+								Spring.GiveOrderToUnit(unitID, CMD.PATROL,  {posx+(capturePointRadius*0.95), posy, posz}, {"shift", "alt", "ctrl"})
+								Spring.GiveOrderToUnit(unitID, CMD.PATROL,  {posx+(capturePointRadius*0.8), posy, posz+(capturePointRadius*0.8)}, {"shift", "alt", "ctrl"})
+								Spring.GiveOrderToUnit(unitID, CMD.PATROL,  {posx, posy, posz+(capturePointRadius*0.95)}, {"shift", "alt", "ctrl"})
+								Spring.GiveOrderToUnit(unitID, CMD.PATROL,  {posx-(capturePointRadius*0.8), posy, posz+(capturePointRadius*0.8)}, {"shift", "alt", "ctrl"})
+								Spring.GiveOrderToUnit(unitID, CMD.PATROL,  {posx-(capturePointRadius*0.95), posy, posz}, {"shift", "alt", "ctrl"})
 							end
 						end
 					end
@@ -221,15 +223,17 @@ function gadget:GameFrame(n)
 						local rawPos = GetRandomAllyPoint(unitID)
 						if rawPos then
 							local posx = rawPos.x
-							local posy = rawPos.y
 							local posz = rawPos.z
+							local posy = Spring.GetGroundHeight(posx, posz)
 							if posx then
-								Spring.GiveOrderToUnit(unitID, CMD.FIGHT,  {posx+math.random(-capturePointRadius,capturePointRadius), posy, posz+math.random(-capturePointRadius,capturePointRadius)}, {"alt", "ctrl"})
-								Spring.GiveOrderToUnit(unitID, CMD.PATROL,  {posx+math.random(-capturePointRadius,capturePointRadius), posy, posz+math.random(-capturePointRadius,capturePointRadius)}, {"shift", "alt", "ctrl"})
-								Spring.GiveOrderToUnit(unitID, CMD.PATROL,  {posx+math.random(-capturePointRadius,capturePointRadius), posy, posz+math.random(-capturePointRadius,capturePointRadius)}, {"shift", "alt", "ctrl"})
-								Spring.GiveOrderToUnit(unitID, CMD.PATROL,  {posx+math.random(-capturePointRadius,capturePointRadius), posy, posz+math.random(-capturePointRadius,capturePointRadius)}, {"shift", "alt", "ctrl"})
-								Spring.GiveOrderToUnit(unitID, CMD.PATROL,  {posx+math.random(-capturePointRadius,capturePointRadius), posy, posz+math.random(-capturePointRadius,capturePointRadius)}, {"shift", "alt", "ctrl"})
-								Spring.GiveOrderToUnit(unitID, CMD.PATROL,  {posx+math.random(-capturePointRadius,capturePointRadius), posy, posz+math.random(-capturePointRadius,capturePointRadius)}, {"shift", "alt", "ctrl"})
+								Spring.GiveOrderToUnit(unitID, CMD.FIGHT,  {posx-(capturePointRadius*0.8), posy, posz-(capturePointRadius*0.8)}, {"alt", "ctrl"})
+								Spring.GiveOrderToUnit(unitID, CMD.PATROL,  {posx, posy, posz-(capturePointRadius*0.95)}, {"shift", "alt", "ctrl"})
+								Spring.GiveOrderToUnit(unitID, CMD.PATROL,  {posx+(capturePointRadius*0.8), posy, posz-(capturePointRadius*0.8)}, {"shift", "alt", "ctrl"})
+								Spring.GiveOrderToUnit(unitID, CMD.PATROL,  {posx+(capturePointRadius*0.95), posy, posz}, {"shift", "alt", "ctrl"})
+								Spring.GiveOrderToUnit(unitID, CMD.PATROL,  {posx+(capturePointRadius*0.8), posy, posz+(capturePointRadius*0.8)}, {"shift", "alt", "ctrl"})
+								Spring.GiveOrderToUnit(unitID, CMD.PATROL,  {posx, posy, posz+(capturePointRadius*0.95)}, {"shift", "alt", "ctrl"})
+								Spring.GiveOrderToUnit(unitID, CMD.PATROL,  {posx-(capturePointRadius*0.8), posy, posz+(capturePointRadius*0.8)}, {"shift", "alt", "ctrl"})
+								Spring.GiveOrderToUnit(unitID, CMD.PATROL,  {posx-(capturePointRadius*0.95), posy, posz}, {"shift", "alt", "ctrl"})
 							end
 						end
 					end
@@ -248,12 +252,12 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 			if not AIDiverseAttackersCount[unitTeam] then AIDiverseAttackersCount[unitTeam] = 0 end
 			
 			
-			if AIMainAttackersCount[unitTeam] < AIDefendersCount[unitTeam] and AIMainAttackersCount[unitTeam] < AIDiverseAttackersCount[unitTeam] then
+			if AIMainAttackersCount[unitTeam] < AIDiverseAttackersCount[unitTeam]*2 then -- and AIMainAttackersCount[unitTeam] < AIDefendersCount[unitTeam]
 				AIMainAttackers[unitID] = true
 				AIMainAttackersCount[unitTeam] = AIMainAttackersCount[unitTeam] + 1
-			elseif AIDefendersCount[unitTeam] < AIDiverseAttackersCount[unitTeam] and GetRandomAllyPoint(unitID) then
-				AIDefenders[unitID] = true
-				AIDefendersCount[unitTeam] = AIDefendersCount[unitTeam] + 1
+			-- elseif AIDefendersCount[unitTeam] < AIDiverseAttackersCount[unitTeam] and GetRandomAllyPoint(unitID) then
+			-- 	AIDefenders[unitID] = true
+			-- 	AIDefendersCount[unitTeam] = AIDefendersCount[unitTeam] + 1
 			else
 				AIDiverseAttackers[unitID] = true
 				AIDiverseAttackersCount[unitTeam] = AIDiverseAttackersCount[unitTeam] + 1

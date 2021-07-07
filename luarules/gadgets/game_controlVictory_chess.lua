@@ -75,20 +75,259 @@ end
 local starterLandUnitsList = {
     [1] = {
         [1] = { 
-            table = {"armflea", "armfav", "corfav"},              
-            quantity = 3,
-        },
-        [2] = { 
-            table = {"armpw", "corak", "armflash", "corgator", "armsh", "corsh"},                          
+            table = {
+                "armflea", 
+                "armfav", 
+                "corfav",
+            },              
             quantity = 5,
         },
+        [2] = { 
+            table = {
+                "armjeth", 
+                "corcrash", 
+                "armsam", 
+                "cormist", 
+                "armah", 
+                "corah",
+            },              
+            quantity = 2,
+        },
         [3] = { 
-            table = {"armjeth", "corcrash", "armsam", "cormist", "armah", "corah"},              
+            table = {
+                "armpeep", 
+                "corfink",
+            },                      
             quantity = 1,
         },
-        [4] = { 
-            table = {"armpeep", "corfink"},                      
+    },
+}
+    
+local landUnitsList = {
+    -- PHASE 1 -- Early T1
+    [1] = {
+        [1] = {    
+            table = {
+                "armpw", 
+                "corak", 
+                "armflash", 
+                "corgator", 
+                "armsh", 
+                "corsh",
+            },                           
+            quantity = 5,
+        },
+    },
+
+    -- PHASE 2 -- Late T1
+    [2] = {
+        [1] = {    
+            table = {
+                "armrock", 
+                "corstorm", 
+                "armham", 
+                "corthud", 
+                "armwar", 
+                "corkark", 
+                "corwolv", 
+                "armart", 
+                "corgarp", 
+                "armpincer", 
+                "corlevlr", 
+                "armjanus", 
+                "corraid", 
+                "armstump", 
+                "armmh", 
+                "cormh", 
+                "armanac", 
+                "corsnap",
+            },                           
+            quantity = 5,
+        },
+        [2] = { 
+            table = {
+                "armjeth", 
+                "corcrash", 
+                "armsam", 
+                "cormist", 
+                "armah", 
+                "corah",
+            },              
+            quantity = 2,
+        },
+    },
+
+    -- PHASE 3 -- Air T1
+    [3] = {
+        [1] = { 
+            table = {
+                "armjeth", 
+                "corcrash", 
+                "armsam", 
+                "cormist", 
+                "armah", 
+                "corah",
+            },              
+            quantity = 2,
+        },
+        [2] = { 
+            table = {
+                "armfig", 
+                "corveng",
+            }, 
+            quantity = 2,
+        },
+        [3] = { 
+            table = {
+                "armthund", 
+                "corshad", 
+                "armkam", 
+                "corbw",
+            }, 
+            quantity = 5,
+        },
+    },
+
+    -- PHASE 4 -- Early T2
+    [4] = {
+        [1] = {    
+            table = {
+                "armfast", 
+                "corpyro", 
+                "armfido", 
+                "cormort", 
+                "armlatnk", 
+            },                           
+            quantity = 5,
+        },
+    },
+
+    -- PHASE 5 -- Late T2
+    [5] = {
+        [1] = {    
+            table = {
+                "cortermite", 
+                "armamph", 
+                "coramph", 
+                "armzeus", 
+                "corcan", 
+                "armsptk", 
+                "armsnipe", 
+                "corhrk", 
+                "armmav", 
+                "armfboy", 
+                "corsumo",
+                "armmart", 
+                "cormart", 
+                "armcroc", 
+                "corseal", 
+                "armmerl", 
+                "corvroc", 
+                "armbull",
+                "correap",
+                "armmanni",
+                "cortrem",
+                "corban",
+                "corgatreap",
+            },                           
+            quantity = 5,
+        },
+        [2] = { 
+            table = {
+                "armaak", 
+                "coraak", 
+                "armyork", 
+                "corsent", 
+            },              
+            quantity = 2,
+        },
+        [3] = { 
+            table = {
+                "armvader", 
+                "corroach", 
+                "armmark", 
+                "corvoyr",
+                "armspy", 
+                "corspy",
+                "armspid",
+                "armseer",
+                "corvrad",      
+            },              
+            quantity = 3,
+        },
+    },
+
+    -- PHASE 6 -- Air T2
+    [6] = {
+        [1] = { 
+            table = {
+                "armaak", 
+                "coraak", 
+                "armyork", 
+                "corsent", 
+            },              
+            quantity = 2,
+        },
+        [2] = { 
+            table = {
+                "armhawk", 
+                "corvamp",
+            }, 
+            quantity = 2,
+        },
+        [3] = { 
+            table = {
+                "armpnix", 
+                "corhurc", 
+                "armstil",
+                "armbrawl", 
+                "corape", 
+            }, 
+            quantity = 5,
+        },
+    },
+
+    -- PHASE 7 -- Endgame
+    [7] = {
+        [1] = {
+            table = {
+                "corkorg",
+                "corjugg",
+                "armbanth",
+                "armthor",
+                "armpwt4",
+                "armrattet4",
+                "armvadert4",
+                "cordemont4",
+                "corkarganetht4",
+                "armrectrt4",
+                "corgolt4",
+                "corcrwt4",
+                "armfepocht4",
+                "corfblackhyt4",
+                "armthundt4",
+            },
             quantity = 1,
+        },
+        [2] = {
+            table = {
+                "armmar",
+                "armvang",
+                "armraz",
+                "corshiva",
+                "corkarg",
+                "corcat",
+                "armlunchbox",
+                "armmeatball",
+                "armassimilator",
+                "armrectrt4",
+                "armsptkt4",
+                "armlun",
+                "corsok",
+                "corcrw",
+                "armliche",
+            },
+            quantity = 3,
         },
     },
 }
@@ -96,37 +335,21 @@ local starterLandUnitsList = {
 local starterSeaUnitsList = {
     [1] = {
         [1] = { 
-            table = {"armpt", "corpt",},                          
-            quantity = 10,
+            table = {
+                "armpt", 
+                "corpt",
+            },                          
+            quantity = 5,
         },
         [2] = { 
-            table = {"armpeep", "corfink"},                       
+            table = {
+                "armpeep", 
+                "corfink",
+            },                       
             quantity = 1,
         },
     },
 }
-    
-local landUnitsList = {
-    -- PHASE 1
-    [1] = {
-        [1] = {    
-            table = {"armpw", "corak", "armflash", "corgator", "armsh", "corsh"},                           
-            quantity = 10,
-        },
-        [2] = { 
-            table = {"armjeth", "corcrash", "armsam", "cormist", "armah", "corah"},              
-            quantity = 2,
-        },
-        [3] = { 
-            table = {"armfig", "corveng", "armthund", "corshad", "armkam", "corbw",}, 
-            quantity = 5,
-        },
-    },
-}
-
-
-
-
 
 local seaUnitsList = {
     -- PHASE 1 -- Early T1
@@ -153,7 +376,7 @@ local seaUnitsList = {
         },
     },
 
-    -- PHASE 3 -- Early T2
+    -- PHASE 3 -- Air T1
     [3] = {
         [1] = {
             table = {"armpt", "corpt",},                          
@@ -165,7 +388,7 @@ local seaUnitsList = {
         },
     },
 
-    -- PHASE 4 -- Late T2
+    -- PHASE 4 -- Early T2
     [4] = {
         [1] = {
             table = {"armpt", "corpt",},                          
@@ -177,8 +400,8 @@ local seaUnitsList = {
         },
     },
 
-    -- PHASE 5 -- Early T3
-    [4] = {
+    -- PHASE 5 -- Late T2
+    [5] = {
         [1] = {
             table = {"armpt", "corpt",},                          
             quantity = 10,
@@ -189,8 +412,20 @@ local seaUnitsList = {
         },
     },
 
-    -- PHASE 6 -- Late T3
-    [4] = {
+    -- PHASE 6 -- Air T2
+    [6] = {
+        [1] = {
+            table = {"armpt", "corpt",},                          
+            quantity = 10,
+        },
+        [2] = {
+            table = {"armfig", "corveng", "armthund", "corshad"},                       
+            quantity = 5,
+        },
+    },
+
+    -- PHASE 6 -- Endgame
+    [7] = {
         [1] = {
             table = {"armpt", "corpt",},                          
             quantity = 10,
@@ -204,124 +439,11 @@ local seaUnitsList = {
 
 
 
-
--- local starterLandUnitsList = {
---     [1] = {unitID = "armflea", quantity = 5},
---     [2] = {unitID = "armfav", quantity = 5},
---     [3] = {unitID = "corfav", quantity = 5},
--- }
-
--- local starterSeaUnitsList = {
---     [1] = {unitID = "armpt", quantity = 5},
---     [2] = {unitID = "corpt", quantity = 5},
--- }
-
-
--- local landUnitsList = {
---     [1] = { -- Early T1
---         -- Bots
---             -- Raider
---         [1] = {unitID = "armpw", quantity = 5},
---         [2] = {unitID = "corak", quantity = 5},
---             -- Rezzers
---         [3] = {unitID = "armrectr", quantity = 2},
---         [4] = {unitID = "cornecro", quantity = 2},
---     },
---     [2] = { -- Late T1
---         -- Bots
---         [1] = {unitID = "armrock", quantity = 5},
---         [2] = {unitID = "armham", quantity = 5},
---         [3] = {unitID = "armwar", quantity = 5},
---         [4] = {unitID = "corstorm", quantity = 5},
---         [5] = {unitID = "corthud", quantity = 5},
---     },
---     [3] = { -- Early T2
---         -- Bots
---             -- Raider
---         [1] = {unitID = "corpyro", quantity = 5},
---         [2] = {unitID = "armfast", quantity = 5},
---         [3] = {unitID = "armfido", quantity = 5},
---         [4] = {unitID = "cormort", quantity = 5},
---             -- Crawling Bombs
---         [5] = {unitID = "armvader", quantity = 3},
---         [6] = {unitID = "corroach", quantity = 3},
-
---             -- Radar/Stealth Bots
---         [7] = {unitID = "armaser", quantity = 1},
---         [8] = {unitID = "armmark", quantity = 1},
---         [9] = {unitID = "corspec", quantity = 1},
---         [10] = {unitID = "corvoyr", quantity = 1},
---     },
--- }
-
--- local seaUnitsList = {
---     [1] = { -- placeholder
---         [1] = {unitID = "armdecade", quantity = 4},
---         [2] = {unitID = "coresupp", quantity = 4},
---         [3] = {unitID = "armrecl", quantity = 2},
---         [4] = {unitID = "correcl", quantity = 2},
---     },
---     [2] = { -- placeholder
---         [1] = {unitID = "armdecade", quantity = 4},
---         [2] = {unitID = "coresupp", quantity = 4},
---         [3] = {unitID = "armrecl", quantity = 2},
---         [4] = {unitID = "correcl", quantity = 2},
---     },
---     [3] = { -- placeholder
---         [1] = {unitID = "armdecade", quantity = 4},
---         [2] = {unitID = "coresupp", quantity = 4},
---         [3] = {unitID = "armrecl", quantity = 2},
---         [4] = {unitID = "correcl", quantity = 2},
---     },
---     [4] = { -- placeholder
---         [1] = {unitID = "armdecade", quantity = 4},
---         [2] = {unitID = "coresupp", quantity = 4},
---         [3] = {unitID = "armrecl", quantity = 2},
---         [4] = {unitID = "correcl", quantity = 2},
---     },
---     [5] = { -- placeholder
---         [1] = {unitID = "armdecade", quantity = 4},
---         [2] = {unitID = "coresupp", quantity = 4},
---         [3] = {unitID = "armrecl", quantity = 2},
---         [4] = {unitID = "correcl", quantity = 2},
---     },
---     [6] = { -- placeholder
---         [1] = {unitID = "armdecade", quantity = 4},
---         [2] = {unitID = "coresupp", quantity = 4},
---         [3] = {unitID = "armrecl", quantity = 2},
---         [4] = {unitID = "correcl", quantity = 2},
---     },
---     [7] = { -- placeholder
---         [1] = {unitID = "armdecade", quantity = 4},
---         [2] = {unitID = "coresupp", quantity = 4},
---         [3] = {unitID = "armrecl", quantity = 2},
---         [4] = {unitID = "correcl", quantity = 2},
---     },
---     [8] = { -- placeholder
---         [1] = {unitID = "armdecade", quantity = 4},
---         [2] = {unitID = "coresupp", quantity = 4},
---         [3] = {unitID = "armrecl", quantity = 2},
---         [4] = {unitID = "correcl", quantity = 2},
---     },
---     [9] = { -- placeholder
---         [1] = {unitID = "armdecade", quantity = 4},
---         [2] = {unitID = "coresupp", quantity = 4},
---         [3] = {unitID = "armrecl", quantity = 2},
---         [4] = {unitID = "correcl", quantity = 2},
---     },
---     [10] = { -- placeholder
---         [1] = {unitID = "armdecade", quantity = 4},
---         [2] = {unitID = "coresupp", quantity = 4},
---         [3] = {unitID = "armrecl", quantity = 2},
---         [4] = {unitID = "correcl", quantity = 2},
---     },
--- }
-
 local maxPhases = #landUnitsList
 local phaseSpawns = 0
-local spawnsPerPhase = 2
-local addUpFrequency = 5400
-local spawnTimer = 5
+local spawnsPerPhase = 1
+local addUpFrequency = 7200
+local spawnTimer = 2
 local respawnTimer = 300
 local phase
 local canResurrect = {}
@@ -488,7 +610,7 @@ local function addNewUnitsToQueue(starter)
             phase = phase + 1
         end
         if phase > maxPhases then
-            phase = maxPhases
+            phase = 1
         end
     end
 
@@ -521,7 +643,7 @@ function gadget:GameFrame(n)
     if n > 25 and n%spawnTimer == 1 then
         spawnUnitsFromQueue()
     end
-    if n > 25 and n%respawnTimer == 1 then
+    if n > 25 and n%(math.floor(addUpFrequency*0.25)) < 10 then
         respawnUnitsFromQueue()
     end
     if n > 25 and n%addUpFrequency == 1 then
