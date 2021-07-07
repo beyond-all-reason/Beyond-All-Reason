@@ -110,6 +110,11 @@ function UnitDef_Post(name, uDef)
 		uDef.customparams = {}
 	end
 
+	-- disable wrecks for Control Points mode
+	if Spring.GetModOptions and (Spring.GetModOptions().scoremode or "disabled") ~= "disabled" then
+		uDef.corpse = nil
+	end
+
 	if uDef.energymake and uDef.energyuse then
 		if uDef.energymake == uDef.energyuse then
 			uDef.energymake = 0

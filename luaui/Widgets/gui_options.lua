@@ -2304,9 +2304,10 @@ function init()
 				end
 			end
 
-			if string.find(line, "=-000001] Game starts!") then
+			if string.find(line, "Loading widget:") then
 				break
 			end
+
 		end
 		-- Add some widescreen resolutions for local testing
 		--supportedResolutions[#supportedResolutions+1] = '3840 x 1440'

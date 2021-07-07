@@ -752,14 +752,15 @@ local options={
 	-- 	def    = false,
 	-- 	section= "options",
 	-- },
-	-- {
-	-- 	key    = 'coop',
-	-- 	name   = 'Cooperative mode',
-	-- 	desc   = 'Adds extra commanders to id-sharing teams, 1 com per player',
-	-- 	type   = 'bool',
-	-- 	def    = false,
-	-- 	section= 'options',
-	-- },
+  
+	 {
+	 	key    = 'coop',
+	 	name   = 'Cooperative mode',
+	 	desc   = 'Adds extra commanders to id-sharing teams, 1 com per player',
+	 	type   = 'bool',
+	 	def    = false,
+	 	section= 'options',
+	 },
 	{
 		key    = 'DisableMapDamage',
 		name   = 'Undeformable map',
@@ -803,6 +804,54 @@ local options={
 			{key="tugofwar", name="Tug of War", desc="A Control Point steals enemy score, zero means defeat."},
 			--{key="domination", name="Domination", desc="Holding all Control Points will grant 1000 score, first to reach the score limit wins."},
 		}
+	},
+	{
+		key    = 'scoremode_chess',
+		name   = 'Chess Mode',
+		desc   = 'No basebuilding',
+		type   = 'list',
+		section= 'controlvictoryoptions',
+		def  = "enabled",
+		items={
+			{key="enabled", name="Enabled", desc="description"},
+			{key="disabled", name="Disabled", desc="description"},
+		}
+	},
+	{
+		key    = 'scoremode_chess_unbalanced',
+		name   = 'Chess: Unbalanced',
+		desc   = 'Each player gets diffrent set of units',
+		type   = 'list',
+		section= 'controlvictoryoptions',
+		def  = "disabled",
+		items={
+			{key="enabled", name="Enabled", desc="description"},
+			{key="disabled", name="Disabled", desc="description"},
+		}
+	},
+	{
+		key    = 'scoremode_chess_adduptime',
+		name   = 'Chess: Minutes Between New Units Add-up.',
+		desc   = 'Time Between New Units Add-up.',
+		type   = 'number',
+		section= 'controlvictoryoptions',
+		def    = 4,
+		min    = 1,
+		max    = 10,
+		step   = 1,  -- quantization is aligned to the def value
+		-- (step <= 0) means that there is no quantization
+	},
+	{
+		key    = 'scoremode_chess_spawnsperphase',
+		name   = 'Chess: Number of spawns in each phase.',
+		desc   = 'Number of spawns in each phase.',
+		type   = 'number',
+		section= 'controlvictoryoptions',
+		def    = 1,
+		min    = 1,
+		max    = 10,
+		step   = 1,  -- quantization is aligned to the def value
+		-- (step <= 0) means that there is no quantization
 	},
 	{
 		key    = 'limitscore',

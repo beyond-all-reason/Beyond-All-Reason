@@ -447,10 +447,12 @@ FireSecondary()
 	move shield to z-axis [-0.500000] speed [1250.000000];
 	move shield to x-axis [-1.100000] speed [1250.000000];
 	move shield to y-axis [0.50000] speed [1250.000000];
+	turn torso to y-axis <30> speed <200>;
 	wait-for-move shield along z-axis;
 	move shield to z-axis [0.000000] speed [1.250000];
 	move shield to x-axis [-1.600000] speed [1.250000];
 	move shield to y-axis [0.000000] speed [1.250000];
+	turn torso to y-axis <0> speed <10>;
 	hide lflare;
 }
 

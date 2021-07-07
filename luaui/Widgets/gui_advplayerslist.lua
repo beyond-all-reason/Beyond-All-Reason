@@ -191,7 +191,7 @@ local newBroadcaster = false
 local aliveAllyTeams = {}
 local screenshotVars = {} -- containing: finished, width, height, gameframe, data, dataLast, dlist, pixels, player, filename, saved, saveQueued, posX, posY
 
---local Background, ShareSlider, specJoinedOnce, chobbyInterface, BackgroundGuishader, drawTipText, drawTipMouseX, drawTipMouseY, DrawLabelRightside, tipY, clickedName, myLastCameraState, sceduledSpecFullView, bgtexSize, curFrame, tipText, prevClickedName
+--local Background, ShareSlider, specJoinedOnce, chobbyInterface, BackgroundGuishader, drawTipText, drawTipMouseX, drawTipMouseY, DrawLabelRightside, tipY, clickedName, myLastCameraState, sceduledSpecFullView, curFrame, tipText, prevClickedName
 local lockPlayerID, leftPosX, lastSliderSound, release
 local PrevGameFrame, MainList, desiredLosmode, drawListOffset
 
@@ -1397,7 +1397,7 @@ function GetDark(red, green, blue)
     -- Threshold was changed since the new SPADS colors include green and blue which were
     -- just below the old threshold of 0.8
     -- https://github.com/Yaribz/SPADS/commit/e95f4480b98aafd03420ba3de19feb5494ef0b7e
-    if red + green * 1.2 + blue * 0.4 < 0.68 then
+    if red + green * 1.2 + blue * 0.4 < 0.65 then
         return true
     end
     return false
@@ -2452,21 +2452,21 @@ function DrawName(name, team, posY, dark, playerID)
         DrawState(playerID, m_name.posX + widgetPosX, posY)
     end
 
+	font2:Begin()
     if dark then
-        font2:Begin()
-        font2:Print(colourNames(team) .. nameText, m_name.posX + widgetPosX + 3 + xPadding, posY + 4, 14, "o")
-        font2:End()
+		font2:SetTextColor(Spring_GetTeamColor(team))
+		font2:SetOutlineColor(0.8, 0.8, 0.8, math.max(0.8, 0.75 * widgetScale))
+        font2:Print(nameText, m_name.posX + widgetPosX + 3 + xPadding, posY + 4, 14, "o")
     else
-        font2:Begin()
         font2:SetTextColor(0, 0, 0, 0.4)
         font2:SetOutlineColor(0, 0, 0, 0.4)
         font2:Print(nameText, m_name.posX + widgetPosX + 2 + xPadding, posY + 3, 14, "n") -- draws name
         font2:Print(nameText, m_name.posX + widgetPosX + 4 + xPadding, posY + 3, 14, "n") -- draws name
-        font2:SetTextColor(1, 1, 1, 1)
+        font2:SetTextColor(Spring_GetTeamColor(team))
         font2:SetOutlineColor(0, 0, 0, 1)
-        font2:Print(colourNames(team) .. nameText, m_name.posX + widgetPosX + 3 + xPadding, posY + 4, 14, "n")
-        font2:End()
+        font2:Print( nameText, m_name.posX + widgetPosX + 3 + xPadding, posY + 4, 14, "n")
     end
+	font2:End()
 
     if ignored then
         gl_Color(1, 1, 1, 0.9)
@@ -2498,17 +2498,18 @@ function DrawSmallName(name, team, posY, dark, playerID, alpha)
     end
 
     if playerSpecs[playerID] ~= nil then
+		font2:Begin()
         if dark then
-            font2:Begin()
-            font2:Print(colourNames(team) .. name, m_name.posX + textindent + explayerindent + widgetPosX + 3, posY + 4, 11, "o")
-            font2:End()
+			font2:SetTextColor(Spring_GetTeamColor(team))
+			font2:SetOutlineColor(0.8, 0.8, 0.8, math.max(0.75, 0.7 * widgetScale))
+            font2:Print(name, m_name.posX + textindent + explayerindent + widgetPosX + 3, posY + 4, 11, "o")
         else
-            font2:Begin()
-            font2:SetTextColor(1, 1, 1, 0.78)
+			local r,g,b = Spring_GetTeamColor(team)
+            font2:SetTextColor(r, g, b, 0.78)
             font2:SetOutlineColor(0, 0, 0, 0.3)
-            font2:Print(colourNames(team) .. name, m_name.posX + textindent + explayerindent + widgetPosX + 3, posY + 4, 11, "n")
-            font2:End()
+            font2:Print(name, m_name.posX + textindent + explayerindent + widgetPosX + 3, posY + 4, 11, "n")
         end
+		font2:End()
     else
         font2:Begin()
         font2:SetTextColor(0, 0, 0, 0.3)
@@ -3634,14 +3635,13 @@ end
 function widget:ViewResize()
     vsx, vsy = Spring.GetViewGeometry()
 
-    font = WG['fonts'].getFont()
-    font2 = WG['fonts'].getFont(fontfile2, 1.1, 0.15, 6.5)
-
     bgpadding = Spring.FlowUI.elementPadding
 	elementCorner = Spring.FlowUI.elementCorner
-	bgtexSize = bgpadding * bgtexScale
 
     updateWidgetScale()
+
+	font = WG['fonts'].getFont()
+	font2 = WG['fonts'].getFont(fontfile2, 1.1, math.max(0.16, 0.25 / widgetScale), math.max(4.5, 6 / widgetScale))
 end
 
 function widget:MapDrawCmd(playerID, cmdType, px, py, pz)
