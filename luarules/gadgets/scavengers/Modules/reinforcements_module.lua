@@ -1,3 +1,5 @@
+local constructorController = VFS.Include("luarules/gadgets/scavengers/Modules/constructor_controller.lua")
+
 local ReinforcementsCountPerTeam = {}
 local TryingToSpawnReinforcements = {}
 local ReinforcementsFaction = {}
@@ -340,18 +342,18 @@ function ReinforcementsMoveOrder(n)
 				if scavconfig.modules.constructorControllerModule then
 					if constructorControllerModuleConfig.useresurrectors then
 						if FriendlyResurrectors[unitID] then
-							ResurrectorOrders(n, unitID)
+							constructorController.ResurrectorOrders(n, unitID)
 							FriendlyArmyOrders = false
 						end
 					end
 
 					if constructorControllerModuleConfig.usecollectors then
 						if FriendlyCollectors[unitID] then
-							CollectorOrders(n, unitID)
+							constructorController.CollectorOrders(n, unitID)
 							FriendlyArmyOrders = false
 						end
 						if FriendlyReclaimers[unitID] then
-							ReclaimerOrders(n, unitID)
+							constructorController.ReclaimerOrders(n, unitID)
 							FriendlyArmyOrders = false
 						end
 					end
