@@ -4,11 +4,15 @@ end
 
 local gadgetEnabled
 
-if Spring.GetModOptions and (Spring.GetModOptions().scoremode or "disabled") ~= "disabled" then
+if Spring.GetModOptions and (Spring.GetModOptions().scoremode or "disabled") ~= "disabled" and (Spring.GetModOptions().scoremode_chess or "enabled") ~= "disabled" then
     gadgetEnabled = true
 else
     gadgetEnabled = false
 end
+
+ChessModeUnbalancedModoption = Spring.GetModOptions().scoremode_chess_unbalanced or "enabled"
+ChessModePhaseTimeModoption = tonumber(Spring.GetModOptions().scoremode_chess_adduptime) or 4
+ChessModeSpawnPerPhaseModoption = tonumber(Spring.GetModOptions().scoremode_chess_spawnsperphase) or 1
 
 local chickensEnabled = false
 local teams = Spring.GetTeamList()
@@ -441,8 +445,8 @@ local seaUnitsList = {
 
 local maxPhases = #landUnitsList
 local phaseSpawns = 0
-local spawnsPerPhase = 1
-local addUpFrequency = 7200
+local spawnsPerPhase = ChessModeSpawnPerPhaseModoption
+local addUpFrequency = ChessModePhaseTimeModoption*1800
 local spawnTimer = 2
 local respawnTimer = 300
 local phase
@@ -540,12 +544,7 @@ local function respawnUnitsFromQueue()
     end
 end
 
-local function addNewUnitsToQueue(starter)
-	--local landRandom, landUnit, landUnitCount
-	--local seaRandom, seaUnit, seaUnitCount
-
-    
-
+local function chooseNewUnits(starter)
     if starter then
         landPhase = starterLandUnitsList[1]
         landPhaseQuantity = #starterLandUnitsList[1]
@@ -559,7 +558,6 @@ local function addNewUnitsToQueue(starter)
         seaPhase = seaUnitsList[phase]
         seaPhaseQuantity = #seaUnitsList[phase]
     end
-    
 
     local teams = spGetTeamList()
     landUnit = {}
@@ -570,12 +568,19 @@ local function addNewUnitsToQueue(starter)
     for j = 1,seaPhaseQuantity do
         seaUnit[j] = pickRandomUnit(seaPhase[j].table, seaPhase[j].quantity)
     end
-    
-    
-    
+
+end
+
+local function addNewUnitsToQueue(starter)
+	--local landRandom, landUnit, landUnitCount
+	--local seaRandom, seaUnit, seaUnitCount
+    chooseNewUnits(starter)
     
     for i = 1,#teams do
         local teamID = teams[i]
+        if ChessModeUnbalancedModoption == "enabled" then
+            chooseNewUnits(starter)
+        end
         if teamIsLandPlayer[teamID] then
             for j = 1,landPhaseQuantity do
                 for k = 1, #landUnit[j] do
@@ -643,7 +648,7 @@ function gadget:GameFrame(n)
     if n > 25 and n%spawnTimer == 1 then
         spawnUnitsFromQueue()
     end
-    if n > 25 and n%(math.floor(addUpFrequency*0.25)) < 10 then
+    if n > 25 and n%1800 < 10 then
         respawnUnitsFromQueue()
     end
     if n > 25 and n%addUpFrequency == 1 then

@@ -806,6 +806,54 @@ local options={
 		}
 	},
 	{
+		key    = 'scoremode_chess',
+		name   = 'Chess Mode',
+		desc   = 'No basebuilding',
+		type   = 'list',
+		section= 'controlvictoryoptions',
+		def  = "enabled",
+		items={
+			{key="enabled", name="Enabled", desc="description"},
+			{key="disabled", name="Disabled", desc="description"},
+		}
+	},
+	{
+		key    = 'scoremode_chess_unbalanced',
+		name   = 'Chess: Unbalanced',
+		desc   = 'Each player gets diffrent set of units',
+		type   = 'list',
+		section= 'controlvictoryoptions',
+		def  = "disabled",
+		items={
+			{key="enabled", name="Enabled", desc="description"},
+			{key="disabled", name="Disabled", desc="description"},
+		}
+	},
+	{
+		key    = 'scoremode_chess_adduptime',
+		name   = 'Chess: Minutes Between New Units Add-up.',
+		desc   = 'Time Between New Units Add-up.',
+		type   = 'number',
+		section= 'controlvictoryoptions',
+		def    = 4,
+		min    = 1,
+		max    = 10,
+		step   = 1,  -- quantization is aligned to the def value
+		-- (step <= 0) means that there is no quantization
+	},
+	{
+		key    = 'scoremode_chess_spawnsperphase',
+		name   = 'Chess: Number of spawns in each phase.',
+		desc   = 'Number of spawns in each phase.',
+		type   = 'number',
+		section= 'controlvictoryoptions',
+		def    = 1,
+		min    = 1,
+		max    = 10,
+		step   = 1,  -- quantization is aligned to the def value
+		-- (step <= 0) means that there is no quantization
+	},
+	{
 		key    = 'limitscore',
 		name   = 'Initial Score',
 		desc   = 'Initial score amount available.',

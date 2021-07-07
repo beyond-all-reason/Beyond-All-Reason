@@ -4,7 +4,7 @@ end
 
 local gadgetEnabled
 
-if Spring.GetModOptions and (Spring.GetModOptions().scoremode or "disabled") ~= "disabled" then
+if Spring.GetModOptions and (Spring.GetModOptions().scoremode or "disabled") ~= "disabled" and (Spring.GetModOptions().scoremode_chess or "enabled") ~= "disabled" then
     gadgetEnabled = true
 else
     gadgetEnabled = false
@@ -252,7 +252,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 			if not AIDiverseAttackersCount[unitTeam] then AIDiverseAttackersCount[unitTeam] = 0 end
 			
 			
-			if AIMainAttackersCount[unitTeam] < AIDiverseAttackersCount[unitTeam]*2 then -- and AIMainAttackersCount[unitTeam] < AIDefendersCount[unitTeam]
+			if AIMainAttackersCount[unitTeam] < AIDiverseAttackersCount[unitTeam]*0.5 then -- and AIMainAttackersCount[unitTeam] < AIDefendersCount[unitTeam]
 				AIMainAttackers[unitID] = true
 				AIMainAttackersCount[unitTeam] = AIMainAttackersCount[unitTeam] + 1
 			-- elseif AIDefendersCount[unitTeam] < AIDiverseAttackersCount[unitTeam] and GetRandomAllyPoint(unitID) then
