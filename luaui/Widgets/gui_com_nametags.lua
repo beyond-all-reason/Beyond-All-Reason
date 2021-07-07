@@ -161,7 +161,7 @@ local function createComnameList(attributes)
 	end
 	comnameList[attributes[1]] = gl.CreateList(function()
 		local outlineColor = { 0, 0, 0, 1 }
-		if (attributes[2][1] + attributes[2][2] * 1.2 + attributes[2][3] * 0.4) < 0.68 then
+		if (attributes[2][1] + attributes[2][2] * 1.2 + attributes[2][3] * 0.4) < 0.65 then
 			-- try to keep these values the same as the playerlist
 			outlineColor = { 1, 1, 1, 1 }
 		end
