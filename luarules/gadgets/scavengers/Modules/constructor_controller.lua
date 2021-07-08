@@ -1,7 +1,7 @@
 Spring.Echo("[Scavengers] Constructor Controller initialized")
 
 local scavConfig = VFS.Include('luarules/gadgets/scavengers/Configs/BYAR/config.lua')
-VFS.Include("luarules/gadgets/scavengers/Configs/" .. Game.gameShortName .. "/UnitLists/constructors.lua")
+local constructorUnitList = VFS.Include("luarules/gadgets/scavengers/Configs/" .. Game.gameShortName .. "/UnitLists/constructors.lua")
 local blueprintsController = VFS.Include("luarules/gadgets/scavengers/Blueprints/BYAR/constructor_blueprint_controller.lua")
 local constructorTimer = constructorControllerModuleConfig.constructortimerstart
 
@@ -68,7 +68,7 @@ local function spawnConstructor(n)
 		end
 
 		for i = 1,10 do
-			local pickedBeaconTest = spawnBeacons[math.random(1, #spawnBeacons)]
+			local pickedBeaconTest = spawnBeacons[math.random(#spawnBeacons)]
 			local _, _, pickedBeaconParalyze, pickedBeaconCaptureProgress = Spring.GetUnitHealth(pickedBeaconTest)
 			if pickedBeaconCaptureProgress == 0 and pickedBeaconParalyze == 0 then
 				pickedBeacon = pickedBeaconTest
@@ -136,31 +136,31 @@ local function spawnConstructor(n)
 				Spring.CreateUnit("scavengerdroppod_scav", posx + 32, posy, posz - 32, math.random(0, 3), GaiaTeamID)
 
 				if posy > 0 then
-					local r = Resurrectors[math.random(1, #Resurrectors)]
-					QueueSpawn(r .. scavconfig.unitnamesuffix, posx + 32, posy, posz, math.random(0, 3), GaiaTeamID, n + 150 + 1)
-					QueueSpawn(r .. scavconfig.unitnamesuffix, posx - 32, posy, posz, math.random(0, 3), GaiaTeamID, n + 150 + 2)
-					QueueSpawn(r .. scavconfig.unitnamesuffix, posx, posy, posz + 32, math.random(0, 3), GaiaTeamID, n + 150 + 3)
-					QueueSpawn(r .. scavconfig.unitnamesuffix, posx, posy, posz - 32, math.random(0, 3), GaiaTeamID, n + 150 + 4)
-					QueueSpawn(r .. scavconfig.unitnamesuffix, posx + 32, posy, posz + 32, math.random(0, 3), GaiaTeamID, n + 150 + 5)
-					QueueSpawn(r .. scavconfig.unitnamesuffix, posx - 32, posy, posz - 32, math.random(0, 3), GaiaTeamID, n + 150 + 6)
-					QueueSpawn(r .. scavconfig.unitnamesuffix, posx - 32, posy, posz + 32, math.random(0, 3), GaiaTeamID, n + 150 + 7)
-					QueueSpawn(r .. scavconfig.unitnamesuffix, posx + 32, posy, posz - 32, math.random(0, 3), GaiaTeamID, n + 150 + 8)
+					local resurrector = constructorUnitList.Resurrectors[math.random(#constructorUnitList.Resurrectors)]
+					QueueSpawn(resurrector, posx + 32, posy, posz, math.random(0, 3), GaiaTeamID, n + 150 + 1)
+					QueueSpawn(resurrector, posx - 32, posy, posz, math.random(0, 3), GaiaTeamID, n + 150 + 2)
+					QueueSpawn(resurrector, posx, posy, posz + 32, math.random(0, 3), GaiaTeamID, n + 150 + 3)
+					QueueSpawn(resurrector, posx, posy, posz - 32, math.random(0, 3), GaiaTeamID, n + 150 + 4)
+					QueueSpawn(resurrector, posx + 32, posy, posz + 32, math.random(0, 3), GaiaTeamID, n + 150 + 5)
+					QueueSpawn(resurrector, posx - 32, posy, posz - 32, math.random(0, 3), GaiaTeamID, n + 150 + 6)
+					QueueSpawn(resurrector, posx - 32, posy, posz + 32, math.random(0, 3), GaiaTeamID, n + 150 + 7)
+					QueueSpawn(resurrector, posx + 32, posy, posz - 32, math.random(0, 3), GaiaTeamID, n + 150 + 8)
 				elseif constructorControllerModuleConfig.searesurrectors then
-					local r = ResurrectorsSea[math.random(1, #ResurrectorsSea)]
-					QueueSpawn(r .. scavconfig.unitnamesuffix, posx + 32, posy, posz + 32, math.random(0, 3), GaiaTeamID, n + 150 + 1)
-					QueueSpawn(r .. scavconfig.unitnamesuffix, posx - 32, posy, posz - 32, math.random(0, 3), GaiaTeamID, n + 150 + 2)
-					QueueSpawn(r .. scavconfig.unitnamesuffix, posx - 32, posy, posz + 32, math.random(0, 3), GaiaTeamID, n + 150 + 3)
-					QueueSpawn(r .. scavconfig.unitnamesuffix, posx + 32, posy, posz - 32, math.random(0, 3), GaiaTeamID, n + 150 + 4)
-					QueueSpawn(r .. scavconfig.unitnamesuffix, posx + 32, posy, posz + 32, math.random(0, 3), GaiaTeamID, n + 150 + 5)
-					QueueSpawn(r .. scavconfig.unitnamesuffix, posx - 32, posy, posz - 32, math.random(0, 3), GaiaTeamID, n + 150 + 6)
-					QueueSpawn(r .. scavconfig.unitnamesuffix, posx - 32, posy, posz + 32, math.random(0, 3), GaiaTeamID, n + 150 + 7)
-					QueueSpawn(r .. scavconfig.unitnamesuffix, posx + 32, posy, posz - 32, math.random(0, 3), GaiaTeamID, n + 150 + 8)
+					local seaResurrector = constructorUnitList.ResurrectorsSea[math.random(#constructorUnitList.ResurrectorsSea)]
+					QueueSpawn(seaResurrector, posx + 32, posy, posz + 32, math.random(0, 3), GaiaTeamID, n + 150 + 1)
+					QueueSpawn(seaResurrector, posx - 32, posy, posz - 32, math.random(0, 3), GaiaTeamID, n + 150 + 2)
+					QueueSpawn(seaResurrector, posx - 32, posy, posz + 32, math.random(0, 3), GaiaTeamID, n + 150 + 3)
+					QueueSpawn(seaResurrector, posx + 32, posy, posz - 32, math.random(0, 3), GaiaTeamID, n + 150 + 4)
+					QueueSpawn(seaResurrector, posx + 32, posy, posz + 32, math.random(0, 3), GaiaTeamID, n + 150 + 5)
+					QueueSpawn(seaResurrector, posx - 32, posy, posz - 32, math.random(0, 3), GaiaTeamID, n + 150 + 6)
+					QueueSpawn(seaResurrector, posx - 32, posy, posz + 32, math.random(0, 3), GaiaTeamID, n + 150 + 7)
+					QueueSpawn(seaResurrector, posx + 32, posy, posz - 32, math.random(0, 3), GaiaTeamID, n + 150 + 8)
 				end
 			end
 
 			constructorTimer = 0
-			local r = ConstructorsList[math.random(1, #ConstructorsList)]
-			QueueSpawn(r .. scavconfig.unitnamesuffix, posx, posy, posz, math.random(0, 3), GaiaTeamID, n + 150)
+			local constructor = constructorUnitList.Constructors[math.random(#constructorUnitList.Constructors)]
+			QueueSpawn(constructor, posx, posy, posz, math.random(0, 3), GaiaTeamID, n + 150)
 			Spring.CreateUnit("scavengerdroppod_scav", posx, posy, posz, math.random(0, 3), GaiaTeamID)
 		else
 			constructorTimer = constructorTimer +  math.ceil(n / constructorControllerModuleConfig.constructortimerreductionframes)
@@ -275,11 +275,11 @@ local function spawnResurrectorGroup(n)
 			if canSpawnHere then
 				for y = 1, resurrectorSpawnCount do
 					if posy > -20 then
-						local r = Resurrectors[math.random(1, #Resurrectors)]
-						QueueSpawn(r .. scavconfig.unitnamesuffix, posx, posy, posz, math.random(0, 3), GaiaTeamID, n + (y * 1) + 150)
+						local resurrector = constructorUnitList.Resurrectors[math.random(#constructorUnitList.Resurrectors)]
+						QueueSpawn(resurrector, posx, posy, posz, math.random(0, 3), GaiaTeamID, n + (y * 1) + 150)
 					else
-						local r = ResurrectorsSea[math.random(1, #ResurrectorsSea)]
-						QueueSpawn(r .. scavconfig.unitnamesuffix, posx, posy, posz, math.random(0, 3), GaiaTeamID, n + (y * 1) + 150)
+						local seaResurrector = constructorUnitList.ResurrectorsSea[math.random(#constructorUnitList.ResurrectorsSea)]
+						QueueSpawn(seaResurrector, posx, posy, posz, math.random(0, 3), GaiaTeamID, n + (y * 1) + 150)
 					end
 				end
 

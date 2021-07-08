@@ -5,13 +5,7 @@ if not scavconfig.modules.factoryControllerModule then
 	}
 end
 
-local factoryUnitList = VFS.Include("luarules/gadgets/scavengers/Configs/" .. Game.gameShortName .. "/UnitLists/factories.lua")
-local factoryUnitIDList = {}
-
-for _, unitName in ipairs(factoryUnitList.Factories) do
-	local unitDefID = UnitDefNames[unitName].id
-	factoryUnitIDList[unitDefID] = true
-end
+local factoryUnitList = VFS.Include("luarules/gadgets/scavengers/Configs/BYAR/UnitLists/factories.lua")
 
 local function buildUnit(unitID, unitDefID)
 	if not scavFactory[unitID] or #Spring.GetFullBuildQueue(unitID, 0) > 0 then
@@ -32,7 +26,7 @@ local function buildUnit(unitID, unitDefID)
 end
 
 local function checkNewUnit(unitID, unitDefID)
-	if factoryUnitIDList[unitDefID] then
+	if factoryUnitList.FactoriesID[unitDefID] then
 		scavFactory[unitID] = true
 	end
 end
