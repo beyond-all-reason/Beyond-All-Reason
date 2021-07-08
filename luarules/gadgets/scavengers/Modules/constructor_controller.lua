@@ -231,7 +231,7 @@ local function constructNewBlueprint(n, unitID)
 			Spring.GiveOrderToUnit(unitID, CMD.MOVE, { posX + math.random(-blueprintRadius, blueprintRadius), posY + 500, posZ + math.random(-blueprintRadius, blueprintRadius) }, {"shift"})
 
 			for _, building in ipairs(blueprint.buildings) do
-				Spring.GiveOrderToUnit(unitID, -building.unitDefID, { posX + building.xOffset, posY + building.yOffset, posZ + building.zOffset, building.direction }, {"shift"})
+				Spring.GiveOrderToUnit(unitID, -building.unitDefID, { posX + building.xOffset, posY, posZ + building.zOffset, building.direction }, {"shift"})
 			end
 
 			ConstructorNumberOfRetries[unitID] = 0
