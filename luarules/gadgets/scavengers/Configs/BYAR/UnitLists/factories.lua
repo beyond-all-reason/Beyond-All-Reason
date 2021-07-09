@@ -54,6 +54,13 @@ for _, name in ipairs(scavFactories) do
 	table.insert(factories, name)
 end
 
+local factoriesID = {}
+for _, unitName in ipairs(factories) do
+	local unitDefID = UnitDefNames[unitName].id
+	factoriesID[unitDefID] = true
+end
+
 return {
 	Factories = factories,
+	FactoriesID = factoriesID,
 }
