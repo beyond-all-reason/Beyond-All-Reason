@@ -12,6 +12,7 @@ end
 
 local outputFile = "blueprints_temp.txt"
 local counter = 0
+local scavSuffix = "_scav"
 
 local centerposx = {}
 local centerposz = {}
@@ -52,31 +53,46 @@ local function generateConstructorBlueprint()
 	local file = io.open(outputFile, "a")
 	local blueprintName = "blueprint" .. counter
 	local blueprintType = blpcenterpositiony > 0 and "Land" or "Sea"
-	local buildingsText = ""
+	local buildings = {}
 
 	for _, unitID in ipairs(selectedUnits) do
-		local unitDefID = Spring.GetUnitDefID(unitID)
-		local unitDefName = UnitDefs[unitDefID].name
 		local unitDirection = Spring.GetUnitBuildFacing(unitID)
 		local xOffset = math.ceil(centerposx[unitID]-blpcenterpositionx)
 		local zOffset = math.ceil(centerposz[unitID]-blpcenterpositionz)
-		local radius = math.ceil(math.sqrt(xOffset * xOffset + zOffset * zOffset))
+		blueprintRadius = math.max(blueprintRadius, xOffset, zOffset)
 
-		blueprintRadius = math.max(radius, blueprintRadius)
-		buildingsText = buildingsText .. "\t\t\t{ unitDefName = " .. unitDefName .. ", xOffset = " .. xOffset .. ", zOffset = " .. zOffset .. ", direction = " .. unitDirection .. "},\n"
+		local unitDefID = Spring.GetUnitDefID(unitID)
+		local unitName = UnitDefs[unitDefID].name
+
+		if not (UnitDefs[unitDefID].customparams and UnitDefs[unitDefID].customparams.isscavenger) then
+			unitName = unitName .. scavSuffix
+		end
+
+		local unitDef = UnitDefNames[unitName]
+		table.insert(buildings, { buildTime = unitDef.buildTime, blueprintText = "\t\t\t{ unitDefName = UnitDefNames." .. unitName .. ".id, xOffset = " .. xOffset .. ", zOffset = " .. zOffset .. ", direction = " .. unitDirection .. "},\n" })
 	end
 
-	file:write("\n\n")
+	table.sort(buildings, function(b1, b2)
+			return b1.buildTime < b2.buildTime
+		end
+	)
+
+	file:write("\n")
 	file:write("local function " .. blueprintName .. "()", "\n")
 	file:write("\treturn {", "\n")
 	file:write("\t\ttype = types." .. blueprintType .. ",", "\n")
 	file:write("\t\ttiers = { tiers.T0, tiers.T1, tiers.T2, tiers.T3, tiers.T4 },", "\n")
 	file:write("\t\tradius = " .. blueprintRadius .. ",", "\n")
 	file:write("\t\tbuildings = {", "\n")
-	file:write(buildingsText)
+
+	for _, building in ipairs(buildings) do
+		file:write(building.blueprintText)
+	end
+
 	file:write("\t\t},", "\n")
 	file:write("\t}", "\n")
 	file:write("end", "\n")
+	file:close()
 
 	clearValues()
 	counter = counter + 1
