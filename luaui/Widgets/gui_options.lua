@@ -4050,6 +4050,7 @@ function init()
 		  end,
 		},
 		{ id = "givenunits", group = "ui", widget = "Given Units", name = texts.option.givenunits, type = "bool", value = GetWidgetToggleValue("Given Units"), description = texts.option.giveunits_descr },
+
 		-- Radar range rings:
           { id = "radarrange", group = "ui", widget = "Sensor Ranges Radar", name = texts.option.radarrange, type = "bool", value = GetWidgetToggleValue("Sensor Ranges Radar"), description = texts.option.radarrange_descr },
 
@@ -5420,6 +5421,20 @@ function init()
 		options[getOptionByID("fancyselectedunits_opacity")] = nil
 		options[getOptionByID("fancyselectedunits_baseopacity")] = nil
 		options[getOptionByID("fancyselectedunits_teamcoloropacity")] = nil
+	end
+
+	if widgetHandler.knownWidgets["radarrange"] == nil then
+		options[getOptionByID('radarrangeopacity')] = nil
+	end
+	if widgetHandler.knownWidgets["sonarrange"] == nil then
+		options[getOptionByID('sonarrangeopacity')] = nil
+	end
+	if widgetHandler.knownWidgets["jammerrange"] == nil then
+		options[getOptionByID('jammerrangeopacity')] = nil
+	end
+	if widgetHandler.knownWidgets["losrange"] == nil then
+		options[getOptionByID('losrangeopacity')] = nil
+		options[getOptionByID("losrangeteamcolors")] = nil
 	end
 
 	if widgetHandler.knownWidgets["Defense Range"] == nil then
