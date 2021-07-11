@@ -2,6 +2,11 @@ local scavConfig = VFS.Include('luarules/gadgets/scavengers/Configs/BYAR/config.
 local tiers = scavConfig.Tiers
 local types = scavConfig.BlueprintTypes
 
+local blueprintTypes = {
+	Constructor = 1,
+	Spawner = 2,
+}
+
 local dummyBlueprint = function()
 	return {
 		type = types.Land,
@@ -11,7 +16,7 @@ local dummyBlueprint = function()
 	}
 end
 
-local blueprints = {
+local constructorBlueprints = {
 	[types.Land] = {
 		[tiers.T0] = { },
 		[tiers.T1] = { },
@@ -29,51 +34,91 @@ local blueprints = {
 	},
 }
 
-local blueprintsDirectory = VFS.DirList('luarules/gadgets/scavengers/Blueprints/' .. Game.gameShortName .. '/Constructor/','*.lua')
-for _, blueprintFile in ipairs(blueprintsDirectory) do
-	local fileContents = VFS.Include(blueprintFile)
-	for _, blueprintFunction in ipairs(fileContents) do
-		local blueprint = blueprintFunction()
-		for _, tier in ipairs(blueprint.tiers) do
-			table.insert(blueprints[blueprint.type][tier], blueprintFunction)
+local spawnerBlueprints = {
+	[types.Land] = {
+		[tiers.T0] = { },
+		[tiers.T1] = { },
+		[tiers.T2] = { },
+		[tiers.T3] = { },
+		[tiers.T4] = { },
+	},
+
+	[types.Sea] = {
+		[tiers.T0] = { },
+		[tiers.T1] = { },
+		[tiers.T2] = { },
+		[tiers.T3] = { },
+		[tiers.T4] = { },
+	},
+}
+
+
+local blueprintsConfig = {
+	[blueprintTypes.Constructor] = { directory = 'luarules/gadgets/scavengers/Blueprints/BYAR/Constructor/', table = constructorBlueprints },
+	[blueprintTypes.Spawner] = { directory = 'luarules/gadgets/scavengers/Blueprints/BYAR/Spawner/', table = spawnerBlueprints },
+}
+
+local function populateBlueprints(blueprintType)
+	local blueprintsDirectory = VFS.DirList(blueprintsConfig[blueprintType].directory, '*.lua')
+	local blueprintTable = blueprintsConfig[blueprintType].table
+	for _, blueprintFile in ipairs(blueprintsDirectory) do
+		local fileContents = VFS.Include(blueprintFile)
+		for _, blueprintFunction in ipairs(fileContents) do
+			local blueprint = blueprintFunction()
+			for _, tier in ipairs(blueprint.tiers) do
+				table.insert(blueprintTable[blueprint.type][tier], blueprintFunction)
+			end
 		end
+
+		Spring.Echo("[Scavengers] Loading blueprint file: " .. blueprintFile)
 	end
 
-	Spring.Echo("[Scavengers] Loading constructor blueprint file: " .. blueprintFile)
-end
-
-for _, blueprintType in pairs(types) do
-	for _, tier in pairs(tiers) do
-		if #blueprints[blueprintType][tier] == 0 then
-			table.insert(blueprints[blueprintType][tier], dummyBlueprint)
+	for _, type in pairs(types) do
+		for _, tier in pairs(tiers) do
+			if #blueprintTable[type][tier] == 0 then
+				table.insert(blueprintTable[type][tier], dummyBlueprint)
+			end
 		end
 	end
 end
 
-local getRandomBluePrint = function(tier, type)
+populateBlueprints(blueprintTypes.Constructor)
+populateBlueprints(blueprintTypes.Spawner)
+
+local getRandomBluePrint = function(blueprintType, tier, type)
+	local blueprintTable = blueprintsConfig[blueprintType].table
 	local blueprintList, blueprintFunction, blueprint
 
-	if type == types.Land then
-		blueprintList = blueprints[types.Land][tier]
-	elseif type == types.Sea then
-		blueprintList = blueprints[types.Sea][tier]
-	end
-
+	blueprintList = blueprintTable[type][tier]
 	blueprintFunction = blueprintList[math.random(1, #blueprintList)]
 	blueprint = blueprintFunction()
 
 	return blueprint
 end
 
-local getRandomLandBlueprint = function(tier)
-	return getRandomBluePrint(tier, types.Land)
+local getRandomConstructorLandBlueprint = function(tier)
+	return getRandomBluePrint(blueprintTypes.Constructor, tier, types.Land)
 end
 
-local getRandomSeaBlueprint = function(tier)
-	return getRandomBluePrint(tier, types.Sea)
+local getRandomConstructorSeaBlueprint = function(tier)
+	return getRandomBluePrint(blueprintTypes.Constructor, tier, types.Sea)
+end
+
+local getRandomSpawnerLandBlueprint = function(tier)
+	return getRandomBluePrint(blueprintTypes.Spawner, tier, types.Land)
+end
+
+local getRandomSpawnerSeaBlueprint = function(tier)
+	return getRandomBluePrint(blueprintTypes.Spawner, tier, types.Sea)
 end
 
 return {
-	GetRandomLandBlueprint = getRandomLandBlueprint,
-	GetRandomSeaBlueprint = getRandomSeaBlueprint,
+	Constructor = {
+		GetRandomLandBlueprint = getRandomConstructorLandBlueprint,
+		GetRandomSeaBlueprint = getRandomConstructorSeaBlueprint,
+	},
+	Spawner = {
+		GetRandomLandBlueprint = getRandomSpawnerLandBlueprint,
+		GetRandomSeaBlueprint = getRandomSpawnerSeaBlueprint,
+	},
 }

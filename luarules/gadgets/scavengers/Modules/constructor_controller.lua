@@ -205,8 +205,8 @@ local function constructNewBlueprint(n, unitID)
 		spawnTier = scavConfig.Tiers.T0
 	end
 
-	landBlueprint = blueprintsController.GetRandomLandBlueprint(spawnTier)
-	seaBlueprint = blueprintsController.GetRandomSeaBlueprint(spawnTier)
+	landBlueprint = blueprintsController.Constructor.GetRandomLandBlueprint(spawnTier)
+	seaBlueprint = blueprintsController.Constructor.GetRandomSeaBlueprint(spawnTier)
 
 	for i = 1, 50 do
 		local x,y,z = Spring.GetUnitPosition(unitID)
