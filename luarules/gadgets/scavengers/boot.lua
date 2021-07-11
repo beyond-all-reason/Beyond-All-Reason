@@ -245,8 +245,10 @@ function gadget:GameFrame(n)
 	end
 
 	if n > scavconfig.gracePeriod and scavconfig.modules.startBoxProtection == true and ScavSafeAreaExist == true and FinalBossKilled == false then
-		if n%30 == 0 then
+		if n%5 == 0 then
 			spawnStartBoxProtection(n)
+		end
+		if n%30 == 0 then
 			executeStartBoxProtection(n)
 			spawnStartBoxEffect2(n)
 		end
