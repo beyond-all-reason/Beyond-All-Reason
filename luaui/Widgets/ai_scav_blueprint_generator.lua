@@ -64,7 +64,7 @@ local function generateConstructorBlueprint()
 		local unitDefID = Spring.GetUnitDefID(unitID)
 		local unitName = UnitDefs[unitDefID].name
 
-		if not (UnitDefs[unitDefID].customparams and UnitDefs[unitDefID].customparams.isscavenger) then
+		if not string.find(unitName, scavSuffix) then
 			unitName = unitName .. scavSuffix
 		end
 
