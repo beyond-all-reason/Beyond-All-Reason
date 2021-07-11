@@ -2,7 +2,7 @@ Spring.Echo("[Scavengers] Constructor Controller initialized")
 
 local scavConfig = VFS.Include('luarules/gadgets/scavengers/Configs/BYAR/config.lua')
 local constructorUnitList = VFS.Include("luarules/gadgets/scavengers/Configs/" .. Game.gameShortName .. "/UnitLists/constructors.lua")
-local blueprintsController = VFS.Include("luarules/gadgets/scavengers/Blueprints/BYAR/constructor_blueprint_controller.lua")
+local blueprintsController = VFS.Include("luarules/gadgets/scavengers/Blueprints/BYAR/blueprint_controller.lua")
 local constructorTimer = constructorControllerModuleConfig.constructortimerstart
 
 local voiceNotificationsCount = 2
