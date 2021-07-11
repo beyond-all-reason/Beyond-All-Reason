@@ -34,8 +34,8 @@ function SpawnBlueprint(n)
 		seaBlueprint = blueprintsController.Spawner.GetRandomSeaBlueprint(spawnTier)
 
 		for i = 1, 50 do
-			local posx = math.random(200, Game.mapsizeX - 200)
-			local posz = math.random(200, Game.mapsizeZ - 200)
+			local posx = math.random(200, Game.mapSizeX - 200)
+			local posz = math.random(200, Game.mapSizeZ - 200)
 			local posy = Spring.GetGroundHeight(posx, posz)
 
 			if posy > 0 then

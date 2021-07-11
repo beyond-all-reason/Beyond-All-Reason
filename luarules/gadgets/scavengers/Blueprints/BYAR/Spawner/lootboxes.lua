@@ -9,7 +9,7 @@ local function lootboxGold()
 		type = types.Land,
 		tiers = { tiers.T0, tiers.T1, tiers.T2, tiers.T3, },
 		buildings = {
-			{ unitDefID = UDN.lootboxgold.id, xOffset = 0, zOffset = 0, math.random(0, 3) }
+			{ unitDefID = UDN.lootboxgold.id, xOffset = 0, zOffset = 0, direction = math.random(0, 3) }
 		},
 	}
 end
