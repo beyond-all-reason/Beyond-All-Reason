@@ -2,7 +2,7 @@ Spring.Echo("[Scavengers] Constructor Controller initialized")
 
 local scavConfig = VFS.Include('luarules/gadgets/scavengers/Configs/BYAR/config.lua')
 local constructorUnitList = VFS.Include("luarules/gadgets/scavengers/Configs/" .. Game.gameShortName .. "/UnitLists/constructors.lua")
-local blueprintsController = VFS.Include("luarules/gadgets/scavengers/Blueprints/BYAR/constructor_blueprint_controller.lua")
+local blueprintsController = VFS.Include("luarules/gadgets/scavengers/Blueprints/BYAR/blueprint_controller.lua")
 local constructorTimer = constructorControllerModuleConfig.constructortimerstart
 
 local voiceNotificationsCount = 2
@@ -205,8 +205,8 @@ local function constructNewBlueprint(n, unitID)
 		spawnTier = scavConfig.Tiers.T0
 	end
 
-	landBlueprint = blueprintsController.GetRandomLandBlueprint(spawnTier)
-	seaBlueprint = blueprintsController.GetRandomSeaBlueprint(spawnTier)
+	landBlueprint = blueprintsController.Constructor.GetRandomLandBlueprint(spawnTier)
+	seaBlueprint = blueprintsController.Constructor.GetRandomSeaBlueprint(spawnTier)
 
 	for i = 1, 50 do
 		local x,y,z = Spring.GetUnitPosition(unitID)

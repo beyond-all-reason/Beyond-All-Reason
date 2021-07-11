@@ -1,151 +1,124 @@
+local scavConfig = VFS.Include('luarules/gadgets/scavengers/Configs/BYAR/config.lua')
+local tiers = scavConfig.Tiers
+local types = scavConfig.BlueprintTypes
+local UDN = UnitDefNames
 
--- table.insert(ScavengerBlueprintsT0,FunctionName)
--- table.insert(ScavengerBlueprintsT1,FunctionName)
--- table.insert(ScavengerBlueprintsT2,FunctionName)
--- table.insert(ScavengerBlueprintsT3,FunctionName)
--- table.insert(ScavengerBlueprintsT0Sea,FunctionName)
--- table.insert(ScavengerBlueprintsT1Sea,FunctionName)
--- table.insert(ScavengerBlueprintsT2Sea,FunctionName)
--- table.insert(ScavengerBlueprintsT3Sea,FunctionName)
+local function lightMinefield1()
+	local unitPool = { UDN.armmine1_scav.id, UDN.armmine1_scav.id, UDN.armmine1_scav.id, UDN.armmine2_scav.id, }
 
--- example blueprint:
--- local function a(posx, posy, posz, GaiaTeamID, radiusCheck)
--- local posradius = 120
-	-- if radiusCheck then
-		-- return posradius
-	-- else
-		-- Spring.CreateUnit("corrad", posx, posy, posz, math_random(0,3),GaiaTeamID)
-		-- Spring.CreateUnit("corllt", posx-100, posy, posz, math_random(0,3),GaiaTeamID)
-		-- Spring.CreateUnit("corllt", posx+100, posy, posz, math_random(0,3),GaiaTeamID)
-		-- Spring.CreateUnit("corllt", posx, posy, posz-100, math_random(0,3),GaiaTeamID)
-		-- Spring.CreateUnit("corllt", posx, posy, posz+100, math_random(0,3),GaiaTeamID)
-	-- end
--- end
--- table.insert(ScavengerBlueprintsT1,a)
-
--- LIGHT MINEFIELD MINI
-
-local nameSuffix = '_scav'
-
-local function lightminefield(posx, posy, posz, GaiaTeamID, radiusCheck)
-local unitpool = {"armmine1", "armmine1", "armmine1", "armmine2",}
-local posradius = 100
-	if radiusCheck then
-		return posradius
-	else
-
-		Spring.CreateUnit(unitpool[math_random(1,#unitpool)]..nameSuffix, posx-35, posy, posz-35, "north",GaiaTeamID, false, false)
-		Spring.CreateUnit(unitpool[math_random(1,#unitpool)]..nameSuffix, posx+35, posy, posz-35, "north",GaiaTeamID, false, false)
-		Spring.CreateUnit(unitpool[math_random(1,#unitpool)]..nameSuffix, posx-35, posy, posz+35, "north",GaiaTeamID, false, false)
-		Spring.CreateUnit(unitpool[math_random(1,#unitpool)]..nameSuffix, posx+35, posy, posz+35, "north",GaiaTeamID, false, false)
-
-
-	end
+	return {
+		radius =  100,
+		type = types.Land,
+		tiers = { tiers.T1 },
+		buildings = {
+			{ unitDefID = unitPool[math.random(1, #unitPool)], xOffset = -35, zOffset = -35, direction = 2 },
+			{ unitDefID = unitPool[math.random(1, #unitPool)], xOffset =  35, zOffset = -35, direction = 2 },
+			{ unitDefID = unitPool[math.random(1, #unitPool)], xOffset = -35, zOffset =  35, direction = 2 },
+			{ unitDefID = unitPool[math.random(1, #unitPool)], xOffset =  35, zOffset =  35, direction = 2 },
+		},
+	}
 end
-table.insert(ScavengerBlueprintsT1,lightminefield)
 
--- LIGHT MINEFIELD
+local function lightMinefield2()
+	local unitPool = { UDN.armmine1_scav.id, UDN.armmine1_scav.id, UDN.armmine1_scav.id, UDN.armmine2_scav.id, }
 
-local function lightminefield(posx, posy, posz, GaiaTeamID, radiusCheck)
-local unitpool = {"armmine1", "armmine1", "armmine1", "armmine2",}
-local posradius = 100
-	if radiusCheck then
-		return posradius
-	else
-
-		Spring.CreateUnit(unitpool[math_random(1,#unitpool)]..nameSuffix, posx-100, posy, posz-25, "north",GaiaTeamID)
-		Spring.CreateUnit(unitpool[math_random(1,#unitpool)]..nameSuffix, posx-50, posy, posz-25, "north",GaiaTeamID)
-		Spring.CreateUnit(unitpool[math_random(1,#unitpool)]..nameSuffix, posx, posy, posz-25, "north",GaiaTeamID)
-		Spring.CreateUnit(unitpool[math_random(1,#unitpool)]..nameSuffix, posx+50, posy, posz-25, "north",GaiaTeamID)
-		Spring.CreateUnit(unitpool[math_random(1,#unitpool)]..nameSuffix, posx+100, posy, posz-25, "north",GaiaTeamID)
-		Spring.CreateUnit(unitpool[math_random(1,#unitpool)]..nameSuffix, posx-100, posy, posz+25, "north",GaiaTeamID)
-		Spring.CreateUnit(unitpool[math_random(1,#unitpool)]..nameSuffix, posx-50, posy, posz+25, "north",GaiaTeamID)
-		Spring.CreateUnit(unitpool[math_random(1,#unitpool)]..nameSuffix, posx, posy, posz+25, "north",GaiaTeamID)
-		Spring.CreateUnit(unitpool[math_random(1,#unitpool)]..nameSuffix, posx+50, posy, posz+25, "north",GaiaTeamID)
-		Spring.CreateUnit(unitpool[math_random(1,#unitpool)]..nameSuffix, posx+100, posy, posz+25, "north",GaiaTeamID)
-
-	end
+	return {
+		radius =  100,
+		type = types.Land,
+		tiers = { tiers.T1 },
+		buildings = {
+			{ unitDefID = unitPool[math.random(1, #unitPool)], xOffset = -100, zOffset = -25, direction = 2 },
+			{ unitDefID = unitPool[math.random(1, #unitPool)], xOffset =  -50, zOffset = -25, direction = 2 },
+			{ unitDefID = unitPool[math.random(1, #unitPool)], xOffset =    0, zOffset = -25, direction = 2 },
+			{ unitDefID = unitPool[math.random(1, #unitPool)], xOffset =   50, zOffset = -25, direction = 2 },
+			{ unitDefID = unitPool[math.random(1, #unitPool)], xOffset =  100, zOffset = -25, direction = 2 },
+			{ unitDefID = unitPool[math.random(1, #unitPool)], xOffset = -100, zOffset =  25, direction = 2 },
+			{ unitDefID = unitPool[math.random(1, #unitPool)], xOffset =  -50, zOffset =  25, direction = 2 },
+			{ unitDefID = unitPool[math.random(1, #unitPool)], xOffset =    0, zOffset =  25, direction = 2 },
+			{ unitDefID = unitPool[math.random(1, #unitPool)], xOffset =   50, zOffset =  25, direction = 2 },
+			{ unitDefID = unitPool[math.random(1, #unitPool)], xOffset =  100, zOffset =  25, direction = 2 },
+		},
+	}
 end
-table.insert(ScavengerBlueprintsT1,lightminefield)
 
--- MEDIUM MINEFIELD
+local function mediumMinefield1()
+	local unitPool = { UDN.armmine2_scav.id, UDN.armmine2_scav.id, UDN.armmine2_scav.id, UDN.armmine2_scav.id, }
 
-local function mediumminefield(posx, posy, posz, GaiaTeamID, radiusCheck)
-local unitpool = {"armmine2", "armmine2", "armmine2", "armmine2",}
-local posradius = 100
-	if radiusCheck then
-		return posradius
-	else
-
-		Spring.CreateUnit(unitpool[math_random(1,#unitpool)]..nameSuffix, posx-100, posy, posz-25, "north",GaiaTeamID)
-		Spring.CreateUnit(unitpool[math_random(1,#unitpool)]..nameSuffix, posx-50, posy, posz-25, "north",GaiaTeamID)
-		Spring.CreateUnit(unitpool[math_random(1,#unitpool)]..nameSuffix, posx, posy, posz-25, "north",GaiaTeamID)
-		Spring.CreateUnit(unitpool[math_random(1,#unitpool)]..nameSuffix, posx+50, posy, posz-25, "north",GaiaTeamID)
-		Spring.CreateUnit(unitpool[math_random(1,#unitpool)]..nameSuffix, posx+100, posy, posz-25, "north",GaiaTeamID)
-		Spring.CreateUnit(unitpool[math_random(1,#unitpool)]..nameSuffix, posx-100, posy, posz+25, "north",GaiaTeamID)
-		Spring.CreateUnit(unitpool[math_random(1,#unitpool)]..nameSuffix, posx-50, posy, posz+25, "north",GaiaTeamID)
-		Spring.CreateUnit(unitpool[math_random(1,#unitpool)]..nameSuffix, posx, posy, posz+25, "north",GaiaTeamID)
-		Spring.CreateUnit(unitpool[math_random(1,#unitpool)]..nameSuffix, posx+50, posy, posz+25, "north",GaiaTeamID)
-		Spring.CreateUnit(unitpool[math_random(1,#unitpool)]..nameSuffix, posx+100, posy, posz+25, "north",GaiaTeamID)
-
-	end
+	return {
+		radius =  100,
+		type = types.Land,
+		tiers = { tiers.T2 },
+		buildings = {
+			{ unitDefID = unitPool[math.random(1, #unitPool)], xOffset = -100, zOffset = -25, direction = 2 },
+			{ unitDefID = unitPool[math.random(1, #unitPool)], xOffset =  -50, zOffset = -25, direction = 2 },
+			{ unitDefID = unitPool[math.random(1, #unitPool)], xOffset =    0, zOffset = -25, direction = 2 },
+			{ unitDefID = unitPool[math.random(1, #unitPool)], xOffset =   50, zOffset = -25, direction = 2 },
+			{ unitDefID = unitPool[math.random(1, #unitPool)], xOffset =  100, zOffset = -25, direction = 2 },
+			{ unitDefID = unitPool[math.random(1, #unitPool)], xOffset = -100, zOffset =  25, direction = 2 },
+			{ unitDefID = unitPool[math.random(1, #unitPool)], xOffset =  -50, zOffset =  25, direction = 2 },
+			{ unitDefID = unitPool[math.random(1, #unitPool)], xOffset =    0, zOffset =  25, direction = 2 },
+			{ unitDefID = unitPool[math.random(1, #unitPool)], xOffset =   50, zOffset =  25, direction = 2 },
+			{ unitDefID = unitPool[math.random(1, #unitPool)], xOffset =  100, zOffset =  25, direction = 2 },
+		},
+	}
 end
-table.insert(ScavengerBlueprintsT2,mediumminefield)
 
--- HEAVY MINEFIELD
+local function heavyMinefield1()
+	local unitPool = { UDN.armmine3_scav.id, UDN.armmine2_scav.id, UDN.armmine3_scav.id, UDN.armmine3_scav.id, }
 
-local function heavyminefield1(posx, posy, posz, GaiaTeamID, radiusCheck)
-local unitpool = {"armmine3", "armmine2", "armmine3", "armmine3",}
-local posradius = 80
-	if radiusCheck then
-		return posradius
-	else
-
-		Spring.CreateUnit(unitpool[math_random(1,#unitpool)]..nameSuffix, posx-30, posy, posz-60, "north",GaiaTeamID)
-		Spring.CreateUnit(unitpool[math_random(1,#unitpool)]..nameSuffix, posx-60, posy, posz-30, "north",GaiaTeamID)
-		Spring.CreateUnit(unitpool[math_random(1,#unitpool)]..nameSuffix, posx, posy, posz-30, "north",GaiaTeamID)
-		Spring.CreateUnit(unitpool[math_random(1,#unitpool)]..nameSuffix, posx+60, posy, posz-30, "north",GaiaTeamID)
-		Spring.CreateUnit(unitpool[math_random(1,#unitpool)]..nameSuffix, posx+30, posy, posz-60, "north",GaiaTeamID)
-		Spring.CreateUnit(unitpool[math_random(1,#unitpool)]..nameSuffix, posx-30, posy, posz+60, "north",GaiaTeamID)
-		Spring.CreateUnit(unitpool[math_random(1,#unitpool)]..nameSuffix, posx-60, posy, posz+30, "north",GaiaTeamID)
-		Spring.CreateUnit(unitpool[math_random(1,#unitpool)]..nameSuffix, posx, posy, posz+30, "north",GaiaTeamID)
-		Spring.CreateUnit(unitpool[math_random(1,#unitpool)]..nameSuffix, posx+60, posy, posz+30, "north",GaiaTeamID)
-		Spring.CreateUnit(unitpool[math_random(1,#unitpool)]..nameSuffix, posx+30, posy, posz+60, "north",GaiaTeamID)
-
-	end
+	return {
+		radius =   80,
+		type = types.Land,
+		tiers = { tiers.T3, tiers.T4 },
+		buildings = {
+			{ unitDefID = unitPool[math.random(1, #unitPool)], xOffset = -30, zOffset = -60, direction = 2 },
+			{ unitDefID = unitPool[math.random(1, #unitPool)], xOffset = -60, zOffset = -30, direction = 2 },
+			{ unitDefID = unitPool[math.random(1, #unitPool)], xOffset =   0, zOffset = -30, direction = 2 },
+			{ unitDefID = unitPool[math.random(1, #unitPool)], xOffset =  60, zOffset = -30, direction = 2 },
+			{ unitDefID = unitPool[math.random(1, #unitPool)], xOffset =  30, zOffset = -60, direction = 2 },
+			{ unitDefID = unitPool[math.random(1, #unitPool)], xOffset = -30, zOffset =  60, direction = 2 },
+			{ unitDefID = unitPool[math.random(1, #unitPool)], xOffset = -60, zOffset =  30, direction = 2 },
+			{ unitDefID = unitPool[math.random(1, #unitPool)], xOffset =   0, zOffset =  30, direction = 2 },
+			{ unitDefID = unitPool[math.random(1, #unitPool)], xOffset =  60, zOffset =  30, direction = 2 },
+			{ unitDefID = unitPool[math.random(1, #unitPool)], xOffset =  30, zOffset =  60, direction = 2 },
+		},
+	}
 end
-table.insert(ScavengerBlueprintsT3,heavyminefield1)
-table.insert(ScavengerBlueprintsT4,heavyminefield1)
 
--- GIANT MINEFIELD
+local function heavyMinefield2()
+	local unitPool = { UDN.armmine3_scav.id, UDN.armmine2_scav.id, UDN.armmine2_scav.id, UDN.armmine3_scav.id, }
 
-local function heavyminefield2(posx, posy, posz, GaiaTeamID, radiusCheck)
-local unitpool = {"armmine3", "armmine2", "armmine2", "armmine3",}
-local posradius = 120
-	if radiusCheck then
-		return posradius
-	else
-
-		Spring.CreateUnit(unitpool[math_random(1,#unitpool)]..nameSuffix, posx-50, posy, posz-100, "north",GaiaTeamID)
-		Spring.CreateUnit(unitpool[math_random(1,#unitpool)]..nameSuffix, posx-50, posy, posz+100, "north",GaiaTeamID)
-		Spring.CreateUnit(unitpool[math_random(1,#unitpool)]..nameSuffix, posx-100, posy, posz-50, "north",GaiaTeamID)
-		Spring.CreateUnit(unitpool[math_random(1,#unitpool)]..nameSuffix, posx-100, posy, posz+50, "north",GaiaTeamID)
-		Spring.CreateUnit(unitpool[math_random(1,#unitpool)]..nameSuffix, posx, posy, posz-50, "north",GaiaTeamID)
-		Spring.CreateUnit(unitpool[math_random(1,#unitpool)]..nameSuffix, posx, posy, posz+50, "north",GaiaTeamID)
-		Spring.CreateUnit(unitpool[math_random(1,#unitpool)]..nameSuffix, posx+50, posy, posz+100, "north",GaiaTeamID)
-		Spring.CreateUnit(unitpool[math_random(1,#unitpool)]..nameSuffix, posx+50, posy, posz-100, "north",GaiaTeamID)
-		Spring.CreateUnit(unitpool[math_random(1,#unitpool)]..nameSuffix, posx+100, posy, posz-50, "north",GaiaTeamID)
-		Spring.CreateUnit(unitpool[math_random(1,#unitpool)]..nameSuffix, posx+100, posy, posz+50, "north",GaiaTeamID)
-		Spring.CreateUnit(unitpool[math_random(1,#unitpool)]..nameSuffix, posx-100, posy, posz-100, "north",GaiaTeamID)
-		Spring.CreateUnit(unitpool[math_random(1,#unitpool)]..nameSuffix, posx-100, posy, posz+100, "north",GaiaTeamID)
-		Spring.CreateUnit(unitpool[math_random(1,#unitpool)]..nameSuffix, posx-150, posy, posz+50, "north",GaiaTeamID)
-		Spring.CreateUnit(unitpool[math_random(1,#unitpool)]..nameSuffix, posx-150, posy, posz-50, "north",GaiaTeamID)
-		Spring.CreateUnit(unitpool[math_random(1,#unitpool)]..nameSuffix, posx+150, posy, posz+50, "north",GaiaTeamID)
-		Spring.CreateUnit(unitpool[math_random(1,#unitpool)]..nameSuffix, posx+150, posy, posz-50, "north",GaiaTeamID)
-		Spring.CreateUnit(unitpool[math_random(1,#unitpool)]..nameSuffix, posx+200, posy, posz, "north",GaiaTeamID)
-		Spring.CreateUnit(unitpool[math_random(1,#unitpool)]..nameSuffix, posx+200, posy, posz, "north",GaiaTeamID)
-
-	end
+	return {
+		radius =  120,
+		type = types.Land,
+		tiers = { tiers.T3, tiers.T4 },
+		buildings = {
+			{ unitDefID = unitPool[math.random(1, #unitPool)], xOffset =  -50, zOffset = -100, direction = 2 },
+			{ unitDefID = unitPool[math.random(1, #unitPool)], xOffset =  -50, zOffset =  100, direction = 2 },
+			{ unitDefID = unitPool[math.random(1, #unitPool)], xOffset = -100, zOffset =  -50, direction = 2 },
+			{ unitDefID = unitPool[math.random(1, #unitPool)], xOffset = -100, zOffset =   50, direction = 2 },
+			{ unitDefID = unitPool[math.random(1, #unitPool)], xOffset =    0, zOffset =  -50, direction = 2 },
+			{ unitDefID = unitPool[math.random(1, #unitPool)], xOffset =    0, zOffset =   50, direction = 2 },
+			{ unitDefID = unitPool[math.random(1, #unitPool)], xOffset =   50, zOffset =  100, direction = 2 },
+			{ unitDefID = unitPool[math.random(1, #unitPool)], xOffset =   50, zOffset = -100, direction = 2 },
+			{ unitDefID = unitPool[math.random(1, #unitPool)], xOffset =  100, zOffset =  -50, direction = 2 },
+			{ unitDefID = unitPool[math.random(1, #unitPool)], xOffset =  100, zOffset =   50, direction = 2 },
+			{ unitDefID = unitPool[math.random(1, #unitPool)], xOffset = -100, zOffset = -100, direction = 2 },
+			{ unitDefID = unitPool[math.random(1, #unitPool)], xOffset = -100, zOffset =  100, direction = 2 },
+			{ unitDefID = unitPool[math.random(1, #unitPool)], xOffset = -150, zOffset =   50, direction = 2 },
+			{ unitDefID = unitPool[math.random(1, #unitPool)], xOffset = -150, zOffset =  -50, direction = 2 },
+			{ unitDefID = unitPool[math.random(1, #unitPool)], xOffset =  150, zOffset =   50, direction = 2 },
+			{ unitDefID = unitPool[math.random(1, #unitPool)], xOffset =  150, zOffset =  -50, direction = 2 },
+			{ unitDefID = unitPool[math.random(1, #unitPool)], xOffset =  200, zOffset =    0, direction = 2 },
+			{ unitDefID = unitPool[math.random(1, #unitPool)], xOffset =  200, zOffset =    0, direction = 2 },
+		},
+	}
 end
-table.insert(ScavengerBlueprintsT3,heavyminefield2)
-table.insert(ScavengerBlueprintsT4,heavyminefield2)
+
+return {
+	lightMinefield1,
+	lightMinefield2,
+	mediumMinefield1,
+	heavyMinefield1,
+	heavyMinefield2,
+}

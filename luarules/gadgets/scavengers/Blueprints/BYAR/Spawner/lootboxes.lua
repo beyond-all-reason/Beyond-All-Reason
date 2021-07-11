@@ -1,42 +1,19 @@
+local scavConfig = VFS.Include('luarules/gadgets/scavengers/Configs/BYAR/config.lua')
+local tiers = scavConfig.Tiers
+local types = scavConfig.BlueprintTypes
+local UDN = UnitDefNames
 
--- table.insert(ScavengerBlueprintsT0,FunctionName)
--- table.insert(ScavengerBlueprintsT1,FunctionName)
--- table.insert(ScavengerBlueprintsT2,FunctionName)
--- table.insert(ScavengerBlueprintsT3,FunctionName)
--- table.insert(ScavengerBlueprintsT0Sea,FunctionName)
--- table.insert(ScavengerBlueprintsT1Sea,FunctionName)
--- table.insert(ScavengerBlueprintsT2Sea,FunctionName)
--- table.insert(ScavengerBlueprintsT3Sea,FunctionName)
-
--- example blueprint:
--- local function a(posx, posy, posz, GaiaTeamID, radiusCheck)
--- local posradius = 120
-	-- if radiusCheck then
-		-- return posradius
-	-- else
-		-- Spring.CreateUnit("corrad", posx, posy, posz, math_random(0,3),GaiaTeamID)
-		-- Spring.CreateUnit("corllt", posx-100, posy, posz, math_random(0,3),GaiaTeamID)
-		-- Spring.CreateUnit("corllt", posx+100, posy, posz, math_random(0,3),GaiaTeamID)
-		-- Spring.CreateUnit("corllt", posx, posy, posz-100, math_random(0,3),GaiaTeamID)
-		-- Spring.CreateUnit("corllt", posx, posy, posz+100, math_random(0,3),GaiaTeamID)
-	-- end
--- end
--- table.insert(ScavengerBlueprintsT1,a)
-
--- Lootboxes
-
-local nameSuffix = '_scav'
-
-local function lootboxgolddrop(posx, posy, posz, GaiaTeamID, radiusCheck)
-local posradius = 50
-	if radiusCheck then
-		return posradius
-	else
-		Spring.CreateUnit("lootboxgold", posx, posy, posz, math_random(0,3),GaiaTeamID, false, false)
-
-	end
+local function lootboxGold()
+	return {
+		radius = 50,
+		type = types.Land,
+		tiers = { tiers.T0, tiers.T1, tiers.T2, tiers.T3, },
+		buildings = {
+			{ unitDefID = UDN.lootboxgold.id, xOffset = 0, zOffset = 0, direction = math.random(0, 3) }
+		},
+	}
 end
-table.insert(ScavengerBlueprintsT0,lootboxgolddrop)
-table.insert(ScavengerBlueprintsT1,lootboxgolddrop)
-table.insert(ScavengerBlueprintsT2,lootboxgolddrop)
-table.insert(ScavengerBlueprintsT3,lootboxgolddrop)
+
+return {
+	lootboxGold,
+}
