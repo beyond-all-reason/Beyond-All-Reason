@@ -143,6 +143,8 @@ return {
 				soundhit = "impact",
 				soundhitwet = "splslrg",
 				soundstart = "launch",
+				soundhitvolume = 8,
+				soundstartvolume = 8,
 				sprayangle = 10000,
 				startvelocity = 1200,
 				stockpile = true,
