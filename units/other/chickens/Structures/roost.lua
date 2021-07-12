@@ -58,7 +58,14 @@ return {
 		featuredefs = {},
 		sfxtypes = {
 			explosiongenerators = {
-				[1] = "custom:dirt",
+				[1] = "custom:blood_spray",
+				[2] = "custom:blood_explode",
+				[3] = "custom:dirt",
+			},
+			pieceexplosiongenerators = {
+				[1] = "blood_spray",
+				[2] = "blood_spray",
+				[3] = "blood_spray",
 			},
 		},
 		weapondefs = {
@@ -82,7 +89,7 @@ return {
 				reloadtime = 5,
 				smoketrail = 1,
 				soundhit = "nuke4",
-				soundhitvolume = 50,
+				soundhitvolume = 10,
 				startvelocity = 2000,
 				targetborder = 0.75,
 				turret = 1,

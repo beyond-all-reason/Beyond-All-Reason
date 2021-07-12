@@ -103,6 +103,8 @@ return {
 				range = 420,
 				reloadtime = 2.2,
 				smoketrail = true,
+				soundhit = "e16",
+				soundstart = "e25",
 				startvelocity = 100,
 				texture1 = "",
 				texture2 = "sporetrail",

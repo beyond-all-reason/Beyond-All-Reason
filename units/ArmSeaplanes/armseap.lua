@@ -105,6 +105,8 @@ return {
 				soundhit = "xplodep2",
 				soundhitwet = "splsmed",
 				soundstart = "bombrel",
+				soundhitvolume = 3,
+				soundhitwetvolume = 12,
 				startvelocity = 100,
 				tolerance = 12000,
 				tracks = true,
