@@ -105,6 +105,8 @@ return {
 				smoketrail = true,
 				soundhit = "e16",
 				soundstart = "e25",
+				soundhitvolume = 5,
+				soundstartvolume = 6,
 				startvelocity = 100,
 				texture1 = "",
 				texture2 = "sporetrail",
