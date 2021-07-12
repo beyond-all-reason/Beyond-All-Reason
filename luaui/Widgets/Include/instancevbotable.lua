@@ -287,6 +287,68 @@ function makeCircleVBO(circleSegments, radius)
 	return circleVBO, #VBOData/4
 end
 
+function makePlaneVBO(xsize, ysize, xresolution, yresolution) -- makes a plane from [-xsize to xsize] with xresolution subdivisions
+	if not xsize then xsize = 1 end
+	if not ysize then ysize = xsize end
+	if not xresolution then xresolution = 1 end
+	if not yresolution then yresolution = xresolution end
+	xresolution = math.floor(xresolution)
+	yresolution = math.floor(yresolution)
+	local planeVBO = gl.GetVBO(GL.ARRAY_BUFFER,false)
+	if planeVBO == nil then return nil end
+	
+	local VBOLayout = {
+	 {id = 0, name = "xyworld_xyfract", size = 4},
+	}
+	
+	local VBOData = {}
+	
+	for x = 0, xresolution  do -- this is +1
+		for y = 0, yresolution do
+			VBOData[#VBOData+1] = xsize * ((x / xresolution) -0.5 ) *2
+			VBOData[#VBOData+1] = ysize * ((y / yresolution) -0.5 ) * 2
+			VBOData[#VBOData+1] = 0
+			VBOData[#VBOData+1] = 0
+		end
+	end	
+	
+	planeVBO:Define(
+		(xresolution + 1) * (yresolution + 1),
+		VBOLayout
+	)
+	planeVBO:Upload(VBOData)
+	
+	return planeVBO, #VBOData/4
+end
+
+function makePlaneIndexVBO(xresolution, yresolution)
+	xresolution = math.floor(xresolution)
+	if not yresolution then yresolution = xresolution end
+	local planeIndexVBO = gl.GetVBO(GL.ELEMENT_ARRAY_BUFFER,false)
+	if planeIndexVBO == nil then return nil end
+	local numindices = yresolution*xresolution*6
+	planeIndexVBO:Define(
+		numindices
+	)
+	IndexVBOData = {}
+	local qindex = 0
+	local colsize = yresolution + 1
+	for x = 0, xresolution-1  do -- this is +1
+		for y = 0, yresolution-1 do
+			IndexVBOData[#IndexVBOData + 1] = qindex
+			IndexVBOData[#IndexVBOData + 1] = qindex +1
+			IndexVBOData[#IndexVBOData + 1] = qindex + colsize
+			IndexVBOData[#IndexVBOData + 1] = qindex +1
+			IndexVBOData[#IndexVBOData + 1] = qindex + colsize + 1
+			IndexVBOData[#IndexVBOData + 1] = qindex + colsize
+			qindex = qindex + 1
+		end
+		qindex = qindex + 1
+	end	
+	planeIndexVBO:Upload(IndexVBOData)
+	return planeIndexVBO,numindices
+end
+
 function makePointVBO(numPoints)
 	-- makes points with xyzw
 	-- can be used in both GL.LINES and GL.TRIANGLE_FAN mode
