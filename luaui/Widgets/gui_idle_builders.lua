@@ -90,7 +90,7 @@ local isFactory = {}
 local unitBuildPic = {}
 local unitHumanName = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
-	if unitDef.buildSpeed > 0 then --and unitDef.buildOptions[1] then
+	if unitDef.buildSpeed > 0 and not string.find(unitDef.name, 'spy') then --and unitDef.buildOptions[1] then
 		isBuilder[unitDefID] = true
 	end
 	if unitDef.isFactory then
