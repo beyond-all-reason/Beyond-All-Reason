@@ -4,16 +4,12 @@ mapsizeZ = Game.mapSizeZ
 GaiaTeamID = Spring.GetGaiaTeamID()
 GaiaAllyTeamID = select(6, Spring.GetTeamInfo(GaiaTeamID))
 
-local RuinSpawns = (math.ceil(math.ceil(mapsizeX+mapsizeZ)/750)+30)*3
-
 local scavengersAIEnabled = false
-local scavengerAllyTeamID
 local teams = Spring.GetTeamList()
-for i = 1,#teams do
+for i = 1, #teams do
 	local luaAI = Spring.GetTeamLuaAI(teams[i])
 	if luaAI and luaAI ~= "" and string.sub(luaAI, 1, 12) == 'ScavengersAI' then
 		scavengersAIEnabled = true
-		scavengerAllyTeamID = select(6, Spring.GetTeamInfo(i - 1))
 		break
 	end
 end
@@ -22,78 +18,6 @@ local ruinSpawnEnabled = false
 if (Spring.GetModOptions and (Spring.GetModOptions().ruins or "disabled") == "enabled") or (Spring.GetModOptions and (Spring.GetModOptions().scavonlyruins or "enabled") == "enabled" and scavengersAIEnabled == true) then
 	ruinSpawnEnabled = true
 end
-
-VFS.Include('luarules/gadgets/scavengers/API/poschecks.lua')
-
--- function SpawnRuin(name, posx, posy, posz, facing, patrol)
--- 	local r = math.random(1,100)
--- 	if r < 30 and FeatureDefNames[name.."_heap"] then
--- 		local fe = Spring.CreateFeature(name.."_heap", posx, Spring.GetGroundHeight(posx, posz), posz, facing, GaiaTeamID)
--- 		Spring.SetFeatureAlwaysVisible(fe, true)
--- 	elseif r < 60 and FeatureDefNames[name.."_dead"] then
--- 		local fe = Spring.CreateFeature(name.."_dead", posx, Spring.GetGroundHeight(posx, posz), posz, facing, GaiaTeamID)
--- 		Spring.SetFeatureAlwaysVisible(fe, true)
--- 		Spring.SetFeatureResurrect(fe, name)
--- 	elseif r < 90 then
--- 		local u = Spring.CreateUnit(name, posx, Spring.GetGroundHeight(posx, posz), posz, facing, GaiaTeamID)
--- 		Spring.SetUnitNeutral(u, true)
--- 		Spring.GiveOrderToUnit(u,CMD.FIRE_STATE,{1},0)
--- 		Spring.GiveOrderToUnit(u,CMD.MOVE_STATE,{0},0)
--- 		Spring.SetUnitAlwaysVisible(u, true)
--- 		local udefid = Spring.GetUnitDefID(u)
--- 		local rrange = UnitDefs[udefid].radarRadius
--- 		local canmove = UnitDefs[udefid].canMove
--- 		local speed = UnitDefs[udefid].speed
--- 		if patrol and patrol == true and canmove and speed > 0 then
--- 			for i = 1,6 do
--- 				Spring.GiveOrderToUnit(u, CMD.PATROL,{posx+(math.random(-200,200)),posy+100,posz+(math.random(-200,200))}, {"shift", "alt", "ctrl"})
--- 			end
--- 		end
--- 		if rrange and rrange > 1000 then
--- 			Spring.GiveOrderToUnit(u,CMD.ONOFF,{0},0)
--- 		end
--- 	else
-
--- 	end
--- end
-
-function SpawnRuin(name, posx, posy, posz, facing, patrol)
-	local r = math.random(1,100)
-	if r < 20 then
-		local u = Spring.CreateUnit(name, posx, Spring.GetGroundHeight(posx, posz), posz, facing, GaiaTeamID)
-		Spring.SetUnitNeutral(u, true)
-		Spring.GiveOrderToUnit(u,CMD.FIRE_STATE,{1},0)
-		Spring.GiveOrderToUnit(u,CMD.MOVE_STATE,{0},0)
-		Spring.SetUnitAlwaysVisible(u, true)
-		local udefid = Spring.GetUnitDefID(u)
-		local rrange = UnitDefs[udefid].radarRadius
-		local canmove = UnitDefs[udefid].canMove
-		local speed = UnitDefs[udefid].speed
-		if patrol and patrol == true and canmove and speed > 0 then
-			for i = 1,6 do
-				Spring.GiveOrderToUnit(u, CMD.PATROL,{posx+(math.random(-200,200)),posy+100,posz+(math.random(-200,200))}, {"shift", "alt", "ctrl"})
-			end
-		end
-		if rrange and rrange > 1000 then
-			Spring.GiveOrderToUnit(u,CMD.ONOFF,{0},0)
-		end
-	elseif r < 90 and FeatureDefNames[name.."_dead"] then
-		local fe = Spring.CreateFeature(name.."_dead", posx, Spring.GetGroundHeight(posx, posz), posz, facing, GaiaTeamID)
-		Spring.SetFeatureAlwaysVisible(fe, true)
-		Spring.SetFeatureResurrect(fe, name)
-	else
-
-	end
-end
-
-local BlueprintsList = VFS.DirList('luarules/gadgets/scavengers/Ruins/' .. Game.gameShortName .. '/','*.lua')
-RuinsList = {}
-RuinsListSea = {}
-for i = 1,#BlueprintsList do
-	VFS.Include(BlueprintsList[i])
-	Spring.Echo("Ruin Blueprints Directory: " ..BlueprintsList[i])
-end
-
 
 function gadget:GetInfo()
     return {
@@ -106,63 +30,114 @@ function gadget:GetInfo()
     }
 end
 
+VFS.Include('luarules/gadgets/scavengers/API/init.lua')
+VFS.Include('luarules/gadgets/scavengers/API/api.lua')
+local scavConfig = VFS.Include('luarules/gadgets/scavengers/Configs/BYAR/config.lua')
+VFS.Include('luarules/gadgets/scavengers/API/poschecks.lua')
+
+local spawnCutoffFrame = (math.ceil( math.ceil(mapsizeX + mapsizeZ) / 750 ) + 30) * 3
+local landRuins = {}
+local seaRuins = {}
+
+local function loadBlueprints()
+	local blueprintDirectory = VFS.DirList('luarules/gadgets/scavengers/Ruins/BYAR/','*.lua')
+
+	for _, blueprintFile in ipairs(blueprintDirectory) do
+		local blueprints = VFS.Include(blueprintFile)
+
+		for _, blueprintFunction in ipairs(blueprints) do
+			local blueprint = blueprintFunction()
+
+			if blueprint.type == scavConfig.BlueprintTypes.Land then
+				table.insert(landRuins, blueprint)
+			elseif blueprint.type == scavConfig.BlueprintTypes.Sea then
+				table.insert(seaRuins, blueprint)
+			end
+		end
+
+		Spring.Echo("[Scavengers] Loading ruin file: " .. blueprintFile)
+	end
+end
+
+local function spawnRuin(ruin, posx, posy, posz)
+	for _, building in ipairs(ruin.buildings) do
+		local name = UnitDefs[building.unitDefID].name
+		local r = math.random(1,100)
+		if r < 20 then
+			local unit = Spring.CreateUnit(building.unitDefID, posx + building.xOffset, posy, posz + building.zOffset, building.direction, GaiaTeamID)
+			local radarRange = UnitDefs[building.unitDefID].radarRadius
+			local canMove = UnitDefs[building.unitDefID].canMove
+			local speed = UnitDefs[building.unitDefID].speed
+
+			Spring.SetUnitNeutral(unit, true)
+			Spring.GiveOrderToUnit(unit, CMD.FIRE_STATE, {1}, 0)
+			Spring.GiveOrderToUnit(unit, CMD.MOVE_STATE, {0}, 0)
+			Spring.SetUnitAlwaysVisible(unit, true)
+
+			if building.patrol and canMove and speed > 0 then
+				for i = 1, 6 do
+					Spring.GiveOrderToUnit(unit, CMD.PATROL, { posx + (math.random(-200, 200)), posy + 100, posz + (math.random(-200, 200)) }, {"shift", "alt", "ctrl"})
+				end
+			end
+
+			if radarRange and radarRange > 1000 then
+				Spring.GiveOrderToUnit(unit, CMD.ONOFF, {0}, 0)
+			end
+		elseif r < 90 and FeatureDefNames[name .. "_dead"] then
+			local wreck = Spring.CreateFeature(name .. "_dead", posx + building.xOffset, posy, posz + building.zOffset, building.direction, GaiaTeamID)
+			Spring.SetFeatureAlwaysVisible(wreck, true)
+			Spring.SetFeatureResurrect(wreck, name)
+		end
+	end
+end
+
 if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
 function gadget:GameFrame(n)
-	if n > 30 and n%5 == 0 and n <= RuinSpawns then
-		for i = 1,100 do
-			local pickedRuin = RuinsList[math.random(1,#RuinsList)]
-			local pickedRuinSea = RuinsListSea[math.random(1,#RuinsListSea)]
-			local seaRuinChance = math.random(1,2)
-			local posx = math.random(0,mapsizeX)
-			local posz = math.random(0,mapsizeZ)
-			local posy = Spring.GetGroundHeight(posx, posz)
-			local posradius, canBuildHere
+	if n < 30 or n%5 ~= 0 or n > spawnCutoffFrame then
+		return
+	end
+
+	for i = 1, 100 do
+		local landRuin, seaRuin, ruin
+		local posx = math.random(0, Game.mapSizeX)
+		local posz = math.random(0, Game.mapSizeZ)
+		local posy = Spring.GetGroundHeight(posx, posz)
+		local seaRuinChance = math.random(1, 2)
+		local radius, canBuildHere
+
+		landRuin = landRuins[math.random(1, #landRuins)]
+		seaRuin = seaRuins[math.random(1, #seaRuins)]
+
+		if posy > 0 then
+			ruin = landRuin
+		elseif posy <= 0 and seaRuinChance == 1 then
+			ruin = seaRuin
+		end
+
+		if ruin ~= nil then -- Nil check because Lua does not have a "continue" statement
+			radius = ruin.radius
+			canBuildHere = posLosCheck(posx, posy, posz, radius)
+						and posMapsizeCheck(posx, posy, posz, radius)
+						and posOccupied(posx, posy, posz, radius)
+						and posCheck(posx, posy, posz, radius)
+
 			if posy > 0 then
-				posradius = pickedRuin(posx, posy, posz, GaiaTeamID, true)
-				canBuildHere = posLosCheck(posx, posy, posz, posradius)
-				if canBuildHere then
-					canBuildHere = posMapsizeCheck(posx, posy, posz, posradius)
-				end
-				if canBuildHere then
-					canBuildHere = posOccupied(posx, posy, posz, posradius)
-				end
-				if canBuildHere then
-					canBuildHere = posCheck(posx, posy, posz, posradius)
-				end
-				if canBuildHere then
-					canBuildHere = posLandCheck(posx, posy, posz, posradius)
-				end
+				canBuildHere = canBuildHere and posLandCheck(posx, posy, posz, radius)
+			elseif posy <= 0 then
+				canBuildHere = canBuildHere and posSeaCheck(posx, posy, posz, radius)
+			end
 
-				if canBuildHere then
-					pickedRuin(posx, posy, posz, GaiaTeamID, false)
-					break
-				end
-			elseif posy <= 0 and seaRuinChance == 1 then
-				posradius = pickedRuinSea(posx, posy, posz, GaiaTeamID, true)
-				canBuildHere = posLosCheck(posx, posy, posz, posradius)
-				if canBuildHere then
-					canBuildHere = posMapsizeCheck(posx, posy, posz, posradius)
-				end
-				if canBuildHere then
-					canBuildHere = posOccupied(posx, posy, posz, posradius)
-				end
-				if canBuildHere then
-					canBuildHere = posCheck(posx, posy, posz, posradius)
-				end
-				if canBuildHere then
-					canBuildHere = posSeaCheck(posx, posy, posz, posradius)
-				end
-
-				if canBuildHere then
-					pickedRuinSea(posx, posy, posz, GaiaTeamID, false)
-					break
-				end
+			if canBuildHere then
+				spawnRuin(ruin, posx, posy, posz)
+				break
 			end
 		end
 	end
 end
 
-
+function gadget:Initialize()
+	loadBlueprints()
+end
