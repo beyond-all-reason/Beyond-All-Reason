@@ -1,1229 +1,1266 @@
-local function ixruinpower1(posx, posy, posz, GaiaTeamID, radiusCheck)
-	local posradius = 124
-	if radiusCheck then
-		return posradius
-	else
-SpawnRuin("corfort", posx+(-117), posy, posz+(-29), 1)
-SpawnRuin("coradvsol", posx+(-53), posy, posz+(-13), 1)
-SpawnRuin("coradvsol", posx+(11), posy, posz+(-61), 1)
-SpawnRuin("cordrag", posx+(91), posy, posz+(35), 1)
-SpawnRuin("cordrag", posx+(27), posy, posz+(83), 1)
-SpawnRuin("corllt", posx+(123), posy, posz+(-29), 1)
-SpawnRuin("cordrag", posx+(91), posy, posz+(3), 1)
-SpawnRuin("cordrag", posx+(-53), posy, posz+(-77), 1)
-SpawnRuin("corfort", posx+(91), posy, posz+(67), 1)
-SpawnRuin("corfort", posx+(59), posy, posz+(83), 1)
-SpawnRuin("cordrag", posx+(-5), posy, posz+(83), 1)
-SpawnRuin("corllt", posx+(-5), posy, posz+(115), 0)
-SpawnRuin("corfort", posx+(-85), posy, posz+(-77), 1)
-SpawnRuin("cordrag", posx+(-117), posy, posz+(3), 1)
-SpawnRuin("corllt", posx+(-53), posy, posz+(-109), 2)
-SpawnRuin("corfort", posx+(-117), posy, posz+(-61), 1)
-SpawnRuin("cordrag", posx+(91), posy, posz+(-29), 1)
-SpawnRuin("corestor", posx+(27), posy, posz+(19), 1)
-	end
-end
-table.insert(RuinsList,ixruinpower1)
+local scavConfig = VFS.Include('luarules/gadgets/scavengers/Configs/BYAR/config.lua')
+local types = scavConfig.BlueprintTypes
 
-local function ixruinpower2(posx, posy, posz, GaiaTeamID, radiusCheck)
-	local posradius = 190
-	if radiusCheck then
-		return posradius
-	else
-SpawnRuin("cordrag", posx+(-162), posy, posz+(48), 3)
-SpawnRuin("coradvsol", posx+(-82), posy, posz+(0), 3)
-SpawnRuin("cordrag", posx+(-18), posy, posz+(96), 3)
-SpawnRuin("cordrag", posx+(-50), posy, posz+(-64), 3)
-SpawnRuin("cordrag", posx+(46), posy, posz+(-64), 3)
-SpawnRuin("corfort", posx+(14), posy, posz+(-64), 3)
-SpawnRuin("cordrag", posx+(14), posy, posz+(-96), 3)
-SpawnRuin("cordrag", posx+(190), posy, posz+(-16), 3)
-SpawnRuin("corfort", posx+(-18), posy, posz+(64), 3)
-SpawnRuin("cordrag", posx+(174), posy, posz+(48), 3)
-SpawnRuin("cordrag", posx+(190), posy, posz+(16), 3)
-SpawnRuin("cordrag", posx+(-178), posy, posz+(16), 3)
-SpawnRuin("corfmd", posx+(-2), posy, posz+(0), 3)
-SpawnRuin("cordrag", posx+(-50), posy, posz+(64), 3)
-SpawnRuin("cordrag", posx+(-18), posy, posz+(-96), 3)
-SpawnRuin("corflak", posx+(142), posy, posz+(0), 1)
-SpawnRuin("corhlt", posx+(-146), posy, posz+(0), 3)
-SpawnRuin("coradvsol", posx+(78), posy, posz+(0), 3)
-SpawnRuin("corfort", posx+(-18), posy, posz+(-64), 3)
-SpawnRuin("corfort", posx+(14), posy, posz+(64), 3)
-SpawnRuin("cordrag", posx+(-178), posy, posz+(-16), 3)
-SpawnRuin("cordrag", posx+(-162), posy, posz+(-48), 3)
-SpawnRuin("cordrag", posx+(14), posy, posz+(96), 3)
-SpawnRuin("cordrag", posx+(174), posy, posz+(-48), 3)
-SpawnRuin("cordrag", posx+(46), posy, posz+(64), 3)
-	end
+local function ixruinpower1()
+	return {
+		radius = 124,
+		type = types.Land,
+		buildings = {
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset = -117, zOffset =  -29, direction = 1 },
+			{ unitDefID = UnitDefNames.coradvsol.id, xOffset =  -53, zOffset =  -13, direction = 1 },
+			{ unitDefID = UnitDefNames.coradvsol.id, xOffset =   11, zOffset =  -61, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =   91, zOffset =   35, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =   27, zOffset =   83, direction = 1 },
+			{ unitDefID = UnitDefNames.corllt.id,    xOffset =  123, zOffset =  -29, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =   91, zOffset =    3, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =  -53, zOffset =  -77, direction = 1 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset =   91, zOffset =   67, direction = 1 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset =   59, zOffset =   83, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =   -5, zOffset =   83, direction = 1 },
+			{ unitDefID = UnitDefNames.corllt.id,    xOffset =   -5, zOffset =  115, direction = 0 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset =  -85, zOffset =  -77, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset = -117, zOffset =    3, direction = 1 },
+			{ unitDefID = UnitDefNames.corllt.id,    xOffset =  -53, zOffset = -109, direction = 2 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset = -117, zOffset =  -61, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =   91, zOffset =  -29, direction = 1 },
+			{ unitDefID = UnitDefNames.corestor.id,  xOffset =   27, zOffset =   19, direction = 1 },
+		},
+	}
 end
-table.insert(RuinsList,ixruinpower2)
 
-local function ixruinpower3(posx, posy, posz, GaiaTeamID, radiusCheck)
-	local posradius = 142
-	if radiusCheck then
-		return posradius
-	else
-SpawnRuin("cordrag", posx+(-82), posy, posz+(-66), 3)
-SpawnRuin("cordrag", posx+(94), posy, posz+(-146), 3)
-SpawnRuin("cordrag", posx+(-66), posy, posz+(142), 3)
-SpawnRuin("cordrag", posx+(-114), posy, posz+(-34), 3)
-SpawnRuin("cormakr", posx+(-58), posy, posz+(102), 3)
-SpawnRuin("cordrag", posx+(126), posy, posz+(-146), 3)
-SpawnRuin("cordrag", posx+(142), posy, posz+(78), 3)
-SpawnRuin("corfus", posx+(70), posy, posz+(6), 3)
-SpawnRuin("cormakr", posx+(54), posy, posz+(-122), 3)
-SpawnRuin("corfort", posx+(-50), posy, posz+(-66), 3)
-SpawnRuin("cordrag", posx+(-130), posy, posz+(126), 3)
-SpawnRuin("corrad", posx+(14), posy, posz+(78), 3)
-SpawnRuin("cordrag", posx+(142), posy, posz+(46), 3)
-SpawnRuin("corfort", posx+(78), posy, posz+(78), 3)
-SpawnRuin("cordrag", posx+(-114), posy, posz+(-2), 3)
-SpawnRuin("corfus", posx+(-42), posy, posz+(6), 3)
-SpawnRuin("cordrag", posx+(62), posy, posz+(-162), 3)
-SpawnRuin("cordrag", posx+(-114), posy, posz+(-66), 3)
-SpawnRuin("cordrag", posx+(-34), posy, posz+(142), 3)
-SpawnRuin("cordrag", posx+(30), posy, posz+(-162), 3)
-SpawnRuin("cordrag", posx+(110), posy, posz+(78), 3)
-SpawnRuin("cormakr", posx+(-106), posy, posz+(86), 3)
-SpawnRuin("cordrag", posx+(-98), posy, posz+(126), 3)
-SpawnRuin("cormakr", posx+(102), posy, posz+(-106), 3)
-	end
+local function ixruinpower2()
+	return {
+		radius = 190,
+		type = types.Land,
+		buildings = {
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset = -162, zOffset =   48, direction = 3 },
+			{ unitDefID = UnitDefNames.coradvsol.id, xOffset =  -82, zOffset =    0, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =  -18, zOffset =   96, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =  -50, zOffset =  -64, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =   46, zOffset =  -64, direction = 3 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset =   14, zOffset =  -64, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =   14, zOffset =  -96, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =  190, zOffset =  -16, direction = 3 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset =  -18, zOffset =   64, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =  174, zOffset =   48, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =  190, zOffset =   16, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset = -178, zOffset =   16, direction = 3 },
+			{ unitDefID = UnitDefNames.corfmd.id,    xOffset =   -2, zOffset =    0, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =  -50, zOffset =   64, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =  -18, zOffset =  -96, direction = 3 },
+			{ unitDefID = UnitDefNames.corflak.id,   xOffset =  142, zOffset =    0, direction = 1 },
+			{ unitDefID = UnitDefNames.corhlt.id,    xOffset = -146, zOffset =    0, direction = 3 },
+			{ unitDefID = UnitDefNames.coradvsol.id, xOffset =   78, zOffset =    0, direction = 3 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset =  -18, zOffset =  -64, direction = 3 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset =   14, zOffset =   64, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset = -178, zOffset =  -16, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset = -162, zOffset =  -48, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =   14, zOffset =   96, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =  174, zOffset =  -48, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =   46, zOffset =   64, direction = 3 },
+		},
+	}
 end
-table.insert(RuinsList,ixruinpower3)
 
-local function ixruinpower4(posx, posy, posz, GaiaTeamID, radiusCheck)
-	local posradius = 142
-	if radiusCheck then
-		return posradius
-	else
-SpawnRuin("corck", posx+(79), posy, posz+(25), 0)
-SpawnRuin("corfort", posx+(-90), posy, posz+(-115), 1)
-SpawnRuin("corfort", posx+(134), posy, posz+(77), 1)
-SpawnRuin("corfort", posx+(-122), posy, posz+(-51), 1)
-SpawnRuin("corestor", posx+(54), posy, posz+(61), 1)
-SpawnRuin("corfus", posx+(-50), posy, posz+(-43), 1)
-SpawnRuin("cordrag", posx+(134), posy, posz+(-51), 2)
-SpawnRuin("corfort", posx+(-122), posy, posz+(-83), 1)
-SpawnRuin("cordrag", posx+(134), posy, posz+(45), 1)
-SpawnRuin("corfort", posx+(-58), posy, posz+(-115), 1)
-SpawnRuin("cordrag", posx+(102), posy, posz+(-115), 2)
-SpawnRuin("corfort", posx+(118), posy, posz+(109), 1)
-SpawnRuin("cordrag", posx+(134), posy, posz+(-83), 2)
-SpawnRuin("cordrag", posx+(-122), posy, posz+(-19), 1)
-SpawnRuin("cordrag", posx+(-122), posy, posz+(-115), 2)
-SpawnRuin("corshroud", posx+(-106), posy, posz+(77), 2)
-SpawnRuin("cordrag", posx+(-106), posy, posz+(109), 2)
-SpawnRuin("cordrag", posx+(22), posy, posz+(141), 1)
-SpawnRuin("cormaw", posx+(-138), posy, posz+(109), 3)
-SpawnRuin("corfort", posx+(54), posy, posz+(141), 1)
-SpawnRuin("cordrag", posx+(-26), posy, posz+(-115), 1)
-SpawnRuin("corfort", posx+(86), posy, posz+(125), 1)
-SpawnRuin("cordrag", posx+(70), posy, posz+(-115), 2)
-SpawnRuin("cordoom", posx+(86), posy, posz+(-67), 2)
-SpawnRuin("cordrag", posx+(-138), posy, posz+(77), 2)
-	end
+local function ixruinpower3()
+	return {
+		radius = 142,
+		type = types.Land,
+		buildings = {
+			{ unitDefID = UnitDefNames.cordrag.id, xOffset =  -82, zOffset =  -66, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id, xOffset =   94, zOffset = -146, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id, xOffset =  -66, zOffset =  142, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id, xOffset = -114, zOffset =  -34, direction = 3 },
+			{ unitDefID = UnitDefNames.cormakr.id, xOffset =  -58, zOffset =  102, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id, xOffset =  126, zOffset = -146, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id, xOffset =  142, zOffset =   78, direction = 3 },
+			{ unitDefID = UnitDefNames.corfus.id,  xOffset =   70, zOffset =    6, direction = 3 },
+			{ unitDefID = UnitDefNames.cormakr.id, xOffset =   54, zOffset = -122, direction = 3 },
+			{ unitDefID = UnitDefNames.corfort.id, xOffset =  -50, zOffset =  -66, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id, xOffset = -130, zOffset =  126, direction = 3 },
+			{ unitDefID = UnitDefNames.corrad.id,  xOffset =   14, zOffset =   78, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id, xOffset =  142, zOffset =   46, direction = 3 },
+			{ unitDefID = UnitDefNames.corfort.id, xOffset =   78, zOffset =   78, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id, xOffset = -114, zOffset =   -2, direction = 3 },
+			{ unitDefID = UnitDefNames.corfus.id,  xOffset =  -42, zOffset =    6, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id, xOffset =   62, zOffset = -162, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id, xOffset = -114, zOffset =  -66, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id, xOffset =  -34, zOffset =  142, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id, xOffset =   30, zOffset = -162, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id, xOffset =  110, zOffset =   78, direction = 3 },
+			{ unitDefID = UnitDefNames.cormakr.id, xOffset = -106, zOffset =   86, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id, xOffset =  -98, zOffset =  126, direction = 3 },
+			{ unitDefID = UnitDefNames.cormakr.id, xOffset =  102, zOffset = -106, direction = 3 },
+		},
+	}
 end
-table.insert(RuinsList,ixruinpower4)
 
-local function ixruinpower5(posx, posy, posz, GaiaTeamID, radiusCheck)
-	local posradius = 190
-	if radiusCheck then
-		return posradius
-	else
-SpawnRuin("corfort", posx+(59), posy, posz+(83), 1)
-SpawnRuin("cordrag", posx+(-5), posy, posz+(83), 1)
-SpawnRuin("corllt", posx+(-5), posy, posz+(115), 0)
-SpawnRuin("corfort", posx+(-85), posy, posz+(-77), 1)
-SpawnRuin("corfort", posx+(-117), posy, posz+(-29), 1)
-SpawnRuin("coradvsol", posx+(-53), posy, posz+(-13), 1)
-SpawnRuin("coradvsol", posx+(11), posy, posz+(-61), 1)
-SpawnRuin("cordrag", posx+(91), posy, posz+(35), 1)
-SpawnRuin("cordrag", posx+(-117), posy, posz+(3), 1)
-SpawnRuin("corllt", posx+(-53), posy, posz+(-109), 2)
-SpawnRuin("cordrag", posx+(27), posy, posz+(83), 1)
-SpawnRuin("corllt", posx+(123), posy, posz+(-29), 1)
-SpawnRuin("cordrag", posx+(91), posy, posz+(3), 1)
-SpawnRuin("corfort", posx+(-117), posy, posz+(-61), 1)
-SpawnRuin("cordrag", posx+(-53), posy, posz+(-77), 1)
-SpawnRuin("corfort", posx+(91), posy, posz+(67), 1)
-SpawnRuin("cordrag", posx+(91), posy, posz+(-29), 1)
-SpawnRuin("corestor", posx+(27), posy, posz+(19), 1)
-	end
+local function ixruinpower4()
+	return {
+		radius = 142,
+		type = types.Land,
+		buildings = {
+			{ unitDefID = UnitDefNames.corck.id,     xOffset =   79, zOffset =   25, direction = 0 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset =  -90, zOffset = -115, direction = 1 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset =  134, zOffset =   77, direction = 1 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset = -122, zOffset =  -51, direction = 1 },
+			{ unitDefID = UnitDefNames.corestor.id,  xOffset =   54, zOffset =   61, direction = 1 },
+			{ unitDefID = UnitDefNames.corfus.id,    xOffset =  -50, zOffset =  -43, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =  134, zOffset =  -51, direction = 2 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset = -122, zOffset =  -83, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =  134, zOffset =   45, direction = 1 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset =  -58, zOffset = -115, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =  102, zOffset = -115, direction = 2 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset =  118, zOffset =  109, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =  134, zOffset =  -83, direction = 2 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset = -122, zOffset =  -19, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset = -122, zOffset = -115, direction = 2 },
+			{ unitDefID = UnitDefNames.corshroud.id, xOffset = -106, zOffset =   77, direction = 2 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset = -106, zOffset =  109, direction = 2 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =   22, zOffset =  141, direction = 1 },
+			{ unitDefID = UnitDefNames.cormaw.id,    xOffset = -138, zOffset =  109, direction = 3 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset =   54, zOffset =  141, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =  -26, zOffset = -115, direction = 1 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset =   86, zOffset =  125, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =   70, zOffset = -115, direction = 2 },
+			{ unitDefID = UnitDefNames.cordoom.id,   xOffset =   86, zOffset =  -67, direction = 2 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset = -138, zOffset =   77, direction = 2 },
+		},
+	}
 end
-table.insert(RuinsList,ixruinpower5)
 
-local function ixruinpower6(posx, posy, posz, GaiaTeamID, radiusCheck)
-	local posradius = 118
-	if radiusCheck then
-		return posradius
-	else
-SpawnRuin("corfort", posx+(59), posy, posz+(83), 1)
-SpawnRuin("cordrag", posx+(-5), posy, posz+(83), 1)
-SpawnRuin("corllt", posx+(-5), posy, posz+(115), 0)
-SpawnRuin("corfort", posx+(-85), posy, posz+(-77), 1)
-SpawnRuin("corfort", posx+(-117), posy, posz+(-29), 1)
-SpawnRuin("coradvsol", posx+(-53), posy, posz+(-13), 1)
-SpawnRuin("coradvsol", posx+(11), posy, posz+(-61), 1)
-SpawnRuin("cordrag", posx+(91), posy, posz+(35), 1)
-SpawnRuin("cordrag", posx+(-117), posy, posz+(3), 1)
-SpawnRuin("corllt", posx+(-53), posy, posz+(-109), 2)
-SpawnRuin("cordrag", posx+(27), posy, posz+(83), 1)
-SpawnRuin("corllt", posx+(123), posy, posz+(-29), 1)
-SpawnRuin("cordrag", posx+(91), posy, posz+(3), 1)
-SpawnRuin("corfort", posx+(-117), posy, posz+(-61), 1)
-SpawnRuin("cordrag", posx+(-53), posy, posz+(-77), 1)
-SpawnRuin("corfort", posx+(91), posy, posz+(67), 1)
-SpawnRuin("cordrag", posx+(91), posy, posz+(-29), 1)
-SpawnRuin("corestor", posx+(27), posy, posz+(19), 1)
-	end
+local function ixruinpower5()
+	return {
+		radius = 190,
+		type = types.Land,
+		buildings = {
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset =   59, zOffset =   83, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =   -5, zOffset =   83, direction = 1 },
+			{ unitDefID = UnitDefNames.corllt.id,    xOffset =   -5, zOffset =  115, direction = 0 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset =  -85, zOffset =  -77, direction = 1 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset = -117, zOffset =  -29, direction = 1 },
+			{ unitDefID = UnitDefNames.coradvsol.id, xOffset =  -53, zOffset =  -13, direction = 1 },
+			{ unitDefID = UnitDefNames.coradvsol.id, xOffset =   11, zOffset =  -61, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =   91, zOffset =   35, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset = -117, zOffset =    3, direction = 1 },
+			{ unitDefID = UnitDefNames.corllt.id,    xOffset =  -53, zOffset = -109, direction = 2 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =   27, zOffset =   83, direction = 1 },
+			{ unitDefID = UnitDefNames.corllt.id,    xOffset =  123, zOffset =  -29, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =   91, zOffset =    3, direction = 1 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset = -117, zOffset =  -61, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =  -53, zOffset =  -77, direction = 1 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset =   91, zOffset =   67, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =   91, zOffset =  -29, direction = 1 },
+			{ unitDefID = UnitDefNames.corestor.id,  xOffset =   27, zOffset =   19, direction = 1 },
+		},
+	}
 end
-table.insert(RuinsList,ixruinpower6)
 
-local function ixruinwindfarm(posx, posy, posz, GaiaTeamID, radiusCheck)
-local posradius = 176
-	if radiusCheck then
-		return posradius
-	else
-SpawnRuin("corck", posx+(23), posy, posz+(38), 0)
-SpawnRuin("corwin", posx+(-37), posy, posz+(-134), 0)
-SpawnRuin("corwin", posx+(-101), posy, posz+(-38), 0)
-SpawnRuin("cordrag", posx+(-45), posy, posz+(178), 0)
-SpawnRuin("corwin", posx+(-69), posy, posz+(-86), 0)
-SpawnRuin("cordrag", posx+(99), posy, posz+(-158), 0)
-SpawnRuin("cordrag", posx+(-77), posy, posz+(146), 0)
-SpawnRuin("corwin", posx+(107), posy, posz+(42), 0)
-SpawnRuin("corwin", posx+(11), posy, posz+(-22), 0)
-SpawnRuin("corwin", posx+(-53), posy, posz+(74), 0)
-SpawnRuin("corwin", posx+(75), posy, posz+(90), 0)
-SpawnRuin("corarad", posx+(83), posy, posz+(-126), 0)
-SpawnRuin("corwin", posx+(43), posy, posz+(138), 0)
-SpawnRuin("corwin", posx+(139), posy, posz+(-6), 0)
-SpawnRuin("cordrag", posx+(115), posy, posz+(-126), 0)
-SpawnRuin("cordrag", posx+(-109), posy, posz+(114), 0)
-SpawnRuin("cordrag", posx+(67), posy, posz+(-158), 0)
-SpawnRuin("corwin", posx+(43), posy, posz+(-70), 0)
-SpawnRuin("corwin", posx+(-133), posy, posz+(10), 0)
-SpawnRuin("corwin", posx+(-21), posy, posz+(26), 0)
-SpawnRuin("cordrag", posx+(-141), posy, posz+(82), 0)
-	end
+local function ixruinpower6()
+	return {
+		radius = 118,
+		type = types.Land,
+		buildings = {
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset =   59, zOffset =   83, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =   -5, zOffset =   83, direction = 1 },
+			{ unitDefID = UnitDefNames.corllt.id,    xOffset =   -5, zOffset =  115, direction = 0 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset =  -85, zOffset =  -77, direction = 1 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset = -117, zOffset =  -29, direction = 1 },
+			{ unitDefID = UnitDefNames.coradvsol.id, xOffset =  -53, zOffset =  -13, direction = 1 },
+			{ unitDefID = UnitDefNames.coradvsol.id, xOffset =   11, zOffset =  -61, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =   91, zOffset =   35, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset = -117, zOffset =    3, direction = 1 },
+			{ unitDefID = UnitDefNames.corllt.id,    xOffset =  -53, zOffset = -109, direction = 2 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =   27, zOffset =   83, direction = 1 },
+			{ unitDefID = UnitDefNames.corllt.id,    xOffset =  123, zOffset =  -29, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =   91, zOffset =    3, direction = 1 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset = -117, zOffset =  -61, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =  -53, zOffset =  -77, direction = 1 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset =   91, zOffset =   67, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =   91, zOffset =  -29, direction = 1 },
+			{ unitDefID = UnitDefNames.corestor.id,  xOffset =   27, zOffset =   19, direction = 1 },
+		},
+	}
 end
-table.insert(RuinsList,ixruinwindfarm)
 
-local function ixruinairpad(posx, posy, posz, GaiaTeamID, radiusCheck)
-local posradius = 176
-	if radiusCheck then
-		return posradius
-	else
-SpawnRuin("cordrag", posx+(120), posy, posz+(-88), 1)
-SpawnRuin("corasp", posx+(0), posy, posz+(0), 1)
-SpawnRuin("cordrag", posx+(24), posy, posz+(-152), 0)
-SpawnRuin("cordrag", posx+(88), posy, posz+(-120), 1)
-SpawnRuin("cordrag", posx+(120), posy, posz+(-56), 1)
-SpawnRuin("corflak", posx+(-88), posy, posz+(-88), 2)
-SpawnRuin("cordrag", posx+(120), posy, posz+(-120), 1)
-SpawnRuin("cordrag", posx+(56), posy, posz+(-120), 1)
-SpawnRuin("cordrag", posx+(-24), posy, posz+(120), 1)
-SpawnRuin("corflak", posx+(88), posy, posz+(88), 0)
-SpawnRuin("cordrag", posx+(24), posy, posz+(-120), 1)
-SpawnRuin("cordrag", posx+(-120), posy, posz+(120), 1)
-SpawnRuin("cordrag", posx+(-120), posy, posz+(88), 1)
-SpawnRuin("cordrag", posx+(-56), posy, posz+(120), 1)
-SpawnRuin("cordrag", posx+(-120), posy, posz+(24), 1)
-SpawnRuin("cordrag", posx+(-120), posy, posz+(56), 1)
-SpawnRuin("cordrag", posx+(120), posy, posz+(-24), 1)
-SpawnRuin("cordrag", posx+(-88), posy, posz+(120), 1)
-SpawnRuin("cordrag", posx+(-24), posy, posz+(152), 0)
-	end
+local function ixruinwindfarm()
+return {
+	radius = 176,
+	type = types.Land,
+	buildings = {
+			{ unitDefID = UnitDefNames.corck.id,   xOffset =   23, zOffset =   38, direction = 0 },
+			{ unitDefID = UnitDefNames.corwin.id,  xOffset =  -37, zOffset = -134, direction = 0 },
+			{ unitDefID = UnitDefNames.corwin.id,  xOffset = -101, zOffset =  -38, direction = 0 },
+			{ unitDefID = UnitDefNames.cordrag.id, xOffset =  -45, zOffset =  178, direction = 0 },
+			{ unitDefID = UnitDefNames.corwin.id,  xOffset =  -69, zOffset =  -86, direction = 0 },
+			{ unitDefID = UnitDefNames.cordrag.id, xOffset =   99, zOffset = -158, direction = 0 },
+			{ unitDefID = UnitDefNames.cordrag.id, xOffset =  -77, zOffset =  146, direction = 0 },
+			{ unitDefID = UnitDefNames.corwin.id,  xOffset =  107, zOffset =   42, direction = 0 },
+			{ unitDefID = UnitDefNames.corwin.id,  xOffset =   11, zOffset =  -22, direction = 0 },
+			{ unitDefID = UnitDefNames.corwin.id,  xOffset =  -53, zOffset =   74, direction = 0 },
+			{ unitDefID = UnitDefNames.corwin.id,  xOffset =   75, zOffset =   90, direction = 0 },
+			{ unitDefID = UnitDefNames.corarad.id, xOffset =   83, zOffset = -126, direction = 0 },
+			{ unitDefID = UnitDefNames.corwin.id,  xOffset =   43, zOffset =  138, direction = 0 },
+			{ unitDefID = UnitDefNames.corwin.id,  xOffset =  139, zOffset =   -6, direction = 0 },
+			{ unitDefID = UnitDefNames.cordrag.id, xOffset =  115, zOffset = -126, direction = 0 },
+			{ unitDefID = UnitDefNames.cordrag.id, xOffset = -109, zOffset =  114, direction = 0 },
+			{ unitDefID = UnitDefNames.cordrag.id, xOffset =   67, zOffset = -158, direction = 0 },
+			{ unitDefID = UnitDefNames.corwin.id,  xOffset =   43, zOffset =  -70, direction = 0 },
+			{ unitDefID = UnitDefNames.corwin.id,  xOffset = -133, zOffset =   10, direction = 0 },
+			{ unitDefID = UnitDefNames.corwin.id,  xOffset =  -21, zOffset =   26, direction = 0 },
+			{ unitDefID = UnitDefNames.cordrag.id, xOffset = -141, zOffset =   82, direction = 0 },
+		}
+	}
 end
-table.insert(RuinsList,ixruinairpad)
 
-local function ixruinwallh(posx, posy, posz, GaiaTeamID, radiusCheck)
-local posradius = 100
-	if radiusCheck then
-		return posradius
-	else
-		SpawnRuin("cordrag_scav", posx+(64), posy, posz+(-32), 1)
-		SpawnRuin("cordrag_scav", posx+(128), posy, posz+(-64), 1)
-		SpawnRuin("cordrag_scav", posx+(96), posy, posz+(-48), 1)
-		SpawnRuin("cordrag_scav", posx+(-96), posy, posz+(48), 1)
-		SpawnRuin("corfort_scav", posx+(-32), posy, posz+(48), 1)
-		SpawnRuin("cordrag_scav", posx+(-64), posy, posz+(32), 1)
-		SpawnRuin("cordrag_scav", posx+(32), posy, posz+(-16), 1)
-		SpawnRuin("corfort_scav", posx+(96), posy, posz+(-16), 1)
-		SpawnRuin("cordrag_scav", posx+(-128), posy, posz+(64), 1)
-		SpawnRuin("cordrag_scav", posx+(0), posy, posz+(0), 1)
-		SpawnRuin("corfort_scav", posx+(-96), posy, posz+(16), 1)
-		SpawnRuin("corfort_scav", posx+(32), posy, posz+(-48), 1)
-		SpawnRuin("cordrag_scav", posx+(-32), posy, posz+(16), 1)
-	end
+local function ixruinairpad()
+return {
+	radius = 176,
+	type = types.Land,
+	buildings = {
+			{ unitDefID = UnitDefNames.cordrag.id, xOffset =  120, zOffset =  -88, direction = 1 },
+			{ unitDefID = UnitDefNames.corasp.id,  xOffset =    0, zOffset =    0, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag.id, xOffset =   24, zOffset = -152, direction = 0 },
+			{ unitDefID = UnitDefNames.cordrag.id, xOffset =   88, zOffset = -120, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag.id, xOffset =  120, zOffset =  -56, direction = 1 },
+			{ unitDefID = UnitDefNames.corflak.id, xOffset =  -88, zOffset =  -88, direction = 2 },
+			{ unitDefID = UnitDefNames.cordrag.id, xOffset =  120, zOffset = -120, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag.id, xOffset =   56, zOffset = -120, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag.id, xOffset =  -24, zOffset =  120, direction = 1 },
+			{ unitDefID = UnitDefNames.corflak.id, xOffset =   88, zOffset =   88, direction = 0 },
+			{ unitDefID = UnitDefNames.cordrag.id, xOffset =   24, zOffset = -120, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag.id, xOffset = -120, zOffset =  120, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag.id, xOffset = -120, zOffset =   88, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag.id, xOffset =  -56, zOffset =  120, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag.id, xOffset = -120, zOffset =   24, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag.id, xOffset = -120, zOffset =   56, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag.id, xOffset =  120, zOffset =  -24, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag.id, xOffset =  -88, zOffset =  120, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag.id, xOffset =  -24, zOffset =  152, direction = 0 },
+		}
+	}
 end
-table.insert(RuinsList,ixruinwallh)
 
-local function ixruinwallv(posx, posy, posz, GaiaTeamID, radiusCheck)
-local posradius = 100
-	if radiusCheck then
-		return posradius
-	else
-		SpawnRuin("cordrag_scav", posx+(16), posy, posz+(32), 1)
-		SpawnRuin("cordrag_scav", posx+(-16), posy, posz+(-32), 1)
-		SpawnRuin("corfort_scav", posx+(48), posy, posz+(32), 1)
-		SpawnRuin("cordrag_scav", posx+(-48), posy, posz+(-96), 1)
-		SpawnRuin("cordrag_scav", posx+(-32), posy, posz+(-64), 1)
-		SpawnRuin("cordrag_scav", posx+(64), posy, posz+(128), 1)
-		SpawnRuin("corfort_scav", posx+(16), posy, posz+(96), 1)
-		SpawnRuin("corfort_scav", posx+(-16), posy, posz+(-96), 1)
-		SpawnRuin("cordrag_scav", posx+(0), posy, posz+(0), 1)
-		SpawnRuin("cordrag_scav", posx+(32), posy, posz+(64), 1)
-		SpawnRuin("cordrag_scav", posx+(48), posy, posz+(96), 1)
-		SpawnRuin("corfort_scav", posx+(-48), posy, posz+(-32), 1)
-		SpawnRuin("cordrag_scav", posx+(-64), posy, posz+(-128), 1)
-	end
+local function ixruinwallh()
+return {
+	radius = 100,
+	type = types.Land,
+	buildings = {
+					{ unitDefID = UnitDefNames.cordrag_scav.id, xOffset =   64, zOffset = -32, direction = 1 },
+					{ unitDefID = UnitDefNames.cordrag_scav.id, xOffset =  128, zOffset = -64, direction = 1 },
+					{ unitDefID = UnitDefNames.cordrag_scav.id, xOffset =   96, zOffset = -48, direction = 1 },
+					{ unitDefID = UnitDefNames.cordrag_scav.id, xOffset =  -96, zOffset =  48, direction = 1 },
+					{ unitDefID = UnitDefNames.corfort_scav.id, xOffset =  -32, zOffset =  48, direction = 1 },
+					{ unitDefID = UnitDefNames.cordrag_scav.id, xOffset =  -64, zOffset =  32, direction = 1 },
+					{ unitDefID = UnitDefNames.cordrag_scav.id, xOffset =   32, zOffset = -16, direction = 1 },
+					{ unitDefID = UnitDefNames.corfort_scav.id, xOffset =   96, zOffset = -16, direction = 1 },
+					{ unitDefID = UnitDefNames.cordrag_scav.id, xOffset = -128, zOffset =  64, direction = 1 },
+					{ unitDefID = UnitDefNames.cordrag_scav.id, xOffset =    0, zOffset =   0, direction = 1 },
+					{ unitDefID = UnitDefNames.corfort_scav.id, xOffset =  -96, zOffset =  16, direction = 1 },
+					{ unitDefID = UnitDefNames.corfort_scav.id, xOffset =   32, zOffset = -48, direction = 1 },
+					{ unitDefID = UnitDefNames.cordrag_scav.id, xOffset =  -32, zOffset =  16, direction = 1 },
+		}
+	}
 end
-table.insert(RuinsList,ixruinwallv)
 
-local function ixruinwallalt(posx, posy, posz, GaiaTeamID, radiusCheck)
-local posradius = 100
-	if radiusCheck then
-		return posradius
-	else
-		SpawnRuin("corfort_scav", posx+(0), posy, posz+(0), 1)
-		SpawnRuin("cordrag_scav", posx+(32), posy, posz+(-64), 1)
-		SpawnRuin("cordrag_scav", posx+(32), posy, posz+(0), 1)
-		SpawnRuin("corfort_scav", posx+(-16), posy, posz+(32), 1)
-		SpawnRuin("cordrag_scav", posx+(-32), posy, posz+(0), 1)
-		SpawnRuin("cordrag_scav", posx+(-32), posy, posz+(64), 1)
-		SpawnRuin("corfort_scav", posx+(16), posy, posz+(-32), 1)
-	end
+local function ixruinwallv()
+return {
+	radius = 100,
+	type = types.Land,
+	buildings = {
+					{ unitDefID = UnitDefNames.cordrag_scav.id, xOffset =  16, zOffset =   32, direction = 1 },
+					{ unitDefID = UnitDefNames.cordrag_scav.id, xOffset = -16, zOffset =  -32, direction = 1 },
+					{ unitDefID = UnitDefNames.corfort_scav.id, xOffset =  48, zOffset =   32, direction = 1 },
+					{ unitDefID = UnitDefNames.cordrag_scav.id, xOffset = -48, zOffset =  -96, direction = 1 },
+					{ unitDefID = UnitDefNames.cordrag_scav.id, xOffset = -32, zOffset =  -64, direction = 1 },
+					{ unitDefID = UnitDefNames.cordrag_scav.id, xOffset =  64, zOffset =  128, direction = 1 },
+					{ unitDefID = UnitDefNames.corfort_scav.id, xOffset =  16, zOffset =   96, direction = 1 },
+					{ unitDefID = UnitDefNames.corfort_scav.id, xOffset = -16, zOffset =  -96, direction = 1 },
+					{ unitDefID = UnitDefNames.cordrag_scav.id, xOffset =   0, zOffset =    0, direction = 1 },
+					{ unitDefID = UnitDefNames.cordrag_scav.id, xOffset =  32, zOffset =   64, direction = 1 },
+					{ unitDefID = UnitDefNames.cordrag_scav.id, xOffset =  48, zOffset =   96, direction = 1 },
+					{ unitDefID = UnitDefNames.corfort_scav.id, xOffset = -48, zOffset =  -32, direction = 1 },
+					{ unitDefID = UnitDefNames.cordrag_scav.id, xOffset = -64, zOffset = -128, direction = 1 },
+		}
+	}
 end
-table.insert(RuinsList,ixruinwallalt)
 
-local function ixruinbiggerwallh(posx, posy, posz, GaiaTeamID, radiusCheck)
-local posradius = 100
-	if radiusCheck then
-		return posradius
-	else
-		SpawnRuin("cordrag_scav", posx+(16), posy, posz+(32), 1)
-		SpawnRuin("corfort_scav", posx+(-16), posy, posz+(32), 1)
-		SpawnRuin("cordrag_scav", posx+(48), posy, posz+(-96), 1)
-		SpawnRuin("cordrag_scav", posx+(-48), posy, posz+(96), 1)
-		SpawnRuin("corfort_scav", posx+(0), posy, posz+(0), 1)
-		SpawnRuin("corfort_scav", posx+(-32), posy, posz+(64), 1)
-		SpawnRuin("cordrag_scav", posx+(-32), posy, posz+(0), 1)
-		SpawnRuin("corfort_scav", posx+(16), posy, posz+(-32), 1)
-		SpawnRuin("cordrag_scav", posx+(32), posy, posz+(0), 1)
-		SpawnRuin("corfort_scav", posx+(32), posy, posz+(-64), 1)
-		SpawnRuin("cordrag_scav", posx+(-16), posy, posz+(-32), 1)
-	end
+local function ixruinwallalt()
+return {
+	radius = 100,
+	type = types.Land,
+	buildings = {
+					{ unitDefID = UnitDefNames.corfort_scav.id, xOffset =   0, zOffset =   0, direction = 1 },
+					{ unitDefID = UnitDefNames.cordrag_scav.id, xOffset =  32, zOffset = -64, direction = 1 },
+					{ unitDefID = UnitDefNames.cordrag_scav.id, xOffset =  32, zOffset =   0, direction = 1 },
+					{ unitDefID = UnitDefNames.corfort_scav.id, xOffset = -16, zOffset =  32, direction = 1 },
+					{ unitDefID = UnitDefNames.cordrag_scav.id, xOffset = -32, zOffset =   0, direction = 1 },
+					{ unitDefID = UnitDefNames.cordrag_scav.id, xOffset = -32, zOffset =  64, direction = 1 },
+					{ unitDefID = UnitDefNames.corfort_scav.id, xOffset =  16, zOffset = -32, direction = 1 },
+		}
+	}
 end
-table.insert(RuinsList,ixruinbiggerwallh)
 
-local function ixruinbiggerwallv(posx, posy, posz, GaiaTeamID, radiusCheck)
-local posradius = 100
-	if radiusCheck then
-		return posradius
-	else
-		SpawnRuin("corfort_scav", posx+(0), posy, posz+(0), 1)
-		SpawnRuin("cordrag_scav", posx+(32), posy, posz+(-64), 1)
-		SpawnRuin("cordrag_scav", posx+(32), posy, posz+(0), 1)
-		SpawnRuin("corfort_scav", posx+(-16), posy, posz+(32), 1)
-		SpawnRuin("cordrag_scav", posx+(-32), posy, posz+(0), 1)
-		SpawnRuin("cordrag_scav", posx+(-32), posy, posz+(64), 1)
-		SpawnRuin("corfort_scav", posx+(16), posy, posz+(-32), 1)
-	end
+local function ixruinbiggerwallh()
+return {
+	radius = 100,
+	type = types.Land,
+	buildings = {
+					{ unitDefID = UnitDefNames.cordrag_scav.id, xOffset =  16, zOffset =  32, direction = 1 },
+					{ unitDefID = UnitDefNames.corfort_scav.id, xOffset = -16, zOffset =  32, direction = 1 },
+					{ unitDefID = UnitDefNames.cordrag_scav.id, xOffset =  48, zOffset = -96, direction = 1 },
+					{ unitDefID = UnitDefNames.cordrag_scav.id, xOffset = -48, zOffset =  96, direction = 1 },
+					{ unitDefID = UnitDefNames.corfort_scav.id, xOffset =   0, zOffset =   0, direction = 1 },
+					{ unitDefID = UnitDefNames.corfort_scav.id, xOffset = -32, zOffset =  64, direction = 1 },
+					{ unitDefID = UnitDefNames.cordrag_scav.id, xOffset = -32, zOffset =   0, direction = 1 },
+					{ unitDefID = UnitDefNames.corfort_scav.id, xOffset =  16, zOffset = -32, direction = 1 },
+					{ unitDefID = UnitDefNames.cordrag_scav.id, xOffset =  32, zOffset =   0, direction = 1 },
+					{ unitDefID = UnitDefNames.corfort_scav.id, xOffset =  32, zOffset = -64, direction = 1 },
+					{ unitDefID = UnitDefNames.cordrag_scav.id, xOffset = -16, zOffset = -32, direction = 1 },
+		}
+	}
 end
-table.insert(RuinsList,ixruinbiggerwallv)
 
-local function ixruinbiggerwallllt(posx, posy, posz, GaiaTeamID, radiusCheck)
-local posradius = 100
-	if radiusCheck then
-		return posradius
-	else
-		SpawnRuin("corfort_scav", posx+(-32), posy, posz+(0), 1)
-		SpawnRuin("corfort_scav", posx+(64), posy, posz+(0), 1)
-		SpawnRuin("cordrag_scav", posx+(-16), posy, posz+(32), 1)
-		SpawnRuin("cordrag_scav", posx+(-16), posy, posz+(-32), 1)
-		SpawnRuin("corfort_scav", posx+(32), posy, posz+(0), 1)
-		SpawnRuin("cordrag_scav", posx+(16), posy, posz+(32), 1)
-		SpawnRuin("corfort_scav", posx+(-64), posy, posz+(0), 1)
-		SpawnRuin("corfort_scav", posx+(0), posy, posz+(0), 1)
-		SpawnRuin("cordrag_scav", posx+(96), posy, posz+(0), 1)
-		SpawnRuin("cordrag_scav", posx+(-96), posy, posz+(0), 1)
-		SpawnRuin("cordrag_scav", posx+(16), posy, posz+(-32), 1)
-		SpawnRuin("corllt", posx+(-64), posy, posz+(48), 0)
-		SpawnRuin("corllt", posx+(64), posy, posz+(-48), 2)
-	end
+local function ixruinbiggerwallv()
+return {
+	radius = 100,
+	type = types.Land,
+	buildings = {
+					{ unitDefID = UnitDefNames.corfort_scav.id, xOffset =   0, zOffset =   0, direction = 1 },
+					{ unitDefID = UnitDefNames.cordrag_scav.id, xOffset =  32, zOffset = -64, direction = 1 },
+					{ unitDefID = UnitDefNames.cordrag_scav.id, xOffset =  32, zOffset =   0, direction = 1 },
+					{ unitDefID = UnitDefNames.corfort_scav.id, xOffset = -16, zOffset =  32, direction = 1 },
+					{ unitDefID = UnitDefNames.cordrag_scav.id, xOffset = -32, zOffset =   0, direction = 1 },
+					{ unitDefID = UnitDefNames.cordrag_scav.id, xOffset = -32, zOffset =  64, direction = 1 },
+					{ unitDefID = UnitDefNames.corfort_scav.id, xOffset =  16, zOffset = -32, direction = 1 },
+		}
+	}
 end
-table.insert(RuinsList,ixruinbiggerwallllt)
 
-local function ixruinnrgsolar0(posx, posy, posz, GaiaTeamID, radiusCheck)
-local posradius = 100
-	if radiusCheck then
-		return posradius
-	else
-SpawnRuin("cordrag_scav", posx+(-64), posy, posz+(115), 1)
-SpawnRuin("cordrag_scav", posx+(-128), posy, posz+(131), 1)
-SpawnRuin("cordrag_scav", posx+(112), posy, posz+(-125), 1)
-SpawnRuin("cordrag_scav", posx+(144), posy, posz+(-93), 1)
-SpawnRuin("corsolar_scav", posx+(72), posy, posz+(-37), 1)
-SpawnRuin("corsolar_scav", posx+(-8), posy, posz+(-5), 1)
-SpawnRuin("corsolar_scav", posx+(-168), posy, posz+(59), 1)
-SpawnRuin("cordrag_scav", posx+(-96), posy, posz+(115), 1)
-SpawnRuin("cordrag_scav", posx+(80), posy, posz+(-125), 1)
-SpawnRuin("corsolar_scav", posx+(-88), posy, posz+(27), 1)
-SpawnRuin("cordrag_scav", posx+(144), posy, posz+(-61), 1)
-	end
+local function ixruinbiggerwallllt()
+return {
+	radius = 100,
+	type = types.Land,
+	buildings = {
+					{ unitDefID = UnitDefNames.corfort_scav.id, xOffset = -32, zOffset =   0, direction = 1 },
+					{ unitDefID = UnitDefNames.corfort_scav.id, xOffset =  64, zOffset =   0, direction = 1 },
+					{ unitDefID = UnitDefNames.cordrag_scav.id, xOffset = -16, zOffset =  32, direction = 1 },
+					{ unitDefID = UnitDefNames.cordrag_scav.id, xOffset = -16, zOffset = -32, direction = 1 },
+					{ unitDefID = UnitDefNames.corfort_scav.id, xOffset =  32, zOffset =   0, direction = 1 },
+					{ unitDefID = UnitDefNames.cordrag_scav.id, xOffset =  16, zOffset =  32, direction = 1 },
+					{ unitDefID = UnitDefNames.corfort_scav.id, xOffset = -64, zOffset =   0, direction = 1 },
+					{ unitDefID = UnitDefNames.corfort_scav.id, xOffset =   0, zOffset =   0, direction = 1 },
+					{ unitDefID = UnitDefNames.cordrag_scav.id, xOffset =  96, zOffset =   0, direction = 1 },
+					{ unitDefID = UnitDefNames.cordrag_scav.id, xOffset = -96, zOffset =   0, direction = 1 },
+					{ unitDefID = UnitDefNames.cordrag_scav.id, xOffset =  16, zOffset = -32, direction = 1 },
+					{ unitDefID = UnitDefNames.corllt.id,       xOffset = -64, zOffset =  48, direction = 0 },
+					{ unitDefID = UnitDefNames.corllt.id,       xOffset =  64, zOffset = -48, direction = 2 },
+		}
+	}
 end
-table.insert(RuinsList,ixruinnrgsolar0)
 
-local function ixruinnrgsolar1(posx, posy, posz, GaiaTeamID, radiusCheck)
-local posradius = 100
-	if radiusCheck then
-		return posradius
-	else
-SpawnRuin("corsolar_scav", posx+(-39), posy, posz+(45), 1)
-SpawnRuin("corsolar_scav", posx+(-39), posy, posz+(-51), 1)
-SpawnRuin("cordrag_scav", posx+(-127), posy, posz+(101), 1)
-SpawnRuin("cordrag_scav", posx+(145), posy, posz+(69), 1)
-SpawnRuin("cordrag_scav", posx+(-79), posy, posz+(-139), 1)
-SpawnRuin("cordrag_scav", posx+(81), posy, posz+(-139), 1)
-SpawnRuin("cordrag_scav", posx+(-63), posy, posz+(133), 1)
-SpawnRuin("cordrag_scav", posx+(113), posy, posz+(133), 1)
-SpawnRuin("corsolar_scav", posx+(57), posy, posz+(-51), 1)
-SpawnRuin("corsolar_scav", posx+(57), posy, posz+(45), 1)
-SpawnRuin("cordrag_scav", posx+(81), posy, posz+(133), 1)
-SpawnRuin("cordrag_scav", posx+(-127), posy, posz+(69), 1)
-SpawnRuin("cordrag_scav", posx+(145), posy, posz+(-59), 1)
-SpawnRuin("cordrag_scav", posx+(-31), posy, posz+(133), 1)
-SpawnRuin("cordrag_scav", posx+(145), posy, posz+(37), 1)
-SpawnRuin("cordrag_scav", posx+(-127), posy, posz+(5), 1)
-SpawnRuin("cordrag_scav", posx+(-47), posy, posz+(-139), 1)
-SpawnRuin("cordrag_scav", posx+(-127), posy, posz+(-59), 1)
-SpawnRuin("cordrag_scav", posx+(17), posy, posz+(-139), 1)
-SpawnRuin("cordrag_scav", posx+(49), posy, posz+(-139), 1)
-SpawnRuin("cordrag_scav", posx+(-95), posy, posz+(133), 1)
-SpawnRuin("cordrag_scav", posx+(145), posy, posz+(-27), 1)
-SpawnRuin("cordrag_scav", posx+(-127), posy, posz+(-91), 1)
-	end
+local function ixruinnrgsolar0()
+return {
+	radius = 100,
+	type = types.Land,
+	buildings = {
+			{ unitDefID = UnitDefNames.cordrag_scav.id,  xOffset =  -64, zOffset =  115, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag_scav.id,  xOffset = -128, zOffset =  131, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag_scav.id,  xOffset =  112, zOffset = -125, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag_scav.id,  xOffset =  144, zOffset =  -93, direction = 1 },
+			{ unitDefID = UnitDefNames.corsolar_scav.id, xOffset =   72, zOffset =  -37, direction = 1 },
+			{ unitDefID = UnitDefNames.corsolar_scav.id, xOffset =   -8, zOffset =   -5, direction = 1 },
+			{ unitDefID = UnitDefNames.corsolar_scav.id, xOffset = -168, zOffset =   59, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag_scav.id,  xOffset =  -96, zOffset =  115, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag_scav.id,  xOffset =   80, zOffset = -125, direction = 1 },
+			{ unitDefID = UnitDefNames.corsolar_scav.id, xOffset =  -88, zOffset =   27, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag_scav.id,  xOffset =  144, zOffset =  -61, direction = 1 },
+		}
+	}
 end
-table.insert(RuinsList,ixruinnrgsolar1)
 
-local function ixruinnrgsolar2(posx, posy, posz, GaiaTeamID, radiusCheck)
-local posradius = 100
-	if radiusCheck then
-		return posradius
-	else
-SpawnRuin("cordrag_scav", posx+(-99), posy, posz+(77), 1)
-SpawnRuin("cordrag_scav", posx+(-99), posy, posz+(109), 1)
-SpawnRuin("cordrag_scav", posx+(93), posy, posz+(-115), 1)
-SpawnRuin("coradvsol_scav", posx+(-35), posy, posz+(45), 1)
-SpawnRuin("cordrag_scav", posx+(61), posy, posz+(-115), 1)
-SpawnRuin("coradvsol_scav", posx+(45), posy, posz+(45), 1)
-SpawnRuin("coradvsol_scav", posx+(-35), posy, posz+(-35), 1)
-SpawnRuin("cordrag_scav", posx+(93), posy, posz+(-83), 1)
-SpawnRuin("cordrag_scav", posx+(-67), posy, posz+(109), 1)
-SpawnRuin("coradvsol_scav", posx+(45), posy, posz+(-35), 1)
-	end
+local function ixruinnrgsolar1()
+return {
+	radius = 100,
+	type = types.Land,
+	buildings = {
+			{ unitDefID = UnitDefNames.corsolar_scav.id, xOffset =  -39, zOffset =   45, direction = 1 },
+			{ unitDefID = UnitDefNames.corsolar_scav.id, xOffset =  -39, zOffset =  -51, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag_scav.id,  xOffset = -127, zOffset =  101, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag_scav.id,  xOffset =  145, zOffset =   69, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag_scav.id,  xOffset =  -79, zOffset = -139, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag_scav.id,  xOffset =   81, zOffset = -139, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag_scav.id,  xOffset =  -63, zOffset =  133, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag_scav.id,  xOffset =  113, zOffset =  133, direction = 1 },
+			{ unitDefID = UnitDefNames.corsolar_scav.id, xOffset =   57, zOffset =  -51, direction = 1 },
+			{ unitDefID = UnitDefNames.corsolar_scav.id, xOffset =   57, zOffset =   45, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag_scav.id,  xOffset =   81, zOffset =  133, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag_scav.id,  xOffset = -127, zOffset =   69, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag_scav.id,  xOffset =  145, zOffset =  -59, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag_scav.id,  xOffset =  -31, zOffset =  133, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag_scav.id,  xOffset =  145, zOffset =   37, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag_scav.id,  xOffset = -127, zOffset =    5, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag_scav.id,  xOffset =  -47, zOffset = -139, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag_scav.id,  xOffset = -127, zOffset =  -59, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag_scav.id,  xOffset =   17, zOffset = -139, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag_scav.id,  xOffset =   49, zOffset = -139, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag_scav.id,  xOffset =  -95, zOffset =  133, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag_scav.id,  xOffset =  145, zOffset =  -27, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag_scav.id,  xOffset = -127, zOffset =  -91, direction = 1 },
+		}
+	}
 end
-table.insert(RuinsList,ixruinnrgsolar2)
 
-local function ixruinnrgsolar3(posx, posy, posz, GaiaTeamID, radiusCheck)
-local posradius = 100
-	if radiusCheck then
-		return posradius
-	else
-SpawnRuin("cordrag", posx+(-48), posy, posz+(0), 1)
-SpawnRuin("cordrag", posx+(48), posy, posz+(0), 1)
-SpawnRuin("coradvsol", posx+(64), posy, posz+(-48), 1)
-SpawnRuin("coradvsol", posx+(0), posy, posz+(0), 1)
-SpawnRuin("cordrag", posx+(-16), posy, posz+(48), 1)
-SpawnRuin("coradvsol", posx+(-64), posy, posz+(48), 1)
-SpawnRuin("cordrag", posx+(16), posy, posz+(-48), 1)
-	end
+local function ixruinnrgsolar2()
+return {
+	radius = 100,
+	type = types.Land,
+	buildings = {
+			{ unitDefID = UnitDefNames.cordrag_scav.id,   xOffset = -99, zOffset =   77, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag_scav.id,   xOffset = -99, zOffset =  109, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag_scav.id,   xOffset =  93, zOffset = -115, direction = 1 },
+			{ unitDefID = UnitDefNames.coradvsol_scav.id, xOffset = -35, zOffset =   45, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag_scav.id,   xOffset =  61, zOffset = -115, direction = 1 },
+			{ unitDefID = UnitDefNames.coradvsol_scav.id, xOffset =  45, zOffset =   45, direction = 1 },
+			{ unitDefID = UnitDefNames.coradvsol_scav.id, xOffset = -35, zOffset =  -35, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag_scav.id,   xOffset =  93, zOffset =  -83, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag_scav.id,   xOffset = -67, zOffset =  109, direction = 1 },
+			{ unitDefID = UnitDefNames.coradvsol_scav.id, xOffset =  45, zOffset =  -35, direction = 1 },
+		}
+	}
 end
-table.insert(RuinsList,ixruinnrgsolar3)
 
-local function ixruinsmall0(posx, posy, posz, GaiaTeamID, radiusCheck)
-local posradius = 100
-	if radiusCheck then
-		return posradius
-	else
-		SpawnRuin("cordrag", posx+(-83), posy, posz+(19), 0)
-		SpawnRuin("corfort", posx+(29), posy, posz+(3), 0)
-		SpawnRuin("cordrag", posx+(45), posy, posz+(-93), 0)
-		SpawnRuin("corfort", posx+(61), posy, posz+(3), 0)
-		SpawnRuin("cordrag", posx+(-83), posy, posz+(-13), 0)
-		SpawnRuin("cordrag", posx+(-51), posy, posz+(-61), 0)
-		SpawnRuin("cordrag", posx+(141), posy, posz+(67), 0)
-		SpawnRuin("corfort", posx+(29), posy, posz+(35), 0)
-		SpawnRuin("cordrag", posx+(-67), posy, posz+(51), 0)
-		--SpawnRuin("coreyes", posx+(69), posy, posz+(43), 0)
-		SpawnRuin("cordrag", posx+(-83), posy, posz+(-45), 0)
-	end
+local function ixruinnrgsolar3()
+return {
+	radius = 100,
+	type = types.Land,
+	buildings = {
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset = -48, zOffset =   0, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =  48, zOffset =   0, direction = 1 },
+			{ unitDefID = UnitDefNames.coradvsol.id, xOffset =  64, zOffset = -48, direction = 1 },
+			{ unitDefID = UnitDefNames.coradvsol.id, xOffset =   0, zOffset =   0, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset = -16, zOffset =  48, direction = 1 },
+			{ unitDefID = UnitDefNames.coradvsol.id, xOffset = -64, zOffset =  48, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =  16, zOffset = -48, direction = 1 },
+		}
+	}
 end
-table.insert(RuinsList,ixruinsmall0)
 
-local function ixruinsmall1(posx, posy, posz, GaiaTeamID, radiusCheck)
-local posradius = 85
-	if radiusCheck then
-		return posradius
-	else
-		SpawnRuin("corfort", posx+(-85), posy, posz+(0), math.random(0,3))
-		SpawnRuin("corfort", posx+(75), posy, posz+(64), math.random(0,3))
-		SpawnRuin("cordrag", posx+(59), posy, posz+(-32), math.random(0,3))
-		SpawnRuin("cordrag", posx+(43), posy, posz+(-64), math.random(0,3))
-		SpawnRuin("cordrag", posx+(43), posy, posz+(64), math.random(0,3))
-		SpawnRuin("cordrag", posx+(27), posy, posz+(-96), math.random(0,3))
-		SpawnRuin("cordrag", posx+(-5), posy, posz+(-96), 0)
-		SpawnRuin("cordrag", posx+(-85), posy, posz+(32), math.random(0,3))
-		SpawnRuin("corfort", posx+(11), posy, posz+(64), math.random(0,3))
-		SpawnRuin("cordrag", posx+(-85), posy, posz+(-32), math.random(0,3))
-		SpawnRuin("cormaw", posx+(11), posy, posz+(96), 0)
-	end
+local function ixruinsmall0()
+return {
+	radius = 100,
+	type = types.Land,
+	buildings = {
+					{ unitDefID = UnitDefNames.cordrag.id, xOffset = -83, zOffset =  19, direction = 0 },
+					{ unitDefID = UnitDefNames.corfort.id, xOffset =  29, zOffset =   3, direction = 0 },
+					{ unitDefID = UnitDefNames.cordrag.id, xOffset =  45, zOffset = -93, direction = 0 },
+					{ unitDefID = UnitDefNames.corfort.id, xOffset =  61, zOffset =   3, direction = 0 },
+					{ unitDefID = UnitDefNames.cordrag.id, xOffset = -83, zOffset = -13, direction = 0 },
+					{ unitDefID = UnitDefNames.cordrag.id, xOffset = -51, zOffset = -61, direction = 0 },
+					{ unitDefID = UnitDefNames.cordrag.id, xOffset = 141, zOffset =  67, direction = 0 },
+					{ unitDefID = UnitDefNames.corfort.id, xOffset =  29, zOffset =  35, direction = 0 },
+					{ unitDefID = UnitDefNames.cordrag.id, xOffset = -67, zOffset =  51, direction = 0 },
+					{ unitDefID = UnitDefNames.cordrag.id, xOffset = -83, zOffset = -45, direction = 0 },
+		}
+	}
 end
-table.insert(RuinsList,ixruinsmall1)
 
-local function ixruinsmall2(posx, posy, posz, GaiaTeamID, radiusCheck)
-local posradius = 103
-	if radiusCheck then
-		return posradius
-	else
-		SpawnRuin("cordrag", posx+(7), posy, posz+(85), 0)
-		SpawnRuin("cordrag", posx+(-25), posy, posz+(69), 0)
-		SpawnRuin("corfort", posx+(39), posy, posz+(85), 0)
-		SpawnRuin("cordrag", posx+(-9), posy, posz+(-91), 0)
-		SpawnRuin("cormaw", posx+(103), posy, posz+(5), 1)
-		SpawnRuin("cordrag", posx+(-89), posy, posz+(37), 0)
-		SpawnRuin("cordrag", posx+(-57), posy, posz+(53), 0)
-		SpawnRuin("corfort", posx+(-41), posy, posz+(-91), 0)
-		SpawnRuin("cordrag", posx+(23), posy, posz+(-75), 0)
-		SpawnRuin("corfort", posx+(55), posy, posz+(-75), 0)
-	end
+local function ixruinsmall1()
+return {
+	radius = 85,
+	type = types.Land,
+	buildings = {
+					{ unitDefID = UnitDefNames.corfort.id, xOffset = -85, zOffset =   0, direction = math.random(0,3) },
+					{ unitDefID = UnitDefNames.corfort.id, xOffset =  75, zOffset =  64, direction = math.random(0,3) },
+					{ unitDefID = UnitDefNames.cordrag.id, xOffset =  59, zOffset = -32, direction = math.random(0,3) },
+					{ unitDefID = UnitDefNames.cordrag.id, xOffset =  43, zOffset = -64, direction = math.random(0,3) },
+					{ unitDefID = UnitDefNames.cordrag.id, xOffset =  43, zOffset =  64, direction = math.random(0,3) },
+					{ unitDefID = UnitDefNames.cordrag.id, xOffset =  27, zOffset = -96, direction = math.random(0,3) },
+					{ unitDefID = UnitDefNames.cordrag.id, xOffset =  -5, zOffset = -96, direction = 0 },
+					{ unitDefID = UnitDefNames.cordrag.id, xOffset = -85, zOffset =  32, direction = math.random(0,3) },
+					{ unitDefID = UnitDefNames.corfort.id, xOffset =  11, zOffset =  64, direction = math.random(0,3) },
+					{ unitDefID = UnitDefNames.cordrag.id, xOffset = -85, zOffset = -32, direction = math.random(0,3) },
+					{ unitDefID = UnitDefNames.cormaw.id,  xOffset =  11, zOffset =  96, direction = 0 },
+		}
+	}
 end
-table.insert(RuinsList,ixruinsmall2)
 
-local function ixtinybase0(posx, posy, posz, GaiaTeamID, radiusCheck)
-local posradius = 100
-	if radiusCheck then
-		return posradius
-	else
-		SpawnRuin("cormakr", posx+(-36), posy, posz+(-36), 1)
-		SpawnRuin("corwin", posx+(44), posy, posz+(-52), 1)
-		SpawnRuin("corwin", posx+(92), posy, posz+(-52), 1)
-		SpawnRuin("cordrag", posx+(-44), posy, posz+(-76), 1)
-		SpawnRuin("cordrag", posx+(-76), posy, posz+(-76), 1)
-		SpawnRuin("cordrag", posx+(-76), posy, posz+(-44), 1)
-		SpawnRuin("cordrag", posx+(100), posy, posz+(68), 1)
-		SpawnRuin("corrad", posx+(-76), posy, posz+(68), 1)
-		SpawnRuin("cordrag", posx+(68), posy, posz+(100), 1)
-	end
+local function ixruinsmall2()
+return {
+	radius = 103,
+	type = types.Land,
+	buildings = {
+					{ unitDefID = UnitDefNames.cordrag.id, xOffset =   7, zOffset =  85, direction = 0 },
+					{ unitDefID = UnitDefNames.cordrag.id, xOffset = -25, zOffset =  69, direction = 0 },
+					{ unitDefID = UnitDefNames.corfort.id, xOffset =  39, zOffset =  85, direction = 0 },
+					{ unitDefID = UnitDefNames.cordrag.id, xOffset =  -9, zOffset = -91, direction = 0 },
+					{ unitDefID = UnitDefNames.cormaw.id,  xOffset = 103, zOffset =   5, direction = 1 },
+					{ unitDefID = UnitDefNames.cordrag.id, xOffset = -89, zOffset =  37, direction = 0 },
+					{ unitDefID = UnitDefNames.cordrag.id, xOffset = -57, zOffset =  53, direction = 0 },
+					{ unitDefID = UnitDefNames.corfort.id, xOffset = -41, zOffset = -91, direction = 0 },
+					{ unitDefID = UnitDefNames.cordrag.id, xOffset =  23, zOffset = -75, direction = 0 },
+					{ unitDefID = UnitDefNames.corfort.id, xOffset =  55, zOffset = -75, direction = 0 },
+		}
+	}
 end
-table.insert(RuinsList,ixtinybase0)
 
-local function ixmediumbase0(posx, posy, posz, GaiaTeamID, radiusCheck)
-local posradius = 94
-	if radiusCheck then
-		return posradius
-	else
-SpawnRuin("armdrag", posx+(6), posy, posz+(22), 3)
-SpawnRuin("armeyes", posx+(30), posy, posz+(-34), 3)
-SpawnRuin("armdrag", posx+(-58), posy, posz+(-26), 3)
-SpawnRuin("armdrag", posx+(-90), posy, posz+(-42), 3)
-SpawnRuin("armdrag", posx+(38), posy, posz+(38), 3)
-SpawnRuin("armdrag", posx+(-26), posy, posz+(-10), 3)
-SpawnRuin("armeyes", posx+(-50), posy, posz+(46), 3)
-SpawnRuin("armwin", posx+(94), posy, posz+(-34), 3)
-SpawnRuin("armwin", posx+(-18), posy, posz+(-98), 3)
-SpawnRuin("armdrag", posx+(70), posy, posz+(54), 3)
-SpawnRuin("armestor", posx+(14), posy, posz+(94), 3)
-	end
+local function ixtinybase0()
+return {
+	radius = 100,
+	type = types.Land,
+	buildings = {
+					{ unitDefID = UnitDefNames.cormakr.id, xOffset = -36, zOffset = -36, direction = 1 },
+					{ unitDefID = UnitDefNames.corwin.id,  xOffset =  44, zOffset = -52, direction = 1 },
+					{ unitDefID = UnitDefNames.corwin.id,  xOffset =  92, zOffset = -52, direction = 1 },
+					{ unitDefID = UnitDefNames.cordrag.id, xOffset = -44, zOffset = -76, direction = 1 },
+					{ unitDefID = UnitDefNames.cordrag.id, xOffset = -76, zOffset = -76, direction = 1 },
+					{ unitDefID = UnitDefNames.cordrag.id, xOffset = -76, zOffset = -44, direction = 1 },
+					{ unitDefID = UnitDefNames.cordrag.id, xOffset = 100, zOffset =  68, direction = 1 },
+					{ unitDefID = UnitDefNames.corrad.id,  xOffset = -76, zOffset =  68, direction = 1 },
+					{ unitDefID = UnitDefNames.cordrag.id, xOffset =  68, zOffset = 100, direction = 1 },
+		}
+	}
 end
-table.insert(RuinsList,ixmediumbase0)
 
-local function ixmediumbase1(posx, posy, posz, GaiaTeamID, radiusCheck)
-local posradius = 142
-	if radiusCheck then
-		return posradius
-	else
-SpawnRuin("corfort", posx+(102), posy, posz+(99), 1)
-SpawnRuin("cormstor", posx+(-18), posy, posz+(27), 3)
-SpawnRuin("corfort", posx+(134), posy, posz+(67), 1)
-SpawnRuin("corrad", posx+(70), posy, posz+(35), 3)
-SpawnRuin("corexp", posx+(126), posy, posz+(-37), 1)
-SpawnRuin("cordrag", posx+(-122), posy, posz+(19), 1)
-SpawnRuin("corfort", posx+(-122), posy, posz+(-13), 1)
-SpawnRuin("cordrag", posx+(134), posy, posz+(35), 3)
-SpawnRuin("corfort", posx+(-74), posy, posz+(-125), 1)
-SpawnRuin("cordrag", posx+(-122), posy, posz+(-45), 1)
-SpawnRuin("cormakr", posx+(-82), posy, posz+(11), 3)
-SpawnRuin("cordrag", posx+(-42), posy, posz+(-125), 3)
-SpawnRuin("cordrag", posx+(70), posy, posz+(99), 3)
-SpawnRuin("cormstor", posx+(-18), posy, posz+(-53), 3)
-SpawnRuin("cordrag", posx+(-106), posy, posz+(-109), 1)
-SpawnRuin("cormakr", posx+(-82), posy, posz+(-37), 3)
-	end
+local function ixmediumbase0()
+return {
+	radius = 94,
+	type = types.Land,
+	buildings = {
+			{ unitDefID = UnitDefNames.armdrag.id,  xOffset =   6, zOffset =  22, direction = 3 },
+			{ unitDefID = UnitDefNames.armeyes.id,  xOffset =  30, zOffset = -34, direction = 3 },
+			{ unitDefID = UnitDefNames.armdrag.id,  xOffset = -58, zOffset = -26, direction = 3 },
+			{ unitDefID = UnitDefNames.armdrag.id,  xOffset = -90, zOffset = -42, direction = 3 },
+			{ unitDefID = UnitDefNames.armdrag.id,  xOffset =  38, zOffset =  38, direction = 3 },
+			{ unitDefID = UnitDefNames.armdrag.id,  xOffset = -26, zOffset = -10, direction = 3 },
+			{ unitDefID = UnitDefNames.armeyes.id,  xOffset = -50, zOffset =  46, direction = 3 },
+			{ unitDefID = UnitDefNames.armwin.id,   xOffset =  94, zOffset = -34, direction = 3 },
+			{ unitDefID = UnitDefNames.armwin.id,   xOffset = -18, zOffset = -98, direction = 3 },
+			{ unitDefID = UnitDefNames.armdrag.id,  xOffset =  70, zOffset =  54, direction = 3 },
+			{ unitDefID = UnitDefNames.armestor.id, xOffset =  14, zOffset =  94, direction = 3 },
+		}
+	}
 end
-table.insert(RuinsList,ixmediumbase1)
 
-local function ixmediumbase2(posx, posy, posz, GaiaTeamID, radiusCheck)
-local posradius = 144
-	if radiusCheck then
-		return posradius
-	else
-SpawnRuin("cordrag", posx+(80), posy, posz+(94), 3)
-SpawnRuin("cormaw", posx+(-144), posy, posz+(46), 3)
-SpawnRuin("cormadsam", posx+(24), posy, posz+(6), 3)
-SpawnRuin("corfort", posx+(112), posy, posz+(-50), 1)
-SpawnRuin("cordrag", posx+(-128), posy, posz+(14), 3)
-SpawnRuin("cormakr", posx+(-88), posy, posz+(-42), 3)
-SpawnRuin("cordrag", posx+(-64), posy, posz+(-82), 3)
-SpawnRuin("corfort", posx+(48), posy, posz+(110), 1)
-SpawnRuin("corfort", posx+(-128), posy, posz+(-50), 1)
-SpawnRuin("cordrag", posx+(96), posy, posz+(-82), 3)
-SpawnRuin("cordrag", posx+(-32), posy, posz+(-82), 3)
-SpawnRuin("corshroud", posx+(112), posy, posz+(14), 1)
-SpawnRuin("corfort", posx+(16), posy, posz+(110), 1)
-SpawnRuin("cormakr", posx+(-40), posy, posz+(-42), 3)
-SpawnRuin("corfort", posx+(-96), posy, posz+(-82), 1)
-SpawnRuin("cordrag", posx+(-16), posy, posz+(126), 3)
-SpawnRuin("cordrag", posx+(144), posy, posz+(14), 3)
-SpawnRuin("corfort", posx+(128), posy, posz+(-18), 1)
-SpawnRuin("corfort", posx+(-128), posy, posz+(-18), 1)
-SpawnRuin("corjamt", posx+(-64), posy, posz+(30), 3)
-SpawnRuin("cordrag", posx+(-16), posy, posz+(-114), 3)
-SpawnRuin("cormaw", posx+(144), posy, posz+(-50), 1)
-	end
+local function ixmediumbase1()
+return {
+	radius = 142,
+	type = types.Land,
+	buildings = {
+			{ unitDefID = UnitDefNames.corfort.id,  xOffset =  102, zOffset =   99, direction = 1 },
+			{ unitDefID = UnitDefNames.cormstor.id, xOffset =  -18, zOffset =   27, direction = 3 },
+			{ unitDefID = UnitDefNames.corfort.id,  xOffset =  134, zOffset =   67, direction = 1 },
+			{ unitDefID = UnitDefNames.corrad.id,   xOffset =   70, zOffset =   35, direction = 3 },
+			{ unitDefID = UnitDefNames.corexp.id,   xOffset =  126, zOffset =  -37, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag.id,  xOffset = -122, zOffset =   19, direction = 1 },
+			{ unitDefID = UnitDefNames.corfort.id,  xOffset = -122, zOffset =  -13, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag.id,  xOffset =  134, zOffset =   35, direction = 3 },
+			{ unitDefID = UnitDefNames.corfort.id,  xOffset =  -74, zOffset = -125, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag.id,  xOffset = -122, zOffset =  -45, direction = 1 },
+			{ unitDefID = UnitDefNames.cormakr.id,  xOffset =  -82, zOffset =   11, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id,  xOffset =  -42, zOffset = -125, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id,  xOffset =   70, zOffset =   99, direction = 3 },
+			{ unitDefID = UnitDefNames.cormstor.id, xOffset =  -18, zOffset =  -53, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id,  xOffset = -106, zOffset = -109, direction = 1 },
+			{ unitDefID = UnitDefNames.cormakr.id,  xOffset =  -82, zOffset =  -37, direction = 3 },
+		}
+	}
 end
-table.insert(RuinsList,ixmediumbase2)
 
-local function ixbigbase0(posx, posy, posz, GaiaTeamID, radiusCheck)
-local posradius = 192
-	if radiusCheck then
-		return posradius
-	else
-SpawnRuin("cordrag", posx+(-80), posy, posz+(-90), 0)
-SpawnRuin("corfort", posx+(-48), posy, posz+(-58), 3)
-SpawnRuin("cordrag", posx+(16), posy, posz+(-58), 3)
-SpawnRuin("cordrag", posx+(64), posy, posz+(54), 3)
-SpawnRuin("corfort", posx+(-80), posy, posz+(-58), 3)
-SpawnRuin("corvipe", posx+(120), posy, posz+(-98), 2)
-SpawnRuin("corarad", posx+(0), posy, posz+(38), 0)
-SpawnRuin("corfort", posx+(160), posy, posz+(54), 0)
-SpawnRuin("cordrag", posx+(-64), posy, posz+(54), 3)
-SpawnRuin("corvipe", posx+(-120), posy, posz+(-98), 2)
-SpawnRuin("corllt", posx+(176), posy, posz+(-58), 1)
-SpawnRuin("corfort", posx+(-128), posy, posz+(70), 0)
-SpawnRuin("corfort", posx+(-32), posy, posz+(70), 3)
-SpawnRuin("corfort", posx+(80), posy, posz+(-58), 3)
-SpawnRuin("cordrag", posx+(-144), posy, posz+(-58), 2)
-SpawnRuin("cordrag", posx+(48), posy, posz+(-90), 0)
-SpawnRuin("corfort", posx+(32), posy, posz+(70), 3)
-SpawnRuin("cordrag", posx+(-32), posy, posz+(102), 0)
-SpawnRuin("corfort", posx+(48), posy, posz+(-58), 3)
-SpawnRuin("corhlt", posx+(80), posy, posz+(22), 0)
-SpawnRuin("cordrag", posx+(128), posy, posz+(38), 2)
-SpawnRuin("cormaw", posx+(192), posy, posz+(38), 1)
-SpawnRuin("cordrag", posx+(144), posy, posz+(-58), 2)
-SpawnRuin("corhlt", posx+(0), posy, posz+(-26), 2)
-SpawnRuin("cordrag", posx+(32), posy, posz+(102), 0)
-SpawnRuin("cormaw", posx+(-64), posy, posz+(86), 0)
-SpawnRuin("corllt", posx+(-176), posy, posz+(-58), 3)
-SpawnRuin("cordrag", posx+(-96), posy, posz+(54), 3)
-SpawnRuin("cordrag", posx+(80), posy, posz+(-90), 0)
-SpawnRuin("corfort", posx+(112), posy, posz+(-58), 3)
-SpawnRuin("cormaw", posx+(-192), posy, posz+(38), 3)
-SpawnRuin("corfort", posx+(128), posy, posz+(70), 0)
-SpawnRuin("corfort", posx+(-112), posy, posz+(-58), 3)
-SpawnRuin("corfort", posx+(0), posy, posz+(70), 3)
-SpawnRuin("cordrag", posx+(-128), posy, posz+(38), 2)
-SpawnRuin("cordrag", posx+(96), posy, posz+(54), 3)
-SpawnRuin("cordrag", posx+(0), posy, posz+(102), 0)
-SpawnRuin("cordrag", posx+(0), posy, posz+(-90), 1)
-SpawnRuin("cordrag", posx+(-16), posy, posz+(-58), 3)
-SpawnRuin("corhlt", posx+(-80), posy, posz+(22), 0)
-SpawnRuin("corfort", posx+(-160), posy, posz+(54), 0)
-SpawnRuin("cordrag", posx+(-48), posy, posz+(-90), 0)
-SpawnRuin("cormaw", posx+(64), posy, posz+(86), 0)
-	end
+local function ixmediumbase2()
+return {
+	radius = 144,
+	type = types.Land,
+	buildings = {
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =   80, zOffset =   94, direction = 3 },
+			{ unitDefID = UnitDefNames.cormaw.id,    xOffset = -144, zOffset =   46, direction = 3 },
+			{ unitDefID = UnitDefNames.cormadsam.id, xOffset =   24, zOffset =    6, direction = 3 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset =  112, zOffset =  -50, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset = -128, zOffset =   14, direction = 3 },
+			{ unitDefID = UnitDefNames.cormakr.id,   xOffset =  -88, zOffset =  -42, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =  -64, zOffset =  -82, direction = 3 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset =   48, zOffset =  110, direction = 1 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset = -128, zOffset =  -50, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =   96, zOffset =  -82, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =  -32, zOffset =  -82, direction = 3 },
+			{ unitDefID = UnitDefNames.corshroud.id, xOffset =  112, zOffset =   14, direction = 1 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset =   16, zOffset =  110, direction = 1 },
+			{ unitDefID = UnitDefNames.cormakr.id,   xOffset =  -40, zOffset =  -42, direction = 3 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset =  -96, zOffset =  -82, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =  -16, zOffset =  126, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =  144, zOffset =   14, direction = 3 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset =  128, zOffset =  -18, direction = 1 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset = -128, zOffset =  -18, direction = 1 },
+			{ unitDefID = UnitDefNames.corjamt.id,   xOffset =  -64, zOffset =   30, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =  -16, zOffset = -114, direction = 3 },
+			{ unitDefID = UnitDefNames.cormaw.id,    xOffset =  144, zOffset =  -50, direction = 1 },
+		}
+	}
 end
-table.insert(RuinsList,ixbigbase0)
 
-local function ixbigbase1(posx, posy, posz, GaiaTeamID, radiusCheck)
-local posradius = 192
-	if radiusCheck then
-		return posradius
-	else
-SpawnRuin("cordrag", posx+(185), posy, posz+(-80), 2)
-SpawnRuin("corfort", posx+(-39), posy, posz+(144), 0)
-SpawnRuin("corfort", posx+(57), posy, posz+(-144), 0)
-SpawnRuin("corfort", posx+(153), posy, posz+(48), 0)
-SpawnRuin("cordrag", posx+(153), posy, posz+(144), 0)
-SpawnRuin("corfort", posx+(-71), posy, posz+(-144), 0)
-SpawnRuin("cordrag", posx+(-167), posy, posz+(-112), 2)
-SpawnRuin("cordrag", posx+(89), posy, posz+(-176), 2)
-SpawnRuin("corfort", posx+(153), posy, posz+(-48), 0)
-SpawnRuin("cordrag", posx+(-71), posy, posz+(-112), 1)
-SpawnRuin("corfort", posx+(89), posy, posz+(144), 0)
-SpawnRuin("corhlt", posx+(-103), posy, posz+(-112), 3)
-SpawnRuin("corfort", posx+(-135), posy, posz+(-80), 0)
-SpawnRuin("cordrag", posx+(-135), posy, posz+(-144), 0)
-SpawnRuin("corfort", posx+(-135), posy, posz+(48), 0)
-SpawnRuin("cordrag", posx+(-103), posy, posz+(144), 0)
-SpawnRuin("cordrag", posx+(153), posy, posz+(-144), 0)
-SpawnRuin("cordrag", posx+(153), posy, posz+(-112), 0)
-SpawnRuin("cordrag", posx+(-103), posy, posz+(-80), 1)
-SpawnRuin("corfort", posx+(-71), posy, posz+(144), 0)
-SpawnRuin("cordrag", posx+(121), posy, posz+(-80), 1)
-SpawnRuin("corfort", posx+(57), posy, posz+(144), 0)
-SpawnRuin("cortarg", posx+(9), posy, posz+(-8), 3)
-SpawnRuin("cormaw", posx+(57), posy, posz+(-176), 2)
-SpawnRuin("cormaw", posx+(-39), posy, posz+(16), 3)
-SpawnRuin("cordrag", posx+(121), posy, posz+(-144), 0)
-SpawnRuin("cordrag", posx+(-103), posy, posz+(-144), 0)
-SpawnRuin("corfort", posx+(-135), posy, posz+(-48), 0)
-SpawnRuin("cordrag", posx+(153), posy, posz+(112), 0)
-SpawnRuin("cordrag", posx+(185), posy, posz+(-48), 2)
-SpawnRuin("cordrag", posx+(121), posy, posz+(80), 1)
-SpawnRuin("cordrag", posx+(-167), posy, posz+(112), 2)
-SpawnRuin("corfort", posx+(153), posy, posz+(80), 0)
-SpawnRuin("corfort", posx+(153), posy, posz+(-80), 0)
-SpawnRuin("corfort", posx+(-39), posy, posz+(-144), 0)
-SpawnRuin("cordrag", posx+(-71), posy, posz+(176), 1)
-SpawnRuin("cormaw", posx+(-39), posy, posz+(-16), 3)
-SpawnRuin("corrad", posx+(9), posy, posz+(64), 1)
-SpawnRuin("corhlt", posx+(121), posy, posz+(-112), 1)
-SpawnRuin("cordrag", posx+(-167), posy, posz+(-80), 2)
-SpawnRuin("cordrag", posx+(-71), posy, posz+(112), 1)
-SpawnRuin("corhlt", posx+(-103), posy, posz+(112), 3)
-SpawnRuin("cordrag", posx+(89), posy, posz+(112), 1)
-SpawnRuin("cordrag", posx+(89), posy, posz+(176), 1)
-SpawnRuin("cormaw", posx+(-39), posy, posz+(176), 0)
-SpawnRuin("cordrag", posx+(-135), posy, posz+(144), 0)
-SpawnRuin("cordrag", posx+(-103), posy, posz+(176), 1)
-SpawnRuin("corfort", posx+(-135), posy, posz+(80), 0)
-SpawnRuin("cordrag", posx+(-103), posy, posz+(-176), 2)
-SpawnRuin("corjamt", posx+(9), posy, posz+(-80), 2)
-SpawnRuin("cordrag", posx+(89), posy, posz+(-112), 1)
-SpawnRuin("cordrag", posx+(-71), posy, posz+(-176), 2)
-SpawnRuin("cordrag", posx+(121), posy, posz+(144), 0)
-SpawnRuin("cordrag", posx+(-135), posy, posz+(112), 0)
-SpawnRuin("cordrag", posx+(-167), posy, posz+(80), 2)
-SpawnRuin("cordrag", posx+(121), posy, posz+(176), 1)
-SpawnRuin("corfort", posx+(89), posy, posz+(-144), 0)
-SpawnRuin("cordrag", posx+(-135), posy, posz+(-112), 0)
-SpawnRuin("corhlt", posx+(121), posy, posz+(112), 1)
-SpawnRuin("corflak", posx+(73), posy, posz+(0), 1)
-SpawnRuin("cordrag", posx+(-103), posy, posz+(80), 1)
-	end
+local function ixbigbase0()
+return {
+	radius = 192,
+	type = types.Land,
+	buildings = {
+			{ unitDefID = UnitDefNames.cordrag.id, xOffset =  -80, zOffset =  -90, direction = 0 },
+			{ unitDefID = UnitDefNames.corfort.id, xOffset =  -48, zOffset =  -58, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id, xOffset =   16, zOffset =  -58, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id, xOffset =   64, zOffset =   54, direction = 3 },
+			{ unitDefID = UnitDefNames.corfort.id, xOffset =  -80, zOffset =  -58, direction = 3 },
+			{ unitDefID = UnitDefNames.corvipe.id, xOffset =  120, zOffset =  -98, direction = 2 },
+			{ unitDefID = UnitDefNames.corarad.id, xOffset =    0, zOffset =   38, direction = 0 },
+			{ unitDefID = UnitDefNames.corfort.id, xOffset =  160, zOffset =   54, direction = 0 },
+			{ unitDefID = UnitDefNames.cordrag.id, xOffset =  -64, zOffset =   54, direction = 3 },
+			{ unitDefID = UnitDefNames.corvipe.id, xOffset = -120, zOffset =  -98, direction = 2 },
+			{ unitDefID = UnitDefNames.corllt.id,  xOffset =  176, zOffset =  -58, direction = 1 },
+			{ unitDefID = UnitDefNames.corfort.id, xOffset = -128, zOffset =   70, direction = 0 },
+			{ unitDefID = UnitDefNames.corfort.id, xOffset =  -32, zOffset =   70, direction = 3 },
+			{ unitDefID = UnitDefNames.corfort.id, xOffset =   80, zOffset =  -58, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id, xOffset = -144, zOffset =  -58, direction = 2 },
+			{ unitDefID = UnitDefNames.cordrag.id, xOffset =   48, zOffset =  -90, direction = 0 },
+			{ unitDefID = UnitDefNames.corfort.id, xOffset =   32, zOffset =   70, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id, xOffset =  -32, zOffset =  102, direction = 0 },
+			{ unitDefID = UnitDefNames.corfort.id, xOffset =   48, zOffset =  -58, direction = 3 },
+			{ unitDefID = UnitDefNames.corhlt.id,  xOffset =   80, zOffset =   22, direction = 0 },
+			{ unitDefID = UnitDefNames.cordrag.id, xOffset =  128, zOffset =   38, direction = 2 },
+			{ unitDefID = UnitDefNames.cormaw.id,  xOffset =  192, zOffset =   38, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag.id, xOffset =  144, zOffset =  -58, direction = 2 },
+			{ unitDefID = UnitDefNames.corhlt.id,  xOffset =    0, zOffset =  -26, direction = 2 },
+			{ unitDefID = UnitDefNames.cordrag.id, xOffset =   32, zOffset =  102, direction = 0 },
+			{ unitDefID = UnitDefNames.cormaw.id,  xOffset =  -64, zOffset =   86, direction = 0 },
+			{ unitDefID = UnitDefNames.corllt.id,  xOffset = -176, zOffset =  -58, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id, xOffset =  -96, zOffset =   54, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id, xOffset =   80, zOffset =  -90, direction = 0 },
+			{ unitDefID = UnitDefNames.corfort.id, xOffset =  112, zOffset =  -58, direction = 3 },
+			{ unitDefID = UnitDefNames.cormaw.id,  xOffset = -192, zOffset =   38, direction = 3 },
+			{ unitDefID = UnitDefNames.corfort.id, xOffset =  128, zOffset =   70, direction = 0 },
+			{ unitDefID = UnitDefNames.corfort.id, xOffset = -112, zOffset =  -58, direction = 3 },
+			{ unitDefID = UnitDefNames.corfort.id, xOffset =    0, zOffset =   70, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id, xOffset = -128, zOffset =   38, direction = 2 },
+			{ unitDefID = UnitDefNames.cordrag.id, xOffset =   96, zOffset =   54, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id, xOffset =    0, zOffset =  102, direction = 0 },
+			{ unitDefID = UnitDefNames.cordrag.id, xOffset =    0, zOffset =  -90, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag.id, xOffset =  -16, zOffset =  -58, direction = 3 },
+			{ unitDefID = UnitDefNames.corhlt.id,  xOffset =  -80, zOffset =   22, direction = 0 },
+			{ unitDefID = UnitDefNames.corfort.id, xOffset = -160, zOffset =   54, direction = 0 },
+			{ unitDefID = UnitDefNames.cordrag.id, xOffset =  -48, zOffset =  -90, direction = 0 },
+			{ unitDefID = UnitDefNames.cormaw.id,  xOffset =   64, zOffset =   86, direction = 0 },
+		}
+	}
 end
-table.insert(RuinsList,ixbigbase1)
 
-local function ixhugebase1(posx, posy, posz, GaiaTeamID, radiusCheck)
-local posradius = 250
-	if radiusCheck then
-		return posradius
-	else
-SpawnRuin("corfort", posx+(100), posy, posz+(35), 0)
-SpawnRuin("cordrag", posx+(196), posy, posz+(-237), 0)
-SpawnRuin("corfort", posx+(260), posy, posz+(-205), 0)
-SpawnRuin("cordrag", posx+(292), posy, posz+(35), 0)
-SpawnRuin("corhllt", posx+(-124), posy, posz+(291), 0)
-SpawnRuin("cordrag", posx+(-236), posy, posz+(147), 0)
-SpawnRuin("cordrag", posx+(-12), posy, posz+(195), 1)
-SpawnRuin("corfort", posx+(-140), posy, posz+(147), 0)
-SpawnRuin("cordrag", posx+(-172), posy, posz+(147), 0)
-SpawnRuin("cordrag", posx+(292), posy, posz+(3), 0)
-SpawnRuin("corfort", posx+(180), posy, posz+(-77), 0)
-SpawnRuin("cordrag", posx+(-28), posy, posz+(339), 0)
-SpawnRuin("corfort", posx+(180), posy, posz+(-13), 0)
-SpawnRuin("cordrag", posx+(228), posy, posz+(-205), 0)
-SpawnRuin("cordrag", posx+(-268), posy, posz+(-157), 0)
-SpawnRuin("cormaw", posx+(-300), posy, posz+(131), 3)
-SpawnRuin("corfus", posx+(108), posy, posz+(-37), 0)
-SpawnRuin("cordrag", posx+(-236), posy, posz+(-189), 0)
-SpawnRuin("corfort", posx+(132), posy, posz+(35), 0)
-SpawnRuin("corfort", posx+(4), posy, posz+(-301), 0)
-SpawnRuin("corfort", posx+(-268), posy, posz+(-61), 0)
-SpawnRuin("cordrag", posx+(68), posy, posz+(179), 0)
-SpawnRuin("cordrag", posx+(68), posy, posz+(-269), 0)
-SpawnRuin("corhllt", posx+(276), posy, posz+(-77), 1)
-SpawnRuin("cordrag", posx+(4), posy, posz+(339), 0)
-SpawnRuin("cordoom", posx+(-220), posy, posz+(99), 3)
-SpawnRuin("cordrag", posx+(-60), posy, posz+(339), 0)
-SpawnRuin("corvipe", posx+(-212), posy, posz+(-325), 2)
-SpawnRuin("cordrag", posx+(4), posy, posz+(-269), 0)
-SpawnRuin("corhlt", posx+(228), posy, posz+(99), 1)
-SpawnRuin("cordrag", posx+(-124), posy, posz+(323), 0)
-SpawnRuin("cordrag", posx+(-204), posy, posz+(-253), 0)
-SpawnRuin("corhllt", posx+(-172), posy, posz+(-189), 3)
-SpawnRuin("corvipe", posx+(12), posy, posz+(-341), 2)
-SpawnRuin("cordrag", posx+(-156), posy, posz+(307), 0)
-SpawnRuin("cormaw", posx+(228), posy, posz+(-237), 1)
-SpawnRuin("cordrag", posx+(308), posy, posz+(-61), 0)
-SpawnRuin("cordrag", posx+(68), posy, posz+(307), 0)
-SpawnRuin("cordrag", posx+(-76), posy, posz+(227), 1)
-SpawnRuin("cordrag", posx+(-268), posy, posz+(-93), 0)
-SpawnRuin("cordrag", posx+(276), posy, posz+(67), 0)
-SpawnRuin("cordrag", posx+(132), posy, posz+(163), 0)
-SpawnRuin("cordrag", posx+(-76), posy, posz+(195), 1)
-SpawnRuin("cordrag", posx+(228), posy, posz+(131), 0)
-SpawnRuin("corfort", posx+(164), posy, posz+(19), 0)
-SpawnRuin("cordrag", posx+(-204), posy, posz+(-221), 0)
-SpawnRuin("cordrag", posx+(4), posy, posz+(-205), 3)
-SpawnRuin("cordrag", posx+(308), posy, posz+(-93), 0)
-SpawnRuin("cordrag", posx+(-268), posy, posz+(51), 0)
-SpawnRuin("cormaw", posx+(-252), posy, posz+(179), 0)
-SpawnRuin("cordrag", posx+(260), posy, posz+(99), 0)
-SpawnRuin("cordrag", posx+(132), posy, posz+(-269), 0)
-SpawnRuin("corfort", posx+(180), posy, posz+(-45), 0)
-SpawnRuin("corhlt", posx+(164), posy, posz+(131), 0)
-SpawnRuin("corshroud", posx+(-44), posy, posz+(211), 1)
-SpawnRuin("corfort", posx+(-204), posy, posz+(-285), 0)
-SpawnRuin("cordrag", posx+(-92), posy, posz+(339), 0)
-SpawnRuin("cordrag", posx+(-268), posy, posz+(115), 0)
-SpawnRuin("corhllt", posx+(-44), posy, posz+(307), 0)
-SpawnRuin("cordrag", posx+(-204), posy, posz+(-189), 0)
-SpawnRuin("corck", posx+(-156), posy, posz+(223), 0)
-SpawnRuin("cordrag", posx+(-204), posy, posz+(147), 0)
-SpawnRuin("corhllt", posx+(196), posy, posz+(-205), 1)
-SpawnRuin("corhllt", posx+(164), posy, posz+(-237), 1)
-SpawnRuin("cordrag", posx+(36), posy, posz+(323), 0)
-SpawnRuin("cordrag", posx+(-268), posy, posz+(83), 0)
-SpawnRuin("corhllt", posx+(36), posy, posz+(291), 0)
-SpawnRuin("corfort", posx+(-268), posy, posz+(147), 0)
-SpawnRuin("corfort", posx+(-268), posy, posz+(19), 0)
-SpawnRuin("cordrag", posx+(164), posy, posz+(-269), 0)
-SpawnRuin("cormakr", posx+(44), posy, posz+(-69), 3)
-SpawnRuin("corerad", posx+(52), posy, posz+(-221), 3)
-SpawnRuin("cordrag", posx+(100), posy, posz+(179), 0)
-SpawnRuin("corfort", posx+(68), posy, posz+(35), 0)
-SpawnRuin("corhllt", posx+(-236), posy, posz+(-157), 3)
-SpawnRuin("corlab", posx+(-140), posy, posz+(-61), 0)
-SpawnRuin("corack", posx+(-79), posy, posz+(81), 0)
-SpawnRuin("cordrag", posx+(36), posy, posz+(-269), 0)
-SpawnRuin("cordrag", posx+(164), posy, posz+(163), 0)
-SpawnRuin("cordrag", posx+(100), posy, posz+(-269), 0)
-SpawnRuin("cordrag", posx+(-12), posy, posz+(227), 1)
-SpawnRuin("cordrag", posx+(4), posy, posz+(-237), 3)
-SpawnRuin("cordrag", posx+(-268), posy, posz+(-125), 0)
-SpawnRuin("cormaw", posx+(196), posy, posz+(-269), 2)
-SpawnRuin("corarad", posx+(36), posy, posz+(35), 3)
-SpawnRuin("corck", posx+(219), posy, posz+(-132), 0)
-SpawnRuin("cordrag", posx+(-268), posy, posz+(-189), 0)
-SpawnRuin("cordrag", posx+(308), posy, posz+(-29), 0)
-SpawnRuin("cormakr", posx+(44), posy, posz+(-21), 3)
-SpawnRuin("cordrag", posx+(196), posy, posz+(147), 0)
-	end
+local function ixbigbase1()
+return {
+	radius = 192,
+	type = types.Land,
+	buildings = {
+			{ unitDefID = UnitDefNames.cordrag.id, xOffset =  185, zOffset =  -80, direction = 2 },
+			{ unitDefID = UnitDefNames.corfort.id, xOffset =  -39, zOffset =  144, direction = 0 },
+			{ unitDefID = UnitDefNames.corfort.id, xOffset =   57, zOffset = -144, direction = 0 },
+			{ unitDefID = UnitDefNames.corfort.id, xOffset =  153, zOffset =   48, direction = 0 },
+			{ unitDefID = UnitDefNames.cordrag.id, xOffset =  153, zOffset =  144, direction = 0 },
+			{ unitDefID = UnitDefNames.corfort.id, xOffset =  -71, zOffset = -144, direction = 0 },
+			{ unitDefID = UnitDefNames.cordrag.id, xOffset = -167, zOffset = -112, direction = 2 },
+			{ unitDefID = UnitDefNames.cordrag.id, xOffset =   89, zOffset = -176, direction = 2 },
+			{ unitDefID = UnitDefNames.corfort.id, xOffset =  153, zOffset =  -48, direction = 0 },
+			{ unitDefID = UnitDefNames.cordrag.id, xOffset =  -71, zOffset = -112, direction = 1 },
+			{ unitDefID = UnitDefNames.corfort.id, xOffset =   89, zOffset =  144, direction = 0 },
+			{ unitDefID = UnitDefNames.corhlt.id,  xOffset = -103, zOffset = -112, direction = 3 },
+			{ unitDefID = UnitDefNames.corfort.id, xOffset = -135, zOffset =  -80, direction = 0 },
+			{ unitDefID = UnitDefNames.cordrag.id, xOffset = -135, zOffset = -144, direction = 0 },
+			{ unitDefID = UnitDefNames.corfort.id, xOffset = -135, zOffset =   48, direction = 0 },
+			{ unitDefID = UnitDefNames.cordrag.id, xOffset = -103, zOffset =  144, direction = 0 },
+			{ unitDefID = UnitDefNames.cordrag.id, xOffset =  153, zOffset = -144, direction = 0 },
+			{ unitDefID = UnitDefNames.cordrag.id, xOffset =  153, zOffset = -112, direction = 0 },
+			{ unitDefID = UnitDefNames.cordrag.id, xOffset = -103, zOffset =  -80, direction = 1 },
+			{ unitDefID = UnitDefNames.corfort.id, xOffset =  -71, zOffset =  144, direction = 0 },
+			{ unitDefID = UnitDefNames.cordrag.id, xOffset =  121, zOffset =  -80, direction = 1 },
+			{ unitDefID = UnitDefNames.corfort.id, xOffset =   57, zOffset =  144, direction = 0 },
+			{ unitDefID = UnitDefNames.cortarg.id, xOffset =    9, zOffset =   -8, direction = 3 },
+			{ unitDefID = UnitDefNames.cormaw.id,  xOffset =   57, zOffset = -176, direction = 2 },
+			{ unitDefID = UnitDefNames.cormaw.id,  xOffset =  -39, zOffset =   16, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id, xOffset =  121, zOffset = -144, direction = 0 },
+			{ unitDefID = UnitDefNames.cordrag.id, xOffset = -103, zOffset = -144, direction = 0 },
+			{ unitDefID = UnitDefNames.corfort.id, xOffset = -135, zOffset =  -48, direction = 0 },
+			{ unitDefID = UnitDefNames.cordrag.id, xOffset =  153, zOffset =  112, direction = 0 },
+			{ unitDefID = UnitDefNames.cordrag.id, xOffset =  185, zOffset =  -48, direction = 2 },
+			{ unitDefID = UnitDefNames.cordrag.id, xOffset =  121, zOffset =   80, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag.id, xOffset = -167, zOffset =  112, direction = 2 },
+			{ unitDefID = UnitDefNames.corfort.id, xOffset =  153, zOffset =   80, direction = 0 },
+			{ unitDefID = UnitDefNames.corfort.id, xOffset =  153, zOffset =  -80, direction = 0 },
+			{ unitDefID = UnitDefNames.corfort.id, xOffset =  -39, zOffset = -144, direction = 0 },
+			{ unitDefID = UnitDefNames.cordrag.id, xOffset =  -71, zOffset =  176, direction = 1 },
+			{ unitDefID = UnitDefNames.cormaw.id,  xOffset =  -39, zOffset =  -16, direction = 3 },
+			{ unitDefID = UnitDefNames.corrad.id,  xOffset =    9, zOffset =   64, direction = 1 },
+			{ unitDefID = UnitDefNames.corhlt.id,  xOffset =  121, zOffset = -112, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag.id, xOffset = -167, zOffset =  -80, direction = 2 },
+			{ unitDefID = UnitDefNames.cordrag.id, xOffset =  -71, zOffset =  112, direction = 1 },
+			{ unitDefID = UnitDefNames.corhlt.id,  xOffset = -103, zOffset =  112, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id, xOffset =   89, zOffset =  112, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag.id, xOffset =   89, zOffset =  176, direction = 1 },
+			{ unitDefID = UnitDefNames.cormaw.id,  xOffset =  -39, zOffset =  176, direction = 0 },
+			{ unitDefID = UnitDefNames.cordrag.id, xOffset = -135, zOffset =  144, direction = 0 },
+			{ unitDefID = UnitDefNames.cordrag.id, xOffset = -103, zOffset =  176, direction = 1 },
+			{ unitDefID = UnitDefNames.corfort.id, xOffset = -135, zOffset =   80, direction = 0 },
+			{ unitDefID = UnitDefNames.cordrag.id, xOffset = -103, zOffset = -176, direction = 2 },
+			{ unitDefID = UnitDefNames.corjamt.id, xOffset =    9, zOffset =  -80, direction = 2 },
+			{ unitDefID = UnitDefNames.cordrag.id, xOffset =   89, zOffset = -112, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag.id, xOffset =  -71, zOffset = -176, direction = 2 },
+			{ unitDefID = UnitDefNames.cordrag.id, xOffset =  121, zOffset =  144, direction = 0 },
+			{ unitDefID = UnitDefNames.cordrag.id, xOffset = -135, zOffset =  112, direction = 0 },
+			{ unitDefID = UnitDefNames.cordrag.id, xOffset = -167, zOffset =   80, direction = 2 },
+			{ unitDefID = UnitDefNames.cordrag.id, xOffset =  121, zOffset =  176, direction = 1 },
+			{ unitDefID = UnitDefNames.corfort.id, xOffset =   89, zOffset = -144, direction = 0 },
+			{ unitDefID = UnitDefNames.cordrag.id, xOffset = -135, zOffset = -112, direction = 0 },
+			{ unitDefID = UnitDefNames.corhlt.id,  xOffset =  121, zOffset =  112, direction = 1 },
+			{ unitDefID = UnitDefNames.corflak.id, xOffset =   73, zOffset =    0, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag.id, xOffset = -103, zOffset =   80, direction = 1 },
+		}
+	}
 end
-table.insert(RuinsList,ixhugebase1)
 
-local function ixhugebase2(posx, posy, posz, GaiaTeamID, radiusCheck)
-local posradius = 290
-	if radiusCheck then
-		return posradius
-	else
-SpawnRuin("corfort", posx+(-227), posy, posz+(312), 1)
-SpawnRuin("cordrag", posx+(-355), posy, posz+(-248), 2)
-SpawnRuin("cormexp", posx+(-507), posy, posz+(0), 3)
-SpawnRuin("cordrag", posx+(29), posy, posz+(24), 1)
-SpawnRuin("corflak", posx+(-19), posy, posz+(168), 0)
-SpawnRuin("corfort", posx+(-355), posy, posz+(168), 1)
-SpawnRuin("cordrag", posx+(173), posy, posz+(-8), 3)
-SpawnRuin("corfort", posx+(157), posy, posz+(152), 3)
-SpawnRuin("cormmkr", posx+(-195), posy, posz+(-56), 3)
-SpawnRuin("corfort", posx+(-195), posy, posz+(-376), 2)
-SpawnRuin("corfort", posx+(253), posy, posz+(-136), 3)
-SpawnRuin("cordrag", posx+(-83), posy, posz+(360), 1)
-SpawnRuin("corrad", posx+(-195), posy, posz+(-344), 0)
-SpawnRuin("corfort", posx+(-131), posy, posz+(328), 1)
-SpawnRuin("cordrag", posx+(269), posy, posz+(328), 1)
-SpawnRuin("corafus", posx+(-179), posy, posz+(-200), 3)
-SpawnRuin("cordrag", posx+(-99), posy, posz+(328), 1)
-SpawnRuin("cordrag", posx+(-147), posy, posz+(360), 1)
-SpawnRuin("corap", posx+(173), posy, posz+(72), 3)
-SpawnRuin("corack", posx+(72), posy, posz+(279), 0)
-SpawnRuin("cordrag", posx+(-387), posy, posz+(120), 3)
-SpawnRuin("cordrag", posx+(205), posy, posz+(-8), 3)
-SpawnRuin("corfort", posx+(-67), posy, posz+(88), 1)
-SpawnRuin("cordrag", posx+(237), posy, posz+(40), 3)
-SpawnRuin("coreyes", posx+(-107), posy, posz+(32), 0)
-SpawnRuin("cordrag", posx+(-67), posy, posz+(328), 1)
-SpawnRuin("corsd", posx+(-131), posy, posz+(72), 3)
-SpawnRuin("corfort", posx+(-387), posy, posz+(-184), 2)
-SpawnRuin("corfort", posx+(29), posy, posz+(56), 1)
-SpawnRuin("cordrag", posx+(173), posy, posz+(-296), 3)
-SpawnRuin("cordrag", posx+(205), posy, posz+(360), 1)
-SpawnRuin("corfort", posx+(109), posy, posz+(424), 1)
-SpawnRuin("corfort", posx+(-115), posy, posz+(296), 3)
-SpawnRuin("cordrag", posx+(29), posy, posz+(120), 1)
-SpawnRuin("corhllt", posx+(237), posy, posz+(-24), 1)
-SpawnRuin("cordrag", posx+(253), posy, posz+(-248), 3)
-SpawnRuin("corfort", posx+(253), posy, posz+(-168), 3)
-SpawnRuin("cordrag", posx+(-387), posy, posz+(56), 3)
-SpawnRuin("cormakr", posx+(-107), posy, posz+(-176), 3)
-SpawnRuin("corfort", posx+(-67), posy, posz+(56), 1)
-SpawnRuin("corck", posx+(-47), posy, posz+(-311), 0)
-SpawnRuin("cordrag", posx+(141), posy, posz+(424), 1)
-SpawnRuin("corgate", posx+(-19), posy, posz+(72), 1)
-SpawnRuin("corfort", posx+(-355), posy, posz+(136), 1)
-SpawnRuin("cordrag", posx+(125), posy, posz+(152), 3)
-SpawnRuin("cordrag", posx+(173), posy, posz+(424), 1)
-SpawnRuin("corfort", posx+(237), posy, posz+(296), 1)
-SpawnRuin("cormakr", posx+(-251), posy, posz+(-224), 3)
-SpawnRuin("cormakr", posx+(-203), posy, posz+(-128), 3)
-SpawnRuin("cortoast", posx+(-395), posy, posz+(-240), 2)
-SpawnRuin("cormmkr", posx+(-3), posy, posz+(-152), 3)
-SpawnRuin("corfort", posx+(237), posy, posz+(120), 3)
-SpawnRuin("corhllt", posx+(93), posy, posz+(-296), 2)
-SpawnRuin("corfort", posx+(-291), posy, posz+(-280), 2)
-SpawnRuin("corfort", posx+(-291), posy, posz+(296), 1)
-SpawnRuin("corfort", posx+(-323), posy, posz+(88), 3)
-SpawnRuin("corfort", posx+(237), posy, posz+(88), 3)
-SpawnRuin("cordrag", posx+(173), posy, posz+(392), 1)
-SpawnRuin("corshroud", posx+(-131), posy, posz+(-136), 3)
-SpawnRuin("cormmkr", posx+(-131), posy, posz+(-88), 3)
-SpawnRuin("cordrag", posx+(141), posy, posz+(-296), 3)
-SpawnRuin("corhlt", posx+(205), posy, posz+(328), 1)
-SpawnRuin("cordrag", posx+(205), posy, posz+(-296), 3)
-SpawnRuin("corfort", posx+(221), posy, posz+(152), 3)
-SpawnRuin("cormakr", posx+(-251), posy, posz+(-176), 3)
-SpawnRuin("cortoast", posx+(-347), posy, posz+(-288), 2)
-SpawnRuin("corfort", posx+(-339), posy, posz+(200), 1)
-SpawnRuin("cormmkr", posx+(-67), posy, posz+(-120), 3)
-SpawnRuin("corfort", posx+(-355), posy, posz+(-216), 2)
-SpawnRuin("cormakr", posx+(-107), posy, posz+(-224), 3)
-SpawnRuin("corfort", posx+(253), posy, posz+(-104), 3)
-SpawnRuin("cordrag", posx+(-115), posy, posz+(360), 1)
-SpawnRuin("corrad", posx+(-355), posy, posz+(-184), 0)
-SpawnRuin("corfort", posx+(29), posy, posz+(88), 1)
-SpawnRuin("cordrag", posx+(141), posy, posz+(456), 1)
-SpawnRuin("corfort", posx+(-323), posy, posz+(264), 1)
-SpawnRuin("corfort", posx+(-195), posy, posz+(328), 1)
-SpawnRuin("corfort", posx+(-163), posy, posz+(328), 1)
-SpawnRuin("cordoom", posx+(-179), posy, posz+(280), 0)
-SpawnRuin("corfort", posx+(-227), posy, posz+(-344), 2)
-SpawnRuin("cordrag", posx+(-355), posy, posz+(72), 3)
-SpawnRuin("corfort", posx+(-35), posy, posz+(120), 1)
-SpawnRuin("corck", posx+(-182), posy, posz+(145), 0)
-SpawnRuin("cordrag", posx+(-67), posy, posz+(24), 1)
-SpawnRuin("corfort", posx+(-259), posy, posz+(312), 1)
-SpawnRuin("cordoom", posx+(-307), posy, posz+(152), 3)
-SpawnRuin("corfort", posx+(-323), posy, posz+(-248), 2)
-SpawnRuin("coreyes", posx+(-107), posy, posz+(112), 0)
-SpawnRuin("cormakr", posx+(-203), posy, posz+(-272), 3)
-SpawnRuin("corfort", posx+(-339), posy, posz+(232), 1)
-SpawnRuin("cortoast", posx+(-251), posy, posz+(-384), 2)
-SpawnRuin("corfort", posx+(-3), posy, posz+(120), 1)
-SpawnRuin("cordrag", posx+(253), posy, posz+(-216), 3)
-SpawnRuin("corhlt", posx+(141), posy, posz+(392), 0)
-SpawnRuin("cormaw", posx+(269), posy, posz+(296), 1)
-SpawnRuin("corfort", posx+(-35), posy, posz+(24), 1)
-SpawnRuin("corfort", posx+(189), posy, posz+(152), 3)
-SpawnRuin("cormakr", posx+(-155), posy, posz+(-272), 3)
-SpawnRuin("cordrag", posx+(205), posy, posz+(392), 1)
-SpawnRuin("cordrag", posx+(141), posy, posz+(-8), 3)
-SpawnRuin("cormlv", posx+(342), posy, posz+(258), 0)
-SpawnRuin("cordrag", posx+(237), posy, posz+(-280), 3)
-SpawnRuin("cordrag", posx+(-387), posy, posz+(88), 3)
-SpawnRuin("cordrag", posx+(-67), posy, posz+(120), 1)
-SpawnRuin("corfort", posx+(-3), posy, posz+(24), 1)
-SpawnRuin("cordrag", posx+(237), posy, posz+(360), 1)
-SpawnRuin("cordrag", posx+(-259), posy, posz+(-344), 2)
-SpawnRuin("corfort", posx+(-355), posy, posz+(104), 1)
-SpawnRuin("cortoast", posx+(-299), posy, posz+(-336), 2)
-SpawnRuin("cordrag", posx+(-355), posy, posz+(40), 3)
-SpawnRuin("cormaw", posx+(109), posy, posz+(456), 0)
-SpawnRuin("cordrag", posx+(237), posy, posz+(328), 1)
-SpawnRuin("corflak", posx+(-19), posy, posz+(-24), 2)
-SpawnRuin("cordrag", posx+(237), posy, posz+(8), 3)
-SpawnRuin("corfort", posx+(-259), posy, posz+(-312), 2)
-SpawnRuin("cormexp", posx+(-123), posy, posz+(480), 0)
-	end
+local function ixhugebase1()
+return {
+	radius = 250,
+	type = types.Land,
+	buildings = {
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset =  100, zOffset =   35, direction = 0 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =  196, zOffset = -237, direction = 0 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset =  260, zOffset = -205, direction = 0 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =  292, zOffset =   35, direction = 0 },
+			{ unitDefID = UnitDefNames.corhllt.id,   xOffset = -124, zOffset =  291, direction = 0 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset = -236, zOffset =  147, direction = 0 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =  -12, zOffset =  195, direction = 1 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset = -140, zOffset =  147, direction = 0 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset = -172, zOffset =  147, direction = 0 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =  292, zOffset =    3, direction = 0 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset =  180, zOffset =  -77, direction = 0 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =  -28, zOffset =  339, direction = 0 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset =  180, zOffset =  -13, direction = 0 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =  228, zOffset = -205, direction = 0 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset = -268, zOffset = -157, direction = 0 },
+			{ unitDefID = UnitDefNames.cormaw.id,    xOffset = -300, zOffset =  131, direction = 3 },
+			{ unitDefID = UnitDefNames.corfus.id,    xOffset =  108, zOffset =  -37, direction = 0 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset = -236, zOffset = -189, direction = 0 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset =  132, zOffset =   35, direction = 0 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset =    4, zOffset = -301, direction = 0 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset = -268, zOffset =  -61, direction = 0 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =   68, zOffset =  179, direction = 0 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =   68, zOffset = -269, direction = 0 },
+			{ unitDefID = UnitDefNames.corhllt.id,   xOffset =  276, zOffset =  -77, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =    4, zOffset =  339, direction = 0 },
+			{ unitDefID = UnitDefNames.cordoom.id,   xOffset = -220, zOffset =   99, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =  -60, zOffset =  339, direction = 0 },
+			{ unitDefID = UnitDefNames.corvipe.id,   xOffset = -212, zOffset = -325, direction = 2 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =    4, zOffset = -269, direction = 0 },
+			{ unitDefID = UnitDefNames.corhlt.id,    xOffset =  228, zOffset =   99, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset = -124, zOffset =  323, direction = 0 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset = -204, zOffset = -253, direction = 0 },
+			{ unitDefID = UnitDefNames.corhllt.id,   xOffset = -172, zOffset = -189, direction = 3 },
+			{ unitDefID = UnitDefNames.corvipe.id,   xOffset =   12, zOffset = -341, direction = 2 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset = -156, zOffset =  307, direction = 0 },
+			{ unitDefID = UnitDefNames.cormaw.id,    xOffset =  228, zOffset = -237, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =  308, zOffset =  -61, direction = 0 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =   68, zOffset =  307, direction = 0 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =  -76, zOffset =  227, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset = -268, zOffset =  -93, direction = 0 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =  276, zOffset =   67, direction = 0 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =  132, zOffset =  163, direction = 0 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =  -76, zOffset =  195, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =  228, zOffset =  131, direction = 0 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset =  164, zOffset =   19, direction = 0 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset = -204, zOffset = -221, direction = 0 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =    4, zOffset = -205, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =  308, zOffset =  -93, direction = 0 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset = -268, zOffset =   51, direction = 0 },
+			{ unitDefID = UnitDefNames.cormaw.id,    xOffset = -252, zOffset =  179, direction = 0 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =  260, zOffset =   99, direction = 0 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =  132, zOffset = -269, direction = 0 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset =  180, zOffset =  -45, direction = 0 },
+			{ unitDefID = UnitDefNames.corhlt.id,    xOffset =  164, zOffset =  131, direction = 0 },
+			{ unitDefID = UnitDefNames.corshroud.id, xOffset =  -44, zOffset =  211, direction = 1 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset = -204, zOffset = -285, direction = 0 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =  -92, zOffset =  339, direction = 0 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset = -268, zOffset =  115, direction = 0 },
+			{ unitDefID = UnitDefNames.corhllt.id,   xOffset =  -44, zOffset =  307, direction = 0 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset = -204, zOffset = -189, direction = 0 },
+			{ unitDefID = UnitDefNames.corck.id,     xOffset = -156, zOffset =  223, direction = 0 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset = -204, zOffset =  147, direction = 0 },
+			{ unitDefID = UnitDefNames.corhllt.id,   xOffset =  196, zOffset = -205, direction = 1 },
+			{ unitDefID = UnitDefNames.corhllt.id,   xOffset =  164, zOffset = -237, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =   36, zOffset =  323, direction = 0 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset = -268, zOffset =   83, direction = 0 },
+			{ unitDefID = UnitDefNames.corhllt.id,   xOffset =   36, zOffset =  291, direction = 0 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset = -268, zOffset =  147, direction = 0 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset = -268, zOffset =   19, direction = 0 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =  164, zOffset = -269, direction = 0 },
+			{ unitDefID = UnitDefNames.cormakr.id,   xOffset =   44, zOffset =  -69, direction = 3 },
+			{ unitDefID = UnitDefNames.corerad.id,   xOffset =   52, zOffset = -221, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =  100, zOffset =  179, direction = 0 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset =   68, zOffset =   35, direction = 0 },
+			{ unitDefID = UnitDefNames.corhllt.id,   xOffset = -236, zOffset = -157, direction = 3 },
+			{ unitDefID = UnitDefNames.corlab.id,    xOffset = -140, zOffset =  -61, direction = 0 },
+			{ unitDefID = UnitDefNames.corack.id,    xOffset =  -79, zOffset =   81, direction = 0 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =   36, zOffset = -269, direction = 0 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =  164, zOffset =  163, direction = 0 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =  100, zOffset = -269, direction = 0 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =  -12, zOffset =  227, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =    4, zOffset = -237, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset = -268, zOffset = -125, direction = 0 },
+			{ unitDefID = UnitDefNames.cormaw.id,    xOffset =  196, zOffset = -269, direction = 2 },
+			{ unitDefID = UnitDefNames.corarad.id,   xOffset =   36, zOffset =   35, direction = 3 },
+			{ unitDefID = UnitDefNames.corck.id,     xOffset =  219, zOffset = -132, direction = 0 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset = -268, zOffset = -189, direction = 0 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =  308, zOffset =  -29, direction = 0 },
+			{ unitDefID = UnitDefNames.cormakr.id,   xOffset =   44, zOffset =  -21, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =  196, zOffset =  147, direction = 0 },
+		}
+	}
 end
-table.insert(RuinsList,ixhugebase2)
 
-local function ixhugebase3(posx, posy, posz, GaiaTeamID, radiusCheck)
-local posradius = 280
-	if radiusCheck then
-		return posradius
-	else
-SpawnRuin("corhllt", posx+(-267), posy, posz+(-105), 2)
-SpawnRuin("corfort", posx+(-267), posy, posz+(-73), 1)
-SpawnRuin("cordrag", posx+(133), posy, posz+(151), 3)
-SpawnRuin("cordrag", posx+(-75), posy, posz+(-361), 1)
-SpawnRuin("cormakr", posx+(157), posy, posz+(-65), 0)
-SpawnRuin("cordrag", posx+(-267), posy, posz+(-9), 3)
-SpawnRuin("cordrag", posx+(133), posy, posz+(-345), 1)
-SpawnRuin("corllt", posx+(101), posy, posz+(423), 0)
-SpawnRuin("corfus", posx+(13), posy, posz+(-65), 3)
-SpawnRuin("corfort", posx+(-235), posy, posz+(279), 1)
-SpawnRuin("corllt", posx+(-27), posy, posz+(423), 0)
-SpawnRuin("cordrag", posx+(-267), posy, posz+(23), 3)
-SpawnRuin("corhlt", posx+(229), posy, posz+(-25), 1)
-SpawnRuin("armvader", posx+(170), posy, posz+(270), 0)
-SpawnRuin("cordrag", posx+(-331), posy, posz+(215), 3)
-SpawnRuin("cordrag", posx+(-11), posy, posz+(-297), 2)
-SpawnRuin("cordrag", posx+(261), posy, posz+(-25), 1)
-SpawnRuin("cordrag", posx+(21), posy, posz+(-297), 2)
-SpawnRuin("corvipe", posx+(-227), posy, posz+(63), 3)
-SpawnRuin("cordrag", posx+(-75), posy, posz+(-281), 2)
-SpawnRuin("cordrag", posx+(261), posy, posz+(-89), 1)
-SpawnRuin("cordrag", posx+(69), posy, posz+(151), 3)
-SpawnRuin("cordrag", posx+(-395), posy, posz+(103), 3)
-SpawnRuin("cortoast", posx+(-259), posy, posz+(335), 0)
-SpawnRuin("corcv", posx+(-170), posy, posz+(372), 0)
-SpawnRuin("cordrag", posx+(165), posy, posz+(151), 3)
-SpawnRuin("cordrag", posx+(261), posy, posz+(-121), 1)
-SpawnRuin("corfort", posx+(-267), posy, posz+(279), 1)
-SpawnRuin("cormakr", posx+(157), posy, posz+(-209), 0)
-SpawnRuin("cordrag", posx+(325), posy, posz+(-73), 1)
-SpawnRuin("cordrag", posx+(37), posy, posz+(151), 3)
-SpawnRuin("corfort", posx+(-91), posy, posz+(-249), 3)
-SpawnRuin("corvipe", posx+(-227), posy, posz+(15), 3)
-SpawnRuin("armvader", posx+(138), posy, posz+(270), 0)
-SpawnRuin("cordrag", posx+(165), posy, posz+(-361), 1)
-SpawnRuin("corvipe", posx+(-227), posy, posz+(191), 3)
-SpawnRuin("coreyes", posx+(365), posy, posz+(143), 0)
-SpawnRuin("corfus", posx+(93), posy, posz+(-65), 3)
-SpawnRuin("corfort", posx+(69), posy, posz+(391), 0)
-SpawnRuin("cordrag", posx+(-155), posy, posz+(-345), 1)
-SpawnRuin("cordrag", posx+(197), posy, posz+(-57), 3)
-SpawnRuin("cormakr", posx+(157), posy, posz+(-161), 0)
-SpawnRuin("cormaw", posx+(85), posy, posz+(-425), 1)
-SpawnRuin("cormadsam", posx+(-163), posy, posz+(-49), 0)
-SpawnRuin("cordoom", posx+(85), posy, posz+(103), 0)
-SpawnRuin("corfort", posx+(-27), posy, posz+(151), 3)
-SpawnRuin("corck", posx+(265), posy, posz+(85), 0, true)
-SpawnRuin("cordrag", posx+(325), posy, posz+(-153), 1)
-SpawnRuin("cordrag", posx+(5), posy, posz+(151), 3)
-SpawnRuin("corfus", posx+(13), posy, posz+(-145), 3)
-SpawnRuin("cordrag", posx+(-331), posy, posz+(135), 3)
-SpawnRuin("cordrag", posx+(-59), posy, posz+(391), 0)
-SpawnRuin("cordrag", posx+(101), posy, posz+(151), 3)
-SpawnRuin("corfort", posx+(-91), posy, posz+(-217), 1)
-SpawnRuin("corarad", posx+(-43), posy, posz+(-9), 0)
-SpawnRuin("cordrag", posx+(-267), posy, posz+(55), 3)
-SpawnRuin("cordrag", posx+(197), posy, posz+(151), 3)
-SpawnRuin("cormadsam", posx+(-163), posy, posz+(255), 0)
-SpawnRuin("corfort", posx+(133), posy, posz+(119), 0)
-SpawnRuin("corvipe", posx+(13), posy, posz+(-257), 2)
-SpawnRuin("cordrag", posx+(-267), posy, posz+(119), 3)
-SpawnRuin("corfort", posx+(133), posy, posz+(-249), 3)
-SpawnRuin("armvader", posx+(106), posy, posz+(238), 0)
-SpawnRuin("cordrag", posx+(53), posy, posz+(-281), 2)
-SpawnRuin("cordrag", posx+(293), posy, posz+(-73), 1)
-SpawnRuin("cormaw", posx+(-107), posy, posz+(-425), 3)
-SpawnRuin("cordrag", posx+(197), posy, posz+(-121), 3)
-SpawnRuin("corfort", posx+(-91), posy, posz+(-185), 1)
-SpawnRuin("cordrag", posx+(53), posy, posz+(-361), 1)
-SpawnRuin("cordrag", posx+(-43), posy, posz+(-297), 2)
-SpawnRuin("corfort", posx+(37), posy, posz+(119), 0)
-SpawnRuin("cordrag", posx+(101), posy, posz+(391), 0)
-SpawnRuin("cordrag", posx+(-331), posy, posz+(71), 3)
-SpawnRuin("corfort", posx+(5), posy, posz+(391), 0)
-SpawnRuin("cormakr", posx+(157), posy, posz+(-113), 0)
-SpawnRuin("cordrag", posx+(197), posy, posz+(-89), 3)
-SpawnRuin("armvader", posx+(138), posy, posz+(238), 0)
-SpawnRuin("cordrag", posx+(-187), posy, posz+(-361), 1)
-SpawnRuin("corfort", posx+(-267), posy, posz+(-41), 1)
-SpawnRuin("corfort", posx+(-235), posy, posz+(-73), 1)
-SpawnRuin("corfort", posx+(-235), posy, posz+(-41), 1)
-SpawnRuin("cordrag", posx+(293), posy, posz+(-137), 1)
-SpawnRuin("cordrag", posx+(-11), posy, posz+(-441), 1)
-SpawnRuin("corllt", posx+(69), posy, posz+(423), 0)
-SpawnRuin("corvipe", posx+(-227), posy, posz+(143), 3)
-SpawnRuin("corfort", posx+(197), posy, posz+(119), 3)
-SpawnRuin("corfort", posx+(-27), posy, posz+(391), 0)
-SpawnRuin("cordrag", posx+(197), posy, posz+(-25), 3)
-SpawnRuin("cordrag", posx+(357), posy, posz+(-73), 1)
-SpawnRuin("cordrag", posx+(-299), posy, posz+(199), 3)
-SpawnRuin("corhllt", posx+(-123), posy, posz+(-233), 3)
-SpawnRuin("cormakr", posx+(157), posy, posz+(-17), 0)
-SpawnRuin("cordrag", posx+(-59), posy, posz+(-329), 1)
-SpawnRuin("cordrag", posx+(-267), posy, posz+(183), 3)
-SpawnRuin("cordrag", posx+(-11), posy, posz+(-409), 1)
-SpawnRuin("corhlt", posx+(21), posy, posz+(439), 0)
-SpawnRuin("corack", posx+(-107), posy, posz+(77), 0)
-SpawnRuin("corfort", posx+(197), posy, posz+(7), 3)
-SpawnRuin("cordrag", posx+(325), posy, posz+(7), 1)
-SpawnRuin("cordrag", posx+(-91), posy, posz+(-393), 1)
-SpawnRuin("corshroud", posx+(-203), posy, posz+(103), 0)
-SpawnRuin("corvp", posx+(13), posy, posz+(255), 0)
-SpawnRuin("cordrag", posx+(-59), posy, posz+(119), 0)
-SpawnRuin("armvader", posx+(106), posy, posz+(270), 0)
-SpawnRuin("corfort", posx+(-267), posy, posz+(247), 1)
-SpawnRuin("coreyes", posx+(-339), posy, posz+(-257), 0)
-SpawnRuin("cordrag", posx+(-331), posy, posz+(-9), 3)
-SpawnRuin("cordrag", posx+(293), posy, posz+(-9), 1)
-SpawnRuin("corfort", posx+(197), posy, posz+(-249), 3)
-SpawnRuin("cordrag", posx+(-267), posy, posz+(215), 3)
-SpawnRuin("corfort", posx+(197), posy, posz+(-217), 3)
-SpawnRuin("cordrag", posx+(261), posy, posz+(-57), 1)
-SpawnRuin("armvader", posx+(168), posy, posz+(207), 0)
-SpawnRuin("armvader", posx+(104), posy, posz+(207), 0)
-SpawnRuin("corfort", posx+(-235), posy, posz+(103), 0)
-SpawnRuin("armvader", posx+(170), posy, posz+(238), 0)
-SpawnRuin("corfort", posx+(197), posy, posz+(-185), 3)
-SpawnRuin("cordrag", posx+(-267), posy, posz+(151), 3)
-SpawnRuin("corhlt", posx+(229), posy, posz+(-121), 1)
-SpawnRuin("corhlt", posx+(229), posy, posz+(-73), 1)
-SpawnRuin("corllt", posx+(-59), posy, posz+(423), 0)
-SpawnRuin("corfort", posx+(165), posy, posz+(-249), 3)
-SpawnRuin("cordrag", posx+(-267), posy, posz+(87), 3)
-SpawnRuin("corfmd", posx+(-11), posy, posz+(103), 0)
-SpawnRuin("armvader", posx+(136), posy, posz+(207), 0)
-SpawnRuin("corfort", posx+(-59), posy, posz+(151), 0)
-SpawnRuin("cordrag", posx+(37), posy, posz+(-329), 1)
-SpawnRuin("corhllt", posx+(-235), posy, posz+(-105), 2)
-SpawnRuin("cordrag", posx+(-299), posy, posz+(7), 3)
-SpawnRuin("corfort", posx+(37), posy, posz+(391), 0)
-SpawnRuin("corfus", posx+(93), posy, posz+(-145), 3)
-SpawnRuin("corfort", posx+(197), posy, posz+(-153), 3)
-SpawnRuin("corvipe", posx+(-35), posy, posz+(-257), 2)
-SpawnRuin("cordrag", posx+(69), posy, posz+(-393), 1)
-SpawnRuin("cormakr", posx+(109), posy, posz+(-209), 0)
-SpawnRuin("corfort", posx+(101), posy, posz+(-249), 3)
-SpawnRuin("corfort", posx+(-235), posy, posz+(247), 1)
-SpawnRuin("corfort", posx+(69), posy, posz+(-249), 3)
-SpawnRuin("corhllt", posx+(-123), posy, posz+(-185), 3)
-	end
+local function ixhugebase2()
+return {
+	radius = 290,
+	type = types.Land,
+	buildings = {
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset = -227, zOffset =  312, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset = -355, zOffset = -248, direction = 2 },
+			{ unitDefID = UnitDefNames.cormexp.id,   xOffset = -507, zOffset =    0, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =   29, zOffset =   24, direction = 1 },
+			{ unitDefID = UnitDefNames.corflak.id,   xOffset =  -19, zOffset =  168, direction = 0 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset = -355, zOffset =  168, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =  173, zOffset =   -8, direction = 3 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset =  157, zOffset =  152, direction = 3 },
+			{ unitDefID = UnitDefNames.cormmkr.id,   xOffset = -195, zOffset =  -56, direction = 3 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset = -195, zOffset = -376, direction = 2 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset =  253, zOffset = -136, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =  -83, zOffset =  360, direction = 1 },
+			{ unitDefID = UnitDefNames.corrad.id,    xOffset = -195, zOffset = -344, direction = 0 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset = -131, zOffset =  328, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =  269, zOffset =  328, direction = 1 },
+			{ unitDefID = UnitDefNames.corafus.id,   xOffset = -179, zOffset = -200, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =  -99, zOffset =  328, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset = -147, zOffset =  360, direction = 1 },
+			{ unitDefID = UnitDefNames.corap.id,     xOffset =  173, zOffset =   72, direction = 3 },
+			{ unitDefID = UnitDefNames.corack.id,    xOffset =   72, zOffset =  279, direction = 0 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset = -387, zOffset =  120, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =  205, zOffset =   -8, direction = 3 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset =  -67, zOffset =   88, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =  237, zOffset =   40, direction = 3 },
+			{ unitDefID = UnitDefNames.coreyes.id,   xOffset = -107, zOffset =   32, direction = 0 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =  -67, zOffset =  328, direction = 1 },
+			{ unitDefID = UnitDefNames.corsd.id,     xOffset = -131, zOffset =   72, direction = 3 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset = -387, zOffset = -184, direction = 2 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset =   29, zOffset =   56, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =  173, zOffset = -296, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =  205, zOffset =  360, direction = 1 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset =  109, zOffset =  424, direction = 1 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset = -115, zOffset =  296, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =   29, zOffset =  120, direction = 1 },
+			{ unitDefID = UnitDefNames.corhllt.id,   xOffset =  237, zOffset =  -24, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =  253, zOffset = -248, direction = 3 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset =  253, zOffset = -168, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset = -387, zOffset =   56, direction = 3 },
+			{ unitDefID = UnitDefNames.cormakr.id,   xOffset = -107, zOffset = -176, direction = 3 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset =  -67, zOffset =   56, direction = 1 },
+			{ unitDefID = UnitDefNames.corck.id,     xOffset =  -47, zOffset = -311, direction = 0 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =  141, zOffset =  424, direction = 1 },
+			{ unitDefID = UnitDefNames.corgate.id,   xOffset =  -19, zOffset =   72, direction = 1 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset = -355, zOffset =  136, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =  125, zOffset =  152, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =  173, zOffset =  424, direction = 1 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset =  237, zOffset =  296, direction = 1 },
+			{ unitDefID = UnitDefNames.cormakr.id,   xOffset = -251, zOffset = -224, direction = 3 },
+			{ unitDefID = UnitDefNames.cormakr.id,   xOffset = -203, zOffset = -128, direction = 3 },
+			{ unitDefID = UnitDefNames.cortoast.id,  xOffset = -395, zOffset = -240, direction = 2 },
+			{ unitDefID = UnitDefNames.cormmkr.id,   xOffset =   -3, zOffset = -152, direction = 3 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset =  237, zOffset =  120, direction = 3 },
+			{ unitDefID = UnitDefNames.corhllt.id,   xOffset =   93, zOffset = -296, direction = 2 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset = -291, zOffset = -280, direction = 2 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset = -291, zOffset =  296, direction = 1 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset = -323, zOffset =   88, direction = 3 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset =  237, zOffset =   88, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =  173, zOffset =  392, direction = 1 },
+			{ unitDefID = UnitDefNames.corshroud.id, xOffset = -131, zOffset = -136, direction = 3 },
+			{ unitDefID = UnitDefNames.cormmkr.id,   xOffset = -131, zOffset =  -88, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =  141, zOffset = -296, direction = 3 },
+			{ unitDefID = UnitDefNames.corhlt.id,    xOffset =  205, zOffset =  328, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =  205, zOffset = -296, direction = 3 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset =  221, zOffset =  152, direction = 3 },
+			{ unitDefID = UnitDefNames.cormakr.id,   xOffset = -251, zOffset = -176, direction = 3 },
+			{ unitDefID = UnitDefNames.cortoast.id,  xOffset = -347, zOffset = -288, direction = 2 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset = -339, zOffset =  200, direction = 1 },
+			{ unitDefID = UnitDefNames.cormmkr.id,   xOffset =  -67, zOffset = -120, direction = 3 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset = -355, zOffset = -216, direction = 2 },
+			{ unitDefID = UnitDefNames.cormakr.id,   xOffset = -107, zOffset = -224, direction = 3 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset =  253, zOffset = -104, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset = -115, zOffset =  360, direction = 1 },
+			{ unitDefID = UnitDefNames.corrad.id,    xOffset = -355, zOffset = -184, direction = 0 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset =   29, zOffset =   88, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =  141, zOffset =  456, direction = 1 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset = -323, zOffset =  264, direction = 1 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset = -195, zOffset =  328, direction = 1 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset = -163, zOffset =  328, direction = 1 },
+			{ unitDefID = UnitDefNames.cordoom.id,   xOffset = -179, zOffset =  280, direction = 0 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset = -227, zOffset = -344, direction = 2 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset = -355, zOffset =   72, direction = 3 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset =  -35, zOffset =  120, direction = 1 },
+			{ unitDefID = UnitDefNames.corck.id,     xOffset = -182, zOffset =  145, direction = 0 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =  -67, zOffset =   24, direction = 1 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset = -259, zOffset =  312, direction = 1 },
+			{ unitDefID = UnitDefNames.cordoom.id,   xOffset = -307, zOffset =  152, direction = 3 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset = -323, zOffset = -248, direction = 2 },
+			{ unitDefID = UnitDefNames.coreyes.id,   xOffset = -107, zOffset =  112, direction = 0 },
+			{ unitDefID = UnitDefNames.cormakr.id,   xOffset = -203, zOffset = -272, direction = 3 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset = -339, zOffset =  232, direction = 1 },
+			{ unitDefID = UnitDefNames.cortoast.id,  xOffset = -251, zOffset = -384, direction = 2 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset =   -3, zOffset =  120, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =  253, zOffset = -216, direction = 3 },
+			{ unitDefID = UnitDefNames.corhlt.id,    xOffset =  141, zOffset =  392, direction = 0 },
+			{ unitDefID = UnitDefNames.cormaw.id,    xOffset =  269, zOffset =  296, direction = 1 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset =  -35, zOffset =   24, direction = 1 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset =  189, zOffset =  152, direction = 3 },
+			{ unitDefID = UnitDefNames.cormakr.id,   xOffset = -155, zOffset = -272, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =  205, zOffset =  392, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =  141, zOffset =   -8, direction = 3 },
+			{ unitDefID = UnitDefNames.cormlv.id,    xOffset =  342, zOffset =  258, direction = 0 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =  237, zOffset = -280, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset = -387, zOffset =   88, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =  -67, zOffset =  120, direction = 1 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset =   -3, zOffset =   24, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =  237, zOffset =  360, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset = -259, zOffset = -344, direction = 2 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset = -355, zOffset =  104, direction = 1 },
+			{ unitDefID = UnitDefNames.cortoast.id,  xOffset = -299, zOffset = -336, direction = 2 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset = -355, zOffset =   40, direction = 3 },
+			{ unitDefID = UnitDefNames.cormaw.id,    xOffset =  109, zOffset =  456, direction = 0 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =  237, zOffset =  328, direction = 1 },
+			{ unitDefID = UnitDefNames.corflak.id,   xOffset =  -19, zOffset =  -24, direction = 2 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =  237, zOffset =    8, direction = 3 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset = -259, zOffset = -312, direction = 2 },
+			{ unitDefID = UnitDefNames.cormexp.id,   xOffset = -123, zOffset =  480, direction = 0 },
+		}
+	}
 end
-table.insert(RuinsList,ixhugebase3)		
 
-local function ixbigswall(posx, posy, posz, GaiaTeamID, radiusCheck)
-local posradius = 200
-	if radiusCheck then
-		return posradius
-	else
-SpawnRuin("corfort", posx+(196), posy, posz+(307), 3)
-SpawnRuin("corfort", posx+(180), posy, posz+(371), 3)
-SpawnRuin("corfort", posx+(-92), posy, posz+(-77), 3)
-SpawnRuin("cordrag", posx+(212), posy, posz+(211), 3)
-SpawnRuin("corfort", posx+(164), posy, posz+(147), 3)
-SpawnRuin("cordrag", posx+(52), posy, posz+(-365), 3)
-SpawnRuin("corfort", posx+(-188), posy, posz+(-205), 3)
-SpawnRuin("cordrag", posx+(-172), posy, posz+(-493), 3)
-SpawnRuin("armpb", posx+(-308), posy, posz+(-341), 3)
-SpawnRuin("cordrag", posx+(-60), posy, posz+(-29), 3)
-SpawnRuin("corhlt", posx+(132), posy, posz+(131), 3)
-SpawnRuin("corfort", posx+(-156), posy, posz+(-141), 3)
-SpawnRuin("cordrag", posx+(212), posy, posz+(179), 3)
-SpawnRuin("cordrag", posx+(196), posy, posz+(115), 3)
-SpawnRuin("cordrag", posx+(68), posy, posz+(19), 3)
-SpawnRuin("corhlt", posx+(4), posy, posz+(19), 0)
-SpawnRuin("cormaw", posx+(84), posy, posz+(-381), 2)
-SpawnRuin("corfort", posx+(-204), posy, posz+(-301), 3)
-SpawnRuin("cordrag", posx+(100), posy, posz+(-317), 3)
-SpawnRuin("corfort", posx+(-76), posy, posz+(307), 3)
-SpawnRuin("armpb", posx+(-212), posy, posz+(-101), 3)
-SpawnRuin("corfort", posx+(36), posy, posz+(-29), 3)
-SpawnRuin("corfort", posx+(180), posy, posz+(339), 3)
-SpawnRuin("cormaw", posx+(-140), posy, posz+(291), 3)
-SpawnRuin("corhllt", posx+(36), posy, posz+(515), 3)
-SpawnRuin("cordrag", posx+(-124), posy, posz+(227), 3)
-SpawnRuin("corhlt", posx+(148), posy, posz+(195), 3)
-SpawnRuin("corfort", posx+(4), posy, posz+(-45), 3)
-SpawnRuin("cordrag", posx+(-28), posy, posz+(-13), 3)
-SpawnRuin("cordrag", posx+(-204), posy, posz+(-397), 3)
-SpawnRuin("cordrag", posx+(36), posy, posz+(3), 3)
-SpawnRuin("corhlt", posx+(148), posy, posz+(339), 3)
-SpawnRuin("corfort", posx+(-28), posy, posz+(-45), 3)
-SpawnRuin("corfort", posx+(-60), posy, posz+(-61), 3)
-SpawnRuin("cordrag", posx+(4), posy, posz+(-13), 3)
-SpawnRuin("corfort", posx+(164), posy, posz+(115), 3)
-SpawnRuin("corhllt", posx+(-156), posy, posz+(-445), 3)
-SpawnRuin("cordrag", posx+(68), posy, posz+(515), 3)
-SpawnRuin("corfort", posx+(-188), posy, posz+(-237), 3)
-SpawnRuin("cordrag", posx+(132), posy, posz+(19), 3)
-SpawnRuin("cordrag", posx+(100), posy, posz+(51), 3)
-SpawnRuin("corfort", posx+(180), posy, posz+(211), 3)
-SpawnRuin("corfort", posx+(148), posy, posz+(83), 3)
-SpawnRuin("cordrag", posx+(-204), posy, posz+(-365), 3)
-SpawnRuin("cordoom", posx+(-76), posy, posz+(-125), 3)
-SpawnRuin("corhllt", posx+(-140), posy, posz+(-493), 3)
-SpawnRuin("corfort", posx+(132), posy, posz+(51), 3)
-SpawnRuin("corfort", posx+(-172), posy, posz+(-173), 3)
-SpawnRuin("armpb", posx+(-292), posy, posz+(-213), 3)
-SpawnRuin("correap", posx+(179), posy, posz+(-163), 0)
-SpawnRuin("corfort", posx+(68), posy, posz+(-13), 3)
-SpawnRuin("cordrag", posx+(132), posy, posz+(467), 3)
-SpawnRuin("corfort", posx+(164), posy, posz+(403), 3)
-SpawnRuin("corhllt", posx+(100), posy, posz+(451), 3)
-SpawnRuin("cordoom", posx+(4), posy, posz+(-93), 0)
-SpawnRuin("armpb", posx+(-164), posy, posz+(-53), 3)
-SpawnRuin("cordrag", posx+(-188), posy, posz+(-429), 3)
-SpawnRuin("cordrag", posx+(-188), posy, posz+(-461), 3)
-SpawnRuin("cordrag", posx+(100), posy, posz+(499), 3)
-SpawnRuin("corfort", posx+(-108), posy, posz+(291), 3)
-SpawnRuin("cordrag", posx+(148), posy, posz+(435), 3)
-SpawnRuin("cordoom", posx+(-156), posy, posz+(-301), 3)
-SpawnRuin("corscreamer", posx+(36), posy, posz+(-317), 3)
-SpawnRuin("armpb", posx+(-260), posy, posz+(-149), 3)
-SpawnRuin("cordoom", posx+(-140), posy, posz+(-221), 3)
-SpawnRuin("corck", posx+(106), posy, posz+(-136), 0)
-SpawnRuin("cordrag", posx+(164), posy, posz+(51), 3)
-SpawnRuin("cordrag", posx+(196), posy, posz+(147), 3)
-SpawnRuin("corhlt", posx+(52), posy, posz+(51), 0)
-SpawnRuin("corfort", posx+(196), posy, posz+(275), 3)
-SpawnRuin("armpb", posx+(-308), posy, posz+(-277), 3)
-SpawnRuin("corscreamer", posx+(-60), posy, posz+(243), 3)
-SpawnRuin("corfort", posx+(-124), posy, posz+(-109), 3)
-SpawnRuin("armtarg", posx+(-4), posy, posz+(219), 1)
-SpawnRuin("corhllt", posx+(-172), posy, posz+(-397), 3)
-SpawnRuin("cormaw", posx+(-108), posy, posz+(323), 0)
-SpawnRuin("corfort", posx+(-204), posy, posz+(-269), 3)
-SpawnRuin("corfort", posx+(84), posy, posz+(-349), 3)
-SpawnRuin("corfort", posx+(196), posy, posz+(243), 3)
-SpawnRuin("corfort", posx+(180), posy, posz+(179), 3)
-SpawnRuin("cormaw", posx+(116), posy, posz+(-349), 1)
-SpawnRuin("cordrag", posx+(228), posy, posz+(243), 3)
-SpawnRuin("corfort", posx+(100), posy, posz+(19), 3)
-SpawnRuin("cordrag", posx+(-204), posy, posz+(-333), 3)
-SpawnRuin("cordrag", posx+(116), posy, posz+(83), 3)
-SpawnRuin("corhlt", posx+(164), posy, posz+(259), 3)
-SpawnRuin("cordrag", posx+(-44), posy, posz+(307), 3)
-SpawnRuin("correap", posx+(-163), posy, posz+(103), 0)
-SpawnRuin("corhllt", posx+(132), posy, posz+(403), 3)
-SpawnRuin("corfort", posx+(-124), posy, posz+(259), 3)
-SpawnRuin("cordrag", posx+(-156), posy, posz+(-525), 3)
-SpawnRuin("cordrag", posx+(180), posy, posz+(83), 3)
-	end
+local function ixhugebase3()
+return {
+	radius = 280,
+	type = types.Land,
+	buildings = {
+			{ unitDefID = UnitDefNames.corhllt.id,   xOffset = -267, zOffset = -105, direction = 2 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset = -267, zOffset =  -73, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =  133, zOffset =  151, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =  -75, zOffset = -361, direction = 1 },
+			{ unitDefID = UnitDefNames.cormakr.id,   xOffset =  157, zOffset =  -65, direction = 0 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset = -267, zOffset =   -9, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =  133, zOffset = -345, direction = 1 },
+			{ unitDefID = UnitDefNames.corllt.id,    xOffset =  101, zOffset =  423, direction = 0 },
+			{ unitDefID = UnitDefNames.corfus.id,    xOffset =   13, zOffset =  -65, direction = 3 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset = -235, zOffset =  279, direction = 1 },
+			{ unitDefID = UnitDefNames.corllt.id,    xOffset =  -27, zOffset =  423, direction = 0 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset = -267, zOffset =   23, direction = 3 },
+			{ unitDefID = UnitDefNames.corhlt.id,    xOffset =  229, zOffset =  -25, direction = 1 },
+			{ unitDefID = UnitDefNames.armvader.id,  xOffset =  170, zOffset =  270, direction = 0 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset = -331, zOffset =  215, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =  -11, zOffset = -297, direction = 2 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =  261, zOffset =  -25, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =   21, zOffset = -297, direction = 2 },
+			{ unitDefID = UnitDefNames.corvipe.id,   xOffset = -227, zOffset =   63, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =  -75, zOffset = -281, direction = 2 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =  261, zOffset =  -89, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =   69, zOffset =  151, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset = -395, zOffset =  103, direction = 3 },
+			{ unitDefID = UnitDefNames.cortoast.id,  xOffset = -259, zOffset =  335, direction = 0 },
+			{ unitDefID = UnitDefNames.corcv.id,     xOffset = -170, zOffset =  372, direction = 0 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =  165, zOffset =  151, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =  261, zOffset = -121, direction = 1 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset = -267, zOffset =  279, direction = 1 },
+			{ unitDefID = UnitDefNames.cormakr.id,   xOffset =  157, zOffset = -209, direction = 0 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =  325, zOffset =  -73, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =   37, zOffset =  151, direction = 3 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset =  -91, zOffset = -249, direction = 3 },
+			{ unitDefID = UnitDefNames.corvipe.id,   xOffset = -227, zOffset =   15, direction = 3 },
+			{ unitDefID = UnitDefNames.armvader.id,  xOffset =  138, zOffset =  270, direction = 0 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =  165, zOffset = -361, direction = 1 },
+			{ unitDefID = UnitDefNames.corvipe.id,   xOffset = -227, zOffset =  191, direction = 3 },
+			{ unitDefID = UnitDefNames.coreyes.id,   xOffset =  365, zOffset =  143, direction = 0 },
+			{ unitDefID = UnitDefNames.corfus.id,    xOffset =   93, zOffset =  -65, direction = 3 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset =   69, zOffset =  391, direction = 0 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset = -155, zOffset = -345, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =  197, zOffset =  -57, direction = 3 },
+			{ unitDefID = UnitDefNames.cormakr.id,   xOffset =  157, zOffset = -161, direction = 0 },
+			{ unitDefID = UnitDefNames.cormaw.id,    xOffset =   85, zOffset = -425, direction = 1 },
+			{ unitDefID = UnitDefNames.cormadsam.id, xOffset = -163, zOffset =  -49, direction = 0 },
+			{ unitDefID = UnitDefNames.cordoom.id,   xOffset =   85, zOffset =  103, direction = 0 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset =  -27, zOffset =  151, direction = 3 },
+			{ unitDefID = UnitDefNames.corck.id,     xOffset =  265, zOffset =   85, direction =    0, true },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =  325, zOffset = -153, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =    5, zOffset =  151, direction = 3 },
+			{ unitDefID = UnitDefNames.corfus.id,    xOffset =   13, zOffset = -145, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset = -331, zOffset =  135, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =  -59, zOffset =  391, direction = 0 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =  101, zOffset =  151, direction = 3 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset =  -91, zOffset = -217, direction = 1 },
+			{ unitDefID = UnitDefNames.corarad.id,   xOffset =  -43, zOffset =   -9, direction = 0 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset = -267, zOffset =   55, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =  197, zOffset =  151, direction = 3 },
+			{ unitDefID = UnitDefNames.cormadsam.id, xOffset = -163, zOffset =  255, direction = 0 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset =  133, zOffset =  119, direction = 0 },
+			{ unitDefID = UnitDefNames.corvipe.id,   xOffset =   13, zOffset = -257, direction = 2 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset = -267, zOffset =  119, direction = 3 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset =  133, zOffset = -249, direction = 3 },
+			{ unitDefID = UnitDefNames.armvader.id,  xOffset =  106, zOffset =  238, direction = 0 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =   53, zOffset = -281, direction = 2 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =  293, zOffset =  -73, direction = 1 },
+			{ unitDefID = UnitDefNames.cormaw.id,    xOffset = -107, zOffset = -425, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =  197, zOffset = -121, direction = 3 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset =  -91, zOffset = -185, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =   53, zOffset = -361, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =  -43, zOffset = -297, direction = 2 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset =   37, zOffset =  119, direction = 0 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =  101, zOffset =  391, direction = 0 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset = -331, zOffset =   71, direction = 3 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset =    5, zOffset =  391, direction = 0 },
+			{ unitDefID = UnitDefNames.cormakr.id,   xOffset =  157, zOffset = -113, direction = 0 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =  197, zOffset =  -89, direction = 3 },
+			{ unitDefID = UnitDefNames.armvader.id,  xOffset =  138, zOffset =  238, direction = 0 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset = -187, zOffset = -361, direction = 1 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset = -267, zOffset =  -41, direction = 1 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset = -235, zOffset =  -73, direction = 1 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset = -235, zOffset =  -41, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =  293, zOffset = -137, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =  -11, zOffset = -441, direction = 1 },
+			{ unitDefID = UnitDefNames.corllt.id,    xOffset =   69, zOffset =  423, direction = 0 },
+			{ unitDefID = UnitDefNames.corvipe.id,   xOffset = -227, zOffset =  143, direction = 3 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset =  197, zOffset =  119, direction = 3 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset =  -27, zOffset =  391, direction = 0 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =  197, zOffset =  -25, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =  357, zOffset =  -73, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset = -299, zOffset =  199, direction = 3 },
+			{ unitDefID = UnitDefNames.corhllt.id,   xOffset = -123, zOffset = -233, direction = 3 },
+			{ unitDefID = UnitDefNames.cormakr.id,   xOffset =  157, zOffset =  -17, direction = 0 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =  -59, zOffset = -329, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset = -267, zOffset =  183, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =  -11, zOffset = -409, direction = 1 },
+			{ unitDefID = UnitDefNames.corhlt.id,    xOffset =   21, zOffset =  439, direction = 0 },
+			{ unitDefID = UnitDefNames.corack.id,    xOffset = -107, zOffset =   77, direction = 0 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset =  197, zOffset =    7, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =  325, zOffset =    7, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =  -91, zOffset = -393, direction = 1 },
+			{ unitDefID = UnitDefNames.corshroud.id, xOffset = -203, zOffset =  103, direction = 0 },
+			{ unitDefID = UnitDefNames.corvp.id,     xOffset =   13, zOffset =  255, direction = 0 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =  -59, zOffset =  119, direction = 0 },
+			{ unitDefID = UnitDefNames.armvader.id,  xOffset =  106, zOffset =  270, direction = 0 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset = -267, zOffset =  247, direction = 1 },
+			{ unitDefID = UnitDefNames.coreyes.id,   xOffset = -339, zOffset = -257, direction = 0 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset = -331, zOffset =   -9, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =  293, zOffset =   -9, direction = 1 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset =  197, zOffset = -249, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset = -267, zOffset =  215, direction = 3 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset =  197, zOffset = -217, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =  261, zOffset =  -57, direction = 1 },
+			{ unitDefID = UnitDefNames.armvader.id,  xOffset =  168, zOffset =  207, direction = 0 },
+			{ unitDefID = UnitDefNames.armvader.id,  xOffset =  104, zOffset =  207, direction = 0 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset = -235, zOffset =  103, direction = 0 },
+			{ unitDefID = UnitDefNames.armvader.id,  xOffset =  170, zOffset =  238, direction = 0 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset =  197, zOffset = -185, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset = -267, zOffset =  151, direction = 3 },
+			{ unitDefID = UnitDefNames.corhlt.id,    xOffset =  229, zOffset = -121, direction = 1 },
+			{ unitDefID = UnitDefNames.corhlt.id,    xOffset =  229, zOffset =  -73, direction = 1 },
+			{ unitDefID = UnitDefNames.corllt.id,    xOffset =  -59, zOffset =  423, direction = 0 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset =  165, zOffset = -249, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset = -267, zOffset =   87, direction = 3 },
+			{ unitDefID = UnitDefNames.corfmd.id,    xOffset =  -11, zOffset =  103, direction = 0 },
+			{ unitDefID = UnitDefNames.armvader.id,  xOffset =  136, zOffset =  207, direction = 0 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset =  -59, zOffset =  151, direction = 0 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =   37, zOffset = -329, direction = 1 },
+			{ unitDefID = UnitDefNames.corhllt.id,   xOffset = -235, zOffset = -105, direction = 2 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset = -299, zOffset =    7, direction = 3 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset =   37, zOffset =  391, direction = 0 },
+			{ unitDefID = UnitDefNames.corfus.id,    xOffset =   93, zOffset = -145, direction = 3 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset =  197, zOffset = -153, direction = 3 },
+			{ unitDefID = UnitDefNames.corvipe.id,   xOffset =  -35, zOffset = -257, direction = 2 },
+			{ unitDefID = UnitDefNames.cordrag.id,   xOffset =   69, zOffset = -393, direction = 1 },
+			{ unitDefID = UnitDefNames.cormakr.id,   xOffset =  109, zOffset = -209, direction = 0 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset =  101, zOffset = -249, direction = 3 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset = -235, zOffset =  247, direction = 1 },
+			{ unitDefID = UnitDefNames.corfort.id,   xOffset =   69, zOffset = -249, direction = 3 },
+			{ unitDefID = UnitDefNames.corhllt.id,   xOffset = -123, zOffset = -185, direction = 3 },
+		}
+	}
 end
-table.insert(RuinsList,ixbigswall)
 
-local function ixlootboxbronze1(posx, posy, posz, GaiaTeamID, radiusCheck)
-local posradius = 150
-	if radiusCheck then
-		return posradius
-	else
-SpawnRuin("cordrag", posx+(123), posy, posz+(-96), 3)
-SpawnRuin("corfort", posx+(-149), posy, posz+(-16), 0)
-SpawnRuin("corfort", posx+(-85), posy, posz+(-80), 0)
-SpawnRuin("cordrag", posx+(-5), posy, posz+(144), 0)
-SpawnRuin("cordrag", posx+(59), posy, posz+(128), 0)
-SpawnRuin("corllt", posx+(-37), posy, posz+(112), 0)
-SpawnRuin("cordrag", posx+(-37), posy, posz+(144), 0)
-SpawnRuin("cordrag", posx+(123), posy, posz+(112), 0)
-SpawnRuin("cordrag", posx+(-53), posy, posz+(-80), 0)
-SpawnRuin("corfort", posx+(-149), posy, posz+(-48), 0)
-SpawnRuin("corack", posx+(12), posy, posz+(-158), 0)
-SpawnRuin("cordrag", posx+(27), posy, posz+(128), 0)
-SpawnRuin("corjamt", posx+(91), posy, posz+(32), 0)
-SpawnRuin("lootboxbronze", posx+(-90), posy, posz+(-15), 0)
-SpawnRuin("cordrag", posx+(91), posy, posz+(112), 0)
-SpawnRuin("cordrag", posx+(107), posy, posz+(-128), 3)
-SpawnRuin("corllt", posx+(155), posy, posz+(112), 1)
-SpawnRuin("corarad", posx+(27), posy, posz+(32), 0)
-SpawnRuin("cordrag", posx+(139), posy, posz+(-64), 3)
-SpawnRuin("cordrag", posx+(75), posy, posz+(-144), 3)
-SpawnRuin("cormakr", posx+(-109), posy, posz+(40), 3)
-SpawnRuin("corck", posx+(165), posy, posz+(18), 0, true)
-SpawnRuin("cormakr", posx+(-29), posy, posz+(-40), 3)
-SpawnRuin("corllt", posx+(-53), posy, posz+(-112), 2)
-SpawnRuin("corllt", posx+(-181), posy, posz+(16), 3)
-SpawnRuin("cormmkr", posx+(75), posy, posz+(-80), 3)
-SpawnRuin("cordrag", posx+(-149), posy, posz+(16), 0)
-SpawnRuin("corfort", posx+(-117), posy, posz+(-80), 0)
-	end
+local function ixbigswall()
+return {
+	radius = 200,
+	type = types.Land,
+	buildings = {
+			{ unitDefID = UnitDefNames.corfort.id,     xOffset =  196, zOffset =  307, direction = 3 },
+			{ unitDefID = UnitDefNames.corfort.id,     xOffset =  180, zOffset =  371, direction = 3 },
+			{ unitDefID = UnitDefNames.corfort.id,     xOffset =  -92, zOffset =  -77, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id,     xOffset =  212, zOffset =  211, direction = 3 },
+			{ unitDefID = UnitDefNames.corfort.id,     xOffset =  164, zOffset =  147, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id,     xOffset =   52, zOffset = -365, direction = 3 },
+			{ unitDefID = UnitDefNames.corfort.id,     xOffset = -188, zOffset = -205, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id,     xOffset = -172, zOffset = -493, direction = 3 },
+			{ unitDefID = UnitDefNames.armpb.id,       xOffset = -308, zOffset = -341, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id,     xOffset =  -60, zOffset =  -29, direction = 3 },
+			{ unitDefID = UnitDefNames.corhlt.id,      xOffset =  132, zOffset =  131, direction = 3 },
+			{ unitDefID = UnitDefNames.corfort.id,     xOffset = -156, zOffset = -141, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id,     xOffset =  212, zOffset =  179, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id,     xOffset =  196, zOffset =  115, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id,     xOffset =   68, zOffset =   19, direction = 3 },
+			{ unitDefID = UnitDefNames.corhlt.id,      xOffset =    4, zOffset =   19, direction = 0 },
+			{ unitDefID = UnitDefNames.cormaw.id,      xOffset =   84, zOffset = -381, direction = 2 },
+			{ unitDefID = UnitDefNames.corfort.id,     xOffset = -204, zOffset = -301, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id,     xOffset =  100, zOffset = -317, direction = 3 },
+			{ unitDefID = UnitDefNames.corfort.id,     xOffset =  -76, zOffset =  307, direction = 3 },
+			{ unitDefID = UnitDefNames.armpb.id,       xOffset = -212, zOffset = -101, direction = 3 },
+			{ unitDefID = UnitDefNames.corfort.id,     xOffset =   36, zOffset =  -29, direction = 3 },
+			{ unitDefID = UnitDefNames.corfort.id,     xOffset =  180, zOffset =  339, direction = 3 },
+			{ unitDefID = UnitDefNames.cormaw.id,      xOffset = -140, zOffset =  291, direction = 3 },
+			{ unitDefID = UnitDefNames.corhllt.id,     xOffset =   36, zOffset =  515, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id,     xOffset = -124, zOffset =  227, direction = 3 },
+			{ unitDefID = UnitDefNames.corhlt.id,      xOffset =  148, zOffset =  195, direction = 3 },
+			{ unitDefID = UnitDefNames.corfort.id,     xOffset =    4, zOffset =  -45, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id,     xOffset =  -28, zOffset =  -13, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id,     xOffset = -204, zOffset = -397, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id,     xOffset =   36, zOffset =    3, direction = 3 },
+			{ unitDefID = UnitDefNames.corhlt.id,      xOffset =  148, zOffset =  339, direction = 3 },
+			{ unitDefID = UnitDefNames.corfort.id,     xOffset =  -28, zOffset =  -45, direction = 3 },
+			{ unitDefID = UnitDefNames.corfort.id,     xOffset =  -60, zOffset =  -61, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id,     xOffset =    4, zOffset =  -13, direction = 3 },
+			{ unitDefID = UnitDefNames.corfort.id,     xOffset =  164, zOffset =  115, direction = 3 },
+			{ unitDefID = UnitDefNames.corhllt.id,     xOffset = -156, zOffset = -445, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id,     xOffset =   68, zOffset =  515, direction = 3 },
+			{ unitDefID = UnitDefNames.corfort.id,     xOffset = -188, zOffset = -237, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id,     xOffset =  132, zOffset =   19, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id,     xOffset =  100, zOffset =   51, direction = 3 },
+			{ unitDefID = UnitDefNames.corfort.id,     xOffset =  180, zOffset =  211, direction = 3 },
+			{ unitDefID = UnitDefNames.corfort.id,     xOffset =  148, zOffset =   83, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id,     xOffset = -204, zOffset = -365, direction = 3 },
+			{ unitDefID = UnitDefNames.cordoom.id,     xOffset =  -76, zOffset = -125, direction = 3 },
+			{ unitDefID = UnitDefNames.corhllt.id,     xOffset = -140, zOffset = -493, direction = 3 },
+			{ unitDefID = UnitDefNames.corfort.id,     xOffset =  132, zOffset =   51, direction = 3 },
+			{ unitDefID = UnitDefNames.corfort.id,     xOffset = -172, zOffset = -173, direction = 3 },
+			{ unitDefID = UnitDefNames.armpb.id,       xOffset = -292, zOffset = -213, direction = 3 },
+			{ unitDefID = UnitDefNames.correap.id,     xOffset =  179, zOffset = -163, direction = 0 },
+			{ unitDefID = UnitDefNames.corfort.id,     xOffset =   68, zOffset =  -13, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id,     xOffset =  132, zOffset =  467, direction = 3 },
+			{ unitDefID = UnitDefNames.corfort.id,     xOffset =  164, zOffset =  403, direction = 3 },
+			{ unitDefID = UnitDefNames.corhllt.id,     xOffset =  100, zOffset =  451, direction = 3 },
+			{ unitDefID = UnitDefNames.cordoom.id,     xOffset =    4, zOffset =  -93, direction = 0 },
+			{ unitDefID = UnitDefNames.armpb.id,       xOffset = -164, zOffset =  -53, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id,     xOffset = -188, zOffset = -429, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id,     xOffset = -188, zOffset = -461, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id,     xOffset =  100, zOffset =  499, direction = 3 },
+			{ unitDefID = UnitDefNames.corfort.id,     xOffset = -108, zOffset =  291, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id,     xOffset =  148, zOffset =  435, direction = 3 },
+			{ unitDefID = UnitDefNames.cordoom.id,     xOffset = -156, zOffset = -301, direction = 3 },
+			{ unitDefID = UnitDefNames.corscreamer.id, xOffset =   36, zOffset = -317, direction = 3 },
+			{ unitDefID = UnitDefNames.armpb.id,       xOffset = -260, zOffset = -149, direction = 3 },
+			{ unitDefID = UnitDefNames.cordoom.id,     xOffset = -140, zOffset = -221, direction = 3 },
+			{ unitDefID = UnitDefNames.corck.id,       xOffset =  106, zOffset = -136, direction = 0 },
+			{ unitDefID = UnitDefNames.cordrag.id,     xOffset =  164, zOffset =   51, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id,     xOffset =  196, zOffset =  147, direction = 3 },
+			{ unitDefID = UnitDefNames.corhlt.id,      xOffset =   52, zOffset =   51, direction = 0 },
+			{ unitDefID = UnitDefNames.corfort.id,     xOffset =  196, zOffset =  275, direction = 3 },
+			{ unitDefID = UnitDefNames.armpb.id,       xOffset = -308, zOffset = -277, direction = 3 },
+			{ unitDefID = UnitDefNames.corscreamer.id, xOffset =  -60, zOffset =  243, direction = 3 },
+			{ unitDefID = UnitDefNames.corfort.id,     xOffset = -124, zOffset = -109, direction = 3 },
+			{ unitDefID = UnitDefNames.armtarg.id,     xOffset =   -4, zOffset =  219, direction = 1 },
+			{ unitDefID = UnitDefNames.corhllt.id,     xOffset = -172, zOffset = -397, direction = 3 },
+			{ unitDefID = UnitDefNames.cormaw.id,      xOffset = -108, zOffset =  323, direction = 0 },
+			{ unitDefID = UnitDefNames.corfort.id,     xOffset = -204, zOffset = -269, direction = 3 },
+			{ unitDefID = UnitDefNames.corfort.id,     xOffset =   84, zOffset = -349, direction = 3 },
+			{ unitDefID = UnitDefNames.corfort.id,     xOffset =  196, zOffset =  243, direction = 3 },
+			{ unitDefID = UnitDefNames.corfort.id,     xOffset =  180, zOffset =  179, direction = 3 },
+			{ unitDefID = UnitDefNames.cormaw.id,      xOffset =  116, zOffset = -349, direction = 1 },
+			{ unitDefID = UnitDefNames.cordrag.id,     xOffset =  228, zOffset =  243, direction = 3 },
+			{ unitDefID = UnitDefNames.corfort.id,     xOffset =  100, zOffset =   19, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id,     xOffset = -204, zOffset = -333, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id,     xOffset =  116, zOffset =   83, direction = 3 },
+			{ unitDefID = UnitDefNames.corhlt.id,      xOffset =  164, zOffset =  259, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id,     xOffset =  -44, zOffset =  307, direction = 3 },
+			{ unitDefID = UnitDefNames.correap.id,     xOffset = -163, zOffset =  103, direction = 0 },
+			{ unitDefID = UnitDefNames.corhllt.id,     xOffset =  132, zOffset =  403, direction = 3 },
+			{ unitDefID = UnitDefNames.corfort.id,     xOffset = -124, zOffset =  259, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id,     xOffset = -156, zOffset = -525, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id,     xOffset =  180, zOffset =   83, direction = 3 },
+		}
+	}
 end
-table.insert(RuinsList,ixlootboxbronze1)
+
+local function ixlootboxbronze1()
+return {
+	radius = 150,
+	type = types.Land,
+	buildings = {
+			{ unitDefID = UnitDefNames.cordrag.id,       xOffset =  123, zOffset =  -96, direction = 3 },
+			{ unitDefID = UnitDefNames.corfort.id,       xOffset = -149, zOffset =  -16, direction = 0 },
+			{ unitDefID = UnitDefNames.corfort.id,       xOffset =  -85, zOffset =  -80, direction = 0 },
+			{ unitDefID = UnitDefNames.cordrag.id,       xOffset =   -5, zOffset =  144, direction = 0 },
+			{ unitDefID = UnitDefNames.cordrag.id,       xOffset =   59, zOffset =  128, direction = 0 },
+			{ unitDefID = UnitDefNames.corllt.id,        xOffset =  -37, zOffset =  112, direction = 0 },
+			{ unitDefID = UnitDefNames.cordrag.id,       xOffset =  -37, zOffset =  144, direction = 0 },
+			{ unitDefID = UnitDefNames.cordrag.id,       xOffset =  123, zOffset =  112, direction = 0 },
+			{ unitDefID = UnitDefNames.cordrag.id,       xOffset =  -53, zOffset =  -80, direction = 0 },
+			{ unitDefID = UnitDefNames.corfort.id,       xOffset = -149, zOffset =  -48, direction = 0 },
+			{ unitDefID = UnitDefNames.corack.id,        xOffset =   12, zOffset = -158, direction = 0 },
+			{ unitDefID = UnitDefNames.cordrag.id,       xOffset =   27, zOffset =  128, direction = 0 },
+			{ unitDefID = UnitDefNames.corjamt.id,       xOffset =   91, zOffset =   32, direction = 0 },
+			{ unitDefID = UnitDefNames.lootboxbronze.id, xOffset =  -90, zOffset =  -15, direction = 0 },
+			{ unitDefID = UnitDefNames.cordrag.id,       xOffset =   91, zOffset =  112, direction = 0 },
+			{ unitDefID = UnitDefNames.cordrag.id,       xOffset =  107, zOffset = -128, direction = 3 },
+			{ unitDefID = UnitDefNames.corllt.id,        xOffset =  155, zOffset =  112, direction = 1 },
+			{ unitDefID = UnitDefNames.corarad.id,       xOffset =   27, zOffset =   32, direction = 0 },
+			{ unitDefID = UnitDefNames.cordrag.id,       xOffset =  139, zOffset =  -64, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id,       xOffset =   75, zOffset = -144, direction = 3 },
+			{ unitDefID = UnitDefNames.cormakr.id,       xOffset = -109, zOffset =   40, direction = 3 },
+			{ unitDefID = UnitDefNames.corck.id,         xOffset =  165, zOffset =   18, direction =    0, true },
+			{ unitDefID = UnitDefNames.cormakr.id,       xOffset =  -29, zOffset =  -40, direction = 3 },
+			{ unitDefID = UnitDefNames.corllt.id,        xOffset =  -53, zOffset = -112, direction = 2 },
+			{ unitDefID = UnitDefNames.corllt.id,        xOffset = -181, zOffset =   16, direction = 3 },
+			{ unitDefID = UnitDefNames.cormmkr.id,       xOffset =   75, zOffset =  -80, direction = 3 },
+			{ unitDefID = UnitDefNames.cordrag.id,       xOffset = -149, zOffset =   16, direction = 0 },
+			{ unitDefID = UnitDefNames.corfort.id,       xOffset = -117, zOffset =  -80, direction = 0 },
+		}
+	}
+end
+
+return {
+	ixruinpower1,
+	ixruinpower2,
+	ixruinpower3,
+	ixruinpower4,
+	ixruinpower5,
+	ixruinpower6,
+	ixruinwindfarm,
+	ixruinairpad,
+	ixruinwallh,
+	ixruinwallv,
+	ixruinwallalt,
+	ixruinbiggerwallh,
+	ixruinbiggerwallv,
+	ixruinbiggerwallllt,
+	ixruinnrgsolar0,
+	ixruinnrgsolar1,
+	ixruinnrgsolar2,
+	ixruinnrgsolar3,
+	ixruinsmall0,
+	ixruinsmall1,
+	ixruinsmall2,
+	ixtinybase0,
+	ixmediumbase0,
+	ixmediumbase1,
+	ixmediumbase2,
+	ixbigbase0,
+	ixbigbase1,
+	ixhugebase1,
+	ixhugebase2,
+	ixhugebase3,
+	ixbigswall,
+	ixlootboxbronze1,
+}
