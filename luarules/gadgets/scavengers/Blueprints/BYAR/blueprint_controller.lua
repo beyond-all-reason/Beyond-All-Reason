@@ -4,7 +4,8 @@ local types = scavConfig.BlueprintTypes
 
 local blueprintTypes = {
 	Constructor = 1,
-	Spawner = 2,
+	Spawner     = 2,
+	Ruin        = 3,
 }
 
 local dummyBlueprint = function()
@@ -52,44 +53,75 @@ local spawnerBlueprints = {
 	},
 }
 
+local ruinBlueprints = {
+	[types.Land] = { },
+	[types.Sea] = { },
+}
+
 
 local blueprintsConfig = {
-	[blueprintTypes.Constructor] = { directory = 'luarules/gadgets/scavengers/Blueprints/BYAR/Constructor/', table = constructorBlueprints },
-	[blueprintTypes.Spawner] = { directory = 'luarules/gadgets/scavengers/Blueprints/BYAR/Spawner/', table = spawnerBlueprints },
+	[blueprintTypes.Constructor] = { table = constructorBlueprints, tiered = true,  directory = 'luarules/gadgets/scavengers/Blueprints/BYAR/Constructor/', },
+	[blueprintTypes.Spawner] =     { table = spawnerBlueprints,     tiered = true,  directory = 'luarules/gadgets/scavengers/Blueprints/BYAR/Spawner/', },
+	[blueprintTypes.Ruin] =        { table = ruinBlueprints,        tiered = false, directory = 'luarules/gadgets/scavengers/Ruins/BYAR', }
 }
+
+local function insertDummyBlueprints(blueprintType)
+	local blueprintTable = blueprintsConfig[blueprintType].table
+
+	for _, type in pairs(types) do
+		if blueprintsConfig[blueprintType].tiered then
+			for _, tier in pairs(tiers) do
+				if #blueprintTable[type][tier] == 0 then
+					table.insert(blueprintTable[type][tier], dummyBlueprint)
+				end
+			end
+		else
+			if #blueprintTable[type] == 0 then
+				table.insert(blueprintTable[type], dummyBlueprint)
+			end
+		end
+	end
+end
 
 local function populateBlueprints(blueprintType)
 	local blueprintsDirectory = VFS.DirList(blueprintsConfig[blueprintType].directory, '*.lua')
 	local blueprintTable = blueprintsConfig[blueprintType].table
+
 	for _, blueprintFile in ipairs(blueprintsDirectory) do
 		local fileContents = VFS.Include(blueprintFile)
+
 		for _, blueprintFunction in ipairs(fileContents) do
 			local blueprint = blueprintFunction()
-			for _, tier in ipairs(blueprint.tiers) do
-				table.insert(blueprintTable[blueprint.type][tier], blueprintFunction)
+
+			if blueprintsConfig[blueprintType].tiered then
+				for _, tier in ipairs(blueprint.tiers) do
+					table.insert(blueprintTable[blueprint.type][tier], blueprintFunction)
+				end
+			else
+				table.insert(blueprintTable[blueprint.type], blueprintFunction)
 			end
 		end
 
 		Spring.Echo("[Scavengers] Loading blueprint file: " .. blueprintFile)
 	end
 
-	for _, type in pairs(types) do
-		for _, tier in pairs(tiers) do
-			if #blueprintTable[type][tier] == 0 then
-				table.insert(blueprintTable[type][tier], dummyBlueprint)
-			end
-		end
-	end
+	insertDummyBlueprints(blueprintType)
 end
 
 populateBlueprints(blueprintTypes.Constructor)
 populateBlueprints(blueprintTypes.Spawner)
+populateBlueprints(blueprintTypes.Ruin)
 
 local getRandomBluePrint = function(blueprintType, tier, type)
 	local blueprintTable = blueprintsConfig[blueprintType].table
 	local blueprintList, blueprintFunction, blueprint
 
-	blueprintList = blueprintTable[type][tier]
+	if tier ~= nil then
+		blueprintList = blueprintTable[type][tier]
+	else
+		blueprintList = blueprintTable[type]
+	end
+
 	blueprintFunction = blueprintList[math.random(1, #blueprintList)]
 	blueprint = blueprintFunction()
 
@@ -112,6 +144,14 @@ local getRandomSpawnerSeaBlueprint = function(tier)
 	return getRandomBluePrint(blueprintTypes.Spawner, tier, types.Sea)
 end
 
+local getRandomLandRuin = function()
+	return getRandomBluePrint(blueprintTypes.Ruin, nil, types.Land)
+end
+
+local getRandomSeaRuin = function()
+	return getRandomBluePrint(blueprintTypes.Ruin, nil, types.Sea)
+end
+
 return {
 	Constructor = {
 		GetRandomLandBlueprint = getRandomConstructorLandBlueprint,
@@ -120,5 +160,9 @@ return {
 	Spawner = {
 		GetRandomLandBlueprint = getRandomSpawnerLandBlueprint,
 		GetRandomSeaBlueprint = getRandomSpawnerSeaBlueprint,
+	},
+	Ruin = {
+		GetRandomLandBlueprint = getRandomLandRuin,
+		GetRandomSeaBlueprint = getRandomSeaRuin,
 	},
 }

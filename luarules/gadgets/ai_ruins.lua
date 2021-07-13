@@ -32,32 +32,10 @@ end
 
 VFS.Include('luarules/gadgets/scavengers/API/init.lua')
 VFS.Include('luarules/gadgets/scavengers/API/api.lua')
-local scavConfig = VFS.Include('luarules/gadgets/scavengers/Configs/BYAR/config.lua')
 VFS.Include('luarules/gadgets/scavengers/API/poschecks.lua')
+local blueprintController = VFS.Include('luarules/gadgets/scavengers/Blueprints/BYAR/blueprint_controller.lua')
 
 local spawnCutoffFrame = (math.ceil( math.ceil(mapsizeX + mapsizeZ) / 750 ) + 30) * 3
-local landRuins = {}
-local seaRuins = {}
-
-local function loadBlueprints()
-	local blueprintDirectory = VFS.DirList('luarules/gadgets/scavengers/Ruins/BYAR/','*.lua')
-
-	for _, blueprintFile in ipairs(blueprintDirectory) do
-		local blueprints = VFS.Include(blueprintFile)
-
-		for _, blueprintFunction in ipairs(blueprints) do
-			local blueprint = blueprintFunction()
-
-			if blueprint.type == scavConfig.BlueprintTypes.Land then
-				table.insert(landRuins, blueprint)
-			elseif blueprint.type == scavConfig.BlueprintTypes.Sea then
-				table.insert(seaRuins, blueprint)
-			end
-		end
-
-		Spring.Echo("[Scavengers] Loading ruin file: " .. blueprintFile)
-	end
-end
 
 local function spawnRuin(ruin, posx, posy, posz)
 	for _, building in ipairs(ruin.buildings) do
@@ -108,8 +86,8 @@ function gadget:GameFrame(n)
 		local seaRuinChance = math.random(1, 2)
 		local radius, canBuildHere
 
-		landRuin = landRuins[math.random(1, #landRuins)]
-		seaRuin = seaRuins[math.random(1, #seaRuins)]
+		landRuin = blueprintController.Ruin.GetRandomLandBlueprint()
+		seaRuin = blueprintController.Ruin.GetRandomSeaBlueprint()
 
 		if posy > 0 then
 			ruin = landRuin
@@ -136,8 +114,4 @@ function gadget:GameFrame(n)
 			end
 		end
 	end
-end
-
-function gadget:Initialize()
-	loadBlueprints()
 end
