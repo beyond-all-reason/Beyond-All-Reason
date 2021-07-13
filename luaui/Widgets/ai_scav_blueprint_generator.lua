@@ -1,25 +1,30 @@
 function widget:GetInfo()
 	return {
 	name      = "Scavenger Blueprint Generator",
-	desc      = "AAA",
+	desc      = "Generates Lua blueprint code from selected units",
 	author    = "Damgam",
 	date      = "2020",
 	license   = "who cares?",
 	layer     = 0,
-	enabled   = true, --enabled by default
+	enabled   = true,
 	}
 end
 
 local outputFile = "blueprints_temp.txt"
-local counter = 0
+local blueprintCounter, ruinCounter = 0, 0
 local scavSuffix = "_scav"
 
+local types = {
+	blueprint = 1,
+	ruin = 2,
+}
+
 local centerposx = {}
-local centerposz = {}
 local centerposy = {}
+local centerposz = {}
 local blueprintposx = 0
 local blueprintposz = 0
-local blpcenterpositionx, blpcenterpositiony, blpcenterpositionz
+local blueprintCenterX, blueprintCenterY, blueprintCenterZ
 local blueprintRadius = 0
 
 local function getBlueprintCenter()
@@ -32,9 +37,9 @@ local function getBlueprintCenter()
 		blueprintposz = blueprintposz + centerposz[unit]
 	end
 
-	blpcenterpositionx = blueprintposx / #selectedunits
-	blpcenterpositionz = blueprintposz / #selectedunits
-	blpcenterpositiony = Spring.GetGroundHeight(blpcenterpositionx, blpcenterpositionz)
+	blueprintCenterX = blueprintposx / #selectedunits
+	blueprintCenterZ = blueprintposz / #selectedunits
+	blueprintCenterY = Spring.GetGroundHeight(blueprintCenterX, blueprintCenterZ)
 end
 
 local function clearValues()
@@ -43,45 +48,54 @@ local function clearValues()
 	centerposx = {}
 	centerposy = {}
 	centerposz = {}
+	blueprintRadius = 0
 end
 
-local function generateConstructorBlueprint()
+local function generateCode(type)
 	local selectedUnits = Spring.GetSelectedUnits()
 
 	getBlueprintCenter()
 
 	local file = io.open(outputFile, "a")
-	local blueprintName = "blueprint" .. counter
-	local blueprintType = blpcenterpositiony > 0 and "Land" or "Sea"
+	local blueprintName = type == types.blueprint and "blueprint" .. blueprintCounter or "ruin" .. ruinCounter
+	local blueprintType = blueprintCenterY > 0 and "Land" or "Sea"
 	local buildings = {}
 
 	for _, unitID in ipairs(selectedUnits) do
 		local unitDirection = Spring.GetUnitBuildFacing(unitID)
-		local xOffset = math.ceil(centerposx[unitID]-blpcenterpositionx)
-		local zOffset = math.ceil(centerposz[unitID]-blpcenterpositionz)
+		local xOffset = math.ceil(centerposx[unitID]-blueprintCenterX)
+		local zOffset = math.ceil(centerposz[unitID]-blueprintCenterZ)
 		blueprintRadius = math.max(blueprintRadius, xOffset, zOffset)
 
 		local unitDefID = Spring.GetUnitDefID(unitID)
 		local unitName = UnitDefs[unitDefID].name
 
-		if not string.find(unitName, scavSuffix) then
-			unitName = unitName .. scavSuffix
+		if type == types.blueprint then
+			if not string.find(unitName, scavSuffix) then
+				unitName = unitName .. scavSuffix
+			end
 		end
 
 		local unitDef = UnitDefNames[unitName]
-		table.insert(buildings, { buildTime = unitDef.buildTime, blueprintText = "\t\t\t{ unitDefName = UnitDefNames." .. unitName .. ".id, xOffset = " .. xOffset .. ", zOffset = " .. zOffset .. ", direction = " .. unitDirection .. "},\n" })
+		table.insert(buildings, { buildTime = unitDef.buildTime, blueprintText = "\t\t\t{ unitDefID = UnitDefNames." .. unitName .. ".id, xOffset = " .. xOffset .. ", zOffset = " .. zOffset .. ", direction = " .. unitDirection .. "},\n" })
 	end
 
-	table.sort(buildings, function(b1, b2)
-			return b1.buildTime < b2.buildTime
-		end
-	)
+	if type == types.blueprint then
+		table.sort(buildings, function(b1, b2)
+				return b1.buildTime < b2.buildTime
+			end
+		)
+	end
 
 	file:write("\n")
 	file:write("local function " .. blueprintName .. "()", "\n")
 	file:write("\treturn {", "\n")
 	file:write("\t\ttype = types." .. blueprintType .. ",", "\n")
-	file:write("\t\ttiers = { tiers.T0, tiers.T1, tiers.T2, tiers.T3, tiers.T4 },", "\n")
+
+	if type == types.blueprint then
+		file:write("\t\ttiers = { tiers.T0, tiers.T1, tiers.T2, tiers.T3, tiers.T4 },", "\n")
+	end
+
 	file:write("\t\tradius = " .. blueprintRadius .. ",", "\n")
 	file:write("\t\tbuildings = {", "\n")
 
@@ -95,66 +109,21 @@ local function generateConstructorBlueprint()
 	file:close()
 
 	clearValues()
-	counter = counter + 1
+
+	if type == types.blueprint then
+		blueprintCounter = blueprintCounter + 1
+	else
+		ruinCounter = ruinCounter + 1
+	end
 
 	Spring.Echo(blueprintName .. " written to " .. outputFile)
 end
 
-local function generateSpawnerBlueprint(unitID)
-	local unitDefID = Spring.GetUnitDefID(unitID)
-	local unitDefName = UnitDefs[unitDefID].name
-	local unitIDFacing = Spring.GetUnitBuildFacing(unitID)
-	local posx = math.ceil(centerposx[unitID]-blpcenterpositionx)
-	local posz = math.ceil(centerposz[unitID]-blpcenterpositionz)
-	local unitDefNameString = [["]]
-
-	-- Spring.CreateUnit("corrad"..nameSuffix, posx, posy, posz, math.random(0,3),GaiaTeamID)
-	Spring.Echo("Spring.CreateUnit("..unitDefNameString..unitDefName..unitDefNameString.."..nameSuffix, posx+("..posx.."), posy, posz+("..posz.."), "..unitIDFacing..",GaiaTeamID)")
-end
-
-local function generateRuinBlueprint(unitID)
-	local unitDefID = Spring.GetUnitDefID(unitID)
-	local unitDefName = UnitDefs[unitDefID].name
-	local unitIDFacing = Spring.GetUnitBuildFacing(unitID)
-	local posx = math.ceil(centerposx[unitID]-blpcenterpositionx)
-	local posz = math.ceil(centerposz[unitID]-blpcenterpositionz)
-	local unitDefNameString = [["]]
-
-	-- Spring.CreateUnit("corrad"..nameSuffix, posx, posy, posz, math.random(0,3),GaiaTeamID)
-	Spring.Echo("SpawnRuin("..unitDefNameString..unitDefName..unitDefNameString..", posx+("..posx.."), posy, posz+("..posz.."), "..unitIDFacing..")")
-end
-
 function widget:TextCommand(command)
 	if command == "scavblpcon" then
-			generateConstructorBlueprint()
-	elseif command == "scavblpspawn" then
-		local selectedunits = Spring.GetSelectedUnits()
-		getBlueprintCenter()
-		Spring.Echo(" ")
-		Spring.Echo("Spawner Blueprint: ")
-		for i = 1,#selectedunits do
-			generateSpawnerBlueprint(selectedunits[i])
-		end
-		Spring.Echo(" ")
-		Spring.Echo("BLUEPRINT GENERATED")
-		Spring.Echo("BLUEPRINT GENERATED")
-		Spring.Echo("BLUEPRINT GENERATED")
-		Spring.Echo("")
-		clearValues()
+		generateCode(types.blueprint)
 	elseif command == "scavblpruin" then
-		local selectedunits = Spring.GetSelectedUnits()
-		getBlueprintCenter()
-		Spring.Echo(" ")
-		Spring.Echo("Ruin Blueprint: ")
-		for i = 1,#selectedunits do
-			generateRuinBlueprint(selectedunits[i])
-		end
-		Spring.Echo(" ")
-		Spring.Echo("BLUEPRINT GENERATED")
-		Spring.Echo("BLUEPRINT GENERATED")
-		Spring.Echo("BLUEPRINT GENERATED")
-		Spring.Echo("")
-		clearValues()
+		generateCode(types.ruin)
 	end
 end
 
