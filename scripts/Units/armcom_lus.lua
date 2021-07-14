@@ -166,6 +166,7 @@ function walk()
 			Sleep( (33*animSpeed) -1)
 			end
 			if (bMoving) then --Frame:16
+				
 				if (leftArm) then turn(biggun, 1, -47.068049, 28.724907/animSpeed) end--delta=0.96
 				turn(head, 1, -0.505722, 15.861819/animSpeed) --delta=0.53
 				turn(head, 2, -6.127755, 45.958102/animSpeed) --delta=1.53
@@ -194,6 +195,7 @@ function walk()
 			Sleep( (33*animSpeed) -1)
 			end
 			if (bMoving) then --Frame:20
+				UnitScript.EmitSfx(lfoot, 1024 + 2)
 				if (leftArm) then turn(biggun, 1, -49.335727, 68.030323/animSpeed) end--delta=2.27
 				turn(head, 1, -2.091907, 47.585562/animSpeed) --delta=1.59
 				turn(head, 2, -3.829846, 68.937274/animSpeed) --delta=2.30
@@ -306,6 +308,7 @@ function walk()
 			Sleep( (33*animSpeed) -1)
 			end
 			if (bMoving) then --Frame:36
+				
 				if (leftArm) then turn(biggun, 1, -56.389444, 34.090567/animSpeed) end--delta=1.14
 				turn(head, 1, 0.023005, 47.585536/animSpeed) --delta=-1.59
 				turn(head, 2, 7.659692, 45.958102/animSpeed) --delta=1.53
@@ -333,6 +336,7 @@ function walk()
 			Sleep( (33*animSpeed) -1)
 			end
 			if (bMoving) then --Frame:40
+
 				if (leftArm) then turn(biggun, 1, -55.431951, 28.724805/animSpeed) end--delta=-0.96
 				turn(head, 1, -0.505722, 15.861819/animSpeed) --delta=0.53
 				turn(head, 2, 6.127755, 45.958102/animSpeed) --delta=-1.53
@@ -362,6 +366,7 @@ function walk()
 			Sleep( (33*animSpeed) -1)
 			end
 			if (bMoving) then --Frame:44
+				UnitScript.EmitSfx(rfoot, 1024 + 2)
 				if (leftArm) then turn(biggun, 1, -53.164273, 68.030323/animSpeed) end--delta=-2.27
 				turn(head, 1, -2.091907, 47.585562/animSpeed) --delta=1.59
 				turn(head, 2, 3.829846, 68.937274/animSpeed) --delta=-2.30
