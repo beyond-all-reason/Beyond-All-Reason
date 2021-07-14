@@ -648,16 +648,17 @@ local function ProcessSoundDefaults(wd)
 
 	local defaultDamage = wd.damage and wd.damage.default
 
-	-- if not defaultDamage or defaultDamage <= 50 then
+	if not defaultDamage or defaultDamage <= 50 then
 	-- old filter that gave small weapons a base-minumum sound volume, now fixed with noew math.min(math.max)
-
-	if not defaultDamage then
+	-- if not defaultDamage then
 		wd.soundstartvolume = 5
 		wd.soundhitvolume = 5
 		wd.soundhitwetvolume = 5
 		return
 	end
 	
+	local soundVolume = math.sqrt(defaultDamage * 0.5)
+
 	-- The very old formula 
 	-- local soundVolume = math.sqrt(math.min(2000, defaultDamage) * 0.5) 
 	
@@ -665,8 +666,8 @@ local function ProcessSoundDefaults(wd)
 	-- local soundVolume = math.sqrt(defaultDamage * 0.5)
 	-- soundVolume = math.min(math.max(soundVolume, 5), 25)
 
-	local soundVolume = math.floor( defaultDamage ^ 0.41 + 2 )
-	soundVolume = math.min(math.max(soundVolume, 5), 40)
+	-- local soundVolume = math.floor( defaultDamage ^ 0.41 + 2 )
+	-- soundVolume = math.min(math.max(soundVolume, 5), 40)
 
 	if wd.weapontype == "LaserCannon" then
 		soundVolume = soundVolume*0.5
@@ -682,7 +683,7 @@ local function ProcessSoundDefaults(wd)
 		if wd.weapontype == "LaserCannon" or "BeamLaser" then
 			wd.soundhitwetvolume = soundVolume * 0.3
 		else
-			wd.soundhitwetvolume = soundVolume
+			wd.soundhitwetvolume = soundVolume * 1.4
 		end
 	end
 end
