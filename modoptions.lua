@@ -1162,6 +1162,19 @@ local options={
 		}
 	},
 
+	{
+		key    = 'experimentalmorphs',
+		name   = 'Upgradeable Units',
+		desc   = 'Upgradeable Units',
+		type   = 'list',
+		section = 'options_experimental',
+		def  = "disabled",
+		items={
+			{key="disabled", name="Disabled", desc="Disabled"},
+			{key="enabled", name="Enabled", desc="Enabled"},
+		}
+	},
+
 	-- {
 	-- 	key    = 'experimentalimprovedtransports',
 	-- 	name   = 'Transport Units Rework',
