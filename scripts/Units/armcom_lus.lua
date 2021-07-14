@@ -195,7 +195,9 @@ function walk()
 			Sleep( (33*animSpeed) -1)
 			end
 			if (bMoving) then --Frame:20
-				UnitScript.EmitSfx(lfoot, 1024 + 2)
+				if not Spring.GetUnitIsCloaked(unitID) then
+					UnitScript.EmitSfx(lfoot, 1024 + 2)
+				end
 				if (leftArm) then turn(biggun, 1, -49.335727, 68.030323/animSpeed) end--delta=2.27
 				turn(head, 1, -2.091907, 47.585562/animSpeed) --delta=1.59
 				turn(head, 2, -3.829846, 68.937274/animSpeed) --delta=2.30
@@ -366,7 +368,9 @@ function walk()
 			Sleep( (33*animSpeed) -1)
 			end
 			if (bMoving) then --Frame:44
-				UnitScript.EmitSfx(rfoot, 1024 + 2)
+				if not Spring.GetUnitIsCloaked(unitID) then
+					UnitScript.EmitSfx(rfoot, 1024 + 2)
+				end
 				if (leftArm) then turn(biggun, 1, -53.164273, 68.030323/animSpeed) end--delta=-2.27
 				turn(head, 1, -2.091907, 47.585562/animSpeed) --delta=1.59
 				turn(head, 2, 3.829846, 68.937274/animSpeed) --delta=-2.30

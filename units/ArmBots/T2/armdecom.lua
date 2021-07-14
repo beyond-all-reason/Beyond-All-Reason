@@ -93,6 +93,7 @@ return {
 			explosiongenerators = {
 				[1] = "custom:com_sea_laser_bubbles",
 				[2] = "custom:barrelshot-medium",
+				[3] = "custom:footstepcom",
 			},
 			pieceexplosiongenerators = {
 				[1] = "deathceg2",
