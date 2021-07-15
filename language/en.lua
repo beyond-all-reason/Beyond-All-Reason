@@ -240,6 +240,7 @@ return {
 			airjets_limitfps_descr = 'disable for fighters and scouts when average FPS gets below this amount',
 			airjets_disablefps = 'disable below fps',
 			airjets_disablefps_descr = 'disable when average FPS gets below this amount',
+			grass = 'Grass',
 			treewind = 'Tree Wind',
 			treewind_descr = 'Makes trees wave in the wind.\n\n(will not apply too every tree type)',
 			heatdistortion = 'Heat distortion fx',

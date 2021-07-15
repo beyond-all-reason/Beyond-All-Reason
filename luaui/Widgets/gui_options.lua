@@ -2822,6 +2822,9 @@ function init()
 			  Spring.SendCommands("GroundDetail " .. value)
 		  end,
 		},
+
+		  { id = "grass", group = "gfx", basic = true, widget = "Map Grass GL4", name = texts.option.grass, type = "bool", value = GetWidgetToggleValue("Map Grass GL4"), description = '' },
+
 		  {id="treewind", group="gfx", basic=true, name=texts.option.treewind, type="bool", value=tonumber(Spring.GetConfigInt("TreeWind",1) or 1) == 1, description = texts.option.treewind_descr,
 		   onload = function(i) end,
 		   onchange = function(i, value)
