@@ -8,8 +8,7 @@
 
 Spring.Utilities = Spring.Utilities or {}
 
-local SCRIPT_DIR = Script.GetName() .. '/'
-local utilFiles = VFS.DirList(SCRIPT_DIR .. 'Utilities/', "*.lua")
-for i=1,#utilFiles do
-  VFS.Include(utilFiles[i])
+local utilitiesFiles = VFS.DirList('common/Utilities/', "*.lua")
+for i = 1, #utilitiesFiles do
+  VFS.Include(utilitiesFiles[i])
 end
