@@ -47,6 +47,7 @@ return {
 			lumamult = "0.7",
 			model_author = "Flaka",
 			normaltex = "unittextures/Arm_normal.dds",
+			paralyzemultiplier = 0.33,
 			subfolder = "armgantry",
 			techlevel = 3,
 		},
