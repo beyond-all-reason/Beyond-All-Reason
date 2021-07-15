@@ -1,4 +1,3 @@
-VFS.Include('init.lua')
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 --
@@ -17,6 +16,8 @@ VFS.Include('init.lua')
 --
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
+
+VFS.Include('init.lua')
 
 local SAFEWRAP = 0
 -- 0: disabled
@@ -38,6 +39,7 @@ end
 VFS.Include(HANDLER_DIR .. 'setupdefs.lua', nil, VFSMODE)
 VFS.Include(HANDLER_DIR .. 'system.lua', nil, VFSMODE)
 VFS.Include(HANDLER_DIR .. 'callins.lua', nil, VFSMODE)
+VFS.Include(SCRIPT_DIR .. 'utilities.lua', nil, VFSMODE)
 VFS.Include("modules/flowui/flowui.lua", nil, VFSMODE)
 
 

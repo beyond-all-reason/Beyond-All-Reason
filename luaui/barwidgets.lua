@@ -1,4 +1,3 @@
-VFS.Include('init.lua')
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 --
@@ -12,12 +11,13 @@ VFS.Include('init.lua')
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
+VFS.Include('init.lua')
+
 --function pwl() -- ???  (print widget list)
 --  for k,v in ipairs(widgetHandler.widgets) do
 --    print(k, v.whInfo.layer, v.whInfo.name)
 --  end
 --end
-
 
 include("keysym.h.lua")
 include("utils.lua")
