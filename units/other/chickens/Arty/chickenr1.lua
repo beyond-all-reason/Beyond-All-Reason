@@ -91,7 +91,7 @@ return {
 				avoidfriendly = 0,
 				burst = 3,
 				burstrate = 0.8,
-				cegtag = "blob_trail",
+				cegtag = "blob_trail2",
 				collidefriendly = 0,
 				craterboost = 0,
 				cratermult = 0,
