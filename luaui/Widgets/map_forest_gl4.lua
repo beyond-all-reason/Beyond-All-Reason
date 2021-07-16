@@ -53,12 +53,8 @@ out DataVS {
 	vec4 worldPos; // pos and radius
 	vec4 texcoords;
 	vec4 blendedcolor;
-	vec3 vnorm;
 	mat3 TBN;
 	
-    vec3 TangentLightPos;
-    vec3 TangentViewPos;
-    vec3 TangentFragPos;
 };
 
 //__ENGINEUNIFORMBUFFERDEFS__
@@ -70,32 +66,46 @@ float heightAtWorldPos(vec2 w){
 	return textureLod(heightmapTex, uvhm, 0.0).x;
 }
 
+vec3 windsweep(vec3 oldpos, vec3 treecenter){
+	vec3 randos = vec3(10, 20.9, 11.7) * timeInfo.x * 0.02 + (oldpos*0.1);
+	randos = randos + treecenter;
+	float heightfactor = oldpos.y*0.01;
+	float sidefactor = abs(oldpos.x + oldpos.z) * 0.02;
+	
+	randos = sin(randos*0.1);
+	
+	vec3 displace = sidefactor * randos.xzy;
+	displace.xz += heightfactor * randos.xz;
+	
+	vec3 newpos = oldpos + displace;
+	return newpos;
+}
+
 void main() {
 	
-	vec3 scaledModelPos = (vertexPos * scale.w) * scale.xyz; // TODO: also scale the TBN?
+	vec3 scaledModelPos = (vertexPos * scale.w);// * scale.xyz; // TODO: also scale the TBN?
 	
 	mat3 rotY = rotation3dY(worldpos_rot.w);
 	
 	vec3 rotatedModelPos = rotY * scaledModelPos;
 	
-	vec3 pointWorldPos = rotatedModelPos + worldpos_rot.xyz; 
+	rotatedModelPos = windsweep(rotatedModelPos, worldpos_rot.xyz);
 	
+	vec3 pointWorldPos = rotatedModelPos + worldpos_rot.xyz; 
 	
 	vec3 T = normalize(vec3(rotY * stangent));
 	vec3 B = normalize(vec3(rotY * ttangent));
 	vec3 N = normalize(vec3(rotY * vertexNormal));
+	
 	TBN = mat3(T, B, N);
 	
-	//TangentLightPos = TBN * lightPos;
-    //TangentViewPos  = TBN * viewPos;
-    //TangentFragPos  = TBN * pointWorldPos;
-	
+	vec3 sunPos = normalize(vec3(1.0, 2.0, -1.0));
 	
 	gl_Position = cameraViewProj * vec4(pointWorldPos.xyz, 1.0);
 	texcoords.xy = texcoords0;
 	texcoords.zw = texcoords1;
-	blendedcolor = color;
-	vnorm = rotY * vertexNormal;
+	blendedcolor = (color -1.0) * 0.2 + 1.0;
+	
 }
 ]]
 
@@ -121,38 +131,44 @@ in DataVS {
 	vec4 worldPos; // pos and radius
 	vec4 texcoords;
 	vec4 blendedcolor;
-	vec3 vnorm;
 	mat3 TBN;
-    vec3 TangentLightPos;
-    vec3 TangentViewPos;
-    vec3 TangentFragPos;
 };
 
 out vec4 fragColor;
 
 #line 20200
 void main() {
+	fragColor.a = 1.0;
 	vec4 tex1s = texture(tex1,texcoords.xy);
 	vec4 tex2s = texture(tex2,texcoords.xy);
 	vec4 texns = texture(texnormal,texcoords.xy);
-	texns = vec4(0.0,0.0,1.0,0.0);
-	texns.rgb = vnorm;
+	//texns = vec4(0.5,0.5,1.0,0.0);
+	texns.rgb = normalize(texns.rgb);
 	vec3 normal = texns.rgb * 2.0 - 1.0;
 	normal = normalize(TBN * normal.xyz);
 	
 	
 	vec3 sunPos = normalize(vec3(1.0, 2.0, -1.0));// mat3(shadowView) * vec3(0,0,1) no bueno
 	
-	fragColor.rgb = (normal.rgb + 1.0) * 0.5 ;
-	fragColor.rgb = (vnorm.rgb + 1.0) * 0.5 ;
+	fragColor.rgb = (normal + 1.0) * 0.5 ;
 	
-	float diffuse = dot(normalize(vnorm), sunPos) * 3.0	;
 	
-	fragColor.rgb =  mix(tex1s.rgb, tex1s.rgb * (blendedcolor.rgb + 0.5), 0.5)* diffuse	;	
+	float diffuse = clamp(dot(normalize(normal), sunPos), 0.00, 1.0);
+	
+	vec3 treebasecolor = tex1s.rgb * blendedcolor.rgb;
+	
+	vec3 ambienttreecolor = treebasecolor * sunAmbientModel.rgb;
+	
+	vec3 diffusetreecolor = treebasecolor * sunDiffuseModel.rgb * diffuse;
+	
+
+	fragColor.rgb =  1.5*ambienttreecolor + 2.0* diffusetreecolor;	
+	
+	//fragColor.rgb = vec3(diffuse);
 	
 	//fragColor.rgb = normal.rgb * (blendedcolor.rgb + 0.5);
-	fragColor.a = 1.0;//tex2s.a;
-	if (tex2s.a<0.1) discard;
+	fragColor.a = tex2s.a;
+	if (tex2s.a<0.5) discard;
 }
 ]]
 
@@ -199,6 +215,7 @@ local function initgl4()
 	if not shaderCompiled then goodbye("Failed to compile treeShader  GL4 ") end
 
 	tree = VFS.Include("luaui/images/luagrass/fir_tree_small_1()tree_fir_tall_5.obj.lua")
+	--tree = VFS.Include("luaui/images/luagrass/cube_sphere.obj.lua")
 
 	local treeVBO = gl.GetVBO(GL.ARRAY_BUFFER,false)
 	treeVBO:Define(tree.numVerts,tree.VBOLayout) -- TODO
@@ -235,7 +252,7 @@ local function initgl4()
 		math.random(), math.random(), math.random(), math.random(), 
 		0.0, 0.0, 0.0, 0.0,
 	})
-	
+	math.randomseed(1)
 	pushrandotrees(1000)
 	
 end
