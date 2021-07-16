@@ -40,7 +40,7 @@ layout (location = 4) in vec2 texcoords0;
 layout (location = 5) in vec2 texcoords1;
 layout (location = 6) in float pieceindex;
 layout (location = 7) in vec4 worldpos_rot; //x, y, z, rot
-layout (location = 8) in vec4 scale; //x, y, z, 
+layout (location = 8) in vec4 scale; //x, y, z, global
 layout (location = 9) in vec4 color; //rgba
 layout (location = 10) in vec4 uvoffsets; //rgba
 
@@ -53,6 +53,12 @@ out DataVS {
 	vec4 worldPos; // pos and radius
 	vec4 texcoords;
 	vec4 blendedcolor;
+	vec3 vnorm;
+	mat3 TBN;
+	
+    vec3 TangentLightPos;
+    vec3 TangentViewPos;
+    vec3 TangentFragPos;
 };
 
 //__ENGINEUNIFORMBUFFERDEFS__
@@ -66,12 +72,30 @@ float heightAtWorldPos(vec2 w){
 
 void main() {
 	
-	vec3 pointWorldPos = (vertexPos * scale.w) + worldpos_rot.xyz; 
+	vec3 scaledModelPos = (vertexPos * scale.w) * scale.xyz; // TODO: also scale the TBN?
+	
+	mat3 rotY = rotation3dY(worldpos_rot.w);
+	
+	vec3 rotatedModelPos = rotY * scaledModelPos;
+	
+	vec3 pointWorldPos = rotatedModelPos + worldpos_rot.xyz; 
+	
+	
+	vec3 T = normalize(vec3(rotY * stangent));
+	vec3 B = normalize(vec3(rotY * ttangent));
+	vec3 N = normalize(vec3(rotY * vertexNormal));
+	TBN = mat3(T, B, N);
+	
+	//TangentLightPos = TBN * lightPos;
+    //TangentViewPos  = TBN * viewPos;
+    //TangentFragPos  = TBN * pointWorldPos;
+	
 	
 	gl_Position = cameraViewProj * vec4(pointWorldPos.xyz, 1.0);
 	texcoords.xy = texcoords0;
 	texcoords.zw = texcoords1;
 	blendedcolor = color;
+	vnorm = rotY * vertexNormal;
 }
 ]]
 
@@ -97,15 +121,36 @@ in DataVS {
 	vec4 worldPos; // pos and radius
 	vec4 texcoords;
 	vec4 blendedcolor;
+	vec3 vnorm;
+	mat3 TBN;
+    vec3 TangentLightPos;
+    vec3 TangentViewPos;
+    vec3 TangentFragPos;
 };
 
 out vec4 fragColor;
 
+#line 20200
 void main() {
 	vec4 tex1s = texture(tex1,texcoords.xy);
 	vec4 tex2s = texture(tex2,texcoords.xy);
 	vec4 texns = texture(texnormal,texcoords.xy);
-	fragColor.rgb = tex1s.rgb * (blendedcolor.rgb + 0.5);
+	texns = vec4(0.0,0.0,1.0,0.0);
+	texns.rgb = vnorm;
+	vec3 normal = texns.rgb * 2.0 - 1.0;
+	normal = normalize(TBN * normal.xyz);
+	
+	
+	vec3 sunPos = normalize(vec3(1.0, 2.0, -1.0));// mat3(shadowView) * vec3(0,0,1) no bueno
+	
+	fragColor.rgb = (normal.rgb + 1.0) * 0.5 ;
+	fragColor.rgb = (vnorm.rgb + 1.0) * 0.5 ;
+	
+	float diffuse = dot(normalize(vnorm), sunPos) * 3.0	;
+	
+	fragColor.rgb =  mix(tex1s.rgb, tex1s.rgb * (blendedcolor.rgb + 0.5), 0.5)* diffuse	;	
+	
+	//fragColor.rgb = normal.rgb * (blendedcolor.rgb + 0.5);
 	fragColor.a = 1.0;//tex2s.a;
 	if (tex2s.a<0.1) discard;
 }
@@ -122,7 +167,7 @@ local function pushrandotrees(count)
 		local y= Spring.GetGroundHeight(x,z)
 		pushElementInstance(treeInstanceVBO, {
 			x, y,z,math.random()*6.14,
-			1.0, 1.0, 1.0, math.random() + 0.5,
+			math.random() + 0.5, math.random() + 0.5, math.random() + 0.5, math.random() + 0.5,
 			math.random(), math.random(), math.random(), math.random(), 
 			0.0, 0.0, 0.0, 0.0,
 		})
@@ -163,6 +208,10 @@ local function initgl4()
 	local defres = treeIndexVBO:Define(tree.numIndices)
 	local upres = treeIndexVBO:Upload(tree.indexArray)
 
+	--Spring.Echo(treeIndexVBO, defres, upres)
+	--Spring.Echo(treeIndexVBO:DumpDefinition())
+	--Spring.Utilities.TableEcho(treeIndexVBO:Download())
+	
 	treeInstanceVBO = makeInstanceVBOTable({
 		{id = 7, name = 'worldpos_rot', size = 4},
 		{id = 8, name = 'scale', size = 4},
@@ -187,16 +236,11 @@ local function initgl4()
 		0.0, 0.0, 0.0, 0.0,
 	})
 	
-	pushrandotrees(10000)
+	pushrandotrees(1000)
 	
 end
 
 -- Functions shortcuts
-local spGetSpectatingState  = Spring.GetSpectatingState
-local spGetUnitIsActive 	= Spring.GetUnitIsActive
-local spGetUnitDefID        = Spring.GetUnitDefID
-local spGetUnitPosition     = Spring.GetUnitPosition
-local spIsGUIHidden 		= Spring.IsGUIHidden
 
 -- Globals
 local chobbyInterface
@@ -223,20 +267,6 @@ function widget:Update()
 
 end
 
-local function pushrandotrees(count)
-	for i = 1, count do
-		local x = math.random()*Game.mapSizeX
-		local z = math.random()*Game.mapSizeZ
-		local y= Spring.GetGroundHeight(x,z)
-		pushElementInstance(treeInstanceVBO, {
-			x, y,z,math.random()*6.14,
-			1.0, 1.0, 1.0, math.random() + 0.5,
-			math.random(), math.random(), math.random(), math.random(), 
-			0.0, 0.0, 0.0, 0.0,
-		})
-	end
-
-end
 
 local function dodraw(shadowpass)
     gl.DepthTest(GL.LEQUAL)
@@ -255,7 +285,8 @@ local function dodraw(shadowpass)
 		)]]--
 	
 	--drawInstanceVBO(treeInstanceVBO)
-	treeInstanceVBO.VAO:DrawElements(GL.TRIANGLES, 100, 0, treeInstanceVBO.usedElements, 0)
+	treeInstanceVBO.VAO:DrawArrays(GL.TRIANGLES, treeInstanceVBO.numVertices, 0, treeInstanceVBO.usedElements, 0)
+	--treeInstanceVBO.VAO:DrawElements(GL.TRIANGLES, 100, 0, treeInstanceVBO.usedElements, 0)
 	
 	treeShader:Deactivate()
 	gl.Texture(0, false)
@@ -283,7 +314,7 @@ end
 
 function widget:DrawWorld()
     if chobbyInterface then return end
-    if spIsGUIHidden() or (WG['topbar'] and WG['topbar'].showingQuit()) then return end
+    --if spIsGUIHidden() or (WG['topbar'] and WG['topbar'].showingQuit()) then return end
 	dodraw()
 
 end
