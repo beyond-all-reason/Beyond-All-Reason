@@ -82,7 +82,7 @@ for objline in open(sys.argv[1]).readlines():
 				vn = [0,1,0]
 			else:
 				vn = objdata['vn'][vni-1]
-			if vi-1 not in indexarray or True:
+			if vi-1 not in indexarray:
 				outfile.write(listoffloats_to_line(objdata['v'][vi-1] + objdata['vn'][vni-1] + tangent + bitangent + objdata['vt'][vti-1][0:2] + [0,0] + [0]))
 				numverts += 1
 			indexarray.append(vi-1)

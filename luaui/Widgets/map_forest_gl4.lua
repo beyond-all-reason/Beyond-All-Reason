@@ -11,7 +11,8 @@ function widget:GetInfo()
 end
  
 ------- GL4 NOTES -----
--- There is regular radar and advanced radar, assumed to have identical ranges!
+-- 10k trees:
+--  - 60 fps without index buffer
 
 
 local luaShaderDir = "LuaUI/Widgets/Include/"
@@ -114,7 +115,20 @@ local function goodbye(reason)
   Spring.Echo("treeShader GL4 widget exiting with reason: "..reason)
   widgetHandler:RemoveWidget()
 end
+local function pushrandotrees(count)
+	for i = 1, count do
+		local x = math.random()*Game.mapSizeX
+		local z = math.random()*Game.mapSizeZ
+		local y= Spring.GetGroundHeight(x,z)
+		pushElementInstance(treeInstanceVBO, {
+			x, y,z,math.random()*6.14,
+			1.0, 1.0, 1.0, math.random() + 0.5,
+			math.random(), math.random(), math.random(), math.random(), 
+			0.0, 0.0, 0.0, 0.0,
+		})
+	end
 
+end
 local function initgl4()
 	local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()
 	vsSrc = vsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
@@ -149,7 +163,6 @@ local function initgl4()
 	treeIndexVBO:Define(tree.numIndices)
 	treeIndexVBO:Upload(tree.indexArray)
 
-
 	treeInstanceVBO = makeInstanceVBOTable({
 		{id = 7, name = 'worldpos_rot', size = 4},
 		{id = 8, name = 'scale', size = 4},
@@ -157,12 +170,15 @@ local function initgl4()
 		{id = 10, name = 'uvoffsets', size = 4},
 		}, 
 		256, "treeInstanceVBO")
+		
 	treeInstanceVBO.numVertices = tree.numVerts
 	treeInstanceVBO.vertexVBO = treeVBO
-	treeInstanceVBO.VAO = makeVAOandAttach(treeInstanceVBO.vertexVBO, treeInstanceVBO.instanceVBO)
+	treeInstanceVBO.VAO = gl.GetVAO()
+	treeInstanceVBO.VAO:AttachIndexBuffer(treeIndexVBO)
+	treeInstanceVBO.VAO:AttachVertexBuffer(treeVBO)
+	treeInstanceVBO.VAO:AttachInstanceBuffer(treeInstanceVBO.instanceVBO)
+	
 	treeInstanceVBO.primitiveType = GL.TRIANGLES
-	treeInstanceVBO.indexVBO = treeIndexVBO
-	treeInstanceVBO.VAO:AttachIndexBuffer(treeInstanceVBO.indexVBO)
 	
 	pushElementInstance(treeInstanceVBO, {
 		370,150,680,math.random()*6.14,
@@ -170,6 +186,8 @@ local function initgl4()
 		math.random(), math.random(), math.random(), math.random(), 
 		0.0, 0.0, 0.0, 0.0,
 	})
+	
+	pushrandotrees(10000)
 	
 end
 
@@ -202,27 +220,29 @@ function widget:Update()
 	if coords then 
 		mousepos = {coords[1],coords[2],coords[3]}
 	end
-	local x = math.random()*Game.mapSizeX
-	local z = math.random()*Game.mapSizeZ
-	local y= Spring.GetGroundHeight(x,z)
-	pushElementInstance(treeInstanceVBO, {
-		x, y,z,math.random()*6.14,
-		1.0, 1.0, 1.0, math.random() + 0.5,
-		math.random(), math.random(), math.random(), math.random(), 
-		0.0, 0.0, 0.0, 0.0,
-	})
+
 end
 
-function widget:DrawWorldShadow()
+local function pushrandotrees(count)
+	for i = 1, count do
+		local x = math.random()*Game.mapSizeX
+		local z = math.random()*Game.mapSizeZ
+		local y= Spring.GetGroundHeight(x,z)
+		pushElementInstance(treeInstanceVBO, {
+			x, y,z,math.random()*6.14,
+			1.0, 1.0, 1.0, math.random() + 0.5,
+			math.random(), math.random(), math.random(), math.random(), 
+			0.0, 0.0, 0.0, 0.0,
+		})
+	end
+
 end
 
-function widget:DrawWorld()
-    if chobbyInterface then return end
-    if spIsGUIHidden() or (WG['topbar'] and WG['topbar'].showingQuit()) then return end
-
-	gl.DepthTest(true)
-	gl.AlphaTest(true)
-	gl.Culling(false)	
+local function dodraw(shadowpass)
+    gl.DepthTest(GL.LEQUAL)
+    gl.DepthMask(true)
+    gl.Culling(GL.BACK) -- needs better front and back instead of using this
+	
 	gl.Texture(0, "luaui/images/luagrass/tree_fir_tall_5_1.dds")
 	gl.Texture(1, "luaui/images/luagrass/tree_fir_tall_5_2.dds")
 	gl.Texture(2, "luaui/images/luagrass/tree_fir_tall_5_normal.dds")
@@ -234,13 +254,37 @@ function widget:DrawWorld()
 		2100
 		)]]--
 	
-	drawInstanceVBO(treeInstanceVBO)
+	--drawInstanceVBO(treeInstanceVBO)
+	treeInstanceVBO.VAO:DrawElements(GL.TRIANGLES, 100, 0, treeInstanceVBO.usedElements, 0)
 	
 	treeShader:Deactivate()
 	gl.Texture(0, false)
 	gl.Texture(1, false)
 	gl.Texture(2, false)
 	
-	gl.DepthTest(true)
+    gl.DepthTest(GL.ALWAYS)
+    gl.DepthMask(false)
+    gl.Culling(GL.BACK)
+end
+
+--[[
+
+    iT.VAO:DrawArrays(iT.primitiveType, iT.numVertices, 0, iT.usedElements,0)
+
+]]--
+
+
+function widget:DrawWorldShadow()
+	--Spring.Echo("Drwing shadows")
+	--dodraw()
+end
+
+
+
+function widget:DrawWorld()
+    if chobbyInterface then return end
+    if spIsGUIHidden() or (WG['topbar'] and WG['topbar'].showingQuit()) then return end
+	dodraw()
+
 end
 
