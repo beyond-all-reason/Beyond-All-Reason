@@ -4,8 +4,8 @@ import math
 normals_up = False
 
 if len(sys.argv) <2:
-	#sys.argv.append("fir_tree_small_1()tree_fir_tall_5.obj")
-	sys.argv.append("cube_sphere.obj")
+	sys.argv.append("fir_tree_small_1()tree_fir_tall_5.obj")
+	#sys.argv.append("cube_sphere.obj")
 
 objdata = {'vn' : [], 'vt' : [], 'v' : [], 't' : {}, 'bt' : {}}
 numverts = 0
