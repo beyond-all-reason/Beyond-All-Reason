@@ -155,13 +155,13 @@ local function initgl4()
 
 	tree = VFS.Include("luaui/images/luagrass/fir_tree_small_1()tree_fir_tall_5.obj.lua")
 
-	treeVBO = gl.GetVBO(GL.ARRAY_BUFFER,false)
+	local treeVBO = gl.GetVBO(GL.ARRAY_BUFFER,false)
 	treeVBO:Define(tree.numVerts,tree.VBOLayout) -- TODO
 	treeVBO:Upload(tree.VBOData)
 
-	treeIndexVBO =  gl.GetVBO(GL.ELEMENT_ARRAY_BUFFER,false)
-	treeIndexVBO:Define(tree.numIndices)
-	treeIndexVBO:Upload(tree.indexArray)
+	local treeIndexVBO =  gl.GetVBO(GL.ELEMENT_ARRAY_BUFFER,false)
+	local defres = treeIndexVBO:Define(tree.numIndices)
+	local upres = treeIndexVBO:Upload(tree.indexArray)
 
 	treeInstanceVBO = makeInstanceVBOTable({
 		{id = 7, name = 'worldpos_rot', size = 4},
