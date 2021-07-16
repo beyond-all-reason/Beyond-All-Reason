@@ -16,9 +16,46 @@ local miplevel = 3 -- matching radarmiplevel modrule
 
 local smallradarrange = 2100
 local largeradarrange = 3500
+
+local cmdidtoradarsize = {}
+local radaremitheight = {}
+
+
 for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.name == 'armarad' then largeradarrange = unitDef.radarRadius end
 	if unitDef.name == 'armrad'  then smallradarrange = unitDef.radarRadius end
+
+	if unitDef.name == 'armrad' then 
+		cmdidtoradarsize[-1*unitDefID] = "small"
+		radaremitheight[-1*unitDefID] = 66
+		--[[Spring.Echo(unitDef.radarHeight) -- DOES NOT WORK NEITHER OF THEM
+		Spring.Echo(unitDef.radarEmitHeight)
+		Spring.Echo(unitDef.radaremitheight)
+		Spring.Echo(unitDef.radarRadius)
+		for k,v in pairs(unitDef) do
+			Spring.Echo(k,v)
+		end]]--
+	end
+	if unitDef.name == 'armfrad' then
+		cmdidtoradarsize[-1*unitDefID] = "small" 
+		radaremitheight[-1*unitDefID] = 52
+	end
+	if unitDef.name == 'corrad' then 
+		cmdidtoradarsize[-1*unitDefID] = "small" 
+		radaremitheight[-1*unitDefID] = 72
+	end
+	if unitDef.name == 'corfrad' then 
+		cmdidtoradarsize[-1*unitDefID] = "small"
+		radaremitheight[-1*unitDefID] = 72
+	end
+	if unitDef.name == 'corarad' then 
+		cmdidtoradarsize[-1*unitDefID] = "large"
+		radaremitheight[-1*unitDefID] = 87
+	end
+	if unitDef.name == 'armarad' then 
+		cmdidtoradarsize[-1*unitDefID] = "large"
+		radaremitheight[-1*unitDefID] = 66
+	end
 end
 
 local luaShaderDir = "LuaUI/Widgets/Include/"
@@ -30,7 +67,7 @@ local radarTruthShader = nil
 local smallradVAO = nil
 local largeradVAO = nil
 
-local SHADERRESOLUTION = 24 -- THIS SHOULD MATCH RADARMIPLEVEL!
+local SHADERRESOLUTION = 16 -- THIS SHOULD MATCH RADARMIPLEVEL!
 
 local vsSrc = [[
 #version 420
@@ -57,7 +94,7 @@ out DataVS {
 
 float heightAtWorldPos(vec2 w){
 	vec2 uvhm =   vec2(clamp(w.x,8.0,mapSize.x-8.0),clamp(w.y,8.0, mapSize.y-8.0))/ mapSize.xy; 
-	return textureLod(heightmapTex, uvhm, 0.0).x;
+	return max(0.0, textureLod(heightmapTex, uvhm, 0.0).x);
 }
 
 void main() {
@@ -213,30 +250,42 @@ end
 function widget:Shutdown()
 end
 local mousepos = {0,0,0}
-function widget:Update()
+
+local spGetActiveCommand = Spring.GetActiveCommand
+
+function widget:DrawWorld()
+    
+	local _ , cmdID = spGetActiveCommand()
+	if cmdID == nil or cmdID >=0 then return end -- not build command
+	
+	if chobbyInterface then return end
+    if spIsGUIHidden() or (WG['topbar'] and WG['topbar'].showingQuit()) then return end
+	
+	local whichradarsize = cmdidtoradarsize[cmdID]
+	if whichradarsize == nil then return end
+	
 	local mx, my, lp, mp, rp, offscreen = Spring.GetMouseState ( )
 	local _ , coords = Spring.TraceScreenRay(mx,my,true)
 	if coords then 
 		mousepos = {coords[1],coords[2],coords[3]}
 	end
-end
-
-function widget:DrawWorld()
-    if chobbyInterface then return end
-    if spIsGUIHidden() or (WG['topbar'] and WG['topbar'].showingQuit()) then return end
-
+	
 	gl.DepthTest(false)
 	gl.Culling(GL.BACK)	
 	gl.Texture(0, "$heightmap")
 	radarTruthShader:Activate()
 	radarTruthShader:SetUniform("radarcenter_range", 
 		math.floor((mousepos[1]+ 8) /16)*16,
-		mousepos[2] + 64,
+		mousepos[2] + 64, -- radaremitheight[cmdID],
 		math.floor((mousepos[3]+ 8) /16)*16,
-		2100
+		whichradarsize == "small" and smallradarrange or largeradarrange
 		)
+	if whichradarsize == "small" then
+		smallradVAO:DrawElements(GL.TRIANGLES)
+	elseif whichradarsize == "large" then
+		largeradVAO:DrawElements(GL.TRIANGLES)
+	end
 	
-	smallradVAO:DrawElements(GL.TRIANGLES)
 	radarTruthShader:Deactivate()
 	gl.Texture(0, false)
 	
