@@ -17,6 +17,8 @@ return {
 		"armcsa_scav",
 		"corca_scav",
 		"corcsa_scav",
+		"armassistdrone",
+		"corassistdrone",
 	},
 
 	T2 = {

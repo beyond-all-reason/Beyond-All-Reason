@@ -64,6 +64,8 @@ local collectors = {
 	"corch_scav",
 	"corfast_scav",
 	"armrectrt4_scav",
+	"armassistdrone",
+	"corassistdrone",
 }
 
 local constructorsID = getUnitIDList(constructors)
