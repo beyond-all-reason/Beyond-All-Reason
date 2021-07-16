@@ -46,6 +46,7 @@ uniform sampler2D heightmapTex;
 
 out DataVS {
 	vec4 worldPos; // pos and radius
+	vec4 centerposrange;
 	vec4 blendedcolor;
 	float worldscale_circumference;
 };
@@ -95,6 +96,7 @@ void main() {
 	pointWorldPos.y += 32.0;
 	worldPos = pointWorldPos;
 	gl_Position = cameraViewProj * vec4(pointWorldPos.xyz, 1.0);
+	centerposrange = radarcenter_range;
 }
 ]]
 
@@ -116,6 +118,7 @@ uniform sampler2D heightmapTex;
 //__DEFINES__
 in DataVS {
 	vec4 worldPos; // w = range
+	vec4 centerposrange;
 	vec4 blendedcolor;
 	float worldscale_circumference;
 };
@@ -125,12 +128,22 @@ out vec4 fragColor;
 void main() {
 	fragColor.rgba = blendedcolor.rgba;
 	
+	vec2 toedge = centerposrange.xz - worldPos.xz;
+	
+	float angle = atan(toedge.y/toedge.x);
+	
+	angle = (angle + 1.56)/3.14;
+	
+	angle = clamp(fract(angle - timeInfo.x* 0.033), 0.2, 0.8);
+	
 	vec2 mymin = min(worldPos.xz,mapSize.xy - worldPos.xz);
 	float inboundsness = min(mymin.x, mymin.y);
 	fragColor.a = min(fragColor.a, 1.0 - clamp(inboundsness*(-0.1),0.0,1.0));
 	
+	
 	if (length(worldPos.xz - radarcenter_range.xz) > radarcenter_range.w) fragColor.a = 0.0;
 	
+	fragColor.a = fragColor.a * angle;
 	//#if USE_STIPPLE > 0
 	//	fragColor.a *= 2.0 * sin(worldscale_circumference + timeInfo.x*0.2) ; // PERFECT STIPPLING!
 	//#endif
@@ -217,9 +230,9 @@ function widget:DrawWorld()
 	gl.Texture(0, "$heightmap")
 	radarTruthShader:Activate()
 	radarTruthShader:SetUniform("radarcenter_range", 
-		mousepos[1],
+		math.floor((mousepos[1]+ 8) /16)*16,
 		mousepos[2] + 64,
-		mousepos[3],
+		math.floor((mousepos[3]+ 8) /16)*16,
 		2100
 		)
 	
