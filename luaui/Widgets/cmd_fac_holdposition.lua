@@ -57,6 +57,7 @@ local unitArray_ = {
 local unitArray = {}
 for _, name in pairs(unitArray_) do
   unitArray[UnitDefNames[name].id] = true
+  unitArray[UnitDefNames[name.."_scav"].id] = true
 end
 unitArray_ = nil
 
