@@ -330,66 +330,68 @@ function ReinforcementsMoveOrder(n)
 			local unitID = ActiveReinforcementUnits[i]
 			if unitID then
 				local unitDefID = Spring.GetUnitDefID(unitID)
-				local UnitName = UnitDefs[unitDefID].name
-				UnitSuffixLenght[unitID] = string.len(scavconfig.unitnamesuffix)
-				FriendlyArmyOrders = true
+				if unitDefID then
+					local UnitName = UnitDefs[unitDefID].name
+					UnitSuffixLenght[unitID] = string.len(scavconfig.unitnamesuffix)
+					FriendlyArmyOrders = true
 
-				if scavconfig.modules.constructorControllerModule then
-					if constructorControllerModuleConfig.useresurrectors then
-						if FriendlyResurrectors[unitID] then
-							constructorController.ResurrectorOrders(n, unitID)
-							FriendlyArmyOrders = false
-						end
-					end
-
-					if constructorControllerModuleConfig.usecollectors then
-						if FriendlyCollectors[unitID] then
-							constructorController.CollectorOrders(n, unitID)
-							FriendlyArmyOrders = false
-						end
-						if FriendlyReclaimers[unitID] then
-							constructorController.ReclaimerOrders(n, unitID)
-							FriendlyArmyOrders = false
-						end
-					end
-				end
-
-
-				-- fallback - armyorders
-				if FriendlyArmyOrders == true and Spring.GetCommandQueue(unitID, 0) <= 1 then
-
-					local nearestEnemy = Spring.GetUnitNearestEnemy(unitID, 200000, false)
-					if nearestEnemy then
-						UnitRange = {}
-						if UnitDefs[unitDefID].maxWeaponRange and UnitDefs[unitDefID].maxWeaponRange > 100 then
-							UnitRange[unitID] = UnitDefs[unitDefID].maxWeaponRange
-						else
-							UnitRange[unitID] = 100
-						end
-
-						local x,y,z = Spring.GetUnitPosition(nearestEnemy)
-						local y = Spring.GetGroundHeight(x, z)
-
-						if (-(UnitDefs[unitDefID].minWaterDepth) > y) and (-(UnitDefs[unitDefID].maxWaterDepth) < y) or UnitDefs[unitDefID].canFly then
-							local range = UnitRange[unitID]
-							if range < 500 then
-								range = 500
+					if scavconfig.modules.constructorControllerModule then
+						if constructorControllerModuleConfig.useresurrectors then
+							if FriendlyResurrectors[unitID] then
+								constructorController.ResurrectorOrders(n, unitID)
+								FriendlyArmyOrders = false
 							end
-							local x = x + math_random(-range*0.5,range*0.5)
-							local z = z + math_random(-range*0.5,range*0.5)
-							if UnitDefs[unitDefID].canFly then
-								Spring.GiveOrderToUnit(unitID, CMD.FIGHT,{x,y,z}, {"shift", "alt", "ctrl"})
-							elseif UnitRange[unitID] > unitControllerModuleConfig.minimumrangeforfight then
-								Spring.GiveOrderToUnit(unitID, CMD.FIGHT,{x,y,z}, {"shift", "alt", "ctrl"})
+						end
+
+						if constructorControllerModuleConfig.usecollectors then
+							if FriendlyCollectors[unitID] then
+								constructorController.CollectorOrders(n, unitID)
+								FriendlyArmyOrders = false
+							end
+							if FriendlyReclaimers[unitID] then
+								constructorController.ReclaimerOrders(n, unitID)
+								FriendlyArmyOrders = false
+							end
+						end
+					end
+
+
+					-- fallback - armyorders
+					if FriendlyArmyOrders == true and Spring.GetCommandQueue(unitID, 0) <= 1 then
+
+						local nearestEnemy = Spring.GetUnitNearestEnemy(unitID, 200000, false)
+						if nearestEnemy then
+							UnitRange = {}
+							if UnitDefs[unitDefID].maxWeaponRange and UnitDefs[unitDefID].maxWeaponRange > 100 then
+								UnitRange[unitID] = UnitDefs[unitDefID].maxWeaponRange
 							else
-								Spring.GiveOrderToUnit(unitID, CMD.MOVE,{x,y,z}, {"shift", "alt", "ctrl"})
+								UnitRange[unitID] = 100
+							end
+
+							local x,y,z = Spring.GetUnitPosition(nearestEnemy)
+							local y = Spring.GetGroundHeight(x, z)
+
+							if (-(UnitDefs[unitDefID].minWaterDepth) > y) and (-(UnitDefs[unitDefID].maxWaterDepth) < y) or UnitDefs[unitDefID].canFly then
+								local range = UnitRange[unitID]
+								if range < 500 then
+									range = 500
+								end
+								local x = x + math_random(-range*0.5,range*0.5)
+								local z = z + math_random(-range*0.5,range*0.5)
+								if UnitDefs[unitDefID].canFly then
+									Spring.GiveOrderToUnit(unitID, CMD.FIGHT,{x,y,z}, {"shift", "alt", "ctrl"})
+								elseif UnitRange[unitID] > unitControllerModuleConfig.minimumrangeforfight then
+									Spring.GiveOrderToUnit(unitID, CMD.FIGHT,{x,y,z}, {"shift", "alt", "ctrl"})
+								else
+									Spring.GiveOrderToUnit(unitID, CMD.MOVE,{x,y,z}, {"shift", "alt", "ctrl"})
+								end
 							end
 						end
 					end
-				end
-				FriendlyArmyOrders = nil
-				if n%600 == 0 then
-					SelfDestructionControls(n, unitID, unitDefID, true)
+					FriendlyArmyOrders = nil
+					if n%600 == 0 then
+						SelfDestructionControls(n, unitID, unitDefID, true)
+					end
 				end
 			end
 		end
