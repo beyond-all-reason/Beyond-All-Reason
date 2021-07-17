@@ -40,7 +40,7 @@ function makeInstanceVBOTable(layout, maxElements, myName, unitIDattribID)
 		instanceTable.unitIDattribID = unitIDattribID
 		
 	end
-	
+	Spring.Echo(myName,": VBO upload of #elements:",#instanceData)
 	newInstanceVBO:Upload(instanceData)
 	return instanceTable
 end

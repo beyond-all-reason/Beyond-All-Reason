@@ -224,6 +224,8 @@ local function initgl4()
 	--Spring.Echo(treeIndexVBO, defres, upres)
 	--Spring.Echo(treeIndexVBO:DumpDefinition())
 	--Spring.Utilities.TableEcho(treeIndexVBO:Download())
+	local numTrees = 1000
+	
 	
 	treeInstanceVBO = makeInstanceVBOTable({
 		{id = 7, name = 'worldpos_rot', size = 4},
@@ -231,9 +233,9 @@ local function initgl4()
 		{id = 9, name = 'colormod', size = 4},
 		{id = 10, name = 'uvoffsets', size = 4},
 		}, 
-		256, "treeInstanceVBO")
+		numTrees + 2, "treeInstanceVBO")
 		
-	treeInstanceVBO.numVertices = tree.numVerts
+	treeInstanceVBO.numVertices = tree.numIndices
 	treeInstanceVBO.vertexVBO = treeVBO
 	treeInstanceVBO.VAO = gl.GetVAO()
 	treeInstanceVBO.VAO:AttachIndexBuffer(treeIndexVBO)
@@ -249,7 +251,7 @@ local function initgl4()
 		0.0, 0.0, 0.0, 0.0,
 	})
 	math.randomseed(1)
-	pushrandotrees(1000)
+	pushrandotrees(numTrees)
 	
 end
 
@@ -298,8 +300,8 @@ local function dodraw(shadowpass)
 		)]]--
 	
 	--drawInstanceVBO(treeInstanceVBO)
-	treeInstanceVBO.VAO:DrawArrays(GL.TRIANGLES, treeInstanceVBO.numVertices, 0, treeInstanceVBO.usedElements, 0)
-	--treeInstanceVBO.VAO:DrawElements(GL.TRIANGLES, 100, 0, treeInstanceVBO.usedElements, 0)
+	--treeInstanceVBO.VAO:DrawArrays(GL.TRIANGLES, treeInstanceVBO.numVertices, 0, treeInstanceVBO.usedElements, 0)
+	treeInstanceVBO.VAO:DrawElements(GL.TRIANGLES, treeInstanceVBO.numVertices, 0, treeInstanceVBO.usedElements, 0)
 	
 	treeShader:Deactivate()
 	gl.Texture(0, false)
@@ -320,7 +322,7 @@ end
 
 function widget:DrawWorldShadow()
 	--Spring.Echo("Drwing shadows")
-	dodraw()
+	--dodraw()
 end
 
 
