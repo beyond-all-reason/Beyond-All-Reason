@@ -157,7 +157,9 @@ function scav_Udef_Post(name, uDef)
 	end
 
 	if uDef.maxdamage then
-		uDef.maxdamage = math.ceil(uDef.maxdamage*0.85*randomMultiplier)
+		if name ~= 'armcomboss_scav' and name ~= 'corcomboss_scav' then
+			uDef.maxdamage = math.ceil(uDef.maxdamage*0.85*randomMultiplier)
+		end
 	end
 
 	-- if uDef.maxvelocity then
