@@ -44,6 +44,7 @@ local buttonH = orgbuttonH * uiScale
 local buttonW = orgbuttonW * uiScale
 
 local buttonList, buttonHoverList
+local buttonText = ''
 
 local RectRound = Spring.FlowUI.Draw.RectRound
 local UiElement = Spring.FlowUI.Draw.Element
@@ -90,17 +91,16 @@ function widget:ViewResize(viewSizeX, viewSizeY)
 
 	buttonX = math.floor(vsx * 0.78)
 	buttonY = math.floor(vsy * 0.78)
-	local textString
 	if mySpec then
 		if not offer then
-			textString = Spring.I18N('ui.substitutePlayers.offer')
+			buttonText = Spring.I18N('ui.substitutePlayers.offer')
 		else
-			textString = Spring.I18N('ui.substitutePlayers.withdraw')
+			buttonText = Spring.I18N('ui.substitutePlayers.withdraw')
 		end
 	else
-		textString = Spring.I18N('ui.initialSpawn.ready')
+		buttonText = Spring.I18N('ui.initialSpawn.ready')
 	end
-	orgbuttonW = font:GetTextWidth('       '..textString) * 24
+	orgbuttonW = font:GetTextWidth('       '..buttonText) * 24
 	buttonW = math.floor(orgbuttonW * uiScale / 2) * 2
 	buttonH = math.floor(orgbuttonH * uiScale / 2) * 2
 
@@ -257,7 +257,7 @@ function widget:DrawScreen()
 			colorString = timer % 0.75 <= 0.375 and "\255\255\233\33" or "\255\255\250\210"
 		end
 		font:Begin()
-		font:Print(colorString .. Spring.I18N('ui.initialSpawn.ready'), buttonX, buttonY - (buttonH * 0.16), 24 * uiScale, "co")
+		font:Print(colorString .. buttonText, buttonX, buttonY - (buttonH * 0.16), 24 * uiScale, "co")
 		font:End()
 		gl.Color(1, 1, 1, 1)
 	end
