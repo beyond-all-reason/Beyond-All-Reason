@@ -717,7 +717,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 			if unitName == bossUnitList.Bosses[i] then
 				FinalBossUnitID = unitID
 				local bosshealth = unitSpawnerModuleConfig.FinalBossHealth*teamcount*spawnmultiplier
-				local currentbosshealth = Spring.GetUnitMaxHealth()
+				local _, currentbosshealth = Spring.GetUnitHealth(unitID)
 				if currentbosshealth > bosshealth then
 					Spring.SetUnitHealth(unitID, bosshealth)
 				end
