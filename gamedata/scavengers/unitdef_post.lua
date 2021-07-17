@@ -195,9 +195,9 @@ function scav_Udef_Post(name, uDef)
 			local workertimemultipliermodoption = tonumber(Spring.GetModOptions().scavbuildspeedmultiplier) or 1
 			uDef.workertime = uDef.workertime*workertimemultipliermodoption
 		end
-		if uDef.maxvelocity then
-			uDef.maxvelocity = uDef.maxvelocity*2*randomMultiplier
-		end
+		-- if uDef.maxvelocity then
+		-- 	uDef.maxvelocity = uDef.maxvelocity*2*randomMultiplier
+		-- end
 		if uDef.canmove == true then
 			uDef.cancapture = true
 			if uDef.workertime then

@@ -521,6 +521,8 @@ return {
 				vh_chickenq = "Chicken Queen",
 				xmasball = "Xmas Ball",
 				xmasball2 = "Xmas Ball",
+				armassistdrone = "Assist Drone",
+				corassistdrone = "Assist Drone",
 			},
 			descriptions = {
 				armaak = "Advanced Amphibious Anti-Air Bot",
@@ -1047,6 +1049,8 @@ return {
 				vh_chickenq = "Clucking Hell! (Very Hard)",
 				xmasball = "Xmas ball",
 				xmasball2 = "Xmas ball",
+				armassistdrone = "Portable Buildpower",
+				corassistdrone = "Portable Buildpower",
 			},
 			longDescriptions = {
 				armart = "Shellshocker is an artillery vehicle used to take down T1 defenses, especially High Laser Turrets. It can outrange all T1 defense towers except coastal defense plasma batteries. Shooting its plasma shells along a parabolic trajectory they are obviously helpless in close quarters combat.  Always keep them protected by Stumpies/Flashes, or your own defensive structures. Don't forget to have targets in your radar's range or scouted.",

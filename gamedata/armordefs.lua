@@ -406,6 +406,8 @@ local armorDefs = {
 		"armfepocht4",
 		"corfblackhyt4",
 		"armthundt4",
+		"armassistdrone",
+		"corassistdrone",
 	},
 	shields = {
 		"armgate",
