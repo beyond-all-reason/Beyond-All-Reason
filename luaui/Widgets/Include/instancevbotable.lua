@@ -106,6 +106,9 @@ function pushElementInstance(iT,thisInstance, instanceID, updateExisting, noUplo
 	-- noUpload: prevent the VBO from being uploaded, if you feel like you are going to do a lot of ops and wish to manually upload when done instead
 	-- unitID: if given, it will store then unitID corresponding to this instance, and will try to update the InstanceDataFromUnitIDs for this unit
 	-- returns: the index of the instanceID in the table on success, else nil
+	if #thisInstance ~= iT.instanceStep then
+		Spring.Echo("Trying to upload an oddly sized instance into",iT.myName, #thisInstance, "instead of ",iT.instanceStep)
+	end
 	local iTusedElements = iT.usedElements
 	local iTStep    = iT.instanceStep 
 	local endOffset = iTusedElements * iTStep
@@ -233,6 +236,7 @@ end
 
 function uploadAllElements(iT)
   -- upload all USED elements
+  if iT.usedElements == 0 then return end
   iT.instanceVBO:Upload(iT.instanceData,nil,0, 1, iT.usedElements * iT.instanceStep)
   iT.dirty = false
   if iT.indextoUnitID then
