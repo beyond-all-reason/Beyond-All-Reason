@@ -82,7 +82,6 @@ vec3 windsweep(vec3 oldpos, vec3 treecenter){
 }
 
 void main() {
-	
 	vec3 scaledModelPos = (vertexPos * scale.w);// * scale.xyz; // TODO: also scale the TBN?
 	
 	mat3 rotY = rotation3dY(worldpos_rot.w);
@@ -143,16 +142,14 @@ void main() {
 	vec4 tex2s = texture(tex2,texcoords.xy);
 	vec4 texns = texture(texnormal,texcoords.xy);
 	//texns = vec4(0.5,0.5,1.0,0.0);
-	texns.rgb = normalize(texns.rgb);
-	vec3 normal = texns.rgb * 2.0 - 1.0;
+	
+	vec3 normal = normalize(texns.rgb * 2.0 - 1.0);
 	normal = normalize(TBN * normal.xyz);
 	
+	vec3 sunPos = normalize(vec3(1.0, 1.0, -1.0));// mat3(shadowView) * vec3(0,0,1) no bueno
 	
-	vec3 sunPos = normalize(vec3(1.0, 2.0, -1.0));// mat3(shadowView) * vec3(0,0,1) no bueno
-	
-	fragColor.rgb = (normal + 1.0) * 0.5 ;
-	
-	
+	fragColor.rgb = (TBN[2] + 1.0) * 0.5 ;
+	//normal = TBN[2];
 	float diffuse = clamp(dot(normalize(normal), sunPos), 0.00, 1.0);
 	
 	vec3 treebasecolor = tex1s.rgb * blendedcolor.rgb;
@@ -161,10 +158,9 @@ void main() {
 	
 	vec3 diffusetreecolor = treebasecolor * sunDiffuseModel.rgb * diffuse;
 	
-
-	fragColor.rgb =  1.5*ambienttreecolor + 2.0* diffusetreecolor;	
+	fragColor.rgb =  1*ambienttreecolor + 2.0* diffusetreecolor;	
 	
-	//fragColor.rgb = vec3(diffuse);
+
 	
 	//fragColor.rgb = normal.rgb * (blendedcolor.rgb + 0.5);
 	fragColor.a = tex2s.a;
@@ -324,7 +320,7 @@ end
 
 function widget:DrawWorldShadow()
 	--Spring.Echo("Drwing shadows")
-	--dodraw()
+	dodraw()
 end
 
 

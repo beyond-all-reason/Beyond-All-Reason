@@ -59,6 +59,7 @@ for objline in open(sys.argv[1]).readlines():
 		for whichvert,objitem in enumerate(objitems[1:4]):
 			
 			vertexorder = [1,2,3]
+
 			if whichvert == 0:
 				vertexorder = [1, 2, 3]
 			elif whichvert ==1:
@@ -103,7 +104,12 @@ for objline in open(sys.argv[1]).readlines():
 				objdata['t'][k] += [tangent]
 			else:
 				objdata['t'][k] = [tangent]
+			objdata['bt'][k] =  [bitangent]
 for k in list(objdata['t'].keys()): # : the Gram-Schmidt processor re
+	#objdata['t'][k]  = objdata['t'][k][0]
+	#objdata['bt'][k]  = objdata['bt'][k][0]
+	#continue
+
 	newt = [0,0,0]
 	oldts = objdata['t'][k]
 	for t in oldts:
@@ -114,7 +120,7 @@ for k in list(objdata['t'].keys()): # : the Gram-Schmidt processor re
 	reT = normalize(subtr(newt, scalarmult( N, dot(newt, N))))
 	objdata['t'][k] = reT
 	objdata['bt'][k] = normalize(cross(N,reT))
-	
+
 for objline in open(sys.argv[1]).readlines():
 	objitems = objline.strip().split()
 	if objitems[0] == 'f':
