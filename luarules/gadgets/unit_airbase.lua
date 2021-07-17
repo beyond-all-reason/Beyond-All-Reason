@@ -232,11 +232,15 @@ if gadgetHandler:IsSyncedCode() then
 	function NeedsRepair(unitID)
 		-- check if this unitID (which is assumed to be a plane) would want to land
 		local health, maxHealth, _, _, buildProgress = spGetUnitHealth(unitID)
-		local landAtState = select(3, spGetUnitStates(unitID, false, true, true)) -- autorepairlevel
-		if buildProgress and buildProgress < 1 then
+		if maxHealth then
+			local landAtState = select(3, spGetUnitStates(unitID, false, true, true)) -- autorepairlevel
+			if buildProgress and buildProgress < 1 then
+				return false
+			end
+			return health < maxHealth * landAtState
+		else
 			return false
 		end
-		return health < maxHealth * landAtState
 	end
 
 	function CheckAll()
