@@ -294,7 +294,6 @@ if gadgetHandler:IsSyncedCode() then
 			if readyState ~= 1 then
 				-- game is not starting (therefore, player cannot yet have pressed ready)
 				Spring.SetGameRulesParam("player_" .. playerID .. "_readyState", 4)
-				--SendToUnsynced("StartPointChosen", playerID)
 			end
 		end
 
@@ -453,11 +452,14 @@ else
 
 	function gadget:Initialize()
 		gadgetHandler:AddSyncAction("PositionTooClose", positionTooClose)
-		--gadgetHandler:AddSyncAction("StartPointChosen", StartPointChosen)
 	end
 
 	function gadget:GameFrame()
 		gadgetHandler:RemoveGadget(self)
+	end
+
+	function gadget:Shutdown()
+		gadgetHandler:RemoveSyncAction("PositionTooClose")
 	end
 end
 

@@ -234,205 +234,18 @@ if gadgetHandler:IsSyncedCode() then
 		-- currently this is no use, because players who joinas see themselves as always having been present, so it doesn't get called...
 	end
 
-	-----------------------------
 else
-	-- begin unsynced section
 	-----------------------------
-
-	local fontfile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
-	local vsx, vsy = Spring.GetViewGeometry()
-	local fontfileScale = (0.5 + (vsx * vsy / 5700000))
-	local fontfileSize = 40
-	local fontfileOutlineSize = 9
-	local fontfileOutlineStrength = 1.4
-	local font = gl.LoadFont(fontfile, fontfileSize * fontfileScale, fontfileOutlineSize * fontfileScale, fontfileOutlineStrength)
-
-	local customScale = 1.15
-	local uiScale = customScale
-	local x = 500
-	local y = 500
+	-- UNSYNCED
+	-----------------------------
 
 	local myPlayerID = Spring.GetMyPlayerID()
 	local spec, _ = Spring.GetSpectatingState()
 	local isReplay = Spring.IsReplay()
 
-	local eligible, guishaderApplied
-
-	local RectRound = Spring.FlowUI.Draw.RectRound
-	local UiElement = Spring.FlowUI.Draw.Element
-	local UiButton = Spring.FlowUI.Draw.Button
-	local elementPadding = Spring.FlowUI.elementPadding
-	local uiPadding = math.floor(elementPadding * 4.5)
-
-	function gadget:ViewResize(viewSizeX, viewSizeY)
-		vsx, vsy = Spring.GetViewGeometry()
-		local newFontfileScale = (0.5 + (vsx * vsy / 5700000))
-		if fontfileScale ~= newFontfileScale then
-			fontfileScale = newFontfileScale
-			gl.DeleteFont(font)
-			font = gl.LoadFont(fontfile, fontfileSize * fontfileScale, fontfileOutlineSize * fontfileScale, fontfileOutlineStrength)
-		end
-		UiElement = Spring.FlowUI.Draw.Element
-		UiButton = Spring.FlowUI.Draw.Button
-		elementPadding = Spring.FlowUI.elementPadding
-		uiPadding = math.floor(elementPadding * 4.5)
-	end
-
-	local subsButton, subsButtonHover
-	local bX = math.floor(vsx * 0.77)
-	local bY = math.floor(vsy * 0.77)
-	local bH = 30
-	local bW = 140
-	local bgMargin = 2.5
-	local offer = false
-
-	function correctMouseForScaling(x, y)
-		local buttonScreenCenterPosX = (bX + (bW / 2)) / vsx
-		local buttonScreenCenterPosY = (bY + (bH / 2)) / vsy
-		x = x - (((x / vsx) - buttonScreenCenterPosX) * vsx) * ((uiScale - 1) / uiScale)
-		y = y - (((y / vsy) - buttonScreenCenterPosY) * vsy) * ((uiScale - 1) / uiScale)
-		return x, y
-	end
-
-	local function MakeButton()
-		subsButton = gl.DeleteList(subsButton)
-		subsButton = gl.CreateList(function()
-			-- draws background rectangle
-			gl.Color(0, 0, 0, 0.8)
-			RectRound(-((bW / 2) + bgMargin), -((bH / 2) + bgMargin), ((bW / 2) + bgMargin), ((bH / 2) + bgMargin), 4, 2, 2, 2, 2)
-			--gl.Color(1,1,1,0.13)
-			RectRound(-bW / 2, -bH / 2, bW / 2, bH / 2, 3, 2, 2, 2, 2, { 1, 1, 1, 0 }, { 1, 1, 1, 0.1 })
-			-- gloss
-			gl.Blending(GL.SRC_ALPHA, GL.ONE)
-			RectRound(-bW / 2, 0, bW / 2, bH / 2, 3, 2, 2, 0, 0, { 1, 1, 1, 0.035 }, { 1, 1, 1, 0.11 })
-			RectRound(-bW / 2, -bH / 2, bW / 2, -bH / 4, 3, 0, 0, 2, 2, { 1, 1, 1, 0.045 }, { 1, 1, 1, 0 })
-			gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
-			gl.Color(1, 1, 1, 1)
-		end)
-		subsButtonHover = gl.DeleteList(subsButtonHover)
-		subsButtonHover = gl.CreateList(function()
-			-- draws background rectangle
-			gl.Color(0.15, 0.12, 0, 0.8)
-			RectRound(-((bW / 2) + bgMargin), -((bH / 2) + bgMargin), ((bW / 2) + bgMargin), ((bH / 2) + bgMargin), 4, 2, 2, 2, 2)
-			--gl.Color(1,0.8,0.3,0.33)
-			RectRound(-bW / 2, -bH / 2, bW / 2, bH / 2, 3, 2, 2, 2, 2, { 1, 1, 1, 0 }, { 1, 1, 1, 0.22 })
-			-- gloss
-			gl.Blending(GL.SRC_ALPHA, GL.ONE)
-			RectRound(-bW / 2, 0, bW / 2, bH / 2, 3, 2, 2, 0, 0, { 1, 1, 1, 0.05 }, { 1, 1, 1, 0.18 })
-			RectRound(-bW / 2, -bH / 2, bW / 2, -bH / 4, 3, 0, 0, 2, 2, { 1, 1, 1, 0.07 }, { 1, 1, 1, 0 })
-			gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
-			gl.Color(1, 1, 1, 1)
-		end)
-	end
-
-	local function substitutionOccurred(incoming, outgoing)
-		Spring.Echo(Spring.I18N('ui.substitutePlayers.substitutedPlayers', { incoming = incoming, outgoing = outgoing }))
-	end
-
-	function gadget:Initialize()
-		if isReplay or (tonumber(Spring.GetModOptions().ffa_mode) or 0) == 1 or Spring.GetGameFrame() > 6 then
-			gadgetHandler:RemoveGadget() -- don't run in FFA mode
-			return
-		end
-
-		gadgetHandler:AddSyncAction("MarkStartPoint", MarkStartPoint)
-		gadgetHandler:AddSyncAction("SubstitutionOccurred", substitutionOccurred)
-		--gadgetHandler:AddSyncAction("ForceSpec", ForceSpec)
-
-		-- match the equivalent check in synced
-		local tsMu = "30"--customtable.skill
-		local tsSigma = "0"--customtable.skilluncertainty
-		tsSigma = tonumber(tsSigma)
-		eligible = tsMu and tsSigma and (tsSigma <= 2) and (not string.find(tsMu, ")")) and spec
-
-		MakeButton()
-	end
-
-	function gadget:DrawScreen()
-		if eligible then
-			-- ask each spectator if they would like to replace an absent player
-			uiScale = (0.75 + (vsx * vsy / 7500000)) * customScale
-			gl.PushMatrix()
-			gl.Translate(bX + (bW / 2), bY + (bH / 2), 0)
-			gl.Scale(uiScale, uiScale, 1)
-
-			-- draw button and its text
-			local x, y = Spring.GetMouseState()
-			local colorString
-			x, y = correctMouseForScaling(x, y)
-			if x > bX - bgMargin and x < bX + bW + bgMargin and y > bY - bgMargin and y < bY + bH + bgMargin then
-				gl.CallList(subsButtonHover)
-				colorString = "\255\255\222\0"
-			else
-				gl.CallList(subsButton)
-				colorString = "\255\255\255\255"
-			end
-			if not guishaderApplied and Script.LuaUI("GuishaderInsertRect") then
-				guishaderApplied = true
-				local x1, y1 = correctMouseForScaling(bX - bgMargin, bY - bgMargin)
-				local x2, y2 = correctMouseForScaling(bX + bW + bgMargin, bY + bH + bgMargin)
-				Script.LuaUI.GuishaderInsertRect(x1, y1, x2, y2, 'offertoplay')
-			end
-			local textString
-			if not offer then
-				textString = Spring.I18N('ui.substitutePlayers.offer')
-			else
-				textString = Spring.I18N('ui.substitutePlayers.withdraw')
-			end
-			font:Begin()
-			font:Print(colorString .. textString, -((bW / 2) - 12.5), -((bH / 2) - 9.5), 19, "o")
-			font:End()
-			gl.Color(1, 1, 1, 1)
-			gl.PopMatrix()
-		else
-			if guishaderApplied and Script.LuaUI("GuishaderRemoveRect") then
-				Script.LuaUI.GuishaderRemoveRect('offertoplay')
-				guishaderApplied = nil
-			end
-			gadgetHandler:RemoveCallIn("DrawScreen") -- no need to waste cycles
-		end
-	end
-
-	function gadget:MousePress(sx, sy)
-		-- pressing b
-		sx, sy = correctMouseForScaling(sx, sy)
-		if sx > bX - bgMargin and sx < bX + bW + bgMargin and sy > bY - bgMargin and sy < bY + bH + bgMargin and eligible then
-			if not offer then
-				Spring.SendLuaRulesMsg('\144')
-				Spring.Echo(Spring.I18N('ui.substitutePlayers.substitutionMessage'))
-				offer = true
-				bW = 160
-				MakeButton()
-				return true
-			else
-				Spring.SendLuaRulesMsg('\145')
-				Spring.Echo(Spring.I18N('ui.substitutePlayers.offerWithdrawn'))
-				offer = false
-				bW = 140
-				MakeButton()
-				return true
-			end
-		end
-		return false
-	end
-
-	function gadget:MouseRelease(x, y)
-	end
-
-	function gadget:GameStart()
-		eligible = false -- no substitutions after game start
-	end
-
 	local revealed = false
-	function MarkStartPoint(_, x, y, z, name, tID)
-		local _, _, spec = Spring.GetPlayerInfo(myPlayerID)
-		if not spec then
-			Spring.MarkerAddPoint(x, y, z, colourNames(tID) .. name, true)
-			revealed = true
-		end
-	end
 
-	function colourNames(teamID)
+	local function colourNames(teamID)
 		local nameColourR, nameColourG, nameColourB, nameColourA = Spring.GetTeamColor(teamID)
 		local R255 = math.floor(nameColourR * 255)
 		local G255 = math.floor(nameColourG * 255)
@@ -449,15 +262,37 @@ else
 		return "\255" .. string.char(R255) .. string.char(G255) .. string.char(B255) --works thanks to zwzsg
 	end
 
+	local function MarkStartPoint(_, x, y, z, name, teamID)
+		local _, _, spec = Spring.GetPlayerInfo(myPlayerID)
+		if not spec then
+			Spring.MarkerAddPoint(x, y, z, colourNames(teamID) .. name, true)
+			revealed = true
+		end
+	end
+
+	local function substitutionOccurred(incoming, outgoing)
+		Spring.Echo(Spring.I18N('ui.substitutePlayers.substitutedPlayers', { incoming = incoming, outgoing = outgoing }))
+	end
+
+	function gadget:Initialize()
+		if isReplay or (tonumber(Spring.GetModOptions().ffa_mode) or 0) == 1 or Spring.GetGameFrame() > 6 then
+			gadgetHandler:RemoveGadget() -- don't run in FFA mode
+			return
+		end
+
+		gadgetHandler:AddSyncAction("MarkStartPoint", MarkStartPoint)
+		gadgetHandler:AddSyncAction("SubstitutionOccurred", substitutionOccurred)
+		--gadgetHandler:AddSyncAction("ForceSpec", ForceSpec)
+	end
+
 	function gadget:GameFrame(n)
-		if n ~= 5 then
+		if n < 5 then
 			return
 		end
 		if revealed then
 			Spring.Echo(Spring.I18N('ui.substitutePlayers.substituted'))
 		end
-
-		gadgetHandler:RemoveCallIn("GameFrame")
+		gadgetHandler:RemoveGadget()
 	end
 
 	--[[function ForceSpec(_,pID)
@@ -469,14 +304,9 @@ else
 	end]]
 
 	function gadget:Shutdown()
-		gl.DeleteList(subsButton)
-		gl.DeleteList(subsButtonHover)
-		gl.DeleteFont(font)
 		gadgetHandler:RemoveSyncAction("MarkStartPoint")
 		gadgetHandler:RemoveSyncAction("SubstitutionOccurred")
 		--gadgetHandler:RemoveSyncAction("ForceSpec")
 	end
 
-	-----------------------------
-end -- end unsynced section
------------------------------
+end

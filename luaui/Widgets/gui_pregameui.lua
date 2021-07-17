@@ -20,7 +20,7 @@ local font = gl.LoadFont(fontfile, fontfileSize * fontfileScale, fontfileOutline
 
 local uiScale = (0.8 + (vsx * vsy / 5000000))
 local myPlayerID = Spring.GetMyPlayerID()
-local _, _, spec, myTeamID = Spring.GetPlayerInfo(myPlayerID, false)
+local _, _, mySpec, myTeamID = Spring.GetPlayerInfo(myPlayerID, false)
 local amNewbie
 local ffaMode = (tonumber(Spring.GetModOptions().ffa_mode) or 0) == 1
 local isReplay = Spring.IsReplay()
@@ -51,13 +51,17 @@ local UiButton = Spring.FlowUI.Draw.Button
 local elementPadding = Spring.FlowUI.elementPadding
 local uiPadding = math.floor(elementPadding * 4.5)
 
+local eligible = false
+local offer = false
+
+
 local function createButton()
-	buttonList = gl.DeleteList(buttonList)
+	gl.DeleteList(buttonList)
 	buttonList = gl.CreateList(function()
 		UiElement(buttonX - (buttonW / 2) - uiPadding, buttonY - (buttonH / 2) - uiPadding, buttonX + (buttonW / 2) + uiPadding, buttonY + (buttonH / 2) + uiPadding, 1, 1, 1, 1, 1, 1, 1, 1)
 		UiButton(buttonX - (buttonW / 2), buttonY - (buttonH / 2), buttonX + (buttonW / 2), buttonY + (buttonH / 2), 1, 1, 1, 1, 1, 1, 1, 1, nil, { 0.15, 0.11, 0, 1 }, { 0.28, 0.21, 0, 1 })
 	end)
-	buttonHoverList = gl.DeleteList(buttonHoverList)
+	gl.DeleteList(buttonHoverList)
 	buttonHoverList = gl.CreateList(function()
 		UiElement(buttonX - (buttonW / 2) - uiPadding, buttonY - (buttonH / 2) - uiPadding, buttonX + (buttonW / 2) + uiPadding, buttonY + (buttonH / 2) + uiPadding, 1, 1, 1, 1, 1, 1, 1, 1)
 		UiButton(buttonX - (buttonW / 2), buttonY - (buttonH / 2), buttonX + (buttonW / 2), buttonY + (buttonH / 2), 1, 1, 1, 1, 1, 1, 1, 1, nil, { 0.25, 0.20, 0, 1 }, { 0.44, 0.35, 0, 1 })
@@ -71,8 +75,17 @@ function widget:ViewResize(viewSizeX, viewSizeY)
 
 	buttonX = math.floor(vsx * 0.78)
 	buttonY = math.floor(vsy * 0.78)
-
-	orgbuttonW = font:GetTextWidth('       '..Spring.I18N('ui.initialSpawn.ready')) * 24
+	local textString
+	if mySpec then
+		if not offer then
+			textString = Spring.I18N('ui.substitutePlayers.offer')
+		else
+			textString = Spring.I18N('ui.substitutePlayers.withdraw')
+		end
+	else
+		textString = Spring.I18N('ui.initialSpawn.ready')
+	end
+	orgbuttonW = font:GetTextWidth('       '..textString) * 24
 	buttonW = math.floor(orgbuttonW * uiScale / 2) * 2
 	buttonH = math.floor(orgbuttonH * uiScale / 2) * 2
 
@@ -125,23 +138,43 @@ function widget:GameSetup(state, ready, playerStates)
 end
 
 function widget:MousePress(sx, sy)
-	-- pressing ready element
-	if sx > buttonX - (buttonW / 2) - uiPadding and sx < buttonX + (buttonW / 2) + uiPadding and sy > buttonY - (buttonH / 2) - uiPadding and sy < buttonY + (buttonH / 2) + uiPadding and Spring.GetGameFrame() <= 0 and Game.startPosType == 2 and gameStarting == nil and not spec then
-		-- pressing ready button
-		if sx > buttonX - (buttonW / 2) and sx < buttonX + (buttonW / 2) and sy > buttonY - (buttonH / 2) and sy < buttonY + (buttonH / 2) then
-			if startPointChosen then
-				readied = true
-			else
-				Spring.Echo(Spring.I18N('ui.initialSpawn.choosePoint'))
+
+	if Game.startPosType == 2 and gameStarting == nil then
+
+		-- pressing element
+		if sx > buttonX - (buttonW / 2) - uiPadding and sx < buttonX + (buttonW / 2) + uiPadding and sy > buttonY - (buttonH / 2) - uiPadding and sy < buttonY + (buttonH / 2) + uiPadding then
+			-- pressing button
+			if sx > buttonX - (buttonW / 2) and sx < buttonX + (buttonW / 2) and sy > buttonY - (buttonH / 2) and sy < buttonY + (buttonH / 2) then
+
+				-- ready
+				if not mySpec then
+					if startPointChosen then
+						readied = true
+					else
+						Spring.Echo(Spring.I18N('ui.initialSpawn.choosePoint'))
+					end
+
+				-- substitute
+				elseif eligible then
+					if not offer then
+						Spring.SendLuaRulesMsg('\144')
+						Spring.Echo(Spring.I18N('ui.substitutePlayers.substitutionMessage'))
+					else
+						Spring.SendLuaRulesMsg('\145')
+						Spring.Echo(Spring.I18N('ui.substitutePlayers.offerWithdrawn'))
+					end
+					offer = not offer
+					widget:ViewResize(vsx, vsy)
+				end
 			end
+			return true
 		end
-		return true
-	end
-	-- message when trying to place startpoint but can't
-	if amNewbie then
-		local target, _ = Spring.TraceScreenRay(sx, sy)
-		if target == "ground" then
-			Spring.Echo(Spring.I18N('ui.initialSpawn.newbiePlacer'))
+		-- message when trying to place startpoint but can't
+		if not mySpec and amNewbie then
+			local target, _ = Spring.TraceScreenRay(sx, sy)
+			if target == "ground" then
+				Spring.Echo(Spring.I18N('ui.initialSpawn.newbiePlacer'))
+			end
 		end
 	end
 end
@@ -151,9 +184,8 @@ function widget:MouseRelease(sx, sy)
 end
 
 local function checkStartPointChosen()
-	local _, _, spec = Spring.GetPlayerInfo(myPlayerID, false)
 	local isNewbie = (Spring.GetTeamRulesParam(myTeamID, 'isNewbie') == 1) -- =1 means the startpoint will be replaced and chosen by initial_spawn
-	if not spec and not isNewbie then
+	if not mySpec and not isNewbie then
 		local x, y, z = Spring.GetTeamStartPosition(myTeamID)
 		if x ~= nil and x > 0 and z > 0 then
 			startPointChosen = true
@@ -162,6 +194,15 @@ local function checkStartPointChosen()
 end
 
 function widget:Initialize()
+	if mySpec then
+		local tsMu = "30"--customtable.skill
+		local tsSigma = "0"--customtable.skilluncertainty
+		eligible = tsMu and tsSigma and (tsSigma <= 2) and (not string.find(tsMu, ")")) and mySpec
+		if isReplay or (tonumber(Spring.GetModOptions().ffa_mode) or 0) == 1 or Spring.GetGameFrame() > 0 then
+			eligible = false
+		end
+	end
+
 	checkStartPointChosen()
 	widget:ViewResize(vsx, vsy)
 end
@@ -173,10 +214,10 @@ function widget:DrawScreen()
 	end
 
 	if WG['guishader'] then
-		WG['guishader'].RemoveRect('ready')
+		WG['guishader'].RemoveRect('pregameui')
 	end
 
-	if not readied and buttonList and Game.startPosType == 2 and gameStarting == nil and not spec and not isReplay then
+	if not readied and buttonList and Game.startPosType == 2 and gameStarting == nil and not mySpec and not isReplay then
 		--if not readied and buttonList and not spec and not isReplay then
 
 		if WG['guishader'] then
@@ -185,7 +226,7 @@ function widget:DrawScreen()
 				buttonY - ((buttonH / 2) + uiPadding),
 				buttonX + ((buttonW / 2) + uiPadding),
 				buttonY + ((buttonH / 2) + uiPadding),
-				'ready'
+				'pregameui'
 			)
 		end
 
@@ -226,6 +267,6 @@ function widget:Shutdown()
 	gl.DeleteList(buttonHoverList)
 	gl.DeleteFont(font)
 	if WG['guishader'] then
-		WG['guishader'].RemoveRect('ready')
+		WG['guishader'].RemoveRect('pregameui')
 	end
 end
