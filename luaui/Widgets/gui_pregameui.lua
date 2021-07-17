@@ -54,6 +54,21 @@ local uiPadding = math.floor(elementPadding * 4.5)
 local eligible = false
 local offer = false
 
+local numPlayers = 0
+local teams = Spring.GetTeamList()
+for i = 1, #teams do
+	local _, _, _, isAiTeam = Spring.GetTeamInfo(teams[i], false)
+	local luaAI = Spring.GetTeamLuaAI(teams[i])
+	if (not luaAI or luaAI == '') and not isAiTeam and teams[i] ~= Spring.GetGaiaTeamID() then
+		numPlayers = numPlayers + 1
+	end
+end
+teams = nil
+--local isSinglePlayer = numPlayers == 1
+if numPlayers <= 4 then
+	-- not needed to show sub button for small games where restarting one the better option
+	--return
+end
 
 local function createButton()
 	gl.DeleteList(buttonList)
@@ -198,7 +213,7 @@ function widget:Initialize()
 		local tsMu = "30"--customtable.skill
 		local tsSigma = "0"--customtable.skilluncertainty
 		eligible = tsMu and tsSigma and (tsSigma <= 2) and (not string.find(tsMu, ")")) and mySpec
-		if isReplay or (tonumber(Spring.GetModOptions().ffa_mode) or 0) == 1 or Spring.GetGameFrame() > 0 then
+		if numPlayers <= 4 or isReplay or (tonumber(Spring.GetModOptions().ffa_mode) or 0) == 1 or Spring.GetGameFrame() > 0 then
 			eligible = false
 		end
 	end
