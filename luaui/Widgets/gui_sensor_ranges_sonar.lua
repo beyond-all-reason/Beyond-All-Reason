@@ -1,5 +1,3 @@
-return
-
 function widget:GetInfo()
 	return {
 		name      = "Sensor Ranges Sonar",
@@ -8,7 +6,7 @@ function widget:GetInfo()
 		date      = "2021.06.20",
 		license   = "CC BY-NC",
 		layer     = 0,
-		enabled   = true
+		enabled   = false
 	}
 end
  

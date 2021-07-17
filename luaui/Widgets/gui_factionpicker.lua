@@ -5,7 +5,7 @@ function widget:GetInfo()
 		author = "Floris",
 		date = "May 2020",
 		license = "GNU GPL, v2 or later",
-		layer = 0,
+		layer = -1,
 		enabled = true
 	}
 end
@@ -213,7 +213,7 @@ function widget:ViewResize()
 		if buildmenuBottomPos then
 			posX = 0
 			posY = height + height + (widgetSpaceMargin/vsy)
-		else
+		elseif WG['buildmenu'] then
 			local posY2, _ = WG['buildmenu'].getSize()
 			posY2 = posY2 + (widgetSpaceMargin/vsy)
 			posY = posY2 + height
@@ -359,6 +359,7 @@ function widget:RecvLuaMsg(msg, playerID)
 end
 
 function widget:DrawScreen()
+
 	if chobbyInterface then
 		return
 	end

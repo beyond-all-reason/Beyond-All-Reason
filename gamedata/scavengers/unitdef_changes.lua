@@ -88,14 +88,14 @@ customDefs.corcom = {
 	hidedamage = true,
 	idleautoheal = 20,
 	maxdamage = 9000*ScavDifficultyMultiplier,
-	maxvelocity = 0.55,
+	--maxvelocity = 0.55,
 	turnrate = 50000,
 	mincloakdistance = 20,
 	movementclass = "SCAVCOMMANDERBOT",
 	selfdestructas = "scavcomexplosion",
 	showplayername = false,
 	stealth = false,
-	workertime = 1000*ScavDifficultyMultiplier,				-- can get multiplied in unitdef_post
+	workertime = 800*ScavDifficultyMultiplier,				-- can get multiplied in unitdef_post
 	customparams = {
 		iscommander = 'nil',		-- since you cant actually remove parameters normally, it will do it when you set string: 'nil' as value
 	},
@@ -155,14 +155,14 @@ customDefs.corcomcon = {
 	hidedamage = true,
 	idleautoheal = 20,
 	maxdamage = 9000*ScavDifficultyMultiplier,
-	maxvelocity = 0.55,
+	--maxvelocity = 0.55,
 	--turnrate = 50000,
 	mincloakdistance = 20,
 	movementclass = "SCAVCOMMANDERBOT",
 	selfdestructas = "scavcomexplosion",
 	showplayername = false,
 	stealth = false,
-	workertime = 1000*ScavDifficultyMultiplier,				-- can get multiplied in unitdef_post
+	workertime = 800*ScavDifficultyMultiplier,				-- can get multiplied in unitdef_post
 	customparams = {
 		iscommander = 'nil',		-- since you cant actually remove parameters normally, it will do it when you set string: 'nil' as value
 	},
@@ -221,14 +221,14 @@ customDefs.armcom = {
 	hidedamage = true,
 	idleautoheal = 20,
 	maxdamage = 9000*ScavDifficultyMultiplier,
-	maxvelocity = 0.55,
+	--maxvelocity = 0.55,
 	turnrate = 50000,
 	mincloakdistance = 20,
 	movementclass = "SCAVCOMMANDERBOT",
 	selfdestructas = "scavcomexplosion",
 	showplayername = false,
 	stealth = false,
-	workertime = 1000*ScavDifficultyMultiplier,				-- can get multiplied in unitdef_post
+	workertime = 800*ScavDifficultyMultiplier,				-- can get multiplied in unitdef_post
 	customparams = {
 		iscommander = 'nil',		-- since you cant actually remove parameters normally, it will do it when you set string: 'nil' as value
 	},
@@ -287,14 +287,14 @@ customDefs.armcomcon = {
 	hidedamage = true,
 	idleautoheal = 20,
 	maxdamage = 9000*ScavDifficultyMultiplier,
-	maxvelocity = 0.55,
+	--maxvelocity = 0.55,
 	--turnrate = 50000,
 	mincloakdistance = 20,
 	movementclass = "SCAVCOMMANDERBOT",
 	selfdestructas = "scavcomexplosion",
 	showplayername = false,
 	stealth = false,
-	workertime = 1000*ScavDifficultyMultiplier,				-- can get multiplied in unitdef_post
+	workertime = 800*ScavDifficultyMultiplier,				-- can get multiplied in unitdef_post
 	customparams = {
 		iscommander = 'nil',		-- since you cant actually remove parameters normally, it will do it when you set string: 'nil' as value
 	},
@@ -371,234 +371,6 @@ customDefs.corscavdtm = {
 customDefs.corscavdtl = {
 	decoyfor = "corscavdrag_scav",
 }
-
--- M/E storages T1 give rewarding amounts of metal / energy for reclaim
-
--- customDefs.armmstor = {
-	-- explodeas = "decoycommander",
-	-- --buildcostmetal = 1500,
-	-- featuredefs = {
-		-- dead = {
-			-- category = "loot",
-			-- description = "3000 Metal Lootbox",
-			-- damage = 3000,
-			-- metal = 3000, --50% reduction for being scav?
-			-- energy = 0,
-			-- object = "scavs/scavcrate.s3o",
-			-- resurrectable = 0,
-			-- smokeTime = 0,
-		-- },
-		-- heap = {
-			-- category = "loot",
-			-- description = "1500 Metal Lootbox (Damaged)",
-			-- damage = 1500,
-			-- metal = 1500, --50% reduction for being scav?
-			-- energy = 0,
-			-- object = "scavs/scavcrate.s3o",
-			-- resurrectable = 0,
-			-- smokeTime = 0,
-		-- },
-	-- },
--- }
-
--- customDefs.armestor = {
-	-- explodeas = "decoycommander",
-	-- --buildcostenergy = 3000,
-	-- featuredefs = {
-		-- dead = {
-			-- category = "corpses",
-			-- collisionvolumescales = "26 26 26",
-			-- description = "6000 Energy Lootbox",
-			-- damage = 3000,
-			-- energy = 6000, --50% reduction for being scav?
-			-- metal = 0,
-			-- object = "scavs/scavcrate.s3o",
-			-- resurrectable = 0,
-			-- smokeTime = 0,
-			-- -- customparams = {
-			-- -- 	normaltex = "unittextures/cor_normal.dds",
-			-- -- },
-		-- },
-		-- heap = {
-			-- category = "corpses",
-			-- collisionvolumescales = "26 26 26",
-			-- description = "3000 Energy Lootbox Damaged",
-			-- damage = 1500,
-			-- energy = 3000, --50% reduction for being scav?
-			-- metal = 0,
-			-- object = "scavs/scavcrate.s3o",
-			-- resurrectable = 0,
-			-- smokeTime = 0,
-			-- -- customparams = {
-			-- -- 	normaltex = "unittextures/cor_normal.dds",
-			-- -- },
-		-- },
-	-- },
--- }
-
--- customDefs.cormstor = {
-	-- explodeas = "decoycommander",
-	-- --buildcostmetal = 1500,
-	-- featuredefs = {
-		-- dead = {
-			-- category = "loot",
-			-- description = "3000 Metal Lootbox",
-			-- damage = 3000,
-			-- metal = 3000, --50% reduction for being scav
-			-- energy = 0,
-			-- object = "scavs/scavcrate.s3o",
-			-- resurrectable = 0,
-			-- smokeTime = 0,
-		-- },
-		-- heap = {
-			-- category = "loot",
-			-- description = "1500 Metal Lootbox Damaged",
-			-- damage = 1500,
-			-- metal = 1500, --50% reduction for being scav
-			-- energy = 0,
-			-- object = "scavs/scavcrate.s3o",
-			-- resurrectable = 0,
-			-- smokeTime = 0,
-		-- },
-	-- },
--- }
-
--- customDefs.corestor = {
-	-- explodeas = "decoycommander",
-	-- --buildcostenergy = 3000,
-	-- featuredefs = {
-		-- dead = {
-			-- category = "loot",
-			-- description = "6000 Energy Lootbox",
-			-- damage = 3000,
-			-- energy = 6000, --50% reduction for being scav
-			-- metal = 0,
-			-- object = "scavs/scavcrate.s3o",
-			-- resurrectable = 0,
-			-- smokeTime = 0,
-		-- },
-		-- heap = {
-			-- category = "loot",
-			-- description = "3000 Energy Lootbox Damaged",
-			-- damage = 1500,
-			-- energy = 3000, --50% reduction for being scav
-			-- metal = 0,
-			-- object = "scavs/scavcrate.s3o",
-			-- resurrectable = 0,
-		-- },
-	-- },
--- }
-
--- -- M/E storages T2 give rewarding amounts of metal / energy for reclaim
-
--- customDefs.armuwadvms = {
-	-- explodeas = "decoycommander",
-	-- --buildcostmetal = 5000,
-	-- featuredefs = {
-		-- dead = {
-			-- category = "loot",
-			-- description = "Big 10000 Metal Lootbox",
-			-- damage = 4500,
-			-- metal = 10000, --50% reduction for being scav
-			-- energy = 0,
-			-- object = "scavs/scavcrate.s3o",
-			-- resurrectable = 0,
-			-- smokeTime = 0,
-		-- },
-		-- heap = {
-			-- category = "loot",
-			-- description = "Big 5000 Metal Lootbox Damaged",
-			-- damage = 2250,
-			-- metal = 5000, --50% reduction for being scav
-			-- energy = 0,
-			-- object = "scavs/scavcrate.s3o",
-			-- resurrectable = 0,
-			-- smokeTime = 0,
-		-- },
-	-- },
--- }
-
--- customDefs.armuwadves = {
-	-- explodeas = "decoycommander",
-	-- --buildcostenergy = 20000,
-	-- featuredefs = {
-	    -- dead = {
-			-- category = "loot",
-			-- description = "Big 10000 Energy Lootbox",
-			-- damage = 4500,
-			-- energy = 10000, --50% reduction for being scav
-			-- metal = 0,
-			-- object = "scavs/scavcrate.s3o",
-			-- resurrectable = 0,
-			-- smokeTime = 0,
-		-- },
-		-- heap = {
-			-- category = "loot",
-			-- description = "Big 5000 Energy Lootbox Damaged",
-			-- damage = 2250,
-			-- energy = 5000, --50% reduction for being scav
-			-- metal = 0,
-			-- object = "scavs/scavcrate.s3o",
-			-- resurrectable = 0,
-			-- smokeTime = 0,
-		-- },
-	-- },
--- }
-
--- customDefs.coruwadvms = {
-	-- explodeas = "decoycommander",
-	-- --buildcostmetal = 5000,
-	-- featuredefs = {
-		-- dead = {
-			-- category = "loot",
-			-- description = "Big 10000 Metal Lootbox",
-			-- damage = 4500,
-			-- metal = 10000, --50% reduction for being scav
-			-- energy = 0,
-			-- object = "scavs/scavcrate.s3o",
-			-- resurrectable = 0,
-			-- smokeTime = 0,
-		-- },
-		-- heap = {
-			-- category = "loot",
-			-- description = "Big 5000 Metal Lootbox Damaged",
-			-- damage = 2250,
-			-- metal = 5000, --50% reduction for being scav
-			-- energy = 0,
-			-- object = "scavs/scavcrate.s3o",
-			-- resurrectable = 0,
-			-- smokeTime = 0,
-		-- },
-	-- },
--- }
-
--- customDefs.coruwadves = {
-	-- explodeas = "decoycommander",
-	-- --buildcostenergy = 20000,
-	-- featuredefs = {
-		-- dead = {
-			-- category = "loot",
-			-- description = "Big 10000 Energy Lootbox",
-			-- damage = 4500,
-			-- energy = 10000, --50% reduction for being scav
-			-- metal = 0,
-			-- object = "scavs/scavcrate.s3o",
-			-- resurrectable = 0,
-			-- smokeTime = 0,
-		-- },
-		-- heap = {
-			-- category = "loot",
-			-- description = "Big 5000 Energy Lootbox Damaged",
-			-- damage = 2250,
-			-- energy = 5000, --50% reduction for being scav
-			-- metal = 0,
-			-- object = "scavs/scavcrate.s3o",
-			-- resurrectable = 0,
-			-- smokeTime = 0,
-		-- },
-	-- },
--- }
-
 
 ----CUSTOM UNITS---
 
@@ -766,6 +538,20 @@ customDefs.armasy = {
 		[numBuildoptions+1] = "armptt2",
 		[numBuildoptions+2] = "armdecadet3",
 		[numBuildoptions+3] = "armpshipt3",
+	},
+}
+
+numBuildoptions = #UnitDefs.corap.buildoptions
+customDefs.corap = {
+	buildoptions = {
+		[numBuildoptions+1] = "corassistdrone",
+	},
+}
+
+numBuildoptions = #UnitDefs.armap.buildoptions
+customDefs.armap = {
+	buildoptions = {
+		[numBuildoptions+1] = "armassistdrone",
 	},
 }
 

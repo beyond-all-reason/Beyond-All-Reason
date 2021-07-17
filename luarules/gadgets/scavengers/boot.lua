@@ -190,7 +190,7 @@ function gadget:GameFrame(n)
 		PutScavAlliesInScavTeam(n)
 	end
 
-	if n == 150 and unitSpawnerModuleConfig.initialbonuscommander == true then
+	if n == 60 and unitSpawnerModuleConfig.initialbonuscommander == true then
 		InitialSpawnBonusCommanders()
 	end
 
@@ -244,7 +244,7 @@ function gadget:GameFrame(n)
 		BossMinionsSpawn(n)
 	end
 
-	if n > scavconfig.gracePeriod and scavconfig.modules.startBoxProtection == true and ScavSafeAreaExist == true and FinalBossKilled == false then
+	if n > scavconfig.gracePeriod and scavconfig.modules.startBoxProtection == true and ScavSafeAreaExist == true and (not FinalBossUnitSpawned) then
 		if n%5 == 0 then
 			spawnStartBoxProtection(n)
 		end
@@ -258,7 +258,7 @@ function gadget:GameFrame(n)
 		end
 	end
 
-	if n%30 == 0 and scavconfig.modules.reinforcementsModule then
+	if n%30 == 0 and scavconfig.modules.reinforcementsModule and FinalBossKilled == false then
 		spawnPlayerReinforcements(n)
 		CaptureBeacons(n)
 		SetBeaconsResourceProduction(n)
@@ -300,7 +300,7 @@ function gadget:GameFrame(n)
 		end
 	end
 
-	if n%900 == 0 and n > 100 then
+	if n%900 == 0 and n > 100 and FinalBossKilled == false then
 		teamsCheck()
 		UpdateTierChances(n)
 		if (BossWaveStarted == false) and globalScore > scavconfig.timers.BossFight and unitSpawnerModuleConfig.bossFightEnabled then
@@ -322,16 +322,16 @@ function gadget:GameFrame(n)
 		end
 	end
 
-	if n%90 == 0 and scavconfig.modules.buildingSpawnerModule then --and (not FinalBossUnitSpawned) then
+	if n%90 == 0 and scavconfig.modules.buildingSpawnerModule and FinalBossKilled == false then --and (not FinalBossUnitSpawned) then
 		SpawnBlueprint(n)
 	end
 
-	if n%(math.ceil(300/spawnmultiplier)) == 0 and not scavteamhasplayers and n > scavconfig.gracePeriod and constructorControllerModuleConfig.useresurrectors then
+	if n%(math.ceil(300/spawnmultiplier)) == 0 and not scavteamhasplayers and n > scavconfig.gracePeriod and constructorControllerModuleConfig.useresurrectors and FinalBossKilled == false then
 		constructorController.SpawnResurrectorGroup(n)
 	end
 
 	if n%30 == 0 then
-		if scavconfig.modules.unitSpawnerModule then --and (not FinalBossUnitSpawned) then
+		if scavconfig.modules.unitSpawnerModule and FinalBossKilled == false then --and (not FinalBossUnitSpawned) then
 			SpawnBeacon(n)
 			UnitGroupSpawn(n)
 		end
@@ -717,7 +717,10 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 			if unitName == bossUnitList.Bosses[i] then
 				FinalBossUnitID = unitID
 				local bosshealth = unitSpawnerModuleConfig.FinalBossHealth*teamcount*spawnmultiplier
-				Spring.SetUnitHealth(unitID, bosshealth)
+				local currentbosshealth = Spring.GetUnitMaxHealth()
+				if currentbosshealth > bosshealth then
+					Spring.SetUnitHealth(unitID, bosshealth)
+				end
 			end
 		end
 		if unitName == "corcomcon"..scavconfig.unitnamesuffix then

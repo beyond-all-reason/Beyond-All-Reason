@@ -8,7 +8,7 @@ local function passiveAbilityController(currentFrame)
 	elseif CurrentlyUsedPassiveAbility == "selfrepair" then -- TODO: Add sound and visual effects here
 		local currentbosshealth = Spring.GetUnitHealth(FinalBossUnitID)
 		local initialbosshealth = unitSpawnerModuleConfig.FinalBossHealth*teamcount*spawnmultiplier
-		local healing = initialbosshealth*0.0000125*BossFightCurrentPhase
+		local healing = initialbosshealth*0.0000250*BossFightCurrentPhase
 		if currentbosshealth < initialbosshealth then
 			Spring.SetUnitHealth(FinalBossUnitID, currentbosshealth+healing)
 		end
@@ -207,8 +207,6 @@ local earlyAbilities = {
 }
 
 local midgameAbilities = {
-	abilities.dGun,
-	abilities.dGun,
 	abilities.dGun,
 	abilities.dGunFrenzy,
 	abilities.superDGun,

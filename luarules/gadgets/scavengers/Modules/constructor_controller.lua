@@ -276,9 +276,11 @@ local function spawnResurrectorGroup(n)
 				for y = 1, resurrectorSpawnCount do
 					if posy > -20 then
 						local resurrector = constructorUnitList.Resurrectors[math.random(#constructorUnitList.Resurrectors)]
+						Spring.CreateUnit("scavengerdroppod_scav", posx, posy, posz, math.random(0, 3), GaiaTeamID)
 						QueueSpawn(resurrector, posx, posy, posz, math.random(0, 3), GaiaTeamID, n + (y * 1) + 150)
 					else
 						local seaResurrector = constructorUnitList.ResurrectorsSea[math.random(#constructorUnitList.ResurrectorsSea)]
+						Spring.CreateUnit("scavengerdroppod_scav", posx, posy, posz, math.random(0, 3), GaiaTeamID)
 						QueueSpawn(seaResurrector, posx, posy, posz, math.random(0, 3), GaiaTeamID, n + (y * 1) + 150)
 					end
 				end

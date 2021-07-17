@@ -739,7 +739,7 @@ local function updateResbarText(res)
 						if WG['notifications'] then
 							if allyteamOverflowingEnergy then
 								if numTeamsInAllyTeam > 3 then
-									WG['notifications'].addEvent('WholeTeamWastingEnergy')
+									--WG['notifications'].addEvent('WholeTeamWastingEnergy')
 								else
 									--WG['notifications'].addEvent('YouAreWastingEnergy')
 								end

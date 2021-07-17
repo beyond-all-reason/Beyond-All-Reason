@@ -60,9 +60,9 @@ local ruinBlueprints = {
 
 
 local blueprintsConfig = {
-	[blueprintTypes.Constructor] = { table = constructorBlueprints, tiered = true,  directory = 'luarules/gadgets/scavengers/Blueprints/BYAR/Constructor/', },
-	[blueprintTypes.Spawner] =     { table = spawnerBlueprints,     tiered = true,  directory = 'luarules/gadgets/scavengers/Blueprints/BYAR/Spawner/', },
-	[blueprintTypes.Ruin] =        { table = ruinBlueprints,        tiered = false, directory = 'luarules/gadgets/scavengers/Ruins/BYAR', }
+	[blueprintTypes.Constructor] = { table = constructorBlueprints, tiered = true,  directory = 'luarules/gadgets/scavengers/Blueprints/BYAR/Blueprints/', },
+	[blueprintTypes.Spawner] =     { table = spawnerBlueprints,     tiered = true,  directory = 'luarules/gadgets/scavengers/Blueprints/BYAR/Blueprints/', },
+	[blueprintTypes.Ruin] =        { table = ruinBlueprints,        tiered = false, directory = 'luarules/gadgets/scavengers/Ruins/BYAR/', }
 }
 
 local function insertDummyBlueprints(blueprintType)
