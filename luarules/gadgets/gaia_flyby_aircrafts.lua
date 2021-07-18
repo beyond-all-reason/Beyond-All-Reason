@@ -1,3 +1,5 @@
+return
+
 local scavengersAIEnabled = false
 local scavengerAllyTeamID
 local teams = Spring.GetTeamList()

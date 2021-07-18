@@ -1,7 +1,7 @@
 
 function widget:GetInfo()
 	return {
-		name = "Cursors",
+		name = "Cursor",
 		desc = "auto sets a scale for the cursor based on screen resolution" ,
 		author = "Floris",
 		date = "",

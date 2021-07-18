@@ -2716,15 +2716,15 @@ function init()
 			  end
 		  end,
 		},
-		{ id = "lighteffects_life", group = "gfx", name = widgetOptionColor .. "   "..texts.option.lighteffects_life, min = 0.4, max = 0.9, step = 0.05, type = "slider", value = 0.7, description = texts.option.lighteffects_life_descr,
-		  onload = function(i)
-			  loadWidgetData("Light Effects", "lighteffects_life", { 'globalLifeMult' })
-		  end,
-		  onchange = function(i, value)
-			  saveOptionValue('Light Effects', 'lighteffects', 'setLife', { 'globalLifeMult' }, value)
-		  end,
-		},
-		{ id = "lighteffects_brightness", group = "gfx", name = widgetOptionColor .. "   "..texts.option.lighteffects_brightness, min = 1, max = 2, step = 0.05, type = "slider", value = 1.45, description = texts.option.lighteffects_brightness_descr,
+		--{ id = "lighteffects_life", group = "gfx", name = widgetOptionColor .. "   "..texts.option.lighteffects_life, min = 0.35, max = 0.65, step = 0.05, type = "slider", value = 0.45, description = texts.option.lighteffects_life_descr,
+		--  onload = function(i)
+		--	  loadWidgetData("Light Effects", "lighteffects_life", { 'globalLifeMult' })
+		--  end,
+		--  onchange = function(i, value)
+		--	  saveOptionValue('Light Effects', 'lighteffects', 'setLife', { 'globalLifeMult' }, value)
+		--  end,
+		--},
+		{ id = "lighteffects_brightness", group = "gfx", name = widgetOptionColor .. "   "..texts.option.lighteffects_brightness, min = 1, max = 2, step = 0.05, type = "slider", value = 1.7, description = texts.option.lighteffects_brightness_descr,
 		  onload = function(i)
 			  loadWidgetData("Light Effects", "lighteffects_brightness", { 'globalLightMult' })
 		  end,
@@ -2732,14 +2732,14 @@ function init()
 			  saveOptionValue('Light Effects', 'lighteffects', 'setGlobalBrightness', { 'globalLightMult' }, value)
 		  end,
 		},
-		{ id = "lighteffects_radius", group = "gfx", name = widgetOptionColor .. "   "..texts.option.lighteffects_radius, min = 1, max = 1.6, step = 0.05, type = "slider", value = 1.4, description = texts.option.lighteffects_radius_descr,
-		  onload = function(i)
-			  loadWidgetData("Light Effects", "lighteffects_radius", { 'globalRadiusMult' })
-		  end,
-		  onchange = function(i, value)
-			  saveOptionValue('Light Effects', 'lighteffects', 'setGlobalRadius', { 'globalRadiusMult' }, value)
-		  end,
-		},
+		--{ id = "lighteffects_radius", group = "gfx", name = widgetOptionColor .. "   "..texts.option.lighteffects_radius, min = 1.2, max = 1.7, step = 0.05, type = "slider", value = 1.5, description = texts.option.lighteffects_radius_descr,
+		--  onload = function(i)
+		--	  loadWidgetData("Light Effects", "lighteffects_radius", { 'globalRadiusMult' })
+		--  end,
+		--  onchange = function(i, value)
+		--	  saveOptionValue('Light Effects', 'lighteffects', 'setGlobalRadius', { 'globalRadiusMult' }, value)
+		--  end,
+		--},
 		--{id="lighteffects_laserbrightness", group="gfx", name=widgetOptionColor.."   laser brightness", min=0.4, max=2, step=0.1, type="slider", value=1.2, description='laser lights brightness RELATIVE to global light brightness set above\n\n(only applies to real map and model lighting)',
 		--		 onload = function(i) loadWidgetData("Light Effects", "lighteffects_laserbrightness", {'globalLightMultLaser'}) end,
 		--		 onchange = function(i, value) saveOptionValue('Light Effects', 'lighteffects', 'setLaserBrightness', {'globalLightMultLaser'}, value) end,
@@ -5625,6 +5625,11 @@ function widget:Initialize()
 
 	if WG['lang'] then
 		texts = WG['lang'].getText('options')
+	end
+
+	-- just making sure
+	if widgetHandler.orderList["Pregame UI"] < 0.5 then
+		widgetHandler:EnableWidget("Pregame UI")
 	end
 
 	updateGrabinput()
