@@ -1,5 +1,6 @@
 VFS.Include('common/numberfunctions.lua')
 VFS.Include('common/utilities.lua')
+VFS.Include('common/debugFunctions.lua')
 
 VFS.Include("modules/flowui/flowui.lua")
 

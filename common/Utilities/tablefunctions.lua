@@ -146,15 +146,6 @@ local function explodeString(div,str)
 	return arr
 end
 
-function D(...)
-  local called_from = "Called from: " .. tostring(debug.getinfo(2).name) .. " args:"
-  Spring.Echo(called_from)
-  for i,v in ipairs(arg) do
-    Spring.Echo(tostring(i) .. ": ".. tableToString(v))
-  end
-  return ...
-end
-
 return {
 	CopyTable = copyTable,
 	MergeTable = mergeTable,
