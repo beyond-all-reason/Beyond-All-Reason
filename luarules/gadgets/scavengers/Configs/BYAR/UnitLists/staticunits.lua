@@ -275,8 +275,6 @@ StartboxDefenceStructuresT0Sea = {
 	"corfrt",
 	"corfhlt",
 	"armfhlt",
-	"coratl",
-	"armatl",
 	"corfhlt",
 	"armfhlt",
 }
