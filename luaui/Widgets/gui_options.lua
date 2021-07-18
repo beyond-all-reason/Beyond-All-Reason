@@ -2671,7 +2671,7 @@ function init()
 		},
 
 		{ id = "bloom", group = "gfx", basic = true, widget = "Bloom Shader", name = texts.option.bloom, type = "bool", value = GetWidgetToggleValue("Bloom Shader"), description = texts.option.bloom_descr},
-		{ id = "bloombrightness", group = "gfx", name = widgetOptionColor .. "   "..texts.option.bloombrightness, type = "slider", min = 0.1, max = 0.4, step = 0.05, value = 0.2, description = '',
+		{ id = "bloombrightness", group = "gfx", name = widgetOptionColor .. "   "..texts.option.bloombrightness, type = "slider", min = 0.1, max = 0.25, step = 0.05, value = 0.15, description = '',
 		  onchange = function(i, value)
 			  saveOptionValue('Bloom Shader', 'bloom', 'setBrightness', { 'basicAlpha' }, value)
 		  end,

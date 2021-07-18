@@ -14,7 +14,7 @@ end
 -- config
 --------------------------------------------------------------------------------
 
-local basicAlpha = 0.2
+local basicAlpha = 0.15
 local globalBlursizeMult = 1.1
 
 local dbgDraw = 0					-- debug: draw only the bloom-mask?
