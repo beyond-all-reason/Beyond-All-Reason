@@ -74,7 +74,7 @@ local function miniboss1(currentFrame)
 					Spring.CreateUnit(unit, posx+math_random(-300,300), posy, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)
 				end
 			end
-			ScavSendNotification("scav_eventminiboss")
+			--ScavSendNotification("scav_eventminiboss")
 			break
 		end
 	end

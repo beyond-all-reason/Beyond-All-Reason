@@ -99,29 +99,29 @@ local function spawnConstructor(n)
 		end
 
 		if canSpawnCommanderHere then
-			if initialCommanderSpawn then
-				ScavSendNotification("scav_scavcomdetected")
-				initialCommanderSpawn = false
-			else
-				local s = math.random(0, voiceNotificationsCount)
-				if s == 0 then
-					ScavSendNotification("scav_scavadditionalcomdetected")
-				elseif s == 1 then
-					ScavSendNotification("scav_scavanotherscavcomdetected")
-				elseif s == 2 then
-					ScavSendNotification("scav_scavnewcomentered")
-				elseif s == 3 then
-					ScavSendNotification("scav_scavcomspotted")
-				elseif s == 4 then
-					ScavSendNotification("scav_scavcomnewdetect")
-				else
-					ScavSendMessage("A Scavenger Commander detected")
-				end
+			-- if initialCommanderSpawn then
+			-- 	ScavSendNotification("scav_scavcomdetected")
+			-- 	initialCommanderSpawn = false
+			-- else
+			-- 	local s = math.random(0, voiceNotificationsCount)
+			-- 	if s == 0 then
+			-- 		ScavSendNotification("scav_scavadditionalcomdetected")
+			-- 	elseif s == 1 then
+			-- 		ScavSendNotification("scav_scavanotherscavcomdetected")
+			-- 	elseif s == 2 then
+			-- 		ScavSendNotification("scav_scavnewcomentered")
+			-- 	elseif s == 3 then
+			-- 		ScavSendNotification("scav_scavcomspotted")
+			-- 	elseif s == 4 then
+			-- 		ScavSendNotification("scav_scavcomnewdetect")
+			-- 	else
+			-- 		ScavSendMessage("A Scavenger Commander detected")
+			-- 	end
 
-				if voiceNotificationsCount < 20 then
-					voiceNotificationsCount = voiceNotificationsCount + 1
-				end
-			end
+			-- 	if voiceNotificationsCount < 20 then
+			-- 		voiceNotificationsCount = voiceNotificationsCount + 1
+			-- 	end
+			-- end
 
 			SpawnBeacon(n)
 
