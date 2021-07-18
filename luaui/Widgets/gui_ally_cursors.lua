@@ -372,44 +372,39 @@ local function createCursorDrawList(playerID, opacityMultiplier)
 
 	SetTeamColor(teamID, playerID, 1)
 
-	if not spec and not showPlayerName then
-		--    or    spec  and  not showSpectatorName
-		--draw a cursor
-		if showCursorDot then
-			gl.Texture(allyCursor)
-			gl.BeginEnd(GL.QUADS, DrawGroundquad, wx, wy, wz, quadSize)
-			gl.Texture(false)
-		end
-	else
-		if not spec and showCursorDot then
-			--draw a cursor
-			gl.Texture(allyCursor)
-			gl.BeginEnd(GL.QUADS, DrawGroundquad, wx, wy, wz, quadSize)
-			gl.Texture(false)
-		end
+	-- draw player cursor
+	if not spec and showCursorDot then
+		gl.Texture(allyCursor)
+		gl.BeginEnd(GL.QUADS, DrawGroundquad, wx, wy, wz, quadSize)
+		gl.Texture(false)
+	end
 
-		--draw the nickname
-		gl.PushMatrix()
-		gl.Translate(wx, wy, wz)
-		gl.Rotate(-90, 1, 0, 0)
+	if spec or showPlayerName then
 
-		font:Begin()
-		if spec then
-			font:SetTextColor(1, 1, 1, fontOpacitySpec * opacityMultiplier)
-			font:Print(name, 0, 0, fontSizeSpec, "cn")
-		else
-			local verticalOffset = usedCursorSize + 8
-			local horizontalOffset = usedCursorSize + 1
-			-- text shadow
-			font:SetTextColor(0, 0, 0, fontOpacityPlayer * 0.62 * opacityMultiplier)
-			font:Print(name, horizontalOffset - (fontSizePlayer / 50), verticalOffset - (fontSizePlayer / 42), fontSizePlayer, "n")
-			font:Print(name, horizontalOffset + (fontSizePlayer / 50), verticalOffset - (fontSizePlayer / 42), fontSizePlayer, "n")
-			-- text
-			font:SetTextColor(r, g, b, fontOpacityPlayer * opacityMultiplier)
-			font:Print(name, horizontalOffset, verticalOffset, fontSizePlayer, "n")
+		-- draw nickname
+		if not spec or showSpectatorName then
+			gl.PushMatrix()
+			gl.Translate(wx, wy, wz)
+			gl.Rotate(-90, 1, 0, 0)
+
+			font:Begin()
+			if spec then
+				font:SetTextColor(1, 1, 1, fontOpacitySpec * opacityMultiplier)
+				font:Print(name, 0, 0, fontSizeSpec, "cn")
+			else
+				local verticalOffset = usedCursorSize + 8
+				local horizontalOffset = usedCursorSize + 1
+				-- text shadow
+				font:SetTextColor(0, 0, 0, fontOpacityPlayer * 0.62 * opacityMultiplier)
+				font:Print(name, horizontalOffset - (fontSizePlayer / 50), verticalOffset - (fontSizePlayer / 42), fontSizePlayer, "n")
+				font:Print(name, horizontalOffset + (fontSizePlayer / 50), verticalOffset - (fontSizePlayer / 42), fontSizePlayer, "n")
+				-- text
+				font:SetTextColor(r, g, b, fontOpacityPlayer * opacityMultiplier)
+				font:Print(name, horizontalOffset, verticalOffset, fontSizePlayer, "n")
+			end
+			font:End()
+			gl.PopMatrix()
 		end
-		font:End()
-		gl.PopMatrix()
 	end
 end
 
