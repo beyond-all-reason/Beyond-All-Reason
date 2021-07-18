@@ -337,9 +337,9 @@ function widget:PlayerChanged(playerID)
 	end
 
 	-- update speclist when player becomes spectator
-	if isSpec and not specList[playerID] then
+	--if isSpec and not specList[playerID] then
 		updateSpecList()
-	end
+	--end
 end
 
 function widget:PlayerAdded(playerID)
@@ -358,6 +358,7 @@ function widget:PlayerRemoved(playerID, reason)
 		end
 		allycursorDrawList[playerID] = nil
 	end
+	updateSpecList()
 end
 
 local function createCursorDrawList(playerID, opacityMultiplier)
