@@ -1,62 +1,75 @@
+local teamSizeThreshold = 4
 local teamCount
-local is1v1, isTeams, isBigTeams, isSmallTeams, isChickens, isCoop, isFFA, isSandbox, isPlanetWars = false, false, false, false, false, false, false, false, false
+local is1v1, isTeams, isBigTeams, isSmallTeams, isChickens, isScavengers, isPvE, isCoop, isFFA, isSandbox = false, false, false, false, false, false, false, false, false, false
+
 do
 	local gaiaAllyTeamID = select(6, Spring.GetTeamInfo(Spring.GetGaiaTeamID(), false))
 	local allyTeamList = Spring.GetAllyTeamList()
 	local actualAllyTeamList = {}
+	local actualAllyTeamSizes = {}
 	local entirelyHumanAllyTeams = {}
-	for i = 1, #allyTeamList do
-		local teamList = Spring.GetTeamList(allyTeamList[i]) or {}
+
+	for _, allyTeam in ipairs(allyTeamList) do
+		local teamList = Spring.GetTeamList(allyTeam) or {}
 		local allyteamEntirelyHuman = true
-		if #teamList > 0 and allyTeamList[i] ~= gaiaAllyTeamID then
-			local isTeamValid = true
-			for j = 1, #teamList do
-				if select (4, Spring.GetTeamInfo(teamList[j], false)) then
+
+		if #teamList > 0 and allyTeam ~= gaiaAllyTeamID then
+			local isAllyTeamValid = true
+
+			for _, team in ipairs(teamList) do
+				if select (4, Spring.GetTeamInfo(team, false)) then
 					allyteamEntirelyHuman = false
 				end
-				local luaAI = Spring.GetTeamLuaAI(teamList[j])
-				if luaAI and luaAI:find("Chicken") then
-					isChickens = true
-					isTeamValid = false
+
+				local luaAI = Spring.GetTeamLuaAI(team)
+
+				if luaAI then
+					if luaAI:find("Chicken") then
+						isChickens = true
+						isAllyTeamValid = false
+					elseif luaAI:find("Scavengers") then
+						isScavengers = true
+						isAllyTeamValid = false
+					end
 				end
 			end
-			if isTeamValid then
-				actualAllyTeamList[#actualAllyTeamList+1] = allyTeamList[i]
+
+			if isAllyTeamValid then
+				actualAllyTeamList[#actualAllyTeamList+1] = allyTeam
+				actualAllyTeamSizes[#actualAllyTeamSizes+1] = #teamList
 			end
+
 			if allyteamEntirelyHuman then
-				entirelyHumanAllyTeams[#entirelyHumanAllyTeams+1] = allyTeamList[i]
+				entirelyHumanAllyTeams[#entirelyHumanAllyTeams+1] = allyTeam
 			end
 		end
 	end
+
 	teamCount = #actualAllyTeamList
+
+	isSmallTeams = true
+	for _, teamSize in ipairs(actualAllyTeamSizes) do
+		if teamSize > 1 then
+			isTeams = true
+		end
+
+		isSmallTeams = isSmallTeams and teamSize <= teamSizeThreshold
+	end
+
+	isSmallTeams = isTeams and isSmallTeams
+	isBigTeams = isTeams and not isSmallTeams
+	isPvE = isChickens or isScavengers
 
 	if teamCount > 2 then
 		isFFA = true
-		isChickens = false
-	elseif teamCount < 2 then
-		isSandbox = not isChickens
-	else
-		isChickens = false
-		local cnt1 = #Spring.GetTeamList(actualAllyTeamList[1])
-		local cnt2 = #Spring.GetTeamList(actualAllyTeamList[2])
-		if cnt1 == 1 and cnt2 == 1 then
-			is1v1 = true
-		else
-			isTeams = true
-			if cnt1 <= 4 and cnt2 <= 4 then
-				isSmallTeams = true
-			else
-				isBigTeams = true
-			end
-		end
+	elseif teamCount < 2 and not isPvE then
+		isSandbox = true
+	elseif teamCount == 2 and not isTeams then
+		is1v1 = true
 	end
 
 	if #entirelyHumanAllyTeams == 1 and #Spring.GetTeamList(entirelyHumanAllyTeams[1]) > 1 then
 		isCoop = true
-	end
-
-	if Spring.GetModOptions().planet then
-		isPlanetWars = true
 	end
 end
 
@@ -72,9 +85,10 @@ return {
 		IsBigTeams   = function () return isBigTeams   end,
 		IsSmallTeams = function () return isSmallTeams end,
 		IsChickens   = function () return isChickens   end,
+		IsScavengers = function () return isScavengers end,
+		IsPvE        = function () return isPvE        end,
 		IsCoop       = function () return isCoop       end,
 		IsFFA        = function () return isFFA        end,
 		IsSandbox    = function () return isSandbox    end,
-		IsPlanetWars = function () return isPlanetWars end,
 	},
 }
