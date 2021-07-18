@@ -40,7 +40,6 @@ return {
 		workertime = 200,
 		customparams = {
 			area_mex_def = "cormex",
-			longdescription = Spring.I18N('units.longDescriptions.corassistdrone'),
 			model_author = "Mr Bob, Flaka",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "coraircraft",

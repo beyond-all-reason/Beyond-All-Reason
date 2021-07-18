@@ -40,7 +40,6 @@ return {
 		workertime = 200,
 		customparams = {
 			area_mex_def = "armmex",
-			longdescription = Spring.I18N('units.longDescriptions.armassistdrone'),
 			model_author = "FireStorm, Flaka",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armaircraft",
