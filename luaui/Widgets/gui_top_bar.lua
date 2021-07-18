@@ -67,6 +67,7 @@ local currentWind = 0
 local currentTidal = 0
 local gameStarted = (Spring.GetGameFrame() > 0)
 local displayComCounter = false
+local updateTextClock = os.clock()
 
 local glTranslate = gl.Translate
 local glColor = gl.Color
@@ -204,6 +205,11 @@ local serverFrame
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
+
+
+function IsOnRect(x, y, BLcornerX, BLcornerY, TRcornerX, TRcornerY)
+	return x >= BLcornerX and x <= TRcornerX and y >= BLcornerY and y <= TRcornerY
+end
 
 function isInBox(mx, my, box)
 	return mx > box[1] and my > box[2] and mx < box[3] and my < box[4]
@@ -679,9 +685,11 @@ local function updateResbarText(res)
 	if currentStorageValue[res] ~= r[res][2] then
 		-- flush old dlist caches
 		for n, _ in pairs(dlistResValues[res]) do
-			glDeleteList(dlistResValues[res][n])
+			if n ~= currentResValue[res] then
+				glDeleteList(dlistResValues[res][n])
+				dlistResValues[res][n] = nil
+			end
 		end
-		dlistResValues[res] = {}
 
 		-- storage
 		if dlistResbar[res][6] ~= nil then
@@ -967,7 +975,7 @@ local function updateResbar(res)
 	end
 end
 
-function drawResbarValues(res)
+local function drawResbarValues(res, updateText)
 	local barHeight = resbarDrawinfo[res].barArea[4] - resbarDrawinfo[res].barArea[2]
 	local barWidth = resbarDrawinfo[res].barArea[3] - resbarDrawinfo[res].barArea[1]
 	local glowSize = (resbarDrawinfo[res].barArea[4] - resbarDrawinfo[res].barArea[2]) * 7
@@ -1039,16 +1047,20 @@ function drawResbarValues(res)
 		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 	end
 
-	currentResValue[res] = short(cappedCurRes)
-	if not dlistResValues[res][currentResValue[res]] then
-		dlistResValues[res][currentResValue[res]] = glCreateList(function()
-			-- Text: current
-			font2:Begin()
-			font2:Print(currentResValue[res], resbarDrawinfo[res].textCurrent[2], resbarDrawinfo[res].textCurrent[3], resbarDrawinfo[res].textCurrent[4], resbarDrawinfo[res].textCurrent[5])
-			font2:End()
-		end)
+	if updateText then
+		currentResValue[res] = short(cappedCurRes)
+		if not dlistResValues[res][currentResValue[res]] then
+			dlistResValues[res][currentResValue[res]] = glCreateList(function()
+				-- Text: current
+				font2:Begin()
+				font2:Print(currentResValue[res], resbarDrawinfo[res].textCurrent[2], resbarDrawinfo[res].textCurrent[3], resbarDrawinfo[res].textCurrent[4], resbarDrawinfo[res].textCurrent[5])
+				font2:End()
+			end)
+		end
 	end
-	glCallList(dlistResValues[res][currentResValue[res]])
+	if dlistResValues[res][currentResValue[res]] then
+		glCallList(dlistResValues[res][currentResValue[res]])
+	end
 end
 
 function init()
@@ -1105,12 +1117,40 @@ function init()
 	updateResbarText('energy')
 end
 
-function checkStatus()
+local function checkStatus()
 	myAllyTeamID = Spring.GetMyAllyTeamID()
 	myTeamID = Spring.GetMyTeamID()
 	myPlayerID = Spring.GetMyPlayerID()
 	if myTeamID ~= gaiaTeamID and UnitDefs[Spring.GetTeamRulesParam(myTeamID, 'startUnit')] then
 		comTexture = 'Icons/'..UnitDefs[Spring.GetTeamRulesParam(myTeamID, 'startUnit')].name..'.png'
+	end
+end
+
+local function countComs(forceUpdate)
+	-- recount my own ally team coms
+	local prevAllyComs = allyComs
+	local prevEnemyComs = enemyComs
+	allyComs = 0
+	local myAllyTeamList = Spring.GetTeamList(myAllyTeamID)
+	for _, teamID in ipairs(myAllyTeamList) do
+		allyComs = allyComs + Spring.GetTeamUnitDefCount(teamID, armcomDefID) + Spring.GetTeamUnitDefCount(teamID, corcomDefID)
+	end
+
+	local newEnemyComCount = Spring.GetTeamRulesParam(myTeamID, "enemyComCount")
+	if type(newEnemyComCount) == 'number' then
+		enemyComCount = newEnemyComCount
+		if enemyComCount ~= prevEnemyComCount then
+			comcountChanged = true
+			prevEnemyComCount = enemyComCount
+		end
+	end
+
+	if forceUpdate or allyComs ~= prevAllyComs or enemyComs ~= prevEnemyComs then
+		comcountChanged = true
+	end
+
+	if comcountChanged then
+		updateComs()
 	end
 end
 
@@ -1128,6 +1168,57 @@ function widget:GameFrame(n)
 
 	windRotation = windRotation + (currentWind * bladeSpeedMultiplier)
 	gameFrame = n
+end
+
+local function updateAllyTeamOverflowing()
+	allyteamOverflowingMetal = false
+	allyteamOverflowingEnergy = false
+	overflowingMetal = false
+	overflowingEnergy = false
+	local totalEnergy = 0
+	local totalEnergyStorage = 0
+	local totalMetal = 0
+	local totalMetalStorage = 0
+	local energyPercentile, metalPercentile
+	local teams = Spring.GetTeamList(myAllyTeamID)
+	for i, teamID in pairs(teams) do
+		local energy, energyStorage, _, _, _, energyShare, energySent = spGetTeamResources(teamID, "energy")
+		totalEnergy = totalEnergy + energy
+		totalEnergyStorage = totalEnergyStorage + energyStorage
+		local metal, metalStorage, _, _, _, metalShare, metalSent = spGetTeamResources(teamID, "metal")
+		totalMetal = totalMetal + metal
+		totalMetalStorage = totalMetalStorage + metalStorage
+		if teamID == myTeamID then
+			energyPercentile = energySent / totalEnergyStorage
+			metalPercentile = metalSent / totalMetalStorage
+			if energyPercentile > 0.0001 then
+				overflowingEnergy = energyPercentile * (1 / 0.025)
+				if overflowingEnergy > 1 then
+					overflowingEnergy = 1
+				end
+			end
+			if metalPercentile > 0.0001 then
+				overflowingMetal = metalPercentile * (1 / 0.025)
+				if overflowingMetal > 1 then
+					overflowingMetal = 1
+				end
+			end
+		end
+	end
+	energyPercentile = totalEnergy / totalEnergyStorage
+	metalPercentile = totalMetal / totalMetalStorage
+	if energyPercentile > 0.975 then
+		allyteamOverflowingEnergy = (energyPercentile - 0.975) * (1 / 0.025)
+		if allyteamOverflowingEnergy > 1 then
+			allyteamOverflowingEnergy = 1
+		end
+	end
+	if metalPercentile > 0.975 then
+		allyteamOverflowingMetal = (metalPercentile - 0.975) * (1 / 0.025)
+		if allyteamOverflowingMetal > 1 then
+			allyteamOverflowingMetal = 1
+		end
+	end
 end
 
 local uiOpacitySec = 0
@@ -1276,57 +1367,7 @@ function widget:RecvLuaMsg(msg, playerID)
 	end
 end
 
-function updateAllyTeamOverflowing()
-	allyteamOverflowingMetal = false
-	allyteamOverflowingEnergy = false
-	overflowingMetal = false
-	overflowingEnergy = false
-	local totalEnergy = 0
-	local totalEnergyStorage = 0
-	local totalMetal = 0
-	local totalMetalStorage = 0
-	local energyPercentile, metalPercentile
-	for i, teamID in pairs(Spring.GetTeamList(Spring.GetMyAllyTeamID())) do
-		local energy, energyStorage, _, _, _, energyShare, energySent = spGetTeamResources(teamID, "energy")
-		totalEnergy = totalEnergy + energy
-		totalEnergyStorage = totalEnergyStorage + energyStorage
-		local metal, metalStorage, _, _, _, metalShare, metalSent = spGetTeamResources(teamID, "metal")
-		totalMetal = totalMetal + metal
-		totalMetalStorage = totalMetalStorage + metalStorage
-		if teamID == myTeamID then
-			energyPercentile = energySent / totalEnergyStorage
-			metalPercentile = metalSent / totalMetalStorage
-			if energyPercentile > 0.0001 then
-				overflowingEnergy = energyPercentile * (1 / 0.025)
-				if overflowingEnergy > 1 then
-					overflowingEnergy = 1
-				end
-			end
-			if metalPercentile > 0.0001 then
-				overflowingMetal = metalPercentile * (1 / 0.025)
-				if overflowingMetal > 1 then
-					overflowingMetal = 1
-				end
-			end
-		end
-	end
-	energyPercentile = totalEnergy / totalEnergyStorage
-	metalPercentile = totalMetal / totalMetalStorage
-	if energyPercentile > 0.975 then
-		allyteamOverflowingEnergy = (energyPercentile - 0.975) * (1 / 0.025)
-		if allyteamOverflowingEnergy > 1 then
-			allyteamOverflowingEnergy = 1
-		end
-	end
-	if metalPercentile > 0.975 then
-		allyteamOverflowingMetal = (metalPercentile - 0.975) * (1 / 0.025)
-		if allyteamOverflowingMetal > 1 then
-			allyteamOverflowingMetal = 1
-		end
-	end
-end
-
-function hoveringElement(x, y)
+local function hoveringElement(x, y)
 	if IsOnRect(x, y, topbarArea[1], topbarArea[2], topbarArea[3], topbarArea[4]) then
 		if resbarArea.metal[1] and IsOnRect(x, y, resbarArea.metal[1], resbarArea.metal[2], resbarArea.metal[3], resbarArea.metal[4]) then
 			return true
@@ -1366,8 +1407,11 @@ function widget:DrawScreen()
 		Spring.SetMouseCursor('cursornormal')
 	end
 
-	gl.Texture(false)	-- because some other widget didnt do this
-
+	--gl.Texture(false)	-- because some other widget didnt do this
+	local updateText = os.clock() - updateTextClock > 0.08
+	if updateText then
+		updateTextClock = os.clock()
+	end
 	local res = 'metal'
 	if dlistResbar[res][1] and dlistResbar[res][2] and dlistResbar[res][3] then
 		glCallList(dlistResbar[res][1])
@@ -1391,7 +1435,7 @@ function widget:DrawScreen()
 				glCallList(dlistResbar[res][5])
 			end
 		end
-		drawResbarValues(res)
+		drawResbarValues(res, updateText)
 		glCallList(dlistResbar[res][6])
 		glCallList(dlistResbar[res][3])
 		glCallList(dlistResbar[res][2])
@@ -1419,7 +1463,7 @@ function widget:DrawScreen()
 				end
 			end
 		end
-		drawResbarValues(res)
+		drawResbarValues(res, updateText)
 		glCallList(dlistResbar[res][6])
 		glCallList(dlistResbar[res][3])
 		glCallList(dlistResbar[res][2])
@@ -1620,10 +1664,6 @@ function widget:DrawScreen()
 	end
 	glColor(1, 1, 1, 1)
 	glPopMatrix()
-end
-
-function IsOnRect(x, y, BLcornerX, BLcornerY, TRcornerX, TRcornerY)
-	return x >= BLcornerX and x <= TRcornerX and y >= BLcornerY and y <= TRcornerY
 end
 
 local function adjustSliders(x, y)
@@ -1917,34 +1957,6 @@ function widget:PlayerChanged()
 	end
 	if not prevSpec and prevSpec ~= spec then
 		init()
-	end
-end
-
-function countComs(forceUpdate)
-	-- recount my own ally team coms
-	local prevAllyComs = allyComs
-	local prevEnemyComs = enemyComs
-	allyComs = 0
-	local myAllyTeamList = Spring.GetTeamList(myAllyTeamID)
-	for _, teamID in ipairs(myAllyTeamList) do
-		allyComs = allyComs + Spring.GetTeamUnitDefCount(teamID, armcomDefID) + Spring.GetTeamUnitDefCount(teamID, corcomDefID)
-	end
-
-	local newEnemyComCount = Spring.GetTeamRulesParam(myTeamID, "enemyComCount")
-	if type(newEnemyComCount) == 'number' then
-		enemyComCount = newEnemyComCount
-		if enemyComCount ~= prevEnemyComCount then
-			comcountChanged = true
-			prevEnemyComCount = enemyComCount
-		end
-	end
-
-	if forceUpdate or allyComs ~= prevAllyComs or enemyComs ~= prevEnemyComs then
-		comcountChanged = true
-	end
-
-	if comcountChanged then
-		updateComs()
 	end
 end
 
