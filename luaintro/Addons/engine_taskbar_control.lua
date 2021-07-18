@@ -13,5 +13,5 @@ end
 
 function addon:Initialize()
 	Spring.SetWMIcon("bitmaps/logo.png", true)
-	Spring.SetWMCaption(name .. " (Spring " .. ((Game and Game.version) or (Engine and Engine.version) or "") .. ")", Game.modName)
+	Spring.SetWMCaption(Game.gameName .. " (Spring " .. ((Game and Game.version) or (Engine and Engine.version) or "") .. ")", Game.modName)
 end
