@@ -17,9 +17,6 @@ end
 -- Synced
 ----------------------------------------------------------------
 if gadgetHandler:IsSyncedCode() then
-	----------------------------------------------------------------
-	-- Speedups
-	----------------------------------------------------------------
 	local spGetPlayerInfo = Spring.GetPlayerInfo
 	local spGetTeamInfo = Spring.GetTeamInfo
 	local spGetTeamRulesParam = Spring.GetTeamRulesParam
@@ -33,6 +30,7 @@ if gadgetHandler:IsSyncedCode() then
 	----------------------------------------------------------------
 	local changeStartUnitRegex = '^\138(%d+)$'
 	local startUnitParamName = 'startUnit'
+	local closeSpawnDist = 350
 
 	----------------------------------------------------------------
 	-- Vars
@@ -47,11 +45,11 @@ if gadgetHandler:IsSyncedCode() then
 	local spawnTeams = {} -- spawnTeams[teamID] = allyID
 	local spawnTeamsCount
 
-	--each player gets to choose a faction
+	-- each player gets to choose a faction
 	local playerStartingUnits = {} -- playerStartingUnits[unitID] = unitDefID
 	GG.playerStartingUnits = playerStartingUnits
 
-	--each team gets one startpos. if coop mode is on, extra startpoints are placed in GG.coopStartPoints by coop
+	-- each team gets one startpos. if coop mode is on, extra startpoints are placed in GG.coopStartPoints by coop
 	local teamStartPoints = {} -- teamStartPoints[teamID] = {x,y,z}
 	GG.teamStartPoints = teamStartPoints
 	local startPointTable = {}
@@ -62,7 +60,7 @@ if gadgetHandler:IsSyncedCode() then
 	----------------------------------------------------------------
 	-- Start Point Guesser
 	----------------------------------------------------------------
-	include("luarules/gadgets/lib_startpoint_guesser.lua") --start point guessing routines
+	include("luarules/gadgets/lib_startpoint_guesser.lua") -- start point guessing routines
 
 	----------------------------------------------------------------
 	-- FFA Startpoints (modoption)
@@ -83,33 +81,28 @@ if gadgetHandler:IsSyncedCode() then
 	----------------------------------------------------------------
 	-- NewbiePlacer (modoption)
 	----------------------------------------------------------------
-	--Newbie Placer (prevents newbies from choosing their own a startpoint and faction)
-	local NewbiePlacer
+	-- prevents newbies from choosing their own a startpoint and faction
 	local processedNewbies = false
+	local NewbiePlacer = false
 	if (tonumber((Spring.GetModOptions() or {}).newbie_placer) == 1) and (Game.startPosType == 2) then
 		NewbiePlacer = true
-	else
-		NewbiePlacer = false
 	end
 
-	--check if a player is to be considered as a 'newbie', in terms of startpoint placements
+	-- check if a player is to be considered as a 'newbie', in terms of startpoint placements
 	local function isPlayerNewbie(pID)
 		local name, _, isSpec, tID, _, _, _, _, pRank = Spring.GetPlayerInfo(pID, false)
 		pRank = tonumber(pRank) or 0
 		local customtable = select(11, Spring.GetPlayerInfo(pID)) or {} -- player custom table
 		local tsMu = tostring(customtable.skill) or ""
 		local tsSigma = tonumber(customtable.skilluncertainty) or 3
-		local isNewbie
-		if pRank == 0 and (string.find(tsMu, ")") or tsSigma >= 3) then
-			--rank 0 and not enough ts data
+		local isNewbie = false
+		if pRank == 0 and (string.find(tsMu, ")") or tsSigma >= 3) then		--rank 0 and not enough ts data
 			isNewbie = true
-		else
-			isNewbie = false
 		end
 		return isNewbie
 	end
 
-	--a team is a newbie team if it contains at least one newbie player
+	-- team is a newbie team if it contains at least one newbie player
 	local function isTeamNewbie(teamID)
 		if not NewbiePlacer then
 			return false
@@ -135,25 +128,16 @@ if gadgetHandler:IsSyncedCode() then
 		for i = 1, #teamList do
 			local teamID = teamList[i]
 			if teamID ~= gaiaTeamID then
-				--set & broadcast (current) start unit
+				-- set & broadcast (current) start unit
 				local _, _, _, _, teamSide, teamAllyID = spGetTeamInfo(teamID, false)
-				if teamSide == 'cortex' then
-					spSetTeamRulesParam(teamID, startUnitParamName, corcomDefID)
-				else
-					spSetTeamRulesParam(teamID, startUnitParamName, armcomDefID)
-				end
+				spSetTeamRulesParam(teamID, startUnitParamName, teamSide == 'cortex' and corcomDefID or armcomDefID)
 				spawnTeams[teamID] = teamAllyID
 
-				--broadcast if newbie
-				local newbieParam
-				if isTeamNewbie(teamID) then
-					newbieParam = 1
-				else
-					newbieParam = 0
-				end
+				-- broadcast if newbie
+				local newbieParam = isTeamNewbie(teamID) and 1 or 0
 				spSetTeamRulesParam(teamID, 'isNewbie', newbieParam, { public = true }) --visible to all; some widgets (faction choose, initial queue) need to know if its a newbie -> they unload
 
-				--record that this allyteam will spawn something
+				-- record that this allyteam will spawn something
 				local _, _, _, _, _, allyTeamID = Spring.GetTeamInfo(teamID, false)
 				allyTeams[allyTeamID] = allyTeamID
 			end
@@ -268,9 +252,6 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 
-		-- NoCloseSpawns
-		local closeSpawnDist = 350
-
 		for otherTeamID, startpoint in pairs(startPointTable) do
 			local sx, sz = startpoint[1], startpoint[2]
 			local tooClose = ((x - sx) ^ 2 + (z - sz) ^ 2 <= closeSpawnDist ^ 2)
@@ -326,10 +307,9 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	local function spawnStartUnit(teamID, x, z)
-		--get starting unit
 		local startUnit = spGetTeamRulesParam(teamID, startUnitParamName)
 
-		--overwrite startUnit with random faction for newbies
+		-- overwrite startUnit with random faction for newbies
 		local _, _, _, isAI, sideName = Spring.GetTeamInfo(teamID)
 		if Spring.GetTeamRulesParam(teamID, 'isNewbie') == 1 or sideName == "random" then
 			if math.random() > 0.5 then
@@ -339,7 +319,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 
-		--spawn starting unit
+		-- spawn starting unit
 		local y = spGetGroundHeight(x, z)
 		local scenarioSpawnsUnits = false
 
@@ -355,11 +335,11 @@ if gadgetHandler:IsSyncedCode() then
 			local unitID = spCreateUnit(startUnit, x, y, z, 0, teamID)
 		end
 
-		--share info
+		-- share info
 		teamStartPoints[teamID] = { x, y, z }
 		spSetTeamRulesParam(teamID, startUnitParamName, startUnit, { public = true }) -- visible to all (and picked up by advpllist)
 
-		--team storage is set up by game_team_resources
+		-- team storage is set up by game_team_resources
 	end
 
 	local function spawnFFAStartUnit(nSpawns, spawnID, teamID)
@@ -374,12 +354,11 @@ if gadgetHandler:IsSyncedCode() then
 		local cx = x + r * math.cos(theta)
 		local cz = z + r * math.sin(theta)
 		if not IsSteep(cx, cz) then
-			--IsSteep comes from lib_startpoint_guesser, returns true if pos is too steep for com to walk on
+			-- IsSteep comes from lib_startpoint_guesser, returns true if pos is too steep for com to walk on
 			x = cx
 			z = cz
 		end
 
-		-- spawn
 		spawnStartUnit(teamID, x, z)
 	end
 
@@ -393,7 +372,7 @@ if gadgetHandler:IsSyncedCode() then
 				-- guess points for the ones classified in startPointTable as not genuine (newbies will not have a genuine startpoint)
 				x, z = GuessStartSpot(teamID, allyTeamID, xmin, zmin, xmax, zmax, startPointTable)
 			else
-				--fallback
+				-- fallback
 				if x <= 0 or z <= 0 then
 					x = (xmin + xmax) / 2
 					z = (zmin + zmax) / 2
@@ -401,7 +380,6 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 
-		--spawn
 		spawnStartUnit(teamID, x, z)
 	end
 

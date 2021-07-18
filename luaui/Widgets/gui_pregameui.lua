@@ -25,12 +25,13 @@ local amNewbie
 local ffaMode = (tonumber(Spring.GetModOptions().ffa_mode) or 0) == 1
 local isReplay = Spring.IsReplay()
 
-local readied = false --make sure we return true,true for newbies at least once
+local readied = false	-- send readystate (in widget:GameSetup)
+local pressedReady = false	-- pressed button
 local startPointChosen = false
 
 local NETMSG_STARTPLAYING = 4 -- see BaseNetProtocol.h, packetID sent during the 3.2.1 countdown
 local SYSTEM_ID = -1 -- see LuaUnsyncedRead::GetPlayerTraffic, playerID to get hosts traffic from
-local gameStarting
+local gameStarting = false
 local timer = 0
 local timer2 = 0
 
@@ -123,9 +124,8 @@ end
 function widget:GameSetup(state, ready, playerStates)
 
 	-- check when the 3.2.1 countdown starts
-	if gameStarting == nil and ((Spring.GetPlayerTraffic(SYSTEM_ID, NETMSG_STARTPLAYING) or 0) > 0) then
-		--ugly but effective (can also detect by parsing state string)
-		gameStarting = true
+	if not gameStarting and ((Spring.GetPlayerTraffic(SYSTEM_ID, NETMSG_STARTPLAYING) or 0) > 0) then
+		gameStarting = true		-- ugly but effective (can also detect by parsing state string)
 	end
 
 	-- if we can't choose startpositions, no need for ready button etc
@@ -142,14 +142,16 @@ function widget:GameSetup(state, ready, playerStates)
 		end
 	end
 
-	if not ready and readied then
+	if not ready and pressedReady then
 		-- check if we just readied
 		ready = true
 	elseif ready and not readied then
 		-- check if we just reconnected/dropped
 		ready = false
 	end
-
+	if ready then
+		readied = true
+	end
 	return true, ready
 end
 
@@ -165,7 +167,7 @@ function widget:MousePress(sx, sy)
 				-- ready
 				if not mySpec and not readied then
 					if startPointChosen then
-						readied = true
+						pressedReady = true
 					else
 						Spring.Echo(Spring.I18N('ui.initialSpawn.choosePoint'))
 					end
@@ -234,7 +236,7 @@ function widget:DrawScreen()
 	end
 
 	buttonDrawn = false
-	if not readied and buttonList and Game.startPosType == 2 and gameStarting == nil and not isReplay and (not mySpec or eligibleAsSub) then
+	if not readied and buttonList and Game.startPosType == 2 and not gameStarting and not isReplay and (not mySpec or eligibleAsSub) then
 		buttonDrawn = true
 		if WG['guishader'] then
 			WG['guishader'].InsertRect(
