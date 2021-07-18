@@ -5431,16 +5431,16 @@ function init()
 		options[getOptionByID("fancyselectedunits_teamcoloropacity")] = nil
 	end
 
-	if widgetHandler.knownWidgets["radarrange"] == nil then
+	if widgetHandler.knownWidgets["Sensor Ranges Radar"] == nil then
 		options[getOptionByID('radarrangeopacity')] = nil
 	end
-	if widgetHandler.knownWidgets["sonarrange"] == nil then
+	if widgetHandler.knownWidgets["Sensor Ranges Sonar"] == nil then
 		options[getOptionByID('sonarrangeopacity')] = nil
 	end
-	if widgetHandler.knownWidgets["jammerrange"] == nil then
+	if widgetHandler.knownWidgets["Sensor Ranges Jammer"] == nil then
 		options[getOptionByID('jammerrangeopacity')] = nil
 	end
-	if widgetHandler.knownWidgets["losrange"] == nil then
+	if widgetHandler.knownWidgets["Sensor Ranges LOS"] == nil then
 		options[getOptionByID('losrangeopacity')] = nil
 		options[getOptionByID("losrangeteamcolors")] = nil
 	end
