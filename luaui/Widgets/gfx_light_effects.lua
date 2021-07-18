@@ -54,11 +54,11 @@ local FADE_TIME = 5
 local overrideParam = {r = 1, g = 1, b = 1, radius = 200}
 local doOverride = false
 
-local globalLightMult = 1.45
-local globalRadiusMult = 1.4
+local globalLightMult = 1.7
+local globalRadiusMult = 1.5
 local globalLightMultLaser = 1.35	-- gets applied on top op globalRadiusMult
 local globalRadiusMultLaser = 0.9	-- gets applied on top op globalRadiusMult
-local globalLifeMult = 0.7
+local globalLifeMult = 0.45
 
 local enableHeatDistortion = true
 local enableNanolaser = true
@@ -1063,13 +1063,13 @@ function widget:GetConfigData(data)
 		enableHeatDistortion = enableHeatDistortion,
 		enableNanolaser = enableNanolaser,
 		enableThrusters = enableThrusters,
-		resetted = 1.55,
+		resetted = 1.6,
 	}
 	return savedTable
 end
 
 function widget:SetConfigData(data)
-	if data.globalLifeMult ~= nil and data.resetted ~= nil and data.resetted == 1.55 then
+	if data.globalLifeMult ~= nil and data.resetted ~= nil and data.resetted == 1.6 then
 		if data.globalLightMult ~= nil then
 			globalLightMult = data.globalLightMult
 		end

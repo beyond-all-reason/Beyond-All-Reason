@@ -2716,7 +2716,7 @@ function init()
 			  end
 		  end,
 		},
-		--{ id = "lighteffects_life", group = "gfx", name = widgetOptionColor .. "   "..texts.option.lighteffects_life, min = 0.4, max = 0.9, step = 0.05, type = "slider", value = 0.7, description = texts.option.lighteffects_life_descr,
+		--{ id = "lighteffects_life", group = "gfx", name = widgetOptionColor .. "   "..texts.option.lighteffects_life, min = 0.35, max = 0.65, step = 0.05, type = "slider", value = 0.45, description = texts.option.lighteffects_life_descr,
 		--  onload = function(i)
 		--	  loadWidgetData("Light Effects", "lighteffects_life", { 'globalLifeMult' })
 		--  end,
@@ -2724,7 +2724,7 @@ function init()
 		--	  saveOptionValue('Light Effects', 'lighteffects', 'setLife', { 'globalLifeMult' }, value)
 		--  end,
 		--},
-		{ id = "lighteffects_brightness", group = "gfx", name = widgetOptionColor .. "   "..texts.option.lighteffects_brightness, min = 1, max = 2, step = 0.05, type = "slider", value = 1.45, description = texts.option.lighteffects_brightness_descr,
+		{ id = "lighteffects_brightness", group = "gfx", name = widgetOptionColor .. "   "..texts.option.lighteffects_brightness, min = 1, max = 2, step = 0.05, type = "slider", value = 1.7, description = texts.option.lighteffects_brightness_descr,
 		  onload = function(i)
 			  loadWidgetData("Light Effects", "lighteffects_brightness", { 'globalLightMult' })
 		  end,
@@ -2732,7 +2732,7 @@ function init()
 			  saveOptionValue('Light Effects', 'lighteffects', 'setGlobalBrightness', { 'globalLightMult' }, value)
 		  end,
 		},
-		--{ id = "lighteffects_radius", group = "gfx", name = widgetOptionColor .. "   "..texts.option.lighteffects_radius, min = 1.2, max = 1.6, step = 0.05, type = "slider", value = 1.4, description = texts.option.lighteffects_radius_descr,
+		--{ id = "lighteffects_radius", group = "gfx", name = widgetOptionColor .. "   "..texts.option.lighteffects_radius, min = 1.2, max = 1.7, step = 0.05, type = "slider", value = 1.5, description = texts.option.lighteffects_radius_descr,
 		--  onload = function(i)
 		--	  loadWidgetData("Light Effects", "lighteffects_radius", { 'globalRadiusMult' })
 		--  end,
