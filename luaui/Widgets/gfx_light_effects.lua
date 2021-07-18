@@ -58,7 +58,7 @@ local globalLightMult = 1.45
 local globalRadiusMult = 1.4
 local globalLightMultLaser = 1.35	-- gets applied on top op globalRadiusMult
 local globalRadiusMultLaser = 0.9	-- gets applied on top op globalRadiusMult
-local globalLifeMult = 0.75
+local globalLifeMult = 0.7
 
 local enableHeatDistortion = true
 local enableNanolaser = true
@@ -1063,13 +1063,13 @@ function widget:GetConfigData(data)
 		enableHeatDistortion = enableHeatDistortion,
 		enableNanolaser = enableNanolaser,
 		enableThrusters = enableThrusters,
-		resetted = 1.5,
+		resetted = 1.55,
 	}
 	return savedTable
 end
 
 function widget:SetConfigData(data)
-	if data.globalLifeMult ~= nil and data.resetted ~= nil and data.resetted == 1.5 then
+	if data.globalLifeMult ~= nil and data.resetted ~= nil and data.resetted == 1.55 then
 		if data.globalLightMult ~= nil then
 			globalLightMult = data.globalLightMult
 		end
