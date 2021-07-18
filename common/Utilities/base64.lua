@@ -4,10 +4,6 @@
 -- Date: 2006-2008
 -- License: LGPL2
 
--- Public functions:
---  * Spring.Utilities.Base64Encode(string data) -> string
---  * Spring.Utilities.Base64Decode(string data) -> string
-
 -- bitshift functions (<<, >> equivalent)
 -- shift left
 local function lsh(value,shift)
@@ -36,7 +32,7 @@ local base64chars = {[0]='A',[1]='B',[2]='C',[3]='D',[4]='E',[5]='F',[6]='G',[7]
 
 -- function encode
 -- encodes input string to base64.
-function Spring.Utilities.Base64Encode(data)
+local function base64Encode(data)
 	local bytes = {}
 	local result = ""
 	for spos=0,string.len(data)-1,3 do
@@ -51,7 +47,7 @@ local base64bytes = {['A']=0,['B']=1,['C']=2,['D']=3,['E']=4,['F']=5,['G']=6,['H
 
 -- function decode
 -- decode base64 input to string
-function Spring.Utilities.Base64Decode(data)
+local function base64Decode(data)
 	local chars = {}
 	local result=""
 	for dpos=0,string.len(data)-1,4 do
@@ -64,3 +60,8 @@ function Spring.Utilities.Base64Decode(data)
 	end
 	return result
 end
+
+return {
+	Base64Encode = base64Encode,
+	Base64Decode = base64Decode,
+}
