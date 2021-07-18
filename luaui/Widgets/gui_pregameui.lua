@@ -45,6 +45,7 @@ local buttonW = orgbuttonW * uiScale
 
 local buttonList, buttonHoverList
 local buttonText = ''
+local buttonDrawn = false
 
 local RectRound = Spring.FlowUI.Draw.RectRound
 local UiElement = Spring.FlowUI.Draw.Element
@@ -52,8 +53,8 @@ local UiButton = Spring.FlowUI.Draw.Button
 local elementPadding = Spring.FlowUI.elementPadding
 local uiPadding = math.floor(elementPadding * 4.5)
 
-local eligible = false
-local offer = false
+local eligibleAsSub = false
+local offeredAsSub = false
 
 local numPlayers = 0
 local teams = Spring.GetTeamList()
@@ -92,7 +93,7 @@ function widget:ViewResize(viewSizeX, viewSizeY)
 	buttonX = math.floor(vsx * 0.78)
 	buttonY = math.floor(vsy * 0.78)
 	if mySpec then
-		if not offer then
+		if not offeredAsSub then
 			buttonText = Spring.I18N('ui.substitutePlayers.offer')
 		else
 			buttonText = Spring.I18N('ui.substitutePlayers.withdraw')
@@ -154,7 +155,7 @@ end
 
 function widget:MousePress(sx, sy)
 
-	if Game.startPosType == 2 and gameStarting == nil then
+	if buttonDrawn then
 
 		-- pressing element
 		if sx > buttonX - (buttonW / 2) - uiPadding and sx < buttonX + (buttonW / 2) + uiPadding and sy > buttonY - (buttonH / 2) - uiPadding and sy < buttonY + (buttonH / 2) + uiPadding then
@@ -162,7 +163,7 @@ function widget:MousePress(sx, sy)
 			if sx > buttonX - (buttonW / 2) and sx < buttonX + (buttonW / 2) and sy > buttonY - (buttonH / 2) and sy < buttonY + (buttonH / 2) then
 
 				-- ready
-				if not mySpec then
+				if not mySpec and not readied then
 					if startPointChosen then
 						readied = true
 					else
@@ -170,20 +171,20 @@ function widget:MousePress(sx, sy)
 					end
 
 				-- substitute
-				elseif eligible then
-					if not offer then
-						Spring.SendLuaRulesMsg('\144')
+				elseif eligibleAsSub then
+					offeredAsSub = not offeredAsSub
+					if offeredAsSub then
 						Spring.Echo(Spring.I18N('ui.substitutePlayers.substitutionMessage'))
 					else
-						Spring.SendLuaRulesMsg('\145')
 						Spring.Echo(Spring.I18N('ui.substitutePlayers.offerWithdrawn'))
 					end
-					offer = not offer
+					Spring.SendLuaRulesMsg(offeredAsSub and '\144' or '\145')
 					widget:ViewResize(vsx, vsy)
 				end
 			end
 			return true
 		end
+
 		-- message when trying to place startpoint but can't
 		if not mySpec and amNewbie then
 			local target, _ = Spring.TraceScreenRay(sx, sy)
@@ -212,9 +213,9 @@ function widget:Initialize()
 	if mySpec then
 		local tsMu = "30"--customtable.skill
 		local tsSigma = "0"--customtable.skilluncertainty
-		eligible = tsMu and tsSigma and (tsSigma <= 2) and (not string.find(tsMu, ")")) and mySpec
+		eligibleAsSub = tsMu and tsSigma and (tsSigma <= 2) and (not string.find(tsMu, ")")) and mySpec
 		if numPlayers <= 4 or isReplay or (tonumber(Spring.GetModOptions().ffa_mode) or 0) == 1 or Spring.GetGameFrame() > 0 then
-			eligible = false
+			eligibleAsSub = false
 		end
 	end
 
@@ -232,9 +233,9 @@ function widget:DrawScreen()
 		WG['guishader'].RemoveRect('pregameui')
 	end
 
-	if not readied and buttonList and Game.startPosType == 2 and gameStarting == nil and not mySpec and not isReplay then
-		--if not readied and buttonList and not spec and not isReplay then
-
+	buttonDrawn = false
+	if not readied and buttonList and Game.startPosType == 2 and gameStarting == nil and not isReplay and (not mySpec or eligibleAsSub) then
+		buttonDrawn = true
 		if WG['guishader'] then
 			WG['guishader'].InsertRect(
 				buttonX - ((buttonW / 2) + uiPadding),
@@ -245,7 +246,7 @@ function widget:DrawScreen()
 			)
 		end
 
-		-- draw ready button and text
+		-- draw button and text
 		local x, y = Spring.GetMouseState()
 		local colorString
 		if x > buttonX - (buttonW / 2) and x < buttonX + (buttonW / 2) and y > buttonY - (buttonH / 2) and y < buttonY + (buttonH / 2) then
@@ -254,7 +255,11 @@ function widget:DrawScreen()
 		else
 			gl.CallList(buttonList)
 			timer2 = timer2 + Spring.GetLastUpdateSeconds()
-			colorString = timer % 0.75 <= 0.375 and "\255\255\233\33" or "\255\255\250\210"
+			if mySpec then
+				colorString = offeredAsSub and "\255\255\255\225" or "\255\233\233\233"
+			else
+				colorString = timer % 0.75 <= 0.375 and "\255\255\233\33" or "\255\255\250\210"
+			end
 		end
 		font:Begin()
 		font:Print(colorString .. buttonText, buttonX, buttonY - (buttonH * 0.16), 24 * uiScale, "co")
