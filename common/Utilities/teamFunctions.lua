@@ -60,18 +60,21 @@ do
 	end
 end
 
-function Spring.Utilities.GetTeamCount()
+local function getTeamCount()
 	return teamCount
 end
 
-Spring.Utilities.Gametype = {
-	is1v1        = function () return is1v1        end,
-	isTeams      = function () return isTeams      end,
-	isBigTeams   = function () return isBigTeams   end,
-	isSmallTeams = function () return isSmallTeams end,
-	isChickens   = function () return isChickens   end,
-	isCoop       = function () return isCoop       end,
-	isFFA        = function () return isFFA        end,
-	isSandbox    = function () return isSandbox    end,
-	isPlanetWars = function () return isPlanetWars end,
+return {
+	GetTeamCount = getTeamCount,
+	Gametype = {
+		Is1v1        = function () return is1v1        end,
+		IsTeams      = function () return isTeams      end,
+		IsBigTeams   = function () return isBigTeams   end,
+		IsSmallTeams = function () return isSmallTeams end,
+		IsChickens   = function () return isChickens   end,
+		IsCoop       = function () return isCoop       end,
+		IsFFA        = function () return isFFA        end,
+		IsSandbox    = function () return isSandbox    end,
+		IsPlanetWars = function () return isPlanetWars end,
+	},
 }
