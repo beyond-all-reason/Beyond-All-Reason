@@ -159,7 +159,7 @@ function UnitCloaker.Initialize()
       void main(void)
       {
         texCoord.st  = gl_MultiTexCoord0.st;
-        texCoord.p   = dot( gl_Vertex, ObjectPlaneS ); 
+        texCoord.p   = dot( gl_Vertex, ObjectPlaneS );
         texCoord.q   = dot( gl_Vertex, ObjectPlaneT );// + life*0.25;
         normal       = gl_NormalMatrix * gl_Normal;
         viewdir      = (gl_ModelViewMatrix * gl_Vertex).xyz - cameraPos;
@@ -254,14 +254,19 @@ end
 -----------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------
 
+local unitIsS3o = {}
+for unitDefID, ud in pairs(UnitDefs) do
+	local name = (ud.model and ud.model.name) or ud.modelname
+	unitIsS3o[unitDefID] = ((name:lower():find("s3o") or name:lower():find("obj") or name:lower():find("dae")) and true)
+end
+
 -- used if repeatEffect=true;
 function UnitCloaker:ReInitialize()
   self.dieGameFrame = self.dieGameFrame + self.life
 end
 
 function UnitCloaker:CreateParticle()
-  local name = (UnitDefs[self.unitDefID].model and UnitDefs[self.unitDefID].model.name) or UnitDefs[self.unitDefID].modelname
-  self.isS3o = ((name:lower():find("s3o") or name:lower():find("obj") or name:lower():find("dae")) and true)
+  self.isS3o = unitIsS3o[self.unitDefID]
   self.firstGameFrame = thisGameFrame
   self.dieGameFrame   = self.firstGameFrame + self.life
 end

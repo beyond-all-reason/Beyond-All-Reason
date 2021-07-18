@@ -187,7 +187,7 @@ function widget:PlayerChanged(playerID)
 end
 
 function widget:GameOver()
-	widgetHandler:RemoveWidget(self)
+	widgetHandler:RemoveWidget()
 end
 
 function checkSpecView()

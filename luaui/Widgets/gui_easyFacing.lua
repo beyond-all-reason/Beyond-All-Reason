@@ -4,7 +4,7 @@ local versionNumber = "1.5"
 function widget:GetInfo()
 	return {
 		name      = "Easy Facing",
-		desc      = "[v" .. string.format("%s", versionNumber ) .. "] Enables changing building facing by holding left mouse button. Hold the middle mouse button to change facing while queueing.",
+		desc      = "[v" .. string.format("%s", versionNumber ) .. "] Enables changing building facing by holding left mouse button. Hold the right mouse button to change facing while queueing.",
 		author    = "very_bad_soldier",
 		date      = "2009.08.10",
 		license   = "GNU GPL v2",
@@ -18,11 +18,12 @@ end
 -- CONFIGURATION
 local debug = false
 local updateInt = 1 --seconds for the ::update loop
-local sens = 80	--rotate mouse sensitivity - length of mouse movement vector
+local sens = 40	--rotate mouse sensitivity - length of mouse movement vector
 local drawForAll = false --draw facing direction also for other buildings than labs
+
 --------------------------------------------------------------------------------
+
 local inDrag = false
-local mmbStart = false
 local mouseDeltaX = 0
 local mouseDeltaY = 0
 local mouseXStartRotate = 0
@@ -30,9 +31,11 @@ local mouseYStartRotate = 0
 local mouseXStartDrag = 0
 local mouseYStartDrag = 0
 local mouseLbLast = false
-
+local ineffect = false
 local gameStarted, chobbyInterface, lastTimeUpdate
+
 -------------------------------------------------------------------------------
+
 local udefTab				= UnitDefs
 
 local spGetActiveCommand 	= Spring.GetActiveCommand
@@ -54,7 +57,6 @@ local spWarpMouse			= Spring.WarpMouse
 local spGetBuildFacing		= Spring.GetBuildFacing
 local spSetBuildFacing 		= Spring.SetBuildFacing
 local spPos2BuildPos 		= Spring.Pos2BuildPos
-local spGetGroundHeight 	= Spring.GetGroundHeight
 
 local floor                 = math.floor
 local abs					= math.abs
@@ -64,8 +66,6 @@ local sqrt                  = math.sqrt
 
 local glColor               = gl.Color
 local glLineWidth           = gl.LineWidth
-local glDepthTest           = gl.DepthTest
-local glTexture             = gl.Texture
 local glPopMatrix           = gl.PopMatrix
 local glPushMatrix          = gl.PushMatrix
 local glTranslate           = gl.Translate
@@ -76,12 +76,11 @@ local glBeginEnd			= gl.BeginEnd
 local glScale				= gl.Scale
 
 local GL_TRIANGLES			= GL.TRIANGLES
-----------------------------------------------------------------------------------
 
 
 function maybeRemoveSelf()
     if Spring.GetSpectatingState() and (Spring.GetGameFrame() > 0 or gameStarted) then
-        widgetHandler:RemoveWidget(self)
+        widgetHandler:RemoveWidget()
     end
 end
 
@@ -126,8 +125,6 @@ end
 function widget:DrawWorld()
 	if chobbyInterface then return end
 	drawOrientation()
-
-	ResetGl()
 end
 
 function getVector2dLen( vector )
@@ -138,7 +135,7 @@ function getRotationVectors2d( vectorA, vectorB )
 	vectorA = normalizeVector2d( vectorA )
 	vectorB = normalizeVector2d( vectorB )
 	local radian = atan2( vectorA[2], vectorA[1] ) - atan2( vectorB[2], vectorB[1] )
-	local val = ( 360.0 * radian) / ( 2 * pi )
+	local val = ( 360 * radian) / ( 2 * pi )
 	return normalizeDegreeRange(val)
 end
 
@@ -146,10 +143,10 @@ end
 --this is a hack to correct this
 --also corrects values >360
 function normalizeDegreeRange( degree )
-	if ( degree < 0.0 ) then
+	if degree < 0 then
 		degree = 360.0 + degree
-	elseif ( degree > 360.0 ) then
-		degree = degree - 360.0
+	elseif degree > 360 then
+		degree = degree - 360
 	end
 	return degree
 end
@@ -174,7 +171,7 @@ function getFacingByMouseDelta( mouseDeltaX,mouseDeltaY )
 	local mouseMovVec = { mouseDeltaX, mouseDeltaY }
 	local mMovVecLen = getVector2dLen( mouseMovVec )
 
-	if ( mMovVecLen < sens ) then
+	if mMovVecLen < sens then
 		return nil
 	end
 
@@ -205,7 +202,6 @@ function getFacingByMouseDelta( mouseDeltaX,mouseDeltaY )
 	return newFacing
 end
 
-local ineffect = false
 function manipulateFacing()
 	ineffect = false
 
@@ -219,9 +215,7 @@ function manipulateFacing()
 	local unitDefID = -cmd_id
 	local udef = udefTab[unitDefID]
 
-	--if (lmb and (mmb or (not shift or (udef ~= nil and udef["isFactory"])))) then
-	if lmb and mmb then
-		--in
+	if lmb and rmb then
         if not inDrag then
             mouseDeltaX = 0
             mouseDeltaY = 0
@@ -230,12 +224,8 @@ function manipulateFacing()
             mouseXStartDrag = mx
             mouseYStartDrag = my
         end
-
 		inDrag = true
-		printDebug("IN")
 	else
-		--out
-		printDebug("OUT")
 		inDrag = false
 	end
 
@@ -302,49 +292,23 @@ function drawOrientation()
 	if shift and inDrag then
 		mx = mouseXStartDrag
 		my = mouseYStartDrag
-		printDebug("UDEFID: " .. mx )
 	end
 
 	local _, coords = spTraceScreenRay(mx, my, true, true)
 
 	if not coords then return end
 
-	local centerX = coords[1]
-	local centerY = coords[2]
-	local centerZ = coords[3]
-
-	centerX, centerY, centerZ = spPos2BuildPos( unitDefID, centerX, centerY, centerZ )
+	local centerX, centerY, centerZ = spPos2BuildPos( unitDefID, coords[1], coords[2], coords[3] )
 
 	glLineWidth(1)
 	glColor( 0.0, 1.0, 0.0, 0.45 )
 
 	local function drawFunc()
-		glVertex( 0, 0, -23)
-		glVertex( 0, 0, 23)
-		glVertex( 15, 0, 0)
-
-		--glVertex( 0, 0, -10)
-		--glVertex( 0, 0, 10)
-		--glVertex( 30, 0, -7)
-
-		--glVertex( 0, 0,  10)
-		--glVertex( 30, 0, 7)
-		--glVertex( 30, 0, -7 )
-
-		--glVertex( 30, 0, -7)
-		--glVertex( 24, 0, -26 )
-		--glVertex( 56, 0, 0 )
-
-		--glVertex( 30, 0, 7)
-		--glVertex( 56, 0, 0 )
-		--glVertex( 24, 0, 26 )
-
-		--glVertex( 30, 0, 7)
-		--glVertex( 56, 0, 0)
-		--glVertex( 30, 0, -7)
+		glVertex( 0, 0, -32)
+		glVertex( 0, 0, 32)
+		glVertex( 24, 0, 0)
 	end
 
-	--local height = spGetGroundHeight( centerX, centerZ )
 	local transSpace = udef["zsize"] * 4   --should be ysize but its not there?!?
 
 	local transX, transZ
@@ -374,38 +338,13 @@ function drawOrientation()
 
 	glPopMatrix()
 
-	glColor( 1.0, 1.0, 1.0 )
-end
-
---Commons
-function ResetGl()
-	glColor( { 1.0, 1.0, 1.0, 1.0 } )
-	glLineWidth( 1.0 )
-	glDepthTest(false)
-	glTexture(false)
+	glColor(1.0, 1.0, 1.0, 1.0)
 end
 
 function CheckSpecState()
 	if select(3,spGetPlayerInfo(spGetMyPlayerID(),false)) == true then
-		widgetHandler:RemoveWidget(self)
+		widgetHandler:RemoveWidget()
 		return false
 	end
-
 	return true
-end
-
-function printDebug( value )
-	if debug then
-		if type(value) == "boolean" then
-			if value == true then spEcho( "true" )
-				else spEcho("false") end
-		elseif type(value) == "table" then
-			spEcho("Dumping table:")
-			for key,val in pairs(value) do
-				spEcho(key,val)
-			end
-		else
-			spEcho( value )
-		end
-	end
 end

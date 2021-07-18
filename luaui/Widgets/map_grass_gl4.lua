@@ -18,7 +18,7 @@ end
 -- Any values in mapinfo.lua s  mapinfo.custom.grassConfig table is merged into the default
 -- Any further params in mapOverrides table is merged into grassConfig table
 -- The distribution of grass by default is taken (smartly) from the maps original grass map, or the grassDistTGA param of the config
--- grassDistTGA _must_ be 8 bit greyscale tga, mapSize* / patchResolution sized
+-- grassDistTGA _must_ be 8 bit greyscale tga, mapSize[X|Z] / patchResolution sized
 -- Commands to load/save grass:
 -- /loadgrass [filename] : loads a grass distribution from filename path, defaults to VFS_root [mapName]_grassDist.tga
 -- /savegrass [filename] : saves the grass distribution to filename path, defaults to VFS_root [mapName]_grassDist.tga
@@ -32,20 +32,7 @@ end
 	-- hold shift to paint max height grass/ fully remove grass
 	-- I also recommend binding toggle grass widget to alt+f for fast colorization reloading in uikeys.txt
 	-- If you want to change colorization, and want to save your 'painting progress', do /savegrass, reload the widget, then /loadgrass
-	-- NOTE: Shader load is MUCH higher in editing mode, and especially on large maps (pushing 10's of millions of vertices'
-
-
---------------------------------------------------------------------------------
--- Todo:
--- do all of this in geom shader to do early LOD culling
--- customizable shadowmap sample size
--- grass UV offsets multiplier
-
--- issues: 
---	Pretty high vertex shader load :/ 
--- 	anisotropic transparency - where quads viewed from their edge should be transparent :)
--- 	fix visibility checking by checking for sides in view
--- 	fix darkening on distort to be better?
+	-- NOTE: Shader load is MUCH higher in editing mode, and especially on large maps (pushing 10's of millions of vertices)
 
 -- Load Order
 -- 1. Parse Mapinfo
@@ -57,8 +44,19 @@ end
 -- 5. Separate autograss function
 -- 6. GrassDistTexture overrides builtin grass
 
+--------- TODO/ DEVNOTES: -------------------------------------------
+-- Todo:
+-- do all of this in geom shader to do early LOD culling
+-- customizable shadowmap sample size
+-- grass UV offsets multiplier
 
---------------------------------------------------------------------------------
+-- issues: 
+--	Pretty high vertex shader load :/ 
+-- 	anisotropic transparency - where quads viewed from their edge should be transparent :)
+-- 	fix darkening on distort to be better?
+
+
+--------- HOW TO CONFIGURE GRASS (also important!) -------------------------
 local grassConfig = {
   patchResolution = 32, -- distance between patches, default is 32, which matches the SpringRTS grass map resolution. If using external .tga, you can use any resolution you wish
   patchPlacementJitter = 0.66, -- how much each patch should be randomized in XZ position, in fraction of patchResolution
@@ -83,7 +81,7 @@ local grassConfig = {
   grassWindMult = 4.5, -- how 'strong' the perturbation effect is
   maxWindSpeed = 20, -- the fastest the wind noise texture will ever move, 
   -- The grassdisttex overrides the default map grass, if specified!
-  --grassDistTGA = "LuaUI/Image/luagrass/DRDR 4.0_grass.tga", -- MUST BE 8 bit uncompressed TGA, sized Game.mapSize* / patchResolution, where 0 is no grass, and 1<= controls grass size. 
+  grassDistTGA = "", -- MUST BE 8 bit uncompressed TGA, sized Game.mapSize* / patchResolution, where 0 is no grass, and 1<= controls grass size. 
 }
 
 --------------------------------------------------------------------------------
@@ -94,10 +92,21 @@ local success, mapcfg = pcall(VFS.Include,"mapinfo.lua") -- load mapinfo.lua con
 if not success then
   Spring.Echo("Map Grass GL4 failed to find a mapinfo.lua, using default configs")
 else
-  if mapcfg and mapcfg.custom and mapcfg.custom.grassConfig then
-    for k,v in pairs(mapcfg.custom.grassConfig) do
-      if k == "grassShaderParams" then
+  if mapcfg and mapcfg.custom and mapcfg.custom.grassconfig then
+	Spring.Echo("Loading LuaGrass custom parameters from mapinfo.lua")
+    for k,v in pairs(mapcfg.custom.grassconfig) do
+		
+      for kUp, _ in pairs(grassConfig) do
+		if k == string.lower(kUp) then k = kUp end
+	  end
+	--Spring.Echo("Found grass params",k,v)
+
+      if string.lower(k) == "grassshaderparams" then
         for k2,v2 in pairs(v) do
+			for k2Up, _ in pairs(grassConfig.grassShaderParams) do
+				--Spring.Echo("Found grass params",k2,k2Up,v2)
+				if k2 == string.lower(k2Up) then k2 = k2Up end
+			end
           grassConfig[k][k2]=v2
         end
       else
@@ -206,7 +215,7 @@ local function goodbye(reason)
   if grassInstanceVBO then grassInstanceVBO = nil end
   if grassVAO then grassVAO = nil end
   --if grassShader then grassShader:Finalize() end
-  widgetHandler:RemoveWidget(self)
+  widgetHandler:RemoveWidget()
 end
 --------------------------------------------------------------------------------
 -- using: http://ogldev.atspace.co.uk/www/tutorial33/tutorial33.html
@@ -568,13 +577,15 @@ local function defineUploadGrassInstanceVBOData()
 	grassInstanceVBO = gl.GetVBO(GL.ARRAY_BUFFER,true)
 	if grassInstanceVBO == nil then goodbye("Failed to create grassInstanceVBO") end
 	grassInstanceVBO:Define(
-		#grassInstanceData/grassInstanceVBOStep,--?we dont know how big yet!
+		math.max(1,#grassInstanceData/grassInstanceVBOStep),--?we dont know how big yet!
 		{
 		  {id = 7, name = 'instanceposrotscale', size = 4}, -- a vec4 for pos + random rotation + scale
 		  }
 		)
 	grassInstanceVBOSize = #grassInstanceData
-	grassInstanceVBO:Upload(grassInstanceData)
+	if grassInstanceVBOSize > 0 then 
+		grassInstanceVBO:Upload(grassInstanceData)
+	end
 end
 
 local function LoadGrassTGA(filename)
@@ -624,7 +635,7 @@ local function makeGrassInstanceVBO()
 	grassInstanceData= {}
 	grassRowInstance = {0}
 	-- upload image type if exists
-	if grassConfig.grassDistTGA then 
+	if grassConfig.grassDistTGA and grassConfig.grassDistTGA ~= "" then 
 		LoadGrassTGA(grassConfig.grassDistTGA)
 		
 		defineUploadGrassInstanceVBOData()
@@ -786,11 +797,11 @@ void main() {
 
 
   vec3 grassVertWorldPos = vertexPos * instancePosRotSize.w; // scale it
-
   mat3 rotY = rotation3dY(instancePosRotSize.y); // poor mans random rotate
   
   grassVertWorldPos.xz = (rotY * grassVertWorldPos).xz + instancePosRotSize.xz; // rotate Y and move to world pos
   
+  debuginfo.xyz = rotY*vertexNormal;
   //--- Heightmap sampling
   vec2 ts = vec2(textureSize(heightmapTex, 0));
   vec2 uvHM =   vec2(clamp(grassVertWorldPos.x,8.0,mapSize.x-8.0),clamp(grassVertWorldPos.z,8.0, mapSize.y-8.0))/ mapSize.xy; // this proves to be an actually useable heightmap i think.
@@ -853,6 +864,7 @@ void main() {
   float fogDist = length((cameraView * vec4(grassVertWorldPos,1.0)).xyz);
   float fogFactor = (fogParams.y - fogDist) * fogParams.w;
   mapColor.a = smoothstep(0.0,1.0,fogFactor);
+  mapColor.a = 1.0; // DEBUG FOR NOW AS FOG IS BORKED
   
   //--- DISTANCE FADE ---
   vec4 camPos = cameraViewInv[3];
@@ -863,6 +875,7 @@ void main() {
   //--- ALPHA CULLING BASED ON QUAD NORMAL
   // float cosnormal = dot(normalize(grassVertWorldPos.xyz - camPos.xyz), rotY * vertexNormal);
   //instanceParamsVS.x *= clamp(cosnormal,0.0,1.0);
+  debuginfo.w = dot(rotY*vertexNormal, normalize(camPos.xyz - grassVertWorldPos.xyz));
 
   // ------------ dump the stuff for FS --------------------
   texCoord0 = texcoords0;
@@ -1083,6 +1096,8 @@ void main() {
 	//fragColor.a = 1;
 	//fragColor = vec4(debuginfo.r,debuginfo.g, 0, (debuginfo.g)*5	);
 	//fragColor = vec4(1.0, 1.0, 1.0, 1.0);
+	//fragColor = vec4(debuginfo.w*5, 1.0 - debuginfo.w*5.0, 0,1.0);	
+	fragColor.a *= clamp(debuginfo.w *3,0.0,1.0);
 	if (fragColor.a < ALPHATHRESHOLD) // needed for depthmask
 	discard;
 }
@@ -1324,7 +1339,7 @@ function widget:DrawWorldPreUnit()
   
   local cx, cy, cz = Spring.GetCameraPosition()
   local gh = (Spring.GetGroundHeight(cx,cz) or 0)
-  if cy  < (grassConfig.grassShaderParams.FADEEND + gh) and grassVAO ~= nil then
+  if cy  < (grassConfig.grassShaderParams.FADEEND + gh) and grassVAO ~= nil and #grassInstanceData > 0 then
 	local startInstanceIndex = 0
 	local instanceCount =  #grassInstanceData/4
     if not placementMode then 

@@ -103,7 +103,11 @@ function widget:PlayerChanged(playerID)
     if playerID == Spring.GetMyPlayerID() then
         if Spring.GetSpectatingState() then
             specDetected = true
-            withoutRadars()
+            if losWithRadarEnabled then
+                withRadars()
+            else
+                withoutRadars()
+            end
         end
     end
 end
@@ -140,11 +144,6 @@ function setLosWithoutColors()
 end
 
 function toggleLOSRadars()
-    if specDetected and losWithRadarEnabled then
-        losWithRadarEnabled = false
-    end
-    specDetected = false
-
     if losWithRadarEnabled then
         setLosWithoutRadars()
     else

@@ -96,13 +96,24 @@ function gadget:Initialize()
     end
 end
 
+local unitTransportCapacity = {}
+local unitCantBeTransported = {}
+local unitLoadingRadius = {}
+for unitDefID, unitDef in pairs(UnitDefs) do
+	if unitDef.isTransport then
+		unitTransportCapacity[unitDefID] = unitDef.transportCapacity
+	end
+	unitCantBeTransported[unitDefID] = unitDef.cantBeTransported
+	unitLoadingRadius[unitDefID] = unitDef.loadingRadius
+end
+
 function gadget:UnitCreated(unitID, unitDefID) --, team, builderID
     unitisintransport[unitID] = false
     passengermovingtoload[unitID] = false
-    if not UnitDefs[unitDefID].isTransport then
-        --Spring.Echo(" Not a transport! ")
-        return end
-    local transportcapacity = tonumber(UnitDefs[unitDefID].transportCapacity)
+    if not unitTransportCapacity[unitDefID] then
+        return
+	end
+    local transportcapacity = unitTransportCapacity[unitDefID]
     if transportcapacity == nil then
         transportcapacity = 0
     end
@@ -114,11 +125,6 @@ function gadget:UnitCreated(unitID, unitDefID) --, team, builderID
     --_G.currentassignablecapacity = currentassignablecapacity
     --Spring.Echo("Assignable capacity table count: "..pairs_len(currentassignablecapacity))
     transportmovingtoload[unitID] = nil
-end
-
--- Can this unit be transported?
-local function canBeTransported(unitDefID)
-    return tobool(UnitDefs[unitDefID].cantBeTransported) == false
 end
 
 -- Does this unit has available transport capacity?
@@ -143,9 +149,8 @@ local function CancelLoad(unitID)
 end
 
 function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions)
-    local ud = UnitDefs[unitDefID]
-    local transportcapacity = ud.transportCapacity or 0
-    local loadingradius = ud.loadingRadius
+    local transportcapacity = unitTransportCapacity[unitDefID] or 0
+    local loadingradius = unitLoadingRadius[unitDefID]
 
     --Spring.Echo("CMD ID: "..cmdID.." for unit: "..unitID)
 
@@ -186,7 +191,7 @@ function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdO
     if cmdID == CMD_LOAD_ONTO then -- (76) LOAD ONTO a TRANSPORT, checks if can be transported
         local transportID = cmdParams[1]            --Spring.Echo("load command registered")
 
-        if canBeTransported(unitDefID) and hasAssignableCapacity(transportID)
+        if canBeTransported[unitDefID] and hasAssignableCapacity(transportID)
                 and not unitisintransport[unitID] and not loadtheseunits[unitID] then
             Spring.GiveOrderToUnit(unitID, CMD_GUARD, {transportID}, {})
             loadtheseunits[unitID] = transportID
@@ -212,9 +217,8 @@ function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdO
             ------------------------------------BUNKER----------------------------------------------------
             if movetype == [[static]] then --is it a bunker?
                 if (r == nil) then	-------- load a single unit
-                    local xUnitDefID = spGetUnitDefID(x)
                     local xTeam = spGetUnitTeam(x)
-                    if canBeTransported(xUnitDefID) and xTeam == MyTeam
+                    if canBeTransported[spGetUnitDefID(x)] and xTeam == MyTeam
                             and currentassignablecapacity[unitID] > 0 and (unitisintransport[x] == false)
                             and (loadtheseunits[x] == nil) then
                         loadtheseunits[x] = unitID
@@ -229,7 +233,7 @@ function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdO
                         local cTeam = spGetUnitTeam(cUnitID)
                         if ((cUnitID ~= unitID) and (cTeam == MyTeam)) then
                             local cUnitDefID = spGetUnitDefID(cUnitID)
-                            if tobool(UnitDefs[cUnitDefID].cantBeTransported) == false
+                            if not unitCantBeTransported[cUnitDefID]
                                     and (currentassignablecapacity[unitID] > 0)
                                     and (unitisintransport[cUnitID] == false)
                                     and (loadtheseunits[cUnitID] == nil) then
@@ -248,9 +252,8 @@ function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdO
                 transportmovingtoload[unitID] = { x = x, y = y, z = z, r = r, f = spGetGameFrame()+1 }   -- start tracking it in f frames
                 -- load single unit
                 if r == nil then
-                    local xUnitDefID = spGetUnitDefID(x)
                     local xTeam = spGetUnitTeam(x)
-                    if canBeTransported(xUnitDefID)
+                    if canBeTransported[spGetUnitDefID(x)]
                             and xTeam == MyTeam and currentassignablecapacity[unitID] > 0
                             and not unitisintransport[x] and loadtheseunits[x] == nil then
                         loadtheseunits[x] = unitID
@@ -282,7 +285,7 @@ function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdO
                         local cTeam = spGetUnitTeam(cUnitID)
                         if (cUnitID ~= unitID) and (cTeam == MyTeam) then
                             local cUnitDefID = spGetUnitDefID(cUnitID)
-                            if canBeTransported(cUnitDefID)
+                            if canBeTransported[cUnitDefID]
                                     and currentassignablecapacity[unitID] > 0
                                     and not unitisintransport[cUnitID]
                                     and not loadtheseunits[cUnitID] then
@@ -475,7 +478,7 @@ function gadget:GameFrame(f)
         local UnitsAroundTransport = spGetUnitsInCylinder(x,z,loadingradius)
         for _, thisuID in ipairs(UnitsAroundTransport) do
             local thisUDID = spGetUnitDefID(thisuID)
-            if thisuID == passengerUID and canBeTransported(thisUDID) then
+            if thisuID == passengerUID and canBeTransported[thisUDID] then
                 -- Actually "load" the unit:
                 local cegposx, cegposy, cegposz = Spring.GetUnitPosition(passengerUID)
                 Spring.SpawnCEG("scav-spawnexplo",cegposx,cegposy,cegposz,0,0,0)

@@ -1,5 +1,10 @@
 Spring.Echo("[Scavengers] Unit Spawner initialized")
 
+local airUnitList = VFS.Include("luarules/gadgets/scavengers/Configs/BYAR/UnitLists/air.lua")
+local landUnitList = VFS.Include("luarules/gadgets/scavengers/Configs/BYAR/UnitLists/land.lua")
+local seaUnitList = VFS.Include("luarules/gadgets/scavengers/Configs/BYAR/UnitLists/sea.lua")
+local bossUnitList = VFS.Include("luarules/gadgets/scavengers/Configs/BYAR/UnitLists/boss.lua")
+
 local UnitSpawnChance = unitSpawnerModuleConfig.spawnchance
 
 function BossWaveTimer(n)
@@ -17,9 +22,9 @@ function BossWaveTimer(n)
 		BossFightMessages(BossWaveTimeLeft)
 	elseif BossWaveTimeLeft <= 0 then
 		if not FinalBossUnitSpawned and unitSpawnerModuleConfig.FinalBossUnit == true then
-			
-			local bossunit = BossUnits[math_random(1,#BossUnits)]
-			
+
+			local bossunit = bossUnitList.Bosses[math_random(1, #bossUnitList.Bosses)]
+
 			local scavengerunits = Spring.GetTeamUnits(GaiaTeamID)
 			SpawnBeacons = {}
 			for i = 1,#scavengerunits do
@@ -29,7 +34,7 @@ function BossWaveTimer(n)
 					table.insert(SpawnBeacons,scav)
 				end
 			end
-			
+
 			if ScavBossFailedSpawnAttempts >= 10 then
 				noSpawnerForBoss = true
 			elseif #SpawnBeacons > 1 then
@@ -127,45 +132,45 @@ function BossMinionsSpawn(n)
 
 		if rair == 0 then
 			if BossFightCurrentPhase >= 5 then
-				minionUnit = T4AirUnits[math_random(1,#T4AirUnits)]..scavconfig.unitnamesuffix
+				minionUnit = airUnitList.T4[math_random(1,#airUnitList.T4)]
 			elseif BossFightCurrentPhase >= 4 then
-				minionUnit = T3AirUnits[math_random(1,#T3AirUnits)]..scavconfig.unitnamesuffix
+				minionUnit = airUnitList.T3[math_random(1,#airUnitList.T3)]
 			elseif BossFightCurrentPhase >= 3 then
-				minionUnit = T2AirUnits[math_random(1,#T2AirUnits)]..scavconfig.unitnamesuffix
+				minionUnit = airUnitList.T2[math_random(1,#airUnitList.T2)]
 			elseif BossFightCurrentPhase >= 2 then
-				minionUnit = T1AirUnits[math_random(1,#T1AirUnits)]..scavconfig.unitnamesuffix
+				minionUnit = airUnitList.T1[math_random(1,#airUnitList.T1)]
 			elseif BossFightCurrentPhase == 1 then
-				minionUnit = T0AirUnits[math_random(1,#T0AirUnits)]..scavconfig.unitnamesuffix
+				minionUnit = airUnitList.T0[math_random(1,#airUnitList.T0)]
 			else
-				minionUnit = T0AirUnits[math_random(1,#T0AirUnits)]..scavconfig.unitnamesuffix
+				minionUnit = airUnitList.T0[math_random(1,#airUnitList.T0)]
 			end
 		elseif posy > -20 then
 			if BossFightCurrentPhase >= 5 then
-				minionUnit = T4LandUnits[math_random(1,#T4LandUnits)]..scavconfig.unitnamesuffix
+				minionUnit = landUnitList.T4[math_random(1,#landUnitList.T4)]
 			elseif BossFightCurrentPhase >= 4 then
-				minionUnit = T3LandUnits[math_random(1,#T3LandUnits)]..scavconfig.unitnamesuffix
+				minionUnit = landUnitList.T3[math_random(1,#landUnitList.T3)]
 			elseif BossFightCurrentPhase >= 3 then
-				minionUnit = T2LandUnits[math_random(1,#T2LandUnits)]..scavconfig.unitnamesuffix
+				minionUnit = landUnitList.T2[math_random(1,#landUnitList.T2)]
 			elseif BossFightCurrentPhase >= 2 then
-				minionUnit = T1LandUnits[math_random(1,#T1LandUnits)]..scavconfig.unitnamesuffix
+				minionUnit = landUnitList.T1[math_random(1,#landUnitList.T1)]
 			elseif BossFightCurrentPhase == 1 then
-				minionUnit = T0LandUnits[math_random(1,#T0LandUnits)]..scavconfig.unitnamesuffix
+				minionUnit = landUnitList.T0[math_random(1,#landUnitList.T0)]
 			else
-				minionUnit = T0LandUnits[math_random(1,#T0LandUnits)]..scavconfig.unitnamesuffix
+				minionUnit = landUnitList.T0[math_random(1,#landUnitList.T0)]
 			end
 		elseif posy <= -20 then
 			if BossFightCurrentPhase >= 5 then
-				minionUnit = T4SeaUnits[math_random(1,#T4SeaUnits)]..scavconfig.unitnamesuffix
+				minionUnit = seaUnitList.T4[math_random(1,#seaUnitList.T4)]
 			elseif BossFightCurrentPhase >= 4 then
-				minionUnit = T3SeaUnits[math_random(1,#T3SeaUnits)]..scavconfig.unitnamesuffix
+				minionUnit = seaUnitList.T3[math_random(1,#seaUnitList.T3)]
 			elseif BossFightCurrentPhase >= 3 then
-				minionUnit = T2SeaUnits[math_random(1,#T2SeaUnits)]..scavconfig.unitnamesuffix
+				minionUnit = seaUnitList.T2[math_random(1,#seaUnitList.T2)]
 			elseif BossFightCurrentPhase >= 2 then
-				minionUnit = T1SeaUnits[math_random(1,#T1SeaUnits)]..scavconfig.unitnamesuffix
+				minionUnit = seaUnitList.T1[math_random(1,#seaUnitList.T1)]
 			elseif BossFightCurrentPhase == 1 then
-				minionUnit = T0SeaUnits[math_random(1,#T0SeaUnits)]..scavconfig.unitnamesuffix
+				minionUnit = seaUnitList.T0[math_random(1,#seaUnitList.T0)]
 			else
-				minionUnit = T0SeaUnits[math_random(1,#T0SeaUnits)]..scavconfig.unitnamesuffix
+				minionUnit = seaUnitList.T0[math_random(1,#seaUnitList.T0)]
 			end
 		end
 		if math.random(1,4) == 1 then
@@ -175,7 +180,7 @@ function BossMinionsSpawn(n)
 			local posx = x + math_random(-500,500)
 			local posz = z + math_random(-500,500)
 			local posy = Spring.GetGroundHeight(posx, posz)
-			Spring.CreateUnit("scavmistxxl"..scavconfig.unitnamesuffix, posx, posy, posz, math_random(0,3),GaiaTeamID)
+			Spring.CreateUnit("scavmistxxl_scav", posx, posy, posz, math_random(0,3),GaiaTeamID)
 		end
 	end
 end
@@ -186,9 +191,9 @@ function UnitGroupSpawn(n)
 		local gaiaUnitCount = Spring.GetTeamUnitCount(GaiaTeamID)
 		if BossWaveTimeLeft then
 			if (not numOfSpawnBeacons) or numOfSpawnBeacons == 0 then
-				ActualUnitSpawnChance = math_random(0,math.ceil(UnitSpawnChance))
+				ActualUnitSpawnChance = math_random(0,math.ceil(UnitSpawnChance/5))
 			else
-				ActualUnitSpawnChance = math_random(0,(UnitSpawnChance/(numOfSpawnBeacons/5)))
+				ActualUnitSpawnChance = math_random(0,((UnitSpawnChance/5)/(numOfSpawnBeacons/5)))
 			end
 		else
 			if (not numOfSpawnBeacons) or numOfSpawnBeacons == 0 then
@@ -272,29 +277,12 @@ function UnitGroupSpawn(n)
 				local newTypeNumber = math.random(2,20)
 				--Spring.Echo(newTypeNumber)
 				if (posy <= -20 and aircraftchanceonsea == 0) or (aircraftchance == 0 and (not BossWaveTimeLeft)) or (bossaircraftchance == 0 and BossWaveTimeLeft and BossWaveTimeLeft > 0) then
-					if unitSpawnerModuleConfig.bossFightEnabled and BossWaveTimeLeft then
-						groupsize = math.ceil(groupsize*unitSpawnerModuleConfig.airmultiplier*unitSpawnerModuleConfig.t4multiplier)
-						if spawnTier < 80 then
-							for i = 1,groupsize do
-								if i%newTypeNumber == 1 then
-									numOfTypes = numOfTypes+1
-									groupunit[numOfTypes] = T4AirUnits[math_random(1,#T4AirUnits)]
-								end
-							end
-						else
-							for i = 1,groupsize do
-								if i%newTypeNumber == 1 then
-									numOfTypes = numOfTypes+1
-									groupunit[numOfTypes] = T3AirUnits[math_random(1,#T3AirUnits)]
-								end
-							end
-						end
-					elseif spawnTier <= TierSpawnChances.T0 then
+					if spawnTier <= TierSpawnChances.T0 then
 						groupsize = math.ceil(groupsize*unitSpawnerModuleConfig.airmultiplier*unitSpawnerModuleConfig.t0multiplier)
 						for i = 1,groupsize do
 							if i%newTypeNumber == 1 then
 								numOfTypes = numOfTypes+1
-								groupunit[numOfTypes] = T0AirUnits[math_random(1,#T0AirUnits)]
+								groupunit[numOfTypes] = airUnitList.T0[math_random(1,#airUnitList.T0)]
 							end
 						end
 					elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 then
@@ -302,7 +290,7 @@ function UnitGroupSpawn(n)
 						for i = 1,groupsize do
 							if i%newTypeNumber == 1 then
 								numOfTypes = numOfTypes+1
-								groupunit[numOfTypes] = T1AirUnits[math_random(1,#T1AirUnits)]
+								groupunit[numOfTypes] = airUnitList.T1[math_random(1,#airUnitList.T1)]
 							end
 						end
 					elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 then
@@ -310,7 +298,7 @@ function UnitGroupSpawn(n)
 						for i = 1,groupsize do
 							if i%newTypeNumber == 1 then
 								numOfTypes = numOfTypes+1
-								groupunit[numOfTypes] = T2AirUnits[math_random(1,#T2AirUnits)]
+								groupunit[numOfTypes] = airUnitList.T2[math_random(1,#airUnitList.T2)]
 							end
 						end
 					elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 then
@@ -318,7 +306,7 @@ function UnitGroupSpawn(n)
 						for i = 1,groupsize do
 							if i%newTypeNumber == 1 then
 								numOfTypes = numOfTypes+1
-								groupunit[numOfTypes] = T3AirUnits[math_random(1,#T3AirUnits)]
+								groupunit[numOfTypes] = airUnitList.T3[math_random(1,#airUnitList.T3)]
 							end
 						end
 					elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 + TierSpawnChances.T4 then
@@ -326,7 +314,7 @@ function UnitGroupSpawn(n)
 						for i = 1,groupsize do
 							if i%newTypeNumber == 1 then
 								numOfTypes = numOfTypes+1
-								groupunit[numOfTypes] = T4AirUnits[math_random(1,#T4AirUnits)]
+								groupunit[numOfTypes] = airUnitList.T4[math_random(1,#airUnitList.T4)]
 							end
 						end
 					else
@@ -334,34 +322,17 @@ function UnitGroupSpawn(n)
 						for i = 1,groupsize do
 							if i%newTypeNumber == 1 then
 								numOfTypes = numOfTypes+1
-								groupunit[numOfTypes] = T0AirUnits[math_random(1,#T0AirUnits)]
+								groupunit[numOfTypes] = airUnitList.T0[math_random(1,#airUnitList.T0)]
 							end
 						end
 					end
 				elseif posy > -20 then
-					if unitSpawnerModuleConfig.bossFightEnabled and BossWaveTimeLeft then
-						groupsize = math.ceil(groupsize*unitSpawnerModuleConfig.landmultiplier*unitSpawnerModuleConfig.t4multiplier)
-						if spawnTier < 80 then
-							for i = 1,groupsize do
-								if i%newTypeNumber == 1 then
-									numOfTypes = numOfTypes+1
-									groupunit[numOfTypes] = T4LandUnits[math_random(1,#T4LandUnits)]
-								end
-							end
-						else
-							for i = 1,groupsize do
-								if i%newTypeNumber == 1 then
-									numOfTypes = numOfTypes+1
-									groupunit[numOfTypes] = T3LandUnits[math_random(1,#T3LandUnits)]
-								end
-							end
-						end
-					elseif spawnTier <= TierSpawnChances.T0 then
+					if spawnTier <= TierSpawnChances.T0 then
 						groupsize = math.ceil(groupsize*unitSpawnerModuleConfig.landmultiplier*unitSpawnerModuleConfig.t0multiplier)
 						for i = 1,groupsize do
 							if i%newTypeNumber == 1 then
 								numOfTypes = numOfTypes+1
-								groupunit[numOfTypes] = T0LandUnits[math_random(1,#T0LandUnits)]
+								groupunit[numOfTypes] = landUnitList.T0[math_random(1,#landUnitList.T0)]
 							end
 						end
 					elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 then
@@ -369,7 +340,7 @@ function UnitGroupSpawn(n)
 						for i = 1,groupsize do
 							if i%newTypeNumber == 1 then
 								numOfTypes = numOfTypes+1
-								groupunit[numOfTypes] = T1LandUnits[math_random(1,#T1LandUnits)]
+								groupunit[numOfTypes] = landUnitList.T1[math_random(1,#landUnitList.T1)]
 							end
 						end
 					elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 then
@@ -377,7 +348,7 @@ function UnitGroupSpawn(n)
 						for i = 1,groupsize do
 							if i%newTypeNumber == 1 then
 								numOfTypes = numOfTypes+1
-								groupunit[numOfTypes] = T2LandUnits[math_random(1,#T2LandUnits)]
+								groupunit[numOfTypes] = landUnitList.T2[math_random(1,#landUnitList.T2)]
 							end
 						end
 					elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 then
@@ -385,7 +356,7 @@ function UnitGroupSpawn(n)
 						for i = 1,groupsize do
 							if i%newTypeNumber == 1 then
 								numOfTypes = numOfTypes+1
-								groupunit[numOfTypes] = T3LandUnits[math_random(1,#T3LandUnits)]
+								groupunit[numOfTypes] = landUnitList.T3[math_random(1,#landUnitList.T3)]
 							end
 						end
 					elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 + TierSpawnChances.T4 then
@@ -393,7 +364,7 @@ function UnitGroupSpawn(n)
 						for i = 1,groupsize do
 							if i%newTypeNumber == 1 then
 								numOfTypes = numOfTypes+1
-								groupunit[numOfTypes] = T4LandUnits[math_random(1,#T4LandUnits)]
+								groupunit[numOfTypes] = landUnitList.T4[math_random(1,#landUnitList.T4)]
 							end
 						end
 					else
@@ -401,34 +372,17 @@ function UnitGroupSpawn(n)
 						for i = 1,groupsize do
 							if i%newTypeNumber == 1 then
 								numOfTypes = numOfTypes+1
-								groupunit[numOfTypes] = T0LandUnits[math_random(1,#T0LandUnits)]
+								groupunit[numOfTypes] = landUnitList.T0[math_random(1,#landUnitList.T0)]
 							end
 						end
 					end
 				elseif posy <= -20 then
-					if unitSpawnerModuleConfig.bossFightEnabled and BossWaveTimeLeft then
-						groupsize = math.ceil(groupsize*unitSpawnerModuleConfig.seamultiplier*unitSpawnerModuleConfig.t4multiplier)
-						if spawnTier < 80 then
-							for i = 1,groupsize do
-								if i%newTypeNumber == 1 then
-									numOfTypes = numOfTypes+1
-									groupunit[numOfTypes] = T4SeaUnits[math_random(1,#T4SeaUnits)]
-								end
-							end
-						else
-							for i = 1,groupsize do
-								if i%newTypeNumber == 1 then
-									numOfTypes = numOfTypes+1
-									groupunit[numOfTypes] = T3SeaUnits[math_random(1,#T3SeaUnits)]
-								end
-							end
-						end
-					elseif spawnTier <= TierSpawnChances.T0 then
+					if spawnTier <= TierSpawnChances.T0 then
 						groupsize = math.ceil(groupsize*unitSpawnerModuleConfig.seamultiplier*unitSpawnerModuleConfig.t0multiplier)
 						for i = 1,groupsize do
 							if i%newTypeNumber == 1 then
 								numOfTypes = numOfTypes+1
-								groupunit[numOfTypes] = T0SeaUnits[math_random(1,#T0SeaUnits)]
+								groupunit[numOfTypes] = seaUnitList.T0[math_random(1,#seaUnitList.T0)]
 							end
 						end
 					elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 then
@@ -436,7 +390,7 @@ function UnitGroupSpawn(n)
 						for i = 1,groupsize do
 							if i%newTypeNumber == 1 then
 								numOfTypes = numOfTypes+1
-								groupunit[numOfTypes] = T1SeaUnits[math_random(1,#T1SeaUnits)]
+								groupunit[numOfTypes] = seaUnitList.T1[math_random(1,#seaUnitList.T1)]
 							end
 						end
 					elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 then
@@ -444,7 +398,7 @@ function UnitGroupSpawn(n)
 						for i = 1,groupsize do
 							if i%newTypeNumber == 1 then
 								numOfTypes = numOfTypes+1
-								groupunit[numOfTypes] = T2SeaUnits[math_random(1,#T2SeaUnits)]
+								groupunit[numOfTypes] = seaUnitList.T2[math_random(1,#seaUnitList.T2)]
 							end
 						end
 					elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 then
@@ -452,7 +406,7 @@ function UnitGroupSpawn(n)
 						for i = 1,groupsize do
 							if i%newTypeNumber == 1 then
 								numOfTypes = numOfTypes+1
-								groupunit[numOfTypes] = T3SeaUnits[math_random(1,#T3SeaUnits)]
+								groupunit[numOfTypes] = seaUnitList.T3[math_random(1,#seaUnitList.T3)]
 							end
 						end
 					elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 + TierSpawnChances.T4 then
@@ -460,7 +414,7 @@ function UnitGroupSpawn(n)
 						for i = 1,groupsize do
 							if i%newTypeNumber == 1 then
 								numOfTypes = numOfTypes+1
-								groupunit[numOfTypes] = T4SeaUnits[math_random(1,#T4SeaUnits)]
+								groupunit[numOfTypes] = seaUnitList.T4[math_random(1,#seaUnitList.T4)]
 							end
 						end
 					else
@@ -468,7 +422,7 @@ function UnitGroupSpawn(n)
 						for i = 1,groupsize do
 							if i%newTypeNumber == 1 then
 								numOfTypes = numOfTypes+1
-								groupunit[numOfTypes] = T0SeaUnits[math_random(1,#T0SeaUnits)]
+								groupunit[numOfTypes] = seaUnitList.T0[math_random(1,#seaUnitList.T0)]
 							end
 						end
 					end
@@ -481,18 +435,18 @@ function UnitGroupSpawn(n)
 					if posy >= -20 and newposy >= -20 then
 						if i then
 							QueueSpawn("scavengerdroppod_scav", posx, posy, posz, math_random(0,3),GaiaTeamID, n+(i*5))
-							QueueSpawn(groupunit[math.ceil(i/newTypeNumber)]..scavconfig.unitnamesuffix, posx, posy, posz, math_random(0,3),GaiaTeamID, n+90+(i*5))
+							QueueSpawn(groupunit[math.ceil(i/newTypeNumber)], posx, posy, posz, math_random(0,3),GaiaTeamID, n+150+(i*5))
 						else
 							QueueSpawn("scavengerdroppod_scav", posx, posy, posz, math_random(0,3),GaiaTeamID, n)
-							QueueSpawn(groupunit[math.ceil(i/newTypeNumber)]..scavconfig.unitnamesuffix, posx, posy, posz, math_random(0,3),GaiaTeamID, n+90)
+							QueueSpawn(groupunit[math.ceil(i/newTypeNumber)], posx, posy, posz, math_random(0,3),GaiaTeamID, n+150)
 						end
 					elseif posy < -20 and newposy < -20 then
 						if i then
 							QueueSpawn("scavengerdroppod_scav", posx, posy, posz, math_random(0,3),GaiaTeamID, n+(i*5))
-							QueueSpawn(groupunit[math.ceil(i/newTypeNumber)]..scavconfig.unitnamesuffix, posx, posy, posz, math_random(0,3),GaiaTeamID, n+90+(i*5))
+							QueueSpawn(groupunit[math.ceil(i/newTypeNumber)], posx, posy, posz, math_random(0,3),GaiaTeamID, n+150+(i*5))
 						else
 							QueueSpawn("scavengerdroppod_scav", posx, posy, posz, math_random(0,3),GaiaTeamID, n)
-							QueueSpawn(groupunit[math.ceil(i/newTypeNumber)]..scavconfig.unitnamesuffix, posx, posy, posz, math_random(0,3),GaiaTeamID, n+90)
+							QueueSpawn(groupunit[math.ceil(i/newTypeNumber)], posx, posy, posz, math_random(0,3),GaiaTeamID, n+150)
 						end
 					end
 					--Spring.CreateUnit("scavengerdroppod_scav", posx, posy, posz, math_random(0,3),GaiaTeamID)

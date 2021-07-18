@@ -1,3 +1,4 @@
+local staticUnitList = VFS.Include("luarules/gadgets/scavengers/Configs/BYAR/UnitLists/staticunits.lua")
 
 function spawnStartBoxProtection(n)
     if ScavSafeAreaExist then
@@ -54,31 +55,31 @@ function spawnStartBoxProtection(n)
 
 				if spawnPosY > 0 then
 					if spawnTier <= TierSpawnChances.T0 then
-						pickedTurret = StartboxDefenceStructuresT0[math_random(1,#StartboxDefenceStructuresT0)]
+						pickedTurret = staticUnitList.StartboxDefences.T0[math_random(1,#staticUnitList.StartboxDefences.T0)]
 					elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 then
-						pickedTurret = StartboxDefenceStructuresT1[math_random(1,#StartboxDefenceStructuresT1)]
+						pickedTurret = staticUnitList.StartboxDefences.T1[math_random(1,#staticUnitList.StartboxDefences.T1)]
 					elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 then
-						pickedTurret = StartboxDefenceStructuresT2[math_random(1,#StartboxDefenceStructuresT2)]
+						pickedTurret = staticUnitList.StartboxDefences.T2[math_random(1,#staticUnitList.StartboxDefences.T2)]
 					elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 then
-						pickedTurret = StartboxDefenceStructuresT3[math_random(1,#StartboxDefenceStructuresT3)]
+						pickedTurret = staticUnitList.StartboxDefences.T3[math_random(1,#staticUnitList.StartboxDefences.T3)]
 					elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 + TierSpawnChances.T4 then
-						pickedTurret = StartboxDefenceStructuresT4[math_random(1,#StartboxDefenceStructuresT4)]
+						pickedTurret = staticUnitList.StartboxDefences.T4[math_random(1,#staticUnitList.StartboxDefences.T4)]
 					else
-						pickedTurret = StartboxDefenceStructuresT0[math_random(1,#StartboxDefenceStructuresT0)]
+						pickedTurret = staticUnitList.StartboxDefences.T0[math_random(1,#staticUnitList.StartboxDefences.T0)]
 					end
 				elseif spawnPosY <= 0 then
 					if spawnTier <= TierSpawnChances.T0 then
-						pickedTurret = StartboxDefenceStructuresT0Sea[math_random(1,#StartboxDefenceStructuresT0Sea)]
+						pickedTurret = staticUnitList.StartboxDefencesSea.T0[math_random(1,#staticUnitList.StartboxDefencesSea.T0)]
 					elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 then
-						pickedTurret = StartboxDefenceStructuresT1Sea[math_random(1,#StartboxDefenceStructuresT1Sea)]
+						pickedTurret = staticUnitList.StartboxDefencesSea.T1[math_random(1,#staticUnitList.StartboxDefencesSea.T1)]
 					elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 then
-						pickedTurret = StartboxDefenceStructuresT2Sea[math_random(1,#StartboxDefenceStructuresT2Sea)]
+						pickedTurret = staticUnitList.StartboxDefencesSea.T2[math_random(1,#staticUnitList.StartboxDefencesSea.T2)]
 					elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 then
-						pickedTurret = StartboxDefenceStructuresT3Sea[math_random(1,#StartboxDefenceStructuresT3Sea)]
+						pickedTurret = staticUnitList.StartboxDefencesSea.T3[math_random(1,#staticUnitList.StartboxDefencesSea.T3)]
 					elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 + TierSpawnChances.T4 then
-						pickedTurret = StartboxDefenceStructuresT4Sea[math_random(1,#StartboxDefenceStructuresT4Sea)]
+						pickedTurret = staticUnitList.StartboxDefencesSea.T4[math_random(1,#staticUnitList.StartboxDefencesSea.T4)]
 					else
-						pickedTurret = StartboxDefenceStructuresT0Sea[math_random(1,#StartboxDefenceStructuresT0Sea)]
+						pickedTurret = staticUnitList.StartboxDefencesSea.T0[math_random(1,#staticUnitList.StartboxDefencesSea.T0)]
 					end
 				end
 
@@ -88,7 +89,7 @@ function spawnStartBoxProtection(n)
 				end
 
 				if canSpawnDefence then
-					QueueSpawn(pickedTurret..scavconfig.unitnamesuffix, spawnPosX, spawnPosY, spawnPosZ, spawnDirection,GaiaTeamID,n+90)
+					QueueSpawn(pickedTurret, spawnPosX, spawnPosY, spawnPosZ, spawnDirection,GaiaTeamID,n+150)
 					Spring.CreateUnit("scavengerdroppod_scav", spawnPosX, spawnPosY, spawnPosZ, spawnDirection,GaiaTeamID)
 				end
 			end

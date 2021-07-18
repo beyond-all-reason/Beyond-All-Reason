@@ -25,7 +25,7 @@ function widget:GetInfo()
 end
 
 local vsx, vsy = Spring.GetViewGeometry()
-local widgetScale = (0.80 + (vsx * vsy / 6000000))
+local widgetScale = 0.80 + (vsx * vsy / 6000000)
 
 local glPopMatrix = gl.PopMatrix
 local glPushMatrix = gl.PushMatrix
@@ -43,9 +43,6 @@ local message3 = ""
 
 local font, chobbyInterface
 
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
 function widget:ViewResize()
 	vsx, vsy = Spring.GetViewGeometry()
 	widgetScale = (0.80 + (vsx * vsy / 6000000))
@@ -59,7 +56,7 @@ function widget:Initialize()
 	if Spring.GetModOptions().deathmode == "killall" then
 		message = Spring.I18N('ui.gametypeInfo.killAllUnits')
 	elseif Spring.GetModOptions().deathmode == "neverend" then
-		widgetHandler:RemoveWidget(self)
+		widgetHandler:RemoveWidget()
 	else
 		message = Spring.I18N('ui.gametypeInfo.killAllCommanders')
 	end
@@ -98,7 +95,7 @@ function widget:DrawScreen()
 		return
 	end
 	if spGetGameSeconds() > 0 then
-		widgetHandler:RemoveWidget(self)
+		widgetHandler:RemoveWidget()
 		return
 	end
 
@@ -112,16 +109,16 @@ function widget:DrawScreen()
 	end
 
 	glPushMatrix()
-	glTranslate((vsx * 0.5), (vsy * 0.18), 0) --has to be below where newbie info appears!
+	glTranslate((vsx * 0.5), (vsy * 0.19), 0) --has to be below where newbie info appears!
 	glScale(1.5, 1.5, 1)
 	font:Begin()
-	font:Print(msg, 0, 15 * widgetScale, 18 * widgetScale, "oc")
+	font:Print(msg, 0, 15 * widgetScale, 17.5 * widgetScale, "oc")
 	font:Print(msg2, 0, -35 * widgetScale, 12.5 * widgetScale, "oc")
-	font:Print(msg3, 0, 60 * widgetScale, 18 * widgetScale, "oc")
+	font:Print(msg3, 0, 60 * widgetScale, 17.5 * widgetScale, "oc")
 	font:End()
 	glPopMatrix()
 end
 
 function widget:GameOver()
-	widgetHandler:RemoveWidget(self)
+	widgetHandler:RemoveWidget()
 end

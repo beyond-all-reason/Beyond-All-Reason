@@ -1,4 +1,4 @@
-Factories = {
+local factories = {
 	"armaap",
 	"armalab",
 	"armap",
@@ -45,22 +45,22 @@ Factories = {
 	"lootboxnano_t4_var4",
 }
 
-FactoriesExcludedUnits = {
-	-- "armatlas",
-	-- "armdfly",
-	-- "armmlv",
-	-- "armbeaver",
-	-- "armtship",
-	-- "armthovr",
-	"armscab",
-	-- "corape",
-	-- "corvalk",
-	-- "corseah",
-	-- "cormuskrat",
-	-- "corintr",
-	-- "cortship",
-	-- "corthovr",
-	-- "cormabm",
-	"armthovr",
-	"corthovr",
+local scavFactories = {}
+for _, name in ipairs(factories) do
+	table.insert(scavFactories, name .. scavconfig.unitnamesuffix)
+end
+
+for _, name in ipairs(scavFactories) do
+	table.insert(factories, name)
+end
+
+local factoriesID = {}
+for _, unitName in ipairs(factories) do
+	local unitDefID = UnitDefNames[unitName].id
+	factoriesID[unitDefID] = true
+end
+
+return {
+	Factories = factories,
+	FactoriesID = factoriesID,
 }

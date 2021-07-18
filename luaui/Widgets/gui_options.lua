@@ -15,7 +15,8 @@ end
 --   function init
 ]]--
 
-local texts = {        -- fallback (if you want to change this, also update: language/en.lua, or it will be overwritten)
+local texts = {}	-- loaded from external language file
+texts = {
 	basic = 'Basic',
 	advanced = 'Advanced',
 	group = {
@@ -89,6 +90,8 @@ local texts = {        -- fallback (if you want to change this, also update: lan
 		outline_mult_descr = 'Set the relative strength of the outline',
 		outline_color = 'white',
 		outline_color_descr = 'Black (off) or white (on) colored outline ',
+		unitrotation = 'Building rotation',
+		unitrotation_descr = 'Rotate all buildings randomly (in degrees) ',
 		bloomdeferred = 'Bloom (unit)',
 		bloomdeferred_descr = 'Unit highlights and lights will glow.\n\n(via deferred rendering = less lag)',
 		bloomdeferredbrightness = 'brightness',
@@ -239,6 +242,9 @@ local texts = {        -- fallback (if you want to change this, also update: lan
 		teamcolors_descr = 'Replaces lobby colors with a auto generated color palette based one\n\nNOTE: reloads all widgets because these need to update their colors',
 		sameteamcolors = 'team colorisation',
 		sameteamcolors_descr = 'Use the same teamcolor for all the players in a team\n\nNOTE: reloads all widgets because these need to update their teamcolors',
+		playercolors = 'Player colors',
+		simpleteamcolors = 'simple',
+		simpleteamcolors_descr = 'Make all enemies have the same color',
 		minimap = 'Minimap',
 		minimap_enlarged = 'enlarged',
 		minimap_enlarged_descr = 'Relocates the order-menu to make room for the minimap',
@@ -295,10 +301,16 @@ local texts = {        -- fallback (if you want to change this, also update: lan
 		musicplayer = 'music player',
 		musicplayer_descr = 'Show music player on top of playerlist',
 		console = 'Console',
-		consolemaxlines = 'max lines',
-		consolefontsize = 'font size',
-		consolehidespecchat = 'hide spectator chat',
-		consolehidespecchat_descr = 'Not showing any spectator chat',
+		console_maxlines = 'max chat lines',
+		console_maxconsolelines = 'max console lines',
+		console_capitalize = 'capitalize chat text',
+		console_fontsize = 'font size',
+		console_hidespecchat = 'hide spectator chat',
+		console_hidespecchat_descr = 'Not showing any spectator chat',
+		console_showbackground = 'show background',
+		console_showbackground_descr = 'Always show background (faintly)',
+		console_backgroundopacity = 'background opacity',
+		console_backgroundopacity_descr = 'Show a transparent background',
 		idlebuilders = 'Idle builders bar',
 		idlebuilders_descr = 'Displays a row of idle builder units at the bottom of the screen',
 		buildbar = 'Factory build bar',
@@ -954,9 +966,6 @@ function DrawWindow()
 			else
 				RectRound(groupRect[id][1], groupRect[id][2], groupRect[id][3], groupRect[id][4], elementCorner, 1, 1, 0, 0, WG['guishader'] and { 0, 0, 0, 0.8 } or { 0, 0, 0, 0.85 }, WG['guishader'] and { 0.05, 0.05, 0.05, 0.8 } or { 0.05, 0.05, 0.05, 0.85 })
 				RectRound(groupRect[id][1] + groupMargin, groupRect[id][2] - bgpadding, groupRect[id][3] - groupMargin, groupRect[id][4] - groupMargin, elementCorner*0.8, 1, 1, 0, 0, { 0.7, 0.7, 0.7, 0.15 }, { 0.8, 0.8, 0.8, 0.15 })
-				--glColor(1,1,1,Spring.GetConfigFloat("ui_tileopacity", 0.012))
-				--local bgtexSize = math.floor(bgpadding * Spring.GetConfigFloat("ui_tilescale", 7))
-				--TexturedRectRound(groupRect[id][1] + groupMargin, groupRect[id][2] - bgpadding, groupRect[id][3] - groupMargin, groupRect[id][4] - groupMargin, bgpadding*1.2, 1, 1, 0, 0,  bgtexSize, (groupRect[id][1] + groupMargin)/vsx/bgtexSize, (groupRect[id][2]+bgpadding)/vsy/bgtexSize, "LuaUI/Images/backgroundtile.png")
 				font2:Begin()
 				font2:SetTextColor(1, 0.75, 0.4, 1)
 				font2:SetOutlineColor(0, 0, 0, 0.4)
@@ -1046,7 +1055,7 @@ function DrawWindow()
 	if changesRequireRestart then
 		font:SetTextColor(1, 0.35, 0.35, 1)
 		font:SetOutlineColor(0, 0, 0, 0.4)
-		font:Print("...made changes that require restart", screenX + screenWidth - (3 * widgetScale), screenY - screenHeight + (3 * widgetScale), 15 * widgetScale, "rn")
+		font:Print(texts.madechanges, screenX + math.floor(bgpadding*2.5), screenY - screenHeight + (3 * widgetScale) + math.floor(bgpadding*2), 15 * widgetScale, "n")
 	end
 
 	-- draw options
@@ -2137,6 +2146,7 @@ function init()
 			--treewind = false,
 			guishader = false,
 			decals = 0,
+			grass = false,
 			--grounddetail = 70,
 			darkenmap_darkenfeatures = false,
 		},
@@ -2156,6 +2166,7 @@ function init()
 			--treewind = false,
 			guishader = false,
 			decals = 0,
+			grass = false,
 			--grounddetail = 100,
 			darkenmap_darkenfeatures = false,
 		},
@@ -2175,6 +2186,7 @@ function init()
 			--treewind = false,
 			guishader = true,
 			decals = 2,
+			grass = true,
 			--grounddetail = 140,
 			darkenmap_darkenfeatures = false,
 		},
@@ -2194,6 +2206,7 @@ function init()
 			--treewind = true,
 			guishader = true,
 			decals = 4,
+			grass = true,
 			--grounddetail = 180,
 			darkenmap_darkenfeatures = false,
 		},
@@ -2213,6 +2226,7 @@ function init()
 			--treewind = true,
 			guishader = true,
 			decals = 5,
+			grass = true,
 			--grounddetail = 200,
 			darkenmap_darkenfeatures = true,
 		},
@@ -2294,6 +2308,11 @@ function init()
 					end
 				end
 			end
+
+			if string.find(line, "Loading widget:") then
+				break
+			end
+
 		end
 		-- Add some widescreen resolutions for local testing
 		--supportedResolutions[#supportedResolutions+1] = '3840 x 1440'
@@ -2652,7 +2671,7 @@ function init()
 		},
 
 		{ id = "bloom", group = "gfx", basic = true, widget = "Bloom Shader", name = texts.option.bloom, type = "bool", value = GetWidgetToggleValue("Bloom Shader"), description = texts.option.bloom_descr},
-		{ id = "bloombrightness", group = "gfx", name = widgetOptionColor .. "   "..texts.option.bloombrightness, type = "slider", min = 0.1, max = 0.4, step = 0.05, value = 0.2, description = '',
+		{ id = "bloombrightness", group = "gfx", name = widgetOptionColor .. "   "..texts.option.bloombrightness, type = "slider", min = 0.1, max = 0.25, step = 0.05, value = 0.15, description = '',
 		  onchange = function(i, value)
 			  saveOptionValue('Bloom Shader', 'bloom', 'setBrightness', { 'basicAlpha' }, value)
 		  end,
@@ -2697,15 +2716,15 @@ function init()
 			  end
 		  end,
 		},
-		{ id = "lighteffects_life", group = "gfx", name = widgetOptionColor .. "   "..texts.option.lighteffects_life, min = 0.4, max = 0.9, step = 0.05, type = "slider", value = 0.75, description = texts.option.lighteffects_life_descr,
-		  onload = function(i)
-			  loadWidgetData("Light Effects", "lighteffects_life", { 'globalLifeMult' })
-		  end,
-		  onchange = function(i, value)
-			  saveOptionValue('Light Effects', 'lighteffects', 'setLife', { 'globalLifeMult' }, value)
-		  end,
-		},
-		{ id = "lighteffects_brightness", group = "gfx", name = widgetOptionColor .. "   "..texts.option.lighteffects_brightness, min = 0.8, max = 2, step = 0.1, type = "slider", value = 1.3, description = texts.option.lighteffects_brightness_descr,
+		--{ id = "lighteffects_life", group = "gfx", name = widgetOptionColor .. "   "..texts.option.lighteffects_life, min = 0.35, max = 0.65, step = 0.05, type = "slider", value = 0.45, description = texts.option.lighteffects_life_descr,
+		--  onload = function(i)
+		--	  loadWidgetData("Light Effects", "lighteffects_life", { 'globalLifeMult' })
+		--  end,
+		--  onchange = function(i, value)
+		--	  saveOptionValue('Light Effects', 'lighteffects', 'setLife', { 'globalLifeMult' }, value)
+		--  end,
+		--},
+		{ id = "lighteffects_brightness", group = "gfx", name = widgetOptionColor .. "   "..texts.option.lighteffects_brightness, min = 1, max = 2, step = 0.05, type = "slider", value = 1.7, description = texts.option.lighteffects_brightness_descr,
 		  onload = function(i)
 			  loadWidgetData("Light Effects", "lighteffects_brightness", { 'globalLightMult' })
 		  end,
@@ -2713,14 +2732,14 @@ function init()
 			  saveOptionValue('Light Effects', 'lighteffects', 'setGlobalBrightness', { 'globalLightMult' }, value)
 		  end,
 		},
-		{ id = "lighteffects_radius", group = "gfx", name = widgetOptionColor .. "   "..texts.option.lighteffects_radius, min = 1, max = 1.6, step = 0.1, type = "slider", value = 1.3, description = texts.option.lighteffects_radius_descr,
-		  onload = function(i)
-			  loadWidgetData("Light Effects", "lighteffects_radius", { 'globalRadiusMult' })
-		  end,
-		  onchange = function(i, value)
-			  saveOptionValue('Light Effects', 'lighteffects', 'setGlobalRadius', { 'globalRadiusMult' }, value)
-		  end,
-		},
+		--{ id = "lighteffects_radius", group = "gfx", name = widgetOptionColor .. "   "..texts.option.lighteffects_radius, min = 1.2, max = 1.7, step = 0.05, type = "slider", value = 1.5, description = texts.option.lighteffects_radius_descr,
+		--  onload = function(i)
+		--	  loadWidgetData("Light Effects", "lighteffects_radius", { 'globalRadiusMult' })
+		--  end,
+		--  onchange = function(i, value)
+		--	  saveOptionValue('Light Effects', 'lighteffects', 'setGlobalRadius', { 'globalRadiusMult' }, value)
+		--  end,
+		--},
 		--{id="lighteffects_laserbrightness", group="gfx", name=widgetOptionColor.."   laser brightness", min=0.4, max=2, step=0.1, type="slider", value=1.2, description='laser lights brightness RELATIVE to global light brightness set above\n\n(only applies to real map and model lighting)',
 		--		 onload = function(i) loadWidgetData("Light Effects", "lighteffects_laserbrightness", {'globalLightMultLaser'}) end,
 		--		 onchange = function(i, value) saveOptionValue('Light Effects', 'lighteffects', 'setLaserBrightness', {'globalLightMultLaser'}, value) end,
@@ -2808,6 +2827,9 @@ function init()
 			  Spring.SendCommands("GroundDetail " .. value)
 		  end,
 		},
+
+		  { id = "grass", group = "gfx", basic = true, widget = "Map Grass GL4", name = texts.option.grass, type = "bool", value = GetWidgetToggleValue("Map Grass GL4"), description = texts.option.grass_desc },
+
 		  {id="treewind", group="gfx", basic=true, name=texts.option.treewind, type="bool", value=tonumber(Spring.GetConfigInt("TreeWind",1) or 1) == 1, description = texts.option.treewind_descr,
 		   onload = function(i) end,
 		   onchange = function(i, value)
@@ -3143,15 +3165,17 @@ function init()
 		  end,
 		},
 
-		{ id = "containmouse", group = "control", basic = true, name = texts.option.containmouse, type = "bool", value = (Spring.GetConfigInt("grabinput", 1) ~= 0), description = texts.option.containmouse_descr ,
-			onload = function(i)
-				updateGrabinput()
-			end,
-			onchange = function(i, value)
-			  Spring.SendCommands("grabinput "..(value and 1 or 0))
-			  Spring.SetConfigInt("grabinput", (value and 1 or 0))
-		  end,
-		},
+		 { id = "containmouse", group = "control", basic = true, widget = "Grabinput", name = texts.option.containmouse, type = "bool", value = GetWidgetToggleValue("Grabinput"), description = texts.option.containmouse_descr },
+
+		--{ id = "containmouse", group = "control", basic = true, name = texts.option.containmouse, type = "bool", value = (Spring.GetConfigInt("grabinput", 1) ~= 0), description = texts.option.containmouse_descr ,
+		--	onload = function(i)
+		--		updateGrabinput()
+		--	end,
+		--	onchange = function(i, value)
+		--	  Spring.SendCommands("grabinput "..(value and 1 or 0))
+		--	  Spring.SetConfigInt("grabinput", (value and 1 or 0))
+		--  end,
+		--},
 
 		  { id = "screenedgemove", group = "control", basic = true, name = texts.option.screenedgemove, type = "bool", restart = true, value = tonumber(Spring.GetConfigInt("FullscreenEdgeMove", 1) or 1) == 1, description = texts.option.screenedgemove_descr,
 		  onchange = function(i, value)
@@ -3367,14 +3391,14 @@ function init()
 			  saveOptionValue('Minimap', 'minimap', 'setEnlarged', { 'enlarged' }, value)
 		  end,
 		},
-		{ id = "simpleminimapcolors", group = "ui", name = widgetOptionColor .. "   "..texts.option.simpleminimapcolors, type = "bool", value = tonumber(Spring.GetConfigInt("SimpleMiniMapColors", 0) or 0) == 1, description = texts.option.simpleminimapcolors_descr,
-		  onload = function(i)
-		  end,
-		  onchange = function(i, value)
-			  Spring.SendCommands("minimap simplecolors  " .. (value and 1 or 0))
-			  Spring.SetConfigInt("SimpleMiniMapColors", (value and 1 or 0))
-		  end,
-		},
+		--{ id = "simpleminimapcolors", group = "ui", name = widgetOptionColor .. "   "..texts.option.simpleminimapcolors, type = "bool", value = tonumber(Spring.GetConfigInt("SimpleMiniMapColors", 0) or 0) == 1, description = texts.option.simpleminimapcolors_descr,
+		--  onload = function(i)
+		--  end,
+		--  onchange = function(i, value)
+		--	  Spring.SendCommands("minimap simplecolors  " .. (value and 1 or 0))
+		--	  Spring.SetConfigInt("SimpleMiniMapColors", (value and 1 or 0))
+		--  end,
+		--},
 		{ id = "minimapiconsize", group = "ui", name = widgetOptionColor .. "   "..texts.option.minimapiconsize, type = "slider", min = 2, max = 5, step = 0.25, value = tonumber(Spring.GetConfigFloat("MinimapIconScale", 3.5) or 1), description = '',
 		  onload = function(i)
 		  end,
@@ -3597,35 +3621,53 @@ function init()
 		--},
 		{ id = "mascot", group = "ui", basic = true, widget = "AdvPlayersList Mascot", name = widgetOptionColor .. "   "..texts.option.mascot, type = "bool", value = GetWidgetToggleValue("AdvPlayersList Mascot"), description = texts.option.mascot_descr },
 
-		{ id = "consolemaxlines", group = "ui", name = texts.option.console .. widgetOptionColor .. "  "..texts.option.consolemaxlines, type = "slider", min = 3, max = 9, step = 1, value = 6, description = '',
-		  onload = function(i)
-			  loadWidgetData("Red Console (In-game chat only)", "consolemaxlines", { 'Config', 'console', 'maxlines' })
-		  end,
-		  onchange = function(i, value)
-			  saveOptionValue('Red Console (In-game chat only)', 'red_chatonlyconsole', 'setMaxLines', { 'Config', 'console', 'maxlines' }, value)
-			  saveOptionValue('Red Console (old)', 'red_console', 'setMaxLines', { 'Config', 'console', 'maxlines' }, value)
-		  end,
-		},
-		{ id = "consolefontsize", group = "ui", name = widgetOptionColor .. "   "..texts.option.consolefontsize, type = "slider", min = 0.9, max = 1.1, step = 0.05, value = 1, description = '',
-		  onload = function(i)
-			  loadWidgetData("Red Console (In-game chat only)", "consolefontsize", { 'fontsizeMultiplier' })
-		  end,
-		  onchange = function(i, value)
-			  saveOptionValue('Red Console (In-game chat only)', 'red_chatonlyconsole', 'setFontsize', { 'fontsizeMultiplier' }, value)
-			  saveOptionValue('Red Console (old)', 'red_console', 'setFontsize', { 'fontsizeMultiplier' }, value)
-		  end,
-		},
-		{ id = "consolehidespecchat", group = "ui", name = widgetOptionColor .. "   "..texts.option.consolehidespecchat, type = "bool", value = (Spring.GetConfigInt("HideSpecChat", 0) == 1), description = texts.option.consolehidespecchat_descr,
+		  { id = "console_hidespecchat", group = "ui", name = texts.option.console .."   "..widgetOptionColor..texts.option.console_hidespecchat, type = "bool", value = (Spring.GetConfigInt("HideSpecChat", 0) == 1), description = texts.option.console_hidespecchat_descr,
 			onload = function(i)
 			end,
 			onchange = function(i, value)
 				Spring.SetConfigInt("HideSpecChat", value and 1 or 0)
-				widgetHandler:DisableWidget("Red Console (In-game chat only)")
-				widgetHandler:DisableWidget("Red Console (Battle and autohosts)")
-				widgetHandler:EnableWidget("Red Console (In-game chat only)")
-				widgetHandler:EnableWidget("Red Console (Battle and autohosts)")
 			end,
+		  },
+		{ id = "console_maxlines", group = "ui", name = widgetOptionColor .. "   "..texts.option.console_maxlines, type = "slider", min = 3, max = 7, step = 1, value = (WG['chat'] ~= nil and WG['chat'].getMaxLines() or 5), description = '',
+		  onload = function(i)
+			  loadWidgetData("Chat", "console_maxlines", { 'maxLines' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('Chat', 'chat', 'setMaxLines', { 'maxLines' }, value)
+		  end,
 		},
+		  { id = "console_maxconsolelines", group = "ui", name = widgetOptionColor .. "   "..texts.option.console_maxconsolelines, type = "slider", min = 2, max = 12, step = 1, value = (WG['chat'] ~= nil and WG['chat'].getMaxConsoleLines() or 2), description = '',
+			onload = function(i)
+				loadWidgetData("Chat", "console_maxconsolelines", { 'maxConsoleLines' })
+			end,
+			onchange = function(i, value)
+				saveOptionValue('Chat', 'chat', 'setMaxConsoleLines', { 'maxConsoleLines' }, value)
+			end,
+		  },
+		  --{ id = "console_capitalize", group = "ui", name = widgetOptionColor .. "   "..texts.option.console_capitalize, type = "bool", value = (WG['chat'] ~= nil and WG['chat'].getCapitalize() or false), description = '',
+		--	onload = function(i)
+		--		loadWidgetData("Chat", "console_capitalize", { 'capitalize' })
+		--	end,
+		--	onchange = function(i, value)
+		--		saveOptionValue('Chat', 'chat', 'setCapitalize', { 'capitalize' }, value)
+		--	end,
+		  --},
+		{ id = "console_fontsize", group = "ui", name = widgetOptionColor .. "   "..texts.option.console_fontsize, type = "slider", min = 0.92, max = 1.12, step = 0.02, value = (WG['chat'] ~= nil and WG['chat'].getFontsize() or 1), description = '',
+		  onload = function(i)
+			  loadWidgetData("Chat", "console_fontsize", { 'fontsizeMult' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('Chat', 'chat', 'setFontsize', { 'fontsizeMult' }, value)
+		  end,
+		},
+		  { id = "console_backgroundopacity", group = "ui", basic = true, name = widgetOptionColor .. "   "..texts.option.console_backgroundopacity, type = "slider", min = 0, max = 0.35, step = 0.01, value = (WG['chat'] ~= nil and WG['chat'].getBackgroundOpacity() or 0), description = texts.option.console_backgroundopacity_descr,
+			onload = function(i)
+				loadWidgetData("Chat", "console_backgroundopacity", { 'chatBackgroundOpacity' })
+			end,
+			onchange = function(i, value)
+				saveOptionValue('Chat', 'chat', 'setBackgroundOpacity', { 'chatBackgroundOpacity' }, value)
+			end,
+		  },
 
 		--{id="commanderhurt", group="ui", widget="Commander Hurt Vignette", name="Commander hurt vignette", type="bool", value=GetWidgetToggleValue("Commander Hurt Vignette"), description='Shows a red vignette when commander is out of view and gets damaged'},
 
@@ -3734,14 +3776,22 @@ function init()
 		  end,
 		},
 
-		{ id = "teamcolors", group = "ui", basic = true, widget = "Player Color Palette", name = texts.option.teamcolors, type = "bool", value = GetWidgetToggleValue("Player Color Palette"), description = texts.option.teamcolors_descr },
-		{ id = "sameteamcolors", group = "ui", basic = true, name = widgetOptionColor .. "   "..texts.option.sameteamcolors, type = "bool", value = (WG['playercolorpalette'] ~= nil and WG['playercolorpalette'].getSameTeamColors ~= nil and WG['playercolorpalette'].getSameTeamColors()), description = texts.option.sameteamcolors_descr,
-		  onload = function(i)
-		  end,
-		  onchange = function(i, value)
-			  saveOptionValue('Player Color Palette', 'playercolorpalette', 'setSameTeamColors', { 'useSameTeamColors' }, value)
-		  end,
-		},
+          { id = "teamcolors", group = "ui", basic = true, widget = "Player Color Palette", name = texts.option.teamcolors, type = "bool", value = GetWidgetToggleValue("Player Color Palette"), description = texts.option.teamcolors_descr },
+          { id = "sameteamcolors", group = "ui", basic = true, name = widgetOptionColor .. "   "..texts.option.sameteamcolors, type = "bool", value = (WG['playercolorpalette'] ~= nil and WG['playercolorpalette'].getSameTeamColors ~= nil and WG['playercolorpalette'].getSameTeamColors()), description = texts.option.sameteamcolors_descr,
+            onload = function(i)
+            end,
+            onchange = function(i, value)
+                saveOptionValue('Player Color Palette', 'playercolorpalette', 'setSameTeamColors', { 'useSameTeamColors' }, value)
+            end,
+          },
+
+          { id = "simpleteamcolors", group = "ui", basic = true, name = texts.option.playercolors..widgetOptionColor .. "  "..texts.option.simpleteamcolors, type = "bool", value = tonumber(Spring.GetConfigInt("simple_auto_colors", 0) or 0) == 1, description = texts.option.simpleteamcolors_descr,
+          onload = function(i)
+          end,
+          onchange = function(i, value)
+              Spring.SetConfigInt("simple_auto_colors", (value and 1 or 0))
+          end,
+        },
 
 		{ id = "teamplatter", group = "ui", basic = true, widget = "TeamPlatter", name = texts.option.teamplatter, type = "bool", value = GetWidgetToggleValue("TeamPlatter"), description = texts.option.teamplatter_descr },
 		{ id = "teamplatter_opacity", basic = true, group = "ui", name = widgetOptionColor .. "   "..texts.option.teamplatter_opacity, min = 0.05, max = 0.4, step = 0.01, type = "slider", value = 0.3, description = texts.option.teamplatter_opacity_descr,
@@ -3973,14 +4023,14 @@ function init()
 		},
 
 
-		{ id = "nametags_icon", group = "ui", name = texts.option.nametags_icon, type = "bool", value = (WG['nametags'] ~= nil and WG['nametags'].getDrawForIcon()), description = texts.option.nametags_icon_descr,
-		  onload = function(i)
-			  loadWidgetData("Commander Name Tags", "nametags_icon", { 'drawForIcon' })
-		  end,
-		  onchange = function(i, value)
-			  saveOptionValue('Commander Name Tags', 'nametags', 'setDrawForIcon', { 'drawForIcon' }, value)
-		  end,
-		},
+		--{ id = "nametags_icon", group = "ui", name = texts.option.nametags_icon, type = "bool", value = (WG['nametags'] ~= nil and WG['nametags'].getDrawForIcon()), description = texts.option.nametags_icon_descr,
+		--  onload = function(i)
+		--	  loadWidgetData("Commander Name Tags", "nametags_icon", { 'drawForIcon' })
+		--  end,
+		--  onchange = function(i, value)
+		--	  saveOptionValue('Commander Name Tags', 'nametags', 'setDrawForIcon', { 'drawForIcon' }, value)
+		--  end,
+		--},
 
 		{ id = "commandsfx", group = "ui", basic = true, widget = "Commands FX", name = texts.option.commandsfx, type = "bool", value = GetWidgetToggleValue("Commands FX"), description = texts.option.commandsfx_descr },
 		{ id = "commandsfxfilterai", group = "ui", name = widgetOptionColor .. "   "..texts.option.commandsfxfilterai, type = "bool", value = true, description = texts.option.commandsfxfilterai_descr,
@@ -4009,9 +4059,60 @@ function init()
 		},
 		{ id = "givenunits", group = "ui", widget = "Given Units", name = texts.option.givenunits, type = "bool", value = GetWidgetToggleValue("Given Units"), description = texts.option.giveunits_descr },
 
-		{ id = "radarrange", group = "ui", widget = "Radar Range", name = texts.option.radarrange, type = "bool", value = GetWidgetToggleValue("Radar Range"), description = texts.option.radarrange_descr },
+		-- Radar range rings:
+          { id = "radarrange", group = "ui", widget = "Sensor Ranges Radar", name = texts.option.radarrange, type = "bool", value = GetWidgetToggleValue("Sensor Ranges Radar"), description = texts.option.radarrange_descr },
 
-		{ id = "defrange", group = "ui", widget = "Defense Range", name = texts.option.defrange, type = "bool", value = GetWidgetToggleValue("Defense Range"), description = texts.option.displaydps_descr },
+		  { id = "radarrangeopacity", group = "ui", name = widgetOptionColor .. "   "..texts.option.radarrangeopacity, type = "slider", min = 0.01, max = 0.33, step = 0.01, value = (WG['radarrange'] ~= nil and WG['radarrange'].getOpacity ~= nil and WG['radarrange'].getOpacity()) or 0.08, description = '',
+			onload = function(i)
+				loadWidgetData("Sensor Ranges Radar", "radarrangeopacity", { 'opacity' })
+			end,
+			onchange = function(i, value)
+				saveOptionValue('Sensor Ranges Radar', 'radarrange', 'setOpacity', { 'opacity' }, value)
+			end,
+		  },
+		-- Sonar range
+		   { id = "sonarrange", group = "ui", widget = "Sensor Ranges Sonar", name = texts.option.sonarrange, type = "bool", value = GetWidgetToggleValue("Sensor Ranges Sonar"), description = texts.option.sonarrange_descr },
+
+		  { id = "sonarrangeopacity", group = "ui", name = widgetOptionColor .. "   "..texts.option.sonarrangeopacity, type = "slider", min = 0.01, max = 0.33, step = 0.01, value = (WG['sonarrange'] ~= nil and WG['sonarrange'].getOpacity ~= nil and WG['sonarrange'].getOpacity()) or 0.08, description = '',
+			onload = function(i)
+				loadWidgetData("Sensor Ranges Sonar", "sonarrangeopacity", { 'opacity' })
+			end,
+			onchange = function(i, value)
+				saveOptionValue('Sensor Ranges Sonar', 'sonarrange', 'setOpacity', { 'opacity' }, value)
+			end,
+		  },
+		-- Jammer range
+		   { id = "jammerrange", group = "ui", widget = "Sensor Ranges Jammer", name = texts.option.jammerrange, type = "bool", value = GetWidgetToggleValue("Sensor Ranges Jammer"), description = texts.option.jammerrange_descr },
+
+		  { id = "jammerrangeopacity", group = "ui", name = widgetOptionColor .. "   "..texts.option.jammerrangeopacity, type = "slider", min = 0.01, max = 0.66, step = 0.01, value = (WG['jammerrange'] ~= nil and WG['jammerrange'].getOpacity ~= nil and WG['jammerrange'].getOpacity()) or 0.08, description = '',
+			onload = function(i)
+				loadWidgetData("Sensor Ranges Jammer", "jammerrangeopacity", { 'opacity' })
+			end,
+			onchange = function(i, value)
+				saveOptionValue('Sensor Ranges Jammer', 'jammerrange', 'setOpacity', { 'opacity' }, value)
+			end,
+		  },
+		-- LOS Range:
+         { id = "losrange", group = "ui", widget = "Sensor Ranges LOS", name = texts.option.losrange, type = "bool", value = GetWidgetToggleValue("Sensor Ranges LOS"), description = texts.option.losrange_descr },
+
+		  { id = "losrangeopacity", group = "ui", name = widgetOptionColor .. "   "..texts.option.losrangeopacity, type = "slider", min = 0.01, max = 0.33, step = 0.01, value = (WG['losrange'] ~= nil and WG['losrange'].getOpacity ~= nil and WG['losrange'].getOpacity()) or 0.08, description = '',
+			onload = function(i)
+				loadWidgetData("Sensor Ranges LOS", "losrangeopacity", { 'opacity' })
+			end,
+			onchange = function(i, value)
+				saveOptionValue('Sensor Ranges LOS', 'losrange', 'setOpacity', { 'opacity' }, value)
+			end,
+		  },
+		  { id = "losrangeteamcolors", group = "ui", name = widgetOptionColor .. "   "..texts.option.losrangeteamcolors, type = "bool", value = (WG['losrange'] ~= nil and WG['losrange'].getUseTeamColors ~= nil and WG['losrange'].getUseTeamColors()), description = '',
+			onload = function(i)
+				loadWidgetData("Sensor Ranges LOS", "losrangeteamcolors", { 'useteamcolors' })
+			end,
+			onchange = function(i, value)
+				saveOptionValue('Sensor Ranges LOS', 'losrange', 'setUseTeamColors', { 'useteamcolors' }, value)
+			end,
+		  },
+
+          { id = "defrange", group = "ui", widget = "Defense Range", name = texts.option.defrange, type = "bool", value = GetWidgetToggleValue("Defense Range"), description = texts.option.displaydps_descr },
 		{ id = "defrange_allyair", group = "ui", name = widgetOptionColor .. "   "..texts.option.defrange_allyair, type = "bool", value = (WG['defrange'] ~= nil and WG['defrange'].getAllyAir ~= nil and WG['defrange'].getAllyAir()), description = texts.option.defrange_allyair_descr,
 		  onload = function(i)
 			  loadWidgetData("Defense Range", "defrange_allyair", { 'enabled', 'ally', 'air' })
@@ -5330,6 +5431,20 @@ function init()
 		options[getOptionByID("fancyselectedunits_teamcoloropacity")] = nil
 	end
 
+	if widgetHandler.knownWidgets["Sensor Ranges Radar"] == nil then
+		options[getOptionByID('radarrangeopacity')] = nil
+	end
+	if widgetHandler.knownWidgets["Sensor Ranges Sonar"] == nil then
+		options[getOptionByID('sonarrangeopacity')] = nil
+	end
+	if widgetHandler.knownWidgets["Sensor Ranges Jammer"] == nil then
+		options[getOptionByID('jammerrangeopacity')] = nil
+	end
+	if widgetHandler.knownWidgets["Sensor Ranges LOS"] == nil then
+		options[getOptionByID('losrangeopacity')] = nil
+		options[getOptionByID("losrangeteamcolors")] = nil
+	end
+
 	if widgetHandler.knownWidgets["Defense Range"] == nil then
 		options[getOptionByID('defrange')] = nil
 		options[getOptionByID("defrange_allyair")] = nil
@@ -5504,8 +5619,17 @@ function widget:Initialize()
 		widgetHandler:DisableWidget("Ambient Player")
 	end
 
+	if widgetHandler.orderList["Language"] < 0.5 then
+		widgetHandler:EnableWidget("Language")
+	end
+
 	if WG['lang'] then
 		texts = WG['lang'].getText('options')
+	end
+
+	-- just making sure
+	if widgetHandler.orderList["Pregame UI"] < 0.5 then
+		widgetHandler:EnableWidget("Pregame UI")
 	end
 
 	updateGrabinput()

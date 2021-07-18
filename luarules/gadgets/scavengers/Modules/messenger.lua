@@ -5,23 +5,23 @@ function pregameMessages(n)
 	if n > scavconfig.gracePeriod+100 then
 		return
 	end
-	if n == scavconfig.gracePeriod-7200 then
-		--ScavSendMessage("WARNING")
-		--ScavSendVoiceMessage(scavengerSoundPath.."warning.wav")
-	end
+	-- if n == scavconfig.gracePeriod-7200 then
+	-- 	--ScavSendMessage("WARNING")
+	-- 	--ScavSendVoiceMessage(scavengerSoundPath.."warning.wav")
+	-- end
 
-	if n == scavconfig.gracePeriod-7170 then
-		ScavSendNotification("scav_unidentifiedObjectsDetected")
-	end
+	-- if n == scavconfig.gracePeriod-7170 then
+	-- 	ScavSendNotification("scav_unidentifiedObjectsDetected")
+	-- end
 
 	-- if n == 2100 then
 	-- 	ScavSendMessage("... waiting for further data ... ")
 	-- 	ScavSendVoiceMessage(scavengerSoundPath.."waitingForIntel.wav")
 	-- end
 
-	if n == scavconfig.gracePeriod-5100 then
-		ScavSendNotification("scav_classifiedAsScavengers")
-	end
+	-- if n == scavconfig.gracePeriod-5100 then
+	-- 	ScavSendNotification("scav_classifiedAsScavengers")
+	-- end
 
 	-- if n == 6300 then
 	-- 	ScavSendMessage("WARNING")
@@ -33,12 +33,12 @@ function pregameMessages(n)
 	-- 	ScavSendVoiceMessage(scavengerSoundPath.."droppodsDetectedNearby.wav")
 	-- end
 
-	if n == scavconfig.gracePeriod-1800 then
-		--ScavSendMessage("WARNING")
-		--ScavSendVoiceMessage(scavengerSoundPath.."warning.wav")
-	end
+	-- if n == scavconfig.gracePeriod-1800 then
+	-- 	--ScavSendMessage("WARNING")
+	-- 	--ScavSendVoiceMessage(scavengerSoundPath.."warning.wav")
+	-- end
 
-	if n == scavconfig.gracePeriod-1770 then
+	if n == 3600 then
 		ScavSendNotification("scav_droppodsDetectedInArea")
 	end
 
@@ -47,7 +47,7 @@ function pregameMessages(n)
 		--ScavSendVoiceMessage(scavengerSoundPath.."warning.wav")
 	end
 
-	if n == scavconfig.gracePeriod+30 then
+	if n == scavconfig.gracePeriod then
 		ScavSendNotification("scav_droppingUnits")
 	end
 

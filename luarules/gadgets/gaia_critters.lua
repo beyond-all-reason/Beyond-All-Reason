@@ -23,7 +23,7 @@ end
 
 local isCritter = {}
 for udid, unitDef in pairs(UnitDefs) do
-	if string.sub(UnitDefs[udid].name, 1, 7) == "critter" then
+	if string.sub(unitDef.name, 1, 7) == "critter" then
 		isCritter[udid] = true
 	end
 end

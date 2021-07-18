@@ -16,7 +16,7 @@ function widget:Initialize()
         WG.Reload_BAR_Hotkeys()
     else
         Spring.Echo("BAR Hotkeys widget not found, cannot swap YZ")
-        widgetHandler:RemoveWidget(self)
+        widgetHandler:RemoveWidget()
     end
 end
 

@@ -110,44 +110,57 @@ function UnitDef_Post(name, uDef)
 		uDef.customparams = {}
 	end
 
---Soon used for new sound system!
+	-- disable wrecks for Control Points mode
+	if Spring.GetModOptions and (Spring.GetModOptions().scoremode or "disabled") ~= "disabled" then
+		uDef.corpse = nil
+	end
+
+	if uDef.energymake and uDef.energyuse then
+		if uDef.energymake == uDef.energyuse then
+			uDef.energymake = 0
+			uDef.energyuse = 0
+		elseif uDef.energymake > uDef.energyuse then
+			uDef.energymake = uDef.energymake - uDef.energyuse
+			if uDef.energyuse > 0 then
+				uDef.energyuse = 0
+			end
+		elseif uDef.energymake < uDef.energyuse then
+			uDef.energyuse = uDef.energyuse - uDef.energymake
+			if uDef.energymake > 0 then
+				uDef.energymake = 0
+			end
+		end
+	end
+
+
+	-- New sound system!
 	VFS.Include('luarules/configs/gui_soundeffects.lua')
-	if GUIUnitSoundEffects[name] then
-		if uDef.sounds then
-			if uDef.sounds.ok then
-				uDef.sounds.ok = nil 
-			end
+	if not (GUIUnitSoundEffects[name] or (GUIUnitSoundEffects[string.sub(name, 1, string.len(name)-5)] and string.find(name, "_scav"))) then
+		Spring.Echo("[gui_soundeffects.lua] Missing Sound Effects for unit: "..name)
+	end
+
+	if uDef.sounds then
+		if uDef.sounds.ok then
+			uDef.sounds.ok = nil
 		end
+	end
 
-		if uDef.sounds then
-			if uDef.sounds.select then
-				uDef.sounds.select = nil 
-			end
+	if uDef.sounds then
+		if uDef.sounds.select then
+			uDef.sounds.select = nil
 		end
+	end
 
-		if GUIUnitSoundEffects[name] and GUIUnitSoundEffects[name].BaseSoundActivate then
-			if uDef.sounds then
-				if uDef.sounds.activate then
-					uDef.sounds.activate = nil 
-				end
-				if uDef.sounds.deactivate then
-					uDef.sounds.deactivate = nil 
-				end
-			end
+	if uDef.sounds then
+		if uDef.sounds.activate then
+			uDef.sounds.activate = nil
 		end
-
-		-- TEST for activate custom sounds in gui_soundeffects
-		-- if uDef.sounds then
-		-- 	if uDef.sounds.activate then
-		-- 		uDef.sounds.activate = nil 
-		-- 	end
-		-- end
-
-		-- if uDef.sounds then
-		-- 	if uDef.sounds.deactivate then
-		-- 		uDef.sounds.deactivate = nil 
-		-- 	end
-		-- end
+		if uDef.sounds.deactivate then
+			uDef.sounds.deactivate = nil
+		end
+		if uDef.sounds.build then
+			uDef.sounds.build = nil
+		end
 	end
 
 	-- Unit Restrictions
@@ -250,17 +263,37 @@ function UnitDef_Post(name, uDef)
 		elseif name == "corlab" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "corkark"
+		elseif name == "corap" then
+			local numBuildoptions = #uDef.buildoptions
+			uDef.buildoptions[numBuildoptions+1] = "corassistdrone"
+		elseif name == "armap" then
+			local numBuildoptions = #uDef.buildoptions
+			uDef.buildoptions[numBuildoptions+1] = "armassistdrone"
+		elseif name == "armca" or name == "armck" or name == "armcv" then
+			local numBuildoptions = #uDef.buildoptions
+			uDef.buildoptions[numBuildoptions+1] = "corscavdrag"
+			uDef.buildoptions[numBuildoptions+2] = "corscavdtl"
+			uDef.buildoptions[numBuildoptions+3] = "corscavdtf"
+			uDef.buildoptions[numBuildoptions+4] = "corscavdtm"
+		elseif name == "corca" or name == "corck" or name == "corcv" then
+			local numBuildoptions = #uDef.buildoptions
+			uDef.buildoptions[numBuildoptions+1] = "corscavdrag"
+			uDef.buildoptions[numBuildoptions+2] = "corscavdtl"
+			uDef.buildoptions[numBuildoptions+3] = "corscavdtf"
+			uDef.buildoptions[numBuildoptions+4] = "corscavdtm"
 		elseif name == "armaca" or name == "armack" or name == "armacv" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "armapt3"
 			uDef.buildoptions[numBuildoptions+2] = "armminivulc"
 			uDef.buildoptions[numBuildoptions+3] = "armwint2"
+			uDef.buildoptions[numBuildoptions+4] = "corscavfort"
 		elseif name == "coraca" or name == "corack" or name == "coracv" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "corapt3"
 			uDef.buildoptions[numBuildoptions+2] = "corminibuzz"
-      uDef.buildoptions[numBuildoptions+3] = "corwint2"
+      		uDef.buildoptions[numBuildoptions+3] = "corwint2"
 			uDef.buildoptions[numBuildoptions+4] = "corhllllt"
+			uDef.buildoptions[numBuildoptions+5] = "corscavfort"
 		elseif name == "armasy" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "armptt2"
@@ -285,60 +318,60 @@ function UnitDef_Post(name, uDef)
 	end
 
 
-	if Spring.GetModOptions and Spring.GetModOptions().experimentalmassoverride and Spring.GetModOptions().experimentalmassoverride == "enabled" then
-		-- mass override
-		Spring.Echo("-------------------------")
-		if uDef.name then
-			Spring.Echo("Processing Mass Override for unit: "..uDef.name)
-		else
-			Spring.Echo("Processing Mass Override for unit: unknown-unit")
-		end
-		Spring.Echo("-------------------------")
+	-- if Spring.GetModOptions and Spring.GetModOptions().experimentalmassoverride and Spring.GetModOptions().experimentalmassoverride == "enabled" then
+	-- 	-- mass override
+	-- 	Spring.Echo("-------------------------")
+	-- 	if uDef.name then
+	-- 		Spring.Echo("Processing Mass Override for unit: "..uDef.name)
+	-- 	else
+	-- 		Spring.Echo("Processing Mass Override for unit: unknown-unit")
+	-- 	end
+	-- 	Spring.Echo("-------------------------")
 
-		massoverrideFootprintX = 1
-		if uDef.footprintx and uDef.footprintx > 0 then
-			massoverrideFootprintX = uDef.footprintx
-			Spring.Echo("Footprint X: "..uDef.footprintx)
-		else
-			Spring.Echo("Missing Footprint X")
-		end
-		
-		massoverrideFootprintZ = 1
-		if uDef.footprintz and uDef.footprintz > 0 then
-			massoverrideFootprintZ = uDef.footprintz
-			Spring.Echo("Footprint Z: "..uDef.footprintz)
-		else
-			Spring.Echo("Missing Footprint Z")
-		end
+	-- 	massoverrideFootprintX = 1
+	-- 	if uDef.footprintx and uDef.footprintx > 0 then
+	-- 		massoverrideFootprintX = uDef.footprintx
+	-- 		Spring.Echo("Footprint X: "..uDef.footprintx)
+	-- 	else
+	-- 		Spring.Echo("Missing Footprint X")
+	-- 	end
 
-		massoverrideMetalCost = 1
-		if uDef.buildcostmetal and uDef.buildcostmetal > 0 then
-			massoverrideMetalCost = uDef.buildcostmetal
-			Spring.Echo("Metal Cost: "..uDef.buildcostmetal)
-		else
-			Spring.Echo("Missing Metal Cost")
-		end
+	-- 	massoverrideFootprintZ = 1
+	-- 	if uDef.footprintz and uDef.footprintz > 0 then
+	-- 		massoverrideFootprintZ = uDef.footprintz
+	-- 		Spring.Echo("Footprint Z: "..uDef.footprintz)
+	-- 	else
+	-- 		Spring.Echo("Missing Footprint Z")
+	-- 	end
 
-		massoverrideHealth = 1
-		if uDef.maxdamage and uDef.maxdamage > 0 then
-			massoverrideHealth = uDef.maxdamage
-			Spring.Echo("Max Health: "..uDef.maxdamage)
-		else
-			Spring.Echo("Missing Max Health")
-		end
+	-- 	massoverrideMetalCost = 1
+	-- 	if uDef.buildcostmetal and uDef.buildcostmetal > 0 then
+	-- 		massoverrideMetalCost = uDef.buildcostmetal
+	-- 		Spring.Echo("Metal Cost: "..uDef.buildcostmetal)
+	-- 	else
+	-- 		Spring.Echo("Missing Metal Cost")
+	-- 	end
 
-		uDef.mass = math.ceil((massoverrideFootprintX * massoverrideFootprintZ * (massoverrideMetalCost + massoverrideHealth))*0.33)
-		Spring.Echo("-------------------------")
-		Spring.Echo("Result Mass: "..uDef.mass)
-		Spring.Echo("-------------------------")
-	end
+	-- 	massoverrideHealth = 1
+	-- 	if uDef.maxdamage and uDef.maxdamage > 0 then
+	-- 		massoverrideHealth = uDef.maxdamage
+	-- 		Spring.Echo("Max Health: "..uDef.maxdamage)
+	-- 	else
+	-- 		Spring.Echo("Missing Max Health")
+	-- 	end
+
+	-- 	uDef.mass = math.ceil((massoverrideFootprintX * massoverrideFootprintZ * (massoverrideMetalCost + massoverrideHealth))*0.33)
+	-- 	Spring.Echo("-------------------------")
+	-- 	Spring.Echo("Result Mass: "..uDef.mass)
+	-- 	Spring.Echo("-------------------------")
+	-- end
 
 
 	-- mass remove push resistance
 	if uDef.pushresistant and uDef.pushresistant == true then
 		uDef.pushresistant = false
 		if not uDef.mass then
-			Spring.Echo("Push Resistant Unit with no mass: "..uDef.name)
+			Spring.Echo("[PUSH RESISTANCE REMOVER] Push Resistant Unit with no mass: "..name)
 			uDef.mass = 4999
 		end
 	end
@@ -375,7 +408,7 @@ function UnitDef_Post(name, uDef)
 	end
 
 	if (uDef.buildpic and uDef.buildpic == "") or not uDef.buildpic then
-		Spring.Echo("Missing Buildpic: ".. uDef.name)
+		Spring.Echo("[BUILDPIC] Missing Buildpic: ".. uDef.name)
 	end
 
 	--[[ Sanitize to whole frames (plus leeways because float arithmetic is bonkers).
@@ -620,14 +653,28 @@ local function ProcessSoundDefaults(wd)
 	end
 
 	local defaultDamage = wd.damage and wd.damage.default
+
 	if not defaultDamage or defaultDamage <= 50 then
+	-- old filter that gave small weapons a base-minumum sound volume, now fixed with noew math.min(math.max)
+	-- if not defaultDamage then
 		wd.soundstartvolume = 5
 		wd.soundhitvolume = 5
 		wd.soundhitwetvolume = 5
 		return
 	end
-
+	
 	local soundVolume = math.sqrt(defaultDamage * 0.5)
+
+	-- The very old formula 
+	-- local soundVolume = math.sqrt(math.min(2000, defaultDamage) * 0.5) 
+	
+	-- The old formula
+	-- local soundVolume = math.sqrt(defaultDamage * 0.5)
+	-- soundVolume = math.min(math.max(soundVolume, 5), 25)
+
+	-- local soundVolume = math.floor( defaultDamage ^ 0.41 + 2 )
+	-- soundVolume = math.min(math.max(soundVolume, 5), 40)
+
 	if wd.weapontype == "LaserCannon" then
 		soundVolume = soundVolume*0.5
 	end
@@ -638,11 +685,11 @@ local function ProcessSoundDefaults(wd)
 	if not wd.soundhitvolume then
 		wd.soundhitvolume = soundVolume
 	end
-		if not wd.soundhitwetvolume then
-			if wd.weapontype == "LaserCannon" or "BeamLaser" then
-				wd.soundhitwetvolume = soundVolume * 0.3
+	if not wd.soundhitwetvolume then
+		if wd.weapontype == "LaserCannon" or "BeamLaser" then
+			wd.soundhitwetvolume = soundVolume * 0.3
 		else
-			wd.soundhitwetvolume = soundVolume
+			wd.soundhitwetvolume = soundVolume * 1.4
 		end
 	end
 end
@@ -808,7 +855,7 @@ function ModOptions_Post (UnitDefs, WeaponDefs)
 		end
 
 		-- transporting enemy coms
-		if modOptions.transportenemy == "notcoms" then
+		if not modOptions.transportenemy or modOptions.transportenemy == "notcoms" then
 			for name,ud in pairs(UnitDefs) do
 				if name == "armcom" or name == "corcom" or name == "armdecom" or name == "cordecom" then
 					ud.transportbyenemy = false

@@ -19,6 +19,7 @@ if gadgetHandler:IsSyncedCode() then
 		"AF",
 		"AlexS",
 		"Beherith",
+		"Born2Crawl",
 		"Damgam",
 		"Doo",
 		"FireStorm",
@@ -39,7 +40,9 @@ if gadgetHandler:IsSyncedCode() then
 		"rossco",
 		"skynet",
 		"Sprung",
+		"Tarnished Knight",
 		"Teifion",
+		"TeeeeVeeeeOn",
 		"tovernaar123",
 		"Vache",
 		"Watch The Fort",
@@ -357,6 +360,8 @@ if gadgetHandler:IsSyncedCode() then
 		end
 		if chicken and takenNamesChicken[aiName] == nil then
 			takenNamesChicken[aiName] = teamID
+			return aiName
+		elseif scavenger then
 			return aiName
 		elseif not chicken and takenNames[aiName] == nil then
 			takenNames[aiName] = teamID

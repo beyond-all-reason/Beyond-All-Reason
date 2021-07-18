@@ -104,7 +104,7 @@ layout(std140, binding = 0) uniform UniformMatrixBuffer {
 	mat4 cameraView;
 	mat4 cameraProj;
 	mat4 cameraViewProj;
-	mat4 cameraBillboard;
+	mat4 cameraBillboardView;
 
 	mat4 cameraViewInv;
 	mat4 cameraProjInv;
@@ -114,7 +114,20 @@ layout(std140, binding = 0) uniform UniformMatrixBuffer {
 	mat4 shadowProj;
 	mat4 shadowViewProj;
 
-	//TODO: minimap matrices
+	mat4 orthoProj01;
+
+	// transforms for [0] := Draw, [1] := DrawInMiniMap, [2] := Lua DrawInMiniMap
+	mat4 mmDrawView; //world to MM
+	mat4 mmDrawProj; //world to MM
+	mat4 mmDrawViewProj; //world to MM
+
+	mat4 mmDrawIMMView; //heightmap to MM
+	mat4 mmDrawIMMProj; //heightmap to MM
+	mat4 mmDrawIMMViewProj; //heightmap to MM
+
+	mat4 mmDrawDimView; //mm dims
+	mat4 mmDrawDimProj; //mm dims
+	mat4 mmDrawDimViewProj; //mm dims
 };
 
 layout(std140, binding = 1) uniform UniformParamsBuffer {
@@ -124,9 +137,25 @@ layout(std140, binding = 1) uniform UniformParamsBuffer {
 	vec4 timeInfo; //gameFrame, gameSeconds, drawFrame, frameTimeOffset
 	vec4 viewGeometry; //vsx, vsy, vpx, vpy
 	vec4 mapSize; //xz, xzPO2
+	vec4 mapHeight; //height minCur, maxCur, minInit, maxInit
 
 	vec4 fogColor; //fog color
 	vec4 fogParams; //fog {start, end, 0.0, scale}
+
+	vec4 sunAmbientModel;
+	vec4 sunAmbientMap;
+	vec4 sunDiffuseModel;
+	vec4 sunDiffuseMap;
+	vec4 sunSpecularModel;
+	vec4 sunSpecularMap;
+
+	vec4 windInfo; // windx, windy, windz, windStrength
+	vec2 mouseScreenPos; //x, y. Screen space.
+	uint mouseStatus; // bits 0th to 32th: LMB, MMB, RMB, offscreen, mmbScroll, locked
+	uint mouseUnused;
+	vec4 mouseWorldPos; //x,y,z; w=0 -- offmap. Ignores water, doesn't ignore units/features under the mouse cursor
+
+	vec4 teamColor[255]; //all team colors
 };
 
 uniform sampler2D heightTex;
@@ -253,9 +282,25 @@ layout(std140, binding = 1) uniform UniformParamsBuffer {
 	vec4 timeInfo; //gameFrame, gameSeconds, drawFrame, frameTimeOffset
 	vec4 viewGeometry; //vsx, vsy, vpx, vpy
 	vec4 mapSize; //xz, xzPO2
+	vec4 mapHeight; //height minCur, maxCur, minInit, maxInit
 
 	vec4 fogColor; //fog color
 	vec4 fogParams; //fog {start, end, 0.0, scale}
+
+	vec4 sunAmbientModel;
+	vec4 sunAmbientMap;
+	vec4 sunDiffuseModel;
+	vec4 sunDiffuseMap;
+	vec4 sunSpecularModel;
+	vec4 sunSpecularMap;
+
+	vec4 windInfo; // windx, windy, windz, windStrength
+	vec2 mouseScreenPos; //x, y. Screen space.
+	uint mouseStatus; // bits 0th to 32th: LMB, MMB, RMB, offscreen, mmbScroll, locked
+	uint mouseUnused;
+	vec4 mouseWorldPos; //x,y,z; w=0 -- offmap. Ignores water, doesn't ignore units/features under the mouse cursor
+
+	vec4 teamColor[255]; //all team colors
 };
 
 uniform sampler2D colorTex;
@@ -322,31 +367,31 @@ function widget:Initialize()
 
 	if gl.GetMapRendering("voidGround") then
 		restoreMapBorder = false
-		widgetHandler:RemoveWidget(self)
+		widgetHandler:RemoveWidget()
 	end
 
 	if gl.GetMapRendering("voidWater") then
 		restoreMapBorder = false
-		widgetHandler:RemoveWidget(self)
+		widgetHandler:RemoveWidget()
 	end
 
 	-----------
 	terrainVAO = gl.GetVAO()
 	if terrainVAO == nil then
 		Spring.SendCommands("luaui enablewidget Map Edge Extension Old")
-		widgetHandler:RemoveWidget(self)
+		widgetHandler:RemoveWidget()
 	end
 
 	terrainVertexVBO = gl.GetVBO() -- GL.ARRAY_BUFFER, false
 	if terrainVertexVBO == nil then
 		Spring.SendCommands("luaui enablewidget Map Edge Extension Old")
-		widgetHandler:RemoveWidget(self)
+		widgetHandler:RemoveWidget()
 	end
 
 	terrainInstanceVBO = gl.GetVBO() -- GL.ARRAY_BUFFER, false
 	if terrainInstanceVBO == nil then
 		Spring.SendCommands("luaui enablewidget Map Edge Extension Old")
-		widgetHandler:RemoveWidget(self)
+		widgetHandler:RemoveWidget()
 	end
 	-----------
 
@@ -400,6 +445,7 @@ function widget:Initialize()
 	gsSrc = gsSrc:gsub("###SUPPORTS_CLIPDISTANCE###", (hasClipDistance and "1" or "0"))
 	--Spring.Echo(gsSrc)
 
+
 	mapExtensionShader = LuaShader({
 		vertex = vsSrc,
 		geometry = gsSrc,
@@ -417,7 +463,7 @@ function widget:Initialize()
 
 	if not shaderCompiled then
 		Spring.SendCommands("luaui enablewidget Map Edge Extension Old")
-		widgetHandler:RemoveWidget(self)
+		widgetHandler:RemoveWidget()
 	end
 
 	Spring.SendCommands("luaui disablewidget External VR Grid")

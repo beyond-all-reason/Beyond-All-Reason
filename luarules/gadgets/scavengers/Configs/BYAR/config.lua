@@ -11,6 +11,27 @@ Spring.Echo("[Scavengers] Config initialized")
 	local ScavUnitVeterancyModoption = tonumber(Spring.GetModOptions().scavunitspawnmultiplier) or 1
 	local ScavGracePeriodModoption = tonumber(Spring.GetModOptions().scavgraceperiod) or 5
 
+	scavDifficulty = (Spring.GetModOptions and Spring.GetModOptions().scavdifficulty) or "veryeasy"
+	if scavDifficulty == "noob" then
+		spawnmultiplier = 0.1
+	elseif scavDifficulty == "veryeasy" then
+		spawnmultiplier = 0.5
+	elseif scavDifficulty == "easy" then
+		spawnmultiplier = 0.75
+	elseif scavDifficulty == "medium" then
+		spawnmultiplier = 1
+	elseif scavDifficulty == "hard" then
+		spawnmultiplier = 1.25
+	elseif scavDifficulty == "veryhard" then
+		spawnmultiplier = 1.5
+	elseif scavDifficulty == "expert" then
+		spawnmultiplier = 2
+	elseif scavDifficulty == "brutal" then
+		spawnmultiplier = 3
+	else
+		spawnmultiplier = 0.5
+	end
+
 
 
 	-- Strings
@@ -115,7 +136,7 @@ scavconfig = {
 		T4high								= 24000*ScavTechCurveModoption,
 		T4top								= 28000*ScavTechCurveModoption,
 		BossFight							= 32000*ScavTechCurveModoption,
-		Endless								= 35000*ScavTechCurveModoption,
+		Endless								= 32001*ScavTechCurveModoption,
 		-- don't delete
 		NoRadar								= 2250*ScavTechCurveModoption,
 	},
@@ -135,37 +156,37 @@ buildingSpawnerModuleConfig = {
 unitSpawnerModuleConfig = {
 	bossFightEnabled					= scavEndlessModoption,
 	FinalBossUnit						= true,
-		FinalBossHealth						= 500000*ScavBossHealthModoption, -- this*teamcount*difficulty
+		FinalBossHealth						= 1000000*ScavBossHealthModoption, -- this*teamcount*difficulty
 		FinalBossMinionsPassive				= 3000, -- this/(teamcount*difficulty), how often does boss spawn minions passively, frames.
 		FinalBossMinionsActive				= 150, -- this/(teamcount*difficulty), how often does boss spawn minions when taking damage, frames.
 	BossWaveTimeLeft					= 300,
 	aircraftchance 						= 6, -- higher number = lower chance
-	globalscoreperoneunit 				= 800/ScavUnitCountModoption,
+	globalscoreperoneunit 				= 1500/ScavUnitCountModoption,
 	spawnchance							= 360/ScavUnitSpawnFrequencyModoption,
-	beaconspawnchance					= 240,
+	beaconspawnchance					= 480,
 	beacondefences						= true,
-	minimumspawnbeacons					= teamcount,
+	minimumspawnbeacons					= math.ceil(teamcount*2*spawnmultiplier),
 	landmultiplier 						= 0.75,
 	airmultiplier 						= 1.5,
 	seamultiplier 						= 0.75,
-	chanceforaircraftonsea				= 5, -- higher number = lower chance
+	chanceforaircraftonsea				= 4, -- higher number = lower chance
 
 	t0multiplier						= 3.5,
 	t1multiplier						= 3,
 	t2multiplier						= 0.8,
 	t3multiplier						= 0.20,
-	t4multiplier						= 0.05,
+	t4multiplier						= 0.03,
 
 	initialbonuscommander				= InitialBonusCommanderEnabled,
 }
 
 constructorControllerModuleConfig = {
-	constructortimerstart				= 300, -- ammount of seconds it skips from constructortimer for the first spawn (make first spawn earlier - this timer starts on timer-Timer1)
-	constructortimer 					= 300, -- time in seconds between commander/constructor spawns
+	constructortimerstart				= 600, -- ammount of seconds it skips from constructortimer for the first spawn (make first spawn earlier - this timer starts on timer-Timer1)
+	constructortimer 					= 600, -- time in seconds between commander/constructor spawns
 	constructortimerreductionframes		= 36000, -- increase frequency of commander spawns every this many frames
-	minimumconstructors					= teamcount,
+	minimumconstructors					= math.ceil(teamcount*2*spawnmultiplier),
 	useresurrectors						= true,
-		searesurrectors					= true,
+	searesurrectors						= true,
 	useconstructors						= true,
 	usecollectors						= true,
 }
@@ -189,35 +210,32 @@ randomEventsConfig = {
 
 
 -- Functions which you can configure
-function CountScavConstructors()
-	local UDC = Spring.GetTeamUnitDefCount
-	local result = UDC(GaiaTeamID, UDN.corcom_scav.id) + UDC(GaiaTeamID, UDN.armcom_scav.id)
-	return result
-end
-
 function SpawnBonusCommander(unitID, unitName, unitTeam)
 	if unitName == "armcom" or unitName == "corcom" then
 		local posx, posy, posz = Spring.GetUnitPosition(unitID)
-		Spring.CreateUnit("scavengerdroppodfriendly", posx-32, posy+48, posz, math_random(0,3), unitTeam)
-		Spring.CreateUnit("scavengerdroppodfriendly", posx+32, posy+48, posz, math_random(0,3), unitTeam)
-		if posy >= 0 then
+		-- Spring.CreateUnit("scavengerdroppodfriendly", posx-32, posy+48, posz, math_random(0,3), unitTeam)
+		-- Spring.CreateUnit("scavengerdroppodfriendly", posx+32, posy+48, posz, math_random(0,3), unitTeam)
+		-- Spring.CreateUnit("scavengerdroppodfriendly", posx, posy+48, posz+32, math_random(0,3), unitTeam)
+		-- Spring.CreateUnit("scavengerdroppodfriendly", posx, posy+48, posz-32, math_random(0,3), unitTeam)
 			--Spring.SetUnitPosition(unitID, posx-32, posz)
-			if unitName == "armcom" then
-				Spring.CreateUnit("armcv", posx-32, posy+48, posz, 0, unitTeam)
-				Spring.CreateUnit("armck", posx+32, posy+48, posz, 0, unitTeam)
-			elseif unitName == "corcom" then
-				Spring.CreateUnit("corcv", posx-32, posy+48, posz, 0, unitTeam)
-				Spring.CreateUnit("corck", posx+32, posy+48, posz, 0, unitTeam)
-			end
-		else
-			--Spring.SetUnitPosition(unitID, posx-32, posz)
-			if unitName == "armcom" then
-				Spring.CreateUnit("armca", posx-32, posy+48, posz, 0, unitTeam)
-				Spring.CreateUnit("armcs", posx+32, posy+48, posz, 0, unitTeam)
-			elseif unitName == "corcom" then
-				Spring.CreateUnit("corca", posx-32, posy+48, posz, 0, unitTeam)
-				Spring.CreateUnit("corcs", posx+32, posy+48, posz, 0, unitTeam)
-			end
+		if unitName == "armcom" then
+			local a = Spring.CreateUnit("armassistdrone", posx-32, posy+48, posz,  	 0, unitTeam)
+			local b = Spring.CreateUnit("armassistdrone", posx+32, posy+48, posz,  	 0, unitTeam)
+			local c = Spring.CreateUnit("armassistdrone", posx,    posy+48, posz+32, 0, unitTeam)
+			local d = Spring.CreateUnit("armassistdrone", posx,    posy+48, posz-32, 0, unitTeam)
+			Spring.GiveOrderToUnit(a, CMD.GUARD, unitID, {})
+			Spring.GiveOrderToUnit(b, CMD.GUARD, unitID, {})
+			Spring.GiveOrderToUnit(c, CMD.GUARD, unitID, {})
+			Spring.GiveOrderToUnit(d, CMD.GUARD, unitID, {})
+		elseif unitName == "corcom" then
+			local a = Spring.CreateUnit("corassistdrone", posx-32, posy+48, posz,  	 0, unitTeam)
+			local b = Spring.CreateUnit("corassistdrone", posx+32, posy+48, posz,  	 0, unitTeam)
+			local c = Spring.CreateUnit("corassistdrone", posx,    posy+48, posz+32, 0, unitTeam)
+			local d = Spring.CreateUnit("corassistdrone", posx,    posy+48, posz-32, 0, unitTeam)
+			Spring.GiveOrderToUnit(a, CMD.GUARD, unitID, {})
+			Spring.GiveOrderToUnit(b, CMD.GUARD, unitID, {})
+			Spring.GiveOrderToUnit(c, CMD.GUARD, unitID, {})
+			Spring.GiveOrderToUnit(d, CMD.GUARD, unitID, {})
 		end
 	end
 end
@@ -225,52 +243,52 @@ end
 function UpdateTierChances(n)
 	-- Must be 100 in total
 	if globalScore > scavconfig.timers.Endless then
-		TierSpawnChances.T0 = 1
-		TierSpawnChances.T1 = 1
-		TierSpawnChances.T2 = 1
-		TierSpawnChances.T3 = 1
-		TierSpawnChances.T4 = 96
+		TierSpawnChances.T0 = 0
+		TierSpawnChances.T1 = 25
+		TierSpawnChances.T2 = 25
+		TierSpawnChances.T3 = 25
+		TierSpawnChances.T4 = 25
 		TierSpawnChances.Message = "Current tier: Endless"
 	elseif globalScore > scavconfig.timers.T4top then
 		TierSpawnChances.T0 = 0
 		TierSpawnChances.T1 = 0
 		TierSpawnChances.T2 = 10
-		TierSpawnChances.T3 = 30
-		TierSpawnChances.T4 = 60
+		TierSpawnChances.T3 = 40
+		TierSpawnChances.T4 = 50
 		TierSpawnChances.Message = "Current tier: T4 Top"
 	elseif globalScore > scavconfig.timers.T4high then
+		TierSpawnChances.T0 = 0
+		TierSpawnChances.T1 = 0
+		TierSpawnChances.T2 = 10
+		TierSpawnChances.T3 = 50
+		TierSpawnChances.T4 = 40
+		TierSpawnChances.Message = "Current tier: T4 High"
+	elseif globalScore > scavconfig.timers.T4med then
 		TierSpawnChances.T0 = 0
 		TierSpawnChances.T1 = 0
 		TierSpawnChances.T2 = 20
 		TierSpawnChances.T3 = 50
 		TierSpawnChances.T4 = 30
-		TierSpawnChances.Message = "Current tier: T4 High"
-	elseif globalScore > scavconfig.timers.T4med then
+		TierSpawnChances.Message = "Current tier: T4 Medium"
+	elseif globalScore > scavconfig.timers.T4low then
 		TierSpawnChances.T0 = 0
 		TierSpawnChances.T1 = 0
 		TierSpawnChances.T2 = 30
 		TierSpawnChances.T3 = 50
 		TierSpawnChances.T4 = 20
-		TierSpawnChances.Message = "Current tier: T4 Medium"
-	elseif globalScore > scavconfig.timers.T4low then
-		TierSpawnChances.T0 = 0
-		TierSpawnChances.T1 = 0
-		TierSpawnChances.T2 = 40
-		TierSpawnChances.T3 = 50
-		TierSpawnChances.T4 = 10
 		TierSpawnChances.Message = "Current tier: T4 Low"
 	elseif globalScore > scavconfig.timers.T4start then
 		TierSpawnChances.T0 = 0
 		TierSpawnChances.T1 = 0
 		TierSpawnChances.T2 = 40
-		TierSpawnChances.T3 = 55
-		TierSpawnChances.T4 = 5
+		TierSpawnChances.T3 = 50
+		TierSpawnChances.T4 = 10
 		TierSpawnChances.Message = "Current tier: T4 Start"
 	elseif globalScore > scavconfig.timers.T3top then
 		TierSpawnChances.T0 = 0
 		TierSpawnChances.T1 = 10
-		TierSpawnChances.T2 = 20
-		TierSpawnChances.T3 = 70
+		TierSpawnChances.T2 = 40
+		TierSpawnChances.T3 = 50
 		TierSpawnChances.T4 = 0
 		TierSpawnChances.Message = "Current tier: T3 Top"
 	elseif globalScore > scavconfig.timers.T3high then
@@ -282,77 +300,77 @@ function UpdateTierChances(n)
 		TierSpawnChances.Message = "Current tier: T3 High"
 	elseif globalScore > scavconfig.timers.T3med then
 		TierSpawnChances.T0 = 0
-		TierSpawnChances.T1 = 10
-		TierSpawnChances.T2 = 60
+		TierSpawnChances.T1 = 20
+		TierSpawnChances.T2 = 50
 		TierSpawnChances.T3 = 30
 		TierSpawnChances.T4 = 0
 		TierSpawnChances.Message = "Current tier: T3 Medium"
 	elseif globalScore > scavconfig.timers.T3low then
 		TierSpawnChances.T0 = 0
-		TierSpawnChances.T1 = 10
-		TierSpawnChances.T2 = 65
-		TierSpawnChances.T3 = 25
+		TierSpawnChances.T1 = 30
+		TierSpawnChances.T2 = 50
+		TierSpawnChances.T3 = 20
 		TierSpawnChances.T4 = 0
 		TierSpawnChances.Message = "Current tier: T3 Low"
 	elseif globalScore > scavconfig.timers.T3start then
 		TierSpawnChances.T0 = 0
-		TierSpawnChances.T1 = 10
-		TierSpawnChances.T2 = 70
+		TierSpawnChances.T1 = 40
+		TierSpawnChances.T2 = 50
 		TierSpawnChances.T3 = 10
 		TierSpawnChances.T4 = 0
 		TierSpawnChances.Message = "Current tier: T3 Start"
 	elseif globalScore > scavconfig.timers.T2top then
 		TierSpawnChances.T0 = 10
-		TierSpawnChances.T1 = 10
-		TierSpawnChances.T2 = 80
+		TierSpawnChances.T1 = 40
+		TierSpawnChances.T2 = 50
 		TierSpawnChances.T3 = 0
 		TierSpawnChances.T4 = 0
 		TierSpawnChances.Message = "Current tier: T2 Top"
 	elseif globalScore > scavconfig.timers.T2high then
 		TierSpawnChances.T0 = 10
-		TierSpawnChances.T1 = 30
-		TierSpawnChances.T2 = 60
+		TierSpawnChances.T1 = 50
+		TierSpawnChances.T2 = 40
 		TierSpawnChances.T3 = 0
 		TierSpawnChances.T4 = 0
 		TierSpawnChances.Message = "Current tier: T2 High"
 	elseif globalScore > scavconfig.timers.T2med then
-		TierSpawnChances.T0 = 10
-		TierSpawnChances.T1 = 40
-		TierSpawnChances.T2 = 50
+		TierSpawnChances.T0 = 20
+		TierSpawnChances.T1 = 50
+		TierSpawnChances.T2 = 30
 		TierSpawnChances.T3 = 0
 		TierSpawnChances.T4 = 0
 		TierSpawnChances.Message = "Current tier: T2 Medium"
 	elseif globalScore > scavconfig.timers.T2low then
-		TierSpawnChances.T0 = 10
-		TierSpawnChances.T1 = 60
-		TierSpawnChances.T2 = 30
+		TierSpawnChances.T0 = 30
+		TierSpawnChances.T1 = 50
+		TierSpawnChances.T2 = 20
 		TierSpawnChances.T3 = 0
 		TierSpawnChances.T4 = 0
 		TierSpawnChances.Message = "Current tier: T2 Low"
 	elseif globalScore > scavconfig.timers.T2start then
-		TierSpawnChances.T0 = 10
-		TierSpawnChances.T1 = 70
-		TierSpawnChances.T2 = 20
+		TierSpawnChances.T0 = 40
+		TierSpawnChances.T1 = 50
+		TierSpawnChances.T2 = 10
 		TierSpawnChances.T3 = 0
 		TierSpawnChances.T4 = 0
 		TierSpawnChances.Message = "Current tier: T2 Start"
 	elseif globalScore > scavconfig.timers.T1top then
-		TierSpawnChances.T0 = 10
-		TierSpawnChances.T1 = 90
+		TierSpawnChances.T0 = 50
+		TierSpawnChances.T1 = 50
 		TierSpawnChances.T2 = 0
 		TierSpawnChances.T3 = 0
 		TierSpawnChances.T4 = 0
 		TierSpawnChances.Message = "Current tier: T1 Top"
 	elseif globalScore > scavconfig.timers.T1high then
-		TierSpawnChances.T0 = 40
-		TierSpawnChances.T1 = 60
+		TierSpawnChances.T0 = 60
+		TierSpawnChances.T1 = 40
 		TierSpawnChances.T2 = 0
 		TierSpawnChances.T3 = 0
 		TierSpawnChances.T4 = 0
 		TierSpawnChances.Message = "Current tier: T1 High"
 	elseif globalScore > scavconfig.timers.T1med then
-		TierSpawnChances.T0 = 60
-		TierSpawnChances.T1 = 40
+		TierSpawnChances.T0 = 70
+		TierSpawnChances.T1 = 30
 		TierSpawnChances.T2 = 0
 		TierSpawnChances.T3 = 0
 		TierSpawnChances.T4 = 0
@@ -397,5 +415,38 @@ function BPWallOrPopup(faction)
 		else
 			return UDN.cordrag_scav.id
 		end
+	elseif faction == "scav" then
+		if r == 0 then
+			local r2 = math.random(1,3)
+			if r2 == 1 then
+				return UDN.corscavdtf_scav.id
+			elseif r2 == 2 then
+				return UDN.corscavdtl_scav.id
+			elseif r2 == 3 then
+				return UDN.corscavdtm_scav.id
+			end
+		else
+			return UDN.corscavdrag_scav.id
+		end
 	end
 end
+
+-----------------------------------------------------------
+-----------------------------------------------------------
+local tiers = {
+	T0 = 0,
+	T1 = 1,
+	T2 = 2,
+	T3 = 3,
+	T4 = 4,
+}
+
+local blueprintTypes = {
+	Land = 1,
+	Sea = 2,
+}
+
+return {
+	Tiers = tiers,
+	BlueprintTypes = blueprintTypes,
+}

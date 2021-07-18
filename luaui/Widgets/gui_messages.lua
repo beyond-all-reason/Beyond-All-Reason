@@ -21,11 +21,11 @@ end
 local vsx, vsy = gl.GetViewSizes()
 local posY = 0.16
 local charSize = 19.5 - (3.5 * ((vsx/vsy) - 1.78))
-local charDelay = 0.022
-local maxLines = 6
-local maxLinesScroll = 9
-local lineTTL = 14
-local fadeTime = 0.4
+local charDelay = 0.018
+local maxLines = 4
+local maxLinesScroll = 10
+local lineTTL = 15
+local fadeTime = 0.3
 local fadeDelay = 0.25   -- need to hover this long in order to fadein and respond to CTRL
 local backgroundOpacity = 0.18
 
@@ -51,6 +51,10 @@ local lineMaxWidth = 0
 local font, chobbyInterface, hovering, startFadeTime
 
 local RectRound = Spring.FlowUI.Draw.RectRound
+local elementCorner = Spring.FlowUI.elementCorner
+
+local hideSpecChat = tonumber(Spring.GetConfigInt("HideSpecChat", 0) or 0) == 1
+
 
 local function lines(str)
 	local text = {}
@@ -69,7 +73,9 @@ function widget:ViewResize()
 	widgetScale = (((vsx+vsy) / 2000) * 0.55) * (0.95+(ui_scale-1)/1.5)
 	lineMaxWidth = lineMaxWidth * widgetScale
 
-	font = WG['fonts'].getFont(nil, 1, 0.2, 1.3)
+	elementCorner = Spring.FlowUI.elementCorner
+
+	font = WG['fonts'].getFont(nil, 1, 0.18, 1.4)
 
 	for i, _ in ipairs(messageLines) do
 		if messageLines[i][6] then
@@ -80,7 +86,7 @@ function widget:ViewResize()
 
 	activationArea = {
 		(vsx * 0.31)-(charSize*widgetScale), (vsy * posY)+(charSize*0.15*widgetScale),
-		(vsx * 0.6), (vsy * (posY+0.077))
+		(vsx * 0.6), (vsy * (posY+0.065))
 	}
 	lineMaxWidth = math.max(lineMaxWidth, activationArea[3] - activationArea[1])
 	activatedHeight = (1+maxLinesScroll)*charSize*1.15*widgetScale
@@ -175,6 +181,9 @@ function widget:Update(dt)
 			ui_scale = Spring.GetConfigFloat("ui_scale",1)
 			widget:ViewResize()
 		end
+		if hideSpecChat ~= tonumber(Spring.GetConfigInt("HideSpecChat", 0) or 0) == 1 then
+			hideSpecChat = tonumber(Spring.GetConfigInt("HideSpecChat", 0) or 0) == 1
+		end
 	end
 
 	local x,y,b = Spring.GetMouseState()
@@ -182,7 +191,7 @@ function widget:Update(dt)
 		scrolling = false
 	elseif isOnRect(x, y, activationArea[1], activationArea[2], activationArea[3], activationArea[4]) then
 		local alt, ctrl, meta, shift = Spring.GetModKeyState()
-		if ctrl and startFadeTime and os.clock() > startFadeTime+fadeDelay then
+		if ctrl and shift and startFadeTime and os.clock() > startFadeTime+fadeDelay then
 			scrolling = true
 		end
 	elseif scrolling and isOnRect(x, y, activationArea[1], activationArea[2], activationArea[1]+lineMaxWidth+(charSize*2*widgetScale), activationArea[2]+activatedHeight) then
@@ -241,14 +250,14 @@ function widget:DrawScreen()
 		end
 		if scrolling then
 			glColor(0,0,0,backgroundOpacity)
-			RectRound(activationArea[1], activationArea[2], activationArea[1]+lineMaxWidth+(charSize*2*widgetScale), activationArea[2]+activatedHeight, 6.5*widgetScale)
+			RectRound(activationArea[1], activationArea[2], activationArea[1]+lineMaxWidth+(charSize*2*widgetScale), activationArea[2]+activatedHeight, elementCorner)
 		else
 			local opacity = ((os.clock() - (startFadeTime+fadeDelay)) / fadeTime) * backgroundOpacity
 			if opacity > backgroundOpacity then
 				opacity = backgroundOpacity
 			end
 			glColor(0,0,0,opacity)
-			RectRound(activationArea[1], activationArea[2], activationArea[3], activationArea[4], 6.5*widgetScale)
+			RectRound(activationArea[1], activationArea[2], activationArea[3], activationArea[4], elementCorner)
 		end
 	else
 		if hovering then
@@ -265,7 +274,7 @@ function widget:DrawScreen()
 				startFadeTime = nil
 			else
 				glColor(0,0,0,opacity)
-				RectRound(activationArea[1], activationArea[2], activationArea[3], activationArea[4], 6.5*widgetScale)
+				RectRound(activationArea[1], activationArea[2], activationArea[3], activationArea[4], elementCorner)
 			end
 		end
 		scrolling = false
@@ -308,13 +317,17 @@ end
 
 function widget:MouseWheel(up, value)
 	if scrolling then
+		local alt, ctrl, meta, shift = Spring.GetModKeyState()
 		if up then
-			currentLine = currentLine - 1
+			currentLine = currentLine - (shift and maxLinesScroll or (ctrl and 3 or 1))
 			if currentLine < maxLinesScroll then
 				currentLine = maxLinesScroll
+				if currentLine > #messageLines then
+					currentLine = #messageLines
+				end
 			end
 		else
-			currentLine = currentLine + 1
+			currentLine = currentLine + (shift and maxLinesScroll or (ctrl and 3 or 1))
 			if currentLine > #messageLines then
 				currentLine = #messageLines
 			end
@@ -330,12 +343,6 @@ function widget:WorldTooltip(ttType,data1,data2,data3)
 	if #messageLines > 0 and isOnRect(x, y, activationArea[1],activationArea[2],activationArea[3],activationArea[4]) then
 		return Spring.I18N('ui.messages.scroll', { textColor = "\255\255\255\255", highlightColor = "\255\255\255\001" })
 	end
-end
-
-function widget:GameStart()
-end
-
-function widget:GameOver()
 end
 
 function widget:Shutdown()

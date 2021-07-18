@@ -11,7 +11,20 @@ if addon.InGetInfo then
 	}
 end
 
+local loadscreens = VFS.DirList("bitmaps/loadpictures/")
+local screenNum = math.random(#loadscreens)
+local backgroundTexture = loadscreens[1+(math.floor((1000*os.clock())%#loadscreens))] -- hacky hotfix for http://springrts.com/mantis/view.php?id=4572
+if not VFS.FileExists(backgroundTexture) then	-- because encountering white loadscreens once in a while (this is not a real fix ofc)
+	backgroundTexture = loadscreens[1+(math.floor((1000*os.clock())%#loadscreens))] -- hacky hotfix for http://springrts.com/mantis/view.php?id=4572
+end
+if not backgroundTexture then
+	backgroundTexture = loadscreens[1]
+end
+
 local showTips = (Spring.GetConfigInt("loadscreen_tips",1) == 1)
+if string.find(backgroundTexture, "guide") then
+	showTips = false
+end
 
 local showTipAboveBar = true
 local showTipBackground = false	-- false = tips shown below the loading bar
@@ -281,7 +294,7 @@ function CreateShaders()
 
     if (blurShader == nil) then
         --Spring.Log(widget:GetInfo().name, LOG.ERROR, "guishader blurShader: shader error: "..gl.GetShaderLog())
-        --widgetHandler:RemoveWidget(self)
+        --widgetHandler:RemoveWidget()
         return false
     end
 
@@ -364,6 +377,48 @@ function addon.LoadProgress(message, replaceLastLine)
 end
 
 function addon.DrawLoadScreen()
+	-----------------------
+	-- draw background
+	-----------------------
+	local loadProgress = SG.GetLoadProgress()
+
+	if not aspectRatio then
+		local texInfo = gl.TextureInfo(backgroundTexture)
+		if not texInfo then return end
+		aspectRatio = texInfo.xsize / texInfo.ysize
+	end
+
+	local vsx, vsy = gl.GetViewSizes()
+	local screenAspectRatio = vsx / vsy
+
+	local xDiv = 0
+	local yDiv = 0
+	local ratioComp = screenAspectRatio / aspectRatio
+
+	if math.abs(ratioComp-1)>0.15 then
+		if (ratioComp > 1) then
+			yDiv = (1 - ratioComp) * 0.5;
+		else
+			xDiv = (1 - (1 / ratioComp)) * 0.5;
+		end
+	end
+
+	-- background
+	local scale = 1
+	local ssx,ssy,spx,spy = Spring.GetScreenGeometry()
+	if ssx / vsx < 1 then	-- adjust when window is larger than the screen resolution
+		--scale = ssx / vsx
+		--xDiv = xDiv * scale	-- this doesnt work
+		--yDiv = yDiv * scale
+	end
+	gl.Color(1,1,1,1)
+	gl.Texture(backgroundTexture)
+	gl.TexRect(0+xDiv,(1-scale)+yDiv,scale-xDiv,1-yDiv)
+	gl.Texture(false)
+
+	-----------------------
+	-- draw loadbar + tip
+	-----------------------
 	local posY = posYorg
 
 	-- tip
@@ -593,4 +648,7 @@ function addon.Shutdown()
 	end
 	gl.DeleteFont(font)
 	gl.DeleteFont(font2)
+	if backgroundTexture then
+		gl.DeleteTexture(backgroundTexture)
+	end
 end

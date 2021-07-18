@@ -193,9 +193,10 @@ function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
 		return
 	end
 
-	if UnitDefs[unitDefID] == nil then
-		return
-	end
+	--if UnitDefs[unitDefID] == nil then	-- disabled this because.. why?
+	--	return
+	--end
+
 	if not fullview and not CallAsTeam(myTeamID, IsUnitInView, unitID) then
 		return
 	end

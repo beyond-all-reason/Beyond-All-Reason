@@ -1,3 +1,10 @@
+local constructorController = VFS.Include("luarules/gadgets/scavengers/Modules/constructor_controller.lua")
+local airUnitList = VFS.Include("luarules/gadgets/scavengers/Configs/BYAR/UnitLists/air.lua")
+local landUnitList = VFS.Include("luarules/gadgets/scavengers/Configs/BYAR/UnitLists/land.lua")
+local seaUnitList = VFS.Include("luarules/gadgets/scavengers/Configs/BYAR/UnitLists/sea.lua")
+local constructorUnitList = VFS.Include("luarules/gadgets/scavengers/Configs/BYAR/UnitLists/constructors.lua")
+local staticUnitList = VFS.Include("luarules/gadgets/scavengers/Configs/BYAR/UnitLists/staticunits.lua")
+
 local ReinforcementsCountPerTeam = {}
 local TryingToSpawnReinforcements = {}
 local ReinforcementsFaction = {}
@@ -75,15 +82,16 @@ function CaptureBeacons(n)
 					CapturingUnitsTeam[unitTeamID] = 0
 				end
 
-				for k = 1,#BeaconCaptureExcludedUnits do
-					if UnitDefs[unitDefID].name == BeaconCaptureExcludedUnits[k] then
-						IsUnitExcluded = true
-						break
-					else
-						IsUnitExcluded = false
-					end
+				if staticUnitList.BeaconCaptureExclusionsID[unitDefID] then
+					IsUnitExcluded = true
+				else
+					IsUnitExcluded = false
 				end
-				
+
+				local _,_,_,testCaptureProgress = Spring.GetUnitHealth(scav)
+				if testCaptureProgress ~= CaptureProgressForBeacons[scav] then
+					CaptureProgressForBeacons[scav] = testCaptureProgress
+				end
 				if unitDefID == scavDef then
 					CaptureProgressForBeacons[scav] = CaptureProgressForBeacons[scav] - 0.0005
 					--Spring.Echo("uncapturing myself")
@@ -214,49 +222,49 @@ function spawnPlayerReinforcements(n)
 						local aircraftchance = math_random(0,unitSpawnerModuleConfig.aircraftchance)
 						if aircraftchance == 0 then
 							if spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 then
-								groupunit = T1AirUnits[math_random(1,#T1AirUnits)]
+								groupunit = airUnitList.T1[math_random(1,#airUnitList.T1)]
 								groupsize = groupsize*unitSpawnerModuleConfig.airmultiplier*unitSpawnerModuleConfig.t1multiplier
 							elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 then
-								groupunit = T2AirUnits[math_random(1,#T2AirUnits)]
+								groupunit = airUnitList.T2[math_random(1,#airUnitList.T2)]
 								groupsize = groupsize*unitSpawnerModuleConfig.airmultiplier*unitSpawnerModuleConfig.t2multiplier
 							elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 then
-								groupunit = T3AirUnits[math_random(1,#T3AirUnits)]
+								groupunit = airUnitList.T3[math_random(1,#airUnitList.T3)]
 								groupsize = 5
 							elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 + TierSpawnChances.T4 then
-								groupunit = T4AirUnits[math_random(1,#T4AirUnits)]
+								groupunit = airUnitList.T4[math_random(1,#airUnitList.T4)]
 								groupsize = 1
 							end
 						elseif posy > -20 then
 							if spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 then
-								groupunit = T1LandUnits[math_random(1,#T1LandUnits)]
+								groupunit = landUnitList.T1[math_random(1,#landUnitList.T1)]
 								groupsize = groupsize*unitSpawnerModuleConfig.landmultiplier*unitSpawnerModuleConfig.t1multiplier
 							elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 then
-								groupunit = T2LandUnits[math_random(1,#T2LandUnits)]
+								groupunit = landUnitList.T2[math_random(1,#landUnitList.T2)]
 								groupsize = groupsize*unitSpawnerModuleConfig.landmultiplier*unitSpawnerModuleConfig.t2multiplier
 							elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 then
-								groupunit = T3LandUnits[math_random(1,#T3LandUnits)]
+								groupunit = landUnitList.T3[math_random(1,#landUnitList.T3)]
 								groupsize = 3
 							elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 + TierSpawnChances.T4 then
-								groupunit = T4LandUnits[math_random(1,#T4LandUnits)]
+								groupunit = landUnitList.T4[math_random(1,#landUnitList.T4)]
 								groupsize = 1
 							end
 						elseif posy <= -20 then
 							if spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 then
-								groupunit = T1SeaUnits[math_random(1,#T1SeaUnits)]
+								groupunit = seaUnitList.T1[math_random(1,#seaUnitList.T1)]
 								groupsize = groupsize*unitSpawnerModuleConfig.seamultiplier*unitSpawnerModuleConfig.t1multiplier
 							elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 then
-								groupunit = T2SeaUnits[math_random(1,#T2SeaUnits)]
+								groupunit = seaUnitList.T2[math_random(1,#seaUnitList.T2)]
 								groupsize = groupsize*unitSpawnerModuleConfig.seamultiplier*unitSpawnerModuleConfig.t2multiplier
 							elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 then
-								groupunit = T3SeaUnits[math_random(1,#T3SeaUnits)]
+								groupunit = seaUnitList.T3[math_random(1,#seaUnitList.T3)]
 								groupsize = 3
 							elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 + TierSpawnChances.T4 then
-								groupunit = T4SeaUnits[math_random(1,#T4SeaUnits)]
+								groupunit = seaUnitList.T4[math_random(1,#seaUnitList.T4)]
 								groupsize = 1
 							end
 						end
-						
-						
+
+
 						ScavSendMessage(playerName .."'s reinforcements detected. Unit type: ".. UDN[groupunit].humanName .. ".")
 						for a = 1,math.ceil(groupsize) do
 							--local posradius = posradius+(groupsize*8)
@@ -264,43 +272,37 @@ function spawnPlayerReinforcements(n)
 							local posz = posz+(math_random(-posradius,posradius))
 							local newposy = Spring.GetGroundHeight(posx, posz)
 							Spring.CreateUnit("scavengerdroppodfriendly", posx, posy, posz, math_random(0,3), teamID)
-							local ReUnit = Spring.CreateUnit(groupunit..scavconfig.unitnamesuffix, posx, posy, posz, math_random(0,3), teamID)
+							local ReUnit = Spring.CreateUnit(groupunit, posx, posy, posz, math_random(0,3), teamID)
 							Spring.SetUnitNoSelect(ReUnit, true)
 							Spring.GiveOrderToUnit(ReUnit,CMD.FIRE_STATE,{2},0)
 							Spring.GiveOrderToUnit(ReUnit,CMD.MOVE_STATE,{2},0)
 							table.insert(ActiveReinforcementUnits, ReUnit)
-							
+
 							local unitDefID = Spring.GetUnitDefID(ReUnit)
-							local UnitName = UnitDefs[unitDefID].name
 							UnitSuffixLenght[ReUnit] = string.len(scavconfig.unitnamesuffix)
 							if scavconfig.modules.constructorControllerModule then
 								if constructorControllerModuleConfig.useresurrectors then
-									for i = 1,#Resurrectors do
-										if string.sub(UnitName, 1, string.len(UnitName)-UnitSuffixLenght[ReUnit]) == Resurrectors[i] then
-											FriendlyResurrectors[ReUnit] = true
-										end
+									if constructorUnitList.ResurrectorsID[unitDefID] then
+										FriendlyResurrectors[ReUnit] = true
 									end
-									for i = 1,#ResurrectorsSea do
-										if string.sub(UnitName, 1, string.len(UnitName)-UnitSuffixLenght[ReUnit]) == ResurrectorsSea[i] then
-											FriendlyResurrectors[ReUnit] = true
-										end
+
+									if constructorUnitList.ResurrectorsSeaID[unitDefID] then
+										FriendlyResurrectors[ReUnit] = true
 									end
 								end
-								
+
 								if constructorControllerModuleConfig.usecollectors then
-									for i = 1,#Collectors do
-										if string.sub(UnitName, 1, string.len(UnitName)-UnitSuffixLenght[ReUnit]) == Collectors[i] then
-											if math_random(0,100) <= 10 then
-												FriendlyCollectors[ReUnit] = true
-											else
-												FriendlyReclaimers[ReUnit] = true
-											end
+									if constructorUnitList.CollectorsID[unitDefID] then
+										if math_random(0,100) <= 10 then
+											FriendlyCollectors[ReUnit] = true
+										else
+											FriendlyReclaimers[ReUnit] = true
 										end
 									end
 								end
 							end
 						end
-						
+
 						groupunit = nil
 						groupsize = nil
 						TryingToSpawnReinforcements[teamID] = false
@@ -326,68 +328,72 @@ function ReinforcementsMoveOrder(n)
 	if #ActiveReinforcementUnits > 0 then
 		for i = 1,#ActiveReinforcementUnits do
 			local unitID = ActiveReinforcementUnits[i]
-			local unitDefID = Spring.GetUnitDefID(unitID)
-			local UnitName = UnitDefs[unitDefID].name
-			UnitSuffixLenght[unitID] = string.len(scavconfig.unitnamesuffix)
-			FriendlyArmyOrders = true
-			
-			if scavconfig.modules.constructorControllerModule then
-				if constructorControllerModuleConfig.useresurrectors then
-					if FriendlyResurrectors[unitID] then
-						ResurrectorOrders(n, unitID)
-						FriendlyArmyOrders = false
-					end
-				end
+			if unitID then
+				local unitDefID = Spring.GetUnitDefID(unitID)
+				if unitDefID then
+					local UnitName = UnitDefs[unitDefID].name
+					UnitSuffixLenght[unitID] = string.len(scavconfig.unitnamesuffix)
+					FriendlyArmyOrders = true
 
-				if constructorControllerModuleConfig.usecollectors then
-					if FriendlyCollectors[unitID] then
-						CollectorOrders(n, unitID)
-						FriendlyArmyOrders = false
+					if scavconfig.modules.constructorControllerModule then
+						if constructorControllerModuleConfig.useresurrectors then
+							if FriendlyResurrectors[unitID] then
+								constructorController.ResurrectorOrders(n, unitID)
+								FriendlyArmyOrders = false
+							end
+						end
+
+						if constructorControllerModuleConfig.usecollectors then
+							if FriendlyCollectors[unitID] then
+								constructorController.CollectorOrders(n, unitID)
+								FriendlyArmyOrders = false
+							end
+							if FriendlyReclaimers[unitID] then
+								constructorController.ReclaimerOrders(n, unitID)
+								FriendlyArmyOrders = false
+							end
+						end
 					end
-					if FriendlyReclaimers[unitID] then
-						ReclaimerOrders(n, unitID)
-						FriendlyArmyOrders = false
+
+
+					-- fallback - armyorders
+					if FriendlyArmyOrders == true and Spring.GetCommandQueue(unitID, 0) <= 1 then
+
+						local nearestEnemy = Spring.GetUnitNearestEnemy(unitID, 200000, false)
+						if nearestEnemy then
+							UnitRange = {}
+							if UnitDefs[unitDefID].maxWeaponRange and UnitDefs[unitDefID].maxWeaponRange > 100 then
+								UnitRange[unitID] = UnitDefs[unitDefID].maxWeaponRange
+							else
+								UnitRange[unitID] = 100
+							end
+
+							local x,y,z = Spring.GetUnitPosition(nearestEnemy)
+							local y = Spring.GetGroundHeight(x, z)
+
+							if (-(UnitDefs[unitDefID].minWaterDepth) > y) and (-(UnitDefs[unitDefID].maxWaterDepth) < y) or UnitDefs[unitDefID].canFly then
+								local range = UnitRange[unitID]
+								if range < 500 then
+									range = 500
+								end
+								local x = x + math_random(-range*0.5,range*0.5)
+								local z = z + math_random(-range*0.5,range*0.5)
+								if UnitDefs[unitDefID].canFly then
+									Spring.GiveOrderToUnit(unitID, CMD.FIGHT,{x,y,z}, {"shift", "alt", "ctrl"})
+								elseif UnitRange[unitID] > unitControllerModuleConfig.minimumrangeforfight then
+									Spring.GiveOrderToUnit(unitID, CMD.FIGHT,{x,y,z}, {"shift", "alt", "ctrl"})
+								else
+									Spring.GiveOrderToUnit(unitID, CMD.MOVE,{x,y,z}, {"shift", "alt", "ctrl"})
+								end
+							end
+						end
+					end
+					FriendlyArmyOrders = nil
+					if n%600 == 0 then
+						SelfDestructionControls(n, unitID, unitDefID, true)
 					end
 				end
 			end
-			
-			
-			-- fallback - armyorders
-			if FriendlyArmyOrders == true and Spring.GetCommandQueue(unitID, 0) <= 1 then
-				
-				local nearestEnemy = Spring.GetUnitNearestEnemy(unitID, 200000, false)
-				if nearestEnemy then
-					UnitRange = {}
-					if UnitDefs[unitDefID].maxWeaponRange and UnitDefs[unitDefID].maxWeaponRange > 100 then
-						UnitRange[unitID] = UnitDefs[unitDefID].maxWeaponRange
-					else
-						UnitRange[unitID] = 100
-					end
-					
-					local x,y,z = Spring.GetUnitPosition(nearestEnemy)
-					local y = Spring.GetGroundHeight(x, z)
-					
-					if (-(UnitDefs[unitDefID].minWaterDepth) > y) and (-(UnitDefs[unitDefID].maxWaterDepth) < y) or UnitDefs[unitDefID].canFly then
-						local range = UnitRange[unitID]
-						if range < 500 then 
-							range = 500 
-						end
-						local x = x + math_random(-range*0.5,range*0.5)
-						local z = z + math_random(-range*0.5,range*0.5)
-						if UnitDefs[unitDefID].canFly then
-							Spring.GiveOrderToUnit(unitID, CMD.FIGHT,{x,y,z}, {"shift", "alt", "ctrl"})
-						elseif UnitRange[unitID] > unitControllerModuleConfig.minimumrangeforfight then
-							Spring.GiveOrderToUnit(unitID, CMD.FIGHT,{x,y,z}, {"shift", "alt", "ctrl"})
-						else
-							Spring.GiveOrderToUnit(unitID, CMD.MOVE,{x,y,z}, {"shift", "alt", "ctrl"})
-						end
-					end
-				end
-			end
-			FriendlyArmyOrders = nil
-			if n%600 == 0 then
-                SelfDestructionControls(n, unitID, unitDefID, true)
-            end
 		end
 	end
 end

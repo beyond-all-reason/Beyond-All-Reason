@@ -19,7 +19,7 @@ function widget:GetInfo()
     date      = "Mar 20, 2007",
     license   = "GNU GPL, v2 or later",
     layer     = 0,
-    enabled   = false  --  loaded by default?
+    enabled   = true  --  loaded by default
   }
 end
 
@@ -57,6 +57,7 @@ local unitArray_ = {
 local unitArray = {}
 for _, name in pairs(unitArray_) do
   unitArray[UnitDefNames[name].id] = true
+  unitArray[UnitDefNames[name.."_scav"].id] = true
 end
 unitArray_ = nil
 
@@ -67,7 +68,7 @@ local myTeamID = Spring.GetMyTeamID()
 
 function widget:PlayerChanged(playerID)
   if Spring.GetSpectatingState() then
-    widgetHandler:RemoveWidget(self)
+    widgetHandler:RemoveWidget()
   end
   myTeamID = Spring.GetMyTeamID()
 end

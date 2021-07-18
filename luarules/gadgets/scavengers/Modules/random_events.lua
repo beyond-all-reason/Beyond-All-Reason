@@ -1,38 +1,63 @@
-RandomEventsFileList = VFS.DirList('luarules/gadgets/scavengers/RandomEvents/'..GameShortName..'/','*.lua')
-for i = 1,#RandomEventsFileList do
-	VFS.Include(RandomEventsFileList[i])
-	Spring.Echo("Scav Random Events Directory: " ..RandomEventsFileList[i])
+if not scavconfig.modules.randomEventsModule then
+	return {
+		GameFrame = function () end,
+	}
 end
 
-local function RefreshEventsList()
-	UsedRandomEventsList = {}
-	for i = 1,#RandomEventsList do
-		table.insert(UsedRandomEventsList,RandomEventsList[i])
+local randomEvents = {}
+local availableRandomEvents = {}
+
+local eventFile
+local randomEventsFileList = VFS.DirList('luarules/gadgets/scavengers/RandomEvents/' .. Game.gameShortName .. '/','*.lua')
+for i = 1, #randomEventsFileList do
+	eventFile = VFS.Include(randomEventsFileList[i])
+
+	for _, event in ipairs(eventFile) do
+		table.insert(randomEvents, event)
+	end
+
+	Spring.Echo("[Scavengers] Loading random event file: " .. randomEventsFileList[i])
+end
+
+local function refreshEventsList()
+	availableRandomEvents = {}
+	for i = 1, #randomEvents do
+		table.insert(availableRandomEvents,randomEvents[i])
 	end
 end
-RefreshEventsList()
 
-function RandomEventTrigger(CurrentFrame)
-	if not LastRandomEventFrame then LastRandomEventFrame = 1 end
-	if not RandomEventMinimumDelay then RandomEventMinimumDelay = randomEventsConfig.randomEventMinimumDelay end
-	if not RandomEventChance then RandomEventChance = randomEventsConfig.randomEventChance end
-	RandomEventDice = math_random(1,RandomEventChance)
-	
-	if CurrentFrame - LastRandomEventFrame > RandomEventMinimumDelay then
-		if RandomEventDice == 1 then
-			if #UsedRandomEventsList > 1 then
-				EventNumber = math_random(1,#UsedRandomEventsList)
-			else
-				EventNumber = 1
-			end
-			local Event = UsedRandomEventsList[EventNumber]
-			Event(CurrentFrame)
-			LastRandomEventFrame = CurrentFrame
-			table.remove(UsedRandomEventsList, EventNumber)
-			EventNumber = nil
-			if #UsedRandomEventsList == 0 then
-				RefreshEventsList()
+refreshEventsList()
+
+local lastRandomEventFrame = 1
+local randomEventMinimumDelay = randomEventsConfig.randomEventMinimumDelay
+local randomEventChance = randomEventsConfig.randomEventChance
+
+local function triggerRandomEvent(currentFrame)
+	local eventNumber
+	eventNumber = math.random(1,#availableRandomEvents)
+
+	local eventFunction = availableRandomEvents[eventNumber]
+	eventFunction(currentFrame)
+	lastRandomEventFrame = currentFrame
+	table.remove(availableRandomEvents, eventNumber)
+
+	if #availableRandomEvents == 0 then
+		refreshEventsList()
+	end
+end
+
+local function gameFrame(n)
+	if n%30 == 20 and n > scavconfig.gracePeriod then
+		local randomEventDice = math.random(1, randomEventChance)
+
+		if n - lastRandomEventFrame > randomEventMinimumDelay then
+			if randomEventDice == 1 then
+				triggerRandomEvent(n)
 			end
 		end
 	end
 end
+
+return {
+	GameFrame = gameFrame,
+}

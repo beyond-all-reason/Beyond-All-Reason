@@ -92,13 +92,13 @@ function widget:Initialize()
 	WG.MexSnap = {}
 	if not WG.metalSpots then
 		Spring.Echo("<Snap Mex> This widget requires the 'Metalspot Finder' widget to run.")
-		widgetHandler:RemoveWidget(self)
+		widgetHandler:RemoveWidget()
 	end
 
 	for key,value in ipairs(mapBlackList) do
 		if Game.mapName == value then
 			Spring.Echo("<Snap Mex> This map is incompatible - removing mex snap widget.")
-			widgetHandler:RemoveWidget(self)
+			widgetHandler:RemoveWidget()
 		end
 	end
 end

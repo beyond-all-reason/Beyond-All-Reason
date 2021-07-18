@@ -553,7 +553,7 @@ end
 function CheckSpecState()
 	local playerID = spGetMyPlayerID()
 	if select(3,spGetPlayerInfo(playerID,false)) == true then
-		widgetHandler:RemoveWidget(self)
+		widgetHandler:RemoveWidget()
 		return false
 	end
 
@@ -641,7 +641,7 @@ function DetectMod()
 
 	if modConfig[state["curModID"]] == nil then
 		spEcho("<DefenseRange> Unsupported Game, shutting down...")
-		widgetHandler:RemoveWidget(self)
+		widgetHandler:RemoveWidget()
 		return
 	end
 

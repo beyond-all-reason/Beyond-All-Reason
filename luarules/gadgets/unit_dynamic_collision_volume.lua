@@ -10,7 +10,7 @@ function gadget:GetInfo()
 	}
 end
 
-if (gadgetHandler:IsSyncedCode()) then
+if gadgetHandler:IsSyncedCode() then
 
 	-- Pop-up style unit and per piece collision volume definitions
 	local popupUnits = {}		--list of pop-up style units
@@ -43,9 +43,11 @@ if (gadgetHandler:IsSyncedCode()) then
 	end
 
 	local unitName = {}
+	local unitModeltype ={}
 	local canFly = {}
 	for unitDefID, def in pairs(UnitDefs) do
 		unitName[unitDefID] = def.name
+		unitModeltype[unitDefID] = def.modeltype
 		if def.canFly then
 			canFly[unitDefID] = def.canFly
 		end
@@ -122,9 +124,7 @@ if (gadgetHandler:IsSyncedCode()) then
 	--also makes sure subs are underwater
 	function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 
-		local modeltype = UnitDefs[unitDefID].modeltype
-
-		if (pieceCollisionVolume[unitName[unitDefID]]) then
+		if pieceCollisionVolume[unitName[unitDefID]] then
 			local t = pieceCollisionVolume[unitName[unitDefID]]
 			for pieceIndex=0, #spGetPieceList(unitID)-1 do
 				local p = t[tostring(pieceIndex)]
@@ -148,21 +148,21 @@ if (gadgetHandler:IsSyncedCode()) then
 					spSetPieceCollisionData(unitID, pieceIndex + 1, false, 1, 1, 1, 0, 0, 0, 1, 1)
 				end
 			end
-		elseif modeltype == "3do" then
+		elseif unitModeltype[unitDefID] == "3do" then
 			local rs, hs, ws
 			local r = spGetUnitRadius(unitID)
-			if (r>47 and not canFly[unitDefID]) then
+			if r>47 and not canFly[unitDefID] then
 				rs, hs, ws = 0.68, 0.68, 0.68
-			elseif (not canFly[unitDefID]) then
+			elseif not canFly[unitDefID] then
 				rs, hs, ws = 0.73, 0.73, 0.73
 			else
 				rs, hs, ws = 0.53, 0.17, 0.53
 			end
 			local xs, ys, zs, xo, yo, zo, vtype, htype, axis, _ = spGetUnitCollisionData(unitID)
-			if (vtype>=3 and xs==ys and ys==zs) then
-			  if ( ys*hs ) < 13 and (canFly[unitDefID]) then -- Limit Max V height
+			if vtype>=3 and xs==ys and ys==zs then
+			  if ys*hs < 13 and canFly[unitDefID] then -- Limit Max V height
 			    spSetUnitCollisionData(unitID, xs*ws, 13, zs*rs,  xo, yo, zo,  1, htype, 1)
-			  elseif (canFly[unitDefID]) then
+			  elseif canFly[unitDefID] then
 				spSetUnitCollisionData(unitID, xs*ws, ys*hs, zs*rs,  xo, yo, zo,  1, htype, 1)
 			  else
 				spSetUnitCollisionData(unitID, xs*ws, ys*hs, zs*rs,  xo, yo, zo,  vtype, htype, axis)
@@ -182,14 +182,14 @@ if (gadgetHandler:IsSyncedCode()) then
 			if UnitDefs[unitDefID].modCategories['underwater'] and wd and wd+r>0 then
 				spSetUnitRadiusAndHeight(unitID, wd-1, h)
 			end
-		elseif modeltype == "s3o" then
+		elseif unitModeltype[unitDefID] == "s3o" then
 			if canFly[unitDefID] then
 				local rs, hs, ws = 1.15, 0.33, 1.15	-- dont know why 3do uses: 0.53, 0.17, 0.53
 				local xs, ys, zs, xo, yo, zo, vtype, htype, axis, _ = spGetUnitCollisionData(unitID)
-				if (vtype>=3 and xs==ys and ys==zs) then
-					if ( ys*hs ) < 13 then -- Limit Max V height
+				if vtype>=3 and xs==ys and ys==zs then
+					if ys*hs < 13 then -- Limit Max V height
 						spSetUnitCollisionData(unitID, xs*ws, 13, zs*rs,  xo, yo, zo,  1, htype, 1)
-					elseif (canFly[unitDefID]) then
+					elseif canFly[unitDefID] then
 						spSetUnitCollisionData(unitID, xs*ws, ys*hs, zs*rs,  xo, yo, zo,  1, htype, 1)
 					else
 						spSetUnitCollisionData(unitID, xs*ws, ys*hs, zs*rs,  xo, yo, zo,  vtype, htype, axis)
@@ -204,13 +204,13 @@ if (gadgetHandler:IsSyncedCode()) then
 	function gadget:FeatureCreated(featureID, allyTeam)
 		if is3doFeature[Spring.GetFeatureDefID(featureID)] then
 			local rs, hs
-			if (spGetFeatureRadius(featureID)>47) then
+			if spGetFeatureRadius(featureID)>47 then
 				rs, hs = 0.68, 0.60
 			else
 				rs, hs = 0.75, 0.67
 			end
 			local xs, ys, zs, xo, yo, zo, vtype, htype, axis, _ = spGetFeatureCollisionData(featureID)
-			if (vtype>=3 and xs==ys and ys==zs) then
+			if vtype>=3 and xs==ys and ys==zs then
 				spSetFeatureCollisionData(featureID, xs*rs, ys*hs, zs*rs,  xo, yo-ys*0.09, zo,  vtype, htype, axis)
 			end
 			spSetFeatureRadiusAndHeight(featureID, spGetFeatureRadius(featureID)*rs, spGetFeatureHeight(featureID)*hs)
@@ -241,7 +241,7 @@ if (gadgetHandler:IsSyncedCode()) then
 	--Dynamic adjustment of pop-up style of units' collision volumes based on unit's ARMORED status, runs twice per second
 	--rescaling of radius and height of 3DO buildings
 	function gadget:GameFrame(n)
-		if (n%15 ~= 0) then
+		if n%15 ~= 0 then
 			return
 		end
 		local p, t, stateString, stateInt

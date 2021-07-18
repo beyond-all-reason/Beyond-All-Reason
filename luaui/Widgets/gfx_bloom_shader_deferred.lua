@@ -119,7 +119,7 @@ end
 
 local function RemoveMe(msg)
 	Spring.Echo(msg)
-	widgetHandler:RemoveWidget(self)
+	widgetHandler:RemoveWidget()
 end
 
 local function MakeBloomShaders()
@@ -307,7 +307,7 @@ function widget:ViewResize(viewSizeX, viewSizeY)
 	glDeleteTexture(brightTexture1 or "")
 	glDeleteTexture(brightTexture2 or "")
 
-	brightTexture1 = glCreateTexture(qvsx, qvsy, {
+	brightTexture1 = glCreateTexture(math.max(1,qvsx), math.max(1,qvsy), {
 		fbo = true,
 		min_filter = GL.LINEAR, mag_filter = GL.LINEAR,
 		wrap_s = GL.CLAMP, wrap_t = GL.CLAMP,

@@ -50,7 +50,7 @@ function widget:Initialize()
 	WG.metalSpots = GetSpots()
 	WG.GetMexPositions = GetMexPositions
 	WG.IsMexPositionValid = IsMexPositionValid
-	widgetHandler:RemoveWidget(self)
+	widgetHandler:RemoveWidget()
 end
 
 ------------------------------------------------------------

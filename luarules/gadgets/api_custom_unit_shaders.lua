@@ -57,7 +57,6 @@ local DEFAULT_VERSION = "#version 150 compatibility"
 -- Includes and classes loading
 -----------------------------------------------------------------
 
-VFS.Include("LuaRules/Utilities/UnitRendering.lua", nil, VFS.MOD .. VFS.BASE)
 local LuaShader = VFS.Include(LUASHADER_DIR .. "LuaShader.lua")
 
 -----------------------------------------------------------------

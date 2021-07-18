@@ -24,7 +24,7 @@ return {
 		collisionvolumescales = "69 160 180",
 		collisionvolumetest = 1,
 		collisionvolumetype = "box",
-		corpse = "chicken_egg_l_red",
+		-- handled gadget side -- corpse = "chicken_egg_l_red",
 		defaultmissiontype = "Standby",
 		description = Spring.I18N('units.descriptions.epic_chickenq'),
 		explodeas = "QUEEN_DEATH",

@@ -72,7 +72,7 @@ ImAMetalMaker()
 			set ACTIVATION to 0;
 			mmState = 0;
 		}
-		sleep 10;
+		sleep 1000;
 	}
 }
 

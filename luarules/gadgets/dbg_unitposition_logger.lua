@@ -6,9 +6,14 @@ function gadget:GetInfo()
 		date = "February 2021",
 		license = "GNU GPL, v2 or later",
 		layer = -math.huge,
-		enabled = true,
+		enabled = false,
 	}
 end
+
+--[[
+	disabled cause there is missing data, presumingly because or rejoining specs and whatnot.
+]]
+
 
 --[[
 	this gadget logs unit positions at intervals within the replay
@@ -66,10 +71,34 @@ if not gadgetHandler:IsSyncedCode() then
 	end
 	local isSinglePlayer = numPlayers == 1
 
+	local allUnits = {}
+	local allUnitsTotal = 0
+	function gadget:Initialize()
+		for ct, unitID in pairs(Spring.GetAllUnits()) do
+			gadget:UnitCreated(unitID, Spring.GetUnitDefID(unitID), Spring.GetUnitTeam(unitID))
+		end
+	end
+
+	function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
+		allUnits[unitID] = {unitDefID, unitTeam}
+		allUnitsTotal = allUnitsTotal + 1
+	end
+
+	function gadget:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
+		allUnits[unitID] = {unitDefID, unitTeam}
+	end
+
+	function gadget:UnitTaken(unitID, unitDefID, oldTeam, newTeam)
+		allUnits[unitID] = {unitDefID, newTeam}
+	end
+
+	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
+		allUnits[unitID] = nil
+		allUnitsTotal = allUnitsTotal - 1
+	end
+
 	-- store all unit positions (in case you're requested to send a missing part later)
 	local function updateLog(frame, participants)
-		local units = Spring.GetAllUnits()
-		local numUnits = #units
 		local numParticipants = #participants
 		log[frame] = {
 			participants = participants,
@@ -77,18 +106,23 @@ if not gadgetHandler:IsSyncedCode() then
 			attempts = 0,
 		}
 		local part = 1
-		for i, unitID in ipairs(units) do
+		local i = 0
+		local teamID
+		for unitID, params in pairs(allUnits) do
 			local px, py, pz = spGetUnitPosition(unitID)
-			part = math_ceil(i / (numUnits/numParticipants))
-			if log[frame].parts[part] == nil then
-				log[frame].parts[part] = {}
+			if px then
+				i = i + 1
+				part = math_ceil(i / (allUnitsTotal/numParticipants))
+				if log[frame].parts[part] == nil then
+					log[frame].parts[part] = {}
+				end
+				teamID = params[2]
+				if log[frame].parts[part][teamID] == nil then
+					log[frame].parts[part][teamID] = {}
+				end
+				local count = #log[frame].parts[part][teamID]+1
+				log[frame].parts[part][teamID][count] = {unitID, params[1], math_floor(px), math_floor(pz)}--, math_floor(py)}	-- put height last so it can be left out easier
 			end
-			local teamID = spGetUnitTeam(unitID)
-			if log[frame].parts[part][teamID] == nil then
-				log[frame].parts[part][teamID] = {}
-			end
-			local count = #log[frame].parts[part][teamID]+1
-			log[frame].parts[part][teamID][count] = {unitID, spGetUnitDefID(unitID), math_floor(px), math_floor(pz)}--, math_floor(py)}	-- put height last so it can be left out easier
 		end
 	end
 
@@ -183,8 +217,7 @@ if not gadgetHandler:IsSyncedCode() then
 			lastLogFrame = gf
 
 			-- adjust logRate based on number of units on the map (so earlygame log can stay frequent)
-			local totalUnits = #Spring.GetAllUnits()
-			logRate = maxLogRate * (totalUnits / maxLogRateUnits)
+			logRate = maxLogRate * (allUnitsTotal / maxLogRateUnits)
 			logRate = math.min(maxLogRate, math.max(minLogRate, logRate))
 
 			-- find out which players/specs aren't lagged behind and available to send a part of all unit position data

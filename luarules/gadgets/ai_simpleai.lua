@@ -293,7 +293,7 @@ local function SimpleConstructionProjectSelection(unitID, unitDefID, unitName, u
 							break
 						end
 					end
-				elseif mexspotpos then
+				elseif mexspotpos and type ~= "Commander" then
 					local project = SimpleExtractorDefs[math.random(1, #SimpleExtractorDefs)]
 					for i2 = 1,#buildOptions do
 						if buildOptions[i2] == project then
@@ -359,7 +359,6 @@ local function SimpleConstructionProjectSelection(unitID, unitDefID, unitName, u
 							break
 						end
 					end
-					
 				end
 			elseif r == 2 or r == 3 or r == 4 or r == 5 then
 				local project = SimpleTurretDefs[math.random(1, #SimpleTurretDefs)]

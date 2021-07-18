@@ -29,6 +29,7 @@ return {
 		idleautoheal = 25,
 		idletime = 1800,
 		losemitheight = 52,
+		mass = 9999999,
 		maxdamage = 44800,
 		maxvelocity = 1.795,
 		metalstorage = 100,
@@ -318,14 +319,14 @@ return {
 				onlytargetcategory = "SURFACE",
 			},
 			[6] = {
-				badtargetcategory = "NOTAIR GROUNDSCOUT"
+				badtargetcategory = "NOTAIR GROUNDSCOUT",
 				maindir = "0 -1 -2",
 				maxangledif = 270,
 				def = "FERRET_MISSILE",
 				onlytargetcategory = "VTOL T4AIR",
 			},
 			[7] = {
-				badtargetcategory = "NOTAIR GROUNDSCOUT"
+				badtargetcategory = "NOTAIR GROUNDSCOUT",
 				def = "FERRET_MISSILE",
 				onlytargetcategory = "VTOL T4AIR",
 			},

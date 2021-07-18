@@ -12,7 +12,7 @@ return {
 		name = "spyexplosion",
 		noselfdamage = 1,
 		paralyzer = 1,
-		paralyzetime = 45,
+		paralyzetime = 35,
 		range = 1280,
 		reloadtime = 0.30000001192093,
 		soundhit = "xplomed4",

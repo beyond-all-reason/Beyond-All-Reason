@@ -369,7 +369,7 @@ function widget:Initialize()
 		widget:ViewResize()
 	else
 		Spring.Echo("Text: couldn't load the text file")
-		widgetHandler:RemoveWidget(self)
+		widgetHandler:RemoveWidget()
 	end
 end
 

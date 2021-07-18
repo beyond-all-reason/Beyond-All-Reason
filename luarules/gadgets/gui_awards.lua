@@ -431,10 +431,10 @@ else
 		if plList[1] then
 			name = plList[1]
 			if #plList > 1 then
-				name = name .. ' (' .. Spring.I18N('ui.awards.coop') .. ')'
+				name = Spring.I18N('ui.awards.coop', { name = name })
 			end
 		else
-			name = '(' .. Spring.I18N('ui.awards.unknown') .. ')'
+			name = Spring.I18N('ui.awards.unknown')
 		end
 
 		return name
@@ -444,7 +444,7 @@ else
 		local winnerName, secondName, thirdName
 
 		--award is: 0 for a normal award, 1 for the cow award, 2 for the no-cow awards
-		local notAwardedText = '(' .. Spring.I18N('ui.awards.notAwarded') .. ')'
+		local notAwardedText = Spring.I18N('ui.awards.notAwarded')
 
 		if winnerID >= 0 then
 			winnerName = findPlayerName(winnerID)
@@ -506,7 +506,7 @@ else
 				else
 					font:Print('-', bx + w / 2 + math.floor(275*widgetScale), by + h - offset - math.floor(5*widgetScale), 17*widgetScale, "o")
 				end
-				font:Print(Spring.I18N('ui.awards.runnersUp') .. ':', bx + math.floor(500*widgetScale), by + h - offset - math.floor(5*widgetScale), 14*widgetScale, "o")
+				font:Print(Spring.I18N('ui.awards.runnersUp'), bx + math.floor(500*widgetScale), by + h - offset - math.floor(5*widgetScale), 14*widgetScale, "o")
 
 				if secondScore > 0 then
 					if pic == 'comwreath' then

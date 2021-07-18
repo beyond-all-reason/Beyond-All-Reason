@@ -95,8 +95,10 @@ return {
 				startvelocity = 200,
 				submissile = 1,
 				turret = true,
+        waterweapon = false,
 				weaponacceleration = 100,
 				weapontimer = 1,
+        weapontype = "Cannon",
 				weaponvelocity = 350,
 				damage = {
 					default = 200,

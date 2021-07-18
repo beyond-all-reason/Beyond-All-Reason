@@ -5,7 +5,7 @@ function widget:GetInfo()
 		author = "Floris",
 		date = "May 2020",
 		license = "GNU GPL, v2 or later",
-		layer = 0,
+		layer = -1,
 		enabled = true
 	}
 end
@@ -213,7 +213,7 @@ function widget:ViewResize()
 		if buildmenuBottomPos then
 			posX = 0
 			posY = height + height + (widgetSpaceMargin/vsy)
-		else
+		elseif WG['buildmenu'] then
 			local posY2, _ = WG['buildmenu'].getSize()
 			posY2 = posY2 + (widgetSpaceMargin/vsy)
 			posY = posY2 + height
@@ -239,7 +239,7 @@ end
 
 function widget:Initialize()
 	if isSpec or Spring.GetGameFrame() > 0 then
-		widgetHandler:RemoveWidget(self)
+		widgetHandler:RemoveWidget()
 		return
 	end
 
@@ -247,7 +247,7 @@ function widget:Initialize()
     local scenarioopts = Spring.Utilities.Base64Decode(Spring.GetModOptions().scenariooptions)
     scenarioopts = Spring.Utilities.json.decode(scenarioopts)
     if scenarioopts and scenarioopts.scenariooptions and scenarioopts.scenariooptions.disablefactionpicker == true then
-      widgetHandler:RemoveWidget(self)
+      widgetHandler:RemoveWidget()
       return
     end
   end
@@ -276,7 +276,7 @@ function widget:Shutdown()
 end
 
 function widget:GameFrame(n)
-	widgetHandler:RemoveWidget(self)
+	widgetHandler:RemoveWidget()
 end
 
 local sec = 0
@@ -308,47 +308,6 @@ function widget:Update(dt)
 			doUpdate = true
 		end
 	end
-end
-
-local function DrawRectRoundCircle(x, y, z, radius, cs, centerOffset, color1, color2)
-	if not color2 then
-		color2 = color1
-	end
-	--centerOffset = 0
-	local coords = {
-		{ x - radius + cs, z + radius, y }, -- top left
-		{ x + radius - cs, z + radius, y }, -- top right
-		{ x + radius, z + radius - cs, y }, -- right top
-		{ x + radius, z - radius + cs, y }, -- right bottom
-		{ x + radius - cs, z - radius, y }, -- bottom right
-		{ x - radius + cs, z - radius, y }, -- bottom left
-		{ x - radius, z - radius + cs, y }, -- left bottom
-		{ x - radius, z + radius - cs, y }, -- left top
-	}
-	local cs2 = cs * (centerOffset / radius)
-	local coords2 = {
-		{ x - centerOffset + cs2, z + centerOffset, y }, -- top left
-		{ x + centerOffset - cs2, z + centerOffset, y }, -- top right
-		{ x + centerOffset, z + centerOffset - cs2, y }, -- right top
-		{ x + centerOffset, z - centerOffset + cs2, y }, -- right bottom
-		{ x + centerOffset - cs2, z - centerOffset, y }, -- bottom right
-		{ x - centerOffset + cs2, z - centerOffset, y }, -- bottom left
-		{ x - centerOffset, z - centerOffset + cs2, y }, -- left bottom
-		{ x - centerOffset, z + centerOffset - cs2, y }, -- left top
-	}
-	for i = 1, 8 do
-		local i2 = (i >= 8 and 1 or i + 1)
-		glColor(color2)
-		glVertex(coords[i][1], coords[i][2], coords[i][3])
-		glVertex(coords[i2][1], coords[i2][2], coords[i2][3])
-		glColor(color1)
-		glVertex(coords2[i2][1], coords2[i2][2], coords2[i2][3])
-		glVertex(coords2[i][1], coords2[i][2], coords2[i][3])
-	end
-end
-
-local function RectRoundCircle(x, y, z, radius, cs, centerOffset, color1, color2)
-	glBeginEnd(GL.QUADS, DrawRectRoundCircle, x, y, z, radius, cs, centerOffset, color1, color2)
 end
 
 function IsOnRect(x, y, BLcornerX, BLcornerY, TRcornerX, TRcornerY)
@@ -400,6 +359,7 @@ function widget:RecvLuaMsg(msg, playerID)
 end
 
 function widget:DrawScreen()
+
 	if chobbyInterface then
 		return
 	end

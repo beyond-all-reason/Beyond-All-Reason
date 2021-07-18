@@ -13,6 +13,17 @@ function gadget:GetInfo()
 	}
 end
 
+local DEBUGCHICKEN = false
+
+if DEBUGCHICKEN then
+    local opts = {}
+    for k,v in pairs(Spring.GetModOptions()) do
+      opts[#opts+1] = tostring(k) .. "=".. tostring(v)
+    end
+    Spring.Echo("Modoptions:",table.concat(opts,", "))
+end
+
+
 local teams = Spring.GetTeamList()
 for i = 1, #teams do
 	local luaAI = Spring.GetTeamLuaAI(teams[i])
@@ -151,11 +162,13 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	local unitName = {}
+	local unitHumanName = {}
 	local unitShortName = {}
 	local unitSpeed = {}
 	local unitCanFly = {}
 	for unitDefID, unitDef in pairs(UnitDefs) do
 		unitName[unitDefID] = unitDef.name
+		unitHumanName[unitDefID] = unitDef.humanName
 		unitShortName[unitDefID] = string.match(unitDef.name, "%D*")
 		unitSpeed[unitDefID] = unitDef.speed
 		if unitDef.canFly then
@@ -310,9 +323,13 @@ if gadgetHandler:IsSyncedCode() then
 	queenTime = (queenTime + gracePeriod)
 	chickenDebtCount = math.ceil((math.max((gracePeriod - 270), 0) / 3))
 	-- eggChance scales - 20% at 0-300 grace, 10% at 400 grace, 0% at 500+ grace
-	local eggChance = 0.20 * math.max(0, math.min(1, (500 - gracePeriod) / 200))
-	local bonusEggs = math.ceil(24 * math.max(0, math.min(1, (500 - gracePeriod) / 200)))
-
+	local eggChance = 0.20 * math.max(0, math.min(1, (500 - gracePeriod) / 200)) / chickenSpawnMultiplier
+	local bonusEggs = math.ceil(24 * math.max(0, math.min(1, (500 - gracePeriod) / 200))) / chickenSpawnMultiplier
+  if DEBUGCHICKEN then Spring.Echo("eggChance", eggChance, "bonusEggs", bonusEggs) end
+  if DEBUGCHICKEN then Spring.Echo("maxBurrows", maxBurrows, "queenTime", queenTime) end
+  if DEBUGCHICKEN then Spring.Echo("expIncrement", expIncrement, "chickensPerPlayer", chickensPerPlayer) end
+  if DEBUGCHICKEN then Spring.Echo("gracePenalty", gracePenalty, "chickensPerPlayer", chickensPerPlayer) end
+  if DEBUGCHICKEN then Spring.Echo("addQueenAnger", addQueenAnger) end
 	if modes[highestLevel] == EPIC then
 		gracePenalty = gracePenalty + 15
 		maxBurrows = math.max(maxBurrows * 1.5, 50)
@@ -373,7 +390,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		for unitDefID, number in pairs(teamUnitCounts) do
-			if UnitDefs[unitDefID] then
+			if unitShortName[unitDefID] then
 				local shortName = unitShortName[unitDefID]
 				if unitCounts[shortName] then
 					unitCounts[shortName].count = unitCounts[shortName].count + number
@@ -844,7 +861,7 @@ if gadgetHandler:IsSyncedCode() then
 					local squad = waves[9][mRandom(1, #waves[9])]
 					for i, sString in pairs(squad) do
 						local nEnd, _ = string.find(sString, " ")
-						local unitNumber = string.sub(sString, 1, (nEnd - 1))
+						local unitNumber = string.sub(sString, 1, (nEnd - 1)) * chickenSpawnMultiplier
 						local chickenName = string.sub(sString, (nEnd + 1))
 						for i = 1, unitNumber, 1 do
 							table.insert(spawnQueue, { burrow = queenID, unitName = chickenName, team = chickenTeamID })
@@ -874,9 +891,10 @@ if gadgetHandler:IsSyncedCode() then
 					chickenDebtCount = (chickenDebtCount - 1)
 					skipSpawn = false
 				end
+        if DEBUGCHICKEN then Spring.Echo(("BWAAK %i BurrowID=%i Squad=%s skip=%s cCount=%i Debt=%i"):format(i, burrowID,sString,tostring(skipSpawn),cCount,chickenDebtCount)) end
 				if not skipSpawn then
 					local nEnd, _ = string.find(sString, " ")
-					local unitNumber = string.sub(sString, 1, (nEnd - 1))
+					local unitNumber  = string.sub(sString, 1, (nEnd - 1)) * chickenSpawnMultiplier
 					local chickenName = string.sub(sString, (nEnd + 1))
 					for i = 1, unitNumber, 1 do
 						table.insert(spawnQueue, { burrow = burrowID, unitName = chickenName, team = chickenTeamID })
@@ -973,7 +991,7 @@ if gadgetHandler:IsSyncedCode() then
 	local function DisableUnit(unitID)
 		Spring.MoveCtrl.Enable(unitID)
 		Spring.MoveCtrl.SetNoBlocking(unitID, true)
-		Spring.MoveCtrl.SetPosition(unitID, Game.mapSizeX + 500, 2000, Game.mapSizeZ + 500) --don't move too far out or prevent_aicraft_hax will explode it!
+		Spring.MoveCtrl.SetPosition(unitID, Game.mapSizeX + 1900, 2000, Game.mapSizeZ + 1900) --don't move too far out or prevent_aicraft_hax will explode it!
 		--Spring.SetUnitCloak(unitID, true)
 		Spring.SetUnitHealth(unitID, { paralyze = 99999999 })
 		Spring.SetUnitNoDraw(unitID, true)
@@ -1067,7 +1085,7 @@ if gadgetHandler:IsSyncedCode() then
 					if queenResistance[weaponID].notify == 0 then
 						--Bruh, just because you call a variable "WeaponName" doesn't mean that it magically goes and gets the weaponname from the def
 						--local weaponName
-						Spring.Echo("The Queen is becoming resistant to " .. UnitDefs[attackerDefID].humanName .. "'s attacks!")
+						Spring.Echo("The Queen is becoming resistant to " .. unitHumanName[attackerDefID] .. "'s attacks!")
 						queenResistance[weaponID].notify = 1
 						for i = 1, 12, 1 do
 							table.insert(spawnQueue, { burrow = queenID, unitName = "chickenw2", team = chickenTeamID })
@@ -1496,13 +1514,14 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID)
 
-		if eggChance > 0 and bonusEggs > 0 or EGG_DROPPER[unitDefID] and mRandom() < eggChance then
+		if (eggChance > 0 and bonusEggs > 0) or (EGG_DROPPER[unitDefID] and mRandom() < eggChance) then
 			local x, y, z = GetUnitPosition(unitID)
 			if x then
 				local h = GetUnitHeading(unitID)
 				if h then
 					Spring.CreateFeature(EGG_DROPPER[unitDefID], x, y, z, h)
 					bonusEggs = bonusEggs - 1
+          if DEBUGCHICKEN then Spring.Echo("eggChance", eggChance, "bonusEggs", bonusEggs) end
 				end
 			end
 		end
@@ -1612,13 +1631,15 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 
+    if DEBUGCHICKEN then Spring.Echo("unitDefID", unitDefID, "burrowDef", burrowDef , "addQueenAnger",addQueenAnger) end
 		if unitDefID == burrowDef and not gameOver then
-
+      if DEBUGCHICKEN then Spring.Echo("Burrow kill !", burrowAnger) end
 			local kills = GetGameRulesParam(burrowName .. "Kills")
 			SetGameRulesParam(burrowName .. "Kills", kills + 1)
 
 			burrows[unitID] = nil
 			if addQueenAnger == 1 then
+        if DEBUGCHICKEN then Spring.Echo("Burrow kill adding anger", burrowAnger, burrowAnger + angerBonus) end
 				burrowAnger = (burrowAnger + angerBonus)
 				expMod = (expMod + angerBonus)
 			end

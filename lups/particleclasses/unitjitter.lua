@@ -169,7 +169,7 @@ function UnitJitter.Initialize()
 	void main()
 	{
             gl_Position = ftransform();
-            texCoord.s = dot( gl_Vertex, ObjectPlaneS ) + timer; 
+            texCoord.s = dot( gl_Vertex, ObjectPlaneS ) + timer;
             texCoord.t = dot( gl_Vertex, ObjectPlaneT ) + timer;
             texCoord.z = gl_MultiTexCoord2.x; //life
             texCoord.z *= abs( dot(normalize(gl_NormalMatrix * gl_Normal), normalize(vec3(gl_ModelViewMatrix * gl_Vertex))) );
@@ -256,9 +256,14 @@ function UnitJitter:ReInitialize()
   self.dieGameFrame = self.dieGameFrame + self.life
 end
 
+local unitIsS3o = {}
+for unitDefID, ud in pairs(UnitDefs) do
+	local name = (ud.model and ud.model.name) or ud.modelname
+	unitIsS3o[unitDefID] = ((name:lower():find("s3o") or name:lower():find("obj") or name:lower():find("dae")) and true)
+end
+
 function UnitJitter:CreateParticle()
-  local name = (UnitDefs[self.unitDefID].model and UnitDefs[self.unitDefID].model.name) or UnitDefs[self.unitDefID].modelname
-  self.isS3o = ((name:lower():find("s3o") or name:lower():find("obj") or name:lower():find("dae")) and true)
+  self.isS3o = unitIsS3o[self.unitDefID]
   self.teamColor = {spGetTeamColor(self.team)}
   self.firstGameFrame = thisGameFrame
   self.dieGameFrame   = self.firstGameFrame + self.life

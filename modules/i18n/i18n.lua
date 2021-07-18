@@ -5,6 +5,7 @@ Spring.I18N = VFS.Include(I18N_PATH .. "init.lua", nil, VFS.ZIP)
 Spring.I18N.loadFile('language/interface_en.lua')
 Spring.I18N.loadFile('language/units_en.lua')
 Spring.I18N.loadFile('language/tips_en.lua')
+Spring.I18N.loadFile('language/scavengers_en.lua')
 
 Spring.I18N.languages = {
 	en = "English",

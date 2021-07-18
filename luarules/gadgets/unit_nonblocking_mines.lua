@@ -14,13 +14,14 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
---local nummines = 0
 local mines = {}
 local isMine = {}
+local unitSizing = {}
 for udid, ud in pairs(UnitDefs) do
 	if ud.customParams and ud.customParams.detonaterange then
 		isMine[udid] = true
 	end
+	unitSizing[udid] = {ud.xsize * 4 + 8, ud.zsize * 4 + 8} -- add 8 for the mines size too
 end
 
 local spSetUnitBlocking = Spring.SetUnitBlocking
@@ -44,8 +45,8 @@ end
 
 function gadget:AllowUnitCreation(unitDefID, builderID, builderTeam, x, y, z)
 	if x and y and z then
-		local footprintx = UnitDefs[unitDefID]['xsize'] * 4 + 8 --add 8 for the mines size too
-		local footprintz = UnitDefs[unitDefID]['zsize'] * 4 + 8  --size is 2x footprint in engine
+		local footprintx = unitSizing[unitDefID][1]
+		local footprintz = unitSizing[unitDefID][2]
 		for mine, pos in pairs(mines) do
 			if math.abs(x - pos[1]) < footprintx and math.abs(z - pos[2]) < footprintz then
 				-- if builderTeam ~= spGetMyTeamID() then --no getmyteamid in synced code :(

@@ -495,17 +495,19 @@ end
 local anyFXVisible = false
 local anyDistortionsVisible = false
 
-local function getMovetype(ud)
+local unitMovetype = {}
+for unitDefID, ud in pairs(UnitDefs) do
+	local moveType = nil
 	if ud.canFly or ud.isAirUnit then
 		if ud.isHoveringAirUnit then
-			return 1 -- gunship
+			moveType = 1 -- gunship
 		else
-			return 0 -- fixedwing
+			moveType = 0 -- fixedwing
 		end
 	elseif not ud.isBuilding or ud.isFactory or ud.speed == 0 then
-		return 2 -- ground/sea
+		moveType = 2 -- ground/sea
 	end
-	return false -- For structures or any other invalid movetype
+	unitMovetype[unitDefID] = moveType
 end
 
 local function IsUnitPositionKnown(unitID)
@@ -526,10 +528,10 @@ local function IsUnitPositionKnown(unitID)
 		return false
 	end
 	local unitDefID = Spring.GetUnitDefID(unitID)
-	if not (unitDefID and UnitDefs[unitDefID]) then
+	if not unitDefID then
 		return false
 	end
-	return not getMovetype(UnitDefs[unitDefID])
+	return not unitMovetype[unitDefID]
 end
 
 local function RadarDotCheck(unitID)

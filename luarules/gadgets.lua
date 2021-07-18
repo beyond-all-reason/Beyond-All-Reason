@@ -17,6 +17,13 @@
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
+local VFSMODE = VFS.ZIP_ONLY -- FIXME: ZIP_FIRST ?
+if Spring.IsDevLuaEnabled() then
+	VFSMODE = VFS.RAW_ONLY
+end
+
+VFS.Include('init.lua', nil, VFSMODE)
+
 local SAFEWRAP = 0
 -- 0: disabled
 -- 1: enabled, but can be overriden by gadget.GetInfo().unsafe
@@ -29,21 +36,19 @@ local SCRIPT_DIR = Script.GetName() .. '/'
 local LOG_SECTION = "" -- FIXME: "LuaRules" section is not registered anywhere
 
 
-local VFSMODE = VFS.ZIP_ONLY -- FIXME: ZIP_FIRST ?
-if Spring.IsDevLuaEnabled() then
-	VFSMODE = VFS.RAW_ONLY
-end
 
 VFS.Include(HANDLER_DIR .. 'setupdefs.lua', nil, VFSMODE)
 VFS.Include(HANDLER_DIR .. 'system.lua', nil, VFSMODE)
 VFS.Include(HANDLER_DIR .. 'callins.lua', nil, VFSMODE)
 VFS.Include(SCRIPT_DIR .. 'utilities.lua', nil, VFSMODE)
-VFS.Include("modules/flowui/flowui.lua", nil, VFSMODE)
-VFS.Include("modules/i18n/i18n.lua", nil, VFSMODE)
-
 
 local actionHandler = VFS.Include(HANDLER_DIR .. 'actions.lua', nil, VFSMODE)
 
+-- Utility call
+local isSyncedCode = (SendToUnsynced ~= nil)
+local function IsSyncedCode()
+	return isSyncedCode
+end
 
 --------------------------------------------------------------------------------
 
@@ -95,14 +100,6 @@ do
 		gadgetHandler[listname .. 'List'] = {}
 	end
 end
-
-
--- Utility call
-local isSyncedCode = (SendToUnsynced ~= nil)
-local function IsSyncedCode()
-	return isSyncedCode
-end
-
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------

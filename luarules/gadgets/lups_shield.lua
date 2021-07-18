@@ -107,28 +107,42 @@ if gadgetHandler:IsSyncedCode() then
 		gameFrame = n
 	end
 
+	local unitWeapons = {}
+	for unitDefID, unitDef in pairs(UnitDefs) do
+		local weapons = unitDef.weapons
+		if #weapons > 0 then
+			unitWeapons[unitDefID] = unitDef.weapons
+		end
+	end
+	local weaponType = {}
+	local weaponDamages = {}
+	local weaponBeamtime = {}
+	for weaponDefID, weaponDef in pairs(WeaponDefs) do
+		weaponType[weaponDefID] = weaponDef.type
+		weaponDamages[weaponDefID] = weaponDef.damages
+		weaponBeamtime[weaponDefID] = weaponDef.beamtime
+	end
+
 	function gadget:ShieldPreDamaged(proID, proOwnerID, shieldEmitterWeaponNum, shieldCarrierUnitID, bounceProjectile, beamEmitterWeaponNum, beamEmitterUnitID, startX, startY, startZ, hitX, hitY, hitZ)
 		local wd = nil
 		local dmgMod = 1
+		local weaponDefID = nil
 		if proID and proID ~= -1 then
-			local proDefID = Spring.GetProjectileDefID(proID)
-			wd = WeaponDefs[proDefID]
-		elseif beamEmitterUnitID then --hitscan weapons
-			local unitDefID = Spring.GetUnitDefID(beamEmitterUnitID)
-			local weaponDefID = UnitDefs[unitDefID].weapons[beamEmitterWeaponNum].weaponDef
-			wd = WeaponDefs[weaponDefID]
-			if wd.type ~= "LightningCannon" then
-				dmgMod = 1 / (wd.beamtime * GAMESPEED)
+			weaponDefID = Spring.GetProjectileDefID(proID)
+		elseif beamEmitterUnitID then -- hitscan weapons
+			weaponDefID = unitWeapons[ Spring.GetUnitDefID(beamEmitterUnitID) ][beamEmitterWeaponNum].weaponDef
+			if weaponType[weaponDefID] ~= "LightningCannon" then
+				dmgMod = 1 / (weaponBeamtime[weaponDefID] * GAMESPEED)
 			end
 		end
 
-		if wd then
-			local dmg = wd.damages[SHIELDARMORID]
-			if dmg <= 0.1 then --some stupidity here: llt has 0.0001 dmg in wd.damages[SHIELDARMORID]
-				dmg = wd.damages[SHIELDARMORIDALT]
+		if weaponDefID then
+			local dmg = weaponDamages[weaponDefID][SHIELDARMORID]
+			if dmg <= 0.1 then --some stupidity here: llt has 0.0001 dmg in weaponDamages[weaponDefID][SHIELDARMORID]
+				dmg = weaponDamages[weaponDefID][SHIELDARMORIDALT]
 			end
 			--Spring.Utilities.TableEcho({proID=proID, proOwnerID=proOwnerID, shieldEmitterWeaponNum=shieldEmitterWeaponNum, shieldCarrierUnitID=shieldCarrierUnitID, bounceProjectile=bounceProjectile, beamEmitterWeaponNum=beamEmitterWeaponNum, beamEmitterUnitID=beamEmitterUnitID, startX=startX, startY=startY, startZ=startZ, hitX=hitX, hitY=hitY, hitZ=hitZ, dist=dist}, "ShieldPreDamaged")
-			--GG.TableEcho(wd.damages)
+			--GG.TableEcho(weaponDamages[weaponDefID])
 			--Spring.Echo("dmg=", dmg, dmg * dmgMod)
 			local x, y, z = Spring.GetUnitPosition(shieldCarrierUnitID)
 			local dx, dy, dz
@@ -284,7 +298,7 @@ local function DoAddShieldHitData(unitData, hitFrame, dmg, x, y, z, onlyMove)
 			local dist = AngleBetweenVectors(hitInfo.x, hitInfo.y, hitInfo.z, x, y, z)
 
 			-- AoE radius in radians
-			if (dist) <= AOE_SAME_SPOT then
+			if dist <= AOE_SAME_SPOT then
 				found = true
 
 				if onlyMove then
@@ -419,7 +433,7 @@ function gadget:GameFrame(n)
 end
 
 function gadget:Initialize(n)
-	if (not Lups) then
+	if not Lups then
 		Lups = GG.Lups
 		LupsAddParticles = Lups.AddParticles
 	end

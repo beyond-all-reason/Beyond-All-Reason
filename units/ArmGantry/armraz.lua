@@ -31,7 +31,6 @@ return {
 		script = "Units/armraz.cob",
 		seismicsignature = 0,
 		selfdestructas = "explosiont3xl",
-		--selfdestructcountdown = 1,
 		sightdistance = 450,
 		strafetoattack = true,
 		turninplace = true,

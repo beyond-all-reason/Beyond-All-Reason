@@ -34,7 +34,7 @@ end
 function widget:Initialize()
   if armstoneUdefID == nil or corstoneUdefID == nil then
     Spring.Echo('tombstones widget: No tombstones availible')
-    widgetHandler:RemoveWidget(self)
+    widgetHandler:RemoveWidget()
   end
 end
 

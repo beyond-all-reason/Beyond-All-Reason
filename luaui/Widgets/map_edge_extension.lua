@@ -438,7 +438,7 @@ function widget:Initialize()
 	end
 	if island and voidGround then
 		restoreMapBorder = false
-		widgetHandler:RemoveWidget(self)
+		widgetHandler:RemoveWidget()
 	end
 
 	GetMaxGroundHeights()

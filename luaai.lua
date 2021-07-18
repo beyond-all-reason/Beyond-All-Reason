@@ -28,6 +28,10 @@ return {
     name = 'ScavengersAI',
     desc = 'Infinite Games'
   },
+  {
+    name = 'ControlModeAI',
+    desc = 'AI designed for Control Points gamemode, stays idle if control mode is disabled',
+  },
   --{
     --name = 'STAI',
     --desc = 'STAI - Shard AI'
