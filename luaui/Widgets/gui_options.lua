@@ -5627,6 +5627,11 @@ function widget:Initialize()
 		texts = WG['lang'].getText('options')
 	end
 
+	-- just making sure
+	if widgetHandler.orderList["Pregame UI"] < 0.5 then
+		widgetHandler:EnableWidget("Pregame UI")
+	end
+
 	updateGrabinput()
 
 	widget:ViewResize()
