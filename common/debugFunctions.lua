@@ -3,9 +3,8 @@ assert(Spring.Utilities, "Spring.Utilities must be initialized before loading de
 local function paramsEcho(...)
 	local called_from = "Called from: " .. tostring(debug.getinfo(2).name) .. " args:"
 	Spring.Echo(called_from)
-	for i,v in ipairs(arg) do
-		Spring.Echo(tostring(i) .. ": ".. Spring.Utilities.TableToString(v))
-	end
+	local args = { ... }
+	Spring.Echo( Spring.Utilities.TableToString(args) )
 	return ...
 end
 

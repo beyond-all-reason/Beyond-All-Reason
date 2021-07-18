@@ -17,7 +17,12 @@
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-VFS.Include('init.lua')
+local VFSMODE = VFS.ZIP_ONLY -- FIXME: ZIP_FIRST ?
+if Spring.IsDevLuaEnabled() then
+	VFSMODE = VFS.RAW_ONLY
+end
+
+VFS.Include('init.lua', nil, VFSMODE)
 
 local SAFEWRAP = 0
 -- 0: disabled
@@ -31,10 +36,6 @@ local SCRIPT_DIR = Script.GetName() .. '/'
 local LOG_SECTION = "" -- FIXME: "LuaRules" section is not registered anywhere
 
 
-local VFSMODE = VFS.ZIP_ONLY -- FIXME: ZIP_FIRST ?
-if Spring.IsDevLuaEnabled() then
-	VFSMODE = VFS.RAW_ONLY
-end
 
 VFS.Include(HANDLER_DIR .. 'setupdefs.lua', nil, VFSMODE)
 VFS.Include(HANDLER_DIR .. 'system.lua', nil, VFSMODE)
