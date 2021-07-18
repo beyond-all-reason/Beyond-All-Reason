@@ -408,7 +408,7 @@ function widget:DrawWorld()
 
 	gl.Texture(0, "$heightmap")
 	circleShader:Activate()
-	circleShader:SetUniform("circleopacity", useteamcolors and opacity*1.6 or opacity)
+	circleShader:SetUniform("circleopacity", useteamcolors and opacity*2 or opacity)
 
 	-- Draw outer circles into stencil buffer
 	glStencilFunc(GL_ALWAYS, 1, 1) -- Always Passes, 1 Bit Plane, 1 As Mask
