@@ -25,9 +25,6 @@ include("system.lua")
 include("callins.lua")
 include("savetable.lua")
 
-VFS.Include("modules/flowui/flowui.lua")
-VFS.Include("modules/i18n/i18n.lua")
-
 local gl = gl
 
 local CONFIG_FILENAME = LUAUI_DIRNAME .. 'Config/' .. Game.gameShortName .. '.lua'
