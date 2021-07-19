@@ -1361,6 +1361,9 @@ function widget:RecvLuaMsg(msg, playerID)
 				Spring.SendCommands("pause "..(chobbyInterface and '1' or '0'))
 				pauseGameWhenSingleplayerExecuted = chobbyInterface
 			end
+			if not chobbyInterface then
+				Spring.SetConfigInt('VSync', vsyncEnabled and vsyncLevel or 0)
+			end
 		end
 	end
 end
@@ -2446,6 +2449,7 @@ function init()
 				  end
 			  end
 			  Spring.SetConfigInt("VSync", vsync)
+			  Spring.SetConfigInt("VSyncGame", vsync)	-- stored here as assurance cause lobby/game also changes vsync when idle and lobby could think game has set vsync 4 after a hard crash
 		  end,
 		},
 		{ id = "vsync_spec", group = "gfx", basic = true, name = widgetOptionColor .. "   "..texts.option.vsync_spec, type = "bool", value = vsyncOnlyForSpec, description = texts.option.vsync_spec_descr,
@@ -2453,6 +2457,7 @@ function init()
 			  vsyncOnlyForSpec = value
 			  if isSpec and vsyncEnabled then
 				  Spring.SetConfigInt("VSync", (vsyncOnlyForSpec and vsyncLevel or 0))
+				  Spring.SetConfigInt("VSyncGame", (vsyncOnlyForSpec and vsyncLevel or 0))	-- stored here as assurance cause lobby/game also changes vsync when idle and lobby could think game has set vsync 4 after a hard crash
 			  end
 			  if vsyncEnabled then
 				  local id = getOptionByID('vsync')
@@ -2468,6 +2473,7 @@ function init()
 				  vsync = vsyncLevel
 			  end
 			  Spring.SetConfigInt("VSync", vsync)
+			  Spring.SetConfigInt("VSyncGame", vsync)	-- stored here as assurance cause lobby/game also changes vsync when idle and lobby could think game has set vsync 4 after a hard crash
 		  end,
 		},
 		{ id = "limitidlefps", group = "gfx", widget = "Limit idle FPS", name = texts.option.limitidlefps, type = "bool", value = GetWidgetToggleValue("Limit idle FPS"), description = texts.option.limitidlefps_descr },
@@ -5682,6 +5688,7 @@ function widget:Initialize()
 			vsync = vsyncLevel
 		end
 		Spring.SetConfigInt("VSync", vsync)
+		Spring.SetConfigInt("VSyncGame", vsync)	-- stored here as assurance cause lobby/game also changes vsync when idle and lobby could think game has set vsync 4 after a hard crash
 
 		-- make sure only one music widget is loaded
 		local value = Spring.GetConfigInt('soundtrack', 2)
