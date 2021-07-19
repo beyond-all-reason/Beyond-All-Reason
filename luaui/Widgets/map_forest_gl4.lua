@@ -233,10 +233,11 @@ local function initgl4()
 		{id = 9, name = 'colormod', size = 4},
 		{id = 10, name = 'uvoffsets', size = 4},
 		}, 
-		numTrees + 2, "treeInstanceVBO")
+		128, "treeInstanceVBO")
 		
 	treeInstanceVBO.numVertices = tree.numIndices
 	treeInstanceVBO.vertexVBO = treeVBO
+	treeInstanceVBO.indexVBO = treeIndexVBO
 	treeInstanceVBO.VAO = gl.GetVAO()
 	treeInstanceVBO.VAO:AttachIndexBuffer(treeIndexVBO)
 	treeInstanceVBO.VAO:AttachVertexBuffer(treeVBO)
@@ -308,9 +309,9 @@ local function dodraw(shadowpass)
 	gl.Texture(1, false)
 	gl.Texture(2, false)
 	
-    gl.DepthTest(GL.ALWAYS)
-    gl.DepthMask(false)
-    gl.Culling(GL.BACK)
+    gl.DepthTest(false)
+    --gl.DepthMask(false)
+    gl.Culling(false)
 end
 
 --[[
