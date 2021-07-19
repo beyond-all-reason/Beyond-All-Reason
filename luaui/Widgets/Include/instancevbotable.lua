@@ -40,7 +40,7 @@ function makeInstanceVBOTable(layout, maxElements, myName, unitIDattribID)
 		instanceTable.unitIDattribID = unitIDattribID
 		
 	end
-	Spring.Echo(myName,": VBO upload of #elements:",#instanceData)
+	--Spring.Echo(myName,": VBO upload of #elements:",#instanceData)
 	newInstanceVBO:Upload(instanceData)
 	return instanceTable
 end
@@ -53,12 +53,15 @@ function clearInstanceTable(iT)
 	if iT.indextoUnitID then iT.indextoUnitID = {} end
 end
 
-function makeVAOandAttach(vertexVBO, instanceVBO) -- return a VAO
+function makeVAOandAttach(vertexVBO, instanceVBO, indexVBO) -- Attach a vertex buffer to an instance buffer, and optionally, an index buffer if one is supplied.
 	local newVAO = nil 
 	newVAO = gl.GetVAO()
 	if newVAO == nil then goodbye("Failed to create newVAO") end
 	newVAO:AttachVertexBuffer(vertexVBO)
 	newVAO:AttachInstanceBuffer(instanceVBO)
+  if indexVBO then
+    newVAO:AttachIndexBuffer(indexVBO)     
+  end
 	return newVAO
 end
 
@@ -74,9 +77,10 @@ function resizeInstanceVBOTable(iT)
 	iT.instanceVBO = newInstanceVBO
 	iT.instanceVBO:Upload(iT.instanceData)
 	if iT.VAO and iT.vertexVBO then -- reattach new if updated :D
-		iT.VAO = makeVAOandAttach(iT.vertexVBO,iT.instanceVBO)
+		iT.VAO = makeVAOandAttach(iT.vertexVBO,iT.instanceVBO, iT.indexVBO)
 	end
-	Spring.Echo("instanceVBOTable full, resizing to double size",iT.myName, iT.usedElements,iT.maxElements)
+    
+	--Spring.Echo("instanceVBOTable full, resizing to double size",iT.myName, iT.usedElements,iT.maxElements)
 	
 	if iT.indextoUnitID then
 		for index, unitID in ipairs(iT.indextoUnitID) do
