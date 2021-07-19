@@ -306,7 +306,7 @@ function makePlaneVBO(xsize, ysize, xresolution, yresolution) -- makes a plane f
 	if planeVBO == nil then return nil end
 	
 	local VBOLayout = {
-	 {id = 0, name = "xyworld_xyfract", size = 4},
+	 {id = 0, name = "xyworld_xyfract", size = 2},
 	}
 	
 	local VBOData = {}
@@ -315,18 +315,17 @@ function makePlaneVBO(xsize, ysize, xresolution, yresolution) -- makes a plane f
 		for y = 0, yresolution do
 			VBOData[#VBOData+1] = xsize * ((x / xresolution) -0.5 ) *2
 			VBOData[#VBOData+1] = ysize * ((y / yresolution) -0.5 ) * 2
-			VBOData[#VBOData+1] = 0
-			VBOData[#VBOData+1] = 0
 		end
 	end	
 	
 	planeVBO:Define(
-		(xresolution + 1) * (yresolution + 1),
+		(xresolution + 1) * (yresolution + 1) ,
 		VBOLayout
 	)
 	planeVBO:Upload(VBOData)
 	
-	return planeVBO, #VBOData/4
+  --Spring.Echo("PlaneVBOData up:",#VBOData, "Down", #planeVBO:Download())
+	return planeVBO, #VBOData/2
 end
 
 function makePlaneIndexVBO(xresolution, yresolution)
@@ -354,6 +353,7 @@ function makePlaneIndexVBO(xresolution, yresolution)
 		qindex = qindex + 1
 	end	
 	planeIndexVBO:Upload(IndexVBOData)
+  --Spring.Echo("PlaneIndexVBO up:",#IndexVBOData, "Down", #planeIndexVBO:Download())
 	return planeIndexVBO,numindices
 end
 
