@@ -286,8 +286,6 @@ local startboxDefencesSea = {
 		"corfrt",
 		"corfhlt",
 		"armfhlt",
-		"coratl",
-		"armatl",
 		"corfhlt",
 		"armfhlt",
 	},
@@ -325,7 +323,7 @@ local startboxDefencesSea = {
 		"corfdoom",
 		"armkraken",
 	},
-
+  
 	T3 = {
 		"coratl",
 		"armatl",
