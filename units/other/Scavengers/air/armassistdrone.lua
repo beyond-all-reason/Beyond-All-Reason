@@ -37,7 +37,11 @@ return {
 		terraformspeed = 225,
 		turninplaceanglelimit = 360,
 		turnrate = 240,
-		workertime = 200,
+		workertime = 150,
+		buildoptions = {
+			[1] = "armrad",
+			[2] = "armfrad",
+		},
 		customparams = {
 			area_mex_def = "armmex",
 			model_author = "FireStorm, Flaka",
