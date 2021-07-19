@@ -14,16 +14,7 @@ local customScale = 1
 local widgetScale = customScale
 local font, font2, waveMessage, chobbyInterface
 
-local chickensEnabled = false
-local teams = Spring.GetTeamList()
-for i = 1, #teams do
-	local luaAI = Spring.GetTeamLuaAI(teams[i])
-	if luaAI and luaAI ~= "" and string.sub(luaAI, 1, 9) == 'Chicken: ' then
-		chickensEnabled = true
-	end
-end
-
-if not chickensEnabled then
+if not Spring.Utilities.Gametype.IsChickens() then
 	return false
 end
 

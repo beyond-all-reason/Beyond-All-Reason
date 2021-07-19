@@ -90,27 +90,9 @@ return nonCapturingUnits
 
 local nonCapturingUnits = VFS.Include "LuaRules/Configs/cv_nonCapturingUnits.lua"
 
---Make controlvictory exit if chickens are present
-local chickensEnabled = false
-local teams = Spring.GetTeamList()
-for i = 1, #teams do
-	local luaAI = Spring.GetTeamLuaAI(teams[i])
-	if luaAI ~= "" then
-		if luaAI == "Chicken: Very Easy" or
-			luaAI == "Chicken: Easy" or
-			luaAI == "Chicken: Normal" or
-			luaAI == "Chicken: Hard" or
-			luaAI == "Chicken: Very Hard" or
-			luaAI == "Chicken: Epic!" or
-			luaAI == "Chicken: Custom" or
-			luaAI == "Chicken: Survival" or
-			luaAI == "ScavengersAI" then
-			chickensEnabled = true
-		end
-	end
-end
+local pveEnabled = Spring.Utilities.Gametype.IsPvE()
 
-if chickensEnabled then
+if pveEnabled then
 	Spring.Echo("[ControlVictory] Deactivated because Chickens or Scavengers are present!")
 	return false
 end

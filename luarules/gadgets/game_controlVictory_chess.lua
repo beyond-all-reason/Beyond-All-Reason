@@ -14,26 +14,9 @@ ChessModeUnbalancedModoption = Spring.GetModOptions().scoremode_chess_unbalanced
 ChessModePhaseTimeModoption = tonumber(Spring.GetModOptions().scoremode_chess_adduptime) or 4
 ChessModeSpawnPerPhaseModoption = tonumber(Spring.GetModOptions().scoremode_chess_spawnsperphase) or 1
 
-local chickensEnabled = false
-local teams = Spring.GetTeamList()
-for i = 1, #teams do
-	local luaAI = Spring.GetTeamLuaAI(teams[i])
-	if luaAI ~= "" then
-		if luaAI == "Chicken: Very Easy" or
-			luaAI == "Chicken: Easy" or
-			luaAI == "Chicken: Normal" or
-			luaAI == "Chicken: Hard" or
-			luaAI == "Chicken: Very Hard" or
-			luaAI == "Chicken: Epic!" or
-			luaAI == "Chicken: Custom" or
-			luaAI == "Chicken: Survival" or
-			luaAI == "ScavengersAI" then
-			chickensEnabled = true
-		end
-	end
-end
+local pveEnabled = Spring.Utilities.Gametype.IsPvE()
 
-if chickensEnabled then
+if pveEnabled then
 	Spring.Echo("[ControlVictory] Deactivated because Chickens or Scavengers are present!")
 	gadgetEnabled = false
 end
@@ -559,7 +542,6 @@ local function chooseNewUnits(starter)
         seaPhaseQuantity = #seaUnitsList[phase]
     end
 
-    local teams = spGetTeamList()
     landUnit = {}
     seaUnit = {}
     for j = 1,landPhaseQuantity do
@@ -576,6 +558,7 @@ local function addNewUnitsToQueue(starter)
 	--local seaRandom, seaUnit, seaUnitCount
     chooseNewUnits(starter)
     
+	local teams = Spring.GetTeamList()
     for i = 1,#teams do
         local teamID = teams[i]
         if ChessModeUnbalancedModoption == "enabled" then
