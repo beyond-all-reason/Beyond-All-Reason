@@ -612,18 +612,7 @@ local UiSelectHighlight = Spring.FlowUI.Draw.SelectHighlight
 local bgpadding = Spring.FlowUI.elementPadding
 
 local scavengersAIEnabled = Spring.Utilities.Gametype.IsScavengers()
-local numPlayers = 0
-local teams = Spring.GetTeamList()
-
-for i = 1, #teams do
-	local _,_,_, isAiTeam = Spring.GetTeamInfo(teams[i], false)
-	local luaAI = Spring.GetTeamLuaAI(teams[i])
-	if not luaAI and not isAiTeam and teams[i] ~= Spring.GetGaiaTeamID() then
-		numPlayers = numPlayers + 1
-	end
-end
-
-local isSinglePlayer = numPlayers == 1
+local isSinglePlayer = Spring.Utilities.Gametype.IsSinglePlayer()
 
 local skipUnpauseOnHide = false
 local skipUnpauseOnLobbyHide = false

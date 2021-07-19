@@ -19,7 +19,7 @@ for i = 1, #teams do
 		numPlayers = numPlayers + 1
 	end
 end
-local isSinglePlayer = numPlayers == 1
+
 if numPlayers <= 4 then
 	-- not needed to show sub button for small games where restarting one the better option
 	return
