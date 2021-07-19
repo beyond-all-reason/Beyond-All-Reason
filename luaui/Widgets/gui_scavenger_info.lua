@@ -1,12 +1,4 @@
-local scavengersAIEnabled = false
-local teams = Spring.GetTeamList()
-for i = 1,#teams do
-	local luaAI = Spring.GetTeamLuaAI(teams[i])
-	if luaAI and luaAI ~= "" and string.sub(luaAI, 1, 12) == 'ScavengersAI' then
-		scavengersAIEnabled = true
-		break
-	end
-end
+local scavengersAIEnabled = Spring.Utilities.Gametype.IsScavengers()
 
 if not scavengersAIEnabled and not (Spring.GetModOptions and (tonumber(Spring.GetModOptions().scavengers) or 0) ~= 0) then
 	return

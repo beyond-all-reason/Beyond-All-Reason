@@ -25,13 +25,7 @@ local separator = "::"
 local font, font2, loadedFontSize, mainDList, titleRect, chobbyInterface, backgroundGuishader, show
 local maxLines = 20
 
-local teams = Spring.GetTeamList()
-for i = 1, #teams do
-	local luaAI = Spring.GetTeamLuaAI(teams[i])
-	if luaAI and luaAI ~= "" and string.sub(luaAI, 1, 9) == 'Chicken: ' then
-		chickensEnabled = true
-	end
-end
+local chickensEnabled = Spring.Utilities.Gametype.IsChickens()
 
 local content = ''
 
