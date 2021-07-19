@@ -171,11 +171,15 @@ void main() {
 	
 	angle = (angle + 1.56)/3.14;
 	
-	angle = clamp(fract(angle - timeInfo.x* 0.033), 0.2, 0.8);
+	float angletime = fract(angle - timeInfo.x* 0.033);
+	
+	angletime = 0.5; // no spinny for now
+	
+	angle = clamp(angletime, 0.2, 0.8);
 	
 	vec2 mymin = min(worldPos.xz,mapSize.xy - worldPos.xz);
 	float inboundsness = min(mymin.x, mymin.y);
-	fragColor.a = min(fragColor.a, 1.0 - clamp(inboundsness*(-0.1),0.0,1.0));
+	fragColor.a = min(smoothstep(0,1,fragColor.a), 1.0 - clamp(inboundsness*(-0.1),0.0,1.0));
 	
 	
 	if (length(worldPos.xz - radarcenter_range.xz) > radarcenter_range.w) fragColor.a = 0.0;
