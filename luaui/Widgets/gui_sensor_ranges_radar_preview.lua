@@ -75,7 +75,7 @@ local vsSrc = [[
 
 //__DEFINES__
 
-layout (location = 0) in vec4 xyworld_xyfract;
+layout (location = 0) in vec2 xyworld_xyfract;
 uniform vec4 radarcenter_range;  // x y z range
 uniform float resolution;  // how many steps are done
 
@@ -128,7 +128,9 @@ void main() {
 	//if (dist_to_center > radarcenter_range.w) blendedcolor.a = 0.0;  // do this in fs instead
 	
 	blendedcolor.g = 1.0-clamp(obscured*0.5,0.0,1.0);
+	
 	blendedcolor.a = min(blendedcolor.g,blendedcolor.a);
+	blendedcolor.g = 1.0;
 	
 	pointWorldPos.y += 32.0;
 	worldPos = pointWorldPos;
@@ -279,9 +281,9 @@ function widget:DrawWorld()
 	gl.Texture(0, "$heightmap")
 	radarTruthShader:Activate()
 	radarTruthShader:SetUniform("radarcenter_range", 
-		math.floor((mousepos[1]+ 8) /16)*16,
-		mousepos[2] + 64, -- radaremitheight[cmdID],
-		math.floor((mousepos[3]+ 8) /16)*16,
+		math.floor((mousepos[1]+ 8) /(SHADERRESOLUTION*2))*(SHADERRESOLUTION*2),
+		mousepos[2] + radaremitheight[cmdID],
+		math.floor((mousepos[3]+ 8) /(SHADERRESOLUTION*2))*(SHADERRESOLUTION*2),
 		whichradarsize == "small" and smallradarrange or largeradarrange
 		)
 	if whichradarsize == "small" then
