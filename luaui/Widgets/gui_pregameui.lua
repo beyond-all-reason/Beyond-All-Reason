@@ -57,15 +57,7 @@ local uiPadding = math.floor(elementPadding * 4.5)
 local eligibleAsSub = false
 local offeredAsSub = false
 
-local numPlayers = 0
-local teams = Spring.GetTeamList()
-for i = 1, #teams do
-	local _, _, _, isAiTeam = Spring.GetTeamInfo(teams[i], false)
-	local luaAI = Spring.GetTeamLuaAI(teams[i])
-	if (not luaAI or luaAI == '') and not isAiTeam and teams[i] ~= Spring.GetGaiaTeamID() then
-		numPlayers = numPlayers + 1
-	end
-end
+local numPlayers = Spring.Utilities.GetPlayerCount()
 
 if numPlayers <= 4 then
 	-- not needed to show sub button for small games where restarting one the better option
