@@ -170,6 +170,72 @@ local function spawnConstructor(n)
 	end
 end
 
+local function randomlyRotateBlueprint()
+	local randomRotation = math.random(0,3)
+	if randomRotation == 0 then -- normal
+		local swapXandY = false
+		local flipX = 1
+		local flipZ = 1
+		local rotation = randomRotation
+		return swapXandY, flipX, flipZ, rotation
+	end
+	if randomRotation == 1 then -- 90 degrees anti-clockwise
+		local swapXandY = true
+		local flipX = 1
+		local flipZ = -1
+		local rotation = randomRotation
+		return swapXandY, flipX, flipZ, rotation
+	end
+	if randomRotation == 2 then -- 180 degrees anti-clockwise
+		local swapXandY = false
+		local flipX = -1
+		local flipZ = -1
+		local rotation = randomRotation
+		return swapXandY, flipX, flipZ, rotation
+	end
+	if randomRotation == 3 then -- 270 degrees anti-clockwise
+		local swapXandY = true
+		local flipX = -1
+		local flipZ = 1
+		local rotation = randomRotation
+		return swapXandY, flipX, flipZ, rotation
+	end
+end
+
+local function randomlyMirrorBlueprint(mirrored, direction, unitFacing)
+	if mirrored == true then
+		if direction == "h" then
+			local mirrorX = -1
+			local mirrorZ = 1
+			if unitFacing == 1 or unitFacing == 3 then
+				local mirrorRotation = 2
+				return mirrorX, mirrorZ, mirrorRotation
+			else
+				local mirrorRotation = 0
+				return mirrorX, mirrorZ, mirrorRotation
+			end
+		elseif direction == "v" then
+			local mirrorX = 1
+			local mirrorZ = -1
+			if unitFacing == 0 or unitFacing == 2 then
+				local mirrorRotation = 2
+				return mirrorX, mirrorZ, mirrorRotation
+			else
+				local mirrorRotation = 0
+				return mirrorX, mirrorZ, mirrorRotation
+			end
+		end
+	else
+		local mirrorX = 1
+		local mirrorZ = 1
+		local mirrorRotation = 0
+		return mirrorX, mirrorZ, mirrorRotation
+	end
+end
+
+
+
+
 ConstructorNumberOfRetries = {}
 local function constructNewBlueprint(n, unitID)
 	local unitCount = Spring.GetTeamUnitCount(GaiaTeamID)
@@ -229,11 +295,29 @@ local function constructNewBlueprint(n, unitID)
 
 		if canConstructHere then
 			Spring.GiveOrderToUnit(unitID, CMD.MOVE, { posX + math.random(-blueprintRadius, blueprintRadius), posY + 500, posZ + math.random(-blueprintRadius, blueprintRadius) }, {"shift"})
-
-			for _, building in ipairs(blueprint.buildings) do
-				Spring.GiveOrderToUnit(unitID, -building.unitDefID, { posX + building.xOffset, posY, posZ + building.zOffset, building.direction }, {"shift"})
+			local swapXandY, flipX, flipZ, rotation = randomlyRotateBlueprint()
+			if math.random(0,1) == 0 then
+				if math.random(0,1) == 0 then
+					mirrored = true
+					mirroredDirection = "h"
+				else
+					mirrored = true
+					mirroredDirection = "v"
+				end
+			else
+				mirrored = false
+				mirroredDirection = "null"
 			end
-
+			for _, building in ipairs(blueprint.buildings) do
+				local mirrorX, mirrorZ, mirrorRotation = randomlyMirrorBlueprint(mirrored, mirroredDirection, (building.direction+rotation)%4)
+				if swapXandY == false then
+					Spring.GiveOrderToUnit(unitID, -building.unitDefID, { posX + (building.xOffset*flipX*mirrorX), posY, posZ + (building.zOffset*flipZ*mirrorZ), (building.direction+rotation+mirrorRotation)%4 }, {"shift"})
+				else
+					Spring.GiveOrderToUnit(unitID, -building.unitDefID, { posX + (building.zOffset*flipX*mirrorX), posY, posZ + (building.xOffset*flipZ*mirrorZ), (building.direction+rotation+mirrorRotation)%4 }, {"shift"})
+				end
+			end
+			mirrored = nil
+			mirroredDirection = nil
 			ConstructorNumberOfRetries[unitID] = 0
 			break
 		end

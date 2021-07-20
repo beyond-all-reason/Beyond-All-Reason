@@ -29,12 +29,97 @@ local blueprintController = VFS.Include('luarules/gadgets/scavengers/Blueprints/
 
 local spawnCutoffFrame = (math.ceil( math.ceil(mapsizeX + mapsizeZ) / 750 ) + 30) * 3
 
+local function randomlyRotateBlueprint()
+	local randomRotation = math.random(0,3)
+	if randomRotation == 0 then -- normal
+		local swapXandY = false
+		local flipX = 1
+		local flipZ = 1
+		local rotation = randomRotation
+		return swapXandY, flipX, flipZ, rotation
+	end
+	if randomRotation == 1 then -- 90 degrees anti-clockwise
+		local swapXandY = true
+		local flipX = 1
+		local flipZ = -1
+		local rotation = randomRotation
+		return swapXandY, flipX, flipZ, rotation
+	end
+	if randomRotation == 2 then -- 180 degrees anti-clockwise
+		local swapXandY = false
+		local flipX = -1
+		local flipZ = -1
+		local rotation = randomRotation
+		return swapXandY, flipX, flipZ, rotation
+	end
+	if randomRotation == 3 then -- 270 degrees anti-clockwise
+		local swapXandY = true
+		local flipX = -1
+		local flipZ = 1
+		local rotation = randomRotation
+		return swapXandY, flipX, flipZ, rotation
+	end
+end
+
+local function randomlyMirrorBlueprint(mirrored, direction, unitFacing)
+	if mirrored == true then
+		if direction == "h" then
+			local mirrorX = -1
+			local mirrorZ = 1
+			if unitFacing == 1 or unitFacing == 3 then
+				local mirrorRotation = 2
+				return mirrorX, mirrorZ, mirrorRotation
+			else
+				local mirrorRotation = 0
+				return mirrorX, mirrorZ, mirrorRotation
+			end
+		elseif direction == "v" then
+			local mirrorX = 1
+			local mirrorZ = -1
+			if unitFacing == 0 or unitFacing == 2 then
+				local mirrorRotation = 2
+				return mirrorX, mirrorZ, mirrorRotation
+			else
+				local mirrorRotation = 0
+				return mirrorX, mirrorZ, mirrorRotation
+			end
+		end
+	else
+		local mirrorX = 1
+		local mirrorZ = 1
+		local mirrorRotation = 0
+		return mirrorX, mirrorZ, mirrorRotation
+	end
+end
+
 local function spawnRuin(ruin, posx, posy, posz)
+	local swapXandY, flipX, flipZ, rotation = randomlyRotateBlueprint()
+	if math.random(0,1) == 0 then
+		if math.random(0,1) == 0 then
+			mirrored = true
+			mirroredDirection = "h"
+		else
+			mirrored = true
+			mirroredDirection = "v"
+		end
+	else
+		mirrored = false
+		mirroredDirection = "null"
+	end	
 	for _, building in ipairs(ruin.buildings) do
+		if swapXandY == false then
+			xOffset = building.xOffset
+			zOffset = building.zOffset
+		else
+			xOffset = building.zOffset
+			zOffset = building.xOffset
+		end
+		local mirrorX, mirrorZ, mirrorRotation = randomlyMirrorBlueprint(mirrored, mirroredDirection, (building.direction+rotation)%4)
+
 		local name = UnitDefs[building.unitDefID].name
 		local r = math.random(1,100)
 		if r < 20 then
-			local unit = Spring.CreateUnit(building.unitDefID, posx + building.xOffset, posy, posz + building.zOffset, building.direction, GaiaTeamID)
+			local unit = Spring.CreateUnit(building.unitDefID, posx + (xOffset*flipX*mirrorX), posy, posz + (zOffset*flipZ*mirrorZ), (building.direction+rotation+mirrorRotation)%4, GaiaTeamID)
 			local radarRange = UnitDefs[building.unitDefID].radarRadius
 			local canMove = UnitDefs[building.unitDefID].canMove
 			local speed = UnitDefs[building.unitDefID].speed
@@ -54,11 +139,13 @@ local function spawnRuin(ruin, posx, posy, posz)
 				Spring.GiveOrderToUnit(unit, CMD.ONOFF, {0}, 0)
 			end
 		elseif r < 90 and FeatureDefNames[name .. "_dead"] then
-			local wreck = Spring.CreateFeature(name .. "_dead", posx + building.xOffset, posy, posz + building.zOffset, building.direction, GaiaTeamID)
+			local wreck = Spring.CreateFeature(name .. "_dead", posx + (xOffset*flipX*mirrorX), posy, posz + (zOffset*flipZ*mirrorZ), (building.direction+rotation+mirrorRotation)%4, GaiaTeamID)
 			Spring.SetFeatureAlwaysVisible(wreck, true)
 			Spring.SetFeatureResurrect(wreck, name)
 		end
 	end
+	mirrored = nil
+	mirroredDirection = nil
 end
 
 if not gadgetHandler:IsSyncedCode() then
