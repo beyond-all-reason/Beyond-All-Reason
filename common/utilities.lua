@@ -24,6 +24,7 @@ Spring.Utilities = {
 	ExplodeString = table.ExplodeString,
 
 	GetTeamCount = team.GetTeamCount,
+	GetPlayerCount = team.GetPlayerCount,
 	Gametype = team.Gametype,
 }
 

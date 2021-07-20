@@ -1,5 +1,5 @@
 local teamSizeThreshold = 4
-local teamCount
+local teamCount, playerCount
 local isSinglePlayer, is1v1, isTeams, isBigTeams, isSmallTeams, isChickens, isScavengers, isPvE, isCoop, isFFA, isSandbox = false, false, false, false, false, false, false, false, false, false, false
 
 do
@@ -8,7 +8,7 @@ do
 	local actualAllyTeamList = {}
 	local actualAllyTeamSizes = {}
 	local entirelyHumanAllyTeams = {}
-	local humanPlayers = 0
+	playerCount = 0
 
 	for _, allyTeam in ipairs(allyTeamList) do
 		local teamList = Spring.GetTeamList(allyTeam) or {}
@@ -21,7 +21,7 @@ do
 				if select (4, Spring.GetTeamInfo(team, false)) then
 					allyteamEntirelyHuman = false
 				else
-					humanPlayers = humanPlayers + 1
+					playerCount = playerCount + 1
 				end
 
 				local luaAI = Spring.GetTeamLuaAI(team)
@@ -59,7 +59,7 @@ do
 		isSmallTeams = isSmallTeams and teamSize <= teamSizeThreshold
 	end
 
-	isSinglePlayer = humanPlayers == 1
+	isSinglePlayer = playerCount == 1
 	isSmallTeams = isTeams and isSmallTeams
 	isBigTeams = isTeams and not isSmallTeams
 	isPvE = isChickens or isScavengers
@@ -81,8 +81,13 @@ local function getTeamCount()
 	return teamCount
 end
 
+local function getPlayerCount()
+	return playerCount
+end
+
 return {
 	GetTeamCount = getTeamCount,
+	GetPlayerCount = getPlayerCount,
 	Gametype = {
 		IsSinglePlayer = function () return isSinglePlayer end,
 		Is1v1          = function () return is1v1          end,
