@@ -1,6 +1,6 @@
 local teamSizeThreshold = 4
-local teamCount
-local is1v1, isTeams, isBigTeams, isSmallTeams, isChickens, isScavengers, isPvE, isCoop, isFFA, isSandbox = false, false, false, false, false, false, false, false, false, false
+local teamCount, playerCount
+local isSinglePlayer, is1v1, isTeams, isBigTeams, isSmallTeams, isChickens, isScavengers, isPvE, isCoop, isFFA, isSandbox = false, false, false, false, false, false, false, false, false, false, false
 
 do
 	local gaiaAllyTeamID = select(6, Spring.GetTeamInfo(Spring.GetGaiaTeamID(), false))
@@ -8,6 +8,7 @@ do
 	local actualAllyTeamList = {}
 	local actualAllyTeamSizes = {}
 	local entirelyHumanAllyTeams = {}
+	playerCount = 0
 
 	for _, allyTeam in ipairs(allyTeamList) do
 		local teamList = Spring.GetTeamList(allyTeam) or {}
@@ -19,6 +20,8 @@ do
 			for _, team in ipairs(teamList) do
 				if select (4, Spring.GetTeamInfo(team, false)) then
 					allyteamEntirelyHuman = false
+				else
+					playerCount = playerCount + 1
 				end
 
 				local luaAI = Spring.GetTeamLuaAI(team)
@@ -56,6 +59,7 @@ do
 		isSmallTeams = isSmallTeams and teamSize <= teamSizeThreshold
 	end
 
+	isSinglePlayer = playerCount == 1
 	isSmallTeams = isTeams and isSmallTeams
 	isBigTeams = isTeams and not isSmallTeams
 	isPvE = isChickens or isScavengers
@@ -77,18 +81,24 @@ local function getTeamCount()
 	return teamCount
 end
 
+local function getPlayerCount()
+	return playerCount
+end
+
 return {
 	GetTeamCount = getTeamCount,
+	GetPlayerCount = getPlayerCount,
 	Gametype = {
-		Is1v1        = function () return is1v1        end,
-		IsTeams      = function () return isTeams      end,
-		IsBigTeams   = function () return isBigTeams   end,
-		IsSmallTeams = function () return isSmallTeams end,
-		IsChickens   = function () return isChickens   end,
-		IsScavengers = function () return isScavengers end,
-		IsPvE        = function () return isPvE        end,
-		IsCoop       = function () return isCoop       end,
-		IsFFA        = function () return isFFA        end,
-		IsSandbox    = function () return isSandbox    end,
+		IsSinglePlayer = function () return isSinglePlayer end,
+		Is1v1          = function () return is1v1          end,
+		IsTeams        = function () return isTeams        end,
+		IsBigTeams     = function () return isBigTeams     end,
+		IsSmallTeams   = function () return isSmallTeams   end,
+		IsChickens     = function () return isChickens     end,
+		IsScavengers   = function () return isScavengers   end,
+		IsPvE          = function () return isPvE          end,
+		IsCoop         = function () return isCoop         end,
+		IsFFA          = function () return isFFA          end,
+		IsSandbox      = function () return isSandbox      end,
 	},
 }
