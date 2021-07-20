@@ -1,5 +1,3 @@
-return
-
 local scavengersAIEnabled = Spring.Utilities.Gametype.IsScavengers()
 
 local ruinSpawnEnabled = false
@@ -14,8 +12,7 @@ function gadget:GetInfo()
       author    = "Damgam",
       date      = "2021",
       layer     = -100,
-      enabled   = ruinSpawnEnabled,
-      -- enabled = true,
+      enabled   = false --ruinSpawnEnabled,
     }
 end
 
