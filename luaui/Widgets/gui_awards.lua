@@ -2,7 +2,7 @@ function widget:GetInfo()
 	return {
 		name = "Awards",
 		desc = "UI with awards after game ends",
-		author = "Floris",
+		author = "Floris (original: Bluestone)",
 		date = "July 2021",
 		license = "GNU GPL, v2 or later",
 		layer = -3,

@@ -13,6 +13,8 @@
 
 VFS.Include('init.lua')
 
+VFS.Include("modules/flowui/flowui.lua")
+
 --function pwl() -- ???  (print widget list)
 --  for k,v in ipairs(widgetHandler.widgets) do
 --    print(k, v.whInfo.layer, v.whInfo.name)
@@ -24,6 +26,7 @@ include("utils.lua")
 include("system.lua")
 include("callins.lua")
 include("savetable.lua")
+
 
 local gl = gl
 
