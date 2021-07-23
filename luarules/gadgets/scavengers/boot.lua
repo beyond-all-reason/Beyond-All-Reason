@@ -196,6 +196,13 @@ function gadget:GameFrame(n)
 
 	if n > 1 then
 		SpawnFromQueue(n)
+		local unitCount = Spring.GetTeamUnitCount(GaiaTeamID)
+		local unitCountBuffer = scavMaxUnits*0.1
+		if unitCount + (unitCountBuffer+unitCountBuffer*0.1) >= scavMaxUnits then 
+			if #BaseCleanupQueue > 0 then
+				Spring.DestroyUnit(BaseCleanupQueue[1], true, false)
+			end
+		end
 	end
 
 	if n == 1 and spawnProtectionConfig.useunit == false and scavconfig.modules.startBoxProtection == true and ScavengerStartboxExists then
@@ -331,13 +338,6 @@ function gadget:GameFrame(n)
 	end
 
 	if n%30 == 0 then
-		local unitCount = Spring.GetTeamUnitCount(GaiaTeamID)
-		local unitCountBuffer = scavMaxUnits*0.2
-		if unitCount + (unitCountBuffer+unitCountBuffer*0.1) >= scavMaxUnits then 
-			if #BaseCleanupQueue > 0 then
-				Spring.DestroyUnit(BaseCleanupQueue[1], true, false)
-			end
-		end
 		if scavconfig.modules.unitSpawnerModule and FinalBossKilled == false then --and (not FinalBossUnitSpawned) then
 			SpawnBeacon(n)
 			UnitGroupSpawn(n)
@@ -572,7 +572,7 @@ function gadget:UnitGiven(unitID, unitDefID, unitNewTeam, unitOldTeam)
 		Spring.SetUnitHealth(unitID, {capture = 0})
 	else
 		if unitNewTeam == GaiaTeamID then
-			if UnitDefs[unitDefID].canMove == false or UnitDefs[unitDefID].isBuilding == true or (not scavNoSelfD[unitID]) then
+			if UnitDefs[unitDefID].canMove == false or UnitDefs[unitDefID].isBuilding == true or scavNoSelfD[unitID] then
 				BaseCleanupQueue[#BaseCleanupQueue+1] = unitID 
 			end
 			if string.find(unitName, scavconfig.unitnamesuffix) then
@@ -700,7 +700,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 		Spring.GiveOrderToUnit(unitID, CMD.SELFD,{}, {"shift"})
 	end
 	if unitTeam == GaiaTeamID then
-		if UnitDefs[unitDefID].canMove == false or UnitDefs[unitDefID].isBuilding == true or (not scavNoSelfD[unitID]) then
+		if UnitDefs[unitDefID].canMove == false or UnitDefs[unitDefID].isBuilding == true or scavNoSelfD[unitID] then
 			BaseCleanupQueue[#BaseCleanupQueue+1] = unitID 
 		end
 		Spring.SetUnitExperience(unitID, math_random() * (spawnmultiplier*0.01*unitControllerModuleConfig.veterancymultiplier))

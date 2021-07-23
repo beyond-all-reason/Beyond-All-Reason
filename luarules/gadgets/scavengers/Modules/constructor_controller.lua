@@ -239,7 +239,7 @@ end
 ConstructorNumberOfRetries = {}
 local function constructNewBlueprint(n, unitID)
 	local unitCount = Spring.GetTeamUnitCount(GaiaTeamID)
-	local unitCountBuffer = scavMaxUnits*0.2
+	local unitCountBuffer = scavMaxUnits*0.1
 
 	local landBlueprint, seaBlueprint, blueprint
 
