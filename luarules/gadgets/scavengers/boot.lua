@@ -331,6 +331,13 @@ function gadget:GameFrame(n)
 	end
 
 	if n%30 == 0 then
+		local unitCount = Spring.GetTeamUnitCount(GaiaTeamID)
+		local unitCountBuffer = scavMaxUnits*0.2
+		if unitCount + (unitCountBuffer+unitCountBuffer*0.1) >= scavMaxUnits then 
+			if #BaseCleanupQueue > 0 then
+				Spring.DestroyUnit(BaseCleanupQueue[1], true, false)
+			end
+		end
 		if scavconfig.modules.unitSpawnerModule and FinalBossKilled == false then --and (not FinalBossUnitSpawned) then
 			SpawnBeacon(n)
 			UnitGroupSpawn(n)
@@ -415,6 +422,11 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
 		MasterMindTargetListTargetSpotted(unitID, unitTeam, unitEnteredTeam, unitDefID)
 	end
 	if unitTeam == GaiaTeamID then
+		for i = 1,#BaseCleanupQueue do
+			if unitID == BaseCleanupQueue[i] then
+				table.remove(BaseCleanupQueue, i)
+			end
+		end
 
 		if FinalBossUnitSpawned == true then
 			for i = 1,#bossUnitList.Bosses do
@@ -503,6 +515,13 @@ function gadget:UnitGiven(unitID, unitDefID, unitNewTeam, unitOldTeam)
 		MasterMindTargetListTargetGone(unitID, unitTeam, unitEnteredTeam, unitDefID)
 	end
 	if unitOldTeam == GaiaTeamID then
+		if UnitDefs[unitDefID].canMove == false or UnitDefs[unitDefID].isBuilding == true or (not scavNoSelfD[unitID]) then
+			for i = 1,#BaseCleanupQueue do
+				if unitID == BaseCleanupQueue[i] then
+					table.remove(BaseCleanupQueue, i)
+				end
+			end
+		end
 		if UnitDefs[unitDefID].name == "scavengerdroppodbeacon_scav" or UnitDefs[unitDefID].name == "scavsafeareabeacon_scav" then
 			numOfSpawnBeacons = numOfSpawnBeacons - 1
 			numOfSpawnBeaconsTeams[unitNewTeam] = numOfSpawnBeaconsTeams[unitNewTeam] + 1
@@ -553,6 +572,9 @@ function gadget:UnitGiven(unitID, unitDefID, unitNewTeam, unitOldTeam)
 		Spring.SetUnitHealth(unitID, {capture = 0})
 	else
 		if unitNewTeam == GaiaTeamID then
+			if UnitDefs[unitDefID].canMove == false or UnitDefs[unitDefID].isBuilding == true or (not scavNoSelfD[unitID]) then
+				BaseCleanupQueue[#BaseCleanupQueue+1] = unitID 
+			end
 			if string.find(unitName, scavconfig.unitnamesuffix) then
 				UnitSuffixLenght[unitID] = string.len(scavconfig.unitnamesuffix)
 			else
@@ -678,6 +700,9 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 		Spring.GiveOrderToUnit(unitID, CMD.SELFD,{}, {"shift"})
 	end
 	if unitTeam == GaiaTeamID then
+		if UnitDefs[unitDefID].canMove == false or UnitDefs[unitDefID].isBuilding == true or (not scavNoSelfD[unitID]) then
+			BaseCleanupQueue[#BaseCleanupQueue+1] = unitID 
+		end
 		Spring.SetUnitExperience(unitID, math_random() * (spawnmultiplier*0.01*unitControllerModuleConfig.veterancymultiplier))
 		if string.find(unitName, scavconfig.unitnamesuffix) then
 			UnitSuffixLenght[unitID] = string.len(scavconfig.unitnamesuffix)

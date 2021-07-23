@@ -239,14 +239,7 @@ end
 ConstructorNumberOfRetries = {}
 local function constructNewBlueprint(n, unitID)
 	local unitCount = Spring.GetTeamUnitCount(GaiaTeamID)
-	local unitCountBuffer = 200
-
-	if unitCount + unitCountBuffer >= scavMaxUnits then
-		Spring.GiveOrderToUnit(unitID, CMD.RECLAIM, { mapCenterX + math.random(-100, 100), mapCenterY, mapCenterZ + math.random(-100, 100), mapDiagonal}, 0)
-		Spring.GiveOrderToUnit(unitID, CMD.RECLAIM, { mapCenterX + math.random(-100, 100), mapCenterY, mapCenterZ + math.random(-100, 100), mapDiagonal}, {"shift"})
-
-		return
-	end
+	local unitCountBuffer = scavMaxUnits*0.2
 
 	local landBlueprint, seaBlueprint, blueprint
 
