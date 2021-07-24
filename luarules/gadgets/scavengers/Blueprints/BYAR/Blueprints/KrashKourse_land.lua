@@ -99,10 +99,10 @@ local function IRON_BEAM_RING()
 	}
 end
 
-local function PROTECTED_GANTRY()
+local function PROTECTED_REACTOR()
 	return {
 		type = types.Land,
-		tiers = { tiers.T4 },
+		tiers = { tiers.T3, tiers.T4 },
 		radius = 127,
 		buildings = {
 			{ unitDefID = UnitDefNames.corscavfort_scav.id, xOffset = -32, zOffset = -97, direction = 1},
