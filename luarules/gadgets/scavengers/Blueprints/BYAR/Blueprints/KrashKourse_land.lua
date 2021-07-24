@@ -166,7 +166,7 @@ local function VIPER_PIT()
 	return {
 		type = types.Land,
 		tiers = { tiers.T2, tiers.T3, tiers.T4 },
-		radius = 390,
+		radius = 154,
 		buildings = {
 			{ unitDefID = BPWallOrPopup('scav'), xOffset = -154, zOffset = -37, direction = 2},
 			{ unitDefID = BPWallOrPopup('scav'), xOffset = -122, zOffset = -53, direction = 2},
