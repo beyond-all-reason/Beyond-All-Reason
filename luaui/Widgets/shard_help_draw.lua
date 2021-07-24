@@ -702,8 +702,6 @@ local function AddLine(x1, z1, x2, z2, color, label, arrow, teamID, channel)
 end
 
 local function AddPoint(x, z, color, label, teamID, channel)
-    print(x)
-    print(z)
 	x, z = mCeil(x), mCeil(z)
 	local y = spGetGroundHeight(x, z)
 	local shape = {

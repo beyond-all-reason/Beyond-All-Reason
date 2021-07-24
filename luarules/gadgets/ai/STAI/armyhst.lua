@@ -1105,7 +1105,7 @@ function ArmyHST:GetUnitTable()
 	local wrecks = {}
 	for unitDefID,unitDef in pairs(UnitDefs) do
 		local side = GetUnitSide(unitDef.name)
-		if unitsLevels[unitDef.name] then
+		--if unitsLevels[unitDef.name] then
 
 
 
@@ -1129,7 +1129,7 @@ function ArmyHST:GetUnitTable()
 			utable.energyCost = unitDef["energyCost"]
 			utable.buildTime = unitDef["buildTime"]
 			utable.totalEnergyOut = unitDef["totalEnergyOut"]
-			utable.extractsMetal = unitDef["extractsMetal"]
+			utable.extractsMetal = unitDef.extractsMetal
 			utable.energyMake = unitDef.energyMake
 			utable.energyUse = unitDef.energyUpkeep
 			utable.isTransport = unitDef.isTransport
@@ -1170,7 +1170,7 @@ function ArmyHST:GetUnitTable()
 			utable.antiNuke = getInterceptor(unitDefID)
 			utable.targetableWeapon = getTargetableWeapon(unitDefID)
 			utable.paralyzer = getParalyzer(unitDefID)
-			utable.techLevel = unitsLevels[unitDef["name"]]
+			utable.techLevel = unitsLevels[unitDef["name"]] or 1
 			if unitDef["modCategories"]["weapon"] then
 				utable.isWeapon = true
 			else
@@ -1297,6 +1297,7 @@ function ArmyHST:GetUnitTable()
 					end
 				end
 			end
+
 			utable.mtypedLv = tostring(utable.mtype)..utable.techLevel
 			if self.scouts[utable.name] or self.raiders[utable.name] or self.battles[utable.name] or self.breaks[utable.name] or self.airgun[utable.name] or self.cloakables[utable.name] or self.amphibious[utable.name] or self.subkillers[utable.name] or self.spiders[utable.name] or self.paralyzers[utable.name] or self.artillerys[utable.name] or self.crawlings[utable.name]then
 				utable.isAttacker = true
@@ -1307,7 +1308,7 @@ function ArmyHST:GetUnitTable()
 			utable.zsize = unitDef["zsize"]
 			utable.wreckName = unitDef["wreckName"]
 			self.wrecks[unitDef["wreckName"]] = unitDef["name"]
-		end
+		--end
 	end
 end
 

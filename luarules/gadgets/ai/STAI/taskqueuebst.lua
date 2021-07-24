@@ -597,19 +597,16 @@ function TaskQueueBST:GetQueue()
 	elseif #buildersRole.support[self.name] < 1 then
 		table.insert(buildersRole.support[self.name], self.id)
 		self.role = 'support'
-	elseif #buildersRole.eco[self.name] < 2 then
-		table.insert(buildersRole.eco[self.name], self.id)
-		self.role = 'eco'
+
 	elseif #buildersRole.expand[self.name] < 2 then
 		self.role = 'expand'
 		table.insert(buildersRole.expand[self.name], self.id)
-
+	elseif #buildersRole.eco[self.name] < 3 then
+		table.insert(buildersRole.eco[self.name], self.id)
+		self.role = 'eco'
 	elseif #buildersRole.support[self.name] < 2 then
 		table.insert(buildersRole.support[self.name], self.id)
 		self.role = 'support'
-	elseif #buildersRole.default[self.name] < 2 then
-		table.insert(buildersRole.default[self.name], self.id)
-		self.role = 'default'
 	else
 		table.insert(buildersRole.expand[self.name], self.id)
 		self.role ='expand'

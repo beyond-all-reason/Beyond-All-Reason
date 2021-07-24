@@ -113,54 +113,6 @@ function BuildSiteHST:isInMap(pos)
 	end
 end
 
-function BuildSiteHST:CheckBuildPos(pos, unitTypeToBuild, builder, originalPosition) --TODO clean this
-	if not pos then return end
-	if not self:isInMap(pos) then return end
-	-- sanity check: is it REALLY possible to build here?
-	local s = self.ai.map:CanBuildHere(unitTypeToBuild, pos)
-	if not s then
-		self:EchoDebug("cannot build " .. unitTypeToBuild:Name() .. " here: " .. pos.x .. ", " .. pos.z)
-		return nil
-	end
-	local rect
-	if pos ~= nil then
-		rect = {position = pos, unitName = unitTypeToBuild:Name()}
-		self:CalculateRect(rect)
-	end
-	-- is it too far away from an amphibious constructor?
-	if pos ~= nil then
-		local lw = self:LandWaterFilter(pos, unitTypeToBuild, builder)
-		if not lw then
-			return nil
-		end
-	end
-	-- don't build where you shouldn't (metal spots, geo spots, factory lanes)
-	if pos ~= nil then
-		for i, dont in pairs(self.dontBuildRects) do
-			if self.ai.tool:RectsOverlap(rect, dont) then
-				pos = nil
-				break
-			end
-		end
-	end
-	-- don't build on top of current build orders
-	if pos ~= nil then
-		for i, plan in pairs(self.plans) do
-			if self.ai.tool:RectsOverlap(rect, plan) then
-				return nil
-			end
-		end
-	end
-	-- don't build where the builder can't go
-	if pos ~= nil then
-		if not self.ai.maphst:UnitCanGoHere(builder, pos) then
-			self:EchoDebug(builder:Name() .. " can't go there: " .. pos.x .. "," .. pos.z)
-			return nil
-		end
-	end
-	return pos
-end
-
 function BuildSiteHST:GetBuildSpacing(unitTypeToBuild)
 	local army = self.ai.armyhst
 	local spacing = 3
@@ -339,12 +291,62 @@ function BuildSiteHST:ClosestBuildSpot(builder, position, unitTypeToBuild, minim
 	local function validFunction(pos)
 		--self.game:StartTimer('bst5')
 		local vpos = self:CheckBuildPos(pos, unitTypeToBuild, builder, position)
-		-- Spring.Echo(pos.x, pos.y, pos.z, unitTypeToBuild:Name(), builder:Name(), position.x, position.y, position.z, vpos)
+		self:EchoDebug(pos.x, pos.y, pos.z, unitTypeToBuild:Name(), builder:Name(), position.x, position.y, position.z, vpos)
 		--self.game:StopTimer('bst5')
 		return vpos
 	end
 	--self.game:StopTimer('bst4')
  	return self.map:FindClosestBuildSite(unitTypeToBuild, position, maximumDistance, minDistance, validFunction)
+end
+
+function BuildSiteHST:CheckBuildPos(pos, unitTypeToBuild, builder, originalPosition) --TODO clean this
+	if not pos then return end
+	if not self:isInMap(pos) then return end
+	-- sanity check: is it REALLY possible to build here?
+	local s = self.ai.map:CanBuildHere(unitTypeToBuild, pos)
+	if not s then
+		self:EchoDebug("cannot build " .. unitTypeToBuild:Name() .. " here: " .. pos.x .. ", " .. pos.z)
+		return nil
+	end
+	local rect
+	if pos ~= nil then
+		rect = {position = pos, unitName = unitTypeToBuild:Name()}
+		self:CalculateRect(rect)
+	end
+	-- is it too far away from an amphibious constructor?
+	if pos ~= nil then
+		local lw = self:LandWaterFilter(pos, unitTypeToBuild, builder)
+		if not lw then
+			return nil
+		end
+	end
+	-- don't build where you shouldn't (metal spots, geo spots, factory lanes)
+	if pos ~= nil then
+		for i, dont in pairs(self.dontBuildRects) do
+			if self.ai.tool:RectsOverlap(rect, dont) then
+				pos = nil
+				break
+			end
+		end
+	end
+	-- don't build on top of current build orders
+	if pos ~= nil then
+		for i, plan in pairs(self.plans) do
+			if self.ai.tool:RectsOverlap(rect, plan) then
+				return nil
+			end
+		end
+	end
+	-- don't build where the builder can't go
+	if pos ~= nil then
+		if not self.ai.maphst:UnitCanGoHere(builder, pos) then
+			--Spring.Echo(builder:Name(), 'CAN NOT GO', pos.x,pos.z)
+			return nil
+		else
+			--Spring.Echo(builder:Name(), 'can go to', pos.x,pos.z)
+		end
+	end
+	return pos
 end
 
 function BuildSiteHST:searchPosNearCategories(utype,builder,minDist,maxDist,categories,neighbours,number)

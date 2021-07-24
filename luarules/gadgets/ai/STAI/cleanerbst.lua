@@ -21,7 +21,7 @@ function CleanerBST:Init()
 	end
 	self.ignore = {}
 	self.frameCounter = 0
-	self:Patroling()
+ 	self:Patroling()
 end
 
 function CleanerBST:Update()
@@ -42,7 +42,7 @@ end
 
 function CleanerBST:OwnerIdle()
 	self:EchoDebug("idle",self.id)
-	self:Patroling()
+ 	self:Patroling()
 	if not self.ai.cleanhst.theCleaner[self.id] then
 		self:Search()
 	end
@@ -133,6 +133,6 @@ function CleanerBST:Patroling() --TODO move nano patroling to another place (act
 	floats:push_back(uPos.x + 200)
 	floats:push_back(uPos.y)
 	floats:push_back(uPos.z)
--- 	self.unit:Internal():Patrol(floats)
-	self.unit:Internal():ExecuteCustomCommand(CMD_PATROL, floats)
+ 	self.unit:Internal():Patrol({x = uPos.x - 18 , y = uPos.y , z = uPos.z - 18 })
+-- 	self.unit:Internal():ExecuteCustomCommand(CMD_PATROL, floats)
 end

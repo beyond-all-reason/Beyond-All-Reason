@@ -31,7 +31,7 @@ function AttackHST:Update()
 	if f % 150 == 0 then
 		self:DraftSquads()
 	end
-	if #self.squads > 0 then
+	if self.squads and #self.squads > 0 then
 		for is = 1, #self.squads do
 			local squad = self.squads[is]
 			if not squad.arrived and squad.idleTimeout and f >= squad.idleTimeout then

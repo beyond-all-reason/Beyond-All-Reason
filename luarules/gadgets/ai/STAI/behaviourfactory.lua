@@ -149,7 +149,8 @@ function BehaviourFactory:defaultBehaviours(unit)
 		--self:EchoDebug()
 	end
 	if army.amphibious[un] then
-		table.insert(b, AttackerBST)
+-- 		table.insert(b, AttackerBST)
+		table.insert(b, RaiderBST)
 		table.insert(b, DefendBST)
 		--self:EchoDebug()
 	end

@@ -88,6 +88,9 @@ function TaskLabBST:getSoldier()
 		soldiers = self:scanRanks(param[1])
 		if soldiers then
 			self.qIndex = self.qIndex + 1
+			if self.qIndex > #self.queue then
+				self.qIndex = 1
+			end
 			break
 
 		end
