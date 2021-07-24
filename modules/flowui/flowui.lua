@@ -1,16 +1,12 @@
-if SendToUnsynced then
-	return
-end
-
 --[[
 	FlowUI
 	created by: Floris, january 2021
 
-	Draw functions made available for use within gadgets and widgets.
+	Draw functions made available for use within widgets.
 
 	Installation notes:
-	- add this file in your widget/gadget handler via VFS.Include("LuaUI/flowui.lua")
-	- add function calls to the various "Spring triggered callins (widget/gadget)" (like: Spring.FlowUI.ViewResize(vsx, vsy))
+	- add this file in your widget handler via VFS.Include("LuaUI/flowui.lua")
+	- add function calls to the various "widgethandler triggered callins" (like: Spring.FlowUI.ViewResize(vsx, vsy))
 ]]
 
 -- Setup
@@ -19,12 +15,14 @@ Spring.FlowUI.version = 1
 Spring.FlowUI.initialized = false
 
 Spring.FlowUI.Initialize = function()	-- (gets executed at the end of this file)
-	Spring.FlowUI.ViewResize(Spring.GetViewGeometry())
+	Spring.FlowUI.Callin.ViewResize(Spring.GetViewGeometry())
 	--Spring.FlowUI.initialized = true	-- disable to debug and start fresh every luaui reload
 end
 
--- Spring triggered callins (widget/gadget)
-Spring.FlowUI.ViewResize = function(vsx, vsy)
+-- Callin functions ...called by the widgethandler
+Spring.FlowUI.Callin = {}
+
+Spring.FlowUI.Callin.ViewResize = function(vsx, vsy)
 	if not vsy then
 		vsx, vsy = Spring.GetViewGeometry()
 	end
@@ -39,11 +37,11 @@ Spring.FlowUI.ViewResize = function(vsx, vsy)
 	Spring.FlowUI.buttonPadding = math.ceil(Spring.FlowUI.elementMargin * 0.44)
 end
 
-Spring.FlowUI.Update = function(dt)
+Spring.FlowUI.Callin.Update = function(dt)
 
 end
 
-Spring.FlowUI.DrawScreen = function()
+Spring.FlowUI.Callin.DrawScreen = function()
 
 end
 

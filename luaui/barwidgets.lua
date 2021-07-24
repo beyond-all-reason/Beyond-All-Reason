@@ -1146,7 +1146,7 @@ function widgetHandler:Update()
 	-- update the hour timer
 	hourTimer = (hourTimer + deltaTime) % 3600.0
 	if Spring.FlowUI then
-		Spring.FlowUI.Update(deltaTime)
+		Spring.FlowUI.Callin.Update(deltaTime)
 	end
 	for _, w in ipairs(self.UpdateList) do
 		w:Update(deltaTime)
@@ -1258,7 +1258,7 @@ function widgetHandler:ViewResize(vsx, vsy)
 		print('real ViewResize') -- FIXME
 	end
 	if Spring.FlowUI then
-		Spring.FlowUI.ViewResize(vsx, vsy)
+		Spring.FlowUI.Callin.ViewResize(vsx, vsy)
 	end
 	for _, w in ipairs(self.ViewResizeList) do
 		w:ViewResize(vsx, vsy)
@@ -1276,7 +1276,7 @@ function widgetHandler:DrawScreen()
 		gl.Color(1, 1, 1)
 	end
 	if Spring.FlowUI then
-		Spring.FlowUI.DrawScreen()
+		Spring.FlowUI.Callin.DrawScreen()
 	end
 	for _, w in r_ipairs(self.DrawScreenList) do
 		w:DrawScreen()
