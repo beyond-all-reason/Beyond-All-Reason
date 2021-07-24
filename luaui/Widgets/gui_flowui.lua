@@ -1,28 +1,20 @@
---[[
-	FlowUI
-	created by: Floris, january 2021
+function widget:GetInfo()
+	return {
+		name      = "FlowUI",
+		desc      = "GUI Framework",
+		author    = "Floris",
+		date      = "January 2021",
+		license   = "GNU GPL, v2 or later",
+		layer     = -math.huge,
+		enabled   = true
+	}
+end
 
-	Draw functions made available for use within widgets.
-
-	Installation notes:
-	- add this file in your widget handler via VFS.Include("LuaUI/flowui.lua")
-	- add function calls to the various "widgethandler triggered callins" (like: Spring.FlowUI.ViewResize(vsx, vsy))
-]]
-
--- Setup
 Spring.FlowUI = Spring.FlowUI or {}
 Spring.FlowUI.version = 1
 Spring.FlowUI.initialized = false
 
-Spring.FlowUI.Initialize = function()	-- (gets executed at the end of this file)
-	Spring.FlowUI.Callin.ViewResize(Spring.GetViewGeometry())
-	--Spring.FlowUI.initialized = true	-- disable to debug and start fresh every luaui reload
-end
-
--- Callin functions ...called by the widgethandler
-Spring.FlowUI.Callin = {}
-
-Spring.FlowUI.Callin.ViewResize = function(vsx, vsy)
+function widget:ViewResize(vsx, vsy)
 	if not vsy then
 		vsx, vsy = Spring.GetViewGeometry()
 	end
@@ -37,14 +29,21 @@ Spring.FlowUI.Callin.ViewResize = function(vsx, vsy)
 	Spring.FlowUI.buttonPadding = math.ceil(Spring.FlowUI.elementMargin * 0.44)
 end
 
-Spring.FlowUI.Callin.Update = function(dt)
+function widget:Initialize()	-- (gets executed at the end of this file)
+	widget:ViewResize(Spring.GetViewGeometry())
+end
+
+function widget:Shutdown()	-- (gets executed at the end of this file)
+	--Spring.FlowUI = nil
+end
+
+function widget:Update(dt)
 
 end
 
-Spring.FlowUI.Callin.DrawScreen = function()
+function widget:DrawScreen()
 
 end
-
 -- Draw functions
 Spring.FlowUI.Draw = {}
 
@@ -472,7 +471,7 @@ Spring.FlowUI.Draw.Element = function(px, py, sx, sy,  tl, tr, br, bl,  ptl, ptr
 	-- tile
 	if tileopacity > 0 then
 		gl.Color(1,1,1, tileopacity)
-		Spring.FlowUI.Draw.TexturedRectRound(px + pxPad, py + pyPad, sx - sxPad, sy - syPad, cs, tl, tr, br, bl, bgtexSize, (px+pxPad)/Spring.FlowUI.vsx/bgtexSize, (py+pyPad)/Spring.FlowUI.vsy/bgtexSize, "modules/flowui/images/backgroundtile.png")
+		Spring.FlowUI.Draw.TexturedRectRound(px + pxPad, py + pyPad, sx - sxPad, sy - syPad, cs, tl, tr, br, bl, bgtexSize, (px+pxPad)/Spring.FlowUI.vsx/bgtexSize, (py+pyPad)/Spring.FlowUI.vsy/bgtexSize, "luaui/images/backgroundtile.png")
 	end
 end
 
@@ -913,8 +912,4 @@ Spring.FlowUI.Draw.SelectHighlight = function(px, py, sx, sy,  cs, opacity, colo
 	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 end
 
-
--- Execute initialize
-if not Spring.FlowUI.initialized then
-	Spring.FlowUI.Initialize()
-end
+--widget:Initialize()

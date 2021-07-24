@@ -105,12 +105,7 @@ local GL_SRC_ALPHA = GL.SRC_ALPHA
 local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 local GL_ONE = GL.ONE
 
-local RectRound = Spring.FlowUI.Draw.RectRound
-local UiElement = Spring.FlowUI.Draw.Element
-local UiButton = Spring.FlowUI.Draw.Button
-local UiSlider = Spring.FlowUI.Draw.Slider
-local UiSliderKnob = Spring.FlowUI.Draw.SliderKnob
-local elementCorner = Spring.FlowUI.elementCorner
+local RectRound, UiElement, UiButton, UiSlider, UiSliderKnob, elementCorner
 
 local guishaderEnabled = (WG['guishader'] ~= nil)
 
@@ -704,6 +699,12 @@ function widget:ViewResize(newX,newY)
 
 	bgpadding = Spring.FlowUI.elementPadding
 	elementCorner = Spring.FlowUI.elementCorner
+
+	RectRound = Spring.FlowUI.Draw.RectRound
+	UiElement = Spring.FlowUI.Draw.Element
+	UiButton = Spring.FlowUI.Draw.Button
+	UiSlider = Spring.FlowUI.Draw.Slider
+	UiSliderKnob = Spring.FlowUI.Draw.SliderKnob
 
 	if prevVsy ~= vsx or prevVsy ~= vsy then
 		createList()

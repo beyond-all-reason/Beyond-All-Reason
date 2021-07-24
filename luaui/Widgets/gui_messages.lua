@@ -50,8 +50,7 @@ local lineMaxWidth = 0
 
 local font, chobbyInterface, hovering, startFadeTime
 
-local RectRound = Spring.FlowUI.Draw.RectRound
-local elementCorner = Spring.FlowUI.elementCorner
+local RectRound, elementCorner
 
 local hideSpecChat = tonumber(Spring.GetConfigInt("HideSpecChat", 0) or 0) == 1
 
@@ -74,6 +73,8 @@ function widget:ViewResize()
 	lineMaxWidth = lineMaxWidth * widgetScale
 
 	elementCorner = Spring.FlowUI.elementCorner
+
+	RectRound = Spring.FlowUI.Draw.RectRound
 
 	font = WG['fonts'].getFont(nil, 1, 0.18, 1.4)
 

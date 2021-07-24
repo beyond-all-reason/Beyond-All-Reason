@@ -45,17 +45,10 @@ local silenceTimer = math.random(minSilenceTime,maxSilenceTime)
 --- config
 local enableSilenceGaps = true
 local musicVolume = Spring.GetConfigInt("snd_volmusic", defaultMusicVolume)*0.01
----
 
 
-local RectRound = Spring.FlowUI.Draw.RectRound
-local UiElement = Spring.FlowUI.Draw.Element
-local UiButton = Spring.FlowUI.Draw.Button
-local UiSlider = Spring.FlowUI.Draw.Slider
-local UiSliderKnob = Spring.FlowUI.Draw.SliderKnob
-local bgpadding = Spring.FlowUI.elementPadding
 
-local elementCorner = Spring.FlowUI.elementCorner
+local RectRound, UiElement, UiButton, UiSlider, UiSliderKnob, bgpadding, elementCorner
 
 local maxMusicVolume = Spring.GetConfigInt("snd_volmusic", 20)	-- user value, cause actual volume will change during fadein/outc
 local volume = Spring.GetConfigInt("snd_volmaster", 100)
@@ -354,6 +347,12 @@ function widget:ViewResize(newX,newY)
 
 	bgpadding = Spring.FlowUI.elementPadding
 	elementCorner = Spring.FlowUI.elementCorner
+
+	RectRound = Spring.FlowUI.Draw.RectRound
+	UiElement = Spring.FlowUI.Draw.Element
+	UiButton = Spring.FlowUI.Draw.Button
+	UiSlider = Spring.FlowUI.Draw.Slider
+	UiSliderKnob = Spring.FlowUI.Draw.SliderKnob
 
 	if prevVsy ~= vsx or prevVsy ~= vsy then
 		createList()

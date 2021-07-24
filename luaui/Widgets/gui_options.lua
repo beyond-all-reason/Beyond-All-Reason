@@ -598,18 +598,7 @@ local GL_SRC_ALPHA = GL.SRC_ALPHA
 local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 local GL_ONE = GL.ONE
 
-local RectRound = Spring.FlowUI.Draw.RectRound
-local TexturedRectRound = Spring.FlowUI.Draw.TexturedRectRound
-local elementCorner = Spring.FlowUI.elementCorner
-local UiElement = Spring.FlowUI.Draw.Element
-local UiButton = Spring.FlowUI.Draw.Button
-local UiSlider = Spring.FlowUI.Draw.Slider
-local UiSliderKnob = Spring.FlowUI.Draw.SliderKnob
-local UiToggle = Spring.FlowUI.Draw.Toggle
-local UiSelector = Spring.FlowUI.Draw.Selector
-local UiSelectHighlight = Spring.FlowUI.Draw.SelectHighlight
-
-local bgpadding = Spring.FlowUI.elementPadding
+local RectRound, TexturedRectRound, elementCorner, UiElement, UiButton, UiSlider, UiSliderKnob, UiToggle, UiSelector, UiSelectHighlight, bgpadding
 
 local scavengersAIEnabled = Spring.Utilities.Gametype.IsScavengers()
 local isSinglePlayer = Spring.Utilities.Gametype.IsSinglePlayer()
@@ -746,6 +735,16 @@ function widget:ViewResize()
 
 	bgpadding = Spring.FlowUI.elementPadding
 	elementCorner = Spring.FlowUI.elementCorner
+
+	RectRound = Spring.FlowUI.Draw.RectRound
+	TexturedRectRound = Spring.FlowUI.Draw.TexturedRectRound
+	UiElement = Spring.FlowUI.Draw.Element
+	UiButton = Spring.FlowUI.Draw.Button
+	UiSlider = Spring.FlowUI.Draw.Slider
+	UiSliderKnob = Spring.FlowUI.Draw.SliderKnob
+	UiToggle = Spring.FlowUI.Draw.Toggle
+	UiSelector = Spring.FlowUI.Draw.Selector
+	UiSelectHighlight = Spring.FlowUI.Draw.SelectHighlight
 
 	font = WG['fonts'].getFont(fontfile)
 	font2 = WG['fonts'].getFont(fontfile2)

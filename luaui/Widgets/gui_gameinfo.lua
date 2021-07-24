@@ -120,10 +120,7 @@ local amNewbie = (Spring.GetTeamRulesParam(myTeamID, 'isNewbie') == 1)
 
 local showOnceMore = false        -- used because of GUI shader delay
 
-local RectRound = Spring.FlowUI.Draw.RectRound
-local UiElement = Spring.FlowUI.Draw.Element
-local UiScroller = Spring.FlowUI.Draw.Scroller
-local elementCorner = Spring.FlowUI.elementCorner
+local RectRound, UiElement, UiScroller, elementCorner
 
 function widget:ViewResize()
 	vsx, vsy = Spring.GetViewGeometry()
@@ -141,6 +138,10 @@ function widget:ViewResize()
 
 	bgpadding = Spring.FlowUI.elementPadding
 	elementCorner = Spring.FlowUI.elementCorner
+
+	RectRound = Spring.FlowUI.Draw.RectRound
+	UiElement = Spring.FlowUI.Draw.Element
+	UiScroller = Spring.FlowUI.Draw.Scroller
 
 	if mainDList then
 		gl.DeleteList(mainDList)
@@ -343,11 +344,11 @@ function widget:MouseWheel(up, value)
 		local addLines = value * -3 -- direction is retarded
 
 		startLine = startLine + addLines
-		if startLine < 1 then
-			startLine = 1
-		end
 		if startLine > totalFileLines-maxLines then
 			startLine = totalFileLines-maxLines
+		end
+		if startLine < 1 then
+			startLine = 1
 		end
 
 		if mainDList then

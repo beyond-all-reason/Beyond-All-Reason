@@ -55,9 +55,7 @@ local uiOpacitySec = 0.5
 
 local vsx, vsy = Spring.GetViewGeometry()
 
-local RectRound = Spring.FlowUI.Draw.RectRound
-local UiElement = Spring.FlowUI.Draw.Element
-local elementCorner = Spring.FlowUI.elementCorner
+local RectRound, UiElement, elementCorner
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -209,6 +207,9 @@ function widget:ViewResize(newX,newY)
 	font = WG['fonts'].getFont(fontfile)
 
 	elementCorner = Spring.FlowUI.elementCorner
+
+	RectRound = Spring.FlowUI.Draw.RectRound
+	UiElement = Spring.FlowUI.Draw.Element
 
 	if prevVsy ~= vsx or prevVsy ~= vsy then
 		updateValues()

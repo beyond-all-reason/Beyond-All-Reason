@@ -13,8 +13,6 @@
 
 VFS.Include('init.lua')
 
-VFS.Include("modules/flowui/flowui.lua")
-
 --function pwl() -- ???  (print widget list)
 --  for k,v in ipairs(widgetHandler.widgets) do
 --    print(k, v.whInfo.layer, v.whInfo.name)
@@ -1145,9 +1143,6 @@ function widgetHandler:Update()
 	local deltaTime = Spring.GetLastUpdateSeconds()
 	-- update the hour timer
 	hourTimer = (hourTimer + deltaTime) % 3600.0
-	if Spring.FlowUI then
-		Spring.FlowUI.Callin.Update(deltaTime)
-	end
 	for _, w in ipairs(self.UpdateList) do
 		w:Update(deltaTime)
 	end
@@ -1257,9 +1252,6 @@ function widgetHandler:ViewResize(vsx, vsy)
 		vsx = vsx.viewSizeX
 		print('real ViewResize') -- FIXME
 	end
-	if Spring.FlowUI then
-		Spring.FlowUI.Callin.ViewResize(vsx, vsy)
-	end
 	for _, w in ipairs(self.ViewResizeList) do
 		w:ViewResize(vsx, vsy)
 	end
@@ -1274,9 +1266,6 @@ function widgetHandler:DrawScreen()
 			{ v = { 0, 0 } }, { v = { sx, 0 } }, { v = { sx, sy } }, { v = { 0, sy } }
 		})
 		gl.Color(1, 1, 1)
-	end
-	if Spring.FlowUI then
-		Spring.FlowUI.Callin.DrawScreen()
 	end
 	for _, w in r_ipairs(self.DrawScreenList) do
 		w:DrawScreen()

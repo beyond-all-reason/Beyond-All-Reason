@@ -9,9 +9,8 @@ function widget:GetInfo()
 		enabled = true
 	}
 end
-local glCallList = gl.CallList
 
-local UiElement = Spring.FlowUI.Draw.Element
+local glCallList = gl.CallList
 
 local thisAward
 
@@ -48,6 +47,8 @@ local fontfileOutlineStrength = 1.45
 local font = gl.LoadFont(fontfile, fontfileSize * fontfileScale, fontfileOutlineSize * fontfileScale, fontfileOutlineStrength)
 local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 local font2 = gl.LoadFont(fontfile2, fontfileSize * fontfileScale, fontfileOutlineSize * fontfileScale, fontfileOutlineStrength)
+
+local UiElement
 
 local function colourNames(teamID)
 	if teamID < 0 then
@@ -185,6 +186,8 @@ local function createAward(pic, award, note, noteColour, winnerID, secondID, thi
 end
 
 function widget:ViewResize(viewSizeX, viewSizeY)
+	UiElement = Spring.FlowUI.Draw.Element
+
 	vsx, vsy = Spring.GetViewGeometry()
 	local newFontfileScale = (0.5 + (vsx * vsy / 5700000))
 	if fontfileScale ~= newFontfileScale then

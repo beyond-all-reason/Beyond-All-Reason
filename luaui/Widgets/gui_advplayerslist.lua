@@ -92,9 +92,8 @@ local gl_CreateList = gl.CreateList
 local gl_DeleteList = gl.DeleteList
 local gl_CallList = gl.CallList
 
-local RectRound = Spring.FlowUI.Draw.RectRound
-local UiElement = Spring.FlowUI.Draw.Element
-local elementCorner = Spring.FlowUI.elementCorner
+local RectRound, UiElement, elementCorner
+local bgpadding = 3
 
 --------------------------------------------------------------------------------
 -- IMAGES
@@ -204,8 +203,6 @@ local tookFrame = -120
 
 local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity", 0.66) or 0.66)
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
-
-local bgpadding = Spring.FlowUI.elementPadding
 
 local playSounds = true
 local sliderdrag = LUAUI_DIRNAME .. 'Sounds/buildbar_rem.wav'
@@ -3637,6 +3634,9 @@ function widget:ViewResize()
 
     bgpadding = Spring.FlowUI.elementPadding
 	elementCorner = Spring.FlowUI.elementCorner
+
+	RectRound = Spring.FlowUI.Draw.RectRound
+	UiElement = Spring.FlowUI.Draw.Element
 
     updateWidgetScale()
 

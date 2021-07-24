@@ -94,13 +94,7 @@ local spGetMouseState = Spring.GetMouseState
 local spGetWind = Spring.GetWind
 
 
-local widgetSpaceMargin = Spring.FlowUI.elementMargin
-local bgpadding = Spring.FlowUI.elementPadding
-local RectRound = Spring.FlowUI.Draw.RectRound
-local TexturedRectRound = Spring.FlowUI.Draw.TexturedRectRound
-local UiElement = Spring.FlowUI.Draw.Element
-local UiButton = Spring.FlowUI.Draw.Button
-local UiSliderKnob = Spring.FlowUI.Draw.SliderKnob
+local widgetSpaceMargin, bgpadding, RectRound, TexturedRectRound, UiElement, UiButton, UiSliderKnob
 
 
 local gaiaTeamID = Spring.GetGaiaTeamID()
@@ -210,6 +204,12 @@ function widget:ViewResize()
 
 	widgetSpaceMargin = Spring.FlowUI.elementMargin
 	bgpadding = Spring.FlowUI.elementPadding
+
+	RectRound = Spring.FlowUI.Draw.RectRound
+	TexturedRectRound = Spring.FlowUI.Draw.TexturedRectRound
+	UiElement = Spring.FlowUI.Draw.Element
+	UiButton = Spring.FlowUI.Draw.Button
+	UiSliderKnob = Spring.FlowUI.Draw.SliderKnob
 
 	bgtexSize = bgpadding * bgtexScale
 	buttonBgtexSize = bgpadding * buttonBgtexScale

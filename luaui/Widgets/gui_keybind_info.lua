@@ -135,9 +135,7 @@ local glCreateList = gl.CreateList
 local glCallList = gl.CallList
 local glDeleteList = gl.DeleteList
 
-local RectRound = Spring.FlowUI.Draw.RectRound
-local UiElement = Spring.FlowUI.Draw.Element
-local elementCorner = Spring.FlowUI.elementCorner
+local RectRound, UiElement, elementCorner = Spring.FlowUI.elementCorner
 
 local showOnceMore = false
 
@@ -251,6 +249,9 @@ function widget:ViewResize()
 	font2 = WG['fonts'].getFont(fontfile2)
 	elementCorner = Spring.FlowUI.elementCorner
 
+	RectRound = Spring.FlowUI.Draw.RectRound
+	UiElement = Spring.FlowUI.Draw.Element
+
 	if keybinds then
 		gl.DeleteList(keybinds)
 	end
@@ -335,7 +336,7 @@ local function mouseEvent(x, y, button, release)
 	if spIsGUIHidden() then
 		return false
 	end
-	
+
 	if show then
 		-- on window
 		if isOnRect(x, y, screenX, screenY - screenHeight, screenX + screenWidth, screenY) then
