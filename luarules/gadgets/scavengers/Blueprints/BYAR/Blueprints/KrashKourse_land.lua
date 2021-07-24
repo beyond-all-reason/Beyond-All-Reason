@@ -182,7 +182,6 @@ local function VIPER_PIT()
 			{ unitDefID = BPWallOrPopup('scav'), xOffset = 86, zOffset = -53, direction = 2},
 			{ unitDefID = BPWallOrPopup('scav'), xOffset = -122, zOffset = 27, direction = 2},
 			{ unitDefID = BPWallOrPopup('scav'), xOffset = 22, zOffset = -117, direction = 2},
-			{ unitDefID = BPWallOrPopup('scav'), xOffset = 390, zOffset = 315, direction = 2},
 			{ unitDefID = BPWallOrPopup('scav'), xOffset = 6, zOffset = 123, direction = 2},
 			{ unitDefID = BPWallOrPopup('scav'), xOffset = -58, zOffset = -117, direction = 2},
 			{ unitDefID = UnitDefNames.corshroud_scav.id, xOffset = -26, zOffset = -21, direction = 2},
