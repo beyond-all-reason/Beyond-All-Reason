@@ -287,6 +287,7 @@ local function constructNewBlueprint(n, unitID)
 							 and posMapsizeCheck(posX, posY, posZ, blueprintRadius)
 
 		if canConstructHere then
+			buffConstructorBuildSpeed(unitID)
 			Spring.GiveOrderToUnit(unitID, CMD.MOVE, { posX + blueprintRadius*math.random(-1,1), posY + 500, posZ + blueprintRadius*math.random(-1,1) }, {"shift"})
 			local swapXandY, flipX, flipZ, rotation = randomlyRotateBlueprint()
 			if math.random(0,1) == 0 then

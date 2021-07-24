@@ -90,6 +90,7 @@ TierSpawnChances = {
 	T2 = 0,
 	T3 = 0,
 	T4 = 0,
+	BPMult = 1,
 }
 
 -- check for solo play
@@ -163,3 +164,12 @@ function teamsCheck()
 	nonFinalGlobalScore = nil
 	scoreTeamCount = nil
 end
+
+function buffConstructorBuildSpeed(unitID)
+	local unitDefID = Spring.GetUnitDefID(unitID)
+	--if UnitDefs[unitDefID].buildSpeed then
+		local a = UnitDefs[unitDefID].buildSpeed*TierSpawnChances.BPMult
+		--Spring.Echo(a)
+		Spring.SetUnitBuildSpeed(unitID, a, a, a, a, a, a)
+	--end
+end 

@@ -95,7 +95,7 @@ customDefs.corcom = {
 	selfdestructas = "scavcomexplosion",
 	showplayername = false,
 	stealth = false,
-	workertime = 800*ScavDifficultyMultiplier,				-- can get multiplied in unitdef_post
+	workertime = 500*ScavDifficultyMultiplier,				-- can get multiplied in unitdef_post
 	customparams = {
 		iscommander = 'nil',		-- since you cant actually remove parameters normally, it will do it when you set string: 'nil' as value
 	},
@@ -162,7 +162,7 @@ customDefs.corcomcon = {
 	selfdestructas = "scavcomexplosion",
 	showplayername = false,
 	stealth = false,
-	workertime = 800*ScavDifficultyMultiplier,				-- can get multiplied in unitdef_post
+	workertime = 500*ScavDifficultyMultiplier,				-- can get multiplied in unitdef_post
 	customparams = {
 		iscommander = 'nil',		-- since you cant actually remove parameters normally, it will do it when you set string: 'nil' as value
 	},
@@ -228,7 +228,7 @@ customDefs.armcom = {
 	selfdestructas = "scavcomexplosion",
 	showplayername = false,
 	stealth = false,
-	workertime = 800*ScavDifficultyMultiplier,				-- can get multiplied in unitdef_post
+	workertime = 500*ScavDifficultyMultiplier,				-- can get multiplied in unitdef_post
 	customparams = {
 		iscommander = 'nil',		-- since you cant actually remove parameters normally, it will do it when you set string: 'nil' as value
 	},
@@ -294,7 +294,7 @@ customDefs.armcomcon = {
 	selfdestructas = "scavcomexplosion",
 	showplayername = false,
 	stealth = false,
-	workertime = 800*ScavDifficultyMultiplier,				-- can get multiplied in unitdef_post
+	workertime = 500*ScavDifficultyMultiplier,				-- can get multiplied in unitdef_post
 	customparams = {
 		iscommander = 'nil',		-- since you cant actually remove parameters normally, it will do it when you set string: 'nil' as value
 	},

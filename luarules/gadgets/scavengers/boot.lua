@@ -317,12 +317,12 @@ function gadget:GameFrame(n)
 				if globalScore == 0 then globalScore = 1 end
 				if scavconfig.timers.BossFight == 0 then scavconfig.timers.BossFight = 1 end
 				if globalScore/scavconfig.timers.BossFight < 1 then
-					ScavSendMessage("Scavengers Tech Progress: "..math.ceil((globalScore/scavconfig.timers.BossFight)*100).."%")
-					ScavSendMessage("Scav Score: "..globalScore)
+					ScavSendMessage("Scavengers Tech: "..math.ceil((globalScore/scavconfig.timers.BossFight)*100).."%")
+					--ScavSendMessage("Scav Score: "..globalScore)
 					ScavSendMessage(TierSpawnChances.Message)
 				else
-					ScavSendMessage("Scavengers Tech Progress: 100%")
-					ScavSendMessage("Score: "..globalScore)
+					ScavSendMessage("Scavengers Tech: 100%")
+					--ScavSendMessage("Score: "..globalScore)
 					ScavSendMessage(TierSpawnChances.Message)
 				end
 			end
@@ -653,27 +653,31 @@ function gadget:UnitGiven(unitID, unitDefID, unitNewTeam, unitOldTeam)
 			if scavconfig.modules.constructorControllerModule then
 				if constructorControllerModuleConfig.useconstructors then
 					if constructorUnitList.ConstructorsID[unitDefID] then
+						buffConstructorBuildSpeed(unitID)
 						scavConstructor[unitID] = true
 					end
 				end
 
 				if constructorControllerModuleConfig.useresurrectors then
 					if constructorUnitList.ResurrectorsID[unitDefID] then
+						buffConstructorBuildSpeed(unitID)
 						scavResurrector[unitID] = true
 					end
 
 					if constructorUnitList.ResurrectorsSeaID[unitDefID] then
+						buffConstructorBuildSpeed(unitID)
 						scavResurrector[unitID] = true
 					end
 				end
 
 				if constructorControllerModuleConfig.usecollectors then
 					if constructorUnitList.CollectorsID[unitDefID] then
+						buffConstructorBuildSpeed(unitID)
 						local r = math_random(0, 100)
 						if r <= 10 then
 							scavCollector[unitID] = true
-						elseif r <= 50 then
-							scavCapturer[unitID] = true
+						-- elseif r <= 50 then
+						-- 	scavCapturer[unitID] = true
 						else
 							scavReclaimer[unitID] = true
 						end
@@ -817,26 +821,30 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 			if constructorControllerModuleConfig.useconstructors then
 				if constructorUnitList.ConstructorsID[unitDefID] then
 					scavConstructor[unitID] = true
+					buffConstructorBuildSpeed(unitID)
 				end
 			end
 
 			if constructorControllerModuleConfig.useresurrectors then
 				if constructorUnitList.ResurrectorsID[unitDefID] then
 					scavResurrector[unitID] = true
+					buffConstructorBuildSpeed(unitID)
 				end
 
 				if constructorUnitList.ResurrectorsSeaID[unitDefID] then
 					scavResurrector[unitID] = true
+					buffConstructorBuildSpeed(unitID)
 				end
 			end
 
 			if constructorControllerModuleConfig.usecollectors then
 				if constructorUnitList.CollectorsID[unitDefID] then
+					buffConstructorBuildSpeed(unitID)
 					local r = math_random(0,100)
 					if r <= 10 then
 						scavCollector[unitID] = true
-					elseif r <= 75 then
-						scavCapturer[unitID] = true
+					-- elseif r <= 75 then
+					-- 	scavCapturer[unitID] = true
 					else
 						scavReclaimer[unitID] = true
 					end
@@ -844,6 +852,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 			end
 
 			if constructorUnitList.AssistersID[unitDefID] then
+				buffConstructorBuildSpeed(unitID)
 				scavAssistant[unitID] = true
 			end
 		end
