@@ -13,14 +13,12 @@ end
 WG.FlowUI = WG.FlowUI or {}
 WG.FlowUI.version = 1
 WG.FlowUI.initialized = false
+WG.FlowUI.chobbyInterface = false
 
--- called at the bottom of this file
-local function initialize()
-	--widget:ViewResize(Spring.GetViewGeometry())
-	WG.FlowUI.Callin.ViewResize1(Spring.GetViewGeometry())
-	WG.FlowUI.initialized = true
-	WG.FlowUI.shutdown = false
-end
+WG.FlowUI.opacity = tonumber(Spring.GetConfigFloat("ui_opacity", 0.6) or 0.66)
+WG.FlowUI.scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
+WG.FlowUI.tileOpacity = Spring.GetConfigFloat("ui_tileopacity", 0.012)
+WG.FlowUI.tileScale = Spring.GetConfigFloat("ui_tilescale", 7)
 
 local function ViewResize(vsx, vsy)
 	if not vsy then
@@ -32,13 +30,20 @@ local function ViewResize(vsx, vsy)
 	WG.FlowUI.vsx = vsx
 	WG.FlowUI.vsy = vsy
 	-- elementMargin: number of px between each separated ui element
-	WG.FlowUI.elementMargin = math.floor(0.0045 * vsy * Spring.GetConfigFloat("ui_scale", 1))
+	WG.FlowUI.elementMargin = math.floor(0.0045 * vsy * WG.FlowUI.scale)
 	-- elementCorner: element cutoff corner size
 	WG.FlowUI.elementCorner = WG.FlowUI.elementMargin
 	-- elementPadding: element inner (background) border/outline size
 	WG.FlowUI.elementPadding = math.ceil(WG.FlowUI.elementMargin * 0.66)
 	-- buttonPadding: button inner (background) border/outline size
 	WG.FlowUI.buttonPadding = math.ceil(WG.FlowUI.elementMargin * 0.44)
+end
+
+-- called at the bottom of this file
+local function Initialize()
+	ViewResize(Spring.GetViewGeometry())
+	WG.FlowUI.initialized = true
+	WG.FlowUI.shutdown = false
 end
 
 ---------------------------------------------------------------------------------------
@@ -55,11 +60,45 @@ function widget:Shutdown()
 end
 
 function widget:Update(dt)
-
 end
 
 function widget:DrawScreen()
+	if Spring.IsGUIHidden() then
+		return
+	end
+end
 
+function widget:DrawScreenEffects()
+	if Spring.IsGUIHidden() then
+		return
+	end
+end
+
+function widget:RecvLuaMsg(msg, playerID)
+	if msg:sub(1, 18) == 'LobbyOverlayActive' then
+		WG.FlowUI.chobbyInterface = (msg:sub(1, 19) == 'LobbyOverlayActive1')
+	end
+end
+
+function widget:MouseMove(mx, my, dx, dy, button)
+end
+
+function widget:MousePress(mx, my, button)
+end
+
+function widget:MouseRelease(mx, my,button)
+end
+
+function widget:MouseWheel(up, value)
+end
+
+function widget:KeyPress(key, mods, isRepeat, label, unicode)
+end
+
+function widget:KeyRelease(key, mods, label, unicode)
+end
+
+function widget:TextInput(utf8, ...)
 end
 
 ---------------------------------------------------------------------------------------
@@ -447,15 +486,15 @@ end
 		bgpadding = custom border size
 ]]
 WG.FlowUI.Draw.Element = function(px, py, sx, sy,  tl, tr, br, bl,  ptl, ptr, pbr, pbl,  opacity, color1, color2, bgpadding)
-	local opacity = opacity or Spring.GetConfigFloat("ui_opacity", 0.6)
+	local opacity = opacity or WG.FlowUI.opacity
 	local color1 = color1 or { 0, 0, 0, opacity}
 	local color2 = color2 or { 1, 1, 1, opacity * 0.1}
-	local ui_scale = Spring.GetConfigFloat("ui_scale", 1)
+	local ui_scale = WG.FlowUI.scale
 	local bgpadding = bgpadding or WG.FlowUI.elementPadding
 	local cs = WG.FlowUI.elementCorner * (bgpadding/WG.FlowUI.elementPadding)
 	local glossMult = 1 + (2 - (opacity * 1.5))
-	local tileopacity = Spring.GetConfigFloat("ui_tileopacity", 0.012)
-	local bgtexScale = Spring.GetConfigFloat("ui_tilescale", 7)
+	local tileopacity = WG.FlowUI.tileOpacity
+	local bgtexScale = WG.FlowUI.tileScale
 	local bgtexSize = math.floor(WG.FlowUI.elementPadding * bgtexScale)
 
 	local tl = tl or 1
@@ -943,4 +982,4 @@ WG.FlowUI.Draw.SelectHighlight = function(px, py, sx, sy,  cs, opacity, color)
 	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 end
 
-initialize()
+Initialize()

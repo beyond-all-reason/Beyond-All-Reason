@@ -59,15 +59,6 @@ local hoverCellZoom = 0.05 * zoomMult
 local clickSelectedCellZoom = 0.125 * zoomMult
 local selectedCellZoom = 0.135 * zoomMult
 
-local buttonBackgroundTexture = "LuaUI/Images/vr_grid.png"
-local buttonBgtexScale = 1.9	-- lower = smaller tiles
-local buttonBgtexOpacity = 0
-local buttonBgtexSize
-local backgroundTexture = "LuaUI/Images/backgroundtile.png"
-local ui_tileopacity = tonumber(Spring.GetConfigFloat("ui_tileopacity", 0.012) or 0.012)
-local bgtexScale = tonumber(Spring.GetConfigFloat("ui_tilescale", 7) or 7)	-- lower = smaller tiles
-local bgtexSize
-
 local bgpadding, chobbyInterface, activeAreaMargin, textureDetail, iconTypesMap, radariconTextureDetail
 local dlistCache, dlistGuishader, dlistBuildmenuBg, dlistBuildmenu, font, font2, cmdsCount
 local hijackedlayout, doUpdateClock, ordermenuHeight, advplayerlistPos, prevAdvplayerlistLeft
@@ -709,9 +700,6 @@ function widget:ViewResize()
 	UiUnit = WG.FlowUI.Draw.Unit
 	UiButton = WG.FlowUI.Draw.Button
 	UiElement = WG.FlowUI.Draw.Element
-
-	bgtexSize = bgpadding * bgtexScale
-	buttonBgtexSize = bgpadding * buttonBgtexScale
 
 	activeAreaMargin = math_ceil(bgpadding * cfgActiveAreaMargin)
 
