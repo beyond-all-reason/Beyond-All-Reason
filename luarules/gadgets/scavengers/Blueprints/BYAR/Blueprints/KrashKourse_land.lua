@@ -661,7 +661,7 @@ local function T1_short_def()
 	}
 end
 
-local function Rocket_AA+R()
+local function Rocket_AA_R()
 	return {
 		type = types.Land,
 		tiers = { tiers.T2, tiers.T3, tiers.T4 },
@@ -787,7 +787,7 @@ return {
     Punisher_wall,
     T1_long_def,
     T1_short_def,
-    Rocket_AA+R,
+    Rocket_AA_R,
     RES_AA_hidden,
     Punisher_3x,
     Front_gate_1,
