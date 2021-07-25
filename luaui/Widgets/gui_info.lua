@@ -167,10 +167,7 @@ local GL_SRC_ALPHA = GL.SRC_ALPHA
 local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 local GL_ONE = GL.ONE
 
-local RectRound = Spring.FlowUI.Draw.RectRound
-local UiElement = Spring.FlowUI.Draw.Element
-local UiUnit = Spring.FlowUI.Draw.Unit
-local elementCorner = Spring.FlowUI.elementCorner
+local RectRound, UiElement, UiUnit, elementCorner
 
 function lines(str)
 	local t = {}
@@ -434,6 +431,10 @@ function widget:ViewResize()
 
 	bgpadding = Spring.FlowUI.elementPadding
 	elementCorner = Spring.FlowUI.elementCorner
+
+	RectRound = Spring.FlowUI.Draw.RectRound
+	UiElement = Spring.FlowUI.Draw.Element
+	UiUnit = Spring.FlowUI.Draw.Unit
 
 	backgroundRect = { 0, 0, width * vsx, height * vsy }
 

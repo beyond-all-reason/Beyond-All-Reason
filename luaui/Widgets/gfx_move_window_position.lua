@@ -30,7 +30,7 @@ local dlistPosY = windowPosY
 
 local font, applyButtonPos, windowList, changeClock, escape, applyChanges, draggingStartX, draggingStartY, chobbyInterface, dragging
 
-local RectRound = Spring.FlowUI.Draw.RectRound
+local RectRound
 
 function DrawWindow()
 	dlistPosX = windowPosX
@@ -72,6 +72,8 @@ function widget:ViewResize()
 	widgetScale = (1 + (vsx*vsy / 4000000)) * customScale
 
 	font = WG['fonts'].getFont()
+
+	RectRound = Spring.FlowUI.Draw.RectRound
 
 	if windowList then gl.DeleteList(windowList) end
 	windowList = gl.CreateList(DrawWindow)

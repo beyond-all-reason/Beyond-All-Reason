@@ -81,9 +81,9 @@ local function DisableUnit(unitID)
 	--Spring.SetUnitHealth(unitID, {paralyze=99999999})
 	Spring.SetUnitMaxHealth(unitID, 10000000)
 	Spring.SetUnitHealth(unitID, 10000000)
-	Spring.SetUnitNoDraw(unitID, true)
+	--Spring.SetUnitNoDraw(unitID, true)
 	Spring.SetUnitStealth(unitID, true)
-	Spring.SetUnitNoSelect(unitID, true)
+	--Spring.SetUnitNoSelect(unitID, true)
 	Spring.SetUnitNoMinimap(unitID, true)
 	Spring.GiveOrderToUnit(unitID, CMD.MOVE_STATE, { 0 }, 0)
 	Spring.GiveOrderToUnit(unitID, CMD.FIRE_STATE, { 0 }, 0)
@@ -196,6 +196,13 @@ function gadget:GameFrame(n)
 
 	if n > 1 then
 		SpawnFromQueue(n)
+		local unitCount = Spring.GetTeamUnitCount(GaiaTeamID)
+		local unitCountBuffer = scavMaxUnits*0.1
+		if unitCount + (unitCountBuffer+unitCountBuffer*0.1) >= scavMaxUnits then 
+			if #BaseCleanupQueue > 0 then
+				Spring.DestroyUnit(BaseCleanupQueue[1], true, false)
+			end
+		end
 	end
 
 	if n == 1 and spawnProtectionConfig.useunit == false and scavconfig.modules.startBoxProtection == true and ScavengerStartboxExists then
@@ -310,12 +317,12 @@ function gadget:GameFrame(n)
 				if globalScore == 0 then globalScore = 1 end
 				if scavconfig.timers.BossFight == 0 then scavconfig.timers.BossFight = 1 end
 				if globalScore/scavconfig.timers.BossFight < 1 then
-					ScavSendMessage("Scavengers Tech Progress: "..math.ceil((globalScore/scavconfig.timers.BossFight)*100).."%")
-					ScavSendMessage("Scav Score: "..globalScore)
+					ScavSendMessage("Scavengers Tech: "..math.ceil((globalScore/scavconfig.timers.BossFight)*100).."%")
+					--ScavSendMessage("Scav Score: "..globalScore)
 					ScavSendMessage(TierSpawnChances.Message)
 				else
-					ScavSendMessage("Scavengers Tech Progress: 100%")
-					ScavSendMessage("Score: "..globalScore)
+					ScavSendMessage("Scavengers Tech: 100%")
+					--ScavSendMessage("Score: "..globalScore)
 					ScavSendMessage(TierSpawnChances.Message)
 				end
 			end
@@ -415,6 +422,11 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
 		MasterMindTargetListTargetSpotted(unitID, unitTeam, unitEnteredTeam, unitDefID)
 	end
 	if unitTeam == GaiaTeamID then
+		for i = 1,#BaseCleanupQueue do
+			if unitID == BaseCleanupQueue[i] then
+				table.remove(BaseCleanupQueue, i)
+			end
+		end
 
 		if FinalBossUnitSpawned == true then
 			for i = 1,#bossUnitList.Bosses do
@@ -503,6 +515,13 @@ function gadget:UnitGiven(unitID, unitDefID, unitNewTeam, unitOldTeam)
 		MasterMindTargetListTargetGone(unitID, unitTeam, unitEnteredTeam, unitDefID)
 	end
 	if unitOldTeam == GaiaTeamID then
+		if UnitDefs[unitDefID].canMove == false or UnitDefs[unitDefID].isBuilding == true or (not scavNoSelfD[unitID]) then
+			for i = 1,#BaseCleanupQueue do
+				if unitID == BaseCleanupQueue[i] then
+					table.remove(BaseCleanupQueue, i)
+				end
+			end
+		end
 		if UnitDefs[unitDefID].name == "scavengerdroppodbeacon_scav" or UnitDefs[unitDefID].name == "scavsafeareabeacon_scav" then
 			numOfSpawnBeacons = numOfSpawnBeacons - 1
 			numOfSpawnBeaconsTeams[unitNewTeam] = numOfSpawnBeaconsTeams[unitNewTeam] + 1
@@ -553,6 +572,9 @@ function gadget:UnitGiven(unitID, unitDefID, unitNewTeam, unitOldTeam)
 		Spring.SetUnitHealth(unitID, {capture = 0})
 	else
 		if unitNewTeam == GaiaTeamID then
+			if UnitDefs[unitDefID].canMove == false or UnitDefs[unitDefID].isBuilding == true or scavNoSelfD[unitID] then
+				BaseCleanupQueue[#BaseCleanupQueue+1] = unitID 
+			end
 			if string.find(unitName, scavconfig.unitnamesuffix) then
 				UnitSuffixLenght[unitID] = string.len(scavconfig.unitnamesuffix)
 			else
@@ -631,27 +653,31 @@ function gadget:UnitGiven(unitID, unitDefID, unitNewTeam, unitOldTeam)
 			if scavconfig.modules.constructorControllerModule then
 				if constructorControllerModuleConfig.useconstructors then
 					if constructorUnitList.ConstructorsID[unitDefID] then
+						buffConstructorBuildSpeed(unitID)
 						scavConstructor[unitID] = true
 					end
 				end
 
 				if constructorControllerModuleConfig.useresurrectors then
 					if constructorUnitList.ResurrectorsID[unitDefID] then
+						buffConstructorBuildSpeed(unitID)
 						scavResurrector[unitID] = true
 					end
 
 					if constructorUnitList.ResurrectorsSeaID[unitDefID] then
+						buffConstructorBuildSpeed(unitID)
 						scavResurrector[unitID] = true
 					end
 				end
 
 				if constructorControllerModuleConfig.usecollectors then
 					if constructorUnitList.CollectorsID[unitDefID] then
+						buffConstructorBuildSpeed(unitID)
 						local r = math_random(0, 100)
 						if r <= 10 then
 							scavCollector[unitID] = true
-						elseif r <= 50 then
-							scavCapturer[unitID] = true
+						-- elseif r <= 50 then
+						-- 	scavCapturer[unitID] = true
 						else
 							scavReclaimer[unitID] = true
 						end
@@ -678,6 +704,9 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 		Spring.GiveOrderToUnit(unitID, CMD.SELFD,{}, {"shift"})
 	end
 	if unitTeam == GaiaTeamID then
+		if UnitDefs[unitDefID].canMove == false or UnitDefs[unitDefID].isBuilding == true or scavNoSelfD[unitID] then
+			BaseCleanupQueue[#BaseCleanupQueue+1] = unitID 
+		end
 		Spring.SetUnitExperience(unitID, math_random() * (spawnmultiplier*0.01*unitControllerModuleConfig.veterancymultiplier))
 		if string.find(unitName, scavconfig.unitnamesuffix) then
 			UnitSuffixLenght[unitID] = string.len(scavconfig.unitnamesuffix)
@@ -792,26 +821,30 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 			if constructorControllerModuleConfig.useconstructors then
 				if constructorUnitList.ConstructorsID[unitDefID] then
 					scavConstructor[unitID] = true
+					buffConstructorBuildSpeed(unitID)
 				end
 			end
 
 			if constructorControllerModuleConfig.useresurrectors then
 				if constructorUnitList.ResurrectorsID[unitDefID] then
 					scavResurrector[unitID] = true
+					buffConstructorBuildSpeed(unitID)
 				end
 
 				if constructorUnitList.ResurrectorsSeaID[unitDefID] then
 					scavResurrector[unitID] = true
+					buffConstructorBuildSpeed(unitID)
 				end
 			end
 
 			if constructorControllerModuleConfig.usecollectors then
 				if constructorUnitList.CollectorsID[unitDefID] then
+					buffConstructorBuildSpeed(unitID)
 					local r = math_random(0,100)
 					if r <= 10 then
 						scavCollector[unitID] = true
-					elseif r <= 75 then
-						scavCapturer[unitID] = true
+					-- elseif r <= 75 then
+					-- 	scavCapturer[unitID] = true
 					else
 						scavReclaimer[unitID] = true
 					end
@@ -819,6 +852,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 			end
 
 			if constructorUnitList.AssistersID[unitDefID] then
+				buffConstructorBuildSpeed(unitID)
 				scavAssistant[unitID] = true
 			end
 		end

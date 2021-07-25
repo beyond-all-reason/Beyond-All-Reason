@@ -48,11 +48,7 @@ local buttonList, buttonHoverList
 local buttonText = ''
 local buttonDrawn = false
 
-local RectRound = Spring.FlowUI.Draw.RectRound
-local UiElement = Spring.FlowUI.Draw.Element
-local UiButton = Spring.FlowUI.Draw.Button
-local elementPadding = Spring.FlowUI.elementPadding
-local uiPadding = math.floor(elementPadding * 4.5)
+local RectRound, UiElement, UiButton, elementPadding, uiPadding
 
 local eligibleAsSub = false
 local offeredAsSub = false
@@ -108,6 +104,8 @@ function widget:ViewResize(viewSizeX, viewSizeY)
 	UiButton = Spring.FlowUI.Draw.Button
 	elementPadding = Spring.FlowUI.elementPadding
 	uiPadding = math.floor(elementPadding * 4.5)
+
+	RectRound = Spring.FlowUI.Draw.RectRound
 
 	createButton()
 end
@@ -212,8 +210,8 @@ function widget:Initialize()
 		end
 	end
 
-	checkStartPointChosen()
 	widget:ViewResize(vsx, vsy)
+	checkStartPointChosen()
 end
 
 function widget:DrawScreen()

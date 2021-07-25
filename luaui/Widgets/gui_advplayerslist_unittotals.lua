@@ -42,9 +42,7 @@ local GL_SRC_ALPHA = GL.SRC_ALPHA
 local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 local GL_ONE = GL.ONE
 
-local RectRound = Spring.FlowUI.Draw.RectRound
-local UiElement = Spring.FlowUI.Draw.Element
-local elementCorner = Spring.FlowUI.elementCorner
+local RectRound, UiElement, elementCorner
 
 local font, chobbyInterface, hovering
 
@@ -181,6 +179,9 @@ function widget:ViewResize()
 	font = WG['fonts'].getFont()
 
 	elementCorner = Spring.FlowUI.elementCorner
+
+	RectRound = Spring.FlowUI.Draw.RectRound
+	UiElement = Spring.FlowUI.Draw.Element
 
 	if prevVsy ~= vsx or prevVsy ~= vsy then
 		createList()

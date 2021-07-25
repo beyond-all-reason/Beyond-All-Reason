@@ -239,14 +239,7 @@ end
 ConstructorNumberOfRetries = {}
 local function constructNewBlueprint(n, unitID)
 	local unitCount = Spring.GetTeamUnitCount(GaiaTeamID)
-	local unitCountBuffer = 200
-
-	if unitCount + unitCountBuffer >= scavMaxUnits then
-		Spring.GiveOrderToUnit(unitID, CMD.RECLAIM, { mapCenterX + math.random(-100, 100), mapCenterY, mapCenterZ + math.random(-100, 100), mapDiagonal}, 0)
-		Spring.GiveOrderToUnit(unitID, CMD.RECLAIM, { mapCenterX + math.random(-100, 100), mapCenterY, mapCenterZ + math.random(-100, 100), mapDiagonal}, {"shift"})
-
-		return
-	end
+	local unitCountBuffer = scavMaxUnits*0.1
 
 	local landBlueprint, seaBlueprint, blueprint
 
@@ -274,7 +267,7 @@ local function constructNewBlueprint(n, unitID)
 	landBlueprint = blueprintsController.Constructor.GetRandomLandBlueprint(spawnTier)
 	seaBlueprint = blueprintsController.Constructor.GetRandomSeaBlueprint(spawnTier)
 
-	for i = 1, 50 do
+	for i = 1, 100 do
 		local x,y,z = Spring.GetUnitPosition(unitID)
 		local posX = math.random( x - (50 * ConstructorNumberOfRetries[unitID]), x + (50 * ConstructorNumberOfRetries[unitID]))
 		local posZ = math.random( z - (50 * ConstructorNumberOfRetries[unitID]), z + (50 * ConstructorNumberOfRetries[unitID]))
@@ -286,7 +279,7 @@ local function constructNewBlueprint(n, unitID)
 			blueprint = seaBlueprint
 		end
 
-		local blueprintRadiusBuffer = 48
+		local blueprintRadiusBuffer = 64
 		local blueprintRadius = blueprint.radius + blueprintRadiusBuffer
 		local canConstructHere = posOccupied(posX, posY, posZ, blueprintRadius)
 							 and posCheck(posX, posY, posZ, blueprintRadius)
@@ -294,7 +287,8 @@ local function constructNewBlueprint(n, unitID)
 							 and posMapsizeCheck(posX, posY, posZ, blueprintRadius)
 
 		if canConstructHere then
-			Spring.GiveOrderToUnit(unitID, CMD.MOVE, { posX + math.random(-blueprintRadius, blueprintRadius), posY + 500, posZ + math.random(-blueprintRadius, blueprintRadius) }, {"shift"})
+			buffConstructorBuildSpeed(unitID)
+			Spring.GiveOrderToUnit(unitID, CMD.MOVE, { posX + blueprintRadius*math.random(-1,1), posY + 500, posZ + blueprintRadius*math.random(-1,1) }, {"shift"})
 			local swapXandY, flipX, flipZ, rotation = randomlyRotateBlueprint()
 			if math.random(0,1) == 0 then
 				if math.random(0,1) == 0 then

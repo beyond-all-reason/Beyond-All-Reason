@@ -33,7 +33,6 @@ local stickToBottom = false
 
 local startDefID = Spring.GetTeamRulesParam(myTeamID, 'startUnit')
 
-local backgroundTexture = "LuaUI/Images/backgroundtile.png"
 local ui_tileopacity = tonumber(Spring.GetConfigFloat("ui_tileopacity", 0.012) or 0.012)
 local bgtexScale = tonumber(Spring.GetConfigFloat("ui_tilescale", 7) or 7)	-- lower = smaller tiles
 local bgtexSize
@@ -86,9 +85,7 @@ local isSpec = Spring.GetSpectatingState()
 
 local font, font2, bgpadding, chobbyInterface, dlistGuishader, dlistFactionpicker, bpWidth, bpHeight, rectMargin, fontSize
 
-local RectRound = Spring.FlowUI.Draw.RectRound
-local UiElement = Spring.FlowUI.Draw.Element
-local UiUnit = Spring.FlowUI.Draw.Unit
+local RectRound, UiElement, UiUnit
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
@@ -206,6 +203,11 @@ function widget:ViewResize()
 
 	local widgetSpaceMargin = Spring.FlowUI.elementMargin
 	bgpadding = Spring.FlowUI.elementPadding
+
+	RectRound = Spring.FlowUI.Draw.RectRound
+	UiElement = Spring.FlowUI.Draw.Element
+	UiUnit = Spring.FlowUI.Draw.Unit
+
 	if stickToBottom or (altPosition and not buildmenuBottomPos) then
 		posY = height
 		posX = width + (widgetSpaceMargin/vsx)

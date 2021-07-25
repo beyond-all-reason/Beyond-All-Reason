@@ -57,8 +57,7 @@ local GetTeamColor = Spring.GetTeamColor
 local GetTeamResources = Spring.GetTeamResources
 local Echo = Spring.Echo
 
-local RectRound = Spring.FlowUI.Draw.RectRound
-local UiElement = Spring.FlowUI.Draw.Element
+local RectRound, UiElement
 
 local font, bgpadding, chobbyInterface, sideImageList
 
@@ -152,7 +151,8 @@ function widget:Initialize()
         gamestarted = true
     end
 
-    font = WG['fonts'].getFont()
+	widget:ViewResize()
+
     Init()
 end
 
@@ -192,6 +192,7 @@ function widget:Shutdown()
 end
 
 function Init()
+
     setDefaults()
 
     teamData = {}
@@ -821,7 +822,7 @@ end
 function UpdateAllTeams()
     for _, data in ipairs(allyData) do
         for _, teamID in pairs(data.teams) do
-            if inSpecMode or teamData[teamID].allyID == myAllyID then
+            if inSpecMode or teamData[teamID] and teamData[teamID].allyID == myAllyID then
                 setTeamTable(teamID)
                 --Echo("Updated team:",teamID,"dead:",teamData[teamID].isAI and "AI" or teamData[teamID].isDead)
             end
@@ -1360,6 +1361,9 @@ function widget:ViewResize()
     widgetScale = (((vsy) / 2000) * 0.5) * (0.95 + (ui_scale - 1) / 1.5)        -- only used for rounded corners atm
 
     bgpadding = Spring.FlowUI.elementPadding
+
+	RectRound = Spring.FlowUI.Draw.RectRound
+	UiElement = Spring.FlowUI.Draw.Element
 
     font = WG['fonts'].getFont()
 

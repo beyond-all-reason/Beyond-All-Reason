@@ -109,9 +109,7 @@ local format				= string.format
 local SIsuffixes = {"p","n","u","m","","k","M","G","T"}
 local borderRemap = {left={"x","min",-1},right={"x","max",1},top={"y","max",1},bottom={"y","min",-1}}
 
-local RectRound = Spring.FlowUI.Draw.RectRound
-local UiElement = Spring.FlowUI.Draw.Element
-local elementCorner = Spring.FlowUI.elementCorner
+local RectRound, UiElement, elementCorner
 
 local font, chobbyInterface, backgroundGuishader, gameStarted, bgpadding
 
@@ -249,6 +247,9 @@ function widget:ViewResize()
 
 	bgpadding = Spring.FlowUI.elementPadding
 	elementCorner = Spring.FlowUI.elementCorner
+
+	RectRound = Spring.FlowUI.Draw.RectRound
+	UiElement = Spring.FlowUI.Draw.Element
 
 	calcAbsSizes()
 	updateFontSize()

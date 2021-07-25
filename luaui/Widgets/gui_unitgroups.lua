@@ -28,13 +28,7 @@ local fontFile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.
 
 local spec = Spring.GetSpectatingState()
 
-local widgetSpaceMargin = Spring.FlowUI.elementMargin
-local backgroundPadding = Spring.FlowUI.elementPadding
-local elementCorner = Spring.FlowUI.elementCorner
-local RectRound = Spring.FlowUI.Draw.RectRound
-local UiElement = Spring.FlowUI.Draw.Element
-local UiButton = Spring.FlowUI.Draw.Button
-local UiUnit = Spring.FlowUI.Draw.Unit
+local widgetSpaceMargin, backgroundPadding, elementCorner, RectRound, UiElement, UiButton, UiUnit
 
 local spGetGroupList = Spring.GetGroupList
 local spGetGroupUnitsCounts = Spring.GetGroupUnitsCounts
@@ -85,6 +79,11 @@ function widget:ViewResize()
 	elementCorner = Spring.FlowUI.elementCorner
 	backgroundPadding = Spring.FlowUI.elementPadding
 	widgetSpaceMargin = Spring.FlowUI.elementMargin
+
+	RectRound = Spring.FlowUI.Draw.RectRound
+	UiElement = Spring.FlowUI.Draw.Element
+	UiButton = Spring.FlowUI.Draw.Button
+	UiUnit = Spring.FlowUI.Draw.Unit
 
 	if WG['buildmenu'] then
 		buildmenuBottomPosition = WG['buildmenu'].getBottomPosition()

@@ -198,12 +198,7 @@ local GL_DST_ALPHA = GL.DST_ALPHA
 local GL_ONE_MINUS_SRC_COLOR = GL.ONE_MINUS_SRC_COLOR
 local glDepthTest = gl.DepthTest
 
-local RectRound = Spring.FlowUI.Draw.RectRound
-local RectRoundProgress = Spring.FlowUI.Draw.RectRoundProgress
-local UiUnit = Spring.FlowUI.Draw.Unit
-local UiElement = Spring.FlowUI.Draw.Element
-local UiButton = Spring.FlowUI.Draw.Button
-local elementCorner = Spring.FlowUI.elementCorner
+local RectRound, RectRoundProgress, UiUnit, UiElement, UiButton, elementCorner
 
 function table_invert(t)
 	local s = {}
@@ -708,6 +703,13 @@ function widget:ViewResize()
 	local widgetSpaceMargin = Spring.FlowUI.elementMargin
 	bgpadding = Spring.FlowUI.elementPadding
 	elementCorner = Spring.FlowUI.elementCorner
+
+	RectRound = Spring.FlowUI.Draw.RectRound
+	RectRoundProgress = Spring.FlowUI.Draw.RectRoundProgress
+	UiUnit = Spring.FlowUI.Draw.Unit
+	UiButton = Spring.FlowUI.Draw.Button
+	UiElement = Spring.FlowUI.Draw.Element
+
 	bgtexSize = bgpadding * bgtexScale
 	buttonBgtexSize = bgpadding * buttonBgtexScale
 

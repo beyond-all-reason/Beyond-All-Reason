@@ -33,7 +33,6 @@ if gadgetHandler:IsSyncedCode() then
 
 	local function SetCoopStartPoint(playerID, x, y, z)
 		coopStartPoints[playerID] = {x, y, z}
-
 		SendToUnsynced("CoopStartPoint", playerID, x, y, z)
 	end
 
@@ -85,13 +84,13 @@ if gadgetHandler:IsSyncedCode() then
 				x = math.min(math.max(x, xmin), xmax)
 				z = math.min(math.max(z, zmin), zmax)
 
-				--NewbiePlacer
+				-- NewbiePlacer
 				local _,_,_,teamID = Spring.GetPlayerInfo(playerID,false)
-				if (Spring.GetTeamRulesParam(teamID, 'isNewbie') == 1) then
-					coopStartPoints[playerID] = {-1,-1,-1} --record an invalid coop startpoint, to be picked up and assigned properly later; don't display anything
-					return true --because if we don't the cooped players won't appear readied (even though they are)
+				if Spring.GetTeamRulesParam(teamID, 'isNewbie') == 1 then
+					coopStartPoints[playerID] = {-1,-1,-1} -- record an invalid coop startpoint, to be picked up and assigned properly later; don't display anything
+					return true -- because if we don't the cooped players won't appear readied (even though they are)
 				else
-					SetCoopStartPoint(playerID, x, Spring.GetGroundHeight(x, z), z) --record coop start point, display it
+					SetCoopStartPoint(playerID, x, Spring.GetGroundHeight(x, z), z) -- record coop start point, display it
 					return false
 				end
 			end
@@ -101,8 +100,8 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function IsSteep(x,z)
-		--check if the position (x,z) is too step to start a commander on or not
-		local mtta = math.acos(1.0 - 0.41221) - 0.02 --http://springrts.com/wiki/Movedefs.lua#How_slope_is_determined & the -0.02 is for safety
+		-- check if the position (x,z) is too step to start a commander on or not
+		local mtta = math.acos(1.0 - 0.41221) - 0.02 -- http://springrts.com/wiki/Movedefs.lua#How_slope_is_determined & the -0.02 is for safety
 		local a1,a2,a3,a4 = 0,0,0,0
 		local d = 5
 		local y = Spring.GetGroundHeight(x,z)
@@ -127,7 +126,7 @@ if gadgetHandler:IsSyncedCode() then
 			startUnit = GG.playerStartingUnits[playerID] or startUnit
 		end
 
-		--Newbie Placer chooses random faction for newbies
+		-- Newbie Placer chooses random faction for newbies
 		if Spring.GetTeamRulesParam(teamID, 'isNewbie') == 1 or (startUnit==nil) then
 			if math.random() > 0.5 then
 				startUnit = corcomDefID
@@ -136,7 +135,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 
-		--Newbie Placer chooses a start point for newbies (the coop teams start point will have already been set in initial_spawn, just place close to that)
+		-- Newbie Placer chooses a start point for newbies (the coop teams start point will have already been set in initial_spawn, just place close to that)
 		if (Spring.GetTeamRulesParam(teamID, 'isNewbie') == 1) or x <= 0 or z <= 0 then --TODO: improve this
 			local xmin, zmin, xmax, zmax = Spring.GetAllyTeamStartBox(allyID)
 			local tx,tz
@@ -155,23 +154,23 @@ if gadgetHandler:IsSyncedCode() then
 					x = math.max(xmin,math.min(sx,xmax))
 					z = math.max(zmin,math.min(sz,zmax))
 					break
-				else --fallback
+				else -- fallback
 					x=tx
 					z=tz
 				end
 			end
 		end
 
-		--create
+		-- create
 		local unitID = Spring.CreateUnit(startUnit, x, Spring.GetGroundHeight(x, z), z, 0, teamID)
 		coopStartPoints[playerID] = {x,z}
 		GG.playerStartingUnits[playerID] = startUnit
-		--we set unit rule to mark who belongs to, so initial queue knows which com unitID belongs to which player's initial queue
+		-- we set unit rule to mark who belongs to, so initial queue knows which com unitID belongs to which player's initial queue
 		Spring.SetUnitRulesParam(unitID, "startingOwner", playerID )
 	end
 
 	function gadget:GameFrame(n)
-		--spawn cooped coms
+		-- spawn cooped coms
 		if n==0 and GG.coopMode then
 			for playerID, startPos in pairs(coopStartPoints) do
 				local _, _, _, teamID, allyID = Spring.GetPlayerInfo(playerID,false)
@@ -180,163 +179,28 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		gadgetHandler:RemoveGadget(self)
-		SendToUnsynced('RemoveGadget') -- Remove unsynced side too
 	end
 
 
 else
 
-	local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
-	local vsx,vsy = Spring.GetViewGeometry()
-	local fontfileScale = (0.5 + (vsx*vsy / 5700000))
-	local fontfileSize = 25
-	local fontfileOutlineSize = 7
-	local fontfileOutlineStrength = 1.5
-	local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
-
-	----------------------------------------------------------------
-	-- Unsynced Var
-	----------------------------------------------------------------
-	local coneList
-
-	local playerNames = {} -- playerNames[playerID] = playerName
-	local playerTeams = {} -- playerTeams[playerID] = playerTeamID
-	local coopStartPoints = {}
-
-	----------------------------------------------------------------
-	-- Unsynced speedup
-	----------------------------------------------------------------
-	local glPushMatrix = gl.PushMatrix
-	local glPopMatrix = gl.PopMatrix
-	local glTranslate = gl.Translate
-	local glColor = gl.Color
-	local glCallList = gl.CallList
-	local glBeginText = gl.BeginText
-	local glEndText = gl.EndText
-	local glText = gl.Text
-	local spGetTeamColor = Spring.GetTeamColor
-	local spWorldToScreenCoords = Spring.WorldToScreenCoords
-	local spGetMyPlayerID = Spring.GetMyPlayerID
-	local spGetSpectatingState = Spring.GetSpectatingState
-	local spArePlayersAllied = Spring.ArePlayersAllied
-
-	----------------------------------------------------------------
-	-- Stolen funcs from from minimap_startbox.lua (And cleaned up a bit)
-	----------------------------------------------------------------
-	local function ColorChar(x)
-		local c = math.min(math.max(math.floor(x * 255), 1), 255)
-		return string.char(c)
-	end
-
-	local teamColorStrs = {}
-	local function GetTeamColorStr(teamID)
-
-		local colorStr = teamColorStrs[teamID]
-		if colorStr then
-			return colorStr
-		end
-
-		local r, g, b = Spring.GetTeamColor(teamID)
-		local colorStr = '\255' .. ColorChar(r) .. ColorChar(g) .. ColorChar(b)
-		teamColorStrs[teamID] = colorStr
-		return colorStr
-	end
 
 	local function CoopStartPoint(epicwtf, playerID, x, y, z) --this epicwtf param is used because it seem that when a registered function is locaal, then the registration name is  passed too. if the function is part of gadget: then it is not passed.
-		coopStartPoints[playerID] = {x, y, z}
-	end
-
-	----------------------------------------------------------------
-	-- Unsynced Callins
-	----------------------------------------------------------------
-	function gadget:ViewResize(viewSizeX, viewSizeY)
-		vsx,vsy = Spring.GetViewGeometry()
-		local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
-		if (fontfileScale ~= newFontfileScale) then
-			fontfileScale = newFontfileScale
-			gl.DeleteFont(font)
-			font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+		if Script.LuaUI("GadgetCoopStartPoint") then
+			Script.LuaUI.GadgetCoopStartPoint(playerID, x, y, z)
 		end
 	end
 
 	function gadget:Initialize()
 		gadgetHandler:AddSyncAction("CoopStartPoint", CoopStartPoint)
-		-- Speed things up
-		local playerList = Spring.GetPlayerList()
-		for i = 1, #playerList do
-			local playerID = playerList[i]
-			local playerName, _, _, teamID = Spring.GetPlayerInfo(playerID,false)
-			playerNames[playerID] = playerName
-			playerTeams[playerID] = teamID
-		end
-
-		-- Cone code taken directly from minimap_startbox.lua
-		coneList = gl.CreateList(function()
-				local h = 100
-				local r = 25
-				local divs = 32
-				gl.BeginEnd(GL.TRIANGLE_FAN, function()
-						gl.Vertex( 0, h,  0)
-						for i = 0, divs do
-							local a = i * ((math.pi * 2) / divs)
-							local cosval = math.cos(a)
-							local sinval = math.sin(a)
-							gl.Vertex(r * sinval, 0, r * cosval)
-						end
-					end)
-			end)
 	end
 
 	function gadget:Shutdown()
-		gl.DeleteList(coneList)
-		gl.DeleteFont(font)
 		gadgetHandler:RemoveSyncAction("CoopStartPoint")
 	end
 
-	function gadget:DrawWorld()
-		local areSpec = spGetSpectatingState()
-		local myPlayerID = spGetMyPlayerID()
-		for playerID, startPosition in pairs(coopStartPoints) do
-			if areSpec or spArePlayersAllied(myPlayerID, playerID) then
-				local sx, sy, sz = startPosition[1], startPosition[2], startPosition[3]
-				if sx > 0 or sz > 0 then
-					local tr, tg, tb = spGetTeamColor(playerTeams[playerID])
-					glPushMatrix()
-						glTranslate(sx, sy, sz)
-						glColor(tr, tg, tb, 0.5) -- Alpha would oscillate, but gadgets can't get time
-						glCallList(coneList)
-					glPopMatrix()
-				end
-			end
-		end
-	end
-
-	function gadget:DrawScreenEffects()
-		glBeginText()
-		local areSpec = spGetSpectatingState()
-		local myPlayerID = spGetMyPlayerID()
-		for playerID, startPosition in pairs(coopStartPoints) do
-			if areSpec or spArePlayersAllied(myPlayerID, playerID) then
-				local sx, sy, sz = startPosition[1], startPosition[2], startPosition[3]
-				if sx > 0 or sz > 0 then
-					local scx, scy, scz = spWorldToScreenCoords(sx, sy + 120, sz)
-					if scz < 1 then
-						local colorStr, outlineStr = GetTeamColorStr(playerTeams[playerID])
-						font:Begin()
-						font:Print(colorStr .. playerNames[playerID], scx, scy, 18, 'cs')
-						font:End()
-					end
-				end
-			end
-		end
-		glEndText()
-	end
-
-	function gadget:RecvFromSynced(arg1, ...)
-		if arg1 == 'RemoveGadget' then
-			gadgetHandler:RemoveGadget(self)
-		end
+	function gadget:GameFrame(n)
+		gadgetHandler:RemoveGadget(self)
 	end
 
 end
-

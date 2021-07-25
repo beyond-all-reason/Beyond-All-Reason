@@ -40,9 +40,7 @@ local spGetCameraState = Spring.GetCameraState
 local usedWidth = math.floor(maxWidth * vsy)
 local usedHeight = math.floor(maxHeight * vsy)
 
-local RectRound = Spring.FlowUI.Draw.RectRound
-local UiElement = Spring.FlowUI.Draw.Element
-local elementCorner = Spring.FlowUI.elementCorner
+local RectRound, UiElement, elementCorner = Spring.FlowUI.elementCorner
 
 local dlistGuishader, dlistMinimap, bgpadding, oldMinimapGeometry, chobbyInterface
 
@@ -86,6 +84,9 @@ function widget:ViewResize()
 
 	bgpadding = Spring.FlowUI.elementPadding
 	elementCorner = Spring.FlowUI.elementCorner
+
+	RectRound = Spring.FlowUI.Draw.RectRound
+	UiElement = Spring.FlowUI.Draw.Element
 
 	Spring.SendCommands(string.format("minimap geometry %i %i %i %i", 0, 0, usedWidth, usedHeight))
 

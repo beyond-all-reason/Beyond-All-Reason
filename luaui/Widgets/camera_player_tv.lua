@@ -58,7 +58,9 @@ for i = 1, #teams do
 end
 teams = nil
 
-local font, font2, lockPlayerID, prevLockPlayerID, bgpadding, toggleButton, backgroundGuishader, prevGameframeClock, chobbyInterface
+local font, font2, lockPlayerID, prevLockPlayerID, toggleButton, backgroundGuishader, prevGameframeClock, chobbyInterface
+
+local RectRound, elementCorner, bgpadding
 
 ---------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------
@@ -168,9 +170,6 @@ function createCountdownLists()
 	--end
 end
 
-local RectRound = Spring.FlowUI.Draw.RectRound
-local TexturedRectRound = Spring.FlowUI.Draw.TexturedRectRound
-local elementCorner = Spring.FlowUI.elementCorner
 
 function createList()
 	for i = 1, #drawlist do
@@ -473,6 +472,8 @@ function widget:ViewResize()
 
 	bgpadding = Spring.FlowUI.elementPadding
 	elementCorner = Spring.FlowUI.elementCorner
+
+	RectRound = Spring.FlowUI.Draw.RectRound
 
 	font = WG['fonts'].getFont(nil, 1, 0.2, 1.3)
 	font2 = WG['fonts'].getFont(fontfile2, 2, 0.2, 1.3)

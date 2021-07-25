@@ -121,9 +121,7 @@ local currentRotationAngle = 0
 local ringThickness = 3.5
 local capturePieParts = 4 + floor(captureRadius / 8)
 
-local RectRound = Spring.FlowUI.Draw.RectRound
-local UiElement = Spring.FlowUI.Draw.Element
-local elementCorner = Spring.FlowUI.elementCorner
+local RectRound, UiElement, elementCorner
 
 -----------------------------------------------------------------------------------------
 -- creates initial player listing
@@ -286,6 +284,9 @@ function widget:ViewResize(vsx2, vsy2)
 	screenY = (vsy * 0.5) + (screenHeight / 2)
 
 	elementCorner = Spring.FlowUI.elementCorner
+
+	RectRound = Spring.FlowUI.Draw.RectRound
+	UiElement = Spring.FlowUI.Draw.Element
 
 	scoreboardX = floor(vsx * scoreboardRelX)
 	scoreboardY = floor(vsy * scoreboardRelY)

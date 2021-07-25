@@ -38,9 +38,7 @@ local GL_SRC_ALPHA = GL.SRC_ALPHA
 local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 local GL_ONE = GL.ONE
 
-local RectRound = Spring.FlowUI.Draw.RectRound
-local UiButton = Spring.FlowUI.Draw.Button
-local elementCorner = Spring.FlowUI.elementCorner
+local RectRound, UiButton, elementCorner
 
 local chobbyInterface, font, backgroundGuishader, buttonsList, buttonlist, active_button, bgpadding
 
@@ -109,6 +107,9 @@ function widget:ViewResize()
 
 	bgpadding = Spring.FlowUI.elementPadding
 	elementCorner = Spring.FlowUI.elementCorner
+
+	RectRound = Spring.FlowUI.Draw.RectRound
+	UiButton = Spring.FlowUI.Draw.Button
 
 	font = WG['fonts'].getFont(fontfile2)
 end

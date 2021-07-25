@@ -50,12 +50,7 @@ local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold
 local fontfile3 = "fonts/monospaced/" .. Spring.GetConfigString("bar_font3", "SourceCodePro-Medium.otf")
 local font, font2, font3, chobbyInterface, hovering
 
-local RectRound = Spring.FlowUI.Draw.RectRound
-local UiElement = Spring.FlowUI.Draw.Element
-local UiScroller = Spring.FlowUI.Draw.Scroller
-local elementCorner = Spring.FlowUI.elementCorner
-local elementPadding = Spring.FlowUI.elementPadding
-local elementMargin = Spring.FlowUI.elementMargin
+local RectRound, UiElement, UiScroller, elementCorner, elementPadding, elementMargin
 
 local playSound = true
 local SoundIncomingChat  = 'beep4'
@@ -896,6 +891,8 @@ function widget:ViewResize()
 	elementCorner = Spring.FlowUI.elementCorner
 	elementPadding = Spring.FlowUI.elementPadding
 	elementMargin = Spring.FlowUI.elementMargin
+
+	RectRound = Spring.FlowUI.Draw.RectRound
 
 	usedFontSize = charSize*widgetScale*fontsizeMult
 	usedConsoleFontSize = charSize*widgetScale*fontsizeMult*consoleFontSizeMult
