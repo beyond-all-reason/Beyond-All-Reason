@@ -135,7 +135,7 @@ scavconfig = {
 		T4med								= 21000*ScavTechCurveModoption,
 		T4high								= 24000*ScavTechCurveModoption,
 		T4top								= 28000*ScavTechCurveModoption,
-		BossFight							= 1,--32000*ScavTechCurveModoption,
+		BossFight							= 32000*ScavTechCurveModoption,
 		Endless								= 32001*ScavTechCurveModoption,
 		-- don't delete
 		NoRadar								= 2250*ScavTechCurveModoption,
