@@ -14,7 +14,7 @@ WG.FlowUI = WG.FlowUI or {}
 WG.FlowUI.version = 1
 WG.FlowUI.initialized = false
 
--- called at the bottom
+-- called at the bottom of this file
 local function initialize()
 	--widget:ViewResize(Spring.GetViewGeometry())
 	WG.FlowUI.Callin.ViewResize1(Spring.GetViewGeometry())
@@ -22,12 +22,32 @@ local function initialize()
 	WG.FlowUI.shutdown = false
 end
 
+local function ViewResize(vsx, vsy)
+	if not vsy then
+		vsx, vsy = Spring.GetViewGeometry()
+	end
+	if WG.FlowUI.vsx and (WG.FlowUI.vsx == vsx and WG.FlowUI.vsy == vsy) then
+		return
+	end
+	WG.FlowUI.vsx = vsx
+	WG.FlowUI.vsy = vsy
+	-- elementMargin: number of px between each separated ui element
+	WG.FlowUI.elementMargin = math.floor(0.0045 * vsy * Spring.GetConfigFloat("ui_scale", 1))
+	-- elementCorner: element cutoff corner size
+	WG.FlowUI.elementCorner = WG.FlowUI.elementMargin
+	-- elementPadding: element inner (background) border/outline size
+	WG.FlowUI.elementPadding = math.ceil(WG.FlowUI.elementMargin * 0.66)
+	-- buttonPadding: button inner (background) border/outline size
+	WG.FlowUI.buttonPadding = math.ceil(WG.FlowUI.elementMargin * 0.44)
+end
+
 ---------------------------------------------------------------------------------------
 -- Widget callins  (layer = math.huge)
 ---------------------------------------------------------------------------------------
 
-function widget:ViewResize(vsx, vsy)
-end
+-- handling this in WG.FlowUI.Callin.ViewResize1 instead, so it gets executed before all other widgets
+--function widget:ViewResize(vsx, vsy)
+--end
 
 function widget:Shutdown()
 	WG.FlowUI.shutdown = true
@@ -49,22 +69,7 @@ end
 WG.FlowUI.Callin = {}
 
 WG.FlowUI.Callin.ViewResize1 = function(vsx, vsy)
-	if not vsy then
-		vsx, vsy = Spring.GetViewGeometry()
-	end
-	if WG.FlowUI.vsx and (WG.FlowUI.vsx == vsx and WG.FlowUI.vsy == vsy) then
-		return
-	end
-	WG.FlowUI.vsx = vsx
-	WG.FlowUI.vsy = vsy
-	-- elementMargin: number of px between each separated ui element
-	WG.FlowUI.elementMargin = math.floor(0.0045 * vsy * Spring.GetConfigFloat("ui_scale", 1))
-	-- elementCorner: element cutoff corner size
-	WG.FlowUI.elementCorner = WG.FlowUI.elementMargin
-	-- elementPadding: element inner (background) border/outline size
-	WG.FlowUI.elementPadding = math.ceil(WG.FlowUI.elementMargin * 0.66)
-	-- buttonPadding: button inner (background) border/outline size
-	WG.FlowUI.buttonPadding = math.ceil(WG.FlowUI.elementMargin * 0.44)
+	ViewResize(vsx, vsy)
 end
 
 ---------------------------------------------------------------------------------------
