@@ -886,13 +886,13 @@ function widget:ViewResize()
 	vsx,vsy = Spring.GetViewGeometry()
 	widgetScale = (((vsx*0.3 + (vsy*2.33)) / 2000) * 0.55) * (0.95+(ui_scale-1)/1.5)
 
-	UiElement = Spring.FlowUI.Draw.Element
-	UiScroller = Spring.FlowUI.Draw.Scroller
-	elementCorner = Spring.FlowUI.elementCorner
-	elementPadding = Spring.FlowUI.elementPadding
-	elementMargin = Spring.FlowUI.elementMargin
+	UiElement = WG.FlowUI.Draw.Element
+	UiScroller = WG.FlowUI.Draw.Scroller
+	elementCorner = WG.FlowUI.elementCorner
+	elementPadding = WG.FlowUI.elementPadding
+	elementMargin = WG.FlowUI.elementMargin
 
-	RectRound = Spring.FlowUI.Draw.RectRound
+	RectRound = WG.FlowUI.Draw.RectRound
 
 	usedFontSize = charSize*widgetScale*fontsizeMult
 	usedConsoleFontSize = charSize*widgetScale*fontsizeMult*consoleFontSizeMult

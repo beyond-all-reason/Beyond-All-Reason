@@ -700,15 +700,15 @@ function widget:ViewResize()
 		minimapHeight = WG['minimap'].getHeight()
 	end
 
-	local widgetSpaceMargin = Spring.FlowUI.elementMargin
-	bgpadding = Spring.FlowUI.elementPadding
-	elementCorner = Spring.FlowUI.elementCorner
+	local widgetSpaceMargin = WG.FlowUI.elementMargin
+	bgpadding = WG.FlowUI.elementPadding
+	elementCorner = WG.FlowUI.elementCorner
 
-	RectRound = Spring.FlowUI.Draw.RectRound
-	RectRoundProgress = Spring.FlowUI.Draw.RectRoundProgress
-	UiUnit = Spring.FlowUI.Draw.Unit
-	UiButton = Spring.FlowUI.Draw.Button
-	UiElement = Spring.FlowUI.Draw.Element
+	RectRound = WG.FlowUI.Draw.RectRound
+	RectRoundProgress = WG.FlowUI.Draw.RectRoundProgress
+	UiUnit = WG.FlowUI.Draw.Unit
+	UiButton = WG.FlowUI.Draw.Button
+	UiElement = WG.FlowUI.Draw.Element
 
 	bgtexSize = bgpadding * bgtexScale
 	buttonBgtexSize = bgpadding * buttonBgtexScale

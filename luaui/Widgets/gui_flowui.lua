@@ -10,23 +10,23 @@ function widget:GetInfo()
 	}
 end
 
-Spring.FlowUI = Spring.FlowUI or {}
-Spring.FlowUI.version = 1
-Spring.FlowUI.initialized = false
+WG.FlowUI = WG.FlowUI or {}
+WG.FlowUI.version = 1
+WG.FlowUI.initialized = false
 
 function widget:ViewResize(vsx, vsy)
 	if not vsy then
 		vsx, vsy = Spring.GetViewGeometry()
 	end
-	if Spring.FlowUI.vsx and (Spring.FlowUI.vsx == vsx and Spring.FlowUI.vsy == vsy) then
+	if WG.FlowUI.vsx and (WG.FlowUI.vsx == vsx and WG.FlowUI.vsy == vsy) then
 		return
 	end
-	Spring.FlowUI.vsx = vsx
-	Spring.FlowUI.vsy = vsy
-	Spring.FlowUI.elementMargin = math.floor(0.0045 * vsy * Spring.GetConfigFloat("ui_scale", 1))
-	Spring.FlowUI.elementCorner = Spring.FlowUI.elementMargin
-	Spring.FlowUI.elementPadding = math.ceil(Spring.FlowUI.elementMargin * 0.66)		-- elementPadding * 1.6
-	Spring.FlowUI.buttonPadding = math.ceil(Spring.FlowUI.elementMargin * 0.44)
+	WG.FlowUI.vsx = vsx
+	WG.FlowUI.vsy = vsy
+	WG.FlowUI.elementMargin = math.floor(0.0045 * vsy * Spring.GetConfigFloat("ui_scale", 1))
+	WG.FlowUI.elementCorner = WG.FlowUI.elementMargin
+	WG.FlowUI.elementPadding = math.ceil(WG.FlowUI.elementMargin * 0.66)		-- elementPadding * 1.6
+	WG.FlowUI.buttonPadding = math.ceil(WG.FlowUI.elementMargin * 0.44)
 end
 
 function widget:Initialize()	-- (gets executed at the end of this file)
@@ -34,7 +34,7 @@ function widget:Initialize()	-- (gets executed at the end of this file)
 end
 
 function widget:Shutdown()	-- (gets executed at the end of this file)
-	--Spring.FlowUI = nil
+	--WG.FlowUI = nil
 end
 
 function widget:Update(dt)
@@ -45,7 +45,7 @@ function widget:DrawScreen()
 
 end
 -- Draw functions
-Spring.FlowUI.Draw = {}
+WG.FlowUI.Draw = {}
 
 --[[
 	RectRound
@@ -57,7 +57,7 @@ Spring.FlowUI.Draw = {}
 		tl, tr, br, bl = enable/disable corners for TopLeft, TopRight, BottomRight, BottomLeft (default: 1)
 		c1, c2 = top color, bottom color
 ]]
-Spring.FlowUI.Draw.RectRound = function(px, py, sx, sy,  cs,   tl, tr, br, bl,   c1, c2)
+WG.FlowUI.Draw.RectRound = function(px, py, sx, sy,  cs,   tl, tr, br, bl,   c1, c2)
 	-- RectRound(px,py,sx,sy,cs, tl,tr,br,bl, c1,c2): Draw a rectangular shape with cut off edges
 	--  optional: tl,tr,br,bl  0 = no corner (1 = always)
 	--  optional: c1,c2 for top-down color gradients
@@ -176,7 +176,7 @@ end
 		progress
 		color
 ]]
-Spring.FlowUI.Draw.RectRoundProgress = function(left, bottom, right, top, cs, progress, color)
+WG.FlowUI.Draw.RectRoundProgress = function(left, bottom, right, top, cs, progress, color)
 	local xcen = (left + right) / 2
 	local ycen = (top + bottom) / 2
 	local alpha = 360 * progress
@@ -245,7 +245,7 @@ end
 		offset, offsetY = texture offset coordinates (offsetY=offset when offsetY isnt defined)
 		texture = file location
 ]]
-Spring.FlowUI.Draw.TexturedRectRound = function(px, py, sx, sy,  cs,  tl, tr, br, bl,  size, offset, offsetY,  texture)
+WG.FlowUI.Draw.TexturedRectRound = function(px, py, sx, sy,  cs,  tl, tr, br, bl,  size, offset, offsetY,  texture)
 	local function DrawTexturedRectRound(px, py, sx, sy, cs, tl, tr, br, bl, size, offset, offsetY)
 		local scale = size and (size / (sx-px)) or 1
 		local offset = offset or 0
@@ -333,7 +333,7 @@ end
 	optional
 
 ]]
-Spring.FlowUI.Draw.RectRoundCircle = function(x, y, radius, cs, centerOffset, color1, color2)
+WG.FlowUI.Draw.RectRoundCircle = function(x, y, radius, cs, centerOffset, color1, color2)
 	local function DrawRectRoundCircle(x, y, radius, cs, centerOffset, color1, color2)
 		if not color2 then
 			color2 = color1
@@ -383,7 +383,7 @@ end
 	optional
 		color2 = edge color
 ]]
-Spring.FlowUI.Draw.Circle = function(x, z, radius, sides, color1, color2)
+WG.FlowUI.Draw.Circle = function(x, z, radius, sides, color1, color2)
 	local function DrawCircle(x, z, radius, sides, color1, color2)
 		if not color2 then
 			color2 = color1
@@ -415,17 +415,17 @@ end
 		color1, color2 = (color1[4 value overrides the opacity param defined above)
 		bgpadding = custom border size
 ]]
-Spring.FlowUI.Draw.Element = function(px, py, sx, sy,  tl, tr, br, bl,  ptl, ptr, pbr, pbl,  opacity, color1, color2, bgpadding)
+WG.FlowUI.Draw.Element = function(px, py, sx, sy,  tl, tr, br, bl,  ptl, ptr, pbr, pbl,  opacity, color1, color2, bgpadding)
 	local opacity = opacity or Spring.GetConfigFloat("ui_opacity", 0.6)
 	local color1 = color1 or { 0, 0, 0, opacity}
 	local color2 = color2 or { 1, 1, 1, opacity * 0.1}
 	local ui_scale = Spring.GetConfigFloat("ui_scale", 1)
-	local bgpadding = bgpadding or Spring.FlowUI.elementPadding
-	local cs = Spring.FlowUI.elementCorner * (bgpadding/Spring.FlowUI.elementPadding)
+	local bgpadding = bgpadding or WG.FlowUI.elementPadding
+	local cs = WG.FlowUI.elementCorner * (bgpadding/WG.FlowUI.elementPadding)
 	local glossMult = 1 + (2 - (opacity * 1.5))
 	local tileopacity = Spring.GetConfigFloat("ui_tileopacity", 0.012)
 	local bgtexScale = Spring.GetConfigFloat("ui_tilescale", 7)
-	local bgtexSize = math.floor(Spring.FlowUI.elementPadding * bgtexScale)
+	local bgtexSize = math.floor(WG.FlowUI.elementPadding * bgtexScale)
 
 	local tl = tl or 1
 	local tr = tr or 1
@@ -434,44 +434,44 @@ Spring.FlowUI.Draw.Element = function(px, py, sx, sy,  tl, tr, br, bl,  ptl, ptr
 
 	local pxPad = bgpadding * (px > 0 and 1 or 0) * (pbl or 1)
 	local pyPad = bgpadding * (py > 0 and 1 or 0) * (pbr or 1)
-	local sxPad = bgpadding * (sx < Spring.FlowUI.vsx and 1 or 0) * (ptr or 1)
-	local syPad = bgpadding * (sy < Spring.FlowUI.vsy and 1 or 0) * (ptl or 1)
+	local sxPad = bgpadding * (sx < WG.FlowUI.vsx and 1 or 0) * (ptr or 1)
+	local syPad = bgpadding * (sy < WG.FlowUI.vsy and 1 or 0) * (ptl or 1)
 
 	-- background
 	gl.Texture(false)
-	Spring.FlowUI.Draw.RectRound(px, py, sx, sy, cs, tl, tr, br, bl, { color1[1], color1[2], color1[3], color1[4] }, { color1[1], color1[2], color1[3], color1[4] })
+	WG.FlowUI.Draw.RectRound(px, py, sx, sy, cs, tl, tr, br, bl, { color1[1], color1[2], color1[3], color1[4] }, { color1[1], color1[2], color1[3], color1[4] })
 
 	cs = cs * 0.6
-	Spring.FlowUI.Draw.RectRound(px + pxPad, py + pyPad, sx - sxPad, sy - syPad, cs, tl, tr, br, bl, { color2[1]*0.33, color2[2]*0.33, color2[3]*0.33, color2[4] }, { color2[1], color2[2], color2[3], color2[4] })
+	WG.FlowUI.Draw.RectRound(px + pxPad, py + pyPad, sx - sxPad, sy - syPad, cs, tl, tr, br, bl, { color2[1]*0.33, color2[2]*0.33, color2[3]*0.33, color2[4] }, { color2[1], color2[2], color2[3], color2[4] })
 
 	-- gloss
 	gl.Blending(GL.SRC_ALPHA, GL.ONE)
-	local glossHeight = math.floor(0.02 * Spring.FlowUI.vsy * ui_scale)
+	local glossHeight = math.floor(0.02 * WG.FlowUI.vsy * ui_scale)
 	-- top
-	Spring.FlowUI.Draw.RectRound(px + pxPad, sy - syPad - glossHeight, sx - sxPad, sy - syPad, cs, tl, tr, 0, 0, { 1, 1, 1, 0 }, { 1, 1, 1, 0.07 * glossMult })
+	WG.FlowUI.Draw.RectRound(px + pxPad, sy - syPad - glossHeight, sx - sxPad, sy - syPad, cs, tl, tr, 0, 0, { 1, 1, 1, 0 }, { 1, 1, 1, 0.07 * glossMult })
 	-- bottom
-	Spring.FlowUI.Draw.RectRound(px + pxPad, py + pyPad, sx - sxPad, py + pyPad + glossHeight, cs, 0, 0, br, bl, { 1, 1, 1, 0.03 * glossMult }, { 1 ,1 ,1 , 0 })
+	WG.FlowUI.Draw.RectRound(px + pxPad, py + pyPad, sx - sxPad, py + pyPad + glossHeight, cs, 0, 0, br, bl, { 1, 1, 1, 0.03 * glossMult }, { 1 ,1 ,1 , 0 })
 
 	-- highlight edges thinly
 	-- top
-	Spring.FlowUI.Draw.RectRound(px + pxPad, sy - syPad - (cs*2.5), sx - sxPad, sy - syPad, cs, tl, tr, 0, 0, { 1, 1, 1, 0 }, { 1, 1, 1, 0.04 * glossMult })
+	WG.FlowUI.Draw.RectRound(px + pxPad, sy - syPad - (cs*2.5), sx - sxPad, sy - syPad, cs, tl, tr, 0, 0, { 1, 1, 1, 0 }, { 1, 1, 1, 0.04 * glossMult })
 	-- bottom
-	Spring.FlowUI.Draw.RectRound(px + pxPad, py + pyPad, sx - sxPad, py + pyPad + (cs*2), cs, 0, 0, br, bl, { 1, 1, 1, 0.02 * glossMult }, { 1 ,1 ,1 , 0 })
+	WG.FlowUI.Draw.RectRound(px + pxPad, py + pyPad, sx - sxPad, py + pyPad + (cs*2), cs, 0, 0, br, bl, { 1, 1, 1, 0.02 * glossMult }, { 1 ,1 ,1 , 0 })
 	-- left
-	--Spring.FlowUI.Draw.RectRound(px + pxPad, py + syPad, px + pxPad + (cs*2), sy - syPad, cs, tl, tr, 0, 0, { 1, 1, 1, 0.02 * glossMult }, { 1, 1, 1, 0 })
+	--WG.FlowUI.Draw.RectRound(px + pxPad, py + syPad, px + pxPad + (cs*2), sy - syPad, cs, tl, tr, 0, 0, { 1, 1, 1, 0.02 * glossMult }, { 1, 1, 1, 0 })
 	-- right
-	--Spring.FlowUI.Draw.RectRound(sx - sxPad - (cs*2), py + syPad, sx - sxPad, sy - syPad, cs, tl, tr, 0, 0, { 1, 1, 1, 0.02 * glossMult }, { 1, 1, 1, 0 })
+	--WG.FlowUI.Draw.RectRound(sx - sxPad - (cs*2), py + syPad, sx - sxPad, sy - syPad, cs, tl, tr, 0, 0, { 1, 1, 1, 0.02 * glossMult }, { 1, 1, 1, 0 })
 
-	--Spring.FlowUI.Draw.RectRound(px + (pxPad*1.6), sy - syPad - math.ceil(bgpadding*0.25), sx - (sxPad*1.6), sy - syPad, 0, tl, tr, 0, 0, { 1, 1, 1, 0.012 }, { 1, 1, 1, 0.07 * glossMult })
+	--WG.FlowUI.Draw.RectRound(px + (pxPad*1.6), sy - syPad - math.ceil(bgpadding*0.25), sx - (sxPad*1.6), sy - syPad, 0, tl, tr, 0, 0, { 1, 1, 1, 0.012 }, { 1, 1, 1, 0.07 * glossMult })
 	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 
 	-- darkening bottom
-	Spring.FlowUI.Draw.RectRound(px, py, sx, py + ((sy-py)*0.75), cs*1.66, 0, 0, br, bl, { 0,0,0, 0.05 * glossMult }, { 0,0,0, 0 })
+	WG.FlowUI.Draw.RectRound(px, py, sx, py + ((sy-py)*0.75), cs*1.66, 0, 0, br, bl, { 0,0,0, 0.05 * glossMult }, { 0,0,0, 0 })
 
 	-- tile
 	if tileopacity > 0 then
 		gl.Color(1,1,1, tileopacity)
-		Spring.FlowUI.Draw.TexturedRectRound(px + pxPad, py + pyPad, sx - sxPad, sy - syPad, cs, tl, tr, br, bl, bgtexSize, (px+pxPad)/Spring.FlowUI.vsx/bgtexSize, (py+pyPad)/Spring.FlowUI.vsy/bgtexSize, "luaui/images/backgroundtile.png")
+		WG.FlowUI.Draw.TexturedRectRound(px + pxPad, py + pyPad, sx - sxPad, sy - syPad, cs, tl, tr, br, bl, bgtexSize, (px+pxPad)/WG.FlowUI.vsx/bgtexSize, (py+pyPad)/WG.FlowUI.vsy/bgtexSize, "luaui/images/backgroundtile.png")
 	end
 end
 
@@ -487,11 +487,11 @@ end
 		color1, color2 = (color1[4] alpha value overrides opacity define above)
 		bgpadding = custom border size
 ]]
-Spring.FlowUI.Draw.Button = function(px, py, sx, sy,  tl, tr, br, bl,  ptl, ptr, pbr, pbl,  opacity, color1, color2, bgpadding)
+WG.FlowUI.Draw.Button = function(px, py, sx, sy,  tl, tr, br, bl,  ptl, ptr, pbr, pbl,  opacity, color1, color2, bgpadding)
 	local opacity = opacity or 1
 	local color1 = color1 or { 0, 0, 0, opacity}
 	local color2 = color2 or { 1, 1, 1, opacity * 0.1}
-	local bgpadding = math.floor(bgpadding or Spring.FlowUI.buttonPadding*0.5)
+	local bgpadding = math.floor(bgpadding or WG.FlowUI.buttonPadding*0.5)
 	local glossMult = 1 + (2 - (opacity * 1.5))
 
 	local tl = tl or 1
@@ -501,28 +501,28 @@ Spring.FlowUI.Draw.Button = function(px, py, sx, sy,  tl, tr, br, bl,  ptl, ptr,
 
 	local pxPad = bgpadding * (px > 0 and 1 or 0) * (pbl or 1)
 	local pyPad = bgpadding * (py > 0 and 1 or 0) * (pbr or 1)
-	local sxPad = bgpadding * (sx < Spring.FlowUI.vsx and 1 or 0) * (ptr or 1)
-	local syPad = bgpadding * (sy < Spring.FlowUI.vsy and 1 or 0) * (ptl or 1)
+	local sxPad = bgpadding * (sx < WG.FlowUI.vsx and 1 or 0) * (ptr or 1)
+	local syPad = bgpadding * (sy < WG.FlowUI.vsy and 1 or 0) * (ptl or 1)
 
 	-- background
 	gl.Texture(false)
-	Spring.FlowUI.Draw.RectRound(px, py, sx, sy, bgpadding * 1.6, tl, tr, br, bl, { color1[1], color1[2], color1[3], color1[4] }, { color2[1], color2[2], color2[3], color2[4] })
-	--Spring.FlowUI.Draw.RectRound(px + pxPad, py + pyPad, sx - sxPad, sy - syPad, bgpadding, tl, tr, br, bl, { color2[1]*0.33, color2[2]*0.33, color2[3]*0.33, color2[4] }, { color2[1], color2[2], color2[3], color2[4] })
+	WG.FlowUI.Draw.RectRound(px, py, sx, sy, bgpadding * 1.6, tl, tr, br, bl, { color1[1], color1[2], color1[3], color1[4] }, { color2[1], color2[2], color2[3], color2[4] })
+	--WG.FlowUI.Draw.RectRound(px + pxPad, py + pyPad, sx - sxPad, sy - syPad, bgpadding, tl, tr, br, bl, { color2[1]*0.33, color2[2]*0.33, color2[3]*0.33, color2[4] }, { color2[1], color2[2], color2[3], color2[4] })
 
 	-- highlight edges thinly
 	-- top
-	Spring.FlowUI.Draw.RectRound(px + pxPad, sy - syPad - (bgpadding*2.5), sx - sxPad, sy - syPad, bgpadding, tl, tr, 0, 0, { 1, 1, 1, 0 }, { 1, 1, 1, 0.04 * glossMult })
+	WG.FlowUI.Draw.RectRound(px + pxPad, sy - syPad - (bgpadding*2.5), sx - sxPad, sy - syPad, bgpadding, tl, tr, 0, 0, { 1, 1, 1, 0 }, { 1, 1, 1, 0.04 * glossMult })
 	-- bottom
-	Spring.FlowUI.Draw.RectRound(px + pxPad, py + pyPad, sx - sxPad, py + pyPad + (bgpadding*2), bgpadding, 0, 0, br, bl, { 1, 1, 1, 0.02 * glossMult }, { 1 ,1 ,1 , 0 })
+	WG.FlowUI.Draw.RectRound(px + pxPad, py + pyPad, sx - sxPad, py + pyPad + (bgpadding*2), bgpadding, 0, 0, br, bl, { 1, 1, 1, 0.02 * glossMult }, { 1 ,1 ,1 , 0 })
 
 	-- gloss
 	gl.Blending(GL.SRC_ALPHA, GL.ONE)
 	local glossHeight = math.floor((sy-py)*0.5)
-	Spring.FlowUI.Draw.RectRound(px + pxPad, sy - syPad - math.floor((sy-py)*0.5), sx - sxPad, sy - syPad, bgpadding, tl, tr, 0, 0, { 1, 1, 1, 0.03 }, { 1, 1, 1, 0.1 * glossMult })
-	Spring.FlowUI.Draw.RectRound(px + pxPad, py + pyPad, sx - sxPad, py + pyPad + glossHeight, bgpadding, 0, 0, br, bl, { 1, 1, 1, 0.03 * glossMult }, { 1 ,1 ,1 , 0 })
-	Spring.FlowUI.Draw.RectRound(px + pxPad, py + pyPad, sx - sxPad, py + pyPad + ((sy-py)*0.2), bgpadding, 0, 0, br, bl, { 1,1,1, 0.02 * glossMult }, { 1,1,1, 0 })
-	Spring.FlowUI.Draw.RectRound(px + pxPad, sy- ((sy-py)*0.5), sx - sxPad, sy, bgpadding, tl, tr, 0, 0, { 1,1,1, 0 }, { 1,1,1, 0.07 * glossMult })
-	Spring.FlowUI.Draw.RectRound(px + pxPad, py + pyPad, sx - sxPad, py + pyPad + ((sy-py)*0.5), bgpadding, 0, 0, br, bl, { 1,1,1, 0.05 * glossMult }, { 1,1,1, 0 })
+	WG.FlowUI.Draw.RectRound(px + pxPad, sy - syPad - math.floor((sy-py)*0.5), sx - sxPad, sy - syPad, bgpadding, tl, tr, 0, 0, { 1, 1, 1, 0.03 }, { 1, 1, 1, 0.1 * glossMult })
+	WG.FlowUI.Draw.RectRound(px + pxPad, py + pyPad, sx - sxPad, py + pyPad + glossHeight, bgpadding, 0, 0, br, bl, { 1, 1, 1, 0.03 * glossMult }, { 1 ,1 ,1 , 0 })
+	WG.FlowUI.Draw.RectRound(px + pxPad, py + pyPad, sx - sxPad, py + pyPad + ((sy-py)*0.2), bgpadding, 0, 0, br, bl, { 1,1,1, 0.02 * glossMult }, { 1,1,1, 0 })
+	WG.FlowUI.Draw.RectRound(px + pxPad, sy- ((sy-py)*0.5), sx - sxPad, sy, bgpadding, tl, tr, 0, 0, { 1,1,1, 0 }, { 1,1,1, 0.07 * glossMult })
+	WG.FlowUI.Draw.RectRound(px + pxPad, py + pyPad, sx - sxPad, py + pyPad + ((sy-py)*0.5), bgpadding, 0, 0, br, bl, { 1,1,1, 0.05 * glossMult }, { 1,1,1, 0 })
 	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 end
 
@@ -540,8 +540,8 @@ end
 		price = {metal, energy}
 		queueCount
 ]]
-Spring.FlowUI.Draw.Unit = function(px, py, sx, sy,  cs,  tl, tr, br, bl,  zoom,  borderSize, borderOpacity,  texture, radarTexture, groupTexture, price, queueCount)
-	local borderSize = borderSize~=nil and borderSize or math.min(math.max(1, math.floor((sx-px) * 0.024)), math.floor((Spring.FlowUI.vsy*0.0015)+0.5))	-- set default with upper limit
+WG.FlowUI.Draw.Unit = function(px, py, sx, sy,  cs,  tl, tr, br, bl,  zoom,  borderSize, borderOpacity,  texture, radarTexture, groupTexture, price, queueCount)
+	local borderSize = borderSize~=nil and borderSize or math.min(math.max(1, math.floor((sx-px) * 0.024)), math.floor((WG.FlowUI.vsy*0.0015)+0.5))	-- set default with upper limit
 	local cs = cs~=nil and cs or math.max(1, math.floor((sx-px) * 0.024))
 
 	local function DrawTexRectRound(px, py, sx, sy,  cs,  tl, tr, br, bl,  offset)
@@ -621,16 +621,16 @@ Spring.FlowUI.Draw.Unit = function(px, py, sx, sy,  cs,  tl, tr, br, bl,  zoom, 
 	end
 
 	-- darken gradually
-	Spring.FlowUI.Draw.RectRound(px, py, sx, sy, cs, 0, 0, 1, 1, { 0, 0, 0, 0.2 }, { 0, 0, 0, 0 })
+	WG.FlowUI.Draw.RectRound(px, py, sx, sy, cs, 0, 0, 1, 1, { 0, 0, 0, 0.2 }, { 0, 0, 0, 0 })
 
 	-- make shiny
 	gl.Blending(GL.SRC_ALPHA, GL.ONE)
-	Spring.FlowUI.Draw.RectRound(px, sy-((sy-py)*0.4), sx, sy, cs, 1,1,0,0,{1,1,1,0}, {1,1,1,0.06})
+	WG.FlowUI.Draw.RectRound(px, sy-((sy-py)*0.4), sx, sy, cs, 1,1,0,0,{1,1,1,0}, {1,1,1,0.06})
 
 	-- lighten feather edges
 	borderOpacity = borderOpacity or 0.1
 	local halfSize = ((sx-px) * 0.5)
-	Spring.FlowUI.Draw.RectRoundCircle(
+	WG.FlowUI.Draw.RectRoundCircle(
 		px + halfSize,
 		py + halfSize,
 		halfSize, cs*0.7, halfSize*0.82,
@@ -639,7 +639,7 @@ Spring.FlowUI.Draw.Unit = function(px, py, sx, sy,  cs,  tl, tr, br, bl,  zoom, 
 
 	-- border
 	if borderSize > 0 then
-		Spring.FlowUI.Draw.RectRoundCircle(
+		WG.FlowUI.Draw.RectRoundCircle(
 			px + halfSize,
 			py + halfSize,
 			halfSize, cs*0.7, halfSize - borderSize,
@@ -671,9 +671,9 @@ Spring.FlowUI.Draw.Unit = function(px, py, sx, sy,  cs,  tl, tr, br, bl,  zoom, 
 	if queueCount and queueCount > 0 then
 		local pad = math.floor(halfSize * 0.06)
 		--local textWidth = math.floor(font2:GetTextWidth(queueCount .. '  ') * halfSize * 0.57)
-		--Spring.FlowUI.Draw.RectRound(sx - pad - textWidth, sy + ((py-sy) * 0.365), sx, sy, cs * 3.3, 0, 0, 0, 1, { 0.15, 0.15, 0.15, 0.95 }, { 0.25, 0.25, 0.25, 0.95 })
-		--Spring.FlowUI.Draw.RectRound(sx - pad - textWidth, sy + ((py-sy) * 0.15), sx, sy, 0, 0, 0, 0, 0, { 1, 1, 1, 0 }, { 1, 1, 1, 0.05 })
-		--Spring.FlowUI.Draw.RectRound(sx - pad - textWidth + pad, sy + ((py-sy) * 0.365) + pad, sx, sy, cs * 2.6, 0, 0, 0, 1, { 0.7, 0.7, 0.7, 0.1 }, { 1, 1, 1, 0.1 })
+		--WG.FlowUI.Draw.RectRound(sx - pad - textWidth, sy + ((py-sy) * 0.365), sx, sy, cs * 3.3, 0, 0, 0, 1, { 0.15, 0.15, 0.15, 0.95 }, { 0.25, 0.25, 0.25, 0.95 })
+		--WG.FlowUI.Draw.RectRound(sx - pad - textWidth, sy + ((py-sy) * 0.15), sx, sy, 0, 0, 0, 0, 0, { 1, 1, 1, 0 }, { 1, 1, 1, 0.05 })
+		--WG.FlowUI.Draw.RectRound(sx - pad - textWidth + pad, sy + ((py-sy) * 0.365) + pad, sx, sy, cs * 2.6, 0, 0, 0, 1, { 0.7, 0.7, 0.7, 0.1 }, { 1, 1, 1, 0.1 })
 		--font2:Print("\255\190\255\190" .. queueCount,
 		--	px + (halfSize * 1.88) - pad2,
 		--	py + (halfSize * 1.43) - pad2,
@@ -691,7 +691,7 @@ end
 	optional
 		position = (default: 0) current content height position
 ]]
-Spring.FlowUI.Draw.Scroller = function(px, py, sx, sy, contentHeight, position)
+WG.FlowUI.Draw.Scroller = function(px, py, sx, sy, contentHeight, position)
 	local padding = math.floor(((sx-px)*0.25) + 0.5)
 	local sliderAreaHeight = sy - py - padding - padding
 	local sliderHeight = sliderAreaHeight / contentHeight
@@ -701,14 +701,14 @@ Spring.FlowUI.Draw.Scroller = function(px, py, sx, sy, contentHeight, position)
 		local sliderPos = sy - padding - math.floor((sliderAreaHeight * (position / contentHeight)) + 0.5)
 
 		-- background
-		Spring.FlowUI.Draw.RectRound(px, py, sx, sy, (sx-px)*0.2, 1,1,1,1, { 0,0,0,0.2 })
+		WG.FlowUI.Draw.RectRound(px, py, sx, sy, (sx-px)*0.2, 1,1,1,1, { 0,0,0,0.2 })
 
 		-- slider
 		local cs = (sx-px-padding-padding)*0.2
 		if cs > sliderHeight*0.5 then
 			cs = sliderHeight*0.5
 		end
-		Spring.FlowUI.Draw.RectRound(px+padding, sliderPos-sliderHeight, sx-padding, sliderPos, cs, 1,1,1,1, { 1, 1, 1, 0.16 })
+		WG.FlowUI.Draw.RectRound(px+padding, sliderPos-sliderHeight, sx-padding, sliderPos, cs, 1,1,1,1, { 1, 1, 1, 0.16 })
 	end
 end
 
@@ -720,21 +720,21 @@ end
 	optional
 		state = (default: 0) 0 / 0.5 / 1
 ]]
-Spring.FlowUI.Draw.Toggle = function(px, py, sx, sy, state)
+WG.FlowUI.Draw.Toggle = function(px, py, sx, sy, state)
 	local cs = (sy-py)*0.1
 	local edgeWidth = math.max(1, math.floor((sy-py) * 0.1))
 
 	-- faint dark outline edge
-	Spring.FlowUI.Draw.RectRound(px-edgeWidth, py-edgeWidth, sx+edgeWidth, sy+edgeWidth, cs*1.5, 1,1,1,1, { 0,0,0,0.05 })
+	WG.FlowUI.Draw.RectRound(px-edgeWidth, py-edgeWidth, sx+edgeWidth, sy+edgeWidth, cs*1.5, 1,1,1,1, { 0,0,0,0.05 })
 	-- top
-	Spring.FlowUI.Draw.RectRound(px, py, sx, sy, cs, 1,1,1,1, { 0.5, 0.5, 0.5, 0.12 }, { 1, 1, 1, 0.12 })
+	WG.FlowUI.Draw.RectRound(px, py, sx, sy, cs, 1,1,1,1, { 0.5, 0.5, 0.5, 0.12 }, { 1, 1, 1, 0.12 })
 
 	-- highlight
 	gl.Blending(GL.SRC_ALPHA, GL.ONE)
 	-- top
-	Spring.FlowUI.Draw.RectRound(px, sy-(edgeWidth*3), sx, sy, edgeWidth, 1,1,1,1, { 1,1,1,0 }, { 1,1,1,0.035 })
+	WG.FlowUI.Draw.RectRound(px, sy-(edgeWidth*3), sx, sy, edgeWidth, 1,1,1,1, { 1,1,1,0 }, { 1,1,1,0.035 })
 	-- bottom
-	Spring.FlowUI.Draw.RectRound(px, py, sx, py+(edgeWidth*3), edgeWidth, 1,1,1,1, { 1,1,1,0.025 }, { 1,1,1,0  })
+	WG.FlowUI.Draw.RectRound(px, py, sx, py+(edgeWidth*3), edgeWidth, 1,1,1,1, { 1,1,1,0.025 }, { 1,1,1,0  })
 	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 
 	-- draw state
@@ -755,7 +755,7 @@ Spring.FlowUI.Draw.Toggle = function(px, py, sx, sy, state)
 		color = {1,0.9,0.7,1}
 		glowMult = 0.6
 	end
-	Spring.FlowUI.Draw.SliderKnob(x, y, radius, color)
+	WG.FlowUI.Draw.SliderKnob(x, y, radius, color)
 
 	if glowMult > 0 then
 		local boolGlow = radius * 1.75
@@ -779,18 +779,18 @@ end
 	optional
 		color
 ]]
-Spring.FlowUI.Draw.SliderKnob = function(x, y, radius, color)
+WG.FlowUI.Draw.SliderKnob = function(x, y, radius, color)
 	local color = color or {0.95,0.95,0.95,1}
 	local color1 = {color[1]*0.55, color[2]*0.55, color[3]*0.55, color[4]}
 	local edgeWidth = math.max(1, math.floor(radius * 0.05))
 	local cs = math.max(1.1, radius*0.15)
 
 	-- faint dark outline edge
-	Spring.FlowUI.Draw.RectRound(x-radius-edgeWidth, y-radius-edgeWidth, x+radius+edgeWidth, y+radius+edgeWidth, cs, 1,1,1,1, {0,0,0,0.1})
+	WG.FlowUI.Draw.RectRound(x-radius-edgeWidth, y-radius-edgeWidth, x+radius+edgeWidth, y+radius+edgeWidth, cs, 1,1,1,1, {0,0,0,0.1})
 	-- knob
-	Spring.FlowUI.Draw.RectRound(x-radius, y-radius, x+radius, y+radius, cs, 1,1,1,1, color1, color)
+	WG.FlowUI.Draw.RectRound(x-radius, y-radius, x+radius, y+radius, cs, 1,1,1,1, color1, color)
 	-- lighten knob inside edges
-	Spring.FlowUI.Draw.RectRoundCircle(x, y, radius, cs*0.5, radius*0.85, {1,1,1,0.1})
+	WG.FlowUI.Draw.RectRoundCircle(x, y, radius, cs*0.5, radius*0.85, {1,1,1,0.1})
 end
 
 --[[
@@ -801,15 +801,15 @@ end
 		steps = either a table of values or a number of smallest step size
 		min, max = when steps is number: min/max scope of steps
 ]]
-Spring.FlowUI.Draw.Slider = function(px, py, sx, sy, steps, min, max)
+WG.FlowUI.Draw.Slider = function(px, py, sx, sy, steps, min, max)
 	local cs = (sy-py)*0.25
 	local edgeWidth = math.max(1, math.floor((sy-py) * 0.1))
 	-- faint dark outline edge
-	Spring.FlowUI.Draw.RectRound(px-edgeWidth, py-edgeWidth, sx+edgeWidth, sy+edgeWidth, cs*1.5, 1,1,1,1, { 0,0,0,0.05 })
+	WG.FlowUI.Draw.RectRound(px-edgeWidth, py-edgeWidth, sx+edgeWidth, sy+edgeWidth, cs*1.5, 1,1,1,1, { 0,0,0,0.05 })
 	-- top
-	Spring.FlowUI.Draw.RectRound(px, py, sx, sy, cs, 1,1,1,1, { 0.1, 0.1, 0.1, 0.22 }, { 0.9,0.9,0.9, 0.22 })
+	WG.FlowUI.Draw.RectRound(px, py, sx, sy, cs, 1,1,1,1, { 0.1, 0.1, 0.1, 0.22 }, { 0.9,0.9,0.9, 0.22 })
 	-- bottom
-	Spring.FlowUI.Draw.RectRound(px, py, sx, sy, cs, 1,1,1,1, { 1, 1, 1, 0.1 }, { 1, 1, 1, 0 })
+	WG.FlowUI.Draw.RectRound(px, py, sx, sy, cs, 1,1,1,1, { 1, 1, 1, 0.1 }, { 1, 1, 1, 0 })
 
 	-- steps
 	if steps then
@@ -840,7 +840,7 @@ Spring.FlowUI.Draw.Slider = function(px, py, sx, sy, steps, min, max)
 			local stepSizeLeft = math.max(1, math.floor(sliderWidth*0.01))
 			local stepSizeRight = math.floor(sliderWidth*0.005)
 			for _,posX in pairs(processedSteps) do
-				Spring.FlowUI.Draw.RectRound(posX-stepSizeLeft, py+1, posX+stepSizeRight, sy-1, stepSizeLeft, 1,1,1,1, { 0.12,0.12,0.12,0.22 }, { 0,0,0,0.22 })
+				WG.FlowUI.Draw.RectRound(posX-stepSizeLeft, py+1, posX+stepSizeRight, sy-1, stepSizeLeft, 1,1,1,1, { 0.12,0.12,0.12,0.22 }, { 0,0,0,0.22 })
 			end
 		end
 	end
@@ -848,9 +848,9 @@ Spring.FlowUI.Draw.Slider = function(px, py, sx, sy, steps, min, max)
 	-- add highlight
 	gl.Blending(GL.SRC_ALPHA, GL.ONE)
 	-- top
-	Spring.FlowUI.Draw.RectRound(px, sy-edgeWidth-edgeWidth, sx, sy, edgeWidth, 1,1,1,1, { 1,1,1,0 }, { 1,1,1,0.06 })
+	WG.FlowUI.Draw.RectRound(px, sy-edgeWidth-edgeWidth, sx, sy, edgeWidth, 1,1,1,1, { 1,1,1,0 }, { 1,1,1,0.06 })
 	-- bottom
-	Spring.FlowUI.Draw.RectRound(px, py, sx, py+edgeWidth+edgeWidth, edgeWidth, 1,1,1,1, { 1,1,1,0 }, { 1,1,1,0.04 })
+	WG.FlowUI.Draw.RectRound(px, py, sx, py+edgeWidth+edgeWidth, edgeWidth, 1,1,1,1, { 1,1,1,0 }, { 1,1,1,0.04 })
 	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 end
 
@@ -860,26 +860,26 @@ end
 	params
 		px, py, sx, sy = left, bottom, right, top
 ]]
-Spring.FlowUI.Draw.Selector = function(px, py, sx, sy)
+WG.FlowUI.Draw.Selector = function(px, py, sx, sy)
 	local cs = (sy-py)*0.1
 	local edgeWidth = math.max(1, math.floor((sy-py) * 0.1))
 
 	-- faint dark outline edge
-	Spring.FlowUI.Draw.RectRound(px-edgeWidth, py-edgeWidth, sx+edgeWidth, sy+edgeWidth, cs*1.5, 1,1,1,1, { 0,0,0,0.05 })
+	WG.FlowUI.Draw.RectRound(px-edgeWidth, py-edgeWidth, sx+edgeWidth, sy+edgeWidth, cs*1.5, 1,1,1,1, { 0,0,0,0.05 })
 	-- body
-	Spring.FlowUI.Draw.RectRound(px, py, sx, sy, cs, 1,1,1,1, { 0.5, 0.5, 0.5, 0.12 }, { 1, 1, 1, 0.12 })
+	WG.FlowUI.Draw.RectRound(px, py, sx, sy, cs, 1,1,1,1, { 0.5, 0.5, 0.5, 0.12 }, { 1, 1, 1, 0.12 })
 
 	-- highlight
 	gl.Blending(GL.SRC_ALPHA, GL.ONE)
 	-- top
-	Spring.FlowUI.Draw.RectRound(px, sy-(edgeWidth*3), sx, sy, edgeWidth, 1,1,1,1, { 1,1,1,0 }, { 1,1,1,0.035 })
+	WG.FlowUI.Draw.RectRound(px, sy-(edgeWidth*3), sx, sy, edgeWidth, 1,1,1,1, { 1,1,1,0 }, { 1,1,1,0.035 })
 	-- bottom
-	Spring.FlowUI.Draw.RectRound(px, py, sx, py+(edgeWidth*3), edgeWidth, 1,1,1,1, { 1,1,1,0.025 }, { 1,1,1,0  })
+	WG.FlowUI.Draw.RectRound(px, py, sx, py+(edgeWidth*3), edgeWidth, 1,1,1,1, { 1,1,1,0.025 }, { 1,1,1,0  })
 	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 
 	-- button
-	Spring.FlowUI.Draw.RectRound(sx-(sy-py), py, sx, sy, cs, 1, 1, 1, 1, { 1, 1, 1, 0.06 }, { 1, 1, 1, 0.14 })
-	--Spring.FlowUI.Draw.Button(sx-(sy-py), py, sx, sy, 1, 1, 1, 1, 1,1,1,1, nil, { 1, 1, 1, 0.1 }, nil, cs)
+	WG.FlowUI.Draw.RectRound(sx-(sy-py), py, sx, sy, cs, 1, 1, 1, 1, { 1, 1, 1, 0.06 }, { 1, 1, 1, 0.14 })
+	--WG.FlowUI.Draw.Button(sx-(sy-py), py, sx, sy, 1, 1, 1, 1, 1,1,1,1, nil, { 1, 1, 1, 0.1 }, nil, cs)
 end
 
 --[[
@@ -892,23 +892,23 @@ end
 		opacity
 		color = {1,1,1}
 ]]
-Spring.FlowUI.Draw.SelectHighlight = function(px, py, sx, sy,  cs, opacity, color)
+WG.FlowUI.Draw.SelectHighlight = function(px, py, sx, sy,  cs, opacity, color)
 	local cs = cs or (sy-py)*0.08
-	local edgeWidth = math.max(1, math.floor((Spring.FlowUI.vsy*0.001)))
+	local edgeWidth = math.max(1, math.floor((WG.FlowUI.vsy*0.001)))
 	local opacity = opacity or 0.35
 	local color = color or {1,1,1}
 
 	-- faint dark outline edge
-	Spring.FlowUI.Draw.RectRound(px-edgeWidth, py-edgeWidth, sx+edgeWidth, sy+edgeWidth, cs*1.5, 1,1,1,1, { 0,0,0,0.05 })
+	WG.FlowUI.Draw.RectRound(px-edgeWidth, py-edgeWidth, sx+edgeWidth, sy+edgeWidth, cs*1.5, 1,1,1,1, { 0,0,0,0.05 })
 	-- body
-	Spring.FlowUI.Draw.RectRound(px, py, sx, sy, cs, 1,1,1,1, { color[1]*0.5, color[2]*0.5, color[3]*0.5, opacity }, { color[1], color[2], color[3], opacity })
+	WG.FlowUI.Draw.RectRound(px, py, sx, sy, cs, 1,1,1,1, { color[1]*0.5, color[2]*0.5, color[3]*0.5, opacity }, { color[1], color[2], color[3], opacity })
 
 	-- highlight
 	gl.Blending(GL.SRC_ALPHA, GL.ONE)
 	-- top
-	Spring.FlowUI.Draw.RectRound(px, sy-(edgeWidth*3), sx, sy, edgeWidth, 1,1,1,1, { 1,1,1,0 }, { 1,1,1,0.03 + (0.18*opacity) })
+	WG.FlowUI.Draw.RectRound(px, sy-(edgeWidth*3), sx, sy, edgeWidth, 1,1,1,1, { 1,1,1,0 }, { 1,1,1,0.03 + (0.18*opacity) })
 	-- bottom
-	Spring.FlowUI.Draw.RectRound(px, py, sx, py+(edgeWidth*3), edgeWidth, 1,1,1,1, { 1,1,1,0.015 + (0.06*opacity) }, { 1,1,1,0  })
+	WG.FlowUI.Draw.RectRound(px, py, sx, py+(edgeWidth*3), edgeWidth, 1,1,1,1, { 1,1,1,0.015 + (0.06*opacity) }, { 1,1,1,0  })
 	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 end
 

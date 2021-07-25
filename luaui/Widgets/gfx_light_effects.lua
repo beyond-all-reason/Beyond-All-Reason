@@ -1,5 +1,3 @@
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
 
 function widget:GetInfo()
 	return {
@@ -13,9 +11,6 @@ function widget:GetInfo()
 		enabled   = true,
 	}
 end
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
 
 local spGetProjectilesInRectangle	= Spring.GetProjectilesInRectangle
 local spGetVisibleProjectiles		= Spring.GetVisibleProjectiles
@@ -36,26 +31,23 @@ local math_min = math.min
 local math_max = math.max
 local math_floor = math.floor
 
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
 -- Local Variables
 local previousProjectileDrawParams
 local fadeProjectiles, fadeProjectileTimes = {}, {}
 
 --------------------------------------------------------------------------------
---------------------------------------------------------------------------------
 -- Config
+--------------------------------------------------------------------------------
 
 local useLOD = false		-- Reduces the number of lights drawn based on camera distance and current fps.
 local projectileFade = true
 local FADE_TIME = 5
 
-
 local overrideParam = {r = 1, g = 1, b = 1, radius = 200}
 local doOverride = false
 
 local globalLightMult = 1.5
-local globalRadiusMult = 1.45
+local globalRadiusMult = 1.4
 local globalLightMultLaser = 1.35	-- gets applied on top op globalRadiusMult
 local globalRadiusMultLaser = 0.9	-- gets applied on top op globalRadiusMult
 local globalLifeMult = 0.55

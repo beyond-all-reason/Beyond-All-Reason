@@ -72,9 +72,9 @@ function widget:ViewResize()
 	widgetScale = (((vsx+vsy) / 2000) * 0.55) * (0.95+(ui_scale-1)/1.5)
 	lineMaxWidth = lineMaxWidth * widgetScale
 
-	elementCorner = Spring.FlowUI.elementCorner
+	elementCorner = WG.FlowUI.elementCorner
 
-	RectRound = Spring.FlowUI.Draw.RectRound
+	RectRound = WG.FlowUI.Draw.RectRound
 
 	font = WG['fonts'].getFont(nil, 1, 0.18, 1.4)
 

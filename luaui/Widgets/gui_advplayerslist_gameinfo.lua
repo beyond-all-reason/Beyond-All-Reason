@@ -206,10 +206,10 @@ function widget:ViewResize(newX,newY)
 
 	font = WG['fonts'].getFont(fontfile)
 
-	elementCorner = Spring.FlowUI.elementCorner
+	elementCorner = WG.FlowUI.elementCorner
 
-	RectRound = Spring.FlowUI.Draw.RectRound
-	UiElement = Spring.FlowUI.Draw.Element
+	RectRound = WG.FlowUI.Draw.RectRound
+	UiElement = WG.FlowUI.Draw.Element
 
 	if prevVsy ~= vsx or prevVsy ~= vsy then
 		updateValues()

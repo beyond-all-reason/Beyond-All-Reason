@@ -148,10 +148,10 @@ function widget:ViewResize(x, y)
 
 	font = WG['fonts'].getFont(fontfile)
 
-	bgpadding = math.ceil(Spring.FlowUI.elementPadding * 0.66)
+	bgpadding = math.ceil(WG.FlowUI.elementPadding * 0.66)
 
-	RectRound = Spring.FlowUI.Draw.RectRound
-	UiElement = Spring.FlowUI.Draw.Element
+	RectRound = WG.FlowUI.Draw.RectRound
+	UiElement = WG.FlowUI.Draw.Element
 
 	init()
 end

@@ -76,14 +76,14 @@ function widget:ViewResize()
 	font2 = WG['fonts'].getFont(nil, 1.3, 0.35, 1.4)
 	font = WG['fonts'].getFont(fontFile, 1.15, 0.35, 1.25)
 
-	elementCorner = Spring.FlowUI.elementCorner
-	backgroundPadding = Spring.FlowUI.elementPadding
-	widgetSpaceMargin = Spring.FlowUI.elementMargin
+	elementCorner = WG.FlowUI.elementCorner
+	backgroundPadding = WG.FlowUI.elementPadding
+	widgetSpaceMargin = WG.FlowUI.elementMargin
 
-	RectRound = Spring.FlowUI.Draw.RectRound
-	UiElement = Spring.FlowUI.Draw.Element
-	UiButton = Spring.FlowUI.Draw.Button
-	UiUnit = Spring.FlowUI.Draw.Unit
+	RectRound = WG.FlowUI.Draw.RectRound
+	UiElement = WG.FlowUI.Draw.Element
+	UiButton = WG.FlowUI.Draw.Button
+	UiUnit = WG.FlowUI.Draw.Unit
 
 	if WG['buildmenu'] then
 		buildmenuBottomPosition = WG['buildmenu'].getBottomPosition()

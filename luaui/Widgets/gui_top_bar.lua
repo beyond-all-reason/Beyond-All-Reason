@@ -202,14 +202,14 @@ function widget:ViewResize()
 	widgetScale = widgetScale * ui_scale
 	xPos = math_floor(vsx * relXpos)
 
-	widgetSpaceMargin = Spring.FlowUI.elementMargin
-	bgpadding = Spring.FlowUI.elementPadding
+	widgetSpaceMargin = WG.FlowUI.elementMargin
+	bgpadding = WG.FlowUI.elementPadding
 
-	RectRound = Spring.FlowUI.Draw.RectRound
-	TexturedRectRound = Spring.FlowUI.Draw.TexturedRectRound
-	UiElement = Spring.FlowUI.Draw.Element
-	UiButton = Spring.FlowUI.Draw.Button
-	UiSliderKnob = Spring.FlowUI.Draw.SliderKnob
+	RectRound = WG.FlowUI.Draw.RectRound
+	TexturedRectRound = WG.FlowUI.Draw.TexturedRectRound
+	UiElement = WG.FlowUI.Draw.Element
+	UiButton = WG.FlowUI.Draw.Button
+	UiSliderKnob = WG.FlowUI.Draw.SliderKnob
 
 	bgtexSize = bgpadding * bgtexScale
 	buttonBgtexSize = bgpadding * buttonBgtexScale

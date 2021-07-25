@@ -310,9 +310,9 @@ function widget:ViewResize(n_vsx, n_vsy)
 
 	sizeMultiplier = 0.66 + (vsx * vsy / 6500000) * customScale
 
-	RectRound = Spring.FlowUI.Draw.RectRound
-	UiElement = Spring.FlowUI.Draw.Element
-	UiSelectHighlight = Spring.FlowUI.Draw.SelectHighlight
+	RectRound = WG.FlowUI.Draw.RectRound
+	UiElement = WG.FlowUI.Draw.Element
+	UiSelectHighlight = WG.FlowUI.Draw.SelectHighlight
 
 	UpdateGeometry()
 end

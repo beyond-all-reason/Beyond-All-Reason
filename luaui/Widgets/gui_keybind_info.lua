@@ -135,7 +135,7 @@ local glCreateList = gl.CreateList
 local glCallList = gl.CallList
 local glDeleteList = gl.DeleteList
 
-local RectRound, UiElement, elementCorner = Spring.FlowUI.elementCorner
+local RectRound, UiElement, elementCorner = WG.FlowUI.elementCorner
 
 local showOnceMore = false
 
@@ -247,10 +247,10 @@ function widget:ViewResize()
 
 	font = WG['fonts'].getFont()
 	font2 = WG['fonts'].getFont(fontfile2)
-	elementCorner = Spring.FlowUI.elementCorner
+	elementCorner = WG.FlowUI.elementCorner
 
-	RectRound = Spring.FlowUI.Draw.RectRound
-	UiElement = Spring.FlowUI.Draw.Element
+	RectRound = WG.FlowUI.Draw.RectRound
+	UiElement = WG.FlowUI.Draw.Element
 
 	if keybinds then
 		gl.DeleteList(keybinds)
