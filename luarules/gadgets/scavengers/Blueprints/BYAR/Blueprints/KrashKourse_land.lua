@@ -480,7 +480,7 @@ local function ROCKET_STATION()
 	}
 end
 
-local function Snake Missle()
+local function Snake_Missle()
 	return {
 		type = types.Land,
 		tiers = { tiers.T2, tiers.T3, tiers.T4 },
@@ -506,7 +506,7 @@ local function Snake Missle()
 	}
 end
 
-local function Power fort 1()
+local function Power_fort_1()
 	return {
 		type = types.Land,
 		tiers = { tiers.T2, tiers.T3, tiers.T4 },
@@ -534,7 +534,7 @@ local function Power fort 1()
 	}
 end
 
-local function Power fort 2()
+local function Power_fort_2()
 	return {
 		type = types.Land,
 		tiers = { tiers.T2, tiers.T3, tiers.T4 },
@@ -572,7 +572,7 @@ local function Power fort 2()
 	}
 end
 
-local function T1 short def()
+local function T1_short_def()
 	return {
 		type = types.Land,
 		tiers = { tiers.T0, tiers.T1, tiers.T2, tiers.T3, tiers.T4 },
@@ -589,7 +589,7 @@ local function T1 short def()
 	}
 end
 
-local function Punisher wall()
+local function Punisher_wall()
 	return {
 		type = types.Land,
 		tiers = { tiers.T1, tiers.T2, tiers.T3, tiers.T4 },
@@ -613,7 +613,7 @@ local function Punisher wall()
 	}
 end
 
-local function T1 long def()
+local function T1_long_def()
 	return {
 		type = types.Land,
 		tiers = { tiers.T0, tiers.T1, tiers.T2, tiers.T3, tiers.T4 },
@@ -636,7 +636,7 @@ local function T1 long def()
 	}
 end
 
-local function T1 short def()
+local function T1_short_def()
 	return {
 		type = types.Land,
 		tiers = { tiers.T0, tiers.T1, tiers.T2, tiers.T3, tiers.T4 },
@@ -674,4 +674,11 @@ return {
     EMP_LASER,
     CLOAKED_FORT,
     ROCKET_STATION,
+    Snake_Missle,
+	Power_fort_1,
+    Power_fort_2,
+    T1_short_def,
+    Punisher_wall,
+    T1_long_def,
+    T1_short_def,
 }
