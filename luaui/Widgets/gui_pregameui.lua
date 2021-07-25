@@ -202,9 +202,13 @@ end
 
 function widget:Initialize()
 	if mySpec then
-		local tsMu = "30"--customtable.skill
-		local tsSigma = "0"--customtable.skilluncertainty
-		eligibleAsSub = tsMu and tsSigma and (tsSigma <= 2) and (not string.find(tsMu, ")")) and mySpec
+		eligibleAsSub = mySpec
+		-- TODO: ...check if you're eligible at all for any of the players
+		--local customtable = select(11, Spring.GetPlayerInfo(myPlayerID))
+		--if type(customtable) == 'table' then
+		--	local tsMu = customtable.skill
+		--	local tsSigma = customtable.skilluncertainty
+		--end
 		if numPlayers <= 4 or isReplay or (tonumber(Spring.GetModOptions().ffa_mode) or 0) == 1 or Spring.GetGameFrame() > 0 then
 			eligibleAsSub = false
 		end
