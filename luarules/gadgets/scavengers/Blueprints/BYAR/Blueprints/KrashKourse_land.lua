@@ -480,6 +480,204 @@ local function ROCKET_STATION()
 	}
 end
 
+local function Snake Missle()
+	return {
+		type = types.Land,
+		tiers = { tiers.T2, tiers.T3, tiers.T4 },
+		radius = 118,
+		buildings = {
+			{ unitDefID = UnitDefNames.corscavfort_scav.id, xOffset = -2, zOffset = 67, direction = 1},
+			{ unitDefID = UnitDefNames.corscavfort_scav.id, xOffset = 30, zOffset = -29, direction = 1},
+			{ unitDefID = UnitDefNames.corscavfort_scav.id, xOffset = 30, zOffset = 3, direction = 1},
+			{ unitDefID = UnitDefNames.corscavfort_scav.id, xOffset = -66, zOffset = 35, direction = 1},
+			{ unitDefID = UnitDefNames.corscavfort_scav.id, xOffset = 30, zOffset = 67, direction = 1},
+			{ unitDefID = UnitDefNames.corscavfort_scav.id, xOffset = -34, zOffset = -29, direction = 1},
+			{ unitDefID = UnitDefNames.corscavfort_scav.id, xOffset = -34, zOffset = 67, direction = 1},
+			{ unitDefID = UnitDefNames.corscavfort_scav.id, xOffset = -2, zOffset = -29, direction = 1},
+			{ unitDefID = UnitDefNames.corscavfort_scav.id, xOffset = -66, zOffset = -29, direction = 1},
+			{ unitDefID = UnitDefNames.corscavfort_scav.id, xOffset = -66, zOffset = 3, direction = 1},
+			{ unitDefID = UnitDefNames.corscavfort_scav.id, xOffset = -66, zOffset = 67, direction = 1},
+			{ unitDefID = UnitDefNames.corscavfort_scav.id, xOffset = 30, zOffset = 35, direction = 1},
+			{ unitDefID = UnitDefNames.corvipe_scav.id, xOffset = 6, zOffset = -117, direction = 1},
+			{ unitDefID = UnitDefNames.corvipe_scav.id, xOffset = 118, zOffset = -117, direction = 1},
+			{ unitDefID = UnitDefNames.corvipe_scav.id, xOffset = 118, zOffset = -5, direction = 1},
+			{ unitDefID = UnitDefNames.cortron_scav.id, xOffset = -18, zOffset = 19, direction = 1},
+		},
+	}
+end
+
+local function Power fort 1()
+	return {
+		type = types.Land,
+		tiers = { tiers.T2, tiers.T3, tiers.T4 },
+		radius = 188,
+		buildings = {
+			{ unitDefID = UnitDefNames.coreyes_scav.id, xOffset = 180, zOffset = -108, direction = 1},
+			{ unitDefID = UnitDefNames.coreyes_scav.id, xOffset = -108, zOffset = 164, direction = 1},
+			{ unitDefID = UnitDefNames.coreyes_scav.id, xOffset = 52, zOffset = 20, direction = 1},
+			{ unitDefID = BPWallOrPopup('scav'), xOffset = -132, zOffset = 172, direction = 1},
+			{ unitDefID = BPWallOrPopup('scav'), xOffset = 124, zOffset = -68, direction = 1},
+			{ unitDefID = BPWallOrPopup('scav'), xOffset = -4, zOffset = 44, direction = 1},
+			{ unitDefID = BPWallOrPopup('scav'), xOffset = -36, zOffset = 76, direction = 1},
+			{ unitDefID = BPWallOrPopup('scav'), xOffset = 188, zOffset = -132, direction = 1},
+			{ unitDefID = BPWallOrPopup('scav'), xOffset = 60, zOffset = -4, direction = 1},
+			{ unitDefID = BPWallOrPopup('scav'), xOffset = 92, zOffset = -36, direction = 1},
+			{ unitDefID = BPWallOrPopup('scav'), xOffset = 28, zOffset = 28, direction = 1},
+			{ unitDefID = BPWallOrPopup('scav'), xOffset = -68, zOffset = 108, direction = 1},
+			{ unitDefID = BPWallOrPopup('scav'), xOffset = 156, zOffset = -100, direction = 1},
+			{ unitDefID = BPWallOrPopup('scav'), xOffset = -100, zOffset = 140, direction = 1},
+			{ unitDefID = UnitDefNames.corscreamer_scav.id, xOffset = -148, zOffset = -116, direction = 1},
+			{ unitDefID = UnitDefNames.cortoast_scav.id, xOffset = 4, zOffset = -156, direction = 1},
+			{ unitDefID = UnitDefNames.cortoast_scav.id, xOffset = -92, zOffset = -60, direction = 1},
+			{ unitDefID = UnitDefNames.cortoast_scav.id, xOffset = -188, zOffset = 36, direction = 1},
+		},
+	}
+end
+
+local function Power fort 2()
+	return {
+		type = types.Land,
+		tiers = { tiers.T2, tiers.T3, tiers.T4 },
+		radius = 172,
+		buildings = {
+			{ unitDefID = BPWallOrPopup('scav'), xOffset = 124, zOffset = 108, direction = 1},
+			{ unitDefID = BPWallOrPopup('scav'), xOffset = -4, zOffset = -20, direction = 1},
+			{ unitDefID = BPWallOrPopup('scav'), xOffset = 124, zOffset = 172, direction = 1},
+			{ unitDefID = BPWallOrPopup('scav'), xOffset = 92, zOffset = 172, direction = 1},
+			{ unitDefID = BPWallOrPopup('scav'), xOffset = 124, zOffset = -68, direction = 1},
+			{ unitDefID = BPWallOrPopup('scav'), xOffset = 124, zOffset = -132, direction = 1},
+			{ unitDefID = BPWallOrPopup('scav'), xOffset = 124, zOffset = -164, direction = 1},
+			{ unitDefID = BPWallOrPopup('scav'), xOffset = 92, zOffset = 76, direction = 1},
+			{ unitDefID = BPWallOrPopup('scav'), xOffset = 92, zOffset = -68, direction = 1},
+			{ unitDefID = BPWallOrPopup('scav'), xOffset = -4, zOffset = -52, direction = 1},
+			{ unitDefID = BPWallOrPopup('scav'), xOffset = -36, zOffset = -52, direction = 1},
+			{ unitDefID = BPWallOrPopup('scav'), xOffset = 124, zOffset = 76, direction = 1},
+			{ unitDefID = BPWallOrPopup('scav'), xOffset = 124, zOffset = -100, direction = 1},
+			{ unitDefID = BPWallOrPopup('scav'), xOffset = -4, zOffset = 12, direction = 1},
+			{ unitDefID = BPWallOrPopup('scav'), xOffset = 124, zOffset = 140, direction = 1},
+			{ unitDefID = BPWallOrPopup('scav'), xOffset = -4, zOffset = 44, direction = 1},
+			{ unitDefID = BPWallOrPopup('scav'), xOffset = 92, zOffset = -164, direction = 1},
+			{ unitDefID = BPWallOrPopup('scav'), xOffset = -36, zOffset = 44, direction = 1},
+			{ unitDefID = UnitDefNames.corscavfort_scav.id, xOffset = -212, zOffset = 28, direction = 1},
+			{ unitDefID = UnitDefNames.corscavfort_scav.id, xOffset = -164, zOffset = -4, direction = 1},
+			{ unitDefID = UnitDefNames.corscavfort_scav.id, xOffset = -228, zOffset = -4, direction = 1},
+			{ unitDefID = UnitDefNames.corscavfort_scav.id, xOffset = -212, zOffset = -36, direction = 1},
+			{ unitDefID = UnitDefNames.corscavfort_scav.id, xOffset = -180, zOffset = 28, direction = 1},
+			{ unitDefID = UnitDefNames.corscavfort_scav.id, xOffset = -180, zOffset = -36, direction = 1},
+			{ unitDefID = UnitDefNames.corflak_scav.id, xOffset = -196, zOffset = -4, direction = 1},
+			{ unitDefID = UnitDefNames.cordoom_scav.id, xOffset = 76, zOffset = -116, direction = 1},
+			{ unitDefID = UnitDefNames.cordoom_scav.id, xOffset = 76, zOffset = 124, direction = 1},
+			{ unitDefID = UnitDefNames.cortron_scav.id, xOffset = -52, zOffset = -4, direction = 1},
+		},
+	}
+end
+
+local function Attack Metal()
+	return {
+		type = types.Land,
+		tiers = { tiers.T1, tiers.T2, tiers.T3, tiers.T4 },
+		radius = 120,
+		buildings = {
+			{ unitDefID = BPWallOrPopup('scav'), xOffset = -48, zOffset = -48, direction = 1},
+			{ unitDefID = BPWallOrPopup('scav'), xOffset = -80, zOffset = -80, direction = 1},
+			{ unitDefID = BPWallOrPopup('scav'), xOffset = 48, zOffset = 48, direction = 1},
+			{ unitDefID = BPWallOrPopup('scav'), xOffset = 80, zOffset = 80, direction = 1},
+			{ unitDefID = UnitDefNames.cornanotc_scav.id, xOffset = -120, zOffset = -120, direction = 1},
+			{ unitDefID = UnitDefNames.cornanotc_scav.id, xOffset = 120, zOffset = 120, direction = 1},
+			{ unitDefID = UnitDefNames.cormexp_scav.id, xOffset = 0, zOffset = 0, direction = 1},
+		},
+	}
+end
+
+local function T1 short def()
+	return {
+		type = types.Land,
+		tiers = { tiers.T0, tiers.T1, tiers.T2, tiers.T3, tiers.T4 },
+		radius = 168,
+		buildings = {
+			{ unitDefID = BPWallOrPopup('scav'), xOffset = 136, zOffset = 34, direction = 1},
+			{ unitDefID = BPWallOrPopup('scav'), xOffset = -136, zOffset = -30, direction = 1},
+			{ unitDefID = BPWallOrPopup('scav'), xOffset = -168, zOffset = 2, direction = 1},
+			{ unitDefID = BPWallOrPopup('scav'), xOffset = 168, zOffset = 2, direction = 1},
+			{ unitDefID = UnitDefNames.cormadsam_scav.id, xOffset = 0, zOffset = -6, direction = 1},
+			{ unitDefID = UnitDefNames.corhlt_scav.id, xOffset = 136, zOffset = 2, direction = 1},
+			{ unitDefID = UnitDefNames.corhlt_scav.id, xOffset = -136, zOffset = 2, direction = 1},
+		},
+	}
+end
+
+local function Punisher wall()
+	return {
+		type = types.Land,
+		tiers = { tiers.T1, tiers.T2, tiers.T3, tiers.T4 },
+		radius = 124,
+		buildings = {
+			{ unitDefID = BPWallOrPopup('scav'), xOffset = -68, zOffset = 60, direction = 1},
+			{ unitDefID = BPWallOrPopup('scav'), xOffset = -4, zOffset = 60, direction = 1},
+			{ unitDefID = BPWallOrPopup('scav'), xOffset = -4, zOffset = 92, direction = 1},
+			{ unitDefID = BPWallOrPopup('scav'), xOffset = -4, zOffset = 28, direction = 1},
+			{ unitDefID = BPWallOrPopup('scav'), xOffset = -36, zOffset = 28, direction = 1},
+			{ unitDefID = BPWallOrPopup('scav'), xOffset = -68, zOffset = 92, direction = 1},
+			{ unitDefID = BPWallOrPopup('scav'), xOffset = -68, zOffset = 28, direction = 1},
+			{ unitDefID = UnitDefNames.corrad_scav.id, xOffset = -36, zOffset = 60, direction = 1},
+			{ unitDefID = BPWallOrPopup('scav'), xOffset = -20, zOffset = -84, direction = 1},
+			{ unitDefID = BPWallOrPopup('scav'), xOffset = -52, zOffset = -116, direction = 1},
+			{ unitDefID = UnitDefNames.coradvsol_scav.id, xOffset = -4, zOffset = -132, direction = 1},
+			{ unitDefID = UnitDefNames.corpun_scav.id, xOffset = 124, zOffset = 60, direction = 1},
+			{ unitDefID = UnitDefNames.corpun_scav.id, xOffset = 124, zOffset = -36, direction = 1},
+			{ unitDefID = UnitDefNames.corpun_scav.id, xOffset = 124, zOffset = -132, direction = 1},
+		},
+	}
+end
+
+local function T1 long def()
+	return {
+		type = types.Land,
+		tiers = { tiers.T0, tiers.T1, tiers.T2, tiers.T3, tiers.T4 },
+		radius = 98,
+		buildings = {
+			{ unitDefID = BPWallOrPopup('scav'), xOffset = 66, zOffset = -62, direction = 1},
+			{ unitDefID = BPWallOrPopup('scav'), xOffset = 98, zOffset = 66, direction = 1},
+			{ unitDefID = BPWallOrPopup('scav'), xOffset = -62, zOffset = 66, direction = 1},
+			{ unitDefID = BPWallOrPopup('scav'), xOffset = 66, zOffset = 98, direction = 1},
+			{ unitDefID = BPWallOrPopup('scav'), xOffset = 98, zOffset = -30, direction = 1},
+			{ unitDefID = BPWallOrPopup('scav'), xOffset = -30, zOffset = 98, direction = 1},
+			{ unitDefID = UnitDefNames.coradvsol_scav.id, xOffset = 50, zOffset = 50, direction = 1},
+			{ unitDefID = UnitDefNames.coradvsol_scav.id, xOffset = -14, zOffset = 50, direction = 1},
+			{ unitDefID = UnitDefNames.coradvsol_scav.id, xOffset = 50, zOffset = -14, direction = 1},
+			{ unitDefID = UnitDefNames.corerad_scav.id, xOffset = -78, zOffset = -78, direction = 1},
+			{ unitDefID = UnitDefNames.corerad_scav.id, xOffset = -142, zOffset = -142, direction = 1},
+			{ unitDefID = UnitDefNames.corhlt_scav.id, xOffset = -190, zOffset = -190, direction = 1},
+			{ unitDefID = UnitDefNames.corhlt_scav.id, xOffset = 98, zOffset = 98, direction = 1},
+		},
+	}
+end
+
+local function T1 short def()
+	return {
+		type = types.Land,
+		tiers = { tiers.T0, tiers.T1, tiers.T2, tiers.T3, tiers.T4 },
+		radius = 176,
+		buildings = {
+			{ unitDefID = BPWallOrPopup('scav'), xOffset = 171, zOffset = -176, direction = 1},
+			{ unitDefID = BPWallOrPopup('scav'), xOffset = 107, zOffset = -112, direction = 1},
+			{ unitDefID = BPWallOrPopup('scav'), xOffset = -101, zOffset = 112, direction = 1},
+			{ unitDefID = BPWallOrPopup('scav'), xOffset = -37, zOffset = 32, direction = 1},
+			{ unitDefID = BPWallOrPopup('scav'), xOffset = -133, zOffset = 144, direction = 1},
+			{ unitDefID = BPWallOrPopup('scav'), xOffset = -165, zOffset = 176, direction = 1},
+			{ unitDefID = BPWallOrPopup('scav'), xOffset = 27, zOffset = -32, direction = 1},
+			{ unitDefID = BPWallOrPopup('scav'), xOffset = 139, zOffset = -144, direction = 1},
+			{ unitDefID = BPWallOrPopup('scav'), xOffset = -5, zOffset = 0, direction = 1},
+			{ unitDefID = UnitDefNames.corllt_scav.id, xOffset = -101, zOffset = 144, direction = 1},
+			{ unitDefID = UnitDefNames.corllt_scav.id, xOffset = 27, zOffset = 0, direction = 1},
+			{ unitDefID = UnitDefNames.corllt_scav.id, xOffset = -165, zOffset = 144, direction = 1},
+			{ unitDefID = UnitDefNames.corllt_scav.id, xOffset = -37, zOffset = 0, direction = 1},
+			{ unitDefID = UnitDefNames.corhlt_scav.id, xOffset = 107, zOffset = -144, direction = 1},
+			{ unitDefID = UnitDefNames.corhlt_scav.id, xOffset = 171, zOffset = -144, direction = 1},
+		},
+	}
+end
+
 return {
     IRON_BEAM_RING,
     PROTECTED_GANTRY,
