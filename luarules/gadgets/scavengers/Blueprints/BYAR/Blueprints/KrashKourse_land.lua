@@ -572,23 +572,6 @@ local function Power fort 2()
 	}
 end
 
-local function Attack Metal()
-	return {
-		type = types.Land,
-		tiers = { tiers.T1, tiers.T2, tiers.T3, tiers.T4 },
-		radius = 120,
-		buildings = {
-			{ unitDefID = BPWallOrPopup('scav'), xOffset = -48, zOffset = -48, direction = 1},
-			{ unitDefID = BPWallOrPopup('scav'), xOffset = -80, zOffset = -80, direction = 1},
-			{ unitDefID = BPWallOrPopup('scav'), xOffset = 48, zOffset = 48, direction = 1},
-			{ unitDefID = BPWallOrPopup('scav'), xOffset = 80, zOffset = 80, direction = 1},
-			{ unitDefID = UnitDefNames.cornanotc_scav.id, xOffset = -120, zOffset = -120, direction = 1},
-			{ unitDefID = UnitDefNames.cornanotc_scav.id, xOffset = 120, zOffset = 120, direction = 1},
-			{ unitDefID = UnitDefNames.cormexp_scav.id, xOffset = 0, zOffset = 0, direction = 1},
-		},
-	}
-end
-
 local function T1 short def()
 	return {
 		type = types.Land,
