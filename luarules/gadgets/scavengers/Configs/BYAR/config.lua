@@ -135,7 +135,7 @@ scavconfig = {
 		T4med								= 21000*ScavTechCurveModoption,
 		T4high								= 24000*ScavTechCurveModoption,
 		T4top								= 28000*ScavTechCurveModoption,
-		BossFight							= 32000*ScavTechCurveModoption,
+		BossFight							= 1,--32000*ScavTechCurveModoption,
 		Endless								= 32001*ScavTechCurveModoption,
 		-- don't delete
 		NoRadar								= 2250*ScavTechCurveModoption,
@@ -244,10 +244,10 @@ function UpdateTierChances(n)
 	-- Must be 100 in total
 	if globalScore > scavconfig.timers.Endless then
 		TierSpawnChances.T0 = 0
-		TierSpawnChances.T1 = 25
-		TierSpawnChances.T2 = 25
-		TierSpawnChances.T3 = 25
-		TierSpawnChances.T4 = 25
+		TierSpawnChances.T1 = 0
+		TierSpawnChances.T2 = 33
+		TierSpawnChances.T3 = 33
+		TierSpawnChances.T4 = 34
 		TierSpawnChances.Message = "Current tier: Endless"
 		TierSpawnChances.BPMult = 5
 	elseif globalScore > scavconfig.timers.T4top then

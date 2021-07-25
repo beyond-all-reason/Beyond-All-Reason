@@ -515,6 +515,11 @@ function gadget:UnitGiven(unitID, unitDefID, unitNewTeam, unitOldTeam)
 		MasterMindTargetListTargetGone(unitID, unitTeam, unitEnteredTeam, unitDefID)
 	end
 	if unitOldTeam == GaiaTeamID then
+		--AliveEnemyCommanders
+		if constructorUnitList.PlayerCommandersID[unitDefID] then
+			AliveEnemyCommandersCount = AliveEnemyCommandersCount + 1
+			table.insert(AliveEnemyCommanders,unitID)
+		end
 		if UnitDefs[unitDefID].canMove == false or UnitDefs[unitDefID].isBuilding == true or (not scavNoSelfD[unitID]) then
 			for i = 1,#BaseCleanupQueue do
 				if unitID == BaseCleanupQueue[i] then
@@ -572,6 +577,14 @@ function gadget:UnitGiven(unitID, unitDefID, unitNewTeam, unitOldTeam)
 		Spring.SetUnitHealth(unitID, {capture = 0})
 	else
 		if unitNewTeam == GaiaTeamID then
+			for i = 1,#AliveEnemyCommanders do
+				local comID = AliveEnemyCommanders[i]
+				if unitID == comID then
+					AliveEnemyCommandersCount = AliveEnemyCommandersCount - 1
+					table.remove(AliveEnemyCommanders, i)
+					break
+				end
+			end
 			if UnitDefs[unitDefID].canMove == false or UnitDefs[unitDefID].isBuilding == true or scavNoSelfD[unitID] then
 				BaseCleanupQueue[#BaseCleanupQueue+1] = unitID 
 			end
