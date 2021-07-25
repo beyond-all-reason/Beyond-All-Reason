@@ -1252,6 +1252,9 @@ function widgetHandler:ViewResize(vsx, vsy)
 		vsx = vsx.viewSizeX
 		print('real ViewResize') -- FIXME
 	end
+	if _G.FlowUI then
+		_G.FlowUI.Callin.ViewResize1(vsx, vsy)
+	end
 	for _, w in ipairs(self.ViewResizeList) do
 		w:ViewResize(vsx, vsy)
 	end

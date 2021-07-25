@@ -5,7 +5,7 @@ function widget:GetInfo()
 		author    = "Floris",
 		date      = "January 2021",
 		license   = "GNU GPL, v2 or later",
-		layer     = -math.huge,
+		layer     = math.huge,
 		enabled   = true
 	}
 end
@@ -14,27 +14,24 @@ WG.FlowUI = WG.FlowUI or {}
 WG.FlowUI.version = 1
 WG.FlowUI.initialized = false
 
+-- called at the bottom
+local function initialize()
+	--widget:ViewResize(Spring.GetViewGeometry())
+	WG.FlowUI.Callin.ViewResize1(Spring.GetViewGeometry())
+	WG.FlowUI.initialized = true
+	WG.FlowUI.shutdown = false
+end
+
+---------------------------------------------------------------------------------------
+-- Widget callins  (layer = math.huge)
+---------------------------------------------------------------------------------------
+
 function widget:ViewResize(vsx, vsy)
-	if not vsy then
-		vsx, vsy = Spring.GetViewGeometry()
-	end
-	if WG.FlowUI.vsx and (WG.FlowUI.vsx == vsx and WG.FlowUI.vsy == vsy) then
-		return
-	end
-	WG.FlowUI.vsx = vsx
-	WG.FlowUI.vsy = vsy
-	WG.FlowUI.elementMargin = math.floor(0.0045 * vsy * Spring.GetConfigFloat("ui_scale", 1))
-	WG.FlowUI.elementCorner = WG.FlowUI.elementMargin
-	WG.FlowUI.elementPadding = math.ceil(WG.FlowUI.elementMargin * 0.66)		-- elementPadding * 1.6
-	WG.FlowUI.buttonPadding = math.ceil(WG.FlowUI.elementMargin * 0.44)
 end
 
-function widget:Initialize()	-- (gets executed at the end of this file)
-	widget:ViewResize(Spring.GetViewGeometry())
-end
-
-function widget:Shutdown()	-- (gets executed at the end of this file)
-	--WG.FlowUI = nil
+function widget:Shutdown()
+	WG.FlowUI.shutdown = true
+	--WG.FlowUI = nil	-- commented out so it keeps at least working somewhat after an error
 end
 
 function widget:Update(dt)
@@ -44,7 +41,36 @@ end
 function widget:DrawScreen()
 
 end
+
+---------------------------------------------------------------------------------------
+-- Custom widgethandler callins   (layer = -math.huge)
+---------------------------------------------------------------------------------------
+
+WG.FlowUI.Callin = {}
+
+WG.FlowUI.Callin.ViewResize1 = function(vsx, vsy)
+	if not vsy then
+		vsx, vsy = Spring.GetViewGeometry()
+	end
+	if WG.FlowUI.vsx and (WG.FlowUI.vsx == vsx and WG.FlowUI.vsy == vsy) then
+		return
+	end
+	WG.FlowUI.vsx = vsx
+	WG.FlowUI.vsy = vsy
+	-- elementMargin: number of px between each separated ui element
+	WG.FlowUI.elementMargin = math.floor(0.0045 * vsy * Spring.GetConfigFloat("ui_scale", 1))
+	-- elementCorner: element cutoff corner size
+	WG.FlowUI.elementCorner = WG.FlowUI.elementMargin
+	-- elementPadding: element inner (background) border/outline size
+	WG.FlowUI.elementPadding = math.ceil(WG.FlowUI.elementMargin * 0.66)
+	-- buttonPadding: button inner (background) border/outline size
+	WG.FlowUI.buttonPadding = math.ceil(WG.FlowUI.elementMargin * 0.44)
+end
+
+---------------------------------------------------------------------------------------
 -- Draw functions
+---------------------------------------------------------------------------------------
+
 WG.FlowUI.Draw = {}
 
 --[[
@@ -912,4 +938,4 @@ WG.FlowUI.Draw.SelectHighlight = function(px, py, sx, sy,  cs, opacity, color)
 	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 end
 
---widget:Initialize()
+initialize()
