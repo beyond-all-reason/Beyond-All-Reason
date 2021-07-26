@@ -51,6 +51,7 @@ return {
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armaircraft",
+			techlevel = 3,
 		},
 		sfxtypes = {
 			crashexplosiongenerators = {

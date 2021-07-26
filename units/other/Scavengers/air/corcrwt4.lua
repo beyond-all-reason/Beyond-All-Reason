@@ -46,7 +46,7 @@ return {
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "other/scavengers",
-			techlevel = 2,
+			techlevel = 3,
 		},
 		sfxtypes = {
 			crashexplosiongenerators = {

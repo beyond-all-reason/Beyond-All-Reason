@@ -51,6 +51,7 @@ return {
 			paralyzemultiplier = 0.1,
 			prioritytarget = "air",
 			subfolder = "armships",
+			techlevel = 2,
 		},
 		featuredefs = {
 			dead = {

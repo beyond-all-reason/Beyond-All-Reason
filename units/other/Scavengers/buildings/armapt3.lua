@@ -52,6 +52,7 @@ return {
 			model_author = "Cremuss",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armbuildings/landfactories",
+			techlevel = 3,
 		},
 		featuredefs = {
 			dead = {

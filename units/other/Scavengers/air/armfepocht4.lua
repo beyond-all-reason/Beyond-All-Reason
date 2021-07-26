@@ -56,7 +56,7 @@ return {
 			normaltex = "unittextures/Arm_normal.dds",
 			paralyzemultiplier = 0,
 			subfolder = "armships/t2",
-			techlevel = 2,
+			techlevel = 3,
 		},
 		featuredefs = {
 			dead = {
