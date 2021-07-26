@@ -21,7 +21,7 @@ function CleanerBST:Init()
 	end
 	self.ignore = {}
 	self.frameCounter = 0
- 	self:Patroling()
+  	self:Patroling()
 end
 
 function CleanerBST:Update()
@@ -47,7 +47,9 @@ function CleanerBST:OwnerIdle()
 		self:Search()
 	end
 end
-
+-- function CleanerBST:UnitBuilt()
+-- 	self:Patroling()
+-- end
 -- function CleanerBST:UnitDead(unit)
 -- 	if not unit.engineID then
 -- 		self:EchoDebug("nil engineID")
@@ -125,14 +127,15 @@ end
 
 function CleanerBST:Patroling() --TODO move nano patroling to another place (activate-deactivate behaviour)
 	-- set nano turrets to patrol
- 	local upos = self.ai.tool:RandomAway( self.unit:Internal():GetPosition(), 50)
+ 	--local upos = self.ai.tool:RandomAway( self.unit:Internal():GetPosition(), 50)
 	local uPos = self.unit:Internal():GetPosition()
-	local PatrolPos = upos
-	local floats = api.vectorFloat()
+	--local PatrolPos = upos
+	--local floats = api.vectorFloat()
 	-- populate with x, y, z of the position
-	floats:push_back(uPos.x + 200)
-	floats:push_back(uPos.y)
-	floats:push_back(uPos.z)
- 	self.unit:Internal():Patrol({x = uPos.x - 18 , y = uPos.y , z = uPos.z - 18 })
+	--floats:push_back(uPos.x + 200)
+	---floats:push_back(uPos.y)
+	--floats:push_back(uPos.z)
+ 	self.unit:Internal():Patrol({x = uPos.x - 13 , y = Spring.GetGroundHeight(uPos.x,uPos.z)-100 , z = uPos.z - 13 })
+	--self.unit:Internal():Patrol({x = 0,y = 0,z = 0})
 -- 	self.unit:Internal():ExecuteCustomCommand(CMD_PATROL, floats)
 end

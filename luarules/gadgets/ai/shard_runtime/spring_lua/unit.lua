@@ -337,11 +337,12 @@ end
 function ShardUnit:GetPosition()
 	local bpx, bpy, bpz = Spring.GetUnitPosition(self.id)
 	local isDead = Spring.GetUnitIsDead(self.id)
-	if isDead or isDead == nil then
+	--[[if isDead or isDead == nil then
 		if bpx then
 			--Spring.Echo(self:Name(), self.id, 'is a dead unit', isDead, 'but we have a pos')
 		end
-	elseif not bpx then
+	else]]
+	if not bpx then
 		Spring.Echo(self:Name(), self.id, "nil position")
 		return
 	end

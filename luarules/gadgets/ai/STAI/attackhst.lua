@@ -33,23 +33,26 @@ function AttackHST:Update()
 	end
 	if self.squads and #self.squads > 0 then
 		for is = 1, #self.squads do
-			local squad = self.squads[is]
-			if not squad.arrived and squad.idleTimeout and f >= squad.idleTimeout then
-				squad.arrived = true
-				squad.idleTimeout = nil
-			end
-			if squad.arrived then
-				squad.arrived = nil
-				if squad.pathStep < #squad.path - 1 then
-					local value = self.ai.targethst:ValueHere(squad.target, squad.members[1].name)
-					local threat = self.ai.targethst:ThreatHere(squad.target, squad.members[1].name)
-					if (value == 0 and threat == 0) or threat > squad.totalThreat * 0.67 then
-						self:SquadReTarget(squad) -- get a new target, this one isn't valuable
-					else
-						self:SquadNewPath(squad) -- see if there's a better way from the point we're going to
-					end
+			if self.squads[is] then
+				local squad = self.squads[is] --TODO problem
+				if not squad.arrived and squad.idleTimeout and f >= squad.idleTimeout then
+					squad.arrived = true
+					squad.idleTimeout = nil
 				end
-				self:SquadAdvance(squad)
+
+				if squad.arrived then
+					squad.arrived = nil
+					if squad.pathStep < #squad.path - 1 then
+						local value = self.ai.targethst:ValueHere(squad.target, squad.members[1].name)
+						local threat = self.ai.targethst:ThreatHere(squad.target, squad.members[1].name)
+						if (value == 0 and threat == 0) or threat > squad.totalThreat * 0.67 then
+							self:SquadReTarget(squad) -- get a new target, this one isn't valuable
+						else
+							self:SquadNewPath(squad) -- see if there's a better way from the point we're going to
+						end
+					end
+					self:SquadAdvance(squad)
+				end
 			end
 		end
 		local is = (self.lastSquadPathfind or 0) + 1

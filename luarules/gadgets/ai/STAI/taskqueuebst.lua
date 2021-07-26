@@ -730,21 +730,23 @@ end
 function TaskQueueBST:assist()
 	if self.assistant then return end
 	local unitsNear = self.game:getUnitsInCylinder(self.unit:Internal():GetPosition(), 2500)
-	for idx, typeDef in pairs(unitsNear) do
-		local unitName = self.game:GetUnitByID(typeDef):Name()
+	for index, unitID in pairs(unitsNear) do
+		local unitName = self.game:GetUnitByID(unitID):Name()
 		if self.role == 'eco' then
 			if self.ai.armyhst.factoryMobilities[unitName] then
-				self.unit:Internal():Guard(typeDef)
+				self.unit:Internal():Guard(unitID)
 				self.assistant = true
 				return
 			end
-		elseif self.ai.armyhst.techs[unitName] and Spring.GetUnitIsBuilding(typeDef) then
-			self.unit:Internal():Guard(typeDef)
+		elseif self.ai.armyhst.techs[unitName] and Spring.GetUnitIsBuilding(unitID) then
+			self.unit:Internal():Guard(unitID)
 			self.assistant = true
 			return
 		end
 	end
 end
+
+
 function TaskQueueBST:VisualDBG()
 	local colours = {
 	default = {255,0,0,255},

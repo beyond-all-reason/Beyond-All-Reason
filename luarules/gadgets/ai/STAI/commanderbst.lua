@@ -55,7 +55,8 @@ function CommanderBST:Activate()
 	end
 
 	if self.factoryToHelp then
-		self:HelpFactory()
+-- 		self:HelpFactory()
+		self:HelpEconomist()
 	elseif self.safeHouse then
 		self:MoveToSafety()
 	end
@@ -106,6 +107,19 @@ function CommanderBST:HelpFactory()
 	end
 end
 
+function CommanderBST:HelpEconomist()
+	local economists = self.ai.armyhst.buildersRole.eco
+	for i,v in pairs ( economists) do
+		for index,unitID in pairs(v) do
+			self.unit:Internal():Guard(unitID)
+			break
+		end
+	end
+
+end
+
+
+
 function CommanderBST:FindSafeHouse()
 	local factoryPos, factoryUnit
 	local safePos = self.ai.turtlehst:MostTurtled(self.unit:Internal(), nil, false, true, true)
@@ -126,7 +140,8 @@ function CommanderBST:FindSafeHouse()
 	end
 	self.factoryToHelp = factoryUnit
 	if helpNew then
-		self:HelpFactory()
+-- 		self:HelpFactory()
+		self:HelpEconomist()
 	elseif not factoryUnit and safeNew then
 		self:MoveToSafety()
 	end

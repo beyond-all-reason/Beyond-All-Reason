@@ -862,9 +862,6 @@ function MapHST:factoriesRating()
 		if self.ai.armyhst.factoryMobilities[factory][1] == ('hov') then
 			Rating = Rating * (self.ai.mobCount['shp'] /mobilityGridArea)
 		end
-		if self.ai.armyhst.factoryMobilities[factory][1] == ('veh') then--TEST horrible solution
-			Rating = Rating * 1.4
-		end
 		Rating = Rating * -1--reverse the value to get the right order
 		if Rating ~= 0 then --useless add factory totally out of mode
 			factoryRating[factory] = Rating
