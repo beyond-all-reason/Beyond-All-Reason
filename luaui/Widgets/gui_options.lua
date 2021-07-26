@@ -561,6 +561,7 @@ local wsx, wsy, wpx, wpy = Spring.GetWindowGeometry()
 local ssx, ssy, spx, spy = Spring.GetScreenGeometry()
 
 local changesRequireRestart = false
+local enabledSensorsOnce = false
 
 local useNetworkSmoothing = false
 
@@ -5600,6 +5601,14 @@ end
 
 function widget:Initialize()
 
+	-- do it once, remove all code containing 'enabledSensorsOnce' after a few weeks or so (26-7-2021)
+	if not enabledSensorsOnce then
+		widgetHandler:EnableWidget("Sensor Ranges LOS")
+		widgetHandler:EnableWidget("Sensor Ranges Radar")
+		widgetHandler:EnableWidget("Sensor Ranges Sonar")
+		widgetHandler:EnableWidget("Sensor Ranges Jammer")
+	end
+
 	-- UNCOMMENT WHEN we want everybody to switch to new icon rendering
 	--if not newEngineIconsInitialized and engineVersion >= 104011747 then		-- initialize new engine icons first time
 	--	Spring.SendCommands("iconsasui 1")
@@ -5946,6 +5955,7 @@ function widget:GetConfigData(data)
 		useNetworkSmoothing = useNetworkSmoothing,
 		desiredWaterValue = desiredWaterValue,
 		waterDetected = waterDetected,
+		enabledSensorsOnce = true,
 
 		disticon = { 'UnitIconDist', tonumber(Spring.GetConfigInt("UnitIconDist", 1) or 160) },
 		particles = { 'MaxParticles', tonumber(Spring.GetConfigInt("MaxParticles", 1) or 15000) },
@@ -5965,7 +5975,9 @@ function widget:GetConfigData(data)
 end
 
 function widget:SetConfigData(data)
-
+	if data.enabledSensorsOnce then
+		enabledSensorsOnce = true
+	end
 	if data.newEngineIconsInitialized then
 		newEngineIconsInitialized = data.newEngineIconsInitialized
 	end
