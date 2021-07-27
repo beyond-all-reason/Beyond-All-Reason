@@ -684,7 +684,7 @@ function tableMerge(t1, t2)
 	return t1
 end
 
-function CreateBeamLight(name, x, y, z, x2, y2, z2, radius, rgba)
+local function CreateBeamLight(name, x, y, z, x2, y2, z2, radius, rgba)
 	if name == 'nano' then
 		if enableNanolaser then
 			nanolaserLights[#nanolaserLights+1] = explosionLightsCount + 1
@@ -718,7 +718,7 @@ function CreateBeamLight(name, x, y, z, x2, y2, z2, radius, rgba)
 	return customBeamLightsCount
 end
 
-function EditBeamLight(lightID, params)
+local function EditBeamLight(lightID, params)
 	--if params.orgMult then
 	--	params.orgMult = params.orgMult * globalLightMult
 	--end
@@ -738,7 +738,7 @@ function EditBeamLight(lightID, params)
 	end
 end
 
-function RemoveBeamLight(lightID, life)
+local function RemoveBeamLight(lightID, life)
 	if customBeamLights[lightID] then
 		if life == nil then
 			customBeamLights[lightID] = nil
@@ -752,7 +752,7 @@ function RemoveBeamLight(lightID, life)
 	end
 end
 
-function CreateLight(name, x, y, z, radius, rgba, falloffsquared)
+local function CreateLight(name, x, y, z, radius, rgba, falloffsquared)
   --Spring.Echo("CreateLight(name, x, y, z, radius, rgba, falloffsquared)",name, x, y, z, radius, rgba, falloffsquared)
   falloffsquared = falloffsquared or 1.0
 	if name == 'thruster' then
@@ -783,7 +783,7 @@ function CreateLight(name, x, y, z, radius, rgba, falloffsquared)
 	return explosionLightsCount
 end
 
-function EditLight(lightID, params)
+local function EditLight(lightID, params)
 	if explosionLights[lightID] then
 		explosionLights[lightID] = tableMerge(explosionLights[lightID], params)
 		return true
@@ -792,7 +792,7 @@ function EditLight(lightID, params)
 	end
 end
 
-function EditLightPos(lightID, x,y,z)
+local function EditLightPos(lightID, x,y,z)
 	if explosionLights[lightID] then
 		explosionLights[lightID].px = x
 		explosionLights[lightID].py = y
@@ -803,7 +803,7 @@ function EditLightPos(lightID, x,y,z)
 	end
 end
 
-function RemoveLight(lightID, life)
+local function RemoveLight(lightID, life)
 	if explosionLights[lightID] then
 		if life == nil then
 			explosionLights[lightID] = nil
@@ -817,7 +817,7 @@ end
 
 
 -- function called by explosion_lights gadget
-function GadgetWeaponExplosion(px, py, pz, weaponID, ownerID)
+local function GadgetWeaponExplosion(px, py, pz, weaponID, ownerID)
 	if weaponConf[weaponID] ~= nil then
 		--Spring.Echo(weaponConf[weaponID].orgMult..'   '..weaponConf[weaponID].radius..'  '..weaponConf[weaponID].life)
 		local randomOffset = weaponConf[weaponID].radius > 30 and weaponConf[weaponID].radius/11 or nil
@@ -892,11 +892,12 @@ function GadgetWeaponExplosion(px, py, pz, weaponID, ownerID)
 	end
 end
 
-function GadgetWeaponBarrelfire(px, py, pz, weaponID, ownerID)
+local function GadgetWeaponBarrelfire(px, py, pz, weaponID, ownerID)
 	if weaponConf[weaponID] ~= nil then
+		local mult = (weaponConf[weaponID].wtype == 'Cannon' and 1 or 0.3)
 		local params = {
-			life = (3.5+(weaponConf[weaponID].life/5.5))*globalLifeMult,
-			orgMult = 0.22 + (weaponConf[weaponID].orgMult*0.3),
+			life = (3+(weaponConf[weaponID].life/3))*globalLifeMult * mult,
+			orgMult = 0.3 + (weaponConf[weaponID].orgMult*0.3) * mult,
 			frame = spGetGameFrame(),
 			px = px,
 			py = py,
@@ -906,7 +907,7 @@ function GadgetWeaponBarrelfire(px, py, pz, weaponID, ownerID)
 				r = weaponConf[weaponID].r,
 				g = weaponConf[weaponID].g,
 				b = weaponConf[weaponID].b,
-				radius = 25 + (weaponConf[weaponID].radius*0.85),
+				radius = 22 + (weaponConf[weaponID].radius*0.8) * mult,
 			},
 		}
 		explosionLightsCount = explosionLightsCount + 1

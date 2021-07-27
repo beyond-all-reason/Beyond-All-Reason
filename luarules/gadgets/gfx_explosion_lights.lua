@@ -23,7 +23,9 @@ if gadgetHandler:IsSyncedCode() then
             if wd.type == "Cannon" then
                 cannonWeapons[wdid] = true
                 Script.SetWatchExplosion(wdid, true)
-				Script.SetWatchProjectile(wdid, true)    -- might be too expensive
+				if wd.damages[0] >= 20 then
+					Script.SetWatchProjectile(wdid, true)
+				end
             end
             if wd.type == "BeamLaser" then
                 Script.SetWatchExplosion(wdid, true)
@@ -37,6 +39,9 @@ if gadgetHandler:IsSyncedCode() then
             end
             if wd.type == "Cannon" then
                 Script.SetWatchExplosion(wdid, false)
+				if wd.damages[0] >= 20 then
+					Script.SetWatchProjectile(wdid, false)
+				end
             end
         end
     end
@@ -46,8 +51,10 @@ if gadgetHandler:IsSyncedCode() then
     end
 
     function gadget:ProjectileCreated(projectileID, ownerID, weaponID)		-- needs: Script.SetWatchProjectile(weaponDefID, true)
-		local px, py, pz = Spring.GetProjectilePosition(projectileID)
-		SendToUnsynced("barrelfire_light", px, py, pz, weaponID, ownerID)
+		if cannonWeapons[weaponID] then	-- optionally disable this to pass through missiles too
+			local px, py, pz = Spring.GetProjectilePosition(projectileID)
+			SendToUnsynced("barrelfire_light", px, py, pz, weaponID, ownerID)
+		end
     end
 
 else
