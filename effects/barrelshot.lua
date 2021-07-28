@@ -151,6 +151,150 @@ local definitions = {
     --  },
     --},
   },
+
+  ["barrelshot-mg"] = {
+    mgfire = {
+      air                = true,
+      class              = [[CExpGenSpawner]],
+      count              = 2,
+      ground             = true,
+      water              = true,
+      underwater         = true,
+      properties = {
+        dir                = [[dir]],
+        delay              = [[0 r5]],
+        explosiongenerator = [[custom:barrelshot-fire]],
+        --pos                = [[-5 r10, 0, -5 r10]],
+      },
+    },
+  },
+
+  ["barrelshot-fire"] = {
+    fire = {
+      air                = true,
+      class              = [[CBitmapMuzzleFlame]],
+      count              = 1,
+      ground             = true,
+      underwater         = 1,
+      water              = true,
+      properties = {
+        colormap           = [[1 0.88 0.6 0.013   0.6 0.22 0.06 0.01   0.4 0.07 0.015 0.006   0 0 0 0.01]],
+        dir                = [[dir]],
+        frontoffset        = 0,
+        fronttexture       = [[shotgunflare]],
+        length             = [[38 r85]],
+        sidetexture        = [[shotgunside]],
+        size               = [[7 r16]],
+        sizegrowth         = -0.6,
+        ttl                = 14,
+        pos                = [[0.0, 1, 0.0]],
+      },
+    },
+    -- fire2 = {
+    --   air                = true,
+    --   class              = [[CBitmapMuzzleFlame]],
+    --   count              = 1,
+    --   ground             = true,
+    --   underwater         = 1,
+    --   water              = true,
+    --   properties = {
+    --     colormap           = [[1 0.89 0.6 0.013   0.6 0.25 0.06 0.01   0.4 0.06 0.015 0.006   0 0 0 0.01]],
+    --     dir                = [[dir]],
+    --     frontoffset        = 0,
+    --     fronttexture       = [[none]],
+    --     length             = -9,
+    --     sidetexture        = [[shotgunside]],
+    --     size               = 13,
+    --     sizegrowth         = -0.5,
+    --     ttl                = 15,
+    --   },
+    -- },
+      fireglow = {
+        air                = true,
+        class              = [[CSimpleParticleSystem]],
+        count              = 1,
+        ground             = true,
+        water              = true,
+        properties = {
+          airdrag            = 0,
+          colormap           = [[0.95 0.93 0.90 0.55   0 0 0 0.01]],
+          directional        = true,
+          emitrot            = 90,
+          emitrotspread      = 0,
+          emitvector         = [[0.0, 1, 0.0]],
+          gravity            = [[0.0, 0.0, 0.0]],
+          numparticles       = 1,
+          particlelife       = 2,
+          particlelifespread = 1,
+          particlesize       = 12,
+          particlesizespread = 30,
+          particlespeed      = 0,
+          particlespeedspread = 0,
+          pos                = [[-5 r10, 0, -5 r10]],
+          sizegrowth         = -12.9,
+          sizemod            = 1,
+          texture            = [[circularthingy]],
+          useairlos          = true,
+        },
+      },
+    --   smoke2 = {
+    --       air                = true,
+    --       class              = [[CSimpleParticleSystem]],
+    --       count              = 1,
+    --       ground             = true,
+    --       water              = true,
+    --       properties = {
+    --           airdrag            = 0.92,
+    --           colormap           = [[0 0 0 0    0.95 0.63 0.17 0.70    0.13 0.12 0.12 0.38   0.012 0.011 0.10 0.22   0.011 0.010 0.09 0.16   0 0 0 0.01]],
+    --           directional        = true,
+    --           emitrot            = 0,
+    --           emitrotspread      = 8,
+    --           emitvector         = [[dir]],
+    --           gravity            = [[-0.02 r0.04, -0.005, -0.02 r0.04]],
+    --           numparticles       = 4,
+    --           particlelife       = 15,
+    --           particlelifespread = 20,
+    --           particlesize       = 1.3,
+    --           particlesizespread = 3.7,
+    --           particlespeed      = 1.1,
+    --           particlespeedspread = 2.1,
+    --           pos                = [[0.0, 0, 0.0]],
+    --           sizegrowth         = 0.30,
+    --           sizemod            = 1,
+    --           texture            = [[smoke_puff2]],
+    --           useairlos          = true,
+    --       },
+    --   },
+    -- smoke = {
+    --   air                = true,
+    --   class              = [[CSimpleParticleSystem]],
+    --   count              = 1,
+    --   ground             = true,
+    --   water              = true,
+    --   properties = {
+    --       airdrag            = 0.91,
+    --       colormap           = [[0.95 0.69 0.17 0.95    0.35 0.20 0.13 0.65   0.15 0.14 0.12 0.60    0.12 0.12 0.12 0.25   0 0 0 0.01]],
+    --       directional        = true,
+    --       emitrot            = 0,
+    --       emitrotspread      = 9,
+    --       emitvector         = [[dir]],
+    --       gravity            = [[-0.006 r0.012, 0, -0.006 r0.012]],
+    --       numparticles       = 2,
+    --       particlelife       = 13,
+    --       particlelifespread = 9,
+    --       particlesize       = 4,
+    --       particlesizespread = 7,
+    --       particlespeed      = 1.40,
+    --       particlespeedspread = 0.5,
+    --       pos                = [[0.0, 0, 0.0]],
+    --       sizegrowth         = 0.92,
+    --       sizemod            = 1,
+    --       texture            = [[cloudpuff]],
+    --       useairlos          = true,
+    --   },
+    -- },
+  },
+
 }
 
 function tableMerge(t1, t2)
@@ -316,44 +460,51 @@ definitions["barrelshot-huge"].flash = {
 }
 
 definitions["barrelshot-tiny-aa"] = deepcopy(definitions["barrelshot-tiny"])
-definitions["barrelshot-tiny-aa"].fire.properties.colormap = [[1 0.6 0.85 0.013   0.6 0.2 0.5 0.01   0.4 0.06 0.033 0.006   0 0 0 0.01]]
-definitions["barrelshot-tiny-aa"].fire2.properties.colormap = [[1 0.6 0.85 0.013   0.6 0.2 0.5 0.01   0.4 0.06 0.033 0.006   0 0 0 0.01]]
+definitions["barrelshot-tiny-aa"].fire.properties.colormap  = [[1 0.26 0.78 0.013   0.6 0.29 0.47 0.01   0.4 0.22 0.33 0.006   0 0 0 0.01]]
+definitions["barrelshot-tiny-aa"].fire2.properties.colormap = [[1 0.26 0.78 0.013   0.6 0.29 0.47 0.01   0.4 0.22 0.33 0.006   0 0 0 0.01]]
 --definitions["barrelshot-tiny-aa"].fireglow.properties.colormap = [[0.122 0.066 0.09 0.04   0 0 0 0.01]]
---definitions["barrelshot-tiny-aa"].smoke.properties.colormap = [[0 0 0 0   0.15 0.055 0.12 0.2    0.48 0.26 0.40 0.44    0.2 0.135 0.17 0.4     0.16 0.12 0.145 0.4    0.145 0.11 0.13 0.4    0.13 0.095 0.075 0.4     0.115 0.088 0.07 0.35    0.1 0.075 0.066 0.3    0.09 0.07 0.06 0.26   0.08 0.065 0.06 0.22  0 0 0 0]]
+--definitions["barrelshot-tiny-aa"].smoke.properties.colormap  = [[0.95 0.17 0.69 0.95    0.35 0.13 0.20 0.65   0.15 0.12 0.14 0.60    0.12 0.12 0.12 0.25   0 0 0 0.01]]
+--definitions["barrelshot-tiny-aa"].smoke2.properties.colormap = [[0.95 0.17 0.69 0.95    0.35 0.13 0.20 0.65   0.15 0.12 0.14 0.60    0.12 0.12 0.12 0.25   0 0 0 0.01]]
 
 definitions["barrelshot-small-aa"] = deepcopy(definitions["barrelshot-small"])
-definitions["barrelshot-small-aa"].fire.properties.colormap = [[1 0.6 0.85 0.013   0.6 0.2 0.5 0.01   0.4 0.06 0.033 0.006   0 0 0 0.01]]
-definitions["barrelshot-small-aa"].fire2.properties.colormap = [[1 0.6 0.85 0.013   0.6 0.2 0.5 0.01   0.4 0.06 0.033 0.006   0 0 0 0.01]]
-definitions["barrelshot-small-aa"].fireglow.properties.colormap = [[0.122 0.066 0.09 0.04   0 0 0 0.01]]
-definitions["barrelshot-small-aa"].smoke.properties.colormap = [[0 0 0 0   0.15 0.055 0.12 0.2    0.48 0.26 0.40 0.44    0.2 0.135 0.17 0.4     0.16 0.12 0.145 0.4    0.145 0.11 0.13 0.4    0.13 0.095 0.075 0.4     0.115 0.088 0.07 0.35    0.1 0.075 0.066 0.3    0.09 0.07 0.06 0.26   0.08 0.065 0.06 0.22  0 0 0 0]]
-definitions["barrelshot-small-aa"].smoke2 = nil
+definitions["barrelshot-small-aa"].fire.properties.colormap  = [[1 0.26 0.78 0.013   0.6 0.29 0.47 0.01   0.4 0.22 0.33 0.006   0 0 0 0.01]]
+definitions["barrelshot-small-aa"].fire2.properties.colormap = [[1 0.26 0.78 0.013   0.6 0.29 0.47 0.01   0.4 0.22 0.33 0.006   0 0 0 0.01]]
+--definitions["barrelshot-small-aa"].fireglow.properties.colormap = [[0.122 0.066 0.09 0.04   0 0 0 0.01]]
+definitions["barrelshot-small-aa"].smoke.properties.colormap  = [[0.95 0.17 0.69 0.95    0.35 0.13 0.20 0.65   0.15 0.12 0.14 0.60    0.12 0.12 0.12 0.25   0 0 0 0.01]]
+definitions["barrelshot-small-aa"].smoke2.properties.colormap = [[0.95 0.17 0.69 0.95    0.35 0.13 0.20 0.65   0.15 0.12 0.14 0.60    0.12 0.12 0.12 0.25   0 0 0 0.01]]
 
 definitions["barrelshot-medium-aa"] = deepcopy(definitions["barrelshot-medium"])
-definitions["barrelshot-medium-aa"].fire.properties.colormap = [[1 0.6 0.85 0.013   0.6 0.2 0.5 0.01   0.4 0.06 0.033 0.006   0 0 0 0.01]]
-definitions["barrelshot-medium-aa"].fire2.properties.colormap = [[1 0.6 0.85 0.013   0.6 0.2 0.5 0.01   0.4 0.06 0.033 0.006   0 0 0 0.01]]
-definitions["barrelshot-medium-aa"].fireglow.properties.colormap = [[0.122 0.066 0.09 0.04   0 0 0 0.01]]
-definitions["barrelshot-medium-aa"].smoke.properties.colormap = [[0 0 0 0   0.15 0.055 0.12 0.2    0.48 0.26 0.40 0.44    0.2 0.135 0.17 0.4     0.16 0.12 0.145 0.4    0.145 0.11 0.13 0.4    0.13 0.095 0.075 0.4     0.115 0.088 0.07 0.35    0.1 0.075 0.066 0.3    0.09 0.07 0.06 0.26   0.08 0.065 0.06 0.22  0 0 0 0]]
-definitions["barrelshot-small-aa"].smoke2 = nil
+definitions["barrelshot-medium-aa"].fire.properties.colormap  = [[1 0.26 0.78 0.013   0.6 0.29 0.47 0.01   0.4 0.22 0.33 0.006   0 0 0 0.01]]
+definitions["barrelshot-medium-aa"].fire2.properties.colormap = [[1 0.26 0.78 0.013   0.6 0.29 0.47 0.01   0.4 0.22 0.33 0.006   0 0 0 0.01]]
+--definitions["barrelshot-medium-aa"].fireglow.properties.colormap = [[0.122 0.066 0.09 0.04   0 0 0 0.01]]
+definitions["barrelshot-medium-aa"].smoke.properties.colormap  = [[0.95 0.17 0.69 0.95    0.35 0.13 0.20 0.65   0.15 0.12 0.14 0.60    0.12 0.12 0.12 0.25   0 0 0 0.01]]
+definitions["barrelshot-medium-aa"].smoke2.properties.colormap = [[0.95 0.17 0.69 0.95    0.35 0.13 0.20 0.65   0.15 0.12 0.14 0.60    0.12 0.12 0.12 0.25   0 0 0 0.01]]
 
 definitions["barrelshot-large-aa"] = deepcopy(definitions["barrelshot-large"])
-definitions["barrelshot-large-aa"].fire.properties.colormap = [[1 0.6 0.85 0.013   0.6 0.2 0.5 0.01   0.4 0.06 0.033 0.006   0 0 0 0.01]]
-definitions["barrelshot-large-aa"].fire2.properties.colormap = [[1 0.6 0.85 0.013   0.6 0.2 0.5 0.01   0.4 0.06 0.033 0.006   0 0 0 0.01]]
-definitions["barrelshot-large-aa"].fireglow.properties.colormap = [[0.122 0.066 0.09 0.04   0 0 0 0.01]]
-definitions["barrelshot-large-aa"].smoke.properties.colormap = [[0 0 0 0   0.15 0.055 0.12 0.2    0.48 0.26 0.40 0.44    0.2 0.135 0.17 0.4     0.16 0.12 0.145 0.4    0.145 0.11 0.13 0.4    0.13 0.095 0.075 0.4     0.115 0.088 0.07 0.35    0.1 0.075 0.066 0.3    0.09 0.07 0.06 0.26   0.08 0.065 0.06 0.22  0 0 0 0]]
-definitions["barrelshot-small-aa"].smoke2 = nil
+definitions["barrelshot-large-aa"].fire.properties.colormap  = [[1 0.26 0.78 0.013   0.6 0.29 0.47 0.01   0.4 0.22 0.33 0.006   0 0 0 0.01]]
+definitions["barrelshot-large-aa"].fire2.properties.colormap = [[1 0.26 0.78 0.013   0.6 0.29 0.47 0.01   0.4 0.22 0.33 0.006   0 0 0 0.01]]
+--definitions["barrelshot-large-aa"].fireglow.properties.colormap = [[0.122 0.066 0.09 0.04   0 0 0 0.01]]
+definitions["barrelshot-large-aa"].smoke.properties.colormap  = [[0.95 0.17 0.69 0.95    0.35 0.13 0.20 0.65   0.15 0.12 0.14 0.60    0.12 0.12 0.12 0.25   0 0 0 0.01]]
+definitions["barrelshot-large-aa"].smoke2.properties.colormap = [[0.95 0.17 0.69 0.95    0.35 0.13 0.20 0.65   0.15 0.12 0.14 0.60    0.12 0.12 0.12 0.25   0 0 0 0.01]]
 
 definitions["barrelshot-huge-aa"] = deepcopy(definitions["barrelshot-huge"])
-definitions["barrelshot-huge-aa"].fire.properties.colormap = [[1 0.6 0.85 0.013   0.6 0.2 0.5 0.01   0.4 0.06 0.033 0.006   0 0 0 0.01]]
+definitions["barrelshot-huge-aa"].fire.properties.colormap  = [[1 0.6 0.85 0.013   0.6 0.2 0.5 0.01   0.4 0.06 0.033 0.006   0 0 0 0.01]]
 definitions["barrelshot-huge-aa"].fire2.properties.colormap = [[1 0.6 0.85 0.013   0.6 0.2 0.5 0.01   0.4 0.06 0.033 0.006   0 0 0 0.01]]
-definitions["barrelshot-huge-aa"].fireglow.properties.colormap = [[0.122 0.066 0.09 0.04   0 0 0 0.01]]
-definitions["barrelshot-huge-aa"].smoke.properties.colormap = [[0 0 0 0   0.15 0.055 0.12 0.2    0.48 0.26 0.40 0.44    0.2 0.135 0.17 0.4     0.16 0.12 0.145 0.4    0.145 0.11 0.13 0.4    0.13 0.095 0.075 0.4     0.115 0.088 0.07 0.35    0.1 0.075 0.066 0.3    0.09 0.07 0.06 0.26   0.08 0.065 0.06 0.22  0 0 0 0]]
-definitions["barrelshot-small-aa"].smoke2 = nil
+--definitions["barrelshot-huge-aa"].fireglow.properties.colormap = [[0.122 0.066 0.09 0.04   0 0 0 0.01]]
+definitions["barrelshot-huge-aa"].smoke.properties.colormap  = [[0.95 0.17 0.69 0.95    0.35 0.13 0.20 0.65   0.15 0.12 0.14 0.60    0.12 0.12 0.12 0.25   0 0 0 0.01]]
+definitions["barrelshot-huge-aa"].smoke2.properties.colormap = [[0.95 0.17 0.69 0.95    0.35 0.13 0.20 0.65   0.15 0.12 0.14 0.60    0.12 0.12 0.12 0.25   0 0 0 0.01]]
 
+local size = 1.3
 definitions["barrelshot-sniper"] = deepcopy(definitions["barrelshot-large"])
-definitions["barrelshot-sniper"].fire.properties.colormap = [[1 0.33 0.15 0.015   0.7 0.17 0.08 0.01   0.4 0.06 0.03 0.01   0 0 0 0.01]]
-definitions["barrelshot-sniper"].fire2.properties.colormap = [[1 0.33 0.15 0.015   0.7 0.17 0.08 0.01   0.4 0.06 0.03 0.01   0 0 0 0.01]]
-definitions["barrelshot-sniper"].fireglow.properties.colormap = [[0.122 0.066 0.025 0.04   0 0 0 0.01]]
-definitions["barrelshot-sniper"].smoke.properties.colormap = [[0 0 0 0   0.15 0.055 0.03 0.2    0.48 0.26 0.15 0.44    0.2 0.135 0.1 0.4     0.16 0.12 0.11 0.4    0.145 0.11 0.095 0.4    0.13 0.095 0.075 0.4     0.115 0.088 0.07 0.35    0.1 0.075 0.066 0.3    0.09 0.07 0.06 0.26   0.08 0.065 0.06 0.22  0 0 0 0]]
+definitions["barrelshot-sniper"].fire.properties.length                                  = definitions["barrelshot-sniper"].fire.properties.length * size * 1.3
+definitions["barrelshot-sniper"].fire.properties.size                                    = definitions["barrelshot-sniper"].fire.properties.size * size * 0.8
+definitions["barrelshot-sniper"].fire2.properties.length                                 = definitions["barrelshot-sniper"].fire.properties.length * size * 1.3
+definitions["barrelshot-sniper"].fire2.properties.size                                   = definitions["barrelshot-sniper"].fire.properties.size * size * 0.8
+definitions["barrelshot-sniper"].fireglow.properties.particlesize                        = definitions["barrelshot-sniper"].fireglow.properties.particlesize * size * 0.95
+--definitions["barrelshot-sniper"].fire.properties.colormap = [[1 0.33 0.15 0.015   0.7 0.17 0.08 0.01   0.4 0.06 0.03 0.01   0 0 0 0.01]]
+--definitions["barrelshot-sniper"].fire2.properties.colormap = [[1 0.33 0.15 0.015   0.7 0.17 0.08 0.01   0.4 0.06 0.03 0.01   0 0 0 0.01]]
+--definitions["barrelshot-sniper"].fireglow.properties.colormap = [[0.122 0.066 0.025 0.04   0 0 0 0.01]]
+--definitions["barrelshot-sniper"].smoke.properties.colormap = [[0 0 0 0   0.15 0.055 0.03 0.2    0.48 0.26 0.15 0.44    0.2 0.135 0.1 0.4     0.16 0.12 0.11 0.4    0.145 0.11 0.095 0.4    0.13 0.095 0.075 0.4     0.115 0.088 0.07 0.35    0.1 0.075 0.066 0.3    0.09 0.07 0.06 0.26   0.08 0.065 0.06 0.22  0 0 0 0]]
 
 
 

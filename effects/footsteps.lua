@@ -63,6 +63,8 @@ return {
         sizegrowth         = 1.2,
         ttl                = 11,
         texture             = [[groundring]],
+        useairlos          = false,
+        alwaysvisible      = false,
       },
     }, 
     -- dirtg = {
