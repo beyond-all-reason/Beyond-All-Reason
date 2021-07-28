@@ -17,7 +17,7 @@ return {
 		corpse = "DEAD",
 		damagemodifier = 0.25,
 		decoyfor = "scavdrag",
-		description = Spring.I18N('units.descriptions.scavdtf'), -- "Pop-up Flamethrower Turret" when it is added to i18n
+		description = Spring.I18N('units.descriptions.corscavdtf'), -- "Pop-up Flamethrower Turret" when it is added to i18n
 		energystorage = 15,
 		explodeas = "flamethrower",
 		footprintx = 2,
