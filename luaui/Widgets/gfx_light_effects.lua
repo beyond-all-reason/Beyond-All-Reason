@@ -896,8 +896,8 @@ local function GadgetWeaponBarrelfire(px, py, pz, weaponID, ownerID)
 	if weaponConf[weaponID] ~= nil then
 		local mult = (weaponConf[weaponID].wtype == 'Cannon' and 1 or 0.3)
 		local params = {
-			life = (3+(weaponConf[weaponID].life/3))*globalLifeMult * mult,
-			orgMult = 0.3 + (weaponConf[weaponID].orgMult*0.3) * mult,
+			life = (3.3+(weaponConf[weaponID].life/3))*globalLifeMult * mult,
+			orgMult = 0.35 + (weaponConf[weaponID].orgMult*0.35) * mult,
 			frame = spGetGameFrame(),
 			px = px,
 			py = py,
@@ -907,7 +907,7 @@ local function GadgetWeaponBarrelfire(px, py, pz, weaponID, ownerID)
 				r = weaponConf[weaponID].r,
 				g = weaponConf[weaponID].g,
 				b = weaponConf[weaponID].b,
-				radius = 22 + (weaponConf[weaponID].radius*0.8) * mult,
+				radius = 25 + (weaponConf[weaponID].radius*0.85) * mult,
 			},
 		}
 		explosionLightsCount = explosionLightsCount + 1
