@@ -24,7 +24,7 @@ if gadgetHandler:IsSyncedCode() then
                 cannonWeapons[wdid] = true
                 Script.SetWatchExplosion(wdid, true)
 				if wd.damages[0] >= 20 then
-					--Script.SetWatchProjectile(wdid, true)
+					Script.SetWatchProjectile(wdid, true)
 				end
             end
             if wd.type == "BeamLaser" then
@@ -40,7 +40,7 @@ if gadgetHandler:IsSyncedCode() then
             if wd.type == "Cannon" then
                 Script.SetWatchExplosion(wdid, false)
 				if wd.damages[0] >= 20 then
-					--Script.SetWatchProjectile(wdid, false)
+					Script.SetWatchProjectile(wdid, false)
 				end
             end
         end
