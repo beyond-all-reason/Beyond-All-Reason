@@ -42,14 +42,14 @@ end
 local defaults = {
 	layer = -35,
 	life = 20,
-	light = 2,
+	light = 2.5,
 	repeatEffect = true,
 }
 
 local corafusShieldSphere = MergeTable(defaults, {
 	pos = { 0, 60, 0 },
 	size = 32,
-	light = 3.25,
+	light = 4,
 	--colormap1 = { {0.9, 0.9, 1, 0.75},{0.9, 0.9, 1, 1.0},{0.9, 0.9, 1, 1.0},{0.9, 0.9, 1, 0.75} },
 	--colormap2 = { {0.2, 0.2, 1, 0.7},{0.2, 0.2, 1, 0.75},{0.2, 0.2, 1, 0.75},{0.2, 0.2, 1, 0.7} },
 })
@@ -57,7 +57,7 @@ local corafusShieldSphere = MergeTable(defaults, {
 local armafusShieldSphere = MergeTable(defaults, {
 	pos = { 0, 60, 0 },
 	size = 28,
-	light = 3.5,
+	light = 4.25,
 	--colormap1 = { {0.9, 0.9, 1, 0.75},{0.9, 0.9, 1, 1.0},{0.9, 0.9, 1, 1.0},{0.9, 0.9, 1, 0.75} },
 	--colormap2 = { {0.2, 0.2, 1, 0.7},{0.2, 0.2, 1, 0.75},{0.2, 0.2, 1, 0.75},{0.2, 0.2, 1, 0.7} },
 })
@@ -65,7 +65,7 @@ local armafusShieldSphere = MergeTable(defaults, {
 local corfusShieldSphere = MergeTable(defaults, {
 	pos = { 0, 51, 0 },
 	size = 23,
-	light = 2.75,
+	light = 3.25,
 	--colormap1 = { {0.9, 0.9, 1, 0.75},{0.9, 0.9, 1, 1.0},{0.9, 0.9, 1, 1.0},{0.9, 0.9, 1, 0.75} },
 	--colormap2 = { {0.2, 0.6, 0.2, 0.4},{0.2, 0.6, 0.2, 0.45},{0.2, 0.6, 0.2, 0.45},{0.2, 0.6, 0.2, 0.4} },
 })

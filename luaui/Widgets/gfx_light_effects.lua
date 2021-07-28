@@ -87,7 +87,7 @@ local function Split(s, separator)
 end
 
 local weaponConf = {}
-function loadWeaponDefs()
+local function loadWeaponDefs()
 	weaponConf = {}
 	for i=1, #WeaponDefs do
 		local customParams = WeaponDefs[i].customParams or {}
@@ -198,12 +198,9 @@ function loadWeaponDefs()
 end
 loadWeaponDefs()
 
-
-
---------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 -- Light Defs
-
+--------------------------------------------------------------------------------
 
 local function GetLightsFromUnitDefs()
 	--Spring.Echo('GetLightsFromUnitDefs init')
