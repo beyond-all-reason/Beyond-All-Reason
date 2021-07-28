@@ -14,22 +14,31 @@ Spring.Echo("[Scavengers] Config initialized")
 	scavDifficulty = (Spring.GetModOptions and Spring.GetModOptions().scavdifficulty) or "veryeasy"
 	if scavDifficulty == "noob" then
 		spawnmultiplier = 0.1
+		scavStatsDifficulty = "Noob"
 	elseif scavDifficulty == "veryeasy" then
 		spawnmultiplier = 0.5
+		scavStatsDifficulty = "Very Easy"
 	elseif scavDifficulty == "easy" then
 		spawnmultiplier = 0.75
+		scavStatsDifficulty = "Easy"
 	elseif scavDifficulty == "medium" then
 		spawnmultiplier = 1
+		scavStatsDifficulty = "Medium"
 	elseif scavDifficulty == "hard" then
 		spawnmultiplier = 1.25
+		scavStatsDifficulty = "Hard"
 	elseif scavDifficulty == "veryhard" then
 		spawnmultiplier = 1.5
+		scavStatsDifficulty = "Very Hard"
 	elseif scavDifficulty == "expert" then
 		spawnmultiplier = 2
+		scavStatsDifficulty = "Expert"
 	elseif scavDifficulty == "brutal" then
 		spawnmultiplier = 3
+		scavStatsDifficulty = "Brutal"
 	else
 		spawnmultiplier = 0.5
+		scavStatsDifficulty = "Very Easy"
 	end
 
 
