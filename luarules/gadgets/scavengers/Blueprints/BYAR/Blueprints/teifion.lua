@@ -254,7 +254,7 @@ end
 local function t3HeavyArtillery1()
     return {
 		type = types.Land,
-		tiers = { tiers.T3, tiers.T4 },
+		tiers = {tiers.T4 },
 		radius =  162,
 		buildings = {
         	{ unitDefID = UDN.armafus_scav.id, xOffset =  56,  zOffset =  -46, direction = 1 },
@@ -291,7 +291,7 @@ end
 local function t3HeavyArtillery2()
     return {
 		type = types.Land,
-		tiers = { tiers.T3, tiers.T4 },
+		tiers = {tiers.T4 },
 		radius =  144,
 		buildings = {
         	{ unitDefID = UDN.cormmkr_scav.id, xOffset =  -80,  zOffset =   64, direction = 1 },
