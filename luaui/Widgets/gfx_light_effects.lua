@@ -98,10 +98,20 @@ local function loadWeaponDefs()
 			--	maxDamage = math.max(maxDamage, value)
 			--end
 			--local dmgBonus = math.sqrt(math.sqrt(math.sqrt(maxDamage)))
-			params.r, params.g, params.b = 1, 0.8, 0.4
-			params.radius = ((WeaponDefs[i].damageAreaOfEffect*3.3) + (WeaponDefs[i].damageAreaOfEffect * WeaponDefs[i].edgeEffectiveness * 1.5)) * globalRadiusMult
-			params.orgMult = (0.35 + (params.radius/2400)) * globalLightMult
-			params.life = (14*(0.8+ params.radius/1200)) * globalLifeMult
+			local damage = 100
+			for cat=0, #WeaponDefs[i].damages do
+				if Game.armorTypes[cat] and Game.armorTypes[cat] == 'default' then
+					damage = WeaponDefs[i].damages[cat]
+					break
+				end
+			end
+			params.orgMult = math.max(0.5, math.min(damage/1000, 3.5))
+			params.radius = ((WeaponDefs[i].damageAreaOfEffect*2) + (WeaponDefs[i].damageAreaOfEffect * WeaponDefs[i].edgeEffectiveness * 1.25)) * globalRadiusMult
+			params.orgMult = (params.orgMult + (params.radius/2400)) * globalLightMult
+			params.life = (7*(0.8+ params.radius/800)) * globalLifeMult
+			params.radius = (params.orgMult * 3) + (params.radius * 3.5)
+			params.r, params.g, params.b = 1, 0.8, 0.45
+
 
 			if customParams.expl_light_color then
 				local colorList = Split(customParams.expl_light_color, " ")
@@ -129,19 +139,19 @@ local function loadWeaponDefs()
 				params.radius = params.radius * tonumber(customParams.expl_light_radius_mult)
 			end
 
-			params.heatradius = (WeaponDefs[i].damageAreaOfEffect*0.5)
+			params.heatradius = (WeaponDefs[i].damageAreaOfEffect*0.6)
 
 			if customParams.expl_light_heat_radius_mult then
 				params.heatradius = (params.heatradius * tonumber(customParams.expl_light_heat_radius_mult))
 			end
 
-			params.heatlife = (13*(0.8+ params.heatradius/1200)) + (params.heatradius/4)
+			params.heatlife = (7*(0.8+ params.heatradius/1200)) + (params.heatradius/4)
 
 			if customParams.expl_light_heat_life_mult then
 				params.heatlife = params.heatlife * tonumber(customParams.expl_light_heat_life_mult)
 			end
 
-			params.heatstrength = math_min(3, 0.8 + (params.heatradius/40))
+			params.heatstrength = math_min(3, 0.8 + (params.heatradius/50))
 
 			if customParams.expl_light_heat_strength_mult then
 				params.heatstrength = params.heatstrength * customParams.expl_light_heat_strength_mult
