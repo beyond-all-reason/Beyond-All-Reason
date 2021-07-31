@@ -67,12 +67,27 @@ local cellPadding, iconPadding, cornerSize, cellInnerSize, cellSize
 --local activeCmd, selBuildQueueDefID, rowPressedClock, rowPressed
 
 local minWaterUnitDepth = -11
-
 local showWaterUnits = false
 local _, _, mapMinWater, _ = Spring.GetGroundExtremes()
 if mapMinWater <= minWaterUnitDepth then
 	showWaterUnits = true
 end
+
+
+local showGeothermalUnits = false
+local geoThermalFeatures = {}
+for defID, def in pairs(FeatureDefs) do
+	if def.geoThermal then
+		geoThermalFeatures[defID] = true
+	end
+end
+for i = 1, #Spring.GetAllFeatures() do
+	if geoThermalFeatures[Spring.GetFeatureDefID(features[i])] then
+		showGeothermalUnits = true
+		break
+	end
+end
+geoThermalFeatures = nil
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
@@ -286,6 +301,7 @@ local isFactory = {}
 local unitIconType = {}
 local isMex = {}
 local isWaterUnit = {}
+local isGeothermalUnit = {}
 local unitMaxWeaponRange = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
 	unitGroup[unitDefID] = 'util'
@@ -296,6 +312,10 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	end
 	if unitDef.name == 'armthovr' or unitDef.name == 'corintr' then
 		isWaterUnit[unitDefID] = nil
+	end
+
+	if unitDef.needGeo then
+		isGeothermalUnit[unitDefID] = true
 	end
 
 	if unitDef.customParams.objectify or unitDef.isTransport or string.find(unitDef.name, 'critter') then
@@ -629,7 +649,9 @@ local function RefreshCommands()
 			local cmdUnitdefs = {}
 			for i, udefid in pairs(UnitDefs[startDefID].buildOptions) do
 				if showWaterUnits or not isWaterUnit[udefid] then
-					cmdUnitdefs[udefid] = i
+					if showGeothermalUnits or not isGeothermalUnit[udefid] then
+						cmdUnitdefs[udefid] = i
+					end
 				end
 			end
 			for k, uDefID in pairs(unitOrder) do
@@ -654,7 +676,9 @@ local function RefreshCommands()
 					if string_sub(cmd.action, 1, 10) == 'buildunit_' then
 						-- not cmd.disabled and cmd.type == 20 or
 						if showWaterUnits or not isWaterUnit[cmd.id * -1] then
-							cmdUnitdefs[cmd.id * -1] = index
+							if showGeothermalUnits or not isGeothermalUnit[cmd.id * -1] then
+								cmdUnitdefs[cmd.id * -1] = index
+							end
 						end
 					end
 				end
@@ -671,8 +695,10 @@ local function RefreshCommands()
 					if string_sub(cmd.action, 1, 10) == 'buildunit_' then
 						-- not cmd.disabled and cmd.type == 20 or
 						if showWaterUnits or not isWaterUnit[cmd] then
-							cmdsCount = cmdsCount + 1
-							cmds[cmdsCount] = cmd
+							if showGeothermalUnits or not isGeothermalUnit[cmd] then
+								cmdsCount = cmdsCount + 1
+								cmds[cmdsCount] = cmd
+							end
 						end
 					end
 				end
