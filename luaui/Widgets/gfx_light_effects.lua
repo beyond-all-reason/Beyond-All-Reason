@@ -106,9 +106,9 @@ local function loadWeaponDefs()
 				end
 			end
 			params.radius = ((WeaponDefs[i].damageAreaOfEffect*2) + (WeaponDefs[i].damageAreaOfEffect * WeaponDefs[i].edgeEffectiveness * 1.25)) * globalRadiusMult
-			params.orgMult = (math.max(0.4, math.min(damage/1200, 2.5)) + (params.radius/2400)) * globalLightMult
-			params.life = (7*(0.8+ params.radius/800)) * globalLifeMult
-			params.radius = (params.orgMult * 3) + (params.radius * 3.5)
+			params.orgMult = (math.max(0.3, math.min(damage/1500, 0.66)) + (params.radius/2500)) * globalLightMult
+			params.life = (8*(0.8+ params.radius/2500)) * globalLifeMult
+			params.radius = (params.orgMult * 80) + (params.radius * 2.5)
 			params.r, params.g, params.b = 1, 0.8, 0.45
 
 
@@ -184,10 +184,10 @@ local function loadWeaponDefs()
 			params.yoffset = 15 + (params.radius/35)
 
 			if WeaponDefs[i].type == 'BeamLaser' then
-				params.radius = params.radius * 3.5
+				params.radius = params.radius * 3.3
 				params.life = 1
 				damage = damage/WeaponDefs[i].beamtime
-				params.radius = (params.radius*1.4) + (damage/2500)
+				params.radius = (params.radius*1.33) + (damage/3000)
 				params.orgMult = (0.22 + (damage/3000))
 				if params.orgMult > 0.8 then
 					params.orgMult = 0.8
@@ -233,14 +233,14 @@ local function GetLightsFromUnitDefs()
 			skip = true
 		end
 
-		local lightMultiplier = 0.08
-		local bMult = 1.6		-- because blue appears to be very faint
+		local lightMultiplier = 0.07
+		local bMult = 1.45		-- because blue appears to be very faint
 		local r,g,b = weaponDef.visuals.colorR, weaponDef.visuals.colorG, weaponDef.visuals.colorB*bMult
 
 		local weaponData = {type=weaponDef.type, r = (r + 0.1) * lightMultiplier, g = (g + 0.1) * lightMultiplier, b = (b + 0.1) * lightMultiplier, radius = 100}
 		local recalcRGB = false
 
-		if (weaponDef.type == 'Cannon') then
+		if weaponDef.type == 'Cannon' then
 			if customParams.single_hit then
 				weaponData.beamOffset = 1
 				weaponData.beam = true
