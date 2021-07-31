@@ -306,10 +306,10 @@ return {
 				weapontype = "DGun",
 				weaponvelocity = 300,
 				customparams = {
-					expl_light_heat_radius_mult = 2.8,
-					expl_light_heat_strength_mult = 0.66,
-					expl_light_mult = 0.35,
-					expl_light_radius_mult = 1.15,
+					expl_light_heat_radius = 14,
+					expl_light_opacity = 0.33,
+					expl_light_radius = 370,
+					expl_light_color = "1 0.83 0.53",
 				},
 				damage = {
 					default = 99999,

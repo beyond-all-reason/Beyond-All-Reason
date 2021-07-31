@@ -105,9 +105,8 @@ local function loadWeaponDefs()
 					break
 				end
 			end
-			params.orgMult = math.max(0.5, math.min(damage/1000, 3.5))
 			params.radius = ((WeaponDefs[i].damageAreaOfEffect*2) + (WeaponDefs[i].damageAreaOfEffect * WeaponDefs[i].edgeEffectiveness * 1.25)) * globalRadiusMult
-			params.orgMult = (params.orgMult + (params.radius/2400)) * globalLightMult
+			params.orgMult = (math.max(0.5, math.min(damage/1000, 3.5)) + (params.radius/2400)) * globalLightMult
 			params.life = (7*(0.8+ params.radius/800)) * globalLifeMult
 			params.radius = (params.orgMult * 3) + (params.radius * 3.5)
 			params.r, params.g, params.b = 1, 0.8, 0.45
@@ -141,6 +140,9 @@ local function loadWeaponDefs()
 
 			params.heatradius = (WeaponDefs[i].damageAreaOfEffect*0.6)
 
+			if customParams.expl_light_heat_radius then
+				params.heatradius = tonumber(customParams.expl_light_heat_radius) * globalRadiusMult
+			end
 			if customParams.expl_light_heat_radius_mult then
 				params.heatradius = (params.heatradius * tonumber(customParams.expl_light_heat_radius_mult))
 			end
@@ -182,14 +184,7 @@ local function loadWeaponDefs()
 			params.yoffset = 15 + (params.radius/35)
 
 			if WeaponDefs[i].type == 'BeamLaser' then
-				local damage = 75
 				params.radius = params.radius * 3.5
-				for cat=0, #WeaponDefs[i].damages do
-					if Game.armorTypes[cat] and Game.armorTypes[cat] == 'default' then
-						damage = WeaponDefs[i].damages[cat]
-						break
-					end
-				end
 				params.life = 1
 				damage = damage/WeaponDefs[i].beamtime
 				params.radius = (params.radius*1.4) + (damage/2500)
@@ -260,31 +255,31 @@ local function GetLightsFromUnitDefs()
 				end
 				recalcRGB = true
 			end
-		elseif (weaponDef.type == 'LaserCannon') then
+		elseif weaponDef.type == 'LaserCannon' then
 			weaponData.radius = 70 * weaponDef.size
-		elseif (weaponDef.type == 'DGun') then
-			weaponData.radius = 450
-			lightMultiplier = 0.55
-		elseif (weaponDef.type == 'MissileLauncher') then
+		elseif weaponDef.type == 'DGun' then
+			weaponData.radius = 400
+			lightMultiplier = 0.9
+		elseif weaponDef.type == 'MissileLauncher' then
 			weaponData.radius = 125 * weaponDef.size
 			if weaponDef.damageAreaOfEffect ~= nil  then
 				weaponData.radius = 125 * (weaponDef.size + (weaponDef.damageAreaOfEffect * 0.01))
 			end
 			lightMultiplier = 0.01 + (weaponDef.size/55)
 			recalcRGB = true
-		elseif (weaponDef.type == 'StarburstLauncher') then
+		elseif weaponDef.type == 'StarburstLauncher' then
 			weaponData.radius = 250
 			weaponData.radius1 = weaponData.radius
 			weaponData.radius2 = weaponData.radius*0.6
-		elseif (weaponDef.type == 'Flame') then
+		elseif weaponDef.type == 'Flame' then
 			weaponData.radius = 70 * weaponDef.size
 			lightMultiplier = 0.07
 			recalcRGB = true
 			--skip = true
-		elseif (weaponDef.type == 'LightningCannon') then
+		elseif weaponDef.type == 'LightningCannon' then
 			weaponData.radius = 70 * weaponDef.size
 			weaponData.beam = true
-		elseif (weaponDef.type == 'BeamLaser') then
+		elseif weaponDef.type == 'BeamLaser' then
 			weaponData.radius = 16 * (weaponDef.size * weaponDef.size * weaponDef.size)
 			weaponData.beam = true
 			if weaponDef.beamTTL > 2 then
@@ -508,7 +503,7 @@ local function GetProjectileLights(beamLights, beamLightCount, pointLights, poin
 
 	local projectiles = spGetVisibleProjectiles()
 	local projectileCount = #projectiles
-	if (not projectileFade) and projectileCount == 0 then
+	if not projectileFade and projectileCount == 0 then
 		return beamLights, beamLightCount, pointLights, pointLightCount
 	end
 
@@ -526,7 +521,7 @@ local function GetProjectileLights(beamLights, beamLightCount, pointLights, poin
 		local weapon, piece = spGetProjectileType(pID)
 		if piece then
 			local explosionflags = spGetPieceProjectileParams(pID)
-			if explosionflags and (explosionflags%32) > 15 then --only stuff with the FIRE explode tag gets a light
+			if explosionflags and explosionflags%32 > 15 then --only stuff with the FIRE explode tag gets a light
 				--Spring.Echo('explosionflag = ', explosionflags)
 				local drawParams = {pID = pID, px = x, py = y, pz = z, param = (doOverride and overrideParam) or gibParams, colMult = 1}
 				if drawParams.param.gib == true or drawParams.param.gib == nil then
