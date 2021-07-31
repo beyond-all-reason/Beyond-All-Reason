@@ -106,7 +106,7 @@ local function loadWeaponDefs()
 				end
 			end
 			params.radius = ((WeaponDefs[i].damageAreaOfEffect*2) + (WeaponDefs[i].damageAreaOfEffect * WeaponDefs[i].edgeEffectiveness * 1.25)) * globalRadiusMult
-			params.orgMult = (math.max(0.5, math.min(damage/1000, 3.5)) + (params.radius/2400)) * globalLightMult
+			params.orgMult = (math.max(0.4, math.min(damage/1200, 2.5)) + (params.radius/2400)) * globalLightMult
 			params.life = (7*(0.8+ params.radius/800)) * globalLifeMult
 			params.radius = (params.orgMult * 3) + (params.radius * 3.5)
 			params.r, params.g, params.b = 1, 0.8, 0.45
