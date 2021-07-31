@@ -75,20 +75,22 @@ end
 
 
 local showGeothermalUnits = false
-local geoThermalFeatures = {}
-for defID, def in pairs(FeatureDefs) do
-	if def.geoThermal then
-		geoThermalFeatures[defID] = true
+local function checkGeothermalFeatures()
+	showGeothermalUnits = false
+	local geoThermalFeatures = {}
+	for defID, def in pairs(FeatureDefs) do
+		if def.geoThermal then
+			geoThermalFeatures[defID] = true
+		end
+	end
+	local features = Spring.GetAllFeatures()
+	for i = 1, #features do
+		if geoThermalFeatures[Spring.GetFeatureDefID(features[i])] then
+			showGeothermalUnits = true
+			break
+		end
 	end
 end
-for i = 1, #Spring.GetAllFeatures() do
-	if geoThermalFeatures[Spring.GetFeatureDefID(features[i])] then
-		showGeothermalUnits = true
-		break
-	end
-end
-geoThermalFeatures = nil
-
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 
@@ -803,6 +805,9 @@ end
 
 
 function widget:Initialize()
+
+	checkGeothermalFeatures()
+
 	hijacklayout()
 
 	iconTypesMap = {}
@@ -1799,6 +1804,11 @@ local function GetUnitCanCompleteQueue(uID)
 end
 
 function widget:GameFrame(n)
+
+	if checkGeothermalFeatures then
+		checkGeothermalFeatures()
+		checkGeothermalFeatures = nil
+	end
 
 	-- handle the pregame build queue
 	preGamestartPlayer = false
