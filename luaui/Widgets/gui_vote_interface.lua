@@ -45,13 +45,13 @@ function widget:ViewResize()
 	vsx, vsy = Spring.GetViewGeometry()
 	widgetScale = (0.5 + (vsx * vsy / 5700000)) * 1.55
 
-	widgetSpaceMargin = Spring.FlowUI.elementMargin
-	bgpadding = Spring.FlowUI.elementPadding
-	elementCorner = Spring.FlowUI.elementCorner
+	widgetSpaceMargin = WG.FlowUI.elementMargin
+	bgpadding = WG.FlowUI.elementPadding
+	elementCorner = WG.FlowUI.elementCorner
 
-	RectRound = Spring.FlowUI.Draw.RectRound
-	UiElement = Spring.FlowUI.Draw.Element
-	UiButton = Spring.FlowUI.Draw.Button
+	RectRound = WG.FlowUI.Draw.RectRound
+	UiElement = WG.FlowUI.Draw.Element
+	UiButton = WG.FlowUI.Draw.Button
 
 	font, loadedFontSize = WG['fonts'].getFont()
 	font2 = WG['fonts'].getFont(fontfile2)

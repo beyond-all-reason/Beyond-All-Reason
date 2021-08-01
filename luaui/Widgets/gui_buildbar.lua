@@ -143,13 +143,13 @@ end
 function widget:ViewResize()
 	vsx, vsy = Spring.GetViewGeometry()
 
-	bgpadding = Spring.FlowUI.elementPadding
-	elementCorner = Spring.FlowUI.elementCorner
+	bgpadding = WG.FlowUI.elementPadding
+	elementCorner = WG.FlowUI.elementCorner
 
-	RectRound = Spring.FlowUI.Draw.RectRound
-	RectRoundProgress = Spring.FlowUI.Draw.RectRoundProgress
-	UiElement = Spring.FlowUI.Draw.Element
-	UiUnit = Spring.FlowUI.Draw.Unit
+	RectRound = WG.FlowUI.Draw.RectRound
+	RectRoundProgress = WG.FlowUI.Draw.RectRoundProgress
+	UiElement = WG.FlowUI.Draw.Element
+	UiUnit = WG.FlowUI.Draw.Unit
 
 	font = WG['fonts'].getFont(fontFile, 1, 0.2, 1.3)
 

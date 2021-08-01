@@ -178,10 +178,10 @@ function widget:ViewResize()
 
 	font = WG['fonts'].getFont()
 
-	elementCorner = Spring.FlowUI.elementCorner
+	elementCorner = WG.FlowUI.elementCorner
 
-	RectRound = Spring.FlowUI.Draw.RectRound
-	UiElement = Spring.FlowUI.Draw.Element
+	RectRound = WG.FlowUI.Draw.RectRound
+	UiElement = WG.FlowUI.Draw.Element
 
 	if prevVsy ~= vsx or prevVsy ~= vsy then
 		createList()

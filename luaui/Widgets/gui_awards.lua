@@ -186,7 +186,7 @@ local function createAward(pic, award, note, noteColour, winnerID, secondID, thi
 end
 
 function widget:ViewResize(viewSizeX, viewSizeY)
-	UiElement = Spring.FlowUI.Draw.Element
+	UiElement = WG.FlowUI.Draw.Element
 
 	vsx, vsy = Spring.GetViewGeometry()
 	local newFontfileScale = (0.5 + (vsx * vsy / 5700000))

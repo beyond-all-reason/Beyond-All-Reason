@@ -180,5 +180,5 @@ function widget:ViewResize(viewSizeX, viewSizeY)
 	widgetPosX = vsx / 2.5
 	widgetPosY = vsy / 7.5
 
-	RectRound = Spring.FlowUI.Draw.RectRound
+	RectRound = WG.FlowUI.Draw.RectRound
 end

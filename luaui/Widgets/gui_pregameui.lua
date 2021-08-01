@@ -100,12 +100,12 @@ function widget:ViewResize(viewSizeX, viewSizeY)
 		font = gl.LoadFont(fontfile, fontfileSize * fontfileScale, fontfileOutlineSize * fontfileScale, fontfileOutlineStrength)
 	end
 
-	UiElement = Spring.FlowUI.Draw.Element
-	UiButton = Spring.FlowUI.Draw.Button
-	elementPadding = Spring.FlowUI.elementPadding
+	UiElement = WG.FlowUI.Draw.Element
+	UiButton = WG.FlowUI.Draw.Button
+	elementPadding = WG.FlowUI.elementPadding
 	uiPadding = math.floor(elementPadding * 4.5)
 
-	RectRound = Spring.FlowUI.Draw.RectRound
+	RectRound = WG.FlowUI.Draw.RectRound
 
 	createButton()
 end
@@ -202,11 +202,16 @@ end
 
 function widget:Initialize()
 	if mySpec then
-		local tsMu = "30"--customtable.skill
-		local tsSigma = "0"--customtable.skilluncertainty
-		eligibleAsSub = tsMu and tsSigma and (tsSigma <= 2) and (not string.find(tsMu, ")")) and mySpec
-		if numPlayers <= 4 or isReplay or (tonumber(Spring.GetModOptions().ffa_mode) or 0) == 1 or Spring.GetGameFrame() > 0 then
+		if not mySpec or numPlayers <= 4 or isReplay or (tonumber(Spring.GetModOptions().ffa_mode) or 0) == 1 or Spring.GetGameFrame() > 0 then
 			eligibleAsSub = false
+		else
+			eligibleAsSub = true
+			-- TODO: ...check if you're eligible at all for any of the players
+			--local customtable = select(11, Spring.GetPlayerInfo(myPlayerID))
+			--if type(customtable) == 'table' then
+			--	local tsMu = customtable.skill
+			--	local tsSigma = customtable.skilluncertainty
+			--end
 		end
 	end
 

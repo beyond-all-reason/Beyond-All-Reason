@@ -45,6 +45,7 @@ return {
 		customparams = {
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armships",
+			techlevel = 3,
 		},
 		featuredefs = {
 			dead = {

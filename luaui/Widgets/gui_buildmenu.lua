@@ -59,15 +59,6 @@ local hoverCellZoom = 0.05 * zoomMult
 local clickSelectedCellZoom = 0.125 * zoomMult
 local selectedCellZoom = 0.135 * zoomMult
 
-local buttonBackgroundTexture = "LuaUI/Images/vr_grid.png"
-local buttonBgtexScale = 1.9	-- lower = smaller tiles
-local buttonBgtexOpacity = 0
-local buttonBgtexSize
-local backgroundTexture = "LuaUI/Images/backgroundtile.png"
-local ui_tileopacity = tonumber(Spring.GetConfigFloat("ui_tileopacity", 0.012) or 0.012)
-local bgtexScale = tonumber(Spring.GetConfigFloat("ui_tilescale", 7) or 7)	-- lower = smaller tiles
-local bgtexSize
-
 local bgpadding, chobbyInterface, activeAreaMargin, textureDetail, iconTypesMap, radariconTextureDetail
 local dlistCache, dlistGuishader, dlistBuildmenuBg, dlistBuildmenu, font, font2, cmdsCount
 local hijackedlayout, doUpdateClock, ordermenuHeight, advplayerlistPos, prevAdvplayerlistLeft
@@ -76,13 +67,30 @@ local cellPadding, iconPadding, cornerSize, cellInnerSize, cellSize
 --local activeCmd, selBuildQueueDefID, rowPressedClock, rowPressed
 
 local minWaterUnitDepth = -11
-
 local showWaterUnits = false
 local _, _, mapMinWater, _ = Spring.GetGroundExtremes()
 if mapMinWater <= minWaterUnitDepth then
 	showWaterUnits = true
 end
 
+
+local showGeothermalUnits = false
+local function checkGeothermalFeatures()
+	showGeothermalUnits = false
+	local geoThermalFeatures = {}
+	for defID, def in pairs(FeatureDefs) do
+		if def.geoThermal then
+			geoThermalFeatures[defID] = true
+		end
+	end
+	local features = Spring.GetAllFeatures()
+	for i = 1, #features do
+		if geoThermalFeatures[Spring.GetFeatureDefID(features[i])] then
+			showGeothermalUnits = true
+			break
+		end
+	end
+end
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 
@@ -295,6 +303,7 @@ local isFactory = {}
 local unitIconType = {}
 local isMex = {}
 local isWaterUnit = {}
+local isGeothermalUnit = {}
 local unitMaxWeaponRange = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
 	unitGroup[unitDefID] = 'util'
@@ -305,6 +314,10 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	end
 	if unitDef.name == 'armthovr' or unitDef.name == 'corintr' then
 		isWaterUnit[unitDefID] = nil
+	end
+
+	if unitDef.needGeo then
+		isGeothermalUnit[unitDefID] = true
 	end
 
 	if unitDef.customParams.objectify or unitDef.isTransport or string.find(unitDef.name, 'critter') then
@@ -638,7 +651,9 @@ local function RefreshCommands()
 			local cmdUnitdefs = {}
 			for i, udefid in pairs(UnitDefs[startDefID].buildOptions) do
 				if showWaterUnits or not isWaterUnit[udefid] then
-					cmdUnitdefs[udefid] = i
+					if showGeothermalUnits or not isGeothermalUnit[udefid] then
+						cmdUnitdefs[udefid] = i
+					end
 				end
 			end
 			for k, uDefID in pairs(unitOrder) do
@@ -663,7 +678,9 @@ local function RefreshCommands()
 					if string_sub(cmd.action, 1, 10) == 'buildunit_' then
 						-- not cmd.disabled and cmd.type == 20 or
 						if showWaterUnits or not isWaterUnit[cmd.id * -1] then
-							cmdUnitdefs[cmd.id * -1] = index
+							if showGeothermalUnits or not isGeothermalUnit[cmd.id * -1] then
+								cmdUnitdefs[cmd.id * -1] = index
+							end
 						end
 					end
 				end
@@ -680,8 +697,10 @@ local function RefreshCommands()
 					if string_sub(cmd.action, 1, 10) == 'buildunit_' then
 						-- not cmd.disabled and cmd.type == 20 or
 						if showWaterUnits or not isWaterUnit[cmd] then
-							cmdsCount = cmdsCount + 1
-							cmds[cmdsCount] = cmd
+							if showGeothermalUnits or not isGeothermalUnit[cmd] then
+								cmdsCount = cmdsCount + 1
+								cmds[cmdsCount] = cmd
+							end
 						end
 					end
 				end
@@ -700,18 +719,15 @@ function widget:ViewResize()
 		minimapHeight = WG['minimap'].getHeight()
 	end
 
-	local widgetSpaceMargin = Spring.FlowUI.elementMargin
-	bgpadding = Spring.FlowUI.elementPadding
-	elementCorner = Spring.FlowUI.elementCorner
+	local widgetSpaceMargin = WG.FlowUI.elementMargin
+	bgpadding = WG.FlowUI.elementPadding
+	elementCorner = WG.FlowUI.elementCorner
 
-	RectRound = Spring.FlowUI.Draw.RectRound
-	RectRoundProgress = Spring.FlowUI.Draw.RectRoundProgress
-	UiUnit = Spring.FlowUI.Draw.Unit
-	UiButton = Spring.FlowUI.Draw.Button
-	UiElement = Spring.FlowUI.Draw.Element
-
-	bgtexSize = bgpadding * bgtexScale
-	buttonBgtexSize = bgpadding * buttonBgtexScale
+	RectRound = WG.FlowUI.Draw.RectRound
+	RectRoundProgress = WG.FlowUI.Draw.RectRoundProgress
+	UiUnit = WG.FlowUI.Draw.Unit
+	UiButton = WG.FlowUI.Draw.Button
+	UiElement = WG.FlowUI.Draw.Element
 
 	activeAreaMargin = math_ceil(bgpadding * cfgActiveAreaMargin)
 
@@ -789,6 +805,9 @@ end
 
 
 function widget:Initialize()
+
+	checkGeothermalFeatures()
+
 	hijacklayout()
 
 	iconTypesMap = {}
@@ -1785,6 +1804,11 @@ local function GetUnitCanCompleteQueue(uID)
 end
 
 function widget:GameFrame(n)
+
+	if checkGeothermalFeatures then
+		checkGeothermalFeatures()
+		checkGeothermalFeatures = nil
+	end
 
 	-- handle the pregame build queue
 	preGamestartPlayer = false

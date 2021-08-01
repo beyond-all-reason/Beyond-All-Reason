@@ -283,10 +283,10 @@ function widget:ViewResize(vsx2, vsy2)
 	screenX = (vsx * 0.5) - (screenWidth / 2)
 	screenY = (vsy * 0.5) + (screenHeight / 2)
 
-	elementCorner = Spring.FlowUI.elementCorner
+	elementCorner = WG.FlowUI.elementCorner
 
-	RectRound = Spring.FlowUI.Draw.RectRound
-	UiElement = Spring.FlowUI.Draw.Element
+	RectRound = WG.FlowUI.Draw.RectRound
+	UiElement = WG.FlowUI.Draw.Element
 
 	scoreboardX = floor(vsx * scoreboardRelX)
 	scoreboardY = floor(vsy * scoreboardRelY)

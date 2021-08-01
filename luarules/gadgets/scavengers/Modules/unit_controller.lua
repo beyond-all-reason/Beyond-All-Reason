@@ -66,6 +66,36 @@ function ArmyMoveOrders(n, scav, scavDef)
 		UnitRange[scav] = 100
 	end
 	attackTarget = Spring.GetUnitNearestEnemy(scav, 200000, false)
+	
+	if not BossWaveStarted or BossWaveStarted == false then
+		attackTarget = Spring.GetUnitNearestEnemy(scav, 200000, false)
+	elseif FinalBossUnitID then
+		if scav == FinalBossUnitID then
+			if AliveEnemyCommanders and AliveEnemyCommandersCount > 0 then
+				if AliveEnemyCommandersCount > 1 then
+					for i = 1,AliveEnemyCommandersCount do
+						-- let's get nearest commander
+						local separation = Spring.GetUnitSeparation(scav,AliveEnemyCommanders[i])
+						if not lowestSeparation then
+							lowestSeparation = separation
+							attackTarget = AliveEnemyCommanders[i]
+						end
+						if separation < lowestSeparation then
+							lowestSeparation = separation
+							attackTarget = AliveEnemyCommanders[i]
+						end
+					end
+					lowestSeparation = nil
+				elseif AliveEnemyCommandersCount == 1 then
+					attackTarget = AliveEnemyCommanders[1]
+				end
+			end
+		else
+			attackTarget = FinalBossUnitID
+		end
+	else
+		attackTarget = Spring.GetUnitNearestEnemy(scav, 200000, false)
+	end
 	if attackTarget == nil then
 		attackTarget = Spring.GetUnitNearestEnemy(scav, 200000, false)
 	end
@@ -96,6 +126,11 @@ function ArmyMoveOrders(n, scav, scavDef)
 		else
 			Spring.GiveOrderToUnit(scav, CMD.MOVE,{x,y,z}, {"shift", "alt", "ctrl"})
 		end	
+	else
+		local x = math.random(0, mapsizeX)
+		local z = math.random(0, mapsizeZ)
+		local y = Spring.GetGroundHeight(x,z)
+		Spring.GiveOrderToUnit(scav, CMD.FIGHT,{x,y,z}, {"shift", "alt", "ctrl"})
 	end
 	attackTarget = nil
 end

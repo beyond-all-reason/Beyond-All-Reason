@@ -53,6 +53,7 @@ return {
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "corbuildings/landfactories",
+			techlevel = 3,
 		},
 		featuredefs = {
 			dead = {

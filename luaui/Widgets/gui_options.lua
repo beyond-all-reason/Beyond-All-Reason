@@ -561,6 +561,7 @@ local wsx, wsy, wpx, wpy = Spring.GetWindowGeometry()
 local ssx, ssy, spx, spy = Spring.GetScreenGeometry()
 
 local changesRequireRestart = false
+local enabledSensorsOnce = false
 
 local useNetworkSmoothing = false
 
@@ -733,18 +734,18 @@ function widget:ViewResize()
 	screenX = math.floor((vsx * centerPosX) - (screenWidth / 2))
 	screenY = math.floor((vsy * centerPosY) + (screenHeight / 2))
 
-	bgpadding = Spring.FlowUI.elementPadding
-	elementCorner = Spring.FlowUI.elementCorner
+	bgpadding = WG.FlowUI.elementPadding
+	elementCorner = WG.FlowUI.elementCorner
 
-	RectRound = Spring.FlowUI.Draw.RectRound
-	TexturedRectRound = Spring.FlowUI.Draw.TexturedRectRound
-	UiElement = Spring.FlowUI.Draw.Element
-	UiButton = Spring.FlowUI.Draw.Button
-	UiSlider = Spring.FlowUI.Draw.Slider
-	UiSliderKnob = Spring.FlowUI.Draw.SliderKnob
-	UiToggle = Spring.FlowUI.Draw.Toggle
-	UiSelector = Spring.FlowUI.Draw.Selector
-	UiSelectHighlight = Spring.FlowUI.Draw.SelectHighlight
+	RectRound = WG.FlowUI.Draw.RectRound
+	TexturedRectRound = WG.FlowUI.Draw.TexturedRectRound
+	UiElement = WG.FlowUI.Draw.Element
+	UiButton = WG.FlowUI.Draw.Button
+	UiSlider = WG.FlowUI.Draw.Slider
+	UiSliderKnob = WG.FlowUI.Draw.SliderKnob
+	UiToggle = WG.FlowUI.Draw.Toggle
+	UiSelector = WG.FlowUI.Draw.Selector
+	UiSelectHighlight = WG.FlowUI.Draw.SelectHighlight
 
 	font = WG['fonts'].getFont(fontfile)
 	font2 = WG['fonts'].getFont(fontfile2)
@@ -5600,6 +5601,14 @@ end
 
 function widget:Initialize()
 
+	-- do it once, remove all code containing 'enabledSensorsOnce' after a few weeks or so (26-7-2021)
+	if not enabledSensorsOnce then
+		widgetHandler:EnableWidget("Sensor Ranges LOS")
+		widgetHandler:EnableWidget("Sensor Ranges Radar")
+		widgetHandler:EnableWidget("Sensor Ranges Sonar")
+		widgetHandler:EnableWidget("Sensor Ranges Jammer")
+	end
+
 	-- UNCOMMENT WHEN we want everybody to switch to new icon rendering
 	--if not newEngineIconsInitialized and engineVersion >= 104011747 then		-- initialize new engine icons first time
 	--	Spring.SendCommands("iconsasui 1")
@@ -5612,6 +5621,9 @@ function widget:Initialize()
 		widgetHandler:DisableWidget("Ambient Player")
 	end
 
+	if widgetHandler.orderList["FlowUI"] and widgetHandler.orderList["FlowUI"] < 0.5 then
+		widgetHandler:EnableWidget("FlowUI")
+	end
 	if widgetHandler.orderList["Language"] < 0.5 then
 		widgetHandler:EnableWidget("Language")
 	end
@@ -5943,6 +5955,7 @@ function widget:GetConfigData(data)
 		useNetworkSmoothing = useNetworkSmoothing,
 		desiredWaterValue = desiredWaterValue,
 		waterDetected = waterDetected,
+		enabledSensorsOnce = true,
 
 		disticon = { 'UnitIconDist', tonumber(Spring.GetConfigInt("UnitIconDist", 1) or 160) },
 		particles = { 'MaxParticles', tonumber(Spring.GetConfigInt("MaxParticles", 1) or 15000) },
@@ -5962,7 +5975,9 @@ function widget:GetConfigData(data)
 end
 
 function widget:SetConfigData(data)
-
+	if data.enabledSensorsOnce then
+		enabledSensorsOnce = true
+	end
 	if data.newEngineIconsInitialized then
 		newEngineIconsInitialized = data.newEngineIconsInitialized
 	end

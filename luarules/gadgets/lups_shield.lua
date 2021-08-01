@@ -61,6 +61,7 @@ local function AngleBetweenVectors(x1, y1, z1, x2, y2, z2)
 end
 
 -- presumes normalized vectors
+local ALMOST_ONE = 0.999
 local function GetSLerpedPoint(x1, y1, z1, x2, y2, z2, w1, w2)
 	-- Below check is not really required for the sane AOE_SAME_SPOT value (less than PI)
 --[[
@@ -80,6 +81,10 @@ local function GetSLerpedPoint(x1, y1, z1, x2, y2, z2, w1, w2)
 	until ok
 ]]--
 	local dotP = DotProduct(x1, y1, z1, x2, y2, z2)
+
+	if dotP >= ALMOST_ONE then --avoid div by by sinA == zero
+		return x1, y1, z1
+	end
 	-- Do spherical linear interpolation
 	local A = math.acos(dotP)
 	local sinA = math.sin(A)

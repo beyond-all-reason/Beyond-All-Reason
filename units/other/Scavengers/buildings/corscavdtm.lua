@@ -6,9 +6,9 @@ return {
 		buildangle = 8192,
 		buildcostenergy = 1550,
 		buildcostmetal = 290,
-		buildinggrounddecaldecayspeed = 30,
-		buildinggrounddecalsizex = 4,
-		buildinggrounddecalsizey = 4,
+		-- buildinggrounddecaldecayspeed = 30,
+		-- buildinggrounddecalsizex = 4,
+		-- buildinggrounddecalsizey = 4,
 		--buildinggrounddecaltype = "decals/scavdtf_aoplane.dds",
 		buildpic = "CORSCAVDTM.PNG",
 		buildtime = 4419,
@@ -17,7 +17,7 @@ return {
 		corpse = "DEAD",
 		damagemodifier = 0.25,
 		decoyfor = "scavdrag",
-		description = Spring.I18N('units.descriptions.scavdtf'), -- "Pop-up Flamethrower Turret" when it is added to i18n
+		description = Spring.I18N('units.descriptions.corscavdtf'), -- "Pop-up Flamethrower Turret" when it is added to i18n
 		energystorage = 15,
 		explodeas = "flamethrower",
 		footprintx = 2,
@@ -42,7 +42,7 @@ return {
 		stealth = true,
 		turnrate = 0,
 		upright = true,
-		usebuildinggrounddecal = true,
+		usebuildinggrounddecal = false,
 		customparams = {
 			decoyfor = "corscavdrag",
 			model_author = "FireStorm",

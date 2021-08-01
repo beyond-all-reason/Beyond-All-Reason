@@ -156,7 +156,7 @@ return {
 				range = 180,
 				reloadtime = 0.3,
 				rgbcolor = "1 0.95 0.4",
-				size = 2.15,
+				size = 1.9,
 				soundhitwet = "splshbig",
 				soundstart = "flashemg",
 				sprayangle = 1180,

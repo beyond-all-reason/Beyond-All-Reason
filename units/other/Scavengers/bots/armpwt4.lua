@@ -45,6 +45,7 @@ return {
 			model_author = "Kaiser",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "other/scavengers",
+			techlevel = 3,
 			wpn1turretx = 300,
 			wpn1turrety = 300,
 		},

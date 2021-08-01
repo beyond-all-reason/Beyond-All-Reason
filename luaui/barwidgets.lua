@@ -1252,6 +1252,9 @@ function widgetHandler:ViewResize(vsx, vsy)
 		vsx = vsx.viewSizeX
 		print('real ViewResize') -- FIXME
 	end
+	if widgetHandler.WG.FlowUI then
+		widgetHandler.WG.FlowUI.Callin.ViewResize1(vsx, vsy)
+	end
 	for _, w in ipairs(self.ViewResizeList) do
 		w:ViewResize(vsx, vsy)
 	end
@@ -1724,7 +1727,7 @@ end
 
 function widgetHandler:SelectionChanged(selectedUnits, subselection)
 	for _, w in ipairs(self.SelectionChangedList) do
-		if widgetHandler.WG['smartselect'] and not widgetHandler.WG['smartselect'].updateSelection then
+		if widgetHandler.WG.smartselect and not widgetHandler.WG.smartselect.updateSelection then
 			return
 		end
 		local unitArray = w:SelectionChanged(selectedUnits, subselection)

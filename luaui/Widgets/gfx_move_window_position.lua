@@ -73,7 +73,7 @@ function widget:ViewResize()
 
 	font = WG['fonts'].getFont()
 
-	RectRound = Spring.FlowUI.Draw.RectRound
+	RectRound = WG.FlowUI.Draw.RectRound
 
 	if windowList then gl.DeleteList(windowList) end
 	windowList = gl.CreateList(DrawWindow)

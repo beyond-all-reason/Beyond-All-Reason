@@ -93,12 +93,12 @@ function widget:ViewResize()
 
 	font, loadedFontSize = WG['fonts'].getFont()
 	font2 = WG['fonts'].getFont(fontfile2)
-	bgpadding = Spring.FlowUI.elementPadding
-	elementCorner = Spring.FlowUI.elementCorner
+	bgpadding = WG.FlowUI.elementPadding
+	elementCorner = WG.FlowUI.elementCorner
 
-	RectRound = Spring.FlowUI.Draw.RectRound
-	UiElement = Spring.FlowUI.Draw.Element
-	UiScroller = Spring.FlowUI.Draw.Scroller
+	RectRound = WG.FlowUI.Draw.RectRound
+	UiElement = WG.FlowUI.Draw.Element
+	UiScroller = WG.FlowUI.Draw.Scroller
 
 	if changelogList then
 		gl.DeleteList(changelogList)

@@ -1360,10 +1360,10 @@ function widget:ViewResize()
     widgetPosX, widgetPosY = xRelPos * vsx, yRelPos * vsy
     widgetScale = (((vsy) / 2000) * 0.5) * (0.95 + (ui_scale - 1) / 1.5)        -- only used for rounded corners atm
 
-    bgpadding = Spring.FlowUI.elementPadding
+    bgpadding = WG.FlowUI.elementPadding
 
-	RectRound = Spring.FlowUI.Draw.RectRound
-	UiElement = Spring.FlowUI.Draw.Element
+	RectRound = WG.FlowUI.Draw.RectRound
+	UiElement = WG.FlowUI.Draw.Element
 
     font = WG['fonts'].getFont()
 

@@ -34,6 +34,7 @@ local usedConsoleFontSize = charSize*widgetScale*fontsizeMult*consoleFontSizeMul
 local orgLines = {}
 local chatLines = {}
 local consoleLines = {}
+local ignoredPlayers = {}
 local activationArea = {0,0,0,0}
 local consoleActivationArea = {0,0,0,0}
 local currentChatLine = 0
@@ -215,9 +216,29 @@ local function addChat(gameFrame, lineType, name, text, isLive)
 	end
 end
 
+local function deepcopy(orig)
+	local orig_type = type(orig)
+	local copy
+	if orig_type == 'table' then
+		copy = {}
+		for orig_key, orig_value in next, orig, nil do
+			copy[deepcopy(orig_key)] = deepcopy(orig_value)
+		end
+		setmetatable(copy, deepcopy(getmetatable(orig)))
+	else
+		-- number, string, boolean, etc
+		copy = orig
+	end
+	return copy
+end
+
 function widget:Initialize()
 	widget:ViewResize()
 	Spring.SendCommands("console 0")
+
+	if WG.ignoredPlayers then
+		ignoredPlayers = deepcopy(WG.ignoredPlayers)
+	end
 
 	WG['chat'] = {}
 	WG['chat'].getBackgroundOpacity = function()
@@ -281,6 +302,22 @@ function widget:Update(dt)
 				detectedChanges = true
 			end
 		end
+
+		-- detect a change in muted players
+		if WG.ignoredPlayers then
+			for name, value in pairs(ignoredPlayers) do
+				if WG.ignoredPlayers[name] == nil or WG.ignoredPlayers[name] ~= value then
+					detectedChanges = true
+				end
+			end
+			for name, value in pairs(WG.ignoredPlayers) do
+				if ignoredPlayers[name] == nil or ignoredPlayers[name] ~= value then
+					detectedChanges = true
+				end
+			end
+			ignoredPlayers = deepcopy(WG.ignoredPlayers)
+		end
+
 		if detectedChanges then
 			widget:ViewResize()
 		end
@@ -591,6 +628,7 @@ local function processConsoleLine(gameFrame, line, addOrgLine)
 	end
 
 	local name = ''
+	local nameText = ''
 	local text = ''
 	local lineType = 0
 	local bypassThisMessage = false
@@ -626,7 +664,7 @@ local function processConsoleLine(gameFrame, line, addOrgLine)
 			text = ssub(text,1,1):upper()..ssub(text,2)
 		end
 
-		name = convertColor(spGetTeamColor(names[name][3]))..name
+		nameText = convertColor(spGetTeamColor(names[name][3]))..name
 		line = convertColor(c[1],c[2],c[3])..text
 
 		-- spectator message
@@ -663,7 +701,7 @@ local function processConsoleLine(gameFrame, line, addOrgLine)
 			text = ssub(text,1,1):upper()..ssub(text,2)
 		end
 
-		name = convertColor(colorSpec[1],colorSpec[2],colorSpec[3])..'(s) '..name
+		nameText = convertColor(colorSpec[1],colorSpec[2],colorSpec[3])..'(s) '..name
 		line = convertColor(c[1],c[2],c[3])..text
 
 		-- point
@@ -681,7 +719,6 @@ local function processConsoleLine(gameFrame, line, addOrgLine)
 			spectator = names[name][2]
 		end
 		if spectator then
-			name = '(s) '..name
 			namecolor = convertColor(colorSpec[1],colorSpec[2],colorSpec[3])
 			textcolor = convertColor(colorSpec[1],colorSpec[2],colorSpec[3])
 
@@ -703,7 +740,7 @@ local function processConsoleLine(gameFrame, line, addOrgLine)
 			text = ssub(text,1,1):upper()..ssub(text,2)
 		end
 
-		name = namecolor..name
+		nameText = namecolor..(spectator and '(s) ' or '')..name
 		line = textcolor..text
 
 		-- battleroom message
@@ -716,7 +753,7 @@ local function processConsoleLine(gameFrame, line, addOrgLine)
 				name = ssub(line,4,i+2)
 				text = ssub(line,i+5)
 			else
-				name = "unknown"
+				name = "unknown "
 			end
 		else
 			bypassThisMessage = true
@@ -739,7 +776,7 @@ local function processConsoleLine(gameFrame, line, addOrgLine)
 		--	text = ssub(text,1,1):upper()..ssub(text,2)
 		--end
 
-		name = convertColor(colorGame[1],colorGame[2],colorGame[3])..'<'..name..'>'
+		nameText = convertColor(colorGame[1],colorGame[2],colorGame[3])..'<'..name..'>'
 		line = convertColor(colorGame[1],colorGame[2],colorGame[3])..text
 
 		-- console chat
@@ -788,6 +825,7 @@ local function processConsoleLine(gameFrame, line, addOrgLine)
 
 		line = convertColor(colorConsole[1],colorConsole[2],colorConsole[3])..line
 	end
+
 	-- bot command
 	if ssub(text,1,1) == '!' and  ssub(text, 1,2) ~= '!!' then
 		bypassThisMessage = true
@@ -796,14 +834,11 @@ local function processConsoleLine(gameFrame, line, addOrgLine)
 	if sfind(line, 'My player ID is', nil, true) then
 		bypassThisMessage = true
 	end
-	-- ignore muted players
-	if WG.ignoredPlayers and WG.ignoredPlayers[name] then
-		skipThisMessage = true
-	end
 
 	-- ignore muted players
-	if WG.ignoredPlayers and WG.ignoredPlayers[name] then
-		bypassThisMessage = true
+	if ignoredPlayers[name] then
+		skipThisMessage = true
+		--bypassThisMessage = true
 	end
 
 	if not bypassThisMessage and line ~= '' then
@@ -817,7 +852,7 @@ local function processConsoleLine(gameFrame, line, addOrgLine)
 		if lineType < 1 then
 			addConsoleLine(gameFrame, lineType, line, addOrgLine)
 		elseif not skipThisMessage then
-			addChat(gameFrame, lineType, name, line, addOrgLine)
+			addChat(gameFrame, lineType, nameText, line, addOrgLine)
 		end
 	end
 end
@@ -886,13 +921,13 @@ function widget:ViewResize()
 	vsx,vsy = Spring.GetViewGeometry()
 	widgetScale = (((vsx*0.3 + (vsy*2.33)) / 2000) * 0.55) * (0.95+(ui_scale-1)/1.5)
 
-	UiElement = Spring.FlowUI.Draw.Element
-	UiScroller = Spring.FlowUI.Draw.Scroller
-	elementCorner = Spring.FlowUI.elementCorner
-	elementPadding = Spring.FlowUI.elementPadding
-	elementMargin = Spring.FlowUI.elementMargin
+	UiElement = WG.FlowUI.Draw.Element
+	UiScroller = WG.FlowUI.Draw.Scroller
+	elementCorner = WG.FlowUI.elementCorner
+	elementPadding = WG.FlowUI.elementPadding
+	elementMargin = WG.FlowUI.elementMargin
 
-	RectRound = Spring.FlowUI.Draw.RectRound
+	RectRound = WG.FlowUI.Draw.RectRound
 
 	usedFontSize = charSize*widgetScale*fontsizeMult
 	usedConsoleFontSize = charSize*widgetScale*fontsizeMult*consoleFontSizeMult

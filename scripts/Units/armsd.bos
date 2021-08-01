@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, spinner;
+piece  base, spinner, fan;
 
 static-var  Static_Var_1, Static_Var_2, Static_Var_3;
 
@@ -46,8 +46,9 @@ Create()
 
 Activate()
 {
-	
+
 	spin spinner around y-axis speed <50> accelerate <0.5>;
+	spin fan around y-axis speed <200> accelerate <2.5>;
 	return (0);
 }
 
@@ -55,6 +56,7 @@ Deactivate()
 {
 	
 	stop-spin spinner around y-axis decelerate <0.5>;
+	stop-spin fan around y-axis decelerate <2.5>;
 	return (0);
 }
 

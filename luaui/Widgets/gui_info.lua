@@ -429,12 +429,12 @@ function widget:ViewResize()
 	height = math_floor(height * vsy) / vsy
 	width = math_floor(width * vsx) / vsx
 
-	bgpadding = Spring.FlowUI.elementPadding
-	elementCorner = Spring.FlowUI.elementCorner
+	bgpadding = WG.FlowUI.elementPadding
+	elementCorner = WG.FlowUI.elementCorner
 
-	RectRound = Spring.FlowUI.Draw.RectRound
-	UiElement = Spring.FlowUI.Draw.Element
-	UiUnit = Spring.FlowUI.Draw.Unit
+	RectRound = WG.FlowUI.Draw.RectRound
+	UiElement = WG.FlowUI.Draw.Element
+	UiUnit = WG.FlowUI.Draw.Unit
 
 	backgroundRect = { 0, 0, width * vsx, height * vsy }
 

@@ -122,9 +122,8 @@ return {
 				weapontype = "AircraftBomb",
 				customparams = {
 					expl_light_color = "0.5 0.5 1",
-					expl_light_life_mult = 1.3,
+					expl_light_life_mult = 1.55,
 					expl_light_mult = 1,
-					expl_light_radius_mult = 1.15,
 				},
 				damage = {
 					default = 4000,

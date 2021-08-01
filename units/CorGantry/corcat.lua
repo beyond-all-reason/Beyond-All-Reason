@@ -158,12 +158,12 @@ return {
 				weaponvelocity = 530,
 				wobble = 2000,
 				customparams = {
-					expl_light_color = "1 0.33 0.04",
+					expl_light_color = "1 0.3 0.03",
 					expl_light_heat_radius_mult = 2.6,
 					expl_light_life_mult = 1.05,
-					expl_light_radius_mult = 1.7,
+					expl_light_radius_mult = 1.75,
 					light_color = "1 0.5 0.05",
-					light_radius_mult = 0.6,
+					light_radius_mult = 0.5,
 				},
 				damage = {
 					default = 450,

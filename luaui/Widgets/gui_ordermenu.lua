@@ -274,15 +274,15 @@ function widget:ViewResize()
 
 	font = WG['fonts'].getFont(fontFile)
 
-	elementCorner = Spring.FlowUI.elementCorner
-	backgroundPadding = Spring.FlowUI.elementPadding
+	elementCorner = WG.FlowUI.elementCorner
+	backgroundPadding = WG.FlowUI.elementPadding
 
-	RectRound = Spring.FlowUI.Draw.RectRound
-	UiElement = Spring.FlowUI.Draw.Element
-	UiButton = Spring.FlowUI.Draw.Button
-	elementCorner = Spring.FlowUI.elementCorner
+	RectRound = WG.FlowUI.Draw.RectRound
+	UiElement = WG.FlowUI.Draw.Element
+	UiButton = WG.FlowUI.Draw.Button
+	elementCorner = WG.FlowUI.elementCorner
 
-	widgetSpaceMargin = Spring.FlowUI.elementMargin
+	widgetSpaceMargin = WG.FlowUI.elementMargin
 	if stickToBottom or (altPosition and not buildmenuBottomPosition) then
 
 		posY = height

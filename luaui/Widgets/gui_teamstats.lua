@@ -245,11 +245,11 @@ function widget:ViewResize()
 		maxColumnTextSize = max(font:GetTextWidth(data[2]),maxColumnTextSize)
 	end
 
-	bgpadding = Spring.FlowUI.elementPadding
-	elementCorner = Spring.FlowUI.elementCorner
+	bgpadding = WG.FlowUI.elementPadding
+	elementCorner = WG.FlowUI.elementCorner
 
-	RectRound = Spring.FlowUI.Draw.RectRound
-	UiElement = Spring.FlowUI.Draw.Element
+	RectRound = WG.FlowUI.Draw.RectRound
+	UiElement = WG.FlowUI.Draw.Element
 
 	calcAbsSizes()
 	updateFontSize()

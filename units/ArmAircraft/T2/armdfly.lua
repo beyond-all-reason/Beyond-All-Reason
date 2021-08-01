@@ -129,7 +129,7 @@ return {
 					expl_light_color = "0.7 0.7 1",
 					light_color = "0.7 0.7 1",
 					light_mult = "0.8",
-					light_radius_mult = "0.8",
+					light_radius_mult = "0.7",
 				},
 				damage = {
 					default = 22500,
