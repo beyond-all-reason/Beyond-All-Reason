@@ -587,44 +587,46 @@ local function GetProjectileLights(beamLights, beamLightCount, pointLights, poin
 	end
 
 	local frame = spGetGameFrame()
-	if projectileFade then
-		if previousProjectileDrawParams then
-			for i = 1, #previousProjectileDrawParams do
-				local pID = previousProjectileDrawParams[i].pID
-				if not projectilePresent[pID] then
-					local params = previousProjectileDrawParams[i]
-					params.startColMul = params.colMul or 1
-					params.py = params.py + 10
-					fadeProjectiles[#fadeProjectiles + 1] = params
-					fadeProjectileTimes[#fadeProjectileTimes + 1] = frame + FADE_TIME
-				end
-			end
-		end
 
-		local i = 1
-		while i <= #fadeProjectiles do
-			local strength = (fadeProjectileTimes[i] - frame)/FADE_TIME
-			if strength <= 0 then
-				fadeProjectileTimes[i] = fadeProjectileTimes[#fadeProjectileTimes]
-				fadeProjectileTimes[#fadeProjectileTimes] = nil
-				fadeProjectiles[i] = fadeProjectiles[#fadeProjectiles]
-				fadeProjectiles[#fadeProjectiles] = nil
-			else
-				local params = fadeProjectiles[i]
-				params.colMult = strength*params.startColMul
-				if params.beam then
-					beamLightCount = beamLightCount + 1
-					beamLights[beamLightCount] = params
-				else
-					pointLightCount = pointLightCount + 1
-					pointLights[pointLightCount] = params
-				end
-				i = i + 1
-			end
-		end
-
-		previousProjectileDrawParams = projectileDrawParams
-	end
+	-- note sure why this was done, but when paused, and camera was moved it added additional lights on top of lights
+	--if projectileFade then
+	--	if previousProjectileDrawParams then
+	--		for i = 1, #previousProjectileDrawParams do
+	--			local pID = previousProjectileDrawParams[i].pID
+	--			if not projectilePresent[pID] then
+	--				local params = previousProjectileDrawParams[i]
+	--				params.startColMul = params.colMul or 1
+	--				params.py = params.py + 10
+	--				fadeProjectiles[#fadeProjectiles + 1] = params
+	--				fadeProjectileTimes[#fadeProjectileTimes + 1] = frame + FADE_TIME
+	--			end
+	--		end
+	--	end
+	--
+	--	local i = 1
+	--	while i <= #fadeProjectiles do
+	--		local strength = (fadeProjectileTimes[i] - frame)/FADE_TIME
+	--		if strength <= 0 then
+	--			fadeProjectileTimes[i] = fadeProjectileTimes[#fadeProjectileTimes]
+	--			fadeProjectileTimes[#fadeProjectileTimes] = nil
+	--			fadeProjectiles[i] = fadeProjectiles[#fadeProjectiles]
+	--			fadeProjectiles[#fadeProjectiles] = nil
+	--		else
+	--			local params = fadeProjectiles[i]
+	--			params.colMult = strength*params.startColMul
+	--			if params.beam then
+	--				beamLightCount = beamLightCount + 1
+	--				beamLights[beamLightCount] = params
+	--			else
+	--				pointLightCount = pointLightCount + 1
+	--				pointLights[pointLightCount] = params
+	--			end
+	--			i = i + 1
+	--		end
+	--	end
+	--
+	--	previousProjectileDrawParams = projectileDrawParams
+	--end
 
 	-- add custom beam lights
 	local progress = 1
@@ -822,8 +824,8 @@ end
 local function GadgetWeaponExplosion(px, py, pz, weaponID, ownerID)
 	if weaponConf[weaponID] ~= nil then
 		--Spring.Echo(weaponConf[weaponID].orgMult..'   '..weaponConf[weaponID].radius..'  '..weaponConf[weaponID].life)
-		local randomOffset = weaponConf[weaponID].radius > 30 and weaponConf[weaponID].radius/11 or nil
-		if randomOffset and randomOffset > 15 then randomOffset = 15 end
+		--local randomOffset = weaponConf[weaponID].radius > 35 and weaponConf[weaponID].radius/15 or nil
+		--if randomOffset and randomOffset > 14 then randomOffset = 14 end
 		local params = {
 			life = weaponConf[weaponID].life,
 			orgMult = weaponConf[weaponID].orgMult,
@@ -838,7 +840,7 @@ local function GadgetWeaponExplosion(px, py, pz, weaponID, ownerID)
 				b = weaponConf[weaponID].b,
 				radius = weaponConf[weaponID].radius,
 			},
-			randomOffset = randomOffset
+			--randomOffset = randomOffset
 		}
 
 		explosionLightsCount = explosionLightsCount + 1
