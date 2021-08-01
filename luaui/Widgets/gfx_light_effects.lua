@@ -106,11 +106,10 @@ local function loadWeaponDefs()
 				end
 			end
 			params.radius = ((WeaponDefs[i].damageAreaOfEffect*2) + (WeaponDefs[i].damageAreaOfEffect * WeaponDefs[i].edgeEffectiveness * 1.25)) * globalRadiusMult
-			params.orgMult = (math.max(0.3, math.min(damage/1500, 0.66)) + (params.radius/2500)) * globalLightMult
-			params.life = (8*(0.8+ params.radius/2500)) * globalLifeMult
+			params.orgMult = (math.max(0.3, math.min(damage/1500, 0.6)) + (params.radius/2500)) * globalLightMult
+			params.life = (7.5*(0.8+params.radius/2500)+(params.orgMult * 5)) * globalLifeMult
 			params.radius = (params.orgMult * 80) + (params.radius * 2.5)
 			params.r, params.g, params.b = 1, 0.8, 0.45
-
 
 			if customParams.expl_light_color then
 				local colorList = Split(customParams.expl_light_color, " ")
@@ -900,8 +899,8 @@ local function GadgetWeaponBarrelfire(px, py, pz, weaponID, ownerID)
 	if weaponConf[weaponID] ~= nil then
 		local mult = (weaponConf[weaponID].wtype == 'Cannon' and 1 or 0.3)
 		local params = {
-			life = (3.3+(weaponConf[weaponID].life/3))*globalLifeMult * mult,
-			orgMult = 0.35 + (weaponConf[weaponID].orgMult*0.35) * mult,
+			life = (3+(weaponConf[weaponID].life/2.5))*globalLifeMult * mult,
+			orgMult = 0.3 + (weaponConf[weaponID].orgMult*0.2) * mult,
 			frame = spGetGameFrame(),
 			px = px,
 			py = py,
