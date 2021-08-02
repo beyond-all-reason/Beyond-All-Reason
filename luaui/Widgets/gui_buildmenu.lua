@@ -273,6 +273,7 @@ local unitEnergyCost = {}
 local unitMetalCost = {}
 local unitGroup = {}
 local unitRestricted = {}
+local unitDisabled = {}
 local isBuilder = {}
 local isFactory = {}
 local unitIconType = {}
@@ -534,6 +535,12 @@ local _, _, mapMinWater, _ = Spring.GetGroundExtremes()
 if mapMinWater <= minWaterUnitDepth then
 	showWaterUnits = true
 end
+-- make them a disabled unit (instead of removing it entirely)
+if not showWaterUnits then
+	for unitDefID,_ in pairs(isWaterUnit) do
+		unitDisabled[unitDefID] = true
+	end
+end
 
 local showGeothermalUnits = false
 local function checkGeothermalFeatures()
@@ -554,7 +561,7 @@ local function checkGeothermalFeatures()
 	-- make them a disabled unit (instead of removing it entirely)
 	if not showGeothermalUnits then
 		for unitDefID,_ in pairs(isGeothermalUnit) do
-			unitRestricted[unitDefID] = true
+			unitDisabled[unitDefID] = true
 		end
 	end
 end
@@ -657,11 +664,11 @@ local function RefreshCommands()
 
 			local cmdUnitdefs = {}
 			for i, udefid in pairs(UnitDefs[startDefID].buildOptions) do
-				if showWaterUnits or not isWaterUnit[udefid] then
+				--if showWaterUnits or not isWaterUnit[udefid] then
 					--if showGeothermalUnits or not isGeothermalUnit[udefid] then
 						cmdUnitdefs[udefid] = i
 					--end
-				end
+				--end
 			end
 			for k, uDefID in pairs(unitOrder) do
 				if cmdUnitdefs[uDefID] then
@@ -683,12 +690,11 @@ local function RefreshCommands()
 			for index, cmd in pairs(activeCmdDescs) do
 				if type(cmd) == "table" then
 					if string_sub(cmd.action, 1, 10) == 'buildunit_' then
-						-- not cmd.disabled and cmd.type == 20 or
-						if showWaterUnits or not isWaterUnit[cmd.id * -1] then
+						--if showWaterUnits or not isWaterUnit[cmd.id * -1] then
 							--if showGeothermalUnits or not isGeothermalUnit[cmd.id * -1] then
 								cmdUnitdefs[cmd.id * -1] = index
 							--end
-						end
+						--end
 					end
 				end
 			end
@@ -702,13 +708,12 @@ local function RefreshCommands()
 			for index, cmd in pairs(activeCmdDescs) do
 				if type(cmd) == "table" then
 					if string_sub(cmd.action, 1, 10) == 'buildunit_' then
-						-- not cmd.disabled and cmd.type == 20 or
-						if showWaterUnits or not isWaterUnit[cmd] then
+						--if showWaterUnits or not isWaterUnit[cmd] then
 							--if showGeothermalUnits or not isGeothermalUnit[cmd] then
 								cmdsCount = cmdsCount + 1
 								cmds[cmdsCount] = cmd
 							--end
-						end
+						--end
 					end
 				end
 			end
@@ -992,7 +997,15 @@ function widget:Update(dt)
 
 		local _, _, mapMinWater, _ = Spring.GetGroundExtremes()
 		if mapMinWater <= minWaterUnitDepth then
-			showWaterUnits = true
+			if not showWaterUnits then
+				showWaterUnits = true
+
+				for unitDefID,_ in pairs(isWaterUnit) do
+					if not isGeothermalUnit[unitDefID] or showGeothermalUnits then	-- make sure geothermal units keep being disabled if that should be the case
+						unitDisabled[unitDefID] = nil
+					end
+				end
+			end
 		end
 
 		if stickToBottom then
@@ -1259,7 +1272,7 @@ function drawBuildmenu()
 				WG['buildmenu'].selectedID = uDefID
 			end
 
-			drawCell(cellRectID, usedZoom, cellIsSelected and { 1, 0.85, 0.2, 0.25 } or nil, nil, nil, nil, unitRestricted[uDefID])
+			drawCell(cellRectID, usedZoom, cellIsSelected and { 1, 0.85, 0.2, 0.25 } or nil, nil, nil, nil, unitRestricted[uDefID] or unitDisabled[uDefID])
 		end
 	end
 
@@ -1437,7 +1450,7 @@ function widget:DrawScreen()
 								local text
 								local textColor = "\255\215\255\215"
 
-								if unitRestricted[uDefID] then
+								if unitRestricted[uDefID] or unitDisabled[uDefID] then
 									text = Spring.I18N('ui.buildMenu.disabled', { unit = UnitDefs[uDefID].humanName, textColor = textColor, warnColor = "\255\166\166\166" })
 								else
 									text = textColor .. UnitDefs[uDefID].humanName
@@ -1522,7 +1535,7 @@ function widget:DrawScreen()
 							end
 							cellColor = { 1, 0.85, 0.2, 0.25 }
 						end
-						if not unitRestricted[uDefID] then
+						if not (unitRestricted[uDefID] or unitDisabled[uDefID]) then
 
 							local unsetShowPrice, unsetShowRadarIcon, unsetShowGroupIcon
 							if not showPrice then
@@ -1538,7 +1551,7 @@ function widget:DrawScreen()
 							--	showGroupIcon = true
 							--end
 							-- re-draw cell with hover zoom (and price shown)
-							drawCell(cellRectID, usedZoom, cellColor, nil, { cellColor[1], cellColor[2], cellColor[3], 0.045 + (usedZoom * 0.45) }, 0.15, unitRestricted[uDefID])
+							drawCell(cellRectID, usedZoom, cellColor, nil, { cellColor[1], cellColor[2], cellColor[3], 0.045 + (usedZoom * 0.45) }, 0.15, unitRestricted[uDefID] or unitDisabled[uDefID])
 
 							if unsetShowPrice then
 								showPrice = false
@@ -1980,7 +1993,7 @@ function widget:MousePress(x, y, button)
 			end
 			if not disableInput then
 				for cellRectID, cellRect in pairs(cellRects) do
-					if cmds[cellRectID].id and UnitDefs[-cmds[cellRectID].id].humanName and IsOnRect(x, y, cellRect[1], cellRect[2], cellRect[3], cellRect[4]) and not unitRestricted[-cmds[cellRectID].id] then
+					if cmds[cellRectID].id and UnitDefs[-cmds[cellRectID].id].humanName and IsOnRect(x, y, cellRect[1], cellRect[2], cellRect[3], cellRect[4]) and not (unitRestricted[-cmds[cellRectID].id] or unitDisabled[-cmds[cellRectID].id]) then
 						if button ~= 3 then
 							if playSounds then
 								Spring.PlaySoundFile(sound_queue_add, 0.75, 'ui')
