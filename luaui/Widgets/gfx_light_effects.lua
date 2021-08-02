@@ -183,11 +183,14 @@ local function loadWeaponDefs()
 			params.yoffset = 15 + (params.radius/35)
 
 			if WeaponDefs[i].type == 'BeamLaser' then
-				params.life = 2
+				if not WeaponDefs[i].paralyzer then
+					params.noheatdistortion = true
+				end
+				params.life = 1
 				damage = damage/WeaponDefs[i].beamtime
-				params.radius = (params.radius*3.3) + (damage/3500)
-				params.orgMult = math.min(0.75, (0.11 + (damage/2200))) * globalLightMult
-				params.yoffset = 4 + (params.radius/300)
+				params.radius = (params.radius*3) + (damage/150)
+				params.orgMult = math.min(0.6, (0.15 + (damage/5000))) * globalLightMult
+				params.yoffset = 6 + (params.radius/700)
 				if params.yoffset > 25 then params.yoffset = 25 end
 			end
 
