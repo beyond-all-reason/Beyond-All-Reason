@@ -66,31 +66,6 @@ local cellPadding, iconPadding, cornerSize, cellInnerSize, cellSize
 --local radariconSize, radariconOffset, groupiconSize, priceFontSize
 --local activeCmd, selBuildQueueDefID, rowPressedClock, rowPressed
 
-local minWaterUnitDepth = -11
-local showWaterUnits = false
-local _, _, mapMinWater, _ = Spring.GetGroundExtremes()
-if mapMinWater <= minWaterUnitDepth then
-	showWaterUnits = true
-end
-
-
-local showGeothermalUnits = false
-local function checkGeothermalFeatures()
-	showGeothermalUnits = false
-	local geoThermalFeatures = {}
-	for defID, def in pairs(FeatureDefs) do
-		if def.geoThermal then
-			geoThermalFeatures[defID] = true
-		end
-	end
-	local features = Spring.GetAllFeatures()
-	for i = 1, #features do
-		if geoThermalFeatures[Spring.GetFeatureDefID(features[i])] then
-			showGeothermalUnits = true
-			break
-		end
-	end
-end
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 
@@ -553,6 +528,38 @@ end
 unitOrder = unitsOrdered
 unitsOrdered = nil
 
+local minWaterUnitDepth = -11
+local showWaterUnits = false
+local _, _, mapMinWater, _ = Spring.GetGroundExtremes()
+if mapMinWater <= minWaterUnitDepth then
+	showWaterUnits = true
+end
+
+local showGeothermalUnits = false
+local function checkGeothermalFeatures()
+	showGeothermalUnits = false
+	local geoThermalFeatures = {}
+	for defID, def in pairs(FeatureDefs) do
+		if def.geoThermal then
+			geoThermalFeatures[defID] = true
+		end
+	end
+	local features = Spring.GetAllFeatures()
+	for i = 1, #features do
+		if geoThermalFeatures[Spring.GetFeatureDefID(features[i])] then
+			showGeothermalUnits = true
+			break
+		end
+	end
+	-- make them a disabled unit (instead of removing it entirely)
+	if not showGeothermalUnits then
+		for unitDefID,_ in pairs(isGeothermalUnit) do
+			unitRestricted[unitDefID] = true
+		end
+	end
+end
+
+
 -- load all icons to prevent briefly showing white unit icons (will happen due to the custom texture filtering options)
 local function cacheUnitIcons()
 	local minC = minColls
@@ -651,9 +658,9 @@ local function RefreshCommands()
 			local cmdUnitdefs = {}
 			for i, udefid in pairs(UnitDefs[startDefID].buildOptions) do
 				if showWaterUnits or not isWaterUnit[udefid] then
-					if showGeothermalUnits or not isGeothermalUnit[udefid] then
+					--if showGeothermalUnits or not isGeothermalUnit[udefid] then
 						cmdUnitdefs[udefid] = i
-					end
+					--end
 				end
 			end
 			for k, uDefID in pairs(unitOrder) do
@@ -678,9 +685,9 @@ local function RefreshCommands()
 					if string_sub(cmd.action, 1, 10) == 'buildunit_' then
 						-- not cmd.disabled and cmd.type == 20 or
 						if showWaterUnits or not isWaterUnit[cmd.id * -1] then
-							if showGeothermalUnits or not isGeothermalUnit[cmd.id * -1] then
+							--if showGeothermalUnits or not isGeothermalUnit[cmd.id * -1] then
 								cmdUnitdefs[cmd.id * -1] = index
-							end
+							--end
 						end
 					end
 				end
@@ -697,10 +704,10 @@ local function RefreshCommands()
 					if string_sub(cmd.action, 1, 10) == 'buildunit_' then
 						-- not cmd.disabled and cmd.type == 20 or
 						if showWaterUnits or not isWaterUnit[cmd] then
-							if showGeothermalUnits or not isGeothermalUnit[cmd] then
+							--if showGeothermalUnits or not isGeothermalUnit[cmd] then
 								cmdsCount = cmdsCount + 1
 								cmds[cmdsCount] = cmd
-							end
+							--end
 						end
 					end
 				end
