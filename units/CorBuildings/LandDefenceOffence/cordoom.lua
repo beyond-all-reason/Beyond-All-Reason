@@ -176,7 +176,7 @@ return {
 				cratermult = 0,
 				edgeeffectiveness = 0.15,
 				energypershot = 50,
-				explosiongenerator = "custom:genericshellexplosion-medium-beam",
+				explosiongenerator = "custom:laserhit-medium-green",
 				firestarter = 90,
 				impactonly = 1,
 				impulseboost = 0,

@@ -167,7 +167,9 @@ return {
 				weapontype = "BeamLaser",
 				weaponvelocity = 800,
 				customparams = {
-					light_mult = "0.45",
+					expl_light_mult = 0.66,
+					expl_light_radius_mult = 0.66,
+					light_mult = 0.66,
 				},
 				damage = {
 					bombers = 2,
