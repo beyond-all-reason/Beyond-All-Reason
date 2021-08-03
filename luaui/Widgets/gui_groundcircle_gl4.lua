@@ -2,9 +2,9 @@ function widget:GetInfo()
 	return {
 		name      = "Ground Circle GL4",
 		desc      = "Draws A bunch of circles on the ground",
-		author    = "Beherith",
+		author    = "Beherith (mysterme@gmail.com)",
 		date      = "2021.04.26",
-		license   = "CC-BY-NC-ND 4.0",
+		license   = "Lua code: GPL V2, Shader Code: CC-BY-NC-ND 4.0",
 		layer     = -100,
 		enabled   = false
 	}
