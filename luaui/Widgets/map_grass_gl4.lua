@@ -4,9 +4,9 @@ function widget:GetInfo()
     name      = "Map Grass GL4",
     version   = "v0.001",
     desc      = "Instanced rendering of garbagegrass",
-    author    = "Beherith",
+    author    = "Beherith (mysterme@gmail.com)",
     date      = "2021.04.12",
-    license   = "CC-BY-NC-ND 4.0",
+    license   = "Lua code: GPL V2, Shader Code: CC-BY-NC-ND 4.0",
     layer     = -1000000000000,
     enabled   = false,
   }
