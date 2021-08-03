@@ -544,7 +544,7 @@ end
 
 local showGeothermalUnits = false
 local function checkGeothermalFeatures()
-	showGeothermalUnits = false
+	local newShowGeothermalUnits = false
 	local geoThermalFeatures = {}
 	for defID, def in pairs(FeatureDefs) do
 		if def.geoThermal then
@@ -554,14 +554,21 @@ local function checkGeothermalFeatures()
 	local features = Spring.GetAllFeatures()
 	for i = 1, #features do
 		if geoThermalFeatures[Spring.GetFeatureDefID(features[i])] then
-			showGeothermalUnits = true
+			newShowGeothermalUnits = true
 			break
 		end
 	end
 	-- make them a disabled unit (instead of removing it entirely)
-	if not showGeothermalUnits then
+	if newShowGeothermalUnits ~= showGeothermalUnits then
+		showGeothermalUnits = newShowGeothermalUnits
 		for unitDefID,_ in pairs(isGeothermalUnit) do
-			unitDisabled[unitDefID] = true
+			if not showGeothermalUnits then
+				unitDisabled[unitDefID] = true
+			else
+				if not isWaterUnit[unitDefID] or showWaterUnits then
+					unitDisabled[unitDefID] = nil
+				end
+			end
 		end
 	end
 end
@@ -664,11 +671,7 @@ local function RefreshCommands()
 
 			local cmdUnitdefs = {}
 			for i, udefid in pairs(UnitDefs[startDefID].buildOptions) do
-				--if showWaterUnits or not isWaterUnit[udefid] then
-					--if showGeothermalUnits or not isGeothermalUnit[udefid] then
-						cmdUnitdefs[udefid] = i
-					--end
-				--end
+				cmdUnitdefs[udefid] = i
 			end
 			for k, uDefID in pairs(unitOrder) do
 				if cmdUnitdefs[uDefID] then
@@ -690,11 +693,7 @@ local function RefreshCommands()
 			for index, cmd in pairs(activeCmdDescs) do
 				if type(cmd) == "table" then
 					if string_sub(cmd.action, 1, 10) == 'buildunit_' then
-						--if showWaterUnits or not isWaterUnit[cmd.id * -1] then
-							--if showGeothermalUnits or not isGeothermalUnit[cmd.id * -1] then
-								cmdUnitdefs[cmd.id * -1] = index
-							--end
-						--end
+						cmdUnitdefs[cmd.id * -1] = index
 					end
 				end
 			end
@@ -708,12 +707,8 @@ local function RefreshCommands()
 			for index, cmd in pairs(activeCmdDescs) do
 				if type(cmd) == "table" then
 					if string_sub(cmd.action, 1, 10) == 'buildunit_' then
-						--if showWaterUnits or not isWaterUnit[cmd] then
-							--if showGeothermalUnits or not isGeothermalUnit[cmd] then
-								cmdsCount = cmdsCount + 1
-								cmds[cmdsCount] = cmd
-							--end
-						--end
+						cmdsCount = cmdsCount + 1
+						cmds[cmdsCount] = cmd
 					end
 				end
 			end
