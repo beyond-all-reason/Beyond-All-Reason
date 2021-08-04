@@ -21,7 +21,7 @@ function CleanerBST:Init()
 	end
 	self.ignore = {}
 	self.frameCounter = 0
-  	self:Patroling()
+
 end
 
 function CleanerBST:Update()
@@ -40,6 +40,10 @@ function CleanerBST:Update()
 
 		self.frameCounter = 0
 	end
+end
+
+function CleanerBST:OwnerBuilt()
+	self:Patroling()
 end
 
 function CleanerBST:OwnerIdle()
