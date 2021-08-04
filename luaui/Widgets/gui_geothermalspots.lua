@@ -1,9 +1,9 @@
 function widget:GetInfo()
 	return {
-		name    = "Metalspots",
-		desc    = "Displays rotating circles around metal spots",
+		name    = "Geothermalspots",
+		desc    = "Displays rotating circles around geothermal spots",
 		author  = "Floris, Beherith GL4",
-		date    = "October 2019",
+		date    = "August 2021",
 		license = "",
 		layer   = 2,
 		enabled = true,
@@ -13,22 +13,20 @@ end
 local showValue			= false
 local metalViewOnly		= false
 
-local circleSpaceUsage	= 0.75
-local circleInnerOffset	= 0.35
+local circleSpaceUsage	= 0.84
+local circleInnerOffset	= 0
 local opacity			= 0.5
 
-local innersize			= 1.86		-- outersize-innersize = circle width
-local outersize			= 2.08		-- outersize-innersize = circle width
+local innersize			= 2.2		-- outersize-innersize = circle width
+local outersize			= 2.44		-- outersize-innersize = circle width
 
 local spIsGUIHidden = Spring.IsGUIHidden
-local spIsSphereInView = Spring.IsSphereInView
 local spGetUnitsInSphere = Spring.GetUnitsInSphere
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetGroundHeight = Spring.GetGroundHeight
 local spGetMapDrawMode  = Spring.GetMapDrawMode
 
 local spots = {}
-local valueList = {}
 local previousOsClock = os.clock()
 local checkspots = true
 local sceduledCheckedSpotsFrame = Spring.GetGameFrame()
@@ -36,20 +34,38 @@ local sceduledCheckedSpotsFrame = Spring.GetGameFrame()
 local isSpec, fullview = Spring.GetSpectatingState()
 local myAllyTeamID = Spring.GetMyAllyTeamID()
 
-local fontfile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
-local vsx,vsy = Spring.GetViewGeometry()
-local fontfileScale = (0.5 + (vsx*vsy / 5700000))
-local fontfileSize = 80
-local fontfileOutlineSize = 22
-local fontfileOutlineStrength = 1.15
-local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
-
 local chobbyInterface
+
+local function spotKey(x, z)
+	return tostring(x).."_"..tostring(z)
+end
 
 local extractors = {}
 for uDefID, uDef in pairs(UnitDefs) do
-	if uDef.extractsMetal > 0 then
+	if uDef.needGeo then
 		extractors[uDefID] = true
+	end
+end
+
+local showGeothermalUnits = false
+local function checkGeothermalFeatures()
+	showGeothermalUnits = false
+	local geoFeatureDefs = {}
+	for defID, def in pairs(FeatureDefs) do
+		if def.geoThermal then
+			geoFeatureDefs[defID] = true
+		end
+	end
+	spots = {}
+	local features = Spring.GetAllFeatures()
+	local spotCount = 0
+	for i = 1, #features do
+		if geoFeatureDefs[Spring.GetFeatureDefID(features[i])] then
+			showGeothermalUnits = true
+			local x, y, z = Spring.GetFeaturePosition(features[i])
+			spotCount = spotCount + 1
+			spots[spotCount] = {x, y, z}
+		end
 	end
 end
 
@@ -137,12 +153,12 @@ out vec4 fragColor;
 
 void main(void)
 {
-	fragColor = vec4(1.0,1.0,1.0,circlealpha); //debug!
+	fragColor = vec4(0.75,1.0,0.75,circlealpha); //debug!
 }
 ]]
 
 local function goodbye(reason)
-	Spring.Echo("Metalspots GL4 widget exiting with reason: "..reason)
+	Spring.Echo("Geothermalspots GL4 widget exiting with reason: "..reason)
 	widgetHandler:RemoveWidget()
 end
 
@@ -152,6 +168,36 @@ local function arrayAppend(target, source)
 	end
 end
 
+
+local function checkGeothermalspots()
+	local now = os.clock()
+	for i=1, #spots do
+		spots[i][2] = spGetGroundHeight(spots[i][1],spots[i][3])
+		local spot = spots[i]
+		local units = spGetUnitsInSphere(spot[1], spot[2], spot[3], 110*(spot[5] or 1))
+		local occupied = false
+		local prevOccupied = spots[i][6] or false
+		for j=1, #units do
+			if extractors[spGetUnitDefID(units[j])] then
+				occupied = true
+				break
+			end
+		end
+		if occupied ~= prevOccupied then
+			spots[i][7] = now
+			spots[i][6] = occupied
+			local curSpotkey = spotKey(spot[1], spot[3])
+			local oldinstance = getElementInstanceData(spotInstanceVBO, curSpotkey)
+			oldinstance[5] = (occupied and 0) or 1
+			oldinstance[6] = Spring.GetGameFrame()
+			pushElementInstance(spotInstanceVBO, oldinstance, curSpotkey, true)
+		end
+	end
+	sceduledCheckedSpotsFrame = Spring.GetGameFrame() + 151
+	checkspots = false
+end
+
+
 local function makeSpotVBO()
 	spotVBO = gl.GetVBO(GL.ARRAY_BUFFER,false)
 	if spotVBO == nil then goodbye("Failed to create spotVBO") end
@@ -160,8 +206,8 @@ local function makeSpotVBO()
 
 	local detailPartWidth, a1,a2,a3,a4
 	local width = circleSpaceUsage
-	local pieces = 8
-	local detail = 10
+	local pieces = 3
+	local detail = 18	-- per piece
 	local radstep = (2.0 * math.pi) / pieces
 	for _,dir in ipairs({-1,1}) do
 		for i = 1, pieces do -- pieces
@@ -213,47 +259,9 @@ local function initGL4()
 	spotInstanceVBO.primitiveType = GL.TRIANGLES
 end
 
-local function spotKey(posx,posz)
-	return tostring(posx).."_"..tostring(posz)
-end
-
-local function checkMetalspots()
-	local now = os.clock()
-	for i=1, #spots do
-		spots[i][2] = spGetGroundHeight(spots[i][1],spots[i][3])
-		local spot = spots[i]
-		local units = spGetUnitsInSphere(spot[1], spot[2], spot[3], 110*spot[5])
-		local occupied = false
-		local prevOccupied = spots[i][6]
-		for j=1, #units do
-			if extractors[spGetUnitDefID(units[j])] then
-				occupied = true
-				break
-			end
-		end
-		if occupied ~= prevOccupied then
-			spots[i][7] = now
-			spots[i][6] = occupied
-			local curSpotkey = spotKey(spot[1], spot[3])
-			local oldinstance = getElementInstanceData(spotInstanceVBO, curSpotkey)
-			oldinstance[5] = (occupied and 0) or 1
-			oldinstance[6] = Spring.GetGameFrame()
-			pushElementInstance(spotInstanceVBO, oldinstance, curSpotkey, true)
-		end
-	end
-	sceduledCheckedSpotsFrame = Spring.GetGameFrame() + 151
-	checkspots = false
-end
-
 function widget:ViewResize()
 	local old_vsx, old_vsy = vsx, vsy
 	vsx,vsy = Spring.GetViewGeometry()
-	local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
-	if fontfileScale ~= newFontfileScale then
-		fontfileScale = newFontfileScale
-		gl.DeleteFont(font)
-		font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
-	end
 	if old_vsx ~= vsx or old_vsy ~= vsy then
 		widget:Shutdown()
 		widget:Initialize()
@@ -261,75 +269,55 @@ function widget:ViewResize()
 end
 
 function widget:Initialize()
-	if not WG.metalSpots then
-		Spring.Echo("<metalspots> This widget requires the 'Metalspot Finder' widget to run.")
-		widgetHandler:RemoveWidget()
+
+	if checkGeothermalFeatures then
+		checkGeothermalFeatures()
 	end
 
 	initGL4()
 
-	WG.metalspots = {}
-	WG.metalspots.setShowValue = function(value)
+	WG.geothermalspots = {}
+	WG.geothermalspots.setShowValue = function(value)
 		showValue = value
 	end
-	WG.metalspots.getShowValue = function()
+	WG.geothermalspots.getShowValue = function()
 		return showValue
 	end
-	WG.metalspots.setOpacity = function(value)
+	WG.geothermalspots.setOpacity = function(value)
 		opacity = value
 	end
-	WG.metalspots.getOpacity = function()
+	WG.geothermalspots.getOpacity = function()
 		return opacity
 	end
-	WG.metalspots.setMetalViewOnly = function(value)
+	WG.geothermalspots.setMetalViewOnly = function(value)
 		metalViewOnly = value
 	end
-	WG.metalspots.getMetalViewOnly = function()
+	WG.geothermalspots.getMetalViewOnly = function()
 		return metalViewOnly
 	end
 
 	local currentClock = os.clock()
-	local mSpots = WG.metalSpots
-	local spotsCount = #spots
-	for i = 1, #mSpots do
-		local spot = mSpots[i]
-		local value = string.format("%0.1f",math.round(spot.worth/1000,1))
-		if tonumber(value) > 0.001 then
-			local scale = 0.77 + ((math.max(spot.maxX,spot.minX)-(math.min(spot.maxX,spot.minX))) * (math.max(spot.maxZ,spot.minZ)-(math.min(spot.maxZ,spot.minZ)))) / 10000
+	local scale = 1
+	for i=1, #spots do
+		local spot = spots[i]
 
-			local units = spGetUnitsInSphere(spot.x, spot.y, spot.z, 115*scale)
-			local occupied = false
-			for j=1, #units do
-				if extractors[spGetUnitDefID(units[j])]  then
-					occupied = true
-					break
-				end
-			end
-			spotsCount = spotsCount + 1
-			local y = spGetGroundHeight(spot.x, spot.z)
-			spots[spotsCount] = {spot.x, y, spot.z, value, scale, occupied, currentClock}
-			pushElementInstance(spotInstanceVBO, {spot.x, y, spot.z, scale, (occupied and 0) or 1, 0,0,0}, spotKey(spot.x, spot.z))
-			if not valueList[value] then
-				valueList[value] = gl.CreateList(function()
-					font:Begin()
-					font:SetTextColor(1,1,1,1)
-					font:SetOutlineColor(0,0,0,0.4)
-					font:Print(value, 0, 0, 1.05, "con")
-					font:End()
-				end)
+		local units = spGetUnitsInSphere(spot[1], spot[2], spot[3], 115*scale)
+		local occupied = false
+		for j=1, #units do
+			if extractors[spGetUnitDefID(units[j])] then
+				occupied = true
+				break
 			end
 		end
+		local y = spGetGroundHeight(spot[1], spot[3])
+		spots[i] = {spot[1], y, spot[3], 1, scale, occupied, currentClock}
+		pushElementInstance(spotInstanceVBO, {spot[1], y, spot[3], scale, (occupied and 0) or 1, 0,0,0}, spotKey(spot[1], spot[3]))
 	end
 end
 
 
 function widget:Shutdown()
-	for k,v in pairs(valueList) do
-		gl.DeleteList(v)
-	end
-	WG.metalspots = nil
-	spots = {}
-	valueList = {}
+	WG.geothermalspots = nil
 end
 
 
@@ -345,7 +333,7 @@ function widget:PlayerChanged(playerID)
 	isSpec, fullview = Spring.GetSpectatingState()
 	myAllyTeamID = Spring.GetMyAllyTeamID()
 	if fullview ~= prevFullview or myAllyTeamID ~= prevMyAllyTeamID then
-		checkMetalspots()
+		checkGeothermalspots()
 	end
 end
 
@@ -362,8 +350,15 @@ function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
 end
 
 function widget:GameFrame(gf)
-	if checkspots or gf >= sceduledCheckedSpotsFrame then
-		checkMetalspots()
+	if checkGeothermalFeatures then
+		checkGeothermalFeatures()
+		checkGeothermalFeatures = nil
+
+		if not showGeothermalUnits then
+			widgetHandler:RemoveWidget()
+		end
+	elseif checkspots or gf >= sceduledCheckedSpotsFrame then
+		checkGeothermalspots()
 	end
 end
 
@@ -382,26 +377,6 @@ function widget:DrawWorldPreUnit()
 	spotShader:Activate()
 	drawInstanceVBO(spotInstanceVBO)
 	spotShader:Deactivate()
-
-	local spot
-	if showValue or Spring.GetGameFrame() == 0 or Spring.GetMapDrawMode() == 'metal' then
-		for i = 1, #spots do
-			spot = spots[i]
-			if spot[7] and spIsSphereInView(spot[1], spot[2], spot[3], 60) then
-
-				gl.PushMatrix()
-				gl.Translate(spot[1], spot[2], spot[3])
-				gl.Color(1, 1, 1, opacity)
-
-				if showValue or Spring.GetGameFrame() == 0 or mapDrawMode == 'metal' then
-					gl.Scale(21*spot[5],21*spot[5],21*spot[5])
-					gl.Billboard()
-					gl.CallList(valueList[spot[4]])
-				end
-				gl.PopMatrix()
-			end
-		end
-	end
 
     gl.DepthTest(true)
     gl.Color(1,1,1,1)
