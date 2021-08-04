@@ -1193,7 +1193,7 @@ function MapHST:UnitCanGoHere(unit, position)
 	local mtype, unet = self:MobilityOfUnit(unit)
 	if mtype == 'air' then return true end
     -- check if it's even a valid move order
-    local moveOrderTest = Spring.TestMoveOrder(unit:Type():ID(), position.x, position.y, position.z, nil, nil, nil, true, true,false)
+    local moveOrderTest = Spring.TestMoveOrder(unit:Type():ID(), position.x, position.y, position.z, nil, nil, nil, true, false)
     if not moveOrderTest then
         return false
     end

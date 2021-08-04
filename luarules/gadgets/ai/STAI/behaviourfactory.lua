@@ -36,9 +36,6 @@ function BehaviourFactory:defaultBehaviours(unit)
 	local un = u:Name()
 	local army = self.ai.armyhst
 	-- game:SendToConsole(un, "getting default behaviours")
-
-	-- keep track of how many of each kind of unit we have
--- 	table.insert(b, CountBST)
 	if army.unitTable[un].isFactory or army.unitTable[un].speed > 0 then
 		table.insert(b, BootBST)
 	end

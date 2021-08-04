@@ -182,8 +182,9 @@ function TaskQueueBST:CategoryEconFilter(cat,param,name)
 	elseif cat == '_mex_' then
 		check =   (M.full < 0.5 or M.income < 6) or self.role == 'expand'
 	elseif cat == '_nano_' then
-		check =  (E.full > 0.3  and M.full > 0.3 and M.income > 10 and E.income > 100) or
-				(self.ai.tool:countMyUnit({name}) == 0 and (M.income > 10 and E.income > 100))
+ 		check =  (E.full > 0.3  and M.full > 0.3 and M.income > 10 and E.income > 100) or
+ 				(self.ai.tool:countMyUnit({name}) == 0 and (M.income > 10 and E.income > 100)) or
+ 				self.ai.tool:countMyUnit({name}) < E.income / 200
 	elseif cat == '_wind_' then
 		check =   map:AverageWind() > 7 and ((E.full < 0.5 or E.income < E.usage )  or E.income < 30)
 	elseif cat == '_tide_' then
@@ -427,45 +428,52 @@ function TaskQueueBST:findPlace(utype, value,cat)
 		if target then
 			self:EchoDebug(self.name..' search position for nano near ' ..target.unit:Internal():Name())
 			local factoryPos = target.unit:Internal():GetPosition()
-			POS = self.ai.buildsitehst:ClosestBuildSpot(builder, factoryPos, utype,nil,nil,nil,390)
+
+   			POS = site:ClosestBuildSpot(builder, factoryPos, utype,nil,nil,nil,390)
+
 		end
 		if not POS then
-			local factoryPos = self.ai.buildsitehst:ClosestHighestLevelFactory(builder:GetPosition(), 5000)
+			local factoryPos = site:ClosestHighestLevelFactory(builder:GetPosition(), 5000)
 			if factoryPos then
 				self:EchoDebug("searching for top level factory")
-				POS = self.ai.buildsitehst:ClosestBuildSpot(builder, factoryPos, utype,nil,nil,nil,390)
+				POS = site:ClosestBuildSpot(builder, factoryPos, utype,nil,nil,nil,390)
 			end
 		end
 	elseif cat == '_wind_' then
-		POS = 	site:searchPosNearCategories(utype, builder,nil, nil,{'_nano_'}) or
+		POS = 	site:searchPosNearCategories(utype, builder,nil, nil,{'_wind_'}) or
+				site:searchPosNearCategories(utype, builder,nil, nil,{'_nano_'}) or
 				site:searchPosNearCategories(utype, builder,nil, nil,{'factoryMobilities'}) or
 				site:ClosestBuildSpot(builder, builderPos, utype)
 	elseif cat == '_tide_' then
-		POS = 	site:searchPosNearCategories(utype, builder,nil, nil,{'_nano_'}) or
+		POS = 	site:searchPosNearCategories(utype, builder,nil, nil,{'_tide_'}) or
+				site:searchPosNearCategories(utype, builder,nil, nil,{'_nano_'}) or
 				site:searchPosNearCategories(utype, builder,nil, nil,{'factoryMobilities'}) or
 				site:ClosestBuildSpot(builder, builderPos, utype)
 	elseif cat == '_solar_' then
-		POS = 	site:searchPosNearCategories(utype, builder,nil, nil,{'_nano_'}) or
+		POS = 	site:searchPosNearCategories(utype, builder,nil, nil,{'_solar_'}) or
+				site:searchPosNearCategories(utype, builder,nil, nil,{'_nano_'}) or
 				site:searchPosNearCategories(utype, builder,nil, nil,{'factoryMobilities'}) or
 				site:ClosestBuildSpot(builder, builderPos, utype)
 	elseif cat == '_fus_' then
 		POS = 	site:searchPosNearCategories(utype, builder,nil, nil,{'_nano_'}) or
 				site:searchPosNearCategories(utype, builder,nil, nil,{'factoryMobilities'})
-
 	elseif cat == '_estor_' then
-		POS = 	site:searchPosNearCategories(utype, builder,nil, nil,{'_nano_'}) or
+		POS = 	site:searchPosNearCategories(utype, builder,nil, nil,{'_estor_'}) or
+				site:searchPosNearCategories(utype, builder,nil, nil,{'_nano_'}) or
 				site:searchPosNearCategories(utype, builder,nil, nil,{'factoryMobilities'}) or
 				site:ClosestBuildSpot(builder, builderPos, utype)
 	elseif cat == '_mstor_' then
-		POS = 	site:searchPosNearCategories(utype, builder,nil, nil,{'_nano_'}) or
+		POS = 	site:searchPosNearCategories(utype, builder,nil, nil,{'_mstor_'}) or
+				site:searchPosNearCategories(utype, builder,nil, nil,{'_nano_'}) or
 				site:searchPosNearCategories(utype, builder,nil, nil,{'factoryMobilities'}) or
 				site:ClosestBuildSpot(builder, builderPos, utype)
 	elseif cat == '_convs_' then
-		POS = 	site:searchPosNearCategories(utype, builder,nil, nil,{'_nano_'}) or
+		POS = 	site:searchPosNearCategories(utype, builder,nil, nil,{'_convs_'}) or
+				site:searchPosNearCategories(utype, builder,nil, nil,{'_nano_'}) or
 				site:searchPosNearCategories(utype, builder,nil, nil,{'factoryMobilities'}) or
 				site:ClosestBuildSpot(builder, builderPos, utype)
 	elseif cat == '_llt_' then
-		POS = site:searchPosNearCategories(utype, builder, 50, nil,{'_mex_'},{'_llt_','_popup2_','_popup1_'}) or
+		POS = 	site:searchPosNearCategories(utype, builder, 50, nil,{'_mex_'},{'_llt_','_popup2_','_popup1_'}) or
 				site:searchPosInList(utype, builder, 50,nil,self.map:GetMetalSpots(),{'_llt_','_popup2_','_popup1_'})
 
 
@@ -495,7 +503,7 @@ function TaskQueueBST:findPlace(utype, value,cat)
 		POS =  site:searchPosNearCategories(utype, builder,50,nil,{'_nano_'})
 	elseif cat == '_laser2_' then
 		POS =   site:searchPosNearCategories(utype, builder,50,nil,{'_nano_'},{'_laser2_'}) or
-		site:searchPosInList(utype, builder, nil,nil,self.ai.hotSpot,{'_laser2_'})
+				site:searchPosInList(utype, builder, nil,nil,self.ai.hotSpot,{'_laser2_'})
 	elseif cat == '_lol_' then
 		POS =  site:searchPosNearCategories(utype, builder,50,nil,{'_nano_'})
  	elseif cat == '_coast1_' then
@@ -702,7 +710,7 @@ function TaskQueueBST:ProgressQueue()
 			self.watchdogTimeout = math.max(self.ai.tool:Distance(self.unit:Internal():GetPosition(), p) * 1.5, 460)
 			self.currentProject = value
 			self.fails = 0
-			self.failOut = false
+			self.failOut = nil
 			self.progress = false
 			self.assistant = false
 			if value == "ReclaimEnemyMex" then
@@ -721,10 +729,7 @@ function TaskQueueBST:ProgressQueue()
 				self:assist()
 			end
 		end
-		--self.game:StopTimer('tqb5')
 	end
-	--self.game:StopTimer('tqb3')
-	--self.game:StopTimer('tqb1')
 end
 
 function TaskQueueBST:assist()
@@ -733,11 +738,11 @@ function TaskQueueBST:assist()
 	for index, unitID in pairs(unitsNear) do
 		local unitName = self.game:GetUnitByID(unitID):Name()
 		if self.role == 'eco' then
-			if self.ai.armyhst.factoryMobilities[unitName] then
-				self.unit:Internal():Guard(unitID)
-				self.assistant = true
+-- 			if self.ai.armyhst.factoryMobilities[unitName] then
+-- 				self.unit:Internal():Guard(unitID)
+-- 				self.assistant = true
 				return
-			end
+-- 			end
 		elseif self.ai.armyhst.techs[unitName] and Spring.GetUnitIsBuilding(unitID) then
 			self.unit:Internal():Guard(unitID)
 			self.assistant = true

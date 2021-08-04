@@ -125,9 +125,9 @@ function AttackerBST:Advance(pos, perpendicularAttackAngle, reverseAttackAngle)
 		self.target = self.ai.tool:RandomAway( pos, self.formationDist, nil, perpendicularAttackAngle)
 	end
 	local canMoveThere = self.ai.maphst:UnitCanGoHere(self.unit:Internal(), self.target)
-	if canMoveThere then
+	if canMoveThere and self.squad then
 		self.squad.lastValidMove = self.target
-	elseif self.squad.lastValidMove then
+	elseif self.squad and self.squad.lastValidMove then
 		self.target = self.ai.tool:RandomAway( self.squad.lastValidMove, self.congSize)
 		canMoveThere = self.ai.maphst:UnitCanGoHere(self.unit:Internal(), self.target)
 	end

@@ -27,7 +27,7 @@ end
 function CleanerBST:Update()
 	local f = self.game:Frame()
 	if f % 123 == 0 then
-	local cleanH =self.ai.cleanhst
+		local cleanH =self.ai.cleanhst
 		if not cleanH.theCleaner[self.id]   then
 			self:EchoDebug(self.id,'do update')
 			self:Search()
@@ -35,32 +35,20 @@ function CleanerBST:Update()
 			self:EchoDebug('cleanthis', cleanH.theCleaner[self.id])
 			self:Clean(cleanH.theCleaner[self.id])
 			self.unit:ElectBehaviour()
+
 		end
+
 		self.frameCounter = 0
 	end
 end
 
 function CleanerBST:OwnerIdle()
 	self:EchoDebug("idle",self.id)
- 	self:Patroling()
+
 	if not self.ai.cleanhst.theCleaner[self.id] then
 		self:Search()
 	end
 end
--- function CleanerBST:UnitBuilt()
--- 	self:Patroling()
--- end
--- function CleanerBST:UnitDead(unit)
--- 	if not unit.engineID then
--- 		self:EchoDebug("nil engineID")
--- 	elseif self.ignore[unit.engineID] then
--- 		self:EchoDebug("dead unit in ignore table")
--- 		self.ignore[unit.engineID] = nil
--- 	elseif self.cleanThis and self.cleanThis.id == unit.engineID then
--- 		self:EchoDebug("what i was dirtg died")
--- 		self.cleanThis = nil
--- 	end
--- end
 
 function CleanerBST:Activate()
 	self:EchoDebug('activate command',self.ai.cleanhst.theCleaner[self.id])
@@ -68,6 +56,7 @@ function CleanerBST:Activate()
 end
 function CleanerBST:Deactivate()
 	self:EchoDebug('deactivate command',self.ai.cleanhst.theCleaner[self.id])
+
 end
 
 function CleanerBST:Priority()
@@ -130,12 +119,20 @@ function CleanerBST:Patroling() --TODO move nano patroling to another place (act
  	--local upos = self.ai.tool:RandomAway( self.unit:Internal():GetPosition(), 50)
 	local uPos = self.unit:Internal():GetPosition()
 	--local PatrolPos = upos
-	--local floats = api.vectorFloat()
+	local floats = api.vectorFloat()
 	-- populate with x, y, z of the position
-	--floats:push_back(uPos.x + 200)
-	---floats:push_back(uPos.y)
-	--floats:push_back(uPos.z)
- 	self.unit:Internal():Patrol({x = uPos.x - 13 , y = Spring.GetGroundHeight(uPos.x,uPos.z)-100 , z = uPos.z - 13 })
+	floats:push_back(uPos.x + math.random(25,50))
+	floats:push_back(uPos.y)
+	floats:push_back(uPos.z + math.random(25,50))
+--   	self.unit:Internal():MoveAndPatrol({uPos.x-20 , uPos.y-20 , uPos.z-20 })
+-- 	local function assistantOrders(n, unitID) --DAMAGAM one
+-- 	local x,y,z = Spring.GetUnitPosition(unitID)
+--   	Spring.GiveOrderToUnit(self.unit:Internal():ID(), CMD.PATROL,{uPos.x-20 , uPos.y-20 , uPos.z-20 },0)
+ 	self.unit:Internal():ExecuteCustomCommand(CMD_PATROL, floats, {"shift"})
+-- 	Spring.GiveOrderToUnit(unitID, CMD.PATROL,{x + 100, y, z}, {"shift"})
+-- 	Spring.GiveOrderToUnit(unitID, CMD.PATROL,{x, y, z - 100}, {"shift"})
+-- 	Spring.GiveOrderToUnit(unitID, CMD.PATROL,{x, y, z + 100}, {"shift"})
+-- end
 	--self.unit:Internal():Patrol({x = 0,y = 0,z = 0})
 -- 	self.unit:Internal():ExecuteCustomCommand(CMD_PATROL, floats)
 end

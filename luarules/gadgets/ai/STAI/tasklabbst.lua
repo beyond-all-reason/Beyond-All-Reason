@@ -82,9 +82,7 @@ function TaskLabBST:getSoldier()
 	local param
 	local soldiers
 	for i=0,#self.queue do
-
 		param = self.queue[self.qIndex]
-
 		soldiers = self:scanRanks(param[1])
 		if soldiers then
 			self.qIndex = self.qIndex + 1
@@ -112,24 +110,9 @@ function TaskLabBST:getSoldier()
  	if soldier then
  		return soldier,param
  	end
-
-
-
---  	for index,param in ipairs(self.queue) do
---  		local soldiers = self:scanRanks(param[1])
---  		soldier = self:ecoCheck(soldiers)
---  		soldier = self:countCheck(soldier,param[2],param[3],param[4])
---  		soldier = self:toAmphibious(soldier)
---  		if soldier then
---  			self.fails = 0
---  			return soldier,param
---  		end
---  	end
---  	self.fails = self.fails +1
 end
 
 function TaskLabBST:specialFilters(soldier,category)
-
 	if category == 'antiairs' and not self.ai.needAntiAir then
 		return nil
 	end
@@ -207,7 +190,6 @@ function TaskLabBST:countCheck(soldier,Min,mType,Max)
 end
 
 function TaskLabBST:toAmphibious(soldier)
-
 	local army = self.ai.armyhst
 	local amphRank = (((ai.mobCount['shp']) / self.ai.mobilityGridArea ) +  ((#ai.UWMetalSpots) /(#ai.landMetalSpots + #ai.UWMetalSpots)))/ 2
 	amphRank = self.amphRank or 0.5
@@ -221,7 +203,6 @@ function TaskLabBST:toAmphibious(soldier)
 				end
 			end
 		end
-
 	elseif army.techs[soldier] then
 		if math.random() < amphRank then
 			for name,v in pairs(self.units) do
@@ -246,13 +227,8 @@ TaskLabBST.queue = {
 		{'raiders',1,6,10,5},
 		{'battles',3,nil,25,5},
 		{'techs',3,6,7,2},
-
 		{'artillerys',1,10,10,3},
-
 		{'breaks',2,5,15,2},
-
-
-
 		{'rezs',1,8,10,2}, -- rezzers
 		{'engineers',1,8,10}, --help builders and build thinghs
 		{'antiairs',1,7,8,2},
@@ -285,7 +261,7 @@ function TaskLabBST:preFilter()
 -- 	local threshold = 1 - (techLv / self.ai.maxFactoryLevel)
 	local threshold = techLv / 20 --TODO this is a shit
 	self:EchoDebug('prefilter threshold', threshold)
-	if self.ai.Energy.full > 0.05  then
+	if self.ai.Energy.full > 0.05 and self.ai.Metal.full > threshold then
 		return true
 	end
 end
