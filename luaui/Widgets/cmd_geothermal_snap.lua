@@ -101,10 +101,6 @@ function widget:MousePress(x, y, button)
 	end
 end
 
-function widget:MouseRelease(x, y, button)
-
-end
-
 function widget:DrawWorld()
 	if chobbyInterface then return end
 
