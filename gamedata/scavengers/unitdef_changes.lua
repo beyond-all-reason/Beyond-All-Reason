@@ -984,7 +984,7 @@ customDefs.armrectr = {
 	footprintx = 0,
 	footprintz = 0,
 	movementclass = "SCAVCOMMANDERBOT",
-	workertime = 200*ScavDifficultyMultiplier, 	-- can get multiplied in unitdef_post
+	workertime = 100*ScavDifficultyMultiplier, 	-- can get multiplied in unitdef_post
 }
 
 customDefs.cornecro = {
@@ -996,7 +996,7 @@ customDefs.cornecro = {
 	footprintx = 0,
 	footprintz = 0,
 	movementclass = "SCAVCOMMANDERBOT",
-	workertime = 200*ScavDifficultyMultiplier,		-- can get multiplied in unitdef_post
+	workertime = 100*ScavDifficultyMultiplier,		-- can get multiplied in unitdef_post
 }
 
 -- LOOTBOXES
