@@ -80,11 +80,15 @@ function Unit:UnitBuilt(unit)
 	if unit.engineID == self.engineID then
 		self:ElectBehaviour()
 		for k,v in pairs(self.behaviours) do
+			--self.game:StartTimer(v:Name() .. 'Ubuilt')
 			v:OwnerBuilt()
+-- 			self.game:StopTimer(v:Name() .. 'Ubuilt')
 		end
 	else
 		for k,v in pairs(self.behaviours) do
+			--self.game:StartTimer(v:Name() .. 'Obuilt')
 			v:UnitBuilt(unit)
+-- 			self.game:StopTimer(v:Name() .. 'Obuilt')
 		end
  	end
 end
