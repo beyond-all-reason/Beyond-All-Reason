@@ -603,6 +603,7 @@ local RectRound, TexturedRectRound, elementCorner, UiElement, UiButton, UiSlider
 
 local scavengersAIEnabled = Spring.Utilities.Gametype.IsScavengers()
 local isSinglePlayer = Spring.Utilities.Gametype.IsSinglePlayer()
+local isReplay = Spring.IsReplay()
 
 local skipUnpauseOnHide = false
 local skipUnpauseOnLobbyHide = false
@@ -1341,9 +1342,9 @@ function widget:RecvLuaMsg(msg, playerID)
 	if msg:sub(1, 18) == 'LobbyOverlayActive' then
 		chobbyInterface = (msg:sub(1, 19) == 'LobbyOverlayActive1')
 		updateGrabinput()
-		if isSinglePlayer and pauseGameWhenSingleplayer and not skipUnpauseOnHide then
-			local _, gameSpeed, isPaused = Spring.GetGameSpeed()
-			if chobbyInterface and isPaused then
+		if (isSinglePlayer or isReplay) and pauseGameWhenSingleplayer and not skipUnpauseOnHide then
+			local _, _, isClientPaused, _ = Spring.GetGameState()
+			if chobbyInterface and isClientPaused then
 				skipUnpauseOnLobbyHide = true
 			end
 			if not skipUnpauseOnLobbyHide then
@@ -1362,14 +1363,14 @@ local prevQuitscreen = false
 function widget:DrawScreen()
 
 	-- pause/unpause when the options/quitscreen interface shows
-	local _, gameSpeed, isPaused = Spring.GetGameSpeed()
-	if not isPaused then
+	local _, _, isClientPaused, _ = Spring.GetGameState()
+	if not isClientPaused then
 		skipUnpauseOnHide = false
 		skipUnpauseOnLobbyHide = false
 	end
 	local showToggledOff = false
-	if isSinglePlayer and pauseGameWhenSingleplayer and prevShow ~= show then
-		if show and isPaused then
+	if (isSinglePlayer or isReplay) and pauseGameWhenSingleplayer and prevShow ~= show then
+		if show and isClientPaused then
 			skipUnpauseOnHide = true
 		end
 		if not skipUnpauseOnHide then
@@ -1379,8 +1380,8 @@ function widget:DrawScreen()
 		end
 	end
 	quitscreen = (WG['topbar'] and WG['topbar'].showingQuit() or false)
-	if isSinglePlayer and pauseGameWhenSingleplayer and prevQuitscreen ~= quitscreen then
-		if quitscreen and isPaused and not showToggledOff then
+	if (isSinglePlayer or isReplay) and pauseGameWhenSingleplayer and prevQuitscreen ~= quitscreen then
+		if quitscreen and isClientPaused and not showToggledOff then
 			skipUnpauseOnHide = true
 		end
 		if not skipUnpauseOnHide then
@@ -4374,10 +4375,10 @@ function init()
 		{ id = "singleplayerpause", group = "game", name = texts.option.singleplayerpause, type = "bool", value = pauseGameWhenSingleplayer, description = texts.option.singleplayerpause_descr,
 		  onchange = function(i, value)
 			  pauseGameWhenSingleplayer = value
-			  if isSinglePlayer and show then
-				  local _, gameSpeed, isPaused = Spring.GetGameSpeed()
+			  if (isSinglePlayer or isReplay) and show then
+				  -- local _, _, isClientPaused, _ = Spring.GetGameState() -- not needed here
 				  if pauseGameWhenSingleplayer then
-					  Spring.SendCommands("pause "..(pauseGameWhenSingleplayer and  '1' or '0'))
+					  Spring.SendCommands("pause "..(pauseGameWhenSingleplayer and '1' or '0'))
 					  pauseGameWhenSingleplayerExecuted = pauseGameWhenSingleplayer
 				  elseif pauseGameWhenSingleplayerExecuted then
 				  	  Spring.SendCommands("pause 0")
