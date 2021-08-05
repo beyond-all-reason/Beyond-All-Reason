@@ -308,7 +308,7 @@ function widget:Initialize()
 			spotsCount = spotsCount + 1
 			local y = spGetGroundHeight(spot.x, spot.z)
 			spots[spotsCount] = {spot.x, y, spot.z, value, scale, occupied, currentClock}
-			pushElementInstance(spotInstanceVBO, {spot.x, y, spot.z, scale, (occupied and 0) or 1, 0,0,0}, spotKey(spot.x, spot.z))
+			pushElementInstance(spotInstanceVBO, {spot.x, y, spot.z, scale, (occupied and 0) or 1, -1000,0,0}, spotKey(spot.x, spot.z))
 			if not valueList[value] then
 				valueList[value] = gl.CreateList(function()
 					font:Begin()

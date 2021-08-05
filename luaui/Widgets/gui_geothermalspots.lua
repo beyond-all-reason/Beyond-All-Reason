@@ -311,7 +311,7 @@ function widget:Initialize()
 		end
 		local y = spGetGroundHeight(spot[1], spot[3])
 		spots[i] = {spot[1], y, spot[3], 1, scale, occupied, currentClock}
-		pushElementInstance(spotInstanceVBO, {spot[1], y, spot[3], scale, (occupied and 0) or 1, 0,0,0}, spotKey(spot[1], spot[3]))
+		pushElementInstance(spotInstanceVBO, {spot[1], y, spot[3], scale, (occupied and 0) or 1, -1000,0,0}, spotKey(spot[1], spot[3]))
 	end
 end
 
