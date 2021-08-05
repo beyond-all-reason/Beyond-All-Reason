@@ -3860,33 +3860,44 @@ function init()
 		  end,
 		},
 
-		{ id = "metalspots", group = "ui", basic = true, widget = "Metalspots", name = texts.option.metalspots, type = "bool", value = GetWidgetToggleValue("Metalspots"), description = 'Shows a circle around metal spots with the amount of metal in it' },
-		{ id = "metalspots_opacity", group = "ui", name = widgetOptionColor .. "   "..texts.option.metalspots_opacity, type = "slider", min = 0.1, max = 1, step = 0.01, value = 0.5, description = 'Display metal values in the center',
-		  onload = function(i)
-			  loadWidgetData("Metalspots", "metalspots_opacity", { 'opacity' })
-		  end,
-		  onchange = function(i, value)
-			  WG.metalspots.setShowValue(value)
-			  saveOptionValue('Metalspots', 'metalspots', 'setOpacity', { 'opacity' }, options[getOptionByID('metalspots_opacity')].value)
-		  end,
-		},
-		{ id = "metalspots_values", group = "ui", basic = true, name = widgetOptionColor .. "   "..texts.option.metalspots_values, type = "bool", value = true, description = 'Display metal values (during game)\nPre-gamestart or when in metalmap view (f4) this will always be shown\n\nNote that it\'s significantly enough more costly to draw the text values',
-		  onload = function(i)
-			  loadWidgetData("Metalspots", "metalspots_values", { 'showValues' })
-		  end,
-		  onchange = function(i, value)
-			  WG.metalspots.setShowValue(value)
-			  saveOptionValue('Metalspots', 'metalspots', 'setShowValue', { 'showValue' }, options[getOptionByID('metalspots_values')].value)
-		  end,
-		},
-		{ id = "metalspots_metalviewonly", group = "ui", name = widgetOptionColor .. "   "..texts.option.metalspots_metalviewonly, type = "bool", value = false, description = 'Limit display to only during pre-gamestart or when in metalmap view (f4)',
-		  onload = function(i)
-			  loadWidgetData("Metalspots", "metalspots_metalviewonly", { 'metalViewOnly' })
-		  end,
-		  onchange = function(i, value)
-			  saveOptionValue('Metalspots', 'metalspots', 'setMetalViewOnly', { 'showValue' }, options[getOptionByID('metalspots_metalviewonly')].value)
-		  end,
-		},
+		  { id = "metalspots", group = "ui", basic = true, widget = "Metalspots", name = texts.option.metalspots, type = "bool", value = GetWidgetToggleValue("Metalspots"), description = texts.option.metalpots_descr },
+		  --{ id = "metalspots_opacity", group = "ui", name = widgetOptionColor .. "   "..texts.option.metalspots_opacity, type = "slider", min = 0.1, max = 1, step = 0.01, value = 0.5,
+		--	onload = function(i)
+		--		loadWidgetData("Metalspots", "metalspots_opacity", { 'opacity' })
+		--	end,
+		--	onchange = function(i, value)
+		--		WG.metalspots.setShowValue(value)
+		--		saveOptionValue('Metalspots', 'metalspots', 'setOpacity', { 'opacity' }, options[getOptionByID('metalspots_opacity')].value)
+		--	end,
+		  --},
+		  { id = "metalspots_values", group = "ui", basic = true, name = widgetOptionColor .. "   "..texts.option.metalspots_values, type = "bool", value = true, description = texts.option.metalspots_values_descr,
+			onload = function(i)
+				loadWidgetData("Metalspots", "metalspots_values", { 'showValues' })
+			end,
+			onchange = function(i, value)
+				WG.metalspots.setShowValue(value)
+				saveOptionValue('Metalspots', 'metalspots', 'setShowValue', { 'showValue' }, options[getOptionByID('metalspots_values')].value)
+			end,
+		  },
+		  { id = "metalspots_metalviewonly", group = "ui", name = widgetOptionColor .. "   "..texts.option.metalspots_metalviewonly, type = "bool", value = false, description = texts.option.metalspots_metalviewonly_descr,
+			onload = function(i)
+				loadWidgetData("Metalspots", "metalspots_metalviewonly", { 'metalViewOnly' })
+			end,
+			onchange = function(i, value)
+				saveOptionValue('Metalspots', 'metalspots', 'setMetalViewOnly', { 'showValue' }, options[getOptionByID('metalspots_metalviewonly')].value)
+			end,
+		  },
+
+		  { id = "geospots", group = "ui", basic = true, widget = "Geothermalspots", name = texts.option.geospots, type = "bool", value = GetWidgetToggleValue("Metalspots"), description = texts.option.geospots_descr },
+		  --{ id = "geospots_opacity", group = "ui", name = widgetOptionColor .. "   "..texts.option.geospots_opacity, type = "slider", min = 0.1, max = 1, step = 0.01, value = 0.5,
+		--	onload = function(i)
+		--		loadWidgetData("Geothermalspots", "geospots_opacity", { 'opacity' })
+		--	end,
+		--	onchange = function(i, value)
+		--		WG.metalspots.setShowValue(value)
+		--		saveOptionValue('Geothermalspots', 'geospots', 'setOpacity', { 'opacity' }, options[getOptionByID('geospots_opacity')].value)
+		--	end,
+		  --},
 
 		{ id = "healthbarsscale", group = "ui", name = texts.option.healthbars .. widgetOptionColor .. "  "..texts.option.healthbarsscale, type = "slider", min = 0.6, max = 1.6, step = 0.1, value = 1, description = '',
 		  onload = function(i)
