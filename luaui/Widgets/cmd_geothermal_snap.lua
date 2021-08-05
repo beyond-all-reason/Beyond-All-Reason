@@ -129,7 +129,13 @@ function widget:DrawWorld()
 		elseif mousePressed then
 			mousePressed = false
 			--Spring.Echo(cmdID, bestPos[1], bestPos[2], bestPos[3], bface)
-			Spring.GiveOrder(cmdID, {bestPos[1], bestPos[2], bestPos[3], bface}, {})
+			local alt, ctrl, meta, shift = Spring.GetModKeyState()
+			local opt = {}
+			if alt then opt[#opt + 1] = "alt" end
+			if ctrl then opt[#opt + 1] = "ctrl" end
+			if meta then opt[#opt + 1] = "meta" end
+			if shift then opt[#opt + 1] = "shift" end
+			Spring.GiveOrder(cmdID, {bestPos[1], bestPos[2], bestPos[3], bface}, opt)
 			Spring.SetActiveCommand(0)
 			geoSelected = false
 		end
