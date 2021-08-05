@@ -1326,7 +1326,8 @@ local function GetStartEndRows() -- returns start and end indices of the instanc
 local glTexture = gl.Texture
 
 function widget:DrawWorldPreUnit()
-
+  local mapDrawMode = Spring.GetMapDrawMode() 
+  if mapDrawMode ~= 'normal' and mapDrawMode ~= 'los' then return end
 	if placementMode then 
 		--Spring.Echo("circle",mousepos[1],mousepos[2]+10,mousepos[3])
 		gl.LineWidth(2)
