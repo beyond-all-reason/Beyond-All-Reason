@@ -13,12 +13,12 @@ end
 local showValue			= false
 local metalViewOnly		= false
 
-local circleSpaceUsage	= 0.75
-local circleInnerOffset	= 0.35
+local circleSpaceUsage	= 0.62
+local circleInnerOffset	= 0.28
 local opacity			= 0.5
 
-local innersize			= 1.86		-- outersize-innersize = circle width
-local outersize			= 2.08		-- outersize-innersize = circle width
+local innersize			= 1.8		-- outersize-innersize = circle width
+local outersize			= 1.98		-- outersize-innersize = circle width
 
 local spIsGUIHidden = Spring.IsGUIHidden
 local spIsSphereInView = Spring.IsSphereInView
@@ -161,7 +161,7 @@ local function makeSpotVBO()
 	local detailPartWidth, a1,a2,a3,a4
 	local width = circleSpaceUsage
 	local pieces = 8
-	local detail = 10
+	local detail = 6
 	local radstep = (2.0 * math.pi) / pieces
 	for _,dir in ipairs({-1,1}) do
 		for i = 1, pieces do -- pieces
@@ -290,33 +290,35 @@ function widget:Initialize()
 
 	local currentClock = os.clock()
 	local mSpots = WG.metalSpots
-	local spotsCount = #spots
-	for i = 1, #mSpots do
-		local spot = mSpots[i]
-		local value = string.format("%0.1f",math.round(spot.worth/1000,1))
-		if tonumber(value) > 0.001 then
-			local scale = 0.77 + ((math.max(spot.maxX,spot.minX)-(math.min(spot.maxX,spot.minX))) * (math.max(spot.maxZ,spot.minZ)-(math.min(spot.maxZ,spot.minZ)))) / 10000
+	if mSpots then
+		local spotsCount = #spots
+		for i = 1, #mSpots do
+			local spot = mSpots[i]
+			local value = string.format("%0.1f",math.round(spot.worth/1000,1))
+			if tonumber(value) > 0.001 then
+				local scale = 0.77 + ((math.max(spot.maxX,spot.minX)-(math.min(spot.maxX,spot.minX))) * (math.max(spot.maxZ,spot.minZ)-(math.min(spot.maxZ,spot.minZ)))) / 10000
 
-			local units = spGetUnitsInSphere(spot.x, spot.y, spot.z, 115*scale)
-			local occupied = false
-			for j=1, #units do
-				if extractors[spGetUnitDefID(units[j])]  then
-					occupied = true
-					break
+				local units = spGetUnitsInSphere(spot.x, spot.y, spot.z, 115*scale)
+				local occupied = false
+				for j=1, #units do
+					if extractors[spGetUnitDefID(units[j])]  then
+						occupied = true
+						break
+					end
 				end
-			end
-			spotsCount = spotsCount + 1
-			local y = spGetGroundHeight(spot.x, spot.z)
-			spots[spotsCount] = {spot.x, y, spot.z, value, scale, occupied, currentClock}
-			pushElementInstance(spotInstanceVBO, {spot.x, y, spot.z, scale, (occupied and 0) or 1, -1000,0,0}, spotKey(spot.x, spot.z))
-			if not valueList[value] then
-				valueList[value] = gl.CreateList(function()
-					font:Begin()
-					font:SetTextColor(1,1,1,1)
-					font:SetOutlineColor(0,0,0,0.4)
-					font:Print(value, 0, 0, 1.05, "con")
-					font:End()
-				end)
+				spotsCount = spotsCount + 1
+				local y = spGetGroundHeight(spot.x, spot.z)
+				spots[spotsCount] = {spot.x, y, spot.z, value, scale, occupied, currentClock}
+				pushElementInstance(spotInstanceVBO, {spot.x, y, spot.z, scale, (occupied and 0) or 1, -1000,0,0}, spotKey(spot.x, spot.z))
+				if not valueList[value] then
+					valueList[value] = gl.CreateList(function()
+						font:Begin()
+						font:SetTextColor(1,1,1,1)
+						font:SetOutlineColor(0,0,0,0.4)
+						font:Print(value, 0, 0, 1.05, "con")
+						font:End()
+					end)
+				end
 			end
 		end
 	end
