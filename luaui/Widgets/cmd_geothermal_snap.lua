@@ -49,6 +49,11 @@ local function checkGeothermalFeatures()
 	end
 end
 
+local function getFootprintPos(value)	-- not entirely acurate, unsure why
+	local precision = 6		-- (footprint 1 = 6 map distance)
+	return (math.floor(value/precision)*precision)+(precision/2)
+end
+
 local function GetClosestSpot(x, z)
 	local bestSpot
 	local bestDist = math.huge
@@ -60,6 +65,10 @@ local function GetClosestSpot(x, z)
 			bestSpot = spot
 			bestDist = dist
 		end
+	end
+	if bestSpot[1] then
+		bestSpot[1] = getFootprintPos(bestSpot[1])
+		bestSpot[3] = getFootprintPos(bestSpot[3])
 	end
 	return bestSpot
 end
@@ -121,6 +130,10 @@ function widget:DrawWorld()
 	if not bestPos then
 		return
 	end
+	if bx then
+		bx = getFootprintPos(bx)
+		bz = getFootprintPos(bz)
+	end
 	local bface = Spring.GetBuildFacing()
 
 	if geoSelected then
@@ -128,16 +141,18 @@ function widget:DrawWorld()
 			mousePressed = true
 		elseif mousePressed then
 			mousePressed = false
-			--Spring.Echo(cmdID, bestPos[1], bestPos[2], bestPos[3], bface)
-			local alt, ctrl, meta, shift = Spring.GetModKeyState()
-			local opt = {}
-			if alt then opt[#opt + 1] = "alt" end
-			if ctrl then opt[#opt + 1] = "ctrl" end
-			if meta then opt[#opt + 1] = "meta" end
-			if shift then opt[#opt + 1] = "shift" end
-			Spring.GiveOrder(cmdID, {bestPos[1], bestPos[2], bestPos[3], bface}, opt)
-			Spring.SetActiveCommand(0)
 			geoSelected = false
+			--Spring.Echo(bx, bestPos[1], bz, bestPos[3], (bx ~= bestPos[1] or bz ~= bestPos[3]))
+			if bx ~= bestPos[1] or bz ~= bestPos[3] then
+				local alt, ctrl, meta, shift = Spring.GetModKeyState()
+				local opt = {}
+				if alt then opt[#opt + 1] = "alt" end
+				if ctrl then opt[#opt + 1] = "ctrl" end
+				if meta then opt[#opt + 1] = "meta" end
+				if shift then opt[#opt + 1] = "shift" end
+				Spring.GiveOrder(cmdID, {bestPos[1], bestPos[2], bestPos[3], bface}, opt)
+				Spring.SetActiveCommand(0)
+			end
 		end
 	end
 
