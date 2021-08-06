@@ -130,7 +130,9 @@ function ArmyMoveOrders(n, scav, scavDef)
 		local x = math.random(0, mapsizeX)
 		local z = math.random(0, mapsizeZ)
 		local y = Spring.GetGroundHeight(x,z)
-		Spring.GiveOrderToUnit(scav, CMD.FIGHT,{x,y,z}, {"shift", "alt", "ctrl"})
+		if (-(UnitDefs[scavDef].minWaterDepth) > y) and (-(UnitDefs[scavDef].maxWaterDepth) < y) or UnitDefs[scavDef].canFly then
+			Spring.GiveOrderToUnit(scav, CMD.FIGHT,{x,y,z}, {"shift", "alt", "ctrl"})
+		end
 	end
 	attackTarget = nil
 end
