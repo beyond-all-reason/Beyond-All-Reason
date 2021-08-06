@@ -544,7 +544,7 @@ end
 
 local showGeothermalUnits = false
 local function checkGeothermalFeatures()
-	local newShowGeothermalUnits = false
+	showGeothermalUnits = false
 	local geoThermalFeatures = {}
 	for defID, def in pairs(FeatureDefs) do
 		if def.geoThermal then
@@ -554,20 +554,17 @@ local function checkGeothermalFeatures()
 	local features = Spring.GetAllFeatures()
 	for i = 1, #features do
 		if geoThermalFeatures[Spring.GetFeatureDefID(features[i])] then
-			newShowGeothermalUnits = true
+			showGeothermalUnits = true
 			break
 		end
 	end
 	-- make them a disabled unit (instead of removing it entirely)
-	if newShowGeothermalUnits ~= showGeothermalUnits then
-		showGeothermalUnits = newShowGeothermalUnits
-		for unitDefID,_ in pairs(isGeothermalUnit) do
-			if not showGeothermalUnits then
-				unitDisabled[unitDefID] = true
-			else
-				if not isWaterUnit[unitDefID] or showWaterUnits then
-					unitDisabled[unitDefID] = nil
-				end
+	for unitDefID,_ in pairs(isGeothermalUnit) do
+		if not showGeothermalUnits then
+			unitDisabled[unitDefID] = true
+		else
+			if not isWaterUnit[unitDefID] or showWaterUnits then
+				unitDisabled[unitDefID] = nil
 			end
 		end
 	end
