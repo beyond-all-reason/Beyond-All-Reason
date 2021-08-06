@@ -69,12 +69,9 @@ function SpawnBeacon(n)
 					Spring.CreateUnit("scavsafeareabeacon_scav", posx, posy, posz, math_random(0,3),GaiaTeamID)
 					SafeAreaBeaconSpawnAttempts = 0
 				end
+				Spring.CreateUnit("scavengerdroppod_scav", posx, posy, posz, math_random(0,3),GaiaTeamID)
 
-				Spring.CreateUnit("scavengerdroppod_scav", posx-128, posy, posz, math_random(0,3),GaiaTeamID)
-				Spring.CreateUnit("scavengerdroppod_scav", posx+128, posy, posz, math_random(0,3),GaiaTeamID)
-				Spring.CreateUnit("scavengerdroppod_scav", posx, posy, posz+128, math_random(0,3),GaiaTeamID)
-				Spring.CreateUnit("scavengerdroppod_scav", posx, posy, posz-128, math_random(0,3),GaiaTeamID)
-				if unitSpawnerModuleConfig.beacondefences == true then
+				if unitSpawnerModuleConfig.beacondefences == true and n > scavconfig.gracePeriod then
 					local spawnTier = math_random(1,100)
 					if spawnTier <= TierSpawnChances.T0 then
 						grouptier = staticUnitList.BeaconDefences.T0
@@ -98,6 +95,11 @@ function SpawnBeacon(n)
 					else
 						grouptiersea = staticUnitList.StartboxDefencesSea.T0
 					end
+
+					Spring.CreateUnit("scavengerdroppod_scav", posx-128, posy, posz, math_random(0,3),GaiaTeamID)
+					Spring.CreateUnit("scavengerdroppod_scav", posx+128, posy, posz, math_random(0,3),GaiaTeamID)
+					Spring.CreateUnit("scavengerdroppod_scav", posx, posy, posz+128, math_random(0,3),GaiaTeamID)
+					Spring.CreateUnit("scavengerdroppod_scav", posx, posy, posz-128, math_random(0,3),GaiaTeamID)
 
 					local posy = Spring.GetGroundHeight(posx-128, posz)
 					if posy > 0 then
