@@ -13,12 +13,12 @@ end
 local showValue			= false
 local metalViewOnly		= false
 
-local circleSpaceUsage	= 0.84
+local circleSpaceUsage	= 0.82
 local circleInnerOffset	= 0
 local opacity			= 0.5
 
-local innersize			= 2.2		-- outersize-innersize = circle width
-local outersize			= 2.44		-- outersize-innersize = circle width
+local innersize			= 3.17		-- outersize-innersize = circle width
+local outersize			= 3.5		-- outersize-innersize = circle width
 
 local spIsGUIHidden = Spring.IsGUIHidden
 local spGetUnitsInSphere = Spring.GetUnitsInSphere
@@ -153,7 +153,7 @@ out vec4 fragColor;
 
 void main(void)
 {
-	fragColor = vec4(0.75,1.0,0.75,circlealpha); //debug!
+	fragColor = vec4(0.7,1.0,0.7,circlealpha); //debug!
 }
 ]]
 
@@ -207,16 +207,16 @@ local function makeSpotVBO()
 	local detailPartWidth, a1,a2,a3,a4
 	local width = circleSpaceUsage
 	local pieces = 3
-	local detail = 18	-- per piece
+	local detail = 13	-- per piece
 	local radstep = (2.0 * math.pi) / pieces
 	for _,dir in ipairs({-1,1}) do
 		for i = 1, pieces do -- pieces
 			for d = 1, detail do -- detail
 				detailPartWidth = ((width / detail) * d) + (dir+1)
 				a1 = ((i+detailPartWidth - (width / detail)) * radstep)
-				a2 = ((i+detailPartWidth) * radstep)
-				a3 = ((i+circleInnerOffset+detailPartWidth - (width / detail)) * radstep)
-				a4 = ((i+circleInnerOffset+detailPartWidth) * radstep)
+				a2 = ((i+detailPartWidth) * radstep) - ((width / detail)*1.2)
+				a3 = ((i+circleInnerOffset+detailPartWidth - (width / detail)) * radstep) - ((width / detail)*0.6)
+				a4 = ((i+circleInnerOffset+detailPartWidth) * radstep) - ((width / detail)*0.6)
 
 				arrayAppend(VBOData, {math.sin(a3)*innersize, math.cos(a3)*innersize, dir, a3})
 				arrayAppend(VBOData, {math.sin(a4)*innersize, math.cos(a4)*innersize, dir, a4})
