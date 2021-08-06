@@ -53,7 +53,6 @@ local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
 local restoreMapBorder = true
 local mapExtensionShader = nil
 local terrainVAO = nil
-local terrainVertexVBO = nil
 local terrainInstanceVBO = nil
 
 --------------------------------------------------------------------------------
@@ -427,12 +426,6 @@ function widget:Initialize()
 		widgetHandler:RemoveWidget()
 	end
 
-	terrainVertexVBO = gl.GetVBO() -- GL.ARRAY_BUFFER, false
-	if terrainVertexVBO == nil then
-		Spring.SendCommands("luaui enablewidget Map Edge Extension Old")
-		widgetHandler:RemoveWidget()
-	end
-
 	terrainInstanceVBO = gl.GetVBO(GL.ARRAY_BUFFER, true) -- GL.ARRAY_BUFFER, false
 	if terrainInstanceVBO == nil then
 		Spring.SendCommands("luaui enablewidget Map Edge Extension Old")
@@ -440,31 +433,6 @@ function widget:Initialize()
 	end
 	-----------
 
---[[
-	local qX = mapSizeX / gridSize
-	local qZ = mapSizeZ / gridSize
-
-	local posArray = {}
-
-	local posIdx = 1
-	for qx = 0, qX - 1 do
-	for qz = 0, qZ - 1 do
-		--only Top-Left point. The rest is re-created by a geometry shader
-		local x, z = qx * gridSize, qz * gridSize
-		posArray[posIdx + 0] = x
-		posArray[posIdx + 1] = z
-
-		posIdx = posIdx + 2
-	end
-	end
-
-	numPoints = #posArray / 2
-
-	terrainVertexVBO:Define(numPoints, {
-		{id = 0, name = "pos", size = 2}, --only update {x,z} once
-	})
-	terrainVertexVBO:Upload(posArray)
-]]--
 	numPoints = (mapSizeX / gridSize) * (mapSizeZ / gridSize)
 
 	terrainInstanceVBO:Define(8, {
