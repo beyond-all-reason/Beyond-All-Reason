@@ -603,6 +603,7 @@ local RectRound, TexturedRectRound, elementCorner, UiElement, UiButton, UiSlider
 
 local scavengersAIEnabled = Spring.Utilities.Gametype.IsScavengers()
 local isSinglePlayer = Spring.Utilities.Gametype.IsSinglePlayer()
+local isReplay = Spring.IsReplay()
 
 local skipUnpauseOnHide = false
 local skipUnpauseOnLobbyHide = false
@@ -1341,9 +1342,9 @@ function widget:RecvLuaMsg(msg, playerID)
 	if msg:sub(1, 18) == 'LobbyOverlayActive' then
 		chobbyInterface = (msg:sub(1, 19) == 'LobbyOverlayActive1')
 		updateGrabinput()
-		if isSinglePlayer and pauseGameWhenSingleplayer and not skipUnpauseOnHide then
-			local _, gameSpeed, isPaused = Spring.GetGameSpeed()
-			if chobbyInterface and isPaused then
+		if (isSinglePlayer or isReplay) and pauseGameWhenSingleplayer and not skipUnpauseOnHide then
+			local _, _, isClientPaused, _ = Spring.GetGameState()
+			if chobbyInterface and isClientPaused then
 				skipUnpauseOnLobbyHide = true
 			end
 			if not skipUnpauseOnLobbyHide then
@@ -1362,14 +1363,14 @@ local prevQuitscreen = false
 function widget:DrawScreen()
 
 	-- pause/unpause when the options/quitscreen interface shows
-	local _, gameSpeed, isPaused = Spring.GetGameSpeed()
-	if not isPaused then
+	local _, _, isClientPaused, _ = Spring.GetGameState()
+	if not isClientPaused then
 		skipUnpauseOnHide = false
 		skipUnpauseOnLobbyHide = false
 	end
 	local showToggledOff = false
-	if isSinglePlayer and pauseGameWhenSingleplayer and prevShow ~= show then
-		if show and isPaused then
+	if (isSinglePlayer or isReplay) and pauseGameWhenSingleplayer and prevShow ~= show then
+		if show and isClientPaused then
 			skipUnpauseOnHide = true
 		end
 		if not skipUnpauseOnHide then
@@ -1379,8 +1380,8 @@ function widget:DrawScreen()
 		end
 	end
 	quitscreen = (WG['topbar'] and WG['topbar'].showingQuit() or false)
-	if isSinglePlayer and pauseGameWhenSingleplayer and prevQuitscreen ~= quitscreen then
-		if quitscreen and isPaused and not showToggledOff then
+	if (isSinglePlayer or isReplay) and pauseGameWhenSingleplayer and prevQuitscreen ~= quitscreen then
+		if quitscreen and isClientPaused and not showToggledOff then
 			skipUnpauseOnHide = true
 		end
 		if not skipUnpauseOnHide then
@@ -2718,7 +2719,7 @@ function init()
 		--	  saveOptionValue('Light Effects', 'lighteffects', 'setLife', { 'globalLifeMult' }, value)
 		--  end,
 		--},
-		{ id = "lighteffects_brightness", group = "gfx", name = widgetOptionColor .. "   "..texts.option.lighteffects_brightness, min = 1, max = 2, step = 0.05, type = "slider", value = 1.7, description = texts.option.lighteffects_brightness_descr,
+		{ id = "lighteffects_brightness", group = "gfx", name = widgetOptionColor .. "   "..texts.option.lighteffects_brightness, min = 0.75, max = 2, step = 0.05, type = "slider", value = 1.7, description = texts.option.lighteffects_brightness_descr,
 		  onload = function(i)
 			  loadWidgetData("Light Effects", "lighteffects_brightness", { 'globalLightMult' })
 		  end,
@@ -3859,33 +3860,44 @@ function init()
 		  end,
 		},
 
-		{ id = "metalspots", group = "ui", basic = true, widget = "Metalspots", name = texts.option.metalspots, type = "bool", value = GetWidgetToggleValue("Metalspots"), description = 'Shows a circle around metal spots with the amount of metal in it' },
-		{ id = "metalspots_opacity", group = "ui", name = widgetOptionColor .. "   "..texts.option.metalspots_opacity, type = "slider", min = 0.1, max = 1, step = 0.01, value = 0.5, description = 'Display metal values in the center',
-		  onload = function(i)
-			  loadWidgetData("Metalspots", "metalspots_opacity", { 'opacity' })
-		  end,
-		  onchange = function(i, value)
-			  WG.metalspots.setShowValue(value)
-			  saveOptionValue('Metalspots', 'metalspots', 'setOpacity', { 'opacity' }, options[getOptionByID('metalspots_opacity')].value)
-		  end,
-		},
-		{ id = "metalspots_values", group = "ui", basic = true, name = widgetOptionColor .. "   "..texts.option.metalspots_values, type = "bool", value = true, description = 'Display metal values (during game)\nPre-gamestart or when in metalmap view (f4) this will always be shown\n\nNote that it\'s significantly enough more costly to draw the text values',
-		  onload = function(i)
-			  loadWidgetData("Metalspots", "metalspots_values", { 'showValues' })
-		  end,
-		  onchange = function(i, value)
-			  WG.metalspots.setShowValue(value)
-			  saveOptionValue('Metalspots', 'metalspots', 'setShowValue', { 'showValue' }, options[getOptionByID('metalspots_values')].value)
-		  end,
-		},
-		{ id = "metalspots_metalviewonly", group = "ui", name = widgetOptionColor .. "   "..texts.option.metalspots_metalviewonly, type = "bool", value = false, description = 'Limit display to only during pre-gamestart or when in metalmap view (f4)',
-		  onload = function(i)
-			  loadWidgetData("Metalspots", "metalspots_metalviewonly", { 'metalViewOnly' })
-		  end,
-		  onchange = function(i, value)
-			  saveOptionValue('Metalspots', 'metalspots', 'setMetalViewOnly', { 'showValue' }, options[getOptionByID('metalspots_metalviewonly')].value)
-		  end,
-		},
+		  { id = "metalspots", group = "ui", basic = true, widget = "Metalspots", name = texts.option.metalspots, type = "bool", value = GetWidgetToggleValue("Metalspots"), description = texts.option.metalpots_descr },
+		  --{ id = "metalspots_opacity", group = "ui", name = widgetOptionColor .. "   "..texts.option.metalspots_opacity, type = "slider", min = 0.1, max = 1, step = 0.01, value = 0.5,
+		--	onload = function(i)
+		--		loadWidgetData("Metalspots", "metalspots_opacity", { 'opacity' })
+		--	end,
+		--	onchange = function(i, value)
+		--		WG.metalspots.setShowValue(value)
+		--		saveOptionValue('Metalspots', 'metalspots', 'setOpacity', { 'opacity' }, options[getOptionByID('metalspots_opacity')].value)
+		--	end,
+		  --},
+		  { id = "metalspots_values", group = "ui", basic = true, name = widgetOptionColor .. "   "..texts.option.metalspots_values, type = "bool", value = true, description = texts.option.metalspots_values_descr,
+			onload = function(i)
+				loadWidgetData("Metalspots", "metalspots_values", { 'showValues' })
+			end,
+			onchange = function(i, value)
+				WG.metalspots.setShowValue(value)
+				saveOptionValue('Metalspots', 'metalspots', 'setShowValue', { 'showValue' }, options[getOptionByID('metalspots_values')].value)
+			end,
+		  },
+		  { id = "metalspots_metalviewonly", group = "ui", name = widgetOptionColor .. "   "..texts.option.metalspots_metalviewonly, type = "bool", value = false, description = texts.option.metalspots_metalviewonly_descr,
+			onload = function(i)
+				loadWidgetData("Metalspots", "metalspots_metalviewonly", { 'metalViewOnly' })
+			end,
+			onchange = function(i, value)
+				saveOptionValue('Metalspots', 'metalspots', 'setMetalViewOnly', { 'showValue' }, options[getOptionByID('metalspots_metalviewonly')].value)
+			end,
+		  },
+
+		  { id = "geospots", group = "ui", basic = true, widget = "Geothermalspots", name = texts.option.geospots, type = "bool", value = GetWidgetToggleValue("Metalspots"), description = texts.option.geospots_descr },
+		  --{ id = "geospots_opacity", group = "ui", name = widgetOptionColor .. "   "..texts.option.geospots_opacity, type = "slider", min = 0.1, max = 1, step = 0.01, value = 0.5,
+		--	onload = function(i)
+		--		loadWidgetData("Geothermalspots", "geospots_opacity", { 'opacity' })
+		--	end,
+		--	onchange = function(i, value)
+		--		WG.metalspots.setShowValue(value)
+		--		saveOptionValue('Geothermalspots', 'geospots', 'setOpacity', { 'opacity' }, options[getOptionByID('geospots_opacity')].value)
+		--	end,
+		  --},
 
 		{ id = "healthbarsscale", group = "ui", name = texts.option.healthbars .. widgetOptionColor .. "  "..texts.option.healthbarsscale, type = "slider", min = 0.6, max = 1.6, step = 0.1, value = 1, description = '',
 		  onload = function(i)
@@ -4374,10 +4386,10 @@ function init()
 		{ id = "singleplayerpause", group = "game", name = texts.option.singleplayerpause, type = "bool", value = pauseGameWhenSingleplayer, description = texts.option.singleplayerpause_descr,
 		  onchange = function(i, value)
 			  pauseGameWhenSingleplayer = value
-			  if isSinglePlayer and show then
-				  local _, gameSpeed, isPaused = Spring.GetGameSpeed()
+			  if (isSinglePlayer or isReplay) and show then
+				  -- local _, _, isClientPaused, _ = Spring.GetGameState() -- not needed here
 				  if pauseGameWhenSingleplayer then
-					  Spring.SendCommands("pause "..(pauseGameWhenSingleplayer and  '1' or '0'))
+					  Spring.SendCommands("pause "..(pauseGameWhenSingleplayer and '1' or '0'))
 					  pauseGameWhenSingleplayerExecuted = pauseGameWhenSingleplayer
 				  elseif pauseGameWhenSingleplayerExecuted then
 				  	  Spring.SendCommands("pause 0")

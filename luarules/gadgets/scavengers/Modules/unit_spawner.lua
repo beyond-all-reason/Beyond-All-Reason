@@ -274,7 +274,7 @@ function UnitGroupSpawn(n)
 				local spawnTier = math_random(1,100)
 				local groupunit = {}
 				local numOfTypes = 0
-				local newTypeNumber = math.random(2,20)
+				local newTypeNumber = 9999 --math.random(2,20)
 				--Spring.Echo(newTypeNumber)
 				if (posy <= -20 and aircraftchanceonsea == 0) or (aircraftchance == 0 and (not BossWaveTimeLeft)) or (bossaircraftchance == 0 and BossWaveTimeLeft and BossWaveTimeLeft > 0) then
 					if spawnTier <= TierSpawnChances.T0 then
@@ -434,16 +434,16 @@ function UnitGroupSpawn(n)
 					local newposy = Spring.GetGroundHeight(posx, posz)
 					if posy >= -20 and newposy >= -20 then
 						if i then
-							QueueSpawn("scavengerdroppod_scav", posx, posy, posz, math_random(0,3),GaiaTeamID, n+(i*5))
-							QueueSpawn(groupunit[math.ceil(i/newTypeNumber)], posx, posy, posz, math_random(0,3),GaiaTeamID, n+150+(i*5))
+							QueueSpawn("scavengerdroppod_scav", posx, posy, posz, math_random(0,3),GaiaTeamID, n+(i*2))
+							QueueSpawn(groupunit[math.ceil(i/newTypeNumber)], posx, posy, posz, math_random(0,3),GaiaTeamID, n+150+(i*2))
 						else
 							QueueSpawn("scavengerdroppod_scav", posx, posy, posz, math_random(0,3),GaiaTeamID, n)
 							QueueSpawn(groupunit[math.ceil(i/newTypeNumber)], posx, posy, posz, math_random(0,3),GaiaTeamID, n+150)
 						end
 					elseif posy < -20 and newposy < -20 then
 						if i then
-							QueueSpawn("scavengerdroppod_scav", posx, posy, posz, math_random(0,3),GaiaTeamID, n+(i*5))
-							QueueSpawn(groupunit[math.ceil(i/newTypeNumber)], posx, posy, posz, math_random(0,3),GaiaTeamID, n+150+(i*5))
+							QueueSpawn("scavengerdroppod_scav", posx, posy, posz, math_random(0,3),GaiaTeamID, n+(i*2))
+							QueueSpawn(groupunit[math.ceil(i/newTypeNumber)], posx, posy, posz, math_random(0,3),GaiaTeamID, n+150+(i*2))
 						else
 							QueueSpawn("scavengerdroppod_scav", posx, posy, posz, math_random(0,3),GaiaTeamID, n)
 							QueueSpawn(groupunit[math.ceil(i/newTypeNumber)], posx, posy, posz, math_random(0,3),GaiaTeamID, n+150)

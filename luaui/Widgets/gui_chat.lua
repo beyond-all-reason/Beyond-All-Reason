@@ -432,7 +432,6 @@ function widget:DrawScreen()
 	if isOnRect(x, y, activationArea[1], activationArea[2]+heightDiff, activationArea[3], activationArea[4]) or  (scrolling and isOnRect(x, y, activationArea[1], activationArea[2]+heightDiff, activationArea[3], activationArea[2]))  then
 		hovering = true
 		if scrolling then
-			glColor(0,0,0,backgroundOpacity)
 			UiElement(activationArea[1], activationArea[2]+heightDiff, activationArea[3], activationArea[4])
 
 			-- player name background
@@ -504,10 +503,12 @@ function widget:DrawScreen()
 		glPopMatrix()
 	end
 
-	-- draw chat lines / panel
+	-- draw chat lines or chat/console ui panel
 	if scrolling or chatLines[currentChatLine] then
 		local checkedLines = 0
-		displayedChatLines = 0
+		if not scrolling then
+			displayedChatLines = 0
+		end
 		glPushMatrix()
 		glTranslate((vsx * posX) + backgroundPadding, vsy * (scrolling and scrollingPosY or posY) + backgroundPadding, 0)
 		local i = scrolling == 'console' and currentConsoleLine or currentChatLine
@@ -542,7 +543,9 @@ function widget:DrawScreen()
 				if scrolling  then
 					glTranslate(-width, 0, 0)
 				end
-				displayedChatLines = displayedChatLines + 1
+				if not scrolling then
+					displayedChatLines = displayedChatLines + 1
+				end
 			else
 				break
 			end

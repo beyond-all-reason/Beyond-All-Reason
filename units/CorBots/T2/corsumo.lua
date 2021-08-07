@@ -154,11 +154,7 @@ return {
 				weaponvelocity = 1000,
 				customparams = {
 					expl_light_color = "0.1 1 0.1",
-					expl_light_life_mult = 1.2,
-					expl_light_mult = 1.3,
-					expl_light_radius_mult = 1.1,
 					light_color = "0 0.5 0",
-					light_life_mult = 1.1,
 					light_mult = 1.4,
 					light_radius_mult = 0.7,
 				},

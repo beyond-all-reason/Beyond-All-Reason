@@ -47,9 +47,11 @@ end
 
 local function reclaimerOrders(n, unitID)
 	local nearestenemy = Spring.GetUnitNearestEnemy(unitID, 999999, false)
-	Spring.GiveOrderToUnit(unitID, CMD.RECLAIM, { nearestenemy }, 0)
-	local x,y,z = Spring.GetUnitPosition(nearestenemy)
-	Spring.GiveOrderToUnit(unitID, CMD.FIGHT, { x, y, z }, {"meta", "shift", "alt"})
+	if nearestenemy then
+		Spring.GiveOrderToUnit(unitID, CMD.RECLAIM, { nearestenemy }, 0)
+		local x,y,z = Spring.GetUnitPosition(nearestenemy)
+		Spring.GiveOrderToUnit(unitID, CMD.FIGHT, { x, y, z }, {"meta", "shift", "alt"})
+	end
 end
 
 local function spawnConstructor(n)
@@ -130,10 +132,10 @@ local function spawnConstructor(n)
 				Spring.CreateUnit("scavengerdroppod_scav", posx - 32, posy, posz, math.random(0, 3), GaiaTeamID)
 				Spring.CreateUnit("scavengerdroppod_scav", posx, posy, posz + 32, math.random(0, 3), GaiaTeamID)
 				Spring.CreateUnit("scavengerdroppod_scav", posx, posy, posz - 32, math.random(0, 3), GaiaTeamID)
-				Spring.CreateUnit("scavengerdroppod_scav", posx + 32, posy, posz + 32, math.random(0, 3), GaiaTeamID)
-				Spring.CreateUnit("scavengerdroppod_scav", posx - 32, posy, posz + 32, math.random(0, 3), GaiaTeamID)
-				Spring.CreateUnit("scavengerdroppod_scav", posx - 32, posy, posz - 32, math.random(0, 3), GaiaTeamID)
-				Spring.CreateUnit("scavengerdroppod_scav", posx + 32, posy, posz - 32, math.random(0, 3), GaiaTeamID)
+				-- Spring.CreateUnit("scavengerdroppod_scav", posx + 32, posy, posz + 32, math.random(0, 3), GaiaTeamID)
+				-- Spring.CreateUnit("scavengerdroppod_scav", posx - 32, posy, posz + 32, math.random(0, 3), GaiaTeamID)
+				-- Spring.CreateUnit("scavengerdroppod_scav", posx - 32, posy, posz - 32, math.random(0, 3), GaiaTeamID)
+				-- Spring.CreateUnit("scavengerdroppod_scav", posx + 32, posy, posz - 32, math.random(0, 3), GaiaTeamID)
 
 				if posy > 0 then
 					local resurrector = constructorUnitList.Resurrectors[math.random(#constructorUnitList.Resurrectors)]
@@ -141,20 +143,20 @@ local function spawnConstructor(n)
 					QueueSpawn(resurrector, posx - 32, posy, posz, math.random(0, 3), GaiaTeamID, n + 150 + 2)
 					QueueSpawn(resurrector, posx, posy, posz + 32, math.random(0, 3), GaiaTeamID, n + 150 + 3)
 					QueueSpawn(resurrector, posx, posy, posz - 32, math.random(0, 3), GaiaTeamID, n + 150 + 4)
-					QueueSpawn(resurrector, posx + 32, posy, posz + 32, math.random(0, 3), GaiaTeamID, n + 150 + 5)
-					QueueSpawn(resurrector, posx - 32, posy, posz - 32, math.random(0, 3), GaiaTeamID, n + 150 + 6)
-					QueueSpawn(resurrector, posx - 32, posy, posz + 32, math.random(0, 3), GaiaTeamID, n + 150 + 7)
-					QueueSpawn(resurrector, posx + 32, posy, posz - 32, math.random(0, 3), GaiaTeamID, n + 150 + 8)
+					-- QueueSpawn(resurrector, posx + 32, posy, posz + 32, math.random(0, 3), GaiaTeamID, n + 150 + 5)
+					-- QueueSpawn(resurrector, posx - 32, posy, posz - 32, math.random(0, 3), GaiaTeamID, n + 150 + 6)
+					-- QueueSpawn(resurrector, posx - 32, posy, posz + 32, math.random(0, 3), GaiaTeamID, n + 150 + 7)
+					-- QueueSpawn(resurrector, posx + 32, posy, posz - 32, math.random(0, 3), GaiaTeamID, n + 150 + 8)
 				elseif constructorControllerModuleConfig.searesurrectors then
 					local seaResurrector = constructorUnitList.ResurrectorsSea[math.random(#constructorUnitList.ResurrectorsSea)]
 					QueueSpawn(seaResurrector, posx + 32, posy, posz + 32, math.random(0, 3), GaiaTeamID, n + 150 + 1)
 					QueueSpawn(seaResurrector, posx - 32, posy, posz - 32, math.random(0, 3), GaiaTeamID, n + 150 + 2)
 					QueueSpawn(seaResurrector, posx - 32, posy, posz + 32, math.random(0, 3), GaiaTeamID, n + 150 + 3)
 					QueueSpawn(seaResurrector, posx + 32, posy, posz - 32, math.random(0, 3), GaiaTeamID, n + 150 + 4)
-					QueueSpawn(seaResurrector, posx + 32, posy, posz + 32, math.random(0, 3), GaiaTeamID, n + 150 + 5)
-					QueueSpawn(seaResurrector, posx - 32, posy, posz - 32, math.random(0, 3), GaiaTeamID, n + 150 + 6)
-					QueueSpawn(seaResurrector, posx - 32, posy, posz + 32, math.random(0, 3), GaiaTeamID, n + 150 + 7)
-					QueueSpawn(seaResurrector, posx + 32, posy, posz - 32, math.random(0, 3), GaiaTeamID, n + 150 + 8)
+					-- QueueSpawn(seaResurrector, posx + 32, posy, posz + 32, math.random(0, 3), GaiaTeamID, n + 150 + 5)
+					-- QueueSpawn(seaResurrector, posx - 32, posy, posz - 32, math.random(0, 3), GaiaTeamID, n + 150 + 6)
+					-- QueueSpawn(seaResurrector, posx - 32, posy, posz + 32, math.random(0, 3), GaiaTeamID, n + 150 + 7)
+					-- QueueSpawn(seaResurrector, posx + 32, posy, posz - 32, math.random(0, 3), GaiaTeamID, n + 150 + 8)
 				end
 			end
 

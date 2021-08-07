@@ -335,7 +335,7 @@ function gadget:GameFrame(n)
 		SpawnBlueprint(n)
 	end
 
-	if n%(math.ceil(300/spawnmultiplier)) == 0 and not scavteamhasplayers and n > scavconfig.gracePeriod and constructorControllerModuleConfig.useresurrectors and FinalBossKilled == false then
+	if n%(math.ceil(1800/spawnmultiplier)) == 0 and not scavteamhasplayers and n > scavconfig.gracePeriod and constructorControllerModuleConfig.useresurrectors and FinalBossKilled == false then
 		constructorController.SpawnResurrectorGroup(n)
 	end
 
@@ -857,7 +857,16 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 			if constructorControllerModuleConfig.useconstructors then
 				if constructorUnitList.ConstructorsID[unitDefID] then
 					scavStatsScavCommanders = scavStatsScavCommanders+1
-					scavConstructor[unitID] = true
+					local r = math.random(0,100)
+					if r < 10 then
+						scavCollector[unitID] = true
+					elseif r < 20 then
+						scavCapturer[unitID] = true
+					elseif r < 30 then
+						scavReclaimer[unitID] = true
+					else
+						scavConstructor[unitID] = true
+					end
 					buffConstructorBuildSpeed(unitID)
 				end
 			end

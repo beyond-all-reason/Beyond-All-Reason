@@ -64,6 +64,11 @@ for udefID,def in ipairs(UnitDefs) do
 	end
 end
 
+local function getFootprintPos(value)	-- not entirely acurate, unsure why
+	local precision = 6		-- (footprint 1 = 6 map distance)
+	return (math.floor(value/precision)*precision)+(precision/2)
+end
+
 local function clearbuilderCommands(unitID)
 	if builderCommands[unitID] then
 		for id, _ in pairs(builderCommands[unitID]) do
@@ -87,6 +92,10 @@ local function checkBuilder(unitID)
 		for i=1, #queue do
 			local cmd = queue[i]
 			if cmd.id < 0 then
+				--if cmd.params[1] then
+				--	cmd.params[1] = getFootprintPos(cmd.params[1])
+				--	cmd.params[3] = getFootprintPos(cmd.params[3])
+				--end
 				local myCmd = {
 					id = -cmd.id,
 					teamid = spGetUnitTeam(unitID),
