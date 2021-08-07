@@ -18,6 +18,7 @@ local spTraceScreenRay = Spring.TraceScreenRay
 local chobbyInterface
 local geoSelected = false
 local mousePressed = false
+local placedDirectly = false
 
 local isGeo = {}
 for uDefID, uDef in pairs(UnitDefs) do
@@ -130,10 +131,6 @@ function widget:DrawWorld()
 	if not bestPos then
 		return
 	end
-	if bx then
-		bx = getFootprintPos(bx)
-		bz = getFootprintPos(bz)
-	end
 	local bface = Spring.GetBuildFacing()
 
 	if geoSelected then
@@ -142,8 +139,7 @@ function widget:DrawWorld()
 		elseif mousePressed then
 			mousePressed = false
 			geoSelected = false
-			--Spring.Echo(bx, bestPos[1], bz, bestPos[3], (bx ~= bestPos[1] or bz ~= bestPos[3]))
-			if bx ~= bestPos[1] or bz ~= bestPos[3] then
+			if not placedDirectly then
 				local alt, ctrl, meta, shift = Spring.GetModKeyState()
 				local opt = {}
 				if alt then opt[#opt + 1] = "alt" end
@@ -151,10 +147,13 @@ function widget:DrawWorld()
 				if meta then opt[#opt + 1] = "meta" end
 				if shift then opt[#opt + 1] = "shift" end
 				Spring.GiveOrder(cmdID, {bestPos[1], bestPos[2], bestPos[3], bface}, opt)
-				Spring.SetActiveCommand(0)
+				if not shift then
+					Spring.SetActiveCommand(0)
+				end
 			end
 		end
 	end
+	placedDirectly = false
 
 	-- Draw
 	gl.DepthTest(false)
@@ -176,4 +175,10 @@ function widget:DrawWorld()
 
 	gl.DepthTest(false)
 	gl.DepthMask(false)
+end
+
+function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
+	if isGeo[-cmdID] then
+		placedDirectly = true
+	end
 end
