@@ -2474,7 +2474,7 @@ function init()
 		  end,
 		},
 
-		{ id = "cas_sharpness", group = "gfx", name = texts.option.cas_sharpness, min = 0.25, max = 0.85, step = 0.01, type = "slider", value = 0.7, description = texts.option.cas_sharpness_descr,
+		{ id = "cas_sharpness", group = "gfx", name = texts.option.cas_sharpness, min = 0.3, max = 1.0, step = 0.01, type = "slider", value = 0.7, description = texts.option.cas_sharpness_descr,
 		  onload = function(i)
 			  loadWidgetData("Contrast Adaptive Sharpen", "cas_sharpness", { 'SHARPNESS' })
 		  end,
