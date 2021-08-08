@@ -765,14 +765,7 @@ end
 
 local engineVersion = 104 -- just filled this in here incorrectly but old engines arent used anyway
 if Engine and Engine.version then
-	local function Split(s, separator)
-		local results = {}
-		for part in s:gmatch("[^" .. separator .. "]+") do
-			results[#results + 1] = part
-		end
-		return results
-	end
-	engineVersion = Split(Engine.version, '-')
+	engineVersion = string.split(Engine.version, '-')
 	if engineVersion[2] ~= nil and engineVersion[3] ~= nil then
 		engineVersion = tonumber(string.gsub(engineVersion[1], '%.', '') .. engineVersion[2])
 	else
@@ -5864,14 +5857,6 @@ function widget:Shutdown()
 	WG['options'] = nil
 end
 
-local function Split(s, separator)
-	local results = {}
-	for part in s:gmatch("[^" .. separator .. "]+") do
-		results[#results + 1] = part
-	end
-	return results
-end
-
 local lastOptionCommand = 0
 function widget:TextCommand(command)
 	if string.find(command, "options", nil, true) == 1 and string.len(command) == 7 then
@@ -5894,7 +5879,7 @@ function widget:TextCommand(command)
 				show = true
 			end
 		else
-			option = Split(option, ' ')
+			option = string.split(option, ' ')
 			optionID = option[1]
 			if optionID then
 				optionID = getOptionByID(optionID)
@@ -5922,7 +5907,7 @@ function widget:TextCommand(command)
 		end
 	end
 	if string.find(command, "savepreset", nil, true) == 1 then
-		local words = Split(command, ' ')
+		local words = string.split(command, ' ')
 		if words[2] then
 			savePreset(words[2])
 		else

@@ -78,14 +78,6 @@ local customBeamLights = {}
 
 local deferredFunctionID
 
-local function Split(s, separator)
-	local results = {}
-	for part in s:gmatch("[^"..separator.."]+") do
-		results[#results + 1] = part
-	end
-	return results
-end
-
 local weaponConf = {}
 local function loadWeaponDefs()
 	weaponConf = {}
@@ -112,7 +104,7 @@ local function loadWeaponDefs()
 			params.r, params.g, params.b = 1, 0.8, 0.45
 
 			if customParams.expl_light_color then
-				local colorList = Split(customParams.expl_light_color, " ")
+				local colorList = string.split(customParams.expl_light_color, " ")
 				params.r = colorList[1]
 				params.g = colorList[2]
 				params.b = colorList[3]
@@ -335,7 +327,7 @@ local function GetLightsFromUnitDefs()
 		end
 
 		if customParams.light_color then
-			local colorList = Split(customParams.light_color, " ")
+			local colorList = string.split(customParams.light_color, " ")
 			r = colorList[1]
 			g = colorList[2]
 			b = colorList[3]*bMult
