@@ -17,7 +17,6 @@ Spring.Utilities = {
 	TableToString = table.TableToString,
 	MakeRealTable = table.MakeRealTable,
 	TableEcho = table.TableEcho,
-	ExplodeString = table.ExplodeString,
 
 	GetTeamCount = team.GetTeamCount,
 	GetPlayerCount = team.GetPlayerCount,
