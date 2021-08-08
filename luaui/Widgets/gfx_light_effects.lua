@@ -247,8 +247,8 @@ local function GetLightsFromUnitDefs()
 		elseif weaponDef.type == 'LaserCannon' then
 			weaponData.radius = 70 * weaponDef.size
 		elseif weaponDef.type == 'DGun' then
-			weaponData.radius = 400
-			lightMultiplier = 0.9
+			weaponData.radius = 365
+			lightMultiplier = 0.7
 		elseif weaponDef.type == 'MissileLauncher' then
 			weaponData.radius = 125 * weaponDef.size
 			if weaponDef.damageAreaOfEffect ~= nil  then
@@ -548,27 +548,27 @@ local function GetProjectileLights(beamLights, beamLightCount, pointLights, poin
 						if projectileDrawParams then
 							projectileDrawParams[#projectileDrawParams + 1] = drawParams
 						end
-						if enableHeatDistortion and WG['Lups'] then
-							local weaponDefID = spGetProjectileDefID(pID)
-							if weaponDefID and weaponConf[weaponDefID] and not weaponConf[weaponDefID].noheatdistortion and spIsSphereInView(x,y,z,100) then
-								if weaponConf[weaponDefID].wtype == 'DGun' then
-									local distance = math_diag(x-cx, y-cy, z-cz)
-									local strengthMult = 1 / (distance*0.001)
-
-									WG['Lups'].AddParticles('JitterParticles2', {
-										layer = -35,
-										life = weaponConf[weaponDefID].heatlife/4,
-										pos = {x,y,z},
-										size = weaponConf[weaponDefID].heatradius*1.4,
-										sizeGrowth = 0.2,
-										strength = (weaponConf[weaponDefID].heatstrength*0.5)*strengthMult,
-										animSpeed = 1.3,
-										heat = 1,
-										force = {0,0.35,0},
-									})
-								end
-							end
-						end
+						--if enableHeatDistortion and WG['Lups'] then
+						--	local weaponDefID = spGetProjectileDefID(pID)
+						--	if weaponDefID and weaponConf[weaponDefID] and not weaponConf[weaponDefID].noheatdistortion and spIsSphereInView(x,y,z,100) then
+						--		if weaponConf[weaponDefID].wtype == 'DGun' then
+						--			local distance = math_diag(x-cx, y-cy, z-cz)
+						--			local strengthMult = 1 / (distance*0.001)
+						--
+						--			WG['Lups'].AddParticles('JitterParticles2', {
+						--				layer = -35,
+						--				life = weaponConf[weaponDefID].heatlife,
+						--				pos = {x,y,z},
+						--				size = weaponConf[weaponDefID].heatradius*3.5,
+						--				sizeGrowth = 0.2,
+						--				strength = (weaponConf[weaponDefID].heatstrength*1.25)*strengthMult,
+						--				animSpeed = 1.3,
+						--				heat = 1,
+						--				force = {0,0.35,0},
+						--			})
+						--		end
+						--	end
+						--end
 					end
 				end
 			end

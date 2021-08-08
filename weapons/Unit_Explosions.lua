@@ -37,7 +37,7 @@ unitDeaths = {
 			expl_light_mult = 1,
 			expl_light_color = "0.5 0.5 1",
 			expl_light_life_mult = 1.3,
-			expl_light_heat_radius_mult = 1.15,
+			expl_light_heat_radius_mult = 1.05,
 		},
 	},
 
@@ -58,7 +58,7 @@ unitDeaths = {
 			expl_light_mult = 1.1,
 			expl_light_radius_mult = 1.1,
 			expl_light_life_mult = 1.2,
-			expl_light_heat_radius_mult = 1.15,
+			expl_light_heat_radius_mult = 1.05,
 		},
 	},
 	pyroselfd = {
@@ -96,11 +96,11 @@ unitDeaths = {
 			default = 35,
 		},
 		customparams = {
-			expl_light_color = "1 0.5 0.2",
-			expl_light_mult = 1.1,
+			expl_light_color = "1 0.5 0.15",
+			expl_light_mult = 1.15,
 			expl_light_radius_mult = 1.1,
 			expl_light_life_mult = 1.2,
-			expl_light_heat_radius_mult = 1.15,
+			expl_light_heat_radius_mult = 1.25,
 		},
 	},
 	flamethrowerSelfd = {
@@ -117,10 +117,10 @@ unitDeaths = {
 			default = 650,
 		},
 		customparams = {
-			expl_light_color = "1 0.5 0.2",
-			expl_light_mult = 1.15,
+			expl_light_color = "1 0.5 0.15",
+			expl_light_mult = 1.2,
 			expl_light_radius_mult = 1.15,
-			expl_light_life_mult = 1.15,
+			expl_light_life_mult = 1.2,
 			expl_light_heat_radius_mult = 1.25,
 		},
 	},
@@ -237,7 +237,7 @@ unitDeaths = {
 			expl_light_mult = 1.26,
 			expl_light_radius_mult = 1.26,
 			expl_light_life_mult = 1.2,
-			expl_light_heat_radius_mult = 1.15,
+			expl_light_heat_radius_mult = 1.05,
 		},
 	},
 
@@ -277,7 +277,7 @@ unitDeaths = {
 			expl_light_mult = 1.1,
 			expl_light_radius_mult = 1.1,
 			expl_light_life_mult = 1.2,
-			expl_light_heat_radius_mult = 1.15,
+			expl_light_heat_radius_mult = 1.05,
 		},
 	},
 	metalmakerSelfd = {
@@ -319,7 +319,7 @@ unitDeaths = {
 			expl_light_mult = 1.12,
 			expl_light_radius_mult = 1.12,
 			expl_light_life_mult = 1.15,
-			expl_light_heat_radius_mult = 1.15,
+			expl_light_heat_radius_mult = 1.05,
 		},
 	},
 	advmetalmakerSelfd = {
@@ -361,7 +361,7 @@ unitDeaths = {
 			expl_light_mult = 1.12,
 			expl_light_radius_mult = 1.12,
 			expl_light_life_mult = 1.15,
-			expl_light_heat_radius_mult = 1.15,
+			expl_light_heat_radius_mult = 1.05,
 		},
 	},
 	energystorageSelfd = {
@@ -441,7 +441,7 @@ unitDeaths = {
 			expl_light_mult = 1.16,
 			expl_light_radius_mult = 1.16,
 			expl_light_life_mult = 1.22,
-			expl_light_heat_radius_mult = 1.15,
+			expl_light_heat_radius_mult = 1.05,
 		},
 	},
 	advenergystorageSelfd = {
@@ -523,7 +523,7 @@ unitDeaths = {
 			expl_light_mult = 1.1,
 			expl_light_radius_mult = 1.1,
 			expl_light_life_mult = 1.16,
-			expl_light_heat_radius_mult = 1.15,
+			expl_light_heat_radius_mult = 1.05,
 		},
 	},
 
@@ -603,7 +603,7 @@ unitDeaths = {
 		customparams = {
 			expl_light_color = "1 0.6 0.75",
 			expl_light_life_mult = 1.15,
-			expl_light_heat_radius_mult = 1.15,
+			expl_light_heat_radius_mult = 1.05,
 		},
 	},
 	penetratorSelfd = {
@@ -980,7 +980,7 @@ unitDeaths = {
 			expl_light_mult = 3,
 			expl_light_radius_mult = 1.15,
 			expl_light_life_mult = 2,
-			expl_light_heat_radius_mult = 1.15,
+			expl_light_heat_radius_mult = 1.05,
 		},
 	},
 
@@ -1184,7 +1184,7 @@ unitDeaths = {
 			expl_light_mult = 1.05,
 			expl_light_radius_mult = 1.05,
 			expl_light_life_mult = 1.2,
-			expl_light_heat_radius_mult = 1.15,
+			expl_light_heat_radius_mult = 1.05,
 		},
 	},
 	['tinyBuildingExplosionGeneric-uw'] = {
@@ -1342,7 +1342,7 @@ unitDeaths = {
 			expl_light_mult = 1.07,
 			expl_light_radius_mult = 1.07,
 			expl_light_life_mult = 1.3,
-			expl_light_heat_radius_mult = 1.15,
+			expl_light_heat_radius_mult = 1.05,
 		},
 	},
 	mediumBuildingExplosionGenericSelfd = {
@@ -1421,7 +1421,7 @@ unitDeaths = {
 			expl_light_mult = 1.09,
 			expl_light_radius_mult = 1.09,
 			expl_light_life_mult = 1.3,
-			expl_light_heat_radius_mult = 1.15,
+			expl_light_heat_radius_mult = 1.05,
 		},
 	},
 	largeBuildingExplosionGenericSelfd = {
@@ -1744,7 +1744,7 @@ unitDeaths = {
 			expl_light_mult = 1.26,
 			expl_light_radius_mult = 1.26,
 			expl_light_life_mult = 1.2,
-			expl_light_heat_radius_mult = 1.15,
+			expl_light_heat_radius_mult = 1.05,
 		},
 	},
 	['smallExplosionGeneric-builder'] = {
@@ -1784,7 +1784,7 @@ unitDeaths = {
 			expl_light_mult = 1.26,
 			expl_light_radius_mult = 1.26,
 			expl_light_life_mult = 1.2,
-			expl_light_heat_radius_mult = 1.15,
+			expl_light_heat_radius_mult = 1.05,
 		},
 	},
 	['smallExplosionGeneric-uw'] = {
@@ -1862,7 +1862,7 @@ unitDeaths = {
 			expl_light_mult = 1.26,
 			expl_light_radius_mult = 1.26,
 			expl_light_life_mult = 1.2,
-			expl_light_heat_radius_mult = 1.15,
+			expl_light_heat_radius_mult = 1.05,
 		},
 	},
 
@@ -1883,7 +1883,7 @@ unitDeaths = {
 			expl_light_mult = 1.26,
 			expl_light_radius_mult = 1.26,
 			expl_light_life_mult = 1.2,
-			expl_light_heat_radius_mult = 1.15,
+			expl_light_heat_radius_mult = 1.05,
 		},
 	},
 	mediumExplosionGenericSelfd = {
@@ -1923,7 +1923,7 @@ unitDeaths = {
 			expl_light_mult = 1.26,
 			expl_light_radius_mult = 1.26,
 			expl_light_life_mult = 1.2,
-			expl_light_heat_radius_mult = 1.15,
+			expl_light_heat_radius_mult = 1.05,
 		},
 	},
 	['mediumExplosionGenericSelfd-builder'] = {
@@ -2001,7 +2001,7 @@ unitDeaths = {
 			expl_light_mult = 1.26,
 			expl_light_radius_mult = 1.26,
 			expl_light_life_mult = 1.2,
-			expl_light_heat_radius_mult = 1.15,
+			expl_light_heat_radius_mult = 1.05,
 		},
 	},
 	['mediumExplosionGenericSelfd-phib'] = {
@@ -2042,7 +2042,7 @@ unitDeaths = {
 			expl_light_mult = 1.1,
 			expl_light_radius_mult = 1.1,
 			expl_light_life_mult = 1.3,
-			expl_light_heat_radius_mult = 1.15,
+			expl_light_heat_radius_mult = 1.05,
 		},
 	},
 	largeExplosionGenericSelfd = {
@@ -2082,7 +2082,7 @@ unitDeaths = {
 			expl_light_mult = 1.1,
 			expl_light_radius_mult = 1.1,
 			expl_light_life_mult = 1.3,
-			expl_light_heat_radius_mult = 1.15,
+			expl_light_heat_radius_mult = 1.05,
 		},
 	},
 	['largeExplosionGenericSelfd-builder'] = {
@@ -2160,7 +2160,7 @@ unitDeaths = {
 			expl_light_mult = 1.1,
 			expl_light_radius_mult = 1.1,
 			expl_light_life_mult = 1.3,
-			expl_light_heat_radius_mult = 1.15,
+			expl_light_heat_radius_mult = 1.05,
 		},
 	},
 	['largeExplosionGenericSelfd-phib'] = {
@@ -2241,7 +2241,7 @@ unitDeaths = {
 			expl_light_mult = 1.26,
 			expl_light_radius_mult = 1.26,
 			expl_light_life_mult = 1.2,
-			expl_light_heat_radius_mult = 1.15,
+			expl_light_heat_radius_mult = 1.05,
 		},
 	},
 	explosiont3xl = {
@@ -2439,7 +2439,7 @@ unitDeaths = {
 			expl_light_mult = 1.09,
 			expl_light_radius_mult = 1.09,
 			expl_light_life_mult = 1.3,
-			expl_light_heat_radius_mult = 1.15,
+			expl_light_heat_radius_mult = 1.05,
 		},
 	},
 	lootboxExplosion2 = {
@@ -2551,7 +2551,7 @@ unitDeaths = {
 			expl_light_mult = 1,
 			expl_light_color = "0.7 0.3 1",
 			expl_light_life_mult = 1.3,
-			expl_light_heat_radius_mult = 1.15,
+			expl_light_heat_radius_mult = 1.05,
 		},
 	},
 

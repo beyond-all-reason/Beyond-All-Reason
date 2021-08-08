@@ -192,7 +192,7 @@ void main(void)
 		if (model_extra4.a > 0.5) {
 			map_normals4 = model_normals4;
 			mappos4 = modelpos4;
-			model_lighting_multiplier = 2.0;
+			model_lighting_multiplier = 1.85;
 			specularHighlight = specularHighlight + 2.5 * model_extra4.g;
 		}
 	}
