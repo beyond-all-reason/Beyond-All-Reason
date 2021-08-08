@@ -8,6 +8,6 @@ local function paramsEcho(...)
 	return ...
 end
 
-Debug = {
+return {
 	ParamsEcho = paramsEcho,
 }
