@@ -282,9 +282,8 @@ local isWaterUnit = {}
 local isGeothermalUnit = {}
 local unitMaxWeaponRange = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
-	unitGroup[unitDefID] = 'util'
 
-	if unitDef.name == 'armdl' or unitDef.name == 'cordl' or unitDef.name == 'armlance' or unitDef.name == 'cortitan'	-- or unitDef.name == 'armbeaver' or unitDef.name == 'cormuskrat'
+	if unitDef.name == 'armdl' or unitDef.name == 'cordl' or unitDef.name == 'armlance' or unitDef.name == 'cortitan'
 		or (unitDef.minWaterDepth > 0 or unitDef.modCategories['ship']) then
 		if not (unitDef.modCategories['hover'] or (unitDef.modCategories['mobile'] and unitDef.modCategories['canbeuw'])) then
 			isWaterUnit[unitDefID] = true
@@ -295,6 +294,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 		isGeothermalUnit[unitDefID] = true
 	end
 
+	unitGroup[unitDefID] = 'util'
 	if unitDef.customParams.objectify or unitDef.isTransport or string.find(unitDef.name, 'critter') then
 		unitGroup[unitDefID] = nil
 	end

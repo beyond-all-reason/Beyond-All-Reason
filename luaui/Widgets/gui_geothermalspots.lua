@@ -17,8 +17,8 @@ local circleSpaceUsage	= 0.82
 local circleInnerOffset	= 0
 local opacity			= 0.5
 
-local innersize			= 3.17		-- outersize-innersize = circle width
-local outersize			= 3.5		-- outersize-innersize = circle width
+local innersize			= 3.0		-- outersize-innersize = circle width
+local outersize			= 3.32		-- outersize-innersize = circle width
 
 local spIsGUIHidden = Spring.IsGUIHidden
 local spGetUnitsInSphere = Spring.GetUnitsInSphere

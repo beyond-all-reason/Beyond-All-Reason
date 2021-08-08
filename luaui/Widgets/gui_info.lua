@@ -10,9 +10,6 @@ function widget:GetInfo()
 	}
 end
 
--------------------------------------------------------------------------------
--------------------------------------------------------------------------------
-
 local teamcolorRadarIcon = false
 local width = 0
 local height = 0
@@ -25,14 +22,6 @@ local hoverCellZoom = 0.03 * zoomMult
 
 local iconBorderOpacity = 0.1
 local showSelectionTotals = true
-
-local backgroundTexture = "LuaUI/Images/backgroundtile.png"
-local ui_tileopacity = tonumber(Spring.GetConfigFloat("ui_tileopacity", 0.012) or 0.012)
-local bgtexScale = tonumber(Spring.GetConfigFloat("ui_tilescale", 7) or 7)	-- lower = smaller tiles
-local bgtexSize
-
--------------------------------------------------------------------------------
--------------------------------------------------------------------------------
 
 local texts = {        -- fallback (if you want to change this, also update: language/en.lua, or it will be overwritten)
 	selectedunits = 'Selected units',
@@ -169,7 +158,7 @@ local GL_ONE = GL.ONE
 
 local RectRound, UiElement, UiUnit, elementCorner
 
-function lines(str)
+local function toLines(str)
 	local t = {}
 	local function helper(line)
 		t[#t + 1] = line
@@ -179,7 +168,7 @@ function lines(str)
 	return t
 end
 
-function wrap(str, limit)
+local function wrap(str, limit)
 	limit = limit or 72
 	local here = 1
 	local buf = ""
@@ -202,7 +191,7 @@ function wrap(str, limit)
 	return t
 end
 
-function round(value, numDecimalPlaces)
+local function round(value, numDecimalPlaces)
 	if value then
 		return string.format("%0." .. numDecimalPlaces .. "f", math.round(value, numDecimalPlaces))
 	else
@@ -215,8 +204,26 @@ local function convertColor(r, g, b)
 end
 
 local unitDefInfo = {}
+local unitRestricted = {}
+local isWaterUnit = {}
+local isGeothermalUnit = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
 	unitDefInfo[unitDefID] = {}
+
+	if unitDef.name == 'armdl' or unitDef.name == 'cordl' or unitDef.name == 'armlance' or unitDef.name == 'cortitan'
+		or (unitDef.minWaterDepth > 0 or unitDef.modCategories['ship']) then
+		if not (unitDef.modCategories['hover'] or (unitDef.modCategories['mobile'] and unitDef.modCategories['canbeuw'])) then
+			isWaterUnit[unitDefID] = true
+		end
+	end
+
+	if unitDef.needGeo then
+		isGeothermalUnit[unitDefID] = true
+	end
+
+	if unitDef.maxThisUnit == 0 then
+		unitRestricted[unitDefID] = true
+	end
 
 	if unitDef.isAirUnit then
 		unitDefInfo[unitDefID].airUnit = true
@@ -356,8 +363,48 @@ end
 local groups, unitGroup = {}, {}	-- retrieves from buildmenu in initialize
 local unitOrder = {}	-- retrieves from buildmenu in initialize
 
--------------------------------------------------------------------------------
--------------------------------------------------------------------------------
+local unitDisabled = {}
+local minWaterUnitDepth = -11
+local showWaterUnits = false
+local _, _, mapMinWater, _ = Spring.GetGroundExtremes()
+if mapMinWater <= minWaterUnitDepth then
+	showWaterUnits = true
+end
+-- make them a disabled unit (instead of removing it entirely)
+if not showWaterUnits then
+	for unitDefID,_ in pairs(isWaterUnit) do
+		unitDisabled[unitDefID] = true
+	end
+end
+
+local showGeothermalUnits = false
+local function checkGeothermalFeatures()
+	showGeothermalUnits = false
+	local geoThermalFeatures = {}
+	for defID, def in pairs(FeatureDefs) do
+		if def.geoThermal then
+			geoThermalFeatures[defID] = true
+		end
+	end
+	local features = Spring.GetAllFeatures()
+	for i = 1, #features do
+		if geoThermalFeatures[Spring.GetFeatureDefID(features[i])] then
+			showGeothermalUnits = true
+			break
+		end
+	end
+	-- make them a disabled unit (instead of removing it entirely)
+	for unitDefID,_ in pairs(isGeothermalUnit) do
+		if not showGeothermalUnits then
+			unitDisabled[unitDefID] = true
+		else
+			if not isWaterUnit[unitDefID] or showWaterUnits then
+				unitDisabled[unitDefID] = nil
+			end
+		end
+	end
+end
+
 
 -- load all icons to prevent briefly showing white unit icons (will happen due to the custom texture filtering options)
 local function cacheUnitIcons()
@@ -483,10 +530,20 @@ function GetColor(colormap, slider)
 	col1[3] * ia + col2[3] * aa, col1[4] * ia + col2[4] * aa
 end
 
+function widget:GameFrame(n)
+	if checkGeothermalFeatures then
+		checkGeothermalFeatures()
+		checkGeothermalFeatures = nil
+		widgetHandler:RemoveCallIn("GameFrame")
+	end
+end
+
 function widget:Initialize()
 	if WG['lang'] then
 		texts = WG['lang'].getText('info')
 	end
+
+	checkGeothermalFeatures()
 
 	widget:ViewResize()
 
@@ -581,6 +638,19 @@ function widget:Update(dt)
 		end
 		if not rankTextures and WG['rankicons'] then
 			rankTextures = WG['rankicons'].getRankTextures()
+		end
+
+		local _, _, mapMinWater, _ = Spring.GetGroundExtremes()
+		if mapMinWater <= minWaterUnitDepth then
+			if not showWaterUnits then
+				showWaterUnits = true
+
+				for unitDefID,_ in pairs(isWaterUnit) do
+					if not isGeothermalUnit[unitDefID] or showGeothermalUnits then	-- make sure geothermal units keep being disabled if that should be the case
+						unitDisabled[unitDefID] = nil
+					end
+				end
+			end
 		end
 	end
 
@@ -1138,8 +1208,9 @@ local function drawUnitInfo()
 				if unitDefInfo[displayUnitDefID].buildOptions[cellID] then
 					local uDefID = unitDefInfo[displayUnitDefID].buildOptions[cellID]
 					cellRect[cellID] = { math_floor(customInfoArea[3] - cellPadding - (coll * cellsize)), math_floor(customInfoArea[2] + cellPadding + ((row - 1) * cellsize)), math_floor(customInfoArea[3] - cellPadding - ((coll - 1) * cellsize)), math_floor(customInfoArea[2] + cellPadding + ((row) * cellsize)) }
-					glColor(0.9, 0.9, 0.9, 1)
-					glTexture(":lr"..unitIconSize..","..unitIconSize..":unitpics/" .. unitDefInfo[uDefID].buildPic)
+					local disabled = (unitRestricted[uDefID] or unitDisabled[uDefID])
+					glColor(0.9, 0.9, 0.9, disabled and 0.45 or 1)
+					glTexture(":l"..(disabled and "g" or "").."r"..unitIconSize..","..unitIconSize..":unitpics/" .. unitDefInfo[uDefID].buildPic)
 					--glTexRect(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3]-cellPadding, cellRect[cellID][4]-cellPadding)
 					--DrawRect(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3]-cellPadding, cellRect[cellID][4]-cellPadding,0.06)
 					TexRectRound(cellRect[cellID][1] + cellPadding, cellRect[cellID][2] + cellPadding, cellRect[cellID][3], cellRect[cellID][4], cellPadding * 1.3, 1, 1, 1, 1, 0.11)
@@ -1150,7 +1221,7 @@ local function drawUnitInfo()
 					glBlending(GL_SRC_ALPHA, GL_ONE)
 					RectRound(cellRect[cellID][1] + cellPadding, cellRect[cellID][4] - cellPadding - ((cellRect[cellID][4] - cellRect[cellID][2]) * 0.77), cellRect[cellID][3], cellRect[cellID][4], cellPadding * 1.3, 1, 1, 0, 0, { 1, 1, 1, 0 }, { 1, 1, 1, 0.06 })
 					RectRound(cellRect[cellID][1] + cellPadding, cellRect[cellID][2] + cellPadding, cellRect[cellID][3], cellRect[cellID][2] + cellPadding + ((cellRect[cellID][4] - cellRect[cellID][2]) * 0.18), cellPadding * 1.3, 0, 0, 1, 1, { 1, 1, 1, 0.04 }, { 1, 1, 1, 0 })
-
+--
 					local halfSize = (((cellRect[cellID][3] - cellPadding)) - (cellRect[cellID][1])) * 0.5
 					RectRoundCircle(
 						cellRect[cellID][1] + cellPadding + halfSize,
@@ -1159,24 +1230,33 @@ local function drawUnitInfo()
 						halfSize, cellPadding * 1.3, halfSize - math_max(1, cellPadding), { 1, 1, 1, iconBorderOpacity }, { 1, 1, 1, iconBorderOpacity }
 					)
 					glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-
+--
 					-- group icon
 					if unitGroup[uDefID] then
 						local size = math.floor((halfSize + halfSize) * 0.33)
-						glColor(1, 1, 1, 0.9)
+						glColor(1, 1, 1, disabled and 0.4 or 0.9)
 						glTexture(groups[unitGroup[uDefID]])
 						glTexRect(cellRect[cellID][1] + cellPadding, cellRect[cellID][4] - size, cellRect[cellID][1] + size + cellPadding, cellRect[cellID][4])
 						glTexture(false)
 					end
 
-					-- radar icon
-					--if iconTypesMap[unitDefInfo[uDefID].iconType] then
-					--	local size = math.floor((halfSize + halfSize) * 0.33)
-					--	glColor(1, 1, 1, 0.9)
-					--	glTexture(':lr' .. (radarIconSize * 2) .. ',' .. (radarIconSize * 2) .. ':' .. iconTypesMap[unitDefInfo[uDefID].iconType])
-					--	glTexRect(cellRect[cellID][3]-size, cellRect[cellID][2], cellRect[cellID][3], cellRect[cellID][2]+size)
-					--	glTexture(false)
+					--local disabled = (unitRestricted[uDefID] or unitDisabled[uDefID])
+					--if disabled then
+					--	glColor(0.4, 0.4, 0.4, 1)
+					--else
+					--	glColor(1,1,1,1)
 					--end
+					--UiUnit(
+					--	cellRect[cellID][1], cellRect[cellID][2], cellRect[cellID][3], cellRect[cellID][4],
+					--	nil,
+					--	1, 1, 1, 1,
+					--	0.03,
+					--	nil, disabled and 0 or nil,
+					--	":l"..(disabled and 'g' or '').."r"..unitIconSize..","..unitIconSize..":unitpics/" .. unitDefInfo[uDefID].buildPic,
+					--	((unitDefInfo[uDefID].iconType and iconTypesMap[unitDefInfo[uDefID].iconType]) and ':lr' .. (radarIconSize * 2) .. ',' .. (radarIconSize * 2) .. ':' .. iconTypesMap[unitDefInfo[uDefID].iconType] or nil),
+					--	groups[unitGroup[uDefID]],
+					--	{unitDefInfo[uDefID].metalCost, unitDefInfo[uDefID].energyCost}
+					--)
 				end
 				cellID = cellID - 1
 				if cellID <= 0 then
@@ -1357,7 +1437,7 @@ local function drawUnitInfo()
 		local text, _ = font:WrapText(text, ((backgroundRect[3] - bgpadding - bgpadding - bgpadding) - (backgroundRect[1] + contentPaddingLeft)) * (loadedFontSize / infoFontsize))
 
 		-- prune number of lines
-		local lines = lines(text)
+		local lines = toLines(text)
 		text = ''
 		for i, line in pairs(lines) do
 			text = text .. line
@@ -1375,10 +1455,6 @@ local function drawUnitInfo()
 		font:End()
 
 	end
-end
-
-local function pruneLines()
-
 end
 
 local function drawEngineTooltip()
