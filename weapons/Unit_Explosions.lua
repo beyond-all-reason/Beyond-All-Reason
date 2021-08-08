@@ -255,7 +255,8 @@ unitDeaths = {
 			default = 80,
 		},
 		customparams = {
-			expl_light_mult = 0.9,
+			expl_light_mult = 0.88,
+			expl_light_radius_mult = 0.88,
 		},
 	},
 

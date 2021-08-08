@@ -286,10 +286,9 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 
 	if unitDef.name == 'armdl' or unitDef.name == 'cordl' or unitDef.name == 'armlance' or unitDef.name == 'cortitan'	-- or unitDef.name == 'armbeaver' or unitDef.name == 'cormuskrat'
 		or (unitDef.minWaterDepth > 0 or unitDef.modCategories['ship']) then
-		isWaterUnit[unitDefID] = true
-	end
-	if unitDef.name == 'armthovr' or unitDef.name == 'corintr' then
-		isWaterUnit[unitDefID] = nil
+		if not (unitDef.modCategories['hover'] or (unitDef.modCategories['mobile'] and unitDef.modCategories['canbeuw'])) then
+			isWaterUnit[unitDefID] = true
+		end
 	end
 
 	if unitDef.needGeo then
