@@ -2,7 +2,7 @@
 local utilitiesDirectory = 'common/Utilities/'
 
 local tga = VFS.Include(utilitiesDirectory .. 'image_tga.lua')
-local table = VFS.Include(utilitiesDirectory .. 'tablefunctions.lua')
+local table = VFS.Include('common/tablefunctions.lua')
 local team = VFS.Include(utilitiesDirectory .. 'teamFunctions.lua')
 
 Spring.Utilities = {
