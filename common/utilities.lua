@@ -1,15 +1,11 @@
 
 local utilitiesDirectory = 'common/Utilities/'
 
-local base64 = VFS.Include(utilitiesDirectory .. 'base64.lua')
 local tga = VFS.Include(utilitiesDirectory .. 'image_tga.lua')
 local table = VFS.Include(utilitiesDirectory .. 'tablefunctions.lua')
 local team = VFS.Include(utilitiesDirectory .. 'teamFunctions.lua')
 
 Spring.Utilities = {
-	Base64Encode = base64.Base64Encode,
-	Base64Decode = base64.Base64Decode,
-
 	LoadTGA = tga.LoadTGA,
 	SaveTGA = tga.SaveTGA,
 	NewTGA = tga.NewTGA,
