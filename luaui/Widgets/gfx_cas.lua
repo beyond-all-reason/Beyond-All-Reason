@@ -20,8 +20,8 @@ end
 
 local GL_RGBA8 = 0x8058
 
-local SHARPNESS = 0.8
-local version = 1.02
+local SHARPNESS = 1.0
+local version = 1.03
 
 -----------------------------------------------------------------
 -- Lua Shortcuts
@@ -233,7 +233,7 @@ function widget:GetConfigData(data)
 end
 
 function widget:SetConfigData(data)
-	if data.SHARPNESS ~= nil  and data.version ~= nil and data.version == version then
+	if data.SHARPNESS ~= nil and data.version ~= nil and data.version == version then
 		SHARPNESS = data.SHARPNESS
 	end
 end
