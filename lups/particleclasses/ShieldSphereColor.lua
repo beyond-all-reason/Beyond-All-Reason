@@ -155,7 +155,7 @@ function ShieldSphereColorParticle:EndDraw()
 
 					if hitTable then
 						if #hitTable > 0 then
-							--Spring.Utilities.TableEcho(hitTable, "hitTable")
+							--Spring.Debug.TableEcho(hitTable, "hitTable")
 							--Spring.Echo("#hitTable", #hitTable)
 						end
 

@@ -1716,8 +1716,6 @@ local function ApplyOptions(luaShader, materialDef, key)
 
 	local intOption = 0
 
-	--Spring.Utilities.TableEcho(optionsTbl, "optionsTbl")
-
 	for optName, optValue in pairs(optionsTbl) do
 		if knownBitOptions[optName] then --boolean
 

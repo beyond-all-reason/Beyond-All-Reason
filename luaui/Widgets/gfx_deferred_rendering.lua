@@ -429,7 +429,7 @@ local function DrawLightType(lights, lightsCount, lighttype)
 		local param = light.param
 		if verbose then
 			VerboseEcho('gfx_deferred_rendering.lua: Light being drawn:', i)
-			Spring.Utilities.TableEcho(light)
+			Spring.Debug.TableEcho(light)
 		end
 		if lighttype == 0 then
 			-- point

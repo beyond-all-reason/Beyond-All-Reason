@@ -16,7 +16,6 @@ Spring.Utilities = {
 	MergeWithDefault = table.MergeWithDefault,
 	TableToString = table.TableToString,
 	MakeRealTable = table.MakeRealTable,
-	TableEcho = table.TableEcho,
 
 	GetTeamCount = team.GetTeamCount,
 	GetPlayerCount = team.GetPlayerCount,
@@ -29,4 +28,5 @@ local debug = VFS.Include('common/utilities/debug.lua')
 
 Spring.Debug = {
 	ParamsEcho = debug.ParamsEchoamsEcho,
+	TableEcho = debug.TableEcho,
 }

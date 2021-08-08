@@ -108,30 +108,6 @@ local function makeRealTable(proxy, debugTag)
 	return ret
 end
 
-local function tableEcho(data, name, indent, tableChecked)
-	name = name or "TableEcho"
-	indent = indent or ""
-	if (not tableChecked) and type(data) ~= "table" then
-		Spring.Echo(indent .. name, data)
-		return
-	end
-	Spring.Echo(indent .. name .. " = {")
-	local newIndent = indent .. "    "
-	for name, v in pairs(data) do
-		local ty = type(v)
-		if ty == "table" then
-			tableEcho(v, name, newIndent, true)
-		elseif ty == "boolean" then
-			Spring.Echo(newIndent .. name .. " = " .. (v and "true" or "false"))
-		elseif ty == "string" or ty == "number" then
-			Spring.Echo(newIndent .. name .. " = " .. v)
-		else
-			Spring.Echo(newIndent .. name .. " = ", v)
-		end
-	end
-	Spring.Echo(indent .. "},")
-end
-
 return {
 	CopyTable = copyTable,
 	MergeTable = mergeTable,
@@ -139,5 +115,4 @@ return {
 	MergeWithDefault = mergeWithDefault,
 	TableToString = tableToString,
 	MakeRealTable = makeRealTable,
-	TableEcho = tableEcho,
 }
