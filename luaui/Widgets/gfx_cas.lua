@@ -20,8 +20,8 @@ end
 
 local GL_RGBA8 = 0x8058
 
-local SHARPNESS = 0.9
-local version = 1.04
+local SHARPNESS = 0.88
+local version = 1.05
 
 -----------------------------------------------------------------
 -- Lua Shortcuts
@@ -186,6 +186,7 @@ function widget:Initialize()
 		},
 	}, ": Contrast Adaptive Sharpen")
 	casShader:Initialize()
+	UpdateShader()
 
 	fullTexQuad = gl.GetVAO()
 	if fullTexQuad == nil then
@@ -201,6 +202,7 @@ function widget:Initialize()
 	WG.cas.getSharpness = function(value)
 		return SHARPNESS
 	end
+
 end
 
 function widget:Shutdown()

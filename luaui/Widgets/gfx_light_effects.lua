@@ -98,9 +98,9 @@ local function loadWeaponDefs()
 				end
 			end
 			params.radius = ((WeaponDefs[i].damageAreaOfEffect*2) + (WeaponDefs[i].damageAreaOfEffect * WeaponDefs[i].edgeEffectiveness * 1.25)) * globalRadiusMult
-			params.orgMult = (math.max(0.3, math.min(damage/1500, 0.6)) + (params.radius/2500)) * globalLightMult
-			params.life = (7.5*(0.8+params.radius/2500)+(params.orgMult * 5)) * globalLifeMult
-			params.radius = (params.orgMult * 80) + (params.radius * 2.5)
+			params.orgMult = (math.max(0.28, math.min(damage/1600, 0.6)) + (params.radius/2800)) * globalLightMult
+			params.life = (9.5*(1.0+params.radius/2500)+(params.orgMult * 5)) * globalLifeMult
+			params.radius = (params.orgMult * 75) + (params.radius * 2.4)
 			params.r, params.g, params.b = 1, 0.8, 0.45
 
 			if customParams.expl_light_color then
