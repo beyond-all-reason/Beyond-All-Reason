@@ -51,12 +51,12 @@ return {
     --   },
     -- },
     shockwave = {
-      air                = true,
+      air                = false,
       class              = [[CSimpleGroundFlash]],
-      count              = 1, --1
+      count              = 0, --1
       ground             = true,
-      underwater         = 1,
-      water              = true,
+      underwater         = 0,
+      water              = false,
       properties = {
         colormap           = [[0.55 0.55 0.55 0.75   0.1 0.1 0.1 0.58    0 0 0 0.1]],
         size               = 4,
