@@ -1,4 +1,4 @@
-local widgetVersion = 25
+local widgetVersion = 26
 
 function widget:GetInfo()
     return {
@@ -180,7 +180,7 @@ local hoverPlayerlist = false
 -- LockCamera variables
 --------------------------------------------------------------------------------
 
-local transitionTime = 0.6 -- how long it takes the camera to move when tracking a player
+local transitionTime = 1.3 -- how long it takes the camera to move when tracking a player
 local listTime = 14 -- how long back to look for recent broadcasters
 
 local totalTime = 0
