@@ -158,6 +158,10 @@ for i=1,#files do
    if string.sub(fileNames, 1, 4) == "mgun" then
     t[fileNames].pitchmod = 0.08
     end
+   if string.sub(fileNames, 1, 7) == "minigun" then
+    t[fileNames].pitchmod = 0.09
+    t[fileNames].maxconcurrent = 12
+    end 
    if string.sub(fileNames, 1, 7) == "xplolrg" then
     t[fileNames].pitchmod = 0.3
     end
