@@ -40,7 +40,7 @@ function makeInstanceVBOTable(layout, maxElements, myName, unitIDattribID)
 		instanceTable.unitIDattribID = unitIDattribID
 		
 	end
-	
+	--Spring.Echo(myName,": VBO upload of #elements:",#instanceData)
 	newInstanceVBO:Upload(instanceData)
 	return instanceTable
 end
@@ -53,12 +53,15 @@ function clearInstanceTable(iT)
 	if iT.indextoUnitID then iT.indextoUnitID = {} end
 end
 
-function makeVAOandAttach(vertexVBO, instanceVBO) -- return a VAO
+function makeVAOandAttach(vertexVBO, instanceVBO, indexVBO) -- Attach a vertex buffer to an instance buffer, and optionally, an index buffer if one is supplied.
 	local newVAO = nil 
 	newVAO = gl.GetVAO()
 	if newVAO == nil then goodbye("Failed to create newVAO") end
 	newVAO:AttachVertexBuffer(vertexVBO)
 	newVAO:AttachInstanceBuffer(instanceVBO)
+  if indexVBO then
+    newVAO:AttachIndexBuffer(indexVBO)     
+  end
 	return newVAO
 end
 
@@ -74,8 +77,9 @@ function resizeInstanceVBOTable(iT)
 	iT.instanceVBO = newInstanceVBO
 	iT.instanceVBO:Upload(iT.instanceData)
 	if iT.VAO and iT.vertexVBO then -- reattach new if updated :D
-		iT.VAO = makeVAOandAttach(iT.vertexVBO,iT.instanceVBO)
+		iT.VAO = makeVAOandAttach(iT.vertexVBO,iT.instanceVBO, iT.indexVBO)
 	end
+    
 	--Spring.Echo("instanceVBOTable full, resizing to double size",iT.myName, iT.usedElements,iT.maxElements)
 	
 	if iT.indextoUnitID then
@@ -106,6 +110,9 @@ function pushElementInstance(iT,thisInstance, instanceID, updateExisting, noUplo
 	-- noUpload: prevent the VBO from being uploaded, if you feel like you are going to do a lot of ops and wish to manually upload when done instead
 	-- unitID: if given, it will store then unitID corresponding to this instance, and will try to update the InstanceDataFromUnitIDs for this unit
 	-- returns: the index of the instanceID in the table on success, else nil
+	if #thisInstance ~= iT.instanceStep then
+		Spring.Echo("Trying to upload an oddly sized instance into",iT.myName, #thisInstance, "instead of ",iT.instanceStep)
+	end
 	local iTusedElements = iT.usedElements
 	local iTStep    = iT.instanceStep 
 	local endOffset = iTusedElements * iTStep
@@ -232,11 +239,11 @@ function getElementInstanceData(iT, instanceID)
 end
 
 function uploadAllElements(iT)
-	-- upload all USED elements
-	if iT.usedElements == 0 then return end
-	iT.instanceVBO:Upload(iT.instanceData,nil,0, 1, iT.usedElements * iT.instanceStep)
-	iT.dirty = false
-	if iT.indextoUnitID then
+  -- upload all USED elements
+  if iT.usedElements == 0 then return end
+  iT.instanceVBO:Upload(iT.instanceData,nil,0, 1, iT.usedElements * iT.instanceStep)
+  iT.dirty = false
+  if iT.indextoUnitID then
 		iT.instanceVBO:InstanceDataFromUnitIDs(iT.indextoUnitID, iT.unitIDattribID)
 	end
 end
@@ -286,6 +293,68 @@ function makeCircleVBO(circleSegments, radius)
 	)
 	circleVBO:Upload(VBOData)
 	return circleVBO, #VBOData/4
+end
+
+function makePlaneVBO(xsize, ysize, xresolution, yresolution) -- makes a plane from [-xsize to xsize] with xresolution subdivisions
+	if not xsize then xsize = 1 end
+	if not ysize then ysize = xsize end
+	if not xresolution then xresolution = 1 end
+	if not yresolution then yresolution = xresolution end
+	xresolution = math.floor(xresolution)
+	yresolution = math.floor(yresolution)
+	local planeVBO = gl.GetVBO(GL.ARRAY_BUFFER,false)
+	if planeVBO == nil then return nil end
+	
+	local VBOLayout = {
+	 {id = 0, name = "xyworld_xyfract", size = 2},
+	}
+	
+	local VBOData = {}
+	
+	for x = 0, xresolution  do -- this is +1
+		for y = 0, yresolution do
+			VBOData[#VBOData+1] = xsize * ((x / xresolution) -0.5 ) *2
+			VBOData[#VBOData+1] = ysize * ((y / yresolution) -0.5 ) * 2
+		end
+	end	
+	
+	planeVBO:Define(
+		(xresolution + 1) * (yresolution + 1) ,
+		VBOLayout
+	)
+	planeVBO:Upload(VBOData)
+	
+  --Spring.Echo("PlaneVBOData up:",#VBOData, "Down", #planeVBO:Download())
+	return planeVBO, #VBOData/2
+end
+
+function makePlaneIndexVBO(xresolution, yresolution)
+	xresolution = math.floor(xresolution)
+	if not yresolution then yresolution = xresolution end
+	local planeIndexVBO = gl.GetVBO(GL.ELEMENT_ARRAY_BUFFER,false)
+	if planeIndexVBO == nil then return nil end
+	local numindices = yresolution*xresolution*6
+	planeIndexVBO:Define(
+		numindices
+	)
+	IndexVBOData = {}
+	local qindex = 0
+	local colsize = yresolution + 1
+	for x = 0, xresolution-1  do -- this is +1
+		for y = 0, yresolution-1 do
+			IndexVBOData[#IndexVBOData + 1] = qindex
+			IndexVBOData[#IndexVBOData + 1] = qindex +1
+			IndexVBOData[#IndexVBOData + 1] = qindex + colsize
+			IndexVBOData[#IndexVBOData + 1] = qindex +1
+			IndexVBOData[#IndexVBOData + 1] = qindex + colsize + 1
+			IndexVBOData[#IndexVBOData + 1] = qindex + colsize
+			qindex = qindex + 1
+		end
+		qindex = qindex + 1
+	end	
+	planeIndexVBO:Upload(IndexVBOData)
+  --Spring.Echo("PlaneIndexVBO up:",#IndexVBOData, "Down", #planeIndexVBO:Download())
+	return planeIndexVBO,numindices
 end
 
 function makePointVBO(numPoints)
