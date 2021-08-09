@@ -3275,7 +3275,7 @@ function init()
 		-- end,
 		--},
 
-		{ id = "lockcamera_transitiontime", group = "control", name = texts.option.lockcamera_transitiontime, type = "slider", min = 0.4, max = 1.5, step = 0.01, value = (WG['advplayerlist_api'] ~= nil and WG['advplayerlist_api'].GetLockTransitionTime ~= nil and WG['advplayerlist_api'].GetLockTransitionTime()), description = texts.option.lockcamera_transitiontime_descr,
+		{ id = "lockcamera_transitiontime", group = "control", name = texts.option.lockcamera_transitiontime, type = "slider", min = 0.5, max = 1.7, step = 0.01, value = (WG['advplayerlist_api'] ~= nil and WG['advplayerlist_api'].GetLockTransitionTime ~= nil and WG['advplayerlist_api'].GetLockTransitionTime()), description = texts.option.lockcamera_transitiontime_descr,
 		  onload = function(i)
 			  loadWidgetData("AdvPlayersList", "lockcamera_transitiontime", { 'transitionTime' })
 		  end,
