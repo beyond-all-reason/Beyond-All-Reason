@@ -625,7 +625,6 @@ function widget:DrawWorldPreUnit()
 	end
 
 	--local q = gl.CreateQuery()
-	--Spring.Utilities.TableEcho({gl.GetFixedState("alphatest", true)})
 	if hasClipDistance then
 		gl.ClipDistance(1, true)
 	end
@@ -665,7 +664,7 @@ end
 --function widget:GameFrame()
 	--local res = Spring.GetProjectilesInRectangle(-10000, -10000, 10000, 10000)
 	--local res = Spring.GetVisibleProjectiles()
-	--Spring.Utilities.TableEcho(res)
+	--Spring.Debug.TableEcho(res)
 --end
 
 

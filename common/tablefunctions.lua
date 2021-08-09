@@ -108,44 +108,6 @@ local function makeRealTable(proxy, debugTag)
 	return ret
 end
 
-local function tableEcho(data, name, indent, tableChecked)
-	name = name or "TableEcho"
-	indent = indent or ""
-	if (not tableChecked) and type(data) ~= "table" then
-		Spring.Echo(indent .. name, data)
-		return
-	end
-	Spring.Echo(indent .. name .. " = {")
-	local newIndent = indent .. "    "
-	for name, v in pairs(data) do
-		local ty = type(v)
-		if ty == "table" then
-			tableEcho(v, name, newIndent, true)
-		elseif ty == "boolean" then
-			Spring.Echo(newIndent .. name .. " = " .. (v and "true" or "false"))
-		elseif ty == "string" or ty == "number" then
-			Spring.Echo(newIndent .. name .. " = " .. v)
-		else
-			Spring.Echo(newIndent .. name .. " = ", v)
-		end
-	end
-	Spring.Echo(indent .. "},")
-end
-
-local function explodeString(div,str)
-	if (div == '') then
-		return false
-	end
-	local pos, arr = 0, {}
-	-- for each divider found
-	for st, sp in function() return string.find(str, div, pos, true) end do
-		table.insert(arr, string.sub(str, pos, st - 1)) -- Attach chars left of current divider
-		pos = sp + 1 -- Jump past current divider
-	end
-	table.insert(arr, string.sub(str,pos)) -- Attach chars right of last divider
-	return arr
-end
-
 return {
 	CopyTable = copyTable,
 	MergeTable = mergeTable,
@@ -153,6 +115,4 @@ return {
 	MergeWithDefault = mergeWithDefault,
 	TableToString = tableToString,
 	MakeRealTable = makeRealTable,
-	TableEcho = tableEcho,
-	ExplodeString = explodeString,
 }

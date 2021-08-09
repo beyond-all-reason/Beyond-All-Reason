@@ -385,7 +385,6 @@ local function GetTreeInfo(fdef)
 				else
 					normalMap = (treeInfo.fakeNormal and FAKE_NORMALTEX) or nil
 				end
-				--Spring.Utilities.TableEcho(fdef.customParams, fdef.name)
 			end
 
 			for _, exc in ipairs(featureNameTreesNoSway) do
