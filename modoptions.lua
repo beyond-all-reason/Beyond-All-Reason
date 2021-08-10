@@ -269,7 +269,7 @@ local options={
 		type   = 'number',
 		section= 'options_scavengers',
 		def    = 5,
-		min    = 1,
+		min    = 2,
 		max    = 20,
 		step   = 1,
 	},

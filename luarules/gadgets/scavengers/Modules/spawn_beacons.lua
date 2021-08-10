@@ -2,7 +2,7 @@ local BeaconSpawnChance = unitSpawnerModuleConfig.beaconspawnchance
 local staticUnitList = VFS.Include("luarules/gadgets/scavengers/Configs/BYAR/UnitLists/staticunits.lua")
 
 function SpawnBeacon(n)
-	if n and n > 3600 then
+	if n and n > 1800 then
 		local BeaconSpawnChance = math_random(0,BeaconSpawnChance)
 		if numOfSpawnBeacons <= unitSpawnerModuleConfig.minimumspawnbeacons or ScavSafeAreaExists == false then
 			BeaconSpawnChance = 0
