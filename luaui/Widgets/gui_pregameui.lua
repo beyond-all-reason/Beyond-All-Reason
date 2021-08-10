@@ -18,7 +18,7 @@ local fontfileOutlineSize = 10
 local fontfileOutlineStrength = 1.4
 local font = gl.LoadFont(fontfile, fontfileSize * fontfileScale, fontfileOutlineSize * fontfileScale, fontfileOutlineStrength)
 
-local uiScale = (0.8 + (vsx * vsy / 5000000))
+local uiScale = (0.75 + (vsx * vsy / 5700000))
 local myPlayerID = Spring.GetMyPlayerID()
 local _, _, mySpec, myTeamID = Spring.GetPlayerInfo(myPlayerID, false)
 local amNewbie
