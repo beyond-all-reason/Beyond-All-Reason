@@ -37,6 +37,7 @@ function ScoutHST:ClosestSpot(scoutbst)
 	local unit = scoutbst.unit:Internal()
 	local position = unit:GetPosition()
 	local mtype = scoutbst.mtype
+	local network --TODO this maybe is to verify
 	if mtype == nil then mtype = "air" end
 	if network == nil then network = 1 end
 	-- initializing the necessary tables if they're not yet

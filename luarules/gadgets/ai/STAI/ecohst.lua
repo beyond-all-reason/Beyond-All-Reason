@@ -56,12 +56,12 @@ function EcoHST:Average()
 		end
 		self.ai[name].extra = self.ai[name].income - self.ai[name].usage
 		if self.ai[name].capacity == 0 then
-			self.ai[name].full = math.inf
+			self.ai[name].full = math.huge
 		else
 			self.ai[name].full = self.ai[name].reserves / self.ai[name].capacity
 		end
 		if self.ai[name].income == 0 then
-			self.ai[name].tics = math.inf
+			self.ai[name].tics = math.huge
 		else
 			self.ai[name].tics = self.ai[name].reserves / self.ai[name].income
 		end

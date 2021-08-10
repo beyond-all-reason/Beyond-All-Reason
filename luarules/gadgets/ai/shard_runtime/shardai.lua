@@ -13,12 +13,14 @@ function ShardAI:Init()
 		self:Warn( self:Name() .. " Init called multiple times" )
 		return
 	end
+
 	self.loaded = true
 	self.game = self.api.game
 	self.map = self.api.map
 	self.game.ai = self
 	self.map.ai = self
 	self.data = {}
+	--self.game:DrawDisplay(true)
 	self:Info(
 		self.fullname .. " - playing: " .. self.game:GameName() .. " on: " .. self.map:MapName()
 	)
@@ -77,7 +79,9 @@ function ShardAI:Update()
 		if m == nil then
 			self:Warn("nil module!")
 		else
+ 			--self.game:StartTimer(m:Name() .. ' ai')
 			m:Update()
+ 			--self.game:StopTimer(m:Name() .. ' ai')
 		end
 	end
 end
@@ -90,7 +94,9 @@ function ShardAI:GameMessage(text)
 		if m == nil then
 			self:Warn("nil module!")
 		else
+			--self.game:StartTimer(m:Name() .. ' M')
 			m:GameMessage(text)
+			--self.game:StopTimer(m:Name() .. ' M')
 		end
 	end
 end
@@ -108,7 +114,10 @@ function ShardAI:UnitCreated(engineunit)
 		return
 	end
 	for i,m in ipairs(self.modules) do
+		--self.game:StartTimer(m:Name() .. ' C')
 		m:UnitCreated(engineunit)
+		--self.game:StopTimer(m:Name() .. ' C')
+
 	end
 end
 
@@ -121,7 +130,9 @@ function ShardAI:UnitBuilt(engineunit)
 		return
 	end
 	for i,m in ipairs(self.modules) do
+		--self.game:StartTimer(m:Name() .. ' B')
 		m:UnitBuilt(engineunit)
+		--self.game:StopTimer(m:Name() .. ' B')
 	end
 end
 
@@ -133,7 +144,9 @@ function ShardAI:UnitDead(engineunit)
 		return
 	end
 	for i,m in ipairs(self.modules) do
+		--self.game:StartTimer(m:Name() .. ' D')
 		m:UnitDead(engineunit)
+		--self.game:StopTimer(m:Name() .. ' D')
 	end
 end
 
@@ -147,7 +160,9 @@ function ShardAI:UnitIdle(engineunit)
 	end
 
 	for i,m in ipairs(self.modules) do
+		--self.game:StartTimer(m:Name() .. ' I')
 		m:UnitIdle(engineunit)
+		--self.game:StopTimer(m:Name() .. ' I')
 	end
 end
 
@@ -160,7 +175,9 @@ function ShardAI:UnitDamaged(engineunit,engineattacker,enginedamage)
 	end
 	-- self.game:SendToConsole("UnitDamage for " .. enginedamage:Damage())
 	for i,m in ipairs(self.modules) do
+		--self.game:StartTimer(m:Name() .. ' G')
 		m:UnitDamaged(engineunit,engineattacker,enginedamage)
+		--self.game:StopTimer(m:Name() .. ' G')
 	end
 end
 
@@ -172,7 +189,9 @@ function ShardAI:UnitMoveFailed(engineunit)
 		return
 	end
 	for i,m in ipairs(self.modules) do
+		--self.game:StartTimer(m:Name() .. ' F')
 		m:UnitMoveFailed(engineunit)
+		--self.game:StopTimer(m:Name() .. ' F')
 	end
 end
 

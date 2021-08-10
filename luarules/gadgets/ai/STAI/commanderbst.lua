@@ -17,7 +17,6 @@ local CMD_PATROL = 15
 
 function CommanderBST:Update()
 	local f = self.game:Frame()
-
 	if self.lowHealth and f >= self.nextHealthCheck then
 		if self.unit:Internal():GetHealth() >= self.unit:Internal():GetMaxHealth() * 0.75 then
 			self.lowHealth = false
@@ -56,7 +55,8 @@ function CommanderBST:Activate()
 	end
 
 	if self.factoryToHelp then
-		self:HelpFactory()
+-- 		self:HelpFactory()
+		self:HelpEconomist()
 	elseif self.safeHouse then
 		self:MoveToSafety()
 	end
@@ -72,6 +72,7 @@ function CommanderBST:Priority()
 
 	local _, queueL = Spring.GetRealBuildQueue(self.id)
 	self:EchoDebug('Spring.GetRealBuildQueue(self.id)',Spring.GetRealBuildQueue(self.id),'queueL',queueL)
+
 	if (self.ai.Metal.income > 15 and self.ai.Energy.full > 0.5 and queueL == 0) or
 			self.ai.haveAdvFactory or
 			((self.lowHealth or self.ai.overviewhst.paranoidCommander) and self.safeHouse) then
@@ -106,6 +107,19 @@ function CommanderBST:HelpFactory()
 	end
 end
 
+function CommanderBST:HelpEconomist()
+	local economists = self.ai.armyhst.buildersRole.eco
+	for i,v in pairs ( economists) do
+		for index,unitID in pairs(v) do
+			self.unit:Internal():Guard(unitID)
+			break
+		end
+	end
+
+end
+
+
+
 function CommanderBST:FindSafeHouse()
 	local factoryPos, factoryUnit
 	local safePos = self.ai.turtlehst:MostTurtled(self.unit:Internal(), nil, false, true, true)
@@ -120,12 +134,14 @@ function CommanderBST:FindSafeHouse()
 	if self.active and factoryUnit and factoryUnit ~= self.factoryToHelp then
 		helpNew = true
 	end
+	local safeNew = false
 	if self.active and safePos and safePos ~= self.safeHouse then
 		safeNew = true
 	end
 	self.factoryToHelp = factoryUnit
 	if helpNew then
-		self:HelpFactory()
+-- 		self:HelpFactory()
+		self:HelpEconomist()
 	elseif not factoryUnit and safeNew then
 		self:MoveToSafety()
 	end

@@ -60,6 +60,7 @@ function WardBST:Update()
 		if f % 30 == 0 then
 			-- run away preemptively from positions within range of enemy weapons, and notify defenders that the unit is in danger
 			local unit = self.unit:Internal()
+			local position
 			if not self.mobile then
 				position = self.initialLocation
 			else
@@ -163,7 +164,8 @@ function WardBST:OwnerDamaged(attacker,damage)
 		if self.unit:Internal():GetHealth() < self.unit:Internal():GetMaxHealth() * 0.8 then
 			self.underFire = true
 			self.lastAttackedFrame = self.game:Frame()
-			if not self.mobile then self.ai.defendhst:Danger(self) end
+			self.ai.defendhst:Danger(self)--TEST
+			--if not self.mobile then self.ai.defendhst:Danger(self) end--TEST
 			self.unit:ElectBehaviour()
 		end
 	end
