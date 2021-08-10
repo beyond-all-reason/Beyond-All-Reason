@@ -218,7 +218,7 @@ else
 	function destroyUnits(_, line, words, playerID)
 		processUnits(_, line, words, playerID, 'destroyunits')
 	end
-	function wreckUnitsc(_, line, words, playerID)
+	function wreckUnits(_, line, words, playerID)
 		processUnits(_, line, words, playerID, 'wreckunits')
 	end
 	function reclaimUnits(_, line, words, playerID)
