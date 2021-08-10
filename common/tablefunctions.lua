@@ -1,23 +1,23 @@
 --deep not safe with circular tables! defaults To false
-local function copyTable(tableToCopy, deep, appendTo)
-  local copy = appendTo or {}
-  for key, value in pairs(tableToCopy) do
-    if (deep and type(value) == "table") then
-      copy[key] = copyTable(value, true)
-    else
-      copy[key] = value
-    end
-  end
-  return copy
+function table:copy(deep)
+	local copy = {}
+	for key, value in pairs(self) do
+		if (deep and type(value) == "table") then
+			copy[key] = table.copy(value, true)
+		else
+			copy[key] = value
+		end
+	end
+	return copy
 end
 
 local function mergeTable(primary, secondary, deep)
-	local new = copyTable(primary, deep)
+	local new = table.copy(primary, deep)
 	for i, v in pairs(secondary) do
 		-- key not used in primary, assign it the value at same key in secondary
 		if not new[i] then
 			if (deep and type(v) == "table") then
-			    new[i] = copyTable(v, true)
+				new[i] = table.copy(v, true)
 			else
 				new[i] = v
 			end
@@ -35,7 +35,7 @@ local function overwriteTableInplace(primary, secondary, deep)
 			overwriteTableInplace(primary[i], v, deep)
 		else
 			if (deep and type(v) == "table") then
-				primary[i] = copyTable(v, true)
+				primary[i] = table.copy(v, true)
 			else
 				primary[i] = v
 			end
@@ -44,11 +44,11 @@ local function overwriteTableInplace(primary, secondary, deep)
 end
 
 local function mergeWithDefault(default, override)
-	local new = copyTable(default, true)
+	local new = table.copy(default, true)
 	for key, v in pairs(override) do
 		-- key not used in default, assign it the value at same key in override
 		if not new[key] and type(v) == "table" then
-			new[key] = copyTable(v, true)
+			new[key] = table.copy(v, true)
 		-- values at key in both default and override are tables, merge those
 		elseif type(new[key]) == "table" and type(v) == "table"  then
 			new[key] = mergeWithDefault(new[key], v)
@@ -109,7 +109,6 @@ local function makeRealTable(proxy, debugTag)
 end
 
 return {
-	CopyTable = copyTable,
 	MergeTable = mergeTable,
 	OverwriteTableInplace = overwriteTableInplace,
 	MergeWithDefault = mergeWithDefault,
