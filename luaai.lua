@@ -30,7 +30,8 @@ return {
   },
   {
     name = 'STAI',
-    desc = 'shard testing, unstable. please report any bug @pandaro on discord'
+    desc = 'Medium AI. Contribute or report any bug to: @pandaro',
+	version = '0.43 experimental',
   },
   {
     name = 'Shard',
