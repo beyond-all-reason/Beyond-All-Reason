@@ -105,8 +105,12 @@ if gadgetHandler:IsSyncedCode() then
 		end
 		if words[1] == "givecat" then
 			GiveCat(words)
-		elseif words[1] == "destroyselunits" then
-			DestroySelUnits(words, playerID)
+		elseif words[1] == "destroyunits" then
+			ExecuteSelUnits(words, playerID)
+		elseif words[1] == "removeunits" then
+			ExecuteSelUnits(words, playerID, true)
+		elseif words[1] == "wreckunits" then
+			ExecuteSelUnits(words, playerID, false, true)
 		elseif words[1] == "spawnceg" then
 			spawnceg(words)
 		end
@@ -146,16 +150,29 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	function DestroySelUnits(words, playerID)
-
+	function ExecuteSelUnits(words, playerID, remove, wreck)
 		if #words < 2 then
 			return
 		end
-
 		for n = 2, #words do
 			local unitID = tonumber(words[n])
 			local h, mh = Spring.GetUnitHealth(unitID)
-			Spring.DestroyUnit(unitID)
+			if remove then
+				Spring.DestroyUnit(unitID, false, true, Spring.GetGaiaTeamID())
+			else
+				if not wreck then
+					Spring.DestroyUnit(unitID)
+				else
+					local unitDefID = Spring.GetUnitDefID(unitID)
+					local x, y, z = Spring.GetUnitPosition(unitID)
+					local heading = Spring.GetUnitHeading(unitID)
+					local unitTeam = Spring.GetUnitTeam(unitID)
+					Spring.DestroyUnit(unitID, false, true, Spring.GetGaiaTeamID())
+					if UnitDefs[unitDefID].wreckName and FeatureDefNames[UnitDefs[unitDefID].wreckName] then
+						Spring.CreateFeature(FeatureDefNames[UnitDefs[unitDefID].wreckName].id, x, y, z, heading, unitTeam)
+					end
+				end
+			end
 		end
 	end
 
@@ -164,7 +181,8 @@ if gadgetHandler:IsSyncedCode() then
 		Spring.SpawnCEG(words[2], --cegname
 			tonumber(words[3]), tonumber(words[4]), tonumber(words[5]), --pos
 			0, 0, 0, --dir
-			0) --radius
+			0 --radius
+		)
 	end
 
 
@@ -176,23 +194,52 @@ else
 
 	function gadget:Initialize()
 		gadgetHandler:AddChatAction('givecat', GiveCat, "")   -- doing it via GotChatMsg ensures it will only listen to the caller
-		gadgetHandler:AddChatAction('destroyselunits', MakeWreck, "")  -- doing it via GotChatMsg ensures it will only listen to the caller
+		gadgetHandler:AddChatAction('destroyunits', DestroyUnits, "")  -- doing it via GotChatMsg ensures it will only listen to the caller
+		gadgetHandler:AddChatAction('wreckunits', WreckUnits, "")  -- doing it via GotChatMsg ensures it will only listen to the caller
+		gadgetHandler:AddChatAction('removeunits', RemoveUnits, "")  -- doing it via GotChatMsg ensures it will only listen to the caller
 		gadgetHandler:AddChatAction('spawnceg', spawnceg, "")
 	end
 
 	function gadget:Shutdown()
 		gadgetHandler:RemoveChatAction('givecat')
-		gadgetHandler:RemoveChatAction('destroyselunits')
+		gadgetHandler:RemoveChatAction('destroyunits')
+		gadgetHandler:RemoveChatAction('removeunits')
 		gadgetHandler:RemoveChatAction('spawnceg')
 	end
 
-	function MakeWreck (_, line, words, playerID)
+	function RemoveUnits (_, line, words, playerID)
 		if not isAuthorized(Spring.GetMyPlayerID()) then
 			return
 		end
 
 		local selUnits = Spring.GetSelectedUnits()
-		local msg = "destroyselunits"
+		local msg = "removeunits"
+		for _, unitID in ipairs(selUnits) do
+			msg = msg .. " " .. tostring(unitID)
+		end
+		Spring.SendLuaRulesMsg(PACKET_HEADER .. ':' .. msg)
+	end
+
+	function WreckUnits (_, line, words, playerID)
+		if not isAuthorized(Spring.GetMyPlayerID()) then
+			return
+		end
+
+		local selUnits = Spring.GetSelectedUnits()
+		local msg = "wreckunits"
+		for _, unitID in ipairs(selUnits) do
+			msg = msg .. " " .. tostring(unitID)
+		end
+		Spring.SendLuaRulesMsg(PACKET_HEADER .. ':' .. msg)
+	end
+
+	function DestroyUnits (_, line, words, playerID)
+		if not isAuthorized(Spring.GetMyPlayerID()) then
+			return
+		end
+
+		local selUnits = Spring.GetSelectedUnits()
+		local msg = "destroyunits"
 		for _, unitID in ipairs(selUnits) do
 			msg = msg .. " " .. tostring(unitID)
 		end

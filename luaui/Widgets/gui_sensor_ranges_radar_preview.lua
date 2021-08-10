@@ -201,7 +201,7 @@ void main() {
 
 	if (length(worldPos.xz - radarcenter_range.xz) > radarcenter_range.w) fragColor.a = 0.0;
 
-	fragColor.a = fragColor.a * angle * 0.75;
+	fragColor.a = fragColor.a * angle * 0.85;
 	//#if USE_STIPPLE > 0
 	//	fragColor.a *= 2.0 * sin(worldscale_circumference + timeInfo.x*0.2) ; // PERFECT STIPPLING!
 	//#endif
