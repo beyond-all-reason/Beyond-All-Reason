@@ -1,14 +1,20 @@
-local teamSizeThreshold = 4
-local teamCount, playerCount
-local isSinglePlayer, is1v1, isTeams, isBigTeams, isSmallTeams, isChickens, isScavengers, isPvE, isCoop, isFFA, isSandbox = false, false, false, false, false, false, false, false, false, false, false
+local smallTeamThreshold = 4
+local initialized = false
+local settings = { }
 
-do
+local function getSettings()
+	if initialized then
+		return settings
+	end
+
+	local teamCount, playerCount = 0, 0
+	local isSinglePlayer, is1v1, isTeams, isBigTeams, isSmallTeams, isChickens, isScavengers, isPvE, isCoop, isFFA, isSandbox = false, false, false, false, false, false, false, false, false, false, false
+
 	local gaiaAllyTeamID = select(6, Spring.GetTeamInfo(Spring.GetGaiaTeamID(), false))
 	local allyTeamList = Spring.GetAllyTeamList()
 	local actualAllyTeamList = {}
 	local actualAllyTeamSizes = {}
 	local entirelyHumanAllyTeams = {}
-	playerCount = 0
 
 	for _, allyTeam in ipairs(allyTeamList) do
 		local teamList = Spring.GetTeamList(allyTeam) or {}
@@ -56,7 +62,7 @@ do
 			isTeams = true
 		end
 
-		isSmallTeams = isSmallTeams and teamSize <= teamSizeThreshold
+		isSmallTeams = isSmallTeams and teamSize <= smallTeamThreshold
 	end
 
 	isSinglePlayer = playerCount == 1
@@ -75,30 +81,42 @@ do
 	if #entirelyHumanAllyTeams == 1 and #Spring.GetTeamList(entirelyHumanAllyTeams[1]) > 1 then
 		isCoop = true
 	end
-end
 
-local function getTeamCount()
-	return teamCount
-end
+	initialized = true
 
-local function getPlayerCount()
-	return playerCount
+	settings = {
+		teamCount = teamCount,
+		playerCount = playerCount,
+		isSinglePlayer = isSinglePlayer,
+		is1v1 = is1v1,
+		isTeams = isTeams,
+		isBigTeams = isBigTeams,
+		isSmallTeams = isSmallTeams,
+		isChickens = isChickens,
+		isScavengers = isScavengers,
+		isPvE = isPvE,
+		isCoop = isCoop,
+		isFFA = isFFA,
+		isSandbox = isSandbox,
+	}
+
+	return settings
 end
 
 return {
-	GetTeamCount = getTeamCount,
-	GetPlayerCount = getPlayerCount,
+	GetTeamCount   = function () return getSettings().teamCount end,
+	GetPlayerCount = function () return getSettings().playerCount end,
 	Gametype = {
-		IsSinglePlayer = function () return isSinglePlayer end,
-		Is1v1          = function () return is1v1          end,
-		IsTeams        = function () return isTeams        end,
-		IsBigTeams     = function () return isBigTeams     end,
-		IsSmallTeams   = function () return isSmallTeams   end,
-		IsChickens     = function () return isChickens     end,
-		IsScavengers   = function () return isScavengers   end,
-		IsPvE          = function () return isPvE          end,
-		IsCoop         = function () return isCoop         end,
-		IsFFA          = function () return isFFA          end,
-		IsSandbox      = function () return isSandbox      end,
+		IsSinglePlayer = function () return getSettings().isSinglePlayer end,
+		Is1v1          = function () return getSettings().is1v1          end,
+		IsTeams        = function () return getSettings().isTeams        end,
+		IsBigTeams     = function () return getSettings().isBigTeams     end,
+		IsSmallTeams   = function () return getSettings().isSmallTeams   end,
+		IsChickens     = function () return getSettings().isChickens     end,
+		IsScavengers   = function () return getSettings().isScavengers   end,
+		IsPvE          = function () return getSettings().isPvE          end,
+		IsCoop         = function () return getSettings().isCoop         end,
+		IsFFA          = function () return getSettings().isFFA          end,
+		IsSandbox      = function () return getSettings().isSandbox      end,
 	},
 }
