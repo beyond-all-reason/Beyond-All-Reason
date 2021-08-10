@@ -49,11 +49,11 @@ function Unit:Update()
 
 	-- Pass the update event to the behaviours
 	for k,behaviour in pairs(self.behaviours) do
-		--self.game:StartTimer(behaviour:Name() .. ' U')
+		--self.game:StartTimer(behaviour:Name() .. ' Unit')
 		behaviour:Update()
-		--self.game:StopTimer(behaviour:Name() .. ' U')
+		--self.game:StopTimer(behaviour:Name() .. ' Unit')
 	end
-	self.game:DrawDisplay(true)
+	--self.game:DrawDisplay(true)
 end
 
 function Unit:GameEnd()

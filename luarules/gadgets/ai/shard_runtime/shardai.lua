@@ -13,12 +13,14 @@ function ShardAI:Init()
 		self:Warn( self:Name() .. " Init called multiple times" )
 		return
 	end
+
 	self.loaded = true
 	self.game = self.api.game
 	self.map = self.api.map
 	self.game.ai = self
 	self.map.ai = self
 	self.data = {}
+	--self.game:DrawDisplay(true)
 	self:Info(
 		self.fullname .. " - playing: " .. self.game:GameName() .. " on: " .. self.map:MapName()
 	)
@@ -77,9 +79,9 @@ function ShardAI:Update()
 		if m == nil then
 			self:Warn("nil module!")
 		else
- 			--self.game:StartTimer(m:Name() .. ' U')
+ 			--self.game:StartTimer(m:Name() .. ' ai')
 			m:Update()
- 			--self.game:StopTimer(m:Name() .. ' U')
+ 			--self.game:StopTimer(m:Name() .. ' ai')
 		end
 	end
 end
