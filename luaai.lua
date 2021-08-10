@@ -34,6 +34,10 @@ return {
 	version = '0.43 experimental',
   },
   {
+    name = 'ControlModeAI',
+    desc = 'AI designed for Control Points gamemode, stays idle if control mode is disabled',
+  },
+  {
     name = 'Shard',
     desc = 'Shard - Basic Shard AI'
   },
