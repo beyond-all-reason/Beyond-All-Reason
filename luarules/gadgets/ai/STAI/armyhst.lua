@@ -396,9 +396,9 @@ function ArmyHST:Init()
 
 	self._fus_ = {
 		armfus = 'armafus' ,--will become afus in taskqueuebst:specialfilter()
-		armuwfus = true ,
+		armuwfus = 'armuwfus' , --no advuwfus
 		corfus = 'corafus' ,--will become afus in taskqueuebst:specialfilter()
-		coruwfus = true ,
+		coruwfus = 'coruwfus' ,--no advuwfus
 -- 		armckfus = true , --clackable, better to think about it later
 
 -- 		armafus = true ,

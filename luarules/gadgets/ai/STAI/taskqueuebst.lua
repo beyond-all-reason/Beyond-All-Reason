@@ -478,7 +478,8 @@ function TaskQueueBST:findPlace(utype, value,cat)
 
 
 	elseif cat == '_popup1_' then
-		POS = site:searchPosNearCategories(utype, builder, 50, nil,{'_mex_'},{'_llt_','_popup2_','_popup1_'})
+ 		POS = site:searchPosNearCategories(utype, builder, 50, nil,{'_mex_'},{'_llt_','_popup2_','_popup1_'})
+-- 		POS = site:buildOnCircle(self.ai.buildsitehst:ClosestHighestLevelFactory(builderPos),500,8,value)
 	elseif cat == '_specialt_' then
 		POS = site:searchPosNearCategories(utype, builder,100,nil,{'factoryMobilities'},{'_specialt_'})
 	elseif cat == '_heavyt_' then

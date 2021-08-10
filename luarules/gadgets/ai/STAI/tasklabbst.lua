@@ -258,8 +258,8 @@ function TaskLabBST:preFilter()
 	local spec = self.ai.armyhst.unitTable[self.name]
 	local techLv = spec.techLevel
 	local topLevel = self.ai.maxFactoryLevel
--- 	local threshold = 1 - (techLv / self.ai.maxFactoryLevel)
-	local threshold = techLv / 20 --TODO this is a shit
+ 	local threshold = 1 - (techLv / self.ai.maxFactoryLevel)+0.05
+-- 	local threshold = (0.4-(techLv / 10))+0.05 --TODO this is a shit
 	self:EchoDebug('prefilter threshold', threshold)
 	if self.ai.Energy.full > 0.05 and self.ai.Metal.full > threshold then
 		return true

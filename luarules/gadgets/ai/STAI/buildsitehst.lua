@@ -124,23 +124,23 @@ function BuildSiteHST:GetBuildSpacing(unitTypeToBuild)
 	local un = unitTypeToBuild:Name()
 	if army.factoryMobilities[un] then
 		--self:EchoDebug()
-		spacing = 100
+		spacing = 150
 	elseif army._mex_[un] then
 		spacing = 50
-	elseif army._nano_[un] then
-		spacing = 2
- 	elseif army._wind_[un] then
- 		spacing = 5
- 	elseif army._tide_[un] then
- 		spacing = 5
- 	elseif army._solar_[un] then
- 		spacing = 5
- 	elseif army._estor_[un] then
- 		spacing = 5
- 	elseif army._mstor_[un] then
- 		spacing = 5
- 	elseif army._convs_[un] then
-		spacing = 5
+-- 	elseif army._nano_[un] then
+-- 		spacing = 0
+--  	elseif army._wind_[un] then
+--  		spacing = 80
+--  	elseif army._tide_[un] then
+--  		spacing = 80
+--  	elseif army._solar_[un] then
+--  		spacing = 80
+--  	elseif army._estor_[un] then
+--  		spacing = 80
+--  	elseif army._mstor_[un] then
+--  		spacing = 80
+--  	elseif army._convs_[un] then
+-- 		spacing = 80
 -- 	elseif army._llt_[un] then
 -- 		spacing = 50
 -- 		--self:EchoDebug()
@@ -286,7 +286,7 @@ function BuildSiteHST:ClosestBuildSpot(builder, position, unitTypeToBuild, minim
 	self:EchoDebug("looking for build spot for " .. builder:Name() .. " to build " .. unitTypeToBuild:Name())
 
 	maximumDistance = maximumDistance or 390
-	minimumDistance = minimumDistance or 25
+	minimumDistance = minimumDistance or 1
 	buildDistance = buildDistance or 100
 	-- return self:ClosestBuildSpotInSpiral(builder, unitTypeToBuild, position)
 	local function validFunction(pos)
@@ -311,7 +311,9 @@ function BuildSiteHST:CheckBuildPos(pos, unitTypeToBuild, builder, originalPosit
 	for idx, unitID in pairs (neighbours) do
 		local unitName = self.game:GetUnitByID(unitID):Name()
 		local mobile = self.ai.armyhst.unitTable[unitName].speed > 0
-		if not mobile  and unitTypeToBuild:Name() ~= unitName then return nil end
+		if not mobile  and unitTypeToBuild:Name() ~= unitName then
+			return nil
+		end
 	end
 	local s = self.ai.map:CanBuildHere(unitTypeToBuild, pos)
 	if not s then
@@ -462,6 +464,23 @@ function BuildSiteHST:BuildNearLastNano(builder, utype)
 	end
 	return p
 end
+
+function BuildSiteHST:buildOnCircle(center,uname)
+	local posx
+	local posz
+	for i=1,8 do
+		local x = radius *  math.cos(math.ceil((360/8)*i))
+		local z = radius *  math.sin(math.ceil((360/8)*i))
+		posx=posx+x
+		posz=posz+z
+		local posy = Spring.getGroundHeight(posx,posz)
+		local neighbours = self:unitsNearCheck({x=posx,y=posy,z=posz},500,1,uname)
+		if not neighbours then return {x=posx,y=posy,z=posz} end
+	end
+end
+
+
+
 
 function BuildSiteHST:unitsNearCheck(pos,range,number,targets)
 	number = number or 1

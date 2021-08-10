@@ -98,7 +98,7 @@ function RaiderBST:Update()
 	if self.active and f % 83 == 0 then
 		if self.path  then
 			self.lastPathCheckFrame = f
-			--self:CheckPath()
+			self:CheckPath()
 		end
 		if self.moveNextUpdate then
  			self.unit:Internal():Move(self.moveNextUpdate)
