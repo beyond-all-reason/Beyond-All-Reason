@@ -279,7 +279,7 @@ return {
 				cegtag = "dgunprojectile",
 				commandfire = true,
 				craterboost = 0,
-				cratermult = 0.6,
+				cratermult = 0.15,
 				edgeeffectiveness = 0.15,
 				energypershot = 500,
 				explosiongenerator = "custom:expldgun",
