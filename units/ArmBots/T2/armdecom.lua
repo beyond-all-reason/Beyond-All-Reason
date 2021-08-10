@@ -34,7 +34,7 @@ return {
 		icontype = "armcommander",
 		idleautoheal = 5,
 		idletime = 1800,
-		mass = 5000,
+		mass = 4999,
 		maxdamage = 3000,
 		maxslope = 20,
 		maxvelocity = 1.25,
@@ -93,6 +93,7 @@ return {
 			explosiongenerators = {
 				[1] = "custom:com_sea_laser_bubbles",
 				[2] = "custom:barrelshot-medium",
+				[3] = "custom:footstepcom",
 			},
 			pieceexplosiongenerators = {
 				[1] = "deathceg2",
@@ -241,10 +242,10 @@ return {
 				weapontype = "DGun",
 				weaponvelocity = 300,
 				customparams = {
-					expl_light_heat_radius_mult = 2.8,
-					expl_light_heat_strength_mult = 0.66,
-					expl_light_mult = 0.35,
-					expl_light_radius_mult = 1.15,
+					expl_light_heat_radius = 12,
+					expl_light_opacity = 0.32,
+					expl_light_radius = 340,
+					expl_light_color = "1 0.83 0.53",
 				},
 				damage = {
 					default = 40,

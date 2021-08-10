@@ -90,11 +90,8 @@ local GetUnitIsBuilding = Spring.GetUnitIsBuilding
 local glColor = gl.Color
 local glTexture = gl.Texture
 local glTexRect = gl.TexRect
-local RectRound = Spring.FlowUI.Draw.RectRound
-local RectRoundProgress = Spring.FlowUI.Draw.RectRoundProgress
-local UiElement = Spring.FlowUI.Draw.Element
-local UiUnit = Spring.FlowUI.Draw.Unit
-local elementCorner = Spring.FlowUI.elementCorner
+
+local RectRound, RectRoundProgress, UiElement, UiUnit, elementCorner
 
 -------------------------------------------------------------------------------
 -- SOUNDS
@@ -146,8 +143,13 @@ end
 function widget:ViewResize()
 	vsx, vsy = Spring.GetViewGeometry()
 
-	bgpadding = Spring.FlowUI.elementPadding
-	elementCorner = Spring.FlowUI.elementCorner
+	bgpadding = WG.FlowUI.elementPadding
+	elementCorner = WG.FlowUI.elementCorner
+
+	RectRound = WG.FlowUI.Draw.RectRound
+	RectRoundProgress = WG.FlowUI.Draw.RectRoundProgress
+	UiElement = WG.FlowUI.Draw.Element
+	UiUnit = WG.FlowUI.Draw.Unit
 
 	font = WG['fonts'].getFont(fontFile, 1, 0.2, 1.3)
 
@@ -461,7 +463,7 @@ local function drawTexRect(rect, texture, color)
 	glTexture(false)
 end
 
-local function drawIcon(udid, rect, tex, color, zoom, isfactory)
+local function drawIcon(udid, rect, tex, color, zoom, isfactory, amount)
 	local radarIconSize = math.floor((rect[3]-rect[1])*0.4)
 	local radarIcon
 	local unitIconType = UnitDefs[udid].iconType
@@ -480,7 +482,9 @@ local function drawIcon(udid, rect, tex, color, zoom, isfactory)
 		nil, nil,
 		tex,
 		radarIcon,
-		groups[unitGroup[udid]]
+		groups[unitGroup[udid]],
+		nil,
+		amount
 	)
 end
 
@@ -518,7 +522,7 @@ local function drawButton(rect, unitDefID, options, isFac)	-- options = {pressed
 	local imgRect = { rect[1] + (hoverPadding*1), rect[2] - hoverPadding, rect[3] - (hoverPadding*1), rect[4] + hoverPadding }
 
 	local tex = ':lr128,128:unitpics/' .. UnitDefs[unitDefID].buildpicname
-	drawIcon(unitDefID, {imgRect[1], imgRect[4], imgRect[3], imgRect[2]}, tex, {1, 1, 1, iconAlpha}, zoom, (unitBuildOptions[unitDefID]~=nil))
+	drawIcon(unitDefID, {imgRect[1], imgRect[4], imgRect[3], imgRect[2]}, tex, {1, 1, 1, iconAlpha}, zoom, (unitBuildOptions[unitDefID]~=nil), options.amount or 0)
 
 	-- Progress
 	if (options.progress or -1) > -1 then
@@ -763,7 +767,7 @@ function widget:DrawScreen()
 		(buildoptionsArea ~= nil and isInRect(mx, my, { buildoptionsArea[1], buildoptionsArea[2], buildoptionsArea[3], buildoptionsArea[4] })) then
 		local fac_rec = rectWH(math_floor(facRect[1]), math_floor(facRect[2]), iconSizeX, iconSizeY)
 		buildoptionsArea = nil
-		
+
 		for i, facInfo in ipairs(facs) do
 			-- draw build list
 			if i == openedMenu + 1 then
@@ -856,7 +860,7 @@ function widget:DrawWorld()
 	-- Draw factories command lines
 	if openedMenu >= 0 then
 		local fac = facs[openedMenu + 1]
-		
+
 		if fac ~= nil then
 			DrawUnitCommands(fac.unitID)
 		end

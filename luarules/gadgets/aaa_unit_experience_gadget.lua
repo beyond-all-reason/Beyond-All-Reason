@@ -40,9 +40,9 @@ end
 for i = 1, #levelsTable do
 	local level = levelsTable[i]
 	if i == 1 then
-		Spring.Echo("Gadget XP Level table")
+		-- Spring.Echo("Gadget XP Level table")
 	end
-	Spring.Echo("Level " .. i .. ": " .. level .. " xp.")
+	-- Spring.Echo("Level " .. i .. ": " .. level .. " xp.")
 end
 
 -- cache

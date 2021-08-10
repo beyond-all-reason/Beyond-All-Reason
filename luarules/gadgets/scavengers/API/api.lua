@@ -55,6 +55,7 @@ scavAssistant = {}
 scavResurrector = {}
 scavFactory = {}
 scavCollector = {}
+scavCapturer = {}
 scavReclaimer = {}
 scavSpawnBeacon = {}
 scavStockpiler = {}
@@ -75,6 +76,7 @@ FinalBossKilled = false
 bosshealthmultiplier = 5--teamcount*spawnmultiplier
 ActiveReinforcementUnits = {}
 scavteamhasplayers = false
+BaseCleanupQueue = {}
 
 if Spring.GetModOptions() and Spring.GetModOptions().maxunits then
 	scavMaxUnits = tonumber(Spring.GetModOptions().maxunits)
@@ -88,6 +90,7 @@ TierSpawnChances = {
 	T2 = 0,
 	T3 = 0,
 	T4 = 0,
+	BPMult = 1,
 }
 
 -- check for solo play
@@ -100,12 +103,12 @@ end
 
 
 function teamsCheck()
-
 	bestTeamScore = 0
 	bestTeam = 0
 	if scavTechDifficulty == "adaptive" or globalScore == nil then
 		globalScore = 0
 	end
+	local previousGlobalScore = globalScore
 	nonFinalGlobalScore = 0
 	scoreTeamCount = 0
 	scorePerTeam = {}
@@ -125,7 +128,6 @@ function teamsCheck()
 				local resourceScoreE = ei*scavconfig.scoreConfig.scorePerEnergy
 				local unitScore = unitCount*scavconfig.scoreConfig.scorePerOwnedUnit
 				local finalScore = resourceScoreM + resourceScoreE + unitScore
-				
 				nonFinalGlobalScore = nonFinalGlobalScore + finalScore
 
 				scorePerTeam[teamID] = finalScore
@@ -155,6 +157,90 @@ function teamsCheck()
 	elseif scavTechDifficulty == "brutal" then
 		globalScore = math.ceil(globalScore + 10*scavconfig.difficulty.brutal*(Spring.GetGameSeconds()/60))
 	end
+	if globalScore < previousGlobalScore then
+		globalScore = previousGlobalScore
+	end
 	nonFinalGlobalScore = nil
 	scoreTeamCount = nil
+end
+
+function buffConstructorBuildSpeed(unitID)
+	local unitDefID = Spring.GetUnitDefID(unitID)
+	if UnitDefs[unitDefID].buildSpeed then
+		local a = UnitDefs[unitDefID].buildSpeed*TierSpawnChances.BPMult
+		--Spring.Echo(a)
+		Spring.SetUnitBuildSpeed(unitID, a, a, a, a, a, a)
+	end
+end 
+
+local spSetGameRulesParam = Spring.SetGameRulesParam
+scavStatsAvailable = 0
+scavStatsScavCommanders = 0
+scavStatsScavSpawners = 0
+scavStatsScavUnits = 0
+scavStatsScavUnitsKilled = 0
+scavStatsGlobalScore = 0
+scavStatsTechLevel = "Null"
+scavStatsTechPercentage = 0
+scavStatsDifficulty = "Null"
+spSetGameRulesParam("scavStatsAvailable", scavStatsAvailable)
+function collectScavStats()
+	if scavStatsAvailable == 0 then
+		scavStatsAvailable = 1
+		spSetGameRulesParam("scavStatsAvailable", scavStatsAvailable)
+	end
+	
+	-- scavStatsScavCommanders			done
+	spSetGameRulesParam("scavStatsScavCommanders", scavStatsScavCommanders)
+
+	-- scavStatsScavSpawners			done
+	spSetGameRulesParam("scavStatsScavSpawners", scavStatsScavSpawners)
+
+	-- scavStatsScavUnits				done
+	spSetGameRulesParam("scavStatsScavUnits", scavStatsScavUnits)
+
+	-- scavStatsScavUnitsKilled			done
+	spSetGameRulesParam("scavStatsScavUnitsKilled", scavStatsScavUnitsKilled)
+
+	-- scavStatsGlobalScore				done
+	local scavStatsGlobalScore = globalScore
+	spSetGameRulesParam("scavStatsGlobalScore", scavStatsGlobalScore)
+
+	-- scavStatsTechLevel				done
+	local scavStatsTechLevel = TierSpawnChances.Message
+	spSetGameRulesParam("scavStatsTechLevel", scavStatsTechLevel)
+
+	-- scavStatsTechPercentage 			done
+	local techPercentage = math.ceil((globalScore/scavconfig.timers.Endless)*100)
+	if techPercentage > 100 then
+		scavStatsTechPercentage = 100
+	else
+		scavStatsTechPercentage = techPercentage
+	end
+	spSetGameRulesParam("scavStatsTechPercentage", scavStatsTechPercentage)
+
+
+	-- done
+	if BossWaveTimeLeft then
+		spSetGameRulesParam("scavStatsBossFightCountdownStarted", 1)
+		spSetGameRulesParam("scavStatsBossFightCountdown", BossWaveTimeLeft)
+	else
+		spSetGameRulesParam("scavStatsBossFightCountdownStarted", 0)
+		spSetGameRulesParam("scavStatsBossFightCountdown", 0)
+	end
+	
+	-- done
+	if FinalBossUnitID then
+		local scavStatsBossMaxHealth = unitSpawnerModuleConfig.FinalBossHealth*teamcount*spawnmultiplier
+		local scavStatsBossHealth = Spring.GetUnitHealth(FinalBossUnitID)
+		spSetGameRulesParam("scavStatsBossSpawned", 1)
+		spSetGameRulesParam("scavStatsBossMaxHealth", scavStatsBossMaxHealth)
+		spSetGameRulesParam("scavStatsBossHealth", scavStatsBossHealth)
+	else
+		spSetGameRulesParam("scavStatsBossSpawned", 0)
+		spSetGameRulesParam("scavStatsBossMaxHealth", 0)
+		spSetGameRulesParam("scavStatsBossHealth", 0)
+	end
+	
+	spSetGameRulesParam("scavStatsDifficulty", scavStatsDifficulty)
 end

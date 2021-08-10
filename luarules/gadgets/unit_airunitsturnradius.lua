@@ -41,6 +41,7 @@ for udid, ud in pairs(UnitDefs) do
 	end
 	unitTurnRadius[udid] = ud.turnRadius
 end
+isBomb = nil
 
 function gadget:Initialize()
 	for ct, unitID in pairs(Spring.GetAllUnits()) do
@@ -95,14 +96,22 @@ end
 function gadget:GameFrame(n)
 	if n % 6 == 1 then
 		for unitID, unitDefID in pairs(Bombers) do
-			processNextCmd(unitID, unitDefID, spGetUnitCurrentCommand(unitID))
+			if spGetUnitMoveTypeData(unitID).aircraftState == "crashing" then
+				Bombers[unitID] = nil
+			else
+				processNextCmd(unitID, unitDefID, spGetUnitCurrentCommand(unitID))
+			end
 		end
 	end
 end
 
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
-	if Bombers[unitID] and not spGetUnitMoveTypeData(unitID).aircraftState == "crashing" then
-		processNextCmd(unitID, unitDefID, cmdID)
+	if Bombers[unitID] then
+		if spGetUnitMoveTypeData(unitID).aircraftState == "crashing" then
+			Bombers[unitID] = nil
+		else
+			processNextCmd(unitID, unitDefID, cmdID)
+		end
 	end
 	return true
 end

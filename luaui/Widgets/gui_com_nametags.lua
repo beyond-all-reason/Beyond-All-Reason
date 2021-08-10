@@ -78,6 +78,14 @@ local diag = math.diag
 local comms = {}
 local comnameList = {}
 local comnameIconList = {}
+local teamColorKeys = {}
+local teams = Spring.GetTeamList()
+for i = 1, #teams do
+	local r, g, b, a = GetTeamColor(teams[i])
+	teamColorKeys[teams[i]] = r..'_'..g..'_'..b
+end
+teams = nil
+
 local drawScreenUnits = {}
 local CheckedForSpec = false
 local myTeamID = Spring.GetMyTeamID()
@@ -127,7 +135,7 @@ local function GetCommAttributes(unitID, unitDefID)
 
 	local r, g, b, a = GetTeamColor(team)
 	local bgColor = { 0, 0, 0, 1 }
-	if (r + g * 1.2 + b * 0.4) < 0.68 then
+	if (r + g * 1.2 + b * 0.4) < 0.65 then
 		-- try to keep these values the same as the playerlist
 		bgColor = { 1, 1, 1, 1 }
 	end
@@ -153,7 +161,7 @@ local function createComnameList(attributes)
 	end
 	comnameList[attributes[1]] = gl.CreateList(function()
 		local outlineColor = { 0, 0, 0, 1 }
-		if (attributes[2][1] + attributes[2][2] * 1.2 + attributes[2][3] * 0.4) < 0.68 then
+		if (attributes[2][1] + attributes[2][2] * 1.2 + attributes[2][3] * 0.4) < 0.65 then
 			-- try to keep these values the same as the playerlist
 			outlineColor = { 1, 1, 1, 1 }
 		end
@@ -179,6 +187,41 @@ local function createComnameList(attributes)
 		font:Print(attributes[1], 0, 0, fontSize, "con")
 		font:End()
 	end)
+end
+
+
+
+local function CheckCom(unitID, unitDefID, unitTeam)
+	if comDefs[unitDefID] and unitTeam ~= GaiaTeam then
+		comms[unitID] = GetCommAttributes(unitID, unitDefID)
+	end
+end
+
+local function CheckAllComs()
+
+	-- check if team colors have changed
+	local teams = Spring.GetTeamList()
+	local detectedChanges = false
+	for i = 1, #teams do
+		local r, g, b, a = GetTeamColor(teams[i])
+		if teamColorKeys[teams[i]] ~= r..'_'..g..'_'..b then
+			detectedChanges = true
+		end
+	end
+	if detectedChanges then
+		RemoveLists()
+	end
+
+	-- check commanders
+	local allUnits = GetAllUnits()
+	for i = 1, #allUnits do
+		local unitID = allUnits[i]
+		local unitDefID = GetUnitDefID(unitID)
+		local unitTeam = GetUnitTeam(unitID)
+		if comDefs[unitDefID] and unitTeam ~= GaiaTeam then
+			comms[unitID] = GetCommAttributes(unitID, unitDefID)
+		end
+	end
 end
 
 local sec = 0
@@ -263,7 +306,7 @@ local function createComnameIconList(unitID, attributes)
 		x, z = Spring.WorldToScreenCoords(x, y, z)
 
 		local outlineColor = { 0, 0, 0, 1 }
-		if (attributes[2][1] + attributes[2][2] * 1.2 + attributes[2][3] * 0.4) < 0.68 then
+		if (attributes[2][1] + attributes[2][2] * 1.2 + attributes[2][3] * 0.4) < 0.65 then
 			-- try to keep these values the same as the playerlist
 			outlineColor = { 1, 1, 1, 1 }
 		end
@@ -375,36 +418,14 @@ function widget:DrawWorld()
 	glDepthTest(false)
 end
 
---------------------------------------------------------------------------------
-
-
-
-function CheckCom(unitID, unitDefID, unitTeam)
-	if comDefs[unitDefID] and unitTeam ~= GaiaTeam then
-		comms[unitID] = GetCommAttributes(unitID, unitDefID)
-	end
-end
-
-function CheckAllComs()
-	local allUnits = GetAllUnits()
-	for i = 1, #allUnits do
-		local unitID = allUnits[i]
-		local unitDefID = GetUnitDefID(unitID)
-		local unitTeam = GetUnitTeam(unitID)
-		if comDefs[unitDefID] and unitTeam ~= GaiaTeam then
-			comms[unitID] = GetCommAttributes(unitID, unitDefID)
-		end
-	end
-end
-
 function widget:Initialize()
-	WG['nametags'] = {}
-	WG['nametags'].getDrawForIcon = function()
-		return drawForIcon
-	end
-	WG['nametags'].setDrawForIcon = function(value)
-		drawForIcon = value
-	end
+	--WG['nametags'] = {}
+	--WG['nametags'].getDrawForIcon = function()
+	--	return drawForIcon
+	--end
+	--WG['nametags'].setDrawForIcon = function(value)
+	--	drawForIcon = value
+	--end
 	CheckAllComs()
 end
 
@@ -460,7 +481,7 @@ end
 function widget:GetConfigData()
 	return {
 		nameScaling = nameScaling,
-		drawForIcon = drawForIcon
+		--drawForIcon = drawForIcon
 	}
 end
 
@@ -470,7 +491,7 @@ function widget:SetConfigData(data)
 	if data.nameScaling ~= nil then
 		nameScaling = data.nameScaling
 	end
-	if data.drawForIcon ~= nil then
-		drawForIcon = data.drawForIcon
-	end
+	--if data.drawForIcon ~= nil then
+	--	drawForIcon = data.drawForIcon
+	--end
 end

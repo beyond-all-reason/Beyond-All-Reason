@@ -10,10 +10,6 @@ function gadget:GetInfo()
 	}
 end
 
-if not gadgetHandler:IsSyncedCode() then
-	return
-end
-
 if Spring.GetModOptions() and tonumber(Spring.GetModOptions().fixedallies) and (tonumber(Spring.GetModOptions().fixedallies) ~= 0) then
 	return -- no use if alliances are disabled
 end
@@ -61,93 +57,122 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	unitArmorType[unitDefID] = unitDef.armorType
 end
 
-function getTeamLeaderName(teamID)
-	return GetPlayerInfo(select(2, GetTeamInfo(teamID, false)), false)
-end
+if gadgetHandler:IsSyncedCode() then
+	----------------------------------------------------------------
+	-- Synced
+	----------------------------------------------------------------
 
-local allyTeamList = GetAllyTeamList()
-function gadget:GameFrame(n)
-	if n % UPDATE_FRAMES ~= 0 then
-		return
-	end
-	for _, allyTeamAID in pairs(allyTeamList) do
-		for _, allyTeamBID in pairs(allyTeamList) do
-			if allyTeamAID ~= allyTeamBID then
-				for _, teamAID in pairs(GetTeamList(allyTeamAID)) do
-					for _, teamBID in pairs(GetTeamList(allyTeamBID)) do
-						allianceStatus[teamAID] = allianceStatus[teamAID] or {}
-						allianceStatus[teamBID] = allianceStatus[teamBID] or {}
-						local AalliedToB = AreTeamsAllied(teamBID, teamAID)
-						local BalliedToA = AreTeamsAllied(teamAID, teamBID)
-						--if teamB's cached value is allied back with A, and new teamB's allied status is not allied, means the enemy broke alliance with us
-						if allianceStatus[teamBID][teamAID] and not BalliedToA then
-							if AalliedToB then
-								--if we're allied, break our alliance back
-								SetAlly(teamBID, teamAID, false)
-								SendMessageToTeam(teamAID, "Team " .. teamBID .. " (" .. getTeamLeaderName(teamBID) .. ") has unallied with you, breaking dynamic alliance.")
-							else
-								SendMessageToTeam(teamAID, "Team " .. teamBID .. " (" .. getTeamLeaderName(teamBID) .. ") broke his alliance with you.")
+	local allyTeamList = GetAllyTeamList()
+	function gadget:GameFrame(n)
+		if n % UPDATE_FRAMES ~= 0 then
+			return
+		end
+		for _, allyTeamAID in pairs(allyTeamList) do
+			for _, allyTeamBID in pairs(allyTeamList) do
+				if allyTeamAID ~= allyTeamBID then
+					for _, teamAID in pairs(GetTeamList(allyTeamAID)) do
+						for _, teamBID in pairs(GetTeamList(allyTeamBID)) do
+							allianceStatus[teamAID] = allianceStatus[teamAID] or {}
+							allianceStatus[teamBID] = allianceStatus[teamBID] or {}
+							local AalliedToB = AreTeamsAllied(teamBID, teamAID)
+							local BalliedToA = AreTeamsAllied(teamAID, teamBID)
+							--if teamB's cached value is allied back with A, and new teamB's allied status is not allied, means the enemy broke alliance with us
+							if allianceStatus[teamBID][teamAID] and not BalliedToA then
+								if AalliedToB then
+									--if we're allied, break our alliance back
+									SetAlly(teamBID, teamAID, false)
+								end
+
+								SendToUnsynced("AllianceBroken", teamAID, teamBID)
 							end
+							--if teamB wasn't allied with teamA, and now it is, inform teamA about the change
+							if not allianceStatus[teamBID][teamAID] and BalliedToA then
+								SendToUnsynced("AllianceMade", teamAID, teamBID)
+							end
+							allianceStatus[teamAID][teamBID] = AalliedToB
 						end
-						--if teamB wasn't allied with teamA, and now it is, inform teamA about the change
-						if not allianceStatus[teamBID][teamAID] and BalliedToA then
-							SendMessageToTeam(teamAID, "Team " .. teamBID .. " (" .. getTeamLeaderName(teamBID) .. ") has allied with you.")
-						end
-						allianceStatus[teamAID][teamBID] = AalliedToB
 					end
 				end
 			end
 		end
 	end
-end
 
-function checkAndBreakAlliance(attackerTeam, targetTeam, attackerAllyTeam, targetAllyTeam)
-	if AreTeamsAllied(attackerTeam, targetTeam) and targetAllyTeam ~= attackerAllyTeam then
-		SetAlly(attackerTeam, targetTeam, false)
-		SendMessageToTeam(targetTeam, "Team " .. attackerTeam .. " (" .. getTeamLeaderName(attackerTeam) .. ") attempted to attack you, breaking dynamic alliance.")
-		return true
+	local function checkAndBreakAlliance(attackerTeam, targetTeam, attackerAllyTeam, targetAllyTeam)
+		if AreTeamsAllied(attackerTeam, targetTeam) and targetAllyTeam ~= attackerAllyTeam then
+			SetAlly(attackerTeam, targetTeam, false)
+			SendToUnsynced("Backstab", targetTeam, attackerTeam)
+			return true
+		end
 	end
-end
 
-function gadget:UnitCommand(unitID, unitDefID, attackerTeam, cmdID, cmdParams, cmdOpts, cmdTag, playerID, fromSynced, fromLua)
-	if #cmdParams == 1 and (cmdID == CMD_ATTACK or cmdID == CMD_LOOPBACKATTACK or cmdID == CMD_MANUALFIRE) then
-		local targetID = cmdParams[1]
-		if ValidUnitID(targetID) then
-			checkAndBreakAlliance(attackerTeam, GetUnitTeam(targetID), GetUnitAllyTeam(unitID), GetUnitAllyTeam(targetID))
-		end
-	elseif #cmdParams >= 3 and (cmdID == CMD_ATTACK or cmdID == CMD_LOOPBACKATTACK or cmdID == CMD_UNIT_SET_TARGET or cmdID == CMD_UNIT_SET_TARGET_RECTANGLE or cmdID == CMD_MANUALFIRE) then
-		local attackAOE = attackAOEs[unitDefID]
-		if not attackAOE then
-			return
-		end
-		local targetAllyTeamIDs = {}
-		local attackerAllyTeam = GetUnitAllyTeam(unitID)
-		local totalDamageSum = 0
-		local targetAllyTeamToTeam = {}
-		local units = GetUnitsInSphere(cmdParams[1], cmdParams[2], cmdParams[3], attackAOE)
-		for i = 1, #units do
-			local targetID = units[i]
-			local targetAllyTeam = GetUnitAllyTeam(targetID)
-			local targetDamage = min(GetUnitHealth(targetID), attackDamages[unitDefID][unitArmorType[GetUnitDefID(targetID)]])
-			totalDamageSum = totalDamageSum + targetDamage
-			targetAllyTeamIDs[targetAllyTeam] = (targetAllyTeamIDs[targetAllyTeam] or 0) + targetDamage
-		end
-		--if an allyteam receives more damage than the others, and it's allied to the attacker, de-ally
-		for targetAllyTeam, damage in pairs(targetAllyTeamIDs) do
-			damage = damage / totalDamageSum
-			if damage > 0.5 then
-				for _, targetTeam in pairs(GetTeamList(targetAllyTeam)) do
-					checkAndBreakAlliance(attackerTeam, targetTeam, attackerAllyTeam, targetAllyTeam)
+	function gadget:UnitCommand(unitID, unitDefID, attackerTeam, cmdID, cmdParams, cmdOpts, cmdTag, playerID, fromSynced, fromLua)
+		if #cmdParams == 1 and (cmdID == CMD_ATTACK or cmdID == CMD_LOOPBACKATTACK or cmdID == CMD_MANUALFIRE) then
+			local targetID = cmdParams[1]
+			if ValidUnitID(targetID) then
+				checkAndBreakAlliance(attackerTeam, GetUnitTeam(targetID), GetUnitAllyTeam(unitID), GetUnitAllyTeam(targetID))
+			end
+		elseif #cmdParams >= 3 and (cmdID == CMD_ATTACK or cmdID == CMD_LOOPBACKATTACK or cmdID == CMD_UNIT_SET_TARGET or cmdID == CMD_UNIT_SET_TARGET_RECTANGLE or cmdID == CMD_MANUALFIRE) then
+			local attackAOE = attackAOEs[unitDefID]
+			if not attackAOE then
+				return
+			end
+			local targetAllyTeamIDs = {}
+			local attackerAllyTeam = GetUnitAllyTeam(unitID)
+			local totalDamageSum = 0
+			local units = GetUnitsInSphere(cmdParams[1], cmdParams[2], cmdParams[3], attackAOE)
+			for i = 1, #units do
+				local targetID = units[i]
+				local targetAllyTeam = GetUnitAllyTeam(targetID)
+				local targetDamage = min(GetUnitHealth(targetID), attackDamages[unitDefID][unitArmorType[GetUnitDefID(targetID)]])
+				totalDamageSum = totalDamageSum + targetDamage
+				targetAllyTeamIDs[targetAllyTeam] = (targetAllyTeamIDs[targetAllyTeam] or 0) + targetDamage
+			end
+			--if an allyteam receives more damage than the others, and it's allied to the attacker, de-ally
+			for targetAllyTeam, damage in pairs(targetAllyTeamIDs) do
+				damage = damage / totalDamageSum
+				if damage > 0.5 then
+					for _, targetTeam in pairs(GetTeamList(targetAllyTeam)) do
+						checkAndBreakAlliance(attackerTeam, targetTeam, attackerAllyTeam, targetAllyTeam)
+					end
+					break
 				end
-				break
+			end
+		elseif #cmdParams == 4 and (cmdID == CMD_ATTACK or cmdID == CMD_LOOPBACKATTACK) then
+			local attackerAllyTeam = GetUnitAllyTeam(unitID)
+			local units = GetUnitsInCylinder(cmdParams[1], cmdParams[3], cmdParams[4])
+			for i = 1, #units do
+				local targetID = units[i]
+				checkAndBreakAlliance(attackerTeam, GetUnitTeam(targetID), attackerAllyTeam, GetUnitAllyTeam(targetID))
 			end
 		end
-	elseif #cmdParams == 4 and (cmdID == CMD_ATTACK or cmdID == CMD_LOOPBACKATTACK) then
-		local attackerAllyTeam = GetUnitAllyTeam(unitID)
-		local units = GetUnitsInCylinder(cmdParams[1], cmdParams[3], cmdParams[4])
-		for i = 1, #units do
-			local targetID = units[i]
-			checkAndBreakAlliance(attackerTeam, GetUnitTeam(targetID), attackerAllyTeam, GetUnitAllyTeam(targetID))
-		end
 	end
+
+else
+	----------------------------------------------------------------
+	-- Unsynced
+	----------------------------------------------------------------
+
+	-- Dynamic alliances are not supported for AI teams
+	local function getTeamLeaderName(teamID)
+		return GetPlayerInfo(select(2, GetTeamInfo(teamID, false)), false)
+	end
+
+	local function allianceMade(_, teamA, teamB)
+		SendMessageToTeam(teamA, Spring.I18N('ui.dynamicAlly.create', { player = getTeamLeaderName(teamB) }))
+	end
+
+	local function allianceBroken(_, teamA, teamB)
+		SendMessageToTeam(teamA, Spring.I18N('ui.dynamicAlly.destroy', { player = getTeamLeaderName(teamB) }))
+	end
+
+	local function backstab(_, victimTeam, traitorTeam)
+		SendMessageToTeam(victimTeam, Spring.I18N('ui.dynamicAlly.backstab', { player = getTeamLeaderName(traitorTeam) }))
+	end
+
+	function gadget:Initialize()
+		gadgetHandler:AddSyncAction("AllianceMade", allianceMade)
+		gadgetHandler:AddSyncAction("AllianceBroken", allianceBroken)
+		gadgetHandler:AddSyncAction("Backstab", backstab)
+	end
+
 end

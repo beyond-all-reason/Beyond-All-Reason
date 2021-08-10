@@ -126,31 +126,6 @@ local function pairsByKeys(t, f)
   return iter
 end
 
-local function justWords(str)
-  local words = {}
-  for word in str:gmatch("%w+") do table.insert(words, word) end
-  return words
-end
-
-local function split(pString, pPattern)
-   local Table = {}  -- NOTE: use {n = 0} in Lua-5.0
-   local fpat = "(.-)" .. pPattern
-   local last_end = 1
-   local s, e, cap = pString:find(fpat, 1)
-   while s do
-      if s ~= 1 or cap ~= "" then
-     table.insert(Table,cap)
-      end
-      last_end = e+1
-      s, e, cap = pString:find(fpat, last_end)
-   end
-   if last_end <= #pString then
-      cap = pString:sub(last_end)
-      table.insert(Table, cap)
-   end
-   return Table
-end
-
 local function trim(s)
   return s:match'^()%s*$' and '' or s:match'^%s*(.*%S)'
 end
@@ -1031,7 +1006,7 @@ end
 function widget:RecvSkirmishAIMessage(teamID, dataStr)
 	dataStr = trim(dataStr)
 	if dataStr:sub(1,9) == 'ShardDraw' then
-		local data = split(dataStr, '|')
+		local data = string.split(dataStr, '|')
 		local command = tRemove(data, 1)
 		-- Spring.Echo(command)
 		data = InterpretStringData(data, command)

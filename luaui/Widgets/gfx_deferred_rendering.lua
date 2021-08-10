@@ -192,8 +192,8 @@ void main(void)
 		if (model_extra4.a > 0.5) {
 			map_normals4 = model_normals4;
 			mappos4 = modelpos4;
-			model_lighting_multiplier = 1.5;
-			specularHighlight = specularHighlight + 2.0 * model_extra4.g;
+			model_lighting_multiplier = 1.85;
+			specularHighlight = specularHighlight + 2.5 * model_extra4.g;
 		}
 	}
 
@@ -429,7 +429,7 @@ local function DrawLightType(lights, lightsCount, lighttype)
 		local param = light.param
 		if verbose then
 			VerboseEcho('gfx_deferred_rendering.lua: Light being drawn:', i)
-			Spring.Utilities.TableEcho(light)
+			Spring.Debug.TableEcho(light)
 		end
 		if lighttype == 0 then
 			-- point

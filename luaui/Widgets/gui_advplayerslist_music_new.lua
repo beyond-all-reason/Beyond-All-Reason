@@ -30,6 +30,7 @@ local gameOver = false
 local playedGameOverTrack = false
 local endfadelevel = 999
 
+local faderMin = 45 -- range in dB for volume faders, from -faderMin to 0dB
 
 local playedTime, totalTime = Spring.GetSoundStreamTime()
 
@@ -44,17 +45,10 @@ local silenceTimer = math.random(minSilenceTime,maxSilenceTime)
 --- config
 local enableSilenceGaps = true
 local musicVolume = Spring.GetConfigInt("snd_volmusic", defaultMusicVolume)*0.01
----
 
 
-local RectRound = Spring.FlowUI.Draw.RectRound
-local UiElement = Spring.FlowUI.Draw.Element
-local UiButton = Spring.FlowUI.Draw.Button
-local UiSlider = Spring.FlowUI.Draw.Slider
-local UiSliderKnob = Spring.FlowUI.Draw.SliderKnob
-local bgpadding = Spring.FlowUI.elementPadding
 
-local elementCorner = Spring.FlowUI.elementCorner
+local RectRound, UiElement, UiButton, UiSlider, UiSliderKnob, bgpadding, elementCorner
 
 local maxMusicVolume = Spring.GetConfigInt("snd_volmusic", 20)	-- user value, cause actual volume will change during fadein/outc
 local volume = Spring.GetConfigInt("snd_volmaster", 100)
@@ -114,6 +108,33 @@ function isInBox(mx, my, box)
 	return mx > box[1] and my > box[2] and mx < box[3] and my < box[4]
 end
 
+local function getVolumeCoef(fader)
+	if fader <= 0 then
+		return 0
+	end
+	if fader >= 1 then
+		return 1
+	end
+
+	local db = faderMin * (fader - 1) -- interpolate between -faderMin and 0
+
+	return 10 ^ (db * 0.05) -- ranges between 0.005 and 1.0 in log scale
+end
+
+local faderMinDelta = getVolumeCoef(0.01) -- volume setting only allows discrete values in 0.02 steps
+local function getVolumePos(coef)
+	if coef < faderMinDelta then
+		return 0
+	end
+	if coef >= 1 then
+		return 1
+	end
+
+	local db = math.log10(coef) * 20
+
+	return (db/faderMin) + 1
+end
+
 local function createList()
 	local padding = math.floor(2.75*widgetScale) -- button background margin
 	local padding2 = math.floor(2.5*widgetScale) -- inner icon padding
@@ -123,11 +144,11 @@ local function createList()
 
 	buttons['musicvolumeicon'] = {buttons['playpause'][3]+padding+padding, bottom+padding+heightoffset, buttons['playpause'][3]+((widgetHeight*widgetScale)), top-padding+heightoffset}
 	buttons['musicvolume'] = {buttons['musicvolumeicon'][3]+padding, bottom+padding+heightoffset, buttons['musicvolumeicon'][3]+padding+volumeWidth, top-padding+heightoffset}
-	buttons['musicvolume'][5] = buttons['musicvolume'][1] + (buttons['musicvolume'][3] - buttons['musicvolume'][1]) * (maxMusicVolume/100)
+	buttons['musicvolume'][5] = buttons['musicvolume'][1] + (buttons['musicvolume'][3] - buttons['musicvolume'][1]) * (getVolumePos(maxMusicVolume/100))
 
 	buttons['volumeicon'] = {buttons['musicvolume'][3]+padding+padding+padding, bottom+padding+heightoffset, buttons['musicvolume'][3]+((widgetHeight*widgetScale)), top-padding+heightoffset}
 	buttons['volume'] = {buttons['volumeicon'][3]+padding, bottom+padding+heightoffset, buttons['volumeicon'][3]+padding+volumeWidth, top-padding+heightoffset}
-	buttons['volume'][5] = buttons['volume'][1] + (buttons['volume'][3] - buttons['volume'][1]) * (volume/200)
+	buttons['volume'][5] = buttons['volume'][1] + (buttons['volume'][3] - buttons['volume'][1]) * (getVolumePos(volume/200))
 
 	local textsize = 11*widgetScale
 	local textYPadding = 8*widgetScale
@@ -324,16 +345,21 @@ function widget:ViewResize(newX,newY)
 
 	font = WG['fonts'].getFont()
 
-	bgpadding = Spring.FlowUI.elementPadding
-	elementCorner = Spring.FlowUI.elementCorner
+	bgpadding = WG.FlowUI.elementPadding
+	elementCorner = WG.FlowUI.elementCorner
+
+	RectRound = WG.FlowUI.Draw.RectRound
+	UiElement = WG.FlowUI.Draw.Element
+	UiButton = WG.FlowUI.Draw.Button
+	UiSlider = WG.FlowUI.Draw.Slider
+	UiSliderKnob = WG.FlowUI.Draw.SliderKnob
 
 	if prevVsy ~= vsx or prevVsy ~= vsy then
 		createList()
 	end
 end
 
-
-function getSliderValue(button, x)
+local function getSliderValue(button, x)
 	local sliderWidth = buttons[button][3] - buttons[button][1]
 	local value = (x - buttons[button][1]) / (sliderWidth)
 	if value < 0 then value = 0 end
@@ -344,12 +370,12 @@ end
 function widget:MouseMove(x, y)
 	if draggingSlider ~= nil then
 		if draggingSlider == 'musicvolume' then
-			maxMusicVolume = math.floor(getSliderValue(draggingSlider, x) * 100)
-			Spring.SetConfigInt("snd_volmusic", math.floor(maxMusicVolume))
+			maxMusicVolume = math.floor(getVolumeCoef(getSliderValue(draggingSlider, x)) * 100)
+			Spring.SetConfigInt("snd_volmusic", maxMusicVolume)
 			createList()
 		end
 		if draggingSlider == 'volume' then
-			volume = math.floor(getSliderValue(draggingSlider, x) * 200)
+			volume = math.floor(getVolumeCoef(getSliderValue(draggingSlider, x)) * 200)
 			Spring.SetConfigInt("snd_volmaster", volume)
 			createList()
 		end
@@ -372,14 +398,14 @@ function mouseEvent(x, y, button, release)
 			local button = 'musicvolume'
 			if isInBox(x, y, {buttons[button][1]-sliderWidth, buttons[button][2], buttons[button][3]+sliderWidth, buttons[button][4]}) then
 				draggingSlider = button
-				maxMusicVolume = math.floor(getSliderValue(button, x) * 100)
-				Spring.SetConfigInt("snd_volmusic", math.floor(maxMusicVolume))
+				maxMusicVolume = math.floor(getVolumeCoef(getSliderValue(button, x)) * 100)
+				Spring.SetConfigInt("snd_volmusic", maxMusicVolume)
 				createList()
 			end
 			button = 'volume'
 			if isInBox(x, y, {buttons[button][1]-sliderWidth, buttons[button][2], buttons[button][3]+sliderWidth, buttons[button][4]}) then
 				draggingSlider = button
-				volume = math.floor(getSliderValue(button, x) * 200)
+				volume = math.floor(getVolumeCoef(getSliderValue(button, x)) * 200)
 				Spring.SetConfigInt("snd_volmaster", volume)
 				createList()
 			end
@@ -626,4 +652,3 @@ function widget:SetConfigData(data)
 		end
 	end
 end
-

@@ -12,7 +12,7 @@ return {
 		buildinggrounddecalsizey = 9,
 		buildinggrounddecaltype = "decals/armhp_aoplane.dds",
 		buildpic = "ARMHP.PNG",
-		buildtime = 13890,
+		buildtime = 10200,
 		canmove = true,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumescales = "100 40 90",

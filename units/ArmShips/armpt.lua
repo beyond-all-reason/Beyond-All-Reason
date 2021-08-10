@@ -28,7 +28,7 @@ return {
 		idleautoheal = 5,
 		idletime = 900,
 		maxdamage = 700,
-		maxvelocity = 2.85,
+		maxvelocity = 3.1,
 		minwaterdepth = 6,
 		movementclass = "BOAT3",
 		name = unitName,
@@ -162,9 +162,9 @@ return {
 					light_skip = true,
 				},
 				damage = {
-					bombers = 100,
-					fighters = 100,
-					vtol = 100,
+					bombers = 80,
+					fighters = 80,
+					vtol = 80,
 				},
 			},
 			laser = {

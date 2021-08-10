@@ -32,15 +32,6 @@ local fontScale = 1
 local sceduledDeleteFonts = {}
 local sceduledDeleteFontsClock
 
-local function split(s, separator)
-	local results = {}
-	for part in s:gmatch("[^"..separator.."]+") do
-		results[#results + 1] = part
-	end
-	return results
-end
-
-
 local function createFont(file, size, outlineSize, outlineStrength)
 	local id = file..'_'..size..'_'..outlineSize..'_'..outlineStrength
 	if fonts[id] ~= nil then
@@ -101,7 +92,7 @@ function widget:ViewResize()
 	if fontScale ~= newFontScale then
 		fontScale = newFontScale
 		for id,font in pairs(fonts) do
-			local params = split(id, '_')
+			local params = string.split(id, '_')
 			createFont(params[1], tonumber(params[2]), tonumber(params[3]), tonumber(params[4]))
 		end
 	end

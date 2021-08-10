@@ -10,6 +10,8 @@
 --
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
+VFS.Include('init.lua')
+
 
 LUA_NAME    = Script.GetName()
 LUA_DIRNAME = Script.GetName() .. "/"
@@ -19,8 +21,6 @@ _G[("%s_DIRNAME"):format(LUA_NAME:upper())] = LUA_DIRNAME -- creates LUAUI_DIRNA
 _G[("%s_VERSION"):format(LUA_NAME:upper())] = LUA_VERSION -- creates LUAUI_VERSION
 
 VFS.DEF_MODE = VFS.RAW_FIRST
-
-VFS.Include("modules/i18n/i18n.lua")
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------

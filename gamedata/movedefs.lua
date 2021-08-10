@@ -255,12 +255,26 @@ local moveDatas = {
 	},
 	-- banisher/goliath/tremor
 	HTANK4 = {
-		crushstrength = 250,
+		crushstrength = 252,
 		footprintx = 4,
 		footprintz = 4,
 		maxslope = 18,
 		--slopeMod = 32,
 		maxwaterdepth = 22,
+		depthModParams = {
+			minHeight = 4,
+			linearCoeff = 0.03,
+			maxValue = 0.7,
+		}
+	},
+	-- thor
+	HTANK5 = {
+		crushstrength = 1400,
+		footprintx = 5,
+		footprintz = 5,
+		maxslope = 18,
+		--slopeMod = 32,
+		maxwaterdepth = 24,
 		depthModParams = {
 			minHeight = 4,
 			linearCoeff = 0.03,
@@ -320,7 +334,7 @@ local moveDatas = {
 	},
 	-- fatboy/sumo
 	HBOT3 = {
-		crushstrength = 1400,
+		crushstrength = 252,
 		footprintx = 3,
 		footprintz = 3,
 		maxslope = 36,
@@ -333,7 +347,7 @@ local moveDatas = {
 	},
 	-- razorback/catapult
 	HBOT4 = {
-		crushstrength = 1400,
+		crushstrength = 252,
 		footprintx = 4,
 		footprintz = 4,
 		maxslope = 36,
@@ -473,7 +487,7 @@ local moveDatas = {
 	
 	-- Scavenger Boss units
 	SCAVCOMMANDERBOT = {
-		crushstrength = 9999,
+		crushstrength = 50,
 		depthModParams = {
 			minHeight = 0,
 			maxScale = 1.5,

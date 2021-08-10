@@ -157,7 +157,9 @@ function scav_Udef_Post(name, uDef)
 	end
 
 	if uDef.maxdamage then
-		uDef.maxdamage = math.ceil(uDef.maxdamage*0.85*randomMultiplier)
+		if name ~= 'armcomboss_scav' and name ~= 'corcomboss_scav' then
+			uDef.maxdamage = math.ceil(uDef.maxdamage*0.85*randomMultiplier)
+		end
 	end
 
 	-- if uDef.maxvelocity then
@@ -190,15 +192,16 @@ function scav_Udef_Post(name, uDef)
 	end
 
 	-- don't let players get scav constructors
-	if uDef.buildoptions then
+	if uDef.builder then
 		if Spring.GetModOptions and uDef.workertime then 
 			local workertimemultipliermodoption = tonumber(Spring.GetModOptions().scavbuildspeedmultiplier) or 1
 			uDef.workertime = uDef.workertime*workertimemultipliermodoption
 		end
-		if uDef.maxvelocity then
-			uDef.maxvelocity = uDef.maxvelocity*2*randomMultiplier
-		end
+		-- if uDef.maxvelocity then
+		-- 	uDef.maxvelocity = uDef.maxvelocity*2*randomMultiplier
+		-- end
 		if uDef.canmove == true then
+			uDef.cancapture = true
 			if uDef.workertime then
 				uDef.workertime = uDef.workertime*1.5*ScavDifficultyMultiplier
 			end

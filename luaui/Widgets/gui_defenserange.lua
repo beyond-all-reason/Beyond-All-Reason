@@ -50,6 +50,7 @@ modConfig["BYAR"]["unitList"] = {
 	armfrt = { weapons = { 2 } },  --floating rocket laucher
 	armfflak = { weapons = { 2 } },  --floating flak AA
 	armatl = { weapons = { 1 } },  --adv torpedo launcher
+	armkraken = { weapons = { 1 } }, 
 
 	armamb = { weapons = { 1,1 } }, --ambusher
 	armpb = { weapons = { 1 } }, --pitbull

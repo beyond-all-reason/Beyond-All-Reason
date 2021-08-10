@@ -57,7 +57,6 @@ local DEFAULT_VERSION = "#version 150 compatibility"
 -- Includes and classes loading
 -----------------------------------------------------------------
 
-VFS.Include("LuaRules/Utilities/UnitRendering.lua", nil, VFS.MOD .. VFS.BASE)
 local LuaShader = VFS.Include(LUASHADER_DIR .. "LuaShader.lua")
 
 -----------------------------------------------------------------
@@ -322,8 +321,6 @@ local function _ProcessOptions(optName, _, optValues, playerID)
 	if type(optValues) ~= "table" then
 		optValues = {optValues}
 	end
-
-	--Spring.Utilities.TableEcho({optName, optValues, playerID}, "_ProcessOptions")
 
 	for _, rendering in ipairs(allRendering) do
 		for matName, mat in pairs(rendering.materialDefs) do

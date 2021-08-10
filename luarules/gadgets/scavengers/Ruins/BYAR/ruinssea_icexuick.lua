@@ -1,371 +1,372 @@
-local function ixatol0(posx, posy, posz, GaiaTeamID, radiusCheck)
-local posradius = 96
-	if radiusCheck then
-		return posradius
-	else
-SpawnRuin("armfdrag", posx+(19), posy, posz+(90), 0)
-SpawnRuin("armtl", posx+(43), posy, posz+(-110), 2)
-SpawnRuin("armfdrag", posx+(-45), posy, posz+(90), 0)
-SpawnRuin("armfdrag", posx+(-77), posy, posz+(90), 0)
-SpawnRuin("armfdrag", posx+(-13), posy, posz+(90), 0)
-SpawnRuin("armfdrag", posx+(-45), posy, posz+(-54), 0)
-SpawnRuin("armuwes", posx+(3), posy, posz+(-54), 0)
-SpawnRuin("armfdrag", posx+(-77), posy, posz+(-54), 0)
-SpawnRuin("armsub", posx+(127), posy, posz+(-27), 0, true)
-SpawnRuin("armuwes", posx+(67), posy, posz+(-54), 0)
-	end
-end
-table.insert(RuinsListSea,ixatol0)
+local scavConfig = VFS.Include('luarules/gadgets/scavengers/Configs/BYAR/config.lua')
+local types = scavConfig.BlueprintTypes
 
-local function ixwaterwallh(posx, posy, posz, GaiaTeamID, radiusCheck)
-local posradius = 112
-	if radiusCheck then
-		return posradius
-	else
-SpawnRuin("armfdrag", posx+(80), posy, posz+(-32), 2)
-SpawnRuin("armfdrag", posx+(48), posy, posz+(-32), 2)
-SpawnRuin("armfdrag", posx+(-80), posy, posz+(32), 2)
-SpawnRuin("armfdrag", posx+(-112), posy, posz+(32), 2)
-SpawnRuin("armfdrag", posx+(-32), posy, posz+(0), 2)
-SpawnRuin("armfdrag", posx+(0), posy, posz+(0), 2)
-SpawnRuin("armfdrag", posx+(112), posy, posz+(-32), 2)
-SpawnRuin("armfdrag", posx+(32), posy, posz+(0), 2)
-SpawnRuin("armfdrag", posx+(-48), posy, posz+(32), 2)
-	end
+local function ixatol0()
+	return {
+		radius = 96,
+		type = types.Sea,
+		buildings = {
+			{ unitDefID = UnitDefNames.armfdrag.id, xOffset =   19, zOffset =   90, direction = 0 },
+			{ unitDefID = UnitDefNames.armtl.id,    xOffset =   43, zOffset = -110, direction = 2 },
+			{ unitDefID = UnitDefNames.armfdrag.id, xOffset =  -45, zOffset =   90, direction = 0 },
+			{ unitDefID = UnitDefNames.armfdrag.id, xOffset =  -77, zOffset =   90, direction = 0 },
+			{ unitDefID = UnitDefNames.armfdrag.id, xOffset =  -13, zOffset =   90, direction = 0 },
+			{ unitDefID = UnitDefNames.armfdrag.id, xOffset =  -45, zOffset =  -54, direction = 0 },
+			{ unitDefID = UnitDefNames.armuwes.id,  xOffset =    3, zOffset =  -54, direction = 0 },
+			{ unitDefID = UnitDefNames.armfdrag.id, xOffset =  -77, zOffset =  -54, direction = 0 },
+			{ unitDefID = UnitDefNames.armsub.id,   xOffset =  127, zOffset =  -27, direction = 0 },
+			{ unitDefID = UnitDefNames.armuwes.id,  xOffset =   67, zOffset =  -54, direction = 0 },
+		},
+	}
 end
-table.insert(RuinsListSea,ixwaterwallh)
 
-local function ixwaterwallv(posx, posy, posz, GaiaTeamID, radiusCheck)
-local posradius = 128
-	if radiusCheck then
-		return posradius
-	else
-SpawnRuin("armfdrag", posx+(40), posy, posz+(128), 2)
-SpawnRuin("armfdrag", posx+(-40), posy, posz+(-128), 2)
-SpawnRuin("armfdrag", posx+(-8), posy, posz+(-32), 2)
-SpawnRuin("armfdrag", posx+(-24), posy, posz+(-64), 2)
-SpawnRuin("armfdrag", posx+(24), posy, posz+(64), 2)
-SpawnRuin("armfdrag", posx+(8), posy, posz+(0), 2)
-SpawnRuin("armfdrag", posx+(24), posy, posz+(96), 2)
-SpawnRuin("armfdrag", posx+(8), posy, posz+(32), 2)
-SpawnRuin("armfdrag", posx+(-24), posy, posz+(-96), 2)
-	end
+local function ixwaterwallh()
+	return {
+		radius = 112,
+		type = types.Sea,
+		buildings = {
+			{ unitDefID = UnitDefNames.armfdrag.id, xOffset =   80, zOffset =  -32, direction = 2 },
+			{ unitDefID = UnitDefNames.armfdrag.id, xOffset =   48, zOffset =  -32, direction = 2 },
+			{ unitDefID = UnitDefNames.armfdrag.id, xOffset =  -80, zOffset =   32, direction = 2 },
+			{ unitDefID = UnitDefNames.armfdrag.id, xOffset = -112, zOffset =   32, direction = 2 },
+			{ unitDefID = UnitDefNames.armfdrag.id, xOffset =  -32, zOffset =    0, direction = 2 },
+			{ unitDefID = UnitDefNames.armfdrag.id, xOffset =    0, zOffset =    0, direction = 2 },
+			{ unitDefID = UnitDefNames.armfdrag.id, xOffset =  112, zOffset =  -32, direction = 2 },
+			{ unitDefID = UnitDefNames.armfdrag.id, xOffset =   32, zOffset =    0, direction = 2 },
+			{ unitDefID = UnitDefNames.armfdrag.id, xOffset =  -48, zOffset =   32, direction = 2 },
+		},
+	}
 end
-table.insert(RuinsListSea,ixwaterwallv)
 
-local function ixwaterwallhxl(posx, posy, posz, GaiaTeamID, radiusCheck)
-local posradius = 112
-	if radiusCheck then
-		return posradius
-	else
-SpawnRuin("armfdrag", posx+(-144), posy, posz+(-112), 3)
-SpawnRuin("armfdrag", posx+(-176), posy, posz+(-128), 3)
-SpawnRuin("armfdrag", posx+(-48), posy, posz+(-32), 3)
-SpawnRuin("armfdrag", posx+(-16), posy, posz+(-16), 3)
-SpawnRuin("armfdrag", posx+(-112), posy, posz+(-80), 3)
-SpawnRuin("armfdrag", posx+(-208), posy, posz+(-160), 3)
-SpawnRuin("armfdrag", posx+(112), posy, posz+(80), 3)
-SpawnRuin("armfdrag", posx+(48), posy, posz+(32), 3)
-SpawnRuin("armfdrag", posx+(208), posy, posz+(160), 3)
-SpawnRuin("armfdrag", posx+(144), posy, posz+(112), 3)
-SpawnRuin("armfdrag", posx+(176), posy, posz+(128), 3)
-SpawnRuin("armfdrag", posx+(-80), posy, posz+(-64), 3)
-SpawnRuin("armfdrag", posx+(80), posy, posz+(64), 3)
-SpawnRuin("armfdrag", posx+(16), posy, posz+(16), 3)
-	end
+local function ixwaterwallv()
+	return {
+		radius = 128,
+		type = types.Sea,
+		buildings = {
+			{ unitDefID = UnitDefNames.armfdrag.id, xOffset =   40, zOffset =  128, direction = 2 },
+			{ unitDefID = UnitDefNames.armfdrag.id, xOffset =  -40, zOffset = -128, direction = 2 },
+			{ unitDefID = UnitDefNames.armfdrag.id, xOffset =   -8, zOffset =  -32, direction = 2 },
+			{ unitDefID = UnitDefNames.armfdrag.id, xOffset =  -24, zOffset =  -64, direction = 2 },
+			{ unitDefID = UnitDefNames.armfdrag.id, xOffset =   24, zOffset =   64, direction = 2 },
+			{ unitDefID = UnitDefNames.armfdrag.id, xOffset =    8, zOffset =    0, direction = 2 },
+			{ unitDefID = UnitDefNames.armfdrag.id, xOffset =   24, zOffset =   96, direction = 2 },
+			{ unitDefID = UnitDefNames.armfdrag.id, xOffset =    8, zOffset =   32, direction = 2 },
+			{ unitDefID = UnitDefNames.armfdrag.id, xOffset =  -24, zOffset =  -96, direction = 2 },
+		},
+	}
 end
-table.insert(RuinsListSea,ixwaterwallh)
 
-local function ixwaterwallvxl(posx, posy, posz, GaiaTeamID, radiusCheck)
-local posradius = 128
-	if radiusCheck then
-		return posradius
-	else
-SpawnRuin("armfdrag", posx+(0), posy, posz+(-32), 3)
-SpawnRuin("armfdrag", posx+(192), posy, posz+(-160), 3)
-SpawnRuin("armfdrag", posx+(64), posy, posz+(-48), 3)
-SpawnRuin("armfdrag", posx+(0), posy, posz+(32), 3)
-SpawnRuin("armfdrag", posx+(-128), posy, posz+(112), 3)
-SpawnRuin("armfdrag", posx+(-160), posy, posz+(128), 3)
-SpawnRuin("armfdrag", posx+(32), posy, posz+(-32), 3)
-SpawnRuin("armfdrag", posx+(128), posy, posz+(-112), 3)
-SpawnRuin("armfdrag", posx+(32), posy, posz+(0), 3)
-SpawnRuin("armfdrag", posx+(-32), posy, posz+(32), 3)
-SpawnRuin("armfdrag", posx+(160), posy, posz+(-128), 3)
-SpawnRuin("armfdrag", posx+(-96), posy, posz+(80), 3)
-SpawnRuin("armfdrag", posx+(96), posy, posz+(-80), 3)
-SpawnRuin("armfdrag", posx+(0), posy, posz+(0), 3)
-SpawnRuin("armfdrag", posx+(-32), posy, posz+(0), 3)
-SpawnRuin("armfdrag", posx+(-192), posy, posz+(160), 3)
-SpawnRuin("armfdrag", posx+(-64), posy, posz+(48), 3)
-	end
+local function ixwaterwallhxl()
+	return {
+		radius = 112,
+		type = types.Sea,
+		buildings = {
+			{ unitDefID = UnitDefNames.armfdrag.id, xOffset = -144, zOffset = -112, direction = 3 },
+			{ unitDefID = UnitDefNames.armfdrag.id, xOffset = -176, zOffset = -128, direction = 3 },
+			{ unitDefID = UnitDefNames.armfdrag.id, xOffset =  -48, zOffset =  -32, direction = 3 },
+			{ unitDefID = UnitDefNames.armfdrag.id, xOffset =  -16, zOffset =  -16, direction = 3 },
+			{ unitDefID = UnitDefNames.armfdrag.id, xOffset = -112, zOffset =  -80, direction = 3 },
+			{ unitDefID = UnitDefNames.armfdrag.id, xOffset = -208, zOffset = -160, direction = 3 },
+			{ unitDefID = UnitDefNames.armfdrag.id, xOffset =  112, zOffset =   80, direction = 3 },
+			{ unitDefID = UnitDefNames.armfdrag.id, xOffset =   48, zOffset =   32, direction = 3 },
+			{ unitDefID = UnitDefNames.armfdrag.id, xOffset =  208, zOffset =  160, direction = 3 },
+			{ unitDefID = UnitDefNames.armfdrag.id, xOffset =  144, zOffset =  112, direction = 3 },
+			{ unitDefID = UnitDefNames.armfdrag.id, xOffset =  176, zOffset =  128, direction = 3 },
+			{ unitDefID = UnitDefNames.armfdrag.id, xOffset =  -80, zOffset =  -64, direction = 3 },
+			{ unitDefID = UnitDefNames.armfdrag.id, xOffset =   80, zOffset =   64, direction = 3 },
+			{ unitDefID = UnitDefNames.armfdrag.id, xOffset =   16, zOffset =   16, direction = 3 },
+		},
+	}
 end
-table.insert(RuinsListSea,ixwaterwallv)
 
-local function ixatolmmkr(posx, posy, posz, GaiaTeamID, radiusCheck)
-local posradius = 100
-	if radiusCheck then
-		return posradius
-	else
-SpawnRuin("armfmkr", posx+(-24), posy, posz+(-25), 0)
-SpawnRuin("armfdrag", posx+(0), posy, posz+(-97), 0)
-SpawnRuin("armfdrag", posx+(-32), posy, posz+(95), 0)
-SpawnRuin("armfmkr", posx+(24), posy, posz+(-25), 0)
-SpawnRuin("armfdrag", posx+(32), posy, posz+(-97), 0)
-SpawnRuin("armfdrag", posx+(-32), posy, posz+(-97), 0)
-SpawnRuin("armfdrag", posx+(-64), posy, posz+(79), 0)
-SpawnRuin("armfdrag", posx+(32), posy, posz+(95), 0)
-SpawnRuin("armfdrag", posx+(0), posy, posz+(95), 0)
-SpawnRuin("armfmkr", posx+(24), posy, posz+(23), 0)
-SpawnRuin("armfmkr", posx+(-24), posy, posz+(23), 0)
-SpawnRuin("armfdrag", posx+(64), posy, posz+(-65), 0)
-	end
+local function ixwaterwallvxl()
+	return {
+		radius = 128,
+		type = types.Sea,
+		buildings = {
+			{ unitDefID = UnitDefNames.armfdrag.id, xOffset =    0, zOffset =  -32, direction = 3 },
+			{ unitDefID = UnitDefNames.armfdrag.id, xOffset =  192, zOffset = -160, direction = 3 },
+			{ unitDefID = UnitDefNames.armfdrag.id, xOffset =   64, zOffset =  -48, direction = 3 },
+			{ unitDefID = UnitDefNames.armfdrag.id, xOffset =    0, zOffset =   32, direction = 3 },
+			{ unitDefID = UnitDefNames.armfdrag.id, xOffset = -128, zOffset =  112, direction = 3 },
+			{ unitDefID = UnitDefNames.armfdrag.id, xOffset = -160, zOffset =  128, direction = 3 },
+			{ unitDefID = UnitDefNames.armfdrag.id, xOffset =   32, zOffset =  -32, direction = 3 },
+			{ unitDefID = UnitDefNames.armfdrag.id, xOffset =  128, zOffset = -112, direction = 3 },
+			{ unitDefID = UnitDefNames.armfdrag.id, xOffset =   32, zOffset =    0, direction = 3 },
+			{ unitDefID = UnitDefNames.armfdrag.id, xOffset =  -32, zOffset =   32, direction = 3 },
+			{ unitDefID = UnitDefNames.armfdrag.id, xOffset =  160, zOffset = -128, direction = 3 },
+			{ unitDefID = UnitDefNames.armfdrag.id, xOffset =  -96, zOffset =   80, direction = 3 },
+			{ unitDefID = UnitDefNames.armfdrag.id, xOffset =   96, zOffset =  -80, direction = 3 },
+			{ unitDefID = UnitDefNames.armfdrag.id, xOffset =    0, zOffset =    0, direction = 3 },
+			{ unitDefID = UnitDefNames.armfdrag.id, xOffset =  -32, zOffset =    0, direction = 3 },
+			{ unitDefID = UnitDefNames.armfdrag.id, xOffset = -192, zOffset =  160, direction = 3 },
+			{ unitDefID = UnitDefNames.armfdrag.id, xOffset =  -64, zOffset =   48, direction = 3 },
+		},
+	}
 end
-table.insert(RuinsListSea,ixatolmmkr)
 
-local function ixatol1nano(posx, posy, posz, GaiaTeamID, radiusCheck)
-local posradius = 76
-	if radiusCheck then
-		return posradius
-	else
-SpawnRuin("armfdrag", posx+(-12), posy, posz+(43), 0)
-SpawnRuin("armfdrag", posx+(-76), posy, posz+(11), 0)
-SpawnRuin("armfdrag", posx+(20), posy, posz+(43), 0)
-SpawnRuin("armnanotcplat", posx+(-36), posy, posz+(-61), 0)
-SpawnRuin("armfdrag", posx+(52), posy, posz+(-21), 0)
-SpawnRuin("armfdrag", posx+(-44), posy, posz+(43), 0)
-SpawnRuin("armfdrag", posx+(52), posy, posz+(-53), 0)
-SpawnRuin("armfdrag", posx+(52), posy, posz+(11), 0)
-SpawnRuin("armtide", posx+(-4), posy, posz+(-13), 0)
-	end
+local function ixatolmmkr()
+	return {
+		radius = 100,
+		type = types.Sea,
+		buildings = {
+			{ unitDefID = UnitDefNames.armfmkr.id,  xOffset =  -24, zOffset =  -25, direction = 0 },
+			{ unitDefID = UnitDefNames.armfdrag.id, xOffset =    0, zOffset =  -97, direction = 0 },
+			{ unitDefID = UnitDefNames.armfdrag.id, xOffset =  -32, zOffset =   95, direction = 0 },
+			{ unitDefID = UnitDefNames.armfmkr.id,  xOffset =   24, zOffset =  -25, direction = 0 },
+			{ unitDefID = UnitDefNames.armfdrag.id, xOffset =   32, zOffset =  -97, direction = 0 },
+			{ unitDefID = UnitDefNames.armfdrag.id, xOffset =  -32, zOffset =  -97, direction = 0 },
+			{ unitDefID = UnitDefNames.armfdrag.id, xOffset =  -64, zOffset =   79, direction = 0 },
+			{ unitDefID = UnitDefNames.armfdrag.id, xOffset =   32, zOffset =   95, direction = 0 },
+			{ unitDefID = UnitDefNames.armfdrag.id, xOffset =    0, zOffset =   95, direction = 0 },
+			{ unitDefID = UnitDefNames.armfmkr.id,  xOffset =   24, zOffset =   23, direction = 0 },
+			{ unitDefID = UnitDefNames.armfmkr.id,  xOffset =  -24, zOffset =   23, direction = 0 },
+			{ unitDefID = UnitDefNames.armfdrag.id, xOffset =   64, zOffset =  -65, direction = 0 },
+		},
+	}
 end
-table.insert(RuinsListSea,ixatol1nano)
 
-local function ixatolseaplane(posx, posy, posz, GaiaTeamID, radiusCheck)
-local posradius = 105
-	if radiusCheck then
-		return posradius
-	else
-SpawnRuin("armuwms", posx+(-15), posy, posz+(-45), 3)
-SpawnRuin("armuwms", posx+(-15), posy, posz+(19), 3)
-SpawnRuin("armfrad", posx+(57), posy, posz+(-5), 3)
-SpawnRuin("armsehak", posx+(60), posy, posz+(-3), 0, true)
-SpawnRuin("armfdrag", posx+(-63), posy, posz+(-45), 0)
-SpawnRuin("armplat", posx+(105), posy, posz+(75), 0)
-SpawnRuin("armfdrag", posx+(-63), posy, posz+(-13), 0)
-SpawnRuin("armfdrag", posx+(-63), posy, posz+(19), 3)
-	end
+local function ixatol1nano()
+	return {
+		radius = 76,
+		type = types.Sea,
+		buildings = {
+			{ unitDefID = UnitDefNames.armfdrag.id, xOffset =  -12, zOffset =   43, direction = 0 },
+			{ unitDefID = UnitDefNames.armfdrag.id, xOffset =  -76, zOffset =   11, direction = 0 },
+			{ unitDefID = UnitDefNames.armfdrag.id, xOffset =   20, zOffset =   43, direction = 0 },
+			{ unitDefID = UnitDefNames.armfdrag.id, xOffset =   52, zOffset =  -21, direction = 0 },
+			{ unitDefID = UnitDefNames.armfdrag.id, xOffset =  -44, zOffset =   43, direction = 0 },
+			{ unitDefID = UnitDefNames.armfdrag.id, xOffset =   52, zOffset =  -53, direction = 0 },
+			{ unitDefID = UnitDefNames.armfdrag.id, xOffset =   52, zOffset =   11, direction = 0 },
+			{ unitDefID = UnitDefNames.armtide.id,  xOffset =   -4, zOffset =  -13, direction = 0 },
+		},
+	}
 end
-table.insert(RuinsListSea,ixatolseaplane)
 
-local function ixatolmmkrtide(posx, posy, posz, GaiaTeamID, radiusCheck)
-local posradius = 54
-	if radiusCheck then
-		return posradius
-	else
-SpawnRuin("cortide", posx+(54), posy, posz+(27), 0)
-SpawnRuin("armfdrag", posx+(-18), posy, posz+(-29), 0)
-SpawnRuin("armfdrag", posx+(14), posy, posz+(-29), 0)
-SpawnRuin("armfdrag", posx+(-50), posy, posz+(35), 0)
-SpawnRuin("armfdrag", posx+(-50), posy, posz+(3), 0)
-SpawnRuin("armfdrag", posx+(46), posy, posz+(-29), 0)
-SpawnRuin("armfmkr", posx+(6), posy, posz+(27), 0)
-	end
+local function ixatolseaplane()
+	return {
+		radius = 105,
+		type = types.Sea,
+		buildings = {
+			{ unitDefID = UnitDefNames.armuwms.id,  xOffset =  -15, zOffset =  -45, direction = 3 },
+			{ unitDefID = UnitDefNames.armuwms.id,  xOffset =  -15, zOffset =   19, direction = 3 },
+			{ unitDefID = UnitDefNames.armfrad.id,  xOffset =   57, zOffset =   -5, direction = 3 },
+			{ unitDefID = UnitDefNames.armsehak.id, xOffset =   60, zOffset =   -3, direction = 0,},
+			{ unitDefID = UnitDefNames.armfdrag.id, xOffset =  -63, zOffset =  -45, direction = 0 },
+			{ unitDefID = UnitDefNames.armplat.id,  xOffset =  105, zOffset =   75, direction = 0 },
+			{ unitDefID = UnitDefNames.armfdrag.id, xOffset =  -63, zOffset =  -13, direction = 0 },
+			{ unitDefID = UnitDefNames.armfdrag.id, xOffset =  -63, zOffset =   19, direction = 3 },
+		},
+	}
 end
-table.insert(RuinsListSea,ixatolmmkrtide)
 
-local function ixatolmmkrsubs(posx, posy, posz, GaiaTeamID, radiusCheck)
-local posradius = 54
-	if radiusCheck then
-		return posradius
-	else
-SpawnRuin("armfmkr", posx+(17), posy, posz+(-4), 0)
-SpawnRuin("armfrad", posx+(65), posy, posz+(-68), 0)
-SpawnRuin("armfmkr", posx+(17), posy, posz+(44), 1)
-SpawnRuin("armfmkr", posx+(-31), posy, posz+(44), 0)
-SpawnRuin("armfmkr", posx+(-31), posy, posz+(-4), 1)
-SpawnRuin("armsub", posx+(76), posy, posz+(21), 0, true)
-SpawnRuin("armsub", posx+(-108), posy, posz+(-29), 0, true)
-	end
+local function ixatolmmkrtide()
+	return {
+		radius = 54,
+		type = types.Sea,
+		buildings = {
+			{ unitDefID = UnitDefNames.cortide.id,  xOffset =   54, zOffset =   27, direction = 0 },
+			{ unitDefID = UnitDefNames.armfdrag.id, xOffset =  -18, zOffset =  -29, direction = 0 },
+			{ unitDefID = UnitDefNames.armfdrag.id, xOffset =   14, zOffset =  -29, direction = 0 },
+			{ unitDefID = UnitDefNames.armfdrag.id, xOffset =  -50, zOffset =   35, direction = 0 },
+			{ unitDefID = UnitDefNames.armfdrag.id, xOffset =  -50, zOffset =    3, direction = 0 },
+			{ unitDefID = UnitDefNames.armfdrag.id, xOffset =   46, zOffset =  -29, direction = 0 },
+			{ unitDefID = UnitDefNames.armfmkr.id,  xOffset =    6, zOffset =   27, direction = 0 },
+		},
+	}
 end
-table.insert(RuinsListSea,ixatolmmkrsubs)
 
-local function ixuwnrg(posx, posy, posz, GaiaTeamID, radiusCheck)
-local posradius = 56
-	if radiusCheck then
-		return posradius
-	else
-SpawnRuin("corfdrag", posx+(-40), posy, posz+(37), 0)
-SpawnRuin("corfdrag", posx+(8), posy, posz+(5), 0)
-SpawnRuin("coruwes", posx+(-8), posy, posz+(-43), 0)
-SpawnRuin("corfdrag", posx+(-24), posy, posz+(5), 0)
-SpawnRuin("cortl", posx+(64), posy, posz+(-3), 0)
-	end
+local function ixatolmmkrsubs()
+	return {
+		radius = 54,
+		type = types.Sea,
+		buildings = {
+			{ unitDefID = UnitDefNames.armfmkr.id, xOffset =   17, zOffset =   -4, direction = 0 },
+			{ unitDefID = UnitDefNames.armfrad.id, xOffset =   65, zOffset =  -68, direction = 0 },
+			{ unitDefID = UnitDefNames.armfmkr.id, xOffset =   17, zOffset =   44, direction = 1 },
+			{ unitDefID = UnitDefNames.armfmkr.id, xOffset =  -31, zOffset =   44, direction = 0 },
+			{ unitDefID = UnitDefNames.armfmkr.id, xOffset =  -31, zOffset =   -4, direction = 1 },
+			{ unitDefID = UnitDefNames.armsub.id,  xOffset =   76, zOffset =   21, direction = 0 },
+			{ unitDefID = UnitDefNames.armsub.id,  xOffset = -108, zOffset =  -29, direction = 0,},
+		},
+	}
 end
-table.insert(RuinsListSea,ixuwnrg)
 
-local function ixatolmmkrwalled(posx, posy, posz, GaiaTeamID, radiusCheck)
-local posradius = 96
-	if radiusCheck then
-		return posradius
-	else
-SpawnRuin("corfmkr", posx+(24), posy, posz+(8), 0)
-SpawnRuin("corfdrag", posx+(64), posy, posz+(-48), 0)
-SpawnRuin("corfdrag", posx+(96), posy, posz+(-16), 0)
-SpawnRuin("corfdrag", posx+(-64), posy, posz+(-48), 0)
-SpawnRuin("corfmkr", posx+(-24), posy, posz+(-8), 0)
-SpawnRuin("corfdrag", posx+(64), posy, posz+(48), 0)
-SpawnRuin("corfdrag", posx+(-96), posy, posz+(16), 0)
-SpawnRuin("corfdrag", posx+(96), posy, posz+(16), 0)
-SpawnRuin("corfdrag", posx+(-96), posy, posz+(-16), 0)
-SpawnRuin("corfdrag", posx+(-64), posy, posz+(48), 0)
-	end
+local function ixuwnrg()
+	return {
+		radius = 56,
+		type = types.Sea,
+		buildings = {
+			{ unitDefID = UnitDefNames.corfdrag.id, xOffset =  -40, zOffset =   37, direction = 0 },
+			{ unitDefID = UnitDefNames.corfdrag.id, xOffset =    8, zOffset =    5, direction = 0 },
+			{ unitDefID = UnitDefNames.coruwes.id,  xOffset =   -8, zOffset =  -43, direction = 0 },
+			{ unitDefID = UnitDefNames.corfdrag.id, xOffset =  -24, zOffset =    5, direction = 0 },
+			{ unitDefID = UnitDefNames.cortl.id,    xOffset =   64, zOffset =   -3, direction = 0 },
+		},
+	}
 end
-table.insert(RuinsListSea,ixatolmmkrwalled)
 
-local function ixuwamsub(posx, posy, posz, GaiaTeamID, radiusCheck)
-local posradius = 170
-	if radiusCheck then
-		return posradius
-	else
-SpawnRuin("coruwms", posx+(170), posy, posz+(-35), 2)
-SpawnRuin("coruwes", posx+(42), posy, posz+(-51), 2)
-SpawnRuin("coruwms", posx+(-118), posy, posz+(-131), 2)
-SpawnRuin("coruwes", posx+(-22), posy, posz+(-51), 2)
-SpawnRuin("coramsub", posx+(10), posy, posz+(77), 0)
-SpawnRuin("coruwms", posx+(170), posy, posz+(45), 2)
-SpawnRuin("cormuskrat", posx+(-126), posy, posz+(139), 0)
-SpawnRuin("corsonar", posx+(-123), posy, posz+(13), 0)
-	end
+local function ixatolmmkrwalled()
+	return {
+		radius = 96,
+		type = types.Sea,
+		buildings = {
+			{ unitDefID = UnitDefNames.corfmkr.id,  xOffset =   24, zOffset =    8, direction = 0 },
+			{ unitDefID = UnitDefNames.corfdrag.id, xOffset =   64, zOffset =  -48, direction = 0 },
+			{ unitDefID = UnitDefNames.corfdrag.id, xOffset =   96, zOffset =  -16, direction = 0 },
+			{ unitDefID = UnitDefNames.corfdrag.id, xOffset =  -64, zOffset =  -48, direction = 0 },
+			{ unitDefID = UnitDefNames.corfmkr.id,  xOffset =  -24, zOffset =   -8, direction = 0 },
+			{ unitDefID = UnitDefNames.corfdrag.id, xOffset =   64, zOffset =   48, direction = 0 },
+			{ unitDefID = UnitDefNames.corfdrag.id, xOffset =  -96, zOffset =   16, direction = 0 },
+			{ unitDefID = UnitDefNames.corfdrag.id, xOffset =   96, zOffset =   16, direction = 0 },
+			{ unitDefID = UnitDefNames.corfdrag.id, xOffset =  -96, zOffset =  -16, direction = 0 },
+			{ unitDefID = UnitDefNames.corfdrag.id, xOffset =  -64, zOffset =   48, direction = 0 },
+		},
+	}
 end
-table.insert(RuinsListSea,ixuwamsub)
 
-local function ixuwstor(posx, posy, posz, GaiaTeamID, radiusCheck)
-local posradius = 82
-	if radiusCheck then
-		return posradius
-	else
-SpawnRuin("coruwes", posx+(61), posy, posz+(-21), 0)
-SpawnRuin("coruwms", posx+(-19), posy, posz+(-21), 0)
-SpawnRuin("coruwes", posx+(-19), posy, posz+(59), 0)
-SpawnRuin("coruwms", posx+(61), posy, posz+(59), 0)
-SpawnRuin("corsonar", posx+(-82), posy, posz+(-76), 0)
-	end
+local function ixuwamsub()
+	return {
+		radius = 170,
+		type = types.Sea,
+		buildings = {
+			{ unitDefID = UnitDefNames.coruwms.id,    xOffset =  170, zOffset =  -35, direction = 2 },
+			{ unitDefID = UnitDefNames.coruwes.id,    xOffset =   42, zOffset =  -51, direction = 2 },
+			{ unitDefID = UnitDefNames.coruwms.id,    xOffset = -118, zOffset = -131, direction = 2 },
+			{ unitDefID = UnitDefNames.coruwes.id,    xOffset =  -22, zOffset =  -51, direction = 2 },
+			{ unitDefID = UnitDefNames.coramsub.id,   xOffset =   10, zOffset =   77, direction = 0 },
+			{ unitDefID = UnitDefNames.coruwms.id,    xOffset =  170, zOffset =   45, direction = 2 },
+			{ unitDefID = UnitDefNames.cormuskrat.id, xOffset = -126, zOffset =  139, direction = 0 },
+			{ unitDefID = UnitDefNames.corsonar.id,   xOffset = -123, zOffset =   13, direction = 0 },
+		},
+	}
 end
-table.insert(RuinsListSea,ixuwstor)
 
-local function ixuwstoradv(posx, posy, posz, GaiaTeamID, radiusCheck)
-local posradius = 82
-	if radiusCheck then
-		return posradius
-	else
-SpawnRuin("coruwes", posx+(61), posy, posz+(-21), 0)
-SpawnRuin("coruwms", posx+(-19), posy, posz+(-21), 0)
-SpawnRuin("coruwes", posx+(-19), posy, posz+(59), 0)
-SpawnRuin("coruwms", posx+(61), posy, posz+(59), 0)
-SpawnRuin("corsonar", posx+(-82), posy, posz+(-76), 0)
-	end
+local function ixuwstor()
+	return {
+		radius = 82,
+		type = types.Sea,
+		buildings = {
+			{ unitDefID = UnitDefNames.coruwes.id,  xOffset =   61, zOffset =  -21, direction = 0 },
+			{ unitDefID = UnitDefNames.coruwms.id,  xOffset =  -19, zOffset =  -21, direction = 0 },
+			{ unitDefID = UnitDefNames.coruwes.id,  xOffset =  -19, zOffset =   59, direction = 0 },
+			{ unitDefID = UnitDefNames.coruwms.id,  xOffset =   61, zOffset =   59, direction = 0 },
+			{ unitDefID = UnitDefNames.corsonar.id, xOffset =  -82, zOffset =  -76, direction = 0 },
+		},
+	}
 end
-table.insert(RuinsListSea,ixuwstoradv)
 
-local function ixadvatol0(posx, posy, posz, GaiaTeamID, radiusCheck)
-local posradius = 128
-	if radiusCheck then
-		return posradius
-	else
-SpawnRuin("armfdrag", posx+(109), posy, posz+(-57), 0)
-SpawnRuin("armfdrag", posx+(-147), posy, posz+(-25), 0)
-SpawnRuin("armfdrag", posx+(125), posy, posz+(39), 0)
-SpawnRuin("armfflak", posx+(-91), posy, posz+(-33), 0)
-SpawnRuin("armfdrag", posx+(-115), posy, posz+(-89), 0)
-SpawnRuin("armfdrag", posx+(-147), posy, posz+(-57), 0)
-SpawnRuin("armtl", posx+(85), posy, posz+(127), 0)
-SpawnRuin("armason", posx+(-35), posy, posz+(71), 0)
-SpawnRuin("armfdrag", posx+(109), posy, posz+(71), 0)
-SpawnRuin("armfatf", posx+(-3), posy, posz+(7), 0)
-SpawnRuin("armuwmmm", posx+(-107), posy, posz+(55), 0)
-SpawnRuin("armfdrag", posx+(125), posy, posz+(-25), 0)
-SpawnRuin("armfatf", posx+(61), posy, posz+(7), 0)
-SpawnRuin("armfdrag", posx+(-83), posy, posz+(-89), 0)
-SpawnRuin("armfdrag", posx+(125), posy, posz+(7), 0)
-	end
+local function ixuwstoradv()
+	return {
+		radius = 82,
+		type = types.Sea,
+		buildings = {
+			{ unitDefID = UnitDefNames.coruwes.id,  xOffset =   61, zOffset =  -21, direction = 0 },
+			{ unitDefID = UnitDefNames.coruwms.id,  xOffset =  -19, zOffset =  -21, direction = 0 },
+			{ unitDefID = UnitDefNames.coruwes.id,  xOffset =  -19, zOffset =   59, direction = 0 },
+			{ unitDefID = UnitDefNames.coruwms.id,  xOffset =   61, zOffset =   59, direction = 0 },
+			{ unitDefID = UnitDefNames.corsonar.id, xOffset =  -82, zOffset =  -76, direction = 0 },
+		},
+	}
 end
-table.insert(RuinsListSea,ixadvatol0)
 
-local function ixadvatol1(posx, posy, posz, GaiaTeamID, radiusCheck)
-local posradius = 92
-	if radiusCheck then
-		return posradius
-	else
-SpawnRuin("armfdrag", posx+(0), posy, posz+(56), 0)
-SpawnRuin("armfdrag", posx+(32), posy, posz+(56), 0)
-SpawnRuin("armfdrag", posx+(80), posy, posz+(8), 0)
-SpawnRuin("armnanotcplat", posx+(24), posy, posz+(-48), 0)
-SpawnRuin("armnanotcplat", posx+(-24), posy, posz+(-48), 0)
-SpawnRuin("armfdrag", posx+(-32), posy, posz+(56), 0)
-SpawnRuin("armfdrag", posx+(64), posy, posz+(40), 0)
-SpawnRuin("armfdrag", posx+(-64), posy, posz+(40), 0)
-SpawnRuin("armnanotcplat", posx+(-24), posy, posz+(0), 0)
-SpawnRuin("armfdrag", posx+(-80), posy, posz+(8), 0)
-SpawnRuin("armfflak", posx+(-88), posy, posz+(-80), 0)
-SpawnRuin("armnanotcplat", posx+(24), posy, posz+(0), 0)
-SpawnRuin("armfflak", posx+(88), posy, posz+(-80), 0)
-	end
+local function ixadvatol0()
+	return {
+		radius = 128,
+		type = types.Sea,
+		buildings = {
+			{ unitDefID = UnitDefNames.armfdrag.id, xOffset =  109, zOffset =  -57, direction = 0 },
+			{ unitDefID = UnitDefNames.armfdrag.id, xOffset = -147, zOffset =  -25, direction = 0 },
+			{ unitDefID = UnitDefNames.armfdrag.id, xOffset =  125, zOffset =   39, direction = 0 },
+			{ unitDefID = UnitDefNames.armfflak.id, xOffset =  -91, zOffset =  -33, direction = 0 },
+			{ unitDefID = UnitDefNames.armfdrag.id, xOffset = -115, zOffset =  -89, direction = 0 },
+			{ unitDefID = UnitDefNames.armfdrag.id, xOffset = -147, zOffset =  -57, direction = 0 },
+			{ unitDefID = UnitDefNames.armtl.id,    xOffset =   85, zOffset =  127, direction = 0 },
+			{ unitDefID = UnitDefNames.armason.id,  xOffset =  -35, zOffset =   71, direction = 0 },
+			{ unitDefID = UnitDefNames.armfdrag.id, xOffset =  109, zOffset =   71, direction = 0 },
+			{ unitDefID = UnitDefNames.armfatf.id,  xOffset =   -3, zOffset =    7, direction = 0 },
+			{ unitDefID = UnitDefNames.armuwmmm.id, xOffset = -107, zOffset =   55, direction = 0 },
+			{ unitDefID = UnitDefNames.armfdrag.id, xOffset =  125, zOffset =  -25, direction = 0 },
+			{ unitDefID = UnitDefNames.armfatf.id,  xOffset =   61, zOffset =    7, direction = 0 },
+			{ unitDefID = UnitDefNames.armfdrag.id, xOffset =  -83, zOffset =  -89, direction = 0 },
+			{ unitDefID = UnitDefNames.armfdrag.id, xOffset =  125, zOffset =    7, direction = 0 },
+		},
+	}
 end
-table.insert(RuinsListSea,ixadvatol1)
 
-local function ixatolaa2(posx, posy, posz, GaiaTeamID, radiusCheck)
-local posradius = 48
-	if radiusCheck then
-		return posradius
-	else
-SpawnRuin("armfflak", posx+(4), posy, posz+(28), 2)
-SpawnRuin("armason", posx+(-4), posy, posz+(-28), 2)
-	end
+local function ixatolaa2()
+	return {
+		radius = 48,
+		type = types.Sea,
+		buildings = {
+			{ unitDefID = UnitDefNames.armfflak.id, xOffset =    4, zOffset =   28, direction = 2 },
+			{ unitDefID = UnitDefNames.armason.id,  xOffset =   -4, zOffset =  -28, direction = 2 },
+		},
+	}
 end
-table.insert(RuinsListSea,ixatolaa2)
 
-local function ixadvatolfus(posx, posy, posz, GaiaTeamID, radiusCheck)
-local posradius = 282
-	if radiusCheck then
-		return posradius
-	else
-SpawnRuin("armuwmmm", posx+(-130), posy, posz+(-2), 3)
-SpawnRuin("armfdrag", posx+(-2), posy, posz+(166), 3)
-SpawnRuin("armfflak", posx+(134), posy, posz+(78), 1)
-SpawnRuin("armuwmmm", posx+(-194), posy, posz+(-2), 3)
-SpawnRuin("armuwadvms", posx+(190), posy, posz+(-170), 2)
-SpawnRuin("armfdrag", posx+(-258), posy, posz+(-10), 3)
-SpawnRuin("armfdrag", posx+(-162), posy, posz+(-74), 3)
-SpawnRuin("armfdrag", posx+(-66), posy, posz+(166), 3)
-SpawnRuin("armfdrag", posx+(94), posy, posz+(134), 3)
-SpawnRuin("armfdrag", posx+(78), posy, posz+(-170), 3)
-SpawnRuin("armfdrag", posx+(190), posy, posz+(102), 3)
-SpawnRuin("armfdrag", posx+(46), posy, posz+(-170), 3)
-SpawnRuin("armfdrag", posx+(222), posy, posz+(102), 3)
-SpawnRuin("armfdrag", posx+(110), posy, posz+(-106), 3)
-SpawnRuin("armfdrag", posx+(-98), posy, posz+(166), 3)
-SpawnRuin("armuwadves", posx+(-66), posy, posz+(-170), 2)
-SpawnRuin("armuwmmm", posx+(38), posy, posz+(-106), 2)
-SpawnRuin("armfdrag", posx+(-34), posy, posz+(166), 3)
-SpawnRuin("armtl", posx+(134), posy, posz+(-194), 3)
-SpawnRuin("armuwadvms", posx+(190), posy, posz+(-250), 2)
-SpawnRuin("armfdrag", posx+(-258), posy, posz+(-42), 3)
-SpawnRuin("armfdrag", posx+(-226), posy, posz+(-74), 3)
-SpawnRuin("armfdrag", posx+(126), posy, posz+(134), 3)
-SpawnRuin("armfdrag", posx+(-194), posy, posz+(-74), 3)
-SpawnRuin("armfdrag", posx+(30), posy, posz+(166), 3)
-SpawnRuin("armfrad", posx+(118), posy, posz+(190), 2)
-SpawnRuin("armfdrag", posx+(62), posy, posz+(166), 3)
-SpawnRuin("armfdrag", posx+(254), posy, posz+(70), 3)
-SpawnRuin("armfdrag", posx+(110), posy, posz+(-74), 3)
-SpawnRuin("armtl", posx+(-154), posy, posz+(190), 3)
-SpawnRuin("armuwfus", posx+(-18), posy, posz+(-26), 0)
-SpawnRuin("armfdrag", posx+(158), posy, posz+(134), 3)
-SpawnRuin("armtl", posx+(-282), posy, posz+(-98), 3)
-SpawnRuin("armfdrag", posx+(110), posy, posz+(-138), 3)
-SpawnRuin("armfdrag", posx+(14), posy, posz+(-170), 3)
-SpawnRuin("armfdrag", posx+(-258), posy, posz+(22), 3)
-	end
+local function ixadvatolfus()
+	return {
+		radius = 282,
+		type = types.Sea,
+		buildings = {
+			{ unitDefID = UnitDefNames.armuwmmm.id,   xOffset = -130, zOffset =   -2, direction = 3 },
+			{ unitDefID = UnitDefNames.armfdrag.id,   xOffset =   -2, zOffset =  166, direction = 3 },
+			{ unitDefID = UnitDefNames.armfflak.id,   xOffset =  134, zOffset =   78, direction = 1 },
+			{ unitDefID = UnitDefNames.armuwmmm.id,   xOffset = -194, zOffset =   -2, direction = 3 },
+			{ unitDefID = UnitDefNames.armuwadvms.id, xOffset =  190, zOffset = -170, direction = 2 },
+			{ unitDefID = UnitDefNames.armfdrag.id,   xOffset = -258, zOffset =  -10, direction = 3 },
+			{ unitDefID = UnitDefNames.armfdrag.id,   xOffset = -162, zOffset =  -74, direction = 3 },
+			{ unitDefID = UnitDefNames.armfdrag.id,   xOffset =  -66, zOffset =  166, direction = 3 },
+			{ unitDefID = UnitDefNames.armfdrag.id,   xOffset =   94, zOffset =  134, direction = 3 },
+			{ unitDefID = UnitDefNames.armfdrag.id,   xOffset =   78, zOffset = -170, direction = 3 },
+			{ unitDefID = UnitDefNames.armfdrag.id,   xOffset =  190, zOffset =  102, direction = 3 },
+			{ unitDefID = UnitDefNames.armfdrag.id,   xOffset =   46, zOffset = -170, direction = 3 },
+			{ unitDefID = UnitDefNames.armfdrag.id,   xOffset =  222, zOffset =  102, direction = 3 },
+			{ unitDefID = UnitDefNames.armfdrag.id,   xOffset =  110, zOffset = -106, direction = 3 },
+			{ unitDefID = UnitDefNames.armfdrag.id,   xOffset =  -98, zOffset =  166, direction = 3 },
+			{ unitDefID = UnitDefNames.armuwadves.id, xOffset =  -66, zOffset = -170, direction = 2 },
+			{ unitDefID = UnitDefNames.armuwmmm.id,   xOffset =   38, zOffset = -106, direction = 2 },
+			{ unitDefID = UnitDefNames.armfdrag.id,   xOffset =  -34, zOffset =  166, direction = 3 },
+			{ unitDefID = UnitDefNames.armtl.id,      xOffset =  134, zOffset = -194, direction = 3 },
+			{ unitDefID = UnitDefNames.armuwadvms.id, xOffset =  190, zOffset = -250, direction = 2 },
+			{ unitDefID = UnitDefNames.armfdrag.id,   xOffset = -258, zOffset =  -42, direction = 3 },
+			{ unitDefID = UnitDefNames.armfdrag.id,   xOffset = -226, zOffset =  -74, direction = 3 },
+			{ unitDefID = UnitDefNames.armfdrag.id,   xOffset =  126, zOffset =  134, direction = 3 },
+			{ unitDefID = UnitDefNames.armfdrag.id,   xOffset = -194, zOffset =  -74, direction = 3 },
+			{ unitDefID = UnitDefNames.armfdrag.id,   xOffset =   30, zOffset =  166, direction = 3 },
+			{ unitDefID = UnitDefNames.armfrad.id,    xOffset =  118, zOffset =  190, direction = 2 },
+			{ unitDefID = UnitDefNames.armfdrag.id,   xOffset =   62, zOffset =  166, direction = 3 },
+			{ unitDefID = UnitDefNames.armfdrag.id,   xOffset =  254, zOffset =   70, direction = 3 },
+			{ unitDefID = UnitDefNames.armfdrag.id,   xOffset =  110, zOffset =  -74, direction = 3 },
+			{ unitDefID = UnitDefNames.armtl.id,      xOffset = -154, zOffset =  190, direction = 3 },
+			{ unitDefID = UnitDefNames.armuwfus.id,   xOffset =  -18, zOffset =  -26, direction = 0 },
+			{ unitDefID = UnitDefNames.armfdrag.id,   xOffset =  158, zOffset =  134, direction = 3 },
+			{ unitDefID = UnitDefNames.armtl.id,      xOffset = -282, zOffset =  -98, direction = 3 },
+			{ unitDefID = UnitDefNames.armfdrag.id,   xOffset =  110, zOffset = -138, direction = 3 },
+			{ unitDefID = UnitDefNames.armfdrag.id,   xOffset =   14, zOffset = -170, direction = 3 },
+			{ unitDefID = UnitDefNames.armfdrag.id,   xOffset = -258, zOffset =   22, direction = 3 },
+		},
+	}
 end
-table.insert(RuinsListSea,ixadvatolfus)
+
+return {
+	ixatol0,
+	ixwaterwallh,
+	ixwaterwallv,
+	ixwaterwallhxl,
+	ixwaterwallvxl,
+	ixatolmmkr,
+	ixatol1nano,
+	ixatolseaplane,
+	ixatolmmkrtide,
+	ixatolmmkrsubs,
+	ixuwnrg,
+	ixatolmmkrwalled,
+	ixuwamsub,
+	ixuwstor,
+	ixuwstoradv,
+	ixadvatol0,
+	ixatolaa2,
+	ixadvatolfus,
+}

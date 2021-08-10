@@ -6,7 +6,7 @@
    	
 		[properties]
       	{
-		    texture=electnovaexplo;
+		    texture=lightning;
       		heat = 8;
       		maxheat = 12;
       		heatFalloff = 1.2;
@@ -75,12 +75,12 @@
 
 		[properties]
 		{
-            Texture=lightening;
+            Texture=lightbw;
 
             colorMap	= 1.0 1.0 1.0 0.04	0.2 0.5 0.9 0.01	0.1 0.5 0.7 0.01;
 
             pos 		= 0, 2, 0;
-            gravity		= 0, -0.05, 0;
+            gravity		= 0, 0, 0;
             emitVector	= 0, 1, 0;
             emitRot		= 45;
             emitRotSpread	= 32;
@@ -89,13 +89,13 @@
             sizeMod		= 1.0;
 
             airdrag			= 0.8;
-            particleLife		= 10;
+            particleLife		= 8;
             particleLifeSpread	= 5;
-            numParticles		= 10;
-            particleSpeed		= 1;
-            particleSpeedSpread	= 2.5;
-            particleSize		= 1.5;
-            particleSizeSpread	= 0.5;
+            numParticles		= 5;
+            particleSpeed		= 2;
+            particleSpeedSpread	= 3.5;
+            particleSize		= 2.5;
+            particleSizeSpread	= 5.5;
 
             directional		= 1;
             useAirLos		= 0;
@@ -158,7 +158,7 @@
 	[groundflash]
    	{
 	    alwaysVisible=1;
-      	ttl = 11;
+      	ttl = 16;
       	flashSize = 90;
       	flashAlpha = 0.36;
 
@@ -180,7 +180,7 @@
 
 		[properties]
       	{
-		    texture=electnovaexplo;
+		    texture=lightning;
       		heat = 8;
       		maxheat = 13;
       		heatFalloff = 1.15;
@@ -188,7 +188,7 @@
       		size = 1;
       		sizeGrowth = 13;
 
-         	pos = r-2 r2, 5, r-2 r2;
+         	pos = r-4 r8, 5, r-4 r8;
          	speed=0, 1 0, 0;
       	}
 	    air=1;
@@ -249,12 +249,12 @@
 
 		[properties]
 		{
-            Texture=lightening;
+            Texture=lightbw;
 
-            colorMap	= 1.0 1.0 1.0 0.04	0.2 0.5 0.9 0.01	0.1 0.5 0.7 0.01;
+            colorMap	= 1.0 1.0 1.0 0.08	0.4 0.7 0.95 0.01	0.1 0.5 0.7 0.01;
 
             pos 		= 0, 2, 0;
-            gravity		= 0, -0.05, 0;
+            gravity		= 0, 0, 0;
             emitVector	= 0, 1, 0;
             emitRot		= 45;
             emitRotSpread	= 32;
@@ -262,14 +262,14 @@
             sizeGrowth	= 1;
             sizeMod		= 1.0;
 
-            airdrag			= 0.8;
-            particleLife		= 10;
-            particleLifeSpread	= 5;
-            numParticles		= 12;
-            particleSpeed		= 3;
-            particleSpeedSpread	= 5;
-            particleSize		= 8;
-            particleSizeSpread	= 0;
+            airdrag			= 0.7;
+            particleLife		= 6;
+            particleLifeSpread	= 9;
+            numParticles		= 4;
+            particleSpeed		= 2;
+            particleSpeedSpread	= 15;
+            particleSize		= 5;
+            particleSizeSpread	= 25;
 
             directional		= 1;
             useAirLos		= 0;
@@ -299,9 +299,9 @@
             sizeMod		= 1;
 
             airdrag			= 0.8;
-            particleLife		= 5;
-            particleLifeSpread	= 16;
-            numParticles		= 14;
+            particleLife		= 4;
+            particleLifeSpread	= 12;
+            numParticles		= 7;
             particleSpeed		= 7;
             particleSpeedSpread	= 3;
             particleSize		= 20;

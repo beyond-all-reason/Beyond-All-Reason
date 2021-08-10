@@ -16,7 +16,6 @@ local vsx, vsy = Spring.GetViewGeometry()
 
 local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity", 0.6) or 0.66)
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
-local glossMult = 1 + (2 - (ui_opacity * 2))    -- increase gloss/highlight so when ui is transparant, you can still make out its boundaries and make it less flat
 
 local displayPlayername = true
 local guishaderEnabled
@@ -49,7 +48,19 @@ local toggled = false
 local drawlist = {}
 local widgetHeight = 22
 
-local font, font2, lockPlayerID, prevLockPlayerID, bgpadding, toggleButton, backgroundGuishader, prevGameframeClock, chobbyInterface
+local spGetTeamColor = Spring.GetTeamColor
+
+local teamColorKeys = {}
+local teams = Spring.GetTeamList()
+for i = 1, #teams do
+	local r, g, b, a = spGetTeamColor(teams[i])
+	teamColorKeys[teams[i]] = r..'_'..g..'_'..b
+end
+teams = nil
+
+local font, font2, lockPlayerID, prevLockPlayerID, toggleButton, backgroundGuishader, prevGameframeClock, chobbyInterface
+
+local RectRound, elementCorner, bgpadding
 
 ---------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------
@@ -159,9 +170,6 @@ function createCountdownLists()
 	--end
 end
 
-local RectRound = Spring.FlowUI.Draw.RectRound
-local TexturedRectRound = Spring.FlowUI.Draw.TexturedRectRound
-local elementCorner = Spring.FlowUI.elementCorner
 
 function createList()
 	for i = 1, #drawlist do
@@ -334,7 +342,7 @@ local uiOpacitySec = 0.5
 function widget:Update(dt)
 
 	uiOpacitySec = uiOpacitySec + dt
-	if uiOpacitySec > 0.5 then
+	if uiOpacitySec > 1 then
 		uiOpacitySec = 0
 		if ui_scale ~= Spring.GetConfigFloat("ui_scale", 1) then
 			ui_scale = Spring.GetConfigFloat("ui_scale", 1)
@@ -343,8 +351,21 @@ function widget:Update(dt)
 		if ui_opacity ~= Spring.GetConfigFloat("ui_opacity", 0.6) or guishaderEnabled ~= (WG['guishader'] ~= nil) then
 			guishaderEnabled = (WG['guishader'] ~= nil)
 			ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.6)
-			glossMult = 1 + (2 - (ui_opacity * 2))
 			createList()
+		end
+
+		-- check if team colors have changed
+		local teams = Spring.GetTeamList()
+		local detectedChanges = false
+		for i = 1, #teams do
+			local r, g, b, a = spGetTeamColor(teams[i])
+			if teamColorKeys[teams[i]] ~= r..'_'..g..'_'..b then
+				teamColorKeys[teams[i]] = r..'_'..g..'_'..b
+				detectedChanges = true
+			end
+		end
+		if detectedChanges then
+			widget:ViewResize()
 		end
 	end
 
@@ -449,8 +470,10 @@ function widget:ViewResize()
 	vsx, vsy = Spring.GetViewGeometry()
 	widgetScale = (0.7 + (vsx * vsy / 5000000))
 
-	bgpadding = Spring.FlowUI.elementPadding
-	elementCorner = Spring.FlowUI.elementCorner
+	bgpadding = WG.FlowUI.elementPadding
+	elementCorner = WG.FlowUI.elementCorner
+
+	RectRound = WG.FlowUI.Draw.RectRound
 
 	font = WG['fonts'].getFont(nil, 1, 0.2, 1.3)
 	font2 = WG['fonts'].getFont(fontfile2, 2, 0.2, 1.3)
@@ -535,20 +558,8 @@ function widget:DrawScreen()
 						local fontSize = 26 * widgetScale
 						local nameColourR, nameColourG, nameColourB = 1, 1, 1
 						if not spec then
-							nameColourR, nameColourG, nameColourB, _ = Spring.GetTeamColor(teamID)
+							nameColourR, nameColourG, nameColourB, _ = spGetTeamColor(teamID)
 						end
-						--local posX = vsx * 0.5
-						--local posY = vsy * 0.17
-						--font2:Begin()
-						--font2:SetTextColor(nameColourR,nameColourG,nameColourB,1)
-						--if (nameColourR + nameColourG*1.2 + nameColourB*0.4) < 0.8 then
-						--	font2:SetOutlineColor(1,1,1,1)
-						--else
-						--	font2:SetOutlineColor(0,0,0,1)
-						--end
-						--font2:Print(name, posX, posY, fontSize, "con")
-						--font2:End()
-
 						local posX = vsx * 0.985
 						local posY = top + (vsy * 0.0215)
 						font2:Begin()

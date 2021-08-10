@@ -120,8 +120,8 @@ for i=1,#files do
       pitchmod = 0.17,
       gainmod  = 0.2*0.3,
       dopplerscale = 1.0,
-      maxconcurrent = 8,
-      rolloff = 1.0,
+      maxconcurrent = 7,
+      rolloff = 1.4,
    }
 
    if fileNames == "disigun1" then
@@ -158,6 +158,10 @@ for i=1,#files do
    if string.sub(fileNames, 1, 4) == "mgun" then
     t[fileNames].pitchmod = 0.08
     end
+   if string.sub(fileNames, 1, 7) == "minigun" then
+    t[fileNames].pitchmod = 0.09
+    t[fileNames].maxconcurrent = 12
+    end 
    if string.sub(fileNames, 1, 7) == "xplolrg" then
     t[fileNames].pitchmod = 0.3
     end
@@ -177,7 +181,7 @@ for i=1,#files do
 	fileNames = string.sub(fileName, 17, string.find(fileName, ".wav") -1)
 	t[fileNames] = {
     	file     = fileName;
-		gain = 1.0,
+		gain = 1.2*0.5,
     	pitchmod = 0.23,
     	gainmod  = 0.2*0.3,
 		dopplerscale = 1.0,
@@ -203,7 +207,7 @@ for i=1,#files do
 		gainmod  = 0.2*0.3,
 		dopplerscale = 1.0,
 		maxconcurrent = 18,
-		rolloff = 0.9,
+		rolloff = 1.1,
 	}
 end
 
@@ -239,7 +243,7 @@ for i=1,#files do
 		gainmod  = 0.2*0.3,
 		dopplerscale = 0,
 		maxconcurrent = 2,
-		rolloff = 0.05,
+		rolloff = 0.1,
 		priority = 1,
 		--in3d = false,
 	}
@@ -258,7 +262,7 @@ for i=1,#files do
 		gainmod  = 0.2*0.3,
 		dopplerscale = 0,
 		maxconcurrent = 2,
-		rolloff = 0.05,
+		rolloff = 0.1,
 		priority = 1,
 		--in3d = false,
 	}
@@ -339,21 +343,21 @@ for i=1,#files do
 end
 
 -- SCAVENGER SOUNDS not in use currently
-local files = VFS.DirList("sounds/scavengers/")
-local t = Sounds.SoundItems
-for i=1,#files do
-	local fileName = files[i]
-	fileNames = string.sub(fileName, 19, string.find(fileName, ".wav") -1)
-	t[fileNames] = {
-  		file     = fileName;
-  		gain = 1.0*0.3,
-  		pitchmod = 0.33,
-  		gainmod  = 0.1*0.3,
-  		dopplerscale = 1.0,
-  		maxconcurrent = 8,
-  		rolloff = 0.2,
-	}
-end
+-- local files = VFS.DirList("sounds/scavengers/")
+-- local t = Sounds.SoundItems
+-- for i=1,#files do
+-- 	local fileName = files[i]
+-- 	fileNames = string.sub(fileName, 19, string.find(fileName, ".wav") -1)
+-- 	t[fileNames] = {
+--   		file     = fileName;
+--   		gain = 1.0*0.3,
+--   		pitchmod = 0.33,
+--   		gainmod  = 0.1*0.3,
+--   		dopplerscale = 1.0,
+--   		maxconcurrent = 8,
+--   		rolloff = 0.2,
+-- 	}
+-- end
 
 -- AMBIENCE
 local files = VFS.DirList("sounds/atmos/")

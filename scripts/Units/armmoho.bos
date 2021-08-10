@@ -5,7 +5,7 @@
 
 piece  base, arms1, arms2,pins;
 
-static-var  Static_Var_1, statechg_DesiredState, statechg_StateChanging;
+static-var  meatspin, statechg_DesiredState, statechg_StateChanging;
 
 
 SmokeUnit(healthpercent, sleeptime, smoketype)
@@ -37,8 +37,8 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 
 fixGo()
 {
-	spin arms1 around y-axis speed Static_Var_1 accelerate <0.500000>;
-	spin arms2 around y-axis speed -1*Static_Var_1 accelerate <0.500000>;
+	spin arms1 around y-axis speed meatspin accelerate <0.500000>;
+	spin arms2 around y-axis speed -1*meatspin accelerate <0.500000>;
 }
 
 Stop()
@@ -93,7 +93,7 @@ RequestState(requestedstate, currentstate)
 
 Create()
 {
-	Static_Var_1 = 500;
+	meatspin = 500;
 	call-script InitState();
 	start-script SmokeUnit();
 }
@@ -110,7 +110,7 @@ Deactivate()
 
 SetSpeed(Func_Var_1)
 {
-	Static_Var_1 = Func_Var_1 * 10;
+	meatspin = Func_Var_1 * 2;
 }
 
 SweetSpot(piecenum)

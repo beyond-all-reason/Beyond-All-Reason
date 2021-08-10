@@ -31,4 +31,12 @@ return {
 		playerdata = true,
 		waterlevel = true,
 	},
+	['PtaQ'] = {
+		give = true,
+		undo = true,
+		cmd = true,
+		devhelpers = true,
+		playerdata = true,
+		waterlevel = true,
+	},
 }

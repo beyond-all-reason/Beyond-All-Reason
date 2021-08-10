@@ -19,31 +19,6 @@ local MathG = {math = math, rand = math.random, random = math.random, sin = math
 
 --local cachedParsedFunctions = {}
 
-local function Split(str, delim, maxNb)
-    --// Eliminate bad cases...
-    if str:find(delim) == nil then
-        return { str }
-    end
-    if maxNb == nil or maxNb < 1 then
-        maxNb = 0    -- No limit
-    end
-    local result = {}
-    local pat = "(.-)" .. delim .. "()"
-    local nb = 0
-    local lastPos
-    for part, pos in str:gmatch(pat) do
-        nb = nb + 1
-        result[nb] = part
-        lastPos = pos
-        if nb == maxNb then break end
-    end
-    --// Handle the last field
-    if nb ~= maxNb then
-        result[nb + 1] = str:sub(lastPos)
-    end
-    return result
-end
-
 local loadstring = loadstring
 local char = string.char
 local type = type
@@ -56,11 +31,11 @@ function ParseParamString(strfunc)
   local luaCode = "return function() "
   local vec_defs,math_defs  = {},{}
 
-  local params = Split(strfunc or "", "|") --//split math vector components and defintion of additional params (radius etc.)
+  local params = string.split(strfunc or "", "|") --//split math vector components and definition of additional params (radius etc.)
 
   if (type(params)=="table") then
-    vec_defs  = Split(params[1], ",")
-    if (params[2]) then math_defs = Split(params[2], ",") end
+    vec_defs  = string.split(params[1], ",")
+    if (params[2]) then math_defs = string.split(params[2], ",") end
   else vec_defs = params end
 
   --// set user variables (i.e. radius of the effect)

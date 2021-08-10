@@ -7,14 +7,6 @@ function convertToPurple(value)
     return value
 end
 
-local function split(s, separator)
-    local results = {}
-    for part in s:gmatch("[^"..separator.."]+") do
-        results[#results + 1] = part
-    end
-    return results
-end
-
 function scav_Wdef_Post(name, wDef)
     if wDef.weapontype == "Cannon" then
 		wDef.rgbcolor = {0.96, 0.42, 1}
@@ -57,7 +49,7 @@ function scav_Wdef_Post(name, wDef)
     if wDef.customparams then
         for k, v in pairs(wDef.customparams) do
             if type(v) == 'string' and string.find(k, 'light_color') then
-                local colors = split(v, ' ')
+                local colors = string.split(v, ' ')
                 if colors[1] and colors[3] and colors[1] == '1' then
                     wDef.customparams[k] = colors[2]..' '..colors[3]..' '..colors[1]
                 end

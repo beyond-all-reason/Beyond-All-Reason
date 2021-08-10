@@ -61,6 +61,7 @@ local function AngleBetweenVectors(x1, y1, z1, x2, y2, z2)
 end
 
 -- presumes normalized vectors
+local ALMOST_ONE = 0.999
 local function GetSLerpedPoint(x1, y1, z1, x2, y2, z2, w1, w2)
 	-- Below check is not really required for the sane AOE_SAME_SPOT value (less than PI)
 --[[
@@ -80,6 +81,10 @@ local function GetSLerpedPoint(x1, y1, z1, x2, y2, z2, w1, w2)
 	until ok
 ]]--
 	local dotP = DotProduct(x1, y1, z1, x2, y2, z2)
+
+	if dotP >= ALMOST_ONE then --avoid div by by sinA == zero
+		return x1, y1, z1
+	end
 	-- Do spherical linear interpolation
 	local A = math.acos(dotP)
 	local sinA = math.sin(A)
@@ -141,9 +146,7 @@ if gadgetHandler:IsSyncedCode() then
 			if dmg <= 0.1 then --some stupidity here: llt has 0.0001 dmg in weaponDamages[weaponDefID][SHIELDARMORID]
 				dmg = weaponDamages[weaponDefID][SHIELDARMORIDALT]
 			end
-			--Spring.Utilities.TableEcho({proID=proID, proOwnerID=proOwnerID, shieldEmitterWeaponNum=shieldEmitterWeaponNum, shieldCarrierUnitID=shieldCarrierUnitID, bounceProjectile=bounceProjectile, beamEmitterWeaponNum=beamEmitterWeaponNum, beamEmitterUnitID=beamEmitterUnitID, startX=startX, startY=startY, startZ=startZ, hitX=hitX, hitY=hitY, hitZ=hitZ, dist=dist}, "ShieldPreDamaged")
-			--GG.TableEcho(weaponDamages[weaponDefID])
-			--Spring.Echo("dmg=", dmg, dmg * dmgMod)
+			
 			local x, y, z = Spring.GetUnitPosition(shieldCarrierUnitID)
 			local dx, dy, dz
 			local onlyMove = false
@@ -289,8 +292,7 @@ local function DoAddShieldHitData(unitData, hitFrame, dmg, x, y, z, onlyMove)
 	local radius = unitData.radius
 
 	local found = false
-	--Spring.Echo(unitData.unitID, "#hitData", #hitData)
-	--GG.TableEcho(hitData)
+	
 	for _, hitInfo in ipairs(hitData) do
 		if hitInfo then
 

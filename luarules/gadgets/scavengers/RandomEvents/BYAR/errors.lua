@@ -1,5 +1,5 @@
 
-function RandomEventRebelion1(CurrentFrame)
+local function rebellion1(currentFrame)
 	ScavSendNotification("scav_eventmalfunctions")
 	local scavUnits = Spring.GetTeamUnits(GaiaTeamID)
 	for y = 1,#scavUnits do
@@ -21,9 +21,8 @@ function RandomEventRebelion1(CurrentFrame)
 		end
 	end
 end
---table.insert(RandomEventsList,RandomEventRebelion1)
 
-function RandomEventRebelion2(CurrentFrame)
+local function rebellion2(currentFrame)
 	ScavSendNotification("scav_eventmalfunctions")
 	local scavUnits = Spring.GetTeamUnits(GaiaTeamID)
 	local rebelionCenter = scavUnits[math.random(1,#scavUnits)]
@@ -49,9 +48,8 @@ function RandomEventRebelion2(CurrentFrame)
 		end
 	end
 end
---table.insert(RandomEventsList,RandomEventRebelion2)
 
-function RandomEventBlueScreenOfDeath(CurrentFrame)
+local function blueScreenOfDeath(currentFrame)
 	ScavSendNotification("scav_eventmalfunctions")
 	local scavUnits = Spring.GetTeamUnits(GaiaTeamID)
 	for y = 1,#scavUnits do
@@ -71,5 +69,10 @@ function RandomEventBlueScreenOfDeath(CurrentFrame)
 		end
 	end
 end
-table.insert(RandomEventsList,RandomEventBlueScreenOfDeath)
-table.insert(RandomEventsList,RandomEventBlueScreenOfDeath)
+
+return {
+	-- rebellion1,
+	-- rebellion2,
+	blueScreenOfDeath,
+	blueScreenOfDeath,
+}

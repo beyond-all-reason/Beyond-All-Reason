@@ -11,7 +11,7 @@ return {
 		buildinggrounddecalsizex = 5,
 		buildinggrounddecalsizey = 5,
 		buildinggrounddecaltype = "decals/armwin_aoplane.dds",
-		buildpic = "ARMWIN.PNG",
+		buildpic = "ARMWINT2.PNG",
 		buildtime = 11250,
 		canrepeat = false,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -46,6 +46,7 @@ return {
 			removestop = true,
 			removewait = true,
 			subfolder = "armbuildings/landeconomy",
+			techlevel = 2,
 		},
 		featuredefs = {
 			dead = {

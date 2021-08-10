@@ -59,20 +59,20 @@ local options={
 		max    = 10000,
 		step   = 1,
 	},
-	{
-		key="map_tidal",
-		name="Tidal Strength",
-		desc="Unchanged = map setting, low = 13e/sec, medium = 18e/sec, high = 23e/sec.",
-		type="list",
-		def="unchanged",
-		section="resources_options",
-		items={
-			{key="unchanged", name="Unchanged", desc="Use map settings"},
-			{key="low", name="Low", desc="Set tidal incomes to 13 energy per second"},
-			{key="medium", name="Medium", desc="Set tidal incomes to 18 energy per second"},
-			{key="high", name="High", desc="Set tidal incomes to 23 energy per second"},
-		}
-	},
+	-- {
+	-- 	key="map_tidal",
+	-- 	name="Tidal Strength",
+	-- 	desc="Unchanged = map setting, low = 13e/sec, medium = 18e/sec, high = 23e/sec.",
+	-- 	type="list",
+	-- 	def="unchanged",
+	-- 	section="resources_options",
+	-- 	items={
+	-- 		{key="unchanged", name="Unchanged", desc="Use map settings"},
+	-- 		{key="low", name="Low", desc="Set tidal incomes to 13 energy per second"},
+	-- 		{key="medium", name="Medium", desc="Set tidal incomes to 18 energy per second"},
+	-- 		{key="high", name="High", desc="Set tidal incomes to 23 energy per second"},
+	-- 	}
+	-- },
 
 	{
 		key    = 'resourceincomemultiplier',
@@ -129,18 +129,18 @@ local options={
 		max    = 50,
 		step   = 0.1,
 	},
-	{
-		key="transportenemy",
-		name="Enemy Transporting",
-		desc="Toggle which enemy units you can kidnap with an air transport",
-		type="list",
-		def="notcoms",
-		section="restrictions",
-		items={
-			{key="notcoms", name="All But Commanders", desc="Only commanders are immune to napping"},
-			{key="none", name="Disallow All", desc="No enemy units can be napped"},
-		}
-	},
+	-- {
+	-- 	key="transportenemy",
+	-- 	name="Enemy Transporting",
+	-- 	desc="Toggle which enemy units you can kidnap with an air transport",
+	-- 	type="list",
+	-- 	def="notcoms",
+	-- 	section="restrictions",
+	-- 	items={
+	-- 		{key="notcoms", name="All But Commanders", desc="Only commanders are immune to napping"},
+	-- 		{key="none", name="Disallow All", desc="No enemy units can be napped"},
+	-- 	}
+	-- },
 	{
 		key    = "allowuserwidgets",
 		name   = "Allow user widgets",
@@ -165,7 +165,14 @@ local options={
 		def    = true,
 		section= "restrictions",
 	},
-
+	{
+		key    		= 'disable_fogofwar',
+		name   		= 'Disable Fog of War',
+		desc   		= 'Disable Fog of War',
+		type   		= "bool",
+		section		= 'restrictions',
+		def    		= false,
+	},
 	{
 		key    		= 'unit_restrictions_notech2',
 		name   		= 'Disable Tech 2',
@@ -262,7 +269,7 @@ local options={
 		type   = 'number',
 		section= 'options_scavengers',
 		def    = 5,
-		min    = 1,
+		min    = 2,
 		max    = 20,
 		step   = 1,
 	},
@@ -410,7 +417,7 @@ local options={
 		name="Burrow Placement",
 		desc="Control where burrows spawn",
 		type="list",
-		def="alwaysbox",
+		def="initialbox",
 		section="chicken_defense_options",
 		items={
 			{key="anywhere", name="Anywhere", desc="Burrows can spawn anywhere"},
@@ -456,6 +463,17 @@ local options={
 		min    = 50,
 		max    = 5000,
 		step   = 25,
+		section= "chicken_defense_options",
+	},
+	{
+		key    = "chicken_spawncountmult",
+		name   = "Chicken Spawn Multiplier",
+		desc   = "How many times more chickens spawn than normal.",
+		type   = "number",
+		def    = 1,
+		min    = 1,
+		max    = 20,
+		step   = 1,
 		section= "chicken_defense_options",
 	},
 	{
@@ -589,11 +607,66 @@ local options={
 		section= "chicken_defense_custom_settings",
 	},
 	]]
+	
+	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	-- TeamColoring
+	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	
+	{
+		key		= "teamcoloring_options",
+		name	= "TeamColors",
+		desc	= "TeamColors",
+		type	= "section",
+	},
+	{
+		key    = 'teamcolors_dynamic',
+		name   = 'Dynamic TeamColors',
+		desc   = 'Player team is always blue',
+		type   = 'list',
+		section = 'teamcoloring_options',
+		def  = "disabled",
+		items={
+			{key="enabled", name="Enabled", desc="description"},
+			{key="disabled", name="Disabled", desc="description"},
+		}
+	},
+	{
+		key    = 'teamcolors_anonymous_mode',
+		name   = 'Anonymous Mode',
+		desc   = 'All your enemies are colored with the same color so you cannot recognize them. Forces Dynamic TeamColors to be enabled',
+		type   = 'list',
+		section = 'teamcoloring_options',
+		def  = "disabled",
+		items={
+			{key="enabled", name="Enabled", desc="description"},
+			{key="disabled", name="Disabled", desc="description"},
+		}
+	},
+	{
+		key    = 'teamcolors_icon_dev_mode',
+		name   = "Icon Dev Mode (Don't use in normal games)",
+		desc   = 'Forces teamcolors to be an specific one, for all teams',
+		type   = 'list',
+		section = 'teamcoloring_options',
+		def  = "disabled",
+		items={
+			{key="disabled", name="Disabled", desc="description"},
+			{key="armblue", name="Armada Blue", desc="description"},
+			{key="corred", name="Cortex Red", desc="description"},
+			{key="scavpurp", name="Scavenger Purple", desc="description"},
+			{key="chickenorange", name="Chicken Orange", desc="description"},
+			{key="gaiagray", name="Gaia Gray", desc="description"},
+		}
+	},
+	
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	-- Other Options
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	
 	{
 		key		= "options",
 		name	= "Other",
@@ -624,17 +697,17 @@ local options={
 			{key="disabled", name="Disabled", desc="description"},
 		}
 	},
-	{
-		key    = 'critters',
-		name   = 'Animal amount',
-		desc   = 'This multiplier will be applied on the amount of critters a map will end up with',
-		type   = 'number',
-		section= 'options',
-		def    = 1,
-		min    = 0,
-		max    = 2,
-		step   = 0.2,
-	},
+	-- {
+	-- 	key    = 'critters',
+	-- 	name   = 'Animal amount',
+	-- 	desc   = 'This multiplier will be applied on the amount of critters a map will end up with',
+	-- 	type   = 'number',
+	-- 	section= 'options',
+	-- 	def    = 1,
+	-- 	min    = 0,
+	-- 	max    = 2,
+	-- 	step   = 0.2,
+	-- },
 	{
 		key="deathmode",
 		name="Game End Mode",
@@ -648,18 +721,18 @@ local options={
 			{key="killall", name="Kill everything", desc="Every last unit must be eliminated, no exceptions!"},
 		}
 	},
-	{
-		key="map_terraintype",
-		name="Map TerrainTypes",
-		desc="Allows to cancel the TerrainType movespeed buffs of a map.",
-		type="list",
-		def="enabled",
-		section="options",
-		items={
-			{key="disabled", name="Disabled", desc="Disable TerrainTypes related MoveSpeed Buffs"},
-			{key="enabled", name="Enabled", desc="Enable TerrainTypes related MoveSpeed Buffs"},
-		}
-	},
+	-- {
+	-- 	key="map_terraintype",
+	-- 	name="Map TerrainTypes",
+	-- 	desc="Allows to cancel the TerrainType movespeed buffs of a map.",
+	-- 	type="list",
+	-- 	def="enabled",
+	-- 	section="options",
+	-- 	items={
+	-- 		{key="disabled", name="Disabled", desc="Disable TerrainTypes related MoveSpeed Buffs"},
+	-- 		{key="enabled", name="Enabled", desc="Enable TerrainTypes related MoveSpeed Buffs"},
+	-- 	}
+	-- },
 	{
 		key="map_waterlevel",
 		name="Water Level",
@@ -671,22 +744,23 @@ local options={
 		step   = 1,
 		section="options",
 	},
-	{
-		key    = "ffa_mode",
-		name   = "FFA Mode",
-		desc   = "Units with no player control are removed/destroyed \nUse FFA spawning mode",
-		type   = "bool",
-		def    = false,
-		section= "options",
-	},
-	{
-		key    = 'coop',
-		name   = 'Cooperative mode',
-		desc   = 'Adds extra commanders to id-sharing teams, 1 com per player',
-		type   = 'bool',
-		def    = false,
-		section= 'options',
-	},
+	-- {
+	-- 	key    = "ffa_mode",
+	-- 	name   = "FFA Mode",
+	-- 	desc   = "Units with no player control are removed/destroyed \nUse FFA spawning mode",
+	-- 	type   = "bool",
+	-- 	def    = false,
+	-- 	section= "options",
+	-- },
+  
+	 {
+	 	key    = 'coop',
+	 	name   = 'Cooperative mode',
+	 	desc   = 'Adds extra commanders to id-sharing teams, 1 com per player',
+	 	type   = 'bool',
+	 	def    = false,
+	 	section= 'options',
+	 },
 	{
 		key    = 'DisableMapDamage',
 		name   = 'Undeformable map',
@@ -695,14 +769,14 @@ local options={
 		def    = false,
 		section= "options",
 	},
-	{
-		key    = "newbie_placer",
-		name   = "Newbie Placer",
-		desc   = "Chooses a startpoint and a random faction for all rank 1 accounts (online only)",
-		type   = "bool",
-		def    = false,
-		section= "options",
-	},
+	-- {
+	-- 	key    = "newbie_placer",
+	-- 	name   = "Newbie Placer",
+	-- 	desc   = "Chooses a startpoint and a random faction for all rank 1 accounts (online only)",
+	-- 	type   = "bool",
+	-- 	def    = false,
+	-- 	section= "options",
+	-- },
 
 
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -732,6 +806,54 @@ local options={
 		}
 	},
 	{
+		key    = 'scoremode_chess',
+		name   = 'Chess Mode',
+		desc   = 'No basebuilding',
+		type   = 'list',
+		section= 'controlvictoryoptions',
+		def  = "enabled",
+		items={
+			{key="enabled", name="Enabled", desc="description"},
+			{key="disabled", name="Disabled", desc="description"},
+		}
+	},
+	{
+		key    = 'scoremode_chess_unbalanced',
+		name   = 'Chess: Unbalanced',
+		desc   = 'Each player gets diffrent set of units',
+		type   = 'list',
+		section= 'controlvictoryoptions',
+		def  = "disabled",
+		items={
+			{key="enabled", name="Enabled", desc="description"},
+			{key="disabled", name="Disabled", desc="description"},
+		}
+	},
+	{
+		key    = 'scoremode_chess_adduptime',
+		name   = 'Chess: Minutes Between New Units Add-up.',
+		desc   = 'Time Between New Units Add-up.',
+		type   = 'number',
+		section= 'controlvictoryoptions',
+		def    = 4,
+		min    = 1,
+		max    = 10,
+		step   = 1,  -- quantization is aligned to the def value
+		-- (step <= 0) means that there is no quantization
+	},
+	{
+		key    = 'scoremode_chess_spawnsperphase',
+		name   = 'Chess: Number of spawns in each phase.',
+		desc   = 'Number of spawns in each phase.',
+		type   = 'number',
+		section= 'controlvictoryoptions',
+		def    = 1,
+		min    = 1,
+		max    = 10,
+		step   = 1,  -- quantization is aligned to the def value
+		-- (step <= 0) means that there is no quantization
+	},
+	{
 		key    = 'limitscore',
 		name   = 'Initial Score',
 		desc   = 'Initial score amount available.',
@@ -750,7 +872,6 @@ local options={
 		section= "controlvictoryoptions",
 		type="list",
 		def="13",
-		section= "controlvictoryoptions",
 		items={
 			{key="7", name="7", desc=""},
 			{key="13", name="13", desc=""},
@@ -913,19 +1034,19 @@ local options={
 		type	= "section",
 	},
 
-	{
-		key    = 'experimentalnoaircollisions',
-		name   = 'Aircraft Collisions Override',
-		desc   = 'Aircraft Collisions Override',
-		type   = 'list',
-		section = 'options_experimental',
-		def  = "unchanged",
-		items={
-			{key="unchanged", name="Unchanged", desc="Unchanged"},
-			{key="disabled", name="Force Disabled", desc="Collisions Disabled"},
-			{key="enabled", name="Force Enabled", desc="Collisions Enabled"},
-		}
-	},
+	-- {
+	-- 	key    = 'experimentalnoaircollisions',
+	-- 	name   = 'Aircraft Collisions Override',
+	-- 	desc   = 'Aircraft Collisions Override',
+	-- 	type   = 'list',
+	-- 	section = 'options_experimental',
+	-- 	def  = "unchanged",
+	-- 	items={
+	-- 		{key="unchanged", name="Unchanged", desc="Unchanged"},
+	-- 		{key="disabled", name="Force Disabled", desc="Collisions Disabled"},
+	-- 		{key="enabled", name="Force Enabled", desc="Collisions Enabled"},
+	-- 	}
+	-- },
 
 	{
 		key    = 'experimentalshields',
@@ -955,30 +1076,30 @@ local options={
 	},
 
 
-	{
-		key    = 'experimentalxpgain',
-		name   = 'XP Gain Multiplier',
-		desc   = 'XP Gain Multiplier',
-		type   ="number",
-		section = 'options_experimental',
-		def    = 1,
-		min    = 0.1,
-		max    = 10,
-		step   = 0.1,
-	},
+	-- {
+	-- 	key    = 'experimentalxpgain',
+	-- 	name   = 'XP Gain Multiplier',
+	-- 	desc   = 'XP Gain Multiplier',
+	-- 	type   ="number",
+	-- 	section = 'options_experimental',
+	-- 	def    = 1,
+	-- 	min    = 0.1,
+	-- 	max    = 10,
+	-- 	step   = 0.1,
+	-- },
 
-	{
-		key    = 'experimentalxpsystem',
-		name   = 'New XP System',
-		desc   = 'New XP System',
-		type   = 'list',
-		section = 'options_experimental',
-		def  = "disabled",
-		items={
-			{key="disabled", name="Disabled", desc="Using old XP system"},
-			{key="enabled", name="Enabled", desc="Using new XP system"},
-		}
-	},
+	-- {
+	-- 	key    = 'experimentalxpsystem',
+	-- 	name   = 'New XP System',
+	-- 	desc   = 'New XP System',
+	-- 	type   = 'list',
+	-- 	section = 'options_experimental',
+	-- 	def  = "disabled",
+	-- 	items={
+	-- 		{key="disabled", name="Disabled", desc="Using old XP system"},
+	-- 		{key="enabled", name="Enabled", desc="Using new XP system"},
+	-- 	}
+	-- },
 	--[[
 	{
 		key    = 'experimentalbuildrange',
@@ -1042,9 +1163,9 @@ local options={
 	},
 
 	{
-		key    = 'experimentalimprovedtransports',
-		name   = 'Transport Units Rework',
-		desc   = 'Transport Units Rework',
+		key    = 'experimentalmorphs',
+		name   = 'Upgradeable Units',
+		desc   = 'Upgradeable Units',
 		type   = 'list',
 		section = 'options_experimental',
 		def  = "disabled",
@@ -1054,31 +1175,44 @@ local options={
 		}
 	},
 
-	{
-		key    = 'mapatmospherics',
-		name   = 'Map Atmospherics',
-		desc   = 'Map Atmospherics',
-		type   = 'list',
-		section = 'options_experimental',
-		def  = "enabled",
-		items={
-			{key="disabled", name="Disabled", desc="Disabled"},
-			{key="enabled", name="Enabled", desc="Enabled"},
-		}
-	},
+	-- {
+	-- 	key    = 'experimentalimprovedtransports',
+	-- 	name   = 'Transport Units Rework',
+	-- 	desc   = 'Transport Units Rework',
+	-- 	type   = 'list',
+	-- 	section = 'options_experimental',
+	-- 	def  = "disabled",
+	-- 	items={
+	-- 		{key="disabled", name="Disabled", desc="Disabled"},
+	-- 		{key="enabled", name="Enabled", desc="Enabled"},
+	-- 	}
+	-- },
 
-	{
-		key    = 'experimentalmassoverride',
-		name   = 'Mass Override',
-		desc   = 'Mass Override',
-		type   = 'list',
-		section = 'options_experimental',
-		def  = "disabled",
-		items={
-			{key="disabled", name="Disabled", desc="Disabled"},
-			{key="enabled", name="Enabled", desc="Enabled"},
-		}
-	},
+	-- {
+	-- 	key    = 'mapatmospherics',
+	-- 	name   = 'Map Atmospherics',
+	-- 	desc   = 'Map Atmospherics',
+	-- 	type   = 'list',
+	-- 	section = 'options_experimental',
+	-- 	def  = "enabled",
+	-- 	items={
+	-- 		{key="disabled", name="Disabled", desc="Disabled"},
+	-- 		{key="enabled", name="Enabled", desc="Enabled"},
+	-- 	}
+	-- },
+
+	-- {
+	-- 	key    = 'experimentalmassoverride',
+	-- 	name   = 'Mass Override',
+	-- 	desc   = 'Mass Override',
+	-- 	type   = 'list',
+	-- 	section = 'options_experimental',
+	-- 	def  = "disabled",
+	-- 	items={
+	-- 		{key="disabled", name="Disabled", desc="Disabled"},
+	-- 		{key="enabled", name="Enabled", desc="Enabled"},
+	-- 	}
+	-- },
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	-- Unused Options

@@ -26,7 +26,7 @@ local maxLines = 4
 local maxLinesScroll = 10
 local lineTTL = 15
 local fadeTime = 0.3
-local fadeDelay = 0.22   -- need to hover this long in order to fadein and respond to CTRL
+local fadeDelay = 0.25   -- need to hover this long in order to fadein and respond to CTRL
 local backgroundOpacity = 0.18
 
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale",1) or 1)
@@ -50,8 +50,7 @@ local lineMaxWidth = 0
 
 local font, chobbyInterface, hovering, startFadeTime
 
-local RectRound = Spring.FlowUI.Draw.RectRound
-local elementCorner = Spring.FlowUI.elementCorner
+local RectRound, elementCorner
 
 local hideSpecChat = tonumber(Spring.GetConfigInt("HideSpecChat", 0) or 0) == 1
 
@@ -73,7 +72,9 @@ function widget:ViewResize()
 	widgetScale = (((vsx+vsy) / 2000) * 0.55) * (0.95+(ui_scale-1)/1.5)
 	lineMaxWidth = lineMaxWidth * widgetScale
 
-	elementCorner = Spring.FlowUI.elementCorner
+	elementCorner = WG.FlowUI.elementCorner
+
+	RectRound = WG.FlowUI.Draw.RectRound
 
 	font = WG['fonts'].getFont(nil, 1, 0.18, 1.4)
 
@@ -86,7 +87,7 @@ function widget:ViewResize()
 
 	activationArea = {
 		(vsx * 0.31)-(charSize*widgetScale), (vsy * posY)+(charSize*0.15*widgetScale),
-		(vsx * 0.6), (vsy * (posY+0.077))
+		(vsx * 0.6), (vsy * (posY+0.065))
 	}
 	lineMaxWidth = math.max(lineMaxWidth, activationArea[3] - activationArea[1])
 	activatedHeight = (1+maxLinesScroll)*charSize*1.15*widgetScale
@@ -191,7 +192,7 @@ function widget:Update(dt)
 		scrolling = false
 	elseif isOnRect(x, y, activationArea[1], activationArea[2], activationArea[3], activationArea[4]) then
 		local alt, ctrl, meta, shift = Spring.GetModKeyState()
-		if ctrl and startFadeTime and os.clock() > startFadeTime+fadeDelay then
+		if ctrl and shift and startFadeTime and os.clock() > startFadeTime+fadeDelay then
 			scrolling = true
 		end
 	elseif scrolling and isOnRect(x, y, activationArea[1], activationArea[2], activationArea[1]+lineMaxWidth+(charSize*2*widgetScale), activationArea[2]+activatedHeight) then

@@ -1,15 +1,13 @@
 -------------------------------------------------------------------------------------
--------------------------------------------------------------------------------------
 --
--- A collection of some useful functions
+-- DO NOT LOAD ANY GLOBAL UTILITIES HERE!
 --
--------------------------------------------------------------------------------------
+-- Load utility files whose functionality is applicable to gadgets ONLY
+-- Utility files with global functionality should go in /common/Utilities/
+-- 
 -------------------------------------------------------------------------------------
 
-Spring.Utilities = Spring.Utilities or {}
-
-local SCRIPT_DIR = Script.GetName() .. '/'
-local utilFiles = VFS.DirList(SCRIPT_DIR .. 'Utilities/', "*.lua")
-for i=1,#utilFiles do
-  VFS.Include(utilFiles[i])
+local utilitiesFiles = VFS.DirList('luarules/Utilities/', "*.lua")
+for i = 1, #utilitiesFiles do
+  VFS.Include(utilitiesFiles[i])
 end

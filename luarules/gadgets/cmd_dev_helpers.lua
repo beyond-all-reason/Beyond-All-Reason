@@ -105,8 +105,14 @@ if gadgetHandler:IsSyncedCode() then
 		end
 		if words[1] == "givecat" then
 			GiveCat(words)
-		elseif words[1] == "destroyselunits" then
-			DestroySelUnits(words, playerID)
+		elseif words[1] == "destroyunits" then
+			ExecuteSelUnits(words, playerID)
+		elseif words[1] == "removeunits" then
+			ExecuteSelUnits(words, playerID, 'remove')
+		elseif words[1] == "reclaimunits" then
+			ExecuteSelUnits(words, playerID, 'reclaim')
+		elseif words[1] == "wreckunits" then
+			ExecuteSelUnits(words, playerID, 'wreck')
 		elseif words[1] == "spawnceg" then
 			spawnceg(words)
 		end
@@ -146,16 +152,33 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	function DestroySelUnits(words, playerID)
-
+	function ExecuteSelUnits(words, playerID, action)
 		if #words < 2 then
 			return
 		end
-
 		for n = 2, #words do
 			local unitID = tonumber(words[n])
 			local h, mh = Spring.GetUnitHealth(unitID)
-			Spring.DestroyUnit(unitID)
+			if not action then
+				Spring.DestroyUnit(unitID)
+			elseif action == 'remove' then
+				Spring.DestroyUnit(unitID, false, true, Spring.GetGaiaTeamID())
+			elseif action == 'reclaim' then
+				local teamID = Spring.GetUnitTeam(unitID)
+				local unitDefID = Spring.GetUnitDefID(unitID)
+				Spring.DestroyUnit(unitID, false, true, teamID)		-- this doesnt give back resources in itself
+				Spring.AddTeamResource(teamID, 'metal', UnitDefs[unitDefID].metalCost)
+				Spring.AddTeamResource(teamID, 'energy', UnitDefs[unitDefID].energyCost)
+			elseif action == 'wreck' then
+				local unitDefID = Spring.GetUnitDefID(unitID)
+				local x, y, z = Spring.GetUnitPosition(unitID)
+				local heading = Spring.GetUnitHeading(unitID)
+				local unitTeam = Spring.GetUnitTeam(unitID)
+				Spring.DestroyUnit(unitID, false, true, Spring.GetGaiaTeamID())
+				if UnitDefs[unitDefID].wreckName and FeatureDefNames[UnitDefs[unitDefID].wreckName] then
+					Spring.CreateFeature(FeatureDefNames[UnitDefs[unitDefID].wreckName].id, x, y, z, heading, unitTeam)
+				end
+			end
 		end
 	end
 
@@ -164,7 +187,8 @@ if gadgetHandler:IsSyncedCode() then
 		Spring.SpawnCEG(words[2], --cegname
 			tonumber(words[3]), tonumber(words[4]), tonumber(words[5]), --pos
 			0, 0, 0, --dir
-			0) --radius
+			0 --radius
+		)
 	end
 
 
@@ -176,23 +200,40 @@ else
 
 	function gadget:Initialize()
 		gadgetHandler:AddChatAction('givecat', GiveCat, "")   -- doing it via GotChatMsg ensures it will only listen to the caller
-		gadgetHandler:AddChatAction('destroyselunits', MakeWreck, "")  -- doing it via GotChatMsg ensures it will only listen to the caller
+		gadgetHandler:AddChatAction('destroyunits', destroyUnits, "")  -- doing it via GotChatMsg ensures it will only listen to the caller
+		gadgetHandler:AddChatAction('wreckunits', wreckUnits, "")  -- doing it via GotChatMsg ensures it will only listen to the caller
+		gadgetHandler:AddChatAction('reclaimunits', reclaimUnits, "")  -- doing it via GotChatMsg ensures it will only listen to the caller
+		gadgetHandler:AddChatAction('removeunits', removeUnits, "")  -- doing it via GotChatMsg ensures it will only listen to the caller
 		gadgetHandler:AddChatAction('spawnceg', spawnceg, "")
 	end
 
 	function gadget:Shutdown()
 		gadgetHandler:RemoveChatAction('givecat')
-		gadgetHandler:RemoveChatAction('destroyselunits')
+		gadgetHandler:RemoveChatAction('destroyunits')
+		gadgetHandler:RemoveChatAction('reclaimunits')
+		gadgetHandler:RemoveChatAction('removeunits')
 		gadgetHandler:RemoveChatAction('spawnceg')
 	end
 
-	function MakeWreck (_, line, words, playerID)
+	function destroyUnits(_, line, words, playerID)
+		processUnits(_, line, words, playerID, 'destroyunits')
+	end
+	function wreckUnits(_, line, words, playerID)
+		processUnits(_, line, words, playerID, 'wreckunits')
+	end
+	function reclaimUnits(_, line, words, playerID)
+		processUnits(_, line, words, playerID, 'reclaimunits')
+	end
+	function removeUnits(_, line, words, playerID)
+		processUnits(_, line, words, playerID, 'removeunits')
+	end
+
+	function processUnits(_, line, words, playerID, action)
 		if not isAuthorized(Spring.GetMyPlayerID()) then
 			return
 		end
-
 		local selUnits = Spring.GetSelectedUnits()
-		local msg = "destroyselunits"
+		local msg = action
 		for _, unitID in ipairs(selUnits) do
 			msg = msg .. " " .. tostring(unitID)
 		end

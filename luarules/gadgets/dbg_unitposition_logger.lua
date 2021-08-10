@@ -6,9 +6,14 @@ function gadget:GetInfo()
 		date = "February 2021",
 		license = "GNU GPL, v2 or later",
 		layer = -math.huge,
-		enabled = true,
+		enabled = false,
 	}
 end
+
+--[[
+	disabled cause there is missing data, presumingly because or rejoining specs and whatnot.
+]]
+
 
 --[[
 	this gadget logs unit positions at intervals within the replay
@@ -55,16 +60,7 @@ if not gadgetHandler:IsSyncedCode() then
 	local math_ceil = math.ceil
 	local myPlayerID = Spring.GetMyPlayerID()
 
-	local numPlayers = 0
-	local teams = Spring.GetTeamList()
-	for i = 1, #teams do
-		local _, _, _, isAiTeam = Spring.GetTeamInfo(teams[i], false)
-		local luaAI = Spring.GetTeamLuaAI(teams[i])
-		if (not luaAI or luaAI == '') and not isAiTeam and teams[i] ~= Spring.GetGaiaTeamID() then
-			numPlayers = numPlayers + 1
-		end
-	end
-	local isSinglePlayer = numPlayers == 1
+	local isSinglePlayer = Spring.Utilities.Gametype.IsSinglePlayer()
 
 	local allUnits = {}
 	local allUnitsTotal = 0

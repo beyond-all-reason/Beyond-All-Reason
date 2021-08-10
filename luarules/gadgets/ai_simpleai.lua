@@ -293,7 +293,7 @@ local function SimpleConstructionProjectSelection(unitID, unitDefID, unitName, u
 							break
 						end
 					end
-				elseif mexspotpos then
+				elseif mexspotpos and type ~= "Commander" then
 					local project = SimpleExtractorDefs[math.random(1, #SimpleExtractorDefs)]
 					for i2 = 1,#buildOptions do
 						if buildOptions[i2] == project then
@@ -359,7 +359,6 @@ local function SimpleConstructionProjectSelection(unitID, unitDefID, unitName, u
 							break
 						end
 					end
-					
 				end
 			elseif r == 2 or r == 3 or r == 4 or r == 5 then
 				local project = SimpleTurretDefs[math.random(1, #SimpleTurretDefs)]
@@ -610,8 +609,10 @@ if gadgetHandler:IsSyncedCode() then
 											Spring.GiveOrderToUnit(unitID, CMD.FIGHT, { tUnitX + math.random(-100, 100), tUnitY, tUnitZ + math.random(-100, 100) }, { "shift", "alt", "ctrl" })
 										elseif n%3600 <= 15*SimpleAITeamIDsCount then
 											local targetUnit = Spring.GetUnitNearestEnemy(unitID, 999999, false)
-											local tUnitX, tUnitY, tUnitZ = Spring.GetUnitPosition(targetUnit)
-											Spring.GiveOrderToUnit(unitID, CMD.FIGHT, { tUnitX + math.random(-100, 100), tUnitY, tUnitZ + math.random(-100, 100) }, { "shift", "alt", "ctrl" })
+											if targetUnit then
+												local tUnitX, tUnitY, tUnitZ = Spring.GetUnitPosition(targetUnit)
+												Spring.GiveOrderToUnit(unitID, CMD.FIGHT, { tUnitX + math.random(-100, 100), tUnitY, tUnitZ + math.random(-100, 100) }, { "shift", "alt", "ctrl" })
+											end
 										end
 										break
 									end

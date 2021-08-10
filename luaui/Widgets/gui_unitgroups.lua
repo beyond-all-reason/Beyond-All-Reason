@@ -18,7 +18,7 @@ local iconSizeMult = 0.98
 local highlightSelectedGroups = true
 local playSounds = true
 local soundVolume = 0.5
-local setHeight = 0.048
+local setHeight = 0.046
 
 local leftclick = 'LuaUI/Sounds/buildbar_add.wav'
 local rightclick = 'LuaUI/Sounds/buildbar_click.wav'
@@ -28,13 +28,7 @@ local fontFile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.
 
 local spec = Spring.GetSpectatingState()
 
-local widgetSpaceMargin = Spring.FlowUI.elementMargin
-local backgroundPadding = Spring.FlowUI.elementPadding
-local elementCorner = Spring.FlowUI.elementCorner
-local RectRound = Spring.FlowUI.Draw.RectRound
-local UiElement = Spring.FlowUI.Draw.Element
-local UiButton = Spring.FlowUI.Draw.Button
-local UiUnit = Spring.FlowUI.Draw.Unit
+local widgetSpaceMargin, backgroundPadding, elementCorner, RectRound, UiElement, UiButton, UiUnit
 
 local spGetGroupList = Spring.GetGroupList
 local spGetGroupUnitsCounts = Spring.GetGroupUnitsCounts
@@ -82,9 +76,14 @@ function widget:ViewResize()
 	font2 = WG['fonts'].getFont(nil, 1.3, 0.35, 1.4)
 	font = WG['fonts'].getFont(fontFile, 1.15, 0.35, 1.25)
 
-	elementCorner = Spring.FlowUI.elementCorner
-	backgroundPadding = Spring.FlowUI.elementPadding
-	widgetSpaceMargin = Spring.FlowUI.elementMargin
+	elementCorner = WG.FlowUI.elementCorner
+	backgroundPadding = WG.FlowUI.elementPadding
+	widgetSpaceMargin = WG.FlowUI.elementMargin
+
+	RectRound = WG.FlowUI.Draw.RectRound
+	UiElement = WG.FlowUI.Draw.Element
+	UiButton = WG.FlowUI.Draw.Button
+	UiUnit = WG.FlowUI.Draw.Unit
 
 	if WG['buildmenu'] then
 		buildmenuBottomPosition = WG['buildmenu'].getBottomPosition()

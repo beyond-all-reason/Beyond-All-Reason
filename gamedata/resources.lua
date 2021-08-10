@@ -16,6 +16,7 @@ local resources = {
          },
          projectiletextures = {
             circularthingy		= 'default/circularthingy.tga',
+            gfxtexture        = 'projectiletextures/nanopart.tga',
             laserend			    = 'default/laserend.tga',
             laserfalloff	   	= 'default/laserfalloff.tga',
             randdots			    = 'default/randdots.tga',

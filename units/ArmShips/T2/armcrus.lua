@@ -232,14 +232,6 @@ return {
 			},
 			[2] = {
 				def = "LASER",
-				maindir = "0 0 -1",
-				maxangledif = 285,
-				onlytargetcategory = "NOTSUB",
-			},
-			[3] = {
-				def = "LASER",
-				maindir = "0 0 1",
-				maxangledif = 285,
 				onlytargetcategory = "NOTSUB",
 			},
 			[4] = {

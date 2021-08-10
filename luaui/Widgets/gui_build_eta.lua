@@ -20,13 +20,22 @@ local spGetSpectatingState = Spring.GetSpectatingState
 local spec, fullview = spGetSpectatingState()
 local myAllyTeam = Spring.GetMyAllyTeamID()
 
-local gl = gl  --  use a local copy for faster access
-local Spring = Spring
+local glColor = gl.Color
+local glDepthTest = gl.DepthTest
+local glDrawFuncAtUnit = gl.DrawFuncAtUnit
+local glBillboard = gl.Billboard
+local glTranslate = gl.Translate
 
 local font, chobbyInterface
 
 local etaTable = {}
 local etaMaxDist = 750000 -- max dist at which to draw ETA
+
+local unitHeight = {}
+for udid, unitDef in pairs(UnitDefs) do
+	unitHeight[udid] = unitDef.height
+end
+
 
 function widget:ViewResize()
 	font = WG['fonts'].getFont(nil, 1, 0.2, 1.3)
@@ -37,7 +46,7 @@ local function makeETA(unitID, unitDefID)
 		return nil
 	end
 	local _, _, _, _, buildProgress = spGetUnitHealth(unitID)
-	if buildProgress == nil then
+	if buildProgress == nil or buildProgress >= 1  then
 		return nil
 	end
 
@@ -47,7 +56,7 @@ local function makeETA(unitID, unitDefID)
 		lastProg = buildProgress,
 		rate = nil,
 		timeLeft = nil,
-		yoffset = UnitDefs[unitDefID].height + 14
+		yoffset = unitHeight[unitDefID] + 14
 	}
 end
 
@@ -56,7 +65,6 @@ local function init()
 	local units = Spring.GetAllUnits()
 	for i=1, #units do
 		local unitID = units[i]
-
 		if fullview or spGetUnitAllyTeam(unitID) == myAllyTeam then
 			etaTable[unitID] = makeETA(unitID, Spring.GetUnitDefID(unitID))
 		end
@@ -156,7 +164,7 @@ function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
 	etaTable[unitID] = nil
 end
 
-function widgetHandler:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
+function widget:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
 	etaTable[unitID] = nil
 end
 
@@ -175,9 +183,9 @@ local function drawEtaText(timeLeft, yoffset)
 		etaText = etaPrefix .. string.format("\255\1\255\1%02d:%02d", minutes, seconds)
 	end
 
-	gl.Translate(0, yoffset, 10)
-	gl.Billboard()
-	gl.Translate(0, 5, 0)
+	glTranslate(0, yoffset, 10)
+	glBillboard()
+	glTranslate(0, 5, 0)
 	font:Begin()
 	font:Print(etaText, 0, 0, 5.75, "co")
 	font:End()
@@ -194,9 +202,9 @@ function widget:DrawWorld()
 		return
 	end
 	if Spring.IsGUIHidden() == false then
-		gl.DepthTest(true)
+		glDepthTest(true)
 
-		gl.Color(1, 1, 1, 0.1)
+		glColor(1, 1, 1, 0.1)
 		local cx, cy, cz = Spring.GetCameraPosition()
 		for unitID, bi in pairs(etaTable) do
 			local ux, uy, uz = spGetUnitViewPosition(unitID)
@@ -204,12 +212,12 @@ function widget:DrawWorld()
 				local dx, dy, dz = ux - cx, uy - cy, uz - cz
 				local dist = dx * dx + dy * dy + dz * dz
 				if dist < etaMaxDist then
-					gl.DrawFuncAtUnit(unitID, false, drawEtaText, bi.timeLeft, bi.yoffset)
+					glDrawFuncAtUnit(unitID, false, drawEtaText, bi.timeLeft, bi.yoffset)
 				end
 			end
 		end
 
-		gl.Color(1, 1, 1, 1)
-		gl.DepthTest(false)
+		glColor(1, 1, 1, 1)
+		glDepthTest(false)
 	end
 end

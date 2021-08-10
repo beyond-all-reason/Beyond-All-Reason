@@ -10,7 +10,7 @@ return {
 		buildinggrounddecaldecayspeed = 30,
 		buildinggrounddecalsizex = 6,
 		buildinggrounddecalsizey = 6,
-		buildinggrounddecaltype = "decals/armdf_aoplane.dds",
+		buildinggrounddecaltype = "decals/armfus_aoplane.dds",
 		buildpic = "ARMDF.PNG",
 		buildtime = 7500,
 		canrepeat = false,

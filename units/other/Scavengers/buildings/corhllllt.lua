@@ -11,7 +11,7 @@ return {
 		buildinggrounddecalsizex = 4,
 		buildinggrounddecalsizey = 4,
 		buildinggrounddecaltype = "decals/corhllt_aoplane.dds",
-		buildpic = "CORHLLT.PNG",
+		buildpic = "CORHLLLLT.PNG",
 		buildtime = 5448,
 		canrepeat = false,
 		cantbetransported = false,
@@ -45,6 +45,7 @@ return {
 			normaltex = "unittextures/cor_normal.dds",
 			removewait = true,
 			subfolder = "corbuildings/landdefenceoffence",
+			techlevel = 2,
 		},
 		featuredefs = {
 			dead = {

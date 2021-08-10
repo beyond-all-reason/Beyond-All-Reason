@@ -58,6 +58,7 @@ return {
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armbots/t2",
 			techlevel = 2,
+			paralyzemultiplier = 0.002,
 		},
 		featuredefs = {
 			dead = {

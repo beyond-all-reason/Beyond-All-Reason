@@ -11,12 +11,13 @@
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
+VFS.Include('init.lua')
+
 --function pwl() -- ???  (print widget list)
 --  for k,v in ipairs(widgetHandler.widgets) do
 --    print(k, v.whInfo.layer, v.whInfo.name)
 --  end
 --end
-
 
 include("keysym.h.lua")
 include("utils.lua")
@@ -24,11 +25,6 @@ include("system.lua")
 include("callins.lua")
 include("savetable.lua")
 
-Spring.Utilities = {}
-VFS.Include("LuaRules/Utilities/tablefunctions.lua")
-VFS.Include("modules/flowui/flowui.lua")
-VFS.Include("modules/i18n/i18n.lua")
-VFS.Include(LUAUI_DIRNAME .. 'utilities.lua', nil, VFSMODE)
 
 local gl = gl
 
@@ -1147,9 +1143,6 @@ function widgetHandler:Update()
 	local deltaTime = Spring.GetLastUpdateSeconds()
 	-- update the hour timer
 	hourTimer = (hourTimer + deltaTime) % 3600.0
-	if Spring.FlowUI then
-		Spring.FlowUI.Update(deltaTime)
-	end
 	for _, w in ipairs(self.UpdateList) do
 		w:Update(deltaTime)
 	end
@@ -1259,8 +1252,8 @@ function widgetHandler:ViewResize(vsx, vsy)
 		vsx = vsx.viewSizeX
 		print('real ViewResize') -- FIXME
 	end
-	if Spring.FlowUI then
-		Spring.FlowUI.ViewResize(vsx, vsy)
+	if widgetHandler.WG.FlowUI then
+		widgetHandler.WG.FlowUI.Callin.ViewResize1(vsx, vsy)
 	end
 	for _, w in ipairs(self.ViewResizeList) do
 		w:ViewResize(vsx, vsy)
@@ -1276,9 +1269,6 @@ function widgetHandler:DrawScreen()
 			{ v = { 0, 0 } }, { v = { sx, 0 } }, { v = { sx, sy } }, { v = { 0, sy } }
 		})
 		gl.Color(1, 1, 1)
-	end
-	if Spring.FlowUI then
-		Spring.FlowUI.DrawScreen()
 	end
 	for _, w in r_ipairs(self.DrawScreenList) do
 		w:DrawScreen()
@@ -1737,7 +1727,7 @@ end
 
 function widgetHandler:SelectionChanged(selectedUnits, subselection)
 	for _, w in ipairs(self.SelectionChangedList) do
-		if widgetHandler.WG['smartselect'] and not widgetHandler.WG['smartselect'].updateSelection then
+		if widgetHandler.WG.smartselect and not widgetHandler.WG.smartselect.updateSelection then
 			return
 		end
 		local unitArray = w:SelectionChanged(selectedUnits, subselection)

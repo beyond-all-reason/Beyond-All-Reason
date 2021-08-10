@@ -12,6 +12,7 @@ return {
 					keys = 'Keys',
 					scavengers = 'Scavengers',
 					stats = 'Statistics',
+					save = 'Save',
 				},
 				quit = {
 					quit = 'Quit',
@@ -52,10 +53,12 @@ return {
 			},
 			playersList = {
 				spectators = 'Spectators %{amount}',
-				enemies = 'Enemies',
+				enemies = 'Enemies %{amount}',
 				allies = 'Allies',
 				hideSpecs = 'Click to hide spectators',
 				showSpecs = 'Click to show spectators',
+				hideEnemies = 'Click to hide enemies',
+				showEnemies = 'Click to show enemies',
 				trackPlayer = 'Double-click player name to track',
 				takeUnits = 'Click to take abandoned units',
 				requestSupport = 'Double-click to ask for support',
@@ -411,6 +414,7 @@ return {
 			chat = {
 				ignored = 'ignored',
 				scroll = '%{textColor}Press %{highlightColor}CTRL %{textColor}+ %{highlightColor}SHIFT %{textColor}to activate chatlog viewing/scrolling',
+				shortcut = 'CTRL + SHIFT',
 			},
 			teamStats = {
 				player = 'Player',
@@ -541,12 +545,12 @@ return {
 				awards = 'Awards',
 				score = 'Score',
 				resourcesProduced = '%{playerColor}%{player}%{textColor} produced the most resources (%{score}).',
-				notAwarded = 'not awarded',
-				unknown = 'unknown',
-				coop = 'co-op',
+				notAwarded = '(not awarded)',
+				unknown = '(unknown)',
+				coop = '%{name} (co-op)',
 				damageTaken = '%{playerColor}%{player}%{textColor} took the most damage (%{score}).',
 				sleptLongest = '%{playerColor}%{player}%{textColor} slept longest, for %{score} minutes.',
-				runnersUp = 'Runners up',
+				runnersUp = 'Runners up:',
 				leave = 'Leave',
 				showGraphs = 'Show Graphs',
 				resourcesDestroyed = 'Destroying enemy resource production',
@@ -568,11 +572,31 @@ return {
 				unit = '*%{unit}'
 			},
 			messages = {
-				scroll = '%{textColor}Press %{highlightColor}CTRL %{textColor}to activate chatlog viewing/scrolling',
+				scroll = '%{textColor}Press %{highlightColor}CTRL+SHIFT %{textColor}to activate chatlog viewing/scrolling',
 			},
 			mapDrawBlocker = {
 				block = 'Ignoring map drawing from %{player}',
 				unblock = 'Showing map drawing from %{player}',
+			},
+			dynamicAlly = {
+				create = '%{player} has allied with you.',
+				destroy = '%{player} broke their alliance with you.',
+				backstab = '%{player} attempted to attack you!',
+			},
+			idlePlayers = {
+				shareAFK = 'Cannot share to afk players',
+				takeEnemies = 'Cannot take enemy players',
+				nothingToTake = 'Nothing to take',
+				lagging = '%{name} is lagging behind',
+				resumed = '%{name} has finished resuming',
+				afk = '%{name} went AFK',
+				returned = '%{name} came back',
+			},
+			ffaNoOwner = {
+				removed = "No Owner Mode: Removing Team %{team}",
+				destroyed = "No Owner Mode: Destroying Team %{team}",
+				disconnected = "No Owner Mode: Team %{team} has %{gracePeriod} minute(s) to reconnect",
+				reconnected= "No Owner Mode: Team %{team} reconnected",
 			},
 		}
 	}

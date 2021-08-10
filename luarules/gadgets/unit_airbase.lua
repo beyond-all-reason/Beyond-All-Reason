@@ -47,6 +47,19 @@ if gadgetHandler:IsSyncedCode() then
 	local math_cos = math.cos
 	local math_huge = math.huge
 	local math_random = math.random
+	local math_min = math.min
+
+	local spGetUnitDefID = Spring.GetUnitDefID
+	local spGetUnitMoveTypeData = Spring.GetUnitMoveTypeData
+	local spGetUnitSeparation = Spring.GetUnitSeparation
+	local spGetUnitHealth = Spring.GetUnitHealth
+	local spGetUnitStates = Spring.GetUnitStates
+	local spGetUnitPosition = Spring.GetUnitPosition
+	local spGetUnitPiecePosDir = Spring.GetUnitPiecePosDir
+	local spValidUnitID = Spring.ValidUnitID
+	local spGetUnitRadius = Spring.GetUnitRadius
+	local spGetUnitRotation = Spring.GetUnitRotation
+	local spGetUnitTeam = Spring.GetUnitTeam
 
 	local CMD_INSERT = CMD.INSERT
 	local CMD_REMOVE = CMD.REMOVE
@@ -113,7 +126,7 @@ if gadgetHandler:IsSyncedCode() then
 		for airbaseID, _ in pairs(airbases) do
 			local pieceNum = CanLandAt(unitID, airbaseID)
 			if pieceNum then
-				local dist = Spring.GetUnitSeparation(unitID, airbaseID)
+				local dist = spGetUnitSeparation(unitID, airbaseID)
 				if dist < minDist then
 					minDist = dist
 					closestAirbaseID = airbaseID
@@ -135,8 +148,8 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		-- check that this airbase is on our team
-		local unitTeamID = Spring.GetUnitTeam(unitID)
-		local airbaseTeamID = Spring.GetUnitTeam(airbaseID)
+		local unitTeamID = spGetUnitTeam(unitID)
+		local airbaseTeamID = spGetUnitTeam(airbaseID)
 		if not unitTeamID or not airbaseTeamID or not Spring.AreTeamsAllied(unitTeamID, airbaseTeamID) then
 			return false
 		end
@@ -219,12 +232,16 @@ if gadgetHandler:IsSyncedCode() then
 
 	function NeedsRepair(unitID)
 		-- check if this unitID (which is assumed to be a plane) would want to land
-		local health, maxHealth, _, _, buildProgress = Spring.GetUnitHealth(unitID)
-		local landAtState = select(3, Spring.GetUnitStates(unitID, false, true, true)) -- autorepairlevel
-		if buildProgress and buildProgress < 1 then
+		local health, maxHealth, _, _, buildProgress = spGetUnitHealth(unitID)
+		if maxHealth then
+			local landAtState = select(3, spGetUnitStates(unitID, false, true, true)) -- autorepairlevel
+			if buildProgress and buildProgress < 1 then
+				return false
+			end
+			return health < maxHealth * landAtState
+		else
 			return false
 		end
-		return health < maxHealth * landAtState
 	end
 
 	function CheckAll()
@@ -245,9 +262,9 @@ if gadgetHandler:IsSyncedCode() then
 		-- if the unit has no orders, tell it to move a little away from the airbase
 		local q = Spring.GetCommandQueue(unitID, 0)
 		if q == 0 then
-			local px, _, pz = Spring.GetUnitPosition(airbaseID)
+			local px, _, pz = spGetUnitPosition(airbaseID)
 			local theta = math_random() * 2 * math_pi
-			local r = 2.5 * Spring.GetUnitRadius(airbaseID)
+			local r = 2.5 * spGetUnitRadius(airbaseID)
 			local tx, tz = px + r * math_sin(theta), pz + r * math_cos(theta)
 			local ty = Spring.GetGroundHeight(tx, tz)
 			--local uDID = Spring.GetUnitDefID(unitID)
@@ -260,10 +277,11 @@ if gadgetHandler:IsSyncedCode() then
 		if resourceFrames <= 0 then
 			return
 		end
-		local airbaseDefID = Spring.GetUnitDefID(airbaseID)
-		local unitDefID = Spring.GetUnitDefID(unitID)
-		local healthGain = (mh * (isAirbase[airbaseDefID][2] / unitBuildtime[unitDefID])) * resourceFrames
-		local newHealth = h + healthGain
+		local airbaseDefID = spGetUnitDefID(airbaseID)
+		local unitDefID = spGetUnitDefID(unitID)
+		--local healthGain = (mh * (isAirbase[airbaseDefID][2] / unitBuildtime[unitDefID])) * resourceFrames
+		local healthGain = (unitBuildtime[unitDefID] / isAirbase[airbaseDefID][2]) / resourceFrames
+		local newHealth = math_min(h + healthGain, mh)
 		if mh < newHealth then
 			newHealth = mh
 		end
@@ -271,7 +289,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function RemoveOrderFromQueue(unitID, cmdID)
-		if not Spring.ValidUnitID(unitID) then
+		if not spValidUnitID(unitID) then
 			return
 		end
 		Spring.GiveOrderToUnit(unitID, CMD_REMOVE, { cmdID }, { "alt" })
@@ -292,7 +310,7 @@ if gadgetHandler:IsSyncedCode() then
 			InsertLandAtAirbaseCommands(unitID)
 		end
 
-		local _, _, _, _, buildProgress = Spring.GetUnitHealth(unitID)
+		local _, _, _, _, buildProgress = spGetUnitHealth(unitID)
 		if buildProgress == 1.0 then
 			gadget:UnitFinished(unitID, unitDefID, unitTeam)
 		end
@@ -446,7 +464,7 @@ if gadgetHandler:IsSyncedCode() then
 		if n % 16 == 0 then
 			for unitID, _ in pairs(pendingLanders) do
 				--Spring.Echo("pending", unitID)
-				local h, mh = Spring.GetUnitHealth(unitID)
+				local h, mh = spGetUnitHealth(unitID)
 				if h == mh then
 					toRemoveCount = toRemoveCount + 1
 					toRemove[toRemoveCount] = unitID
@@ -469,29 +487,33 @@ if gadgetHandler:IsSyncedCode() then
 		-- once 'close enough' snap into pads, then move into landedPlanes
 		if n % 2 == 0 then
 			for unitID, t in pairs(landingPlanes) do
-				--Spring.Echo("landing", unitID)
-				local h, mh = Spring.GetUnitHealth(unitID)
-				if h == mh then
+				if not spValidUnitID(unitID) or spGetUnitMoveTypeData(unitID).aircraftState == "crashing" then
 					toRemoveCount = toRemoveCount + 1
 					toRemove[toRemoveCount] = unitID
-				end
+				else
+					--Spring.Echo("landing", unitID)
+					local h, mh = spGetUnitHealth(unitID)
+					if h == mh then
+						toRemoveCount = toRemoveCount + 1
+						toRemove[toRemoveCount] = unitID
+					end
 
-				local airbaseID, padPieceNum = t[1], t[2]
-				local px, py, pz = Spring.GetUnitPiecePosDir(airbaseID, padPieceNum)
-				local ux, uy, uz = Spring.GetUnitPosition(unitID)
-				local sqrDist = (ux and px) and (ux - px) * (ux - px) + (uy - py) * (uy - py) + (uz - pz) * (uz - pz)
-				if sqrDist and h < mh then
-					-- check if we're close enough, move into tractorPlanes if so
-					local r = Spring.GetUnitRadius(unitID)
-					local airbaseDefID = Spring.GetUnitDefID(airbaseID)
-					if airbaseDefID and sqrDist < isAirbase[airbaseDefID][1] then
-						-- land onto pad
-						landingPlanes[unitID] = nil
-						tractorPlanes[unitID] = { airbaseID, padPieceNum }
-						Spring.MoveCtrl.Enable(unitID)
-					else
-						-- fly towards pad (the pad may move!)
-						Spring.SetUnitLandGoal(unitID, px, py, pz, r)	-- sometimes this gives an error: "not a flying unit"
+					local airbaseID, padPieceNum = t[1], t[2]
+					local px, py, pz = spGetUnitPiecePosDir(airbaseID, padPieceNum)
+					local ux, uy, uz = spGetUnitPosition(unitID)
+					local sqrDist = (ux and px) and (ux - px) * (ux - px) + (uy - py) * (uy - py) + (uz - pz) * (uz - pz)
+					if sqrDist and h < mh then
+						-- check if we're close enough, move into tractorPlanes if so
+						local airbaseDefID = spGetUnitDefID(airbaseID)
+						if airbaseDefID and sqrDist < isAirbase[airbaseDefID][1] then
+							-- land onto pad
+							landingPlanes[unitID] = nil
+							tractorPlanes[unitID] = { airbaseID, padPieceNum }
+							Spring.MoveCtrl.Enable(unitID)
+						else
+							-- fly towards pad (the pad may move!)
+							Spring.SetUnitLandGoal(unitID, px, py, pz, spGetUnitRadius(unitID))	-- sometimes this gives an error
+						end
 					end
 				end
 			end
@@ -501,10 +523,10 @@ if gadgetHandler:IsSyncedCode() then
 		for unitID, t in pairs(tractorPlanes) do
 			--Spring.Echo("tractor", unitID)
 			local airbaseID, padPieceNum = t[1], t[2]
-			local px, py, pz = Spring.GetUnitPiecePosDir(airbaseID, padPieceNum)
-			local ux, uy, uz = Spring.GetUnitPosition(unitID)
-			local upitch, uyaw, uroll = Spring.GetUnitRotation(unitID)
-			local ppitch, pyaw, proll = Spring.GetUnitRotation(airbaseID)
+			local px, py, pz = spGetUnitPiecePosDir(airbaseID, padPieceNum)
+			local ux, uy, uz = spGetUnitPosition(unitID)
+			local upitch, uyaw, uroll = spGetUnitRotation(unitID)
+			local ppitch, pyaw, proll = spGetUnitRotation(airbaseID)
 			local sqrDist = (ux and px) and (ux - px) * (ux - px) + (uy - py) * (uy - py) + (uz - pz) * (uz - pz)
 			local rotSqrDist = (upitch and ppitch) and (upitch - ppitch) * (upitch - ppitch) + (uyaw - pyaw) * (uyaw - pyaw) + (uroll - proll) * (uroll - proll)
 			if sqrDist and rotSqrDist then
@@ -542,7 +564,7 @@ if gadgetHandler:IsSyncedCode() then
 			local resourceFrames = (n - previousHealFrame) / 30
 			for unitID, airbaseID in pairs(landedPlanes) do
 				--Spring.Echo("landed", unitID)
-				local h, mh = Spring.GetUnitHealth(unitID)
+				local h, mh = spGetUnitHealth(unitID)
 				if h and h == mh then
 					-- fully healed
 					landedPlanes[unitID] = nil
@@ -570,8 +592,8 @@ if gadgetHandler:IsSyncedCode() then
 		local allUnits = Spring.GetAllUnits()
 		for i = 1, #allUnits do
 			local unitID = allUnits[i]
-			local unitDefID = Spring.GetUnitDefID(unitID)
-			local teamID = Spring.GetUnitTeam(unitID)
+			local unitDefID = spGetUnitDefID(unitID)
+			local teamID = spGetUnitTeam(unitID)
 			gadget:UnitCreated(unitID, unitDefID)
 
 			local transporterID = Spring.GetUnitTransporter(unitID)

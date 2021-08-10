@@ -421,7 +421,6 @@ if gadgetHandler:IsSyncedCode() then
 						end
 						--re-insert in the queue as list of individual orders instead of processing directly, so that allowcommand etc can work
 						spGiveOrderArrayToUnitArray({ unitID }, orders)
-
 					end
 				else
 					if #cmdParams == 3 or #cmdParams == 4 then
@@ -436,14 +435,16 @@ if gadgetHandler:IsSyncedCode() then
 							target[2] = spGetGroundHeight(target[1], target[3])
 						end -- clip to ground level
 						--only accept valid targets
-						for weaponID in ipairs(weaponList) do
-							validTarget = spGetUnitWeaponTestTarget(unitID, weaponID, target[1], target[2], target[3])
-							if validTarget then
-								break
-							elseif target[2] < 0 and spGetUnitWeaponTestTarget(unitID, weaponID, target[1], 1, target[3]) then
-								target[2] = 1 -- clip to waterlevel +1
+						if weaponList then
+							for weaponID in ipairs(weaponList) do
 								validTarget = spGetUnitWeaponTestTarget(unitID, weaponID, target[1], target[2], target[3])
-								break
+								if validTarget then
+									break
+								elseif target[2] < 0 and spGetUnitWeaponTestTarget(unitID, weaponID, target[1], 1, target[3]) then
+									target[2] = 1 -- clip to waterlevel +1
+									validTarget = spGetUnitWeaponTestTarget(unitID, weaponID, target[1], target[2], target[3])
+									break
+								end
 							end
 						end
 						if validTarget then
@@ -462,11 +463,13 @@ if gadgetHandler:IsSyncedCode() then
 						if spValidUnitID(target) and not spAreTeamsAllied(teamID, spGetUnitTeam(target)) then
 							local validTarget = false
 							--only accept valid targets
-							for weaponID in ipairs(weaponList) do
-								--unit test target only tests the validity of the target type, not range or other variable things
-								validTarget = spGetUnitWeaponTestTarget(unitID, weaponID, target)
-								if validTarget then
-									break
+							if weaponList then
+								for weaponID in ipairs(weaponList) do
+									--unit test target only tests the validity of the target type, not range or other variable things
+									validTarget = spGetUnitWeaponTestTarget(unitID, weaponID, target)
+									if validTarget then
+										break
+									end
 								end
 							end
 							if validTarget then

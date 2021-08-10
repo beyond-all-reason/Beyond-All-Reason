@@ -243,7 +243,6 @@ if gadgetHandler:IsSyncedCode() then
 
 		if not teamInfo.hasLeader and not teamInfo.dead then
 			KillTeam(teamID)
-			Script.LuaRules.TeamDeathMessage(teamID)
 		end
 
 		-- if team isn't AI controlled, then we need to check if we have attached players
@@ -272,7 +271,6 @@ if gadgetHandler:IsSyncedCode() then
 		allyTeamInfo.teams[teamID].dead = true
 		allyTeamInfos[allyTeamID] = allyTeamInfo
 		UpdateAllyTeamIsDead(allyTeamID)
-		Script.LuaRules.TeamDeathMessage(teamID)
 	end
 
 	function gadget:UnitCreated(unitID, unitDefID, unitTeamID)
@@ -298,7 +296,6 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		if allyTeamUnitCount == 0 then
-			Script.LuaRules.AllyTeamDeathMessage(allyTeamID)
 			for teamID in pairs(allyTeamInfo.teams) do
 				KillTeam(teamID)
 			end

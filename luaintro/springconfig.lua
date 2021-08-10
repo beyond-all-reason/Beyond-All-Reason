@@ -3,7 +3,7 @@
 --------------------------------------------------------------------------------------------
 
 -- BAR requires higher textureatlas size for particles than the default of 2048x2048
-local maxTextureAtlasSize = 4096
+local maxTextureAtlasSize = 8192
 Spring.SetConfigInt("MaxTextureAtlasSizeX", maxTextureAtlasSize)
 Spring.SetConfigInt("MaxTextureAtlasSizeY", maxTextureAtlasSize)
 if tonumber(Spring.GetConfigInt("MaxTextureAtlasSizeX",2048) or 2048) < maxTextureAtlasSize then
