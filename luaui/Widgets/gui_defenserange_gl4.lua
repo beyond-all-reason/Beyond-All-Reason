@@ -8,7 +8,7 @@ function widget:GetInfo()
 		desc      = "Displays range of defenses (enemy and ally)",
 		author    = "Beherith, very_bad_soldier",
 		date      = "2021.04.26",
-		license   = "GNU GPL v2",
+		license   = "Lua: GPLv2, GLSL: (c) Beherith (mysterme@gmail.com)",
 		layer     = -100,
 		enabled   = false
 	}
