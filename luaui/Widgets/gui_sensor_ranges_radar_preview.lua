@@ -4,7 +4,7 @@ function widget:GetInfo()
 		desc = "Raytraced Radar Range Coverage on building Radar (GL4)",
 		author = "Beherith",
 		date = "2021.07.12",
-		license = "CC BY-NC",
+		license = "Lua: GPLv2, GLSL: CC-BY-NC-ND 4.0 (c) Beherith",
 		layer = 0,
 		enabled = true
 	}

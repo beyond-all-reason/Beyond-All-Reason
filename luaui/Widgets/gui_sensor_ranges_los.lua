@@ -4,7 +4,7 @@ function widget:GetInfo()
 		desc = "Shows LOS ranges of all ally units. (GL4)",
 		author = "Beherith GL4",
 		date = "2021.06.18",
-		license = "CC BY-NC",
+		license = "Lua: GPLv2, GLSL: CC-BY-NC-ND 4.0 (c) Beherith",
 		layer = 0,
 		enabled = true
 	}
