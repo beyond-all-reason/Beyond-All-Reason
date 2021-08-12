@@ -29,6 +29,16 @@ function table.merge(primary, secondary)
 	return new
 end
 
+-- Recursively merge values, mutating the table 'mergeTarget'.
+-- When there is a conflict, values in 'mergeData' take precedence.
+function table.mergeInPlace(mergeTarget, mergeData)
+	local mergedData = table.merge(mergeTarget, mergeData)
+
+	for key, value in pairs(mergedData) do
+		mergeTarget[key] = value
+	end
+end
+
 function table.toString(data, key)
 	 local dataType = type(data)
 	-- Check the type
