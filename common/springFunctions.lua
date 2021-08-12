@@ -10,9 +10,7 @@ Spring.Utilities = {
 	SaveTGA = tga.SaveTGA,
 	NewTGA = tga.NewTGA,
 
-	MergeTable = table.MergeTable,
 	OverwriteTableInplace = table.OverwriteTableInplace,
-	MergeWithDefault = table.MergeWithDefault,
 	TableToString = table.TableToString,
 	MakeRealTable = table.MakeRealTable,
 

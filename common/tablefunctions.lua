@@ -11,24 +11,6 @@ function table:copy(deep)
 	return copy
 end
 
-local function mergeTable(primary, secondary, deep)
-	local new = table.copy(primary, deep)
-	for i, v in pairs(secondary) do
-		-- key not used in primary, assign it the value at same key in secondary
-		if not new[i] then
-			if (deep and type(v) == "table") then
-				new[i] = table.copy(v, true)
-			else
-				new[i] = v
-			end
-		-- values at key in both primary and secondary are tables, merge those
-		elseif type(new[i]) == "table" and type(v) == "table"  then
-			new[i] = mergeTable(new[i], v, deep)
-		end
-	end
-	return new
-end
-
 local function overwriteTableInplace(primary, secondary, deep)
 	for i, v in pairs(secondary) do
 		if primary[i] and type(primary[i]) == "table" and type(v) == "table"  then
@@ -43,15 +25,17 @@ local function overwriteTableInplace(primary, secondary, deep)
 	end
 end
 
-local function mergeWithDefault(default, override)
-	local new = table.copy(default, true)
-	for key, v in pairs(override) do
+-- Recursively merge two tables and return the result in a new table.
+-- When there is a conflict, values in 'secondary' override values in 'primary'.
+function table.merge(primary, secondary)
+	local new = table.copy(primary, true)
+	for key, v in pairs(secondary) do
 		-- key not used in default, assign it the value at same key in override
 		if not new[key] and type(v) == "table" then
 			new[key] = table.copy(v, true)
 		-- values at key in both default and override are tables, merge those
 		elseif type(new[key]) == "table" and type(v) == "table"  then
-			new[key] = mergeWithDefault(new[key], v)
+			new[key] = table.merge(new[key], v)
 		else
 			new[key] = v
 		end
@@ -109,9 +93,7 @@ local function makeRealTable(proxy, debugTag)
 end
 
 return {
-	MergeTable = mergeTable,
 	OverwriteTableInplace = overwriteTableInplace,
-	MergeWithDefault = mergeWithDefault,
 	TableToString = tableToString,
 	MakeRealTable = makeRealTable,
 }
