@@ -1,4 +1,4 @@
-local base64 = VFS.Include('common/Utilities/base64.lua')
+local base64 = VFS.Include('common/luaUtilities/base64.lua')
 
 -- Split a string into a table of substrings, based on a delimiter.
 -- If not supplied, delimiter defaults to whitespace.

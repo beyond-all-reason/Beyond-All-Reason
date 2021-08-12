@@ -1,5 +1,5 @@
 
-local utilitiesDirectory = 'common/Utilities/'
+local utilitiesDirectory = 'common/springUtilities/'
 
 local tga = VFS.Include(utilitiesDirectory .. 'image_tga.lua')
 local table = VFS.Include('common/tablefunctions.lua')
@@ -17,9 +17,9 @@ Spring.Utilities = {
 	Gametype = team.Gametype,
 }
 
-VFS.Include(utilitiesDirectory .. 'json.lua')
+VFS.Include('common/luaUtilities/json.lua')
 
-local debugUtilities = VFS.Include('common/utilities/debug.lua')
+local debugUtilities = VFS.Include(utilitiesDirectory .. 'debug.lua')
 
 Spring.Debug = {
 	ParamsEcho = debugUtilities.ParamsEcho,
