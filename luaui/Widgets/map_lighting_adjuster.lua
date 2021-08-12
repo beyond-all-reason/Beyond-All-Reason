@@ -3,10 +3,17 @@ local currentMapname = Game.mapName:lower()
 
 local mapSunLighting = {
 	['eye of horus v13'] = {
-		groundDiffuseColor = { 0.66, 0.55, 0.55 },
+		groundDiffuseColor = { 0.7, 0.56, 0.54 },
+		unitAmbientColor = {0.86, 0.7, 0.5},
+		unitSpecularColor = {1.1, 0.88, 0.77},
+		modelShadowDensity = 0.33,
 	},
 	['tabula-v4'] = {
 		groundDiffuseColor = { 0.9, 0.51, 0.38 },
+		unitAmbientColor = {0.8, 0.72, 0.64},
+		unitDiffuseColor = {0.93, 0.78, 0.5},
+		unitSpecularColor = {0.8, 0.6, 0.5},
+		modelShadowDensity = 0.65,
 	},
 	['tumult'] = {
 		groundDiffuseColor = { 0.77, 0.6, 0.44 },
@@ -44,6 +51,7 @@ local mapSunLighting = {
 }
 
 local mapSun = {
+	['eye of horus v13'] = {0.23, 0.62, 0.6},
 	['titan v3.1'] = { 0.6, 0.82, -0.33 },
 	['tempest'] = { -0.35, 0.83, 0.47 },
 	['tempest dry'] = { -0.35, 0.83, 0.47 },
@@ -65,7 +73,7 @@ function widget:GetInfo()
 end
 
 function widget:Initialize()
-	if Spring.GetGameFrame() == 0 then
+	--if Spring.GetGameFrame() == 0 then
 		if mapSun[currentMapname] then
 			Spring.SetSunDirection(mapSun[currentMapname][1], mapSun[currentMapname][2], mapSun[currentMapname][3])
 			Spring.SetSunLighting({ groundShadowDensity = gl.GetSun("shadowDensity"), modelShadowDensity = gl.GetSun("shadowDensity") })
@@ -75,6 +83,6 @@ function widget:Initialize()
 			Spring.SetSunLighting(mapSunLighting[currentMapname])
 			Spring.SendCommands("luarules updatesun")
 		end
-	end
+	--end
 	widgetHandler:RemoveWidget()
 end
