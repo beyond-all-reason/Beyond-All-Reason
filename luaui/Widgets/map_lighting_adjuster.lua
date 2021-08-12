@@ -59,7 +59,7 @@ function widget:GetInfo()
 		author    = "Floris",
 		date      = "August 2021",
 		license   = "GNU GPL, v2 or later",
-		layer     = -math.huge,
+		layer     = 0,
 		enabled   = true
 	}
 end
