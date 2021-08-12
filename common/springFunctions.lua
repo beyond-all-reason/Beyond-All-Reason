@@ -22,6 +22,6 @@ VFS.Include(utilitiesDirectory .. 'json.lua')
 local debugUtilities = VFS.Include('common/utilities/debug.lua')
 
 Spring.Debug = {
-	ParamsEcho = debugUtilities.ParamsEchoamsEcho,
+	ParamsEcho = debugUtilities.ParamsEcho,
 	TableEcho = debugUtilities.TableEcho,
 }
