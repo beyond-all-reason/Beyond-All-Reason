@@ -10,7 +10,6 @@ Spring.Utilities = {
 	SaveTGA = tga.SaveTGA,
 	NewTGA = tga.NewTGA,
 
-	OverwriteTableInplace = table.OverwriteTableInplace,
 	TableToString = table.TableToString,
 	MakeRealTable = table.MakeRealTable,
 

@@ -11,20 +11,6 @@ function table:copy(deep)
 	return copy
 end
 
-local function overwriteTableInplace(primary, secondary, deep)
-	for i, v in pairs(secondary) do
-		if primary[i] and type(primary[i]) == "table" and type(v) == "table"  then
-			overwriteTableInplace(primary[i], v, deep)
-		else
-			if (deep and type(v) == "table") then
-				primary[i] = table.copy(v, true)
-			else
-				primary[i] = v
-			end
-		end
-	end
-end
-
 -- Recursively merge two tables and return the result in a new table.
 -- When there is a conflict, values in 'secondary' override values in 'primary'.
 function table.merge(primary, secondary)
@@ -93,7 +79,6 @@ local function makeRealTable(proxy, debugTag)
 end
 
 return {
-	OverwriteTableInplace = overwriteTableInplace,
 	TableToString = tableToString,
 	MakeRealTable = makeRealTable,
 }
