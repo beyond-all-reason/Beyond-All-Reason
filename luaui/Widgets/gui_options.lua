@@ -4676,7 +4676,7 @@ function init()
 		  end,
 		},
 
-		{ id = "color_groundambient_r", group = "dev", name = texts.option.color_groundambient .. widgetOptionColor .. "  "..texts.option.red, type = "slider", min = 0, max = 1, step = 0.001, value = 0, description = "",
+		{ id = "color_groundambient_r", group = "dev", name = texts.option.color_groundambient .. widgetOptionColor .. "  "..texts.option.red, type = "slider", min = 0, max = 2, step = 0.001, value = 0, description = "",
 		  onload = function(i)
 			  local r, g, b = gl.GetSun("ambient")
 			  options[i].value = r
@@ -4687,7 +4687,7 @@ function init()
 			  Spring.SendCommands("luarules updatesun")
 		  end,
 		},
-		{ id = "color_groundambient_g", group = "dev", name = widgetOptionColor .. "   "..texts.option.green, type = "slider", min = 0, max = 1, step = 0.001, value = 0, description = "",
+		{ id = "color_groundambient_g", group = "dev", name = widgetOptionColor .. "   "..texts.option.green, type = "slider", min = 0, max = 2, step = 0.001, value = 0, description = "",
 		  onload = function(i)
 			  local r, g, b = gl.GetSun("ambient")
 			  options[i].value = g
@@ -4698,7 +4698,7 @@ function init()
 			  Spring.SendCommands("luarules updatesun")
 		  end,
 		},
-		{ id = "color_groundambient_b", group = "dev", name = widgetOptionColor .. "   "..texts.option.blue, type = "slider", min = 0, max = 1, step = 0.001, value = 0, description = "",
+		{ id = "color_groundambient_b", group = "dev", name = widgetOptionColor .. "   "..texts.option.blue, type = "slider", min = 0, max = 2, step = 0.001, value = 0, description = "",
 		  onload = function(i)
 			  local r, g, b = gl.GetSun("ambient")
 			  options[i].value = b
@@ -4710,7 +4710,7 @@ function init()
 		  end,
 		},
 
-		{ id = "color_grounddiffuse_r", group = "dev", name = texts.option.color_grounddiffuse .. widgetOptionColor .. "  "..texts.option.red, type = "slider", min = 0, max = 1, step = 0.001, value = 0, description = "",
+		{ id = "color_grounddiffuse_r", group = "dev", name = texts.option.color_grounddiffuse .. widgetOptionColor .. "  "..texts.option.red, type = "slider", min = 0, max = 2, step = 0.001, value = 0, description = "",
 		  onload = function(i)
 			  local r, g, b = gl.GetSun("diffuse")
 			  options[i].value = r
@@ -4721,7 +4721,7 @@ function init()
 			  Spring.SendCommands("luarules updatesun")
 		  end,
 		},
-		{ id = "color_grounddiffuse_g", group = "dev", name = widgetOptionColor .. "   "..texts.option.green, type = "slider", min = 0, max = 1, step = 0.001, value = 0, description = "",
+		{ id = "color_grounddiffuse_g", group = "dev", name = widgetOptionColor .. "   "..texts.option.green, type = "slider", min = 0, max = 2, step = 0.001, value = 0, description = "",
 		  onload = function(i)
 			  local r, g, b = gl.GetSun("diffuse")
 			  options[i].value = g
@@ -4732,7 +4732,7 @@ function init()
 			  Spring.SendCommands("luarules updatesun")
 		  end,
 		},
-		{ id = "color_grounddiffuse_b", group = "dev", name = widgetOptionColor .. "   "..texts.option.blue, type = "slider", min = 0, max = 1, step = 0.001, value = 0, description = "",
+		{ id = "color_grounddiffuse_b", group = "dev", name = widgetOptionColor .. "   "..texts.option.blue, type = "slider", min = 0, max = 2, step = 0.001, value = 0, description = "",
 		  onload = function(i)
 			  local r, g, b = gl.GetSun("diffuse")
 			  options[i].value = b
@@ -4744,7 +4744,7 @@ function init()
 		  end,
 		},
 
-		{ id = "color_groundspecular_r", group = "dev", name = texts.option.color_groundspecular .. widgetOptionColor .. "  "..texts.option.red, type = "slider", min = 0, max = 1, step = 0.001, value = 0, description = "",
+		{ id = "color_groundspecular_r", group = "dev", name = texts.option.color_groundspecular .. widgetOptionColor .. "  "..texts.option.red, type = "slider", min = 0, max = 2, step = 0.001, value = 0, description = "",
 		  onload = function(i)
 			  local r, g, b = gl.GetSun("specular")
 			  options[i].value = r
@@ -4779,7 +4779,7 @@ function init()
 		},
 
 
-		{ id = "color_unitambient_r", group = "dev", name = texts.option.color_unitambient .. widgetOptionColor .. "  "..texts.option.red, type = "slider", min = 0, max = 1, step = 0.001, value = 0, description = "",
+		{ id = "color_unitambient_r", group = "dev", name = texts.option.color_unitambient .. widgetOptionColor .. "  "..texts.option.red, type = "slider", min = 0, max = 2, step = 0.001, value = 0, description = "",
 		  onload = function(i)
 			  local r, g, b = gl.GetSun("ambient", "unit")
 			  options[i].value = r
@@ -4790,7 +4790,7 @@ function init()
 			  Spring.SendCommands("luarules updatesun")
 		  end,
 		},
-		{ id = "color_unitambient_g", group = "dev", name = widgetOptionColor .. "   "..texts.option.green, type = "slider", min = 0, max = 1, step = 0.001, value = 0, description = "",
+		{ id = "color_unitambient_g", group = "dev", name = widgetOptionColor .. "   "..texts.option.green, type = "slider", min = 0, max = 2, step = 0.001, value = 0, description = "",
 		  onload = function(i)
 			  local r, g, b = gl.GetSun("ambient", "unit")
 			  options[i].value = g
@@ -4801,7 +4801,7 @@ function init()
 			  Spring.SendCommands("luarules updatesun")
 		  end,
 		},
-		{ id = "color_unitambient_b", group = "dev", name = widgetOptionColor .. "   "..texts.option.blue, type = "slider", min = 0, max = 1, step = 0.001, value = 0, description = "",
+		{ id = "color_unitambient_b", group = "dev", name = widgetOptionColor .. "   "..texts.option.blue, type = "slider", min = 0, max = 2, step = 0.001, value = 0, description = "",
 		  onload = function(i)
 			  local r, g, b = gl.GetSun("ambient", "unit")
 			  options[i].value = b
@@ -4813,7 +4813,7 @@ function init()
 		  end,
 		},
 
-		{ id = "color_unitdiffuse_r", group = "dev", name = texts.option.color_unitdiffuse .. widgetOptionColor .. "  "..texts.option.red, type = "slider", min = 0, max = 1, step = 0.001, value = 0, description = "",
+		{ id = "color_unitdiffuse_r", group = "dev", name = texts.option.color_unitdiffuse .. widgetOptionColor .. "  "..texts.option.red, type = "slider", min = 0, max = 2, step = 0.001, value = 0, description = "",
 		  onload = function(i)
 			  local r, g, b = gl.GetSun("diffuse", "unit")
 			  options[i].value = r
@@ -4824,7 +4824,7 @@ function init()
 			  Spring.SendCommands("luarules updatesun")
 		  end,
 		},
-		{ id = "color_unitdiffuse_g", group = "dev", name = widgetOptionColor .. "   "..texts.option.green, type = "slider", min = 0, max = 1, step = 0.001, value = 0, description = "",
+		{ id = "color_unitdiffuse_g", group = "dev", name = widgetOptionColor .. "   "..texts.option.green, type = "slider", min = 0, max = 2, step = 0.001, value = 0, description = "",
 		  onload = function(i)
 			  local r, g, b = gl.GetSun("diffuse", "unit")
 			  options[i].value = g
@@ -4835,7 +4835,7 @@ function init()
 			  Spring.SendCommands("luarules updatesun")
 		  end,
 		},
-		{ id = "color_unitdiffuse_b", group = "dev", name = widgetOptionColor .. "   "..texts.option.blue, type = "slider", min = 0, max = 1, step = 0.001, value = 0, description = "",
+		{ id = "color_unitdiffuse_b", group = "dev", name = widgetOptionColor .. "   "..texts.option.blue, type = "slider", min = 0, max = 2, step = 0.001, value = 0, description = "",
 		  onload = function(i)
 			  local r, g, b = gl.GetSun("diffuse", "unit")
 			  options[i].value = b
@@ -4847,7 +4847,7 @@ function init()
 		  end,
 		},
 
-		{ id = "color_unitspecular_r", group = "dev", name = texts.option.color_unitspecular .. widgetOptionColor .. "  "..texts.option.red, type = "slider", min = 0, max = 1, step = 0.001, value = 0, description = "",
+		{ id = "color_unitspecular_r", group = "dev", name = texts.option.color_unitspecular .. widgetOptionColor .. "  "..texts.option.red, type = "slider", min = 0, max = 2, step = 0.001, value = 0, description = "",
 		  onload = function(i)
 			  local r, g, b = gl.GetSun("specular", "unit")
 			  options[i].value = r
@@ -4858,7 +4858,7 @@ function init()
 			  Spring.SendCommands("luarules updatesun")
 		  end,
 		},
-		{ id = "color_unitspecular_g", group = "dev", name = widgetOptionColor .. "   "..texts.option.green, type = "slider", min = 0, max = 1, step = 0.001, value = 0, description = "",
+		{ id = "color_unitspecular_g", group = "dev", name = widgetOptionColor .. "   "..texts.option.green, type = "slider", min = 0, max = 2, step = 0.001, value = 0, description = "",
 		  onload = function(i)
 			  local r, g, b = gl.GetSun("specular", "unit")
 			  options[i].value = g
@@ -4869,7 +4869,7 @@ function init()
 			  Spring.SendCommands("luarules updatesun")
 		  end,
 		},
-		{ id = "color_unitspecular_b", group = "dev", name = widgetOptionColor .. "   "..texts.option.blue, type = "slider", min = 0, max = 1, step = 0.001, value = 0, description = "",
+		{ id = "color_unitspecular_b", group = "dev", name = widgetOptionColor .. "   "..texts.option.blue, type = "slider", min = 0, max = 2, step = 0.001, value = 0, description = "",
 		  onload = function(i)
 			  local r, g, b = gl.GetSun("specular", "unit")
 			  options[i].value = b
