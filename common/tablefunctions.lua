@@ -29,7 +29,7 @@ function table.merge(primary, secondary)
 	return new
 end
 
-local function tableToString(data, key)
+function table.toString(data, key)
 	 local dataType = type(data)
 	-- Check the type
 	if key then
@@ -51,11 +51,11 @@ local function tableToString(data, key)
 			str = "{"
 		end
 		for k, v in pairs(data) do
-			str = str .. tableToString(v, k) .. ","
+			str = str .. table.toString(v, k) .. ","
 		end
 		return str .. "}"
 	else
-		Spring.Echo("TableToString Error: unknown data type", dataType)
+		error("table.toString Error: unknown data type: " .. dataType)
 	end
 	return ""
 end
@@ -79,6 +79,5 @@ local function makeRealTable(proxy, debugTag)
 end
 
 return {
-	TableToString = tableToString,
 	MakeRealTable = makeRealTable,
 }

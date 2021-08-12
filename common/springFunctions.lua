@@ -10,7 +10,6 @@ Spring.Utilities = {
 	SaveTGA = tga.SaveTGA,
 	NewTGA = tga.NewTGA,
 
-	TableToString = table.TableToString,
 	MakeRealTable = table.MakeRealTable,
 
 	GetTeamCount = team.GetTeamCount,

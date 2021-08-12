@@ -4,7 +4,7 @@ local function paramsEcho(...)
 	local called_from = "Called from: " .. tostring(debug.getinfo(2).name) .. " args:"
 	Spring.Echo(called_from)
 	local args = { ... }
-	Spring.Echo( Spring.Utilities.TableToString(args) )
+	Spring.Echo( table.toString(args) )
 	return ...
 end
 
