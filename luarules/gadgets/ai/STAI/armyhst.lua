@@ -126,7 +126,6 @@ function ArmyHST:Init()
 		armflash = true,
 		corak = true,
 		armpw = true,
-
 		armlatnk = true,
 		corgator = true,
 		corseal = true,
@@ -141,6 +140,7 @@ function ArmyHST:Init()
 
 	}
 	self.artillerys = {
+		armrock = true,
 		armart = true,
 		armfido = true,
 		cormort = true,
@@ -168,7 +168,7 @@ function ArmyHST:Init()
 		armbull = true,
 		corraid = true,
 		corstorm = true,
-		armrock = true,
+		corthud = true,
 		corcan = true,
 		armraz = true,
 		corsnap = true,
@@ -178,7 +178,7 @@ function ArmyHST:Init()
 		corjugg = true,
 		corban = true,
 
-	} -- sturdy, cheap units to be built in larger numbers than siege units
+	}
 	self.breaks = {
 
 		armjanus = true,
@@ -190,7 +190,6 @@ function ArmyHST:Init()
 		armepoch = true,
 		corthud = true,
 		corsumo = true,
-		armham = true,
 		armwar = true,
 		armbanth = true,
 		armanac = true,
@@ -228,7 +227,7 @@ function ArmyHST:Init()
 		corhurc = true,
 		armpnix = true,
 		armliche = true,
-		corsb = true,
+		corsb = true,--plat
 	}
 
 	self.fighterairs = {
@@ -335,19 +334,15 @@ function ArmyHST:Init()
 	}
 
 	self._solar_ = {
-		corsolar = true ,
-		armsolar = true ,
+		corsolar = 'coradvsol' ,
+		armsolar = 'armadvsol' ,
 	}
 
-	self._advsol_ = {
-		coradvsol = true ,
-		armadvsol = true ,
-	}
 
 	self._mex_ = {
 		cormex = 'cormoho' ,
-		armuwmex = 'armuwmme' ,
-		coruwmex = 'coruwmme' ,
+-- 		armuwmex = 'armuwmme' ,
+-- 		coruwmex = 'coruwmme' ,
 		cormexp = true ,
 		armmex = "armmoho" ,
 		armamex = 'armmoho' ,
@@ -400,13 +395,14 @@ function ArmyHST:Init()
 
 
 	self._fus_ = {
-		armfus = true ,
-		armuwfus = true ,
-		armckfus = true ,
-		corfus = true ,
-		coruwfus = true ,
-		armafus = true ,
-		corafus = true ,
+		armfus = 'armafus' ,--will become afus in taskqueuebst:specialfilter()
+		armuwfus = 'armuwfus' , --no advuwfus
+		corfus = 'corafus' ,--will become afus in taskqueuebst:specialfilter()
+		coruwfus = 'coruwfus' ,--no advuwfus
+-- 		armckfus = true , --clackable, better to think about it later
+
+-- 		armafus = true ,
+-- 		corafus = true ,
 		--armdf = true, --fake fus
 	}
 
@@ -821,57 +817,6 @@ ArmyHST.nukeList = {
 	cortron = 2250,
 }
 
-
-
--- ArmyHST.Eco1={
--- 	armsolar=1,
--- 	armwin=1,
--- 	armadvsol=1,
--- 	armtide=1,
---
--- 	corsolar=1,
--- 	corwin=1,
--- 	coradvsol=1,
--- 	cortide=1,
---
--- 	corgeo=1,
--- 	armgeo=1,
---
--- 	--store
---
--- 	armestor=1,
--- 	armmstor=1,
--- 	armuwes=1,
--- 	armuwms=1,
---
--- 	corestor=1,
--- 	cormstor=1,
--- 	coruwes=1,
--- 	coruwms=1,
---
--- 	--conv
--- 	armmakr=1,
--- 	cormakr=1,
--- 	armfmkr=1,
--- 	corfmkr=1,
---
---
--- 	--metalli
--- 	corexp=1,
--- 	armamex=1,
---
--- 	cormex=1,
--- 	armmex=1,
---
--- 	armuwmex=1,
--- 	coruwmex=1,
---
--- 	armnanotc=1,
--- 	cornanotc=1,
--- 	armnanotcplat = 1,
--- 	cornanotcplat = 1,
--- }
-
 ArmyHST.cleanable = {
 	armsolar= 'ground',
 	corsolar= 'ground',
@@ -997,6 +942,7 @@ end
 local function getParalyzer(unitDefID)
 	local unitDef = UnitDefs[unitDefID]
 	local weapons = unitDef["weapons"]
+	local paralyzer = nil
 	for i=1, #weapons do
 		local weaponDefID = weapons[i]["weaponDef"]
 		local weaponDef = WeaponDefs[weaponDefID]
@@ -1082,35 +1028,35 @@ local function GetBuiltBy()
 	return builtBy
 end
 
-local function GetWeaponParams(weaponDefID)
-	local WD = WeaponDefs[weaponDefID]
-	local WDCP = WD.customParams
-	local weaponDamageSingle = tonumber(WDCP.statsdamage) or WD.damages[0] or 0
-	local weaponDamageMult = tonumber(WDCP.statsprojectiles) or ((tonumber(WDCP.script_burst) or WD.salvoSize) * WD.projectiles)
-	local weaponDamage = weaponDamageSingle * weaponDamageMult
-	local weaponRange = WD.range
-
-	local reloadTime = tonumber(WD.customParams.script_reload) or WD.reload
-
-	if WD.dyndamageexp and WD.dyndamageexp > 0 then
-		local dynDamageExp = WD.dyndamageexp
-		local dynDamageMin = WD.dyndamagemin or 0.0001
-		local dynDamageRange = WD.dyndamagerange or weaponRange
-		local dynDamageInverted = WD.dyndamageinverted or false
-		local dynMod
-
-		if dynDamageInverted then
-			dynMod = math.pow(distance3D / dynDamageRange, dynDamageExp)
-		else
-			dynMod = 1 - math.pow(distance3D / dynDamageRange, dynDamageExp)
-		end
-
-		weaponDamage = math.max(weaponDamage * dynMod, dynDamageMin)
-	end
-
-	local dps = weaponDamage / reloadTime
-	return dps, weaponDamage, reloadTime
-end
+-- local function GetWeaponParams(weaponDefID)
+-- 	local WD = WeaponDefs[weaponDefID]
+-- 	local WDCP = WD.customParams
+-- 	local weaponDamageSingle = tonumber(WDCP.statsdamage) or WD.damages[0] or 0
+-- 	local weaponDamageMult = tonumber(WDCP.statsprojectiles) or ((tonumber(WDCP.script_burst) or WD.salvoSize) * WD.projectiles)
+-- 	local weaponDamage = weaponDamageSingle * weaponDamageMult
+-- 	local weaponRange = WD.range
+--
+-- 	local reloadTime = tonumber(WD.customParams.script_reload) or WD.reload
+--
+-- 	if WD.dyndamageexp and WD.dyndamageexp > 0 then
+-- 		local dynDamageExp = WD.dyndamageexp
+-- 		local dynDamageMin = WD.dyndamagemin or 0.0001
+-- 		local dynDamageRange = WD.dyndamagerange or weaponRange
+-- 		local dynDamageInverted = WD.dyndamageinverted or false
+-- 		local dynMod
+--
+-- 		if dynDamageInverted then
+-- 			dynMod = math.pow(distance3D / dynDamageRange, dynDamageExp)
+-- 		else
+-- 			dynMod = 1 - math.pow(distance3D / dynDamageRange, dynDamageExp)
+-- 		end
+--
+-- 		weaponDamage = math.max(weaponDamage * dynMod, dynDamageMin)
+-- 	end
+--
+-- 	local dps = weaponDamage / reloadTime
+-- 	return dps, weaponDamage, reloadTime
+-- end
 
 
 
@@ -1133,7 +1079,7 @@ local function getTechTree(sideTechLv)
 		if lv == false then
 			sideTechLv[name] = parent
 			if ArmyHST.techPenalty[name] then sideTechLv[name] = sideTechLv[name] + ArmyHST.techPenalty[name] end--here cause some not corresponding at true and seaplane maybe
-			canBuild = UnitDefNames[name].buildOptions
+			local canBuild = UnitDefNames[name].buildOptions
 			if canBuild and #canBuild > 0 then
 				for index,id in pairs(UnitDefNames[name].buildOptions) do
 					if not sideTechLv[UnitDefs[id].name] then
@@ -1159,7 +1105,7 @@ function ArmyHST:GetUnitTable()
 	local wrecks = {}
 	for unitDefID,unitDef in pairs(UnitDefs) do
 		local side = GetUnitSide(unitDef.name)
-		if unitsLevels[unitDef.name] then
+		--if unitsLevels[unitDef.name] then
 
 
 
@@ -1168,7 +1114,7 @@ function ArmyHST:GetUnitTable()
 			-- --Spring.Echo(unitDef.name, "move slope", unitDef.moveDef.maxSlope)
 			-- end
 			self.unitTable[unitDef.name] = {}
-
+-- 			Spring:Echo(unitDef.name)
 			local utable = self.unitTable[unitDef.name]
 			utable.name = unitDef.name
 			utable.side = side
@@ -1183,7 +1129,7 @@ function ArmyHST:GetUnitTable()
 			utable.energyCost = unitDef["energyCost"]
 			utable.buildTime = unitDef["buildTime"]
 			utable.totalEnergyOut = unitDef["totalEnergyOut"]
-			utable.extractsMetal = unitDef["extractsMetal"]
+			utable.extractsMetal = unitDef.extractsMetal
 			utable.energyMake = unitDef.energyMake
 			utable.energyUse = unitDef.energyUpkeep
 			utable.isTransport = unitDef.isTransport
@@ -1192,7 +1138,7 @@ function ArmyHST:GetUnitTable()
 			utable.isBuilder = unitDef.isBuilder
 			utable.isMobileBuilder = unitDef.isMobileBuilder
 			utable.isStaticBuilder = unitDef.isStaticBuilder
-			utable.isFactory = unitDef.isLab
+			utable.isLab = unitDef.isLab
 			utable.isExtractor = unitDef.Extractor
 			utable.isGroundUnit = unitDef.isGroundUnit
 			utable.isAirUnit = unitDef.isAirUnit
@@ -1224,8 +1170,7 @@ function ArmyHST:GetUnitTable()
 			utable.antiNuke = getInterceptor(unitDefID)
 			utable.targetableWeapon = getTargetableWeapon(unitDefID)
 			utable.paralyzer = getParalyzer(unitDefID)
--- 			Spring:Echo(unitDef.name)
-			utable.techLevel = unitsLevels[unitDef["name"]]
+			utable.techLevel = unitsLevels[unitDef["name"]] or 1
 			if unitDef["modCategories"]["weapon"] then
 				utable.isWeapon = true
 			else
@@ -1257,6 +1202,9 @@ function ArmyHST:GetUnitTable()
 
 
 			--Spring:Echo(unitDef.name,utable.antiNuke)
+			if unitDef.speed > 0 and utable.isWeapon then
+				utable.isMobileWeapon = true
+			end
 			if unitDef.speed == 0 and utable.isWeapon then
 				utable.isTurret = true
 				if unitDef.modCategories.mine then
@@ -1349,6 +1297,8 @@ function ArmyHST:GetUnitTable()
 					end
 				end
 			end
+
+			utable.mtypedLv = tostring(utable.mtype)..utable.techLevel
 			if self.scouts[utable.name] or self.raiders[utable.name] or self.battles[utable.name] or self.breaks[utable.name] or self.airgun[utable.name] or self.cloakables[utable.name] or self.amphibious[utable.name] or self.subkillers[utable.name] or self.spiders[utable.name] or self.paralyzers[utable.name] or self.artillerys[utable.name] or self.crawlings[utable.name]then
 				utable.isAttacker = true
 				--Spring:Echo(utable.name, 'isAttacker')
@@ -1358,7 +1308,7 @@ function ArmyHST:GetUnitTable()
 			utable.zsize = unitDef["zsize"]
 			utable.wreckName = unitDef["wreckName"]
 			self.wrecks[unitDef["wreckName"]] = unitDef["name"]
-		end
+		--end
 	end
 end
 
@@ -1382,6 +1332,3 @@ getTechTree(armTechLv)
 getTechTree(corTechLv)
 for k,v in pairs(corTechLv) do unitsLevels[k] = v end
 for k,v in pairs(armTechLv) do unitsLevels[k] = v end
-
-wrecks = nil
-

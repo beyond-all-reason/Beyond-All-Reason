@@ -432,7 +432,7 @@ function TargetHST:UpdateEnemies()
 				self.cells[px][pz] = NewCell(px, pz)
 				table.insert(self.cellList, self.cells[px][pz])
 			end
-			cell = self.cells[px][pz]
+			local cell = self.cells[px][pz]
 			if los == 1 then
 				if ut.isBuilding then
 					cell.value = cell.value + baseBuildingValue
@@ -814,25 +814,37 @@ function TargetHST:GetBestRaidCell(representative)
 	self:EchoDebug(rname .. ": " .. rthreat .. " " .. rrange)
 	if rthreat > maxThreat then maxThreat = rthreat end
 	local best
-	local bestDist = 99999
+	local bestDist = math.huge
 	local cells
-	for i, cell in pairs(self.cellList) do
-		local value, threat, gas = self:CellValueThreat(rname, cell)
-		-- cells with other raiders in or nearby are better places to go for raiders
-		if cell.raiderHere then threat = threat - cell.raiderHere end
-		if cell.raiderAdjacent then threat = threat - cell.raiderAdjacent end
-		threat = threat - threatReduction
-		if value > 0 and threat <= maxThreat then
-			if self.ai.maphst:UnitCanGoHere(representative, cell.pos) then
-				local mod = value - (threat * 3)
-				local dist = self.ai.tool:Distance(rpos, cell.pos) - mod
-				if dist < bestDist then
-					best = cell
-					bestDist = dist
-				end
-			end
-		end
-	end
+	local minThreat = math.huge
+
+ 	for i,cell in pairs (self.cellList) do
+ 		local value, threat, gas = self:CellValueThreat(rname, cell)
+ 		local dist = self.ai.tool:Distance(rpos, cell.pos)
+ 		if value > 0 and threat < minThreat  and self.ai.maphst:UnitCanGoHere(representative, cell.pos) then
+ 			minThreat = threat
+ 			best = cell
+--  			map:DrawCircle(best.pos, 100, {255,0,0,255}, 'raid', true, 3)
+ 		end
+ 	end
+--  	for i, cell in pairs(self.cellList) do
+--  		local value, threat, gas = self:CellValueThreat(rname, cell)
+--  		-- cells with other raiders in or nearby are better places to go for raiders
+--  		if cell.raiderHere then threat = threat - cell.raiderHere end
+--  		if cell.raiderAdjacent then threat = threat - cell.raiderAdjacent end
+--  		threat = threat - threatReduction
+--  		if value > 0 and threat <= maxThreat then
+--  			if self.ai.maphst:UnitCanGoHere(representative, cell.pos) then
+--  				local mod = value - (threat * 3)
+--  				local dist = self.ai.tool:Distance(rpos, cell.pos) - mod
+--  				if dist < bestDist then
+--  					best = cell
+--  					bestDist = dist
+--  				end
+--  			end
+--  		end
+--  	end
+
 	return best
 end
 

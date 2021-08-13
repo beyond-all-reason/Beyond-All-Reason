@@ -4,7 +4,7 @@ function widget:GetInfo()
 		desc      = "Shows ranges of all ally radars. (GL4)",
 		author    = "Kev, Beherith GL4",
 		date      = "2021.06.18",
-		license   = "CC BY-NC",
+		license   = "Lua: GPLv2, GLSL: (c) Beherith (mysterme@gmail.com)",
 		layer     = 0,
 		enabled   = true
 	}

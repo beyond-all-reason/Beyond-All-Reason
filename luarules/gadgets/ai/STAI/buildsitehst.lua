@@ -5,7 +5,7 @@ local DebugEnabledDraw = false
 
 local function EchoDebugPlans(inStr)
 	if DebugEnabledPlans then
-		game:SendToConsole("BuildSiteHST Plans: " .. inStr)
+		self.game:SendToConsole("BuildSiteHST Plans: " .. inStr)
 	end
 end
 
@@ -19,9 +19,8 @@ function BuildSiteHST:internalName()
 	return "buildsitehst"
 end
 
-BuildSiteHST.DebugEnabled = false
-
 function BuildSiteHST:Init()
+	self.DebugEnabled = false
 	self.debugPlotDrawn = {}
 	local mapSize = self.map:MapDimensions()
 	self.ai.maxElmosX = mapSize.x * 8
@@ -39,20 +38,26 @@ end
 function BuildSiteHST:GetFacing(p)
 	local x = p.x
 	local z = p.z
-	if math.abs(Game.mapSizeX - 2*x) > math.abs(Game.mapSizeZ - 2*z) then
-		if (2*x>Game.mapSizeX) then
-			facing=3
+	local facing = 3
+	local NSEW = N
+	if math.abs(Game.mapSizeX - 2 * x) > math.abs(Game.mapSizeZ - 2 * z) then
+		if (2 * x > Game.mapSizeX) then
+			facing = 3 --east
+			NSEW = E
 		else
-			facing=1
+			facing = 1 --weast
+			NSEW = W
 		end
 	else
-		if (2*z>Game.mapSizeZ) then
-			facing=2
+		if ( 2 * z > Game.mapSizeZ) then
+			facing = 2 --south
+			NSEW = S
 		else
-			facing=0
+			facing = 0 -- north
+			NSEW = N
 		end
 	end
-	return facing
+	return facing , NSEW
 end
 
 function BuildSiteHST:PlansOverlap(position, unitName)
@@ -101,226 +106,144 @@ function BuildSiteHST:LandWaterFilter(pos, unitTypeToBuild, builder)
 	end
 end
 
-function BuildSiteHST:CheckBuildPos(pos, unitTypeToBuild, builder, originalPosition)
-	-- make sure it's on the map
+function BuildSiteHST:isInMap(pos)
 	local mapSize = self.ai.map:MapDimensions()
 	local maxElmosX = mapSize.x * 8
 	local maxElmosZ = mapSize.z * 8
-	if pos ~= nil then
-		if self.ai.armyhst.unitTable[unitTypeToBuild:Name()].buildOptions then
-			-- don't build factories too close to south map edge because they face south
-			-- Spring.Echo(pos.x, pos.z, maxElmosX, maxElmosZ)
-			if (pos.x <= 0) or (pos.x > maxElmosX) or (pos.z <= 0) or (pos.z > maxElmosZ - 240) then
-				self:EchoDebug("bad position: " .. pos.x .. ", " .. pos.z)
-				return nil
-			end
-		else
-			if (pos.x <= 0) or (pos.x > maxElmosX) or (pos.z <= 0) or (pos.z > maxElmosZ) then
-				self:EchoDebug("bad position: " .. pos.x .. ", " .. pos.z)
-				return nil
-			end
-		end
+	if (pos.x <= 0) or (pos.x > maxElmosX) or (pos.z <= 0) or (pos.z > maxElmosZ) then
+		self:EchoDebug("bad position: " .. pos.x .. ", " .. pos.z)
+		return nil
+	else
+		return pos
 	end
-	-- sanity check: is it REALLY possible to build here?
-	if pos ~= nil then
-		local s = self.ai.map:CanBuildHere(unitTypeToBuild, pos)
-		if not s then
-			self:EchoDebug("cannot build " .. unitTypeToBuild:Name() .. " here: " .. pos.x .. ", " .. pos.z)
-			return nil
-		end
-	end
-	local rect
-	if pos ~= nil then
-		rect = {position = pos, unitName = unitTypeToBuild:Name()}
-		self:CalculateRect(rect)
-	end
-	-- is it too far away from an amphibious constructor?
-	if pos ~= nil then
-		local lw = self:LandWaterFilter(pos, unitTypeToBuild, builder)
-		if not lw then
-			return nil
-		end
-	end
-	-- don't build where you shouldn't (metal spots, geo spots, factory lanes)
-	if pos ~= nil then
-		for i, dont in pairs(self.dontBuildRects) do
-			if self.ai.tool:RectsOverlap(rect, dont) then
-				pos = nil
-				break
-			end
-		end
-	end
-	-- don't build on top of current build orders
-	if pos ~= nil then
-		for i, plan in pairs(self.plans) do
-			if self.ai.tool:RectsOverlap(rect, plan) then
-				return nil
-			end
-		end
-	end
-	-- don't build where the builder can't go
-	if pos ~= nil then
-		if not self.ai.maphst:UnitCanGoHere(builder, pos) then
-			self:EchoDebug(builder:Name() .. " can't go there: " .. pos.x .. "," .. pos.z)
-			return nil
-		end
-	end
-	if pos ~= nil then
-		local uname = unitTypeToBuild:Name()
-		if self.ai.armyhst._nano_[uname] then
-			-- don't build nanos too far away from factory
-			local dist = self.ai.tool:Distance(originalPosition, pos)
-			self:EchoDebug("nano self.ai.tool:distance: " .. dist)
-			if dist > 390 then
-				self:EchoDebug("nano too far from factory")
-				return nil
-			end
-		elseif self.ai.armyhst.bigPlasmaList[uname] or self.ai.armyhst.littlePlasmaList[uname] or self.ai.armyhst.nukeList[uname] then
-			-- don't build bombarding units outside of bombard positions
-			local b = self.ai.targethst:IsBombardPosition(pos, uname)
-			if not b then
-				self:EchoDebug("bombard not in bombard position")
-				return nil
-			end
-		end
-	end
-	return pos
 end
 
 function BuildSiteHST:GetBuildSpacing(unitTypeToBuild)
 	local army = self.ai.armyhst
-	local spacing = 3
+	local spacing = 100
 	local un = unitTypeToBuild:Name()
 	if army.factoryMobilities[un] then
 		--self:EchoDebug()
-		spacing = 5
+		spacing = 150
 	elseif army._mex_[un] then
-		--self:EchoDebug()
-	elseif army._nano_[un] then
-		--self:EchoDebug()
-		spacing = 2
-	elseif army._wind_[un] then
-		--self:EchoDebug()
-		spacing = 4
-	elseif army._tide_[un] then
-		--self:EchoDebug()
-		spacing = 4
-	elseif army._advsol_[un] then
-		--self:EchoDebug()
-		spacing = 4
-	elseif army._solar_[un] then
-		--self:EchoDebug()
-		spacing = 4
-	elseif army._estor_[un] then
-		--self:EchoDebug()
-		spacing = 5
-	elseif army._mstor_[un] then
-		--self:EchoDebug()
-		spacing = 4
-	elseif army._convs_[un] then
-		--self:EchoDebug()
-	elseif army._llt_[un] then
-		--self:EchoDebug()
-	elseif army._popup1_[un] then
-		--self:EchoDebug()
-		spacing = 4
-	elseif army._specialt_[un] then
-		--self:EchoDebug()
-		spacing = 5
-	elseif army._heavyt_[un] then
-		--self:EchoDebug()
-		spacing = 5
-	elseif army._aa1_[un] then
-		--self:EchoDebug()
-		spacing = 5
-	elseif army._flak_[un] then
-		--self:EchoDebug()
-		spacing = 5
-	elseif army._fus_[un] then
-		--self:EchoDebug()
-		spacing = 4
-	elseif army._popup2_[un] then
-		--self:EchoDebug()
-		spacing = 5
-	elseif army._jam_[un] then
-		--self:EchoDebug()
-	elseif army._radar_[un] then
-		--self:EchoDebug()
-	elseif army._geo_[un] then
-		--self:EchoDebug()
-		spacing = 5
-	elseif army._silo_[un] then
-		--self:EchoDebug()
-	elseif army._antinuke_[un] then
-		--self:EchoDebug()
-		spacing = 5
-	elseif army._sonar_[un] then
-		--self:EchoDebug()
-		spacing = 4
-	elseif army._shield_[un] then
-		--self:EchoDebug()
-		spacing = 5
-	elseif army._juno_[un] then
-		--self:EchoDebug()
-		spacing = 4
-	elseif army._laser2_[un] then
-		--self:EchoDebug()
-		spacing = 4
-	elseif army._lol_[un] then
-		--self:EchoDebug()
-		spacing = 5
-	elseif army._coast1_[un] then
-		--self:EchoDebug()
-		spacing = 5
-	elseif army._coast2_[un] then
-		--self:EchoDebug()
-		spacing = 5
-	elseif army._plasma_[un] then
-		--self:EchoDebug()
-		spacing = 4
-	elseif army._torpedo1_[un] then
-		--self:EchoDebug()
-		spacing = 4
-	elseif army._torpedo2_[un] then
-		--self:EchoDebug()
-		spacing = 4
-	elseif army._torpedoground_[un] then
-		--self:EchoDebug()
-		spacing = 5
-	elseif army._aabomb_[un] then
-		--self:EchoDebug()
-		spacing = 5
-	elseif army._aaheavy_[un] then
-		--self:EchoDebug()
-		spacing = 5
-	elseif army._aa2_[un] then
-		--self:EchoDebug()
-		spacing = 5
-	else
-		spacing = 5
+		spacing = 50
+-- 	elseif army._nano_[un] then
+-- 		spacing = 0
+--  	elseif army._wind_[un] then
+--  		spacing = 80
+--  	elseif army._tide_[un] then
+--  		spacing = 80
+--  	elseif army._solar_[un] then
+--  		spacing = 80
+--  	elseif army._estor_[un] then
+--  		spacing = 80
+--  	elseif army._mstor_[un] then
+--  		spacing = 80
+--  	elseif army._convs_[un] then
+-- 		spacing = 80
+-- 	elseif army._llt_[un] then
+-- 		spacing = 50
+-- 		--self:EchoDebug()
+-- 	elseif army._popup1_[un] then
+-- 		spacing = 50
+-- 		--self:EchoDebug()
+-- 		spacing = 50
+-- 	elseif army._specialt_[un] then
+-- 		--self:EchoDebug()
+-- 		spacing = 5
+-- 	elseif army._heavyt_[un] then
+-- 		--self:EchoDebug()
+-- 		spacing = 50
+-- 	elseif army._aa1_[un] then
+-- 		--self:EchoDebug()
+-- 		spacing = 50
+-- 	elseif army._flak_[un] then
+-- 		--self:EchoDebug()
+-- 		spacing = 50
+-- 	elseif army._fus_[un] then
+-- 		--self:EchoDebug()
+-- 		spacing = 50
+-- 	elseif army._popup2_[un] then
+-- 		--self:EchoDebug()
+-- 		spacing = 50
+-- 	elseif army._jam_[un] then
+-- 		--self:EchoDebug()
+-- 	elseif army._radar_[un] then
+-- 		--self:EchoDebug()
+-- 	elseif army._geo_[un] then
+-- 		--self:EchoDebug()
+-- 		spacing = 5
+-- 	elseif army._silo_[un] then
+-- 		--self:EchoDebug()
+-- 	elseif army._antinuke_[un] then
+-- 		--self:EchoDebug()
+-- 		spacing = 5
+-- 	elseif army._sonar_[un] then
+-- 		--self:EchoDebug()
+-- 		spacing = 4
+-- 	elseif army._shield_[un] then
+-- 		--self:EchoDebug()
+-- 		spacing = 5
+-- 	elseif army._juno_[un] then
+-- 		--self:EchoDebug()
+-- 		spacing = 4
+-- 	elseif army._laser2_[un] then
+-- 		--self:EchoDebug()
+-- 		spacing = 4
+-- 	elseif army._lol_[un] then
+-- 		--self:EchoDebug()
+-- 		spacing = 5
+-- 	elseif army._coast1_[un] then
+-- 		--self:EchoDebug()
+-- 		spacing = 5
+-- 	elseif army._coast2_[un] then
+-- 		--self:EchoDebug()
+-- 		spacing = 5
+-- 	elseif army._plasma_[un] then
+-- 		--self:EchoDebug()
+-- 		spacing = 4
+-- 	elseif army._torpedo1_[un] then
+-- 		--self:EchoDebug()
+-- 		spacing = 4
+-- 	elseif army._torpedo2_[un] then
+-- 		--self:EchoDebug()
+-- 		spacing = 4
+-- 	elseif army._torpedoground_[un] then
+-- 		--self:EchoDebug()
+-- 		spacing = 5
+-- 	elseif army._aabomb_[un] then
+-- 		--self:EchoDebug()
+-- 		spacing = 5
+-- 	elseif army._aaheavy_[un] then
+-- 		--self:EchoDebug()
+-- 		spacing = 5
+-- 	elseif army._aa2_[un] then
+-- 		--self:EchoDebug()
+-- 		spacing = 5
+-- 	else
+-- 		spacing = 5
 	end
 	return spacing
 end
 
 function BuildSiteHST:ClosestHighestLevelFactory(builderPos, maxDist)
 	if not builderPos then return end
-	local minDist = maxDist
+	local minDist = maxDist or math.huge
 	local maxLevel = self.ai.maxFactoryLevel
 	self:EchoDebug(maxLevel .. " max factory level")
 	local factorybhvr
 	if self.ai.factoriesAtLevel[maxLevel] ~= nil then
 		for i, factory in pairs(self.ai.factoriesAtLevel[maxLevel]) do
-			if not self.ai.outmodedFactoryID[factory.id] then
+-- 			if not self.ai.outmodedFactoryID[factory.id] then
 				local dist = self.ai.tool:Distance(builderPos, factory.position)
 				if dist < minDist then
 					minDist = dist
 					factorybhvr = factory
 				end
-			end
+-- 			end
 		end
 	end
 	if factorybhvr then
-
 		local factoryPos = factorybhvr.position
 		local newpos = api.Position()
 		newpos.x = factoryPos.x
@@ -357,122 +280,160 @@ function BuildSiteHST:DontBuildOnMetalOrGeoSpots()
 		self:DontBuildRectangle(p.x-40, p.z-40, p.x+40, p.z+40)
 	end
 	self:PlotAllDebug()
-
 end
-
-function BuildSiteHST:unitNearCheck(utype,pos,range,number)
-	number = number or 1
-	if type(range) ~= 'number' then
-		range = self.ai.armyhst.unitTable[utype:Name()][range]
-	end
-	local unitsNear = self.game:getUnitsInCylinder(pos, range)
-	if not unitsNear  then return false end
-	local counter = 0
-	for idx, typeDef in pairs(unitsNear) do
-		local unitName = self.game:GetUnitByID(typeDef):Name()
-		if utype:Name() == unitName  then
-			counter = counter +1
-			if counter >= number then
-				self:EchoDebug(utype:Name(),' block by ',counter ,unitName)
-				return true
-			end
-		end
-	end
-	return false
-end
-
-function BuildSiteHST:searchPosNearThing(utype,builder,thing,range,spaceEquals,minDist,cat)
-	self:EchoDebug(thing,cat,'searcing')
-	local pos = builder:GetPosition()
-	local builderName = builder:Name()
-	if not range then
-		range = self.ai.armyhst.unitTable[builderName].losRadius
-		if type(spaceEquals) == 'string' then
-			range = self.ai.armyhst.unitTable[builderName][spaceEquals]
-		elseif type(spaceEquals) == 'number' then
-			range = spaceEquals
-		end
-	end
-	local unitsNear = self.game:getUnitsInCylinder(pos, range)
-	if not unitsNear then return nil end
-	for idx, typeDef in pairs(unitsNear) do
-		local unitNear = self.game:GetUnitByID(typeDef)
-		local unitNearName = unitNear:Name()
-		self:EchoDebug('around there ', unitNearName)
-		local tg
-		if thing and self.ai.armyhst.unitTable[unitNearName][thing] then
-			if type(self.ai.armyhst.unitTable[unitNearName][thing]) ~= 'number' then
-				tg = self.ai.armyhst.unitTable[unitNearName][thing]
-			else
-				tg = self.ai.armyhst.unitTable[unitNearName][thing] > 0
-			end
-		end
-		tg = tg or self.ai.armyhst[cat]
-		if tg then
-			local tgPos = unitNear:GetPosition()
-			self:EchoDebug('tg',tgPos)
-			if  spaceEquals then
-				if not self:unitNearCheck(utype,tgPos,spaceEquals)then
-					self:EchoDebug('no same unit near: pass')
-					local p = self.ai.buildsitehst:ClosestBuildSpot(builder, tgPos, utype , minDist, nil, nil, self.ai.armyhst.unitTable[builderName].losRadius)
-					self:EchoDebug('is ok')
-					if p then return p end
-				else
-					self:EchoDebug('same unit near: skip')
-				end
-			else
-				local p = self.ai.buildsitehst:ClosestBuildSpot(builder, tgPos, utype , minDist, nil, nil, self.ai.armyhst.unitTable[builderName].losRadius or range)
-				if p then return p end
-			end
-		end
-	end
-	return nil
-end
-
 
 function BuildSiteHST:ClosestBuildSpot(builder, position, unitTypeToBuild, minimumDistance, attemptNumber, buildDistance, maximumDistance)
-	maximumDistance = maximumDistance or 400
-	-- return self:ClosestBuildSpotInSpiral(builder, unitTypeToBuild, position)
-	if attemptNumber == nil then self:EchoDebug("looking for build spot for " .. builder:Name() .. " to build " .. unitTypeToBuild:Name()) end
-	local minDistance = minimumDistance or self:GetBuildSpacing(unitTypeToBuild)
+	self:EchoDebug("looking for build spot for " .. builder:Name() .. " to build " .. unitTypeToBuild:Name())
+
+	maximumDistance = maximumDistance or 390
+	minimumDistance = minimumDistance or 1
 	buildDistance = buildDistance or 100
+	-- return self:ClosestBuildSpotInSpiral(builder, unitTypeToBuild, position)
 	local function validFunction(pos)
 		local vpos = self:CheckBuildPos(pos, unitTypeToBuild, builder, position)
-		-- Spring.Echo(pos.x, pos.y, pos.z, unitTypeToBuild:Name(), builder:Name(), position.x, position.y, position.z, vpos)
+
+		self:EchoDebug(pos.x, pos.y, pos.z, unitTypeToBuild:Name(), builder:Name(), position.x, position.y, position.z, vpos)
+
 		return vpos
 	end
-	return self.map:FindClosestBuildSite(unitTypeToBuild, position, maximumDistance, minDistance, validFunction)
+	local target = self.map:FindClosestBuildSite(unitTypeToBuild, position, maximumDistance, minimumDistance, validFunction)
+	self.DebugEnabled = false
+ 	return target
+
 end
 
-function BuildSiteHST:searchPosInList(list,utype, builder, spaceEquals,minDist)
--- 	if spaceEquals and self:unitNearCheck(utype,builder:GetPosition(),spaceEquals) then return nil end
-	local d
-	if list and #list > 0 then
-		self:EchoDebug('list ok')
-		for index, pos in pairs(list) do
-			if self.ai.tool:Distance(pos,builder:GetPosition()) < 5000 then
-				self:EchoDebug('to far away')
-				if not spaceEquals or not self:unitNearCheck(utype,pos,spaceEquals)then
-					self:EchoDebug('ok space')
-					local p = self.ai.buildsitehst:ClosestBuildSpot(builder, pos, utype , minDist, nil, nil, nil)
+function BuildSiteHST:CheckBuildPos(pos, unitTypeToBuild, builder, originalPosition) --TODO clean this
+	if not pos then return end
+	if not self:isInMap(pos) then return end
+	-- sanity check: is it REALLY possible to build here?
+ 	local range = self:GetBuildSpacing(unitTypeToBuild)
+  	local neighbours = self.game:getUnitsInCylinder(pos, range) --security distance between buildings prevent units stuck --TODO refine and TEST
+	for idx, unitID in pairs (neighbours) do
+		local unitName = self.game:GetUnitByID(unitID):Name()
+		local mobile = self.ai.armyhst.unitTable[unitName].speed > 0
+		if not mobile  and unitTypeToBuild:Name() ~= unitName then
+			return nil
+		end
+	end
+	local s = self.ai.map:CanBuildHere(unitTypeToBuild, pos)
+	if not s then
+		self:EchoDebug("cannot build " .. unitTypeToBuild:Name() .. " here: " .. pos.x .. ", " .. pos.z)
+		return nil
+	end
+	local rect
+	if pos ~= nil then
+		rect = {position = pos, unitName = unitTypeToBuild:Name()}
+		self:CalculateRect(rect)
+	end
+	-- is it too far away from an amphibious constructor?
+	if pos ~= nil then
+		local lw = self:LandWaterFilter(pos, unitTypeToBuild, builder)
+		if not lw then
+			return nil
+		end
+	end
+	-- don't build where you shouldn't (metal spots, geo spots, factory lanes)
+	if pos ~= nil then
+		for i, dont in pairs(self.dontBuildRects) do
+			if self.ai.tool:RectsOverlap(rect, dont) then
+				pos = nil
 
-					if p then
-						d = self.ai.tool:Distance(p,builder:GetPosition())
-						self:EchoDebug('Found pos in list')
--- 						if d < 3000 then
-							return p
--- 						end
-					end
-				end
 			end
 		end
 	end
-	return nil
+	-- don't build on top of current build orders
+	if pos ~= nil then
+		for i, plan in pairs(self.plans) do
+			if self.ai.tool:RectsOverlap(rect, plan) then
+				return nil
+			end
+		end
+	end
+	-- don't build where the builder can't go
+	if pos ~= nil then
+		if not self.ai.maphst:UnitCanGoHere(builder, pos) then
+			--Spring.Echo(builder:Name(), 'CAN NOT GO', pos.x,pos.z)
+			return nil
+		else
+			--Spring.Echo(builder:Name(), 'go to', pos.x,pos.z)
+		end
+	end
+	return pos
 end
 
+function BuildSiteHST:searchPosNearCategories(utype,builder,minDist,maxDist,categories,neighbours,number)
+	if not categories then return end
+	self:EchoDebug(categories,'searcing')
+	local army = self.ai.armyhst
+	local builderName = builder:Name()
+	local p = nil
+	maxDist = maxDist or 390
+	if type(maxDist) == 'string' then
+		maxDist = army.unitTable[builderName][maxDist]
+	end
+	local sortedUnits = {}
+	for i,cat in pairs(categories) do
+		for name, _ in pairs(army[cat]) do
+			local defId = army.unitTable[name].defId
+			local units = self.game:GetTeamUnitsByDefs(self.ai.id,defId)
+			for index,uID in pairs(units) do
+				self:EchoDebug('unit', index,uId)
+				local dist = self.game:GetUnitSeparation(uID,builder:ID())
+				self:EchoDebug('dist = ', dist)
+				table.insert(sortedUnits,dist,uID)
+			end
+		end
+	end
+	for dist, uID in pairs(sortedUnits) do
+		local unit = self.game:GetUnitByID(uID)
+		local unitName = unit:Name()
+		local unitPos = unit:GetPosition()
+		if not neighbours or not self:unitsNearCheck(unitPos, maxDist,number,neighbours) then
+			p = self:ClosestBuildSpot(builder, unitPos, utype , minDist, nil, nil, maxDist )
+		end
+		if p then return p end
+	end
+end
+
+function BuildSiteHST:searchPosInList(utype, builder,minDist,maxDist,list,neighbours,number)
+	--self.game:StartTimer('bst2')
+	local maxDist = maxDist or 390
+	local d = math.huge
+	local p
+	local tmpDist
+	local tmpOos
+	if not list then return end
+	for index, pos in pairs(list) do
+		self:EchoDebug(index,pos)
+
+		if not neighbours or not self:unitsNearCheck(pos, maxDist,number,neighbours)then
+			tmpPos = self:ClosestBuildSpot(builder, pos, utype , minDist, nil, nil, maxDist)
+			if tmpPos then
+				tmpDist = self.ai.tool:Distance(pos,builder:GetPosition())
+				self:EchoDebug('tmpdist',tmpDist)
+				if tmpDist < 389 then --  here is used to exit the cycle if builder is sufficient near to go here without search more
+					self:EchoDebug(index,'dist < 389')
+					p = tmpPos
+					break --exit the cycle
+				else
+					if tmpDist < d then
+						d = tmpDist
+						p = tmpPos
+						self:EchoDebug('Found pos in list for ', index)
+					end
+				end
+
+			end
+		end
+	end
+	--self.game:StopTimer('bst2')
+	self:EchoDebug('posinlist',p)
+	return p
+end
 
 function BuildSiteHST:BuildNearNano(builder, utype)
 	self:EchoDebug("looking for spot near nano hotspots")
+	--self.game:StartTimer('bst3')
 	local nanoHots = self.ai.nanohst:GetHotSpots()
 	if nanoHots then
 		self:EchoDebug("got " .. #nanoHots .. " nano hotspots")
@@ -483,10 +444,12 @@ function BuildSiteHST:BuildNearNano(builder, utype)
 			local p = self:ClosestBuildSpot(builder, hotPos, utype, 10, nil, nil, hotRadius)
 			if p then
 				self:EchoDebug('found Position for near nano hotspot at: ' .. hotPos.x ..' ' ..hotPos.z)
+				--self.game:StopTimer('bst3')
 				return p
 			end
 		end
 	end
+	--self.game:StopTimer('bst3')
 	return self:BuildNearLastNano(builder, utype)
 
 end
@@ -502,7 +465,46 @@ function BuildSiteHST:BuildNearLastNano(builder, utype)
 	return p
 end
 
-function BuildSiteHST:UnitCreated(unit)
+function BuildSiteHST:buildOnCircle(center,uname)
+	local posx
+	local posz
+	for i=1,8 do
+		local x = radius *  math.cos(math.ceil((360/8)*i))
+		local z = radius *  math.sin(math.ceil((360/8)*i))
+		posx=posx+x
+		posz=posz+z
+		local posy = Spring.getGroundHeight(posx,posz)
+		local neighbours = self:unitsNearCheck({x=posx,y=posy,z=posz},500,1,uname)
+		if not neighbours then return {x=posx,y=posy,z=posz} end
+	end
+end
+
+
+
+
+function BuildSiteHST:unitsNearCheck(pos,range,number,targets)
+	number = number or 1
+	local neighbours = self.game:getUnitsInCylinder(pos, range)
+	if not neighbours  then return false end
+	local counter = 0
+	for idx, typeDef in pairs(neighbours) do
+		local unitName = self.game:GetUnitByID(typeDef):Name()
+		for i,target in pairs(targets) do
+			if unitName ==  target or (self.ai.armyhst[target] and self.ai.armyhst[target][unitName]) then
+				counter = counter +1
+				if counter >= number then
+					self:EchoDebug(' block by ',counter ,unitName)
+					return true
+				end
+				break
+			end
+		end
+	end
+	return false
+end
+
+function BuildSiteHST:UnitCreated(unit)---TODO track test from unithandler
+	--self.game:StartTimer('unitCreatedt')
 	local unitName = unit:Name()
 	local position = unit:GetPosition()
 	local unitID = unit:ID()
@@ -541,10 +543,11 @@ function BuildSiteHST:UnitCreated(unit)
 		self.ai.turtlehst:NewUnit(unitName, position, unitID)
 	end
 	self:PlotAllDebug()
+	--self.game:StopTimer('unitCreatedt')
 end
 
 -- prevents duplication of expensive buildings and building more than one factory at once
--- true means there's a duplicate, false means there isn't
+-- true means there's a duplicate, false means there isn't TODO REDO
 function BuildSiteHST:CheckForDuplicates(unitName)
 	if unitName == nil then return true end
 	if unitName == self.ai.armyhst.DummyUnitName then return true end
@@ -579,6 +582,7 @@ function BuildSiteHST:MyUnitBuilt(unit)
 		-- table.insert(self.history, done)
 		self.constructing[unitID] = nil
 	end
+	self:calculateEcoCenter()
 end
 
 function BuildSiteHST:UnitDead(unit)
@@ -609,8 +613,8 @@ end
 function BuildSiteHST:CalculateFactoryLane(rect)
 	local unitName = rect.unitName
 	local position = rect.position
-	local outX = self.ai.armyhst.unitTable[unitName].xsize * 4
-	local outZ = self.ai.armyhst.unitTable[unitName].zsize * 4
+	local outX = self.ai.armyhst.unitTable[unitName].xsize * 6--original = 4
+	local outZ = self.ai.armyhst.unitTable[unitName].zsize * 6--original = 4
 	local tall = outZ * 10
 	local facing = self:GetFacing(position)
 	if facing == 0 then
@@ -655,7 +659,7 @@ function BuildSiteHST:ClearMyPlans(behaviour)
 	for i = #self.plans, 1, -1 do
 		local plan = self.plans[i]
 		if plan.behaviour == behaviour then
-			if not plan.resurrect and (self.ai.armyhst.unitTable[plan.unitName].isBuilding or self.ai.armyhst._nano_[unitName]) then
+			if not plan.resurrect and (self.ai.armyhst.unitTable[plan.unitName].isBuilding or self.ai.armyhst._nano_[plan.unitName]) then
 				self.ai.turtlehst:PlanCancelled(plan)
 			end
 			table.remove(self.plans, i)
@@ -679,6 +683,23 @@ end
 
 function BuildSiteHST:ResurrectionRepairedBy(unitID)
 	return self.resurrectionRepair[unitID]
+end
+
+function BuildSiteHST:calculateEcoCenter()
+	local count = 0
+	local x,y,z = 0,0,0
+	for i,v in pairs(self.game:GetUnits()) do
+		if self.ai.armyhst.unitTable[v:Name()].speed == 0 then
+			count = count + 1
+			local p = v:GetPosition()
+			x,y,z = x+p.x, y+p.y,z+p.z
+		end
+
+
+	end
+	x,y,z = x/count, y/count, z/count
+-- 	map:DrawPoint({x=x,y=y,z=z}, {255,255,255,255}, 'center', 1)
+
 end
 
 function BuildSiteHST:PlotRectDebug(rect)

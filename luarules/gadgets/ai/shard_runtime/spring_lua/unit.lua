@@ -80,7 +80,11 @@ function ShardUnit:InList( unitTypeNames )
 end
 
 function ShardUnit:IsAlive()
-	return not Spring.GetUnitIsDead(self.id)
+	if Spring.GetUnitIsDead(self.id) == false then
+		return true
+	else
+		return false -- cause return true for a short period and then nil
+	end
 end
 
 function ShardUnit:IsCloaked()
@@ -115,7 +119,11 @@ end
 
 function ShardUnit:IsBeingBuilt()
 	local health, maxHealth, paralyzeDamage, captureProgress, buildProgress = Spring.GetUnitHealth( self.id )
-	return buildProgress < 1
+	if buildProgress then -- add a scavenger workaround, but this function is better to return the complete output instead a simple true/false
+		return buildProgress < 1
+	else
+		return false
+	end
 end
 
 function ShardUnit:IsMorphing()
@@ -205,7 +213,9 @@ function ShardUnit:AttackMove(p)
 end
 
 function ShardUnit:MoveAndFire(p)
-	return Spring.GiveOrderToUnit( self.id, CMD.FIGHT, { p.x, p.y, p.z }, 0 )
+	if p then
+		return Spring.GiveOrderToUnit( self.id, CMD.FIGHT, { p.x, p.y, p.z }, 0 )
+	end
 end
 
 function ShardUnit:Patrol(p)
@@ -326,6 +336,12 @@ end
 
 function ShardUnit:GetPosition()
 	local bpx, bpy, bpz = Spring.GetUnitPosition(self.id)
+	local isDead = Spring.GetUnitIsDead(self.id)
+	--[[if isDead or isDead == nil then
+		if bpx then
+			--Spring.Echo(self:Name(), self.id, 'is a dead unit', isDead, 'but we have a pos')
+		end
+	else]]
 	if not bpx then
 		Spring.Echo(self:Name(), self.id, "nil position")
 		return

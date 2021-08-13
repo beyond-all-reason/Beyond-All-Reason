@@ -48,7 +48,7 @@ function LabRegisterBST:OwnerDead()
 end
 
 function LabRegisterBST:Unregister()
-	self.ai.factories = self.ai.factories - 1
+
 	local un = self.name
     local level = self.level
    	self:EchoDebug("factory " .. un .. " level " .. level .. " unregistering")
@@ -66,7 +66,7 @@ function LabRegisterBST:Unregister()
     	end
     end
     self.ai.maxFactoryLevel = maxLevel
-	-- game:SendToConsole(self.ai.factories .. " factories")
+	-- game:SendToConsole(self.ai.tool:countMyUnit({'factoryMobilities'}) .. " factories")
 
 	if self.ai.factoryUnderConstruction == self.id then self.ai.factoryUnderConstruction = false end
 	local mtype = self.ai.armyhst.factoryMobilities[self.name][1]
@@ -75,15 +75,10 @@ function LabRegisterBST:Unregister()
 	if self.ai.factoryBuilded[mtype] and self.ai.factoryBuilded[mtype][network] then
 		self.ai.factoryBuilded[mtype][network] = self.ai.factoryBuilded[mtype][network] - self.level
 	end
-	self:EchoDebug('factory '  ..self.name.. ' network '  .. mtype .. '-' .. network .. ' level ' .. self.ai.factoryBuilded[mtype][network] .. ' subtract tech '.. self.level)
+	self:EchoDebug('factory '  ,self.name, ' network '  ,mtype , '-' , network , ' level ' ,self.ai.factoryBuilded[mtype][network] , ' subtract tech ', self.level)
 end
 
 function LabRegisterBST:Register()
-	if self.ai.factories ~= nil then
-		self.ai.factories = self.ai.factories + 1
-	else
-		self.ai.factories = 1
-	end
 	-- register maximum factory level
     local un = self.name
     local level = self.level
@@ -96,12 +91,12 @@ function LabRegisterBST:Register()
 		-- so that it will start producing combat units
 		self.ai.attackhst:NeedLess(nil, 2)
 		self.ai.bomberhst:NeedLess()
-		self.ai.bomberhst:NeedLess()
+		self.ai.bomberhst:NeedLess() --TODO check why 2 time?
 		self.ai.raidhst:NeedMore(nil, 2)
 		-- set the current maximum factory level
 		self.ai.maxFactoryLevel = level
 	end
-	-- game:SendToConsole(self.ai.factories .. " factories")
+	-- game:SendToConsole(self.ai.tool:countMyUnit({'factoryMobilities'}) .. " factories")
 
 	if self.ai.factoryUnderConstruction == self.id then self.ai.factoryUnderConstruction = false end
 	local mtype = self.ai.armyhst.factoryMobilities[self.name][1]

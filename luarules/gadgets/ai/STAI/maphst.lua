@@ -10,6 +10,7 @@ end
 
 MapHST.DebugEnabled = false
 MapHST.lastDataResetFrame = 0
+local DebugDrawEnabled = false
 
 local mapColors = {
 	veh = { 1, 0, 0 },
@@ -74,7 +75,7 @@ end
 
 local function MapDataFilename()
 	local mapName = string.gsub(map:MapName(), "%W", "_")
-	return "cache/Shard-" .. game:GameName() .. "-" .. mapName .. ".lua"
+	return "cache/Shard-" .. self.game:GameName() .. "-" .. mapName .. ".lua"
 end
 
 local function EchoData(name, o)
@@ -116,7 +117,7 @@ local function GetChannelsFromLabel(label)
 	return channels
 end
 
-local function PlotDebug(x, z, label, labelAdd)
+function MapHST:PlotDebug(x, z, label, labelAdd)
 	if DebugDrawEnabled then
 		x = math.ceil(x)
 		z = math.ceil(z)
@@ -308,7 +309,7 @@ function MapHST:MapSpotMobility(metals, geos)
 						mobNetworkCount[mtype][thisNetwork] = 1
 						networkSize[mtype][thisNetwork] = 0
 						mobNetworkMetals[mtype][thisNetwork] = {}
-						PlotDebug(x * mobilityGridSize - mobilityGridSizeHalf, z * mobilityGridSize - mobilityGridSizeHalf, mtype, thisNetwork)
+						self:PlotDebug(x * mobilityGridSize - mobilityGridSizeHalf, z * mobilityGridSize - mobilityGridSizeHalf, mtype, thisNetwork)
 						Flood4Topology(x, z, mtype, mobNetworks[mtype])
 					else
 						-- if topology isn't empty here, add this spot to its count
@@ -371,7 +372,7 @@ end
 function MapHST:Update()
 -- 	-- workaround for shifting metal spots: map data is reloaded every two minutess
 	local f = self.game:Frame()
-	self:EchoDebug('frame',f)
+-- 	self:EchoDebug('frame',f)
 	if f > self.lastDataResetFrame + 3600 then
 		-- self:LoadMapData()
 	self.lastDataResetFrame = f
@@ -427,7 +428,10 @@ function MapHST:Init()
 	self.spots = self.map:GetMetalSpots()
 	-- copy metal spots
 	local metalSpots = {}
-	for k, v in pairs(self.spots) do table.insert(metalSpots, v) end
+	for k, v in pairs(self.spots) do
+		table.insert(metalSpots, v)
+
+	end
 	if #metalSpots > 1600 then
 		-- metal map is too complex, simplify it
 		metalSpots = self:SimplifyMetalSpots(metalSpots, 1600)
@@ -443,7 +447,7 @@ function MapHST:Init()
 		if tmpFeatures then
 			for _, feature in pairs(tmpFeatures) do
 				if feature then
-					tmpName = feature:Name()
+					local tmpName = feature:Name()
 					if tmpName == "geovent" then
 						self.ai.mapHasGeothermal = true
 						table.insert(geoSpots, feature:GetPosition())
@@ -541,7 +545,7 @@ function MapHST:Init()
 		-- localize start locations into mobility networks
 		for i, start in pairs(self.ai.startLocations["air"][1]) do
 			self:EchoDebug("start location guessed at: " .. start.x .. ", " .. start.z)
-			PlotDebug(start.x, start.z, "start")
+			self:PlotDebug(start.x, start.z, "start")
 			for mtype, networkList in pairs(scoutSpots) do
 				if mtype ~= "air" then -- air list is already filled
 					for n, spots in pairs(networkList) do
@@ -553,7 +557,6 @@ function MapHST:Init()
 			end
 		end
 	end
-	-- self:SaveMapData()
 	-- cleanup
 	mobMap = nil
 	self.ai.factoriesRanking, self.ai.ranksByFactories = self:factoriesRating()
@@ -859,9 +862,6 @@ function MapHST:factoriesRating()
 		if self.ai.armyhst.factoryMobilities[factory][1] == ('hov') then
 			Rating = Rating * (self.ai.mobCount['shp'] /mobilityGridArea)
 		end
-		if factory == 'armfhp' or factory == 'corfhp' then
-			Rating = Rating * 0.999 -- better a ground one, nanos around
-		end
 		Rating = Rating * -1--reverse the value to get the right order
 		if Rating ~= 0 then --useless add factory totally out of mode
 			factoryRating[factory] = Rating
@@ -892,51 +892,6 @@ function MapHST:factoriesRating()
 		end
 	end
 	return factoriesRanking, ranksByFactories
-end
-
-function MapHST:SaveMapData()
-	local mdfilename = MapDataFilename()
-	self:EchoDebug("saving map data to " .. mdfilename)
-	mapdatafile = io.open(mdfilename,'w')
-	if mapdatafile ~= nil then
-		EchoData("mobilityGridSize", mobilityGridSize)
-		EchoData("mobilityGridMaxX", mobilityGridMaxX)
-		EchoData("mobilityGridMaxZ", mobilityGridMaxZ)
-		EchoData("self.ai.waterMap", self.ai.waterMap)
-		EchoData("self.ai.mapHasGeothermal", self.ai.mapHasGeothermal)
-		EchoData("mobilityRatingFloor", mobilityRatingFloor)
-		EchoData("self.ai.hasUWSpots", self.ai.hasUWSpots)
-		EchoData("mobilityGridSizeHalf", mobilityGridSizeHalf)
-		EchoData("self.ai.mobilityGridArea", self.ai.mobilityGridArea)
-		EchoData("self.ai.mobRating", self.ai.mobRating)
-		EchoData("self.ai.mobCount", self.ai.mobCount)
-		EchoData("self.ai.mobNetworks", self.ai.mobNetworks)
-		EchoData("networkSize", networkSize)
-		EchoData("landMetalSpots", landMetalSpots)
-		EchoData("UWMetalSpots", UWMetalSpots)
-		EchoData("geoSpots", geoSpots)
-		EchoData("self.ai.startLocations", self.ai.startLocations)
-		EchoData("self.ai.mobNetworkMetals", self.ai.mobNetworkMetals)
-		EchoData("scoutSpots", scoutSpots)
-		EchoData("topology", topology)
-		mapdatafile:close()
-	else
-		self:EchoDebug("unable to write map data file " .. mdfilename)
-	end
-end
-
-function MapHST:LoadMapData()
-	-- check for existing map data and load it
-	local dataloaded = false
-	local mdfilename = MapDataFilename()
-	local mapdatafile = io.open(mdfilename ,"r")
-	if mapdatafile ~= nil then
-		mapdatafile:close()
-		dofile(mdfilename)
-		dataloaded = true
-		self:EchoDebug("map data loaded from " .. mdfilename)
-	end
-	return dataloaded
 end
 
 function MapHST:DebugDrawMobilities()
@@ -1021,8 +976,8 @@ function MapHST:SimplifyMetalSpots(metalSpots, number)
 end
 
 function MapHST:ClosestFreeSpot(unittype, builder, position)
-	-- local kbytes, threshold = gcinfo()
-	-- game:SendToConsole("maphst gcinfo: " .. kbytes .. " (before ClosestFreeSpot)")
+-- 	local kbytes, threshold = gcinfo()
+-- 	game:SendToConsole("maphst gcinfo: " .. kbytes .. " (before ClosestFreeSpot)")
 	if position == nil then position = builder:GetPosition() end
 	local spots = {}
 	local bname = builder:Name()
@@ -1050,7 +1005,14 @@ function MapHST:ClosestFreeSpot(unittype, builder, position)
 	else
 		local mtype, network = self:MobilityOfUnit(builder)
 		if self.ai.mobNetworkMetals[mtype][network] ~= nil then
-			spots = self.ai.mobNetworkMetals[mtype][network]
+			spots = self.ai.mobNetworkMetals[mtype][network] --TODO check why on diana beach armck has 137 spots and armcv 50
+-- 			self.map:EraseAll()
+			if bname == 'armck' then
+				for i,v in pairs (spots) do
+-- 					self.map:DrawPoint(v, {1,1,1,1}, nil, 1)
+				end
+			end
+
 		end
 	end
 	if spots == nil then
@@ -1063,7 +1025,7 @@ function MapHST:ClosestFreeSpot(unittype, builder, position)
 	local uname = unittype:Name()
 	local pos = nil
 	local reclaimEnemyMex = false
-	local bestDistance = 10000
+	local bestDistance = math.huge
  	-- check for armed enemy units nearby
 	local uw = nil
 	local uwutype = nil
@@ -1089,13 +1051,45 @@ function MapHST:ClosestFreeSpot(unittype, builder, position)
 		-- if uwutype ~= nil then self:EchoDebug("builder can build uw mexes") end
 	end
 	local f = self.game:Frame()
+-- 	for i,p in pairs(spots) do
+-- 		local target = true
+-- 		if target and not self.ai.buildsitehst:PlansOverlap(p, uname) then
+-- 			target = false
+-- 		end
+-- 		if target and not self:UnitCanGoHere(builder, p) then
+-- 			target = false
+-- 		end
+-- 		if target and self.ai.tool:Distance(position, p) > bestDistance then
+-- 			target = false
+-- 		end
+-- 		if target and uwutype and not self.map:CanBuildHere(uwutype, p) then
+-- 			target = false
+--
+-- 		end
+-- 		if target and not uwutype and not self.map:CanBuildHere(unittype, p) then
+-- 			target = false
+-- 		end
+-- 		if target and not self.ai.targethst:IsSafePosition(p, builder) then
+-- 			target = false
+-- 		end
+-- 		if target then
+-- 			bestDistance = self.ai.tool:Distance(position, p)
+-- 			pos = p
+-- 			reclaimEnemyMex = false
+-- 			if uwcheck then
+-- 				uw = uwutype
+-- 			end
+-- 		end
+-- 	end
 	for i,p in pairs(spots) do
 		-- dont use this spot if we're already building there
 		local alreadyPlanned = self.ai.buildsitehst:PlansOverlap(p, uname)
-		if not alreadyPlanned then
+		if not alreadyPlanned and self:UnitCanGoHere(builder, p) then
+			self:EchoDebug('1')
 			local dist = self.ai.tool:Distance(position, p)
 			-- don't add if it's already too high
 			if dist < bestDistance then
+				self:EchoDebug('2')
 				-- now check if we can build there
 				local uwcheck
 				if uwutype ~= nil then
@@ -1103,20 +1097,27 @@ function MapHST:ClosestFreeSpot(unittype, builder, position)
 					 -- self:EchoDebug("builder can build uw mex here? " .. tostring(uwcheck))
 				end
 				if self.map:CanBuildHere(unittype, p) or uwcheck then
+					self:EchoDebug('3')
 					-- self:EchoDebug("can build mex at" .. p.x .. " " .. p.z)
 					-- game:SendToConsole("before builder gets safe position", self.ai.id, self.ai.id, builder:Team())
 					if self.ai.targethst:IsSafePosition(p, builder) then
+						self:EchoDebug('4')
 						bestDistance = dist
 						pos = p
 						reclaimEnemyMex = false
 						if uwcheck then
 							-- self:EchoDebug("uw mex is best self.ai.tool:distance")
 							uw = uwutype
+							self:EchoDebug('5')
 						else
 							uw = nil
+							self:EchoDebug('6')
 						end
+					else
+-- 						self.map:DrawPoint(p, {0,0,1,1}, nil, 1)
 					end
 				elseif self.ai.targethst:IsSafePosition(p, builder, 200) then
+					self:EchoDebug('7')
 					-- is it an enemy mex that's blocking a safe position (or an unknown radar blip)?
 					for i, enemySpot in pairs(self.ai.enemyMexSpots) do
 						local epos = enemySpot.position
@@ -1127,18 +1128,22 @@ function MapHST:ClosestFreeSpot(unittype, builder, position)
 							if uwcheck then
 								-- self:EchoDebug("uw mex is best self.ai.tool:distance")
 								uw = uwutype
+								self:EchoDebug('8')
 							else
 								uw = nil
+								self:EchoDebug('9')
 							end
 							break
 						end
 					end
 				end
 			end
+		else
+-- 			self.map:DrawPoint(p, {1,0,0,1}, nil, 1)
 		end
 	end
-	-- local kbytes, threshold = gcinfo()
-	-- game:SendToConsole("maphst gcinfo: " .. kbytes .. " (after ClosestFreeSpot)")
+-- 	local kbytes, threshold = gcinfo()
+-- 	game:SendToConsole("maphst gcinfo: " .. kbytes .. " (after ClosestFreeSpot)")
 	-- if uw then self:EchoDebug("uw mex is final best self.ai.tool:distance") end
 	return pos, uw, reclaimEnemyMex
 end
@@ -1163,6 +1168,7 @@ function MapHST:ClosestFreeGeo(unittype, builder, position)
 end
 
 function MapHST:MobilityNetworkHere(mtype, position)
+	if not mtype or not position then return nil end
 	if mtype == "air" then return 1 end
 	local x = math.ceil(position.x / mobilityGridSize)
 	local z = math.ceil(position.z / mobilityGridSize)
@@ -1252,22 +1258,6 @@ end
 
 function MapHST:IsUnderWater(position)
 	return Spring.GetGroundHeight(position.x, position.z) < 0
-end
-
-function MapHST:OutmodedFactoryHere(mtype, position, network)
-	if mtype == "air" then return false end
-	if position and network == nil then
-		network = self:MobilityNetworkHere(mtype, position)
-	end
-	if network == nil then
-		return false
-	else
-		if networkSize[mtype][network] < self.ai.mobCount[mtype] * 0.67 and self.ai.mobNetworks[mtype] > 1 then
-	 		return true
-		else
-			return false
-		end
-	end
 end
 
 function MapHST:CheckDefenseLocalization(unitName, position)

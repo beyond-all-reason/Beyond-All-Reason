@@ -15,6 +15,7 @@ function LabBuildHST:Init()
 	self.conTypesByName = {}
 	self.finishedConIDs = {}
 	self.factories = {}
+	self.ai.factoriesAtLevel = {}
 	self:EchoDebug('Initialize')
 end
 
@@ -70,10 +71,8 @@ function LabBuildHST:AvailableFactories(factoriesPreCleaned)
 			end
 		end
 	end
-	if self.DebugEnabled then
-		for i, v in pairs(self.factories) do
-			self:EchoDebug(i .. ' ' .. v  .. ' is available Factories' )
-		end
+	for i, v in pairs(self.factories) do
+		self:EchoDebug(i .. ' ' .. v  .. ' is available Factories' )
 	end
 end
 
@@ -88,21 +87,22 @@ function LabBuildHST:PrePositionFilter()
 		local isAdvanced = self.ai.armyhst.advFactories[factoryName]
 		local isExperimental = self.ai.armyhst.expFactories[factoryName] or self.ai.armyhst.leadsToExpFactories[factoryName]
 		local mtype = self.ai.armyhst.factoryMobilities[factoryName][1]
-		if self.game:GetTeamUnitDefCount(self.ai.id,self.ai.armyhst.unitTable[factoryName].defId) > 0 then
+		local team = self.ai.id
+		if self.game:GetTeamUnitDefCount(self.ai.id,utn.defId) > 0 then
 			self:EchoDebug(factoryName ..' already have ')
 			buildMe = false
 		end
-		if mtype == 'air' and not isAdvanced and self.ai.factories == 1 then
-			self:EchoDebug(factoryName ..' dont build air before advanced ')
-			buildMe = false
-		end
-		if mtype == 'air' then
-			local counter = game:GetTeamUnitDefCount(self.ai.id,self.ai.armyhst.unitTable[factoryName].defId)
-			if counter > 0 then
-				self:EchoDebug(factoryName ..' never build more than 1 air factory per name, units can go anywhare ')
-				buildMe = false
-			end
-		end
+ 		if mtype == 'air' and not isAdvanced and self.ai.tool:countMyUnit({'factoryMobilities'}) == 1 then
+ 			self:EchoDebug(factoryName ..' dont build air before advanced ')
+ 			buildMe = false
+ 		end
+-- 		if mtype == 'air' then
+-- 			local counter = self.game:GetTeamUnitDefCount(self.ai.id,utn.defId)
+-- 			if counter > 0 then
+-- 				self:EchoDebug(factoryName ..' never build more than 1 air factory per name, units can go anywhare ')
+-- 				buildMe = false
+-- 			end
+-- 		end
 		if self.ai.needAdvanced and not self.ai.haveAdvFactory and not isAdvanced then
 			self:EchoDebug(factoryName ..' not advanced when i need it')
 			buildMe = false
@@ -138,10 +138,8 @@ function LabBuildHST:PrePositionFilter()
 		end
 		if buildMe then table.insert(factoriesPreCleaned,factoryName) end
 	end
-	if self.DebugEnabled then
-		for i, v in pairs(factoriesPreCleaned) do
-			self:EchoDebug('rank ' .. i .. ' ' .. v .. ' in factoryPreCleaned')
-		end
+	for i, v in pairs(factoriesPreCleaned) do
+		self:EchoDebug('rank ' .. i .. ' ' .. v .. ' in factoryPreCleaned')
 	end
 	return factoriesPreCleaned
 end
@@ -154,32 +152,30 @@ function LabBuildHST:ConditionsToBuildFactories(builder)
 		self:EchoDebug('other factory under construction')
 		return false
 	end
-	self:EchoDebug('self.ai.combatCount '..self.ai.combatCount)
+	self:EchoDebug('self.ai.tool:countMyUnit({isWeapon}) '..self.ai.tool:countMyUnit({'isWeapon'}))
 	local canDoFactory = false
 	for order = 1, #self.factories do
 		local factoryName = self.factories[order]
 		local uTn = self.ai.armyhst.unitTable[factoryName]
-		--if self.ai.scaledMetal > uTn.metalCost * order and self.ai.scaledEnergy > uTn.energyCost * order and self.ai.combatCount >= self.ai.factories * 20 then
-		local factoryCountSq = self.ai.factories * self.ai.factories
-		local sameFactoryCount = self.ai.nameCountFinished[factoryName] or 0
+		local factoryCountSq = self.ai.tool:countMyUnit({'factoryMobilities'}) * self.ai.tool:countMyUnit({'factoryMobilities'})
+		local sameFactoryCount = self.ai.tool:countFinished(factoryName)
 		local sameFactoryMetal = sameFactoryCount * 20
 		local sameFactoryEnergy = sameFactoryCount * 500
+		self:EchoDebug('labparams',factoryCountSq,sameFactoryCount,sameFactoryMetal,sameFactoryEnergy)
 		if
 			(self.ai.Metal.income > (factoryCountSq * 10) + 3 + sameFactoryMetal
 				and self.ai.Energy.income > (factoryCountSq * 100) + 25 + sameFactoryEnergy
-				and self.ai.combatCount >= self.ai.factories * 20)
+				and self.ai.tool:countMyUnit({'isWeapon'}) >= self.ai.tool:countMyUnit({'factoryMobilities'}) * 20)
 			or (
 				self.ai.Metal.income > (factoryCountSq * 20) + (sameFactoryMetal * 2)
 				and self.ai.Energy.income > (factoryCountSq * 200) + (sameFactoryEnergy * 2)
 			or  (uTn.metalCost * 1.2 < self.ai.Metal.reserves
 					and  uTn.energyCost  < self.ai.Energy.reserves
-					and self.ai.combatCount >= 50
-					and self.ai.factories >= 1)
-
+					and self.ai.tool:countMyUnit({'isWeapon'}) >= 50
+					and self.ai.tool:countMyUnit({'factoryMobilities'}) >= 1)
 		)then
-
 			self:EchoDebug(factoryName .. ' conditions met')
-			local canBuild = builder:CanBuild(game:GetTypeByName(factoryName))
+			local canBuild = builder:CanBuild(self.game:GetTypeByName(factoryName))
 			if canBuild then
 				factoriesCount = factoriesCount + 1
 				factories[factoriesCount] = factoryName
@@ -201,6 +197,7 @@ function LabBuildHST:ConditionsToBuildFactories(builder)
 end
 
 function LabBuildHST:GetBuilderFactory(builder)
+	--self.game:StartTimer('GetBuilderFactory'  .. '1')
 	local builderID = builder:ID()
 	local builderName = builder:Name()
 	local f = self.game:Frame()
@@ -232,72 +229,18 @@ end
 
 function LabBuildHST:FactoryPosition(factoryName,builder)
 	local utype = game:GetTypeByName(factoryName)
-	local mtype = self.ai.armyhst.factoryMobilities[factoryName][1]
-	local builderPos = builder:GetPosition()
-	local factoryPos
+	local utype = self.game:GetTypeByName(factoryName)
+	local site = self.ai.buildsitehst
 	local p
-	if p == nil then
-		self:EchoDebug("looking next to nano turrets for " .. factoryName)
-		p = self.ai.buildsitehst:BuildNearNano(builder, utype)
-	end
-	if p == nil then
-		self:EchoDebug("looking next to factory for " .. factoryName)
-		factoryPos = self.ai.buildsitehst:ClosestHighestLevelFactory(builderPos, 10000)
-		if factoryPos then
-			p = self.ai.buildsitehst:ClosestBuildSpot(builder, factoryPos, utype)
-		end
-	end
--- 	if p == nil then
--- 		self:EchoDebug("looking next to llt for " .. factoryName)
--- 		p = self.ai.buildsitehst:searchPosNearThing(utype, builder,nil,1000, nil,100,'_llt_')
--- 		if factoryPos then
--- 			p = self.ai.buildsitehst:ClosestBuildSpot(builder, factoryPos, utype)
--- 		end
--- 	end
-	if p == nil then
-		self:EchoDebug('builfactory near hotSpot')
-		local place = false
-		local distance = 99999
-		if factoryPos then
-			for index, hotSpot in pairs(self.ai.hotSpot) do
-				if self.ai.maphst:MobilityNetworkHere(mtype,hotSpot) then
-
-					dist = math.min(distance, self.ai.tool:Distance(hotSpot,factoryPos))
-					if dist < distance then
-						place = hotSpot
-						distance  = dist
-					end
-				end
-			end
-		end
-		if place then
-			p = self.ai.buildsitehst:ClosestBuildSpot(builder, place, utype)
-		end
-	end
-	if p == nil then
-		self:EchoDebug("looking for most turtled position for " .. factoryName)
-		local turtlePosList = self.ai.turtlehst:MostTurtled(builder, factoryName)
-		if turtlePosList then
-			if #turtlePosList ~= 0 then
-				for i, turtlePos in ipairs(turtlePosList) do
-					p = self.ai.buildsitehst:ClosestBuildSpot(builder, turtlePos, utype)
-					if p ~= nil then break end
-				end
-			end
-		end
-	end
-	if p == nil then
-		self:EchoDebug("trying near builder for " .. factoryName)
-		p = self.ai.buildsitehst:ClosestBuildSpot(builder, builderPos, utype, 10, nil, nil, 1500) -- check at most 1500 elmos away
-	end
-	if p then
-		self:EchoDebug("position found for " .. factoryName)
-	end
+	p = 	site:BuildNearNano(builder, utype) or
+			site:searchPosNearCategories(utype, builder,50,nil,{'_nano_'}) or
+			site:searchPosNearCategories(utype, builder,50,1000,{'factoryMobilities'}) or
+			site:searchPosNearCategories(utype, builder,50,nil,{'_mex_'}) or
+			site:searchPosNearCategories(utype, builder,50,nil,{'_llt_'})
 	return p
 end
 
 function LabBuildHST:PostPositionalFilter(factoryName,p)
-
 	local mobNetOkay = false
 	for i, mtype in pairs(self.ai.armyhst.factoryMobilities[factoryName]) do
 		local network = self.ai.maphst:MobilityNetworkHere(mtype, p)
@@ -323,10 +266,10 @@ function LabBuildHST:PostPositionalFilter(factoryName,p)
 		self:EchoDebug('dont build this if we dont have air')
 		return false
 	elseif mtype == 'bot' then
-		if self.ai.nameCountFinished[factoryName] and self.ai.nameCountFinished[factoryName] >= 1 and self.ai.armyhst.unitTable[factoryName].techLevel == 1 then
-			local sameLabs = Spring.GetTeamUnitsByDefs(self.ai.id, UnitDefNames[factoryName].id)
+		if self.ai.tool:countFinished(factoryName) > 0 and self.ai.armyhst.unitTable[factoryName].techLevel == 1 then
+			local sameLabs = self.ai.game.GetTeamUnitsByDefs(self.ai.id, UnitDefNames[factoryName].id)
 			for ct, id in pairs(sameLabs) do
-				local sameLab = game:GetUnitByID(id)
+				local sameLab = self.game:GetUnitByID(id)
 				local sameLabPos = sameLab:GetPosition()
 				if self.ai.maphst:MobilityNetworkHere('bot',p) == self.ai.maphst:MobilityNetworkHere('bot',sameLabPos) then
 					self:EchoDebug('not duplicate t1 lab')
@@ -339,15 +282,11 @@ function LabBuildHST:PostPositionalFilter(factoryName,p)
 			self:EchoDebug('dont build bot where are already veh not on top of tech level')
 			return false
 		end
-
-
 	elseif mtype == 'veh' then
-
-
-		if self.ai.nameCountFinished[factoryName] and self.ai.nameCountFinished[factoryName] >= 1 and self.ai.armyhst.unitTable[factoryName].techLevel == 1 then
+		if self.ai.tool:countFinished(factoryName) > 0 and self.ai.armyhst.unitTable[factoryName].techLevel == 1 then
 			local sameLabs = Spring.GetTeamUnitsByDefs(self.ai.id, UnitDefNames[factoryName].id)
 			for ct, id in pairs(sameLabs) do
-				local sameLab = game:GetUnitByID(id)
+				local sameLab = self.game:GetUnitByID(id)
 				local sameLabPos = sameLab:GetPosition()
 				if self.ai.maphst:MobilityNetworkHere('veh',p) == self.ai.maphst:MobilityNetworkHere('veh',sameLabPos) then
 					self:EchoDebug('not duplicate t1 lab')

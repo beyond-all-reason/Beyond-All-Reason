@@ -29,13 +29,14 @@ return {
     desc = 'Infinite Games'
   },
   {
+    name = 'STAI',
+    desc = 'Medium AI. Contribute or report any bug to: @pandaro',
+	version = '0.43 experimental',
+  },
+  {
     name = 'ControlModeAI',
     desc = 'AI designed for Control Points gamemode, stays idle if control mode is disabled',
   },
-  --{
-    --name = 'STAI',
-    --desc = 'STAI - Shard AI'
-  --},
   {
     name = 'Shard',
     desc = 'Shard - Basic Shard AI'

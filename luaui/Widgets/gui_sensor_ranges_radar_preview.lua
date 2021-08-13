@@ -4,7 +4,7 @@ function widget:GetInfo()
 		desc = "Raytraced Radar Range Coverage on building Radar (GL4)",
 		author = "Beherith",
 		date = "2021.07.12",
-		license = "CC BY-NC",
+		license = "Lua: GPLv2, GLSL: (c) Beherith (mysterme@gmail.com)",
 		layer = 0,
 		enabled = true
 	}
@@ -42,6 +42,7 @@ local radarTruthShader = nil
 
 local smallradVAO = nil
 local largeradVAO = nil
+local selectedRadarUnitID = falsec
 
 for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.name == 'armarad' then
@@ -201,7 +202,7 @@ void main() {
 
 	if (length(worldPos.xz - radarcenter_range.xz) > radarcenter_range.w) fragColor.a = 0.0;
 
-	fragColor.a = fragColor.a * angle * 0.75;
+	fragColor.a = fragColor.a * angle * 0.85;
 	//#if USE_STIPPLE > 0
 	//	fragColor.a *= 2.0 * sin(worldscale_circumference + timeInfo.x*0.2) ; // PERFECT STIPPLING!
 	//#endif
@@ -260,12 +261,23 @@ function widget:Initialize()
 	initgl4()
 end
 
-function widget:DrawWorld()
+function widget:SelectionChanged(sel)
+	selectedRadarUnitID = false
+	if #sel == 1 and cmdidtoradarsize[-Spring.GetUnitDefID(sel[1])] then
+		selectedRadarUnitID = sel[1]
+	end
+end
 
-	local _, cmdID = spGetActiveCommand()
-	if cmdID == nil or cmdID >= 0 then
-		return
-	end -- not build command
+function widget:DrawWorld()
+	local cmdID
+	if selectedRadarUnitID then
+		cmdID = -Spring.GetUnitDefID(selectedRadarUnitID)
+	else
+		cmdID = select(2, spGetActiveCommand())
+		if cmdID == nil or cmdID >= 0 then
+			return
+		end -- not build command
+	end
 
 	if chobbyInterface or spIsGUIHidden() or (WG['topbar'] and WG['topbar'].showingQuit()) then
 		return
@@ -275,11 +287,14 @@ function widget:DrawWorld()
 	if whichradarsize == nil then
 		return
 	end
-
-	local mx, my, lp, mp, rp, offscreen = Spring.GetMouseState()
-	local _, coords = Spring.TraceScreenRay(mx, my, true)
-	if coords then
-		mousepos = { coords[1], coords[2], coords[3] }
+	if selectedRadarUnitID then
+		mousepos = { Spring.GetUnitPosition(selectedRadarUnitID) }
+	else
+		local mx, my, lp, mp, rp, offscreen = Spring.GetMouseState()
+		local _, coords = Spring.TraceScreenRay(mx, my, true)
+		if coords then
+			mousepos = { coords[1], coords[2], coords[3] }
+		end
 	end
 
 	gl.DepthTest(false)
@@ -303,4 +318,3 @@ function widget:DrawWorld()
 
 	gl.DepthTest(true)
 end
-

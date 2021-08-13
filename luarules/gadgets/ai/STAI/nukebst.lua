@@ -56,7 +56,8 @@ function NukeBST:Update()
 					floats:push_back(position.x)
 					floats:push_back(position.y)
 					floats:push_back(position.z)
-					self.unit:Internal():ExecuteCustomCommand(CMD_ATTACK, floats)
+					self.unit:Internal():AreaAttack(floats,0)
+					--self.unit:Internal():ExecuteCustomCommand(CMD_ATTACK, floats)
 					self.gotTarget = true
 					self:EchoDebug("got target")
 				end

@@ -1,6 +1,6 @@
 ------------------------------------------------------------------
 -- A simple TGA loader.
--- Loads the TGA file with the given fileName. 
+-- Loads the TGA file with the given fileName.
 -- Supports only 8 (type 3), 24 or 32 bits (type 2) TGAs with no compression.
 -- Returns a table with row major data, e.g. texture[row][column]
 -- each column is in bgr or bgra order
@@ -26,7 +26,7 @@ local function loadTGA(fileName) -- returns texture | nil, error on failure
 	texture.height     = VFS.UnpackU16(header, 15)  --header:byte(16) * 256 + header:byte(15)
 	texture.type       = VFS.UnpackU8(header,3)
 	texture.format     = (texture.channels == 4) and "RGBA" or "RGB"
-	texture.filenam    = fileName
+	texture.filename   = fileName
 
 	if header:byte(3) ~= 2 and header:byte(3) ~= 3 then
 		return nil, "Unsupported tga type. Only 8/24/32 bits uncompressed images are supported."
@@ -85,7 +85,7 @@ local function saveTGA(texture, fileName) --return nil | error on failure
 	file:close()
 	Spring.Echo("Saved",fileName)
 	return nil
-	end
+end
 
 local function newTGA(width, height, channels, initvalue) -- returns the new 'texture table' or nil, error
 	-- initvalue is a table of b,g,r,a

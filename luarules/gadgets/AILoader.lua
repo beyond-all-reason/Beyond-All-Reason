@@ -149,8 +149,8 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:GameFrame(n)
 
 		-- for each AI...
-		for _, thisAI in ipairs(Shard.AIs) do
 
+		for _, thisAI in ipairs(Shard.AIs) do
 			-- update sets of unit ids : own, friendlies, enemies
 			--1 run AI game frame update handlers
 			thisAI:Prepare()
@@ -398,11 +398,8 @@ else
 	end
 
 	function handleShardDebugPosEvent(_, x, z, col)
-		--	Spring.Echo("handleShardDebugPosEvent 1")
 		if Script.LuaUI("shard_debug_position") then
-			Spring.Echo("handleShardDebugPosEvent 2")
 			Script.LuaUI.shard_debug_position(x, z, col)
-			Spring.Echo("handleShardDebugPosEvent 3")
 		end
 	end
 

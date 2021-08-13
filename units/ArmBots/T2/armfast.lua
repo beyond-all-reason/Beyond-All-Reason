@@ -147,6 +147,12 @@ return {
 				weapontimer = 0.6,
 				weapontype = "Cannon",
 				weaponvelocity = 500,
+				customparams = {
+					expl_light_mult = 0.8,
+					expl_light_radius_mult = 0.85,
+					light_mult = 0.8,
+					light_radius_mult = 0.85,
+				},
 				damage = {
 					bombers = 1,
 					default = 12,
