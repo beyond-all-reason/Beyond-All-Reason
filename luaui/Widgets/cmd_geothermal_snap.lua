@@ -51,7 +51,7 @@ local function checkGeothermalFeatures()
 end
 
 local function getFootprintPos(value)	-- not entirely acurate, unsure why
-	local precision = 6		-- (footprint 1 = 6 map distance)
+	local precision = 16		-- (footprint 1 = 16 map distance)
 	return (math.floor(value/precision)*precision)+(precision/2)
 end
 

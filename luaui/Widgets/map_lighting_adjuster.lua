@@ -48,6 +48,24 @@ local mapSunLighting = {
 		unitSpecularColor = {0.88, 0.78, 0.68},
 		modelShadowDensity = 0.66,
 	},
+	['kolmogorov'] = {
+		groundDiffuseColor = { 0.95, 0.75, 0.4 },
+		unitAmbientColor = {0.6, 0.5, 0.45},
+		unitDiffuseColor = {1.2, 0.75, 0.35},
+		modelShadowDensity = 0.6,
+	},
+	['sapphireshores_v2.2'] = {
+		unitAmbientColor = {0.5, 0.5, 0.6},
+		unitDiffuseColor = {1, 1, 1.2},
+		unitSpecularColor = {1, 1, 1.2},
+		modelShadowDensity = 0.4,
+		groundShadowDensity = 0.66,
+	},
+	['otago 1.4'] = {
+		unitAmbientColor = {0.85, 0.6, 0.66},
+		modelShadowDensity = 0.75,
+		groundShadowDensity = 0.85,
+	},
 }
 
 local mapSun = {
@@ -56,6 +74,8 @@ local mapSun = {
 	['tempest'] = { -0.35, 0.83, 0.47 },
 	['tempest dry'] = { -0.35, 0.83, 0.47 },
 	['seths_ravine_v4'] = { -0.6, 0.63, 0.43 },
+	['kolmogorov'] = { 0.4, 0.75, -0.43},
+	['otago 1.4'] = { -0.55, 0.5, 0.55},
 }
 
 if not mapSunLighting[currentMapname] and not mapSun[currentMapname] then return end
@@ -73,7 +93,7 @@ function widget:GetInfo()
 end
 
 function widget:Initialize()
-	--if Spring.GetGameFrame() == 0 then
+	if Spring.GetGameFrame() == 0 then
 		if mapSun[currentMapname] then
 			Spring.SetSunDirection(mapSun[currentMapname][1], mapSun[currentMapname][2], mapSun[currentMapname][3])
 			Spring.SetSunLighting({ groundShadowDensity = gl.GetSun("shadowDensity"), modelShadowDensity = gl.GetSun("shadowDensity") })
@@ -83,6 +103,6 @@ function widget:Initialize()
 			Spring.SetSunLighting(mapSunLighting[currentMapname])
 			Spring.SendCommands("luarules updatesun")
 		end
-	--end
+	end
 	widgetHandler:RemoveWidget()
 end
