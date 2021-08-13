@@ -66,6 +66,13 @@ local mapSunLighting = {
 		modelShadowDensity = 0.75,
 		groundShadowDensity = 0.85,
 	},
+	['tropical-v2'] = {
+		groundDiffuseColor = { 0.77, 0.5, 0.26 },
+		unitDiffuseColor = {1, 0.8, 0.65},
+		unitSpecularColor = {1, 0.77, 0.7},
+		modelShadowDensity = 0.45,
+		groundShadowDensity = 0.8,
+	},
 }
 
 local mapSun = {
@@ -76,6 +83,7 @@ local mapSun = {
 	['seths_ravine_v4'] = { -0.6, 0.63, 0.43 },
 	['kolmogorov'] = { 0.4, 0.75, -0.43},
 	['otago 1.4'] = { -0.55, 0.5, 0.55},
+	['tropical-v2'] = { 0.6, 0.33, 0.27},
 }
 
 if not mapSunLighting[currentMapname] and not mapSun[currentMapname] then return end
