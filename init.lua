@@ -2,6 +2,7 @@
 
 VFS.Include('common/numberfunctions.lua')
 VFS.Include('common/stringFunctions.lua')
+VFS.Include('common/tablefunctions.lua')
 VFS.Include('common/springFunctions.lua')
 
 if not (Script.GetSynced and Script.GetSynced()) then

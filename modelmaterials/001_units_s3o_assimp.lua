@@ -1,6 +1,6 @@
 local matTemplate = VFS.Include("ModelMaterials/Templates/defaultMaterialTemplate.lua")
 
-local unitsNormalMapTemplate = Spring.Utilities.MergeWithDefault(matTemplate, {
+local unitsNormalMapTemplate = table.merge(matTemplate, {
 	texUnits  = {
 		[0] = "%%UNITDEFID:0",
 		[1] = "%%UNITDEFID:1",
@@ -250,7 +250,7 @@ end
 
 
 local materials = {
-	unitsNormalMapArmTanks = Spring.Utilities.MergeWithDefault(unitsNormalMapTemplate, {
+	unitsNormalMapArmTanks = table.merge(unitsNormalMapTemplate, {
 		texUnits  = {
 			[3] = "%TEXW1",
 			[4] = "%TEXW2",
@@ -270,7 +270,7 @@ local materials = {
 
 		UnitDamaged = UnitDamaged,
 	}),
-	unitsNormalMapCorTanks = Spring.Utilities.MergeWithDefault(unitsNormalMapTemplate, {
+	unitsNormalMapCorTanks = table.merge(unitsNormalMapTemplate, {
 		texUnits  = {
 			[3] = "%TEXW1",
 			[4] = "%TEXW2",
@@ -290,7 +290,7 @@ local materials = {
 
 		UnitDamaged = UnitDamaged,
 	}),
-	unitsNormalMapOthersArmCor = Spring.Utilities.MergeWithDefault(unitsNormalMapTemplate, {
+	unitsNormalMapOthersArmCor = table.merge(unitsNormalMapTemplate, {
 		texUnits  = {
 			[3] = "%TEXW1",
 			[4] = "%TEXW2",
@@ -308,7 +308,7 @@ local materials = {
 
 		UnitDamaged = UnitDamaged,
 	}),
-	unitsNormalMapOthers = Spring.Utilities.MergeWithDefault(unitsNormalMapTemplate, {
+	unitsNormalMapOthers = table.merge(unitsNormalMapTemplate, {
 		shaderOptions = {
 			normalmapping = true,
 			flashlights = false,
@@ -333,7 +333,7 @@ local materials = {
 
 		--UnitDamaged = UnitDamaged,
 	}),
-	unitsNormalMapChickens = Spring.Utilities.MergeWithDefault(unitsNormalMapTemplate, {
+	unitsNormalMapChickens = table.merge(unitsNormalMapTemplate, {
 		shaderOptions = {
 			normalmapping = true,
 			flashlights = false,

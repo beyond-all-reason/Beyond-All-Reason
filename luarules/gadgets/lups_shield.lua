@@ -228,7 +228,7 @@ local function AddUnit(unitID, unitDefID)
 	local fxTable = {}
 	for i = 1, #defFx do
 		local fx = defFx[i]
-		local options = Spring.Utilities.CopyTable(fx.options)
+		local options = table.copy(fx.options)
 		options.unit = unitID
 		options.shieldCapacity = def.shieldCapacity
 		local fxID = LupsAddParticles(fx.class, options)
