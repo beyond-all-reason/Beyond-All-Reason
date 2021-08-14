@@ -199,11 +199,10 @@ end
 -----------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------
 
-local MergeTable   = MergeTable
 local setmetatable = setmetatable
 
 function SphereDistortion.Create(Options)
-  local newObject = MergeTable(Options, SphereDistortion.Default)
+  local newObject = table.merge(SphereDistortion.Default, Options)
   setmetatable(newObject,SphereDistortion)  -- make handle lookup
   newObject:CreateParticle()
   return newObject

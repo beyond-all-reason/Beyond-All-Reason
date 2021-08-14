@@ -251,7 +251,7 @@ function ShieldSphereColorParticle:ReInitialize()
 end
 
 function ShieldSphereColorParticle.Create(Options)
-	local newObject = MergeTable(Options, ShieldSphereColorParticle.Default)
+	local newObject = table.merge(ShieldSphereColorParticle.Default, Options)
 
 	-- overwriting for teamcolored shields
 	--local r,g,b = Spring.GetTeamColor(Spring.GetUnitTeam(Options.unit))

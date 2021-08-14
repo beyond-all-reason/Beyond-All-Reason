@@ -234,7 +234,7 @@ function NanoLasersNoShader.Create(Options)
   local unit,nanopiece=Options.unitID,Options.nanopiece
   if (unit and nanopiece)and(knownNanoLasersNoShader[unit])and(knownNanoLasersNoShader[unit][nanopiece]) then
     local reuseFx = knownNanoLasersNoShader[unit][nanopiece]
-    CopyTable(reuseFx,Options)
+    table.mergeInPlace(reuseFx, Options)
     reuseFx:CreateParticle()
     return false,reuseFx.id
   else

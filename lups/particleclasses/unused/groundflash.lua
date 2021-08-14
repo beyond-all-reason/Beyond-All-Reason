@@ -159,7 +159,7 @@ end
 -----------------------------------------------------------------------------------------------------------------
 
 function GroundFlash.Create(Options)
-  local newObject = MergeTable(Options, GroundFlash.Default)
+  local newObject = table.merge(GroundFlash.Default, Options)
   setmetatable(newObject,GroundFlash)  -- make handle lookup
   newObject:CreateParticle()
   return newObject

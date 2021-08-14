@@ -117,7 +117,7 @@ function ShieldSphereColorFallback:ReInitialize()
 end
 
 function ShieldSphereColorFallback.Create(Options)
-  local newObject = MergeTable(Options, ShieldSphereColorFallback.Default)
+  local newObject = table.merge(ShieldSphereColorFallback.Default, Options)
   setmetatable(newObject,ShieldSphereColorFallback)  -- make handle lookup
   newObject:CreateParticle()
   return newObject

@@ -241,7 +241,7 @@ end
 -----------------------------------------------------------------------------------------------------------------
 
 function AirJet.Create(Options)
-  local newObject = MergeTable(Options, AirJet.Default)
+  local newObject = table.merge(AirJet.Default, Options)
   setmetatable(newObject,AirJet)  -- make handle lookup
   newObject:CreateParticle()
   return newObject
