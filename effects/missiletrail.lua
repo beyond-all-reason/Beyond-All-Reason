@@ -2938,30 +2938,14 @@ function tableMerge(t1, t2)
     return t1
 end
 
-function deepcopy(orig)
-    local orig_type = type(orig)
-    local copy
-    if orig_type == 'table' then
-        copy = {}
-        for orig_key, orig_value in next, orig, nil do
-            copy[deepcopy(orig_key)] = deepcopy(orig_value)
-        end
-        setmetatable(copy, deepcopy(getmetatable(orig)))
-    else -- number, string, boolean, etc
-        copy = orig
-    end
-    return copy
-end
-
-
-definitions["antimissiletrail"] = deepcopy(definitions["cruisemissiletrail"])
+definitions["antimissiletrail"] = table.copy(definitions["cruisemissiletrail"])
 definitions["antimissiletrail"].smokeandfire.properties.colormap  = [[0.7 0.45 0.45 0.2   0.44 0.25 0.25 0.2    0.34 0.12 0.12 0.15    0.09 0.023 0.023 0.11     0.05 0.008 0.008 0.09   0.02 0.006 0.01 0.06   0 0 0 0.01]]
 definitions["antimissiletrail"].sparks.properties.colormap = [[0.9 0.4 0.4 0.01   0.9 0.3 0.3 0.007  0.5 0.07 0.07 0]]
-definitions["antimissiletrail-starburst"] = deepcopy(definitions["cruisemissiletrail-starburst"])
+definitions["antimissiletrail-starburst"] = table.copy(definitions["cruisemissiletrail-starburst"])
 definitions["antimissiletrail-starburst"].smokeandfire.properties.colormap = [[0.7 0.45 0.45 0.2   0.44 0.25 0.25 0.2    0.34 0.12 0.12 0.15    0.09 0.023 0.023 0.11     0.05 0.008 0.008 0.09   0.02 0.006 0.01 0.06   0 0 0 0.01]]
 definitions["antimissiletrail-starburst"].sparks.properties.colormap = [[0.9 0.4 0.4 0.01   0.9 0.3 0.3 0.007  0.5 0.07 0.07 0]]
 
-definitions["missiletrailsmall-red"] = deepcopy(definitions["missiletrailsmall-simple"])
+definitions["missiletrailsmall-red"] = table.copy(definitions["missiletrailsmall-simple"])
 definitions["missiletrailsmall-red"].engine.properties.colormap = [[1 0.33 0.17 0.01   1.0 0.25 0.1 0.01   1.0 0.22 0.05 0.01   0 0 0 0.01]]
 definitions["missiletrailsmall-red"].engine.properties.length = [[-21 r6]]
 definitions["missiletrailsmall-red"].engine.properties.size = 3.45
@@ -2970,26 +2954,26 @@ definitions["missiletrailsmall-red"].sparks.properties.particlesize = 31
 definitions["missiletrailsmall-red"].trail.properties.size = 2.75
 definitions["missiletrailsmall-red"].trail.properties.length = -33
 definitions["missiletrailsmall-red"].fireglow.properties.colormap = [[0.2 0.075 0.075 0.01   0 0 0 0.01]]
-definitions["missiletrailsmall-red-smoke"] = deepcopy(definitions["missiletrailsmall-simple-smoke"])
+definitions["missiletrailsmall-red-smoke"] = table.copy(definitions["missiletrailsmall-simple-smoke"])
 definitions["missiletrailsmall-red-smoke"].engine.properties.length = [[-11 r1.5]]
 definitions["missiletrailsmall-red-smoke"].engine.properties.size = 2.5
 definitions["missiletrailsmall-red-smoke"].trail.properties.size = 2.75
-definitions["missiletrailmedium-red"] = deepcopy(definitions["missiletrailmedium"])
+definitions["missiletrailmedium-red"] = table.copy(definitions["missiletrailmedium"])
 definitions["missiletrailmedium-red"].engine.properties.colormap = [[1 0.33 0.17 0.01   1.0 0.25 0.1 0.01   1.0 0.22 0.05 0.01   0 0 0 0.01]]
 --definitions["missiletrailmedium-red"].fire.propertiescolormap  = [[0.9 0.5 0.16 0.15   0.44 0.2 0.05 0.2    0.14 0.03 0.005 0.17    0.02 0.007 0.003 0.1	 0 0 0 0.01]]
 definitions["missiletrailmedium-red"].fireglow.properties.colormap = [[0.25 0.1 0.01 0.01   0 0 0 0.01]]
 definitions["missiletrailmedium-red"].sparks.properties.colormap = [[0.9 0.44 0.4 0.01   0.9 0.36 0.1 0.007  0.4 0.13 0.05 0.007   0 0 0 0.01]]
-definitions["missiletraillarge-red"] = deepcopy(definitions["missiletraillarge"])
+definitions["missiletraillarge-red"] = table.copy(definitions["missiletraillarge"])
 definitions["missiletraillarge-red"].fire.properties.colormap  = [[0.9 0.45 0.16 0.01   0.44 0.22 0.05 0.01    0.14 0.03 0.005 0.01    0.02 0.007 0.003 0.01	 0 0 0 0.01]]
 definitions["missiletraillarge-red"].fireglow.properties.colormap = [[0.25 0.09 0.018 0.01   0 0 0 0.01]]
 definitions["missiletraillarge-red"].sparks.properties.colormap = [[1 0.85 0.7 0.01   0.9 0.4 0.14 0.007  0.4 0.13 0.05 0.007   0 0 0 0.01]]
 
 
-definitions["missiletrailsmall-starburst"] = deepcopy(definitions["missiletrailsmall"])
+definitions["missiletrailsmall-starburst"] = table.copy(definitions["missiletrailsmall"])
 definitions["missiletrailsmall-starburst"].engine.properties.colormap = [[1 0.15 0.1 0.01   1.0 0.09 0 0.01   1.0 0.06 0 0.01   0 0 0 0.01]]
 definitions["missiletrailsmall-starburst"].sparks.properties.colormap = [[1 0.2 0.1 0.01   1 0.15 0.05 0.007  0.55 0.05 0 0.007   0 0 0 0.01]]
 
-definitions["missiletrailsmall-starburst-vertical"] = deepcopy(definitions["missiletrailsmall-starburst"])
+definitions["missiletrailsmall-starburst-vertical"] = table.copy(definitions["missiletrailsmall-starburst"])
 definitions["missiletrailsmall-starburst-vertical"].engine.properties.length = [[-19 r4.15]]
 definitions["missiletrailsmall-starburst-vertical"].engine.properties.size = 2.45
 definitions["missiletrailsmall-starburst-vertical"].smoke.properties.emitrotspread = 4
@@ -2997,7 +2981,7 @@ definitions["missiletrailsmall-starburst-vertical"].smoke.properties.particlespe
 definitions["missiletrailsmall-starburst-vertical"].smoke.properties.particlespeedspread = definitions["missiletrailsmall-starburst-vertical"].smoke.properties.particlespeedspread * 1.25
 
 
-definitions["missiletrailmedium-starburst"] = deepcopy(definitions["missiletrailmedium"])
+definitions["missiletrailmedium-starburst"] = table.copy(definitions["missiletrailmedium"])
 definitions["missiletrailmedium-starburst"].smoke.properties.emitrotspread = 4
 definitions["missiletrailmedium-starburst"].smoke.properties.particlespeed = definitions["missiletrailmedium-starburst"].smoke.properties.particlespeed * 1.3
 definitions["missiletrailmedium-starburst"].smoke.properties.particlespeedspread = definitions["missiletrailmedium-starburst"].smoke.properties.particlespeedspread * 1.3
@@ -3006,14 +2990,14 @@ definitions["missiletrailmedium-starburst"].sparks.properties.colormap = [[1 0.2
 definitions["missiletrailmedium-starburst"].dustparticles.properties.colormap = [[0.4 0.35 0.3 0.008    1 0.5 0.3 0.02    0.66 0.33 0.2 0.17    0.5 0.22 0.12 0.16    0.33 0.16 0.05 0.15    0 0 0 0.01]]
 definitions["missiletrailmedium-starburst"].fireglow.properties.colormap = [[0.25 0.05 0.021 0.01   0 0 0 0.01]]
 
-definitions["missiletrailmedium-starburst-vertical"] = deepcopy(definitions["missiletrailmedium-starburst"])
+definitions["missiletrailmedium-starburst-vertical"] = table.copy(definitions["missiletrailmedium-starburst"])
 definitions["missiletrailmedium-starburst-vertical"].sparks.properties.numparticles = 2
 definitions["missiletrailmedium-starburst-vertical"].sparks.properties.particlesize = definitions["missiletrailmedium-starburst-vertical"].sparks.properties.particlesize * 1.15
 definitions["missiletrailmedium-starburst-vertical"].sparks.properties.particlesize       = definitions["missiletrailmedium-starburst-vertical"].sparks.properties.particlesize * 1.5
 definitions["missiletrailmedium-starburst-vertical"].sparks.properties.particlesizespread = definitions["missiletrailmedium-starburst-vertical"].sparks.properties.particlesizespread * 1.5
 
 
-definitions["missiletraillarge-starburst"] = deepcopy(definitions["missiletraillarge"])
+definitions["missiletraillarge-starburst"] = table.copy(definitions["missiletraillarge"])
 definitions["missiletraillarge-starburst"].smoke.properties.emitrotspread = 4
 definitions["missiletraillarge-starburst"].smoke.properties.particlespeed = definitions["missiletraillarge-starburst"].smoke.properties.particlespeed * 2
 definitions["missiletraillarge-starburst"].smoke.properties.particlespeedspread = definitions["missiletraillarge-starburst"].smoke.properties.particlespeedspread * 2
@@ -3023,7 +3007,7 @@ definitions["missiletraillarge-starburst"].dustparticles.properties.colormap = [
 definitions["missiletraillarge-starburst"].fireglow.properties.colormap = [[0.25 0.05 0.02 0.01   0 0 0 0.01]]
 
 
-definitions["missiletrail-juno"] = deepcopy(definitions["missiletrailmedium"])
+definitions["missiletrail-juno"] = table.copy(definitions["missiletrailmedium"])
 definitions["missiletrail-juno"].fireglow.properties.colormap = [[0.25 0.2 0.02 0.01   0 0 0 0.01]]
 definitions["missiletrail-juno"].engine.properties.colormap = [[0.66 1 0.4 0.01   0.6 1 0.2 0.01   0.44 1 0.1 0.01   0 0 0 0.01]]
 definitions["missiletrail-juno"].sparks.properties.colormap = [[0.6 0.9 0.4 0.01   0.5 0.9 0.1 0.007  0.2 0.4 0.05 0.007   0 0 0 0.01]]
@@ -3034,7 +3018,7 @@ definitions["missiletrail-juno"].sparks.properties.alwaysVisible = 1
 definitions["missiletrail-juno"].dustparticles.properties.alwaysVisible = 1
 definitions["missiletrail-juno"].smoke.properties.alwaysVisible = 1
 
-definitions["missiletrail-juno-starburst"] = deepcopy(definitions["missiletrail-juno"])
+definitions["missiletrail-juno-starburst"] = table.copy(definitions["missiletrail-juno"])
 definitions["missiletrail-juno-starburst"].engine.properties.size = definitions["missiletrail-juno"].engine.properties.size * 1.25
 definitions["missiletrail-juno-starburst"].engine.properties.colormap = [[0.9 1 0.4 0.01   0.85 1 0.2 0.01   0.66 1 0.1 0.01   0 0 0 0.01]]
 definitions["missiletrail-juno-starburst"].sparks.properties.particlesize = definitions["missiletrail-juno"].sparks.properties.particlesize * 1.5
@@ -3042,19 +3026,19 @@ definitions["missiletrail-juno-starburst"].sparks.properties.colormap = [[1 0.8 
 definitions["missiletrail-juno-starburst"].dustparticles.properties.particlesize = definitions["missiletrail-juno"].dustparticles.properties.particlesize * 1.5
 definitions["missiletrail-juno-starburst"].fireglow.properties.particlesize = definitions["missiletrail-juno"].fireglow.properties.particlesize * 1.5
 
-definitions["cruisemissiletrail-emp"] = deepcopy(definitions["cruisemissiletrail"])
+definitions["cruisemissiletrail-emp"] = table.copy(definitions["cruisemissiletrail"])
 definitions["cruisemissiletrail-emp"].smokeandfire.properties.colormap = [[0.65 0.6 0.7 0.2   0.4 0.36 0.5 0.2    0.24 0.22 0.4 0.15    0.064 0.06 0.11 0.11     0.032 0.03 0.065 0.09   0.053 0.05 0.2 0.06   0 0 0 0.01]]
 definitions["cruisemissiletrail-emp"].fireglow.properties.colormap = [[0.17 0.15 0.25 0.01   0 0 0 0.01]]
 definitions["cruisemissiletrail-emp"].sparks.properties.colormap = [[0.66 0.6 0.9 0.01   0.5 0.45 0.9 0.007  0.27 0.25 0.65 0]]
 
-definitions["cruisemissiletrail-tacnuke"] = deepcopy(definitions["cruisemissiletrail"])
+definitions["cruisemissiletrail-tacnuke"] = table.copy(definitions["cruisemissiletrail"])
 definitions["cruisemissiletrail-tacnuke"].smokeandfire.properties.colormap = [[0.7 0.6 0.45 0.2   0.44 0.33 0.06 0.2    0.34 0.15 0 0.15    0.09 0.025 0 0.11     0.05 0.01 0 0.09   0.024 0.01 0 0.065   0.014 0.002 0 0.03   0 0 0 0.01]]
 
 
 -- add purple scavenger variants
 local scavengerDefs = {}
 for k,v in pairs(definitions) do
-    scavengerDefs[k..'-purple'] = deepcopy(definitions[k])
+    scavengerDefs[k..'-purple'] = table.copy(definitions[k])
 end
 
 -- NOTE: this method isnt really working as well for missiletrails since these vary so much from eachother (unlike plasma and unit explosions)

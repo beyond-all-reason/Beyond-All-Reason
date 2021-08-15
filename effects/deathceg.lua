@@ -332,20 +332,6 @@ function tableMerge(t1, t2)
     return t1
 end
 
-function deepcopy(orig)
-    local orig_type = type(orig)
-    local copy
-    if orig_type == 'table' then
-        copy = {}
-        for orig_key, orig_value in next, orig, nil do
-            copy[deepcopy(orig_key)] = deepcopy(orig_value)
-        end
-        setmetatable(copy, deepcopy(getmetatable(orig)))
-    else -- number, string, boolean, etc
-        copy = orig
-    end
-    return copy
-end
 local effects = {
   electricity = {
     air                = true,
@@ -388,15 +374,15 @@ local effects = {
   },
 }
 
-defs["deathceg2-lightning"] = tableMerge(deepcopy(defs["deathceg2"]), deepcopy(effects))
+defs["deathceg2-lightning"] = tableMerge(table.copy(defs["deathceg2"]), table.copy(effects))
 --defs["deathceg2-lightning"].fire.properties.numparticles = defs["deathceg2-lightning"].fire.properties.numparticles/2.5
 --defs["deathceg2-lightning"].electricity.properties.numparticles = defs["deathceg2-lightning"].electricity.properties.numparticles/1.6
 defs["deathceg2-lightning"].electricity.properties.particlelife = defs["deathceg2-lightning"].electricity.properties.particlelife/1.6
-defs["deathceg3-lightning"] = tableMerge(deepcopy(defs["deathceg3"]), deepcopy(effects))
+defs["deathceg3-lightning"] = tableMerge(table.copy(defs["deathceg3"]), table.copy(effects))
 --defs["deathceg3-lightning"].fire.properties.numparticles = defs["deathceg3-lightning"].fire.properties.numparticles/2.5
 --defs["deathceg3-lightning"].electricity.properties.numparticles = defs["deathceg3-lightning"].electricity.properties.numparticles/1.2
 --defs["deathceg3-lightning"].electricity.properties.particlelife = defs["deathceg3-lightning"].electricity.properties.particlelife/1.2
-defs["deathceg4-lightning"] = tableMerge(deepcopy(defs["deathceg4"]), deepcopy(effects))
+defs["deathceg4-lightning"] = tableMerge(table.copy(defs["deathceg4"]), table.copy(effects))
 --defs["deathceg4-lightning"].fire.properties.numparticles = defs["deathceg4-lightning"].fire.properties.numparticles/2.5
 
 effects = {
@@ -411,19 +397,19 @@ effects = {
     },
   },
 }
-defs["deathceg2-fire"] = tableMerge(deepcopy(defs["deathceg2"]), deepcopy(effects))
+defs["deathceg2-fire"] = tableMerge(table.copy(defs["deathceg2"]), table.copy(effects))
 defs["deathceg2-fire"].fireglow.properties.particlesize = defs["deathceg2-fire"].fireglow.properties.particlesize*1.7
 defs["deathceg2-fire"].fireandsmoke.properties.particlesize = defs["deathceg2-fire"].fireandsmoke.properties.particlesize*1.4
 defs["deathceg2-fire"].fireandsmoke.properties.particlelife = defs["deathceg2-fire"].fireandsmoke.properties.particlelife*1.8
 defs["deathceg2-fire"].fire.properties.particlesize = defs["deathceg2-fire"].fire.properties.particlesize*1.7
 defs["deathceg2-fire"].fire.properties.particlelife = defs["deathceg2-fire"].fire.properties.particlelife*1.7
-defs["deathceg3-fire"] = tableMerge(deepcopy(defs["deathceg3"]), deepcopy(effects))
+defs["deathceg3-fire"] = tableMerge(table.copy(defs["deathceg3"]), table.copy(effects))
 defs["deathceg3-fire"].fireglow.properties.particlesize = defs["deathceg3-fire"].fireglow.properties.particlesize*1.7
 defs["deathceg3-fire"].fireandsmoke.properties.particlesize = defs["deathceg3-fire"].fireandsmoke.properties.particlesize*1.4
 defs["deathceg3-fire"].fireandsmoke.properties.particlelife = defs["deathceg3-fire"].fireandsmoke.properties.particlelife*1.8
 defs["deathceg3-fire"].fire.properties.particlesize = defs["deathceg3-fire"].fire.properties.particlesize*1.7
 defs["deathceg3-fire"].fire.properties.particlelife = defs["deathceg3-fire"].fire.properties.particlelife*1.7
-defs["deathceg4-fire"] = tableMerge(deepcopy(defs["deathceg4"]), deepcopy(effects))
+defs["deathceg4-fire"] = tableMerge(table.copy(defs["deathceg4"]), table.copy(effects))
 defs["deathceg4-fire"].fireglow.properties.particlesize = defs["deathceg4-fire"].fireglow.properties.particlesize*1.7
 --defs["deathceg4-fire"].fireandsmoke.properties.particlesize = defs["deathceg4-fire"].fireandsmoke.properties.particlesize*1.4
 --defs["deathceg4-fire"].fireandsmoke.properties.particlelife = defs["deathceg4-fire"].fireandsmoke.properties.particlelife*1.8
@@ -443,20 +429,20 @@ effects = {
     },
   },
 }
-defs["deathceg2-builder"] = tableMerge(deepcopy(defs["deathceg2"]), deepcopy(effects))
-defs["deathceg3-builder"] = tableMerge(deepcopy(defs["deathceg3"]), deepcopy(effects))
-defs["deathceg4-builder"] = tableMerge(deepcopy(defs["deathceg4"]), deepcopy(effects))
+defs["deathceg2-builder"] = tableMerge(table.copy(defs["deathceg2"]), table.copy(effects))
+defs["deathceg3-builder"] = tableMerge(table.copy(defs["deathceg3"]), table.copy(effects))
+defs["deathceg4-builder"] = tableMerge(table.copy(defs["deathceg4"]), table.copy(effects))
 
 defs["deathceg2-builder"].fire.properties.colormap = [[0.9 0.8 0.2 0.04   0.8 0.6 0.150 0.022   0.6 0.5 0.10 0.03   0.25 0.2 0.05 0.016   0.15 0.15 0.05 0.012   0 0 0 0.01]]
-defs["deathceg3-builder"].fire.properties.colormap = deepcopy(defs["deathceg2-builder"].fire.properties.colormap)
-defs["deathceg4-builder"].fire.properties.colormap = deepcopy(defs["deathceg2-builder"].fire.properties.colormap)
+defs["deathceg3-builder"].fire.properties.colormap = defs["deathceg2-builder"].fire.properties.colormap
+defs["deathceg4-builder"].fire.properties.colormap = defs["deathceg2-builder"].fire.properties.colormap
 
 defs["deathceg2-builder"].fireglow.properties.colormap = [[0.50 0.40 0.04 0.01   0 0 0 0.01]]
-defs["deathceg3-builder"].fireglow.properties.colormap = deepcopy(defs["deathceg2-builder"].fireglow.properties.colormap)
-defs["deathceg4-builder"].fireglow.properties.colormap = deepcopy(defs["deathceg2-builder"].fireglow.properties.colormap)
+defs["deathceg3-builder"].fireglow.properties.colormap = defs["deathceg2-builder"].fireglow.properties.colormap
+defs["deathceg4-builder"].fireglow.properties.colormap = defs["deathceg2-builder"].fireglow.properties.colormap
 
 defs["deathceg3-builder"].dustparticles.properties.colormap = [[0.8 1 0.2 0.01   0 0 0 0.01]]
-defs["deathceg4-builder"].dustparticles.properties.colormap = deepcopy(defs["deathceg3-builder"].dustparticles.properties.colormap)
+defs["deathceg4-builder"].dustparticles.properties.colormap = defs["deathceg3-builder"].dustparticles.properties.colormap
 
 
 --local effects = {
@@ -489,13 +475,13 @@ defs["deathceg4-builder"].dustparticles.properties.colormap = deepcopy(defs["dea
 --    },
 --  },
 --}
---defs["deathceg2-air"] = tableMerge(deepcopy(defs["deathceg2"]), deepcopy(effects))
---defs["deathceg3-air"] = tableMerge(deepcopy(defs["deathceg3"]), deepcopy(effects))
+--defs["deathceg2-air"] = tableMerge(table.copy(defs["deathceg2"]), table.copy(effects))
+--defs["deathceg3-air"] = tableMerge(table.copy(defs["deathceg3"]), table.copy(effects))
 
 
 local airDefs = {}
 for k,v in pairs(defs) do
-	airDefs['air'..k] = deepcopy(defs[k])
+	airDefs['air'..k] = table.copy(defs[k])
 	airDefs['air'..k].fireandsmoke.properties.particlelife = v.fireandsmoke.properties.particlelife * 0.6
 	airDefs['air'..k].fireandsmoke.properties.colormap = [[0.05 0.034 0.028 0.62   0.044 0.033 0.027 0.57   0.04 0.031 0.026 0.48   0.025 0.023 0.023 0.3   0.014 0.013 0.013 0.15    0.006 0.006 0.006 0.06   0 0 0 0.01]]
 end
@@ -504,7 +490,7 @@ defs = tableMerge(defs, airDefs)
 -- add purple scavenger variants
 local scavengerDefs = {}
 for k,v in pairs(defs) do
-	scavengerDefs[k..'-purple'] = deepcopy(defs[k])
+	scavengerDefs[k..'-purple'] = table.copy(defs[k])
 end
 
 local purpleEffects = {

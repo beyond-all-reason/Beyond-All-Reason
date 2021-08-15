@@ -978,23 +978,6 @@ function tableMerge(t1, t2)
   return t1
 end
 
-function deepcopy(orig)
-  local orig_type = type(orig)
-  local copy
-  if orig_type == 'table' then
-    copy = {}
-    for orig_key, orig_value in next, orig, nil do
-      copy[deepcopy(orig_key)] = deepcopy(orig_value)
-    end
-    setmetatable(copy, deepcopy(getmetatable(orig)))
-  else -- number, string, boolean, etc
-    copy = orig
-  end
-  return copy
-end
-
-
-
 -- add coloring
 local colors = {
   red = {
@@ -1028,7 +1011,7 @@ local sizes = {
 }
 for color, effects in pairs(colors) do
   for k, size in pairs(sizes) do
-    definitions[size.."-"..color] = tableMerge(deepcopy(definitions[size]), deepcopy(effects))
+    definitions[size.."-"..color] = tableMerge(table.copy(definitions[size]), table.copy(effects))
   end
 end
 

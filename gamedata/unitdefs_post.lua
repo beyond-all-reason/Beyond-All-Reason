@@ -4,22 +4,6 @@ VFS.Include("gamedata/alldefs_post.lua")
 -- load functionality for saving to custom params
 VFS.Include("gamedata/post_save_to_customparams.lua")
 
-function deepcopy(orig)
-	local orig_type = type(orig)
-	local copy
-	if orig_type == 'table' then
-		copy = {}
-		for orig_key, orig_value in next, orig, nil do
-			copy[deepcopy(orig_key)] = deepcopy(orig_value)
-		end
-		setmetatable(copy, deepcopy(getmetatable(orig)))
-	else
-		-- number, string, boolean, etc
-		copy = orig
-	end
-	return copy
-end
-
 -- special tablemerge:
 -- converts value string 'nil' to an actual nil
 -- normally an empty table as value will be ignored when merging, but not here, it will overwrite what it had with an empty table
@@ -61,9 +45,9 @@ for name, uDef in pairs(UnitDefs) do
 	--local faction = string.sub(name, 1, 3)
 	if not string.find(name, '_scav') and not string.find(name, 'critter')  and not string.find(name, 'chicken') then
 		if customDefs[name] ~= nil then
-			scavengerUnitDefs[name .. '_scav'] = tableMergeSpecial(deepcopy(uDef), deepcopy(customDefs[name]))
+			scavengerUnitDefs[name .. '_scav'] = tableMergeSpecial(table.copy(uDef), table.copy(customDefs[name]))
 		else
-			scavengerUnitDefs[name .. '_scav'] = deepcopy(uDef)
+			scavengerUnitDefs[name .. '_scav'] = table.copy(uDef)
 		end
 	end
 end

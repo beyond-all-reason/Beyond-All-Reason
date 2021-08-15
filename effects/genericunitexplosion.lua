@@ -2778,21 +2778,6 @@ function tableMerge(t1, t2)
     return t1
 end
 
-function deepcopy(orig)
-    local orig_type = type(orig)
-    local copy
-    if orig_type == 'table' then
-        copy = {}
-        for orig_key, orig_value in next, orig, nil do
-            copy[deepcopy(orig_key)] = deepcopy(orig_value)
-        end
-        setmetatable(copy, deepcopy(getmetatable(orig)))
-    else -- number, string, boolean, etc
-        copy = orig
-    end
-    return copy
-end
-
 -- add different sizes
 definitions[root] = definitions[root.."-small"]
 local sizes = {
@@ -2821,7 +2806,7 @@ local sizes = {
     },
 }
 --for size, effects in pairs(sizes) do
---	definitions[root.."-"..size] = tableMerge(deepcopy(definitions[root.."-small"]), deepcopy(effects))
+--	definitions[root.."-"..size] = tableMerge(table.copy(definitions[root.."-small"]), table.copy(effects))
 --end
 
 
@@ -2890,9 +2875,9 @@ local types = {
 }
 for t, effects in pairs(types) do
   for size, e in pairs(sizes) do
-    definitions[root.."-"..size.."-"..t] = tableMerge(deepcopy(definitions[root.."-"..size]), deepcopy(effects))
+    definitions[root.."-"..size.."-"..t] = tableMerge(table.copy(definitions[root.."-"..size]), table.copy(effects))
     if t == 'phib' then
-      definitions[root.."-"..size.."-"..t].explosion_uw = deepcopy(definitions[root.."-"..size].explosion)
+      definitions[root.."-"..size.."-"..t].explosion_uw = table.copy(definitions[root.."-"..size].explosion)
       definitions[root.."-"..size.."-"..t].explosion_uw.water = false
       definitions[root.."-"..size.."-"..t].explosion_uw.ground = false
       definitions[root.."-"..size.."-"..t].explosion_uw.air = false
@@ -2955,7 +2940,7 @@ for t, effects in pairs(types) do
   end
 end
 
-definitions['decoycommander'] = deepcopy(definitions[root.."-small"])
+definitions['decoycommander'] = table.copy(definitions[root.."-small"])
 definitions['decoycommander'].confetti = {
 	class              = [[CSimpleParticleSystem]],
 	count              = 1,
@@ -3040,7 +3025,7 @@ definitions['decoycommander'].sparks = {
   },
 }
 
-definitions['decoycommander-selfd'] = deepcopy(definitions[root.."-medium"])
+definitions['decoycommander-selfd'] = table.copy(definitions[root.."-medium"])
 definitions['decoycommander-selfd'].confetti = {
     class              = [[CSimpleParticleSystem]],
     count              = 1,
@@ -3130,7 +3115,7 @@ definitions['decoycommander-selfd'].sparks = {
 -- add purple scavenger variants
 local scavengerDefs = {}
 for k,v in pairs(definitions) do
-  scavengerDefs[k..'-purple'] = deepcopy(definitions[k])
+  scavengerDefs[k..'-purple'] = table.copy(definitions[k])
 end
 
 local purpleEffects = {

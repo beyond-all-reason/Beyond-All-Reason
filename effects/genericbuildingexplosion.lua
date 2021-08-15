@@ -464,21 +464,6 @@ function tableMerge(t1, t2)
     return t1
 end
 
-function deepcopy(orig)
-    local orig_type = type(orig)
-    local copy
-    if orig_type == 'table' then
-        copy = {}
-        for orig_key, orig_value in next, orig, nil do
-            copy[deepcopy(orig_key)] = deepcopy(orig_value)
-        end
-        setmetatable(copy, deepcopy(getmetatable(orig)))
-    else -- number, string, boolean, etc
-        copy = orig
-    end
-    return copy
-end
-
 -- add different sizes
 definitions[root] = definitions[root.."-small"]
 local sizes = {
@@ -1237,17 +1222,17 @@ local sizes = {
   },
 }
 for size, effects in pairs(sizes) do
-	definitions[root.."-"..size] = tableMerge(deepcopy(definitions[root.."-small"]), deepcopy(effects))
+	definitions[root.."-"..size] = tableMerge(table.copy(definitions[root.."-small"]), table.copy(effects))
 end
 
-definitions[root..'-wind'] = deepcopy(definitions[root.."-small"])
+definitions[root..'-wind'] = table.copy(definitions[root.."-small"])
 definitions[root..'-wind'].clouddust.properties.numparticles = definitions[root..'-wind'].clouddust.properties.numparticles / 3
 definitions[root..'-wind'].grounddust.properties.numparticles = definitions[root..'-wind'].grounddust.properties.numparticles / 3
 definitions[root..'-wind'].dirt.properties.numparticles = definitions[root..'-wind'].dirt.properties.numparticles / 2
 definitions[root..'-wind'].dirt2.properties.numparticles = definitions[root..'-wind'].dirt2.properties.numparticles / 2
 definitions[root..'-wind'].sparks.properties.numparticles = definitions[root..'-wind'].sparks.properties.numparticles / 2
 
-definitions[root..'-nano'] = deepcopy(definitions[root.."-wind"])
+definitions[root..'-nano'] = table.copy(definitions[root.."-wind"])
 --definitions[root..'-nano'].explosion.properties.colormap = [[0 0 0 0   0.92 1 0.7 0.08   0.77 0.9 0.21 0.06   0.57 0.66 0.04 0.03   0 0 0 0.01]]
 --definitions[root..'-nano'].fireglow.properties.colormap = [[0.15 0.14 0.1 0.005  0 0 0 0.01]]
 --definitions[root..'-nano'].fireglow2.properties.colormap = [[0.26 0.24 0.08 0.26   0.36 0.44 0.13 0.44   0.15 0.2 0 0.2   0 0 0 0.01]]
@@ -1256,30 +1241,30 @@ definitions[root..'-nano'].sparks.properties.numparticles = definitions[root..'-
 --definitions[root..'-nano'].dirt.properties.colormap = [[0.8 1 0.4 0.1   0 0 0 0.01]]
 --definitions[root..'-nano'].dirt2.properties.colormap = [[0.7 1 0.3 0.1   0 0 0 0.01]]
 
-definitions[root..'-metalmaker'] = deepcopy(definitions[root.."-medium"])
+definitions[root..'-metalmaker'] = table.copy(definitions[root.."-medium"])
 definitions[root..'-metalmaker'].clouddust.properties.numparticles = definitions[root..'-metalmaker'].clouddust.properties.numparticles / 3
 definitions[root..'-metalmaker'].grounddust.properties.numparticles = definitions[root..'-metalmaker'].grounddust.properties.numparticles / 3
 definitions[root..'-metalmaker'].dirt.properties.numparticles = definitions[root..'-metalmaker'].dirt.properties.numparticles / 2
 definitions[root..'-metalmaker'].dirt2.properties.numparticles = definitions[root..'-metalmaker'].dirt2.properties.numparticles / 2
 definitions[root..'-metalmaker'].sparks.properties.numparticles = definitions[root..'-metalmaker'].sparks.properties.numparticles / 2
 
-definitions[root..'-metalmakerselfd'] = deepcopy(definitions[root.."-large"])
+definitions[root..'-metalmakerselfd'] = table.copy(definitions[root.."-large"])
 definitions[root..'-metalmakerselfd'].clouddust.properties.numparticles = definitions[root..'-metalmakerselfd'].clouddust.properties.numparticles / 3
 definitions[root..'-metalmakerselfd'].grounddust.properties.numparticles = definitions[root..'-metalmakerselfd'].grounddust.properties.numparticles / 3
 definitions[root..'-metalmakerselfd'].dirt.properties.numparticles = definitions[root..'-metalmakerselfd'].dirt.properties.numparticles / 2
 definitions[root..'-metalmakerselfd'].dirt2.properties.numparticles = definitions[root..'-metalmakerselfd'].dirt2.properties.numparticles / 2
 definitions[root..'-metalmakerselfd'].sparks.properties.numparticles = definitions[root..'-metalmakerselfd'].sparks.properties.numparticles / 2
 
-definitions[root..'-advmetalmaker'] = deepcopy(definitions[root.."-metalmakerselfd"])
+definitions[root..'-advmetalmaker'] = table.copy(definitions[root.."-metalmakerselfd"])
 
-definitions[root..'-advmetalmakerselfd'] = deepcopy(definitions[root.."-huge"])
+definitions[root..'-advmetalmakerselfd'] = table.copy(definitions[root.."-huge"])
 definitions[root..'-advmetalmakerselfd'].clouddust.properties.numparticles = definitions[root..'-advmetalmakerselfd'].clouddust.properties.numparticles / 3
 definitions[root..'-advmetalmakerselfd'].grounddust.properties.numparticles = definitions[root..'-advmetalmakerselfd'].grounddust.properties.numparticles / 3
 definitions[root..'-advmetalmakerselfd'].dirt.properties.numparticles = definitions[root..'-advmetalmakerselfd'].dirt.properties.numparticles / 2
 definitions[root..'-advmetalmakerselfd'].dirt2.properties.numparticles = definitions[root..'-advmetalmakerselfd'].dirt2.properties.numparticles / 2
 definitions[root..'-advmetalmakerselfd'].sparks.properties.numparticles = definitions[root..'-advmetalmakerselfd'].sparks.properties.numparticles / 2
 
-definitions['genericshellexplosion-meteor'] = deepcopy(definitions[root.."-huge"])
+definitions['genericshellexplosion-meteor'] = table.copy(definitions[root.."-huge"])
 definitions['genericshellexplosion-meteor'].groundflash_large.alwaysvisible = true
 definitions['genericshellexplosion-meteor'].groundflash_white.alwaysvisible = true
 definitions['genericshellexplosion-meteor'].explosion.properties.alwaysvisible = true
@@ -1313,7 +1298,7 @@ local types = {
 }
 for t, effects in pairs(types) do
   for size, _ in pairs(sizes) do
-    definitions[root.."-"..size.."-"..t] = tableMerge(deepcopy(definitions[root.."-"..size]), deepcopy(effects))
+    definitions[root.."-"..size.."-"..t] = tableMerge(table.copy(definitions[root.."-"..size]), table.copy(effects))
   end
 end
 
@@ -1321,7 +1306,7 @@ end
 -- add purple scavenger variants
 local scavengerDefs = {}
 for k,v in pairs(definitions) do
-  scavengerDefs[k..'-purple'] = deepcopy(definitions[k])
+  scavengerDefs[k..'-purple'] = table.copy(definitions[k])
 end
 
 local purpleEffects = {

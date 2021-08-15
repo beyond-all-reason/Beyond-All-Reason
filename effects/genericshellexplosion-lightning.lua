@@ -1127,26 +1127,10 @@ function tableMerge(t1, t2)
   return t1
 end
 
-function deepcopy(orig)
-  local orig_type = type(orig)
-  local copy
-  if orig_type == 'table' then
-    copy = {}
-    for orig_key, orig_value in next, orig, nil do
-      copy[deepcopy(orig_key)] = deepcopy(orig_value)
-    end
-    setmetatable(copy, deepcopy(getmetatable(orig)))
-  else -- number, string, boolean, etc
-    copy = orig
-  end
-  return copy
-end
-
-
 -- add purple scavenger variants
 local scavengerDefs = {}
 for k,v in pairs(definitions) do
-  scavengerDefs[k..'-purple'] = deepcopy(definitions[k])
+  scavengerDefs[k..'-purple'] = table.copy(definitions[k])
 end
 
 local purpleEffects = {
