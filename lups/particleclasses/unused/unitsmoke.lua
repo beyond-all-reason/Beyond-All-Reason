@@ -253,11 +253,10 @@ end
 -----------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------
 
-local MergeTable   = MergeTable
 local setmetatable = setmetatable
 
 function UnitSmoke.Create(Options)
-  local newObject = MergeTable(Options, UnitSmoke.Default)
+  local newObject = table.merge(UnitSmoke.Default, Options)
   setmetatable(newObject,UnitSmoke)  -- make handle lookup
   newObject:CreateParticle()
   return newObject

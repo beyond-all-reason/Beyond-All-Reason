@@ -27,39 +27,13 @@
 --   we work around this by giving explosion lights a
 --   (slighly) higher priority than the corresponding
 --   projectile lights
-local allDynLightDefs = include("LuaRules/Configs/gfx_dynamic_lighting_defs.lua")
-local modDynLightDefs = allDynLightDefs[Game.gameShortName] or {}
-local weaponLightDefs = modDynLightDefs.weaponLightDefs or {}
 
 -- shared synced/unsynced globals
 local PROJECTILE_GENERATED_EVENT_ID = 10001
 local PROJECTILE_DESTROYED_EVENT_ID = 10002
 local PROJECTILE_EXPLOSION_EVENT_ID = 10003
 
-
-
 if (gadgetHandler:IsSyncedCode()) then
-	-- register/deregister for the synced Projectile*/Explosion call-ins
-	function gadget:Initialize()
-		for weaponDefName, _ in pairs(weaponLightDefs) do
-			local weaponDef = WeaponDefNames[weaponDefName]
-
-			if (weaponDef ~= nil) then
-				Script.SetWatchWeapon(weaponDef.id, true)
-			end
-		end
-	end
-	function gadget:Shutdown()
-		for weaponDefName, _ in pairs(weaponLightDefs) do
-			local weaponDef = WeaponDefNames[weaponDefName]
-
-			if (weaponDef ~= nil) then
-				Script.SetWatchWeapon(weaponDef.id, false)
-			end
-		end
-	end
-
-
 	function gadget:ProjectileCreated(projectileID, projectileOwnerID, projectileWeaponDefID)
 		SendToUnsynced(PROJECTILE_GENERATED_EVENT_ID, projectileID, projectileOwnerID, projectileWeaponDefID)
 	end
@@ -89,41 +63,6 @@ else
 	local SpringSetModelLightTrackingState = Spring.SetModelLightTrackingState
 	local SpringUpdateMapLight             = Spring.UpdateMapLight
 	local SpringUpdateModelLight           = Spring.UpdateModelLight
-
-	local function LoadLightDefs()
-		-- type(v) := {[1] = number, [2] = number, [3] = number}
-		-- type(s) := number
-		local function vector_scalar_add(v, s) return {v[1] + s, v[2] + s, v[3] + s} end
-		local function vector_scalar_mul(v, s) return {v[1] * s, v[2] * s, v[3] * s} end
-		local function vector_scalar_div(v, s) return {v[1] / s, v[2] / s, v[3] / s} end
-
-		for weaponDefName, weaponLightDef in pairs(weaponLightDefs) do
-			local weaponDef = WeaponDefNames[weaponDefName]
-			local projectileLightDef = weaponLightDef.projectileLightDef
-			local explosionLightDef = weaponLightDef.explosionLightDef
-
-			if (weaponDef ~= nil) then
-				projectileLightDefs[weaponDef.id] = projectileLightDef
-				explosionLightDefs[weaponDef.id] = explosionLightDef
-
-				-- NOTE: these rates are not sensible if the decay-type is exponential
-				--Spring.Echo("pld :" .. projectileLightDef)
-				--Spring.Echo("pld.dft :" .. projectileLightDef.decayFunctionType)
-
-				if (projectileLightDef ~= nil and projectileLightDef.decayFunctionType ~= nil) then
-					projectileLightDefs[weaponDef.id].ambientDecayRate  = vector_scalar_div(projectileLightDef.ambientColor or {0.0, 0.0, 0.0}, projectileLightDef.ttl or 1.0)
-					projectileLightDefs[weaponDef.id].diffuseDecayRate  = vector_scalar_div(projectileLightDef.diffuseColor or {0.0, 0.0, 0.0}, projectileLightDef.ttl or 1.0)
-					projectileLightDefs[weaponDef.id].specularDecayRate = vector_scalar_div(projectileLightDef.specularColor or {0.0, 0.0, 0.0}, projectileLightDef.ttl or 1.0)
-				end
-
-				if (explosionLightDef ~= nil and explosionLightDef.decayFunctionType ~= nil) then
-					explosionLightDefs[weaponDef.id].ambientDecayRate  = vector_scalar_div(explosionLightDef.ambientColor or {0.0, 0.0, 0.0}, explosionLightDef.ttl or 1.0)
-					explosionLightDefs[weaponDef.id].diffuseDecayRate  = vector_scalar_div(explosionLightDef.diffuseColor or {0.0, 0.0, 0.0}, explosionLightDef.ttl or 1.0)
-					explosionLightDefs[weaponDef.id].specularDecayRate = vector_scalar_div(explosionLightDef.specularColor or {0.0, 0.0, 0.0}, explosionLightDef.ttl or 1.0)
-				end
-			end
-		end
-	end
 
 	local function ProjectileCreated(projectileID, projectileOwnerID, projectileWeaponDefID)
 		local projectileLightDef = projectileLightDefs[projectileWeaponDefID]
@@ -213,9 +152,6 @@ else
 		unsyncedEventHandlers[PROJECTILE_GENERATED_EVENT_ID] = ProjectileCreated
 		unsyncedEventHandlers[PROJECTILE_DESTROYED_EVENT_ID] = ProjectileDestroyed
 		unsyncedEventHandlers[PROJECTILE_EXPLOSION_EVENT_ID] = ProjectileExplosion
-
-		-- fill the {projectile, explosion}LightDef tables
-		LoadLightDefs()
 	end
 
 	function gadget:RecvFromSynced(eventID, arg0, arg1, arg2, arg3)

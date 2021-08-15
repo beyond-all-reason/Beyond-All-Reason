@@ -189,7 +189,7 @@ end
 -----------------------------------------------------------------------------------------------------------------
 
 function ShieldJitter.Create(Options)
-  local newObject = MergeTable(Options, ShieldJitter.Default)
+  local newObject = table.merge(ShieldJitter.Default, Options)
   setmetatable(newObject,ShieldJitter)  -- make handle lookup
   newObject:CreateParticle()
   return newObject

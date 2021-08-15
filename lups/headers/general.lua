@@ -66,27 +66,6 @@ function GetShieldColor(unitID, self)
 	end
 end
 
-local type  = type
-local pairs = pairs
-function CopyTable(outtable,intable)
-  for i,v in pairs(intable) do 
-    if (type(v)=='table') then
-      if (type(outtable[i])~='table') then outtable[i] = {} end
-      CopyTable(outtable[i],v)
-    else
-      outtable[i] = v
-    end
-  end
-end
-local CopyTable = CopyTable
-
-function MergeTable(table1,table2)
-  local ret = {}
-  CopyTable(ret,table2)
-  CopyTable(ret,table1)
-  return ret
-end
-
 function CreateSubTables(startTable,SubIndexes)
   for i=1,#SubIndexes do
     local v = SubIndexes[i]

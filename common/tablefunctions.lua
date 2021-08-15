@@ -1,9 +1,8 @@
---deep not safe with circular tables! defaults To false
-function table:copy(deep)
+function table:copy()
 	local copy = {}
 	for key, value in pairs(self) do
-		if (deep and type(value) == "table") then
-			copy[key] = table.copy(value, true)
+		if type(value) == "table" then
+			copy[key] = table.copy(value)
 		else
 			copy[key] = value
 		end
@@ -14,11 +13,11 @@ end
 -- Recursively merge two tables and return the result in a new table.
 -- When there is a conflict, values in 'secondary' override values in 'primary'.
 function table.merge(primary, secondary)
-	local new = table.copy(primary, true)
+	local new = table.copy(primary)
 	for key, v in pairs(secondary) do
 		-- key not used in default, assign it the value at same key in override
 		if not new[key] and type(v) == "table" then
-			new[key] = table.copy(v, true)
+			new[key] = table.copy(v)
 		-- values at key in both default and override are tables, merge those
 		elseif type(new[key]) == "table" and type(v) == "table"  then
 			new[key] = table.merge(new[key], v)

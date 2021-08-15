@@ -220,7 +220,7 @@ local function IsCMDTypeIconModeOrNumber(unitID, cmdID)
 end
 
 local function GetSavedUnitsCopy()
-	return table.copy(savedata.unit, true)
+	return table.copy(savedata.unit)
 end
 GG.SaveLoad.GetSavedUnitsCopy = GetSavedUnitsCopy
 -----------------------------------------------------------------------------------

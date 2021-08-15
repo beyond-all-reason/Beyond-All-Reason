@@ -339,11 +339,10 @@ end
 -----------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------
 
-local MergeTable   = MergeTable
 local setmetatable = setmetatable
 
 function Ribbon.Create(Options)
-  local newObject = MergeTable(Options, Ribbon.Default)
+  local newObject = table.merge(Ribbon.Default, Options)
   setmetatable(newObject,Ribbon)  -- make handle lookup
   newObject:CreateParticle()
   return newObject

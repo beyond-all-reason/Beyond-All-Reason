@@ -413,11 +413,10 @@ end
 -----------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------
 
-local MergeTable   = MergeTable
 local setmetatable = setmetatable
 
 function SimpleParticles2.Create(Options)
-  local newObject = MergeTable(Options, SimpleParticles2.Default)
+  local newObject = table.merge(SimpleParticles2.Default, Options)
   setmetatable(newObject,SimpleParticles2)  --// make handle lookup
   newObject:CreateParticle()
   return newObject

@@ -333,7 +333,7 @@ end
 -----------------------------------------------------------------------------------------------------------------
 
 function StaticParticles.Create(Options)
-  local newObject = MergeTable(Options, StaticParticles.Default)
+  local newObject = table.merge(StaticParticles.Default, Options)
   setmetatable(newObject,StaticParticles)  --// make handle lookup
   newObject:CreateParticle()
   return newObject

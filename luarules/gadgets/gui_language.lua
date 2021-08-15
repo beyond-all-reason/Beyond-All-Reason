@@ -35,21 +35,6 @@ for k, file in ipairs(files) do
 	end
 end
 
-local function tableMerge(t1, t2)
-	for k, v in pairs(t2) do
-		if type(v) == "table" then
-			if type(t1[k] or false) == "table" then
-				tableMerge(t1[k] or {}, t2[k] or {})
-			else
-				t1[k] = v
-			end
-		else
-			t1[k] = v
-		end
-	end
-	return t1
-end
-
 local function loadLanguage()
 	-- load base language file (english)
 	local file = "language/"..defaultLanguage..".lua"
@@ -64,7 +49,7 @@ local function loadLanguage()
 		s = assert(VFS.LoadFile(file, VFS.RAW_FIRST))
 		func = loadstring(s, file)
 		-- merge default base file with custom language
-		languageContent = tableMerge(defaultLanguageContent, func())
+		languageContent = table.merge(defaultLanguageContent, func())
 	end
 end
 

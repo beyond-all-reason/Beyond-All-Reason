@@ -672,11 +672,6 @@ local function GetProjectileLights(beamLights, beamLightCount, pointLights, poin
 	return beamLights, beamLightCount, pointLights, pointLightCount
 end
 
-function tableMerge(t1, t2)
-	for k,v in pairs(t2) do if type(v) == "table" then if type(t1[k] or false) == "table" then tableMerge(t1[k] or {}, t2[k] or {}) else t1[k] = v end else t1[k] = v end end
-	return t1
-end
-
 local function CreateBeamLight(name, x, y, z, x2, y2, z2, radius, rgba)
 	if name == 'nano' then
 		if enableNanolaser then
@@ -724,7 +719,7 @@ local function EditBeamLight(lightID, params)
 	--end
 	--Spring.Echo('editing: '..lightID..'  '..params.px..'  '..params.py..'  '..params.pz..'    '..params.dx..'  '..params.dy..'  '..params.dz)
 	if customBeamLights[lightID] then
-		customBeamLights[lightID] = tableMerge(customBeamLights[lightID], params)
+		table.mergeInPlace(customBeamLights[lightID], params)
 		return true
 	else
 		return false
@@ -778,7 +773,7 @@ end
 
 local function EditLight(lightID, params)
 	if explosionLights[lightID] then
-		explosionLights[lightID] = tableMerge(explosionLights[lightID], params)
+		table.mergeInPlace(explosionLights[lightID], params)
 		return true
 	else
 		return false

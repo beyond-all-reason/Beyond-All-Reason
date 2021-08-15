@@ -3825,39 +3825,9 @@ local definitions = {
       },
 }
 
-function tableMerge(t1, t2)
-    for k,v in pairs(t2) do
-        if type(v) == "table" then
-            if type(t1[k] or false) == "table" then
-                tableMerge(t1[k] or {}, t2[k] or {})
-            else
-                t1[k] = v
-            end
-        else
-            t1[k] = v
-        end
-    end
-    return t1
-end
-
-function deepcopy(orig)
-  local orig_type = type(orig)
-  local copy
-  if orig_type == 'table' then
-    copy = {}
-    for orig_key, orig_value in next, orig, nil do
-      copy[deepcopy(orig_key)] = deepcopy(orig_value)
-    end
-    setmetatable(copy, deepcopy(getmetatable(orig)))
-  else -- number, string, boolean, etc
-    copy = orig
-  end
-  return copy
-end
-
 local size = 0.7
 
-definitions['t3unitexplosionmed'] = deepcopy(definitions['t3unitexplosion'])
+definitions['t3unitexplosionmed'] = table.copy(definitions['t3unitexplosion'])
 definitions['t3unitexplosionmed'].sparks.properties.particlespeed = math.floor(definitions['t3unitexplosionmed'].sparks.properties.particlespeed * size)
 definitions['t3unitexplosionmed'].sparks.properties.particlespeedspread = math.floor(definitions['t3unitexplosionmed'].sparks.properties.particlespeedspread * size)
 definitions['t3unitexplosionmed'].explosion.properties.particlespeed = math.floor(definitions['t3unitexplosionmed'].explosion.properties.particlespeed * size)
@@ -3889,7 +3859,7 @@ definitions['t3unitexplosionmed'].grounddust.properties.particlelife = math.floo
 
 local size = 1.4
 
-definitions['t3unitexplosionxl'] = deepcopy(definitions['t3unitexplosion'])
+definitions['t3unitexplosionxl'] = table.copy(definitions['t3unitexplosion'])
 definitions['t3unitexplosionxl'].sparks.properties.particlespeed = math.floor(definitions['t3unitexplosionxl'].sparks.properties.particlespeed * size)
 definitions['t3unitexplosionxl'].sparks.properties.particlespeedspread = math.floor(definitions['t3unitexplosionxl'].sparks.properties.particlespeedspread * size)
 definitions['t3unitexplosionxl'].sparks.properties.numparticles = math.floor(definitions['t3unitexplosionxl'].sparks.properties.numparticles * size)
@@ -3924,7 +3894,7 @@ definitions['t3unitexplosionxl'].grounddust.properties.particlelife = math.floor
 
 local size = 1.7
 
-definitions['t3unitexplosionxxl'] = deepcopy(definitions['t3unitexplosion'])
+definitions['t3unitexplosionxxl'] = table.copy(definitions['t3unitexplosion'])
 definitions['t3unitexplosionxxl'].sparks.properties.particlespeed = math.floor(definitions['t3unitexplosionxxl'].sparks.properties.particlespeed * size * 0.9)
 definitions['t3unitexplosionxxl'].sparks.properties.particlespeedspread = math.floor(definitions['t3unitexplosionxxl'].sparks.properties.particlespeedspread * size)
 definitions['t3unitexplosionxxl'].sparks.properties.numparticles = math.floor(definitions['t3unitexplosionxxl'].sparks.properties.numparticles * size)
@@ -3960,7 +3930,7 @@ definitions['t3unitexplosionxxl'].grounddust.properties.particlelife = math.floo
 
 local size = 2.2
 
-definitions['t3unitexplosionxxxl'] = deepcopy(definitions['t3unitexplosion'])
+definitions['t3unitexplosionxxxl'] = table.copy(definitions['t3unitexplosion'])
 definitions['t3unitexplosionxxxl'].sparks.properties.particlespeed = math.floor(definitions['t3unitexplosionxxxl'].sparks.properties.particlespeed * size * 0.8)
 definitions['t3unitexplosionxxxl'].sparks.properties.particlespeedspread = math.floor(definitions['t3unitexplosionxxxl'].sparks.properties.particlespeedspread * size)
 definitions['t3unitexplosionxxxl'].sparks.properties.numparticles = math.floor(definitions['t3unitexplosionxxxl'].sparks.properties.numparticles * size)
@@ -4014,7 +3984,7 @@ definitions['t3unitexplosionxxxl'].outersmoke.properties.particlelife = math.flo
 
 local size = 2.6
 
-definitions['t3unitexplosionxxxxl'] = deepcopy(definitions['t3unitexplosion'])
+definitions['t3unitexplosionxxxxl'] = table.copy(definitions['t3unitexplosion'])
 definitions['t3unitexplosionxxxxl'].sparks.properties.numparticles = math.floor(definitions['t3unitexplosionxxxxl'].sparks.properties.numparticles * size)
 definitions['t3unitexplosionxxxxl'].sparks.properties.particlespeed = math.floor(definitions['t3unitexplosionxxxxl'].sparks.properties.particlespeed * size * 0.6)
 definitions['t3unitexplosionxxxxl'].sparks.properties.particlespeedspread = math.floor(definitions['t3unitexplosionxxxxl'].sparks.properties.particlespeedspread * size)
@@ -4064,7 +4034,7 @@ definitions['t3unitexplosionxxxxl'].outersmoke.properties.particlelife = math.fl
 
 local size = 3.2
 
-definitions['t3unitexplosionxxxxxl'] = deepcopy(definitions['t3unitexplosion'])
+definitions['t3unitexplosionxxxxxl'] = table.copy(definitions['t3unitexplosion'])
 definitions['t3unitexplosionxxxxxl'].sparks.properties.numparticles = math.floor(definitions['t3unitexplosionxxxxxl'].sparks.properties.numparticles * size)
 definitions['t3unitexplosionxxxxxl'].sparks.properties.particlespeed = math.floor(definitions['t3unitexplosionxxxxxl'].sparks.properties.particlespeed * size* 0.5)
 definitions['t3unitexplosionxxxxxl'].sparks.properties.particlespeedspread = math.floor(definitions['t3unitexplosionxxxxxl'].sparks.properties.particlespeedspread * size * 1.5)
@@ -4112,7 +4082,7 @@ definitions['t3unitexplosionxxxxxl'].outersmoke.properties.particlelife = math.f
 -- add purple scavenger variants
 local scavengerDefs = {}
 for k,v in pairs(definitions) do
-  scavengerDefs[k..'-purple'] = deepcopy(definitions[k])
+  scavengerDefs[k..'-purple'] = table.copy(definitions[k])
 end
 
 local purpleEffects = {
@@ -4197,6 +4167,6 @@ for defName, def in pairs(scavengerDefs) do
   end
 end
 
-definitions = tableMerge(definitions, scavengerDefs)
+table.mergeInPlace(definitions, scavengerDefs)
 
 return definitions

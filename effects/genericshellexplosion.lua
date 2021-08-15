@@ -2899,37 +2899,6 @@ local definitions = {
 
 }
 
-
-function tableMerge(t1, t2)
-    for k,v in pairs(t2) do
-    	if type(v) == "table" then
-    		if type(t1[k] or false) == "table" then
-    			tableMerge(t1[k] or {}, t2[k] or {})
-    		else
-    			t1[k] = v
-    		end
-    	else
-    		t1[k] = v
-    	end
-    end
-    return t1
-end
-
-function deepcopy(orig)
-    local orig_type = type(orig)
-    local copy
-    if orig_type == 'table' then
-        copy = {}
-        for orig_key, orig_value in next, orig, nil do
-            copy[deepcopy(orig_key)] = deepcopy(orig_value)
-        end
-        setmetatable(copy, deepcopy(getmetatable(orig)))
-    else -- number, string, boolean, etc
-        copy = orig
-    end
-    return copy
-end
-
 -- add different sizes
 definitions[root] = definitions[root.."-small"]
 local sizes = {
@@ -2954,9 +2923,8 @@ local sizes = {
 	},
 }
 for size, effects in pairs(sizes) do
-  --definitions[root.."-"..size] = tableMerge(deepcopy(definitions[root.."-small"]), deepcopy(effects))
   definitions[root.."-"..size].explosion.properties.numparticles = math.ceil(definitions[root.."-"..size].explosion.properties.numparticles/1.7)
-  definitions[root.."-"..size].explosion2 = deepcopy(definitions[root.."-"..size].explosion)
+  definitions[root.."-"..size].explosion2 = table.copy(definitions[root.."-"..size].explosion)
   definitions[root.."-"..size].explosion2.properties.colormap = [[1 0.33 0 0.1   0.5 0.15 0 0.05   0.07 0.03 0 0.02   0 0 0 0]]
   definitions[root.."-"..size].explosion2.properties.numparticles = definitions[root.."-"..size].explosion.properties.numparticles-1
 end
@@ -3021,7 +2989,7 @@ local colors = {
 }
 for color, effects in pairs(colors) do
   for size, e in pairs(sizes) do
-  	definitions[root.."-"..size.."-"..color] = tableMerge(deepcopy(definitions[root.."-"..size]), deepcopy(effects))
+  	definitions[root.."-"..size.."-"..color] = table.merge(definitions[root.."-"..size], effects)
     for pname, defs in pairs(effects) do
       if defs == false then
         definitions[root.."-"..size.."-"..color][pname] = nil
@@ -3044,7 +3012,7 @@ definitions[root.."-huge-aa"].sparks = nil
 local devideBy = 12
 for size, e in pairs(sizes) do
 	local defname = root.."-"..size.."-beam"
-	definitions[defname] = deepcopy(definitions[root.."-"..size])
+	definitions[defname] = table.copy(definitions[root.."-"..size])
     definitions[defname].clouddust = nil
     if definitions[defname].groundclouddust ~= nil then
         definitions[defname].groundclouddust.properties.numparticles = nil
@@ -3077,9 +3045,9 @@ for size, e in pairs(sizes) do
     --end
 end
 
-definitions['antinukeexplosion'] = deepcopy(definitions[root.."-large"])
+definitions['antinukeexplosion'] = table.copy(definitions[root.."-large"])
 
-definitions['genericshellexplosion-debris'] = deepcopy(definitions[root.."-tiny"])
+definitions['genericshellexplosion-debris'] = table.copy(definitions[root.."-tiny"])
 definitions['genericshellexplosion-debris'].explosion.properties.colormap = [[0 0 0 0   1 0.77 0.44 0.06   0.75 0.38 0.14 0.045   0.55 0.22 0.04 0.02   0 0 0 0]]
 definitions['genericshellexplosion-debris'].explosion.properties.numparticles = 3
 definitions['genericshellexplosion-debris'].explosion.properties.particlesize = 0.44
@@ -3108,7 +3076,7 @@ definitions['genericshellexplosion-debris'].shard3 = nil
 definitions['genericshellexplosion-debris'].clouddust = nil
 definitions['genericshellexplosion-debris'].outerflash = nil
 
-definitions['genericshellexplosion-debris2'] = deepcopy(definitions[root.."-debris"])
+definitions['genericshellexplosion-debris2'] = table.copy(definitions[root.."-debris"])
 definitions['genericshellexplosion-debris2'].explosion.properties.numparticles = 2
 definitions['genericshellexplosion-debris2'].explosion.properties.particlesize = 0.35
 definitions['genericshellexplosion-debris2'].explosion.properties.particlesizespread = 0.45
@@ -3116,7 +3084,7 @@ definitions['genericshellexplosion-debris2'].explosion.properties.particlespeed 
 definitions['genericshellexplosion-debris2'].explosion.properties.particlespeedspread = 0.66
 definitions['genericshellexplosion-debris2'].explosion2 = nil
 
-definitions['genericshellexplosion-catapult'] = deepcopy(definitions[root.."-large-bomb"])
+definitions['genericshellexplosion-catapult'] = table.copy(definitions[root.."-large-bomb"])
 definitions['genericshellexplosion-catapult'].explosion.properties.numparticles = 4
 definitions['genericshellexplosion-catapult'].explosion.properties.colormap = [[0 0 0 0   1 0.45 0.25 0.09   0.75 0.35 0.15 0.066   0.44 0.25 0.06 0.033   0 0 0 0]]
 definitions['genericshellexplosion-catapult'].explosion2.properties.numparticles = 4
@@ -3128,7 +3096,7 @@ definitions['genericshellexplosion-catapult'].sparks.properties.numparticles = 4
 definitions['genericshellexplosion-catapult'].clouddust.properties.numparticles = 1
 
 
-definitions['genericshellexplosion-sniper'] = deepcopy(definitions[root.."-large"])
+definitions['genericshellexplosion-sniper'] = table.copy(definitions[root.."-large"])
 definitions['genericshellexplosion-sniper'].explosion.properties.colormap    = [[0 0 0 0   1 0.3 0.15 0.01   1 0.2 0.12 0.01   0.8 0.16 0.09 0.01   0 0 0 0]]
 definitions['genericshellexplosion-sniper'].explosion.properties.numparticles = definitions['genericshellexplosion-sniper'].explosion.properties.numparticles*1.3
 definitions['genericshellexplosion-sniper'].explosion2.properties.colormap    = [[0 0 0 0   1 0 0 0.01   1 0.1 0.09 0.01   0.8 0.1 0.05 0.01   0 0 0 0]]
@@ -3140,7 +3108,7 @@ definitions['genericshellexplosion-sniper'].explosion2.properties.particlesize =
 definitions['genericshellexplosion-sniper'].explosion2.properties.particlesizespread = definitions['genericshellexplosion-sniper'].explosion2.properties.particlesizespread * 0.85
 
 
-definitions['expldgun'] = deepcopy(definitions[root.."-small"])
+definitions['expldgun'] = table.copy(definitions[root.."-small"])
 definitions['expldgun'].groundflash_small = {
   class              = [[CSimpleGroundFlash]],
   count              = 1,
@@ -3235,7 +3203,7 @@ definitions['expldgun'].outersmoke.properties.particleLife = definitions['expldg
 -- add purple scavenger variants
 local scavengerDefs = {}
 for k,v in pairs(definitions) do
-  scavengerDefs[k..'-purple'] = deepcopy(definitions[k])
+  scavengerDefs[k..'-purple'] = table.copy(definitions[k])
 end
 
 local purpleEffects = {
@@ -3295,6 +3263,6 @@ for defName, def in pairs(scavengerDefs) do
   end
 end
 
-definitions = tableMerge(definitions, scavengerDefs)
+table.mergeInPlace(definitions, scavengerDefs)
 
 return definitions

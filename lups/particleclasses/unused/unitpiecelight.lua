@@ -346,7 +346,7 @@ end
 -----------------------------------------------------------------------------------------------------------------
 
 function UnitPieceLight.Create(Options)
-  local newObject = MergeTable(Options, UnitPieceLight.Default)
+  local newObject = table.merge(UnitPieceLight.Default, Options)
   setmetatable(newObject,UnitPieceLight)  -- make handle lookup
   newObject:CreateParticle()
   return newObject

@@ -297,38 +297,8 @@ local definitions = {
 
 }
 
-function tableMerge(t1, t2)
-    for k,v in pairs(t2) do
-        if type(v) == "table" then
-            if type(t1[k] or false) == "table" then
-                tableMerge(t1[k] or {}, t2[k] or {})
-            else
-                t1[k] = v
-            end
-        else
-            t1[k] = v
-        end
-    end
-    return t1
-end
-
-function deepcopy(orig)
-    local orig_type = type(orig)
-    local copy
-    if orig_type == 'table' then
-        copy = {}
-        for orig_key, orig_value in next, orig, nil do
-            copy[deepcopy(orig_key)] = deepcopy(orig_value)
-        end
-        setmetatable(copy, deepcopy(getmetatable(orig)))
-    else -- number, string, boolean, etc
-        copy = orig
-    end
-    return copy
-end
-
 local size = 0.48
-definitions["barrelshot-tiny"] = deepcopy(definitions["barrelshot-medium"])
+definitions["barrelshot-tiny"] = table.copy(definitions["barrelshot-medium"])
 definitions["barrelshot-tiny"].fire.properties.length							= definitions["barrelshot-tiny"].fire.properties.length * size
 definitions["barrelshot-tiny"].fire.properties.size								= definitions["barrelshot-tiny"].fire.properties.size * size
 definitions["barrelshot-tiny"].fire.properties.ttl								= 4.7
@@ -344,7 +314,7 @@ definitions["barrelshot-tiny"].smoke = nil
 --definitions["barrelshot-tiny"].clouddust = nil
 
 local size = 0.88
-definitions["barrelshot-small"] = deepcopy(definitions["barrelshot-medium"])
+definitions["barrelshot-small"] = table.copy(definitions["barrelshot-medium"])
 definitions["barrelshot-small"].fire.properties.length							= definitions["barrelshot-small"].fire.properties.length * size
 definitions["barrelshot-small"].fire.properties.size							= definitions["barrelshot-small"].fire.properties.size * size
 definitions["barrelshot-small"].fire.properties.ttl								= 7.5
@@ -371,7 +341,7 @@ definitions["barrelshot-small"].smoke.properties.particlespeedspread		    = defi
 --definitions["barrelshot-small"].clouddust.properties.particlelifespread	= definitions["barrelshot-small"].clouddust.properties.particlelifespread * size
 
 local size = 1.8
-definitions["barrelshot-large"] = deepcopy(definitions["barrelshot-medium"])
+definitions["barrelshot-large"] = table.copy(definitions["barrelshot-medium"])
 definitions["barrelshot-large"].fire.properties.length 									= definitions["barrelshot-large"].fire.properties.length * size
 definitions["barrelshot-large"].fire.properties.size										= definitions["barrelshot-large"].fire.properties.size * size
 definitions["barrelshot-large"].fire.properties.sizegrowth              = definitions["barrelshot-large"].fire.properties.sizegrowth * 1.5
@@ -399,7 +369,7 @@ definitions["barrelshot-large"].smoke.properties.particlespeedspread		= definiti
 --definitions["barrelshot-large"].clouddust.properties.particlelifespread	= definitions["barrelshot-small"].clouddust.properties.particlelifespread * size
 
 local size = 3.1
-definitions["barrelshot-huge"] = deepcopy(definitions["barrelshot-medium"])
+definitions["barrelshot-huge"] = table.copy(definitions["barrelshot-medium"])
 definitions["barrelshot-huge"].fire.properties.length 									= definitions["barrelshot-huge"].fire.properties.length * size * 2.2
 definitions["barrelshot-huge"].fire.properties.size										  = definitions["barrelshot-huge"].fire.properties.size * size * 1.6
 definitions["barrelshot-huge"].fire.properties.sizegrowth								= definitions["barrelshot-huge"].fire.properties.sizegrowth * 1.8
@@ -459,35 +429,35 @@ definitions["barrelshot-huge"].flash = {
 	},
 }
 
-definitions["barrelshot-tiny-aa"] = deepcopy(definitions["barrelshot-tiny"])
+definitions["barrelshot-tiny-aa"] = table.copy(definitions["barrelshot-tiny"])
 definitions["barrelshot-tiny-aa"].fire.properties.colormap  = [[1 0.26 0.78 0.013   0.6 0.29 0.47 0.01   0.4 0.22 0.33 0.006   0 0 0 0.01]]
 definitions["barrelshot-tiny-aa"].fire2.properties.colormap = [[1 0.26 0.78 0.013   0.6 0.29 0.47 0.01   0.4 0.22 0.33 0.006   0 0 0 0.01]]
 --definitions["barrelshot-tiny-aa"].fireglow.properties.colormap = [[0.122 0.066 0.09 0.04   0 0 0 0.01]]
 --definitions["barrelshot-tiny-aa"].smoke.properties.colormap  = [[0.95 0.17 0.69 0.95    0.35 0.13 0.20 0.65   0.15 0.12 0.14 0.60    0.12 0.12 0.12 0.25   0 0 0 0.01]]
 --definitions["barrelshot-tiny-aa"].smoke2.properties.colormap = [[0.95 0.17 0.69 0.95    0.35 0.13 0.20 0.65   0.15 0.12 0.14 0.60    0.12 0.12 0.12 0.25   0 0 0 0.01]]
 
-definitions["barrelshot-small-aa"] = deepcopy(definitions["barrelshot-small"])
+definitions["barrelshot-small-aa"] = table.copy(definitions["barrelshot-small"])
 definitions["barrelshot-small-aa"].fire.properties.colormap  = [[1 0.26 0.78 0.013   0.6 0.29 0.47 0.01   0.4 0.22 0.33 0.006   0 0 0 0.01]]
 definitions["barrelshot-small-aa"].fire2.properties.colormap = [[1 0.26 0.78 0.013   0.6 0.29 0.47 0.01   0.4 0.22 0.33 0.006   0 0 0 0.01]]
 --definitions["barrelshot-small-aa"].fireglow.properties.colormap = [[0.122 0.066 0.09 0.04   0 0 0 0.01]]
 definitions["barrelshot-small-aa"].smoke.properties.colormap  = [[0.95 0.17 0.69 0.95    0.35 0.13 0.20 0.65   0.15 0.12 0.14 0.60    0.12 0.12 0.12 0.25   0 0 0 0.01]]
 definitions["barrelshot-small-aa"].smoke2.properties.colormap = [[0.95 0.17 0.69 0.95    0.35 0.13 0.20 0.65   0.15 0.12 0.14 0.60    0.12 0.12 0.12 0.25   0 0 0 0.01]]
 
-definitions["barrelshot-medium-aa"] = deepcopy(definitions["barrelshot-medium"])
+definitions["barrelshot-medium-aa"] = table.copy(definitions["barrelshot-medium"])
 definitions["barrelshot-medium-aa"].fire.properties.colormap  = [[1 0.26 0.78 0.013   0.6 0.29 0.47 0.01   0.4 0.22 0.33 0.006   0 0 0 0.01]]
 definitions["barrelshot-medium-aa"].fire2.properties.colormap = [[1 0.26 0.78 0.013   0.6 0.29 0.47 0.01   0.4 0.22 0.33 0.006   0 0 0 0.01]]
 --definitions["barrelshot-medium-aa"].fireglow.properties.colormap = [[0.122 0.066 0.09 0.04   0 0 0 0.01]]
 definitions["barrelshot-medium-aa"].smoke.properties.colormap  = [[0.95 0.17 0.69 0.95    0.35 0.13 0.20 0.65   0.15 0.12 0.14 0.60    0.12 0.12 0.12 0.25   0 0 0 0.01]]
 definitions["barrelshot-medium-aa"].smoke2.properties.colormap = [[0.95 0.17 0.69 0.95    0.35 0.13 0.20 0.65   0.15 0.12 0.14 0.60    0.12 0.12 0.12 0.25   0 0 0 0.01]]
 
-definitions["barrelshot-large-aa"] = deepcopy(definitions["barrelshot-large"])
+definitions["barrelshot-large-aa"] = table.copy(definitions["barrelshot-large"])
 definitions["barrelshot-large-aa"].fire.properties.colormap  = [[1 0.26 0.78 0.013   0.6 0.29 0.47 0.01   0.4 0.22 0.33 0.006   0 0 0 0.01]]
 definitions["barrelshot-large-aa"].fire2.properties.colormap = [[1 0.26 0.78 0.013   0.6 0.29 0.47 0.01   0.4 0.22 0.33 0.006   0 0 0 0.01]]
 --definitions["barrelshot-large-aa"].fireglow.properties.colormap = [[0.122 0.066 0.09 0.04   0 0 0 0.01]]
 definitions["barrelshot-large-aa"].smoke.properties.colormap  = [[0.95 0.17 0.69 0.95    0.35 0.13 0.20 0.65   0.15 0.12 0.14 0.60    0.12 0.12 0.12 0.25   0 0 0 0.01]]
 definitions["barrelshot-large-aa"].smoke2.properties.colormap = [[0.95 0.17 0.69 0.95    0.35 0.13 0.20 0.65   0.15 0.12 0.14 0.60    0.12 0.12 0.12 0.25   0 0 0 0.01]]
 
-definitions["barrelshot-huge-aa"] = deepcopy(definitions["barrelshot-huge"])
+definitions["barrelshot-huge-aa"] = table.copy(definitions["barrelshot-huge"])
 definitions["barrelshot-huge-aa"].fire.properties.colormap  = [[1 0.6 0.85 0.013   0.6 0.2 0.5 0.01   0.4 0.06 0.033 0.006   0 0 0 0.01]]
 definitions["barrelshot-huge-aa"].fire2.properties.colormap = [[1 0.6 0.85 0.013   0.6 0.2 0.5 0.01   0.4 0.06 0.033 0.006   0 0 0 0.01]]
 --definitions["barrelshot-huge-aa"].fireglow.properties.colormap = [[0.122 0.066 0.09 0.04   0 0 0 0.01]]
@@ -495,7 +465,7 @@ definitions["barrelshot-huge-aa"].smoke.properties.colormap  = [[0.95 0.17 0.69 
 definitions["barrelshot-huge-aa"].smoke2.properties.colormap = [[0.95 0.17 0.69 0.95    0.35 0.13 0.20 0.65   0.15 0.12 0.14 0.60    0.12 0.12 0.12 0.25   0 0 0 0.01]]
 
 local size = 1.3
-definitions["barrelshot-sniper"] = deepcopy(definitions["barrelshot-large"])
+definitions["barrelshot-sniper"] = table.copy(definitions["barrelshot-large"])
 definitions["barrelshot-sniper"].fire.properties.length                                  = definitions["barrelshot-sniper"].fire.properties.length * size * 1.3
 definitions["barrelshot-sniper"].fire.properties.size                                    = definitions["barrelshot-sniper"].fire.properties.size * size * 0.8
 definitions["barrelshot-sniper"].fire2.properties.length                                 = definitions["barrelshot-sniper"].fire.properties.length * size * 1.3
@@ -603,7 +573,7 @@ definitions["barrelshot-lightning"] = {
 -- add purple scavenger variants
 local scavengerDefs = {}
 for k,v in pairs(definitions) do
-    scavengerDefs[k..'-purple'] = deepcopy(definitions[k])
+    scavengerDefs[k..'-purple'] = table.copy(definitions[k])
 end
 
 local purpleEffects = {
@@ -643,6 +613,6 @@ for defName, def in pairs(scavengerDefs) do
     end
 end
 
-definitions = tableMerge(definitions, scavengerDefs)
+table.mergeInPlace(definitions, scavengerDefs)
 
 return definitions

@@ -216,28 +216,12 @@ local function addChat(gameFrame, lineType, name, text, isLive)
 	end
 end
 
-local function deepcopy(orig)
-	local orig_type = type(orig)
-	local copy
-	if orig_type == 'table' then
-		copy = {}
-		for orig_key, orig_value in next, orig, nil do
-			copy[deepcopy(orig_key)] = deepcopy(orig_value)
-		end
-		setmetatable(copy, deepcopy(getmetatable(orig)))
-	else
-		-- number, string, boolean, etc
-		copy = orig
-	end
-	return copy
-end
-
 function widget:Initialize()
 	widget:ViewResize()
 	Spring.SendCommands("console 0")
 
 	if WG.ignoredPlayers then
-		ignoredPlayers = deepcopy(WG.ignoredPlayers)
+		ignoredPlayers = table.copy(WG.ignoredPlayers)
 	end
 
 	WG['chat'] = {}
@@ -315,7 +299,7 @@ function widget:Update(dt)
 					detectedChanges = true
 				end
 			end
-			ignoredPlayers = deepcopy(WG.ignoredPlayers)
+			ignoredPlayers = table.copy(WG.ignoredPlayers)
 		end
 
 		if detectedChanges then
