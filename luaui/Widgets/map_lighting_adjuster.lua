@@ -9,11 +9,12 @@ local mapSunLighting = {
 		modelShadowDensity = 0.33,
 	},
 	['tabula-v4'] = {
-		groundDiffuseColor = { 0.9, 0.51, 0.38 },
-		unitAmbientColor = {0.8, 0.72, 0.64},
-		unitDiffuseColor = {0.93, 0.78, 0.5},
-		unitSpecularColor = {0.8, 0.6, 0.5},
-		modelShadowDensity = 0.65,
+		groundDiffuseColor = { 0.9, 0.51, 0.39 },
+		unitAmbientColor = {0.68, 0.55, 0.55},
+		unitDiffuseColor = {0.77, 0.55, 0.5},
+		unitSpecularColor = {0.75, 0.6, 0.5},
+		modelShadowDensity = 0.6,
+		groundShadowDensity = 0.8,
 	},
 	['tumult'] = {
 		groundDiffuseColor = { 0.77, 0.6, 0.44 },
@@ -21,6 +22,10 @@ local mapSunLighting = {
 	['valles_marineris_v2'] = {
 		groundAmbientColor = { 0.4, 0.55, 0.55 },
 		groundDiffuseColor = { 0.92, 0.58, 0.45 },
+		unitAmbientColor = {0.66, 0.5, 0.43},
+		unitDiffuseColor = {1.1, 0.82, 0.7},
+		modelShadowDensity = 0.9,
+		groundShadowDensity = 0.9,
 	},
 	['titan v3.1'] = {
 		groundAmbientColor = { 0.52, 0.48, 0.48 },
@@ -73,10 +78,15 @@ local mapSunLighting = {
 		modelShadowDensity = 0.45,
 		groundShadowDensity = 0.8,
 	},
+	['mescaline_v2'] = {
+		modelShadowDensity = 0.88,
+		groundShadowDensity = 0.88,
+	},
 }
 
 local mapSun = {
 	['eye of horus v13'] = {0.23, 0.62, 0.6},
+	['tabula-v4'] = {0.45, 0.65, 0.25},
 	['titan v3.1'] = { 0.6, 0.82, -0.33 },
 	['tempest'] = { -0.35, 0.83, 0.47 },
 	['tempest dry'] = { -0.35, 0.83, 0.47 },
