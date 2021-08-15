@@ -2116,7 +2116,7 @@ function init()
 	presetNames = { texts.option.preset_lowest, texts.option.preset_low, texts.option.preset_medium, texts.option.preset_high, texts.option.preset_ultra }
 	presets = {
 		[presetNames[1]] = {
-			bloom = false,
+			--bloom = false,
 			bloomdeferred = false,
 			ssao = 1,
 			mapedgeextension = false,
@@ -2136,7 +2136,7 @@ function init()
 			darkenmap_darkenfeatures = false,
 		},
 		[presetNames[2]] = {
-			bloom = false,
+			--bloom = false,
 			bloomdeferred = true,
 			ssao = 1,
 			mapedgeextension = false,
@@ -2156,7 +2156,7 @@ function init()
 			darkenmap_darkenfeatures = false,
 		},
 		[presetNames[3]] = {
-			bloom = true,
+			--bloom = true,
 			bloomdeferred = true,
 			ssao = 1,
 			mapedgeextension = true,
@@ -2176,7 +2176,7 @@ function init()
 			darkenmap_darkenfeatures = false,
 		},
 		[presetNames[4]] = {
-			bloom = true,
+			--bloom = true,
 			bloomdeferred = true,
 			ssao = 2,
 			mapedgeextension = true,
@@ -2196,7 +2196,7 @@ function init()
 			darkenmap_darkenfeatures = false,
 		},
 		[presetNames[5]] = {
-			bloom = true,
+			--bloom = true,
 			bloomdeferred = true,
 			ssao = 3,
 			mapedgeextension = true,
