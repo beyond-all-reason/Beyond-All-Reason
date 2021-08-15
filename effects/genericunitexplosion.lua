@@ -548,7 +548,6 @@ local definitions = {
       class              = [[CSimpleParticleSystem]],
       count              = 1,
       ground             = true,
-      underwater         = true,
       water              = true,
       underwater         = true,
       properties = {
@@ -2762,22 +2761,6 @@ local definitions = {
   },
 }
 
-
-function tableMerge(t1, t2)
-    for k,v in pairs(t2) do
-    	if type(v) == "table" then
-    		if type(t1[k] or false) == "table" then
-    			tableMerge(t1[k] or {}, t2[k] or {})
-    		else
-    			t1[k] = v
-    		end
-    	else
-    		t1[k] = v
-    	end
-    end
-    return t1
-end
-
 -- add different sizes
 definitions[root] = definitions[root.."-small"]
 local sizes = {
@@ -2805,10 +2788,6 @@ local sizes = {
 
     },
 }
---for size, effects in pairs(sizes) do
---	definitions[root.."-"..size] = tableMerge(table.copy(definitions[root.."-small"]), table.copy(effects))
---end
-
 
 local types = {
   white = {
@@ -2875,7 +2854,7 @@ local types = {
 }
 for t, effects in pairs(types) do
   for size, e in pairs(sizes) do
-    definitions[root.."-"..size.."-"..t] = tableMerge(table.copy(definitions[root.."-"..size]), table.copy(effects))
+    definitions[root.."-"..size.."-"..t] = table.merge(definitions[root.."-"..size], effects)
     if t == 'phib' then
       definitions[root.."-"..size.."-"..t].explosion_uw = table.copy(definitions[root.."-"..size].explosion)
       definitions[root.."-"..size.."-"..t].explosion_uw.water = false
@@ -3190,6 +3169,6 @@ for defName, def in pairs(scavengerDefs) do
   end
 end
 
-definitions = tableMerge(definitions, scavengerDefs)
+table.mergeInPlace(definitions, scavengerDefs)
 
 return definitions

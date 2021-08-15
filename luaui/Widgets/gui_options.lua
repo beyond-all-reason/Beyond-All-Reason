@@ -783,21 +783,6 @@ function lines(str)
 	return t
 end
 
-function tableMerge(t1, t2)
-	for k, v in pairs(t2) do
-		if type(v) == "table" then
-			if type(t1[k] or false) == "table" then
-				tableMerge(t1[k] or {}, t2[k] or {})
-			else
-				t1[k] = v
-			end
-		else
-			t1[k] = v
-		end
-	end
-	return t1
-end
-
 local function detectWater()
 	local _,_,mapMinHeight, mapMaxHeight = Spring.GetGroundExtremes()
 	if select(3, Spring.GetGroundExtremes()) <= -2 then
@@ -5810,7 +5795,7 @@ function widget:Initialize()
 		end
 	end
 
-	presets = tableMerge(presets, customPresets)
+	table.mergeInPlace(presets, customPresets)
 	for preset, _ in pairs(customPresets) do
 		table.insert(presetNames, preset)
 	end

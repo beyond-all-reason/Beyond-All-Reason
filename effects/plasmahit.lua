@@ -109,7 +109,6 @@ local definitions = {
       class              = [[heatcloud]],
       count              = 1,
       ground             = true,
-      underwater         = 1,
       water              = false,
       underwater         = true,
       properties = {
@@ -258,7 +257,6 @@ local definitions = {
       class              = [[heatcloud]],
       count              = 1,
       ground             = true,
-      underwater         = 1,
       water              = false,
       underwater         = true,
       properties = {
@@ -557,7 +555,6 @@ local definitions = {
       class              = [[heatcloud]],
       count              = 1,
       ground             = true,
-      underwater         = 1,
       water              = false,
       underwater         = true,
       properties = {
@@ -602,24 +599,6 @@ local definitions = {
 
 }
 
-
-
---function tableMerge(t1, t2)
---  for k,v in pairs(t2) do
---    if type(v) == "table" then
---      if type(t1[k] or false) == "table" then
---        tableMerge(t1[k] or {}, t2[k] or {})
---      else
---        t1[k] = v
---      end
---    else
---      t1[k] = v
---    end
---  end
---  return t1
---end
---
-
 -- add coloring
 --local colors = {
 --  red = {
@@ -650,7 +629,7 @@ local definitions = {
 --}
 --for color, effects in pairs(colors) do
 --  for k, size in pairs(sizes) do
---    definitions[size.."-"..color] = tableMerge(table.copy(definitions[size]), table.copy(effects))
+--    definitions[size.."-"..color] = table.merge(definitions[size], effects)
 --  end
 --end
 

@@ -2920,24 +2920,6 @@ local definitions = {
     },
 }
 
-
-
-
-function tableMerge(t1, t2)
-    for k,v in pairs(t2) do
-        if type(v) == "table" then
-            if type(t1[k] or false) == "table" then
-                tableMerge(t1[k] or {}, t2[k] or {})
-            else
-                t1[k] = v
-            end
-        else
-            t1[k] = v
-        end
-    end
-    return t1
-end
-
 definitions["antimissiletrail"] = table.copy(definitions["cruisemissiletrail"])
 definitions["antimissiletrail"].smokeandfire.properties.colormap  = [[0.7 0.45 0.45 0.2   0.44 0.25 0.25 0.2    0.34 0.12 0.12 0.15    0.09 0.023 0.023 0.11     0.05 0.008 0.008 0.09   0.02 0.006 0.01 0.06   0 0 0 0.01]]
 definitions["antimissiletrail"].sparks.properties.colormap = [[0.9 0.4 0.4 0.01   0.9 0.3 0.3 0.007  0.5 0.07 0.07 0]]
@@ -3095,6 +3077,6 @@ for defName, def in pairs(scavengerDefs) do
     end
 end
 
-definitions = tableMerge(definitions, scavengerDefs)
+table.mergeInPlace(definitions, scavengerDefs)
 
 return definitions

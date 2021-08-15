@@ -81,22 +81,6 @@ local definitions = {
   },
 }
 
-
-function tableMerge(t1, t2)
-  for k,v in pairs(t2) do
-    if type(v) == "table" then
-      if type(t1[k] or false) == "table" then
-        tableMerge(t1[k] or {}, t2[k] or {})
-      else
-        t1[k] = v
-      end
-    else
-      t1[k] = v
-    end
-  end
-  return t1
-end
-
 -- add different sizes
 local root = 'treeburn'
 definitions[root..'-medium'] = definitions[root]
@@ -145,7 +129,7 @@ local sizes = {
   },
 }
 for size, effects in pairs(sizes) do
-  definitions[root..'-'..size] = tableMerge(table.copy(definitions[root]), table.copy(effects))
+  definitions[root..'-'..size] = table.merge(definitions[root], effects)
 end
 
 
@@ -192,7 +176,7 @@ local sizes = {
   },
 }
 for size, effects in pairs(sizes) do
-  definitions[root..'-'..size] = tableMerge(table.copy(definitions[root]), table.copy(effects))
+  definitions[root..'-'..size] = table.merge(definitions[root], effects)
 end
 
 

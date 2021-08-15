@@ -2899,22 +2899,6 @@ local definitions = {
 
 }
 
-
-function tableMerge(t1, t2)
-    for k,v in pairs(t2) do
-    	if type(v) == "table" then
-    		if type(t1[k] or false) == "table" then
-    			tableMerge(t1[k] or {}, t2[k] or {})
-    		else
-    			t1[k] = v
-    		end
-    	else
-    		t1[k] = v
-    	end
-    end
-    return t1
-end
-
 -- add different sizes
 definitions[root] = definitions[root.."-small"]
 local sizes = {
@@ -2939,7 +2923,6 @@ local sizes = {
 	},
 }
 for size, effects in pairs(sizes) do
-  --definitions[root.."-"..size] = tableMerge(table.copy(definitions[root.."-small"]), table.copy(effects))
   definitions[root.."-"..size].explosion.properties.numparticles = math.ceil(definitions[root.."-"..size].explosion.properties.numparticles/1.7)
   definitions[root.."-"..size].explosion2 = table.copy(definitions[root.."-"..size].explosion)
   definitions[root.."-"..size].explosion2.properties.colormap = [[1 0.33 0 0.1   0.5 0.15 0 0.05   0.07 0.03 0 0.02   0 0 0 0]]
@@ -3006,7 +2989,7 @@ local colors = {
 }
 for color, effects in pairs(colors) do
   for size, e in pairs(sizes) do
-  	definitions[root.."-"..size.."-"..color] = tableMerge(table.copy(definitions[root.."-"..size]), table.copy(effects))
+  	definitions[root.."-"..size.."-"..color] = table.merge(definitions[root.."-"..size], effects)
     for pname, defs in pairs(effects) do
       if defs == false then
         definitions[root.."-"..size.."-"..color][pname] = nil
@@ -3280,6 +3263,6 @@ for defName, def in pairs(scavengerDefs) do
   end
 end
 
-definitions = tableMerge(definitions, scavengerDefs)
+table.mergeInPlace(definitions, scavengerDefs)
 
 return definitions
