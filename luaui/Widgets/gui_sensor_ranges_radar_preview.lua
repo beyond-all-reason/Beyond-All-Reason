@@ -106,7 +106,7 @@ out DataVS {
 
 //__ENGINEUNIFORMBUFFERDEFS__
 
-#line 11000
+#line 11009
 
 float heightAtWorldPos(vec2 w){
 	vec2 uvhm =   vec2(clamp(w.x,8.0,mapSize.x-8.0),clamp(w.y,8.0, mapSize.y-8.0))/ mapSize.xy;
@@ -118,6 +118,7 @@ void main() {
 
 	vec4 pointWorldPos = vec4(0.0);
 
+	vec3 radarMidPos = radarcenter_range.xyz + vec3(16.0, 0.0, 16.0);
 	pointWorldPos.xz = (radarcenter_range.xz +  (xyworld_xyfract.xy * radarcenter_range.w)); // transform it out in XZ
 	pointWorldPos.y = heightAtWorldPos(pointWorldPos.xz); // get the world height at that point
 
@@ -127,14 +128,14 @@ void main() {
 	// get closer to the center in N mip steps, and if that point is obscured at any time, remove it
 
 	vec3 smallstep =  toradarcenter / resolution;
-	float obscured = -100.0;
-	float maxtracedheight = -10000.0;
+	float obscured = 0.0;
+
 	//for (float i = 0.0; i < mod(timeInfo.x/3,resolution); i += 1.0 ) {
 	for (float i = 0.0; i < resolution; i += 1.0 ) {
 		vec3 raypos = pointWorldPos.xyz + (smallstep) * i;
 		float heightatsample = heightAtWorldPos(raypos.xz);
 		obscured = max(obscured, heightatsample - raypos.y);
-		maxtracedheight = max(maxtracedheight, heightatsample);
+		if (obscured >= 2.0)	break;
 	}
 
 	worldscale_circumference = 1.0; //startposrad.w * circlepointposition.z * 5.2345;
@@ -148,18 +149,15 @@ void main() {
 	blendedcolor.a = min(blendedcolor.g,blendedcolor.a);
 	blendedcolor.g = 1.0;
 
-	pointWorldPos.y += 32.0;
+	pointWorldPos.y += 0.1;
 	worldPos = pointWorldPos;
 	gl_Position = cameraViewProj * vec4(pointWorldPos.xyz, 1.0);
-	centerposrange = radarcenter_range;
+	centerposrange = vec4(radarMidPos, radarcenter_range.w);
 }
 ]]
 
 local fsSrc = [[
-#version 330
-
-#extension GL_ARB_uniform_buffer_object : require
-#extension GL_ARB_shading_language_420pack: require
+#version 420
 
 #line 20000
 
@@ -204,8 +202,11 @@ void main() {
 
 	fragColor.a = fragColor.a * angle * 0.85;
 	//#if USE_STIPPLE > 0
-	//	fragColor.a *= 2.0 * sin(worldscale_circumference + timeInfo.x*0.2) ; // PERFECT STIPPLING!
+		//fragColor.a *= 2.0 * sin(worldscale_circumference + timeInfo.x*0.2) ; // PERFECT STIPPLING!
 	//#endif
+	float pulse = sin(-2.5 * sqrt(length(toedge)) + 0.05 * timeInfo.x);
+	pulse *= pulse;
+	fragColor.a = mix(fragColor.a, fragColor.a * pulse, 0.333);
 }
 ]]
 
