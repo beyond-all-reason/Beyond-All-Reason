@@ -1,5 +1,9 @@
 MexUpBST = class(Behaviour)
 
+function MexUpBST:Name()
+	return "MexUpBST"
+end
+
 MexUpBST.DebugEnabled = false
 
 function MexUpBST:Init()
@@ -18,10 +22,6 @@ function MexUpBST:OwnerIdle()
 		local builder = self.unit:Internal()
 		self:EchoDebug("MexUpBST: unit ".. self.name .." is idle")
 		-- release assistants
-		if not self.released then
-			self.ai.assisthst:Release(builder)
-			self.released = true
-		end
 		-- maybe we've just finished a moho?
 		if self.mohoStarted then
 			self.mohoStarted = false
@@ -31,20 +31,20 @@ function MexUpBST:OwnerIdle()
 		if self.mexPos ~= nil and not self.mohoStarted then
 			-- maybe we're ARM and not CORE?
 			local mohoName = "cormoho"
-			tmpType = game:GetTypeByName("armmoho")
+			local tmpType = self.game:GetTypeByName("armmoho")
 			if builder:CanBuild(tmpType) then
 				mohoName = "armmoho"
 			end
 			-- maybe we're underwater?
-			tmpType = game:GetTypeByName("coruwmme")
+			tmpType = self.game:GetTypeByName("coruwmme")
 			if builder:CanBuild(tmpType) then
 				mohoName = "coruwmme"
 			end
-			tmpType = game:GetTypeByName("armuwmme")
+			tmpType = self.game:GetTypeByName("armuwmme")
 			if builder:CanBuild(tmpType) then
 				mohoName = "armuwmme"
 			end
-			tmpType = game:GetTypeByName(mohoName)
+			tmpType = self.game:GetTypeByName(mohoName)
 			-- check if the moho can be built there at all
 			local s = map:CanBuildHere(tmpType, self.mexPos)
 			if s then
@@ -94,7 +94,7 @@ function MexUpBST:Priority()
 	if self.ai.lvl1Mexes > 0  and self.ai.tool:listHasValue(self.ai.armyhst.buildersRole.expand[self.name]  , self.id) then
 		return 99
 	elseif
-	self.ai.lvl1Mexes > 0  and self.ai.tool:listHasValue(self.ai.armyhst.buildersRole.eco[self.name]  , self.id) and self.ai.tool:countMyUnit(self.ai.armyhst._mex_) < 3 and self.ai.Metal.full < 0.3 then
+	self.ai.lvl1Mexes > 0  and self.ai.tool:listHasValue(self.ai.armyhst.buildersRole.eco[self.name]  , self.id) and self.ai.tool:countMyUnit({self.ai.armyhst._mex_}) < 3 and self.ai.Metal.full < 0.3 then
 		return 150
 	else
 		return 0
@@ -103,7 +103,7 @@ end
 
 function MexUpBST:StartUpgradeProcess()
 	-- try to find nearest mex
-	local ownUnits = game:GetFriendlies()
+	local ownUnits = self.game:GetFriendlies()
 	local selfUnit = self.unit:Internal()
 	local selfPos = selfUnit:GetPosition()
 	local mexUnit = nil
@@ -115,7 +115,7 @@ function MexUpBST:StartUpgradeProcess()
 		if self.ai.armyhst.mexUpgrade[un] then
 			self:EchoDebug(un .. " " .. self.ai.armyhst.mexUpgrade[un])
 			-- make sure you can build the upgrade
-			local upgradetype = game:GetTypeByName(self.ai.armyhst.mexUpgrade[un])
+			local upgradetype = self.game:GetTypeByName(self.ai.armyhst.mexUpgrade[un])
 			if selfUnit:CanBuild(upgradetype) then
 				-- make sure you can reach it
 				if self.ai.maphst:UnitCanGetToUnit(selfUnit, unit) then

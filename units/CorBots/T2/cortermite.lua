@@ -150,6 +150,7 @@ return {
 				weapontype = "BeamLaser",
 				weaponvelocity = 700,
 				customparams = {
+					expl_light_mult = "0.85",
 					light_mult = "0.55",
 				},
 				damage = {

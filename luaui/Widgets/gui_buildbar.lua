@@ -90,11 +90,8 @@ local GetUnitIsBuilding = Spring.GetUnitIsBuilding
 local glColor = gl.Color
 local glTexture = gl.Texture
 local glTexRect = gl.TexRect
-local RectRound = Spring.FlowUI.Draw.RectRound
-local RectRoundProgress = Spring.FlowUI.Draw.RectRoundProgress
-local UiElement = Spring.FlowUI.Draw.Element
-local UiUnit = Spring.FlowUI.Draw.Unit
-local elementCorner = Spring.FlowUI.elementCorner
+
+local RectRound, RectRoundProgress, UiElement, UiUnit, elementCorner
 
 -------------------------------------------------------------------------------
 -- SOUNDS
@@ -146,8 +143,13 @@ end
 function widget:ViewResize()
 	vsx, vsy = Spring.GetViewGeometry()
 
-	bgpadding = Spring.FlowUI.elementPadding
-	elementCorner = Spring.FlowUI.elementCorner
+	bgpadding = WG.FlowUI.elementPadding
+	elementCorner = WG.FlowUI.elementCorner
+
+	RectRound = WG.FlowUI.Draw.RectRound
+	RectRoundProgress = WG.FlowUI.Draw.RectRoundProgress
+	UiElement = WG.FlowUI.Draw.Element
+	UiUnit = WG.FlowUI.Draw.Unit
 
 	font = WG['fonts'].getFont(fontFile, 1, 0.2, 1.3)
 

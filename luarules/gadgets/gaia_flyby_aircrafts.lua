@@ -1,19 +1,7 @@
-return
-
-local scavengersAIEnabled = false
-local scavengerAllyTeamID
-local teams = Spring.GetTeamList()
-for i = 1,#teams do
-	local luaAI = Spring.GetTeamLuaAI(teams[i])
-	if luaAI and luaAI ~= "" and string.sub(luaAI, 1, 12) == 'ScavengersAI' then
-		scavengersAIEnabled = true
-		scavengerAllyTeamID = select(6, Spring.GetTeamInfo(i - 1))
-		break
-	end
-end
+local scavengersAIEnabled = Spring.Utilities.Gametype.IsScavengers()
 
 local ruinSpawnEnabled = false
-if (Spring.GetModOptions and (Spring.GetModOptions().ruins or "disabled") == "enabled") or (Spring.GetModOptions and (Spring.GetModOptions().scavonlyruins or "enabled") == "enabled" and scavengersAIEnabled == true) then
+if (Spring.GetModOptions and (Spring.GetModOptions().ruins or "disabled") == "enabled") or (Spring.GetModOptions and (Spring.GetModOptions().scavonlyruins or "enabled") == "enabled" and scavengersAIEnabled) then
 	ruinSpawnEnabled = true
 end
 
@@ -24,8 +12,7 @@ function gadget:GetInfo()
       author    = "Damgam",
       date      = "2021",
       layer     = -100,
-      enabled   = ruinSpawnEnabled,
-      -- enabled = true,
+      enabled   = false --ruinSpawnEnabled,
     }
 end
 

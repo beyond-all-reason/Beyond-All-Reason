@@ -78,7 +78,7 @@ customDefs.corcom = {
 	autoheal = 15,
 	--blocking = false,
 	buildoptions = scavUnit,
-	builddistance = 175,
+	builddistance = 250,
 	cloakcost = 50,
 	cloakcostmoving = 100,
 	description = Spring.I18N('units.descriptions.corcom_scav'),
@@ -87,7 +87,7 @@ customDefs.corcom = {
 	footprintz = 0,
 	hidedamage = true,
 	idleautoheal = 20,
-	maxdamage = 9000*ScavDifficultyMultiplier,
+	maxdamage = 5000,
 	--maxvelocity = 0.55,
 	turnrate = 50000,
 	mincloakdistance = 20,
@@ -95,7 +95,7 @@ customDefs.corcom = {
 	selfdestructas = "scavcomexplosion",
 	showplayername = false,
 	stealth = false,
-	workertime = 800*ScavDifficultyMultiplier,				-- can get multiplied in unitdef_post
+	workertime = 200,				-- can get multiplied in unitdef_post
 	customparams = {
 		iscommander = 'nil',		-- since you cant actually remove parameters normally, it will do it when you set string: 'nil' as value
 	},
@@ -129,7 +129,7 @@ customDefs.corcom = {
 				default = 2250,
 				fighters = 9000,
 				vtol = 9000,
-				commanders = 225,
+				commanders = 100,
 			},
 		},
 	},
@@ -154,7 +154,7 @@ customDefs.corcomcon = {
 	footprintz = 0,
 	hidedamage = true,
 	idleautoheal = 20,
-	maxdamage = 9000*ScavDifficultyMultiplier,
+	maxdamage = 5000,
 	--maxvelocity = 0.55,
 	--turnrate = 50000,
 	mincloakdistance = 20,
@@ -162,7 +162,7 @@ customDefs.corcomcon = {
 	selfdestructas = "scavcomexplosion",
 	showplayername = false,
 	stealth = false,
-	workertime = 800*ScavDifficultyMultiplier,				-- can get multiplied in unitdef_post
+	workertime = 200,				-- can get multiplied in unitdef_post
 	customparams = {
 		iscommander = 'nil',		-- since you cant actually remove parameters normally, it will do it when you set string: 'nil' as value
 	},
@@ -196,7 +196,7 @@ customDefs.corcomcon = {
 				default = 2250,
 				fighters = 9000,
 				vtol = 9000,
-				commanders = 225,
+				commanders = 100,
 			},
 		},
 	},
@@ -211,7 +211,7 @@ customDefs.corcomcon = {
 customDefs.armcom = {
 	autoheal = 15,
 	buildoptions = scavUnit,
-	builddistance = 175,
+	builddistance = 250,
 	cloakcost = 50,
 	cloakcostmoving = 100,
 	description = Spring.I18N('units.descriptions.armcom_scav'),
@@ -220,7 +220,7 @@ customDefs.armcom = {
 	footprintz = 0,
 	hidedamage = true,
 	idleautoheal = 20,
-	maxdamage = 9000*ScavDifficultyMultiplier,
+	maxdamage = 5000,
 	--maxvelocity = 0.55,
 	turnrate = 50000,
 	mincloakdistance = 20,
@@ -228,7 +228,7 @@ customDefs.armcom = {
 	selfdestructas = "scavcomexplosion",
 	showplayername = false,
 	stealth = false,
-	workertime = 800*ScavDifficultyMultiplier,				-- can get multiplied in unitdef_post
+	workertime = 200,				-- can get multiplied in unitdef_post
 	customparams = {
 		iscommander = 'nil',		-- since you cant actually remove parameters normally, it will do it when you set string: 'nil' as value
 	},
@@ -262,7 +262,7 @@ customDefs.armcom = {
 				default = 2250,
 				fighters = 9000,
 				vtol = 9000,
-				commanders = 225,
+				commanders = 100,
 			},
 		},
 	},
@@ -286,7 +286,7 @@ customDefs.armcomcon = {
 	footprintz = 0,
 	hidedamage = true,
 	idleautoheal = 20,
-	maxdamage = 9000*ScavDifficultyMultiplier,
+	maxdamage = 5000,
 	--maxvelocity = 0.55,
 	--turnrate = 50000,
 	mincloakdistance = 20,
@@ -294,7 +294,7 @@ customDefs.armcomcon = {
 	selfdestructas = "scavcomexplosion",
 	showplayername = false,
 	stealth = false,
-	workertime = 800*ScavDifficultyMultiplier,				-- can get multiplied in unitdef_post
+	workertime = 200,				-- can get multiplied in unitdef_post
 	customparams = {
 		iscommander = 'nil',		-- since you cant actually remove parameters normally, it will do it when you set string: 'nil' as value
 	},
@@ -328,7 +328,7 @@ customDefs.armcomcon = {
 				default = 2250,
 				fighters = 9000,
 				vtol = 9000,
-				commanders = 225,
+				commanders = 100,
 			},
 		},
 	},
@@ -984,7 +984,7 @@ customDefs.armrectr = {
 	footprintx = 0,
 	footprintz = 0,
 	movementclass = "SCAVCOMMANDERBOT",
-	workertime = 200*ScavDifficultyMultiplier, 	-- can get multiplied in unitdef_post
+	workertime = 100*ScavDifficultyMultiplier, 	-- can get multiplied in unitdef_post
 }
 
 customDefs.cornecro = {
@@ -996,7 +996,7 @@ customDefs.cornecro = {
 	footprintx = 0,
 	footprintz = 0,
 	movementclass = "SCAVCOMMANDERBOT",
-	workertime = 200*ScavDifficultyMultiplier,		-- can get multiplied in unitdef_post
+	workertime = 100*ScavDifficultyMultiplier,		-- can get multiplied in unitdef_post
 }
 
 -- LOOTBOXES

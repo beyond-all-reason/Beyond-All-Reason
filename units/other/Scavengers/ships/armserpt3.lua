@@ -46,7 +46,7 @@ return {
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armships/t2",
-			techlevel = 2,
+			techlevel = 3,
 		},
 		featuredefs = {
 			dead = {

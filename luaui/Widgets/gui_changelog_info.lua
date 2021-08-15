@@ -70,10 +70,7 @@ local myTeamID = Spring.GetMyTeamID()
 
 local showOnceMore = false        -- used because of GUI shader delay
 
-local RectRound = Spring.FlowUI.Draw.RectRound
-local UiElement = Spring.FlowUI.Draw.Element
-local UiScroller = Spring.FlowUI.Draw.Scroller
-local elementCorner = Spring.FlowUI.elementCorner
+local RectRound, UiElement, UiScroller, elementCorner
 
 local versionOffsetX = 28
 local versionOffsetY = 14
@@ -96,8 +93,12 @@ function widget:ViewResize()
 
 	font, loadedFontSize = WG['fonts'].getFont()
 	font2 = WG['fonts'].getFont(fontfile2)
-	bgpadding = Spring.FlowUI.elementPadding
-	elementCorner = Spring.FlowUI.elementCorner
+	bgpadding = WG.FlowUI.elementPadding
+	elementCorner = WG.FlowUI.elementCorner
+
+	RectRound = WG.FlowUI.Draw.RectRound
+	UiElement = WG.FlowUI.Draw.Element
+	UiScroller = WG.FlowUI.Draw.Scroller
 
 	if changelogList then
 		gl.DeleteList(changelogList)

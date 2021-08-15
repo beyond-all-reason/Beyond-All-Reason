@@ -18,7 +18,7 @@ local fontfileOutlineSize = 10
 local fontfileOutlineStrength = 1.4
 local font = gl.LoadFont(fontfile, fontfileSize * fontfileScale, fontfileOutlineSize * fontfileScale, fontfileOutlineStrength)
 
-local uiScale = (0.8 + (vsx * vsy / 5000000))
+local uiScale = (0.75 + (vsx * vsy / 5700000))
 local myPlayerID = Spring.GetMyPlayerID()
 local _, _, mySpec, myTeamID = Spring.GetPlayerInfo(myPlayerID, false)
 local amNewbie
@@ -48,26 +48,13 @@ local buttonList, buttonHoverList
 local buttonText = ''
 local buttonDrawn = false
 
-local RectRound = Spring.FlowUI.Draw.RectRound
-local UiElement = Spring.FlowUI.Draw.Element
-local UiButton = Spring.FlowUI.Draw.Button
-local elementPadding = Spring.FlowUI.elementPadding
-local uiPadding = math.floor(elementPadding * 4.5)
+local RectRound, UiElement, UiButton, elementPadding, uiPadding
 
 local eligibleAsSub = false
 local offeredAsSub = false
 
-local numPlayers = 0
-local teams = Spring.GetTeamList()
-for i = 1, #teams do
-	local _, _, _, isAiTeam = Spring.GetTeamInfo(teams[i], false)
-	local luaAI = Spring.GetTeamLuaAI(teams[i])
-	if (not luaAI or luaAI == '') and not isAiTeam and teams[i] ~= Spring.GetGaiaTeamID() then
-		numPlayers = numPlayers + 1
-	end
-end
-teams = nil
---local isSinglePlayer = numPlayers == 1
+local numPlayers = Spring.Utilities.GetPlayerCount()
+
 if numPlayers <= 4 then
 	-- not needed to show sub button for small games where restarting one the better option
 	--return
@@ -113,10 +100,12 @@ function widget:ViewResize(viewSizeX, viewSizeY)
 		font = gl.LoadFont(fontfile, fontfileSize * fontfileScale, fontfileOutlineSize * fontfileScale, fontfileOutlineStrength)
 	end
 
-	UiElement = Spring.FlowUI.Draw.Element
-	UiButton = Spring.FlowUI.Draw.Button
-	elementPadding = Spring.FlowUI.elementPadding
+	UiElement = WG.FlowUI.Draw.Element
+	UiButton = WG.FlowUI.Draw.Button
+	elementPadding = WG.FlowUI.elementPadding
 	uiPadding = math.floor(elementPadding * 4.5)
+
+	RectRound = WG.FlowUI.Draw.RectRound
 
 	createButton()
 end
@@ -213,16 +202,21 @@ end
 
 function widget:Initialize()
 	if mySpec then
-		local tsMu = "30"--customtable.skill
-		local tsSigma = "0"--customtable.skilluncertainty
-		eligibleAsSub = tsMu and tsSigma and (tsSigma <= 2) and (not string.find(tsMu, ")")) and mySpec
-		if numPlayers <= 4 or isReplay or (tonumber(Spring.GetModOptions().ffa_mode) or 0) == 1 or Spring.GetGameFrame() > 0 then
+		if not mySpec or numPlayers <= 4 or isReplay or (tonumber(Spring.GetModOptions().ffa_mode) or 0) == 1 or Spring.GetGameFrame() > 0 then
 			eligibleAsSub = false
+		else
+			eligibleAsSub = true
+			-- TODO: ...check if you're eligible at all for any of the players
+			--local customtable = select(11, Spring.GetPlayerInfo(myPlayerID))
+			--if type(customtable) == 'table' then
+			--	local tsMu = customtable.skill
+			--	local tsSigma = customtable.skilluncertainty
+			--end
 		end
 	end
 
-	checkStartPointChosen()
 	widget:ViewResize(vsx, vsy)
+	checkStartPointChosen()
 end
 
 function widget:DrawScreen()

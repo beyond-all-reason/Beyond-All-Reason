@@ -5,8 +5,8 @@ return {
 		acceleration = 0.2,
 		blocking = false,
 		brakerate = 0.8,
-		buildcostenergy = 3200,
-		buildcostmetal = 210,
+		buildcostenergy = 5000,
+		buildcostmetal = 300,
 		builddistance = 100,
 		builder = true,
 		buildpic = "CORCA.PNG",
@@ -37,7 +37,11 @@ return {
 		terraformspeed = 225,
 		turninplaceanglelimit = 360,
 		turnrate = 240,
-		workertime = 200,
+		workertime = 150,
+		buildoptions = {
+			[1] = "corrad",
+			[2] = "corfrad",
+		},
 		customparams = {
 			area_mex_def = "cormex",
 			model_author = "Mr Bob, Flaka",

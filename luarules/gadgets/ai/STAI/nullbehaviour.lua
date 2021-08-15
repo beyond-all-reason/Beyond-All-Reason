@@ -1,5 +1,9 @@
 NullBehaviour = class(Behaviour)
 
+function NullBehaviour:Name()
+	return "NullBehaviour"
+end
+
 -- this gets called when the unit is idle, which means we finished our
 -- stop command, yield control. This probably won't work though because
 -- it's a stop command

@@ -4,7 +4,7 @@ end
 
 function widget:GetInfo()
 	return {
-		name	  = "Contrast Adaptive Sharpen (Old)",
+		name	  = "Contrast Adaptive Sharpen",
 		desc	  = "Spring port of AMD FidelityFX' Contrast Adaptive Sharpen (CAS)",
 		author	  = "martymcmodding, ivand",
 		layer	  = 2000,
@@ -20,8 +20,8 @@ end
 
 local GL_RGBA8 = 0x8058
 
-local SHARPNESS = 0.7
-local version = 1.01
+local SHARPNESS = 0.88
+local version = 1.05
 
 -----------------------------------------------------------------
 -- Lua Shortcuts
@@ -29,7 +29,7 @@ local version = 1.01
 
 local glTexture		 = gl.Texture
 local glTexRect		 = gl.TexRect
-local glCallList		= gl.CallList
+local glBlending	 = gl.Blending
 local glCopyToTexture   = gl.CopyToTexture
 
 -----------------------------------------------------------------
@@ -43,16 +43,24 @@ local luaShaderDir = "LuaUI/Widgets/Include/"
 -----------------------------------------------------------------
 
 local vsCAS = [[
-#version 150 compatibility
+#version 330
+// full screen triangle
 
-void main() {
-	gl_Position = gl_Vertex;
+const vec2 vertices[3] = vec2[3](
+	vec2(-1.0, -1.0),
+	vec2( 3.0, -1.0),
+	vec2(-1.0,  3.0)
+);
+
+void main()
+{
+	gl_Position = vec4(vertices[gl_VertexID], 0.0, 1.0);
 }
 ]]
 
 local fsCAS = [[
-#version 150 compatibility
-#line 20051
+#version 330
+#line 20058
 
 uniform sampler2D screenCopyTex;
 uniform float sharpness;
@@ -62,6 +70,8 @@ uniform float sharpness;
 #else
 	#define TEXEL_FETCH_OFFSET texelFetchOffset
 #endif
+
+out vec4 fragColor;
 
 vec3 CASPass(ivec2 tc) {
 	// fetch a 3x3 neighborhood around the pixel 'e',
@@ -113,7 +123,8 @@ vec3 CASPass(ivec2 tc) {
 }
 
 void main() {
-	gl_FragColor = vec4(CASPass(ivec2(gl_FragCoord.xy)), 1.0);
+	fragColor = vec4(CASPass(ivec2(gl_FragCoord.xy)), 1.0);
+	//fragColor = vec4(1.0, 0.0, 0.0, 0.5);
 }
 ]]
 
@@ -138,6 +149,11 @@ local fullTexQuad
 -- Widget Functions
 -----------------------------------------------------------------
 
+local function UpdateShader()
+	casShader:ActivateWith(function()
+		casShader:SetUniform("sharpness", SHARPNESS)
+	end)
+end
 
 function widget:Initialize()
 
@@ -170,27 +186,29 @@ function widget:Initialize()
 		},
 	}, ": Contrast Adaptive Sharpen")
 	casShader:Initialize()
+	UpdateShader()
 
-	fullTexQuad = gl.CreateList( function ()
-		gl.DepthTest(false)
-		gl.Blending(false)
-		gl.TexRect(-1, -1, 1, 1, false, true) --false, true
-		gl.Blending(true)
-	end)
+	fullTexQuad = gl.GetVAO()
+	if fullTexQuad == nil then
+		widgetHandler:RemoveWidget() --no fallback for potatoes
+		return
+	end
 
 	WG.cas = {}
 	WG.cas.setSharpness = function(value)
 		SHARPNESS = value
+		UpdateShader()
 	end
 	WG.cas.getSharpness = function(value)
 		return SHARPNESS
 	end
+
 end
 
 function widget:Shutdown()
 	gl.DeleteTexture(screenCopyTex)
 	casShader:Finalize()
-	gl.DeleteList(fullTexQuad)
+	fullTexQuad:Delete()
 end
 
 function widget:ViewResize()
@@ -201,10 +219,11 @@ end
 function widget:DrawScreenEffects()
 	glCopyToTexture(screenCopyTex, 0, 0, vpx, vpy, vsx, vsy)
 	glTexture(0, screenCopyTex)
-	casShader:ActivateWith( function()
-		casShader:SetUniform("sharpness", SHARPNESS)
-		glCallList(fullTexQuad)
-	end)
+	glBlending(false)
+	casShader:Activate()
+	fullTexQuad:DrawArrays(GL.TRIANGLES, 3)
+	casShader:Deactivate()
+	glBlending(true)
 	glTexture(0, false)
 end
 
@@ -216,7 +235,7 @@ function widget:GetConfigData(data)
 end
 
 function widget:SetConfigData(data)
-	if data.SHARPNESS ~= nil  and data.version ~= nil and data.version == version then
+	if data.SHARPNESS ~= nil and data.version ~= nil and data.version == version then
 		SHARPNESS = data.SHARPNESS
 	end
 end

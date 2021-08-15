@@ -322,8 +322,6 @@ local function _ProcessOptions(optName, _, optValues, playerID)
 		optValues = {optValues}
 	end
 
-	--Spring.Utilities.TableEcho({optName, optValues, playerID}, "_ProcessOptions")
-
 	for _, rendering in ipairs(allRendering) do
 		for matName, mat in pairs(rendering.materialDefs) do
 			if mat.ProcessOptions then

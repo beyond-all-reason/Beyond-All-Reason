@@ -149,7 +149,7 @@ end
 --------------------------------------------------------------------------------
 
 
-local featureTreeTemplate = Spring.Utilities.MergeWithDefault(matTemplate, {
+local featureTreeTemplate = table.merge(matTemplate, {
 	texUnits  = {
 		[0] = "%%FEATUREDEFID:0",
 		[1] = "%%FEATUREDEFID:1",
@@ -198,7 +198,7 @@ local featureTreeTemplate = Spring.Utilities.MergeWithDefault(matTemplate, {
 	},
 })
 
-local featuresMetalTemplate = Spring.Utilities.MergeWithDefault(matTemplate, {
+local featuresMetalTemplate = table.merge(matTemplate, {
 	texUnits  = {
 		[0] = "%%FEATUREDEFID:0",
 		[1] = "%%FEATUREDEFID:1",
@@ -236,7 +236,7 @@ local featuresMetalTemplate = Spring.Utilities.MergeWithDefault(matTemplate, {
 })
 
 local materials = {
-	featuresTreeNormal = Spring.Utilities.MergeWithDefault(featureTreeTemplate, {
+	featuresTreeNormal = table.merge(featureTreeTemplate, {
 		texUnits  = {
 			[2] = "%NORMALTEX",
 		},
@@ -251,7 +251,7 @@ local materials = {
 		FeatureDestroyed = FeatureDestroyed,
 	}),
 
-	featuresTreeAutoNormal = Spring.Utilities.MergeWithDefault(featureTreeTemplate, {
+	featuresTreeAutoNormal = table.merge(featureTreeTemplate, {
 		shaderOptions = {
 			autonormal = true,
 			autoNormalParams = {1.5, 0.005},
@@ -263,7 +263,7 @@ local materials = {
 		FeatureDestroyed = FeatureDestroyed,
 	}),
 
-	featuresTreeAutoNormalNoSway = Spring.Utilities.MergeWithDefault(featureTreeTemplate, {
+	featuresTreeAutoNormalNoSway = table.merge(featureTreeTemplate, {
 		shaderOptions = {
 			treewind = false,
 			autonormal = true,
@@ -278,7 +278,7 @@ local materials = {
 		},
 	}),
 
-	featuresMetalDeadOrHeap = Spring.Utilities.MergeWithDefault(featuresMetalTemplate, {
+	featuresMetalDeadOrHeap = table.merge(featuresMetalTemplate, {
 		texUnits  = {
 			[2] = "%NORMALTEX",
 		},
@@ -296,7 +296,7 @@ local materials = {
 		GameFrameSlow = GameFrameSlow,
 	}),
 
-	featuresMetalNoWreck = Spring.Utilities.MergeWithDefault(featuresMetalTemplate, {
+	featuresMetalNoWreck = table.merge(featuresMetalTemplate, {
 		shaderOptions = {
 			autonormal = true,
 			autoNormalParams = {1.5, 0.005},
@@ -385,7 +385,6 @@ local function GetTreeInfo(fdef)
 				else
 					normalMap = (treeInfo.fakeNormal and FAKE_NORMALTEX) or nil
 				end
-				--Spring.Utilities.TableEcho(fdef.customParams, fdef.name)
 			end
 
 			for _, exc in ipairs(featureNameTreesNoSway) do

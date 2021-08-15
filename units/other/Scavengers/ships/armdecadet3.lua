@@ -41,6 +41,7 @@ return {
 		customparams = {
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
+			techlevel = 3,
 			subfolder = "armships",
 		},
 		featuredefs = {

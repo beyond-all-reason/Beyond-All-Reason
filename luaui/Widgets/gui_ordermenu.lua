@@ -120,10 +120,7 @@ local math_max = math.max
 local math_ceil = math.ceil
 local math_floor = math.floor
 
-local RectRound = Spring.FlowUI.Draw.RectRound
-local UiElement = Spring.FlowUI.Draw.Element
-local UiButton = Spring.FlowUI.Draw.Button
-local elementCorner = Spring.FlowUI.elementCorner
+local RectRound, UiElement, UiButton, elementCorner
 
 local isSpectating = Spring.GetSpectatingState()
 local cursorTextures = {}
@@ -277,10 +274,15 @@ function widget:ViewResize()
 
 	font = WG['fonts'].getFont(fontFile)
 
-	elementCorner = Spring.FlowUI.elementCorner
-	backgroundPadding = Spring.FlowUI.elementPadding
+	elementCorner = WG.FlowUI.elementCorner
+	backgroundPadding = WG.FlowUI.elementPadding
 
-	widgetSpaceMargin = Spring.FlowUI.elementMargin
+	RectRound = WG.FlowUI.Draw.RectRound
+	UiElement = WG.FlowUI.Draw.Element
+	UiButton = WG.FlowUI.Draw.Button
+	elementCorner = WG.FlowUI.elementCorner
+
+	widgetSpaceMargin = WG.FlowUI.elementMargin
 	if stickToBottom or (altPosition and not buildmenuBottomPosition) then
 
 		posY = height

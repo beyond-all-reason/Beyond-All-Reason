@@ -1,41 +1,30 @@
 if not gadgetHandler:IsSyncedCode() then
-    return
+	return
 end
 
 local gadgetEnabled
 
 if Spring.GetModOptions and (Spring.GetModOptions().scoremode or "disabled") ~= "disabled" and (Spring.GetModOptions().scoremode_chess or "enabled") ~= "disabled" then
-    gadgetEnabled = true
+	gadgetEnabled = true
 else
-    gadgetEnabled = false
+	gadgetEnabled = false
 end
 
-local chickensEnabled = false
+local pveEnabled = Spring.Utilities.Gametype.IsPvE()
 local teams = Spring.GetTeamList()
 controlAITeams = {}
 local controlAIExists = false
 for i = 1, #teams do
 	local luaAI = Spring.GetTeamLuaAI(teams[i])
 	if luaAI ~= "" then
-		if luaAI == "Chicken: Very Easy" or
-			luaAI == "Chicken: Easy" or
-			luaAI == "Chicken: Normal" or
-			luaAI == "Chicken: Hard" or
-			luaAI == "Chicken: Very Hard" or
-			luaAI == "Chicken: Epic!" or
-			luaAI == "Chicken: Custom" or
-			luaAI == "Chicken: Survival" or
-			luaAI == "ScavengersAI" then
-			chickensEnabled = true
+		if luaAI == "ControlModeAI" then
+			controlAITeams[teams[i]] = true
+			controlAIExists = true
 		end
-        if luaAI == "ControlModeAI" then
-            controlAITeams[teams[i]] = true
-            controlAIExists = true
-        end
 	end
 end
 
-if chickensEnabled then
+if pveEnabled then
 	Spring.Echo("[ControlVictoryAI] Deactivated because Chickens or Scavengers are present!")
 	gadgetEnabled = false
 end
@@ -46,14 +35,14 @@ if controlAIExists == false then
 end
 
 function gadget:GetInfo()
-    return {
-      name      = "Control Victory Chess AI",
-      desc      = "123",
-      author    = "Damgam",
-      date      = "2021",
-      layer     = -100,
-      enabled   = gadgetEnabled,
-    }
+	return {
+	  name      = "Control Victory Chess AI",
+	  desc      = "123",
+	  author    = "Damgam",
+	  date      = "2021",
+	  layer     = -100,
+	  enabled   = gadgetEnabled,
+	}
 end
 
 local function distance(pos1,pos2)
@@ -82,11 +71,11 @@ function GetControlPoints()
 		local rawPoints = Script.LuaRules.ControlPoints() or {}
 		for id = 1, #rawPoints do
 			local rawPoint = rawPoints[id]
-            local rawPoint = rawPoint
-            local pointID = id
-            local pointOwner = rawPoint.owner
-            local pointPosition = {x=rawPoint.x, y=rawPoint.y, z=rawPoint.z}
-            local point = {pointID=pointID, pointPosition=pointPosition, pointOwner=pointOwner}
+			local rawPoint = rawPoint
+			local pointID = id
+			local pointOwner = rawPoint.owner
+			local pointPosition = {x=rawPoint.x, y=rawPoint.y, z=rawPoint.z}
+			local point = {pointID=pointID, pointPosition=pointPosition, pointOwner=pointOwner}
 			controlPoints[id] = point
 		end
 	end
@@ -97,9 +86,9 @@ function GetClosestAllyPoint(unitID)
 	local pos
 	local bestDistance
 	local controlPoints = controlPointsList
-    local unitAllyTeam = Spring.GetUnitAllyTeam(unitID)
-    local unitPositionX, unitPositionY, unitPositionZ = Spring.GetUnitPosition(unitID)
-    local position = {x=unitPositionX, y=unitPositionY, z=unitPositionZ}
+	local unitAllyTeam = Spring.GetUnitAllyTeam(unitID)
+	local unitPositionX, unitPositionY, unitPositionZ = Spring.GetUnitPosition(unitID)
+	local position = {x=unitPositionX, y=unitPositionY, z=unitPositionZ}
 	for i = 1, #controlPoints do
 		local point = controlPoints[i]
 		local pointAlly = controlPoints[i].pointOwner
@@ -119,9 +108,9 @@ function GetClosestEnemyPoint(unitID)
 	local pos
 	local bestDistance
 	local controlPoints = controlPointsList
-    local unitAllyTeam = Spring.GetUnitAllyTeam(unitID)
-    local unitPositionX, unitPositionY, unitPositionZ = Spring.GetUnitPosition(unitID)
-    local position = {x=unitPositionX, y=unitPositionY, z=unitPositionZ}
+	local unitAllyTeam = Spring.GetUnitAllyTeam(unitID)
+	local unitPositionX, unitPositionY, unitPositionZ = Spring.GetUnitPosition(unitID)
+	local position = {x=unitPositionX, y=unitPositionY, z=unitPositionZ}
 	for i = 1, #controlPoints do
 		local point = controlPoints[i]
 		local pointAlly = controlPoints[i].pointOwner
@@ -141,7 +130,7 @@ function GetRandomAllyPoint(unitID)
 	local pos
 	local controlPoints = controlPointsList
 	local unitAllyTeam = Spring.GetUnitAllyTeam(unitID)
-    local unitPositionX, unitPositionY, unitPositionZ = Spring.GetUnitPosition(unitID)
+	local unitPositionX, unitPositionY, unitPositionZ = Spring.GetUnitPosition(unitID)
 	local position = {x=unitPositionX, y=unitPositionY, z=unitPositionZ}
 	for i = 1,100 do 
 		local r = math.random(1,#controlPoints)
@@ -159,7 +148,7 @@ function GetRandomEnemyPoint(unitID)
 	local pos
 	local controlPoints = controlPointsList
 	local unitAllyTeam = Spring.GetUnitAllyTeam(unitID)
-    local unitPositionX, unitPositionY, unitPositionZ = Spring.GetUnitPosition(unitID)
+	local unitPositionX, unitPositionY, unitPositionZ = Spring.GetUnitPosition(unitID)
 	local position = {x=unitPositionX, y=unitPositionY, z=unitPositionZ}
 	for i = 1,100 do 
 		local r = math.random(1,#controlPoints)
@@ -175,21 +164,21 @@ end
 
 local AITeamTurn = 0
 function gadget:GameFrame(n)
-    if n%30 == 0 then
-        controlPointsList = GetControlPoints()
-    end
-    if n%30 == 0 then
-        if AITeamTurn > teams[#teams] then
-            AITeamTurn = 0
-        else
-            AITeamTurn = AITeamTurn + 1
-        end
-        for i = 1,#teams do
-            if controlAITeams[teams[i]] and teams[i] == AITeamTurn then
-                local teamID = teams[i]
-                local units = Spring.GetTeamUnits(teamID)
-                for i = 1,#units do
-                    local unitID = units[i]
+	if n%30 == 0 then
+		controlPointsList = GetControlPoints()
+	end
+	if n%30 == 0 then
+		if AITeamTurn > teams[#teams] then
+			AITeamTurn = 0
+		else
+			AITeamTurn = AITeamTurn + 1
+		end
+		for i = 1,#teams do
+			if controlAITeams[teams[i]] and teams[i] == AITeamTurn then
+				local teamID = teams[i]
+				local units = Spring.GetTeamUnits(teamID)
+				for i = 1,#units do
+					local unitID = units[i]
 					if AIMainAttackers[unitID] then
 						local rawPos = GetClosestEnemyPoint(unitID)
 						if rawPos then
@@ -237,10 +226,10 @@ function gadget:GameFrame(n)
 							end
 						end
 					end
-                end
-            end
-        end
-    end
+				end
+			end
+		end
+	end
 end
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)

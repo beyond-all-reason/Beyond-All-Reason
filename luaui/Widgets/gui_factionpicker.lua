@@ -33,7 +33,6 @@ local stickToBottom = false
 
 local startDefID = Spring.GetTeamRulesParam(myTeamID, 'startUnit')
 
-local backgroundTexture = "LuaUI/Images/backgroundtile.png"
 local ui_tileopacity = tonumber(Spring.GetConfigFloat("ui_tileopacity", 0.012) or 0.012)
 local bgtexScale = tonumber(Spring.GetConfigFloat("ui_tilescale", 7) or 7)	-- lower = smaller tiles
 local bgtexSize
@@ -86,9 +85,7 @@ local isSpec = Spring.GetSpectatingState()
 
 local font, font2, bgpadding, chobbyInterface, dlistGuishader, dlistFactionpicker, bpWidth, bpHeight, rectMargin, fontSize
 
-local RectRound = Spring.FlowUI.Draw.RectRound
-local UiElement = Spring.FlowUI.Draw.Element
-local UiUnit = Spring.FlowUI.Draw.Unit
+local RectRound, UiElement, UiUnit
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
@@ -204,8 +201,13 @@ function widget:ViewResize()
 	font = WG['fonts'].getFont()
 	font2 = WG['fonts'].getFont(fontfile2)
 
-	local widgetSpaceMargin = Spring.FlowUI.elementMargin
-	bgpadding = Spring.FlowUI.elementPadding
+	local widgetSpaceMargin = WG.FlowUI.elementMargin
+	bgpadding = WG.FlowUI.elementPadding
+
+	RectRound = WG.FlowUI.Draw.RectRound
+	UiElement = WG.FlowUI.Draw.Element
+	UiUnit = WG.FlowUI.Draw.Unit
+
 	if stickToBottom or (altPosition and not buildmenuBottomPos) then
 		posY = height
 		posX = width + (widgetSpaceMargin/vsx)
@@ -244,7 +246,7 @@ function widget:Initialize()
 	end
 
   if Spring.GetModOptions and Spring.GetModOptions().scenariooptions then
-    local scenarioopts = Spring.Utilities.Base64Decode(Spring.GetModOptions().scenariooptions)
+    local scenarioopts = string.base64Decode(Spring.GetModOptions().scenariooptions)
     scenarioopts = Spring.Utilities.json.decode(scenarioopts)
     if scenarioopts and scenarioopts.scenariooptions and scenarioopts.scenariooptions.disablefactionpicker == true then
       widgetHandler:RemoveWidget()

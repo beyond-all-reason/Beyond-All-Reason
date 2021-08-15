@@ -246,11 +246,7 @@ end
 -- Functions
 ------------------------------------------------------------------------------------
 
-local RectRound = Spring.FlowUI.Draw.RectRound
-local UiElement = Spring.FlowUI.Draw.Element
-local UiUnit = Spring.FlowUI.Draw.Unit
-local bgpadding = Spring.FlowUI.elementPadding
-local elementCorner = Spring.FlowUI.elementCorner
+local RectRound, UiElement, UiUnit, bgpadding, elementCorner
 
 local function DrawText(t1, t2)
 	textBufferCount = textBufferCount + 1
@@ -321,8 +317,8 @@ function widget:Initialize()
 		texts = WG['lang'].getText('unitstats')
 	end
 
-	font = WG['fonts'].getFont(fontfile)
-	init()
+	widget:ViewResize(vsx,vsy)
+
 	WG['unitstats'] = {}
 	WG['unitstats'].showUnit = function(unitID)
 		showUnitID = unitID
@@ -363,8 +359,12 @@ function widget:ViewResize(n_vsx,n_vsy)
 	vsx,vsy = Spring.GetViewGeometry()
 	widgetScale = (1+((vsy-850)/1800)) * (0.95+(ui_scale-1)/2.5)
 
-	bgpadding = Spring.FlowUI.elementPadding
-	elementCorner = Spring.FlowUI.elementCorner
+	bgpadding = WG.FlowUI.elementPadding
+	elementCorner = WG.FlowUI.elementCorner
+
+	RectRound = WG.FlowUI.Draw.RectRound
+	UiElement = WG.FlowUI.Draw.Element
+	UiUnit = WG.FlowUI.Draw.Unit
 
 	font = WG['fonts'].getFont(fontfile)
 

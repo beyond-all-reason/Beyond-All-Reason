@@ -30,14 +30,7 @@ local fontFile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.
 
 local spec = Spring.GetSpectatingState()
 
-local widgetSpaceMargin = Spring.FlowUI.elementMargin
-local backgroundPadding = Spring.FlowUI.elementPadding
-local elementCorner = Spring.FlowUI.elementCorner
-local RectRound = Spring.FlowUI.Draw.RectRound
-local TexturedRectRound = Spring.FlowUI.Draw.TexturedRectRound
-local UiElement = Spring.FlowUI.Draw.Element
-local UiButton = Spring.FlowUI.Draw.Button
-local UiUnit = Spring.FlowUI.Draw.Unit
+local widgetSpaceMargin, backgroundPadding, elementCorner, RectRound, TexturedRectRound, UiElement, UiButton, UiUnit
 
 local spGetGroupList = Spring.GetGroupList
 local spGetGroupUnitsCounts = Spring.GetGroupUnitsCounts
@@ -165,9 +158,15 @@ function widget:ViewResize()
 	font2 = WG['fonts'].getFont(nil, 1.3, 0.35, 1.4)
 	font = WG['fonts'].getFont(fontFile, 1.15, 0.35, 1.25)
 
-	elementCorner = Spring.FlowUI.elementCorner
-	backgroundPadding = Spring.FlowUI.elementPadding
-	widgetSpaceMargin = Spring.FlowUI.elementMargin
+	elementCorner = WG.FlowUI.elementCorner
+	backgroundPadding = WG.FlowUI.elementPadding
+	widgetSpaceMargin = WG.FlowUI.elementMargin
+
+	RectRound = WG.FlowUI.Draw.RectRound
+	TexturedRectRound = WG.FlowUI.Draw.TexturedRectRound
+	UiElement = WG.FlowUI.Draw.Element
+	UiButton = WG.FlowUI.Draw.Button
+	UiUnit = WG.FlowUI.Draw.Unit
 
 	if WG['buildmenu'] then
 		buildmenuBottomPosition = WG['buildmenu'].getBottomPosition()
@@ -568,22 +567,6 @@ function widget:Update(dt)
 		updateList()
 	end
 end
-
-local function tableMerge(t1, t2)
-	for k, v in pairs(t2) do
-		if type(v) == "table" then
-			if type(t1[k] or false) == "table" then
-				tableMerge(t1[k] or {}, t2[k] or {})
-			else
-				t1[k] = v
-			end
-		else
-			t1[k] = v
-		end
-	end
-	return t1
-end
-
 
 function widget:MousePress(x, y, button)
 	if Spring.IsGUIHidden() then

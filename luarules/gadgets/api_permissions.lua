@@ -22,16 +22,7 @@ local singleplayerPermissions = {
 }
 local powerusers = include("LuaRules/configs/powerusers.lua")
 
-local numPlayers = 0
-local teams = Spring.GetTeamList()
-for i = 1, #teams do
-	local _, _, _, isAiTeam = Spring.GetTeamInfo(teams[i], false)
-	local luaAI = Spring.GetTeamLuaAI(teams[i])
-	if (not luaAI or luaAI == '') and not isAiTeam and teams[i] ~= Spring.GetGaiaTeamID() then
-		numPlayers = numPlayers + 1
-	end
-end
-teams = nil
+local numPlayers = Spring.Utilities.GetPlayerCount()
 
 -- give permissions when in singleplayer
 if numPlayers <= 1 then

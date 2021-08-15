@@ -25,6 +25,7 @@ function NanoHST:MyUnitBuilt(engineUnit)
 	if self.ai.armyhst._nano_[engineUnit:Name()] then
 		self:AddNano(engineUnit)
 	end
+
 end
 
 function NanoHST:UnitDead(engineUnit)

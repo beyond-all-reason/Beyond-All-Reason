@@ -16,23 +16,14 @@ end
 local DEBUGCHICKEN = false
 
 if DEBUGCHICKEN then
-    local opts = {}
-    for k,v in pairs(Spring.GetModOptions()) do
-      opts[#opts+1] = tostring(k) .. "=".. tostring(v)
-    end
-    Spring.Echo("Modoptions:",table.concat(opts,", "))
-end
-
-
-local teams = Spring.GetTeamList()
-for i = 1, #teams do
-	local luaAI = Spring.GetTeamLuaAI(teams[i])
-	if luaAI and luaAI ~= "" and string.sub(luaAI, 1, 9) == 'Chicken: ' then
-		chickensEnabled = true
+	local opts = {}
+	for k, v in pairs(Spring.GetModOptions()) do
+		opts[#opts + 1] = tostring(k) .. "=" .. tostring(v)
 	end
+	Spring.Echo("Modoptions:", table.concat(opts, ", "))
 end
 
-if chickensEnabled == true then
+if Spring.Utilities.Gametype.IsChickens() then
 	Spring.Echo("[ChickenDefense: Chicken Defense Spawner] Activated!")
 else
 	Spring.Echo("[ChickenDefense: Chicken Defense Spawner] Deactivated!")
@@ -311,7 +302,6 @@ if gadgetHandler:IsSyncedCode() then
 		ascendingQueen = true
 	end
 
-
 	local expIncrement = ((SetCount(humanTeams) * expStep) / queenTime)
 	if expStep < 0 then
 		expIncrement = ((expStep * -1) / queenTime)
@@ -325,11 +315,21 @@ if gadgetHandler:IsSyncedCode() then
 	-- eggChance scales - 20% at 0-300 grace, 10% at 400 grace, 0% at 500+ grace
 	local eggChance = 0.20 * math.max(0, math.min(1, (500 - gracePeriod) / 200)) / chickenSpawnMultiplier
 	local bonusEggs = math.ceil(24 * math.max(0, math.min(1, (500 - gracePeriod) / 200))) / chickenSpawnMultiplier
-  if DEBUGCHICKEN then Spring.Echo("eggChance", eggChance, "bonusEggs", bonusEggs) end
-  if DEBUGCHICKEN then Spring.Echo("maxBurrows", maxBurrows, "queenTime", queenTime) end
-  if DEBUGCHICKEN then Spring.Echo("expIncrement", expIncrement, "chickensPerPlayer", chickensPerPlayer) end
-  if DEBUGCHICKEN then Spring.Echo("gracePenalty", gracePenalty, "chickensPerPlayer", chickensPerPlayer) end
-  if DEBUGCHICKEN then Spring.Echo("addQueenAnger", addQueenAnger) end
+	if DEBUGCHICKEN then
+		Spring.Echo("eggChance", eggChance, "bonusEggs", bonusEggs)
+	end
+	if DEBUGCHICKEN then
+		Spring.Echo("maxBurrows", maxBurrows, "queenTime", queenTime)
+	end
+	if DEBUGCHICKEN then
+		Spring.Echo("expIncrement", expIncrement, "chickensPerPlayer", chickensPerPlayer)
+	end
+	if DEBUGCHICKEN then
+		Spring.Echo("gracePenalty", gracePenalty, "chickensPerPlayer", chickensPerPlayer)
+	end
+	if DEBUGCHICKEN then
+		Spring.Echo("addQueenAnger", addQueenAnger)
+	end
 	if modes[highestLevel] == EPIC then
 		gracePenalty = gracePenalty + 15
 		maxBurrows = math.max(maxBurrows * 1.5, 50)
@@ -502,14 +502,14 @@ if gadgetHandler:IsSyncedCode() then
 	--
 
 	local function addChickenTarget(chickenID, targetID)
-		if (not targetID) or (GetUnitTeam(targetID) == chickenTeamID) or (GetUnitTeam(chickenID) ~= chickenTeamID) then
+		if not targetID or GetUnitTeam(targetID) == chickenTeamID or GetUnitTeam(chickenID) ~= chickenTeamID then
 			return
 		end
 		--debug--Spring.Echo(t .. " addChickenTarget " .. chickenID .. "," .. targetID)
-		if chickenTargets[chickenID] and chickenTargets[chickenTargets[chickenID]] then
+		if chickenTargets[chickenID] and chickenTargets[chickenTargets[chickenID]] and type(chickenTargets[chickenTargets[chickenID]]) == 'table' then
 			chickenTargets[chickenTargets[chickenID]][chickenID] = nil
 		end
-		if (chickenTargets[targetID] == nil) then
+		if chickenTargets[targetID] == nil then
 			chickenTargets[targetID] = {}
 			chickenTargets[targetID][chickenID] = targetID
 			chickenTargets[chickenID] = targetID
@@ -521,7 +521,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	local function AttackNearestEnemy(unitID, unitDefID, unitTeam)
 		local targetID = GetUnitNearestEnemy(unitID)
-		if (targetID) and (not GetUnitIsDead(targetID)) and (not GetUnitNeutral(targetID)) then
+		if targetID and not GetUnitIsDead(targetID) and not GetUnitNeutral(targetID) then
 			local defID = GetUnitDefID(targetID)
 			local myDefID = GetUnitDefID(unitID)
 			if unitSpeed[myDefID] and unitSpeed[myDefID] < (unitSpeed[defID] * 1.15) then
@@ -547,14 +547,14 @@ if gadgetHandler:IsSyncedCode() then
 	-- selects a enemy target
 	local function ChooseTarget()
 		local humanTeamList = SetToList(humanTeams)
-		if (#humanTeamList == 0) or gameOver then
+		if #humanTeamList == 0 or gameOver then
 			return getRandomMapPos()
 		end
-		if targetCache and ((targetCacheCount >= nextSquadSize) or GetUnitIsDead(targetCache)) then
+		if targetCache and (targetCacheCount >= nextSquadSize or GetUnitIsDead(targetCache)) then
 			local tries = 0
 			repeat
 				local teamID = humanTeamList[mRandom(#humanTeamList)]
-				if (teamID == lastTeamID) then
+				if teamID == lastTeamID then
 					teamID = humanTeamList[mRandom(#humanTeamList)]
 				end
 				lastTeamID = teamID
@@ -572,7 +572,7 @@ if gadgetHandler:IsSyncedCode() then
 					end
 				end
 				tries = (tries + 1)
-			until (targetCache and (not GetUnitIsDead(targetCache)) and (not GetUnitNeutral(targetCache)) and slowunit) or (tries > maxTries)
+			until (targetCache and not GetUnitIsDead(targetCache) and not GetUnitNeutral(targetCache) and slowunit) or (tries > maxTries)
 			targetCacheCount = 0
 			nextSquadSize = 6 + mRandom(0, 4)
 		else
@@ -582,7 +582,7 @@ if gadgetHandler:IsSyncedCode() then
 			-- no target could be found, use random map pos
 			return getRandomMapPos()
 		end
-		if (mRandom(100) < 50) then
+		if mRandom(100) < 50 then
 			local angle = math.rad(mRandom(1, 360))
 			--		Spring.Echo(targetCache)
 			local x, y, z = GetUnitPosition(targetCache)
@@ -602,7 +602,7 @@ if gadgetHandler:IsSyncedCode() then
 	local function getChickenSpawnLoc(burrowID, size)
 		local x, y, z
 		local bx, by, bz = GetUnitPosition(burrowID)
-		if (not bx or not bz) then
+		if not bx or not bz then
 			return false
 		end
 
@@ -614,17 +614,17 @@ if gadgetHandler:IsSyncedCode() then
 			z = mRandom(bz - s, bz + s)
 			s = s + spawnSquareIncrement
 			tries = tries + 1
-			if (x >= MAPSIZEX) then
+			if x >= MAPSIZEX then
 				x = (MAPSIZEX - mRandom(1, 40))
 			elseif (x <= 0) then
 				x = mRandom(1, 40)
 			end
-			if (z >= MAPSIZEZ) then
+			if z >= MAPSIZEZ then
 				z = (MAPSIZEZ - mRandom(1, 40))
 			elseif (z <= 0) then
 				z = mRandom(1, 40)
 			end
-		until ((TestBuildOrder(size, x, by, z, 1) == 2) and (not GetGroundBlocked(x, z))) or (tries > maxTries)
+		until (TestBuildOrder(size, x, by, z, 1) == 2 and not GetGroundBlocked(x, z)) or (tries > maxTries)
 
 		y = GetGroundHeight(x, z)
 		return x, y, z
@@ -633,13 +633,13 @@ if gadgetHandler:IsSyncedCode() then
 
 	local function SpawnTurret(burrowID, turret)
 
-		if (mRandom() > defenderChance) or (not turret) or (burrows[burrowID] >= maxTurrets) then
+		if mRandom() > defenderChance or not turret or burrows[burrowID] >= maxTurrets then
 			return
 		end
 
 		local x, y, z
 		local bx, by, bz = GetUnitPosition(burrowID)
-		if (not bx) then
+		if not bx then
 			return
 		end
 		local tries = 0
@@ -676,7 +676,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	local function SpawnBurrow(number)
 
-		if (queenID) then
+		if queenID then
 			-- don't spawn new burrows when queen is there
 			return
 		end
@@ -687,13 +687,13 @@ if gadgetHandler:IsSyncedCode() then
 			local x, z, y
 			local tries = 0
 			repeat
-				if (burrowSpawnType == "initialbox") then
+				if burrowSpawnType == "initialbox" then
 					x = mRandom(lsx1, lsx2)
 					z = mRandom(lsz1, lsz2)
-				elseif ((burrowSpawnType == "alwaysbox") and (tries < maxTries)) then
+				elseif burrowSpawnType == "alwaysbox" and tries < maxTries then
 					x = mRandom(lsx1, lsx2)
 					z = mRandom(lsz1, lsz2)
-				elseif (burrowSpawnType == "initialbox_post") then
+				elseif burrowSpawnType == "initialbox_post" then
 					lsx1 = math.max(lsx1 * 0.975, spawnSquare)
 					lsz1 = math.max(lsz1 * 0.975, spawnSquare)
 					lsx2 = math.min(lsx2 * 1.025, MAPSIZEX - spawnSquare)
@@ -708,33 +708,33 @@ if gadgetHandler:IsSyncedCode() then
 				y = GetGroundHeight(x, z)
 				tries = tries + 1
 				local blocking = TestBuildOrder(MEDIUM_UNIT, x, y, z, 1)
-				if (blocking == 2) and ((burrowSpawnType == "avoid") or (burrowSpawnType == "initialbox_post")) then
+				if blocking == 2 and (burrowSpawnType == "avoid" or burrowSpawnType == "initialbox_post") then
 					local proximity = GetUnitsInCylinder(x, z, minBaseDistance)
 					local vicinity = GetUnitsInCylinder(x, z, maxBaseDistance)
 					local humanUnitsInVicinity = false
 					local humanUnitsInProximity = false
 					for i = 1, #vicinity, 1 do
-						if (GetUnitTeam(vicinity[i]) ~= chickenTeamID) then
+						if GetUnitTeam(vicinity[i]) ~= chickenTeamID then
 							humanUnitsInVicinity = true
 							break
 						end
 					end
 
 					for i = 1, #proximity, 1 do
-						if (GetUnitTeam(proximity[i]) ~= chickenTeamID) then
+						if GetUnitTeam(proximity[i]) ~= chickenTeamID then
 							humanUnitsInProximity = true
 							break
 						end
 					end
 
-					if (humanUnitsInProximity or not humanUnitsInVicinity) then
+					if humanUnitsInProximity or not humanUnitsInVicinity then
 						blocking = 1
 					end
 				end
-			until (blocking == 2 or tries > (maxTries * 2))
+			until (blocking == 2 or tries > maxTries * 2)
 
 			local unitID = CreateUnit(burrowName, x, y, z, "n", chickenTeamID)
-			if (unitID) then
+			if unitID then
 				burrows[unitID] = 0
 				SetUnitBlocking(unitID, false, false)
 				SetUnitExperience(unitID, mRandom() * expMod)
@@ -768,7 +768,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	local function SpawnQueen()
 
-		if (nextQueenSpawn ~= nil) then
+		if nextQueenSpawn ~= nil then
 			return CreateUnit(queenName, nextQueenSpawn.x, nextQueenSpawn.y, nextQueenSpawn.z, "n", chickenTeamID)
 		end
 
@@ -783,7 +783,7 @@ if gadgetHandler:IsSyncedCode() then
 				if failBurrows[burrowID] then
 					score = score - (failBurrows[burrowID] * 5)
 				end
-				if (score > bestScore) then
+				if score > bestScore then
 					bestScore = score
 					sx = x
 					sy = y
@@ -812,24 +812,24 @@ if gadgetHandler:IsSyncedCode() then
 			local humanUnitsInProximity = false
 
 			for i = 1, #vicinity, 1 do
-				if (GetUnitTeam(vicinity[i]) ~= chickenTeamID) then
+				if GetUnitTeam(vicinity[i]) ~= chickenTeamID then
 					humanUnitsInVicinity = true
 					break
 				end
 			end
 
 			for i = 1, #proximity, 1 do
-				if (GetUnitTeam(proximity[i]) ~= chickenTeamID) then
+				if GetUnitTeam(proximity[i]) ~= chickenTeamID then
 					humanUnitsInProximity = true
 					break
 				end
 			end
 
-			if (humanUnitsInProximity or not humanUnitsInVicinity) then
+			if humanUnitsInProximity or not humanUnitsInVicinity then
 				blocking = 1
 			end
 
-		until (blocking == 2 or tries > (maxTries * 3))
+		until (blocking == 2 or tries > maxTries * 3)
 
 		return CreateUnit(queenName, x, y, z, "n", chickenTeamID)
 
@@ -848,7 +848,7 @@ if gadgetHandler:IsSyncedCode() then
 			currentWave = #waves
 		end
 
-		if (currentWave == 10) then
+		if currentWave == 10 then
 			COWARD[UnitDefNames["chickenc1"].id] = { distance = 700, chance = 0.1 }
 		end
 
@@ -874,27 +874,29 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		for burrowID in pairs(burrows) do
-			if (t > (queenTime * 0.15)) then
+			if t > queenTime * 0.15 then
 				SpawnTurret(burrowID, bonusTurret)
 			end
 			local squad = waves[currentWave][mRandom(1, #waves[currentWave])]
-			if ((lastWave ~= currentWave) and (newWaveSquad[currentWave])) then
+			if lastWave ~= currentWave and newWaveSquad[currentWave] then
 				squad = newWaveSquad[currentWave]
 				lastWave = currentWave
 			end
 			for i, sString in pairs(squad) do
 				local skipSpawn = false
-				if (cCount > chickensPerPlayer) and (mRandom() > spawnChance) then
+				if cCount > chickensPerPlayer and mRandom() > spawnChance then
 					skipSpawn = true
 				end
-				if skipSpawn and (chickenDebtCount > 0) and (mRandom() > spawnChance) then
+				if skipSpawn and chickenDebtCount > 0 and mRandom() > spawnChance then
 					chickenDebtCount = (chickenDebtCount - 1)
 					skipSpawn = false
 				end
-        if DEBUGCHICKEN then Spring.Echo(("BWAAK %i BurrowID=%i Squad=%s skip=%s cCount=%i Debt=%i"):format(i, burrowID,sString,tostring(skipSpawn),cCount,chickenDebtCount)) end
+				if DEBUGCHICKEN then
+					Spring.Echo(("BWAAK %i BurrowID=%i Squad=%s skip=%s cCount=%i Debt=%i"):format(i, burrowID, sString, tostring(skipSpawn), cCount, chickenDebtCount))
+				end
 				if not skipSpawn then
 					local nEnd, _ = string.find(sString, " ")
-					local unitNumber  = string.sub(sString, 1, (nEnd - 1)) * chickenSpawnMultiplier
+					local unitNumber = string.sub(sString, 1, (nEnd - 1)) * chickenSpawnMultiplier
 					local chickenName = string.sub(sString, (nEnd + 1))
 					for i = 1, unitNumber, 1 do
 						table.insert(spawnQueue, { burrow = burrowID, unitName = chickenName, team = chickenTeamID })
@@ -1521,7 +1523,9 @@ if gadgetHandler:IsSyncedCode() then
 				if h then
 					Spring.CreateFeature(EGG_DROPPER[unitDefID], x, y, z, h)
 					bonusEggs = bonusEggs - 1
-          if DEBUGCHICKEN then Spring.Echo("eggChance", eggChance, "bonusEggs", bonusEggs) end
+					if DEBUGCHICKEN then
+						Spring.Echo("eggChance", eggChance, "bonusEggs", bonusEggs)
+					end
 				end
 			end
 		end
@@ -1558,7 +1562,7 @@ if gadgetHandler:IsSyncedCode() then
 						idleOrderQueue[chickenID] = { cmd = CMD.STOP, params = {}, opts = {} }
 					end
 				end
-			elseif chickenTargets[chickenTargets[unitID]] then
+			elseif chickenTargets[chickenTargets[unitID]] and type(chickenTargets[chickenTargets[unitID]]) == 'table' then
 				chickenTargets[chickenTargets[unitID]][unitID] = nil
 			end
 			chickenTargets[unitID] = nil
@@ -1631,15 +1635,21 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 
-    if DEBUGCHICKEN then Spring.Echo("unitDefID", unitDefID, "burrowDef", burrowDef , "addQueenAnger",addQueenAnger) end
+		if DEBUGCHICKEN then
+			Spring.Echo("unitDefID", unitDefID, "burrowDef", burrowDef, "addQueenAnger", addQueenAnger)
+		end
 		if unitDefID == burrowDef and not gameOver then
-      if DEBUGCHICKEN then Spring.Echo("Burrow kill !", burrowAnger) end
+			if DEBUGCHICKEN then
+				Spring.Echo("Burrow kill !", burrowAnger)
+			end
 			local kills = GetGameRulesParam(burrowName .. "Kills")
 			SetGameRulesParam(burrowName .. "Kills", kills + 1)
 
 			burrows[unitID] = nil
 			if addQueenAnger == 1 then
-        if DEBUGCHICKEN then Spring.Echo("Burrow kill adding anger", burrowAnger, burrowAnger + angerBonus) end
+				if DEBUGCHICKEN then
+					Spring.Echo("Burrow kill adding anger", burrowAnger, burrowAnger + angerBonus)
+				end
 				burrowAnger = (burrowAnger + angerBonus)
 				expMod = (expMod + angerBonus)
 			end

@@ -1,4 +1,4 @@
-local widgetVersion = 25
+local widgetVersion = 26
 
 function widget:GetInfo()
     return {
@@ -92,9 +92,8 @@ local gl_CreateList = gl.CreateList
 local gl_DeleteList = gl.DeleteList
 local gl_CallList = gl.CallList
 
-local RectRound = Spring.FlowUI.Draw.RectRound
-local UiElement = Spring.FlowUI.Draw.Element
-local elementCorner = Spring.FlowUI.elementCorner
+local RectRound, UiElement, elementCorner
+local bgpadding = 3
 
 --------------------------------------------------------------------------------
 -- IMAGES
@@ -181,7 +180,7 @@ local hoverPlayerlist = false
 -- LockCamera variables
 --------------------------------------------------------------------------------
 
-local transitionTime = 0.6 -- how long it takes the camera to move when tracking a player
+local transitionTime = 1.3 -- how long it takes the camera to move when tracking a player
 local listTime = 14 -- how long back to look for recent broadcasters
 
 local totalTime = 0
@@ -204,8 +203,6 @@ local tookFrame = -120
 
 local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity", 0.66) or 0.66)
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
-
-local bgpadding = Spring.FlowUI.elementPadding
 
 local playSounds = true
 local sliderdrag = LUAUI_DIRNAME .. 'Sounds/buildbar_rem.wav'
@@ -3635,8 +3632,11 @@ end
 function widget:ViewResize()
     vsx, vsy = Spring.GetViewGeometry()
 
-    bgpadding = Spring.FlowUI.elementPadding
-	elementCorner = Spring.FlowUI.elementCorner
+    bgpadding = WG.FlowUI.elementPadding
+	elementCorner = WG.FlowUI.elementCorner
+
+	RectRound = WG.FlowUI.Draw.RectRound
+	UiElement = WG.FlowUI.Draw.Element
 
     updateWidgetScale()
 

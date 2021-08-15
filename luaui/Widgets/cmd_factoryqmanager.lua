@@ -301,7 +301,7 @@ function getSingleFactory()
 end
 
 function saveQueue(unitId, unitDef, groupNo)
-	local unitQ = Spring.GetFactoryCommands(unitId)
+	local unitQ = Spring.GetFactoryCommands(unitId, -1)
 	if #unitQ <= 0 then
 		--queue is empty -> signal to delete preset
 		savedQueues[curModId][unitDef.id][groupNo] = nil

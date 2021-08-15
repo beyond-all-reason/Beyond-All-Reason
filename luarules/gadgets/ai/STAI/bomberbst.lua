@@ -100,7 +100,8 @@ function BomberBST:BombPosition(position)
 	floats:push_back(position.x)
 	floats:push_back(position.y)
 	floats:push_back(position.z)
-	self.unit:Internal():ExecuteCustomCommand(CMD_ATTACK, floats)
+	self.unit:Internal():AreaAttack(floats,20) -- TEST
+	--self.unit:Internal():ExecuteCustomCommand(CMD_ATTACK, floats)
 end
 
 function BomberBST:FollowPathToTarget(path, unit)

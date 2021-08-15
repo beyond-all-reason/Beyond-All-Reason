@@ -68,10 +68,12 @@ if gadgetHandler:IsSyncedCode() then
 		"Spanker",
 		"Woody",
 		"zGeneral",
+		"niftybeaks",
 
 		-- BAR Content Creators 
 		"Requiem_TV",
 		"gamerangela911",
+		"Rikerss",
 
 		
 		-- AI Names

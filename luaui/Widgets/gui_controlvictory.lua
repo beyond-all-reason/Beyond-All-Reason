@@ -5,26 +5,9 @@ if modOptions == nil or modOptions.scoremode == nil or modOptions.scoremode == "
 end
 
 --Make controlvictory exit if chickens are present
-local chickensEnabled = false
-local teams = Spring.GetTeamList()
-for i = 1, #teams do
-	local luaAI = Spring.GetTeamLuaAI(teams[i])
-	if luaAI ~= "" then
-		if luaAI == "Chicken: Very Easy" or
-			luaAI == "Chicken: Easy" or
-			luaAI == "Chicken: Normal" or
-			luaAI == "Chicken: Hard" or
-			luaAI == "Chicken: Very Hard" or
-			luaAI == "Chicken: Epic!" or
-			luaAI == "Chicken: Custom" or
-			luaAI == "Chicken: Survival" or
-			luaAI == "ScavengersAI" then
-			chickensEnabled = true
-		end
-	end
-end
+local pveEnabled = Spring.Utilities.Gametype.IsPvE()
 
-if chickensEnabled then
+if pveEnabled then
 	Spring.Echo("[ControlVictory] Deactivated because Chickens or Scavengers are present!")
 	return false
 end
@@ -138,9 +121,7 @@ local currentRotationAngle = 0
 local ringThickness = 3.5
 local capturePieParts = 4 + floor(captureRadius / 8)
 
-local RectRound = Spring.FlowUI.Draw.RectRound
-local UiElement = Spring.FlowUI.Draw.Element
-local elementCorner = Spring.FlowUI.elementCorner
+local RectRound, UiElement, elementCorner
 
 -----------------------------------------------------------------------------------------
 -- creates initial player listing
@@ -302,7 +283,10 @@ function widget:ViewResize(vsx2, vsy2)
 	screenX = (vsx * 0.5) - (screenWidth / 2)
 	screenY = (vsy * 0.5) + (screenHeight / 2)
 
-	elementCorner = Spring.FlowUI.elementCorner
+	elementCorner = WG.FlowUI.elementCorner
+
+	RectRound = WG.FlowUI.Draw.RectRound
+	UiElement = WG.FlowUI.Draw.Element
 
 	scoreboardX = floor(vsx * scoreboardRelX)
 	scoreboardY = floor(vsy * scoreboardRelY)

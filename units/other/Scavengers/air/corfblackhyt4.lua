@@ -51,7 +51,7 @@ return {
 			normaltex = "unittextures/cor_normal.dds",
 			paralyzemultiplier = 0,
 			subfolder = "corships/t2",
-			techlevel = 2,
+			techlevel = 3,
 		},
 		featuredefs = {
 			dead = {

@@ -296,7 +296,7 @@ end
 -----------------------------------------------------------------------------------------------------------------
 
 function Bursts.Create(Options)
-  local newObject = MergeTable(Options, Bursts.Default)
+  local newObject = table.merge(Bursts.Default, Options)
   setmetatable(newObject,Bursts)  -- make handle lookup
   newObject:CreateParticle()
   return newObject

@@ -53,22 +53,6 @@ local function getFilePath(filename, path)
 	return false
 end
 
-local function lines(str)
-	local t = {}
-	local function helper(line) table.insert(t, line) return "" end
-	helper((str:gsub("(.-)\r?\n", helper)))
-	return t
-end
-
-local function Split(s, separator)
-	local results = {}
-	for part in s:gmatch("[^"..separator.."]+") do
-		results[#results + 1] = part
-	end
-	return results
-end
-
-
 --[[ Sanitize to whole frames (plus leeways because float arithmetic is bonkers).
      The engine uses full frames for actual reload times, but forwards the raw
      value to LuaUI (so for example calculated DPS is incorrect without sanitisation). ]]
@@ -115,7 +99,9 @@ function UnitDef_Post(name, uDef)
 		uDef.corpse = nil
 	end
 
-	if uDef.energymake and uDef.energyuse then
+	-- negate energyuse with energymake values
+	-- excludes units without on/off states (energyuse values arent in effect)
+	if uDef.energymake and uDef.energyuse and uDef.onoffable then
 		if uDef.energymake == uDef.energyuse then
 			uDef.energymake = 0
 			uDef.energyuse = 0
@@ -558,61 +544,6 @@ function UnitDef_Post(name, uDef)
     --	end
     --end
 
-
-
-	-- import csv unitdef changes
-	--local file = VFS.LoadFile("modelauthors.csv")
-	--if file then
-	--	local fileLines = lines(file)
-	--	local found = false
-	--	for i, line in ipairs(fileLines) do
-	--		local t = Split(line, ';')
-	--		if t[1] and t[2] and t[3] then
-	--			if t[1] == name then
-	--				if uDef.customparams == nil then
-	--					uDef.customparams = {}
-	--				end
-	--				uDef.customparams.model_author = t[3]
-	--				Spring.Echo('imported:  '..t[1]..':  '..t[2]..'  ,  '..t[3])
-	--				found = true
-	--				break
-	--			end
-	--		end
-	--	end
-	--	if not found then
-	--		for i, line in ipairs(fileLines) do
-	--			local t = Split(line, ';')
-	--			if t[1] and t[2] and t[3] then
-	--				if t[2] == uDef.name then
-	--					if uDef.customparams == nil then
-	--						uDef.customparams = {}
-	--					end
-	--					uDef.customparams.model_author = t[3]
-	--					Spring.Echo('imported2:  '..t[1]..':  '..t[2]..'  ,  '..t[3])
-	--					found = true
-	--					break
-	--				end
-	--			end
-	--		end
-	--	end
-	--end
-
-	--local filename = "unitlist_checked.csv"
-	--local file = VFS.LoadFile(filename)
-	--if file then
-	--	local fileLines = lines(file)
-	--	for i, line in ipairs(fileLines) do
-	--		local t = Split(line, ';')
-	--		if t[1] and t[2] and t[3] and name == t[1] then
-	--			uDef.buildcostmetal = tonumber(t[2])
-	--			uDef.buildcostenergy = tonumber(t[3])
-	--			Spring.Echo('imported:  '..t[1]..':  '..t[2]..'  ,  '..t[3])
-	--		end
-	--	end
-	--else
-	--	Spring.Echo('import file not found: '..filename)
-	--end
-
 	-- add model vertex displacement
 	local vertexDisplacement = 5.5 + ((uDef.footprintx + uDef.footprintz) / 12)
 	if vertexDisplacement > 10 then
@@ -662,12 +593,12 @@ local function ProcessSoundDefaults(wd)
 		wd.soundhitwetvolume = 5
 		return
 	end
-	
+
 	local soundVolume = math.sqrt(defaultDamage * 0.5)
 
-	-- The very old formula 
-	-- local soundVolume = math.sqrt(math.min(2000, defaultDamage) * 0.5) 
-	
+	-- The very old formula
+	-- local soundVolume = math.sqrt(math.min(2000, defaultDamage) * 0.5)
+
 	-- The old formula
 	-- local soundVolume = math.sqrt(defaultDamage * 0.5)
 	-- soundVolume = math.min(math.max(soundVolume, 5), 25)

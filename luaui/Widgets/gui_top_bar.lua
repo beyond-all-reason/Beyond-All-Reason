@@ -94,13 +94,7 @@ local spGetMouseState = Spring.GetMouseState
 local spGetWind = Spring.GetWind
 
 
-local widgetSpaceMargin = Spring.FlowUI.elementMargin
-local bgpadding = Spring.FlowUI.elementPadding
-local RectRound = Spring.FlowUI.Draw.RectRound
-local TexturedRectRound = Spring.FlowUI.Draw.TexturedRectRound
-local UiElement = Spring.FlowUI.Draw.Element
-local UiButton = Spring.FlowUI.Draw.Button
-local UiSliderKnob = Spring.FlowUI.Draw.SliderKnob
+local widgetSpaceMargin, bgpadding, RectRound, TexturedRectRound, UiElement, UiButton, UiSliderKnob
 
 
 local gaiaTeamID = Spring.GetGaiaTeamID()
@@ -165,21 +159,8 @@ if Spring.GetMenuName and string.find(string.lower(Spring.GetMenuName()), 'chobb
 	Spring.SendLuaMenuMsg("disableLobbyButton")
 end
 
-local numPlayers = 0
-local numAllyTeams = #Spring.GetAllyTeamList() - 1
-local singleTeams = false
-local teams = Spring.GetTeamList()
-if #teams - 1 == numAllyTeams then
-	singleTeams = true
-end
-for i = 1, #teams do
-	local _,_,_, isAiTeam = Spring.GetTeamInfo(teams[i], false)
-	local luaAI = Spring.GetTeamLuaAI(teams[i])
-	if (not luaAI or luaAI == '') and not isAiTeam and teams[i] ~= gaiaTeamID then
-		numPlayers = numPlayers + 1
-	end
-end
-local isSinglePlayer = numPlayers == 1
+local numPlayers = Spring.Utilities.GetPlayerCount()
+local isSinglePlayer = Spring.Utilities.Gametype.IsSinglePlayer()
 
 local allyteamOverflowingMetal = false
 local allyteamOverflowingEnergy = false
@@ -221,8 +202,14 @@ function widget:ViewResize()
 	widgetScale = widgetScale * ui_scale
 	xPos = math_floor(vsx * relXpos)
 
-	widgetSpaceMargin = Spring.FlowUI.elementMargin
-	bgpadding = Spring.FlowUI.elementPadding
+	widgetSpaceMargin = WG.FlowUI.elementMargin
+	bgpadding = WG.FlowUI.elementPadding
+
+	RectRound = WG.FlowUI.Draw.RectRound
+	TexturedRectRound = WG.FlowUI.Draw.TexturedRectRound
+	UiElement = WG.FlowUI.Draw.Element
+	UiButton = WG.FlowUI.Draw.Button
+	UiSliderKnob = WG.FlowUI.Draw.SliderKnob
 
 	bgtexSize = bgpadding * bgtexScale
 	buttonBgtexSize = bgpadding * buttonBgtexScale

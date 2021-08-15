@@ -1665,9 +1665,9 @@ local function ProcessOptions(materialDef, optName, optValues)
 
 	if not materialDef.originalOptions then
 		materialDef.originalOptions = {}
-		materialDef.originalOptions[1] = Spring.Utilities.CopyTable(materialDef.shaderOptions)
-		materialDef.originalOptions[2] = Spring.Utilities.CopyTable(materialDef.deferredOptions)
-		materialDef.originalOptions[3] = Spring.Utilities.CopyTable(materialDef.shadowOptions)
+		materialDef.originalOptions[1] = table.copy(materialDef.shaderOptions)
+		materialDef.originalOptions[2] = table.copy(materialDef.deferredOptions)
+		materialDef.originalOptions[3] = table.copy(materialDef.shadowOptions)
 	end
 
 	for id, optTable in ipairs({materialDef.shaderOptions, materialDef.deferredOptions, materialDef.shadowOptions}) do
@@ -1715,8 +1715,6 @@ local function ApplyOptions(luaShader, materialDef, key)
 	end
 
 	local intOption = 0
-
-	--Spring.Utilities.TableEcho(optionsTbl, "optionsTbl")
 
 	for optName, optValue in pairs(optionsTbl) do
 		if knownBitOptions[optName] then --boolean

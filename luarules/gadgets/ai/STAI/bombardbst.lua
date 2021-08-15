@@ -27,7 +27,8 @@ function BombardBST:Fire()
 		floats:push_back(self.target.x)
 		floats:push_back(self.target.y)
 		floats:push_back(self.target.z)
-		self.unit:Internal():ExecuteCustomCommand(CMD_ATTACK, floats)
+		self.unit:Internal():MoveAndFire(floats) --TEST
+		--self.unit:Internal():ExecuteCustomCommand(CMD_ATTACK, floats)
 		self.lastFireFrame = self.game:Frame()
 	end
 end
@@ -52,7 +53,7 @@ function BombardBST:Update()
 			if bestCell then
 				local newTarget
 				if buildingID then
-					local building = game:GetUnitByID(buildingID)
+					local building = self.game:GetUnitByID(buildingID)
 					if building then
 						newTarget = building:GetPosition()
 					end

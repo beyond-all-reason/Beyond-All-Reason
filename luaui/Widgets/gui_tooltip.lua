@@ -48,7 +48,6 @@ local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular
 
 local widgetScale = 1
 local usedFontSize = cfgFontSize
-local bgpadding = math.ceil(Spring.FlowUI.elementPadding * 0.66)
 
 ------------------------------------------------------------------------------------
 -- Speedups
@@ -64,8 +63,7 @@ local spGetMouseState = Spring.GetMouseState
 local spTraceScreenRay = Spring.TraceScreenRay
 local spGetTooltip = Spring.GetCurrentTooltip
 
-local RectRound = Spring.FlowUI.Draw.RectRound
-local UiElement = Spring.FlowUI.Draw.Element
+local RectRound, UiElement, bgpadding
 
 local math_floor = math.floor
 local math_ceil = math.ceil
@@ -82,7 +80,7 @@ local font, chobbyInterface
 ------------------------------------------------------------------------------------
 
 function widget:Initialize()
-	widget:ViewResize()
+	widget:ViewResize(vsx, vsy)
 	init()
 end
 
@@ -150,7 +148,10 @@ function widget:ViewResize(x, y)
 
 	font = WG['fonts'].getFont(fontfile)
 
-	bgpadding = math.ceil(Spring.FlowUI.elementPadding * 0.66)
+	bgpadding = math.ceil(WG.FlowUI.elementPadding * 0.66)
+
+	RectRound = WG.FlowUI.Draw.RectRound
+	UiElement = WG.FlowUI.Draw.Element
 
 	init()
 end

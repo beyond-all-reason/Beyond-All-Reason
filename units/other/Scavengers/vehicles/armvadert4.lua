@@ -46,7 +46,7 @@ return {
 			normaltex = "unittextures/Arm_normal.dds",
 			rockstrength = 0,
 			subfolder = "other/scavengers",
-			techlevel = 4,
+			techlevel = 3,
 		},
 		featuredefs = {
 			corpse = {

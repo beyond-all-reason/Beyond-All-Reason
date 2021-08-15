@@ -47,6 +47,7 @@ if gadgetHandler:IsSyncedCode() then
 	local math_cos = math.cos
 	local math_huge = math.huge
 	local math_random = math.random
+	local math_min = math.min
 
 	local spGetUnitDefID = Spring.GetUnitDefID
 	local spGetUnitMoveTypeData = Spring.GetUnitMoveTypeData
@@ -278,8 +279,9 @@ if gadgetHandler:IsSyncedCode() then
 		end
 		local airbaseDefID = spGetUnitDefID(airbaseID)
 		local unitDefID = spGetUnitDefID(unitID)
-		local healthGain = (mh * (isAirbase[airbaseDefID][2] / unitBuildtime[unitDefID])) * resourceFrames
-		local newHealth = h + healthGain
+		--local healthGain = (mh * (isAirbase[airbaseDefID][2] / unitBuildtime[unitDefID])) * resourceFrames
+		local healthGain = (unitBuildtime[unitDefID] / isAirbase[airbaseDefID][2]) / resourceFrames
+		local newHealth = math_min(h + healthGain, mh)
 		if mh < newHealth then
 			newHealth = mh
 		end

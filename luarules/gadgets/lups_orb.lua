@@ -14,113 +14,59 @@ if gadgetHandler:IsSyncedCode() then
 	return
 end
 
-
-local function MergeTable(table1, table2)
-	local result = {}
-	for i, v in pairs(table2) do
-		if type(v) == 'table' then
-			result[i] = MergeTable(v, {})
-		else
-			result[i] = v
-		end
-	end
-	for i, v in pairs(table1) do
-		if result[i] == nil then
-			if type(v) == 'table' then
-				if type(result[i]) ~= 'table' then
-					result[i] = {}
-				end
-				result[i] = MergeTable(v, result[i])
-			else
-				result[i] = v
-			end
-		end
-	end
-	return result
-end
-
 local defaults = {
 	layer = -35,
 	life = 20,
-	light = 2,
+	light = 2.5,
 	repeatEffect = true,
 }
 
-local corafusShieldSphere = MergeTable(defaults, {
+local corafusShieldSphere = table.merge(defaults, {
 	pos = { 0, 60, 0 },
 	size = 32,
-	light = 3.25,
+	light = 4,
 	--colormap1 = { {0.9, 0.9, 1, 0.75},{0.9, 0.9, 1, 1.0},{0.9, 0.9, 1, 1.0},{0.9, 0.9, 1, 0.75} },
 	--colormap2 = { {0.2, 0.2, 1, 0.7},{0.2, 0.2, 1, 0.75},{0.2, 0.2, 1, 0.75},{0.2, 0.2, 1, 0.7} },
 })
 
-local armafusShieldSphere = MergeTable(defaults, {
+local armafusShieldSphere = table.merge(defaults, {
 	pos = { 0, 60, 0 },
 	size = 28,
-	light = 3.5,
+	light = 4.25,
 	--colormap1 = { {0.9, 0.9, 1, 0.75},{0.9, 0.9, 1, 1.0},{0.9, 0.9, 1, 1.0},{0.9, 0.9, 1, 0.75} },
 	--colormap2 = { {0.2, 0.2, 1, 0.7},{0.2, 0.2, 1, 0.75},{0.2, 0.2, 1, 0.75},{0.2, 0.2, 1, 0.7} },
 })
 
-local corfusShieldSphere = MergeTable(defaults, {
+local corfusShieldSphere = table.merge(defaults, {
 	pos = { 0, 51, 0 },
 	size = 23,
-	light = 2.75,
+	light = 3.25,
 	--colormap1 = { {0.9, 0.9, 1, 0.75},{0.9, 0.9, 1, 1.0},{0.9, 0.9, 1, 1.0},{0.9, 0.9, 1, 0.75} },
 	--colormap2 = { {0.2, 0.6, 0.2, 0.4},{0.2, 0.6, 0.2, 0.45},{0.2, 0.6, 0.2, 0.45},{0.2, 0.6, 0.2, 0.4} },
 })
 
-local corgateShieldSphere = MergeTable(defaults, {
-	pos = { 0, 42, 0 },
-	size = 11,
-	light = 2.5,
-	colormap1 = { { 0.9, 0.9, 1, 0.75 }, { 0.9, 0.9, 1, 1.0 }, { 0.9, 0.9, 1, 1.0 }, { 0.9, 0.9, 1, 0.75 } },
-	colormap2 = { { 0.2, 0.6, 0.2, 0.4 }, { 0.2, 0.6, 0.2, 0.45 }, { 0.2, 0.6, 0.2, 0.45 }, { 0.2, 0.6, 0.2, 0.4 } },
-})
-
-local armjunoShieldSphere = MergeTable(defaults, {
-	pos = { 0, 72, 0 },
-	size = 13,
-	colormap1 = { { 0.9, 0.9, 1, 0.75 }, { 0.9, 0.9, 1, 1.0 }, { 0.9, 0.9, 1, 1.0 }, { 0.9, 0.9, 1, 0.75 } },
-	colormap2 = { { 0.8, 0.2, 0.2, 0.4 }, { 0.8, 0.2, 0.2, 0.45 }, { 0.9, 0.2, 0.2, 0.45 }, { 0.9, 0.1, 0.2, 0.4 } },
-})
-
-local corjunoShieldSphere = MergeTable(defaults, {
-	pos = { 0, 72, 0 },
-	size = 13,
-	colormap1 = { { 0.9, 0.9, 1, 0.75 }, { 0.9, 0.9, 1, 1.0 }, { 0.9, 0.9, 1, 1.0 }, { 0.9, 0.9, 1, 0.75 } },
-	colormap2 = { { 0.8, 0.2, 0.2, 0.4 }, { 0.8, 0.2, 0.2, 0.45 }, { 0.9, 0.2, 0.2, 0.45 }, { 0.9, 0.1, 0.2, 0.4 } },
-})
-
-local armgateShieldSphere = MergeTable(defaults, {
-	pos = { 0, 23.5, -5 },
-	size = 14.5,
-	colormap1 = { { 0.9, 0.9, 1, 0.75 }, { 0.9, 0.9, 1, 1.0 }, { 0.9, 0.9, 1, 1.0 }, { 0.9, 0.9, 1, 0.75 } },
-	colormap2 = { { 0.2, 0.6, 0.2, 0.4 }, { 0.2, 0.6, 0.2, 0.45 }, { 0.2, 0.6, 0.2, 0.45 }, { 0.2, 0.6, 0.2, 0.4 } },
-})
-
-local corgateShieldSphere = MergeTable(defaults, {
+local corgateShieldSphere = table.merge(defaults, {
 	pos = { 0, 42, 0 },
 	size = 11,
 	colormap1 = { { 0.9, 0.9, 1, 0.75 }, { 0.9, 0.9, 1, 1.0 }, { 0.9, 0.9, 1, 1.0 }, { 0.9, 0.9, 1, 0.75 } },
 	colormap2 = { { 0.2, 0.6, 0.2, 0.4 }, { 0.2, 0.6, 0.2, 0.45 }, { 0.2, 0.6, 0.2, 0.45 }, { 0.2, 0.6, 0.2, 0.4 } },
 })
 
-local armjunoShieldSphere = MergeTable(defaults, {
+local armjunoShieldSphere = table.merge(defaults, {
 	pos = { 0, 72, 0 },
 	size = 13,
 	colormap1 = { { 0.9, 0.9, 1, 0.75 }, { 0.9, 0.9, 1, 1.0 }, { 0.9, 0.9, 1, 1.0 }, { 0.9, 0.9, 1, 0.75 } },
 	colormap2 = { { 0.8, 0.2, 0.2, 0.4 }, { 0.8, 0.2, 0.2, 0.45 }, { 0.9, 0.2, 0.2, 0.45 }, { 0.9, 0.1, 0.2, 0.4 } },
 })
 
-local corjunoShieldSphere = MergeTable(defaults, {
+local corjunoShieldSphere = table.merge(defaults, {
 	pos = { 0, 72, 0 },
 	size = 13,
 	colormap1 = { { 0.9, 0.9, 1, 0.75 }, { 0.9, 0.9, 1, 1.0 }, { 0.9, 0.9, 1, 1.0 }, { 0.9, 0.9, 1, 0.75 } },
 	colormap2 = { { 0.8, 0.2, 0.2, 0.4 }, { 0.8, 0.2, 0.2, 0.45 }, { 0.9, 0.2, 0.2, 0.45 }, { 0.9, 0.1, 0.2, 0.4 } },
 })
 
-local armgateShieldSphere = MergeTable(defaults, {
+local armgateShieldSphere = table.merge(defaults, {
 	pos = { 0, 23.5, -5 },
 	size = 14.5,
 	colormap1 = { { 0.9, 0.9, 1, 0.75 }, { 0.9, 0.9, 1, 1.0 }, { 0.9, 0.9, 1, 1.0 }, { 0.9, 0.9, 1, 0.75 } },
@@ -169,7 +115,7 @@ local UnitEffects = {
 	},
 	["armfgate"] = {
 		{ class = 'ShieldJitter', options = { delay = 0, life = math.huge, pos = { 0, 25, 0 }, size = 15, precision = 22, repeatEffect = true } },
-		{ class = 'ShieldSphere', options = MergeTable(armgateShieldSphere, { pos = { 0, 25, 0 } }) },
+		{ class = 'ShieldSphere', options = table.merge(armgateShieldSphere, { pos = { 0, 25, 0 } }) },
 		--{class='ShieldJitter', options={delay=0,life=math.huge, pos={0,25,0}, size=555, precision=0, strength= 0.001, repeatEffect=true}},
 	},
 

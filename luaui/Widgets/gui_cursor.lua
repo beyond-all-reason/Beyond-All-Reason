@@ -20,23 +20,12 @@ Settings['version'] = 5		-- just so it wont restore configdata on load if it dif
 local force = true
 local autoCursorSize
 
-function split(inputstr, sep)
-	sep = sep or '%s'
-	local t = {}
-	for field, s in string.gmatch(inputstr, "([^"..sep.."]*)("..sep.."?)") do
-		table.insert(t,field)
-		if s == "" then
-			return t
-		end
-	end
-end
-
 -- note: first entry should be icons inside base /anims folder
 local cursorSets = {}
 for k, subdir in pairs(VFS.SubDirs('anims')) do
 	local set = string.gsub(string.sub(subdir, 1, #subdir-1), 'anims/', '')	-- game anims folder
 	set = string.gsub(string.sub(set, 1, #subdir), 'anims\\', '')	-- spring anims folder
-	local subdirSplit = split(set, '_')
+	local subdirSplit = string.split(set, '_')
 	if cursorSets[subdirSplit[1]] == nil then
 		cursorSets[subdirSplit[1]] = {}
 	end
@@ -115,6 +104,7 @@ function SetCursor(cursorSet)
 			'cursorrepair','cursorrevive','cursorrestore',
 			'cursormove','cursorpatrol','cursorreclamate','cursorselfd',
 			'cursornumber','cursorsettarget','cursorupgmex','cursorareamex',
+			'uiresizev', 'uiresizeh', 'uiresized1', 'uiresized2', 'uimove',
 		}
 		for i=1, #cursorNames do
 			Spring.ReplaceMouseCursor(cursorNames[i], cursorDir..'/'..cursorNames[i], (cursorNames[i] == 'cursornormal'))

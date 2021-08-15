@@ -609,8 +609,10 @@ if gadgetHandler:IsSyncedCode() then
 											Spring.GiveOrderToUnit(unitID, CMD.FIGHT, { tUnitX + math.random(-100, 100), tUnitY, tUnitZ + math.random(-100, 100) }, { "shift", "alt", "ctrl" })
 										elseif n%3600 <= 15*SimpleAITeamIDsCount then
 											local targetUnit = Spring.GetUnitNearestEnemy(unitID, 999999, false)
-											local tUnitX, tUnitY, tUnitZ = Spring.GetUnitPosition(targetUnit)
-											Spring.GiveOrderToUnit(unitID, CMD.FIGHT, { tUnitX + math.random(-100, 100), tUnitY, tUnitZ + math.random(-100, 100) }, { "shift", "alt", "ctrl" })
+											if targetUnit then
+												local tUnitX, tUnitY, tUnitZ = Spring.GetUnitPosition(targetUnit)
+												Spring.GiveOrderToUnit(unitID, CMD.FIGHT, { tUnitX + math.random(-100, 100), tUnitY, tUnitZ + math.random(-100, 100) }, { "shift", "alt", "ctrl" })
+											end
 										end
 										break
 									end

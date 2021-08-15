@@ -519,13 +519,13 @@ local definitions = {
                 water              = true,
                 properties = {
                     airdrag            = 0.9,
-                    colormap           = [[0.1 0.1 0.1 0.01   0.1 0.1 0.1 0.04   0.1 0.1 0.1 0.09  0.15 0.15 0.15 0.15   0.18 0.16 0.14 0.38   0.15 0.14 0.13 0.38   0.14 0.13 0.12 0.34   0.108 0.1 0.09 0.26   0.105 0.1 0.09 0.26   0.1 0.095 0.085 0.2   0.095 0.09 0.085 0.2   0.045 0.045 0.04 0.1   0.045 0.045 0.04 0.1   0.022 0.022 0.02 0.05   0.022 0.022 0.02 0.05   0 0 0 0.01]],
+                    colormap           = [[0 0 0 0.01   0.20 0.14 0.08 0.01   0.16 0.12 0.06 0.15    0.12 0.10 0.08 0.38   0.11 0.09 0.07 0.30   0.10 0.08 0.07 0.24   0.09 0.065 0.055 0.22   0.08 0.06 0.045 0.20   0.065 0.048 0.037 0.18   0.045 0.035 0.03 0.16   0.05 0.04 0.035 0.1   0.038 0.029 0.022 0.1   0.026 0.020 0.017 0.05   0.023 0.018 0.016 0.05   0 0 0 0.01]],
                     directional        = true,
                     emitrot            = 94,
                     emitrotspread      = 45,
                     emitvector         = [[0, 1, 0]],
                     gravity            = [[0.0, 0.05, 0.0]],
-                    numparticles       = 37,
+                    numparticles       = 18,
                     particlelife       = 180,
                     particlelifespread = 75,
                     particlesize       = 12,
@@ -540,6 +540,35 @@ local definitions = {
                     alwaysvisible      = true,
                 },
             },
+            smoke2 = {
+                air                = true,
+                class              = [[CSimpleParticleSystem]],
+                count              = 1,
+                ground             = true,
+                water              = true,
+                properties = {
+                    airdrag            = 0.91,
+                    colormap           = [[0 0 0 0   0 0 0 0.01   0.20 0.14 0.08 0.01   0.16 0.12 0.06 0.15    0.12 0.10 0.08 0.38   0.11 0.09 0.07 0.30   0.10 0.08 0.07 0.24   0.09 0.065 0.055 0.22   0.08 0.06 0.045 0.20   0.065 0.048 0.037 0.18   0.045 0.035 0.03 0.16   0.05 0.04 0.035 0.1   0.038 0.029 0.022 0.1   0.026 0.020 0.017 0.05   0.023 0.018 0.016 0.05   0 0 0 0.01]],
+                    directional        = false,
+                    emitrot            = 120,
+                    emitrotspread      = 20,
+                    emitvector         = [[0, 1, 0]],
+                    gravity            = [[0.0, 0.08, 0.0]],
+                    numparticles       = 18,
+                    particlelife       = 165,
+                    particlelifespread = 115,
+                    particlesize       = 15,
+                    particlesizespread = 24,
+                    particlespeed      = 11,
+                    particlespeedspread = 12,
+                    pos                = [[0.0, 60, 0.0]],
+                    sizegrowth         = 1.01,
+                    sizemod            = 1,
+                    texture            = [[fogdirty]],
+                    useairlos          = true,
+                    alwaysvisible      = true,
+                },
+            },    
         },
 
     ["armnuke"] = {
@@ -1015,40 +1044,25 @@ local definitions = {
 
 }
 
-function deepcopy(orig)
-  local orig_type = type(orig)
-  local copy
-  if orig_type == 'table' then
-    copy = {}
-    for orig_key, orig_value in next, orig, nil do
-      copy[deepcopy(orig_key)] = deepcopy(orig_value)
-    end
-    setmetatable(copy, deepcopy(getmetatable(orig)))
-  else -- number, string, boolean, etc
-    copy = orig
-  end
-  return copy
-end
-
 local size = 1.5
 
-definitions['cornuke-floor'] = deepcopy(definitions['armnuke-floor'])
+definitions['cornuke-floor'] = table.copy(definitions['armnuke-floor'])
 definitions['cornuke-floor'].smoke.properties.numparticles = math.floor(definitions['cornuke-floor'].smoke.properties.numparticles * size)
 definitions['cornuke-floor'].smoke.properties.particlespeedspread = math.floor(definitions['cornuke-floor'].smoke.properties.particlespeedspread * size)
-definitions['cornuke-stem'] = deepcopy(definitions['armnuke-stem'])
+definitions['cornuke-stem'] = table.copy(definitions['armnuke-stem'])
 definitions['cornuke-stem'].smoke.properties.particlesize = math.floor(definitions['cornuke-stem'].smoke.properties.particlesize * size)
-definitions['cornuke-stem2'] = deepcopy(definitions['armnuke-stem2'])
+definitions['cornuke-stem2'] = table.copy(definitions['armnuke-stem2'])
 definitions['cornuke-stem2'].smoke.properties.particlesize = math.floor(definitions['cornuke-stem2'].smoke.properties.particlesize * size)
-definitions['cornuke-headring'] = deepcopy(definitions['armnuke-headring'])
+definitions['cornuke-headring'] = table.copy(definitions['armnuke-headring'])
 definitions['cornuke-headring'].smoke.properties.numparticles = math.floor(definitions['cornuke-headring'].smoke.properties.numparticles * size)
 definitions['cornuke-headring'].smoke.properties.particlespeedspread = math.floor(definitions['cornuke-headring'].smoke.properties.particlespeedspread * size)
 definitions['cornuke-headring'].smoke.properties.particlesize = math.floor(definitions['cornuke-headring'].smoke.properties.particlesize * size)
-definitions['cornuke-head'] = deepcopy(definitions['armnuke-head'])
+definitions['cornuke-head'] = table.copy(definitions['armnuke-head'])
 definitions['cornuke-head'].smoke.properties.numparticles = math.floor(definitions['cornuke-head'].smoke.properties.numparticles * size)
 definitions['cornuke-head'].smoke.properties.particlespeedspread = math.floor(definitions['cornuke-head'].smoke.properties.particlespeedspread * size)
 definitions['cornuke-head'].smoke.properties.particlesize = math.floor(definitions['cornuke-head'].smoke.properties.particlesize * size)
 --
-definitions['cornuke'] = deepcopy(definitions['armnuke'])
+definitions['cornuke'] = table.copy(definitions['armnuke'])
 definitions['cornuke'].nukefloor.properties.explosiongenerator = [[custom:cornuke-floor]]
 definitions['cornuke'].nukestem.properties.explosiongenerator = [[custom:cornuke-stem]]
 definitions['cornuke'].nukestem2.properties.explosiongenerator = [[custom:cornuke-stem2]]
@@ -1068,13 +1082,13 @@ definitions['cornuke'].groundflash_white.properties.size = math.floor(definition
 
 local size = 1.5
 
-definitions['newnukecor-floor'] = deepcopy(definitions['newnuke-floor'])
+definitions['newnukecor-floor'] = table.copy(definitions['newnuke-floor'])
 definitions['newnukecor-floor'].smoke.properties.numparticles = math.floor(definitions['newnukecor-floor'].smoke.properties.numparticles * size * 1.3)
 definitions['newnukecor-floor'].smoke.properties.particlesize = math.floor(definitions['newnukecor-floor'].smoke.properties.particlesize * size * 1.3)
 definitions['newnukecor-floor'].smoke.properties.particlespeed = math.floor(definitions['newnukecor-floor'].smoke.properties.particlespeed * size)
 definitions['newnukecor-floor'].smoke.properties.particlespeedspread = math.floor(definitions['newnukecor-floor'].smoke.properties.particlespeedspread * size)
 --
-definitions['newnukecor'] = deepcopy(definitions['newnuke'])
+definitions['newnukecor'] = table.copy(definitions['newnuke'])
 definitions['newnukecor'].nukefloor.properties.explosiongenerator = [[custom:newnukecor-floor]]
 
 definitions['newnukecor'].sparks.properties.particlespeed = math.floor(definitions['newnukecor'].sparks.properties.particlespeed * size)
@@ -1105,12 +1119,12 @@ definitions['newnukecor'].groundflash_quick.properties.size = math.floor(definit
 
 local size = 2.2
 
-definitions['newnukehuge-floor'] = deepcopy(definitions['newnuke-floor'])
+definitions['newnukehuge-floor'] = table.copy(definitions['newnuke-floor'])
 definitions['newnukehuge-floor'].smoke.properties.numparticles = math.floor(definitions['newnukehuge-floor'].smoke.properties.numparticles * size)
 definitions['newnukehuge-floor'].smoke.properties.particlespeed = math.floor(definitions['newnukehuge-floor'].smoke.properties.particlespeed * size)
 definitions['newnukehuge-floor'].smoke.properties.particlespeedspread = math.floor(definitions['newnukehuge-floor'].smoke.properties.particlespeedspread * size)
 --
-definitions['newnukehuge'] = deepcopy(definitions['newnuke'])
+definitions['newnukehuge'] = table.copy(definitions['newnuke'])
 definitions['newnukehuge'].nukefloor.properties.explosiongenerator = [[custom:newnukehuge-floor]]
 
 definitions['newnukehuge'].sparks.properties.particlespeed = math.floor(definitions['newnukehuge'].sparks.properties.particlespeed * size)
@@ -1140,14 +1154,14 @@ definitions['newnukehuge'].groundflash_white.properties.size = math.floor(defini
 
 local size = 0.48
 
-definitions['newnuketac-floor'] = deepcopy(definitions['newnuke-floor'])
+definitions['newnuketac-floor'] = table.copy(definitions['newnuke-floor'])
 definitions['newnuketac-floor'].smoke.properties.numparticles = math.floor(definitions['newnuketac-floor'].smoke.properties.numparticles * size * 0.7)
 definitions['newnuketac-floor'].smoke.properties.particlespeed = math.floor(definitions['newnuketac-floor'].smoke.properties.particlespeed * size)
 definitions['newnuketac-floor'].smoke.properties.particlespeedspread = math.floor(definitions['newnuketac-floor'].smoke.properties.particlespeedspread * size)
 definitions['newnuketac-floor'].smoke.properties.particlesize = math.floor(definitions['newnuketac-floor'].smoke.properties.particlesize * size * 0.4)
 definitions['newnuketac-floor'].smoke.properties.particlelife = math.floor(definitions['newnuketac-floor'].smoke.properties.particlelife * size)
 --
-definitions['newnuketac'] = deepcopy(definitions['newnuke'])
+definitions['newnuketac'] = table.copy(definitions['newnuke'])
 definitions['newnuketac'].nukefloor.properties.explosiongenerator = [[custom:newnuketac-floor]]
 definitions['newnuketac'].nukefloor.properties.delay = [[12 i1]]
 
@@ -1196,23 +1210,23 @@ definitions['newnuketac'].grounddust.properties.particlelife = math.floor(defini
 
 local size = 0.6
 
-definitions['chickennuke-floor'] = deepcopy(definitions['armnuke-floor'])
+definitions['chickennuke-floor'] = table.copy(definitions['armnuke-floor'])
 definitions['chickennuke-floor'].smoke.properties.numparticles = math.floor(definitions['chickennuke-floor'].smoke.properties.numparticles * size)
 definitions['chickennuke-floor'].smoke.properties.particlespeedspread = math.floor(definitions['chickennuke-floor'].smoke.properties.particlespeedspread * size)
-definitions['chickennuke-stem'] = deepcopy(definitions['armnuke-stem'])
+definitions['chickennuke-stem'] = table.copy(definitions['armnuke-stem'])
 definitions['chickennuke-stem'].smoke.properties.particlesize = math.floor(definitions['chickennuke-stem'].smoke.properties.particlesize * size)
-definitions['chickennuke-stem2'] = deepcopy(definitions['armnuke-stem2'])
+definitions['chickennuke-stem2'] = table.copy(definitions['armnuke-stem2'])
 definitions['chickennuke-stem2'].smoke.properties.particlesize = math.floor(definitions['chickennuke-stem2'].smoke.properties.particlesize * size)
-definitions['chickennuke-headring'] = deepcopy(definitions['armnuke-headring'])
+definitions['chickennuke-headring'] = table.copy(definitions['armnuke-headring'])
 definitions['chickennuke-headring'].smoke.properties.numparticles = math.floor(definitions['chickennuke-headring'].smoke.properties.numparticles * size)
 definitions['chickennuke-headring'].smoke.properties.particlespeedspread = math.floor(definitions['chickennuke-headring'].smoke.properties.particlespeedspread * size)
 definitions['chickennuke-headring'].smoke.properties.particlesize = math.floor(definitions['chickennuke-headring'].smoke.properties.particlesize * size)
-definitions['chickennuke-head'] = deepcopy(definitions['armnuke-head'])
+definitions['chickennuke-head'] = table.copy(definitions['armnuke-head'])
 definitions['chickennuke-head'].smoke.properties.numparticles = math.floor(definitions['chickennuke-head'].smoke.properties.numparticles * size)
 definitions['chickennuke-head'].smoke.properties.particlespeedspread = math.floor(definitions['chickennuke-head'].smoke.properties.particlespeedspread * size)
 definitions['chickennuke-head'].smoke.properties.particlesize = math.floor(definitions['chickennuke-head'].smoke.properties.particlesize * size)
 --
-definitions['chickennuke'] = deepcopy(definitions['armnuke'])
+definitions['chickennuke'] = table.copy(definitions['armnuke'])
 definitions['chickennuke'].nukefloor.properties.explosiongenerator = [[custom:chickennuke-floor]]
 definitions['chickennuke'].nukestem.properties.explosiongenerator = [[custom:chickennuke-stem]]
 definitions['chickennuke'].nukestem2.properties.explosiongenerator = [[custom:chickennuke-stem2]]

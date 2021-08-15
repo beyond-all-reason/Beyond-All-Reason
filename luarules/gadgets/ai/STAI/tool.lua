@@ -91,7 +91,7 @@ function Tool:distance(pos1,pos2)
 	if yd < 0 then
 		yd = -yd
 	end
-	dist = math.sqrt(xd*xd + zd*zd + yd*yd*yd)
+	local dist = math.sqrt(xd*xd + zd*zd + yd*yd*yd)
 	return dist
 end
 
@@ -231,26 +231,47 @@ function Tool:dictHasKey( value, list )
 	return false
 end
 
+function Tool:countFinished( nameORid )
+	local team = self.game:GetTeamID()
+	local counter = 0
+	if type(nameORid ) == 'string' then
+		nameORid = self.ai.armyhst.unitTable[nameORid].defId
+	end
+	if type(nameORid ) ~= 'number' then
+		self:EchoDebug('type not valid in count finish unit')
+	end
+	local targetList = self.ai.game:GetTeamUnitsByDefs(self.ai.id, nameORid)
+	for index , value in pairs(targetList) do
+		if value:internal():IsBeingBuilt() == 1 then
+			counter = counter +1
+		end
+	end
+	return counter
+end
+
 function Tool:countMyUnit( targets )
-	local team = game:GetTeamID()
+	local team = self.game:GetTeamID()
 	local counter = 0
 	for i,target in pairs(targets) do
 		self:EchoDebug('target',target)
 
 		if type(target) == 'number' then
 			self:EchoDebug()
-			local id = self.ai.armyhst.unitTable[name].defId
-			counter = counter + game:GetTeamUnitDefCount(team,id)
+-- 			local id = self.ai.armyhst.unitTable[name].defId --TODO ????? self.name????
+			counter = counter + self.game:GetTeamUnitDefCount(team,target)
 		elseif self.ai.armyhst[target] then
 			for name,t in pairs(self.ai.armyhst[target]) do
 				local id = self.ai.armyhst.unitTable[name].defId
-				counter = counter + game:GetTeamUnitDefCount(team,id)
+				counter = counter + self.game:GetTeamUnitDefCount(team,id)
 			end
+
 		else
+			self:EchoDebug('search for spec')
 			for name,spec in pairs(self.ai.armyhst.unitTable) do
-				if spec.target or name == target then
+				self:EchoDebug(name,spec)
+				if spec[target] or name == target then
 					local id = spec.defId
-					counter = counter + game:GetTeamUnitDefCount(team,id)
+					counter = counter + self.game:GetTeamUnitDefCount(team,id)
 				end
 			end
 		end
@@ -259,6 +280,17 @@ function Tool:countMyUnit( targets )
 	return counter
 end
 
+function Tool:mtypedLvCount(tpLv)
+	local team = self.game:GetTeamID()
+	local counter = 0
+	for name,spec in pairs(self.ai.armyhst.unitTable) do
+		if spec.mtypedLv and spec.mtypedLv == tpLv then
+			local id = spec.defId
+			counter = counter + self.game:GetTeamUnitDefCount(team,id)
+		end
+	end
+	return counter
+end
 
 function Tool:CustomCommand(unit, cmdID, cmdParams)
 	local floats = api.vectorFloat()
@@ -420,6 +452,67 @@ function Tool:BehaviourPosition(behaviour)
 	if unit == nil then return end
 	return unit:GetPosition()
 end
+
+function Tool:ClosestBuildPos( utype,pos, searchRadius, minDistance, buildFacing, validFunction)
+	self.DebugEnabled = true
+	unitdefID = utype.id
+-- 	if type(unitdefID) == 'table' then
+-- 		for i,v in pairs (unitdefID) do
+-- 			self:EchoDebug('i',i,'v',v)
+-- 		end
+-- 		unitdefID = unitdefID.id
+-- 		self:EchoDebug(id , unitdefID)
+--
+-- 	end
+	--Spring.ClosestBuildPos(teamID, unitdefID, worldx,worldy,worldz, searchRadius, minDistance, buildFacing) -> buildx,buildy,buildz  to LuaSyncedRead
+	if not unitdefID then
+		self:EchoDebug('non-valid unit def ID')
+		self.DebugEnabled = false
+		return
+	end
+	if not pos then
+		self:EchoDebug('non-valid unit def ID')
+		self.DebugEnabled = false
+		return
+	end
+	self.DebugEnabled = false
+	buildFacing = buildFacing or 1
+	teamID = self.ai.id
+	searchRadius = searchRadius or 5000
+	minDistance = minDistance or 0
+	pos.y = pos.y or Spring.GetGroundHeight(pos.x,pos.z)
+	--self.game:StartTimer('toolpos')
+	local position = Spring.ClosestBuildPos(teamID, unitdefID, pos.x,pos.y,pos.z, searchRadius, minDistance, buildFacing)
+	--self.game:StopTimer('toolpos')
+	if not position then
+		self:EchoDebug('no position')
+		self.DebugEnabled = false
+		return end
+
+	local buildable, position = self.ai.map:CanBuildHere(utype, {x = pos.x, y = pos.y, z = pos.z})
+	if not buildable then
+		self:EchoDebug('not buildable')
+		self.DebugEnabled = false
+		return
+	end
+
+-- 	local lastDitch, lastDitchPos = self:CanBuildHere(unitdefID, builderpos)
+-- 	if not lastDitch then return end
+	validFunction = validFunction or function (position) return position end
+	position = validFunction(position)
+	if not position then
+
+		self:EchoDebug('position not valid')
+		self.DebugEnabled = false
+		return
+	end
+	self.DebugEnabled = false
+	return position
+end
+
+
+
+
 
 function Tool:HorizontalLine(grid, x, z, tx, sets, adds)
 	for ix = x, tx do

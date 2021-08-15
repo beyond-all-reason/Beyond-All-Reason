@@ -59,29 +59,12 @@ local hoverCellZoom = 0.05 * zoomMult
 local clickSelectedCellZoom = 0.125 * zoomMult
 local selectedCellZoom = 0.135 * zoomMult
 
-local buttonBackgroundTexture = "LuaUI/Images/vr_grid.png"
-local buttonBgtexScale = 1.9	-- lower = smaller tiles
-local buttonBgtexOpacity = 0
-local buttonBgtexSize
-local backgroundTexture = "LuaUI/Images/backgroundtile.png"
-local ui_tileopacity = tonumber(Spring.GetConfigFloat("ui_tileopacity", 0.012) or 0.012)
-local bgtexScale = tonumber(Spring.GetConfigFloat("ui_tilescale", 7) or 7)	-- lower = smaller tiles
-local bgtexSize
-
 local bgpadding, chobbyInterface, activeAreaMargin, textureDetail, iconTypesMap, radariconTextureDetail
 local dlistCache, dlistGuishader, dlistBuildmenuBg, dlistBuildmenu, font, font2, cmdsCount
 local hijackedlayout, doUpdateClock, ordermenuHeight, advplayerlistPos, prevAdvplayerlistLeft
 local cellPadding, iconPadding, cornerSize, cellInnerSize, cellSize
 --local radariconSize, radariconOffset, groupiconSize, priceFontSize
 --local activeCmd, selBuildQueueDefID, rowPressedClock, rowPressed
-
-local minWaterUnitDepth = -11
-
-local showWaterUnits = false
-local _, _, mapMinWater, _ = Spring.GetGroundExtremes()
-if mapMinWater <= minWaterUnitDepth then
-	showWaterUnits = true
-end
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
@@ -198,12 +181,7 @@ local GL_DST_ALPHA = GL.DST_ALPHA
 local GL_ONE_MINUS_SRC_COLOR = GL.ONE_MINUS_SRC_COLOR
 local glDepthTest = gl.DepthTest
 
-local RectRound = Spring.FlowUI.Draw.RectRound
-local RectRoundProgress = Spring.FlowUI.Draw.RectRoundProgress
-local UiUnit = Spring.FlowUI.Draw.Unit
-local UiElement = Spring.FlowUI.Draw.Element
-local UiButton = Spring.FlowUI.Draw.Button
-local elementCorner = Spring.FlowUI.elementCorner
+local RectRound, RectRoundProgress, UiUnit, UiElement, UiButton, elementCorner
 
 function table_invert(t)
 	local s = {}
@@ -295,23 +273,28 @@ local unitEnergyCost = {}
 local unitMetalCost = {}
 local unitGroup = {}
 local unitRestricted = {}
+local unitDisabled = {}
 local isBuilder = {}
 local isFactory = {}
 local unitIconType = {}
 local isMex = {}
 local isWaterUnit = {}
+local isGeothermalUnit = {}
 local unitMaxWeaponRange = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
-	unitGroup[unitDefID] = 'util'
 
-	if unitDef.name == 'armdl' or unitDef.name == 'cordl' or unitDef.name == 'armlance' or unitDef.name == 'cortitan'	-- or unitDef.name == 'armbeaver' or unitDef.name == 'cormuskrat'
+	if unitDef.name == 'armdl' or unitDef.name == 'cordl' or unitDef.name == 'armlance' or unitDef.name == 'cortitan'
 		or (unitDef.minWaterDepth > 0 or unitDef.modCategories['ship']) then
-		isWaterUnit[unitDefID] = true
-	end
-	if unitDef.name == 'armthovr' or unitDef.name == 'corintr' then
-		isWaterUnit[unitDefID] = nil
+		if not (unitDef.modCategories['hover'] or (unitDef.modCategories['mobile'] and unitDef.modCategories['canbeuw'])) then
+			isWaterUnit[unitDefID] = true
+		end
 	end
 
+	if unitDef.needGeo then
+		isGeothermalUnit[unitDefID] = true
+	end
+
+	unitGroup[unitDefID] = 'util'
 	if unitDef.customParams.objectify or unitDef.isTransport or string.find(unitDef.name, 'critter') then
 		unitGroup[unitDefID] = nil
 	end
@@ -545,6 +528,48 @@ end
 unitOrder = unitsOrdered
 unitsOrdered = nil
 
+local minWaterUnitDepth = -11
+local showWaterUnits = false
+local _, _, mapMinWater, _ = Spring.GetGroundExtremes()
+if mapMinWater <= minWaterUnitDepth then
+	showWaterUnits = true
+end
+-- make them a disabled unit (instead of removing it entirely)
+if not showWaterUnits then
+	for unitDefID,_ in pairs(isWaterUnit) do
+		unitDisabled[unitDefID] = true
+	end
+end
+
+local showGeothermalUnits = false
+local function checkGeothermalFeatures()
+	showGeothermalUnits = false
+	local geoThermalFeatures = {}
+	for defID, def in pairs(FeatureDefs) do
+		if def.geoThermal then
+			geoThermalFeatures[defID] = true
+		end
+	end
+	local features = Spring.GetAllFeatures()
+	for i = 1, #features do
+		if geoThermalFeatures[Spring.GetFeatureDefID(features[i])] then
+			showGeothermalUnits = true
+			break
+		end
+	end
+	-- make them a disabled unit (instead of removing it entirely)
+	for unitDefID,_ in pairs(isGeothermalUnit) do
+		if not showGeothermalUnits then
+			unitDisabled[unitDefID] = true
+		else
+			if not isWaterUnit[unitDefID] or showWaterUnits then
+				unitDisabled[unitDefID] = nil
+			end
+		end
+	end
+end
+
+
 -- load all icons to prevent briefly showing white unit icons (will happen due to the custom texture filtering options)
 local function cacheUnitIcons()
 	local minC = minColls
@@ -642,9 +667,7 @@ local function RefreshCommands()
 
 			local cmdUnitdefs = {}
 			for i, udefid in pairs(UnitDefs[startDefID].buildOptions) do
-				if showWaterUnits or not isWaterUnit[udefid] then
-					cmdUnitdefs[udefid] = i
-				end
+				cmdUnitdefs[udefid] = i
 			end
 			for k, uDefID in pairs(unitOrder) do
 				if cmdUnitdefs[uDefID] then
@@ -666,10 +689,7 @@ local function RefreshCommands()
 			for index, cmd in pairs(activeCmdDescs) do
 				if type(cmd) == "table" then
 					if string_sub(cmd.action, 1, 10) == 'buildunit_' then
-						-- not cmd.disabled and cmd.type == 20 or
-						if showWaterUnits or not isWaterUnit[cmd.id * -1] then
-							cmdUnitdefs[cmd.id * -1] = index
-						end
+						cmdUnitdefs[cmd.id * -1] = index
 					end
 				end
 			end
@@ -683,11 +703,8 @@ local function RefreshCommands()
 			for index, cmd in pairs(activeCmdDescs) do
 				if type(cmd) == "table" then
 					if string_sub(cmd.action, 1, 10) == 'buildunit_' then
-						-- not cmd.disabled and cmd.type == 20 or
-						if showWaterUnits or not isWaterUnit[cmd] then
-							cmdsCount = cmdsCount + 1
-							cmds[cmdsCount] = cmd
-						end
+						cmdsCount = cmdsCount + 1
+						cmds[cmdsCount] = cmd
 					end
 				end
 			end
@@ -705,11 +722,15 @@ function widget:ViewResize()
 		minimapHeight = WG['minimap'].getHeight()
 	end
 
-	local widgetSpaceMargin = Spring.FlowUI.elementMargin
-	bgpadding = Spring.FlowUI.elementPadding
-	elementCorner = Spring.FlowUI.elementCorner
-	bgtexSize = bgpadding * bgtexScale
-	buttonBgtexSize = bgpadding * buttonBgtexScale
+	local widgetSpaceMargin = WG.FlowUI.elementMargin
+	bgpadding = WG.FlowUI.elementPadding
+	elementCorner = WG.FlowUI.elementCorner
+
+	RectRound = WG.FlowUI.Draw.RectRound
+	RectRoundProgress = WG.FlowUI.Draw.RectRoundProgress
+	UiUnit = WG.FlowUI.Draw.Unit
+	UiButton = WG.FlowUI.Draw.Button
+	UiElement = WG.FlowUI.Draw.Element
 
 	activeAreaMargin = math_ceil(bgpadding * cfgActiveAreaMargin)
 
@@ -787,6 +808,9 @@ end
 
 
 function widget:Initialize()
+
+	checkGeothermalFeatures()
+
 	hijacklayout()
 
 	iconTypesMap = {}
@@ -964,7 +988,15 @@ function widget:Update(dt)
 
 		local _, _, mapMinWater, _ = Spring.GetGroundExtremes()
 		if mapMinWater <= minWaterUnitDepth then
-			showWaterUnits = true
+			if not showWaterUnits then
+				showWaterUnits = true
+
+				for unitDefID,_ in pairs(isWaterUnit) do
+					if not isGeothermalUnit[unitDefID] or showGeothermalUnits then	-- make sure geothermal units keep being disabled if that should be the case
+						unitDisabled[unitDefID] = nil
+					end
+				end
+			end
 		end
 
 		if stickToBottom then
@@ -1231,7 +1263,7 @@ function drawBuildmenu()
 				WG['buildmenu'].selectedID = uDefID
 			end
 
-			drawCell(cellRectID, usedZoom, cellIsSelected and { 1, 0.85, 0.2, 0.25 } or nil, nil, nil, nil, unitRestricted[uDefID])
+			drawCell(cellRectID, usedZoom, cellIsSelected and { 1, 0.85, 0.2, 0.25 } or nil, nil, nil, nil, unitRestricted[uDefID] or unitDisabled[uDefID])
 		end
 	end
 
@@ -1409,7 +1441,7 @@ function widget:DrawScreen()
 								local text
 								local textColor = "\255\215\255\215"
 
-								if unitRestricted[uDefID] then
+								if unitRestricted[uDefID] or unitDisabled[uDefID] then
 									text = Spring.I18N('ui.buildMenu.disabled', { unit = UnitDefs[uDefID].humanName, textColor = textColor, warnColor = "\255\166\166\166" })
 								else
 									text = textColor .. UnitDefs[uDefID].humanName
@@ -1494,7 +1526,7 @@ function widget:DrawScreen()
 							end
 							cellColor = { 1, 0.85, 0.2, 0.25 }
 						end
-						if not unitRestricted[uDefID] then
+						if not (unitRestricted[uDefID] or unitDisabled[uDefID]) then
 
 							local unsetShowPrice, unsetShowRadarIcon, unsetShowGroupIcon
 							if not showPrice then
@@ -1510,7 +1542,7 @@ function widget:DrawScreen()
 							--	showGroupIcon = true
 							--end
 							-- re-draw cell with hover zoom (and price shown)
-							drawCell(cellRectID, usedZoom, cellColor, nil, { cellColor[1], cellColor[2], cellColor[3], 0.045 + (usedZoom * 0.45) }, 0.15, unitRestricted[uDefID])
+							drawCell(cellRectID, usedZoom, cellColor, nil, { cellColor[1], cellColor[2], cellColor[3], 0.045 + (usedZoom * 0.45) }, 0.15, unitRestricted[uDefID] or unitDisabled[uDefID])
 
 							if unsetShowPrice then
 								showPrice = false
@@ -1784,6 +1816,11 @@ end
 
 function widget:GameFrame(n)
 
+	if checkGeothermalFeatures then
+		checkGeothermalFeatures()
+		checkGeothermalFeatures = nil
+	end
+
 	-- handle the pregame build queue
 	preGamestartPlayer = false
 	if n <= 90 and #buildQueue > 0 then
@@ -1947,7 +1984,7 @@ function widget:MousePress(x, y, button)
 			end
 			if not disableInput then
 				for cellRectID, cellRect in pairs(cellRects) do
-					if cmds[cellRectID].id and UnitDefs[-cmds[cellRectID].id].humanName and IsOnRect(x, y, cellRect[1], cellRect[2], cellRect[3], cellRect[4]) and not unitRestricted[-cmds[cellRectID].id] then
+					if cmds[cellRectID].id and UnitDefs[-cmds[cellRectID].id].humanName and IsOnRect(x, y, cellRect[1], cellRect[2], cellRect[3], cellRect[4]) and not (unitRestricted[-cmds[cellRectID].id] or unitDisabled[-cmds[cellRectID].id]) then
 						if button ~= 3 then
 							if playSounds then
 								Spring.PlaySoundFile(sound_queue_add, 0.75, 'ui')

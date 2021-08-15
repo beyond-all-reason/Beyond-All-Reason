@@ -70,6 +70,7 @@ function DefendHST:AddWard(behaviour, turtle)
 		local frontNumber = { ground = 0, air = 0, submerged = 0 }
 		ward = { uid = behaviour.id, behaviour = behaviour, priority = priority, frontNumber = frontNumber, threatened = nil, defenders = {}, guardDistance = self:GetGuardDistance(un) }
 	elseif turtle ~= nil then
+		local f = nil --TODO this because f seem a useless variable and i do not know for what we use maybe game:frame()
 		priority.air = turtle.priority
 		if turtle.air > 0 then priority.air = priority.air + (turtle.air / 100) end
 		ward = { turtle = turtle, position = turtle.position, priority = priority, threatened = f, defenders = {}, guardDistance = turtle.size, scrambleForMe = turtle.priority > 4 }
@@ -242,7 +243,7 @@ function DefendHST:AssignAll(GAS, mtype) -- Ground Air Submerged (weapon), mobil
 			if wardPos == nil and ward.behaviour ~= nil then
 				if ward.behaviour ~= nil then
 					if ward.behaviour.unit ~= nil then
-						wardUnit = ward.behaviour.unit:Internal()
+						local wardUnit = ward.behaviour.unit:Internal()
 						if wardUnit ~= nil then
 							wardPos = wardUnit:GetPosition()
 						end

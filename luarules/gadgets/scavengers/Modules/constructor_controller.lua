@@ -47,9 +47,11 @@ end
 
 local function reclaimerOrders(n, unitID)
 	local nearestenemy = Spring.GetUnitNearestEnemy(unitID, 999999, false)
-	Spring.GiveOrderToUnit(unitID, CMD.RECLAIM, { nearestenemy }, 0)
-	local x,y,z = Spring.GetUnitPosition(nearestenemy)
-	Spring.GiveOrderToUnit(unitID, CMD.FIGHT, { x, y, z }, {"meta", "shift", "alt"})
+	if nearestenemy then
+		Spring.GiveOrderToUnit(unitID, CMD.RECLAIM, { nearestenemy }, 0)
+		local x,y,z = Spring.GetUnitPosition(nearestenemy)
+		Spring.GiveOrderToUnit(unitID, CMD.FIGHT, { x, y, z }, {"meta", "shift", "alt"})
+	end
 end
 
 local function spawnConstructor(n)
@@ -130,10 +132,10 @@ local function spawnConstructor(n)
 				Spring.CreateUnit("scavengerdroppod_scav", posx - 32, posy, posz, math.random(0, 3), GaiaTeamID)
 				Spring.CreateUnit("scavengerdroppod_scav", posx, posy, posz + 32, math.random(0, 3), GaiaTeamID)
 				Spring.CreateUnit("scavengerdroppod_scav", posx, posy, posz - 32, math.random(0, 3), GaiaTeamID)
-				Spring.CreateUnit("scavengerdroppod_scav", posx + 32, posy, posz + 32, math.random(0, 3), GaiaTeamID)
-				Spring.CreateUnit("scavengerdroppod_scav", posx - 32, posy, posz + 32, math.random(0, 3), GaiaTeamID)
-				Spring.CreateUnit("scavengerdroppod_scav", posx - 32, posy, posz - 32, math.random(0, 3), GaiaTeamID)
-				Spring.CreateUnit("scavengerdroppod_scav", posx + 32, posy, posz - 32, math.random(0, 3), GaiaTeamID)
+				-- Spring.CreateUnit("scavengerdroppod_scav", posx + 32, posy, posz + 32, math.random(0, 3), GaiaTeamID)
+				-- Spring.CreateUnit("scavengerdroppod_scav", posx - 32, posy, posz + 32, math.random(0, 3), GaiaTeamID)
+				-- Spring.CreateUnit("scavengerdroppod_scav", posx - 32, posy, posz - 32, math.random(0, 3), GaiaTeamID)
+				-- Spring.CreateUnit("scavengerdroppod_scav", posx + 32, posy, posz - 32, math.random(0, 3), GaiaTeamID)
 
 				if posy > 0 then
 					local resurrector = constructorUnitList.Resurrectors[math.random(#constructorUnitList.Resurrectors)]
@@ -141,20 +143,20 @@ local function spawnConstructor(n)
 					QueueSpawn(resurrector, posx - 32, posy, posz, math.random(0, 3), GaiaTeamID, n + 150 + 2)
 					QueueSpawn(resurrector, posx, posy, posz + 32, math.random(0, 3), GaiaTeamID, n + 150 + 3)
 					QueueSpawn(resurrector, posx, posy, posz - 32, math.random(0, 3), GaiaTeamID, n + 150 + 4)
-					QueueSpawn(resurrector, posx + 32, posy, posz + 32, math.random(0, 3), GaiaTeamID, n + 150 + 5)
-					QueueSpawn(resurrector, posx - 32, posy, posz - 32, math.random(0, 3), GaiaTeamID, n + 150 + 6)
-					QueueSpawn(resurrector, posx - 32, posy, posz + 32, math.random(0, 3), GaiaTeamID, n + 150 + 7)
-					QueueSpawn(resurrector, posx + 32, posy, posz - 32, math.random(0, 3), GaiaTeamID, n + 150 + 8)
+					-- QueueSpawn(resurrector, posx + 32, posy, posz + 32, math.random(0, 3), GaiaTeamID, n + 150 + 5)
+					-- QueueSpawn(resurrector, posx - 32, posy, posz - 32, math.random(0, 3), GaiaTeamID, n + 150 + 6)
+					-- QueueSpawn(resurrector, posx - 32, posy, posz + 32, math.random(0, 3), GaiaTeamID, n + 150 + 7)
+					-- QueueSpawn(resurrector, posx + 32, posy, posz - 32, math.random(0, 3), GaiaTeamID, n + 150 + 8)
 				elseif constructorControllerModuleConfig.searesurrectors then
 					local seaResurrector = constructorUnitList.ResurrectorsSea[math.random(#constructorUnitList.ResurrectorsSea)]
 					QueueSpawn(seaResurrector, posx + 32, posy, posz + 32, math.random(0, 3), GaiaTeamID, n + 150 + 1)
 					QueueSpawn(seaResurrector, posx - 32, posy, posz - 32, math.random(0, 3), GaiaTeamID, n + 150 + 2)
 					QueueSpawn(seaResurrector, posx - 32, posy, posz + 32, math.random(0, 3), GaiaTeamID, n + 150 + 3)
 					QueueSpawn(seaResurrector, posx + 32, posy, posz - 32, math.random(0, 3), GaiaTeamID, n + 150 + 4)
-					QueueSpawn(seaResurrector, posx + 32, posy, posz + 32, math.random(0, 3), GaiaTeamID, n + 150 + 5)
-					QueueSpawn(seaResurrector, posx - 32, posy, posz - 32, math.random(0, 3), GaiaTeamID, n + 150 + 6)
-					QueueSpawn(seaResurrector, posx - 32, posy, posz + 32, math.random(0, 3), GaiaTeamID, n + 150 + 7)
-					QueueSpawn(seaResurrector, posx + 32, posy, posz - 32, math.random(0, 3), GaiaTeamID, n + 150 + 8)
+					-- QueueSpawn(seaResurrector, posx + 32, posy, posz + 32, math.random(0, 3), GaiaTeamID, n + 150 + 5)
+					-- QueueSpawn(seaResurrector, posx - 32, posy, posz - 32, math.random(0, 3), GaiaTeamID, n + 150 + 6)
+					-- QueueSpawn(seaResurrector, posx - 32, posy, posz + 32, math.random(0, 3), GaiaTeamID, n + 150 + 7)
+					-- QueueSpawn(seaResurrector, posx + 32, posy, posz - 32, math.random(0, 3), GaiaTeamID, n + 150 + 8)
 				end
 			end
 
@@ -170,17 +172,76 @@ local function spawnConstructor(n)
 	end
 end
 
+local function randomlyRotateBlueprint()
+	local randomRotation = math.random(0,3)
+	if randomRotation == 0 then -- normal
+		local swapXandY = false
+		local flipX = 1
+		local flipZ = 1
+		local rotation = randomRotation
+		return swapXandY, flipX, flipZ, rotation
+	end
+	if randomRotation == 1 then -- 90 degrees anti-clockwise
+		local swapXandY = true
+		local flipX = 1
+		local flipZ = -1
+		local rotation = randomRotation
+		return swapXandY, flipX, flipZ, rotation
+	end
+	if randomRotation == 2 then -- 180 degrees anti-clockwise
+		local swapXandY = false
+		local flipX = -1
+		local flipZ = -1
+		local rotation = randomRotation
+		return swapXandY, flipX, flipZ, rotation
+	end
+	if randomRotation == 3 then -- 270 degrees anti-clockwise
+		local swapXandY = true
+		local flipX = -1
+		local flipZ = 1
+		local rotation = randomRotation
+		return swapXandY, flipX, flipZ, rotation
+	end
+end
+
+local function randomlyMirrorBlueprint(mirrored, direction, unitFacing)
+	if mirrored == true then
+		if direction == "h" then
+			local mirrorX = -1
+			local mirrorZ = 1
+			if unitFacing == 1 or unitFacing == 3 then
+				local mirrorRotation = 2
+				return mirrorX, mirrorZ, mirrorRotation
+			else
+				local mirrorRotation = 0
+				return mirrorX, mirrorZ, mirrorRotation
+			end
+		elseif direction == "v" then
+			local mirrorX = 1
+			local mirrorZ = -1
+			if unitFacing == 0 or unitFacing == 2 then
+				local mirrorRotation = 2
+				return mirrorX, mirrorZ, mirrorRotation
+			else
+				local mirrorRotation = 0
+				return mirrorX, mirrorZ, mirrorRotation
+			end
+		end
+	else
+		local mirrorX = 1
+		local mirrorZ = 1
+		local mirrorRotation = 0
+		return mirrorX, mirrorZ, mirrorRotation
+	end
+end
+
+
+
+
 ConstructorNumberOfRetries = {}
 local function constructNewBlueprint(n, unitID)
 	local unitCount = Spring.GetTeamUnitCount(GaiaTeamID)
-	local unitCountBuffer = 200
-
-	if unitCount + unitCountBuffer >= scavMaxUnits then
-		Spring.GiveOrderToUnit(unitID, CMD.RECLAIM, { mapCenterX + math.random(-100, 100), mapCenterY, mapCenterZ + math.random(-100, 100), mapDiagonal}, 0)
-		Spring.GiveOrderToUnit(unitID, CMD.RECLAIM, { mapCenterX + math.random(-100, 100), mapCenterY, mapCenterZ + math.random(-100, 100), mapDiagonal}, {"shift"})
-
-		return
-	end
+	local unitCountBuffer = scavMaxUnits*0.1
 
 	local landBlueprint, seaBlueprint, blueprint
 
@@ -208,7 +269,7 @@ local function constructNewBlueprint(n, unitID)
 	landBlueprint = blueprintsController.Constructor.GetRandomLandBlueprint(spawnTier)
 	seaBlueprint = blueprintsController.Constructor.GetRandomSeaBlueprint(spawnTier)
 
-	for i = 1, 50 do
+	for i = 1, 100 do
 		local x,y,z = Spring.GetUnitPosition(unitID)
 		local posX = math.random( x - (50 * ConstructorNumberOfRetries[unitID]), x + (50 * ConstructorNumberOfRetries[unitID]))
 		local posZ = math.random( z - (50 * ConstructorNumberOfRetries[unitID]), z + (50 * ConstructorNumberOfRetries[unitID]))
@@ -220,7 +281,7 @@ local function constructNewBlueprint(n, unitID)
 			blueprint = seaBlueprint
 		end
 
-		local blueprintRadiusBuffer = 48
+		local blueprintRadiusBuffer = 64
 		local blueprintRadius = blueprint.radius + blueprintRadiusBuffer
 		local canConstructHere = posOccupied(posX, posY, posZ, blueprintRadius)
 							 and posCheck(posX, posY, posZ, blueprintRadius)
@@ -228,12 +289,31 @@ local function constructNewBlueprint(n, unitID)
 							 and posMapsizeCheck(posX, posY, posZ, blueprintRadius)
 
 		if canConstructHere then
-			Spring.GiveOrderToUnit(unitID, CMD.MOVE, { posX + math.random(-blueprintRadius, blueprintRadius), posY + 500, posZ + math.random(-blueprintRadius, blueprintRadius) }, {"shift"})
-
-			for _, building in ipairs(blueprint.buildings) do
-				Spring.GiveOrderToUnit(unitID, -building.unitDefID, { posX + building.xOffset, posY, posZ + building.zOffset, building.direction }, {"shift"})
+			buffConstructorBuildSpeed(unitID)
+			Spring.GiveOrderToUnit(unitID, CMD.MOVE, { posX + blueprintRadius*math.random(-1,1), posY + 500, posZ + blueprintRadius*math.random(-1,1) }, {"shift"})
+			local swapXandY, flipX, flipZ, rotation = randomlyRotateBlueprint()
+			if math.random(0,1) == 0 then
+				if math.random(0,1) == 0 then
+					mirrored = true
+					mirroredDirection = "h"
+				else
+					mirrored = true
+					mirroredDirection = "v"
+				end
+			else
+				mirrored = false
+				mirroredDirection = "null"
 			end
-
+			for _, building in ipairs(blueprint.buildings) do
+				local mirrorX, mirrorZ, mirrorRotation = randomlyMirrorBlueprint(mirrored, mirroredDirection, (building.direction+rotation)%4)
+				if swapXandY == false then
+					Spring.GiveOrderToUnit(unitID, -building.unitDefID, { posX + (building.xOffset*flipX*mirrorX), posY, posZ + (building.zOffset*flipZ*mirrorZ), (building.direction+rotation+mirrorRotation)%4 }, {"shift"})
+				else
+					Spring.GiveOrderToUnit(unitID, -building.unitDefID, { posX + (building.zOffset*flipX*mirrorX), posY, posZ + (building.xOffset*flipZ*mirrorZ), (building.direction+rotation+mirrorRotation)%4 }, {"shift"})
+				end
+			end
+			mirrored = nil
+			mirroredDirection = nil
 			ConstructorNumberOfRetries[unitID] = 0
 			break
 		end

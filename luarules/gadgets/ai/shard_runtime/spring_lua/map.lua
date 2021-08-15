@@ -44,7 +44,7 @@ function map:FindClosestBuildSite(unittype, builderpos, searchradius, minimumdis
 				position = validFunction(position)
 				if position then return position end
 			end
-		end 
+		end
 	end
 	local lastDitch, lastDitchPos = self:CanBuildHere(unittype, builderpos)
 	if lastDitch then

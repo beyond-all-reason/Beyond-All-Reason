@@ -4,13 +4,13 @@ function widget:GetInfo()
 		desc      = "Shows ranges of all ally radars. (GL4)",
 		author    = "Kev, Beherith GL4",
 		date      = "2021.06.18",
-		license   = "CC BY-NC",
+		license   = "Lua: GPLv2, GLSL: (c) Beherith (mysterme@gmail.com)",
 		layer     = 0,
-		enabled   = false
+		enabled   = true
 	}
 end
- 
--------   Configurables: ------------------- 
+
+-------   Configurables: -------------------
 local rangeLineWidth = 3.5 -- (note: will end up larger for larger vertical screen resolution size)
 local minRadarDistance = 500
 
@@ -18,7 +18,7 @@ local gaiaTeamID = Spring.GetGaiaTeamID()
 local rangeColor = { 0.0, 1.0, 0.0, 0.16 } -- default range color
 local usestipple = 1 -- 0 or 1resolution size)
 local opacity = 0.16
-							
+
 
 local circleSegments = 64
 ------- GL4 NOTES -----
@@ -46,8 +46,8 @@ local vsSrc = [[
 layout (location = 0) in vec4 circlepointposition;
 layout (location = 1) in vec4 startposrad;
 layout (location = 2) in vec4 endposrad;
-layout (location = 3) in vec4 color; 
-uniform float circleopacity; 
+layout (location = 3) in vec4 color;
+uniform float circleopacity;
 
 uniform sampler2D heightmapTex;
 
@@ -62,7 +62,7 @@ out DataVS {
 #line 11000
 
 float heightAtWorldPos(vec2 w){
-	vec2 uvhm =   vec2(clamp(w.x,8.0,mapSize.x-8.0),clamp(w.y,8.0, mapSize.y-8.0))/ mapSize.xy; 
+	vec2 uvhm =   vec2(clamp(w.x,8.0,mapSize.x-8.0),clamp(w.y,8.0, mapSize.y-8.0))/ mapSize.xy;
 	return textureLod(heightmapTex, uvhm, 0.0).x;
 }
 
@@ -71,14 +71,14 @@ void main() {
 	float timemix = mod(timeInfo.x,15)*0.06666;
 	vec4 circleWorldPos = mix(startposrad, endposrad, timemix);
 	circleWorldPos.xz = circlepointposition.xy * circleWorldPos.w +  circleWorldPos.xz;
-	
-	// get heightmap 
+
+	// get heightmap
 	circleWorldPos.y = max(0.0,heightAtWorldPos(circleWorldPos.xz))+32.0;
-	
+
 	// -- MAP OUT OF BOUNDS
 	vec2 mymin = min(circleWorldPos.xz,mapSize.xy - circleWorldPos.xz);
 	float inboundsness = min(mymin.x, mymin.y);
-	
+
 	// dump to FS
 	worldscale_circumference = startposrad.w * circlepointposition.z * 5.2345;
 	worldPos = circleWorldPos;
@@ -97,7 +97,7 @@ local fsSrc =  [[
 
 #line 20000
 
-uniform float circleopacity; 
+uniform float circleopacity;
 
 uniform sampler2D heightmapTex;
 
@@ -234,7 +234,7 @@ local function processUnit(unitID, unitDefID, noUpload)
     if not unitRange[unitDefID] then
         return
     end
-	
+
 	local teamID = Spring.GetUnitTeam(unitID)
 	if teamID == gaiaTeamID then return end -- no gaia units
 
@@ -242,7 +242,7 @@ local function processUnit(unitID, unitDefID, noUpload)
 
     local range = unitRange[unitDefID]['range']
     local height = unitRange[unitDefID]['height']
-	
+
     unitList[unitID] = unitDefID
 	activeUnits[unitID] = false
 	-- shall we jam it straight into the table?
@@ -256,7 +256,7 @@ function widget:Initialize()
 	WG.radarrange.getOpacity = function()
 		return opacity
 	end
-	
+
 	WG.radarrange.setOpacity = function(value)
 		opacity = value
 	end
@@ -303,35 +303,35 @@ function widget:GameFrame(n)
 		local instanceData = circleInstanceVBO.instanceData -- ok this is so nasty that it makes all my prev pop-push work obsolete
 		for unitID, unitDefID in pairs(unitList) do
 			local instanceDataOffset = (circleInstanceVBO.instanceIDtoIndex[unitID] - 1)* circleInstanceVBO.instanceStep
-			if not isBuilding[unitDefID] then 
+			if not isBuilding[unitDefID] then
 				local x, y, z = spGetUnitPosition(unitID)
-				
-				
+
+
 				for i=instanceDataOffset + 1, instanceDataOffset+4 do
 					instanceData[i] = instanceData[i+4]
 				end
 				instanceData[instanceDataOffset+5] = x
 				instanceData[instanceDataOffset+6] = y
 				instanceData[instanceDataOffset+7] = z
-		
-			end
-			
 
-			local range = unitRange[unitDefID]['range'] 
-			local active = spGetUnitIsActive(unitID) 
+			end
+
+
+			local range = unitRange[unitDefID]['range']
+			local active = spGetUnitIsActive(unitID)
 			if active then
 				instanceData[instanceDataOffset+8] = range
 			else
 				instanceData[instanceDataOffset+8] = 0
 			end
-			if activeUnits[unitID] then 
+			if activeUnits[unitID] then
 				instanceData[instanceDataOffset+4] = range
 			else
 				instanceData[instanceDataOffset+4] = 0
 			end
 			activeUnits[unitID] = active
 
-			
+
 			--pushElementInstance(circleInstanceVBO,instanceData,unitID, true, true) -- overwrite data and dont upload!, but i am scum and am directly modifying the table
 		end
 		uploadAllElements(circleInstanceVBO)
@@ -344,9 +344,9 @@ function widget:DrawWorld()
     if spIsGUIHidden() or (WG['topbar'] and WG['topbar'].showingQuit()) then return end
 
 	if circleInstanceVBO.usedElements == 0 then return end
-	
+
 	if opacity < 0.01 then return end
-	
+
 	glColorMask(false, false, false, false)
 	glStencilTest(true)
 	glDepthTest(false)
@@ -354,7 +354,7 @@ function widget:DrawWorld()
 	gl.Texture(0, "$heightmap")
 	circleShader:Activate()
 	circleShader:SetUniform("circleopacity", opacity)
-	
+
 	-- Draw outer circles into stencil buffer
 		glStencilFunc(GL_ALWAYS, 1, 1) -- Always Passes, 1 Bit Plane, 1 As Mask
 		glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE) -- Set The Stencil Buffer To 1 Where Draw Any Polygon
@@ -368,7 +368,7 @@ function widget:DrawWorld()
 
 
 	glColorMask(true, true, true, true)
-	
+
 	glDepthTest(true)
 	glStencilFunc(GL_EQUAL, 1, 1)
 	glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP)
@@ -380,9 +380,9 @@ function widget:DrawWorld()
 
 	circleShader:Deactivate()
 	gl.Texture(0, false)
-	
+
 	glStencilTest(false)
-	
+
 	glDepthTest(true)
 	glColor( 1.0, 1.0, 1.0, 1.0 ) --reset like a nice boi
 	glLineWidth( 1.0 )

@@ -1,25 +1,25 @@
-AnitnukeBST = class(Behaviour)
+AntinukeBST = class(Behaviour)
 
-function AnitnukeBST:Name()
-	return "AnitnukeBST"
+function AntinukeBST:Name()
+	return "AntinukeBST"
 end
 
-AnitnukeBST.DebugEnabled = false
+AntinukeBST.DebugEnabled = false
 
 
 
 local CMD_STOCKPILE = 100
 
-function AnitnukeBST:Init()
+function AntinukeBST:Init()
     self.lastStockpileFrame = 0
     self.finished = false
 end
 
-function AnitnukeBST:OwnerBuilt()
+function AntinukeBST:OwnerBuilt()
 	self.finished = true
 end
 
-function AnitnukeBST:Update()
+function AntinukeBST:Update()
 	if not self.active then return end
 
 	if self.finished and self.ai.needAntinuke then
@@ -33,14 +33,14 @@ function AnitnukeBST:Update()
 	end
 end
 
-function AnitnukeBST:Activate()
+function AntinukeBST:Activate()
 	self.active = true
 end
 
-function AnitnukeBST:Deactivate()
+function AntinukeBST:Deactivate()
 	self.active = false
 end
 
-function AnitnukeBST:Priority()
+function AntinukeBST:Priority()
 	return 100
 end

@@ -52,6 +52,7 @@ return {
 			model_author = "Kaiser",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armbots",
+			techlevel = 3,
 		},
 		featuredefs = {
 			dead = {

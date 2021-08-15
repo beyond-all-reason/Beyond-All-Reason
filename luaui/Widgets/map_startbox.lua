@@ -81,6 +81,7 @@ local stencilBit2 = 0x10
 local hasStartbox = false
 
 local teamColors = {}
+local coopStartPoints = {}	-- will contain data passed through by coop gadget
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -125,9 +126,6 @@ local function DrawMyBox(minX, minY, minZ, maxX, maxY, maxZ)
 		gl.Vertex(minX, maxY, minZ)
 	end)
 end
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
 
 local function createCommanderNameList(x, y, name, teamID)
 	commanderNameList[teamID] = {}
@@ -189,12 +187,19 @@ local function createInfotextList()
 	end)
 end
 
+local function CoopStartPoint(playerID, x, y, z)
+	coopStartPoints[playerID] = {x, y, z}
+end
+
 function widget:Initialize()
+
 	-- only show at the beginning
 	if Spring.GetGameFrame() > 1 then
 		widgetHandler:RemoveWidget()
 		return
 	end
+
+	widgetHandler:RegisterGlobal('GadgetCoopStartPoint', CoopStartPoint)
 
 	assignTeamColors()
 
@@ -300,6 +305,7 @@ function widget:Shutdown()
 	removeLists()
 	gl.DeleteFont(font)
 	gl.DeleteFont(shadowFont)
+	widgetHandler:DeregisterGlobal('GadgetCoopStartPoint')
 end
 
 local function DrawStartboxes3dWithStencil()
@@ -345,9 +351,13 @@ function widget:DrawWorld()
 
 	-- show the team start positions
 	for _, teamID in ipairs(Spring.GetTeamList()) do
-		local _, _, spec = Spring.GetPlayerInfo(select(2, Spring.GetTeamInfo(teamID, false)), false)
+		local playerID = select(2, Spring.GetTeamInfo(teamID, false))
+		local _, _, spec = Spring.GetPlayerInfo(playerID, false)
 		if not spec and teamID ~= gaiaTeamID then
 			local x, y, z = Spring.GetTeamStartPosition(teamID)
+			if coopStartPoints[playerID] then
+				x, y, z = coopStartPoints[playerID][1], coopStartPoints[playerID][2], coopStartPoints[playerID][3]
+			end
 			local isNewbie = (Spring.GetTeamRulesParam(teamID, 'isNewbie') == 1) -- =1 means the startpoint will be replaced and chosen by initial_spawn
 			if x ~= nil and x > 0 and z > 0 and y > -500 and not isNewbie then
 				local r, g, b = GetTeamColor(teamID)
@@ -368,10 +378,14 @@ end
 function widget:DrawScreenEffects()
 	-- show the names over the team start positions
 	for _, teamID in ipairs(Spring.GetTeamList()) do
-		local name, _, spec = Spring.GetPlayerInfo(select(2, Spring.GetTeamInfo(teamID, false)), false)
+		local playerID = select(2, Spring.GetTeamInfo(teamID, false))
+		local name, _, spec = Spring.GetPlayerInfo(playerID, false)
 		local isNewbie = (Spring.GetTeamRulesParam(teamID, 'isNewbie') == 1) -- =1 means the startpoint will be replaced and chosen by initial_spawn
 		if name ~= nil and not spec and teamID ~= gaiaTeamID and not isNewbie then
 			local x, y, z = Spring.GetTeamStartPosition(teamID)
+			if coopStartPoints[playerID] then
+				x, y, z = coopStartPoints[playerID][1], coopStartPoints[playerID][2], coopStartPoints[playerID][3]
+			end
 			if x ~= nil and x > 0 and z > 0 and y > -500 then
 				local sx, sy, sz = Spring.WorldToScreenCoords(x, y + 120, z)
 				if sz < 1 then
@@ -421,12 +435,7 @@ function widget:DrawInMiniMap(sx, sz)
 		if at ~= gaiaAllyTeamID then
 			local xn, zn, xp, zp = Spring.GetAllyTeamStartBox(at)
 			if xn and (xn ~= 0 or zn ~= 0 or xp ~= msx or zp ~= msz) then
-				local color
-				if at == Spring.GetMyAllyTeamID() then
-					color = { 0, 1, 0, 0.1 }  --  green
-				else
-					color = { 1, 0, 0, 0.1 }  --  red
-				end
+				local color = at == Spring.GetMyAllyTeamID() and { 0, 1, 0, 0.1 } or { 1, 0, 0, 0.1 }
 				gl.Color(color)
 				gl.Rect(xn, zn, xp, zp)
 				color[4] = 0.5  --  pump up the volume
@@ -438,14 +447,15 @@ function widget:DrawInMiniMap(sx, sz)
 		end
 	end
 
-	gl.PushAttrib(GL_HINT_BIT)
-	--gl.Smoothing(true) --enable point smoothing
-
 	-- show the team start positions
 	for _, teamID in ipairs(Spring.GetTeamList()) do
-		local _, _, spec = Spring.GetPlayerInfo(select(2, Spring.GetTeamInfo(teamID, false)), false)
+		local playerID = select(2, Spring.GetTeamInfo(teamID, false))
+		local _, _, spec = Spring.GetPlayerInfo(playerID, false)
 		if not spec and teamID ~= gaiaTeamID then
 			local x, y, z = Spring.GetTeamStartPosition(teamID)
+			if coopStartPoints[playerID] then
+				x, y, z = coopStartPoints[playerID][1], coopStartPoints[playerID][2], coopStartPoints[playerID][3]
+			end
 			local isNewbie = (Spring.GetTeamRulesParam(teamID, 'isNewbie') == 1) -- =1 means the startpoint will be replaced and chosen by initial_spawn
 			if x ~= nil and x > 0 and z > 0 and y > -500 and not isNewbie then
 				local r, g, b = GetTeamColor(teamID)
@@ -463,7 +473,6 @@ function widget:DrawInMiniMap(sx, sz)
 
 	gl.LineWidth(1.0)
 	gl.PointSize(1.0)
-	gl.PopAttrib() --reset point smoothing
 	gl.PopMatrix()
 end
 

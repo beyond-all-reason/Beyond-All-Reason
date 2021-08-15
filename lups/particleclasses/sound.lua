@@ -71,7 +71,7 @@ function Sound:CreateParticle()
 end
 
 function Sound.Create(Options)
-  local newObject = MergeTable(Options, Sound.Default)
+  local newObject = table.merge(Sound.Default, Options)
   setmetatable(newObject,Sound)  -- make handle lookup
   newObject:CreateParticle()
   if (not newObject.repeatEffect) then

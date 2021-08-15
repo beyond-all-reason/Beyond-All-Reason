@@ -512,10 +512,6 @@ local armorDefs = {
 }
 
 -- add scavenger variants
-function tableMerge(t1, t2)
-	for k,v in pairs(t2) do if type(v) == "table" then if type(t1[k] or false) == "table" then tableMerge(t1[k] or {}, t2[k] or {}) else t1[k] = v end else t1[k] = v end end
-	return t1
-end
 local armorDefs2 = {}
 for category,names in pairs(armorDefs) do
 	local catkeycount = #names
@@ -530,6 +526,6 @@ for category,names in pairs(armorDefs) do
 		--end
 	end
 end
-armorDefs = tableMerge(armorDefs, armorDefs2)
+table.mergeInPlace(armorDefs, armorDefs2)
 
 return armorDefs

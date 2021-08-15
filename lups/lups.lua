@@ -287,7 +287,9 @@ function AddParticles(Class,Options   ,__id)
 
 	if Options.delay and Options.delay~=0 then
 		partIDCount = partIDCount+1
-		newOptions = {}; CopyTable(newOptions,Options); newOptions.delay=nil
+		local newOptions = {}
+		table.mergeInPlace(newOptions, Options)
+		newOptions.delay=nil
 		effectsInDelay[#effectsInDelay+1] = {frame=thisGameFrame+Options.delay, class=Class, options=newOptions, id=partIDCount};
 		return partIDCount
 	end

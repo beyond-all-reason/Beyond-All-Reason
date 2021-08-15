@@ -1,5 +1,3 @@
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
 
 function widget:GetInfo()
 	return {
@@ -13,9 +11,6 @@ function widget:GetInfo()
 		enabled   = true,
 	}
 end
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
 
 local spGetProjectilesInRectangle	= Spring.GetProjectilesInRectangle
 local spGetVisibleProjectiles		= Spring.GetVisibleProjectiles
@@ -36,26 +31,23 @@ local math_min = math.min
 local math_max = math.max
 local math_floor = math.floor
 
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
 -- Local Variables
 local previousProjectileDrawParams
 local fadeProjectiles, fadeProjectileTimes = {}, {}
 
 --------------------------------------------------------------------------------
---------------------------------------------------------------------------------
 -- Config
+--------------------------------------------------------------------------------
 
 local useLOD = false		-- Reduces the number of lights drawn based on camera distance and current fps.
 local projectileFade = true
 local FADE_TIME = 5
 
-
 local overrideParam = {r = 1, g = 1, b = 1, radius = 200}
 local doOverride = false
 
 local globalLightMult = 1.5
-local globalRadiusMult = 1.45
+local globalRadiusMult = 1.4
 local globalLightMultLaser = 1.35	-- gets applied on top op globalRadiusMult
 local globalRadiusMultLaser = 0.9	-- gets applied on top op globalRadiusMult
 local globalLifeMult = 0.55
@@ -86,16 +78,8 @@ local customBeamLights = {}
 
 local deferredFunctionID
 
-local function Split(s, separator)
-	local results = {}
-	for part in s:gmatch("[^"..separator.."]+") do
-		results[#results + 1] = part
-	end
-	return results
-end
-
 local weaponConf = {}
-function loadWeaponDefs()
+local function loadWeaponDefs()
 	weaponConf = {}
 	for i=1, #WeaponDefs do
 		local customParams = WeaponDefs[i].customParams or {}
@@ -106,13 +90,21 @@ function loadWeaponDefs()
 			--	maxDamage = math.max(maxDamage, value)
 			--end
 			--local dmgBonus = math.sqrt(math.sqrt(math.sqrt(maxDamage)))
-			params.r, params.g, params.b = 1, 0.8, 0.4
-			params.radius = ((WeaponDefs[i].damageAreaOfEffect*3.3) + (WeaponDefs[i].damageAreaOfEffect * WeaponDefs[i].edgeEffectiveness * 1.5)) * globalRadiusMult
-			params.orgMult = (0.35 + (params.radius/2400)) * globalLightMult
-			params.life = (14*(0.8+ params.radius/1200)) * globalLifeMult
+			local damage = 100
+			for cat=0, #WeaponDefs[i].damages do
+				if Game.armorTypes[cat] and Game.armorTypes[cat] == 'default' then
+					damage = WeaponDefs[i].damages[cat]
+					break
+				end
+			end
+			params.radius = ((WeaponDefs[i].damageAreaOfEffect*2) + (WeaponDefs[i].damageAreaOfEffect * WeaponDefs[i].edgeEffectiveness * 1.25)) * globalRadiusMult
+			params.orgMult = (math.max(0.25, math.min(damage/1600, 0.6)) + (params.radius/2800)) * globalLightMult
+			params.life = (9.5*(1.0+params.radius/2500)+(params.orgMult * 5)) * globalLifeMult
+			params.radius = (params.orgMult * 75) + (params.radius * 2.4)
+			params.r, params.g, params.b = 1, 0.8, 0.45
 
 			if customParams.expl_light_color then
-				local colorList = Split(customParams.expl_light_color, " ")
+				local colorList = string.split(customParams.expl_light_color, " ")
 				params.r = colorList[1]
 				params.g = colorList[2]
 				params.b = colorList[3]
@@ -137,19 +129,22 @@ function loadWeaponDefs()
 				params.radius = params.radius * tonumber(customParams.expl_light_radius_mult)
 			end
 
-			params.heatradius = (WeaponDefs[i].damageAreaOfEffect*0.5)
+			params.heatradius = (WeaponDefs[i].damageAreaOfEffect*0.6)
 
+			if customParams.expl_light_heat_radius then
+				params.heatradius = tonumber(customParams.expl_light_heat_radius) * globalRadiusMult
+			end
 			if customParams.expl_light_heat_radius_mult then
 				params.heatradius = (params.heatradius * tonumber(customParams.expl_light_heat_radius_mult))
 			end
 
-			params.heatlife = (13*(0.8+ params.heatradius/1200)) + (params.heatradius/4)
+			params.heatlife = (7*(0.8+ params.heatradius/1200)) + (params.heatradius/4)
 
 			if customParams.expl_light_heat_life_mult then
 				params.heatlife = params.heatlife * tonumber(customParams.expl_light_heat_life_mult)
 			end
 
-			params.heatstrength = math_min(3, 0.8 + (params.heatradius/40))
+			params.heatstrength = math_min(3, 0.8 + (params.heatradius/50))
 
 			if customParams.expl_light_heat_strength_mult then
 				params.heatstrength = params.heatstrength * customParams.expl_light_heat_strength_mult
@@ -180,23 +175,14 @@ function loadWeaponDefs()
 			params.yoffset = 15 + (params.radius/35)
 
 			if WeaponDefs[i].type == 'BeamLaser' then
-				local damage = 75
-				params.radius = params.radius * 3.5
-				for cat=0, #WeaponDefs[i].damages do
-					if Game.armorTypes[cat] and Game.armorTypes[cat] == 'default' then
-						damage = WeaponDefs[i].damages[cat]
-						break
-					end
+				if not WeaponDefs[i].paralyzer then
+					params.noheatdistortion = true
 				end
 				params.life = 1
 				damage = damage/WeaponDefs[i].beamtime
-				params.radius = (params.radius*1.4) + (damage/2500)
-				params.orgMult = (0.22 + (damage/3000))
-				if params.orgMult > 0.8 then
-					params.orgMult = 0.8
-				end
-				params.orgMult = params.orgMult * globalLightMult
-				params.yoffset = 4 + (params.radius/300)
+				params.radius = (params.radius*3) + (damage/150)
+				params.orgMult = math.min(0.6, (0.15 + (damage/5000))) * globalLightMult
+				params.yoffset = 6 + (params.radius/700)
 				if params.yoffset > 25 then params.yoffset = 25 end
 			end
 
@@ -206,12 +192,9 @@ function loadWeaponDefs()
 end
 loadWeaponDefs()
 
-
-
---------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 -- Light Defs
-
+--------------------------------------------------------------------------------
 
 local function GetLightsFromUnitDefs()
 	--Spring.Echo('GetLightsFromUnitDefs init')
@@ -239,14 +222,14 @@ local function GetLightsFromUnitDefs()
 			skip = true
 		end
 
-		local lightMultiplier = 0.08
-		local bMult = 1.6		-- because blue appears to be very faint
+		local lightMultiplier = 0.07
+		local bMult = 1.45		-- because blue appears to be very faint
 		local r,g,b = weaponDef.visuals.colorR, weaponDef.visuals.colorG, weaponDef.visuals.colorB*bMult
 
 		local weaponData = {type=weaponDef.type, r = (r + 0.1) * lightMultiplier, g = (g + 0.1) * lightMultiplier, b = (b + 0.1) * lightMultiplier, radius = 100}
 		local recalcRGB = false
 
-		if (weaponDef.type == 'Cannon') then
+		if weaponDef.type == 'Cannon' then
 			if customParams.single_hit then
 				weaponData.beamOffset = 1
 				weaponData.beam = true
@@ -261,31 +244,31 @@ local function GetLightsFromUnitDefs()
 				end
 				recalcRGB = true
 			end
-		elseif (weaponDef.type == 'LaserCannon') then
+		elseif weaponDef.type == 'LaserCannon' then
 			weaponData.radius = 70 * weaponDef.size
-		elseif (weaponDef.type == 'DGun') then
-			weaponData.radius = 450
-			lightMultiplier = 0.55
-		elseif (weaponDef.type == 'MissileLauncher') then
+		elseif weaponDef.type == 'DGun' then
+			weaponData.radius = 365
+			lightMultiplier = 0.7
+		elseif weaponDef.type == 'MissileLauncher' then
 			weaponData.radius = 125 * weaponDef.size
 			if weaponDef.damageAreaOfEffect ~= nil  then
 				weaponData.radius = 125 * (weaponDef.size + (weaponDef.damageAreaOfEffect * 0.01))
 			end
 			lightMultiplier = 0.01 + (weaponDef.size/55)
 			recalcRGB = true
-		elseif (weaponDef.type == 'StarburstLauncher') then
+		elseif weaponDef.type == 'StarburstLauncher' then
 			weaponData.radius = 250
 			weaponData.radius1 = weaponData.radius
 			weaponData.radius2 = weaponData.radius*0.6
-		elseif (weaponDef.type == 'Flame') then
+		elseif weaponDef.type == 'Flame' then
 			weaponData.radius = 70 * weaponDef.size
 			lightMultiplier = 0.07
 			recalcRGB = true
 			--skip = true
-		elseif (weaponDef.type == 'LightningCannon') then
+		elseif weaponDef.type == 'LightningCannon' then
 			weaponData.radius = 70 * weaponDef.size
 			weaponData.beam = true
-		elseif (weaponDef.type == 'BeamLaser') then
+		elseif weaponDef.type == 'BeamLaser' then
 			weaponData.radius = 16 * (weaponDef.size * weaponDef.size * weaponDef.size)
 			weaponData.beam = true
 			if weaponDef.beamTTL > 2 then
@@ -344,7 +327,7 @@ local function GetLightsFromUnitDefs()
 		end
 
 		if customParams.light_color then
-			local colorList = Split(customParams.light_color, " ")
+			local colorList = string.split(customParams.light_color, " ")
 			r = colorList[1]
 			g = colorList[2]
 			b = colorList[3]*bMult
@@ -509,7 +492,7 @@ local function GetProjectileLights(beamLights, beamLightCount, pointLights, poin
 
 	local projectiles = spGetVisibleProjectiles()
 	local projectileCount = #projectiles
-	if (not projectileFade) and projectileCount == 0 then
+	if not projectileFade and projectileCount == 0 then
 		return beamLights, beamLightCount, pointLights, pointLightCount
 	end
 
@@ -527,7 +510,7 @@ local function GetProjectileLights(beamLights, beamLightCount, pointLights, poin
 		local weapon, piece = spGetProjectileType(pID)
 		if piece then
 			local explosionflags = spGetPieceProjectileParams(pID)
-			if explosionflags and (explosionflags%32) > 15 then --only stuff with the FIRE explode tag gets a light
+			if explosionflags and explosionflags%32 > 15 then --only stuff with the FIRE explode tag gets a light
 				--Spring.Echo('explosionflag = ', explosionflags)
 				local drawParams = {pID = pID, px = x, py = y, pz = z, param = (doOverride and overrideParam) or gibParams, colMult = 1}
 				if drawParams.param.gib == true or drawParams.param.gib == nil then
@@ -565,27 +548,27 @@ local function GetProjectileLights(beamLights, beamLightCount, pointLights, poin
 						if projectileDrawParams then
 							projectileDrawParams[#projectileDrawParams + 1] = drawParams
 						end
-						if enableHeatDistortion and WG['Lups'] then
-							local weaponDefID = spGetProjectileDefID(pID)
-							if weaponDefID and weaponConf[weaponDefID] and not weaponConf[weaponDefID].noheatdistortion and spIsSphereInView(x,y,z,100) then
-								if weaponConf[weaponDefID].wtype == 'DGun' then
-									local distance = math_diag(x-cx, y-cy, z-cz)
-									local strengthMult = 1 / (distance*0.001)
-
-									WG['Lups'].AddParticles('JitterParticles2', {
-										layer = -35,
-										life = weaponConf[weaponDefID].heatlife/4,
-										pos = {x,y,z},
-										size = weaponConf[weaponDefID].heatradius*1.4,
-										sizeGrowth = 0.2,
-										strength = (weaponConf[weaponDefID].heatstrength*0.5)*strengthMult,
-										animSpeed = 1.3,
-										heat = 1,
-										force = {0,0.35,0},
-									})
-								end
-							end
-						end
+						--if enableHeatDistortion and WG['Lups'] then
+						--	local weaponDefID = spGetProjectileDefID(pID)
+						--	if weaponDefID and weaponConf[weaponDefID] and not weaponConf[weaponDefID].noheatdistortion and spIsSphereInView(x,y,z,100) then
+						--		if weaponConf[weaponDefID].wtype == 'DGun' then
+						--			local distance = math_diag(x-cx, y-cy, z-cz)
+						--			local strengthMult = 1 / (distance*0.001)
+						--
+						--			WG['Lups'].AddParticles('JitterParticles2', {
+						--				layer = -35,
+						--				life = weaponConf[weaponDefID].heatlife,
+						--				pos = {x,y,z},
+						--				size = weaponConf[weaponDefID].heatradius*3.5,
+						--				sizeGrowth = 0.2,
+						--				strength = (weaponConf[weaponDefID].heatstrength*1.25)*strengthMult,
+						--				animSpeed = 1.3,
+						--				heat = 1,
+						--				force = {0,0.35,0},
+						--			})
+						--		end
+						--	end
+						--end
 					end
 				end
 			end
@@ -593,44 +576,46 @@ local function GetProjectileLights(beamLights, beamLightCount, pointLights, poin
 	end
 
 	local frame = spGetGameFrame()
-	if projectileFade then
-		if previousProjectileDrawParams then
-			for i = 1, #previousProjectileDrawParams do
-				local pID = previousProjectileDrawParams[i].pID
-				if not projectilePresent[pID] then
-					local params = previousProjectileDrawParams[i]
-					params.startColMul = params.colMul or 1
-					params.py = params.py + 10
-					fadeProjectiles[#fadeProjectiles + 1] = params
-					fadeProjectileTimes[#fadeProjectileTimes + 1] = frame + FADE_TIME
-				end
-			end
-		end
 
-		local i = 1
-		while i <= #fadeProjectiles do
-			local strength = (fadeProjectileTimes[i] - frame)/FADE_TIME
-			if strength <= 0 then
-				fadeProjectileTimes[i] = fadeProjectileTimes[#fadeProjectileTimes]
-				fadeProjectileTimes[#fadeProjectileTimes] = nil
-				fadeProjectiles[i] = fadeProjectiles[#fadeProjectiles]
-				fadeProjectiles[#fadeProjectiles] = nil
-			else
-				local params = fadeProjectiles[i]
-				params.colMult = strength*params.startColMul
-				if params.beam then
-					beamLightCount = beamLightCount + 1
-					beamLights[beamLightCount] = params
-				else
-					pointLightCount = pointLightCount + 1
-					pointLights[pointLightCount] = params
-				end
-				i = i + 1
-			end
-		end
-
-		previousProjectileDrawParams = projectileDrawParams
-	end
+	-- note sure why this was done, but when paused, and camera was moved it added additional lights on top of lights
+	--if projectileFade then
+	--	if previousProjectileDrawParams then
+	--		for i = 1, #previousProjectileDrawParams do
+	--			local pID = previousProjectileDrawParams[i].pID
+	--			if not projectilePresent[pID] then
+	--				local params = previousProjectileDrawParams[i]
+	--				params.startColMul = params.colMul or 1
+	--				params.py = params.py + 10
+	--				fadeProjectiles[#fadeProjectiles + 1] = params
+	--				fadeProjectileTimes[#fadeProjectileTimes + 1] = frame + FADE_TIME
+	--			end
+	--		end
+	--	end
+	--
+	--	local i = 1
+	--	while i <= #fadeProjectiles do
+	--		local strength = (fadeProjectileTimes[i] - frame)/FADE_TIME
+	--		if strength <= 0 then
+	--			fadeProjectileTimes[i] = fadeProjectileTimes[#fadeProjectileTimes]
+	--			fadeProjectileTimes[#fadeProjectileTimes] = nil
+	--			fadeProjectiles[i] = fadeProjectiles[#fadeProjectiles]
+	--			fadeProjectiles[#fadeProjectiles] = nil
+	--		else
+	--			local params = fadeProjectiles[i]
+	--			params.colMult = strength*params.startColMul
+	--			if params.beam then
+	--				beamLightCount = beamLightCount + 1
+	--				beamLights[beamLightCount] = params
+	--			else
+	--				pointLightCount = pointLightCount + 1
+	--				pointLights[pointLightCount] = params
+	--			end
+	--			i = i + 1
+	--		end
+	--	end
+	--
+	--	previousProjectileDrawParams = projectileDrawParams
+	--end
 
 	-- add custom beam lights
 	local progress = 1
@@ -687,12 +672,7 @@ local function GetProjectileLights(beamLights, beamLightCount, pointLights, poin
 	return beamLights, beamLightCount, pointLights, pointLightCount
 end
 
-function tableMerge(t1, t2)
-	for k,v in pairs(t2) do if type(v) == "table" then if type(t1[k] or false) == "table" then tableMerge(t1[k] or {}, t2[k] or {}) else t1[k] = v end else t1[k] = v end end
-	return t1
-end
-
-function CreateBeamLight(name, x, y, z, x2, y2, z2, radius, rgba)
+local function CreateBeamLight(name, x, y, z, x2, y2, z2, radius, rgba)
 	if name == 'nano' then
 		if enableNanolaser then
 			nanolaserLights[#nanolaserLights+1] = explosionLightsCount + 1
@@ -726,7 +706,7 @@ function CreateBeamLight(name, x, y, z, x2, y2, z2, radius, rgba)
 	return customBeamLightsCount
 end
 
-function EditBeamLight(lightID, params)
+local function EditBeamLight(lightID, params)
 	--if params.orgMult then
 	--	params.orgMult = params.orgMult * globalLightMult
 	--end
@@ -739,14 +719,14 @@ function EditBeamLight(lightID, params)
 	--end
 	--Spring.Echo('editing: '..lightID..'  '..params.px..'  '..params.py..'  '..params.pz..'    '..params.dx..'  '..params.dy..'  '..params.dz)
 	if customBeamLights[lightID] then
-		customBeamLights[lightID] = tableMerge(customBeamLights[lightID], params)
+		table.mergeInPlace(customBeamLights[lightID], params)
 		return true
 	else
 		return false
 	end
 end
 
-function RemoveBeamLight(lightID, life)
+local function RemoveBeamLight(lightID, life)
 	if customBeamLights[lightID] then
 		if life == nil then
 			customBeamLights[lightID] = nil
@@ -760,7 +740,7 @@ function RemoveBeamLight(lightID, life)
 	end
 end
 
-function CreateLight(name, x, y, z, radius, rgba, falloffsquared)
+local function CreateLight(name, x, y, z, radius, rgba, falloffsquared)
   --Spring.Echo("CreateLight(name, x, y, z, radius, rgba, falloffsquared)",name, x, y, z, radius, rgba, falloffsquared)
   falloffsquared = falloffsquared or 1.0
 	if name == 'thruster' then
@@ -791,16 +771,16 @@ function CreateLight(name, x, y, z, radius, rgba, falloffsquared)
 	return explosionLightsCount
 end
 
-function EditLight(lightID, params)
+local function EditLight(lightID, params)
 	if explosionLights[lightID] then
-		explosionLights[lightID] = tableMerge(explosionLights[lightID], params)
+		table.mergeInPlace(explosionLights[lightID], params)
 		return true
 	else
 		return false
 	end
 end
 
-function EditLightPos(lightID, x,y,z)
+local function EditLightPos(lightID, x,y,z)
 	if explosionLights[lightID] then
 		explosionLights[lightID].px = x
 		explosionLights[lightID].py = y
@@ -811,7 +791,7 @@ function EditLightPos(lightID, x,y,z)
 	end
 end
 
-function RemoveLight(lightID, life)
+local function RemoveLight(lightID, life)
 	if explosionLights[lightID] then
 		if life == nil then
 			explosionLights[lightID] = nil
@@ -825,11 +805,11 @@ end
 
 
 -- function called by explosion_lights gadget
-function GadgetWeaponExplosion(px, py, pz, weaponID, ownerID)
+local function GadgetWeaponExplosion(px, py, pz, weaponID, ownerID)
 	if weaponConf[weaponID] ~= nil then
 		--Spring.Echo(weaponConf[weaponID].orgMult..'   '..weaponConf[weaponID].radius..'  '..weaponConf[weaponID].life)
-		local randomOffset = weaponConf[weaponID].radius > 30 and weaponConf[weaponID].radius/11 or nil
-		if randomOffset and randomOffset > 15 then randomOffset = 15 end
+		--local randomOffset = weaponConf[weaponID].radius > 35 and weaponConf[weaponID].radius/15 or nil
+		--if randomOffset and randomOffset > 14 then randomOffset = 14 end
 		local params = {
 			life = weaponConf[weaponID].life,
 			orgMult = weaponConf[weaponID].orgMult,
@@ -844,7 +824,7 @@ function GadgetWeaponExplosion(px, py, pz, weaponID, ownerID)
 				b = weaponConf[weaponID].b,
 				radius = weaponConf[weaponID].radius,
 			},
-			randomOffset = randomOffset
+			--randomOffset = randomOffset
 		}
 
 		explosionLightsCount = explosionLightsCount + 1
@@ -900,11 +880,12 @@ function GadgetWeaponExplosion(px, py, pz, weaponID, ownerID)
 	end
 end
 
-function GadgetWeaponBarrelfire(px, py, pz, weaponID, ownerID)
+local function GadgetWeaponBarrelfire(px, py, pz, weaponID, ownerID)
 	if weaponConf[weaponID] ~= nil then
+		local mult = (weaponConf[weaponID].wtype == 'Cannon' and 1 or 0.3)
 		local params = {
-			life = (2.5+(weaponConf[weaponID].life/4))*globalLifeMult,
-			orgMult = 0.44 + (weaponConf[weaponID].orgMult*0.4),
+			life = (3+(weaponConf[weaponID].life/2.5))*globalLifeMult * mult,
+			orgMult = 0.3 + (weaponConf[weaponID].orgMult*0.2) * mult,
 			frame = spGetGameFrame(),
 			px = px,
 			py = py,
@@ -914,7 +895,7 @@ function GadgetWeaponBarrelfire(px, py, pz, weaponID, ownerID)
 				r = weaponConf[weaponID].r,
 				g = weaponConf[weaponID].g,
 				b = weaponConf[weaponID].b,
-				radius = 20 + weaponConf[weaponID].radius*0.44,
+				radius = 25 + (weaponConf[weaponID].radius*0.85) * mult,
 			},
 		}
 		explosionLightsCount = explosionLightsCount + 1

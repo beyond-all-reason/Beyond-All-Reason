@@ -10,16 +10,7 @@ function gadget:GetInfo()
 	}
 end
 
-local teams = Spring.GetTeamList()
-local chickensEnabled
-for i = 1, #teams do
-	local luaAI = Spring.GetTeamLuaAI(teams[i])
-	if luaAI and luaAI ~= "" and string.sub(luaAI, 1, 9) == 'Chicken: ' then
-		chickensEnabled = true
-	end
-end
-
-if chickensEnabled == true then
+if Spring.Utilities.Gametype.IsChickens() then
 	Spring.Echo("[ChickenDefense: Chicken Special Damage] Activated!")
 else
 	Spring.Echo("[ChickenDefense: Chicken Special Damage] Deactivated!")

@@ -104,11 +104,11 @@ local hookPreRealFunction
 local hookPostRealFunction
 
 if gadgetHandler:IsSyncedCode() then
-	hookPreRealFunction = function(gadgetName, callinName) 
-		SendToUnsynced("prf_started_from_synced", gadgetName, callinName) 
+	hookPreRealFunction = function(gadgetName, callinName)
+		SendToUnsynced("prf_started_from_synced", gadgetName, callinName)
 	end
 	hookPostRealFunction = function(gadgetName, callinName)
-		SendToUnsynced("prf_finished_from_synced", gadgetName, callinName) 
+		SendToUnsynced("prf_finished_from_synced", gadgetName, callinName)
 	end
 else
 	local t, s
@@ -125,7 +125,7 @@ else
 
 		local gadgetCallinStats = ValueForKey_SetDefaultInOriginalTable(callinStats, gadgetName, {})
 		local stats = ValueForKey_SetDefaultInOriginalTable(gadgetCallinStats, callinName, { 0, 0, 0, 0})
-		
+
 		stats[1] = stats[1] + dt
 		stats[2] = stats[2] + dt
 		stats[3] = stats[3] + ds
@@ -146,15 +146,15 @@ Hook = function(gadget, callinName)
 	local gname = prefixedGnames[gadgetName] or ConstructPrefixedName(gadget.ghInfo)
 
 	local hook_func = function(...)
-		if inHook then 
+		if inHook then
 			return realFunc(...)
 		end
 
 		inHook = true
 		hookPreRealFunction(gname, callinName)
-		
+
 		local results = { realFunc(...) }
-		
+
 		hookPostRealFunction(gname, callinName)
 		inHook = false
 
@@ -172,7 +172,7 @@ local dummyTable = {} -- Avoid re-creating an empty table that will never be giv
 local function ForAllGadgetCallins(action) -- This should be local, but it was failing to find it for some reason?
 	local CallInsList = {}
 	local CallInsListCount = 0
-	
+
 	for key, value in pairs(gadgetHandler) do
 		local i = key:find("List", nil, true)
 		if i and type(value) == "table" then
@@ -190,13 +190,13 @@ local function ForAllGadgetCallins(action) -- This should be local, but it was f
 end
 
 -- Helper for StartHook
-local function AddHook(gadget, callin) 
+local function AddHook(gadget, callin)
 	gadget[callin] = Hook(gadget, callin)
 end
 
 local function StartHook()
 	if hookset then
-		if not running then 
+		if not running then
 			KillHook()
 		end
 		return false
@@ -307,7 +307,7 @@ else
 	end
 
 	local function Start(_, _, _, pID, _)
-		if running then 
+		if running then
 			Kill(nil, nil, nil, pID, nil)
 		elseif pID == Spring.GetMyPlayerID() then
 			running = true
@@ -346,7 +346,7 @@ else
 	end
 
 	--------------------------------------------------------------------------------
-	-- Data 
+	-- Data
 	--------------------------------------------------------------------------------
 
 	local tick = 0.2
@@ -369,7 +369,7 @@ else
 	local allOverTimeSec = 0 -- currently unused
 
 	--------------------------------------------------------------------------------
-	-- Presentation 
+	-- Presentation
 	--------------------------------------------------------------------------------
 
 	local sortedList = {}
@@ -389,7 +389,7 @@ else
 	local function ColorChar(color)
 		return string.char(math.floor(color * 255))
 	end
-	
+
 	local function ColourString(R, G, B)
 		return "\255" .. ColorChar(R) .. ColorChar(G) .. ColorChar(B)
 	end
@@ -490,7 +490,7 @@ else
 	--------------------------------------------------------------------------------
 	-- Layout
 	--------------------------------------------------------------------------------
-	
+
 	-- Layout constants. Defaults are provided here, and updated by gadget:ViewResize() directly after it is defined.
 	-- These initial values should never be used to perform an actual layout, and are just provided as examples.
 	local viewWidth, viewHeight = gl.GetViewSizes()
@@ -499,17 +499,16 @@ else
 
 	local dataColWidth = 15
 	local nameColWidth = 55
-	local subColWidths 
+	local subColWidths
 	local colWidth = 200
 	local maxLines = 20
 
 	-- initial coord for writing
-	local initialY 
+	local initialY
 	local initialX
 
-	function gadget:ViewResize(viewWidth, viewHeight)
-		viewWidth = viewWidth
-		viewHeight = viewHeight
+	function gadget:ViewResize(vsx, vsy)
+		viewWidth, viewHeight = gl.GetViewSizes()
 
 		fontSize = math.max(11, math.floor(11 * viewWidth / 1920))
 		lineSpace = fontSize + 2
@@ -546,9 +545,9 @@ else
 
 	local function Text(color, string, dataColIndex)
 		gl.Text(
-			color .. string, 
-			initialX + dataColWidth * dataColIndex - currentColumnIndex * colWidth, 
-			initialY - lineSpace * currentLineIndex, 
+			color .. string,
+			initialX + dataColWidth * dataColIndex - currentColumnIndex * colWidth,
+			initialY - lineSpace * currentLineIndex,
 			fontSize,
 			"no"
 		)
@@ -563,7 +562,7 @@ else
 		Text(color2 or color, col2String or "", 1)
 		Text(color3 or color, col3String or "", 2)
 	end
-	
+
 	local function NewSection(title)
 		RequireSpace(15)
 		if currentLineIndex ~= 0 then currentLineIndex = currentLineIndex + 3 end
@@ -593,8 +592,8 @@ else
 		end
 
 		Line(0, totals_colour,
-			('%.2f%%'):format(list.allOverTime), 
-			('%.0f'):format(list.allOverSpace) .. 'kB/s', 
+			('%.2f%%'):format(list.allOverTime),
+			('%.0f'):format(list.allOverSpace) .. 'kB/s',
 			"totals (" .. string.lower(name) .. ")"
 		)
 	end
@@ -636,18 +635,18 @@ else
 
 		Line(0, totals_colour,
 			"",
-			('%.1f%%'):format((sortedList.allOverTime or 0) + (sortedListSYNCED.allOverTime or 0)), 
+			('%.1f%%'):format((sortedList.allOverTime or 0) + (sortedListSYNCED.allOverTime or 0)),
 			"total percentage of running time spent in luarules callins"
 		)
 
 		Line(0, totals_colour,
-			"", 
+			"",
 			('%.0f'):format((sortedList.allOverSpace or 0) + (sortedListSYNCED.allOverSpace or 0)) .. 'kB/s',
 			"total rate of mem allocation by luarules callins"
 		)
 
 		Line(1, title_colour, 'total lua memory usage is ' .. ('%.0f'):format(globalMemory / 1000) .. 'MB, of which:')
-		
+
 		Line(1, totals_colour, "",  ('%.0f'):format(100 * luarulesMemory / globalMemory) .. '% is from unsynced luarules')
 		Line(0, totals_colour, "", ('%.0f'):format(100 * unsyncedMemory / globalMemory) .. '% is from unsynced states (luarules+luagaia+luaui)')
 		Line(0, totals_colour, "", ('%.0f'):format(100 * syncedMemory / globalMemory) .. '% is from synced states (luarules+luagaia)')

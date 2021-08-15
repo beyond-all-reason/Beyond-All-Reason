@@ -14,7 +14,7 @@ local function ixatol0()
 			{ unitDefID = UnitDefNames.armfdrag.id, xOffset =  -45, zOffset =  -54, direction = 0 },
 			{ unitDefID = UnitDefNames.armuwes.id,  xOffset =    3, zOffset =  -54, direction = 0 },
 			{ unitDefID = UnitDefNames.armfdrag.id, xOffset =  -77, zOffset =  -54, direction = 0 },
-			{ unitDefID = UnitDefNames.armsub.id,   xOffset =  127, zOffset =  -27, direction =    0, patrol = true },
+			{ unitDefID = UnitDefNames.armsub.id,   xOffset =  127, zOffset =  -27, direction = 0 },
 			{ unitDefID = UnitDefNames.armuwes.id,  xOffset =   67, zOffset =  -54, direction = 0 },
 		},
 	}
@@ -151,7 +151,7 @@ local function ixatolseaplane()
 			{ unitDefID = UnitDefNames.armuwms.id,  xOffset =  -15, zOffset =  -45, direction = 3 },
 			{ unitDefID = UnitDefNames.armuwms.id,  xOffset =  -15, zOffset =   19, direction = 3 },
 			{ unitDefID = UnitDefNames.armfrad.id,  xOffset =   57, zOffset =   -5, direction = 3 },
-			{ unitDefID = UnitDefNames.armsehak.id, xOffset =   60, zOffset =   -3, direction =    0, patrol = true },
+			{ unitDefID = UnitDefNames.armsehak.id, xOffset =   60, zOffset =   -3, direction = 0,},
 			{ unitDefID = UnitDefNames.armfdrag.id, xOffset =  -63, zOffset =  -45, direction = 0 },
 			{ unitDefID = UnitDefNames.armplat.id,  xOffset =  105, zOffset =   75, direction = 0 },
 			{ unitDefID = UnitDefNames.armfdrag.id, xOffset =  -63, zOffset =  -13, direction = 0 },
@@ -186,8 +186,8 @@ local function ixatolmmkrsubs()
 			{ unitDefID = UnitDefNames.armfmkr.id, xOffset =   17, zOffset =   44, direction = 1 },
 			{ unitDefID = UnitDefNames.armfmkr.id, xOffset =  -31, zOffset =   44, direction = 0 },
 			{ unitDefID = UnitDefNames.armfmkr.id, xOffset =  -31, zOffset =   -4, direction = 1 },
-			{ unitDefID = UnitDefNames.armsub.id,  xOffset =   76, zOffset =   21, direction =    0, patrol = true },
-			{ unitDefID = UnitDefNames.armsub.id,  xOffset = -108, zOffset =  -29, direction =    0, patrol = true },
+			{ unitDefID = UnitDefNames.armsub.id,  xOffset =   76, zOffset =   21, direction = 0 },
+			{ unitDefID = UnitDefNames.armsub.id,  xOffset = -108, zOffset =  -29, direction = 0,},
 		},
 	}
 end

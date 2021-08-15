@@ -293,7 +293,7 @@ end
 function UnitJitter.Create(Options)
   SetUnitLuaDraw(Options.unit,true)
 
-  local newObject = MergeTable(Options, UnitJitter.Default)
+  local newObject = table.merge(UnitJitter.Default, Options)
   setmetatable(newObject,UnitJitter)  -- make handle lookup
   newObject:CreateParticle()
   return newObject

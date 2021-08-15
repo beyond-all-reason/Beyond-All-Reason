@@ -58,26 +58,12 @@ for i = 1, #teams do
 end
 teams = nil
 
-local font, font2, lockPlayerID, prevLockPlayerID, bgpadding, toggleButton, backgroundGuishader, prevGameframeClock, chobbyInterface
+local font, font2, lockPlayerID, prevLockPlayerID, toggleButton, backgroundGuishader, prevGameframeClock, chobbyInterface
+
+local RectRound, elementCorner, bgpadding
 
 ---------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------
-
-function deepcopy(orig)
-	local orig_type = type(orig)
-	local copy
-	if orig_type == 'table' then
-		copy = {}
-		for orig_key, orig_value in next, orig, nil do
-			copy[deepcopy(orig_key)] = deepcopy(orig_value)
-		end
-		setmetatable(copy, deepcopy(getmetatable(orig)))
-	else
-		-- number, string, boolean, etc
-		copy = orig
-	end
-	return copy
-end
 
 function addPlayerTsOrdered(ts, playerID, teamID, spec)
 	local inserted = false
@@ -96,7 +82,7 @@ function addPlayerTsOrdered(ts, playerID, teamID, spec)
 		tsOrderedPlayerCount = tsOrderedPlayerCount + 1
 		newTsOrderedPlayers[tsOrderedPlayerCount] = { ts, playerID, teamID, spec }
 	end
-	tsOrderedPlayers = deepcopy(newTsOrderedPlayers)
+	tsOrderedPlayers = table.copy(newTsOrderedPlayers)
 end
 
 function tsOrderPlayers()
@@ -168,9 +154,6 @@ function createCountdownLists()
 	--end
 end
 
-local RectRound = Spring.FlowUI.Draw.RectRound
-local TexturedRectRound = Spring.FlowUI.Draw.TexturedRectRound
-local elementCorner = Spring.FlowUI.elementCorner
 
 function createList()
 	for i = 1, #drawlist do
@@ -471,8 +454,10 @@ function widget:ViewResize()
 	vsx, vsy = Spring.GetViewGeometry()
 	widgetScale = (0.7 + (vsx * vsy / 5000000))
 
-	bgpadding = Spring.FlowUI.elementPadding
-	elementCorner = Spring.FlowUI.elementCorner
+	bgpadding = WG.FlowUI.elementPadding
+	elementCorner = WG.FlowUI.elementCorner
+
+	RectRound = WG.FlowUI.Draw.RectRound
 
 	font = WG['fonts'].getFont(nil, 1, 0.2, 1.3)
 	font2 = WG['fonts'].getFont(fontfile2, 2, 0.2, 1.3)
