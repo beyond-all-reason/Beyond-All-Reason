@@ -99,7 +99,9 @@ function UnitDef_Post(name, uDef)
 		uDef.corpse = nil
 	end
 
-	if uDef.energymake and uDef.energyuse then
+	-- negate energyuse with energymake values
+	-- excludes units without on/off states (energyuse values arent in effect)
+	if uDef.energymake and uDef.energyuse and uDef.onoffable then
 		if uDef.energymake == uDef.energyuse then
 			uDef.energymake = 0
 			uDef.energyuse = 0
@@ -591,12 +593,12 @@ local function ProcessSoundDefaults(wd)
 		wd.soundhitwetvolume = 5
 		return
 	end
-	
+
 	local soundVolume = math.sqrt(defaultDamage * 0.5)
 
-	-- The very old formula 
-	-- local soundVolume = math.sqrt(math.min(2000, defaultDamage) * 0.5) 
-	
+	-- The very old formula
+	-- local soundVolume = math.sqrt(math.min(2000, defaultDamage) * 0.5)
+
 	-- The old formula
 	-- local soundVolume = math.sqrt(defaultDamage * 0.5)
 	-- soundVolume = math.min(math.max(soundVolume, 5), 25)
