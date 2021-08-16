@@ -204,9 +204,9 @@ void main() {
 	//#if USE_STIPPLE > 0
 		//fragColor.a *= 2.0 * sin(worldscale_circumference + timeInfo.x*0.2) ; // PERFECT STIPPLING!
 	//#endif
-	float pulse = sin(-2.5 * sqrt(length(toedge)) + 0.05 * timeInfo.x);
+	float pulse = 1 + sin(-2.0 * sqrt(length(toedge)) + 0.05 * timeInfo.x);
 	pulse *= pulse;
-	fragColor.a = mix(fragColor.a, fragColor.a * pulse, 0.333);
+	fragColor.a = mix(fragColor.a, fragColor.a * pulse, 0.10);
 }
 ]]
 
