@@ -102,9 +102,6 @@ out DataVS {
 	float circlealpha;
 };
 
-#extension GL_ARB_uniform_buffer_object : require
-#extension GL_ARB_shading_language_420pack: require
-
 //__ENGINEUNIFORMBUFFERDEFS__
 
 void main()
