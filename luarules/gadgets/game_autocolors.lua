@@ -240,9 +240,6 @@ local function MissingColorHandler(teamID, allyTeam, myTeam, myAllyTeam, allyTea
         allyCounter = 1
         if AllyColors[allyTeamCount] then
             if AllyColors[allyTeamCount][allyCounter] then
-                
-                
-                
                 spSetTeamColor(
                     teamID, 
                     AllyColors[allyTeamCount][allyCounter][1]/255, 

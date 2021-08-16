@@ -177,7 +177,9 @@ local CaptureProgressForLootboxes = {}
 local SpawnChance = 75
 local TryToSpawn = false
 
-
+if scavengersAIEnabled then
+	spGaiaTeam = scavengerAITeamID
+end
 -- functions
 
 local function QueueSpawn(unitName, posx, posy, posz, facing, team, frame)
