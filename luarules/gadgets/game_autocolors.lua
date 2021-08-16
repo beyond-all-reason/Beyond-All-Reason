@@ -231,7 +231,54 @@ EnemyColors = {
 ScavColor = {97, 36, 97}
 GaiaColor = {127, 127, 127}
 
-local function MissingColorHandler(teamID, allyTeam)
+local function MissingColorHandler(teamID, allyTeam, myTeam, myAllyTeam, allyTeamCount)
+    --local myTeam = spGetMyTeamID()
+    --local myAllyTeam = spGetMyAllyTeamID()
+    -- if teamID == myTeam then
+    --     spSetTeamColor(teamID, SimplePlayerColor[1]/255, SimplePlayerColor[2]/255, SimplePlayerColor[3]/255)
+    if allyTeam == myAllyTeam then -- elseif allyTeam == myAllyTeam then
+        allyCounter = 1
+        if AllyColors[allyTeamCount] then
+            if AllyColors[allyTeamCount][allyCounter] then
+                
+                
+                
+                spSetTeamColor(
+                    teamID, 
+                    AllyColors[allyTeamCount][allyCounter][1]/255, 
+                    AllyColors[allyTeamCount][allyCounter][2]/255, 
+                    AllyColors[allyTeamCount][allyCounter][3]/255
+                )
+            else
+                spSetTeamColor(teamID, 255, 255, 255)
+            end
+        else
+            spSetTeamColor(teamID, 255, 255, 255)
+        end
+    else
+        EATeamsCount[allyTeam] = 1
+        if EnemyColors[allyTeamCount] then
+            if EnemyColors[allyTeamCount][EACount[allyTeam]] then
+                if EnemyColors[allyTeamCount][EACount[allyTeam]][EATeamsCount[allyTeam]] then
+                    spSetTeamColor(
+                        teamID, 
+                        EnemyColors[allyTeamCount][EACount[allyTeam]][EATeamsCount[allyTeam]][1]/255, 
+                        EnemyColors[allyTeamCount][EACount[allyTeam]][EATeamsCount[allyTeam]][2]/255,
+                        EnemyColors[allyTeamCount][EACount[allyTeam]][EATeamsCount[allyTeam]][3]/255
+                    )
+                else
+                    spSetTeamColor(teamID, 255, 255, 255)
+                end
+            else
+                spSetTeamColor(teamID, 255, 255, 255)
+            end
+        else
+            spSetTeamColor(teamID, 255, 255, 255)
+        end
+    end
+end
+
+local function SimpleColorHandler(teamID, allyTeam)
     local myTeam = spGetMyTeamID()
     local myAllyTeam = spGetMyAllyTeamID()
     if teamID == myTeam then
@@ -270,13 +317,13 @@ local function EnemyColorHandler(teamID, allyTeam, allyTeamCount, myTeam, myAlly
                     EnemyColors[allyTeamCount][EACount[allyTeam]][EATeamsCount[allyTeam]][3] /255
                 )
             else
-                MissingColorHandler(teamID, allyTeam)
+                MissingColorHandler(teamID, allyTeam, myTeam, myAllyTeam, allyTeamCount)
             end
         else
-            MissingColorHandler(teamID, allyTeam)
+            MissingColorHandler(teamID, allyTeam, myTeam, myAllyTeam, allyTeamCount)
         end
     else
-        MissingColorHandler(teamID, allyTeam)
+        MissingColorHandler(teamID, allyTeam, myTeam, myAllyTeam, allyTeamCount)
     end
     -- planned
 end
@@ -302,7 +349,7 @@ local function UpdatePlayerColors()
             spSetTeamColor(teamID, GaiaColor[1]/255, GaiaColor[2]/255, GaiaColor[3]/255)
         else
             if SimpleColorsEnabled == 1 then -- SimpleColors
-                MissingColorHandler(teamID, allyTeam)
+                SimpleColorHandler(teamID, allyTeam)
             elseif (AnonymousModeEnabled and allyTeam ~= myAllyTeam) and (not spectator) then
                 spSetTeamColor(teamID, SimpleEnemyColor[1]/255, SimpleEnemyColor[2]/255, SimpleEnemyColor[3]/255)
             elseif #teams == #allyteams then -- FFA
@@ -312,7 +359,7 @@ local function UpdatePlayerColors()
                 elseif FFAColors[ffaCounter] then
                     spSetTeamColor(teamID, FFAColors[ffaCounter][1] /255, FFAColors[ffaCounter][2] /255, FFAColors[ffaCounter][3] /255)
                 else
-                    MissingColorHandler(teamID, allyTeam)
+                    MissingColorHandler(teamID, allyTeam, myTeam, myAllyTeam, #allyteams-1)
                 end
             else
                 if spectator or (not AnonymousModeEnabled and (not DynamicTeamColorsEnabled)) then
@@ -325,10 +372,10 @@ local function UpdatePlayerColors()
                         if AllyColors[#allyteams-1][allyCounter] then
                             spSetTeamColor(teamID, AllyColors[#allyteams-1][allyCounter][1] /255, AllyColors[#allyteams-1][allyCounter][2] /255, AllyColors[#allyteams-1][allyCounter][3] /255)
                         else
-                            MissingColorHandler(teamID, allyTeam)
+                            MissingColorHandler(teamID, allyTeam, myTeam, myAllyTeam, #allyteams-1)
                         end
                     else
-                        MissingColorHandler(teamID, allyTeam)
+                        MissingColorHandler(teamID, allyTeam, myTeam, myAllyTeam, #allyteams-1)
                     end
                 else
                     EnemyColorHandler(teamID, allyTeam, #allyteams-1, myTeam, myAllyTeam)
