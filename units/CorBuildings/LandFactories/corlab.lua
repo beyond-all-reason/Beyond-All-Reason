@@ -50,6 +50,7 @@ return {
 			[4] = "corstorm",
 			[5] = "corthud",
 			[6] = "corcrash",
+			[7] = "corkark",
 		},
 		customparams = {
 			model_author = "Mr Bob",
