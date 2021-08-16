@@ -1,4 +1,4 @@
-Spring.Echo("[Scavengers] Config initialized")
+--Spring.Echo("[Scavengers] Config initialized")
 
 
 

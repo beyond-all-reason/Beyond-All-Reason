@@ -32,23 +32,14 @@ local function GetScenarioID()
 end
 local scenarioid = GetScenarioID()
 if not scenarioid then
-    gadgetHandler:RemoveGadget(self)
+	gadgetHandler:RemoveGadget(self)
+else
+	Spring.Echo("Scenario ID: "..scenarioid)
+	VFS.Include("luarules/configs/scenarioscripts/"..scenarioid..".lua")
 end
+
 --if not VFS.FileExists("luarules/configs/scenarioscripts/"..scenarioid..".lua") then
 --   gadgetHandler:RemoveGadget(self)
 --end
-Spring.Echo("Scenario ID: "..GetScenarioID())
 
 
-
-
-
-
-
-
-
-
-
-
-
-VFS.Include("luarules/configs/scenarioscripts/"..scenarioid..".lua")

@@ -102,7 +102,7 @@ local function populateBlueprints(blueprintType)
 			end
 		end
 
-		Spring.Echo("[Scavengers] Loading blueprint file: " .. blueprintFile)
+		--Spring.Echo("[Scavengers] Loading blueprint file: " .. blueprintFile)
 	end
 
 	insertDummyBlueprints(blueprintType)

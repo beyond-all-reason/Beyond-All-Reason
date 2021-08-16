@@ -102,7 +102,7 @@ function UnitDef_Post(name, uDef)
 	-- negate energyuse with energymake values
 	-- excludes units without on/off states (energyuse values arent in effect)
 	if uDef.energymake and uDef.energyuse and uDef.onoffable then
-		Spring.Echo(uDef.name)
+		--Spring.Echo(uDef.name)
 		if uDef.energymake == uDef.energyuse then
 			uDef.energymake = 0
 			uDef.energyuse = 0
@@ -118,7 +118,6 @@ function UnitDef_Post(name, uDef)
 			end
 		end
 	end
-
 
 	-- test New sound system!
 	--VFS.Include('luarules/configs/gui_soundeffects.lua')

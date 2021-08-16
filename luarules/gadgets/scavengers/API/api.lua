@@ -171,7 +171,7 @@ function buffConstructorBuildSpeed(unitID)
 		--Spring.Echo(a)
 		Spring.SetUnitBuildSpeed(unitID, a, a, a, a, a, a)
 	end
-end 
+end
 
 local spSetGameRulesParam = Spring.SetGameRulesParam
 scavStatsAvailable = 0
@@ -183,13 +183,15 @@ scavStatsGlobalScore = 0
 scavStatsTechLevel = "Null"
 scavStatsTechPercentage = 0
 scavStatsDifficulty = "Null"
-spSetGameRulesParam("scavStatsAvailable", scavStatsAvailable)
+if spSetGameRulesParam then
+	spSetGameRulesParam("scavStatsAvailable", scavStatsAvailable)
+end
 function collectScavStats()
 	if scavStatsAvailable == 0 then
 		scavStatsAvailable = 1
 		spSetGameRulesParam("scavStatsAvailable", scavStatsAvailable)
 	end
-	
+
 	-- scavStatsScavCommanders			done
 	spSetGameRulesParam("scavStatsScavCommanders", scavStatsScavCommanders)
 
@@ -228,7 +230,7 @@ function collectScavStats()
 		spSetGameRulesParam("scavStatsBossFightCountdownStarted", 0)
 		spSetGameRulesParam("scavStatsBossFightCountdown", 0)
 	end
-	
+
 	-- done
 	if FinalBossUnitID then
 		local scavStatsBossMaxHealth = unitSpawnerModuleConfig.FinalBossHealth*teamcount*spawnmultiplier
@@ -241,6 +243,6 @@ function collectScavStats()
 		spSetGameRulesParam("scavStatsBossMaxHealth", 0)
 		spSetGameRulesParam("scavStatsBossHealth", 0)
 	end
-	
+
 	spSetGameRulesParam("scavStatsDifficulty", scavStatsDifficulty)
 end
