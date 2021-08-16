@@ -110,7 +110,7 @@ end
 
 function SetUnitConf()
 	-- preferred to keep these values the same as fancy unit selections widget
-	local scaleFactor = 2.6
+	local scaleFactor = 2.5
 	local rectangleFactor = 3.25
 
 	for udid, unitDef in pairs(UnitDefs) do
@@ -122,11 +122,11 @@ function SetUnitConf()
 			shape = 'square'
 			xscale, zscale = rectangleFactor * xsize, rectangleFactor * zsize
 		elseif (unitDef.isAirUnit) then
-			shape = 'triangle'
-			xscale, zscale = scale * 1.07, scale * 1.07
+			shape = 'circle'
+			xscale, zscale = scale*0.95, scale*0.95
 		elseif (unitDef.modCategories["ship"]) then
 			shape = 'circle'
-			xscale, zscale = scale * 0.82, scale * 0.82
+			xscale, zscale = scale*0.82, scale*0.82
 		else
 			shape = 'circle'
 			xscale, zscale = scale, scale
@@ -404,13 +404,15 @@ function widget:DrawWorldPreUnit()
 					if drawDonuts then
 						glDrawListAtUnit(unitID, spotterList, false, unitScale, unitScale, unitScale, 90, 1, 0, 0)
 					else
-						--if unitConf[Spring.GetUnitDefID(unitID)].shape == 'square' then
-						--  glDrawListAtUnit(unitID, platterSquareList, false,  unitScale, 1.0, unitScale)
-						--elseif unitConf[Spring.GetUnitDefID(unitID)].shape == 'triangle' then
-						--  glDrawListAtUnit(unitID, platterTriangleList, false,  unitScale, 1.0, unitScale)
-						--else
-						glDrawListAtUnit(unitID, platterCircleList, false, unitScale, 1.0, unitScale)
-						--end
+						if unitConf[Spring.GetUnitDefID(unitID)] then
+							if unitConf[Spring.GetUnitDefID(unitID)].shape == 'square' then
+							 glDrawListAtUnit(unitID, platterSquareList, false, unitScale, 1.0, unitScale)
+							-- elseif unitConf[Spring.GetUnitDefID(unitID)].shape == 'triangle' then
+							--  glDrawListAtUnit(unitID, platterTriangleList, false, unitScale, 1.0, unitScale)
+							else
+							glDrawListAtUnit(unitID, platterCircleList, false, unitScale, 1.0, unitScale)
+							end
+						end
 					end
 				end
 			end
@@ -428,13 +430,13 @@ function widget:DrawWorldPreUnit()
 				if drawDonuts then
 					glDrawListAtUnit(unitID, spotterList, false, unitScale, unitScale, unitScale, 90, 1, 0, 0)
 				else
-					--if unitConf[Spring.GetUnitDefID(unitID)].shape == 'square' then
-					--  glDrawListAtUnit(unitID, platterSquareList, false,  unitScale, 1.0, unitScale)
-					--elseif unitConf[Spring.GetUnitDefID(unitID)].shape == 'triangle' then
+					if unitConf[Spring.GetUnitDefID(unitID)].shape == 'square' then
+					 glDrawListAtUnit(unitID, platterSquareList, false,  unitScale, 1.0, unitScale)
+					-- elseif unitConf[Spring.GetUnitDefID(unitID)].shape == 'triangle' then
 					--  glDrawListAtUnit(unitID, platterTriangleList, false,  unitScale, 1.0, unitScale)
-					--else
+					else
 					glDrawListAtUnit(unitID, platterCircleList, false, unitScale, 1.0, unitScale)
-					--end
+					end
 				end
 			end
 		end

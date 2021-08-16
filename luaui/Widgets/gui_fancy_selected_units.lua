@@ -86,8 +86,8 @@ local OPTIONS = {	-- these will be loaded when switching style, but the style wi
 	minAnimationMultiplier			= 0.99,
 
 	-- circle shape
-	solidCirclePieces				= 32,
-	circlePieces					= 64,
+	solidCirclePieces				= 28,
+	circlePieces					= 56,
 	circlePieceDetail				= 1,
 	circleSpaceUsage				= 1,
 	circleInnerOffset				= 0,
@@ -426,9 +426,9 @@ function SetUnitConf()
 			shape = shapes.square
 			xscale, zscale = rectangleFactor * xsize, rectangleFactor * zsize
 		elseif (unitDef.isAirUnit) then
-			shapeName = 'triangle'
-			shape = shapes.triangle
-			xscale, zscale = scale*1.07, scale*1.07
+			shapeName = 'circle'
+			shape = shapes.circle
+			xscale, zscale = scale*0.9, scale*0.9
 		elseif (unitDef.modCategories["ship"]) then
 			shapeName = 'circle'
 			shape = shapes.circle
