@@ -102,6 +102,7 @@ function UnitDef_Post(name, uDef)
 	-- negate energyuse with energymake values
 	-- excludes units without on/off states (energyuse values arent in effect)
 	if uDef.energymake and uDef.energyuse and uDef.onoffable then
+		Spring.Echo(uDef.name)
 		if uDef.energymake == uDef.energyuse then
 			uDef.energymake = 0
 			uDef.energyuse = 0
@@ -119,11 +120,11 @@ function UnitDef_Post(name, uDef)
 	end
 
 
-	-- New sound system!
-	VFS.Include('luarules/configs/gui_soundeffects.lua')
-	if not (GUIUnitSoundEffects[name] or (GUIUnitSoundEffects[string.sub(name, 1, string.len(name)-5)] and string.find(name, "_scav"))) then
-		Spring.Echo("[gui_soundeffects.lua] Missing Sound Effects for unit: "..name)
-	end
+	-- test New sound system!
+	--VFS.Include('luarules/configs/gui_soundeffects.lua')
+	--if not (GUIUnitSoundEffects[name] or (GUIUnitSoundEffects[string.sub(name, 1, string.len(name)-5)] and string.find(name, "_scav"))) then
+	--	Spring.Echo("[gui_soundeffects.lua] Missing Sound Effects for unit: "..name)
+	--end
 
 	if uDef.sounds then
 		if uDef.sounds.ok then
