@@ -9,16 +9,7 @@ for i = 1,#mapList+1 do
 		return
 		--VFS.Include("luarules/configs/Atmosphereconfigs/generic_config_setup.lua")
 	end
-	local testMapName = string.sub(mapList[i], 36, string.len(mapList[i])-4):lower()
-	if string.find(currentMapname, testMapName) then
-		Spring.Echo("[ATMOSPHERIC] Success! Map names match!: " ..testMapName)
-		VFS.Include("luarules/configs/Atmosphereconfigs/" .. testMapName .. ".lua")
-		break
-	else
-		--Spring.Echo("[ATMOSPHERIC] Map names don't match: " ..testMapName)
-	end
 end
-
 
 --if VFS.FileExists("luarules/configs/Atmosphereconfigs/" .. Game.mapName .. ".lua") then
 --elseif enableGenericConfig ~= "disabled" then
@@ -465,3 +456,14 @@ else
 end
 
 
+
+for i = 1,#mapList+1 do
+	local testMapName = string.sub(mapList[i], 36, string.len(mapList[i])-4):lower()
+	if string.find(currentMapname, testMapName) then
+		Spring.Echo("[ATMOSPHERIC] Success! Map names match!: " ..testMapName)
+		VFS.Include("luarules/configs/Atmosphereconfigs/" .. testMapName .. ".lua")
+		break
+	else
+		--Spring.Echo("[ATMOSPHERIC] Map names don't match: " ..testMapName)
+	end
+end

@@ -1,3 +1,4 @@
+
 function widget:GetInfo()
 	return {
 		name    = "Startbox Editor",
@@ -9,6 +10,8 @@ function widget:GetInfo()
 		enabled = false,
 	}
 end
+
+-- this is not ZK copy, its is modified
 
 --[[ tl;dr
 LMB to draw (either clicks or drag)

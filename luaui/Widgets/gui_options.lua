@@ -2464,74 +2464,6 @@ function init()
 			  Spring.SetSunLighting({ groundShadowDensity = value, modelShadowDensity = value })
 		  end,
 		},
-		{ id = "sun_y", group = "gfx", name = texts.option.sun.. widgetOptionColor .. "  "..texts.option.sun_y, type = "slider", min = 0.05, max = 0.9999, step = 0.0001, value = select(2, gl.GetSun("pos")), description = '',
-		  onchange = function(i, value)
-			  local sunX, sunY, sunZ = gl.GetSun("pos")
-			  sunY = value
-			  if sunY < options[getOptionByID('sun_y')].min then
-				  sunY = options[getOptionByID('sun_y')].min
-			  end
-			  if sunY > options[getOptionByID('sun_y')].max then
-				  sunY = options[getOptionByID('sun_y')].max
-			  end
-			  options[getOptionByID('sun_y')].value = sunY
-			  Spring.SetSunDirection(sunX, sunY, sunZ)
-			  -- just so that map/model lighting gets updated
-			  Spring.SetSunLighting({ groundShadowDensity = gl.GetSun("shadowDensity"), modelShadowDensity = gl.GetSun("shadowDensity") })
-			  customMapSunPos[Game.mapName] = { gl.GetSun("pos") }
-		  end,
-		},
-		{ id = "sun_x", group = "gfx", name = widgetOptionColor .. "   "..texts.option.sun_x, type = "slider", min = -0.9999, max = 0.9999, step = 0.0001, value = select(1, gl.GetSun("pos")), description = '',
-		  onchange = function(i, value)
-			  local sunX, sunY, sunZ = gl.GetSun("pos")
-			  sunX = value
-			  if sunX < options[getOptionByID('sun_x')].min then
-				  sunX = options[getOptionByID('sun_x')].min
-			  end
-			  if sunX > options[getOptionByID('sun_x')].max then
-				  sunX = options[getOptionByID('sun_x')].max
-			  end
-			  options[getOptionByID('sun_x')].value = sunX
-			  Spring.SetSunDirection(sunX, sunY, sunZ)
-			  -- just so that map/model lighting gets updated
-			  Spring.SetSunLighting({ groundShadowDensity = gl.GetSun("shadowDensity"), modelShadowDensity = gl.GetSun("shadowDensity") })
-			  customMapSunPos[Game.mapName] = { gl.GetSun("pos") }
-		  end,
-		},
-		{ id = "sun_z", group = "gfx", name = widgetOptionColor .. "   "..texts.option.sun_z, type = "slider", min = -0.9999, max = 0.9999, step = 0.0001, value = select(3, gl.GetSun("pos")), description = '',
-		  onload = function(i)
-		  end,
-		  onchange = function(i, value)
-			  local sunX, sunY, sunZ = gl.GetSun("pos")
-			  sunZ = value
-			  if sunZ < options[getOptionByID('sun_z')].min then
-				  sunZ = options[getOptionByID('sun_z')].min
-			  end
-			  if sunZ > options[getOptionByID('sun_z')].max then
-				  sunZ = options[getOptionByID('sun_z')].max
-			  end
-			  options[getOptionByID('sun_z')].value = sunZ
-			  Spring.SetSunDirection(sunX, sunY, sunZ)
-			  -- just so that map/model lighting gets updated
-			  Spring.SetSunLighting({ groundShadowDensity = gl.GetSun("shadowDensity"), modelShadowDensity = gl.GetSun("shadowDensity") })
-			  customMapSunPos[Game.mapName] = { gl.GetSun("pos") }
-		  end,
-		},
-		{ id = "sun_reset", group = "gfx", name = widgetOptionColor .. "   "..texts.option.sun_reset, type = "bool", value = false, description = '',
-		  onload = function(i)
-		  end,
-		  onchange = function(i, value)
-			  options[getOptionByID('sun_x')].value = defaultMapSunPos[1]
-			  options[getOptionByID('sun_y')].value = defaultMapSunPos[2]
-			  options[getOptionByID('sun_z')].value = defaultMapSunPos[3]
-			  options[getOptionByID('sun_reset')].value = false
-			  Spring.SetSunDirection(defaultMapSunPos[1], defaultMapSunPos[2], defaultMapSunPos[3])
-			  -- just so that map/model lighting gets updated
-			  Spring.SetSunLighting({ groundShadowDensity = gl.GetSun("shadowDensity"), modelShadowDensity = gl.GetSun("shadowDensity") })
-			  Spring.Echo('resetted map sun defaults')
-			  customMapSunPos[Game.mapName] = nil
-		  end,
-		},
 
 		{ id = "darkenmap", group = "gfx", name = texts.option.darkenmap, min = 0, max = 0.5, step = 0.01, type = "slider", value = 0, description = texts.option.darkenmap_descr,
 		  onload = function(i)
@@ -4381,7 +4313,13 @@ function init()
 			  Spring.Restart("", startScript)
 		  end,
 		},
-		{ id = "startboxeditor", group = "dev", widget = "Startbox Editor", name = texts.option.startboxeditor, type = "bool", value = GetWidgetToggleValue("Startbox Editor"), description = texts.option.startboxeditor_descr },
+		-- BAR doesnt support ZK style startboxes{ id = "startboxeditor", group = "dev", widget = "Startbox Editor", name = texts.option.startboxeditor, type = "bool", value = GetWidgetToggleValue("Startbox Editor"), description = texts.option.startboxeditor_descr },
+
+		{ id = "debugcolvol", group = "dev", name = texts.option.debugcolvol, type = "bool", value = false, description = "",
+			onchange = function(i, value)
+				Spring.SendCommands("DebugColVol " .. (value and '1' or '0'))
+			end,
+		},
 
 		{ id = "tonemapA", group = "dev", name = texts.option.tonemap .. widgetOptionColor .. "  1", type = "slider", min = 0, max = 7, step = 0.01, value = Spring.GetConfigFloat("tonemapA", 4.8), description = "",
 		  onchange = function(i, value)
@@ -4471,11 +4409,74 @@ function init()
 			  options[getOptionByID('tonemapDefaults')].value = false
 		  end,
 		},
-		{ id = "debugcolvol", group = "dev", name = texts.option.debugcolvol, type = "bool", value = false, description = "",
-		  onchange = function(i, value)
-			  Spring.SendCommands("DebugColVol " .. (value and '1' or '0'))
-		  end,
-		},
+		  { id = "sun_y", group = "dev", name = texts.option.sun.. widgetOptionColor .. "  "..texts.option.sun_y, type = "slider", min = 0.05, max = 0.9999, step = 0.0001, value = select(2, gl.GetSun("pos")), description = '',
+			onchange = function(i, value)
+				local sunX, sunY, sunZ = gl.GetSun("pos")
+				sunY = value
+				if sunY < options[getOptionByID('sun_y')].min then
+					sunY = options[getOptionByID('sun_y')].min
+				end
+				if sunY > options[getOptionByID('sun_y')].max then
+					sunY = options[getOptionByID('sun_y')].max
+				end
+				options[getOptionByID('sun_y')].value = sunY
+				Spring.SetSunDirection(sunX, sunY, sunZ)
+				-- just so that map/model lighting gets updated
+				Spring.SetSunLighting({ groundShadowDensity = gl.GetSun("shadowDensity"), modelShadowDensity = gl.GetSun("shadowDensity") })
+				customMapSunPos[Game.mapName] = { gl.GetSun("pos") }
+			end,
+		  },
+		  { id = "sun_x", group = "dev", name = widgetOptionColor .. "   "..texts.option.sun_x, type = "slider", min = -0.9999, max = 0.9999, step = 0.0001, value = select(1, gl.GetSun("pos")), description = '',
+			onchange = function(i, value)
+				local sunX, sunY, sunZ = gl.GetSun("pos")
+				sunX = value
+				if sunX < options[getOptionByID('sun_x')].min then
+					sunX = options[getOptionByID('sun_x')].min
+				end
+				if sunX > options[getOptionByID('sun_x')].max then
+					sunX = options[getOptionByID('sun_x')].max
+				end
+				options[getOptionByID('sun_x')].value = sunX
+				Spring.SetSunDirection(sunX, sunY, sunZ)
+				-- just so that map/model lighting gets updated
+				Spring.SetSunLighting({ groundShadowDensity = gl.GetSun("shadowDensity"), modelShadowDensity = gl.GetSun("shadowDensity") })
+				customMapSunPos[Game.mapName] = { gl.GetSun("pos") }
+			end,
+		  },
+		  { id = "sun_z", group = "dev", name = widgetOptionColor .. "   "..texts.option.sun_z, type = "slider", min = -0.9999, max = 0.9999, step = 0.0001, value = select(3, gl.GetSun("pos")), description = '',
+			onload = function(i)
+			end,
+			onchange = function(i, value)
+				local sunX, sunY, sunZ = gl.GetSun("pos")
+				sunZ = value
+				if sunZ < options[getOptionByID('sun_z')].min then
+					sunZ = options[getOptionByID('sun_z')].min
+				end
+				if sunZ > options[getOptionByID('sun_z')].max then
+					sunZ = options[getOptionByID('sun_z')].max
+				end
+				options[getOptionByID('sun_z')].value = sunZ
+				Spring.SetSunDirection(sunX, sunY, sunZ)
+				-- just so that map/model lighting gets updated
+				Spring.SetSunLighting({ groundShadowDensity = gl.GetSun("shadowDensity"), modelShadowDensity = gl.GetSun("shadowDensity") })
+				customMapSunPos[Game.mapName] = { gl.GetSun("pos") }
+			end,
+		  },
+		  { id = "sun_reset", group = "dev", name = widgetOptionColor .. "   "..texts.option.sun_reset, type = "bool", value = false, description = '',
+			onload = function(i)
+			end,
+			onchange = function(i, value)
+				options[getOptionByID('sun_x')].value = defaultMapSunPos[1]
+				options[getOptionByID('sun_y')].value = defaultMapSunPos[2]
+				options[getOptionByID('sun_z')].value = defaultMapSunPos[3]
+				options[getOptionByID('sun_reset')].value = false
+				Spring.SetSunDirection(defaultMapSunPos[1], defaultMapSunPos[2], defaultMapSunPos[3])
+				-- just so that map/model lighting gets updated
+				Spring.SetSunLighting({ groundShadowDensity = gl.GetSun("shadowDensity"), modelShadowDensity = gl.GetSun("shadowDensity") })
+				Spring.Echo('resetted map sun defaults')
+				customMapSunPos[Game.mapName] = nil
+			end,
+		  },
 		{ id = "fog_r", group = "dev", name = texts.option.fog..widgetOptionColor .. "  "..texts.option.red, type = "slider", min = 0, max = 1, step = 0.01, value = select(1, gl.GetAtmosphere("fogColor")), description = '',
 		  onload = function(i)
 		  end,
