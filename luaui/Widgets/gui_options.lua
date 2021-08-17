@@ -2441,6 +2441,9 @@ function init()
 			  loadWidgetData("Contrast Adaptive Sharpen", "cas_sharpness", { 'SHARPNESS' })
 		  end,
 		  onchange = function(i, value)
+			  if not GetWidgetToggleValue("Contrast Adaptive Sharpen") then
+				  widgetHandler:EnableWidget("Contrast Adaptive Sharpen")
+			  end
 			  saveOptionValue('Contrast Adaptive Sharpen', 'cas', 'setSharpness', { 'SHARPNESS' }, options[getOptionByID('cas_sharpness')].value)
 		  end,
 		},
