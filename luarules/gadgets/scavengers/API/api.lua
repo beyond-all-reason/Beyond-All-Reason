@@ -21,7 +21,7 @@ ScavengerStartboxExists = false
 
 
 
-scavTechDifficulty = Spring.GetModOptions().scavengerstech or "adaptive"
+local scavTechDifficulty = Spring.GetModOptions().scavengerstech or "adaptive"
 if scavengersAIEnabled then
 	if spawnmultiplier == 0 then
 		spawnmultiplier = 0.5
@@ -109,8 +109,8 @@ function teamsCheck()
 		globalScore = 0
 	end
 	local previousGlobalScore = globalScore
-	nonFinalGlobalScore = 0
-	scoreTeamCount = 0
+	local nonFinalGlobalScore = 0
+	local scoreTeamCount = 0
 	scorePerTeam = {}
 	for _,teamID in ipairs(Spring.GetTeamList()) do
 		if teamID ~= GaiaTeamID and teamID ~= Spring.GetGaiaTeamID() then
@@ -183,9 +183,9 @@ scavStatsGlobalScore = 0
 scavStatsTechLevel = "Null"
 scavStatsTechPercentage = 0
 scavStatsDifficulty = "Null"
-if spSetGameRulesParam then
-	spSetGameRulesParam("scavStatsAvailable", scavStatsAvailable)
-end
+
+spSetGameRulesParam("scavStatsAvailable", scavStatsAvailable)
+
 function collectScavStats()
 	if scavStatsAvailable == 0 then
 		scavStatsAvailable = 1

@@ -1,7 +1,3 @@
---Spring.Echo("[Scavengers] Config initialized")
-
-
-
 -- Modoptions
 	-- Numbers and Bools
 	local ScavBossHealthModoption = tonumber(Spring.GetModOptions().scavbosshealth) or 1
@@ -11,7 +7,7 @@
 	local ScavUnitVeterancyModoption = tonumber(Spring.GetModOptions().scavunitspawnmultiplier) or 1
 	local ScavGracePeriodModoption = tonumber(Spring.GetModOptions().scavgraceperiod) or 5
 
-	scavDifficulty = (Spring.GetModOptions and Spring.GetModOptions().scavdifficulty) or "veryeasy"
+	local scavDifficulty = (Spring.GetModOptions and Spring.GetModOptions().scavdifficulty) or "veryeasy"
 	if scavDifficulty == "noob" then
 		spawnmultiplier = 0.1
 		scavStatsDifficulty = "Noob"
@@ -41,47 +37,46 @@
 		scavStatsDifficulty = "Very Easy"
 	end
 
-
-
 	-- Strings
 
 	-- Endless Mode
-	local Modoption = Spring.GetModOptions().scavendless or "disabled"
-	if Modoption == "disabled" then
+	local endlessModoption = Spring.GetModOptions().scavendless or "disabled"
+	local scavEndlessModoption
+	if endlessModoption == "disabled" then
 		scavEndlessModoption = true
 	else
 		scavEndlessModoption = false
 	end
 
 	-- Random Events Bool
-	local Modoption = Spring.GetModOptions().scavevents or "enabled"
-	if Modoption == "enabled" then
-		ScavRandomEventsEnabledModoption = true
-	elseif Modoption == "disabled" then
-		ScavRandomEventsEnabledModoption = false
+	local eventsModoption = Spring.GetModOptions().scavevents or "enabled"
+	local scavRandomEventsEnabledModoption
+	if eventsModoption == "enabled" then
+		scavRandomEventsEnabledModoption = true
+	elseif eventsModoption == "disabled" then
+		scavRandomEventsEnabledModoption = false
 	end
 
 	-- Random Events Amount
-	local Modoption = Spring.GetModOptions().scaveventsamount or "normal"
-	if Modoption == "normal" then
-		ScavRandomEventsAmountModoption = 1
-	elseif Modoption == "lower" then
-		ScavRandomEventsAmountModoption = 2
-	elseif Modoption == "higher" then
-		ScavRandomEventsAmountModoption = 0.5
+	local eventsAmountModoption = Spring.GetModOptions().scaveventsamount or "normal"
+	local scavRandomEventsAmountModoption
+	if eventsAmountModoption == "normal" then
+		scavRandomEventsAmountModoption = 1
+	elseif eventsAmountModoption == "lower" then
+		scavRandomEventsAmountModoption = 2
+	elseif eventsAmountModoption == "higher" then
+		scavRandomEventsAmountModoption = 0.5
 	end
 
 	-- Initial Bonus Commander
-	local Modoption = Spring.GetModOptions().scavinitialbonuscommander or "enabled"
-	if Modoption == "enabled" then
-		InitialBonusCommanderEnabled = true
-	elseif Modoption == "disabled" then
-		InitialBonusCommanderEnabled = false
+	local bonusCommanderModoption = Spring.GetModOptions().scavinitialbonuscommander or "enabled"
+	local initialBonusCommanderEnabled
+	if bonusCommanderModoption == "enabled" then
+		initialBonusCommanderEnabled = true
+	elseif bonusCommanderModoption == "disabled" then
+		initialBonusCommanderEnabled = false
 	end
 
-
-
-	Modoption = nil
 -- End of Modoptions
 
 
@@ -101,7 +96,7 @@ scavconfig = {
 		unitSpawnerModule 				= true,
 		startBoxProtection				= true,
 		reinforcementsModule			= true, --disabled for now for weird victory conditions and too much hp
-		randomEventsModule				= ScavRandomEventsEnabledModoption,
+		randomEventsModule				= scavRandomEventsEnabledModoption,
 		stockpilers						= true,
 		nukes							= true,
 	},
@@ -124,30 +119,30 @@ scavconfig = {
 	timers = {
 		-- globalScore values
 		T0start								= 1,
-		T1start								= 600*ScavTechCurveModoption,
-		T1low								= 900*ScavTechCurveModoption,
-		T1med								= 1200*ScavTechCurveModoption,
-		T1high								= 1500*ScavTechCurveModoption,
-		T1top								= 1800*ScavTechCurveModoption,
-		T2start								= 2250*ScavTechCurveModoption,
-		T2low								= 3000*ScavTechCurveModoption,
-		T2med								= 3750*ScavTechCurveModoption,
-		T2high								= 4500*ScavTechCurveModoption,
-		T2top								= 6000*ScavTechCurveModoption,
-		T3start								= 7500*ScavTechCurveModoption,
-		T3low								= 9000*ScavTechCurveModoption,
-		T3med								= 10500*ScavTechCurveModoption,
-		T3high								= 12000*ScavTechCurveModoption,
-		T3top								= 13500*ScavTechCurveModoption,
-		T4start								= 15000*ScavTechCurveModoption,
-		T4low								= 18000*ScavTechCurveModoption,
-		T4med								= 21000*ScavTechCurveModoption,
-		T4high								= 24000*ScavTechCurveModoption,
-		T4top								= 28000*ScavTechCurveModoption,
-		BossFight							= 32000*ScavTechCurveModoption,
-		Endless								= 32001*ScavTechCurveModoption,
+		T1start								= 600 * ScavTechCurveModoption,
+		T1low								= 900 * ScavTechCurveModoption,
+		T1med								= 1200 * ScavTechCurveModoption,
+		T1high								= 1500 * ScavTechCurveModoption,
+		T1top								= 1800 * ScavTechCurveModoption,
+		T2start								= 2250 * ScavTechCurveModoption,
+		T2low								= 3000 * ScavTechCurveModoption,
+		T2med								= 3750 * ScavTechCurveModoption,
+		T2high								= 4500 * ScavTechCurveModoption,
+		T2top								= 6000 * ScavTechCurveModoption,
+		T3start								= 7500 * ScavTechCurveModoption,
+		T3low								= 9000 * ScavTechCurveModoption,
+		T3med								= 10500 * ScavTechCurveModoption,
+		T3high								= 12000 * ScavTechCurveModoption,
+		T3top								= 13500 * ScavTechCurveModoption,
+		T4start								= 15000 * ScavTechCurveModoption,
+		T4low								= 18000 * ScavTechCurveModoption,
+		T4med								= 21000 * ScavTechCurveModoption,
+		T4high								= 24000 * ScavTechCurveModoption,
+		T4top								= 28000 * ScavTechCurveModoption,
+		BossFight							= 32000 * ScavTechCurveModoption,
+		Endless								= 32001 * ScavTechCurveModoption,
 		-- don't delete
-		NoRadar								= 2250*ScavTechCurveModoption,
+		NoRadar								= 2250 * ScavTechCurveModoption,
 	},
 	other = {
 		heighttolerance						= 40, -- higher = allow higher height diffrences
@@ -186,7 +181,7 @@ unitSpawnerModuleConfig = {
 	t3multiplier						= 0.20,
 	t4multiplier						= 0.03,
 
-	initialbonuscommander				= InitialBonusCommanderEnabled,
+	initialbonuscommander				= initialBonusCommanderEnabled,
 }
 
 constructorControllerModuleConfig = {
@@ -211,8 +206,8 @@ spawnProtectionConfig = {
 }
 
 randomEventsConfig = {
-	randomEventMinimumDelay = 9000*ScavRandomEventsAmountModoption, -- frames
-	randomEventChance = 200*ScavRandomEventsAmountModoption, -- higher = lower chance
+	randomEventMinimumDelay = 9000*scavRandomEventsAmountModoption, -- frames
+	randomEventChance = 200*scavRandomEventsAmountModoption, -- higher = lower chance
 
 }
 
