@@ -356,7 +356,8 @@ local function UpdatePlayerColors()
                 elseif FFAColors[ffaCounter] then
                     spSetTeamColor(teamID, FFAColors[ffaCounter][1] /255, FFAColors[ffaCounter][2] /255, FFAColors[ffaCounter][3] /255)
                 else
-                    MissingColorHandler(teamID, allyTeam, myTeam, myAllyTeam, #allyteams-1)
+                    ffaCounter = 1
+                    spSetTeamColor(teamID, FFAColors[ffaCounter][1] /255, FFAColors[ffaCounter][2] /255, FFAColors[ffaCounter][3] /255)
                 end
             else
                 if spectator or (not AnonymousModeEnabled and (not DynamicTeamColorsEnabled)) then
