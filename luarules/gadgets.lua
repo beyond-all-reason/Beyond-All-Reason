@@ -497,28 +497,26 @@ function gadgetHandler:RemoveGadget(gadget)
 		return
 	end
 
-	if gadget.ghInfo then
-		local name = gadget.ghInfo.name
-		self.knownGadgets[name].active = false
-		if gadget.Shutdown then
-			gadget:Shutdown()
-		end
-
-		ArrayRemove(self.gadgets, gadget)
-		self:RemoveGadgetGlobals(gadget)
-		actionHandler.RemoveGadgetActions(gadget)
-		for _, listname in ipairs(CALLIN_LIST) do
-			ArrayRemove(self[listname .. 'List'], gadget)
-		end
-
-		for id, g in pairs(self.CMDIDs) do
-			if g == gadget then
-				self.CMDIDs[id] = nil
-			end
-		end
-
-		self:UpdateCallIns()
+	local name = gadget.ghInfo.name
+	self.knownGadgets[name].active = false
+	if gadget.Shutdown then
+		gadget:Shutdown()
 	end
+
+	ArrayRemove(self.gadgets, gadget)
+	self:RemoveGadgetGlobals(gadget)
+	actionHandler.RemoveGadgetActions(gadget)
+	for _, listname in ipairs(CALLIN_LIST) do
+		ArrayRemove(self[listname .. 'List'], gadget)
+	end
+
+	for id, g in pairs(self.CMDIDs) do
+		if g == gadget then
+			self.CMDIDs[id] = nil
+		end
+	end
+
+	self:UpdateCallIns()
 end
 
 
