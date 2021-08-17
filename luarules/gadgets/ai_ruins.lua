@@ -22,6 +22,10 @@ function gadget:GetInfo()
     }
 end
 
+if not gadgetHandler:IsSyncedCode() then
+	return false
+end
+
 VFS.Include('luarules/gadgets/scavengers/API/init.lua')
 VFS.Include('luarules/gadgets/scavengers/API/api.lua')
 VFS.Include('luarules/gadgets/scavengers/API/poschecks.lua')
@@ -146,10 +150,6 @@ local function spawnRuin(ruin, posx, posy, posz)
 	end
 	mirrored = nil
 	mirroredDirection = nil
-end
-
-if not gadgetHandler:IsSyncedCode() then
-	return false
 end
 
 function gadget:GameFrame(n)

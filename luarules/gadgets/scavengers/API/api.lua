@@ -183,9 +183,9 @@ scavStatsGlobalScore = 0
 scavStatsTechLevel = "Null"
 scavStatsTechPercentage = 0
 scavStatsDifficulty = "Null"
-if spSetGameRulesParam then
-	spSetGameRulesParam("scavStatsAvailable", scavStatsAvailable)
-end
+
+spSetGameRulesParam("scavStatsAvailable", scavStatsAvailable)
+
 function collectScavStats()
 	if scavStatsAvailable == 0 then
 		scavStatsAvailable = 1
