@@ -131,32 +131,32 @@ DoTheWalking()
 {
 	while(TRUE)
 	{
-		move pelvis to y-axis [0.7] speed [5];
+		move pelvis to y-axis [0.77] speed [5.5];
 		WAIT_WALK
 		MIDDLE_RIGHT_BACK
 		REAR_LEFT_DOWN
 		
-		move pelvis to y-axis [0] speed [5];
+		move pelvis to y-axis [0] speed [5.5];
 		WAIT_WALK
 		MIDDLE_LEFT_UP
 		REAR_LEFT_BACK
 		
-		move pelvis to y-axis [0.7] speed [5];
+		move pelvis to y-axis [0.77] speed [5.5];
 		WAIT_WALK
 		MIDDLE_LEFT_DOWN
 		REAR_RIGHT_UP
 		
-		move pelvis to y-axis [0] speed [5];
+		move pelvis to y-axis [0] speed [5.5];
 		WAIT_WALK
 		MIDDLE_LEFT_BACK
 		REAR_RIGHT_DOWN
 		
-		move pelvis to y-axis [0.7] speed [5];
+		move pelvis to y-axis [0.77] speed [5.5];
 		WAIT_WALK
 		REAR_RIGHT_BACK
 		MIDDLE_RIGHT_UP
 		
-		move pelvis to y-axis [0] speed [5];
+		move pelvis to y-axis [0] speed [5.5];
 		WAIT_WALK
 		MIDDLE_RIGHT_DOWN
 		REAR_LEFT_UP
@@ -237,7 +237,7 @@ ready()
 	sleep 15;
 	turn neck to x-axis <110> speed <110>;
 	turn head to x-axis <-110> speed <110>;
-	turn rarm to x-axis <-90> speed <90>;
+	turn rarm to x-axis <-90> speed <145>;
 	turn larm to x-axis <-45> speed <45>;
 	turn larm to y-axis <-30> speed <30>;
 	turn shield to x-axis <45> speed <45>;
@@ -249,13 +249,13 @@ ready()
 	turn shldout to x-axis <-20> speed <20>;
 	turn shldout to y-axis <160> speed <160>;
 	turn shldout to z-axis <-80> speed <80>;
-	move shield to x-axis [-1.6] speed [1.6];
-	move shldbot to x-axis [3] speed [3];
-	move shldbot to y-axis [-4] speed [4];
-	move shldbot to z-axis [-1] speed [1];
-	move shldtop to x-axis [-3] speed [3];
-	move shldtop to y-axis [4] speed [4];
-	move shldtop to z-axis [1] speed [1];
+	move shield to x-axis [-1.76] speed [1.76];
+	move shldbot to x-axis [3.3] speed [3.3];
+	move shldbot to y-axis [-4.4] speed [4.4];
+	move shldbot to z-axis [-1.1] speed [1.1];
+	move shldtop to x-axis [-3.3] speed [3.3];
+	move shldtop to y-axis [4.4] speed [4.4];
+	move shldtop to z-axis [1.1] speed [1.1];
 	sleep 100;
 }
 
@@ -276,13 +276,13 @@ holster()
 	turn shldout to x-axis <0> speed <20>;
 	turn shldout to y-axis <0> speed <160>;
 	turn shldout to z-axis <0> speed <80>;
-	move shield to x-axis [0] speed [2];
-	move shldbot to x-axis [0] speed [3];
-	move shldbot to y-axis [0] speed [4];
-	move shldbot to z-axis [0] speed [1];
-	move shldtop to x-axis [0] speed [3];
-	move shldtop to y-axis [0] speed [4];
-	move shldtop to z-axis [0] speed [1];
+	move shield to x-axis [0] speed [2.2];
+	move shldbot to x-axis [0] speed [3.3];
+	move shldbot to y-axis [0] speed [4.4];
+	move shldbot to z-axis [0] speed [1.1];
+	move shldtop to x-axis [0] speed [3.3];
+	move shldtop to y-axis [0] speed [4.4];
+	move shldtop to z-axis [0] speed [1.1];
 	sleep 100;
 	return (0);
 }
@@ -444,14 +444,14 @@ FireSecondary()
 {
 	show lflare;
 	emit-sfx 1024 + 0 from lflare;
-	move shield to z-axis [-0.500000] speed [1250.000000];
-	move shield to x-axis [-1.100000] speed [1250.000000];
-	move shield to y-axis [0.50000] speed [1250.000000];
+	move shield to z-axis [-0.5500000] speed [1375.000000];
+	move shield to x-axis [-1.210000] speed [1375.000000];
+	move shield to y-axis [0.55000] speed [1375.000000];
 	turn torso to y-axis <30> speed <200>;
 	wait-for-move shield along z-axis;
-	move shield to z-axis [0.000000] speed [1.250000];
-	move shield to x-axis [-1.600000] speed [1.250000];
-	move shield to y-axis [0.000000] speed [1.250000];
+	move shield to z-axis [0.000000] speed [1.375000];
+	move shield to x-axis [-1.7600000] speed [1.375000];
+	move shield to y-axis [0.000000] speed [1.375000];
 	turn torso to y-axis <0> speed <10>;
 	hide lflare;
 }
