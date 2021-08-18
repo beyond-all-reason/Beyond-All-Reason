@@ -4424,6 +4424,7 @@ function init()
 				-- just so that map/model lighting gets updated
 				Spring.SetSunLighting({ groundShadowDensity = gl.GetSun("shadowDensity"), modelShadowDensity = gl.GetSun("shadowDensity") })
 				customMapSunPos[Game.mapName] = { gl.GetSun("pos") }
+				Spring.Echo(gl.GetSun())
 			end,
 		  },
 		  { id = "sun_x", group = "dev", name = widgetOptionColor .. "   "..texts.option.sun_x, type = "slider", min = -0.9999, max = 0.9999, step = 0.0001, value = select(1, gl.GetSun("pos")), description = '',
@@ -4441,6 +4442,7 @@ function init()
 				-- just so that map/model lighting gets updated
 				Spring.SetSunLighting({ groundShadowDensity = gl.GetSun("shadowDensity"), modelShadowDensity = gl.GetSun("shadowDensity") })
 				customMapSunPos[Game.mapName] = { gl.GetSun("pos") }
+				Spring.Echo(gl.GetSun())
 			end,
 		  },
 		  { id = "sun_z", group = "dev", name = widgetOptionColor .. "   "..texts.option.sun_z, type = "slider", min = -0.9999, max = 0.9999, step = 0.0001, value = select(3, gl.GetSun("pos")), description = '',
@@ -4460,6 +4462,7 @@ function init()
 				-- just so that map/model lighting gets updated
 				Spring.SetSunLighting({ groundShadowDensity = gl.GetSun("shadowDensity"), modelShadowDensity = gl.GetSun("shadowDensity") })
 				customMapSunPos[Game.mapName] = { gl.GetSun("pos") }
+				Spring.Echo(gl.GetSun())
 			end,
 		  },
 		  { id = "sun_reset", group = "dev", name = widgetOptionColor .. "   "..texts.option.sun_reset, type = "bool", value = false, description = '',
@@ -4475,6 +4478,7 @@ function init()
 				Spring.SetSunLighting({ groundShadowDensity = gl.GetSun("shadowDensity"), modelShadowDensity = gl.GetSun("shadowDensity") })
 				Spring.Echo('resetted map sun defaults')
 				customMapSunPos[Game.mapName] = nil
+				Spring.Echo(gl.GetSun())
 			end,
 		  },
 		{ id = "fog_r", group = "dev", name = texts.option.fog..widgetOptionColor .. "  "..texts.option.red, type = "slider", min = 0, max = 1, step = 0.01, value = select(1, gl.GetAtmosphere("fogColor")), description = '',
