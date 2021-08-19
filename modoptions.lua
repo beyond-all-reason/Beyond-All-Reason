@@ -254,13 +254,9 @@ local options={
 		key    = 'scavendless',
 		name   = 'Endless Mode (Disables final boss fight, turning Scavengers into an endless survival mode)',
 		desc   = 'Disables final boss fight, turning Scavengers into an endless survival mode',
-		type   = 'list',
+		type   = 'bool',
 		section = 'options_scavengers',
-		def  = "disabled",
-		items={
-			{key="disabled", name="Disabled", desc="Final Boss Enabled"},
-			{key="enabled", name="Enabled", desc="Final Boss Disabled"},
-		}
+		def  = false,
 	},
 	{
 		key    = 'scavgraceperiod',
@@ -269,7 +265,7 @@ local options={
 		type   = 'number',
 		section= 'options_scavengers',
 		def    = 5,
-		min    = 2,
+		min    = 1,
 		max    = 20,
 		step   = 1,
 	},
@@ -343,13 +339,9 @@ local options={
 		key    = 'scavevents',
 		name   = 'Random Events',
 		desc   = 'Random Events System',
-		type   = 'list',
+		type   = 'bool',
 		section = 'options_scavengers',
-		def  = "enabled",
-		items={
-			{key="enabled", name="Enabled", desc="Random Events Enabled"},
-			{key="disabled", name="Disabled", desc="Random Events Disabled"},
-		}
+		def  = true,
 	},
 
 	{
@@ -369,37 +361,25 @@ local options={
 		key    = 'scavonlyruins',
 		name   = 'Random Ruins (ScavMode)',
 		desc   = 'description',
-		type   = 'list',
+		type   = 'bool',
 		section = 'options_scavengers',
-		def  = "enabled",
-		items={
-			{key="enabled", name="Enabled", desc="description"},
-			{key="disabled", name="Disabled", desc="description"},
-		}
+		def  = true,
 	},
 	{
 		key    = 'scavonlylootboxes',
 		name   = 'Lootboxes (ScavMode)',
 		desc   = '1 to enable, 0 to disable',
-		type   = 'list',
+		type   = 'bool',
 		section= 'options_scavengers',
-		def  = "enabled",
-		items={
-			{key="enabled", name="Enabled", desc="description"},
-			{key="disabled", name="Disabled", desc="description"},
-		}
+		def  = true,
 	},
 	{
 		key    = 'scavinitialbonuscommander',
 		name   = 'Bonus Starter Constructors',
 		desc   = 'Spawns additional constructors on game start',
-		type   = 'list',
+		type   = 'bool',
 		section = 'options_scavengers',
-		def  = "enabled",
-		items={
-			{key="enabled", name="Enabled", desc="Bonus Starter Commander Enabled"},
-			{key="disabled", name="Disabled", desc="Bonus Starter Commander Disabled"},
-		}
+		def  = true,
 	},
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -624,25 +604,17 @@ local options={
 		key    = 'teamcolors_dynamic',
 		name   = 'Dynamic TeamColors',
 		desc   = 'Player team is always blue',
-		type   = 'list',
+		type   = 'bool',
 		section = 'teamcoloring_options',
-		def  = "disabled",
-		items={
-			{key="enabled", name="Enabled", desc="description"},
-			{key="disabled", name="Disabled", desc="description"},
-		}
+		def  = false,
 	},
 	{
 		key    = 'teamcolors_anonymous_mode',
 		name   = 'Anonymous Mode',
 		desc   = 'All your enemies are colored with the same color so you cannot recognize them. Forces Dynamic TeamColors to be enabled',
-		type   = 'list',
+		type   = 'bool',
 		section = 'teamcoloring_options',
-		def  = "disabled",
-		items={
-			{key="enabled", name="Enabled", desc="description"},
-			{key="disabled", name="Disabled", desc="description"},
-		}
+		def  = false,
 	},
 	{
 		key    = 'teamcolors_icon_dev_mode',
@@ -677,25 +649,17 @@ local options={
 		key    = 'ruins',
 		name   = 'Random Ruins',
 		desc   = 'description',
-		type   = 'list',
+		type   = 'bool',
 		section = 'options',
-		def  = "disabled",
-		items={
-			{key="enabled", name="Enabled", desc="description"},
-			{key="disabled", name="Disabled", desc="description"},
-		}
+		def  = false,
 	},
 	{
 		key    = 'lootboxes',
 		name   = 'Lootboxes',
 		desc   = '1 to enable, 0 to disable',
-		type   = 'list',
+		type   = 'bool',
 		section= 'options',
-		def  = "disabled",
-		items={
-			{key="enabled", name="Enabled", desc="description"},
-			{key="disabled", name="Disabled", desc="description"},
-		}
+		def  = false,
 	},
 	-- {
 	-- 	key    = 'critters',
@@ -725,13 +689,9 @@ local options={
 	-- 	key="map_terraintype",
 	-- 	name="Map TerrainTypes",
 	-- 	desc="Allows to cancel the TerrainType movespeed buffs of a map.",
-	-- 	type="list",
-	-- 	def="enabled",
+	-- 	type="bool",
+	-- 	def=true,
 	-- 	section="options",
-	-- 	items={
-	-- 		{key="disabled", name="Disabled", desc="Disable TerrainTypes related MoveSpeed Buffs"},
-	-- 		{key="enabled", name="Enabled", desc="Enable TerrainTypes related MoveSpeed Buffs"},
-	-- 	}
 	-- },
 	{
 		key="map_waterlevel",
@@ -809,25 +769,17 @@ local options={
 		key    = 'scoremode_chess',
 		name   = 'Chess Mode',
 		desc   = 'No basebuilding',
-		type   = 'list',
+		type   = 'bool',
 		section= 'controlvictoryoptions',
-		def  = "enabled",
-		items={
-			{key="enabled", name="Enabled", desc="description"},
-			{key="disabled", name="Disabled", desc="description"},
-		}
+		def  = true,
 	},
 	{
 		key    = 'scoremode_chess_unbalanced',
 		name   = 'Chess: Unbalanced',
 		desc   = 'Each player gets diffrent set of units',
-		type   = 'list',
+		type   = 'bool',
 		section= 'controlvictoryoptions',
-		def  = "disabled",
-		items={
-			{key="enabled", name="Enabled", desc="description"},
-			{key="disabled", name="Disabled", desc="description"},
-		}
+		def  = false,
 	},
 	{
 		key    = 'scoremode_chess_adduptime',
@@ -884,13 +836,9 @@ local options={
 		key    = "usemapconfig",
 		name   = "Use preset map-specific Control Point locations?",
 		desc   = "Should the control point config for this map be used instead of autogenerated control points?",
-		type="list",
-		def="enabled",
+		type=bool,
+		def=true,
 		section= "controlvictoryoptions",
-		items={
-			{key="disabled", name="Disabled", desc="This will tell the game to use autogenerated control points."},
-			{key="enabled", name="Enabled", desc="This will tell the game to use preset map control points (Set via map config)."},
-		}
     },
 	]]
 	{
@@ -1038,14 +986,9 @@ local options={
 	-- 	key    = 'experimentalnoaircollisions',
 	-- 	name   = 'Aircraft Collisions Override',
 	-- 	desc   = 'Aircraft Collisions Override',
-	-- 	type   = 'list',
+	-- 	type   = 'bool',
 	-- 	section = 'options_experimental',
-	-- 	def  = "unchanged",
-	-- 	items={
-	-- 		{key="unchanged", name="Unchanged", desc="Unchanged"},
-	-- 		{key="disabled", name="Force Disabled", desc="Collisions Disabled"},
-	-- 		{key="enabled", name="Force Enabled", desc="Collisions Enabled"},
-	-- 	}
+	-- 	def  = false,
 	-- },
 
 	{
@@ -1092,13 +1035,9 @@ local options={
 	-- 	key    = 'experimentalxpsystem',
 	-- 	name   = 'New XP System',
 	-- 	desc   = 'New XP System',
-	-- 	type   = 'list',
+	-- 	type   = 'bool',
 	-- 	section = 'options_experimental',
-	-- 	def  = "disabled",
-	-- 	items={
-	-- 		{key="disabled", name="Disabled", desc="Using old XP system"},
-	-- 		{key="enabled", name="Enabled", desc="Using new XP system"},
-	-- 	}
+	-- 	def  = false,
 	-- },
 	--[[
 	{
@@ -1153,65 +1092,45 @@ local options={
 		key    = 'experimentalscavuniqueunits',
 		name   = 'Scavenger Units Buildable by Players',
 		desc   = 'Scavenger Units Buildable by Players',
-		type   = 'list',
+		type   = 'bool',
 		section = 'options_experimental',
-		def  = "disabled",
-		items={
-			{key="disabled", name="Disabled", desc="Disabled"},
-			{key="enabled", name="Enabled", desc="Enabled"},
-		}
+		def  = false,
 	},
 
 	{
 		key    = 'experimentalmorphs',
 		name   = 'Upgradeable Units',
 		desc   = 'Upgradeable Units',
-		type   = 'list',
+		type   = 'bool',
 		section = 'options_experimental',
-		def  = "disabled",
-		items={
-			{key="disabled", name="Disabled", desc="Disabled"},
-			{key="enabled", name="Enabled", desc="Enabled"},
-		}
+		def  = false,
 	},
 
 	-- {
 	-- 	key    = 'experimentalimprovedtransports',
 	-- 	name   = 'Transport Units Rework',
 	-- 	desc   = 'Transport Units Rework',
-	-- 	type   = 'list',
+	-- 	type   = 'bool',
 	-- 	section = 'options_experimental',
-	-- 	def  = "disabled",
-	-- 	items={
-	-- 		{key="disabled", name="Disabled", desc="Disabled"},
-	-- 		{key="enabled", name="Enabled", desc="Enabled"},
-	-- 	}
+	-- 	def  = false,
 	-- },
 
 	-- {
 	-- 	key    = 'mapatmospherics',
 	-- 	name   = 'Map Atmospherics',
 	-- 	desc   = 'Map Atmospherics',
-	-- 	type   = 'list',
+	-- 	type   = 'bool',
 	-- 	section = 'options_experimental',
-	-- 	def  = "enabled",
-	-- 	items={
-	-- 		{key="disabled", name="Disabled", desc="Disabled"},
-	-- 		{key="enabled", name="Enabled", desc="Enabled"},
-	-- 	}
+	-- 	def  = true,
 	-- },
 
 	-- {
 	-- 	key    = 'experimentalmassoverride',
 	-- 	name   = 'Mass Override',
 	-- 	desc   = 'Mass Override',
-	-- 	type   = 'list',
+	-- 	type   = 'bool',
 	-- 	section = 'options_experimental',
-	-- 	def  = "disabled",
-	-- 	items={
-	-- 		{key="disabled", name="Disabled", desc="Disabled"},
-	-- 		{key="enabled", name="Enabled", desc="Enabled"},
-	-- 	}
+	-- 	def  = false,
 	-- },
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1231,13 +1150,9 @@ local options={
 	--	key		= "unba",
 	--	name	= "Unbalanced Commanders",
 	--	desc	= "Defines if commanders level up with xp and gain more power or not",
-	--	type	= "list",
-	--	def		= "disabled",
+	--	type	= "bool",
+	--	def		= false,
 	--	section	= "modes",
-	--	items	= {
-	--		{key="disabled", name="Disabled", desc="Disable Unbalanced Commanders"},
-	--		{key="enabled", name="Enabled", desc="Enable Unbalanced Commanders"},
-	--	}
 	--},
 
 
