@@ -36,6 +36,11 @@ if Spring.GetModOptions then
 			if not modOptions[key] then
 				modOptions[key] = modOption.def
 			end
+
+			if modOption.type == 'bool' then
+				local value = tonumber(modOptions[key])
+				modOptions[key] = value == 1 and true or false
+			end
 		end
 	end
 
