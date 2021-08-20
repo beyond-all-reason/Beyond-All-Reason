@@ -3,30 +3,23 @@ function gadget:GameFrame(n)
 		Spring.Echo("Loaded atmosphere CEGs config for map: " .. Game.mapName)
 	end
 
+-- SND windy locations
+	if n%950 == 0 then
+		SpawnCEGInPositionGround("noceg", 2000, 500, 2100, _, _, _, "windy", 0.2)
+	end
+
+	if n%990 == 100 then
+		SpawnCEGInPositionGround("noceg", 6000, 600, 4900, _, _, _, "windy", 0.2)
+	end
+
 -- SND water ocean 
-	-- if n%830 == 0 then
-	-- 	SpawnCEGInPositionGround("noceg", 4000, 0, 1200, _, _, _, "tropicalbeach", 0.9)
-	-- end
-
-	-- if n%840 == 150 then
-	-- 	SpawnCEGInPositionGround("noceg", 1400, 0, 5500, _, _, _, "tropicalbeach", 0.9)
-	-- end
-
-	-- if n%850 == 75 then
-	-- 	SpawnCEGInPositionGround("noceg", 6800, 0, 5600, _, _, _, "tropicalbeach", 0.9)
-	-- end
-
-	if n%860 == 20 then
-		SpawnCEGInPositionGround("noceg", 2200, 0, 6000, _, _, _, "oceangentlesurf", 0.9)
+	if n%960 == 20 then
+		SpawnCEGInPositionGround("noceg", 2200, 0, 6000, _, _, _, "oceangentlesurf", 0.3)
 	end
 
-	if n%860 == 50 then
-		SpawnCEGInPositionGround("noceg", 6000, 0, 1100, _, _, _, "oceangentlesurf", 0.9)
+	if n%960 == 50 then
+		SpawnCEGInPositionGround("noceg", 6000, 0, 1100, _, _, _, "oceangentlesurf", 0.3)
 	end
-
-	-- if n%860 == 80 then
-	-- 	SpawnCEGInPositionGround("noceg", 4130, 0, 5000, _, _, _, "oceangentlesurf", 0.9)
-	-- end
 
 -- SND geos
 	if n%560 == 0 then
@@ -65,39 +58,33 @@ function gadget:GameFrame(n)
 		SpawnCEGInPositionGround("fogdirty", 3231, 100, 5328)
 		SpawnCEGInPositionGround("fogdirty", 1051, 100, 5485)
 		SpawnCEGInPositionGround("fogdirty", 7940, 100, 3538)
-
 	end
-
--- -- sanddune dust	
--- 	if n%200 == 0 then
--- 		SpawnCEGInPositionGround("dunecloud", 3940, 0, 3755)
--- 	end
-
--- -- rare sanddune dust	
--- 	if n%450 == 0 then
--- 		SpawnCEGInPositionGround("dunecloud", 4542, 0, 5326)
--- 	end
 
 -- alternate rare foggy cliffs	
 	if n%620 == 300 then
 		SpawnCEGInPositionGround("fogdirty", 6983, 0, 2452)
 		SpawnCEGInPositionGround("fogdirty", 1580, 0, 1888)
-		SpawnCEGInPositionGround("fogdirty", 6016, 0, 1200)
 	end
 
 -- super rare foggy cliffs	
 	if n%1000 == 400 then
 		SpawnCEGInPositionGround("fogdirty", 6060, 400, 141)
 		SpawnCEGInPositionGround("fogdirty", 2142, 400, 6910)
-		-- SpawnCEGInPositionGround("fogdirty", 2631, 0, 6591)
+	end
+
+-- mistyclouds	
+	if n%1000 == 400 then
+		SpawnCEGInPositionGround("mistycloud", 5836, 500, 5343)
+	end
+
+	if n%1100 == 200 then
+		SpawnCEGInPositionGround("mistycloud", 2279, 400, 1951)
 	end
 
 -- fireflies
 	if n%1400 == 0 then
-		SpawnCEGInPositionGround("firefliesgreen", 2050, 32, 4850)
-		SpawnCEGInPositionGround("firefliesgreen", 6136, 32, 2334)
-		-- SpawnCEGInPositionGround("firefliesgreen", 1186, 32, 3014)
-		-- SpawnCEGInPositionGround("firefliesgreen", 4771, 32, 7017)
+		SpawnCEGInPositionGround("fireflies", 2050, 32, 4850)
+		SpawnCEGInPositionGround("fireflies", 6136, 32, 2334)
 	end
 
 -- pollen
