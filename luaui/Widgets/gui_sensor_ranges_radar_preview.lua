@@ -204,9 +204,10 @@ void main() {
 	//#if USE_STIPPLE > 0
 		//fragColor.a *= 2.0 * sin(worldscale_circumference + timeInfo.x*0.2) ; // PERFECT STIPPLING!
 	//#endif
-	float pulse = 1 + sin(-2.0 * sqrt(length(toedge)) + 0.05 * timeInfo.x);
-	pulse *= pulse;
-	fragColor.a = mix(fragColor.a, fragColor.a * pulse, 0.10);
+	//below 3 lines for pulsating circle radar effect - which is rather hypnotizing
+	//float pulse = 1 + sin(-2.0 * sqrt(length(toedge)) + 0.05 * timeInfo.x);
+	//pulse *= pulse;
+	//fragColor.a = mix(fragColor.a, fragColor.a * pulse, 0.10);
 }
 ]]
 
