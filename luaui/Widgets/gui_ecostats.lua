@@ -62,6 +62,9 @@ local RectRound, UiElement
 local font, bgpadding, chobbyInterface, sideImageList
 
 local reclaimerUnits = {}
+local textLists = {}
+local avgData = {}
+local lastTextListUpdate = os.clock() -10
 
 local Button = {
     player = {},
@@ -196,6 +199,9 @@ function widget:Shutdown()
     removeGuiShaderRects()
     if sideImageList then
         gl.DeleteList(sideImageList)
+    end
+    for k,v in pairs(textLists) do
+        gl.DeleteList(v)
     end
     WG['ecostats'] = nil
 end
@@ -410,7 +416,7 @@ local function DrawMText(numberM, vOffset)
     if cfgResText then
         local label = tconcat({ "", formatRes(numberM) })
         font:Begin()
-        font:SetTextColor({ 0.8, 0.8, 0.8, 1 })
+        font:SetTextColor({ 0.85, 0.85, 0.85, 1 })
         font:Print(label, widgetPosX + widgetWidth - (6 * sizeMultiplier), widgetPosY + widgetHeight - vOffset + (tH * 0.58), tH / 2.3, 'rs')
         font:End()
     end
@@ -769,7 +775,6 @@ function DrawSideImages()
     end
 end
 
-local avgData = {}
 local function drawListStandard()
     local maxMetal = 0
     local maxEnergy = 0
@@ -804,6 +809,12 @@ local function drawListStandard()
         end
     end
 
+    local updateTextLists = false
+    if os.clock() > lastTextListUpdate + 0.5 then
+        updateTextLists = true
+        lastTextListUpdate = os.clock()
+    end
+
     for _, data in ipairs(allyData) do
         local aID = data.aID
         if aID ~= nil then
@@ -822,17 +833,29 @@ local function drawListStandard()
                 local t = GetGameSeconds()
                 if data["isAlive"] and t > 0 and gamestarted and not gameover then
                     DrawEBar(avgData[aID]["tE"] / maxEnergy, (avgData[aID]["tE"] - avgData[aID]["tEr"]) / maxEnergy, posy - 1)
-                    DrawEText(avgData[aID]["tE"], posy)
                 end
                 if data["isAlive"] and t > 5 and not gameover then
                     DrawMBar(avgData[aID]["tM"] / maxMetal, (avgData[aID]["tM"] - avgData[aID]["tMr"]) / maxMetal, posy + 2)
-                    DrawMText(avgData[aID]["tM"], posy)
                 end
+                if updateTextLists then
+                    textLists[aID] = gl.CreateList(function()
+                        if data["isAlive"] and t > 0 and gamestarted and not gameover then
+                            DrawEText(avgData[aID]["tE"], posy)
+                        end
+                        if data["isAlive"] and t > 5 and not gameover then
+                            DrawMText(avgData[aID]["tM"], posy)
+                        end
+                    end)
+               end
+               gl.CallList(textLists[aID])
             end
         end
     end
 end
 
+function makeTextList()
+
+end
 
 ---------------------------------------------------------------------------------------------------
 --  General
