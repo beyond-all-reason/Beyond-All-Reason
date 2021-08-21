@@ -53,6 +53,9 @@ for weaponDefID, def in pairs(WeaponDefs) do
 					maxDmg = v
 				end
 			end
+			if def.paralyzer then
+				maxDmg = maxDmg / 25
+			end
 			weaponAoe[weaponDefID] = weaponAoe[weaponDefID] + (maxDmg/20)
 		end
 	end
