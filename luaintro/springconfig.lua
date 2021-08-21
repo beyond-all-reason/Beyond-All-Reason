@@ -6,8 +6,8 @@
 Spring.SetConfigFloat("tonemapA", 5.00)
 Spring.SetConfigFloat("tonemapB", 0.78)
 Spring.SetConfigFloat("tonemapC", 3.35)
-Spring.SetConfigFloat("tonemapD", 1.0)
-Spring.SetConfigFloat("tonemapE", 1.12)
+Spring.SetConfigFloat("tonemapD", 0.8)
+Spring.SetConfigFloat("tonemapE", 1.08)
 Spring.SetConfigFloat("envAmbient", 0.32)
 
 -- BAR requires higher textureatlas size for particles than the default of 2048x2048

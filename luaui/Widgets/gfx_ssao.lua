@@ -51,7 +51,8 @@ local DEBUG_SSAO = false -- use for debug
 local math_sqrt = math.sqrt
 
 local initialTonemapA = Spring.GetConfigFloat("tonemapA", 5.00)
-local initialTonemapE = Spring.GetConfigFloat("tonemapE", 1.12)
+local initialTonemapD = Spring.GetConfigFloat("tonemapD", 0.8)
+local initialTonemapE = Spring.GetConfigFloat("tonemapE", 1.08)
 
 local preset = 1
 local presets = {
@@ -61,8 +62,9 @@ local presets = {
 		BLUR_HALF_KERNEL_SIZE = 4,
 		BLUR_PASSES = 2,
 		BLUR_SIGMA = 1.8,
-		tonemapA = 0.5,
-		tonemapE = -0.033,
+		tonemapA = 0.45,
+		tonemapD = -0.25,
+		tonemapE = -0.03,
 	},
 	{
 		SSAO_KERNEL_SIZE = 56,
@@ -70,8 +72,9 @@ local presets = {
 		BLUR_HALF_KERNEL_SIZE = 8,
 		BLUR_PASSES = 3,
 		BLUR_SIGMA = 6,
-		tonemapA = 0.45,
-		tonemapE = -0.03,
+		tonemapA = 0.4,
+		tonemapD = -0.25,
+		tonemapE = -0.025,
 	},
 }
 
@@ -229,6 +232,7 @@ function widget:Initialize()
 	-- make unit lighting brighter to compensate for darkening (also restoring values on Shutdown())
 	if presets[preset].tonemapA then
 		Spring.SetConfigFloat("tonemapA", initialTonemapA + (presets[preset].tonemapA * (SSAO_ALPHA_POW/10)))
+		Spring.SetConfigFloat("tonemapD", initialTonemapD + (presets[preset].tonemapD * (SSAO_ALPHA_POW/10)))
 		Spring.SetConfigFloat("tonemapE", initialTonemapE + (presets[preset].tonemapE * (SSAO_ALPHA_POW/10)))
 		Spring.SendCommands("luarules updatesun")
 	end
@@ -411,6 +415,7 @@ function widget:Shutdown()
 	-- restore unit lighting settings
 	if presets[preset].tonemapA then
 		Spring.SetConfigFloat("tonemapA", initialTonemapA)
+		Spring.SetConfigFloat("tonemapD", initialTonemapD)
 		Spring.SetConfigFloat("tonemapE", initialTonemapE)
 		Spring.SendCommands("luarules updatesun")
 	end

@@ -2539,7 +2539,7 @@ function init()
 			  end
 		  end,
 		},
-		{ id = "ssao_strength", group = "gfx", name = widgetOptionColor .. "   "..texts.option.ssao_strength, type = "slider", min = 5, max = 14, step = 1, value = 8, description = '',
+		{ id = "ssao_strength", group = "gfx", name = widgetOptionColor .. "   "..texts.option.ssao_strength, type = "slider", min = 5, max = 15, step = 1, value = 9, description = '',
 		  onchange = function(i, value)
 			  saveOptionValue('SSAO', 'ssao', 'setStrength', { 'strength' }, value)
 		  end,
@@ -4342,14 +4342,14 @@ function init()
 			  Spring.SendCommands("luarules GlassUpdateSun")
 		  end,
 		},
-		{ id = "tonemapD", group = "dev", name = widgetOptionColor .. "   4", type = "slider", min = 0, max = 3, step = 0.01, value = Spring.GetConfigFloat("tonemapD", 1.0), description = "",
+		{ id = "tonemapD", group = "dev", name = widgetOptionColor .. "   4", type = "slider", min = 0, max = 3, step = 0.01, value = Spring.GetConfigFloat("tonemapD", 0.8), description = "",
 		  onchange = function(i, value)
 			  Spring.SetConfigFloat("tonemapD", value)
 			  Spring.SendCommands("luarules updatesun")
 			  Spring.SendCommands("luarules GlassUpdateSun")
 		  end,
 		},
-		{ id = "tonemapE", group = "dev", name = widgetOptionColor .. "   5", type = "slider", min = 0, max = 3, step = 0.01, value = Spring.GetConfigFloat("tonemapE", 1.12), description = "",
+		{ id = "tonemapE", group = "dev", name = widgetOptionColor .. "   5", type = "slider", min = 0, max = 3, step = 0.01, value = Spring.GetConfigFloat("tonemapE", 1.08), description = "",
 		  onchange = function(i, value)
 			  Spring.SetConfigFloat("tonemapE", value)
 			  Spring.SendCommands("luarules updatesun")
@@ -4389,8 +4389,8 @@ function init()
 			  Spring.SetConfigFloat("tonemapA", 5.00)
 			  Spring.SetConfigFloat("tonemapB", 0.78)
 			  Spring.SetConfigFloat("tonemapC", 3.35)
-			  Spring.SetConfigFloat("tonemapD", 1.0)
-			  Spring.SetConfigFloat("tonemapE", 1.12)
+			  Spring.SetConfigFloat("tonemapD", 0.8)
+			  Spring.SetConfigFloat("tonemapE", 1.08)
 			  Spring.SetConfigFloat("envAmbient", 0.32)
 			  Spring.SetConfigFloat("unitSunMult", 1.35)
 			  Spring.SetConfigFloat("unitExposureMult", 1.0)
