@@ -2539,7 +2539,7 @@ function init()
 			  end
 		  end,
 		},
-		{ id = "ssao_strength", group = "gfx", name = widgetOptionColor .. "   "..texts.option.ssao_strength, type = "slider", min = 4, max = 15, step = 1, value = 8, description = '',
+		{ id = "ssao_strength", group = "gfx", name = widgetOptionColor .. "   "..texts.option.ssao_strength, type = "slider", min = 5, max = 14, step = 1, value = 8, description = '',
 		  onchange = function(i, value)
 			  saveOptionValue('SSAO', 'ssao', 'setStrength', { 'strength' }, value)
 		  end,
@@ -4321,14 +4321,14 @@ function init()
 			end,
 		},
 
-		{ id = "tonemapA", group = "dev", name = texts.option.tonemap .. widgetOptionColor .. "  1", type = "slider", min = 0, max = 7, step = 0.01, value = Spring.GetConfigFloat("tonemapA", 4.8), description = "",
+		{ id = "tonemapA", group = "dev", name = texts.option.tonemap .. widgetOptionColor .. "  1", type = "slider", min = 0, max = 7, step = 0.01, value = Spring.GetConfigFloat("tonemapA", 5.0), description = "",
 		  onchange = function(i, value)
 			  Spring.SetConfigFloat("tonemapA", value)
 			  Spring.SendCommands("luarules updatesun")
 			  Spring.SendCommands("luarules GlassUpdateSun")
 		  end,
 		},
-		{ id = "tonemapB", group = "dev", name = widgetOptionColor .. "   2", type = "slider", min = 0, max = 2, step = 0.01, value = Spring.GetConfigFloat("tonemapB", 0.8), description = "",
+		{ id = "tonemapB", group = "dev", name = widgetOptionColor .. "   2", type = "slider", min = 0, max = 2, step = 0.01, value = Spring.GetConfigFloat("tonemapB", 0.78), description = "",
 		  onchange = function(i, value)
 			  Spring.SetConfigFloat("tonemapB", value)
 			  Spring.SendCommands("luarules updatesun")
@@ -4349,7 +4349,7 @@ function init()
 			  Spring.SendCommands("luarules GlassUpdateSun")
 		  end,
 		},
-		{ id = "tonemapE", group = "dev", name = widgetOptionColor .. "   5", type = "slider", min = 0, max = 3, step = 0.01, value = Spring.GetConfigFloat("tonemapE", 1.15), description = "",
+		{ id = "tonemapE", group = "dev", name = widgetOptionColor .. "   5", type = "slider", min = 0, max = 3, step = 0.01, value = Spring.GetConfigFloat("tonemapE", 1.12), description = "",
 		  onchange = function(i, value)
 			  Spring.SetConfigFloat("tonemapE", value)
 			  Spring.SendCommands("luarules updatesun")
@@ -4386,7 +4386,7 @@ function init()
 		},
 		{ id = "tonemapDefaults", group = "dev", name = widgetOptionColor .. "   "..texts.option.tonemapDefaults, type = "bool", value = GetWidgetToggleValue("Unit Reclaimer"), description = "",
 		  onchange = function(i, value)
-			  Spring.SetConfigFloat("tonemapA", 5.10)
+			  Spring.SetConfigFloat("tonemapA", 5.00)
 			  Spring.SetConfigFloat("tonemapB", 0.78)
 			  Spring.SetConfigFloat("tonemapC", 3.35)
 			  Spring.SetConfigFloat("tonemapD", 1.0)

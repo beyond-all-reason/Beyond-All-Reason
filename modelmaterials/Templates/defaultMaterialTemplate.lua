@@ -1769,7 +1769,7 @@ local function SunChanged(luaShader)
 	luaShader:SetUniformAlways("sunSpecular", gl.GetSun("specular" ,"unit"))
 
 	luaShader:SetUniformFloatArrayAlways("pbrParams", {
-        Spring.GetConfigFloat("tonemapA", 5.10),
+        Spring.GetConfigFloat("tonemapA", 5.00),
         Spring.GetConfigFloat("tonemapB", 0.78),
         Spring.GetConfigFloat("tonemapC", 3.35),
         Spring.GetConfigFloat("tonemapD", 1.0),

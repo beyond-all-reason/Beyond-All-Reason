@@ -3,7 +3,7 @@
 --------------------------------------------------------------------------------------------
 
 -- set default unit rendering vars
-Spring.SetConfigFloat("tonemapA", 5.10)
+Spring.SetConfigFloat("tonemapA", 5.00)
 Spring.SetConfigFloat("tonemapB", 0.78)
 Spring.SetConfigFloat("tonemapC", 3.35)
 Spring.SetConfigFloat("tonemapD", 1.0)
