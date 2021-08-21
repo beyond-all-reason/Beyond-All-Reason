@@ -351,7 +351,7 @@ function widget:GetConfigData(data)
         xRelPos = xRelPos,
         yRelPos = yRelPos,
         cfgRemoveDeadOn = cfgRemoveDead,
-        cfgResText = cfgResText,
+        cfgResText2 = cfgResText,
         right = right,
     }
 end
@@ -360,7 +360,7 @@ function widget:SetConfigData(data)
     -- load
 
     --Echo("Loading config data...")
-    cfgResText = data.cfgResText or false
+    cfgResText = data.cfgResText2 or false
     cfgSticktotopbar = data.cfgSticktotopbar or true
     cfgRemoveDead = false
     xRelPos = data.xRelPos or xRelPos
