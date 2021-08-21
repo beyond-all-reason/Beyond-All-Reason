@@ -155,7 +155,8 @@ return {
 				weaponvelocity = 450,
 				wobble = 2500,
 				customparams = {
-					light_mult = "0.66",
+					light_mult = "0.6",
+					light_radius_mult = "0.85",
 				},
 				damage = {
 					default = 120,

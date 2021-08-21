@@ -6,15 +6,7 @@ local mapSunLighting = {
 		groundDiffuseColor = { 0.7, 0.56, 0.54 },
 		unitAmbientColor = {0.86, 0.7, 0.5},
 		unitSpecularColor = {1.1, 0.88, 0.77},
-		modelShadowDensity = 0.33,
-	},
-	['tabula-v4'] = {
-		groundDiffuseColor = { 0.9, 0.51, 0.39 },
-		unitAmbientColor = {0.68, 0.55, 0.55},
-		unitDiffuseColor = {0.77, 0.55, 0.5},
-		unitSpecularColor = {0.75, 0.6, 0.5},
-		modelShadowDensity = 0.6,
-		groundShadowDensity = 0.8,
+		modelShadowDensity = 0.44,
 	},
 	['tumult'] = {
 		groundDiffuseColor = { 0.77, 0.6, 0.44 },
@@ -30,7 +22,7 @@ local mapSunLighting = {
 	['titan v3.1'] = {
 		groundAmbientColor = { 0.52, 0.48, 0.48 },
 		groundDiffuseColor = { 0.65, 0.58, 0.55 },
-		modelShadowDensity = 0.5,
+		modelShadowDensity = 0.66,
 		unitAmbientColor = {0.83, 0.73, 0.63},
 	},
 	['tempest'] = {
@@ -38,37 +30,37 @@ local mapSunLighting = {
 		unitAmbientColor = {0.8, 0.77, 0.77},
 		unitDiffuseColor = {0.66, 0.65, 0.63},
 		unitSpecularColor = {0.5, 0.5, 0.5},
-		modelShadowDensity = 0.65,
+		modelShadowDensity = 0.77,
 	},
 	['tempest dry'] = {
 		groundDiffuseColor = { 0.32, 0.28, 0.34 },
 		unitAmbientColor = {0.8, 0.77, 0.77},
 		unitDiffuseColor = {0.66, 0.65, 0.63},
 		unitSpecularColor = {0.5, 0.5, 0.5},
-		modelShadowDensity = 0.65,
+		modelShadowDensity = 0.77,
 	},
 	['seths_ravine_v4'] = {
 		unitAmbientColor = {0.36, 0.36, 0.36},
 		unitDiffuseColor = {0.88, 0.78, 0.68},
 		unitSpecularColor = {0.88, 0.78, 0.68},
-		modelShadowDensity = 0.66,
+		modelShadowDensity = 0.77,
 	},
 	['kolmogorov'] = {
 		groundDiffuseColor = { 0.95, 0.75, 0.4 },
 		unitAmbientColor = {0.6, 0.5, 0.45},
 		unitDiffuseColor = {1.2, 0.75, 0.35},
-		modelShadowDensity = 0.6,
+		modelShadowDensity = 0.7,
 	},
 	['sapphireshores_v2.2'] = {
 		unitAmbientColor = {0.5, 0.5, 0.6},
 		unitDiffuseColor = {1, 1, 1.2},
 		unitSpecularColor = {1, 1, 1.2},
-		modelShadowDensity = 0.4,
+		modelShadowDensity = 0.55,
 		groundShadowDensity = 0.66,
 	},
 	['otago 1.4'] = {
 		unitAmbientColor = {0.85, 0.6, 0.66},
-		modelShadowDensity = 0.75,
+		modelShadowDensity = 0.8,
 		groundShadowDensity = 0.85,
 	},
 	['tropical-v2'] = {
@@ -79,7 +71,7 @@ local mapSunLighting = {
 		groundShadowDensity = 0.8,
 	},
 	['mescaline_v2'] = {
-		modelShadowDensity = 0.88,
+		modelShadowDensity = 0.9,
 		groundShadowDensity = 0.88,
 	},
 }
