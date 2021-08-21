@@ -4321,7 +4321,7 @@ function init()
 			end,
 		},
 
-		{ id = "tonemapA", group = "dev", name = texts.option.tonemap .. widgetOptionColor .. "  1", type = "slider", min = 0, max = 7, step = 0.01, value = Spring.GetConfigFloat("tonemapA", 5.0), description = "",
+		{ id = "tonemapA", group = "dev", name = texts.option.tonemap .. widgetOptionColor .. "  1", type = "slider", min = 0, max = 7, step = 0.01, value = Spring.GetConfigFloat("tonemapA", 4.85), description = "",
 		  onchange = function(i, value)
 			  Spring.SetConfigFloat("tonemapA", value)
 			  Spring.SendCommands("luarules updatesun")
@@ -4342,14 +4342,14 @@ function init()
 			  Spring.SendCommands("luarules GlassUpdateSun")
 		  end,
 		},
-		{ id = "tonemapD", group = "dev", name = widgetOptionColor .. "   4", type = "slider", min = 0, max = 3, step = 0.01, value = Spring.GetConfigFloat("tonemapD", 0.8), description = "",
+		{ id = "tonemapD", group = "dev", name = widgetOptionColor .. "   4", type = "slider", min = 0, max = 3, step = 0.01, value = Spring.GetConfigFloat("tonemapD", 0.85), description = "",
 		  onchange = function(i, value)
 			  Spring.SetConfigFloat("tonemapD", value)
 			  Spring.SendCommands("luarules updatesun")
 			  Spring.SendCommands("luarules GlassUpdateSun")
 		  end,
 		},
-		{ id = "tonemapE", group = "dev", name = widgetOptionColor .. "   5", type = "slider", min = 0, max = 3, step = 0.01, value = Spring.GetConfigFloat("tonemapE", 1.08), description = "",
+		{ id = "tonemapE", group = "dev", name = widgetOptionColor .. "   5", type = "slider", min = 0, max = 3, step = 0.01, value = Spring.GetConfigFloat("tonemapE", 1.1), description = "",
 		  onchange = function(i, value)
 			  Spring.SetConfigFloat("tonemapE", value)
 			  Spring.SendCommands("luarules updatesun")
@@ -4386,11 +4386,11 @@ function init()
 		},
 		{ id = "tonemapDefaults", group = "dev", name = widgetOptionColor .. "   "..texts.option.tonemapDefaults, type = "bool", value = GetWidgetToggleValue("Unit Reclaimer"), description = "",
 		  onchange = function(i, value)
-			  Spring.SetConfigFloat("tonemapA", 5.00)
+			  Spring.SetConfigFloat("tonemapA", 4.85)
 			  Spring.SetConfigFloat("tonemapB", 0.78)
 			  Spring.SetConfigFloat("tonemapC", 3.35)
-			  Spring.SetConfigFloat("tonemapD", 0.8)
-			  Spring.SetConfigFloat("tonemapE", 1.08)
+			  Spring.SetConfigFloat("tonemapD", 0.85)
+			  Spring.SetConfigFloat("tonemapE", 1.1)
 			  Spring.SetConfigFloat("envAmbient", 0.32)
 			  Spring.SetConfigFloat("unitSunMult", 1.35)
 			  Spring.SetConfigFloat("unitExposureMult", 1.0)
