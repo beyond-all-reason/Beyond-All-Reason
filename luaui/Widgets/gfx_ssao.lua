@@ -8,7 +8,7 @@ function widget:GetInfo()
         date      = "2019",
         license   = "GPL",
         layer     = math.huge,
-        enabled   = false, --true
+        enabled   = false,
     }
 end
 
@@ -61,7 +61,7 @@ local presets = {
 		DOWNSAMPLE = 3,
 		BLUR_HALF_KERNEL_SIZE = 4,
 		BLUR_PASSES = 2,
-		BLUR_SIGMA = 1.8,
+		BLUR_SIGMA = 2,
 		tonemapA = 0.45,
 		tonemapD = -0.25,
 		tonemapE = -0.03,
@@ -71,7 +71,7 @@ local presets = {
 		DOWNSAMPLE = 1,
 		BLUR_HALF_KERNEL_SIZE = 8,
 		BLUR_PASSES = 3,
-		BLUR_SIGMA = 6,
+		BLUR_SIGMA = 6.5,
 		tonemapA = 0.4,
 		tonemapD = -0.25,
 		tonemapE = -0.025,

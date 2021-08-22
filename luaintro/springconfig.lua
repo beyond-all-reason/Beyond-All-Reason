@@ -4,13 +4,13 @@
 
 -- set default unit rendering vars
 Spring.SetConfigFloat("tonemapA", 4.85)
-Spring.SetConfigFloat("tonemapB", 0.78)
+Spring.SetConfigFloat("tonemapB", 0.75)
 Spring.SetConfigFloat("tonemapC", 3.5)
 Spring.SetConfigFloat("tonemapD", 0.85)
 Spring.SetConfigFloat("tonemapE", 1.1)
-Spring.SetConfigFloat("envAmbient", 0.33)
-Spring.SetConfigFloat("unitSunMult", 1.3)
-Spring.SetConfigFloat("unitExposureMult", 1.02)
+Spring.SetConfigFloat("envAmbient", 0.45)
+Spring.SetConfigFloat("unitSunMult", 1.33)
+Spring.SetConfigFloat("unitExposureMult", 1.0)
 Spring.SetConfigFloat("modelGamma", 1.0)
 
 -- BAR requires higher textureatlas size for particles than the default of 2048x2048
