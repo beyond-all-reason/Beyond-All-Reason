@@ -67,7 +67,7 @@ local mapSunLighting = {
 		groundDiffuseColor = { 0.77, 0.5, 0.26 },
 		unitDiffuseColor = {1, 0.8, 0.65},
 		unitSpecularColor = {1, 0.77, 0.7},
-		modelShadowDensity = 0.45,
+		modelShadowDensity = 0.5,
 		groundShadowDensity = 0.8,
 	},
 	['mescaline_v2'] = {
