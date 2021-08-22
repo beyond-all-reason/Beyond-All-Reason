@@ -13,7 +13,7 @@ return {
 		canrepeat = false,
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -6 0",
-		collisionvolumescales = "76 36 76",
+		collisionvolumescales = "45 36 45",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		description = Spring.I18N('units.descriptions.armgplat'),
