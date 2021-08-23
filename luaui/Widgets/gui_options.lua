@@ -4330,7 +4330,7 @@ function init()
 			end,
 		},
 
-		{ id = "tonemapA", group = "dev", name = texts.option.tonemap .. widgetOptionColor .. "  1", type = "slider", min = 0, max = 7, step = 0.01, value = Spring.GetConfigFloat("tonemapA", 4.9), description = "",
+		{ id = "tonemapA", group = "dev", name = texts.option.tonemap .. widgetOptionColor .. "  1", type = "slider", min = 0, max = 7, step = 0.01, value = Spring.GetConfigFloat("tonemapA", 4.8), description = "",
 		  onchange = function(i, value)
 			  Spring.SetConfigFloat("tonemapA", value)
 			  Spring.SendCommands("luarules updatesun")
@@ -4365,14 +4365,14 @@ function init()
 			  Spring.SendCommands("luarules GlassUpdateSun")
 		  end,
 		},
-		{ id = "envAmbient", group = "dev", name = widgetOptionColor .. "   "..texts.option.envAmbient, type = "slider", min = 0, max = 1, step = 0.01, value = Spring.GetConfigFloat("envAmbient", 0.3), description = "",
+		{ id = "envAmbient", group = "dev", name = widgetOptionColor .. "   "..texts.option.envAmbient, type = "slider", min = 0, max = 1, step = 0.01, value = Spring.GetConfigFloat("envAmbient", 0.25), description = "",
 		  onchange = function(i, value)
 			  Spring.SetConfigFloat("envAmbient", value)
 			  Spring.SendCommands("luarules updatesun")
 			  Spring.SendCommands("luarules GlassUpdateSun")
 		  end,
 		},
-		{ id = "unitSunMult", group = "dev", name = widgetOptionColor .. "   "..texts.option.unitSunMult, type = "slider", min = 0.7, max = 1.7, step = 0.01, value = Spring.GetConfigFloat("unitSunMult", 1.25), description = "",
+		{ id = "unitSunMult", group = "dev", name = widgetOptionColor .. "   "..texts.option.unitSunMult, type = "slider", min = 0.7, max = 1.7, step = 0.01, value = Spring.GetConfigFloat("unitSunMult", 1.2), description = "",
 		  onchange = function(i, value)
 			  Spring.SetConfigFloat("unitSunMult", value)
 			  Spring.SendCommands("luarules updatesun")
@@ -4395,13 +4395,13 @@ function init()
 		},
 		{ id = "tonemapDefaults", group = "dev", name = widgetOptionColor .. "   "..texts.option.tonemapDefaults, type = "bool", value = GetWidgetToggleValue("Unit Reclaimer"), description = "",
 		  onchange = function(i, value)
-			  Spring.SetConfigFloat("tonemapA", 4.9)
+			  Spring.SetConfigFloat("tonemapA", 4.8)
 			  Spring.SetConfigFloat("tonemapB", 0.75)
 			  Spring.SetConfigFloat("tonemapC", 3.5)
 			  Spring.SetConfigFloat("tonemapD", 0.85)
 			  Spring.SetConfigFloat("tonemapE", 1.0)
-			  Spring.SetConfigFloat("envAmbient", 0.3)
-			  Spring.SetConfigFloat("unitSunMult", 1.25)
+			  Spring.SetConfigFloat("envAmbient", 0.25)
+			  Spring.SetConfigFloat("unitSunMult", 1.2)
 			  Spring.SetConfigFloat("unitExposureMult", 1.0)
 			  Spring.SetConfigFloat("modelGamma", 1.0)
 			  options[getOptionByID('tonemapA')].value = Spring.GetConfigFloat("tonemapA")

@@ -3,13 +3,13 @@
 --------------------------------------------------------------------------------------------
 
 -- set default unit rendering vars
-Spring.SetConfigFloat("tonemapA", 4.9)
+Spring.SetConfigFloat("tonemapA", 4.8)
 Spring.SetConfigFloat("tonemapB", 0.75)
 Spring.SetConfigFloat("tonemapC", 3.5)
 Spring.SetConfigFloat("tonemapD", 0.85)
 Spring.SetConfigFloat("tonemapE", 1.0)
-Spring.SetConfigFloat("envAmbient", 0.3)
-Spring.SetConfigFloat("unitSunMult", 1.25)
+Spring.SetConfigFloat("envAmbient", 0.25)
+Spring.SetConfigFloat("unitSunMult", 1.2)
 Spring.SetConfigFloat("unitExposureMult", 1.0)
 Spring.SetConfigFloat("modelGamma", 1.0)
 

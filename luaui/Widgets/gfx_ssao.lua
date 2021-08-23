@@ -50,7 +50,7 @@ local DEBUG_SSAO = false -- use for debug
 
 local math_sqrt = math.sqrt
 
-local initialTonemapA = Spring.GetConfigFloat("tonemapA", 4.9)
+local initialTonemapA = Spring.GetConfigFloat("tonemapA", 4.8)
 local initialTonemapD = Spring.GetConfigFloat("tonemapD", 0.85)
 local initialTonemapE = Spring.GetConfigFloat("tonemapE", 1.0)
 

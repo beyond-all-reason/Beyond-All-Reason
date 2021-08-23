@@ -75,6 +75,9 @@ local mapSunLighting = {
 		modelShadowDensity = 0.9,
 		groundShadowDensity = 0.88,
 	},
+	['downs_of_destruction_fix'] = {
+		unitDiffuseColor = {1.4, 1.4, 1.3},
+	},
 }
 
 local mapSun = {
@@ -87,6 +90,7 @@ local mapSun = {
 	['kolmogorov'] = { 0.4, 0.75, -0.43},
 	['otago 1.4'] = { -0.55, 0.5, 0.55},
 	['tropical-v2'] = { 0.6, 0.33, 0.27},
+	['downs_of_destruction_fix'] = { 0.65, 0.43, -65},
 }
 
 if not mapSunLighting[currentMapname] and not mapSun[currentMapname] then return end
