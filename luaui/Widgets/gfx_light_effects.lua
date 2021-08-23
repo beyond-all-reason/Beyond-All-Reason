@@ -891,10 +891,10 @@ local function GadgetWeaponExplosion(px, py, pz, weaponID, ownerID)
 		-- bright short nuke flash (unsure why it gets blue-ified sometimes)
 		if weaponConf[weaponID].nuke then
 			local params = tablecopy(params)
-			params.py = params.py + 80 + math.min(180, params.param.radius / 30)
-			params.life = 1.5 + math.min(1.6, params.param.radius / 800)
-			params.orgMult = 0.66 + math.min(1.6, params.param.radius / 2500)
-			params.param.radius = 400 + (params.param.radius * 18)
+			params.py = params.py + 100 + math.min(400, params.param.radius / 20)
+			params.life = 1 + math.min(1.5, params.param.radius / 2500)
+			params.orgMult = 0.5 + math.min(1.6, params.param.radius / 3000)
+			params.param.radius = params.param.radius * 10
 			params.param.r = 1
 			params.param.g = 1
 			params.param.b = 1
