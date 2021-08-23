@@ -157,6 +157,7 @@ return {
 					expl_light_life_mult = 1.7,
 					expl_light_mult = 1.25,
 					expl_light_radius_mult = 1.5,
+					expl_light_nuke = 1,
 					light_color = "1 0.6 0.2",
 					light_mult = 4.5,
 					light_radius_mult = 1.4,

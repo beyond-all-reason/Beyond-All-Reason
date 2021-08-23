@@ -854,6 +854,7 @@ unitDeaths = {
 			expl_light_radius_mult = 1.4,
 			expl_light_life_mult = 1.75,
 			expl_light_heat_radius_mult = 1.2,
+			expl_light_nuke = 1,
 		},
 	},
 	fusionExplosionSelfd = {
@@ -875,6 +876,7 @@ unitDeaths = {
 			expl_light_radius_mult = 1.5,
 			expl_light_life_mult = 1.85,
 			expl_light_heat_radius_mult = 1.25,
+			expl_light_nuke = 1,
 		},
 	},
 
@@ -896,6 +898,7 @@ unitDeaths = {
 			expl_light_mult = 1.3,
 			expl_light_radius_mult = 1.35,
 			expl_light_life_mult = 1.5,
+			expl_light_nuke = 1,
 		},
 	},
 	['fusionExplosionSelfd-uw'] = {
@@ -916,6 +919,7 @@ unitDeaths = {
 			expl_light_mult = 1.35,
 			expl_light_radius_mult = 1.4,
 			expl_light_life_mult = 1.6,
+			expl_light_nuke = 1,
 		},
 	},
 
@@ -938,6 +942,7 @@ unitDeaths = {
 			expl_light_radius_mult = 1.2,
 			expl_light_life_mult = 1.4,
 			expl_light_heat_radius_mult = 1.1,
+			expl_light_nuke = 1,
 		},
 	},
 	advancedFusionExplosionSelfd = {
@@ -959,6 +964,7 @@ unitDeaths = {
 			expl_light_radius_mult = 1.3,
 			expl_light_life_mult = 1.5,
 			expl_light_heat_radius_mult = 1.12,
+			expl_light_nuke = 1,
 		},
 	},
 
@@ -1036,6 +1042,7 @@ unitDeaths = {
 			expl_light_radius_mult = 1.33,
 			expl_light_life_mult = 1.55,
 			expl_light_heat_radius_mult = 1.3,
+			expl_light_nuke = 1,
 		},
 	},
 

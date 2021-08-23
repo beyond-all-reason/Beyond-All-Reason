@@ -118,6 +118,10 @@ local function loadWeaponDefs()
 				params.orgMult = customParams.expl_light_opacity * globalLightMult
 			end
 
+			if customParams.expl_light_nuke ~= nil then
+				params.nuke = true
+			end
+
 			if customParams.expl_light_mult ~= nil then
 				params.orgMult = params.orgMult * customParams.expl_light_mult
 			end
@@ -223,7 +227,7 @@ local function GetLightsFromUnitDefs()
 		end
 
 		local lightMultiplier = 0.07
-		local bMult = 1.45		-- because blue appears to be very faint
+		local bMult = 1		-- because blue appears to be very faint
 		local r,g,b = weaponDef.visuals.colorR, weaponDef.visuals.colorG, weaponDef.visuals.colorB*bMult
 
 		local weaponData = {type=weaponDef.type, r = (r + 0.1) * lightMultiplier, g = (g + 0.1) * lightMultiplier, b = (b + 0.1) * lightMultiplier, radius = 100}
@@ -426,7 +430,7 @@ local function GetBeamLights(lightParams, pID, x, y, z)
 		local mult = lightParams.beamMult
 		if lightParams.beamMultFrames then
 			timeToLive = timeToLive or spGetProjectileTimeToLive(pID)
-			if (not lightParams.maxTTL) or lightParams.maxTTL < timeToLive then
+			if not lightParams.maxTTL or lightParams.maxTTL < timeToLive then
 				lightParams.maxTTL = timeToLive
 			end
 			mult = mult * (1 - math_min(1, (timeToLive - (lightParams.maxTTL - lightParams.beamMultFrames))/lightParams.beamMultFrames))
@@ -803,13 +807,21 @@ local function RemoveLight(lightID, life)
 	end
 end
 
+local function tablecopy(self)
+	local copy = {}
+	for key, value in pairs(self) do
+		if type(value) == "table" then
+			copy[key] = table.copy(value)
+		else
+			copy[key] = value
+		end
+	end
+	return copy
+end
 
 -- function called by explosion_lights gadget
 local function GadgetWeaponExplosion(px, py, pz, weaponID, ownerID)
 	if weaponConf[weaponID] ~= nil then
-		--Spring.Echo(weaponConf[weaponID].orgMult..'   '..weaponConf[weaponID].radius..'  '..weaponConf[weaponID].life)
-		--local randomOffset = weaponConf[weaponID].radius > 35 and weaponConf[weaponID].radius/15 or nil
-		--if randomOffset and randomOffset > 14 then randomOffset = 14 end
 		local params = {
 			life = weaponConf[weaponID].life,
 			orgMult = weaponConf[weaponID].orgMult,
@@ -824,9 +836,7 @@ local function GadgetWeaponExplosion(px, py, pz, weaponID, ownerID)
 				b = weaponConf[weaponID].b,
 				radius = weaponConf[weaponID].radius,
 			},
-			--randomOffset = randomOffset
 		}
-
 		explosionLightsCount = explosionLightsCount + 1
 		explosionLights[explosionLightsCount] = params
 
@@ -876,6 +886,20 @@ local function GadgetWeaponExplosion(px, py, pz, weaponID, ownerID)
 					force = force,
 				})
 			end
+		end
+
+		-- bright short nuke flash (unsure why it gets blue-ified sometimes)
+		if weaponConf[weaponID].nuke then
+			local params = tablecopy(params)
+			params.py = params.py + 80 + math.min(180, params.param.radius / 30)
+			params.life = 1.5 + math.min(1.6, params.param.radius / 800)
+			params.orgMult = 0.66 + math.min(1.6, params.param.radius / 2500)
+			params.param.radius = 400 + (params.param.radius * 18)
+			params.param.r = 1
+			params.param.g = 1
+			params.param.b = 1
+			explosionLightsCount = explosionLightsCount + 1
+			explosionLights[explosionLightsCount] = params
 		end
 	end
 end
