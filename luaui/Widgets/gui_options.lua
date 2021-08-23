@@ -2090,6 +2090,7 @@ function init()
 			ssao = 1,
 			mapedgeextension = false,
 			lighteffects = false,
+			lighteffects_additionalflashes = false,
 			airjets = false,
 			heatdistortion = false,
 			snow = false,
@@ -2110,6 +2111,7 @@ function init()
 			ssao = 1,
 			mapedgeextension = false,
 			lighteffects = true,
+			lighteffects_additionalflashes = false,
 			airjets = true,
 			heatdistortion = true,
 			snow = false,
@@ -2130,6 +2132,7 @@ function init()
 			ssao = 1,
 			mapedgeextension = true,
 			lighteffects = true,
+			lighteffects_additionalflashes = true,
 			airjets = true,
 			heatdistortion = true,
 			snow = true,
@@ -2150,6 +2153,7 @@ function init()
 			ssao = 2,
 			mapedgeextension = true,
 			lighteffects = true,
+			lighteffects_additionalflashes = true,
 			airjets = true,
 			heatdistortion = true,
 			snow = true,
@@ -2170,6 +2174,7 @@ function init()
 			ssao = 3,
 			mapedgeextension = true,
 			lighteffects = true,
+			lighteffects_additionalflashes = true,
 			airjets = true,
 			heatdistortion = true,
 			snow = true,
@@ -2624,6 +2629,10 @@ function init()
 			  saveOptionValue('Light Effects', 'lighteffects', 'setGlobalBrightness', { 'globalLightMult' }, value)
 		  end,
 		},
+		{id="lighteffects_additionalflashes", group="gfx", name=widgetOptionColor.."   "..texts.option.lighteffects_additionalflashes, type="bool", value=true, description = texts.option.lighteffects_additionalflashes_descr,
+			 onload = function(i) loadWidgetData("Light Effects", "lighteffects_additionalflashes", {'additionalLightingFlashes'}) end,
+			 onchange = function(i, value) saveOptionValue('Light Effects', 'lighteffects', 'setAdditionalFlashes', {'additionalLightingFlashes'}, value) end,
+		  },
 		--{ id = "lighteffects_radius", group = "gfx", name = widgetOptionColor .. "   "..texts.option.lighteffects_radius, min = 1.2, max = 1.7, step = 0.05, type = "slider", value = 1.5, description = texts.option.lighteffects_radius_descr,
 		--  onload = function(i)
 		--	  loadWidgetData("Light Effects", "lighteffects_radius", { 'globalRadiusMult' })
@@ -5449,6 +5458,7 @@ function init()
 		options[getOptionByID("lighteffects_radius")] = nil
 		options[getOptionByID("lighteffects_laserradius")] = nil
 		options[getOptionByID("lighteffects_nanolaser")] = nil
+		options[getOptionByID("lighteffects_additionalflashes")] = nil
 	end
 
 	if widgetHandler.knownWidgets["TeamPlatter"] == nil then

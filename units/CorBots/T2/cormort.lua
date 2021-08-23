@@ -145,8 +145,7 @@ return {
 				weaponvelocity = 450,
 				customparams = {
 					light_color = "1 0.6 0.15",
-					light_mult = 3.5,
-					light_radius_mult = 1.1,
+					light_mult = 2,
 				},
 				damage = {
 					bombers = 14,

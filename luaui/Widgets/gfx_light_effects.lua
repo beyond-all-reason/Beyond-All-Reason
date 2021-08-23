@@ -46,6 +46,10 @@ local FADE_TIME = 5
 local overrideParam = {r = 1, g = 1, b = 1, radius = 200}
 local doOverride = false
 
+local additionalLightingFlashes = true
+local additionalLightingFlashesAboveAverageFps = 20
+local additionalNukeLightingFlashes = true
+
 local globalLightMult = 1.5
 local globalRadiusMult = 1.4
 local globalLightMultLaser = 1.35	-- gets applied on top op globalRadiusMult
@@ -62,6 +66,9 @@ local gibParams = {r = 0.145*globalLightMult, g = 0.1*globalLightMult, b = 0.05*
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
+
+local averageFps = 100
+local sceduledFpsCheckGf = Spring.GetGameFrame() + 30
 
 local projectileLightTypes = {}
 --[1] red
@@ -889,15 +896,26 @@ local function GadgetWeaponExplosion(px, py, pz, weaponID, ownerID)
 		end
 
 		-- bright short nuke flash (unsure why it gets blue-ified sometimes)
-		if weaponConf[weaponID].nuke then
+		if additionalNukeLightingFlashes and weaponConf[weaponID].nuke then
 			local params = tablecopy(params)
 			params.py = params.py + 100 + math.min(400, params.param.radius / 30)
 			params.life = 1.5 + math.min(2.5, params.param.radius / 8000)
-			params.orgMult = math.min(1.4, params.param.radius / 8000)
+			params.orgMult = math.min(1, params.param.radius / 12000) * globalLightMult
 			params.param.radius = params.param.radius * 2.2
 			params.param.r = 1
 			params.param.g = 1
 			params.param.b = 1
+			explosionLightsCount = explosionLightsCount + 1
+			explosionLights[explosionLightsCount] = params
+		elseif additionalLightingFlashes and averageFps > additionalLightingFlashesAboveAverageFps and params.param.radius > 110 then
+			--local params = tablecopy(params)
+			params.py = params.py + 7 + math.min(40, params.param.radius / 120)
+			params.life = 1.5 + (params.life * 0.35)
+			--params.orgMult = params.orgMult * 1.2
+			params.param.radius = params.param.radius * 0.55
+			params.param.r = (params.param.r + 1.2) / 2.2
+			params.param.g = (params.param.g + 1.2) / 2.2
+			params.param.b = (params.param.b + 1.2) / 2.2
 			explosionLightsCount = explosionLightsCount + 1
 			explosionLights[explosionLightsCount] = params
 		end
@@ -929,6 +947,14 @@ end
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
+
+function widget:Update(dt)
+	local gf = Spring.GetGameFrame()
+	if gf >= sceduledFpsCheckGf then
+		sceduledFpsCheckGf = gf + 30
+		averageFps = ((averageFps * 19) + Spring.GetFPS()) / 20
+	end
+end
 
 function widget:Shutdown()
 	WG['lighteffects'] = nil
@@ -1006,6 +1032,9 @@ function widget:Initialize()
 	WG['lighteffects'].getHeatDistortion = function()
 		return enableHeatDistortion
 	end
+	WG['lighteffects'].getAdditionalFlashes = function()
+		return additionalLightingFlashes
+	end
 	WG['lighteffects'].getNanolaser = function()
 		return enableNanolaser
 	end
@@ -1037,6 +1066,9 @@ function widget:Initialize()
 	WG['lighteffects'].setHeatDistortion = function(value)
 		enableHeatDistortion = value
 	end
+	WG['lighteffects'].setAdditionalFlashes = function(value)
+		additionalLightingFlashes = value
+	end
 	WG['lighteffects'].setNanolaser = function(value)
 		enableNanolaser = value
 		if not enableNanolaser then
@@ -1057,7 +1089,6 @@ function widget:Initialize()
 
 end
 
-
 function widget:GetConfigData(data)
 	local savedTable = {
 		globalLightMult = globalLightMult,
@@ -1068,6 +1099,7 @@ function widget:GetConfigData(data)
 		enableHeatDistortion = enableHeatDistortion,
 		enableNanolaser = enableNanolaser,
 		enableThrusters = enableThrusters,
+		additionalLightingFlashes = additionalLightingFlashes,
 		resetted = 1.65,
 	}
 	return savedTable
@@ -1098,6 +1130,9 @@ function widget:SetConfigData(data)
 		end
 		if data.enableThrusters ~= nil then
 			enableThrusters = data.enableThrusters
+		end
+		if data.additionalLightingFlashes ~= nil then
+			additionalLightingFlashes = data.additionalLightingFlashes
 		end
 	end
 end
