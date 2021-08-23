@@ -149,25 +149,27 @@ function posLosCheckOnlyLOS(posx, posy, posz, posradius)
 	return true
 end
 
+function posLosCheckOnlyLOSNonScav(posx, posy, posz, posradius, TestAllyTeamID)
+	-- if true then position is in player LoS(excludes radar and airLoS)
+	local posradius = posradius or 1000
+	for _,allyTeamID in ipairs(Spring.GetAllyTeamList()) do
+		if allyTeamID ~= TestAllyTeamID then
+			if Spring.IsPosInLos(posx, posy, posz, allyTeamID) == true or
+			Spring.IsPosInLos(posx + posradius, posy, posz + posradius, allyTeamID) == true or
+			Spring.IsPosInLos(posx + posradius, posy, posz - posradius, allyTeamID) == true or
+			Spring.IsPosInLos(posx - posradius, posy, posz + posradius, allyTeamID) == true or
+			Spring.IsPosInLos(posx - posradius, posy, posz - posradius, allyTeamID) == true then
+			return false
+			end
+		end
+	end
+	return true
+end
+
 function posStartboxCheck(posx, posy, posz, posradius)
 	-- if true then position is within scav startbox
 	local posradius = posradius or 1000
 	if ScavengerStartboxExists and posx <= ScavengerStartboxXMax and posx >= ScavengerStartboxXMin and posz >= ScavengerStartboxZMin and posz <= ScavengerStartboxZMax then
-		return false
-	else
-		return true
-	end
-end
-
-function posSafeAreaCheck(posx, posy, posz, posradius)
-	-- if true then position is within scav safe position
-	
-	--ScavSafeAreaMinX
-	--ScavSafeAreaMaxX
-	--ScavSafeAreaMinZ
-	--ScavSafeAreaMaxZ
-	local posradius = posradius or 1000
-	if ScavSafeAreaExist and posx <= ScavSafeAreaMaxX and posx >= ScavSafeAreaMinX and posz >= ScavSafeAreaMinZ and posz <= ScavSafeAreaMaxZ then
 		return false
 	else
 		return true

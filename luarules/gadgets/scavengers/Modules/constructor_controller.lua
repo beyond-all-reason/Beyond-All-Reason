@@ -285,7 +285,6 @@ local function constructNewBlueprint(n, unitID)
 		local blueprintRadius = blueprint.radius + blueprintRadiusBuffer
 		local canConstructHere = posOccupied(posX, posY, posZ, blueprintRadius)
 							 and posCheck(posX, posY, posZ, blueprintRadius)
-							 and posSafeAreaCheck(posX, posY, posZ, blueprintRadius)
 							 and posMapsizeCheck(posX, posY, posZ, blueprintRadius)
 
 		if canConstructHere then
@@ -320,56 +319,56 @@ local function constructNewBlueprint(n, unitID)
 	end
 end
 
-local function spawnResurrectorGroup(n)
-	local resurrectorSpawnCount
+-- local function spawnResurrectorGroup(n)
+-- 	local resurrectorSpawnCount
 
-	if ScavSafeAreaExist then 
-		local spawnTierChance = math.random(1, 100)
-		if spawnTierChance <= TierSpawnChances.T0 then
-			resurrectorSpawnCount = 1
-		elseif spawnTierChance <= TierSpawnChances.T0 + TierSpawnChances.T1 then
-			resurrectorSpawnCount = math.random(1, 2)
-		elseif spawnTierChance <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 then
-			resurrectorSpawnCount = math.random(3, 5)
-		elseif spawnTierChance <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 then
-			resurrectorSpawnCount = math.random(6, 10)
-		elseif spawnTierChance <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 + TierSpawnChances.T4 then
-			resurrectorSpawnCount = math.random(11, 20)
-		else
-			resurrectorSpawnCount = 0
-		end
+-- 	if ScavSafeAreaExist then 
+-- 		local spawnTierChance = math.random(1, 100)
+-- 		if spawnTierChance <= TierSpawnChances.T0 then
+-- 			resurrectorSpawnCount = 1
+-- 		elseif spawnTierChance <= TierSpawnChances.T0 + TierSpawnChances.T1 then
+-- 			resurrectorSpawnCount = math.random(1, 2)
+-- 		elseif spawnTierChance <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 then
+-- 			resurrectorSpawnCount = math.random(3, 5)
+-- 		elseif spawnTierChance <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 then
+-- 			resurrectorSpawnCount = math.random(6, 10)
+-- 		elseif spawnTierChance <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 + TierSpawnChances.T4 then
+-- 			resurrectorSpawnCount = math.random(11, 20)
+-- 		else
+-- 			resurrectorSpawnCount = 0
+-- 		end
 
-		if resurrectorSpawnCount == 0 then
-			return
-		end
+-- 		if resurrectorSpawnCount == 0 then
+-- 			return
+-- 		end
 
-		local posx = math.random(ScavSafeAreaMinX, ScavSafeAreaMaxX)
-		local posz = math.random(ScavSafeAreaMinZ, ScavSafeAreaMaxZ)
-		local posy = Spring.GetGroundHeight(posx, posz)
-		local radius = 32
-		local canSpawnHere
+-- 		local posx = math.random(ScavSafeAreaMinX, ScavSafeAreaMaxX)
+-- 		local posz = math.random(ScavSafeAreaMinZ, ScavSafeAreaMaxZ)
+-- 		local posy = Spring.GetGroundHeight(posx, posz)
+-- 		local radius = 32
+-- 		local canSpawnHere
 
-		for i = 1, 100 do
-			canSpawnHere = posCheck(posx, posy, posz, radius) and posOccupied(posx, posy, posz, radius)
+-- 		for i = 1, 100 do
+-- 			canSpawnHere = posCheck(posx, posy, posz, radius) and posOccupied(posx, posy, posz, radius)
 
-			if canSpawnHere then
-				for y = 1, resurrectorSpawnCount do
-					if posy > -20 then
-						local resurrector = constructorUnitList.Resurrectors[math.random(#constructorUnitList.Resurrectors)]
-						Spring.CreateUnit("scavengerdroppod_scav", posx, posy, posz, math.random(0, 3), GaiaTeamID)
-						QueueSpawn(resurrector, posx, posy, posz, math.random(0, 3), GaiaTeamID, n + (y * 1) + 150)
-					else
-						local seaResurrector = constructorUnitList.ResurrectorsSea[math.random(#constructorUnitList.ResurrectorsSea)]
-						Spring.CreateUnit("scavengerdroppod_scav", posx, posy, posz, math.random(0, 3), GaiaTeamID)
-						QueueSpawn(seaResurrector, posx, posy, posz, math.random(0, 3), GaiaTeamID, n + (y * 1) + 150)
-					end
-				end
+-- 			if canSpawnHere then
+-- 				for y = 1, resurrectorSpawnCount do
+-- 					if posy > -20 then
+-- 						local resurrector = constructorUnitList.Resurrectors[math.random(#constructorUnitList.Resurrectors)]
+-- 						Spring.CreateUnit("scavengerdroppod_scav", posx, posy, posz, math.random(0, 3), GaiaTeamID)
+-- 						QueueSpawn(resurrector, posx, posy, posz, math.random(0, 3), GaiaTeamID, n + (y * 1) + 150)
+-- 					else
+-- 						local seaResurrector = constructorUnitList.ResurrectorsSea[math.random(#constructorUnitList.ResurrectorsSea)]
+-- 						Spring.CreateUnit("scavengerdroppod_scav", posx, posy, posz, math.random(0, 3), GaiaTeamID)
+-- 						QueueSpawn(seaResurrector, posx, posy, posz, math.random(0, 3), GaiaTeamID, n + (y * 1) + 150)
+-- 					end
+-- 				end
 
-				break
-			end
-		end
-	end
-end
+-- 				break
+-- 			end
+-- 		end
+-- 	end
+-- end
 
 return {
 	AssistantOrders = assistantOrders,

@@ -177,17 +177,17 @@ function BossMinionsSpawn(n)
 			--Spring.CreateUnit(minionUnit, posx, posy, posz, math_random(0,3),GaiaTeamID)
 			QueueSpawn(minionUnit, posx, posy, posz, math_random(0,3),GaiaTeamID, n+1)
 			Spring.SpawnCEG("scav-spawnexplo",posx,posy,posz,0,0,0)
-			local posx = x + math_random(-500,500)
-			local posz = z + math_random(-500,500)
-			local posy = Spring.GetGroundHeight(posx, posz)
-			Spring.CreateUnit("scavmistxxl_scav", posx, posy, posz, math_random(0,3),GaiaTeamID)
+			-- local posx = x + math_random(-500,500)
+			-- local posz = z + math_random(-500,500)
+			-- local posy = Spring.GetGroundHeight(posx, posz)
+			-- Spring.CreateUnit("scavmistxxl_scav", posx, posy, posz, math_random(0,3),GaiaTeamID)
 		end
 	end
 end
 
 
 function UnitGroupSpawn(n)
-	if n > scavconfig.gracePeriod then
+	if scavengerGamePhase ~= "initial" then
 		local gaiaUnitCount = Spring.GetTeamUnitCount(GaiaTeamID)
 		if BossWaveTimeLeft then
 			if (not numOfSpawnBeacons) or numOfSpawnBeacons == 0 then
