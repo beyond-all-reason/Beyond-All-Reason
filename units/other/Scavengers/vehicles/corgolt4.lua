@@ -126,7 +126,7 @@ return {
 				cratermult = 0,
 				edgeeffectiveness = 0.4,
 				energypershot = 1500,
-				explosiongenerator = "custom:t3unitexplosionxl",
+				explosiongenerator = "custom:newnuketac",
 				firestarter = 100,
 				gravityaffected = "true",
 				impulseboost = 0.25,

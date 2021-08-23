@@ -145,9 +145,9 @@ return {
 				
 				size = 4,
 				
-				soundhit = "xplonuk2",
+				soundhit = "xplonuk2xs",
 				soundhitwet = "splslrg",
-				soundstart = "krogun1",
+				soundstart = "shotgunbig",
 				targetmoveerror = 0.5,
 				turret = true,
 				weapontype = "Cannon",
