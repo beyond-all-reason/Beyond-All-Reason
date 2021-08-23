@@ -892,9 +892,9 @@ local function GadgetWeaponExplosion(px, py, pz, weaponID, ownerID)
 		if weaponConf[weaponID].nuke then
 			local params = tablecopy(params)
 			params.py = params.py + 100 + math.min(400, params.param.radius / 20)
-			params.life = 1 + math.min(1.5, params.param.radius / 2500)
-			params.orgMult = 0.5 + math.min(1.6, params.param.radius / 3000)
-			params.param.radius = params.param.radius * 10
+			params.life = 1.2 + math.min(1.5, params.param.radius / 3000)
+			params.orgMult = math.min(1.6, params.param.radius / 8000)
+			params.param.radius = params.param.radius * 4
 			params.param.r = 1
 			params.param.g = 1
 			params.param.b = 1

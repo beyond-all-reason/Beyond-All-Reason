@@ -4,9 +4,10 @@ local currentMapname = Game.mapName:lower()
 local mapSunLighting = {
 	['eye of horus v13'] = {
 		groundDiffuseColor = { 0.7, 0.56, 0.54 },
-		unitAmbientColor = {0.86, 0.7, 0.5},
-		unitSpecularColor = {1.1, 0.88, 0.77},
-		modelShadowDensity = 0.44,
+		unitAmbientColor = {0.8, 0.66, 0.5},
+		unitDiffuseColor = {0.8, 0.72, 0.65},
+		unitSpecularColor = {0.95, 0.75, 0.7},
+		modelShadowDensity = 0.55,
 	},
 	['tumult'] = {
 		groundDiffuseColor = { 0.77, 0.6, 0.44 },
