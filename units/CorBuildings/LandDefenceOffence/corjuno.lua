@@ -34,6 +34,9 @@ return {
 		selfdestructas = "largeBuildingExplosionGenericSelfd",
 		sightdistance = 494,
 		stealth = true,
+		texture1 = "trans",
+		texture2 = "null",
+		texture3 = "null",
 		usebuildinggrounddecal = true,
 		yardmap = "oooooooooooooooo",
 		customparams = {

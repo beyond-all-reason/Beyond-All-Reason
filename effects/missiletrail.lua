@@ -3046,7 +3046,7 @@ definitions["missiletraillarge-starburst"].fireglow.properties.colormap = [[0.25
 
 
 definitions["missiletrail-juno"] = table.copy(definitions["missiletrailmedium"])
-definitions["missiletrail-juno"].fireglow.properties.colormap = [[0.25 0.2 0.02 0.01   0 0 0 0.01]]
+definitions["missiletrail-juno"].fireglow.properties.colormap = [[0.3 0.24 0.03 0.01   0 0 0 0.01]]
 definitions["missiletrail-juno"].engine.properties.colormap = [[0.66 1 0.4 0.01   0.6 1 0.2 0.01   0.44 1 0.1 0.01   0 0 0 0.01]]
 definitions["missiletrail-juno"].sparks.properties.colormap = [[0.6 0.9 0.4 0.01   0.5 0.9 0.1 0.007  0.2 0.4 0.05 0.007   0 0 0 0.01]]
 definitions["missiletrail-juno"].dustparticles.properties.colormap = [[0.4 0.4 0.4 0.008    0.7 1 0.48 0.02    0.44 0.66 0.28 0.17    0.33 0.5 0.19 0.16    0.2 0.33 0.13 0.15    0 0 0 0.01]]
