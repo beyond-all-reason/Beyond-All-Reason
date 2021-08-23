@@ -1619,7 +1619,7 @@ if gadgetHandler:IsSyncedCode() then
 				updateSpawnQueen()
 			else
 				if modes[highestLevel] == SURVIVAL then
-					queenTime = t + (((Spring.GetModOptions().chicken_queentime or 40) * 60) * survivalQueenMod)
+					queenTime = t + ((Spring.GetModOptions().chicken_queentime * 60) * survivalQueenMod)
 					survivalQueenMod = survivalQueenMod * 0.8
 					queenAnger = 0  -- reenable chicken spawning
 					burrowAnger = 0

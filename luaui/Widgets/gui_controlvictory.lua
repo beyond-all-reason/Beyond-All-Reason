@@ -1,6 +1,6 @@
 
 local modOptions = Spring.GetModOptions()
-if modOptions == nil or modOptions.scoremode == nil or modOptions.scoremode == "disabled" then
+if modOptions.scoremode == "disabled" then
 	return
 end
 
@@ -25,19 +25,15 @@ function widget:GetInfo()
 end
 
 local selectedScoreMode = modOptions.scoremode
-local useMapConfig = modOptions.usemapconfig or "enabled"
-local numberOfControlPoints = tonumber(modOptions.numberofcontrolpoints) or 13
-local captureRadius = tonumber(modOptions.captureradius) or 250
-local decapSpeed = tonumber(modOptions.decapspeed) or 2
-local startTime = tonumber(modOptions.starttime) or 0
-local metalPerPoint = tonumber(modOptions.metalperpoint) or 0
-local energyPerPoint = tonumber(modOptions.energyperpoint) or 0
-local tugofWarModifier = tonumber(modOptions.tugofwarmodifier) or 2
-local limitScore = tonumber(modOptions.limitscore) or 10000
-local captureTime = tonumber(modOptions.capturetime) or 60
-local captureBonus = tonumber((modOptions).capturebonus or 5) * 0.01 -- modoption number is percentage 0%-100%
-local dominationScoreTime = tonumber(modOptions.dominationscoretime) or 30
-local dominationScore = tonumber(modOptions.dominationscore) or 1000
+local captureRadius = modOptions.captureradius
+local startTime = modOptions.starttime
+local metalPerPoint = modOptions.metalperpoint
+local energyPerPoint = modOptions.energyperpoint
+local tugofWarModifier = modOptions.tugofwarmodifier
+local limitScore = modOptions.limitscore
+local captureTime = modOptions.capturetime
+local dominationScoreTime = modOptions.dominationscoretime
+local dominationScore = modOptions.dominationscore
 
 local scoreModes = {
 	disabled = { name = "Disabled" }, -- none (duh)

@@ -245,7 +245,7 @@ function widget:Initialize()
 		return
 	end
 
-  if Spring.GetModOptions and Spring.GetModOptions().scenariooptions then
+  if Spring.GetModOptions().scenariooptions then
     local scenarioopts = string.base64Decode(Spring.GetModOptions().scenariooptions)
     scenarioopts = Spring.Utilities.json.decode(scenarioopts)
     if scenarioopts and scenarioopts.scenariooptions and scenarioopts.scenariooptions.disablefactionpicker == true then

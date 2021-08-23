@@ -1,5 +1,3 @@
-
-
 local currentMapname = Game.mapName:lower()
 local mapList = VFS.DirList("luarules/configs/Atmosphereconfigs/", "*.lua")
 Spring.Echo("[ATMOSPHERIC] Current map: "..currentMapname)
@@ -11,11 +9,6 @@ for i = 1,#mapList+1 do
 	end
 end
 
---if VFS.FileExists("luarules/configs/Atmosphereconfigs/" .. Game.mapName .. ".lua") then
---elseif enableGenericConfig ~= "disabled" then
---end
-
-
 function gadget:GetInfo()
 	return {
 		name = "Map Atmosphere CEGs",
@@ -26,9 +19,6 @@ function gadget:GetInfo()
 		enabled = true,
 	}
 end
-
-local enableGenericConfig = Spring.GetModOptions().mapatmospherics or "enabled"
-
 
 if not gadgetHandler:IsSyncedCode() then
 

@@ -276,7 +276,7 @@ function gadget:GetInfo()
 	}
 end
 
-	if ( Spring.GetModOptions().comm  == "feature" ) then
+	if Spring.GetModOptions().comm  == "feature" then
 		gadgetHandler.RemoveGadget()
 	end
 

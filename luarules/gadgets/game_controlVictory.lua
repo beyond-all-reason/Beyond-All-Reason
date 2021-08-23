@@ -11,24 +11,24 @@ function gadget:GetInfo()
 end
 
 local modOptions = Spring.GetModOptions()
-if modOptions == nil or modOptions.scoremode == nil or modOptions.scoremode == "disabled" then
+if modOptions.scoremode == "disabled" then
 	return
 end
 
 local selectedScoreMode = modOptions.scoremode
-local useMapConfig = modOptions.usemapconfig or "enabled"
-local numberOfControlPoints = tonumber(modOptions.numberofcontrolpoints) or 13
-local captureRadius = tonumber(modOptions.captureradius) or 250
-local decapSpeed = tonumber(modOptions.decapspeed) or 2
-local startTime = tonumber(modOptions.starttime) or 0
-local metalPerPoint = tonumber(modOptions.metalperpoint) or 0
-local energyPerPoint = tonumber(modOptions.energyperpoint) or 0
-local tugofWarModifier = tonumber(modOptions.tugofwarmodifier) or 2
-local limitScore = tonumber(modOptions.limitscore) or 10000
-local captureTime = tonumber(modOptions.capturetime) or 60
-local captureBonus = tonumber((modOptions).capturebonus or 5) * 0.01 -- modoption number is percentage 0%-100%
-local dominationScoreTime = tonumber(modOptions.dominationscoretime) or 30
-local dominationScore = tonumber(modOptions.dominationscore) or 1000
+local useMapConfig = modOptions.usemapconfig
+local numberOfControlPoints = modOptions.numberofcontrolpoints
+local captureRadius = modOptions.captureradius
+local decapSpeed = modOptions.decapspeed
+local startTime = modOptions.starttime
+local metalPerPoint = modOptions.metalperpoint
+local energyPerPoint = modOptions.energyperpoint
+local tugofWarModifier = modOptions.tugofwarmodifier
+local limitScore = modOptions.limitscore
+local captureTime = modOptions.capturetime
+local captureBonus = modOptions.capturebonus * 0.01 -- modoption number is percentage 0%-100%
+local dominationScoreTime = modOptions.dominationscoretime
+local dominationScore = modOptions.dominationscore
 
 --[[
 -------------------
@@ -195,7 +195,7 @@ if gadgetHandler:IsSyncedCode() then
 		else
 			local mapConfigExists = false
 
-			if useMapConfig == "enabled" then
+			if useMapConfig then
 				local configfile, _ = string.gsub(Game.mapName, ".smf$", ".lua")
 				configfile = "LuaRules/Configs/ControlPoints/cv_" .. configfile .. ".lua"
 				Spring.Echo("[ControlVictory] Attempting to load map config file" .. configfile)
@@ -508,14 +508,6 @@ if gadgetHandler:IsSyncedCode() then
 			for _, allyTeamID in ipairs(Spring.GetAllyTeamList()) do
 				local ateams = Spring.GetTeamList(allyTeamID)
 				for i = 1, #ateams do
-					local metalPerPoint = Spring.GetModOptions().metalperpoint
-					local energyPerPoint = Spring.GetModOptions().energyperpoint
-					if Spring.GetModOptions().metalperpoint == nil then
-						metalPerPoint = 0
-					end
-					if Spring.GetModOptions().energyperpoint == nil then
-						energyPerPoint = 0
-					end
 					Spring.AddTeamResource(ateams[i], "metal", owned[allyTeamID] * metalPerPoint) -- adjust the 5
 					Spring.AddTeamResource(ateams[i], "energy", owned[allyTeamID] * energyPerPoint) -- adjust the 5
 				end
@@ -569,7 +561,7 @@ if gadgetHandler:IsSyncedCode() then
 							capturePoint.owner = nil
 							capturePoint.capture = 0
 						end
-						score[dom.dominator] = score[dom.dominator] + Spring.GetModOptions().dominationscore
+						score[dom.dominator] = score[dom.dominator] + dominationScore
 						if score[dom.dominator] >= limitScore then
 							declareWinner(dom.dominator)
 							Spring.Echo([[-------------------------------]])

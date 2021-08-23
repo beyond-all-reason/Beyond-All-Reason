@@ -62,16 +62,6 @@ local metalmapStartX = 1.5 * gridSize
 local metalmapStartZ = 1.5 * gridSize
 
 ------------------------------------------------------------
--- Variables
-------------------------------------------------------------
-
-local modOptions
-if (Spring.GetModOptions) then
-  modOptions = Spring.GetModOptions()
-end
-
-
-------------------------------------------------------------
 -- Speedup
 ------------------------------------------------------------
 local function GetSpotsByPos(spots)
@@ -125,7 +115,7 @@ function gadget:Initialize()
 	local metalValueOverride = gameConfig and gameConfig.metalValueOverride
 
 	if metalSpots then
-		local mult = (modOptions and modOptions.metalmult) or 1
+		local mult = Spring.GetModOptions().metalmult
 		local i = 1
 		while i <= #metalSpots do
 			local spot = metalSpots[i]

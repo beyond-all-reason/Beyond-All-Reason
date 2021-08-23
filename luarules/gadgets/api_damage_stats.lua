@@ -28,7 +28,7 @@ local gameType
 function gadget:Initialize()
     local tList = Spring.GetTeamList()
 
-    if (tonumber(Spring.GetModOptions().ffa_mode) or 0) == 1 then
+    if Spring.GetModOptions().ffa_mode then
         gameType = "free for all"
         return
     end

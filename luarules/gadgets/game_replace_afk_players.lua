@@ -267,7 +267,7 @@ else
 	end
 
 	function gadget:Initialize()
-		if isReplay or (tonumber(Spring.GetModOptions().ffa_mode) or 0) == 1 or Spring.GetGameFrame() > 6 then
+		if isReplay or Spring.GetModOptions().ffa_mode or Spring.GetGameFrame() > 6 then
 			gadgetHandler:RemoveGadget() -- don't run in FFA mode
 			return
 		end

@@ -59,20 +59,20 @@ local options={
 		max    = 10000,
 		step   = 1,
 	},
-	-- {
-	-- 	key="map_tidal",
-	-- 	name="Tidal Strength",
-	-- 	desc="Unchanged = map setting, low = 13e/sec, medium = 18e/sec, high = 23e/sec.",
-	-- 	type="list",
-	-- 	def="unchanged",
-	-- 	section="resources_options",
-	-- 	items={
-	-- 		{key="unchanged", name="Unchanged", desc="Use map settings"},
-	-- 		{key="low", name="Low", desc="Set tidal incomes to 13 energy per second"},
-	-- 		{key="medium", name="Medium", desc="Set tidal incomes to 18 energy per second"},
-	-- 		{key="high", name="High", desc="Set tidal incomes to 23 energy per second"},
-	-- 	}
-	-- },
+	{
+		key="map_tidal",
+		name="Tidal Strength",
+		desc="Unchanged = map setting, low = 13e/sec, medium = 18e/sec, high = 23e/sec.",
+		type="list",
+		def="unchanged",
+		section="resources_options",
+		items={
+			{key="unchanged", name="Unchanged", desc="Use map settings"},
+			{key="low", name="Low", desc="Set tidal incomes to 13 energy per second"},
+			{key="medium", name="Medium", desc="Set tidal incomes to 18 energy per second"},
+			{key="high", name="High", desc="Set tidal incomes to 23 energy per second"},
+		}
+	},
 
 	{
 		key    = 'resourceincomemultiplier',
@@ -129,18 +129,18 @@ local options={
 		max    = 50,
 		step   = 0.1,
 	},
-	-- {
-	-- 	key="transportenemy",
-	-- 	name="Enemy Transporting",
-	-- 	desc="Toggle which enemy units you can kidnap with an air transport",
-	-- 	type="list",
-	-- 	def="notcoms",
-	-- 	section="restrictions",
-	-- 	items={
-	-- 		{key="notcoms", name="All But Commanders", desc="Only commanders are immune to napping"},
-	-- 		{key="none", name="Disallow All", desc="No enemy units can be napped"},
-	-- 	}
-	-- },
+	{
+		key="transportenemy",
+		name="Enemy Transporting",
+		desc="Toggle which enemy units you can kidnap with an air transport",
+		type="list",
+		def="notcoms",
+		section="restrictions",
+		items={
+			{key="notcoms", name="All But Commanders", desc="Only commanders are immune to napping"},
+			{key="none", name="Disallow All", desc="No enemy units can be napped"},
+		}
+	},
 	{
 		key    = "allowuserwidgets",
 		name   = "Allow user widgets",
@@ -480,7 +480,6 @@ local options={
 	-- Chickens Custom Difficulty
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-	--[[
 	{
 		key    = 'chicken_defense_custom_settings',
 		name   = 'Chicken Custom',
@@ -586,7 +585,6 @@ local options={
 		step   = 1,
 		section= "chicken_defense_custom_settings",
 	},
-	]]
 	
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -661,17 +659,17 @@ local options={
 		section= 'options',
 		def  = false,
 	},
-	-- {
-	-- 	key    = 'critters',
-	-- 	name   = 'Animal amount',
-	-- 	desc   = 'This multiplier will be applied on the amount of critters a map will end up with',
-	-- 	type   = 'number',
-	-- 	section= 'options',
-	-- 	def    = 1,
-	-- 	min    = 0,
-	-- 	max    = 2,
-	-- 	step   = 0.2,
-	-- },
+	{
+		key    = 'critters',
+		name   = 'Animal amount',
+		desc   = 'This multiplier will be applied on the amount of critters a map will end up with',
+		type   = 'number',
+		section= 'options',
+		def    = 1,
+		min    = 0,
+		max    = 2,
+		step   = 0.2,
+	},
 	{
 		key="deathmode",
 		name="Game End Mode",
@@ -685,14 +683,14 @@ local options={
 			{key="killall", name="Kill everything", desc="Every last unit must be eliminated, no exceptions!"},
 		}
 	},
-	-- {
-	-- 	key="map_terraintype",
-	-- 	name="Map TerrainTypes",
-	-- 	desc="Allows to cancel the TerrainType movespeed buffs of a map.",
-	-- 	type="bool",
-	-- 	def=true,
-	-- 	section="options",
-	-- },
+	{
+		key="map_terraintype",
+		name="Map TerrainTypes",
+		desc="Allows to cancel the TerrainType movespeed buffs of a map.",
+		type="bool",
+		def=true,
+		section="options",
+	},
 	{
 		key="map_waterlevel",
 		name="Water Level",
@@ -704,14 +702,14 @@ local options={
 		step   = 1,
 		section="options",
 	},
-	-- {
-	-- 	key    = "ffa_mode",
-	-- 	name   = "FFA Mode",
-	-- 	desc   = "Units with no player control are removed/destroyed \nUse FFA spawning mode",
-	-- 	type   = "bool",
-	-- 	def    = false,
-	-- 	section= "options",
-	-- },
+	{
+		key    = "ffa_mode",
+		name   = "FFA Mode",
+		desc   = "Units with no player control are removed/destroyed \nUse FFA spawning mode",
+		type   = "bool",
+		def    = false,
+		section= "options",
+	},
   
 	 {
 	 	key    = 'coop',
@@ -729,14 +727,14 @@ local options={
 		def    = false,
 		section= "options",
 	},
-	-- {
-	-- 	key    = "newbie_placer",
-	-- 	name   = "Newbie Placer",
-	-- 	desc   = "Chooses a startpoint and a random faction for all rank 1 accounts (online only)",
-	-- 	type   = "bool",
-	-- 	def    = false,
-	-- 	section= "options",
-	-- },
+	{
+		key    = "newbie_placer",
+		name   = "Newbie Placer",
+		desc   = "Chooses a startpoint and a random faction for all rank 1 accounts (online only)",
+		type   = "bool",
+		def    = false,
+		section= "options",
+	},
 
 
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -762,7 +760,7 @@ local options={
 			{key="disabled", name="Disabled", desc="Disable Control Points as a victory condition."},
 			{key="countdown", name="Countdown", desc="A Control Point decreases all opponents' scores, zero means defeat."},
 			{key="tugofwar", name="Tug of War", desc="A Control Point steals enemy score, zero means defeat."},
-			--{key="domination", name="Domination", desc="Holding all Control Points will grant 1000 score, first to reach the score limit wins."},
+			{key="domination", name="Domination", desc="Holding all Control Points will grant 1000 score, first to reach the score limit wins."},
 		}
 	},
 	{
@@ -831,16 +829,14 @@ local options={
 			{key="25", name="25", desc=""},
 		}
     },
-	--[[
 	{
 		key    = "usemapconfig",
 		name   = "Use preset map-specific Control Point locations?",
 		desc   = "Should the control point config for this map be used instead of autogenerated control points?",
-		type=bool,
+		type='bool',
 		def=true,
 		section= "controlvictoryoptions",
     },
-	]]
 	{
 		key    = 'captureradius',
 		name   = 'Capture points size',
@@ -853,7 +849,6 @@ local options={
 		step   = 25,  -- quantization is aligned to the def value
 		-- (step <= 0) means that there is no quantization
 	},
-	--[[
 	{
 		key    = 'capturetime',
 		name   = 'Capture Time',
@@ -904,7 +899,6 @@ local options={
 		step   = 1,  -- quantization is aligned to the def value
 		-- (step <= 0) means that there is no quantization
 	},
-	]]
 		{
 		key    = 'metalperpoint',
 		name   = 'Metal given per point',
@@ -929,7 +923,6 @@ local options={
 		step   = 0.1,  -- quantization is aligned to the def value
 		-- (step <= 0) means that there is no quantization
 	},
-	--[[
 	{
 		key    = 'dominationscoretime',
 		name   = 'Domination Score Time',
@@ -967,7 +960,6 @@ local options={
 		step   = 1,  -- quantization is aligned to the def value
 		-- (step <= 0) means that there is no quantization
 	},
-	]]
 
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -982,14 +974,14 @@ local options={
 		type	= "section",
 	},
 
-	-- {
-	-- 	key    = 'experimentalnoaircollisions',
-	-- 	name   = 'Aircraft Collisions Override',
-	-- 	desc   = 'Aircraft Collisions Override',
-	-- 	type   = 'bool',
-	-- 	section = 'options_experimental',
-	-- 	def  = false,
-	-- },
+	{
+		key    = 'experimentalnoaircollisions',
+		name   = 'Aircraft Collisions Override',
+		desc   = 'Aircraft Collisions Override',
+		type   = 'bool',
+		section = 'options_experimental',
+		def  = false,
+	},
 
 	{
 		key    = 'experimentalshields',
@@ -1019,27 +1011,26 @@ local options={
 	},
 
 
-	-- {
-	-- 	key    = 'experimentalxpgain',
-	-- 	name   = 'XP Gain Multiplier',
-	-- 	desc   = 'XP Gain Multiplier',
-	-- 	type   ="number",
-	-- 	section = 'options_experimental',
-	-- 	def    = 1,
-	-- 	min    = 0.1,
-	-- 	max    = 10,
-	-- 	step   = 0.1,
-	-- },
+	{
+		key    = 'experimentalxpgain',
+		name   = 'XP Gain Multiplier',
+		desc   = 'XP Gain Multiplier',
+		type   ="number",
+		section = 'options_experimental',
+		def    = 1,
+		min    = 0.1,
+		max    = 10,
+		step   = 0.1,
+	},
 
-	-- {
-	-- 	key    = 'experimentalxpsystem',
-	-- 	name   = 'New XP System',
-	-- 	desc   = 'New XP System',
-	-- 	type   = 'bool',
-	-- 	section = 'options_experimental',
-	-- 	def  = false,
-	-- },
-	--[[
+	{
+		key    = 'experimentalxpsystem',
+		name   = 'New XP System',
+		desc   = 'New XP System',
+		type   = 'bool',
+		section = 'options_experimental',
+		def  = false,
+	},
 	{
 		key    = 'experimentalbuildrange',
 		name   = 'Build Range Multiplier',
@@ -1063,7 +1054,6 @@ local options={
 		max    = 10,
 		step   = 0.1,
 	},
-	]]
 	{
 		key    = 'experimentallosrange',
 		name   = 'Line of Sight Range Multiplier',
@@ -1106,32 +1096,32 @@ local options={
 		def  = false,
 	},
 
-	-- {
-	-- 	key    = 'experimentalimprovedtransports',
-	-- 	name   = 'Transport Units Rework',
-	-- 	desc   = 'Transport Units Rework',
-	-- 	type   = 'bool',
-	-- 	section = 'options_experimental',
-	-- 	def  = false,
-	-- },
+	{
+		key    = 'experimentalimprovedtransports',
+		name   = 'Transport Units Rework',
+		desc   = 'Transport Units Rework',
+		type   = 'bool',
+		section = 'options_experimental',
+		def  = false,
+	},
 
-	-- {
-	-- 	key    = 'mapatmospherics',
-	-- 	name   = 'Map Atmospherics',
-	-- 	desc   = 'Map Atmospherics',
-	-- 	type   = 'bool',
-	-- 	section = 'options_experimental',
-	-- 	def  = true,
-	-- },
+	{
+		key    = 'mapatmospherics',
+		name   = 'Map Atmospherics',
+		desc   = 'Map Atmospherics',
+		type   = 'bool',
+		section = 'options_experimental',
+		def  = true,
+	},
 
-	-- {
-	-- 	key    = 'experimentalmassoverride',
-	-- 	name   = 'Mass Override',
-	-- 	desc   = 'Mass Override',
-	-- 	type   = 'bool',
-	-- 	section = 'options_experimental',
-	-- 	def  = false,
-	-- },
+	{
+		key    = 'experimentalmassoverride',
+		name   = 'Mass Override',
+		desc   = 'Mass Override',
+		type   = 'bool',
+		section = 'options_experimental',
+		def  = false,
+	},
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	-- Unused Options
@@ -1139,43 +1129,43 @@ local options={
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
-	--{
-	--	key		= "modes",
-	--	name	= "GameModes",
-	--	desc	= "Game Modes",
-	--	type	= "section",
-	--},
+	{
+		key		= "modes",
+		name	= "GameModes",
+		desc	= "Game Modes",
+		type	= "section",
+	},
 
-	--{
-	--	key		= "unba",
-	--	name	= "Unbalanced Commanders",
-	--	desc	= "Defines if commanders level up with xp and gain more power or not",
-	--	type	= "bool",
-	--	def		= false,
-	--	section	= "modes",
-	--},
+	{
+		key		= "unba",
+		name	= "Unbalanced Commanders",
+		desc	= "Defines if commanders level up with xp and gain more power or not",
+		type	= "bool",
+		def		= false,
+		section	= "modes",
+	},
 
 
-	--{
-	--	key    = "shareddynamicalliancevictory",
-	--	name   = "Dynamic Ally Victory",
-	--	desc   = "Ingame alliance should count for game over condition.",
-	--	type   = "bool",
-	--	section= 'options',
-	--	def    = false,
-	--},
+	{
+		key    = "shareddynamicalliancevictory",
+		name   = "Dynamic Ally Victory",
+		desc   = "Ingame alliance should count for game over condition.",
+		type   = "bool",
+		section= 'options',
+		def    = false,
+	},
 
-	--{
-	--	key    = 'ai_incomemultiplier',
-	--	name   = 'AI Income Multiplier',
-	--	desc   = 'Multiplies AI resource income',
-	--	type   = 'number',
-	--	section= 'options',
-	--	def    = 1,
-	--	min    = 1,
-	--	max    = 10,
-	--	step   = 0.1,
-	--},
+	{
+		key    = 'ai_incomemultiplier',
+		name   = 'AI Income Multiplier',
+		desc   = 'Multiplies AI resource income',
+		type   = 'number',
+		section= 'options',
+		def    = 1,
+		min    = 1,
+		max    = 10,
+		step   = 0.1,
+	},
 
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

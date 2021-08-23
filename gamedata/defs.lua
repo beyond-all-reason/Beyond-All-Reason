@@ -29,7 +29,7 @@ end
 
 
 vfs_modes = VFS.MOD .. VFS.BASE
-allow_map_mutators = (Spring.GetModOptions and tonumber(Spring.GetModOptions().allowmapmutators) or 1) ~= 0 
+allow_map_mutators = Spring.GetModOptions().allowmapmutators
 if allow_map_mutators then
   vfs_modes = VFS.MAP .. vfs_modes
 end

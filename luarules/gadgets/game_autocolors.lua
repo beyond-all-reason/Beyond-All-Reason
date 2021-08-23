@@ -35,20 +35,20 @@ local enemyCounter = 0
 local simpleColorsUpdateCounter = 0
 
 SimpleColorsEnabled = Spring.GetConfigInt("simple_auto_colors", 0) -- Floris plz add option here
-local DynamicTeamColorsEnabledModoption = (Spring.GetModOptions and Spring.GetModOptions().teamcolors_dynamic) or "enabled"
-if DynamicTeamColorsEnabledModoption == "enabled" then
+local DynamicTeamColorsEnabledModoption = Spring.GetModOptions().teamcolors_dynamic
+if DynamicTeamColorsEnabledModoption then
     DynamicTeamColorsEnabled = true
 else
     DynamicTeamColorsEnabled = false
 end
-local AnonymousModeEnabledModoption = (Spring.GetModOptions and Spring.GetModOptions().teamcolors_anonymous_mode) or "disabled"
-if AnonymousModeEnabledModoption == "enabled" then
+local AnonymousModeEnabledModoption = Spring.GetModOptions().teamcolors_anonymous_mode
+if AnonymousModeEnabledModoption then
     AnonymousModeEnabled = true
 else
     AnonymousModeEnabled = false
 end
-local IconDevModeEnabledModoption = (Spring.GetModOptions and Spring.GetModOptions().teamcolors_icon_dev_mode) or "disabled"
-if IconDevModeEnabledModoption == "disabled" then
+local IconDevModeEnabledModoption = Spring.GetModOptions().teamcolors_icon_dev_mode
+if not IconDevModeEnabledModoption then
     IconDevModeEnabled = false
 else
     if IconDevModeEnabledModoption == "armblue" then

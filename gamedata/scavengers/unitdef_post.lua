@@ -5,7 +5,7 @@ for name,uDef in pairs(UnitDefs) do
     scavUnit[#scavUnit+1] = name..'_scav'
 end
 
-scavDifficulty = (Spring.GetModOptions and Spring.GetModOptions().scavdifficulty) or "veryeasy"
+scavDifficulty = Spring.GetModOptions().scavdifficulty
 if scavDifficulty == "noob" then
 	ScavDifficultyMultiplier = 0.1
 elseif scavDifficulty == "veryeasy" then
@@ -193,8 +193,8 @@ function scav_Udef_Post(name, uDef)
 
 	-- don't let players get scav constructors
 	if uDef.builder then
-		if Spring.GetModOptions and uDef.workertime then 
-			local workertimemultipliermodoption = tonumber(Spring.GetModOptions().scavbuildspeedmultiplier) or 1
+		if uDef.workertime then 
+			local workertimemultipliermodoption = Spring.GetModOptions().scavbuildspeedmultiplier
 			uDef.workertime = uDef.workertime*workertimemultipliermodoption
 		end
 		-- if uDef.maxvelocity then

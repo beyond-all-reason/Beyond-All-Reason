@@ -22,7 +22,7 @@ local uiScale = (0.75 + (vsx * vsy / 5700000))
 local myPlayerID = Spring.GetMyPlayerID()
 local _, _, mySpec, myTeamID = Spring.GetPlayerInfo(myPlayerID, false)
 local amNewbie
-local ffaMode = (tonumber(Spring.GetModOptions().ffa_mode) or 0) == 1
+local ffaMode = Spring.GetModOptions().ffa_mode
 local isReplay = Spring.IsReplay()
 
 local readied = false	-- send readystate (in widget:GameSetup)
@@ -202,7 +202,7 @@ end
 
 function widget:Initialize()
 	if mySpec then
-		if not mySpec or numPlayers <= 4 or isReplay or (tonumber(Spring.GetModOptions().ffa_mode) or 0) == 1 or Spring.GetGameFrame() > 0 then
+		if not mySpec or numPlayers <= 4 or isReplay or ffaMode or Spring.GetGameFrame() > 0 then
 			eligibleAsSub = false
 		else
 			eligibleAsSub = true

@@ -1,9 +1,4 @@
-local Modoption = Spring.GetModOptions().experimentalimprovedtransports or "disabled"
-if Modoption == "disabled" then
-    gadgetEnabled = false
-else
-    gadgetEnabled = true
-end
+local gadgetEnabled = Spring.GetModOptions().experimentalimprovedtransports
 
 function gadget:GetInfo()
     return {

@@ -28,7 +28,7 @@ end
 
 
 -- handle unba modoption
-if Spring.GetModOptions and Spring.GetModOptions().unba and Spring.GetModOptions().unba == "enabled" then
+if Spring.GetModOptions().unba then
 	VFS.Include("unbaconfigs/unbacom_post.lua")
 	VFS.Include("unbaconfigs/stats.lua")
 	VFS.Include("unbaconfigs/buildoptions.lua")

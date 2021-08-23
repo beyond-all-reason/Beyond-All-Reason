@@ -14,12 +14,9 @@ if gadgetHandler:IsSyncedCode() then
 	-- In this gadget, an allyteam is declared dead when it no longer has any units
 	-- Allyteam explosion when no coms are left (killing all remaining units of that allyteam) is implemented in teamcomends.lua
 
-	-- sharedDynamicAllianceVictory is a C-like bool
-	local sharedDynamicAllianceVictory = tonumber(Spring.GetModOptions().shareddynamicalliancevictory) or 0
+	local sharedDynamicAllianceVictory = Spring.GetModOptions().shareddynamicalliancevictory
 
 	local ignoreGaia = true
-
-	--local fixedAllies = tonumber(Spring.GetModOptions().fixedallies) ~= 0
 
 	--------------------------------------------------------------------------------
 	--------------------------------------------------------------------------------
@@ -71,7 +68,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:Initialize()
-		if tostring(Spring.GetModOptions().deathmode) == 'neverend' then
+		if Spring.GetModOptions().deathmode == 'neverend' then
 			gadgetHandler:RemoveGadget(self)
 			return
 		end
@@ -215,7 +212,7 @@ if gadgetHandler:IsSyncedCode() then
 			CheckPlayer(playerID) -- because not all events that we want to test call gadget:PlayerChanged (e.g. allying)
 		end
 		local winners
-		if sharedDynamicAllianceVictory == 0 then
+		if not sharedDynamicAllianceVictory then
 			winners = CheckSingleAllyVictoryEnd()
 		else
 			winners = CheckSharedAllyVictoryEnd()

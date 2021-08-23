@@ -30,17 +30,17 @@ local chickensEnabled = Spring.Utilities.Gametype.IsChickens()
 local content = ''
 
 local tidal = Game.tidal
-if Spring.GetModOptions() and Spring.GetModOptions().map_tidal then
-	map_tidal = Spring.GetModOptions().map_tidal
-	if map_tidal == "unchanged" then
-	elseif map_tidal == "low" then
-		tidal = 13
-	elseif map_tidal == "medium" then
-		tidal = 18
-	elseif map_tidal == "high" then
-		tidal = 23
-	end
+local map_tidal = Spring.GetModOptions().map_tidal
+
+if map_tidal == "unchanged" then
+elseif map_tidal == "low" then
+	tidal = 13
+elseif map_tidal == "medium" then
+	tidal = 18
+elseif map_tidal == "high" then
+	tidal = 23
 end
+
 if Spring.GetTidal then
 	tidal = Spring.GetTidal()
 end

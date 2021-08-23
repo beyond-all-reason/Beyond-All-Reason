@@ -11,17 +11,7 @@ ScavengerStartboxXMax = mapsizeX + 1
 ScavengerStartboxZMax = mapsizeZ + 1
 ScavengerStartboxExists = false
 
-
---spawnmultiplier = tonumber(Spring.GetModOptions().scavengers) or 1
-
-
-
-
-
-
-
-
-local scavTechDifficulty = Spring.GetModOptions().scavengerstech or "adaptive"
+local scavTechDifficulty = Spring.GetModOptions().scavengerstech
 if scavengersAIEnabled then
 	if spawnmultiplier == 0 then
 		spawnmultiplier = 0.5
@@ -78,9 +68,8 @@ ActiveReinforcementUnits = {}
 scavteamhasplayers = false
 BaseCleanupQueue = {}
 
-if Spring.GetModOptions() and Spring.GetModOptions().maxunits then
-	scavMaxUnits = tonumber(Spring.GetModOptions().maxunits)
-end
+scavMaxUnits = Spring.GetModOptions().MaxUnits
+
 if GaiaTeamID == Spring.GetGaiaTeamID() then
 	scavMaxUnits = 10000
 end

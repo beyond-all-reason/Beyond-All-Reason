@@ -22,7 +22,7 @@ SAFEDRAW = false  --// requires SAFEWRAP to work
 
 --//
 VFSMODE = VFS.RAW_FIRST
-allow_map_mutators = (Spring.GetModOptions and tonumber(Spring.GetModOptions().allowmapmutators) or 1) ~= 0
+allow_map_mutators = Spring.GetModOptions().allowmapmutators
 if allow_map_mutators then
   VFSMODE = VFS.MAP .. VFS.MOD .. VFS.BASE
 end
