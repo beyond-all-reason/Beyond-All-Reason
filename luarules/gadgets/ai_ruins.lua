@@ -182,21 +182,21 @@ function gadget:GameFrame(n)
 		local radius, canBuildHere
 
 		local r = math.random(0,100)
-		if r > 20 then
-			landRuin = blueprintController.Constructor.GetRandomLandBlueprint(0)
-			seaRuin = blueprintController.Constructor.GetRandomSeaBlueprint(0)
-		elseif r > 50 then
-			landRuin = blueprintController.Constructor.GetRandomLandBlueprint(1)
-			seaRuin = blueprintController.Constructor.GetRandomSeaBlueprint(1)
-		elseif r > 80 then
-			landRuin = blueprintController.Constructor.GetRandomLandBlueprint(2)
-			seaRuin = blueprintController.Constructor.GetRandomSeaBlueprint(2)
+		if r > 95 then
+			landRuin = blueprintController.Constructor.GetRandomLandBlueprint(4)
+			seaRuin = blueprintController.Constructor.GetRandomSeaBlueprint(4)
 		elseif r > 90 then
 			landRuin = blueprintController.Constructor.GetRandomLandBlueprint(3)
 			seaRuin = blueprintController.Constructor.GetRandomSeaBlueprint(3)
-		elseif r > 95 then
-			landRuin = blueprintController.Constructor.GetRandomLandBlueprint(4)
-			seaRuin = blueprintController.Constructor.GetRandomSeaBlueprint(4)
+		elseif r > 80 then
+			landRuin = blueprintController.Constructor.GetRandomLandBlueprint(2)
+			seaRuin = blueprintController.Constructor.GetRandomSeaBlueprint(2)
+		elseif r > 50 then
+			landRuin = blueprintController.Constructor.GetRandomLandBlueprint(1)
+			seaRuin = blueprintController.Constructor.GetRandomSeaBlueprint(1)
+		elseif r > 20 then
+			landRuin = blueprintController.Constructor.GetRandomLandBlueprint(0)
+			seaRuin = blueprintController.Constructor.GetRandomSeaBlueprint(0)
 		else
 			landRuin = blueprintController.Ruin.GetRandomLandBlueprint()
 			seaRuin = blueprintController.Ruin.GetRandomSeaBlueprint()
