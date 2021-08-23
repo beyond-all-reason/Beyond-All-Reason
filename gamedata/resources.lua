@@ -56,6 +56,7 @@ local resources = {
             smoke_puff_red    = 'atmos/smoke_puff_red.png',
             explowater        = 'projectiletextures/explowater.tga',
             waterrush         = 'projectiletextures/waterrush.tga',
+            waterfoam         = 'atmos/waterfoam.tga',
             subwak            = 'projectiletextures/subwake.tga',
 
             --Animated Explosion effect (test)
