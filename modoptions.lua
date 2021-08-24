@@ -150,14 +150,6 @@ local options={
 		section= 'restrictions',
 	},
 	{
-		key    = "allowmapmutators",
-		name   = "Allow map mutators",
-		desc   = "Allows maps to overwrite files from the game",
-		type   = "bool",
-		def    = true,
-		section= 'restrictions',
-	},
-	{
 		key    = 'FixedAllies',
 		name   = 'Fixed ingame alliances',
 		desc   = 'Disables the possibility of players to dynamically change alliances ingame',
