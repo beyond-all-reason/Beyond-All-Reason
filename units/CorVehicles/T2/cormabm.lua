@@ -17,8 +17,6 @@ return {
 		corpse = "DEAD",
 		damagemodifier = 0.5,
 		description = Spring.I18N('units.descriptions.cormabm'),
-		energymake = 100,
-		energystorage = 1000,
 		explodeas = "largeexplosiongeneric",
 		footprintx = 3,
 		footprintz = 3,

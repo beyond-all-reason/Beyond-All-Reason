@@ -18,8 +18,6 @@ return {
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		description = Spring.I18N('units.descriptions.armsonar'),
-		energymake = 0,
-		energyuse = 0,
 		explodeas = "smallBuildingexplosiongeneric-uw",
 		footprintx = 2,
 		footprintz = 2,

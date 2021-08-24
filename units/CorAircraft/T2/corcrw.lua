@@ -20,7 +20,6 @@ return {
 		collisionvolumetype = "CylY",
 		cruisealt = 75,
 		description = Spring.I18N('units.descriptions.corcrw'),
-		energymake = 50,
 		explodeas = "largeexplosiongeneric",
 		footprintx = 3,
 		footprintz = 3,

@@ -14,8 +14,6 @@ return {
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		corpse = "DEAD",
 		description = Spring.I18N('units.descriptions.armtl'),
-		energymake = 0.1,
-		energyuse = 0.1,
 		explodeas = "mediumExplosionGeneric",
 		footprintx = 3,
 		footprintz = 3,
@@ -124,7 +122,7 @@ return {
 				damage = {
 					-- commanders = 375,
 					default = 280, --278.4375,
-					-- subs = 369, 
+					-- subs = 369,
 				},
 			},
 		},

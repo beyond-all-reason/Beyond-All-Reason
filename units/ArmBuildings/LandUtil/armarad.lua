@@ -19,8 +19,6 @@ return {
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		corpse = "DEAD",
 		description = Spring.I18N('units.descriptions.armarad'),
-		energymake = 0,
-		energyuse = 0,
 		explodeas = "smallBuildingexplosiongeneric",
 		footprintx = 2,
 		footprintz = 2,

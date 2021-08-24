@@ -22,7 +22,7 @@ return {
 		corpse = "DEAD",
 		damagemodifier = 0.25,
 		description = Spring.I18N('units.descriptions.cordoom'),
-		energystorage = 2000,
+		energystorage = 1000,
 		explodeas = "largeBuildingexplosiongeneric",
 		footprintx = 4,
 		footprintz = 4,

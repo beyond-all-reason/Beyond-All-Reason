@@ -16,7 +16,6 @@ return {
 		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
 		description = Spring.I18N('units.descriptions.corsjam'),
-		energymake = 0,
 		energyuse = 80,
 		explodeas = "mediumexplosiongeneric",
 		floater = true,

@@ -32,8 +32,6 @@ return {
 		maxslope = 10,
 		maxvelocity = 7.25,
 		maxwaterdepth = 255,
-		metalmake = 0.2,
-		metalstorage = 75,
 		name = unitName,
 		objectname = "Units/CORCSA.s3o",
 		script = "Units/CORCSA.cob",

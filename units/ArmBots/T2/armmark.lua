@@ -17,8 +17,6 @@ return {
 		collisionvolumetype = "box",
 		corpse = "dead",
 		description = Spring.I18N('units.descriptions.armmark'),
-		energymake = 0,
-		energyuse = 0,
 		explodeas = "smallexplosiongeneric",
 		footprintx = 2,
 		footprintz = 2,

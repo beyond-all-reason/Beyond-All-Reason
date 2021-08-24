@@ -30,8 +30,6 @@ return {
 		maxslope = 14,
 		maxvelocity = 2.5,
 		maxwaterdepth = 22,
-		metalmake = 0.12,
-		metalstorage = 25,
 		movementclass = "BOT2",
 		name = unitName,
 		objectname = "Units/ARMFARK.s3o",

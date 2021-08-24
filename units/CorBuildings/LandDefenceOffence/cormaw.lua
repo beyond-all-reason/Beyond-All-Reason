@@ -18,7 +18,6 @@ return {
 		damagemodifier = 0.25,
 		decoyfor = "cordrag",
 		description = Spring.I18N('units.descriptions.cormaw'),
-		energystorage = 15,
 		explodeas = "flamethrower",
 		footprintx = 2,
 		footprintz = 2,

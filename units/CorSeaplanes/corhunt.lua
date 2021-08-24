@@ -16,8 +16,6 @@ return {
 		collide = false,
 		cruisealt = 190,
 		description = Spring.I18N('units.descriptions.corhunt'),
-		energymake = 0,
-		energyuse = 0,
 		explodeas = "mediumexplosiongeneric",
 		footprintx = 3,
 		footprintz = 3,

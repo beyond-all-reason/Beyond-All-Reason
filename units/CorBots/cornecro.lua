@@ -19,8 +19,6 @@ return {
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		description = Spring.I18N('units.descriptions.cornecro'),
-		energymake = 1.75,
-		energyuse = 1.75,
 		explodeas = "smallbuilder",
 		footprintx = 2,
 		footprintz = 2,

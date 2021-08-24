@@ -16,7 +16,6 @@ return {
 		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
 		description = "Super Heavy Assault Corvette",
-		energymake = 3,
 		explodeas = "bantha",
 		floater = true,
 		footprintx = 8,

@@ -21,7 +21,6 @@ return {
 		damagemodifier = 0.25,
 		decoyfor = "scavdrag",
 		description = Spring.I18N('units.descriptions.scavdtl'), -- "Pop-up Lightning Turret" when it is added to i18n
-		energystorage = 15,
 		explodeas = "smallBuildingexplosiongeneric",
 		footprintx = 2,
 		footprintz = 2,

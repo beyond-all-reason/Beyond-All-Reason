@@ -17,8 +17,6 @@ return {
 		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
 		description = "Long Range Plasma Cannon Ship",
-		energymake = 30,
-		energyuse = 1,
 		explodeas = "hugeBuildingExplosionGeneric",
 		floater = true,
 		footprintx = 7,

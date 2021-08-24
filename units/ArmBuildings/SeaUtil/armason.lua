@@ -20,8 +20,6 @@ return {
 		corpse = "DEAD",
 		damagemodifier = 0.46,
 		description = Spring.I18N('units.descriptions.armason'),
-		energymake = 0,
-		energyuse = 0,
 		explodeas = "mediumBuildingexplosiongeneric-uw",
 		footprintx = 4,
 		footprintz = 4,

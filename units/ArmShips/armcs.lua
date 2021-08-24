@@ -28,8 +28,6 @@ return {
 		idletime = 1800,
 		maxdamage = 940,
 		maxvelocity = 2.18,
-		metalmake = 0.1,
-		metalstorage = 50,
 		minwaterdepth = 15,
 		movementclass = "BOAT3",
 		name = unitName,

@@ -18,8 +18,6 @@ return {
 		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
 		description = "Anti-Sub and Anti-Air Support Ship",
-		energymake = 0.2,
-		energyuse = 0.2,
 		explodeas = "hugeexplosiongeneric",
 		floater = true,
 		footprintx = 6,

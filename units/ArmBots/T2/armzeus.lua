@@ -15,7 +15,6 @@ return {
 		collisionvolumetype = "box",
 		corpse = "DEAD",
 		description = Spring.I18N('units.descriptions.armzeus'),
-		energymake = 3.5,
 		explodeas = "mediumexplosiongeneric",
 		footprintx = 2,
 		footprintz = 2,
