@@ -67,7 +67,7 @@ function gadget:Explosion(weaponID, px, py, pz, ownerID)
 	if Spring.GetGroundHeight(px,pz) < 0 then
 		local aoe = weaponAoe[weaponID] / 2
 		if not nonexplosiveWeapons[weaponType[weaponID]]  and abs(py) <= aoe and (not GetGroundBlocked(px, pz)) and weaponID ~= COR_SEAADVBOMB then
-			if  aoe >= 6 and aoe < 12 then
+			if aoe >= 6 and aoe < 12 then
 				Spring.SpawnCEG(splashCEG1, px, 0, pz)
 			elseif  aoe >= 12 and aoe < 24 then
 				Spring.SpawnCEG(splashCEG2, px, 0, pz)

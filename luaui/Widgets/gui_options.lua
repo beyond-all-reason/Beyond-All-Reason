@@ -2621,7 +2621,7 @@ function init()
 		--	  saveOptionValue('Light Effects', 'lighteffects', 'setLife', { 'globalLifeMult' }, value)
 		--  end,
 		--},
-		{ id = "lighteffects_brightness", group = "gfx", name = widgetOptionColor .. "   "..texts.option.lighteffects_brightness, min = 0.75, max = 2, step = 0.05, type = "slider", value = 1.7, description = texts.option.lighteffects_brightness_descr,
+		{ id = "lighteffects_brightness", group = "gfx", name = widgetOptionColor .. "   "..texts.option.lighteffects_brightness, min = 0.65, max = 2, step = 0.05, type = "slider", value = 1.7, description = texts.option.lighteffects_brightness_descr,
 		  onload = function(i)
 			  loadWidgetData("Light Effects", "lighteffects_brightness", { 'globalLightMult' })
 		  end,
@@ -4372,21 +4372,21 @@ function init()
 			  Spring.SendCommands("luarules GlassUpdateSun")
 		  end,
 		},
-		{ id = "unitSunMult", group = "dev", name = widgetOptionColor .. "   "..texts.option.unitSunMult, type = "slider", min = 0.7, max = 1.7, step = 0.01, value = Spring.GetConfigFloat("unitSunMult", 1.2), description = "",
+		{ id = "unitSunMult", group = "dev", name = widgetOptionColor .. "   "..texts.option.unitSunMult, type = "slider", min = 0.7, max = 1.6, step = 0.01, value = Spring.GetConfigFloat("unitSunMult", 1.0), description = "",
 		  onchange = function(i, value)
 			  Spring.SetConfigFloat("unitSunMult", value)
 			  Spring.SendCommands("luarules updatesun")
 			  Spring.SendCommands("luarules GlassUpdateSun")
 		  end,
 		},
-		{ id = "unitExposureMult", group = "dev", name = widgetOptionColor .. "   "..texts.option.unitExposureMult, type = "slider", min = 0.75, max = 1.25, step = 0.01, value = Spring.GetConfigFloat("unitExposureMult", 1.0), description = "",
+		{ id = "unitExposureMult", group = "dev", name = widgetOptionColor .. "   "..texts.option.unitExposureMult, type = "slider", min = 0.6, max = 1.25, step = 0.01, value = Spring.GetConfigFloat("unitExposureMult", 1.0), description = "",
 		  onchange = function(i, value)
 			  Spring.SetConfigFloat("unitExposureMult", value)
 			  Spring.SendCommands("luarules updatesun")
 			  Spring.SendCommands("luarules GlassUpdateSun")
 		  end,
 		},
-		{ id = "modelGamma", group = "dev", name = widgetOptionColor .. "   "..texts.option.modelGamma, type = "slider", min = 0.75, max = 1.5, step = 0.01, value = Spring.GetConfigFloat("modelGamma", 1.0), description = "",
+		{ id = "modelGamma", group = "dev", name = widgetOptionColor .. "   "..texts.option.modelGamma, type = "slider", min = 0.7, max = 1.7, step = 0.01, value = Spring.GetConfigFloat("modelGamma", 1.0), description = "",
 		  onchange = function(i, value)
 			  Spring.SetConfigFloat("modelGamma", value)
 			  Spring.SendCommands("luarules updatesun")
@@ -4395,13 +4395,13 @@ function init()
 		},
 		{ id = "tonemapDefaults", group = "dev", name = widgetOptionColor .. "   "..texts.option.tonemapDefaults, type = "bool", value = GetWidgetToggleValue("Unit Reclaimer"), description = "",
 		  onchange = function(i, value)
-			  Spring.SetConfigFloat("tonemapA", 4.8)
+			  Spring.SetConfigFloat("tonemapA", 4.75)
 			  Spring.SetConfigFloat("tonemapB", 0.75)
 			  Spring.SetConfigFloat("tonemapC", 3.5)
 			  Spring.SetConfigFloat("tonemapD", 0.85)
 			  Spring.SetConfigFloat("tonemapE", 1.0)
 			  Spring.SetConfigFloat("envAmbient", 0.25)
-			  Spring.SetConfigFloat("unitSunMult", 1.2)
+			  Spring.SetConfigFloat("unitSunMult", 1.0)
 			  Spring.SetConfigFloat("unitExposureMult", 1.0)
 			  Spring.SetConfigFloat("modelGamma", 1.0)
 			  options[getOptionByID('tonemapA')].value = Spring.GetConfigFloat("tonemapA")
