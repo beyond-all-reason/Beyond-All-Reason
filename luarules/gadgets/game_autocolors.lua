@@ -48,7 +48,7 @@ else
     AnonymousModeEnabled = false
 end
 local IconDevModeEnabledModoption = Spring.GetModOptions().teamcolors_icon_dev_mode
-if not IconDevModeEnabledModoption then
+if IconDevModeEnabledModoption == 'disabled' then
     IconDevModeEnabled = false
 else
     if IconDevModeEnabledModoption == "armblue" then

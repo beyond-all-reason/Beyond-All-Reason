@@ -115,7 +115,6 @@ function gadget:Initialize()
 	local metalValueOverride = gameConfig and gameConfig.metalValueOverride
 
 	if metalSpots then
-		local mult = Spring.GetModOptions().metalmult
 		local i = 1
 		while i <= #metalSpots do
 			local spot = metalSpots[i]
@@ -123,7 +122,6 @@ function gadget:Initialize()
 				if metalValueOverride then
 					spot.metal = metalValueOverride
 				end
-				spot.metal = spot.metal*mult
 				i = i + 1
 			else
 				metalSpots[i] = metalSpots[#metalSpots]

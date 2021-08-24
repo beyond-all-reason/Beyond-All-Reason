@@ -451,6 +451,9 @@ function widget:Initialize()
 	end
 	content = content .. titlecolor .. Spring.I18N('ui.gameInfo.modOptions') .. "\n"
 	for key, value in pairs(changedModoptions) do
+		if type(value) == 'boolean' then
+			value = value and 1 or 0
+		end
 		content = content .. keycolor .. key .. separator .. valuecolor .. value .. "\n"
 	end
 	for key, value in pairs(unchangedModoptions) do
