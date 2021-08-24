@@ -16,7 +16,7 @@ local definitions = {
         length             = 45,
         sidetexture        = [[shotgunside]],
         size               = 12.9,
-        sizegrowth         = -0.6,
+        sizegrowth         = -0.5,
         ttl                = 10,
         pos                = [[0.0, 1, 0.0]],
       },
@@ -35,8 +35,8 @@ local definitions = {
         fronttexture       = [[none]],
         length             = -9,
         sidetexture        = [[shotgunside]],
-        size               = 13,
-        sizegrowth         = -0.6,
+        size               = 18,
+        sizegrowth         = -0.5,
         ttl                = 9,
       },
     },
@@ -122,6 +122,27 @@ local definitions = {
           sizemod            = 1,
           texture            = [[cloudpuff]],
           useairlos          = true,
+      },
+    },
+    impulse = {
+      air                = true,
+      class              = [[CBitmapMuzzleFlame]],
+      count              = 0,
+      ground             = true,
+      underwater         = 1,
+      water              = true,
+      properties = {
+        colormap           = [[0.80 0.65 0.35 0.22   0.85 0.72 0.45 0.22   0.50 0.40 0.15 0.011   0 0 0 0.01]],
+        dir                = [[dir]],
+        --gravity            = [[0.0, 0.1, 0.0]],
+        frontoffset        = 0,
+        fronttexture       = [[explosionwave]],
+        length             = 15,
+        sidetexture        = [[flashside3]],
+        size               = 4,
+        sizegrowth         = 1.7,
+        ttl                = 8,
+        pos                = [[0, 0, 0]],
       },
     },
     --clouddust = {
@@ -428,6 +449,23 @@ definitions["barrelshot-huge"].flash = {
 		directional = 1,
 	},
 }
+
+definitions["barrelshot-small-impulse"] = table.copy(definitions["barrelshot-small"])
+definitions["barrelshot-small-impulse"].impulse.count  = 1
+definitions["barrelshot-small-impulse"].smoke.properties.particlespeed = definitions["barrelshot-small-impulse"].smoke.properties.particlespeed * 1.7
+definitions["barrelshot-small-impulse"].smoke.properties.particlesize = definitions["barrelshot-small-impulse"].smoke.properties.particlesize * 1.3
+
+definitions["barrelshot-medium-impulse"] = table.copy(definitions["barrelshot-medium"])
+definitions["barrelshot-medium-impulse"].impulse.count  = 1
+definitions["barrelshot-medium-impulse"].smoke.properties.particlespeed = definitions["barrelshot-medium-impulse"].smoke.properties.particlespeed * 1.7
+definitions["barrelshot-medium-impulse"].smoke.properties.particlesize = 6
+definitions["barrelshot-medium-impulse"].impulse.properties.size = 6
+
+definitions["barrelshot-large-impulse"] = table.copy(definitions["barrelshot-large"])
+definitions["barrelshot-large-impulse"].impulse.count  = 1
+definitions["barrelshot-large-impulse"].smoke.properties.particlespeed = definitions["barrelshot-large-impulse"].smoke.properties.particlespeed * 2.0
+definitions["barrelshot-large-impulse"].smoke.properties.particlesize = 13
+definitions["barrelshot-large-impulse"].impulse.properties.size = 8
 
 definitions["barrelshot-tiny-aa"] = table.copy(definitions["barrelshot-tiny"])
 definitions["barrelshot-tiny-aa"].fire.properties.colormap  = [[1 0.26 0.78 0.013   0.6 0.29 0.47 0.01   0.4 0.22 0.33 0.006   0 0 0 0.01]]
