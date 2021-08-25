@@ -254,7 +254,7 @@ function gadget:Initialize()
 		--gadgetHandler:RemoveGadget(self)		-- disabled so if you /give critters they still will be auto patrolled
 	end
 	if mo.critters ~= nil then
-		amountMultiplier = mo.critters
+		amountMultiplier = tonumber(mo.critters)
 	end
 	if amountMultiplier < minMulti then amountMultiplier = minMulti end
 	if amountMultiplier > maxMulti then amountMultiplier = maxMulti end
