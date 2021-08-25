@@ -12,7 +12,7 @@ function gadget:GetInfo()
 		date = "2021",
 		license = "GNU GPL, v2 or later",
 		layer = 0,
-		enabled = Spring.GetModOptions and Spring.GetModOptions().experimentalxpsystem and Spring.GetModOptions().experimentalxpsystem == "enabled",
+		enabled = Spring.GetModOptions().experimentalxpsystem,
 	}
 end
 

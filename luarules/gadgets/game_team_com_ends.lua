@@ -15,9 +15,6 @@ end
 -- the allyteam is out
 
 local deathmode = Spring.GetModOptions().deathmode
-if not deathmode then
-	deathmode = 'com'
-end
 
 -- the deathmode modoption must be set to one of the following to enable this
 local endmodes = {
@@ -68,7 +65,7 @@ for _,teamID in ipairs(GetTeamList()) do
 end
 
 local blowUpWhenEmptyAllyTeam = true
-if Spring.GetModOptions() and Spring.GetModOptions().ffa_mode ~= nil and (tonumber(Spring.GetModOptions().ffa_mode) or 0) == 1 then
+if Spring.GetModOptions().ffa_mode then
 	blowUpWhenEmptyAllyTeam = false
 end
 if teamCount == 2 then

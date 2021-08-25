@@ -1,13 +1,13 @@
 -- Modoptions
 	-- Numbers and Bools
-	local ScavBossHealthModoption = tonumber(Spring.GetModOptions().scavbosshealth) or 1
-	local ScavTechCurveModoption = tonumber(Spring.GetModOptions().scavtechcurve) or 1
-	local ScavUnitCountModoption = tonumber(Spring.GetModOptions().scavunitcountmultiplier) or 1
-	local ScavUnitSpawnFrequencyModoption = tonumber(Spring.GetModOptions().scavunitspawnmultiplier) or 1
-	local ScavUnitVeterancyModoption = tonumber(Spring.GetModOptions().scavunitspawnmultiplier) or 1
-	local ScavGracePeriodModoption = tonumber(Spring.GetModOptions().scavgraceperiod) or 5
+	local ScavBossHealthModoption = Spring.GetModOptions().scavbosshealth
+	local ScavTechCurveModoption = Spring.GetModOptions().scavtechcurve
+	local ScavUnitCountModoption = Spring.GetModOptions().scavunitcountmultiplier
+	local ScavUnitSpawnFrequencyModoption = Spring.GetModOptions().scavunitspawnmultiplier
+	local ScavUnitVeterancyModoption = Spring.GetModOptions().scavunitspawnmultiplier
+	local ScavGracePeriodModoption = Spring.GetModOptions().scavgraceperiod
 
-	local scavDifficulty = (Spring.GetModOptions and Spring.GetModOptions().scavdifficulty) or "veryeasy"
+	local scavDifficulty = Spring.GetModOptions().scavdifficulty
 	if scavDifficulty == "noob" then
 		spawnmultiplier = 0.1
 		scavStatsDifficulty = "Noob"
@@ -39,27 +39,12 @@
 
 	-- Strings
 
-	-- Endless Mode
-	local endlessModoption = Spring.GetModOptions().scavendless or "disabled"
-	local scavEndlessModoption
-	if endlessModoption == "disabled" then
-		scavEndlessModoption = true
-	else
-		scavEndlessModoption = false
-	end
+	local endlessModeEnabled = Spring.GetModOptions().scavendless
 
-	-- Random Events Bool
-	local eventsModoption = Spring.GetModOptions().scavevents or "enabled"
-	local scavRandomEventsEnabledModoption
-	if eventsModoption == "enabled" then
-		scavRandomEventsEnabledModoption = true
-	elseif eventsModoption == "disabled" then
-		scavRandomEventsEnabledModoption = false
-	end
-
-	-- Random Events Amount
-	local eventsAmountModoption = Spring.GetModOptions().scaveventsamount or "normal"
+	local randomEventsEnabled = Spring.GetModOptions().scavevents
+	local eventsAmountModoption = Spring.GetModOptions().scaveventsamount
 	local scavRandomEventsAmountModoption
+
 	if eventsAmountModoption == "normal" then
 		scavRandomEventsAmountModoption = 1
 	elseif eventsAmountModoption == "lower" then
@@ -68,14 +53,7 @@
 		scavRandomEventsAmountModoption = 0.5
 	end
 
-	-- Initial Bonus Commander
-	local bonusCommanderModoption = Spring.GetModOptions().scavinitialbonuscommander or "enabled"
-	local initialBonusCommanderEnabled
-	if bonusCommanderModoption == "enabled" then
-		initialBonusCommanderEnabled = true
-	elseif bonusCommanderModoption == "disabled" then
-		initialBonusCommanderEnabled = false
-	end
+	local initialBonusCommanderEnabled = Spring.GetModOptions().scavinitialbonuscommander
 
 -- End of Modoptions
 
@@ -96,7 +74,7 @@ scavconfig = {
 		unitSpawnerModule 				= true,
 		startBoxProtection				= true,
 		reinforcementsModule			= true, --disabled for now for weird victory conditions and too much hp
-		randomEventsModule				= scavRandomEventsEnabledModoption,
+		randomEventsModule				= randomEventsEnabled,
 		stockpilers						= true,
 		nukes							= true,
 	},
@@ -158,7 +136,7 @@ buildingSpawnerModuleConfig = {
 }
 
 unitSpawnerModuleConfig = {
-	bossFightEnabled					= scavEndlessModoption,
+	bossFightEnabled					= not endlessModeEnabled,
 	FinalBossUnit						= true,
 		FinalBossHealth						= 1000000*ScavBossHealthModoption, -- this*teamcount*difficulty
 		FinalBossMinionsPassive				= 3000, -- this/(teamcount*difficulty), how often does boss spawn minions passively, frames.

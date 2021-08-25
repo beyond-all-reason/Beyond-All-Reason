@@ -10,7 +10,7 @@ function gadget:GetInfo()
 	}
 end
 
-if Spring.GetModOptions() and tonumber(Spring.GetModOptions().fixedallies) and (tonumber(Spring.GetModOptions().fixedallies) ~= 0) then
+if Spring.GetModOptions().fixedallies then
 	return -- no use if alliances are disabled
 end
 

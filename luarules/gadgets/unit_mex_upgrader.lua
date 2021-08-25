@@ -10,7 +10,7 @@ function gadget:GetInfo()
 	}
 end
 
-local modoption_unba = (Spring.GetModOptions and Spring.GetModOptions().unba and Spring.GetModOptions().unba == 'enabled')
+local modoption_unba = Spring.GetModOptions().unba
 
 local ignoreWeapons = false --if the only weapon is a shield it is ignored
 local ignoreStealth = false

@@ -39,7 +39,7 @@ function gadget:Initialize()
 	local gaiateamid = Spring.GetGaiaTeamID()
 	if Spring.GetGameFrame() < 1 then
 		-- so that loaded savegames dont re-place
-		if Spring.GetModOptions and Spring.GetModOptions().scenariooptions then
+		if Spring.GetModOptions().scenariooptions then
 			Spring.Echo("Scenario: Spawning on frame", Spring.GetGameFrame())
 			local scenariooptions = string.base64Decode(Spring.GetModOptions().scenariooptions)
 			scenariooptions = Spring.Utilities.json.decode(scenariooptions)

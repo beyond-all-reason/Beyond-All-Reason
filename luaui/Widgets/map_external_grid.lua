@@ -317,7 +317,7 @@ end
 local resetsec = 0
 local resetted = false
 local doWaterLevelCheck = false
-if (Spring.GetModOptions() ~= nil and Spring.GetModOptions().map_waterlevel ~= 0) then
+if Spring.GetModOptions().map_waterlevel ~= 0 then
 	doWaterLevelCheck = true
 end
 

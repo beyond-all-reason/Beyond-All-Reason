@@ -89,7 +89,7 @@ local textsize = 14
 local textlarge = 18
 local gaiaID = Spring.GetGaiaTeamID()
 local gaiaAllyID = select(6, GetTeamInfo(gaiaID, false))
-local haveZombies = (tonumber((Spring.GetModOptions() or {}).zombies) or 0) == 1
+local haveZombies = Spring.GetModOptions().zombies
 local maxPlayers = 0
 
 local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity", 0.66) or 0.66)
@@ -101,7 +101,7 @@ local myTeamID = Spring.GetMyTeamID()
 local myPlayerID = Spring.GetMyPlayerID()
 
 local enableStartposbuttons = true
-if (tonumber(Spring.GetModOptions().ffa_mode) or 0) == 1 then
+if Spring.GetModOptions().ffa_mode then
     -- spots wont match when ffa
     enableStartposbuttons = false
 end
@@ -851,10 +851,6 @@ local function drawListStandard()
             end
         end
     end
-end
-
-function makeTextList()
-
 end
 
 ---------------------------------------------------------------------------------------------------

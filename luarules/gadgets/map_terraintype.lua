@@ -1,4 +1,3 @@
-
 function gadget:GetInfo()
 	return {
 		name      = "Map TerrainTypes",
@@ -14,11 +13,9 @@ end
 
 if gadgetHandler:IsSyncedCode() then
 	function gadget:Initialize()
-		if Spring.GetModOptions() and Spring.GetModOptions().map_terraintype and Spring.GetModOptions().map_terraintype == "disabled" then
-			local TerrainTypeTable = {}
+		if not Spring.GetModOptions().map_terraintype then
 			for i = 0 , 255 do
 				if Spring.GetTerrainTypeData(i) then
-					TerrainTypeTable[i] = {Spring.GetTerrainTypeData(i)}
 					Spring.SetTerrainTypeData(i, 1, 1, 1, 1)
 				end
 			end

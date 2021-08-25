@@ -12,7 +12,7 @@ function gadget:GetInfo()
 end
 
 -- Modoption check
-if (tonumber((Spring.GetModOptions() or {}).coop) or 0) == 0 then
+if not Spring.GetModOptions().coop then
 	return false
 end
 

@@ -1,5 +1,4 @@
-morphEnabled = (Spring.GetModOptions and Spring.GetModOptions().experimentalmorphs) or "disabled"
-if morphEnabled ~= "enabled" then
+if not Spring.GetModOptions().experimentalmorphs then
   return
 end
 --------------------------------------------------------------------------------

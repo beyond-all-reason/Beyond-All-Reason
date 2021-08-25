@@ -815,18 +815,6 @@ local function RemoveLight(lightID, life)
 	end
 end
 
-local function tablecopy(self)
-	local copy = {}
-	for key, value in pairs(self) do
-		if type(value) == "table" then
-			copy[key] = table.copy(value)
-		else
-			copy[key] = value
-		end
-	end
-	return copy
-end
-
 -- function called by explosion_lights gadget
 local function GadgetWeaponExplosion(px, py, pz, weaponID, ownerID)
 	if weaponConf[weaponID] ~= nil then
@@ -898,7 +886,7 @@ local function GadgetWeaponExplosion(px, py, pz, weaponID, ownerID)
 
 		-- bright short nuke flash (unsure why it gets blue-ified sometimes)
 		if additionalNukeLightingFlashes and weaponConf[weaponID].nuke then
-			local params = tablecopy(params)
+			local params = table.copy(params)
 			params.py = params.py + 100 + math.min(400, params.param.radius / 30)
 			params.life = 1.66 + math.min(2.5, params.param.radius / 8000)
 			params.orgMult = math.min(1.4, params.param.radius / 8000) * globalLightMult / 1.5
@@ -909,7 +897,7 @@ local function GadgetWeaponExplosion(px, py, pz, weaponID, ownerID)
 			explosionLightsCount = explosionLightsCount + 1
 			explosionLights[explosionLightsCount] = params
 		elseif additionalLightingFlashes and averageFps > additionalLightingFlashesAboveAverageFps and params.param.radius > 110 then
-			--local params = tablecopy(params)
+			--local params = table.copy(params)
 			params.py = params.py + 10 + math.min(50, params.param.radius / 130)
 			params.life = 1 + (params.life * 0.37)
 			params.orgMult = params.orgMult * additionalLightingFlashesMult

@@ -61,11 +61,11 @@ function widget:Initialize()
 		message = Spring.I18N('ui.gametypeInfo.killAllCommanders')
 	end
 
-	if (tonumber(Spring.GetModOptions().preventcombomb) or 0) ~= 0 then
+	if Spring.GetModOptions().preventcombomb then
 		message2 = Spring.I18N('ui.gametypeInfo.commandersSurviveDgun')
 	end
 
-	if (Spring.GetModOptions().unba or "disabled") == "enabled" then
+	if Spring.GetModOptions().unba then
 		message3 = Spring.I18N('ui.gametypeInfo.unbalancedCommanders')
 	end
 end

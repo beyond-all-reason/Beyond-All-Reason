@@ -93,7 +93,7 @@ end
 local selectedUnits = {}
 local SelectedUnitsCount = Spring.GetSelectedUnitsCount()
 
-local unba_enabled = (Spring.GetModOptions() and Spring.GetModOptions().unba and Spring.GetModOptions().unba == "enabled")
+local unba_enabled = Spring.GetModOptions().unba
 
 local chobbyInterface
 

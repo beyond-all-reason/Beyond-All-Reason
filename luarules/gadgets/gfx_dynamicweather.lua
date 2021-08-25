@@ -1,4 +1,4 @@
-local enabled = (Spring.GetModOptions and (tonumber(Spring.GetModOptions().night) or 0) ~= 0)
+local enabled = Spring.GetModOptions().night
 
 function gadget:GetInfo()
 	return {

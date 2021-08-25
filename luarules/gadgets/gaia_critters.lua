@@ -28,7 +28,7 @@ for udid, unitDef in pairs(UnitDefs) do
 	end
 end
 
-if Spring.GetModOptions() == nil or Spring.GetModOptions().critters == nil or Spring.GetModOptions().critters == 0 then
+if Spring.GetModOptions().critters == 0 then
 	return
 end
 
@@ -233,7 +233,7 @@ function gadget:Initialize()
 	end
 
 	local mo = Spring.GetModOptions()
-	if mo and tonumber(mo.critters)==0 then
+	if mo.critters == 0 then
 		Spring.Echo("[Gaia Critters] Critters disabled via ModOption")
 		gadgetHandler:RemoveGadget(self)
 	end
@@ -244,7 +244,7 @@ function gadget:Initialize()
 		--gadgetHandler:RemoveGadget(self)		-- disabled so if you /give critters they still will be auto patrolled
 	end
 	if mo.critters ~= nil then
-		amountMultiplier = tonumber(mo.critters)
+		amountMultiplier = mo.critters
 	end
 	if amountMultiplier < minMulti then amountMultiplier = minMulti end
 	if amountMultiplier > maxMulti then amountMultiplier = maxMulti end

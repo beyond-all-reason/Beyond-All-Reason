@@ -9,7 +9,7 @@ for i = 1,#teams do
 	end
 end
 
-if (Spring.GetModOptions and (Spring.GetModOptions().lootboxes or "disabled") == "enabled") or (Spring.GetModOptions and (Spring.GetModOptions().scavonlylootboxes or "enabled") == "enabled" and scavengersAIEnabled == true) then
+if Spring.GetModOptions().lootboxes or (Spring.GetModOptions().scavonlylootboxes and scavengersAIEnabled) then
 	lootboxSpawnEnabled = true
 else
 	lootboxSpawnEnabled = false
@@ -160,7 +160,6 @@ local zBorder               = math.floor(mapsizeZ/10)
 local math_random           = math.random
 local spGroundHeight        = Spring.GetGroundHeight
 local spGaiaTeam            = Spring.GetGaiaTeamID()
-local spGaiaAllyTeam		= select(6, Spring.GetTeamInfo(GaiaTeamID))
 local spCreateUnit          = Spring.CreateUnit
 local spGetCylinder			= Spring.GetUnitsInCylinder
 local spGetUnitPosition 	= Spring.GetUnitPosition
@@ -180,7 +179,6 @@ local TryToSpawn = false
 
 if scavengersAIEnabled then
 	spGaiaTeam = scavengerAITeamID
-	spGaiaAllyTeam = scavengerAllyTeamID
 end
 -- functions
 

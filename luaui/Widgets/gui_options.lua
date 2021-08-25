@@ -4982,7 +4982,7 @@ function init()
 	end
 
 	-- dynamic sun settings applied by gadget: disable user controls
-	if Spring.GetModOptions and (tonumber(Spring.GetModOptions().night) or 0) ~= 0 then
+	if Spring.GetModOptions().night then
 		options[getOptionByID('shadows_opacity')] = nil
 		options[getOptionByID('sun_y')] = nil
 		options[getOptionByID('sun_x')] = nil
@@ -4990,7 +4990,7 @@ function init()
 		options[getOptionByID('sun_reset')] = nil
 	end
 
-	if not scavengersAIEnabled and (Spring.GetModOptions and (tonumber(Spring.GetModOptions().scavengers) or 0) ~= 0) then
+	if not scavengersAIEnabled then
 		options[getOptionByID('scav_voicenotifs')] = nil
 		options[getOptionByID('scav_messages')] = nil
 	end

@@ -67,7 +67,7 @@ if gadgetHandler:IsSyncedCode() then
 	----------------------------------------------------------------
 	-- ffaStartPoints is "global"
 	local useFFAStartPoints = false
-	if (tonumber(Spring.GetModOptions().ffa_mode) or 0) == 1 then
+	if Spring.GetModOptions().ffa_mode then
 		useFFAStartPoints = true
 	end
 
@@ -84,7 +84,7 @@ if gadgetHandler:IsSyncedCode() then
 	-- prevents newbies from choosing their own a startpoint and faction
 	local processedNewbies = false
 	local NewbiePlacer = false
-	if (tonumber((Spring.GetModOptions() or {}).newbie_placer) == 1) and (Game.startPosType == 2) then
+	if Spring.GetModOptions().newbie_placer and (Game.startPosType == 2) then
 		NewbiePlacer = true
 	end
 
@@ -323,7 +323,7 @@ if gadgetHandler:IsSyncedCode() then
 		local y = spGetGroundHeight(x, z)
 		local scenarioSpawnsUnits = false
 
-		if Spring.GetModOptions and Spring.GetModOptions().scenariooptions then
+		if Spring.GetModOptions().scenariooptions then
 			local scenariooptions = Spring.Utilities.json.decode(string.base64Decode(Spring.GetModOptions().scenariooptions))
 			if scenariooptions and scenariooptions.unitloadout and next(scenariooptions.unitloadout) then
 				Spring.Echo("Scenario: Spawning loadout instead of regular commanders")

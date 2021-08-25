@@ -3,7 +3,7 @@ if not gadgetHandler:IsSyncedCode() then
 end
 
 local gadgetEnabled = false
-if Spring.GetModOptions and (tonumber(Spring.GetModOptions().disable_fogofwar) or 0) == 1 then
+if Spring.GetModOptions().disable_fogofwar then
 	gadgetEnabled = true
 end
 
