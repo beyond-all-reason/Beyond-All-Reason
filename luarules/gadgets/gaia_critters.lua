@@ -5,7 +5,7 @@ function gadget:GetInfo()
     	author    = "Floris (original: knorke, 2013)",
     	date      = "2016",
     	layer     = -100, --negative, otherwise critters spawned by gadget do not disappear on death (spawned with /give they always die)
-    	enabled   = false,
+    	enabled   = true,
 	}
 end
 
@@ -221,6 +221,8 @@ local function makeUnitCritter(unitID)
 end
 
 
+local mapConfig
+
 function gadget:Initialize()
 
 	local allUnits = Spring.GetAllUnits()
@@ -232,6 +234,14 @@ function gadget:Initialize()
 		end
 	end
 
+	local mapname = Game.mapName:lower()
+	for name, config in pairs(critterConfig) do
+		if string.find(mapname, name) then
+			mapConfig = config
+			break
+		end
+	end
+
 	local mo = Spring.GetModOptions()
 	if mo.critters == 0 then
 		Spring.Echo("[Gaia Critters] Critters disabled via ModOption")
@@ -239,7 +249,7 @@ function gadget:Initialize()
 	end
 
 	Spring.Echo("[Gaia Critters] gadget:Initialize() Game.mapName=" .. Game.mapName)
-	if not critterConfig[Game.mapName] then
+	if mapConfig then
 		Spring.Echo("[Gaia Critters] No critter config for this map")
 		--gadgetHandler:RemoveGadget(self)		-- disabled so if you /give critters they still will be auto patrolled
 	end
@@ -376,11 +386,11 @@ end
 
 -- add map dependent critters
 function addMapCritters()
-	if critterConfig[Game.mapName] == nil then
+	if mapConfig == nil then
 		return
 	end
 
-	for key, cC in pairs(critterConfig[Game.mapName]) do
+	for key, cC in pairs(mapConfig) do
 		if cC.spawnBox then
 			for unitName, unitAmount in pairs(cC.unitNames) do
 				local unitDefID = getUnitDefIdbyName(unitName)
