@@ -216,6 +216,8 @@ local function SpawnFromQueue(n)
 	end
 end
 
+VFS.Include('luarules/gadgets/scavengers/API/poschecks.lua')
+
 local function posFriendlyCheckOnlyLos(posx, posy, posz, allyTeamID)
 	if scavengersAIEnabled == true then
 		return Spring.IsPosInLos(posx, posy, posz, allyTeamID)
