@@ -22,7 +22,7 @@ return {
 		corpse = "DEAD",
 		damagemodifier = 0.25,
 		description = Spring.I18N('units.descriptions.armanni'),
-		energystorage = 1500,
+		energystorage = 1000,
 		explodeas = "hugeBuildingexplosiongeneric",
 		footprintx = 4,
 		footprintz = 4,

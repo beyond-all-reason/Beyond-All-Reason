@@ -31,8 +31,6 @@ return {
 		maxslope = 10,
 		maxvelocity = 6.05,
 		maxwaterdepth = 0,
-		metalmake = 0.1,
-		metalstorage = 50,
 		name = unitName,
 		objectname = "Units/CORACA.s3o",
 		radardistance = 50,

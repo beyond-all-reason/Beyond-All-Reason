@@ -46,6 +46,11 @@ local FADE_TIME = 5
 local overrideParam = {r = 1, g = 1, b = 1, radius = 200}
 local doOverride = false
 
+local additionalLightingFlashes = true
+local additionalLightingFlashesAboveAverageFps = 15
+local additionalLightingFlashesMult = 0.77
+local additionalNukeLightingFlashes = true
+
 local globalLightMult = 1.5
 local globalRadiusMult = 1.4
 local globalLightMultLaser = 1.35	-- gets applied on top op globalRadiusMult
@@ -62,6 +67,9 @@ local gibParams = {r = 0.145*globalLightMult, g = 0.1*globalLightMult, b = 0.05*
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
+
+local averageFps = 100
+local sceduledFpsCheckGf = Spring.GetGameFrame() + 30
 
 local projectileLightTypes = {}
 --[1] red
@@ -118,6 +126,10 @@ local function loadWeaponDefs()
 				params.orgMult = customParams.expl_light_opacity * globalLightMult
 			end
 
+			if customParams.expl_light_nuke ~= nil then
+				params.nuke = true
+			end
+
 			if customParams.expl_light_mult ~= nil then
 				params.orgMult = params.orgMult * customParams.expl_light_mult
 			end
@@ -172,7 +184,7 @@ local function loadWeaponDefs()
 				params.cannonsize = WeaponDefs[i].size
 			end
 
-			params.yoffset = 15 + (params.radius/35)
+			params.yoffset = 15 + (params.radius/25)
 
 			if WeaponDefs[i].type == 'BeamLaser' then
 				if not WeaponDefs[i].paralyzer then
@@ -223,7 +235,7 @@ local function GetLightsFromUnitDefs()
 		end
 
 		local lightMultiplier = 0.07
-		local bMult = 1.45		-- because blue appears to be very faint
+		local bMult = 1		-- because blue appears to be very faint
 		local r,g,b = weaponDef.visuals.colorR, weaponDef.visuals.colorG, weaponDef.visuals.colorB*bMult
 
 		local weaponData = {type=weaponDef.type, r = (r + 0.1) * lightMultiplier, g = (g + 0.1) * lightMultiplier, b = (b + 0.1) * lightMultiplier, radius = 100}
@@ -426,7 +438,7 @@ local function GetBeamLights(lightParams, pID, x, y, z)
 		local mult = lightParams.beamMult
 		if lightParams.beamMultFrames then
 			timeToLive = timeToLive or spGetProjectileTimeToLive(pID)
-			if (not lightParams.maxTTL) or lightParams.maxTTL < timeToLive then
+			if not lightParams.maxTTL or lightParams.maxTTL < timeToLive then
 				lightParams.maxTTL = timeToLive
 			end
 			mult = mult * (1 - math_min(1, (timeToLive - (lightParams.maxTTL - lightParams.beamMultFrames))/lightParams.beamMultFrames))
@@ -803,13 +815,9 @@ local function RemoveLight(lightID, life)
 	end
 end
 
-
 -- function called by explosion_lights gadget
 local function GadgetWeaponExplosion(px, py, pz, weaponID, ownerID)
 	if weaponConf[weaponID] ~= nil then
-		--Spring.Echo(weaponConf[weaponID].orgMult..'   '..weaponConf[weaponID].radius..'  '..weaponConf[weaponID].life)
-		--local randomOffset = weaponConf[weaponID].radius > 35 and weaponConf[weaponID].radius/15 or nil
-		--if randomOffset and randomOffset > 14 then randomOffset = 14 end
 		local params = {
 			life = weaponConf[weaponID].life,
 			orgMult = weaponConf[weaponID].orgMult,
@@ -824,9 +832,7 @@ local function GadgetWeaponExplosion(px, py, pz, weaponID, ownerID)
 				b = weaponConf[weaponID].b,
 				radius = weaponConf[weaponID].radius,
 			},
-			--randomOffset = randomOffset
 		}
-
 		explosionLightsCount = explosionLightsCount + 1
 		explosionLights[explosionLightsCount] = params
 
@@ -877,6 +883,31 @@ local function GadgetWeaponExplosion(px, py, pz, weaponID, ownerID)
 				})
 			end
 		end
+
+		-- bright short nuke flash (unsure why it gets blue-ified sometimes)
+		if additionalNukeLightingFlashes and weaponConf[weaponID].nuke then
+			local params = table.copy(params)
+			params.py = params.py + 100 + math.min(400, params.param.radius / 30)
+			params.life = 1.66 + math.min(2.5, params.param.radius / 8000)
+			params.orgMult = math.min(1.4, params.param.radius / 8000) * globalLightMult / 1.5
+			params.param.radius = params.param.radius * 3
+			params.param.r = 1
+			params.param.g = 1
+			params.param.b = 1
+			explosionLightsCount = explosionLightsCount + 1
+			explosionLights[explosionLightsCount] = params
+		elseif additionalLightingFlashes and averageFps > additionalLightingFlashesAboveAverageFps and params.param.radius > 110 then
+			--local params = table.copy(params)
+			params.py = params.py + 10 + math.min(50, params.param.radius / 130)
+			params.life = 1 + (params.life * 0.37)
+			params.orgMult = params.orgMult * additionalLightingFlashesMult
+			params.param.radius = params.param.radius * 0.55
+			params.param.r = (params.param.r + 1) / 2
+			params.param.g = (params.param.g + 1) / 2
+			params.param.b = (params.param.b + 1) / 2
+			explosionLightsCount = explosionLightsCount + 1
+			explosionLights[explosionLightsCount] = params
+		end
 	end
 end
 
@@ -905,6 +936,14 @@ end
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
+
+function widget:Update(dt)
+	local gf = Spring.GetGameFrame()
+	if gf >= sceduledFpsCheckGf then
+		sceduledFpsCheckGf = gf + 30
+		averageFps = ((averageFps * 19) + Spring.GetFPS()) / 20
+	end
+end
 
 function widget:Shutdown()
 	WG['lighteffects'] = nil
@@ -982,6 +1021,9 @@ function widget:Initialize()
 	WG['lighteffects'].getHeatDistortion = function()
 		return enableHeatDistortion
 	end
+	WG['lighteffects'].getAdditionalFlashes = function()
+		return additionalLightingFlashes
+	end
 	WG['lighteffects'].getNanolaser = function()
 		return enableNanolaser
 	end
@@ -1013,6 +1055,9 @@ function widget:Initialize()
 	WG['lighteffects'].setHeatDistortion = function(value)
 		enableHeatDistortion = value
 	end
+	WG['lighteffects'].setAdditionalFlashes = function(value)
+		additionalLightingFlashes = value
+	end
 	WG['lighteffects'].setNanolaser = function(value)
 		enableNanolaser = value
 		if not enableNanolaser then
@@ -1033,7 +1078,6 @@ function widget:Initialize()
 
 end
 
-
 function widget:GetConfigData(data)
 	local savedTable = {
 		globalLightMult = globalLightMult,
@@ -1044,6 +1088,7 @@ function widget:GetConfigData(data)
 		enableHeatDistortion = enableHeatDistortion,
 		enableNanolaser = enableNanolaser,
 		enableThrusters = enableThrusters,
+		additionalLightingFlashes = additionalLightingFlashes,
 		resetted = 1.65,
 	}
 	return savedTable
@@ -1074,6 +1119,9 @@ function widget:SetConfigData(data)
 		end
 		if data.enableThrusters ~= nil then
 			enableThrusters = data.enableThrusters
+		end
+		if data.additionalLightingFlashes ~= nil then
+			additionalLightingFlashes = data.additionalLightingFlashes
 		end
 	end
 end

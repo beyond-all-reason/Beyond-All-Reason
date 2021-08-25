@@ -10,7 +10,7 @@ function widget:GetInfo()
     }
 end
 
-local cfgResText = false
+local cfgResText = true
 local cfgSticktotopbar = true
 local cfgRemoveDead = false
 
@@ -62,6 +62,9 @@ local RectRound, UiElement
 local font, bgpadding, chobbyInterface, sideImageList
 
 local reclaimerUnits = {}
+local textLists = {}
+local avgData = {}
+local lastTextListUpdate = os.clock() -10
 
 local Button = {
     player = {},
@@ -151,6 +154,14 @@ function widget:Initialize()
         gamestarted = true
     end
 
+    WG['ecostats'] = {}
+    WG['ecostats'].getShowText = function()
+        return cfgResText
+    end
+    WG['ecostats'].setShowText = function(value)
+        cfgResText = value
+    end
+
 	widget:ViewResize()
 
     Init()
@@ -189,6 +200,10 @@ function widget:Shutdown()
     if sideImageList then
         gl.DeleteList(sideImageList)
     end
+    for k,v in pairs(textLists) do
+        gl.DeleteList(v)
+    end
+    WG['ecostats'] = nil
 end
 
 function Init()
@@ -336,7 +351,7 @@ function widget:GetConfigData(data)
         xRelPos = xRelPos,
         yRelPos = yRelPos,
         cfgRemoveDeadOn = cfgRemoveDead,
-        cfgResTextOn = cfgResText,
+        cfgResText2 = cfgResText,
         right = right,
     }
 end
@@ -345,7 +360,7 @@ function widget:SetConfigData(data)
     -- load
 
     --Echo("Loading config data...")
-    cfgResText = data.cfgResTextOn or false
+    cfgResText = data.cfgResText2 or cfgResText
     cfgSticktotopbar = data.cfgSticktotopbar or true
     cfgRemoveDead = false
     xRelPos = data.xRelPos or xRelPos
@@ -369,13 +384,21 @@ local function formatRes(number)
     if number > 10000 then
         label = tconcat({ floor(round(number / 1000)), "k" })
     elseif number > 1000 then
-        label = tconcat({ strsub(round(number / 1000, 1), 1, 2 + strfind(round(number / 1000, 1), ".", nil, true)), "k" })
+        label = tconcat({ strsub(round(number / 1000, 1), 1, 2 + (strfind(round(number / 1000, 1), ".", nil, true) or 0)), "k" })
     elseif number > 10 then
-        label = strsub(round(number, 0), 1, 3 + strfind(round(number, 0), ".", nil, true))
+        --label = strsub(round(number, 0), 1, 3 + strfind(round(number, 0), ".", nil, true))
+        label = strsub(round(number, 0), 1, 3 + (strfind(round(number, 0), ".", nil, true) or 0))
     else
-        label = strsub(round(number, 1), 1, 2 + strfind(round(number, 1), ".", nil, true))
+        label = strsub(round(number, 1), 1, 2 + (strfind(round(number, 1), ".", nil, true) or 0))
     end
     return tostring(label)
+end
+
+function widget:TextCommand(command)
+	if string.sub(command,1, 13) == "ecostatstext" then
+		cfgResText = not cfgResText
+		Spring.Echo('ecostats: text: '..(cfgResText and 'enabled' or 'disabled'))
+	end
 end
 
 local function DrawEText(numberE, vOffset)
@@ -383,7 +406,7 @@ local function DrawEText(numberE, vOffset)
         local label = tconcat({ "", formatRes(numberE) })
         font:Begin()
         font:SetTextColor({ 1, 1, 0, 1 })
-        font:Print(label, widgetPosX + widgetWidth - (10 * sizeMultiplier), widgetPosY + widgetHeight - vOffset + (tH * 0.22), tH / 2.66, 'rs')
+        font:Print(label, widgetPosX + widgetWidth - (5 * sizeMultiplier), widgetPosY + widgetHeight - vOffset + (tH * 0.22), tH / 2.3, 'rs')
         font:End()
     end
 end
@@ -393,8 +416,8 @@ local function DrawMText(numberM, vOffset)
     if cfgResText then
         local label = tconcat({ "", formatRes(numberM) })
         font:Begin()
-        font:SetTextColor({ 0.8, 0.8, 0.8, 1 })
-        font:Print(label, widgetPosX + widgetWidth - (10 * sizeMultiplier), widgetPosY + widgetHeight - vOffset + (tH * 0.58), tH / 2.66, 'rs')
+        font:SetTextColor({ 0.85, 0.85, 0.85, 1 })
+        font:Print(label, widgetPosX + widgetWidth - (5 * sizeMultiplier), widgetPosY + widgetHeight - vOffset + (tH * 0.58), tH / 2.3, 'rs')
         font:End()
     end
 end
@@ -410,7 +433,8 @@ local function DrawEBar(tE, tEp, vOffset)
     local maxW = widgetWidth - (30 * sizeMultiplier)
     local barheight = 1 + math.floor(tH * 0.08)
     if cfgResText then
-        maxW = (widgetWidth / 2) + (2 * sizeMultiplier)
+        dx = math.floor(11 * sizeMultiplier)
+        maxW = (widgetWidth / 2.3)
     end
 
     -- background
@@ -506,7 +530,8 @@ local function DrawMBar(tM, tMp, vOffset)
     local barheight = 1 + math.floor(tH * 0.08)
 
     if cfgResText then
-        maxW = (widgetWidth / 2) + (2 * sizeMultiplier)
+        dx = math.floor(11 * sizeMultiplier)
+        maxW = (widgetWidth / 2.3)
     end
     -- background
     glColor(0.8, 0.8, 0.8, 0.13)
@@ -750,7 +775,6 @@ function DrawSideImages()
     end
 end
 
-local avgData = {}
 local function drawListStandard()
     local maxMetal = 0
     local maxEnergy = 0
@@ -785,6 +809,12 @@ local function drawListStandard()
         end
     end
 
+    local updateTextLists = false
+    if os.clock() > lastTextListUpdate + 0.5 then
+        updateTextLists = true
+        lastTextListUpdate = os.clock()
+    end
+
     for _, data in ipairs(allyData) do
         local aID = data.aID
         if aID ~= nil then
@@ -803,17 +833,25 @@ local function drawListStandard()
                 local t = GetGameSeconds()
                 if data["isAlive"] and t > 0 and gamestarted and not gameover then
                     DrawEBar(avgData[aID]["tE"] / maxEnergy, (avgData[aID]["tE"] - avgData[aID]["tEr"]) / maxEnergy, posy - 1)
-                    DrawEText(avgData[aID]["tE"], posy)
                 end
                 if data["isAlive"] and t > 5 and not gameover then
                     DrawMBar(avgData[aID]["tM"] / maxMetal, (avgData[aID]["tM"] - avgData[aID]["tMr"]) / maxMetal, posy + 2)
-                    DrawMText(avgData[aID]["tM"], posy)
                 end
+                if updateTextLists then
+                    textLists[aID] = gl.CreateList(function()
+                        if data["isAlive"] and t > 0 and gamestarted and not gameover then
+                            DrawEText(avgData[aID]["tE"], posy)
+                        end
+                        if data["isAlive"] and t > 5 and not gameover then
+                            DrawMText(avgData[aID]["tM"], posy)
+                        end
+                    end)
+               end
+               gl.CallList(textLists[aID])
             end
         end
     end
 end
-
 
 ---------------------------------------------------------------------------------------------------
 --  General

@@ -29,8 +29,6 @@ return {
 		maxslope = 17,
 		maxvelocity = 3,
 		maxwaterdepth = 22,
-		metalmake = 0.15,
-		metalstorage = 100,
 		movementclass = "BOT2",
 		name = unitName,
 		objectname = "Units/CORFAST.s3o",

@@ -8,7 +8,7 @@ function widget:GetInfo()
         date      = "2019",
         license   = "GPL",
         layer     = math.huge,
-        enabled   = false, --true
+        enabled   = false,
     }
 end
 
@@ -37,7 +37,7 @@ local SSAO_KERNEL_SIZE = 48 -- how many samples are used for SSAO spatial sampli
 local SSAO_RADIUS = 5 -- world space maximum sampling radius
 local SSAO_MIN = 1.0 -- minimum depth difference between fragment and sample depths to trigger SSAO sample occlusion. Absolute value in world space coords.
 local SSAO_MAX = 1.0 -- maximum depth difference between fragment and sample depths to trigger SSAO sample occlusion. Percentage of SSAO_RADIUS.
-local SSAO_ALPHA_POW = 8.0 -- consider this as SSAO effect strength
+local SSAO_ALPHA_POW = 9.0 -- consider this as SSAO effect strength
 
 local BLUR_HALF_KERNEL_SIZE = 4 -- (BLUR_HALF_KERNEL_SIZE + BLUR_HALF_KERNEL_SIZE + 1) samples are used to perform the blur
 local BLUR_PASSES = 3 -- number of blur passes
@@ -50,6 +50,10 @@ local DEBUG_SSAO = false -- use for debug
 
 local math_sqrt = math.sqrt
 
+local initialTonemapA = Spring.GetConfigFloat("tonemapA", 4.75)
+local initialTonemapD = Spring.GetConfigFloat("tonemapD", 0.85)
+local initialTonemapE = Spring.GetConfigFloat("tonemapE", 1.0)
+
 local preset = 1
 local presets = {
 	{
@@ -57,22 +61,21 @@ local presets = {
 		DOWNSAMPLE = 3,
 		BLUR_HALF_KERNEL_SIZE = 4,
 		BLUR_PASSES = 2,
-		BLUR_SIGMA = 2.4,
+		BLUR_SIGMA = 2,
+		tonemapA = 0.45,
+		tonemapD = -0.25,
+		tonemapE = -0.03,
 	},
 	{
-		SSAO_KERNEL_SIZE = 48,
-		DOWNSAMPLE = 2,
-		BLUR_HALF_KERNEL_SIZE = 6,
+		SSAO_KERNEL_SIZE = 56,
+		DOWNSAMPLE = 1,
+		BLUR_HALF_KERNEL_SIZE = 8,
 		BLUR_PASSES = 3,
-		BLUR_SIGMA = 4.5,
+		BLUR_SIGMA = 6.5,
+		tonemapA = 0.4,
+		tonemapD = -0.25,
+		tonemapE = -0.025,
 	},
-	--{
-	--	SSAO_KERNEL_SIZE = 64,
-	--	DOWNSAMPLE = 1,
-	--	BLUR_HALF_KERNEL_SIZE = 8,
-	--	BLUR_PASSES = 4,
-	--	BLUR_SIGMA = 6.5,
-	--},
 }
 
 -----------------------------------------------------------------
@@ -224,6 +227,14 @@ function widget:Initialize()
 	local canContinue = LuaShader.isDeferredShadingEnabled and LuaShader.GetAdvShadingActive()
 	if not canContinue then
 		Spring.Echo(string.format("Error in [%s] widget: %s", wiName, "Deferred shading is not enabled or advanced shading is not active"))
+	end
+
+	-- make unit lighting brighter to compensate for darkening (also restoring values on Shutdown())
+	if presets[preset].tonemapA then
+		Spring.SetConfigFloat("tonemapA", initialTonemapA + (presets[preset].tonemapA * (SSAO_ALPHA_POW/10)))
+		Spring.SetConfigFloat("tonemapD", initialTonemapD + (presets[preset].tonemapD * (SSAO_ALPHA_POW/10)))
+		Spring.SetConfigFloat("tonemapE", initialTonemapE + (presets[preset].tonemapE * (SSAO_ALPHA_POW/10)))
+		Spring.SendCommands("luarules updatesun")
 	end
 
 	firstTime = true
@@ -400,6 +411,15 @@ function widget:SunChanged()
 end
 
 function widget:Shutdown()
+
+	-- restore unit lighting settings
+	if presets[preset].tonemapA then
+		Spring.SetConfigFloat("tonemapA", initialTonemapA)
+		Spring.SetConfigFloat("tonemapD", initialTonemapD)
+		Spring.SetConfigFloat("tonemapE", initialTonemapE)
+		Spring.SendCommands("luarules updatesun")
+	end
+
 	firstTime = nil
 
 	if screenQuadList then
@@ -409,7 +429,6 @@ function widget:Shutdown()
 	if screenWideList then
 		gl.DeleteList(screenWideList)
 	end
-
 
 	gl.DeleteTexture(ssaoTex)
 	gl.DeleteTexture(gbuffFuseViewPosTex)
@@ -512,13 +531,13 @@ local function DoDrawSSAO(isScreenSpace)
 
 			gaussianBlurShader:SetUniform("dir", 1.0, 0.0) --horizontal blur
 			prevFBO = gl.RawBindFBO(ssaoBlurFBOs[1])
-				gl.CallList(screenQuadList) -- gl.TexRect(-1, -1, 1, 1)
+			gl.CallList(screenQuadList) -- gl.TexRect(-1, -1, 1, 1)
 			gl.RawBindFBO(nil, nil, prevFBO)
 			gl.Texture(0, ssaoBlurTexes[1])
 
 			gaussianBlurShader:SetUniform("dir", 0.0, 1.0) --vertical blur
 			prevFBO = gl.RawBindFBO(ssaoBlurFBOs[2])
-				gl.CallList(screenQuadList) -- gl.TexRect(-1, -1, 1, 1)
+			gl.CallList(screenQuadList) -- gl.TexRect(-1, -1, 1, 1)
 			gl.RawBindFBO(nil, nil, prevFBO)
 			gl.Texture(0, ssaoBlurTexes[2])
 
@@ -574,6 +593,11 @@ function widget:DrawWorld()
 
 	gl.MatrixMode(GL.MODELVIEW)
 	gl.PopMatrix()
+
+	if delayedUpdateSun and os.clock() > delayedUpdateSun then
+		Spring.SendCommands("luarules updatesun")
+		delayedUpdateSun = nil
+	end
 end
 
 function widget:GetConfigData(data)
@@ -588,7 +612,7 @@ function widget:SetConfigData(data)
 	if data.strength ~= nil then
 		SSAO_ALPHA_POW = data.strength
 	end
-	if data.strength ~= nil then
+	if data.radius ~= nil then
 		SSAO_RADIUS = data.radius
 	end
 	if data.preset ~= nil then

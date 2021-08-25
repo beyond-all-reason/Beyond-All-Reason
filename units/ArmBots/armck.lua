@@ -29,8 +29,6 @@ return {
 		maxslope = 20,
 		maxvelocity = 1.2,
 		maxwaterdepth = 25,
-		metalmake = 0.07,
-		metalstorage = 50,
 		movementclass = "BOT3",
 		name = unitName,
 		objectname = "Units/ARMCK.s3o",

@@ -17,8 +17,6 @@ return {
 		collisionvolumescales = "19 17 19",
 		collisionvolumetype = "CylY",
 		description = Spring.I18N('units.descriptions.corsktl'),
-		energymake = 0.2,
-		energyuse = 0.2,
 		explodeas = "crawl_blast",
 		firestate = 2,
 		footprintx = 2,

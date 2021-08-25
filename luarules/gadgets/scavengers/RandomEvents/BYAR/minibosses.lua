@@ -163,5 +163,6 @@ end
 
 return {
 	miniboss1,
-	miniboss2,
+	miniboss1,
+	--miniboss2,
 }

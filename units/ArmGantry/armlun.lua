@@ -18,8 +18,6 @@ return {
 		category = "ALL HOVER MOBILE WEAPON NOTSUB NOTSHIP NOTAIR SURFACE EMPABLE",
 		corpse = "dead",
 		description = Spring.I18N('units.descriptions.armlun'),
-		energymake = 2.8,
-		energyuse = 2.5,
 		explodeas = "largeexplosiongeneric",
 		footprintx = 4,
 		footprintz = 4,

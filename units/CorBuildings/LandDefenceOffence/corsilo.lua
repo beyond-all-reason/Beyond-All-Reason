@@ -143,6 +143,9 @@ return {
 				soundstart = "misicbm1",
 				stockpile = true,
 				stockpiletime = 180,
+				texture1 = "trans",
+				texture2 = "null",
+				texture3 = "null",
 				targetable = 1,
 				tolerance = 4000,
 				turnrate = 5500,
@@ -153,6 +156,7 @@ return {
 				customparams = {
 					expl_light_color = "1 0.85 0.55",
 					expl_light_life_mult = 2.5,
+					expl_light_nuke = 1,
 					light_color = "1 0.6 0.2",
 					light_mult = 8,
 					light_radius_mult = 2,

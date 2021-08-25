@@ -29,6 +29,7 @@ local resources = {
             explo2			     	= 'default/explo2.tga',
 	          sakexplo2 		   	= 'default/sakexplo2.tga',
             explofade		     	= 'default/explofade.tga',
+            exploflare        = 'projectiletextures/exploflare.tga',
             heatcloud		    	= 'default/explo.tga',
             blastwave         = 'projectiletextures/blastwave.tga',
             flame			      	= 'default/flame.tga',
@@ -55,6 +56,7 @@ local resources = {
             smoke_puff_red    = 'atmos/smoke_puff_red.png',
             explowater        = 'projectiletextures/explowater.tga',
             waterrush         = 'projectiletextures/waterrush.tga',
+            waterfoam         = 'atmos/waterfoam.tga',
             subwak            = 'projectiletextures/subwake.tga',
 
             --Animated Explosion effect (test)

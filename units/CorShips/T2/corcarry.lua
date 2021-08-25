@@ -36,7 +36,6 @@ return {
 		mass = 10000,
 		maxdamage = 4500,
 		maxvelocity = 2.008,
-		metalstorage = 800,
 		minwaterdepth = 15,
 		movementclass = "BOAT7",
 		name = unitName,

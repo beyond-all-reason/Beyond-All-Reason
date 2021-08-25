@@ -47,7 +47,7 @@ local function triggerRandomEvent(currentFrame)
 end
 
 local function gameFrame(n)
-	if n%30 == 20 and n > scavconfig.gracePeriod then
+	if n%30 == 20 and scavengerGamePhase ~= "initial" then
 		local randomEventDice = math.random(1, randomEventChance)
 
 		if n - lastRandomEventFrame > randomEventMinimumDelay then

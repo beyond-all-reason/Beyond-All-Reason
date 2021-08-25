@@ -14,8 +14,6 @@ return {
 		collide = true,
 		cruisealt = 90,
 		description = Spring.I18N('units.descriptions.armlance'),
-		energymake = 1.5,
-		energyuse = 1.5,
 		explodeas = "mediumExplosionGeneric",
 		footprintx = 3,
 		footprintz = 3,

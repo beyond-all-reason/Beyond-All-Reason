@@ -15,8 +15,6 @@ return {
 		collide = true,
 		cruisealt = 110,
 		description = Spring.I18N('units.descriptions.corawac'),
-		energymake = 20,
-		energyuse = 20,
 		explodeas = "mediumexplosiongeneric",
 		footprintx = 3,
 		footprintz = 3,

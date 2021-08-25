@@ -20,6 +20,27 @@ local definitions = {
                 alwaysvisible      = true,
             },
         },
+        brightflare = {
+          air                = true,
+          class              = [[CBitmapMuzzleFlame]],
+          count              = 1,
+          ground             = true,
+          underwater         = true,
+          water              = true,
+          properties = {
+            colormap           = [[1.0 0.96 0.80 0.5    0.35 0.28 0.18 0.5    0 0 0 0]],
+            dir                = [[0, 1, 0]],
+            --gravity            = [[0.0, 0.1, 0.0]],
+            frontoffset        = 0,
+            fronttexture       = [[exploflare]],
+            length             = 40,
+            sidetexture        = [[none]],
+            size               = 3800,
+            sizegrowth         = [[0.4 r0.2]],
+            ttl                = 37,
+            pos                = [[0, 180, 0]],
+          },
+        },
         groundflash_large = {
             class              = [[CSimpleGroundFlash]],
             count              = 1,
@@ -327,7 +348,7 @@ local definitions = {
             class              = [[CSimpleParticleSystem]],
             count              = 1,
             ground             = true,
-            air                = true,
+            air                = false,
             properties = {
                 airdrag            = 0.97,
                 colormap           = [[0.04 0.03 0.01 0   0.1 0.07 0.033 0.66    0.1 0.07 0.03 0.58   0.08 0.065 0.035 0.47   0.075 0.07 0.06 0.4   0 0 0 0  ]],
@@ -355,7 +376,7 @@ local definitions = {
             class              = [[CSimpleParticleSystem]],
             count              = 1,
             ground             = true,
-            air                = true,
+            air                = false,
             properties = {
                 airdrag            = 0.98,
                 colormap           = [[0.04 0.03 0.01 0.88   0.1 0.07 0.033 0.66    0.1 0.07 0.03 0.58   0.08 0.065 0.035 0.47   0.075 0.07 0.06 0.4   0 0 0 0  ]],
@@ -383,6 +404,7 @@ local definitions = {
             class              = [[CSimpleParticleSystem]],
             count              = 1,
             ground             = true,
+            air                = false,
             properties = {
                 airdrag            = 0.96,
                 colormap           = [[0.03 0.02 0.01 0.6   0.1 0.07 0.033 0.76    0.1 0.07 0.03 0.58   0.08 0.065 0.035 0.47   0.075 0.07 0.06 0.4   0 0 0 0  ]],
@@ -436,7 +458,7 @@ local definitions = {
             },
         },
         dustparticles = {
-          air                = true,
+          air                = false,
           class              = [[CSimpleParticleSystem]],
           count              = 1,
           ground             = true,
@@ -568,7 +590,7 @@ local definitions = {
                     useairlos          = true,
                     alwaysvisible      = true,
                 },
-            },    
+            },
         },
 
     ["armnuke"] = {
@@ -1107,6 +1129,7 @@ definitions['newnukecor'].dirt.properties.numparticles = math.floor(definitions[
 definitions['newnukecor'].dirt2.properties.particlespeed = math.floor(definitions['newnukecor'].dirt2.properties.particlespeed * size * 0.7)
 definitions['newnukecor'].dirt2.properties.particlespeedspread = math.floor(definitions['newnukecor'].dirt2.properties.particlespeedspread * size * 0.7)
 definitions['newnukecor'].dirt2.properties.numparticles = math.floor(definitions['newnukecor'].dirt2.properties.numparticles * size)
+definitions['newnukecor'].brightflare.properties.ttl = math.floor(definitions['newnukecor'].brightflare.properties.ttl * size * 0.7)
 definitions['newnukecor'].shockwave.properties.ttl = math.floor(definitions['newnukecor'].shockwave.properties.ttl * size)
 definitions['newnukecor'].shockwave_slow.properties.ttl = math.floor(definitions['newnukecor'].shockwave_slow.properties.ttl * size)
 definitions['newnukecor'].shockwave_inner.properties.ttl = math.floor(definitions['newnukecor'].shockwave_inner.properties.ttl * size)
@@ -1143,7 +1166,8 @@ definitions['newnukehuge'].dirt.properties.numparticles = math.floor(definitions
 definitions['newnukehuge'].dirt2.properties.particlespeed = math.floor(definitions['newnukehuge'].dirt2.properties.particlespeed * size * 0.7)
 definitions['newnukehuge'].dirt2.properties.particlespeedspread = math.floor(definitions['newnukehuge'].dirt2.properties.particlespeedspread * size * 0.7)
 definitions['newnukehuge'].dirt2.properties.numparticles = math.floor(definitions['newnukehuge'].dirt2.properties.numparticles * size)
-definitions['newnukehuge'].shockwave.properties.ttl = math.floor(definitions['newnukehuge'].shockwave.properties.ttl * size)
+definitions['newnukehuge'].brightflare.properties.ttl = math.floor(definitions['newnukehuge'].brightflare.properties.ttl * size)
+definitions['newnukehuge'].shockwave.properties.ttl = math.floor(definitions['newnukehuge'].shockwave.properties.ttl * size) * 0.7
 definitions['newnukehuge'].shockwave_slow.properties.ttl = math.floor(definitions['newnukehuge'].shockwave_slow.properties.ttl * size)
 definitions['newnukehuge'].shockwave_inner.properties.ttl = math.floor(definitions['newnukehuge'].shockwave_inner.properties.ttl * size)
 definitions['newnukehuge'].centerflare.properties.size = math.floor(definitions['newnukehuge'].centerflare.properties.size * size * 1.2)
@@ -1159,7 +1183,8 @@ definitions['newnuketac-floor'].smoke.properties.numparticles = math.floor(defin
 definitions['newnuketac-floor'].smoke.properties.particlespeed = math.floor(definitions['newnuketac-floor'].smoke.properties.particlespeed * size)
 definitions['newnuketac-floor'].smoke.properties.particlespeedspread = math.floor(definitions['newnuketac-floor'].smoke.properties.particlespeedspread * size)
 definitions['newnuketac-floor'].smoke.properties.particlesize = math.floor(definitions['newnuketac-floor'].smoke.properties.particlesize * size * 0.4)
-definitions['newnuketac-floor'].smoke.properties.particlelife = math.floor(definitions['newnuketac-floor'].smoke.properties.particlelife * size)
+definitions['newnuketac-floor'].smoke.properties.particlelife = math.floor(definitions['newnuketac-floor'].smoke.properties.particlelife * size * 0.4)
+definitions['newnuketac-floor'].smoke2.properties.particlelife = math.floor(definitions['newnuketac-floor'].smoke2.properties.particlelife * size * 0.4)
 --
 definitions['newnuketac'] = table.copy(definitions['newnuke'])
 definitions['newnuketac'].nukefloor.properties.explosiongenerator = [[custom:newnuketac-floor]]
@@ -1177,9 +1202,10 @@ definitions['newnuketac'].explosion.properties.particlesize = math.floor(definit
 definitions['newnuketac'].explosion.properties.particlelife = math.floor(definitions['newnuketac'].explosion.properties.particlelife * size)
 definitions['newnuketac'].dustparticles.properties.particlespeed = math.floor(definitions['newnuketac'].dustparticles.properties.particlespeed * size * 0.6)
 definitions['newnuketac'].dustparticles.properties.particlesize = math.floor(definitions['newnuketac'].dustparticles.properties.particlesize * size * 0.5)
-definitions['newnuketac'].dustparticles.properties.particlelife = math.floor(definitions['newnuketac'].dustparticles.properties.particlelife * size)
+definitions['newnuketac'].dustparticles.properties.particlelife = math.floor(definitions['newnuketac'].dustparticles.properties.particlelife * size * 0.5)
 definitions['newnuketac'].clouddust.properties.particlespeed = math.floor(definitions['newnuketac'].clouddust.properties.particlespeed * size)
 definitions['newnuketac'].clouddust.properties.particlesize = math.floor(definitions['newnuketac'].clouddust.properties.particlesize * size)
+definitions['newnuketac'].clouddust.properties.particlelife = math.floor(definitions['newnuketac'].clouddust.properties.particlelife * size * 0.5)
 definitions['newnuketac'].dirt.properties.particlespeed = math.floor(definitions['newnuketac'].dirt.properties.particlespeed * size * 0.8)
 definitions['newnuketac'].dirt.properties.particlespeedspread = math.floor(definitions['newnuketac'].dirt.properties.particlespeedspread * size * 0.9)
 definitions['newnuketac'].dirt.properties.numparticles = math.floor(definitions['newnuketac'].dirt.properties.numparticles * size)
@@ -1189,6 +1215,8 @@ definitions['newnuketac'].dirt2.properties.numparticles = math.floor(definitions
 definitions['newnuketac'].dirt3.properties.particlespeed = math.floor(definitions['newnuketac'].dirt3.properties.particlespeed * size * 0.9)
 definitions['newnuketac'].dirt3.properties.particlespeedspread = math.floor(definitions['newnuketac'].dirt3.properties.particlespeedspread * size * 0.9)
 definitions['newnuketac'].dirt3.properties.numparticles = math.floor(definitions['newnuketac'].dirt3.properties.numparticles * size)
+definitions['newnuketac'].brightflare.properties.ttl = math.floor(definitions['newnuketac'].brightflare.properties.ttl * size) * 0.4
+definitions['newnuketac'].brightflare.properties.size = math.floor(definitions['newnuketac'].brightflare.properties.size * size) * 0.4
 definitions['newnuketac'].shockwave.properties.ttl = math.floor(definitions['newnuketac'].shockwave.properties.ttl * size * 0.7)
 definitions['newnuketac'].shockwave.properties.size = math.floor(definitions['newnuketac'].shockwave.properties.size * size * 1.2)
 definitions['newnuketac'].shockwave_slow.properties.ttl = math.floor(definitions['newnuketac'].shockwave_slow.properties.ttl * size * 0.8)
@@ -1206,7 +1234,7 @@ definitions['newnuketac'].groundflash_quick.properties.sizegrowth = math.floor(d
 definitions['newnuketac'].grounddust.properties.particlesize = math.floor(definitions['newnuketac'].grounddust.properties.particlesize * size)
 definitions['newnuketac'].grounddust.properties.particlespeed = math.floor(definitions['newnuketac'].grounddust.properties.particlespeed * size)
 definitions['newnuketac'].grounddust.properties.particlespeedspread = math.floor(definitions['newnuketac'].grounddust.properties.particlespeedspread * size)
-definitions['newnuketac'].grounddust.properties.particlelife = math.floor(definitions['newnuketac'].grounddust.properties.particlelife * size * 0.6)
+definitions['newnuketac'].grounddust.properties.particlelife = math.floor(definitions['newnuketac'].grounddust.properties.particlelife * size * 0.5)
 
 local size = 0.6
 

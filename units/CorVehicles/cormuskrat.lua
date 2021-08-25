@@ -29,8 +29,6 @@ return {
 		maxslope = 16,
 		maxvelocity = 1.35,
 		maxwaterdepth = 255,
-		metalmake = 0.08,
-		metalstorage = 50,
 		movementclass = "ATANK3",
 		name = unitName,
 		objectname = "Units/CORMUSKRAT.s3o",

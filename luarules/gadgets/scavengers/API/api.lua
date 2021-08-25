@@ -22,7 +22,7 @@ if scavengersAIEnabled then
 	if ScavengerStartboxXMin == 0 and ScavengerStartboxZMin == 0 and ScavengerStartboxXMax == mapsizeX and ScavengerStartboxZMax == mapsizeZ then
 		ScavengerStartboxExists = false
 	else
-		ScavengerStartboxExists = true
+		--ScavengerStartboxExists = true
 	end
 else
 	_,_,_,_,_,GaiaAllyTeamID = Spring.GetTeamInfo(GaiaTeamID)
@@ -50,6 +50,7 @@ scavReclaimer = {}
 scavSpawnBeacon = {}
 scavStockpiler = {}
 scavNuke = {}
+scavConverted = {}
 UnitSuffixLenght = {}
 numOfSpawnBeacons = 0
 numOfSpawnBeaconsTeams = {}

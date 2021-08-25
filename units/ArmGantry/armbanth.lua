@@ -16,8 +16,6 @@ return {
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		description = Spring.I18N('units.descriptions.armbanth'),
-		energymake = 12,
-		energystorage = 120,
 		explodeas = "bantha",
 		footprintx = 4,
 		footprintz = 4,
@@ -96,7 +94,7 @@ return {
 		},
 		sfxtypes = {
 			explosiongenerators = {
-				[1] = "custom:barrelshot-large",
+				[1] = "custom:barrelshot-large-impulse",
 			},
 			pieceexplosiongenerators = {
 				[1] = "deathceg3",
@@ -139,7 +137,7 @@ return {
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:genericshellexplosion-medium",
 				impulseboost = 0,
-				impulsefactor = 0,
+				impulsefactor = 0, --1.8
 				intensity = 1,
 				laserflaresize = 10.1,
 				name = "Close-quarters impulsion blaster",

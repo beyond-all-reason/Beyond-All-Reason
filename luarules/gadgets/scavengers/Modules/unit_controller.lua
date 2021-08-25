@@ -58,6 +58,26 @@ function SelfDestructionControls(n, scav, scavDef, friendly)
 	Constructing[scav] = nil
 end
 
+function ArmyMoveOrdersInitialPhase(n, scav, scavDef)
+	UnitRange = {}
+	if UnitDefs[scavDef].maxWeaponRange and UnitDefs[scavDef].maxWeaponRange > 100 then
+		UnitRange[scav] = UnitDefs[scavDef].maxWeaponRange
+	else
+		UnitRange[scav] = 100
+	end
+	local range = UnitRange[scav]
+	
+	local posx, posy, posz = Spring.GetUnitPosition(scav)
+	local x = math.random(0, mapsizeX)
+	local z = math.random(0, mapsizeZ)
+	local y = Spring.GetGroundHeight(x,z)
+	if (-(UnitDefs[scavDef].minWaterDepth) > y) and (-(UnitDefs[scavDef].maxWaterDepth) < y) or UnitDefs[scavDef].canFly then
+		if posLosCheck(x, y, z, range) then
+			Spring.GiveOrderToUnit(scav, CMD.MOVE,{x,y,z}, {"shift", "alt", "ctrl"})
+		end
+	end
+end
+
 function ArmyMoveOrders(n, scav, scavDef)
 	UnitRange = {}
 	if UnitDefs[scavDef].maxWeaponRange and UnitDefs[scavDef].maxWeaponRange > 100 then

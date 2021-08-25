@@ -15,8 +15,6 @@ return {
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		description = Spring.I18N('units.descriptions.armsptk'),
-		energymake = 0.7,
-		energyuse = 0.7,
 		explodeas = "mediumexplosiongeneric",
 		footprintx = 3,
 		footprintz = 3,
@@ -155,7 +153,8 @@ return {
 				weaponvelocity = 450,
 				wobble = 2500,
 				customparams = {
-					light_mult = "0.66",
+					light_mult = "0.6",
+					light_radius_mult = "0.85",
 				},
 				damage = {
 					default = 120,

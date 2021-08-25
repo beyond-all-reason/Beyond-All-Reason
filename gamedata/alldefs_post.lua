@@ -99,26 +99,6 @@ function UnitDef_Post(name, uDef)
 		uDef.corpse = nil
 	end
 
-	-- negate energyuse with energymake values
-	-- excludes units without on/off states (energyuse values arent in effect)
-	if uDef.energymake and uDef.energyuse and uDef.onoffable then
-		--Spring.Echo(uDef.name)
-		if uDef.energymake == uDef.energyuse then
-			uDef.energymake = 0
-			uDef.energyuse = 0
-		elseif uDef.energymake > uDef.energyuse then
-			uDef.energymake = uDef.energymake - uDef.energyuse
-			if uDef.energyuse > 0 then
-				uDef.energyuse = 0
-			end
-		elseif uDef.energymake < uDef.energyuse then
-			uDef.energyuse = uDef.energyuse - uDef.energymake
-			if uDef.energymake > 0 then
-				uDef.energymake = 0
-			end
-		end
-	end
-
 	-- test New sound system!
 	--VFS.Include('luarules/configs/gui_soundeffects.lua')
 	--if not (GUIUnitSoundEffects[name] or (GUIUnitSoundEffects[string.sub(name, 1, string.len(name)-5)] and string.find(name, "_scav"))) then

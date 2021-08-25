@@ -2,9 +2,9 @@
 --ScavSendMessage("addmessage Global score: "..globalScore)
 
 function pregameMessages(n)
-	if n > scavconfig.gracePeriod+100 then
-		return
-	end
+	-- if n > scavconfig.gracePeriod+100 then
+	-- 	return
+	-- end
 	-- if n == scavconfig.gracePeriod-7200 then
 	-- 	--ScavSendMessage("WARNING")
 	-- 	--ScavSendVoiceMessage(scavengerSoundPath.."warning.wav")
@@ -38,16 +38,17 @@ function pregameMessages(n)
 	-- 	--ScavSendVoiceMessage(scavengerSoundPath.."warning.wav")
 	-- end
 
-	if n == 3600 then
-		ScavSendNotification("scav_droppodsDetectedInArea")
-	end
+	-- if n == 3600 then
+	-- 	ScavSendNotification("scav_droppodsDetectedInArea")
+	-- end
 
 	if n == scavconfig.gracePeriod then
 		--ScavSendMessage("WARNING")
 		--ScavSendVoiceMessage(scavengerSoundPath.."warning.wav")
 	end
 
-	if n == scavconfig.gracePeriod then
+	if scavengerGamePhase ~= "initial" and (not initialMessageSent) then
+		initialMessageSent = true
 		ScavSendNotification("scav_droppingUnits")
 	end
 

@@ -22,7 +22,7 @@ return {
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		description = Spring.I18N('units.descriptions.armgate'),
-		energystorage = 1500,
+		energystorage = 1000,
 		explodeas = "hugeBuildingexplosiongeneric",
 		footprintx = 4,
 		footprintz = 4,
