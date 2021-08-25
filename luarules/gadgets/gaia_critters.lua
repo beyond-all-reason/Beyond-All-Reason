@@ -5,7 +5,7 @@ function gadget:GetInfo()
     	author    = "Floris (original: knorke, 2013)",
     	date      = "2016",
     	layer     = -100, --negative, otherwise critters spawned by gadget do not disappear on death (spawned with /give they always die)
-    	enabled   = true,
+    	enabled   = false,
 	}
 end
 
