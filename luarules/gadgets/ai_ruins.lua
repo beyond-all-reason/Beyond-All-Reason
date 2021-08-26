@@ -26,6 +26,9 @@ local ruinSpawnEnabled = false
 if Spring.GetModOptions().ruins or (Spring.GetModOptions().scavonlyruins and scavengersAIEnabled) then
 	ruinSpawnEnabled = true
 end
+Spring.Echo("[RUIN ECHO] ", Spring.GetModOptions().ruins)
+Spring.Echo("[RUIN ECHO] ", Spring.GetModOptions().scavonlyruins)
+Spring.Echo("[RUIN ECHO] ", scavengersAIEnabled)
 
 function gadget:GetInfo()
     return {
