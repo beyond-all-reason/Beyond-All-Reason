@@ -723,72 +723,7 @@ out DataVS {
   vec4 debuginfo;
 };
 
-layout(std140, binding = 0) uniform UniformMatrixBuffer {
-  mat4 screenView;
-  mat4 screenProj;
-  mat4 screenViewProj;
-
-  mat4 cameraView;
-  mat4 cameraProj;
-  mat4 cameraViewProj;
-  mat4 cameraBillboardProj;
-
-	mat4 cameraViewInv;
-	mat4 cameraProjInv;
-	mat4 cameraViewProjInv;
-
-	mat4 shadowView;
-	mat4 shadowProj;
-	mat4 shadowViewProj;
-};
-
-layout(std140, binding = 1) uniform UniformParamsBuffer {
-  vec3 rndVec3; //new every draw frame.
-  uint renderCaps; //various render booleans
-
-  vec4 timeInfo; //gameFrame, gameSeconds, drawFrame, frameTimeOffset
-  vec4 viewGeometry; //vsx, vsy, vpx, vpy
-  vec4 mapSize; //xz, xzPO2
-
-  vec4 fogColor; //fog color
-  vec4 fogParams; //fog {start, end, 0.0, scale}
-
-  //vec4 pad[6];
-
-  //vec4 windInfo;
-
-};
-
-// glsl rotate convencience funcs: https://github.com/dmnsgn/glsl-rotate
-
-
-mat3 rotation3dY(float a) {
-	float s = sin(a);
-	float c = cos(a);
-
-  return mat3(
-    c, 0.0, -s,
-    0.0, 1.0, 0.0,
-    s, 0.0, c);
-}
-
-mat4 scaleMat(vec3 s) {
-	return mat4(
-		s.x, 0.0, 0.0, 0.0,
-		0.0, s.y, 0.0, 0.0,
-		0.0, 0.0, s.z, 0.0,
-		0.0, 0.0, 0.0, 1.0
-	);
-}
-
-mat4 translationMat(vec3 t) {
-	return mat4(
-		1.0, 0.0, 0.0, 0.0,
-		0.0, 1.0, 0.0, 0.0,
-		0.0, 0.0, 1.0, 0.0,
-		t.x, t.y, t.z, 1.0
-	);
-}
+//__ENGINEUNIFORMBUFFERDEFS__
 
 #line 10770
 
@@ -893,39 +828,7 @@ local gsSrc = [[
 layout (points) in;
 layout (triangle_strip, max_vertices = 36) out;
 
-layout(std140, binding = 0) uniform UniformMatrixBuffer {
-  mat4 screenView;
-  mat4 screenProj;
-  mat4 screenViewProj;
-
-  mat4 cameraView;
-  mat4 cameraProj;
-  mat4 cameraViewProj;
-  mat4 cameraBillboardProj;
-
-	mat4 cameraViewInv;
-	mat4 cameraProjInv;
-	mat4 cameraViewProjInv;
-
-	mat4 shadowView;
-	mat4 shadowProj;
-	mat4 shadowViewProj;
-};
-
-layout(std140, binding = 1) uniform UniformParamsBuffer {
-  vec3 rndVec3; //new every draw frame.
-  uint renderCaps; //various render booleans
-
-  vec4 timeInfo; //gameFrame, gameSeconds, drawFrame, frameTimeOffset
-  vec4 viewGeometry; //vsx, vsy, vpx, vpy
-  vec4 mapSize; //xz, xzPO2
-
-  vec4 fogColor; //fog color
-  vec4 fogParams; //fog {start, end, 0.0, scale}
-
-  //vec4 pad[6];
-  //vec4 windInfo;
-};
+//__ENGINEUNIFORMBUFFERDEFS__
 
 in DataVS {
 	vec4 cameraPos;
@@ -1045,36 +948,7 @@ in DataVS {
 	vec4 debuginfo;
 };
 
-layout(std140, binding = 0) uniform UniformMatrixBuffer {
-	mat4 screenView;
-	mat4 screenProj;
-	mat4 screenViewProj;
-
-	mat4 cameraView;
-	mat4 cameraProj;
-	mat4 cameraViewProj;
-	mat4 cameraBillboardProj;
-
-	mat4 cameraViewInv;
-	mat4 cameraProjInv;
-	mat4 cameraViewProjInv;
-
-	mat4 shadowView;
-	mat4 shadowProj;
-	mat4 shadowViewProj;
-};
-
-layout(std140, binding = 1) uniform UniformParamsBuffer {
-	vec3 rndVec3; //new every draw frame.
-	uint renderCaps; //various render booleans
-
-	vec4 timeInfo; //gameFrame, gameSeconds, drawFrame, frameTimeOffset
-	vec4 viewGeometry; //vsx, vsy, vpx, vpy
-	vec4 mapSize; //xz, xzPO2
-
-	vec4 fogColor; //fog color
-	vec4 fogParams; //fog {start, end, 0.0, scale}
-};
+//__ENGINEUNIFORMBUFFERDEFS__
 
 out vec4 fragColor;
 
@@ -1112,6 +986,10 @@ local function makeShaderVAO()
 
   grassVertexShaderDebug = vsSrc:gsub("//__DEFINES__", grassShaderParams)
   grassFragmentShaderDebug = fsSrc:gsub("//__DEFINES__", grassShaderParams)
+
+  local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()
+  grassVertexShaderDebug = grassVertexShaderDebug:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
+  grassFragmentShaderDebug = grassFragmentShaderDebug:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
 
   grassShader = LuaShader(
     {
