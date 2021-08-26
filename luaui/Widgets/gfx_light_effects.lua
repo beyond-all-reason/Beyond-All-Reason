@@ -888,7 +888,7 @@ local function GadgetWeaponExplosion(px, py, pz, weaponID, ownerID)
 		if additionalNukeLightingFlashes and weaponConf[weaponID].nuke then
 			local params = table.copy(params)
 			params.py = params.py + 100 + math.min(400, params.param.radius / 30)
-			params.life = 1.66 + math.min(2.5, params.param.radius / 8000)
+			params.life = 2 + math.min(2.5, params.param.radius / 8000)
 			params.orgMult = math.min(1.4, params.param.radius / 8000) * globalLightMult / 1.5
 			params.param.radius = params.param.radius * 3
 			params.param.r = 1
