@@ -657,7 +657,11 @@ local startScript = VFS.LoadFile("_script.txt")
 if not startScript then
 	local modoptions = ''
 	for key, value in pairs(Spring.GetModOptions()) do
-		modoptions = modoptions .. key .. '=' .. value .. ';';
+		local v = value
+		if type(v) == 'boolean' then
+			v = (v and '1' or '0')
+		end
+		modoptions = modoptions .. key .. '=' .. v .. ';';
 	end
 
 	startScript = [[[game]
