@@ -700,15 +700,6 @@ local options={
 		}
 	},
 	{
-		key="map_terraintype",
-		name="Map TerrainTypes",
-		desc="Allows to cancel the TerrainType movespeed buffs of a map.",
-		hidden = true,
-		type="bool",
-		def=true,
-		section="options",
-	},
-	{
 		key="map_waterlevel",
 		name="Water Level",
 		desc=" <0 = Decrease water level, >0 = Increase water level",
