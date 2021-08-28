@@ -141,7 +141,7 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 300,
 				customparams = {
-					light_skip = true,
+
 					cegtag = "missiletrailcorroyspecial",
 					def = "armlun_cannonuw",
 					model = "airbombt2",
@@ -183,7 +183,7 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 300,
 				customparams = {
-					light_skip = true,
+
 				},
 				damage = {
 					bombers = 60,

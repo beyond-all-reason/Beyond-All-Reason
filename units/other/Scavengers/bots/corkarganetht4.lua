@@ -183,10 +183,9 @@ return {
 				weaponvelocity = 820,
 				customparams = {
 					expl_light_color = "1 0.4 0.5",
-					expl_light_mult = 0.66,
-					expl_light_radius_mult = 0.66,
+					expl_light_mult = 0.93,
+					expl_light_radius_mult = 0.83,
 					light_color = "1 0.5 0.6",
-					light_skip = true,
 				},
 				damage = {
 					bombers = 750,

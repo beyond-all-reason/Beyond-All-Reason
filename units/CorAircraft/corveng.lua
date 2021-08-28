@@ -117,7 +117,6 @@ return {
 				weaponvelocity = 850,
 				customparams = {
 					longdescription = Spring.I18N('units.longDescriptions.corveng'),
-					light_skip = true,
 				},
 				damage = {
 					bombers = 125,

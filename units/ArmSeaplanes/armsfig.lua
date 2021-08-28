@@ -122,7 +122,6 @@ return {
 				weapontype = "MissileLauncher",
 				weaponvelocity = 900,
 				customparams = {
-					light_skip = true,
 				},
 				damage = {
 					bombers = 210,
