@@ -186,7 +186,7 @@ return {
 				laserflaresize = 3.3,
 				name = "Light close-quarters laser",
 				noselfdamage = true,
-				range = 260,
+				range = 300,
 				reloadtime = 0.36667,
 				rgbcolor = "1 1 0",
 				soundhitdry = "",
