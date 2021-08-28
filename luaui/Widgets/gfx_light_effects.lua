@@ -47,7 +47,7 @@ local overrideParam = {r = 1, g = 1, b = 1, radius = 200}
 local doOverride = false
 
 local additionalLightingFlashes = true
-local additionalLightingFlashesAboveAverageFps = 15
+local additionalLightingFlashesAboveAverageFps = 12
 local additionalLightingFlashesMult = 0.8
 local additionalNukeLightingFlashes = true
 
@@ -888,19 +888,19 @@ local function GadgetWeaponExplosion(px, py, pz, weaponID, ownerID)
 		if additionalNukeLightingFlashes and weaponConf[weaponID].nuke then
 			local params = table.copy(params)
 			params.py = params.py + 100 + math.min(400, params.param.radius / 30)
-			params.life = 2 + math.min(2.5, params.param.radius / 8000)
-			params.orgMult = math.min(1.4, params.param.radius / 8000) * globalLightMult / 1.5
-			params.param.radius = params.param.radius * 3
+			params.life = 2 + math.min(3, params.param.radius / 8000)
+			params.orgMult = 0.2 + math.min(1.2, params.param.radius / 8000) * globalLightMult / 1.5
+			params.param.radius = params.param.radius * 3.3
 			params.param.r = 1
 			params.param.g = 1
 			params.param.b = 1
 			explosionLightsCount = explosionLightsCount + 1
 			explosionLights[explosionLightsCount] = params
-		elseif additionalLightingFlashes and averageFps > additionalLightingFlashesAboveAverageFps and params.param.radius > 110 then
+		elseif additionalLightingFlashes and averageFps > additionalLightingFlashesAboveAverageFps then
 			--local params = table.copy(params)
 			params.py = params.py + 10 + math.min(50, params.param.radius / 130)
 			params.life = 0.7 + (params.life * 0.36)
-			params.orgMult = params.orgMult * additionalLightingFlashesMult
+			params.orgMult = params.orgMult * additionalLightingFlashesMult * math.max(0.6, math.min(1, params.param.radius/120))
 			params.param.radius = params.param.radius * 0.6
 			params.param.r = (params.param.r + 1) / 2
 			params.param.g = (params.param.g + 1) / 2
