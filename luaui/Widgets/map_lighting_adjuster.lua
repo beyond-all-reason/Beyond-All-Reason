@@ -78,6 +78,12 @@ local mapSunLighting = {
 	['downs_of_destruction_fix'] = {
 		unitDiffuseColor = {1.4, 1.4, 1.3},
 	},
+	['twin lakes park 1'] = {
+		groundDiffuseColor = { 0.97, 1, 0.97 },
+		groundAmbientColor = { 0.87, 0.9, 0.87 },
+		unitAmbientColor = {0.7, 0.75, 0.7},
+		modelShadowDensity = 0.75,
+	},
 }
 
 local mapSun = {
