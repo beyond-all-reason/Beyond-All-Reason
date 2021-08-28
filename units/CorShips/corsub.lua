@@ -24,7 +24,7 @@ return {
 		idleautoheal = 8,
 		idletime = 900,
 		maxdamage = 950, --1270, -- 635,
-		maxvelocity = 2.15,
+		maxvelocity = 2,
 		minwaterdepth = 15,
 		movementclass = "UBOAT3",
 		name = unitName,
@@ -37,7 +37,7 @@ return {
 		sonardistance = 400,
 		turninplace = true,
 		turninplaceanglelimit = 90,
-		turnrate = 460.5,
+		turnrate = 600,
 		upright = true,
 		waterline = 45,
 		customparams = {

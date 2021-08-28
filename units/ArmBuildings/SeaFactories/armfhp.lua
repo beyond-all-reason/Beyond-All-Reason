@@ -24,7 +24,7 @@ return {
 		idletime = 1800,
 		maxdamage = 3005,
 		metalstorage = 200,
-		minwaterdepth = 30,
+		minwaterdepth = 5,
 		name = unitName,
 		objectname = "Units/ARMFHP.s3o",
 		radardistance = 50,
