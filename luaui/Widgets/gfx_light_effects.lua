@@ -235,8 +235,7 @@ local function GetLightsFromUnitDefs()
 		end
 
 		local lightMultiplier = 0.07
-		local bMult = 1		-- because blue appears to be very faint
-		local r,g,b = weaponDef.visuals.colorR, weaponDef.visuals.colorG, weaponDef.visuals.colorB*bMult
+		local r,g,b = weaponDef.visuals.colorR, weaponDef.visuals.colorG, weaponDef.visuals.colorB
 
 		local weaponData = {type=weaponDef.type, r = (r + 0.1) * lightMultiplier, g = (g + 0.1) * lightMultiplier, b = (b + 0.1) * lightMultiplier, radius = 100}
 		local recalcRGB = false
@@ -280,6 +279,7 @@ local function GetLightsFromUnitDefs()
 		elseif weaponDef.type == 'LightningCannon' then
 			weaponData.radius = 70 * weaponDef.size
 			weaponData.beam = true
+			lightMultiplier = 0.16
 		elseif weaponDef.type == 'BeamLaser' then
 			weaponData.radius = 16 * (weaponDef.size * weaponDef.size * weaponDef.size)
 			weaponData.beam = true
@@ -342,7 +342,7 @@ local function GetLightsFromUnitDefs()
 			local colorList = string.split(customParams.light_color, " ")
 			r = colorList[1]
 			g = colorList[2]
-			b = colorList[3]*bMult
+			b = colorList[3]
 		end
 
 		if recalcRGB or globalLightMult ~= 1 or globalLightMultLaser ~= 1 then
@@ -352,7 +352,7 @@ local function GetLightsFromUnitDefs()
 			end
 			weaponData.r = (r + 0.1) * lightMultiplier * globalLightMult * laserMult
 			weaponData.g = (g + 0.1) * lightMultiplier * globalLightMult * laserMult
-			weaponData.b = (b + 0.1) * lightMultiplier*bMult * globalLightMult * laserMult
+			weaponData.b = (b + 0.1) * lightMultiplier * globalLightMult * laserMult
 		end
 
 
@@ -888,9 +888,9 @@ local function GadgetWeaponExplosion(px, py, pz, weaponID, ownerID)
 		if additionalNukeLightingFlashes and weaponConf[weaponID].nuke then
 			local params = table.copy(params)
 			params.py = params.py + 100 + math.min(400, params.param.radius / 30)
-			params.life = 2 + math.min(3, params.param.radius / 8000)
-			params.orgMult = 0.2 + math.min(1.2, params.param.radius / 8000) * globalLightMult / 1.5
-			params.param.radius = params.param.radius * 3.3
+			params.life = 2.2 + math.min(3.3, params.param.radius / 8000)
+			params.orgMult = 0.25 + math.min(1.2, params.param.radius / 8000) * globalLightMult / 1.5
+			params.param.radius = params.param.radius * 3.5
 			params.param.r = 1
 			params.param.g = 1
 			params.param.b = 1
@@ -902,9 +902,9 @@ local function GadgetWeaponExplosion(px, py, pz, weaponID, ownerID)
 			params.life = 0.7 + (params.life * 0.36)
 			params.orgMult = params.orgMult * additionalLightingFlashesMult * math.max(0.6, math.min(1, params.param.radius/120))
 			params.param.radius = params.param.radius * 0.6
-			params.param.r = (params.param.r + 1) / 2
-			params.param.g = (params.param.g + 1) / 2
-			params.param.b = (params.param.b + 1) / 2
+			params.param.r = (params.param.r + 0.8) / 1.8
+			params.param.g = (params.param.g + 0.8) / 1.8
+			params.param.b = (params.param.b + 0.8) / 1.8
 			explosionLightsCount = explosionLightsCount + 1
 			explosionLights[explosionLightsCount] = params
 		end

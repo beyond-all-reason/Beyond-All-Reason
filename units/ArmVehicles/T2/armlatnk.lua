@@ -202,7 +202,7 @@ return {
 				customparams = {
 					expl_light_color = "0.2 0.5 1",
 					light_color = "0.2 0.5 1",
-					light_mult = "0.44",
+					light_mult = "0.7",
 				},
 				damage = {
 					default = 22.7,
