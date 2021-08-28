@@ -61,6 +61,7 @@ local definitions = {
         sizegrowth         = 4,
         speed              = [[0, 1 0, 0]],
         texture            = [[flare]],
+        drawOrder          = 1,
       },
     },
     explosion = {
@@ -90,6 +91,7 @@ local definitions = {
         sizemod            = 1.1,
         texture            = [[flashside3]],
         useairlos          = false,
+        drawOrder          = 1,
       },
     },
     dustparticles = {
@@ -204,6 +206,7 @@ local definitions = {
         sizemod            = 1,
         texture            = [[bigexplosmoke]],
         useairlos          = false,
+        drawOrder          = 1,
       },
     },
     dirt2 = {
@@ -234,6 +237,7 @@ local definitions = {
         sizemod            = 1,
         texture            = [[bigexplosmoke]],
         useairlos          = false,
+        drawOrder          = 1,
       },
     },
     clouddust = {
@@ -260,6 +264,7 @@ local definitions = {
         sizegrowth         = 0.1,
         sizemod            = 1.0,
         texture            = [[bigexplosmoke]],
+        drawOrder          = 1,
       },
     },
     --grounddust = {
@@ -315,6 +320,7 @@ local definitions = {
         sizemod            = 1,
         texture            = [[shard1]],
         useairlos          = false,
+        drawOrder          = 1,
       },
     },
     shard2 = {
@@ -400,6 +406,7 @@ local definitions = {
         sizemod            = 0.8,
         texture            = [[gunshotglow]],
         useairlos          = false,
+        drawOrder          = 2,
       },
     },
     outerflash = {
@@ -418,6 +425,7 @@ local definitions = {
         sizegrowth         = 0.6,
         speed              = [[0, 1 0, 0]],
         texture            = [[orangenovaexplo]],
+        drawOrder          = 1,
       },
     },
 
@@ -896,6 +904,7 @@ local definitions = {
         sizegrowth         = 5.5,
         speed              = [[0, 1 0, 0]],
         texture            = [[flare]],
+        drawOrder          = 1,
       },
     },
     groundflash_small = {
@@ -969,6 +978,7 @@ local definitions = {
         sizemod            = 1,
         texture            = [[flashside3]],
         useairlos          = false,
+        drawOrder          = 1,
       },
     },
     pop1 = {
@@ -987,6 +997,7 @@ local definitions = {
         sizeGrowth = 6,
         pos = [[r-10 r8, 15, r-10 r8]],
         speed=[[0, 0, 0]],
+        drawOrder          = 1,
       },
     },
     -- shockwave = {
@@ -1023,6 +1034,7 @@ local definitions = {
         sizegrowth         = [[-20 r7]],
         ttl                = 8,
         pos                = [[0, 5, 0]],
+        drawOrder          = 1,
       },
     },
     dustparticles = {
@@ -1136,6 +1148,7 @@ local definitions = {
         sizemod            = 0.77,
         texture            = [[gunshotglow]],
         useairlos          = false,
+        drawOrder          = 2,
       },
     },
     -- shockwave = {
@@ -1322,6 +1335,7 @@ local definitions = {
         sizegrowth         = 0.22,
         sizemod            = 1.0,
         texture            = [[bigexplosmoke]],
+        drawOrder          = 1,
       },
     },
     --grounddust = {
@@ -1414,6 +1428,7 @@ local definitions = {
         sizegrowth         = 12,
         speed              = [[0, 1 0, 0]],
         texture            = [[flare]],
+        drawOrder          = 1,
       },
     },
     groundflash_small = {
@@ -1488,6 +1503,7 @@ local definitions = {
         sizemod            = 1,
         texture            = [[flashside3]],
         useairlos          = false,
+        drawOrder          = 1,
       },
     },
     pop1 = {
@@ -1506,6 +1522,7 @@ local definitions = {
         sizeGrowth = 8,
         pos = [[r-10 r8, 16, r-10 r8]],
         speed=[[0, 0, 0]],
+        drawOrder          = 1,
       },
     },
     dustparticles = {
@@ -1619,6 +1636,7 @@ local definitions = {
         sizemod            = 0.77,
         texture            = [[gunshotxl]],
         useairlos          = false,
+        drawOrder          = 2,
       },
     },
      shockwave = {
@@ -1640,6 +1658,7 @@ local definitions = {
         sizegrowth         = [[-13 r7]],
         ttl                = 10,
         pos                = [[0, 20, 0]],
+        drawOrder          = 1,
       },
     },
     -- shockwave = {
@@ -1685,6 +1704,7 @@ local definitions = {
         sizemod            = 1,
         texture            = [[bigexplosmoke]],
         useairlos          = false,
+        drawOrder          = 1,
       },
     },
     dirt2 = {
@@ -1716,6 +1736,7 @@ local definitions = {
         sizemod            = 1,
         texture            = [[bigexplosmoke]],
         useairlos          = false,
+        drawOrder          = 1,
       },
     },
     shard1 = {
@@ -1744,6 +1765,7 @@ local definitions = {
         sizemod            = 1,
         texture            = [[shard1]],
         useairlos          = false,
+        drawOrder          = 1,
       },
     },
     shard2 = {
@@ -1826,6 +1848,7 @@ local definitions = {
         sizegrowth         = 0.18,
         sizemod            = 1.0,
         texture            = [[bigexplosmoke]],
+        drawOrder          = 1,
       },
     },
     --grounddust = {
@@ -1944,6 +1967,7 @@ local definitions = {
         sizegrowth         = 14,
         speed              = [[0, 1 0, 0]],
         texture            = [[flare]],
+        drawOrder          = 1,
       },
     },
     groundflash_small = {
@@ -2022,6 +2046,7 @@ local definitions = {
         sizeGrowth = 13,
         pos = [[r-10 r10, 20, r-10 r10]],
         speed=[[0, 0, 0]],
+        drawOrder          = 1,
       },
     },
     explosion = {
@@ -2051,6 +2076,7 @@ local definitions = {
         sizemod            = 1,
         texture            = [[flashside3]],
         useairlos          = false,
+        drawOrder          = 1,
       },
     },
     shockwave = {
@@ -2072,6 +2098,7 @@ local definitions = {
         sizegrowth         = [[-20 r4]],
         ttl                = 9,
         pos                = [[0, 20, 0]],
+        drawOrder          = 1,
       },
     },
     dustparticles = {
@@ -2185,6 +2212,7 @@ local definitions = {
         sizemod            = 0.78,
         texture            = [[gunshotxl]],
         useairlos          = false,
+        drawOrder          = 2,
       },
     },
     -- shockwave = {
@@ -2230,6 +2258,7 @@ local definitions = {
         sizemod            = 1,
         texture            = [[bigexplosmoke]],
         useairlos          = false,
+        drawOrder          = 1,
       },
     },
     dirt2 = {
@@ -2317,6 +2346,7 @@ local definitions = {
         sizemod            = 1,
         texture            = [[shard2]],
         useairlos          = false,
+        drawOrder          = 1,
       },
     },
     shard3 = {
@@ -2371,6 +2401,7 @@ local definitions = {
         sizegrowth         = 0.18,
         sizemod            = 1.0,
         texture            = [[bigexplosmoke]],
+        drawOrder          = 1,
       },
     },
     outerflash = {
@@ -2411,6 +2442,7 @@ local definitions = {
         sizegrowth         = 11,
         speed              = [[0, 1 0, 0]],
         texture            = [[flare]],
+        drawOrder          = 1,
       },
     },
     groundflash_small = {
@@ -2488,6 +2520,7 @@ local definitions = {
         sizeGrowth = 10,
         pos = [[r-10 r10, 20, r-10 r10]],
         speed=[[0, 0, 0]],
+        drawOrder          = 1,
       },
     },
     explosion = {
@@ -2517,6 +2550,7 @@ local definitions = {
         sizemod            = 0.97,
         texture            = [[flashside3]],
         useairlos          = false,
+        drawOrder          = 1,
       },
     },
     shockwave = {
@@ -2538,6 +2572,7 @@ local definitions = {
         sizegrowth         = -14,
         ttl                = 13,
         pos                = [[0, 5, 0]],
+        drawOrder          = 1,
       },
     },
     dustparticles = {
@@ -2651,6 +2686,7 @@ local definitions = {
         sizemod            = 0.77,
         texture            = [[gunshotglow]],
         useairlos          = false,
+        drawOrder          = 2,
       },
     },
     dirt = {
@@ -2681,6 +2717,7 @@ local definitions = {
         sizemod            = 1,
         texture            = [[bigexplosmoke]],
         useairlos          = false,
+        drawOrder          = 1,
       },
     },
     dirt2 = {
@@ -2711,6 +2748,7 @@ local definitions = {
         sizemod            = 1,
         texture            = [[bigexplosmoke]],
         useairlos          = false,
+        drawOrder          = 1,
       },
     },
     shard1 = {
@@ -2795,6 +2833,7 @@ local definitions = {
         sizemod            = 1,
         texture            = [[shard3]],
         useairlos          = false,
+        drawOrder          = 1,
       },
     },
     clouddust = {
@@ -2821,6 +2860,7 @@ local definitions = {
         sizegrowth         = 0.18,
         sizemod            = 1.0,
         texture            = [[bigexplosmoke]],
+        drawOrder          = 1,
       },
     },
     --grounddust = {
@@ -2893,6 +2933,7 @@ local definitions = {
         sizegrowth         = 1.1,
         speed              = [[0, 1 0, 0]],
         texture            = [[orangenovaexplo]],
+        drawOrder          = 1,
       },
     },
   },

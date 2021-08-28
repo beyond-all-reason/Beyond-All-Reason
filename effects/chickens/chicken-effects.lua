@@ -32,6 +32,7 @@ return {
         sizemod            = 1,
         texture            = [[blooddropwhite]],
         alwaysvisible      = true,
+        drawOrder          = 1,
       },
     },
 
@@ -51,6 +52,7 @@ return {
         sizegrowth         = 8,
         speed              = [[0, 1 0, 0]],
         texture            = [[glow]],
+        drawOrder          = 1,
       },
     },
 
@@ -133,6 +135,7 @@ return {
         sizemod            = 1,
         texture            = [[bloodblast2white]],
         alwaysvisible      = true,
+        drawOrder          = 1,
       },
     },
   },
@@ -155,6 +158,7 @@ return {
         sizegrowth         = 6,
         speed              = [[0, 1 0, 0]],
         texture            = [[bloodcentersplatsh]],
+        drawOrder          = 1,
       },
     },
     splashes = {
@@ -185,6 +189,7 @@ return {
         sizemod            = 1,
         texture            = [[blooddrop2]],
         alwaysvisible      = true,
+        drawOrder          = 1,
       },
     },
     bloodblast = {
@@ -260,6 +265,7 @@ return {
         sizemod            = 0.96,
         texture            = [[bloodspark2]],
         useairlos          = false,
+        drawOrder          = 2,
       },
     },
   },
@@ -282,6 +288,7 @@ return {
         sizegrowth         = 6,
         speed              = [[0, 1 0, 0]],
         texture            = [[bloodcentersplatsh]],
+        drawOrder          = 1,
       },
     },
     splashes = {
@@ -312,6 +319,7 @@ return {
         sizemod            = 1,
         texture            = [[blooddrop2]],
         alwaysvisible      = true,
+        drawOrder          = 1,
       },
     },
     bloodblast = {
@@ -387,6 +395,7 @@ return {
         sizemod            = 0.99,
         texture            = [[bloodspark2]],
         useairlos          = false,
+        drawOrder          = 2,
       },
     },
   },
@@ -409,6 +418,7 @@ return {
         sizegrowth         = 6,
         speed              = [[0, 1 0, 0]],
         texture            = [[bloodcentersplatshwhite]],
+        drawOrder          = 1,
       },
     },
     splashes = {
@@ -439,6 +449,7 @@ return {
         sizemod            = 1,
         texture            = [[blooddrop2white]],
         alwaysvisible      = true,
+        drawOrder          = 1,
       },
     },
     bloodblast = {
@@ -514,6 +525,7 @@ return {
         sizemod            = 0.96,
         texture            = [[bloodspark2white]],
         useairlos          = false,
+        drawOrder          = 2,
       },
     },
   },
@@ -654,6 +666,7 @@ return {
         sizemod            = 0.99,
         texture            = [[bloodsplat2]],
         alwaysvisible      = true,
+        drawOrder          = 1,
       },
     },
     bloodtrail = {
@@ -706,6 +719,7 @@ return {
         sizemod            = 0.99,
         texture            = [[bloodsplat2]],
         alwaysvisible      = true,
+        drawOrder          = 1,
       },
     },
     bloodtrail = {
