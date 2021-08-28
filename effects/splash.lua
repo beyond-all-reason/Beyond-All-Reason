@@ -1425,6 +1425,7 @@ local definitions = {
             sizegrowth         = [[0.1 r0.2]],
             ttl                = 15,
             pos                = [[0, 70, 0]],
+
           },
         },
     brightwake = {
@@ -1446,6 +1447,7 @@ local definitions = {
             sizegrowth         = [[0.15 r0.7]],
             ttl                = [[80 r60]],
             pos                = [[0, 5, 0]],
+            alwaysvisible      = true,
           },
         },
         brightwakefoam = {
@@ -1467,6 +1469,7 @@ local definitions = {
             sizegrowth         = [[0.15 r0.7]],
             ttl                = [[110 r40]],
             pos                = [[0, 5, 0]],
+            alwaysvisible      = true,
           },
         },
         brightwakewave = {
@@ -1488,6 +1491,7 @@ local definitions = {
             sizegrowth         = [[0.15 r0.7]],
             ttl                = [[110 r40]],
             pos                = [[0, 0, 0]],
+            alwaysvisible      = true,
           },
         },
     circlewaves = {
@@ -1577,6 +1581,7 @@ local definitions = {
         sizemod            = 0.99,
         texture            = [[gunshotxl]],
         useairlos          = false,
+        alwaysvisible      = true,
       },
     },
     waterexplosion = {
@@ -1784,6 +1789,7 @@ local definitions = {
             sizegrowth         = [[0.15 r0.7]],
             ttl                = [[120 r40]],
             pos                = [[0, 5, 0]],
+            alwaysvisible      = true,
           },
         },
         brightwakewave = {
@@ -1805,6 +1811,7 @@ local definitions = {
             sizegrowth         = [[0.15 r0.7]],
             ttl                = [[110 r40]],
             pos                = [[0, 0, 0]],
+            alwaysvisible      = true,
           },
         },
     circlewaves = {
@@ -1894,6 +1901,7 @@ local definitions = {
         sizemod            = 0.99,
         texture            = [[gunshotxl]],
         useairlos          = false,
+        alwaysvisible      = true,
       },
     },
     waterexplosion = {
