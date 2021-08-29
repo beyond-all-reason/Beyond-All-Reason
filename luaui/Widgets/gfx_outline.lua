@@ -132,15 +132,20 @@ uniform sampler2D depthTex;
 uniform sampler2D colorTex;
 
 uniform mat4 projMatrix;
+uniform int dilateHalfKernelSize = 1;
+uniform vec2 viewPortSize;
+uniform float strength = 1.0;
+
+//layout(pixel_center_integer) in vec4 gl_FragCoord;
+//layout(origin_upper_left) in vec4 gl_FragCoord;
 
 #define DILATE_SINGLE_PASS ###DILATE_SINGLE_PASS###
 
-uniform int dilateHalfKernelSize = 1;
-
-uniform vec2 viewPortSize;
-uniform float strength = 1.0;
-//layout(pixel_center_integer) in vec4 gl_FragCoord;
-//layout(origin_upper_left) in vec4 gl_FragCoord;
+#if 1 //Fuck AMD
+	#define TEXEL_FETCH_OFFSET(t, c, l, o) texelFetch(t, c + o, l)
+#else
+	#define TEXEL_FETCH_OFFSET texelFetchOffset
+#endif
 
 out vec4 fragColor;
 
@@ -168,8 +173,8 @@ out vec4 fragColor;
 				);
 
 				if (okCoords)*/ {
-					minDepth = min(minDepth, texelFetchOffset( depthTex, thisCoord, 0, offset).r);
-					vec4 thisColor = texelFetchOffset( colorTex, thisCoord, 0, offset);
+					minDepth = min(minDepth, TEXEL_FETCH_OFFSET( depthTex, thisCoord, 0, offset).r);
+					vec4 thisColor = TEXEL_FETCH_OFFSET( colorTex, thisCoord, 0, offset);
 					thisColor.a *= smoothstep(bnd.y, bnd.x, sqrt(float(x * x + y * y)));
 					maxColor = max(maxColor, thisColor);
 				}
@@ -202,8 +207,8 @@ out vec4 fragColor;
 			);
 
 			if (okCoords)*/ {
-				minDepth = min(minDepth, texelFetchOffset( depthTex, thisCoord, 0, offset).r);
-				vec4 thisColor = texelFetchOffset( colorTex, thisCoord, 0, offset);
+				minDepth = min(minDepth, TEXEL_FETCH_OFFSET( depthTex, thisCoord, 0, offset).r);
+				vec4 thisColor = TEXEL_FETCH_OFFSET( colorTex, thisCoord, 0, offset);
 				thisColor.a *= smoothstep(bnd.y, bnd.x, abs(i));
 				maxColor = max(maxColor, thisColor);
 			}
