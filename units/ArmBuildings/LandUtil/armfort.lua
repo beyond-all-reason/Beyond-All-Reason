@@ -3,6 +3,7 @@ local unitName = Spring.I18N('units.names.armfort')
 return {
 	armfort = {
 		acceleration = 0,
+		autoheal = 12,
 		blocking = true,
 		brakerate = 0,
 		buildangle = 0,
