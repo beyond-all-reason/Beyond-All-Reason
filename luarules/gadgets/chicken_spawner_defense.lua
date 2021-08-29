@@ -111,7 +111,6 @@ if gadgetHandler:IsSyncedCode() then
 	local t = 0 -- game time in seconds
 	local timeCounter = 0
 	local queenAnger = 0
-	local burrowSpawnProgress = 0
 	local queenMaxHP = 0
 	local chickenDebtCount = 0
 	local burrowAnger = 0
@@ -119,8 +118,6 @@ if gadgetHandler:IsSyncedCode() then
 	local gameOver = nil
 	local qMove = false
 	local warningMessage = false
-	local ascendingQueen = false
-	local nextQueenSpawn = nil
 	local computerTeams = {}
 	local humanTeams = {}
 	local disabledUnits = {}
@@ -273,11 +270,6 @@ if gadgetHandler:IsSyncedCode() then
 		queenName = "vh_chickenq"
 	elseif luaAI == "Chicken: Epic!" then
 		queenName = "epic_chickenq"
-	end
-
-	if (queenName == "asc") then
-		queenName = "ve_chickenq"
-		ascendingQueen = true
 	end
 
 	local expIncrement = ((SetCount(humanTeams) * expStep) / queenTime)
@@ -653,7 +645,6 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	local function SpawnBurrow(number)
-
 		if queenID then
 			-- don't spawn new burrows when queen is there
 			return
@@ -745,11 +736,6 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	local function SpawnQueen()
-
-		if nextQueenSpawn ~= nil then
-			return CreateUnit(queenName, nextQueenSpawn.x, nextQueenSpawn.y, nextQueenSpawn.z, "n", chickenTeamID)
-		end
-
 		local bestScore = 0
 		local sx, sy, sz
 		for burrowID, turretCount in pairs(burrows) do
@@ -1578,38 +1564,20 @@ if gadgetHandler:IsSyncedCode() then
 			maxChicken = oldMaxChicken
 			damageMod = oldDamageMod
 			queenResistance = {}
-			if ascendingQueen == true then
-				local x, y, z = GetUnitPosition(unitID)
-				nextQueenSpawn = { x = x, y = y, z = z }
-				if queenName == "ve_chickenq" then
-					queenName = "e_chickenq"
-				elseif queenName == "e_chickenq" then
-					queenName = "n_chickenq"
-				elseif queenName == "n_chickenq" then
-					queenName = "h_chickenq"
-				elseif queenName == "h_chickenq" then
-					queenName = "vh_chickenq"
-				elseif queenName == "vh_chickenq" then
-					queenName = "epic_chickenq"
-					ascendingQueen = false
-					nextQueenSpawn = nil
-				end
-				updateSpawnQueen()
+
+			if modes[highestLevel] == SURVIVAL then
+				queenTime = t + ((Spring.GetModOptions().chicken_queentime * 60) * survivalQueenMod)
+				survivalQueenMod = survivalQueenMod * 0.8
+				queenAnger = 0  -- reenable chicken spawning
+				burrowAnger = 0
+				SetGameRulesParam("queenAnger", queenAnger)
+				SpawnBurrow()
+				SpawnChickens() -- spawn new chickens (because queen could be the last one)
 			else
-				if modes[highestLevel] == SURVIVAL then
-					queenTime = t + ((Spring.GetModOptions().chicken_queentime * 60) * survivalQueenMod)
-					survivalQueenMod = survivalQueenMod * 0.8
-					queenAnger = 0  -- reenable chicken spawning
-					burrowAnger = 0
-					SetGameRulesParam("queenAnger", queenAnger)
-					SpawnBurrow()
-					SpawnChickens() -- spawn new chickens (because queen could be the last one)
-				else
-					gameOver = GetGameFrame() + 120
-					spawnQueue = {}
-					KillAllComputerUnits()
-					KillAllChicken()
-				end
+				gameOver = GetGameFrame() + 120
+				spawnQueue = {}
+				KillAllComputerUnits()
+				KillAllChicken()
 			end
 		end
 
