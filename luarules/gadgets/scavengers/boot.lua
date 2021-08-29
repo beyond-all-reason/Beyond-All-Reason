@@ -278,8 +278,8 @@ function gadget:GameFrame(n)
 		end
 		local scavUnits = Spring.GetTeamUnits(GaiaTeamID)
 		local scavUnitsCount = #scavUnits
-		if scavUnitsCount < 5 and scavengerGamePhase ~= "initial" then
-			killedscavengers = killedscavengers + 100
+		if scavUnitsCount < (unitSpawnerModuleConfig.minimumspawnbeacons*4) and scavengerGamePhase ~= "initial" then 
+			killedscavengers = killedscavengers + 1000
 			if BossWaveStarted and (BossWaveTimeLeft and BossWaveTimeLeft > 20) then
 				BossWaveTimeLeft = 20
 			end
