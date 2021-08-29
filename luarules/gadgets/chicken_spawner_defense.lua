@@ -1,6 +1,3 @@
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
 function gadget:GetInfo()
 	return {
 		name = "Chicken Defense Spawner",
@@ -11,16 +8,6 @@ function gadget:GetInfo()
 		layer = 0,
 		enabled = true --  loaded by default?
 	}
-end
-
-local DEBUGCHICKEN = false
-
-if DEBUGCHICKEN then
-	local opts = {}
-	for k, v in pairs(Spring.GetModOptions()) do
-		opts[#opts + 1] = tostring(k) .. "=" .. tostring(v)
-	end
-	Spring.Echo("Modoptions:", table.concat(opts, ", "))
 end
 
 if Spring.Utilities.Gametype.IsChickens() then
@@ -285,21 +272,7 @@ if gadgetHandler:IsSyncedCode() then
 	-- eggChance scales - 20% at 0-300 grace, 10% at 400 grace, 0% at 500+ grace
 	local eggChance = 0.20 * math.max(0, math.min(1, (500 - gracePeriod) / 200)) / chickenSpawnMultiplier
 	local bonusEggs = math.ceil(24 * math.max(0, math.min(1, (500 - gracePeriod) / 200))) / chickenSpawnMultiplier
-	if DEBUGCHICKEN then
-		Spring.Echo("eggChance", eggChance, "bonusEggs", bonusEggs)
-	end
-	if DEBUGCHICKEN then
-		Spring.Echo("maxBurrows", maxBurrows, "queenTime", queenTime)
-	end
-	if DEBUGCHICKEN then
-		Spring.Echo("expIncrement", expIncrement, "chickensPerPlayer", chickensPerPlayer)
-	end
-	if DEBUGCHICKEN then
-		Spring.Echo("gracePenalty", gracePenalty, "chickensPerPlayer", chickensPerPlayer)
-	end
-	if DEBUGCHICKEN then
-		Spring.Echo("addQueenAnger", addQueenAnger)
-	end
+
 	if modes[highestLevel] == EPIC then
 		gracePenalty = gracePenalty + 15
 		maxBurrows = math.max(maxBurrows * 1.5, 50)
@@ -854,9 +827,6 @@ if gadgetHandler:IsSyncedCode() then
 				if skipSpawn and chickenDebtCount > 0 and mRandom() > spawnChance then
 					chickenDebtCount = (chickenDebtCount - 1)
 					skipSpawn = false
-				end
-				if DEBUGCHICKEN then
-					Spring.Echo(("BWAAK %i BurrowID=%i Squad=%s skip=%s cCount=%i Debt=%i"):format(i, burrowID, sString, tostring(skipSpawn), cCount, chickenDebtCount))
 				end
 				if not skipSpawn then
 					local nEnd, _ = string.find(sString, " ")
@@ -1487,9 +1457,6 @@ if gadgetHandler:IsSyncedCode() then
 				if h then
 					Spring.CreateFeature(EGG_DROPPER[unitDefID], x, y, z, h)
 					bonusEggs = bonusEggs - 1
-					if DEBUGCHICKEN then
-						Spring.Echo("eggChance", eggChance, "bonusEggs", bonusEggs)
-					end
 				end
 			end
 		end
@@ -1581,21 +1548,12 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 
-		if DEBUGCHICKEN then
-			Spring.Echo("unitDefID", unitDefID, "burrowDef", burrowDef, "addQueenAnger", addQueenAnger)
-		end
 		if unitDefID == burrowDef and not gameOver then
-			if DEBUGCHICKEN then
-				Spring.Echo("Burrow kill !", burrowAnger)
-			end
 			local kills = GetGameRulesParam(burrowName .. "Kills")
 			SetGameRulesParam(burrowName .. "Kills", kills + 1)
 
 			burrows[unitID] = nil
 			if addQueenAnger == 1 then
-				if DEBUGCHICKEN then
-					Spring.Echo("Burrow kill adding anger", burrowAnger, burrowAnger + angerBonus)
-				end
 				burrowAnger = (burrowAnger + angerBonus)
 				expMod = (expMod + angerBonus)
 			end
