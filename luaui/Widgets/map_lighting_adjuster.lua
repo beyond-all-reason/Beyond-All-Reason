@@ -84,6 +84,9 @@ local mapSunLighting = {
 		unitAmbientColor = {0.7, 0.75, 0.7},
 		modelShadowDensity = 0.75,
 	},
+	['nuclear winter bar 1.2'] = {
+		groundAmbientColor = { 0.52, 0.52, 0.59 },
+	},
 }
 
 local mapSun = {

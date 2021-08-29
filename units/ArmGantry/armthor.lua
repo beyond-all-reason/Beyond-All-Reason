@@ -125,7 +125,7 @@ return {
 		},
 		weapondefs = {
 			lightning = {
-				areaofeffect = 8,
+				areaofeffect = 24,
 				avoidfeature = false,
 				beamttl = 1,
 				burst = 20,
@@ -163,8 +163,8 @@ return {
 					expl_light_mult = 3.5,
 					expl_light_radius_mult = 2.75,
 					light_color = "0.2 0.5 1",
-					light_mult = 1.7,
-					light_radius_mult = 1.25,
+					light_mult = 1.6,
+					light_radius_mult = 1.5,
 				},
 				damage = {
 					default = 110,
