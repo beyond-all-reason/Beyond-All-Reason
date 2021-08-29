@@ -102,7 +102,6 @@ function SpawnBeacon(n)
 						end
 					end
 					if unitSpawnerModuleConfig.beacondefences == true then
-						Spring.CreateUnit("scavengerdroppod_scav", posx, posy, posz, math_random(0,3),GaiaTeamID)
 						local spawnTier = math_random(1,100)
 						if spawnTier <= TierSpawnChances.T0 then
 							grouptier = staticUnitList.BeaconDefences.T0
@@ -128,6 +127,7 @@ function SpawnBeacon(n)
 						end
 
 						if scavengerGamePhase ~= "initial" then
+							Spring.CreateUnit("scavengerdroppod_scav", posx, posy, posz, math_random(0,3),GaiaTeamID)
 							Spring.CreateUnit("scavengerdroppod_scav", posx-128, posy, posz, math_random(0,3),GaiaTeamID)
 							Spring.CreateUnit("scavengerdroppod_scav", posx+128, posy, posz, math_random(0,3),GaiaTeamID)
 							Spring.CreateUnit("scavengerdroppod_scav", posx, posy, posz+128, math_random(0,3),GaiaTeamID)
