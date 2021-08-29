@@ -6,7 +6,7 @@ chickenSpawnMultiplier      = Spring.GetModOptions().chicken_spawncountmult
 maxBurrows           = 20
 gracePeriod          = Spring.GetModOptions().chicken_graceperiod  -- no chicken spawn in this period, seconds
 queenTime            = Spring.GetModOptions().chicken_queentime * 60 -- time at which the queen appears, seconds
-addQueenAnger        = Spring.GetModOptions().chicken_queenanger -- cause its actually a string!
+addQueenAnger        = Spring.GetModOptions().chicken_queenanger
 burrowSpawnType      = Spring.GetModOptions().chicken_chickenstart
 spawnSquare          = 90       -- size of the chicken spawn square centered on the burrow
 spawnSquareIncrement = 2         -- square size increase for each unit spawned
@@ -47,18 +47,6 @@ maxAges["chickenh1b"] = 200
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
-
-local function Copy(original)
-  local copy = {}
-  for k, v in pairs(original) do
-    if (type(v) == "table") then
-      copy[k] = Copy(v)
-    else
-      copy[k] = v
-    end
-  end
-  return copy
-end
 
 local function addWave(wave, unitList)
  if not waves[wave] then waves[wave] = {} end
@@ -285,8 +273,8 @@ difficulties = {
     angerBonus        = 0.05,
     expStep           = 0,
     lobberEMPTime     = 0,
-    chickenTypes      = Copy(chickenTypes),
-    defenders         = Copy(defenders),
+    chickenTypes      = table.copy(chickenTypes),
+    defenders         = table.copy(defenders),
     chickensPerPlayer = 7,
     spawnChance       = 0.25,
     damageMod         = 0.125,
@@ -298,8 +286,8 @@ difficulties = {
     angerBonus        = 0.075,
     expStep           = 0.09375,
     lobberEMPTime     = 2.5,
-    chickenTypes      = Copy(chickenTypes),
-    defenders         = Copy(defenders),
+    chickenTypes      = table.copy(chickenTypes),
+    defenders         = table.copy(defenders),
     chickensPerPlayer = 7,
     spawnChance       = 0.33,
     damageMod         = 0.25,
@@ -312,8 +300,8 @@ difficulties = {
     angerBonus        = 0.10,
     expStep           = 0.125,
     lobberEMPTime     = 4,
-    chickenTypes      = Copy(chickenTypes),
-    defenders         = Copy(defenders),
+    chickenTypes      = table.copy(chickenTypes),
+    defenders         = table.copy(defenders),
     chickensPerPlayer = 9,
     spawnChance       = 0.4,
     damageMod         = 0.4,
@@ -326,8 +314,8 @@ difficulties = {
     angerBonus        = 0.125,
     expStep           = 0.25,
     lobberEMPTime     = 5,
-    chickenTypes      = Copy(chickenTypes),
-    defenders         = Copy(defenders),
+    chickenTypes      = table.copy(chickenTypes),
+    defenders         = table.copy(defenders),
     chickensPerPlayer = 14,
     spawnChance       = 0.5,
     damageMod         = 0.55,
@@ -340,8 +328,8 @@ difficulties = {
     angerBonus        = 0.15,
     expStep           = 0.4,
     lobberEMPTime     = 7.5,
-    chickenTypes      = Copy(chickenTypes),
-    defenders         = Copy(defenders),
+    chickenTypes      = table.copy(chickenTypes),
+    defenders         = table.copy(defenders),
     chickensPerPlayer = 18,
     spawnChance       = 0.6,
     damageMod         = 0.66,
@@ -353,8 +341,8 @@ difficulties = {
     angerBonus        = 0.5,
     expStep           = 0.5,
     lobberEMPTime     = 10,
-    chickenTypes      = Copy(chickenTypes),
-    defenders         = Copy(defenders),
+    chickenTypes      = table.copy(chickenTypes),
+    defenders         = table.copy(defenders),
     chickensPerPlayer = 50,
     spawnChance       = 0.75,
     damageMod         = 1.0,
@@ -367,8 +355,8 @@ difficulties = {
     angerBonus        = Spring.GetModOptions().chicken_custom_angerbonus,
     expStep           = Spring.GetModOptions().chicken_custom_expstep * -1,
     lobberEMPTime     = Spring.GetModOptions().chicken_custom_lobberemp,
-    chickenTypes      = Copy(chickenTypes),
-    defenders         = Copy(defenders),
+    chickenTypes      = table.copy(chickenTypes),
+    defenders         = table.copy(defenders),
     chickensPerPlayer = Spring.GetModOptions().chicken_custom_minchicken,
     spawnChance       = Spring.GetModOptions().chicken_custom_spawnchance / 100,
     damageMod         = Spring.GetModOptions().chicken_custom_damagemod / 100,
@@ -381,17 +369,10 @@ difficulties = {
     angerBonus          = 0.1,
     expStep             = 0.125,
     lobberEMPTime       = 4,
-    chickenTypes        = Copy(chickenTypes),
-    defenders           = Copy(defenders),
+    chickenTypes        = table.copy(chickenTypes),
+    defenders           = table.copy(defenders),
     chickensPerPlayer   = 9,
     spawnChance         = 0.4,
     damageMod           = 0.5,
   },
 }
-
-
-
-defaultDifficulty = 'Chicken: Custom'
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------

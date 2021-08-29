@@ -182,22 +182,6 @@ if gadgetHandler:IsSyncedCode() then
 		[8] = SURVIVAL,
 	}
 
-	local function dump(o)
-		if type(o) == 'table' then
-			local s = '{ '
-			for k, v in pairs(o) do
-				if type(k) ~= 'number' then
-					k = '"' .. k .. '"'
-				end
-				s = s .. '[' .. k .. '] = ' .. dump(v) .. ',\n'
-			end
-			return s .. '} '
-		else
-			return tostring(o)
-		end
-	end
-	--Spring.Echo(VERYEASY)
-
 	for i, v in ipairs(modes) do
 		-- make it bi-directional
 		modes[v] = i
@@ -261,12 +245,6 @@ if gadgetHandler:IsSyncedCode() then
 		end
 		return count
 	end
-
-	local function getSqrDistance(x1, z1, x2, z2)
-		local dx, dz = x1 - x2, z1 - z2
-		return (dx * dx) + (dz * dz)
-	end
-
 
 	--------------------------------------------------------------------------------
 	--------------------------------------------------------------------------------
