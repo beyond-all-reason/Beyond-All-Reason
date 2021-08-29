@@ -95,6 +95,7 @@ return {
 			armrl_missile = {
 				areaofeffect = 64,
 				avoidfeature = false,
+				burnblow = true,
 				canattackground = false,
 				cegtag = "missiletrailaa",
 				craterareaofeffect = 0,

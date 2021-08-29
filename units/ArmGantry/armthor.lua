@@ -163,8 +163,8 @@ return {
 					expl_light_mult = 3.5,
 					expl_light_radius_mult = 2.75,
 					light_color = "0.2 0.5 1",
-					light_mult = "1.4",
-					light_radius_mult = 1.1,
+					light_mult = 1.7,
+					light_radius_mult = 1.25,
 				},
 				damage = {
 					default = 110,

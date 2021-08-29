@@ -122,6 +122,7 @@ return {
 				burnblow = true,
 				burst = 4,
 				burstrate = 0.26667,
+				burnblow = true,
 				canattackground = false,
 				cegtag = "missiletrailaa",
 				craterareaofeffect = 0,

@@ -93,6 +93,7 @@ return {
 			aamissile = {
 				areaofeffect = 16,
 				avoidfeature = false,
+				burnblow = true,
 				canattackground = false,
 				cegtag = "missiletrailaa",
 				craterareaofeffect = 0,

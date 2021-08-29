@@ -124,6 +124,7 @@ return {
 			armamph_missile = {
 				areaofeffect = 48,
 				avoidfeature = false,
+				burnblow = true,
 				canattackground = false,
 				cegtag = "missiletrailaa",
 				craterareaofeffect = 0,

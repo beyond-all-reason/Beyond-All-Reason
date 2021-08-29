@@ -125,6 +125,7 @@ return {
 				areaofeffect = 48,
 				avoidfeature = false,
 				canattackground = false,
+				burnblow = true,
 				cegtag = "missiletrailaa",
 				craterareaofeffect = 0,
 				craterboost = 0,

@@ -152,7 +152,7 @@ return {
 				weaponvelocity = 1500,
 				customparams = {
 					expl_light_color = "1 0.4 0.5",
-					expl_light_mult = 1.29,
+					expl_light_mult = 1.13,
 					expl_light_radius_mult = 0.93,
 					light_color = "1 0.5 0.6",
 					light_mult = 0.8,
@@ -199,6 +199,7 @@ return {
 			coraabot_missile1 = {
 				areaofeffect = 24,
 				avoidfeature = false,
+				burnblow = true,
 				canattackground = false,
 				cegtag = "missiletrailaa",
 				craterareaofeffect = 0,
@@ -235,8 +236,8 @@ return {
 				weaponvelocity = 850,
 				customparams = {
 					expl_light_color = "1 0.4 0.5",
-					expl_light_mult = 1.29,
-					expl_light_radius_mult = 3.13,
+					expl_light_mult = 1.13,
+					expl_light_radius_mult = 3.33,
 					light_color = "1 0.5 0.6",
 				},
 				damage = {
@@ -248,6 +249,7 @@ return {
 			coraabot_missile2 = {
 				areaofeffect = 24,
 				avoidfeature = false,
+				burnblow = true,
 				canattackground = false,
 				cegtag = "missiletrailaa",
 				craterareaofeffect = 0,
@@ -284,8 +286,8 @@ return {
 				weaponvelocity = 850,
 				customparams = {
 					expl_light_color = "1 0.4 0.5",
-					expl_light_mult = 1.29,
-					expl_light_radius_mult = 3.13,
+					expl_light_mult = 1.13,
+					expl_light_radius_mult = 3.33,
 					light_color = "1 0.5 0.6",
 				},
 				damage = {
@@ -297,6 +299,7 @@ return {
 			coraabot_missile3 = {
 				areaofeffect = 24,
 				avoidfeature = false,
+				burnblow = true,
 				canattackground = false,
 				cegtag = "missiletrailaa",
 				craterareaofeffect = 0,
@@ -333,8 +336,8 @@ return {
 				weaponvelocity = 850,
 				customparams = {
 					expl_light_color = "1 0.4 0.5",
-					expl_light_mult = 1.29,
-					expl_light_radius_mult = 3.13,
+					expl_light_mult = 1.13,
+					expl_light_radius_mult = 3.33,
 					light_color = "1 0.5 0.6",
 				},
 				damage = {
@@ -346,6 +349,7 @@ return {
 			coraabot_missile4 = {
 				areaofeffect = 64,
 				avoidfeature = false,
+				burnblow = true,
 				canattackground = false,
 				cegtag = "missiletrailaa",
 				craterareaofeffect = 0,
@@ -382,8 +386,8 @@ return {
 				weaponvelocity = 1100,
 				customparams = {
 					expl_light_color = "1 0.4 0.5",
-					expl_light_mult = 1.29,
-					expl_light_radius_mult = 3.13,
+					expl_light_mult = 1.13,
+					expl_light_radius_mult = 3.33,
 					light_color = "1 0.5 0.6",
 				},
 				damage = {

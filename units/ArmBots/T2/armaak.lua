@@ -174,6 +174,7 @@ return {
 				areaofeffect = 64,
 				avoidfeature = false,
 				canattackground = false,
+				burnblow = true,
 				cegtag = "missiletrailaa",
 				craterareaofeffect = 0,
 				craterboost = 0,
@@ -220,6 +221,7 @@ return {
 			armaabot_missile2 = {
 				areaofeffect = 24,
 				avoidfeature = false,
+				burnblow = true,
 				canattackground = false,
 				cegtag = "missiletrailaa",
 				craterareaofeffect = 0,

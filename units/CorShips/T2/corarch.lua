@@ -151,6 +151,7 @@ return {
 				avoidfeature = false,
 				burst = 2,
 				burstrate = 0.4,
+				burnblow = true,
 				canattackground = false,
 				cegtag = "missiletrailaa",
 				craterareaofeffect = 0,

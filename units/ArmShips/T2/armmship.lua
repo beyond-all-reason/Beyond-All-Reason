@@ -118,6 +118,7 @@ return {
 			missile = {
 				areaofeffect = 96,
 				avoidfeature = false,
+				burnblow = true,
 				canattackground = false,
 				cegtag = "missiletrailaa",
 				craterareaofeffect = 0,
@@ -152,7 +153,7 @@ return {
 				customparams = {
 					expl_light_color = "1 0.4 0.5",
 					light_color = "1 0.5 0.6",
-
+					light_skip = true,
 				},
 				damage = {
 					default = 138,
