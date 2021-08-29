@@ -889,22 +889,24 @@ local function GadgetWeaponExplosion(px, py, pz, weaponID, ownerID)
 			local params = table.copy(params)
 			params.py = params.py + 100 + math.min(400, params.param.radius / 30)
 			params.life = 2.2 + math.min(3.3, params.param.radius / 8000)
-			params.orgMult = 0.25 + math.min(1.2, params.param.radius / 8000) * globalLightMult / 1.5
+			params.orgMult = 0.33 + math.min(1.33, params.param.radius / 8000) * globalLightMult / 1.5
 			params.param.radius = params.param.radius * 3.5
 			params.param.r = 1
 			params.param.g = 1
 			params.param.b = 1
 			explosionLightsCount = explosionLightsCount + 1
 			explosionLights[explosionLightsCount] = params
-		elseif additionalLightingFlashes and averageFps > additionalLightingFlashesAboveAverageFps then
+		end
+
+		if additionalLightingFlashes and averageFps > additionalLightingFlashesAboveAverageFps then
 			--local params = table.copy(params)
 			params.py = params.py + 10 + math.min(50, params.param.radius / 130)
 			params.life = 0.7 + (params.life * 0.36)
 			params.orgMult = params.orgMult * additionalLightingFlashesMult * math.max(0.6, math.min(1, params.param.radius/120))
 			params.param.radius = params.param.radius * 0.6
-			params.param.r = (params.param.r + 0.8) / 1.8
-			params.param.g = (params.param.g + 0.8) / 1.8
-			params.param.b = (params.param.b + 0.8) / 1.8
+			params.param.r = (params.param.r + 1) / 2
+			params.param.g = (params.param.g + 1) / 2
+			params.param.b = (params.param.b + 1) / 2
 			explosionLightsCount = explosionLightsCount + 1
 			explosionLights[explosionLightsCount] = params
 		end

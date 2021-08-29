@@ -2922,7 +2922,7 @@ local definitions = {
       class              = [[CHeatCloudProjectile]],
       count              = 1,
       ground             = true,
-      water              = true, 
+      water              = true,
 	  underwater         = true,
       properties = {
         heat               = 15,
@@ -2950,17 +2950,17 @@ local sizes = {
     small = {
 
     },
-	
+
 	medium = {
-	
+
 	},
-	
+
 	large = {
-	
+
 	},
-	
+
 	huge = {
-	
+
 	},
 }
 for size, effects in pairs(sizes) do
@@ -2983,9 +2983,9 @@ local colors = {
     --grounddust = false,
     centerflare = {air=false, ground=false, water=false, unit=true},
     clouddust = {air=false, ground=false, water=false, unit=true},
-    explosion = {air=false, ground=false, water=false, unit=true},
-    explosion2 = {air=false, ground=false, water=false, unit=true},
-    sparks = {air=false, ground=false, water=false, unit=true},
+    explosion = {air=false, ground=false, water=false, unit=true, properties={colormap=[[0 0 0 0   1 0.85 0.7 0.09   0.9 0.45 0.37 0.066   0.66 0.26 0.2 0.033   0 0 0 0]]}},
+    explosion2 = {air=false, ground=false, water=false, unit=true, properties={colormap=[[1 0.3 0.24 0.1   0.5 0.13 0.1 0.05   0.07 0.025 0.02 0.02   0 0 0 0]]}},
+    sparks = {air=false, ground=false, water=false, unit=true, properties={colormap=[[0.9 0.8 0.7 0.017   0.8 0.5 0.4 0.011   0 0 0 0]]}},
     outerflash = {air=false, ground=false, water=false, unit=true},
   },
   aa = {

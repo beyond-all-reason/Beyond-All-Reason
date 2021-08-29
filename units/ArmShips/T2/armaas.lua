@@ -228,10 +228,10 @@ return {
 				customparams = {
 					expl_light_color = "1 0.4 0.5",
 					expl_light_mult = 0.86,
-					expl_light_radius_mult = 0.83,
+					expl_light_radius_mult = 0.93,
 					light_color = "1 0.5 0.6",
 					light_mult = 0.8,
-					light_radius_mult = 0.55,
+					light_radius_mult = 0.74,
 				},
 				damage = {
 					bombers = 200,

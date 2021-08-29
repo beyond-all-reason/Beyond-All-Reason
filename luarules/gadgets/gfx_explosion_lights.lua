@@ -27,9 +27,12 @@ if gadgetHandler:IsSyncedCode() then
 					Script.SetWatchProjectile(wdid, true)
 				end
             end
-            if wd.type == "BeamLaser" then
-                Script.SetWatchExplosion(wdid, true)
-            end
+			if wd.type == "BeamLaser" then
+				Script.SetWatchExplosion(wdid, true)
+			end
+			if wd.type == "MissileLauncher" then
+				Script.SetWatchExplosion(wdid, true)
+			end
         end
     end
     function gadget:Shutdown()
