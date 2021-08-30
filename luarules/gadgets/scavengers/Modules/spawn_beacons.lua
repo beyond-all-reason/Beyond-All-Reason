@@ -152,11 +152,11 @@ function SpawnBeacon(n)
 							grouptiersea = staticUnitList.StartboxDefencesSea.T0
 						end
 
-						if constructorControllerModuleConfig.useconstructors then
-							local constructor = constructorUnitList.Constructors[math.random(#constructorUnitList.Constructors)]
-							QueueSpawn(constructor, posx, posy, posz, math.random(0, 3), GaiaTeamID, n + 150)
-						end
 						if scavengerGamePhase ~= "initial" then
+							if constructorControllerModuleConfig.useconstructors then
+								local constructor = constructorUnitList.Constructors[math.random(#constructorUnitList.Constructors)]
+								QueueSpawn(constructor, posx, posy, posz, math.random(0, 3), GaiaTeamID, n + 150)
+							end
 							Spring.CreateUnit("scavengerdroppod_scav", posx, posy, posz, math_random(0,3),GaiaTeamID)
 							Spring.CreateUnit("scavengerdroppod_scav", posx-128, posy, posz, math_random(0,3),GaiaTeamID)
 							Spring.CreateUnit("scavengerdroppod_scav", posx+128, posy, posz, math_random(0,3),GaiaTeamID)
