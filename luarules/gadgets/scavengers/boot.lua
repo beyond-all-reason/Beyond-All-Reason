@@ -683,8 +683,9 @@ function gadget:UnitGiven(unitID, unitDefID, unitNewTeam, unitOldTeam)
 			if scavconfig.modules.constructorControllerModule then
 				if constructorControllerModuleConfig.useconstructors then
 					if constructorUnitList.ConstructorsID[unitDefID] then
-						buffConstructorBuildSpeed(unitID)
+						scavStatsScavCommanders = scavStatsScavCommanders+1
 						scavConstructor[unitID] = true
+						buffConstructorBuildSpeed(unitID)
 					end
 				end
 
@@ -704,7 +705,7 @@ function gadget:UnitGiven(unitID, unitDefID, unitNewTeam, unitOldTeam)
 					if constructorUnitList.CollectorsID[unitDefID] then
 						buffConstructorBuildSpeed(unitID)
 						local r = math_random(0, 100)
-						if r <= 10 then
+						if scavengerGamePhase == "initial" or r <= 10 then
 							scavCollector[unitID] = true
 						-- elseif r <= 50 then
 						-- 	scavCapturer[unitID] = true
@@ -844,16 +845,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 			if constructorControllerModuleConfig.useconstructors then
 				if constructorUnitList.ConstructorsID[unitDefID] then
 					scavStatsScavCommanders = scavStatsScavCommanders+1
-					local r = math.random(0,100)
-					if r < 10 then
-						scavCollector[unitID] = true
-					elseif r < 20 then
-						scavCapturer[unitID] = true
-					elseif r < 30 then
-						scavReclaimer[unitID] = true
-					else
-						scavConstructor[unitID] = true
-					end
+					scavConstructor[unitID] = true
 					buffConstructorBuildSpeed(unitID)
 				end
 			end
@@ -874,7 +866,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 				if constructorUnitList.CollectorsID[unitDefID] then
 					buffConstructorBuildSpeed(unitID)
 					local r = math_random(0,100)
-					if r <= 10 then
+					if scavengerGamePhase == "initial" or r <= 10 then
 						scavCollector[unitID] = true
 					-- elseif r <= 75 then
 					-- 	scavCapturer[unitID] = true
@@ -938,7 +930,11 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 		Spring.GiveOrderToUnit(unitID,37382,{1},0)
 		-- Fire At Will
 		if scavConstructor[unitID] then
-			Spring.GiveOrderToUnit(unitID,CMD.FIRE_STATE,{2},0)
+			if scavengerGamePhase == "initial" then
+				Spring.GiveOrderToUnit(unitID,CMD.FIRE_STATE,{1},0)
+			else
+				Spring.GiveOrderToUnit(unitID,CMD.FIRE_STATE,{2},0)
+			end
 			if scavteamhasplayers == false then
 				Spring.GiveOrderToUnit(unitID,CMD.MOVE_STATE,{0},0)
 			end

@@ -47,62 +47,88 @@ function SpawnBeacon(n)
 				if canSpawnBeaconHere then
 					BeaconSpawnChance = unitSpawnerModuleConfig.beaconspawnchance
 					Spring.CreateUnit("scavengerdroppodbeacon_scav", posx, posy, posz, math_random(0,3),GaiaTeamID)
-					if scavengerGamePhase == "initial" then
-						if math.random(0,1) == 0 then
-							if Spring.GetGroundHeight(posx-64, posz-64) > -20 then
-								QueueSpawn(landUnitList.T0[math_random(1,#landUnitList.T0)], posx-64, posy, posz-64, math_random(0,3),GaiaTeamID, n+150, false)
-							else
-								QueueSpawn(seaUnitList.T0[math_random(1,#seaUnitList.T0)], posx-64, posy, posz-64, math_random(0,3),GaiaTeamID, n+150, false)
-							end
+					local spawnTier = math_random(1,100)
+					if spawnTier <= TierSpawnChances.T0 then
+						grouptier = landUnitList.T0
+					elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 then
+						grouptier = landUnitList.T1
+					elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 then
+						grouptier = landUnitList.T2
+					elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 then
+						grouptier = landUnitList.T3
+					elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 + TierSpawnChances.T4 then
+						grouptier = landUnitList.T4
+					else
+						grouptier = landUnitList.T0
+					end
+					if spawnTier <= TierSpawnChances.T0 then
+						grouptiersea = seaUnitList.T0
+					elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 then
+						grouptiersea = seaUnitList.T1
+					elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 then
+						grouptiersea = seaUnitList.T2
+					elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 then
+						grouptiersea = seaUnitList.T3
+					elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 + TierSpawnChances.T4 then
+						grouptiersea = seaUnitList.T4
+					else
+						grouptiersea = seaUnitList.T0
+					end
+					
+					if math.random(0,1) == 0 then
+						if Spring.GetGroundHeight(posx-64, posz-64) > -20 then
+							QueueSpawn(grouptier[math_random(1,#grouptier)], posx-64, posy, posz-64, math_random(0,3),GaiaTeamID, n+150, false)
 						else
-							if Spring.GetGroundHeight(posx-64, posz-64) > -20 then
-								QueueSpawn(constructorUnitList.Resurrectors[math_random(1,#constructorUnitList.Resurrectors)], posx-64, posy, posz-64, math_random(0,3),GaiaTeamID, n+150, false)
-							else
-								QueueSpawn(constructorUnitList.ResurrectorsSea[math_random(1,#constructorUnitList.ResurrectorsSea)], posx-64, posy, posz-64, math_random(0,3),GaiaTeamID, n+150, false)
-							end
+							QueueSpawn(grouptiersea[math_random(1,#grouptiersea)], posx-64, posy, posz-64, math_random(0,3),GaiaTeamID, n+150, false)
 						end
-						if math.random(0,1) == 0 then
-							if Spring.GetGroundHeight(posx+64, posz+64) > -20 then
-								QueueSpawn(landUnitList.T0[math_random(1,#landUnitList.T0)], posx+64, posy, posz+64, math_random(0,3),GaiaTeamID, n+150, false)
-							else
-								QueueSpawn(seaUnitList.T0[math_random(1,#seaUnitList.T0)], posx+64, posy, posz+64, math_random(0,3),GaiaTeamID, n+150, false)
-							end
+					else
+						if Spring.GetGroundHeight(posx-64, posz-64) > -20 then
+							QueueSpawn(constructorUnitList.Resurrectors[math_random(1,#constructorUnitList.Resurrectors)], posx-64, posy, posz-64, math_random(0,3),GaiaTeamID, n+150, false)
 						else
-							if Spring.GetGroundHeight(posx+64, posz+64) > -20 then
-								QueueSpawn(constructorUnitList.Resurrectors[math_random(1,#constructorUnitList.Resurrectors)], posx+64, posy, posz+64, math_random(0,3),GaiaTeamID, n+150, false)
-							else
-								QueueSpawn(constructorUnitList.ResurrectorsSea[math_random(1,#constructorUnitList.ResurrectorsSea)], posx+64, posy, posz+64, math_random(0,3),GaiaTeamID, n+150, false)
-							end
-						end
-						if math.random(0,1) == 0 then
-							if Spring.GetGroundHeight(posx+64, posz-64) > -20 then
-								QueueSpawn(landUnitList.T0[math_random(1,#landUnitList.T0)], posx+64, posy, posz-64, math_random(0,3),GaiaTeamID, n+150, false)
-							else
-								QueueSpawn(seaUnitList.T0[math_random(1,#seaUnitList.T0)], posx+64, posy, posz-64, math_random(0,3),GaiaTeamID, n+150, false)
-							end
-						else
-							if Spring.GetGroundHeight(posx+64, posz-64) > -20 then
-								QueueSpawn(constructorUnitList.Resurrectors[math_random(1,#constructorUnitList.Resurrectors)], posx+64, posy, posz-64, math_random(0,3),GaiaTeamID, n+150, false)
-							else
-								QueueSpawn(constructorUnitList.ResurrectorsSea[math_random(1,#constructorUnitList.ResurrectorsSea)], posx+64, posy, posz-64, math_random(0,3),GaiaTeamID, n+150, false)
-							end
-						end
-						if math.random(0,1) == 0 then
-							if Spring.GetGroundHeight(posx-64, posz+64) > -20 then
-								QueueSpawn(landUnitList.T0[math_random(1,#landUnitList.T0)], posx-64, posy, posz+64, math_random(0,3),GaiaTeamID, n+150, false)
-							else
-								QueueSpawn(seaUnitList.T0[math_random(1,#seaUnitList.T0)], posx-64, posy, posz+64, math_random(0,3),GaiaTeamID, n+150, false)
-							end
-						else
-							if Spring.GetGroundHeight(posx-64, posz+64) > -20 then
-								QueueSpawn(constructorUnitList.Resurrectors[math_random(1,#constructorUnitList.Resurrectors)], posx-64, posy, posz+64, math_random(0,3),GaiaTeamID, n+150, false)
-							else
-								QueueSpawn(constructorUnitList.ResurrectorsSea[math_random(1,#constructorUnitList.ResurrectorsSea)], posx-64, posy, posz+64, math_random(0,3),GaiaTeamID, n+150, false)
-							end
+							QueueSpawn(constructorUnitList.ResurrectorsSea[math_random(1,#constructorUnitList.ResurrectorsSea)], posx-64, posy, posz-64, math_random(0,3),GaiaTeamID, n+150, false)
 						end
 					end
+					if math.random(0,1) == 0 then
+						if Spring.GetGroundHeight(posx+64, posz+64) > -20 then
+							QueueSpawn(grouptier[math_random(1,#grouptier)], posx+64, posy, posz+64, math_random(0,3),GaiaTeamID, n+150, false)
+						else
+							QueueSpawn(grouptiersea[math_random(1,#grouptiersea)], posx+64, posy, posz+64, math_random(0,3),GaiaTeamID, n+150, false)
+						end
+					else
+						if Spring.GetGroundHeight(posx+64, posz+64) > -20 then
+							QueueSpawn(constructorUnitList.Resurrectors[math_random(1,#constructorUnitList.Resurrectors)], posx+64, posy, posz+64, math_random(0,3),GaiaTeamID, n+150, false)
+						else
+							QueueSpawn(constructorUnitList.ResurrectorsSea[math_random(1,#constructorUnitList.ResurrectorsSea)], posx+64, posy, posz+64, math_random(0,3),GaiaTeamID, n+150, false)
+						end
+					end
+					if math.random(0,1) == 0 then
+						if Spring.GetGroundHeight(posx+64, posz-64) > -20 then
+							QueueSpawn(grouptier[math_random(1,#grouptier)], posx+64, posy, posz-64, math_random(0,3),GaiaTeamID, n+150, false)
+						else
+							QueueSpawn(grouptiersea[math_random(1,#grouptiersea)], posx+64, posy, posz-64, math_random(0,3),GaiaTeamID, n+150, false)
+						end
+					else
+						if Spring.GetGroundHeight(posx+64, posz-64) > -20 then
+							QueueSpawn(constructorUnitList.Resurrectors[math_random(1,#constructorUnitList.Resurrectors)], posx+64, posy, posz-64, math_random(0,3),GaiaTeamID, n+150, false)
+						else
+							QueueSpawn(constructorUnitList.ResurrectorsSea[math_random(1,#constructorUnitList.ResurrectorsSea)], posx+64, posy, posz-64, math_random(0,3),GaiaTeamID, n+150, false)
+						end
+					end
+					if math.random(0,1) == 0 then
+						if Spring.GetGroundHeight(posx-64, posz+64) > -20 then
+							QueueSpawn(grouptier[math_random(1,#grouptier)], posx-64, posy, posz+64, math_random(0,3),GaiaTeamID, n+150, false)
+						else
+							QueueSpawn(grouptiersea[math_random(1,#grouptiersea)], posx-64, posy, posz+64, math_random(0,3),GaiaTeamID, n+150, false)
+						end
+					else
+						if Spring.GetGroundHeight(posx-64, posz+64) > -20 then
+							QueueSpawn(constructorUnitList.Resurrectors[math_random(1,#constructorUnitList.Resurrectors)], posx-64, posy, posz+64, math_random(0,3),GaiaTeamID, n+150, false)
+						else
+							QueueSpawn(constructorUnitList.ResurrectorsSea[math_random(1,#constructorUnitList.ResurrectorsSea)], posx-64, posy, posz+64, math_random(0,3),GaiaTeamID, n+150, false)
+						end
+					end
+
 					if unitSpawnerModuleConfig.beacondefences == true then
-						local spawnTier = math_random(1,100)
 						if spawnTier <= TierSpawnChances.T0 then
 							grouptier = staticUnitList.BeaconDefences.T0
 						elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 then
@@ -126,12 +152,20 @@ function SpawnBeacon(n)
 							grouptiersea = staticUnitList.StartboxDefencesSea.T0
 						end
 
+						if constructorControllerModuleConfig.useconstructors then
+							local constructor = constructorUnitList.Constructors[math.random(#constructorUnitList.Constructors)]
+							QueueSpawn(constructor, posx, posy, posz, math.random(0, 3), GaiaTeamID, n + 150)
+						end
 						if scavengerGamePhase ~= "initial" then
 							Spring.CreateUnit("scavengerdroppod_scav", posx, posy, posz, math_random(0,3),GaiaTeamID)
 							Spring.CreateUnit("scavengerdroppod_scav", posx-128, posy, posz, math_random(0,3),GaiaTeamID)
 							Spring.CreateUnit("scavengerdroppod_scav", posx+128, posy, posz, math_random(0,3),GaiaTeamID)
 							Spring.CreateUnit("scavengerdroppod_scav", posx, posy, posz+128, math_random(0,3),GaiaTeamID)
 							Spring.CreateUnit("scavengerdroppod_scav", posx, posy, posz-128, math_random(0,3),GaiaTeamID)
+							Spring.CreateUnit("scavengerdroppod_scav", posx-128, posy, posz-128, math_random(0,3),GaiaTeamID)
+							Spring.CreateUnit("scavengerdroppod_scav", posx+128, posy, posz+128, math_random(0,3),GaiaTeamID)
+							Spring.CreateUnit("scavengerdroppod_scav", posx-128, posy, posz+128, math_random(0,3),GaiaTeamID)
+							Spring.CreateUnit("scavengerdroppod_scav", posx+128, posy, posz-128, math_random(0,3),GaiaTeamID)
 						end
 
 						if scavengerGamePhase ~= "initial" or math.random(0,3) == 0 then

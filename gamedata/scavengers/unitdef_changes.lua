@@ -65,11 +65,11 @@ local scavConstructorsList = {
 
 
 customDefs.scavengerdroppodbeacon = {
-	maxdamage = 5000*ScavDifficultyMultiplier,
+	maxdamage = 20000*ScavDifficultyMultiplier,
 }
 
 customDefs.scavsafeareabeacon = {
-	maxdamage = 10000*ScavDifficultyMultiplier,
+	maxdamage = 50000*ScavDifficultyMultiplier,
 }
 
 -- Scav Commanders
