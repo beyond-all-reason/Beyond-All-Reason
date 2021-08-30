@@ -48,7 +48,7 @@ local doOverride = false
 
 local additionalLightingFlashes = true
 local additionalLightingFlashesAboveAverageFps = 12
-local additionalLightingFlashesMult = 0.8
+local additionalLightingFlashesMult = 1
 local additionalNukeLightingFlashes = true
 
 local globalLightMult = 1.5
@@ -892,33 +892,38 @@ local function GadgetWeaponExplosion(px, py, pz, weaponID, ownerID)
 		local params = table_copy(weaponConf[weaponID].explosion)
 		params.frame = spGetGameFrame()
 		params.px = px
-		params.py = params.py + py
 		params.pz = pz
+		params.py = params.py + py
 		explosionLightsCount = explosionLightsCount + 1
 		explosionLights[explosionLightsCount] = params
 
 		-- brightened shorter flash
 		if additionalLightingFlashes and averageFps > additionalLightingFlashesAboveAverageFps then
-			params.py = params.py + math_min(50, params.param.radius / 130)
-			params.life = params.life * 0.38
-			params.orgMult = params.orgMult * additionalLightingFlashesMult * math_max(0.6, math_min(1, params.param.radius/120))
-			params.param.radius = params.param.radius * 0.6
-			params.param.r = (params.param.r + 1) / 2
-			params.param.g = (params.param.g + 1) / 2
-			params.param.b = (params.param.b + 1) / 2
+			local params2 = table_copy(params)
+			params2.py = params2.py + math_min(50, params2.param.radius / 130)
+			params2.life = 1 + (params2.life * 0.35)
+			params2.orgMult = params2.orgMult * additionalLightingFlashesMult * math_max(0.6, math_min(1, params2.param.radius/120))
+			params2.param.radius = params2.param.radius * 0.66
+			params2.param.r = (params2.param.r + 1) / 2
+			params2.param.g = (params2.param.g + 1) / 2
+			params2.param.b = (params2.param.b + 1) / 2
 			explosionLightsCount = explosionLightsCount + 1
-			explosionLights[explosionLightsCount] = params
+			explosionLights[explosionLightsCount] = params2
 		end
 
 		-- bright short white nuke flash
 		if additionalNukeLightingFlashes and weaponConf[weaponID].nuke then
-			params.py = params.py + 100 + math_min(400, params.param.radius / 30)
-			params.life = 3 + math_min(3, params.param.radius / 8000)
-			params.orgMult = 0.33 + math_min(1.1, params.param.radius / 8000) * globalLightMult / 1.5
-			params.param.radius = params.param.radius * 3.5
-			params.param.r, params.param.g, params.param.b = 1, 1, 1
+			local params3 = table_copy(params)
+			params3.frame = spGetGameFrame()
+			params3.px = px
+			params3.pz = pz
+			params3.py = params3.py + 100 + math_min(400, params3.param.radius / 30)
+			params3.life = 3 + math_min(3, params3.param.radius / 8000)
+			params3.orgMult = 0.33 + math_min(1.1, params3.param.radius / 8000) * globalLightMult / 1.5
+			params3.param.radius = params3.param.radius * 3.5
+			params3.param.r, params3.param.g, params3.param.b = 1, 1, 1
 			explosionLightsCount = explosionLightsCount + 1
-			explosionLights[explosionLightsCount] = params
+			explosionLights[explosionLightsCount] = params3
 		end
 
 		-- distortion
