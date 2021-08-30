@@ -198,6 +198,75 @@ local function loadWeaponDefs()
 				if params.yoffset > 25 then params.yoffset = 25 end
 			end
 
+
+			params.explosion = {
+				life = params.life,
+				orgMult = params.orgMult,
+				py = params.yoffset,
+				param = {
+					type = 'explosion',
+					r = params.r,
+					g = params.g,
+					b = params.b,
+					radius = params.radius,
+				},
+			}
+
+			if params.wtype == 'Cannon' then
+				params.barrelflare = {
+					life = (3+(params.life/2.5)) * globalLifeMult,
+					orgMult = 0.33 + (params.orgMult*0.19),
+					param = {
+						type = 'explosion',
+						r = (params.r + 1) / 2,
+						g = (params.g + 1) / 2,
+						b = (params.b + 1) / 2,
+						radius = 20 + (params.radius*0.8)
+					},
+				}
+			end
+
+			if not params.noheatdistortion and params.radius > 75 then
+				local strength,animSpeed,life,heat,sizeGrowth,size,force
+				if params.type == 'paralyzer' then
+					strength = 10
+					animSpeed = 0.1
+					life = params.life*0.6 + (params.radius/80)
+					sizeGrowth = 0
+					heat = 15
+					size =  params.radius/16
+					force = {0,0.15,0}
+				else
+					animSpeed = 1.3
+					sizeGrowth = 0.6
+					if params.type == 'flame' then
+						strength = 1 + (params.life/25)
+						size = params.radius/2.35
+						life = params.life*0.64 + (params.radius/90)
+						force = {1,5.5,1}
+						heat = 8
+					else
+						strength = params.heatstrength
+						size = params.heatradius
+						life = params.heatlife
+						force = {0,0.35,0}
+						heat = 1
+					end
+				end
+
+				params.explosionJitterparticle = {
+					layer = -35,
+					life = life,
+					py = 10,
+					size = size,
+					sizeGrowth = sizeGrowth,
+					strength = strength,
+					animSpeed = animSpeed,
+					heat = heat,
+					force = force,
+				}
+			end
+
 			weaponConf[i] = params
 		end
 	end
@@ -815,94 +884,24 @@ local function RemoveLight(lightID, life)
 	end
 end
 
+local table_copy = table.copy
+
 -- function called by explosion_lights gadget
 local function GadgetWeaponExplosion(px, py, pz, weaponID, ownerID)
 	if weaponConf[weaponID] ~= nil then
-		local params = {
-			life = weaponConf[weaponID].life,
-			orgMult = weaponConf[weaponID].orgMult,
-			frame = spGetGameFrame(),
-			px = px,
-			py = py + weaponConf[weaponID].yoffset,
-			pz = pz,
-			param = {
-				type = 'explosion',
-				r = weaponConf[weaponID].r,
-				g = weaponConf[weaponID].g,
-				b = weaponConf[weaponID].b,
-				radius = weaponConf[weaponID].radius,
-			},
-		}
+		local params = table_copy(weaponConf[weaponID].explosion)
+		params.frame = spGetGameFrame()
+		params.px = px
+		params.py = params.py + py
+		params.pz = pz
 		explosionLightsCount = explosionLightsCount + 1
 		explosionLights[explosionLightsCount] = params
 
-		if py > 0 and enableHeatDistortion and WG['Lups'] and params.param.radius > 80 and not weaponConf[weaponID].noheatdistortion and spIsSphereInView(px,py,pz,100) then
-
-			local strength,animSpeed,life,heat,sizeGrowth,size,force
-
-			local cx, cy, cz = Spring.GetCameraPosition()
-			local distance = math_diag(px-cx, py-cy, pz-cz)
-			local strengthMult = 1 / (distance*0.001)
-
-			if weaponConf[weaponID].type == 'paralyzer' then
-				strength = 10
-				animSpeed = 0.1
-				life = params.life*0.6 + (params.param.radius/80)
-				sizeGrowth = 0
-				heat = 15
-				size =  params.param.radius/16
-				force = {0,0.15,0}
-			else
-				animSpeed = 1.3
-				sizeGrowth = 0.6
-				if weaponConf[weaponID].type == 'flame' then
-					strength = 1 + (params.life/25)
-					size = params.param.radius/2.35
-					life = params.life*0.64 + (params.param.radius/90)
-					force = {1,5.5,1}
-					heat = 8
-				else
-					strength = weaponConf[weaponID].heatstrength
-					size = weaponConf[weaponID].heatradius
-					life = weaponConf[weaponID].heatlife
-					force = {0,0.35,0}
-					heat = 1
-				end
-			end
-			if size*strengthMult > 5 then
-				WG['Lups'].AddParticles('JitterParticles2', {
-					layer = -35,
-					life = life,
-					pos = {px,py+10,pz},
-					size = size,
-					sizeGrowth = sizeGrowth,
-					strength = strength*strengthMult,
-					animSpeed = animSpeed,
-					heat = heat,
-					force = force,
-				})
-			end
-		end
-
-		-- bright short nuke flash (unsure why it gets blue-ified sometimes)
-		if additionalNukeLightingFlashes and weaponConf[weaponID].nuke then
-			local params = table.copy(params)
-			params.py = params.py + 100 + math.min(400, params.param.radius / 30)
-			params.life = 2.2 + math.min(3.3, params.param.radius / 8000)
-			params.orgMult = 0.33 + math.min(1.33, params.param.radius / 8000) * globalLightMult / 1.5
-			params.param.radius = params.param.radius * 3.5
-			params.param.r = 1
-			params.param.g = 1
-			params.param.b = 1
-			explosionLightsCount = explosionLightsCount + 1
-			explosionLights[explosionLightsCount] = params
-		end
-
+		-- brightened shorter flash
 		if additionalLightingFlashes and averageFps > additionalLightingFlashesAboveAverageFps then
-			--local params = table.copy(params)
-			params.py = params.py + 10 + math.min(50, params.param.radius / 130)
-			params.life = 0.7 + (params.life * 0.36)
-			params.orgMult = params.orgMult * additionalLightingFlashesMult * math.max(0.6, math.min(1, params.param.radius/120))
+			params.py = params.py + math_min(50, params.param.radius / 130)
+			params.life = params.life * 0.38
+			params.orgMult = params.orgMult * additionalLightingFlashesMult * math_max(0.6, math_min(1, params.param.radius/120))
 			params.param.radius = params.param.radius * 0.6
 			params.param.r = (params.param.r + 1) / 2
 			params.param.g = (params.param.g + 1) / 2
@@ -910,27 +909,40 @@ local function GadgetWeaponExplosion(px, py, pz, weaponID, ownerID)
 			explosionLightsCount = explosionLightsCount + 1
 			explosionLights[explosionLightsCount] = params
 		end
+
+		-- bright short white nuke flash
+		if additionalNukeLightingFlashes and weaponConf[weaponID].nuke then
+			params.py = params.py + 100 + math_min(400, params.param.radius / 30)
+			params.life = 3 + math_min(3, params.param.radius / 8000)
+			params.orgMult = 0.33 + math_min(1.1, params.param.radius / 8000) * globalLightMult / 1.5
+			params.param.radius = params.param.radius * 3.5
+			params.param.r, params.param.g, params.param.b = 1, 1, 1
+			explosionLightsCount = explosionLightsCount + 1
+			explosionLights[explosionLightsCount] = params
+		end
+
+		-- distortion
+		if py > 0 and enableHeatDistortion and WG['Lups'] and weaponConf[weaponID].explosionJitterparticle and spIsSphereInView(px,py,pz,100) then
+			local cx, cy, cz = Spring.GetCameraPosition()
+			local distance = math_diag(px-cx, py-cy, pz-cz)
+			local strengthMult = 1 / (distance*0.001)
+
+			local params = table_copy(weaponConf[weaponID].explosionJitterparticle)
+			if params.size*strengthMult > 5 then
+				params.pos = {px, params.py + py, pz}
+				params.py = nil
+				params.strength = params.strength * strengthMult
+				WG['Lups'].AddParticles('JitterParticles2', params)
+			end
+		end
 	end
 end
 
 local function GadgetWeaponBarrelfire(px, py, pz, weaponID, ownerID)
-	if weaponConf[weaponID] ~= nil then
-		local mult = (weaponConf[weaponID].wtype == 'Cannon' and 1 or 0.3)
-		local params = {
-			life = (3+(weaponConf[weaponID].life/2.5))*globalLifeMult * mult,
-			orgMult = 0.3 + (weaponConf[weaponID].orgMult*0.2) * mult,
-			frame = spGetGameFrame(),
-			px = px,
-			py = py,
-			pz = pz,
-			param = {
-				type = 'explosion',
-				r = weaponConf[weaponID].r,
-				g = weaponConf[weaponID].g,
-				b = weaponConf[weaponID].b,
-				radius = 25 + (weaponConf[weaponID].radius*0.85) * mult,
-			},
-		}
+	if weaponConf[weaponID] and weaponConf[weaponID].barrelflare then
+		local params = table_copy(weaponConf[weaponID].barrelflare)
+		params.frame = spGetGameFrame()
+		params.px, params.py, params.pz = px, py, pz
 		explosionLightsCount = explosionLightsCount + 1
 		explosionLights[explosionLightsCount] = params
 	end
