@@ -48,7 +48,7 @@ local doOverride = false
 
 local additionalLightingFlashes = true
 local additionalLightingFlashesAboveAverageFps = 12
-local additionalLightingFlashesMult = 1
+local additionalLightingFlashesMult = 0.9
 local additionalNukeLightingFlashes = true
 
 local globalLightMult = 1.5
@@ -901,9 +901,9 @@ local function GadgetWeaponExplosion(px, py, pz, weaponID, ownerID)
 		if additionalLightingFlashes and averageFps > additionalLightingFlashesAboveAverageFps then
 			local params2 = table_copy(params)
 			params2.py = params2.py + math_min(50, params2.param.radius / 130)
-			params2.life = 1 + (params2.life * 0.35)
+			params2.life = params2.life * 0.38
 			params2.orgMult = params2.orgMult * additionalLightingFlashesMult * math_max(0.6, math_min(1, params2.param.radius/120))
-			params2.param.radius = params2.param.radius * 0.66
+			params2.param.radius = params2.param.radius * 0.64
 			params2.param.r = (params2.param.r + 1) / 2
 			params2.param.g = (params2.param.g + 1) / 2
 			params2.param.b = (params2.param.b + 1) / 2
@@ -914,9 +914,6 @@ local function GadgetWeaponExplosion(px, py, pz, weaponID, ownerID)
 		-- bright short white nuke flash
 		if additionalNukeLightingFlashes and weaponConf[weaponID].nuke then
 			local params3 = table_copy(params)
-			params3.frame = spGetGameFrame()
-			params3.px = px
-			params3.pz = pz
 			params3.py = params3.py + 100 + math_min(400, params3.param.radius / 30)
 			params3.life = 3 + math_min(3, params3.param.radius / 8000)
 			params3.orgMult = 0.33 + math_min(1.1, params3.param.radius / 8000) * globalLightMult / 1.5
