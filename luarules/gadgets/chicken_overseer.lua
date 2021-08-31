@@ -1,6 +1,3 @@
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
 function gadget:GetInfo()
   return {
     name      = "Chicken Overseer",
@@ -20,14 +17,11 @@ else
 	return false
 end
 
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
 
 if (not gadgetHandler:IsSyncedCode()) then
   return false
 end
 
-local OVERSEER = UnitDefNames["chickenh5"].id
 local RAGE_BLOB = WeaponDefNames['chickenh5_controlblob'].id
 local controlled = {}
 local controllers = {}
@@ -79,7 +73,3 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
 	end
 	controlled[unitID] = nil
 end
-
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------

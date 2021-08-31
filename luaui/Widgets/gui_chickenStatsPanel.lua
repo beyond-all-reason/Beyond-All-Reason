@@ -60,16 +60,8 @@ local guiPanel --// a displayList
 local updatePanel
 local hasChickenEvent = false
 
-local difficulties = {
-	[1] = Spring.I18N('ui.chickens.difficulty.veryEasy'),
-	[2] = Spring.I18N('ui.chickens.difficulty.easy'),
-	[3] = Spring.I18N('ui.chickens.difficulty.normal'),
-	[4] = Spring.I18N('ui.chickens.difficulty.hard'),
-	[5] = Spring.I18N('ui.chickens.difficulty.veryHard'),
-	[6] = Spring.I18N('ui.chickens.difficulty.epic'),
-	[7] = Spring.I18N('ui.chickens.difficulty.custom'),
-	[8] = Spring.I18N('ui.chickens.difficulty.survival'),
-}
+local difficultyOption = Spring.GetModOptions().chicken_difficulty
+local difficultyCaption = Spring.I18N('ui.chickens.difficulty.' .. difficultyOption)
 
 local rules = {
 	"queenTime",
@@ -197,11 +189,11 @@ local function CreatePanelDisplayList()
 	font:Print(gameInfo.unitKills, panelMarginX, PanelRow(3), panelFontSize, "")
 	font:Print(Spring.I18N('ui.chickens.burrowCount', { count = gameInfo.roostCount }), panelMarginX, PanelRow(4), panelFontSize, "")
 	font:Print(Spring.I18N('ui.chickens.burrowKillCount', { count = gameInfo.roostKills }), panelMarginX, PanelRow(5), panelFontSize, "")
-	
+
 	if gotScore then
 		font:Print(Spring.I18N('ui.chickens.score', { score = commaValue(scoreCount) }), 88, h - 170, panelFontSize "")
 	else
-		font:Print(Spring.I18N('ui.chickens.mode', { mode = difficulties[gameInfo.difficulty] }), 120, h - 170, panelFontSize, "")
+		font:Print(Spring.I18N('ui.chickens.mode', { mode = difficultyCaption }), 120, h - 170, panelFontSize, "")
 	end
 	font:End()
 
