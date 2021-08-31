@@ -513,13 +513,13 @@ return {
 				mode = 'Mode: %{mode}',
 				score = 'Your Score: %{score}',
 				difficulty = {
-					veryEasy = 'Very Easy',
+					-- These keys must match the keys in modoptions.lua
+					veryeasy = 'Very Easy',
 					easy = 'Easy',
 					normal = 'Normal',
 					hard ='Hard',
-					veryHard = 'Very Hard',
+					veryhard = 'Very Hard',
 					epic = 'Epic',
-					custom = 'Custom',
 					survival = 'Survival',
 				},
 			},
