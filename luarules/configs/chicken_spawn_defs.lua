@@ -147,18 +147,6 @@ local optionValues = {
 	  queenName         = 'epic_chickenq',
 	},
 
-	-- [CUSTOM] = {
-	--   chickenSpawnRate  = Spring.GetModOptions().chicken_custom_chickenspawn,
-	--   burrowSpawnRate   = Spring.GetModOptions().chicken_custom_burrowspawn,
-	--   queenSpawnMult    = Spring.GetModOptions().chicken_custom_queenspawnmult,
-	--   angerBonus        = Spring.GetModOptions().chicken_custom_angerbonus,
-	--   expStep           = Spring.GetModOptions().chicken_custom_expstep * -1,
-	--   lobberEMPTime     = Spring.GetModOptions().chicken_custom_lobberemp,
-	--   chickensPerPlayer = Spring.GetModOptions().chicken_custom_minchicken,
-	--   spawnChance       = Spring.GetModOptions().chicken_custom_spawnchance / 100,
-	--   damageMod         = Spring.GetModOptions().chicken_custom_damagemod / 100,
-	-- },
-
 	[difficulties.survival] = {
 	  chickenSpawnRate    = 80,
 	  burrowSpawnRate     = 105,

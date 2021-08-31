@@ -198,9 +198,6 @@ if gadgetHandler:IsSyncedCode() then
 	--
 
 	local expIncrement = ((SetCount(humanTeams) * config.expStep) / config.queenTime)
-	if config.expStep < 0 then
-		expIncrement = ((config.expStep * -1) / config.queenTime)
-	end
 	local nextWave = ((config.queenTime / 10) / 60)
 	local gracePenalty = math.max(math.floor(((config.gracePeriod - 270) / config.burrowSpawnRate) + 0.5), 0)
 	local chickensPerPlayer = (config.chickensPerPlayer * SetCount(humanTeams))

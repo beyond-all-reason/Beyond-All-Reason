@@ -521,7 +521,6 @@ return {
 					veryhard = 'Very Hard',
 					epic = 'Epic',
 					survival = 'Survival',
-					custom = 'Custom',
 				},
 			},
 			loadScreen = {
