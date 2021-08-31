@@ -22,7 +22,7 @@ local config = VFS.Include('LuaRules/Configs/chicken_spawn_defs.lua')
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 if gadgetHandler:IsSyncedCode() then
-	-- BEGIN SYNCED
+	-- SYNCED CODE
 	--------------------------------------------------------------------------------
 	--------------------------------------------------------------------------------
 	--
@@ -376,7 +376,6 @@ if gadgetHandler:IsSyncedCode() then
 		if not targetID or GetUnitTeam(targetID) == chickenTeamID or GetUnitTeam(chickenID) ~= chickenTeamID then
 			return
 		end
-		--debug--Spring.Echo(t .. " addChickenTarget " .. chickenID .. "," .. targetID)
 		if chickenTargets[chickenID] and chickenTargets[chickenTargets[chickenID]] and type(chickenTargets[chickenTargets[chickenID]]) == 'table' then
 			chickenTargets[chickenTargets[chickenID]][chickenID] = nil
 		end
@@ -407,7 +406,6 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	-- returns a random map position
 	local function getRandomMapPos()
 		local x = math.random(MAPSIZEX - 16)
 		local z = math.random(MAPSIZEZ - 16)
@@ -701,8 +699,6 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	local function Wave()
-		--debug--Spring.Echo(t .. "Wave()")
-
 		if gameOver then
 			return
 		end
@@ -947,8 +943,6 @@ if gadgetHandler:IsSyncedCode() then
 				local resistPercent = (math.min(queenResistance[weaponID].damage / queenMaxHP, 0.75) + 0.2)
 				if resistPercent > 0.35 then
 					if queenResistance[weaponID].notify == 0 then
-						--Bruh, just because you call a variable "WeaponName" doesn't mean that it magically goes and gets the weaponname from the def
-						--local weaponName
 						Spring.Echo("The Queen is becoming resistant to " .. unitHumanName[attackerDefID] .. "'s attacks!")
 						queenResistance[weaponID].notify = 1
 						for i = 1, 12, 1 do
@@ -1290,7 +1284,7 @@ if gadgetHandler:IsSyncedCode() then
 				return
 			end
 
-			expMod = (expMod + expIncrement) -- increment expierence
+			expMod = (expMod + expIncrement) -- increment experience
 
 			if next(idleOrderQueue) then
 				local processOrderQueue = {}
@@ -1414,9 +1408,7 @@ if gadgetHandler:IsSyncedCode() then
 
 		if chickenTargets[unitID] then
 			if unitTeam ~= chickenTeamID then
-				--debug--Spring.Echo(t .. " chickenTargets " .. unitID)
 				for chickenID in pairs(chickenTargets[unitID]) do
-					--debug--Spring.Echo(t .. " stopChicken " .. chickenID)
 					if GetUnitDefID(chickenID) then
 						idleOrderQueue[chickenID] = { cmd = CMD.STOP, params = {}, opts = {} }
 					end
@@ -1541,17 +1533,14 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:GameOver()
+		-- don't end game in survival mode
 		if config.difficulty ~= config.difficulties.survival then
-			-- don't end game in survival mode
-			--		Spring.Echo("Set Gameover")
 			gameOver = GetGameFrame()
 		end
 	end
 
-	--------------------------------------------------------------------------------
-	--------------------------------------------------------------------------------
 else
-	-- BEGIN UNSYNCED
+	-- UNSYNCED CODE
 	--------------------------------------------------------------------------------
 	--------------------------------------------------------------------------------
 
@@ -1587,8 +1576,4 @@ else
 		gadgetHandler:RemoveChatAction("HasChickenEvent")
 	end
 
-	--------------------------------------------------------------------------------
-	--------------------------------------------------------------------------------
 end
--- END UNSYNCED
---------------------------------------------------------------------------------
