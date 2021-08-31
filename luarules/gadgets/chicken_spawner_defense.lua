@@ -166,7 +166,6 @@ if gadgetHandler:IsSyncedCode() then
 
 	humanTeams[gaiaTeamID] = nil
 
-	SetGameRulesParam("chickenTeamID", chickenTeamID)
 	--------------------------------------------------------------------------------
 	--------------------------------------------------------------------------------
 	--
