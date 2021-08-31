@@ -387,6 +387,23 @@ local options={
 		type 	= 'section',
 	},
 	{
+		key="chicken_difficulty",
+		name="Difficulty",
+		desc="Chickens difficulty",
+		type="list",
+		def="normal",
+		section="chicken_defense_options",
+		items={
+			{key="veryeasy", name="Very Easy", desc="Very Easy"},
+			{key="easy", name="Easy", desc="Easy"},
+			{key="normal", name="Medium", desc="Medium"},
+			{key="hard", name="Hard", desc="Hard"},
+			{key="veryhard", name="Very Hard", desc="Very Hard"},
+			{key="epic", name="Epic", desc="Epic"},
+			{key="survival", name="Survival", desc="Endless Mode"}
+		}
+	},
+	{
 		key="chicken_chickenstart",
 		name="Burrow Placement",
 		desc="Control where burrows spawn",
@@ -398,23 +415,6 @@ local options={
 			{key="avoid", name="Avoid Players", desc="Burrows do not spawn on player units"},
 			{key="initialbox", name="Initial Start Box", desc="First wave spawns in chicken start box, following burrows avoid players"},
 			{key="alwaysbox", name="Always Start Box", desc="Burrows always spawn in chicken start box"},
-		}
-	},
-	{
-		key="chicken_queendifficulty",
-		name="Queen Difficulty",
-		desc="How hard doth the Chicken Queen",
-		type="list",
-		def="n_chickenq",
-		section="chicken_defense_options",
-		items={
-			{key="ve_chickenq", name="Very Easy", desc="Cakewalk"},
-			{key="e_chickenq", name="Easy", desc="Somewhat Challenging"},
-			{key="n_chickenq", name="Normal", desc="A Good Challenge"},
-			{key="h_chickenq", name="Hard", desc="Serious Business"},
-			{key="vh_chickenq", name="Very Hard", desc="Extreme Challenge"},
-			{key="epic_chickenq", name="Epic!", desc="Impossible!"},
-			{key="asc", name="Ascending", desc="Each difficulty after the next"},
 		}
 	},
 	{
