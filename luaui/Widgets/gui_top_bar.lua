@@ -175,6 +175,13 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 end
 
 --------------------------------------------------------------------------------
+-- Graphs window
+--------------------------------------------------------------------------------
+
+local gameIsOver = false
+local graphsWindowVisible = false
+
+--------------------------------------------------------------------------------
 -- Rejoin
 --------------------------------------------------------------------------------
 
@@ -1806,14 +1813,28 @@ local function applyButtonAction(button)
 			WG['commands'].toggle()
 		end
 	elseif button == 'stats' then
-		if WG['teamstats'] ~= nil then
-			isvisible = WG['teamstats'].isvisible()
-		end
-		hideWindows()
-		if WG['teamstats'] ~= nil and isvisible ~= true then
-			WG['teamstats'].toggle()
+		if gameIsOver then -- Show Graphs window instead of stats table when the game ended
+			if not graphsWindowVisible then
+				Spring.SendCommands('endgraph 2')
+				graphsWindowVisible = true
+			else
+				Spring.SendCommands('endgraph 0')
+				graphsWindowVisible = false
+			end
+		else
+			if WG['teamstats'] ~= nil then
+				isvisible = WG['teamstats'].isvisible()
+			end
+			hideWindows()
+			if WG['teamstats'] ~= nil and isvisible ~= true then
+				WG['teamstats'].toggle()
+			end
 		end
 	end
+end
+
+function widget:GameOver()
+	gameIsOver = true
 end
 
 function widget:MouseWheel(up, value)
