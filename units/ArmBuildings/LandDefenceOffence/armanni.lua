@@ -162,7 +162,9 @@ return {
 				customparams = {
 					expl_light_life_mult = 1.5,
 					expl_light_radius_mult = 1.3,
+					expl_light_mult = 1.15,
 					light_radius_mult = "1.15",
+					light_mult = 3,
 				},
 				damage = {
 					commanders = 2400,

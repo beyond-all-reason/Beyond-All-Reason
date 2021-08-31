@@ -152,7 +152,6 @@ return {
 				customparams = {
 					expl_light_color = "1 0.4 0.5",
 					light_color = "1 0.5 0.6",
-
 				},
 				damage = {
 					bombers = 138,
@@ -207,8 +206,7 @@ return {
 					expl_light_mult = 1.2,
 					expl_light_radius_mult = 1.25,
 					light_color = "1 0.6 0.15",
-					light_mult = 3,
-					light_radius_mult = 1.2,
+					light_mult = 1.66,
 					model = "airbomb",
 					number = "8",
 					speceffect = "split",
@@ -265,8 +263,7 @@ return {
 					expl_light_mult = 1.2,
 					expl_light_radius_mult = 1.25,
 					light_color = "1 0.6 0.15",
-					light_mult = 3,
-					light_radius_mult = 1.2,
+					light_skip = true,
 				},
 				damage = {
 					commanders = 223,

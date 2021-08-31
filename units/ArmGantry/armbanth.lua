@@ -251,7 +251,8 @@ return {
 					expl_light_life_mult = 2.5,
 					expl_light_mult = 4.5,
 					expl_light_radius_mult = 1.2,
-					light_radius_mult = "1.5",
+					light_radius_mult = 1.5,
+					light_mult = 3,
 				},
 				damage = {
 					commanders = 1800,
