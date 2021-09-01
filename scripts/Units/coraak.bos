@@ -388,13 +388,9 @@ AimWeapon5(heading, pitch)
 	return (1);
 }
 
-FireWeapon5()
-{
-}
-
 QueryWeapon6(piecenum)
 {
-	piecenum = flare1;
+	piecenum = flareflak;
 }
 
 AimFromWeapon6(piecenum)
@@ -404,100 +400,6 @@ AimFromWeapon6(piecenum)
 
 AimWeapon6(heading, pitch)
 {
-	signal 32;
-	set-signal-mask 32;
-	turn torso to y-axis heading speed <225.000000>;
-	wait-for-turn torso around y-axis;
-	start-script RestoreAfterDelay();
-	return (1);
-}
-
-FireWeapon6()
-{
-}
-
-QueryWeapon7(piecenum)
-{
-	piecenum = flare2;
-}
-
-AimFromWeapon7(piecenum)
-{
-	piecenum = flakgun;
-}
-
-AimWeapon7(heading, pitch)
-{
-	signal 64;
-	set-signal-mask 64;
-	turn torso to y-axis heading speed <225.000000>;
-	wait-for-turn torso around y-axis;
-	start-script RestoreAfterDelay();
-	return (1);
-}
-
-FireWeapon7()
-{
-}
-
-QueryWeapon8(piecenum)
-{
-	piecenum = flare3;
-}
-
-AimFromWeapon8(piecenum)
-{
-	piecenum = flakgun;
-}
-
-AimWeapon8(heading, pitch)
-{
-	signal 128;
-	set-signal-mask 128;
-
-	start-script RestoreAfterDelay();
-	return (1);
-}
-
-FireWeapon8()
-{
-}
-
-QueryWeapon9(piecenum)
-{
-	piecenum = flare4;
-}
-
-AimFromWeapon9(piecenum)
-{
-	piecenum = flakgun;
-}
-
-AimWeapon9(heading, pitch)
-{
-	signal 256;
-	set-signal-mask 256;
-
-	start-script RestoreAfterDelay();
-	return (1);
-}
-
-FireWeapon9()
-{
-}
-
-QueryWeapon10(piecenum)
-{
-	piecenum = flareflak;
-}
-
-AimFromWeapon10(piecenum)
-{
-	piecenum = flakgun;
-}
-
-AimWeapon10(heading, pitch)
-{
 	signal 512;
 	set-signal-mask 512;
 
@@ -505,7 +407,7 @@ AimWeapon10(heading, pitch)
 	return (1);
 }
 
-FireWeapon10()
+FireWeapon6()
 {
 	emit-sfx 1024 from flareflak;
 }

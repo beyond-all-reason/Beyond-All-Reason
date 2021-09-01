@@ -191,8 +191,8 @@ return {
 				weaponvelocity = 1500,
 				customparams = {
 					expl_light_life_mult = 1.1,
-					light_mult = 1.3,
-					light_radius_mult = 0.55,
+					light_mult = 2.66,
+					light_radius_mult = 0.6,
 				},
 				damage = {
 					commanders = 1200,

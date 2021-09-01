@@ -319,6 +319,9 @@ function widget:Initialize()
 			end
 		end
 	end
+	if #spots <= 1 then
+		goodbye("not enough spots detected")
+	end
 end
 
 
@@ -393,9 +396,11 @@ function widget:DrawWorldPreUnit()
 				gl.Color(1, 1, 1, opacity)
 
 				if showValue or Spring.GetGameFrame() == 0 or mapDrawMode == 'metal' then
-					gl.Scale(21*spot[5],21*spot[5],21*spot[5])
-					gl.Billboard()
-					gl.CallList(valueList[spot[4]])
+					if spot[5] < 200 then
+						gl.Scale(21*spot[5],21*spot[5],21*spot[5])
+						gl.Billboard()
+						gl.CallList(valueList[spot[4]])
+					end
 				end
 				gl.PopMatrix()
 			end

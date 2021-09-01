@@ -13,6 +13,7 @@ local resources = {
             circlefx1         = 'default/circlefx1.png',
             circlefx2         = 'default/circlefx2.png',
             circlefx3         = 'default/circlefx3.png',
+            radarfx2ground    = 'ui/radarping2.png',
          },
          projectiletextures = {
             circularthingy		= 'default/circularthingy.tga',
@@ -21,6 +22,9 @@ local resources = {
             laserfalloff	   	= 'default/laserfalloff.tga',
             randdots			    = 'default/randdots.tga',
             smoketrail		  	= 'default/smoketrail.tga',
+            smoketrailaa      = 'default/smoketrailaa.tga',
+            railguntrail      = 'default/railguntrail.tga',
+            trail             = 'default/trail.tga',
             wake			       	= 'default/wake.tga',
             flashside3        = 'projectiletextures/flashside3.tga',
             flare			      	= 'default/flare.tga',
@@ -46,6 +50,11 @@ local resources = {
             gunshotxl         = 'default/gunshotxl.tga',
 			      null              = 'PD/null.tga',
             trans             = 'projectiletextures/trans.tga',
+
+            radarfx1          = 'ui/radarping1.png',
+            radarfx2          = 'ui/radarping2.png',
+            radarfx1old       = 'ui/radar1xx.tga',
+            radarfx2old       = 'ui/radar2.tga',
             
             fogdirty          = 'atmos/fogdirty.tga',
             rain              = 'atmos/rain.tga',
