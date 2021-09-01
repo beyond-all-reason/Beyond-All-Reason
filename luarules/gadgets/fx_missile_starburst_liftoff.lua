@@ -39,8 +39,8 @@ for weaponID, weaponDef in pairs(WeaponDefs) do
 			missileWeapons[weaponDef.id] = {
 				0,
 				'missiletrailmedium-starburst-vertical', ((weaponDef.uptime + 0.1) * 30), ((weaponDef.uptime + 0.6) * 30),
-				'missilegroundmedium-liftoff', 80, 120,
-				'missilegroundmedium-liftoff-fire', 35, 55
+				'missilegroundmedium-liftoff', 40, 60,
+				'missilegroundmedium-liftoff-fire', 30, 40
 			}
 		elseif weaponDef.cegTag == 'missiletrail-juno' then
 			missileWeapons[weaponDef.id] = {

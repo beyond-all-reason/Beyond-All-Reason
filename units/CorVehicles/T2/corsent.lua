@@ -94,7 +94,7 @@ return {
 		},
 		sfxtypes = {
 			explosiongenerators = {
-				[1] = "custom:barrelshot-medium-aa",
+				[1] = "custom:barrelshot-flak",
 			},
 			pieceexplosiongenerators = {
 				[1] = "deathceg2",
@@ -172,12 +172,12 @@ return {
 				noselfdamage = true,
 				range = 775,
 				reloadtime = 0.73333,
-				size = 4.5,
-				sizedecay = 0.08,
+				--size = 4.5,
+				--sizedecay = 0.08,
 				soundhit = "flakhit",
 				soundhitwet = "splsmed",
 				soundstart = "flakfire",
-				stages = 8,
+				stages = 0,
 				turret = true,
 				weapontimer = 1,
 				weapontype = "Cannon",
