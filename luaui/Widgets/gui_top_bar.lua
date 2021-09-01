@@ -903,7 +903,7 @@ local function updateResbar(res)
 		-- Metalmaker Conversion slider
 		if showConversionSlider and res == 'energy' then
 			local convValue = Spring.GetTeamRulesParam(myTeamID, 'mmLevel')
-			if draggingConversionIndicatorValue ~= nil then
+			if draggingConversionIndicatorValue then
 				convValue = draggingConversionIndicatorValue / 100
 			end
 			if convValue == nil then
@@ -927,8 +927,10 @@ local function updateResbar(res)
 		end
 		-- Share slider
 		local value = r[res][6]
-		if draggingShareIndicatorValue[res] ~= nil then
+		if draggingShareIndicator and draggingShareIndicatorValue[res] ~= nil then
 			value = draggingShareIndicatorValue[res]
+		else
+			draggingShareIndicatorValue[res] = value
 		end
 		shareIndicatorArea[res] = { math_floor(barArea[1] + (value * barWidth) - (shareSliderWidth / 2)), math_floor(barArea[2] - sliderHeightAdd), math_floor(barArea[1] + (value * barWidth) + (shareSliderWidth / 2)), math_floor(barArea[4] + sliderHeightAdd) }
 		local cornerSize
