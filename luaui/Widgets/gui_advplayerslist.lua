@@ -3136,6 +3136,7 @@ function widget:MouseRelease(x, y, button)
             elseif amountEM > 0 then
                 Spring_ShareResources(energyPlayer.team, "energy", amountEM)
                 Spring_SendCommands("say a:" .. Spring.I18N('ui.playersList.chat.giveEnergy', { amount = amountEM, name = energyPlayer.name }))
+				WG.sharedEnergyFrame = Spring.GetGameFrame()
             end
             sliderOrigin = nil
             amountEMMax = nil
@@ -3154,6 +3155,7 @@ function widget:MouseRelease(x, y, button)
             elseif amountEM > 0 then
                 Spring_ShareResources(metalPlayer.team, "metal", amountEM)
                 Spring_SendCommands("say a:" .. Spring.I18N('ui.playersList.chat.giveMetal', { amount = amountEM, name = metalPlayer.name }))
+				WG.sharedMetalFrame = Spring.GetGameFrame()
             end
             sliderOrigin = nil
             amountEMMax = nil

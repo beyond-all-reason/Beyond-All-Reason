@@ -94,6 +94,8 @@ local spGetMouseState = Spring.GetMouseState
 local spGetWind = Spring.GetWind
 
 
+local isMetalmap = false
+
 local widgetSpaceMargin, bgpadding, RectRound, TexturedRectRound, UiElement, UiButton, UiSliderKnob
 
 
@@ -725,7 +727,7 @@ local function updateResbarText(res)
 					local text = ''
 					if res == 'metal' then
 						text = (allyteamOverflowingMetal and '   ' .. Spring.I18N('ui.topbar.resources.wastingMetal') .. '   ' or '   ' .. Spring.I18N('ui.topbar.resources.overflowing') .. '   ')
-						if WG['notifications'] then
+						if WG['notifications'] and not isMetalmap and (not WG.sharedMetalFrame or WG.sharedMetalFrame+60 < gameFrame) then
 							if allyteamOverflowingMetal then
 								if numTeamsInAllyTeam > 1 then
 									WG['notifications'].addEvent('WholeTeamWastingMetal')
@@ -738,7 +740,7 @@ local function updateResbarText(res)
 						end
 					else
 						text = (allyteamOverflowingEnergy and '   ' .. Spring.I18N('ui.topbar.resources.wastingEnergy') .. '   '  or '   ' .. Spring.I18N('ui.topbar.resources.overflowing') .. '   ')
-						if WG['notifications'] then
+						if WG['notifications'] and (not WG.sharedEnergyFrame or WG.sharedEnergyFrame+60 < gameFrame) then
 							if allyteamOverflowingEnergy then
 								if numTeamsInAllyTeam > 3 then
 									--WG['notifications'].addEvent('WholeTeamWastingEnergy')
@@ -2028,6 +2030,10 @@ function widget:Initialize()
 
 	if gameFrame > 0 then
 		widget:GameStart()
+	end
+
+	if WG.metalSpots and #WG.metalSpots > 0 and #WG.metalSpots <= 2 then	-- probably speedmetal kind of map
+		isMetalmap = true
 	end
 end
 
