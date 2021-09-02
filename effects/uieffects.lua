@@ -2,7 +2,7 @@
 
 return {
  ["radarpulse_t1_slow"] = {
-    
+
     radarpulse = {
       class              = [[CBitmapMuzzleFlame]],
       count              = 1,
@@ -28,7 +28,7 @@ return {
   },
 
   ["radarpulse_t1"] = {
-    
+
     radarpulse = {
       class              = [[CBitmapMuzzleFlame]],
       count              = 1,
@@ -54,7 +54,7 @@ return {
   },
 
   ["radarpulse_t1_short"] = {
-    
+
     radarpulse = {
       class              = [[CBitmapMuzzleFlame]],
       count              = 1,
@@ -63,14 +63,14 @@ return {
       water              = false,
       underwater         = false,
       properties = {
-        colormap           = [[0.14 0.28 0.05 0.022    0.03 0.30 0.03 0.018    0 0 0 0.01]],
+        colormap           = [[0 0 0 0.01   0.03 0.30 0.03 0.01    0 0 0 0.01]],
         dir                = [[0, 1, 0]],
         --gravity            = [[0.0, -0.4, 0.0]],
         frontoffset        = 0,
         fronttexture       = [[radarfx1]],
         length             = 45,
         sidetexture        = [[none]],
-        size               = 16,
+        size               = 32,
         sizegrowth         = 1.0,
         ttl                = 8,
         pos                = [[0, 0, 0]],
@@ -80,7 +80,7 @@ return {
   },
 
   ["radarpulse_t2_ground"] = {
-    
+
     groundflash_small = {
       class              = [[CSimpleGroundFlash]],
       count              = 1,
@@ -122,7 +122,7 @@ return {
   },
 
   ["radarpulse_t2"] = {
-    
+
     radarpulse = {
       class              = [[CBitmapMuzzleFlame]],
       count              = 1,
@@ -131,7 +131,7 @@ return {
       water              = true,
       underwater         = true,
       properties = {
-        colormap           = [[0.20 0.38 0.08 0.033    0.05 0.30 0.03 0.022    0 0 0 0.01]],
+        colormap           = [[0 0 0 0.01    0.05 0.30 0.03 0.01   0 0 0 0.01]],
         dir                = [[0, 1, 0]],
         --gravity            = [[0.0, -0.4, 0.0]],
         frontoffset        = 0,
@@ -140,7 +140,7 @@ return {
         sidetexture        = [[none]],
         size               = 20,
         sizegrowth         = 0.2,
-        ttl                = 12,
+        ttl                = 32,
         pos                = [[0, 0, 0]],
         useairlos          = false,
       },
@@ -148,7 +148,7 @@ return {
   },
 
   ["radarpulse_t2_slow"] = {
-    
+
     radarpulse = {
       class              = [[CBitmapMuzzleFlame]],
       count              = 1,
@@ -174,7 +174,7 @@ return {
   },
 
   ["testceg-dir"] = {
-    
+
     waterexplosion = {
       air                = true,
       class              = [[CSimpleParticleSystem]],
@@ -208,7 +208,7 @@ return {
     },
   },
   ["testceg-nodir"] = {
-    
+
     waterexplosion = {
       air                = true,
       class              = [[CSimpleParticleSystem]],
@@ -242,7 +242,7 @@ return {
     },
   },
   ["testceg-muzzle"] = {
-    
+
     spawnbeam = {
       air                = true,
       class              = [[CBitmapMuzzleFlame]],
@@ -266,7 +266,7 @@ return {
     },
   },
   ["testceg-muzzlex1"] = {
-    
+
     spawnbeam = {
       air                = true,
       class              = [[CBitmapMuzzleFlame]],
@@ -290,7 +290,7 @@ return {
     },
   },
   ["testceg-muzzlex-1"] = {
-    
+
     spawnbeam = {
       air                = true,
       class              = [[CBitmapMuzzleFlame]],
@@ -314,7 +314,7 @@ return {
     },
   },
   ["testceg-muzzlez1"] = {
-    
+
     spawnbeam = {
       air                = true,
       class              = [[CBitmapMuzzleFlame]],
@@ -338,7 +338,7 @@ return {
     },
   },
   ["testceg-muzzlez-1"] = {
-    
+
     spawnbeam = {
       air                = true,
       class              = [[CBitmapMuzzleFlame]],
