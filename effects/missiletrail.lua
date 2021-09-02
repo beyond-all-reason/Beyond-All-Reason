@@ -803,7 +803,7 @@ local definitions = {
         trail = {
             air                = true,
             class              = [[CBitmapMuzzleFlame]],
-            count              = 1,
+            count              = 0,
             ground             = true,
             underwater         = 1,
             water              = true,
@@ -3076,8 +3076,8 @@ definitions["missiletraillarge-red"].sparks.properties.colormap = [[1 0.85 0.7 0
 
 
 definitions["missiletrailsmall-starburst"] = table.copy(definitions["missiletrailsmall"])
-definitions["missiletrailsmall-starburst"].engine.properties.colormap = [[1 0.15 0.1 0.01   1.0 0.09 0 0.01   1.0 0.06 0 0.01   0 0 0 0.01]]
-definitions["missiletrailsmall-starburst"].sparks.properties.colormap = [[1 0.2 0.1 0.01   1 0.15 0.05 0.007  0.55 0.05 0 0.007   0 0 0 0.01]]
+--definitions["missiletrailsmall-starburst"].engine.properties.colormap = [[1 0.15 0.1 0.01   1.0 0.09 0 0.01   1.0 0.06 0 0.01   0 0 0 0.01]]
+--definitions["missiletrailsmall-starburst"].sparks.properties.colormap = [[1 0.2 0.1 0.01   1 0.15 0.05 0.007  0.55 0.05 0 0.007   0 0 0 0.01]]
 
 definitions["missiletrailsmall-starburst-vertical"] = table.copy(definitions["missiletrailsmall-starburst"])
 definitions["missiletrailsmall-starburst-vertical"].engine.properties.length = [[-19 r4.15]]
