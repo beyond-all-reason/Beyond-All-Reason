@@ -115,19 +115,11 @@ BarrelRoll() // remember to start-script BarrelRoll(); in Create()!
 	}
 }
 
-Lights()
-{
-	emit-sfx 1024 + 0 from base;
-	sleep 2000;
-	start-script Lights();
-}
-
 Create()
 {
 	call-script InitState();
 	start-script SmokeUnit();
 	start-script BarrelRoll();
-	start-script Lights();
 	return (0);
 }
 

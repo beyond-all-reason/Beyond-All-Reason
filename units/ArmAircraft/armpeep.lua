@@ -52,9 +52,6 @@ return {
 			subfolder = "armaircraft",
 		},
 		sfxtypes = {
-			explosiongenerators = {
-				[1] = "custom:radarpulse_t1_short",
-			},
 			pieceexplosiongenerators = {
 				[1] = "airdeathceg2",
 			},
