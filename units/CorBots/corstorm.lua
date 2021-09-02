@@ -142,7 +142,7 @@ return {
 				soundstart = "rocklit1",
 				startvelocity = 190,
 				texture1 = "trans",
-				texture2 = "coresmoketrail",
+				texture2 = "smoketrailbar",
 				turret = true,
 				weaponacceleration = 120,
 				weapontimer = 2,

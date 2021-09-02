@@ -192,7 +192,7 @@ return {
 				startvelocity = 10,
 				targetable = 0,
 				texture1 = "trans",
-				texture2 = "armsmoketrail",
+				texture2 = "smoketrailbar",
 				texture3 = "null",
 				tolerance = 9000,
 				tracks = true,

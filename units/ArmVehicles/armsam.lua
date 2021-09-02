@@ -146,9 +146,9 @@ return {
 				reloadtime = 3.33333,
 				smoketrail = true,
 				smokePeriod = 8,
-				smoketime = 15,
-				smokesize = 6.0,
-				smokecolor = 0.7,
+				smoketime = 14,
+				smokesize = 5.0,
+				smokecolor = 0.66,
 				smokeTrailCastShadow = false,
 				castshadow = true, --projectile
 				soundhit = "rockhit2",

@@ -267,7 +267,7 @@ return {
 				soundtrigger = true,
 				startvelocity = 1,
 				texture1 = "trans",
-				texture2 = "armsmoketrail",
+				texture2 = "smoketrailbar",
 				tolerance = 9950,
 				tracks = true,
 				turnrate = 68000,
