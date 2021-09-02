@@ -331,7 +331,7 @@ function gadget:GameFrame(n)
 			constructorController.SpawnConstructor(n)
 		end
 		local scavengerunits = Spring.GetTeamUnits(GaiaTeamID)
-		if scavengerunits then
+		if scavengerunits and scavengerGamePhase ~= "initial" then
 			for _, scav in ipairs(scavengerunits) do
 				local scavDef = Spring.GetUnitDefID(scav)
 				local collectorRNG = math_random(0,2)
@@ -398,11 +398,7 @@ function gadget:GameFrame(n)
 					SelfDestructionControls(n, scav, scavDef, false)
 				end
 				if scavteamhasplayers == false and Spring.GetCommandQueue(scav, 0) <= 1 and not scavStructure[scav] and not scavConstructor[scav] and not scavReclaimer[scav] and not scavResurrector[scav] and not scavAssistant[scav] and not scavCollector[scav] and not scavCapturer[scav] and not scavFactory[scav] and not scavSpawnBeacon[scav] then
-					if scavengerGamePhase == "initial" then
-						ArmyMoveOrdersInitialPhase(n, scav, scavDef)
-					else
-						ArmyMoveOrders(n, scav, scavDef)
-					end
+					ArmyMoveOrders(n, scav, scavDef)
 				end
 			end
 		end

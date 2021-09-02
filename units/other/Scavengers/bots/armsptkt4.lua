@@ -146,7 +146,7 @@ return {
 				startvelocity = 80,
 				targetmoveerror = 0.2,
 				texture1 = "trans",
-				texture2 = "armsmoketrail",
+				texture2 = "smoketrailbar",
 				trajectoryheight = 1,
 				turnrate = 2000,
 				turret = true,
