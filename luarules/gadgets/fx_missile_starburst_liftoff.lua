@@ -74,8 +74,8 @@ for weaponID, weaponDef in pairs(WeaponDefs) do
 			missileWeapons[weaponDef.id] = {
 				0,
 				'nuketrail-starburst', ((weaponDef.uptime + 0.1) * 30), ((weaponDef.uptime + 0.6) * 30),
-				'missilegroundhuge-liftoff', 150, 220,
-				'missilegroundhuge-liftoff-fire', 80, 190
+				'missilegroundhuge-liftoff', 120, 180,
+				'missilegroundhuge-liftoff-fire', 60, 150
 			}
 		end
 	end
