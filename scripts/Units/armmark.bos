@@ -342,10 +342,12 @@ Activate()
 		
 	turn ldish to z-axis <0> speed <90>;
 	turn rdish to z-axis <0> speed <90>;
+	emit-sfx 1024 + 0 from torso;
 	sleep 2000;
 	
 	turn ldish to z-axis <-179> speed <90>;
 	turn rdish to z-axis <179> speed <90>;
+	emit-sfx 1024 + 0 from torso;
 	sleep 2000;
 	} 
 	return (0);

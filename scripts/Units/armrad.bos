@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, turret, dish;
+piece  base, turret, dish, blink;
 
 static-var  statechg_DesiredState, statechg_StateChanging;
 
@@ -34,6 +34,16 @@ HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and f
 	return (100); //return damage percent
 }
 
+Lights()
+{
+	while( TRUE )
+	{
+		emit-sfx 1024 + 0 from blink;
+		sleep 2000;
+	}
+	sleep 50;
+	start-script Lights();
+}
 
 SmokeUnit(healthpercent, sleeptime, smoketype)
 {
@@ -41,7 +51,7 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 	{
 		sleep 400;
 	}
-	while( TRUE )
+while( TRUE )
 	{
 		healthpercent = get HEALTH;
 		if( healthpercent < 66 )
@@ -115,6 +125,7 @@ Create()
 {
 	call-script InitState();
 	start-script SmokeUnit();
+	start-script Lights();
 	return (0);
 }
 

@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, turret, dish, spinner;
+piece  base, turret, dish, spinner, blink;
 
 static-var  statechg_DesiredState, statechg_StateChanging;
 
@@ -63,6 +63,17 @@ HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and f
 	return (100); //return damage percent
 }
 
+Lights()
+{
+	while( TRUE )
+	{
+		emit-sfx 1024 + 0 from blink;
+		sleep 2000;
+	}
+	sleep 50;
+	start-script Lights();
+}
+
 Go()
 {
 	spin dish around y-axis speed <60.010989>;
@@ -117,6 +128,7 @@ Create()
 {
 	call-script InitState();
 	start-script SmokeUnit();
+	start-script Lights();
 	return (0);
 }
 

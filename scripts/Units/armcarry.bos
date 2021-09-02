@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, pad1, pad0, radar, door1, door2, antiflare, ground, nano1, nanoemit2,nano2, nanoemit1;
+piece  base, pad1, pad0, radar, door1, door2, antiflare, ground, nano1, nanoemit2,nano2, nanoemit1, blink;
 
 static-var  Static_Var_1, oldHead;
 
@@ -46,6 +46,17 @@ HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and f
 {
 	start-script HitByWeapon(dmg, anglez,anglex); //I dont know why param order must be switched, and this also runs a frame later :(
 	return (100); //return damage percent
+}
+
+Lights()
+{
+	while( TRUE )
+	{
+		emit-sfx 1024 + 0 from blink;
+		sleep 2000;
+	}
+	sleep 50;
+	start-script Lights();
 }
 
 RockOnWaves()
@@ -122,6 +133,7 @@ Create()
 {
 	Static_Var_1 = 0;
 	start-script SmokeUnit();
+	start-script Lights();
 }
 
 Activate()

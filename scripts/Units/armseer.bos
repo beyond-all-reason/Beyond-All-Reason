@@ -65,12 +65,19 @@ HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and f
 	return (100); //return damage percent
 }
 
+Lights()
+{
+	emit-sfx 1024 + 0 from turret;
+	sleep 2000;
+	start-script Lights();
+}
 
 Create()
 {
 	dont-cache dish;
 	dont-shade dish;
 	start-script SmokeUnit();
+	start-script Lights();
 	return (0);
 }
 StartMoving()
