@@ -421,9 +421,9 @@ customDefs.armrock = {
 
 -- Rapid Fire AK + Cloak
 customDefs.corak = {
-	cloakcost = 3,
+	--cloakcost = 3,
 	description = Spring.I18N('units.descriptions.corak_scav'),
-	mincloakdistance = 144,
+	--mincloakdistance = 144,
 	maxvelocity = 3,
 	weapondefs = {
 		gator_laser = {
@@ -444,9 +444,9 @@ customDefs.corak = {
 
 -- Heavy Slow Fire Warrior + Cloak
 customDefs.armwar = {
-	cloakcost = 3,
+	--cloakcost = 3,
 	description = Spring.I18N('units.descriptions.armwar_scav'),
-	mincloakdistance = 144,
+	--mincloakdistance = 144,
 	script = "scavs/ARMWARSCAV.cob",
 	weapondefs = {
 		armwar_laser = {
@@ -678,6 +678,7 @@ customDefs.coracv = {
 	},
 }
 
+--[[
 -- Cloaked Radar
 
 customDefs.armrad = {
@@ -818,6 +819,9 @@ customDefs.corsktl = {
 
 -- Cloaked Defenses
 
+--]]
+
+
 -- Faster LLT - unique sound - shorter beamtime
 customDefs.corllt = {
 	-- cloakcost = 6,
@@ -841,9 +845,9 @@ customDefs.corllt = {
 
 -- Custom ARM ambusher - NO cloak since looks weird/ugly atm
 customDefs.armamb = {
-	description = Spring.I18N('units.descriptions.armamb_scav'),
-	cancloak = false,
-	stealth = true,
+	-- description = Spring.I18N('units.descriptions.armamb_scav'),
+	-- cancloak = false,
+	-- stealth = true,
 	weapondefs = {
 		armamb_gun = {
 			impulseboost = 0.5,
@@ -854,9 +858,9 @@ customDefs.armamb = {
 
 
 customDefs.cortoast = {
-	description = Spring.I18N('units.descriptions.cortoast_scav'),
-	cancloak = false,
-	stealth = true,
+	-- description = Spring.I18N('units.descriptions.cortoast_scav'),
+	-- cancloak = false,
+	-- stealth = true,
 	weapondefs = {
 		cortoast_gun = {
 			impulseboost = 0.5,
@@ -965,15 +969,15 @@ customDefs.armllt = {
 }
 
 
-customDefs.corvipe = {
-	cloakcost = 20,
-	mincloakdistance = 288,
-}
+-- customDefs.corvipe = {
+-- 	cloakcost = 20,
+-- 	mincloakdistance = 288,
+-- }
 
-customDefs.cortoast = {
-	cloakcost = 20,
-	mincloakdistance = 288,
-}
+-- customDefs.cortoast = {
+-- 	cloakcost = 20,
+-- 	mincloakdistance = 288,
+-- }
 
 customDefs.armrectr = {
 	--cancloak = true,
