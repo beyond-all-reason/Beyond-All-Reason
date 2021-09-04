@@ -11,21 +11,21 @@ scavDifficulty = Spring.GetModOptions().scavdifficulty
 if scavDifficulty == "noob" then
 	ScavDifficultyMultiplier = 0.1
 elseif scavDifficulty == "veryeasy" then
-	ScavDifficultyMultiplier = 0.5
+	ScavDifficultyMultiplier = 0.25
 elseif scavDifficulty == "easy" then
-	ScavDifficultyMultiplier = 0.75
+	ScavDifficultyMultiplier = 0.375
 elseif scavDifficulty == "medium" then
-	ScavDifficultyMultiplier = 1
-elseif scavDifficulty == "hard" then
-	ScavDifficultyMultiplier = 1.25
-elseif scavDifficulty == "veryhard" then
-	ScavDifficultyMultiplier = 1.5
-elseif scavDifficulty == "expert" then
-	ScavDifficultyMultiplier = 2
-elseif scavDifficulty == "brutal" then
-	ScavDifficultyMultiplier = 3
-else
 	ScavDifficultyMultiplier = 0.5
+elseif scavDifficulty == "hard" then
+	ScavDifficultyMultiplier = 0.875
+elseif scavDifficulty == "veryhard" then
+	ScavDifficultyMultiplier = 1
+elseif scavDifficulty == "expert" then
+	ScavDifficultyMultiplier = 1.5
+elseif scavDifficulty == "brutal" then
+	ScavDifficultyMultiplier = 2
+else
+	ScavDifficultyMultiplier = 0.25
 end
 
 local scavUnit = {}

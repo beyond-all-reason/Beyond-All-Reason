@@ -12,28 +12,28 @@
 		spawnmultiplier = 0.1
 		scavStatsDifficulty = "Noob"
 	elseif scavDifficulty == "veryeasy" then
-		spawnmultiplier = 0.5
+		spawnmultiplier = 0.25
 		scavStatsDifficulty = "Very Easy"
 	elseif scavDifficulty == "easy" then
-		spawnmultiplier = 0.75
+		spawnmultiplier = 0.375
 		scavStatsDifficulty = "Easy"
 	elseif scavDifficulty == "medium" then
-		spawnmultiplier = 1
+		spawnmultiplier = 0.5
 		scavStatsDifficulty = "Medium"
 	elseif scavDifficulty == "hard" then
-		spawnmultiplier = 1.25
+		spawnmultiplier = 0.875
 		scavStatsDifficulty = "Hard"
 	elseif scavDifficulty == "veryhard" then
-		spawnmultiplier = 1.5
+		spawnmultiplier = 1
 		scavStatsDifficulty = "Very Hard"
 	elseif scavDifficulty == "expert" then
-		spawnmultiplier = 2
+		spawnmultiplier = 1.5
 		scavStatsDifficulty = "Expert"
 	elseif scavDifficulty == "brutal" then
-		spawnmultiplier = 3
+		spawnmultiplier = 2
 		scavStatsDifficulty = "Brutal"
 	else
-		spawnmultiplier = 0.5
+		spawnmultiplier = 0.25
 		scavStatsDifficulty = "Very Easy"
 	end
 
