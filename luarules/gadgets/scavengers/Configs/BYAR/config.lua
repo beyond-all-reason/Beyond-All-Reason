@@ -149,7 +149,7 @@ unitSpawnerModuleConfig = {
 	beacondefences						= true,
 	minimumspawnbeacons					= math.ceil(teamcount*4*spawnmultiplier),
 	landmultiplier 						= 0.75,
-	airmultiplier 						= 1.5,
+	airmultiplier 						= 2,
 	seamultiplier 						= 0.75,
 	chanceforaircraftonsea				= 4, -- higher number = lower chance
 
@@ -157,7 +157,7 @@ unitSpawnerModuleConfig = {
 	t1multiplier						= 5,
 	t2multiplier						= 1,
 	t3multiplier						= 0.20,
-	t4multiplier						= 0.03,
+	t4multiplier						= 0.015,
 
 	initialbonuscommander				= initialBonusCommanderEnabled,
 }

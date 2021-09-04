@@ -258,11 +258,11 @@ function UnitGroupSpawn(n)
 					UnitSpawnChance = math.ceil(UnitSpawnChance/2)
 				end
 				if math.random(1,100) == 1 then
-					waveSizeMultiplier = 4
-				elseif math.random(1,25) == 1 then
 					waveSizeMultiplier = 2
-				elseif math.random(1,10) == 1 then
+				elseif math.random(1,25) == 1 then
 					waveSizeMultiplier = 1.5
+				elseif math.random(1,10) == 1 then
+					waveSizeMultiplier = 1.25
 				else
 					waveSizeMultiplier = 1
 				end
