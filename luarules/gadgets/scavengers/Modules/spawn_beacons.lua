@@ -191,10 +191,10 @@ function SpawnBeacon(n)
 							local posy = Spring.GetGroundHeight(posx-128, posz)
 							if posy > 0 then
 								local turret = grouptier[math_random(1,#grouptier)]
-								QueueSpawn(turret, posx-128+math.random(-64,64), posy, posz, math_random(0,3),GaiaTeamID, n+150, false)
+								QueueSpawn(turret, posx-128+math.random(-64,64), posy, posz+math.random(-64,64), math_random(0,3),GaiaTeamID, n+150, false)
 							else
 								local turretSea = grouptiersea[math_random(1,#grouptiersea)]
-								QueueSpawn(turretSea, posx-128+math.random(-64,64), posy, posz, math_random(0,3),GaiaTeamID, n+150, false)
+								QueueSpawn(turretSea, posx-128+math.random(-64,64), posy, posz+math.random(-64,64), math_random(0,3),GaiaTeamID, n+150, false)
 							end
 						end
 
@@ -202,10 +202,10 @@ function SpawnBeacon(n)
 							local posy = Spring.GetGroundHeight(posx+128, posz)
 							if posy > 0 then
 								local turret = grouptier[math_random(1,#grouptier)]
-								QueueSpawn(turret, posx+128+math.random(-64,64), posy, posz, math_random(0,3),GaiaTeamID, n+150, false)
+								QueueSpawn(turret, posx+128+math.random(-64,64), posy, posz+math.random(-64,64), math_random(0,3),GaiaTeamID, n+150, false)
 							else
 								local turretSea = grouptiersea[math_random(1,#grouptiersea)]
-								QueueSpawn(turretSea, posx+128+math.random(-64,64), posy, posz, math_random(0,3),GaiaTeamID, n+150, false)
+								QueueSpawn(turretSea, posx+128+math.random(-64,64), posy, posz+math.random(-64,64), math_random(0,3),GaiaTeamID, n+150, false)
 							end
 						end
 
@@ -213,10 +213,10 @@ function SpawnBeacon(n)
 							local posy = Spring.GetGroundHeight(posx, posz+128)
 							if posy > 0 then
 								local turret = grouptier[math_random(1,#grouptier)]
-								QueueSpawn(turret, posx, posy, posz+128+math.random(-64,64), math_random(0,3),GaiaTeamID, n+150, false)
+								QueueSpawn(turret, posx+math.random(-64,64), posy, posz+128+math.random(-64,64), math_random(0,3),GaiaTeamID, n+150, false)
 							else
 								local turretSea = grouptiersea[math_random(1,#grouptiersea)]
-								QueueSpawn(turretSea, posx, posy, posz+128+math.random(-64,64), math_random(0,3),GaiaTeamID, n+150, false)
+								QueueSpawn(turretSea, posx+math.random(-64,64), posy, posz+128+math.random(-64,64), math_random(0,3),GaiaTeamID, n+150, false)
 							end
 						end
 
@@ -224,10 +224,10 @@ function SpawnBeacon(n)
 							local posy = Spring.GetGroundHeight(posx, posz-128)
 							if posy > 0 then
 								local turret = grouptier[math_random(1,#grouptier)]
-								QueueSpawn(turret, posx, posy, posz-128+math.random(-64,64), math_random(0,3),GaiaTeamID, n+150, false)
+								QueueSpawn(turret, posx+math.random(-64,64), posy, posz-128+math.random(-64,64), math_random(0,3),GaiaTeamID, n+150, false)
 							else
 								local turretSea = grouptiersea[math_random(1,#grouptiersea)]
-								QueueSpawn(turretSea, posx, posy, posz-128+math.random(-64,64), math_random(0,3),GaiaTeamID, n+150, false)
+								QueueSpawn(turretSea, posx+math.random(-64,64), posy, posz-128+math.random(-64,64), math_random(0,3),GaiaTeamID, n+150, false)
 							end
 						end
 						grouptier = nil
