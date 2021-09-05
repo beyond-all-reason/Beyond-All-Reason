@@ -346,9 +346,9 @@ local function GetLightsFromUnitDefs()
 			recalcRGB = true
 			--skip = true
 		elseif weaponDef.type == 'LightningCannon' then
-			weaponData.radius = 75 * weaponDef.size
+			weaponData.radius = 77 * weaponDef.size
 			weaponData.beam = true
-			lightMultiplier = 0.16
+			lightMultiplier = 0.18
 		elseif weaponDef.type == 'BeamLaser' then
 			weaponData.radius = 16 * (weaponDef.size * weaponDef.size * weaponDef.size)
 			weaponData.beam = true

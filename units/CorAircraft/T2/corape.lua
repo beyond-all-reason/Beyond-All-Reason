@@ -101,8 +101,8 @@ return {
 				smoketrail = true,
 				smokePeriod = 7,
 				smoketime = 14,
-				smokesize = 8,
-				smokecolor = 0.5,
+				smokesize = 9,
+				smokecolor = 0.55,
 				smokeTrailCastShadow = false,
 				castshadow = true, --projectile
 				soundhit = "rockhit",

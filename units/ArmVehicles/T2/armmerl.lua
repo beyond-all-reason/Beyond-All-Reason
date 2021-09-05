@@ -142,7 +142,7 @@ return {
 				soundhitwet = "splslrg",
 				soundstart = "Rockhvy1",
 				smoketrail = true,
-				smokePeriod = 10,
+				smokePeriod = 9,
 				smoketime = 45,
 				smokesize = 16.0,
 				smokecolor = 0.7,

@@ -99,10 +99,10 @@ return {
 				range = 420,
 				reloadtime = 2.26667,
 				smoketrail = true,
-				smokePeriod = 7,
-				smoketime = 14,
-				smokesize = 8,
-				smokecolor = 0.5,
+				smokePeriod = 6,
+				smoketime = 12,
+				smokesize = 9,
+				smokecolor = 0.55,
 				smokeTrailCastShadow = false,
 				castshadow = true, --projectile
 				soundhit = "SabotHit",
@@ -119,6 +119,13 @@ return {
 				weapontimer = 3,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 1000,
+				customparams = {
+					expl_light_life_mult = 1.5,
+					expl_light_mult = 1.5,
+					expl_light_radius_mult = 1.5,
+					light_mult = 1.5,
+					light_radius_mult = 1.5,
+				},
 				damage = {
 					commanders = 95,
 					default = 190,
