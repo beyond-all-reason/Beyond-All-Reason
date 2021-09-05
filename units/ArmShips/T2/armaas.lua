@@ -183,7 +183,7 @@ return {
 				soundstart = "packolau",
 				soundtrigger = true,
 				startvelocity = 200,
-				texture1 = "trans",
+				texture1 = "null",
 				texture2 = "smoketrailaa",
 				tolerance = 9950,
 				tracks = true,

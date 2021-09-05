@@ -164,7 +164,6 @@ return {
 				},
 				damage = {
 					default = 138,
-					-- subs = 5,
 				},
 			},
 			rocket = {
@@ -195,7 +194,7 @@ return {
 				soundhit = "xplomed4",
 				soundhitwet = "splsmed",
 				soundstart = "Rockhvy1",
-				texture1 = "trans",
+				texture1 = "null",
 				texture2 = "smoketrailbar",
 				texture3 = "null",
 				tolerance = 4000,

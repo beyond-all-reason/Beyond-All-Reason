@@ -195,7 +195,7 @@ return {
 					subs = 1,
 				},
 			},
-			
+
 			machinegun                   = {
 				accuracy				 = 50,
 				AreaOfEffect             = 25,
@@ -228,8 +228,8 @@ return {
 				weaponVelocity           = 750,
 				customparams             = {
 					--isupgraded			 = isUpgraded,
-					--damagetype		     = "ehbotkarganneth", 
-				}, 
+					--damagetype		     = "ehbotkarganneth",
+				},
 				damage                   = {
 					default              = 200,
 					bombers				 = 2000,
@@ -237,7 +237,7 @@ return {
 					vtol				 = 750,
 				},
 			},
-			
+
 			karg_shoulder = {
 				areaofeffect = 16,
 				avoidfeature = false,
@@ -259,14 +259,20 @@ return {
 				proximitypriority = 1,
 				range = 700,
 				reloadtime = 5,
-				smoketrail = false,
+				smoketrail = true,
+				smokePeriod = 5,
+				smoketime = 12,
+				smokesize = 4.8,
+				smokecolor = 0.95,
+				smokeTrailCastShadow = false,
+				castshadow = false, --projectile
 				soundhit = "packohit",
 				soundhitwet = "splshbig",
 				soundstart = "packolau",
 				soundtrigger = false,
 				startvelocity = 520,
-				texture1 = "trans",
-				texture2 = "smoketrailbar",
+				texture1 = "null",
+				texture2 = "smoketrailaa",
 				tolerance = 9950,
 				tracks = true,
 				turnrate = 68000,

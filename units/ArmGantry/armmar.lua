@@ -145,7 +145,7 @@ return {
 				smoketrail = true,
 				smokePeriod = 6,
 				smoketime = 12,
-				smokesize = 4.8,
+				smokesize = 4.4,
 				smokecolor = 0.95,
 				smokeTrailCastShadow = false,
 				castshadow = false,
