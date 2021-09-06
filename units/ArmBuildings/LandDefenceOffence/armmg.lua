@@ -10,7 +10,7 @@ return {
 		buildinggrounddecaldecayspeed = 30,
 		buildinggrounddecalsizex = 5,
 		buildinggrounddecalsizey = 5,
-		buildinggrounddecaltype = "decals/armpb_aoplane.dds",
+		buildinggrounddecaltype = "decals/armbeamer_aoplane.dds",
 		buildpic = "armbeamer.PNG",
 		buildtime = 7000,
 		canrepeat = false,
