@@ -198,22 +198,22 @@ local definitions = {
     --},
   },
 
-  ["barrelshot-mg"] = {
-    mgfire = {
-      air                = true,
-      class              = [[CExpGenSpawner]],
-      count              = 2,
-      ground             = true,
-      water              = true,
-      underwater         = true,
-      properties = {
-        dir                = [[dir]],
-        delay              = [[0 r5]],
-        explosiongenerator = [[custom:barrelshot-fire]],
-        --pos                = [[-5 r10, 0, -5 r10]],
-      },
-    },
-  },
+  -- ["barrelshot-mg"] = {
+  --   mgfire = {
+  --     air                = true,
+  --     class              = [[CExpGenSpawner]],
+  --     count              = 2,
+  --     ground             = true,
+  --     water              = true,
+  --     underwater         = true,
+  --     properties = {
+  --       dir                = [[dir]],
+  --       delay              = [[0 r5]],
+  --       explosiongenerator = [[custom:barrelshot-fire]],
+  --       --pos                = [[-5 r10, 0, -5 r10]],
+  --     },
+  --   },
+  -- },
 
   ["barrelshot-flak"] = {
     fire = {
@@ -414,14 +414,14 @@ local definitions = {
       properties = {
         colormap           = [[1 0.88 0.6 0.013   0.6 0.22 0.06 0.01   0.4 0.07 0.015 0.006   0 0 0 0.01]],
         dir                = [[dir]],
-        frontoffset        = 0,
+        frontoffset        = 0.03,
         fronttexture       = [[shotgunflare]],
         length             = [[38 r85]],
         sidetexture        = [[shotgunside]],
-        size               = [[7 r16]],
+        size               = [[12 r16]],
         sizegrowth         = -0.6,
         ttl                = 9,
-        rotParams          = [[-400 r800, -400 r800, -180 r360]],
+        rotParams          = [[-400 r200, 0, -180 r360]],
         pos                = [[0.0, 1, 0.0]],
       },
     },
