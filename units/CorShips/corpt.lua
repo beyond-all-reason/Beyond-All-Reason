@@ -45,7 +45,7 @@ return {
 			maxrange = "260",
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
-			paralyzemultiplier = 0.1,
+			paralyzemultiplier = 0.3,
 			prioritytarget = "air",
 			subfolder = "corships",
 		},
