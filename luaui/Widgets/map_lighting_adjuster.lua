@@ -87,6 +87,12 @@ local mapSunLighting = {
 	['nuclear winter bar 1.2'] = {
 		groundAmbientColor = { 0.52, 0.52, 0.59 },
 	},
+	['flats and forests remake v1'] = {
+groundDiffuseColor = { 0.8, 0.8, 0.8 },
+groundAmbientColor = { 0.44, 0.44, 0.44 },
+unitDiffuseColor = {0.8, 0.8, 0.76},
+unitAmbientColor = {0.33, 0.33, 0.33},
+	},
 }
 
 local mapSun = {
@@ -100,6 +106,7 @@ local mapSun = {
 	['otago 1.4'] = { -0.55, 0.5, 0.55},
 	['tropical-v2'] = { 0.6, 0.33, 0.27},
 	['downs_of_destruction_fix'] = { 0.65, 0.43, -65},
+	['flats and forests remake v1'] = {0.55, 0.5, -0.5},
 }
 
 if not mapSunLighting[currentMapname] and not mapSun[currentMapname] then return end
