@@ -428,7 +428,7 @@ Create()
 	statechg_DesiredState = TRUE;
 	statechg_StateChanging = FALSE;
 	start-script SmokeUnit();
-	start-script Lights();
+	//start-script Lights();
 }
 
 StartBuilding(torsoing, pitch)

@@ -3045,6 +3045,11 @@ definitions["missiletraillarge-red"].fire.properties.colormap  = [[0.9 0.45 0.16
 definitions["missiletraillarge-red"].fireglow.properties.colormap = [[0.25 0.09 0.018 0.01   0 0 0 0.01]]
 definitions["missiletraillarge-red"].sparks.properties.colormap = [[1 0.85 0.7 0.01   0.9 0.4 0.14 0.007  0.4 0.13 0.05 0.007   0 0 0 0.01]]
 
+--definitions["missiletrailsmall-trail"] = table.copy(definitions["missiletrailsmall"])
+--definitions["missiletrailsmall-trail"].trail.count = 0
+--definitions["missiletrailsmall-trail"].smoke.properties.particlelife = 2
+--definitions["missiletrailsmall-trail"].smoke.properties.particleLifeSpread = 4
+
 definitions["missiletrailsmall-starburst"] = table.copy(definitions["missiletrailsmall"])
 --definitions["missiletrailsmall-starburst"].engine.properties.colormap = [[1 0.15 0.1 0.01   1.0 0.09 0 0.01   1.0 0.06 0 0.01   0 0 0 0.01]]
 --definitions["missiletrailsmall-starburst"].sparks.properties.colormap = [[1 0.2 0.1 0.01   1 0.15 0.05 0.007  0.55 0.05 0 0.007   0 0 0 0.01]]

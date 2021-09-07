@@ -5,6 +5,8 @@
 
 piece  base, dish, turret, eye, fwheel, rwheel;
 
+static-var  Stunned;
+
 #define SIG_ACTIVATE			2
 
 
@@ -67,8 +69,10 @@ HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and f
 
 Lights()
 {
-	emit-sfx 1024 + 0 from turret;
-	sleep 2000;
+	if (!Stunned) {
+	    emit-sfx 1024 + 0 from turret;
+	}
+	sleep 2500;
 	start-script Lights();
 }
 
@@ -110,7 +114,6 @@ Deactivate()
 	return (0);
 }
 
-static-var  Stunned;
 SetStunned(State)
 {
     Stunned = State;

@@ -6,6 +6,7 @@
 piece  base, pad1, pad0, radar, door1, door2, antiflare, ground, nano1, nanoemit2,nano2, nanoemit1, blink;
 
 static-var  Static_Var_1, oldHead;
+static-var  Stunned;
 
 // Signal definitions
 #define SIG_MOVE			2
@@ -52,8 +53,10 @@ Lights()
 {
 	while( TRUE )
 	{
-		emit-sfx 1024 + 0 from blink;
-		sleep 2000;
+	    if (!Stunned) {
+		    emit-sfx 1024 + 0 from blink;
+		}
+		sleep 2500;
 	}
 	sleep 50;
 	start-script Lights();
@@ -77,7 +80,7 @@ RockOnWaves()
 		rockAng = rockAng + rockDir + rockDir;
 	}
 }
-static-var  Stunned;
+
 ExecuteRestoreAfterDelay()
 {
     if (Stunned) {

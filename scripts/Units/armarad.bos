@@ -6,6 +6,7 @@
 piece  base, turret, dish, spinner, blink;
 
 static-var  statechg_DesiredState, statechg_StateChanging;
+static-var  Stunned;
 
 
 SmokeUnit(healthpercent, sleeptime, smoketype)
@@ -67,8 +68,10 @@ Lights()
 {
 	while( TRUE )
 	{
-		emit-sfx 1024 + 0 from blink;
-		sleep 2000;
+	    if (!Stunned) {
+		    emit-sfx 1024 + 0 from blink;
+		}
+		sleep 2500;
 	}
 	sleep 50;
 	start-script Lights();
@@ -95,6 +98,16 @@ InitState()
 	statechg_DesiredState = TRUE;
 	statechg_StateChanging = FALSE;
 	return (0);
+}
+
+SetStunned(State)
+{
+    Stunned = State;
+	if (Stunned) {
+	    call-script Stop();
+	} else {
+	    call-script Go();
+	}
 }
 
 RequestState(requestedstate, currentstate)
