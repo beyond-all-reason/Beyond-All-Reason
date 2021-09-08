@@ -48,14 +48,14 @@ local doOverride = false
 
 local additionalLightingFlashes = true
 local additionalLightingFlashesAboveAverageFps = 12
-local additionalLightingFlashesMult = 0.9
+local additionalLightingFlashesMult = 0.75
 local additionalNukeLightingFlashes = true
 
 local globalLightMult = 1.5
 local globalRadiusMult = 1.4
 local globalLightMultLaser = 1.35	-- gets applied on top op globalRadiusMult
 local globalRadiusMultLaser = 0.9	-- gets applied on top op globalRadiusMult
-local globalLifeMult = 0.55
+local globalLifeMult = 0.58
 
 local enableHeatDistortion = true
 local enableNanolaser = true
@@ -1139,7 +1139,7 @@ function widget:SetConfigData(data)
 			globalRadiusMultLaser = data.globalRadiusMultLaser
 		end
 		if data.globalLifeMult ~= nil then
-			globalLifeMult = data.globalLifeMult
+			--globalLifeMult = data.globalLifeMult
 		end
         if data.enableHeatDistortion ~= nil then
             enableHeatDistortion = data.enableHeatDistortion
