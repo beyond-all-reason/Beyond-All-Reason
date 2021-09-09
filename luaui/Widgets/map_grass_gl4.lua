@@ -202,6 +202,7 @@ local grassPatchCount = 0
 local luaShaderDir = "LuaUI/Widgets/Include/"
 local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
 local grassRowInstance = {0} -- a table of row, instanceidx from top side of the view
+local grassMap2D = {}
 
 local windDirX = 0 
 local windDirZ = 0
@@ -532,10 +533,39 @@ function widget:KeyPress(key, modifier, isRepeat)
 	return false
 end
 
+local function RemoveGrass(mapxstart, mapxend, mapzstart, mapzend)
+  for x = math.floor(mapxstart/patchResolution),  math.floor(mapxend/patchResolution), 1 do
+    for z = math.floor(mapzstart/patchResolution),  math.floor(mapzend/patchResolution), 1 do
+      
+      Spring.Echo('mow',x,z)
+      if grassMap2D[x] and grassMap2D[x][z] then
+          local elementidx = grassMap2D[x][z]
+          grassInstanceData[elementidx * 4 + 4] = 0
+          grassInstanceVBO:Upload({
+               grassInstanceData[elementidx * 4 + 1], 
+               grassInstanceData[elementidx * 4 + 2], 
+               grassInstanceData[elementidx * 4 + 3], 
+               grassInstanceData[elementidx * 4 + 4],
+              }, 7, elementidx)
+          grassMap2D[x][z] = nil
+          Spring.Echo(x,z,elementidx)
+      end
+    end
+  end
+end
+
 function widget:Update()
+  
+	local mx, my, lp, mp, rp, offscreen = Spring.GetMouseState ( )
+  if mp and mx and my then
+    Spring.Echo("Removing grass from",mp,mx,my)
+    local _ , coords = Spring.TraceScreenRay(mx,my,true)
+    if coords then 
+      RemoveGrass(coords[1], coords[1], coords[3],coords[3])
+    end
+  end
+  
 	if not placementMode then return end
-	local mx, my, lp, mp, rp, offscreen = Spring.GetMouseState ( )
-	local mx, my, lp, mp, rp, offscreen = Spring.GetMouseState ( )
 	
 	--Spring.Echo("MousePress",mx, my, button)
 	
@@ -620,6 +650,11 @@ local function LoadGrassTGA(filename)
 				grassInstanceData[offset*4 + 2] = math.random()*6.28
 				grassInstanceData[offset*4 + 3] = lz
 				grassInstanceData[offset*4 + 4] = grassByteToPatchMult(texture[z][x])
+        if grassMap2D[x] == nil then
+          grassMap2D[x] = {}
+        end
+        grassMap2D[x][y] = offset
+          
 				offset = offset + 1
 			end
 		end
@@ -668,6 +703,11 @@ local function makeGrassInstanceVBO()
 					grassInstanceData[#grassInstanceData+1] = math.random()*6.28 -- rotation 2 pi
 					grassInstanceData[#grassInstanceData+1] = lz
 					grassInstanceData[#grassInstanceData+1] = grasssize -- size   
+          if grassMap2D[math.floor(x/patchResolution)] == nil then
+            grassMap2D[math.floor(x/patchResolution)] = {}
+          end
+          grassMap2D[math.floor(x/patchResolution)][math.floor(z/patchResolution)] = grassPatchCount
+        
 				end
 			end
 		end
@@ -1276,6 +1316,7 @@ local function distto2dsqr(camy, camz, mapy, mapz)
   return math.sqrt((camy-mapy)*(camy-mapy) + (camz-mapz) * (camz-mapz))
 end
   
+
 local function GetStartEndRows() -- returns start and end indices of the instance buffer for more conservative drawing of grass
   --check if the top or bottom of map is in view
   -- this function is an abomination
