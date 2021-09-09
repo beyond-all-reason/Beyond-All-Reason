@@ -96,6 +96,9 @@ return {
 				[1] = "custom:barrelshot-medium",
 				[2] = "custom:barrelshot-large",
 				[3] = "custom:barrelshot-medium-aa",
+				[4] = "custom:waterwake-large",
+				[5] = "custom:bowsplash-large",
+				[6] = "custom:enginespurt-large",
 			},
 			pieceexplosiongenerators = {
 				[1] = "deathceg2",

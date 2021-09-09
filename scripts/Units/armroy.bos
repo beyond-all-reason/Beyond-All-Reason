@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  flare1, flare2, base, turret, sleeve1, sleeve2, depthturret, depthflare, barrel1, barrel2, ground;
+piece  flare1, flare2, base, turret, sleeve1, sleeve2, depthturret, depthflare, barrel1, barrel2, ground, wake, bow;
 
 static-var  gun_1, restore_delay, aimDir, Static_Var_4, Static_Var_5, oldHead;
 
@@ -198,10 +198,11 @@ StartMoving()
 	start-script waveSplash();
 	while( TRUE )
 	{
-		emit-sfx 2 from ground;
+		emit-sfx 1024 + 1 from wake;
+		emit-sfx 1024 + 2 from bow;
 		waketime = (get CURRENT_SPEED) * 100 / get MAX_SPEED;
 		if( waketime < 50 ) waketime = 50;
-		sleep 10000 / waketime;
+		sleep 12000 / waketime;
 	}
 }
 
