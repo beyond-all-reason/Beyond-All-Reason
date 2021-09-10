@@ -47,11 +47,10 @@ local overrideParam = {r = 1, g = 1, b = 1, radius = 200}
 local doOverride = false
 
 local additionalLightingFlashes = true
-local additionalLightingFlashesAboveAverageFps = 12
-local additionalLightingFlashesMult = 0.75
+local additionalLightingFlashesMult = 0.8
 local additionalNukeLightingFlashes = true
 
-local globalLightMult = 1.5
+local globalLightMult = 1.4
 local globalRadiusMult = 1.4
 local globalLightMultLaser = 1.35	-- gets applied on top op globalRadiusMult
 local globalRadiusMultLaser = 0.9	-- gets applied on top op globalRadiusMult
@@ -67,9 +66,6 @@ local gibParams = {r = 0.145*globalLightMult, g = 0.1*globalLightMult, b = 0.05*
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
-
-local averageFps = 100
-local sceduledFpsCheckGf = Spring.GetGameFrame() + 30
 
 local projectileLightTypes = {}
 --[1] red
@@ -912,7 +908,7 @@ local function GadgetWeaponExplosion(px, py, pz, weaponID, ownerID)
 		explosionLights[explosionLightsCount] = params
 
 		-- brightened shorter flash
-		if additionalLightingFlashes and averageFps > additionalLightingFlashesAboveAverageFps then
+		if additionalLightingFlashes then
 			local params2 = table_copy(params)
 			params2.py = params2.py + math_min(50, params2.param.radius / 130)
 			params2.life = params2.life * 0.38
@@ -966,14 +962,6 @@ end
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
-
-function widget:Update(dt)
-	local gf = Spring.GetGameFrame()
-	if gf >= sceduledFpsCheckGf then
-		sceduledFpsCheckGf = gf + 30
-		averageFps = ((averageFps * 19) + Spring.GetFPS()) / 20
-	end
-end
 
 function widget:Shutdown()
 	WG['lighteffects'] = nil
