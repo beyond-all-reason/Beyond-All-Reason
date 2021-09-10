@@ -75,10 +75,10 @@ end
 
 local VISUALIZE_SELECTION_VOLUME = false
 local CYL_SCALE = 1.1
-local CYL_LENGTH = 0.8
-local CYL_ADD = 5
-local SEL_SCALE = 1.5
-local STATIC_SEL_SCALE = 1.35
+local CYL_LENGTH = 0.85
+local CYL_ADD = 4
+local SEL_SCALE = 1.22
+local STATIC_SEL_SCALE = 1.15
 
 for name, ud in pairs(UnitDefs) do
 	local scale = STATIC_SEL_SCALE
@@ -88,10 +88,10 @@ for name, ud in pairs(UnitDefs) do
 	if ud.customparams.selectionscalemult then
 		scale = ud.customparams.selectionscalemult
 	end
-	
+
 	if ud.collisionvolumescales or ud.selectionvolumescales then
 		-- Do not override default colvol because it is hard to measure.
-		
+
 		if ud.selectionvolumescales then
 			local dim = GetDimensions(ud.selectionvolumescales)
 			ud.selectionvolumescales  = math.ceil(dim[1]*scale) .. " " .. math.ceil(dim[2]*scale) .. " " .. math.ceil(dim[3]*scale)
@@ -134,7 +134,7 @@ for name, ud in pairs(UnitDefs) do
 	else
 		ud.customparams.lua_selection_scale = scale -- Scale default colVol units in lua, where we can read their model radius.
 	end
-	
+
 	if VISUALIZE_SELECTION_VOLUME then
 		if ud.selectionvolumescales then
 			ud.collisionvolumeoffsets = ud.selectionvolumeoffsets
@@ -142,7 +142,7 @@ for name, ud in pairs(UnitDefs) do
 			ud.collisionvolumetype    = ud.selectionvolumetype
 		end
 	end
-	
+
 	--Spring.Echo("VISUALIZE_SELECTION_VOLUME", ud.name, ud.collisionvolumescales, ud.selectionvolumescales)
 end
 
