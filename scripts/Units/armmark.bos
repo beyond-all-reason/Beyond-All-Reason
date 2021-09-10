@@ -7,6 +7,7 @@ piece  torso, Rthigh, Rleg, Rfoot, Lleg, Lfoot, Lthigh, rdish,
        ldish, pelvis,rarm, rshoulder,larm,lshoulder;
 
 static-var  bMoving, Static_Var_2;
+static-var  Stunned;
 
 // Signal definitions
 #define SIG_ACTIVATE			2
@@ -339,16 +340,19 @@ Activate()
 	spin rshoulder around x-axis speed <-90>;
 	while (1==1)
 	{
-		
-	turn ldish to z-axis <0> speed <90>;
-	turn rdish to z-axis <0> speed <90>;
-	emit-sfx 1024 + 0 from torso;
-	sleep 2000;
-	
-	turn ldish to z-axis <-179> speed <90>;
-	turn rdish to z-axis <179> speed <90>;
-	emit-sfx 1024 + 0 from torso;
-	sleep 2000;
+	    if (!Stunned) {
+            turn ldish to z-axis <0> speed <90>;
+            turn rdish to z-axis <0> speed <90>;
+            emit-sfx 1024 + 0 from torso;
+        }
+        sleep 2500;
+
+	    if (!Stunned) {
+            turn ldish to z-axis <-179> speed <90>;
+            turn rdish to z-axis <179> speed <90>;
+            emit-sfx 1024 + 0 from torso;
+        }
+        sleep 2500;
 	} 
 	return (0);
 }
@@ -367,7 +371,6 @@ Deactivate()
 	return (0);
 }
 
-static-var  Stunned;
 SetStunned(State)
 {
     Stunned = State;

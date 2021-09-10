@@ -154,7 +154,7 @@ return {
 				soundstart = "rocklit1",
 				soundtrigger = true,
 				startvelocity = 540,
-				texture1 = "trans",
+				texture1 = "null",
 				texture2 = "smoketrailaa3",
 				tolerance = 100000,
 				tracks = true,
@@ -165,8 +165,8 @@ return {
 				weaponvelocity = 1300,
 				customparams = {
 					expl_light_color = "1 0.4 0.5",
-					expl_light_mult = 1.29,
-					expl_light_radius_mult = 2.55,
+					expl_light_mult = 1.59,
+					expl_light_radius_mult = 1.67,
 					light_color = "1 0.5 0.6",
 				},
 				damage = {

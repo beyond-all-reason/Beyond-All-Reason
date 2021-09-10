@@ -145,7 +145,7 @@ return {
 				smoketrail = true,
 				smokePeriod = 6,
 				smoketime = 12,
-				smokesize = 4.8,
+				smokesize = 4.4,
 				smokecolor = 0.95,
 				smokeTrailCastShadow = false,
 				castshadow = false,
@@ -165,8 +165,8 @@ return {
 				weaponvelocity = 850,
 				customparams = {
 					expl_light_color = "1 0.4 0.5",
-					expl_light_mult = 1.29,
-					expl_light_radius_mult = 2.55,
+					expl_light_mult = 1.59,
+					expl_light_radius_mult = 1.67,
 					light_color = "1 0.5 0.6",
 				},
 				damage = {

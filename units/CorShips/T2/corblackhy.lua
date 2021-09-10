@@ -263,7 +263,7 @@ return {
 				soundstart = "packolau",
 				soundtrigger = true,
 				startvelocity = 1,
-				texture1 = "trans",
+				texture1 = "null",
 				texture2 = "smoketrailaa3",
 				tolerance = 9950,
 				tracks = true,
@@ -276,7 +276,7 @@ return {
 				customparams = {
 					expl_light_color = "1 0.4 0.5",
 					expl_light_mult = 0.86,
-					expl_light_radius_mult = 2.55,
+					expl_light_radius_mult = 1.67,
 					light_color = "1 0.5 0.6",
 				},
 				damage = {

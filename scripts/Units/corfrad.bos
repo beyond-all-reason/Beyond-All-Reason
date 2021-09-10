@@ -3,9 +3,10 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, dish;
+piece  base, dish, blink;
 
 static-var  statechg_DesiredState, statechg_StateChanging;
+static-var  Stunned;
 
 RockOnWaves()
 {
@@ -82,6 +83,19 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 	}
 }
 
+Lights()
+{
+	while( TRUE )
+	{
+	    if (!Stunned) {
+		    emit-sfx 1024 + 0 from blink;
+		}
+		sleep 2500;
+	}
+	sleep 50;
+	start-script Lights();
+}
+
 Go()
 {
 	spin dish around y-axis speed <60.005495>;
@@ -90,6 +104,16 @@ Go()
 Stop()
 {
 	spin dish around y-axis speed <0.000000>;
+}
+
+SetStunned(State)
+{
+    Stunned = State;
+	if (Stunned) {
+	    call-script Stop();
+	} else {
+	    call-script Go();
+	}
 }
 
 InitState()
@@ -132,6 +156,7 @@ Create()
 
 Activate()
 {
+	start-script Lights();
 	start-script RequestState(0);
 }
 

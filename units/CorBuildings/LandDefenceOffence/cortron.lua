@@ -139,7 +139,7 @@ return {
 				range = 2750,
 				reloadtime = 2,
 				smoketrail = true,
-				smokePeriod = 10,
+				smokePeriod = 9,
 				smoketime = 60,
 				smokesize = 14.0,
 				smokecolor = 0.7,

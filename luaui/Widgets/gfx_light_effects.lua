@@ -48,14 +48,14 @@ local doOverride = false
 
 local additionalLightingFlashes = true
 local additionalLightingFlashesAboveAverageFps = 12
-local additionalLightingFlashesMult = 0.9
+local additionalLightingFlashesMult = 0.75
 local additionalNukeLightingFlashes = true
 
 local globalLightMult = 1.5
 local globalRadiusMult = 1.4
 local globalLightMultLaser = 1.35	-- gets applied on top op globalRadiusMult
 local globalRadiusMultLaser = 0.9	-- gets applied on top op globalRadiusMult
-local globalLifeMult = 0.55
+local globalLifeMult = 0.58
 
 local enableHeatDistortion = true
 local enableNanolaser = true
@@ -226,6 +226,20 @@ local function loadWeaponDefs()
 				}
 			end
 
+			if params.wtype == 'LaserCannon' then
+				params.barrelflare = {
+					life = (4+(params.life/2)) * globalLifeMult,
+					orgMult = 0.38 + (params.orgMult*0.6),
+					param = {
+						type = 'explosion',
+						r = (params.r + 1) / 2,
+						g = (params.g + 1) / 2,
+						b = (params.b + 1) / 2,
+						radius = 115 + (params.radius*5)
+					},
+				}
+			end
+
 			if not params.noheatdistortion and params.radius > 75 then
 				local strength,animSpeed,life,heat,sizeGrowth,size,force
 				if params.type == 'paralyzer' then
@@ -346,9 +360,9 @@ local function GetLightsFromUnitDefs()
 			recalcRGB = true
 			--skip = true
 		elseif weaponDef.type == 'LightningCannon' then
-			weaponData.radius = 75 * weaponDef.size
+			weaponData.radius = 77 * weaponDef.size
 			weaponData.beam = true
-			lightMultiplier = 0.16
+			lightMultiplier = 0.18
 		elseif weaponDef.type == 'BeamLaser' then
 			weaponData.radius = 16 * (weaponDef.size * weaponDef.size * weaponDef.size)
 			weaponData.beam = true
@@ -416,7 +430,7 @@ local function GetLightsFromUnitDefs()
 
 		if recalcRGB or globalLightMult ~= 1 or globalLightMultLaser ~= 1 then
 			local laserMult = 1
-			if (weaponDef.type == 'BeamLaser' or weaponDef.type == 'LightningCannon' or weaponDef.type ==  'LaserCannon') then
+			if weaponDef.type == 'BeamLaser' or weaponDef.type == 'LightningCannon' or weaponDef.type ==  'LaserCannon' then
 				laserMult = globalLightMultLaser
 			end
 			weaponData.r = (r + 0.1) * lightMultiplier * globalLightMult * laserMult
@@ -430,7 +444,7 @@ local function GetLightsFromUnitDefs()
 		end
 
 		weaponData.radius = weaponData.radius * globalRadiusMult
-		if (weaponDef.type == 'BeamLaser' or weaponDef.type == 'LightningCannon' or weaponDef.type ==  'LaserCannon') then
+		if weaponDef.type == 'BeamLaser' or weaponDef.type == 'LightningCannon' or weaponDef.type ==  'LaserCannon' then
 			weaponData.radius = weaponData.radius * globalRadiusMultLaser
 		end
 
@@ -1125,7 +1139,7 @@ function widget:SetConfigData(data)
 			globalRadiusMultLaser = data.globalRadiusMultLaser
 		end
 		if data.globalLifeMult ~= nil then
-			globalLifeMult = data.globalLifeMult
+			--globalLifeMult = data.globalLifeMult
 		end
         if data.enableHeatDistortion ~= nil then
             enableHeatDistortion = data.enableHeatDistortion

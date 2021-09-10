@@ -168,9 +168,9 @@ return {
 				range = 800,
 				reloadtime = 7,
 				smoketrail = true,
-				smokePeriod = 7,
-				smoketime = 50,
-				smokesize = 16.0,
+				smokePeriod = 9,
+				smoketime = 38,
+				smokesize = 12.0,
 				smokecolor = 0.7,
 				smokeTrailCastShadow = false,
 				castshadow = true, --projectile
