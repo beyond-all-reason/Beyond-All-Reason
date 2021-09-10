@@ -137,6 +137,8 @@ Create()
 	Static_Var_4 = 0;
 	Static_Var_5 = 0;
 	Static_Var_7 = 0;
+	turn wake to y-axis <180> now;
+	turn engine to y-axis <180> now;
 	spin dish around y-axis speed <100.021978>;
 	restore_delay = 6000;
 	start-script SmokeUnit();
