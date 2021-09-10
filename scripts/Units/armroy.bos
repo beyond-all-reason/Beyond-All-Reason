@@ -192,18 +192,20 @@ waveSplash()
 
 StartMoving()
 {
-	signal SIG_MOVE;
-	set-signal-mask SIG_MOVE;
-	var waketime;
-	start-script waveSplash();
-	while( TRUE )
-	{
-		emit-sfx 1024 + 1 from wake;
-		emit-sfx 1024 + 2 from bow;
-		waketime = (get CURRENT_SPEED) * 100 / get MAX_SPEED;
-		if( waketime < 50 ) waketime = 50;
-		sleep 12000 / waketime;
-	}
+    signal SIG_MOVE;
+    set-signal-mask SIG_MOVE;
+    var waketime;
+    start-script waveSplash();
+    var bowtime  = 0;
+    while( TRUE )
+    {
+        emit-sfx 1024 + 1 from wake;
+        if (bowtime) emit-sfx 1024 + 2 from bow;
+        bowtime = !bowtime;
+        waketime = (get CURRENT_SPEED) * 100 / get MAX_SPEED;
+        if( waketime < 50 ) waketime = 50;
+        sleep 12000 / waketime;
+    }
 }
 
 StopMoving()
