@@ -11,7 +11,7 @@ function gadget:GetInfo()
 		date = "2007-11-18",
 		license = "None",
 		layer = 50,
-		enabled = false
+		enabled = true
 	}
 end
 
@@ -72,36 +72,38 @@ end
 
 local function SpawnUnit(spawnData)
 	local spawnDef = spawnData.spawnDef
-	if spawnDef.feature then
-		local featureID = spCreateFeature(spawnDef.name, spawnData.x, spawnData.y, spawnData.z, 0, spawnData.teamID)
-		if not featureID then
-			return
-		end
+	if spawnDef then
+		if spawnDef.feature then
+			local featureID = spCreateFeature(spawnDef.name, spawnData.x, spawnData.y, spawnData.z, 0, spawnData.teamID)
+			if not featureID then
+				return
+			end
 
-		local rot = random() * TAU
-		spSetFeatureDirection(featureID, cos(rot), 0, sin(rot))
-	else
-		local unitID = spCreateUnit(spawnDef.name, spawnData.x, spawnData.y, spawnData.z, 0, spawnData.teamID)
-		if not unitID then
-			-- unit limit hit
-			return
-		end
+			local rot = random() * TAU
+			spSetFeatureDirection(featureID, cos(rot), 0, sin(rot))
+		else
+			local unitID = spCreateUnit(spawnDef.name, spawnData.x, spawnData.y, spawnData.z, 0, spawnData.teamID)
+			if not unitID then
+				-- unit limit hit
+				return
+			end
 
-		local ownerID = spawnData.ownerID
-		if ownerID then
-			spSetUnitRulesParam(unitID, "parent_unit_id", ownerID, PRIVATE)
-		end
+			local ownerID = spawnData.ownerID
+			if ownerID then
+				spSetUnitRulesParam(unitID, "parent_unit_id", ownerID, PRIVATE)
+			end
 
-		if spawnDef.expire then
-			expireCount = expireCount + 1
-			expireByID[unitID] = expireCount
-			expireID[expireCount] = unitID
-			expireList[expireCount] = spGetGameFrame() + spawnDef.expire
-		end
+			if spawnDef.expire then
+				expireCount = expireCount + 1
+				expireByID[unitID] = expireCount
+				expireID[expireCount] = unitID
+				expireList[expireCount] = spGetGameFrame() + spawnDef.expire
+			end
 
-		-- force a slowupdate to make the unit act immediately
-		spGiveOrderToUnit(unitID, CMD_WAIT, EMPTY_TABLE, 0)
-		spGiveOrderToUnit(unitID, CMD_WAIT, EMPTY_TABLE, 0)
+			-- force a slowupdate to make the unit act immediately
+			spGiveOrderToUnit(unitID, CMD_WAIT, EMPTY_TABLE, 0)
+			spGiveOrderToUnit(unitID, CMD_WAIT, EMPTY_TABLE, 0)
+		end
 	end
 end
 
