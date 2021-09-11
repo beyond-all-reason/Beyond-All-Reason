@@ -56,7 +56,7 @@ end
 
 local function spawnConstructor(n)
 	local spawnOverdue = constructorTimer > constructorControllerModuleConfig.constructortimer or countScavCommanders() < constructorControllerModuleConfig.minimumconstructors
-	local exclusionPeriodExpired = constructorTimer > (constructorControllerModuleConfig.constructortimer / 10)
+	local exclusionPeriodExpired = constructorTimer > 0
 
 	if spawnOverdue and numOfSpawnBeacons > 0 and exclusionPeriodExpired then
 		local scavengerunits = Spring.GetTeamUnits(GaiaTeamID)
@@ -69,14 +69,10 @@ local function spawnConstructor(n)
 			end
 		end
 
-		for i = 1,10 do
-			local pickedBeaconTest = spawnBeacons[math.random(#spawnBeacons)]
-			local _, _, pickedBeaconParalyze, pickedBeaconCaptureProgress = Spring.GetUnitHealth(pickedBeaconTest)
-			if pickedBeaconCaptureProgress == 0 and pickedBeaconParalyze == 0 then
+		for b = 1,100 do
+			local pickedBeaconTest = spawnBeacons[math_random(1,#spawnBeacons)]
+			if pickedBeaconTest then
 				pickedBeacon = pickedBeaconTest
-				break
-			else
-				pickedBeacon = 16000000 -- high number that UnitID should never pick
 			end
 		end
 

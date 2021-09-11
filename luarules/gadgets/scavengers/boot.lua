@@ -779,6 +779,13 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 				if currentbosshealth > bosshealth then
 					Spring.SetUnitHealth(unitID, bosshealth)
 				end
+
+				local stopScavUnits = Spring.GetTeamUnits(GaiaTeamID)
+				for y = 1,#stopScavUnits do
+					local unitID = stopScavUnits[y]							
+					Spring.GiveOrderToUnit(unitID, CMD.STOP, 0, 0)
+				end
+				
 			end
 		end
 		if unitName == "corcomcon"..scavconfig.unitnamesuffix then

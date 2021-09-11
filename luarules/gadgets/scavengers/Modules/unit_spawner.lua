@@ -40,12 +40,8 @@ function BossWaveTimer(n)
 			elseif #SpawnBeacons > 1 then
 				for b = 1,1000 do
 					local pickedBeaconTest = SpawnBeacons[math_random(1,#SpawnBeacons)]
-					local _,_,pickedBeaconParalyze,pickedBeaconCaptureProgress = Spring.GetUnitHealth(pickedBeaconTest)
-					if pickedBeaconCaptureProgress == 0 and pickedBeaconParalyze == 0 then
+					if pickedBeaconTest then
 						pickedBeacon = pickedBeaconTest
-						break
-					else
-						pickedBeacon = 16000000 -- high number that UnitID should never pick
 					end
 				end
 			elseif #SpawnBeacons == 1 then
@@ -216,14 +212,10 @@ function UnitGroupSpawn(n)
 			if #SpawnBeacons == 0 then
 				return
 			end
-			for b = 1,10 do
+			for b = 1,100 do
 				local pickedBeaconTest = SpawnBeacons[math_random(1,#SpawnBeacons)]
-				local _,_,_,pickedBeaconCaptureProgress = Spring.GetUnitHealth(pickedBeaconTest)
-				if pickedBeaconCaptureProgress == 0 then
+				if pickedBeaconTest then
 					pickedBeacon = pickedBeaconTest
-					break
-				else
-					pickedBeacon = 16000000 -- high number that UnitID should never pick
 				end
 			end
 			if pickedBeacon == 16000000 then
