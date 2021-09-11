@@ -534,6 +534,7 @@ function widget:Update(dt)
 			if opacity > 0.1 then
 				local wy = spGetGroundHeight(wx, wz)
 				updateCursor(playerID,wx, wy, wz, camX, camY, camZ, opacity, specList[playerID])
+        -- for future reference, avoid recreating tables every frame, just update it with a function
 				--cursors[playerID] = { wx, wy, wz, camX, camY, camZ, opacity, specList[playerID] }
 			else
 				notIdle[playerID] = nil
