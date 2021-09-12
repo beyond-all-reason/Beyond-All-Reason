@@ -6,7 +6,7 @@ local seaUnitList = VFS.Include("luarules/gadgets/scavengers/Configs/BYAR/UnitLi
 local constructorUnitList = VFS.Include("luarules/gadgets/scavengers/Configs/BYAR/UnitLists/constructors.lua")
 
 function SpawnBeacon(n)
-	if n and n > 30 then
+	if n and n > spawningStartFrame then
 		if numOfSpawnBeacons < unitSpawnerModuleConfig.minimumspawnbeacons then
 			BeaconSpawnChance = 0
 		elseif BeaconSpawnChance > 0 then
@@ -48,7 +48,9 @@ function SpawnBeacon(n)
 				
 				if canSpawnBeaconHere then
 					BeaconSpawnChance = unitSpawnerModuleConfig.beaconspawnchance
-					Spring.CreateUnit("scavengerdroppodbeacon_scav", posx, posy, posz, math_random(0,3),GaiaTeamID)
+					if scavengerGamePhase ~= "initial" or math.random(0,3) == 0 then
+						QueueSpawn("scavengerdroppodbeacon_scav", posx, posy, posz, math_random(0,3),GaiaTeamID, n+150, false)
+					end
 					local spawnTier = math_random(1,100)
 					if spawnTier <= TierSpawnChances.T0 then
 						grouptier = landUnitList.T0
