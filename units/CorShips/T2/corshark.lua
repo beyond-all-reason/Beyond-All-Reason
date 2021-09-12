@@ -28,6 +28,7 @@ return {
 		maxvelocity = 2.8,
 		minwaterdepth = 15,
 		movementclass = "UBOAT3",
+		movestate = 1,
 		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/CORSHARK.s3o",

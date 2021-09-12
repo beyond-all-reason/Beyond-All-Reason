@@ -27,6 +27,7 @@ return {
 		maxvelocity = 2.1,
 		minwaterdepth = 15,
 		movementclass = "UBOAT3",
+		movestate = 1,
 		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMSUB.s3o",
