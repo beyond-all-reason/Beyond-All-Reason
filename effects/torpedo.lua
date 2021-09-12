@@ -10,13 +10,13 @@ local definitions = {
             properties = {
                 colormap           = [[0.20 0.21 0.23 0.025   0 0 0 0.001]],
                 dir                = [[dir]],
-                frontoffset        = 0,
-                fronttexture       = [[explowater]],
-                length             = -3,
+                frontoffset        = 0.7,
+                fronttexture       = [[none]],
+                length             = -2.7,
                 sidetexture        = [[gunshotxl]],
                 size               = 2.8,
                 sizegrowth         = 1.5,
-                ttl                = 4,
+                ttl                = 5,
             },
         },
     },
@@ -127,9 +127,9 @@ local definitions = {
 
 
 
-    ["torpedo-launch"] = {
+    -- ["torpedo-launch"] = {
 
-    }
+    -- },
 }
 
 return definitions

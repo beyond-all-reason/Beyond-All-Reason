@@ -31,7 +31,6 @@ return {
       properties = {
         colormap           = [[0.24 0.24 0.24 0.24   0.38 0.38 0.38 0.38   0.13 0.13 0.13 0.15   0.09 0.09 0.09 0.1  0 0 0 0.01]],
         dir                = [[0, 1, 0]],
-        --gravity            = [[-4 r8, 0, -4 r8]],
         frontoffset        = 0,
         fronttexture       = [[wakegrey]],
         length             = 45,
@@ -86,7 +85,6 @@ return {
       properties = {
         colormap           = [[0.4 0.4 0.4 0.28   0.5 0.5 0.5 0.3   0.13 0.13 0.13 0.15   0.09 0.09 0.09 0.1  0 0 0 0.01]],
         dir                = [[0, 1, 0]],
-        gravity            = [[-1 r2, 0, -1 r2]],
         frontoffset        = 0,
         fronttexture       = [[wakegrey]],
         length             = 45,
@@ -111,7 +109,6 @@ return {
       properties = {
         colormap           = [[0.11 0.11 0.11 0.10   0.40 0.40 0.40 0.3   0.14 0.14 0.14 0.16   0.09 0.09 0.09 0.1  0 0 0 0.01]],
         dir                = [[0, 1, 0]],
-        gravity            = [[-1 r2, 0, -1 r2]],
         frontoffset        = 0,
         fronttexture       = [[wakegrey]],
         length             = 45,
@@ -133,7 +130,6 @@ return {
       properties = {
         colormap           = [[0.65 0.65 0.70 0.017   0 0 0 0.01]],
         dir                = [[0, 1, 0]],
-        --gravity            = [[0.0, 0.1, 0.0]],
         frontoffset        = 0,
         fronttexture       = [[waterfoam]],
         length             = 45,
@@ -158,7 +154,6 @@ return {
       properties = {
         colormap           = [[0.15 0.15 0.15 0.15   0.3 0.3 0.3 0.28   0.12 0.12 0.12 0.15   0.09 0.09 0.09 0.1  0 0 0 0.01]],
         dir                = [[0, 1, 0]],
-        gravity            = [[-1 r2, 0, -1 r2]],
         frontoffset        = 0,
         fronttexture       = [[wakegrey]],
         length             = 45,
@@ -183,7 +178,6 @@ return {
       properties = {
         colormap           = [[0.15 0.15 0.15 0.15   0.3 0.3 0.3 0.28   0.12 0.12 0.12 0.15   0.09 0.09 0.09 0.1  0 0 0 0.01]],
         dir                = [[0, 1, 0]],
-        gravity            = [[-1 r2, 0, -1 r2]],
         frontoffset        = 0,
         fronttexture       = [[wakegrey]],
         length             = 45,
@@ -205,7 +199,6 @@ return {
       properties = {
         colormap           = [[0.65 0.65 0.70 0.017   0 0 0 0.01]],
         dir                = [[0, 1, 0]],
-        --gravity            = [[0.0, 0.1, 0.0]],
         frontoffset        = 0,
         fronttexture       = [[waterfoam]],
         length             = 45,
@@ -230,7 +223,6 @@ return {
       properties = {
         colormap           = [[0.15 0.15 0.15 0.2   0.3 0.3 0.3 0.3   0.11 0.11 0.11 0.15   0.09 0.09 0.09 0.1  0 0 0 0.01]],
         dir                = [[0, 1, 0]],
-        gravity            = [[-1 r2, 0, -1 r2]],
         frontoffset        = 0,
         fronttexture       = [[wakegrey]],
         length             = 45,
@@ -252,7 +244,6 @@ return {
       properties = {
         colormap           = [[0.4 0.4 0.4 0.28   0.6 0.6 0.6 0.40   0.13 0.13 0.13 0.15   0 0 0 0.01]],
         dir                = [[0, 1, 0]],
-        gravity            = [[-1 r2, 0, -1 r2]],
         frontoffset        = 0,
         fronttexture       = [[waterfoam]],
         length             = 45,
@@ -277,7 +268,6 @@ return {
       properties = {
         colormap           = [[0.15 0.15 0.15 0.2   0.3 0.3 0.3 0.3   0.11 0.11 0.11 0.15   0.09 0.09 0.09 0.1  0 0 0 0.01]],
         dir                = [[0, 1, 0]],
-        gravity            = [[-1 r2, 0, -1 r2]],
         frontoffset        = 0,
         fronttexture       = [[wakegrey]],
         length             = 45,
@@ -299,7 +289,6 @@ return {
       properties = {
         colormap           = [[0.4 0.4 0.4 0.28   0.6 0.6 0.6 0.40   0.13 0.13 0.13 0.15   0 0 0 0.01]],
         dir                = [[0, 1, 0]],
-        gravity            = [[-1 r2, 0, -1 r2]],
         frontoffset        = 0,
         fronttexture       = [[waterfoam]],
         length             = 45,
@@ -324,7 +313,6 @@ return {
       properties = {
         colormap           = [[0.55 0.55 0.55 0.015   0 0 0 0.01]],
         dir                = [[0, 1, 0]],
-        --gravity            = [[0.0, 0.1, 0.0]],
         frontoffset        = 0,
         fronttexture       = [[waterfoam]],
         length             = 45,
@@ -379,7 +367,6 @@ return {
       properties = {
         colormap           = [[0.55 0.55 0.55 0.015   0 0 0 0.01]],
         dir                = [[0, 1, 0]],
-        --gravity            = [[0.0, 0.1, 0.0]],
         frontoffset        = 0,
         fronttexture       = [[waterfoam]],
         length             = 45,
@@ -434,7 +421,6 @@ return {
       properties = {
         colormap           = [[0.55 0.55 0.55 0.015   0 0 0 0.01]],
         dir                = [[0, 1, 0]],
-        --gravity            = [[0.0, 0.1, 0.0]],
         frontoffset        = 0,
         fronttexture       = [[waterfoam]],
         length             = 45,
@@ -489,7 +475,6 @@ return {
       properties = {
         colormap           = [[0.55 0.55 0.55 0.015   0 0 0 0.01]],
         dir                = [[0, 1, 0]],
-        --gravity            = [[0.0, 0.1, 0.0]],
         frontoffset        = 0,
         fronttexture       = [[waterfoam]],
         length             = 45,
