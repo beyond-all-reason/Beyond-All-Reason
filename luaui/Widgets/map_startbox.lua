@@ -358,8 +358,7 @@ function widget:DrawWorld()
 			if coopStartPoints[playerID] then
 				x, y, z = coopStartPoints[playerID][1], coopStartPoints[playerID][2], coopStartPoints[playerID][3]
 			end
-			local isNewbie = (Spring.GetTeamRulesParam(teamID, 'isNewbie') == 1) -- =1 means the startpoint will be replaced and chosen by initial_spawn
-			if x ~= nil and x > 0 and z > 0 and y > -500 and not isNewbie then
+			if x ~= nil and x > 0 and z > 0 and y > -500 then
 				local r, g, b = GetTeamColor(teamID)
 				local alpha = 0.5 + math.abs(((time * 3) % 1) - 0.5)
 				gl.PushMatrix()
@@ -380,8 +379,7 @@ function widget:DrawScreenEffects()
 	for _, teamID in ipairs(Spring.GetTeamList()) do
 		local playerID = select(2, Spring.GetTeamInfo(teamID, false))
 		local name, _, spec = Spring.GetPlayerInfo(playerID, false)
-		local isNewbie = (Spring.GetTeamRulesParam(teamID, 'isNewbie') == 1) -- =1 means the startpoint will be replaced and chosen by initial_spawn
-		if name ~= nil and not spec and teamID ~= gaiaTeamID and not isNewbie then
+		if name ~= nil and not spec and teamID ~= gaiaTeamID then
 			local x, y, z = Spring.GetTeamStartPosition(teamID)
 			if coopStartPoints[playerID] then
 				x, y, z = coopStartPoints[playerID][1], coopStartPoints[playerID][2], coopStartPoints[playerID][3]
@@ -456,8 +454,7 @@ function widget:DrawInMiniMap(sx, sz)
 			if coopStartPoints[playerID] then
 				x, y, z = coopStartPoints[playerID][1], coopStartPoints[playerID][2], coopStartPoints[playerID][3]
 			end
-			local isNewbie = (Spring.GetTeamRulesParam(teamID, 'isNewbie') == 1) -- =1 means the startpoint will be replaced and chosen by initial_spawn
-			if x ~= nil and x > 0 and z > 0 and y > -500 and not isNewbie then
+			if x ~= nil and x > 0 and z > 0 and y > -500 then
 				local r, g, b = GetTeamColor(teamID)
 				local time = Spring.DiffTimers(Spring.GetTimer(), startTimer)
 				local i = 2 * math.abs(((time * 3) % 1) - 0.5)
