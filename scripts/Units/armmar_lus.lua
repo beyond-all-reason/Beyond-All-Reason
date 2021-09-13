@@ -252,5 +252,14 @@ function script.QueryWeapon(weaponID)
 end
 
 function script.Killed(recentDamage, maxHealth)
-	return 1
+	-- fixme: could use exploding bits
+
+	local severity = recentDamage / maxHealth
+	if severity > 0.99 then
+		return 3
+	elseif severity > 0.50 then
+		return 2
+	else
+		return 1
+	end
 end
