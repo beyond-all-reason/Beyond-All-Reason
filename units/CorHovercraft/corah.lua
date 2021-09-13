@@ -86,6 +86,11 @@ return {
 			},
 		},
 		sfxtypes = {
+			explosiongenerators = {
+				[1] = "custom:waterwake-small-hover",
+				[2] = "custom:bowsplash-small-hover",
+				[3] = "custom:hover-wake-small",
+			},
 			pieceexplosiongenerators = {
 				[1] = "deathceg2",
 				[2] = "deathceg3",

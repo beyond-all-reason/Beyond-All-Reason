@@ -25,7 +25,7 @@ return {
       air                = true,
       class              = [[CBitmapMuzzleFlame]],
       count              = 1,
-      ground             = true,
+      ground             = false,
       underwater         = 1,
       water              = true,
       properties = {
@@ -79,11 +79,11 @@ return {
       air                = true,
       class              = [[CBitmapMuzzleFlame]],
       count              = 1,
-      ground             = true,
+      ground             = false,
       underwater         = 1,
       water              = true,
       properties = {
-        colormap           = [[0.4 0.4 0.4 0.28   0.5 0.5 0.5 0.3   0.13 0.13 0.13 0.15   0.09 0.09 0.09 0.1  0 0 0 0.01]],
+        colormap           = [[0.4 0.4 0.4 0.28   0.38 0.38 0.38 0.38   0.13 0.13 0.13 0.15   0.09 0.09 0.09 0.1  0 0 0 0.01]],
         dir                = [[0, 1, 0]],
         frontoffset        = 0,
         fronttexture       = [[wakegrey]],
@@ -98,12 +98,36 @@ return {
     },
   },
 
+  ["waterwake-small-hover"] = {
+    waterring = {
+      air                = true,
+      class              = [[CBitmapMuzzleFlame]],
+      count              = 1,
+      ground             = false,
+      underwater         = 1,
+      water              = true,
+      properties = {
+        colormap           = [[0.3 0.3 0.3 0.25   0.4 0.4 0.4 0.3   0.13 0.13 0.13 0.15   0.09 0.09 0.09 0.1  0 0 0 0.01]],
+        dir                = [[0, 1, 0]],
+        frontoffset        = 0,
+        fronttexture       = [[wakegrey]],
+        length             = 45,
+        sidetexture        = [[none]],
+        size               = [[7 r3]],
+        sizegrowth         = [[1.5 r1]],
+        ttl                = 40,
+        rotParams          = [[-50 r100, -10 r20, -180 r360]],
+        pos                = [[-5 r10, 1, -5 r10]],
+      },
+    },
+  },
+
   ["waterwake-small-long"] = {
     waterring = {
       air                = true,
       class              = [[CBitmapMuzzleFlame]],
       count              = 1,
-      ground             = true,
+      ground             = false,
       underwater         = 1,
       water              = true,
       properties = {
@@ -124,7 +148,7 @@ return {
       air                = true,
       class              = [[CBitmapMuzzleFlame]],
       count              = 1,
-      ground             = true,
+      ground             = false,
       underwater         = 1,
       water              = true,
       properties = {
@@ -148,7 +172,7 @@ return {
       air                = true,
       class              = [[CBitmapMuzzleFlame]],
       count              = [[1]],
-      ground             = true,
+      ground             = false,
       underwater         = 1,
       water              = true,
       properties = {
@@ -172,7 +196,7 @@ return {
       air                = true,
       class              = [[CBitmapMuzzleFlame]],
       count              = [[1]],
-      ground             = true,
+      ground             = false,
       underwater         = 1,
       water              = true,
       properties = {
@@ -193,7 +217,7 @@ return {
       air                = true,
       class              = [[CBitmapMuzzleFlame]],
       count              = 1,
-      ground             = true,
+      ground             = false,
       underwater         = 1,
       water              = true,
       properties = {
@@ -217,7 +241,7 @@ return {
       air                = true,
       class              = [[CBitmapMuzzleFlame]],
       count              = 1,
-      ground             = true,
+      ground             = false,
       underwater         = 1,
       water              = true,
       properties = {
@@ -238,7 +262,7 @@ return {
       air                = true,
       class              = [[CBitmapMuzzleFlame]],
       count              = 1,
-      ground             = true,
+      ground             = false,
       underwater         = 1,
       water              = true,
       properties = {
@@ -262,7 +286,7 @@ return {
       air                = true,
       class              = [[CBitmapMuzzleFlame]],
       count              = 1,
-      ground             = true,
+      ground             = false,
       underwater         = 1,
       water              = true,
       properties = {
@@ -283,7 +307,7 @@ return {
       air                = true,
       class              = [[CBitmapMuzzleFlame]],
       count              = 1,
-      ground             = true,
+      ground             = false,
       underwater         = 1,
       water              = true,
       properties = {
@@ -307,7 +331,7 @@ return {
       air                = true,
       class              = [[CBitmapMuzzleFlame]],
       count              = 1,
-      ground             = true,
+      ground             = false,
       underwater         = 1,
       water              = true,
       properties = {
@@ -328,7 +352,7 @@ return {
       air                = true,
       class              = [[CSimpleParticleSystem]],
       count              = 1,
-      ground             = true,
+      ground             = false,
       water              = true,
       underwater         = true,
       properties = {
@@ -356,12 +380,117 @@ return {
     },
   },
 
+["bowsplash-small-hover"] = {
+    splashes = {
+      air                = true,
+      class              = [[CSimpleParticleSystem]],
+      count              = 1,
+      ground             = false,
+      water              = true,
+      underwater         = true,
+      properties = {
+        airdrag            = 0.84,
+        colormap           = [[0.65 0.65 0.70 0.26   0.3 0.31 0.35 0.05   0 0 0 0.005]],
+        directional        = false,
+        emitrot            = 50,
+        emitrotspread      = 4,
+        emitvector         = [[0, 1, 0]],
+        gravity            = [[0, -0.08, 0]],
+        numparticles       = [[0.5 r1]],
+        particlelife       = 10,
+        particlelifespread = 12,
+        particlesize       = 6,
+        particlesizespread = 6,
+        particlespeed      = 2.4,
+        particlespeedspread = 2.2,
+        rotParams          = [[-120 r240, 0, -180 r360]],
+        pos                = [[-10 r20, 0, -10 r20]],
+        sizegrowth         = 0.1,
+        sizemod            = 0.98,
+        texture            = [[randomdots]],
+        useairlos          = false,
+      },
+    },
+  },
+
+  ["hover-wake-tiny"] = {
+    waterring = {
+      air                = true,
+      class              = [[CBitmapMuzzleFlame]],
+      count              = 1,
+      ground             = false,
+      underwater         = 1,
+      water              = true,
+      properties = {
+        colormap           = [[0.35 0.35 0.35 0.012   0.55 0.55 0.55 0.015   0.25 0.25 0.25 0.012   0 0 0 0.01]],
+        dir                = [[0, 1, 0]],
+        frontoffset        = 0,
+        fronttexture       = [[waterfoam]],
+        length             = 45,
+        sidetexture        = [[none]],
+        size               = [[8.1 r2.8]],
+        sizegrowth         = [[0.8 r0.7]],
+        ttl                = 42,
+        rotParams          = [[-15 r30, 0, -180 r360]],
+        pos                = [[0, 1, 0]],
+      },
+    },
+  },
+
+  ["hover-wake-small"] = {
+    waterring = {
+      air                = true,
+      class              = [[CBitmapMuzzleFlame]],
+      count              = 1,
+      ground             = false,
+      underwater         = 1,
+      water              = true,
+      properties = {
+        colormap           = [[0.35 0.35 0.35 0.012   0.55 0.55 0.55 0.015   0.25 0.25 0.25 0.012   0 0 0 0.01]],
+        dir                = [[0, 1, 0]],
+        frontoffset        = 0,
+        fronttexture       = [[waterfoam]],
+        length             = 45,
+        sidetexture        = [[none]],
+        size               = [[9.9 r4.5]],
+        sizegrowth         = [[0.9 r0.5]],
+        ttl                = 45,
+        rotParams          = [[-15 r30, 0, -180 r360]],
+        pos                = [[0, 1, 0]],
+      },
+    },
+  },
+
+  ["hover-wake-large"] = {
+    waterring = {
+      air                = true,
+      class              = [[CBitmapMuzzleFlame]],
+      count              = 1,
+      ground             = false,
+      underwater         = 1,
+      water              = true,
+      properties = {
+        colormap           = [[0.35 0.35 0.35 0.012   0.55 0.55 0.55 0.015   0.25 0.25 0.25 0.012   0 0 0 0.01]],
+        dir                = [[0, 1, 0]],
+        frontoffset        = 0,
+        fronttexture       = [[waterfoam]],
+        length             = 45,
+        sidetexture        = [[none]],
+        size               = [[12.9 r5.5]],
+        sizegrowth         = [[0.9 r0.5]],
+        ttl                = 50,
+        rotParams          = [[-15 r30, 0, -180 r360]],
+        pos                = [[-4 r8, 1, -4 r8]],
+      },
+    },
+  },
+
   ["bowsplash-medium"] = {
     waterring = {
       air                = true,
       class              = [[CBitmapMuzzleFlame]],
       count              = 1,
-      ground             = true,
+      ground             = false,
       underwater         = 1,
       water              = true,
       properties = {
@@ -382,7 +511,7 @@ return {
       air                = true,
       class              = [[CSimpleParticleSystem]],
       count              = 1,
-      ground             = true,
+      ground             = false,
       water              = true,
       underwater         = true,
       properties = {
@@ -415,7 +544,7 @@ return {
       air                = true,
       class              = [[CBitmapMuzzleFlame]],
       count              = 1,
-      ground             = true,
+      ground             = false,
       underwater         = 1,
       water              = true,
       properties = {
@@ -436,7 +565,7 @@ return {
       air                = true,
       class              = [[CSimpleParticleSystem]],
       count              = 1,
-      ground             = true,
+      ground             = false,
       water              = true,
       underwater         = true,
       properties = {
@@ -469,7 +598,7 @@ return {
       air                = true,
       class              = [[CBitmapMuzzleFlame]],
       count              = 1,
-      ground             = true,
+      ground             = false,
       underwater         = 1,
       water              = true,
       properties = {
@@ -490,7 +619,7 @@ return {
       air                = true,
       class              = [[CSimpleParticleSystem]],
       count              = 1,
-      ground             = true,
+      ground             = false,
       water              = true,
       underwater         = true,
       properties = {
@@ -522,7 +651,7 @@ return {
       air                = true,
       class              = [[CSimpleParticleSystem]],
       count              = 1,
-      ground             = true,
+      ground             = false,
       water              = true,
       underwater         = true,
       properties = {
