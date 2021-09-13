@@ -69,7 +69,8 @@ ActiveReinforcementUnits = {}
 scavteamhasplayers = false
 BaseCleanupQueue = {}
 
-spawningStartFrame = (math.ceil( math.ceil(mapsizeX + mapsizeZ) / 750 ) + 30) * 10
+--spawningStartFrame = (math.ceil( math.ceil(mapsizeX + mapsizeZ) / 750 ) + 30) * 5
+spawningStartFrame = (math.ceil( math.ceil(mapsizeX*mapsizeZ) / 1000000 )) * 5
 scavMaxUnits = Spring.GetModOptions().MaxUnits
 
 if GaiaTeamID == Spring.GetGaiaTeamID() then

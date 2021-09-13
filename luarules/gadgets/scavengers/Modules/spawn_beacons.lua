@@ -48,7 +48,7 @@ function SpawnBeacon(n)
 				
 				if canSpawnBeaconHere then
 					BeaconSpawnChance = unitSpawnerModuleConfig.beaconspawnchance
-					if scavengerGamePhase ~= "initial" or math.random(0,3) == 0 then
+					if scavengerGamePhase ~= "initial" or math.random(0,1) == 0 then
 						QueueSpawn("scavengerdroppodbeacon_scav", posx, posy, posz, math_random(0,3),GaiaTeamID, n+150, false)
 					end
 					local spawnTier = math_random(1,100)

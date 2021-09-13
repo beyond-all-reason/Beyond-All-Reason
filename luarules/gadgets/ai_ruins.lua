@@ -49,7 +49,8 @@ VFS.Include('luarules/gadgets/scavengers/API/api.lua')
 VFS.Include('luarules/gadgets/scavengers/API/poschecks.lua')
 local blueprintController = VFS.Include('luarules/gadgets/scavengers/Blueprints/BYAR/blueprint_controller.lua')
 
-local spawnCutoffFrame = (math.ceil( math.ceil(mapsizeX + mapsizeZ) / 750 ) + 30) * 10
+--spawningStartFrame = (math.ceil( math.ceil(mapsizeX + mapsizeZ) / 750 ) + 30) * 5
+local spawnCutoffFrame = (math.ceil( math.ceil(mapsizeX*mapsizeZ) / 1000000 )) * 5
 
 local function randomlyRotateBlueprint()
 	local randomRotation = math.random(0,3)
@@ -183,7 +184,7 @@ local function spawnRuin(ruin, posx, posy, posz, blueprintTierLevel)
 end
 
 function gadget:GameFrame(n)
-	if n < 150 or n%5 ~= 0 or n > spawnCutoffFrame+150 then
+	if n < 5 or n%5 ~= 0 or n > spawnCutoffFrame+5 then
 		return
 	end
 
