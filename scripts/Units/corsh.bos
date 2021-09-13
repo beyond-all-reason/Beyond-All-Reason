@@ -211,7 +211,7 @@ AimPrimary(heading, pitch)
 
 FirePrimary()
 {
-	emit-sfx 1024 + 0 from flare;
+	//emit-sfx 1024 + 0 from flare;
 	return (0);
 }
 
