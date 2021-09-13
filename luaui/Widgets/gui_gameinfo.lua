@@ -102,9 +102,6 @@ local widgetScale = 1
 local fileLines = {}
 local totalFileLines = 0
 
-local myTeamID = Spring.GetMyTeamID()
-local amNewbie = (Spring.GetTeamRulesParam(myTeamID, 'isNewbie') == 1)
-
 local showOnceMore = false        -- used because of GUI shader delay
 
 local RectRound, UiElement, UiScroller, elementCorner
@@ -266,9 +263,6 @@ function widget:DrawScreen()
 	if spIsGUIHidden() then
 		return
 	end
-	if amNewbie then
-		return
-	end
 
 	-- draw the help
 	if not mainDList then
@@ -276,7 +270,6 @@ function widget:DrawScreen()
 	end
 
 	if show or showOnceMore then
-
 		-- draw the panel
 		glCallList(mainDList)
 		if WG['guishader'] then

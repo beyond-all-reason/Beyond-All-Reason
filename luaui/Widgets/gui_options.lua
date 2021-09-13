@@ -618,9 +618,6 @@ local heightmapChangeBuffer = {}
 local vsx, vsy = Spring.GetViewGeometry()
 local widgetScale = (0.5 + (vsx * vsy / 5700000)) * customScale
 
-local myTeamID = Spring.GetMyTeamID()
-local amNewbie = (Spring.GetTeamRulesParam(myTeamID, 'isNewbie') == 1)
-
 local vsyncLevel = 1
 local vsyncEnabled = false
 local vsyncOnlyForSpec = false
