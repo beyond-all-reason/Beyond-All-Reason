@@ -14,6 +14,11 @@ local function buildUnit(unitID, unitDefID)
 
 	local buildOptions = UnitDefs[unitDefID].buildOptions
 	local unitToBuild = buildOptions[math.random(1, #buildOptions)]
+	for i = 1,#factoryUnitList.FactoryBannedUnits do
+		if unitToBuild == UnitDefNames[factoryUnitList.FactoryBannedUnits[i]].id then
+			return
+		end
+	end
 	local buildRange = UnitDefs[unitDefID].buildDistance or 0
 
 	local x, y, z = Spring.GetUnitPosition(unitID)
