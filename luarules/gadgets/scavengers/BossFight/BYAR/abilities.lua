@@ -142,6 +142,21 @@ abilities.fighterWave = function(n)
 	end
 end
 
+abilities.licheOrKrowWave = function(n)
+	if FinalBossUnitID then
+		local nearestEnemy = Spring.GetUnitNearestEnemy(FinalBossUnitID, 3000, false)
+		if nearestEnemy then
+			--Spring.Echo("[Scavengers] Boss Fighter Reinforcements Activated")
+			local fighters = {"armliche_scav", "corcrw_scav",}
+			local fighter = fighters[math_random(1,2)]
+			local bossx, bossy, bossz = Spring.GetUnitPosition(FinalBossUnitID)
+			for i = 1,3*BossFightCurrentPhase*spawnmultiplier do
+				QueueSpawn(fighter, bossx+(math.random(-300, 300)), bossy+2000, bossz+(math.random(-300, 300)), math_random(0,3),GaiaTeamID, n+i+1)
+			end
+		end
+	end
+end
+
 abilities.tacticalNuke = function(currentFrame)
 	if FinalBossUnitID then
 		local nearestEnemy = Spring.GetUnitNearestEnemy(FinalBossUnitID, 2000, false)
@@ -204,6 +219,7 @@ local earlyAbilities = {
 	abilities.superDGun,
 	abilities.selfRepair,
 	abilities.fighterWave,
+	abilities.licheOrKrowWave,
 }
 
 local midgameAbilities = {
@@ -212,6 +228,8 @@ local midgameAbilities = {
 	abilities.superDGun,
 	abilities.selfRepair,
 	abilities.fighterWave,
+	abilities.fighterWave,
+	abilities.licheOrKrowWave,
 	abilities.tacticalNuke,
 	abilities.EMP,
 }
@@ -222,6 +240,9 @@ local endGameAbilities = {
 	abilities.superDGun,
 	abilities.selfRepair,
 	abilities.fighterWave,
+	abilities.fighterWave,
+	abilities.fighterWave,
+	abilities.licheOrKrowWave,
 	abilities.tacticalNuke,
 	abilities.EMP,
 }

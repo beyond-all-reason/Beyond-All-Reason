@@ -336,7 +336,7 @@ function gadget:GameFrame(n)
 				local scavDef = Spring.GetUnitDefID(scav)
 				local collectorRNG = math_random(0,2)
 				local scavFirestate = Spring.GetUnitStates(scav)["firestate"]
-				if (scavFirestate == 0) or (scavFirestate ~= 1 and scavengerGamePhase == "initial") then
+				if (scavFirestate ~= 2) or (scavFirestate ~= 1 and scavengerGamePhase == "initial") then
 					if scavengerGamePhase == "initial" then
 						Spring.GiveOrderToUnit(scav,CMD.FIRE_STATE,{1},0)
 					else

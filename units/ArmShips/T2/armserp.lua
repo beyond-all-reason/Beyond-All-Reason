@@ -123,6 +123,7 @@ return {
 				avoidfeature = false,
 				avoidfriendly = false,
 				burnblow = true,
+				cegtag = "torpedotrail-large",
 				collidefriendly = false,
 				craterareaofeffect = 0,
 				craterboost = 0,

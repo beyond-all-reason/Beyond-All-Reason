@@ -227,9 +227,9 @@ function UpdateTierChances(n)
 	if globalScore > scavconfig.timers.Endless then
 		TierSpawnChances.T0 = 0
 		TierSpawnChances.T1 = 0
-		TierSpawnChances.T2 = 33
-		TierSpawnChances.T3 = 33
-		TierSpawnChances.T4 = 34
+		TierSpawnChances.T2 = 0
+		TierSpawnChances.T3 = 0
+		TierSpawnChances.T4 = 100
 		TierSpawnChances.Message = "Current tier: Endless"
 		TierSpawnChances.BPMult = 5
 	elseif globalScore > scavconfig.timers.T4top then

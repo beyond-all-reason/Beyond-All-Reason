@@ -10,6 +10,7 @@ static-var  Static_Var_1, restore_delay, Wobble_status;
 // Signal definitions
 #define SIG_AIM				2
 #define SIG_MOVE			4
+#define SIG_IDLE			8
 
 WobbleUnit()
 {
@@ -121,64 +122,41 @@ HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and f
 }
 
 
+HoverIdle()
+{
+	signal SIG_IDLE;
+	set-signal-mask SIG_IDLE;
+	while( TRUE )
+	{
+	    emit-sfx 1024 + 2 from wake;
+	    sleep 1000;
+	}
+	//return (1);
+}
+
 StartMoving()
 {
 	signal SIG_MOVE;
 	set-signal-mask SIG_MOVE;
+	signal SIG_IDLE;
+	var waketime;
+	var bowtime;
 	while( TRUE )
 	{
-		if( Static_Var_1 == 1 )
-		{
-			emit-sfx 5 from wake;
-			emit-sfx 5 from wake;
-			emit-sfx 5 from wake;
-			emit-sfx 5 from wake;
-			emit-sfx 5 from wake;
-			emit-sfx 5 from wake;
-			emit-sfx 3 from wake;
-			emit-sfx 3 from wake;
-			emit-sfx 3 from wake;
-			emit-sfx 3 from wake;
-			emit-sfx 3 from wake;
-			emit-sfx 3 from wake;
-			emit-sfx 3 from wake;
-			emit-sfx 3 from wake;
-			emit-sfx 5 from wake;
-			emit-sfx 5 from wake;
-		}
-		if( Static_Var_1 == 2 )
-		{
-			emit-sfx 5 from wake;
-			emit-sfx 5 from wake;
-			emit-sfx 5 from wake;
-			emit-sfx 5 from wake;
-			emit-sfx 5 from wake;
-			emit-sfx 5 from wake;
-			emit-sfx 3 from wake;
-			emit-sfx 3 from wake;
-			emit-sfx 3 from wake;
-			emit-sfx 3 from wake;
-			emit-sfx 3 from wake;
-			emit-sfx 3 from wake;
-			emit-sfx 3 from wake;
-			emit-sfx 3 from wake;
-			emit-sfx 5 from wake;
-			emit-sfx 5 from wake;
-		}
-		sleep 300;
+		emit-sfx 1024 + 0 from wake;
+		if (bowtime) emit-sfx 1024 + 1 from wake;
+		bowtime = !bowtime;
+		waketime = (get CURRENT_SPEED) * 100 / get MAX_SPEED;
+		if( waketime < 30 ) waketime = 30;
+		sleep 15000 / waketime;
 	}
-	return (0);
 }
 
 StopMoving()
 {
-	sleep 150;
-	return (0);
-}
-
-setSFXoccupy(Func_Var_1)
-{
-	Static_Var_1 = Func_Var_1;
+	signal SIG_MOVE;
+	signal SIG_IDLE;
+	start-script HoverIdle();
 	return (0);
 }
 
@@ -233,7 +211,7 @@ AimPrimary(heading, pitch)
 
 FirePrimary()
 {
-	emit-sfx 1024 + 0 from flare;
+	//emit-sfx 1024 + 0 from flare;
 	return (0);
 }
 

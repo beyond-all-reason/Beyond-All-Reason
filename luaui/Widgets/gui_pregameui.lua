@@ -21,7 +21,6 @@ local font = gl.LoadFont(fontfile, fontfileSize * fontfileScale, fontfileOutline
 local uiScale = (0.75 + (vsx * vsy / 6000000))
 local myPlayerID = Spring.GetMyPlayerID()
 local _, _, mySpec, myTeamID = Spring.GetPlayerInfo(myPlayerID, false)
-local amNewbie
 local ffaMode = Spring.GetModOptions().ffa_mode
 local isReplay = Spring.IsReplay()
 
@@ -122,10 +121,9 @@ function widget:GameSetup(state, ready, playerStates)
 		return true, true
 	end
 
-	-- set my readyState to true if i am a newbie, or if ffa
+	-- set my readyState to true if ffa
 	if not readied or not ready then
-		amNewbie = (Spring.GetTeamRulesParam(myTeamID, 'isNewbie') == 1)
-		if amNewbie or ffaMode then
+		if ffaMode then
 			readied = true
 			return true, true
 		end
@@ -176,13 +174,6 @@ function widget:MousePress(sx, sy)
 			return true
 		end
 
-		-- message when trying to place startpoint but can't
-		if not mySpec and amNewbie then
-			local target, _ = Spring.TraceScreenRay(sx, sy)
-			if target == "ground" then
-				Spring.Echo(Spring.I18N('ui.initialSpawn.newbiePlacer'))
-			end
-		end
 	end
 end
 
@@ -191,8 +182,7 @@ function widget:MouseRelease(sx, sy)
 end
 
 local function checkStartPointChosen()
-	local isNewbie = (Spring.GetTeamRulesParam(myTeamID, 'isNewbie') == 1) -- =1 means the startpoint will be replaced and chosen by initial_spawn
-	if not mySpec and not isNewbie then
+	if not mySpec then
 		local x, y, z = Spring.GetTeamStartPosition(myTeamID)
 		if x ~= nil and x > 0 and z > 0 then
 			startPointChosen = true

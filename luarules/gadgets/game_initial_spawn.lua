@@ -79,47 +79,6 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	----------------------------------------------------------------
-	-- NewbiePlacer (modoption)
-	----------------------------------------------------------------
-	-- prevents newbies from choosing their own a startpoint and faction
-	local processedNewbies = false
-	local NewbiePlacer = false
-	if Spring.GetModOptions().newbie_placer and (Game.startPosType == 2) then
-		NewbiePlacer = true
-	end
-
-	-- check if a player is to be considered as a 'newbie', in terms of startpoint placements
-	local function isPlayerNewbie(pID)
-		local name, _, isSpec, tID, _, _, _, _, pRank = Spring.GetPlayerInfo(pID, false)
-		pRank = tonumber(pRank) or 0
-		local customtable = select(11, Spring.GetPlayerInfo(pID)) or {} -- player custom table
-		local tsMu = tostring(customtable.skill) or ""
-		local tsSigma = tonumber(customtable.skilluncertainty) or 3
-		local isNewbie = false
-		if pRank == 0 and (string.find(tsMu, ")") or tsSigma >= 3) then		--rank 0 and not enough ts data
-			isNewbie = true
-		end
-		return isNewbie
-	end
-
-	-- team is a newbie team if it contains at least one newbie player
-	local function isTeamNewbie(teamID)
-		if not NewbiePlacer then
-			return false
-		end
-		local playerList = Spring.GetPlayerList(teamID) or {}
-		local isNewbie = false
-		for _, playerID in pairs(playerList) do
-			if playerID then
-				if not select(3, Spring.GetPlayerInfo(playerID, false)) then
-					isNewbie = isNewbie or isPlayerNewbie(playerID)
-				end
-			end
-		end
-		return isNewbie
-	end
-
-	----------------------------------------------------------------
 	-- Initialize
 	----------------------------------------------------------------
 	function gadget:Initialize()
@@ -133,16 +92,11 @@ if gadgetHandler:IsSyncedCode() then
 				spSetTeamRulesParam(teamID, startUnitParamName, teamSide == 'cortex' and corcomDefID or armcomDefID)
 				spawnTeams[teamID] = teamAllyID
 
-				-- broadcast if newbie
-				local newbieParam = isTeamNewbie(teamID) and 1 or 0
-				spSetTeamRulesParam(teamID, 'isNewbie', newbieParam, { public = true }) --visible to all; some widgets (faction choose, initial queue) need to know if its a newbie -> they unload
-
 				-- record that this allyteam will spawn something
 				local _, _, _, _, _, allyTeamID = Spring.GetTeamInfo(teamID, false)
 				allyTeams[allyTeamID] = allyTeamID
 			end
 		end
-		processedNewbies = true
 
 		allyTeamsCount = 0
 		for k, v in pairs(allyTeams) do
@@ -228,16 +182,6 @@ if gadgetHandler:IsSyncedCode() then
 			return false
 		end --fail
 
-		-- NewbiePlacer
-		if NewbiePlacer then
-			if not processedNewbies then
-				return false
-			end
-			if readyState == 0 and Spring.GetTeamRulesParam(teamID, 'isNewbie') == 1 then
-				return false
-			end
-		end
-
 		-- don't allow player to place startpoint unless its inside the startbox, if we have a startbox
 		if allyTeamID == nil then
 			return false
@@ -309,9 +253,8 @@ if gadgetHandler:IsSyncedCode() then
 	local function spawnStartUnit(teamID, x, z)
 		local startUnit = spGetTeamRulesParam(teamID, startUnitParamName)
 
-		-- overwrite startUnit with random faction for newbies
 		local _, _, _, isAI, sideName = Spring.GetTeamInfo(teamID)
-		if Spring.GetTeamRulesParam(teamID, 'isNewbie') == 1 or sideName == "random" then
+		if sideName == "random" then
 			if math.random() > 0.5 then
 				startUnit = corcomDefID
 			else
@@ -369,7 +312,7 @@ if gadgetHandler:IsSyncedCode() then
 		-- if its choose-in-game mode, see if we need to autoplace anyone
 		if Game.startPosType == 2 then
 			if not startPointTable[teamID] or startPointTable[teamID][1] < 0 then
-				-- guess points for the ones classified in startPointTable as not genuine (newbies will not have a genuine startpoint)
+				-- guess points for the ones classified in startPointTable as not genuine
 				x, z = GuessStartSpot(teamID, allyTeamID, xmin, zmin, xmax, zmax, startPointTable)
 			else
 				-- fallback
