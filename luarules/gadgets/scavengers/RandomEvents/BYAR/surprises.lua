@@ -28,6 +28,8 @@ local function transport1(currentFrame)
 			"corsh_scav",
 			"corstorm_scav",
 			"corgarp_scav",
+			"armnanotc_scav",
+			"cornanotc_scav",
 		}
 		local transportsT2 = {"armdfly_scav", "corseah_scav",}
 		local unitsT2 = {
@@ -62,6 +64,14 @@ local function transport1(currentFrame)
 			"corgol_scav",
 			"cortermite_scav",
 			"cormart_scav",
+			"corllt_scav",
+			"armllt_scav",
+			"corrl_scav",
+			"armrl_scav",
+			"corhllt_scav",
+			"armbeamer_scav",
+			"armnanotc_scav",
+			"cornanotc_scav",
 		}
 
 		local baseNumber = ((spawnmultiplier*0.5)+(teamcount*0.5))*0.75
