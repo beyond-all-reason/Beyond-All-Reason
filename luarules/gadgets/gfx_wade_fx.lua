@@ -108,7 +108,7 @@ function gadget:GameFrame(n)
 					-- 1 is the pieceID, most likely it's usually the base piece
 					-- but even if it isn't, it doesn't really matter
 					--spusCallAsUnit(unitID, spusEmitSfx, 1, data.fx)
-					spSpawnCEG("waterwake-tiny", x, y, z, 0, 0, 0)
+					spSpawnCEG("waterwake-tiny", x, 0, z, 0, 0, 0)
 				end
 			end
 		end
