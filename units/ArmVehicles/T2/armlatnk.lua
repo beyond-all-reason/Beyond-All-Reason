@@ -143,13 +143,19 @@ return {
 				noselfdamage = true,
 				range = 600,
 				reloadtime = 2,
-				smoketrail = false,
+				smoketrail = true,
+				smokePeriod = 5,
+				smoketime = 12,
+				smokesize = 4.4,
+				smokecolor = 0.95,
+				smokeTrailCastShadow = false,
+				castshadow = false, --projectile
 				soundhit = "xplosml2",
 				soundhitwet = "splshbig",
 				soundstart = "rocklit1",
 				startvelocity = 650,
-				texture1 = "trans",
-				texture2 = "armsmoketrail",
+				texture1 = "null",
+				texture2 = "smoketrailaa",
 				tolerance = 9000,
 				tracks = true,
 				turnrate = 48000,
@@ -161,7 +167,6 @@ return {
 				customparams = {
 					expl_light_color = "1 0.4 0.5",
 					light_color = "1 0.5 0.6",
-
 				},
 				damage = {
 					bombers = 85,

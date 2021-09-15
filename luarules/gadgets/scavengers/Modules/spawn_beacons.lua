@@ -5,8 +5,11 @@ local landUnitList = VFS.Include("luarules/gadgets/scavengers/Configs/BYAR/UnitL
 local seaUnitList = VFS.Include("luarules/gadgets/scavengers/Configs/BYAR/UnitLists/sea.lua")
 local constructorUnitList = VFS.Include("luarules/gadgets/scavengers/Configs/BYAR/UnitLists/constructors.lua")
 
+local xtable = {{-128, -64, -128}, {128, 64, 128}, {-128, -64, 0}, {128, 64, 0}}
+local ztable = {{-128, -64, 0}, {-128, -64, 0}, {128, 64, -128}, {-128, -64, 128}}
+
 function SpawnBeacon(n)
-	if n and n > 30 then
+	if n and n > spawningStartFrame then
 		if numOfSpawnBeacons < unitSpawnerModuleConfig.minimumspawnbeacons then
 			BeaconSpawnChance = 0
 		elseif BeaconSpawnChance > 0 then
@@ -17,30 +20,30 @@ function SpawnBeacon(n)
 		end
 		if BeaconSpawnChance == 0 or canSpawnBeaconHere == false then
 			for i = 1,100 do
-				local posx = math_random(128,mapsizeX-128)
-				local posz = math_random(128,mapsizeZ-128)
+				local posx = math_random(192,mapsizeX-192)
+				local posz = math_random(192,mapsizeZ-192)
 				local posy = Spring.GetGroundHeight(posx, posz)
 
-				canSpawnBeaconHere = posCheck(posx, posy, posz, 128)
+				canSpawnBeaconHere = posCheck(posx, posy, posz, 192)
 				if canSpawnBeaconHere then
-					canSpawnBeaconHere = posOccupied(posx, posy, posz, 128)
+					canSpawnBeaconHere = posOccupied(posx, posy, posz, 192)
 				end
 				if canSpawnBeaconHere then
 					if globalScore then
 						--local g = math_random(0,20)
 						if Spring.GetModOptions().disable_fogofwar then -- doesn't fix situation when fog of war is removed by a cheat
-							canSpawnBeaconHere = posOccupied(posx, posy, posz, 256)
+							canSpawnBeaconHere = posOccupied(posx, posy, posz, 384)
 						elseif scavengerGamePhase == "initial" then
-							canSpawnBeaconHere = posLosCheck(posx, posy, posz, 128)
+							canSpawnBeaconHere = posLosCheck(posx, posy, posz, 192)
 						else
 							if numOfSpawnBeacons == 0 then
-								canSpawnBeaconHere = posOccupied(posx, posy, posz, 128)
+								canSpawnBeaconHere = posOccupied(posx, posy, posz, 192)
 							elseif numOfSpawnBeacons < unitSpawnerModuleConfig.minimumspawnbeacons*0.2 then
-								canSpawnBeaconHere = posLosCheckOnlyLOS(posx, posy, posz,128)
+								canSpawnBeaconHere = posLosCheckOnlyLOS(posx, posy, posz,192)
 							elseif numOfSpawnBeacons < unitSpawnerModuleConfig.minimumspawnbeacons*0.4 then
-								canSpawnBeaconHere = posLosCheckNoRadar(posx, posy, posz,128)
+								canSpawnBeaconHere = posLosCheckNoRadar(posx, posy, posz,192)
 							else
-								canSpawnBeaconHere = posLosCheck(posx, posy, posz,128)
+								canSpawnBeaconHere = posLosCheck(posx, posy, posz,192)
 							end
 						end
 					end
@@ -48,7 +51,12 @@ function SpawnBeacon(n)
 				
 				if canSpawnBeaconHere then
 					BeaconSpawnChance = unitSpawnerModuleConfig.beaconspawnchance
-					Spring.CreateUnit("scavengerdroppodbeacon_scav", posx, posy, posz, math_random(0,3),GaiaTeamID)
+					if scavengerGamePhase ~= "initial" or math.random(0,1) == 0 then
+						QueueSpawn("scavengerdroppodbeacon_scav", posx, posy, posz, math_random(0,3),GaiaTeamID, n+150, false)
+						if scavengerGamePhase ~= "initial" then
+							Spring.CreateUnit("scavengerdroppod_scav", posx, posy, posz, math_random(0,3),GaiaTeamID)
+						end
+					end
 					local spawnTier = math_random(1,100)
 					if spawnTier <= TierSpawnChances.T0 then
 						grouptier = landUnitList.T0
@@ -77,56 +85,43 @@ function SpawnBeacon(n)
 						grouptiersea = seaUnitList.T0
 					end
 					
-					if math.random(0,1) == 0 then
-						if Spring.GetGroundHeight(posx-64, posz-64) > -20 then
-							QueueSpawn(grouptier[math_random(1,#grouptier)], posx-64, posy, posz-64, math_random(0,3),GaiaTeamID, n+150, false)
-						else
-							QueueSpawn(grouptiersea[math_random(1,#grouptiersea)], posx-64, posy, posz-64, math_random(0,3),GaiaTeamID, n+150, false)
+					for y = 1,4 do
+						if scavengerGamePhase ~= "initial" or math.random(0,3) == 0 then
+							local rx = posx+xtable[y][1]+math.random(-64,64)
+							local rz = posz+ztable[y][1]+math.random(-64,64)
+							if Spring.GetGroundHeight(rx, rz) > -20 then
+								QueueSpawn(grouptier[math_random(1,#grouptier)], rx, posy, rz, math_random(0,3),GaiaTeamID, n+150, false)
+							else
+								QueueSpawn(grouptiersea[math_random(1,#grouptiersea)], rx, posy, rz, math_random(0,3),GaiaTeamID, n+150, false)
+							end
+							if scavengerGamePhase ~= "initial" then
+								Spring.CreateUnit("scavengerdroppod_scav", rx, posy, rz, math_random(0,3),GaiaTeamID)
+							end
 						end
-					else
-						if Spring.GetGroundHeight(posx-64, posz-64) > -20 then
-							QueueSpawn(constructorUnitList.Resurrectors[math_random(1,#constructorUnitList.Resurrectors)], posx-64, posy, posz-64, math_random(0,3),GaiaTeamID, n+150, false)
-						else
-							QueueSpawn(constructorUnitList.ResurrectorsSea[math_random(1,#constructorUnitList.ResurrectorsSea)], posx-64, posy, posz-64, math_random(0,3),GaiaTeamID, n+150, false)
-						end
-					end
-					if math.random(0,1) == 0 then
-						if Spring.GetGroundHeight(posx+64, posz+64) > -20 then
-							QueueSpawn(grouptier[math_random(1,#grouptier)], posx+64, posy, posz+64, math_random(0,3),GaiaTeamID, n+150, false)
-						else
-							QueueSpawn(grouptiersea[math_random(1,#grouptiersea)], posx+64, posy, posz+64, math_random(0,3),GaiaTeamID, n+150, false)
-						end
-					else
-						if Spring.GetGroundHeight(posx+64, posz+64) > -20 then
-							QueueSpawn(constructorUnitList.Resurrectors[math_random(1,#constructorUnitList.Resurrectors)], posx+64, posy, posz+64, math_random(0,3),GaiaTeamID, n+150, false)
-						else
-							QueueSpawn(constructorUnitList.ResurrectorsSea[math_random(1,#constructorUnitList.ResurrectorsSea)], posx+64, posy, posz+64, math_random(0,3),GaiaTeamID, n+150, false)
-						end
-					end
-					if math.random(0,1) == 0 then
-						if Spring.GetGroundHeight(posx+64, posz-64) > -20 then
-							QueueSpawn(grouptier[math_random(1,#grouptier)], posx+64, posy, posz-64, math_random(0,3),GaiaTeamID, n+150, false)
-						else
-							QueueSpawn(grouptiersea[math_random(1,#grouptiersea)], posx+64, posy, posz-64, math_random(0,3),GaiaTeamID, n+150, false)
-						end
-					else
-						if Spring.GetGroundHeight(posx+64, posz-64) > -20 then
-							QueueSpawn(constructorUnitList.Resurrectors[math_random(1,#constructorUnitList.Resurrectors)], posx+64, posy, posz-64, math_random(0,3),GaiaTeamID, n+150, false)
-						else
-							QueueSpawn(constructorUnitList.ResurrectorsSea[math_random(1,#constructorUnitList.ResurrectorsSea)], posx+64, posy, posz-64, math_random(0,3),GaiaTeamID, n+150, false)
+
+						if scavengerGamePhase ~= "initial" or math.random(0,3) == 0 then
+							local rx = posx+xtable[y][2]+math.random(-64,64)
+							local rz = posz+ztable[y][2]+math.random(-64,64)
+							if Spring.GetGroundHeight(rx, rz) > -20 then
+								QueueSpawn(constructorUnitList.Resurrectors[math_random(1,#constructorUnitList.Resurrectors)], rx, posy, rz, math_random(0,3),GaiaTeamID, n+150, false)
+							else
+								QueueSpawn(constructorUnitList.ResurrectorsSea[math_random(1,#constructorUnitList.ResurrectorsSea)], rx, posy, rz, math_random(0,3),GaiaTeamID, n+150, false)
+							end
+							if scavengerGamePhase ~= "initial" then
+								Spring.CreateUnit("scavengerdroppod_scav", rx, posy, rz, math_random(0,3),GaiaTeamID)
+							end
 						end
 					end
-					if math.random(0,1) == 0 then
-						if Spring.GetGroundHeight(posx-64, posz+64) > -20 then
-							QueueSpawn(grouptier[math_random(1,#grouptier)], posx-64, posy, posz+64, math_random(0,3),GaiaTeamID, n+150, false)
-						else
-							QueueSpawn(grouptiersea[math_random(1,#grouptiersea)], posx-64, posy, posz+64, math_random(0,3),GaiaTeamID, n+150, false)
-						end
-					else
-						if Spring.GetGroundHeight(posx-64, posz+64) > -20 then
-							QueueSpawn(constructorUnitList.Resurrectors[math_random(1,#constructorUnitList.Resurrectors)], posx-64, posy, posz+64, math_random(0,3),GaiaTeamID, n+150, false)
-						else
-							QueueSpawn(constructorUnitList.ResurrectorsSea[math_random(1,#constructorUnitList.ResurrectorsSea)], posx-64, posy, posz+64, math_random(0,3),GaiaTeamID, n+150, false)
+
+					if scavengerGamePhase ~= "initial" or math.random(0,3) == 0 then
+						if constructorControllerModuleConfig.useconstructors then
+							local rx = posx+math.random(-64,64)
+							local rz = posz+math.random(-64,64)
+							local constructor = constructorUnitList.Constructors[math.random(#constructorUnitList.Constructors)]
+							QueueSpawn(constructor, rx, posy, rz, math.random(0, 3), GaiaTeamID, n + 150)
+							if scavengerGamePhase ~= "initial" then
+								Spring.CreateUnit("scavengerdroppod_scav", rx, posy, rz, math_random(0,3),GaiaTeamID)
+							end
 						end
 					end
 
@@ -154,63 +149,20 @@ function SpawnBeacon(n)
 							grouptiersea = staticUnitList.StartboxDefencesSea.T0
 						end
 
-						if scavengerGamePhase ~= "initial" then
-							if constructorControllerModuleConfig.useconstructors then
-								local constructor = constructorUnitList.Constructors[math.random(#constructorUnitList.Constructors)]
-								QueueSpawn(constructor, posx, posy, posz, math.random(0, 3), GaiaTeamID, n + 150)
-							end
-							Spring.CreateUnit("scavengerdroppod_scav", posx, posy, posz, math_random(0,3),GaiaTeamID)
-							Spring.CreateUnit("scavengerdroppod_scav", posx-128, posy, posz, math_random(0,3),GaiaTeamID)
-							Spring.CreateUnit("scavengerdroppod_scav", posx+128, posy, posz, math_random(0,3),GaiaTeamID)
-							Spring.CreateUnit("scavengerdroppod_scav", posx, posy, posz+128, math_random(0,3),GaiaTeamID)
-							Spring.CreateUnit("scavengerdroppod_scav", posx, posy, posz-128, math_random(0,3),GaiaTeamID)
-							Spring.CreateUnit("scavengerdroppod_scav", posx-128, posy, posz-128, math_random(0,3),GaiaTeamID)
-							Spring.CreateUnit("scavengerdroppod_scav", posx+128, posy, posz+128, math_random(0,3),GaiaTeamID)
-							Spring.CreateUnit("scavengerdroppod_scav", posx-128, posy, posz+128, math_random(0,3),GaiaTeamID)
-							Spring.CreateUnit("scavengerdroppod_scav", posx+128, posy, posz-128, math_random(0,3),GaiaTeamID)
-						end
-
-						if scavengerGamePhase ~= "initial" or math.random(0,3) == 0 then
-							local posy = Spring.GetGroundHeight(posx-80, posz)
-							if posy > 0 then
-								local turret = grouptier[math_random(1,#grouptier)]
-								QueueSpawn(turret, posx-80, posy, posz, math_random(0,3),GaiaTeamID, n+150, false)
-							else
-								local turretSea = grouptiersea[math_random(1,#grouptiersea)]
-								QueueSpawn(turretSea, posx-80, posy, posz, math_random(0,3),GaiaTeamID, n+150, false)
-							end
-						end
-
-						if scavengerGamePhase ~= "initial" or math.random(0,3) == 0 then
-							local posy = Spring.GetGroundHeight(posx+80, posz)
-							if posy > 0 then
-								local turret = grouptier[math_random(1,#grouptier)]
-								QueueSpawn(turret, posx+80, posy, posz, math_random(0,3),GaiaTeamID, n+150, false)
-							else
-								local turretSea = grouptiersea[math_random(1,#grouptiersea)]
-								QueueSpawn(turretSea, posx+80, posy, posz, math_random(0,3),GaiaTeamID, n+150, false)
-							end
-						end
-
-						if scavengerGamePhase ~= "initial" or math.random(0,3) == 0 then
-							local posy = Spring.GetGroundHeight(posx, posz+80)
-							if posy > 0 then
-								local turret = grouptier[math_random(1,#grouptier)]
-								QueueSpawn(turret, posx, posy, posz+80, math_random(0,3),GaiaTeamID, n+150, false)
-							else
-								local turretSea = grouptiersea[math_random(1,#grouptiersea)]
-								QueueSpawn(turretSea, posx, posy, posz+80, math_random(0,3),GaiaTeamID, n+150, false)
-							end
-						end
-
-						if scavengerGamePhase ~= "initial" or math.random(0,3) == 0 then
-							local posy = Spring.GetGroundHeight(posx, posz-80)
-							if posy > 0 then
-								local turret = grouptier[math_random(1,#grouptier)]
-								QueueSpawn(turret, posx, posy, posz-80, math_random(0,3),GaiaTeamID, n+150, false)
-							else
-								local turretSea = grouptiersea[math_random(1,#grouptiersea)]
-								QueueSpawn(turretSea, posx, posy, posz-80, math_random(0,3),GaiaTeamID, n+150, false)
+						for y = 1,4 do
+							if scavengerGamePhase ~= "initial" or math.random(0,3) == 0 then
+								local rx = posx+xtable[y][3]+math.random(-64,64)
+								local rz = posz+ztable[y][3]+math.random(-64,64)
+								if Spring.GetGroundHeight(rx, rz) > -20 then
+									local turret = grouptier[math_random(1,#grouptier)]
+									QueueSpawn(turret, rx, posy, rz, math_random(0,3),GaiaTeamID, n+150, false)
+								else
+									local turretSea = grouptiersea[math_random(1,#grouptiersea)]
+									QueueSpawn(turretSea, rx, posy, rz, math_random(0,3),GaiaTeamID, n+150, false)
+								end
+								if scavengerGamePhase ~= "initial" then
+									Spring.CreateUnit("scavengerdroppod_scav", rx, posy, rz, math_random(0,3),GaiaTeamID)
+								end
 							end
 						end
 						grouptier = nil

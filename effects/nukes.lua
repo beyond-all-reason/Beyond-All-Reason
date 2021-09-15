@@ -73,7 +73,6 @@ local definitions = {
                 ttl                = 250,
                 --sizegrowth         = 10,
                 texture            = [[groundflash]],
-                drawOrder          = 1,
             },
         },
         groundflash_white = {
@@ -1232,17 +1231,21 @@ definitions['newnukehuge'].groundflash_white.properties.size = math.floor(defini
 local size = 0.48
 
 definitions['newnuketac-floor'] = table.copy(definitions['newnuke-floor'])
-definitions['newnuketac-floor'].smoke.properties.numparticles = math.floor(definitions['newnuketac-floor'].smoke.properties.numparticles * size * 0.7)
-definitions['newnuketac-floor'].smoke.properties.particlespeed = math.floor(definitions['newnuketac-floor'].smoke.properties.particlespeed * size * 0.2)
-definitions['newnuketac-floor'].smoke.properties.particlespeedspread = math.floor(definitions['newnuketac-floor'].smoke.properties.particlespeedspread * size * 0.6)
-definitions['newnuketac-floor'].smoke.properties.particlesize = math.floor(definitions['newnuketac-floor'].smoke.properties.particlesize * size * 0.8)
-definitions['newnuketac-floor'].smoke.properties.particlelife = math.floor(definitions['newnuketac-floor'].smoke.properties.particlelife * size * 0.2)
-definitions['newnuketac-floor'].smoke2.properties.particlelife = math.floor(definitions['newnuketac-floor'].smoke2.properties.particlelife * size * 0.2)
-definitions['newnuketac-floor'].smoke2.properties.particlespeed = math.floor(definitions['newnuketac-floor'].smoke2.properties.particlespeed * size * 0.2)
+definitions['newnuketac-floor'].smoke.properties.numparticles = math.floor(definitions['newnuketac-floor'].smoke.properties.numparticles * size * 0.8)
+definitions['newnuketac-floor'].smoke.properties.particlespeed = math.floor(definitions['newnuketac-floor'].smoke.properties.particlespeed * size * 0.4)
+definitions['newnuketac-floor'].smoke.properties.particlespeedspread = math.floor(definitions['newnuketac-floor'].smoke.properties.particlespeedspread * size * 0.4)
+definitions['newnuketac-floor'].smoke.properties.particlesize = math.floor(definitions['newnuketac-floor'].smoke.properties.particlesize * size * 0.4)
+definitions['newnuketac-floor'].smoke.properties.particlelife = math.floor(definitions['newnuketac-floor'].smoke.properties.particlelife * size * 0.4)
+definitions['newnuketac-floor'].smoke2.properties.particlelife = math.floor(definitions['newnuketac-floor'].smoke2.properties.particlelife * size * 0.4)
+definitions['newnuketac-floor'].smoke2.properties.particlespeed = math.floor(definitions['newnuketac-floor'].smoke2.properties.particlespeed * size * 0.4)
+definitions['newnuketac-floor'].smoke2.properties.particlesize = math.floor(definitions['newnuketac-floor'].smoke2.properties.particlesize * size * 0.4)
+definitions['newnuketac-floor'].smoke3.properties.particlespeed = math.floor(definitions['newnuketac-floor'].smoke3.properties.particlespeed * size * 0.5)
+definitions['newnuketac-floor'].smoke3.properties.particlesize = math.floor(definitions['newnuketac-floor'].smoke3.properties.particlesize * size * 0.4)
+definitions['newnuketac-floor'].smoke3.properties.particlelife = math.floor(definitions['newnuketac-floor'].smoke3.properties.particlelife * size * 0.6)
 --
 definitions['newnuketac'] = table.copy(definitions['newnuke'])
 definitions['newnuketac'].nukefloor.properties.explosiongenerator = [[custom:newnuketac-floor]]
-definitions['newnuketac'].nukefloor.properties.delay = [[15 i0.5]]
+definitions['newnuketac'].nukefloor.properties.delay = [[10 i0.5]]
 
 definitions['newnuketac'].sparks.properties.particlespeed = math.floor(definitions['newnuketac'].sparks.properties.particlespeed * size * 1.2)
 definitions['newnuketac'].sparks.properties.particlespeedspread = math.floor(definitions['newnuketac'].sparks.properties.particlespeedspread * size)
@@ -1260,6 +1263,7 @@ definitions['newnuketac'].dustparticles.properties.particlelife = math.floor(def
 definitions['newnuketac'].clouddust.properties.particlespeed = math.floor(definitions['newnuketac'].clouddust.properties.particlespeed * size)
 definitions['newnuketac'].clouddust.properties.particlesize = math.floor(definitions['newnuketac'].clouddust.properties.particlesize * size)
 definitions['newnuketac'].clouddust.properties.particlelife = math.floor(definitions['newnuketac'].clouddust.properties.particlelife * size * 0.5)
+
 definitions['newnuketac'].dirt.properties.particlespeed = math.floor(definitions['newnuketac'].dirt.properties.particlespeed * size * 0.8)
 definitions['newnuketac'].dirt.properties.particlespeedspread = math.floor(definitions['newnuketac'].dirt.properties.particlespeedspread * size * 0.9)
 definitions['newnuketac'].dirt.properties.numparticles = math.floor(definitions['newnuketac'].dirt.properties.numparticles * size)

@@ -15,10 +15,13 @@
 
 #define TA			// This is a TA script
 
+static-var  statechg_DesiredState, statechg_StateChanging;
+static-var  Stunned;
+
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, dish, blinka;
+piece  base, dish, blink;
 
 
 #define BASEPIECE base
@@ -45,19 +48,6 @@ HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and f
 {
 	start-script HitByWeapon(dmg, anglez,anglex); //I dont know why param order must be switched, and this also runs a frame later :(
 	return (100); //return damage percent
-}
-
-static-var  statechg_DesiredState, statechg_StateChanging;
-
-Lights()
-{
-	while( TRUE )
-	{
-		emit-sfx 1024 + 0 from blinka;
-		sleep 1150;
-	}
-	sleep 50;
-	start-script Lights();
 }
 
 SmokeUnit(healthpercent, sleeptime, smoketype)
@@ -134,33 +124,54 @@ RequestState(requestedstate, currentstate)
 /*    b4:*/	return (0);
 /*    b5:*/}
 
+SetStunned(State)
+{
+    Stunned = State;
+	if (Stunned) {
+	    call-script Stop();
+	} else {
+	    call-script Go();
+	}
+}
+
 Create()
-/*    b5:*/{
-/*    b5:*/	dont-shade dish;
-/*    b7:*/	dont-cache dish;
-/*    b9:*/	call-script InitState();
-/*    bc:*/	start-script SmokeUnit();
-start-script Lights();
-/*    c1:*/	return (0);
-/*    c2:*/}
+{
+	call-script InitState();
+	start-script SmokeUnit();
+	return (0);
+}
+
+Lights()
+{
+	while( TRUE )
+	{
+	    if (!Stunned) {
+		    emit-sfx 1024 + 0 from blink;
+		}
+		sleep 2500;
+	}
+	sleep 50;
+	start-script Lights();
+}
 
 Activate()
-/*    c2:*/{
-/*    c4:*/	start-script RequestState(0);
-/*    c9:*/	return (0);
-/*    ca:*/}
+{
+	start-script Lights();
+	start-script RequestState(0);
+	return (0);
+}
 
 Deactivate()
-/*    ca:*/{
-/*    cc:*/	start-script RequestState(1);
-/*    d1:*/	return (0);
-/*    d2:*/}
+{
+	start-script RequestState(1);
+	return (0);
+}
 
 SweetSpot(piecenum)
-/*    d3:*/{
-/*    d5:*/	piecenum = base;
-/*    d9:*/	return (0);
-/*    da:*/}
+{
+	piecenum = base;
+	return (0);
+}
 
 Killed(severity, corpsetype)
 {

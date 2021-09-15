@@ -56,7 +56,7 @@ end
 
 local function spawnConstructor(n)
 	local spawnOverdue = constructorTimer > constructorControllerModuleConfig.constructortimer or countScavCommanders() < constructorControllerModuleConfig.minimumconstructors
-	local exclusionPeriodExpired = constructorTimer > (constructorControllerModuleConfig.constructortimer / 10)
+	local exclusionPeriodExpired = constructorTimer > 0
 
 	if spawnOverdue and numOfSpawnBeacons > 0 and exclusionPeriodExpired then
 		local scavengerunits = Spring.GetTeamUnits(GaiaTeamID)
@@ -69,14 +69,10 @@ local function spawnConstructor(n)
 			end
 		end
 
-		for i = 1,10 do
-			local pickedBeaconTest = spawnBeacons[math.random(#spawnBeacons)]
-			local _, _, pickedBeaconParalyze, pickedBeaconCaptureProgress = Spring.GetUnitHealth(pickedBeaconTest)
-			if pickedBeaconCaptureProgress == 0 and pickedBeaconParalyze == 0 then
+		for b = 1,100 do
+			local pickedBeaconTest = spawnBeacons[math_random(1,#spawnBeacons)]
+			if pickedBeaconTest then
 				pickedBeacon = pickedBeaconTest
-				break
-			else
-				pickedBeacon = 16000000 -- high number that UnitID should never pick
 			end
 		end
 
@@ -237,9 +233,44 @@ end
 
 
 
+local function ScavComGetClosestGaiaUnit(x, z, surroundingGaiaUnits)
+	local bestUnit
+	local bestDist = math.huge
+	local gaiaUnits = surroundingGaiaUnits
+	if gaiaUnits then
+		for i = 1, #gaiaUnits do
+			local testUnit = gaiaUnits[i]
+			local testx, testy, testz = Spring.GetUnitPosition(testUnit)
+			local dx, dz = x - testx, z - testz
+			local dist = dx * dx + dz * dz
+			if dist < bestDist then
+				bestUnit = testUnit
+				bestDist = dist
+			end
+		end
+	end
+	return bestUnit
+end
 
 ConstructorNumberOfRetries = {}
 local function constructNewBlueprint(n, unitID)
+	local x,y,z = Spring.GetUnitPosition(unitID)
+	local surroundingGaiaUnits = Spring.GetUnitsInCylinder(x, z, 500, Spring.GetGaiaTeamID())
+	if surroundingGaiaUnits then
+		if #surroundingGaiaUnits > 1 then
+			local target = ScavComGetClosestGaiaUnit(x, z, surroundingGaiaUnits)
+			local posx, posy, posz = Spring.GetUnitPosition(target)
+			Spring.GiveOrderToUnit(unitID, CMD.MOVE, { posx + math.random(-256,256), posy, posz + math.random(-256,256) }, {})
+			Spring.GiveOrderToUnit(unitID, CMD.CAPTURE, {target}, {"shift"})
+			return
+		elseif #surroundingGaiaUnits == 1 then
+			local target = surroundingGaiaUnits[1]
+			local posx, posy, posz = Spring.GetUnitPosition(target)
+			Spring.GiveOrderToUnit(unitID, CMD.MOVE, { posx + math.random(-256,256), posy, posz + math.random(-256,256) }, {})
+			Spring.GiveOrderToUnit(unitID, CMD.CAPTURE, {target}, {"shift"})
+			return
+		end
+	end
 	local unitCount = Spring.GetTeamUnitCount(GaiaTeamID)
 	local unitCountBuffer = scavMaxUnits*0.1
 
@@ -270,7 +301,6 @@ local function constructNewBlueprint(n, unitID)
 	seaBlueprint = blueprintsController.Constructor.GetRandomSeaBlueprint(spawnTier)
 
 	for i = 1, 100 do
-		local x,y,z = Spring.GetUnitPosition(unitID)
 		local posX = math.random( x - (50 * ConstructorNumberOfRetries[unitID]), x + (50 * ConstructorNumberOfRetries[unitID]))
 		local posZ = math.random( z - (50 * ConstructorNumberOfRetries[unitID]), z + (50 * ConstructorNumberOfRetries[unitID]))
 		local posY = Spring.GetGroundHeight(posX, posZ)

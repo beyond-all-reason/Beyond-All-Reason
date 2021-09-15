@@ -3496,15 +3496,15 @@ function IsTakeable(teamID)
     end
 end
 
-function isInBox(mx, my, box)
-    return mx > box[1] and my > box[2] and mx < box[3] and my < box[4]
+function isInBox(mx, my, b1, b2, b3, b4)
+    return mx > b1 and my > b2 and mx < b3 and my < b4
 end
 
 function widget:Update(delta)
     --handles takes & related messages
     local mx, my = Spring.GetMouseState()
     hoverPlayerlist = false
-    if isInBox(mx, my, { apiAbsPosition[2] - 1, apiAbsPosition[3] - 1, apiAbsPosition[4] + 1, apiAbsPosition[1] + 1 }) then
+    if isInBox(mx, my, apiAbsPosition[2] - 1, apiAbsPosition[3] - 1, apiAbsPosition[4] + 1, apiAbsPosition[1] + 1 ) then
         hoverPlayerlist = true
         if tipText and WG['tooltip'] then
             WG['tooltip'].ShowTooltip('advplayerlist', tipText)

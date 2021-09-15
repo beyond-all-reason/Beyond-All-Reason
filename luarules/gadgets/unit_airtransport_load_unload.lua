@@ -42,8 +42,12 @@ if (gadgetHandler:IsSyncedCode()) then
 			local pos1 = {Spring.GetUnitPosition(transporterID)}
 			local pos2 = {goalX, goalY, goalZ}
 			if gadget:Distance(pos1, pos2) <= isAirTransport[transporterUnitDefID] then
-				Spring.SetUnitVelocity(transporterID, 0,0,0)
-				return true
+				if Spring.AreTeamsAllied(Spring.GetUnitTeam(transporterID), Spring.GetUnitTeam(transporteeID)) or select(4, Spring.GetUnitVelocity(transporteeID)) < 0.5 then	-- make it hard for moving enemy units to be picked up
+					Spring.SetUnitVelocity(transporterID, 0,0,0)
+					return true
+				else
+					return false
+				end
 			else
 				return false
 			end

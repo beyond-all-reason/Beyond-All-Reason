@@ -40,6 +40,9 @@ function widget:RecvLuaMsg(msg, playerID)
 	end
 end
 
+local screenModeOverviewTable = { highlightColor = '\255\255\255\255', textColor = '\255\215\215\215' }
+local screenModeTitleTable = { screenMode = "", highlightColor = "\255\255\255\255" }
+
 function widget:DrawScreen()
 	if chobbyInterface then
 		return
@@ -61,7 +64,7 @@ function widget:DrawScreen()
 		end
 		
 		if st.name == 'ov' then
-			description = Spring.I18N('ui.screenMode.overview', { highlightColor = '\255\255\255\255', textColor = '\255\215\215\215' })
+			description = Spring.I18N('ui.screenMode.overview', screenModeOverviewTable )
 		elseif screenmode == 'height' then
 			title = Spring.I18N('ui.screenMode.heightTitle')
 			description = Spring.I18N('ui.screenMode.heightmap')
@@ -74,7 +77,8 @@ function widget:DrawScreen()
 		end
 
 		if screenmode ~= '' then
-			font:Print('\255\233\233\233' .. Spring.I18N('ui.screenMode.title', { screenMode = title, highlightColor = "\255\255\255\255" }), 0, 15 * widgetScale, 20 * widgetScale, "oc")
+      screenModeTitleTable.screenMode = title
+			font:Print('\255\233\233\233' .. Spring.I18N('ui.screenMode.title', screenModeTitleTable), 0, 15 * widgetScale, 20 * widgetScale, "oc")
 		end
 
 		if description ~= '' then

@@ -56,6 +56,7 @@ if gadgetHandler:IsSyncedCode() then
 		[UnitDefNames.armfav.id] = true,
 		[UnitDefNames.armflea.id] = true,
 	}
+	
 	for udid, ud in pairs(UnitDefs) do
 		for id, v in pairs(tokillUnits) do
 			if string.find(ud.name, UnitDefs[id].name) then
@@ -90,6 +91,8 @@ if gadgetHandler:IsSyncedCode() then
 	local junoWeapons = {
 		[WeaponDefNames.armjuno_juno_pulse.id] = true,
 		[WeaponDefNames.corjuno_juno_pulse.id] = true,
+		[WeaponDefNames.armjuno_scav_juno_pulse.id] = true,
+		[WeaponDefNames.corjuno_scav_juno_pulse.id] = true,
 	}
 
 	function gadget:UnitDamaged(uID, uDefID, uTeam, damage, paralyzer, weaponID, projID, aID, aDefID, aTeam)

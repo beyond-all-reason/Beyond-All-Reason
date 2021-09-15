@@ -83,6 +83,11 @@ return {
 			},
 		},
 		sfxtypes = {
+			explosiongenerators = {
+				[1] = "custom:waterwake-small-hover",
+				[2] = "custom:bowsplash-small-hover",
+				[3] = "custom:hover-wake-small",
+			},
 			pieceexplosiongenerators = {
 				[1] = "deathceg2",
 				[2] = "deathceg3",
@@ -130,12 +135,18 @@ return {
 				noselfdamage = true,
 				range = 700,
 				reloadtime = 9,
-				smoketrail = false,
+				smoketrail = true,
+				smokePeriod = 9,
+				smoketime = 28,
+				smokesize = 10,
+				smokecolor = 0.7,
+				smokeTrailCastShadow = false,
+				castshadow = true, --projectile
 				soundhit = "xplomed4",
 				soundhitwet = "splssml",
 				soundstart = "Rockhvy1",
-				texture1 = "trans",
-				texture2 = "null",
+				texture1 = "null",
+				texture2 = "smoketrailbar",
 				texture3 = "null",
 				tolerance = 4000,
 				turnrate = 15000,

@@ -18,9 +18,10 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, dish;
+piece  base, dish, blink;
 
 static-var  statechg_DesiredState, statechg_StateChanging;
+static-var  Stunned;
 
 
 SmokeUnit(healthpercent, sleeptime, smoketype)
@@ -52,16 +53,16 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 /*    53:*/}
 
 Go()
-/*    53:*/{
-/*    5e:*/	spin dish around y-axis speed <-50.043956> accelerate <2>;
-/*    63:*/	return (0);
-/*    64:*/}
+{
+	spin dish around y-axis speed <-50.043956> accelerate <2>;
+	return (0);
+}
 
 Stop()
-/*    64:*/{
-/*    6f:*/	stop-spin dish around y-axis decelerate <10>;
-/*    74:*/	return (0);
-/*    75:*/}
+{
+	spin dish around y-axis speed <0.000000>;
+	return (0);
+}
 
 InitState()
 /*    75:*/{
@@ -97,30 +98,54 @@ RequestState(requestedstate, currentstate)
 /*    c4:*/	return (0);
 /*    c5:*/}
 
+SetStunned(State)
+{
+    Stunned = State;
+	if (Stunned) {
+	    call-script Stop();
+	} else {
+	    call-script Go();
+	}
+}
+
 Create()
-/*    c5:*/{
-/*    cd:*/	call-script InitState();
-/*    d0:*/	start-script SmokeUnit();
-/*    d5:*/	return (0);
-/*    d6:*/}
+{
+	call-script InitState();
+	start-script SmokeUnit();
+	return (0);
+}
+
+Lights()
+{
+	while( TRUE )
+	{
+	    if (!Stunned) {
+		    emit-sfx 1024 + 0 from blink;
+		}
+		sleep 2500;
+	}
+	sleep 50;
+	start-script Lights();
+}
 
 Activate()
-/*    d6:*/{
-/*    d8:*/	start-script RequestState(0);
-/*    dd:*/	return (0);
-/*    de:*/}
+{
+	start-script Lights();
+	start-script RequestState(0);
+	return (0);
+}
 
 Deactivate()
-/*    de:*/{
-/*    e0:*/	start-script RequestState(1);
-/*    e5:*/	return (0);
-/*    e6:*/}
+{
+	start-script RequestState(1);
+	return (0);
+}
 
 SweetSpot(piecenum)
-/*    e7:*/{
-/*    e9:*/	piecenum = base;
-/*    ed:*/	return (0);
-/*    ee:*/}
+{
+	piecenum = base;
+	return (0);
+}
 
 Killed(severity, corpsetype)
 {

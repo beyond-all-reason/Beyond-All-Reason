@@ -59,7 +59,7 @@ return {
 				footprintz = 3,
 				height = 20,
 				hitdensity = 100,
-				metal = 75,
+				metal = 50,
 				object = "Units/coresupp_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
@@ -77,7 +77,7 @@ return {
 				footprintz = 2,
 				height = 4,
 				hitdensity = 100,
-				metal = 37.5,
+				metal = 25,
 				object = "Units/cor4X4B.s3o",
 				reclaimable = true,
 				resurrectable = 0,
@@ -86,6 +86,9 @@ return {
 			},
 		},
 		sfxtypes = {
+			explosiongenerators = {
+				[1] = "custom:waterwake-tiny-long",
+			},
 			pieceexplosiongenerators = {
 				[1] = "deathceg2",
 				[2] = "deathceg3",

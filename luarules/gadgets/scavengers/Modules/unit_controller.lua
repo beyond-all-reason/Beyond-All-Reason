@@ -90,7 +90,7 @@ function ArmyMoveOrders(n, scav, scavDef)
 	if not BossWaveStarted or BossWaveStarted == false then
 		attackTarget = Spring.GetUnitNearestEnemy(scav, 200000, false)
 	elseif FinalBossUnitID then
-		if scav == FinalBossUnitID then
+		-- if scav == FinalBossUnitID then
 			if AliveEnemyCommanders and AliveEnemyCommandersCount > 0 then
 				if AliveEnemyCommandersCount > 1 then
 					for i = 1,AliveEnemyCommandersCount do
@@ -110,9 +110,9 @@ function ArmyMoveOrders(n, scav, scavDef)
 					attackTarget = AliveEnemyCommanders[1]
 				end
 			end
-		else
-			attackTarget = FinalBossUnitID
-		end
+		-- else
+		-- 	attackTarget = FinalBossUnitID
+		-- end
 	else
 		attackTarget = Spring.GetUnitNearestEnemy(scav, 200000, false)
 	end

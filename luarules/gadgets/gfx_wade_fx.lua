@@ -27,6 +27,7 @@ local spGetUnitIsCloaked = Spring.GetUnitIsCloaked
 local spGetUnitPosition  = Spring.GetUnitPosition
 local spGetUnitVelocity  = Spring.GetUnitVelocity
 local spGetUnitDefDimensions = Spring.GetUnitDefDimensions
+local spSpawnCEG = Spring.SpawnCEG
 
 local spusCallAsUnit = Spring.UnitScript.CallAsUnit
 local spusEmitSfx    = Spring.UnitScript.EmitSfx
@@ -106,7 +107,8 @@ function gadget:GameFrame(n)
 				if speed and y > h and y <= 0 and speed > 0 and not spGetUnitIsCloaked(unitID) then
 					-- 1 is the pieceID, most likely it's usually the base piece
 					-- but even if it isn't, it doesn't really matter
-					spusCallAsUnit(unitID, spusEmitSfx, 1, data.fx)
+					--spusCallAsUnit(unitID, spusEmitSfx, 1, data.fx)
+					spSpawnCEG("waterwake-tiny", x, 0, z, 0, 0, 0)
 				end
 			end
 		end

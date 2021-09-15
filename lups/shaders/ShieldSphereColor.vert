@@ -38,6 +38,14 @@ vec3 Rotate(vec3 p, vec3 axis, float angle) {
 	return Rotate(p, RotationQuat(axis, angle));
 }
 
+vec3 RotateY(vec3 p, float angle) {
+	float c = cos(angle);
+	float s = sin(angle);
+
+	//{x Cos[ang] + z Sin[ang], y, z Cos[ang] - x Sin[ang]}
+	return vec3(p.x * c + p.z * s, p.y, p.z * c - p.x * s);
+}
+
 #define NORM2SNORM(value) (value * 2.0 - 1.0)
 #define SNORM2NORM(value) (value * 0.5 + 0.5)
 
@@ -56,12 +64,14 @@ void main() {
 	}
 
 	worldPos = vec4(translationScale.www * modelPos.xyz, 1.0);				//scaling
-	worldPos.xyz = Rotate(worldPos.xyz, vec3(0.0, 1.0, 0.0), rotMargin.y);	//rotation around Yaw axis
+	//worldPos.xyz = Rotate(worldPos.xyz, vec3(0.0, 1.0, 0.0), rotMargin.y);	//rotation around Yaw axis
+	worldPos.xyz  = RotateY(worldPos.xyz, rotMargin.y);
 	worldPos.xyz += translationScale.xyz;									//translation in world space
 
 	viewPos = viewMat * worldPos;
 
-	vec3 worldNormal = normalize(Rotate(modelPos.xyz, vec3(0.0, 1.0, 0.0), rotMargin.y));
+	//vec3 worldNormal = normalize(Rotate(modelPos.xyz, vec3(0.0, 1.0, 0.0), rotMargin.y));
+	vec3 worldNormal = normalize(RotateY(modelPos.xyz, rotMargin.y));
 	vec3 viewNormal = mat3(viewMat) * worldNormal;
 
 	colormix = dot(viewNormal, normalize(viewPos.xyz));

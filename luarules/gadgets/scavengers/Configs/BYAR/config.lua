@@ -12,28 +12,28 @@
 		spawnmultiplier = 0.1
 		scavStatsDifficulty = "Noob"
 	elseif scavDifficulty == "veryeasy" then
-		spawnmultiplier = 0.5
+		spawnmultiplier = 0.25
 		scavStatsDifficulty = "Very Easy"
 	elseif scavDifficulty == "easy" then
-		spawnmultiplier = 0.75
+		spawnmultiplier = 0.375
 		scavStatsDifficulty = "Easy"
 	elseif scavDifficulty == "medium" then
-		spawnmultiplier = 1
+		spawnmultiplier = 0.5
 		scavStatsDifficulty = "Medium"
 	elseif scavDifficulty == "hard" then
-		spawnmultiplier = 1.25
+		spawnmultiplier = 0.875
 		scavStatsDifficulty = "Hard"
 	elseif scavDifficulty == "veryhard" then
-		spawnmultiplier = 1.5
+		spawnmultiplier = 1
 		scavStatsDifficulty = "Very Hard"
 	elseif scavDifficulty == "expert" then
-		spawnmultiplier = 2
+		spawnmultiplier = 1.5
 		scavStatsDifficulty = "Expert"
 	elseif scavDifficulty == "brutal" then
-		spawnmultiplier = 3
+		spawnmultiplier = 2
 		scavStatsDifficulty = "Brutal"
 	else
-		spawnmultiplier = 0.5
+		spawnmultiplier = 0.25
 		scavStatsDifficulty = "Very Easy"
 	end
 
@@ -149,7 +149,7 @@ unitSpawnerModuleConfig = {
 	beacondefences						= true,
 	minimumspawnbeacons					= math.ceil(teamcount*4*spawnmultiplier),
 	landmultiplier 						= 0.75,
-	airmultiplier 						= 1.5,
+	airmultiplier 						= 2,
 	seamultiplier 						= 0.75,
 	chanceforaircraftonsea				= 4, -- higher number = lower chance
 
@@ -157,7 +157,7 @@ unitSpawnerModuleConfig = {
 	t1multiplier						= 5,
 	t2multiplier						= 1,
 	t3multiplier						= 0.20,
-	t4multiplier						= 0.03,
+	t4multiplier						= 0.015,
 
 	initialbonuscommander				= initialBonusCommanderEnabled,
 }
@@ -227,9 +227,9 @@ function UpdateTierChances(n)
 	if globalScore > scavconfig.timers.Endless then
 		TierSpawnChances.T0 = 0
 		TierSpawnChances.T1 = 0
-		TierSpawnChances.T2 = 33
-		TierSpawnChances.T3 = 33
-		TierSpawnChances.T4 = 34
+		TierSpawnChances.T2 = 0
+		TierSpawnChances.T3 = 0
+		TierSpawnChances.T4 = 100
 		TierSpawnChances.Message = "Current tier: Endless"
 		TierSpawnChances.BPMult = 5
 	elseif globalScore > scavconfig.timers.T4top then

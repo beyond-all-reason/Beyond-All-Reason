@@ -96,6 +96,9 @@ return {
 				[1] = "custom:barrelshot-medium",
 				[2] = "custom:barrelshot-large",
 				[3] = "custom:barrelshot-medium-aa",
+				[4] = "custom:waterwake-huge",
+				[5] = "custom:bowsplash-huge",
+				[6] = "custom:enginespurt-huge",
 			},
 			pieceexplosiongenerators = {
 				[1] = "deathceg2",
@@ -157,7 +160,7 @@ return {
 				customparams = {
 					expl_light_color = "1 0.4 0.5",
 					light_color = "1 0.5 0.6",
-					light_mult = 0.8,
+					light_mult = 1.31,
 					light_radius_mult = 0.55,
 				},
 				damage = {
@@ -267,7 +270,7 @@ return {
 				soundstart = "packolau",
 				soundtrigger = true,
 				startvelocity = 1,
-				texture1 = "trans",
+				texture1 = "null",
 				texture2 = "smoketrailaa3",
 				tolerance = 9950,
 				tracks = true,

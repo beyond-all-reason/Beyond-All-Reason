@@ -27,6 +27,7 @@ return {
 		maxvelocity = 2.1,
 		minwaterdepth = 15,
 		movementclass = "UBOAT3",
+		movestate = 1,
 		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMSUB.s3o",
@@ -93,8 +94,8 @@ return {
 				[3] = "deathceg4",
 			},
 			explosiongenerators = {
-				[0] = "custom:subbubbles",
-				[1] = "custom:subwake",
+				[1] = "custom:subbubbles",
+				[2] = "custom:subwake",
 			},
 		},
 		sounds = {

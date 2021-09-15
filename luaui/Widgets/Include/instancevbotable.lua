@@ -485,6 +485,111 @@ function makeConeVBO(numSegments, height, radius)
 end
 
 
+
+function makeCylinderVBO(numSegments, height, radius, hastop, hasbottom) 
+	-- make a cylinder that points up, (y = height), with radius specified
+	-- returns the VBO object, and the number of elements in it (usually ==  numvertices)
+	-- needs GL.TRIANGLES
+	if not height then height = 1 end
+	if not radius then radius = 1 end 
+	local cylinderVBO = gl.GetVBO(GL.ARRAY_BUFFER,true)
+	if cylinderVBO == nil then return nil end
+	
+	local VBOData = {}
+	
+	for i = 1, numSegments do 
+    if hasbottom then
+      -- center vertex
+      VBOData[#VBOData+1] = 0 
+      VBOData[#VBOData+1] = -1* height
+      VBOData[#VBOData+1] = 0
+      VBOData[#VBOData+1] = (i - 1) / numSegments
+      
+      --- first cone flat
+      VBOData[#VBOData+1] = math.sin(math.pi*2* (i - 1) / numSegments) * radius -- X
+      VBOData[#VBOData+1] = -1* height
+      VBOData[#VBOData+1] = -1* math.cos(math.pi*2* (i - 1) / numSegments) * radius-- Y
+      VBOData[#VBOData+1] = (i - 1) / numSegments
+      
+      --- second cone flat
+      VBOData[#VBOData+1] = math.sin(math.pi*2* (i - 0) / numSegments) * radius-- X
+      VBOData[#VBOData+1] = -1* height
+      VBOData[#VBOData+1] = -1* math.cos(math.pi*2* (i - 0) / numSegments) * radius -- Y
+      VBOData[#VBOData+1] =(i - 0) / numSegments
+		end
+    
+		
+		--- first cone flat
+		VBOData[#VBOData+1] = math.sin(math.pi*2* (i - 0) / numSegments) * radius -- X
+		VBOData[#VBOData+1] = height
+		VBOData[#VBOData+1] = -1*math.cos(math.pi*2* (i - 0) / numSegments) * radius -- Y
+		VBOData[#VBOData+1] =(i - 0) / numSegments
+		
+		--- second cone flat
+		VBOData[#VBOData+1] = math.sin(math.pi*2* (i - 1) / numSegments) * radius -- X
+		VBOData[#VBOData+1] = height
+		VBOData[#VBOData+1] = -1*math.cos(math.pi*2* (i - 1) / numSegments) * radius -- Y
+		VBOData[#VBOData+1] =(i - 1) / numSegments
+    
+    
+    		
+		--- first cone flat
+		VBOData[#VBOData+1] = math.sin(math.pi*2* (i - 0) / numSegments) * radius -- X
+		VBOData[#VBOData+1] = -1 * height
+		VBOData[#VBOData+1] = -1*math.cos(math.pi*2* (i - 0) / numSegments) * radius -- Y
+		VBOData[#VBOData+1] =(i - 0) / numSegments
+		
+    		--- second cone flat
+		VBOData[#VBOData+1] = math.sin(math.pi*2* (i - 1) / numSegments) * radius -- X
+		VBOData[#VBOData+1] = height
+		VBOData[#VBOData+1] = -1*math.cos(math.pi*2* (i - 1) / numSegments) * radius -- Y
+		VBOData[#VBOData+1] =(i - 1) / numSegments
+    
+    		
+		--- first cone flat
+		VBOData[#VBOData+1] = math.sin(math.pi*2* (i - 0) / numSegments) * radius -- X
+		VBOData[#VBOData+1] = -1 * height
+		VBOData[#VBOData+1] = -1*math.cos(math.pi*2* (i - 0) / numSegments) * radius -- Y
+		VBOData[#VBOData+1] =(i - 0) / numSegments
+		
+    
+		--- second cone flat
+		VBOData[#VBOData+1] = math.sin(math.pi*2* (i - 1) / numSegments) * radius -- X
+		VBOData[#VBOData+1] = -1 * height
+		VBOData[#VBOData+1] = -1*math.cos(math.pi*2* (i - 1) / numSegments) * radius -- Y
+		VBOData[#VBOData+1] =(i - 1) / numSegments
+    
+    
+    
+    if hastop then
+      -- center vertex
+      VBOData[#VBOData+1] = 0 
+      VBOData[#VBOData+1] = height
+      VBOData[#VBOData+1] = 0
+      VBOData[#VBOData+1] = (i - 1) / numSegments
+      
+      --- first cone flat
+      VBOData[#VBOData+1] = math.sin(math.pi*2* (i - 1) / numSegments) * radius -- X
+      VBOData[#VBOData+1] = height
+      VBOData[#VBOData+1] = -1* math.cos(math.pi*2* (i - 1) / numSegments) * radius-- Y
+      VBOData[#VBOData+1] = (i - 1) / numSegments
+      
+      --- second cone flat
+      VBOData[#VBOData+1] = math.sin(math.pi*2* (i - 0) / numSegments) * radius-- X
+      VBOData[#VBOData+1] = height
+      VBOData[#VBOData+1] = -1* math.cos(math.pi*2* (i - 0) / numSegments) * radius -- Y
+      VBOData[#VBOData+1] =(i - 0) / numSegments
+		end
+	end
+	
+	
+	cylinderVBO:Define(#VBOData/4,	{{id = 0, name = "localpos_progress", size = 4}})
+	cylinderVBO:Upload(VBOData)
+	return cylinderVBO, #VBOData/4
+end
+
+
+
 function makeBoxVBO(minX, minY, minZ, maxX, maxY, maxZ) -- make a box
 	-- needs GL.TRIANGLES
 	local boxVBO = gl.GetVBO(GL.ARRAY_BUFFER,true)

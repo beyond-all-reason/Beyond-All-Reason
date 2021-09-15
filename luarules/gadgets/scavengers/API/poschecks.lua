@@ -1,4 +1,5 @@
 local GaiaAllyTeamID = GaiaAllyTeamID or 999
+local _,_,_,_,_,RealGaiaAllyTeamID = Spring.GetTeamInfo(Spring.GetGaiaTeamID()) -- GaiaAllyTeamID is actually scav ally team, because i'm too lazy to do global rename.
 if not scavconfig then
 	heighttollerance = 30
 	noheightchecksforwater = true
@@ -61,7 +62,7 @@ function posLosCheck(posx, posy, posz, posradius)
 	-- if true then position is not in player LoS(includes radar)
 	local posradius = posradius or 1000
 	for _,allyTeamID in ipairs(Spring.GetAllyTeamList()) do
-		if allyTeamID ~= GaiaAllyTeamID then
+		if allyTeamID ~= GaiaAllyTeamID and allyTeamID ~= RealGaiaAllyTeamID then
 			if Spring.IsPosInLos(posx, posy, posz, allyTeamID) == true or
 			Spring.IsPosInLos(posx + posradius, posy, posz + posradius, allyTeamID) == true or
 			Spring.IsPosInLos(posx + posradius, posy, posz - posradius, allyTeamID) == true or
@@ -92,7 +93,7 @@ function posLosCheckNoRadar(posx, posy, posz, posradius)
 	-- if true then position is not in player LoS(excludes radar)
 	local posradius = posradius or 1000
 	for _,allyTeamID in ipairs(Spring.GetAllyTeamList()) do
-		if allyTeamID ~= GaiaAllyTeamID then
+		if allyTeamID ~= GaiaAllyTeamID and allyTeamID ~= RealGaiaAllyTeamID then
 			if Spring.IsPosInLos(posx, posy, posz, allyTeamID) == true or
 			Spring.IsPosInLos(posx + posradius, posy, posz + posradius, allyTeamID) == true or
 			Spring.IsPosInLos(posx + posradius, posy, posz - posradius, allyTeamID) == true or
@@ -114,7 +115,7 @@ function posLosCheckReversed(posx, posy, posz, posradius)
 	-- if true then position is in player LoS(excludes radar)
 	local posradius = posradius or 1000
 	for _,allyTeamID in ipairs(Spring.GetAllyTeamList()) do
-		if allyTeamID ~= GaiaAllyTeamID then
+		if allyTeamID ~= GaiaAllyTeamID and allyTeamID ~= RealGaiaAllyTeamID then
 			if Spring.IsPosInLos(posx, posy, posz, allyTeamID) == true or
 			Spring.IsPosInLos(posx + posradius, posy, posz + posradius, allyTeamID) == true or
 			Spring.IsPosInLos(posx + posradius, posy, posz - posradius, allyTeamID) == true or
@@ -136,7 +137,7 @@ function posLosCheckOnlyLOS(posx, posy, posz, posradius)
 	-- if true then position is in player LoS(excludes radar and airLoS)
 	local posradius = posradius or 1000
 	for _,allyTeamID in ipairs(Spring.GetAllyTeamList()) do
-		if allyTeamID ~= GaiaAllyTeamID then
+		if allyTeamID ~= GaiaAllyTeamID and allyTeamID ~= RealGaiaAllyTeamID then
 			if Spring.IsPosInLos(posx, posy, posz, allyTeamID) == true or
 			Spring.IsPosInLos(posx + posradius, posy, posz + posradius, allyTeamID) == true or
 			Spring.IsPosInLos(posx + posradius, posy, posz - posradius, allyTeamID) == true or

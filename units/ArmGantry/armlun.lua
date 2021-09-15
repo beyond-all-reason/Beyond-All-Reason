@@ -217,7 +217,7 @@ return {
 				soundstartvolume = 7,
 				startvelocity = 100,
 				texture1 = "trans",
-				texture2 = "armsmoketrail",
+				texture2 = "smoketrailbar",
 				tracks = true,
 				trajectoryheight = 0.4,
 				turnrate = 22000,

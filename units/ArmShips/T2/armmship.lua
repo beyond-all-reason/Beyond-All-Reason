@@ -87,6 +87,9 @@ return {
 			},
 		},
 		sfxtypes = {
+			explosiongenerators = {
+				[1] = "custom:waterwake-small",
+			},
 			pieceexplosiongenerators = {
 				[1] = "deathceg2",
 				[2] = "deathceg3",
@@ -137,11 +140,18 @@ return {
 				range = 1550,
 				reloadtime = 6,
 				smoketrail = true,
+				smokePeriod = 7,
+				smoketime = 14,
+				smokesize = 5.4,
+				smokecolor = 0.95,
+				smokeTrailCastShadow = false,
+				castshadow = false,
 				soundhit = "xplomed2",
 				soundhitwet = "splshbig",
 				soundstart = "rockhvy2",
 				startvelocity = 430,
-				texture1 = "trans",
+				texture1 = "null",
+				texture2 = "smoketrailaa3",
 				tolerance = 8000,
 				tracks = true,
 				turnrate = 30000,
@@ -157,7 +167,6 @@ return {
 				},
 				damage = {
 					default = 138,
-					-- subs = 5,
 				},
 			},
 			rocket = {
@@ -188,7 +197,7 @@ return {
 				soundhit = "xplomed4",
 				soundhitwet = "splsmed",
 				soundstart = "Rockhvy1",
-				texture1 = "trans",
+				texture1 = "null",
 				texture2 = "smoketrailbar",
 				texture3 = "null",
 				tolerance = 4000,

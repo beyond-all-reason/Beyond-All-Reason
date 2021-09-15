@@ -20,6 +20,10 @@ local playerCommanders = {
 	"cordecom",
 	"armcomcon",
 	"corcomcon",
+	"armdecom_scav",
+	"cordecom_scav",
+	"armcomcon_scav",
+	"corcomcon_scav",
 }
 
 local assisters = {
