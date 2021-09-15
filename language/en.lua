@@ -226,7 +226,7 @@ return {
 			lighteffects_radius = 'radius',
 			lighteffects_radius_descr = 'Set the radius of the lights\n\nWARNING: the bigger the radius the heavier on the GPU',
 			lighteffects_additionalflashes = 'additional explosion light',
-			lighteffects_additionalflashes_descr = 'Adds an extra light to brighten explosion centers\nDoesnt render when average fps gets low (15)',
+			lighteffects_additionalflashes_descr = 'Adds an extra light to brighten explosion centers',
 
 			dof = 'Depth of Field',
 			dof_descr = 'Applies out of focus blur',

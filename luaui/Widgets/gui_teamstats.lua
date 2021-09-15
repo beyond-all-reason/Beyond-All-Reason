@@ -111,7 +111,7 @@ local borderRemap = {left={"x","min",-1},right={"x","max",1},top={"y","max",1},b
 
 local RectRound, UiElement, elementCorner
 
-local font, chobbyInterface, backgroundGuishader, gameStarted, bgpadding
+local font, chobbyInterface, backgroundGuishader, gameStarted, bgpadding, gameover
 
 function roundNumber(num,useFirstDecimal)
 	return useFirstDecimal and format("%0.1f",round(num,1)) or round(num)
@@ -333,6 +333,9 @@ function widget:GameFrame(n,forceupdate)
 	if n > 0 then
 		gameStarted = true
 	end
+
+	if gameover then return end
+
 	if not forceupdate and (not guiData.mainPanel.visible or n%update ~= 0) then
 		return
 	end
@@ -445,6 +448,7 @@ end
 
 
 function widget:GameOver()
+	gameover = true
 	if replaceEndStats then
 		guiData.mainPanel.visible = true
 		widget:GameFrame(GetGameFrame(),true)
