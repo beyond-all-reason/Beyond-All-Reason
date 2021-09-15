@@ -116,6 +116,9 @@ return {
 			},
 		},
 		sfxtypes = {
+			explosiongenerators = {
+				[1] = "custom:waterwake-small",
+			},
 			pieceexplosiongenerators = {
 				[1] = "deathceg2-builder",
 				[2] = "deathceg3-builder",
