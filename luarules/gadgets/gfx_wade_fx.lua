@@ -107,8 +107,8 @@ function gadget:GameFrame(n)
 				if speed and y > h and y <= 0 and speed > 0 and not spGetUnitIsCloaked(unitID) then
 					-- 1 is the pieceID, most likely it's usually the base piece
 					-- but even if it isn't, it doesn't really matter
-					spusCallAsUnit(unitID, spusEmitSfx, 1, data.fx)
-					--spSpawnCEG("waterwake-tiny", x, y, z, 0, 0, 0)
+					--spusCallAsUnit(unitID, spusEmitSfx, 1, data.fx)
+					spSpawnCEG("waterwake-tiny", x, y, z, 0, 0, 0)
 				end
 			end
 		end
