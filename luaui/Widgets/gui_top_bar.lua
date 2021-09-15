@@ -29,7 +29,6 @@ local escapeKeyPressesQuit = false
 
 local relXpos = 0.3
 local borderPadding = 5
-local showConversionSlider = true
 local bladeSpeedMultiplier = 0.2
 
 local noiseBackgroundTexture = ":g:LuaUI/Images/rgbnoise.png"
@@ -901,8 +900,9 @@ local function updateResbar(res)
 
 	dlistResbar[res][2] = glCreateList(function()
 		-- Metalmaker Conversion slider
-		if showConversionSlider and res == 'energy' then
-			local convValue = Spring.GetTeamRulesParam(myTeamID, 'mmLevel')
+		if res == 'energy' then
+			mmLevel = Spring.GetTeamRulesParam(myTeamID, 'mmLevel')
+			local convValue = mmLevel
 			if draggingConversionIndicatorValue then
 				convValue = draggingConversionIndicatorValue / 100
 			end
@@ -925,7 +925,13 @@ local function updateResbar(res)
 				gl.Texture(false)
 			end
 		end
+
 		-- Share slider
+		if res == 'energy' then
+			eneryOverflowLevel = r[res][6]
+		else
+			metalOverflowLevel = r[res][6]
+		end
 		local value = r[res][6]
 		if draggingShareIndicator and draggingShareIndicatorValue[res] ~= nil then
 			value = draggingShareIndicatorValue[res]
@@ -1296,6 +1302,17 @@ function widget:Update(dt)
 			draggingConversionIndicatorValue = nil
 			updateResbar('metal')
 			updateResbar('energy')
+		else
+
+			-- make sure conversion/overflow sliders are adjusted
+			if mmLevel then
+				if mmLevel ~= Spring.GetTeamRulesParam(myTeamID, 'mmLevel') or eneryOverflowLevel ~= r['energy'][6] then
+					updateResbar('energy')
+				end
+				if metalOverflowLevel ~= r['metal'][6] then
+					updateResbar('metal')
+				end
+			end
 		end
 	end
 
@@ -1677,7 +1694,7 @@ local function adjustSliders(x, y)
 		draggingShareIndicatorValue[draggingShareIndicator] = shareValue
 		updateResbar(draggingShareIndicator)
 	end
-	if showConversionSlider and draggingConversionIndicator and not spec then
+	if draggingConversionIndicator and not spec then
 		local convValue = math_floor((x - resbarDrawinfo['energy']['barArea'][1]) / (resbarDrawinfo['energy']['barArea'][3] - resbarDrawinfo['energy']['barArea'][1]) * 100)
 		if convValue < 12 then
 			convValue = 12
@@ -1907,7 +1924,7 @@ function widget:MousePress(x, y, button)
 			if IsOnRect(x, y, shareIndicatorArea['energy'][1], shareIndicatorArea['energy'][2], shareIndicatorArea['energy'][3], shareIndicatorArea['energy'][4]) then
 				draggingShareIndicator = 'energy'
 			end
-			if draggingShareIndicator == nil and showConversionSlider and IsOnRect(x, y, conversionIndicatorArea[1], conversionIndicatorArea[2], conversionIndicatorArea[3], conversionIndicatorArea[4]) then
+			if draggingShareIndicator == nil and IsOnRect(x, y, conversionIndicatorArea[1], conversionIndicatorArea[2], conversionIndicatorArea[3], conversionIndicatorArea[4]) then
 				draggingConversionIndicator = true
 			end
 			if draggingConversionIndicator == nil and IsOnRect(x, y, resbarDrawinfo['energy'].barArea[1], shareIndicatorArea['energy'][2], resbarDrawinfo['energy'].barArea[3], shareIndicatorArea['energy'][4]) then
