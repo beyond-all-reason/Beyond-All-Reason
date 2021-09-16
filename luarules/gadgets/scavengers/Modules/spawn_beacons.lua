@@ -10,7 +10,7 @@ local ztable = {{-128, -64, 0}, {-128, -64, 0}, {128, 64, -128}, {-128, -64, 128
 
 function SpawnBeacon(n)
 	if n and n > spawningStartFrame then
-		if numOfSpawnBeacons < unitSpawnerModuleConfig.minimumspawnbeacons then
+		if numOfSpawnBeacons < unitSpawnerModuleConfig.minimumspawnbeacons or numOfSpawnBeacons < 3 then
 			BeaconSpawnChance = 0
 		elseif BeaconSpawnChance > 0 then
 			BeaconSpawnChance = math_random(0,BeaconSpawnChance)
