@@ -52,8 +52,8 @@ local unitFootprintZ = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
 	local weapons = unitDef.weapons
 	if #weapons > 0 then
-		unitFootprintX[unitDefID] = unitDef.footprintx
-		unitFootprintZ[unitDefID] = unitDef.footprintz
+		unitFootprintX[unitDefID] = unitDef.xsize
+		unitFootprintZ[unitDefID] = unitDef.zsize
 		unitWeapons[unitDefID] = {}
 		for id, _ in pairs(weapons) do
 			unitWeapons[unitDefID][id] = true    -- no need to store weapondefid

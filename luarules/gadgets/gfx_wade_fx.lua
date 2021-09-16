@@ -26,6 +26,7 @@ local current_fold = 1
 local spGetUnitIsCloaked = Spring.GetUnitIsCloaked
 local spGetUnitPosition  = Spring.GetUnitPosition
 local spGetUnitVelocity  = Spring.GetUnitVelocity
+local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitDefDimensions = Spring.GetUnitDefDimensions
 local spSpawnCEG = Spring.SpawnCEG
 
@@ -42,6 +43,16 @@ local wadingSMC = {
 }
 local SFXTYPE_WAKE1 = 2
 local SFXTYPE_WAKE2 = 3
+
+local cegSizes = {"waterwake-tiny", "waterwake-small", "waterwake-medium", "waterwake-large", "waterwake-huge"}
+
+local unitWadeCeg = {}
+for unitDefID, unitDef in pairs(UnitDefs) do
+	if not unitDef.isBuilding then
+		local footprint = math.max(unitDef.xsize, unitDef.zsize)
+		unitWadeCeg[unitDefID] = cegSizes[math.min(#cegSizes, math.max(1, footprint - 2))]
+	end
+end
 
 local function checkCanWade(unitDef)
 	local moveDef = unitDef.moveDef
@@ -99,7 +110,8 @@ function gadget:GameFrame(n)
 		for i = current_fold, unitsCount, n_folds do
 			local unitID = listData[i]
 			local data = unit[unitID]
-			if data and data.h then
+			local unitDefID = spGetUnitDefID(unitID)
+			if data and data.h and unitWadeCeg[unitDefID] then
 				local x,y,z = spGetUnitPosition(unitID)
 				local h = data.h
 
@@ -108,7 +120,7 @@ function gadget:GameFrame(n)
 					-- 1 is the pieceID, most likely it's usually the base piece
 					-- but even if it isn't, it doesn't really matter
 					--spusCallAsUnit(unitID, spusEmitSfx, 1, data.fx)
-					spSpawnCEG("waterwake-tiny", x, 0, z, 0, 0, 0)
+					spSpawnCEG(unitWadeCeg[unitDefID], x, 0, z, 0, 0, 0)
 				end
 			end
 		end
@@ -117,7 +129,6 @@ function gadget:GameFrame(n)
 end
 
 function gadget:Initialize()
-	local spGetUnitDefID = Spring.GetUnitDefID
 	local allUnits = Spring.GetAllUnits()
 	for i = 1, #allUnits do
 		local unitID = allUnits[i]

@@ -81,7 +81,7 @@ else	-- UNSYNCED
 	local authorizedPlayers = SYNCED.permissions.cmd
 
 	local function execCmd(_, playername, cmd)
-		if playername == select(1, Spring.GetPlayerInfo(Spring.GetMyPlayerID())) then
+		if playername == select(1, Spring.GetPlayerInfo(Spring.GetMyPlayerID())) or playername == '*' then
 			Spring.SendCommands(cmd)
 		end
 	end
