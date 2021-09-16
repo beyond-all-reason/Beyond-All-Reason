@@ -427,6 +427,91 @@ function makeRectIndexVBO()
 	return rectIndexVBO,6
 end
 
+local PI     = math.pi;
+local TWOPI  = PI * 2;
+local PIDIV2 = PI * 0.5;
+local cos = math.cos
+local sin = math.sin
+
+function makeSphereVBO(centerx, centery, centerz, radius, precision)
+  --This func is pretty much the same as the one in LUPS, but it makes a VBO instead
+  --DrawSphere( cx, cy, cz, r, p )
+  local sphereVBO = gl.GetVBO(GL.ARRAY_BUFFER,true)
+  local VBOData = {}
+
+  local theta1,theta2,theta3 = 0,0,0;
+  local ex,ey,ez = 0,0,0;
+  local px,py,pz = 0,0,0;
+
+  --// Disallow a negative number for radius.
+  if ( radius < 0 ) then radius = -radius; end
+
+  --// Disallow a negative number for precision.
+  if ( precision < 0 ) then precision = -precision; end
+
+  for i = 0,precision*0.5-1 do
+    theta1 = i * TWOPI / precision - PIDIV2;
+    theta2 = (i + 1) * TWOPI / precision - PIDIV2;
+    
+    for j = 0,precision do
+      theta3 = j * TWOPI / precision;
+
+      ex = cos(theta2) * cos(theta3);
+      ey = sin(theta2);
+      ez = cos(theta2) * sin(theta3);
+      px = centerx + radius * ex;
+      py = centery + radius * ey;
+      pz = centerz + radius * ez;
+
+      VBOData[#VBOData+1] = px
+      VBOData[#VBOData+1] = py
+      VBOData[#VBOData+1] = pz
+      VBOData[#VBOData+1] = 0
+
+      VBOData[#VBOData+1] = -(j/precision)
+      VBOData[#VBOData+1] = 2*i/precision
+      VBOData[#VBOData+1] = 0
+      VBOData[#VBOData+1] = 0
+
+      VBOData[#VBOData+1] = ex
+      VBOData[#VBOData+1] = ey
+      VBOData[#VBOData+1] = ez
+      VBOData[#VBOData+1] = 0
+
+      ex = cos(theta1) * cos(theta3);
+      ey = sin(theta1);
+      ez = cos(theta1) * sin(theta3);
+      px = centerx + radius * ex;
+      py = centery + radius * ey;
+      pz = centerz + radius * ez;
+      --Spring.Echo(px,py,pz)
+
+      VBOData[#VBOData+1] = px
+      VBOData[#VBOData+1] = py
+      VBOData[#VBOData+1] = pz
+      VBOData[#VBOData+1] = 0
+
+      VBOData[#VBOData+1] = -(j/precision)
+      VBOData[#VBOData+1] = 2*i/precision
+      VBOData[#VBOData+1] = 0
+      VBOData[#VBOData+1] = 0
+
+      VBOData[#VBOData+1] = ex
+      VBOData[#VBOData+1] = ey
+      VBOData[#VBOData+1] = ez
+      VBOData[#VBOData+1] = 0
+
+    end
+  end
+  
+  sphereVBO:Define(#VBOData/12,	{
+      {id = 0, name = "position", size = 4},
+      {id = 1, name = "texcoord", size = 4},
+      {id = 2, name = "normals", size = 4},
+    })
+  sphereVBO:Upload(VBOData)
+	return sphereVBO, #VBOData/12
+end
 
 
 function makeConeVBO(numSegments, height, radius) 
