@@ -373,7 +373,7 @@ local function UpdateTeamColors()
             spSetTeamColor(teamID, IconDevModeColor[1]/255, IconDevModeColor[2]/255, IconDevModeColor[3]/255)
         elseif AnonymousModeEnabled then
             local _, leader, isDead, isAiTeam, side, allyTeamID, incomeMultiplier, customTeamKeys = spGetTeamInfo(teamID)
-            if allyTeamID == myAllyTeamID then or spGetSpectatingState() then
+            if allyTeamID == myAllyTeamID or spGetSpectatingState() then
                 spSetTeamColor(teamID, r, g, b)
             else
                 spSetTeamColor(teamID, GaiaColor[1]/255, GaiaColor[2]/255, GaiaColor[3]/255)
