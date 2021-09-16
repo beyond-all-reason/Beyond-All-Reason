@@ -3,8 +3,8 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, barrel1a, barrel1b, barrel1c, barrel1d, radar, wake1,
-       wake2, wake3, wake4, wake5, tur1, tur2, tur3,
+piece  base, barrel1a, barrel1b, barrel1c, barrel1d, radar, wake,
+       bow, engine, tur1, tur2, tur3,
        tur4, tur5, tur6, sleeves1, gun2, sleeves3, sleeves4, gun5,
        gun6, flare1a, flare1b, flare1c, flare1d, flare2, flare3a, flare3b,
        flare4a, flare4b, flare5, flare6,barrel6,sleeves5,sleeves6,barrel5,barrel2,sleeves2 ;
@@ -245,14 +245,17 @@ StartMoving()
 	set-signal-mask SIG_MOVE;
 	var waketime;
 	start-script waveSplash();
+	var bowtime;
+	bowtime = 0;
 	while( TRUE )
 	{
-		emit-sfx 2 from wake1;
-		emit-sfx 2 from wake2;
-		emit-sfx 2 from wake3;
+		emit-sfx 1024 + 1 from wake;
+		if (bowtime) emit-sfx 1024 + 2 from bow;
+		bowtime = !bowtime;
+		emit-sfx 1024 + 3 from engine;
 		waketime = (get CURRENT_SPEED) * 100 / get MAX_SPEED;
 		if( waketime < 50 ) waketime = 50;
-		sleep 12000 / waketime;
+		sleep 15000 / waketime;
 	}
 }
 
