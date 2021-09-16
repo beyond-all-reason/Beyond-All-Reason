@@ -26,10 +26,6 @@ else
 	ScavDifficultyMultiplier = 0.25
 end
 
-local rana = math.random(3,1000)
-local ranb = math.random(2,a)
-local ranc = math.random(1,b)
-
 function scav_Udef_Post(name, uDef)
 	if not uDef.customparams then
 		uDef.customparams = {}
