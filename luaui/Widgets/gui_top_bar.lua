@@ -376,6 +376,9 @@ local function updateButtons()
 	if WG['scavengerinfo'] ~= nil then
 		text = text .. Spring.I18N('ui.topbar.button.scavengers') .. '   '
 	end
+	if gameIsOver then
+		text = text .. Spring.I18N('ui.topbar.button.graphs') .. '   '
+	end
 	if WG['teamstats'] ~= nil then
 		text = text .. Spring.I18N('ui.topbar.button.stats') .. '   '
 	end
@@ -427,7 +430,7 @@ local function updateButtons()
 			WG['guishader'].InsertDlist(dlistButtonsGuishader, 'topbar_buttons')
 		end
 
-		if buttonsArea['buttons'] == nil then
+		-- if buttonsArea['buttons'] == nil then -- With this condition it doesn't actually update buttons if they were already added
 			buttonsArea['buttons'] = {}
 
 			local margin = bgpadding
@@ -455,6 +458,17 @@ local function updateButtons()
 				buttonsArea['buttons']['scavengers'] = { area[1] + offset, area[2] + margin, area[1] + offset + width, area[4] }
 				if not firstButton then
 					firstButton = 'scavengers'
+				end
+			end
+			if gameIsOver then
+				buttons = buttons + 1
+				if buttons > 1 then
+					offset = math_floor(offset + width + 0.5)
+				end
+				width = math_floor((font2:GetTextWidth('   ' .. Spring.I18N('ui.topbar.button.graphs')) * fontsize) + 0.5)
+				buttonsArea['buttons']['graphs'] = { area[1] + offset, area[2] + margin, area[1] + offset + width, area[4] }
+				if not firstButton then
+					firstButton = 'graphs'
 				end
 			end
 			if WG['teamstats'] ~= nil then
@@ -509,7 +523,7 @@ local function updateButtons()
 				width = math_floor((font2:GetTextWidth('   ' .. Spring.I18N('ui.topbar.button.settings')) * fontsize) + 0.5)
 				buttonsArea['buttons']['options'] = { area[1] + offset, area[2] + margin, area[1] + offset + width, area[4] }
 				if not firstButton then
-					firstButton = 'settings'
+					firstButton = 'options'
 				end
 			end
 			if chobbyLoaded then
@@ -527,7 +541,7 @@ local function updateButtons()
 				width = math_floor((font2:GetTextWidth('    ' .. Spring.I18N('ui.topbar.button.quit')) * fontsize) + 0.5)
 				buttonsArea['buttons']['quit'] = { area[1] + offset, area[2] + margin, area[3], area[4] }
 			end
-		end
+		-- end
 	end)
 
 	if dlistButtons2 ~= nil then
@@ -1749,6 +1763,13 @@ local function hideWindows()
 	if WG['guishader'] then
 		WG['guishader'].setScreenBlur(false)
 	end
+
+	if gameIsOver then -- Graphs window can only be open after game end
+		-- Closing Graphs window if open, no way to tell if it was open or not
+		Spring.SendCommands('endgraph 0')
+		graphsWindowVisible = false
+	end
+
 	return closedWindow
 end
 
@@ -1834,28 +1855,26 @@ local function applyButtonAction(button)
 			WG['commands'].toggle()
 		end
 	elseif button == 'stats' then
-		if gameIsOver then -- Show Graphs window instead of stats table when the game ended
-			if not graphsWindowVisible then
-				Spring.SendCommands('endgraph 2')
-				graphsWindowVisible = true
-			else
-				Spring.SendCommands('endgraph 0')
-				graphsWindowVisible = false
-			end
-		else
-			if WG['teamstats'] ~= nil then
-				isvisible = WG['teamstats'].isvisible()
-			end
-			hideWindows()
-			if WG['teamstats'] ~= nil and isvisible ~= true then
-				WG['teamstats'].toggle()
-			end
+		if WG['teamstats'] ~= nil then
+			isvisible = WG['teamstats'].isvisible()
+		end
+		hideWindows()
+		if WG['teamstats'] ~= nil and isvisible ~= true then
+			WG['teamstats'].toggle()
+		end
+	elseif button == 'graphs' then
+		isvisible = graphsWindowVisible
+		hideWindows()
+		if gameIsOver and not isvisible then
+			Spring.SendCommands('endgraph 2')
+			graphsWindowVisible = true
 		end
 	end
 end
 
 function widget:GameOver()
 	gameIsOver = true
+	updateButtons()
 end
 
 function widget:MouseWheel(up, value)
