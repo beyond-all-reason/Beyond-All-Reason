@@ -218,7 +218,7 @@ local function UpdatePassiveBuilders(teamID, interval)
 		local newPullEnergy = 0
 		local newPullMetal = 0
 		local wouldStall = false
-		if passiveConsExpense[builderID] then
+		if passiveConsExpense[builderID] and teamStalling[teamID] then
 			for resName,allocatedExp in pairs(teamStalling[teamID]) do
 				if resName == 'energy' then
 					newPullEnergy = allocatedExp - (interval)*passiveConsExpense[builderID][resName]/simSpeed
@@ -239,7 +239,7 @@ local function UpdatePassiveBuilders(teamID, interval)
 		-- record that use these resources
 		if not wouldStall then
 			if newPullEnergy == 0 or newPullMetal == 0 then
-				teamStalling[teamID] = {}
+				teamStalling[teamID] = nil
 			else
 				teamStalling[teamID]['energy'] = newPullEnergy
 				teamStalling[teamID]['metal'] = newPullMetal
