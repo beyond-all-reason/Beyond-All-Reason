@@ -290,7 +290,7 @@ end
 
 function widget:SelectionChanged(sel)
 	selectedRadarUnitID = false
-	if #sel == 1 and cmdidtoradarsize[-Spring.GetUnitDefID(sel[1])] then
+	if #sel == 1 and Spring.GetUnitDefID(sel[1]) and cmdidtoradarsize[-Spring.GetUnitDefID(sel[1])] then
 		selectedRadarUnitID = sel[1]
 	end
 end
