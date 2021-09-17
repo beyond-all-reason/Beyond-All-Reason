@@ -215,34 +215,36 @@ local function UpdatePassiveBuilders(teamID, interval)
 	-- work through passive cons allocating as much expense as we have left
 	for builderID in pairs(passiveCons[teamID] or {}) do
 		-- find out if we have used up all the expense available to passive builders yet
-		local newPullEnergy = 0
-		local newPullMetal = 0
 		local wouldStall = false
-		if passiveConsExpense[builderID] and teamStalling[teamID] then
-			for resName,allocatedExp in pairs(teamStalling[teamID]) do
-				if resName == 'energy' then
-					newPullEnergy = allocatedExp - (interval)*passiveConsExpense[builderID][resName]/simSpeed
-					if newPullEnergy <= 0 then
-						wouldStall = true
-						break
-					end
-				else
-					newPullMetal = allocatedExp - (interval)*passiveConsExpense[builderID][resName]/simSpeed
-					if newPullMetal <= 0 then
-						wouldStall = true
-						break
+		if teamStalling[teamID] then
+			local newPullEnergy = 0
+			local newPullMetal = 0
+			if passiveConsExpense[builderID] then
+				for resName,allocatedExp in pairs(teamStalling[teamID]) do
+					if resName == 'energy' then
+						newPullEnergy = allocatedExp - (interval)*passiveConsExpense[builderID][resName]/simSpeed
+						if newPullEnergy <= 0 then
+							wouldStall = true
+							break
+						end
+					else
+						newPullMetal = allocatedExp - (interval)*passiveConsExpense[builderID][resName]/simSpeed
+						if newPullMetal <= 0 then
+							wouldStall = true
+							break
+						end
 					end
 				end
 			end
-		end
 
-		-- record that use these resources
-		if not wouldStall then
-			if newPullEnergy == 0 or newPullMetal == 0 then
-				teamStalling[teamID] = nil
-			else
-				teamStalling[teamID]['energy'] = newPullEnergy
-				teamStalling[teamID]['metal'] = newPullMetal
+			-- record that use these resources
+			if not wouldStall then
+				if newPullEnergy == 0 or newPullMetal == 0 then
+					teamStalling[teamID] = nil
+				else
+					teamStalling[teamID]['energy'] = newPullEnergy
+					teamStalling[teamID]['metal'] = newPullMetal
+				end
 			end
 		end
 
