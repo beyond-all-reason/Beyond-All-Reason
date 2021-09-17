@@ -189,7 +189,7 @@ if gadgetHandler:IsSyncedCode() then
     local teamNumber = #teamList-1
     local allyTeamNumber = #allyTeamList - 1
 
-    if #teamList == #allyTeamList then -- FFA
+    if #teamList == #allyTeamList and teamNumber > 2 then
         isFFA = true
     end
 
@@ -205,7 +205,6 @@ if gadgetHandler:IsSyncedCode() then
             for i = 1,#FFAColors do
                 if #FFAColors == 1 or math.random(1,#FFAColors) == 1 then
                     table.insert(RandomizedFFAColors, FFAColors[i])
-                    --RandomizedFFAColors[#RandomizedFFAColors+1] = FFAColors[i]
                     table.remove(FFAColors, i)
                     pickSuccess = true
                     break
@@ -227,7 +226,6 @@ if gadgetHandler:IsSyncedCode() then
                 for i = 1,#TeamColors[allyTeamNumber][a] do
                     if #TeamColors[allyTeamNumber][a] == 1 or math.random(1,#TeamColors[allyTeamNumber][a]) == 1 then
                         table.insert(RandomizedTeamColors[allyTeamNumber][a], TeamColors[allyTeamNumber][a][i])
-                        --RandomizedTeamColors[a][#RandomizedTeamColors+1] = TeamColors[a][i]
                         table.remove(TeamColors[allyTeamNumber][a], i)
                         pickSuccess = true
                         break
