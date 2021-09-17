@@ -12,6 +12,7 @@ return {
 					keys = 'Keys',
 					scavengers = 'Scavengers',
 					stats = 'Statistics',
+					graphs = 'Graphs',
 					save = 'Save',
 				},
 				quit = {
