@@ -461,14 +461,6 @@ local options={
 		type	= "section",
 	},
 	{
-		key    = 'teamcolors_dynamic',
-		name   = 'Dynamic TeamColors',
-		desc   = 'Player team is always blue',
-		type   = 'bool',
-		section = 'teamcoloring_options',
-		def  = false,
-	},
-	{
 		key    = 'teamcolors_anonymous_mode',
 		name   = 'Anonymous Mode',
 		desc   = 'All your enemies are colored with the same color so you cannot recognize them. Forces Dynamic TeamColors to be enabled',

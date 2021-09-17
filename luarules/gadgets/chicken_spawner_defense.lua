@@ -78,7 +78,7 @@ if gadgetHandler:IsSyncedCode() then
 	local queenLifePercent = 100
 	local maxTries = 30
 	local oldMaxChicken = 0
-	local maxChicken = config.maxChicken
+	local maxChicken = config.maxChicken * config.chickenSpawnMultiplier
 	local oldDamageMod = 1
 	local damageMod = config.damageMod
 	local currentWave = 1

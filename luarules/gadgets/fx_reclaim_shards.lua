@@ -10,9 +10,6 @@ function gadget:GetInfo()
 	}
 end
 
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
 if not gadgetHandler:IsSyncedCode() then
 	return
 end
@@ -32,14 +29,16 @@ for featureDefID, defs in pairs(FeatureDefs) do
 end
 
 function gadget:GameFrame(n)
-	for i, v in pairs(cegList) do
-		if v.enabled then
-			SpawnCEG(v.ceg, v.xs, v.ys, v.zs, 0, 1.0, 0, 0, 0)
-		end
-		if random(0, 2) == 1 then
-			v.enabled = false
-		else
-			cegList[i] = nil
+	if n % 2 == 0 then
+		for i, v in pairs(cegList) do
+			if v.enabled then
+				SpawnCEG(v.ceg, v.xs, v.ys, v.zs, 0, 1.0, 0, 0, 0)
+			end
+			if random(0, 2) == 1 then
+				v.enabled = false
+			else
+				cegList[i] = nil
+			end
 		end
 	end
 end

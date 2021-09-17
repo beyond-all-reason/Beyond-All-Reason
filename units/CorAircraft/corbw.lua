@@ -86,7 +86,7 @@ return {
 				cylindertargeting = 1,
 				duration = 0.01,
 				edgeeffectiveness = 0.15,
-				explosiongenerator = "custom:laserhit-small-blue",
+				explosiongenerator = "custom:laserhit-emp",
 				impactonly = 1,
 				impulseboost = 0,
 				impulsefactor = 0,
