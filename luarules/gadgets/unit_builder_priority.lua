@@ -238,8 +238,12 @@ local function UpdatePassiveBuilders(teamID, interval)
 
 		-- record that use these resources
 		if not wouldStall then
-			teamStalling[teamID]['energy'] = newPullEnergy
-			teamStalling[teamID]['metal'] = newPullMetal
+			if newPullEnergy == 0 or newPullMetal == 0 then
+				teamStalling[teamID] = {}
+			else
+				teamStalling[teamID]['energy'] = newPullEnergy
+				teamStalling[teamID]['metal'] = newPullMetal
+			end
 		end
 
 		-- turn this passive builder on/off as appropriate
