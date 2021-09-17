@@ -150,6 +150,7 @@ void main()
 	//vec3 normalMatrix = transpose(inverse(cameraView))
 	//vec3 normal = gl_NormalMatrix * normals.xyz;
 	vec3 normal = normals.xyz;
+	//normal = (cameraViewProj * vec4(normals.xyz,1.0)).xyz;
 	vec3 vertex = vec3(cameraView * position.xyzw).xyz;
 	float angle = dot(normal,vertex)*inversesqrt( dot(normal,normal)*dot(vertex,vertex) ); //dot(norm(n),norm(v))
 	opac = pow( abs( angle ) , margin);
@@ -416,7 +417,7 @@ local function initGL4()
   )
   shaderCompiled = shieldSphereShader:Initialize()
   if not shaderCompiled then goodbye("Failed to compile shieldSphereShader GL4 ") end
-  local sphereVBO,numVertices = makeSphereVBO(0,0,0,1,16) --centerx, centery, centerz, radius, precision
+  local sphereVBO,numVertices = makeSphereVBO(0,0,0,1,32) --centerx, centery, centerz, radius, precision
   local shieldSphereInstanceVBOLayout = {
 		  {id = 3, name = 'positionradius', size = 4}, -- posradius
 		  {id = 4, name = 'color1', size = 4}, --  color1
@@ -430,6 +431,17 @@ local function initGL4()
   shieldSphereInstanceVBO.primitiveType = GL.TRIANGLES
   shieldSphereInstanceVBO.primitiveType = GL.TRIANGLE_STRIP
   
+  
+	local foobar = 1
+	local i = 0
+	repeat
+		local k, v = debug.getlocal(2, i)
+		--if k then
+			Spring.Echo(k, v)
+			i = i + 1
+		--end
+	until nil == k
+	--Spring.Echo(i,1)
 end
 
 
@@ -443,8 +455,11 @@ function widget:DrawWorld()
 	-- validate unitID buffer
 	if shieldSphereInstanceVBO.usedElements > 0 then
 		--Spring.Echo("Drawing shieldspheres",shieldSphereInstanceVBO.usedElements)
-		gl.DepthTest(false)
-		gl.AlphaTest(false)
+		--gl.DepthTest(true)
+		gl.AlphaTest(true)
+		gl.Culling(GL.FRONT)
+		gl.DepthMask(false)
+		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 
 		--glBlending(GL_ONE, GL_ONE)
 		shieldSphereShader:Activate()
@@ -453,7 +468,6 @@ function widget:DrawWorld()
 		
 		shieldSphereShader:Deactivate()
 
-		--glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
 		--glAlphaTest(false)
 		--glDepthTest(false)
@@ -469,18 +483,24 @@ end
 --------------------------------------------------------------------------------
 
 function widget:Update(dt)
-	pushElementInstance(
-		shieldSphereInstanceVBO,
-		{
-			3000*math.random(),200,3000*math.random(),200*math.random(),
-			math.random(),math.random(),math.random(),math.random(),
-			math.random(),math.random(),math.random(),math.random(),
-			1, 1, 1, 0.5, --// margin, technique, gameFrame, self.unit/65k
-			-- this is needed to keep the lua copy of the vbo the correct size
-		},
-		nil, -- key, use unitID!
-		true -- update exisiting
-		)
+	if shieldSphereInstanceVBO.usedElements < 50 then
+	
+		local x = 3000*math.random()
+		local z =  3000*math.random()
+		local y = Spring.GetGroundHeight(x,z) + math.random()*100
+		pushElementInstance(
+			shieldSphereInstanceVBO,
+			{
+				x,y,z,200*math.random(),
+				math.random(),math.random(),math.random(),math.random(),
+				math.random(),math.random(),math.random(),math.random(),
+				1, math.floor(math.random()*3), 1, 0.5, --// margin, technique, gameFrame, self.unit/65k
+				-- this is needed to keep the lua copy of the vbo the correct size
+			},
+			nil, -- key, use unitID!
+			true -- update exisiting
+			)
+	end
 end
 
 
@@ -489,6 +509,7 @@ function widget:Initialize()
 	
 	initGL4()
 	
+	math.randomseed(1)
 	pushElementInstance(
 		shieldSphereInstanceVBO,
 		{
@@ -501,7 +522,24 @@ function widget:Initialize()
 		nil, -- key, use unitID!
 		true -- update exisiting
 		)
-
+	for i=1, 50 do
+	
+		local x = 3000*math.random()
+		local z =  3000*math.random()
+		local y = Spring.GetGroundHeight(x,z) + math.random()*100
+		pushElementInstance(
+			shieldSphereInstanceVBO,
+			{
+				x,y,z,200*math.random(),
+				math.random(),math.random(),math.random(),math.random(),
+				math.random(),math.random(),math.random(),math.random(),
+				1, math.floor(math.random()*3), 1, 0.5, --// margin, technique, gameFrame, self.unit/65k
+				-- this is needed to keep the lua copy of the vbo the correct size
+			},
+			nil, -- key, use unitID!
+			true -- update exisiting
+			)
+	end
 
 	--[[
 	WG['airjets'].removeAirJet =  function (airjetkey) ---- for WG external calls
