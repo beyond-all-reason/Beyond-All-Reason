@@ -197,38 +197,43 @@ if gadgetHandler:IsSyncedCode() then
     local allyTeamCounts = 0
     local TeamCounts = {}
 
-
+    Sequential = true
     -- GenerateRandomizedTeamColorTables
-    while #FFAColors > 0 do
-        pickSuccess = false
-        while pickSuccess == false do
-            for i = 1,#FFAColors do
-                if #FFAColors == 1 or math.random(1,#FFAColors) == 1 then
-                    table.insert(RandomizedFFAColors, FFAColors[i])
-                    table.remove(FFAColors, i)
-                    pickSuccess = true
-                    break
+    if Sequential == true then
+        RandomizedFFAColors = FFAColors
+        RandomizedTeamColors = TeamColors
+    else
+        while #FFAColors > 0 do
+            pickSuccess = false
+            while pickSuccess == false do
+                for i = 1,#FFAColors do
+                    if #FFAColors == 1 or math.random(1,#FFAColors) == 1 then
+                        table.insert(RandomizedFFAColors, FFAColors[i])
+                        table.remove(FFAColors, i)
+                        pickSuccess = true
+                        break
+                    end
                 end
             end
         end
-    end
 
-    for a = 1,#TeamColors[allyTeamNumber] do
-        while #TeamColors[allyTeamNumber][a] > 0 do
-            if not RandomizedTeamColors[allyTeamNumber] then
-                RandomizedTeamColors[allyTeamNumber] = {}
-            end
-            if not RandomizedTeamColors[allyTeamNumber][a] then
-                RandomizedTeamColors[allyTeamNumber][a] = {}
-            end
-            pickSuccess = false
-            while pickSuccess == false do
-                for i = 1,#TeamColors[allyTeamNumber][a] do
-                    if #TeamColors[allyTeamNumber][a] == 1 or math.random(1,#TeamColors[allyTeamNumber][a]) == 1 then
-                        table.insert(RandomizedTeamColors[allyTeamNumber][a], TeamColors[allyTeamNumber][a][i])
-                        table.remove(TeamColors[allyTeamNumber][a], i)
-                        pickSuccess = true
-                        break
+        for a = 1,#TeamColors[allyTeamNumber] do
+            while #TeamColors[allyTeamNumber][a] > 0 do
+                if not RandomizedTeamColors[allyTeamNumber] then
+                    RandomizedTeamColors[allyTeamNumber] = {}
+                end
+                if not RandomizedTeamColors[allyTeamNumber][a] then
+                    RandomizedTeamColors[allyTeamNumber][a] = {}
+                end
+                pickSuccess = false
+                while pickSuccess == false do
+                    for i = 1,#TeamColors[allyTeamNumber][a] do
+                        if #TeamColors[allyTeamNumber][a] == 1 or math.random(1,#TeamColors[allyTeamNumber][a]) == 1 then
+                            table.insert(RandomizedTeamColors[allyTeamNumber][a], TeamColors[allyTeamNumber][a][i])
+                            table.remove(TeamColors[allyTeamNumber][a], i)
+                            pickSuccess = true
+                            break
+                        end
                     end
                 end
             end
