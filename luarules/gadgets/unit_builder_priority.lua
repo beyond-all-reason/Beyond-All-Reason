@@ -37,7 +37,6 @@ local stallMarginInc = 0.2
 local stallMarginSto = 0.01
 
 local passiveCons = {} -- passiveCons[teamID][builderID]
-local teamStalling = {} -- teamStalling[teamID] = {resName = res leftover after non-passive cons took their share}
 
 local buildTargets = {} --the unitIDs of build targets of passive builders
 local buildTargetOwners = {} --each build target has one passive builder that doesn't turn fully off, to stop the building decaying
@@ -74,7 +73,6 @@ local spGetUnitIsBuilding = Spring.GetUnitIsBuilding
 local spValidUnitID = Spring.ValidUnitID
 local simSpeed = Game.gameSpeed
 
-local min = math.min
 local max = math.max
 local floor = math.floor
 
@@ -110,7 +108,7 @@ function gadget:UnitCreated(unitID, unitDefID, teamID)
     end
     if canPassive[unitDefID] then
         spInsertUnitCmdDesc(unitID, cmdPassiveDesc)
-        passiveCons[teamID] = passiveCons[teamID] or {}
+        if not passiveCons[teamID] then passiveCons[teamID] = {} end
         passiveCons[teamID][unitID] = spGetUnitRulesParam(unitID,ruleName) == 1 or nil
         currentBuildSpeed[unitID] = realBuildSpeed[unitID]
         spSetUnitBuildSpeed(unitID, currentBuildSpeed[unitID]) -- to handle luarules reloads correctly
@@ -141,7 +139,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, teamID)
     canBuild[teamID] = canBuild[teamID] or {}
     canBuild[teamID][unitID] = nil
 
-    passiveCons[teamID] = passiveCons[teamID] or {}
+	if not passiveCons[teamID] then passiveCons[teamID] = {} end
     passiveCons[teamID][unitID] = nil
     realBuildSpeed[unitID] = nil
     currentBuildSpeed[unitID] = nil
@@ -160,7 +158,7 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpt
             cmdDesc.params[1] = cmdParams[1]
             spEditUnitCmdDesc(unitID, cmdIdx, cmdDesc)
             spSetUnitRulesParam(unitID,ruleName,cmdParams[1])
-            passiveCons[teamID] = passiveCons[teamID] or {}
+			if not passiveCons[teamID] then passiveCons[teamID] = {} end
 			if cmdParams[1] == 0 then --
 				passiveCons[teamID][unitID] = true
 			elseif realBuildSpeed[unitID] then
@@ -178,72 +176,85 @@ end
 local function UpdatePassiveBuilders(teamID, interval)
 
 	-- calculate how much expense each passive con would require, and how much total expense the non-passive cons require
-	local nonPassiveConsTotalExpense = {}
+	local nonPassiveConsTotalExpenseEnergy = 0
+	local nonPassiveConsTotalExpenseMetal = 0
 	local passiveConsExpense = {}
-	for builderID in pairs(canBuild[teamID] or {}) do
-		local builtUnit = spGetUnitIsBuilding(builderID)
-		local targetCosts = builtUnit and costID[builtUnit] or nil
-		if builtUnit and targetCosts then
-			local rate = realBuildSpeed[builderID]/targetCosts.buildTime
-			for _,resName in pairs(resTable) do
-				local expense = targetCosts[resName]*rate
-				passiveCons[teamID] = passiveCons[teamID] or {}
-				if passiveCons[teamID][builderID] then
-					passiveConsExpense[builderID] = passiveConsExpense[builderID] or {}
-					passiveConsExpense[builderID][resName] = expense
-					if not buildTargets[builtUnit] then -- see (*) below
-						buildTargetOwners[builderID] = builtUnit
-						buildTargets[builtUnit] = true
+	if not passiveCons[teamID] then
+		passiveCons[teamID] = {}
+	end
+	if canBuild[teamID] then
+		for builderID in pairs(canBuild[teamID]) do
+			local builtUnit = spGetUnitIsBuilding(builderID)
+			local targetCosts = builtUnit and costID[builtUnit] or nil
+			if builtUnit and targetCosts then
+				local rate = realBuildSpeed[builderID] / targetCosts.buildTime
+				for _,resName in pairs(resTable) do
+					local expense = targetCosts[resName] * rate
+					if passiveCons[teamID][builderID] then
+						if not passiveConsExpense[builderID] then
+							passiveConsExpense[builderID] = {energy=0, metal=expense}	-- because metal is set as first key
+						else
+							passiveConsExpense[builderID][resName] = expense
+						end
+						if not buildTargets[builtUnit] then
+							buildTargetOwners[builderID] = builtUnit
+							buildTargets[builtUnit] = true
+						end
+					else
+						if resName == 'energy' then
+							nonPassiveConsTotalExpenseEnergy = nonPassiveConsTotalExpenseEnergy + expense
+						else
+							nonPassiveConsTotalExpenseMetal = nonPassiveConsTotalExpenseMetal + expense
+						end
 					end
-				else
-					nonPassiveConsTotalExpense[resName] = (nonPassiveConsTotalExpense[resName] or 0) + expense
 				end
 			end
 		end
 	end
 
 	-- calculate how much expense passive cons will be allowed
-	teamStalling[teamID] = {}
+	local teamStallingEnergy, teamStallingMetal
 	for _,resName in pairs(resTable) do
-		local cur, stor, pull, inc, exp, share, sent, rec, exc = spGetTeamResources(teamID, resName)
+		local cur, stor, _, inc, _, share, sent, rec  = spGetTeamResources(teamID, resName)
 		stor = stor * share -- consider capacity only up to the share slider
-		local reservedExpense = nonPassiveConsTotalExpense[resName] or 0 -- we don't want to touch this part of expense
-		teamStalling[teamID][resName] = cur - max(inc*stallMarginInc,stor*stallMarginSto) - 1 + (interval)*(inc-reservedExpense+rec-sent)/simSpeed --amount of res available to assign to passive builders (in next interval); leave a tiny bit left over to avoid engines own "stall mode"
-		--Spring.Echo(resName, cur, min(inc*stallMarginInc,stor*stallMarginSto)+1, (interval)*(inc+rec-sent-reservedExpense)/simSpeed, wouldStall)
+		local reservedExpense = (resName == 'energy' and nonPassiveConsTotalExpenseEnergy or nonPassiveConsTotalExpenseMetal) -- we don't want to touch this part of expense
+		if resName == 'energy' then
+			teamStallingEnergy = cur - max(inc*stallMarginInc,stor*stallMarginSto) - 1 + (interval)*(inc-reservedExpense+rec-sent)/simSpeed --amount of res available to assign to passive builders (in next interval); leave a tiny bit left over to avoid engines own "stall mode"
+		else
+			teamStallingMetal = cur - max(inc*stallMarginInc,stor*stallMarginSto) - 1 + (interval)*(inc-reservedExpense+rec-sent)/simSpeed --amount of res available to assign to passive builders (in next interval); leave a tiny bit left over to avoid engines own "stall mode"
+		end
 	end
 
 	-- work through passive cons allocating as much expense as we have left
-	for builderID in pairs(passiveCons[teamID] or {}) do
+	for builderID in pairs(passiveCons[teamID]) do
 		-- find out if we have used up all the expense available to passive builders yet
 		local wouldStall = false
-		if teamStalling[teamID] then
+		if teamStallingEnergy or teamStallingMetal then
 			local newPullEnergy = 0
 			local newPullMetal = 0
 			if passiveConsExpense[builderID] then
-				for resName,allocatedExp in pairs(teamStalling[teamID]) do
-					if resName == 'energy' then
-						newPullEnergy = allocatedExp - (interval)*passiveConsExpense[builderID][resName]/simSpeed
-						if newPullEnergy <= 0 then
-							wouldStall = true
-							break
-						end
-					else
-						newPullMetal = allocatedExp - (interval)*passiveConsExpense[builderID][resName]/simSpeed
-						if newPullMetal <= 0 then
-							wouldStall = true
-							break
-						end
+				if teamStallingEnergy then
+					newPullEnergy = teamStallingEnergy - (interval)*passiveConsExpense[builderID]['energy']/simSpeed
+					if newPullEnergy <= 0 then
+						wouldStall = true
+					end
+				end
+				if teamStallingMetal then
+					newPullMetal = teamStallingMetal - (interval)*passiveConsExpense[builderID]['metal']/simSpeed
+					if newPullMetal <= 0 then
+						wouldStall = true
 					end
 				end
 			end
 
 			-- record that use these resources
 			if not wouldStall then
-				if newPullEnergy == 0 or newPullMetal == 0 then
-					teamStalling[teamID] = nil
+				if newPullEnergy <= 0 or newPullMetal <= 0 then
+					teamStallingEnergy = nil
+					teamStallingMetal = nil
 				else
-					teamStalling[teamID]['energy'] = newPullEnergy
-					teamStalling[teamID]['metal'] = newPullMetal
+					teamStallingEnergy = newPullEnergy
+					teamStallingMetal = newPullMetal
 				end
 			end
 		end
@@ -284,9 +295,8 @@ end
 
 
 function gadget:GameFrame(n)
-    -- see (*) below
-    for builderID,builtUnit in pairs(buildTargetOwners) do
-        if spValidUnitID(builderID) and spGetUnitIsBuilding(builderID)==builtUnit then
+    for builderID, builtUnit in pairs(buildTargetOwners) do
+        if spValidUnitID(builderID) then --and spGetUnitIsBuilding(builderID)==builtUnit then -- this should already be so (a building)
             spSetUnitBuildSpeed(builderID, currentBuildSpeed[builderID])
         end
         buildTargetOwners[builderID] = nil

@@ -62,12 +62,66 @@ if gadgetHandler:IsSyncedCode() then
 	local teamToAllyTeam = {}
 	local playerIDtoAIs = {}
 	local gaiaTeamID = Spring.GetGaiaTeamID()
+	local playerList = GetPlayerList()
+
+
+	local function UpdateAllyTeamIsDead(allyTeamID)
+		local allyTeamInfo = allyTeamInfos[allyTeamID]
+		local dead = true
+		for teamID, teamInfo in pairs(allyTeamInfo.teams) do
+			if not playerQuitIsDead then
+				dead = dead and (teamInfo.dead or not teamInfo.hasLeader)
+			else
+				dead = dead and (teamInfo.dead or not teamInfo.isControlled)
+			end
+		end
+		allyTeamInfos[allyTeamID].dead = dead
+	end
+
+
+	local function CheckPlayer(playerID)
+		local _, active, spectator, teamID, allyTeamID = GetPlayerInfo(playerID, false)
+		local teamInfo = allyTeamInfos[allyTeamID].teams[teamID]
+
+		local gf = GetGameFrame()
+		if not spectator and active then
+			teamInfo.players[playerID] = gf
+		end
+		teamInfo.hasLeader = select(2, GetTeamInfo(teamID,false)) >= 0
+
+		if not teamInfo.hasLeader and not teamInfo.dead then
+			KillTeam(teamID)
+		end
+
+		-- if team isn't AI controlled, then we need to check if we have attached players
+		if not teamInfo.isAI then
+			teamInfo.isControlled = false
+			for _,isControlling in pairs(teamInfo.players) do
+				if isControlling and isControlling > (gf - 60) then -- this entire crap is needed because GetPlayerInfo returns active = false for the next 30 gameframes after savegame load, and results in immediate end of loaded games if > 1v1 game
+					teamInfo.isControlled = true
+					break
+				end
+			end
+		end
+
+		-- if player is an AI controller, then mark all hosted AIs as uncontrolled
+		local AIHostList = playerIDtoAIs[playerID] or {}
+		for AITeam, AIAllyTeam in pairs(AIHostList) do
+			allyTeamInfos[AIAllyTeam].teams[AITeam].isControlled = active
+		end
+		allyTeamInfos[allyTeamID].teams[teamID] = teamInfo
+		UpdateAllyTeamIsDead(allyTeamID)
+	end
+
 
 	function gadget:GameOver()
 		gadgetHandler:RemoveGadget(self)
 	end
 
+
 	function gadget:Initialize()
+		playerList = GetPlayerList()
+
 		if Spring.GetModOptions().deathmode == 'neverend' then
 			gadgetHandler:RemoveGadget(self)
 			return
@@ -124,14 +178,16 @@ if gadgetHandler:IsSyncedCode() then
 			end
 			allyTeamInfos[allyTeamID] = allyTeamInfo
 		end
-		for _, playerID in ipairs(GetPlayerList()) do
+		for _, playerID in ipairs(playerList) do
 			CheckPlayer(playerID)
 		end
 	end
 
+
 	local function IsCandidateWinner(allyTeamID)
 		return not allyTeamInfos[allyTeamID].dead and (not ignoreGaia or not allyTeamInfos[allyTeamID].isGaia)
 	end
+
 
 	-- find the last remaining allyteam
 	local function CheckSingleAllyVictoryEnd()
@@ -149,6 +205,7 @@ if gadgetHandler:IsSyncedCode() then
 		return candidateWinners
 	end
 
+
 	local function AreAllyTeamsDoubleAllied(firstAllyTeamID, secondAllyTeamID)
 		-- we need to check for both directions of alliance
 		for teamA in pairs(allyTeamInfos[firstAllyTeamID].teams) do
@@ -160,6 +217,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 		return true
 	end
+
 
 	-- we have to cross check all the alliances
 	local function CheckSharedAllyVictoryEnd()
@@ -194,21 +252,9 @@ if gadgetHandler:IsSyncedCode() then
 		return winnersCorrectFormatCount
 	end
 
-	local function UpdateAllyTeamIsDead(allyTeamID)
-		local allyTeamInfo = allyTeamInfos[allyTeamID]
-		local dead = true
-		for teamID, teamInfo in pairs(allyTeamInfo.teams) do
-			if not playerQuitIsDead then
-				dead = dead and (teamInfo.dead or not teamInfo.hasLeader)
-			else
-				dead = dead and (teamInfo.dead or not teamInfo.isControlled)
-			end
-		end
-		allyTeamInfos[allyTeamID].dead = dead
-	end
 
 	function gadget:GameFrame(gf)
-		for _, playerID in ipairs(GetPlayerList()) do
+		for _, playerID in ipairs(playerList) do
 			CheckPlayer(playerID) -- because not all events that we want to test call gadget:PlayerChanged (e.g. allying)
 		end
 		local winners
@@ -227,40 +273,12 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	function CheckPlayer(playerID)
-		local _, active, spectator, teamID, allyTeamID = GetPlayerInfo(playerID, false)
-		local teamInfo = allyTeamInfos[allyTeamID].teams[teamID]
 
-		local gf = GetGameFrame()
-		if not spectator and active then 
-			teamInfo.players[playerID] = gf
-		end
-		--teamInfo.players[playerID] = active and not spectator -- old and bad, see below
-		teamInfo.hasLeader = select(2,GetTeamInfo(teamID,false)) >= 0
-
-		if not teamInfo.hasLeader and not teamInfo.dead then
-			KillTeam(teamID)
-		end
-
-		-- if team isn't AI controlled, then we need to check if we have attached players
-		if not teamInfo.isAI then
-			teamInfo.isControlled = false
-			for _,isControlling in pairs(teamInfo.players) do
-				if isControlling and isControlling > (gf - 60) then -- this entire crap is needed because GetPlayerInfo returns active = false for the next 30 gameframes after savegame load, and results in immediate end of loaded games if > 1v1 game
-					teamInfo.isControlled = true
-					break
-				end
-			end
-		end
-
-		-- if player is an AI controller, then mark all hosted AIs as uncontrolled
-		local AIHostList = playerIDtoAIs[playerID] or {}
-		for AITeam, AIAllyTeam in pairs(AIHostList) do
-			allyTeamInfos[AIAllyTeam].teams[AITeam].isControlled = active
-		end
-		allyTeamInfos[allyTeamID].teams[teamID] = teamInfo
-		UpdateAllyTeamIsDead(allyTeamID)
+	function gadget:PlayerChanged(playerID) -- not all events that we want to test call gadget:PlayerChanged (e.g. allying)
+		playerList = GetPlayerList()
+		CheckPlayer(playerID)
 	end
+
 
 	function gadget:TeamDied(teamID)
 		local allyTeamID = teamToAllyTeam[teamID]
@@ -269,6 +287,7 @@ if gadgetHandler:IsSyncedCode() then
 		allyTeamInfos[allyTeamID] = allyTeamInfo
 		UpdateAllyTeamIsDead(allyTeamID)
 	end
+
 
 	function gadget:UnitCreated(unitID, unitDefID, unitTeamID)
 		local allyTeamID = teamToAllyTeam[unitTeamID]
@@ -279,6 +298,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 	gadget.UnitGiven = gadget.UnitCreated
 	gadget.UnitCaptured = gadget.UnitCreated
+
 
 	function gadget:UnitDestroyed(unitID, unitDefID, unitTeamID)
 		local allyTeamID = teamToAllyTeam[unitTeamID]
@@ -299,6 +319,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 	gadget.UnitTaken = gadget.UnitDestroyed
+
 
 	function gadget:RecvLuaMsg(msg, playerID)
 
