@@ -14,55 +14,49 @@ if Spring.GetModOptions().fixedallies then
 	return -- no use if alliances are disabled
 end
 
-local GetUnitDefID = Spring.GetUnitDefID
-local AreTeamsAllied = Spring.AreTeamsAllied
-local GetUnitsInSphere = Spring.GetUnitsInSphere
-local GetUnitTeam = Spring.GetUnitTeam
-local GetUnitAllyTeam = Spring.GetUnitAllyTeam
-local GetTeamList = Spring.GetTeamList
-local GetAllyTeamList = Spring.GetAllyTeamList
-local GetUnitHealth = Spring.GetUnitHealth
-local GetUnitsInCylinder = Spring.GetUnitsInCylinder
-local SendMessageToTeam = Spring.SendMessageToTeam
-local GetTeamInfo = Spring.GetTeamInfo
-local GetPlayerInfo = Spring.GetPlayerInfo
-local SetAlly = Spring.SetAlly
-local ValidUnitID = Spring.ValidUnitID
-local min = math.min
+if gadgetHandler:IsSyncedCode() then
 
-local CMD_UNIT_SET_TARGET = 34923
-local CMD_UNIT_SET_TARGET_RECTANGLE = 34925
-local CMD_ATTACK = CMD.ATTACK
-local CMD_LOOPBACKATTACK = CMD.LOOPBACKATTACK
-local CMD_MANUALFIRE = CMD.MANUALFIRE
+	local GetUnitDefID = Spring.GetUnitDefID
+	local AreTeamsAllied = Spring.AreTeamsAllied
+	local GetUnitsInSphere = Spring.GetUnitsInSphere
+	local GetUnitTeam = Spring.GetUnitTeam
+	local GetUnitAllyTeam = Spring.GetUnitAllyTeam
+	local GetTeamList = Spring.GetTeamList
+	local GetUnitHealth = Spring.GetUnitHealth
+	local GetUnitsInCylinder = Spring.GetUnitsInCylinder
+	local SetAlly = Spring.SetAlly
+	local ValidUnitID = Spring.ValidUnitID
+	local min = math.min
 
-local UPDATE_RATE = 3 --in times per second ( max one time per sim frame )
-local UPDATE_FRAMES = math.floor(Game.gameSpeed / UPDATE_RATE)
+	local CMD_UNIT_SET_TARGET = 34923
+	local CMD_UNIT_SET_TARGET_RECTANGLE = 34925
+	local CMD_ATTACK = CMD.ATTACK
+	local CMD_LOOPBACKATTACK = CMD.LOOPBACKATTACK
+	local CMD_MANUALFIRE = CMD.MANUALFIRE
 
-local attackAOEs = {}
-local attackDamages = {}
-local allianceStatus = {}
-local unitArmorType = {}
-for unitDefID, unitDef in pairs(UnitDefs) do
-	local weapons = unitDef.weapons
-	if #weapons > 0 then
-		for i = 1, #weapons do
-			local weaponDef = WeaponDefs[weapons[i].weaponDef]
-			if weaponDef.damageAreaOfEffect > (attackAOEs[unitDefID] or 0) then
-				attackAOEs[unitDefID] = weaponDef.damageAreaOfEffect
-				attackDamages[unitDefID] = weaponDef.damages
+	local UPDATE_RATE = 3 --in times per second ( max one time per sim frame )
+	local UPDATE_FRAMES = math.floor(Game.gameSpeed / UPDATE_RATE)
+
+	local allyTeamList = Spring.GetAllyTeamList()
+
+	local attackAOEs = {}
+	local attackDamages = {}
+	local allianceStatus = {}
+	local unitArmorType = {}
+	for unitDefID, unitDef in pairs(UnitDefs) do
+		local weapons = unitDef.weapons
+		if #weapons > 0 then
+			for i = 1, #weapons do
+				local weaponDef = WeaponDefs[weapons[i].weaponDef]
+				if weaponDef.damageAreaOfEffect > (attackAOEs[unitDefID] or 0) then
+					attackAOEs[unitDefID] = weaponDef.damageAreaOfEffect
+					attackDamages[unitDefID] = weaponDef.damages
+				end
 			end
 		end
+		unitArmorType[unitDefID] = unitDef.armorType
 	end
-	unitArmorType[unitDefID] = unitDef.armorType
-end
 
-if gadgetHandler:IsSyncedCode() then
-	----------------------------------------------------------------
-	-- Synced
-	----------------------------------------------------------------
-
-	local allyTeamList = GetAllyTeamList()
 	function gadget:GameFrame(n)
 		if n % UPDATE_FRAMES ~= 0 then
 			return
@@ -71,21 +65,20 @@ if gadgetHandler:IsSyncedCode() then
 			for _, allyTeamBID in pairs(allyTeamList) do
 				if allyTeamAID ~= allyTeamBID then
 					for _, teamAID in pairs(GetTeamList(allyTeamAID)) do
+						allianceStatus[teamAID] = allianceStatus[teamAID] or {}
 						for _, teamBID in pairs(GetTeamList(allyTeamBID)) do
-							allianceStatus[teamAID] = allianceStatus[teamAID] or {}
 							allianceStatus[teamBID] = allianceStatus[teamBID] or {}
 							local AalliedToB = AreTeamsAllied(teamBID, teamAID)
 							local BalliedToA = AreTeamsAllied(teamAID, teamBID)
-							--if teamB's cached value is allied back with A, and new teamB's allied status is not allied, means the enemy broke alliance with us
+							-- if teamB's cached value is allied back with A, and new teamB's allied status is not allied, means the enemy broke alliance with us
 							if allianceStatus[teamBID][teamAID] and not BalliedToA then
 								if AalliedToB then
-									--if we're allied, break our alliance back
+									-- if we're allied, break our alliance back
 									SetAlly(teamBID, teamAID, false)
 								end
-
 								SendToUnsynced("AllianceBroken", teamAID, teamBID)
 							end
-							--if teamB wasn't allied with teamA, and now it is, inform teamA about the change
+							-- if teamB wasn't allied with teamA, and now it is, inform teamA about the change
 							if not allianceStatus[teamBID][teamAID] and BalliedToA then
 								SendToUnsynced("AllianceMade", teamAID, teamBID)
 							end
@@ -151,6 +144,10 @@ else
 	----------------------------------------------------------------
 	-- Unsynced
 	----------------------------------------------------------------
+
+	local SendMessageToTeam = Spring.SendMessageToTeam
+	local GetTeamInfo = Spring.GetTeamInfo
+	local GetPlayerInfo = Spring.GetPlayerInfo
 
 	-- Dynamic alliances are not supported for AI teams
 	local function getTeamLeaderName(teamID)

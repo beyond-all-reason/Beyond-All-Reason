@@ -230,31 +230,22 @@ local function UpdatePassiveBuilders(teamID, interval)
 		-- find out if we have used up all the expense available to passive builders yet
 		local wouldStall = false
 		if teamStallingEnergy or teamStallingMetal then
-			local newPullEnergy = 0
-			local newPullMetal = 0
 			if passiveConsExpense[builderID] then
 				if teamStallingEnergy then
-					newPullEnergy = teamStallingEnergy - (interval)*passiveConsExpense[builderID]['energy']/simSpeed
+					local newPullEnergy = teamStallingEnergy - (interval*passiveConsExpense[builderID]['energy']/simSpeed)
 					if newPullEnergy <= 0 then
 						wouldStall = true
+					else
+						teamStallingEnergy = newPullEnergy
 					end
 				end
 				if teamStallingMetal then
-					newPullMetal = teamStallingMetal - (interval)*passiveConsExpense[builderID]['metal']/simSpeed
+					local newPullMetal = teamStallingMetal - (interval*passiveConsExpense[builderID]['metal']/simSpeed)
 					if newPullMetal <= 0 then
 						wouldStall = true
+					else
+						teamStallingMetal = newPullMetal
 					end
-				end
-			end
-
-			-- record that use these resources
-			if not wouldStall then
-				if newPullEnergy <= 0 or newPullMetal <= 0 then
-					teamStallingEnergy = nil
-					teamStallingMetal = nil
-				else
-					teamStallingEnergy = newPullEnergy
-					teamStallingMetal = newPullMetal
 				end
 			end
 		end
@@ -296,7 +287,7 @@ end
 
 function gadget:GameFrame(n)
     for builderID, builtUnit in pairs(buildTargetOwners) do
-        if spValidUnitID(builderID) then --and spGetUnitIsBuilding(builderID)==builtUnit then -- this should already be so (a building)
+        if spValidUnitID(builderID) and spGetUnitIsBuilding(builderID) == builtUnit then
             spSetUnitBuildSpeed(builderID, currentBuildSpeed[builderID])
         end
         buildTargetOwners[builderID] = nil
