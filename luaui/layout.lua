@@ -26,14 +26,6 @@
 
 include("colors.h.lua")
 
-local langSuffix = Spring.GetConfigString('Language', 'fr')
-local l10nName = 'L10N/commands_' .. langSuffix .. '.lua'
-local success, translations = pcall(VFS.Include, l10nName)
-if (not success) then
-  translations = nil
-end
-
-
 local showPanelLabel = false
 
 
@@ -87,9 +79,6 @@ local function DefaultHandler(xIcons, yIcons, cmdCount, commands)
   local customCmds = widgetHandler.customCommands
   local onlyTexCmds = {}
   local reTexCmds = {}
-  local reNamedCmds = {}
-  local reTooltipCmds = {}
-  local reParamsCmds = {}
   local iconList = {}
 
   local cmdsFirst = (commands[1].id >= 0)
@@ -173,32 +162,13 @@ local function DefaultHandler(xIcons, yIcons, cmdCount, commands)
           table.insert(onlyTexCmds, cmdSlot)
         end
       end
-
-      if (translations) then
-        local trans = translations[cmd.id]
-        if (trans) then
-          reTooltipCmds[cmdSlot] = trans.desc
-          if (not trans.params) then
-            if (cmd.id ~= CMD.STOCKPILE) then
-              reNamedCmds[cmdSlot] = trans.name
-            end
-          else
-            local num = tonumber(cmd.params[1])
-            if (num) then
-              num = (num + 1)
-              cmd.params[num] = trans.params[num]
-              reParamsCmds[cmdSlot] = cmd.params
-            end
-          end
-        end
-      end
     end
   end
 
   return menuName, xIcons, yIcons,
          removeCmds, customCmds,
          onlyTexCmds, reTexCmds,
-         reNamedCmds, reTooltipCmds, reParamsCmds,
+         {}, {}, {}, -- renamed commands; TODO: i18n
          iconList
 end
 
