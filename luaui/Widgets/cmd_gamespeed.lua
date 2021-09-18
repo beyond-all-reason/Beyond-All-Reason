@@ -1,7 +1,7 @@
 function widget:GetInfo()
   return {
-	name      = "Gamespeed",
-	desc      = "Overrides increasing/decreasing gamespeed behaviour, adds command /luaui gamespeed X",
+	name      = "Game Speed",
+	desc      = "Overrides increasing/decreasing game speed behaviour, adds command /gamespeed X",
 	author    = "Beherith",
 	date      = "2020",
 	layer     = -math.huge,
@@ -9,12 +9,18 @@ function widget:GetInfo()
   }
 end
 
--- Currency denomination levels have adequate spacing, while still being nice round numbers
+-- The number of speed gradations should be minimized,
+-- while maintaining suitable fine control around normal (1×) speed
 local speedLevels = {
 	0.1, -- this speed cannot be set, as engine enforces speed > 0.2
 	0.25,
 	0.5,
+	0.8,
 	1,
+	1.1,
+	1.25,
+	1.5,
+	1.75,
 	2,
 	5,
 	10,
