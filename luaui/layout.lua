@@ -24,7 +24,7 @@
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-include("colors.h.lua")
+VFS.Include(LUAUI_DIRNAME .. "Headers/colors.h.lua", nil, VFS.ZIP)
 
 local showPanelLabel = false
 

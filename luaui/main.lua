@@ -17,15 +17,12 @@ Spring.SetTeamColor(Spring.GetGaiaTeamID(), 0.3, 0.3, 0.3)
 local spSendCommands = Spring.SendCommands
 spSendCommands("ctrlpanel " .. LUAUI_DIRNAME .. "ctrlpanel.txt")
 
-VFS.Include(LUAUI_DIRNAME .. 'utils.lua', utilFile)
-
-include("setupdefs.lua")
-include("savetable.lua")
-
-include("debug.lua")
---include("fonts.lua")
-include("layout.lua")   -- contains a simple LayoutButtons()
-VFS.Include(LUAUI_DIRNAME .. 'barwidgets.lua', nil, VFS.ZIP)
+VFS.Include(LUAUI_DIRNAME .. "utils.lua",      nil, VFS.ZIP)
+VFS.Include(LUAUI_DIRNAME .. "setupdefs.lua",  nil, VFS.ZIP)
+VFS.Include(LUAUI_DIRNAME .. "savetable.lua",  nil, VFS.ZIP)
+VFS.Include(LUAUI_DIRNAME .. "debug.lua",      nil, VFS.ZIP)
+VFS.Include(LUAUI_DIRNAME .. "layout.lua",     nil, VFS.ZIP)
+VFS.Include(LUAUI_DIRNAME .. "barwidgets.lua", nil, VFS.ZIP)
 
 local gl = Spring.Draw  --  easier to use
 

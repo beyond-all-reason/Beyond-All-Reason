@@ -11,20 +11,11 @@
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-VFS.Include('init.lua')
-
---function pwl() -- ???  (print widget list)
---  for k,v in ipairs(widgetHandler.widgets) do
---    print(k, v.whInfo.layer, v.whInfo.name)
---  end
---end
-
-include("keysym.h.lua")
-include("utils.lua")
-include("system.lua")
-include("callins.lua")
-include("savetable.lua")
-
+VFS.Include("init.lua",                              nil, VFS.ZIP)
+VFS.Include(LUAUI_DIRNAME .. "Headers/keysym.h.lua", nil, VFS.ZIP)
+VFS.Include(LUAUI_DIRNAME .. "system.lua",           nil, VFS.ZIP)
+VFS.Include(LUAUI_DIRNAME .. "callins.lua",          nil, VFS.ZIP)
+VFS.Include(LUAUI_DIRNAME .. "savetable.lua",        nil, VFS.ZIP)
 
 local gl = gl
 
@@ -83,7 +74,7 @@ widgetHandler = {
 
 	allowUserWidgets = true,
 
-	actionHandler = include("actions.lua"),
+	actionHandler = VFS.Include(LUAUI_DIRNAME .. "actions.lua", nil, VFS.ZIP),
 
 	WG = {}, -- shared table for widgets
 
