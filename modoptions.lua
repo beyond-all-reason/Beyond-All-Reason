@@ -98,7 +98,7 @@ local options={
 		type   	= 'section',
 	},
 	{
-		key    = 'MaxUnits',
+		key    = 'maxunits',
 		name   = 'Max units',
 		desc   = 'Maximum number of units (including buildings) for each team allowed at the same time',
 		type   = 'number',
@@ -130,7 +130,7 @@ local options={
 		section= 'restrictions',
 	},
 	{
-		key    = 'FixedAllies',
+		key    = 'fixedallies',
 		name   = 'Fixed ingame alliances',
 		desc   = 'Disables the possibility of players to dynamically change alliances ingame',
 		type   = 'bool',
@@ -568,7 +568,7 @@ local options={
 	 	section= 'options',
 	 },
 	{
-		key    = 'DisableMapDamage',
+		key    = 'disablemapdamage',
 		name   = 'Undeformable map',
 		desc   = 'Prevents the map shape from being changed by weapons',
 		type   = 'bool',

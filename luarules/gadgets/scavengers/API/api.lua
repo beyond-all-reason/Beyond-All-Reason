@@ -71,7 +71,7 @@ BaseCleanupQueue = {}
 
 --spawningStartFrame = (math.ceil( math.ceil(mapsizeX + mapsizeZ) / 750 ) + 30) * 5
 spawningStartFrame = (math.ceil( math.ceil(mapsizeX*mapsizeZ) / 1000000 )) * 5
-scavMaxUnits = Spring.GetModOptions().MaxUnits
+scavMaxUnits = Spring.GetModOptions().maxunits
 
 if GaiaTeamID == Spring.GetGaiaTeamID() then
 	scavMaxUnits = 10000

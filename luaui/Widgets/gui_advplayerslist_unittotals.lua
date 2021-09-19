@@ -50,7 +50,7 @@ local drawlist = {}
 local advplayerlistPos = {}
 local widgetHeight = 22
 local top, left, bottom, right = 0,0,0,0
-local gameMaxUnits = Spring.GetModOptions().MaxUnits
+local gameMaxUnits = Spring.GetModOptions().maxunits
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
