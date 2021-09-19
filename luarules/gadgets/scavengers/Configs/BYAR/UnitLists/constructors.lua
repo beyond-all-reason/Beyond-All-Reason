@@ -69,7 +69,6 @@ local collectors = {
 	"coracsub_scav",
 	"corch_scav",
 	"corfast_scav",
-	"armrectrt4_scav",
 	"armassistdrone",
 	"corassistdrone",
 }
