@@ -71,6 +71,7 @@ local spGetUnitRulesParam = Spring.GetUnitRulesParam
 local spSetUnitBuildSpeed = Spring.SetUnitBuildSpeed
 local spGetUnitIsBuilding = Spring.GetUnitIsBuilding
 local spValidUnitID = Spring.ValidUnitID
+local spGetTeamInfo = Spring.GetTeamInfo
 local simSpeed = Game.gameSpeed
 
 local max = math.max
@@ -295,13 +296,17 @@ function gadget:GameFrame(n)
     end
 
     buildTargets = {}
-    for _,teamID in pairs(spGetTeamList()) do
-        if n == updateFrame[teamID] then
-            local interval = GetUpdateInterval(teamID)
-            UpdatePassiveBuilders(teamID, interval)
-            updateFrame[teamID] = n + interval
-        elseif not updateFrame[teamID] or updateFrame[teamID] < n then
-            updateFrame[teamID] = n + GetUpdateInterval(teamID)
-        end
+	local teams = spGetTeamList()
+	for i=1, #teams do
+		local teamID = teams[i]
+		if not select(3, spGetTeamInfo(teamID,false)) then -- isnt dead
+			if n == updateFrame[teamID] then
+				local interval = GetUpdateInterval(teamID)
+				UpdatePassiveBuilders(teamID, interval)
+				updateFrame[teamID] = n + interval
+			elseif not updateFrame[teamID] or updateFrame[teamID] < n then
+				updateFrame[teamID] = n + GetUpdateInterval(teamID)
+			end
+		end
     end
 end
