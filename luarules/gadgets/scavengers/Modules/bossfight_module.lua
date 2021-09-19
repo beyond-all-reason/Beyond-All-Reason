@@ -42,8 +42,10 @@ end
 local specialAbilityCountdown = 10
 
 local function activateAbility(currentFrame)
+	local bossFightPreviousPhase = BossFightCurrentPhase
+	bossFightPreviousPhase = bossFightPreviousPhase
 	specialAbilityCountdown = specialAbilityCountdown - 1
-	if specialAbilityCountdown <= 0 then
+	if specialAbilityCountdown <= 0 or bossFightPreviousPhase ~= BossFightCurrentPhase then
 		local ability = currentPhaseBossAbilities[math_random(1,#currentPhaseBossAbilities)]
 		if ability then
 			specialAbilityCountdown = (10 - BossFightCurrentPhase) * 3

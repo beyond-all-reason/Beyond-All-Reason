@@ -227,7 +227,7 @@ function gadget:GameFrame(n)
 
 	if n%30 == 0 and FinalBossUnitSpawned and not FinalBossKilled then
 		local currentbosshealth = Spring.GetUnitHealth(FinalBossUnitID)
-		local initialbosshealth = unitSpawnerModuleConfig.FinalBossHealth*teamcount*spawnmultiplier
+		--local initialbosshealth = unitSpawnerModuleConfig.FinalBossHealth*teamcount*spawnmultiplier
 		local bosshealthpercentage = math.floor(currentbosshealth/(initialbosshealth*0.01))
 		ScavSendMessage("Boss Health: "..math.ceil(currentbosshealth).. " ("..bosshealthpercentage.."%)")
 
@@ -774,11 +774,8 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 		for i = 1,#bossUnitList.Bosses do
 			if unitName == bossUnitList.Bosses[i] then
 				FinalBossUnitID = unitID
-				local bosshealth = unitSpawnerModuleConfig.FinalBossHealth*teamcount*spawnmultiplier
-				local _, currentbosshealth = Spring.GetUnitHealth(unitID)
-				if currentbosshealth > bosshealth then
-					Spring.SetUnitHealth(unitID, bosshealth)
-				end
+				Spring.SetUnitArmored(unitID, true , 1/(teamcount*spawnmultiplier))
+				initialbosshealth = Spring.GetUnitHealth(unitID)
 
 				local stopScavUnits = Spring.GetTeamUnits(GaiaTeamID)
 				for y = 1,#stopScavUnits do
