@@ -1665,9 +1665,9 @@ local function ProcessOptions(materialDef, optName, optValues)
 
 	if not materialDef.originalOptions then
 		materialDef.originalOptions = {}
-		materialDef.originalOptions[1] = Spring.Utilities.CopyTable(materialDef.shaderOptions)
-		materialDef.originalOptions[2] = Spring.Utilities.CopyTable(materialDef.deferredOptions)
-		materialDef.originalOptions[3] = Spring.Utilities.CopyTable(materialDef.shadowOptions)
+		materialDef.originalOptions[1] = table.copy(materialDef.shaderOptions)
+		materialDef.originalOptions[2] = table.copy(materialDef.deferredOptions)
+		materialDef.originalOptions[3] = table.copy(materialDef.shadowOptions)
 	end
 
 	for id, optTable in ipairs({materialDef.shaderOptions, materialDef.deferredOptions, materialDef.shadowOptions}) do
@@ -1715,8 +1715,6 @@ local function ApplyOptions(luaShader, materialDef, key)
 	end
 
 	local intOption = 0
-
-	--Spring.Utilities.TableEcho(optionsTbl, "optionsTbl")
 
 	for optName, optValue in pairs(optionsTbl) do
 		if knownBitOptions[optName] then --boolean
@@ -1771,13 +1769,13 @@ local function SunChanged(luaShader)
 	luaShader:SetUniformAlways("sunSpecular", gl.GetSun("specular" ,"unit"))
 
 	luaShader:SetUniformFloatArrayAlways("pbrParams", {
-        Spring.GetConfigFloat("tonemapA", 4.8),
-        Spring.GetConfigFloat("tonemapB", 0.8),
-        Spring.GetConfigFloat("tonemapC", 3.35),
-        Spring.GetConfigFloat("tonemapD", 1.0),
-        Spring.GetConfigFloat("tonemapE", 1.15),
-        Spring.GetConfigFloat("envAmbient", 0.3),
-        Spring.GetConfigFloat("unitSunMult", 1.35),
+        Spring.GetConfigFloat("tonemapA", 4.75),
+        Spring.GetConfigFloat("tonemapB", 0.75),
+        Spring.GetConfigFloat("tonemapC", 3.5),
+        Spring.GetConfigFloat("tonemapD", 0.85),
+        Spring.GetConfigFloat("tonemapE", 1.0),
+        Spring.GetConfigFloat("envAmbient", 0.25),
+        Spring.GetConfigFloat("unitSunMult", 1.0),
         Spring.GetConfigFloat("unitExposureMult", 1.0),
 	})
 	luaShader:SetUniformFloatAlways("gamma", Spring.GetConfigFloat("modelGamma", 1.0))

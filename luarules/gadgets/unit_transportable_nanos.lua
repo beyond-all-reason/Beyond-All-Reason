@@ -65,7 +65,6 @@ local watchList = {}
 
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
 	if cmdID == CMD_LOAD_UNITS then
-		--Spring.Echo('Load','unitID',unitID, 'unitDefID', unitDefID, 'teamID', teamID, 'cmdID', cmdID, 'cmdParams',to_string(cmdParams), 'cmdOptions',to_string(cmdOptions), 'cmdTag',cmdTag, 'fromSynced',fromSynced)
 		if #cmdParams==1 then -- if unit is target
 			if ValidUnitID(cmdParams[1]) and GetUnitTeam(cmdParams[1]) ~= teamID and Nanos[GetUnitDefID(cmdParams[1])] then
 				return false
@@ -75,7 +74,6 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpt
 		--end
 	end
 	if cmdID == CMD_UNLOAD_UNITS then
-		--Spring.Echo('Unload','unitID',unitID, 'unitDefID', unitDefID, 'teamID', teamID, 'cmdID', cmdID, 'cmdParams',to_string(cmdParams), 'cmdOptions',cmdOptions, 'cmdTag',cmdTag, 'fromSynced',fromSynced)
 		if GetUnitIsTransporting(unitID) then
 			local intrans=GetUnitIsTransporting(unitID)
 			if #intrans>=1 then
@@ -90,44 +88,4 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpt
 		end
 	end
     return true
-end
-
-function to_string(data, indent)
-    local str = ""
-
-    if(indent == nil) then
-        indent = 0
-    end
-
-    -- Check the type
-    if(type(data) == "string") then
-        str = str .. (" "):rep(indent) .. data .. "\n"
-    elseif(type(data) == "number") then
-        str = str .. (" "):rep(indent) .. data .. "\n"
-    elseif(type(data) == "boolean") then
-        if(data == true) then
-            str = str .. "true"
-        else
-            str = str .. "false"
-        end
-    elseif(type(data) == "table") then
-        local i, v
-        for i, v in pairs(data) do
-            -- Check for a table in a table
-            if(type(v) == "table") then
-                str = str .. (" "):rep(indent) .. i .. ":\n"
-                str = str .. to_string(v, indent + 2)
-            else
-		str = str .. (" "):rep(indent) .. i .. ": " ..to_string(v, 0)
-	    end
-        end
-    elseif (data ==nil) then
-		str=str..'nil'
-	else
-       -- print_debug(1, "Error: unknown data type: %s", type(data))
-		--str=str.. "Error: unknown data type:" .. type(data)
-		Spring.Echo(type(data) .. 'X data type')
-    end
-
-    return str
 end

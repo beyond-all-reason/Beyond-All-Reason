@@ -24,8 +24,6 @@ return {
 		collisionvolumetype = "box",
 		corpse = "DEAD",
 		description = Spring.I18N('units.descriptions.armspy'),
-		energymake = 5,
-		energyuse = 5,
 		explodeas = "smallExplosionGeneric",
 		footprintx = 2,
 		footprintz = 2,
@@ -39,7 +37,7 @@ return {
 		movementclass = "BOT2",
 		name = unitName,
 		objectname = "Units/ARMSPY.s3o",
-		onoffable = true,
+		onoffable = false,
 		script = "Units/ARMSPY.cob",
 		seismicsignature = 2,
 		selfdestructas = "SPYBOMBX",
@@ -58,6 +56,7 @@ return {
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armbots/t2",
 			techlevel = 2,
+			paralyzemultiplier = 0.002,
 		},
 		featuredefs = {
 			dead = {

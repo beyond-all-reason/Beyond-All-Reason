@@ -895,6 +895,54 @@ SweetSpot(piecenum)
 
 Killed(severity, corpsetype)
 {
-	
+		if( severity <= 25 )
+	{
+		corpsetype = 1 ;
+		explode pelvis type BITMAPONLY | NOHEATCLOUD;
+		explode rthigh type BITMAPONLY | NOHEATCLOUD;
+		explode rleg type BITMAPONLY | NOHEATCLOUD;
+		explode rfoot type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode lthigh type BITMAPONLY | NOHEATCLOUD;
+		//explode lleg type BITMAPONLY | NOHEATCLOUD;
+		explode lfoot type BITMAPONLY | NOHEATCLOUD;
+		explode torso type BITMAPONLY | NOHEATCLOUD;
+		//explode rflare type BITMAPONLY | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2 ;
+		explode pelvis type BITMAPONLY | NOHEATCLOUD;
+		explode rthigh type FALL | NOHEATCLOUD;
+		explode rleg type FALL | NOHEATCLOUD;
+		explode rfoot type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode lthigh type FALL | NOHEATCLOUD;
+		explode lleg type FALL | NOHEATCLOUD;
+		explode lfoot type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3 ;
+		explode pelvis type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rthigh type SMOKE | FALL | NOHEATCLOUD;
+		explode rleg type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rfoot type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode lthigh type SMOKE | FALL | NOHEATCLOUD;
+		//explode lleg type SMOKE | FALL | NOHEATCLOUD;
+		explode lfoot type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode torso type BITMAPONLY | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	corpsetype = 3 ;
+		explode pelvis type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rthigh type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode rleg type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode rfoot type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode lthigh type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode lleg type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode lfoot type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode torso type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+	return corpsetype;
 }
 

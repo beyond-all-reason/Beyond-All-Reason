@@ -165,10 +165,10 @@ StartMoving()
 	start-script waveSplash();
 	while( TRUE )
 	{
-		emit-sfx 2 from ground;
+		emit-sfx 1024 + 1 from ground;
 		waketime = (get CURRENT_SPEED) * 100 / get MAX_SPEED;
 		if( waketime < 50 ) waketime = 50;
-		sleep 12000 / waketime;
+		sleep 14000 / waketime;
 	}
 }
 

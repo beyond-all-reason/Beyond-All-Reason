@@ -12,13 +12,11 @@ return {
 		buildtime = 17000,
 		canmove = true,
 		category = "ALL NOTLAND MOBILE WEAPON SHIP NOTSUB NOTAIR NOTHOVER SURFACE EMPABLE",
-		collisionvolumeoffsets = "0 -10 0",
-		collisionvolumescales = "34 37 115",
+		collisionvolumeoffsets = "0 -16 0",
+		collisionvolumescales = "34 34 115",
 		collisionvolumetype = "box",
 		corpse = "DEAD",
 		description = Spring.I18N('units.descriptions.corcrus'),
-		energymake = 2.2,
-		energyuse = 2.2,
 		explodeas = "largeexplosiongeneric",
 		floater = true,
 		footprintx = 5,
@@ -90,6 +88,10 @@ return {
 			},
 		},
 		sfxtypes = {
+			explosiongenerators = {
+				[1] = "custom:waterwake-medium",
+				[2] = "custom:bowsplash-medium",
+			},
 			pieceexplosiongenerators = {
 				[1] = "deathceg2",
 				[2] = "deathceg3",
@@ -222,7 +224,7 @@ return {
 				weaponvelocity = 700,
 				damage = {
 					bombers = 44,
-					default = 180,
+					default = 200,
 					fighters = 44,
 					--subs = 5,
 					vtol = 44,

@@ -3,6 +3,7 @@ local unitName = Spring.I18N('units.names.armfdrag')
 return {
 	armfdrag = {
 		acceleration = 0,
+		autoheal = 4,
 		blocking = true,
 		brakerate = 0,
 		buildangle = 8192,

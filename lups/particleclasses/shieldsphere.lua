@@ -431,7 +431,7 @@ function ShieldSphereParticle.Create(Options)
 	ShieldSphereParticle.Default.colormap1 = {{(r*0.45)+0.3, (g*0.45)+0.3, (b*0.45)+0.3, 0.6}}
 	ShieldSphereParticle.Default.colormap2 = {{r*0.5, g*0.5, b*0.5, 0.66} }
 
-	local newObject = MergeTable(Options, ShieldSphereParticle.Default)
+	local newObject = table.merge(ShieldSphereParticle.Default, Options)
 	setmetatable(newObject,ShieldSphereParticle)	-- make handle lookup
 	newObject:CreateParticle()
 	return newObject

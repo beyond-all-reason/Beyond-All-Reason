@@ -3,6 +3,7 @@ local unitName = Spring.I18N('units.names.corfort')
 return {
 	corfort = {
 		acceleration = 0,
+		autoheal = 12,
 		blocking = true,
 		brakerate = 0,
 		buildangle = 0,
@@ -23,7 +24,7 @@ return {
 		corpse = "ROCKTEETHX",
 		crushresistance = 1000,
 		description = Spring.I18N('units.descriptions.corfort'),
-		explodeas = "WallExplosionConcrete",
+		explodeas = "WallExplosionConcreteXL",
 		footprintx = 2,
 		footprintz = 2,
 		hidedamage = true,
@@ -68,7 +69,7 @@ return {
 				height = 20,
 				hitdensity = 100,
 				metal = 7,
-				object = "",
+				object = "Units/cor1X1B.s3o",
 				reclaimable = true,
 				shadtrans = 1,
 				world = "greenworld",

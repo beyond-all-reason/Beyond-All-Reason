@@ -63,6 +63,7 @@ local options={
 		key="map_tidal",
 		name="Tidal Strength",
 		desc="Unchanged = map setting, low = 13e/sec, medium = 18e/sec, high = 23e/sec.",
+		hidden = true,
 		type="list",
 		def="unchanged",
 		section="resources_options",
@@ -97,7 +98,7 @@ local options={
 		type   	= 'section',
 	},
 	{
-		key    = 'MaxUnits',
+		key    = 'maxunits',
 		name   = 'Max units',
 		desc   = 'Maximum number of units (including buildings) for each team allowed at the same time',
 		type   = 'number',
@@ -108,31 +109,10 @@ local options={
 		section= "restrictions",
 	},
 	{
-		key    = 'MinSpeed',
-		name   = 'Minimum game speed',
-		desc   = 'Sets the minimum speed that the players will be allowed to change to',
-		type   = 'number',
-		section= 'restrictions',
-		def    = 0.3,
-		min    = 0.1,
-		max    = 1,
-		step   = 0.1,
-	},
-	{
-		key    = 'MaxSpeed',
-		name   = 'Maximum game speed',
-		desc   = 'Sets the maximum speed that the players will be allowed to change to',
-		type   = 'number',
-		section= 'restrictions',
-		def    = 10,
-		min    = 0.1,
-		max    = 50,
-		step   = 0.1,
-	},
-	{
 		key="transportenemy",
 		name="Enemy Transporting",
 		desc="Toggle which enemy units you can kidnap with an air transport",
+		hidden = true,
 		type="list",
 		def="notcoms",
 		section="restrictions",
@@ -150,22 +130,21 @@ local options={
 		section= 'restrictions',
 	},
 	{
-		key    = "allowmapmutators",
-		name   = "Allow map mutators",
-		desc   = "Allows maps to overwrite files from the game",
-		type   = "bool",
-		def    = true,
-		section= 'restrictions',
-	},
-	{
-		key    = 'FixedAllies',
+		key    = 'fixedallies',
 		name   = 'Fixed ingame alliances',
 		desc   = 'Disables the possibility of players to dynamically change alliances ingame',
 		type   = 'bool',
 		def    = true,
 		section= "restrictions",
 	},
-
+	{
+		key    		= 'disable_fogofwar',
+		name   		= 'Disable Fog of War',
+		desc   		= 'Disable Fog of War',
+		type   		= "bool",
+		section		= 'restrictions',
+		def    		= false,
+	},
 	{
 		key    		= 'unit_restrictions_notech2',
 		name   		= 'Disable Tech 2',
@@ -247,13 +226,9 @@ local options={
 		key    = 'scavendless',
 		name   = 'Endless Mode (Disables final boss fight, turning Scavengers into an endless survival mode)',
 		desc   = 'Disables final boss fight, turning Scavengers into an endless survival mode',
-		type   = 'list',
+		type   = 'bool',
 		section = 'options_scavengers',
-		def  = "disabled",
-		items={
-			{key="disabled", name="Disabled", desc="Final Boss Enabled"},
-			{key="enabled", name="Enabled", desc="Final Boss Disabled"},
-		}
+		def  = false,
 	},
 	{
 		key    = 'scavgraceperiod',
@@ -336,13 +311,9 @@ local options={
 		key    = 'scavevents',
 		name   = 'Random Events',
 		desc   = 'Random Events System',
-		type   = 'list',
+		type   = 'bool',
 		section = 'options_scavengers',
-		def  = "enabled",
-		items={
-			{key="enabled", name="Enabled", desc="Random Events Enabled"},
-			{key="disabled", name="Disabled", desc="Random Events Disabled"},
-		}
+		def  = true,
 	},
 
 	{
@@ -362,37 +333,25 @@ local options={
 		key    = 'scavonlyruins',
 		name   = 'Random Ruins (ScavMode)',
 		desc   = 'description',
-		type   = 'list',
+		type   = 'bool',
 		section = 'options_scavengers',
-		def  = "enabled",
-		items={
-			{key="enabled", name="Enabled", desc="description"},
-			{key="disabled", name="Disabled", desc="description"},
-		}
+		def  = true,
 	},
 	{
 		key    = 'scavonlylootboxes',
 		name   = 'Lootboxes (ScavMode)',
 		desc   = '1 to enable, 0 to disable',
-		type   = 'list',
+		type   = 'bool',
 		section= 'options_scavengers',
-		def  = "enabled",
-		items={
-			{key="enabled", name="Enabled", desc="description"},
-			{key="disabled", name="Disabled", desc="description"},
-		}
+		def  = true,
 	},
 	{
 		key    = 'scavinitialbonuscommander',
 		name   = 'Bonus Starter Constructors',
 		desc   = 'Spawns additional constructors on game start',
-		type   = 'list',
+		type   = 'bool',
 		section = 'options_scavengers',
-		def  = "enabled",
-		items={
-			{key="enabled", name="Enabled", desc="Bonus Starter Commander Enabled"},
-			{key="disabled", name="Disabled", desc="Bonus Starter Commander Disabled"},
-		}
+		def  = true,
 	},
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -406,34 +365,34 @@ local options={
 		type 	= 'section',
 	},
 	{
+		key="chicken_difficulty",
+		name="Difficulty",
+		desc="Chickens difficulty",
+		type="list",
+		def="normal",
+		section="chicken_defense_options",
+		items={
+			{key="veryeasy", name="Very Easy", desc="Very Easy"},
+			{key="easy", name="Easy", desc="Easy"},
+			{key="normal", name="Medium", desc="Medium"},
+			{key="hard", name="Hard", desc="Hard"},
+			{key="veryhard", name="Very Hard", desc="Very Hard"},
+			{key="epic", name="Epic", desc="Epic"},
+			{key="survival", name="Survival", desc="Endless Mode"}
+		}
+	},
+	{
 		key="chicken_chickenstart",
 		name="Burrow Placement",
 		desc="Control where burrows spawn",
 		type="list",
-		def="alwaysbox",
+		def="initialbox",
 		section="chicken_defense_options",
 		items={
 			{key="anywhere", name="Anywhere", desc="Burrows can spawn anywhere"},
 			{key="avoid", name="Avoid Players", desc="Burrows do not spawn on player units"},
 			{key="initialbox", name="Initial Start Box", desc="First wave spawns in chicken start box, following burrows avoid players"},
 			{key="alwaysbox", name="Always Start Box", desc="Burrows always spawn in chicken start box"},
-		}
-	},
-	{
-		key="chicken_queendifficulty",
-		name="Queen Difficulty",
-		desc="How hard doth the Chicken Queen",
-		type="list",
-		def="n_chickenq",
-		section="chicken_defense_options",
-		items={
-			{key="ve_chickenq", name="Very Easy", desc="Cakewalk"},
-			{key="e_chickenq", name="Easy", desc="Somewhat Challenging"},
-			{key="n_chickenq", name="Normal", desc="A Good Challenge"},
-			{key="h_chickenq", name="Hard", desc="Serious Business"},
-			{key="vh_chickenq", name="Very Hard", desc="Extreme Challenge"},
-			{key="epic_chickenq", name="Epic!", desc="Impossible!"},
-			{key="asc", name="Ascending", desc="Each difficulty after the next"},
 		}
 	},
 	{
@@ -459,6 +418,17 @@ local options={
 		section= "chicken_defense_options",
 	},
 	{
+		key    = "chicken_spawncountmult",
+		name   = "Chicken Spawn Multiplier",
+		desc   = "How many times more chickens spawn than normal.",
+		type   = "number",
+		def    = 1,
+		min    = 1,
+		max    = 20,
+		step   = 1,
+		section= "chicken_defense_options",
+	},
+	{
 		key    = "chicken_graceperiod",
 		name   = "Grace Period (Seconds)",
 		desc   = "Time before chickens become active.",
@@ -477,123 +447,50 @@ local options={
 		def    = true,
 		section= "chicken_defense_options",
     },
+	
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-	-- Chickens Custom Difficulty
+	-- TeamColoring
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-	--[[
+	
 	{
-		key    = 'chicken_defense_custom_settings',
-		name   = 'Chicken Custom',
-		desc   = 'Use these settings to adjust the difficulty of Chicken Defense',
-		type   = 'section',
+		key		= "teamcoloring_options",
+		name	= "TeamColors",
+		desc	= "TeamColors",
+		type	= "section",
 	},
 	{
-		key    = "chicken_custom_burrowspawn",
-		name   = "Burrow Spawn Rate (Seconds)",
-		desc   = "Time between burrow spawns.",
-		type   = "number",
-		def    = 120,
-		min    = 1,
-		max    = 600,
-		step   = 1,
-		section= "chicken_defense_custom_settings",
+		key    = 'teamcolors_anonymous_mode',
+		name   = 'Anonymous Mode',
+		desc   = 'All your enemies are colored with the same color so you cannot recognize them. Forces Dynamic TeamColors to be enabled',
+		type   = 'bool',
+		section = 'teamcoloring_options',
+		def  = false,
 	},
 	{
-		key    = "chicken_custom_chickenspawn",
-		name   = "Wave Spawn Rate (Seconds)",
-		desc   = "Time between chicken waves.",
-		type   = "number",
-		def    = 90,
-		min    = 10,
-		max    = 600,
-		step   = 1,
-		section= "chicken_defense_custom_settings",
+		key    = 'teamcolors_icon_dev_mode',
+		name   = "Icon Dev Mode (Don't use in normal games)",
+		desc   = 'Forces teamcolors to be an specific one, for all teams',
+		type   = 'list',
+		section = 'teamcoloring_options',
+		def  = "disabled",
+		items={
+			{key="disabled", name="Disabled", desc="description"},
+			{key="armblue", name="Armada Blue", desc="description"},
+			{key="corred", name="Cortex Red", desc="description"},
+			{key="scavpurp", name="Scavenger Purple", desc="description"},
+			{key="chickenorange", name="Chicken Orange", desc="description"},
+			{key="gaiagray", name="Gaia Gray", desc="description"},
+		}
 	},
-	{
-		key    = "chicken_custom_minchicken",
-		name   = "Min Chickens Per Player",
-		desc   = "Minimum Number of chickens before spawn chance kicks in",
-		type   = "number",
-		def    = 8,
-		min    = 1,
-		max    = 250,
-		step   = 1,
-		section= "chicken_defense_custom_settings",
-	},
-	{
-		key    = "chicken_custom_spawnchance",
-		name   = "Spawn Chance (Percent)",
-		desc   = "Percent chance of each chicken spawn once greater than the min chickens per player limit",
-		type   = "number",
-		def    = 33,
-		min    = 0,
-		max    = 100,
-		step   = 1,
-		section= "chicken_defense_custom_settings",
-	},
-	{
-		key    = "chicken_custom_angerbonus",
-		name   = "Burrow Kill Anger (Percent)",
-		desc   = "Seconds added per burrow kill.",
-		type   = "number",
-		def    = 0.15,
-		min    = 0,
-		max    = 100,
-		step   = 0.01,
-		section= "chicken_defense_custom_settings",
-	},
-	{
-		key    = "chicken_custom_queenspawnmult",
-		name   = "Queen Wave Size Mod",
-		desc   = "Number of squads spawned by the queen at once.",
-		type   = "number",
-		def    = 1,
-		min    = 0,
-		max    = 5,
-		step   = 1,
-		section= "chicken_defense_custom_settings",
-	},
-	{
-		key    = "custom_expstep",
-		name   = "Bonus Experience",
-		desc   = "Exp each chicken will receive by the end of the game",
-		type   = "number",
-		def    = 1.5,
-		min    = 0,
-		max    = 2.5,
-		step   = 0.1,
-		section= "chicken_defense_custom_settings",
-	},
-	{
-		key    = "chicken_custom_lobberemp",
-		name   = "Lobber EMP Duration",
-		desc   = "Max duration of Lobber EMP artillery",
-		type   = "number",
-		def    = 4,
-		min    = 0,
-		max    = 30,
-		step   = 0.5,
-		section= "chicken_defense_custom_settings",
-	},
-	{
-		key    = "chicken_custom_damagemod",
-		name   = "Damage Mod",
-		desc   = "Percent modifier for chicken damage",
-		type   = "number",
-		def    = 100,
-		min    = 5,
-		max    = 250,
-		step   = 1,
-		section= "chicken_defense_custom_settings",
-	},
-	]]
+	
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	-- Other Options
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	
 	{
 		key		= "options",
 		name	= "Other",
@@ -604,30 +501,23 @@ local options={
 		key    = 'ruins',
 		name   = 'Random Ruins',
 		desc   = 'description',
-		type   = 'list',
+		type   = 'bool',
 		section = 'options',
-		def  = "disabled",
-		items={
-			{key="enabled", name="Enabled", desc="description"},
-			{key="disabled", name="Disabled", desc="description"},
-		}
+		def  = false,
 	},
 	{
 		key    = 'lootboxes',
 		name   = 'Lootboxes',
 		desc   = '1 to enable, 0 to disable',
-		type   = 'list',
+		type   = 'bool',
 		section= 'options',
-		def  = "disabled",
-		items={
-			{key="enabled", name="Enabled", desc="description"},
-			{key="disabled", name="Disabled", desc="description"},
-		}
+		def  = false,
 	},
 	{
 		key    = 'critters',
 		name   = 'Animal amount',
 		desc   = 'This multiplier will be applied on the amount of critters a map will end up with',
+		hidden = true,
 		type   = 'number',
 		section= 'options',
 		def    = 1,
@@ -649,18 +539,6 @@ local options={
 		}
 	},
 	{
-		key="map_terraintype",
-		name="Map TerrainTypes",
-		desc="Allows to cancel the TerrainType movespeed buffs of a map.",
-		type="list",
-		def="enabled",
-		section="options",
-		items={
-			{key="disabled", name="Disabled", desc="Disable TerrainTypes related MoveSpeed Buffs"},
-			{key="enabled", name="Enabled", desc="Enable TerrainTypes related MoveSpeed Buffs"},
-		}
-	},
-	{
 		key="map_waterlevel",
 		name="Water Level",
 		desc=" <0 = Decrease water level, >0 = Increase water level",
@@ -675,35 +553,28 @@ local options={
 		key    = "ffa_mode",
 		name   = "FFA Mode",
 		desc   = "Units with no player control are removed/destroyed \nUse FFA spawning mode",
+		hidden = true,
 		type   = "bool",
 		def    = false,
 		section= "options",
 	},
+  
+	 {
+	 	key    = 'coop',
+	 	name   = 'Cooperative mode',
+	 	desc   = 'Adds extra commanders to id-sharing teams, 1 com per player',
+	 	type   = 'bool',
+	 	def    = false,
+	 	section= 'options',
+	 },
 	{
-		key    = 'coop',
-		name   = 'Cooperative mode',
-		desc   = 'Adds extra commanders to id-sharing teams, 1 com per player',
-		type   = 'bool',
-		def    = false,
-		section= 'options',
-	},
-	{
-		key    = 'DisableMapDamage',
+		key    = 'disablemapdamage',
 		name   = 'Undeformable map',
 		desc   = 'Prevents the map shape from being changed by weapons',
 		type   = 'bool',
 		def    = false,
 		section= "options",
 	},
-	{
-		key    = "newbie_placer",
-		name   = "Newbie Placer",
-		desc   = "Chooses a startpoint and a random faction for all rank 1 accounts (online only)",
-		type   = "bool",
-		def    = false,
-		section= "options",
-	},
-
 
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -732,6 +603,46 @@ local options={
 		}
 	},
 	{
+		key    = 'scoremode_chess',
+		name   = 'Chess Mode',
+		desc   = 'No basebuilding',
+		type   = 'bool',
+		section= 'controlvictoryoptions',
+		def  = true,
+	},
+	{
+		key    = 'scoremode_chess_unbalanced',
+		name   = 'Chess: Unbalanced',
+		desc   = 'Each player gets diffrent set of units',
+		type   = 'bool',
+		section= 'controlvictoryoptions',
+		def  = false,
+	},
+	{
+		key    = 'scoremode_chess_adduptime',
+		name   = 'Chess: Minutes Between New Units Add-up.',
+		desc   = 'Time Between New Units Add-up.',
+		type   = 'number',
+		section= 'controlvictoryoptions',
+		def    = 4,
+		min    = 1,
+		max    = 10,
+		step   = 1,  -- quantization is aligned to the def value
+		-- (step <= 0) means that there is no quantization
+	},
+	{
+		key    = 'scoremode_chess_spawnsperphase',
+		name   = 'Chess: Number of spawns in each phase.',
+		desc   = 'Number of spawns in each phase.',
+		type   = 'number',
+		section= 'controlvictoryoptions',
+		def    = 1,
+		min    = 1,
+		max    = 10,
+		step   = 1,  -- quantization is aligned to the def value
+		-- (step <= 0) means that there is no quantization
+	},
+	{
 		key    = 'limitscore',
 		name   = 'Initial Score',
 		desc   = 'Initial score amount available.',
@@ -750,7 +661,6 @@ local options={
 		section= "controlvictoryoptions",
 		type="list",
 		def="13",
-		section= "controlvictoryoptions",
 		items={
 			{key="7", name="7", desc=""},
 			{key="13", name="13", desc=""},
@@ -758,20 +668,15 @@ local options={
 			{key="25", name="25", desc=""},
 		}
     },
-	--[[
 	{
 		key    = "usemapconfig",
 		name   = "Use preset map-specific Control Point locations?",
 		desc   = "Should the control point config for this map be used instead of autogenerated control points?",
-		type="list",
-		def="enabled",
+		hidden = true,
+		type   = 'bool',
+		def    =true,
 		section= "controlvictoryoptions",
-		items={
-			{key="disabled", name="Disabled", desc="This will tell the game to use autogenerated control points."},
-			{key="enabled", name="Enabled", desc="This will tell the game to use preset map control points (Set via map config)."},
-		}
     },
-	]]
 	{
 		key    = 'captureradius',
 		name   = 'Capture points size',
@@ -784,11 +689,11 @@ local options={
 		step   = 25,  -- quantization is aligned to the def value
 		-- (step <= 0) means that there is no quantization
 	},
-	--[[
 	{
 		key    = 'capturetime',
 		name   = 'Capture Time',
 		desc   = 'Time to capture a point.',
+		hidden = true,
 		type   = 'number',
 		section= 'controlvictoryoptions',
 		def    = 60,
@@ -802,6 +707,7 @@ local options={
 		key    = 'capturebonus',
 		name   = 'Capture Bonus',
 		desc   = 'Percentage of how much faster capture takes place by adding more units.',
+		hidden = true,
 		type   = 'number',
 		section= 'controlvictoryoptions',
 		def    = 5,
@@ -815,6 +721,7 @@ local options={
 		key    = 'decapspeed',
 		name   = 'De-Cap Speed',
 		desc   = 'Speed multiplier for neutralizing an enemy point.',
+		hidden = true,
 		type   = 'number',
 		section= 'controlvictoryoptions',
 		def    = 2,
@@ -827,6 +734,7 @@ local options={
 		key    = 'starttime',
 		name   = 'Start Time',
 		desc   = 'Number of seconds until control points can be captured.',
+		hidden = true,
 		type   = 'number',
 		section= 'controlvictoryoptions',
 		def    = 0,
@@ -835,8 +743,7 @@ local options={
 		step   = 1,  -- quantization is aligned to the def value
 		-- (step <= 0) means that there is no quantization
 	},
-	]]
-		{
+	{
 		key    = 'metalperpoint',
 		name   = 'Metal given per point',
 		desc   = 'Each player on an allyteam that has captured a point will receive this amount of resources per point captured per second',
@@ -860,11 +767,11 @@ local options={
 		step   = 0.1,  -- quantization is aligned to the def value
 		-- (step <= 0) means that there is no quantization
 	},
-	--[[
 	{
 		key    = 'dominationscoretime',
 		name   = 'Domination Score Time',
 		desc   = 'Time needed holding all points to score in multi domination.',
+		hidden = true,
 		type   = 'number',
 		section= 'controlvictoryoptions',
 		def    = 30,
@@ -874,10 +781,11 @@ local options={
 		-- (step <= 0) means that there is no quantization
 	},
 
-		{
+	{
 		key    = 'tugofwarmodifier',
 		name   = 'Tug of War Modifier',
 		desc   = 'The amount of score transfered between opponents when points are captured is multiplied by this amount.',
+		hidden = true,
 		type   = 'number',
 		section= 'controlvictoryoptions',
 		def    = 2,
@@ -886,10 +794,11 @@ local options={
 		step   = 1,  -- quantization is aligned to the def value
 		-- (step <= 0) means that there is no quantization
 	},
-		{
+	{
 		key    = 'dominationscore',
 		name   = 'Score awarded for Domination',
 		desc   = 'The amount of score awarded when you have scored a domination.',
+		hidden = true,
 		type   = 'number',
 		section= 'controlvictoryoptions',
 		def    = 1000,
@@ -898,7 +807,6 @@ local options={
 		step   = 1,  -- quantization is aligned to the def value
 		-- (step <= 0) means that there is no quantization
 	},
-	]]
 
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -917,14 +825,10 @@ local options={
 		key    = 'experimentalnoaircollisions',
 		name   = 'Aircraft Collisions Override',
 		desc   = 'Aircraft Collisions Override',
-		type   = 'list',
+		hidden = true,
+		type   = 'bool',
 		section = 'options_experimental',
-		def  = "unchanged",
-		items={
-			{key="unchanged", name="Unchanged", desc="Unchanged"},
-			{key="disabled", name="Force Disabled", desc="Collisions Disabled"},
-			{key="enabled", name="Force Enabled", desc="Collisions Enabled"},
-		}
+		def  = false,
 	},
 
 	{
@@ -959,6 +863,7 @@ local options={
 		key    = 'experimentalxpgain',
 		name   = 'XP Gain Multiplier',
 		desc   = 'XP Gain Multiplier',
+		hidden = true,
 		type   ="number",
 		section = 'options_experimental',
 		def    = 1,
@@ -971,19 +876,16 @@ local options={
 		key    = 'experimentalxpsystem',
 		name   = 'New XP System',
 		desc   = 'New XP System',
-		type   = 'list',
+		hidden = true,
+		type   = 'bool',
 		section = 'options_experimental',
-		def  = "disabled",
-		items={
-			{key="disabled", name="Disabled", desc="Using old XP system"},
-			{key="enabled", name="Enabled", desc="Using new XP system"},
-		}
+		def  = false,
 	},
-	--[[
 	{
 		key    = 'experimentalbuildrange',
 		name   = 'Build Range Multiplier',
 		desc   = 'Build Range Multiplier',
+		hidden = true,
 		type   ="number",
 		section = 'options_experimental',
 		def    = 1,
@@ -996,6 +898,7 @@ local options={
 		key    = 'experimentalbuildpower',
 		name   = 'Build Power Multiplier',
 		desc   = 'Build Power Multiplier',
+		hidden = true,
 		type   ="number",
 		section = 'options_experimental',
 		def    = 1,
@@ -1003,7 +906,6 @@ local options={
 		max    = 10,
 		step   = 0.1,
 	},
-	]]
 	{
 		key    = 'experimentallosrange',
 		name   = 'Line of Sight Range Multiplier',
@@ -1032,52 +934,48 @@ local options={
 		key    = 'experimentalscavuniqueunits',
 		name   = 'Scavenger Units Buildable by Players',
 		desc   = 'Scavenger Units Buildable by Players',
-		type   = 'list',
+		type   = 'bool',
 		section = 'options_experimental',
-		def  = "disabled",
-		items={
-			{key="disabled", name="Disabled", desc="Disabled"},
-			{key="enabled", name="Enabled", desc="Enabled"},
-		}
+		def  = false,
+	},
+
+	{
+		key    = 'experimentalmorphs',
+		name   = 'Upgradeable Units',
+		desc   = 'Upgradeable Units',
+		type   = 'bool',
+		section = 'options_experimental',
+		def  = false,
 	},
 
 	{
 		key    = 'experimentalimprovedtransports',
 		name   = 'Transport Units Rework',
 		desc   = 'Transport Units Rework',
-		type   = 'list',
+		hidden = true,
+		type   = 'bool',
 		section = 'options_experimental',
-		def  = "disabled",
-		items={
-			{key="disabled", name="Disabled", desc="Disabled"},
-			{key="enabled", name="Enabled", desc="Enabled"},
-		}
+		def  = false,
 	},
 
 	{
 		key    = 'mapatmospherics',
 		name   = 'Map Atmospherics',
 		desc   = 'Map Atmospherics',
-		type   = 'list',
+		hidden = true,
+		type   = 'bool',
 		section = 'options_experimental',
-		def  = "enabled",
-		items={
-			{key="disabled", name="Disabled", desc="Disabled"},
-			{key="enabled", name="Enabled", desc="Enabled"},
-		}
+		def  = true,
 	},
 
 	{
 		key    = 'experimentalmassoverride',
 		name   = 'Mass Override',
 		desc   = 'Mass Override',
-		type   = 'list',
+		hidden = true,
+		type   = 'bool',
 		section = 'options_experimental',
-		def  = "disabled",
-		items={
-			{key="disabled", name="Disabled", desc="Disabled"},
-			{key="enabled", name="Enabled", desc="Enabled"},
-		}
+		def  = false,
 	},
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1086,47 +984,47 @@ local options={
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
-	--{
-	--	key		= "modes",
-	--	name	= "GameModes",
-	--	desc	= "Game Modes",
-	--	type	= "section",
-	--},
+	{
+		key		= "modes",
+		name	= "GameModes",
+		desc	= "Game Modes",
+		hidden = true,
+		type	= "section",
+	},
 
-	--{
-	--	key		= "unba",
-	--	name	= "Unbalanced Commanders",
-	--	desc	= "Defines if commanders level up with xp and gain more power or not",
-	--	type	= "list",
-	--	def		= "disabled",
-	--	section	= "modes",
-	--	items	= {
-	--		{key="disabled", name="Disabled", desc="Disable Unbalanced Commanders"},
-	--		{key="enabled", name="Enabled", desc="Enable Unbalanced Commanders"},
-	--	}
-	--},
+	{
+		key		= "unba",
+		name	= "Unbalanced Commanders",
+		desc	= "Defines if commanders level up with xp and gain more power or not",
+		hidden = true,
+		type	= "bool",
+		def		= false,
+		section	= "modes",
+	},
 
 
-	--{
-	--	key    = "shareddynamicalliancevictory",
-	--	name   = "Dynamic Ally Victory",
-	--	desc   = "Ingame alliance should count for game over condition.",
-	--	type   = "bool",
-	--	section= 'options',
-	--	def    = false,
-	--},
+	{
+		key    = "shareddynamicalliancevictory",
+		name   = "Dynamic Ally Victory",
+		desc   = "Ingame alliance should count for game over condition.",
+		hidden = true,
+		type   = "bool",
+		section= 'options',
+		def    = false,
+	},
 
-	--{
-	--	key    = 'ai_incomemultiplier',
-	--	name   = 'AI Income Multiplier',
-	--	desc   = 'Multiplies AI resource income',
-	--	type   = 'number',
-	--	section= 'options',
-	--	def    = 1,
-	--	min    = 1,
-	--	max    = 10,
-	--	step   = 0.1,
-	--},
+	{
+		key    = 'ai_incomemultiplier',
+		name   = 'AI Income Multiplier',
+		desc   = 'Multiplies AI resource income',
+		hidden = true,
+		type   = 'number',
+		section= 'options',
+		def    = 1,
+		min    = 1,
+		max    = 10,
+		step   = 0.1,
+	},
 
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

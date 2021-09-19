@@ -1,14 +1,4 @@
-function gadget:GetInfo()
-	return {
-		name      = "Scenario Scripting",
-		desc      = "Controller for Scenarios, including NPC and AI controllers and objective triggers",
-		author    = "Damgam",
-		date      = "2021",
-		license   = "CC BY NC ND",
-		layer     = 1000000,
-		enabled   = true,
-	}
-end
+
 
 APIFilesList = VFS.DirList('luarules/configs/scenarioscripts/API/','*.lua')
 for i = 1,#APIFilesList do
@@ -23,32 +13,36 @@ else
 end
 
 local function GetScenarioID()
-    if Spring.GetModOptions and Spring.GetModOptions().scenariooptions then
-        local scenariooptions = Spring.Utilities.Base64Decode(Spring.GetModOptions().scenariooptions)
+    if Spring.GetModOptions().scenariooptions then
+        local scenariooptions = string.base64Decode(Spring.GetModOptions().scenariooptions)
         scenariooptions = Spring.Utilities.json.decode(scenariooptions)
         return scenariooptions.scenarioid
     end
     return nil
 end
+
 local scenarioid = GetScenarioID()
 if not scenarioid then
-    gadgetHandler:RemoveGadget(self)
+	return
 end
---if not VFS.FileExists("luarules/configs/scenarioscripts/"..scenarioid..".lua") then
---   gadgetHandler:RemoveGadget(self)
---end
-Spring.Echo("Scenario ID: "..GetScenarioID())
+
+if not VFS.FileExists("luarules/configs/scenarioscripts/"..scenarioid..".lua") then
+   return
+end
 
 
+function gadget:GetInfo()
+	return {
+		name      = "Scenario Scripting",
+		desc      = "Controller for Scenarios, including NPC and AI controllers and objective triggers",
+		author    = "Damgam",
+		date      = "2021",
+		license   = "CC BY NC ND",
+		layer     = 1000000,
+		enabled   = true,
+	}
+end
 
 
-
-
-
-
-
-
-
-
-
+Spring.Echo("Scenario ID: "..scenarioid)
 VFS.Include("luarules/configs/scenarioscripts/"..scenarioid..".lua")

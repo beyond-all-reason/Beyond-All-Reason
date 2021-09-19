@@ -18,8 +18,6 @@ return {
 		collisionvolumetype = "CylY",
 		cruisealt = 220,
 		description = Spring.I18N('units.descriptions.armstil'),
-		energymake = 15,
-		energyuse = 15,
 		explodeas = "mediumexplosiongeneric",
 		footprintx = 3,
 		footprintz = 3,
@@ -122,9 +120,10 @@ return {
 				weapontype = "AircraftBomb",
 				customparams = {
 					expl_light_color = "0.5 0.5 1",
-					expl_light_life_mult = 1.3,
-					expl_light_mult = 1,
-					expl_light_radius_mult = 1.15,
+					expl_light_mult = 1.2,
+					expl_light_radius_mult = 0.9,
+					expl_light_life_mult = 1.55,
+					expl_light_heat_life_mult = "1.6",
 				},
 				damage = {
 					default = 4000,

@@ -9,7 +9,7 @@
 --// Info
 if info then
 	local ratios = { [""] = (1 / 1) } -- {["16to10"]=(10/16), ["1to1"]=(1/1), ["5to4"]=(4/5)} --, ["4to3"]=(3/4)}
-	local resolutions = { { 256, 256 } } -- {{128,128},{64,64}}
+	local resolutions = { { 256, 256 } } -- {{128,128},{64,64}}	-- NOTE: setting too high will crash spring
 	local schemes = { "" }  --, "cor"}
 
 	return schemes, resolutions, ratios

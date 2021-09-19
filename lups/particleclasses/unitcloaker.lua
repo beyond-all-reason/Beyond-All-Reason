@@ -283,10 +283,10 @@ end
 
 -----------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------
-
 function UnitCloaker.Create(Options)
+
   SetUnitLuaDraw(Options.unit,true)
-  local newObject = MergeTable(Options, UnitCloaker.Default)
+  local newObject = table.merge(UnitCloaker.Default, Options)
   setmetatable(newObject,UnitCloaker)  -- make handle lookup
   newObject:CreateParticle()
   return newObject

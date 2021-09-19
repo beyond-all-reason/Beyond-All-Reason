@@ -18,6 +18,8 @@ return {
 			commanders = 1000,
 			crawlingbombs = 199,
 			default = 7500,
+			hvyboats = 3750,
+			lboats = 3750,
 		},
 	},
 }

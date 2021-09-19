@@ -14,22 +14,6 @@ end
 local savedCamState
 local defaultCamState = {mode = 2, rx = 2.677, ry = 0.0, rz = 0.0} --spring
 
-local function deepcopy(orig)
-	local orig_type = type(orig)
-	local copy
-	if orig_type == 'table' then
-		copy = {}
-		for orig_key, orig_value in next, orig, nil do
-			copy[deepcopy(orig_key)] = deepcopy(orig_value)
-		end
-		setmetatable(copy, deepcopy(getmetatable(orig)))
-	else
-		-- number, string, boolean, etc
-		copy = orig
-	end
-	return copy
-end
-
 function widget:SetConfigData(data)
     savedCamState = data or defaultCamState
 end
@@ -57,7 +41,7 @@ end
 function widget:GetConfigData()
     local camState = Spring.GetCameraState()
     local data = {}
-    data = deepcopy(camState)
+    data = table.copy(camState)
     return data
 end
 

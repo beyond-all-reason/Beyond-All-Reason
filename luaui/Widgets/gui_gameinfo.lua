@@ -10,7 +10,6 @@ function widget:GetInfo()
 	}
 end
 
-local vsx, vsy = Spring.GetViewGeometry()
 local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 
 local ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.6)
@@ -19,34 +18,27 @@ local titlecolor = "\255\255\205\100"
 local keycolor = ""
 local valuecolor = "\255\255\255\255"
 local valuegreycolor = "\255\180\180\180"
-local vcolor = valuegreycolor
 local separator = "::"
 
 local font, font2, loadedFontSize, mainDList, titleRect, chobbyInterface, backgroundGuishader, show
 local maxLines = 20
 
-local teams = Spring.GetTeamList()
-for i = 1, #teams do
-	local luaAI = Spring.GetTeamLuaAI(teams[i])
-	if luaAI and luaAI ~= "" and string.sub(luaAI, 1, 9) == 'Chicken: ' then
-		chickensEnabled = true
-	end
-end
+local chickensEnabled = Spring.Utilities.Gametype.IsChickens()
 
 local content = ''
 
 local tidal = Game.tidal
-if Spring.GetModOptions() and Spring.GetModOptions().map_tidal then
-	map_tidal = Spring.GetModOptions().map_tidal
-	if map_tidal == "unchanged" then
-	elseif map_tidal == "low" then
-		tidal = 13
-	elseif map_tidal == "medium" then
-		tidal = 18
-	elseif map_tidal == "high" then
-		tidal = 23
-	end
+local map_tidal = Spring.GetModOptions().map_tidal
+
+if map_tidal == "unchanged" then
+elseif map_tidal == "low" then
+	tidal = 13
+elseif map_tidal == "medium" then
+	tidal = 18
+elseif map_tidal == "high" then
+	tidal = 23
 end
+
 if Spring.GetTidal then
 	tidal = Spring.GetTidal()
 end
@@ -56,17 +48,10 @@ local defaultModoptions = VFS.Include("modoptions.lua")
 local modoptionsDefault = {}
 
 for key, value in pairs(defaultModoptions) do
-	local v = value.def
-	if value.def == false then
-		v = 0
-	elseif value.def == true then
-		v = 1
-	end
-	modoptionsDefault[tostring(value.key)] = tostring(v)
+	modoptionsDefault[value.key] = value.def
 end
 
 local modoptions = Spring.GetModOptions()
-local vcolor = valuegreycolor
 local changedModoptions = {}
 local unchangedModoptions = {}
 local changedChickenModoptions = {}
@@ -76,9 +61,9 @@ for key, value in pairs(modoptions) do
 	if string.sub(key, 1, 8) == 'chicken_' then
 		if chickensEnabled then
 			if value == modoptionsDefault[key] then
-				unchangedChickenModoptions[key] = value
+				unchangedChickenModoptions[key] = tostring(value)
 			else
-				changedChickenModoptions[key] = value
+				changedChickenModoptions[key] = tostring(value)
 			end
 		end
 		modoptions[key] = nil    -- filter chicken modoptions
@@ -87,12 +72,11 @@ end
 
 for key, value in pairs(modoptions) do
 	if value == modoptionsDefault[key] then
-		unchangedModoptions[key] = value
+		unchangedModoptions[key] = tostring(value)
 	else
-		changedModoptions[key] = value
+		changedModoptions[key] = tostring(value)
 	end
 end
-
 
 local screenHeightOrg = 540
 local screenWidthOrg = 540
@@ -109,8 +93,6 @@ local screenY = (vsy * 0.5) + (screenHeight / 2)
 
 local spIsGUIHidden = Spring.IsGUIHidden
 
-local bgColorMultiplier = 0
-
 local glCreateList = gl.CreateList
 local glCallList = gl.CallList
 local glDeleteList = gl.DeleteList
@@ -119,17 +101,10 @@ local widgetScale = 1
 
 local fileLines = {}
 local totalFileLines = 0
-local bgpadding
-
-local myTeamID = Spring.GetMyTeamID()
-local amNewbie = (Spring.GetTeamRulesParam(myTeamID, 'isNewbie') == 1)
 
 local showOnceMore = false        -- used because of GUI shader delay
 
-local RectRound = Spring.FlowUI.Draw.RectRound
-local UiElement = Spring.FlowUI.Draw.Element
-local UiScroller = Spring.FlowUI.Draw.Scroller
-local elementCorner = Spring.FlowUI.elementCorner
+local RectRound, UiElement, UiScroller, elementCorner
 
 function widget:ViewResize()
 	vsx, vsy = Spring.GetViewGeometry()
@@ -145,8 +120,11 @@ function widget:ViewResize()
 	font, loadedFontSize = WG['fonts'].getFont()
 	font2 = WG['fonts'].getFont(fontfile2)
 
-	bgpadding = Spring.FlowUI.elementPadding
-	elementCorner = Spring.FlowUI.elementCorner
+	elementCorner = WG.FlowUI.elementCorner
+
+	RectRound = WG.FlowUI.Draw.RectRound
+	UiElement = WG.FlowUI.Draw.Element
+	UiScroller = WG.FlowUI.Draw.Scroller
 
 	if mainDList then
 		gl.DeleteList(mainDList)
@@ -160,17 +138,11 @@ function DrawTextarea(x, y, width, height, scrollbar)
 	local scrollbarMargin = 14 * widgetScale
 	local scrollbarWidth = 8 * widgetScale
 	local scrollbarPosWidth = 4 * widgetScale
-	local scrollbarPosMinHeight = 8 * widgetScale
-	local scrollbarBackgroundColor = { 0, 0, 0, 0.24 }
-	local scrollbarBarColor = { 1, 1, 1, 0.15 }
 
 	local fontSizeTitle = 18 * widgetScale
-	local fontSizeDate = 14 * widgetScale
 	local fontSizeLine = 15.5 * widgetScale
 	local lineSeparator = 2 * widgetScale
 
-	local fontColorTitle = { 1, 1, 1, 1 }
-	local fontColorDate = { 0.66, 0.88, 0.66, 1 }
 	local fontColorLine = { 0.8, 0.77, 0.74, 1 }
 	local fontColorCommand = { 0.9, 0.6, 0.2, 1 }
 
@@ -291,9 +263,6 @@ function widget:DrawScreen()
 	if spIsGUIHidden() then
 		return
 	end
-	if amNewbie then
-		return
-	end
 
 	-- draw the help
 	if not mainDList then
@@ -301,7 +270,6 @@ function widget:DrawScreen()
 	end
 
 	if show or showOnceMore then
-
 		-- draw the panel
 		glCallList(mainDList)
 		if WG['guishader'] then
@@ -349,11 +317,11 @@ function widget:MouseWheel(up, value)
 		local addLines = value * -3 -- direction is retarded
 
 		startLine = startLine + addLines
-		if startLine < 1 then
-			startLine = 1
-		end
 		if startLine > totalFileLines-maxLines then
 			startLine = totalFileLines-maxLines
+		end
+		if startLine < 1 then
+			startLine = 1
 		end
 
 		if mainDList then
@@ -364,14 +332,6 @@ function widget:MouseWheel(up, value)
 		return true
 	else
 		return false
-	end
-end
-
-function widget:MouseMove(x, y)
-	if show then
-		if not IsOnRect(x, y, screenX, screenY - screenHeight, screenX + screenWidth, screenY) then
-
-		end
 	end
 end
 

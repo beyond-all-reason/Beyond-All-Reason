@@ -6,7 +6,7 @@ function gadget:GetInfo()
 		date = "march 201",
 		license = "CC BY NC ND",
 		layer = 0,
-		enabled = true,
+		enabled = false,
 	}
 end
 
@@ -89,7 +89,6 @@ if gadgetHandler:IsSyncedCode() then
 	local SetFeatureDirection = Spring.SetFeatureDirection
 	local SetFeatureBlocking = Spring.SetFeatureBlocking
 	local SetFeaturePosition = Spring.SetFeaturePosition
-	local SetFeatureReclaim = Spring.SetFeatureReclaim
 	local CreateFeature = Spring.CreateFeature
 	local DestroyFeature = Spring.DestroyFeature
 	local GetGameFrame = Spring.GetGameFrame
@@ -221,8 +220,7 @@ if gadgetHandler:IsSyncedCode() then
 						end
 					end
 					local name = treeName[featureDefID]
-
-					--SetFeatureReclaim(featureID,0) -- dont disable reclaim on them as area reclaim operations will 'block' (the reclaimer will just stand there doing nothing) until the tree dies
+					Spring.SetFeatureResources(0,0,0,0)
 					Spring.SetFeatureNoSelect(featureID, true)
 					treesdying[featureID] = {
 						frame = GetGameFrame(),
@@ -248,7 +246,7 @@ if gadgetHandler:IsSyncedCode() then
 				treesdying[featureID] = nil
 				DestroyFeature(featureID)
 			else
-				--SetFeatureReclaim(featureID,0) -- dont disable reclaim on them as area reclaim operations will 'block' (the reclaimer will just stand there doing nothing) until the tree dies
+				Spring.SetFeatureResources(0,0,0,0)
 				local thisfeaturefalltime = falltime * featureinfo.strength
 				local thisfeaturefallspeed = fallspeed * featureinfo.strength
 				local fireFrequency = 5

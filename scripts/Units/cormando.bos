@@ -411,6 +411,13 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 	}
 }
 
+Lights()
+{
+	emit-sfx 1024 + 1 from head;
+	sleep 2000;
+	start-script Lights();
+}
+
 Create()
 {
 	bMoving = FALSE;
@@ -421,6 +428,7 @@ Create()
 	statechg_DesiredState = TRUE;
 	statechg_StateChanging = FALSE;
 	start-script SmokeUnit();
+	//start-script Lights();
 }
 
 StartBuilding(torsoing, pitch)

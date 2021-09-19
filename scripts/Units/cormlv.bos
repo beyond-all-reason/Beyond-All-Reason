@@ -173,6 +173,13 @@ QueryNanoPiece(piecenum)
 	piecenum = flare;
 }
 
+AimPrimary(heading, pitch)
+{
+	turn turret to y-axis heading speed <300>;
+	wait-for-turn turret around y-axis;
+	return (1);
+}
+
 /*
 TargetHeading(Func_Var_1)
 {

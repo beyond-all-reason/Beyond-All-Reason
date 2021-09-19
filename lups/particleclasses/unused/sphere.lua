@@ -134,7 +134,7 @@ function SphereParticle:ReInitialize()
 end
 
 function SphereParticle.Create(Options)
-  local newObject = MergeTable(Options, SphereParticle.Default)
+  local newObject = table.merge(SphereParticle.Default, Options)
   setmetatable(newObject,SphereParticle)  -- make handle lookup
   newObject:CreateParticle()
   return newObject

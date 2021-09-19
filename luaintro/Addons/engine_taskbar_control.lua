@@ -1,5 +1,3 @@
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
 
 function addon:GetInfo()
   return {
@@ -13,9 +11,7 @@ function addon:GetInfo()
   }
 end
 
---------------------------------------------------------------------------------
 function addon:Initialize()
-	local name = Game.modName
-    Spring.SetWMIcon("bitmaps/logo.png")
-	Spring.SetWMCaption(name .. " (Spring " .. ((Game and Game.version) or (Engine and Engine.version) or "") .. ")", name)
+	Spring.SetWMIcon("bitmaps/logo.png", true)
+	Spring.SetWMCaption(Game.gameName .. " (Spring " .. ((Game and Game.version) or (Engine and Engine.version) or "") .. ")", Game.modName)
 end

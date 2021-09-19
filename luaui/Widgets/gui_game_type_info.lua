@@ -25,7 +25,7 @@ function widget:GetInfo()
 end
 
 local vsx, vsy = Spring.GetViewGeometry()
-local widgetScale = (0.80 + (vsx * vsy / 6000000))
+local widgetScale = 0.80 + (vsx * vsy / 6000000)
 
 local glPopMatrix = gl.PopMatrix
 local glPushMatrix = gl.PushMatrix
@@ -42,9 +42,6 @@ local message2 = ""
 local message3 = ""
 
 local font, chobbyInterface
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
 
 function widget:ViewResize()
 	vsx, vsy = Spring.GetViewGeometry()
@@ -64,11 +61,11 @@ function widget:Initialize()
 		message = Spring.I18N('ui.gametypeInfo.killAllCommanders')
 	end
 
-	if (tonumber(Spring.GetModOptions().preventcombomb) or 0) ~= 0 then
+	if Spring.GetModOptions().preventcombomb then
 		message2 = Spring.I18N('ui.gametypeInfo.commandersSurviveDgun')
 	end
 
-	if (Spring.GetModOptions().unba or "disabled") == "enabled" then
+	if Spring.GetModOptions().unba then
 		message3 = Spring.I18N('ui.gametypeInfo.unbalancedCommanders')
 	end
 end
@@ -112,12 +109,12 @@ function widget:DrawScreen()
 	end
 
 	glPushMatrix()
-	glTranslate((vsx * 0.5), (vsy * 0.18), 0) --has to be below where newbie info appears!
+	glTranslate((vsx * 0.5), (vsy * 0.19), 0) --has to be below where newbie info appears!
 	glScale(1.5, 1.5, 1)
 	font:Begin()
-	font:Print(msg, 0, 15 * widgetScale, 18 * widgetScale, "oc")
+	font:Print(msg, 0, 15 * widgetScale, 17.5 * widgetScale, "oc")
 	font:Print(msg2, 0, -35 * widgetScale, 12.5 * widgetScale, "oc")
-	font:Print(msg3, 0, 60 * widgetScale, 18 * widgetScale, "oc")
+	font:Print(msg3, 0, 60 * widgetScale, 17.5 * widgetScale, "oc")
 	font:End()
 	glPopMatrix()
 end

@@ -22,3 +22,6 @@ CC BY NC ND applies to all sound effects in:
 /sounds/movement/
 /sounds/movement-air/
 /sounds/buildings/
+
+All sounds in /sounds/voice have been manually created with
+https://text-to-speech-demo.ng.bluemix.net

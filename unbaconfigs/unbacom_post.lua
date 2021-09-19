@@ -1,7 +1,7 @@
 function UnbaCom_Post(name)
 	local lowername = string.lower(name)
 	local uppername = string.upper(name)
-	local tablecom = deepcopy(UnitDefs[name])
+	local tablecom = table.copy(UnitDefs[name])
 	tablecom.autoheal = 2
 	tablecom.power = CommanderPower
 	tablecom.weapondefs[lowername.."laser"].weapontype = "LaserCannon"
@@ -9,7 +9,7 @@ function UnbaCom_Post(name)
 	tablecom.script = lowername.."_lus.lua"
 	tablecom.objectname = "UNBA"..uppername..".3DO"
 		--Weapon: Laser
-	tablecom.weapondefs[lowername.."laser2"] = deepcopy(tablecom.weapondefs[lowername.."laser"])
+	tablecom.weapondefs[lowername.."laser2"] = table.copy(tablecom.weapondefs[lowername.."laser"])
 	tablecom.weapondefs[lowername.."laser"].weapontype = "BeamLaser"
 	tablecom.weapondefs[lowername.."laser2"].damage.default = Damages[2]
 	tablecom.weapondefs[lowername.."laser2"].range = Range[2]
@@ -18,7 +18,7 @@ function UnbaCom_Post(name)
 	for i = 3,11 do
 		I = tostring(i)
 		H = tostring(i-1)
-		tablecom.weapondefs[lowername.."laser"..I] = deepcopy(tablecom.weapondefs[lowername.."laser"..H])
+		tablecom.weapondefs[lowername.."laser"..I] = table.copy(tablecom.weapondefs[lowername.."laser"..H])
 		tablecom.weapondefs[lowername.."laser"..I].damage.default = Damages[i]
 		tablecom.weapondefs[lowername.."laser"..I].range = Range[i]
 		tablecom.weapondefs[lowername.."laser"..I].areaofeffect = AOE[i]
@@ -48,7 +48,7 @@ function UnbaCom_Post(name)
 		end
 	end
 		--Weapon: SeaLaser
-	tablecom.weapondefs[lowername.."sealaser2"] = deepcopy(tablecom.weapondefs[lowername.."sealaser"])
+	tablecom.weapondefs[lowername.."sealaser2"] = table.copy(tablecom.weapondefs[lowername.."sealaser"])
 	tablecom.weapondefs[lowername.."sealaser2"].damage.default = Damages21[2]
 	tablecom.weapondefs[lowername.."sealaser2"].damage.subs = Damages22[2]*Damages21[2]
 	tablecom.weapondefs[lowername.."sealaser2"].range = Range2[2]
@@ -57,7 +57,7 @@ function UnbaCom_Post(name)
 	for i = 3,11 do
 		I = tostring(i)
 		H = tostring(i-1)
-		tablecom.weapondefs[lowername.."sealaser"..I] = deepcopy(tablecom.weapondefs[lowername.."sealaser"..H])
+		tablecom.weapondefs[lowername.."sealaser"..I] = table.copy(tablecom.weapondefs[lowername.."sealaser"..H])
 		tablecom.weapondefs[lowername.."sealaser"..I].damage.default = Damages21[i]
 		tablecom.weapondefs[lowername.."sealaser"..I].damage.subs = Damages22[i] * Damages21[i]
 		tablecom.weapondefs[lowername.."sealaser"..I].range = Range2[i]
@@ -90,7 +90,7 @@ function UnbaCom_Post(name)
 	for i = 2,7 do
 		I = tostring(i)
 		H = tostring(i-1)
-		tablecom.weapondefs["repulsor"..I] = deepcopy(tablecom.weapondefs["repulsor"..H])
+		tablecom.weapondefs["repulsor"..I] = table.copy(tablecom.weapondefs["repulsor"..H])
 		tablecom.weapondefs["repulsor"..I].shield.power = ShieldPower[i]
 	end
 	for i = 23,29 do
@@ -108,8 +108,8 @@ function UnbaCom_Post(name)
 		tablecom.buildoptions = CorDefsBuildOptions
 	end
 	for i = 1,11 do
-		tablecom.featuredefs["dead"..tostring(i)] = deepcopy(tablecom.featuredefs.dead)
-		tablecom.featuredefs["heap"..tostring(i)] = deepcopy(tablecom.featuredefs.heap)
+		tablecom.featuredefs["dead"..tostring(i)] = table.copy(tablecom.featuredefs.dead)
+		tablecom.featuredefs["heap"..tostring(i)] = table.copy(tablecom.featuredefs.heap)
 		tablecom.featuredefs["dead"..tostring(i)].metal = tablecom.featuredefs["dead"].metal * WreckMetal[i]
 		tablecom.featuredefs["heap"..tostring(i)].metal = tablecom.featuredefs["heap"].metal * WreckMetal[i]
 		tablecom.featuredefs["dead"..tostring(i)].featuredead = "heap"..tostring(i)

@@ -29,6 +29,7 @@ local hasClipDistance = false
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
+local spIsAABBInView = Spring.IsAABBInView
 local spGetGroundHeight = Spring.GetGroundHeight
 local floor = math.floor
 local mapSizeX, mapSizeZ = Game.mapSizeX, Game.mapSizeZ
@@ -52,7 +53,6 @@ local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
 local restoreMapBorder = true
 local mapExtensionShader = nil
 local terrainVAO = nil
-local terrainVertexVBO = nil
 local terrainInstanceVBO = nil
 
 --------------------------------------------------------------------------------
@@ -69,17 +69,34 @@ end
 
 local vsSrc = [[
 #version 330
-#line 10065
 
-layout (location = 0) in vec2 aPos;
-layout (location = 1) in vec4 aMirrorParams;
+#extension GL_ARB_uniform_buffer_object : require
+#extension GL_ARB_shading_language_420pack: require
+
+#line 10077
+
+layout (location = 0) in vec4 aMirrorParams;
+
+//__ENGINEUNIFORMBUFFERDEFS__
+
+uniform vec4 shaderParams;
+#define gridSize shaderParams.x
 
 out DataVS {
 	vec4 vMirrorParams;
 };
 
 void main() {
-	gl_Position = vec4(aPos.x, 0.0, aPos.y, 1.0);
+	float vID = float(gl_VertexID);
+
+	float X = mapSize.x / gridSize;
+	float Y = mapSize.y / gridSize;
+
+	float x =   mod(vID , X) / X * mapSize.x;
+	float y = floor(vID / X) / Y * mapSize.y;
+
+	gl_Position = vec4(x, 0.0, y, 1.0);
+
 	vMirrorParams = aMirrorParams;
 }
 ]]
@@ -96,38 +113,7 @@ layout (triangle_strip, max_vertices = 4) out;
 
 #line 20090
 
-layout(std140, binding = 0) uniform UniformMatrixBuffer {
-	mat4 screenView;
-	mat4 screenProj;
-	mat4 screenViewProj;
-
-	mat4 cameraView;
-	mat4 cameraProj;
-	mat4 cameraViewProj;
-	mat4 cameraBillboard;
-
-	mat4 cameraViewInv;
-	mat4 cameraProjInv;
-	mat4 cameraViewProjInv;
-
-	mat4 shadowView;
-	mat4 shadowProj;
-	mat4 shadowViewProj;
-
-	//TODO: minimap matrices
-};
-
-layout(std140, binding = 1) uniform UniformParamsBuffer {
-	vec3 rndVec3; //new every draw frame.
-	uint renderCaps; //various render booleans
-
-	vec4 timeInfo; //gameFrame, gameSeconds, drawFrame, frameTimeOffset
-	vec4 viewGeometry; //vsx, vsy, vpx, vpy
-	vec4 mapSize; //xz, xzPO2
-
-	vec4 fogColor; //fog color
-	vec4 fogParams; //fog {start, end, 0.0, scale}
-};
+//__ENGINEUNIFORMBUFFERDEFS__
 
 uniform sampler2D heightTex;
 uniform vec4 shaderParams;
@@ -246,17 +232,7 @@ local fsSrc = [[
 #extension GL_ARB_uniform_buffer_object : require
 #extension GL_ARB_shading_language_420pack: require
 
-layout(std140, binding = 1) uniform UniformParamsBuffer {
-	vec3 rndVec3; //new every draw frame.
-	uint renderCaps; //various render booleans
-
-	vec4 timeInfo; //gameFrame, gameSeconds, drawFrame, frameTimeOffset
-	vec4 viewGeometry; //vsx, vsy, vpx, vpy
-	vec4 mapSize; //xz, xzPO2
-
-	vec4 fogColor; //fog color
-	vec4 fogParams; //fog {start, end, 0.0, scale}
-};
+//__ENGINEUNIFORMBUFFERDEFS__
 
 uniform sampler2D colorTex;
 
@@ -300,6 +276,7 @@ void main() {
 
 
 local numPoints
+local mirrorParams = {}
 
 function widget:Initialize()
 	WG['mapedgeextension'] = {}
@@ -337,68 +314,29 @@ function widget:Initialize()
 		widgetHandler:RemoveWidget()
 	end
 
-	terrainVertexVBO = gl.GetVBO() -- GL.ARRAY_BUFFER, false
-	if terrainVertexVBO == nil then
-		Spring.SendCommands("luaui enablewidget Map Edge Extension Old")
-		widgetHandler:RemoveWidget()
-	end
-
-	terrainInstanceVBO = gl.GetVBO() -- GL.ARRAY_BUFFER, false
+	terrainInstanceVBO = gl.GetVBO(GL.ARRAY_BUFFER, true) -- GL.ARRAY_BUFFER, false
 	if terrainInstanceVBO == nil then
 		Spring.SendCommands("luaui enablewidget Map Edge Extension Old")
 		widgetHandler:RemoveWidget()
 	end
 	-----------
 
-	local qX = mapSizeX / gridSize
-	local qZ = mapSizeZ / gridSize
-
-	local posArray = {}
-
-	local posIdx = 1
-	for qx = 0, qX - 1 do
-	for qz = 0, qZ - 1 do
-		--only Top-Left point. The rest is re-created by a geometry shader
-		local x, z = qx * gridSize, qz * gridSize
-		posArray[posIdx + 0] = x
-		posArray[posIdx + 1] = z
-
-		posIdx = posIdx + 2
-	end
-	end
-
-	numPoints = #posArray / 2
-
-	terrainVertexVBO:Define(numPoints, {
-		{id = 0, name = "pos", size = 2}, --only update {x,z} once
-	})
-	terrainVertexVBO:Upload(posArray)
+	numPoints = (mapSizeX / gridSize) * (mapSizeZ / gridSize)
 
 	terrainInstanceVBO:Define(8, {
-		{id = 1, name = "mirrorParams", size = 4},
+		{id = 0, name = "mirrorParams", size = 4},
 	})
 
-	local mirrorParams = {
-		-- flipX, flipZ, shiftX, shiftZ
-		1, 1, -1, -1, --TL
-		1, 0, -1,  0, --ML
-		1, 1, -1,  1, --BL
-
-		0, 1,  0, -1, --TM
-		0, 1,  0,  1, --BM
-
-		1, 1,  1, -1, --TR
-		1, 0,  1,  0, --MR
-		1, 1,  1,  1, --BR
-	}
-	terrainInstanceVBO:Upload(mirrorParams)
-
-	terrainVAO:AttachVertexBuffer(terrainVertexVBO)
 	terrainVAO:AttachInstanceBuffer(terrainInstanceVBO)
 
 	hasClipDistance = ((Platform.gpuVendor == "AMD" and Platform.osFamily == "Linux") == false)
 	gsSrc = gsSrc:gsub("###SUPPORTS_CLIPDISTANCE###", (hasClipDistance and "1" or "0"))
 	--Spring.Echo(gsSrc)
+	local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()
+	vsSrc = vsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
+	gsSrc = gsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
+	fsSrc = fsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
+
 
 	mapExtensionShader = LuaShader({
 		vertex = vsSrc,
@@ -412,7 +350,7 @@ function widget:Initialize()
 		uniformFloat = {
 			shaderParams = {gridSize, brightness, (curvature and 1.0) or 0.0, (fogEffect and 1.0) or 0.0},
 		},
-	}, "Map Extension Shader")
+	}, "Map Extension Shader2")
 	local shaderCompiled = mapExtensionShader:Initialize()
 
 	if not shaderCompiled then
@@ -437,17 +375,120 @@ function widget:Shutdown()
 		terrainVAO = nil
 	end
 
-	if terrainVertexVBO then
-		--terrainVertexVBO:Delete()
-		terrainVertexVBO = nil
-	end
-
 	if terrainInstanceVBO then
 		--terrainInstanceVBO:Delete()
 		terrainInstanceVBO = nil
 	end
 	--collectgarbage("collect")
 end
+
+local borderMargin = 40
+local cachedCameraPosDir = {0, 0, 0, 0, 0, 0}
+local function UpdateMirrorParams()
+	local function Distance2(x1, y1, z1, x2, y2, z2)
+		local dx, dy, dz = x1 - x2, y1 - y2, z1 - z2
+		return dx*dx + dy*dy + dz*dz
+	end
+
+	-- presumes normalized vectors
+	local function DotProduct(x1, y1, z1, x2, y2, z2)
+		return x1*x2 + y1*y2 + z1*z2
+	end
+
+	local cpX, cpY, cpZ = Spring.GetCameraPosition()
+	local cdX, cdY, cdZ = Spring.GetCameraDirection()
+
+	local checkInView = false
+
+	if Distance2(cpX, cpY, cpZ, cachedCameraPosDir[1], cachedCameraPosDir[2], cachedCameraPosDir[3]) > 900 then
+		checkInView = true
+		cachedCameraPosDir[1] = cpX
+		cachedCameraPosDir[2] = cpY
+		cachedCameraPosDir[3] = cpZ
+	end
+
+	if checkInView or DotProduct(cdX, cdY, cdZ, cachedCameraPosDir[4], cachedCameraPosDir[5], cachedCameraPosDir[6]) < 0.95 then
+		checkInView = true
+		cachedCameraPosDir[4] = cdX
+		cachedCameraPosDir[5] = cdY
+		cachedCameraPosDir[6] = cdZ
+	end
+
+	if not checkInView then
+		return
+	end
+
+	local minY, maxY = Spring.GetGroundExtremes()
+	mirrorParams = {}
+	-- spIsAABBInView params are copied from map_edge_extension.lua
+	if spIsAABBInView(-Game.mapSizeX, minY, -Game.mapSizeZ, borderMargin, maxY, borderMargin) then
+		--TL {1, 1, -1, -1}
+		mirrorParams[#mirrorParams + 1] =  1
+		mirrorParams[#mirrorParams + 1] =  1
+		mirrorParams[#mirrorParams + 1] = -1
+		mirrorParams[#mirrorParams + 1] = -1
+	end
+
+	if spIsAABBInView(-Game.mapSizeX, minY, -borderMargin, 0, maxY, Game.mapSizeZ) then
+		--ML {1, 0, -1,  0}
+		mirrorParams[#mirrorParams + 1] =  1
+		mirrorParams[#mirrorParams + 1] =  0
+		mirrorParams[#mirrorParams + 1] = -1
+		mirrorParams[#mirrorParams + 1] =  0
+	end
+
+	if spIsAABBInView(-Game.mapSizeX, minY, Game.mapSizeZ - borderMargin, borderMargin, maxY, Game.mapSizeZ * 2) then
+		--BL {1, 1, -1,  1}
+		mirrorParams[#mirrorParams + 1] =  1
+		mirrorParams[#mirrorParams + 1] =  1
+		mirrorParams[#mirrorParams + 1] = -1
+		mirrorParams[#mirrorParams + 1] =  1
+	end
+
+	if spIsAABBInView(-borderMargin, minY, -Game.mapSizeZ, Game.mapSizeX + borderMargin, maxY, borderMargin) then
+		--TM {0, 1,  0, -1}
+		mirrorParams[#mirrorParams + 1] =  0
+		mirrorParams[#mirrorParams + 1] =  1
+		mirrorParams[#mirrorParams + 1] =  0
+		mirrorParams[#mirrorParams + 1] = -1
+	end
+
+	if spIsAABBInView(-borderMargin, minY, Game.mapSizeZ * 2, Game.mapSizeX + borderMargin, maxY, Game.mapSizeZ - borderMargin) then
+		--BM {0, 1,  0,  1}
+		mirrorParams[#mirrorParams + 1] =  0
+		mirrorParams[#mirrorParams + 1] =  1
+		mirrorParams[#mirrorParams + 1] =  0
+		mirrorParams[#mirrorParams + 1] =  1
+	end
+
+	if spIsAABBInView(Game.mapSizeX - borderMargin, minY, -Game.mapSizeZ, Game.mapSizeX * 2, maxY, borderMargin) then
+		--TR {1, 1,  1, -1}
+		mirrorParams[#mirrorParams + 1] =  1
+		mirrorParams[#mirrorParams + 1] =  1
+		mirrorParams[#mirrorParams + 1] =  1
+		mirrorParams[#mirrorParams + 1] = -1
+	end
+
+	if spIsAABBInView(Game.mapSizeX - borderMargin, minY, -borderMargin, Game.mapSizeX * 2, maxY, Game.mapSizeZ) then
+		--MR {1, 0,  1,  0}
+		mirrorParams[#mirrorParams + 1] =  1
+		mirrorParams[#mirrorParams + 1] =  0
+		mirrorParams[#mirrorParams + 1] =  1
+		mirrorParams[#mirrorParams + 1] =  0
+	end
+
+	if spIsAABBInView(Game.mapSizeX - borderMargin, minY, Game.mapSizeZ - borderMargin, Game.mapSizeX * 2, maxY, Game.mapSizeZ * 2) then
+		--BR {1, 1,  1,  1}
+		mirrorParams[#mirrorParams + 1] =  1
+		mirrorParams[#mirrorParams + 1] =  1
+		mirrorParams[#mirrorParams + 1] =  1
+		mirrorParams[#mirrorParams + 1] =  1
+	end
+	if #mirrorParams > 0 then
+		terrainInstanceVBO:Upload(mirrorParams)
+	end
+end
+
 
 
 -- depth defaults:
@@ -467,9 +508,15 @@ end
 	false
 	GL_CULL_FACE_MODE = GL_BACK
 ]]--
+
 function widget:DrawWorldPreUnit()
+	UpdateMirrorParams()
+
+	if #mirrorParams == 0 then
+		return
+	end
+
 	--local q = gl.CreateQuery()
-	--Spring.Utilities.TableEcho({gl.GetFixedState("alphatest", true)})
 	if hasClipDistance then
 		gl.ClipDistance(1, true)
 	end
@@ -482,7 +529,7 @@ function widget:DrawWorldPreUnit()
 	mapExtensionShader:Activate()
 
 	--gl.RunQuery(q, function()
-		terrainVAO:DrawArrays(GL.POINTS, numPoints, 0, 8)
+		terrainVAO:DrawArrays(GL.POINTS, numPoints, 0, #mirrorParams / 4)
 	--end)
 	mapExtensionShader:Deactivate()
 	gl.Texture(0, false)
@@ -509,7 +556,7 @@ end
 --function widget:GameFrame()
 	--local res = Spring.GetProjectilesInRectangle(-10000, -10000, 10000, 10000)
 	--local res = Spring.GetVisibleProjectiles()
-	--Spring.Utilities.TableEcho(res)
+	--Spring.Debug.TableEcho(res)
 --end
 
 

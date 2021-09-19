@@ -92,6 +92,8 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:shallow_water_dirt",
+				[2] = "custom:waterwake-medium",
+				[3] = "custom:bowsplash-medium",
 			},
 			pieceexplosiongenerators = {
 				[1] = "deathceg2",

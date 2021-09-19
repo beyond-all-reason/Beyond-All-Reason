@@ -1,15 +1,10 @@
--- See: https://springrts.com/wiki/Modrules.lua
-local xpmultiplier = tonumber(Spring.GetModOptions().experimentalxpgain) or 1
-local gadgetXPEnabled = Spring.GetModOptions().experimentalxpsystem or "disabled" == "disabled"
-if gadgetXPEnabled == "disabled" then
-	gadgetXPEnabled = false
-elseif gadgetXPEnabled == "enabled" then
-	gadgetXPEnabled = true
-else
-	gadgetXPEnabled = false
-end
+VFS.Include('init.lua')
 
-if gadgetXPEnabled == true then
+-- See: https://springrts.com/wiki/Modrules.lua
+local xpmultiplier = Spring.GetModOptions().experimentalxpgain
+local gadgetXPEnabled = Spring.GetModOptions().experimentalxpsystem
+
+if gadgetXPEnabled then
 	XPValues = {
 		experienceMult = 50,
 		powerScale = 0,

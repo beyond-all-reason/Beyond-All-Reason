@@ -13,7 +13,7 @@
 -- 0. You just DO WHAT THE FUCK YOU WANT TO.
 -------------------------------------------------------------------------------
 
-local MaxStockpile = 10	-- set this to desired stockpile levels
+local MaxStockpile = 100 -- set this to desired stockpile levels
 
 function widget:GetInfo()
   return {

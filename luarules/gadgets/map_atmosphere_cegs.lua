@@ -1,3 +1,10 @@
+
+
+--if VFS.FileExists("luarules/configs/Atmosphereconfigs/" .. Game.mapName .. ".lua") then
+--elseif enableGenericConfig ~= "disabled" then
+--end
+
+
 function gadget:GetInfo()
 	return {
 		name = "Map Atmosphere CEGs",
@@ -10,6 +17,26 @@ function gadget:GetInfo()
 end
 
 local enableGenericConfig = Spring.GetModOptions().mapatmospherics or "enabled"
+
+local currentMapname = Game.mapName:lower()
+local mapList = VFS.DirList("luarules/configs/Atmosphereconfigs/", "*.lua")
+
+Spring.Echo("[ATMOSPHERIC] Current map: "..currentMapname)
+local mapFileName = ''	-- (Include at bottom of this file)
+for i = 1,#mapList+1 do
+	if i == #mapList+1 then
+		Spring.Echo("[ATMOSPHERIC] No map config found. Turning off the gadget")
+		return
+	end
+	mapFileName = string.sub(mapList[i], 36, string.len(mapList[i])-4):lower()
+	if string.find(currentMapname, mapFileName) then
+		Spring.Echo("[ATMOSPHERIC] Success! Map names match!: " ..mapFileName)
+		break
+	else
+		--Spring.Echo("[ATMOSPHERIC] Map names don't match: " ..mapFileName)
+	end
+end
+
 
 if not gadgetHandler:IsSyncedCode() then
 
@@ -104,7 +131,7 @@ if not gadgetHandler:IsSyncedCode() then
 		Spring.SetAtmosphere({ sunColor = { transitionred * suncr, transitiongreen * suncg, transitionblue * suncb } })
 		Spring.SetAtmosphere({ cloudColor = { transitionred * clocr, transitiongreen * clocg, transitionblue * clocb } })
 		Spring.SetAtmosphere({ fogColor = { transitionred * fogcr, transitiongreen * fogcg, transitionblue * fogcb } })
-		
+
 		Spring.SetSunLighting({ groundShadowDensity = transition * shadowdensity, modelShadowDensity = transition * shadowdensity })
 	end
 
@@ -434,31 +461,8 @@ else
 			end
 		end
 	end
-	
-	local currentMapname = Game.mapName:lower()
-	local mapList = VFS.DirList("luarules/configs/Atmosphereconfigs/", "*.lua")
-	Spring.Echo("[ATMOSPHERIC] Current map: "..currentMapname)
-	for i = 1,#mapList+1 do
-		if i == #mapList+1 then
-			Spring.Echo("[ATMOSPHERIC] No map config found. Turning off the gadget")
-			gadgetHandler:RemoveGadget(self)
-			--VFS.Include("luarules/configs/Atmosphereconfigs/generic_config_setup.lua")
-		end
-		local testMapName = string.sub(mapList[i], 36, string.len(mapList[i])-4):lower()
-		if string.find(currentMapname, testMapName) then
-			Spring.Echo("[ATMOSPHERIC] Success! Map names match!: " ..testMapName)
-			VFS.Include("luarules/configs/Atmosphereconfigs/" .. testMapName .. ".lua")
-			break
-		else
-			Spring.Echo("[ATMOSPHERIC] Map names don't match: " ..testMapName)
-		end
-	end
 
-	--if VFS.FileExists("luarules/configs/Atmosphereconfigs/" .. Game.mapName .. ".lua") then
-		
-	--elseif enableGenericConfig ~= "disabled" then
-		
-	--end
+	VFS.Include("luarules/configs/Atmosphereconfigs/" .. mapFileName .. ".lua")
 end
 
 

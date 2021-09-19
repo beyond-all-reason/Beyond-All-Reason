@@ -65,7 +65,7 @@ if gadgetHandler:IsSyncedCode() then
 		for i = 1, tonumber(infos.number) do
 			local projectileParams = {
 				pos = {px, py, pz},
-				speed = {vx - vw*(math.random(-100,100)/500), vy - vw*(math.random(-100,100)/250), vz - vw*(math.random(-100,100)/500)},
+				speed = {vx - vw*(math.random(-100,100)/880), vy - vw*(math.random(-100,100)/440), vz - vw*(math.random(-100,100)/880)},
 				owner = ownerID,
 				ttl = 3000,
 				gravity = -Game.gravity/900,

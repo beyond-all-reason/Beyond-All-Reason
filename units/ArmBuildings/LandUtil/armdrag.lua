@@ -3,6 +3,7 @@ local unitName = Spring.I18N('units.names.armdrag')
 return {
 	armdrag = {
 		acceleration = 0,
+		autoheal = 4,
 		blocking = true,
 		brakerate = 0,
 		buildcostenergy = 160,
@@ -66,7 +67,7 @@ return {
 				height = 20,
 				hitdensity = 100,
 				metal = 2,
-				object = "",
+				object = "Units/arm1X1B.s3o",
 				reclaimable = true,
 				resurrectable = 0,
 				shadtrans = 1,

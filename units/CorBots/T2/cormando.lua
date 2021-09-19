@@ -17,7 +17,7 @@ return {
 		canreclaim = true,
 		canrepair = true,
 		canrestore = false,
-		category = "ALL MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE BOT EMPABLE",
+		category = "ALL MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE BOT CANBEUW EMPABLE",
 		collisionvolumeoffsets = "0 -6 0",
 		collisionvolumescales = "38 45 22",
 		collisionvolumetype = "box",
@@ -66,6 +66,7 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-small",
+				[2] = "custom:radarpulse_t1",
 			},
 			pieceexplosiongenerators = {
 				[1] = "deathceg2",

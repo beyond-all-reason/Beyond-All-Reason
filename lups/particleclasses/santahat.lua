@@ -137,7 +137,7 @@ function SantaHat:ReInitialize()
 end
 
 function SantaHat.Create(Options)
-  local newObject = MergeTable(Options, SantaHat.Default)
+  local newObject = table.merge(SantaHat.Default, Options)
   setmetatable(newObject,SantaHat)  -- make handle lookup
   newObject:CreateParticle()
   return newObject

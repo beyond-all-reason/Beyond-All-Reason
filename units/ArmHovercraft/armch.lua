@@ -29,8 +29,6 @@ return {
 		maxslope = 16,
 		maxvelocity = 2.23,
 		maxwaterdepth = 0,
-		metalmake = 0.11,
-		metalstorage = 75,
 		movementclass = "HOVER2",
 		name = unitName,
 		objectname = "Units/ARMCH.s3o",

@@ -5,30 +5,26 @@ for name,uDef in pairs(UnitDefs) do
     scavUnit[#scavUnit+1] = name..'_scav'
 end
 
-scavDifficulty = (Spring.GetModOptions and Spring.GetModOptions().scavdifficulty) or "veryeasy"
+scavDifficulty = Spring.GetModOptions().scavdifficulty
 if scavDifficulty == "noob" then
 	ScavDifficultyMultiplier = 0.1
 elseif scavDifficulty == "veryeasy" then
-	ScavDifficultyMultiplier = 0.5
+	ScavDifficultyMultiplier = 0.25
 elseif scavDifficulty == "easy" then
-	ScavDifficultyMultiplier = 0.75
+	ScavDifficultyMultiplier = 0.375
 elseif scavDifficulty == "medium" then
-	ScavDifficultyMultiplier = 1
-elseif scavDifficulty == "hard" then
-	ScavDifficultyMultiplier = 1.25
-elseif scavDifficulty == "veryhard" then
-	ScavDifficultyMultiplier = 1.5
-elseif scavDifficulty == "expert" then
-	ScavDifficultyMultiplier = 2
-elseif scavDifficulty == "brutal" then
-	ScavDifficultyMultiplier = 3
-else
 	ScavDifficultyMultiplier = 0.5
+elseif scavDifficulty == "hard" then
+	ScavDifficultyMultiplier = 0.875
+elseif scavDifficulty == "veryhard" then
+	ScavDifficultyMultiplier = 1
+elseif scavDifficulty == "expert" then
+	ScavDifficultyMultiplier = 1.5
+elseif scavDifficulty == "brutal" then
+	ScavDifficultyMultiplier = 2
+else
+	ScavDifficultyMultiplier = 0.25
 end
-
-local rana = math.random(3,1000)
-local ranb = math.random(2,a)
-local ranc = math.random(1,b)
 
 function scav_Udef_Post(name, uDef)
 	if not uDef.customparams then
@@ -157,7 +153,9 @@ function scav_Udef_Post(name, uDef)
 	end
 
 	if uDef.maxdamage then
-		uDef.maxdamage = math.ceil(uDef.maxdamage*0.85*randomMultiplier)
+		if name ~= 'armcomboss_scav' and name ~= 'corcomboss_scav' then
+			uDef.maxdamage = math.ceil(uDef.maxdamage*0.85*randomMultiplier)
+		end
 	end
 
 	-- if uDef.maxvelocity then
@@ -170,15 +168,15 @@ function scav_Udef_Post(name, uDef)
 
 	if uDef.maxdamage then
 		if name ~= 'armcomboss_scav' and name ~= 'corcomboss_scav' then
-			uDef.autoheal = math.ceil(math.sqrt(uDef.maxdamage*0.2*randomMultiplier))
-			uDef.idleautoheal = math.ceil(math.sqrt(uDef.maxdamage*0.2*randomMultiplier))
+			uDef.autoheal = math.ceil(math.sqrt(uDef.maxdamage*0.1*randomMultiplier))
+			uDef.idleautoheal = math.ceil(math.sqrt(uDef.maxdamage*0.1*randomMultiplier))
 		else
 			uDef.autoheal = 0
 			uDef.idleautoheal = 0
 		end
 	else
-		uDef.autoheal = 3
-		uDef.idleautoheal = 3
+		uDef.autoheal = 1
+		uDef.idleautoheal = 1
 	end
 
 	if uDef.turnrate then
@@ -190,15 +188,16 @@ function scav_Udef_Post(name, uDef)
 	end
 
 	-- don't let players get scav constructors
-	if uDef.buildoptions then
-		if Spring.GetModOptions and uDef.workertime then 
-			local workertimemultipliermodoption = tonumber(Spring.GetModOptions().scavbuildspeedmultiplier) or 1
+	if uDef.builder then
+		if uDef.workertime then 
+			local workertimemultipliermodoption = Spring.GetModOptions().scavbuildspeedmultiplier
 			uDef.workertime = uDef.workertime*workertimemultipliermodoption
 		end
-		if uDef.maxvelocity then
-			uDef.maxvelocity = uDef.maxvelocity*2*randomMultiplier
-		end
+		-- if uDef.maxvelocity then
+		-- 	uDef.maxvelocity = uDef.maxvelocity*2*randomMultiplier
+		-- end
 		if uDef.canmove == true then
+			uDef.cancapture = true
 			if uDef.workertime then
 				uDef.workertime = uDef.workertime*1.5*ScavDifficultyMultiplier
 			end

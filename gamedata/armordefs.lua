@@ -22,6 +22,14 @@ local armorDefs = {
 		"corroach",
 		"corsktl",
 	},
+	walls = {
+		"armdrag",
+		"armfort",
+		"cordrag",
+		"corfort",
+		"scavdrag",
+		"scavfort",
+	},
 	standard = {
 		"armjuno",
 		"armageo",
@@ -41,7 +49,7 @@ local armorDefs = {
 		"armclaw",
 		"armcv",
 		"armdf",
-		"armdrag",
+		--"armdrag",
 		"armemp",
 		"armestor",
 		"armfark",
@@ -55,7 +63,7 @@ local armorDefs = {
 		"armflash",
 		"armflea",
 		"armfmkr",
-		"armfort",
+		--"armfort",
 		"armfrt",
 		"armgeo",
 		"armgmm",
@@ -127,7 +135,7 @@ local armorDefs = {
 		"corck",
 		"corcrash",
 		"corcv",
-		"cordrag",
+		--"cordrag",
 		"corestor",
 		"corfast",
 		"corfatf",
@@ -136,7 +144,7 @@ local armorDefs = {
 		"corfhlt",
 		"corfhp",
 		"corfmkr",
-		"corfort",
+		--"corfort",
 		"corfrt",
 		"corgator",
 		"corgeo",
@@ -398,6 +406,8 @@ local armorDefs = {
 		"armfepocht4",
 		"corfblackhyt4",
 		"armthundt4",
+		"armassistdrone",
+		"corassistdrone",
 	},
 	shields = {
 		"armgate",
@@ -502,10 +512,6 @@ local armorDefs = {
 }
 
 -- add scavenger variants
-function tableMerge(t1, t2)
-	for k,v in pairs(t2) do if type(v) == "table" then if type(t1[k] or false) == "table" then tableMerge(t1[k] or {}, t2[k] or {}) else t1[k] = v end else t1[k] = v end end
-	return t1
-end
 local armorDefs2 = {}
 for category,names in pairs(armorDefs) do
 	local catkeycount = #names
@@ -520,6 +526,6 @@ for category,names in pairs(armorDefs) do
 		--end
 	end
 end
-armorDefs = tableMerge(armorDefs, armorDefs2)
+table.mergeInPlace(armorDefs, armorDefs2)
 
 return armorDefs

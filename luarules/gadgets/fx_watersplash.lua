@@ -33,7 +33,9 @@ local splashCEG2 = "splash-small"
 local splashCEG3 = "splash-medium"
 local splashCEG4 = "splash-large"
 local splashCEG5 = "splash-huge"
-local splashCEG6 = "splash-nuke"
+local splashCEG6 = "splash-gigantic"
+local splashCEG7 = "splash-nuke"
+local splashCEG8 = "splash-nukexl"
 
 
 local weaponType = {}
@@ -53,6 +55,9 @@ for weaponDefID, def in pairs(WeaponDefs) do
 					maxDmg = v
 				end
 			end
+			if def.paralyzer then
+				maxDmg = maxDmg / 25
+			end
 			weaponAoe[weaponDefID] = weaponAoe[weaponDefID] + (maxDmg/20)
 		end
 	end
@@ -62,7 +67,7 @@ function gadget:Explosion(weaponID, px, py, pz, ownerID)
 	if Spring.GetGroundHeight(px,pz) < 0 then
 		local aoe = weaponAoe[weaponID] / 2
 		if not nonexplosiveWeapons[weaponType[weaponID]]  and abs(py) <= aoe and (not GetGroundBlocked(px, pz)) and weaponID ~= COR_SEAADVBOMB then
-			if  aoe >= 6 and aoe < 12 then
+			if aoe >= 6 and aoe < 12 then
 				Spring.SpawnCEG(splashCEG1, px, 0, pz)
 			elseif  aoe >= 12 and aoe < 24 then
 				Spring.SpawnCEG(splashCEG2, px, 0, pz)
@@ -70,10 +75,14 @@ function gadget:Explosion(weaponID, px, py, pz, ownerID)
 				Spring.SpawnCEG(splashCEG3, px, 0, pz)
 			elseif aoe >= 48 and aoe < 64 then
 				Spring.SpawnCEG(splashCEG4, px, 0, pz)
-			elseif aoe >= 64 and aoe < 300 then
+			elseif aoe >= 64 and aoe < 200 then
 				Spring.SpawnCEG(splashCEG5, px, 0, pz)
-			elseif aoe >= 300 then
+			elseif aoe >= 200 and aoe < 400 then
 				Spring.SpawnCEG(splashCEG6, px, 0, pz)
+			elseif aoe >= 400 and aoe < 600 then
+				Spring.SpawnCEG(splashCEG7, px, 0, pz)
+			elseif aoe >= 600 then
+				Spring.SpawnCEG(splashCEG8, px, 0, pz)
 			end
 			return true
 		else

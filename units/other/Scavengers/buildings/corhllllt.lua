@@ -21,7 +21,6 @@ return {
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		description = Spring.I18N('units.descriptions.corhllllt'),
-		energystorage = 60,
 		explodeas = "mediumBuildingexplosiongeneric",
 		footprintx = 2,
 		footprintz = 2,
@@ -45,6 +44,7 @@ return {
 			normaltex = "unittextures/cor_normal.dds",
 			removewait = true,
 			subfolder = "corbuildings/landdefenceoffence",
+			techlevel = 2,
 		},
 		featuredefs = {
 			dead = {

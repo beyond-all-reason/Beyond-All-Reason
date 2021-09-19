@@ -1,7 +1,7 @@
 local matTemplate = VFS.Include("ModelMaterials/Templates/defaultMaterialTemplate.lua")
 
 local materials = {
-	featuresOther = Spring.Utilities.MergeWithDefault(matTemplate, {
+	featuresOther = table.merge(matTemplate, {
 		texUnits  = {
 			[0] = "%%FEATUREDEFID:0",
 			[1] = "%%FEATUREDEFID:1",

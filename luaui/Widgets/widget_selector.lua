@@ -108,9 +108,7 @@ local scrollbargrabpos = 0.0
 local show = false
 local pagestepped = false
 
-local RectRound = Spring.FlowUI.Draw.RectRound
-local UiElement = Spring.FlowUI.Draw.Element
-local UiSelectHighlight = Spring.FlowUI.Draw.SelectHighlight
+local RectRound, UiElement, UiSelectHighlight
 
 local chobbyInterface, widgetScale, dlistGuishader, lastStart
 
@@ -133,7 +131,7 @@ local buttons = { --see MouseRelease for which functions are called by which but
 }
 
 local allowuserwidgets = true
-if Spring.GetModOptions and (tonumber(Spring.GetModOptions().allowuserwidgets) or 1) == 0 then
+if not Spring.GetModOptions().allowuserwidgets then
 	allowuserwidgets = false
 	buttons[3] = ''
 end
@@ -177,6 +175,8 @@ function widget:Initialize()
 	WG['widgetselector'].isvisible = function()
 		return show
 	end
+
+	widget:ViewResize(Spring.GetViewGeometry())
 end
 
 
@@ -309,6 +309,10 @@ function widget:ViewResize(n_vsx, n_vsy)
 	font2 = gl.LoadFont(fontfile2, fontfileSize * fontfileScale, fontfileOutlineSize * fontfileScale, fontfileOutlineStrength)
 
 	sizeMultiplier = 0.66 + (vsx * vsy / 6500000) * customScale
+
+	RectRound = WG.FlowUI.Draw.RectRound
+	UiElement = WG.FlowUI.Draw.Element
+	UiSelectHighlight = WG.FlowUI.Draw.SelectHighlight
 
 	UpdateGeometry()
 end

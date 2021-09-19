@@ -203,7 +203,7 @@ end
 -----------------------------------------------------------------------------------------------------------------
 
 function ShockWave.Create(Options)
-  local newObject = MergeTable(Options, ShockWave.Default)
+  local newObject = table.merge(ShockWave.Default, Options)
   setmetatable(newObject,ShockWave)  -- make handle lookup
   newObject:CreateParticle()
   return newObject

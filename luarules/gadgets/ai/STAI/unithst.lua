@@ -176,7 +176,9 @@ function UnitHST:Update()
 		end
 		if unit then
 			if unit:HasBehaviours() then
+ 				--self.game:StartTimer(unit:Internal():Name() .. ' hst')
 				unit:Update()
+ 				--self.game:StartTimer(unit:Internal():Name() .. ' hst')
 			end
 		end
 	end
@@ -185,6 +187,7 @@ function UnitHST:Update()
 			self.reallyActuallyDead[uID] = nil
 		end
 	end
+
 end
 
 function UnitHST:GameEnd()
@@ -198,31 +201,40 @@ end
 function UnitHST:UnitCreated(engineUnit)
 	local u = self:AIRepresentation(engineUnit)
 	if u == nil then return end
-	for k,unit in pairs(self.myActiveUnits) do
-		if unit:HasBehaviours() then
-			unit:UnitCreated(u)
-		end
-	end
+	u:UnitCreated(u)
+	--TODO fix this expensive load
+-- 	self.game:StartTimer(u:Internal():Name()..' UC')
+-- 	for k,unit in pairs(self.myActiveUnits) do
+-- 		if unit:HasBehaviours() then
+-- 			self.game:StartTimer(unit:Internal():Name()..' crea')
+-- 			unit:UnitCreated(u)
+-- 			print(u:Internal():Name() .. ' UC ' .. unit:Internal():Name())
+-- 			self.game:StopTimer(unit:Internal():Name()..' crea')
+-- 		end
+-- 	end
+-- 	self.game:StopTimer(u:Internal():Name()..' UC')
 end
 
 function UnitHST:UnitBuilt(engineUnit)
 	local u = self:AIRepresentation(engineUnit)
 	if u == nil then return end
-	for k,unit in pairs(self.myActiveUnits) do
-		if unit:HasBehaviours() then
-			unit:UnitBuilt(u)
-		end
-	end
+	u:UnitBuilt(u)
+-- 	for k,unit in pairs(self.myActiveUnits) do
+-- 		if unit:HasBehaviours() then
+-- 			unit:UnitBuilt(u)
+-- 		end
+-- 	end
 end
 
 function UnitHST:UnitDead(engineUnit)
 	local u = self:AIRepresentation(engineUnit)
 	if u ~= nil then
-		for k,unit in pairs(self.myActiveUnits) do
-			if unit:HasBehaviours() then
-				unit:UnitDead(u)
-			end
-		end
+		u:UnitDead(u)
+-- 		for k,unit in pairs(self.myActiveUnits) do
+-- 			if unit:HasBehaviours() then
+-- 				unit:UnitDead(u)
+-- 			end
+-- 		end
 	end
 	-- game:SendToConsole(self.ai.id, "removing unit from unithst tables", engineUnit:ID(), engineUnit:Name())
 	self.units[engineUnit:ID()] = nil
@@ -233,13 +245,26 @@ end
 
 function UnitHST:UnitDamaged(engineUnit,engineAttacker,damage)
 	local u = self:AIRepresentation(engineUnit)
+	u:UnitDamaged(u,engineAttacker,damage)
 	if u == nil then return end
 	-- local a = self:AIRepresentation(engineAttacker)
-	for k,unit in pairs(self.myActiveUnits) do
-		if unit:HasBehaviours() then
-			unit:UnitDamaged(u,engineAttacker,damage)
-		end
-	end
+-- 	for k,unit in pairs(self.myActiveUnits) do
+-- 		if unit:HasBehaviours() then
+-- 			unit:UnitDamaged(u,engineAttacker,damage)
+-- 		end
+-- 	end
+end
+
+
+function UnitHST:UnitIdle(engineUnit)
+	local u = self:AIRepresentation(engineUnit)
+	if u == nil then return end
+	u:UnitIdle(u)
+-- 	for k,unit in pairs(self.units) do
+-- 		if unit:HasBehaviours() then
+-- 			unit:UnitIdle(u)
+-- 		end
+-- 	end
 end
 
 function UnitHST:AIRepresentation(engineUnit)
@@ -274,12 +299,3 @@ function UnitHST:AIRepresentation(engineUnit)
 	return u
 end
 
-function UnitHST:UnitIdle(engineUnit)
-	local u = self:AIRepresentation(engineUnit)
-	if u == nil then return end
-	for k,unit in pairs(self.units) do
-		if unit:HasBehaviours() then
-			unit:UnitIdle(u)
-		end
-	end
-end

@@ -419,11 +419,10 @@ end
 -----------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------
 
-local MergeTable   = MergeTable
 local setmetatable = setmetatable
 
 function JitterParticles2.Create(Options)
-  local newObject = MergeTable(Options, JitterParticles2.Default)
+  local newObject = table.merge(JitterParticles2.Default, Options)
   setmetatable(newObject,JitterParticles2)  --// make handle lookup
   newObject:CreateParticle()
   return newObject

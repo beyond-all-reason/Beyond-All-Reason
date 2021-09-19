@@ -15,6 +15,7 @@ if isSynced then
         --if n%120 == 119 then
             --ScenarioScript_ClearGroupUnits(newgroup)
         --end
+	end
 else
     
 end

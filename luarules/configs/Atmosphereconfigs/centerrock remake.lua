@@ -122,7 +122,7 @@ local lightningsounds = {
 	       if r == 0 then
 	            local posx = math.random(thunderstormxmin, thunderstormxmax)
 	            local posz = math.random(thunderstormzmin, thunderstormzmax)
-	            SpawnCEGInPositionGround("lightningstrike", posx, 0, posz, 100, 20, 128, lightningsounds[math.random(1,#lightningsounds)], 1)
+	            SpawnCEGInPositionGround("lightningstrike", posx, 0, posz, _, _, _, lightningsounds[math.random(1,#lightningsounds)], 1)
 	       end
 	    end 
 	end

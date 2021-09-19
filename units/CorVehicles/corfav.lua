@@ -15,8 +15,6 @@ return {
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
 		description = Spring.I18N('units.descriptions.corfav'),
-		energymake = 0.3,
-		energyuse = 0.3,
 		explodeas = "tinyExplosionGeneric",
 		footprintx = 2,
 		footprintz = 2,
@@ -167,7 +165,9 @@ return {
 				weapontype = "BeamLaser",
 				weaponvelocity = 800,
 				customparams = {
-					light_mult = "0.45",
+					expl_light_mult = 0.5,
+					expl_light_radius_mult = 0.5,
+					light_mult = 0.5,
 				},
 				damage = {
 					bombers = 2,

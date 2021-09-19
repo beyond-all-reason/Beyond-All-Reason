@@ -15,8 +15,6 @@ return {
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
 		description = Spring.I18N('units.descriptions.armflea'),
-		energymake = 0.4,
-		energyuse = 0.4,
 		explodeas = "tinyexplosiongeneric",
 		footprintx = 1,
 		footprintz = 1,
@@ -148,6 +146,11 @@ return {
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 600,
+				customparams = {
+					expl_light_mult = 0.5,
+					expl_light_radius_mult = 0.5,
+					light_mult = 0.5,
+				},
 				damage = {
 					bombers = 2,
 					default = 24,

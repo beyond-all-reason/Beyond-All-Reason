@@ -293,7 +293,7 @@ end
 -----------------------------------------------------------------------------------------------------------------
 
 function RingParticles.Create(Options)
-  local newObject = MergeTable(Options, RingParticles.Default)
+  local newObject = table.merge(RingParticles.Default, Options)
   setmetatable(newObject,RingParticles)  -- make handle lookup
   return newObject
 end

@@ -1,45 +1,6 @@
 
 local DebugDrawEnabled = false
 
-local mapColors = {
-	[1] = { 1, 1, 0 },
-	[2] = { 0, 0, 1 },
-	[3] = { 1, 0, 0 },
-	JAM = { 0, 0, 0 },
-	known = { 1, 1, 1 },
-}
-
-local function GetColorFromLabel(label)
-	local color = mapColors[label] or { 1, 1, 1 }
-	color[4] = color[4] or 0.5
-	return color
-end
-
-local function PlotDebug(x, z, label)
-	if DebugDrawEnabled then
-		x = math.ceil(x)
-		z = math.ceil(z)
-		local pos = api.Position()
-		pos.x, pos.z = x, z
-		map:DrawPoint(pos, GetColorFromLabel(label), label, 3)
-	end
-end
-
-local function PlotSquareDebug(x, z, size, label)
-	if DebugDrawEnabled then
-		x = math.ceil(x)
-		z = math.ceil(z)
-		size = math.ceil(size)
-		local pos1 = api.Position()
-		local pos2 = api.Position()
-		local halfSize = size / 2
-		pos1.x = x - halfSize
-		pos1.z = z - halfSize
-		pos2.x = x + halfSize
-		pos2.z = z + halfSize
-		map:DrawRectangle(pos1, pos2, GetColorFromLabel(label), label, false, 3)
-	end
-end
 
 LosHST = class(Module)
 
@@ -75,13 +36,16 @@ function LosHST:Init()
 	self.ai.wreckCount = 0
 	self.ai.lastLOSUpdate = 0
 	self.ai.friendlyTeamID = {}
+	self.immobileE = {}
+	self.mobileE = {}
+	self.draw = {}
 	self:Update()
 end
 
 function LosHST:Update()
 	local f = self.game:Frame()
-
 	if f % 23 == 0 then
+		--self.RADAR = scanEnemies2()
         self.ai.friendlyTeamID = {}
         self.ai.friendlyTeamID[self.game:GetTeamID()] = true
         for teamID, _ in pairs(self.ai.alliedTeamIds) do
@@ -89,13 +53,16 @@ function LosHST:Update()
         end
 		-- update enemy jamming and populate list of enemies
 		local enemies = self.game:GetEnemies()
+
 		if enemies ~= nil then
 			local enemyList = {}
 			for i, e in pairs(enemies) do
+				--self:unitLosState(e:ID())
 				local uname = e:Name()
 				local upos = e:GetPosition()
 				-- so that we only have to poll GetEnemies() once
-				table.insert(enemyList, { unit = e, unitName = uname, position = upos, unitID = e:ID(), cloaked = e:IsCloaked(), beingBuilt = e:IsBeingBuilt(), health = e:GetHealth(), los = 0 })
+				--enemyList[e:ID()] = { unit = e, unitName = uname, position = upos, unitID = e:ID(), cloaked = e:IsCloaked(), beingBuilt = e:IsBeingBuilt(), health = e:GetHealth(), los = 0 , blip = 0})
+ 				table.insert(enemyList, { unit = e, unitName = uname, position = upos, unitID = e:ID(), cloaked = e:IsCloaked(), beingBuilt = e:IsBeingBuilt(), health = e:GetHealth(), los = 0 , blip = 0})
 			end
 			-- update known enemies
 			self:UpdateEnemies(enemyList)
@@ -106,6 +73,173 @@ function LosHST:Update()
 	end
 end
 
+function LosHST:unitLosState(id)
+	local guls = Spring.GetUnitLosState(id ,0,true)
+--[[int LuaSyncedRead::GetUnitLosState(lua_State* L)
+{
+    const CUnit* unit = ParseUnit(L, __func__, 1);
+    if (unit == nullptr)
+        return 0;
+
+    const int allyTeamID = GetEffectiveLosAllyTeam(L, 2);
+    unsigned short losStatus;
+    if (allyTeamID < 0) {
+        losStatus = (allyTeamID == CEventClient::AllAccessTeam) ? (LOS_ALL_MASK_BITS | LOS_ALL_BITS) : 0;
+    } else {
+        losStatus = unit->losStatus[allyTeamID];
+    }
+
+    constexpr int currMask = LOS_INLOS   | LOS_INRADAR;
+    constexpr int prevMask = LOS_PREVLOS | LOS_CONTRADAR;
+
+    const bool isTyped = ((losStatus & prevMask) == prevMask);
+
+    if (luaL_optboolean(L, 3, false)) {
+        // return a numeric value
+        if (!CLuaHandle::GetHandleFullRead(L))
+            losStatus &= ((prevMask * isTyped) | currMask);
+
+        lua_pushnumber(L, losStatus);
+        return 1;
+    }
+
+    lua_createtable(L, 0, 3);
+    if (losStatus & LOS_INLOS) {
+        HSTR_PUSH_BOOL(L, "los", true);
+    }
+    if (losStatus & LOS_INRADAR) {
+        HSTR_PUSH_BOOL(L, "radar", true);
+    }
+    if ((losStatus & LOS_INLOS) || isTyped) {
+        HSTR_PUSH_BOOL(L, "typed", true);
+    }
+    return 1;
+}
+ugh this is nasty
+ok raw means it returns number instead of table
+so the numeric integer of the mask bits
+and I dont think you can get wether a unit is seen in airlos or regular los
+its either seen or not
+raw is generally preferred, as is much faster in than creating a table
+isnt 'typed' meaning that its a radar dot that has been revealed or not?
+I definately think so
+so if you use raw = true
+then result = 15 ( 1 1 1 1 ) means in radar, in los, known unittype
+also, if result is > 2, that means that the unitdefID is known
+cause the unitdefID of a unit is 'forgotten' if the unit leaves radar
+so the key info here is these 4 bits:
+I think the bits might be:
+bit 0 : LOS_INLOS, unit is in LOS right now,
+bit 1 : LOS_INRADAR unit is in radar right now,
+bit 2: LOS_PREVLOS unit was in los at least once already, so the unitDefID can be queried
+bit 3: LOS_CONTRADAR: unit has had continous radar coverage since it was spotted in LOS]]--
+
+end
+function LosHST:scanEnemies2()
+	local enemies = self.game:GetEnemies()
+	if enemies ~= nil then
+		local enemyList = {}
+		for i, e in pairs(enemies) do
+			local uname = e:Name()
+			local upos = e:GetPosition()
+			local _,_,_, jammed = Spring.GetPositionLosState(upos.x, upos.y, upos.z, self.ai.allyId) --TEST i think is the reverse thing
+			local _inLos, _inAirLos, _inRadar = self:LAR(id)
+			-- so that we only have to poll GetEnemies() once
+			local specs = self.ai.armyhst.unitTable[uname]
+			enemyList[e:ID()] = { 	unit = e,
+									unitName = uname,
+									position = upos,
+									unitID = e:ID(),
+									cloaked = e:IsCloaked(),
+			                        inJam = jammed,
+									beingBuilt = e:IsBeingBuilt(),
+									health = e:GetHealth(),
+									sighting = 0,
+									inAirLos = _inAirLos and specs.mtype == "air" and not cloaked,
+									inSurfaceLos = _inLos and pos.y > 0 and not cloaked,
+									inSubmergedLos = _inLos and specs.mtype == "sub"and not cloaked,
+									inRadar = _inRadar and (not jammed or not cloaked),
+			                      }
+			local enemy = enemyList[e:ID()]
+			enemy.inLos = (_inAirLos or _inLos) and not enemy.cloaked
+			enemy.isMobile = (enemy.inLos and specs.speed > 0) or (enemy.inRadar and Spring.GetUnitVelocity(e:ID()))
+			enemy.isImmobile = specs.isImmobile
+			if (not enemy.inJam and not enemy.cloaked) and enemy.inLos then
+				--set last sighting time
+				enemy.sighting  =  self.game:Frame()
+			end
+			if (jammed or cloaked and inRadar) and ( not enemy.inLos  and not enemy.isImmobile) and self.game:Frame() - enemy.sighting > 600 then
+				--remove old mobile units dont sight from much time
+				enemy = nil
+			end
+			if enemy.inSurfaceLos then
+				e.unit:Internal():DrawHighlight( {100,0,0,100}, 'surf', 9 )
+			elseif enemy.inSubmergedLos then
+				e.unit:Internal():DrawHighlight( {100,0,0,100}, 'sub', 9 )
+			elseif enemy.inRadar then
+				e.unit:Internal():DrawHighlight( {0,100,0,100}, 'radar', 9 )
+			elseif enemy.inAirLos then
+				e.unit:Internal():DrawHighlight( {0,0,100,100}, 'air', 9 )
+			elseif enemy.isMobile then
+				e.unit:Internal():DrawHighlight( {100,100,100,100}, 'mobile', 9 )
+			elseif enemy.isImmobile then
+				e.unit:Internal():DrawHighlight( {0,0,0,100}, 'immobile', 9 )
+			end
+		end
+	end
+end
+function LosHST:LAR(id)
+	local inLos = Spring.IsUnitInLos(id, self.ai.allyId)
+	local inAirLos = Spring.IsUnitInAirLos(id, self.ai.allyId)
+	local inRadar = Spring.IsUnitInRadar(id, self.ai.allyId)
+	return inLos , inAirLos, inRadar
+end
+
+function LosHST:ScanEnemy(enemies)
+	if enemyList == nil then return end
+	if #enemyList == 0 then return end
+	self.cloaked = {}
+	self.jammed = {}
+
+	for id, enemy  in ipairs(enemies) do
+		local id = e.unitID
+		local ename = e.unitName
+		local pos = e.position
+		local inLos, inAirLos, inRadar = self:LAR(id)
+		local specs = self.ai.armyhst.unitTable[ename]
+		if e.cloaked then
+			self.enemyCloaked[id] = enemy
+		end
+		if inJam then
+			self.enemyJammed[id] = enemy
+		end
+		if inAirLos and specs.mtype == "air"  then
+			self.enemyAir[id] = enemy
+		end
+		if inLos then
+			if specs.mtype == "sub" or pos.y < 0 then
+				enemySub[id] = enemy
+			else
+				enemyGround[id] = enemy
+			end
+		end
+		if inRadar and not (inLos or inAirLos) then
+			if pos.y < 0 then
+				self.enemySubRadar[id] = enemy
+			else
+				self.enemyGroundRadar[id] = enemy
+			end
+		end
+		if specs.speed > 0 then
+			self.enemyMobile[id] = enemy
+		else
+			self.enemyImmobile[id] = enemy
+		end
+
+	end
+end
+
+
 function LosHST:UpdateEnemies(enemyList)
 	if enemyList == nil then return end
 	if #enemyList == 0 then return end
@@ -113,6 +247,7 @@ function LosHST:UpdateEnemies(enemyList)
 	local known = {}
 	local exists = {}
 	for i, e  in pairs(enemyList) do
+
 		local id = e.unitID
 		local ename = e.unitName
 		local pos = e.position
@@ -124,8 +259,10 @@ function LosHST:UpdateEnemies(enemyList)
 			if Spring.IsUnitInRadar(id, self.ai.allyId) then
 				if pos.y < 0 then -- underwater
 					t[3] = true
+-- 					self.unit:Internal():DrawHighlight( {0,100,0}, id, 9 )--Spring.GetUnitLosState
 				else
 					t[1] = true
+-- 					self.unit:Internal():DrawHighlight( {0,0,0}, id, 9 )
 				end
 			end
 			if Spring.IsUnitInAirLos(id, self.ai.allyId) then
@@ -147,12 +284,14 @@ function LosHST:UpdateEnemies(enemyList)
 				elseif lt[2] then
 					los = 2
 				elseif lt[4] and self.ai.armyhst.unitTable[ename].mtype == "air" then
+					self.ai.needAntiAir = true
 					-- air los
 					los = 2
 				end
 			end
 			if los == 0 and self.ai.armyhst.unitTable[ename].isBuilding then
 				-- don't remove from knownenemies if it's a building that was once seen
+
 				persist = true
 			elseif los == 1 then
 				-- don't remove from knownenemies if it's a now blip
@@ -160,6 +299,7 @@ function LosHST:UpdateEnemies(enemyList)
 			elseif los == 2 then
 				known[id] = los
 				self.ai.knownEnemies[id] = e
+
 				e.los = los
 			end
 			if persist == true then
@@ -175,12 +315,8 @@ function LosHST:UpdateEnemies(enemyList)
 				e.los = los
 				known[id] = los
 			end
-			if self.ai.knownEnemies[id] ~= nil and DebugDrawEnabled then
+			if self.ai.knownEnemies[id] ~= nil  then
 				if known[id] == 2 and self.ai.knownEnemies[id].los == 2 then
-					e.unit:EraseHighlight({1,0,0}, 'known', 3)
-					e.unit:DrawHighlight({1,0,0}, 'known', 3)
-					-- self.map:DrawUnit(id, {1,0,0}, 'known', 3)
-					-- PlotDebug(pos.x, pos.z, "known")
 				end
 			end
 		end
@@ -206,7 +342,9 @@ function LosHST:UpdateEnemies(enemyList)
 				self.ai.attackhst:NeedLess(mtype)
 				if mtype == "air" then self.ai.bomberhst:NeedLess() end
 			end
-			if DebugDrawEnabled then self.map:ErasePoint(nil, nil, id, 3) end
+			if DebugDrawEnabled then
+				self.map:ErasePoint(nil, nil, id, 3)
+			end
 			self.ai.knownEnemies[id] = nil
 		elseif not known[id] then
 			if e.ghost then
@@ -215,7 +353,6 @@ function LosHST:UpdateEnemies(enemyList)
 					if self:IsInLos(gpos) or self:IsInRadar(gpos) then
 						-- the ghost is not where it was last seen, but it's still somewhere
 						e.ghost.position = nil
-						if DebugDrawEnabled then self.map:ErasePoint(nil, nil, id, 3) end
 					end
 				end
 				-- expire ghost
@@ -223,10 +360,6 @@ function LosHST:UpdateEnemies(enemyList)
 					-- self.ai.knownEnemies[id] = nil
 				-- end
 			else
-				if DebugDrawEnabled then
-					self.map:ErasePoint(nil, nil, id, 3)
-					self.map:DrawPoint(e.position, {0.5,0.5,0.5,1}, id, 3)
-				end
 				e.ghost = { frame = f, position = e.position }
 			end
 		else
@@ -242,7 +375,6 @@ function LosHST:UpdateEnemies(enemyList)
 				end
 				if count then table.insert(blips, e) end
 			end
-			if DebugDrawEnabled then self.map:ErasePoint(nil, nil, id, 3) end
 			e.ghost = nil
 		end
 	end
@@ -319,58 +451,7 @@ function LosHST:UpdateWrecks()
 	known = {}
 end
 
-function LosHST:HorizontalLine(x, z, tx, val, jam)
-	-- self:EchoDebug("horizontal line from " .. x .. " to " .. tx .. " along z " .. z .. " with value " .. val)
-	for ix = x, tx do
-		if jam then
-			if self.losGrid[ix] == nil then return end
-			if self.losGrid[ix][z] == nil then return end
-			if DebugDrawEnabled then
-				if self.losGrid[ix][z][val] == true then PlotSquareDebug(ix * losGridElmos, z * losGridElmos, losGridElmos, "JAM") end
-			end
-			if self.losGrid[ix][z][val] then self.losGrid[ix][z][val] = false end
-		else
-			if self.losGrid[ix] == nil then self.losGrid[ix] = {} end
-			if self.losGrid[ix][z] == nil then
-				self.losGrid[ix][z] = EmptyLosTable()
-			end
-			if self.losGrid[ix][z][val] == false and DebugDrawEnabled then PlotSquareDebug(ix * losGridElmos, z * losGridElmos, losGridElmos, val) end
-			self.losGrid[ix][z][val] = true
-		end
-	end
-end
 
-function LosHST:Plot4(cx, cz, x, z, val, jam)
-	self:HorizontalLine(cx - x, cz + z, cx + x, val, jam)
-	if x ~= 0 and z ~= 0 then
-        self:HorizontalLine(cx - x, cz - z, cx + x, val, jam)
-    end
-end
-
-function LosHST:FillCircle(cx, cz, radius, val, jam)
-	-- convert to grid coordinates
-	cx = math.ceil(cx / losGridElmos)
-	cz = math.ceil(cz / losGridElmos)
-	radius = math.floor(radius / losGridElmos)
-	if radius > 0 then
-		local err = -radius
-		local x = radius
-		local z = 0
-		while x >= z do
-	        local lastZ = z
-	        err = err + z
-	        z = z + 1
-	        err = err + z
-	        self:Plot4(cx, cz, x, lastZ, val, jam)
-	        if err >= 0 then
-	            if x ~= lastZ then self:Plot4(cx, cz, lastZ, x, val, jam) end
-	            err = err - x
-	            x = x - 1
-	            err = err - x
-	        end
-	    end
-	end
-end
 
 function LosHST:IsInLos(pos)
 	return self:GroundLos(pos) == 2
@@ -481,3 +562,97 @@ function LosHST:KnowEnemy(unit, los)
 	local enemy = { unit = unit, unitName = unit:Name(), position = upos, unitID = unit:ID(), cloaked = unit:IsCloaked(), beingBuilt = unit:IsBeingBuilt(), health = unit:GetHealth(), los = los }
 	self.ai.knownEnemies[unit:ID()] = enemy
 end
+
+
+-- local mapColors = {
+-- 	[1] = { 1, 1, 0 },
+-- 	[2] = { 0, 0, 1 },
+-- 	[3] = { 1, 0, 0 },
+-- 	JAM = { 0, 0, 0 },
+-- 	known = { 1, 1, 1 },
+-- }
+
+-- local function GetColorFromLabel(label)
+-- 	local color = mapColors[label] or { 1, 1, 1 }
+-- 	color[4] = color[4] or 0.5
+-- 	return color
+-- end
+
+-- local function PlotDebug(x, z, label)
+-- 	if DebugDrawEnabled then
+-- 		x = math.ceil(x)
+-- 		z = math.ceil(z)
+-- 		local pos = api.Position()
+-- 		pos.x, pos.z = x, z
+-- 		map:DrawPoint(pos, GetColorFromLabel(label), label, 3)
+-- 	end
+-- end
+
+-- local function PlotSquareDebug(x, z, size, label)
+-- 	if DebugDrawEnabled then
+-- 		x = math.ceil(x)
+-- 		z = math.ceil(z)
+-- 		size = math.ceil(size)
+-- 		local pos1 = api.Position()
+-- 		local pos2 = api.Position()
+-- 		local halfSize = size / 2
+-- 		pos1.x = x - halfSize
+-- 		pos1.z = z - halfSize
+-- 		pos2.x = x + halfSize
+-- 		pos2.z = z + halfSize
+-- 		map:DrawRectangle(pos1, pos2, GetColorFromLabel(label), label, false, 3)
+-- 	end
+-- end
+
+-- function LosHST:HorizontalLine(x, z, tx, val, jam)
+-- 	-- self:EchoDebug("horizontal line from " .. x .. " to " .. tx .. " along z " .. z .. " with value " .. val)
+-- 	for ix = x, tx do
+-- 		if jam then
+-- 			if self.losGrid[ix] == nil then return end
+-- 			if self.losGrid[ix][z] == nil then return end
+-- 			if DebugDrawEnabled then
+-- 				if self.losGrid[ix][z][val] == true then PlotSquareDebug(ix * losGridElmos, z * losGridElmos, losGridElmos, "JAM") end
+-- 			end
+-- 			if self.losGrid[ix][z][val] then self.losGrid[ix][z][val] = false end
+-- 		else
+-- 			if self.losGrid[ix] == nil then self.losGrid[ix] = {} end
+-- 			if self.losGrid[ix][z] == nil then
+-- 				self.losGrid[ix][z] = EmptyLosTable()
+-- 			end
+-- 			if self.losGrid[ix][z][val] == false and DebugDrawEnabled then PlotSquareDebug(ix * losGridElmos, z * losGridElmos, losGridElmos, val) end
+-- 			self.losGrid[ix][z][val] = true
+-- 		end
+-- 	end
+-- end
+
+-- function LosHST:Plot4(cx, cz, x, z, val, jam)
+-- 	self:HorizontalLine(cx - x, cz + z, cx + x, val, jam)
+-- 	if x ~= 0 and z ~= 0 then
+--         self:HorizontalLine(cx - x, cz - z, cx + x, val, jam)
+--     end
+-- end
+
+-- function LosHST:FillCircle(cx, cz, radius, val, jam)
+-- 	-- convert to grid coordinates
+-- 	cx = math.ceil(cx / losGridElmos)
+-- 	cz = math.ceil(cz / losGridElmos)
+-- 	radius = math.floor(radius / losGridElmos)
+-- 	if radius > 0 then
+-- 		local err = -radius
+-- 		local x = radius
+-- 		local z = 0
+-- 		while x >= z do
+-- 	        local lastZ = z
+-- 	        err = err + z
+-- 	        z = z + 1
+-- 	        err = err + z
+-- 	        self:Plot4(cx, cz, x, lastZ, val, jam)
+-- 	        if err >= 0 then
+-- 	            if x ~= lastZ then self:Plot4(cx, cz, lastZ, x, val, jam) end
+-- 	            err = err - x
+-- 	            x = x - 1
+-- 	            err = err - x
+-- 	        end
+-- 	    end
+-- 	end
+-- end

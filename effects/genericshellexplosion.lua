@@ -61,6 +61,7 @@ local definitions = {
         sizegrowth         = 4,
         speed              = [[0, 1 0, 0]],
         texture            = [[flare]],
+        drawOrder          = 1,
       },
     },
     explosion = {
@@ -90,6 +91,29 @@ local definitions = {
         sizemod            = 1.1,
         texture            = [[flashside3]],
         useairlos          = false,
+        drawOrder          = 1,
+      },
+    },
+    shockwave = {
+      air                = true,
+      class              = [[CBitmapMuzzleFlame]],
+      count              = 0,
+      ground             = true,
+      underwater         = false,
+      water              = true,
+      properties = {
+        colormap           = [[0 0 0 0   1 0.95 0.9 0.12   0.6 0.55 0.35 0.45  0.18 0.11 0.07 0.008   0.10 0.08 0.04 0.006    0.06 0.04 0.02 0.005    0 0 0 0]],
+        dir                = [[0, 1, 0]],
+        --gravity            = [[0.0, 0.1, 0.0]],
+        frontoffset        = 0,
+        fronttexture       = [[explosionwave]],
+        length             = 45,
+        sidetexture        = [[none]],
+        size               = 1.6,
+        sizegrowth         = [[-20 r7]],
+        ttl                = 5,
+        pos                = [[0, 5, 0]],
+        drawOrder          = 1,
       },
     },
     dustparticles = {
@@ -137,7 +161,7 @@ local definitions = {
         emitVector = [[0, 1, 0]],
         gravity = [[0, 0.014, 0]],
         colormap=[[1 0.66 0.45 0.2    0.4 0.2 0.14 0.35   0.21 0.16 0.11 0.31    0.15 0.12 0.09 0.28   0.1 0.095 0.088 0.22   0.07 0.065 0.058 0.15    0 0 0 0.01]],
-        Texture=[[graysmoke]],
+        Texture=[[dirt]],
         particleLife=17,
         particleLifeSpread=21,
         numparticles=2,
@@ -165,7 +189,7 @@ local definitions = {
         emitVector = [[0, 1, 0]],
         gravity = [[0, -0.02, 0]],
         colormap=[[1 0.66 0.4 0.45    0.3 0.2 0.13 0.4   0.18 0.15 0.11 0.35    0.13 0.12 0.1 0.32   0.11 0.1 0.093 0.25   0.063 0.062 0.058 0.17    0 0 0 0.01]],
-        Texture=[[graysmoke]],
+        Texture=[[dirt]],
         particleLife=7,
         particleLifeSpread=18,
         numparticles=1,
@@ -204,6 +228,7 @@ local definitions = {
         sizemod            = 1,
         texture            = [[bigexplosmoke]],
         useairlos          = false,
+        drawOrder          = 1,
       },
     },
     dirt2 = {
@@ -234,6 +259,7 @@ local definitions = {
         sizemod            = 1,
         texture            = [[bigexplosmoke]],
         useairlos          = false,
+        drawOrder          = 1,
       },
     },
     clouddust = {
@@ -260,6 +286,7 @@ local definitions = {
         sizegrowth         = 0.1,
         sizemod            = 1.0,
         texture            = [[bigexplosmoke]],
+        drawOrder          = 1,
       },
     },
     --grounddust = {
@@ -315,6 +342,7 @@ local definitions = {
         sizemod            = 1,
         texture            = [[shard1]],
         useairlos          = false,
+        drawOrder          = 1,
       },
     },
     shard2 = {
@@ -400,6 +428,7 @@ local definitions = {
         sizemod            = 0.8,
         texture            = [[gunshotglow]],
         useairlos          = false,
+        drawOrder          = 2,
       },
     },
     outerflash = {
@@ -418,6 +447,7 @@ local definitions = {
         sizegrowth         = 0.6,
         speed              = [[0, 1 0, 0]],
         texture            = [[orangenovaexplo]],
+        drawOrder          = 1,
       },
     },
 
@@ -478,13 +508,14 @@ local definitions = {
 	  underwater         = true,
       properties = {
         heat               = 7,
-        heatfalloff        = 1.2,
+        heatfalloff        = 1.5,
         maxheat            = 16,
         pos                = [[r-2 r2, 5, r-2 r2]],
-        size               = 2,
+        size               = 1.0,
         sizegrowth         = 6,
         speed              = [[0, 1 0, 0]],
-        texture            = [[flare]],
+        texture            = [[orangenovaexplo]],
+        drawOrder          = 2,
       },
     },
     explosion = {
@@ -514,22 +545,30 @@ local definitions = {
         sizemod            = 1.1,
         texture            = [[flashside3]],
         useairlos          = false,
+        drawOrder          = 1,
       },
     },
     shockwave = {
-        class              = [[CSpherePartSpawner]],
-            count              = 0,
-            ground             = true,
-            water              = true,
-            underwater         = true,
-            air                = true,
-            properties = {
-                alpha           = 0.41,
-                ttl             = 5,
-                expansionSpeed  = 7,
-                color           = [[0.7, 0.60, 0.32]],
-                alwaysvisible      = false,
-            },
+      air                = true,
+      class              = [[CBitmapMuzzleFlame]],
+      count              = 0,
+      ground             = true,
+      underwater         = false,
+      water              = true,
+      properties = {
+        colormap           = [[0 0 0 0   1 0.95 0.9 0.12   0.6 0.55 0.35 0.45  0.18 0.11 0.07 0.008   0.10 0.08 0.04 0.006    0.06 0.04 0.02 0.005    0 0 0 0]],
+        dir                = [[0, 1, 0]],
+        --gravity            = [[0.0, 0.1, 0.0]],
+        frontoffset        = 0,
+        fronttexture       = [[explosionwave]],
+        length             = 45,
+        sidetexture        = [[none]],
+        size               = 1.8,
+        sizegrowth         = [[-20 r7]],
+        ttl                = 6,
+        pos                = [[0, 5, 0]],
+        drawOrder          = 1,
+      },
     },
     dustparticles = {
       air                = true,
@@ -576,7 +615,7 @@ local definitions = {
         emitVector = [[0, 1, 0]],
         gravity = [[0, 0.014, 0]],
         colormap=[[1 0.66 0.4 0.45    0.3 0.2 0.13 0.4   0.18 0.15 0.11 0.35    0.13 0.12 0.1 0.32   0.11 0.1 0.093 0.25   0.063 0.062 0.058 0.17    0 0 0 0.01]],
-        Texture=[[graysmoke]],
+        Texture=[[dirt]],
         particleLife=22,
         particleLifeSpread=45,
         numparticles=2,
@@ -604,7 +643,7 @@ local definitions = {
         emitVector = [[0, 1, 0]],
         gravity = [[0, -0.02, 0]],
         colormap=[[1 0.66 0.4 0.45    0.3 0.2 0.13 0.4   0.18 0.15 0.11 0.35    0.13 0.12 0.1 0.32   0.11 0.1 0.093 0.25   0.063 0.062 0.058 0.17    0 0 0 0.01]],
-        Texture=[[graysmoke]],
+        Texture=[[dirt]],
         particleLife=15,
         particleLifeSpread=25,
         numparticles=2,
@@ -841,6 +880,7 @@ local definitions = {
         sizemod            = 0.8,
         texture            = [[gunshotglow]],
         useairlos          = false,
+        drawOrder          = 2,
       },
     },
     -- shockwave = {
@@ -889,13 +929,14 @@ local definitions = {
 	  underwater         = true,
       properties = {
         heat               = 12,
-        heatfalloff        = 1.3,
+        heatfalloff        = 1.5,
         maxheat            = 20,
         pos                = [[r-2 r2, 3, r-2 r2]],
-        size               = 1.5,
-        sizegrowth         = 5.5,
+        size               = 1.0,
+        sizegrowth         = 5.3,
         speed              = [[0, 1 0, 0]],
-        texture            = [[flare]],
+        texture            = [[orangenovaexplo]],
+        drawOrder          = 2,
       },
     },
     groundflash_small = {
@@ -969,6 +1010,7 @@ local definitions = {
         sizemod            = 1,
         texture            = [[flashside3]],
         useairlos          = false,
+        drawOrder          = 1,
       },
     },
     pop1 = {
@@ -987,23 +1029,10 @@ local definitions = {
         sizeGrowth = 6,
         pos = [[r-10 r8, 15, r-10 r8]],
         speed=[[0, 0, 0]],
+        drawOrder          = 1,
       },
     },
-    -- shockwave = {
-    --     class              = [[CSpherePartSpawner]],
-    --         count              = 0,
-    --         ground             = true,
-    --         water              = true,
-    --         underwater         = true,
-    --         air                = true,
-    --         properties = {
-    --             alpha           = 0.37,
-    --             ttl             = 6,
-    --             expansionSpeed  = 8,
-    --             color           = [[0.7, 0.60, 0.32]],
-    --             alwaysvisible      = false,
-    --         },
-    -- },
+
     shockwave = {
       air                = true,
       class              = [[CBitmapMuzzleFlame]],
@@ -1023,8 +1052,10 @@ local definitions = {
         sizegrowth         = [[-20 r7]],
         ttl                = 8,
         pos                = [[0, 5, 0]],
+        drawOrder          = 1,
       },
     },
+
     dustparticles = {
       air                = true,
       class              = [[CSimpleParticleSystem]],
@@ -1053,6 +1084,7 @@ local definitions = {
         texture            = [[randomdots]],
       },
     },
+
     innersmoke = {
       class = [[CSimpleParticleSystem]],
       water=0,
@@ -1070,7 +1102,7 @@ local definitions = {
         emitVector = [[0, 1, 0]],
         gravity = [[0, 0.02, 0]],
         colormap=[[1 0.66 0.4 0.45    0.3 0.2 0.13 0.4   0.18 0.15 0.11 0.35    0.13 0.12 0.1 0.32   0.11 0.1 0.093 0.25   0.063 0.062 0.058 0.17    0 0 0 0.01]],
-        Texture=[[graysmoke]],
+        Texture=[[dirt]],
         particleLife=25,
         particleLifeSpread=50,
         numparticles=3,
@@ -1081,6 +1113,7 @@ local definitions = {
         directional=0,
       },
     },
+
     outersmoke = {
       class = [[CSimpleParticleSystem]],
       water=0,
@@ -1098,7 +1131,7 @@ local definitions = {
         emitVector = [[0, 1, 0]],
         gravity = [[0, -0.02, 0]],
         colormap=[[1 0.66 0.4 0.45    0.3 0.2 0.13 0.4   0.18 0.15 0.11 0.35    0.13 0.12 0.1 0.32   0.11 0.1 0.093 0.25   0.063 0.062 0.058 0.17    0 0 0 0.01]],
-        Texture=[[graysmoke]],
+        Texture=[[dirt]],
         particleLife=20,
         particleLifeSpread=40,
         numparticles=3,
@@ -1109,6 +1142,8 @@ local definitions = {
         directional=0,
       },
     },
+
+
     sparks = {
       air                = true,
       class              = [[CSimpleParticleSystem]],
@@ -1136,23 +1171,10 @@ local definitions = {
         sizemod            = 0.77,
         texture            = [[gunshotglow]],
         useairlos          = false,
+        drawOrder          = 2,
       },
     },
-    -- shockwave = {
-    --     class              = [[CSpherePartSpawner]],
-    --         count              = 1,
-    --         ground             = true,
-    --         water              = true,
-    --         underwater         = true,
-    --         air                = true,
-    --         properties = {
-    --             alpha           = 0.42,
-    --             ttl             = 5,
-    --             expansionSpeed  = 6,
-    --             color           = [[0.7, 0.60, 0.32]],
-    --             alwaysvisible      = true,
-    --         },
-    -- },
+
     dirt = {
       class              = [[CSimpleParticleSystem]],
       count              = 1,
@@ -1322,6 +1344,7 @@ local definitions = {
         sizegrowth         = 0.22,
         sizemod            = 1.0,
         texture            = [[bigexplosmoke]],
+        drawOrder          = 1,
       },
     },
     --grounddust = {
@@ -1413,7 +1436,8 @@ local definitions = {
         size               = 3,
         sizegrowth         = 12,
         speed              = [[0, 1 0, 0]],
-        texture            = [[flare]],
+        texture            = [[orangenovaexplo]],
+        drawOrder          = 2,
       },
     },
     groundflash_small = {
@@ -1488,6 +1512,7 @@ local definitions = {
         sizemod            = 1,
         texture            = [[flashside3]],
         useairlos          = false,
+        drawOrder          = 1,
       },
     },
     pop1 = {
@@ -1506,6 +1531,7 @@ local definitions = {
         sizeGrowth = 8,
         pos = [[r-10 r8, 16, r-10 r8]],
         speed=[[0, 0, 0]],
+        drawOrder          = 1,
       },
     },
     dustparticles = {
@@ -1541,22 +1567,24 @@ local definitions = {
       water=0,
       air=1,
       ground=1,
-      count=1,
+      count=2,
       properties = {
         airdrag=0.75,
         alwaysVisible = 0,
         sizeGrowth = 0.66,
         sizeMod = 1,
+
+        rotParams          = [[-4 r8, -1 r2, -180 r360]],
         pos = [[r-1 r1, 0, r-1 r1]],
         emitRot=33,
         emitRotSpread=50,
         emitVector = [[0, 1, 0]],
         gravity = [[0, 0.02, 0]],
         colormap=[[1 0.66 0.4 0.45    0.3 0.2 0.13 0.4   0.18 0.15 0.11 0.35    0.13 0.12 0.1 0.32   0.11 0.1 0.093 0.25   0.063 0.062 0.058 0.17    0 0 0 0.01]],
-        Texture=[[graysmoke]],
+        Texture=[[dirt]],
         particleLife=30,
         particleLifeSpread=75,
-        numparticles=6,
+        numparticles=3,
         particleSpeed=3.5,
         particleSpeedSpread=9,
         particleSize=11,
@@ -1569,22 +1597,23 @@ local definitions = {
       water=0,
       air=1,
       ground=1,
-      count=1,
+      count=2,
       properties = {
         airdrag=0.6,
         alwaysVisible = 0,
         sizeGrowth = 0.35,
         sizeMod = 1,
+        rotParams          = [[-4 r8, -1 r2, -180 r360]],
         pos = [[r-1 r1, 0, r-1 r1]],
         emitRot=33,
         emitRotSpread=50,
         emitVector = [[0, 1, 0]],
         gravity = [[0, -0.02, 0]],
         colormap=[[1 0.66 0.4 0.45    0.3 0.2 0.13 0.4   0.18 0.15 0.11 0.35    0.13 0.12 0.1 0.32   0.11 0.1 0.093 0.25   0.063 0.062 0.058 0.17    0 0 0 0.01]],
-        Texture=[[graysmoke]],
+        Texture=[[dirt]],
         particleLife=22,
         particleLifeSpread=50,
-        numparticles=4,
+        numparticles=2,
         particleSpeed=5,
         particleSpeedSpread=8,
         particleSize=29,
@@ -1619,6 +1648,7 @@ local definitions = {
         sizemod            = 0.77,
         texture            = [[gunshotxl]],
         useairlos          = false,
+        drawOrder          = 2,
       },
     },
      shockwave = {
@@ -1640,23 +1670,9 @@ local definitions = {
         sizegrowth         = [[-13 r7]],
         ttl                = 10,
         pos                = [[0, 20, 0]],
+        drawOrder          = 1,
       },
     },
-    -- shockwave = {
-    --     class              = [[CSpherePartSpawner]],
-    --         count              = 0,
-    --         ground             = true,
-    --         water              = true,
-    --         underwater         = true,
-    --         air                = true,
-    --         properties = {
-    --             alpha           = 0.46,
-    --             ttl             = 7,
-    --             expansionSpeed  = 8,
-    --             color           = [[0.7, 0.60, 0.32]],
-    --             alwaysvisible      = true,
-    --         },
-    -- },
     dirt = {
       class              = [[CSimpleParticleSystem]],
       count              = 1,
@@ -1685,6 +1701,7 @@ local definitions = {
         sizemod            = 1,
         texture            = [[bigexplosmoke]],
         useairlos          = false,
+        drawOrder          = 1,
       },
     },
     dirt2 = {
@@ -1711,11 +1728,13 @@ local definitions = {
         particlesizespread = -1.4,
         particlespeed      = 3.6,
         particlespeedspread = 3.4,
+        rotParams          = [[-4 r8, -1 r2, -180 r360]],
         pos                = [[0, 6, 0]],
         sizegrowth         = -0.01,
         sizemod            = 1,
         texture            = [[bigexplosmoke]],
         useairlos          = false,
+        drawOrder          = 1,
       },
     },
     shard1 = {
@@ -1744,6 +1763,7 @@ local definitions = {
         sizemod            = 1,
         texture            = [[shard1]],
         useairlos          = false,
+        drawOrder          = 1,
       },
     },
     shard2 = {
@@ -1822,10 +1842,12 @@ local definitions = {
         particlesizespread = 40,
         particlespeed      = 1.2,
         particlespeedspread = 2.5,
+        rotParams          = [[-4 r8, -1 r2, -180 r360]],
         pos                = [[0, 4, 0]],
         sizegrowth         = 0.18,
         sizemod            = 1.0,
         texture            = [[bigexplosmoke]],
+        drawOrder          = 1,
       },
     },
     --grounddust = {
@@ -1940,10 +1962,11 @@ local definitions = {
         heatfalloff        = 1.4,
         maxheat            = 14,
         pos                = [[r-2 r2, 10, r-2 r2]],
-        size               = 3.4,
+        size               = 3.2,
         sizegrowth         = 14,
         speed              = [[0, 1 0, 0]],
-        texture            = [[flare]],
+        texture            = [[orangenovaexplo]],
+        drawOrder          = 2,
       },
     },
     groundflash_small = {
@@ -2020,8 +2043,10 @@ local definitions = {
         heatFalloff = 1.8,
         size = 6,
         sizeGrowth = 13,
+        rotParams          = [[-4 r8, -1 r2, -180 r360]],
         pos = [[r-10 r10, 20, r-10 r10]],
         speed=[[0, 0, 0]],
+        drawOrder          = 1,
       },
     },
     explosion = {
@@ -2051,6 +2076,7 @@ local definitions = {
         sizemod            = 1,
         texture            = [[flashside3]],
         useairlos          = false,
+        drawOrder          = 1,
       },
     },
     shockwave = {
@@ -2072,6 +2098,7 @@ local definitions = {
         sizegrowth         = [[-20 r4]],
         ttl                = 9,
         pos                = [[0, 20, 0]],
+        drawOrder          = 1,
       },
     },
     dustparticles = {
@@ -2107,22 +2134,23 @@ local definitions = {
       water=0,
       air=1,
       ground=1,
-      count=1,
+      count=2,
       properties = {
         airdrag=0.80,
         alwaysVisible = 0,
         sizeGrowth = 0.66,
         sizeMod = 1,
+        rotParams          = [[-4 r8, -1 r2, -180 r360]],
         pos = [[r-1 r2, 0, r-1 r2]],
         emitRot=33,
         emitRotSpread=50,
         emitVector = [[0, 1, 0]],
         gravity = [[0, 0.02, 0]],
         colormap=[[1 0.66 0.4 0.45    0.3 0.2 0.13 0.4   0.18 0.15 0.11 0.35    0.13 0.12 0.1 0.32   0.11 0.1 0.093 0.25   0.063 0.062 0.058 0.17    0 0 0 0.01]],
-        Texture=[[graysmoke]],
+        Texture=[[dirt]],
         particleLife=30,
         particleLifeSpread=75,
-        numparticles=7,
+        numparticles=3,
         particleSpeed=7,
         particleSpeedSpread=9,
         particleSize=12,
@@ -2135,22 +2163,23 @@ local definitions = {
       water=0,
       air=1,
       ground=1,
-      count=1,
+      count=2,
       properties = {
         airdrag=0.7,
         alwaysVisible = 0,
         sizeGrowth = 0.35,
         sizeMod = 1,
+        rotParams          = [[-4 r8, -1 r2, -180 r360]],
         pos = [[r-1 r2, 0, r-1 r2]],
         emitRot=33,
         emitRotSpread=50,
         emitVector = [[0, 1, 0]],
         gravity = [[0, -0.02, 0]],
         colormap=[[1 0.66 0.4 0.45    0.3 0.2 0.13 0.4   0.18 0.15 0.11 0.35    0.13 0.12 0.1 0.32   0.11 0.1 0.093 0.25   0.063 0.062 0.058 0.17    0 0 0 0.01]],
-        Texture=[[graysmoke]],
+        Texture=[[dirt]],
         particleLife=22,
         particleLifeSpread=50,
-        numparticles=4,
+        numparticles=2,
         particleSpeed=5,
         particleSpeedSpread=8,
         particleSize=29,
@@ -2185,23 +2214,9 @@ local definitions = {
         sizemod            = 0.78,
         texture            = [[gunshotxl]],
         useairlos          = false,
+        drawOrder          = 2,
       },
     },
-    -- shockwave = {
-    --     class              = [[CSpherePartSpawner]],
-    --         count              = 1,
-    --         ground             = true,
-    --         water              = true,
-    --         underwater         = true,
-    --         air                = true,
-    --         properties = {
-    --             alpha           = 0.6,
-    --             ttl             = 9,
-    --             expansionSpeed  = 9,
-    --             color           = [[0.7, 0.60, 0.32]],
-    --             alwaysvisible      = true,
-    --         },
-    -- },
     dirt = {
       class              = [[CSimpleParticleSystem]],
       count              = 1,
@@ -2230,6 +2245,7 @@ local definitions = {
         sizemod            = 1,
         texture            = [[bigexplosmoke]],
         useairlos          = false,
+        drawOrder          = 1,
       },
     },
     dirt2 = {
@@ -2317,6 +2333,7 @@ local definitions = {
         sizemod            = 1,
         texture            = [[shard2]],
         useairlos          = false,
+        drawOrder          = 1,
       },
     },
     shard3 = {
@@ -2367,10 +2384,12 @@ local definitions = {
         particlesizespread = 40,
         particlespeed      = 1.2,
         particlespeedspread = 2.5,
+        rotParams          = [[-4 r8, -1 r2, -180 r360]],
         pos                = [[0, 4, 0]],
         sizegrowth         = 0.18,
         sizemod            = 1.0,
         texture            = [[bigexplosmoke]],
+        drawOrder          = 1,
       },
     },
     outerflash = {
@@ -2411,6 +2430,7 @@ local definitions = {
         sizegrowth         = 11,
         speed              = [[0, 1 0, 0]],
         texture            = [[flare]],
+        drawOrder          = 1,
       },
     },
     groundflash_small = {
@@ -2488,6 +2508,7 @@ local definitions = {
         sizeGrowth = 10,
         pos = [[r-10 r10, 20, r-10 r10]],
         speed=[[0, 0, 0]],
+        drawOrder          = 1,
       },
     },
     explosion = {
@@ -2517,6 +2538,7 @@ local definitions = {
         sizemod            = 0.97,
         texture            = [[flashside3]],
         useairlos          = false,
+        drawOrder          = 1,
       },
     },
     shockwave = {
@@ -2538,6 +2560,7 @@ local definitions = {
         sizegrowth         = -14,
         ttl                = 13,
         pos                = [[0, 5, 0]],
+        drawOrder          = 1,
       },
     },
     dustparticles = {
@@ -2585,9 +2608,9 @@ local definitions = {
         emitVector = [[0, 1, 0]],
         gravity = [[0, 0.02, 0]],
         colormap=[[1 0.66 0.4 0.45    0.3 0.2 0.13 0.4   0.18 0.15 0.11 0.35    0.13 0.12 0.1 0.32   0.11 0.1 0.093 0.25   0.063 0.062 0.058 0.17    0 0 0 0.01]],
-        Texture=[[graysmoke]],
-        particleLife=50,
-        particleLifeSpread=140,
+        Texture=[[dirt]],
+        particleLife=35,
+        particleLifeSpread=80,
         numparticles=7,
         particleSpeed=6,
         particleSpeedSpread=22,
@@ -2613,9 +2636,9 @@ local definitions = {
         emitVector = [[0, 1, 0]],
         gravity = [[0, -0.02, 0]],
         colormap=[[1 0.66 0.4 0.45    0.3 0.2 0.13 0.4   0.18 0.15 0.11 0.35    0.13 0.12 0.1 0.32   0.11 0.1 0.093 0.25   0.063 0.062 0.058 0.17    0 0 0 0.01]],
-        Texture=[[graysmoke]],
-        particleLife=25,
-        particleLifeSpread=90,
+        Texture=[[dirt]],
+        particleLife=20,
+        particleLifeSpread=70,
         numparticles=5,
         particleSpeed=15,
         particleSpeedSpread=14,
@@ -2651,6 +2674,7 @@ local definitions = {
         sizemod            = 0.77,
         texture            = [[gunshotglow]],
         useairlos          = false,
+        drawOrder          = 2,
       },
     },
     dirt = {
@@ -2681,6 +2705,7 @@ local definitions = {
         sizemod            = 1,
         texture            = [[bigexplosmoke]],
         useairlos          = false,
+        drawOrder          = 1,
       },
     },
     dirt2 = {
@@ -2711,6 +2736,7 @@ local definitions = {
         sizemod            = 1,
         texture            = [[bigexplosmoke]],
         useairlos          = false,
+        drawOrder          = 1,
       },
     },
     shard1 = {
@@ -2795,6 +2821,7 @@ local definitions = {
         sizemod            = 1,
         texture            = [[shard3]],
         useairlos          = false,
+        drawOrder          = 1,
       },
     },
     clouddust = {
@@ -2811,8 +2838,8 @@ local definitions = {
         emitvector         = [[0.5, 1, 0.5]],
         gravity            = [[0, 0.025, 0]],
         numparticles       = 2,
-        particlelife       = 70,
-        particlelifespread = 133,
+        particlelife       = 60,
+        particlelifespread = 110,
         particlesize       = 90,
         particlesizespread = 55,
         particlespeed      = 2,
@@ -2821,6 +2848,7 @@ local definitions = {
         sizegrowth         = 0.18,
         sizemod            = 1.0,
         texture            = [[bigexplosmoke]],
+        drawOrder          = 1,
       },
     },
     --grounddust = {
@@ -2882,7 +2910,7 @@ local definitions = {
       class              = [[CHeatCloudProjectile]],
       count              = 1,
       ground             = true,
-      water              = true, 
+      water              = true,
 	  underwater         = true,
       properties = {
         heat               = 15,
@@ -2893,42 +2921,12 @@ local definitions = {
         sizegrowth         = 1.1,
         speed              = [[0, 1 0, 0]],
         texture            = [[orangenovaexplo]],
+        drawOrder          = 1,
       },
     },
   },
 
 }
-
-
-function tableMerge(t1, t2)
-    for k,v in pairs(t2) do
-    	if type(v) == "table" then
-    		if type(t1[k] or false) == "table" then
-    			tableMerge(t1[k] or {}, t2[k] or {})
-    		else
-    			t1[k] = v
-    		end
-    	else
-    		t1[k] = v
-    	end
-    end
-    return t1
-end
-
-function deepcopy(orig)
-    local orig_type = type(orig)
-    local copy
-    if orig_type == 'table' then
-        copy = {}
-        for orig_key, orig_value in next, orig, nil do
-            copy[deepcopy(orig_key)] = deepcopy(orig_value)
-        end
-        setmetatable(copy, deepcopy(getmetatable(orig)))
-    else -- number, string, boolean, etc
-        copy = orig
-    end
-    return copy
-end
 
 -- add different sizes
 definitions[root] = definitions[root.."-small"]
@@ -2940,23 +2938,22 @@ local sizes = {
     small = {
 
     },
-	
+
 	medium = {
-	
+
 	},
-	
+
 	large = {
-	
+
 	},
-	
+
 	huge = {
-	
+
 	},
 }
 for size, effects in pairs(sizes) do
-  --definitions[root.."-"..size] = tableMerge(deepcopy(definitions[root.."-small"]), deepcopy(effects))
   definitions[root.."-"..size].explosion.properties.numparticles = math.ceil(definitions[root.."-"..size].explosion.properties.numparticles/1.7)
-  definitions[root.."-"..size].explosion2 = deepcopy(definitions[root.."-"..size].explosion)
+  definitions[root.."-"..size].explosion2 = table.copy(definitions[root.."-"..size].explosion)
   definitions[root.."-"..size].explosion2.properties.colormap = [[1 0.33 0 0.1   0.5 0.15 0 0.05   0.07 0.03 0 0.02   0 0 0 0]]
   definitions[root.."-"..size].explosion2.properties.numparticles = definitions[root.."-"..size].explosion.properties.numparticles-1
 end
@@ -2974,9 +2971,9 @@ local colors = {
     --grounddust = false,
     centerflare = {air=false, ground=false, water=false, unit=true},
     clouddust = {air=false, ground=false, water=false, unit=true},
-    explosion = {air=false, ground=false, water=false, unit=true},
-    explosion2 = {air=false, ground=false, water=false, unit=true},
-    sparks = {air=false, ground=false, water=false, unit=true},
+    explosion = {air=false, ground=false, water=false, unit=true, properties={colormap=[[0 0 0 0   1 0.85 0.7 0.09   0.9 0.45 0.37 0.066   0.66 0.26 0.2 0.033   0 0 0 0]]}},
+    explosion2 = {air=false, ground=false, water=false, unit=true, properties={colormap=[[1 0.3 0.24 0.1   0.5 0.13 0.1 0.05   0.07 0.025 0.02 0.02   0 0 0 0]]}},
+    sparks = {air=false, ground=false, water=false, unit=true, properties={colormap=[[0.9 0.8 0.7 0.017   0.8 0.5 0.4 0.011   0 0 0 0]]}},
     outerflash = {air=false, ground=false, water=false, unit=true},
   },
   aa = {
@@ -3021,7 +3018,7 @@ local colors = {
 }
 for color, effects in pairs(colors) do
   for size, e in pairs(sizes) do
-  	definitions[root.."-"..size.."-"..color] = tableMerge(deepcopy(definitions[root.."-"..size]), deepcopy(effects))
+  	definitions[root.."-"..size.."-"..color] = table.merge(definitions[root.."-"..size], effects)
     for pname, defs in pairs(effects) do
       if defs == false then
         definitions[root.."-"..size.."-"..color][pname] = nil
@@ -3044,7 +3041,7 @@ definitions[root.."-huge-aa"].sparks = nil
 local devideBy = 12
 for size, e in pairs(sizes) do
 	local defname = root.."-"..size.."-beam"
-	definitions[defname] = deepcopy(definitions[root.."-"..size])
+	definitions[defname] = table.copy(definitions[root.."-"..size])
     definitions[defname].clouddust = nil
     if definitions[defname].groundclouddust ~= nil then
         definitions[defname].groundclouddust.properties.numparticles = nil
@@ -3077,9 +3074,9 @@ for size, e in pairs(sizes) do
     --end
 end
 
-definitions['antinukeexplosion'] = deepcopy(definitions[root.."-large"])
+definitions['antinukeexplosion'] = table.copy(definitions[root.."-large"])
 
-definitions['genericshellexplosion-debris'] = deepcopy(definitions[root.."-tiny"])
+definitions['genericshellexplosion-debris'] = table.copy(definitions[root.."-tiny"])
 definitions['genericshellexplosion-debris'].explosion.properties.colormap = [[0 0 0 0   1 0.77 0.44 0.06   0.75 0.38 0.14 0.045   0.55 0.22 0.04 0.02   0 0 0 0]]
 definitions['genericshellexplosion-debris'].explosion.properties.numparticles = 3
 definitions['genericshellexplosion-debris'].explosion.properties.particlesize = 0.44
@@ -3108,7 +3105,7 @@ definitions['genericshellexplosion-debris'].shard3 = nil
 definitions['genericshellexplosion-debris'].clouddust = nil
 definitions['genericshellexplosion-debris'].outerflash = nil
 
-definitions['genericshellexplosion-debris2'] = deepcopy(definitions[root.."-debris"])
+definitions['genericshellexplosion-debris2'] = table.copy(definitions[root.."-debris"])
 definitions['genericshellexplosion-debris2'].explosion.properties.numparticles = 2
 definitions['genericshellexplosion-debris2'].explosion.properties.particlesize = 0.35
 definitions['genericshellexplosion-debris2'].explosion.properties.particlesizespread = 0.45
@@ -3116,7 +3113,7 @@ definitions['genericshellexplosion-debris2'].explosion.properties.particlespeed 
 definitions['genericshellexplosion-debris2'].explosion.properties.particlespeedspread = 0.66
 definitions['genericshellexplosion-debris2'].explosion2 = nil
 
-definitions['genericshellexplosion-catapult'] = deepcopy(definitions[root.."-large-bomb"])
+definitions['genericshellexplosion-catapult'] = table.copy(definitions[root.."-large-bomb"])
 definitions['genericshellexplosion-catapult'].explosion.properties.numparticles = 4
 definitions['genericshellexplosion-catapult'].explosion.properties.colormap = [[0 0 0 0   1 0.45 0.25 0.09   0.75 0.35 0.15 0.066   0.44 0.25 0.06 0.033   0 0 0 0]]
 definitions['genericshellexplosion-catapult'].explosion2.properties.numparticles = 4
@@ -3128,7 +3125,7 @@ definitions['genericshellexplosion-catapult'].sparks.properties.numparticles = 4
 definitions['genericshellexplosion-catapult'].clouddust.properties.numparticles = 1
 
 
-definitions['genericshellexplosion-sniper'] = deepcopy(definitions[root.."-large"])
+definitions['genericshellexplosion-sniper'] = table.copy(definitions[root.."-large"])
 definitions['genericshellexplosion-sniper'].explosion.properties.colormap    = [[0 0 0 0   1 0.3 0.15 0.01   1 0.2 0.12 0.01   0.8 0.16 0.09 0.01   0 0 0 0]]
 definitions['genericshellexplosion-sniper'].explosion.properties.numparticles = definitions['genericshellexplosion-sniper'].explosion.properties.numparticles*1.3
 definitions['genericshellexplosion-sniper'].explosion2.properties.colormap    = [[0 0 0 0   1 0 0 0.01   1 0.1 0.09 0.01   0.8 0.1 0.05 0.01   0 0 0 0]]
@@ -3140,7 +3137,7 @@ definitions['genericshellexplosion-sniper'].explosion2.properties.particlesize =
 definitions['genericshellexplosion-sniper'].explosion2.properties.particlesizespread = definitions['genericshellexplosion-sniper'].explosion2.properties.particlesizespread * 0.85
 
 
-definitions['expldgun'] = deepcopy(definitions[root.."-small"])
+definitions['expldgun'] = table.copy(definitions[root.."-small"])
 definitions['expldgun'].groundflash_small = {
   class              = [[CSimpleGroundFlash]],
   count              = 1,
@@ -3235,7 +3232,7 @@ definitions['expldgun'].outersmoke.properties.particleLife = definitions['expldg
 -- add purple scavenger variants
 local scavengerDefs = {}
 for k,v in pairs(definitions) do
-  scavengerDefs[k..'-purple'] = deepcopy(definitions[k])
+  scavengerDefs[k..'-purple'] = table.copy(definitions[k])
 end
 
 local purpleEffects = {
@@ -3295,6 +3292,6 @@ for defName, def in pairs(scavengerDefs) do
   end
 end
 
-definitions = tableMerge(definitions, scavengerDefs)
+table.mergeInPlace(definitions, scavengerDefs)
 
 return definitions

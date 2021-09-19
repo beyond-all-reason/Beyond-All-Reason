@@ -5,6 +5,7 @@ General
  • Wreckage/heaps have the same HP as regular unit HP (~33% increase)
  • Increased maxslope for all units 50% (the slope it allows to be build on)
  • Units gain xp (ranks) faster, also relatively more health/firerate compared the the same old xp
+ • Removed the energy/metal make/use/storage from most non eco units
 
 Units
  • Commander wreckage is now 2000 metal instead of 2500
@@ -25,6 +26,8 @@ Units
  • Claw/Zeus: lightning chains again (up to 2 neighbouring units *0.5dmg for zeus, *0.325 for claw)
  • Juggernaut: main weapon does 4x old damage/reloadtime
  • EMP launcher: reduced range 10%
+ • Spy paralyzetime 45 -> 35 sec
+ • Spy is much more resistant to emp damage
  • T2 Bot/Air Constructors can build Advanced Fusion + cost: +60 metal
  • T2 Vehicle/Air Constructors can make the T3 Experimental Gantry
  • Arm Guardian: Removed special damage to ships and commander, reduced low trajectory aoe from 128 to 100, increased low trajectory default damage by 20%, increased high trajectory default damage by 9%

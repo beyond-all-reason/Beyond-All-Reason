@@ -19,7 +19,7 @@ function widget:GetInfo()
     date      = "Mar 20, 2007",
     license   = "GNU GPL, v2 or later",
     layer     = 0,
-    enabled   = false  --  loaded by default?
+    enabled   = true  --  loaded by default
   }
 end
 
@@ -57,6 +57,7 @@ local unitArray_ = {
 local unitArray = {}
 for _, name in pairs(unitArray_) do
   unitArray[UnitDefNames[name].id] = true
+  unitArray[UnitDefNames[name.."_scav"].id] = true
 end
 unitArray_ = nil
 
@@ -84,7 +85,7 @@ end
 
 function widget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
   if unitTeam == myTeamID then
-    if unitArray[unitDefID] or (builderID and unitArray[Spring.GetUnitDefID(builderID)]) then
+    if unitArray[unitDefID] then--or (builderID and unitArray[Spring.GetUnitDefID(builderID)]) then
       Spring.GiveOrderToUnit(unitID, CMD.MOVE_STATE, { 0 }, 0)
     end
   end

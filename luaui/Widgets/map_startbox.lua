@@ -1,17 +1,3 @@
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
---
---  file:    minimap_startbox.lua
---  brief:   shows the startboxes in the minimap
---  author:  Dave Rodgers
---
---  Copyright (C) 2007.
---  Licensed under the terms of the GNU GPL, v2 or later.
---
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
 function widget:GetInfo()
 	return {
 		name = "Start Boxes",
@@ -24,25 +10,9 @@ function widget:GetInfo()
 	}
 end
 
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
 if Game.startPosType ~= 2 then
 	return false
 end
-
-if Spring.GetGameFrame() > 1 then
-	widgetHandler:RemoveWidget()
-end
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
---
---  config options
---
-
--- enable simple version by default though
-local drawGroundQuads = true
 
 local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
 local vsx, vsy = Spring.GetViewGeometry()
@@ -56,12 +26,7 @@ local shadowFont = gl.LoadFont(fontfile, fontfileSize * fontfileScale, 35 * font
 local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 local font2 = gl.LoadFont(fontfile2, fontfileSize * fontfileScale, fontfileOutlineSize * fontfileScale, fontfileOutlineStrength2)
 
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
-
 local useThickLeterring = false
-local heightOffset = 50
 local fontSize = 18
 local fontShadow = true        -- only shows if font has a white outline
 local shadowOpacity = 0.35
@@ -70,13 +35,10 @@ local infotext = Spring.I18N('ui.startSpot.anywhere')
 local infotextBoxes = Spring.I18N('ui.startSpot.startbox')
 local infotextFontsize = 13
 
-local comnameList = {}
-local drawShadow = fontShadow
+local commanderNameList = {}
 local usedFontSize = fontSize
 
 local widgetScale = (1 + (vsx * vsy / 5500000))
-
-local gl = gl  --  use a local copy for faster access
 
 local msx = Game.mapSizeX
 local msz = Game.mapSizeZ
@@ -98,46 +60,14 @@ local gaiaAllyTeamID
 
 local startTimer = Spring.GetTimer()
 
-local texName = LUAUI_DIRNAME .. 'Images/highlight_strip.png'
-local texScale = 512
-
 local infotextList, chobbyInterface
 
-local GetUnitTeam = Spring.GetUnitTeam
 local GetTeamInfo = Spring.GetTeamInfo
 local GetPlayerInfo = Spring.GetPlayerInfo
-local GetPlayerList = Spring.GetPlayerList
 local GetTeamColor = Spring.GetTeamColor
-local GetVisibleUnits = Spring.GetVisibleUnits
-local GetUnitDefID = Spring.GetUnitDefID
-local GetAllUnits = Spring.GetAllUnits
-local IsUnitInView = Spring.IsUnitInView
-local GetCameraPosition = Spring.GetCameraPosition
-local GetUnitPosition = Spring.GetUnitPosition
-local GetFPS = Spring.GetFPS
 
-local glPushMatrix = gl.PushMatrix
-local glPopMatrix = gl.PopMatrix
-local glDepthTest = gl.DepthTest
-local glAlphaTest = gl.AlphaTest
-local glColor = gl.Color
-local glText = gl.Text
 local glTranslate = gl.Translate
-local glBillboard = gl.Billboard
-local glDrawFuncAtUnit = gl.DrawFuncAtUnit
-local glDrawListAtUnit = gl.DrawListAtUnit
-local GL_GREATER = GL.GREATER
-local GL_SRC_ALPHA = GL.SRC_ALPHA
-local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
-local glBlending = gl.Blending
-local glScale = gl.Scale
-
-local glCreateList = gl.CreateList
-local glBeginEnd = gl.BeginEnd
-local glDeleteList = gl.DeleteList
 local glCallList = gl.CallList
-
---------------------------------------------------------------------------------
 
 GL.KEEP = 0x1E00
 GL.INCR_WRAP = 0x8507
@@ -150,8 +80,19 @@ local stencilBit1 = 0x01
 local stencilBit2 = 0x10
 local hasStartbox = false
 
+local teamColors = {}
+local coopStartPoints = {}	-- will contain data passed through by coop gadget
+
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
+
+local function assignTeamColors()
+	local teams = Spring.GetTeamList()
+	for _, teamID in pairs(teams) do
+		local r, g, b = GetTeamColor(teamID)
+		teamColors[teamID] = r .. "_" .. g  .. "_" ..  b
+	end
+end
 
 function widget:PlayerChanged(playerID)
 	isSpec = Spring.GetSpectatingState()
@@ -161,42 +102,39 @@ end
 local function DrawMyBox(minX, minY, minZ, maxX, maxY, maxZ)
 	gl.BeginEnd(GL.QUADS, function()
 		--// top
-		gl.Vertex(minX, maxY, minZ);
-		gl.Vertex(maxX, maxY, minZ);
-		gl.Vertex(maxX, maxY, maxZ);
-		gl.Vertex(minX, maxY, maxZ);
+		gl.Vertex(minX, maxY, minZ)
+		gl.Vertex(maxX, maxY, minZ)
+		gl.Vertex(maxX, maxY, maxZ)
+		gl.Vertex(minX, maxY, maxZ)
 		--// bottom
-		gl.Vertex(minX, minY, minZ);
-		gl.Vertex(minX, minY, maxZ);
-		gl.Vertex(maxX, minY, maxZ);
-		gl.Vertex(maxX, minY, minZ);
-	end);
+		gl.Vertex(minX, minY, minZ)
+		gl.Vertex(minX, minY, maxZ)
+		gl.Vertex(maxX, minY, maxZ)
+		gl.Vertex(maxX, minY, minZ)
+	end)
 	gl.BeginEnd(GL.QUAD_STRIP, function()
 		--// sides
-		gl.Vertex(minX, minY, minZ);
-		gl.Vertex(minX, maxY, minZ);
-		gl.Vertex(minX, minY, maxZ);
-		gl.Vertex(minX, maxY, maxZ);
-		gl.Vertex(maxX, minY, maxZ);
-		gl.Vertex(maxX, maxY, maxZ);
-		gl.Vertex(maxX, minY, minZ);
-		gl.Vertex(maxX, maxY, minZ);
-		gl.Vertex(minX, minY, minZ);
-		gl.Vertex(minX, maxY, minZ);
-	end);
+		gl.Vertex(minX, minY, minZ)
+		gl.Vertex(minX, maxY, minZ)
+		gl.Vertex(minX, minY, maxZ)
+		gl.Vertex(minX, maxY, maxZ)
+		gl.Vertex(maxX, minY, maxZ)
+		gl.Vertex(maxX, maxY, maxZ)
+		gl.Vertex(maxX, minY, minZ)
+		gl.Vertex(maxX, maxY, minZ)
+		gl.Vertex(minX, minY, minZ)
+		gl.Vertex(minX, maxY, minZ)
+	end)
 end
 
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
-
-local function createComnameList(x, y, name, teamID, color)
-	comnameList[teamID] = {}
-	comnameList[teamID]['x'] = math.floor(x)
-	comnameList[teamID]['y'] = math.floor(y)
-	comnameList[teamID]['list'] = gl.CreateList(function()
+local function createCommanderNameList(x, y, name, teamID)
+	commanderNameList[teamID] = {}
+	commanderNameList[teamID]['x'] = math.floor(x)
+	commanderNameList[teamID]['y'] = math.floor(y)
+	commanderNameList[teamID]['list'] = gl.CreateList(function()
+		local r, g, b = GetTeamColor(teamID)
 		local outlineColor = { 0, 0, 0, 1 }
-		if (color[1] + color[2] * 1.2 + color[3] * 0.4) < 0.68 then
+		if (r + g * 1.2 + b * 0.4) < 0.65 then
 			outlineColor = { 1, 1, 1, 1 }
 		end
 		if useThickLeterring then
@@ -218,26 +156,26 @@ local function createComnameList(x, y, name, teamID, color)
 			font2:End()
 		end
 		font2:Begin()
-		font2:SetTextColor(color)
+		font2:SetTextColor({r, g, b})
 		font2:SetOutlineColor(outlineColor)
 		font2:Print(name, x, y, usedFontSize, "con")
 		font2:End()
 	end)
 end
 
-local function DrawName(x, y, name, teamID, color)
+local function drawName(x, y, name, teamID)
 	-- not optimal, everytime you move camera the x and y are different so it has to recreate the drawlist
-	if comnameList[teamID] == nil or comnameList[teamID]['x'] ~= math.floor(x) or comnameList[teamID]['y'] ~= math.floor(y) then
+	if commanderNameList[teamID] == nil or commanderNameList[teamID]['x'] ~= math.floor(x) or commanderNameList[teamID]['y'] ~= math.floor(y) then
 		-- using floor because the x and y values had a a tiny change each frame
-		if comnameList[teamID] ~= nil then
-			gl.DeleteList(comnameList[teamID]['list'])
+		if commanderNameList[teamID] ~= nil then
+			gl.DeleteList(commanderNameList[teamID]['list'])
 		end
-		createComnameList(x, y, name, teamID, color)
+		createCommanderNameList(x, y, name, teamID)
 	end
-	glCallList(comnameList[teamID]['list'])
+	glCallList(commanderNameList[teamID]['list'])
 end
 
-function createInfotextList()
+local function createInfotextList()
 	if infotextList then
 		gl.DeleteList(infotextList)
 	end
@@ -249,17 +187,24 @@ function createInfotextList()
 	end)
 end
 
+local function CoopStartPoint(playerID, x, y, z)
+	coopStartPoints[playerID] = {x, y, z}
+end
+
 function widget:Initialize()
 
 	-- only show at the beginning
-	if (Spring.GetGameFrame() > 1) then
+	if Spring.GetGameFrame() > 1 then
 		widgetHandler:RemoveWidget()
 		return
 	end
 
-	-- get the gaia teamID and allyTeamID
+	widgetHandler:RegisterGlobal('GadgetCoopStartPoint', CoopStartPoint)
+
+	assignTeamColors()
+
 	gaiaTeamID = Spring.GetGaiaTeamID()
-	if (gaiaTeamID) then
+	if gaiaTeamID then
 		gaiaAllyTeamID = select(6, Spring.GetTeamInfo(gaiaTeamID, false))
 	end
 
@@ -286,61 +231,68 @@ function widget:Initialize()
 		end)
 	end)
 
-	if (drawGroundQuads) then
-		startboxDListStencil = gl.CreateList(function()
-			local minY, maxY = Spring.GetGroundExtremes()
-			minY = minY - 200;
-			maxY = maxY + 500;
-			for _, at in ipairs(Spring.GetAllyTeamList()) do
-				if (true or at ~= gaiaAllyTeamID) then
-					local xn, zn, xp, zp = Spring.GetAllyTeamStartBox(at)
-					if (xn and ((xn ~= 0) or (zn ~= 0) or (xp ~= msx) or (zp ~= msz))) then
+	startboxDListStencil = gl.CreateList(function()
+		local minY, maxY = Spring.GetGroundExtremes()
+		minY = minY - 200
+		maxY = maxY + 500
+		for _, at in ipairs(Spring.GetAllyTeamList()) do
+			if true or at ~= gaiaAllyTeamID then
+				local xn, zn, xp, zp = Spring.GetAllyTeamStartBox(at)
+				if xn and (xn ~= 0 or zn ~= 0 or xp ~= msx or zp ~= msz) then
 
-						if (at == Spring.GetMyAllyTeamID()) then
-							gl.StencilMask(stencilBit2);
-							gl.StencilFunc(GL.ALWAYS, 0, stencilBit2);
-						else
-							gl.StencilMask(stencilBit1);
-							gl.StencilFunc(GL.ALWAYS, 0, stencilBit1);
-						end
-						DrawMyBox(xn - 1, minY, zn - 1, xp + 1, maxY, zp + 1)
-
+					if at == Spring.GetMyAllyTeamID() then
+						gl.StencilMask(stencilBit2)
+						gl.StencilFunc(GL.ALWAYS, 0, stencilBit2)
+					else
+						gl.StencilMask(stencilBit1)
+						gl.StencilFunc(GL.ALWAYS, 0, stencilBit1)
 					end
+					DrawMyBox(xn - 1, minY, zn - 1, xp + 1, maxY, zp + 1)
 				end
 			end
-		end)
+		end
+	end)
 
-		startboxDListColor = gl.CreateList(function()
-			local minY, maxY = Spring.GetGroundExtremes()
-			minY = minY - 200;
-			maxY = maxY + 500;
-			for _, at in ipairs(Spring.GetAllyTeamList()) do
-				if (true or at ~= gaiaAllyTeamID) then
-					local xn, zn, xp, zp = Spring.GetAllyTeamStartBox(at)
-					if (xn and ((xn ~= 0) or (zn ~= 0) or (xp ~= msx) or (zp ~= msz))) then
+	startboxDListColor = gl.CreateList(function()
+		local minY, maxY = Spring.GetGroundExtremes()
+		minY = minY - 200
+		maxY = maxY + 500
+		for _, at in ipairs(Spring.GetAllyTeamList()) do
+			if true or at ~= gaiaAllyTeamID then
+				local xn, zn, xp, zp = Spring.GetAllyTeamStartBox(at)
+				if xn and (xn ~= 0 or zn ~= 0 or xp ~= msx or zp ~= msz) then
 
-						if (at == Spring.GetMyAllyTeamID()) then
-							gl.Color(0, 1, 0, 0.22)  --  green
-							gl.StencilMask(stencilBit2);
-							gl.StencilFunc(GL.NOTEQUAL, 0, stencilBit2);
-							hasStartbox = true
-						else
-							gl.Color(1, 0, 0, 0.22)  --  red
-							gl.StencilMask(stencilBit1);
-							gl.StencilFunc(GL.NOTEQUAL, 0, stencilBit1);
-						end
-						DrawMyBox(xn - 1, minY, zn - 1, xp + 1, maxY, zp + 1)
-
+					if at == Spring.GetMyAllyTeamID() then
+						gl.Color(0, 1, 0, 0.22)  --  green
+						gl.StencilMask(stencilBit2)
+						gl.StencilFunc(GL.NOTEQUAL, 0, stencilBit2)
+						hasStartbox = true
+					else
+						gl.Color(1, 0, 0, 0.22)  --  red
+						gl.StencilMask(stencilBit1)
+						gl.StencilFunc(GL.NOTEQUAL, 0, stencilBit1)
 					end
+					DrawMyBox(xn - 1, minY, zn - 1, xp + 1, maxY, zp + 1)
+
 				end
 			end
-		end)
-	end
+		end
+	end)
+
 
 	createInfotextList()
 end
 
-function removeLists()
+local function removeTeamLists()
+	for _, teamID in ipairs(Spring.GetTeamList()) do
+		if commanderNameList[teamID] ~= nil then
+			gl.DeleteList(commanderNameList[teamID].list)
+		end
+	end
+	commanderNameList = {}
+end
+
+local function removeLists()
 	gl.DeleteList(infotextList)
 	gl.DeleteList(xformList)
 	gl.DeleteList(coneList)
@@ -353,103 +305,43 @@ function widget:Shutdown()
 	removeLists()
 	gl.DeleteFont(font)
 	gl.DeleteFont(shadowFont)
+	widgetHandler:DeregisterGlobal('GadgetCoopStartPoint')
 end
-
-function removeTeamLists()
-	for _, teamID in ipairs(Spring.GetTeamList()) do
-		if comnameList[teamID] ~= nil then
-			gl.DeleteList(comnameList[teamID].list)
-		end
-	end
-	comnameList = {}
-end
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
-local teamColors = {}
-
-local function GetTeamColor(teamID)
-	local color = teamColors[teamID]
-	if (color) then
-		return color
-	end
-	local r, g, b = Spring.GetTeamColor(teamID)
-
-	color = { r, g, b }
-	teamColors[teamID] = color
-	return color
-end
-
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
-local teamColorStrs = {}
-
-local function GetTeamColorStr(teamID)
-	local colorSet = teamColorStrs[teamID]
-	if (colorSet) then
-		return colorSet[1], colorSet[2]
-	end
-
-	local outlineChar = ''
-	local r, g, b = Spring.GetTeamColor(teamID)
-	if (r and g and b) then
-		local function ColorChar(x)
-			local c = math.floor(x * 255)
-			c = ((c <= 1) and 1) or ((c >= 255) and 255) or c
-			return string.char(c)
-		end
-		local colorStr
-		colorStr = '\255'
-		colorStr = colorStr .. ColorChar(r)
-		colorStr = colorStr .. ColorChar(g)
-		colorStr = colorStr .. ColorChar(b)
-		local i = (r * 0.299) + (g * 0.587) + (b * 0.114)
-		outlineChar = ((i > 0.25) and 'o') or 'O'
-		teamColorStrs[teamID] = { colorStr, outlineChar }
-		return colorStr, "s", outlineChar
-	end
-end
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
 
 local function DrawStartboxes3dWithStencil()
-	gl.DepthMask(false);
-	if (gl.DepthClamp) then
-		gl.DepthClamp(true);
+	gl.DepthMask(false)
+	if gl.DepthClamp then
+		gl.DepthClamp(true)
 	end
 
-	gl.DepthTest(true);
-	gl.StencilTest(true);
-	gl.ColorMask(false, false, false, false);
-	gl.Culling(false);
+	gl.DepthTest(true)
+	gl.StencilTest(true)
+	gl.ColorMask(false, false, false, false)
+	gl.Culling(false)
 
-	gl.StencilOp(GL.KEEP, GL.INVERT, GL.KEEP);
+	gl.StencilOp(GL.KEEP, GL.INVERT, GL.KEEP)
 
-	gl.CallList(startboxDListStencil);   --// draw
+	gl.CallList(startboxDListStencil)   --// draw
 
-	gl.Culling(GL.BACK);
-	gl.DepthTest(false);
+	gl.Culling(GL.BACK)
+	gl.DepthTest(false)
 
-	gl.ColorMask(true, true, true, true);
+	gl.ColorMask(true, true, true, true)
 
-	gl.CallList(startboxDListColor);   --// draw
+	gl.CallList(startboxDListColor)   --// draw
 
-	if (gl.DepthClamp) then
-		gl.DepthClamp(false);
+	if gl.DepthClamp then
+		gl.DepthClamp(false)
 	end
-	gl.StencilTest(false);
-	gl.DepthTest(true);
-	gl.Culling(false);
+	gl.StencilTest(false)
+	gl.DepthTest(true)
+	gl.Culling(false)
 end
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
 function widget:DrawWorld()
-	--gl.Fog(false)
 	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 
 	local time = Spring.DiffTimers(Spring.GetTimer(), startTimer)
@@ -459,19 +351,19 @@ function widget:DrawWorld()
 
 	-- show the team start positions
 	for _, teamID in ipairs(Spring.GetTeamList()) do
-		local _, _, spec = Spring.GetPlayerInfo(select(2, Spring.GetTeamInfo(teamID, false)), false)
-		if ((not spec) and (teamID ~= gaiaTeamID)) then
+		local playerID = select(2, Spring.GetTeamInfo(teamID, false))
+		local _, _, spec = Spring.GetPlayerInfo(playerID, false)
+		if not spec and teamID ~= gaiaTeamID then
 			local x, y, z = Spring.GetTeamStartPosition(teamID)
-			--if y < 0 then
-			--  y = 0
-			--end
-			local isNewbie = (Spring.GetTeamRulesParam(teamID, 'isNewbie') == 1) -- =1 means the startpoint will be replaced and chosen by initial_spawn
-			if (x ~= nil and x > 0 and z > 0 and y > -500) and not isNewbie then
-				local color = GetTeamColor(teamID)
+			if coopStartPoints[playerID] then
+				x, y, z = coopStartPoints[playerID][1], coopStartPoints[playerID][2], coopStartPoints[playerID][3]
+			end
+			if x ~= nil and x > 0 and z > 0 and y > -500 then
+				local r, g, b = GetTeamColor(teamID)
 				local alpha = 0.5 + math.abs(((time * 3) % 1) - 0.5)
 				gl.PushMatrix()
 				gl.Translate(x, y, z)
-				gl.Color(color[1], color[2], color[3], alpha)
+				gl.Color(r, g, b, alpha)
 				gl.CallList(coneList)
 				gl.PopMatrix()
 				if teamID == myTeamID then
@@ -480,33 +372,26 @@ function widget:DrawWorld()
 			end
 		end
 	end
-
-	--gl.Fog(true)
 end
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
 
 function widget:DrawScreenEffects()
 	-- show the names over the team start positions
-	--gl.Fog(false)
 	for _, teamID in ipairs(Spring.GetTeamList()) do
-		local name, _, spec = Spring.GetPlayerInfo(select(2, Spring.GetTeamInfo(teamID, false)), false)
-		local isNewbie = (Spring.GetTeamRulesParam(teamID, 'isNewbie') == 1) -- =1 means the startpoint will be replaced and chosen by initial_spawn
-		if (name ~= nil) and ((not spec) and (teamID ~= gaiaTeamID)) and not isNewbie then
-			local colorStr, outlineStr = GetTeamColorStr(teamID)
+		local playerID = select(2, Spring.GetTeamInfo(teamID, false))
+		local name, _, spec = Spring.GetPlayerInfo(playerID, false)
+		if name ~= nil and not spec and teamID ~= gaiaTeamID then
 			local x, y, z = Spring.GetTeamStartPosition(teamID)
-			if (x ~= nil and x > 0 and z > 0 and y > -500) then
+			if coopStartPoints[playerID] then
+				x, y, z = coopStartPoints[playerID][1], coopStartPoints[playerID][2], coopStartPoints[playerID][3]
+			end
+			if x ~= nil and x > 0 and z > 0 and y > -500 then
 				local sx, sy, sz = Spring.WorldToScreenCoords(x, y + 120, z)
-				if (sz < 1) then
-
-					DrawName(sx, sy, name, teamID, GetTeamColor(teamID))
-
+				if sz < 1 then
+					drawName(sx, sy, name, teamID)
 				end
 			end
 		end
 	end
-	--gl.Fog(true)
 end
 
 function widget:RecvLuaMsg(msg, playerID)
@@ -519,7 +404,6 @@ function widget:DrawScreen()
 	if chobbyInterface then
 		return
 	end
-
 	if not isSpec then
 		gl.PushMatrix()
 		gl.Translate(vsx / 2, vsy / 6.2, 0)
@@ -529,37 +413,27 @@ function widget:DrawScreen()
 	end
 end
 
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
 function widget:DrawInMiniMap(sx, sz)
-	-- only show at the beginning
-	if (Spring.GetGameFrame() > 1) then
+	if Spring.GetGameFrame() > 1 then
 		widgetHandler:RemoveWidget()
 	end
 
 	gl.PushMatrix()
 	gl.CallList(xformList)
-
 	gl.LineWidth(1.49)
 
 	local gaiaAllyTeamID
 	local gaiaTeamID = Spring.GetGaiaTeamID()
-	if (gaiaTeamID) then
+	if gaiaTeamID then
 		gaiaAllyTeamID = select(6, Spring.GetTeamInfo(gaiaTeamID, false))
 	end
 
 	-- show all start boxes
 	for _, at in ipairs(Spring.GetAllyTeamList()) do
-		if (at ~= gaiaAllyTeamID) then
+		if at ~= gaiaAllyTeamID then
 			local xn, zn, xp, zp = Spring.GetAllyTeamStartBox(at)
-			if (xn and ((xn ~= 0) or (zn ~= 0) or (xp ~= msx) or (zp ~= msz))) then
-				local color
-				if (at == Spring.GetMyAllyTeamID()) then
-					color = { 0, 1, 0, 0.1 }  --  green
-				else
-					color = { 1, 0, 0, 0.1 }  --  red
-				end
+			if xn and (xn ~= 0 or zn ~= 0 or xp ~= msx or zp ~= msz) then
+				local color = at == Spring.GetMyAllyTeamID() and { 0, 1, 0, 0.1 } or { 1, 0, 0, 0.1 }
 				gl.Color(color)
 				gl.Rect(xn, zn, xp, zp)
 				color[4] = 0.5  --  pump up the volume
@@ -571,18 +445,17 @@ function widget:DrawInMiniMap(sx, sz)
 		end
 	end
 
-	gl.PushAttrib(GL_HINT_BIT)
-	--gl.Smoothing(true) --enable point smoothing
-
 	-- show the team start positions
 	for _, teamID in ipairs(Spring.GetTeamList()) do
-		local _, _, spec = Spring.GetPlayerInfo(select(2, Spring.GetTeamInfo(teamID, false)), false)
-		if ((not spec) and (teamID ~= gaiaTeamID)) then
+		local playerID = select(2, Spring.GetTeamInfo(teamID, false))
+		local _, _, spec = Spring.GetPlayerInfo(playerID, false)
+		if not spec and teamID ~= gaiaTeamID then
 			local x, y, z = Spring.GetTeamStartPosition(teamID)
-			local isNewbie = (Spring.GetTeamRulesParam(teamID, 'isNewbie') == 1) -- =1 means the startpoint will be replaced and chosen by initial_spawn
-			if (x ~= nil and x > 0 and z > 0 and y > -500) and not isNewbie then
-				local color = GetTeamColor(teamID)
-				local r, g, b = color[1], color[2], color[3]
+			if coopStartPoints[playerID] then
+				x, y, z = coopStartPoints[playerID][1], coopStartPoints[playerID][2], coopStartPoints[playerID][3]
+			end
+			if x ~= nil and x > 0 and z > 0 and y > -500 then
+				local r, g, b = GetTeamColor(teamID)
 				local time = Spring.DiffTimers(Spring.GetTimer(), startTimer)
 				local i = 2 * math.abs(((time * 3) % 1) - 0.5)
 				gl.PointSize(11)
@@ -597,7 +470,6 @@ function widget:DrawInMiniMap(sx, sz)
 
 	gl.LineWidth(1.0)
 	gl.PointSize(1.0)
-	gl.PopAttrib() --reset point smoothing
 	gl.PopMatrix()
 end
 
@@ -607,7 +479,7 @@ function widget:ViewResize(x, y)
 	removeTeamLists()
 	usedFontSize = fontSize * widgetScale
 	local newFontfileScale = (0.5 + (vsx * vsy / 5700000))
-	if (fontfileScale ~= newFontfileScale) then
+	if fontfileScale ~= newFontfileScale then
 		fontfileScale = newFontfileScale
 		gl.DeleteFont(font)
 		gl.DeleteFont(shadowFont)
@@ -618,26 +490,26 @@ function widget:ViewResize(x, y)
 	end
 end
 
-
 -- reset needed when waterlevel has changed by gadget (modoption)
 local resetsec = 0
 local resetted = false
 local doWaterLevelCheck = false
-if (Spring.GetModOptions() ~= nil and Spring.GetModOptions().map_waterlevel ~= 0) then
+if Spring.GetModOptions().map_waterlevel ~= 0 then
 	doWaterLevelCheck = true
 end
 
 local groundHeightPoint = Spring.GetGroundHeight(0, 0)
-function widget:Update(dt)
+local sec = 0
+function widget:Update(delta)
 	if Spring.GetGameFrame() > 1 then
 		widgetHandler:RemoveWidget()
 	end
 	if not placeVoiceNotifTimer then
-		placeVoiceNotifTimer = os.clock() + 20
+		placeVoiceNotifTimer = os.clock() + 22
 	end
 
 	if (doWaterLevelCheck and not resetted) or (Spring.IsCheatingEnabled() and Spring.GetGroundHeight(0, 0) ~= groundHeightPoint) then
-		resetsec = resetsec + dt
+		resetsec = resetsec + delta
 		if resetsec > 1 then
 			groundHeightPoint = Spring.GetGroundHeight(0, 0)
 			resetted = true
@@ -645,10 +517,29 @@ function widget:Update(dt)
 			widget:Initialize()
 		end
 	end
+
 	if not isSpec and not amPlaced and not playedChooseStartLoc and placeVoiceNotifTimer < os.clock() and WG['notifications'] then
 		playedChooseStartLoc = true
-		WG['notifications'].addEvent('ChooseStartLoc')
+		WG['notifications'].addEvent('ChooseStartLoc', true)
+	end
+
+	sec = sec + delta
+	if sec > 1 then
+		sec = 0
+
+		-- check if team colors have changed
+		local detectedChanges = false
+		local oldTeamColors = teamColors
+		assignTeamColors()
+		local teams = Spring.GetTeamList()
+		for _, teamID in pairs(teams) do
+			if oldTeamColors[teamID] ~= teamColors[teamID] then
+				detectedChanges = true
+			end
+		end
+
+		if detectedChanges then
+			removeLists()
+		end
 	end
 end
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------

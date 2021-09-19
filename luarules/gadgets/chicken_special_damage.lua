@@ -6,30 +6,21 @@ function gadget:GetInfo()
 		date = "Aug 31, 2013",
 		license = "GNU GPL, v2 or later",
 		layer = 0,
-		enabled = true  --  loaded by default?
+		enabled = true
 	}
 end
 
-local teams = Spring.GetTeamList()
-local chickensEnabled
-for i = 1, #teams do
-	local luaAI = Spring.GetTeamLuaAI(teams[i])
-	if luaAI and luaAI ~= "" and string.sub(luaAI, 1, 9) == 'Chicken: ' then
-		chickensEnabled = true
-	end
-end
-
-if chickensEnabled == true then
+if Spring.Utilities.Gametype.IsChickens() then
 	Spring.Echo("[ChickenDefense: Chicken Special Damage] Activated!")
 else
 	Spring.Echo("[ChickenDefense: Chicken Special Damage] Deactivated!")
 	return false
 end
 
---There are some *A-isms in here, but they don't cause any issues, so I don't see the point in removing them and making some poor sap recreate them for his game.
+--There are some anachronisms in here, but they don't cause any issues, so I don't see the point in removing them and making some poor sap recreate them for his game.
 
 if not gadgetHandler:IsSyncedCode() then
-	return false  --  silent removal
+	return false
 end
 
 local DAMAGE_LIMITS = {

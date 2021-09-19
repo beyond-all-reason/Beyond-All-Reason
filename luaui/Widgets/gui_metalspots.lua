@@ -1,44 +1,35 @@
 function widget:GetInfo()
-  return {
-    name    = "Metalspots",
-	desc    = "",
-	author  = "Floris",
-	date    = "October 2019",
-	license = "",
-	layer   = 2,
-	enabled = true,
-  }
+	return {
+		name    = "Metalspots",
+		desc    = "Displays rotating circles around metal spots",
+		author  = "Floris, Beherith GL4",
+		date    = "October 2019",
+		license = "Lua: GPLv2, GLSL: (c) Beherith (mysterme@gmail.com)",
+		layer   = 2,
+		enabled = true,
+	}
 end
-
--------------------------------------------------------------------------------
--------------------------------------------------------------------------------
 
 local showValue			= false
 local metalViewOnly		= false
 
-local circleSpaceUsage	= 0.75
-local circleInnerOffset	= 0.35
-local rotationSpeed		= 4
+local circleSpaceUsage	= 0.62
+local circleInnerOffset	= 0.28
 local opacity			= 0.5
-local fadeTime			= 0.5
 
-local innersize			= 1.86		-- outersize-innersize = circle width
-local outersize			= 2.08		-- outersize-innersize = circle width
-
+local innersize			= 1.8		-- outersize-innersize = circle width
+local outersize			= 1.98		-- outersize-innersize = circle width
 
 local spIsGUIHidden = Spring.IsGUIHidden
 local spIsSphereInView = Spring.IsSphereInView
 local spGetUnitsInSphere = Spring.GetUnitsInSphere
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetGroundHeight = Spring.GetGroundHeight
-local spGetGameSpeed = Spring.GetGameSpeed
-local math_min = math.min
+local spGetMapDrawMode  = Spring.GetMapDrawMode
 
-local metalSpots = {}
+local spots = {}
 local valueList = {}
-local circleList = {}
 local previousOsClock = os.clock()
-local currentRotation = 0
 local checkspots = true
 local sceduledCheckedSpotsFrame = Spring.GetGameFrame()
 
@@ -53,7 +44,7 @@ local fontfileOutlineSize = 22
 local fontfileOutlineStrength = 1.15
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
-local dont, chobbyInterface
+local chobbyInterface
 
 local extractors = {}
 for uDefID, uDef in pairs(UnitDefs) do
@@ -62,11 +53,205 @@ for uDefID, uDef in pairs(UnitDefs) do
 	end
 end
 
+-- GL4 stuff
+
+-- Notes:
+-- 1. Could a prerendered texture be better at conveying metal spot value?
+-- 2. VertexVBO contains: x, y pos, rotdir and radians in angle?
+-- 3. InstanceVBO contains:
+	--x,y,z offsets, radius,
+	-- visibility, and gameframe num of the last change teamid of occupier?
+-- 4. the way the updates are handled are far from ideal, the construction and destruction of any mex will trigger a full update
+--
+
+local spotVBO = nil
+local spotInstanceVBO = nil
+local spotShader = nil
+
+local luaShaderDir = "LuaUI/Widgets/Include/"
+local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
+VFS.Include(luaShaderDir.."instancevbotable.lua")
+
+local vsSrc =
+[[
+#version 420
+uniform float timer;
+uniform sampler2D heightMap;
+
+layout (location = 0) in vec4 localpos_dir_angle;
+layout (location = 1) in vec4 worldpos_radius;
+layout (location = 2) in vec4 visibility; // notoccupied, gameframewhenithappened
+
+out DataVS {
+	float circlealpha;
+};
+
+//__ENGINEUNIFORMBUFFERDEFS__
+#line 10090
+
+float heightAtWorldPos(vec2 w){
+	vec2 uvhm = vec2(clamp(w.x, 8.0, mapSize.x - 8.0), clamp(w.y, 8.0, mapSize.y - 8.0)) / mapSize.xy;
+	return textureLod(heightMap, uvhm, 0.0).x;
+}
+
+void main()
+{
+	// rotate for animation:
+	vec3 vertexWorldPos = vec3(localpos_dir_angle.x,0,localpos_dir_angle.y);
+
+	float s = sign(localpos_dir_angle.z);
+	mat3 roty = rotation3dY(s * timeInfo.x * 0.005);
+	vertexWorldPos.x *= s;
+
+	vertexWorldPos = roty * vertexWorldPos;
+
+	// scale the circle and move to world pos:
+	vec3 worldXYZ = vec3(worldpos_radius.x, heightAtWorldPos(worldpos_radius.xz), worldpos_radius.z);
+	vertexWorldPos = vertexWorldPos * (12.0 + localpos_dir_angle.z) * 2.0 * worldpos_radius.w + worldXYZ;
+
+	//dump to FS:
+	gl_Position = cameraViewProj * vec4(vertexWorldPos,1.0);
+
+	circlealpha = mix(
+		0.5 - (timeInfo.x - visibility.y) / 30.0, // turned unoccipied, fading into visibility
+		      (timeInfo.x - visibility.y) / 30.0, // going into occupied, so fade out from visibility.y
+		step(0.5, visibility.x)            // 1.0 if visibility is > 0.5
+	);
+	circlealpha = clamp(circlealpha, 0.0, 0.5);
+}
+]]
+
+local fsSrc =
+[[
+#version 420
+#line 20000
+
+//__ENGINEUNIFORMBUFFERDEFS__
+
+#extension GL_ARB_uniform_buffer_object : require
+#extension GL_ARB_shading_language_420pack: require
+
+in DataVS {
+	float circlealpha;
+};
+
+out vec4 fragColor;
+
+void main(void)
+{
+	fragColor = vec4(1.0,1.0,1.0,circlealpha); //debug!
+}
+]]
+
+local function goodbye(reason)
+	Spring.Echo("Metalspots GL4 widget exiting with reason: "..reason)
+	widgetHandler:RemoveWidget()
+end
+
+local function arrayAppend(target, source)
+	for _,v in ipairs(source) do
+		table.insert(target,v)
+	end
+end
+
+local function makeSpotVBO()
+	spotVBO = gl.GetVBO(GL.ARRAY_BUFFER,false)
+	if spotVBO == nil then goodbye("Failed to create spotVBO") end
+	local VBOLayout = {	 {id = 0, name = "localpos_dir_angle", size = 4},}
+	local VBOData = {}
+
+	local detailPartWidth, a1,a2,a3,a4
+	local width = circleSpaceUsage
+	local pieces = 8
+	local detail = 6
+	local radstep = (2.0 * math.pi) / pieces
+	for _,dir in ipairs({-1,1}) do
+		for i = 1, pieces do -- pieces
+			for d = 1, detail do -- detail
+				detailPartWidth = ((width / detail) * d) + (dir+1)
+				a1 = ((i+detailPartWidth - (width / detail)) * radstep)
+				a2 = ((i+detailPartWidth) * radstep)
+				a3 = ((i+circleInnerOffset+detailPartWidth - (width / detail)) * radstep)
+				a4 = ((i+circleInnerOffset+detailPartWidth) * radstep)
+
+				arrayAppend(VBOData, {math.sin(a3)*innersize, math.cos(a3)*innersize, dir, a3})
+				arrayAppend(VBOData, {math.sin(a4)*innersize, math.cos(a4)*innersize, dir, a4})
+				arrayAppend(VBOData, {math.sin(a1)*outersize, math.cos(a1)*outersize, dir, a1})
+
+				arrayAppend(VBOData, {math.sin(a1)*outersize, math.cos(a1)*outersize, dir, a1})
+				arrayAppend(VBOData, {math.sin(a2)*outersize, math.cos(a2)*outersize, dir, a2})
+				arrayAppend(VBOData, {math.sin(a4)*innersize, math.cos(a4)*innersize, dir, a4})
+			end
+		end
+	end
+
+	spotVBO:Define(#VBOData/4, VBOLayout)
+	spotVBO:Upload(VBOData)
+	return spotVBO, #VBOData/4
+end
+
+local function initGL4()
+	local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()
+	vsSrc = vsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
+	fsSrc = fsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
+	spotShader =  LuaShader(
+		{
+			vertex = vsSrc,
+			fragment = fsSrc,
+		},
+		"spotShader GL4"
+	)
+	shaderCompiled = spotShader:Initialize()
+	if not shaderCompiled then goodbye("Failed to compile spotShader GL4 ") end
+	local spotVBO,numVertices = makeSpotVBO()
+	local spotInstanceVBOLayout = {
+		{id = 1, name = 'worldpos_radius', size = 4},
+		{id = 2, name = 'visibility', size = 4},
+	}
+	spotInstanceVBO = makeInstanceVBOTable(spotInstanceVBOLayout, 8, "spotInstanceVBO")
+	spotInstanceVBO.numVertices = numVertices
+	spotInstanceVBO.vertexVBO = spotVBO
+	spotInstanceVBO.VAO = makeVAOandAttach(spotInstanceVBO.vertexVBO, spotInstanceVBO.instanceVBO)
+	spotInstanceVBO.primitiveType = GL.TRIANGLES
+end
+
+local function spotKey(posx,posz)
+	return tostring(posx).."_"..tostring(posz)
+end
+
+local function checkMetalspots()
+	local now = os.clock()
+	for i=1, #spots do
+		spots[i][2] = spGetGroundHeight(spots[i][1],spots[i][3])
+		local spot = spots[i]
+		local units = spGetUnitsInSphere(spot[1], spot[2], spot[3], 110*spot[5])
+		local occupied = false
+		local prevOccupied = spots[i][6]
+		for j=1, #units do
+			if extractors[spGetUnitDefID(units[j])] then
+				occupied = true
+				break
+			end
+		end
+		if occupied ~= prevOccupied then
+			spots[i][7] = now
+			spots[i][6] = occupied
+			local curSpotkey = spotKey(spot[1], spot[3])
+			local oldinstance = getElementInstanceData(spotInstanceVBO, curSpotkey)
+			oldinstance[5] = (occupied and 0) or 1
+			oldinstance[6] = Spring.GetGameFrame()
+			pushElementInstance(spotInstanceVBO, oldinstance, curSpotkey, true)
+		end
+	end
+	sceduledCheckedSpotsFrame = Spring.GetGameFrame() + 151
+	checkspots = false
+end
+
 function widget:ViewResize()
 	local old_vsx, old_vsy = vsx, vsy
 	vsx,vsy = Spring.GetViewGeometry()
 	local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
-	if (fontfileScale ~= newFontfileScale) then
+	if fontfileScale ~= newFontfileScale then
 		fontfileScale = newFontfileScale
 		gl.DeleteFont(font)
 		font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
@@ -77,40 +262,13 @@ function widget:ViewResize()
 	end
 end
 
-
-local function DrawCircleLine(innersize, outersize)
-	gl.BeginEnd(GL.QUADS, function()
-		local detailPartWidth, a1,a2,a3,a4
-		local width = circleSpaceUsage
-		local pieces = 3 + math.ceil(innersize/11)
-		local detail = math.ceil(innersize/pieces)
-		local radstep = (2.0 * math.pi) / pieces
-		for i = 1, pieces do
-			for d = 1, detail do
-
-				detailPartWidth = ((width / detail) * d)
-				a1 = ((i+detailPartWidth - (width / detail)) * radstep)
-				a2 = ((i+detailPartWidth) * radstep)
-				a3 = ((i+circleInnerOffset+detailPartWidth - (width / detail)) * radstep)
-				a4 = ((i+circleInnerOffset+detailPartWidth) * radstep)
-
-				--outer (fadein)
-				gl.Vertex(math.sin(a4)*innersize, 0, math.cos(a4)*innersize)
-				gl.Vertex(math.sin(a3)*innersize, 0, math.cos(a3)*innersize)
-				--outer (fadeout)
-				gl.Vertex(math.sin(a1)*outersize, 0, math.cos(a1)*outersize)
-				gl.Vertex(math.sin(a2)*outersize, 0, math.cos(a2)*outersize)
-			end
-		end
-	end)
-end
-
-
 function widget:Initialize()
 	if not WG.metalSpots then
 		Spring.Echo("<metalspots> This widget requires the 'Metalspot Finder' widget to run.")
 		widgetHandler:RemoveWidget()
 	end
+
+	initGL4()
 
 	WG.metalspots = {}
 	WG.metalspots.setShowValue = function(value)
@@ -134,36 +292,40 @@ function widget:Initialize()
 
 	local currentClock = os.clock()
 	local mSpots = WG.metalSpots
-	local metalSpotsCount = #metalSpots
-	for i = 1, #mSpots do
-		local spot = mSpots[i]
-		local value = string.format("%0.1f",math.round(spot.worth/1000,1))
-		if tonumber(value) > 0.001 then
-			local scale = 0.77 + ((math.max(spot.maxX,spot.minX)-(math.min(spot.maxX,spot.minX))) * (math.max(spot.maxZ,spot.minZ)-(math.min(spot.maxZ,spot.minZ)))) / 10000
+	if mSpots then
+		local spotsCount = #spots
+		for i = 1, #mSpots do
+			local spot = mSpots[i]
+			local value = string.format("%0.1f",math.round(spot.worth/1000,1))
+			if tonumber(value) > 0.001 then
+				local scale = 0.77 + ((math.max(spot.maxX,spot.minX)-(math.min(spot.maxX,spot.minX))) * (math.max(spot.maxZ,spot.minZ)-(math.min(spot.maxZ,spot.minZ)))) / 10000
 
-			local units = spGetUnitsInSphere(spot.x, spot.y, spot.z, 115*scale)
-			local occupied = false
-			for j=1, #units do
-				if extractors[spGetUnitDefID(units[j])]  then
-					occupied = true
-					break
+				local units = spGetUnitsInSphere(spot.x, spot.y, spot.z, 115*scale)
+				local occupied = false
+				for j=1, #units do
+					if extractors[spGetUnitDefID(units[j])]  then
+						occupied = true
+						break
+					end
+				end
+				spotsCount = spotsCount + 1
+				--local y = spGetGroundHeight(spot.x, spot.z)
+				spots[spotsCount] = {spot.x, 0.0, spot.z, value, scale, occupied, currentClock}
+				pushElementInstance(spotInstanceVBO, {spot.x, y, spot.z, scale, (occupied and 0) or 1, -1000,0,0}, spotKey(spot.x, spot.z))
+				if not valueList[value] then
+					valueList[value] = gl.CreateList(function()
+						font:Begin()
+						font:SetTextColor(1,1,1,1)
+						font:SetOutlineColor(0,0,0,0.4)
+						font:Print(value, 0, 0, 1.05, "con")
+						font:End()
+					end)
 				end
 			end
-			metalSpotsCount = metalSpotsCount + 1
-			metalSpots[metalSpotsCount] = {spot.x, spGetGroundHeight(spot.x,spot.z), spot.z, value, scale, occupied, currentClock}
-			if not valueList[value] then
-				valueList[value] = gl.CreateList(function()
-					font:Begin()
-					font:SetTextColor(1,1,1,1)
-					font:SetOutlineColor(0,0,0,0.4)
-					font:Print(value, 0, 0, 1.05, "con")
-					font:End()
-				end)
-			end
-			if not circleList[scale] then
-				circleList[scale] = gl.CreateList(DrawCircleLine, (innersize*21*scale)-((1-scale)*4), (outersize*21*scale))
-			end
 		end
+	end
+	if #spots <= 1 then
+		goodbye("not enough spots detected")
 	end
 end
 
@@ -172,14 +334,9 @@ function widget:Shutdown()
 	for k,v in pairs(valueList) do
 		gl.DeleteList(v)
 	end
-	for k,v in pairs(circleList) do
-		gl.DeleteList(v)
-	end
 	WG.metalspots = nil
-	metalSpots = {}
-	circleList = {}
+	spots = {}
 	valueList = {}
-	--gl.DeleteFont(font)
 end
 
 
@@ -197,29 +354,6 @@ function widget:PlayerChanged(playerID)
 	if fullview ~= prevFullview or myAllyTeamID ~= prevMyAllyTeamID then
 		checkMetalspots()
 	end
-end
-
-function checkMetalspots()
-	local now = os.clock()
-	for i=1, #metalSpots do
-		metalSpots[i][2] = spGetGroundHeight(metalSpots[i][1],metalSpots[i][3])
-		local spot = metalSpots[i]
-		local units = spGetUnitsInSphere(spot[1], spot[2], spot[3], 110*spot[5])
-		local occupied = false
-		local prevOccupied = metalSpots[i][6]
-		for j=1, #units do
-			if extractors[spGetUnitDefID(units[j])]  then
-				occupied = true
-				break
-			end
-		end
-		if occupied ~= prevOccupied then
-			metalSpots[i][7] = now
-			metalSpots[i][6] = occupied
-		end
-	end
-	sceduledCheckedSpotsFrame = Spring.GetGameFrame() + 89
-	checkspots = false
 end
 
 function widget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
@@ -242,68 +376,46 @@ end
 
 
 function widget:DrawWorldPreUnit()
-	if metalViewOnly and Spring.GetMapDrawMode() ~= 'metal' then return end
+	local mapDrawMode = spGetMapDrawMode()
+	if metalViewOnly and mapDrawMode ~= 'metal' then return end
 	if chobbyInterface then return end
 	if spIsGUIHidden() then return end
 
 	local clockDifference = (os.clock() - previousOsClock)
 	previousOsClock = os.clock()
 
+	gl.Texture(0, "$heightmap")
 	gl.DepthTest(false)
 
-	-- animate rotation
-	local _, gameSpeed, isPaused = spGetGameSpeed()
-	if rotationSpeed > 0 and not (isPaused or gameSpeed == 0) then
-		local angleDifference = (rotationSpeed) * (clockDifference * 5)
-		currentRotation = currentRotation + (angleDifference*0.66)
-		if currentRotation > 360 then
-		   currentRotation = currentRotation - 360
-		end
-	end
-	local mult, scale, spot
-	for i = 1, #metalSpots do
-		spot = metalSpots[i]
-		if spot[7] and spIsSphereInView(spot[1], spot[2], spot[3], 60) then
-			if not spot[6] then
-				mult = math_min(1, (previousOsClock-spot[7])/fadeTime)
-			else
-				mult = 1 - math_min(1, (previousOsClock-spot[7])/fadeTime)
-			end
-			if mult <= 0 then
-				metalSpots[i][7] = nil
-			else
+	spotShader:Activate()
+	drawInstanceVBO(spotInstanceVBO)
+	spotShader:Deactivate()
+
+	local spot
+	if showValue or Spring.GetGameFrame() == 0 or Spring.GetMapDrawMode() == 'metal' then
+		for i = 1, #spots do
+			spot = spots[i]
+			if spot[7] and spIsSphereInView(spot[1], spot[2], spot[3], 60) then
+
 				gl.PushMatrix()
 				gl.Translate(spot[1], spot[2], spot[3])
-				if mult ~= 1 then
-					scale = 0.94 + (0.06 * (mult*mult))
-					gl.Scale(scale,scale,scale)
-				end
+				gl.Color(1, 1, 1, opacity)
 
-				gl.Rotate(currentRotation, 0,1,0)
-				gl.Color(1, 1, 1, opacity*0.5*mult)
-				gl.CallList(circleList[spot[5]])
-
-				gl.Rotate(-currentRotation*2, 0,1,0)
-				gl.Rotate(180, 1,0,0)
-				scale = 1.33 - (spot[5]*0.075)
-				gl.Scale(scale, scale, scale)
-				gl.Color(1, 1, 1, opacity*mult)
-				gl.CallList(circleList[spot[5]])
-
-				if mult > 0.7 and (showValue or Spring.GetGameFrame() == 0 or Spring.GetMapDrawMode() == 'metal') then
-					gl.Scale(21*spot[5],21*spot[5],21*spot[5])
-					gl.Rotate(-180, 1,0,0)
-					gl.Rotate(currentRotation, 0,1,0)
-					gl.Billboard()
-					gl.CallList(valueList[spot[4]])
+				if showValue or Spring.GetGameFrame() == 0 or mapDrawMode == 'metal' then
+					if spot[5] < 200 then
+						gl.Scale(21*spot[5],21*spot[5],21*spot[5])
+						gl.Billboard()
+						gl.CallList(valueList[spot[4]])
+					end
 				end
 				gl.PopMatrix()
 			end
 		end
-    end
+	end
 
     gl.DepthTest(true)
     gl.Color(1,1,1,1)
+	gl.Texture(0, false)
 end
 
 function widget:GetConfigData(data)

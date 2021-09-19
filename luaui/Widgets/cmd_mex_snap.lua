@@ -13,16 +13,8 @@ function widget:GetInfo()
 	}
 end
 
-------------------------------------------------------------
--- Blacklist
-------------------------------------------------------------
-local mapBlackList = {
-						"Brazillian_Battlefield_Remake_V2",
-					 }
+local mapBlackList = { "Brazillian_Battlefield_Remake_V2"  }
 
-------------------------------------------------------------
--- Speedups
-------------------------------------------------------------
 local spGetActiveCommand = Spring.GetActiveCommand
 local spGetMouseState = Spring.GetMouseState
 local spTraceScreenRay = Spring.TraceScreenRay
@@ -36,9 +28,6 @@ for uDefID, uDef in pairs(UnitDefs) do
 	end
 end
 
-------------------------------------------------------------
--- Functions
-------------------------------------------------------------
 local function GetClosestMetalSpot(x, z)
 	local bestSpot
 	local bestDist = math.huge
@@ -72,11 +61,9 @@ local function GetClosestMexPosition(spot, x, z, uDefID, facing)
 end
 
 local function GiveNotifyingOrder(cmdID, cmdParams, cmdOpts)
-
 	if widgetHandler:CommandNotify(cmdID, cmdParams, cmdOpts) then
 		return
 	end
-
 	Spring.GiveOrder(cmdID, cmdParams, cmdOpts.coded)
 end
 
@@ -85,9 +72,6 @@ local function DoLine(x1, y1, z1, x2, y2, z2)
     gl.Vertex(x2, y2, z2)
 end
 
-------------------------------------------------------------
--- Callins
-------------------------------------------------------------
 function widget:Initialize()
 	WG.MexSnap = {}
 	if not WG.metalSpots then
@@ -134,7 +118,7 @@ function widget:DrawWorld()
 		return
 	end
 
-	-- Draw !
+	-- Draw
 	WG.MexSnap.curPosition = bestPos
 	gl.DepthTest(false)
 

@@ -1,6 +1,6 @@
 Spring.Echo("[Scavengers] Unit Controller initialized")
 
-VFS.Include("luarules/gadgets/scavengers/Configs/"..GameShortName.."/UnitLists/staticunits.lua")
+VFS.Include("luarules/gadgets/scavengers/Configs/" .. Game.gameShortName .. "/UnitLists/staticunits.lua")
 
 function SelfDestructionControls(n, scav, scavDef, friendly)
 	UnitRange = {}
@@ -58,6 +58,26 @@ function SelfDestructionControls(n, scav, scavDef, friendly)
 	Constructing[scav] = nil
 end
 
+function ArmyMoveOrdersInitialPhase(n, scav, scavDef)
+	UnitRange = {}
+	if UnitDefs[scavDef].maxWeaponRange and UnitDefs[scavDef].maxWeaponRange > 100 then
+		UnitRange[scav] = UnitDefs[scavDef].maxWeaponRange
+	else
+		UnitRange[scav] = 100
+	end
+	local range = UnitRange[scav]
+	
+	local posx, posy, posz = Spring.GetUnitPosition(scav)
+	local x = math.random(0, mapsizeX)
+	local z = math.random(0, mapsizeZ)
+	local y = Spring.GetGroundHeight(x,z)
+	if (-(UnitDefs[scavDef].minWaterDepth) > y) and (-(UnitDefs[scavDef].maxWaterDepth) < y) or UnitDefs[scavDef].canFly then
+		if posLosCheck(x, y, z, range) then
+			Spring.GiveOrderToUnit(scav, CMD.MOVE,{x,y,z}, {"shift", "alt", "ctrl"})
+		end
+	end
+end
+
 function ArmyMoveOrders(n, scav, scavDef)
 	UnitRange = {}
 	if UnitDefs[scavDef].maxWeaponRange and UnitDefs[scavDef].maxWeaponRange > 100 then
@@ -66,36 +86,82 @@ function ArmyMoveOrders(n, scav, scavDef)
 		UnitRange[scav] = 100
 	end
 	attackTarget = Spring.GetUnitNearestEnemy(scav, 200000, false)
+	
+	if not BossWaveStarted or BossWaveStarted == false then
+		attackTarget = Spring.GetUnitNearestEnemy(scav, 200000, false)
+	elseif FinalBossUnitID then
+		-- if scav == FinalBossUnitID then
+			if AliveEnemyCommanders and AliveEnemyCommandersCount > 0 then
+				if AliveEnemyCommandersCount > 1 then
+					for i = 1,AliveEnemyCommandersCount do
+						-- let's get nearest commander
+						local separation = Spring.GetUnitSeparation(scav,AliveEnemyCommanders[i])
+						if not lowestSeparation then
+							lowestSeparation = separation
+							attackTarget = AliveEnemyCommanders[i]
+						end
+						if separation < lowestSeparation then
+							lowestSeparation = separation
+							attackTarget = AliveEnemyCommanders[i]
+						end
+					end
+					lowestSeparation = nil
+				elseif AliveEnemyCommandersCount == 1 then
+					attackTarget = AliveEnemyCommanders[1]
+				end
+			end
+		-- else
+		-- 	attackTarget = FinalBossUnitID
+		-- end
+	else
+		attackTarget = Spring.GetUnitNearestEnemy(scav, 200000, false)
+	end
 	if attackTarget == nil then
 		attackTarget = Spring.GetUnitNearestEnemy(scav, 200000, false)
 	end
-	local x,y,z = Spring.GetUnitPosition(attackTarget)
-	local y = Spring.GetGroundHeight(x, z)
-	if (-(UnitDefs[scavDef].minWaterDepth) > y) and (-(UnitDefs[scavDef].maxWaterDepth) < y) or UnitDefs[scavDef].canFly then
-		local range = UnitRange[scav]
-		if range < 500 then 
-			range = 500 
-		end
-		local x = x + math_random(-range*0.5,range*0.5)
-		local z = z + math_random(-range*0.5,range*0.5)
-		local transporting = Spring.GetUnitIsTransporting(scav)
-		if transporting and #transporting > 0 then
-			Spring.GiveOrderToUnit(scav, CMD.UNLOAD_UNIT,{x+math_random(-5000,5000),y,z+math_random(-5000,5000)}, {"shift", "alt", "ctrl"})
-		elseif FinalBossUnitID and (scav ~= FinalBossUnitID) then
-			Spring.GiveOrderToUnit(scav, CMD.FIGHT,{x,y,z}, {"shift", "alt", "ctrl"})
-		elseif FinalBossUnitID and (scav == FinalBossUnitID) then
-			Spring.GiveOrderToUnit(scav, CMD.MOVE,{x,y,z}, {"shift", "alt", "ctrl"})
-		elseif not FinalBossUnitID then
-			if UnitDefs[scavDef].canFly then
+	if attackTarget then
+		local x,y,z = Spring.GetUnitPosition(attackTarget)
+		local y = Spring.GetGroundHeight(x, z)
+		if (-(UnitDefs[scavDef].minWaterDepth) > y) and (-(UnitDefs[scavDef].maxWaterDepth) < y) or UnitDefs[scavDef].canFly then
+			local range = UnitRange[scav]
+			if range < 500 then 
+				range = 500 
+			end
+			local x = x + math_random(-range*0.5,range*0.5)
+			local z = z + math_random(-range*0.5,range*0.5)
+			local transporting = Spring.GetUnitIsTransporting(scav)
+			if transporting and #transporting > 0 then
+				Spring.GiveOrderToUnit(scav, CMD.UNLOAD_UNIT,{x+math_random(-5000,5000),y,z+math_random(-5000,5000)}, {"shift", "alt", "ctrl"})
+			elseif FinalBossUnitID and (scav ~= FinalBossUnitID) then
 				Spring.GiveOrderToUnit(scav, CMD.FIGHT,{x,y,z}, {"shift", "alt", "ctrl"})
-			elseif UnitRange[scav] > unitControllerModuleConfig.minimumrangeforfight then
-				Spring.GiveOrderToUnit(scav, CMD.FIGHT,{x,y,z}, {"shift", "alt", "ctrl"})
+			elseif FinalBossUnitID and (scav == FinalBossUnitID) then
+				Spring.GiveOrderToUnit(scav, CMD.MOVE,{x,y,z}, {"shift", "alt", "ctrl"})
+			elseif not FinalBossUnitID then
+				if UnitDefs[scavDef].canFly then
+					Spring.GiveOrderToUnit(scav, CMD.FIGHT,{x,y,z}, {"shift", "alt", "ctrl"})
+				elseif UnitRange[scav] > unitControllerModuleConfig.minimumrangeforfight then
+					Spring.GiveOrderToUnit(scav, CMD.FIGHT,{x,y,z}, {"shift", "alt", "ctrl"})
+				else
+					Spring.GiveOrderToUnit(scav, CMD.MOVE,{x,y,z}, {"shift", "alt", "ctrl"})
+				end
 			else
 				Spring.GiveOrderToUnit(scav, CMD.MOVE,{x,y,z}, {"shift", "alt", "ctrl"})
 			end
 		else
-			Spring.GiveOrderToUnit(scav, CMD.MOVE,{x,y,z}, {"shift", "alt", "ctrl"})
-		end	
+			local x = math.random(0, mapsizeX)
+			local z = math.random(0, mapsizeZ)
+			local y = Spring.GetGroundHeight(x,z)
+			if (-(UnitDefs[scavDef].minWaterDepth) > y) and (-(UnitDefs[scavDef].maxWaterDepth) < y) or UnitDefs[scavDef].canFly then
+				Spring.GiveOrderToUnit(scav, CMD.FIGHT,{x,y,z}, {"shift", "alt", "ctrl"})
+			end
+		end
+	else
+		local x = math.random(0, mapsizeX)
+		local z = math.random(0, mapsizeZ)
+		local y = Spring.GetGroundHeight(x,z)
+		if (-(UnitDefs[scavDef].minWaterDepth) > y) and (-(UnitDefs[scavDef].maxWaterDepth) < y) or UnitDefs[scavDef].canFly then
+			Spring.GiveOrderToUnit(scav, CMD.FIGHT,{x,y,z}, {"shift", "alt", "ctrl"})
+		end
 	end
 	attackTarget = nil
 end

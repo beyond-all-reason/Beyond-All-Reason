@@ -4,7 +4,7 @@
 #include "exptype.h"
 
 piece  flarea, barrelb1, barrelb2, barrelb3, base, guna, turreta, turretb,
-       flareb1, flareb2, flareb3, wake, sleeveb1, sleeveb2, sleeveb3, sleevea, barrela1, barrela2, barrela3;
+       flareb1, flareb2, flareb3, wake, bow, sleeveb1, sleeveb2, sleeveb3, sleevea, barrela1, barrela2, barrela3;
 
 static-var  gun_2, bAiming, restore_delay, gun_1, Static_Var_7, Static_Var_8, aimDir;
 
@@ -297,10 +297,13 @@ StartMoving()
 	set-signal-mask SIG_MOVE;
 	var waketime;
 	start-script waveSplash();
+	var bowtime;
+	bowtime = 0;
 	while( TRUE )
 	{
-		emit-sfx 2 from wake;
-		
+		emit-sfx 1024 + 1 from wake;
+		if (bowtime) emit-sfx 1024 + 2 from bow;
+        bowtime = !bowtime;
 		waketime = (get CURRENT_SPEED) * 100 / get MAX_SPEED;
 		if( waketime < 50 ) waketime = 50;
 		sleep 12000 / waketime;

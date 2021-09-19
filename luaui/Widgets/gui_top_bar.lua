@@ -29,7 +29,6 @@ local escapeKeyPressesQuit = false
 
 local relXpos = 0.3
 local borderPadding = 5
-local showConversionSlider = true
 local bladeSpeedMultiplier = 0.2
 
 local noiseBackgroundTexture = ":g:LuaUI/Images/rgbnoise.png"
@@ -67,6 +66,7 @@ local currentWind = 0
 local currentTidal = 0
 local gameStarted = (Spring.GetGameFrame() > 0)
 local displayComCounter = false
+local updateTextClock = os.clock()
 
 local glTranslate = gl.Translate
 local glColor = gl.Color
@@ -93,13 +93,9 @@ local spGetMouseState = Spring.GetMouseState
 local spGetWind = Spring.GetWind
 
 
-local widgetSpaceMargin = Spring.FlowUI.elementMargin
-local bgpadding = Spring.FlowUI.elementPadding
-local RectRound = Spring.FlowUI.Draw.RectRound
-local TexturedRectRound = Spring.FlowUI.Draw.TexturedRectRound
-local UiElement = Spring.FlowUI.Draw.Element
-local UiButton = Spring.FlowUI.Draw.Button
-local UiSliderKnob = Spring.FlowUI.Draw.SliderKnob
+local isMetalmap = false
+
+local widgetSpaceMargin, bgpadding, RectRound, TexturedRectRound, UiElement, UiButton, UiSliderKnob
 
 
 local gaiaTeamID = Spring.GetGaiaTeamID()
@@ -164,21 +160,8 @@ if Spring.GetMenuName and string.find(string.lower(Spring.GetMenuName()), 'chobb
 	Spring.SendLuaMenuMsg("disableLobbyButton")
 end
 
-local numPlayers = 0
-local numAllyTeams = #Spring.GetAllyTeamList() - 1
-local singleTeams = false
-local teams = Spring.GetTeamList()
-if #teams - 1 == numAllyTeams then
-	singleTeams = true
-end
-for i = 1, #teams do
-	local _,_,_, isAiTeam = Spring.GetTeamInfo(teams[i], false)
-	local luaAI = Spring.GetTeamLuaAI(teams[i])
-	if (not luaAI or luaAI == '') and not isAiTeam and teams[i] ~= gaiaTeamID then
-		numPlayers = numPlayers + 1
-	end
-end
-local isSinglePlayer = numPlayers == 1
+local numPlayers = Spring.Utilities.GetPlayerCount()
+local isSinglePlayer = Spring.Utilities.Gametype.IsSinglePlayer()
 
 local allyteamOverflowingMetal = false
 local allyteamOverflowingEnergy = false
@@ -193,6 +176,13 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 end
 
 --------------------------------------------------------------------------------
+-- Graphs window
+--------------------------------------------------------------------------------
+
+local gameIsOver = false
+local graphsWindowVisible = false
+
+--------------------------------------------------------------------------------
 -- Rejoin
 --------------------------------------------------------------------------------
 
@@ -205,6 +195,11 @@ local serverFrame
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
+
+function IsOnRect(x, y, BLcornerX, BLcornerY, TRcornerX, TRcornerY)
+	return x >= BLcornerX and x <= TRcornerX and y >= BLcornerY and y <= TRcornerY
+end
+
 function isInBox(mx, my, box)
 	return mx > box[1] and my > box[2] and mx < box[3] and my < box[4]
 end
@@ -215,8 +210,14 @@ function widget:ViewResize()
 	widgetScale = widgetScale * ui_scale
 	xPos = math_floor(vsx * relXpos)
 
-	widgetSpaceMargin = Spring.FlowUI.elementMargin
-	bgpadding = Spring.FlowUI.elementPadding
+	widgetSpaceMargin = WG.FlowUI.elementMargin
+	bgpadding = WG.FlowUI.elementPadding
+
+	RectRound = WG.FlowUI.Draw.RectRound
+	TexturedRectRound = WG.FlowUI.Draw.TexturedRectRound
+	UiElement = WG.FlowUI.Draw.Element
+	UiButton = WG.FlowUI.Draw.Button
+	UiSliderKnob = WG.FlowUI.Draw.SliderKnob
 
 	bgtexSize = bgpadding * bgtexScale
 	buttonBgtexSize = bgpadding * buttonBgtexScale
@@ -369,8 +370,14 @@ local function updateButtons()
 
 	local text = '    '
 
+	if isSinglePlayer and WG['savegame'] ~= nil then
+		text = text .. Spring.I18N('ui.topbar.button.save') .. '   '
+	end
 	if WG['scavengerinfo'] ~= nil then
 		text = text .. Spring.I18N('ui.topbar.button.scavengers') .. '   '
+	end
+	if gameIsOver then
+		text = text .. Spring.I18N('ui.topbar.button.graphs') .. '   '
 	end
 	if WG['teamstats'] ~= nil then
 		text = text .. Spring.I18N('ui.topbar.button.stats') .. '   '
@@ -423,7 +430,7 @@ local function updateButtons()
 			WG['guishader'].InsertDlist(dlistButtonsGuishader, 'topbar_buttons')
 		end
 
-		if buttonsArea['buttons'] == nil then
+		-- if buttonsArea['buttons'] == nil then -- With this condition it doesn't actually update buttons if they were already added
 			buttonsArea['buttons'] = {}
 
 			local margin = bgpadding
@@ -431,6 +438,17 @@ local function updateButtons()
 			local width = 0
 			local buttons = 0
 			firstButton = nil
+			if isSinglePlayer and WG['savegame'] ~= nil then
+				buttons = buttons + 1
+				if buttons > 1 then
+					offset = math_floor(offset + width + 0.5)
+				end
+				width = math_floor((font2:GetTextWidth('   ' .. Spring.I18N('ui.topbar.button.save')) * fontsize) + 0.5)
+				buttonsArea['buttons']['save'] = { area[1] + offset, area[2] + margin, area[1] + offset + width, area[4] }
+				if not firstButton then
+					firstButton = 'save'
+				end
+			end
 			if WG['scavengerinfo'] ~= nil then
 				buttons = buttons + 1
 				if buttons > 1 then
@@ -440,6 +458,17 @@ local function updateButtons()
 				buttonsArea['buttons']['scavengers'] = { area[1] + offset, area[2] + margin, area[1] + offset + width, area[4] }
 				if not firstButton then
 					firstButton = 'scavengers'
+				end
+			end
+			if gameIsOver then
+				buttons = buttons + 1
+				if buttons > 1 then
+					offset = math_floor(offset + width + 0.5)
+				end
+				width = math_floor((font2:GetTextWidth('   ' .. Spring.I18N('ui.topbar.button.graphs')) * fontsize) + 0.5)
+				buttonsArea['buttons']['graphs'] = { area[1] + offset, area[2] + margin, area[1] + offset + width, area[4] }
+				if not firstButton then
+					firstButton = 'graphs'
 				end
 			end
 			if WG['teamstats'] ~= nil then
@@ -494,7 +523,7 @@ local function updateButtons()
 				width = math_floor((font2:GetTextWidth('   ' .. Spring.I18N('ui.topbar.button.settings')) * fontsize) + 0.5)
 				buttonsArea['buttons']['options'] = { area[1] + offset, area[2] + margin, area[1] + offset + width, area[4] }
 				if not firstButton then
-					firstButton = 'settings'
+					firstButton = 'options'
 				end
 			end
 			if chobbyLoaded then
@@ -512,7 +541,7 @@ local function updateButtons()
 				width = math_floor((font2:GetTextWidth('    ' .. Spring.I18N('ui.topbar.button.quit')) * fontsize) + 0.5)
 				buttonsArea['buttons']['quit'] = { area[1] + offset, area[2] + margin, area[3], area[4] }
 			end
-		end
+		-- end
 	end)
 
 	if dlistButtons2 ~= nil then
@@ -665,9 +694,11 @@ local function updateResbarText(res)
 	if currentStorageValue[res] ~= r[res][2] then
 		-- flush old dlist caches
 		for n, _ in pairs(dlistResValues[res]) do
-			glDeleteList(dlistResValues[res][n])
+			if n ~= currentResValue[res] then
+				glDeleteList(dlistResValues[res][n])
+				dlistResValues[res][n] = nil
+			end
 		end
-		dlistResValues[res] = {}
 
 		-- storage
 		if dlistResbar[res][6] ~= nil then
@@ -702,14 +733,14 @@ local function updateResbarText(res)
 			-- display overflow notification
 			if (res == 'metal' and (allyteamOverflowingMetal or overflowingMetal)) or (res == 'energy' and (allyteamOverflowingEnergy or overflowingEnergy)) then
 				if showOverflowTooltip[res] == nil then
-					showOverflowTooltip[res] = os.clock() + 0.5
+					showOverflowTooltip[res] = os.clock() + 1.1
 				end
 				if showOverflowTooltip[res] < os.clock() then
 					local bgpadding2 = 2.2 * widgetScale
 					local text = ''
 					if res == 'metal' then
 						text = (allyteamOverflowingMetal and '   ' .. Spring.I18N('ui.topbar.resources.wastingMetal') .. '   ' or '   ' .. Spring.I18N('ui.topbar.resources.overflowing') .. '   ')
-						if WG['notifications'] then
+						if WG['notifications'] and not isMetalmap and (not WG.sharedMetalFrame or WG.sharedMetalFrame+60 < gameFrame) then
 							if allyteamOverflowingMetal then
 								if numTeamsInAllyTeam > 1 then
 									WG['notifications'].addEvent('WholeTeamWastingMetal')
@@ -722,10 +753,10 @@ local function updateResbarText(res)
 						end
 					else
 						text = (allyteamOverflowingEnergy and '   ' .. Spring.I18N('ui.topbar.resources.wastingEnergy') .. '   '  or '   ' .. Spring.I18N('ui.topbar.resources.overflowing') .. '   ')
-						if WG['notifications'] then
+						if WG['notifications'] and (not WG.sharedEnergyFrame or WG.sharedEnergyFrame+60 < gameFrame) then
 							if allyteamOverflowingEnergy then
 								if numTeamsInAllyTeam > 3 then
-									WG['notifications'].addEvent('WholeTeamWastingEnergy')
+									--WG['notifications'].addEvent('WholeTeamWastingEnergy')
 								else
 									--WG['notifications'].addEvent('YouAreWastingEnergy')
 								end
@@ -883,9 +914,10 @@ local function updateResbar(res)
 
 	dlistResbar[res][2] = glCreateList(function()
 		-- Metalmaker Conversion slider
-		if showConversionSlider and res == 'energy' then
-			local convValue = Spring.GetTeamRulesParam(myTeamID, 'mmLevel')
-			if draggingConversionIndicatorValue ~= nil then
+		if res == 'energy' then
+			mmLevel = Spring.GetTeamRulesParam(myTeamID, 'mmLevel')
+			local convValue = mmLevel
+			if draggingConversionIndicatorValue then
 				convValue = draggingConversionIndicatorValue / 100
 			end
 			if convValue == nil then
@@ -907,10 +939,18 @@ local function updateResbar(res)
 				gl.Texture(false)
 			end
 		end
+
 		-- Share slider
+		if res == 'energy' then
+			eneryOverflowLevel = r[res][6]
+		else
+			metalOverflowLevel = r[res][6]
+		end
 		local value = r[res][6]
-		if draggingShareIndicatorValue[res] ~= nil then
+		if draggingShareIndicator and draggingShareIndicatorValue[res] ~= nil then
 			value = draggingShareIndicatorValue[res]
+		else
+			draggingShareIndicatorValue[res] = value
 		end
 		shareIndicatorArea[res] = { math_floor(barArea[1] + (value * barWidth) - (shareSliderWidth / 2)), math_floor(barArea[2] - sliderHeightAdd), math_floor(barArea[1] + (value * barWidth) + (shareSliderWidth / 2)), math_floor(barArea[4] + sliderHeightAdd) }
 		local cornerSize
@@ -953,7 +993,7 @@ local function updateResbar(res)
 	end
 end
 
-function drawResbarValues(res)
+local function drawResbarValues(res, updateText)
 	local barHeight = resbarDrawinfo[res].barArea[4] - resbarDrawinfo[res].barArea[2]
 	local barWidth = resbarDrawinfo[res].barArea[3] - resbarDrawinfo[res].barArea[1]
 	local glowSize = (resbarDrawinfo[res].barArea[4] - resbarDrawinfo[res].barArea[2]) * 7
@@ -1025,16 +1065,20 @@ function drawResbarValues(res)
 		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 	end
 
-	currentResValue[res] = short(cappedCurRes)
-	if not dlistResValues[res][currentResValue[res]] then
-		dlistResValues[res][currentResValue[res]] = glCreateList(function()
-			-- Text: current
-			font2:Begin()
-			font2:Print(currentResValue[res], resbarDrawinfo[res].textCurrent[2], resbarDrawinfo[res].textCurrent[3], resbarDrawinfo[res].textCurrent[4], resbarDrawinfo[res].textCurrent[5])
-			font2:End()
-		end)
+	if updateText then
+		currentResValue[res] = short(cappedCurRes)
+		if not dlistResValues[res][currentResValue[res]] then
+			dlistResValues[res][currentResValue[res]] = glCreateList(function()
+				-- Text: current
+				font2:Begin()
+				font2:Print(currentResValue[res], resbarDrawinfo[res].textCurrent[2], resbarDrawinfo[res].textCurrent[3], resbarDrawinfo[res].textCurrent[4], resbarDrawinfo[res].textCurrent[5])
+				font2:End()
+			end)
+		end
 	end
-	glCallList(dlistResValues[res][currentResValue[res]])
+	if dlistResValues[res][currentResValue[res]] then
+		glCallList(dlistResValues[res][currentResValue[res]])
+	end
 end
 
 function init()
@@ -1091,12 +1135,40 @@ function init()
 	updateResbarText('energy')
 end
 
-function checkStatus()
+local function checkStatus()
 	myAllyTeamID = Spring.GetMyAllyTeamID()
 	myTeamID = Spring.GetMyTeamID()
 	myPlayerID = Spring.GetMyPlayerID()
 	if myTeamID ~= gaiaTeamID and UnitDefs[Spring.GetTeamRulesParam(myTeamID, 'startUnit')] then
 		comTexture = 'Icons/'..UnitDefs[Spring.GetTeamRulesParam(myTeamID, 'startUnit')].name..'.png'
+	end
+end
+
+local function countComs(forceUpdate)
+	-- recount my own ally team coms
+	local prevAllyComs = allyComs
+	local prevEnemyComs = enemyComs
+	allyComs = 0
+	local myAllyTeamList = Spring.GetTeamList(myAllyTeamID)
+	for _, teamID in ipairs(myAllyTeamList) do
+		allyComs = allyComs + Spring.GetTeamUnitDefCount(teamID, armcomDefID) + Spring.GetTeamUnitDefCount(teamID, corcomDefID)
+	end
+
+	local newEnemyComCount = Spring.GetTeamRulesParam(myTeamID, "enemyComCount")
+	if type(newEnemyComCount) == 'number' then
+		enemyComCount = newEnemyComCount
+		if enemyComCount ~= prevEnemyComCount then
+			comcountChanged = true
+			prevEnemyComCount = enemyComCount
+		end
+	end
+
+	if forceUpdate or allyComs ~= prevAllyComs or enemyComs ~= prevEnemyComs then
+		comcountChanged = true
+	end
+
+	if comcountChanged then
+		updateComs()
 	end
 end
 
@@ -1114,6 +1186,57 @@ function widget:GameFrame(n)
 
 	windRotation = windRotation + (currentWind * bladeSpeedMultiplier)
 	gameFrame = n
+end
+
+local function updateAllyTeamOverflowing()
+	allyteamOverflowingMetal = false
+	allyteamOverflowingEnergy = false
+	overflowingMetal = false
+	overflowingEnergy = false
+	local totalEnergy = 0
+	local totalEnergyStorage = 0
+	local totalMetal = 0
+	local totalMetalStorage = 0
+	local energyPercentile, metalPercentile
+	local teams = Spring.GetTeamList(myAllyTeamID)
+	for i, teamID in pairs(teams) do
+		local energy, energyStorage, _, _, _, energyShare, energySent = spGetTeamResources(teamID, "energy")
+		totalEnergy = totalEnergy + energy
+		totalEnergyStorage = totalEnergyStorage + energyStorage
+		local metal, metalStorage, _, _, _, metalShare, metalSent = spGetTeamResources(teamID, "metal")
+		totalMetal = totalMetal + metal
+		totalMetalStorage = totalMetalStorage + metalStorage
+		if teamID == myTeamID then
+			energyPercentile = energySent / totalEnergyStorage
+			metalPercentile = metalSent / totalMetalStorage
+			if energyPercentile > 0.0001 then
+				overflowingEnergy = energyPercentile * (1 / 0.025)
+				if overflowingEnergy > 1 then
+					overflowingEnergy = 1
+				end
+			end
+			if metalPercentile > 0.0001 then
+				overflowingMetal = metalPercentile * (1 / 0.025)
+				if overflowingMetal > 1 then
+					overflowingMetal = 1
+				end
+			end
+		end
+	end
+	energyPercentile = totalEnergy / totalEnergyStorage
+	metalPercentile = totalMetal / totalMetalStorage
+	if energyPercentile > 0.975 then
+		allyteamOverflowingEnergy = (energyPercentile - 0.975) * (1 / 0.025)
+		if allyteamOverflowingEnergy > 1 then
+			allyteamOverflowingEnergy = 1
+		end
+	end
+	if metalPercentile > 0.975 then
+		allyteamOverflowingMetal = (metalPercentile - 0.975) * (1 / 0.025)
+		if allyteamOverflowingMetal > 1 then
+			allyteamOverflowingMetal = 1
+		end
+	end
 end
 
 local uiOpacitySec = 0
@@ -1193,6 +1316,17 @@ function widget:Update(dt)
 			draggingConversionIndicatorValue = nil
 			updateResbar('metal')
 			updateResbar('energy')
+		else
+
+			-- make sure conversion/overflow sliders are adjusted
+			if mmLevel then
+				if mmLevel ~= Spring.GetTeamRulesParam(myTeamID, 'mmLevel') or eneryOverflowLevel ~= r['energy'][6] then
+					updateResbar('energy')
+				end
+				if metalOverflowLevel ~= r['metal'][6] then
+					updateResbar('metal')
+				end
+			end
 		end
 	end
 
@@ -1262,57 +1396,7 @@ function widget:RecvLuaMsg(msg, playerID)
 	end
 end
 
-function updateAllyTeamOverflowing()
-	allyteamOverflowingMetal = false
-	allyteamOverflowingEnergy = false
-	overflowingMetal = false
-	overflowingEnergy = false
-	local totalEnergy = 0
-	local totalEnergyStorage = 0
-	local totalMetal = 0
-	local totalMetalStorage = 0
-	local energyPercentile, metalPercentile
-	for i, teamID in pairs(Spring.GetTeamList(Spring.GetMyAllyTeamID())) do
-		local energy, energyStorage, _, _, _, energyShare, energySent = spGetTeamResources(teamID, "energy")
-		totalEnergy = totalEnergy + energy
-		totalEnergyStorage = totalEnergyStorage + energyStorage
-		local metal, metalStorage, _, _, _, metalShare, metalSent = spGetTeamResources(teamID, "metal")
-		totalMetal = totalMetal + metal
-		totalMetalStorage = totalMetalStorage + metalStorage
-		if teamID == myTeamID then
-			energyPercentile = energySent / totalEnergyStorage
-			metalPercentile = metalSent / totalMetalStorage
-			if energyPercentile > 0.0001 then
-				overflowingEnergy = energyPercentile * (1 / 0.025)
-				if overflowingEnergy > 1 then
-					overflowingEnergy = 1
-				end
-			end
-			if metalPercentile > 0.0001 then
-				overflowingMetal = metalPercentile * (1 / 0.025)
-				if overflowingMetal > 1 then
-					overflowingMetal = 1
-				end
-			end
-		end
-	end
-	energyPercentile = totalEnergy / totalEnergyStorage
-	metalPercentile = totalMetal / totalMetalStorage
-	if energyPercentile > 0.975 then
-		allyteamOverflowingEnergy = (energyPercentile - 0.975) * (1 / 0.025)
-		if allyteamOverflowingEnergy > 1 then
-			allyteamOverflowingEnergy = 1
-		end
-	end
-	if metalPercentile > 0.975 then
-		allyteamOverflowingMetal = (metalPercentile - 0.975) * (1 / 0.025)
-		if allyteamOverflowingMetal > 1 then
-			allyteamOverflowingMetal = 1
-		end
-	end
-end
-
-function hoveringElement(x, y)
+local function hoveringElement(x, y)
 	if IsOnRect(x, y, topbarArea[1], topbarArea[2], topbarArea[3], topbarArea[4]) then
 		if resbarArea.metal[1] and IsOnRect(x, y, resbarArea.metal[1], resbarArea.metal[2], resbarArea.metal[3], resbarArea.metal[4]) then
 			return true
@@ -1352,8 +1436,11 @@ function widget:DrawScreen()
 		Spring.SetMouseCursor('cursornormal')
 	end
 
-	gl.Texture(false)	-- because some other widget didnt do this
-
+	--gl.Texture(false)	-- because some other widget didnt do this
+	local updateText = os.clock() - updateTextClock > 0.08
+	if updateText then
+		updateTextClock = os.clock()
+	end
 	local res = 'metal'
 	if dlistResbar[res][1] and dlistResbar[res][2] and dlistResbar[res][3] then
 		glCallList(dlistResbar[res][1])
@@ -1377,7 +1464,7 @@ function widget:DrawScreen()
 				glCallList(dlistResbar[res][5])
 			end
 		end
-		drawResbarValues(res)
+		drawResbarValues(res, updateText)
 		glCallList(dlistResbar[res][6])
 		glCallList(dlistResbar[res][3])
 		glCallList(dlistResbar[res][2])
@@ -1405,7 +1492,7 @@ function widget:DrawScreen()
 				end
 			end
 		end
-		drawResbarValues(res)
+		drawResbarValues(res, updateText)
 		glCallList(dlistResbar[res][6])
 		glCallList(dlistResbar[res][3])
 		glCallList(dlistResbar[res][2])
@@ -1608,10 +1695,6 @@ function widget:DrawScreen()
 	glPopMatrix()
 end
 
-function IsOnRect(x, y, BLcornerX, BLcornerY, TRcornerX, TRcornerY)
-	return x >= BLcornerX and x <= TRcornerX and y >= BLcornerY and y <= TRcornerY
-end
-
 local function adjustSliders(x, y)
 	if draggingShareIndicator ~= nil and not spec then
 		local shareValue = (x - resbarDrawinfo[draggingShareIndicator]['barArea'][1]) / (resbarDrawinfo[draggingShareIndicator]['barArea'][3] - resbarDrawinfo[draggingShareIndicator]['barArea'][1])
@@ -1625,7 +1708,7 @@ local function adjustSliders(x, y)
 		draggingShareIndicatorValue[draggingShareIndicator] = shareValue
 		updateResbar(draggingShareIndicator)
 	end
-	if showConversionSlider and draggingConversionIndicator and not spec then
+	if draggingConversionIndicator and not spec then
 		local convValue = math_floor((x - resbarDrawinfo['energy']['barArea'][1]) / (resbarDrawinfo['energy']['barArea'][3] - resbarDrawinfo['energy']['barArea'][1]) * 100)
 		if convValue < 12 then
 			convValue = 12
@@ -1680,6 +1763,13 @@ local function hideWindows()
 	if WG['guishader'] then
 		WG['guishader'].setScreenBlur(false)
 	end
+
+	if gameIsOver then -- Graphs window can only be open after game end
+		-- Closing Graphs window if open, no way to tell if it was open or not
+		Spring.SendCommands('endgraph 0')
+		graphsWindowVisible = false
+	end
+
 	return closedWindow
 end
 
@@ -1718,6 +1808,19 @@ local function applyButtonAction(button)
 		hideWindows()
 		if WG['options'] ~= nil and isvisible ~= true then
 			WG['options'].toggle()
+		end
+	elseif button == 'save' then
+		if WG['savegame'] ~= nil and isSinglePlayer then
+			--local gameframe = Spring.GetGameFrame()
+			--local minutes = math.floor((gameframe / 30 / 60))
+			--local seconds = math.floor((gameframe - ((minutes*60)*30)) / 30)
+			--if seconds == 0 then
+			--	seconds = '00'
+			--elseif seconds < 10 then
+			--	seconds = '0'..seconds
+			--end
+			local time = os.date("%Y%m%d_%H%M%S")
+			Spring.SendCommands("savegame "..time)
 		end
 	elseif button == 'scavengers' then
 		if WG['scavengerinfo'] ~= nil then
@@ -1759,7 +1862,19 @@ local function applyButtonAction(button)
 		if WG['teamstats'] ~= nil and isvisible ~= true then
 			WG['teamstats'].toggle()
 		end
+	elseif button == 'graphs' then
+		isvisible = graphsWindowVisible
+		hideWindows()
+		if gameIsOver and not isvisible then
+			Spring.SendCommands('endgraph 2')
+			graphsWindowVisible = true
+		end
 	end
+end
+
+function widget:GameOver()
+	gameIsOver = true
+	updateButtons()
 end
 
 function widget:MouseWheel(up, value)
@@ -1828,7 +1943,7 @@ function widget:MousePress(x, y, button)
 			if IsOnRect(x, y, shareIndicatorArea['energy'][1], shareIndicatorArea['energy'][2], shareIndicatorArea['energy'][3], shareIndicatorArea['energy'][4]) then
 				draggingShareIndicator = 'energy'
 			end
-			if draggingShareIndicator == nil and showConversionSlider and IsOnRect(x, y, conversionIndicatorArea[1], conversionIndicatorArea[2], conversionIndicatorArea[3], conversionIndicatorArea[4]) then
+			if draggingShareIndicator == nil and IsOnRect(x, y, conversionIndicatorArea[1], conversionIndicatorArea[2], conversionIndicatorArea[3], conversionIndicatorArea[4]) then
 				draggingConversionIndicator = true
 			end
 			if draggingConversionIndicator == nil and IsOnRect(x, y, resbarDrawinfo['energy'].barArea[1], shareIndicatorArea['energy'][2], resbarDrawinfo['energy'].barArea[3], shareIndicatorArea['energy'][4]) then
@@ -1893,34 +2008,6 @@ function widget:PlayerChanged()
 	end
 end
 
-function countComs(forceUpdate)
-	-- recount my own ally team coms
-	local prevAllyComs = allyComs
-	local prevEnemyComs = enemyComs
-	allyComs = 0
-	local myAllyTeamList = Spring.GetTeamList(myAllyTeamID)
-	for _, teamID in ipairs(myAllyTeamList) do
-		allyComs = allyComs + Spring.GetTeamUnitDefCount(teamID, armcomDefID) + Spring.GetTeamUnitDefCount(teamID, corcomDefID)
-	end
-
-	local newEnemyComCount = Spring.GetTeamRulesParam(myTeamID, "enemyComCount")
-	if type(newEnemyComCount) == 'number' then
-		enemyComCount = newEnemyComCount
-		if enemyComCount ~= prevEnemyComCount then
-			comcountChanged = true
-			prevEnemyComCount = enemyComCount
-		end
-	end
-
-	if forceUpdate or allyComs ~= prevAllyComs or enemyComs ~= prevEnemyComs then
-		comcountChanged = true
-	end
-
-	if comcountChanged then
-		updateComs()
-	end
-end
-
 function widget:UnitCreated(unitID, unitDefID, unitTeam)
 	if not isCommander[unitDefID] then
 		return
@@ -1981,6 +2068,10 @@ function widget:Initialize()
 
 	if gameFrame > 0 then
 		widget:GameStart()
+	end
+
+	if WG.metalSpots and #WG.metalSpots > 0 and #WG.metalSpots <= 2 then	-- probably speedmetal kind of map
+		isMetalmap = true
 	end
 end
 

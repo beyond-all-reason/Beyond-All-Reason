@@ -22,7 +22,7 @@ function BehaviourFactory:AddBehaviours(unit)
 		b = self:defaultBehaviours(unit)
 	end
 	for i,behaviour in ipairs(b) do
-		t = behaviour()
+		local t = behaviour()
 		t:SetAI(self.ai)
 		t:SetUnit(unit)
 		t:Init()
@@ -36,10 +36,9 @@ function BehaviourFactory:defaultBehaviours(unit)
 	local un = u:Name()
 	local army = self.ai.armyhst
 	-- game:SendToConsole(un, "getting default behaviours")
-
-	-- keep track of how many of each kind of unit we have
-	table.insert(b, CountBST)
-	table.insert(b, BootBST)
+	if army.unitTable[un].isFactory or army.unitTable[un].speed > 0 then
+		table.insert(b, BootBST)
+	end
 
 	if army.commanderList[un] then
 		table.insert(b, CommanderBST)
@@ -100,7 +99,8 @@ function BehaviourFactory:defaultBehaviours(unit)
 	if army.raiders[un] then
 -- 		table.insert(b, AttackerBST)
 		table.insert(b, RaiderBST)
--- 		table.insert(b, ScoutBST)
+ 		table.insert(b, ScoutBST)
+		table.insert(b, DefendBST)
 		--self:EchoDebug()
 	end
 	if army.breaks[un] then
@@ -146,7 +146,8 @@ function BehaviourFactory:defaultBehaviours(unit)
 		--self:EchoDebug()
 	end
 	if army.amphibious[un] then
-		table.insert(b, AttackerBST)
+-- 		table.insert(b, AttackerBST)
+		table.insert(b, RaiderBST)
 		table.insert(b, DefendBST)
 		--self:EchoDebug()
 	end
@@ -173,8 +174,7 @@ function BehaviourFactory:defaultBehaviours(unit)
 		--self:EchoDebug()
 	end
 	if army._nano_[un] then
-		table.insert(b, AssistBST)
-		table.insert(b, WardBST) -- TODO testing sometime nano stuck
+		table.insert(b, WardBST)
 		table.insert(b, CleanerBST)
 	end
 

@@ -54,7 +54,7 @@ local game = {}
 	end
 
 	function game:getUnitsInCylinder(pos, range)
-		return Spring.GetUnitsInCylinder(pos.x, pos.z, range, game:GetTeamID())
+		return Spring.GetUnitsInCylinder(pos.x, pos.z, range, team)
 	end
 
 	function game:GetUnitIsBuilding(id)
@@ -65,11 +65,11 @@ local game = {}
 		return Spring.GetTeamUnitDefCount(team,unitDef)
 	end
 
-	function GetTeamUnitsByDefs(team,unitDef)
-		return Spring(GetTeamUnitsByDefs(team,unitDef))
+	function game:GetTeamUnitsByDefs(team,unitDef)
+		return Spring.GetTeamUnitsByDefs(team,unitDef)
 	end
 
-	function GetUnitSeparation(Id1,Id2,d2d,surface)
+	function game:GetUnitSeparation(Id1,Id2,d2d,surface)
 		return Spring.GetUnitSeparation(Id1,Id2,d2d,surface)
 	end
 
@@ -117,6 +117,19 @@ local game = {}
 	function game:AddMarker(position,label) -- adds a marker
 		Spring.MarkerAddPoint( position.x, position.y, position.z, label )
 		return true
+	end
+-- 		gadgetHandler:AddSyncAction('ShardDrawDisplay', sdDisplay)
+-- 		gadgetHandler:AddSyncAction('ShardStartTimer', sStartTimer)
+-- 		gadgetHandler:AddSyncAction('ShardStopTimer', sStopTimer)
+	function game:StartTimer(name)
+		return SendToUnsynced('ShardStartTimer',name)
+	end
+
+	function game:StopTimer(name)
+		return SendToUnsynced('ShardStopTimer',name)
+	end
+	function game:DrawDisplay(on)
+		return SendToUnsynced('ShardDrawDisplay',on)
 	end
 
 	function game:SendToContent(stringvar) -- returns a string passed from any lua gadgets

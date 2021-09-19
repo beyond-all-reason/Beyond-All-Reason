@@ -18,7 +18,6 @@ return {
 		corpse = "DEAD",
 		damagemodifier = 0.5,
 		description = Spring.I18N('units.descriptions.armpb'),
-		energystorage = 25,
 		explodeas = "smallBuildingExplosionGeneric",
 		footprintx = 3,
 		footprintz = 3,
@@ -90,7 +89,7 @@ return {
 		},
 		sfxtypes = {
 			explosiongenerators = {
-				[1] = "custom:barrelshot-medium",
+				[1] = "custom:barrelshot-medium-impulse",
 			},
 			pieceexplosiongenerators = {
 				[1] = "deathceg2",
@@ -155,7 +154,7 @@ return {
 					default = 675,
 					fighters = 26,
 					hvyboats = 472.5,
-					subs = 5,
+					subs = 300,
 					vtol = 26,
 				},
 			},

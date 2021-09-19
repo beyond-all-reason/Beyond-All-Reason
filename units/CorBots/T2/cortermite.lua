@@ -15,8 +15,6 @@ return {
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
 		description = Spring.I18N('units.descriptions.cortermite'),
-		energymake = 0.7,
-		energyuse = 0.7,
 		explodeas = "mediumexplosiongeneric",
 		footprintx = 3,
 		footprintz = 3,
@@ -150,6 +148,7 @@ return {
 				weapontype = "BeamLaser",
 				weaponvelocity = 700,
 				customparams = {
+					expl_light_mult = "0.85",
 					light_mult = "0.55",
 				},
 				damage = {

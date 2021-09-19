@@ -18,8 +18,6 @@ return {
 		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
 		description = Spring.I18N('units.descriptions.armpship'),
-		energymake = 0.2,
-		energyuse = 0.2,
 		explodeas = "mediumExplosionGeneric",
 		floater = true,
 		footprintx = 4,
@@ -27,7 +25,7 @@ return {
 		icontype = "sea",
 		idleautoheal = 2,
 		idletime = 900,
-		maxdamage = 2150,
+		maxdamage = 1940,
 		maxvelocity = 2.7,
 		minwaterdepth = 6,
 		movementclass = "BOAT4",
@@ -89,7 +87,8 @@ return {
 		},
 		sfxtypes = {
 			explosiongenerators = {
-				[1] = "custom:barrelshot-tiny",
+				[1] = "custom:waterwake-medium",
+				[2] = "custom:bowsplash-small",
 			},
 			pieceexplosiongenerators = {
 				[1] = "deathceg2",

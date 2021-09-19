@@ -72,7 +72,7 @@ local inactive = {
 	armfmine3 = true,
 	armfrad = true,
 	armsonar = true,
-	
+
 	-- corbhmth = true,
 	-- corbuzz = true,
 	-- cordoom = true,

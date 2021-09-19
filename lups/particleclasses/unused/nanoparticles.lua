@@ -399,7 +399,7 @@ end
 -----------------------------------------------------------------------------------------------------------------
 
 function NanoParticles.Create(Options)
-  local newObject = MergeTable(Options, NanoParticles.Default)
+  local newObject = table.merge(NanoParticles.Default, Options)
   setmetatable(newObject,NanoParticles)  --// make handle lookup
   return newObject:CreateParticle() and newObject
 end

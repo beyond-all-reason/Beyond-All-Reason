@@ -15,8 +15,6 @@ return {
 		collisionvolumetype = "box",
 		corpse = "DEAD",
 		description = Spring.I18N('units.descriptions.armmanni'),
-		energymake = 5.2,
-		energyuse = 5.2,
 		explodeas = "penetrator",
 		footprintx = 3,
 		footprintz = 3,
@@ -171,7 +169,9 @@ return {
 				customparams = {
 					expl_light_life_mult = 1.3,
 					expl_light_radius_mult = 1.15,
+					expl_light_mult = 1.15,
 					light_radius_mult = "1.2",
+					light_mult = 3,
 				},
 				damage = {
 					commanders = 1000,

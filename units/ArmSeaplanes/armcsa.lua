@@ -32,8 +32,6 @@ return {
 		maxslope = 10,
 		maxvelocity = 6.4,
 		maxwaterdepth = 255,
-		metalmake = 0.2,
-		metalstorage = 75,
 		name = unitName,
 		objectname = "Units/ARMCSA.s3o",
 		script = "Units/ARMCSA.cob",

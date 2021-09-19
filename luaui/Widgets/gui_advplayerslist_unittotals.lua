@@ -42,9 +42,7 @@ local GL_SRC_ALPHA = GL.SRC_ALPHA
 local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 local GL_ONE = GL.ONE
 
-local RectRound = Spring.FlowUI.Draw.RectRound
-local UiElement = Spring.FlowUI.Draw.Element
-local elementCorner = Spring.FlowUI.elementCorner
+local RectRound, UiElement, elementCorner
 
 local font, chobbyInterface, hovering
 
@@ -52,10 +50,7 @@ local drawlist = {}
 local advplayerlistPos = {}
 local widgetHeight = 22
 local top, left, bottom, right = 0,0,0,0
-local gameMaxUnits = 2000
-if Spring.GetModOptions() and Spring.GetModOptions().maxunits then
-	gameMaxUnits = tonumber(Spring.GetModOptions().maxunits)
-end
+local gameMaxUnits = Spring.GetModOptions().maxunits
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -180,7 +175,10 @@ function widget:ViewResize()
 
 	font = WG['fonts'].getFont()
 
-	elementCorner = Spring.FlowUI.elementCorner
+	elementCorner = WG.FlowUI.elementCorner
+
+	RectRound = WG.FlowUI.Draw.RectRound
+	UiElement = WG.FlowUI.Draw.Element
 
 	if prevVsy ~= vsx or prevVsy ~= vsy then
 		createList()

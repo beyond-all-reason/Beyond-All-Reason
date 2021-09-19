@@ -49,14 +49,6 @@ function gadget:GameFrame(n)
 
 -- DayNight Cycle
 
-	if n%18000 < 15000 then
-		SendToUnsynced("MapAtmosphereConfigSetSun", 1, 0.8, 1, 1, 1)
-		SendToUnsynced("MapAtmosphereConfigSetFog", 0.8, 0.8, 3, 2)
-	else
-		SendToUnsynced("MapAtmosphereConfigSetSun", 0.7, 0.8, 0.7, 0.7, 0.65)
-		SendToUnsynced("MapAtmosphereConfigSetFog", 0.18, 0.6, 3.9, 3.2)
-	end
-
 -- common foggy cliffs
 	if n%360 == 0 then
 		SpawnCEGInPositionGround("fogdirty", 6249, 0, 2938)
@@ -92,16 +84,6 @@ function gadget:GameFrame(n)
 -- pollen
 	if n%150 == 0 then
 		SpawnCEGInRandomMapPos("dustparticles", 50)
-	end
-
--- rare rain
-	if n%7800 == 5000 then
-		SpawnCEGInRandomMapPos("rain", 0, _, _, _, "rainlight", 1)
-	end
-
--- very rare rain
-	if n%12800 == 9000 then
-		SpawnCEGInRandomMapPos("rainlight", 0, _, _, _, "rainlight", 1)
 	end
 
 end

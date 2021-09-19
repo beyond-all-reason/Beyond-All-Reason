@@ -152,6 +152,7 @@ return {
 			explosiongenerators = {
 				[1] = "custom:com_sea_laser_bubbles",
 				[2] = "custom:barrelshot-medium",
+				[3] = "custom:footstepcom",
 			},
 			pieceexplosiongenerators = {
 				[1] = "deathceg3",
@@ -265,8 +266,8 @@ return {
 				weapontype = "BeamLaser",
 				weaponvelocity = 900,
 				damage = {
-					default = 225,
-					subs = 150,
+					default = 200,
+					subs = 100,
 				},
 			},
 			disintegrator = {
@@ -278,7 +279,7 @@ return {
 				cegtag = "dgunprojectile",
 				commandfire = true,
 				craterboost = 0,
-				cratermult = 0.6,
+				cratermult = 0.15,
 				edgeeffectiveness = 0.15,
 				energypershot = 500,
 				explosiongenerator = "custom:expldgun",
@@ -305,10 +306,10 @@ return {
 				weapontype = "DGun",
 				weaponvelocity = 300,
 				customparams = {
-					expl_light_heat_radius_mult = 2.8,
-					expl_light_heat_strength_mult = 0.66,
-					expl_light_mult = 0.35,
-					expl_light_radius_mult = 1.15,
+					expl_light_heat_radius = 12,
+					expl_light_opacity = 0.32,
+					expl_light_radius = 340,
+					expl_light_color = "1 0.83 0.53",
 				},
 				damage = {
 					default = 99999,
@@ -365,6 +366,7 @@ return {
 			[2] = {
 				badtargetcategory = "VTOL",
 				def = "CORCOMSEALASER",
+				onlytargetcategory = "NOTAIR"
 			},
 			[3] = {
 				def = "DISINTEGRATOR",

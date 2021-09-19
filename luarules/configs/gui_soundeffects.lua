@@ -1,3 +1,15 @@
+local LootboxSoundEffects = {
+        BaseSoundSelectType = "arm-bld-select",
+        --BaseSoundMovementType = "blanksound",
+        BaseSoundWeaponType = "arm-bld-nrg-fusion",
+}
+
+local LootboxNanoSoundEffects = {
+        BaseSoundSelectType = "arm-bld-select-small",
+        --BaseSoundMovementType = "blanksound",
+        BaseSoundWeaponType = "conalt-medium",
+}
+
 GUIUnitSoundEffects = {
 	-- ARMADA COMMANDER
 	armcom = {
@@ -26,6 +38,14 @@ GUIUnitSoundEffects = {
 		BaseSoundSelectType = "arm-bld-select-small-water",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-radar-sonar",
+	},
+
+	armsonar = {
+		BaseSoundSelectType = "arm-bld-select-small-water",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "torpedo-small",
+        BaseSoundActivate   = "cmd-on",
+        BaseSoundDeactivate = "cmd-off",
 	},
 
 	armjamt = {
@@ -90,6 +110,12 @@ GUIUnitSoundEffects = {
 		BaseSoundSelectType = "arm-bld-nrghum",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-solar-alt-adv",
+	},
+
+	armgeo = {
+		BaseSoundSelectType = "arm-bld-select-medium",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "arm-bld-geo",
 	},
 
 	armmstor = {
@@ -183,6 +209,12 @@ GUIUnitSoundEffects = {
 	},
 
 	armtl = {
+		BaseSoundSelectType = "arm-bld-defense-action-water-t1",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "torpedo-small",
+	},
+
+	armptl = {
 		BaseSoundSelectType = "arm-bld-defense-action-water-t1",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "torpedo-small",
@@ -372,6 +404,12 @@ GUIUnitSoundEffects = {
 		BaseSoundWeaponType = "flak",
 	},
 
+	armkraken = {
+		BaseSoundSelectType = "arm-bld-defense-action-water-t3",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "plasma-large",
+	},
+
 	armmercury = {
 		BaseSoundSelectType = "arm-bld-defense-action-t2",
 		--BaseSoundMovementType = "",
@@ -485,23 +523,53 @@ GUIUnitSoundEffects = {
 		BaseSoundWeaponType = "arm-bld-ap",
 	},
 
+	armplat = {
+		BaseSoundSelectType = "arm-bld-factory",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "arm-bld-sp",
+	},
+
 	armaap = {
 		BaseSoundSelectType = "arm-bld-factory-t2",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-ap-t2",
 	},
 
-	-- armsy = {
-	-- BaseSoundSelectType   = "arm-bld-factory",
-	-- --BaseSoundMovementType = "",
-	-- BaseSoundWeaponType   = "arm-bld-sy",
-	-- },
+	armsy = {
+		BaseSoundSelectType   = "arm-bld-factory",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType   = "arm-bld-factory-water",
+	},
 
-	-- armasy = {
-	-- BaseSoundSelectType   = "arm-bld-factory-t2",
-	-- --BaseSoundMovementType = "",
-	-- BaseSoundWeaponType   = "arm-bld-sy-t2",
-	-- },
+	armasy = {
+		BaseSoundSelectType   = "arm-bld-factory-t2",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType   = "arm-bld-factory-water-t2",
+	},
+
+	armamsub = {
+		BaseSoundSelectType   = "arm-bld-factory-t2",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType   = "arm-bld-factory-t2-uw",
+	},
+
+	armhp = {
+		BaseSoundSelectType = "arm-bld-factory",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "arm-bld-factory-hover",
+	},
+
+	armfhp = {
+		BaseSoundSelectType = "arm-bld-factory",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "arm-bld-factory-hover-water",
+	},
+
+	armasp = {
+		BaseSoundSelectType = "arm-bld-factory-t2",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "arm-bld-repairpad",
+	},
 
 	armshltx = {
 		BaseSoundSelectType = "arm-bld-factory-t3",
@@ -513,6 +581,32 @@ GUIUnitSoundEffects = {
 		BaseSoundSelectType = "arm-sub-medium-sel",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-gant-t3-sel",
+	},
+
+	-- ARMADA MINES
+
+	armmine1 = {
+		BaseSoundSelectType = "arm-mine-sel",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "mine-small",
+	},
+
+	armmine2 = {
+		BaseSoundSelectType = "arm-mine-sel",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "mine-medium",
+	},
+
+	armmine3 = {
+		BaseSoundSelectType = "arm-mine-sel",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "mine-large",
+	},
+
+	armfmine3 = {
+		BaseSoundSelectType = "arm-mine-sel",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "mine-large-water",
 	},
 
 	-- ARMADA HOVERCRAFT
@@ -706,6 +800,11 @@ GUIUnitSoundEffects = {
 		BaseSoundSelectType = "arm-banth-sel",
 		BaseSoundMovementType = "arm-banth-ok",
 		BaseSoundWeaponType = "arty-medium",
+	},
+	armthor = {
+		BaseSoundSelectType = "arm-bot-t3-sel",
+		BaseSoundMovementType = "arm-tnk-largealt-ok",
+		BaseSoundWeaponType = "lightning",
 	},
 
 	-- ARMADA T1 VEHICLES
@@ -1066,6 +1165,14 @@ GUIUnitSoundEffects = {
         BaseSoundDeactivate = "cmd-off",
 	},
 
+	corsonar = {
+		BaseSoundSelectType = "arm-bld-select-small-water",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "torpedo-small",
+        BaseSoundActivate   = "cmd-on",
+        BaseSoundDeactivate = "cmd-off",
+	},
+
 	corjamt = {
 		BaseSoundSelectType = "arm-bld-select-small",
 		--BaseSoundMovementType = "",
@@ -1076,6 +1183,14 @@ GUIUnitSoundEffects = {
 		BaseSoundSelectType = "arm-bld-metal",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-mex",
+        BaseSoundActivate   = "mexon",
+        BaseSoundDeactivate = "mexoff",
+	},
+
+	corexp = {
+		BaseSoundSelectType = "arm-bld-metal",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "laser-small-cor",
         BaseSoundActivate   = "mexon",
         BaseSoundDeactivate = "mexoff",
 	},
@@ -1128,6 +1243,12 @@ GUIUnitSoundEffects = {
 		BaseSoundSelectType = "arm-bld-nrghum",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-solar-alt-adv",
+	},
+
+	corgeo = {
+		BaseSoundSelectType = "arm-bld-select-medium",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "arm-bld-geo",
 	},
 
 	cormstor = {
@@ -1221,6 +1342,12 @@ GUIUnitSoundEffects = {
 	},
 
 	cortl = {
+		BaseSoundSelectType = "arm-bld-defense-action-water-t1",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "torpedo-small",
+	},
+
+	corptl = {
 		BaseSoundSelectType = "arm-bld-defense-action-water-t1",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "torpedo-small",
@@ -1399,10 +1526,16 @@ GUIUnitSoundEffects = {
 		BaseSoundWeaponType = "flak",
 	},
 
-	corfflak = {
+	corenaa = {
 		BaseSoundSelectType = "arm-bld-defense-action-water-t2",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "flak",
+	},
+
+	corfdoom = {
+		BaseSoundSelectType = "arm-bld-defense-action-water-t3",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "laser-large",
 	},
 
 	corscreamer = {
@@ -1524,17 +1657,47 @@ GUIUnitSoundEffects = {
 		BaseSoundWeaponType = "arm-bld-ap-t2",
 	},
 
-	-- armsy = {
-	-- BaseSoundSelectType   = "arm-bld-factory",
-	-- --BaseSoundMovementType = "",
-	-- BaseSoundWeaponType   = "arm-bld-sy",
-	-- },
+	corsy = {
+		BaseSoundSelectType   = "arm-bld-factory",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType   = "arm-bld-factory-water",
+	},
 
-	-- armasy = {
-	-- BaseSoundSelectType   = "arm-bld-factory-t2",
-	-- --BaseSoundMovementType = "",
-	-- BaseSoundWeaponType   = "arm-bld-sy-t2",
-	-- },
+	corasy = {
+		BaseSoundSelectType   = "arm-bld-factory-t2",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType   = "arm-bld-factory-water-t2",
+	},
+
+	coramsub = {
+		BaseSoundSelectType   = "arm-bld-factory-t2",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType   = "arm-bld-factory-t2-uw",
+	},
+
+	corhp = {
+		BaseSoundSelectType = "arm-bld-factory",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "arm-bld-factory-hover",
+	},
+
+	corfhp = {
+		BaseSoundSelectType = "arm-bld-factory",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "arm-bld-factory-hover-water",
+	},
+
+	corplat = {
+		BaseSoundSelectType = "arm-bld-factory",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "arm-bld-sp",
+	},
+
+	corasp = {
+		BaseSoundSelectType = "arm-bld-factory-t2",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "arm-bld-repairpad",
+	},	
 
 	corgant = {
 		BaseSoundSelectType = "arm-bld-factory-t3",
@@ -1546,6 +1709,38 @@ GUIUnitSoundEffects = {
 		BaseSoundSelectType = "arm-sub-medium-sel",
 		--BaseSoundMovementType = "",
 		BaseSoundWeaponType = "arm-bld-gant-t3-sel",
+	},
+
+	-- CORTEX MINES
+
+	cormine1 = {
+		BaseSoundSelectType = "arm-mine-sel",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "mine-small",
+	},
+
+	cormine2 = {
+		BaseSoundSelectType = "arm-mine-sel",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "mine-medium",
+	},
+
+	cormine3 = {
+		BaseSoundSelectType = "arm-mine-sel",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "mine-large",
+	},
+
+	cormine4 = {
+		BaseSoundSelectType = "arm-mine-sel",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "mine-large",
+	},
+
+	corfmine3 = {
+		BaseSoundSelectType = "arm-mine-sel",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "mine-large-water",
 	},
 
 	-- CORTEX HOVERCRAFT
@@ -2076,9 +2271,73 @@ GUIUnitSoundEffects = {
 		BaseSoundWeaponType = "air-bomb-large-torp",
 	},
 	corcrw = {
-		BaseSoundSelectType = "arm-air-gunship-sel",
-		BaseSoundMovementType = "arm-air-gunship-ok",
+		BaseSoundSelectType = "cor-air-gunship-large-sel",
+		BaseSoundMovementType = "cor-air-gunship-large-ok",
 		BaseSoundWeaponType = "laser-large",
 	},
+
+	--Various Random Units
+
+	freefusion = {
+		BaseSoundSelectType = "arm-bld-select-large",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "arm-bld-nrg-fusion-adv",
+	},
+
+	mission_command_tower = {
+		BaseSoundSelectType = "arm-bld-select-large",
+		--BaseSoundMovementType = "",
+		BaseSoundWeaponType = "arm-bld-geo-t2-explo",
+	},
+
+	armuwmex = {},
+	coruwmex = {},
+	armgplat = {},
+	corgplat = {},
+	dbg_sphere = {},
+	dbg_sphere_fullmetal = {},
+	chip = {},
+	dice = {},
+	meteor = {},
+	nuketestorg = {},
+	nuketest = {},
+	nuketestcor = {},
+	nuketestcororg = {},
+	xmasball = {},
+	xmasball2 = {},
+	armstone = {},
+	corstone = {},
+	resourcecheat = {},
+
+	scavempspawner = {},
+	scavtacnukespawner = {},
+	lootdroppod_gold = {},
+	lootdroppod_printer = {},
+	scavengerdroppod = {},
+	scavengerdroppodfriendly = {},
+	scavempspawner = {},
+	scavtacnukespawner = {},
+
+
+	lootboxbronze		= LootboxSoundEffects,
+	lootboxsilver		= LootboxSoundEffects,
+	lootboxgold			= LootboxSoundEffects,
+	lootboxplatinum		= LootboxSoundEffects,
+	lootboxnano_t1_var1	= LootboxNanoSoundEffects,
+	lootboxnano_t1_var2	= LootboxNanoSoundEffects,
+	lootboxnano_t1_var3	= LootboxNanoSoundEffects,
+	lootboxnano_t1_var4	= LootboxNanoSoundEffects,
+	lootboxnano_t2_var1	= LootboxNanoSoundEffects,
+	lootboxnano_t2_var2	= LootboxNanoSoundEffects,
+	lootboxnano_t2_var3	= LootboxNanoSoundEffects,
+	lootboxnano_t2_var4	= LootboxNanoSoundEffects,
+	lootboxnano_t3_var1	= LootboxNanoSoundEffects,
+	lootboxnano_t3_var2	= LootboxNanoSoundEffects,
+	lootboxnano_t3_var3	= LootboxNanoSoundEffects,
+	lootboxnano_t3_var4	= LootboxNanoSoundEffects,
+	lootboxnano_t4_var1	= LootboxNanoSoundEffects,
+	lootboxnano_t4_var2	= LootboxNanoSoundEffects,
+	lootboxnano_t4_var3	= LootboxNanoSoundEffects,
+	lootboxnano_t4_var4	= LootboxNanoSoundEffects,
 
 }

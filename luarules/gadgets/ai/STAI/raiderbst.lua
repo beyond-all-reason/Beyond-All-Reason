@@ -95,16 +95,16 @@ end
 
 function RaiderBST:Update()
 	local f = self.game:Frame()
-	if self.active then
-		if self.path and f > self.lastPathCheckFrame + 90 then
+	if self.active and f % 83 == 0 then
+		if self.path  then
 			self.lastPathCheckFrame = f
 			self:CheckPath()
 		end
 		if self.moveNextUpdate then
--- 			self.unit:Internal():Move(self.moveNextUpdate)
-			self.unit:Internal():AttackMove(self.moveNextUpdate)--need to check
+ 			self.unit:Internal():Move(self.moveNextUpdate)
+-- 			self.unit:Internal():AttackMove(self.moveNextUpdate)--need to check
 			self.moveNextUpdate = nil
-		elseif f > self.lastMovementFrame + 30 then
+		else
 			self.ai.targethst:RaiderHere(self)
 			self.lastMovementFrame = f
 			-- attack nearby targets immediately
@@ -131,11 +131,10 @@ function RaiderBST:Update()
 				end
 			end
 		end
-	else
-		if f > self.lastGetTargetFrame + 90 then
-			self.lastGetTargetFrame = f
-			self:GetTarget()
-		elseif not self.path and self.pathfinder then
+	elseif f % 97 == 0 then
+		self.lastGetTargetFrame = f
+		self:GetTarget()
+		if not self.path and self.pathfinder then
 			self:FindPath()
 		end
 	end

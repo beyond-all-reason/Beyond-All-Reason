@@ -2,8 +2,19 @@
 --- set some spring settings before the game/engine is really loaded yet
 --------------------------------------------------------------------------------------------
 
+-- set default unit rendering vars
+Spring.SetConfigFloat("tonemapA", 4.75)
+Spring.SetConfigFloat("tonemapB", 0.75)
+Spring.SetConfigFloat("tonemapC", 3.5)
+Spring.SetConfigFloat("tonemapD", 0.85)
+Spring.SetConfigFloat("tonemapE", 1.0)
+Spring.SetConfigFloat("envAmbient", 0.25)
+Spring.SetConfigFloat("unitSunMult", 1.0)
+Spring.SetConfigFloat("unitExposureMult", 1.0)
+Spring.SetConfigFloat("modelGamma", 1.0)
+
 -- BAR requires higher textureatlas size for particles than the default of 2048x2048
-local maxTextureAtlasSize = 4096
+local maxTextureAtlasSize = 8192
 Spring.SetConfigInt("MaxTextureAtlasSizeX", maxTextureAtlasSize)
 Spring.SetConfigInt("MaxTextureAtlasSizeY", maxTextureAtlasSize)
 if tonumber(Spring.GetConfigInt("MaxTextureAtlasSizeX",2048) or 2048) < maxTextureAtlasSize then

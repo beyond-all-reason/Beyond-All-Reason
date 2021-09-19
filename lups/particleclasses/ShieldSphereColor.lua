@@ -155,7 +155,7 @@ function ShieldSphereColorParticle:EndDraw()
 
 					if hitTable then
 						if #hitTable > 0 then
-							--Spring.Utilities.TableEcho(hitTable, "hitTable")
+							--Spring.Debug.TableEcho(hitTable, "hitTable")
 							--Spring.Echo("#hitTable", #hitTable)
 						end
 
@@ -251,7 +251,7 @@ function ShieldSphereColorParticle:ReInitialize()
 end
 
 function ShieldSphereColorParticle.Create(Options)
-	local newObject = MergeTable(Options, ShieldSphereColorParticle.Default)
+	local newObject = table.merge(ShieldSphereColorParticle.Default, Options)
 
 	-- overwriting for teamcolored shields
 	--local r,g,b = Spring.GetTeamColor(Spring.GetUnitTeam(Options.unit))

@@ -150,8 +150,7 @@ return {
 				weaponvelocity = 500,
 				customparams = {
 					light_color = "1 0.65 0.20",
-					light_mult = 3.5,
-					light_radius_mult = 1.1,
+					light_mult = 2,
 				},
 				damage = {
 					commanders = 1100,

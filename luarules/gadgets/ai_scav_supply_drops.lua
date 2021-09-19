@@ -9,7 +9,7 @@ for i = 1,#teams do
 	end
 end
 
-if (Spring.GetModOptions and (Spring.GetModOptions().lootboxes or "disabled") == "enabled") or (Spring.GetModOptions and (Spring.GetModOptions().scavonlylootboxes or "enabled") == "enabled" and scavengersAIEnabled == true) then
+if Spring.GetModOptions().lootboxes or (Spring.GetModOptions().scavonlylootboxes and scavengersAIEnabled) then
 	lootboxSpawnEnabled = true
 else
 	lootboxSpawnEnabled = false
@@ -177,7 +177,9 @@ local CaptureProgressForLootboxes = {}
 local SpawnChance = 75
 local TryToSpawn = false
 
-
+if scavengersAIEnabled then
+	spGaiaTeam = scavengerAITeamID
+end
 -- functions
 
 local function QueueSpawn(unitName, posx, posy, posz, facing, team, frame)
@@ -213,6 +215,8 @@ local function SpawnFromQueue(n)
 		end
 	end
 end
+
+VFS.Include('luarules/gadgets/scavengers/API/poschecks.lua')
 
 local function posFriendlyCheckOnlyLos(posx, posy, posz, allyTeamID)
 	if scavengersAIEnabled == true then
@@ -399,6 +403,7 @@ function gadget:GameFrame(n)
                 local posy = spGroundHeight(posx, posz)
 				local unitsCyl = spGetCylinder(posx, posz, 64)
 				local scavLoS = posFriendlyCheckOnlyLos(posx, posy, posz, scavengerAllyTeamID)
+				local playerLoS = posLosCheckOnlyLOS(posx, posy, posz, 64, scavengerAllyTeamID)
                 if #unitsCyl == 0 and scavLoS == true then
                     --QueueSpawn("lootdroppod_gold", posx, posy, posz, math_random(0,3),spGaiaTeam, n)
                     --QueueSpawn(lootboxesList[math_random(1,#lootboxesList)], posx, posy, posz, math_random(0,3),spGaiaTeam, n+600)

@@ -22,7 +22,7 @@ return {
 		corpse = "DEAD",
 		damagemodifier = 0.25,
 		description = Spring.I18N('units.descriptions.cordoom'),
-		energystorage = 2000,
+		energystorage = 1000,
 		explodeas = "largeBuildingexplosiongeneric",
 		footprintx = 4,
 		footprintz = 4,
@@ -158,7 +158,9 @@ return {
 				weapontype = "BeamLaser",
 				weaponvelocity = 1500,
 				customparams = {
+					expl_light_mult = 1.15,
 					light_radius_mult = "1.15",
+					light_mult = 3,
 				},
 				damage = {
 					commanders = 999,
@@ -176,7 +178,7 @@ return {
 				cratermult = 0,
 				edgeeffectiveness = 0.15,
 				energypershot = 50,
-				explosiongenerator = "custom:genericshellexplosion-medium-beam",
+				explosiongenerator = "custom:laserhit-medium-green",
 				firestarter = 90,
 				impactonly = 1,
 				impulseboost = 0,

@@ -16,9 +16,8 @@ end
 
 local function setup(addResources)
 
-	local modOptions = Spring.GetModOptions() or {}
-	local startMetal = tonumber(modOptions.startmetal) or 1000
-	local startEnergy = tonumber(modOptions.startenergy) or 1000
+	local startMetal = Spring.GetModOptions().startmetal
+	local startEnergy = Spring.GetModOptions().startenergy
 
 	if GG.coopMode then
 

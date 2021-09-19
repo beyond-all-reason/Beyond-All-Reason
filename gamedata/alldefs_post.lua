@@ -53,22 +53,6 @@ local function getFilePath(filename, path)
 	return false
 end
 
-local function lines(str)
-	local t = {}
-	local function helper(line) table.insert(t, line) return "" end
-	helper((str:gsub("(.-)\r?\n", helper)))
-	return t
-end
-
-local function Split(s, separator)
-	local results = {}
-	for part in s:gmatch("[^"..separator.."]+") do
-		results[#results + 1] = part
-	end
-	return results
-end
-
-
 --[[ Sanitize to whole frames (plus leeways because float arithmetic is bonkers).
      The engine uses full frames for actual reload times, but forwards the raw
      value to LuaUI (so for example calculated DPS is incorrect without sanitisation). ]]
@@ -110,44 +94,39 @@ function UnitDef_Post(name, uDef)
 		uDef.customparams = {}
 	end
 
---Soon used for new sound system!
-	VFS.Include('luarules/configs/gui_soundeffects.lua')
-	if GUIUnitSoundEffects[name] then
-		if uDef.sounds then
-			if uDef.sounds.ok then
-				uDef.sounds.ok = nil 
-			end
+	-- disable wrecks for Control Points mode
+	if Spring.GetModOptions().scoremode ~= "disabled" then
+		uDef.corpse = nil
+	end
+
+	-- test New sound system!
+	--VFS.Include('luarules/configs/gui_soundeffects.lua')
+	--if not (GUIUnitSoundEffects[name] or (GUIUnitSoundEffects[string.sub(name, 1, string.len(name)-5)] and string.find(name, "_scav"))) then
+	--	Spring.Echo("[gui_soundeffects.lua] Missing Sound Effects for unit: "..name)
+	--end
+
+	if uDef.sounds then
+		if uDef.sounds.ok then
+			uDef.sounds.ok = nil
 		end
+	end
 
-		if uDef.sounds then
-			if uDef.sounds.select then
-				uDef.sounds.select = nil 
-			end
+	if uDef.sounds then
+		if uDef.sounds.select then
+			uDef.sounds.select = nil
 		end
+	end
 
-		if GUIUnitSoundEffects[name] and GUIUnitSoundEffects[name].BaseSoundActivate then
-			if uDef.sounds then
-				if uDef.sounds.activate then
-					uDef.sounds.activate = nil 
-				end
-				if uDef.sounds.deactivate then
-					uDef.sounds.deactivate = nil 
-				end
-			end
+	if uDef.sounds then
+		if uDef.sounds.activate then
+			uDef.sounds.activate = nil
 		end
-
-		-- TEST for activate custom sounds in gui_soundeffects
-		-- if uDef.sounds then
-		-- 	if uDef.sounds.activate then
-		-- 		uDef.sounds.activate = nil 
-		-- 	end
-		-- end
-
-		-- if uDef.sounds then
-		-- 	if uDef.sounds.deactivate then
-		-- 		uDef.sounds.deactivate = nil 
-		-- 	end
-		-- end
+		if uDef.sounds.deactivate then
+			uDef.sounds.deactivate = nil
+		end
+		if uDef.sounds.build then
+			uDef.sounds.build = nil
+		end
 	end
 
 	-- Unit Restrictions
@@ -155,19 +134,19 @@ function UnitDef_Post(name, uDef)
 		if not uDef.customparams.techlevel then uDef.customparams.techlevel = 0 end
 		if not uDef.customparams.subfolder then uDef.customparams.subfolder = "none" end
 
-		if Spring.GetModOptions and tonumber(Spring.GetModOptions().unit_restrictions_notech2) == 1 then
+		if Spring.GetModOptions().unit_restrictions_notech2 then
 			if tonumber(uDef.customparams.techlevel) == 2 or tonumber(uDef.customparams.techlevel) == 3 then
 				uDef.unitrestricted = 0
 			end
 		end
 
-		if Spring.GetModOptions and tonumber(Spring.GetModOptions().unit_restrictions_notech3) == 1 then
+		if Spring.GetModOptions().unit_restrictions_notech3 then
 			if tonumber(uDef.customparams.techlevel) == 3 then
 				uDef.unitrestricted = 0
 			end
 		end
 
-		if Spring.GetModOptions and tonumber(Spring.GetModOptions().unit_restrictions_noair) == 1 then
+		if Spring.GetModOptions().unit_restrictions_noair then
 			if string.find(uDef.customparams.subfolder, "Aircraft") then
 				uDef.unitrestricted = 0
 			elseif uDef.canfly then
@@ -186,13 +165,13 @@ function UnitDef_Post(name, uDef)
 			end
 		end
 
-		if Spring.GetModOptions and tonumber(Spring.GetModOptions().unit_restrictions_noconverters) == 1 then
+		if Spring.GetModOptions().unit_restrictions_noconverters then
 			if uDef.customparams.energyconv_capacity and uDef.customparams.energyconv_efficiency then
 				uDef.unitrestricted = 0
 			end
 		end
 
-		if Spring.GetModOptions and tonumber(Spring.GetModOptions().unit_restrictions_nonukes) == 1 then
+		if Spring.GetModOptions().unit_restrictions_nonukes then
 			local Nukes = {
 				armamd = true,
 				armsilo = true,
@@ -206,7 +185,7 @@ function UnitDef_Post(name, uDef)
 			end
 		end
 
-		if Spring.GetModOptions and tonumber(Spring.GetModOptions().unit_restrictions_notacnukes) == 1 then
+		if Spring.GetModOptions().unit_restrictions_notacnukes then
 			local TacNukes = {
 				armemp = true,
 				cortron = true,
@@ -219,7 +198,7 @@ function UnitDef_Post(name, uDef)
 
 
 	-- Add scav units to normal factories and builders
-	if Spring.GetModOptions and Spring.GetModOptions().experimentalscavuniqueunits == "enabled" then
+	if Spring.GetModOptions().experimentalscavuniqueunits then
 		if name == "armshltx" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "armrattet4"
@@ -247,17 +226,40 @@ function UnitDef_Post(name, uDef)
 		elseif name == "coravp" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "corgatreap"
+		elseif name == "corlab" then
+			local numBuildoptions = #uDef.buildoptions
+			uDef.buildoptions[numBuildoptions+1] = "corkark"
+		elseif name == "corap" then
+			local numBuildoptions = #uDef.buildoptions
+			uDef.buildoptions[numBuildoptions+1] = "corassistdrone"
+		elseif name == "armap" then
+			local numBuildoptions = #uDef.buildoptions
+			uDef.buildoptions[numBuildoptions+1] = "armassistdrone"
+		elseif name == "armca" or name == "armck" or name == "armcv" then
+			local numBuildoptions = #uDef.buildoptions
+			uDef.buildoptions[numBuildoptions+1] = "corscavdrag"
+			uDef.buildoptions[numBuildoptions+2] = "corscavdtl"
+			uDef.buildoptions[numBuildoptions+3] = "corscavdtf"
+			uDef.buildoptions[numBuildoptions+4] = "corscavdtm"
+		elseif name == "corca" or name == "corck" or name == "corcv" then
+			local numBuildoptions = #uDef.buildoptions
+			uDef.buildoptions[numBuildoptions+1] = "corscavdrag"
+			uDef.buildoptions[numBuildoptions+2] = "corscavdtl"
+			uDef.buildoptions[numBuildoptions+3] = "corscavdtf"
+			uDef.buildoptions[numBuildoptions+4] = "corscavdtm"
 		elseif name == "armaca" or name == "armack" or name == "armacv" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "armapt3"
 			uDef.buildoptions[numBuildoptions+2] = "armminivulc"
 			uDef.buildoptions[numBuildoptions+3] = "armwint2"
+			uDef.buildoptions[numBuildoptions+4] = "corscavfort"
 		elseif name == "coraca" or name == "corack" or name == "coracv" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "corapt3"
 			uDef.buildoptions[numBuildoptions+2] = "corminibuzz"
-      uDef.buildoptions[numBuildoptions+3] = "corwint2"
+      		uDef.buildoptions[numBuildoptions+3] = "corwint2"
 			uDef.buildoptions[numBuildoptions+4] = "corhllllt"
+			uDef.buildoptions[numBuildoptions+5] = "corscavfort"
 		elseif name == "armasy" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "armptt2"
@@ -271,88 +273,88 @@ function UnitDef_Post(name, uDef)
 		end
 	end
 
-	if Spring.GetModOptions and uDef.builddistance then
-		local x = tonumber(Spring.GetModOptions().experimentalbuildrange) or 1
+	if uDef.builddistance then
+		local x = Spring.GetModOptions().experimentalbuildrange
 		uDef.builddistance = uDef.builddistance*x
 	end
 
-	if Spring.GetModOptions and uDef.workertime then
-		local x = tonumber(Spring.GetModOptions().experimentalbuildpower) or 1
+	if uDef.workertime then
+		local x = Spring.GetModOptions().experimentalbuildpower
 		uDef.workertime = uDef.workertime*x
 	end
 
 
-	if Spring.GetModOptions and Spring.GetModOptions().experimentalmassoverride and Spring.GetModOptions().experimentalmassoverride == "enabled" then
-		-- mass override
-		Spring.Echo("-------------------------")
-		if uDef.name then
-			Spring.Echo("Processing Mass Override for unit: "..uDef.name)
-		else
-			Spring.Echo("Processing Mass Override for unit: unknown-unit")
-		end
-		Spring.Echo("-------------------------")
+	-- if Spring.GetModOptions().experimentalmassoverride then
+	-- 	-- mass override
+	-- 	Spring.Echo("-------------------------")
+	-- 	if uDef.name then
+	-- 		Spring.Echo("Processing Mass Override for unit: "..uDef.name)
+	-- 	else
+	-- 		Spring.Echo("Processing Mass Override for unit: unknown-unit")
+	-- 	end
+	-- 	Spring.Echo("-------------------------")
 
-		massoverrideFootprintX = 1
-		if uDef.footprintx and uDef.footprintx > 0 then
-			massoverrideFootprintX = uDef.footprintx
-			Spring.Echo("Footprint X: "..uDef.footprintx)
-		else
-			Spring.Echo("Missing Footprint X")
-		end
-		
-		massoverrideFootprintZ = 1
-		if uDef.footprintz and uDef.footprintz > 0 then
-			massoverrideFootprintZ = uDef.footprintz
-			Spring.Echo("Footprint Z: "..uDef.footprintz)
-		else
-			Spring.Echo("Missing Footprint Z")
-		end
+	-- 	massoverrideFootprintX = 1
+	-- 	if uDef.footprintx and uDef.footprintx > 0 then
+	-- 		massoverrideFootprintX = uDef.footprintx
+	-- 		Spring.Echo("Footprint X: "..uDef.footprintx)
+	-- 	else
+	-- 		Spring.Echo("Missing Footprint X")
+	-- 	end
 
-		massoverrideMetalCost = 1
-		if uDef.buildcostmetal and uDef.buildcostmetal > 0 then
-			massoverrideMetalCost = uDef.buildcostmetal
-			Spring.Echo("Metal Cost: "..uDef.buildcostmetal)
-		else
-			Spring.Echo("Missing Metal Cost")
-		end
+	-- 	massoverrideFootprintZ = 1
+	-- 	if uDef.footprintz and uDef.footprintz > 0 then
+	-- 		massoverrideFootprintZ = uDef.footprintz
+	-- 		Spring.Echo("Footprint Z: "..uDef.footprintz)
+	-- 	else
+	-- 		Spring.Echo("Missing Footprint Z")
+	-- 	end
 
-		massoverrideHealth = 1
-		if uDef.maxdamage and uDef.maxdamage > 0 then
-			massoverrideHealth = uDef.maxdamage
-			Spring.Echo("Max Health: "..uDef.maxdamage)
-		else
-			Spring.Echo("Missing Max Health")
-		end
+	-- 	massoverrideMetalCost = 1
+	-- 	if uDef.buildcostmetal and uDef.buildcostmetal > 0 then
+	-- 		massoverrideMetalCost = uDef.buildcostmetal
+	-- 		Spring.Echo("Metal Cost: "..uDef.buildcostmetal)
+	-- 	else
+	-- 		Spring.Echo("Missing Metal Cost")
+	-- 	end
 
-		uDef.mass = math.ceil((massoverrideFootprintX * massoverrideFootprintZ * (massoverrideMetalCost + massoverrideHealth))*0.33)
-		Spring.Echo("-------------------------")
-		Spring.Echo("Result Mass: "..uDef.mass)
-		Spring.Echo("-------------------------")
-	end
+	-- 	massoverrideHealth = 1
+	-- 	if uDef.maxdamage and uDef.maxdamage > 0 then
+	-- 		massoverrideHealth = uDef.maxdamage
+	-- 		Spring.Echo("Max Health: "..uDef.maxdamage)
+	-- 	else
+	-- 		Spring.Echo("Missing Max Health")
+	-- 	end
+
+	-- 	uDef.mass = math.ceil((massoverrideFootprintX * massoverrideFootprintZ * (massoverrideMetalCost + massoverrideHealth))*0.33)
+	-- 	Spring.Echo("-------------------------")
+	-- 	Spring.Echo("Result Mass: "..uDef.mass)
+	-- 	Spring.Echo("-------------------------")
+	-- end
 
 
 	-- mass remove push resistance
 	if uDef.pushresistant and uDef.pushresistant == true then
 		uDef.pushresistant = false
 		if not uDef.mass then
-			Spring.Echo("Push Resistant Unit with no mass: "..uDef.name)
+			Spring.Echo("[PUSH RESISTANCE REMOVER] Push Resistant Unit with no mass: "..name)
 			uDef.mass = 4999
 		end
 	end
 
 	-- vision range
-	if Spring.GetModOptions and uDef.sightdistance then
-		local x = tonumber(Spring.GetModOptions().experimentallosrange) or 1
+	if uDef.sightdistance then
+		local x = Spring.GetModOptions().experimentallosrange
 		uDef.sightdistance = uDef.sightdistance*x
 	end
 
-	if Spring.GetModOptions and uDef.airsightdistance then
-		local x = tonumber(Spring.GetModOptions().experimentallosrange) or 1
+	if uDef.airsightdistance then
+		local x = Spring.GetModOptions().experimentallosrange
 		uDef.airsightdistance = uDef.airsightdistance*x
 	end
 
-	if Spring.GetModOptions and uDef.radardistance then
-		local x = tonumber(Spring.GetModOptions().experimentalradarrange) or 1
+	if uDef.radardistance then
+		local x = Spring.GetModOptions().experimentalradarrange
 		uDef.radardistance = uDef.radardistance*x
 	end
 
@@ -372,7 +374,7 @@ function UnitDef_Post(name, uDef)
 	end
 
 	if (uDef.buildpic and uDef.buildpic == "") or not uDef.buildpic then
-		Spring.Echo("Missing Buildpic: ".. uDef.name)
+		Spring.Echo("[BUILDPIC] Missing Buildpic: ".. uDef.name)
 	end
 
 	--[[ Sanitize to whole frames (plus leeways because float arithmetic is bonkers).
@@ -404,7 +406,7 @@ function UnitDef_Post(name, uDef)
 		uDef.maxslope = math.floor((uDef.maxslope * 1.5) + 0.5)
 	end
 
-	--if Spring.GetModOptions and (tonumber(Spring.GetModOptions().airrebalance) or 0) ~= 0 then
+	--if Spring.GetModOptions().airrebalance then
 
 
 		--if uDef.weapons then
@@ -427,9 +429,9 @@ function UnitDef_Post(name, uDef)
 			uDef.crashdrag = 0.01	-- default 0.005
 
 			if not (string.find(name, "fepoch") or string.find(name, "fblackhy")) then--(string.find(name, "liche") or string.find(name, "crw") or string.find(name, "fepoch") or string.find(name, "fblackhy")) then
-				if Spring.GetModOptions and Spring.GetModOptions().experimentalnoaircollisions == "disabled" then
+				if not Spring.GetModOptions().experimentalnoaircollisions then
 					uDef.collide = false
-				elseif Spring.GetModOptions and Spring.GetModOptions().experimentalnoaircollisions == "enabled" then
+				else
 					uDef.collide = true
 				end
 
@@ -522,61 +524,6 @@ function UnitDef_Post(name, uDef)
     --	end
     --end
 
-
-
-	-- import csv unitdef changes
-	--local file = VFS.LoadFile("modelauthors.csv")
-	--if file then
-	--	local fileLines = lines(file)
-	--	local found = false
-	--	for i, line in ipairs(fileLines) do
-	--		local t = Split(line, ';')
-	--		if t[1] and t[2] and t[3] then
-	--			if t[1] == name then
-	--				if uDef.customparams == nil then
-	--					uDef.customparams = {}
-	--				end
-	--				uDef.customparams.model_author = t[3]
-	--				Spring.Echo('imported:  '..t[1]..':  '..t[2]..'  ,  '..t[3])
-	--				found = true
-	--				break
-	--			end
-	--		end
-	--	end
-	--	if not found then
-	--		for i, line in ipairs(fileLines) do
-	--			local t = Split(line, ';')
-	--			if t[1] and t[2] and t[3] then
-	--				if t[2] == uDef.name then
-	--					if uDef.customparams == nil then
-	--						uDef.customparams = {}
-	--					end
-	--					uDef.customparams.model_author = t[3]
-	--					Spring.Echo('imported2:  '..t[1]..':  '..t[2]..'  ,  '..t[3])
-	--					found = true
-	--					break
-	--				end
-	--			end
-	--		end
-	--	end
-	--end
-
-	--local filename = "unitlist_checked.csv"
-	--local file = VFS.LoadFile(filename)
-	--if file then
-	--	local fileLines = lines(file)
-	--	for i, line in ipairs(fileLines) do
-	--		local t = Split(line, ';')
-	--		if t[1] and t[2] and t[3] and name == t[1] then
-	--			uDef.buildcostmetal = tonumber(t[2])
-	--			uDef.buildcostenergy = tonumber(t[3])
-	--			Spring.Echo('imported:  '..t[1]..':  '..t[2]..'  ,  '..t[3])
-	--		end
-	--	end
-	--else
-	--	Spring.Echo('import file not found: '..filename)
-	--end
-
 	-- add model vertex displacement
 	local vertexDisplacement = 5.5 + ((uDef.footprintx + uDef.footprintz) / 12)
 	if vertexDisplacement > 10 then
@@ -617,7 +564,10 @@ local function ProcessSoundDefaults(wd)
 	end
 
 	local defaultDamage = wd.damage and wd.damage.default
+
 	if not defaultDamage or defaultDamage <= 50 then
+	-- old filter that gave small weapons a base-minumum sound volume, now fixed with noew math.min(math.max)
+	-- if not defaultDamage then
 		wd.soundstartvolume = 5
 		wd.soundhitvolume = 5
 		wd.soundhitwetvolume = 5
@@ -625,6 +575,17 @@ local function ProcessSoundDefaults(wd)
 	end
 
 	local soundVolume = math.sqrt(defaultDamage * 0.5)
+
+	-- The very old formula
+	-- local soundVolume = math.sqrt(math.min(2000, defaultDamage) * 0.5)
+
+	-- The old formula
+	-- local soundVolume = math.sqrt(defaultDamage * 0.5)
+	-- soundVolume = math.min(math.max(soundVolume, 5), 25)
+
+	-- local soundVolume = math.floor( defaultDamage ^ 0.41 + 2 )
+	-- soundVolume = math.min(math.max(soundVolume, 5), 40)
+
 	if wd.weapontype == "LaserCannon" then
 		soundVolume = soundVolume*0.5
 	end
@@ -635,11 +596,11 @@ local function ProcessSoundDefaults(wd)
 	if not wd.soundhitvolume then
 		wd.soundhitvolume = soundVolume
 	end
-		if not wd.soundhitwetvolume then
-			if wd.weapontype == "LaserCannon" or "BeamLaser" then
-				wd.soundhitwetvolume = soundVolume * 0.3
+	if not wd.soundhitwetvolume then
+		if wd.weapontype == "LaserCannon" or "BeamLaser" then
+			wd.soundhitwetvolume = soundVolume * 0.3
 		else
-			wd.soundhitwetvolume = soundVolume
+			wd.soundhitwetvolume = soundVolume * 1.4
 		end
 	end
 end
@@ -653,18 +614,20 @@ function WeaponDef_Post(name, wDef)
 
 		-------------- EXPERIMENTAL MODOPTIONS
 		---- SHIELD CHANGES
-		if Spring.GetModOptions and Spring.GetModOptions() and Spring.GetModOptions().experimentalshields == "absorbplasma" then
+		local shieldModOption = Spring.GetModOptions().experimentalshields
+
+		if shieldModOption == "absorbplasma" then
 			if wDef.shield and wDef.shield.repulser and wDef.shield.repulser ~= false then
 				wDef.shield.repulser = false
 			end
-		elseif Spring.GetModOptions and Spring.GetModOptions() and Spring.GetModOptions().experimentalshields == "absorbeverything" then
+		elseif shieldModOption == "absorbeverything" then
 			if wDef.shield and wDef.shield.repulser and wDef.shield.repulser ~= false then
 				wDef.shield.repulser = false
 			end
 			if (not wDef.interceptedbyshieldtype) or wDef.interceptedbyshieldtype ~= 1 then
 				wDef.interceptedbyshieldtype = 1
 			end
-		elseif Spring.GetModOptions and Spring.GetModOptions() and Spring.GetModOptions().experimentalshields == "bounceeverything" then
+		elseif shieldModOption == "bounceeverything" then
 			if wDef.shield then
 				wDef.shield.repulser = true
 			end
@@ -673,9 +636,9 @@ function WeaponDef_Post(name, wDef)
 			end
 		end
 
-		if Spring.GetModOptions and Spring.GetModOptions() and Spring.GetModOptions().experimentalshieldpower then
+		if Spring.GetModOptions().experimentalshieldpower then
 			if wDef.shield then
-				local multiplier = tonumber(Spring.GetModOptions().experimentalshieldpower)
+				local multiplier = Spring.GetModOptions().experimentalshieldpower
 				if wDef.shield.power then
 					wDef.shield.power = wDef.shield.power*multiplier
 				end
@@ -786,35 +749,33 @@ end
 
 -- process modoptions (last, because they should not get baked)
 function ModOptions_Post (UnitDefs, WeaponDefs)
-	if Spring.GetModOptions then
-	local modOptions = Spring.GetModOptions() or {}
-	local map_tidal = modOptions and modOptions.map_tidal
-		if map_tidal and map_tidal ~= "unchanged" then
-			for id, unitDef in pairs(UnitDefs) do
-				if unitDef.tidalgenerator == 1 then
-					unitDef.tidalgenerator = 0
-					if map_tidal == "low" then
-						unitDef.energymake = 13
-					elseif map_tidal == "medium" then
-						unitDef.energymake = 18
-					elseif map_tidal == "high" then
-						unitDef.energymake = 23
-					end
+	local map_tidal = Spring.GetModOptions().map_tidal
+
+	if map_tidal and map_tidal ~= "unchanged" then
+		for id, unitDef in pairs(UnitDefs) do
+			if unitDef.tidalgenerator == 1 then
+				unitDef.tidalgenerator = 0
+				if map_tidal == "low" then
+					unitDef.energymake = 13
+				elseif map_tidal == "medium" then
+					unitDef.energymake = 18
+				elseif map_tidal == "high" then
+					unitDef.energymake = 23
 				end
 			end
 		end
+	end
 
-		-- transporting enemy coms
-		if modOptions.transportenemy == "notcoms" then
-			for name,ud in pairs(UnitDefs) do
-				if name == "armcom" or name == "corcom" or name == "armdecom" or name == "cordecom" then
-					ud.transportbyenemy = false
-				end
-			end
-		elseif modOptions.transportenemy == "none" then
-			for name, ud in pairs(UnitDefs) do
+	-- transporting enemy coms
+	if Spring.GetModOptions().transportenemy == "notcoms" then
+		for name,ud in pairs(UnitDefs) do
+			if name == "armcom" or name == "corcom" or name == "armdecom" or name == "cordecom" then
 				ud.transportbyenemy = false
 			end
+		end
+	elseif Spring.GetModOptions().transportenemy == "none" then
+		for name, ud in pairs(UnitDefs) do
+			ud.transportbyenemy = false
 		end
 	end
 

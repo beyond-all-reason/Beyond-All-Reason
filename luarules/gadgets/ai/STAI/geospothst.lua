@@ -20,14 +20,14 @@ function self.ai.tool:distance(pos1,pos2)
 	if yd < 0 then
 		yd = -yd
 	end
-	dist = math.sqrt(xd*xd + zd*zd + yd*yd*yd)
+	local dist = math.sqrt(xd*xd + zd*zd + yd*yd*yd)
 	return dist
 end
 
 function GeoSpotHST:ClosestFreeGeo(unittype,position, maxdis)
 	local pos = nil
 	local bestDistance = maxdis or 10000
-	geoCount = self.game.map:GeoCount()
+	local geoCount = self.game.map:GeoCount()
 	for i,v in ipairs(self.geos) do
 		local p = v
 		local dist = self.ai.tool:distance(position,p)

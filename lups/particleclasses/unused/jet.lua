@@ -194,11 +194,10 @@ end
 -----------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------
 
-local MergeTable   = MergeTable
 local setmetatable = setmetatable
 
 function Jet.Create(Options)
-  local newObject = MergeTable(Options, Jet.Default)
+  local newObject = table.merge(Jet.Default, Options)
   setmetatable(newObject,Jet)  -- make handle lookup
   newObject:CreateParticle()
   return newObject

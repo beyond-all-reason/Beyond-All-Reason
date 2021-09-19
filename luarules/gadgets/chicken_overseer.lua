@@ -1,6 +1,3 @@
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
 function gadget:GetInfo()
   return {
     name      = "Chicken Overseer",
@@ -13,29 +10,18 @@ function gadget:GetInfo()
   }
 end
 
-local teams = Spring.GetTeamList()
-for i =1, #teams do
-	local luaAI = Spring.GetTeamLuaAI(teams[i])
-	if luaAI and luaAI ~= "" and string.sub(luaAI, 1, 9) == 'Chicken: ' then
-		chickensEnabled = true
-	end
-end
-
-if chickensEnabled == true then
+if Spring.Utilities.Gametype.IsChickens() then
 	Spring.Echo("[ChickenDefense: Chicken Overseer] Activated!")
 else
 	Spring.Echo("[ChickenDefense: Chicken Overseer] Deactivated!")
 	return false
 end
 
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
 
 if (not gadgetHandler:IsSyncedCode()) then
   return false
 end
 
-local OVERSEER = UnitDefNames["chickenh5"].id
 local RAGE_BLOB = WeaponDefNames['chickenh5_controlblob'].id
 local controlled = {}
 local controllers = {}
@@ -87,7 +73,3 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
 	end
 	controlled[unitID] = nil
 end
-
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------

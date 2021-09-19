@@ -140,6 +140,9 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 local function SaveGame(filename, description, requireOverwrite)
+  if WG.Analytics and WG.Analytics.SendRepeatEvent then
+			WG.Analytics.SendRepeatEvent("game_start:savegame",filename)
+  end
 	local success, err = pcall(
 		function()
 			Spring.CreateDir(SAVE_DIR)
@@ -158,19 +161,19 @@ local function SaveGame(filename, description, requireOverwrite)
 			saveData.totalGameframe = Spring.GetGameFrame() + (Spring.GetGameRulesParam("totalSaveGameFrame") or 0)
 			saveData.playerName = Spring.GetPlayerInfo(Spring.GetMyPlayerID(), false)
 			table.save(saveData, path)
-			
+
 			-- TODO: back up existing save?
 			--if VFS.FileExists(SAVE_DIR .. "/" .. filename) then
 			--end
-			
+
 			if requireOverwrite then
 				Spring.SendCommands(SAVE_TYPE .. filename .. " -y")
 			else
 				Spring.SendCommands(SAVE_TYPE .. filename)
 			end
 			Spring.Log(widget:GetInfo().name, LOG.INFO, "Saved game to " .. path)
-			
-			DisposeWindow()
+
+			--DisposeWindow()
 		end
 	)
 	if (not success) then
@@ -193,7 +196,7 @@ local function LoadGameByFilename(filename)
 				function()
 					-- This should perhaps be handled in chobby first?
 					--Spring.Log(widget:GetInfo().name, LOG.INFO, "Save file " .. path .. " loaded")
-					
+
 					local script = [[
 	[GAME]
 	{
@@ -242,8 +245,6 @@ end
 --------------------------------------------------------------------------------
 
 
-
-
 --------------------------------------------------------------------------------
 -- Make Chili controls
 --------------------------------------------------------------------------------
@@ -252,26 +253,27 @@ end
 -- callins
 --------------------------------------------------------------------------------
 function widget:Initialize()
-
+	WG['savegame'] = {}
 end
 
 function widget:Shutdown()
-
+	WG['savegame'] = nil
 end
 
 local options = {}
 
 function widget:TextCommand(msg)
 		if string.sub(msg, 1, 8) == "savegame" then
-		
+
     		Spring.Echo("Trying to save:",msg)
 		  local savefilename = string.sub(msg, 10)
-		  SaveGame(savefilename, "BAR IS GREAT", true)
+		  SaveGame(savefilename, savefilename, true)
 		end
 end
 
+--[[
 function widget:GameFrame(n)
-  --[[
+
 	if not options.enableautosave.value then
 		return
 	end
@@ -284,6 +286,6 @@ function widget:GameFrame(n)
 		end
 		Spring.Log(widget:GetInfo().name, LOG.INFO, "Autosaving")
 		SaveGame("autosave", "", true)
-	end]]--
+	end
 end
-
+]]--

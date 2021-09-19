@@ -96,7 +96,7 @@ StartMoving()
 	var waketime;
 	while( TRUE )
 	{
-		emit-sfx 2 from wake;
+		emit-sfx 1024 + 0 from wake;
 		waketime = (get CURRENT_SPEED) * 100 / get MAX_SPEED;
 		if( waketime < 50 ) waketime = 50;
 		sleep 10000 / waketime;

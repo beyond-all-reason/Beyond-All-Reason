@@ -13,13 +13,11 @@ return {
 		buildtime = 4450,
 		canmove = true,
 		category = "ALL NOTLAND MOBILE WEAPON NOTSUB SHIP NOTAIR NOTHOVER SURFACE EMPABLE",
-		collisionvolumeoffsets = "0 -9 -2",
-		collisionvolumescales = "25 20 71",
+		collisionvolumeoffsets = "0 -6 -2",
+		collisionvolumescales = "25 24 71",
 		collisionvolumetype = "box",
 		corpse = "DEAD",
 		description = Spring.I18N('units.descriptions.corpship'),
-		energymake = 0.2,
-		energyuse = 0.2,
 		explodeas = "mediumExplosionGeneric",
 		floater = true,
 		footprintx = 4,
@@ -27,7 +25,7 @@ return {
 		icontype = "sea",
 		idleautoheal = 2,
 		idletime = 900,
-		maxdamage = 2300,
+		maxdamage = 2100,
 		maxvelocity = 2.75,
 		minwaterdepth = 6,
 		movementclass = "BOAT4",
@@ -50,7 +48,7 @@ return {
 			dead = {
 				blocking = false,
 				category = "corpses",
-				collisionvolumeoffsets = "0.255500793457 0.0 -1.26264953613",
+				collisionvolumeoffsets = "0.255500793457 0 -1.26264953613",
 				collisionvolumescales = "20.0704803467 16.0 67.0992736816",
 				collisionvolumetype = "Box",
 				damage = 500,
@@ -90,6 +88,8 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-tiny",
+				[2] = "custom:waterwake-medium",
+				[3] = "custom:bowsplash-small",
 			},
 			pieceexplosiongenerators = {
 				[1] = "deathceg2",

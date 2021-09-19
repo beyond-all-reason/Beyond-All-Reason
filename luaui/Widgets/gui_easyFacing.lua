@@ -24,7 +24,6 @@ local drawForAll = false --draw facing direction also for other buildings than l
 --------------------------------------------------------------------------------
 
 local inDrag = false
-local rmbStart = false
 local mouseDeltaX = 0
 local mouseDeltaY = 0
 local mouseXStartRotate = 0
@@ -32,7 +31,7 @@ local mouseYStartRotate = 0
 local mouseXStartDrag = 0
 local mouseYStartDrag = 0
 local mouseLbLast = false
-
+local ineffect = false
 local gameStarted, chobbyInterface, lastTimeUpdate
 
 -------------------------------------------------------------------------------
@@ -203,7 +202,6 @@ function getFacingByMouseDelta( mouseDeltaX,mouseDeltaY )
 	return newFacing
 end
 
-local ineffect = false
 function manipulateFacing()
 	ineffect = false
 
@@ -226,7 +224,6 @@ function manipulateFacing()
             mouseXStartDrag = mx
             mouseYStartDrag = my
         end
-
 		inDrag = true
 	else
 		inDrag = false
@@ -301,19 +298,15 @@ function drawOrientation()
 
 	if not coords then return end
 
-	local centerX = coords[1]
-	local centerY = coords[2]
-	local centerZ = coords[3]
-
-	centerX, centerY, centerZ = spPos2BuildPos( unitDefID, centerX, centerY, centerZ )
+	local centerX, centerY, centerZ = spPos2BuildPos( unitDefID, coords[1], coords[2], coords[3] )
 
 	glLineWidth(1)
 	glColor( 0.0, 1.0, 0.0, 0.45 )
 
 	local function drawFunc()
-		glVertex( 0, 0, -23)
-		glVertex( 0, 0, 23)
-		glVertex( 15, 0, 0)
+		glVertex( 0, 0, -32)
+		glVertex( 0, 0, 32)
+		glVertex( 24, 0, 0)
 	end
 
 	local transSpace = udef["zsize"] * 4   --should be ysize but its not there?!?

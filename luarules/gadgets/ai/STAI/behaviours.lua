@@ -5,7 +5,6 @@ shard_include ("raiderbst")
 shard_include ("bomberbst")
 shard_include ("wardbst")
 shard_include ("mexupbst")
-shard_include ("assistbst")
 shard_include ("reclaimbst")
 shard_include ("cleanerbst")
 shard_include ("defendbst")
@@ -16,8 +15,6 @@ shard_include ("nukebst")
 shard_include ("bombardbst")
 shard_include ("commanderbst")
 shard_include ("bootbst")
-shard_include ("countbst")
-
 
 return {
 }

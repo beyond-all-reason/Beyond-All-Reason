@@ -65,7 +65,7 @@ for unitDefID = 1, #UnitDefs do
 			searchSizes[radius] = search
 		end
 
-		local myShield = Spring.Utilities.CopyTable(ShieldSphereBase, true)
+		local myShield = table.copy(ShieldSphereBase)
 		if radius > 250 then
 			myShield.shieldSize = "large"
 			myShield.drawBack = 0.6

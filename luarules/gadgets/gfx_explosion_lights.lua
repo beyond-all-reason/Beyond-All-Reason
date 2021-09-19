@@ -11,34 +11,47 @@ function gadget:GetInfo()
     }
 end
 
--------------------------------------------------------------------------------
--- Synced
--------------------------------------------------------------------------------
-
-
 if gadgetHandler:IsSyncedCode() then
+
     local cannonWeapons = {}
+
     function gadget:Initialize()
         for wdid, wd in pairs(WeaponDefs) do
             if wd.type == "Flame" then
-                Script.SetWatchExplosion(wdid, true)     -- watch weapon so explosion gets called for flame weapons
+                Script.SetWatchExplosion(wdid, true)
             end
-            if wd.type == "Cannon" then
-                cannonWeapons[wdid] = true
-                Script.SetWatchExplosion(wdid, true)    -- might be getting too expensive
-            end
-            if wd.type == "BeamLaser" then
-                Script.SetWatchExplosion(wdid, true)    -- might be getting too expensive
-            end
+			if wd.type == "Cannon" then
+				cannonWeapons[wdid] = true
+				Script.SetWatchExplosion(wdid, true)
+				if wd.damages[0] >= 20 then
+					Script.SetWatchProjectile(wdid, true)
+				end
+			end
+			if wd.type == "LaserCannon" then
+				cannonWeapons[wdid] = true
+				Script.SetWatchExplosion(wdid, true)
+				if wd.damages[0] >= 10 then
+					Script.SetWatchProjectile(wdid, true)
+				end
+			end
+			if wd.type == "BeamLaser" then
+				Script.SetWatchExplosion(wdid, true)
+			end
+			if wd.type == "MissileLauncher" then
+				Script.SetWatchExplosion(wdid, true)
+			end
         end
     end
     function gadget:Shutdown()
         for wdid, wd in pairs(WeaponDefs) do
             if wd.type == "Flame" then
-                Script.SetWatchExplosion(wdid, false)     -- watch weapon so explosion gets called for flame weapons
+                Script.SetWatchExplosion(wdid, false)
             end
             if wd.type == "Cannon" then
-                Script.SetWatchExplosion(wdid, false)    -- might be getting too expensive
+                Script.SetWatchExplosion(wdid, false)
+				if wd.damages[0] >= 20 then
+					Script.SetWatchProjectile(wdid, false)
+				end
             end
         end
     end
@@ -47,11 +60,11 @@ if gadgetHandler:IsSyncedCode() then
         SendToUnsynced("explosion_light", px, py, pz, weaponID, ownerID)
     end
 
-    function gadget:ProjectileCreated(projectileID, ownerID, weaponID)
-        if cannonWeapons[weaponID] then
-            local px, py, pz = Spring.GetProjectilePosition(projectileID)
-            SendToUnsynced("barrelfire_light", px, py, pz, weaponID, ownerID)
-        end
+    function gadget:ProjectileCreated(projectileID, ownerID, weaponID)		-- needs: Script.SetWatchProjectile(weaponDefID, true)
+		if cannonWeapons[weaponID] then	-- optionally disable this to pass through missiles too
+			local px, py, pz = Spring.GetProjectilePosition(projectileID)
+			SendToUnsynced("barrelfire_light", px, py, pz, weaponID, ownerID)
+		end
     end
 
 else
@@ -84,7 +97,6 @@ else
     end
 
     local function SpawnBarrelfire(_,px,py,pz, weaponID, ownerID)
-        --Spring.Echo(weaponID..'  '..math.random())
         if Script.LuaUI("GadgetWeaponBarrelfire") then
             if ownerID ~= nil then
                 if spGetUnitAllyTeam(ownerID) == myAllyID or spIsPosInLos(px, py, pz, myAllyID) then
