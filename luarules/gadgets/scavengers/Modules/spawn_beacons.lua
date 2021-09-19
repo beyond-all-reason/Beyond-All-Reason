@@ -113,14 +113,20 @@ function SpawnBeacon(n)
 						end
 					end
 
+					
+
 					if scavengerGamePhase ~= "initial" or math.random(0,3) == 0 then
 						if constructorControllerModuleConfig.useconstructors then
-							local rx = posx+math.random(-64,64)
-							local rz = posz+math.random(-64,64)
-							local constructor = constructorUnitList.Constructors[math.random(#constructorUnitList.Constructors)]
-							QueueSpawn(constructor, rx, posy, rz, math.random(0, 3), GaiaTeamID, n + 150)
-							if scavengerGamePhase ~= "initial" then
-								Spring.CreateUnit("scavengerdroppod_scav", rx, posy, rz, math_random(0,3),GaiaTeamID)
+							local unitCount = Spring.GetTeamUnitCount(GaiaTeamID)
+							local unitCountBuffer = scavMaxUnits*0.5
+							if not (unitCount + unitCountBuffer >= scavMaxUnits) then 
+								local rx = posx+math.random(-64,64)
+								local rz = posz+math.random(-64,64)
+								local constructor = constructorUnitList.Constructors[math.random(#constructorUnitList.Constructors)]
+								QueueSpawn(constructor, rx, posy, rz, math.random(0, 3), GaiaTeamID, n + 150)
+								if scavengerGamePhase ~= "initial" then
+									Spring.CreateUnit("scavengerdroppod_scav", rx, posy, rz, math_random(0,3),GaiaTeamID)
+								end
 							end
 						end
 					end

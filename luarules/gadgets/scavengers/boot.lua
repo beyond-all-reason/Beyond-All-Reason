@@ -199,8 +199,8 @@ function gadget:GameFrame(n)
 	if n > 1 then
 		SpawnFromQueue(n)
 		local unitCount = Spring.GetTeamUnitCount(GaiaTeamID)
-		local unitCountBuffer = scavMaxUnits*0.1
-		if unitCount + (unitCountBuffer+unitCountBuffer*0.1) >= scavMaxUnits then 
+		local unitCountBuffer = scavMaxUnits*0.05
+		if unitCount + unitCountBuffer >= scavMaxUnits then 
 			if #BaseCleanupQueue > 0 then
 				Spring.DestroyUnit(BaseCleanupQueue[1], true, false)
 			end
@@ -589,7 +589,7 @@ function gadget:UnitGiven(unitID, unitDefID, unitNewTeam, unitOldTeam)
 					break
 				end
 			end
-			if UnitDefs[unitDefID].canMove == false or UnitDefs[unitDefID].isBuilding == true or scavNoSelfD[unitID] then
+			if (UnitDefs[unitDefID].canMove == false or UnitDefs[unitDefID].isBuilding == true or scavNoSelfD[unitID]) and (unitName ~= "scavengerdroppodbeacon_scav") then
 				BaseCleanupQueue[#BaseCleanupQueue+1] = unitID 
 			end
 			if string.find(unitName, scavconfig.unitnamesuffix) then
@@ -732,7 +732,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 	end
 	if unitTeam == GaiaTeamID then
 		scavStatsScavUnits = scavStatsScavUnits+1
-		if UnitDefs[unitDefID].canMove == false or UnitDefs[unitDefID].isBuilding == true or scavNoSelfD[unitID] then
+		if (UnitDefs[unitDefID].canMove == false or UnitDefs[unitDefID].isBuilding == true or scavNoSelfD[unitID]) and (unitName ~= "scavengerdroppodbeacon_scav") then
 			BaseCleanupQueue[#BaseCleanupQueue+1] = unitID 
 		end
 		Spring.SetUnitExperience(unitID, math_random() * (spawnmultiplier*0.01*unitControllerModuleConfig.veterancymultiplier))
