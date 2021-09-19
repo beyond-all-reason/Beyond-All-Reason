@@ -75,8 +75,8 @@ VFS.Include(luaShaderDir.."instancevbotable.lua")
 local vsSrc =
 [[
 #version 420
-#line 10000
 uniform float timer;
+uniform sampler2D heightMap;
 
 layout (location = 0) in vec4 localpos_dir_angle;
 layout (location = 1) in vec4 worldpos_radius;
@@ -87,32 +87,37 @@ out DataVS {
 };
 
 //__ENGINEUNIFORMBUFFERDEFS__
+#line 10090
+
+float heightAtWorldPos(vec2 w){
+	vec2 uvhm = vec2(clamp(w.x, 8.0, mapSize.x - 8.0), clamp(w.y, 8.0, mapSize.y - 8.0)) / mapSize.xy;
+	return textureLod(heightMap, uvhm, 0.0).x;
+}
 
 void main()
 {
 	// rotate for animation:
 	vec3 vertexWorldPos = vec3(localpos_dir_angle.x,0,localpos_dir_angle.y);
-	mat3 roty;
-	if (localpos_dir_angle.z < 0 ){
-		roty = rotation3dY(timeInfo.x*0.005);
-	}else{
-		vertexWorldPos.x *= -1; // flip outer circle
-		roty = rotation3dY(-timeInfo.x*0.005);
-	}
+
+	float s = sign(localpos_dir_angle.z);
+	mat3 roty = rotation3dY(s * timeInfo.x * 0.005);
+	vertexWorldPos.x *= s;
+
 	vertexWorldPos = roty * vertexWorldPos;
 
 	// scale the circle and move to world pos:
-	vertexWorldPos = vertexWorldPos * (12.0 + localpos_dir_angle.z) *2.0* worldpos_radius.w + worldpos_radius.xyz;
+	vec3 worldXYZ = vec3(worldpos_radius.x, heightAtWorldPos(worldpos_radius.xz), worldpos_radius.z);
+	vertexWorldPos = vertexWorldPos * (12.0 + localpos_dir_angle.z) * 2.0 * worldpos_radius.w + worldXYZ;
 
 	//dump to FS:
 	gl_Position = cameraViewProj * vec4(vertexWorldPos,1.0);
 
-	if (visibility.x > 0.5 ){ // going into occupied, so fade out from visibility.y
-		circlealpha =  clamp(( timeInfo.x - visibility.y)/30, 0.0, 0.5);
-	}else{ // turned unoccipied, fading into visibility
-		circlealpha = clamp(0.5 - ( timeInfo.x - visibility.y)/30, 0.0, 0.5);
-	}
-	//circlealpha = visibility.x;
+	circlealpha = mix(
+		0.5 - (timeInfo.x - visibility.y) / 30.0, // turned unoccipied, fading into visibility
+		      (timeInfo.x - visibility.y) / 30.0, // going into occupied, so fade out from visibility.y
+		step(0.5, visibility.x)            // 1.0 if visibility is > 0.5
+	);
+	circlealpha = clamp(circlealpha, 0.0, 0.5);
 }
 ]]
 
@@ -304,8 +309,8 @@ function widget:Initialize()
 					end
 				end
 				spotsCount = spotsCount + 1
-				local y = spGetGroundHeight(spot.x, spot.z)
-				spots[spotsCount] = {spot.x, y, spot.z, value, scale, occupied, currentClock}
+				--local y = spGetGroundHeight(spot.x, spot.z)
+				spots[spotsCount] = {spot.x, 0.0, spot.z, value, scale, occupied, currentClock}
 				pushElementInstance(spotInstanceVBO, {spot.x, y, spot.z, scale, (occupied and 0) or 1, -1000,0,0}, spotKey(spot.x, spot.z))
 				if not valueList[value] then
 					valueList[value] = gl.CreateList(function()
@@ -379,6 +384,7 @@ function widget:DrawWorldPreUnit()
 	local clockDifference = (os.clock() - previousOsClock)
 	previousOsClock = os.clock()
 
+	gl.Texture(0, "$heightmap")
 	gl.DepthTest(false)
 
 	spotShader:Activate()
@@ -409,6 +415,7 @@ function widget:DrawWorldPreUnit()
 
     gl.DepthTest(true)
     gl.Color(1,1,1,1)
+	gl.Texture(0, false)
 end
 
 function widget:GetConfigData(data)
