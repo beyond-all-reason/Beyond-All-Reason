@@ -222,7 +222,7 @@ end
 local function checkMetalspots()
 	local now = os.clock()
 	for i=1, #spots do
-		spots[i][2] = spGetGroundHeight(spots[i][1],spots[i][3])
+		spots[i][2] = spGetGroundHeight(spots[i][1], spots[i][3])
 		local spot = spots[i]
 		local units = spGetUnitsInSphere(spot[1], spot[2], spot[3], 110*spot[5])
 		local occupied = false
@@ -309,9 +309,8 @@ function widget:Initialize()
 					end
 				end
 				spotsCount = spotsCount + 1
-				--local y = spGetGroundHeight(spot.x, spot.z)
-				spots[spotsCount] = {spot.x, 0.0, spot.z, value, scale, occupied, currentClock}
-				pushElementInstance(spotInstanceVBO, {spot.x, y, spot.z, scale, (occupied and 0) or 1, -1000,0,0}, spotKey(spot.x, spot.z))
+				spots[spotsCount] = {spot.x, spGetGroundHeight(spot.x, spot.z), spot.z, value, scale, occupied, currentClock}
+				pushElementInstance(spotInstanceVBO, {spot.x, 0, spot.z, scale, (occupied and 0) or 1, -1000,0,0}, spotKey(spot.x, spot.z))
 				if not valueList[value] then
 					valueList[value] = gl.CreateList(function()
 						font:Begin()
@@ -390,6 +389,10 @@ function widget:DrawWorldPreUnit()
 	spotShader:Activate()
 	drawInstanceVBO(spotInstanceVBO)
 	spotShader:Deactivate()
+
+	if Spring.GetGameFrame() == 0 then
+		checkMetalspots()
+	end
 
 	local spot
 	if showValue or Spring.GetGameFrame() == 0 or Spring.GetMapDrawMode() == 'metal' then
