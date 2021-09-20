@@ -155,7 +155,6 @@ return {
 					default = 300,
 					shields = 100,
 					subs = 5,
-					vtol = 9999,
 				},
 			},
 		},

@@ -232,64 +232,6 @@ local function minefield3()
 		},
 	}
 end
-
-local function t1Firebase2()
-	local randomTurrets = {UDN.armllt_scav.id, BPWallOrPopup("scav"), UDN.armbeamer_scav.id, UDN.armhlt_scav.id, UDN.armguard_scav.id, UDN.armrl_scav.id, UDN.armferret_scav.id, UDN.armcir_scav.id, UDN.armnanotc_scav.id, BPWallOrPopup("scav"), UDN.corllt_scav.id, UDN.corhllt_scav.id, UDN.corhlt_scav.id, UDN.corpun_scav.id, UDN.corrl_scav.id, UDN.cormadsam_scav.id, UDN.corerad_scav.id, UDN.cornanotc_scav.id,}
-	return {
-		type = types.Land,
-		tiers = { tiers.T0, tiers.T1 },
-		radius = 96,
-		buildings = {
-			{ unitDefID = randomTurrets[math.random(1, #randomTurrets)], xOffset = math.random(-96,96),  zOffset = math.random(-96,96), direction = 0 },
-			{ unitDefID = randomTurrets[math.random(1, #randomTurrets)], xOffset = math.random(-96,96),  zOffset = math.random(-96,96), direction = 0 },
-			{ unitDefID = randomTurrets[math.random(1, #randomTurrets)], xOffset = math.random(-96,96),  zOffset = math.random(-96,96), direction = 0 },
-			{ unitDefID = randomTurrets[math.random(1, #randomTurrets)], xOffset = math.random(-96,96),  zOffset = math.random(-96,96), direction = 0 },
-		},
-	}
-end
-		
-local function t2Firebase1()
-	local randomTurrets = {UDN.armamb_scav.id, UDN.armpb_scav.id, UDN.armanni_scav.id, UDN.armflak_scav.id, UDN.armmercury_scav.id, UDN.armbrtha_scav.id, UDN.armtarg_scav.id, UDN.armveil_scav.id, UDN.armgate_scav.id, UDN.cortoast_scav.id, UDN.corvipe_scav.id, UDN.cordoom_scav.id, UDN.corflak_scav.id, UDN.corscreamer_scav.id, UDN.corint_scav.id, UDN.cortarg_scav.id, UDN.corshroud_scav.id, UDN.corgate_scav.id, UDN.cortron_scav.id, UDN.armemp_scav.id, UDN.corjuno_scav.id, UDN.armjuno_scav.id, UDN.armminivulc_scav.id, UDN.corminibuzz_scav.id, }
-	return {
-		type = types.Land,
-		tiers = { tiers.T2 },
-		radius = 96,
-		buildings = {
-			{ unitDefID = randomTurrets[math.random(1, #randomTurrets)], xOffset = math.random(-96,96),  zOffset = math.random(-96,96), direction = 0 },
-			{ unitDefID = randomTurrets[math.random(1, #randomTurrets)], xOffset = math.random(-96,96),  zOffset = math.random(-96,96), direction = 0 },
-			{ unitDefID = randomTurrets[math.random(1, #randomTurrets)], xOffset = math.random(-96,96),  zOffset = math.random(-96,96), direction = 0 },
-			{ unitDefID = randomTurrets[math.random(1, #randomTurrets)], xOffset = math.random(-96,96),  zOffset = math.random(-96,96), direction = 0 },
-		},
-	}
-end
-		
-local function t2Firebase2()
-	local randomTurrets = {UDN.armamb_scav.id, UDN.armpb_scav.id, UDN.armanni_scav.id, UDN.armflak_scav.id, UDN.armmercury_scav.id, UDN.armbrtha_scav.id, UDN.armvulc_scav.id, UDN.armtarg_scav.id, UDN.armveil_scav.id, UDN.armgate_scav.id, UDN.cortoast_scav.id, UDN.corvipe_scav.id, UDN.cordoom_scav.id, UDN.corflak_scav.id, UDN.corscreamer_scav.id, UDN.corint_scav.id, UDN.corbuzz_scav.id, UDN.cortarg_scav.id, UDN.corshroud_scav.id, UDN.corgate_scav.id, UDN.corsilo_scav.id, UDN.armsilo_scav.id, UDN.cortron_scav.id, UDN.armemp_scav.id, UDN.corjuno_scav.id, UDN.armjuno_scav.id, UDN.corminibuzz_scav.id }
-	return {
-		type = types.Land,
-		tiers = { tiers.T3, tiers.T4 },
-		radius = 96,
-		buildings = {
-			{ unitDefID = randomTurrets[math.random(1, #randomTurrets)], xOffset = math.random(-96,96),  zOffset = math.random(-96,96), direction = 0 },
-			{ unitDefID = randomTurrets[math.random(1, #randomTurrets)], xOffset = math.random(-96,96),  zOffset = math.random(-96,96), direction = 0 },
-			{ unitDefID = randomTurrets[math.random(1, #randomTurrets)], xOffset = math.random(-96,96),  zOffset = math.random(-96,96), direction = 0 },
-			{ unitDefID = randomTurrets[math.random(1, #randomTurrets)], xOffset = math.random(-96,96),  zOffset = math.random(-96,96), direction = 0 },
-		},
-	}
-end
-		
-local function randomNanoTowerSingle()
-	local unitID = getRandomNanoTowerID()
-
-	return {
-		type = types.Land,
-		tiers = { tiers.T0 },
-		radius = 24,
-		buildings = {
-			{ unitDefID = unitID, xOffset = math.random(-96,96),  zOffset = math.random(-96,96), direction = 0 },
-		},
-	}
-end
 		
 local function randomNanoTowerDuo()
 	local unitID = getRandomNanoTowerID()
@@ -756,10 +698,6 @@ return {
 	minefield1,
 	minefield2,
 	minefield3,
-	t1Firebase2,
-	t2Firebase1,
-	t2Firebase2,
-	randomNanoTowerSingle,
 	randomNanoTowerDuo,
 	randomNanoTowerQuad,
 	t3Gantry1,
