@@ -35,7 +35,7 @@ return {
 		script = "Units/ARMPINCER.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd-phib",
-		sightdistance = 240,
+		sightdistance = 305,
 		sonardistance = 180,
 		trackoffset = 3,
 		trackstrength = 6,

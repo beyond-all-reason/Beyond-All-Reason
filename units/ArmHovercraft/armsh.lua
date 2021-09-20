@@ -145,7 +145,7 @@ return {
 					light_mult = "0.5",
 				},
 				damage = {
-					default = 48,
+					default = 36,
 				},
 			},
 		},
