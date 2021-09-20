@@ -1,13 +1,13 @@
 function gadget:GetInfo()
     return {
         name      = "Dgun projectile volume",
-        desc      = "Adds explosions to the dgun projectile (so it has volume)",
+        desc      = "applies damage to units closely around/inside the dgun projectile (so it has volume instead of a hitscan dot)",
         version   = "1.0",
         author    = "Floris",
         date      = "April 2021",
         license   = "GNU GPL, v3 or later",
         layer     = 0,
-        enabled   = false,	-- disabled for now cause actual damage is off/small
+        enabled   = true,	-- disabled for now cause actual damage is off/small
     }
 end
 
@@ -16,8 +16,8 @@ if not gadgetHandler:IsSyncedCode() then
 end
 
 local damagedelay = 0 -- number of frames before the damage starts to kick in
-local additionalradius = 8 -- extra radius above the units standard radius to scan for
-local damageAmount = 100 -- amount of damage, applied only once per projectile per unit
+local additionalradius = 11 -- extra radius above the units standard radius to scan for
+local damageAmount = 9999 -- amount of damage, applied only once per projectile per unit
 local dGunRange = 250 -- This is so that we dont deal 'extra' damage outside of the range of the unit
 local killfriendly = true -- only different allyteams get hit
 
@@ -106,8 +106,8 @@ end
 
 function gadget:GameFrame(gf)
 	for projectileID, projectile in pairs(projectiles) do
-		if projectile.gameframe <= Spring.GetGameFrame() + damagedelay then 
-		
+		if projectile.gameframe <= Spring.GetGameFrame() + damagedelay then
+
 			local x,y,z = Spring.GetProjectilePosition(projectileID)
 			-- find commander that fired it so it can become immune to its damage
 			local units = Spring.GetUnitsInSphere(x,y,z, 80)	-- set a little wider than needed to be sure its sufficient for all dgun angles
@@ -116,23 +116,19 @@ function gadget:GameFrame(gf)
 				local ux, uy, uz = Spring.GetUnitPosition(unitID, true) -- get mid pos
 				local radius = Spring.GetUnitRadius(unitID) + additionalradius
 				local unitallyteam = Spring.GetUnitAllyTeam(unitID)
-				
+
 				-- order by likelyhood
-				if commanders[unitID] == nil 
+				if commanders[unitID] == nil
 					and (killfriendly or Spring.GetUnitAllyTeam(unitID) ~= projectile.ownerallyteam ) -- dont kill friendlies with this
 					and projectile.alreadydamaged[unitID] == nil  -- only once per unit
 					and distancesq(x,y,z,ux,uy,uz) < radius * radius   -- its inside the units radius
-          and distancesq(projectile.startx, projectile.starty, projectile.startz, ux, uy, uz) < dGunRange*dGunRange then -- so they dont damage too far outside of their range
-            
-            
-					--Spring.Echo("RAMPAGE")
-					Spring.AddUnitDamage(unitID, damageAmount, 0, projectile.owner, -7) -- why -7, dunno, but doesnt work without it
+        			and distancesq(projectile.startx, projectile.starty, projectile.startz, ux, uy, uz) < dGunRange*dGunRange
+				then -- so they dont damage too far outside of their range
+					Spring.AddUnitDamage(unitID, damageAmount, 0, projectile.owner, dgunProjectileWeaponID)
 					projectile.alreadydamaged[unitID] = true
 				end
-				
 			end
 		end
-
 	end
 end
 
