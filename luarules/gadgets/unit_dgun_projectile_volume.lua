@@ -1,13 +1,13 @@
 function gadget:GetInfo()
     return {
         name      = "Dgun projectile volume",
-        desc      = "applies damage to units closely around/inside the dgun projectile (so it has volume instead of a hitscan dot)",
+        desc      = "Damages units close around/inside the dgun projectile (so it has volume instead of a hitscan dot)",
         version   = "1.0",
         author    = "Floris",
         date      = "April 2021",
         license   = "GNU GPL, v3 or later",
         layer     = 0,
-        enabled   = true,	-- disabled for now cause actual damage is off/small
+        enabled   = true,
     }
 end
 
@@ -16,7 +16,7 @@ if not gadgetHandler:IsSyncedCode() then
 end
 
 local damagedelay = 0 -- number of frames before the damage starts to kick in
-local additionalradius = 11 -- extra radius above the units standard radius to scan for
+local additionalradius = 10 -- extra radius above the units standard radius to scan for
 local damageAmount = 9999 -- amount of damage, applied only once per projectile per unit
 local dGunRange = 250 -- This is so that we dont deal 'extra' damage outside of the range of the unit
 local killfriendly = true -- only different allyteams get hit
@@ -40,7 +40,7 @@ for weaponID, weaponDef in pairs(WeaponDefs) do
 	end
 end
 if not dgunProjectileWeaponID then
-	Spring.Echo('-=== dgun projectile weapon not found ===-')
+	Spring.Echo('Dgun projectile volume: -=== dgun projectile weapon not found ===-')
 	return
 end
 
@@ -53,12 +53,10 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 		for i = 1, #weapons do
 			local weaponDef = WeaponDefs[weapons[i].weaponDef]
 			if weaponDef.type == "DGun" then
-				--Spring.Echo("DGUUUN",i, weaponDef.name, weaponDef.type)
 				isCommander[unitDefID] = true
 			end
 		end
 	end
-	--unitArmorType[unitDefID] = unitDef.armorType
 end
 
 function gadget:Initialize()
@@ -86,7 +84,6 @@ end
 
 function gadget:ProjectileCreated(proID, proOwnerID, weaponDefID)
     if weapons[weaponDefID] then
-        --Spring.Echo("Dgun fired!")
         local ownerallyteam = Spring.GetUnitAllyTeam(proOwnerID)
         local x,y,z = Spring.GetProjectilePosition(proID)
         projectiles[proID] = {owner = proOwnerID, gameframe = Spring.GetGameFrame(), alreadydamaged = {}, ownerallyteam = ownerallyteam, startx = x, starty = y , startz = z}
@@ -115,11 +112,10 @@ function gadget:GameFrame(gf)
 			for i, unitID in pairs(units) do
 				local ux, uy, uz = Spring.GetUnitPosition(unitID, true) -- get mid pos
 				local radius = Spring.GetUnitRadius(unitID) + additionalradius
-				local unitallyteam = Spring.GetUnitAllyTeam(unitID)
 
 				-- order by likelyhood
 				if commanders[unitID] == nil
-					and (killfriendly or Spring.GetUnitAllyTeam(unitID) ~= projectile.ownerallyteam ) -- dont kill friendlies with this
+					and (killfriendly or Spring.GetUnitAllyTeam(unitID) ~= projectile.ownerallyteam) -- dont kill friendlies
 					and projectile.alreadydamaged[unitID] == nil  -- only once per unit
 					and distancesq(x,y,z,ux,uy,uz) < radius * radius   -- its inside the units radius
         			and distancesq(projectile.startx, projectile.starty, projectile.startz, ux, uy, uz) < dGunRange*dGunRange
