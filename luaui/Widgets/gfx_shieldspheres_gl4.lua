@@ -1,8 +1,4 @@
 --------------------------------------------------------------------------------
---------------------------------------------------------------------------------
---https://gist.github.com/lhog/77f3fb10fed0c4e054b6c67eb24efeed#file-test_unitshape_instancing-lua-L177-L178
-
---------------------------------------------OLD AIRJETS---------------------------
 function widget:GetInfo()
 	return {
 		name = "ShieldSpheres GL4",
@@ -16,72 +12,224 @@ function widget:GetInfo()
 end
 
 -- GL4 notes
--- Needs an atlassed PBR input?
--- Always a square, maybe with 4 cardinal direction possible rotations?
--- Should be able to output at least an 8x8 subdivided decal
--- Decals should have a lifetime param, with a table tracking their expected deaths
--- 'permanent' decals assigned to units too
--- Nice normal maps too
--- since we have 1024 elements in geom shader output, use those wisely (8x8 square)
--- Depth test should be less deep than other shit
--- should it write to map deferred buffer? (would be best if it did)
--- maybe position could be assigned to track units
--- how to deal with multiple, overlapping scars? additional Z sort by lifetime?
--- add some Z in fragment shader to hack around depth testing? Do double transforms and lift it up?
--- This should probably be a gadget tbh
--- Each decal should have a:
--- A. diffuse texture with teamcolor in alpha
--- An (optional) glow, metalness, roughness, transparency
--- A normal map (with optional alpha)? 
--- geometry shader is needed for faster occlusion culling!
-
--- we ideally should be using the new atlas texture framework for this!
-
--- Decal Attributes
--- vec4 Center XYZ, radius (or width)
--- rotation (only around Y)
--- fade in rate, fadeout start time, fadeout rate, lifetime
--- texture offsets (for atlasses, this should be 3 vec4's (ugh)
--- additional vec4 custom stuff:
-	-- Rotate rate
-	-- fade period
-	-- colormod RGBA (multiply) 
--- 
-
--- VS to GS passthrough:
--- Everything above
-
--- GS to FS passthrough:
--- worldpos XYZW
--- normal XYZW
--- TEXCOORD 0, 1, 2
--- entire fucking TBN matrix?
--- colormod * fade
--- This is 4+4+4+6 ~ 20 out of 1024? ugh we may need to pack more for 64 verts?
--- ugh 1024 floats is max? thats shit
--- for a 6x6 we need like 50 verts :/
+-- TODO: gl_NormalMatrix seems wrong
+-- Load stuff on init
+-- on playerchanged shit dont reload for specs
+--
  
-
-local decaldefs = { -- the only real 
-	scar1 = { 
-		tex1 = "bitmaps/scars/scar1.bmp",
-		tex2 = "bitmaps/scars/scar1.bmp",
-		normals = "bitmaps/scars/scar1.bmp",
-		texsize = 256, -- this is needed so that the atlas knows how big it should get
-		rotstart = 0.2, 
-		size = 250,
-		fadein = 0.1,
-		fadeoutstart = 1000,
-		fadeoutrate = 0.01,
-		lifetime = 5000,
-		rotationrate = 0.01,
-		fadeperiod = 0.07,
-		colormod = {1.0, 1.0, 1.0, 1.0},
-	}
-}
+local TESTSPHERES = false
 
 --------------------------------------------------------------------------------
 -- Configuration
+
+local function MergeTable(table1, table2)
+	local result = {}
+	for i, v in pairs(table2) do
+		if type(v) == 'table' then
+			result[i] = MergeTable(v, {})
+		else
+			result[i] = v
+		end
+	end
+	for i, v in pairs(table1) do
+		if result[i] == nil then
+			if type(v) == 'table' then
+				if type(result[i]) ~= 'table' then
+					result[i] = {}
+				end
+				result[i] = MergeTable(v, result[i])
+			else
+				result[i] = v
+			end
+		end
+	end
+	return result
+end
+
+local defaults = {
+	layer = -35,
+	life = 20,
+	light = 2,
+	repeatEffect = true,
+}
+
+local corafusShieldSphere = MergeTable(defaults, {
+	pos = { 0, 60, 0 },
+	size = 32,
+	light = 3.25,
+	--colormap1 = { {0.9, 0.9, 1, 0.75},{0.9, 0.9, 1, 1.0},{0.9, 0.9, 1, 1.0},{0.9, 0.9, 1, 0.75} },
+	--colormap2 = { {0.2, 0.2, 1, 0.7},{0.2, 0.2, 1, 0.75},{0.2, 0.2, 1, 0.75},{0.2, 0.2, 1, 0.7} },
+})
+
+local armafusShieldSphere = MergeTable(defaults, {
+	pos = { 0, 60, 0 },
+	size = 28,
+	light = 3.5,
+	--colormap1 = { {0.9, 0.9, 1, 0.75},{0.9, 0.9, 1, 1.0},{0.9, 0.9, 1, 1.0},{0.9, 0.9, 1, 0.75} },
+	--colormap2 = { {0.2, 0.2, 1, 0.7},{0.2, 0.2, 1, 0.75},{0.2, 0.2, 1, 0.75},{0.2, 0.2, 1, 0.7} },
+})
+
+local corfusShieldSphere = MergeTable(defaults, {
+	pos = { 0, 51, 0 },
+	size = 23,
+	light = 2.75,
+	--colormap1 = { {0.9, 0.9, 1, 0.75},{0.9, 0.9, 1, 1.0},{0.9, 0.9, 1, 1.0},{0.9, 0.9, 1, 0.75} },
+	--colormap2 = { {0.2, 0.6, 0.2, 0.4},{0.2, 0.6, 0.2, 0.45},{0.2, 0.6, 0.2, 0.45},{0.2, 0.6, 0.2, 0.4} },
+})
+
+local corgateShieldSphere = MergeTable(defaults, {
+	pos = { 0, 42, 0 },
+	size = 11,
+	light = 2.5,
+	colormap1 = { { 0.9, 0.9, 1, 0.75 }, { 0.9, 0.9, 1, 1.0 }, { 0.9, 0.9, 1, 1.0 }, { 0.9, 0.9, 1, 0.75 } },
+	colormap2 = { { 0.2, 0.6, 0.2, 0.4 }, { 0.2, 0.6, 0.2, 0.45 }, { 0.2, 0.6, 0.2, 0.45 }, { 0.2, 0.6, 0.2, 0.4 } },
+})
+
+local armjunoShieldSphere = MergeTable(defaults, {
+	pos = { 0, 72, 0 },
+	size = 13,
+	colormap1 = { { 0.9, 0.9, 1, 0.75 }, { 0.9, 0.9, 1, 1.0 }, { 0.9, 0.9, 1, 1.0 }, { 0.9, 0.9, 1, 0.75 } },
+	colormap2 = { { 0.8, 0.2, 0.2, 0.4 }, { 0.8, 0.2, 0.2, 0.45 }, { 0.9, 0.2, 0.2, 0.45 }, { 0.9, 0.1, 0.2, 0.4 } },
+})
+
+local corjunoShieldSphere = MergeTable(defaults, {
+	pos = { 0, 72, 0 },
+	size = 13,
+	colormap1 = { { 0.9, 0.9, 1, 0.75 }, { 0.9, 0.9, 1, 1.0 }, { 0.9, 0.9, 1, 1.0 }, { 0.9, 0.9, 1, 0.75 } },
+	colormap2 = { { 0.8, 0.2, 0.2, 0.4 }, { 0.8, 0.2, 0.2, 0.45 }, { 0.9, 0.2, 0.2, 0.45 }, { 0.9, 0.1, 0.2, 0.4 } },
+})
+
+local armgateShieldSphere = MergeTable(defaults, {
+	pos = { 0, 23.5, -5 },
+	size = 14.5,
+	colormap1 = { { 0.9, 0.9, 1, 0.75 }, { 0.9, 0.9, 1, 1.0 }, { 0.9, 0.9, 1, 1.0 }, { 0.9, 0.9, 1, 0.75 } },
+	colormap2 = { { 0.2, 0.6, 0.2, 0.4 }, { 0.2, 0.6, 0.2, 0.45 }, { 0.2, 0.6, 0.2, 0.45 }, { 0.2, 0.6, 0.2, 0.4 } },
+})
+
+local corgateShieldSphere = MergeTable(defaults, {
+	pos = { 0, 42, 0 },
+	size = 11,
+	colormap1 = { { 0.9, 0.9, 1, 0.75 }, { 0.9, 0.9, 1, 1.0 }, { 0.9, 0.9, 1, 1.0 }, { 0.9, 0.9, 1, 0.75 } },
+	colormap2 = { { 0.2, 0.6, 0.2, 0.4 }, { 0.2, 0.6, 0.2, 0.45 }, { 0.2, 0.6, 0.2, 0.45 }, { 0.2, 0.6, 0.2, 0.4 } },
+})
+
+local armjunoShieldSphere = MergeTable(defaults, {
+	pos = { 0, 72, 0 },
+	size = 13,
+	colormap1 = { { 0.9, 0.9, 1, 0.75 }, { 0.9, 0.9, 1, 1.0 }, { 0.9, 0.9, 1, 1.0 }, { 0.9, 0.9, 1, 0.75 } },
+	colormap2 = { { 0.8, 0.2, 0.2, 0.4 }, { 0.8, 0.2, 0.2, 0.45 }, { 0.9, 0.2, 0.2, 0.45 }, { 0.9, 0.1, 0.2, 0.4 } },
+})
+
+local corjunoShieldSphere = MergeTable(defaults, {
+	pos = { 0, 72, 0 },
+	size = 13,
+	colormap1 = { { 0.9, 0.9, 1, 0.75 }, { 0.9, 0.9, 1, 1.0 }, { 0.9, 0.9, 1, 1.0 }, { 0.9, 0.9, 1, 0.75 } },
+	colormap2 = { { 0.8, 0.2, 0.2, 0.4 }, { 0.8, 0.2, 0.2, 0.45 }, { 0.9, 0.2, 0.2, 0.45 }, { 0.9, 0.1, 0.2, 0.4 } },
+})
+
+local armgateShieldSphere = MergeTable(defaults, {
+	pos = { 0, 23.5, -5 },
+	size = 14.5,
+	colormap1 = { { 0.9, 0.9, 1, 0.75 }, { 0.9, 0.9, 1, 1.0 }, { 0.9, 0.9, 1, 1.0 }, { 0.9, 0.9, 1, 0.75 } },
+	colormap2 = { { 0.2, 0.6, 0.2, 0.4 }, { 0.2, 0.6, 0.2, 0.45 }, { 0.2, 0.6, 0.2, 0.45 }, { 0.2, 0.6, 0.2, 0.4 } },
+})
+
+local UnitEffects = {
+	["armjuno"] = {
+		{ class = 'ShieldSphere', options = armjunoShieldSphere },
+		{ class = 'ShieldJitter', options = { life = math.huge, pos = { 0, 72, 0 }, size = 14, precision = 22, repeatEffect = true } },
+	},
+	["corjuno"] = {
+		{ class = 'ShieldSphere', options = corjunoShieldSphere },
+		{ class = 'ShieldJitter', options = { life = math.huge, pos = { 0, 72, 0 }, size = 14, precision = 22, repeatEffect = true } },
+	},
+
+	--// FUSIONS //--------------------------
+	["corafus"] = {
+		{ class = 'ShieldSphere', options = corafusShieldSphere },
+		{ class = 'ShieldJitter', options = { layer = -16, life = math.huge, pos = { 0, 60, 0 }, size = 32.5, precision = 22, repeatEffect = true } },
+	},
+	["corfus"] = {
+		{ class = 'ShieldSphere', options = corfusShieldSphere },
+		{ class = 'ShieldJitter', options = { life = math.huge, pos = { 0, 50, 0 }, size = 23.5, precision = 22, repeatEffect = true } },
+	},
+	["armafus"] = {
+		{ class = 'ShieldSphere', options = armafusShieldSphere },
+		{ class = 'ShieldJitter', options = { layer = -16, life = math.huge, pos = { 0, 60, 0 }, size = 28.5, precision = 22, repeatEffect = true } },
+	},
+	["corgate"] = {
+		{ class = 'ShieldJitter', options = { delay = 0, life = math.huge, pos = { 0, 42, 0 }, size = 12, precision = 22, repeatEffect = true } },
+		{ class = 'ShieldSphere', options = corgateShieldSphere },
+		--{class='ShieldJitter', options={delay=0,life=math.huge, pos={0,42,0.0}, size=555, precision=0, strength= 0.001, repeatEffect=true}},
+		--{class='ShieldJitter',options={life=math.huge, pos={0,42,0}, size=20, precision=2, repeatEffect=true}},
+	},
+	["corfgate"] = {
+		{ class = 'ShieldJitter', options = { delay = 0, life = math.huge, pos = { 0, 42, 0 }, size = 12, precision = 22, repeatEffect = true } },
+		{ class = 'ShieldSphere', options = corgateShieldSphere },
+		--{class='ShieldJitter', options={delay=0,life=math.huge, pos={0,42,0.0}, size=555, precision=0, strength= 0.001, repeatEffect=true}},
+		--{class='ShieldJitter',options={life=math.huge, pos={0,42,0}, size=20, precision=2, repeatEffect=true}},
+	},
+	["armgate"] = {
+		{ class = 'ShieldJitter', options = { delay = 0, life = math.huge, pos = { 0, 23.5, -5 }, size = 15, precision = 22, repeatEffect = true } },
+		{ class = 'ShieldSphere', options = armgateShieldSphere },
+		--{class='ShieldJitter', options={delay=0,life=math.huge, pos={0,23.5,-5}, size=555, precision=0, strength=0.001, repeatEffect=true}},
+	},
+	["armfgate"] = {
+		{ class = 'ShieldJitter', options = { delay = 0, life = math.huge, pos = { 0, 25, 0 }, size = 15, precision = 22, repeatEffect = true } },
+		{ class = 'ShieldSphere', options = MergeTable(armgateShieldSphere, { pos = { 0, 25, 0 } }) },
+		--{class='ShieldJitter', options={delay=0,life=math.huge, pos={0,25,0}, size=555, precision=0, strength= 0.001, repeatEffect=true}},
+	},
+
+}
+
+local scavEffects = {}
+if UnitDefNames['armcom_scav'] then
+	for k, effect in pairs(UnitEffects) do
+		scavEffects[k .. '_scav'] = effect
+		if scavEffects[k .. '_scav'].options then
+			if scavEffects[k .. '_scav'].options.color then
+				scavEffects[k .. '_scav'].options.color = { 0.92, 0.32, 1.0 }
+			end
+			if scavEffects[k .. '_scav'].options.colormap then
+				scavEffects[k .. '_scav'].options.colormap = { { 0.92, 0.32, 1.0 } }
+			end
+			if scavEffects[k .. '_scav'].options.colormap1 then
+				scavEffects[k .. '_scav'].options.colormap1 = { { 0.92, 0.32, 1.0 } }
+			end
+			if scavEffects[k .. '_scav'].options.colormap2 then
+				scavEffects[k .. '_scav'].options.colormap2 = { { 0.92, 0.32, 1.0 } }
+			end
+		end
+	end
+	for k, effect in pairs(scavEffects) do
+		UnitEffects[k] = effect
+	end
+	scavEffects = nil
+end
+
+local newEffects = {}
+for unitname, effect in pairs(UnitEffects) do
+	newEffects[UnitDefNames[unitname].id] = effect
+end
+UnitEffects = newEffects
+newEffects = nil
+
+local myTeamID = Spring.GetMyTeamID()
+local myPlayerID = Spring.GetMyPlayerID()
+local mySpec, fullview = Spring.GetSpectatingState()
+
+local abs = math.abs
+local spGetSpectatingState = Spring.GetSpectatingState
+local spGetUnitDefID = Spring.GetUnitDefID
+local spGetUnitRulesParam = Spring.GetUnitRulesParam
+local spGetUnitIsActive = Spring.GetUnitIsActive
+local IsUnitInLos = Spring.IsUnitInLos
+local IsPosInLos = Spring.IsPosInLos
+local GetUnitPosition = Spring.GetUnitPosition
+
+local particleIDs = {}
+local lightIDs = {} -- maps unitID to lightID
+--------------------------------------------------------------------------------
 
 local shieldSphereInstanceVBO = nil
 local shieldSphereShader = nil
@@ -386,7 +534,6 @@ fragColor.a = length(fragColor.rgb);
 
 ]]
 	
-	
 
 
 local function goodbye(reason)
@@ -455,20 +602,16 @@ function widget:DrawWorld()
 	-- validate unitID buffer
 	if shieldSphereInstanceVBO.usedElements > 0 then
 		--Spring.Echo("Drawing shieldspheres",shieldSphereInstanceVBO.usedElements)
-		--gl.DepthTest(true)
+
 		gl.AlphaTest(true)
-		gl.Culling(GL.FRONT)
 		gl.DepthMask(false)
+		gl.DepthTest(true)
 		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 
-		--glBlending(GL_ONE, GL_ONE)
 		shieldSphereShader:Activate()
 		
 		drawInstanceVBO(shieldSphereInstanceVBO)
-		
 		shieldSphereShader:Deactivate()
-
-
 		--glAlphaTest(false)
 		--glDepthTest(false)
 	end
@@ -476,76 +619,181 @@ function widget:DrawWorld()
 end
 
 
-	
-
 --------------------------------------------------------------------------------
 -- Widget Interface
 --------------------------------------------------------------------------------
 
 function widget:Update(dt)
-	if shieldSphereInstanceVBO.usedElements < 50 then
-	
-		local x = 3000*math.random()
-		local z =  3000*math.random()
-		local y = Spring.GetGroundHeight(x,z) + math.random()*100
-		pushElementInstance(
-			shieldSphereInstanceVBO,
-			{
-				x,y,z,200*math.random(),
-				math.random(),math.random(),math.random(),math.random(),
-				math.random(),math.random(),math.random(),math.random(),
-				1, math.floor(math.random()*3), 1, 0.5, --// margin, technique, gameFrame, self.unit/65k
-				-- this is needed to keep the lua copy of the vbo the correct size
-			},
-			nil, -- key, use unitID!
-			true -- update exisiting
-			)
+	-- TODO: periodically check if still active?
+end
+
+
+local function TeamColorizeShieldSphere(unitID)
+	-- apply teamcoloring for default
+	local r,g,b = Spring.GetTeamColor(Spring.GetUnitTeam(unitID))
+	local c1 = {(r*0.45)+0.3, (g*0.45)+0.3, (b*0.45)+0.3, 0.6}
+	local c2 = {r*0.5, g*0.5, b*0.5, 0.66} 
+	return c1, c2
+end
+
+local function addUnit(unitID, unitDefID)
+	if UnitEffects[unitDefID] == nil then return end
+	for _, fx in ipairs(UnitEffects[unitDefID]) do
+		local health, maxHealth, paralyzeDamage, captureProgress, buildProgress = Spring.GetUnitHealth( unitID)
+		if buildProgress >= 1 then
+			if fx.class == "ShieldSphere" then
+				
+				local c1, c2 = TeamColorizeShieldSphere(unitID)
+				
+				local x,y,z  = Spring.GetUnitPosition(unitID)
+				x = x + fx.options.pos[1] + 10
+				y = y + fx.options.pos[2] + 0 -- TODO: REMOVE THIS FOR DEBUGGING
+				z = z + fx.options.pos[3] + 10
+				
+				if fx.options.colormap1 and fx.options.colormap1[1] then
+					c1 = fx.options.colormap1[1]
+				end
+				
+				if fx.options.colormap2 and fx.options.colormap2[1] then
+					c2 = fx.options.colormap2[1]
+				end
+				
+				pushElementInstance(
+					shieldSphereInstanceVBO,
+					{
+						x,y,z,fx.options.size,
+						c1[1], c1[2], c1[3], c1[4],
+						c2[1], c2[2], c2[3], c2[4],
+						1, 1, Spring.GetGameFrame(), unitID/65000, --// margin, technique, gameFrame, unitID/65k
+					},
+					unitID, -- key, use unitID!
+					true -- update exisiting
+				)
+				
+				-- add blinkies: 
+				if WG['lighteffects'] and WG['lighteffects'].createLight and fx.options.light and (lightIDs[unitID] == nil) then
+					c2[4] = fx.options.light * 0.66 
+					local lightID = WG['lighteffects'].createLight('shieldsphere',x,y,z, fx.options.size*6, c2)
+					lightIDs[unitID] = lightID
+				end 
+			end
+		end
 	end
 end
 
+local function CheckForExistingUnits()
+	local allUnits = Spring.GetAllUnits()
+	for i = 1, #allUnits do
+		local unitID = allUnits[i]
+		local unitDefID = Spring.GetUnitDefID(unitID)
+		addUnit(unitID, unitDefID)
+	end
+end
 
 function widget:Initialize()
-	--shaders = CreateShader()
-	
 	initGL4()
-	
-	math.randomseed(1)
-	pushElementInstance(
-		shieldSphereInstanceVBO,
-		{
-			200,200,200,200,
-			1,1,1,1,
-			1,1,1,1,
-			1, 1, 1, 0.5, --// margin, technique, gameFrame, self.unit/65k
-			-- this is needed to keep the lua copy of the vbo the correct size
-		},
-		nil, -- key, use unitID!
-		true -- update exisiting
-		)
-	for i=1, 50 do
-	
-		local x = 3000*math.random()
-		local z =  3000*math.random()
-		local y = Spring.GetGroundHeight(x,z) + math.random()*100
+
+	if TESTSPHERES then
+		
 		pushElementInstance(
 			shieldSphereInstanceVBO,
 			{
-				x,y,z,200*math.random(),
-				math.random(),math.random(),math.random(),math.random(),
-				math.random(),math.random(),math.random(),math.random(),
-				1, math.floor(math.random()*3), 1, 0.5, --// margin, technique, gameFrame, self.unit/65k
+				200,200,200,200,
+				1,1,1,1,
+				1,1,1,1,
+				1, 1, 1, 0.5, --// margin, technique, gameFrame, self.unit/65k
 				-- this is needed to keep the lua copy of the vbo the correct size
 			},
 			nil, -- key, use unitID!
-			true -- update exisiting
-			)
+		true -- update exisiting
+		)
+	
+		math.randomseed(1)
+		for i=1, 500 do
+			local x = 3000*math.random()
+			local z =  3000*math.random()
+			local y = Spring.GetGroundHeight(x,z) + math.random()*100
+			pushElementInstance(
+				shieldSphereInstanceVBO,
+				{
+					x,y,z,200*math.random(),
+					math.random(),math.random(),math.random(),math.random(),
+					math.random(),math.random(),math.random(),math.random(),
+					1, math.floor(math.random()*3), 1, 0.5, --// margin, technique, gameFrame, self.unit/65k
+					-- this is needed to keep the lua copy of the vbo the correct size
+				},
+				nil, -- key, use unitID!
+				true -- update exisiting
+				)
+		end
 	end
-
-	--[[
-	WG['airjets'].removeAirJet =  function (airjetkey) ---- for WG external calls
-		return popElementInstance(jetInstanceVBO,airjetkey)
-	end
-	]]--
+	
+	CheckForExistingUnits()
 end
 
+
+local function AddFxs(unitID, fxID)
+	if not particleIDs[unitID] then
+		particleIDs[unitID] = {}
+	end
+	particleIDs[unitID][#particleIDs[unitID] + 1] = fxID
+end
+
+
+function widget:UnitFinished(unitID, unitDefID, unitTeam)
+	if UnitEffects[unitDefID] then
+		addUnit(unitID, unitDefID)
+	end
+end
+
+function widget:UnitDestroyed(unitID, unitDefID)
+	if UnitEffects[unitDefID] then
+		popElementInstance(shieldSphereInstanceVBO, unitID)
+	end
+	if lightIDs[unitID] and WG['lighteffects'] and WG['lighteffects'].removeLight then
+		WG['lighteffects'].removeLight(lightIDs[unitID])
+		lightIDs[unitID] = nil
+	end
+end
+
+function widget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
+	widget:UnitDestroyed(unitID, unitDefID, oldTeam)
+	widget:UnitFinished(unitID, unitDefID, newTeam)
+end
+
+function widget:UnitTaken(unitID, unitDefID, oldTeam, newTeam)
+	widget:UnitDestroyed(unitID, unitDefID, oldTeam)
+	widget:UnitFinished(unitID, unitDefID, newTeam)
+end
+
+function widget:UnitEnteredLos(unitID, unitTeam, allyTeam, unitDefID)
+	if UnitEffects[unitDefID] then
+		addUnit(unitID, unitDefID)
+	end
+end
+
+function widget:UnitLeftLos(unitID, unitTeam, allyTeam, unitDefID)
+	if UnitEffects[unitDefID] then
+		widget:UnitDestroyed(unitID,unitDefID)
+	end
+end
+
+local function removeParticles()
+	clearInstanceTable(shieldSphereInstanceVBO)
+end
+
+function widget:PlayerChanged(playerID)
+	if playerID == myPlayerID then
+		myTeamID = Spring.GetMyTeamID()
+		if fullview ~= select(2, Spring.GetSpectatingState()) then
+			mySpec, fullview = Spring.GetSpectatingState()
+			removeParticles()
+			CheckForExistingUnits()
+		end
+	end
+end
+
+function widget:Shutdown()
+	removeParticles()
+end
 
