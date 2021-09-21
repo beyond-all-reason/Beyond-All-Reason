@@ -5617,7 +5617,7 @@ function widget:Initialize()
 	end
 
 	-- set nano particle rotation: rotValue, rotVelocity, rotAcceleration, rotValueRNG, rotVelocityRNG, rotAccelerationRNG (in degrees)
-	Spring.SetNanoProjectileParams(-180, 100, 100, 360, 200, 200)
+	Spring.SetNanoProjectileParams(-180, -60, -60, 360, 120, 120)
 
 	-- just making sure
 	if widgetHandler.orderList["Pregame UI"] < 0.5 then
