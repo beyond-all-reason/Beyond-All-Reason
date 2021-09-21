@@ -35,7 +35,7 @@ return {
 		script = "Units/ARMBATS.cob",
 		seismicsignature = 0,
 		selfdestructas = "hugeexplosiongenericSelfd",
-		sightdistance = 455,
+		sightdistance = 600,
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turnrate = 180,
