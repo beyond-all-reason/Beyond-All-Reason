@@ -49,14 +49,12 @@ local resources = {
             muzzlefront		  	= 'default/muzzlefront.tga',
             largebeam			    = 'default/largelaserfalloff.tga',
             gunshotxl         = 'default/gunshotxl.tga',
-			      null              = 'PD/null.tga',
-            trans             = 'projectiletextures/trans.tga',
 
             radarfx1          = 'ui/radarping1.png',
             radarfx2          = 'ui/radarping2.png',
             radarfx1old       = 'ui/radar1xx.tga',
             radarfx2old       = 'ui/radar2.tga',
-            
+
             fogdirty          = 'atmos/fogdirty.tga',
             rain              = 'atmos/rain.tga',
             cloudpuff         = 'atmos/cloudpuff.tga',

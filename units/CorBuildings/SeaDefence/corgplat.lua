@@ -125,7 +125,7 @@ return {
 				soundstart = "cannhvy1",
 				stages = 20,
 				targetmoveerror = 0.1,
-				texture1 = "trans",
+				texture1 = "null",
 				tolerance = 0,
 				turret = true,
 				weapontype = "Cannon",

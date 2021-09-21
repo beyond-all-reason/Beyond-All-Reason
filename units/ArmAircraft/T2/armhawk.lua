@@ -118,7 +118,7 @@ return {
 				soundhitwet = "splshbig",
 				soundstart = "Rocklit3",
 				startvelocity = 515,
-				texture1 = "trans",
+				texture1 = "null",
 				texture2 = "smoketrail",
 				tolerance = 8000,
 				tracks = true,

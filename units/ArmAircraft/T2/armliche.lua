@@ -116,7 +116,7 @@ return {
 				soundstart = "bombdropxx",
 				startvelocity = 140,
 				targetable = 0,
-				texture1 = "trans",
+				texture1 = "null",
 				tolerance = 16000,
 				tracks = false,
 				turnrate = 32768,

@@ -149,7 +149,7 @@ return {
 				targetmoveerror = 0.2,
 				smokeperiod = 5,
 				castshadow = true,
-				texture1 = "trans",
+				texture1 = "null",
 				texture2 = "railguntrail",
 				tolerance = 8000,
 				tracks = true,

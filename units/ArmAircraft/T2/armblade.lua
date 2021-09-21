@@ -110,7 +110,7 @@ return {
 				soundstart = "SabotFire",
 				soundtrigger = true,
 				startvelocity = 500,
-				texture1 = "trans",
+				texture1 = "null",
 				texture2 = "smoketrailbar",
 				tolerance = 8000,
 				turnrate = 18000,

@@ -167,7 +167,7 @@ return {
 				soundhitwet = "splsmed",
 				soundstart = "corban_a",
 				startvelocity = 240,
-				texture1 = "trans",
+				texture1 = "null",
 				texture2 = "railguntrail",
 				tolerance = 9000,
 				tracks = true,

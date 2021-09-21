@@ -203,7 +203,7 @@ return {
 				startvelocity = 200,
 				stockpile = true,
 				stockpiletime = 65,
-				texture1 = "trans",
+				texture1 = "null",
 				texture2 = "null",
 				texture3 = "null",
 				tolerance = 4000,

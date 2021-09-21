@@ -259,7 +259,7 @@ return {
 				soundhit = "xplomed4",
 				soundhitwet = "splsmed",
 				soundstart = "Rockhvy1",
-				texture1 = "trans",
+				texture1 = "null",
 				texture2 = "null",
 				texture3 = "null",
 				tolerance = 4000,

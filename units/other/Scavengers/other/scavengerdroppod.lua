@@ -87,7 +87,7 @@ return {
 				soundhit = "voice/scavengers/scavdropspawn",
 				startvelocity = 1,
 				targetborder = 0.75,
-				texture1 = "trans",
+				texture1 = "null",
 				texture2 = "smoketrailaaflak",
 				turret = 1,
 				weaponacceleration = 1800,

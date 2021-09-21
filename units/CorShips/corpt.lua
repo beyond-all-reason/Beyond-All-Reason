@@ -206,7 +206,7 @@ return {
 				soundstart = "rockhvy2",
 				soundstartvolume = 8.5,
 				startvelocity = 420,
-				texture1 = "trans",
+				texture1 = "null",
 				texture2 = "smoketrailbar",
 				tolerance = 8000,
 				tracks = true,
