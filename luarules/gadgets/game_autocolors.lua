@@ -13,25 +13,25 @@ if gadgetHandler:IsSyncedCode() then
     
     local FFAColors = {
         -- Blue
-        [1] = {0,       80,     255 },  -- Armada Blue #0050ff
-        [2] = {102,     150,    255 },  -- Lighter Blue #6696ff
-        [3] = {179,     203,    255 },  -- Very Light Blue #b3cbff
-        [4] = {0,       57,     179 },  -- Dark Blue #0039b3
+        [1]  = {0,       80,     255 },  -- Armada Blue #0050ff
+        [2]  = {102,     150,    255 },  -- Lighter Blue #6696ff
+        [3]  = {179,     203,    255 },  -- Very Light Blue #b3cbff
+        [4]  = {0,       57,     179 },  -- Dark Blue #0039b3
         -- Green    
-        [5] = {0,       255,    0   },  -- Normal Green #00ff00
-        [6] = {102,     255,    102 },  -- Lighter Green #66ff66
-        [7] = {179,     255,    179 },  -- Very Light Green #b3ffb3
-        [8] = {0,       153,    0   },  -- Dark Green #009900
+        [5]  = {0,       255,    0   },  -- Normal Green #00ff00
+        [6]  = {102,     255,    102 },  -- Lighter Green #66ff66
+        [7]  = {179,     255,    179 },  -- Very Light Green #b3ffb3
+        [8]  = {0,       153,    0   },  -- Dark Green #009900
         -- Aqua 
-        [9] = {0,       255,    255 },  -- Normal Aqua #00ffff
-        [10]= {128,     255,    255 },  -- Lighter Aqua #80ffff
-        [11]= {179,     255,    255 },  -- Very Light Aqua #b3ffff
-        [12]= {0,       153,    153 },  -- Dark Aqua #009999
+        [9]  = {0,       255,    255 },  -- Normal Aqua #00ffff
+        [10] = {128,     255,    255 },  -- Lighter Aqua #80ffff
+        [11] = {179,     255,    255 },  -- Very Light Aqua #b3ffff
+        [12] = {0,       153,    153 },  -- Dark Aqua #009999
         -- Purple (can't go full spectrum because of Scavengers)
-        [13]= {153,     102,    255 },  -- Lighter Purple #9966ff
-        [14]= {204,     179,    255 },  -- Very Light Purple #ccb3ff
+        [13] = {153,     102,    255 },  -- Lighter Purple #9966ff
+        [14] = {204,     179,    255 },  -- Very Light Purple #ccb3ff
         -- Red  
-        [15] = {255,     16,     5   },  -- Cortex Red #ff0f06
+        [15] = {255,     16,     5   },  -- Cortex Red #ff1005
         [16] = {255,     107,    102 },  -- Lighter Red #ff6b66
         [17] = {255,     181,    179 },  -- Very Light Red #ffb5b3
         [18] = {153,     5,      0   },  -- Dark Red #990500
@@ -42,13 +42,13 @@ if gadgetHandler:IsSyncedCode() then
         [22] = {204,     204,    0   },  -- Dark Yellow #cccc00
         -- Orange   
         [23] = {255,     153,    0   },  -- Normal Orange #ff9900
-        [24]= {255,     184,    77  },  -- Lighter Orange #ffc266
-        [25]= {255,     224,    179 },  -- Very Light Orange #ffe0b3
-        [26]= {179,     107,    0   },  -- Dark Orange/Brown #b36b00
+        [24] = {255,     184,    77  },  -- Lighter Orange #ffc266
+        [25] = {255,     224,    179 },  -- Very Light Orange #ffe0b3
+        [26] = {179,     107,    0   },  -- Dark Orange/Brown #b36b00
         -- Pink
-        [27]= {255,     0,      128 },  -- Pink #ff0080
-        [28]= {255,     102,    179 },  -- Lighter Pink #ff66b3
-        [29]= {179,     0,      89  },  -- Dark Pink #b30059
+        [27] = {255,     0,      128 },  -- Pink #ff0080
+        [28] = {255,     102,    179 },  -- Lighter Pink #ff66b3
+        [29] = {179,     0,      89  },  -- Dark Pink #b30059
     }
 
     local TeamColors = {
@@ -56,157 +56,157 @@ if gadgetHandler:IsSyncedCode() then
         [2] = { -- Two Teams
             [1] = { -- First Team Blue
                 -- Blue
-                [1] = {0,       80,     255 },  -- Armada Blue #0050ff
-                [2] = {102,     150,    255 },  -- Lighter Blue #6696ff
-                [3] = {179,     203,    255 },  -- Very Light Blue #b3cbff
-                [4] = {0,       57,     179 },  -- Dark Blue #0039b3
+                [1]  = {0,       80,     255 },  -- Armada Blue #0050ff
+                [2]  = {102,     150,    255 },  -- Lighter Blue #6696ff
+                [3]  = {179,     203,    255 },  -- Very Light Blue #b3cbff
+                [4]  = {0,       57,     179 },  -- Dark Blue #0039b3
                 -- Green    
-                [5] = {0,       255,    0   },  -- Normal Green #00ff00
-                [6] = {102,     255,    102 },  -- Lighter Green #66ff66
-                [7] = {179,     255,    179 },  -- Very Light Green #b3ffb3
-                [8] = {0,       153,    0   },  -- Dark Green #009900
+                [5]  = {0,       255,    0   },  -- Normal Green #00ff00
+                [6]  = {102,     255,    102 },  -- Lighter Green #66ff66
+                [7]  = {179,     255,    179 },  -- Very Light Green #b3ffb3
+                [8]  = {0,       153,    0   },  -- Dark Green #009900
                 -- Aqua 
-                [9] = {0,       255,    255 },  -- Normal Aqua #00ffff
-                [10]= {128,     255,    255 },  -- Lighter Aqua #80ffff
-                [11]= {179,     255,    255 },  -- Very Light Aqua #b3ffff
-                [12]= {0,       153,    153 },  -- Dark Aqua #009999
+                [9]  = {0,       255,    255 },  -- Normal Aqua #00ffff
+                [10] = {128,     255,    255 },  -- Lighter Aqua #80ffff
+                [11] = {179,     255,    255 },  -- Very Light Aqua #b3ffff
+                [12] = {0,       153,    153 },  -- Dark Aqua #009999
                 -- Purple (can't go full spectrum because of Scavengers)
-                [13]= {153,     102,    255 },  -- Lighter Purple #9966ff
-                [14]= {204,     179,    255 },  -- Very Light Purple #ccb3ff
+                [13] = {153,     102,    255 },  -- Lighter Purple #9966ff
+                [14] = {204,     179,    255 },  -- Very Light Purple #ccb3ff
             },  
             [2] = { -- Second Team Red  
                 -- Red  
-                [1] = {255,     16,     5   },  -- Cortex Red #ff0f06
-                [2] = {255,     107,    102 },  -- Lighter Red #ff6b66
-                [3] = {255,     181,    179 },  -- Very Light Red #ffb5b3
-                [4] = {153,     5,      0   },  -- Dark Red #990500
+                [1]  = {255,     16,     5   },  -- Cortex Red #ff0f06
+                [2]  = {255,     107,    102 },  -- Lighter Red #ff6b66
+                [3]  = {255,     181,    179 },  -- Very Light Red #ffb5b3
+                [4]  = {153,     5,      0   },  -- Dark Red #990500
                 -- Yellow   
-                [5] = {255,     255,    0   },  -- Normal Yellow #ffff00
-                [6] = {255,     255,    102 },  -- Lighter Yellow #ffff66
-                [7] = {255,     255,    179 },  -- Very Light Yellow #ffffb3
-                [8] = {204,     204,    0   },  -- Dark Yellow #cccc00
+                [5]  = {255,     255,    0   },  -- Normal Yellow #ffff00
+                [6]  = {255,     255,    102 },  -- Lighter Yellow #ffff66
+                [7]  = {255,     255,    179 },  -- Very Light Yellow #ffffb3
+                [8]  = {204,     204,    0   },  -- Dark Yellow #cccc00
                 -- Orange   
-                [9] = {255,     153,    0   },  -- Normal Orange #ff9900
-                [10]= {255,     184,    77  },  -- Lighter Orange #ffc266
-                [11]= {255,     224,    179 },  -- Very Light Orange #ffe0b3
-                [12]= {179,     107,    0   },  -- Dark Orange/Brown #b36b00
+                [9]  = {255,     153,    0   },  -- Normal Orange #ff9900
+                [10] = {255,     184,    77  },  -- Lighter Orange #ffc266
+                [11] = {255,     224,    179 },  -- Very Light Orange #ffe0b3
+                [12] = {179,     107,    0   },  -- Dark Orange/Brown #b36b00
                 -- Pink
-                [13]= {255,     0,      128 },  -- Pink #ff0080
-                [14]= {255,     102,    179 },  -- Lighter Pink #ff66b3
-                [15]= {179,     0,      89  },  -- Dark Pink #b30059
+                [13] = {255,     0,      128 },  -- Pink #ff0080
+                [14] = {255,     102,    179 },  -- Lighter Pink #ff66b3
+                [15] = {179,     0,      89  },  -- Dark Pink #b30059
             },
         },
         
         [3] = { -- Three Teams
             [1] = { -- First Team Blue
-                [1] = {82,      151,    255  },
-                [2] = {47,      66,     238  },
-                [3] = {147,     226,    251  },
-                [4] = {8,       37,     190  },
-                [5] = {35,      11,     129  },
+                [1] = {82,      151,    255  },  -- Light Blue #5297ff
+                [2] = {47,      66,     238  },  -- Blue #2f42ee
+                [3] = {147,     226,    251  },  -- Light Teal #93e2fb
+                [4] = {8,       37,     190  },  -- Blue-Purple #0825be
+                [5] = {35,      11,     129  },  -- Dark Purple #230b81
             },
             [2] = { -- Second Team Red
-                [1] = {231,     0,      0   },
-                [2] = {255,     125,    32  },
-                [3] = {255,     232,    22  },
-                [4] = {166,     14,     5   },
-                [5] = {118,     39,     6   },
+                [1] = {231,     0,      0   },  -- Bright Red #e70000
+                [2] = {255,     125,    32  },  -- Chicken Orange #ff7d20
+                [3] = {255,     232,    22  },  -- Bright Yellow #ffe816
+                [4] = {166,     14,     5   },  -- Dark Red #a60e05
+                [5] = {118,     39,     6   },  -- Dark Brown #762706
             },
             [3] = { -- Third Team Green
-                [1] = {10,      232,    32  },
-                [2] = {10,      142,    7   },
-                [3] = {117,     253,    147 },
-                [4] = {5,       84,     13  },
-                [5] = {45,      57,     9   },
+                [1] = {10,      232,    32  },  -- Bright Green #0ae820
+                [2] = {10,      142,    7   },  -- Green #0a8e07
+                [3] = {117,     253,    147 },  -- Light Green #75fd93
+                [4] = {5,       84,     13  },  -- Dark Green #05540d
+                [5] = {45,      57,     9   },  -- Dark Khaki #2d3909
             },
         },
 
         [4] = { -- Four Teams
             [1] = { -- First Team Blue
-                [1] = {82,      151,    255  },
-                [2] = {47,      66,     238  },
-                [3] = {147,     226,    251  },
-                [4] = {8,       37,     190  },
+                [1] = {82,      151,    255  },  -- Light Blue #5297ff
+                [2] = {47,      66,     238  },  -- Blue #2f42ee
+                [3] = {147,     226,    251  },  -- Light Teal #93e2fb
+                [4] = {8,       37,     190  },  -- Blue-Purple #0825be
             },
             [2] = { -- Second Team Red
-                [1] = {231,     0,      0   },
-                [2] = {255,     125,    32  },
-                [3] = {255,     232,    22  },
-                [4] = {166,     14,     5   },
+                [1] = {231,     0,      0   },  -- Bright Red #e70000
+                [2] = {255,     125,    32  },  -- Chicken Orange #ff7d20
+                [3] = {255,     232,    22  },  -- Bright Yellow #ffe816
+                [4] = {166,     14,     5   },  -- Dark Red #a60e05
             },
             [3] = { -- Third Team Green
-                [1] = {10,      232,    32  },
-                [2] = {10,      142,    7   },
-                [3] = {117,     253,    147 },
-                [4] = {5,       84,     13  },
+                [1] = {10,      232,    32  },  -- Bright Green #0ae820
+                [2] = {10,      142,    7   },  -- Green #0a8e07
+                [3] = {117,     253,    147 },  -- Light Green #75fd93
+                [4] = {5,       84,     13  },  -- Dark Green #05540d
             },
             [4] = { -- Fourth Team Purple
-                [1] = {200,     102,    246 },
-                [2] = {134,     10,     232 },
-                [3] = {191,     169,    255 },
-                [4] = {94,      9,      178 },
+                [1] = {200,     102,    246 },  -- Bright Purple #c866f6
+                [2] = {134,     10,     232 },  -- Purple #860ae8
+                [3] = {191,     169,    255 },  -- Light Purple #bfa9ff
+                [4] = {94,      9,      178 },  -- Dark Purple #5e09b2
             },
         },
 
         [5] = { -- Five Teams
             [1] = { -- First Team Blue
-                [1] = {82,      151,    255  },
-                [2] = {47,      66,     238  },
-                [3] = {147,     226,    251  },
+                [1] = {82,      151,    255  },  -- Light Blue #5297ff
+                [2] = {47,      66,     238  },  -- Blue #2f42ee
+                [3] = {147,     226,    251  },  -- Light Teal #93e2fb
             },
             [2] = { -- Second Team Red
-                [1] = {231,     0,      0   },
-                [2] = {255,     125,    32  },
-                [3] = {166,     14,     5   },
+                [1] = {231,     0,      0   },  -- Bright Red #e70000
+                [2] = {255,     125,    32  },  -- Chicken Orange #ff7d20
+                [3] = {166,     14,     5   },  -- Dark Red #a60e05
             },
             [3] = { -- Third Team Green
-                [1] = {10,      232,    32  },
-                [2] = {10,      142,    7   },
-                [3] = {117,     253,    147 },
+                [1] = {10,      232,    32  },  -- Bright Green #0ae820
+                [2] = {10,      142,    7   },  -- Green #0a8e07
+                [3] = {117,     253,    147 },  -- Light Green #75fd93
             },
             [4] = { -- Fourth Team Purple
-                [1] = {200,     102,    246 },
-                [2] = {134,     10,     232 },
-                [3] = {191,     169,    255 },
+                [1] = {200,     102,    246 },  -- Bright Purple #c866f6
+                [2] = {134,     10,     232 },  -- Purple #860ae8
+                [3] = {191,     169,    255 },  -- Light Purple #bfa9ff
             },
             [5] = { -- Fifth Team Yellow
-                [1] = {255,     232,    22  },
-                [2] = {191,     151,    8   },
-                [3] = {255,     243,    135 },
+                [1] = {255,     232,    22  },  -- Bright Yellow #ffe816
+                [2] = {191,     151,    8   },  -- Dark Yellow #bf9708
+                [3] = {255,     243,    135 },  -- Light Yellow #fff387
             },
         },
 
         [6] = { -- Six Teams
             [1] = { -- First Team Blue
-                [1] = {82,      151,    255  },
-                [2] = {47,      66,     238  },
+                [1] = {82,      151,    255  },  -- Light Blue #5297ff
+                [2] = {47,      66,     238  },  -- Blue #2f42ee
             },
             [2] = { -- Second Team Red
-                [1] = {231,     0,      0   },
-                [2] = {166,     14,     5   },
+                [1] = {231,     0,      0   },  -- Bright Red #e70000
+                [2] = {166,     14,     5   },  -- Dark Red #a60e05
             },
             [3] = { -- Third Team Green
-                [1] = {10,      232,    32  },
-                [2] = {10,      142,    7   },
+                [1] = {10,      232,    32  },  -- Bright Green #0ae820
+                [2] = {10,      142,    7   },  -- Green #0a8e07
             },
             [4] = { -- Fourth Team Purple
-                [1] = {200,     102,    246 },
-                [2] = {134,     10,     232 },
+                [1] = {200,     102,    246 },  -- Bright Purple #c866f6
+                [2] = {134,     10,     232 },  -- Purple #860ae8
             },
             [5] = { -- Fifth Team Yellow 
-                [1] = {255,     232,    22  },
-                [2] = {191,     151,    8   },
+                [1] = {255,     232,    22  },  -- Bright Yellow #ffe816
+                [2] = {191,     151,    8   },  -- Dark Yellow #bf9708
             },
             [6] = { -- Sixth team Orange
-                [1] = {255,     161,    73  },
-                [2] = {222,     93,     0   },
+                [1] = {255,     161,    73  },  -- Orange #ffa149
+                [2] = {222,     93,     0   },  -- Dark Orange #de5d00
             },
         },
     }
 
-    local ScavColor = {97, 36, 97}
-    local GaiaColor = {127, 127, 127}
-        
+    local ScavColor = {97, 36, 97}  -- Scav Purple #612461
+    local GaiaColor = {127, 127, 127}  -- Gaia Grey #7f7f7f
+
     local RandomizedFFAColors = {}
     local RandomizedTeamColors = {}
 
@@ -352,7 +352,7 @@ if gadgetHandler:IsSyncedCode() then
 end
 
 
-local GaiaColor = {127, 127, 127}
+local GaiaColor = {127, 127, 127}  -- Gaia Grey #7f7f7f
 
 local AnonymousModeEnabledModoption = Spring.GetModOptions().teamcolors_anonymous_mode
 if AnonymousModeEnabledModoption then
@@ -366,15 +366,15 @@ if IconDevModeEnabledModoption == 'disabled' then
     IconDevModeEnabled = false
 else
     if IconDevModeEnabledModoption == "armblue" then
-        IconDevModeColor = {0, 80, 255}
+        IconDevModeColor = {0, 80, 255}  -- Armada Blue #0050ff
     elseif IconDevModeEnabledModoption == "corred" then
-        IconDevModeColor = {255, 16, 5}
+        IconDevModeColor = {255, 16, 5}  -- Cortex Red #ff1005
     elseif IconDevModeEnabledModoption == "scavpurp" then
-        IconDevModeColor = {97, 36, 97}
+        IconDevModeColor = {97, 36, 97}  -- Scav Purple #612461
     elseif IconDevModeEnabledModoption == "chickenorange" then
-        IconDevModeColor = {255, 125, 32}
+        IconDevModeColor = {255, 125, 32}  -- Chicken Orange #ff7d20
     elseif IconDevModeEnabledModoption == "gaiagray" then
-        IconDevModeColor = {127, 127, 127}
+        IconDevModeColor = {127, 127, 127}  -- Gaia Grey #7f7f7f
     end
     IconDevModeEnabled = true
 end
