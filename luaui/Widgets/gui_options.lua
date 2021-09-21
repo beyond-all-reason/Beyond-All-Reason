@@ -5616,6 +5616,9 @@ function widget:Initialize()
 		texts = WG['lang'].getText('options')
 	end
 
+	-- set nano particle rotation
+	Spring.SetNanoProjectileParams(90, 90, 90, 180, 90, 90)
+
 	-- just making sure
 	if widgetHandler.orderList["Pregame UI"] < 0.5 then
 		widgetHandler:EnableWidget("Pregame UI")
