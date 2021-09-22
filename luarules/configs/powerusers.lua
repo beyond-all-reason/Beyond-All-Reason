@@ -21,6 +21,7 @@ return {
 	['[teh]Beherith'] = everything,
 	['PtaQ'] = everything,
 
+	['Teifion'] = moderator,
 	['[Fx]Jazcash'] = moderator,
 	['Damgam98'] = moderator,
 	['Zecrus'] = moderator,
