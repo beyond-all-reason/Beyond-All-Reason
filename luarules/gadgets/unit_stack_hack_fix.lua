@@ -38,7 +38,7 @@ end
 function gadget:UnitCreated(unitID, unitDefID)
     local unitName = UnitDefs[unitDefID].name
     if CheckIfUnitIsAffected(unitName) then
-        Spring.Echo("Added "..unitName)
+        --Spring.Echo("Added "..unitName)
         table.insert(affectedUnits, unitID)
     end
 end
@@ -48,7 +48,7 @@ function gadget:UnitDestroyed(unitID, unitDefID)
     if #affectedUnits > 0 then
         for i = 1,#affectedUnits do
             if affectedUnits[i] == unitID then
-                Spring.Echo("Removed "..unitName)
+                --Spring.Echo("Removed "..unitName)
                 table.remove(affectedUnits, i)
             end
         end
