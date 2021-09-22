@@ -248,7 +248,7 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:GameFrame(gf)
 		local winners
 		if fixedallies then
-			if gf < 30 then
+			if gf < 30 or gf % 30 == 1 then
 				CheckAllPlayers()
 			end
 			winners = CheckSingleAllyVictoryEnd()
