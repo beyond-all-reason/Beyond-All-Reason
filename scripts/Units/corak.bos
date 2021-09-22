@@ -2,14 +2,14 @@
 
 #include "sfxtype.h"
 #include "exptype.h"
-//#include "unitDefsTurretSpeeds.h"
+#include "unitDefsTurretSpeeds.h"
 
 piece  torso, ruparm, luparm, rfire, lfire, rloarm, lloarm, pelvis,
        rleg, rfoot, lleg, lfoot, lthigh, rthigh,lknee,rknee, aimy1, aimx1;
 
 static-var  bMoving, bAiming, Static_Var_3, gun_1, moveSpeed, currentSpeed, wpnheading ;
 
-//#include "weapon1control.h"
+#include "weapon1control.h"
 
 // Signal definitions
 #define SIG_AIM				4
@@ -1017,6 +1017,7 @@ Create()
 	moveSpeed = get MAX_SPEED;
 	animSpeed = 2;
 	wpnheading = 0;
+	start-script InitialSetup1();
 	start-script SmokeUnit();
 }
 
@@ -1031,8 +1032,9 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-    turn aimy1 to y-axis <0.000000> speed <90>;
-    turn aimx1 to x-axis <0.000000> speed <45>;
+
+	start-script RestoreWeapon1();
+	call-script Weapon1Restored();
     wpnheading = 0;
     bAiming = 0;
 
@@ -1063,24 +1065,16 @@ QueryPrimary(piecenum)
 }
 
 AimPrimary(heading, pitch)
-{
+{	
+
 	//get PRINT ( heading,bAiming,wpnheading,RAND(1,256) ) ;
 	signal SIG_AIM;
+	call-script Weapon1Drawn();
 	
-	if (bAiming == 1) return;
-	turn aimy1 to y-axis heading speed <225.005495>;
-	turn aimx1 to x-axis <0.000000> - pitch speed <75.005495>;
-	
-	//needed for luarules\gadgets\unit_continuous_aim.lua
-	if ((get ABS(wpnheading - heading)) > 2000){
-		bAiming = 1;
-		wait-for-turn aimy1 around y-axis;
-		wait-for-turn aimx1 around x-axis;
-		bAiming = 0;
-	}
-	wpnheading = heading;
+	start-script Weapon1SetWtdAim(heading, pitch);
+
 	start-script RestoreAfterDelay();
-	return (1);
+	return (aim1);
 }
 
 FirePrimary()
