@@ -407,16 +407,6 @@ UnitSpeed(){
 		sleep 198;
 	}
 }
-StartMoving(){
-	signal SIG_WALK;
-	bMoving=TRUE;
-	 start-script Walk();
-}
-StopMoving(){
-	signal SIG_WALK;
-	bMoving=FALSE;
-	call-script StopWalking();
-}
 
 #define BASEPIECE pelvis
 #define HITSPEED <75.0>
@@ -448,7 +438,9 @@ static-var bAnimate;
 Animate() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations\corak_anim_lookaround.blend
 	set-signal-mask SIG_WALK | SIG_AIM; //you might need this
 	bAnimate = TRUE;
-	sleep 1000* RAND(10, 256);
+	if (RAND(1,100) > 10) return; // reduce probs to only 10%
+	sleep 10000 + 100*RAND(1,200); // 10-30 secs
+	//sleep 5000;//1000* RAND(10, 256);
 		if (bAnimate) { //Frame:2
 			turn lfoot to x-axis <3.534240> speed <4.158589> ; //delta=-0.28 
 			turn lknee to x-axis <-3.894629> speed <3.847424> ; //delta=0.26 
@@ -1021,6 +1013,21 @@ Create()
 	start-script SmokeUnit();
 }
 
+StartMoving(){
+	signal SIG_WALK;
+	bMoving=TRUE;
+	
+	call-script StopAnimation();
+	start-script Walk();
+}
+StopMoving(){
+	signal SIG_WALK;
+	bMoving=FALSE;
+	call-script StopWalking();
+	start-script Animate();
+}
+
+
 SweetSpot(piecenum)
 {
 	piecenum = torso;
@@ -1051,7 +1058,7 @@ RestoreAfterDelay()
 	set-signal-mask SIG_AIM;
 	sleep 2750;
 	start-script ExecuteRestoreAfterDelay();
-	start-script Animate();
+
 }
 
 AimFromPrimary(piecenum)
@@ -1069,6 +1076,8 @@ AimPrimary(heading, pitch)
 
 	//get PRINT ( heading,bAiming,wpnheading,RAND(1,256) ) ;
 	signal SIG_AIM;
+	
+	call-script StopAnimation();
 	call-script Weapon1Drawn();
 	
 	start-script Weapon1SetWtdAim(heading, pitch);
