@@ -24,7 +24,7 @@ return {
 	['Teifion'] = moderator,
 	['[Fx]Jazcash'] = moderator,
 	['Damgam98'] = moderator,
-	['Zecrus'] = moderator,
+	['[Z]ecrus'] = moderator,
 	['Fire[Z]torm_'] = moderator,
 	['Flaka'] = moderator,
 	['WatchTheFort'] = moderator,
