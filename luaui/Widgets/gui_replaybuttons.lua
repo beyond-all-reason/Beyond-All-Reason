@@ -1,7 +1,7 @@
 --http://springrts.com/phpbb/viewtopic.php?f=23&t=30560
 function widget:GetInfo()
 	return {
-		name = "replay buttons",
+		name = "Replay buttons",
 		desc = "click buttons to change replay speed",
 		author = "knorke",
 		version = "1",
@@ -25,7 +25,6 @@ local bWidth = buttonWidth * ui_scale
 local bHeight = buttonHeight * ui_scale
 
 local buttons = {}
-local wantedSpeed = nil
 local speeds = { 0.5, 1, 2, 3, 4, 6, 8, 10, 15, 20 }
 local wPos = { x = 0.00, y = 0.145 }
 local isPaused = false
@@ -67,25 +66,12 @@ local function clicked_button(b)
 			return b[i].name, i
 		end
 	end
-	--keyboard:
-	--if (enter_was_down and active_button > 0 and active_button < #buttons+1) then enter_was_down = false return b[active_button].name, active_button end
+
 	return "NOBUTTONCLICKED"
 end
 
-local function setReplaySpeed(speed, i)
-	local s = Spring.GetGameSpeed()
-	if speed > s then
-		--speedup
-		Spring.SendCommands("setminspeed " .. speed)
-		Spring.SendCommands("setminspeed " .. 0.1)
-	else
-		--slowdown
-		wantedSpeed = speed
-	end
-end
-
-local function uiRect(x, y, x2, y2, cs, tl, tr, br, bl, c1, c2)
-	RectRound(math.floor((x * vsx) + 0.5), math.floor((y * vsy) + 0.5), math.floor((x2 * vsx) + 0.5), math.floor((y2 * vsy) + 0.5), cs, tl, tr, br, bl, c1, c2)
+local function setReplaySpeed(speed)
+	Spring.SendCommands("gamespeed " .. speed)
 end
 
 local function draw_buttons(b)
@@ -215,7 +201,7 @@ function widget:MousePress(x, y, button)
 		sceduleUpdate = true
 		return true
     elseif cb ~= "NOBUTTONCLICKED" then
-        setReplaySpeed(speeds[i], i)
+        setReplaySpeed(speeds[i])
         sceduleUpdate = true
         return true
     end
@@ -233,13 +219,6 @@ function widget:Update(dt)
 		end
 	end
 
-	if wantedSpeed then
-		if Spring.GetGameSpeed() > wantedSpeed then
-			Spring.SendCommands("slowdown")
-		else
-			wantedSpeed = nil
-		end
-	end
 	isActive = #Spring.GetSelectedUnits() == 0
 end
 
