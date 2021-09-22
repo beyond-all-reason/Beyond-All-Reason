@@ -391,8 +391,9 @@ ExecuteRestoreAfterDelay()
 static-var bAnimate;
 Animate() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations\armpw_anim_idle_pushup.blend 
 		set-signal-mask (SIG_AIM | SIG_MOVE);
+		if (RAND(1,100) > 10) return; // reduce probs to only 10%
 		sleep 10000 + 100*RAND(1,200); // 10-30 secs
-		
+		//sleep 5000;
 		bAnimate = TRUE; // this sets animation started, so that StopAnimate knows that it should restore state quickly
 				if (bAnimate) {
 			turn lfoot to x-axis <-35.358254> speed <265.521911> ; 
@@ -1082,7 +1083,7 @@ StopMoving()
 	signal SIG_MOVE;
 	bMoving=FALSE;
 	call-script StopWalking();
-	
+	start-script Animate();
 }
 
 
