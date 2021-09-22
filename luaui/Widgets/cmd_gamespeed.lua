@@ -74,6 +74,7 @@ function widget:Initialize()
 
 	Spring.SendCommands({
 		"bind Alt++        increasespeed",
+		"bind Alt+=        increasespeed",
 		"bind Alt+-        decreasespeed",
 		"bind Alt+numpad+  increasespeed",
 		"bind Alt+numpad-  decreasespeed",
