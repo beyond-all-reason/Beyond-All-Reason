@@ -72,6 +72,7 @@ function gadget:GameFrame(n)
                         local r = math.random(1,3)
                         local movementTargetX = 0
                         local movementTargetZ = 0
+                        
                         if r == 1 then
                             if x == ax or z == az then
                                 movementTargetX = math.random(-testRange,testRange)
