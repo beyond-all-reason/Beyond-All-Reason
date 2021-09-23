@@ -10,6 +10,11 @@ function gadget:GetInfo()
 	}
 end
 
+
+if not gadgetHandler:IsSyncedCode() then
+	return
+end
+
 -- this acts just like Com Ends except instead of killing a player's units when
 -- his com dies it acts on an allyteam level, if all coms in an allyteam are dead
 -- the allyteam is out
@@ -21,14 +26,8 @@ local endmodes = {
 	com = true,
 }
 
-if gadgetHandler:IsSyncedCode() then
-
---SYNCED
-
 local destroyQueue = {}
-
 local destroyUnitQueue = {}
-
 local aliveCount = {}
 local deadAllyTeams = {}
 local isAlive = {}
@@ -71,13 +70,12 @@ end
 if teamCount == 2 then
 	blowUpWhenEmptyAllyTeam = false -- let player quit & rejoin in 1v1
 end
-
 blowUpWhenEmptyAllyTeam = false -- disabled for now because other gadget already seems to handle this
 
 
 local function getSqrDistance(x1,z1,x2,z2)
-  local dx,dz = x1-x2,z1-z2
-  return (dx*dx)+(dz*dz)
+	local dx,dz = x1-x2,z1-z2
+	return (dx*dx) + (dz*dz)
 end
 
 function gadget:Initialize()
@@ -136,7 +134,7 @@ function gadget:GameFrame(t)
 						local unitID = teamUnits[i]
 						local x,y,z = GetUnitPosition(unitID)
 						local deathTime = min(((getSqrDistance(x,z,defs.x,defs.z) / DISTANCE_LIMIT) * 450), 450)
-						if (destroyUnitQueue[unitID] == nil) then
+						if destroyUnitQueue[unitID] == nil then
 							destroyUnitQueue[unitID] = {
 								time = t + deathTime + math.random(0,7),
 								x = x,
@@ -154,14 +152,14 @@ function gadget:GameFrame(t)
 		end
 	end
 
-	if (deathWave) and next(destroyUnitQueue) then
-		local dt = (t + deathTimeBoost)
+	if deathWave and next(destroyUnitQueue) then
+		local dt = t + deathTimeBoost
 		for unitID, defs in pairs(destroyUnitQueue) do
-			if ((dt > (defs.time - 15)) and (defs.spark == false)) then
+			if dt > defs.time - 15 and not defs.spark then
 				SpawnCEG("DEATH_WAVE_SPARKS",defs.x,defs.y,defs.z,0,0,0)
 				destroyUnitQueue[unitID].spark = true
 			end
-			if (dt > defs.time) then
+			if dt > defs.time then
                 if defs.a then DestroyUnit(unitID, true, nil, defs.a)
                     else DestroyUnit(unitID, true) -- if 4th arg is given, it cannot be nil (or engine complains)
                 end
@@ -219,14 +217,4 @@ function gadget:UnitTaken(u, ud, team, a, ad, ateam)
 			destroyQueue[allyTeam] = {x = x, y = y, z = z, a = a}
 		end
 	end
-end
-
-
-
-else
-
---UNSYNCED
-
-return false
-
 end
