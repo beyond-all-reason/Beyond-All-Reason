@@ -271,7 +271,7 @@ if gadgetHandler:IsSyncedCode() then
         else
             if not TeamSizes[allyTeamID] then
                 allyTeamNum = allyTeamNum + 1
-                TeamSizes[allyTeamID] = {allyTeamNum, 1, 1} -- Team number, color number, color variation
+                TeamSizes[allyTeamID] = {allyTeamNum, 1, 0} -- Team number, Starting color number, Color variation
             end
             if TeamColors[allyTeamCount] -- If we have the color set for this number of teams
                     and TeamColors[allyTeamCount][TeamSizes[allyTeamID][1]] then -- And this team number exists in the color set
