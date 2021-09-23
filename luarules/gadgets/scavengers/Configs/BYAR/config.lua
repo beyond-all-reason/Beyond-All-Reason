@@ -1,65 +1,50 @@
 -- Modoptions
 	-- Numbers and Bools
-	local ScavBossHealthModoption = tonumber(Spring.GetModOptions().scavbosshealth) or 1
-	local ScavTechCurveModoption = tonumber(Spring.GetModOptions().scavtechcurve) or 1
-	local ScavUnitCountModoption = tonumber(Spring.GetModOptions().scavunitcountmultiplier) or 1
-	local ScavUnitSpawnFrequencyModoption = tonumber(Spring.GetModOptions().scavunitspawnmultiplier) or 1
-	local ScavUnitVeterancyModoption = tonumber(Spring.GetModOptions().scavunitspawnmultiplier) or 1
-	local ScavGracePeriodModoption = tonumber(Spring.GetModOptions().scavgraceperiod) or 5
+	local ScavBossHealthModoption = Spring.GetModOptions().scavbosshealth
+	local ScavTechCurveModoption = Spring.GetModOptions().scavtechcurve
+	local ScavUnitCountModoption = Spring.GetModOptions().scavunitcountmultiplier
+	local ScavUnitSpawnFrequencyModoption = Spring.GetModOptions().scavunitspawnmultiplier
+	local ScavUnitVeterancyModoption = Spring.GetModOptions().scavunitspawnmultiplier
+	local ScavGracePeriodModoption = Spring.GetModOptions().scavgraceperiod
 
-	local scavDifficulty = (Spring.GetModOptions and Spring.GetModOptions().scavdifficulty) or "veryeasy"
+	local scavDifficulty = Spring.GetModOptions().scavdifficulty
 	if scavDifficulty == "noob" then
 		spawnmultiplier = 0.1
 		scavStatsDifficulty = "Noob"
 	elseif scavDifficulty == "veryeasy" then
-		spawnmultiplier = 0.5
+		spawnmultiplier = 0.25
 		scavStatsDifficulty = "Very Easy"
 	elseif scavDifficulty == "easy" then
-		spawnmultiplier = 0.75
+		spawnmultiplier = 0.375
 		scavStatsDifficulty = "Easy"
 	elseif scavDifficulty == "medium" then
-		spawnmultiplier = 1
+		spawnmultiplier = 0.5
 		scavStatsDifficulty = "Medium"
 	elseif scavDifficulty == "hard" then
-		spawnmultiplier = 1.25
+		spawnmultiplier = 0.875
 		scavStatsDifficulty = "Hard"
 	elseif scavDifficulty == "veryhard" then
-		spawnmultiplier = 1.5
+		spawnmultiplier = 1
 		scavStatsDifficulty = "Very Hard"
 	elseif scavDifficulty == "expert" then
-		spawnmultiplier = 2
+		spawnmultiplier = 1.5
 		scavStatsDifficulty = "Expert"
 	elseif scavDifficulty == "brutal" then
-		spawnmultiplier = 3
+		spawnmultiplier = 2
 		scavStatsDifficulty = "Brutal"
 	else
-		spawnmultiplier = 0.5
+		spawnmultiplier = 0.25
 		scavStatsDifficulty = "Very Easy"
 	end
 
 	-- Strings
 
-	-- Endless Mode
-	local endlessModoption = Spring.GetModOptions().scavendless or "disabled"
-	local scavEndlessModoption
-	if endlessModoption == "disabled" then
-		scavEndlessModoption = true
-	else
-		scavEndlessModoption = false
-	end
+	local endlessModeEnabled = Spring.GetModOptions().scavendless
 
-	-- Random Events Bool
-	local eventsModoption = Spring.GetModOptions().scavevents or "enabled"
-	local scavRandomEventsEnabledModoption
-	if eventsModoption == "enabled" then
-		scavRandomEventsEnabledModoption = true
-	elseif eventsModoption == "disabled" then
-		scavRandomEventsEnabledModoption = false
-	end
-
-	-- Random Events Amount
-	local eventsAmountModoption = Spring.GetModOptions().scaveventsamount or "normal"
+	local randomEventsEnabled = Spring.GetModOptions().scavevents
+	local eventsAmountModoption = Spring.GetModOptions().scaveventsamount
 	local scavRandomEventsAmountModoption
+
 	if eventsAmountModoption == "normal" then
 		scavRandomEventsAmountModoption = 1
 	elseif eventsAmountModoption == "lower" then
@@ -68,14 +53,7 @@
 		scavRandomEventsAmountModoption = 0.5
 	end
 
-	-- Initial Bonus Commander
-	local bonusCommanderModoption = Spring.GetModOptions().scavinitialbonuscommander or "enabled"
-	local initialBonusCommanderEnabled
-	if bonusCommanderModoption == "enabled" then
-		initialBonusCommanderEnabled = true
-	elseif bonusCommanderModoption == "disabled" then
-		initialBonusCommanderEnabled = false
-	end
+	local initialBonusCommanderEnabled = Spring.GetModOptions().scavinitialbonuscommander
 
 -- End of Modoptions
 
@@ -96,7 +74,7 @@ scavconfig = {
 		unitSpawnerModule 				= true,
 		startBoxProtection				= true,
 		reinforcementsModule			= true, --disabled for now for weird victory conditions and too much hp
-		randomEventsModule				= scavRandomEventsEnabledModoption,
+		randomEventsModule				= randomEventsEnabled,
 		stockpilers						= true,
 		nukes							= true,
 	},
@@ -119,30 +97,30 @@ scavconfig = {
 	timers = {
 		-- globalScore values
 		T0start								= 1,
-		T1start								= 600 * ScavTechCurveModoption,
-		T1low								= 900 * ScavTechCurveModoption,
-		T1med								= 1200 * ScavTechCurveModoption,
-		T1high								= 1500 * ScavTechCurveModoption,
-		T1top								= 1800 * ScavTechCurveModoption,
-		T2start								= 2250 * ScavTechCurveModoption,
-		T2low								= 3000 * ScavTechCurveModoption,
-		T2med								= 3750 * ScavTechCurveModoption,
-		T2high								= 4500 * ScavTechCurveModoption,
-		T2top								= 6000 * ScavTechCurveModoption,
-		T3start								= 7500 * ScavTechCurveModoption,
-		T3low								= 9000 * ScavTechCurveModoption,
-		T3med								= 10500 * ScavTechCurveModoption,
-		T3high								= 12000 * ScavTechCurveModoption,
-		T3top								= 13500 * ScavTechCurveModoption,
-		T4start								= 15000 * ScavTechCurveModoption,
-		T4low								= 18000 * ScavTechCurveModoption,
-		T4med								= 21000 * ScavTechCurveModoption,
-		T4high								= 24000 * ScavTechCurveModoption,
-		T4top								= 28000 * ScavTechCurveModoption,
-		BossFight							= 32000 * ScavTechCurveModoption,
-		Endless								= 32001 * ScavTechCurveModoption,
+		T1start								= 750 * ScavTechCurveModoption,
+		T1low								= 1125 * ScavTechCurveModoption,
+		T1med								= 1500 * ScavTechCurveModoption,
+		T1high								= 1875 * ScavTechCurveModoption,
+		T1top								= 2250 * ScavTechCurveModoption,
+		T2start								= 2815 * ScavTechCurveModoption,
+		T2low								= 3750 * ScavTechCurveModoption,
+		T2med								= 4685 * ScavTechCurveModoption,
+		T2high								= 5625 * ScavTechCurveModoption,
+		T2top								= 7500 * ScavTechCurveModoption,
+		T3start								= 9375 * ScavTechCurveModoption,
+		T3low								= 11250 * ScavTechCurveModoption,
+		T3med								= 13125 * ScavTechCurveModoption,
+		T3high								= 15000 * ScavTechCurveModoption,
+		T3top								= 16875 * ScavTechCurveModoption,
+		T4start								= 18750 * ScavTechCurveModoption,
+		T4low								= 22500 * ScavTechCurveModoption,
+		T4med								= 26250 * ScavTechCurveModoption,
+		T4high								= 30000 * ScavTechCurveModoption,
+		T4top								= 35000 * ScavTechCurveModoption,
+		BossFight							= 40000 * ScavTechCurveModoption,
+		Endless								= 40001 * ScavTechCurveModoption,
 		-- don't delete
-		NoRadar								= 2250 * ScavTechCurveModoption,
+		NoRadar								= 2815 * ScavTechCurveModoption,
 	},
 	other = {
 		heighttolerance						= 40, -- higher = allow higher height diffrences
@@ -158,7 +136,7 @@ buildingSpawnerModuleConfig = {
 }
 
 unitSpawnerModuleConfig = {
-	bossFightEnabled					= scavEndlessModoption,
+	bossFightEnabled					= not endlessModeEnabled,
 	FinalBossUnit						= true,
 		FinalBossHealth						= 1000000*ScavBossHealthModoption, -- this*teamcount*difficulty
 		FinalBossMinionsPassive				= 3000, -- this/(teamcount*difficulty), how often does boss spawn minions passively, frames.
@@ -171,7 +149,7 @@ unitSpawnerModuleConfig = {
 	beacondefences						= true,
 	minimumspawnbeacons					= math.ceil(teamcount*4*spawnmultiplier),
 	landmultiplier 						= 0.75,
-	airmultiplier 						= 1.5,
+	airmultiplier 						= 2,
 	seamultiplier 						= 0.75,
 	chanceforaircraftonsea				= 4, -- higher number = lower chance
 
@@ -179,7 +157,7 @@ unitSpawnerModuleConfig = {
 	t1multiplier						= 5,
 	t2multiplier						= 1,
 	t3multiplier						= 0.20,
-	t4multiplier						= 0.03,
+	t4multiplier						= 0.015,
 
 	initialbonuscommander				= initialBonusCommanderEnabled,
 }
@@ -249,9 +227,9 @@ function UpdateTierChances(n)
 	if globalScore > scavconfig.timers.Endless then
 		TierSpawnChances.T0 = 0
 		TierSpawnChances.T1 = 0
-		TierSpawnChances.T2 = 33
-		TierSpawnChances.T3 = 33
-		TierSpawnChances.T4 = 34
+		TierSpawnChances.T2 = 0
+		TierSpawnChances.T3 = 20
+		TierSpawnChances.T4 = 80
 		TierSpawnChances.Message = "Current tier: Endless"
 		TierSpawnChances.BPMult = 5
 	elseif globalScore > scavconfig.timers.T4top then

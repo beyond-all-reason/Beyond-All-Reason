@@ -15,8 +15,6 @@ return {
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
 		description = Spring.I18N('units.descriptions.armlatnk'),
-		energymake = 1.5,
-		energyuse = 1.5,
 		explodeas = "smallExplosionGeneric",
 		footprintx = 2,
 		footprintz = 2,
@@ -127,6 +125,7 @@ return {
 			armamph_missile = {
 				areaofeffect = 48,
 				avoidfeature = false,
+				burnblow = true,
 				canattackground = false,
 				cegtag = "missiletrailaa",
 				craterareaofeffect = 0,
@@ -144,13 +143,19 @@ return {
 				noselfdamage = true,
 				range = 600,
 				reloadtime = 2,
-				smoketrail = false,
+				smoketrail = true,
+				smokePeriod = 5,
+				smoketime = 12,
+				smokesize = 4.4,
+				smokecolor = 0.95,
+				smokeTrailCastShadow = false,
+				castshadow = false, --projectile
 				soundhit = "xplosml2",
 				soundhitwet = "splshbig",
 				soundstart = "rocklit1",
 				startvelocity = 650,
-				texture1 = "trans",
-				texture2 = "armsmoketrail",
+				texture1 = "null",
+				texture2 = "smoketrailaa",
 				tolerance = 9000,
 				tracks = true,
 				turnrate = 48000,
@@ -162,7 +167,6 @@ return {
 				customparams = {
 					expl_light_color = "1 0.4 0.5",
 					light_color = "1 0.5 0.6",
-					light_skip = true,
 				},
 				damage = {
 					bombers = 85,
@@ -204,7 +208,7 @@ return {
 				customparams = {
 					expl_light_color = "0.2 0.5 1",
 					light_color = "0.2 0.5 1",
-					light_mult = "0.44",
+					light_mult = "0.7",
 				},
 				damage = {
 					default = 22.7,

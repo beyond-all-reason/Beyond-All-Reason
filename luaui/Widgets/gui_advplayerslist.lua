@@ -448,8 +448,7 @@ m_chat = {
 }
 position = position + 1
 
-local fixedallies = tonumber(Spring.GetModOptions().fixedallies)
-local drawAllyButton = (not fixedallies or fixedallies == 0)
+local drawAllyButton = not Spring.GetModOptions().fixedallies
 
 m_alliance = {
     name = "ally",
@@ -3137,6 +3136,7 @@ function widget:MouseRelease(x, y, button)
             elseif amountEM > 0 then
                 Spring_ShareResources(energyPlayer.team, "energy", amountEM)
                 Spring_SendCommands("say a:" .. Spring.I18N('ui.playersList.chat.giveEnergy', { amount = amountEM, name = energyPlayer.name }))
+				WG.sharedEnergyFrame = Spring.GetGameFrame()
             end
             sliderOrigin = nil
             amountEMMax = nil
@@ -3155,6 +3155,7 @@ function widget:MouseRelease(x, y, button)
             elseif amountEM > 0 then
                 Spring_ShareResources(metalPlayer.team, "metal", amountEM)
                 Spring_SendCommands("say a:" .. Spring.I18N('ui.playersList.chat.giveMetal', { amount = amountEM, name = metalPlayer.name }))
+				WG.sharedMetalFrame = Spring.GetGameFrame()
             end
             sliderOrigin = nil
             amountEMMax = nil
@@ -3495,15 +3496,15 @@ function IsTakeable(teamID)
     end
 end
 
-function isInBox(mx, my, box)
-    return mx > box[1] and my > box[2] and mx < box[3] and my < box[4]
+function isInBox(mx, my, b1, b2, b3, b4)
+    return mx > b1 and my > b2 and mx < b3 and my < b4
 end
 
 function widget:Update(delta)
     --handles takes & related messages
     local mx, my = Spring.GetMouseState()
     hoverPlayerlist = false
-    if isInBox(mx, my, { apiAbsPosition[2] - 1, apiAbsPosition[3] - 1, apiAbsPosition[4] + 1, apiAbsPosition[1] + 1 }) then
+    if isInBox(mx, my, apiAbsPosition[2] - 1, apiAbsPosition[3] - 1, apiAbsPosition[4] + 1, apiAbsPosition[1] + 1 ) then
         hoverPlayerlist = true
         if tipText and WG['tooltip'] then
             WG['tooltip'].ShowTooltip('advplayerlist', tipText)

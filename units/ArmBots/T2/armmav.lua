@@ -16,8 +16,6 @@ return {
 		collisionvolumetype = "box",
 		corpse = "DEAD",
 		description = Spring.I18N('units.descriptions.armmav'),
-		energymake = 0.4,
-		energyuse = 0.4,
 		explodeas = "mediumExplosionGeneric",
 		footprintx = 2,
 		footprintz = 2,
@@ -89,7 +87,7 @@ return {
 		},
 		sfxtypes = {
 			explosiongenerators = {
-				[1] = "custom:barrelshot-small",
+				[1] = "custom:barrelshot-small-impulse",
 			},
 			pieceexplosiongenerators = {
 				[1] = "deathceg2",

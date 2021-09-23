@@ -16,8 +16,6 @@ return {
 		collide = true,
 		cruisealt = 100,
 		description = Spring.I18N('units.descriptions.armsaber'),
-		energymake = 0.8,
-		energyuse = 0.8,
 		explodeas = "mediumexplosiongeneric",
 		footprintx = 3,
 		footprintz = 3,

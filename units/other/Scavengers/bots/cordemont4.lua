@@ -124,8 +124,8 @@ return {
 			--	soundstart = "packolau",
 			--	soundtrigger = true,
 			--	startvelocity = 480,
-			--	texture1 = "trans",
-			--	texture2 = "coresmoketrail",
+			--	texture1 = "null",
+			--	texture2 = "smoketrailbar",
 			--	tolerance = 9950,
 			--	tracks = true,
 			--	turnrate = 68000,
@@ -195,7 +195,7 @@ return {
 					subs = 1,
 				},
 			},
-			
+
 			machinegun                   = {
 				accuracy				 = 50,
 				AreaOfEffect             = 25,
@@ -228,8 +228,8 @@ return {
 				weaponVelocity           = 750,
 				customparams             = {
 					--isupgraded			 = isUpgraded,
-					--damagetype		     = "ehbotkarganneth", 
-				}, 
+					--damagetype		     = "ehbotkarganneth",
+				},
 				damage                   = {
 					default              = 200,
 					bombers				 = 2000,
@@ -237,7 +237,7 @@ return {
 					vtol				 = 750,
 				},
 			},
-			
+
 			karg_shoulder = {
 				areaofeffect = 16,
 				avoidfeature = false,
@@ -259,14 +259,20 @@ return {
 				proximitypriority = 1,
 				range = 700,
 				reloadtime = 5,
-				smoketrail = false,
+				smoketrail = true,
+				smokePeriod = 5,
+				smoketime = 12,
+				smokesize = 4.8,
+				smokecolor = 0.95,
+				smokeTrailCastShadow = false,
+				castshadow = false, --projectile
 				soundhit = "packohit",
 				soundhitwet = "splshbig",
 				soundstart = "packolau",
 				soundtrigger = false,
 				startvelocity = 520,
-				texture1 = "trans",
-				texture2 = "coresmoketrail",
+				texture1 = "null",
+				texture2 = "smoketrailaa",
 				tolerance = 9950,
 				tracks = true,
 				turnrate = 68000,
@@ -277,10 +283,9 @@ return {
 				weaponvelocity = 820,
 				customparams = {
 					expl_light_color = "1 0.4 0.5",
-					expl_light_mult = 0.4,
-					expl_light_radius_mult = 0.66,
+					expl_light_mult = 1.59,
+					expl_light_radius_mult = 1.67,
 					light_color = "1 0.5 0.6",
-					light_skip = true,
 				},
 				damage = {
 					bombers = 150,
@@ -347,8 +352,8 @@ return {
 				soundhitwet = "splssml",
 				soundstart = "rocklit1",
 				startvelocity = 180,
-				texture1 = "trans",
-				texture2 = "coresmoketrail",
+				texture1 = "null",
+				texture2 = "smoketrailbar",
 				tolerance = 15000,
 				tracks = true,
 				turnrate = 65384,

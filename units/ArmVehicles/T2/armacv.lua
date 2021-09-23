@@ -30,8 +30,6 @@ return {
 		maxslope = 16,
 		maxvelocity = 1.75,
 		maxwaterdepth = 18,
-		metalmake = 0.2,
-		metalstorage = 100,
 		movementclass = "TANK3",
 		name = unitName,
 		objectname = "Units/ARMACV.s3o",

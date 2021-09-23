@@ -5,7 +5,7 @@ local scavConfig = VFS.Include('luarules/gadgets/scavengers/Configs/BYAR/config.
 local blueprintsController = VFS.Include('luarules/gadgets/scavengers/Blueprints/BYAR/blueprint_controller.lua')
 
 function SpawnBlueprint(n)
-	if n <= scavconfig.gracePeriod then
+	if scavengerGamePhase ~= "initial" then
 		return
 	end
 

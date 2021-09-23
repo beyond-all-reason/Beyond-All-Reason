@@ -15,8 +15,6 @@ return {
 		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
 		description = Spring.I18N('units.descriptions.armamph'),
-		energymake = 0.4,
-		energyuse = 0.4,
 		explodeas = "smallExplosionGeneric-phib",
 		floater = false,
 		footprintx = 3,
@@ -118,6 +116,7 @@ return {
 			armamph_missile = {
 				areaofeffect = 48,
 				avoidfeature = false,
+				burnblow = true,
 				canattackground = false,
 				cegtag = "missiletrailaa",
 				craterareaofeffect = 0,
@@ -135,13 +134,19 @@ return {
 				noselfdamage = true,
 				range = 600,
 				reloadtime = 2,
-				smoketrail = false,
+				smoketrail = true,
+				smokePeriod = 5,
+				smoketime = 12,
+				smokesize = 4.4,
+				smokecolor = 0.95,
+				smokeTrailCastShadow = false,
+				castshadow = false, --projectile
 				soundhit = "xplosml2",
 				soundhitwet = "splshbig",
 				soundstart = "rocklit1",
 				startvelocity = 650,
-				texture1 = "trans",
-				texture2 = "armsmoketrail",
+				texture1 = "null",
+				texture2 = "smoketrailaa",
 				tolerance = 9000,
 				tracks = true,
 				turnrate = 48000,
@@ -153,7 +158,7 @@ return {
 				customparams = {
 					expl_light_color = "1 0.4 0.5",
 					light_color = "1 0.5 0.6",
-					light_skip = true,
+
 				},
 				damage = {
 					bombers = 85,

@@ -29,8 +29,6 @@ return {
 		maxslope = 16,
 		maxvelocity = 2.03,
 		maxwaterdepth = 0,
-		metalmake = 0.11,
-		metalstorage = 75,
 		movementclass = "HOVER3",
 		name = unitName,
 		objectname = "Units/CORCH.s3o",
@@ -138,6 +136,11 @@ return {
 			},
 		},
 		sfxtypes = {
+			explosiongenerators = {
+				[1] = "custom:waterwake-small-hover",
+				[2] = "custom:bowsplash-small-hover",
+				[3] = "custom:hover-wake-tiny",
+			},
 			pieceexplosiongenerators = {
 				[1] = "deathceg2-builder",
 				[2] = "deathceg3-builder",

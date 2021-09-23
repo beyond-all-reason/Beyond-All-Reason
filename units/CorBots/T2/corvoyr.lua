@@ -17,8 +17,6 @@ return {
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		description = Spring.I18N('units.descriptions.corvoyr'),
-		energymake = 8,
-		energyuse = 20,
 		explodeas = "smallexplosiongeneric",
 		footprintx = 2,
 		footprintz = 2,
@@ -31,7 +29,7 @@ return {
 		movementclass = "BOT3",
 		name = unitName,
 		objectname = "Units/CORVOYR.s3o",
-		onoffable = true,
+		onoffable = false,
 		radardistance = 2200,
 		script = "Units/CORVOYR.cob",
 		seismicsignature = 0,
@@ -91,6 +89,9 @@ return {
 			},
 		},
 		sfxtypes = {
+			explosiongenerators = {
+				[1] = "custom:radarpulse_t2",
+			},
 			pieceexplosiongenerators = {
 				[1] = "deathceg2",
 				[2] = "deathceg3",

@@ -21,7 +21,6 @@ return {
 		damagemodifier = 0.25,
 		decoyfor = "armdrag",
 		description = Spring.I18N('units.descriptions.armclaw'),
-		energystorage = 15,
 		explodeas = "smallBuildingexplosiongeneric",
 		footprintx = 2,
 		footprintz = 2,

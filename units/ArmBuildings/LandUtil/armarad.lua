@@ -19,8 +19,6 @@ return {
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		corpse = "DEAD",
 		description = Spring.I18N('units.descriptions.armarad'),
-		energymake = 18,
-		energyuse = 18,
 		explodeas = "smallBuildingexplosiongeneric",
 		footprintx = 2,
 		footprintz = 2,
@@ -33,7 +31,7 @@ return {
 		maxwaterdepth = 0,
 		name = unitName,
 		objectname = "Units/ARMARAD.s3o",
-		onoffable = true,
+		onoffable = false,
 		radardistance = 3500,
 		radaremitheight = 66,
 		script = "Units/ARMARAD.cob",
@@ -95,6 +93,9 @@ return {
 			},
 		},
 		sfxtypes = {
+			explosiongenerators = {
+				[1] = "custom:radarpulse_t2_slow",
+			},
 			pieceexplosiongenerators = {
 				[1] = "deathceg2",
 				[2] = "deathceg3",

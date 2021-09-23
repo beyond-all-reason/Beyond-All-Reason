@@ -16,8 +16,6 @@ return {
 		collisionvolumetype = "box",
 		corpse = "DEAD",
 		description = "Multi-Target Battle Sub",
-		energymake = 15,
-		energyuse = 15,
 		explodeas = "mediumExplosionGeneric-uw",
 		footprintx = 6,
 		footprintz = 6,

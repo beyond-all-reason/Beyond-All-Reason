@@ -12,6 +12,7 @@ return {
 					keys = 'Keys',
 					scavengers = 'Scavengers',
 					stats = 'Statistics',
+					graphs = 'Graphs',
 					save = 'Save',
 				},
 				quit = {
@@ -513,13 +514,13 @@ return {
 				mode = 'Mode: %{mode}',
 				score = 'Your Score: %{score}',
 				difficulty = {
-					veryEasy = 'Very Easy',
+					-- These keys must match the keys in modoptions.lua
+					veryeasy = 'Very Easy',
 					easy = 'Easy',
 					normal = 'Normal',
 					hard ='Hard',
-					veryHard = 'Very Hard',
+					veryhard = 'Very Hard',
 					epic = 'Epic',
-					custom = 'Custom',
 					survival = 'Survival',
 				},
 			},
@@ -531,7 +532,6 @@ return {
 				startCountdown = 'Game starting in %{time} seconds',
 				choosePoint = 'Please choose a start point!',
 				tooClose = 'You cannot place your start position too close to another player',
-				newbiePlacer = 'In this match, newbies (rank 0) will have a faction and startpoint chosen for them!',
 			},
 			substitutePlayers = {
 				offer = 'Offer to play',

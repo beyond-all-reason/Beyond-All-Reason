@@ -18,7 +18,7 @@ if (not gadgetHandler:IsSyncedCode()) then
 	return -- No Unsynced
 end
 
-local ResourceMultiplier = tonumber(Spring.GetModOptions().resourceincomemultiplier) or 1
+local ResourceMultiplier = Spring.GetModOptions().resourceincomemultiplier
 
 --if timedResBonusMultiplier == 0 and aiResourceMultiplier == 1 then
 	--return

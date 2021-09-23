@@ -39,8 +39,8 @@ for weaponID, weaponDef in pairs(WeaponDefs) do
 			missileWeapons[weaponDef.id] = {
 				0,
 				'missiletrailmedium-starburst-vertical', ((weaponDef.uptime + 0.1) * 30), ((weaponDef.uptime + 0.6) * 30),
-				'missilegroundmedium-liftoff', 80, 120,
-				'missilegroundmedium-liftoff-fire', 35, 55
+				'missilegroundmedium-liftoff', 40, 60,
+				'missilegroundmedium-liftoff-fire', 30, 40
 			}
 		elseif weaponDef.cegTag == 'missiletrail-juno' then
 			missileWeapons[weaponDef.id] = {
@@ -74,8 +74,8 @@ for weaponID, weaponDef in pairs(WeaponDefs) do
 			missileWeapons[weaponDef.id] = {
 				0,
 				'nuketrail-starburst', ((weaponDef.uptime + 0.1) * 30), ((weaponDef.uptime + 0.6) * 30),
-				'missilegroundhuge-liftoff', 150, 220,
-				'missilegroundhuge-liftoff-fire', 80, 190
+				'missilegroundhuge-liftoff', 120, 180,
+				'missilegroundhuge-liftoff-fire', 60, 150
 			}
 		end
 	end

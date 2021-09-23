@@ -20,6 +20,7 @@ local GL_COLOR_ATTACHMENT0_EXT = 0x8CE0
 local GL_RGBA = 0x1908
 --GL_DEPTH_COMPONENT32F is the default for deferred depth textures, but Lua API only works correctly with GL_DEPTH_COMPONENT32
 local GL_DEPTH_COMPONENT32 = 0x81A7
+local GL_TRIANGLES = GL.TRIANGLES
 
 
 -----------------------------------------------------------------
@@ -52,8 +53,207 @@ local USE_MATERIAL_INDICES = true -- for future material indices based outline e
 -- File path Constants
 -----------------------------------------------------------------
 
-local shadersDir = "LuaUI/Widgets/Shaders/"
 local luaShaderDir = "LuaUI/Widgets/Include/"
+
+-----------------------------------------------------------------
+-- Shader Sources
+-----------------------------------------------------------------
+
+local vs = [[
+#version 330
+// full screen triangle
+
+const vec2 vertices[3] = vec2[3](
+	vec2(-1.0, -1.0),
+	vec2( 3.0, -1.0),
+	vec2(-1.0,  3.0)
+);
+
+void main()
+{
+	gl_Position = vec4(vertices[gl_VertexID], 0.0, 1.0);
+}
+]]
+
+local fsShape = [[
+#version 330
+
+uniform sampler2D modelDepthTex;
+uniform sampler2D mapDepthTex;
+uniform sampler2D modelMiscTex;
+
+uniform vec4 outlineColor;
+
+out vec4 fragColor;
+
+#define USE_MATERIAL_INDICES ###USE_MATERIAL_INDICES###
+
+const float eps = 1e-4;
+//layout(pixel_center_integer) in vec4 gl_FragCoord;
+//layout(origin_upper_left) in vec4 gl_FragCoord;
+
+void main() {
+	ivec2 imageCoord = ivec2(gl_FragCoord.xy);
+
+	float mapDepth = texelFetch(mapDepthTex, imageCoord, 0).r;
+	float modelDepth = texelFetch(modelDepthTex, imageCoord, 0).r;
+	//float modelDepth = texture(modelDepthTex, uv).r;
+/*
+	#if (USE_MATERIAL_INDICES == 1)
+		bool cond = mapDepth + eps >= modelDepth;
+	#else
+		bool cond = mapDepth + eps >= modelDepth && modelDepth < 1.0;
+	#endif
+*/
+
+	//bool cond = true;
+	bool cond = (modelDepth < 1.0);
+	//bool cond = mapDepth + eps >= modelDepth && modelDepth < 1.0;
+
+	#if (USE_MATERIAL_INDICES == 1)
+		#define MATERIAL_UNITS_MAX_INDEX 127
+		#define MATERIAL_UNITS_MIN_INDEX 1
+
+		if (cond) {
+			int matIndices = int(texelFetch(modelMiscTex, imageCoord, 0).r * 255.0);
+			cond = cond && (matIndices >= MATERIAL_UNITS_MIN_INDEX) && (matIndices <= MATERIAL_UNITS_MAX_INDEX);
+		}
+	#endif
+
+	fragColor = mix(vec4(0.0, 0.0, 0.0, 0.0), outlineColor, vec4(cond));
+	gl_FragDepth = mix(1.0, modelDepth, float(cond));
+}
+]]
+
+local fsDilate = [[
+#version 330
+
+uniform sampler2D depthTex;
+uniform sampler2D colorTex;
+
+uniform mat4 projMatrix;
+uniform int dilateHalfKernelSize = 1;
+uniform vec2 viewPortSize;
+uniform float strength = 1.0;
+
+//layout(pixel_center_integer) in vec4 gl_FragCoord;
+//layout(origin_upper_left) in vec4 gl_FragCoord;
+
+#define DILATE_SINGLE_PASS ###DILATE_SINGLE_PASS###
+
+#if 1 //Fuck AMD
+	#define TEXEL_FETCH_OFFSET(t, c, l, o) texelFetch(t, c + o, l)
+#else
+	#define TEXEL_FETCH_OFFSET texelFetchOffset
+#endif
+
+out vec4 fragColor;
+
+#if (DILATE_SINGLE_PASS == 1)
+	void main(void)
+	{
+		ivec4 vpsMinMax = ivec4(0, 0, ivec2(viewPortSize));
+
+		float minDepth = 1.0;
+		vec4 maxColor = vec4(0.0);
+
+		ivec2 thisCoord = ivec2(gl_FragCoord.xy);
+
+		vec2 bnd = vec2(dilateHalfKernelSize - 1, dilateHalfKernelSize + 2) * strength;
+
+		for (int x = -dilateHalfKernelSize; x <= dilateHalfKernelSize; ++x) {
+			for (int y = -dilateHalfKernelSize; y <= dilateHalfKernelSize; ++y) {
+
+				ivec2 offset = ivec2(x, y);
+				/*
+				ivec2 samplingCoord = thisCoord + offset;
+				bool okCoords = ( all(bvec4(
+					greaterThanEqual(samplingCoord, vpsMinMax.xy),
+					lessThanEqual(samplingCoord, vpsMinMax.zw) ))
+				);
+
+				if (okCoords)*/ {
+					minDepth = min(minDepth, TEXEL_FETCH_OFFSET( depthTex, thisCoord, 0, offset).r);
+					vec4 thisColor = TEXEL_FETCH_OFFSET( colorTex, thisCoord, 0, offset);
+					thisColor.a *= smoothstep(bnd.y, bnd.x, sqrt(float(x * x + y * y)));
+					maxColor = max(maxColor, thisColor);
+				}
+			}
+		}
+		gl_FragDepth = minDepth;
+		fragColor = maxColor;
+	}
+#else //separable vert/horiz passes
+	uniform vec2 dir;
+	void main(void)
+	{
+		ivec4 vpsMinMax = ivec4(0, 0, ivec2(viewPortSize));
+
+		float minDepth = 1.0;
+		vec4 maxColor = vec4(0.0);
+
+		ivec2 thisCoord = ivec2(gl_FragCoord.xy);
+
+		vec2 bnd = vec2(dilateHalfKernelSize - 1, dilateHalfKernelSize + 2) * strength;
+
+		for (int i = -dilateHalfKernelSize; i <= dilateHalfKernelSize; ++i) {
+
+			ivec2 offset = ivec2(i) * ivec2(dir);
+			/*
+			ivec2 samplingCoord = thisCoord + offset;
+			bool okCoords = ( all(bvec4(
+				greaterThanEqual(samplingCoord, vpsMinMax.xy),
+				lessThanEqual(samplingCoord, vpsMinMax.zw) ))
+			);
+
+			if (okCoords)*/ {
+				minDepth = min(minDepth, TEXEL_FETCH_OFFSET( depthTex, thisCoord, 0, offset).r);
+				vec4 thisColor = TEXEL_FETCH_OFFSET( colorTex, thisCoord, 0, offset);
+				thisColor.a *= smoothstep(bnd.y, bnd.x, abs(i));
+				maxColor = max(maxColor, thisColor);
+			}
+		}
+
+		gl_FragDepth = minDepth;
+		fragColor = maxColor;
+	}
+#endif
+]]
+
+local fsApplication = [[
+#version 330
+
+uniform sampler2D dilatedDepthTex;
+uniform sampler2D dilatedColorTex;
+uniform sampler2D shapeDepthTex;
+uniform sampler2D mapDepthTex;
+
+uniform float strength = 1.0;
+uniform float alwaysShowOutLine = 0.0;
+
+const float eps = 1e-3;
+//layout(pixel_center_integer) in vec4 gl_FragCoord;
+//layout(origin_upper_left) in vec4 gl_FragCoord;
+
+out vec4 fragColor;
+
+void main() {
+	ivec2 imageCoord = ivec2(gl_FragCoord.xy);
+
+	vec4 dilatedColor = texelFetch(dilatedColorTex, imageCoord, 0);
+	dilatedColor.a *= strength;
+
+	float dilatedDepth = texelFetch(dilatedDepthTex, imageCoord, 0).r;
+	float shapeDepth = texelFetch(shapeDepthTex, imageCoord, 0).r;
+	float mapDepth = texelFetch(mapDepthTex, imageCoord, 0).r;
+
+	bool cond = (shapeDepth == 1.0);
+	float depthToWrite = mix(dilatedDepth, 0.0, alwaysShowOutLine);
+
+	fragColor = mix(vec4(0.0), dilatedColor, float(cond));
+	gl_FragDepth = mix(1.0, depthToWrite, float(cond));
+}
+]]
 
 -----------------------------------------------------------------
 -- Global Variables
@@ -63,9 +263,7 @@ local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
 
 local vsx, vsy, vpx, vpy
 
-local screenQuadList
-local screenWideList
-
+local fullTexQuad
 
 local shapeDepthTex
 local shapeColorTex
@@ -104,11 +302,14 @@ local function GetZoomScale()
 end
 
 local show = true
-local function PrepareOutline(cleanState)
+local function PrepareOutline()
 	if not show then
 		return
 	end
 
+	local prevTest = gl.GetFixedState("depth")
+	local prevFunc = GL.LEQUAL
+	
 	gl.DepthTest(true)
 	gl.DepthTest(GL.ALWAYS)
 
@@ -120,7 +321,7 @@ local function PrepareOutline(cleanState)
 			end
 			gl.Texture(3, "$map_gbuffer_zvaltex")
 
-			gl.CallList(screenQuadList) -- gl.TexRect(-1, -1, 1, 1)
+			fullTexQuad:DrawArrays(GL_TRIANGLES, 3)
 
 			--gl.Texture(1, false) --will reuse later
 			if USE_MATERIAL_INDICES then
@@ -147,7 +348,7 @@ local function PrepareOutline(cleanState)
 			if DILATE_SINGLE_PASS then
 				pingPongIdx = (pingPongIdx + 1) % 2
 				gl.ActiveFBO(dilationFBOs[pingPongIdx + 1], function()
-					gl.CallList(screenQuadList) -- gl.TexRect(-1, -1, 1, 1)
+					fullTexQuad:DrawArrays(GL_TRIANGLES, 3)
 				end)
 				gl.Texture(0, dilationDepthTexes[pingPongIdx + 1])
 				gl.Texture(1, dilationColorTexes[pingPongIdx + 1])
@@ -156,7 +357,7 @@ local function PrepareOutline(cleanState)
 				pingPongIdx = (pingPongIdx + 1) % 2
 				dilationShader:SetUniform("dir", 1.0, 0.0) --horizontal dilation
 				gl.ActiveFBO(dilationFBOs[pingPongIdx + 1], function()
-					gl.CallList(screenQuadList) -- gl.TexRect(-1, -1, 1, 1)
+					fullTexQuad:DrawArrays(GL_TRIANGLES, 3)
 				end)
 				gl.Texture(0, dilationDepthTexes[pingPongIdx + 1])
 				gl.Texture(1, dilationColorTexes[pingPongIdx + 1])
@@ -164,7 +365,7 @@ local function PrepareOutline(cleanState)
 				pingPongIdx = (pingPongIdx + 1) % 2
 				dilationShader:SetUniform("dir", 0.0, 1.0) --vertical dilation
 				gl.ActiveFBO(dilationFBOs[pingPongIdx + 1], function()
-					gl.CallList(screenQuadList) -- gl.TexRect(-1, -1, 1, 1)
+					fullTexQuad:DrawArrays(GL_TRIANGLES, 3)
 				end)
 				gl.Texture(0, dilationDepthTexes[pingPongIdx + 1])
 				gl.Texture(1, dilationColorTexes[pingPongIdx + 1])
@@ -172,13 +373,9 @@ local function PrepareOutline(cleanState)
 		end)
 	end
 
-	if cleanState then
-		gl.DepthTest(GL.LEQUAL) --default mode
-
-		gl.Texture(0, false)
-		gl.Texture(1, false)
-		gl.Texture(2, false)
-		gl.Texture(3, false)
+	gl.DepthTest(prevFunc)
+	if not prevTest then
+		gl.DepthTest(prevTest)
 	end
 end
 
@@ -194,15 +391,15 @@ local function DrawOutline(strength, loadTextures, alwaysVisible)
 		gl.Texture(3, "$map_gbuffer_zvaltex")
 	end
 
-	gl.AlphaTest(true)
-	gl.AlphaTest(GL.GREATER, 0.0);
-	gl.DepthTest(GL.LEQUAL) --restore default mode
-	gl.Blending(true)
+	local blendingEnabled = gl.GetFixedState("blending")
+	if not blendingEnabled then
+		gl.Blending(true)
+	end
 
 	applicationShader:ActivateWith( function ()
 		applicationShader:SetUniformFloat("alwaysShowOutLine", (alwaysVisible and 1.0) or 0.0)
 		applicationShader:SetUniformFloat("strength", strength * STRENGTH_MULT)
-		gl.CallList(screenWideList)
+		fullTexQuad:DrawArrays(GL_TRIANGLES, 3)
 	end)
 
 	gl.Texture(0, false)
@@ -211,28 +408,8 @@ local function DrawOutline(strength, loadTextures, alwaysVisible)
 	gl.Texture(3, false)
 
 	gl.DepthTest(not alwaysVisible)
-	gl.Blending(false)
-	gl.AlphaTest(GL.GREATER, 0.5);  --default mode
-	gl.AlphaTest(false)
-end
-
-
-local function EnterLeaveScreenSpace(functionName, ...)
-	gl.MatrixMode(GL.MODELVIEW)
-	gl.PushMatrix()
-	gl.LoadIdentity()
-
-		gl.MatrixMode(GL.PROJECTION)
-		gl.PushMatrix()
-		gl.LoadIdentity();
-
-			functionName(...)
-
-		gl.MatrixMode(GL.PROJECTION)
-		gl.PopMatrix()
-
-	gl.MatrixMode(GL.MODELVIEW)
-	gl.PopMatrix()
+	
+	gl.Blending(blendingEnabled)
 end
 
 -----------------------------------------------------------------
@@ -303,15 +480,11 @@ function widget:Initialize()
 		end
 	end
 
-	local identityShaderVert = VFS.LoadFile(shadersDir.."identity.vert.glsl")
-
-	local shapeShaderFrag = VFS.LoadFile(shadersDir.."outlineShape.frag.glsl")
-
-	shapeShaderFrag = shapeShaderFrag:gsub("###USE_MATERIAL_INDICES###", tostring((USE_MATERIAL_INDICES and 1) or 0))
+	fsShape = fsShape:gsub("###USE_MATERIAL_INDICES###", tostring((USE_MATERIAL_INDICES and 1) or 0))
 
 	shapeShader = LuaShader({
-		vertex = identityShaderVert,
-		fragment = shapeShaderFrag,
+		vertex = vs,
+		fragment = fsShape,
 		uniformInt = {
 			modelDepthTex = 2,
 			modelMiscTex = 1,
@@ -324,12 +497,11 @@ function widget:Initialize()
 	}, wiName..": Shape identification")
 	shapeShader:Initialize()
 
-	local dilationShaderFrag = VFS.LoadFile(shadersDir.."outlineDilate.frag.glsl")
-	dilationShaderFrag = dilationShaderFrag:gsub("###DILATE_SINGLE_PASS###", tostring((DILATE_SINGLE_PASS and 1) or 0))
+	fsDilate = fsDilate:gsub("###DILATE_SINGLE_PASS###", tostring((DILATE_SINGLE_PASS and 1) or 0))
 
 	dilationShader = LuaShader({
-		vertex = identityShaderVert,
-		fragment = dilationShaderFrag,
+		vertex = vs,
+		fragment = fsDilate,
 		uniformInt = {
 			depthTex = 0,
 			colorTex = 1,
@@ -341,12 +513,9 @@ function widget:Initialize()
 	}, wiName..": Dilation")
 	dilationShader:Initialize()
 
-
-	local applicationFrag = VFS.LoadFile(shadersDir.."outlineApplication.frag.glsl")
-
 	applicationShader = LuaShader({
-		vertex = identityShaderVert,
-		fragment = applicationFrag,
+		vertex = vs,
+		fragment = fsApplication,
 		uniformInt = {
 			dilatedDepthTex = 0,
 			dilatedColorTex = 1,
@@ -359,8 +528,7 @@ function widget:Initialize()
 	}, wiName..": Outline Application")
 	applicationShader:Initialize()
 
-	screenQuadList = gl.CreateList(gl.TexRect, -1, -1, 1, 1)
-	screenWideList = gl.CreateList(gl.TexRect, -1, -1, 1, 1, false, true)
+	fullTexQuad = gl.GetVAO()
 
 	WG['outline'] = {}
 	WG['outline'].getWidth = function()
@@ -395,12 +563,8 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
-	if screenQuadList then
-		gl.DeleteList(screenQuadList)
-	end
-
-	if screenWideList then
-		gl.DeleteList(screenWideList)
+	if fullTexQuad then
+		fullTexQuad:Delete()
 	end
 
 	gl.DeleteTexture(shapeDepthTex)
@@ -458,14 +622,13 @@ end
 
 
 function widget:DrawWorld()
-	EnterLeaveScreenSpace(DrawOutline, OUTLINE_STRENGTH_ALWAYS_ON, true, true)
+	DrawOutline(OUTLINE_STRENGTH_ALWAYS_ON, true, true)
+
 end
 
 function widget:DrawUnitsPostDeferred()
-	EnterLeaveScreenSpace(function ()
-		PrepareOutline(false)
-		DrawOutline(OUTLINE_STRENGTH_BLENDED, false, false)
-	end)
+	PrepareOutline()
+	DrawOutline(OUTLINE_STRENGTH_BLENDED, false, false)
 end
 
 

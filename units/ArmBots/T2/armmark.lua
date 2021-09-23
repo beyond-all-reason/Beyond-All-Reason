@@ -17,8 +17,6 @@ return {
 		collisionvolumetype = "box",
 		corpse = "dead",
 		description = Spring.I18N('units.descriptions.armmark'),
-		energymake = 8,
-		energyuse = 20,
 		explodeas = "smallexplosiongeneric",
 		footprintx = 2,
 		footprintz = 2,
@@ -31,7 +29,7 @@ return {
 		movementclass = "BOT3",
 		name = unitName,
 		objectname = "Units/ARMMARK.s3o",
-		onoffable = true,
+		onoffable = false,
 		radardistance = 2200,
 		script = "Units/ARMMARK.cob",
 		selfdestructas = "smallExplosionGenericSelfd",
@@ -89,6 +87,9 @@ return {
 			},
 		},
 		sfxtypes = {
+			explosiongenerators = {
+				[1] = "custom:radarpulse_t2",
+			},
 			pieceexplosiongenerators = {
 				[1] = "deathceg2",
 				[2] = "deathceg3",

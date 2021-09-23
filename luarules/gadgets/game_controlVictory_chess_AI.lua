@@ -4,7 +4,7 @@ end
 
 local gadgetEnabled
 
-if Spring.GetModOptions and (Spring.GetModOptions().scoremode or "disabled") ~= "disabled" and (Spring.GetModOptions().scoremode_chess or "enabled") ~= "disabled" then
+if Spring.GetModOptions().scoremode ~= "disabled" and Spring.GetModOptions().scoremode_chess then
 	gadgetEnabled = true
 else
 	gadgetEnabled = false
@@ -52,7 +52,7 @@ local function distance(pos1,pos2)
 	return dist
 end
 
-local capturePointRadius = tonumber(Spring.GetModOptions().captureradius) or 250
+local capturePointRadius = Spring.GetModOptions().captureradius
 local capturePointRadius = math.floor(capturePointRadius*0.75)
 local AIMainAttackers = {}
 local AIDiverseAttackers = {}

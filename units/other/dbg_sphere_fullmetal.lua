@@ -15,8 +15,6 @@ return {
 		collisionvolumescales = "28 15 28",
 		collisionvolumetype = "box",
 		description = Spring.I18N('units.descriptions.dbg_sphere_fullmetal'),
-		energymake = 0.7,
-		energyuse = 0.7,
 		explodeas = "smallexplosiongeneric",
 		footprintx = 2,
 		footprintz = 2,

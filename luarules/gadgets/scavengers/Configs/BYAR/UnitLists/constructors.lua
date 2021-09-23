@@ -20,6 +20,10 @@ local playerCommanders = {
 	"cordecom",
 	"armcomcon",
 	"corcomcon",
+	"armdecom_scav",
+	"cordecom_scav",
+	"armcomcon_scav",
+	"corcomcon_scav",
 }
 
 local assisters = {
@@ -65,7 +69,6 @@ local collectors = {
 	"coracsub_scav",
 	"corch_scav",
 	"corfast_scav",
-	"armrectrt4_scav",
 	"armassistdrone",
 	"corassistdrone",
 }

@@ -16,8 +16,6 @@ return {
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
 		description = Spring.I18N('units.descriptions.corgarp'),
-		energymake = 0.9,
-		energyuse = 0.7,
 		explodeas = "smallexplosiongeneric-phib",
 		footprintx = 3,
 		footprintz = 3,

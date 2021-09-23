@@ -137,12 +137,14 @@ StartMoving()
 {
 	signal SIG_MOVE;
 	set-signal-mask SIG_MOVE;
+	var waketime;
 	while( TRUE )
 	{
-		emit-sfx 2 from wake1;
-		sleep 300;
+		emit-sfx 1024 + 0 from wake1;
+		waketime = (get CURRENT_SPEED) * 80 / get MAX_SPEED;
+		if( waketime < 50 ) waketime = 50;
+		sleep 7500 / waketime;
 	}
-	return (0);
 }
 
 StopMoving()

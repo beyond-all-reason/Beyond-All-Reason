@@ -17,8 +17,6 @@ return {
 		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
 		description = Spring.I18N('units.descriptions.armseer'),
-		energymake = 8,
-		energyuse = 20,
 		explodeas = "smallexplosiongeneric",
 		footprintx = 3,
 		footprintz = 3,
@@ -32,7 +30,7 @@ return {
 		movementclass = "TANK3",
 		name = unitName,
 		objectname = "Units/ARMSEER.s3o",
-		onoffable = true,
+		onoffable = false,
 		radardistance = 2300,
 		script = "Units/ARMSEER.cob",
 		seismicsignature = 0,
@@ -96,6 +94,9 @@ return {
 			},
 		},
 		sfxtypes = {
+			explosiongenerators = {
+				[1] = "custom:radarpulse_t2",
+			},
 			pieceexplosiongenerators = {
 				[1] = "deathceg2",
 				[2] = "deathceg3",

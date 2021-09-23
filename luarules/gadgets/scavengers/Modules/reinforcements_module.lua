@@ -160,7 +160,7 @@ function spawnPlayerReinforcements(n)
     --GaiaAllyTeamID
     --posCheck(posx, posy, posz, posradius)
     --posOccupied(posx, posy, posz, posradius)
-	if n > scavconfig.gracePeriod then
+	if scavengerGamePhase ~= "initial" then
 		for _,teamID in ipairs(Spring.GetTeamList()) do
 			local LuaAI = Spring.GetTeamLuaAI(teamID)
 			local _,teamLeader,isDead,isAI,_,allyTeamID = Spring.GetTeamInfo(teamID)

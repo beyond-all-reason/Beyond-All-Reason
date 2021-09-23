@@ -28,11 +28,7 @@ if not VFS.BASE then --readded for mission editor backwards compat (engine 104.0
 end
 
 
-vfs_modes = VFS.MOD .. VFS.BASE
-allow_map_mutators = (Spring.GetModOptions and tonumber(Spring.GetModOptions().allowmapmutators) or 1) ~= 0 
-if allow_map_mutators then
-  vfs_modes = VFS.MAP .. vfs_modes
-end
+vfs_modes = VFS.MAP .. VFS.MOD .. VFS.BASE
 
 local function LoadDefs(name)
   local filename = 'gamedata/' .. name .. '.lua'

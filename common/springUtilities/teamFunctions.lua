@@ -33,7 +33,7 @@ local function getSettings()
 				local luaAI = Spring.GetTeamLuaAI(team)
 
 				if luaAI then
-					if luaAI:find("Chicken") then
+					if luaAI:find("Chickens") then
 						isChickens = true
 						isAllyTeamValid = false
 					elseif luaAI:find("Scavengers") then

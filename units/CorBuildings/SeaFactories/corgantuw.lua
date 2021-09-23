@@ -28,7 +28,7 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		maxdamage = 16000,
-		maxslope = 18,
+		maxslope = 10,
 		metalstorage = 800,
 		minwaterdepth = 30,
 		name = unitName,

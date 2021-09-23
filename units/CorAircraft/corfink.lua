@@ -15,8 +15,6 @@ return {
 		collide = false,
 		cruisealt = 110,
 		description = Spring.I18N('units.descriptions.corfink'),
-		energymake = 0.2,
-		energyuse = 0.2,
 		explodeas = "tinyExplosionGeneric",
 		footprintx = 2,
 		footprintz = 2,

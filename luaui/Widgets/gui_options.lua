@@ -618,9 +618,6 @@ local heightmapChangeBuffer = {}
 local vsx, vsy = Spring.GetViewGeometry()
 local widgetScale = (0.5 + (vsx * vsy / 5700000)) * customScale
 
-local myTeamID = Spring.GetMyTeamID()
-local amNewbie = (Spring.GetTeamRulesParam(myTeamID, 'isNewbie') == 1)
-
 local vsyncLevel = 1
 local vsyncEnabled = false
 local vsyncOnlyForSpec = false
@@ -657,7 +654,11 @@ local startScript = VFS.LoadFile("_script.txt")
 if not startScript then
 	local modoptions = ''
 	for key, value in pairs(Spring.GetModOptions()) do
-		modoptions = modoptions .. key .. '=' .. value .. ';';
+		local v = value
+		if type(v) == 'boolean' then
+			v = (v and '1' or '0')
+		end
+		modoptions = modoptions .. key .. '=' .. v .. ';';
 	end
 
 	startScript = [[[game]
@@ -2090,6 +2091,7 @@ function init()
 			ssao = 1,
 			mapedgeextension = false,
 			lighteffects = false,
+			lighteffects_additionalflashes = false,
 			airjets = false,
 			heatdistortion = false,
 			snow = false,
@@ -2110,6 +2112,7 @@ function init()
 			ssao = 1,
 			mapedgeextension = false,
 			lighteffects = true,
+			lighteffects_additionalflashes = false,
 			airjets = true,
 			heatdistortion = true,
 			snow = false,
@@ -2130,6 +2133,7 @@ function init()
 			ssao = 1,
 			mapedgeextension = true,
 			lighteffects = true,
+			lighteffects_additionalflashes = true,
 			airjets = true,
 			heatdistortion = true,
 			snow = true,
@@ -2150,6 +2154,7 @@ function init()
 			ssao = 2,
 			mapedgeextension = true,
 			lighteffects = true,
+			lighteffects_additionalflashes = true,
 			airjets = true,
 			heatdistortion = true,
 			snow = true,
@@ -2170,6 +2175,7 @@ function init()
 			ssao = 3,
 			mapedgeextension = true,
 			lighteffects = true,
+			lighteffects_additionalflashes = true,
 			airjets = true,
 			heatdistortion = true,
 			snow = true,
@@ -2539,7 +2545,7 @@ function init()
 			  end
 		  end,
 		},
-		{ id = "ssao_strength", group = "gfx", name = widgetOptionColor .. "   "..texts.option.ssao_strength, type = "slider", min = 4, max = 15, step = 1, value = 8, description = '',
+		{ id = "ssao_strength", group = "gfx", name = widgetOptionColor .. "   "..texts.option.ssao_strength, type = "slider", min = 5, max = 15, step = 1, value = 9, description = '',
 		  onchange = function(i, value)
 			  saveOptionValue('SSAO', 'ssao', 'setStrength', { 'strength' }, value)
 		  end,
@@ -2553,7 +2559,7 @@ function init()
 		--},
 
 		{ id = "bloomdeferred", group = "gfx", basic = true, widget = "Bloom Shader Deferred", name = texts.option.bloomdeferred, type = "bool", value = GetWidgetToggleValue("Bloom Shader Deferred"), description = texts.option.bloomdeferred_descr },
-		{ id = "bloomdeferredbrightness", group = "gfx", name = widgetOptionColor .. "   "..texts.option.bloomdeferredbrightness, type = "slider", min = 0.5, max = 2, step = 0.05, value = 1, description = '',
+		{ id = "bloomdeferredbrightness", group = "gfx", name = widgetOptionColor .. "   "..texts.option.bloomdeferredbrightness, type = "slider", min = 0.6, max = 1.5, step = 0.05, value = 1, description = '',
 		  onchange = function(i, value)
 			  saveOptionValue('Bloom Shader Deferred', 'bloomdeferred', 'setBrightness', { 'glowAmplifier' }, value)
 		  end,
@@ -2616,7 +2622,7 @@ function init()
 		--	  saveOptionValue('Light Effects', 'lighteffects', 'setLife', { 'globalLifeMult' }, value)
 		--  end,
 		--},
-		{ id = "lighteffects_brightness", group = "gfx", name = widgetOptionColor .. "   "..texts.option.lighteffects_brightness, min = 0.75, max = 2, step = 0.05, type = "slider", value = 1.7, description = texts.option.lighteffects_brightness_descr,
+		{ id = "lighteffects_brightness", group = "gfx", name = widgetOptionColor .. "   "..texts.option.lighteffects_brightness, min = 0.65, max = 2, step = 0.05, type = "slider", value = 1.4, description = texts.option.lighteffects_brightness_descr,
 		  onload = function(i)
 			  loadWidgetData("Light Effects", "lighteffects_brightness", { 'globalLightMult' })
 		  end,
@@ -2624,6 +2630,10 @@ function init()
 			  saveOptionValue('Light Effects', 'lighteffects', 'setGlobalBrightness', { 'globalLightMult' }, value)
 		  end,
 		},
+		{id="lighteffects_additionalflashes", group="gfx", name=widgetOptionColor.."   "..texts.option.lighteffects_additionalflashes, type="bool", value=true, description = texts.option.lighteffects_additionalflashes_descr,
+			 onload = function(i) loadWidgetData("Light Effects", "lighteffects_additionalflashes", {'additionalLightingFlashes'}) end,
+			 onchange = function(i, value) saveOptionValue('Light Effects', 'lighteffects', 'setAdditionalFlashes', {'additionalLightingFlashes'}, value) end,
+		  },
 		--{ id = "lighteffects_radius", group = "gfx", name = widgetOptionColor .. "   "..texts.option.lighteffects_radius, min = 1.2, max = 1.7, step = 0.05, type = "slider", value = 1.5, description = texts.option.lighteffects_radius_descr,
 		--  onload = function(i)
 		--	  loadWidgetData("Light Effects", "lighteffects_radius", { 'globalRadiusMult' })
@@ -4328,56 +4338,56 @@ function init()
 			  Spring.SendCommands("luarules GlassUpdateSun")
 		  end,
 		},
-		{ id = "tonemapB", group = "dev", name = widgetOptionColor .. "   2", type = "slider", min = 0, max = 2, step = 0.01, value = Spring.GetConfigFloat("tonemapB", 0.8), description = "",
+		{ id = "tonemapB", group = "dev", name = widgetOptionColor .. "   2", type = "slider", min = 0, max = 2, step = 0.01, value = Spring.GetConfigFloat("tonemapB", 0.75), description = "",
 		  onchange = function(i, value)
 			  Spring.SetConfigFloat("tonemapB", value)
 			  Spring.SendCommands("luarules updatesun")
 			  Spring.SendCommands("luarules GlassUpdateSun")
 		  end,
 		},
-		{ id = "tonemapC", group = "dev", name = widgetOptionColor .. "   3", type = "slider", min = 0, max = 5, step = 0.01, value = Spring.GetConfigFloat("tonemapC", 3.35), description = "",
+		{ id = "tonemapC", group = "dev", name = widgetOptionColor .. "   3", type = "slider", min = 0, max = 5, step = 0.01, value = Spring.GetConfigFloat("tonemapC", 3.5), description = "",
 		  onchange = function(i, value)
 			  Spring.SetConfigFloat("tonemapC", value)
 			  Spring.SendCommands("luarules updatesun")
 			  Spring.SendCommands("luarules GlassUpdateSun")
 		  end,
 		},
-		{ id = "tonemapD", group = "dev", name = widgetOptionColor .. "   4", type = "slider", min = 0, max = 3, step = 0.01, value = Spring.GetConfigFloat("tonemapD", 1.0), description = "",
+		{ id = "tonemapD", group = "dev", name = widgetOptionColor .. "   4", type = "slider", min = 0, max = 3, step = 0.01, value = Spring.GetConfigFloat("tonemapD", 0.85), description = "",
 		  onchange = function(i, value)
 			  Spring.SetConfigFloat("tonemapD", value)
 			  Spring.SendCommands("luarules updatesun")
 			  Spring.SendCommands("luarules GlassUpdateSun")
 		  end,
 		},
-		{ id = "tonemapE", group = "dev", name = widgetOptionColor .. "   5", type = "slider", min = 0, max = 3, step = 0.01, value = Spring.GetConfigFloat("tonemapE", 1.15), description = "",
+		{ id = "tonemapE", group = "dev", name = widgetOptionColor .. "   5", type = "slider", min = 0.75, max = 1.5, step = 0.01, value = Spring.GetConfigFloat("tonemapE", 1.0), description = "",
 		  onchange = function(i, value)
 			  Spring.SetConfigFloat("tonemapE", value)
 			  Spring.SendCommands("luarules updatesun")
 			  Spring.SendCommands("luarules GlassUpdateSun")
 		  end,
 		},
-		{ id = "envAmbient", group = "dev", name = widgetOptionColor .. "   "..texts.option.envAmbient, type = "slider", min = 0, max = 1, step = 0.01, value = Spring.GetConfigFloat("envAmbient", 0.3), description = "",
+		{ id = "envAmbient", group = "dev", name = widgetOptionColor .. "   "..texts.option.envAmbient, type = "slider", min = 0, max = 1, step = 0.01, value = Spring.GetConfigFloat("envAmbient", 0.25), description = "",
 		  onchange = function(i, value)
 			  Spring.SetConfigFloat("envAmbient", value)
 			  Spring.SendCommands("luarules updatesun")
 			  Spring.SendCommands("luarules GlassUpdateSun")
 		  end,
 		},
-		{ id = "unitSunMult", group = "dev", name = widgetOptionColor .. "   "..texts.option.unitSunMult, type = "slider", min = 0.4, max = 2.5, step = 0.05, value = Spring.GetConfigFloat("unitSunMult", 1.35), description = "",
+		{ id = "unitSunMult", group = "dev", name = widgetOptionColor .. "   "..texts.option.unitSunMult, type = "slider", min = 0.7, max = 1.6, step = 0.01, value = Spring.GetConfigFloat("unitSunMult", 1.0), description = "",
 		  onchange = function(i, value)
 			  Spring.SetConfigFloat("unitSunMult", value)
 			  Spring.SendCommands("luarules updatesun")
 			  Spring.SendCommands("luarules GlassUpdateSun")
 		  end,
 		},
-		{ id = "unitExposureMult", group = "dev", name = widgetOptionColor .. "   "..texts.option.unitExposureMult, type = "slider", min = 0.5, max = 2, step = 0.01, value = Spring.GetConfigFloat("unitExposureMult", 1.0), description = "",
+		{ id = "unitExposureMult", group = "dev", name = widgetOptionColor .. "   "..texts.option.unitExposureMult, type = "slider", min = 0.6, max = 1.25, step = 0.01, value = Spring.GetConfigFloat("unitExposureMult", 1.0), description = "",
 		  onchange = function(i, value)
 			  Spring.SetConfigFloat("unitExposureMult", value)
 			  Spring.SendCommands("luarules updatesun")
 			  Spring.SendCommands("luarules GlassUpdateSun")
 		  end,
 		},
-		{ id = "modelGamma", group = "dev", name = widgetOptionColor .. "   "..texts.option.modelGamma, type = "slider", min = 0.8, max = 2.4, step = 0.05, value = Spring.GetConfigFloat("modelGamma", 1.0), description = "",
+		{ id = "modelGamma", group = "dev", name = widgetOptionColor .. "   "..texts.option.modelGamma, type = "slider", min = 0.7, max = 1.7, step = 0.01, value = Spring.GetConfigFloat("modelGamma", 1.0), description = "",
 		  onchange = function(i, value)
 			  Spring.SetConfigFloat("modelGamma", value)
 			  Spring.SendCommands("luarules updatesun")
@@ -4386,13 +4396,13 @@ function init()
 		},
 		{ id = "tonemapDefaults", group = "dev", name = widgetOptionColor .. "   "..texts.option.tonemapDefaults, type = "bool", value = GetWidgetToggleValue("Unit Reclaimer"), description = "",
 		  onchange = function(i, value)
-			  Spring.SetConfigFloat("tonemapA", 4.8)
-			  Spring.SetConfigFloat("tonemapB", 0.8)
-			  Spring.SetConfigFloat("tonemapC", 3.35)
-			  Spring.SetConfigFloat("tonemapD", 1.0)
-			  Spring.SetConfigFloat("tonemapE", 1.15)
-			  Spring.SetConfigFloat("envAmbient", 0.3)
-			  Spring.SetConfigFloat("unitSunMult", 1.35)
+			  Spring.SetConfigFloat("tonemapA", 4.75)
+			  Spring.SetConfigFloat("tonemapB", 0.75)
+			  Spring.SetConfigFloat("tonemapC", 3.5)
+			  Spring.SetConfigFloat("tonemapD", 0.85)
+			  Spring.SetConfigFloat("tonemapE", 1.0)
+			  Spring.SetConfigFloat("envAmbient", 0.25)
+			  Spring.SetConfigFloat("unitSunMult", 1.0)
 			  Spring.SetConfigFloat("unitExposureMult", 1.0)
 			  Spring.SetConfigFloat("modelGamma", 1.0)
 			  options[getOptionByID('tonemapA')].value = Spring.GetConfigFloat("tonemapA")
@@ -4424,6 +4434,7 @@ function init()
 				-- just so that map/model lighting gets updated
 				Spring.SetSunLighting({ groundShadowDensity = gl.GetSun("shadowDensity"), modelShadowDensity = gl.GetSun("shadowDensity") })
 				customMapSunPos[Game.mapName] = { gl.GetSun("pos") }
+				Spring.Echo(gl.GetSun())
 			end,
 		  },
 		  { id = "sun_x", group = "dev", name = widgetOptionColor .. "   "..texts.option.sun_x, type = "slider", min = -0.9999, max = 0.9999, step = 0.0001, value = select(1, gl.GetSun("pos")), description = '',
@@ -4441,6 +4452,7 @@ function init()
 				-- just so that map/model lighting gets updated
 				Spring.SetSunLighting({ groundShadowDensity = gl.GetSun("shadowDensity"), modelShadowDensity = gl.GetSun("shadowDensity") })
 				customMapSunPos[Game.mapName] = { gl.GetSun("pos") }
+				Spring.Echo(gl.GetSun())
 			end,
 		  },
 		  { id = "sun_z", group = "dev", name = widgetOptionColor .. "   "..texts.option.sun_z, type = "slider", min = -0.9999, max = 0.9999, step = 0.0001, value = select(3, gl.GetSun("pos")), description = '',
@@ -4460,6 +4472,7 @@ function init()
 				-- just so that map/model lighting gets updated
 				Spring.SetSunLighting({ groundShadowDensity = gl.GetSun("shadowDensity"), modelShadowDensity = gl.GetSun("shadowDensity") })
 				customMapSunPos[Game.mapName] = { gl.GetSun("pos") }
+				Spring.Echo(gl.GetSun())
 			end,
 		  },
 		  { id = "sun_reset", group = "dev", name = widgetOptionColor .. "   "..texts.option.sun_reset, type = "bool", value = false, description = '',
@@ -4475,6 +4488,7 @@ function init()
 				Spring.SetSunLighting({ groundShadowDensity = gl.GetSun("shadowDensity"), modelShadowDensity = gl.GetSun("shadowDensity") })
 				Spring.Echo('resetted map sun defaults')
 				customMapSunPos[Game.mapName] = nil
+				Spring.Echo(gl.GetSun())
 			end,
 		  },
 		{ id = "fog_r", group = "dev", name = texts.option.fog..widgetOptionColor .. "  "..texts.option.red, type = "slider", min = 0, max = 1, step = 0.01, value = select(1, gl.GetAtmosphere("fogColor")), description = '',
@@ -4968,16 +4982,7 @@ function init()
 		options[getOptionByID('restart')] = nil
 	end
 
-	-- dynamic sun settings applied by gadget: disable user controls
-	if Spring.GetModOptions and (tonumber(Spring.GetModOptions().night) or 0) ~= 0 then
-		options[getOptionByID('shadows_opacity')] = nil
-		options[getOptionByID('sun_y')] = nil
-		options[getOptionByID('sun_x')] = nil
-		options[getOptionByID('sun_z')] = nil
-		options[getOptionByID('sun_reset')] = nil
-	end
-
-	if not scavengersAIEnabled and (Spring.GetModOptions and (tonumber(Spring.GetModOptions().scavengers) or 0) ~= 0) then
+	if not scavengersAIEnabled then
 		options[getOptionByID('scav_voicenotifs')] = nil
 		options[getOptionByID('scav_messages')] = nil
 	end
@@ -5445,6 +5450,7 @@ function init()
 		options[getOptionByID("lighteffects_radius")] = nil
 		options[getOptionByID("lighteffects_laserradius")] = nil
 		options[getOptionByID("lighteffects_nanolaser")] = nil
+		options[getOptionByID("lighteffects_additionalflashes")] = nil
 	end
 
 	if widgetHandler.knownWidgets["TeamPlatter"] == nil then
@@ -5609,6 +5615,9 @@ function widget:Initialize()
 	if WG['lang'] then
 		texts = WG['lang'].getText('options')
 	end
+
+	-- set nano particle rotation: rotValue, rotVelocity, rotAcceleration, rotValueRNG, rotVelocityRNG, rotAccelerationRNG (in degrees)
+	Spring.SetNanoProjectileParams(-180, -50, -50, 360, 100, 100)
 
 	-- just making sure
 	if widgetHandler.orderList["Pregame UI"] < 0.5 then

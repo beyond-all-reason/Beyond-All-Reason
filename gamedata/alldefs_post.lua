@@ -95,28 +95,8 @@ function UnitDef_Post(name, uDef)
 	end
 
 	-- disable wrecks for Control Points mode
-	if Spring.GetModOptions and (Spring.GetModOptions().scoremode or "disabled") ~= "disabled" then
+	if Spring.GetModOptions().scoremode ~= "disabled" then
 		uDef.corpse = nil
-	end
-
-	-- negate energyuse with energymake values
-	-- excludes units without on/off states (energyuse values arent in effect)
-	if uDef.energymake and uDef.energyuse and uDef.onoffable then
-		--Spring.Echo(uDef.name)
-		if uDef.energymake == uDef.energyuse then
-			uDef.energymake = 0
-			uDef.energyuse = 0
-		elseif uDef.energymake > uDef.energyuse then
-			uDef.energymake = uDef.energymake - uDef.energyuse
-			if uDef.energyuse > 0 then
-				uDef.energyuse = 0
-			end
-		elseif uDef.energymake < uDef.energyuse then
-			uDef.energyuse = uDef.energyuse - uDef.energymake
-			if uDef.energymake > 0 then
-				uDef.energymake = 0
-			end
-		end
 	end
 
 	-- test New sound system!
@@ -154,19 +134,19 @@ function UnitDef_Post(name, uDef)
 		if not uDef.customparams.techlevel then uDef.customparams.techlevel = 0 end
 		if not uDef.customparams.subfolder then uDef.customparams.subfolder = "none" end
 
-		if Spring.GetModOptions and tonumber(Spring.GetModOptions().unit_restrictions_notech2) == 1 then
+		if Spring.GetModOptions().unit_restrictions_notech2 then
 			if tonumber(uDef.customparams.techlevel) == 2 or tonumber(uDef.customparams.techlevel) == 3 then
 				uDef.unitrestricted = 0
 			end
 		end
 
-		if Spring.GetModOptions and tonumber(Spring.GetModOptions().unit_restrictions_notech3) == 1 then
+		if Spring.GetModOptions().unit_restrictions_notech3 then
 			if tonumber(uDef.customparams.techlevel) == 3 then
 				uDef.unitrestricted = 0
 			end
 		end
 
-		if Spring.GetModOptions and tonumber(Spring.GetModOptions().unit_restrictions_noair) == 1 then
+		if Spring.GetModOptions().unit_restrictions_noair then
 			if string.find(uDef.customparams.subfolder, "Aircraft") then
 				uDef.unitrestricted = 0
 			elseif uDef.canfly then
@@ -185,13 +165,13 @@ function UnitDef_Post(name, uDef)
 			end
 		end
 
-		if Spring.GetModOptions and tonumber(Spring.GetModOptions().unit_restrictions_noconverters) == 1 then
+		if Spring.GetModOptions().unit_restrictions_noconverters then
 			if uDef.customparams.energyconv_capacity and uDef.customparams.energyconv_efficiency then
 				uDef.unitrestricted = 0
 			end
 		end
 
-		if Spring.GetModOptions and tonumber(Spring.GetModOptions().unit_restrictions_nonukes) == 1 then
+		if Spring.GetModOptions().unit_restrictions_nonukes then
 			local Nukes = {
 				armamd = true,
 				armsilo = true,
@@ -205,7 +185,7 @@ function UnitDef_Post(name, uDef)
 			end
 		end
 
-		if Spring.GetModOptions and tonumber(Spring.GetModOptions().unit_restrictions_notacnukes) == 1 then
+		if Spring.GetModOptions().unit_restrictions_notacnukes then
 			local TacNukes = {
 				armemp = true,
 				cortron = true,
@@ -218,7 +198,7 @@ function UnitDef_Post(name, uDef)
 
 
 	-- Add scav units to normal factories and builders
-	if Spring.GetModOptions and Spring.GetModOptions().experimentalscavuniqueunits == "enabled" then
+	if Spring.GetModOptions().experimentalscavuniqueunits then
 		if name == "armshltx" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "armrattet4"
@@ -228,7 +208,6 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions+5] = "armlunchbox"
 			uDef.buildoptions[numBuildoptions+6] = "armmeatball"
 			uDef.buildoptions[numBuildoptions+7] = "armassimilator"
-			uDef.buildoptions[numBuildoptions+8] = "armrectrt4"
 		elseif name == "armshltxuw" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "armrattet4"
@@ -293,18 +272,18 @@ function UnitDef_Post(name, uDef)
 		end
 	end
 
-	if Spring.GetModOptions and uDef.builddistance then
-		local x = tonumber(Spring.GetModOptions().experimentalbuildrange) or 1
+	if uDef.builddistance then
+		local x = Spring.GetModOptions().experimentalbuildrange
 		uDef.builddistance = uDef.builddistance*x
 	end
 
-	if Spring.GetModOptions and uDef.workertime then
-		local x = tonumber(Spring.GetModOptions().experimentalbuildpower) or 1
+	if uDef.workertime then
+		local x = Spring.GetModOptions().experimentalbuildpower
 		uDef.workertime = uDef.workertime*x
 	end
 
 
-	-- if Spring.GetModOptions and Spring.GetModOptions().experimentalmassoverride and Spring.GetModOptions().experimentalmassoverride == "enabled" then
+	-- if Spring.GetModOptions().experimentalmassoverride then
 	-- 	-- mass override
 	-- 	Spring.Echo("-------------------------")
 	-- 	if uDef.name then
@@ -363,18 +342,18 @@ function UnitDef_Post(name, uDef)
 	end
 
 	-- vision range
-	if Spring.GetModOptions and uDef.sightdistance then
-		local x = tonumber(Spring.GetModOptions().experimentallosrange) or 1
+	if uDef.sightdistance then
+		local x = Spring.GetModOptions().experimentallosrange
 		uDef.sightdistance = uDef.sightdistance*x
 	end
 
-	if Spring.GetModOptions and uDef.airsightdistance then
-		local x = tonumber(Spring.GetModOptions().experimentallosrange) or 1
+	if uDef.airsightdistance then
+		local x = Spring.GetModOptions().experimentallosrange
 		uDef.airsightdistance = uDef.airsightdistance*x
 	end
 
-	if Spring.GetModOptions and uDef.radardistance then
-		local x = tonumber(Spring.GetModOptions().experimentalradarrange) or 1
+	if uDef.radardistance then
+		local x = Spring.GetModOptions().experimentalradarrange
 		uDef.radardistance = uDef.radardistance*x
 	end
 
@@ -426,7 +405,7 @@ function UnitDef_Post(name, uDef)
 		uDef.maxslope = math.floor((uDef.maxslope * 1.5) + 0.5)
 	end
 
-	--if Spring.GetModOptions and (tonumber(Spring.GetModOptions().airrebalance) or 0) ~= 0 then
+	--if Spring.GetModOptions().airrebalance then
 
 
 		--if uDef.weapons then
@@ -449,9 +428,9 @@ function UnitDef_Post(name, uDef)
 			uDef.crashdrag = 0.01	-- default 0.005
 
 			if not (string.find(name, "fepoch") or string.find(name, "fblackhy")) then--(string.find(name, "liche") or string.find(name, "crw") or string.find(name, "fepoch") or string.find(name, "fblackhy")) then
-				if Spring.GetModOptions and Spring.GetModOptions().experimentalnoaircollisions == "disabled" then
+				if not Spring.GetModOptions().experimentalnoaircollisions then
 					uDef.collide = false
-				elseif Spring.GetModOptions and Spring.GetModOptions().experimentalnoaircollisions == "enabled" then
+				else
 					uDef.collide = true
 				end
 
@@ -634,18 +613,20 @@ function WeaponDef_Post(name, wDef)
 
 		-------------- EXPERIMENTAL MODOPTIONS
 		---- SHIELD CHANGES
-		if Spring.GetModOptions and Spring.GetModOptions() and Spring.GetModOptions().experimentalshields == "absorbplasma" then
+		local shieldModOption = Spring.GetModOptions().experimentalshields
+
+		if shieldModOption == "absorbplasma" then
 			if wDef.shield and wDef.shield.repulser and wDef.shield.repulser ~= false then
 				wDef.shield.repulser = false
 			end
-		elseif Spring.GetModOptions and Spring.GetModOptions() and Spring.GetModOptions().experimentalshields == "absorbeverything" then
+		elseif shieldModOption == "absorbeverything" then
 			if wDef.shield and wDef.shield.repulser and wDef.shield.repulser ~= false then
 				wDef.shield.repulser = false
 			end
 			if (not wDef.interceptedbyshieldtype) or wDef.interceptedbyshieldtype ~= 1 then
 				wDef.interceptedbyshieldtype = 1
 			end
-		elseif Spring.GetModOptions and Spring.GetModOptions() and Spring.GetModOptions().experimentalshields == "bounceeverything" then
+		elseif shieldModOption == "bounceeverything" then
 			if wDef.shield then
 				wDef.shield.repulser = true
 			end
@@ -654,9 +635,9 @@ function WeaponDef_Post(name, wDef)
 			end
 		end
 
-		if Spring.GetModOptions and Spring.GetModOptions() and Spring.GetModOptions().experimentalshieldpower then
+		if Spring.GetModOptions().experimentalshieldpower then
 			if wDef.shield then
-				local multiplier = tonumber(Spring.GetModOptions().experimentalshieldpower)
+				local multiplier = Spring.GetModOptions().experimentalshieldpower
 				if wDef.shield.power then
 					wDef.shield.power = wDef.shield.power*multiplier
 				end
@@ -767,35 +748,33 @@ end
 
 -- process modoptions (last, because they should not get baked)
 function ModOptions_Post (UnitDefs, WeaponDefs)
-	if Spring.GetModOptions then
-	local modOptions = Spring.GetModOptions() or {}
-	local map_tidal = modOptions and modOptions.map_tidal
-		if map_tidal and map_tidal ~= "unchanged" then
-			for id, unitDef in pairs(UnitDefs) do
-				if unitDef.tidalgenerator == 1 then
-					unitDef.tidalgenerator = 0
-					if map_tidal == "low" then
-						unitDef.energymake = 13
-					elseif map_tidal == "medium" then
-						unitDef.energymake = 18
-					elseif map_tidal == "high" then
-						unitDef.energymake = 23
-					end
+	local map_tidal = Spring.GetModOptions().map_tidal
+
+	if map_tidal and map_tidal ~= "unchanged" then
+		for id, unitDef in pairs(UnitDefs) do
+			if unitDef.tidalgenerator == 1 then
+				unitDef.tidalgenerator = 0
+				if map_tidal == "low" then
+					unitDef.energymake = 13
+				elseif map_tidal == "medium" then
+					unitDef.energymake = 18
+				elseif map_tidal == "high" then
+					unitDef.energymake = 23
 				end
 			end
 		end
+	end
 
-		-- transporting enemy coms
-		if not modOptions.transportenemy or modOptions.transportenemy == "notcoms" then
-			for name,ud in pairs(UnitDefs) do
-				if name == "armcom" or name == "corcom" or name == "armdecom" or name == "cordecom" then
-					ud.transportbyenemy = false
-				end
-			end
-		elseif modOptions.transportenemy == "none" then
-			for name, ud in pairs(UnitDefs) do
+	-- transporting enemy coms
+	if Spring.GetModOptions().transportenemy == "notcoms" then
+		for name,ud in pairs(UnitDefs) do
+			if name == "armcom" or name == "corcom" or name == "armdecom" or name == "cordecom" then
 				ud.transportbyenemy = false
 			end
+		end
+	elseif Spring.GetModOptions().transportenemy == "none" then
+		for name, ud in pairs(UnitDefs) do
+			ud.transportbyenemy = false
 		end
 	end
 

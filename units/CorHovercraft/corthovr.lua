@@ -12,13 +12,11 @@ return {
 		canmove = true,
 		cantbetransported = true,
 		category = "ALL HOVER MOBILE WEAPON NOTSUB NOTSHIP NOTAIR SURFACE EMPABLE",
-		collisionvolumeoffsets = "0 -17 0",
-		collisionvolumescales = "60 60 84",
+		collisionvolumeoffsets = "0 -17 -2",
+		collisionvolumescales = "60 60 80",
 		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
 		description = Spring.I18N('units.descriptions.corthovr'),
-		energymake = 2.3,
-		energyuse = 2.3,
 		explodeas = "largeexplosiongeneric",
 		footprintx = 4,
 		footprintz = 4,
@@ -72,6 +70,11 @@ return {
 			},
 		},
 		sfxtypes = {
+			explosiongenerators = {
+				[1] = "custom:waterwake-small-hover",
+				[2] = "custom:bowsplash-small-hover",
+				[3] = "custom:hover-wake-large",
+			},
 			pieceexplosiongenerators = {
 				[1] = "deathceg2",
 				[2] = "deathceg3",

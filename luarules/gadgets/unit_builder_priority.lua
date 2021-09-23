@@ -37,7 +37,6 @@ local stallMarginInc = 0.2
 local stallMarginSto = 0.01
 
 local passiveCons = {} -- passiveCons[teamID][builderID]
-local teamStalling = {} -- teamStalling[teamID] = {resName = res leftover after non-passive cons took their share}
 
 local buildTargets = {} --the unitIDs of build targets of passive builders
 local buildTargetOwners = {} --each build target has one passive builder that doesn't turn fully off, to stop the building decaying
@@ -61,9 +60,6 @@ local cmdPassiveDesc = {
       params  = {1, 'Low Prio', 'High Prio'}
 }
 
-----------------------------------------------------------------
--- Speedups
-----------------------------------------------------------------
 local spInsertUnitCmdDesc = Spring.InsertUnitCmdDesc
 local spFindUnitCmdDesc = Spring.FindUnitCmdDesc
 local spGetUnitCmdDescs = Spring.GetUnitCmdDescs
@@ -75,12 +71,13 @@ local spGetUnitRulesParam = Spring.GetUnitRulesParam
 local spSetUnitBuildSpeed = Spring.SetUnitBuildSpeed
 local spGetUnitIsBuilding = Spring.GetUnitIsBuilding
 local spValidUnitID = Spring.ValidUnitID
+local spGetTeamInfo = Spring.GetTeamInfo
 local simSpeed = Game.gameSpeed
 
-local min = math.min
 local max = math.max
 local floor = math.floor
 
+local updateFrame = {}
 
 local canPassive = {} -- canPassive[unitDefID] = nil / true
 local cost = {} -- cost[unitDefID] = {metal=value,energy=value}
@@ -98,9 +95,6 @@ for unitDefID, unitDef in pairs(UnitDefs) do
     end
 end
 
-----------------------------------------------------------------
--- Callins
-----------------------------------------------------------------
 function gadget:Initialize()
     for _,unitID in pairs(Spring.GetAllUnits()) do
         gadget:UnitCreated(unitID, Spring.GetUnitDefID(unitID), Spring.GetUnitTeam(unitID))
@@ -115,7 +109,7 @@ function gadget:UnitCreated(unitID, unitDefID, teamID)
     end
     if canPassive[unitDefID] then
         spInsertUnitCmdDesc(unitID, cmdPassiveDesc)
-        passiveCons[teamID] = passiveCons[teamID] or {}
+        if not passiveCons[teamID] then passiveCons[teamID] = {} end
         passiveCons[teamID][unitID] = spGetUnitRulesParam(unitID,ruleName) == 1 or nil
         currentBuildSpeed[unitID] = realBuildSpeed[unitID]
         spSetUnitBuildSpeed(unitID, currentBuildSpeed[unitID]) -- to handle luarules reloads correctly
@@ -146,7 +140,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, teamID)
     canBuild[teamID] = canBuild[teamID] or {}
     canBuild[teamID][unitID] = nil
 
-    passiveCons[teamID] = passiveCons[teamID] or {}
+	if not passiveCons[teamID] then passiveCons[teamID] = {} end
     passiveCons[teamID][unitID] = nil
     realBuildSpeed[unitID] = nil
     currentBuildSpeed[unitID] = nil
@@ -165,7 +159,7 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpt
             cmdDesc.params[1] = cmdParams[1]
             spEditUnitCmdDesc(unitID, cmdIdx, cmdDesc)
             spSetUnitRulesParam(unitID,ruleName,cmdParams[1])
-            passiveCons[teamID] = passiveCons[teamID] or {}
+			if not passiveCons[teamID] then passiveCons[teamID] = {} end
 			if cmdParams[1] == 0 then --
 				passiveCons[teamID][unitID] = true
 			elseif realBuildSpeed[unitID] then
@@ -179,12 +173,122 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpt
     return true
 end
 
-local updateFrame = {}
+
+local function UpdatePassiveBuilders(teamID, interval)
+
+	-- calculate how much expense each passive con would require, and how much total expense the non-passive cons require
+	local nonPassiveConsTotalExpenseEnergy = 0
+	local nonPassiveConsTotalExpenseMetal = 0
+	local passiveConsExpense = {}
+	if not passiveCons[teamID] then
+		passiveCons[teamID] = {}
+	end
+	if canBuild[teamID] then
+		for builderID in pairs(canBuild[teamID]) do
+			local builtUnit = spGetUnitIsBuilding(builderID)
+			local targetCosts = builtUnit and costID[builtUnit] or nil
+			if builtUnit and targetCosts then
+				local rate = realBuildSpeed[builderID] / targetCosts.buildTime
+				for _,resName in pairs(resTable) do
+					local expense = targetCosts[resName] * rate
+					if passiveCons[teamID][builderID] then
+						if not passiveConsExpense[builderID] then
+							passiveConsExpense[builderID] = {energy=0, metal=expense}	-- because metal is set as first key
+						else
+							passiveConsExpense[builderID][resName] = expense
+						end
+						if not buildTargets[builtUnit] then
+							buildTargetOwners[builderID] = builtUnit
+							buildTargets[builtUnit] = true
+						end
+					else
+						if resName == 'energy' then
+							nonPassiveConsTotalExpenseEnergy = nonPassiveConsTotalExpenseEnergy + expense
+						else
+							nonPassiveConsTotalExpenseMetal = nonPassiveConsTotalExpenseMetal + expense
+						end
+					end
+				end
+			end
+		end
+	end
+
+	-- calculate how much expense passive cons will be allowed
+	local teamStallingEnergy, teamStallingMetal
+	for _,resName in pairs(resTable) do
+		local cur, stor, _, inc, _, share, sent, rec  = spGetTeamResources(teamID, resName)
+		stor = stor * share -- consider capacity only up to the share slider
+		local reservedExpense = (resName == 'energy' and nonPassiveConsTotalExpenseEnergy or nonPassiveConsTotalExpenseMetal) -- we don't want to touch this part of expense
+		if resName == 'energy' then
+			teamStallingEnergy = cur - max(inc*stallMarginInc,stor*stallMarginSto) - 1 + (interval)*(inc-reservedExpense+rec-sent)/simSpeed --amount of res available to assign to passive builders (in next interval); leave a tiny bit left over to avoid engines own "stall mode"
+		else
+			teamStallingMetal = cur - max(inc*stallMarginInc,stor*stallMarginSto) - 1 + (interval)*(inc-reservedExpense+rec-sent)/simSpeed --amount of res available to assign to passive builders (in next interval); leave a tiny bit left over to avoid engines own "stall mode"
+		end
+	end
+
+	-- work through passive cons allocating as much expense as we have left
+	for builderID in pairs(passiveCons[teamID]) do
+		-- find out if we have used up all the expense available to passive builders yet
+		local wouldStall = false
+		if teamStallingEnergy or teamStallingMetal then
+			if passiveConsExpense[builderID] then
+				if teamStallingEnergy then
+					local newPullEnergy = teamStallingEnergy - (interval*passiveConsExpense[builderID]['energy']/simSpeed)
+					if newPullEnergy <= 0 then
+						wouldStall = true
+					else
+						teamStallingEnergy = newPullEnergy
+					end
+				end
+				if teamStallingMetal then
+					local newPullMetal = teamStallingMetal - (interval*passiveConsExpense[builderID]['metal']/simSpeed)
+					if newPullMetal <= 0 then
+						wouldStall = true
+					else
+						teamStallingMetal = newPullMetal
+					end
+				end
+			end
+		end
+
+		-- turn this passive builder on/off as appropriate
+		local wantedBuildSpeed = (wouldStall or not passiveConsExpense[builderID]) and 0 or realBuildSpeed[builderID]
+		if currentBuildSpeed[builderID] ~= wantedBuildSpeed then
+			spSetUnitBuildSpeed(builderID, wantedBuildSpeed)
+			currentBuildSpeed[builderID] = wantedBuildSpeed
+		end
+
+		-- override buildTargetOwners build speeds for a single frame; let them build at a tiny rate to prevent nanoframes from possibly decaying
+		if buildTargetOwners[builderID] and currentBuildSpeed[builderID] == 0 then
+			spSetUnitBuildSpeed(builderID, 0.001) --(*)
+		end
+	end
+end
+
+
+local function GetUpdateInterval(teamID)
+	local maxInterval = 1
+	for _,resName in pairs(resTable) do
+		local _, stor, _, inc = spGetTeamResources(teamID, resName)
+		local resMaxInterval
+		if inc > 0 then
+			resMaxInterval = floor(stor*simSpeed/inc)+1 -- how many frames would it take to fill our current storage based on current income?
+		else
+			resMaxInterval = 6
+		end
+		if resMaxInterval > maxInterval then
+			maxInterval = resMaxInterval
+		end
+	end
+	if maxInterval > 6 then maxInterval = 6 end
+	--Spring.Echo("interval: "..maxInterval)
+	return maxInterval
+end
+
 
 function gadget:GameFrame(n)
-    -- see (*) below
-    for builderID,builtUnit in pairs(buildTargetOwners) do
-        if spValidUnitID(builderID) and spGetUnitIsBuilding(builderID)==builtUnit then
+    for builderID, builtUnit in pairs(buildTargetOwners) do
+        if spValidUnitID(builderID) and spGetUnitIsBuilding(builderID) == builtUnit then
             spSetUnitBuildSpeed(builderID, currentBuildSpeed[builderID])
         end
         buildTargetOwners[builderID] = nil
@@ -192,104 +296,17 @@ function gadget:GameFrame(n)
     end
 
     buildTargets = {}
-    for _,teamID in pairs(spGetTeamList()) do
-        if n==updateFrame[teamID] then
-            local interval = GetUpdateInterval(teamID)
-            UpdatePassiveBuilders(teamID, interval)
-            updateFrame[teamID] = n + interval
-        elseif not updateFrame[teamID] or updateFrame[teamID] < n then
-            updateFrame[teamID] = n + GetUpdateInterval(teamID)
-        end
-    end
-end
-
-function GetUpdateInterval(teamID)
-    local maxInterval = 1
-    for _,resName in pairs(resTable) do
-        local cur, stor, pull, inc, exp, share, sent, rec, exc = spGetTeamResources(teamID, resName)
-        local resMaxInterval
-        if inc>0 then
-            resMaxInterval = floor(stor*simSpeed/inc)+1 -- how many frames would it take to fill our current storage based on current income?
-        else
-            resMaxInterval = 6
-        end
-        if resMaxInterval > maxInterval then
-            maxInterval = resMaxInterval
-        end
-    end
-    if maxInterval > 6 then maxInterval = 6 end
-    --Spring.Echo("interval: "..maxInterval)
-    return maxInterval
-end
-
-function UpdatePassiveBuilders(teamID, interval)
-
-    --calculate how much expense each passive con would require, and how much total expense the non-passive cons require
-    local nonPassiveConsTotalExpense = {}
-    local passiveConsExpense = {}
-    for builderID in pairs(canBuild[teamID] or {}) do
-        local builtUnit = spGetUnitIsBuilding(builderID)
-        local targetCosts = builtUnit and costID[builtUnit] or nil
-        if builtUnit and targetCosts then
-            local rate = realBuildSpeed[builderID]/targetCosts.buildTime
-            for _,resName in pairs(resTable) do
-                local expense = targetCosts[resName]*rate
-                passiveCons[teamID] = passiveCons[teamID] or {}
-                if passiveCons[teamID][builderID] then
-                    passiveConsExpense[builderID] = passiveConsExpense[builderID] or {}
-                    passiveConsExpense[builderID][resName] = expense
-                    if not buildTargets[builtUnit] then -- see (*) below
-                        buildTargetOwners[builderID] = builtUnit
-                        buildTargets[builtUnit] = true
-                    end
-                else
-                    nonPassiveConsTotalExpense[resName] = (nonPassiveConsTotalExpense[resName] or 0) + expense
-                end
-            end
-        end
-    end
-
-    --calculate how much expense passive cons will be allowed
-    teamStalling[teamID] = {}
-    for _,resName in pairs(resTable) do
-        local cur, stor, pull, inc, exp, share, sent, rec, exc = spGetTeamResources(teamID, resName)
-        stor = stor * share -- consider capacity only up to the share slider
-        local reservedExpense = nonPassiveConsTotalExpense[resName] or 0 -- we don't want to touch this part of expense
-        teamStalling[teamID][resName] = cur - max(inc*stallMarginInc,stor*stallMarginSto) - 1 + (interval)*(inc-reservedExpense+rec-sent)/simSpeed --amount of res available to assign to passive builders (in next interval); leave a tiny bit left over to avoid engines own "stall mode"
-        --Spring.Echo(resName, cur, min(inc*stallMarginInc,stor*stallMarginSto)+1, (interval)*(inc+rec-sent-reservedExpense)/simSpeed, wouldStall)
-    end
-
-    --work through passive cons allocating as much expense as we have left
-    for builderID in pairs(passiveCons[teamID] or {}) do
-        -- find out if we have used up all the expense available to passive builders yet
-        local newPulls = {}
-        local wouldStall = false
-        if not wouldStall and passiveConsExpense[builderID] then
-            for resName,allocatedExp in pairs(teamStalling[teamID]) do
-                newPulls[resName] = allocatedExp - (interval)*passiveConsExpense[builderID][resName]/simSpeed
-                if newPulls[resName] <= 0 then
-                    wouldStall = true
-                end
-            end
-        end
-
-        -- record that use these resources
-        if not wouldStall then
-            teamStalling[teamID] = newPulls
-        end
-        --Spring.Echo("stall: "..(wouldStall and "true" or "false"))
-
-        --turn this passive builder on/off as appropriate
-        local wantedBuildSpeed = (wouldStall or not passiveConsExpense[builderID]) and 0 or realBuildSpeed[builderID]
-        if currentBuildSpeed[builderID] ~= wantedBuildSpeed then
-            spSetUnitBuildSpeed(builderID, wantedBuildSpeed)
-            currentBuildSpeed[builderID] = wantedBuildSpeed
-        end
-
-        --override buildTargetOwners build speeds for a single frame; let them build at a tiny rate to prevent nanoframes from possibly decaying
-        if buildTargetOwners[builderID] and currentBuildSpeed[builderID] == 0 then
-            spSetUnitBuildSpeed(builderID, 0.001) --(*)
-        end
-
+	local teams = spGetTeamList()
+	for i=1, #teams do
+		local teamID = teams[i]
+		if not select(3, spGetTeamInfo(teamID,false)) then -- isnt dead
+			if n == updateFrame[teamID] then
+				local interval = GetUpdateInterval(teamID)
+				UpdatePassiveBuilders(teamID, interval)
+				updateFrame[teamID] = n + interval
+			elseif not updateFrame[teamID] or updateFrame[teamID] < n then
+				updateFrame[teamID] = n + GetUpdateInterval(teamID)
+			end
+		end
     end
 end

@@ -18,8 +18,6 @@ return {
 		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
 		description = Spring.I18N('units.descriptions.armpt'),
-		energymake = 0.2,
-		energyuse = 0.2,
 		explodeas = "mediumExplosionGeneric",
 		floater = true,
 		footprintx = 3,
@@ -94,6 +92,9 @@ return {
 			},
 		},
 		sfxtypes = {
+			explosiongenerators = {
+				[1] = "custom:waterwake-tiny",
+			},
 			pieceexplosiongenerators = {
 				[1] = "deathceg2",
 				[2] = "deathceg3",
@@ -124,6 +125,7 @@ return {
 			aamissile = {
 				areaofeffect = 48,
 				avoidfeature = false,
+				burnblow = true,
 				canattackground = false,
 				cegtag = "missiletrailaa",
 				craterareaofeffect = 0,
@@ -141,13 +143,19 @@ return {
 				noselfdamage = true,
 				range = 760,
 				reloadtime = 1.2,
-				smoketrail = false,
+				smoketrail = true,
+				smokePeriod = 5,
+				smoketime = 12,
+				smokesize = 4.4,
+				smokecolor = 0.95,
+				smokeTrailCastShadow = false,
+				castshadow = false, --projectile
 				soundhit = "xplosml2",
 				soundhitwet = "splshbig",
 				soundstart = "rocklit1",
 				startvelocity = 650,
-				texture1 = "trans",
-				texture2 = "armsmoketrail",
+				texture1 = "null",
+				texture2 = "smoketrailaa",
 				tolerance = 9000,
 				tracks = true,
 				turnrate = 63000,
@@ -159,7 +167,7 @@ return {
 				customparams = {
 					expl_light_color = "1 0.4 0.5",
 					light_color = "1 0.5 0.6",
-					light_skip = true,
+
 				},
 				damage = {
 					bombers = 80,

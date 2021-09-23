@@ -173,6 +173,23 @@ for i=1,#files do
     end
 end
 
+-- WEAPON SOUNDS MULTI (more concurrent)
+local files = VFS.DirList("sounds/weapons-mult/")
+local t = Sounds.SoundItems
+for i=1,#files do
+   local fileName = files[i]
+   fileNames = string.sub(fileName, 21, string.find(fileName, ".wav") -1)
+   t[fileNames] = {
+      file     = fileName;
+      gain = 1.2*0.3,
+      pitchmod = 0.17,
+      gainmod  = 0.2*0.3,
+      dopplerscale = 1.0,
+      maxconcurrent = 15,
+      rolloff = 1.5,
+   }
+end
+
 -- CHICKEN SOUNDS
 local files = VFS.DirList("sounds/chickens/")
 local t = Sounds.SoundItems

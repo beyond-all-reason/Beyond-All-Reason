@@ -29,8 +29,6 @@ return {
 		idletime = 1800,
 		maxdamage = 2400,
 		maxslope = 10,
-		metalmake = 1,
-		metalstorage = 150,
 		minwaterdepth = 25,
 		name = unitName,
 		objectname = "Units/ARMAMSUB.s3o",

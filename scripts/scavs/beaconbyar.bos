@@ -32,7 +32,7 @@ Create()
 	spin arm around y-axis speed <21.978022>;
 	turn arm to x-axis Rand( <0.005495>, <40.989011> ) speed <1000.000000>;
 	sleep Rand( 1, 100 );
-	emit-sfx 2048 from launcher;
+	//emit-sfx 2048 from launcher;
 	sleep 2000;
 	show base;
 	start-script Standby();

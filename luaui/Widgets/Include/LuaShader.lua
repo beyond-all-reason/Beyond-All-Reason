@@ -100,13 +100,17 @@ layout(std140, binding = 1) uniform UniformParamsBuffer {
 
 	vec4 fogColor; //fog color
 	vec4 fogParams; //fog {start, end, 0.0, scale}
-	
+
+	vec4 sunDir;
+
 	vec4 sunAmbientModel;
 	vec4 sunAmbientMap;
 	vec4 sunDiffuseModel;
 	vec4 sunDiffuseMap;
 	vec4 sunSpecularModel;
 	vec4 sunSpecularMap;
+
+	vec4 shadowDensity;
 
 	vec4 windInfo; // windx, windy, windz, windStrength
 	vec2 mouseScreenPos; //x, y. Screen space.
@@ -169,7 +173,7 @@ mat4 translationMat(vec3 t) {
 	);
 }
     ]]
-    
+
     return eubs
 end
 

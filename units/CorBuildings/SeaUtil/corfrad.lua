@@ -18,8 +18,6 @@ return {
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		description = Spring.I18N('units.descriptions.corfrad'),
-		energymake = 4,
-		energyuse = 4,
 		explodeas = "mediumBuildingexplosiongeneric",
 		footprintx = 3,
 		footprintz = 3,
@@ -32,7 +30,7 @@ return {
 		minwaterdepth = 5,
 		name = unitName,
 		objectname = "Units/CORFRAD.s3o",
-		onoffable = true,
+		onoffable = false,
 		radardistance = 2100,
 		radaremitheight = 72,
 		script = "Units/CORFRAD.cob",
@@ -71,6 +69,9 @@ return {
 			},
 		},
 		sfxtypes = {
+			explosiongenerators = {
+				[1] = "custom:radarpulse_t1_slow",
+			},
 			pieceexplosiongenerators = {
 				[1] = "deathceg2",
 				[2] = "deathceg3",

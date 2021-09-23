@@ -16,8 +16,6 @@ return {
 		collisionvolumetype = "box",
 		corpse = "CORPSE",
 		description = Spring.I18N('units.descriptions.armvader'),
-		energymake = 0.1,
-		energyuse = 0.1,
 		explodeas = "crawl_blastsml",
 		firestate = 2,
 		footprintx = 2,

@@ -18,7 +18,30 @@ return {
                 speed              = [[0, 1 0, 0]],
                 texture            = [[orangenovaexplo]],
                 alwaysvisible      = true,
+                drawOrder          = 1,
             },
+        },
+        brightflare = {
+          air                = true,
+          class              = [[CBitmapMuzzleFlame]],
+          count              = 1,
+          ground             = true,
+          underwater         = true,
+          water              = true,
+          properties = {
+            colormap           = [[1.0 0.96 0.80 0.5    0.35 0.28 0.18 0.5    0 0 0 0]],
+            dir                = [[0, 1, 0]],
+            --gravity            = [[0.0, 0.1, 0.0]],
+            frontoffset        = 0,
+            fronttexture       = [[exploflare]],
+            length             = 40,
+            sidetexture        = [[none]],
+            size               = 2800,
+            sizegrowth         = [[0.4 r0.2]],
+            ttl                = 22,
+            pos                = [[0, 180, 0]],
+            drawOrder          = 1,
+          },
         },
         pop1 = {
 			class=[[heatcloud]],
@@ -36,6 +59,7 @@ return {
 				sizeGrowth = 18,
 				pos = [[r-10 r10, 20, r-10 r10]],
 				speed=[[0, 0, 0]],
+                drawOrder          = 1,
 			},
 		},
         groundflash_large = {
@@ -144,16 +168,17 @@ return {
                 numparticles       = 12,
                 particlelife       = 46,
                 particlelifespread = 16,
-                particlesize       = 20,
-                particlesizespread = 39,
+                particlesize       = 25,
+                particlesizespread = 65,
                 particlespeed      = 6,
                 particlespeedspread = 6.5,
                 pos                = [[0, 15, 0]],
                 sizegrowth         = 0.3,
                 sizemod            = 1,
-                texture            = [[megaparticle]],
+                texture            = [[flashside3]],
                 useairlos          = false,
                 alwaysvisible      = true,
+                drawOrder          = 1,
             },
         },
         explosion = {
@@ -184,6 +209,7 @@ return {
                 texture            = [[flashside1]],
                 useairlos          = false,
                 alwaysvisible      = true,
+                drawOrder          = 1,
             },
         },
         shockwavefirst = {
@@ -205,6 +231,7 @@ return {
 	        sizegrowth         = [[-29 r6]],
 	        ttl                = 34,
 	        pos                = [[0, 45, 0]],
+            drawOrder          = 1,
 	      },
 	    },
 	    shockwaveslow = {
@@ -252,6 +279,7 @@ return {
         sizemod            = 1,
         texture            = [[shard1]],
         useairlos          = false,
+        drawOrder          = 1,
       },
     },
     shard2 = {
@@ -334,6 +362,7 @@ return {
         texture            = [[gunshotxl]],
         useairlos          = false,
         alwaysvisible      = true,
+        drawOrder          = 2,
       },
     },
     fireglow = {
@@ -364,6 +393,7 @@ return {
         texture            = [[glow2]],
         useairlos          = false,
         alwaysvisible      = true,
+        drawOrder          = 2,
       },
     },
     -- shockwave = {
@@ -435,6 +465,7 @@ return {
                 texture            = [[randomdots]],
                 useairlos          = false,
                 alwaysvisible      = true,
+                drawOrder          = 1,
             },
         },
         dirt2 = {
@@ -462,6 +493,7 @@ return {
                 texture            = [[bigexplosmoke]],
                 useairlos          = false,
                 alwaysvisible      = true,
+                drawOrder          = 1,
             },
         },
         dirt3 = {
@@ -518,6 +550,7 @@ return {
                 sizemod            = 1.0,
                 texture            = [[bigexplosmoke]],
                 alwaysvisible      = true,
+                drawOrder          = 1,
             },
         },
         dustparticles = {

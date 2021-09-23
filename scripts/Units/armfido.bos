@@ -521,7 +521,7 @@ FirePrimary()
 FireSecondary()
 {
 	gun_2 = turret;
-	emit-sfx 1024 + 0 from flare;
+	emit-sfx 1024 + 1 from flare;
 	move barrel to z-axis [-3.0] now;
 	sleep 150;
 	move barrel to z-axis [0.000000] speed [3.00000];

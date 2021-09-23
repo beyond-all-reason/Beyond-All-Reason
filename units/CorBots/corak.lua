@@ -15,8 +15,6 @@ return {
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		description = Spring.I18N('units.descriptions.corak'),
-		energymake = 0.3,
-		energyuse = 0.3,
 		explodeas = "smallexplosiongeneric",
 		footprintx = 2,
 		footprintz = 2,
@@ -44,8 +42,8 @@ return {
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "corbots",
-			wpn1turretx = 75,
-			wpn1turrety = 225,
+			wpn1turretx = 300,
+			wpn1turrety = 300,
 		},
 		featuredefs = {
 			dead = {

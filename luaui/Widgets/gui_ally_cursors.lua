@@ -462,6 +462,23 @@ function widget:RecvLuaMsg(msg, playerID)
 	end
 end
 
+local function updateCursor(playerID, wx, wy, wz, camX, camY, camZ, opacity, sl)
+  if cursors[playerID] == nil then
+			cursors[playerID] = { wx, wy, wz, camX, camY, camZ, opacity, sl}
+  else
+    cursors[playerID][1] = wx
+    cursors[playerID][2] = wy
+    cursors[playerID][3] = wz
+    cursors[playerID][4] = camX
+    cursors[playerID][5] = camY
+    cursors[playerID][6] = camZ
+    cursors[playerID][7] = opacity
+    cursors[playerID][8] = sl
+  end
+end
+
+
+
 local sec = 0
 function widget:Update(dt)
 	if chobbyInterface then
@@ -516,7 +533,9 @@ function widget:Update(dt)
 			end
 			if opacity > 0.1 then
 				local wy = spGetGroundHeight(wx, wz)
-				cursors[playerID] = { wx, wy, wz, camX, camY, camZ, opacity, specList[playerID] }
+				updateCursor(playerID,wx, wy, wz, camX, camY, camZ, opacity, specList[playerID])
+        -- for future reference, avoid recreating tables every frame, just update it with a function
+				--cursors[playerID] = { wx, wy, wz, camX, camY, camZ, opacity, specList[playerID] }
 			else
 				notIdle[playerID] = nil
 				cursors[playerID] = nil

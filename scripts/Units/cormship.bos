@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, doorl, doorr, launcher, flare1, wake, turret, sleeve, flare2, dish ;
+piece  base, doorl, doorr, launcher, flare1, wake, bow, turret, sleeve, flare2, dish ;
 
 static-var  Static_Var_1, Static_Var_2, restore_delay, Static_Var_4, gun_1,
             statechg_DesiredState, statechg_StateChanging, oldHead;
@@ -239,9 +239,13 @@ StartMoving()
 	set-signal-mask SIG_MOVE;
 	var waketime;
 	start-script waveSplash();
+	var bowtime;
+	bowtime = 0;
 	while( TRUE )
 	{
-		emit-sfx 2 from wake;
+		emit-sfx 1024 + 0 from wake;
+		if (bowtime) emit-sfx 1024 + 1 from bow;
+        bowtime = !bowtime;
 		waketime = (get CURRENT_SPEED) * 100 / get MAX_SPEED;
 		if( waketime < 50 ) waketime = 50;
 		sleep 12000 / waketime;

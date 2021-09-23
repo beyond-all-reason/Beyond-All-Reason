@@ -12,7 +12,7 @@ function gadget:GetInfo()
 		date = "2021",
 		license = "GNU GPL, v2 or later",
 		layer = 0,
-		enabled = Spring.GetModOptions and Spring.GetModOptions().experimentalxpsystem and Spring.GetModOptions().experimentalxpsystem == "enabled",
+		enabled = Spring.GetModOptions().experimentalxpsystem,
 	}
 end
 
@@ -52,8 +52,8 @@ local unitFootprintZ = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
 	local weapons = unitDef.weapons
 	if #weapons > 0 then
-		unitFootprintX[unitDefID] = unitDef.footprintx
-		unitFootprintZ[unitDefID] = unitDef.footprintz
+		unitFootprintX[unitDefID] = unitDef.xsize
+		unitFootprintZ[unitDefID] = unitDef.zsize
 		unitWeapons[unitDefID] = {}
 		for id, _ in pairs(weapons) do
 			unitWeapons[unitDefID][id] = true    -- no need to store weapondefid

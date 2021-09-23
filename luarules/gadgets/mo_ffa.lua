@@ -10,9 +10,7 @@ function gadget:GetInfo()
 	}
 end
 
-local enabled = tonumber(Spring.GetModOptions().ffa_mode) or 0
-
-if (enabled == 0) then
+if not Spring.GetModOptions().ffa_mode then
 	return false
 end
 

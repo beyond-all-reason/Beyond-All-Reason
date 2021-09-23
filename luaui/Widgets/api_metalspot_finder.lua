@@ -7,7 +7,7 @@ function widget:GetInfo()
 		version   = "v1.1",
 		date      = "November 2010",
 		license   = "GNU GPL, v2 or later",
-		layer     = -30000,
+		layer     = -99999999,
 		enabled   = true
 	}
 end
@@ -32,7 +32,7 @@ local spTestBuildOrder = Spring.TestBuildOrder
 
 local extractorRadius = Game.extractorRadius
 local extractorRadiusSqr = extractorRadius * extractorRadius
- 
+
 local buildmapSizeX = Game.mapSizeX - buildGridSize
 local buildmapSizeZ = Game.mapSizeZ - buildGridSize
 local buildmapStartX = buildGridSize
@@ -57,9 +57,9 @@ end
 -- Shared functions
 ------------------------------------------------------------
 function GetMexPositions(spot, uDefID, facing, testBuild)
-	
+
 	local positions = {}
-	
+
 	local xoff, zoff
 	local uDef = UnitDefs[uDefID]
 	if facing == 0 or facing == 2 then
@@ -69,11 +69,11 @@ function GetMexPositions(spot, uDefID, facing, testBuild)
 		xoff = (4 * uDef.zsize) % 16
 		zoff = (4 * uDef.xsize) % 16
 	end
-	
+
 	if not spot.validLeft then
 		GetValidStrips(spot)
 	end
-	
+
 	local validLeft = spot.validLeft
 	local validRight = spot.validRight
 	for z, vLeft in pairs(validLeft) do
@@ -88,17 +88,17 @@ function GetMexPositions(spot, uDefID, facing, testBuild)
 			end
 		end
 	end
-	
+
 	return positions
 end
 
 function IsMexPositionValid(spot, x, z)
-	
+
 	if z <= spot.maxZ - extractorRadius or
 	   z >= spot.minZ + extractorRadius then -- Test for metal being included is dist < extractorRadius
 		return false
 	end
-	
+
 	local sLeft, sRight = spot.left, spot.right
 	for sz = spot.minZ, spot.maxZ, gridSize do
 		local dz = sz - z
@@ -108,7 +108,7 @@ function IsMexPositionValid(spot, x, z)
 			return false
 		end
 	end
-	
+
 	return true
 end
 
@@ -116,25 +116,25 @@ end
 -- Mex finding
 ------------------------------------------------------------
 function GetSpots()
-	
+
 	-- Main group collection
 	local uniqueGroups = {}
-	
+
 	-- Strip info
 	local nStrips = 0
 	local stripLeft = {}
 	local stripRight = {}
 	local stripGroup = {}
-	
+
 	-- Indexes
 	local aboveIdx
 	local workingIdx
-	
+
 	-- Strip processing function (To avoid some code duplication)
 	local function DoStrip(x1, x2, z, worth)
-		
+
 		local assignedTo
-		
+
 		for i = aboveIdx, workingIdx - 1 do
 			if stripLeft[i] > x2 + gridSize then
 				break
@@ -166,11 +166,11 @@ function GetSpots()
 				aboveIdx = aboveIdx + 1
 			end
 		end
-		
+
 		nStrips = nStrips + 1
 		stripLeft[nStrips] = x1
 		stripRight[nStrips] = x2
-		
+
 		if assignedTo then
 			stripGroup[nStrips] = assignedTo
 		else
@@ -185,17 +185,17 @@ function GetSpots()
 			uniqueGroups[newGroup] = true
 		end
 	end
-	
+
 	-- Strip finding
 	workingIdx = huge
 	for mz = metalmapStartX, metalmapSizeZ, gridSize do
-		
+
 		aboveIdx = workingIdx
 		workingIdx = nStrips + 1
-		
+
 		local stripStart = nil
 		local stripWorth = 0
-		
+
 		for mx = metalmapStartZ, metalmapSizeX, gridSize do
 			local _, _, groundMetal = spGetGroundInfo(mx, mz)
 			if groundMetal > 0 then
@@ -207,16 +207,16 @@ function GetSpots()
 				stripWorth = 0
 			end
 		end
-		
+
 		if stripStart then
 			DoStrip(stripStart, metalmapSizeX, mz, stripWorth)
 		end
 	end
-	
+
 	-- Final processing
 	local spots = {}
 	for g, _ in pairs(uniqueGroups) do
-		
+
 		local gMinX, gMaxX = huge, -1
 		local gLeft, gRight = g.left, g.right
 		for iz = g.minZ, g.maxZ, gridSize do
@@ -225,24 +225,24 @@ function GetSpots()
 		end
 		g.minX = gMinX
 		g.maxX = gMaxX
-		
+
 		g.x = (gMinX + gMaxX) * 0.5
 		g.z = (g.minZ + g.maxZ) * 0.5
 		g.y = spGetGroundHeight(g.x, g.z)
-		
+
 		spots[#spots + 1] = g
 	end
 	return spots
 end
 
 function GetValidStrips(spot)
-	
+
 	local sMinZ, sMaxZ = spot.minZ, spot.maxZ
 	local sLeft, sRight = spot.left, spot.right
-	
+
 	local validLeft = {}
 	local validRight = {}
-	
+
 	local maxZOffset = buildGridSize * ceil(extractorRadius / buildGridSize - 1)
 	for mz = max(sMaxZ - maxZOffset, buildmapStartZ), min(sMinZ + maxZOffset, buildmapSizeZ), buildGridSize do
 		local vLeft, vRight = buildmapStartX, buildmapSizeX
@@ -256,7 +256,7 @@ function GetValidStrips(spot)
 		validLeft[mz] = vLeft
 		validRight[mz] = vRight
 	end
-	
+
 	spot.validLeft = validLeft
 	spot.validRight = validRight
 end
