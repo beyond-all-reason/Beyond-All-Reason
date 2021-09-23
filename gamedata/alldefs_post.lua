@@ -280,6 +280,9 @@ function UnitDef_Post(name, uDef)
 	if uDef.workertime then
 		local x = Spring.GetModOptions().experimentalbuildpower
 		uDef.workertime = uDef.workertime*x
+
+		-- increase terraformspeed to be able to restore ground faster
+		uDef.terraformspeed = uDef.workertime * 5
 	end
 
 
