@@ -125,11 +125,10 @@ local fsSrc =
 [[
 #version 420
 #line 20000
-
-//__ENGINEUNIFORMBUFFERDEFS__
-
 #extension GL_ARB_uniform_buffer_object : require
 #extension GL_ARB_shading_language_420pack: require
+
+//__ENGINEUNIFORMBUFFERDEFS__
 
 in DataVS {
 	float circlealpha;
