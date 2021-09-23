@@ -280,6 +280,7 @@ if gadgetHandler:IsSyncedCode() then
                     TeamSizes[allyTeamID][3] = TeamSizes[allyTeamID][3] + ColorVariationDelta -- ..but adding random color variations with increasing amplitude with every cycle
                 end
 
+                -- Assigning R,G,B values with specified color variations
                 Spring.SetTeamRulesParam(teamID, "AutoTeamColorRed", Hex2RGB(TeamColors[allyTeamCount][TeamSizes[allyTeamID][1]][TeamSizes[allyTeamID][2]])[1] + math.random(-TeamSizes[allyTeamID][3], TeamSizes[allyTeamID][3]))
                 Spring.SetTeamRulesParam(teamID, "AutoTeamColorGreen", Hex2RGB(TeamColors[allyTeamCount][TeamSizes[allyTeamID][1]][TeamSizes[allyTeamID][2]])[2] + math.random(-TeamSizes[allyTeamID][3], TeamSizes[allyTeamID][3]))
                 Spring.SetTeamRulesParam(teamID, "AutoTeamColorBlue", Hex2RGB(TeamColors[allyTeamCount][TeamSizes[allyTeamID][1]][TeamSizes[allyTeamID][2]])[3] + math.random(-TeamSizes[allyTeamID][3], TeamSizes[allyTeamID][3]))
