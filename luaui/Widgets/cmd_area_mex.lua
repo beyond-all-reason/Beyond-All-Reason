@@ -468,8 +468,8 @@ function widget:CommandsChanged()
 end
 
 function widget:Initialize()
-	if not WG.metalSpots then
-		Spring.Echo("<Area Mex> This widget requires the 'Metalspot Finder' widget to run.")
+	if not WG.metalSpots or #WG.metalSpots > 0 and #WG.metalSpots <= 2 then
+		Spring.Echo("<Area Mex> No metalspots or metalmap")
 		widgetHandler:RemoveWidget(self)
 		return
 	end
