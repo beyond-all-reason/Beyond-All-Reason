@@ -110,10 +110,48 @@ function widget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
 	end
 end
 
+
+local activeCmd = select(4, spGetActiveCommand())
+local buildmenuMexSelected = false
 function widget:Update()
 	if chobbyInterface then
 		return
 	end
+
+	-- swap build command to area mex when mex is selected
+	local prevActiveCmd = activeCmd
+	activeCmd = select(2, spGetActiveCommand())
+	if activeCmd ~= prevActiveCmd then
+		if activeCmd and activeCmd < 0 and mexIds[activeCmd * -1] then
+			buildmenuMexSelected = true
+			-- only transform to areamex cmd after user starts dragging
+		else
+			buildmenuMexSelected = false
+		end
+	end
+
+	if mexSelectedPlacingPosX then
+		if buildmenuMexSelected then
+			local vsx, vsy = Spring.GetViewGeometry()
+			local gracePx = math.floor((vsx+vsy) * 0.005)
+			local x, y, b, b2, b3 = Spring.GetMouseState()
+			if b then
+				if x > mexSelectedPlacingPosX + gracePx or x < mexSelectedPlacingPosX - gracePx and y > mexSelectedPlacingPosY + gracePx or x < mexSelectedPlacingPosY - gracePx then
+					-- only transform to areamex cmd after user starts dragging
+					Spring.SetActiveCommand(Spring.GetCmdDescIndex(CMD_AREA_MEX), 1, true, false, Spring.GetModKeyState())
+					mexSelectedPlacingPosX = nil
+					mexSelectedPlacingPosY = nil
+				end
+			else
+				mexSelectedPlacingPosX = nil
+				mexSelectedPlacingPosY = nil
+			end
+		else
+			mexSelectedPlacingPosX = nil
+			mexSelectedPlacingPosY = nil
+		end
+	end
+
 	local _, cmd, _ = spGetActiveCommand()
 	if cmd == CMD_AREA_MEX then
 		if spGetMapDrawMode() ~= 'metal' then
@@ -134,6 +172,23 @@ function widget:Update()
 		end
 	end
 end
+
+
+
+function widget:MousePress(x, y, button)
+	if button == 1 and buildmenuMexSelected and not mexSelectedPlacingPosX then
+		if Spring.IsGUIHidden() then
+			return
+		end
+		if WG['topbar'] and WG['topbar'].showingQuit() then
+			return
+		end
+
+		mexSelectedPlacingPosX = x
+		mexSelectedPlacingPosY = y
+	end
+end
+
 
 function AreAlliedUnits(unitID)
 	-- Is unitID allied with me ?
@@ -259,15 +314,15 @@ function widget:CommandNotify(id, params, options)
 
 		for k = 1, #mexes do
 			local mex = mexes[k]
-			if not (mex.x % 16 == 8) then
+			if not mex.x % 16 == 8 then
 				mexes[k].x = mexes[k].x + 8 - (mex.x % 16)
 			end
-			if not (mex.z % 16 == 8) then
+			if not mex.z % 16 == 8 then
 				mexes[k].z = mexes[k].z + 8 - (mex.z % 16)
 			end
 			mex.x = mexes[k].x
 			mex.z = mexes[k].z
-			if (Distance(cx, cz, mex.x, mex.z) < cr * cr) then
+			if Distance(cx, cz, mex.x, mex.z) < cr * cr then
 				-- circle area, slower
 				if NoAlliedMex(mex.x, mex.z, maxbatchextracts) == true then
 					commandsCount = commandsCount + 1
