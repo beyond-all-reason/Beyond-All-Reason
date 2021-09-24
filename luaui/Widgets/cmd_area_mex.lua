@@ -314,10 +314,10 @@ function widget:CommandNotify(id, params, options)
 
 		for k = 1, #mexes do
 			local mex = mexes[k]
-			if not mex.x % 16 == 8 then
+			if not (mex.x % 16 == 8) then
 				mexes[k].x = mexes[k].x + 8 - (mex.x % 16)
 			end
-			if not mex.z % 16 == 8 then
+			if not (mex.z % 16 == 8) then
 				mexes[k].z = mexes[k].z + 8 - (mex.z % 16)
 			end
 			mex.x = mexes[k].x
