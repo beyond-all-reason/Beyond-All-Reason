@@ -88,10 +88,13 @@ local mapSunLighting = {
 		groundAmbientColor = { 0.52, 0.52, 0.59 },
 	},
 	['flats and forests remake v1'] = {
-groundDiffuseColor = { 0.8, 0.8, 0.8 },
-groundAmbientColor = { 0.44, 0.44, 0.44 },
-unitDiffuseColor = {0.8, 0.8, 0.76},
-unitAmbientColor = {0.33, 0.33, 0.33},
+		groundDiffuseColor = { 0.8, 0.8, 0.8 },
+		groundAmbientColor = { 0.44, 0.44, 0.44 },
+		unitDiffuseColor = {0.8, 0.8, 0.76},
+		unitAmbientColor = {0.33, 0.33, 0.33},
+	},
+	['comet catcher remake 1.8'] = {
+		unitAmbientColor = { 0.75, 0.75, 0.75 },
 	},
 }
 

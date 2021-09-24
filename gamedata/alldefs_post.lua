@@ -282,7 +282,7 @@ function UnitDef_Post(name, uDef)
 		uDef.workertime = uDef.workertime*x
 
 		-- increase terraformspeed to be able to restore ground faster
-		uDef.terraformspeed = uDef.workertime * 5
+		uDef.terraformspeed = uDef.workertime * 30
 	end
 
 
