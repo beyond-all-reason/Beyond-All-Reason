@@ -21,7 +21,7 @@ if gadgetHandler:IsSyncedCode() then
         [8] =  "#00FF9E", -- Turquoise Green
         [9] =  "#DB8E0E", -- Brown
         [10] = "#BDFF00", -- Lime
-        [11] = "#286DFF", -- Light Blue
+        [11] = "#3475FF", -- Light Blue
         [12] = "#FF6058", -- Light Red
         [13] = "#8DF492", -- Light Green
         [14] = "#FFE874", -- Light Yellow
@@ -52,7 +52,7 @@ if gadgetHandler:IsSyncedCode() then
                 [3]  = "#0CC4E8", -- Turquoise
                 [4]  = "#00FF9E", -- Turquoise Green
                 [5]  = "#BDFF00", -- Normal Lime
-                [6]  = "#286DFF", -- Light Blue
+                [6]  = "#3475FF", -- Light Blue
                 [7]  = "#8DF492", -- Light Green
                 [8]  = "#90E5F5", -- Light Turquoise
                 [9]  = "#00AA69", -- Dark Turquoise Green
@@ -86,7 +86,7 @@ if gadgetHandler:IsSyncedCode() then
             [1] = { -- First Team (Blue)
                 [1] = "#004DFF", -- Armada Blue
                 [2] = "#0CC4E8", -- Turquoise
-                [3] = "#286DFF", -- Light Blue
+                [3] = "#3475FF", -- Light Blue
                 [4] = "#90E5F5", -- Light Turquoise
                 [5] = "#6697FF", -- Very Light Blue
                 [6] = "#08839B", -- Dark Turquoise
@@ -113,7 +113,7 @@ if gadgetHandler:IsSyncedCode() then
             [1] = { -- First Team (Blue)
                 [1] = "#004DFF", -- Armada Blue
                 [2] = "#0CC4E8", -- Turquoise
-                [3] = "#286DFF", -- Light Blue
+                [3] = "#3475FF", -- Light Blue
                 [4] = "#90E5F5", -- Light Turquoise
                 [5] = "#6697FF", -- Very Light Blue
                 [6] = "#08839B", -- Dark Turquoise
@@ -148,7 +148,7 @@ if gadgetHandler:IsSyncedCode() then
             [1] = { -- First Team (Blue)
                 [1] = "#004DFF", -- Armada Blue
                 [2] = "#0CC4E8", -- Turquoise
-                [3] = "#286DFF", -- Light Blue
+                [3] = "#3475FF", -- Light Blue
                 [4] = "#90E5F5", -- Light Turquoise
                 [5] = "#6697FF", -- Very Light Blue
             },
@@ -186,7 +186,7 @@ if gadgetHandler:IsSyncedCode() then
             [1] = { -- First Team (Blue)
                 [1] = "#004DFF", -- Armada Blue
                 [2] = "#0CC4E8", -- Turquoise
-                [3] = "#286DFF", -- Light Blue
+                [3] = "#3475FF", -- Light Blue
                 [4] = "#6697FF", -- Very Light Blue
             },
             [2] = { -- Second Team (Red)
