@@ -19,27 +19,27 @@ if gadgetHandler:IsSyncedCode() then
         [6] =  "#0CC4E8", -- Turquoise
         [7] =  "#FF6B00", -- Orange
         [8] =  "#00FF9E", -- Turquoise Green
-        [9] =  "#DB8E0E", -- Brown
+        [9] =  "#F6BB56", -- Light Brown
         [10] = "#BDFF00", -- Lime
-        [11] = "#286DFF", -- Light Blue
+        [11] = "#3475FF", -- Light Blue
         [12] = "#FF6058", -- Light Red
         [13] = "#8DF492", -- Light Green
-        [14] = "#FFE874", -- Light Yellow
-        [15] = "#FF68EA", -- Light Fuchsia
+        [14] = "#FFF2AE", -- Very Light Yellow
+        [15] = "#FFAAF3", -- Very Light Fuchsia
         [16] = "#90E5F5", -- Light Turquoise
         [17] = "#FF9055", -- Light Orange
         [18] = "#00AA69", -- Dark Turquoise Green
-        [19] = "#F6BB56", -- Light Brown
+        [19] = "#9B6408", -- Dark Brown
         [20] = "#7EAA00", -- Dark Lime
         [21] = "#6697FF", -- Very Light Blue
         [22] = "#AD0800", -- Dark Red
         [23] = "#089B10", -- Dark Green
-        [24] = "#FFF2AE", -- Very Light Yellow
-        [25] = "#FFAAF3", -- Very Light Fuchsia
+        [24] = "#FFE874", -- Light Yellow
+        [25] = "#FF68EA", -- Light Fuchsia
         [26] = "#08839B", -- Dark Turquoise
         [27] = "#FFC8AA", -- Very Light Orange
         [28] = "#86FFD1", -- Light Turquoise Green
-        [29] = "#9B6408", -- Dark Brown
+        [29] = "#DB8E0E", -- Brown
         [30] = "#D9FF9A", -- Light Lime
     }
 
@@ -52,7 +52,7 @@ if gadgetHandler:IsSyncedCode() then
                 [3]  = "#0CC4E8", -- Turquoise
                 [4]  = "#00FF9E", -- Turquoise Green
                 [5]  = "#BDFF00", -- Normal Lime
-                [6]  = "#286DFF", -- Light Blue
+                [6]  = "#3475FF", -- Light Blue
                 [7]  = "#8DF492", -- Light Green
                 [8]  = "#90E5F5", -- Light Turquoise
                 [9]  = "#00AA69", -- Dark Turquoise Green
@@ -86,7 +86,7 @@ if gadgetHandler:IsSyncedCode() then
             [1] = { -- First Team (Blue)
                 [1] = "#004DFF", -- Armada Blue
                 [2] = "#0CC4E8", -- Turquoise
-                [3] = "#286DFF", -- Light Blue
+                [3] = "#3475FF", -- Light Blue
                 [4] = "#90E5F5", -- Light Turquoise
                 [5] = "#6697FF", -- Very Light Blue
                 [6] = "#08839B", -- Dark Turquoise
@@ -113,7 +113,7 @@ if gadgetHandler:IsSyncedCode() then
             [1] = { -- First Team (Blue)
                 [1] = "#004DFF", -- Armada Blue
                 [2] = "#0CC4E8", -- Turquoise
-                [3] = "#286DFF", -- Light Blue
+                [3] = "#3475FF", -- Light Blue
                 [4] = "#90E5F5", -- Light Turquoise
                 [5] = "#6697FF", -- Very Light Blue
                 [6] = "#08839B", -- Dark Turquoise
@@ -148,7 +148,7 @@ if gadgetHandler:IsSyncedCode() then
             [1] = { -- First Team (Blue)
                 [1] = "#004DFF", -- Armada Blue
                 [2] = "#0CC4E8", -- Turquoise
-                [3] = "#286DFF", -- Light Blue
+                [3] = "#3475FF", -- Light Blue
                 [4] = "#90E5F5", -- Light Turquoise
                 [5] = "#6697FF", -- Very Light Blue
             },
@@ -186,7 +186,7 @@ if gadgetHandler:IsSyncedCode() then
             [1] = { -- First Team (Blue)
                 [1] = "#004DFF", -- Armada Blue
                 [2] = "#0CC4E8", -- Turquoise
-                [3] = "#286DFF", -- Light Blue
+                [3] = "#3475FF", -- Light Blue
                 [4] = "#6697FF", -- Very Light Blue
             },
             [2] = { -- Second Team (Red)
@@ -280,6 +280,7 @@ if gadgetHandler:IsSyncedCode() then
                     TeamSizes[allyTeamID][3] = TeamSizes[allyTeamID][3] + ColorVariationDelta -- ..but adding random color variations with increasing amplitude with every cycle
                 end
 
+                -- Assigning R,G,B values with specified color variations
                 Spring.SetTeamRulesParam(teamID, "AutoTeamColorRed", Hex2RGB(TeamColors[allyTeamCount][TeamSizes[allyTeamID][1]][TeamSizes[allyTeamID][2]])[1] + math.random(-TeamSizes[allyTeamID][3], TeamSizes[allyTeamID][3]))
                 Spring.SetTeamRulesParam(teamID, "AutoTeamColorGreen", Hex2RGB(TeamColors[allyTeamCount][TeamSizes[allyTeamID][1]][TeamSizes[allyTeamID][2]])[2] + math.random(-TeamSizes[allyTeamID][3], TeamSizes[allyTeamID][3]))
                 Spring.SetTeamRulesParam(teamID, "AutoTeamColorBlue", Hex2RGB(TeamColors[allyTeamCount][TeamSizes[allyTeamID][1]][TeamSizes[allyTeamID][2]])[3] + math.random(-TeamSizes[allyTeamID][3], TeamSizes[allyTeamID][3]))
