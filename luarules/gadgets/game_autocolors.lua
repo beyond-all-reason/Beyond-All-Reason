@@ -19,27 +19,27 @@ if gadgetHandler:IsSyncedCode() then
         [6] =  "#0CC4E8", -- Turquoise
         [7] =  "#FF6B00", -- Orange
         [8] =  "#00FF9E", -- Turquoise Green
-        [9] =  "#DB8E0E", -- Brown
+        [9] =  "#F6BB56", -- Light Brown
         [10] = "#BDFF00", -- Lime
         [11] = "#3475FF", -- Light Blue
         [12] = "#FF6058", -- Light Red
         [13] = "#8DF492", -- Light Green
-        [14] = "#FFE874", -- Light Yellow
-        [15] = "#FF68EA", -- Light Fuchsia
+        [14] = "#FFF2AE", -- Very Light Yellow
+        [15] = "#FFAAF3", -- Very Light Fuchsia
         [16] = "#90E5F5", -- Light Turquoise
         [17] = "#FF9055", -- Light Orange
         [18] = "#00AA69", -- Dark Turquoise Green
-        [19] = "#F6BB56", -- Light Brown
+        [19] = "#9B6408", -- Dark Brown
         [20] = "#7EAA00", -- Dark Lime
         [21] = "#6697FF", -- Very Light Blue
         [22] = "#AD0800", -- Dark Red
         [23] = "#089B10", -- Dark Green
-        [24] = "#FFF2AE", -- Very Light Yellow
-        [25] = "#FFAAF3", -- Very Light Fuchsia
+        [24] = "#FFE874", -- Light Yellow
+        [25] = "#FF68EA", -- Light Fuchsia
         [26] = "#08839B", -- Dark Turquoise
         [27] = "#FFC8AA", -- Very Light Orange
         [28] = "#86FFD1", -- Light Turquoise Green
-        [29] = "#9B6408", -- Dark Brown
+        [29] = "#DB8E0E", -- Brown
         [30] = "#D9FF9A", -- Light Lime
     }
 
