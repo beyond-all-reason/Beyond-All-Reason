@@ -1,7 +1,7 @@
 function widget:GetInfo()
 	return {
 		name      = "Language",
-		desc      = "api to handle translations",
+		desc      = "API to handle translations",
 		author    = "Floris",
 		date      = "December 2020",
 		license   = "",
@@ -10,10 +10,37 @@ function widget:GetInfo()
 	}
 end
 
-local noTranslationText = '---'
+local function refreshDefs()
+	for unitDefName, unitDef in pairs(UnitDefNames) do
+		local isScavenger = unitDef.customParams and unitDef.customParams.isscavenger
 
--- todo: echo where language of choice is missing entries
---local debug = false		-- true = echo the missing entries of the additional languages
+		if not isScavenger then
+			unitDef.translatedHumanName = Spring.I18N('units.names.' .. unitDefName)
+			unitDef.translatedTooltip = Spring.I18N('units.descriptions.' .. unitDefName)
+		else
+			Spring.Echo("blah")
+			Spring.Echo(unitDefName, unitDef.customParams.fromunit)
+			local fromUnitName = Spring.I18N('units.names.' .. unitDef.customParams.fromunit)
+			unitDef.translatedHumanName = Spring.I18N('units.scavenger', { name = fromUnitName })
+
+			local unitTooltip = Spring.I18N('units.descriptions.' .. unitDefName)
+			-- Not all Scavenger units have unique descriptions, so need to use the regular unit's description as fallback
+			-- I18N returns lookup key if can't find a translation, which is why that is use for the comparison
+			if unitTooltip == 'units.descriptions.' .. unitDefName then
+				unitTooltip = Spring.I18N('units.descriptions.' .. unitDef.customParams.fromunit)
+			end
+
+			unitDef.translatedTooltip = unitTooltip
+		end
+	end
+end
+
+local function languageChanged(language)
+	Spring.I18N.setLanguage(language)
+	refreshDefs()
+end
+
+local noTranslationText = '---'
 
 local languageContent = {}
 local defaultLanguage = 'en'
@@ -50,6 +77,14 @@ local function loadLanguage()
 end
 
 function widget:Initialize()
+	refreshDefs()
+	Spring.Echo("foo")
+	for _, ud in pairs(UnitDefs) do
+		if ud.customParams.iscommander ~= nil then
+			Spring.Echo(ud.name, ud.customParams.iscommander, type(ud.customParams.iscommander))
+			-- Spring.Echo(ud.translatedHumanName, ud.translatedTooltip)
+		end
+	end
 	loadLanguage()
 
 	WG['lang'] = {}
