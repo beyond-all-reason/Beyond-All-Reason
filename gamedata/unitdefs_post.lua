@@ -5,7 +5,6 @@ VFS.Include("gamedata/alldefs_post.lua")
 VFS.Include("gamedata/post_save_to_customparams.lua")
 
 -- special tablemerge:
--- converts value string 'nil' to an actual nil
 -- normally an empty table as value will be ignored when merging, but not here, it will overwrite what it had with an empty table
 local function tableMergeSpecial(t1, t2)
 	for k, v in pairs(t2) do
