@@ -130,27 +130,27 @@ function widget:Update()
 		end
 	end
 
-	if mexSelectedPlacingPosX then
-		if buildmenuMexSelected then
-			local vsx, vsy = Spring.GetViewGeometry()
-			local gracePx = math.floor((vsx+vsy) * 0.005)
-			local x, y, b, b2, b3 = Spring.GetMouseState()
-			if b then
-				if x > mexSelectedPlacingPosX + gracePx or x < mexSelectedPlacingPosX - gracePx and y > mexSelectedPlacingPosY + gracePx or x < mexSelectedPlacingPosY - gracePx then
-					-- only transform to areamex cmd after user starts dragging
-					Spring.SetActiveCommand(Spring.GetCmdDescIndex(CMD_AREA_MEX), 1, true, false, Spring.GetModKeyState())
-					mexSelectedPlacingPosX = nil
-					mexSelectedPlacingPosY = nil
-				end
-			else
-				mexSelectedPlacingPosX = nil
-				mexSelectedPlacingPosY = nil
-			end
-		else
-			mexSelectedPlacingPosX = nil
-			mexSelectedPlacingPosY = nil
-		end
-	end
+	--if mexSelectedPlacingPosX then
+	--	if buildmenuMexSelected then
+	--		local vsx, vsy = Spring.GetViewGeometry()
+	--		local gracePx = math.floor((vsx+vsy) * 0.005)
+	--		local x, y, b, b2, b3 = Spring.GetMouseState()
+	--		if b then
+	--			if x > mexSelectedPlacingPosX + gracePx or x < mexSelectedPlacingPosX - gracePx and y > mexSelectedPlacingPosY + gracePx or x < mexSelectedPlacingPosY - gracePx then
+	--				-- only transform to areamex cmd after user starts dragging
+	--				Spring.SetActiveCommand(Spring.GetCmdDescIndex(CMD_AREA_MEX), 1, true, false, Spring.GetModKeyState())
+	--				mexSelectedPlacingPosX = nil
+	--				mexSelectedPlacingPosY = nil
+	--			end
+	--		else
+	--			mexSelectedPlacingPosX = nil
+	--			mexSelectedPlacingPosY = nil
+	--		end
+	--	else
+	--		mexSelectedPlacingPosX = nil
+	--		mexSelectedPlacingPosY = nil
+	--	end
+	--end
 
 	local _, cmd, _ = spGetActiveCommand()
 	if cmd == CMD_AREA_MEX then
@@ -175,19 +175,19 @@ end
 
 
 
-function widget:MousePress(x, y, button)
-	if button == 1 and buildmenuMexSelected and not mexSelectedPlacingPosX then
-		if Spring.IsGUIHidden() then
-			return
-		end
-		if WG['topbar'] and WG['topbar'].showingQuit() then
-			return
-		end
-
-		mexSelectedPlacingPosX = x
-		mexSelectedPlacingPosY = y
-	end
-end
+--function widget:MousePress(x, y, button)
+--	if button == 1 and buildmenuMexSelected and not mexSelectedPlacingPosX then
+--		if Spring.IsGUIHidden() then
+--			return
+--		end
+--		if WG['topbar'] and WG['topbar'].showingQuit() then
+--			return
+--		end
+--
+--		mexSelectedPlacingPosX = x
+--		mexSelectedPlacingPosY = y
+--	end
+--end
 
 
 function AreAlliedUnits(unitID)
@@ -439,12 +439,9 @@ function widget:CommandNotify(id, params, options)
 		end
 
 		return true
-
 	end
-
 end
 
---------------------
 
 function widget:CommandsChanged()
 	local units = spGetSelectedUnits()
