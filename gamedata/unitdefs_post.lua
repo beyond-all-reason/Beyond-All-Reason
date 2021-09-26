@@ -151,14 +151,13 @@ end
 
 
 -- create scavenger units
-VFS.Include("gamedata/scavengers/unitdef_changes.lua")
+local customScavDefs = VFS.Include("gamedata/scavengers/unitdef_changes.lua")
 local scavengerUnitDefs = {}
 
 for name, uDef in pairs(UnitDefs) do
-	--local faction = string.sub(name, 1, 3)
 	if not string.find(name, '_scav') and not string.find(name, 'critter')  and not string.find(name, 'chicken') then
-		if customDefs[name] ~= nil then
-			scavengerUnitDefs[name .. '_scav'] = tableMergeSpecial(table.copy(uDef), table.copy(customDefs[name]))
+		if customScavDefs[name] ~= nil then
+			scavengerUnitDefs[name .. '_scav'] = tableMergeSpecial(table.copy(uDef), table.copy(customScavDefs[name]))
 		else
 			scavengerUnitDefs[name .. '_scav'] = table.copy(uDef)
 		end

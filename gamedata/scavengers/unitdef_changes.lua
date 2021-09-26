@@ -4,7 +4,7 @@
 -- you only need to put the things you want changed in comparison with the regular unitdef. (use the same table structure)
 -- normally an empty table as value will be ignored when merging, but not here, it will overwrite what it had with an empty table
 
-customDefs = {}
+local customDefs = {}
 
 scavDifficulty = Spring.GetModOptions().scavdifficulty
 if scavDifficulty == "noob" then
@@ -60,8 +60,6 @@ local scavConstructorsList = {
 	"armacv",
 	"coracv",
 }
-
-
 
 customDefs.scavengerdroppodbeacon = {
 	maxdamage = 20000*ScavDifficultyMultiplier,
@@ -477,7 +475,6 @@ customDefs.armshltx = {
 		[numBuildoptions+5] = "armlunchbox",
 		[numBuildoptions+6] = "armmeatball",
 		[numBuildoptions+7] = "armassimilator",
-		
 	},
 }
 
@@ -497,7 +494,6 @@ customDefs.corgant = {
 		[numBuildoptions+1] = "cordemont4",
 		[numBuildoptions+2] = "corkarganetht4",
 		[numBuildoptions+3] = "corgolt4",
-		
 	},
 }
 
@@ -819,7 +815,6 @@ customDefs.corsktl = {
 
 --]]
 
-
 -- Faster LLT - unique sound - shorter beamtime
 customDefs.corllt = {
 	-- cloakcost = 6,
@@ -853,7 +848,6 @@ customDefs.armamb = {
 		},
 	},
 }
-
 
 customDefs.cortoast = {
 	-- description = Spring.I18N('units.descriptions.cortoast_scav'),
@@ -965,7 +959,6 @@ customDefs.armllt = {
 
 	},
 }
-
 
 -- customDefs.corvipe = {
 -- 	cloakcost = 20,
@@ -1096,3 +1089,5 @@ customDefs.armmh = {
 		},
 	},
 }
+
+return customDefs
