@@ -21,11 +21,7 @@ SAFEWRAP = 1
 SAFEDRAW = false  --// requires SAFEWRAP to work
 
 --//
-VFSMODE = VFS.RAW_FIRST
-allow_map_mutators = (Spring.GetModOptions and tonumber(Spring.GetModOptions().allowmapmutators) or 1) ~= 0
-if allow_map_mutators then
-  VFSMODE = VFS.MAP .. VFS.MOD .. VFS.BASE
-end
+VFSMODE = VFS.MAP .. VFS.MOD .. VFS.BASE
 
 --// when false, the handler will `compress` some output (e.g. list of started widgets)
 handler.verbose = false or true

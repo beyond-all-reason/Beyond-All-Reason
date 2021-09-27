@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  flarea1, flarea2, flareb, base, turret, sleeves, wake1, barrel1, barrel2;
+piece  flarea1, flarea2, flareb, base, turret, sleeves, wake, bow, barrel1, barrel2;
 
 static-var  Static_Var_1, restore_delay, Static_Var_7, Static_Var_8, aimDir;
 
@@ -168,14 +168,20 @@ RestoreAfterDelay()
 
 StartMoving()
 {
-	signal SIG_MOVE;
-	set-signal-mask SIG_MOVE;
-	while( TRUE )
-	{
-		emit-sfx 2 from wake1;
-		sleep 300;
-	}
-	return (0);
+    signal SIG_MOVE;
+    set-signal-mask SIG_MOVE;
+    var waketime;
+    var bowtime;
+    bowtime = 0;
+    while( TRUE )
+    {
+        emit-sfx 1024 + 1 from wake;
+        if (bowtime) emit-sfx 1024 + 2 from bow;
+        bowtime = !bowtime;
+        waketime = (get CURRENT_SPEED) * 100 / get MAX_SPEED;
+        if( waketime < 50 ) waketime = 50;
+        sleep 15000 / waketime;
+    }
 }
 
 StopMoving()

@@ -3,9 +3,10 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, pad1, pad0, dish, wake, beam1, beam2, nano1, nano2, anti, dtr, dtl, dbr, dbl;
+piece  base, pad1, pad0, dish, wake, bow, beam1, beam2, nano1, nano2, anti, dtr, dtl, dbr, dbl, blink;
 
 static-var  Static_Var_1, oldHead;
+static-var  Stunned;
 
 // Signal definitions
 #define SIG_MOVE			2
@@ -37,6 +38,18 @@ HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and f
 	return (100); //return damage percent
 }
 
+Lights()
+{
+	while( TRUE )
+	{
+	    if (!Stunned) {
+		    emit-sfx 1024 + 0 from blink;
+		}
+		sleep 2500;
+	}
+	sleep 50;
+	start-script Lights();
+}
 
 RockOnWaves()
 {
@@ -85,6 +98,18 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 	}
 }
 
+Go()
+{
+	spin dish around y-axis speed <-50.043956> accelerate <2>;
+	return (0);
+}
+
+Stop()
+{
+	spin dish around y-axis speed <0.000000>;
+	return (0);
+}
+
 Create()
 {
 	Static_Var_1 = 0;
@@ -93,12 +118,13 @@ Create()
 
 Activate()
 {
-	spin dish around y-axis speed <60.010989>;
+	start-script Lights();
+	start-script Go();
 }
 
 Deactivate()
 {
-	stop-spin dish around y-axis;
+	start-script Stop();
 }
 
 waveSplash()
@@ -120,9 +146,13 @@ StartMoving()
 	set-signal-mask SIG_MOVE;
 	var waketime;
 	start-script waveSplash();
+	var bowtime;
+	bowtime = 0;
 	while( TRUE )
 	{
-		emit-sfx 2 from wake;
+		emit-sfx 1024 + 1 from wake;
+		if (bowtime) emit-sfx 1024 + 2 from bow;
+        bowtime = !bowtime;
 		waketime = (get CURRENT_SPEED) * 100 / get MAX_SPEED;
 		if( waketime < 50 ) waketime = 50;
 		sleep 12000 / waketime;
@@ -153,7 +183,6 @@ QueryLandingPad(Func_Var_1, Func_Var_2)
 	}
 }
 
-static-var  Stunned;
 ExecuteRestoreAfterDelay()
 {
     if (Stunned) {
@@ -172,7 +201,10 @@ ExecuteRestoreAfterDelay()
 SetStunned(State)
 {
     Stunned = State;
-	if (!Stunned) {
+	if (Stunned) {
+	    call-script Stop();
+	} else {
+	    call-script Go();
 	    start-script ExecuteRestoreAfterDelay();
 	}
 }

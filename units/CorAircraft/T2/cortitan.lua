@@ -15,8 +15,6 @@ return {
 		collide = true,
 		cruisealt = 90,
 		description = Spring.I18N('units.descriptions.cortitan'),
-		energymake = 1.5,
-		energyuse = 1.5,
 		explodeas = "mediumexplosiongeneric",
 		footprintx = 3,
 		footprintz = 3,

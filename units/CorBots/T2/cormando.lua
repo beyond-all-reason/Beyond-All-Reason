@@ -66,6 +66,7 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-small",
+				[2] = "custom:radarpulse_t1",
 			},
 			pieceexplosiongenerators = {
 				[1] = "deathceg2",

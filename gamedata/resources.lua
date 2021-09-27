@@ -13,6 +13,7 @@ local resources = {
             circlefx1         = 'default/circlefx1.png',
             circlefx2         = 'default/circlefx2.png',
             circlefx3         = 'default/circlefx3.png',
+            radarfx2ground    = 'ui/radarping2.png',
          },
          projectiletextures = {
             circularthingy		= 'default/circularthingy.tga',
@@ -21,7 +22,11 @@ local resources = {
             laserfalloff	   	= 'default/laserfalloff.tga',
             randdots			    = 'default/randdots.tga',
             smoketrail		  	= 'default/smoketrail.tga',
+            smoketrailaa      = 'default/smoketrailaa.tga',
+            railguntrail      = 'default/railguntrail.tga',
+            trail             = 'default/trail.tga',
             wake			       	= 'default/wake.tga',
+            wakegrey          = 'projectiletextures/wakegrey.tga',
             flashside3        = 'projectiletextures/flashside3.tga',
             flare			      	= 'default/flare.tga',
             flare2			     	= 'default/flare2.tga',
@@ -29,6 +34,7 @@ local resources = {
             explo2			     	= 'default/explo2.tga',
 	          sakexplo2 		   	= 'default/sakexplo2.tga',
             explofade		     	= 'default/explofade.tga',
+            exploflare        = 'projectiletextures/exploflare.tga',
             heatcloud		    	= 'default/explo.tga',
             blastwave         = 'projectiletextures/blastwave.tga',
             flame			      	= 'default/flame.tga',
@@ -43,9 +49,12 @@ local resources = {
             muzzlefront		  	= 'default/muzzlefront.tga',
             largebeam			    = 'default/largelaserfalloff.tga',
             gunshotxl         = 'default/gunshotxl.tga',
-			      null              = 'PD/null.tga',
-            trans             = 'projectiletextures/trans.tga',
-            
+
+            radarfx1          = 'ui/radarping1.png',
+            radarfx2          = 'ui/radarping2.png',
+            radarfx1old       = 'ui/radar1xx.tga',
+            radarfx2old       = 'ui/radar2.tga',
+
             fogdirty          = 'atmos/fogdirty.tga',
             rain              = 'atmos/rain.tga',
             cloudpuff         = 'atmos/cloudpuff.tga',
@@ -55,6 +64,7 @@ local resources = {
             smoke_puff_red    = 'atmos/smoke_puff_red.png',
             explowater        = 'projectiletextures/explowater.tga',
             waterrush         = 'projectiletextures/waterrush.tga',
+            waterfoam         = 'atmos/waterfoam.tga',
             subwak            = 'projectiletextures/subwake.tga',
 
             --Animated Explosion effect (test)

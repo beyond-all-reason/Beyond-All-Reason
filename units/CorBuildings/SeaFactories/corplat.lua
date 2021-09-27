@@ -21,8 +21,6 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		maxdamage = 2000,
-		metalmake = 1,
-		metalstorage = 200,
 		minwaterdepth = 30,
 		name = unitName,
 		objectname = "Units/CORPLAT.s3o",

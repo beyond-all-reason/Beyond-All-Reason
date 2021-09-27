@@ -6,6 +6,7 @@
 piece  torso, rthigh, lthigh, lleg, lfoot, rleg, rfoot, dish1,belt,dish2,cover1,cover2,cover3,lens1,lens2,lens3, pelvis;
 
 static-var  bMoving, Static_Var_2;
+static-var  Stunned;
 
 // Signal definitions
 #define SIG_ACTIVATE			2
@@ -296,6 +297,19 @@ HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and f
 }
 
 
+Lights()
+{
+	while( TRUE )
+	{
+	    if (!Stunned) {
+		    emit-sfx 1024 + 0 from torso;
+		}
+		sleep 2500;
+	}
+	sleep 50;
+	start-script Lights();
+}
+
 Create()
 {
 	bMoving = FALSE;
@@ -309,6 +323,7 @@ Activate()
 {
 	signal SIG_ACTIVATE;
 	set-signal-mask SIG_ACTIVATE;
+	start-script Lights();
 	spin belt around y-axis speed <20.021978> accelerate <5>;
 	spin dish1 around x-axis speed <100.021978> accelerate <50>;
 	spin dish2 around x-axis speed <-100.021978> accelerate <50>;
@@ -340,14 +355,13 @@ Deactivate()
 	return (0);
 }
 
-static-var  Stunned;
 SetStunned(State)
 {
     Stunned = State;
 	if (Stunned) {
-	    stop-spin belt around y-axis decelerate <10>;
-	    stop-spin dish1 around x-axis decelerate <10>;
-	    stop-spin dish2 around x-axis decelerate <10>;
+	    spin belt around y-axis speed <0.000000>;
+	    spin dish1 around x-axis speed <0.000000>;
+	    spin dish2 around x-axis speed <0.000000>;
 	} else {
         spin belt around y-axis speed <20.021978> accelerate <5>;
         spin dish1 around x-axis speed <100.021978> accelerate <50>;

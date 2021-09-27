@@ -3,9 +3,10 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, pad1, pad0, radar, door1, door2, antiflare, ground, nano1, nanoemit2,nano2, nanoemit1;
+piece  base, pad1, pad0, radar, door1, door2, antiflare, ground, nano1, nanoemit2,nano2, nanoemit1, blink, wake, bow;
 
 static-var  Static_Var_1, oldHead;
+static-var  Stunned;
 
 // Signal definitions
 #define SIG_MOVE			2
@@ -48,6 +49,19 @@ HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and f
 	return (100); //return damage percent
 }
 
+Lights()
+{
+	while( TRUE )
+	{
+	    if (!Stunned) {
+		    emit-sfx 1024 + 0 from blink;
+		}
+		sleep 2500;
+	}
+	sleep 50;
+	start-script Lights();
+}
+
 RockOnWaves()
 {
 	var rockDir, rockAng, rockSpeed;
@@ -66,7 +80,20 @@ RockOnWaves()
 		rockAng = rockAng + rockDir + rockDir;
 	}
 }
-static-var  Stunned;
+
+
+Go()
+{
+	spin radar around y-axis speed <-50.043956> accelerate <2>;
+	return (0);
+}
+
+Stop()
+{
+	spin radar around y-axis speed <0.000000>;
+	return (0);
+}
+
 ExecuteRestoreAfterDelay()
 {
     if (Stunned) {
@@ -80,7 +107,10 @@ ExecuteRestoreAfterDelay()
 SetStunned(State)
 {
     Stunned = State;
-	if (!Stunned) {
+	if (Stunned) {
+	    call-script Stop();
+	} else {
+	    call-script Go();
 	    start-script ExecuteRestoreAfterDelay();
 	}
 }
@@ -126,12 +156,13 @@ Create()
 
 Activate()
 {
-	spin radar around y-axis speed <60.010989>;
+	start-script Lights();
+	start-script Go();
 }
 
 Deactivate()
 {
-	stop-spin radar around y-axis;
+	start-script Stop();
 }
 
 waveSplash()
@@ -153,9 +184,13 @@ StartMoving()
 	set-signal-mask SIG_MOVE;
 	var waketime;
 	start-script waveSplash();
+	var bowtime;
+	bowtime = 0;
 	while( TRUE )
 	{
-		emit-sfx 2 from ground;
+		emit-sfx 1024 + 1 from wake;
+		if (bowtime) emit-sfx 1024 + 2 from bow;
+        bowtime = !bowtime;
 		waketime = (get CURRENT_SPEED) * 100 / get MAX_SPEED;
 		if( waketime < 50 ) waketime = 50;
 		sleep 12000 / waketime;

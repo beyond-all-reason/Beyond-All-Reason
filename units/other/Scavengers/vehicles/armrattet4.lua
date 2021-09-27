@@ -15,8 +15,6 @@ return {
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
 		description = Spring.I18N('units.descriptions.armrattet4'),
-		energymake = 0.6,
-		energyuse = 0.6,
 		explodeas = "bantha",
 		footprintx = 5,
 		footprintz = 5,
@@ -142,12 +140,12 @@ return {
 				proximitypriority = -10,
 				range = 1000,
 				reloadtime = 1.5,
-				
+
 				size = 4,
-				
-				soundhit = "xplonuk2",
+
+				soundhit = "xplonuk2xs",
 				soundhitwet = "splslrg",
-				soundstart = "krogun1",
+				soundstart = "shotgunbig",
 				targetmoveerror = 0.5,
 				turret = true,
 				weapontype = "Cannon",
@@ -157,7 +155,6 @@ return {
 					default = 300,
 					shields = 100,
 					subs = 5,
-					vtol = 9999,
 				},
 			},
 		},

@@ -135,7 +135,6 @@ return {
 		"armlunchbox_scav",
 		"armmeatball_scav",
 		"armassimilator_scav",
-		"armrectrt4_scav",
 
 		-- Hovercraft
 		"armlun_scav",
@@ -155,7 +154,6 @@ return {
 		"armvadert4_scav",
 		"cordemont4_scav",
 		"corkarganetht4_scav",
-		"armrectrt4_scav",
 		"corgolt4_scav",
 	},
 }

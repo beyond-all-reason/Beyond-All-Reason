@@ -12,7 +12,7 @@ function gadget:GetInfo()
 end
 
 -- Modoption check
-if (tonumber((Spring.GetModOptions() or {}).coop) or 0) == 0 then
+if not Spring.GetModOptions().coop then
 	return false
 end
 
@@ -84,15 +84,8 @@ if gadgetHandler:IsSyncedCode() then
 				x = math.min(math.max(x, xmin), xmax)
 				z = math.min(math.max(z, zmin), zmax)
 
-				-- NewbiePlacer
-				local _,_,_,teamID = Spring.GetPlayerInfo(playerID,false)
-				if Spring.GetTeamRulesParam(teamID, 'isNewbie') == 1 then
-					coopStartPoints[playerID] = {-1,-1,-1} -- record an invalid coop startpoint, to be picked up and assigned properly later; don't display anything
-					return true -- because if we don't the cooped players won't appear readied (even though they are)
-				else
-					SetCoopStartPoint(playerID, x, Spring.GetGroundHeight(x, z), z) -- record coop start point, display it
-					return false
-				end
+				SetCoopStartPoint(playerID, x, Spring.GetGroundHeight(x, z), z) -- record coop start point, display it
+				return false
 			end
 		end
 
@@ -126,8 +119,7 @@ if gadgetHandler:IsSyncedCode() then
 			startUnit = GG.playerStartingUnits[playerID] or startUnit
 		end
 
-		-- Newbie Placer chooses random faction for newbies
-		if Spring.GetTeamRulesParam(teamID, 'isNewbie') == 1 or (startUnit==nil) then
+		if startUnit == nil then
 			if math.random() > 0.5 then
 				startUnit = corcomDefID
 			else
@@ -135,8 +127,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 
-		-- Newbie Placer chooses a start point for newbies (the coop teams start point will have already been set in initial_spawn, just place close to that)
-		if (Spring.GetTeamRulesParam(teamID, 'isNewbie') == 1) or x <= 0 or z <= 0 then --TODO: improve this
+		if x <= 0 or z <= 0 then --TODO: improve this
 			local xmin, zmin, xmax, zmax = Spring.GetAllyTeamStartBox(allyID)
 			local tx,tz
 			if GG.teamStartPoints then

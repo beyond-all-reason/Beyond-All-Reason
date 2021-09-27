@@ -3,6 +3,7 @@ local unitName = Spring.I18N('units.names.cordrag')
 return {
 	cordrag = {
 		acceleration = 0,
+		autoheal = 4,
 		blocking = true,
 		brakerate = 0,
 		buildcostenergy = 160,

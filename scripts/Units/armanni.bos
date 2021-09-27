@@ -193,6 +193,7 @@ AimPrimary(heading, pitch)
 FirePrimary()
 {
     shooting=1;
+    emit-sfx 1024 + 0 from flare;
 	sleep 1400;
 	shooting=0;
 }

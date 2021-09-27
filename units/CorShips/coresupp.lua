@@ -16,7 +16,6 @@ return {
 		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
 		description = Spring.I18N('units.descriptions.coresupp'),
-		energymake = 3,
 		explodeas = "mediumexplosiongeneric",
 		floater = true,
 		footprintx = 2,
@@ -87,6 +86,9 @@ return {
 			},
 		},
 		sfxtypes = {
+			explosiongenerators = {
+				[1] = "custom:waterwake-tiny-long",
+			},
 			pieceexplosiongenerators = {
 				[1] = "deathceg2",
 				[2] = "deathceg3",

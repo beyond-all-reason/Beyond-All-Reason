@@ -11,17 +11,7 @@ ScavengerStartboxXMax = mapsizeX + 1
 ScavengerStartboxZMax = mapsizeZ + 1
 ScavengerStartboxExists = false
 
-
---spawnmultiplier = tonumber(Spring.GetModOptions().scavengers) or 1
-
-
-
-
-
-
-
-
-local scavTechDifficulty = Spring.GetModOptions().scavengerstech or "adaptive"
+-- local scavTechDifficulty = Spring.GetModOptions().scavengerstech
 if scavengersAIEnabled then
 	if spawnmultiplier == 0 then
 		spawnmultiplier = 0.5
@@ -32,7 +22,7 @@ if scavengersAIEnabled then
 	if ScavengerStartboxXMin == 0 and ScavengerStartboxZMin == 0 and ScavengerStartboxXMax == mapsizeX and ScavengerStartboxZMax == mapsizeZ then
 		ScavengerStartboxExists = false
 	else
-		ScavengerStartboxExists = true
+		--ScavengerStartboxExists = true
 	end
 else
 	_,_,_,_,_,GaiaAllyTeamID = Spring.GetTeamInfo(GaiaTeamID)
@@ -60,6 +50,7 @@ scavReclaimer = {}
 scavSpawnBeacon = {}
 scavStockpiler = {}
 scavNuke = {}
+scavConverted = {}
 UnitSuffixLenght = {}
 numOfSpawnBeacons = 0
 numOfSpawnBeaconsTeams = {}
@@ -78,9 +69,10 @@ ActiveReinforcementUnits = {}
 scavteamhasplayers = false
 BaseCleanupQueue = {}
 
-if Spring.GetModOptions() and Spring.GetModOptions().maxunits then
-	scavMaxUnits = tonumber(Spring.GetModOptions().maxunits)
-end
+--spawningStartFrame = (math.ceil( math.ceil(mapsizeX + mapsizeZ) / 750 ) + 30) * 5
+spawningStartFrame = (math.ceil( math.ceil(mapsizeX*mapsizeZ) / 1000000 )) * 5
+scavMaxUnits = Spring.GetModOptions().maxunits
+
 if GaiaTeamID == Spring.GetGaiaTeamID() then
 	scavMaxUnits = 10000
 end
@@ -105,9 +97,7 @@ end
 function teamsCheck()
 	bestTeamScore = 0
 	bestTeam = 0
-	if scavTechDifficulty == "adaptive" or globalScore == nil then
-		globalScore = 0
-	end
+	globalScore = 0
 	local previousGlobalScore = globalScore
 	local nonFinalGlobalScore = 0
 	local scoreTeamCount = 0
@@ -146,17 +136,7 @@ function teamsCheck()
 		scoreTeamCount = 2
 	end
 	local timeScore = Spring.GetGameSeconds()*scavconfig.scoreConfig.scorePerSecond
-	if scavTechDifficulty == "adaptive" then
-		globalScore = math.ceil((nonFinalGlobalScore/scoreTeamCount) + killedscavengers + timeScore)
-	elseif scavTechDifficulty == "easy" then
-		globalScore = math.ceil(globalScore + 10*scavconfig.difficulty.easy*(Spring.GetGameSeconds()/60))
-	elseif scavTechDifficulty == "medium" then
-		globalScore = math.ceil(globalScore + 10*scavconfig.difficulty.medium*(Spring.GetGameSeconds()/60))
-	elseif scavTechDifficulty == "hard" then
-		globalScore = math.ceil(globalScore + 10*scavconfig.difficulty.hard*(Spring.GetGameSeconds()/60))
-	elseif scavTechDifficulty == "brutal" then
-		globalScore = math.ceil(globalScore + 10*scavconfig.difficulty.brutal*(Spring.GetGameSeconds()/60))
-	end
+	globalScore = math.ceil((nonFinalGlobalScore/scoreTeamCount) + killedscavengers + timeScore)
 	if globalScore < previousGlobalScore then
 		globalScore = previousGlobalScore
 	end

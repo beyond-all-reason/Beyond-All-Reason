@@ -12,7 +12,7 @@ return {
 		buildtime = 3700,
 		canmove = true,
 		category = "ALL NOTLAND MOBILE NOTSUB SHIP NOWEAPON NOTAIR NOTHOVER SURFACE EMPABLE",
-		collisionvolumeoffsets = "0 -7 1",
+		collisionvolumeoffsets = "0 -1 1",
 		collisionvolumescales = "26 26 47",
 		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
@@ -28,8 +28,6 @@ return {
 		idletime = 1800,
 		maxdamage = 975,
 		maxvelocity = 2,
-		metalmake = 0.1,
-		metalstorage = 50,
 		minwaterdepth = 15,
 		movementclass = "BOAT3",
 		name = unitName,
@@ -118,6 +116,9 @@ return {
 			},
 		},
 		sfxtypes = {
+			explosiongenerators = {
+				[1] = "custom:waterwake-small",
+			},
 			pieceexplosiongenerators = {
 				[1] = "deathceg2-builder",
 				[2] = "deathceg3-builder",

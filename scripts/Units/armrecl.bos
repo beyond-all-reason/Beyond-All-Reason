@@ -7,6 +7,7 @@ piece  base, flare, barrel, ldoor, rdoor, lfin, rfin, screw;
 
 static-var  Static_Var_1, statechg_DesiredState, statechg_StateChanging, currentSpeed, moveSpeed;
 
+#define SIG_MOVE			2
 
 #define BASEPIECE base
 #define HITSPEED <25.0>
@@ -76,16 +77,25 @@ deactivatescr()
 
 StartMoving()
 {
-	move lfin to x-axis [-4.000000] speed [4.000000];
-	move rfin to x-axis [4.000000] speed [4.000000];
-	sleep 1000;
+	signal SIG_MOVE;
+	set-signal-mask SIG_MOVE;
+	while( TRUE )
+	{
+		move lfin to x-axis [-5.000000] speed [4.000000];
+		move rfin to x-axis [5.000000] speed [4.000000];
+		emit-sfx 1024 + 0 from base;
+		sleep 250;
+	}
+	return (0);
 }
 
 StopMoving()
 {
+	signal SIG_MOVE;
 	move lfin to x-axis [0.000000] speed [4.000000];
 	move rfin to x-axis [0.000000] speed [4.000000];
-	sleep 1000;
+	sleep 1000;	
+	return (0);
 }
 
 Go()

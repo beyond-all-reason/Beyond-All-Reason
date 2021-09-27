@@ -20,7 +20,6 @@ return {
 		collisionvolumetype = "Box",
 		cruisealt = 110,
 		description = Spring.I18N('units.descriptions.corcrwt4'),
-		energymake = 50,
 		explodeas = "bantha",
 		footprintx = 6,
 		footprintz = 6,

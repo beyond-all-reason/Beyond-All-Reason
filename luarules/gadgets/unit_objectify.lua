@@ -1,13 +1,11 @@
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
 
 function gadget:GetInfo()
     return {
         name      = "Objectify",
-        desc      = "makes units neutral and stealthy when unit has customparam: objectify",
+        desc      = "makes units neutral and stealthy when unit has customparam: objectify", -- (like walls)
         author    = "Bluestone, Floris",
         date      = "Feb 2015",
-        license   = "Bacon",
+        license   = "",
         layer     = 0,
         enabled   = true  --  loaded by default?
     }
@@ -48,7 +46,7 @@ if gadgetHandler:IsSyncedCode() then
     end
 
 
-else --UNSYNCED
+else -- UNSYNCED
 
 
     local CMD_MOVE = CMD.MOVE

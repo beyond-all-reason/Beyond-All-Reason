@@ -142,11 +142,11 @@ StartMoving()
 	start-script waveSplash();
 	while( TRUE )
 	{
-		emit-sfx 2 from wake1;
-		emit-sfx 2 from wake2;
+		emit-sfx 1024 + 0 from wake1;
+		//emit-sfx 1024 + 1 from wake2;
 		waketime = (get CURRENT_SPEED) * 100 / get MAX_SPEED;
 		if( waketime < 50 ) waketime = 50;
-		sleep 15000 / waketime;
+		sleep 10000 / waketime;
 	}
 }
 

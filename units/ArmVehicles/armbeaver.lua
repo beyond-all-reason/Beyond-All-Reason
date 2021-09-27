@@ -30,8 +30,6 @@ return {
 		maxslope = 16,
 		maxvelocity = 1.4,
 		maxwaterdepth = 255,
-		metalmake = 0.08,
-		metalstorage = 50,
 		movementclass = "ATANK3",
 		name = unitName,
 		objectname = "Units/ARMBEAVER.s3o",

@@ -19,7 +19,7 @@ local PACKET_HEADER_LENGTH = string.len(PACKET_HEADER)
 
 if gadgetHandler:IsSyncedCode() then
 
-	local waterlevel = ((Spring.GetModOptions() and tonumber(Spring.GetModOptions().map_waterlevel)) or 0)
+	local waterlevel = Spring.GetModOptions().map_waterlevel
 	local orgFeaturePosY = {}
 
 	function explode(div, str)
@@ -57,9 +57,8 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:Initialize()
-		if Spring.GetGameFrame() == 0 and Spring.GetModOptions() and Spring.GetModOptions().map_waterlevel and tonumber(Spring.GetModOptions().map_waterlevel) ~= 0 then
-			--Spring.Echo("gadget:Initialize() : Spring.GetModOptions().map_waterlevel",Spring.GetModOptions().map_waterlevel)
-			waterlevel = ((Spring.GetModOptions() and tonumber(Spring.GetModOptions().map_waterlevel)))
+		if Spring.GetGameFrame() == 0 and Spring.GetModOptions().map_waterlevel ~= 0 then
+			waterlevel = Spring.GetModOptions().map_waterlevel
 			adjustWaterlevel()
 		end
 	end

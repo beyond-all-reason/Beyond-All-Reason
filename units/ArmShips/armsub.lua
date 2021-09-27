@@ -94,8 +94,8 @@ return {
 				[3] = "deathceg4",
 			},
 			explosiongenerators = {
-				[0] = "custom:subbubbles",
-				[1] = "custom:subwake",
+				[1] = "custom:subbubbles",
+				[2] = "custom:subwake",
 			},
 		},
 		sounds = {

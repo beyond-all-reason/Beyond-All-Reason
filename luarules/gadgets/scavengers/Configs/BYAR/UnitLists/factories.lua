@@ -60,7 +60,20 @@ for _, unitName in ipairs(factories) do
 	factoriesID[unitDefID] = true
 end
 
+local factoryBannedUnits = {
+	"armdfly_scav",
+	"armatlas_scav",
+	"corvalk_scav",
+	"corseah_scav",
+	"corthovr_scav",
+	"armthovr_scav",
+	"armtship_scav",
+	"cortship_scav",
+	"corintr_scav",
+}
+
 return {
 	Factories = factories,
 	FactoriesID = factoriesID,
+	FactoryBannedUnits = factoryBannedUnits,
 }

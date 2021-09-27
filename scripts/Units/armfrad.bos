@@ -3,9 +3,11 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base,tower, dish;
+piece  base, tower, dish, blink;
 
 static-var  statechg_DesiredState, statechg_StateChanging;
+static-var  Stunned;
+
 RockOnWaves()
 {
 	var rockDir, rockAng, rockSpeed;
@@ -84,6 +86,19 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 	// Build by COBBLER Ver4.0 Copyright @1998 DIGITAL CONCEPT SOFTWARE (MANU@inext.fr) / http://www.annihilationcenter.com/DCS/  
 }
 
+Lights()
+{
+	while( TRUE )
+	{
+	    if (!Stunned) {
+		    emit-sfx 1024 + 0 from blink;
+		}
+		sleep 2500;
+	}
+	sleep 50;
+	start-script Lights();
+}
+
 Go()
 {
 	spin tower around y-axis speed <60.010989>;
@@ -96,6 +111,16 @@ Stop()
 	spin tower around y-axis speed <0.000000>;
 	spin dish around z-axis speed <0.000000>;
 	return (0);
+}
+
+SetStunned(State)
+{
+    Stunned = State;
+	if (Stunned) {
+	    call-script Stop();
+	} else {
+	    call-script Go();
+	}
 }
 
 InitState()
@@ -134,7 +159,6 @@ RequestState(requestedstate, currentstate)
 
 Create()
 {
-
 	call-script InitState();
 	start-script SmokeUnit();
 	return (0);
@@ -142,6 +166,7 @@ Create()
 
 Activate()
 {
+	start-script Lights();
 	start-script RequestState(0);
 	return (0);
 }

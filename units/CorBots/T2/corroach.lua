@@ -15,8 +15,6 @@ return {
 		collisionvolumescales = "18 14 18",
 		collisionvolumetype = "CylY",
 		description = Spring.I18N('units.descriptions.corroach'),
-		energymake = 0.1,
-		energyuse = 0.1,
 		explodeas = "crawl_blastsml",
 		firestate = 2,
 		footprintx = 2,

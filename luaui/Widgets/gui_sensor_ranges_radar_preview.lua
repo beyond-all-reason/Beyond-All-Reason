@@ -12,6 +12,7 @@ end
 
 ------- GL4 NOTES -----
 -- There is regular radar and advanced radar, assumed to have identical ranges!
+local pulseEffect = true
 
 local SHADERRESOLUTION = 16 -- THIS SHOULD MATCH RADARMIPLEVEL!
 
@@ -156,59 +157,6 @@ void main() {
 }
 ]]
 
-local fsSrc = [[
-#version 420
-
-#line 20000
-
-uniform vec4 radarcenter_range;  // x y z range
-uniform float resolution;  // how many steps are done
-
-uniform sampler2D heightmapTex;
-
-//__ENGINEUNIFORMBUFFERDEFS__
-
-//__DEFINES__
-in DataVS {
-	vec4 worldPos; // w = range
-	vec4 centerposrange;
-	vec4 blendedcolor;
-	float worldscale_circumference;
-};
-
-out vec4 fragColor;
-
-void main() {
-	fragColor.rgba = blendedcolor.rgba;
-
-	vec2 toedge = centerposrange.xz - worldPos.xz;
-
-	float angle = atan(toedge.y/toedge.x);
-
-	angle = (angle + 1.56)/3.14;
-
-	float angletime = fract(angle - timeInfo.x* 0.033);
-
-	angletime = 0.5; // no spinny for now
-
-	angle = clamp(angletime, 0.2, 0.8);
-
-	vec2 mymin = min(worldPos.xz,mapSize.xy - worldPos.xz);
-	float inboundsness = min(mymin.x, mymin.y);
-	fragColor.a = min(smoothstep(0,1,fragColor.a), 1.0 - clamp(inboundsness*(-0.1),0.0,1.0));
-
-
-	if (length(worldPos.xz - radarcenter_range.xz) > radarcenter_range.w) fragColor.a = 0.0;
-
-	fragColor.a = fragColor.a * angle * 0.85;
-	//#if USE_STIPPLE > 0
-		//fragColor.a *= 2.0 * sin(worldscale_circumference + timeInfo.x*0.2) ; // PERFECT STIPPLING!
-	//#endif
-	float pulse = 1 + sin(-2.0 * sqrt(length(toedge)) + 0.05 * timeInfo.x);
-	pulse *= pulse;
-	fragColor.a = mix(fragColor.a, fragColor.a * pulse, 0.10);
-}
-]]
 
 local function goodbye(reason)
 	Spring.Echo("radarTruthShader GL4 widget exiting with reason: " .. reason)
@@ -216,6 +164,64 @@ local function goodbye(reason)
 end
 
 local function initgl4()
+	local fsSrc = [[
+	#version 420
+
+	#line 20000
+
+	uniform vec4 radarcenter_range;  // x y z range
+	uniform float resolution;  // how many steps are done
+
+	uniform sampler2D heightmapTex;
+
+	//__ENGINEUNIFORMBUFFERDEFS__
+
+	//__DEFINES__
+	in DataVS {
+		vec4 worldPos; // w = range
+		vec4 centerposrange;
+		vec4 blendedcolor;
+		float worldscale_circumference;
+	};
+
+	out vec4 fragColor;
+
+	void main() {
+		fragColor.rgba = blendedcolor.rgba;
+
+		vec2 toedge = centerposrange.xz - worldPos.xz;
+
+		float angle = atan(toedge.y/toedge.x);
+
+		angle = (angle + 1.56)/3.14;
+
+		float angletime = fract(angle - timeInfo.x* 0.033);
+
+		angletime = 0.5; // no spinny for now
+
+		angle = clamp(angletime, 0.2, 0.8);
+
+		vec2 mymin = min(worldPos.xz,mapSize.xy - worldPos.xz);
+		float inboundsness = min(mymin.x, mymin.y);
+		fragColor.a = min(smoothstep(0,1,fragColor.a), 1.0 - clamp(inboundsness*(-0.1),0.0,1.0));
+
+
+		if (length(worldPos.xz - radarcenter_range.xz) > radarcenter_range.w) fragColor.a = 0.0;
+
+		fragColor.a = fragColor.a * angle * 0.85;
+		//#if USE_STIPPLE > 0
+			//fragColor.a *= 2.0 * sin(worldscale_circumference + timeInfo.x*0.2) ; // PERFECT STIPPLING!
+		//#endif
+	]]
+	if pulseEffect then
+		fsSrc = fsSrc .. [[
+		float pulse = 1 + sin(-2.0 * sqrt(length(toedge)) + 0.033 * timeInfo.x);
+		pulse *= pulse;
+		fragColor.a = mix(fragColor.a, fragColor.a * pulse, 0.10);
+	]]
+	end
+	fsSrc = fsSrc .. '}'
+
 	local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()
 	vsSrc = vsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
 	fsSrc = fsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
@@ -260,11 +266,31 @@ end
 
 function widget:Initialize()
 	initgl4()
+	WG.radarpreview = {
+		getShowPulseEffect = function()
+			return pulseEffect
+		end,
+		setShowPulseEffect = function(value)
+			pulseEffect = value
+			initgl4()
+		end,
+	}
+end
+
+function widget:Shutdown()
+	WG.radarpreview = nil
+end
+
+function widget:TextCommand(command)
+	if string.sub(command,1, 11) == "radarpulse" then
+		WG.radarpreview.setShowPulseEffect(not pulseEffect)
+		Spring.Echo('radar range preview: pulse effect: '..(pulseEffect and 'enabled' or 'disabled'))
+	end
 end
 
 function widget:SelectionChanged(sel)
 	selectedRadarUnitID = false
-	if #sel == 1 and cmdidtoradarsize[-Spring.GetUnitDefID(sel[1])] then
+	if #sel == 1 and Spring.GetUnitDefID(sel[1]) and cmdidtoradarsize[-Spring.GetUnitDefID(sel[1])] then
 		selectedRadarUnitID = sel[1]
 	end
 end
@@ -318,4 +344,18 @@ function widget:DrawWorld()
 	gl.Texture(0, false)
 
 	gl.DepthTest(true)
+end
+
+
+
+function widget:GetConfigData(data)
+	return {
+		pulseEffect = pulseEffect,
+	}
+end
+
+function widget:SetConfigData(data)
+	if data.pulseEffect ~= nil then
+		pulseEffect = data.pulseEffect
+	end
 end

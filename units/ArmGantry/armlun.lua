@@ -18,8 +18,6 @@ return {
 		category = "ALL HOVER MOBILE WEAPON NOTSUB NOTSHIP NOTAIR SURFACE EMPABLE",
 		corpse = "dead",
 		description = Spring.I18N('units.descriptions.armlun'),
-		energymake = 2.8,
-		energyuse = 2.5,
 		explodeas = "largeexplosiongeneric",
 		footprintx = 4,
 		footprintz = 4,
@@ -143,7 +141,7 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 300,
 				customparams = {
-					light_skip = true,
+
 					cegtag = "missiletrailcorroyspecial",
 					def = "armlun_cannonuw",
 					model = "airbombt2",
@@ -185,7 +183,7 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 300,
 				customparams = {
-					light_skip = true,
+
 				},
 				damage = {
 					bombers = 60,
@@ -218,8 +216,8 @@ return {
 				soundstart = "rocklit1",
 				soundstartvolume = 7,
 				startvelocity = 100,
-				texture1 = "trans",
-				texture2 = "armsmoketrail",
+				texture1 = "null",
+				texture2 = "smoketrailbar",
 				tracks = true,
 				trajectoryheight = 0.4,
 				turnrate = 22000,

@@ -1,6 +1,6 @@
 local scavengersAIEnabled = Spring.Utilities.Gametype.IsScavengers()
 
-if not scavengersAIEnabled and not (Spring.GetModOptions and (tonumber(Spring.GetModOptions().scavengers) or 0) ~= 0) then
+if not scavengersAIEnabled then
 	return
 end
 

@@ -49,6 +49,9 @@ return {
 			subfolder = "armships",
 		},
 		sfxtypes = {
+			explosiongenerators = {
+				[1] = "custom:subbubbles",
+			},
 			pieceexplosiongenerators = {
 				[1] = "deathceg2-builder",
 				[2] = "deathceg3-builder",

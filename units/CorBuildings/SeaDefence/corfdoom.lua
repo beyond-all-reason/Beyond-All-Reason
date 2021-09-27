@@ -22,7 +22,7 @@ return {
 		corpse = "DEAD",
 		damagemodifier = 0.25,
 		description = "Floating Multi-Weapon Platform",
-		energystorage = 200,
+		energystorage = 1000,
 		explodeas = "largeBuildingexplosiongeneric",
 		footprintx = 6,
 		footprintz = 6,

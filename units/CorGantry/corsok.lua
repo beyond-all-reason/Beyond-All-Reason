@@ -21,8 +21,6 @@ return {
 		collisionvolumetype = "CylY",
 		corpse = "dead",
 		description = Spring.I18N('units.descriptions.corsok'),
-		energymake = 2.2,
-		energyuse = 2,
 		explodeas = "hugeexplosiongeneric",
 		footprintx = 4,
 		footprintz = 4,
@@ -89,6 +87,11 @@ return {
 			},
 		},
 		sfxtypes = {
+			explosiongenerators = {
+				[1] = "custom:waterwake-small-hover",
+				[2] = "custom:bowsplash-small-hover",
+				[3] = "custom:hover-wake-large",
+			},
 			pieceexplosiongenerators = {
 				[1] = "deathceg2",
 				[2] = "deathceg3",

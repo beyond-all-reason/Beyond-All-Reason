@@ -147,7 +147,7 @@ return {
 				soundhitwet = "splsmed",
 				soundstart = "rocklit1",
 				startvelocity = 450,
-				texture1 = "trans",
+				texture1 = "null",
 				turret = true,
 				weaponacceleration = 150,
 				weapontimer = 5,

@@ -15,8 +15,6 @@ return {
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
 		description = Spring.I18N('units.descriptions.cormort'),
-		energymake = 1,
-		energyuse = 1,
 		explodeas = "smallExplosionGeneric",
 		footprintx = 2,
 		footprintz = 2,
@@ -145,8 +143,7 @@ return {
 				weaponvelocity = 450,
 				customparams = {
 					light_color = "1 0.6 0.15",
-					light_mult = 3.5,
-					light_radius_mult = 1.1,
+					light_mult = 1.5,
 				},
 				damage = {
 					bombers = 14,

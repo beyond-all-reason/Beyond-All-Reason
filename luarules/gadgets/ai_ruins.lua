@@ -6,10 +6,28 @@ GaiaAllyTeamID = select(6, Spring.GetTeamInfo(GaiaTeamID))
 
 local scavengersAIEnabled = Spring.Utilities.Gametype.IsScavengers()
 
+local teams = Spring.GetTeamList()
+for i = 1,#teams do
+	local luaAI = Spring.GetTeamLuaAI(teams[i])
+	if luaAI and luaAI ~= "" and string.sub(luaAI, 1, 12) == 'ScavengersAI' then
+		scavengerAITeamID = i - 1
+		_,_,_,_,_,scavengerAllyTeamID = Spring.GetTeamInfo(scavengerAITeamID)
+		break
+	end
+end
+
+-- if scavengerAITeamID then
+-- 	GaiaTeamID = scavengerAITeamID
+-- 	GaiaAllyTeamID = select(6, Spring.GetTeamInfo(GaiaTeamID))
+-- end
+
 local ruinSpawnEnabled = false
-if (Spring.GetModOptions and (Spring.GetModOptions().ruins or "disabled") == "enabled") or (Spring.GetModOptions and (Spring.GetModOptions().scavonlyruins or "enabled") == "enabled" and scavengersAIEnabled) then
+if Spring.GetModOptions().ruins or (Spring.GetModOptions().scavonlyruins and scavengersAIEnabled) then
 	ruinSpawnEnabled = true
 end
+Spring.Echo("[RUIN ECHO] ", Spring.GetModOptions().ruins)
+Spring.Echo("[RUIN ECHO] ", Spring.GetModOptions().scavonlyruins)
+Spring.Echo("[RUIN ECHO] ", scavengersAIEnabled)
 
 function gadget:GetInfo()
     return {
@@ -31,7 +49,8 @@ VFS.Include('luarules/gadgets/scavengers/API/api.lua')
 VFS.Include('luarules/gadgets/scavengers/API/poschecks.lua')
 local blueprintController = VFS.Include('luarules/gadgets/scavengers/Blueprints/BYAR/blueprint_controller.lua')
 
-local spawnCutoffFrame = (math.ceil( math.ceil(mapsizeX + mapsizeZ) / 750 ) + 30) * 3
+--spawningStartFrame = (math.ceil( math.ceil(mapsizeX + mapsizeZ) / 750 ) + 30) * 5
+local spawnCutoffFrame = (math.ceil( math.ceil(mapsizeX*mapsizeZ) / 1000000 )) * 5
 
 local function randomlyRotateBlueprint()
 	local randomRotation = math.random(0,3)
@@ -96,7 +115,7 @@ local function randomlyMirrorBlueprint(mirrored, direction, unitFacing)
 	end
 end
 
-local function spawnRuin(ruin, posx, posy, posz)
+local function spawnRuin(ruin, posx, posy, posz, blueprintTierLevel)
 	local swapXandY, flipX, flipZ, rotation = randomlyRotateBlueprint()
 	if math.random(0,1) == 0 then
 		if math.random(0,1) == 0 then
@@ -109,6 +128,13 @@ local function spawnRuin(ruin, posx, posy, posz)
 	else
 		mirrored = false
 		mirroredDirection = "null"
+	end
+	if math.random(0,3) == 0 and (blueprintTierLevel == 0 or blueprintTierLevel == 1) and scavengersAIEnabled then
+		GaiaTeamID = scavengerAITeamID
+		SpawnAsNeutral = false
+	else
+		GaiaTeamID = Spring.GetGaiaTeamID()
+		SpawnAsNeutral = true
 	end	
 	for _, building in ipairs(ruin.buildings) do
 		if swapXandY == false then
@@ -122,16 +148,21 @@ local function spawnRuin(ruin, posx, posy, posz)
 
 		local name = UnitDefs[building.unitDefID].name
 		local r = math.random(1,100)
-		if r < 20 then
+		if r < 30 then
+			
+			local posy = Spring.GetGroundHeight(posx + (xOffset*flipX*mirrorX), posz + (zOffset*flipZ*mirrorZ))
 			local unit = Spring.CreateUnit(building.unitDefID, posx + (xOffset*flipX*mirrorX), posy, posz + (zOffset*flipZ*mirrorZ), (building.direction+rotation+mirrorRotation)%4, GaiaTeamID)
+			Spring.SpawnCEG("scav-spawnexplo", posx + (xOffset*flipX*mirrorX), posy, posz + (zOffset*flipZ*mirrorZ), 0,0,0)
 			local radarRange = UnitDefs[building.unitDefID].radarRadius
 			local canMove = UnitDefs[building.unitDefID].canMove
 			local speed = UnitDefs[building.unitDefID].speed
 
-			Spring.SetUnitNeutral(unit, true)
+			if SpawnAsNeutral then
+				Spring.SetUnitNeutral(unit, true)
+			end
 			Spring.GiveOrderToUnit(unit, CMD.FIRE_STATE, {1}, 0)
 			Spring.GiveOrderToUnit(unit, CMD.MOVE_STATE, {0}, 0)
-			Spring.SetUnitAlwaysVisible(unit, true)
+			--Spring.SetUnitAlwaysVisible(unit, true)
 
 			if building.patrol and canMove and speed > 0 then
 				for i = 1, 6 do
@@ -142,10 +173,10 @@ local function spawnRuin(ruin, posx, posy, posz)
 			if radarRange and radarRange > 1000 then
 				Spring.GiveOrderToUnit(unit, CMD.ONOFF, {0}, 0)
 			end
-		elseif r < 90 and FeatureDefNames[name .. "_dead"] then
-			local wreck = Spring.CreateFeature(name .. "_dead", posx + (xOffset*flipX*mirrorX), posy, posz + (zOffset*flipZ*mirrorZ), (building.direction+rotation+mirrorRotation)%4, GaiaTeamID)
-			Spring.SetFeatureAlwaysVisible(wreck, true)
-			Spring.SetFeatureResurrect(wreck, name)
+		-- elseif r < 90 and FeatureDefNames[name .. "_dead"] then
+		-- 	local wreck = Spring.CreateFeature(name .. "_dead", posx + (xOffset*flipX*mirrorX), posy, posz + (zOffset*flipZ*mirrorZ), (building.direction+rotation+mirrorRotation)%4, GaiaTeamID)
+		-- 	Spring.SetFeatureAlwaysVisible(wreck, true)
+		-- 	Spring.SetFeatureResurrect(wreck, name)
 		end
 	end
 	mirrored = nil
@@ -153,7 +184,7 @@ local function spawnRuin(ruin, posx, posy, posz)
 end
 
 function gadget:GameFrame(n)
-	if n < 30 or n%5 ~= 0 or n > spawnCutoffFrame then
+	if n < 5 or n%5 ~= 0 or n > spawnCutoffFrame+5 then
 		return
 	end
 
@@ -165,8 +196,33 @@ function gadget:GameFrame(n)
 		local seaRuinChance = math.random(1, 2)
 		local radius, canBuildHere
 
-		landRuin = blueprintController.Ruin.GetRandomLandBlueprint()
-		seaRuin = blueprintController.Ruin.GetRandomSeaBlueprint()
+		local r = math.random(0,100)
+		local blueprintTierLevel = 0
+		if r > 98 then
+			landRuin = blueprintController.Constructor.GetRandomLandBlueprint(4)
+			seaRuin = blueprintController.Constructor.GetRandomSeaBlueprint(4)
+			blueprintTierLevel = 4
+		elseif r > 95 then
+			landRuin = blueprintController.Constructor.GetRandomLandBlueprint(3)
+			seaRuin = blueprintController.Constructor.GetRandomSeaBlueprint(3)
+			blueprintTierLevel = 3
+		elseif r > 85 then
+			landRuin = blueprintController.Constructor.GetRandomLandBlueprint(2)
+			seaRuin = blueprintController.Constructor.GetRandomSeaBlueprint(2)
+			blueprintTierLevel = 2
+		elseif r > 65 then
+			landRuin = blueprintController.Constructor.GetRandomLandBlueprint(1)
+			seaRuin = blueprintController.Constructor.GetRandomSeaBlueprint(1)
+			blueprintTierLevel = 1
+		elseif r > 20 then
+			landRuin = blueprintController.Constructor.GetRandomLandBlueprint(0)
+			seaRuin = blueprintController.Constructor.GetRandomSeaBlueprint(0)
+			blueprintTierLevel = 0
+		else
+			landRuin = blueprintController.Ruin.GetRandomLandBlueprint()
+			seaRuin = blueprintController.Ruin.GetRandomSeaBlueprint()
+			blueprintTierLevel = -1
+		end
 
 		if posy > 0 then
 			ruin = landRuin
@@ -188,7 +244,7 @@ function gadget:GameFrame(n)
 			end
 
 			if canBuildHere then
-				spawnRuin(ruin, posx, posy, posz)
+				spawnRuin(ruin, posx, posy, posz, blueprintTierLevel)
 				break
 			end
 		end

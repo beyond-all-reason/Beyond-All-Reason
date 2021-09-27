@@ -3,9 +3,10 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, turret, dish, spinner;
+piece  base, turret, dish, spinner, blink;
 
 static-var  statechg_DesiredState, statechg_StateChanging;
+static-var  Stunned;
 
 
 SmokeUnit(healthpercent, sleeptime, smoketype)
@@ -63,6 +64,19 @@ HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and f
 	return (100); //return damage percent
 }
 
+Lights()
+{
+	while( TRUE )
+	{
+	    if (!Stunned) {
+		    emit-sfx 1024 + 0 from blink;
+		}
+		sleep 2500;
+	}
+	sleep 50;
+	start-script Lights();
+}
+
 Go()
 {
 	spin dish around y-axis speed <60.010989>;
@@ -84,6 +98,16 @@ InitState()
 	statechg_DesiredState = TRUE;
 	statechg_StateChanging = FALSE;
 	return (0);
+}
+
+SetStunned(State)
+{
+    Stunned = State;
+	if (Stunned) {
+	    call-script Stop();
+	} else {
+	    call-script Go();
+	}
 }
 
 RequestState(requestedstate, currentstate)
@@ -117,6 +141,7 @@ Create()
 {
 	call-script InitState();
 	start-script SmokeUnit();
+	start-script Lights();
 	return (0);
 }
 

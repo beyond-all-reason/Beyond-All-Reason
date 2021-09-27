@@ -4,15 +4,15 @@ end
 
 local gadgetEnabled
 
-if Spring.GetModOptions and (Spring.GetModOptions().scoremode or "disabled") ~= "disabled" and (Spring.GetModOptions().scoremode_chess or "enabled") ~= "disabled" then
+if Spring.GetModOptions().scoremode ~= "disabled" and Spring.GetModOptions().scoremode_chess then
     gadgetEnabled = true
 else
     gadgetEnabled = false
 end
 
-ChessModeUnbalancedModoption = Spring.GetModOptions().scoremode_chess_unbalanced or "enabled"
-ChessModePhaseTimeModoption = tonumber(Spring.GetModOptions().scoremode_chess_adduptime) or 4
-ChessModeSpawnPerPhaseModoption = tonumber(Spring.GetModOptions().scoremode_chess_spawnsperphase) or 1
+ChessModeUnbalancedModoption = Spring.GetModOptions().scoremode_chess_unbalanced
+ChessModePhaseTimeModoption = Spring.GetModOptions().scoremode_chess_adduptime
+ChessModeSpawnPerPhaseModoption = Spring.GetModOptions().scoremode_chess_spawnsperphase
 
 local pveEnabled = Spring.Utilities.Gametype.IsPvE()
 
@@ -561,7 +561,7 @@ local function addNewUnitsToQueue(starter)
 	local teams = Spring.GetTeamList()
     for i = 1,#teams do
         local teamID = teams[i]
-        if ChessModeUnbalancedModoption == "enabled" then
+        if ChessModeUnbalancedModoption then
             chooseNewUnits(starter)
         end
         if teamIsLandPlayer[teamID] then

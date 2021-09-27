@@ -22,7 +22,7 @@ return {
 		corpse = "DEAD",
 		damagemodifier = 0.25,
 		description = Spring.I18N('units.descriptions.armanni'),
-		energystorage = 1500,
+		energystorage = 1000,
 		explodeas = "hugeBuildingexplosiongeneric",
 		footprintx = 4,
 		footprintz = 4,
@@ -96,6 +96,9 @@ return {
 			},
 		},
 		sfxtypes = {
+			explosiongenerators = {
+				[1] = "custom:tachyonshot",
+			},
 			pieceexplosiongenerators = {
 				[1] = "deathceg2",
 				[2] = "deathceg3",
@@ -162,7 +165,9 @@ return {
 				customparams = {
 					expl_light_life_mult = 1.5,
 					expl_light_radius_mult = 1.3,
+					expl_light_mult = 1.15,
 					light_radius_mult = "1.15",
+					light_mult = 3,
 				},
 				damage = {
 					commanders = 2400,

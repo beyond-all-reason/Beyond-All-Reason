@@ -18,11 +18,10 @@ local fontfileOutlineSize = 10
 local fontfileOutlineStrength = 1.4
 local font = gl.LoadFont(fontfile, fontfileSize * fontfileScale, fontfileOutlineSize * fontfileScale, fontfileOutlineStrength)
 
-local uiScale = (0.75 + (vsx * vsy / 5700000))
+local uiScale = (0.75 + (vsx * vsy / 6000000))
 local myPlayerID = Spring.GetMyPlayerID()
 local _, _, mySpec, myTeamID = Spring.GetPlayerInfo(myPlayerID, false)
-local amNewbie
-local ffaMode = (tonumber(Spring.GetModOptions().ffa_mode) or 0) == 1
+local ffaMode = Spring.GetModOptions().ffa_mode
 local isReplay = Spring.IsReplay()
 
 local readied = false	-- send readystate (in widget:GameSetup)
@@ -76,7 +75,7 @@ end
 function widget:ViewResize(viewSizeX, viewSizeY)
 	vsx, vsy = Spring.GetViewGeometry()
 
-	uiScale = (0.8 + (vsx * vsy / 5000000))
+	uiScale = (0.75 + (vsx * vsy / 6000000))
 
 	buttonX = math.floor(vsx * 0.78)
 	buttonY = math.floor(vsy * 0.78)
@@ -122,10 +121,9 @@ function widget:GameSetup(state, ready, playerStates)
 		return true, true
 	end
 
-	-- set my readyState to true if i am a newbie, or if ffa
+	-- set my readyState to true if ffa
 	if not readied or not ready then
-		amNewbie = (Spring.GetTeamRulesParam(myTeamID, 'isNewbie') == 1)
-		if amNewbie or ffaMode then
+		if ffaMode then
 			readied = true
 			return true, true
 		end
@@ -176,13 +174,6 @@ function widget:MousePress(sx, sy)
 			return true
 		end
 
-		-- message when trying to place startpoint but can't
-		if not mySpec and amNewbie then
-			local target, _ = Spring.TraceScreenRay(sx, sy)
-			if target == "ground" then
-				Spring.Echo(Spring.I18N('ui.initialSpawn.newbiePlacer'))
-			end
-		end
 	end
 end
 
@@ -191,8 +182,7 @@ function widget:MouseRelease(sx, sy)
 end
 
 local function checkStartPointChosen()
-	local isNewbie = (Spring.GetTeamRulesParam(myTeamID, 'isNewbie') == 1) -- =1 means the startpoint will be replaced and chosen by initial_spawn
-	if not mySpec and not isNewbie then
+	if not mySpec then
 		local x, y, z = Spring.GetTeamStartPosition(myTeamID)
 		if x ~= nil and x > 0 and z > 0 then
 			startPointChosen = true
@@ -202,7 +192,7 @@ end
 
 function widget:Initialize()
 	if mySpec then
-		if not mySpec or numPlayers <= 4 or isReplay or (tonumber(Spring.GetModOptions().ffa_mode) or 0) == 1 or Spring.GetGameFrame() > 0 then
+		if not mySpec or numPlayers <= 4 or isReplay or ffaMode or Spring.GetGameFrame() > 0 then
 			eligibleAsSub = false
 		else
 			eligibleAsSub = true

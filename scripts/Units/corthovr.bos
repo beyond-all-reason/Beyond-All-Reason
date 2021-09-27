@@ -3,13 +3,13 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, arm, tower, wake, rdoor, ldoor, boom1, boom2, boom3,
-       boom4, magnet, link, boom5, boom6, fan1, fan2;
+piece  base, arm, tower, wake, rdoor, ldoor, boom1, boom2, boom3, boom4, magnet, link, boom5, boom6, fan1, fan2;
 
 static-var  Static_Var_1, Static_Var_2, Static_Var_3, Static_Var_4, Static_Var_5, Wobble_status;
 
 // Signal definitions
 #define SIG_MOVE			2
+#define SIG_IDLE			4
 
 WobbleUnit()
 {
@@ -126,39 +126,40 @@ Create()
 	return (0);
 }
 
+HoverIdle()
+{
+	signal SIG_IDLE;
+	set-signal-mask SIG_IDLE;
+	while( TRUE )
+	{
+	    emit-sfx 1024 + 2 from wake;
+	    sleep 1000;
+	}
+}
+
 StartMoving()
 {
 	signal SIG_MOVE;
 	set-signal-mask SIG_MOVE;
+	signal SIG_IDLE;
+	var waketime;
+	var bowtime;
 	while( TRUE )
 	{
-		if( Static_Var_1 == 2 OR Static_Var_1 == 1 )
-		{
-			emit-sfx 3 from wake;
-			emit-sfx 3 from wake;
-			emit-sfx 3 from wake;
-			emit-sfx 3 from wake;
-			emit-sfx 3 from wake;
-			emit-sfx 3 from wake;
-			emit-sfx 3 from wake;
-			emit-sfx 3 from wake;
-			emit-sfx 5 from wake;
-			emit-sfx 5 from wake;
-			emit-sfx 5 from wake;
-			emit-sfx 5 from wake;
-			emit-sfx 5 from wake;
-			emit-sfx 5 from wake;
-			emit-sfx 5 from wake;
-			emit-sfx 5 from wake;
-		}
-		sleep 300;
+		emit-sfx 1024 + 0 from wake;
+		if (bowtime) emit-sfx 1024 + 1 from wake;
+		bowtime = !bowtime;
+		waketime = (get CURRENT_SPEED) * 100 / get MAX_SPEED;
+		if( waketime < 30 ) waketime = 30;
+		sleep 15000 / waketime;
 	}
-	return (0);
 }
 
 StopMoving()
 {
-	sleep 150;
+	signal SIG_MOVE;
+	signal SIG_IDLE;
+	start-script HoverIdle();
 	return (0);
 }
 

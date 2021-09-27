@@ -16,8 +16,6 @@ return {
 		collisionvolumetype = "CylY",
 		corpse = "HEAP",
 		description = Spring.I18N('units.descriptions.coramph'),
-		energymake = 0.4,
-		energyuse = 0.4,
 		explodeas = "smallExplosionGeneric-phib",
 		footprintx = 2,
 		footprintz = 2,
