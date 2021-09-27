@@ -2,14 +2,13 @@ function gadget:GetInfo()
 	return {
 		name = "Team Com Ends + dead allyteam blowup",
 		desc = "Implements com ends for allyteams + blows up team if no players left",
-		author = "KDR_11k (David Becker)",
+		author = "KDR_11k (David Becker), Floris",
 		date = "2008-02-04",
 		license = "Public domain",
 		layer = 1,
 		enabled = true
 	}
 end
-
 
 if not gadgetHandler:IsSyncedCode() then
 	return
@@ -19,35 +18,20 @@ end
 -- his com dies it acts on an allyteam level, if all coms in an allyteam are dead
 -- the allyteam is out
 
-local deathmode = Spring.GetModOptions().deathmode
-
--- the deathmode modoption must be set to one of the following to enable this
-local endmodes = {
-	com = true,
-}
-
 local destroyQueue = {}
-local destroyUnitQueue = {}
-local aliveCount = {}
-local deadAllyTeams = {}
-local isAlive = {}
+local aliveComCount = {}
 
-local GetTeamList=Spring.GetTeamList
-local GetTeamUnits = Spring.GetTeamUnits
+local GetTeamList = Spring.GetTeamList
 local GetUnitAllyTeam = Spring.GetUnitAllyTeam
-local DestroyUnit=Spring.DestroyUnit
-local GetUnitPosition = Spring.GetUnitPosition
-local SpawnCEG = Spring.SpawnCEG
 local GetTeamInfo = Spring.GetTeamInfo
 
-local DISTANCE_LIMIT = (math.max(Game.mapSizeX,Game.mapSizeZ) * math.max(Game.mapSizeX,Game.mapSizeZ))
-local min = math.min
-local deathWave = false -- is the death wave happening right now?
-local deathTimeBoost = 1
-local modeComEnds = true
-
 local gaiaTeamID = Spring.GetGaiaTeamID()
+local gaiaAllyTeamID = select(6, Spring.GetTeamInfo(gaiaTeamID))
 local allyTeamList = Spring.GetAllyTeamList()
+
+local deadAllyTeams = {
+	[gaiaAllyTeamID] = true
+}
 
 local isCommander = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
@@ -63,41 +47,36 @@ for _,teamID in ipairs(GetTeamList()) do
 	end
 end
 
-local blowUpWhenEmptyAllyTeam = true
-if Spring.GetModOptions().ffa_mode then
-	blowUpWhenEmptyAllyTeam = false
-end
-if teamCount == 2 then
-	blowUpWhenEmptyAllyTeam = false -- let player quit & rejoin in 1v1
-end
-blowUpWhenEmptyAllyTeam = false -- disabled for now because other gadget already seems to handle this
+local blowUpWhenEmptyAllyTeam = false -- disabled for now because other gadget already seems to handle this
+--local blowUpWhenEmptyAllyTeam = true
+--if Spring.GetModOptions().ffa_mode then
+--	blowUpWhenEmptyAllyTeam = false
+--end
+--if teamCount == 2 then
+--	blowUpWhenEmptyAllyTeam = false -- let player quit & rejoin in 1v1
+--end
 
-
-local function getSqrDistance(x1,z1,x2,z2)
-	local dx,dz = x1-x2,z1-z2
-	return (dx*dx) + (dz*dz)
-end
 
 function gadget:Initialize()
-	if not endmodes[deathmode] then
-		if blowUpWhenEmptyAllyTeam == false then
+	if Spring.GetModOptions().deathmode ~= 'com' then
+		if not blowUpWhenEmptyAllyTeam then
 			gadgetHandler:RemoveGadget(self) -- in particular, this gadget is removed if deathmode is "killall" or "none"
 		end
-		modeComEnds = false
 	end
 	for _,t in ipairs(Spring.GetAllyTeamList()) do
-		aliveCount[t] = 0
+		aliveComCount[t] = 0
 	end
 end
 
 
-function gadget:GameFrame(t)
+-- blow up an allyteam when it has no players left
+--if blowUpWhenEmptyAllyTeam then
 
-	if t % 15 < .1 then
-		-- blow up an allyteam when it has no players left
-		if blowUpWhenEmptyAllyTeam then
+	function gadget:GameFrame(gf)
+
+		if gf % 15 == 0 then
 			for _,allyTeamID in ipairs(allyTeamList) do
-				if deadAllyTeams[allyTeamID] == nil then
+				if not deadAllyTeams[allyTeamID] then
 					local deadAllyTeam = true
 					local teamsList = GetTeamList(allyTeamID)
 					for _,teamID in ipairs(teamsList) do
@@ -114,10 +93,11 @@ function gadget:GameFrame(t)
 						end
 					end
 					if deadAllyTeam then
-						destroyQueue[allyTeamID] = {x=0,y=0,z=0}
-						aliveCount[allyTeamID] = 0
+						destroyQueue[allyTeamID] = {x=0, y=0, z=0}
+						aliveComCount[allyTeamID] = 0
 						deadAllyTeams[allyTeamID] = true
 						for _,teamID in ipairs(teamsList) do
+							GG.wipeoutTeam(teamID)
 							Spring.KillTeam(teamID)
 						end
 						break
@@ -125,96 +105,46 @@ function gadget:GameFrame(t)
 				end
 			end
 		end
-
-		for at,defs in pairs(destroyQueue) do
-			if aliveCount[at] <= 0 then --safety check, triggers on transferring the last com otherwise
-				for _,team in ipairs(GetTeamList(at)) do
-					local teamUnits = GetTeamUnits(team)
-					for i=1,#teamUnits do
-						local unitID = teamUnits[i]
-						local x,y,z = GetUnitPosition(unitID)
-						local deathTime = min(((getSqrDistance(x,z,defs.x,defs.z) / DISTANCE_LIMIT) * 450), 450)
-						if destroyUnitQueue[unitID] == nil then
-							destroyUnitQueue[unitID] = {
-								time = t + deathTime + math.random(0,7),
-								x = x,
-								y = y,
-								z = z,
-								spark = false,
-                                a = defs.a,
-							}
-						end
-					end
-				end
-				deathWave = true
-			end
-			destroyQueue[at]=nil
-		end
 	end
+--end
 
-	if deathWave and next(destroyUnitQueue) then
-		local dt = t + deathTimeBoost
-		for unitID, defs in pairs(destroyUnitQueue) do
-			if dt > defs.time - 15 and not defs.spark then
-				SpawnCEG("DEATH_WAVE_SPARKS",defs.x,defs.y,defs.z,0,0,0)
-				destroyUnitQueue[unitID].spark = true
-			end
-			if dt > defs.time then
-                if defs.a then DestroyUnit(unitID, true, nil, defs.a)
-                    else DestroyUnit(unitID, true) -- if 4th arg is given, it cannot be nil (or engine complains)
-                end
-				destroyUnitQueue[unitID] = nil
-			end
-		end
-		deathTimeBoost = math.min(deathTimeBoost * 1.5, 500)
-	end
-
-end
-
-function gadget:UnitCreated(u, ud, team)
-	if modeComEnds and team~=gaiaTeamID  then
-		isAlive[u] = true
-		if isCommander[ud] then
-			local allyTeam = GetUnitAllyTeam(u)
-			aliveCount[allyTeam] = aliveCount[allyTeam] + 1
-		end
+function gadget:UnitCreated(unitID, unitDefID, unitTeam)
+	if isCommander[unitDefID] and unitTeam ~= gaiaTeamID then
+		local allyTeam = GetUnitAllyTeam(unitID)
+		aliveComCount[allyTeam] = aliveComCount[allyTeam] + 1
 	end
 end
 
-function gadget:UnitGiven(u, ud, team)
-	if modeComEnds and team~=gaiaTeamID then
-		if isCommander[ud] then
-			local allyTeam = GetUnitAllyTeam(u)
-			aliveCount[allyTeam] = aliveCount[allyTeam] + 1
-		end
+function gadget:UnitGiven(unitID, unitDefID, unitTeam)
+	if isCommander[unitDefID] and unitTeam ~= gaiaTeamID then
+		local allyTeam = GetUnitAllyTeam(unitID)
+		aliveComCount[allyTeam] = aliveComCount[allyTeam] + 1
 	end
 end
 
-function gadget:UnitDestroyed(u, ud, team, a, ad, ateam)
-	if modeComEnds and team~=gaiaTeamID then
-		isAlive[u] = nil
-		if isCommander[ud] then
-			local allyTeam = GetUnitAllyTeam(u)
-			aliveCount[allyTeam] = aliveCount[allyTeam] - 1
-			if aliveCount[allyTeam] <= 0 then
-				local x,y,z = Spring.GetUnitPosition(u)
-				destroyQueue[allyTeam] = {x = x, y = y, z = z, a = a }
-				if not _G.destroyingTeam then
-					_G.destroyingTeam = {}
-				end
-				_G.destroyingTeam[allyTeam] = true
-            end
-		end
+local function commanderDeath(teamID, unitID)
+	local allyTeam = GetUnitAllyTeam(unitID)
+	aliveComCount[allyTeam] = aliveComCount[allyTeam] - 1
+	if aliveComCount[allyTeam] <= 0 then
+		local x,y,z = Spring.GetUnitPosition(unitID)
+
+		GG.wipeoutTeam(teamID, x, z, unitID)
+		Spring.KillTeam(teamID)
+
+		-- xmas gadget uses this
+		if not _G.destroyingTeam then _G.destroyingTeam = {} end
+		_G.destroyingTeam[GetUnitAllyTeam(unitID)] = true
 	end
 end
 
-function gadget:UnitTaken(u, ud, team, a, ad, ateam)
-	if modeComEnds and isAlive[u] and isCommander[ud] and team~=gaiaTeamID  then
-		local allyTeam = GetUnitAllyTeam(u)
-		aliveCount[allyTeam] = aliveCount[allyTeam] - 1
-		if aliveCount[allyTeam] <= 0 then
-			local x,y,z = Spring.GetUnitPosition(u)
-			destroyQueue[allyTeam] = {x = x, y = y, z = z, a = a}
-		end
+function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
+	if isCommander[unitDefID] and unitTeam ~= gaiaTeamID then
+		commanderDeath(unitTeam, unitID)
+	end
+end
+
+function gadget:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
+	if isCommander[unitDefID] and unitTeam ~= gaiaTeamID then
+		commanderDeath(unitTeam, unitID)
 	end
 end
