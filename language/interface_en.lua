@@ -16,6 +16,7 @@ return {
 					save = 'Save',
 				},
 				quit = {
+					stay = 'Stay',
 					quit = 'Quit',
 					resign = 'Resign',
 					reallyQuit = 'Are you sure you want to quit?',
