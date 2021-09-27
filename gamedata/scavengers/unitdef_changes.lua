@@ -62,11 +62,11 @@ local scavConstructorsList = {
 }
 
 customDefs.scavengerdroppodbeacon = {
-	maxdamage = 20000*ScavDifficultyMultiplier,
+	maxdamage = 20000 * ScavDifficultyMultiplier,
 }
 
 customDefs.scavsafeareabeacon = {
-	maxdamage = 50000*ScavDifficultyMultiplier,
+	maxdamage = 50000 * ScavDifficultyMultiplier,
 }
 
 -- Scav Commanders
@@ -979,7 +979,7 @@ customDefs.armrectr = {
 	footprintx = 0,
 	footprintz = 0,
 	movementclass = "SCAVCOMMANDERBOT",
-	workertime = 100*ScavDifficultyMultiplier, 	-- can get multiplied in unitdef_post
+	workertime = 100 * ScavDifficultyMultiplier, 	-- can get multiplied in unitdef_post
 }
 
 customDefs.cornecro = {
@@ -991,7 +991,7 @@ customDefs.cornecro = {
 	footprintx = 0,
 	footprintz = 0,
 	movementclass = "SCAVCOMMANDERBOT",
-	workertime = 100*ScavDifficultyMultiplier,		-- can get multiplied in unitdef_post
+	workertime = 100 * ScavDifficultyMultiplier,		-- can get multiplied in unitdef_post
 }
 
 -- LOOTBOXES

@@ -40,26 +40,11 @@ end
 --
 -- Automatically generate some big selection volumes.
 --
-
-local function Explode(div, str)
-	if div == '' then
-		return false
-	end
-	local pos, arr = 0, {}
-	-- for each divider found
-	for st, sp in function() return string.find(str, div, pos, true) end do
-		table.insert(arr, string.sub(str, pos, st - 1)) -- Attach chars left of current divider
-		pos = sp + 1 -- Jump past current divider
-	end
-	table.insert(arr,string.sub(str,pos)) -- Attach chars right of last divider
-	return arr
-end
-
-local function GetDimensions(scale)
+local function getDimensions(scale)
 	if not scale then
 		return false
 	end
-	local dimensionsStr = Explode(" ", scale)
+	local dimensionsStr = string.split(scale, " ")
 	-- string conversion (required for MediaWiki export)
 	local dimensions = {}
 	for i,v in pairs(dimensionsStr) do
@@ -92,12 +77,12 @@ for name, ud in pairs(UnitDefs) do
 		-- Do not override default colvol because it is hard to measure.
 
 		if ud.selectionvolumescales then
-			local dim = GetDimensions(ud.selectionvolumescales)
+			local dim = getDimensions(ud.selectionvolumescales)
 			ud.selectionvolumescales  = math.ceil(dim[1]*scale) .. " " .. math.ceil(dim[2]*scale) .. " " .. math.ceil(dim[3]*scale)
 		else
 			local size = math.max(ud.footprintx or 0, ud.footprintz or 0)*15
 			if size > 0 then
-				local dimensions, largest = GetDimensions(ud.collisionvolumescales)
+				local dimensions, largest = getDimensions(ud.collisionvolumescales)
 				local x, y, z = size, size, size
 				if size > largest then
 					ud.selectionvolumeoffsets = ud.selectionvolumeoffsets or "0 0 0"
@@ -142,13 +127,10 @@ for name, ud in pairs(UnitDefs) do
 		end
 	end
 
-	--Spring.Echo("VISUALIZE_SELECTION_VOLUME", ud.name, ud.collisionvolumescales, ud.selectionvolumescales)
 end
 
-
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
-
 
 -- create scavenger units
 local customScavDefs = VFS.Include("gamedata/scavengers/unitdef_changes.lua")
@@ -167,7 +149,6 @@ for name, ud in pairs(scavengerUnitDefs) do
 	UnitDefs[name] = ud
 end
 
-
 -- handle unitdefs and the weapons they contain
 for name, ud in pairs(UnitDefs) do
 	UnitDef_Post(name, ud)
@@ -184,5 +165,3 @@ for name, ud in pairs(UnitDefs) do
 		SaveDefToCustomParams("UnitDefs", name, ud)
 	end
 end
-
-

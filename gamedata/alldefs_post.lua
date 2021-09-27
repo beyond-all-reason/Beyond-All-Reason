@@ -34,8 +34,6 @@ SaveDefsToCustomParams = false
 --local vehAdditionalVelocity = 0
 --local vehVelocityMultiplier = 1
 
-
-
 local function getFilePath(filename, path)
 	local files = VFS.DirList(path, '*.lua')
 	for i=1,#files do
@@ -67,13 +65,9 @@ local function round_to_frames(name, wd, key)
   if Game and Game.gameSpeed then Game_gameSpeed = Game.gameSpeed end
 
 	local frames = math.max(1, math.floor((original_value + 1E-3) * Game_gameSpeed))
-
 	local sanitized_value = frames / Game_gameSpeed
-	if math.abs (original_value - sanitized_value) > 1E-3 then
-		--Spring.Echo(name.."."..key.. " = " .. original_value .. "  ->  " .. sanitized_value .. "  ingame!  difference: "..sanitized_value-original_value)
-	end
 
-	return sanitized_value-- + 1E-5
+	return sanitized_value
 end
 
 local function processWeapons(unitDefName, unitDef)
@@ -196,7 +190,6 @@ function UnitDef_Post(name, uDef)
 		end
 	end
 
-
 	-- Add scav units to normal factories and builders
 	if Spring.GetModOptions().experimentalscavuniqueunits then
 		if name == "armshltx" then
@@ -285,7 +278,6 @@ function UnitDef_Post(name, uDef)
 		uDef.terraformspeed = uDef.workertime * 30
 	end
 
-
 	-- if Spring.GetModOptions().experimentalmassoverride then
 	-- 	-- mass override
 	-- 	Spring.Echo("-------------------------")
@@ -333,7 +325,6 @@ function UnitDef_Post(name, uDef)
 	-- 	Spring.Echo("Result Mass: "..uDef.mass)
 	-- 	Spring.Echo("-------------------------")
 	-- end
-
 
 	-- mass remove push resistance
 	if uDef.pushresistant and uDef.pushresistant == true then
@@ -384,10 +375,8 @@ function UnitDef_Post(name, uDef)
          value to LuaUI (so for example calculated DPS is incorrect without sanitisation). ]]
 	processWeapons(name, uDef)
 
-
 	-- make los height a bit more forgiving	(20 is the default)
 	uDef.losemitheight = (uDef.losemitheight and uDef.losemitheight or 20) + 20
-
 
 	if uDef.name and uDef.name ~= "Commander" then
 		if uDef.featuredefs and uDef.maxdamage then
@@ -403,14 +392,11 @@ function UnitDef_Post(name, uDef)
 		end
     end
 
-
 	if uDef.maxslope then
 		uDef.maxslope = math.floor((uDef.maxslope * 1.5) + 0.5)
 	end
 
 	--if Spring.GetModOptions().airrebalance then
-
-
 		--if uDef.weapons then
 		--	local aaMult = 1.05
 		--	for weaponID, w in pairs(uDef.weapons) do
@@ -453,7 +439,6 @@ function UnitDef_Post(name, uDef)
 				--if uDef.builder then
 				--	uDef.workertime = math.floor((uDef.workertime*airmult) + 0.5)
 				--end
-
 
 				if uDef.customparams.fighter then
 
@@ -555,10 +540,6 @@ function UnitDef_Post(name, uDef)
 	end
 end
 
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
 local function ProcessSoundDefaults(wd)
 	local forceSetVolume = not wd.soundstartvolume or not wd.soundhitvolume or not wd.soundhitwetvolume
 	if not forceSetVolume then
@@ -577,16 +558,6 @@ local function ProcessSoundDefaults(wd)
 	end
 
 	local soundVolume = math.sqrt(defaultDamage * 0.5)
-
-	-- The very old formula
-	-- local soundVolume = math.sqrt(math.min(2000, defaultDamage) * 0.5)
-
-	-- The old formula
-	-- local soundVolume = math.sqrt(defaultDamage * 0.5)
-	-- soundVolume = math.min(math.max(soundVolume, 5), 25)
-
-	-- local soundVolume = math.floor( defaultDamage ^ 0.41 + 2 )
-	-- soundVolume = math.min(math.max(soundVolume, 5), 40)
 
 	if wd.weapontype == "LaserCannon" then
 		soundVolume = soundVolume*0.5
@@ -607,13 +578,9 @@ local function ProcessSoundDefaults(wd)
 	end
 end
 
-
 -- process weapondef
 function WeaponDef_Post(name, wDef)
-
 	if not SaveDefsToCustomParams then
-
-
 		-------------- EXPERIMENTAL MODOPTIONS
 		---- SHIELD CHANGES
 		local shieldModOption = Spring.GetModOptions().experimentalshields
@@ -657,12 +624,6 @@ function WeaponDef_Post(name, wDef)
 		end
 		----------------------------------------
 
-
-
-
-
-
-
 		--Use targetborderoverride in weapondef customparams to override this global setting
 		--Controls whether the weapon aims for the center or the edge of its target's collision volume. Clamped between -1.0 - target the far border, and 1.0 - target the near border.
 		if wDef.customparams and wDef.customparams.targetborderoverride == nil then
@@ -673,7 +634,6 @@ function WeaponDef_Post(name, wDef)
 
 		if wDef.craterareaofeffect then
 			wDef.cratermult = (wDef.cratermult or 0) + wDef.craterareaofeffect/2000
-			--Spring.Echo(name..'  '..wDef.cratermult)
 		end
 
 		-- Target borders of unit hitboxes rather than center (-1 = far border, 0 = center, 1 = near border)
@@ -742,8 +702,6 @@ function ExplosionDef_Post(name, eDef)
     end
     ]]
 end
-
-
 
 --------------------------
 -- MODOPTIONS

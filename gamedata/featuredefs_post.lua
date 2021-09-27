@@ -19,7 +19,6 @@ local function istable(x)  return (type(x) == 'table')   end
 local function isnumber(x) return (type(x) == 'number')  end
 local function isstring(x) return (type(x) == 'string')  end
 
-
 --------------------------------------------------------------------------------
 
 local function ProcessUnitDef(udName, ud)
@@ -62,7 +61,6 @@ local function ProcessUnitDef(udName, ud)
 
 end
 
-
 --------------------------------------------------------------------------------
 
 -- Process the unitDefs
@@ -73,13 +71,3 @@ for udName, ud in pairs(UnitDefs) do
     ProcessUnitDef(udName, ud)
   end
 end
-
-
---------------------------------------------------------------------------------
-
---------------------------------------------------------------------------------
-
-
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
