@@ -21,7 +21,7 @@ if gadgetHandler:IsSyncedCode() then
         [8] =  "#00FF9E", -- Turquoise Green
         [9] =  "#F6BB56", -- Light Brown
         [10] = "#BDFF00", -- Lime
-        [11] = "#3475FF", -- Light Blue
+        [11] = "#6697FF", -- Very Light Blue
         [12] = "#FF6058", -- Light Red
         [13] = "#8DF492", -- Light Green
         [14] = "#FFF2AE", -- Very Light Yellow
@@ -31,7 +31,7 @@ if gadgetHandler:IsSyncedCode() then
         [18] = "#00AA69", -- Dark Turquoise Green
         [19] = "#9B6408", -- Dark Brown
         [20] = "#7EAA00", -- Dark Lime
-        [21] = "#6697FF", -- Very Light Blue
+        [21] = "#3475FF", -- Light Blue
         [22] = "#AD0800", -- Dark Red
         [23] = "#089B10", -- Dark Green
         [24] = "#FFE874", -- Light Yellow
@@ -48,16 +48,16 @@ if gadgetHandler:IsSyncedCode() then
         [2] = { -- Two Teams
             [1] = { -- First Team (Cool)
                 [1]  = "#004DFF", -- Armada Blue
-                [2]  = "#0CE818", -- Normal Green
+                [2]  = "#0CE818", -- Green
                 [3]  = "#0CC4E8", -- Turquoise
                 [4]  = "#00FF9E", -- Turquoise Green
-                [5]  = "#BDFF00", -- Normal Lime
-                [6]  = "#3475FF", -- Light Blue
+                [5]  = "#BDFF00", -- Lime
+                [6]  = "#6697FF", -- Very Light Blue
                 [7]  = "#8DF492", -- Light Green
                 [8]  = "#90E5F5", -- Light Turquoise
                 [9]  = "#00AA69", -- Dark Turquoise Green
                 [10] = "#7EAA00", -- Dark Lime
-                [11] = "#6697FF", -- Very Light Blue
+                [11] = "#3475FF", -- Light Blue
                 [12] = "#089B10", -- Dark Green
                 [13] = "#08839B", -- Dark Turquoise
                 [14] = "#86FFD1", -- Light Turquoise Green
@@ -65,20 +65,20 @@ if gadgetHandler:IsSyncedCode() then
             },
             [2] = { -- Second Team (Warm)
                 [1]  = "#FF1005", -- Cortex Red
-                [2]  = "#FFD70D", -- Normal Yellow
-                [3]  = "#FF00DB", -- Normal Fuchsia
-                [4]  = "#FF6B00", -- Normal Orange
-                [5]  = "#DB8E0E", -- Normal Brown
+                [2]  = "#FFD70D", -- Yellow
+                [3]  = "#FF00DB", -- Fuchsia
+                [4]  = "#FF6B00", -- Orange
+                [5]  = "#F6BB56", -- Light Brown
                 [6]  = "#FF6058", -- Light Red
-                [7]  = "#FFE874", -- Light Yellow
-                [8]  = "#FF55E7", -- Light Fuchsia
+                [7]  = "#FFF2AE", -- Very Light Yellow
+                [8]  = "#FFAAF3", -- Very Light Fuchsia
                 [9]  = "#FF9055", -- Light Orange
-                [10] = "#F6BB56", -- Light Brown
+                [10] = "#9B6408", -- Dark Brown
                 [11] = "#AD0800", -- Dark Red
-                [12] = "#FFF2AE", -- Very Light Yellow
-                [13] = "#FFAAF3", -- Very Light Fuchsia
+                [12] = "#FFE874", -- Light Yellow
+                [13] = "#FF68EA", -- Light Fuchsia
                 [14] = "#FFC8AA", -- Very Light Orange
-                [15] = "#9B6408", -- Dark Brown
+                [15] = "#DB8E0E", -- Brown
             },
         },
         
@@ -86,9 +86,9 @@ if gadgetHandler:IsSyncedCode() then
             [1] = { -- First Team (Blue)
                 [1] = "#004DFF", -- Armada Blue
                 [2] = "#0CC4E8", -- Turquoise
-                [3] = "#3475FF", -- Light Blue
+                [3] = "#6697FF", -- Very Light Blue
                 [4] = "#90E5F5", -- Light Turquoise
-                [5] = "#6697FF", -- Very Light Blue
+                [5] = "#3475FF", -- Light Blue
                 [6] = "#08839B", -- Dark Turquoise
             },
             [2] = { -- Second Team (Red)
@@ -96,16 +96,16 @@ if gadgetHandler:IsSyncedCode() then
                 [2] = "#FFD70D", -- Yellow
                 [3] = "#FF6B00", -- Orange
                 [4] = "#FF6058", -- Light Red
-                [5] = "#FF9055", -- Light Orange
+                [5] = "#9B6408", -- Dark Brown
                 [6] = "#FFF2AE", -- Very Light Yellow
             },
             [3] = { -- Third Team (Green)
                 [1] = "#0CE818", -- Green
                 [2] = "#00FF9E", -- Turquoise Green
-                [3] = "#00AA69", -- Dark Turquoise Green
-                [4] = "#7EAA00", -- Dark Lime
-                [5] = "#089B10", -- Dark Green
-                [6] = "#86FFD1", -- Light Turquoise Green
+                [3] = "#7EAA00", -- Dark Lime
+                [4] = "#089B10", -- Dark Green
+                [5] = "#8DF492", -- Light Green
+                [6] = "#BDFF00", -- Lime
             },
         },
 
@@ -113,9 +113,9 @@ if gadgetHandler:IsSyncedCode() then
             [1] = { -- First Team (Blue)
                 [1] = "#004DFF", -- Armada Blue
                 [2] = "#0CC4E8", -- Turquoise
-                [3] = "#3475FF", -- Light Blue
+                [3] = "#6697FF", -- Very Light Blue
                 [4] = "#90E5F5", -- Light Turquoise
-                [5] = "#6697FF", -- Very Light Blue
+                [5] = "#3475FF", -- Light Blue
                 [6] = "#08839B", -- Dark Turquoise
             },
             [2] = { -- Second Team (Red)
@@ -129,18 +129,18 @@ if gadgetHandler:IsSyncedCode() then
             [3] = { -- Third Team (Green)
                 [1] = "#0CE818", -- Green
                 [2] = "#00FF9E", -- Turquoise Green
-                [3] = "#00AA69", -- Dark Turquoise Green
-                [4] = "#8DF492", -- Light Green
-                [5] = "#089B10", -- Dark Green
-                [6] = "#86FFD1", -- Light Turquoise Green
+                [3] = "#7EAA00", -- Dark Lime
+                [4] = "#089B10", -- Dark Green
+                [5] = "#8DF492", -- Light Green
+                [6] = "#BDFF00", -- Lime
             },
             [4] = { -- Fourth Team (Yellow)
                 [1] = "#FFD70D", -- Yellow
-                [2] = "#DB8E0E", -- Brown
+                [2] = "#F6BB56", -- Light Brown
                 [3] = "#FFE874", -- Light Yellow
-                [4] = "#F6BB56", -- Light Brown
+                [4] = "#9B6408", -- Dark Brown
                 [5] = "#FFF2AE", -- Very Light Yellow
-                [6] = "#9B6408", -- Dark Brown
+                [6] = "#DB8E0E", -- Brown
             },
         },
 
@@ -148,9 +148,9 @@ if gadgetHandler:IsSyncedCode() then
             [1] = { -- First Team (Blue)
                 [1] = "#004DFF", -- Armada Blue
                 [2] = "#0CC4E8", -- Turquoise
-                [3] = "#3475FF", -- Light Blue
+                [3] = "#6697FF", -- Very Light Blue
                 [4] = "#90E5F5", -- Light Turquoise
-                [5] = "#6697FF", -- Very Light Blue
+                [5] = "#3475FF", -- Light Blue
             },
             [2] = { -- Second Team (Red)
                 [1] = "#FF1005", -- Cortex Red
@@ -162,16 +162,16 @@ if gadgetHandler:IsSyncedCode() then
             [3] = { -- Third Team (Green)
                 [1] = "#0CE818", -- Green
                 [2] = "#00FF9E", -- Turquoise Green
-                [3] = "#00AA69", -- Dark Turquoise Green
-                [4] = "#8DF492", -- Light Green
-                [5] = "#86FFD1", -- Light Turquoise Green
+                [3] = "#7EAA00", -- Dark Lime
+                [4] = "#089B10", -- Dark Green
+                [5] = "#8DF492", -- Light Green
             },
             [4] = { -- Fourth Team (Yellow)
                 [1] = "#FFD70D", -- Yellow
-                [2] = "#DB8E0E", -- Brown
-                [3] = "#F6BB56", -- Light Brown
-                [4] = "#FFF2AE", -- Very Light Yellow
-                [5] = "#9B6408", -- Dark Brown
+                [2] = "#F6BB56", -- Light Brown
+                [3] = "#FFE874", -- Light Yellow
+                [4] = "#9B6408", -- Dark Brown
+                [5] = "#FFF2AE", -- Very Light Yellow
             },
             [5] = { -- Fifth Team (Fuchsia)
                 [1] = "#FF00DB", -- Fuchsia
@@ -186,8 +186,8 @@ if gadgetHandler:IsSyncedCode() then
             [1] = { -- First Team (Blue)
                 [1] = "#004DFF", -- Armada Blue
                 [2] = "#0CC4E8", -- Turquoise
-                [3] = "#3475FF", -- Light Blue
-                [4] = "#6697FF", -- Very Light Blue
+                [3] = "#6697FF", -- Very Light Blue
+                [4] = "#90E5F5", -- Light Turquoise
             },
             [2] = { -- Second Team (Red)
                 [1] = "#FF1005", -- Cortex Red
@@ -198,14 +198,14 @@ if gadgetHandler:IsSyncedCode() then
             [3] = { -- Third Team (Green)
                 [1] = "#0CE818", -- Green
                 [2] = "#00FF9E", -- Turquoise Green
-                [3] = "#8DF492", -- Light Green
+                [3] = "#7EAA00", -- Dark Lime
                 [4] = "#089B10", -- Dark Green
             },
             [4] = { -- Fourth Team (Yellow)
                 [1] = "#FFD70D", -- Yellow
-                [2] = "#DB8E0E", -- Brown
-                [3] = "#F6BB56", -- Light Brown
-                [4] = "#FFF2AE", -- Very Light Yellow
+                [2] = "#F6BB56", -- Light Brown
+                [3] = "#FFE874", -- Light Yellow
+                [4] = "#9B6408", -- Dark Brown
             },
             [5] = { -- Fifth Team (Fuchsia)
                 [1] = "#FF00DB", -- Fuchsia
