@@ -62,7 +62,7 @@ return {
 				footprintz = 7,
 				height = 20,
 				hitdensity = 100,
-				metal = 1748,
+				metal = 930,
 				object = "Units/corplat_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",

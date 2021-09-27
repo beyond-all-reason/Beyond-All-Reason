@@ -70,7 +70,7 @@ return {
 				footprintz = 7,
 				height = 5,
 				hitdensity = 100,
-				metal = 559,
+				metal = 800,
 				object = "Units/armamsub_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
