@@ -394,7 +394,7 @@ return {
 					createAutoGroupKey = 'alt + (num)',
 					createAutoGroup = 'Add unit type to autogroup (num=1,2,..)',
 					removeAutoGroupKey = 'alt + `',
-					removeAutoGroup = 'Remove units type from autogroup',
+					removeAutoGroup = 'Remove unit type from autogroup',
 					groupKey = '(num)',
 					group = 'Select all units assigned to group (num)',
 					sameTypeKey = 'ctrl + z',
