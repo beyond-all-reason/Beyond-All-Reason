@@ -394,7 +394,7 @@ local function updateButtons()
 	if WG['options'] ~= nil then
 		text = text .. Spring.I18N('ui.topbar.button.settings') .. '   '
 	end
-	if chobbyLoaded then
+	if not gameIsOver and chobbyLoaded then
 		if not spec and gameStarted and not isSinglePlayer then
 			text = text .. Spring.I18N('ui.topbar.button.resign') .. '  '
 		end
@@ -526,7 +526,7 @@ local function updateButtons()
 					firstButton = 'options'
 				end
 			end
-			if chobbyLoaded then
+			if not gameIsOver and chobbyLoaded then
 				if not spec and gameStarted and not isSinglePlayer then
 					buttons = buttons + 1
 					offset = math_floor(offset + width + 0.5)
@@ -1610,18 +1610,12 @@ function widget:DrawScreen()
 
 				local w = math_floor(320 * widgetScale)
 				local h = math_floor(w / 3.5)
-				local x = math_floor((vsx / 2) - (w / 2))
-				local y = math_floor((vsy / 1.8) - (h / 2))
-				local padding = math_floor(w / 90)
-				local buttonPadding = math_floor(w / 90)
-				local buttonMargin = math_floor(w / 30)
-				local buttonWidth = math_floor((w - buttonMargin * 4) / 3) -- 4 margins for 3 buttons
-				local buttonHeight = math_floor(h * 0.35)
+
 				local fontSize = h / 6
 				local text = Spring.I18N('ui.topbar.quit.reallyQuit')
 				if not spec then
 					text = Spring.I18N('ui.topbar.quit.reallyQuitResign')
-					if chobbyLoaded then
+					if not gameIsOver and chobbyLoaded then
 						if numPlayers < 3 then
 							text = Spring.I18N('ui.topbar.quit.reallyResign')
 						else
@@ -1629,9 +1623,17 @@ function widget:DrawScreen()
 						end
 					end
 				end
+				local padding = math_floor(w / 90)
 				local textTopPadding = padding + padding + padding + padding + padding + fontSize
 				local txtWidth = font:GetTextWidth(text) * fontSize
 				w = math.max(w, txtWidth + textTopPadding + textTopPadding)
+
+				local x = math_floor((vsx / 2) - (w / 2))
+				local y = math_floor((vsy / 1.8) - (h / 2))
+				local buttonPadding = math_floor(w / 90)
+				local buttonMargin = math_floor(w / 30)
+				local buttonWidth = math_floor((w - buttonMargin * 4) / 3) -- 4 margins for 3 buttons
+				local buttonHeight = math_floor(h * 0.30)
 
 				quitscreenArea = {
 					x,
@@ -1815,7 +1817,7 @@ local function applyButtonAction(button)
 
 	local isvisible = false
 	if button == 'quit' or button == 'resign' then
-		if chobbyLoaded and button == 'quit' then
+		if not gameIsOver and chobbyLoaded and button == 'quit' then
 			Spring.SendLuaMenuMsg("showLobby")
 		else
 			local oldShowQuitscreen
@@ -1938,7 +1940,7 @@ function widget:MousePress(x, y, button)
 		if showQuitscreen ~= nil and quitscreenArea ~= nil then
 
 			if IsOnRect(x, y, quitscreenArea[1], quitscreenArea[2], quitscreenArea[3], quitscreenArea[4]) then
-				if (not chobbyLoaded or not spec) and IsOnRect(x, y, quitscreenStayArea[1], quitscreenStayArea[2], quitscreenStayArea[3], quitscreenStayArea[4]) then
+				if (gameIsOver or not chobbyLoaded or not spec) and IsOnRect(x, y, quitscreenStayArea[1], quitscreenStayArea[2], quitscreenStayArea[3], quitscreenStayArea[4]) then
 					if playSounds then
 						Spring.PlaySoundFile(leftclick, 0.75, 'ui')
 					end
@@ -1947,11 +1949,15 @@ function widget:MousePress(x, y, button)
 						WG['guishader'].setScreenBlur(false)
 					end
 				end
-				if not chobbyLoaded and IsOnRect(x, y, quitscreenQuitArea[1], quitscreenQuitArea[2], quitscreenQuitArea[3], quitscreenQuitArea[4]) then
+				if (gameIsOver or not chobbyLoaded) and IsOnRect(x, y, quitscreenQuitArea[1], quitscreenQuitArea[2], quitscreenQuitArea[3], quitscreenQuitArea[4]) then
 					if playSounds then
 						Spring.PlaySoundFile(leftclick, 0.75, 'ui')
 					end
-					Spring.SendCommands("QuitForce")
+					if not chobbyLoaded then
+						Spring.SendCommands("QuitForce") -- Exit the game completely
+					else
+						Spring.SendCommands("ReloadForce") -- Exit to the lobby
+					end
 					showQuitscreen = nil
 					hideQuitWindow = os.clock()
 				end
