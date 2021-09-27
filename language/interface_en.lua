@@ -247,7 +247,7 @@ return {
 					widgetsKey = 'f11',
 					widgets = 'Widget list',
 					widgetsTweakKey = 'ctrl + f11',
-					widgetsTweak = 'Widget teak mode',
+					widgetsTweak = 'Widget tweak mode',
 					shareKey = 'h',
 					share = 'Share units / resources',
 				},
