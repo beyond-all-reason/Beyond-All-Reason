@@ -1630,8 +1630,7 @@ function widget:DrawScreen()
 
 				local x = math_floor((vsx / 2) - (w / 2))
 				local y = math_floor((vsy / 1.8) - (h / 2))
-				local buttonPadding = math_floor(w / 90)
-				local buttonMargin = math_floor(w / 30)
+				local buttonMargin = math_floor(h / 9)
 				local buttonWidth = math_floor((w - buttonMargin * 4) / 3) -- 4 margins for 3 buttons
 				local buttonHeight = math_floor(h * 0.30)
 
