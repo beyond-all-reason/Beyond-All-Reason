@@ -34,7 +34,7 @@ local MAX_POINTS = 24
 function ShieldSphereColorParticle.GetInfo()
 	return {
 		name		= "ShieldSphereColor",
-		backup		= "ShieldSphereColorFallback", --// backup class, if this class doesn't work (old cards,ati's,etc.)
+		backup		= "", --// backup class, if this class doesn't work (old cards,ati's,etc.)
 		desc		= "",
 
 		layer		= -23, --// extreme simply z-ordering :x

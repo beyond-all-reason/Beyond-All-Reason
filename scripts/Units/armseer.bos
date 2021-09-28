@@ -81,7 +81,6 @@ Create()
 	dont-cache dish;
 	dont-shade dish;
 	start-script SmokeUnit();
-	start-script Lights();
 	return (0);
 }
 StartMoving()
@@ -102,6 +101,7 @@ Activate()
 	signal SIG_ACTIVATE;
 	set-signal-mask SIG_ACTIVATE;
 	spin dish around y-axis speed <100.021978> accelerate <10>;
+	start-script Lights();
 	return (0);
 }
 

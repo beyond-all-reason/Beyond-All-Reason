@@ -16,6 +16,8 @@ end
 
 local nanoturretunitIDs = {}
 
+local loadoutcomplete = false
+
 local function rot_to_facing(rotation)
 	--[[
 	"south" | "s" | 0 == 0
@@ -37,7 +39,15 @@ end
 
 function gadget:Initialize()
 	local gaiateamid = Spring.GetGaiaTeamID()
-	if Spring.GetGameFrame() < 1 then
+end
+
+function gadget:GamePreload()
+  if Spring.GetGameRulesParam("loadedGame") == 1 then
+    Spring.Echo("Scenario: Loading saved game, skipping loadout")
+		gadgetHandler:RemoveGadget(self)
+  end
+  
+	if Spring.GetGameFrame() < 1 and not loadoutcomplete then
 		-- so that loaded savegames dont re-place
 		if Spring.GetModOptions().scenariooptions then
 			Spring.Echo("Scenario: Spawning on frame", Spring.GetGameFrame())
@@ -84,8 +94,10 @@ function gadget:Initialize()
 			end
 		end
 	end
+  loadoutcomplete = true
 	--gadgetHandler:RemoveGadget(self)
 end
+
 
 function gadget:GameFrame(n)
 	if n > 1 then

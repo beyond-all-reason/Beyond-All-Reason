@@ -394,7 +394,7 @@ local function updateButtons()
 	if WG['options'] ~= nil then
 		text = text .. Spring.I18N('ui.topbar.button.settings') .. '   '
 	end
-	if chobbyLoaded then
+	if not gameIsOver and chobbyLoaded then
 		if not spec and gameStarted and not isSinglePlayer then
 			text = text .. Spring.I18N('ui.topbar.button.resign') .. '  '
 		end
@@ -526,7 +526,7 @@ local function updateButtons()
 					firstButton = 'options'
 				end
 			end
-			if chobbyLoaded then
+			if not gameIsOver and chobbyLoaded then
 				if not spec and gameStarted and not isSinglePlayer then
 					buttons = buttons + 1
 					offset = math_floor(offset + width + 0.5)
@@ -1610,15 +1610,12 @@ function widget:DrawScreen()
 
 				local w = math_floor(320 * widgetScale)
 				local h = math_floor(w / 3.5)
-				local padding = math_floor(w / 90)
-				local buttonPadding = math_floor(w / 90)
-				local buttonMargin = math_floor(w / 30)
-				local buttonHeight = math_floor(h * 0.55)
+
 				local fontSize = h / 6
 				local text = Spring.I18N('ui.topbar.quit.reallyQuit')
 				if not spec then
 					text = Spring.I18N('ui.topbar.quit.reallyQuitResign')
-					if chobbyLoaded then
+					if not gameIsOver and chobbyLoaded then
 						if numPlayers < 3 then
 							text = Spring.I18N('ui.topbar.quit.reallyResign')
 						else
@@ -1626,59 +1623,97 @@ function widget:DrawScreen()
 						end
 					end
 				end
+				local padding = math_floor(w / 90)
 				local textTopPadding = padding + padding + padding + padding + padding + fontSize
 				local txtWidth = font:GetTextWidth(text) * fontSize
 				w = math.max(w, txtWidth + textTopPadding + textTopPadding)
 
-				quitscreenArea = { math_floor((vsx / 2) - (w / 2)), math_floor((vsy / 1.8) - (h / 2)), math_floor((vsx / 2) + (w / 2)), math_floor((vsy / 1.8) + (h / 2)) }
-				quitscreenResignArea = { math_floor((vsx / 2) - (w / 2) + buttonMargin), math_floor((vsy / 1.8) - (h / 2) + buttonMargin), math_floor((vsx / 2) - (buttonMargin / 2)), math_floor((vsy / 1.8) - (h / 2) + buttonHeight - buttonMargin) }
-				quitscreenQuitArea = { math_floor((vsx / 2) + (buttonMargin / 2)), math_floor((vsy / 1.8) - (h / 2) + buttonMargin), math_floor((vsx / 2) + (w / 2) - buttonMargin), math_floor((vsy / 1.8) - (h / 2) + buttonHeight - buttonMargin) }
+				local x = math_floor((vsx / 2) - (w / 2))
+				local y = math_floor((vsy / 1.8) - (h / 2))
+				local buttonMargin = math_floor(h / 9)
+				local buttonWidth = math_floor((w - buttonMargin * 4) / 3) -- 4 margins for 3 buttons
+				local buttonHeight = math_floor(h * 0.30)
+
+				quitscreenArea = {
+					x,
+					y,
+					x + w,
+					y + h
+				}
+				quitscreenStayArea = {
+					x + buttonMargin + 0 * (buttonWidth + buttonMargin),
+					y + buttonMargin,
+					x + buttonMargin + 0 * (buttonWidth + buttonMargin) + buttonWidth,
+					y + buttonMargin + buttonHeight
+				}
+				quitscreenResignArea = {
+					x + buttonMargin + 1 * (buttonWidth + buttonMargin),
+					y + buttonMargin,
+					x + buttonMargin + 1 * (buttonWidth + buttonMargin) + buttonWidth,
+					y + buttonMargin + buttonHeight
+				}
+				quitscreenQuitArea = {
+					x + buttonMargin + 2 * (buttonWidth + buttonMargin),
+					y + buttonMargin,
+					x + buttonMargin + 2 * (buttonWidth + buttonMargin) + buttonWidth,
+					y + buttonMargin + buttonHeight
+				}
 
 				-- window
 				UiElement(quitscreenArea[1], quitscreenArea[2], quitscreenArea[3], quitscreenArea[4], 1,1,1,1, 1,1,1,1, nil, {1, 1, 1, 0.6 + (0.34 * fadeProgress)}, {0.45, 0.45, 0.4, 0.025 + (0.025 * fadeProgress)})
 
+				local color1, color2
+
 				font:Begin()
 				font:SetTextColor(0, 0, 0, 1)
 				font:Print(text, quitscreenArea[1] + ((quitscreenArea[3] - quitscreenArea[1]) / 2), quitscreenArea[4]-textTopPadding, fontSize, "cn")
-
-				-- quit button
-				local color1, color2
-				local mult = 0.85
-				if not chobbyLoaded then
-					if IsOnRect(x, y, quitscreenQuitArea[1], quitscreenQuitArea[2], quitscreenQuitArea[3], quitscreenQuitArea[4]) then
-						color1 = { 0.4, 0, 0, 0.4 + (0.5 * fadeProgress) }
-						color2 = { 0.6, 0.05, 0.05, 0.4 + (0.5 * fadeProgress) }
-						mult = 1.4
-					else
-						color1 = { 0.25, 0, 0, 0.35 + (0.5 * fadeProgress) }
-						color2 = { 0.5, 0, 0, 0.35 + (0.5 * fadeProgress) }
-					end
-					UiButton(quitscreenQuitArea[1], quitscreenQuitArea[2], quitscreenQuitArea[3], quitscreenQuitArea[4], 1,1,1,1, 1,1,1,1, nil, color1, color2, padding * 0.5)
-				end
 				font:End()
 
-				fontSize = fontSize * 0.92
 				font2:Begin()
-				if not chobbyLoaded then
-					font2:SetTextColor(1, 1, 1, 1)
-					font2:SetOutlineColor(0, 0, 0, 0.23)
-					font2:Print(Spring.I18N('ui.topbar.quit.quit'), quitscreenQuitArea[1] + ((quitscreenQuitArea[3] - quitscreenQuitArea[1]) / 2), quitscreenQuitArea[2] + ((quitscreenQuitArea[4] - quitscreenQuitArea[2]) / 2) - (fontSize / 3), fontSize, "con")
+				font2:SetTextColor(1, 1, 1, 1)
+				font2:SetOutlineColor(0, 0, 0, 0.23)
+
+				fontSize = fontSize * 0.92
+
+				-- stay button
+				if gameIsOver or not chobbyLoaded then
+					if IsOnRect(x, y, quitscreenStayArea[1], quitscreenStayArea[2], quitscreenStayArea[3], quitscreenStayArea[4]) then
+						color1 = { 0, 0.4, 0, 0.4 + (0.5 * fadeProgress) }
+						color2 = { 0.05, 0.6, 0.05, 0.4 + (0.5 * fadeProgress) }
+					else
+						color1 = { 0, 0.25, 0, 0.35 + (0.5 * fadeProgress) }
+						color2 = { 0, 0.5, 0, 0.35 + (0.5 * fadeProgress) }
+					end
+					UiButton(quitscreenStayArea[1], quitscreenStayArea[2], quitscreenStayArea[3], quitscreenStayArea[4], 1,1,1,1, 1,1,1,1, nil, color1, color2, padding * 0.5)
+					font2:Print(Spring.I18N('ui.topbar.quit.stay'), quitscreenStayArea[1] + ((quitscreenStayArea[3] - quitscreenStayArea[1]) / 2), quitscreenStayArea[2] + ((quitscreenStayArea[4] - quitscreenStayArea[2]) / 2) - (fontSize / 3), fontSize, "con")
 				end
+
 				-- resign button
-				mult = 0.85
 				if not spec then
 					if IsOnRect(x, y, quitscreenResignArea[1], quitscreenResignArea[2], quitscreenResignArea[3], quitscreenResignArea[4]) then
 						color1 = { 0.28, 0.28, 0.28, 0.4 + (0.5 * fadeProgress) }
 						color2 = { 0.45, 0.45, 0.45, 0.4 + (0.5 * fadeProgress) }
-						mult = 1.3
 					else
 						color1 = { 0.18, 0.18, 0.18, 0.4 + (0.5 * fadeProgress) }
 						color2 = { 0.33, 0.33, 0.33, 0.4 + (0.5 * fadeProgress) }
 					end
 					UiButton(quitscreenResignArea[1], quitscreenResignArea[2], quitscreenResignArea[3], quitscreenResignArea[4], 1,1,1,1, 1,1,1,1, nil, color1, color2, padding * 0.5)
-
 					font2:Print(Spring.I18N('ui.topbar.quit.resign'), quitscreenResignArea[1] + ((quitscreenResignArea[3] - quitscreenResignArea[1]) / 2), quitscreenResignArea[2] + ((quitscreenResignArea[4] - quitscreenResignArea[2]) / 2) - (fontSize / 3), fontSize, "con")
 				end
+
+				-- quit button
+				if gameIsOver or not chobbyLoaded then
+					if IsOnRect(x, y, quitscreenQuitArea[1], quitscreenQuitArea[2], quitscreenQuitArea[3], quitscreenQuitArea[4]) then
+						color1 = { 0.4, 0, 0, 0.4 + (0.5 * fadeProgress) }
+						color2 = { 0.6, 0.05, 0.05, 0.4 + (0.5 * fadeProgress) }
+					else
+						color1 = { 0.25, 0, 0, 0.35 + (0.5 * fadeProgress) }
+						color2 = { 0.5, 0, 0, 0.35 + (0.5 * fadeProgress) }
+					end
+					UiButton(quitscreenQuitArea[1], quitscreenQuitArea[2], quitscreenQuitArea[3], quitscreenQuitArea[4], 1,1,1,1, 1,1,1,1, nil, color1, color2, padding * 0.5)
+					font2:Print(Spring.I18N('ui.topbar.quit.quit'), quitscreenQuitArea[1] + ((quitscreenQuitArea[3] - quitscreenQuitArea[1]) / 2), quitscreenQuitArea[2] + ((quitscreenQuitArea[4] - quitscreenQuitArea[2]) / 2) - (fontSize / 3), fontSize, "con")
+				end
+
 				font2:End()
 			end
 		end)
@@ -1781,7 +1816,7 @@ local function applyButtonAction(button)
 
 	local isvisible = false
 	if button == 'quit' or button == 'resign' then
-		if chobbyLoaded and button == 'quit' then
+		if not gameIsOver and chobbyLoaded and button == 'quit' then
 			Spring.SendLuaMenuMsg("showLobby")
 		else
 			local oldShowQuitscreen
@@ -1904,12 +1939,24 @@ function widget:MousePress(x, y, button)
 		if showQuitscreen ~= nil and quitscreenArea ~= nil then
 
 			if IsOnRect(x, y, quitscreenArea[1], quitscreenArea[2], quitscreenArea[3], quitscreenArea[4]) then
-
-				if not chobbyLoaded and IsOnRect(x, y, quitscreenQuitArea[1], quitscreenQuitArea[2], quitscreenQuitArea[3], quitscreenQuitArea[4]) then
+				if (gameIsOver or not chobbyLoaded or not spec) and IsOnRect(x, y, quitscreenStayArea[1], quitscreenStayArea[2], quitscreenStayArea[3], quitscreenStayArea[4]) then
 					if playSounds then
 						Spring.PlaySoundFile(leftclick, 0.75, 'ui')
 					end
-					Spring.SendCommands("QuitForce")
+					showQuitscreen = nil
+					if WG['guishader'] then
+						WG['guishader'].setScreenBlur(false)
+					end
+				end
+				if (gameIsOver or not chobbyLoaded) and IsOnRect(x, y, quitscreenQuitArea[1], quitscreenQuitArea[2], quitscreenQuitArea[3], quitscreenQuitArea[4]) then
+					if playSounds then
+						Spring.PlaySoundFile(leftclick, 0.75, 'ui')
+					end
+					if not chobbyLoaded then
+						Spring.SendCommands("QuitForce") -- Exit the game completely
+					else
+						Spring.SendCommands("ReloadForce") -- Exit to the lobby
+					end
 					showQuitscreen = nil
 					hideQuitWindow = os.clock()
 				end
