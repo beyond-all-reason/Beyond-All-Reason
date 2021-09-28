@@ -26,27 +26,6 @@ local function getFilePath(filename, path)
 	return false
 end
 
--- special tablemerge:
--- normally an empty table as value will be ignored when merging, but not here, it will overwrite what it had with an empty table
-local function tableMergeSpecial(t1, t2)
-	for k, v in pairs(t2) do
-		if type(v) == "table" then
-			if next(v) == nil then
-				t1[k] = v
-			else
-				if type(t1[k] or false) == "table" then
-					tableMergeSpecial(t1[k] or {}, t2[k] or {})
-				else
-					t1[k] = v
-				end
-			end
-		else
-			t1[k] = v
-		end
-	end
-	return t1
-end
-
 -- Unbalanced (upgradeable) Commanders modoption
 if Spring.GetModOptions().unba then
 	VFS.Include("unbaconfigs/unbacom_post.lua")
@@ -163,7 +142,7 @@ local function createScavengerUnitDefs()
 	for name, unitDef in pairs(UnitDefs) do
 		if not string.find(name, '_scav') and not string.find(name, 'critter')  and not string.find(name, 'chicken') then
 			if customScavDefs[name] ~= nil then
-				scavengerUnitDefs[name .. '_scav'] = tableMergeSpecial(table.copy(unitDef), table.copy(customScavDefs[name]))
+				scavengerUnitDefs[name .. '_scav'] = table.merge(unitDef, customScavDefs[name])
 			else
 				scavengerUnitDefs[name .. '_scav'] = table.copy(unitDef)
 			end

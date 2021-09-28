@@ -2,7 +2,6 @@
 
 -- Special rules:
 -- you only need to put the things you want changed in comparison with the regular unitdef. (use the same table structure)
--- normally an empty table as value will be ignored when merging, but not here, it will overwrite what it had with an empty table
 
 local customDefs = {}
 
