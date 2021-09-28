@@ -34,23 +34,6 @@ SaveDefsToCustomParams = false
 --local vehAdditionalVelocity = 0
 --local vehVelocityMultiplier = 1
 
-local function getFilePath(filename, path)
-	local files = VFS.DirList(path, '*.lua')
-	for i=1,#files do
-		if path..filename == files[i] then
-			return path
-		end
-	end
-	local subdirs = VFS.SubDirs(path)
-	for i=1,#subdirs do
-		local result = getFilePath(filename, subdirs[i])
-		if result then
-			return result
-		end
-	end
-	return false
-end
-
 --[[ Sanitize to whole frames (plus leeways because float arithmetic is bonkers).
      The engine uses full frames for actual reload times, but forwards the raw
      value to LuaUI (so for example calculated DPS is incorrect without sanitisation). ]]
@@ -61,8 +44,8 @@ local function round_to_frames(name, wd, key)
 		return
 	end
 
-  local Game_gameSpeed = 30 --for mission editor backwards compat (engine 104.0.1-287)
-  if Game and Game.gameSpeed then Game_gameSpeed = Game.gameSpeed end
+	local Game_gameSpeed = 30 --for mission editor backwards compat (engine 104.0.1-287)
+	if Game and Game.gameSpeed then Game_gameSpeed = Game.gameSpeed end
 
 	local frames = math.max(1, math.floor((original_value + 1E-3) * Game_gameSpeed))
 	local sanitized_value = frames / Game_gameSpeed
@@ -84,10 +67,6 @@ local function processWeapons(unitDefName, unitDef)
 end
 
 function UnitDef_Post(name, uDef)
-	if not uDef.customparams then
-		uDef.customparams = {}
-	end
-
 	-- disable wrecks for Control Points mode
 	if Spring.GetModOptions().scoremode ~= "disabled" then
 		uDef.corpse = nil
@@ -518,26 +497,6 @@ function UnitDef_Post(name, uDef)
 	end
 	uDef.customparams.vertdisp = 1.0 * vertexDisplacement
 	uDef.customparams.healthlookmod = 0
-
-	-- scavengers
-	if string.find(name, '_scav') then
-		--name = string.gsub(name, '_scav', '')
-		VFS.Include("gamedata/scavengers/unitdef_post.lua")
-		uDef = scav_Udef_Post(name, uDef)
-	else
-
-		-- usable when baking ... keeping subfolder structure
-		if SaveDefsToCustomParams then
-
-			local filepath = getFilePath(name..'.lua', 'units/')
-			if filepath then
-				if not uDef.customparams then
-					uDef.customparams = {}
-				end
-				uDef.customparams.subfolder = string.sub(filepath, 7, #filepath-1)
-			end
-		end
-	end
 end
 
 local function ProcessSoundDefaults(wd)

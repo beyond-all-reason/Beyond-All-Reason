@@ -6,7 +6,7 @@
 
 local customDefs = {}
 
-scavDifficulty = Spring.GetModOptions().scavdifficulty
+local scavDifficulty = Spring.GetModOptions().scavdifficulty
 if scavDifficulty == "noob" then
 	ScavDifficultyMultiplier = 0.1
 elseif scavDifficulty == "veryeasy" then
@@ -30,7 +30,7 @@ end
 local scavUnit = {}
 for name,uDef in pairs(UnitDefs) do
 	if string.sub(name, 1, 3) == "arm" or string.sub(name, 1, 3) == "cor" then
-		scavUnit[#scavUnit+1] = name..'_scav'
+		scavUnit[#scavUnit+1] = name .. '_scav'
 	end
 end
 
