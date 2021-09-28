@@ -11,18 +11,20 @@ function widget:GetInfo()
 	}
 end
 
--- GL4 notes
--- TODO: gl_NormalMatrix seems wrong
--- Load stuff on init
--- on playerchanged shit dont reload for specs
---
+-- Global notes for all shaders: and GL4 notes
+-- so all these seem to write a XYW coord into the fragment buffer
+-- the XY part of this is the amount of distortion into each side
+-- the W part of this is the depth of the distorted fragment, to avoid overlapping into something
+-- how does this handle screen edge?
+-- All of these also take into account the fragment depth
  
 local TESTSPHERES = false
 
 ----- OLD SHADERS:
 --- ShieldJitter.lua-----------------------------
 -- draws a shield sphere type jitter, dunno if that is even possible
-
+-- its just a shader that maps the noise texture to the shields sphere
+-- the strength of the effect is such that its the greatest when looking head-on
 
 function ShieldJitter.Initialize()
 	ShieldJitter.Default.strengthMin = ShieldJitter.Default.strengthMin or ShieldJitter.Default.strength or 0.005
@@ -90,7 +92,8 @@ end
 
 ---------------------------- Shockwave.lua------------------
 -- draws the shit at explosoins
-
+-- what this seems to do, is draw a quad at the explosion, and as the 'sphere' front of it 
+-- expands, it compressively distorts the image 
 
 function ShockWave.Initialize()
   warpShader = gl.CreateShader({
