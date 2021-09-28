@@ -106,6 +106,8 @@ local keybindsText = {
 	{ type = lineType.key, key = Spring.I18N('ui.keybinds.massSelect.allKey'),			text = Spring.I18N('ui.keybinds.massSelect.all')		},
 	{ type = lineType.key, key = Spring.I18N('ui.keybinds.massSelect.buildersKey'),		text = Spring.I18N('ui.keybinds.massSelect.builders')	},
 	{ type = lineType.key, key = Spring.I18N('ui.keybinds.massSelect.createGroupKey'),	text = Spring.I18N('ui.keybinds.massSelect.createGroup')},
+	{ type = lineType.key, key = Spring.I18N('ui.keybinds.massSelect.createAutoGroupKey'),	text = Spring.I18N('ui.keybinds.massSelect.createAutoGroup')},
+	{ type = lineType.key, key = Spring.I18N('ui.keybinds.massSelect.removeAutoGroupKey'),	text = Spring.I18N('ui.keybinds.massSelect.removeAutoGroup')},
 	{ type = lineType.key, key = Spring.I18N('ui.keybinds.massSelect.groupKey'),		text = Spring.I18N('ui.keybinds.massSelect.group')		},
 	{ type = lineType.key, key = Spring.I18N('ui.keybinds.massSelect.sameTypeKey'),		text = Spring.I18N('ui.keybinds.massSelect.sameType')	},
 	{ type = lineType.blank },
