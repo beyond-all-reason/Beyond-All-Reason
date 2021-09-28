@@ -39,6 +39,14 @@ end
 
 function gadget:Initialize()
 	local gaiateamid = Spring.GetGaiaTeamID()
+end
+
+function gadget:GamePreload()
+  if Spring.GetGameRulesParam("loadedGame") == 1 then
+    Spring.Echo("Scenario: Loading saved game, skipping loadout")
+		gadgetHandler:RemoveGadget(self)
+  end
+  
 	if Spring.GetGameFrame() < 1 and not loadoutcomplete then
 		-- so that loaded savegames dont re-place
 		if Spring.GetModOptions().scenariooptions then
@@ -89,6 +97,7 @@ function gadget:Initialize()
   loadoutcomplete = true
 	--gadgetHandler:RemoveGadget(self)
 end
+
 
 function gadget:GameFrame(n)
 	if n > 1 then
