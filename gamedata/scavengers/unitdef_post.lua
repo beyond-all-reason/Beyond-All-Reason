@@ -1,11 +1,6 @@
--- this file gets included in alldefs_post.lua
+-- UnitDef postprocessing specific to Scavenger units only
 
-local scavUnit = {}
-for name,uDef in pairs(UnitDefs) do
-    scavUnit[#scavUnit+1] = name..'_scav'
-end
-
-scavDifficulty = Spring.GetModOptions().scavdifficulty
+local scavDifficulty = Spring.GetModOptions().scavdifficulty
 if scavDifficulty == "noob" then
 	ScavDifficultyMultiplier = 0.1
 elseif scavDifficulty == "veryeasy" then
@@ -27,14 +22,9 @@ else
 end
 
 function scav_Udef_Post(name, uDef)
-	if not uDef.customparams then
-		uDef.customparams = {}
-	end
+	uDef.category = uDef.category .. ' SCAVENGER'
 	uDef.customparams.isscavenger = true
-	
-	-- add unit category
-	uDef.category = uDef.category..' SCAVENGER'
-	
+
 	-- replaced uniticons
 	if uDef.buildpic then
 		--local nonScavName = string.sub(uDef.unitname, 1, string.len(uDef.unitname)-5)
@@ -49,7 +39,6 @@ function scav_Udef_Post(name, uDef)
 	end
 
 	-- add model vertex displacement
-
 	--local udefVertDisp = uDef.customparams.vertdisp1 or 0
 	--uDef.customparams.vertdisp = 2.0 * udefVertDisp
 	uDef.customparams.healthlookmod = 0.40
@@ -60,6 +49,7 @@ function scav_Udef_Post(name, uDef)
 			uDef.customparams.firingceg = uDef.customparams.firingceg..'-purple'
 		end
 	end
+
 	if uDef.sfxtypes then
 		-- make barrelshot purple
 		if uDef.sfxtypes.explosiongenerators then
@@ -78,6 +68,7 @@ function scav_Udef_Post(name, uDef)
 			end
 		end
 	end
+
 	-- make unit explosion purple
 	if uDef.explodeas then
 		if string.find(string.lower(uDef.explodeas), 'explosiongeneric') or
@@ -89,6 +80,7 @@ function scav_Udef_Post(name, uDef)
 			uDef.explodeas = uDef.explodeas..'-purple'
 		end
 	end
+
 	if uDef.selfdestructas then
 		if string.find(string.lower(uDef.selfdestructas), 'explosiongeneric') or
 			string.find(string.lower(uDef.selfdestructas), 'buildingexplosiongeneric') or
@@ -124,52 +116,48 @@ function scav_Udef_Post(name, uDef)
 	if uDef.name then
 		uDef.name = Spring.I18N('units.scavenger', { name = uDef.name })
 	end
-  
-  if math and math.random then
-    
-  local randomMultiplier = 1.0 
-  if math.random() ~= nil then  --for mission editor math.random() somehow returns nil
-     randomMultiplier = (math.random()*0.25)+0.875 -- results in random between 0.875 and 1.125
-  end
-	
+
+	local baseMultiplier = 0.85
+	local randomMultiplier = (math.random() * 0.25) + 0.875 -- results in random between 0.875 and 1.125
+
 	if uDef.buildcostenergy then
-		uDef.buildcostenergy = math.ceil(uDef.buildcostenergy*0.85*randomMultiplier)
+		uDef.buildcostenergy = math.ceil(uDef.buildcostenergy * baseMultiplier * randomMultiplier)
 	end
 
 	if uDef.buildcostmetal then
-		uDef.buildcostmetal = math.ceil(uDef.buildcostmetal*0.85*randomMultiplier)
+		uDef.buildcostmetal = math.ceil(uDef.buildcostmetal * baseMultiplier * randomMultiplier)
 	end
 
 	if uDef.buildtime then
-		uDef.buildtime = math.ceil(uDef.buildtime*0.85*randomMultiplier)
+		uDef.buildtime = math.ceil(uDef.buildtime * baseMultiplier * randomMultiplier)
 	end
-	
+
 	if uDef.energymake then
-		uDef.energymake = math.ceil(uDef.energymake*0.85*randomMultiplier)
+		uDef.energymake = math.ceil(uDef.energymake * baseMultiplier * randomMultiplier)
 	end
 
 	if uDef.metalmake then
-		uDef.metalmake = math.ceil(uDef.metalmake*0.85*randomMultiplier)
+		uDef.metalmake = math.ceil(uDef.metalmake * baseMultiplier * randomMultiplier)
 	end
 
 	if uDef.maxdamage then
 		if name ~= 'armcomboss_scav' and name ~= 'corcomboss_scav' then
-			uDef.maxdamage = math.ceil(uDef.maxdamage*0.85*randomMultiplier)
+			uDef.maxdamage = math.ceil(uDef.maxdamage * baseMultiplier * randomMultiplier)
 		end
 	end
 
 	-- if uDef.maxvelocity then
-		-- uDef.maxvelocity = uDef.maxvelocity*1.1
+		-- uDef.maxvelocity = uDef.maxvelocity * 1.1
 	-- end
 
 	--if uDef.radardistancejam then
-		--uDef.radardistancejam = math.ceil(uDef.radardistancejam*1.25*randomMultiplier)
+		--uDef.radardistancejam = math.ceil(uDef.radardistancejam * 1.25 * randomMultiplier)
 	--end
 
 	if uDef.maxdamage then
 		if name ~= 'armcomboss_scav' and name ~= 'corcomboss_scav' then
-			uDef.autoheal = math.ceil(math.sqrt(uDef.maxdamage*0.1*randomMultiplier))
-			uDef.idleautoheal = math.ceil(math.sqrt(uDef.maxdamage*0.1*randomMultiplier))
+			uDef.autoheal = math.ceil(math.sqrt(uDef.maxdamage * 0.1 * randomMultiplier))
+			uDef.idleautoheal = math.ceil(math.sqrt(uDef.maxdamage * 0.1 * randomMultiplier))
 		else
 			uDef.autoheal = 0
 			uDef.idleautoheal = 0
@@ -180,7 +168,7 @@ function scav_Udef_Post(name, uDef)
 	end
 
 	if uDef.turnrate then
-		uDef.turnrate = uDef.turnrate*1.2*randomMultiplier
+		uDef.turnrate = uDef.turnrate * 1.2 * randomMultiplier
 	end
 
 	if uDef.turninplaceanglelimit then
@@ -189,26 +177,26 @@ function scav_Udef_Post(name, uDef)
 
 	-- don't let players get scav constructors
 	if uDef.builder then
-		if uDef.workertime then 
+		if uDef.workertime then
 			local workertimemultipliermodoption = Spring.GetModOptions().scavbuildspeedmultiplier
-			uDef.workertime = uDef.workertime*workertimemultipliermodoption
+			uDef.workertime = uDef.workertime * workertimemultipliermodoption
 		end
 		-- if uDef.maxvelocity then
-		-- 	uDef.maxvelocity = uDef.maxvelocity*2*randomMultiplier
+		-- 	uDef.maxvelocity = uDef.maxvelocity * 2 * randomMultiplier
 		-- end
 		if uDef.canmove == true then
 			uDef.cancapture = true
 			if uDef.workertime then
-				uDef.workertime = uDef.workertime*1.5*ScavDifficultyMultiplier
+				uDef.workertime = uDef.workertime * 1.5 * ScavDifficultyMultiplier
 			end
 			if uDef.turnrate then
-				uDef.turnrate = uDef.turnrate*1.5
+				uDef.turnrate = uDef.turnrate * 1.5
 			end
 			if uDef.brakerate then
-				uDef.brakerate = uDef.brakerate*3*randomMultiplier
+				uDef.brakerate = uDef.brakerate * 3 * randomMultiplier
 			end
 			if uDef.builddistance then
-				uDef.builddistance = uDef.builddistance*2*randomMultiplier
+				uDef.builddistance = uDef.builddistance * 2 * randomMultiplier
 			end
 		end
 		if uDef.featuredefs then
@@ -225,7 +213,7 @@ function scav_Udef_Post(name, uDef)
 			-- end
 		end
 	end
-	
+
 	if uDef.weapondefs then
 		for weaponDefName, weaponDef in pairs (uDef.weapondefs) do
 			for category, damage in pairs (weaponDef.damage) do
@@ -233,13 +221,10 @@ function scav_Udef_Post(name, uDef)
 			end
 		end
 	end
-  
-  end -- end mission editor compat
 
 	if uDef.customparams.fighter then
-		uDef.maxvelocity = uDef.maxvelocity*2
+		uDef.maxvelocity = uDef.maxvelocity * 2
 	end
 
 	return uDef
-
 end

@@ -158,7 +158,6 @@ return {
 				turret = true,
 				weapontype = "LaserCannon",
 				weaponvelocity = 3000,
-				customparams = {},
 				damage = {
 					commanders = 1025,
 					default = 2500,

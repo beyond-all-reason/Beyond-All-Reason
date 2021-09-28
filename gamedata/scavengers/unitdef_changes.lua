@@ -2,12 +2,10 @@
 
 -- Special rules:
 -- you only need to put the things you want changed in comparison with the regular unitdef. (use the same table structure)
--- since you cant actually remove parameters normally, it will do it when you set string: 'nil' as value
--- normally an empty table as value will be ignored when merging, but not here, it will overwrite what it had with an empty table
 
-customDefs = {}
+local customDefs = {}
 
-scavDifficulty = Spring.GetModOptions().scavdifficulty
+local scavDifficulty = Spring.GetModOptions().scavdifficulty
 if scavDifficulty == "noob" then
 	ScavDifficultyMultiplier = 0.1
 elseif scavDifficulty == "veryeasy" then
@@ -31,7 +29,7 @@ end
 local scavUnit = {}
 for name,uDef in pairs(UnitDefs) do
 	if string.sub(name, 1, 3) == "arm" or string.sub(name, 1, 3) == "cor" then
-		scavUnit[#scavUnit+1] = name..'_scav'
+		scavUnit[#scavUnit+1] = name .. '_scav'
 	end
 end
 
@@ -62,14 +60,12 @@ local scavConstructorsList = {
 	"coracv",
 }
 
-
-
 customDefs.scavengerdroppodbeacon = {
-	maxdamage = 20000*ScavDifficultyMultiplier,
+	maxdamage = 20000 * ScavDifficultyMultiplier,
 }
 
 customDefs.scavsafeareabeacon = {
-	maxdamage = 50000*ScavDifficultyMultiplier,
+	maxdamage = 50000 * ScavDifficultyMultiplier,
 }
 
 -- Scav Commanders
@@ -97,7 +93,7 @@ customDefs.corcom = {
 	stealth = false,
 	workertime = 200,				-- can get multiplied in unitdef_post
 	customparams = {
-		iscommander = 'nil',		-- since you cant actually remove parameters normally, it will do it when you set string: 'nil' as value
+		iscommander = nil,
 	},
 	featuredefs = {
 		dead = {
@@ -164,7 +160,7 @@ customDefs.corcomcon = {
 	stealth = false,
 	workertime = 200,				-- can get multiplied in unitdef_post
 	customparams = {
-		iscommander = 'nil',		-- since you cant actually remove parameters normally, it will do it when you set string: 'nil' as value
+		iscommander = nil,
 	},
 	featuredefs = {
 		dead = {
@@ -230,7 +226,7 @@ customDefs.armcom = {
 	stealth = false,
 	workertime = 200,				-- can get multiplied in unitdef_post
 	customparams = {
-		iscommander = 'nil',		-- since you cant actually remove parameters normally, it will do it when you set string: 'nil' as value
+		iscommander = nil,
 	},
 	featuredefs = {
 		dead = {
@@ -296,7 +292,7 @@ customDefs.armcomcon = {
 	stealth = false,
 	workertime = 200,				-- can get multiplied in unitdef_post
 	customparams = {
-		iscommander = 'nil',		-- since you cant actually remove parameters normally, it will do it when you set string: 'nil' as value
+		iscommander = nil,
 	},
 	featuredefs = {
 		dead = {
@@ -478,7 +474,6 @@ customDefs.armshltx = {
 		[numBuildoptions+5] = "armlunchbox",
 		[numBuildoptions+6] = "armmeatball",
 		[numBuildoptions+7] = "armassimilator",
-		
 	},
 }
 
@@ -498,7 +493,6 @@ customDefs.corgant = {
 		[numBuildoptions+1] = "cordemont4",
 		[numBuildoptions+2] = "corkarganetht4",
 		[numBuildoptions+3] = "corgolt4",
-		
 	},
 }
 
@@ -820,7 +814,6 @@ customDefs.corsktl = {
 
 --]]
 
-
 -- Faster LLT - unique sound - shorter beamtime
 customDefs.corllt = {
 	-- cloakcost = 6,
@@ -854,7 +847,6 @@ customDefs.armamb = {
 		},
 	},
 }
-
 
 customDefs.cortoast = {
 	-- description = Spring.I18N('units.descriptions.cortoast_scav'),
@@ -967,7 +959,6 @@ customDefs.armllt = {
 	},
 }
 
-
 -- customDefs.corvipe = {
 -- 	cloakcost = 20,
 -- 	mincloakdistance = 288,
@@ -987,7 +978,7 @@ customDefs.armrectr = {
 	footprintx = 0,
 	footprintz = 0,
 	movementclass = "SCAVCOMMANDERBOT",
-	workertime = 100*ScavDifficultyMultiplier, 	-- can get multiplied in unitdef_post
+	workertime = 100 * ScavDifficultyMultiplier, 	-- can get multiplied in unitdef_post
 }
 
 customDefs.cornecro = {
@@ -999,7 +990,7 @@ customDefs.cornecro = {
 	footprintx = 0,
 	footprintz = 0,
 	movementclass = "SCAVCOMMANDERBOT",
-	workertime = 100*ScavDifficultyMultiplier,		-- can get multiplied in unitdef_post
+	workertime = 100 * ScavDifficultyMultiplier,		-- can get multiplied in unitdef_post
 }
 
 -- LOOTBOXES
@@ -1097,3 +1088,5 @@ customDefs.armmh = {
 		},
 	},
 }
+
+return customDefs

@@ -10,6 +10,7 @@ function table.val_to_str ( v )
       tostring( v )
   end
 end
+
 function table.key_to_str ( k )
   if "string" == type( k ) and string.match( k, "^[_%a][_%a%d]*$" ) then
     if k == "else" then k = "default" end -- handles deprecated ["else"] damage class
@@ -18,6 +19,7 @@ function table.key_to_str ( k )
     return "[" .. table.val_to_str( k ) .. "]"
   end
 end
+
 function table.tostring( tbl )
   local result, done = {}, {}
   for k, v in ipairs( tbl ) do
@@ -32,13 +34,14 @@ function table.tostring( tbl )
   end
   return "{" .. table.concat( result, "," ) .. "}"
 end
+
 function SaveDefToCustomParams(defType, name, def)
     -- save def as a string
-    local def_string = table.tostring(def)
     def.customparams = def.customparams or {}
     def.customparams.__def = table.tostring(def)
     Spring.Echo("saved " .. defType .. "." .. name .. " to customparams.__def as string")
 end
+
 function MarkDefOmittedInCustomParams(defType, name, def)
     -- mark that this def is saved elsewhere as part of another def
     def.customparams = def.customparams or {}
