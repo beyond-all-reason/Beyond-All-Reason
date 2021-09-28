@@ -20,13 +20,13 @@ if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
+local wavePeriod = 180
+
 --local spSpawnCEG = Spring.SpawnCEG
 local spDestroyUnit = Spring.DestroyUnit
 local spGetUnitPosition = Spring.GetUnitPosition
 local DISTANCE_LIMIT = math.max(Game.mapSizeX,Game.mapSizeZ) * math.max(Game.mapSizeX,Game.mapSizeZ)
-
 local destroyUnitQueue = {}
-local dyingTeams = {}
 
 local function getSqrDistance(x1,z1,x2,z2)
 	local dx, dz = x1-x2, z1-z2
@@ -42,24 +42,23 @@ local function wipeoutTeam(teamID, originX, originZ, attackerUnitID)
 	for i=1, #teamUnits do
 		local unitID = teamUnits[i]
 		local x,y,z = spGetUnitPosition(unitID)
-		local deathFrame = math.min(((getSqrDistance(x, z, originX, originZ) / DISTANCE_LIMIT) * 40), 90)
+		local deathFrame = math.floor(math.min(((getSqrDistance(x, z, originX, originZ) / DISTANCE_LIMIT) * wavePeriod/2), wavePeriod) + math.random(0,wavePeriod/4))
 		maxDeathFrame = math.max(maxDeathFrame, deathFrame)
 		if destroyUnitQueue[unitID] == nil then
 			destroyUnitQueue[unitID] = {
-				frame = gf + deathFrame + math.random(0,10),
-				--x = x, y = y, z = z,
+				frame = gf + deathFrame,
 				attackerUnitID = attackerUnitID,
+				--x = x, y = y, z = z,
 			}
 		end
 	end
-	dyingTeams[teamID] = maxDeathFrame	-- storing frame of total unit wipeout
+	GG.maxDeathFrame = maxDeathFrame	-- storing frame of total unit wipeout
 	return maxDeathFrame
 end
 
-function gadget:Initialize()
-	GG.wipeoutTeam = wipeoutTeam
-	GG.getDeadTeams = dyingTeams
-end
+GG.deathwavePeriod = math.floor(wavePeriod*1.25)
+GG.wipeoutTeam = wipeoutTeam
+
 
 function gadget:GameFrame(gf)
 	if next(destroyUnitQueue) then
