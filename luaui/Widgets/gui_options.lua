@@ -4025,7 +4025,7 @@ function init()
 			end,
 		  },
 
-          { id = "defrange", group = "ui", widget = "Defense Range", name = texts.option.defrange, type = "bool", value = GetWidgetToggleValue("Defense Range"), description = texts.option.displaydps_descr },
+          { id = "defrange", group = "ui", basic = true, widget = "Defense Range", name = texts.option.defrange, type = "bool", value = GetWidgetToggleValue("Defense Range"), description = texts.option.defrange_descr },
 		{ id = "defrange_allyair", group = "ui", name = widgetOptionColor .. "   "..texts.option.defrange_allyair, type = "bool", value = (WG['defrange'] ~= nil and WG['defrange'].getAllyAir ~= nil and WG['defrange'].getAllyAir()), description = texts.option.defrange_allyair_descr,
 		  onload = function(i)
 			  loadWidgetData("Defense Range", "defrange_allyair", { 'enabled', 'ally', 'air' })
