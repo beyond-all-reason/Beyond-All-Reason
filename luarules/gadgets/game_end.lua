@@ -272,9 +272,9 @@ if gadgetHandler:IsSyncedCode() then
 				end
 
 				-- delay gameover to let everything blow up gradually first
-				local delay = GG.deathwavePeriod or 200
+				local delay = GG.wipeoutPeriod or 200
 				delay = GG.maxDeathFrame or delay
-				gameoverFrame = gf + delay + 30
+				gameoverFrame = gf + delay + 45
 				gameoverWinners = winners
 			end
 		end

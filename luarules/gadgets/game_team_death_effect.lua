@@ -20,7 +20,7 @@ if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
-local wavePeriod = 180
+local wavePeriod = 200
 
 --local spSpawnCEG = Spring.SpawnCEG
 local spDestroyUnit = Spring.DestroyUnit
@@ -52,12 +52,11 @@ local function wipeoutTeam(teamID, originX, originZ, attackerUnitID)
 			}
 		end
 	end
-	GG.maxDeathFrame = maxDeathFrame	-- storing frame of total unit wipeout
-	return maxDeathFrame
+	GG.maxDeathFrame = GG.maxDeathFrame and math.max(GG.maxDeathFrame, maxDeathFrame) or maxDeathFrame	-- storing frame of total unit wipeout
 end
 
-GG.deathwavePeriod = math.floor(wavePeriod*1.25)
 GG.wipeoutTeam = wipeoutTeam
+GG.wipeoutPeriod = math.floor(wavePeriod*1.25)
 
 
 function gadget:GameFrame(gf)

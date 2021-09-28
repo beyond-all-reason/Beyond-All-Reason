@@ -40,20 +40,23 @@ for _,teamID in ipairs(GetTeamList()) do
 end
 
 local function commanderDeath(teamID, unitID)
-	local allyTeam = select(6, Spring.GetTeamInfo(teamID))
-	aliveComCount[allyTeam] = aliveComCount[allyTeam] - 1
-	if aliveComCount[allyTeam] <= 0 then
+	local allyTeamID = select(6, Spring.GetTeamInfo(teamID))
+	aliveComCount[allyTeamID] = aliveComCount[allyTeamID] - 1
+	if aliveComCount[allyTeamID] <= 0 then
 		local x,z
 		if unitID then
 			x,_,z = Spring.GetUnitPosition(unitID)
 		end
 
-		GG.wipeoutTeam(teamID, x, z, unitID)
-		Spring.KillTeam(teamID)
-
-		-- xmas gadget uses this
+		-- xmas gadget uses this (to prevent creating xmasballs)
 		if not _G.destroyingTeam then _G.destroyingTeam = {} end
-		_G.destroyingTeam[allyTeam] = true
+		_G.destroyingTeam[allyTeamID] = true
+
+		-- destroy whole ally team
+		for _, teamID in ipairs(GetTeamList(allyTeamID)) do
+			GG.wipeoutTeam(teamID, x, z, unitID)
+			Spring.KillTeam(teamID)
+		end
 	end
 end
 
@@ -63,8 +66,8 @@ function gadget:GameFrame(gf)
 	-- untested if this actually is the case
 	for unitID, teamID in pairs(commanderDeathQueue) do
 		commanderDeath(teamID, unitID)
+		commanderDeathQueue[unitID] = nil
 	end
-	commanderDeathQueue = {}
 end
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam)
@@ -104,6 +107,7 @@ function gadget:Initialize()
 		aliveComCount[allyTeamID] = 0
 	end
 
+	-- in case a luarules reload happens
 	local units = Spring.GetAllUnits()
 	for i = 1, #units do
 		local unitID = units[i]
