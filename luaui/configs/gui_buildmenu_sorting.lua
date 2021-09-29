@@ -31,14 +31,16 @@ local unitOrderTable = {
    [UDN["armdecom"].id] = 00220,
    [UDN["cordecom"].id] = 00225,
    
+   [UDN["cormando"].id] = 00227,
+
    [UDN["armspy"].id] = 00230,
    [UDN["corspy"].id] = 00235,
-   [UDN["cormando"].id] = 00240,
-
    [UDN["armmark"].id] = 00245,
    [UDN["corvoyr"].id] = 00250,
    [UDN["armaser"].id] = 00255,
    [UDN["corspec"].id] = 00260,
+
+   [UDN["armspid"].id] = 00262,
 
    [UDN["armvader"].id] = 00265,
    [UDN["corroach"].id] = 00270,
@@ -54,18 +56,17 @@ local unitOrderTable = {
    [UDN["corcan"].id] = 00315,
    [UDN["armsnipe"].id] = 00320,
    [UDN["corsumo"].id] = 00325,
-
-   [UDN["armspid"].id] = 00330,
+   [UDN["armsptk"].id] = 00330,
    [UDN["cortermite"].id] = 00335,
-   [UDN["armsptk"].id] = 00340,
    [UDN["armfboy"].id] = 00345,
 
-   [UDN["armaak"].id] = 00350,
-   [UDN["coraak"].id] = 00355,
-   [UDN["armscab"].id] = 00360,
+   [UDN["armamph"].id] = 00355,
+   [UDN["coramph"].id] = 00360,
+   [UDN["armaak"].id] = 00365,
+   [UDN["coraak"].id] = 00370,
+   [UDN["armscab"].id] = 00375,
 
-   [UDN["armamph"].id] = 00365,
-   [UDN["coramph"].id] = 00370,
+   
 
    -- BOTS T3
    [UDN["armmar"].id] = 00400,
@@ -107,10 +108,11 @@ local unitOrderTable = {
 
    --ECO NRG GENS
    [UDN["armwin"].id] = 11000,
-   [UDN["corwin"].id] = 11050,
-   [UDN["armwint2"].id] = 11060, --scavengers
-   [UDN["corwint2"].id] = 11070, --scavengers
-
+   [UDN["corwin"].id] = 11020, 
+   [UDN["armwint2"].id] = 11040, --scavengers
+   [UDN["corwint2"].id] = 11050, --scavengers
+   [UDN["armsolar"].id] = 11070,
+   [UDN["corsolar"].id] = 11080,
    [UDN["armadvsol"].id] = 11100,
    [UDN["coradvsol"].id] = 11150,
 
@@ -123,8 +125,8 @@ local unitOrderTable = {
    [UDN["corbhmth"].id] = 11450,
 
    --ECO NRG FUSIONS
-   [UDN["armfus"].id] = 11500,
-   [UDN["armdf"].id] = 11525,
+   [UDN["armdf"].id] = 11500,
+   [UDN["armfus"].id] = 11525,
    [UDN["armckfus"].id] = 11550,
    [UDN["corfus"].id] = 11600,
    [UDN["armafus"].id] = 11700,
@@ -140,30 +142,29 @@ local unitOrderTable = {
    [UDN["armnanotc"].id] = 12000,
    [UDN["cornanotc"].id] = 12050,
 
+   [UDN["armasp"].id] = 12060,
+   [UDN["corasp"].id] = 12070,
+
    [UDN["armlab"].id] = 12100,
-   [UDN["corlab"].id] = 12150,
-   [UDN["armalab"].id] = 12200,
-   [UDN["coralab"].id] = 12250,
-   [UDN["armshltx"].id] = 12260,
-   [UDN["corgant"].id] = 12270,
+   [UDN["corlab"].id] = 12125,
+   [UDN["armvp"].id] = 12150,
+   [UDN["corvp"].id] = 12175,
+   [UDN["armap"].id] = 12200,
+   [UDN["corap"].id] = 12225,
+   [UDN["armhp"].id] = 12250,
+   [UDN["corhp"].id] = 12275,
 
-   [UDN["armvp"].id] = 12300,
-   [UDN["corvp"].id] = 12350,
-   [UDN["armavp"].id] = 12400,
-   [UDN["coravp"].id] = 12450,
-
-   [UDN["armap"].id] = 12500,
-   [UDN["corap"].id] = 12550,
-   [UDN["armaap"].id] = 12600,
-   [UDN["coraap"].id] = 12650,
+   [UDN["armalab"].id] = 12400,
+   [UDN["coralab"].id] = 12425,
+   [UDN["armavp"].id] = 12450,
+   [UDN["coravp"].id] = 12475,
+   [UDN["armaap"].id] = 12500,
+   [UDN["coraap"].id] = 12525,
+   [UDN["armshltx"].id] = 12550,
+   [UDN["corgant"].id] = 12575,
    [UDN["armapt3"].id] = 12700, --scavengers
-   [UDN["corapt3"].id] = 12750, --scavengers
+   [UDN["corapt3"].id] = 12725, --scavengers
 
-   [UDN["armhp"].id] = 12800,
-   [UDN["corhp"].id] = 12850,
-
-   [UDN["armasp"].id] = 12900,
-   [UDN["corasp"].id] = 12950,
 
    --UTILITIES
    [UDN["armeyes"].id] = 13000,
@@ -186,14 +187,7 @@ local unitOrderTable = {
    [UDN["armgate"].id] = 13700,
    [UDN["corgate"].id] = 13725,
 
-   --MINES
-   [UDN["armmine1"].id] = 13800,
-   [UDN["cormine1"].id] = 13805,
-   [UDN["armmine2"].id] = 13810,
-   [UDN["cormine2"].id] = 13815,
-   [UDN["cormine4"].id] = 13820, --cormando
-   [UDN["armmine3"].id] = 13825,
-   [UDN["cormine3"].id] = 13830,
+
 
    --DEFENSES LAND
    [UDN["armdrag"].id] = 14000,
@@ -207,6 +201,16 @@ local unitOrderTable = {
    [UDN["cormaw"].id] = 14150,
    [UDN["corscavdtf"].id] = 14110, --scavengers
    [UDN["corscavdtm"].id] = 14120, --scavengers
+
+   --MINES
+   [UDN["armmine1"].id] = 14124,
+   [UDN["cormine1"].id] = 14128,
+   [UDN["armmine2"].id] = 14132,
+   [UDN["cormine2"].id] = 14136,
+   [UDN["cormine4"].id] = 14140, --cormando
+   [UDN["armmine3"].id] = 14144,
+   [UDN["cormine3"].id] = 14148,
+
    [UDN["armllt"].id] = 14200,
    [UDN["corllt"].id] = 14250,
    [UDN["armbeamer"].id] = 14300,
@@ -224,6 +228,14 @@ local unitOrderTable = {
    [UDN["armanni"].id] = 14800,
    [UDN["cordoom"].id] = 14850,
 
+   [UDN["armbrtha"].id] = 14855,
+   [UDN["corint"].id] = 14860,
+   [UDN["armminivulc"].id] = 14865, --scavengers
+   [UDN["corminibuzz"].id] = 14870, --scavengers
+   [UDN["armpwcannon"].id] = 14875, --scavengers
+   [UDN["armvulc"].id] = 14880,
+   [UDN["corbuzz"].id] = 14885,
+
    --DEFENSES AA
    [UDN["armrl"].id] = 15000,
    [UDN["corrl"].id] = 15050,
@@ -236,15 +248,6 @@ local unitOrderTable = {
    [UDN["corflak"].id] = 15350,
    [UDN["armmercury"].id] = 15400,
    [UDN["corscreamer"].id] = 15450,
-
-   --DEFENSES LRPCS
-   [UDN["armbrtha"].id] = 16000,
-   [UDN["corint"].id] = 16050,
-   [UDN["armminivulc"].id] = 16100, --scavengers
-   [UDN["corminibuzz"].id] = 16150, --scavengers
-   [UDN["armpwcannon"].id] = 16200, --scavengers
-   [UDN["armvulc"].id] = 16300,
-   [UDN["corbuzz"].id] = 16350,
 
    --DEFENSES MISSILE LAUNCHERS
    [UDN["armemp"].id] = 16500,
