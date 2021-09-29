@@ -26,6 +26,35 @@ local function getFilePath(filename, path)
 	return false
 end
 
+-- Special variant of table.merge:
+-- Since nil values are ignored when iterating with keys, here the string 'nil' gets converted to nil
+-- Normally an empty table as value will be ignored when merging, but here, it will overwrite with the empty table
+local function tableMergeSpecial(t1, t2)
+	local newTable = table.copy(t1)
+
+	for k, v in pairs(t2) do
+		if type(v) == "table" then
+			if next(v) == nil then
+				newTable[k] = v
+			else
+				if type(newTable[k] or false) == "table" then
+					newTable[k] = tableMergeSpecial(newTable[k] or {}, t2[k] or {})
+				else
+					newTable[k] = v
+				end
+			end
+		else
+			if v == 'nil' then
+				newTable[k] = nil
+			else
+				newTable[k] = v
+			end
+		end
+	end
+
+	return newTable
+end
+
 -- Unbalanced (upgradeable) Commanders modoption
 if Spring.GetModOptions().unba then
 	VFS.Include("unbaconfigs/unbacom_post.lua")
@@ -142,7 +171,7 @@ local function createScavengerUnitDefs()
 	for name, unitDef in pairs(UnitDefs) do
 		if not string.find(name, '_scav') and not string.find(name, 'critter')  and not string.find(name, 'chicken') then
 			if customScavDefs[name] ~= nil then
-				scavengerUnitDefs[name .. '_scav'] = table.merge(unitDef, customScavDefs[name])
+				scavengerUnitDefs[name .. '_scav'] = tableMergeSpecial(unitDef, customScavDefs[name])
 			else
 				scavengerUnitDefs[name .. '_scav'] = table.copy(unitDef)
 			end

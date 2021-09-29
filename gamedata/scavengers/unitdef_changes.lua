@@ -1,7 +1,10 @@
 -- (note that alldefs_post.lua is still ran afterwards if you change anything there)
 
 -- Special rules:
--- you only need to put the things you want changed in comparison with the regular unitdef. (use the same table structure)
+-- Only things you want changed in comparison with the regular unitdef need to be present (use the same table structure)
+-- Since you can't actually remove parameters normally, it will do it when you set string: 'nil' as value
+-- Normally an empty table as value will be ignored when merging, but not here, it will overwrite what it had with an empty table
+
 
 local customDefs = {}
 
@@ -93,7 +96,7 @@ customDefs.corcom = {
 	stealth = false,
 	workertime = 200,				-- can get multiplied in unitdef_post
 	customparams = {
-		iscommander = nil,
+		iscommander = 'nil',
 	},
 	featuredefs = {
 		dead = {
@@ -160,7 +163,7 @@ customDefs.corcomcon = {
 	stealth = false,
 	workertime = 200,				-- can get multiplied in unitdef_post
 	customparams = {
-		iscommander = nil,
+		iscommander = 'nil',
 	},
 	featuredefs = {
 		dead = {
@@ -226,7 +229,7 @@ customDefs.armcom = {
 	stealth = false,
 	workertime = 200,				-- can get multiplied in unitdef_post
 	customparams = {
-		iscommander = nil,
+		iscommander = 'nil',
 	},
 	featuredefs = {
 		dead = {
@@ -292,7 +295,7 @@ customDefs.armcomcon = {
 	stealth = false,
 	workertime = 200,				-- can get multiplied in unitdef_post
 	customparams = {
-		iscommander = nil,
+		iscommander = 'nil',
 	},
 	featuredefs = {
 		dead = {
