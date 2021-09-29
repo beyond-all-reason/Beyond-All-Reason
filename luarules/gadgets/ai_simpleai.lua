@@ -125,11 +125,11 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 			SimpleFactoriesDefs[#SimpleFactoriesDefs + 1] = unitDefID
 		elseif unitDef.canMove and unitDef.isBuilder and #unitDef.buildOptions > 0 then
 			SimpleConstructorDefs[#SimpleConstructorDefs + 1] = unitDefID
-		elseif unitDef.extractsMetal > 0 or (unitDef.customParams and unitDef.customParams.metal_extractor) then
+		elseif unitDef.extractsMetal > 0 or unitDef.customParams.metal_extractor then
 			SimpleExtractorDefs[#SimpleExtractorDefs + 1] = unitDefID
-		elseif (unitDef.energyMake > 19 and (not unitDef.energyUpkeep or unitDef.energyUpkeep < 10)) or (unitDef.windGenerator > 0 and wind > 10) or unitDef.tidalGenerator > 0 or (unitDef.customParams and unitDef.customParams.solar) then
+		elseif (unitDef.energyMake > 19 and (not unitDef.energyUpkeep or unitDef.energyUpkeep < 10)) or (unitDef.windGenerator > 0 and wind > 10) or unitDef.tidalGenerator > 0 or unitDef.customParams.solar then
 			SimpleGeneratorDefs[#SimpleGeneratorDefs + 1] = unitDefID
-		elseif unitDef.customParams and unitDef.customParams.energyconv_capacity and unitDef.customParams.energyconv_efficiency then
+		elseif unitDef.customParams.energyconv_capacity and unitDef.customParams.energyconv_efficiency then
 			SimpleConverterDefs[#SimpleConverterDefs + 1] = unitDefID
 		elseif unitDef.isBuilding and #unitDef.weapons > 0 then
 			SimpleTurretDefs[#SimpleTurretDefs + 1] = unitDefID

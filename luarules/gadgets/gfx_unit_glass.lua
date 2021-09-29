@@ -291,7 +291,7 @@ local myTeamID = Spring.GetMyTeamID()
 
 local normalMaps = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
-	if unitDef.customParams and unitDef.customParams.normaltex and VFS.FileExists(unitDef.customParams.normaltex) then
+	if unitDef.customParams.normaltex and VFS.FileExists(unitDef.customParams.normaltex) then
 		normalMaps[unitDefID] = unitDef.customParams.normaltex
 	else
 		normalMaps[unitDefID] = "unittextures/blank_normal.dds"

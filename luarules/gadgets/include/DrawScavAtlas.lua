@@ -177,7 +177,7 @@ DrawScavAtlas.__index = DrawScavAtlas
 local function GetNormal(unitDef, featureDef)
 	local normalMap = "unittextures/blank_normal.dds"
 
-	if unitDef and unitDef.customParams and unitDef.customParams.normaltex and VFS.FileExists(unitDef.customParams.normaltex) then
+	if unitDef and unitDef.customParams.normaltex and VFS.FileExists(unitDef.customParams.normaltex) then
 		return unitDef.customParams.normaltex
 	end
 

@@ -26,7 +26,7 @@ local windmills = {}
 
 local unitEnergyMultiplier = {}
 for udid, ud in pairs(UnitDefs) do
-	if ud.customParams and ud.customParams.energymultiplier then
+	if ud.customParams.energymultiplier then
 		unitEnergyMultiplier[udid] = tonumber(ud.customParams.energymultiplier)
 	end
 end
