@@ -35,7 +35,7 @@ local COM_BLAST = WeaponDefNames['commanderexplosion'].id
 
 local isCommander = {}
 for udefID,def in pairs(UnitDefs) do
-	if def.customParams and def.customParams.iscommander then
+	if def.customParams.iscommander then
 		isCommander[udefID] = true
 	end
 end

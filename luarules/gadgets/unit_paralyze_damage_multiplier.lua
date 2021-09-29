@@ -18,7 +18,7 @@ end
 
 local paralyzeMultipliers = {} -- paralyzeMultipliers[uDefID] = uDef.customParams.paralyzemultiplier or 1
 for uDefID, uDef in pairs(UnitDefs) do
-	paralyzeMultipliers[uDefID] = uDef.customParams and uDef.customParams.paralyzemultiplier or 1
+	paralyzeMultipliers[uDefID] = uDef.customParams.paralyzemultiplier or 1
 end
 
 function gadget:UnitPreDamaged(uID, uDefID, uTeam, damage, paralyzer, weaponID, projID, aID, aDefID, aTeam)

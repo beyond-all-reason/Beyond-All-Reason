@@ -85,7 +85,7 @@ local selectedUnits = Spring.GetSelectedUnits()
 
 local ignoreUnits = {}
 for udefID,def in ipairs(UnitDefs) do
-	if def.modCategories['object'] or (def.customParams and def.customParams.objectify) then
+	if def.modCategories['object'] or def.customParams.objectify then
 		ignoreUnits[udefID] = true
 	end
 end

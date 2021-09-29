@@ -231,7 +231,7 @@ for udefID,def in ipairs(UnitDefs) do
 		if def.canFly then
 			isAircraft[udefID] = true
 		end
-		if def.customParams and def.customParams.techlevel then
+		if def.customParams.techlevel then
 			if def.customParams.techlevel == '2' and not def.customParams.iscommander then
 				isT2[udefID] = true
 			end

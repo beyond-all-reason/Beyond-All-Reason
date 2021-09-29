@@ -28,7 +28,7 @@ local waitRemoveDefs = {}
 
 for unitDefID = 1, #UnitDefs do
 	local ud = UnitDefs[unitDefID]
-	if ud.customParams and ud.customParams.removewait then
+	if ud.customParams.removewait then
 		waitRemoveDefs[unitDefID] = true
 	end
 end

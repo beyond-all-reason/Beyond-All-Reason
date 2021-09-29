@@ -5,7 +5,7 @@ end
 function gadget:GetInfo()
   return {
 	name 	= "On/Off descriptions",
-	desc	= "Replaces On/Off tooggle with description",
+	desc	= "Replaces On/Off toggle with description",
 	author	= "Doo",
 	date	= "09 January 2018",
 	license	= "GNU GPL, v2 or later",
@@ -22,8 +22,8 @@ onoffNames = {}
 
 for unitDefID = 1, #UnitDefs do
 	local ud = UnitDefs[unitDefID]
-	if ud.customParams and ud.customParams.onoffname then
-		onoffNames[unitDefID] = ud.customParams and ud.customParams.onoffname
+	if ud.customParams.onoffname then
+		onoffNames[unitDefID] = ud.customParams.onoffname
 	end
 end
 

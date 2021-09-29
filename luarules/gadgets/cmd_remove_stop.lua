@@ -28,7 +28,7 @@ local stopRemoveDefs = {}
 
 for unitDefID = 1, #UnitDefs do
 	local ud = UnitDefs[unitDefID]
-	if ud.customParams and ud.customParams.removestop then
+	if ud.customParams.removestop then
 		stopRemoveDefs[unitDefID] = true
 	end
 end
