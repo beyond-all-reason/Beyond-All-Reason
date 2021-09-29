@@ -391,6 +391,7 @@ Create()
 {
 	hide flare;
 	dont-cache flare;
+	move pelvis to y-axis 4000 speed <500>; 
 	restore_delay = 30;
 	animspeed = 4;
 	Static_Var_2 = 0;
