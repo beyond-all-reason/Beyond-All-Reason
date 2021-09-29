@@ -476,10 +476,10 @@ UnitSpeed(){
  while(TRUE){
   animSpeed = (get CURRENT_SPEED);
   if (animSpeed<1) animSpeed=1;
-  animSpeed = (maxSpeed * 6) / animSpeed; 
+  animSpeed = (maxSpeed * 8) / animSpeed; 
   //get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed);
   if (animSpeed<4) animSpeed=4;
-  if (animspeed>12) animSpeed = 12;
+  if (animspeed>16) animSpeed = 16;
   sleep 197;
  }
 }
@@ -920,6 +920,9 @@ AimFromPrimary(piecenum)
 	return (0);
 }
 
+/* 
+// Removed awesome constant acceleration aiming cause of complaints that "now the unit doesnt aim well when there are multiple targets"
+
 static-var aimy1delta, timetozero, deceleratethreshold;
 static-var aimy1velocity, aimy1target, aimy1position, gameFrame;
 
@@ -1015,7 +1018,15 @@ AimWeapon1(heading, pitch)
 	start-script RestoreAfterDelay();
 	return (1);
 }
-/*
+*/
+RestoreAfterDelay()
+{
+	sleep 3000;
+	bAiming = FALSE;
+	turn aimx1 to x-axis <0.000000> speed <80.000000>;
+	turn aimy1 to y-axis  <0.000000> speed <80.000000>;
+}
+
 AimPrimary(heading, pitch)
 {
 	signal SIG_AIM;
@@ -1028,16 +1039,17 @@ AimPrimary(heading, pitch)
 	
 	wait-for-turn aimy1 around y-axis;
 	wait-for-turn aimx1 around x-axis;
-	start-script RestorePrimary();
+	start-script RestoreAfterDelay();
 	return (1);
-}*/
+}
 
 FirePrimary()
 {
-	turn aimy1 to x-axis <-1> now;
-	turn aimy1 to x-axis <0> speed <5>;
 	if( gun_1 == 1 )
 	{
+		turn aimy1 to x-axis <-1> now; // dont always do this
+		turn aimy1 to x-axis <0> speed <5>;
+		
 		gun_1 = 2;
 		move lfbarrel1 to z-axis [-1] speed [750.000000];
 		sleep 150;
