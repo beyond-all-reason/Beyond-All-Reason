@@ -2,7 +2,7 @@ function gadget:GetInfo()
 	return {
 		name = "AutoColorPicker",
 		desc = "Automatically assigns colors to teams",
-		author = "Damgam",
+		author = "Damgam, Born2Crawl (color palette)",
 		date = "2021",
 		layer = -100,
 		enabled = true,
@@ -20,7 +20,7 @@ if gadgetHandler:IsSyncedCode() then
         [7] =  "#FF6B00", -- Orange
         [8] =  "#00FF9E", -- Turquoise Green
         [9] =  "#F6BB56", -- Light Brown
-        [10] = "#BDFF00", -- Lime
+        [10] = "#68B900", -- Dark Lime
         [11] = "#6697FF", -- Very Light Blue
         [12] = "#FF6058", -- Light Red
         [13] = "#8DF492", -- Light Green
@@ -30,7 +30,7 @@ if gadgetHandler:IsSyncedCode() then
         [17] = "#FF9055", -- Light Orange
         [18] = "#00AA69", -- Dark Turquoise Green
         [19] = "#9B6408", -- Dark Brown
-        [20] = "#7EAA00", -- Dark Lime
+        [20] = "#C4FF79", -- Light Lime
         [21] = "#3475FF", -- Light Blue
         [22] = "#AD0800", -- Dark Red
         [23] = "#089B10", -- Dark Green
@@ -40,7 +40,7 @@ if gadgetHandler:IsSyncedCode() then
         [27] = "#FFC8AA", -- Very Light Orange
         [28] = "#86FFD1", -- Light Turquoise Green
         [29] = "#DB8E0E", -- Brown
-        [30] = "#D9FF9A", -- Light Lime
+        [30] = "#9FFF25", -- Lime
     }
 
     local TeamColors = {
@@ -51,17 +51,17 @@ if gadgetHandler:IsSyncedCode() then
                 [2]  = "#0CE818", -- Green
                 [3]  = "#0CC4E8", -- Turquoise
                 [4]  = "#00FF9E", -- Turquoise Green
-                [5]  = "#BDFF00", -- Lime
+                [5]  = "#68B900", -- Dark Lime
                 [6]  = "#6697FF", -- Very Light Blue
                 [7]  = "#8DF492", -- Light Green
                 [8]  = "#90E5F5", -- Light Turquoise
                 [9]  = "#00AA69", -- Dark Turquoise Green
-                [10] = "#7EAA00", -- Dark Lime
+                [10] = "#C4FF79", -- Light Lime
                 [11] = "#3475FF", -- Light Blue
                 [12] = "#089B10", -- Dark Green
                 [13] = "#08839B", -- Dark Turquoise
                 [14] = "#86FFD1", -- Light Turquoise Green
-                [15] = "#D9FF9A", -- Light Lime
+                [15] = "#9FFF25", -- Lime
             },
             [2] = { -- Second Team (Warm)
                 [1]  = "#FF1005", -- Cortex Red
@@ -102,10 +102,10 @@ if gadgetHandler:IsSyncedCode() then
             [3] = { -- Third Team (Green)
                 [1] = "#0CE818", -- Green
                 [2] = "#00FF9E", -- Turquoise Green
-                [3] = "#7EAA00", -- Dark Lime
+                [3] = "#68B900", -- Dark Lime
                 [4] = "#089B10", -- Dark Green
                 [5] = "#8DF492", -- Light Green
-                [6] = "#BDFF00", -- Lime
+                [6] = "#C4FF79", -- Light Lime
             },
         },
 
@@ -129,10 +129,10 @@ if gadgetHandler:IsSyncedCode() then
             [3] = { -- Third Team (Green)
                 [1] = "#0CE818", -- Green
                 [2] = "#00FF9E", -- Turquoise Green
-                [3] = "#7EAA00", -- Dark Lime
+                [3] = "#68B900", -- Dark Lime
                 [4] = "#089B10", -- Dark Green
                 [5] = "#8DF492", -- Light Green
-                [6] = "#BDFF00", -- Lime
+                [6] = "#C4FF79", -- Light Lime
             },
             [4] = { -- Fourth Team (Yellow)
                 [1] = "#FFD70D", -- Yellow
@@ -162,7 +162,7 @@ if gadgetHandler:IsSyncedCode() then
             [3] = { -- Third Team (Green)
                 [1] = "#0CE818", -- Green
                 [2] = "#00FF9E", -- Turquoise Green
-                [3] = "#7EAA00", -- Dark Lime
+                [3] = "#68B900", -- Dark Lime
                 [4] = "#089B10", -- Dark Green
                 [5] = "#8DF492", -- Light Green
             },
@@ -198,7 +198,7 @@ if gadgetHandler:IsSyncedCode() then
             [3] = { -- Third Team (Green)
                 [1] = "#0CE818", -- Green
                 [2] = "#00FF9E", -- Turquoise Green
-                [3] = "#7EAA00", -- Dark Lime
+                [3] = "#68B900", -- Dark Lime
                 [4] = "#089B10", -- Dark Green
             },
             [4] = { -- Fourth Team (Yellow)
