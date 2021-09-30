@@ -169,12 +169,6 @@ local function enlargeSelectionVolumes()
 end
 
 local function preProcessUnitDefs()
-	for _, unitDef in pairs(UnitDefs) do
-		if not unitDef.customparams then
-			unitDef.customparams = {}
-		end
-	end
-
 	enlargeSelectionVolumes()
 end
 
