@@ -55,7 +55,9 @@ local function commanderDeath(teamID, unitID)
 		-- destroy whole ally team
 		for _, teamID in ipairs(GetTeamList(allyTeamID)) do
 			GG.wipeoutTeam(teamID, x, z, unitID)
-			Spring.KillTeam(teamID)
+			if not select(3, Spring.GetTeamInfo(teamID)) then
+				Spring.KillTeam(teamID)
+			end
 		end
 	end
 end
