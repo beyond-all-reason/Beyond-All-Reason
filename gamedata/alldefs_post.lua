@@ -19,6 +19,24 @@
 -- and writes them to Spring/baked_defs
 SaveDefsToCustomParams = false
 
+-------------------------
+-- DEFS PRE-BAKING
+--
+-- This section is for testing changes to defs and baking them into the def files
+-- Only the changes in this section will get baked, all other changes made in post will not
+--
+-- 1. Add desired def changes to this section
+-- 2. Test changes in-game
+-- 3. Bake changes into def files
+-- 4. Delete changes from this section
+-------------------------
+
+function PrebakeUnitDefs()
+	for name, unitDef in pairs(UnitDefs) do
+		-- UnitDef changes go here
+		unitDef.customparams.hello = "World"
+	end
+end
 
 -------------------------
 -- DEFS POST PROCESSING

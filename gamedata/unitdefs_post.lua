@@ -11,19 +11,32 @@ end
 
 local function getFilePath(filename, path)
 	local files = VFS.DirList(path, '*.lua')
-	for i=1,#files do
-		if path..filename == files[i] then
+	for i = 1, #files do
+		if path .. filename == files[i] then
 			return path
 		end
 	end
 	local subdirs = VFS.SubDirs(path)
-	for i=1,#subdirs do
+	for i = 1, #subdirs do
 		local result = getFilePath(filename, subdirs[i])
 		if result then
 			return result
 		end
 	end
 	return false
+end
+
+local function bakeUnitDefs()
+	for name, unitDef in pairs(regularUnitDefs) do
+		-- usable when baking ... keeping subfolder structure
+		local filepath = getFilePath(name..'.lua', 'units/')
+
+		if filepath then
+			unitDef.customparams.subfolder = string.sub(filepath, 7, #filepath-1)
+		end
+
+		SaveDefToCustomParams("UnitDefs", name, unitDef)
+	end
 end
 
 -- Special variant of table.merge:
@@ -155,7 +168,7 @@ local function enlargeSelectionVolumes()
 	end
 end
 
-local function preprocessUnitDefs()
+local function preProcessUnitDefs()
 	for _, unitDef in pairs(UnitDefs) do
 		if not unitDef.customparams then
 			unitDef.customparams = {}
@@ -183,7 +196,7 @@ local function createScavengerUnitDefs()
 	end
 end
 
-local function postprocessAllUnitDefs()
+local function postProcessAllUnitDefs()
 	for name, unitDef in pairs(UnitDefs) do
 		UnitDef_Post(name, unitDef)
 
@@ -195,21 +208,11 @@ local function postprocessAllUnitDefs()
 	end
 end
 
-local function postprocessRegularUnitDefs()
-	for name, unitDef in pairs(regularUnitDefs) do
-		-- usable when baking ... keeping subfolder structure
-		if SaveDefsToCustomParams then
-			local filepath = getFilePath(name..'.lua', 'units/')
-			if filepath then
-				unitDef.customparams.subfolder = string.sub(filepath, 7, #filepath-1)
-			end
-
-			SaveDefToCustomParams("UnitDefs", name, unitDef)
-		end
-	end
+local function postProcessRegularUnitDefs()
+	-- nothing to do here yet :-)
 end
 
-local function postprocessScavengerUnitDefs()
+local function postProcessScavengerUnitDefs()
 	VFS.Include("gamedata/scavengers/unitdef_post.lua")
 	for name, unitDef in pairs(scavengerUnitDefs) do
 		unitDef = scav_Udef_Post(name, unitDef)
@@ -217,10 +220,16 @@ local function postprocessScavengerUnitDefs()
 end
 
 --------------------------------------------------------------
+-- UnitDef processing
 --------------------------------------------------------------
 
-preprocessUnitDefs()
+PrebakeUnitDefs()
+if SaveDefsToCustomParams then
+	bakeUnitDefs()
+end
+
+preProcessUnitDefs()
 createScavengerUnitDefs()
-postprocessAllUnitDefs()
-postprocessRegularUnitDefs()
-postprocessScavengerUnitDefs()
+postProcessAllUnitDefs()
+postProcessRegularUnitDefs()
+postProcessScavengerUnitDefs()
