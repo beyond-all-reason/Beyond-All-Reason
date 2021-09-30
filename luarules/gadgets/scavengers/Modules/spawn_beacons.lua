@@ -32,12 +32,12 @@ function SpawnBeacon(n)
 					if globalScore then
 						--local g = math_random(0,20)
 						if Spring.GetModOptions().disable_fogofwar then -- doesn't fix situation when fog of war is removed by a cheat
-							canSpawnBeaconHere = posOccupied(posx, posy, posz, 384)
+							canSpawnBeaconHere = posOccupied(posx, posy, posz, 750)
 						elseif scavengerGamePhase == "initial" then
 							canSpawnBeaconHere = posLosCheck(posx, posy, posz, 192)
 						else
 							if numOfSpawnBeacons == 0 then
-								canSpawnBeaconHere = posOccupied(posx, posy, posz, 192)
+								canSpawnBeaconHere = posOccupied(posx, posy, posz, 750)
 							elseif numOfSpawnBeacons < unitSpawnerModuleConfig.minimumspawnbeacons*0.2 then
 								canSpawnBeaconHere = posLosCheckOnlyLOS(posx, posy, posz,192)
 							elseif numOfSpawnBeacons < unitSpawnerModuleConfig.minimumspawnbeacons*0.4 then
