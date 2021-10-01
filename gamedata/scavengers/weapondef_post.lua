@@ -1,5 +1,5 @@
 -- this file gets included in alldefs_post.lua
-function convertToPurple(value)
+local function convertToPurple(value)
     value = string.gsub(value, '-red', '-purple')
     value = string.gsub(value, '-green', '-purple')
     value = string.gsub(value, '-blue', '-purple')
