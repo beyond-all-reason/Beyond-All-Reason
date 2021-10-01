@@ -207,9 +207,9 @@ local function postProcessRegularUnitDefs()
 end
 
 local function postProcessScavengerUnitDefs()
-	VFS.Include("gamedata/scavengers/unitdef_post.lua")
+	local scavPostProcessor = VFS.Include("gamedata/scavengers/unitdef_post.lua")
 	for name, unitDef in pairs(scavengerUnitDefs) do
-		unitDef = scav_Udef_Post(name, unitDef)
+		unitDef = scavPostProcessor.ScavUnitDef_Post(name, unitDef)
 	end
 end
 

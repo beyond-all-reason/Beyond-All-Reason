@@ -21,7 +21,7 @@ else
 	ScavDifficultyMultiplier = 0.25
 end
 
-function scav_Udef_Post(name, uDef)
+local function scavUnitDef_Post(name, uDef)
 	uDef.category = uDef.category .. ' SCAVENGER'
 	uDef.customparams.isscavenger = true
 
@@ -228,3 +228,7 @@ function scav_Udef_Post(name, uDef)
 
 	return uDef
 end
+
+return {
+	ScavUnitDef_Post = scavUnitDef_Post
+}
