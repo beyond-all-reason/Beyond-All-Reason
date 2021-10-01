@@ -1062,7 +1062,6 @@ Create()
 	burst1 = 1;
 	bAnimate = FALSE;
 	start-script InitialSetup1();
-	start-script SmokeUnit();
 }
 
 SetMaxReloadTime(Func_Var_1)
