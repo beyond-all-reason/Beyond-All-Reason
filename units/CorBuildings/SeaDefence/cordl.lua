@@ -3,6 +3,7 @@ local unitName = Spring.I18N('units.names.cordl')
 return {
 	cordl = {
 		acceleration = 0,
+		activatewhenbuilt = true,
 		brakerate = 0,
 		buildangle = 16384,
 		buildcostenergy = 2200,
@@ -35,6 +36,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "smallBuildingExplosionGenericSelfd",
 		sightdistance = 611,
+		sonardistance = 600,
 		usebuildinggrounddecal = true,
 		yardmap = "yyyyyooyyooyyyyy",
 		customparams = {
