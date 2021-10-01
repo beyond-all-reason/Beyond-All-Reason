@@ -50,7 +50,8 @@ SmokeUnit(healthpercent, smoketype) // ah yes, clever use of stack variables
 			}
 			emit-sfx smoketype from torso;
 		} else break;
-		sleep healthpercent * 50 + 200;
+		if (healthpercent < 4) healthpercent = 4;
+		sleep healthpercent * 50;
 	}
 
 	sleep 97;
