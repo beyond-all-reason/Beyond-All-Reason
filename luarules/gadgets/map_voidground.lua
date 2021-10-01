@@ -44,6 +44,15 @@ end
 
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitPosition = Spring.GetUnitPosition
+local spGetFeaturePosition = Spring.GetFeaturePosition
+
+local gaiaTeamID = Spring.GetGaiaTeamID()
+
+function gadget:FeatureCreated(featureID)
+	if select(2, spGetFeaturePosition(featureID)) <= 1 then
+		Spring.DestroyFeature(featureID, false)
+	end
+end
 
 -- periodically destroy units that end up in the void
 function gadget:GameFrame(gf)
