@@ -66,6 +66,18 @@ local function processWeapons(unitDefName, unitDef)
 	end
 end
 
+local currentMapName = Game.mapName
+local freeFusionMaps = {
+	"SpeedMetal BAR V2",
+}
+
+for i = 1,#freeFusionMaps do
+	if currentMapName == freeFusionMaps[i] then
+		enableFreeFusion = true
+		break
+	end
+end
+
 function UnitDef_Post(name, uDef)
 	-- disable wrecks for Control Points mode
 	if Spring.GetModOptions().scoremode ~= "disabled" then
@@ -99,6 +111,21 @@ function UnitDef_Post(name, uDef)
 		end
 		if uDef.sounds.build then
 			uDef.sounds.build = nil
+		end
+	end
+
+	-- FreeFusion
+	if enableFreeFusion then
+		if name == "armcom" or
+		name == "corcom" or
+		name == "armck" or
+		name == "corck" or
+		name == "armcv" or
+		name == "corcv" or
+		name == "armca" or
+		name == "corca" then
+			local numBuildoptions = #uDef.buildoptions
+			uDef.buildoptions[numBuildoptions+1] = "freefusion"
 		end
 	end
 
