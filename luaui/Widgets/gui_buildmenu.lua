@@ -146,33 +146,21 @@ local spGetGroundHeight = Spring.GetGroundHeight
 local spGetMouseState = Spring.GetMouseState
 local spTraceScreenRay = Spring.TraceScreenRay
 local spGetUnitHealth = Spring.GetUnitHealth
-local SelectedUnitsCount = spGetSelectedUnitsCount()
 local spGetUnitIsBuilding = Spring.GetUnitIsBuilding
+local spGetGroundInfo = Spring.GetGroundInfo
+
+local SelectedUnitsCount = spGetSelectedUnitsCount()
 
 local string_sub = string.sub
-local string_gsub = string.gsub
 local os_clock = os.clock
 
 local math_floor = math.floor
 local math_ceil = math.ceil
 local math_max = math.max
 local math_min = math.min
-local math_tan = math.tan
-local math_pi = math.pi
-local math_cos = math.cos
-local math_sin = math.sin
-local math_rad = math.rad
-local math_twicePi = math.pi * 2
 
-local GL_QUADS = GL.QUADS
-local glShape = gl.Shape
-local GL_TRIANGLE_FAN = GL.TRIANGLE_FAN
-local glBeginEnd = gl.BeginEnd
 local glTexture = gl.Texture
-local glTexRect = gl.TexRect
 local glColor = gl.Color
-local glRect = gl.Rect
-local glVertex = gl.Vertex
 local glBlending = gl.Blending
 local GL_SRC_ALPHA = GL.SRC_ALPHA
 local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
@@ -413,14 +401,14 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 		if unitDef.name ~= 'armmex' and unitDef.name ~= 'cormex' and (unitDef.minWaterDepth > 0 or unitDef.modCategories['ship'] or unitDef.modCategories['underwater']) then
 			unitOrder[unitDefID] = 50000
 		end
-		
+
 		-- handle decoy unit like its the regular version
 		if unitDef.customParams.decoyfor then
 			unitDef = UnitDefNames[unitDef.customParams.decoyfor]
 			unitOrder[unitDefID] = unitOrder[unitDefID] - 2
 		end
 
-		
+
 
 		-- mobile units
 		if not (unitDef.isImmobile or unitDef.isBuilding) then
@@ -513,7 +501,7 @@ local function getHighestOrderedUnit()
 	local firstOrderTest = true
 	local newSortingUnit = {}
 	for unitDefID, orderValue in pairs(unitOrder) do
-		
+
 		if unitOrderManualOverrideTable[unitDefID] then
 			newSortingUnit[unitDefID] = true
 		else
@@ -554,10 +542,29 @@ end
 unitOrder = unitsOrdered
 unitsOrdered = nil
 
+
+local function detectVoidGround()
+	local voidTerrainTypes = {
+		Space = true,
+		Asteroid = true
+	}
+	local sampleDist = 48
+	for x=1, Game.mapSizeX, sampleDist do
+		for z=1, Game.mapSizeZ, sampleDist do
+			if voidTerrainTypes[ select(2, spGetGroundInfo(x,z)) ] then
+				return true
+			end
+		end
+	end
+	return false
+end
+
+local hasVoidGround = detectVoidGround()
+
 local minWaterUnitDepth = -11
 local showWaterUnits = false
 local _, _, mapMinWater, _ = Spring.GetGroundExtremes()
-if mapMinWater <= minWaterUnitDepth then
+if not hasVoidGround and mapMinWater <= minWaterUnitDepth then
 	showWaterUnits = true
 end
 -- make them a disabled unit (instead of removing it entirely)
@@ -1013,7 +1020,7 @@ function widget:Update(dt)
 		end
 
 		local _, _, mapMinWater, _ = Spring.GetGroundExtremes()
-		if mapMinWater <= minWaterUnitDepth then
+		if not hasVoidGround and mapMinWater <= minWaterUnitDepth then
 			if not showWaterUnits then
 				showWaterUnits = true
 
