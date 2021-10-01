@@ -1185,7 +1185,7 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
-		explode torso type SHATTER | BITMAP5 | NOHEATCLOUD;
+		explode head type FIRE | SMOKE | FALL | BITMAP5 | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 50 )

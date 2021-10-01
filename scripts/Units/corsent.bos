@@ -207,7 +207,7 @@ Killed(severity, corpsetype)
 	{
 		corpsetype = 3 ;
 		explode base type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode turret type SHATTER | NOHEATCLOUD;
+		explode turret type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode guns type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode barrel2 type SMOKE | FALL | NOHEATCLOUD;
 		//explode flare2 type SMOKE | FALL | NOHEATCLOUD;
@@ -217,7 +217,7 @@ Killed(severity, corpsetype)
 	}
 	corpsetype = 3 ;
 		explode base type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode turret type SHATTER | NOHEATCLOUD;
+		explode turret type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode guns type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode barrel2 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		//explode flare2 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;

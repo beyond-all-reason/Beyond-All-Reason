@@ -254,33 +254,11 @@ Killed(severity, corpsetype)
 	{
 		corpsetype = 3 ;
 		explode base type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lega6 type SHATTER | NOHEATCLOUD;
-		//explode lega4 type SHATTER | NOHEATCLOUD;
-		//explode lega3 type SHATTER | NOHEATCLOUD;
-		//explode lega1 type SHATTER | NOHEATCLOUD;
-		//explode legb6 type SHATTER | NOHEATCLOUD;
-		//explode legb4 type SHATTER | NOHEATCLOUD;
-		//explode legb3 type SHATTER | NOHEATCLOUD;
-		//explode legb1 type SHATTER | NOHEATCLOUD;
-		//explode lega5 type SHATTER | NOHEATCLOUD;
-		//explode lega2 type SHATTER | NOHEATCLOUD;
-		//explode legb5 type SHATTER | NOHEATCLOUD;
-		//explode legb2 type SHATTER | NOHEATCLOUD;
+
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
 		explode base type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lega6 type SHATTER | NOHEATCLOUD;
-		//explode lega4 type SHATTER | NOHEATCLOUD;
-		//explode lega3 type SHATTER | NOHEATCLOUD;
-		//explode lega1 type SHATTER | NOHEATCLOUD;
-		//explode legb6 type SHATTER | NOHEATCLOUD;
-		//explode legb4 type SHATTER | NOHEATCLOUD;
-		//explode legb3 type SHATTER | NOHEATCLOUD;
-		//explode legb1 type SHATTER | NOHEATCLOUD;
-		//explode lega5 type SHATTER | NOHEATCLOUD;
-		//explode lega2 type SHATTER | NOHEATCLOUD;
-		//explode legb5 type SHATTER | NOHEATCLOUD;
-		//explode legb2 type SHATTER | NOHEATCLOUD;
+
 	return corpsetype;
 }

@@ -299,19 +299,11 @@ Killed(severity, corpsetype)
 		//explode base type BITMAPONLY | NOHEATCLOUD;
 		explode turret type SMOKE | FALL | NOHEATCLOUD;
 		explode flare type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lrleg type SHATTER | NOHEATCLOUD;
-		//explode lfleg type SHATTER | NOHEATCLOUD;
-		//explode rfleg type SHATTER | NOHEATCLOUD;
-		//explode rrleg type SHATTER | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
 		//explode base type BITMAPONLY | NOHEATCLOUD;
 		explode turret type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode flare type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode lrleg type SHATTER | NOHEATCLOUD;
-		//explode lfleg type SHATTER | NOHEATCLOUD;
-		//explode rfleg type SHATTER | NOHEATCLOUD;
-		//explode rrleg type SHATTER | NOHEATCLOUD;
 	return corpsetype;
 }

@@ -221,8 +221,8 @@ Killed(severity, corpsetype)
 	{
 		corpsetype = 3 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode door1 type SHATTER | NOHEATCLOUD;
-		//explode door2 type SHATTER | NOHEATCLOUD;
+		explode door1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode door2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode turret type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		explode nano1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		//explode nano2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
@@ -230,8 +230,8 @@ Killed(severity, corpsetype)
 	}
 	corpsetype = 3 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode door1 type SHATTER | NOHEATCLOUD;
-		//explode door2 type SHATTER | NOHEATCLOUD;
+		explode door1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode door2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode turret type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode nano1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		//explode nano2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;

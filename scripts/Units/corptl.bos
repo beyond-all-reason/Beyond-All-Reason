@@ -105,7 +105,7 @@ Killed(severity, corpsetype)
 	{
 		corpsetype = 2;
 		explode flare type FALL | BITMAP2 | NOHEATCLOUD;
-		explode gun type SHATTER | BITMAP3 | NOHEATCLOUD;
+		explode gun type FIRE | SMOKE | FALL | BITMAP3 | NOHEATCLOUD;
 		explode pointer type FALL | BITMAP4 | NOHEATCLOUD;
 		return (corpsetype);
 	}
@@ -113,13 +113,13 @@ Killed(severity, corpsetype)
 	{
 		corpsetype = 3;
 		explode flare type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
-		explode gun type SHATTER | BITMAP3 | NOHEATCLOUD;
+		explode gun type FIRE | SMOKE | FALL | BITMAP3 | NOHEATCLOUD;
 		explode pointer type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	corpsetype = 3;
 	explode flare type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
-	explode gun type SHATTER | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
+	explode gun type FIRE | SMOKE | FALL | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
 	explode pointer type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
 	return corpsetype;
 }

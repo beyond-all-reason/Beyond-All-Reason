@@ -234,12 +234,12 @@ Killed(severity, corpsetype)
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
-		explode base type SHATTER | BITMAP1 | NOHEATCLOUD;
+		explode base type FIRE | SMOKE | FALL | BITMAP1 | NOHEATCLOUD;
 		explode beam1 type FALL | BITMAP2 | NOHEATCLOUD;
 		explode beam2 type FALL | BITMAP3 | NOHEATCLOUD;
-		explode blinks type SHATTER | BITMAP4 | NOHEATCLOUD;
+		explode blinks type FIRE | SMOKE | FALL | BITMAP4 | NOHEATCLOUD;
 		explode gun1 type FALL | BITMAP5 | NOHEATCLOUD;
-		explode gun2 type SHATTER | BITMAP1 | NOHEATCLOUD;
+		explode gun2 type FIRE | SMOKE | FALL | BITMAP1 | NOHEATCLOUD;
 		explode explodpt1 type FALL | BITMAP1 | NOHEATCLOUD;
 		explode explodpt2 type FALL | BITMAP2 | NOHEATCLOUD;
 		explode explodpt3 type FALL | BITMAP3 | NOHEATCLOUD;
@@ -249,12 +249,12 @@ Killed(severity, corpsetype)
 	if( severity <= 99 )
 	{
 		corpsetype = 3;
-		explode base type SHATTER | BITMAP1 | NOHEATCLOUD;
+		explode base type FIRE | SMOKE | FALL | BITMAP1 | NOHEATCLOUD;
 		explode beam1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
 		explode beam2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
-		explode blinks type SHATTER | BITMAP4 | NOHEATCLOUD;
+		explode blinks type FIRE | SMOKE | FALL | BITMAP4 | NOHEATCLOUD;
 		explode gun1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5 | NOHEATCLOUD;
-		explode gun2 type SHATTER | BITMAP1 | NOHEATCLOUD;
+		explode gun2 type FIRE | SMOKE | FALL | BITMAP1 | NOHEATCLOUD;
 		explode explodpt1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
 		explode explodpt2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
 		explode explodpt3 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
@@ -262,12 +262,12 @@ Killed(severity, corpsetype)
 		return (corpsetype);
 	}
 	corpsetype = 3;
-	explode base type SHATTER | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
+	explode base type FIRE | SMOKE | FALL | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
 	explode beam1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
 	explode beam2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
-	explode blinks type SHATTER | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
+	explode blinks type FIRE | SMOKE | FALL | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
 	explode gun1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5 | NOHEATCLOUD;
-	explode gun2 type SHATTER | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
+	explode gun2 type FIRE | SMOKE | FALL | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
 	explode explodpt1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
 	explode explodpt2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
 	explode explodpt3 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;

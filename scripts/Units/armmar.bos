@@ -568,10 +568,8 @@ Killed(severity, corpsetype)
 		explode body type BITMAPONLY | NOHEATCLOUD;
 		explode misturret type SMOKE | FALL | NOHEATCLOUD;
 		//explode misflare type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lturret type SHATTER | NOHEATCLOUD;
 		//explode lbarrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		//explode lflare type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		//explode rturret type SHATTER | NOHEATCLOUD;
 		//explode rbarrel type SMOKE | FALL | NOHEATCLOUD;
 		//explode rflare type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
@@ -587,10 +585,8 @@ Killed(severity, corpsetype)
 		explode body type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode misturret type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		//explode misflare type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode lturret type SHATTER | NOHEATCLOUD;
 		//explode lbarrel type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		//explode lflare type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode rturret type SHATTER | NOHEATCLOUD;
 		//explode rbarrel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		//explode rflare type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 	return corpsetype;

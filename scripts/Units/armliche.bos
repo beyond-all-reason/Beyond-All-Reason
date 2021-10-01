@@ -242,8 +242,6 @@ Killed(severity, corpsetype)
 	explode base type BITMAPONLY | NOHEATCLOUD;
 	explode flare1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
 	explode flare2 type BITMAPONLY | NOHEATCLOUD;
-	//explode thrustc type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
-	//explode wing1 type SHATTER | EXPLODE_ON_HIT | BITMAP5 | NOHEATCLOUD;
 	explode thrusta type BITMAPONLY | NOHEATCLOUD;
 	explode thrustb type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
 	return corpsetype;

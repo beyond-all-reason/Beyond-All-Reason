@@ -383,7 +383,7 @@ Killed(severity, corpsetype)
 	if( severity <= 99 )
 	{
 		corpsetype = 3 ;
-		explode pelvis type SHATTER | NOHEATCLOUD;
+		explode pelvis type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode rthigh type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode rleg type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode rfoot type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
@@ -397,7 +397,7 @@ Killed(severity, corpsetype)
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
-		explode pelvis type SHATTER | NOHEATCLOUD;
+		explode pelvis type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode rthigh type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode rleg type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode rfoot type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
