@@ -10,28 +10,30 @@ function widget:GetInfo()
 	}
 end
 
+local unitI18Nfile = VFS.Include('language/units_en.lua')
+local i18nDecriptionEntries = unitI18Nfile.en.units.descriptions
+
 local function refreshDefs()
 	for unitDefName, unitDef in pairs(UnitDefNames) do
-		local isScavenger = unitDef.customParams and unitDef.customParams.isscavenger
+		local humanName, tooltip
+		local isScavenger = unitDef.customParams.isscavenger
 
 		if not isScavenger then
-			unitDef.translatedHumanName = Spring.I18N('units.names.' .. unitDefName)
-			unitDef.translatedTooltip = Spring.I18N('units.descriptions.' .. unitDefName)
+			humanName = Spring.I18N('units.names.' .. unitDefName)
+			tooltip = Spring.I18N('units.descriptions.' .. unitDefName)
 		else
-			Spring.Echo("blah")
-			Spring.Echo(unitDefName, unitDef.customParams.fromunit)
 			local fromUnitName = Spring.I18N('units.names.' .. unitDef.customParams.fromunit)
-			unitDef.translatedHumanName = Spring.I18N('units.scavenger', { name = fromUnitName })
+			humanName = Spring.I18N('units.scavenger', { name = fromUnitName })
 
-			local unitTooltip = Spring.I18N('units.descriptions.' .. unitDefName)
-			-- Not all Scavenger units have unique descriptions, so need to use the regular unit's description as fallback
-			-- I18N returns lookup key if can't find a translation, which is why that is use for the comparison
-			if unitTooltip == 'units.descriptions.' .. unitDefName then
-				unitTooltip = Spring.I18N('units.descriptions.' .. unitDef.customParams.fromunit)
+			if (i18nDecriptionEntries[unitDefName]) then
+				tooltip = Spring.I18N('units.descriptions.' .. unitDefName)
+			else
+				tooltip = Spring.I18N('units.descriptions.' .. unitDef.customParams.fromunit)
 			end
-
-			unitDef.translatedTooltip = unitTooltip
 		end
+
+		unitDef.translatedHumanName = humanName
+		unitDef.translatedTooltip = tooltip
 	end
 end
 
@@ -80,10 +82,7 @@ function widget:Initialize()
 	refreshDefs()
 	Spring.Echo("foo")
 	for _, ud in pairs(UnitDefs) do
-		if ud.customParams.iscommander ~= nil then
-			Spring.Echo(ud.name, ud.customParams.iscommander, type(ud.customParams.iscommander))
-			-- Spring.Echo(ud.translatedHumanName, ud.translatedTooltip)
-		end
+		Spring.Echo(ud.translatedHumanName, ud.translatedTooltip)
 	end
 	loadLanguage()
 
