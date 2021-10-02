@@ -984,13 +984,14 @@ function widget:GetConfigData(data)
 		maxConsoleLines = maxConsoleLines,
 		capitalize = capitalize,
 		fontsizeMult = fontsizeMult,
-		chatBackgroundOpacity = backgroundOpacity
+		chatBackgroundOpacity = backgroundOpacity,
+		shutdownTime = os.clock(),
 	}
 end
 
 function widget:SetConfigData(data)
 	if data.orgLines ~= nil then
-		if Spring.GetGameFrame() > 0 or (data.gameFrame and data.gameFrame == 0) then
+		if Spring.GetGameFrame() > 0 or ((data.gameFrame and data.gameFrame == 0) and (data.shutdownTime and data.shutdownTime < os.clock() + 10)) then
 			orgLines = data.orgLines
 		end
 	end
