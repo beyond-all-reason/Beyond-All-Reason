@@ -66,17 +66,17 @@ local function processWeapons(unitDefName, unitDef)
 	end
 end
 
-local currentMapName = Game.mapName
-local freeFusionMaps = {
-	"SpeedMetal BAR V2",
-}
-
-for i = 1,#freeFusionMaps do
-	if currentMapName == freeFusionMaps[i] then
-		enableFreeFusion = true
-		break
-	end
-end
+--local currentMapName = Game.mapName	-- this errors, 'Game' isnt availible here
+--local freeFusionMaps = {
+--	"SpeedMetal BAR V2",
+--}
+--
+--for i = 1,#freeFusionMaps do
+--	if currentMapName == freeFusionMaps[i] then
+--		enableFreeFusion = true
+--		break
+--	end
+--end
 
 function UnitDef_Post(name, uDef)
 	-- disable wrecks for Control Points mode
