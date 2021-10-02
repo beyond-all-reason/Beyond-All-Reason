@@ -121,7 +121,7 @@ Killed( severity, corpsetype )
 	emit-sfx 1025 from body;
 	emit-sfx 1024 from liwing;
 	emit-sfx 1024 from riwing;
-	explode body type SHATTER | NOHEATCLOUD;
+	explode body type FIRE | SMOKE | FALL | NOHEATCLOUD;
 	explode head type FALL | NOHEATCLOUD;
 	explode tail type FALL | NOHEATCLOUD;
 	explode liwing type FALL | NOHEATCLOUD;

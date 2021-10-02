@@ -344,7 +344,6 @@ Killed(severity, corpsetype)
 		explode barrel11 type FALL | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
 		explode barrel12 type FALL | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
 		//explode base type BITMAPONLY | BITMAP3 | NOHEATCLOUD;
-		//explode turret2 type SHATTER | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
 		//explode wake1 type FALL | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
 		explode wake2 type FALL | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
 		return (corpsetype);
@@ -353,7 +352,6 @@ Killed(severity, corpsetype)
 	explode barrel11 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
 	explode barrel12 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
 	//explode base type BITMAPONLY | BITMAP3 | NOHEATCLOUD;
-	//explode turret1 type SHATTER | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
 	explode wake1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
 	explode wake2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
 	return corpsetype;

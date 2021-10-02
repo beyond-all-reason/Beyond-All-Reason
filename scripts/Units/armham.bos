@@ -564,9 +564,8 @@ Killed(severity, corpsetype)
 		//explode rarm type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		//explode rbarrel type SMOKE | FALL | NOHEATCLOUD;
 		//explode rflare type SMOKE | FALL | NOHEATCLOUD;
-		//explode rvent type SHATTER | NOHEATCLOUD;
 		explode larm type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode lvent type SHATTER | NOHEATCLOUD;
+		explode lvent type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode lbarrel type SMOKE | FALL | NOHEATCLOUD;
 		explode lflare type SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
@@ -583,9 +582,9 @@ Killed(severity, corpsetype)
 		//explode rarm type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		//explode rbarrel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		//explode rflare type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode rvent type SHATTER | NOHEATCLOUD;
+		//explode rvent type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode larm type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode lvent type SHATTER | NOHEATCLOUD;
+		explode lvent type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode lbarrel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode lflare type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 	return corpsetype;

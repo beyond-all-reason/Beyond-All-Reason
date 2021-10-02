@@ -238,7 +238,7 @@ Killed(severity, corpsetype)
 		explode turret type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode sleeve type FALL | NOHEATCLOUD;
 		explode antenna type FALL | NOHEATCLOUD;
-		explode light type FIRE | SHATTER | SMOKE | FALL | NOHEATCLOUD;
+		explode light type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode dish type FALL | NOHEATCLOUD;
 		explode barrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode flare type FIRE | SMOKE | FALL | NOHEATCLOUD;
@@ -254,12 +254,12 @@ Killed(severity, corpsetype)
 		explode turret type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode sleeve type SMOKE | FALL | NOHEATCLOUD;
 		explode antenna type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode light type SHATTER | NOHEATCLOUD;
+		explode light type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode dish type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode barrel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode flare type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		explode door type SHATTER | NOHEATCLOUD;
-		explode doorl type SHATTER | NOHEATCLOUD;
+		explode door type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode doorl type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
@@ -268,11 +268,11 @@ Killed(severity, corpsetype)
 		explode turret type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode sleeve type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode antenna type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode light type SHATTER | NOHEATCLOUD;
+		explode light type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode dish type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode barrel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode flare type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode door type SHATTER | NOHEATCLOUD;
-		explode doorl type SHATTER | NOHEATCLOUD;
+		explode door type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode doorl type FIRE | SMOKE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }

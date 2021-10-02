@@ -267,8 +267,8 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
-		explode J2 type SHATTER | NOHEATCLOUD;
-		explode J1 type SHATTER | NOHEATCLOUD;
+		explode J2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode J1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode L6 type FALL | NOHEATCLOUD;
 		return (corpsetype);
 	}
@@ -277,9 +277,9 @@ Killed(severity, corpsetype)
 		corpsetype = 2;
 		explode J2 type FALL | NOHEATCLOUD;
 		explode J1 type FALL | NOHEATCLOUD;
-		explode base type SHATTER | NOHEATCLOUD;
-		explode spot2 type SHATTER | NOHEATCLOUD;
-		explode L6 type SHATTER | NOHEATCLOUD;
+		explode base type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode spot2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode L6 type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode L2 type FALL | NOHEATCLOUD;
 		return (corpsetype);
 	}
@@ -288,28 +288,28 @@ Killed(severity, corpsetype)
 		corpsetype = 3;
 		explode J2 type FALL | NOHEATCLOUD;
 		explode J1 type FALL | NOHEATCLOUD;
-		explode base type SHATTER | NOHEATCLOUD;
+		explode base type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode spot2 type FALL | NOHEATCLOUD;
 		explode spot1 type FALL | NOHEATCLOUD;
 		explode L6 type FALL | NOHEATCLOUD;
 		explode L5 type FALL | NOHEATCLOUD;
 		explode L4 type FALL | NOHEATCLOUD;
 		explode L3 type FALL | NOHEATCLOUD;
-		explode L2 type SHATTER | NOHEATCLOUD;
-		explode L1 type SHATTER | NOHEATCLOUD;
+		explode L2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode L1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	corpsetype = 3;
 	explode J2 type FALL | NOHEATCLOUD;
 	explode J1 type FALL | NOHEATCLOUD;
-	explode base type SHATTER | NOHEATCLOUD;
-	explode spot2 type SHATTER | NOHEATCLOUD;
-	explode spot1 type SHATTER | NOHEATCLOUD;
+	explode base type FIRE | SMOKE | FALL | NOHEATCLOUD;
+	explode spot2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+	explode spot1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
 	explode L6 type FALL | NOHEATCLOUD;
-	explode L5 type SHATTER | NOHEATCLOUD;
-	explode L4 type SHATTER | NOHEATCLOUD;
+	explode L5 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+	explode L4 type FIRE | SMOKE | FALL | NOHEATCLOUD;
 	explode L3 type FALL | NOHEATCLOUD;
 	explode L2 type FALL | NOHEATCLOUD;
-	explode L1 type SHATTER | NOHEATCLOUD;
+	explode L1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
 	return (corpsetype);
 }
