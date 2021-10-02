@@ -96,6 +96,12 @@ local mapSunLighting = {
 	['comet catcher remake 1.8'] = {
 		unitAmbientColor = { 0.75, 0.75, 0.75 },
 	},
+	['hotlips_redux_v2'] = {
+		groundDiffuseColor = { 0.88, 0.4, 0.22 },
+		unitAmbientColor = { 0.85, 0.85, 0.85 },
+		unitDiffuseColor = {1, 0.88, 0.8},
+		unitSpecularColor = {1, 0.88, 0.8},
+	},
 }
 
 local mapSun = {
