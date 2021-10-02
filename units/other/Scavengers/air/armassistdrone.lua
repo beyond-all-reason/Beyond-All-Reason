@@ -9,7 +9,7 @@ return {
 		buildcostmetal = 300,
 		builddistance = 100,
 		builder = true,
-		buildpic = "ARMCA.PNG",
+		buildpic = "ARMASSISTDRONE.PNG",
 		buildtime = 5000,
 		canfly = true,
 		canmove = true,
