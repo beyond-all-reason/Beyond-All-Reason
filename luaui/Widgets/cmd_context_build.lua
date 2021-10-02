@@ -1,8 +1,16 @@
 
+local voidWater = false
+local success, mapinfo = pcall(VFS.Include,"mapinfo.lua") -- load mapinfo.lua confs
+if success and mapinfo then
+	if mapinfo.voidwater then
+		return
+	end
+end
+
 function widget:GetInfo()
 	return {
 		name = "Context Build",
-		desc = "Toggles buildings between buildings automagically" ,
+		desc = "Toggles buildings between water/ground equivalent buildings automagically" ,
 		author = "dizekat and BrainDamage",
 		date = "30 July 2009",
 		license = "GNU LGPL, v2.1 or later",
@@ -11,7 +19,7 @@ function widget:GetInfo()
 	}
 end
 
-local unitlist={--- Human friendly list. Automatically converted to unitdef IDs on init
+local unitlist = {--- Human friendly list. Automatically converted to unitdef IDs on init
 
 	 -- this should only ever swap between pairs of (buildable) units, 03/06/13
 

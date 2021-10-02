@@ -542,29 +542,16 @@ end
 unitOrder = unitsOrdered
 unitsOrdered = nil
 
-
-local function detectVoidGround()
-	local voidTerrainTypes = {
-		Space = true,
-		Asteroid = true
-	}
-	local sampleDist = 48
-	for x=1, Game.mapSizeX, sampleDist do
-		for z=1, Game.mapSizeZ, sampleDist do
-			if voidTerrainTypes[ select(2, spGetGroundInfo(x,z)) ] then
-				return true
-			end
-		end
-	end
-	return false
+local voidWater = false
+local success, mapinfo = pcall(VFS.Include,"mapinfo.lua") -- load mapinfo.lua confs
+if success and mapinfo then
+	voidWater = mapinfo.voidwater
 end
-
-local hasVoidGround = detectVoidGround()
 
 local minWaterUnitDepth = -11
 local showWaterUnits = false
 local _, _, mapMinWater, _ = Spring.GetGroundExtremes()
-if not hasVoidGround and mapMinWater <= minWaterUnitDepth then
+if not voidWater and mapMinWater <= minWaterUnitDepth then
 	showWaterUnits = true
 end
 -- make them a disabled unit (instead of removing it entirely)
@@ -1020,7 +1007,7 @@ function widget:Update(dt)
 		end
 
 		local _, _, mapMinWater, _ = Spring.GetGroundExtremes()
-		if not hasVoidGround and mapMinWater <= minWaterUnitDepth then
+		if not voidWater and mapMinWater <= minWaterUnitDepth then
 			if not showWaterUnits then
 				showWaterUnits = true
 
