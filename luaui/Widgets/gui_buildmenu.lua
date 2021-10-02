@@ -764,7 +764,7 @@ function widget:ViewResize()
 		minColls = math_max(8, math_floor((width/vsx)*25))
 		maxColls = 30
 	else
-		posY = 0.606
+		posY = math_min(0.8, math_max(0.4615, (vsy - minimapHeight) / vsy) - (widgetSpaceMargin/vsy))
 		posY2 = math_floor(0.14 * ui_scale * vsy) / vsy
 		posY2 = posY2 + (widgetSpaceMargin/vsy)
 		posX = 0
@@ -772,7 +772,6 @@ function widget:ViewResize()
 		maxColls = 5
 
 		if minimapEnlarged then
-			posY = math_max(0.4615, (vsy - minimapHeight) / vsy) - 0.0064
 			if WG['minimap'] then
 				posY = 1 - (WG['minimap'].getHeight() / vsy) - (widgetSpaceMargin/vsy)
 				if posY > maxPosY then
@@ -1026,16 +1025,16 @@ function widget:Update(dt)
 				local prevAdvplayerlistLeft = advplayerlistLeft
 				advplayerlistLeft = advplayerlistPos[2]
 			end
-			local prevOrdermenuLeft = ordermenuLeft
-			local prevOrdermenuHeight = ordermenuHeight
-			if WG['ordermenu'] then
-				local oposX, oposY, owidth, oheight = WG['ordermenu'].getPosition()
-				ordermenuLeft = oposX + owidth
-				ordermenuHeight = oheight
-			end
-			if not prevAdvplayerlistLeft or advplayerlistLeft ~= prevAdvplayerlistLeft or not prevOrdermenuLeft or ordermenuLeft ~= prevOrdermenuLeft  or not prevOrdermenuHeight or ordermenuHeight ~= prevOrdermenuHeight then
-				widget:ViewResize()
-			end
+		end
+		local prevOrdermenuLeft = ordermenuLeft
+		local prevOrdermenuHeight = ordermenuHeight
+		if WG['ordermenu'] then
+			local oposX, oposY, owidth, oheight = WG['ordermenu'].getPosition()
+			ordermenuLeft = oposX + owidth
+			ordermenuHeight = oheight
+		end
+		if not prevAdvplayerlistLeft or advplayerlistLeft ~= prevAdvplayerlistLeft or not prevOrdermenuLeft or ordermenuLeft ~= prevOrdermenuLeft  or not prevOrdermenuHeight or ordermenuHeight ~= prevOrdermenuHeight then
+			widget:ViewResize()
 		end
 
 		disableInput = disableInputWhenSpec and isSpec
