@@ -20,15 +20,32 @@ local Sounds = {
 	},
 }
 
+--[[ Add sound entries for directory sounds/some-directory/ using the following format:
+	['some-directory'] = {
+		gain = 0.8,
+		maxconcurrent = 1,
+		rolloff = 0,
+	},
 
--- UI SOUNDS
-local files = VFS.DirList("sounds/ui/")
-local t = Sounds.SoundItems
-for i=1,#files do
-	local fileName = files[i]
-	fileNames = string.sub(fileName, 11, string.find(fileName, ".wav") -1)
-	t[fileNames] = {
-		file     = fileName;
+	Compound directories can be used e.g. sound/some-directory/other-directory
+	['some-directory/other-directory'] = {
+
+	For attributes that use custom values per sound file:
+	gain = {
+		default = 0.5,
+		custom = {
+			['^beamershot2$'] = 0.4,
+			['^lasr'] = 0.1,
+		},
+	},
+
+	Key name is used in string:match for sound file name
+	^example$	- exact match whole file name
+	^exam		- match any file starting with "exam"
+]]
+local soundData = {
+	-- UI SOUNDS
+	['ui'] = {
 		gain = 0.8,
 		pitchmod = 0,
 		gainmod  = 0,
@@ -36,379 +53,269 @@ for i=1,#files do
 		maxconcurrent = 1,
 		--priority = 1,
 		rolloff = 0,
-	}
-end
+	},
 
-local files = VFS.DirList("sounds/uw/")
-local t = Sounds.SoundItems
-for i=1,#files do
-	local fileName = files[i]
-	fileNames = string.sub(fileName, 11, string.find(fileName, ".wav") -1)
-	t[fileNames] = {
-		file     = fileName;
-		gain = 1.2*0.3,
+	['uw'] = {
+		gain = 1.2 * 0.3,
 		pitchmod = 0.17,
-        gainmod  = 0.2*0.3,
+		gainmod  = 0.2 * 0.3,
 		dopplerscale = 0,
 		maxconcurrent = 8,
 		--priority = 1,
 		rolloff = 0.1,
-	}
-end
+	},
 
---VOICE MESSAGES
--- local files = VFS.DirList("sounds/voice/")
--- local t = Sounds.SoundItems
--- for i=1,#files do
-	-- local fileName = files[i]
-	-- fileNames = string.sub(fileName, 14, string.find(fileName, ".wav") -1)
-	-- t[fileNames] = {
-		-- file     = fileName;
-		-- gain = 0.8,
-		-- pitchmod = 0.1,
-		-- gainmod  = 0,
-		-- dopplerscale = 0,
-		-- maxconcurrent = 1,
-		-- priority = 2,
-		-- rolloff = 0,
-	-- }
--- end
+	--[[
+	--VOICE MESSAGES
+	['voice'] = {
+		gain = 0.8,
+		pitchmod = 0.1,
+		gainmod  = 0,
+		dopplerscale = 0,
+		maxconcurrent = 1,
+		priority = 2,
+		rolloff = 0,
+	},
 
--- local files = VFS.DirList("sounds/voice/scavengers/")
--- local t = Sounds.SoundItems
--- for i=1,#files do
-	-- local fileName = files[i]
-	-- fileNames = string.sub(fileName, 25, string.find(fileName, ".wav") -1)
-	-- t[fileNames] = {
-		-- file     = fileName;
-		-- gain = 0.8,
-		-- pitchmod = 0.1,
-		-- gainmod  = 0,
-		-- dopplerscale = 0,
-		-- maxconcurrent = 1,
-		-- priority = 2,
-		-- rolloff = 0,
-	-- }
--- end
+	['voice/scavengers'] = {
+		gain = 0.8,
+		pitchmod = 0.1,
+		gainmod  = 0,
+		dopplerscale = 0,
+		maxconcurrent = 1,
+		priority = 2,
+		rolloff = 0,
+	},
 
--- local files = VFS.DirList("sounds/voice/tutorial/")
--- local t = Sounds.SoundItems
--- for i=1,#files do
-	-- local fileName = files[i]
-	-- fileNames = string.sub(fileName, 23, string.find(fileName, ".wav") -1)
-	-- t[fileNames] = {
-		-- file     = fileName;
-		-- gain = 0.8,
-		-- pitchmod = 0.1,
-		-- gainmod  = 0,
-		-- dopplerscale = 0,
-		-- maxconcurrent = 1,
-		-- priority = 2,
-		-- rolloff = 0,
-	-- }
--- end
+	['voice/tutorial'] = {
+		gain = 0.8,
+		pitchmod = 0.1,
+		gainmod  = 0,
+		dopplerscale = 0,
+		maxconcurrent = 1,
+		priority = 2,
+		rolloff = 0,
+	},
+]]
 
--- WEAPON SOUNDS
-local files = VFS.DirList("sounds/weapons/")
-local t = Sounds.SoundItems
-for i=1,#files do
-   local fileName = files[i]
-   fileNames = string.sub(fileName, 16, string.find(fileName, ".wav") -1)
-   t[fileNames] = {
-      file     = fileName;
-      gain = 1.2*0.3,
-      pitchmod = 0.17,
-      gainmod  = 0.2*0.3,
-      dopplerscale = 1.0,
-      maxconcurrent = 7,
-      rolloff = 1.4,
-   }
-
-   if fileNames == "disigun1" then
-    t[fileNames].gain = 0.075*0.3
-    end
-   if fileNames == "xplomas2" then
-    t[fileNames].gain = 0.225*0.3
-    end
-   -- if fileNames == "newboom" then
-   --  t[fileNames].gain = 0.045*0.3
-   --  end
-    if fileNames == "beamershot2" then
-    t[fileNames].gain = 0.5*0.3
-    t[fileNames].pitchmod = 0.04
-    end
-   if fileNames == "lasfirerc" then
-    t[fileNames].pitchmod = 0.06
-    end
-   if string.sub(fileNames, 1, 8) == "lrpcshot" then
-    t[fileNames].pitchmod = 0.12
-    end
-   if string.sub(fileNames, 1, 7) == "heatray" then
-    t[fileNames].pitchmod = 0
-    end
-   if string.sub(fileNames, 1, 4) == "lasr" then
-    t[fileNames].pitchmod = 0
-    end
-   if string.sub(fileNames, 1, 6) == "mavgun" then
-    t[fileNames].pitchmod = 0.06
-    end
-   if string.sub(fileNames, 1, 7) == "nanlath" then
-    t[fileNames].pitchmod = 0.02
-    end
-   if string.sub(fileNames, 1, 4) == "mgun" then
-    t[fileNames].pitchmod = 0.08
-    end
-   if string.sub(fileNames, 1, 7) == "minigun" then
-    t[fileNames].pitchmod = 0.09
-    t[fileNames].maxconcurrent = 12
-    end 
-   if string.sub(fileNames, 1, 7) == "xplolrg" then
-    t[fileNames].pitchmod = 0.3
-    end
-   if string.sub(fileNames, 1, 7) == "xplomed" then
-    t[fileNames].pitchmod = 0.25
-    end
-   if string.sub(fileNames, 1, 7) == "xplosml" then
-    t[fileNames].pitchmod = 0.22
-    end
-end
-
--- WEAPON SOUNDS MULTI (more concurrent)
-local files = VFS.DirList("sounds/weapons-mult/")
-local t = Sounds.SoundItems
-for i=1,#files do
-   local fileName = files[i]
-   fileNames = string.sub(fileName, 21, string.find(fileName, ".wav") -1)
-   t[fileNames] = {
-      file     = fileName;
-      gain = 1.2*0.3,
-      pitchmod = 0.17,
-      gainmod  = 0.2*0.3,
-      dopplerscale = 1.0,
-      maxconcurrent = 15,
-      rolloff = 1.5,
-   }
-end
-
--- CHICKEN SOUNDS
-local files = VFS.DirList("sounds/chickens/")
-local t = Sounds.SoundItems
-for i=1,#files do
-	local fileName = files[i]
-	fileNames = string.sub(fileName, 17, string.find(fileName, ".wav") -1)
-	t[fileNames] = {
-    	file     = fileName;
-		gain = 1.2*0.5,
-    	pitchmod = 0.23,
-    	gainmod  = 0.2*0.3,
+	-- WEAPON SOUNDS
+	['weapons'] = {
+		gain = {
+			default = 1.2 * 0.3,
+			custom = {
+				['^beamershot2$'] = 0.5 * 0.3,
+				['^disigun1$'] = 0.075 * 0.3,
+				-- ['^newboom$'] = 0.045 * 0.3,
+				['^xplomas2$'] = 0.225 * 0.3,
+			},
+		},
+		pitchmod = {
+			default = 0.17,
+			custom = {
+				['^beamershot2$'] = 0.04,
+				['^lasfirerc$'] = 0.06,
+				['^heatray'] = 0,
+				['^lasr'] = 0,
+				['^nanlath'] = 0.02,
+				['^mavgun'] = 0.06,
+				['^mgun'] = 0.08,
+				['^minigun'] = 0.09,
+				['^lrpcshot'] = 0.12,
+				['^xplosml'] = 0.22,
+				['^xplomed'] = 0.25,
+				['^xplolrg'] = 0.3,
+			},
+		},
+		gainmod  = 0.2 * 0.3,
+		maxconcurrent = {
+			default = 7,
+			custom = {
+				['^minigun'] = 12,
+			},
+		},
 		dopplerscale = 1.0,
-    	maxconcurrent = 6,
+		rolloff = 1.4,
+	},
+
+	-- WEAPON SOUNDS MULTI (more concurrent)
+	['weapons-mult'] = {
+		gain = 1.2 * 0.3,
+		pitchmod = 0.17,
+		gainmod  = 0.2 * 0.3,
+		dopplerscale = 1.0,
+		maxconcurrent = 15,
+		rolloff = 1.5,
+	},
+
+	-- CHICKEN SOUNDS
+	['chickens'] = {
+		gain = 1.2 * 0.5,
+		pitchmod = {
+			default = 0.23,
+			custom = {
+				['^talonattack$'] = 0.07
+			},
+		},
+		gainmod  = 0.2 * 0.3,
+		dopplerscale = 1.0,
+		maxconcurrent = 6,
 		rolloff = 1.1,
-	}
+	},
 
-	if fileNames == "talonattack" then
-    t[fileNames].pitchmod = 0.07
-    end
-end
-
--- BOMB SOUNDS / More maxconcurrent
-local files = VFS.DirList("sounds/bombs/")
-local t = Sounds.SoundItems
-for i=1,#files do
-	local fileName = files[i]
-	fileNames = string.sub(fileName, 14, string.find(fileName, ".wav") -1)
-	t[fileNames] = {
-		file     = fileName;
-		gain = 1.2*0.3,
+	-- BOMB SOUNDS / More maxconcurrent
+	['bombs'] = {
+		gain = 1.2 * 0.3,
 		pitchmod = 0.27,
-		gainmod  = 0.2*0.3,
+		gainmod  = 0.2 * 0.3,
 		dopplerscale = 1.0,
 		maxconcurrent = 18,
 		rolloff = 1.1,
-	}
-end
+	},
 
--- REPLY SOUNDS
-local files = VFS.DirList("sounds/replies/")
-local t = Sounds.SoundItems
-for i=1,#files do
-	local fileName = files[i]
-	fileNames = string.sub(fileName, 16, string.find(fileName, ".wav") -1)
-	t[fileNames] = {
-		file     = fileName;
-		gain = 1.2*0.3,
+	-- REPLY SOUNDS
+	['replies'] = {
+		gain = 1.2 * 0.3,
 		pitchmod = 0.02,
-		gainmod  = 0.2*0.3,
+		gainmod  = 0.2 * 0.3,
 		dopplerscale = 0,
 		maxconcurrent = 32,
 		rolloff = 0.05,
 		priority = 1,
 		--in3d = false,
-	}
-end
+	},
 
--- LAND UNIT MOVEMENT SOUNDS
-local files = VFS.DirList("sounds/movement/")
-local t = Sounds.SoundItems
-for i=1,#files do
-	local fileName = files[i]
-	fileNames = string.sub(fileName, 17, string.find(fileName, ".wav") -1)
-	t[fileNames] = {
-		file     = fileName;
-		gain = 1.2*0.3,
+	-- LAND UNIT MOVEMENT SOUNDS
+	['movement'] = {
+		gain = 1.2 * 0.3,
 		pitchmod = 0.062,
-		gainmod  = 0.2*0.3,
+		gainmod  = 0.2 * 0.3,
 		dopplerscale = 0,
 		maxconcurrent = 2,
 		rolloff = 0.1,
 		priority = 1,
 		--in3d = false,
-	}
-end
+	},
 
--- AIR UNIT MOVEMENT SOUNDS
-local files = VFS.DirList("sounds/movement-air/")
-local t = Sounds.SoundItems
-for i=1,#files do
-	local fileName = files[i]
-	fileNames = string.sub(fileName, 21, string.find(fileName, ".wav") -1)
-	t[fileNames] = {
-		file     = fileName;
-		gain = 1.2*0.3,
+	-- AIR UNIT MOVEMENT SOUNDS
+	['movement-air'] = {
+		gain = 1.2 * 0.3,
 		pitchmod = 0.02,
-		gainmod  = 0.2*0.3,
+		gainmod  = 0.2 * 0.3,
 		dopplerscale = 0,
 		maxconcurrent = 2,
 		rolloff = 0.1,
 		priority = 1,
 		--in3d = false,
-	}
-end
+	},
 
--- UNIT FUNCTION/WEAPON SOUNDS
-local files = VFS.DirList("sounds/function/")
-local t = Sounds.SoundItems
-for i=1,#files do
-	local fileName = files[i]
-	fileNames = string.sub(fileName, 17, string.find(fileName, ".wav") -1)
-	t[fileNames] = {
-		file     = fileName;
-		gain = 1.2*0.3,
+	-- UNIT FUNCTION/WEAPON SOUNDS
+	['function'] = {
+		gain = 1.2 * 0.3,
 		pitchmod = 0.02,
-		gainmod  = 0.2*0.3,
+		gainmod  = 0.2 * 0.3,
 		dopplerscale = 0,
 		maxconcurrent = 7,
 		rolloff = 0.1,
 		priority = 1,
 		--in3d = false,
-	}
-end
+	},
 
--- BUILDING FUNCTION/WEAPON SOUNDS
-local files = VFS.DirList("sounds/buildings/")
-local t = Sounds.SoundItems
-for i=1,#files do
-	local fileName = files[i]
-	fileNames = string.sub(fileName, 18, string.find(fileName, ".wav") -1)
-	t[fileNames] = {
-		file     = fileName;
-		gain = 1.2*0.3,
+	-- BUILDING FUNCTION/WEAPON SOUNDS
+	['buildings'] = {
+		gain = 1.2 * 0.3,
 		pitchmod = 0.03,
-		gainmod  = 0.2*0.3,
+		gainmod  = 0.2 * 0.3,
 		dopplerscale = 0,
 		maxconcurrent = 2,
 		rolloff = 0.1,
 		priority = 1,
 		--in3d = false,
-	}
-end
+	},
 
--- UI COMMANDS SOUNDS
-local files = VFS.DirList("sounds/commands/")
-local t = Sounds.SoundItems
-for i=1,#files do
-	local fileName = files[i]
-	fileNames = string.sub(fileName, 17, string.find(fileName, ".wav") -1)
-	t[fileNames] = {
-		file     = fileName;
-		gain = 1.2*0.3,
+	-- UI COMMANDS SOUNDS
+	['commands'] = {
+		gain = 1.2 * 0.3,
 		pitchmod = 0.02,
-		gainmod  = 0.2*0.3,
+		gainmod  = 0.2 * 0.3,
 		dopplerscale = 0,
 		maxconcurrent = 32,
 		rolloff = 0,
 		priority = 1,
 		--in3d = false,
-	}
+	},
+
+	-- CRITTER SOUNDS
+	['critters'] = {
+		gain = 1.1 * 0.3,
+		pitchmod = 0.01,
+		gainmod  = 0.15 * 0.3,
+		dopplerscale = 1.0,
+		maxconcurrent = 4,
+		rolloff = 0.7,
+	},
+
+--[[
+	-- SCAVENGER SOUNDS not in use currently
+	['scavengers'] = {
+		gain = 1.0 * 0.3,
+		pitchmod = 0.33,
+		gainmod  = 0.1 * 0.3,
+		dopplerscale = 1.0,
+		maxconcurrent = 8,
+		rolloff = 0.2,
+	},
+]]
+
+	-- AMBIENCE
+	['atmos'] = {
+		gain = 0.8,
+		pitchmod = 0.22,
+		gainmod  = 0.2 * 0.3,
+		dopplerscale = 1.0,
+		maxconcurrent = 6,
+		rolloff = 0.5,
+	},
+
+	-- AMBIENCE LOCAL
+	['atmoslocal'] = {
+		gain = 0.9,
+		pitchmod = 0.11,
+		gainmod  = 0.2 * 0.3,
+		dopplerscale = 1.0,
+		maxconcurrent = 12,
+		rolloff = 1.4,
+	},
+}
+
+local function loadSoundFiles(directory, soundAttributes)
+	local soundFiles = VFS.DirList(directory)
+
+	for _, fileName in ipairs(soundFiles) do
+		local soundName = string.sub(fileName, string.len(directory) + 1, string.find(fileName, ".wav") -1)
+		Sounds.SoundItems[soundName] = {}
+		Sounds.SoundItems[soundName].file = fileName
+
+		local value
+		for attribute, attributeValue in pairs(soundAttributes) do
+			if type(attributeValue) ~= "table" then
+				value = attributeValue
+			else
+				value = attributeValue.default
+
+				for soundMatchPattern, customValue in pairs(attributeValue.custom) do
+					if soundName:match(soundMatchPattern) then
+						value = customValue
+					end
+				end
+			end
+
+			Sounds.SoundItems[soundName][attribute] = value
+		end
+	end
 end
 
--- CRITTER SOUNDS
-local files = VFS.DirList("sounds/critters/")
-local t = Sounds.SoundItems
-for i=1,#files do
-   local fileName = files[i]
-   fileNames = string.sub(fileName, 17, string.find(fileName, ".wav") -1)
-   t[fileNames] = {
-      	file     = fileName;
-	    gain = 1.1*0.3,
-      	pitchmod = 0.01,
-      	gainmod  = 0.15*0.3,
-	    dopplerscale = 1.0,
-      	maxconcurrent = 4,
-	    rolloff = 0.7,
-   }
-end
-
--- SCAVENGER SOUNDS not in use currently
--- local files = VFS.DirList("sounds/scavengers/")
--- local t = Sounds.SoundItems
--- for i=1,#files do
--- 	local fileName = files[i]
--- 	fileNames = string.sub(fileName, 19, string.find(fileName, ".wav") -1)
--- 	t[fileNames] = {
---   		file     = fileName;
---   		gain = 1.0*0.3,
---   		pitchmod = 0.33,
---   		gainmod  = 0.1*0.3,
---   		dopplerscale = 1.0,
---   		maxconcurrent = 8,
---   		rolloff = 0.2,
--- 	}
--- end
-
--- AMBIENCE
-local files = VFS.DirList("sounds/atmos/")
-local t = Sounds.SoundItems
-for i=1,#files do
-  local fileName = files[i]
-  fileNames = string.sub(fileName, 14, string.find(fileName, ".wav") -1)
-  t[fileNames] = {
-      file     = fileName;
-      gain = 0.8,
-      pitchmod = 0.22,
-      gainmod  = 0.2*0.3,
-      dopplerscale = 1.0,
-      maxconcurrent = 6,
-      rolloff = 0.5,
-  }
-end
-
--- AMBIENCE LOCAL
-local files = VFS.DirList("sounds/atmoslocal/")
-local t = Sounds.SoundItems
-for i=1,#files do
-  local fileName = files[i]
-  fileNames = string.sub(fileName, 19, string.find(fileName, ".wav") -1)
-  t[fileNames] = {
-      file     = fileName;
-      gain = 0.9,
-      pitchmod = 0.11,
-      gainmod  = 0.2*0.3,
-      dopplerscale = 1.0,
-      maxconcurrent = 12,
-      rolloff = 1.4,
-  }
+for directory, attributes in pairs(soundData) do
+	loadSoundFiles('sounds/' .. directory .. '/', attributes)
 end
 
 return Sounds
-
