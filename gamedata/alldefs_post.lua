@@ -34,7 +34,6 @@ SaveDefsToCustomParams = false
 function PrebakeUnitDefs()
 	for name, unitDef in pairs(UnitDefs) do
 		-- UnitDef changes go here
-		unitDef.customparams.hello = "World"
 	end
 end
 
