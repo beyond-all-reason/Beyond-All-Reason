@@ -146,33 +146,21 @@ local spGetGroundHeight = Spring.GetGroundHeight
 local spGetMouseState = Spring.GetMouseState
 local spTraceScreenRay = Spring.TraceScreenRay
 local spGetUnitHealth = Spring.GetUnitHealth
-local SelectedUnitsCount = spGetSelectedUnitsCount()
 local spGetUnitIsBuilding = Spring.GetUnitIsBuilding
+local spGetGroundInfo = Spring.GetGroundInfo
+
+local SelectedUnitsCount = spGetSelectedUnitsCount()
 
 local string_sub = string.sub
-local string_gsub = string.gsub
 local os_clock = os.clock
 
 local math_floor = math.floor
 local math_ceil = math.ceil
 local math_max = math.max
 local math_min = math.min
-local math_tan = math.tan
-local math_pi = math.pi
-local math_cos = math.cos
-local math_sin = math.sin
-local math_rad = math.rad
-local math_twicePi = math.pi * 2
 
-local GL_QUADS = GL.QUADS
-local glShape = gl.Shape
-local GL_TRIANGLE_FAN = GL.TRIANGLE_FAN
-local glBeginEnd = gl.BeginEnd
 local glTexture = gl.Texture
-local glTexRect = gl.TexRect
 local glColor = gl.Color
-local glRect = gl.Rect
-local glVertex = gl.Vertex
 local glBlending = gl.Blending
 local GL_SRC_ALPHA = GL.SRC_ALPHA
 local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
@@ -402,112 +390,138 @@ end
 
 -- order units, add higher value for order importance
 local skip = false
+local unitOrderManualOverrideTable = VFS.Include("luaui/configs/gui_buildmenu_sorting.lua")
 for unitDefID, unitDef in pairs(UnitDefs) do
 	skip = false
-	unitOrder[unitDefID] = 20000000
-
-	-- handle decoy unit like its the regular version
-	if unitDef.customParams.decoyfor then
-		unitDef = UnitDefNames[unitDef.customParams.decoyfor]
-		unitOrder[unitDefID] = unitOrder[unitDefID] - 2
-	end
-
-	-- is water unit
-	if unitDef.name ~= 'armmex' and unitDef.name ~= 'cormex' and (unitDef.minWaterDepth > 0 or unitDef.modCategories['ship'] or unitDef.modCategories['underwater']) then
-		unitOrder[unitDefID] = 500000
-	end
-
-	-- mobile units
-	if not (unitDef.isImmobile or unitDef.isBuilding) then
-		addOrderImportance(unitDefID, skip, 15000000)
-	end
-
-	-- eco buildings
-	if unitDef.isImmobile or unitDef.isBuilding then
-		if unitDef.tidalGenerator > 0 then
-			addOrderImportance(unitDefID, skip, 12000000)
-		elseif unitDef.extractsMetal > 0 then
-			addOrderImportance(unitDefID, skip, 14000000)
-		elseif unitDef.windGenerator > 0 then
-			addOrderImportance(unitDefID, skip, 12500000)
-		elseif unitDef.energyMake > 19 and (not unitDef.energyUpkeep or unitDef.energyUpkeep < 10) then
-			addOrderImportance(unitDefID, skip, 11500000)
-		elseif unitDef.energyUpkeep < -19 then
-			addOrderImportance(unitDefID, skip, 12000000)
+	if unitOrderManualOverrideTable[unitDefID] then
+		unitOrder[unitDefID] = -unitOrderManualOverrideTable[unitDefID]
+	else
+		unitOrder[unitDefID] = 2000000
+		-- is water unit
+		if unitDef.name ~= 'armmex' and unitDef.name ~= 'cormex' and (unitDef.minWaterDepth > 0 or unitDef.modCategories['ship'] or unitDef.modCategories['underwater']) then
+			unitOrder[unitDefID] = 50000
 		end
 
-		-- storage
-		if unitDef.energyStorage > 1000 and string.find(string.lower(unitDef.humanName), 'storage') then
-			addOrderImportance(unitDefID, skip, 11000000)
-		end
-		if unitDef.metalStorage > 500 and string.find(string.lower(unitDef.humanName), 'storage') then
-			addOrderImportance(unitDefID, skip, 13000000)
+		-- handle decoy unit like its the regular version
+		if unitDef.customParams.decoyfor then
+			unitDef = UnitDefNames[unitDef.customParams.decoyfor]
+			unitOrder[unitDefID] = unitOrder[unitDefID] - 2
 		end
 
-		-- converters
-		if string.find(string.lower(unitDef.humanName), 'converter') then
-			addOrderImportance(unitDefID, skip, 13500000)
+
+
+		-- mobile units
+		if not (unitDef.isImmobile or unitDef.isBuilding) then
+			addOrderImportance(unitDefID, skip, 1500000)
 		end
-	end
 
-	-- nanos
-	if unitDef.buildSpeed > 0 and not unitDef.buildOptions[1] then
-		addOrderImportance(unitDefID, skip, 3500000)
-	end
+		-- eco buildings
+		if unitDef.isImmobile or unitDef.isBuilding then
+			if unitDef.tidalGenerator > 0 then
+				addOrderImportance(unitDefID, skip, 1200000)
+			elseif unitDef.extractsMetal > 0 then
+				addOrderImportance(unitDefID, skip, 1400000)
+			elseif unitDef.windGenerator > 0 then
+				addOrderImportance(unitDefID, skip, 1250000)
+			elseif unitDef.energyMake > 19 and (not unitDef.energyUpkeep or unitDef.energyUpkeep < 10) then
+				addOrderImportance(unitDefID, skip, 1150000)
+			elseif unitDef.energyUpkeep < -19 then
+				addOrderImportance(unitDefID, skip, 1200000)
+			end
 
-	if unitDef.buildOptions[1] then
-		if unitDef.isBuilding then
-			addOrderImportance(unitDefID, skip, 2500000)
-		else
-			if string.find(string.lower(unitDef.humanName), 'construction') then
-				addOrderImportance(unitDefID, skip, 6000000)
-			elseif string.find(string.lower(unitDef.tooltip), 'minelayer') or string.find(string.lower(unitDef.tooltip), 'assist') or string.find(string.lower(unitDef.tooltip), 'engineer') then
-				addOrderImportance(unitDefID, skip, 4000000)
-			else
-				addOrderImportance(unitDefID, skip, 5000000)
+			-- storage
+			if unitDef.energyStorage > 1000 and string.find(string.lower(unitDef.humanName), 'storage') then
+				addOrderImportance(unitDefID, skip, 1100000)
+			end
+			if unitDef.metalStorage > 500 and string.find(string.lower(unitDef.humanName), 'storage') then
+				addOrderImportance(unitDefID, skip, 1300000)
+			end
+
+			-- converters
+			if string.find(string.lower(unitDef.humanName), 'converter') then
+				addOrderImportance(unitDefID, skip, 1350000)
 			end
 		end
+
+		-- nanos
+		if unitDef.buildSpeed > 0 and not unitDef.buildOptions[1] then
+			addOrderImportance(unitDefID, skip, 350000)
+		end
+
+		if unitDef.buildOptions[1] then
+			if unitDef.isBuilding then
+				addOrderImportance(unitDefID, skip, 250000)
+			else
+				if string.find(string.lower(unitDef.humanName), 'construction') then
+					addOrderImportance(unitDefID, skip, 600000)
+				elseif string.find(string.lower(unitDef.tooltip), 'minelayer') or string.find(string.lower(unitDef.tooltip), 'assist') or string.find(string.lower(unitDef.tooltip), 'engineer') then
+					addOrderImportance(unitDefID, skip, 400000)
+				else
+					addOrderImportance(unitDefID, skip, 500000)
+				end
+			end
+		end
+		-- if unitDef.isImmobile or  unitDef.isBuilding then
+		--   if unitDef.floater or unitDef.floatOnWater then
+		--     addOrderImportance(unitDefID, skip, 11000000)
+		--   elseif unitDef.modCategories['underwater'] or unitDef.modCategories['canbeuw'] or unitDef.modCategories['notland'] then
+		--     addOrderImportance(unitDefID, skip, 10000000)
+		--   else
+		--     addOrderImportance(unitDefID, skip, 12000000)
+		--   end
+		-- else
+		--   if unitDef.modCategories['ship'] then
+		--     addOrderImportance(unitDefID, skip, 9000000)
+		--   elseif unitDef.modCategories['hover'] then
+		--     addOrderImportance(unitDefID, skip, 8000000)
+		--   elseif unitDef.modCategories['tank'] then
+		--     addOrderImportance(unitDefID, skip, 7000000)
+		--   elseif unitDef.modCategories['bot'] then
+		--     addOrderImportance(unitDefID, skip, 6000000)
+		--   elseif unitDef.isAirUnit then
+		--     addOrderImportance(unitDefID, skip, 5000000)
+		--   elseif unitDef.modCategories['underwater'] or unitDef.modCategories['canbeuw'] or unitDef.modCategories['notland'] then
+		--     addOrderImportance(unitDefID, skip, 8600000)
+		--   end
+		-- end
+
+
+		unitOrder[unitDefID] = math.max(1, math_floor(unitOrder[unitDefID]))
+
+		-- make more expensive units of the same kind lower in the list
+		unitOrder[unitDefID] = unitOrder[unitDefID] + 100000
+		addOrderImportance(unitDefID, skip, -(unitDef.energyCost / 70)*0.1)
+		addOrderImportance(unitDefID, skip, -unitDef.metalCost*0.1)
+		unitOrder[unitDefID] = math.max(1, math_floor(unitOrder[unitDefID]))
 	end
-	-- if unitDef.isImmobile or  unitDef.isBuilding then
-	--   if unitDef.floater or unitDef.floatOnWater then
-	--     addOrderImportance(unitDefID, skip, 11000000)
-	--   elseif unitDef.modCategories['underwater'] or unitDef.modCategories['canbeuw'] or unitDef.modCategories['notland'] then
-	--     addOrderImportance(unitDefID, skip, 10000000)
-	--   else
-	--     addOrderImportance(unitDefID, skip, 12000000)
-	--   end
-	-- else
-	--   if unitDef.modCategories['ship'] then
-	--     addOrderImportance(unitDefID, skip, 9000000)
-	--   elseif unitDef.modCategories['hover'] then
-	--     addOrderImportance(unitDefID, skip, 8000000)
-	--   elseif unitDef.modCategories['tank'] then
-	--     addOrderImportance(unitDefID, skip, 7000000)
-	--   elseif unitDef.modCategories['bot'] then
-	--     addOrderImportance(unitDefID, skip, 6000000)
-	--   elseif unitDef.isAirUnit then
-	--     addOrderImportance(unitDefID, skip, 5000000)
-	--   elseif unitDef.modCategories['underwater'] or unitDef.modCategories['canbeuw'] or unitDef.modCategories['notland'] then
-	--     addOrderImportance(unitDefID, skip, 8600000)
-	--   end
-	-- end
-
-
-	unitOrder[unitDefID] = math_max(1, math_floor(unitOrder[unitDefID]))
-
-	-- make more expensive units of the same kind lower in the list
-	unitOrder[unitDefID] = unitOrder[unitDefID] + 1000000
-	addOrderImportance(unitDefID, skip, -(unitDef.energyCost / 70))
-	addOrderImportance(unitDefID, skip, -unitDef.metalCost)
-
-	unitOrder[unitDefID] = math_max(1, math_floor(unitOrder[unitDefID]))
 end
 
 local function getHighestOrderedUnit()
-	local highest = { 0, 0 }
+	local highest = { 0, 0, false }
+	local firstOrderTest = true
+	local newSortingUnit = {}
 	for unitDefID, orderValue in pairs(unitOrder) do
-		if orderValue > highest[2] then
-			highest = { unitDefID, orderValue }
+
+		if unitOrderManualOverrideTable[unitDefID] then
+			newSortingUnit[unitDefID] = true
+		else
+			newSortingUnit[unitDefID] = false
+		end
+
+		if firstOrderTest == true then
+			firstOrderTest = false
+			highest = { unitDefID, orderValue, newSortingUnit[unitDefID]}
+		--elseif orderValue > highest[2] then
+		elseif highest[3] == false and newSortingUnit[unitDefID] == true then
+			highest = { unitDefID, orderValue, newSortingUnit[unitDefID]}
+		elseif highest[3] == false and newSortingUnit[unitDefID] == false then
+			if orderValue > highest[2] then
+				highest = { unitDefID, orderValue, newSortingUnit[unitDefID]}
+			end
+		elseif highest[3] == true and newSortingUnit[unitDefID] == true then
+			if orderValue > highest[2] then
+				highest = { unitDefID, orderValue, newSortingUnit[unitDefID]}
+			end
 		end
 	end
 	return highest[1]
@@ -528,10 +542,16 @@ end
 unitOrder = unitsOrdered
 unitsOrdered = nil
 
+local voidWater = false
+local success, mapinfo = pcall(VFS.Include,"mapinfo.lua") -- load mapinfo.lua confs
+if success and mapinfo then
+	voidWater = mapinfo.voidwater
+end
+
 local minWaterUnitDepth = -11
 local showWaterUnits = false
 local _, _, mapMinWater, _ = Spring.GetGroundExtremes()
-if mapMinWater <= minWaterUnitDepth then
+if not voidWater and mapMinWater <= minWaterUnitDepth then
 	showWaterUnits = true
 end
 -- make them a disabled unit (instead of removing it entirely)
@@ -987,7 +1007,7 @@ function widget:Update(dt)
 		end
 
 		local _, _, mapMinWater, _ = Spring.GetGroundExtremes()
-		if mapMinWater <= minWaterUnitDepth then
+		if not voidWater and mapMinWater <= minWaterUnitDepth then
 			if not showWaterUnits then
 				showWaterUnits = true
 
@@ -1279,9 +1299,11 @@ function drawBuildmenu()
 		paginatorRects[2] = { activeArea[3] - paginatorCellWidth, activeArea[2], activeArea[3], activeArea[2] + paginatorCellHeight - cellPadding - activeAreaMargin }
 
 		UiButton(paginatorRects[1][1] + cellPadding, paginatorRects[1][2] + cellPadding, paginatorRects[1][3] - cellPadding, paginatorRects[1][4] - cellPadding, 1,1,1,1, 1,1,1,1, nil, { 0, 0, 0, 0.8 }, { 0.2, 0.2, 0.2, 0.8 }, bgpadding * 0.5)
+		font2:Print("<", paginatorRects[1][1] + (paginatorCellWidth * 0.5), paginatorRects[1][2] + (paginatorCellHeight * 0.5) - (paginatorFontSize * 0.25), paginatorFontSize * 1.2, "co")
 		UiButton(paginatorRects[2][1] + cellPadding, paginatorRects[2][2] + cellPadding, paginatorRects[2][3] - cellPadding, paginatorRects[2][4] - cellPadding, 1,1,1,1, 1,1,1,1, nil, { 0, 0, 0, 0.8 }, { 0.2, 0.2, 0.2, 0.8 }, bgpadding * 0.5)
+		font2:Print(">", paginatorRects[2][1] + (paginatorCellWidth * 0.5), paginatorRects[2][2] + (paginatorCellHeight * 0.5) - (paginatorFontSize * 0.25), paginatorFontSize * 1.2, "co")
 
-		font2:Print("\255\245\245\245" .. currentPage .. "  \\  " .. pages, contentWidth * 0.5, activeArea[2] + (paginatorCellHeight * 0.5) - (paginatorFontSize * 0.25), paginatorFontSize, "co")
+		font2:Print("\255\245\245\245" .. currentPage .. "  /  " .. pages, contentWidth * 0.5, activeArea[2] + (paginatorCellHeight * 0.5) - (paginatorFontSize * 0.25), paginatorFontSize, "co")
 	end
 
 	font2:End()

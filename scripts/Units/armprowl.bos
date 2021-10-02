@@ -592,30 +592,30 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 0;
-		explode body type SHATTER | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
-		explode rbarrel type SHATTER | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
-		explode lbarrel type SHATTER | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
+		explode body type FIRE | SMOKE | FALL | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
+		explode rbarrel type FIRE | SMOKE | FALL | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
+		explode lbarrel type FIRE | SMOKE | FALL | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 1;
-		explode body type SHATTER | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
-		explode rbarrel type SHATTER | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
-		explode lbarrel type SHATTER | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
+		explode body type FIRE | SMOKE | FALL | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
+		explode rbarrel type FIRE | SMOKE | FALL | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
+		explode lbarrel type FIRE | SMOKE | FALL | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 2;
-		explode body type SHATTER | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
-		explode rbarrel type SHATTER | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
-		explode lbarrel type SHATTER | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;;
+		explode body type FIRE | SMOKE | FALL | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
+		explode rbarrel type FIRE | SMOKE | FALL | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
+		explode lbarrel type FIRE | SMOKE | FALL | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;;
 		return (corpsetype);
 	}
 	corpsetype = 3;
-	explode body type SHATTER | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
-	explode rbarrel type SHATTER | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
-	explode lbarrel type SHATTER | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
+	explode body type FIRE | SMOKE | FALL | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
+	explode rbarrel type FIRE | SMOKE | FALL | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
+	explode lbarrel type FIRE | SMOKE | FALL | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
 	return corpsetype;
 }

@@ -441,7 +441,7 @@ Killed(severity, corpsetype)
 		explode torso type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode rshield type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		explode lmisspod type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode lbarrel type SHATTER | NOHEATCLOUD;
+		explode lbarrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		//explode exhaust type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		//explode flare type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		//explode rthigh type SMOKE | FALL | NOHEATCLOUD;
@@ -457,7 +457,7 @@ Killed(severity, corpsetype)
 		explode torso type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode rshield type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode lmisspod type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode lbarrel type SHATTER | NOHEATCLOUD;
+		explode lbarrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		//explode exhaust type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		//explode flare type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		//explode rthigh type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;

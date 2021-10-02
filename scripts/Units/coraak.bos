@@ -417,7 +417,7 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
-		explode lfleg type SHATTER | NOHEATCLOUD;
+		explode lfleg type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 50 )

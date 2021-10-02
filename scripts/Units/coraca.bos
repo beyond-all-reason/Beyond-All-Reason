@@ -202,8 +202,8 @@ Killed(severity, corpsetype)
 		corpsetype = 3 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode thrust type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode door1 type SHATTER | NOHEATCLOUD;
-		explode support type SHATTER | NOHEATCLOUD;
+		explode door1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode support type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode beam type BITMAPONLY | NOHEATCLOUD;
 		explode nano type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode duct1 type BITMAPONLY | NOHEATCLOUD;
@@ -216,8 +216,8 @@ Killed(severity, corpsetype)
 	corpsetype = 3 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode thrust type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode door1 type SHATTER | NOHEATCLOUD;
-		explode support type SHATTER | NOHEATCLOUD;
+		explode door1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode support type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode beam type BITMAPONLY | NOHEATCLOUD;
 		explode nano type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode duct1 type BITMAPONLY | NOHEATCLOUD;

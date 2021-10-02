@@ -216,14 +216,14 @@ Killed(severity, corpsetype)
 	if( severity <= 99 )
 	{
 		corpsetype = 3 ;
-		explode base type SHATTER | NOHEATCLOUD;
+		explode base type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode turret type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode beamhinge type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode beamcase type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
-		explode base type SHATTER | NOHEATCLOUD;
+		explode base type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode turret type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode beamhinge type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode beamcase type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;

@@ -141,12 +141,12 @@ Create()
 {
 	call-script InitState();
 	start-script SmokeUnit();
-	start-script Lights();
 	return (0);
 }
 
 Activate()
 {
+	start-script Lights();
 	start-script RequestState(0);
 	return (0);
 }

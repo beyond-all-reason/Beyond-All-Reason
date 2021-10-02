@@ -34,7 +34,7 @@ return {
 		objectname = "scavs/cube.s3o",
 		script = "scavs/droppod.cob",
 		seismicsignature = 4,
-		selfdestructcountdown = 0,
+		selfdestructcountdown = 5,
 		selfdestructas = "",
 		smoothanim = true,
 		tedclass = "ENERGY",

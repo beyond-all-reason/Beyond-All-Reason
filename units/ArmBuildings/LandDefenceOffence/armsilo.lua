@@ -150,7 +150,7 @@ return {
 				stockpiletime = 120,
 				targetable = 1,
 				texture1 = "null",
-				texture2 = "smoketrailbar",
+				texture2 = "railguntrail",
 				texture3 = "null",
 				tolerance = 4000,
 				turnrate = 5500,

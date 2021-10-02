@@ -18,7 +18,7 @@ local mines = {}
 local isMine = {}
 local unitSizing = {}
 for udid, ud in pairs(UnitDefs) do
-	if ud.customParams and ud.customParams.detonaterange then
+	if ud.customParams.detonaterange then
 		isMine[udid] = true
 	end
 	unitSizing[udid] = {ud.xsize * 4 + 8, ud.zsize * 4 + 8} -- add 8 for the mines size too

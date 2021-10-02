@@ -124,7 +124,7 @@ Killed(severity, corpsetype)
 		corpsetype = 2 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode cradle type BITMAPONLY | NOHEATCLOUD;
-		explode fan type SHATTER | NOHEATCLOUD;
+		explode fan type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
@@ -138,6 +138,6 @@ Killed(severity, corpsetype)
 	corpsetype = 3 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode cradle type BITMAPONLY | NOHEATCLOUD;
-		explode fan type EXPLODE_ON_HIT | SHATTER | NOHEATCLOUD;
+		explode fan type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }

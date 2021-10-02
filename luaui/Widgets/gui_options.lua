@@ -2095,7 +2095,7 @@ function init()
 			airjets = false,
 			heatdistortion = false,
 			snow = false,
-			particles = 15000,
+			particles = 9000,
 			nanoparticles = 1500,
 			nanobeamamount = 6,
 			treeradius = 0,
@@ -2116,7 +2116,7 @@ function init()
 			airjets = true,
 			heatdistortion = true,
 			snow = false,
-			particles = 20000,
+			particles = 12000,
 			nanoparticles = 3000,
 			nanobeamamount = 8,
 			treeradius = 200,
@@ -2137,7 +2137,7 @@ function init()
 			airjets = true,
 			heatdistortion = true,
 			snow = true,
-			particles = 25000,
+			particles = 15000,
 			nanoparticles = 5000,
 			nanobeamamount = 12,
 			treeradius = 400,
@@ -2158,7 +2158,7 @@ function init()
 			airjets = true,
 			heatdistortion = true,
 			snow = true,
-			particles = 30000,
+			particles = 20000,
 			nanoparticles = 9000,
 			nanobeamamount = 20,
 			treeradius = 800,
@@ -2179,7 +2179,7 @@ function init()
 			airjets = true,
 			heatdistortion = true,
 			snow = true,
-			particles = 40000,
+			particles = 25000,
 			nanoparticles = 15000,
 			nanobeamamount = 40,
 			treeradius = 800,
@@ -2791,7 +2791,7 @@ function init()
 		--	end,
 		--},
 
-		{ id = "particles", group = "gfx", basic = true, name = texts.option.particles, type = "slider", min = 10000, max = 40000, step = 1000, value = tonumber(Spring.GetConfigInt("MaxParticles", 1) or 15000), description = texts.option.particles_descr,
+		{ id = "particles", group = "gfx", basic = true, name = texts.option.particles, type = "slider", min = 9000, max = 25000, step = 1000, value = tonumber(Spring.GetConfigInt("MaxParticles", 1) or 15000), description = texts.option.particles_descr,
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
@@ -4025,7 +4025,7 @@ function init()
 			end,
 		  },
 
-          { id = "defrange", group = "ui", widget = "Defense Range", name = texts.option.defrange, type = "bool", value = GetWidgetToggleValue("Defense Range"), description = texts.option.displaydps_descr },
+          { id = "defrange", group = "ui", basic = true, widget = "Defense Range", name = texts.option.defrange, type = "bool", value = GetWidgetToggleValue("Defense Range"), description = texts.option.defrange_descr },
 		{ id = "defrange_allyair", group = "ui", name = widgetOptionColor .. "   "..texts.option.defrange_allyair, type = "bool", value = (WG['defrange'] ~= nil and WG['defrange'].getAllyAir ~= nil and WG['defrange'].getAllyAir()), description = texts.option.defrange_allyair_descr,
 		  onload = function(i)
 			  loadWidgetData("Defense Range", "defrange_allyair", { 'enabled', 'ally', 'air' })
@@ -4082,7 +4082,7 @@ function init()
 			  saveOptionValue('Defense Range', 'defrange', 'setEnemyAir', { 'enabled', 'enemy', 'air' }, value)
 		  end,
 		},
-		{ id = "defrange_enemyground", group = "ui", name = widgetOptionColor .. "   "..texts.option.defrange_allyground, type = "bool", value = (WG['defrange'] ~= nil and WG['defrange'].getEnemyGround ~= nil and WG['defrange'].getEnemyGround()), description = texts.option.defrange_allyground_descr,
+		{ id = "defrange_enemyground", group = "ui", name = widgetOptionColor .. "   "..texts.option.defrange_enemyground, type = "bool", value = (WG['defrange'] ~= nil and WG['defrange'].getEnemyGround ~= nil and WG['defrange'].getEnemyGround()), description = texts.option.defrange_enemyground_descr,
 		  onload = function(i)
 			  loadWidgetData("Defense Range", "defrange_enemyground", { 'enabled', 'enemy', 'ground' })
 		  end,

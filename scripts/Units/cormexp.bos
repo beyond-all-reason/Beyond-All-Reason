@@ -366,7 +366,7 @@ Killed(severity, corpsetype)
 		corpsetype = 3 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode column type BITMAPONLY | NOHEATCLOUD;
-		explode top type SHATTER | NOHEATCLOUD;
+		explode top type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode turret1 type SMOKE | FALL | NOHEATCLOUD;
 		explode barrel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode flare1 type SMOKE | FALL | NOHEATCLOUD;
@@ -378,7 +378,7 @@ Killed(severity, corpsetype)
 	corpsetype = 3 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode column type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode top type SHATTER | NOHEATCLOUD;
+		explode top type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode turret1 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode barrel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode flare1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;

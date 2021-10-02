@@ -21,7 +21,7 @@ if gadgetHandler:IsSyncedCode() then
 	local weaponDefNamesID = {}
 	for id, def in pairs(WeaponDefs) do
 		weaponDefNamesID[def.name] = id
-		if def.customParams and def.customParams.speceffect then
+		if def.customParams.speceffect then
 			specialWeaponCustomDefs[id] = def.customParams
 		end
 	end

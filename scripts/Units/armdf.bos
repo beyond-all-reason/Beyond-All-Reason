@@ -121,26 +121,26 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
-		explode ball1 type SHATTER | BITMAP3 | NOHEATCLOUD;
-		explode ball2 type SHATTER | BITMAP5 | NOHEATCLOUD;
+		explode ball1 type FIRE | SMOKE | FALL | BITMAP3 | NOHEATCLOUD;
+		explode ball2 type FIRE | SMOKE | FALL | BITMAP5 | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
-		explode ball1 type SHATTER | BITMAP3 | NOHEATCLOUD;
-		explode ball2 type SHATTER | BITMAP5 | NOHEATCLOUD;
+		explode ball1 type FIRE | SMOKE | FALL | BITMAP3 | NOHEATCLOUD;
+		explode ball2 type FIRE | SMOKE | FALL | BITMAP5 | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3;
-		explode ball1 type SHATTER | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
-		explode ball2 type SHATTER | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5 | NOHEATCLOUD;
+		explode ball1 type  SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
+		explode ball2 type  SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5 | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	corpsetype = 3;
-	explode ball1 type SHATTER | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
-	explode ball2 type SHATTER | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5 | NOHEATCLOUD;
+	explode ball1 type  SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
+	explode ball2 type  SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5 | NOHEATCLOUD;
 	return (corpsetype);
 }

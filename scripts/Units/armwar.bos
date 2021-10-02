@@ -32,8 +32,39 @@ HitByWeapon(anglex, anglez, damage)	// angle[x|z] is always [-500;500], damage i
 	turn BASEPIECE to z-axis <0.000000> speed HITSPEED / 4;
 	turn BASEPIECE to x-axis <0.000000> speed HITSPEED / 4;
 }
+
+
+static-var isSmoking;
+SmokeUnit(healthpercent, smoketype) // ah yes, clever use of stack variables 
+{
+	while( TRUE )
+	{
+		healthpercent = get HEALTH;
+		
+		if( healthpercent < 66 )
+		{
+			smoketype = 258;
+			if( Rand( 1, 66 ) < healthpercent )
+			{
+				smoketype = 257;
+			}
+			emit-sfx smoketype from torso;
+		} else break;
+		if (healthpercent < 4) healthpercent = 4;
+		sleep healthpercent * 50;
+	}
+
+	sleep 97;
+	isSmoking = 0;
+}
+
 HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and flamers give angles of 0
 {
+	if( get BUILD_PERCENT_LEFT) return;
+	if (isSmoking == 0)	{ 
+		isSmoking = 1;
+		start-script SmokeUnit();
+	}
 	start-script HitByWeapon(dmg, anglez,anglex); //I dont know why param order must be switched, and this also runs a frame later :(
 	return (100); //return damage percent
 }
@@ -311,42 +342,16 @@ UnitSpeed(){
 StartMoving(){
 	signal SIG_WALK;
 	bMoving=TRUE;
-	 start-script Walk();
+	set-signal-mask SIG_WALK;
+	start-script UnitSpeed();
+	start-script Walk();
 }
 StopMoving(){
 	signal SIG_WALK;
 	bMoving=FALSE;
-	 call-script StopWalking();
+	call-script StopWalking();
 }
 
-
-SmokeUnit(healthpercent, sleeptime, smoketype)
-{
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 500;
-	}
-	start-script UnitSpeed();
-	while( TRUE )
-	{
-		healthpercent = get HEALTH;
-		if( healthpercent < 66 )
-		{
-			smoketype = 258;
-			if( Rand( 1, 66 ) < healthpercent )
-			{
-				smoketype = 257;
-			}
-			emit-sfx smoketype from torso;
-		}
-		sleeptime = healthpercent * 50;
-		if( sleeptime < 200 )
-		{
-			sleeptime = 200;
-		}
-		sleep sleeptime;
-	}
-}
 
 Create()
 {
@@ -358,7 +363,6 @@ Create()
 	restore_delay = 3000;
 	gun_1 = rflare;
 	animSpeed = 4;
-	start-script SmokeUnit();
 }
 
 SetMaxReloadTime(Func_Var_1)

@@ -268,47 +268,18 @@ Killed(severity, corpsetype)
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode turret type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode spindle type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode sleeve3 type SHATTER | NOHEATCLOUD;
-		explode barrel3 type SHATTER | NOHEATCLOUD;
-		//explode flare3 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode sleeve2 type SHATTER | NOHEATCLOUD;
-		//explode barrel2 type SHATTER | NOHEATCLOUD;
-		//explode flare2 type SMOKE | FALL | NOHEATCLOUD;
-		//explode sleeve1 type SHATTER | NOHEATCLOUD;
-		//explode barrel1 type SHATTER | NOHEATCLOUD;
-		//explode flare1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode sleeve6 type SHATTER | NOHEATCLOUD;
-		//explode barrel6 type SHATTER | NOHEATCLOUD;
-		//explode flare6 type SMOKE | FALL | NOHEATCLOUD;
-		//explode sleeve5 type SHATTER | NOHEATCLOUD;
-		//explode barrel5 type SHATTER | NOHEATCLOUD;
-		//explode flare5 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		//explode sleeve4 type SHATTER | NOHEATCLOUD;
-		//explode barrel4 type SHATTER | NOHEATCLOUD;
-		//explode flare4 type SMOKE | FALL | NOHEATCLOUD;
+		explode sleeve3 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode barrel3 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode turret type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode spindle type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode sleeve3 type SHATTER | NOHEATCLOUD;
-		explode barrel3 type SHATTER | NOHEATCLOUD;
+		explode sleeve3 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode barrel3 type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode flare3 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode sleeve2 type SHATTER | NOHEATCLOUD;
-		//explode barrel2 type SHATTER | NOHEATCLOUD;
-		//explode flare2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode sleeve1 type SHATTER | NOHEATCLOUD;
-		//explode barrel1 type SHATTER | NOHEATCLOUD;
-		//explode flare1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode sleeve6 type SHATTER | NOHEATCLOUD;
-		//explode barrel6 type SHATTER | NOHEATCLOUD;
-		//explode flare6 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode sleeve5 type SHATTER | NOHEATCLOUD;
-		//explode barrel5 type SHATTER | NOHEATCLOUD;
-		//explode flare5 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode sleeve4 type SHATTER | NOHEATCLOUD;
-		//explode barrel4 type SHATTER | NOHEATCLOUD;
-		//explode flare4 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+
 	return corpsetype;
 }

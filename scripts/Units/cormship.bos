@@ -367,8 +367,8 @@ Killed(severity, corpsetype)
 	{
 		corpsetype = 3 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode doorr type SHATTER | NOHEATCLOUD;
-		explode doorl type SHATTER | NOHEATCLOUD;
+		explode doorr type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode doorl type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode launcher type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		//explode flare1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode dish type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
@@ -380,8 +380,8 @@ Killed(severity, corpsetype)
 	}
 	corpsetype = 3 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode doorr type SHATTER | NOHEATCLOUD;
-		explode doorl type SHATTER | NOHEATCLOUD;
+		explode doorr type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode doorl type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode launcher type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		//explode flare1 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode dish type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;

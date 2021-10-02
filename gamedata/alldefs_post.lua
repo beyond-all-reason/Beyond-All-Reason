@@ -19,6 +19,23 @@
 -- and writes them to Spring/baked_defs
 SaveDefsToCustomParams = false
 
+-------------------------
+-- DEFS PRE-BAKING
+--
+-- This section is for testing changes to defs and baking them into the def files
+-- Only the changes in this section will get baked, all other changes made in post will not
+--
+-- 1. Add desired def changes to this section
+-- 2. Test changes in-game
+-- 3. Bake changes into def files
+-- 4. Delete changes from this section
+-------------------------
+
+function PrebakeUnitDefs()
+	for name, unitDef in pairs(UnitDefs) do
+		-- UnitDef changes go here
+	end
+end
 
 -------------------------
 -- DEFS POST PROCESSING
@@ -34,25 +51,6 @@ SaveDefsToCustomParams = false
 --local vehAdditionalVelocity = 0
 --local vehVelocityMultiplier = 1
 
-
-
-local function getFilePath(filename, path)
-	local files = VFS.DirList(path, '*.lua')
-	for i=1,#files do
-		if path..filename == files[i] then
-			return path
-		end
-	end
-	local subdirs = VFS.SubDirs(path)
-	for i=1,#subdirs do
-		local result = getFilePath(filename, subdirs[i])
-		if result then
-			return result
-		end
-	end
-	return false
-end
-
 --[[ Sanitize to whole frames (plus leeways because float arithmetic is bonkers).
      The engine uses full frames for actual reload times, but forwards the raw
      value to LuaUI (so for example calculated DPS is incorrect without sanitisation). ]]
@@ -63,17 +61,13 @@ local function round_to_frames(name, wd, key)
 		return
 	end
 
-  local Game_gameSpeed = 30 --for mission editor backwards compat (engine 104.0.1-287)
-  if Game and Game.gameSpeed then Game_gameSpeed = Game.gameSpeed end
+	local Game_gameSpeed = 30 --for mission editor backwards compat (engine 104.0.1-287)
+	if Game and Game.gameSpeed then Game_gameSpeed = Game.gameSpeed end
 
 	local frames = math.max(1, math.floor((original_value + 1E-3) * Game_gameSpeed))
-
 	local sanitized_value = frames / Game_gameSpeed
-	if math.abs (original_value - sanitized_value) > 1E-3 then
-		--Spring.Echo(name.."."..key.. " = " .. original_value .. "  ->  " .. sanitized_value .. "  ingame!  difference: "..sanitized_value-original_value)
-	end
 
-	return sanitized_value-- + 1E-5
+	return sanitized_value
 end
 
 local function processWeapons(unitDefName, unitDef)
@@ -89,11 +83,21 @@ local function processWeapons(unitDefName, unitDef)
 	end
 end
 
-function UnitDef_Post(name, uDef)
-	if not uDef.customparams then
-		uDef.customparams = {}
-	end
+if Game and Game.mapName then
+	currentMapName = Game.mapName
+	freeFusionMaps = {
+		"SpeedMetal BAR V2",
+	}
 
+	for i = 1,#freeFusionMaps do
+		if currentMapName == freeFusionMaps[i] then
+			enableFreeFusion = true
+			break
+		end
+	end
+end
+
+function UnitDef_Post(name, uDef)
 	-- disable wrecks for Control Points mode
 	if Spring.GetModOptions().scoremode ~= "disabled" then
 		uDef.corpse = nil
@@ -126,6 +130,21 @@ function UnitDef_Post(name, uDef)
 		end
 		if uDef.sounds.build then
 			uDef.sounds.build = nil
+		end
+	end
+
+	-- FreeFusion
+	if enableFreeFusion then
+		if name == "armcom" or
+		name == "corcom" or
+		name == "armck" or
+		name == "corck" or
+		name == "armcv" or
+		name == "corcv" or
+		name == "armca" or
+		name == "corca" then
+			local numBuildoptions = #uDef.buildoptions
+			uDef.buildoptions[numBuildoptions+1] = "freefusion"
 		end
 	end
 
@@ -195,7 +214,6 @@ function UnitDef_Post(name, uDef)
 			end
 		end
 	end
-
 
 	-- Add scav units to normal factories and builders
 	if Spring.GetModOptions().experimentalscavuniqueunits then
@@ -280,8 +298,10 @@ function UnitDef_Post(name, uDef)
 	if uDef.workertime then
 		local x = Spring.GetModOptions().experimentalbuildpower
 		uDef.workertime = uDef.workertime*x
-	end
 
+		-- increase terraformspeed to be able to restore ground faster
+		uDef.terraformspeed = uDef.workertime * 30
+	end
 
 	-- if Spring.GetModOptions().experimentalmassoverride then
 	-- 	-- mass override
@@ -330,7 +350,6 @@ function UnitDef_Post(name, uDef)
 	-- 	Spring.Echo("Result Mass: "..uDef.mass)
 	-- 	Spring.Echo("-------------------------")
 	-- end
-
 
 	-- mass remove push resistance
 	if uDef.pushresistant and uDef.pushresistant == true then
@@ -381,10 +400,8 @@ function UnitDef_Post(name, uDef)
          value to LuaUI (so for example calculated DPS is incorrect without sanitisation). ]]
 	processWeapons(name, uDef)
 
-
 	-- make los height a bit more forgiving	(20 is the default)
 	uDef.losemitheight = (uDef.losemitheight and uDef.losemitheight or 20) + 20
-
 
 	if uDef.name and uDef.name ~= "Commander" then
 		if uDef.featuredefs and uDef.maxdamage then
@@ -400,14 +417,11 @@ function UnitDef_Post(name, uDef)
 		end
     end
 
-
 	if uDef.maxslope then
 		uDef.maxslope = math.floor((uDef.maxslope * 1.5) + 0.5)
 	end
 
 	--if Spring.GetModOptions().airrebalance then
-
-
 		--if uDef.weapons then
 		--	local aaMult = 1.05
 		--	for weaponID, w in pairs(uDef.weapons) do
@@ -450,7 +464,6 @@ function UnitDef_Post(name, uDef)
 				--if uDef.builder then
 				--	uDef.workertime = math.floor((uDef.workertime*airmult) + 0.5)
 				--end
-
 
 				if uDef.customparams.fighter then
 
@@ -530,31 +543,7 @@ function UnitDef_Post(name, uDef)
 	end
 	uDef.customparams.vertdisp = 1.0 * vertexDisplacement
 	uDef.customparams.healthlookmod = 0
-
-	-- scavengers
-	if string.find(name, '_scav') then
-		--name = string.gsub(name, '_scav', '')
-		VFS.Include("gamedata/scavengers/unitdef_post.lua")
-		uDef = scav_Udef_Post(name, uDef)
-	else
-
-		-- usable when baking ... keeping subfolder structure
-		if SaveDefsToCustomParams then
-
-			local filepath = getFilePath(name..'.lua', 'units/')
-			if filepath then
-				if not uDef.customparams then
-					uDef.customparams = {}
-				end
-				uDef.customparams.subfolder = string.sub(filepath, 7, #filepath-1)
-			end
-		end
-	end
 end
-
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
 
 local function ProcessSoundDefaults(wd)
 	local forceSetVolume = not wd.soundstartvolume or not wd.soundhitvolume or not wd.soundhitwetvolume
@@ -575,16 +564,6 @@ local function ProcessSoundDefaults(wd)
 
 	local soundVolume = math.sqrt(defaultDamage * 0.5)
 
-	-- The very old formula
-	-- local soundVolume = math.sqrt(math.min(2000, defaultDamage) * 0.5)
-
-	-- The old formula
-	-- local soundVolume = math.sqrt(defaultDamage * 0.5)
-	-- soundVolume = math.min(math.max(soundVolume, 5), 25)
-
-	-- local soundVolume = math.floor( defaultDamage ^ 0.41 + 2 )
-	-- soundVolume = math.min(math.max(soundVolume, 5), 40)
-
 	if wd.weapontype == "LaserCannon" then
 		soundVolume = soundVolume*0.5
 	end
@@ -604,13 +583,9 @@ local function ProcessSoundDefaults(wd)
 	end
 end
 
-
 -- process weapondef
 function WeaponDef_Post(name, wDef)
-
 	if not SaveDefsToCustomParams then
-
-
 		-------------- EXPERIMENTAL MODOPTIONS
 		---- SHIELD CHANGES
 		local shieldModOption = Spring.GetModOptions().experimentalshields
@@ -654,12 +629,6 @@ function WeaponDef_Post(name, wDef)
 		end
 		----------------------------------------
 
-
-
-
-
-
-
 		--Use targetborderoverride in weapondef customparams to override this global setting
 		--Controls whether the weapon aims for the center or the edge of its target's collision volume. Clamped between -1.0 - target the far border, and 1.0 - target the near border.
 		if wDef.customparams and wDef.customparams.targetborderoverride == nil then
@@ -670,7 +639,6 @@ function WeaponDef_Post(name, wDef)
 
 		if wDef.craterareaofeffect then
 			wDef.cratermult = (wDef.cratermult or 0) + wDef.craterareaofeffect/2000
-			--Spring.Echo(name..'  '..wDef.cratermult)
 		end
 
 		-- Target borders of unit hitboxes rather than center (-1 = far border, 0 = center, 1 = near border)
@@ -739,8 +707,6 @@ function ExplosionDef_Post(name, eDef)
     end
     ]]
 end
-
-
 
 --------------------------
 -- MODOPTIONS

@@ -34,7 +34,7 @@ for udid, ud in pairs(UnitDefs) do
 	if string.find(ud.name, 'cormando') or string.find(ud.name, 'lootbox') or string.find(ud.name, 'scavengerdroppodbeacon_scav') then
 		isCommando[udid] = true
 	end
-  if ud.customParams and ud.customParams.subfolder and ud.customParams.subfolder == "other/hats" then
+  if ud.customParams.subfolder and ud.customParams.subfolder == "other/hats" then
 		isCommando[udid] = true
 	end
 end

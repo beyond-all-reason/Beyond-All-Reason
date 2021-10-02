@@ -38,6 +38,9 @@ if gadgetHandler:IsSyncedCode() then
 	local gaiaAllyTeamID = select(6, Spring.GetTeamInfo(gaiaTeamID))
 	local playerList = GetPlayerList()
 
+	local gameoverFrame
+	local gameoverWinners
+
 	local allyTeamInfos = {}
 	--allyTeamInfos structure: (excluding gaia)
 	-- allyTeamInfos = {
@@ -246,23 +249,34 @@ if gadgetHandler:IsSyncedCode() then
 
 
 	function gadget:GameFrame(gf)
-		local winners
-		if fixedallies then
-			if gf < 30 or gf % 30 == 1 then
-				CheckAllPlayers()
+		if gameoverFrame then
+			if gf == gameoverFrame then
+				GameOver(gameoverWinners)
 			end
-			winners = CheckSingleAllyVictoryEnd()
 		else
-			CheckAllPlayers()
-			winners = sharedDynamicAllianceVictory and CheckSharedAllyVictoryEnd() or CheckSingleAllyVictoryEnd()
-		end
-
-		if winners then
-			if Spring.GetModOptions().scenariooptions then
-				Spring.Echo("winners", winners[1])
-				SendToUnsynced("scenariogameend", winners[1])
+			local winners
+			if fixedallies then
+				if gf < 30 or gf % 30 == 1 then
+					CheckAllPlayers()
+				end
+				winners = CheckSingleAllyVictoryEnd()
+			else
+				CheckAllPlayers()
+				winners = sharedDynamicAllianceVictory and CheckSharedAllyVictoryEnd() or CheckSingleAllyVictoryEnd()
 			end
-			GameOver(winners)
+
+			if winners then
+				if Spring.GetModOptions().scenariooptions then
+					Spring.Echo("winners", winners[1])
+					SendToUnsynced("scenariogameend", winners[1])
+				end
+
+				-- delay gameover to let everything blow up gradually first
+				local delay = GG.wipeoutPeriod or 200
+				delay = GG.maxDeathFrame or delay
+				gameoverFrame = gf + delay + 45
+				gameoverWinners = winners
+			end
 		end
 	end
 
