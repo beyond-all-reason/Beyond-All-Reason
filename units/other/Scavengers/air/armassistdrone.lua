@@ -36,7 +36,7 @@ return {
 		sightdistance = 25,
 		terraformspeed = 225,
 		turninplaceanglelimit = 360,
-		turnrate = 240,
+		turnrate = 740,
 		workertime = 150,
 		buildoptions = {
 			[1] = "armrad",
