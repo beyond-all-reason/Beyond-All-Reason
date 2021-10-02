@@ -20,6 +20,29 @@ local Sounds = {
 	},
 }
 
+--[[ Add sound entries for directory sounds/some-directory/ using the following format:
+	['some-directory'] = {
+		gain = 0.8,
+		maxconcurrent = 1,
+		rolloff = 0,
+	},
+
+	Compound directories can be used e.g. sound/some-directory/other-directory
+	['some-directory/other-directory'] = {
+
+	For attributes that use custom values per sound file:
+	gain = {
+		default = 0.5,
+		custom = {
+			['^beamershot2$'] = 0.4,
+			['^lasr'] = 0.1,
+		},
+	},
+
+	Key name is used in string:match for sound file name
+	^example$	- exact match whole file name
+	^exam		- match any file starting with "exam"
+]]
 local soundData = {
 	-- UI SOUNDS
 	['ui'] = {
