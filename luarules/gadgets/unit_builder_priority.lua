@@ -190,7 +190,12 @@ local function UpdatePassiveBuilders(teamID, interval)
 			if builtUnit and targetCosts then
 				local rate = realBuildSpeed[builderID] / targetCosts.buildTime
 				for _,resName in pairs(resTable) do
-					local expense = targetCosts[resName] * rate
+					local expense = targetCosts[resName]
+					if expense <= 1 then -- metal maker costs 1 metal, don't stall because of that
+						expense = 0
+					else
+						expense = expense * rate
+					end
 					if passiveCons[teamID][builderID] then
 						if not passiveConsExpense[builderID] then
 							passiveConsExpense[builderID] = {energy=0, metal=expense}	-- because metal is set as first key
@@ -233,19 +238,25 @@ local function UpdatePassiveBuilders(teamID, interval)
 		if teamStallingEnergy or teamStallingMetal then
 			if passiveConsExpense[builderID] then
 				if teamStallingEnergy then
-					local newPullEnergy = teamStallingEnergy - (interval*passiveConsExpense[builderID]['energy']/simSpeed)
-					if newPullEnergy <= 0 then
-						wouldStall = true
-					else
-						teamStallingEnergy = newPullEnergy
+					local passivePullEnergy = (interval*passiveConsExpense[builderID]['energy']/simSpeed)
+					if passivePullEnergy > 0 then
+						local newPullEnergy = teamStallingEnergy - passivePullEnergy
+						if newPullEnergy <= 0 then
+							wouldStall = true
+						else
+							teamStallingEnergy = newPullEnergy
+						end
 					end
 				end
 				if teamStallingMetal then
-					local newPullMetal = teamStallingMetal - (interval*passiveConsExpense[builderID]['metal']/simSpeed)
-					if newPullMetal <= 0 then
-						wouldStall = true
-					else
-						teamStallingMetal = newPullMetal
+					local passivePullMetal = (interval*passiveConsExpense[builderID]['metal']/simSpeed)
+					if passivePullMetal > 0 then
+						local newPullMetal = teamStallingMetal - passivePullMetal
+						if newPullMetal <= 0 then
+							wouldStall = true
+						else
+							teamStallingMetal = newPullMetal
+						end
 					end
 				end
 			end
