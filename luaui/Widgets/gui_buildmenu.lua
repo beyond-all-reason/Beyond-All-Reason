@@ -32,7 +32,7 @@ local maxColls = 5
 local showOrderDebug = false
 local smartOrderUnits = true
 
-local maxPosY = 0.73
+local maxPosY = 0.74
 
 local enableShortcuts = false   -- problematic since it overrules use of top row letters from keyboard which some are in use already
 
@@ -111,7 +111,6 @@ local backgroundRect = { 0, 0, 0, 0 }
 local colls = 5
 local rows = 5
 local minimapHeight = 0.235
-local minimapEnlarged = false
 local posY = 0
 local posY2 = 0
 local posX = 0
@@ -738,7 +737,6 @@ function widget:ViewResize()
 	font2 = WG['fonts'].getFont(fontFile, 1.2, 0.28, 1.6)
 
 	if WG['minimap'] then
-		minimapEnlarged = WG['minimap'].getEnlarged()
 		minimapHeight = WG['minimap'].getHeight()
 	end
 
@@ -764,21 +762,19 @@ function widget:ViewResize()
 		minColls = math_max(8, math_floor((width/vsx)*25))
 		maxColls = 30
 	else
-		posY = math_min(0.8, math_max(0.4615, (vsy - minimapHeight) / vsy) - (widgetSpaceMargin/vsy))
+		posY = math_min(maxPosY, math_max(0.4615, (vsy - minimapHeight) / vsy) - (widgetSpaceMargin/vsy))
 		posY2 = math_floor(0.14 * ui_scale * vsy) / vsy
 		posY2 = posY2 + (widgetSpaceMargin/vsy)
 		posX = 0
 		minColls = 4
 		maxColls = 5
 
-		if minimapEnlarged then
-			if WG['minimap'] then
-				posY = 1 - (WG['minimap'].getHeight() / vsy) - (widgetSpaceMargin/vsy)
-				if posY > maxPosY then
-					posY = maxPosY
-				end
+		if WG['minimap'] then
+			posY = 1 - (WG['minimap'].getHeight() / vsy) - (widgetSpaceMargin/vsy)
+			if posY > maxPosY then
+				posY = maxPosY
 			end
-		else
+
 			if WG['ordermenu'] then
 				local oposX, oposY, owidth, oheight = WG['ordermenu'].getPosition()
 				if oposY > 0.5 then
@@ -949,6 +945,13 @@ function widget:Initialize()
 	WG['buildmenu'].getSize = function()
 		return posY, posY2
 	end
+	WG['buildmenu'].getMaxPosY = function()
+		return maxPosY
+	end
+	WG['buildmenu'].setMaxPosY = function(value)
+		maxPosY = value
+		doUpdate = true
+	end
 
 	refreshUnitIconCache()
 end
@@ -999,7 +1002,7 @@ function widget:Update(dt)
 			clear()
 			doUpdate = true
 		end
-		if WG['minimap'] and minimapEnlarged ~= WG['minimap'].getEnlarged() then
+		if WG['minimap'] and minimapHeight ~= WG['minimap'].getHeight() then
 			refreshUnitIconCache()
 			widget:ViewResize()
 			doUpdate = true
@@ -2103,6 +2106,7 @@ function widget:GetConfigData()
 		showTooltip = showTooltip,
 		buildQueue = buildQueue,
 		stickToBottom = stickToBottom,
+		maxPosY = maxPosY,
 		gameID = Game.gameID,
 		alwaysShow = alwaysShow,
 	}
@@ -2148,5 +2152,8 @@ function widget:SetConfigData(data)
 	end
 	if data.alwaysShow ~= nil then
 		alwaysShow = data.alwaysShow
+	end
+	if data.maxPosY ~= nil then
+		maxPosY = data.maxPosY
 	end
 end

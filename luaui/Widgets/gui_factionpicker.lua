@@ -18,7 +18,6 @@ local factions = {
 	{ UnitDefNames.corcom.id, Spring.I18N('units.factions.cor'), 'unitpics/corcom.png' },
 	{ UnitDefNames.armcom.id, Spring.I18N('units.factions.arm'), 'unitpics/armcom.png' },
 }
-local altPosition = false
 local playSounds = true
 local posY = 0.75
 local posX = 0
@@ -29,7 +28,7 @@ local bgBorder = bgBorderOrg
 local bgMargin = 0.008
 
 local myTeamID = Spring.GetMyTeamID()
-local stickToBottom = false
+local stickToBottom = true
 
 local startDefID = Spring.GetTeamRulesParam(myTeamID, 'startUnit')
 
@@ -208,7 +207,11 @@ function widget:ViewResize()
 	UiElement = WG.FlowUI.Draw.Element
 	UiUnit = WG.FlowUI.Draw.Unit
 
-	if stickToBottom or (altPosition and not buildmenuBottomPos) then
+	if WG['minimap'] then
+		minimapHeight = WG['minimap'].getHeight()
+	end
+
+	if stickToBottom then
 		posY = height
 		posX = width + (widgetSpaceMargin/vsx)
 	else
@@ -220,7 +223,7 @@ function widget:ViewResize()
 			posY2 = posY2 + (widgetSpaceMargin/vsy)
 			posY = posY2 + height
 			if WG['minimap'] then
-				posY = 1 - (WG['minimap'].getHeight() / vsy) - (widgetSpaceMargin/vsy)
+				posY = 1 - (minimapHeight / vsy) - (widgetSpaceMargin/vsy)
 			end
 			posX = 0
 		end
@@ -254,9 +257,6 @@ function widget:Initialize()
     end
   end
 
-	if WG['minimap'] then
-		altPosition = WG['minimap'].getEnlarged()
-	end
 	if WG['ordermenu'] then
 		stickToBottom = WG['ordermenu'].getBottomPosition()
 	end
@@ -299,11 +299,12 @@ function widget:Update(dt)
 			glossMult = 1 + (2 - (ui_opacity * 2))
 			doUpdate = true
 		end
-		if WG['minimap'] and altPosition ~= WG['minimap'].getEnlarged() then
-			altPosition = WG['minimap'].getEnlarged()
+
+		if WG['minimap'] and minimapHeight ~= WG['minimap'].getHeight() then
 			widget:ViewResize()
 			doUpdate = true
 		end
+
 		if WG['ordermenu'] and stickToBottom ~= WG['ordermenu'].getBottomPosition() then
 			stickToBottom = WG['ordermenu'].getBottomPosition()
 			widget:ViewResize()

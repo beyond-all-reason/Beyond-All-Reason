@@ -3285,14 +3285,22 @@ function init()
 		  end,
 		},
 
-		{ id = "minimap_enlarged", group = "ui", basic = true, name = texts.option.minimap..widgetOptionColor.."  "..texts.option.minimap_enlarged, type = "bool", value = false, description = texts.option.minimap_enlarged_descr,
-		  onload = function(i)
-			  loadWidgetData("Minimap", "minimap_enlarged", { 'enlarged' })
-		  end,
-		  onchange = function(i, value)
-			  saveOptionValue('Minimap', 'minimap', 'setEnlarged', { 'enlarged' }, value)
-		  end,
-		},
+		--{ id = "minimap_enlarged", group = "ui", basic = true, name = texts.option.minimap..widgetOptionColor.."  "..texts.option.minimap_enlarged, type = "bool", value = false, description = texts.option.minimap_enlarged_descr,
+		--  onload = function(i)
+		--	  loadWidgetData("Minimap", "minimap_enlarged", { 'enlarged' })
+		--  end,
+		--  onchange = function(i, value)
+		--	  saveOptionValue('Minimap', 'minimap', 'setEnlarged', { 'enlarged' }, value)
+		--  end,
+		--},
+		  { id = "minimap_maxheight", group = "ui", name = texts.option.minimap..widgetOptionColor.."  "..texts.option.minimap_maxheight, type = "slider", min = 0.2, max = 0.4, step = 0.01, value = 0.35, description = texts.option.minimap_maxheight_descr,
+			onload = function(i)
+				loadWidgetData("Minimap", "minimap_maxheight", { 'maxHeight' })
+			end,
+			onchange = function(i, value)
+				saveOptionValue('Minimap', 'minimap', 'setMaxHeight', { 'maxHeight' }, value)
+			end,
+		  },
 		--{ id = "simpleminimapcolors", group = "ui", name = widgetOptionColor .. "   "..texts.option.simpleminimapcolors, type = "bool", value = tonumber(Spring.GetConfigInt("SimpleMiniMapColors", 0) or 0) == 1, description = texts.option.simpleminimapcolors_descr,
 		--  onload = function(i)
 		--  end,
@@ -3333,6 +3341,14 @@ function init()
 			  saveOptionValue('Build menu', 'buildmenu', 'setBottomPosition', { 'stickToBottom' }, value)
 		  end,
 		},
+		  { id = "buildmenu_maxposy", group = "ui", name = widgetOptionColor .. "   "..texts.option.buildmenu_maxposy, type = "slider", min = 0.66, max = 0.88, step = 0.01, value = 0.74, description = texts.option.buildmenu_maxposy_descr,
+			onload = function(i)
+				loadWidgetData("Build menu", "buildmenu_maxposy", { 'maxPosY' })
+			end,
+			onchange = function(i, value)
+				saveOptionValue('Build menu', 'buildmenu', 'setMaxPosY', { 'maxPosY' }, value)
+			end,
+		  },
 		{ id = "buildmenu_alwaysshow", group = "ui", basic = true, name = widgetOptionColor .. "   "..texts.option.buildmenu_alwaysshow, type = "bool", value = (WG['buildmenu'] ~= nil and WG['buildmenu'].getAlwaysShow ~= nil and WG['buildmenu'].getAlwaysShow()), description = texts.option.buildmenu_alwaysshow_descr,
 		  onload = function(i)
 		  end,
