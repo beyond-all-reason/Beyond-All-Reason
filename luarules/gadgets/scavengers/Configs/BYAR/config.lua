@@ -156,7 +156,7 @@ unitSpawnerModuleConfig = {
 	t0multiplier						= 3.5,
 	t1multiplier						= 5,
 	t2multiplier						= 1,
-	t3multiplier						= 0.20,
+	t3multiplier						= 0.30,
 	t4multiplier						= 0.015,
 
 	initialbonuscommander				= initialBonusCommanderEnabled,
@@ -184,7 +184,7 @@ spawnProtectionConfig = {
 }
 
 randomEventsConfig = {
-	randomEventMinimumDelay = 9000*scavRandomEventsAmountModoption, -- frames
+	randomEventMinimumDelay = 4500*scavRandomEventsAmountModoption, -- frames
 	randomEventChance = 200*scavRandomEventsAmountModoption, -- higher = lower chance
 
 }
