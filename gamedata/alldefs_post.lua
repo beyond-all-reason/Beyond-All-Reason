@@ -261,12 +261,12 @@ function UnitDef_Post(name, uDef)
 		elseif name == "corlab" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "corkark"
-		elseif name == "corap" then
-			local numBuildoptions = #uDef.buildoptions
-			uDef.buildoptions[numBuildoptions+1] = "corassistdrone"
-		elseif name == "armap" then
-			local numBuildoptions = #uDef.buildoptions
-			uDef.buildoptions[numBuildoptions+1] = "armassistdrone"
+		-- elseif name == "corap" then
+		-- 	local numBuildoptions = #uDef.buildoptions
+		-- 	uDef.buildoptions[numBuildoptions+1] = "corassistdrone"
+		-- elseif name == "armap" then
+		-- 	local numBuildoptions = #uDef.buildoptions
+		-- 	uDef.buildoptions[numBuildoptions+1] = "armassistdrone"
 		elseif name == "armca" or name == "armck" or name == "armcv" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "corscavdrag"

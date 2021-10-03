@@ -410,6 +410,9 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
 	if unitTeam ~= GaiaTeamID and unitEnteredTeam == GaiaTeamID then
 		MasterMindTargetListTargetSpotted(unitID, unitTeam, unitEnteredTeam, unitDefID)
 	end
+	if unitName == "armassistdrone" or unitName == "corassistdrone" then
+		constructorController.AssistDroneRespawn(unitID, unitName)
+	end
 	if unitTeam == GaiaTeamID then
 		if scavengerGamePhase == "initial" and (not scavConverted[unitID]) then
 			initialPhaseCountdown = initialPhaseCountdown + 1

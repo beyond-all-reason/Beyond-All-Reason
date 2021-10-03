@@ -192,6 +192,7 @@ randomEventsConfig = {
 
 
 -- Functions which you can configure
+CommanderDronesList = {}
 function SpawnBonusCommander(unitID, unitName, unitTeam)
 	if unitName == "armcom" or unitName == "corcom" then
 		local posx, posy, posz = Spring.GetUnitPosition(unitID)
@@ -200,24 +201,20 @@ function SpawnBonusCommander(unitID, unitName, unitTeam)
 		-- Spring.CreateUnit("scavengerdroppodfriendly", posx, posy+48, posz+32, math_random(0,3), unitTeam)
 		-- Spring.CreateUnit("scavengerdroppodfriendly", posx, posy+48, posz-32, math_random(0,3), unitTeam)
 			--Spring.SetUnitPosition(unitID, posx-32, posz)
-		if unitName == "armcom" then
-			local a = Spring.CreateUnit("armassistdrone", posx-32, posy+48, posz,  	 0, unitTeam)
-			local b = Spring.CreateUnit("armassistdrone", posx+32, posy+48, posz,  	 0, unitTeam)
-			local c = Spring.CreateUnit("armassistdrone", posx,    posy+48, posz+32, 0, unitTeam)
-			local d = Spring.CreateUnit("armassistdrone", posx,    posy+48, posz-32, 0, unitTeam)
-			Spring.GiveOrderToUnit(a, CMD.GUARD, unitID, {})
-			Spring.GiveOrderToUnit(b, CMD.GUARD, unitID, {})
-			Spring.GiveOrderToUnit(c, CMD.GUARD, unitID, {})
-			Spring.GiveOrderToUnit(d, CMD.GUARD, unitID, {})
-		elseif unitName == "corcom" then
-			local a = Spring.CreateUnit("corassistdrone", posx-32, posy+48, posz,  	 0, unitTeam)
-			local b = Spring.CreateUnit("corassistdrone", posx+32, posy+48, posz,  	 0, unitTeam)
-			local c = Spring.CreateUnit("corassistdrone", posx,    posy+48, posz+32, 0, unitTeam)
-			local d = Spring.CreateUnit("corassistdrone", posx,    posy+48, posz-32, 0, unitTeam)
-			Spring.GiveOrderToUnit(a, CMD.GUARD, unitID, {})
-			Spring.GiveOrderToUnit(b, CMD.GUARD, unitID, {})
-			Spring.GiveOrderToUnit(c, CMD.GUARD, unitID, {})
-			Spring.GiveOrderToUnit(d, CMD.GUARD, unitID, {})
+		for i = 1,8 do
+			local posx = posx+math.random(-64,64)
+			local posz = posz+math.random(-64,64)
+			if unitName == "armcom" then
+				local droneID = Spring.CreateUnit("armassistdrone", posx, posy+96, posz+math.random(-64,64), 0, unitTeam)
+				Spring.SpawnCEG("scav-spawnexplo", posx, posy+96, posz,0,0,0)
+				Spring.GiveOrderToUnit(droneID, CMD.GUARD, unitID, {})
+				CommanderDronesList[droneID] = unitID
+			elseif unitName == "corcom" then
+				local droneID = Spring.CreateUnit("corassistdrone", posx+math.random(-64,64), posy+96, posz+math.random(-64,64), 0, unitTeam)
+				Spring.SpawnCEG("scav-spawnexplo", posx, posy+96, posz,0,0,0)
+				Spring.GiveOrderToUnit(droneID, CMD.GUARD, unitID, {})
+				CommanderDronesList[droneID] = unitID
+			end
 		end
 	end
 end
