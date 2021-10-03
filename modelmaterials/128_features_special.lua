@@ -11,36 +11,16 @@ local mySetMaterialUniform = {
 	[true]  = Spring.FeatureRendering.SetDeferredMaterialUniform,
 }
 
--- args=<objID, matName, lodMatNum, uniformName>
-local myClearMaterialUniform = {
-	[false] = Spring.FeatureRendering.ClearForwardMaterialUniform,
-	[true]  = Spring.FeatureRendering.ClearDeferredMaterialUniform,
-}
-
-----------------------------------------------
-
 local spGetFeatureHealth = Spring.GetFeatureHealth
-
 local featuresHealth = {} --cache
 local healthArray = {[1] = 0.0}
-local featureDefSide = {} -- 1 - arm, 2 - core, 0 - hell know what
+
 local function SendHealthInfo(featureID, featureDefID, hasStd, hasDef, hasShad)
 	local h, mh = spGetFeatureHealth(featureID)
 	if h and mh then
 
 		h = math.max(h, 0)
 		mh = math.max(mh, 0.01)
-
-		if not featureDefSide[featureDefID] then
-			local facName = string.sub(FeatureDefs[featureDefID].name, 1, 3)
-			if facName == "arm" then
-				featureDefSide[featureDefID] = 1
-			elseif facname == "cor" then
-				featureDefSide[featureDefID] = 2
-			else
-				featureDefSide[featureDefID] = 0
-			end
-		end
 
 		if not featuresHealth[featureID] then
 			featuresHealth[featureID] = h / mh
@@ -51,15 +31,8 @@ local function SendHealthInfo(featureID, featureDefID, hasStd, hasDef, hasShad)
 		end
 
 		local healthMixMult = 0.80
-		-- if featureDefSide[featureDefID] == 1 then --arm
-		-- 	healthMixMult = 0.90
-		-- elseif featureDefSide[featureDefID] == 2 then --core
-		-- 	healthMixMult = 0.90
-		-- end
-
 		healthArray[1] = healthMixMult * (1.0 - featuresHealth[featureID]) --invert so it can be used as mix() easier
-		--healthArray[1] = 1.0;
-		--Spring.Echo("SendHealthInfo", featureID, healthArray[1])
+
 		if hasStd then
 			mySetMaterialUniform[false](featureID, "opaque", 3, "floatOptions[0]", GL_FLOAT, healthArray)
 		end
@@ -69,8 +42,6 @@ local function SendHealthInfo(featureID, featureDefID, hasStd, hasDef, hasShad)
 		if hasShad then
 			mySetMaterialUniform[false](featureID, "shadow", 3, "floatOptions[0]", GL_FLOAT, healthArray)
 		end
-
-
 	end
 end
 
@@ -147,7 +118,6 @@ end
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
-
 
 local featureTreeTemplate = table.merge(matTemplate, {
 	texUnits  = {
@@ -308,7 +278,6 @@ local materials = {
 
 }
 
-
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
@@ -400,11 +369,6 @@ local function GetTreeInfo(fdef)
 
 	return isTree, normalMap, noSway
 end
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
-
-
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -416,36 +380,33 @@ local failedwrecknormaltex = {}
 for id = 1, #FeatureDefs do
 	local featureDef = FeatureDefs[id]
 	if not cusFeaturesMaterials[id] and featureDef.modeltype ~= "3do" then
-		--Spring.Echo(featureDef.name)
 		local isTree, normalMap, noSway = GetTreeInfo(featureDef)
 		local metallic = featureDef.metal >= 1
 
 		if isTree then
-			--Spring.Echo(featureDef.name, normalMap)
 			if normalMap then
 				featureMaterials[id] = {"featuresTreeNormal", NORMALTEX = normalMap}
 			else
 				if noSway then
 					featureMaterials[id] = {"featuresTreeAutoNormalNoSway"}
 				else
-					--Spring.Echo(featureDef.name,  isTree, fakeNormal, noSway)
 					featureMaterials[id] = {"featuresTreeAutoNormal"}
 				end
 			end
 
 		elseif metallic then
 			local fromUnit = featureDef.name:find("_dead") or featureDef.name:find("_heap")
+
 			if fromUnit then
 				Spring.PreloadFeatureDefModel(id)
+				local lowercasetex1 = ""
 
-				--Spring.Echo("featureDef.name", featureDef.name)
-				--Spring.Echo("featureDef.model.textures", featureDef.model.textures)
-        local lowercasetex1 = ""
-        if featureDef.model.textures.tex1 == nil then 
-          Spring.Echo("nil texture 1 detected for",featureDef.name) 
-        else
-          lowercasetex1 = string.lower( featureDef.model.textures.tex1)
-        end
+				if featureDef.model.textures.tex1 == nil then 
+					Spring.Echo("nil texture 1 detected for",featureDef.name) 
+				else
+					lowercasetex1 = string.lower( featureDef.model.textures.tex1)
+				end
+
 				local wreckNormalTex = featureDef.model.textures.tex1  and
 					((lowercasetex1:find("arm_wreck") and "unittextures/Arm_wreck_color_normal.dds") or
 					(lowercasetex1:find("arm_color") and "unittextures/Arm_normal.dds") or -- for things like dead dragons claw armclaw
@@ -453,14 +414,12 @@ for id = 1, #FeatureDefs do
 					(lowercasetex1:find("cor_color_wreck") and "unittextures/cor_color_wreck_normal.dds"))
 
 				if not wreckNormalTex then
-          table.insert(failedwrecknormaltex, 1, featureDef.name)
+					table.insert(failedwrecknormaltex, 1, featureDef.name)
 					Spring.Echo("Failed to find normal map for unit wreck: ", featureDef.name,lowercasetex1)
 				end
 
 				featureMaterials[id] = {"featuresMetalDeadOrHeap", NORMALTEX = wreckNormalTex}
-
 			else
-				--Spring.Echo("featuresMetalNoWreck ", featureDef.name)
 				featureMaterials[id] = {"featuresMetalNoWreck"}
 			end
 		end
@@ -475,6 +434,3 @@ end
 --------------------------------------------------------------------------------
 
 return materials, featureMaterials
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
