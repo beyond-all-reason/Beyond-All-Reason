@@ -869,17 +869,17 @@ end
 
 function widget:SetConfigData(data)
 	if data.version then
-		if data.colorize ~= nil then
-			colorize = data.colorize
-		end
 		if data.stickToBottom ~= nil then
 			stickToBottom = data.stickToBottom
 		end
-		if data.alwaysShow ~= nil then
-			alwaysShow = data.alwaysShow
-		end
-		if data.disabledCmd ~= nil then
-			disabledCommand = data.disabledCmd
-		end
+	end
+	if data.colorize ~= nil then
+		colorize = data.colorize
+	end
+	if data.alwaysShow ~= nil then
+		alwaysShow = data.alwaysShow
+	end
+	if data.disabledCmd ~= nil then
+		disabledCommand = data.disabledCmd
 	end
 end
