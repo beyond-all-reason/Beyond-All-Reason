@@ -46,7 +46,7 @@ return {
 		yardmap = "w",
 		customparams = {
 			detonaterange = "64",
-			model_author = "Beherith",
+			model_author = "Tristan",
 			normaltex = "unittextures/cor_normal.dds",
 			removestop = true,
 			removewait = true,

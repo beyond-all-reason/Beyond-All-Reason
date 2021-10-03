@@ -44,6 +44,7 @@ return {
 		stealth = true,
 		customparams = {
 			detonaterange = "64",
+			model_author = "Tristan",
 			normaltex = "unittextures/cor_normal.dds",
 			removestop = true,
 			removewait = true,
