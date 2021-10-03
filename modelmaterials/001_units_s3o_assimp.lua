@@ -55,7 +55,6 @@ local unitsNormalMapTemplate = table.merge(matTemplate, {
 	},
 })
 
-
 ----------------------------------------------
 
 local GL_FLOAT = 0x1406
@@ -66,39 +65,20 @@ local mySetMaterialUniform = {
 	[true]  = Spring.UnitRendering.SetDeferredMaterialUniform,
 }
 
--- args=<objID, matName, lodMatNum, uniformName>
-local myClearMaterialUniform = {
-	[false] = Spring.UnitRendering.ClearForwardMaterialUniform,
-	[true]  = Spring.UnitRendering.ClearDeferredMaterialUniform,
-}
-
 local armTanks = {}
 local corTanks = {}
 local chickenUnits = {}
 local otherUnits = {}
-
 local spGetUnitHealth = Spring.GetUnitHealth
-
 local unitsHealth = {} --cache
 local healthArray = {[1] = 0.0}
-local unitDefSide = {} -- 1 - arm, 2 - cor, 0 - hell know what
+
 local function SendHealthInfo(unitID, unitDefID, hasStd, hasDef, hasShad)
 	local h, mh = spGetUnitHealth(unitID)
-	if h and mh then
 
+	if h and mh then
 		h = math.max(h, 0)
 		mh = math.max(mh, 0.01)
-
-		if not unitDefSide[unitDefID] then
-			local facName = string.sub(UnitDefs[unitDefID].name, 1, 3)
-			if facName == "arm" then
-				unitDefSide[unitDefID] = 1
-			elseif facname == "cor" then
-				unitDefSide[unitDefID] = 2
-			else
-				unitDefSide[unitDefID] = 0
-			end
-		end
 
 		if not unitsHealth[unitID] then
 			unitsHealth[unitID] = h / mh
@@ -109,14 +89,8 @@ local function SendHealthInfo(unitID, unitDefID, hasStd, hasDef, hasShad)
 		end
 
 		local healthMixMult = 0.80
-		-- if unitDefSide[unitDefID] == 1 then --arm
-		-- 	healthMixMult = 0.90
-		-- elseif unitDefSide[unitDefID] == 2 then --cor
-		-- 	healthMixMult = 0.90
-		-- end
-
 		healthArray[1] = healthMixMult * (1.0 - unitsHealth[unitID]) --invert so it can be used as mix() easier
-		--Spring.Echo("SendHealthInfo", unitID, healthArray[1])
+
 		if hasStd then
 			mySetMaterialUniform[false](unitID, "opaque", 3, "floatOptions[0]", GL_FLOAT, healthArray)
 		end
@@ -176,9 +150,9 @@ end
 local spGetUnitVelocity = Spring.GetUnitVelocity
 local spGetUnitDirection = Spring.GetUnitDirection
 local floor = math.floor
-
 local threadSpeeds = {} --cache
 local threadsArray = {[1] = 0.0}
+
 local function SendTracksOffset(unitID, hasStd, hasDef, hasShad)
 	if not threadSpeeds[unitID] then
 		threadSpeeds[unitID] = 0.0
@@ -247,7 +221,6 @@ local function UnitDamaged(unitID, unitDefID, mat)
 end
 
 ---------------------------------------------------
-
 
 local materials = {
 	unitsNormalMapArmTanks = table.merge(unitsNormalMapTemplate, {
@@ -367,30 +340,11 @@ local materials = {
 	}),
 }
 
-
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
 local cusUnitMaterials = GG.CUS.unitMaterialDefs
 local unitMaterials = {}
-
---[[
-local unitAtlases = {
-	["arm"] = {
-		"unittextures/Arm_color.dds",
-		"unittextures/Arm_other.dds",
-		"unittextures/Arm_normal.dds",
-	},
-	["cor"] = {
-		"unittextures/cor_color.dds",
-		"unittextures/cor_other.dds",
-		"unittextures/cor_normal.dds",
-	},
-}
-]]--
 
 local wreckAtlases = {
 	["arm"] = {
@@ -447,6 +401,3 @@ end
 --------------------------------------------------------------------------------
 
 return materials, unitMaterials
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
