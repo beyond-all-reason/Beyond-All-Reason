@@ -870,7 +870,7 @@ function DrawWindow()
 	--RectRound(x, y - screenHeight, x + screenWidth, y, 5.5, 1, 1, 1, 1, { 0.25, 0.25, 0.25, 0.2 }, { 0.5, 0.5, 0.5, 0.2 })
 
 	-- background
-	UiElement(screenX, screenY - screenHeight, screenX + screenWidth, screenY, 0, 1, 1, 1, 1,1,1,1, ui_opacity + 0.2)
+	UiElement(screenX, screenY - screenHeight, screenX + screenWidth, screenY, 0, 0, 1, 1, 1,1,1,1, ui_opacity + 0.2)
 
 	-- title
 	local groupMargin = math.floor(bgpadding * 0.8)
@@ -881,7 +881,9 @@ function DrawWindow()
 		title = "" .. color2 .. texts.basic.."  /  " .. color .. texts.advanced
 	end
 	local titleFontSize = 18 * widgetScale
-	titleRect = { screenX, screenY, math.floor(screenX + (font2:GetTextWidth(title) * titleFontSize) + (titleFontSize*1.5)), math.floor(screenY + (titleFontSize*1.7)) }
+	--titleRect = { screenX, screenY, math.floor(screenX + (font2:GetTextWidth(title) * titleFontSize) + (titleFontSize*1.5)), math.floor(screenY + (titleFontSize*1.7)) }
+
+	titleRect = { math.floor((screenX + screenWidth) - ((font2:GetTextWidth(title) * titleFontSize) + (titleFontSize*1.5))), screenY, screenX + screenWidth, math.floor(screenY + (titleFontSize*1.7)) }
 
 	-- title drawing
 	RectRound(titleRect[1], titleRect[2], titleRect[3], titleRect[4], elementCorner, 1, 1, 0, 0, WG['guishader'] and { 0, 0, 0, 0.8 } or { 0, 0, 0, 0.85 }, WG['guishader'] and { 0.05, 0.05, 0.05, 0.8 } or { 0.05, 0.05, 0.05, 0.85 })
@@ -890,12 +892,13 @@ function DrawWindow()
 	font2:Begin()
 	font2:SetTextColor(1, 1, 1, 1)
 	font2:SetOutlineColor(0, 0, 0, 0.4)
-	font2:Print(title, screenX + (titleFontSize * 0.75), screenY + (8*widgetScale), titleFontSize, "on")
+	font2:Print(title, titleRect[1] + (titleFontSize * 0.75), screenY + (8*widgetScale), titleFontSize, "on")
 	font2:End()
 
 	-- group tabs
 	local tabFontSize = 16 * widgetScale
 	local xpos = titleRect[3]
+	local xpos = screenX
 	groupRect = {}
 	for id, group in pairs(optionGroups) do
 		groupRect[id] = { xpos, titleRect[2], math.floor(xpos + (font2:GetTextWidth(group.name) * tabFontSize) + (33*widgetScale)), titleRect[4] }
@@ -3284,16 +3287,7 @@ function init()
 			  end
 		  end,
 		},
-
-		--{ id = "minimap_enlarged", group = "ui", basic = true, name = texts.option.minimap..widgetOptionColor.."  "..texts.option.minimap_enlarged, type = "bool", value = false, description = texts.option.minimap_enlarged_descr,
-		--  onload = function(i)
-		--	  loadWidgetData("Minimap", "minimap_enlarged", { 'enlarged' })
-		--  end,
-		--  onchange = function(i, value)
-		--	  saveOptionValue('Minimap', 'minimap', 'setEnlarged', { 'enlarged' }, value)
-		--  end,
-		--},
-		  { id = "minimap_maxheight", group = "ui", name = texts.option.minimap..widgetOptionColor.."  "..texts.option.minimap_maxheight, type = "slider", min = 0.2, max = 0.4, step = 0.01, value = 0.35, description = texts.option.minimap_maxheight_descr,
+		  { id = "minimap_maxheight", group = "ui", basic = true, name = texts.option.minimap..widgetOptionColor.."  "..texts.option.minimap_maxheight, type = "slider", min = 0.2, max = 0.4, step = 0.01, value = 0.35, description = texts.option.minimap_maxheight_descr,
 			onload = function(i)
 				loadWidgetData("Minimap", "minimap_maxheight", { 'maxHeight' })
 			end,

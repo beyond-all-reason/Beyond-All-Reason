@@ -19,6 +19,7 @@ WG.FlowUI.opacity = tonumber(Spring.GetConfigFloat("ui_opacity", 0.6) or 0.66)
 WG.FlowUI.scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
 WG.FlowUI.tileOpacity = Spring.GetConfigFloat("ui_tileopacity", 0.012)
 WG.FlowUI.tileScale = Spring.GetConfigFloat("ui_tilescale", 7)
+WG.FlowUI.tileSize = WG.FlowUI.tileScale
 
 local function ViewResize(vsx, vsy)
 	if not vsy then
@@ -32,11 +33,13 @@ local function ViewResize(vsx, vsy)
 	-- elementMargin: number of px between each separated ui element
 	WG.FlowUI.elementMargin = math.floor(0.0045 * vsy * WG.FlowUI.scale)
 	-- elementCorner: element cutoff corner size
-	WG.FlowUI.elementCorner = WG.FlowUI.elementMargin
+	WG.FlowUI.elementCorner = WG.FlowUI.elementMargin * 0.9
 	-- elementPadding: element inner (background) border/outline size
-	WG.FlowUI.elementPadding = math.ceil(WG.FlowUI.elementMargin * 0.66)
+	WG.FlowUI.elementPadding = math.floor(0.003 * vsy * WG.FlowUI.scale)
 	-- buttonPadding: button inner (background) border/outline size
-	WG.FlowUI.buttonPadding = math.ceil(WG.FlowUI.elementMargin * 0.44)
+	WG.FlowUI.buttonPadding = math.floor(0.002 * vsy * WG.FlowUI.scale)
+
+	WG.FlowUI.tileSize = WG.FlowUI.tileScale * 0.003 * vsy * WG.FlowUI.scale
 end
 
 -- called at the bottom of this file
@@ -494,8 +497,7 @@ WG.FlowUI.Draw.Element = function(px, py, sx, sy,  tl, tr, br, bl,  ptl, ptr, pb
 	local cs = WG.FlowUI.elementCorner * (bgpadding/WG.FlowUI.elementPadding)
 	local glossMult = 1 + (2 - (opacity * 1.5))
 	local tileopacity = WG.FlowUI.tileOpacity
-	local bgtexScale = WG.FlowUI.tileScale
-	local bgtexSize = math.floor(WG.FlowUI.elementPadding * bgtexScale)
+	local bgtexSize = WG.FlowUI.tileSize
 
 	local tl = tl or 1
 	local tr = tr or 1
