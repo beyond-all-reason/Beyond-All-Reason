@@ -251,6 +251,7 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions+1] = "cordemont4"
 			uDef.buildoptions[numBuildoptions+2] = "corkarganetht4"
 			uDef.buildoptions[numBuildoptions+3] = "corgolt4"
+			uDef.buildoptions[numBuildoptions+4] = "corakt4"
 		elseif name == "corgantuw" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "corgolt4"

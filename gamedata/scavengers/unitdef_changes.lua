@@ -496,6 +496,7 @@ customDefs.corgant = {
 		[numBuildoptions+1] = "cordemont4",
 		[numBuildoptions+2] = "corkarganetht4",
 		[numBuildoptions+3] = "corgolt4",
+		[numBuildoptions+4] = "corakt4",
 	},
 }
 
