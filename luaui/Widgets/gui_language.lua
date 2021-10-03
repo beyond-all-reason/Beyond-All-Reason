@@ -11,30 +11,40 @@ function widget:GetInfo()
 end
 
 local unitI18Nfile = VFS.Include('language/units_en.lua')
-local i18nDecriptionEntries = unitI18Nfile.en.units.descriptions
+local i18nDescriptionEntries = unitI18Nfile.en.units.descriptions
 
-local function refreshDefs()
+
+local function refreshUnitDefs()
 	for unitDefName, unitDef in pairs(UnitDefNames) do
 		local humanName, tooltip
 		local isScavenger = unitDef.customParams.isscavenger
 
-		if not isScavenger then
-			humanName = Spring.I18N('units.names.' .. unitDefName)
-			tooltip = Spring.I18N('units.descriptions.' .. unitDefName)
-		else
-			local fromUnitName = Spring.I18N('units.names.' .. unitDef.customParams.fromunit)
-			humanName = Spring.I18N('units.scavenger', { name = fromUnitName })
+		if isScavenger then
+			local proxyUnitDefName = unitDef.customParams.fromunit
+			local proxyUnitDef = UnitDefNames[proxyUnitDefName]
+			proxyUnitDefName = proxyUnitDef.customParams.i18nfromunit or proxyUnitDefName
 
-			if (i18nDecriptionEntries[unitDefName]) then
+			local fromUnitHumanName = Spring.I18N('units.names.' .. proxyUnitDefName)
+			humanName = Spring.I18N('units.scavenger', { name = fromUnitHumanName })
+
+			if (i18nDescriptionEntries[unitDefName]) then
 				tooltip = Spring.I18N('units.descriptions.' .. unitDefName)
 			else
-				tooltip = Spring.I18N('units.descriptions.' .. unitDef.customParams.fromunit)
+				tooltip = Spring.I18N('units.descriptions.' .. proxyUnitDefName)
 			end
+		else
+			local proxyUnitDefName = unitDef.customParams.i18nfromunit or unitDefName
+			humanName = Spring.I18N('units.names.' .. proxyUnitDefName)
+			tooltip = Spring.I18N('units.descriptions.' .. proxyUnitDefName)
 		end
 
 		unitDef.translatedHumanName = humanName
 		unitDef.translatedTooltip = tooltip
 	end
+end
+
+local function refreshDefs()
+	refreshUnitDefs()
 end
 
 local function languageChanged(language)
@@ -80,10 +90,6 @@ end
 
 function widget:Initialize()
 	refreshDefs()
-	Spring.Echo("foo")
-	for _, ud in pairs(UnitDefs) do
-		Spring.Echo(ud.translatedHumanName, ud.translatedTooltip)
-	end
 	loadLanguage()
 
 	WG['lang'] = {}

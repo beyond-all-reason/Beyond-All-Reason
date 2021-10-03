@@ -38,7 +38,6 @@ return {
 		turnrate = 1391.5,
 		upright = true,
 		customparams = {
-			longdescription = Spring.I18N('units.longDescriptions.corakt4'),
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "corbots",
