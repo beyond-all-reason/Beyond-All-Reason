@@ -1,7 +1,7 @@
 function widget:GetInfo()
 	return {
 		name      = "Language",
-		desc      = "api to handle translations",
+		desc      = "API to handle translations",
 		author    = "Floris",
 		date      = "December 2020",
 		license   = "",
@@ -10,10 +10,49 @@ function widget:GetInfo()
 	}
 end
 
-local noTranslationText = '---'
+local unitI18Nfile = VFS.Include('language/units_en.lua')
+local i18nDescriptionEntries = unitI18Nfile.en.units.descriptions
 
--- todo: echo where language of choice is missing entries
---local debug = false		-- true = echo the missing entries of the additional languages
+
+local function refreshUnitDefs()
+	for unitDefName, unitDef in pairs(UnitDefNames) do
+		local humanName, tooltip
+		local isScavenger = unitDef.customParams.isscavenger
+
+		if isScavenger then
+			local proxyUnitDefName = unitDef.customParams.fromunit
+			local proxyUnitDef = UnitDefNames[proxyUnitDefName]
+			proxyUnitDefName = proxyUnitDef.customParams.i18nfromunit or proxyUnitDefName
+
+			local fromUnitHumanName = Spring.I18N('units.names.' .. proxyUnitDefName)
+			humanName = Spring.I18N('units.scavenger', { name = fromUnitHumanName })
+
+			if (i18nDescriptionEntries[unitDefName]) then
+				tooltip = Spring.I18N('units.descriptions.' .. unitDefName)
+			else
+				tooltip = Spring.I18N('units.descriptions.' .. proxyUnitDefName)
+			end
+		else
+			local proxyUnitDefName = unitDef.customParams.i18nfromunit or unitDefName
+			humanName = Spring.I18N('units.names.' .. proxyUnitDefName)
+			tooltip = Spring.I18N('units.descriptions.' .. proxyUnitDefName)
+		end
+
+		unitDef.translatedHumanName = humanName
+		unitDef.translatedTooltip = tooltip
+	end
+end
+
+local function refreshDefs()
+	refreshUnitDefs()
+end
+
+local function languageChanged(language)
+	Spring.I18N.setLanguage(language)
+	refreshDefs()
+end
+
+local noTranslationText = '---'
 
 local languageContent = {}
 local defaultLanguage = 'en'
@@ -50,6 +89,7 @@ local function loadLanguage()
 end
 
 function widget:Initialize()
+	refreshDefs()
 	loadLanguage()
 
 	WG['lang'] = {}

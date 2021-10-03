@@ -34,7 +34,7 @@ local function ProcessUnitDef(udName, ud)
       local fullName = udName .. '_' .. fdName
       FeatureDefs[fullName] = fd
       fd.customparams = fd.customparams or {}
-      fd.customparams.fromunit = 1
+      fd.customparams.fromunit = udName
     end
   end
 

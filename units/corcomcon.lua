@@ -89,6 +89,7 @@ return {
 			normaltex = "unittextures/cor_normal.dds",
 			paralyzemultiplier = 0.025,
 			subfolder = "",
+			i18nfromunit = 'corcom'
 		},
 		featuredefs = {
 			dead = {

@@ -177,11 +177,14 @@ local function createScavengerUnitDefs()
 
 	for name, unitDef in pairs(UnitDefs) do
 		if not string.find(name, '_scav') and not string.find(name, 'critter')  and not string.find(name, 'chicken') then
+			local scavName = name .. '_scav'
 			if customScavDefs[name] ~= nil then
-				scavengerUnitDefs[name .. '_scav'] = tableMergeSpecial(unitDef, customScavDefs[name])
+				scavengerUnitDefs[scavName] = tableMergeSpecial(unitDef, customScavDefs[name])
 			else
-				scavengerUnitDefs[name .. '_scav'] = table.copy(unitDef)
+				scavengerUnitDefs[scavName] = table.copy(unitDef)
 			end
+
+			scavengerUnitDefs[scavName].customparams.fromunit = name
 		end
 	end
 
