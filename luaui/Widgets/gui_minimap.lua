@@ -12,15 +12,12 @@ end
 
 local vsx, vsy = Spring.GetViewGeometry()
 
-local enlarged = true
-
 local maxWidth = 0.29 * (vsx / vsy)  -- NOTE: changes in widget:ViewResize()
-local maxHeight = 0.243  -- NOTE: changes in widget:ViewResize()
+local maxHeight = 0.35
 maxWidth = math.min(maxHeight * (Game.mapX / Game.mapY), maxWidth)
 
 local bgBorderOrg = 0.0025
 local bgBorder = bgBorderOrg
-local bgMargin = 0.005
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
@@ -63,13 +60,7 @@ end
 function widget:ViewResize()
 	vsx, vsy = Spring.GetViewGeometry()
 	local w = 0.285
-	if enlarged then
-		maxWidth = w * (vsx / vsy)
-		maxHeight = 0.3865
-	else
-		maxWidth = w * (vsx / vsy)
-		maxHeight = 0.243
-	end
+	maxWidth = w * (vsx / vsy)
 	maxWidth = math.min(maxHeight * (Game.mapX / Game.mapY), maxWidth)
 	if maxWidth >= w * (vsx / vsy) then
 		maxHeight = maxWidth / (Game.mapX / Game.mapY)
@@ -100,20 +91,16 @@ function widget:Initialize()
 	widget:ViewResize()
 
 	WG['minimap'] = {}
-	WG['minimap'].getEnlarged = function()
-		return enlarged
-	end
-	WG['minimap'].setEnlarged = function(value)
-		enlarged = value
-		widget:ViewResize()
-	end
 	WG['minimap'].getHeight = function()
 		return usedHeight + bgpadding
 	end
-	--WG['minimap'].setHeight = function()
-	--
-	--    widget:ViewResize()
-	--end
+	WG['minimap'].getMaxHeight = function()
+		return math.floor(maxHeight*vsy), maxHeight
+	end
+	WG['minimap'].setMaxHeight = function(value)
+		maxHeight = value
+	    widget:ViewResize()
+	end
 end
 
 function widget:GameStart()
@@ -211,16 +198,14 @@ function widget:DrawScreen()
 end
 
 function widget:GetConfigData()
-	--save config
 	return {
-		enlarged = enlarged
+		maxHeight = maxHeight,
 	}
 end
 
 function widget:SetConfigData(data)
-	--load config
-	if data.enlarged ~= nil then
-		enlarged = data.enlarged
+	if data.maxHeight ~= nil then
+		maxHeight = data.maxHeight
 	end
 end
 

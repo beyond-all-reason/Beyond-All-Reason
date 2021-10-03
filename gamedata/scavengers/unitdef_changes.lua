@@ -496,6 +496,7 @@ customDefs.corgant = {
 		[numBuildoptions+1] = "cordemont4",
 		[numBuildoptions+2] = "corkarganetht4",
 		[numBuildoptions+3] = "corgolt4",
+		[numBuildoptions+4] = "corakt4",
 	},
 }
 
@@ -537,19 +538,19 @@ customDefs.armasy = {
 	},
 }
 
-numBuildoptions = #UnitDefs.corap.buildoptions
-customDefs.corap = {
-	buildoptions = {
-		[numBuildoptions+1] = "corassistdrone",
-	},
-}
+-- numBuildoptions = #UnitDefs.corap.buildoptions
+-- customDefs.corap = {
+-- 	buildoptions = {
+-- 		[numBuildoptions+1] = "corassistdrone",
+-- 	},
+-- }
 
-numBuildoptions = #UnitDefs.armap.buildoptions
-customDefs.armap = {
-	buildoptions = {
-		[numBuildoptions+1] = "armassistdrone",
-	},
-}
+-- numBuildoptions = #UnitDefs.armap.buildoptions
+-- customDefs.armap = {
+-- 	buildoptions = {
+-- 		[numBuildoptions+1] = "armassistdrone",
+-- 	},
+-- }
 
 numBuildoptions = #UnitDefs.armca.buildoptions
 customDefs.armca = {

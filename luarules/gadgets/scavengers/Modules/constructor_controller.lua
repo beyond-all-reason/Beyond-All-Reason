@@ -28,6 +28,27 @@ local function assistantOrders(n, unitID)
 	Spring.GiveOrderToUnit(unitID, CMD.PATROL,{x, y, z + 100}, {"shift"})
 end
 
+local function assistDroneRespawn(deadDroneID, drone)
+	if CommanderDronesList[deadDroneID] then
+		local commanderID = CommanderDronesList[deadDroneID]
+		for i = 1,#AliveEnemyCommanders do
+			local commanderTest = AliveEnemyCommanders[i]
+			if commanderID == commanderTest then
+				local x,y,z = Spring.GetUnitPosition(commanderID)
+				local commanderTeam = Spring.GetUnitTeam(commanderID)
+				local posx = x+math.random(-64,64)
+				local posz = z+math.random(-64,64)
+				local unitID = Spring.CreateUnit(drone, posx, y+96, posz, 0, commanderTeam)
+				Spring.SpawnCEG("scav-spawnexplo", posx, y+96, posz,0,0,0)
+				Spring.GiveOrderToUnit(unitID, CMD.GUARD, commanderID, {})
+				CommanderDronesList[unitID] = commanderID
+				break
+			end
+		end
+		CommanderDronesList[deadDroneID] = nil
+	end
+end
+
 local function resurrectorOrders(n, unitID)
 	Spring.GiveOrderToUnit(unitID, CMD.RESURRECT, generateOrderParams(), 0)
 end
@@ -402,6 +423,7 @@ end
 
 return {
 	AssistantOrders = assistantOrders,
+	AssistDroneRespawn = assistDroneRespawn,
 	ResurrectorOrders = resurrectorOrders,
 	CapturerOrders = capturerOrders,
 	CollectorOrders = collectorOrders,

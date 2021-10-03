@@ -38,7 +38,7 @@ return {
 		sightdistance = 500,
 		turninplace = true,
 		turninplaceanglelimit = 90,
-		turnrate = 382.5,
+		turnrate = 350, --382.5,
 		waterline = 0,
 		customparams = {
 			normaltex = "unittextures/cor_normal.dds",

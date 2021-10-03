@@ -36,7 +36,7 @@ return {
 		sightdistance = 500,
 		turninplace = true,
 		turninplaceanglelimit = 90,
-		turnrate = 663,
+		turnrate = 500, --663,
 		waterline = 0,
 		customparams = {
 			model_author = "Mr Bob",
@@ -151,7 +151,7 @@ return {
 				weaponvelocity = 2250,
 				damage = {
 					bombers = 6,
-					default = 37,
+					default = 41,--37,
 					fighters = 6,
 					vtol = 6,
 				},

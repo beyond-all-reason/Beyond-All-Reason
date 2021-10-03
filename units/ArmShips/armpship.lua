@@ -38,7 +38,7 @@ return {
 		sightdistance = 500,
 		turninplace = true,
 		turninplaceanglelimit = 90,
-		turnrate = 427.5,
+		turnrate = 375, --427.5,
 		waterline = 0,
 		customparams = {
 			normaltex = "unittextures/Arm_normal.dds",

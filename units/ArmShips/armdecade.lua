@@ -23,7 +23,7 @@ return {
 		icontype = "sea",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 825,
+		maxdamage = 875, --825,
 		maxvelocity = 3.49,
 		minwaterdepth = 12,
 		movementclass = "BOAT3",
@@ -36,7 +36,7 @@ return {
 		sightdistance = 375,
 		turninplace = true,
 		turninplaceanglelimit = 90,
-		turnrate = 631.5,
+		turnrate = 450, --631.5,
 		waterline = 0,
 		customparams = {
 			model_author = "FireStorm",

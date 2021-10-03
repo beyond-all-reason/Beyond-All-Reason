@@ -14,16 +14,14 @@ local cellZoom = 1
 local cellClickedZoom = 1.05
 local cellHoverZoom = 1.035
 
-local altPosition = true
-
 local showIcons = false
 local colorize = 0
 local playSounds = true
-local stickToBottom = false
+local stickToBottom = true
 local alwaysShow = false
 
 local posX = 0
-local posY = 0.75
+local posY = 0.8
 local width = 0
 local height = 0
 local cellMarginOriginal = 0.055
@@ -283,20 +281,23 @@ function widget:ViewResize()
 	elementCorner = WG.FlowUI.elementCorner
 
 	widgetSpaceMargin = WG.FlowUI.elementMargin
-	if stickToBottom or (altPosition and not buildmenuBottomPosition) then
 
+	if WG['minimap'] then
+		minimapHeight = WG['minimap'].getHeight()
+	end
+	if stickToBottom then
 		posY = height
 		posX = width + (widgetSpaceMargin/viewSizeX)
 	else
 		if buildmenuBottomPosition then
 			posX = 0
 			posY = height + height + (widgetSpaceMargin/viewSizeY)
-		else
+		elseif WG['buildmenu'] then
 			local posY2, _ = WG['buildmenu'].getSize()
 			posY2 = posY2 + (widgetSpaceMargin/viewSizeY)
 			posY = posY2 + height
 			if WG['minimap'] then
-				posY = 1 - (WG['minimap'].getHeight() / viewSizeY) - (widgetSpaceMargin/viewSizeY)
+				posY = 1 - (minimapHeight / viewSizeY) - (widgetSpaceMargin/viewSizeY)
 			end
 			posX = 0
 		end
@@ -318,10 +319,6 @@ function widget:ViewResize()
 end
 
 function widget:Initialize()
-	if WG['minimap'] then
-		altPosition = WG['minimap'].getEnlarged()
-	end
-
 	widget:ViewResize()
 	widget:SelectionChanged()
 
@@ -399,8 +396,8 @@ function widget:Update(dt)
 			uiOpacity = Spring.GetConfigFloat("ui_opacity", 0.6)
 			doUpdate = true
 		end
-		if WG['minimap'] and altPosition ~= WG['minimap'].getEnlarged() then
-			altPosition = WG['minimap'].getEnlarged()
+
+		if WG['minimap'] and minimapHeight ~= WG['minimap'].getHeight() then
 			widget:ViewResize()
 			setupCellGrid(true)
 			doUpdate = true
@@ -867,17 +864,17 @@ function widget:SelectionChanged(sel)
 end
 
 function widget:GetConfigData()
-	--save config
-	return { colorize = colorize, stickToBottom = stickToBottom, alwaysShow = alwaysShow, disabledCmd = disabledCommand}
+	return { version = 1, colorize = colorize, stickToBottom = stickToBottom, alwaysShow = alwaysShow, disabledCmd = disabledCommand}
 end
 
 function widget:SetConfigData(data)
-	--load config
+	if data.version then
+		if data.stickToBottom ~= nil then
+			stickToBottom = data.stickToBottom
+		end
+	end
 	if data.colorize ~= nil then
 		colorize = data.colorize
-	end
-	if data.stickToBottom ~= nil then
-		stickToBottom = data.stickToBottom
 	end
 	if data.alwaysShow ~= nil then
 		alwaysShow = data.alwaysShow

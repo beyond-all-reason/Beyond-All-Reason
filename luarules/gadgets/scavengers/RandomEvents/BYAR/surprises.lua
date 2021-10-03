@@ -74,7 +74,7 @@ local function transport1(currentFrame)
 			"cornanotc_scav",
 		}
 
-		local baseNumber = ((spawnmultiplier*0.5)+(teamcount*0.5))*0.75
+		local baseNumber = ((spawnmultiplier*0.5)+(teamcount*0.5))*0.25
 
 		for i = 1,1000 do
 			local posx = math_random(300,mapsizeX-300)
@@ -114,7 +114,7 @@ local function transport1(currentFrame)
 					local transport = transportsT1[math_random(1,#transportsT1)]
 					for a = 1,math.ceil(baseNumber*8) do
 						local unit = unitsT1[math_random(1,#unitsT1)]
-						local TransportID = Spring.CreateUnit(transport, posx+math_random(-300,300), posy, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)
+						local TransportID = Spring.CreateUnit(transport, posx+math_random(-300,300), posy+300, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)
 						local LoadedUnitID = Spring.CreateUnit(unit, posx+math_random(-300,300), posy, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)
 						local selfx, selfy, selfz = Spring.GetUnitPosition(LoadedUnitID)
 						Spring.GiveOrderToUnit(LoadedUnitID, CMD.LOAD_ONTO,{TransportID}, {0})
@@ -125,7 +125,7 @@ local function transport1(currentFrame)
 					local transport = transportsT1[math_random(1,#transportsT1)]
 					for a = 1,math.ceil(baseNumber*12) do
 						local unit = unitsT1[math_random(1,#unitsT1)]
-						local TransportID = Spring.CreateUnit(transport, posx+math_random(-300,300), posy, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)
+						local TransportID = Spring.CreateUnit(transport, posx+math_random(-300,300), posy+300, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)
 						local LoadedUnitID = Spring.CreateUnit(unit, posx+math_random(-300,300), posy, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)
 						local selfx, selfy, selfz = Spring.GetUnitPosition(LoadedUnitID)
 						Spring.GiveOrderToUnit(LoadedUnitID, CMD.LOAD_ONTO,{TransportID}, {0})
@@ -136,7 +136,7 @@ local function transport1(currentFrame)
 					local transport = transportsT1[math_random(1,#transportsT1)]
 					for a = 1,math.ceil(baseNumber*16) do
 						local unit = unitsT1[math_random(1,#unitsT1)]
-						local TransportID = Spring.CreateUnit(transport, posx+math_random(-300,300), posy, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)
+						local TransportID = Spring.CreateUnit(transport, posx+math_random(-300,300), posy+300, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)
 						local LoadedUnitID = Spring.CreateUnit(unit, posx+math_random(-300,300), posy, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)
 						local selfx, selfy, selfz = Spring.GetUnitPosition(LoadedUnitID)
 						Spring.GiveOrderToUnit(LoadedUnitID, CMD.LOAD_ONTO,{TransportID}, {0})
@@ -147,7 +147,7 @@ local function transport1(currentFrame)
 					local transport = transportsT1[math_random(1,#transportsT1)]
 					for a = 1,math.ceil(baseNumber*20) do
 						local unit = unitsT1[math_random(1,#unitsT1)]
-						local TransportID = Spring.CreateUnit(transport, posx+math_random(-300,300), posy, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)
+						local TransportID = Spring.CreateUnit(transport, posx+math_random(-300,300), posy+300, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)
 						local LoadedUnitID = Spring.CreateUnit(unit, posx+math_random(-300,300), posy, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)
 						local selfx, selfy, selfz = Spring.GetUnitPosition(LoadedUnitID)
 						Spring.GiveOrderToUnit(LoadedUnitID, CMD.LOAD_ONTO,{TransportID}, {0})
@@ -158,7 +158,7 @@ local function transport1(currentFrame)
 					local transport = transportsT1[math_random(1,#transportsT1)]
 					for a = 1,math.ceil(baseNumber*24) do
 						local unit = unitsT1[math_random(1,#unitsT1)]
-						local TransportID = Spring.CreateUnit(transport, posx+math_random(-300,300), posy, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)
+						local TransportID = Spring.CreateUnit(transport, posx+math_random(-300,300), posy+300, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)
 						local LoadedUnitID = Spring.CreateUnit(unit, posx+math_random(-300,300), posy, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)
 						local selfx, selfy, selfz = Spring.GetUnitPosition(LoadedUnitID)
 						Spring.GiveOrderToUnit(LoadedUnitID, CMD.LOAD_ONTO,{TransportID}, {0})
@@ -169,7 +169,7 @@ local function transport1(currentFrame)
 					local transport = transportsT2[math_random(1,#transportsT2)]
 					for a = 1,math.ceil(baseNumber*20) do
 						local unit = unitsT2[math_random(1,#unitsT2)]
-						local TransportID = Spring.CreateUnit(transport, posx+math_random(-300,300), posy, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)
+						local TransportID = Spring.CreateUnit(transport, posx+math_random(-300,300), posy+300, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)
 						local LoadedUnitID = Spring.CreateUnit(unit, posx+math_random(-300,300), posy, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)
 						local selfx, selfy, selfz = Spring.GetUnitPosition(LoadedUnitID)
 						Spring.GiveOrderToUnit(LoadedUnitID, CMD.LOAD_ONTO,{TransportID}, {0})
@@ -180,7 +180,7 @@ local function transport1(currentFrame)
 					local transport = transportsT2[math_random(1,#transportsT2)]
 					for a = 1,math.ceil(baseNumber*22) do
 						local unit = unitsT2[math_random(1,#unitsT2)]
-						local TransportID = Spring.CreateUnit(transport, posx+math_random(-300,300), posy, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)
+						local TransportID = Spring.CreateUnit(transport, posx+math_random(-300,300), posy+300, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)
 						local LoadedUnitID = Spring.CreateUnit(unit, posx+math_random(-300,300), posy, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)
 						local selfx, selfy, selfz = Spring.GetUnitPosition(LoadedUnitID)
 						Spring.GiveOrderToUnit(LoadedUnitID, CMD.LOAD_ONTO,{TransportID}, {0})
@@ -191,7 +191,7 @@ local function transport1(currentFrame)
 					local transport = transportsT2[math_random(1,#transportsT2)]
 					for a = 1,math.ceil(baseNumber*24) do
 						local unit = unitsT2[math_random(1,#unitsT2)]
-						local TransportID = Spring.CreateUnit(transport, posx+math_random(-300,300), posy, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)
+						local TransportID = Spring.CreateUnit(transport, posx+math_random(-300,300), posy+300, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)
 						local LoadedUnitID = Spring.CreateUnit(unit, posx+math_random(-300,300), posy, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)
 						local selfx, selfy, selfz = Spring.GetUnitPosition(LoadedUnitID)
 						Spring.GiveOrderToUnit(LoadedUnitID, CMD.LOAD_ONTO,{TransportID}, {0})
@@ -202,7 +202,7 @@ local function transport1(currentFrame)
 					local transport = transportsT2[math_random(1,#transportsT2)]
 					for a = 1,math.ceil(baseNumber*26) do
 						local unit = unitsT2[math_random(1,#unitsT2)]
-						local TransportID = Spring.CreateUnit(transport, posx+math_random(-300,300), posy, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)
+						local TransportID = Spring.CreateUnit(transport, posx+math_random(-300,300), posy+300, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)
 						local LoadedUnitID = Spring.CreateUnit(unit, posx+math_random(-300,300), posy, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)
 						local selfx, selfy, selfz = Spring.GetUnitPosition(LoadedUnitID)
 						Spring.GiveOrderToUnit(LoadedUnitID, CMD.LOAD_ONTO,{TransportID}, {0})
@@ -213,7 +213,7 @@ local function transport1(currentFrame)
 					local transport = transportsT2[math_random(1,#transportsT2)]
 					for a = 1,math.ceil(baseNumber*28) do
 						local unit = unitsT2[math_random(1,#unitsT2)]
-						local TransportID = Spring.CreateUnit(transport, posx+math_random(-300,300), posy, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)
+						local TransportID = Spring.CreateUnit(transport, posx+math_random(-300,300), posy+300, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)
 						local LoadedUnitID = Spring.CreateUnit(unit, posx+math_random(-300,300), posy, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)
 						local selfx, selfy, selfz = Spring.GetUnitPosition(LoadedUnitID)
 						Spring.GiveOrderToUnit(LoadedUnitID, CMD.LOAD_ONTO,{TransportID}, {0})
@@ -224,7 +224,7 @@ local function transport1(currentFrame)
 					local transport = transportsT2[math_random(1,#transportsT2)]
 					for a = 1,math.ceil(baseNumber*30) do
 						local unit = unitsT2[math_random(1,#unitsT2)]
-						local TransportID = Spring.CreateUnit(transport, posx+math_random(-300,300), posy, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)
+						local TransportID = Spring.CreateUnit(transport, posx+math_random(-300,300), posy+300, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)
 						local LoadedUnitID = Spring.CreateUnit(unit, posx+math_random(-300,300), posy, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)
 						local selfx, selfy, selfz = Spring.GetUnitPosition(LoadedUnitID)
 						Spring.GiveOrderToUnit(LoadedUnitID, CMD.LOAD_ONTO,{TransportID}, {0})
@@ -235,7 +235,7 @@ local function transport1(currentFrame)
 					local transport = transportsT2[math_random(1,#transportsT2)]
 					for a = 1,math.ceil(baseNumber*32) do
 						local unit = unitsT2[math_random(1,#unitsT2)]
-						local TransportID = Spring.CreateUnit(transport, posx+math_random(-300,300), posy, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)
+						local TransportID = Spring.CreateUnit(transport, posx+math_random(-300,300), posy+300, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)
 						local LoadedUnitID = Spring.CreateUnit(unit, posx+math_random(-300,300), posy, posz+math_random(-300,300), math_random(0,3),GaiaTeamID)
 						local selfx, selfy, selfz = Spring.GetUnitPosition(LoadedUnitID)
 						Spring.GiveOrderToUnit(LoadedUnitID, CMD.LOAD_ONTO,{TransportID}, {0})
@@ -252,6 +252,8 @@ local function transport1(currentFrame)
 end
 
 return {
+	transport1,
+	transport1,
 	transport1,
 	transport1,
 }

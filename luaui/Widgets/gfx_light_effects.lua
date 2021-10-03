@@ -47,7 +47,7 @@ local overrideParam = {r = 1, g = 1, b = 1, radius = 200}
 local doOverride = false
 
 local additionalLightingFlashes = true
-local additionalLightingFlashesMult = 0.8
+local additionalLightingFlashesMult = 0.6
 local additionalNukeLightingFlashes = true
 
 local globalLightMult = 1.4

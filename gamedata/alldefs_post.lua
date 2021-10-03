@@ -178,6 +178,12 @@ function UnitDef_Post(name, uDef)
 				corap = true,
 				coraap = true,
 				corplat = true,
+				armap_scav = true,
+				armaap_scav = true,
+				armplat_scav = true,
+				corap_scav = true,
+				coraap_scav = true,
+				corplat_scav = true,
 			}
 			if AircraftFactories[name] then
 				uDef.unitrestricted = 0
@@ -198,6 +204,12 @@ function UnitDef_Post(name, uDef)
 				corfmd = true,
 				corsilo = true,
 				cormabm = true,
+				armamd_scav = true,
+				armsilo_scav = true,
+				armscab_scav = true,
+				corfmd_scav = true,
+				corsilo_scav = true,
+				cormabm_scav = true,
 			}
 			if Nukes[name] then
 				uDef.unitrestricted = 0
@@ -208,6 +220,8 @@ function UnitDef_Post(name, uDef)
 			local TacNukes = {
 				armemp = true,
 				cortron = true,
+				armemp_scav = true,
+				cortron_scav = true,
 			}
 			if TacNukes[name] then
 				uDef.unitrestricted = 0
@@ -237,6 +251,7 @@ function UnitDef_Post(name, uDef)
 			uDef.buildoptions[numBuildoptions+1] = "cordemont4"
 			uDef.buildoptions[numBuildoptions+2] = "corkarganetht4"
 			uDef.buildoptions[numBuildoptions+3] = "corgolt4"
+			uDef.buildoptions[numBuildoptions+4] = "corakt4"
 		elseif name == "corgantuw" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "corgolt4"
@@ -246,12 +261,12 @@ function UnitDef_Post(name, uDef)
 		elseif name == "corlab" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "corkark"
-		elseif name == "corap" then
-			local numBuildoptions = #uDef.buildoptions
-			uDef.buildoptions[numBuildoptions+1] = "corassistdrone"
-		elseif name == "armap" then
-			local numBuildoptions = #uDef.buildoptions
-			uDef.buildoptions[numBuildoptions+1] = "armassistdrone"
+		-- elseif name == "corap" then
+		-- 	local numBuildoptions = #uDef.buildoptions
+		-- 	uDef.buildoptions[numBuildoptions+1] = "corassistdrone"
+		-- elseif name == "armap" then
+		-- 	local numBuildoptions = #uDef.buildoptions
+		-- 	uDef.buildoptions[numBuildoptions+1] = "armassistdrone"
 		elseif name == "armca" or name == "armck" or name == "armcv" then
 			local numBuildoptions = #uDef.buildoptions
 			uDef.buildoptions[numBuildoptions+1] = "corscavdrag"
