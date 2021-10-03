@@ -178,6 +178,12 @@ function UnitDef_Post(name, uDef)
 				corap = true,
 				coraap = true,
 				corplat = true,
+				armap_scav = true,
+				armaap_scav = true,
+				armplat_scav = true,
+				corap_scav = true,
+				coraap_scav = true,
+				corplat_scav = true,
 			}
 			if AircraftFactories[name] then
 				uDef.unitrestricted = 0
@@ -198,6 +204,12 @@ function UnitDef_Post(name, uDef)
 				corfmd = true,
 				corsilo = true,
 				cormabm = true,
+				armamd_scav = true,
+				armsilo_scav = true,
+				armscab_scav = true,
+				corfmd_scav = true,
+				corsilo_scav = true,
+				cormabm_scav = true,
 			}
 			if Nukes[name] then
 				uDef.unitrestricted = 0
@@ -208,6 +220,8 @@ function UnitDef_Post(name, uDef)
 			local TacNukes = {
 				armemp = true,
 				cortron = true,
+				armemp_scav = true,
+				cortron_scav = true,
 			}
 			if TacNukes[name] then
 				uDef.unitrestricted = 0
