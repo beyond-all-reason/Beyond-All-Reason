@@ -146,7 +146,6 @@ local spGetMouseState = Spring.GetMouseState
 local spTraceScreenRay = Spring.TraceScreenRay
 local spGetUnitHealth = Spring.GetUnitHealth
 local spGetUnitIsBuilding = Spring.GetUnitIsBuilding
-local spGetGroundInfo = Spring.GetGroundInfo
 
 local SelectedUnitsCount = spGetSelectedUnitsCount()
 
@@ -248,6 +247,7 @@ local groups = {
 	buildert4 = folder..'buildert4.png',
 	util = folder..'util.png',
 	weapon = folder..'weapon.png',
+	explo = folder..'weaponexplo.png',
 	emp = folder..'emp.png',
 	aa = folder..'aa.png',
 	sub = folder..'sub.png',
@@ -343,6 +343,9 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	end
 	if aaWeapons > 0 and weaponCount == aaWeapons then
 		unitGroup[unitDefID] = 'aa'
+	end
+	if unitDef.customParams.detonaterange or string.find(unitDef.deathExplosion, 'crawl_') then
+		unitGroup[unitDefID] = 'explo'
 	end
 
 	unitIconType[unitDefID] = unitDef.iconType
