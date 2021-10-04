@@ -246,11 +246,6 @@ if gadgetHandler:IsSyncedCode() then
     local allyTeamNum = 0
     local teamSizes = {}
 
-    local function hex2RGB(hex)
-        hex = hex:gsub("#","")
-        return {tonumber("0x"..hex:sub(1,2)), tonumber("0x"..hex:sub(3,4)), tonumber("0x"..hex:sub(5,6))}
-    end
-
     local function setUpTeamColor(teamID, allyTeamID, isAI)
         if isAI and string.find(isAI, "Scavenger") then
             Spring.SetTeamRulesParam(teamID, "AutoTeamColorRed", hex2RGB(scavColor)[1])
