@@ -10,9 +10,6 @@ function gadget:GetInfo()
 	}
 end
 
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
 if not gadgetHandler:IsSyncedCode() then
 	return
 end
@@ -36,7 +33,7 @@ local isAirplant = {
 }
 for udid, ud in pairs(UnitDefs) do
 	for id, v in pairs(isAirplant) do
-		if string.find(ud.name, UnitDefs[id].name) then
+		if ud.name == UnitDefs[id].name..'_scav' then
 			isAirplant[udid] = v
 		end
 	end
@@ -64,7 +61,6 @@ local airCmd = {
 	type = CMDTYPE.ICON_MODE,
 	tooltip = "return to base and land on air repair pad below this health percentage",
 	params = { '1', 'LandAt 0', 'LandAt 30', 'LandAt 50', 'LandAt 80' }
-	--params  = { '1', 'LandAt 30', 'LandAt 50', 'LandAt 70'}			-- NOTE: this works for airlabs, but air units still have the old values somehow
 }
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
@@ -78,13 +74,6 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 		SetUnitNeutral(unitID, true)
 		buildingUnits[unitID] = true
 	end
-	--if isAirplane[unitDefID] then
-	--	EditUnitCmdDesc(unitID, CMD_AUTOREPAIRLEVEL, airCmd)		-- I tried different variations, didnt work
-	--end
-	--if isAirplane[unitDefID] then
-		--GiveOrderToUnit(unitID, CMD_IDLEMODE, {0,}, 0)
-		--EditUnitCmdDesc(unitID, CMD_AUTOREPAIRLEVEL, airCmd)		-- I tried different variations, didnt work
-	--end
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
@@ -99,15 +88,15 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 end
 
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
-	if isAirplant[unitDefID] then
-		if (cmdID == 34569) then
+	if (cmdID == 34569 or cmdID == 34570) and isAirplant[unitDefID] and plantList[unitID] then
+		if cmdID == 34569 then
 			local cmdDescID = FindUnitCmdDesc(unitID, 34569)
 			landCmd.params[1] = cmdParams[1]
 			EditUnitCmdDesc(unitID, cmdDescID, landCmd)
 			plantList[unitID].landAt = cmdParams[1]
 			landCmd.params[1] = 1
 			return false
-		elseif (cmdID == 34570) then
+		else -- cmdID == 34570
 			local cmdDescID = FindUnitCmdDesc(unitID, 34570)
 			airCmd.params[1] = cmdParams[1]
 			EditUnitCmdDesc(unitID, cmdDescID, airCmd)
@@ -118,6 +107,3 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpt
 	end
 	return true
 end
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
