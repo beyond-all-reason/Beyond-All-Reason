@@ -274,10 +274,6 @@ BoomToPad()
 	wait-for-turn turret2 around x-axis;
 }
 
-QueryTransport(tpiece){
-	tpiece = link;
-}
-
 TransportPickup(unitid)
 {
 	call-script BoomCalc(get UNIT_XZ(unitid),get UNIT_Y(unitid) + get UNIT_HEIGHT(unitid));
@@ -288,7 +284,7 @@ TransportPickup(unitid)
 		move link to y-axis [0.000000] - get UNIT_HEIGHT(unitid) now;
 		attach-unit unitid to link;
 		call-script BoomToPad();
-		attach-unit unitid to base;
+		attach-unit unitid to 0 - 1;
 		call-script BoomReset();
 		set BUSY to 0;
 	}
