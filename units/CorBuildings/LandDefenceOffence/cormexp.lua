@@ -127,6 +127,7 @@ return {
 			cormexp_rocket = {
 				areaofeffect = 128,
 				avoidfeature = false,
+				burnblow = true,
 				cegtag = "missiletrailsmall",
 				craterareaofeffect = 128,
 				craterboost = 0,
@@ -134,7 +135,7 @@ return {
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:genericshellexplosion-medium",
 				firestarter = 70,
-				flighttime = 2,
+				flighttime = 1.3,
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				model = "cormissile.s3o",
