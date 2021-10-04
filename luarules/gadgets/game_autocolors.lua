@@ -314,11 +314,11 @@ local gaiaColor = "#7F7F7F" -- Gaia Grey
 
 local iconDevModeEnabledModoption = Spring.GetModOptions().teamcolors_icon_dev_mode
 local iconDevModeColors = {
-  armblue       = "#004DFF", -- Armada Blue
-  corred        = "#FF1005", -- Cortex Red
-  scavpurp      = "#612461", -- Scav Purple
-  chickenorange = "#FF7D20", -- Chicken Orange
-  gaiagray      = "#7F7F7F", -- Gaia Grey
+    armblue       = "#004DFF", -- Armada Blue
+    corred        = "#FF1005", -- Cortex Red
+    scavpurp      = "#612461", -- Scav Purple
+    chickenorange = "#FF7D20", -- Chicken Orange
+    gaiagray      = "#7F7F7F", -- Gaia Grey
 }
 local iconDevModeColor = iconDevModeColors[iconDevModeEnabledModoption]
 
