@@ -6,7 +6,7 @@ function gadget:GetInfo()
 		date = "09/02/10",
 		license = "PD",
 		layer = 0,
-		enabled = false  --  loaded by default?
+		enabled = true  --  loaded by default?
 	}
 end
 
@@ -15,30 +15,29 @@ if not gadgetHandler:IsSyncedCode() then
 end
 
 local SetUnitNoDraw = Spring.SetUnitNoDraw
-local SetUnitNeutral = Spring.SetUnitNeutral
 local SetUnitStealth = Spring.SetUnitStealth
 local SetUnitSonarStealth = Spring.SetUnitSonarStealth
 local GetUnitDefID = Spring.GetUnitDefID
-local GetUnitPosition = Spring.GetUnitPosition
-local GetUnitTransporter = Spring.GetUnitTransporter
-local GetUnitsInCylinder = Spring.GetUnitsInCylinder
 local GiveOrderToUnit = Spring.GiveOrderToUnit
 
--- Constants
 local CMD_LOAD_ONTO = CMD.LOAD_ONTO
 local CMD_STOP = CMD.STOP
--- Variables
+
 local massLeft = {}
 local toBeLoaded = {}
 
 local unitTransportMass = {}
 local unitTransportVtol = {}
 local unitMass = {}
+local isTransport = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
 	unitMass[unitDefID] = unitDef.mass
 	unitTransportMass[unitDefID] = unitDef.transportMass
 	if not unitDef.modCategories.vtol and not unitDef.customParams.isairbase then
 		unitTransportVtol[unitDefID] = true
+	end
+	if unitDef.isTransport then
+		isTransport[unitDefID] = true
 	end
 end
 
@@ -51,7 +50,9 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpt
 end
 
 function gadget:UnitCreated(unitID, unitDefID, teamID)
-	massLeft[unitID] = unitTransportMass[unitDefID]
+	if isTransport[unitDefID] then
+		massLeft[unitID] = unitTransportMass[unitDefID]
+	end
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
@@ -77,12 +78,7 @@ end
 
 function gadget:UnitLoaded(unitID, unitDefID, unitTeam, transportID, transportTeam)
 	--Spring.Echo("UnitLoaded", unitID, unitDefID, transportID)
-	if not unitDefID or not transportID then
-		return
-	end
-	-- Check if transport is full (former crash risk!)
-	if not massLeft[transportID] then
-		--Spring.Echo("no mass left")
+	if not unitDefID or not transportID or not massLeft[transportID] then
 		return
 	end
 	massLeft[transportID] = massLeft[transportID] - unitMass[unitDefID]
@@ -98,10 +94,7 @@ end
 
 function gadget:UnitUnloaded(unitID, unitDefID, teamID, transportID)
 	--Spring.Echo("UnitUnloaded", unitID, unitDefID, transportID)
-	if not unitDefID or not transportID then
-		return
-	end
-	if not massLeft[transportID] then
+	if not unitDefID or not transportID or not massLeft[transportID] then
 		return
 	end
 	massLeft[transportID] = massLeft[transportID] + unitMass[unitDefID]
@@ -111,4 +104,3 @@ function gadget:UnitUnloaded(unitID, unitDefID, teamID, transportID)
 		SetUnitSonarStealth(unitID, false)
 	end
 end
-
