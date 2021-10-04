@@ -309,10 +309,10 @@ if gadgetHandler:IsSyncedCode() then
     return
 end
 
-local anonymousModeEnabledModoption = Spring.GetModOptions().teamcolors_anonymous_mode
+local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
 local gaiaColor = "#7F7F7F" -- Gaia Grey
 
-local iconDevModeEnabledModoption = Spring.GetModOptions().teamcolors_icon_dev_mode
+local iconDevMode = Spring.GetModOptions().teamcolors_icon_dev_mode
 local iconDevModeColors = {
     armblue       = "#004DFF", -- Armada Blue
     corred        = "#FF1005", -- Cortex Red
@@ -320,7 +320,7 @@ local iconDevModeColors = {
     chickenorange = "#FF7D20", -- Chicken Orange
     gaiagray      = "#7F7F7F", -- Gaia Grey
 }
-local iconDevModeColor = iconDevModeColors[iconDevModeEnabledModoption]
+local iconDevModeColor = iconDevModeColors[iconDevMode]
 
 local spGetTeamInfo = Spring.GetTeamInfo
 local spGetTeamList = Spring.GetTeamList
@@ -348,7 +348,7 @@ local function updateTeamColors()
         
         if iconDevModeColor then
             spSetTeamColor(teamID, hex2RGB(iconDevModeColor)[1]/255, hex2RGB(iconDevModeColor)[2]/255, hex2RGB(iconDevModeColor)[3]/255)
-        elseif anonymousModeEnabledModoption then
+        elseif anonymousMode then
             local _, leader, isDead, isAiTeam, side, allyTeamID, incomeMultiplier, customTeamKeys = spGetTeamInfo(teamID)
             if allyTeamID == myAllyTeamID or spGetSpectatingState() then
                 spSetTeamColor(teamID, r, g, b)
