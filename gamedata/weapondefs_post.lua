@@ -13,68 +13,52 @@ VFS.Include("gamedata/alldefs_post.lua")
 -- load functionality for saving to custom params
 VFS.Include("gamedata/post_save_to_customparams.lua")
 
-
-local function isbool(x)   return (type(x) == 'boolean') end
-local function istable(x)  return (type(x) == 'table')   end
-local function isnumber(x) return (type(x) == 'number')  end
-local function isstring(x) return (type(x) == 'string')  end
-
 --------------------------------------------------------------------------------
 
-local function ExtractWeaponDefs(udName, ud)
-	local wds = ud.weapondefs
-	if (not istable(wds)) then
+local function ExtractWeaponDefs(unitDefName, unitDef)
+	local unitWeaponDefs = unitDef.weapondefs
+	if not unitWeaponDefs then
 		return
 	end
 
 	-- add this unitDef's weaponDefs
-	for wdName, wd in pairs(wds) do
-		if (isstring(wdName) and istable(wd)) then
-			local fullName = udName .. '_' .. wdName
-			WeaponDefs[fullName] = wd
-			WeaponDef_Post(fullName, wd)
+	for weaponDefName, weaponDef in pairs(unitWeaponDefs) do
+		local fullName = unitDefName .. '_' .. weaponDefName
+		WeaponDefs[fullName] = weaponDef
+		WeaponDef_Post(fullName, weaponDef)
 
-			if SaveDefsToCustomParams then
-				MarkDefOmittedInCustomParams("WeaponDefs", fullName, wd)
-			end
+		if SaveDefsToCustomParams then
+			MarkDefOmittedInCustomParams("WeaponDefs", fullName, weaponDef)
 		end
 	end
 
 	-- convert the weapon names
-	local weapons = ud.weapons
-	if (istable(weapons)) then
-		for i = 1, 32 do
-			local w = weapons[i]
-			if (istable(w)) then
-				if (isstring(w.def)) then
-					local ldef = string.lower(w.def)
-					local fullName = udName .. '_' .. ldef
-					local wd = WeaponDefs[fullName]
+	local weapons = unitDef.weapons
+		for _, weapon in ipairs(weapons) do
+			local fullName = unitDefName .. '_' .. weapon.def:lower()
+			local weaponDef = WeaponDefs[fullName]
 
-					if (istable(wd)) then
-						w.name = fullName
-					end
-				end
-
-				w.def = nil
+			if weaponDef then
+				weapon.name = fullName
 			end
+
+			weapon.def = nil
 		end
-	end
 
 	-- convert the death explosions
-	if (isstring(ud.explodeas)) then
-		local fullName = udName .. '_' .. ud.explodeas
+	if unitDef.explodeas then
+		local fullName = unitDefName .. '_' .. unitDef.explodeas
 
 		if (WeaponDefs[fullName]) then
-			ud.explodeas = fullName
+			unitDef.explodeas = fullName
 		end
 	end
 
-	if (isstring(ud.selfdestructas)) then
-		local fullName = udName .. '_' .. ud.selfdestructas
+	if unitDef.selfdestructas then
+		local fullName = unitDefName .. '_' .. unitDef.selfdestructas
 
 		if (WeaponDefs[fullName]) then
-			ud.selfdestructas = fullName
+			unitDef.selfdestructas = fullName
 		end
 	end
 end
@@ -82,20 +66,18 @@ end
 --------------------------------------------------------------------------------
 
 -- handle standalone weapondefs
-for name,wd in pairs(WeaponDefs) do
-	WeaponDef_Post(name,wd)
+for name, weaponDef in pairs(WeaponDefs) do
+	WeaponDef_Post(name, weaponDef)
 
 	if SaveDefsToCustomParams then
-		SaveDefToCustomParams("WeaponDefs", name, wd)
+		SaveDefToCustomParams("WeaponDefs", name, weaponDef)
 	end
 end
 
 -- extract weapondefs from the unitdefs
 local UnitDefs = DEFS.unitDefs
-for udName,ud in pairs(UnitDefs) do
-	if (isstring(udName) and istable(ud)) then
-		ExtractWeaponDefs(udName, ud)
-	end
+for name, unitDef in pairs(UnitDefs) do
+	ExtractWeaponDefs(name, unitDef)
 end
 
 -- apply mod options that need _post
