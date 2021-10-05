@@ -15,8 +15,8 @@ local chobbyLoaded = (Spring.GetMenuName and string.find(string.lower(Spring.Get
 local restorePreviousFaction = false
 
 local factions = {
-	{ UnitDefNames.corcom.id, Spring.I18N('units.factions.cor'), 'unitpics/corcom.png' },
-	{ UnitDefNames.armcom.id, Spring.I18N('units.factions.arm'), 'unitpics/armcom.png' },
+	{ UnitDefNames.corcom.id, Spring.I18N('units.factions.cor'), 'unitpics/'..UnitDefNames.corcom.buildpicname },
+	{ UnitDefNames.armcom.id, Spring.I18N('units.factions.arm'), 'unitpics/'..UnitDefNames.armcom.buildpicname },
 }
 local playSounds = true
 local posY = 0.75
