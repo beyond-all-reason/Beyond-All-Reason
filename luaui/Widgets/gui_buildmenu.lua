@@ -204,30 +204,6 @@ local function convertColor(r, g, b)
 	return string.char(255, (r * 255), (g * 255), (b * 255))
 end
 
-function wrap(str, limit)
-	limit = limit or 72
-	local here = 1
-	local buf = ""
-	local t = {}
-	str:gsub("(%s*)()(%S+)()",
-		function(sp, st, word, fi)
-			if fi - here > limit then
-				--# Break the line
-				here = st
-				t[#t + 1] = buf
-				buf = word
-			else
-				buf = buf .. sp .. word  --# Append
-			end
-		end)
-	--# Tack on any leftovers
-	if (buf ~= "") then
-		t[#t + 1] = buf
-	end
-	return t
-end
-
-
 local folder = 'LuaUI/Images/groupicons/'
 local groups = {
 	energy = folder..'energy.png',
@@ -554,6 +530,45 @@ if not showWaterUnits then
 	end
 end
 
+local excludeScavs = true
+if Spring.GetModOptions().experimentalscavuniqueunits then
+	excludeScavs = false
+else
+	local teams = Spring.GetTeamList()
+	for i = 1,#teams do
+		local luaAI = Spring.GetTeamLuaAI(teams[i])
+		if luaAI and luaAI ~= "" and string.sub(luaAI, 1, 12) == 'ScavengersAI' then
+			excludeScavs = true
+			break
+		end
+	end
+end
+
+-- load all icons to prevent briefly showing white unit icons (will happen due to the custom texture filtering options)
+local dlistCache
+local function refreshUnitIconCache()
+	if dlistCache then
+		dlistCache = gl.DeleteList(dlistCache)
+	end
+	dlistCache = gl.CreateList(function()
+		gl.Color(1, 1, 1, 0.001)
+		for id, unit in pairs(UnitDefs) do
+			if not excludeScavs or string.find(unit.name,'_scav') then
+				if unitBuildPic[id] then
+					gl.Texture(':l:unitpics/' .. unitBuildPic[id])
+					gl.TexRect(-1, -1, 0, 0)
+				end
+				if unitIconType[id] and iconTypesMap[unitIconType[id]] then
+					gl.Texture(':l:' .. iconTypesMap[unitIconType[id]])
+					gl.TexRect(-1, -1, 0, 0)
+				end
+				gl.Texture(false)
+			end
+		end
+		gl.Color(1, 1, 1, 1)
+	end)
+end
+
 local showGeothermalUnits = false
 local function checkGeothermalFeatures()
 	showGeothermalUnits = false
@@ -757,12 +772,15 @@ end
 function widget:Initialize()
 
 	checkGeothermalFeatures()
-
 	hijacklayout()
 
 	iconTypesMap = {}
 	if Script.LuaRules('GetIconTypes') then
 		iconTypesMap = Script.LuaRules.GetIconTypes()
+	end
+
+	if Spring.GetGameFrame() == 0 then
+		cacheUnitIcons()
 	end
 
 	-- Get our starting unit
@@ -897,6 +915,9 @@ function widget:Shutdown()
 	if WG['guishader'] and dlistGuishader then
 		WG['guishader'].DeleteDlist('buildmenu')
 		dlistGuishader = nil
+	end
+	if dlistCache then
+		dlistCache = gl.DeleteList(dlistCache)
 	end
 	WG['buildmenu'] = nil
 end
