@@ -280,12 +280,12 @@ local unitOrderTable = {
    -- WATER SCOUTS
 
    [UDN["armpt"].id]          = 009000, --SCOUTS AA
-   [UDN["corpt"].id]          = 009010,
+   [UDN["coresupp"].id]       = 009010, 
 
    -- T1 WATER ATTACK
 
    [UDN["armdecade"].id]      = 009100, --FAST
-   [UDN["coresupp"].id]       = 009110,
+   [UDN["corpt"].id]          = 009110,
 
    [UDN["armpship"].id]       = 009200, --MAIN BATTLE
    [UDN["corpship"].id]       = 009210,
