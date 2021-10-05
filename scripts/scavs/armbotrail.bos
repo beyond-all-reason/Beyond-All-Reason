@@ -43,7 +43,7 @@ Create()
 {
 	hide flare;
 	restore_delay = 2000;
-	move door to z-axis [-30] now;
+	//move door to z-axis [-30] now;
 	start-script SmokeUnit();
 }
 
@@ -66,20 +66,28 @@ AimPrimary(heading, pitch)
 
 Shot1()
 {
-	return (TRUE);
-}
-
-FirePrimary()
-{
 	hide round;
-	sleep 200;
+	sleep 100;
 	move door to z-axis [-30] speed [180];//-52.5
-	move round to x-axis [-30] now;
+	move round to z-axis [-30] now;
 	show round;
 	wait-for-move door along z-axis;
 	move round to z-axis [0] speed [180];
 	wait-for-move round along z-axis;
 	move door to z-axis [0] speed [180];
+}
+
+FirePrimary()
+{
+//	hide round;
+//	sleep 200;
+//	move door to z-axis [-30] speed [180];//-52.5
+//	move round to z-axis [-30] now;
+//	show round;
+//	wait-for-move door along z-axis;
+//	move round to z-axis [0] speed [180];
+//	wait-for-move round along z-axis;
+//	move door to z-axis [0] speed [180];
 }
 
 QueryPrimary(piecenum)
