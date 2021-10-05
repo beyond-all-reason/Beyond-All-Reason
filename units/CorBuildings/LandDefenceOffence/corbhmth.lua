@@ -12,7 +12,7 @@ return {
 		buildinggrounddecalsizex = 8,
 		buildinggrounddecalsizey = 8,
 		buildinggrounddecaltype = "decals/corbhmth_aoplane.dds",
-		buildpic = "CORBHMTH.PNG",
+		buildpic = "CORBHMTH.DDS",
 		buildtime = 59640,
 		canrepeat = false,
 		category = "ALL NOTLAND NOTSUB WEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",

@@ -9,7 +9,7 @@ return {
 		buildangle = 16384,
 		buildcostenergy = 316000,
 		buildcostmetal = 34000,
-		buildpic = "armfepocht4.PNG",
+		buildpic = "armfepocht4.DDS",
 		buildtime = 316000,
 		canfly = true,
 		canmove = true,

@@ -9,7 +9,7 @@ return {
 		buildcostenergy = 0,
 		buildcostmetal = 0,
 		builder = false,
-		buildpic = "critters/critter_duck.PNG",
+		buildpic = "critters/critter_duck.DDS",
 		buildtime = 10,
 		canattack = true,
 		canguard = true,

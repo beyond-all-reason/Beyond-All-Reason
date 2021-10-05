@@ -8,7 +8,7 @@ return {
 		buildangle = 16384,
 		buildcostenergy = 3500,
 		buildcostmetal = 350,
-		buildpic = "ARMTSHIP.PNG",
+		buildpic = "ARMTSHIP.DDS",
 		buildtime = 6500,
 		canattack = false,
 		canmove = true,

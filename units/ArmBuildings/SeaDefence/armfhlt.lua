@@ -8,7 +8,7 @@ return {
 		buildangle = 16384,
 		buildcostenergy = 6200,
 		buildcostmetal = 470,
-		buildpic = "ARMFHLT.PNG",
+		buildpic = "ARMFHLT.DDS",
 		buildtime = 9670,
 		canrepeat = false,
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",

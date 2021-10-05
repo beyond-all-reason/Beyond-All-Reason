@@ -11,7 +11,7 @@ return {
 		buildinggrounddecalsizex = 7.5,
 		buildinggrounddecalsizey = 7.5,
 		buildinggrounddecaltype = "decals/corint_aoplane.dds",
-		buildpic = "CORINT.PNG",
+		buildpic = "CORINT.DDS",
 		buildtime = 93237,
 		canrepeat = false,
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",

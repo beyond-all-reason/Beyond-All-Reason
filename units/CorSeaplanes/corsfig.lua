@@ -8,7 +8,7 @@ return {
 		brakerate = 0.1,
 		buildcostenergy = 4600,
 		buildcostmetal = 90,
-		buildpic = "CORSFIG.PNG",
+		buildpic = "CORSFIG.DDS",
 		buildtime = 5200,
 		canfly = true,
 		canmove = true,

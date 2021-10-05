@@ -11,7 +11,7 @@ return {
 		buildinggrounddecalsizex = 12,
 		buildinggrounddecalsizey = 12,
 		buildinggrounddecaltype = "decals/armshltx_aoplane.dds",
-		buildpic = "ARMSHLTX.PNG",
+		buildpic = "ARMSHLTX.DDS",
 		buildtime = 61380,
 		canmove = true,
 		category = "ALL NOTSUB NOWEAPON NOTAIR NOTHOVER SURFACE EMPABLE",

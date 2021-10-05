@@ -9,7 +9,7 @@ return {
 		buildangle = 16384,
 		buildcostenergy = 316000,
 		buildcostmetal = 36000,
-		buildpic = "corfblackhyt4.PNG",
+		buildpic = "corfblackhyt4.DDS",
 		buildtime = 316000,
 		canfly = true,
 		canmove = true,

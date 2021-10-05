@@ -6,7 +6,7 @@ return {
 		brakerate = 0.345,
 		buildcostenergy = 71000,
 		buildcostmetal = 3300,
-		buildpic = "ARMLUNCHBOX.PNG",
+		buildpic = "ARMLUNCHBOX.DDS",
 		buildtime = 71000,
 		canmove = true,
 		category = "ALL NOTSUB WEAPON NOTAIR NOTHOVER SURFACE BOT EMPABLE",

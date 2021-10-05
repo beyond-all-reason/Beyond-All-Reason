@@ -10,7 +10,7 @@ return {
 		blocking = false,
 		buildcostenergy = 10,
 		buildcostmetal = 10,
-		buildpic = "other/nuketest.png",
+		buildpic = "other/nuketest.dds",
 		buildtime = 10,
 		craterboost = 0,
 		cratermult = 0,

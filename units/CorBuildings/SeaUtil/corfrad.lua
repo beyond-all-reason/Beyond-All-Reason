@@ -8,7 +8,7 @@ return {
 		buildangle = 16384,
 		buildcostenergy = 1000,
 		buildcostmetal = 130,
-		buildpic = "CORFRAD.PNG",
+		buildpic = "CORFRAD.DDS",
 		buildtime = 1800,
 		canattack = false,
 		canrepeat = false,

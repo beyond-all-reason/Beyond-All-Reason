@@ -7,7 +7,7 @@ return {
 		brakerate = 0.5175,
 		buildcostenergy = 1400,
 		buildcostmetal = 78,
-		buildpic = "ARMASER.PNG",
+		buildpic = "ARMASER.DDS",
 		buildtime = 4937,
 		canattack = false,
 		canmove = true,

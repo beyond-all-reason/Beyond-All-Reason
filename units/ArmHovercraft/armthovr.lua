@@ -7,7 +7,7 @@ return {
 		buildangle = 16384,
 		buildcostenergy = 8300,
 		buildcostmetal = 700,
-		buildpic = "ARMTHOVR.PNG",
+		buildpic = "ARMTHOVR.DDS",
 		buildtime = 20341,
 		canmove = true,
 		cantbetransported = true,

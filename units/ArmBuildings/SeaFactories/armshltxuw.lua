@@ -11,7 +11,7 @@ return {
 		buildinggrounddecalsizex = 10,
 		buildinggrounddecalsizey = 10,
 		buildinggrounddecaltype = "decals/armshltx_aoplane.dds",
-		buildpic = "ARMSHLTXUW.PNG",
+		buildpic = "ARMSHLTXUW.DDS",
 		buildtime = 61380,
 		canmove = true,
 		category = "ALL NOTSUB NOWEAPON NOTAIR NOTHOVER SURFACE UNDERWATER EMPABLE",

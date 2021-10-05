@@ -10,7 +10,7 @@ return {
 		brakerate = 0,
 		buildcostenergy = 5000,
 		buildcostmetal = 500,
-		buildpic = "scavengers/SCAVBEACON.PNG",
+		buildpic = "scavengers/SCAVBEACON.DDS",
 		buildtime = 5000,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		canmove = false,

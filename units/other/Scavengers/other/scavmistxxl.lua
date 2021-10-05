@@ -7,7 +7,7 @@ return {
 		brakerate = 0.6486,
 		buildcostenergy = 25500,
 		buildcostmetal = 2550,
-		buildpic = "scavengers/SCAVMIST.PNG",
+		buildpic = "scavengers/SCAVMIST.DDS",
 		buildtime = 25500,
 		canmove = true,
 		category = "ALL BOT MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",

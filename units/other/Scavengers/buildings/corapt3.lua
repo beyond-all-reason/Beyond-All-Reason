@@ -11,7 +11,7 @@ return {
 		buildinggrounddecalsizex = 9,
 		buildinggrounddecalsizey = 9,
 		buildinggrounddecaltype = "decals/corap_aoplane.dds",
-		buildpic = "CORAP.PNG",
+		buildpic = "CORAP.DDS",
 		buildtime = 72400,
 		canmove = true,
 		category = "ALL NOTLAND NOWEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",

@@ -11,7 +11,7 @@ return {
 		buildinggrounddecalsizex = 8,
 		buildinggrounddecalsizey = 8,
 		buildinggrounddecaltype = "decals/armafus_aoplane.dds",
-		buildpic = "other/resourcecheat.png",
+		buildpic = "other/resourcecheat.dds",
 		buildtime = 312498,
 		canrepeat = false,
 		category = "ALL NOTSUB NOWEAPON NOTAIR NOTHOVER SURFACE EMPABLE",

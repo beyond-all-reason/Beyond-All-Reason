@@ -8,7 +8,7 @@ return {
 		buildcostenergy = 400000,
 		buildcostmetal = 20000,
 		builder = false,
-		buildpic = "critters/critter_penguin.PNG",
+		buildpic = "critters/critter_penguin.DDS",
 		buildtime = 35000,
 		canattack = true,
 		canguard = true,

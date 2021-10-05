@@ -10,7 +10,7 @@ return {
 		buildcostenergy = 72000,
 		buildcostmetal = 3900,
 		builder = 0,
-		buildpic = "ARMFGATE.PNG",
+		buildpic = "ARMFGATE.DDS",
 		buildtime = 59060,
 		canattack = false,
 		canrepeat = false,

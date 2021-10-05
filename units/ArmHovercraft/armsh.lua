@@ -6,7 +6,7 @@ return {
 		brakerate = 0.1105,
 		buildcostenergy = 1250,
 		buildcostmetal = 85,
-		buildpic = "ARMSH.PNG",
+		buildpic = "ARMSH.DDS",
 		buildtime = 1700,
 		canmove = true,
 		category = "ALL HOVER MOBILE WEAPON NOTSUB NOTSHIP NOTAIR SURFACE EMPABLE",

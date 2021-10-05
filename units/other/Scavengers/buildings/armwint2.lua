@@ -11,7 +11,7 @@ return {
 		buildinggrounddecalsizex = 5,
 		buildinggrounddecalsizey = 5,
 		buildinggrounddecaltype = "decals/armwin_aoplane.dds",
-		buildpic = "ARMWINT2.PNG",
+		buildpic = "ARMWINT2.DDS",
 		buildtime = 11250,
 		canrepeat = false,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",

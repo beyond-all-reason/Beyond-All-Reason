@@ -13,7 +13,7 @@ return {
 		buildinggrounddecalsizey = 8,
 		buildinggrounddecaltype = "decals/cormoho_aoplane.dds",
 		buildingmask = 0,
-		buildpic = "CORMEXP.PNG",
+		buildpic = "CORMEXP.DDS",
 		buildtime = 32500,
 		canattack = true,
 		canrepeat = false,

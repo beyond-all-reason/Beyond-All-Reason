@@ -13,7 +13,7 @@ return {
 		buildinggrounddecalsizex = 4,
 		buildinggrounddecalsizey = 4,
 		buildinggrounddecaltype = "decals/corfort_aoplane.dds",
-		buildpic = "CORFORT.PNG",
+		buildpic = "CORFORT.DDS",
 		buildtime = 1010,
 		canattack = false,
 		canrepeat = false,

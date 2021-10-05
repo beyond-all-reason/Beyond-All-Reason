@@ -12,7 +12,7 @@ return {
 		buildinggrounddecalsizex = 6,
 		buildinggrounddecalsizey = 6,
 		buildinggrounddecaltype = "decals/corerad_aoplane.dds",
-		buildpic = "CORERAD.PNG",
+		buildpic = "CORERAD.DDS",
 		buildtime = 12000,
 		canrepeat = false,
 		category = "ALL WEAPON NOTSUB NOTAIR NOTHOVER SURFACE EMPABLE",

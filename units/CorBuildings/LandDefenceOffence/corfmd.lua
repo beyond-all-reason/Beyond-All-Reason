@@ -11,7 +11,7 @@ return {
 		buildinggrounddecalsizex = 6,
 		buildinggrounddecalsizey = 6,
 		buildinggrounddecaltype = "decals/corfmd_aoplane.dds",
-		buildpic = "CORFMD.PNG",
+		buildpic = "CORFMD.DDS",
 		buildtime = 60000,
 		canattack = false,
 		canrepeat = false,

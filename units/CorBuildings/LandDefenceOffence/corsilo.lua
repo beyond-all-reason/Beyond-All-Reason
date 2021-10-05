@@ -11,7 +11,7 @@ return {
 		buildinggrounddecalsizex = 10,
 		buildinggrounddecalsizey = 10,
 		buildinggrounddecaltype = "decals/corsilo_aoplane.dds",
-		buildpic = "CORSILO.PNG",
+		buildpic = "CORSILO.DDS",
 		buildtime = 181243,
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 18 -2",

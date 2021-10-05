@@ -10,7 +10,7 @@ return {
 		buildcostenergy = 74000,
 		buildcostmetal = 4100,
 		builder = 0,
-		buildpic = "CORFGATE.PNG",
+		buildpic = "CORFGATE.DDS",
 		buildtime = 59060,
 		canattack = false,
 		canrepeat = false,

@@ -12,7 +12,7 @@ return {
 		buildinggrounddecalsizex = 8,
 		buildinggrounddecalsizey = 8,
 		buildinggrounddecaltype = "decals/armsolar_aoplane.dds",
-		buildpic = "ARMSOLAR.PNG",
+		buildpic = "ARMSOLAR.DDS",
 		buildtime = 2800,
 		canrepeat = false,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",

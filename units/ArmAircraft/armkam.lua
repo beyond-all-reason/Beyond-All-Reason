@@ -7,7 +7,7 @@ return {
 		brakerate = 0.375,
 		buildcostenergy = 2300,
 		buildcostmetal = 135,
-		buildpic = "ARMKAM.PNG",
+		buildpic = "ARMKAM.DDS",
 		buildtime = 5046,
 		canfly = true,
 		canmove = true,

@@ -11,7 +11,7 @@ return {
 		buildcostenergy = 10,
 		buildcostmetal = 10,
 		--builder = true,
-		buildpic = "scavengers/scavengerdroppod.PNG",
+		buildpic = "scavengers/scavengerdroppod.DDS",
 		buildtime = 10,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		canmove = false,

@@ -7,7 +7,7 @@ return {
 		buildangle = 16384,
 		buildcostenergy = 1400,
 		buildcostmetal = 165,
-		buildpic = "ARMDECADE.PNG",
+		buildpic = "ARMDECADE.DDS",
 		buildtime = 2330,
 		canmove = true,
 		category = "ALL WEAPON NOTSUB SHIP NOTAIR NOTHOVER SURFACE EMPABLE",

@@ -12,7 +12,7 @@ return {
 		buildinggrounddecalsizex = 3.6,
 		buildinggrounddecalsizey = 3.6,
 		buildinggrounddecaltype = "decals/corjamt_aoplane.dds",
-		buildpic = "CORJAMT.PNG",
+		buildpic = "CORJAMT.DDS",
 		buildtime = 4577,
 		canattack = false,
 		canrepeat = false,

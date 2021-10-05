@@ -12,7 +12,7 @@ return {
 		buildinggrounddecalsizex = 11.25,
 		buildinggrounddecalsizey = 11.25,
 		buildinggrounddecaltype = "decals/mission_command_tower_aoplane.dds",
-		buildpic = "MISSION_COMMAND_TOWER.PNG",
+		buildpic = "MISSION_COMMAND_TOWER.DDS",
 		buildtime = 100000,
 		canrepeat = false,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
