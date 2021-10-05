@@ -8,7 +8,7 @@ return {
 		buildcostmetal = 210,
 		builddistance = 136,
 		builder = true,
-		buildpic = "CORFAST.PNG",
+		buildpic = "CORFAST.DDS",
 		buildtime = 6488,
 		canmove = true,
 		category = "BOT MOBILE ALL NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",

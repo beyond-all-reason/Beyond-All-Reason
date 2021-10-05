@@ -10,7 +10,7 @@ return {
 		-- buildinggrounddecalsizex = 4,
 		-- buildinggrounddecalsizey = 4,
 		--buildinggrounddecaltype = "decals/scavdtf_aoplane.dds",
-		buildpic = "CORSCAVDTF.PNG",
+		buildpic = "CORSCAVDTF.DDS",
 		buildtime = 4419,
 		canrepeat = false,
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",

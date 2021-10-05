@@ -10,7 +10,7 @@ return {
 		buildcostmetal = 770,
 		builddistance = 145,
 		builder = true,
-		buildpic = "ARMDECOM.PNG",
+		buildpic = "ARMDECOM.DDS",
 		buildtime = 24048,
 		cancapture = true,
 		candgun = true,

@@ -12,7 +12,7 @@ return {
 		-- buildinggrounddecalsizex = 4,
 		-- buildinggrounddecalsizey = 4,
 		-- buildinggrounddecaltype = "decals/scavfort_aoplane.dds",
-		buildpic = "scavengers/SCAVFORT.PNG",
+		buildpic = "scavengers/SCAVFORT.DDS",
 		buildtime = 1065,
 		canattack = false,
 		canrepeat = false,

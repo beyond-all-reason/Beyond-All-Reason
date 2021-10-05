@@ -11,7 +11,7 @@ return {
 		buildinggrounddecalsizex = 11,
 		buildinggrounddecalsizey = 11,
 		buildinggrounddecaltype = "decals/coramsub_aoplane.dds",
-		buildpic = "CORAMSUB.PNG",
+		buildpic = "CORAMSUB.DDS",
 		buildtime = 11402,
 		canmove = true,
 		category = "ALL NOWEAPON NOTSUB NOTAIR NOTHOVER SURFACE UNDERWATER EMPABLE",

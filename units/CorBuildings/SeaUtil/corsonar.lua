@@ -8,7 +8,7 @@ return {
 		buildangle = 8192,
 		buildcostenergy = 450,
 		buildcostmetal = 20,
-		buildpic = "CORSONAR.PNG",
+		buildpic = "CORSONAR.DDS",
 		buildtime = 900,
 		canattack = false,
 		canrepeat = false,

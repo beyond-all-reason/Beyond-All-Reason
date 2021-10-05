@@ -5,7 +5,7 @@ return {
 		blocking = true,
 		buildcostenergy = 0,
 		buildcostmetal = 0,
-		buildpic = "other/xmasball.png",
+		buildpic = "other/xmasball.dds",
 		buildtime = 255,
 		canattack = false,
 		canmove = true,

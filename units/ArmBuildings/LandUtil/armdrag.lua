@@ -12,7 +12,7 @@ return {
 		buildinggrounddecalsizex = 4,
 		buildinggrounddecalsizey = 4,
 		buildinggrounddecaltype = "decals/armdrag_aoplane.dds",
-		buildpic = "ARMDRAG.PNG",
+		buildpic = "ARMDRAG.DDS",
 		buildtime = 255,
 		canattack = false,
 		canrepeat = false,

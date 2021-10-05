@@ -7,7 +7,7 @@ return {
 		brakerate = 0.5175,
 		buildcostenergy = 5800,
 		buildcostmetal = 69,
-		buildpic = "CORROACH.PNG",
+		buildpic = "CORROACH.DDS",
 		buildtime = 7899,
 		canmove = true,
 		category = "BOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE CANBEUW EMPABLE",

@@ -12,7 +12,7 @@ return {
 		buildinggrounddecalsizex = 10,
 		buildinggrounddecalsizey = 9,
 		buildinggrounddecaltype = "decals/coralab_aoplane.dds",
-		buildpic = "CORALAB.PNG",
+		buildpic = "CORALAB.DDS",
 		buildtime = 16819,
 		canmove = true,
 		category = "ALL NOTLAND NOWEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",

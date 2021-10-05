@@ -8,7 +8,7 @@ return {
 		brakerate = 0.065,
 		buildcostenergy = 2800,
 		buildcostmetal = 73,
-		buildpic = "CORVENG.PNG",
+		buildpic = "CORVENG.DDS",
 		buildtime = 3333,
 		canfly = true,
 		canmove = true,

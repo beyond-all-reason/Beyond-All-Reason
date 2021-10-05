@@ -13,7 +13,7 @@ return {
 		buildinggrounddecalsizex = 4,
 		buildinggrounddecalsizey = 4,
 		buildinggrounddecaltype = "decals/armfort_aoplane.dds",
-		buildpic = "ARMFORT.PNG",
+		buildpic = "ARMFORT.DDS",
 		buildtime = 1065,
 		canattack = false,
 		canrepeat = false,

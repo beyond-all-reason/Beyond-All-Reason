@@ -7,7 +7,7 @@ return {
 		brakerate = 0.43125,
 		buildcostenergy = 12000,
 		buildcostmetal = 700,
-		buildpic = "ARMMAV.PNG",
+		buildpic = "ARMMAV.DDS",
 		buildtime = 18384,
 		canmove = true,
 		category = "BOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",

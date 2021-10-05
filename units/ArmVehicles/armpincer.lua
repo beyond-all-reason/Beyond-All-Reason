@@ -7,7 +7,7 @@ return {
 		brakerate = 0.07144,
 		buildcostenergy = 2000,
 		buildcostmetal = 200,
-		buildpic = "ARMPINCER.PNG",
+		buildpic = "ARMPINCER.DDS",
 		buildtime = 2613,
 		canmove = true,
 		category = "ALL TANK PHIB WEAPON NOTSUB NOTAIR NOTHOVER SURFACE CANBEUW EMPABLE",

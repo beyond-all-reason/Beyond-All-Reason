@@ -7,7 +7,7 @@ return {
 		brakerate = 0.07166,
 		buildcostenergy = 1900,
 		buildcostmetal = 105,
-		buildpic = "CORETER.PNG",
+		buildpic = "CORETER.DDS",
 		buildtime = 6404,
 		canattack = false,
 		canmove = true,

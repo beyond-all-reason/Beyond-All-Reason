@@ -6,7 +6,7 @@ return {
 		brakerate = 0.8211,
 		buildcostenergy = 23000,
 		buildcostmetal = 1550,
-		buildpic = "CORSHIVA.PNG",
+		buildpic = "CORSHIVA.DDS",
 		buildtime = 30609,
 		canmove = true,
 		category = "BOT WEAPON ALL NOTSUB NOTAIR NOTHOVER SURFACE CANBEUW EMPABLE",

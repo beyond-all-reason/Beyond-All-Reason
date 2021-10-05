@@ -9,7 +9,7 @@ return {
 		brakerate = 0.275,
 		buildcostenergy = 300000,
 		buildcostmetal = 15000,
-		buildpic = "scavengers/corcrwt4.PNG",
+		buildpic = "scavengers/corcrwt4.DDS",
 		buildtime = 300000,
 		canfly = true,
 		canmove = true,

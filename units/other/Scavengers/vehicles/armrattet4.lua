@@ -6,7 +6,7 @@ return {
 		brakerate = 0.08759,
 		buildcostenergy = 350000,
 		buildcostmetal = 35000,
-		buildpic = "scavengers/armrattet4.PNG",
+		buildpic = "scavengers/armrattet4.DDS",
 		buildtime = 350000,
 		canmove = true,
 		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",

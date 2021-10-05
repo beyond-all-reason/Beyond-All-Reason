@@ -6,7 +6,7 @@ return {
 		brakerate = 0.345,
 		buildcostenergy = 71000,
 		buildcostmetal = 3300,
-		buildpic = "ARMVANG.PNG",
+		buildpic = "ARMVANG.DDS",
 		buildtime = 91096,
 		canmove = true,
 		category = "ALL NOTSUB WEAPON NOTAIR NOTHOVER SURFACE BOT EMPABLE",

@@ -10,7 +10,7 @@ return {
 		buildcostenergy = 1,
 		buildcostmetal = 1,
 		builder = false,
-		buildpic = "other/meteor.png",
+		buildpic = "other/meteor.dds",
 		buildtime = 1,
 		canrepeat = false,
 		category = "NOTAIR NOTSUB NOTSHIP NOTHOVER ALL SURFACE EMPABLE",

@@ -12,7 +12,7 @@ return {
 		buildinggrounddecalsizex = 9,
 		buildinggrounddecalsizey = 9,
 		buildinggrounddecaltype = "decals/corvp_aoplane.dds",
-		buildpic = "CORVP.PNG",
+		buildpic = "CORVP.DDS",
 		buildtime = 7151,
 		canmove = true,
 		category = "ALL NOTLAND NOWEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",

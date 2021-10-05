@@ -10,7 +10,7 @@ return {
 		buildcostmetal = 10000000,
 		builddistance = 750,
 		builder = true,
-		buildpic = "scavengers/ARMCOMBOSS.PNG",
+		buildpic = "scavengers/ARMCOMBOSS.DDS",
 		buildtime = 750000000000,
 		cancapture = true,
 		--cancloak = true,

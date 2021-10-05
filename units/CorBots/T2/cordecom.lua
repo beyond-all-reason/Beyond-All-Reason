@@ -10,7 +10,7 @@ return {
 		buildcostmetal = 750,
 		builddistance = 145,
 		builder = true,
-		buildpic = "CORDECOM.PNG",
+		buildpic = "CORDECOM.DDS",
 		buildtime = 26941,
 		cancapture = true,
 		candgun = true,

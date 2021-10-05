@@ -8,7 +8,7 @@ return {
 		brakerate = 1,
 		buildcostenergy = 25000,
 		buildcostmetal = 1500,
-		buildpic = "lootboxes/LOOTBOXGOLD.PNG",
+		buildpic = "lootboxes/LOOTBOXGOLD.DDS",
 		buildtime = 5000,
 		canfight = false,
 		canguard = false,

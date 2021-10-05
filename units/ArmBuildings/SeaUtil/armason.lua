@@ -12,7 +12,7 @@ return {
 		buildinggrounddecalsizex = 6,
 		buildinggrounddecalsizey = 6,
 		buildinggrounddecaltype = "decals/armason_aoplane.dds",
-		buildpic = "ARMASON.PNG",
+		buildpic = "ARMASON.DDS",
 		buildtime = 6152,
 		canattack = false,
 		canrepeat = false,

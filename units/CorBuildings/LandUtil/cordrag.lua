@@ -12,7 +12,7 @@ return {
 		buildinggrounddecalsizex = 4,
 		buildinggrounddecalsizey = 4,
 		buildinggrounddecaltype = "decals/cordrag_aoplane.dds",
-		buildpic = "CORDRAG.PNG",
+		buildpic = "CORDRAG.DDS",
 		buildtime = 255,
 		canattack = false,
 		canrepeat = false,

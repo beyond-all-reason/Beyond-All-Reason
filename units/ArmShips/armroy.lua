@@ -8,7 +8,7 @@ return {
 		buildangle = 16384,
 		buildcostenergy = 6600,
 		buildcostmetal = 880,
-		buildpic = "ARMROY.PNG",
+		buildpic = "ARMROY.DDS",
 		buildtime = 10200,
 		canmove = true,
 		category = "ALL NOTLAND MOBILE WEAPON NOTSUB SHIP NOTAIR NOTHOVER SURFACE EMPABLE",

@@ -8,7 +8,7 @@ return {
 		buildcostmetal = 470,
 		builddistance = 136,
 		builder = true,
-		buildpic = "CORACK.PNG",
+		buildpic = "CORACK.DDS",
 		buildtime = 9700,
 		canmove = true,
 		category = "BOT MOBILE ALL NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",

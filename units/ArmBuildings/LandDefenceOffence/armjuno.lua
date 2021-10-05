@@ -10,7 +10,7 @@ return {
 		buildinggrounddecalsizex = 6,
 		buildinggrounddecalsizey = 6,
 		buildinggrounddecaltype = "decals/armjuno_aoplane.dds",
-		buildpic = "ARMJUNO.PNG",
+		buildpic = "ARMJUNO.DDS",
 		buildtime = 21833,
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -2 0",

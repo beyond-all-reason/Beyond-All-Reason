@@ -7,7 +7,7 @@ return {
 		brakerate = 0,
 		buildcostenergy = 10000,
 		buildcostmetal = 1000,
-		buildpic = "ARMSTONE.PNG",
+		buildpic = "ARMSTONE.DDS",
 		buildtime = 10000,
 		canattack = false,
 		canrepeat = false,

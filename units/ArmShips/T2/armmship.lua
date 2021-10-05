@@ -7,7 +7,7 @@ return {
 		brakerate = 0.0287,
 		buildcostenergy = 10000,
 		buildcostmetal = 2000,
-		buildpic = "ARMMSHIP.PNG",
+		buildpic = "ARMMSHIP.DDS",
 		buildtime = 15000,
 		canmove = true,
 		category = "ALL NOTLAND MOBILE WEAPON NOTSUB SHIP NOTAIR NOTHOVER SURFACE EMPABLE",

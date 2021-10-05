@@ -12,7 +12,7 @@ return {
 		buildinggrounddecalsizex = 7,
 		buildinggrounddecalsizey = 7,
 		buildinggrounddecaltype = "decals/corfus_aoplane.dds",
-		buildpic = "CORFUS.PNG",
+		buildpic = "CORFUS.DDS",
 		buildtime = 75424,
 		canrepeat = false,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",

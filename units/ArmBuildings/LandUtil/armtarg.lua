@@ -12,7 +12,7 @@ return {
 		buildinggrounddecalsizex = 5,
 		buildinggrounddecalsizey = 5,
 		buildinggrounddecaltype = "decals/armtarg_aoplane.dds",
-		buildpic = "ARMTARG.PNG",
+		buildpic = "ARMTARG.DDS",
 		buildtime = 8707,
 		canrepeat = false,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",

@@ -6,7 +6,7 @@ return {
 		brakerate = 0.60375,
 		buildcostenergy = 12000,
 		buildcostmetal = 700,
-		buildpic = "CORTERMITE.PNG",
+		buildpic = "CORTERMITE.DDS",
 		buildtime = 18834,
 		canmove = true,
 		category = "ALL BOT WEAPON NOTSUB NOTAIR NOTHOVER SURFACE EMPABLE",

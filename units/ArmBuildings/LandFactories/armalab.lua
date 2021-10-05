@@ -12,7 +12,7 @@ return {
 		buildinggrounddecalsizex = 8.6,
 		buildinggrounddecalsizey = 8.6,
 		buildinggrounddecaltype = "decals/armalab_aoplane.dds",
-		buildpic = "ARMALAB.PNG",
+		buildpic = "ARMALAB.DDS",
 		buildtime = 16224,
 		canmove = true,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",

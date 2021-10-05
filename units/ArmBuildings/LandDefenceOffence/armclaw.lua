@@ -10,7 +10,7 @@ return {
 		buildinggrounddecalsizex = 4,
 		buildinggrounddecalsizey = 4,
 		buildinggrounddecaltype = "decals/armclaw_aoplane.dds",
-		buildpic = "ARMCLAW.PNG",
+		buildpic = "ARMCLAW.DDS",
 		buildtime = 4638,
 		canrepeat = false,
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",

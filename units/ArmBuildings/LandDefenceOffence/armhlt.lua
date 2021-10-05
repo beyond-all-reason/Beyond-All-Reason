@@ -11,7 +11,7 @@ return {
 		buildinggrounddecalsizex = 4,
 		buildinggrounddecalsizey = 4,
 		buildinggrounddecaltype = "decals/armhlt_aoplane.dds",
-		buildpic = "ARMHLT.PNG",
+		buildpic = "ARMHLT.DDS",
 		buildtime = 12500,
 		canrepeat = false,
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
