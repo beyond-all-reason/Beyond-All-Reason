@@ -215,8 +215,9 @@ local groups = {
 	util = folder..'util.png',
 	weapon = folder..'weapon.png',
 	explo = folder..'weaponexplo.png',
-	emp = folder..'emp.png',
+	weaponaa = folder..'weaponaa.png',
 	aa = folder..'aa.png',
+	emp = folder..'emp.png',
 	sub = folder..'sub.png',
 	nuke = folder..'nuke.png',
 	antinuke = folder..'antinuke.png',
@@ -311,6 +312,11 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	if aaWeapons > 0 and weaponCount == aaWeapons then
 		unitGroup[unitDefID] = 'aa'
 	end
+	if string.find(unitDef.name, 'armsam') or string.find(unitDef.name, 'cormist') or string.find(unitDef.name, 'armpt') or string.find(unitDef.name, 'corpt') or
+		string.find(unitDef.name, 'armlatnk') then--aaWeapons > 0 and weaponCount <= aaWeapons then
+		unitGroup[unitDefID] = 'weaponaa'
+	end
+
 	if unitDef.customParams.detonaterange or string.find(unitDef.deathExplosion, 'crawl_') then
 		unitGroup[unitDefID] = 'explo'
 	end
@@ -530,39 +536,30 @@ if not showWaterUnits then
 	end
 end
 
-local excludeScavs = true
-if Spring.GetModOptions().experimentalscavuniqueunits then
-	excludeScavs = false
-else
-	local teams = Spring.GetTeamList()
-	for i = 1,#teams do
-		local luaAI = Spring.GetTeamLuaAI(teams[i])
-		if luaAI and luaAI ~= "" and string.sub(luaAI, 1, 12) == 'ScavengersAI' then
-			excludeScavs = true
-			break
-		end
-	end
-end
 
 -- load all icons to prevent briefly showing white unit icons (will happen due to the custom texture filtering options)
+local excludeScavs = not (Spring.Utilities.Gametype.IsScavengers() or Spring.GetModOptions().experimentalscavuniqueunits)
+local excludeChickens = not Spring.Utilities.Gametype.IsChickens()
 local dlistCache
-local function refreshUnitIconCache()
+local function cacheUnitIcons()
 	if dlistCache then
 		dlistCache = gl.DeleteList(dlistCache)
 	end
 	dlistCache = gl.CreateList(function()
 		gl.Color(1, 1, 1, 0.001)
 		for id, unit in pairs(UnitDefs) do
-			if not excludeScavs or string.find(unit.name,'_scav') then
-				if unitBuildPic[id] then
-					gl.Texture(':l:unitpics/' .. unitBuildPic[id])
-					gl.TexRect(-1, -1, 0, 0)
+			if not excludeScavs or not string.find(unit.name,'_scav') then
+				if not excludeChickens or not string.find(unit.name,'chicken') then
+					if unitBuildPic[id] then
+						gl.Texture(':l:unitpics/' .. unitBuildPic[id])
+						gl.TexRect(-1, -1, 0, 0)
+					end
+					if unitIconType[id] and iconTypesMap[unitIconType[id]] then
+						gl.Texture(':l:' .. iconTypesMap[unitIconType[id]])
+						gl.TexRect(-1, -1, 0, 0)
+					end
+					gl.Texture(false)
 				end
-				if unitIconType[id] and iconTypesMap[unitIconType[id]] then
-					gl.Texture(':l:' .. iconTypesMap[unitIconType[id]])
-					gl.TexRect(-1, -1, 0, 0)
-				end
-				gl.Texture(false)
 			end
 		end
 		gl.Color(1, 1, 1, 1)
