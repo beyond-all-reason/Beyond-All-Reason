@@ -36,7 +36,7 @@ include("keysym.h.lua")
 --------------------------------------------------------------------------------
 
 local addall = true
-local immediate = false
+local immediate = true
 local verbose = true
 
 local cutoffDistance = 3500
