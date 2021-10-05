@@ -92,8 +92,7 @@ local tooltipValueRedColor = '\255\255\180\180'
 
 local selectionHowto = tooltipTextColor .. "Left click" .. tooltipLabelTextColor .. ": Select\n " .. tooltipTextColor .. "   + CTRL" .. tooltipLabelTextColor .. ": Select units of this type on map\n " .. tooltipTextColor .. "   + ALT" .. tooltipLabelTextColor .. ": Select 1 single unit of this unit type\n " .. tooltipTextColor .. "Right click" .. tooltipLabelTextColor .. ": Remove\n " .. tooltipTextColor .. "    + CTRL" .. tooltipLabelTextColor .. ": Remove only 1 unit from that unit type\n " .. tooltipTextColor .. "Middle click" .. tooltipLabelTextColor .. ": Move to center location\n " .. tooltipTextColor .. "    + CTRL" .. tooltipLabelTextColor .. ": Move to center off whole selection"
 
-local prevUnitIconSize, prevUnitIconSize2, radarIconSize, prevRadarIconSize, unitIconSize, unitIconSize2, iconTypesMap
-local dlistCache, dlistGuishader, bgpadding, ViewResizeUpdate, texOffset, texSetting, displayMode
+local iconTypesMap, dlistGuishader, bgpadding, ViewResizeUpdate, texOffset, displayMode
 local loadedFontSize, font, font2, font3, cfgDisplayUnitID, rankTextures, chobbyInterface
 local cellRect, cellPadding, cornerSize, cellsize, cellHovered
 local gridHeight, selUnitsSorted, selUnitsCounts, selectionCells, customInfoArea, contentPadding
@@ -101,9 +100,6 @@ local displayUnitID, displayUnitDefID, doUpdateClock, lastHoverDataClock, lastHo
 local contentWidth, dlistInfo, bfcolormap, selUnitTypes
 
 local RectRound, UiElement, UiUnit, elementCorner
-
--------------------------------------------------------------------------------
--------------------------------------------------------------------------------
 
 local spGetCurrentTooltip = Spring.GetCurrentTooltip
 local spGetSelectedUnitsCounts = Spring.GetSelectedUnitsCounts
@@ -225,14 +221,6 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.customParams.paralyzemultiplier then
 		unitDefInfo[unitDefID].paralyzeMult = tonumber(unitDef.customParams.paralyzemultiplier)
 	end
-	--if unitDef.wreckName then
-	--	if FeatureDefNames[unitDef.wreckName] then
-	--		unitDefInfo[unitDefID].unitWreckMetal = FeatureDefNames[unitDef.wreckName].metal
-	--		if FeatureDefNames[unitDef.wreckName].deathFeatureID and FeatureDefs[FeatureDefNames[unitDef.wreckName].deathFeatureID] then
-	--			unitDefInfo[unitDefID].unitHeapMetal = FeatureDefs[FeatureDefNames[unitDef.wreckName].deathFeatureID].metal
-	--		end
-	--	end
-	--end
 	unitDefInfo[unitDefID].armorType = Game.armorTypes[unitDef.armorType or 0] or '???'
 
 	if unitDef.losRadius > 0 then
@@ -370,43 +358,6 @@ local function checkGeothermalFeatures()
 	end
 end
 
-
--- load all icons to prevent briefly showing white unit icons (will happen due to the custom texture filtering options)
-local function cacheUnitIcons()
-	for id, unit in pairs(UnitDefs) do
-		-- delete old cached icon when iconsize changed
-		if prevUnitIconSize and prevUnitIconSize ~= unitIconSize then
-			gl.DeleteTexture(':lr'..prevUnitIconSize..','..prevUnitIconSize..':unitpics/' .. unitDefInfo[id].buildPic)
-			gl.DeleteTexture(':lr'..prevUnitIconSize2..','..prevUnitIconSize2..':unitpics/' .. unitDefInfo[id].buildPic)
-		end
-		if prevRadarIconSize and prevRadarIconSize ~= radarIconSize and unitDefInfo[id].iconType and iconTypesMap[unitDefInfo[id].iconType] then
-			gl.DeleteTexture(':lr' .. (prevRadarIconSize * 2) .. ',' .. (prevRadarIconSize * 2) .. ':' .. iconTypesMap[unitDefInfo[id].iconType])
-		end
-
-		gl.Texture(':lr'..unitIconSize2..','..unitIconSize2..':unitpics/' .. unitDefInfo[id].buildPic)
-		gl.TexRect(-1, -1, 0, 0)
-		gl.Texture(':lr'..unitIconSize..','..unitIconSize..':unitpics/' .. unitDefInfo[id].buildPic)
-		gl.TexRect(-1, -1, 0, 0)
-		if unitDefInfo[id].iconType and iconTypesMap[unitDefInfo[id].iconType] then
-			gl.Texture(':lr' .. (radarIconSize * 2) .. ',' .. (radarIconSize * 2) .. ':' .. iconTypesMap[unitDefInfo[id].iconType])
-			gl.TexRect(-1, -1, 0, 0)
-		end
-		gl.Texture(false)
-	end
-	prevRadarIconSize = radarIconSize
-	prevUnitIconSize = unitIconSize
-	prevUnitIconSize2 = unitIconSize2
-end
-
-local function refreshUnitIconCache()
-	if dlistCache then
-		dlistCache = gl.DeleteList(dlistCache)
-	end
-	dlistCache = gl.CreateList(function()
-		cacheUnitIcons()
-	end)
-end
-
 local function checkGuishader(force)
 	if WG['guishader'] then
 		if force and dlistGuishader then
@@ -452,19 +403,6 @@ function widget:ViewResize()
 
 	doUpdate = true
 	clear()
-
-	radarIconSize = math_floor((height * vsy * 0.11) + 0.5)
-	unitIconSize = math_floor((height * vsy * 0.7) + 0.5)
-	unitIconSize2 = math_floor((height * vsy * 0.35) + 0.5)
-	if radarIconSize > 128 then
-		radarIconSize = 128
-	end
-	if unitIconSize > 256 then
-		unitIconSize = 256
-	end
-	if unitIconSize2 > 256 then
-		unitIconSize2 = 256
-	end
 
 	checkGuishader(true)
 
@@ -565,8 +503,6 @@ function widget:Initialize()
 	for hp = 0, 100 do
 		bfcolormap[hp] = { GetColor(hpcolormap, hp * 0.01) }
 	end
-
-	refreshUnitIconCache()
 end
 
 function clear()
@@ -594,7 +530,6 @@ function widget:Update(dt)
 		if ui_scale ~= Spring.GetConfigFloat("ui_scale", 1) then
 			ui_scale = Spring.GetConfigFloat("ui_scale", 1)
 			widget:ViewResize()
-			refreshUnitIconCache()
 		end
 		if ui_opacity ~= Spring.GetConfigFloat("ui_opacity", 0.6) then
 			ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.6)
@@ -682,7 +617,7 @@ local function drawSelectionCell(cellID, uDefID, usedZoom, highlightColor)
 		1,1,1,1,
 		usedZoom,
 		nil, nil,
-		texSetting .. "unitpics/" .. unitDefInfo[uDefID].buildPic,
+		":l:unitpics/" .. unitDefInfo[uDefID].buildPic,
 		nil,
 		groups[unitGroup[uDefID]]
 	)
@@ -844,9 +779,6 @@ local function drawSelection()
 	if texOffset > 0.25 then
 		texOffset = 0.25
 	end
-	--texDetail = math_floor((cellsize-cellPadding)*(1+texOffset))
-	--texSetting = ':lr'..texDetail..','..texDetail..':'
-	texSetting = cellsize > 38 and ':lr'..unitIconSize..','..unitIconSize..':' or ':lr'..unitIconSize2..','..unitIconSize2..':'
 	local cellID = selUnitTypes
 	for row = 1, rows do
 		for coll = 1, colls do
@@ -886,8 +818,8 @@ local function drawUnitInfo()
 			1, 1, 1, 1,
 			0.03,
 			nil, nil,
-			":lr"..unitIconSize..","..unitIconSize..":unitpics/" .. unitDefInfo[displayUnitDefID].buildPic,
-			((unitDefInfo[displayUnitDefID].iconType and iconTypesMap[unitDefInfo[displayUnitDefID].iconType]) and ':lr' .. (radarIconSize * 2) .. ',' .. (radarIconSize * 2) .. ':' .. iconTypesMap[unitDefInfo[displayUnitDefID].iconType] or nil),
+			":l:unitpics/" .. unitDefInfo[displayUnitDefID].buildPic,
+			((unitDefInfo[displayUnitDefID].iconType and iconTypesMap[unitDefInfo[displayUnitDefID].iconType]) and ':l:' .. iconTypesMap[unitDefInfo[displayUnitDefID].iconType] or nil),
 			groups[unitGroup[displayUnitDefID]],
 			{unitDefInfo[displayUnitDefID].metalCost, unitDefInfo[displayUnitDefID].energyCost}
 		)
@@ -923,15 +855,6 @@ local function drawUnitInfo()
 			end
 		end
 	end
-
-	-- unitID
-	--if displayUnitID then
-	--  local radarIconMargin = math_floor((radarIconSize * 0.3) + 0.5)
-	--  local radarIconSpace = (radarIconMargin+radarIconSize)
-	--  font:Begin()
-	--  font:Print('\255\200\200\200#'..displayUnitID, backgroundRect[3]-radarIconMargin-radarIconSpace, backgroundRect[4]+(fontSize*0.6)-radarIconSpace, fontSize*0.8, "ro")
-	--  font:End()
-	--end
 
 	--if displayUnitID and unitDefInfo[displayUnitDefID].transport then
 	--
@@ -1073,8 +996,8 @@ local function drawUnitInfo()
 						1, 1, 1, 1,
 						0.1,
 						nil, disabled and 0 or nil,
-						":l"..(disabled and 'g' or '').."r"..unitIconSize..","..unitIconSize..":unitpics/" .. unitDefInfo[uDefID].buildPic,
-						((unitDefInfo[uDefID].iconType and iconTypesMap[unitDefInfo[uDefID].iconType]) and ':lr' .. (radarIconSize * 2) .. ',' .. (radarIconSize * 2) .. ':' .. iconTypesMap[unitDefInfo[uDefID].iconType] or nil),
+						":l"..(disabled and 'g' or '')..":unitpics/" .. unitDefInfo[uDefID].buildPic,
+						((unitDefInfo[uDefID].iconType and iconTypesMap[unitDefInfo[uDefID].iconType]) and ':l:' .. iconTypesMap[unitDefInfo[uDefID].iconType] or nil),
 						groups[unitGroup[uDefID]],
 						{unitDefInfo[uDefID].metalCost, unitDefInfo[uDefID].energyCost}
 					)
@@ -1422,7 +1345,6 @@ function widget:DrawScreen()
 
 	if ViewResizeUpdate then
 		ViewResizeUpdate = nil
-		refreshUnitIconCache()
 	end
 	local x, y, b, b2, b3 = spGetMouseState()
 
