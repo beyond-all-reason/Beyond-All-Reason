@@ -67,6 +67,7 @@ AimPrimary(heading, pitch)
 Shot1()
 {
 	hide round;
+	emit-sfx 1024 + 0 from flare;
 	sleep 100;
 	move door to z-axis [-30] speed [180];//-52.5
 	move round to z-axis [-30] now;
