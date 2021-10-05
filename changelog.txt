@@ -46,6 +46,7 @@ Air
  • LLT, HLLT, BEAMER, RL, RAD now transportable with T2/Heavy Transporters
  • Torpedo bombers: Added 800 range radar+sonar, +10% los, -13% max velocity, reduced flight altitude 25%, split main weapon into 3-round burst (500 damage each instead of 1500), Increased cost by 21%
  • Torpedo gunships: Targetting/tracking improvements, +17% los, added 535 range sonar
+ • EMP bomber: 20% slower (still slightly faster than t1 fighters)
 
 Sea
  • Arm and Cor corvette health +25, Cor corvette M cost reduced by 5 (150->145)
