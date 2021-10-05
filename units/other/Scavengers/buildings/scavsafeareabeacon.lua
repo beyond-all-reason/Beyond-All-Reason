@@ -8,7 +8,7 @@ return {
 		buildangle = 8192,
 		buildcostenergy = 100000,
 		buildcostmetal = 10000,
-		buildpic = "scavengers/scavsafeareabeacon.PNG",
+		buildpic = "scavengers/scavsafeareabeacon.DDS",
 		buildtime = 100000,
 		blocking = false,
 		canrepeat = false,

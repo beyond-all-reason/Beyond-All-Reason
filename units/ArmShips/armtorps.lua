@@ -8,7 +8,7 @@ return {
 		buildangle = 16384,
 		buildcostenergy = 3000,
 		buildcostmetal = 300,
-		buildpic = "ARMMLS.PNG",
+		buildpic = "ARMMLS.DDS",
 		buildtime = 2350,
 		canmove = true,
 		category = "ALL WEAPON SHIP NOTSUB NOTAIR NOTHOVER SURFACE EMPABLE",

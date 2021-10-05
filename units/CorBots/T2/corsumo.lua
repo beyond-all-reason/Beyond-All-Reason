@@ -6,7 +6,7 @@ return {
 		brakerate = 0.43125,
 		buildcostenergy = 35000,
 		buildcostmetal = 2200,
-		buildpic = "CORSUMO.PNG",
+		buildpic = "CORSUMO.DDS",
 		buildtime = 50975,
 		canmove = true,
 		category = "BOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",

@@ -12,7 +12,7 @@ return {
 		buildinggrounddecalsizex = 6,
 		buildinggrounddecalsizey = 6,
 		buildinggrounddecaltype = "decals/coradvsol_aoplane.dds",
-		buildpic = "CORADVSOL.PNG",
+		buildpic = "CORADVSOL.DDS",
 		buildtime = 8143,
 		canrepeat = false,
 		category = "ALL NOTSUB NOWEAPON NOTAIR NOTHOVER SURFACE EMPABLE",

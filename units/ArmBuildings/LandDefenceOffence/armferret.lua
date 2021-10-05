@@ -12,7 +12,7 @@ return {
 		buildinggrounddecalsizex = 5,
 		buildinggrounddecalsizey = 5,
 		buildinggrounddecaltype = "decals/armferret_aoplane.dds",
-		buildpic = "ARMFERRET.PNG",
+		buildpic = "ARMFERRET.DDS",
 		buildtime = 5810,
 		canrepeat = false,
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",

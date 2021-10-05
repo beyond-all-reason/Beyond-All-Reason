@@ -7,7 +7,7 @@ return {
 		brakerate = 0.1025,
 		buildcostenergy = 9100,
 		buildcostmetal = 480,
-		buildpic = "CORSEAL.PNG",
+		buildpic = "CORSEAL.DDS",
 		buildtime = 12051,
 		canmove = true,
 		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE CANBEUW EMPABLE",

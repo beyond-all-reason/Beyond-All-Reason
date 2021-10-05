@@ -11,7 +11,7 @@ return {
 		buildinggrounddecalsizex = 5,
 		buildinggrounddecalsizey = 5,
 		buildinggrounddecaltype = "decals/armmg_aoplane.dds",
-		buildpic = "armbeamer.PNG",
+		buildpic = "armbeamer.DDS",
 		buildtime = 7000,
 		canrepeat = false,
 		cantbetransported = false,

@@ -12,7 +12,7 @@ return {
 		buildinggrounddecalsizex = 4,
 		buildinggrounddecalsizey = 4,
 		buildinggrounddecaltype = "decals/armveil_aoplane.dds",
-		buildpic = "ARMVEIL.PNG",
+		buildpic = "ARMVEIL.DDS",
 		buildtime = 9080,
 		canattack = false,
 		canrepeat = false,

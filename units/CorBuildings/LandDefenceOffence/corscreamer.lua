@@ -12,7 +12,7 @@ return {
 		buildinggrounddecalsizex = 6,
 		buildinggrounddecalsizey = 6,
 		buildinggrounddecaltype = "decals/corscreamer_aoplane.dds",
-		buildpic = "CORSCREAMER.PNG",
+		buildpic = "CORSCREAMER.DDS",
 		buildtime = 28000,
 		canrepeat = false,
 		category = "ALL WEAPON NOTSUB NOTAIR NOTHOVER SURFACE EMPABLE",

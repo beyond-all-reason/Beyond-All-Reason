@@ -9,7 +9,7 @@ return {
 		buildcostenergy = 3520,
 		buildcostmetal = 152,
 		builder = false,
-		buildpic = "chickens/chickena1c.PNG",
+		buildpic = "chickens/chickena1c.DDS",
 		buildtime = 7500,
 		canattack = true,
 		canguard = true,

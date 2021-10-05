@@ -12,7 +12,7 @@ return {
 		buildinggrounddecalsizex = 8,
 		buildinggrounddecalsizey = 8,
 		buildinggrounddecaltype = "decals/corageo_aoplane.dds",
-		buildpic = "CORAGEO.PNG",
+		buildpic = "CORAGEO.DDS",
 		buildtime = 32078,
 		canrepeat = false,
 		category = "ALL NOTSUB NOWEAPON NOTAIR NOTHOVER SURFACE EMPABLE",

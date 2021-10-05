@@ -13,7 +13,7 @@ return {
 		buildinggrounddecalsizey = 8,
 		buildinggrounddecaltype = "decals/cormoho_aoplane.dds",
 		buildingmask = 0,
-		buildpic = "CORMOHO.PNG",
+		buildpic = "CORMOHO.DDS",
 		buildtime = 14125,
 		canrepeat = false,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",

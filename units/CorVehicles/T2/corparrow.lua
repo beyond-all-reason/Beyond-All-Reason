@@ -7,7 +7,7 @@ return {
 		brakerate = 0.05321,
 		buildcostenergy = 29000,
 		buildcostmetal = 1050,
-		buildpic = "CORPARROW.PNG",
+		buildpic = "CORPARROW.DDS",
 		buildtime = 22181,
 		canmove = true,
 		category = "ALL TANK PHIB WEAPON NOTSUB NOTAIR NOTHOVER SURFACE CANBEUW EMPABLE",

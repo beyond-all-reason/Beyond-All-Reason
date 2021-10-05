@@ -8,7 +8,7 @@ return {
 		buildangle = 16384,
 		buildcostenergy = 12000,
 		buildcostmetal = 1000,
-		buildpic = "CORARCH.PNG",
+		buildpic = "CORARCH.DDS",
 		buildtime = 15000,
 		canmove = true,
 		category = "ALL MOBILE WEAPON NOTLAND SHIP NOTSUB NOTAIR NOTHOVER SURFACE EMPABLE",

@@ -9,7 +9,7 @@ return {
 		buildcostenergy = 500,
 		buildcostmetal = 50,
 		buildingmask = 0,
-		buildpic = "ARMUWMEX.PNG",
+		buildpic = "ARMUWMEX.DDS",
 		buildtime = 1875,
 		canrepeat = false,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE UNDERWATER EMPABLE",

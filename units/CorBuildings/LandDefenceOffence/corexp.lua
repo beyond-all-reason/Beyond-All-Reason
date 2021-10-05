@@ -13,7 +13,7 @@ return {
 		buildinggrounddecalsizey = 5,
 		buildinggrounddecaltype = "decals/corexp_aoplane.dds",
 		buildingmask = 0,
-		buildpic = "COREXP.PNG",
+		buildpic = "COREXP.DDS",
 		buildtime = 2724,
 		canattack = true,
 		canrepeat = false,

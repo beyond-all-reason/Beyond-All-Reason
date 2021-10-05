@@ -12,7 +12,7 @@ return {
 		buildinggrounddecalsizex = 5,
 		buildinggrounddecalsizey = 5,
 		buildinggrounddecaltype = "decals/cortoast_aoplane.dds",
-		buildpic = "CORTOAST.PNG",
+		buildpic = "CORTOAST.DDS",
 		buildtime = 25717,
 		canrepeat = false,
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",

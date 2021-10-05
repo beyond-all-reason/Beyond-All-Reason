@@ -12,7 +12,7 @@ return {
 		buildinggrounddecalsizex = 5,
 		buildinggrounddecalsizey = 5,
 		buildinggrounddecaltype = "decals/cormadsam_aoplane.dds",
-		buildpic = "CORMADSAM.PNG",
+		buildpic = "CORMADSAM.DDS",
 		buildtime = 5237,
 		canrepeat = false,
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",

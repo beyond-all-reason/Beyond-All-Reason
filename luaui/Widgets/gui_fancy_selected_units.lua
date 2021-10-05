@@ -10,9 +10,6 @@ function widget:GetInfo()
    }
 end
 
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
 local currentRotationAngle			= 0
 local currentRotationAngleOpposite	= 0
 local previousOsClock				= os.clock()
@@ -39,23 +36,6 @@ local maxSelectTime					= 0				--time at which units "new selection" animation w
 local maxDeselectedTime				= -1			--time at which units deselection animation will end
 
 local checkSelectionChanges			= true
-
-local glCallList					= gl.CallList
-local glDrawListAtUnit				= gl.DrawListAtUnit
-
-local spIsUnitSelected				= Spring.IsUnitSelected
-local spGetSelectedUnitsCount		= Spring.GetSelectedUnitsCount
-local spGetSelectedUnitsSorted		= Spring.GetSelectedUnitsSorted
-local spGetUnitTeam					= Spring.GetUnitTeam
-local spLoadCmdColorsConfig			= Spring.LoadCmdColorsConfig
-local spGetUnitDirection			= Spring.GetUnitDirection
-local spGetUnitDefID				= Spring.GetUnitDefID
-local spIsGUIHidden					= Spring.IsGUIHidden
-local spGetTeamColor				= Spring.GetTeamColor
-local spIsUnitVisible				= Spring.IsUnitVisible
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
 
 local OPTIONS = {	-- these will be loaded when switching style, but the style will overwrite the those values
 	showExtraComLine				= true,		-- extra circle lines for the commander unit
@@ -98,16 +78,25 @@ local OPTIONS = {	-- these will be loaded when switching style, but the style wi
 	outersize						= 1.8,
 }
 
-------------------------------------------------------------------------------------
-------------------------------------------------------------------------------------
 
+local glCallList					= gl.CallList
+local glDrawListAtUnit				= gl.DrawListAtUnit
+
+local spIsUnitSelected				= Spring.IsUnitSelected
+local spGetSelectedUnitsCount		= Spring.GetSelectedUnitsCount
+local spGetSelectedUnitsSorted		= Spring.GetSelectedUnitsSorted
+local spGetUnitTeam					= Spring.GetUnitTeam
+local spLoadCmdColorsConfig			= Spring.LoadCmdColorsConfig
+local spGetUnitDirection			= Spring.GetUnitDirection
+local spGetUnitDefID				= Spring.GetUnitDefID
+local spIsGUIHidden					= Spring.IsGUIHidden
+local spGetTeamColor				= Spring.GetTeamColor
+local spIsUnitVisible				= Spring.IsUnitVisible
 
 local function SetupCommandColors(state)
 	spLoadCmdColorsConfig('unitBox  0 1 0 ' .. (state and 1 or 0))
 end
 
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
 
 -- Creating polygons:
 local function CreateDisplayLists(callback)
@@ -120,7 +109,6 @@ local function CreateDisplayLists(callback)
 
 	return displayLists
 end
-
 
 
 local function DrawCircleLine(innersize, outersize)
@@ -421,15 +409,15 @@ function SetUnitConf()
 		name = unitDef.name
 
 
-		if (unitDef.isBuilding or unitDef.isFactory or unitDef.speed==0) then
+		if unitDef.isBuilding or unitDef.isFactory or unitDef.speed==0 then
 			shapeName = 'square'
 			shape = shapes.square
 			xscale, zscale = rectangleFactor * xsize, rectangleFactor * zsize
-		elseif (unitDef.isAirUnit) then
+		elseif unitDef.isAirUnit then
 			shapeName = 'circle'
 			shape = shapes.circle
 			xscale, zscale = scale*0.9, scale*0.9
-		elseif (unitDef.modCategories["ship"]) then
+		elseif unitDef.modCategories["ship"] then
 			shapeName = 'circle'
 			shape = shapes.circle
 			xscale, zscale = scale*0.82, scale*0.82
@@ -662,7 +650,7 @@ do
 						else
 							-- adding style for buildings with weapons
 							if drawUnitStyles and OPTIONS.showExtraBuildingWeaponLine and unit.shapeName == 'square' then
-								if (unit.weaponcount > 0) then
+								if unit.weaponcount > 0 then
 									gl.Color(r,g,b,usedAlpha*(usedAlpha+0.2))
 									usedScale = scale * 1.1
 									glDrawListAtUnit(unitID, unit.shape.select, false, (unit.xscale*usedScale*changedScale)-((unit.xscale*changedScale-10)/7.5), 1.0, (unit.zscale*usedScale*changedScale)-((unit.zscale*changedScale-10)/7.5), usedRotationAngle, 0, degrot[unitID], 0)
@@ -739,7 +727,7 @@ function widget:DrawWorldPreUnit()
 		if animationMultiplierAdd and animationMultiplier < OPTIONS.maxAnimationMultiplier then
 			animationMultiplier = animationMultiplier + addedMultiplierValue
 			animationMultiplierInner = animationMultiplierInner - addedMultiplierValue
-			if (animationMultiplier > OPTIONS.maxAnimationMultiplier) then
+			if animationMultiplier > OPTIONS.maxAnimationMultiplier then
 				animationMultiplier = OPTIONS.maxAnimationMultiplier
 				animationMultiplierInner = OPTIONS.minAnimationMultiplier
 				animationMultiplierAdd = false
@@ -826,11 +814,6 @@ function widget:DrawWorldPreUnit()
 end
 
 
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
--- Config related
-
 function widget:GetConfigData(data)
     return {
 		spotterOpacity = OPTIONS.spotterOpacity,
@@ -844,4 +827,3 @@ function widget:SetConfigData(data)
 	OPTIONS.baseOpacity				= data.baseOpacity				or OPTIONS.baseOpacity
 	OPTIONS.teamcolorOpacity			= data.teamcolorOpacity			or OPTIONS.teamcolorOpacity
 end
-

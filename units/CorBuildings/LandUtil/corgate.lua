@@ -12,7 +12,7 @@ return {
 		buildinggrounddecalsizex = 6,
 		buildinggrounddecalsizey = 6,
 		buildinggrounddecaltype = "decals/corgate_aoplane.dds",
-		buildpic = "CORGATE.PNG",
+		buildpic = "CORGATE.DDS",
 		buildtime = 55000,
 		canattack = false,
 		canrepeat = false,

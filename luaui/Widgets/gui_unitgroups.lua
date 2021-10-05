@@ -171,7 +171,7 @@ local function drawIcon(unitDefID, rect, lightness, zoom, texSize, highlightOpac
 		ceil(backgroundPadding*0.5), 1,1,1,1,
 		zoom,
 		nil, math.max(0.1, highlightOpacity or 0.1),
-		':lr'..texSize..','..texSize..':unitpics/'..unitBuildPic[unitDefID],
+		':l:unitpics/'..unitBuildPic[unitDefID],
 		nil, nil, nil, nil
 	)
 	if highlightOpacity then

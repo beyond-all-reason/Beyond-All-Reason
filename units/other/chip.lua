@@ -5,7 +5,7 @@ return {
 		blocking = true,
 		buildcostenergy = 0,
 		buildcostmetal = 0,
-		buildpic = "other/chip.png",
+		buildpic = "other/chip.dds",
 		buildtime = 255,
 		canattack = false,
 		canmove = true,

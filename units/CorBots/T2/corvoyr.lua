@@ -7,7 +7,7 @@ return {
 		brakerate = 0.05175,
 		buildcostenergy = 1350,
 		buildcostmetal = 99,
-		buildpic = "CORVOYR.PNG",
+		buildpic = "CORVOYR.DDS",
 		buildtime = 3945,
 		canattack = false,
 		canmove = true,

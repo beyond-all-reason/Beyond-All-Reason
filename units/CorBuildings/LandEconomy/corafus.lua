@@ -11,7 +11,7 @@ return {
 		buildinggrounddecalsizex = 9,
 		buildinggrounddecalsizey = 9,
 		buildinggrounddecaltype = "decals/corafus_aoplane.dds",
-		buildpic = "CORAFUS.PNG",
+		buildpic = "CORAFUS.DDS",
 		buildtime = 329243,
 		canrepeat = false,
 		category = "ALL NOTSUB NOWEAPON NOTAIR NOTHOVER SURFACE EMPABLE",

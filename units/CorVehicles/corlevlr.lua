@@ -6,7 +6,7 @@ return {
 		brakerate = 0.03308,
 		buildcostenergy = 2600,
 		buildcostmetal = 220,
-		buildpic = "CORLEVLR.PNG",
+		buildpic = "CORLEVLR.DDS",
 		buildtime = 3009,
 		canmove = true,
 		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",

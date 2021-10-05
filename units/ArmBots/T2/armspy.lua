@@ -9,7 +9,7 @@ return {
 		buildcostmetal = 135,
 		builddistance = 136,
 		builder = true,
-		buildpic = "ARMSPY.PNG",
+		buildpic = "ARMSPY.DDS",
 		buildtime = 17631,
 		canassist = false,
 		canguard = false,

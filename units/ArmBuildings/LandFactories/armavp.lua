@@ -12,7 +12,7 @@ return {
 		buildinggrounddecalsizex = 8.35,
 		buildinggrounddecalsizey = 8.35,
 		buildinggrounddecaltype = "decals/armavp_aoplane.dds",
-		buildpic = "ARMAVP.PNG",
+		buildpic = "ARMAVP.DDS",
 		buildtime = 17940,
 		canmove = true,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",

@@ -6,7 +6,7 @@ return {
 		brakerate = 0.13939,
 		buildcostenergy = 3700,
 		buildcostmetal = 230,
-		buildpic = "ARMGREMLIN.PNG",
+		buildpic = "ARMGREMLIN.DDS",
 		buildtime = 6704,
 		canmove = true,
 		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",

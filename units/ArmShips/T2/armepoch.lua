@@ -8,7 +8,7 @@ return {
 		buildangle = 16384,
 		buildcostenergy = 158000,
 		buildcostmetal = 17000,
-		buildpic = "ARMEPOCH.PNG",
+		buildpic = "ARMEPOCH.DDS",
 		buildtime = 169800,
 		canmove = true,
 		canattackground = true,

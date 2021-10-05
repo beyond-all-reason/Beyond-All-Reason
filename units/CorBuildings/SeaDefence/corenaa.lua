@@ -9,7 +9,7 @@ return {
 		buildangle = 16384,
 		buildcostenergy = 25000,
 		buildcostmetal = 890,
-		buildpic = "CORENAA.PNG",
+		buildpic = "CORENAA.DDS",
 		buildtime = 23129,
 		canrepeat = false,
 		category = "ALL WEAPON NOTSUB NOTAIR NOTHOVER SURFACE EMPABLE",

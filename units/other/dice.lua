@@ -5,7 +5,7 @@ return {
 		blocking = true,
 		buildcostenergy = 0,
 		buildcostmetal = 0,
-		buildpic = "other/dice.png",
+		buildpic = "other/dice.dds",
 		buildtime = 255,
 		canattack = false,
 		canmove = true,

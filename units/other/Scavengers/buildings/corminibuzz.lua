@@ -11,7 +11,7 @@ return {
 		buildinggrounddecalsizex = 11,
 		buildinggrounddecalsizey = 11,
 		buildinggrounddecaltype = "decals/corbuzz_aoplane.dds",
-		buildpic = "CORMINIBUZZ.PNG",
+		buildpic = "CORMINIBUZZ.DDS",
 		buildtime = 65000,
 		canrepeat = false,
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",

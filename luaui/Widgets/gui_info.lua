@@ -10,7 +10,6 @@ function widget:GetInfo()
 	}
 end
 
-local teamcolorRadarIcon = false
 local width = 0
 local height = 0
 
@@ -19,9 +18,6 @@ local defaultCellZoom = 0 * zoomMult
 local rightclickCellZoom = 0.065 * zoomMult
 local clickCellZoom = 0.065 * zoomMult
 local hoverCellZoom = 0.03 * zoomMult
-
-local iconBorderOpacity = 0.1
-local showSelectionTotals = true
 
 local texts = {        -- fallback (if you want to change this, also update: language/en.lua, or it will be overwritten)
 	selectedunits = 'Selected units',
@@ -71,9 +67,6 @@ local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold
 
 local vsx, vsy = Spring.GetViewGeometry()
 
-local barGlowCenterTexture = ":l:LuaUI/Images/barglow-center.png"
-local barGlowEdgeTexture = ":l:LuaUI/Images/barglow-edge.png"
-
 local hoverType, hoverData = '', ''
 local sound_button = 'LuaUI/Sounds/buildbar_add.wav'
 local sound_button2 = 'LuaUI/Sounds/buildbar_rem.wav'
@@ -92,23 +85,21 @@ local tooltipTitleColor = '\255\205\255\205'
 local tooltipTextColor = '\255\255\255\255'
 local tooltipLabelTextColor = '\255\200\200\200'
 local tooltipDarkTextColor = '\255\133\133\133'
-local tooltipValueColor = '\255\255\245\175'
+local tooltipValueColor = '\255\255\255\255'
 local tooltipValueWhiteColor = '\255\255\255\255'
 local tooltipValueYellowColor = '\255\255\235\175'
 local tooltipValueRedColor = '\255\255\180\180'
 
 local selectionHowto = tooltipTextColor .. "Left click" .. tooltipLabelTextColor .. ": Select\n " .. tooltipTextColor .. "   + CTRL" .. tooltipLabelTextColor .. ": Select units of this type on map\n " .. tooltipTextColor .. "   + ALT" .. tooltipLabelTextColor .. ": Select 1 single unit of this unit type\n " .. tooltipTextColor .. "Right click" .. tooltipLabelTextColor .. ": Remove\n " .. tooltipTextColor .. "    + CTRL" .. tooltipLabelTextColor .. ": Remove only 1 unit from that unit type\n " .. tooltipTextColor .. "Middle click" .. tooltipLabelTextColor .. ": Move to center location\n " .. tooltipTextColor .. "    + CTRL" .. tooltipLabelTextColor .. ": Move to center off whole selection"
 
-local prevUnitIconSize, prevUnitIconSize2, radarIconSize, prevRadarIconSize, unitIconSize, unitIconSize2, iconTypesMap
-local dlistCache, dlistGuishader, bgpadding, ViewResizeUpdate, texOffset, texSetting, displayMode
+local iconTypesMap, dlistGuishader, bgpadding, ViewResizeUpdate, texOffset, displayMode
 local loadedFontSize, font, font2, font3, cfgDisplayUnitID, rankTextures, chobbyInterface
-local texSetting, cellRect, cellPadding, cornerSize, cellsize, cellHovered
+local cellRect, cellPadding, cornerSize, cellsize, cellHovered
 local gridHeight, selUnitsSorted, selUnitsCounts, selectionCells, customInfoArea, contentPadding
 local displayUnitID, displayUnitDefID, doUpdateClock, lastHoverDataClock, lastHoverData
 local contentWidth, dlistInfo, bfcolormap, selUnitTypes
 
--------------------------------------------------------------------------------
--------------------------------------------------------------------------------
+local RectRound, UiElement, UiUnit, elementCorner
 
 local spGetCurrentTooltip = Spring.GetCurrentTooltip
 local spGetSelectedUnitsCounts = Spring.GetSelectedUnitsCounts
@@ -131,7 +122,6 @@ local spGetUnitMetalExtraction = Spring.GetUnitMetalExtraction
 local spGetUnitStates = Spring.GetUnitStates
 local spGetUnitStockpile = Spring.GetUnitStockpile
 local spGetUnitWeaponState = Spring.GetUnitWeaponState
-local spGetUnitWeaponDamages = Spring.GetUnitWeaponDamages
 
 local math_floor = math.floor
 local math_ceil = math.ceil
@@ -144,19 +134,13 @@ local isSpec = Spring.GetSpectatingState()
 local myTeamID = Spring.GetMyTeamID()
 
 local GL_QUADS = GL.QUADS
-local GL_TRIANGLE_FAN = GL.TRIANGLE_FAN
-local glBeginEnd = gl.BeginEnd
 local glTexture = gl.Texture
 local glTexRect = gl.TexRect
 local glColor = gl.Color
-local glRect = gl.Rect
-local glVertex = gl.Vertex
 local glBlending = gl.Blending
 local GL_SRC_ALPHA = GL.SRC_ALPHA
 local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 local GL_ONE = GL.ONE
-
-local RectRound, UiElement, UiUnit, elementCorner
 
 local function toLines(str)
 	local t = {}
@@ -165,29 +149,6 @@ local function toLines(str)
 		return ""
 	end
 	helper((str:gsub("(.-)\r?\n", helper)))
-	return t
-end
-
-local function wrap(str, limit)
-	limit = limit or 72
-	local here = 1
-	local buf = ""
-	local t = {}
-	str:gsub("(%s*)()(%S+)()",
-		function(sp, st, word, fi)
-			if fi - here > limit then
-				--# Break the line
-				here = st
-				t[#t + 1] = buf
-				buf = word
-			else
-				buf = buf .. sp .. word  --# Append
-			end
-		end)
-	--# Tack on any leftovers
-	if (buf ~= "") then
-		t[#t + 1] = buf
-	end
 	return t
 end
 
@@ -260,14 +221,6 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.customParams.paralyzemultiplier then
 		unitDefInfo[unitDefID].paralyzeMult = tonumber(unitDef.customParams.paralyzemultiplier)
 	end
-	--if unitDef.wreckName then
-	--	if FeatureDefNames[unitDef.wreckName] then
-	--		unitDefInfo[unitDefID].unitWreckMetal = FeatureDefNames[unitDef.wreckName].metal
-	--		if FeatureDefNames[unitDef.wreckName].deathFeatureID and FeatureDefs[FeatureDefNames[unitDef.wreckName].deathFeatureID] then
-	--			unitDefInfo[unitDefID].unitHeapMetal = FeatureDefs[FeatureDefNames[unitDef.wreckName].deathFeatureID].metal
-	--		end
-	--	end
-	--end
 	unitDefInfo[unitDefID].armorType = Game.armorTypes[unitDef.armorType or 0] or '???'
 
 	if unitDef.losRadius > 0 then
@@ -405,43 +358,6 @@ local function checkGeothermalFeatures()
 	end
 end
 
-
--- load all icons to prevent briefly showing white unit icons (will happen due to the custom texture filtering options)
-local function cacheUnitIcons()
-	for id, unit in pairs(UnitDefs) do
-		-- delete old cached icon when iconsize changed
-		if prevUnitIconSize and prevUnitIconSize ~= unitIconSize then
-			gl.DeleteTexture(':lr'..prevUnitIconSize..','..prevUnitIconSize..':unitpics/' .. unitDefInfo[id].buildPic)
-			gl.DeleteTexture(':lr'..prevUnitIconSize2..','..prevUnitIconSize2..':unitpics/' .. unitDefInfo[id].buildPic)
-		end
-		if prevRadarIconSize and prevRadarIconSize ~= radarIconSize and unitDefInfo[id].iconType and iconTypesMap[unitDefInfo[id].iconType] then
-			gl.DeleteTexture(':lr' .. (prevRadarIconSize * 2) .. ',' .. (prevRadarIconSize * 2) .. ':' .. iconTypesMap[unitDefInfo[id].iconType])
-		end
-
-		gl.Texture(':lr'..unitIconSize2..','..unitIconSize2..':unitpics/' .. unitDefInfo[id].buildPic)
-		gl.TexRect(-1, -1, 0, 0)
-		gl.Texture(':lr'..unitIconSize..','..unitIconSize..':unitpics/' .. unitDefInfo[id].buildPic)
-		gl.TexRect(-1, -1, 0, 0)
-		if unitDefInfo[id].iconType and iconTypesMap[unitDefInfo[id].iconType] then
-			gl.Texture(':lr' .. (radarIconSize * 2) .. ',' .. (radarIconSize * 2) .. ':' .. iconTypesMap[unitDefInfo[id].iconType])
-			gl.TexRect(-1, -1, 0, 0)
-		end
-		gl.Texture(false)
-	end
-	prevRadarIconSize = radarIconSize
-	prevUnitIconSize = unitIconSize
-	prevUnitIconSize2 = unitIconSize2
-end
-
-local function refreshUnitIconCache()
-	if dlistCache then
-		dlistCache = gl.DeleteList(dlistCache)
-	end
-	dlistCache = gl.CreateList(function()
-		cacheUnitIcons()
-	end)
-end
-
 local function checkGuishader(force)
 	if WG['guishader'] then
 		if force and dlistGuishader then
@@ -487,19 +403,6 @@ function widget:ViewResize()
 
 	doUpdate = true
 	clear()
-
-	radarIconSize = math_floor((height * vsy * 0.11) + 0.5)
-	unitIconSize = math_floor((height * vsy * 0.7) + 0.5)
-	unitIconSize2 = math_floor((height * vsy * 0.35) + 0.5)
-	if radarIconSize > 128 then
-		radarIconSize = 128
-	end
-	if unitIconSize > 256 then
-		unitIconSize = 256
-	end
-	if unitIconSize2 > 256 then
-		unitIconSize2 = 256
-	end
 
 	checkGuishader(true)
 
@@ -600,8 +503,6 @@ function widget:Initialize()
 	for hp = 0, 100 do
 		bfcolormap[hp] = { GetColor(hpcolormap, hp * 0.01) }
 	end
-
-	refreshUnitIconCache()
 end
 
 function clear()
@@ -629,7 +530,6 @@ function widget:Update(dt)
 		if ui_scale ~= Spring.GetConfigFloat("ui_scale", 1) then
 			ui_scale = Spring.GetConfigFloat("ui_scale", 1)
 			widget:ViewResize()
-			refreshUnitIconCache()
 		end
 		if ui_opacity ~= Spring.GetConfigFloat("ui_opacity", 0.6) then
 			ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.6)
@@ -705,90 +605,6 @@ function IsOnRect(x, y, BLcornerX, BLcornerY, TRcornerX, TRcornerY)
 	return x >= BLcornerX and x <= TRcornerX and y >= BLcornerY and y <= TRcornerY
 end
 
-local function RectQuad(px, py, sx, sy, offset)
-	gl.TexCoord(offset, 1 - offset)
-	gl.Vertex(px, py, 0)
-	gl.TexCoord(1 - offset, 1 - offset)
-	gl.Vertex(sx, py, 0)
-	gl.TexCoord(1 - offset, offset)
-	gl.Vertex(sx, sy, 0)
-	gl.TexCoord(offset, offset)
-	gl.Vertex(px, sy, 0)
-end
-function DrawRect(px, py, sx, sy, zoom)
-	gl.BeginEnd(GL.QUADS, RectQuad, px, py, sx, sy, zoom)
-end
-
-local function DrawTexRectRound(px, py, sx, sy, cs, tl, tr, br, bl, offset)
-	local csyMult = 1 / ((sy - py) / cs)
-
-	local function drawTexCoordVertex(x, y)
-		local yc = 1 - ((y - py) / (sy - py))
-		local xc = (offset * 0.5) + ((x - px) / (sx - px)) + (-offset * ((x - px) / (sx - px)))
-		yc = 1 - (offset * 0.5) - ((y - py) / (sy - py)) + (offset * ((y - py) / (sy - py)))
-		gl.TexCoord(xc, yc)
-		gl.Vertex(x, y, 0)
-	end
-
-	-- mid section
-	drawTexCoordVertex(px + cs, py)
-	drawTexCoordVertex(sx - cs, py)
-	drawTexCoordVertex(sx - cs, sy)
-	drawTexCoordVertex(px + cs, sy)
-
-	-- left side
-	drawTexCoordVertex(px, py + cs)
-	drawTexCoordVertex(px + cs, py + cs)
-	drawTexCoordVertex(px + cs, sy - cs)
-	drawTexCoordVertex(px, sy - cs)
-
-	-- right side
-	drawTexCoordVertex(sx, py + cs)
-	drawTexCoordVertex(sx - cs, py + cs)
-	drawTexCoordVertex(sx - cs, sy - cs)
-	drawTexCoordVertex(sx, sy - cs)
-
-	-- bottom left
-	if ((py <= 0 or px <= 0) or (bl ~= nil and bl == 0)) and bl ~= 2 then
-		drawTexCoordVertex(px, py)
-	else
-		drawTexCoordVertex(px + cs, py)
-	end
-	drawTexCoordVertex(px + cs, py)
-	drawTexCoordVertex(px + cs, py + cs)
-	drawTexCoordVertex(px, py + cs)
-	-- bottom right
-	if ((py <= 0 or sx >= vsx) or (br ~= nil and br == 0)) and br ~= 2 then
-		drawTexCoordVertex(sx, py)
-	else
-		drawTexCoordVertex(sx - cs, py)
-	end
-	drawTexCoordVertex(sx - cs, py)
-	drawTexCoordVertex(sx - cs, py + cs)
-	drawTexCoordVertex(sx, py + cs)
-	-- top left
-	if ((sy >= vsy or px <= 0) or (tl ~= nil and tl == 0)) and tl ~= 2 then
-		drawTexCoordVertex(px, sy)
-	else
-		drawTexCoordVertex(px + cs, sy)
-	end
-	drawTexCoordVertex(px + cs, sy)
-	drawTexCoordVertex(px + cs, sy - cs)
-	drawTexCoordVertex(px, sy - cs)
-	-- top right
-	if ((sy >= vsy or sx >= vsx) or (tr ~= nil and tr == 0)) and tr ~= 2 then
-		drawTexCoordVertex(sx, sy)
-	else
-		drawTexCoordVertex(sx - cs, sy)
-	end
-	drawTexCoordVertex(sx - cs, sy)
-	drawTexCoordVertex(sx - cs, sy - cs)
-	drawTexCoordVertex(sx, sy - cs)
-end
-function TexRectRound(px, py, sx, sy, cs, tl, tr, br, bl, zoom)
-	gl.BeginEnd(GL.QUADS, DrawTexRectRound, px, py, sx, sy, cs, tl, tr, br, bl, zoom)
-end
-
 local function drawSelectionCell(cellID, uDefID, usedZoom, highlightColor)
 	if not usedZoom then
 		usedZoom = defaultCellZoom
@@ -801,7 +617,7 @@ local function drawSelectionCell(cellID, uDefID, usedZoom, highlightColor)
 		1,1,1,1,
 		usedZoom,
 		nil, nil,
-		texSetting .. "unitpics/" .. unitDefInfo[uDefID].buildPic,
+		":l:unitpics/" .. unitDefInfo[uDefID].buildPic,
 		nil,
 		groups[unitGroup[uDefID]]
 	)
@@ -816,13 +632,6 @@ local function drawSelectionCell(cellID, uDefID, usedZoom, highlightColor)
 end
 
 local function getSelectionTotals(cells)
-	local descriptionColor = '\255\240\240\240'
-	local metalColor = '\255\245\245\245'
-	local energyColor = '\255\255\255\000'
-	local healthColor = '\255\100\255\100'
-
-	local labelColor = '\255\205\205\205'
-	local valueColor = '\255\255\255\255'
 	local valuePlusColor = '\255\180\255\180'
 	local valueMinColor = '\255\255\180\180'
 
@@ -895,8 +704,7 @@ local function getSelectionTotals(cells)
 	totalMaxHealthValue = math_floor(totalMaxHealthValue)
 	if totalMaxHealthValue > 0 then
 		totalHealth = math_floor(totalHealth)
-		local percentage = math_floor((totalHealth / totalMaxHealthValue) * 100)
-		stats = stats .. '\n' .. statsIndent .. tooltipLabelTextColor .. texts.health..": " .. tooltipValueColor .. percentage .. "%"
+		stats = stats .. '\n' .. statsIndent .. tooltipLabelTextColor .. texts.health..": " .. tooltipValueColor .. math_floor((totalHealth / totalMaxHealthValue) * 100) .. "%"
 		stats = stats .. "\n" .. tooltipDarkTextColor .. " (" ..tooltipLabelTextColor .. totalHealth .. tooltipDarkTextColor .. ' '..texts.of..' ' .. tooltipLabelTextColor .. totalMaxHealthValue .. tooltipDarkTextColor .. ")"
 	end
 
@@ -931,16 +739,14 @@ local function drawSelection()
 	end
 
 	-- draw selection totals
-	if showSelectionTotals then
-		local numLines
-		local stats = getSelectionTotals(selectionCells)
-		local text = tooltipTextColor .. #selectedUnits .. tooltipLabelTextColor .. " "..texts.unitsselected .. stats .. "\n " .. (stats == '' and '' or '\n')
-		local fontSize = (height * vsy * 0.11) * (0.95 - ((1 - ui_scale) * 0.5))
-		text, numLines = font:WrapText(text, contentWidth * (loadedFontSize / fontSize))
-		font:Begin()
-		font:Print(text, backgroundRect[1] + (bgpadding*1.6), backgroundRect[4] - (bgpadding*2.4) - (fontSize * 0.8), fontSize, "o")
-		font:End()
-	end
+	local numLines
+	local stats = getSelectionTotals(selectionCells)
+	local text = tooltipTextColor .. #selectedUnits .. tooltipLabelTextColor .. " "..texts.unitsselected .. stats .. "\n " .. (stats == '' and '' or '\n')
+	local fontSize = (height * vsy * 0.11) * (0.95 - ((1 - ui_scale) * 0.5))
+	text, numLines = font:WrapText(text, contentWidth * (loadedFontSize / fontSize))
+	font:Begin()
+	font:Print(text, backgroundRect[1] + (bgpadding*1.6), backgroundRect[4] - (bgpadding*2.4) - (fontSize * 0.8), fontSize, "o")
+	font:End()
 
 	-- selected units grid area
 	local gridWidth = math_floor((backgroundRect[3] - backgroundRect[1] - bgpadding) * 0.7)  -- leaving some room for the totals
@@ -973,9 +779,6 @@ local function drawSelection()
 	if texOffset > 0.25 then
 		texOffset = 0.25
 	end
-	--texDetail = math_floor((cellsize-cellPadding)*(1+texOffset))
-	--texSetting = ':lr'..texDetail..','..texDetail..':'
-	texSetting = cellsize > 38 and ':lr'..unitIconSize..','..unitIconSize..':' or ':lr'..unitIconSize2..','..unitIconSize2..':'
 	local cellID = selUnitTypes
 	for row = 1, rows do
 		for coll = 1, colls do
@@ -1015,8 +818,8 @@ local function drawUnitInfo()
 			1, 1, 1, 1,
 			0.03,
 			nil, nil,
-			":lr"..unitIconSize..","..unitIconSize..":unitpics/" .. unitDefInfo[displayUnitDefID].buildPic,
-			((unitDefInfo[displayUnitDefID].iconType and iconTypesMap[unitDefInfo[displayUnitDefID].iconType]) and ':lr' .. (radarIconSize * 2) .. ',' .. (radarIconSize * 2) .. ':' .. iconTypesMap[unitDefInfo[displayUnitDefID].iconType] or nil),
+			":l:unitpics/" .. unitDefInfo[displayUnitDefID].buildPic,
+			((unitDefInfo[displayUnitDefID].iconType and iconTypesMap[unitDefInfo[displayUnitDefID].iconType]) and ':l:' .. iconTypesMap[unitDefInfo[displayUnitDefID].iconType] or nil),
 			groups[unitGroup[displayUnitDefID]],
 			{unitDefInfo[displayUnitDefID].metalCost, unitDefInfo[displayUnitDefID].energyCost}
 		)
@@ -1033,21 +836,6 @@ local function drawUnitInfo()
 
 	local dps, metalExtraction, stockpile, maxRange, exp, metalMake, metalUse, energyMake, energyUse
 	local text, unitDescriptionLines = font:WrapText(unitDefInfo[displayUnitDefID].tooltip, (contentWidth - iconSize) * (loadedFontSize / fontSize))
-
-	--local radarIconMargin = math_floor((radarIconSize * 0.3) + 0.5)
-	--if unitDefInfo[displayUnitDefID].iconType and iconTypesMap[unitDefInfo[displayUnitDefID].iconType] then
-	--	if teamcolorRadarIcon and displayUnitID then
-	--		local teamID = Spring.GetUnitTeam(displayUnitID)
-	--		local r,g,b = Spring.GetTeamColor(teamID)
-	--		glColor(r,g,b, 1)
-	--	else
-	--		glColor(1, 1, 1, 0.88)
-	--	end
-	--	glTexture(':lr' .. (radarIconSize * 2) .. ',' .. (radarIconSize * 2) .. ':' .. iconTypesMap[unitDefInfo[displayUnitDefID].iconType])
-	--	glTexRect(backgroundRect[3] - radarIconMargin - radarIconSize, backgroundRect[4] - radarIconMargin - radarIconSize, backgroundRect[3] - radarIconMargin, backgroundRect[4] - radarIconMargin)
-	--	glTexture(false)
-	--	glColor(1, 1, 1, 1)
-	--end
 
 	if displayUnitID then
 		exp = spGetUnitExperience(displayUnitID)
@@ -1068,14 +856,10 @@ local function drawUnitInfo()
 		end
 	end
 
-	-- unitID
-	--if displayUnitID then
-	--  local radarIconSpace = (radarIconMargin+radarIconSize)
-	--  font:Begin()
-	--  font:Print('\255\200\200\200#'..displayUnitID, backgroundRect[3]-radarIconMargin-radarIconSpace, backgroundRect[4]+(fontSize*0.6)-radarIconSpace, fontSize*0.8, "ro")
-	--  font:End()
+	--if displayUnitID and unitDefInfo[displayUnitDefID].transport then
+	--
+	--
 	--end
-
 
 	local unitNameColor = '\255\205\255\205'
 	if SelectedUnitsCount > 0 then
@@ -1124,7 +908,6 @@ local function drawUnitInfo()
 	end
 
 	local contentPaddingLeft = contentPadding * 0.6
-	local texPosY = backgroundRect[4] - iconSize - (contentPadding * 0.64)
 	local texSize = fontSize * 0.6
 
 	local leftSideHeight = (backgroundRect[4] - backgroundRect[2]) * 0.47
@@ -1132,9 +915,7 @@ local function drawUnitInfo()
 	local posY2 = math_floor(backgroundRect[2] + leftSideHeight) - contentPadding - ((math_floor(backgroundRect[2] + leftSideHeight) - math_floor(backgroundRect[2])) * 0.38)
 	local posY3 = math_floor(backgroundRect[2] + leftSideHeight) - contentPadding - ((math_floor(backgroundRect[2] + leftSideHeight) - math_floor(backgroundRect[2])) * 0.67)
 
-	local valueY1 = ''
-	local valueY2 = ''
-	local valueY3 = ''
+	local valueY1, valueY2, valueY3 = '', '', ''
 	local health, maxHealth, _, _, buildProgress
 	if displayUnitID then
 		local metalMake, metalUse, energyMake, energyUse = spGetUnitResources(displayUnitID)
@@ -1147,11 +928,6 @@ local function drawUnitInfo()
 		-- display health value/bar
 		health, maxHealth, _, _, buildProgress = spGetUnitHealth(displayUnitID)
 		if health then
-			local healthBarWidth = (backgroundRect[3] - backgroundRect[1]) * 0.15
-			local healthBarHeight = healthBarWidth * 0.1
-			local healthBarMargin = healthBarHeight * 0.7
-			local healthBarPadding = healthBarHeight * 0.15
-			local healthValueWidth = (healthBarWidth - healthBarPadding) * (health / maxHealth)
 			local color = bfcolormap[math_min(math_max(math_floor((health / maxHealth) * 100), 0), 100)]
 			valueY3 = convertColor(color[1], color[2], color[3]) .. math_floor(health)
 		end
@@ -1198,8 +974,8 @@ local function drawUnitInfo()
 			colls = math_ceil(#unitDefInfo[displayUnitDefID].buildOptions / rows)
 			cellsize = math_floor((math_min(width / colls, gridHeight / rows)) + 0.5)
 		end
-		-- draw grid (bottom right to top left)
 
+		-- draw grid (bottom right to top left)
 		local cellID = #unitDefInfo[displayUnitDefID].buildOptions
 		cellPadding = math_floor((cellsize * 0.022) + 0.5)
 		cellRect = {}
@@ -1209,54 +985,22 @@ local function drawUnitInfo()
 					local uDefID = unitDefInfo[displayUnitDefID].buildOptions[cellID]
 					cellRect[cellID] = { math_floor(customInfoArea[3] - cellPadding - (coll * cellsize)), math_floor(customInfoArea[2] + cellPadding + ((row - 1) * cellsize)), math_floor(customInfoArea[3] - cellPadding - ((coll - 1) * cellsize)), math_floor(customInfoArea[2] + cellPadding + ((row) * cellsize)) }
 					local disabled = (unitRestricted[uDefID] or unitDisabled[uDefID])
-					glColor(0.9, 0.9, 0.9, disabled and 0.45 or 1)
-					glTexture(":l"..(disabled and "g" or "").."r"..unitIconSize..","..unitIconSize..":unitpics/" .. unitDefInfo[uDefID].buildPic)
-					--glTexRect(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3]-cellPadding, cellRect[cellID][4]-cellPadding)
-					--DrawRect(cellRect[cellID][1]+cellPadding, cellRect[cellID][2]+cellPadding, cellRect[cellID][3]-cellPadding, cellRect[cellID][4]-cellPadding,0.06)
-					TexRectRound(cellRect[cellID][1] + cellPadding, cellRect[cellID][2] + cellPadding, cellRect[cellID][3], cellRect[cellID][4], cellPadding * 1.3, 1, 1, 1, 1, 0.11)
-					glTexture(false)
-					-- darkening bottom
-					RectRound(cellRect[cellID][1] + cellPadding, cellRect[cellID][2] + cellPadding, cellRect[cellID][3], cellRect[cellID][4], cellPadding * 1.3, 0, 0, 1, 1, { 0, 0, 0, 0.1 }, { 0, 0, 0, 0 })
-					-- gloss
-					glBlending(GL_SRC_ALPHA, GL_ONE)
-					RectRound(cellRect[cellID][1] + cellPadding, cellRect[cellID][4] - cellPadding - ((cellRect[cellID][4] - cellRect[cellID][2]) * 0.77), cellRect[cellID][3], cellRect[cellID][4], cellPadding * 1.3, 1, 1, 0, 0, { 1, 1, 1, 0 }, { 1, 1, 1, 0.06 })
-					RectRound(cellRect[cellID][1] + cellPadding, cellRect[cellID][2] + cellPadding, cellRect[cellID][3], cellRect[cellID][2] + cellPadding + ((cellRect[cellID][4] - cellRect[cellID][2]) * 0.18), cellPadding * 1.3, 0, 0, 1, 1, { 1, 1, 1, 0.04 }, { 1, 1, 1, 0 })
---
-					local halfSize = (((cellRect[cellID][3] - cellPadding)) - (cellRect[cellID][1])) * 0.5
-					RectRoundCircle(
-						cellRect[cellID][1] + cellPadding + halfSize,
-						0,
-						cellRect[cellID][2] + cellPadding + halfSize,
-						halfSize, cellPadding * 1.3, halfSize - math_max(1, cellPadding), { 1, 1, 1, iconBorderOpacity }, { 1, 1, 1, iconBorderOpacity }
-					)
-					glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
---
-					-- group icon
-					if unitGroup[uDefID] then
-						local size = math.floor((halfSize + halfSize) * 0.33)
-						glColor(1, 1, 1, disabled and 0.4 or 0.9)
-						glTexture(groups[unitGroup[uDefID]])
-						glTexRect(cellRect[cellID][1] + cellPadding, cellRect[cellID][4] - size, cellRect[cellID][1] + size + cellPadding, cellRect[cellID][4])
-						glTexture(false)
+					if disabled then
+						glColor(0.4, 0.4, 0.4, 1)
+					else
+						glColor(1,1,1,1)
 					end
-
-					--local disabled = (unitRestricted[uDefID] or unitDisabled[uDefID])
-					--if disabled then
-					--	glColor(0.4, 0.4, 0.4, 1)
-					--else
-					--	glColor(1,1,1,1)
-					--end
-					--UiUnit(
-					--	cellRect[cellID][1], cellRect[cellID][2], cellRect[cellID][3], cellRect[cellID][4],
-					--	nil,
-					--	1, 1, 1, 1,
-					--	0.03,
-					--	nil, disabled and 0 or nil,
-					--	":l"..(disabled and 'g' or '').."r"..unitIconSize..","..unitIconSize..":unitpics/" .. unitDefInfo[uDefID].buildPic,
-					--	((unitDefInfo[uDefID].iconType and iconTypesMap[unitDefInfo[uDefID].iconType]) and ':lr' .. (radarIconSize * 2) .. ',' .. (radarIconSize * 2) .. ':' .. iconTypesMap[unitDefInfo[uDefID].iconType] or nil),
-					--	groups[unitGroup[uDefID]],
-					--	{unitDefInfo[uDefID].metalCost, unitDefInfo[uDefID].energyCost}
-					--)
+					UiUnit(
+						cellRect[cellID][1] + cellPadding, cellRect[cellID][2] + cellPadding, cellRect[cellID][3], cellRect[cellID][4],
+						cellPadding * 1.3,
+						1, 1, 1, 1,
+						0.1,
+						nil, disabled and 0 or nil,
+						":l"..(disabled and 'g' or '')..":unitpics/" .. unitDefInfo[uDefID].buildPic,
+						((unitDefInfo[uDefID].iconType and iconTypesMap[unitDefInfo[uDefID].iconType]) and ':l:' .. iconTypesMap[unitDefInfo[uDefID].iconType] or nil),
+						groups[unitGroup[uDefID]],
+						{unitDefInfo[uDefID].metalCost, unitDefInfo[uDefID].energyCost}
+					)
 				end
 				cellID = cellID - 1
 				if cellID <= 0 then
@@ -1518,7 +1262,6 @@ end
 
 local function MiddleMouseButton(unitDefID, unitTable)
 	local alt, ctrl, meta, shift = spGetModKeyState()
-	-- center the view
 	if ctrl then
 		-- center the view on the entire selection
 		Spring.SendCommands({ "viewselection" })
@@ -1533,6 +1276,7 @@ end
 
 local function RightMouseButton(unitDefID, unitTable)
 	local alt, ctrl, meta, shift = spGetModKeyState()
+
 	-- remove selected units of icon type
 	local map = {}
 	for i = 1, #selectedUnits do
@@ -1541,8 +1285,8 @@ local function RightMouseButton(unitDefID, unitTable)
 	for _, uid in ipairs(unitTable) do
 		map[uid] = nil
 		if ctrl then
-			break
-		end -- only remove 1 unit
+			break -- only remove 1 unit
+		end
 	end
 	spSelectUnitMap(map)
 	Spring.PlaySoundFile(sound_button2, 0.5, 'ui')
@@ -1565,23 +1309,6 @@ function widget:MouseRelease(x, y, button)
 		if selectionCells and selectionCells[1] and cellRect then
 			for cellID, unitDefID in pairs(selectionCells) do
 				if cellRect[cellID] and IsOnRect(x, y, cellRect[cellID][1], cellRect[cellID][2], cellRect[cellID][3], cellRect[cellID][4]) then
-					-- apply selection
-					--if b then
-					--  local alt, ctrl, meta, shift = spGetModKeyState()
-					--  -- select all units of the icon type
-					--  local sorted = spGetTeamUnitsSorted(myTeamID)
-					--  local units = sorted[unitDefID]
-					--  local acted = false
-					--  if units then
-					--    acted = true
-					--    spSelectUnitArray(units, shift)
-					--  end
-					--  if acted then
-					--    Spring.PlaySoundFile(sound_button, 0.75, 'ui')
-					--  end
-					--end
-
-
 					local unitTable = nil
 					local index = 0
 					for udid, uTable in pairs(selUnitsSorted) do
@@ -1618,7 +1345,6 @@ function widget:DrawScreen()
 
 	if ViewResizeUpdate then
 		ViewResizeUpdate = nil
-		refreshUnitIconCache()
 	end
 	local x, y, b, b2, b3 = spGetMouseState()
 
@@ -1644,12 +1370,6 @@ function widget:DrawScreen()
 
 		-- selection grid
 		if displayMode == 'selection' and selectionCells and selectionCells[1] and cellRect then
-
-			local tooltipTitleColor = '\255\205\255\205'
-			local tooltipTextColor = '\255\255\255\255'
-			local tooltipLabelTextColor = '\255\200\200\200'
-			local tooltipDarkTextColor = '\255\133\133\133'
-			local tooltipValueColor = '\255\255\245\175'
 
 			local cellHovered
 			for cellID, unitDefID in pairs(selectionCells) do
@@ -1680,10 +1400,10 @@ function widget:DrawScreen()
 					local halfSize = (((cellRect[cellID][3] - cellPadding)) - (cellRect[cellID][1])) * 0.5
 					glBlending(GL_SRC_ALPHA, GL_ONE)
 					RectRoundCircle(
-							cellRect[cellID][1] + cellPadding + halfSize,
-							0,
-							cellRect[cellID][2] + cellPadding + halfSize,
-							halfSize, cornerSize, halfSize - math_max(1, cellPadding), { 1,1,1, 0.07}, { 1,1,1, 0.07}
+						cellRect[cellID][1] + cellPadding + halfSize,
+						0,
+						cellRect[cellID][2] + cellPadding + halfSize,
+						halfSize, cornerSize, halfSize - math_max(1, cellPadding), { 1,1,1, 0.07}, { 1,1,1, 0.07}
 					)
 					glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 

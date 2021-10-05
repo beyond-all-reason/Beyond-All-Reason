@@ -7,7 +7,7 @@ return {
 		brakerate = 0,
 		buildcostenergy = 1600,
 		buildcostmetal = 25,
-		buildpic = "CORFMINE3.PNG",
+		buildpic = "CORFMINE3.DDS",
 		buildtime = 150,
 		canattack = false,
 		canguard = false,
@@ -46,7 +46,7 @@ return {
 		yardmap = "w",
 		customparams = {
 			detonaterange = "64",
-			model_author = "Beherith",
+			model_author = "Tristan",
 			normaltex = "unittextures/cor_normal.dds",
 			removestop = true,
 			removewait = true,

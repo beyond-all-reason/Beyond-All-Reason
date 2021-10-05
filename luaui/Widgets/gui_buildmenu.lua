@@ -18,9 +18,6 @@ local alwaysShow = false
 local cfgCellPadding = 0.007
 local cfgIconPadding = 0.015 -- space between icons
 local cfgIconCornerSize = 0.025
-local cfgRadariconSize = 0.23
-local cfgRadariconOffset = 0.025
-local cfgGroupiconSize = 0.29
 local cfgPriceFontSize = 0.19
 local cfgActiveAreaMargin = 0.1 -- (# * bgpadding) space between the background border and active area
 
@@ -46,11 +43,6 @@ local showShortcuts = false
 local showTooltip = true
 local showBuildProgress = true
 
-local iconBorderOpacity = 0.09  -- lighten the icon edges
-
-local texDetailMult = 1.25   -- dont go too high, will get pixely
-local radartexDetailMult = 2   -- dont go too high, will get pixely
-
 local zoomMult = 1.5
 local defaultCellZoom = 0.025 * zoomMult
 local rightclickCellZoom = 0.033 * zoomMult
@@ -59,12 +51,11 @@ local hoverCellZoom = 0.05 * zoomMult
 local clickSelectedCellZoom = 0.125 * zoomMult
 local selectedCellZoom = 0.135 * zoomMult
 
-local bgpadding, chobbyInterface, activeAreaMargin, textureDetail, iconTypesMap, radariconTextureDetail
-local dlistCache, dlistGuishader, dlistBuildmenuBg, dlistBuildmenu, font, font2, cmdsCount
+local bgpadding, chobbyInterface, activeAreaMargin, iconTypesMap
+local dlistGuishader, dlistBuildmenuBg, dlistBuildmenu, font2, cmdsCount
 local hijackedlayout, doUpdateClock, ordermenuHeight, advplayerlistPos, prevAdvplayerlistLeft
-local cellPadding, iconPadding, cornerSize, cellInnerSize, cellSize
---local radariconSize, radariconOffset, groupiconSize, priceFontSize
---local activeCmd, selBuildQueueDefID, rowPressedClock, rowPressed
+local cellPadding, iconPadding, cornerSize, cellInnerSize, cellSize, priceFontSize
+local activeCmd, selBuildQueueDefID, rowPressedClock, rowPressed
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
@@ -146,7 +137,6 @@ local spGetMouseState = Spring.GetMouseState
 local spTraceScreenRay = Spring.TraceScreenRay
 local spGetUnitHealth = Spring.GetUnitHealth
 local spGetUnitIsBuilding = Spring.GetUnitIsBuilding
-local spGetGroundInfo = Spring.GetGroundInfo
 
 local SelectedUnitsCount = spGetSelectedUnitsCount()
 
@@ -248,6 +238,7 @@ local groups = {
 	buildert4 = folder..'buildert4.png',
 	util = folder..'util.png',
 	weapon = folder..'weapon.png',
+	explo = folder..'weaponexplo.png',
 	emp = folder..'emp.png',
 	aa = folder..'aa.png',
 	sub = folder..'sub.png',
@@ -343,6 +334,9 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	end
 	if aaWeapons > 0 and weaponCount == aaWeapons then
 		unitGroup[unitDefID] = 'aa'
+	end
+	if unitDef.customParams.detonaterange or string.find(unitDef.deathExplosion, 'crawl_') then
+		unitGroup[unitDefID] = 'explo'
 	end
 
 	unitIconType[unitDefID] = unitDef.iconType
@@ -588,67 +582,6 @@ local function checkGeothermalFeatures()
 	end
 end
 
-
--- load all icons to prevent briefly showing white unit icons (will happen due to the custom texture filtering options)
-local function cacheUnitIcons()
-	local minC = minColls
-	local maxC = maxColls
-	if not dynamicIconsize then
-		minC = defaultColls
-		maxC = defaultColls
-	end
-	if minC > maxC then
-		maxC = minC
-	end -- just to be sure
-
-	local activeArea = { backgroundRect[1] + (stickToBottom and bgpadding or 0) + activeAreaMargin, backgroundRect[2] + (stickToBottom and 0 or bgpadding) + activeAreaMargin, backgroundRect[3] - bgpadding - activeAreaMargin, backgroundRect[4] - bgpadding - activeAreaMargin }
-	local contentWidth = activeArea[3] - activeArea[1]
-	local colls = minC
-	local cellSize = math_floor((contentWidth / colls) + 0.33)
-	local cellPadding = math_floor(cellSize * cfgCellPadding)
-	local cellInnerSize = cellSize - cellPadding - cellPadding
-	local newTextureDetail = math_floor(cellInnerSize * (1 + defaultCellZoom) * texDetailMult)
-	local newRadariconTextureDetail = math_floor(math_floor((cellInnerSize * cfgRadariconSize) + 0.5) * radartexDetailMult)
-	if not textureDetail or textureDetail ~= newTextureDetail then
-		while colls <= maxC do
-			-- these are globals so it can be re-used (hover highlight)
-			gl.Color(1, 1, 1, 0.001)
-			for id, unit in pairs(UnitDefs) do
-				-- only caching for defaultCellZoom
-				if unitBuildPic[id] then
-					gl.Texture(':lr' .. newTextureDetail .. ',' .. newTextureDetail .. ':unitpics/' .. unitBuildPic[id])
-					if textureDetail then	-- delete old texture
-						gl.DeleteTexture(':lr' .. textureDetail .. ',' .. textureDetail .. ':unitpics/' .. unitBuildPic[id])
-					end
-				end
-				if unitIconType[id] and iconTypesMap[unitIconType[id]] then
-					gl.TexRect(-1, -1, 0, 0)
-					gl.Texture(':lr' .. newRadariconTextureDetail .. ',' .. newRadariconTextureDetail .. ':' .. iconTypesMap[unitIconType[id]])
-					gl.TexRect(-1, -1, 0, 0)
-					if radariconTextureDetail then	-- delete old texture
-						gl.DeleteTexture(':lr' .. radariconTextureDetail .. ',' .. radariconTextureDetail .. ':' .. iconTypesMap[unitIconType[id]])
-					end
-				end
-				gl.Texture(false)
-			end
-			gl.Color(1, 1, 1, 1)
-			colls = colls + 1
-		end
-		textureDetail = newTextureDetail
-		radariconTextureDetail = newRadariconTextureDetail
-	end
-end
-
-local function refreshUnitIconCache()
-	if dlistCache then
-		dlistCache = gl.DeleteList(dlistCache)
-	end
-	dlistCache = gl.CreateList(function()
-		cacheUnitIcons()
-	end)
-end
-
-
 function IsOnRect(x, y, BLcornerX, BLcornerY, TRcornerX, TRcornerY)
 	return x >= BLcornerX and x <= TRcornerX and y >= BLcornerY and y <= TRcornerY
 end
@@ -802,7 +735,6 @@ function widget:ViewResize()
 	backgroundRect = { posX, (posY - height) * vsy, posX2, posY * vsy }
 
 	checkGuishader(true)
-	refreshUnitIconCache()
 	clear()
 	doUpdate = true
 end
@@ -914,7 +846,6 @@ function widget:Initialize()
 	WG['buildmenu'].setMinColls = function(value)
 		minColls = value
 		doUpdate = true
-		refreshUnitIconCache()
 	end
 	WG['buildmenu'].getMaxColls = function()
 		return maxColls
@@ -922,7 +853,6 @@ function widget:Initialize()
 	WG['buildmenu'].setMaxColls = function(value)
 		maxColls = value
 		doUpdate = true
-		refreshUnitIconCache()
 	end
 	WG['buildmenu'].getDefaultColls = function()
 		return defaultColls
@@ -931,7 +861,6 @@ function widget:Initialize()
 	WG['buildmenu'].setDefaultColls = function(value)
 		defaultColls = value
 		doUpdate = true
-		refreshUnitIconCache()
 	end
 	WG['buildmenu'].getBottomPosition = function()
 		return stickToBottom
@@ -952,8 +881,6 @@ function widget:Initialize()
 		maxPosY = value
 		doUpdate = true
 	end
-
-	refreshUnitIconCache()
 end
 
 function clear()
@@ -970,9 +897,6 @@ function widget:Shutdown()
 	if WG['guishader'] and dlistGuishader then
 		WG['guishader'].DeleteDlist('buildmenu')
 		dlistGuishader = nil
-	end
-	if dlistCache then
-		dlistCache = gl.DeleteList(dlistCache)
 	end
 	WG['buildmenu'] = nil
 end
@@ -992,7 +916,6 @@ function widget:Update(dt)
 		checkGuishader()
 		if ui_scale ~= Spring.GetConfigFloat("ui_scale", 1) then
 			ui_scale = Spring.GetConfigFloat("ui_scale", 1)
-			refreshUnitIconCache()
 			widget:ViewResize()
 			doUpdate = true
 		end
@@ -1003,7 +926,6 @@ function widget:Update(dt)
 			doUpdate = true
 		end
 		if WG['minimap'] and minimapHeight ~= WG['minimap'].getHeight() then
-			refreshUnitIconCache()
 			widget:ViewResize()
 			doUpdate = true
 		end
@@ -1055,18 +977,12 @@ end
 local function drawCell(cellRectID, usedZoom, cellColor, progress, highlightColor, edgeAlpha, disabled)
 	local uDefID = cmds[cellRectID].id * -1
 
-	-- encapsulating cell background
-	--RectRound(cellRects[cellRectID][1]+cellPadding, cellRects[cellRectID][2]+cellPadding, cellRects[cellRectID][3]-cellPadding, cellRects[cellRectID][4]-cellPadding, cellSize*0.03, 1,1,1,1, {0.3,0.3,0.3,0.95},{0.22,0.22,0.22,0.95})
-
 	-- unit icon
 	if disabled then
 		glColor(0.4, 0.4, 0.4, 1)
 	else
 		glColor(1, 1, 1, 1)
 	end
-	--local textureDetail = math_floor(cellInnerSize * (1 + usedZoom) * texDetailMult)
-	--glTexture(':lr' .. textureDetail .. ',' .. textureDetail .. ':unitpics/' .. unitBuildPic[uDefID])
-	--glTexRect(cellRects[cellRectID][1]+cellPadding+iconPadding, cellRects[cellRectID][2]+cellPadding+iconPadding, cellRects[cellRectID][3]-cellPadding-iconPadding, cellRects[cellRectID][4]-cellPadding-iconPadding)
 	UiUnit(
 		cellRects[cellRectID][1] + cellPadding + iconPadding,
 		cellRects[cellRectID][2] + cellPadding + iconPadding,
@@ -1075,8 +991,8 @@ local function drawCell(cellRectID, usedZoom, cellColor, progress, highlightColo
 		cornerSize, 1,1,1,1,
 		usedZoom,
 		nil, disabled and 0 or nil,
-		':l' .. (disabled and 'g' or '') ..'r' .. textureDetail .. ',' .. textureDetail .. ':unitpics/' .. unitBuildPic[uDefID],
-		showRadarIcon and (((unitIconType[uDefID] and iconTypesMap[unitIconType[uDefID]]) and ':l' .. (disabled and 't0.35,0.35,0.35' or '') ..'r' .. radariconTextureDetail .. ',' .. radariconTextureDetail .. ':' .. iconTypesMap[unitIconType[uDefID]] or nil)) or nil,
+		':l:unitpics/' .. unitBuildPic[uDefID],
+		showRadarIcon and (((unitIconType[uDefID] and iconTypesMap[unitIconType[uDefID]]) and ':l' .. (disabled and 't0.35,0.35,0.35' or '') ..':' .. iconTypesMap[unitIconType[uDefID]] or nil)) or nil,
 		showGroupIcon and (groups[unitGroup[uDefID]] and ':l' .. (disabled and 'gt0.4,0.4,0.4:' or ':') ..groups[unitGroup[uDefID]] or nil) or nil,
 		{unitMetalCost[uDefID], unitEnergyCost[uDefID]},
 		tonumber(cmds[cellRectID].params[1])
@@ -1086,7 +1002,7 @@ local function drawCell(cellRectID, usedZoom, cellColor, progress, highlightColo
 	if cellColor then
 		glBlending(GL_DST_ALPHA, GL_ONE_MINUS_SRC_COLOR)
 		glColor(cellColor[1], cellColor[2], cellColor[3], cellColor[4])
-		glTexture(':lr' .. (disabled and 'g' or '') .. textureDetail .. ',' .. textureDetail .. ':unitpics/' .. unitBuildPic[uDefID])
+		glTexture(':l:unitpics/' .. unitBuildPic[uDefID])
 		UiUnit(
 			cellRects[cellRectID][1] + cellPadding + iconPadding,
 			cellRects[cellRectID][2] + cellPadding + iconPadding,
@@ -1236,9 +1152,6 @@ function drawBuildmenu()
 	iconPadding = math_max(1, math_floor(cellSize * cfgIconPadding))
 	cornerSize = math_floor(cellSize * cfgIconCornerSize)
 	cellInnerSize = cellSize - cellPadding - cellPadding
-	radariconSize = math_floor((cellInnerSize * cfgRadariconSize) + 0.5)
-	radariconOffset = math_floor(((cellInnerSize * cfgRadariconOffset) + cellPadding + iconPadding) + 0.5)
-	groupiconSize = math_floor((cellInnerSize * cfgGroupiconSize) + 0.5)
 	priceFontSize = math_floor((cellInnerSize * cfgPriceFontSize) + 0.5)
 
 	cellRects = {}

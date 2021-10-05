@@ -10,7 +10,7 @@ return {
 		buildcostmetal = 2700,
 		builddistance = 145,
 		builder = true,
-		buildpic = "ARMCOM.PNG",
+		buildpic = "ARMCOM.DDS",
 		buildtime = 75000,
 		cancapture = true,
 		cancloak = true,

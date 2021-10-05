@@ -9,7 +9,7 @@ return {
 		buildcostmetal = 61,
 		builddistance = 96,
 		builder = true,
-		buildpic = "CORMLV.PNG",
+		buildpic = "CORMLV.DDS",
 		buildtime = 3640,
 		canassist = false,
 		canguard = false,

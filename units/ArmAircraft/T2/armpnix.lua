@@ -7,7 +7,7 @@ return {
 		brakerate = 0.045,
 		buildcostenergy = 12500,
 		buildcostmetal = 230,
-		buildpic = "ARMPNIX.PNG",
+		buildpic = "ARMPNIX.DDS",
 		buildtime = 21000,
 		canfly = true,
 		canmove = true,

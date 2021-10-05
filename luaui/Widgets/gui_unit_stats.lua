@@ -805,7 +805,7 @@ local function drawStats(uDefID, uID)
 			1,1,1,1,
 			0.13,
 			nil, nil,
-			':lr64,64c:unitpics/'..unitBuildPic[uDefID]
+			':lc:unitpics/'..unitBuildPic[uDefID]
 		)
 	end
 

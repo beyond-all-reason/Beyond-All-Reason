@@ -6,7 +6,7 @@ return {
 		brakerate = 0.6486,
 		buildcostenergy = 80000,
 		buildcostmetal = 4900,
-		buildpic = "CORCAT.PNG",
+		buildpic = "CORCAT.DDS",
 		buildtime = 127000,
 		canmove = true,
 		category = "WEAPON NOTSUB NOTAIR NOTHOVER SURFACE BOT EMPABLE",
