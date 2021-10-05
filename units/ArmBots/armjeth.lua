@@ -206,7 +206,7 @@ return {
 				def = "BOGUS_MISSILE",
 				onlytargetcategory = "VTOL",
 			},
-			[3] = {
+			[2] = {
 				badtargetcategory = "NOTAIR LIGHTAIRSCOUT",
 				def = "ARMBOT_MISSILE",
 				onlytargetcategory = "VTOL",

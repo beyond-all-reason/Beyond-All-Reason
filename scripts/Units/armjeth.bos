@@ -8,7 +8,7 @@ piece  torso, rflare, lflare, pelvis, lleg, rleg, rthigh, lthigh,
 
 static-var  bMoving, Static_Var_2, Static_Var_3, gun_3, restore_delay,
             statechg_DesiredState, statechg_StateChanging,
-            moveSpeed, currentSpeed, wpn3_lasthead;
+            moveSpeed, currentSpeed, wpn2_lasthead;
 
 // Signal definitions
 #define SIG_AIM_3			2
@@ -415,7 +415,7 @@ ExecuteRestoreAfterDelay()
     }
 	set-signal-mask 0;
 	turn aimy1 to y-axis <0.000000> speed <90.000000>;
-	wpn3_lasthead = 1000000;
+	wpn2_lasthead = 1000000;
 }
 SetStunned(State)
 {
@@ -441,7 +441,7 @@ QueryPrimary(piecenum)
 	piecenum = rflare + gun_3;;
 }
 
-AimTertiary(heading, pitch)
+AimSecondary(heading, pitch)
 {
 	start-script RequestState(0);
 	signal SIG_AIM_3;
@@ -450,17 +450,17 @@ AimTertiary(heading, pitch)
 		return(0);
 	}
 	turn aimy1 to y-axis heading speed <275.000000>;
-	if (((get ABS(wpn3_lasthead - heading)) > 65536) OR(((get ABS(wpn3_lasthead - heading)) > 5000) AND ((get ABS(wpn3_lasthead - heading)) < 60536)))
+	if (((get ABS(wpn2_lasthead - heading)) > 65536) OR(((get ABS(wpn2_lasthead - heading)) > 5000) AND ((get ABS(wpn2_lasthead - heading)) < 60536)))
 	{
-		wpn3_lasthead = 1000000;
+		wpn2_lasthead = 1000000;
 		wait-for-turn aimy1 around y-axis;
 	}
-	wpn3_lasthead = heading;
+	wpn2_lasthead = heading;
 	start-script RestoreAfterDelay();
 	return (1);
 }
 
-FireTertiary()
+FireSecondary()
 {
 	if( gun_3 )
 	{
@@ -479,12 +479,12 @@ FireTertiary()
 	gun_3 = !gun_3;
 }
 
-AimFromTertiary(piecenum)
+AimFromSecondary(piecenum)
 {
 	piecenum = torso;
 }
 
-QueryTertiary(piecenum)
+QuerySecondary(piecenum)
 {
 	piecenum = rflare + gun_3;
 }
