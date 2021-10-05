@@ -14,220 +14,230 @@ local function hex2RGB(hex)
     return {tonumber("0x"..hex:sub(1,2)), tonumber("0x"..hex:sub(3,4)), tonumber("0x"..hex:sub(5,6))}
 end
 
+-- Special colors
+local armBlueColor       = "#004DFF" -- Armada Blue
+local corRedColor        = "#FF1005" -- Cortex Red
+local scavPurpColor      = "#612461" -- Scav Purple
+local chickenOrangeColor = "#FF7D20" -- Chicken Orange
+local gaiaGrayColor      = "#7F7F7F" -- Gaia Grey
+
 if gadgetHandler:IsSyncedCode() then
     local ffaColors = {
-        [1] =  "#004DFF", -- Armada Blue
-        [2] =  "#FF1005", -- Cortex Red
-        [3] =  "#0CE818", -- Green
-        [4] =  "#FFD70D", -- Yellow
-        [5] =  "#FF00DB", -- Fuchsia
-        [6] =  "#0CC4E8", -- Turquoise
-        [7] =  "#FF6B00", -- Orange
-        [8] =  "#00FF9E", -- Turquoise Green
-        [9] =  "#F6BB56", -- Light Brown
-        [10] = "#68B900", -- Dark Lime
-        [11] = "#6697FF", -- Very Light Blue
-        [12] = "#FF6058", -- Light Red
-        [13] = "#8DF492", -- Light Green
-        [14] = "#FFF2AE", -- Very Light Yellow
-        [15] = "#FFAAF3", -- Very Light Fuchsia
-        [16] = "#90E5F5", -- Light Turquoise
-        [17] = "#FF9055", -- Light Orange
-        [18] = "#00AA69", -- Dark Turquoise Green
-        [19] = "#9B6408", -- Dark Brown
-        [20] = "#C4FF79", -- Light Lime
-        [21] = "#3475FF", -- Light Blue
-        [22] = "#AD0800", -- Dark Red
-        [23] = "#089B10", -- Dark Green
-        [24] = "#FFE874", -- Light Yellow
-        [25] = "#FF68EA", -- Light Fuchsia
-        [26] = "#08839B", -- Dark Turquoise
-        [27] = "#FFC8AA", -- Very Light Orange
-        [28] = "#86FFD1", -- Light Turquoise Green
-        [29] = "#DB8E0E", -- Brown
-        [30] = "#9FFF25", -- Lime
+        "#004DFF", -- Armada Blue
+        "#FF1005", -- Cortex Red
+        "#0CE818", -- Green
+        "#FFD70D", -- Yellow
+        "#FF00DB", -- Fuchsia
+        "#0CC4E8", -- Turquoise
+        "#FF6B00", -- Orange
+        "#00FF9E", -- Turquoise Green
+        "#F6BB56", -- Light Brown
+        "#68B900", -- Dark Lime
+        "#6697FF", -- Very Light Blue
+        "#FF6058", -- Light Red
+        "#8DF492", -- Light Green
+        "#FFF2AE", -- Very Light Yellow
+        "#FFAAF3", -- Very Light Fuchsia
+        "#90E5F5", -- Light Turquoise
+        "#FF9055", -- Light Orange
+        "#00AA69", -- Dark Turquoise Green
+        "#9B6408", -- Dark Brown
+        "#C4FF79", -- Light Lime
+        "#3475FF", -- Light Blue
+        "#AD0800", -- Dark Red
+        "#089B10", -- Dark Green
+        "#FFE874", -- Light Yellow
+        "#FF68EA", -- Light Fuchsia
+        "#08839B", -- Dark Turquoise
+        "#FFC8AA", -- Very Light Orange
+        "#86FFD1", -- Light Turquoise Green
+        "#DB8E0E", -- Brown
+        "#9FFF25", -- Lime
     }
 
     local teamColors = {
-        [2] = { -- Two Teams
-            [1] = { -- First Team (Cool)
-                [1]  = "#004DFF", -- Armada Blue
-                [2]  = "#0CE818", -- Green
-                [3]  = "#0CC4E8", -- Turquoise
-                [4]  = "#00FF9E", -- Turquoise Green
-                [5]  = "#68B900", -- Dark Lime
-                [6]  = "#6697FF", -- Very Light Blue
-                [7]  = "#8DF492", -- Light Green
-                [8]  = "#90E5F5", -- Light Turquoise
-                [9]  = "#00AA69", -- Dark Turquoise Green
-                [10] = "#C4FF79", -- Light Lime
-                [11] = "#3475FF", -- Light Blue
-                [12] = "#089B10", -- Dark Green
-                [13] = "#08839B", -- Dark Turquoise
-                [14] = "#86FFD1", -- Light Turquoise Green
-                [15] = "#9FFF25", -- Lime
+        { -- One Team (not possible)
+            { -- First Team
+                "#004DFF", -- Armada Blue
             },
-            [2] = { -- Second Team (Warm)
-                [1]  = "#FF1005", -- Cortex Red
-                [2]  = "#FFD70D", -- Yellow
-                [3]  = "#FF00DB", -- Fuchsia
-                [4]  = "#FF6B00", -- Orange
-                [5]  = "#F6BB56", -- Light Brown
-                [6]  = "#FF6058", -- Light Red
-                [7]  = "#FFF2AE", -- Very Light Yellow
-                [8]  = "#FFAAF3", -- Very Light Fuchsia
-                [9]  = "#FF9055", -- Light Orange
-                [10] = "#9B6408", -- Dark Brown
-                [11] = "#AD0800", -- Dark Red
-                [12] = "#FFE874", -- Light Yellow
-                [13] = "#FF68EA", -- Light Fuchsia
-                [14] = "#FFC8AA", -- Very Light Orange
-                [15] = "#DB8E0E", -- Brown
+        },
+
+        { -- Two Teams
+            { -- First Team (Cool)
+                "#004DFF", -- Armada Blue
+                "#0CE818", -- Green
+                "#0CC4E8", -- Turquoise
+                "#00FF9E", -- Turquoise Green
+                "#68B900", -- Dark Lime
+                "#6697FF", -- Very Light Blue
+                "#8DF492", -- Light Green
+                "#90E5F5", -- Light Turquoise
+                "#00AA69", -- Dark Turquoise Green
+                "#C4FF79", -- Light Lime
+                "#3475FF", -- Light Blue
+                "#089B10", -- Dark Green
+                "#08839B", -- Dark Turquoise
+                "#86FFD1", -- Light Turquoise Green
+                "#9FFF25", -- Lime
+            },
+            { -- Second Team (Warm)
+                "#FF1005", -- Cortex Red
+                "#FFD70D", -- Yellow
+                "#FF00DB", -- Fuchsia
+                "#FF6B00", -- Orange
+                "#F6BB56", -- Light Brown
+                "#FF6058", -- Light Red
+                "#FFF2AE", -- Very Light Yellow
+                "#FFAAF3", -- Very Light Fuchsia
+                "#FF9055", -- Light Orange
+                "#9B6408", -- Dark Brown
+                "#AD0800", -- Dark Red
+                "#FFE874", -- Light Yellow
+                "#FF68EA", -- Light Fuchsia
+                "#FFC8AA", -- Very Light Orange
+                "#DB8E0E", -- Brown
             },
         },
         
-        [3] = { -- Three Teams
-            [1] = { -- First Team (Blue)
-                [1] = "#004DFF", -- Armada Blue
-                [2] = "#0CC4E8", -- Turquoise
-                [3] = "#6697FF", -- Very Light Blue
-                [4] = "#90E5F5", -- Light Turquoise
-                [5] = "#3475FF", -- Light Blue
-                [6] = "#08839B", -- Dark Turquoise
+        { -- Three Teams
+            { -- First Team (Blue)
+                "#004DFF", -- Armada Blue
+                "#0CC4E8", -- Turquoise
+                "#6697FF", -- Very Light Blue
+                "#90E5F5", -- Light Turquoise
+                "#3475FF", -- Light Blue
+                "#08839B", -- Dark Turquoise
             },
-            [2] = { -- Second Team (Red)
-                [1] = "#FF1005", -- Cortex Red
-                [2] = "#FFD70D", -- Yellow
-                [3] = "#FF6B00", -- Orange
-                [4] = "#FF6058", -- Light Red
-                [5] = "#9B6408", -- Dark Brown
-                [6] = "#FFF2AE", -- Very Light Yellow
+            { -- Second Team (Red)
+                "#FF1005", -- Cortex Red
+                "#FFD70D", -- Yellow
+                "#FF6B00", -- Orange
+                "#FF6058", -- Light Red
+                "#9B6408", -- Dark Brown
+                "#FFF2AE", -- Very Light Yellow
             },
-            [3] = { -- Third Team (Green)
-                [1] = "#0CE818", -- Green
-                [2] = "#00FF9E", -- Turquoise Green
-                [3] = "#68B900", -- Dark Lime
-                [4] = "#089B10", -- Dark Green
-                [5] = "#8DF492", -- Light Green
-                [6] = "#C4FF79", -- Light Lime
-            },
-        },
-
-        [4] = { -- Four Teams
-            [1] = { -- First Team (Blue)
-                [1] = "#004DFF", -- Armada Blue
-                [2] = "#0CC4E8", -- Turquoise
-                [3] = "#6697FF", -- Very Light Blue
-                [4] = "#90E5F5", -- Light Turquoise
-                [5] = "#3475FF", -- Light Blue
-                [6] = "#08839B", -- Dark Turquoise
-            },
-            [2] = { -- Second Team (Red)
-                [1] = "#FF1005", -- Cortex Red
-                [2] = "#FF6B00", -- Orange
-                [3] = "#FF6058", -- Light Red
-                [4] = "#FF9055", -- Light Orange
-                [5] = "#AD0800", -- Dark Red
-                [6] = "#FFC8AA", -- Very Light Orange
-            },
-            [3] = { -- Third Team (Green)
-                [1] = "#0CE818", -- Green
-                [2] = "#00FF9E", -- Turquoise Green
-                [3] = "#68B900", -- Dark Lime
-                [4] = "#089B10", -- Dark Green
-                [5] = "#8DF492", -- Light Green
-                [6] = "#C4FF79", -- Light Lime
-            },
-            [4] = { -- Fourth Team (Yellow)
-                [1] = "#FFD70D", -- Yellow
-                [2] = "#F6BB56", -- Light Brown
-                [3] = "#FFE874", -- Light Yellow
-                [4] = "#9B6408", -- Dark Brown
-                [5] = "#FFF2AE", -- Very Light Yellow
-                [6] = "#DB8E0E", -- Brown
+            { -- Third Team (Green)
+                "#0CE818", -- Green
+                "#00FF9E", -- Turquoise Green
+                "#68B900", -- Dark Lime
+                "#089B10", -- Dark Green
+                "#8DF492", -- Light Green
+                "#C4FF79", -- Light Lime
             },
         },
 
-        [5] = { -- Five Teams
-            [1] = { -- First Team (Blue)
-                [1] = "#004DFF", -- Armada Blue
-                [2] = "#0CC4E8", -- Turquoise
-                [3] = "#6697FF", -- Very Light Blue
-                [4] = "#90E5F5", -- Light Turquoise
-                [5] = "#3475FF", -- Light Blue
+        { -- Four Teams
+            { -- First Team (Blue)
+                "#004DFF", -- Armada Blue
+                "#0CC4E8", -- Turquoise
+                "#6697FF", -- Very Light Blue
+                "#90E5F5", -- Light Turquoise
+                "#3475FF", -- Light Blue
+                "#08839B", -- Dark Turquoise
             },
-            [2] = { -- Second Team (Red)
-                [1] = "#FF1005", -- Cortex Red
-                [2] = "#FF6B00", -- Orange
-                [3] = "#FF6058", -- Light Red
-                [4] = "#FF9055", -- Light Orange
-                [5] = "#AD0800", -- Dark Red
+            { -- Second Team (Red)
+                "#FF1005", -- Cortex Red
+                "#FF6B00", -- Orange
+                "#FF6058", -- Light Red
+                "#FF9055", -- Light Orange
+                "#AD0800", -- Dark Red
+                "#FFC8AA", -- Very Light Orange
             },
-            [3] = { -- Third Team (Green)
-                [1] = "#0CE818", -- Green
-                [2] = "#00FF9E", -- Turquoise Green
-                [3] = "#68B900", -- Dark Lime
-                [4] = "#089B10", -- Dark Green
-                [5] = "#8DF492", -- Light Green
+            { -- Third Team (Green)
+                "#0CE818", -- Green
+                "#00FF9E", -- Turquoise Green
+                "#68B900", -- Dark Lime
+                "#089B10", -- Dark Green
+                "#8DF492", -- Light Green
+                "#C4FF79", -- Light Lime
             },
-            [4] = { -- Fourth Team (Yellow)
-                [1] = "#FFD70D", -- Yellow
-                [2] = "#F6BB56", -- Light Brown
-                [3] = "#FFE874", -- Light Yellow
-                [4] = "#9B6408", -- Dark Brown
-                [5] = "#FFF2AE", -- Very Light Yellow
-            },
-            [5] = { -- Fifth Team (Fuchsia)
-                [1] = "#FF00DB", -- Fuchsia
-                [2] = "#FF68EA", -- Light Fuchsia
-                [3] = "#FFAAF3", -- Very Light Fuchsia
-                [4] = "#AA0092", -- Dark Fuchsia
-                [5] = "#650057", -- Very Dark Fuchsia
+            { -- Fourth Team (Yellow)
+                "#FFD70D", -- Yellow
+                "#F6BB56", -- Light Brown
+                "#FFE874", -- Light Yellow
+                "#9B6408", -- Dark Brown
+                "#FFF2AE", -- Very Light Yellow
+                "#DB8E0E", -- Brown
             },
         },
 
-        [6] = { -- Six Teams
-            [1] = { -- First Team (Blue)
-                [1] = "#004DFF", -- Armada Blue
-                [2] = "#0CC4E8", -- Turquoise
-                [3] = "#6697FF", -- Very Light Blue
-                [4] = "#90E5F5", -- Light Turquoise
+        { -- Five Teams
+            { -- First Team (Blue)
+                "#004DFF", -- Armada Blue
+                "#0CC4E8", -- Turquoise
+                "#6697FF", -- Very Light Blue
+                "#90E5F5", -- Light Turquoise
+                "#3475FF", -- Light Blue
             },
-            [2] = { -- Second Team (Red)
-                [1] = "#FF1005", -- Cortex Red
-                [2] = "#FF6058", -- Light Red
-                [3] = "#FFAFAC", -- Very Light Red
-                [4] = "#AD0800", -- Dark Red
+            { -- Second Team (Red)
+                "#FF1005", -- Cortex Red
+                "#FF6B00", -- Orange
+                "#FF6058", -- Light Red
+                "#FF9055", -- Light Orange
+                "#AD0800", -- Dark Red
             },
-            [3] = { -- Third Team (Green)
-                [1] = "#0CE818", -- Green
-                [2] = "#00FF9E", -- Turquoise Green
-                [3] = "#68B900", -- Dark Lime
-                [4] = "#089B10", -- Dark Green
+            { -- Third Team (Green)
+                "#0CE818", -- Green
+                "#00FF9E", -- Turquoise Green
+                "#68B900", -- Dark Lime
+                "#089B10", -- Dark Green
+                "#8DF492", -- Light Green
             },
-            [4] = { -- Fourth Team (Yellow)
-                [1] = "#FFD70D", -- Yellow
-                [2] = "#F6BB56", -- Light Brown
-                [3] = "#FFE874", -- Light Yellow
-                [4] = "#9B6408", -- Dark Brown
+            { -- Fourth Team (Yellow)
+                "#FFD70D", -- Yellow
+                "#F6BB56", -- Light Brown
+                "#FFE874", -- Light Yellow
+                "#9B6408", -- Dark Brown
+                "#FFF2AE", -- Very Light Yellow
             },
-            [5] = { -- Fifth Team (Fuchsia)
-                [1] = "#FF00DB", -- Fuchsia
-                [2] = "#FF68EA", -- Light Fuchsia
-                [3] = "#FFAAF3", -- Very Light Fuchsia
-                [4] = "#AA0092", -- Dark Fuchsia
+            { -- Fifth Team (Fuchsia)
+                "#FF00DB", -- Fuchsia
+                "#FF68EA", -- Light Fuchsia
+                "#FFAAF3", -- Very Light Fuchsia
+                "#AA0092", -- Dark Fuchsia
+                "#650057", -- Very Dark Fuchsia
             },
-            [6] = { -- Sixth Team (Orange)
-                [1] = "#FF6B00", -- Orange
-                [2] = "#FF9055", -- Light Orange
-                [3] = "#FFC8AA", -- Very Light Orange
-                [4] = "#AA4B00", -- Dark Orange
+        },
+
+        { -- Six Teams
+            { -- First Team (Blue)
+                "#004DFF", -- Armada Blue
+                "#0CC4E8", -- Turquoise
+                "#6697FF", -- Very Light Blue
+                "#90E5F5", -- Light Turquoise
+            },
+            { -- Second Team (Red)
+                "#FF1005", -- Cortex Red
+                "#FF6058", -- Light Red
+                "#FFAFAC", -- Very Light Red
+                "#AD0800", -- Dark Red
+            },
+            { -- Third Team (Green)
+                "#0CE818", -- Green
+                "#00FF9E", -- Turquoise Green
+                "#68B900", -- Dark Lime
+                "#089B10", -- Dark Green
+            },
+            { -- Fourth Team (Yellow)
+                "#FFD70D", -- Yellow
+                "#F6BB56", -- Light Brown
+                "#FFE874", -- Light Yellow
+                "#9B6408", -- Dark Brown
+            },
+            { -- Fifth Team (Fuchsia)
+                "#FF00DB", -- Fuchsia
+                "#FF68EA", -- Light Fuchsia
+                "#FFAAF3", -- Very Light Fuchsia
+                "#AA0092", -- Dark Fuchsia
+            },
+            { -- Sixth Team (Orange)
+                "#FF6B00", -- Orange
+                "#FF9055", -- Light Orange
+                "#FFC8AA", -- Very Light Orange
+                "#AA4B00", -- Dark Orange
             },
         },
     }
-
-    local scavColor = "#612461" -- Scav Purple
-    local gaiaColor = "#7F7F7F" -- Gaia Grey
 
     local teamList = Spring.GetTeamList()
     local allyTeamList = Spring.GetAllyTeamList()
@@ -248,13 +258,13 @@ if gadgetHandler:IsSyncedCode() then
 
     local function setUpTeamColor(teamID, allyTeamID, isAI)
         if isAI and string.find(isAI, "Scavenger") then
-            Spring.SetTeamRulesParam(teamID, "AutoTeamColorRed", hex2RGB(scavColor)[1])
-            Spring.SetTeamRulesParam(teamID, "AutoTeamColorGreen", hex2RGB(scavColor)[2])
-            Spring.SetTeamRulesParam(teamID, "AutoTeamColorBlue", hex2RGB(scavColor)[3])
+            Spring.SetTeamRulesParam(teamID, "AutoTeamColorRed", hex2RGB(scavPurpColor)[1])
+            Spring.SetTeamRulesParam(teamID, "AutoTeamColorGreen", hex2RGB(scavPurpColor)[2])
+            Spring.SetTeamRulesParam(teamID, "AutoTeamColorBlue", hex2RGB(scavPurpColor)[3])
         elseif teamID == Spring.GetGaiaTeamID() then
-            Spring.SetTeamRulesParam(teamID, "AutoTeamColorRed", hex2RGB(gaiaColor)[1])
-            Spring.SetTeamRulesParam(teamID, "AutoTeamColorGreen", hex2RGB(gaiaColor)[2])
-            Spring.SetTeamRulesParam(teamID, "AutoTeamColorBlue", hex2RGB(gaiaColor)[3])
+            Spring.SetTeamRulesParam(teamID, "AutoTeamColorRed", hex2RGB(gaiaGrayColor)[1])
+            Spring.SetTeamRulesParam(teamID, "AutoTeamColorGreen", hex2RGB(gaiaGrayColor)[2])
+            Spring.SetTeamRulesParam(teamID, "AutoTeamColorBlue", hex2RGB(gaiaGrayColor)[3])
         elseif isFFA then
             if not ffaColors[ffaColorNum] then -- If we have no color for this team anymore
                 ffaColorNum = 1 -- Starting from the first color again..
@@ -305,15 +315,14 @@ if gadgetHandler:IsSyncedCode() then
 end
 
 local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
-local gaiaColor = "#7F7F7F" -- Gaia Grey
 
 local iconDevMode = Spring.GetModOptions().teamcolors_icon_dev_mode
 local iconDevModeColors = {
-    armblue       = "#004DFF", -- Armada Blue
-    corred        = "#FF1005", -- Cortex Red
-    scavpurp      = "#612461", -- Scav Purple
-    chickenorange = "#FF7D20", -- Chicken Orange
-    gaiagray      = "#7F7F7F", -- Gaia Grey
+    armblue       = armBlueColor,
+    corred        = corRedColor,
+    scavpurp      = scavPurpColor,
+    chickenorange = chickenOrangeColor,
+    gaiagray      = gaiaGrayColor,
 }
 local iconDevModeColor = iconDevModeColors[iconDevMode]
 
@@ -348,7 +357,7 @@ local function updateTeamColors()
             if allyTeamID == myAllyTeamID or spGetSpectatingState() then
                 spSetTeamColor(teamID, r, g, b)
             else
-                spSetTeamColor(teamID, hex2RGB(gaiaColor)[1]/255, hex2RGB(gaiaColor)[2]/255, hex2RGB(gaiaColor)[3]/255)
+                spSetTeamColor(teamID, hex2RGB(gaiaGrayColor)[1]/255, hex2RGB(gaiaGrayColor)[2]/255, hex2RGB(gaiaGrayColor)[3]/255)
             end
         else
             spSetTeamColor(teamID, r, g, b)
