@@ -22,45 +22,39 @@ local section='defs.lua'
 
 -- https://springrts.com/mantis/view.php?id=6088, remove this when no longer needed!
 if not VFS.BASE then --readded for mission editor backwards compat (engine 104.0.1-287)
-  VFS.BASE = "b"
-  VFS.MOD = "M"
-  VFS.MAP = "m"
+	VFS.BASE = "b"
+	VFS.MOD = "M"
+	VFS.MAP = "m"
 end
-
 
 vfs_modes = VFS.MAP .. VFS.MOD .. VFS.BASE
 
 local function LoadDefs(name)
-  local filename = 'gamedata/' .. name .. '.lua'
-  local success, result = pcall(VFS.Include, filename, nil, vfs_modes)
-  if (not success) then
-    Spring.Log(section, LOG.ERROR, 'Failed to load ' .. name)
-    error(result)
-  end
-  if (result == nil) then
-    error('Missing lua table for ' .. name)
-  end
-  return result
-end
+	local filename = 'gamedata/' .. name .. '.lua'
+	local success, result = pcall(VFS.Include, filename, nil, vfs_modes)
 
+	if (not success) then
+		Spring.Log(section, LOG.ERROR, 'Failed to load ' .. name)
+		error(result)
+	end
+
+	if (result == nil) then
+		error('Missing lua table for ' .. name)
+	end
+
+	return result
+end
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
 Spring.TimeCheck('Loading all definitions: ', function()
-
-  DEFS.unitDefs    = LoadDefs('unitDefs')
-
-  DEFS.featureDefs = LoadDefs('featureDefs')
-
-  DEFS.weaponDefs  = LoadDefs('weaponDefs')
-
-  DEFS.armorDefs   = LoadDefs('armorDefs')
-
-  DEFS.moveDefs    = LoadDefs('moveDefs')
-
+	DEFS.unitDefs    = LoadDefs('unitDefs')
+	DEFS.featureDefs = LoadDefs('featureDefs')
+	DEFS.weaponDefs  = LoadDefs('weaponDefs')
+	DEFS.armorDefs   = LoadDefs('armorDefs')
+	DEFS.moveDefs    = LoadDefs('moveDefs')
 end)
-
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -69,12 +63,9 @@ end)
 --
 
 return {
-  unitdefs    = DEFS.unitDefs,
-  featuredefs = DEFS.featureDefs,
-  weapondefs  = DEFS.weaponDefs,
-  armordefs   = DEFS.armorDefs,
-  movedefs    = DEFS.moveDefs,
+	unitdefs    = DEFS.unitDefs,
+	featuredefs = DEFS.featureDefs,
+	weapondefs  = DEFS.weaponDefs,
+	armordefs   = DEFS.armorDefs,
+	movedefs    = DEFS.moveDefs,
 }
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
