@@ -57,7 +57,8 @@ local function refreshFeatureDefs()
 
 	for name, featureDef in pairs(FeatureDefNames) do
 		if not featureDef.translatedDescription then
-			featureDef.translatedDescription = Spring.I18N('features.names.' .. name)
+			-- Disabled for now to avoid excessive infolog errors
+			-- featureDef.translatedDescription = Spring.I18N('features.names.' .. name)
 		end
 	end
 end
