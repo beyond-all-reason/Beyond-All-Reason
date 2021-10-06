@@ -19,7 +19,6 @@ return {
 		collisionvolumeoffsets = "0 1 0",
 		collisionvolumescales = "25 34 44",
 		collisionvolumetype = "box",
-		-- handled gadget side -- corpse = "chicken_egg_s_pink",
 		defaultmissiontype = "Standby",
 		description = Spring.I18N('units.descriptions.chickenr1'),
 		explodeas = "LOBBER_MORPH",
@@ -62,14 +61,10 @@ return {
 		workertime = 0,
 		customparams = {
 			subfolder = "other/chickens",
-      model_author = "KDR_11k, Beherith",
+			model_author = "KDR_11k, Beherith",
 			normalmaps = "yes",
 			normaltex = "unittextures/chicken_s_normals.png",
 			--treeshader = "no",
-		},
-		featuredefs = {
-			dead = {},
-			heap = {},
 		},
 		sfxtypes = {
 			explosiongenerators = {

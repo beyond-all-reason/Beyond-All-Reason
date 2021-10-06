@@ -24,7 +24,6 @@ return {
 		collisionvolumescales = "60 130 140",
 		collisionvolumetest = 1,
 		collisionvolumetype = "box",
-		-- handled gadget side -- corpse = "chicken_egg_l_red",
 		defaultmissiontype = "Standby",
 		description = Spring.I18N('units.descriptions.ve_chickenq'),
 		explodeas = "QUEEN_DEATH",
@@ -65,10 +64,6 @@ return {
 		customparams = {
 			subfolder = "other/chickens",
 			normaltex = "unittextures/chicken_l_normals.png",
-		},
-		featuredefs = {
-			dead = {},
-			heap = {},
 		},
 		sfxtypes = {
 			explosiongenerators = {

@@ -77,10 +77,6 @@ return {
 			treeshader = "yes",
 			--treeshader = "no",
 		},
-		featuredefs = {
-			dead = {},
-			heap = {},
-		},
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:blood_spray",

@@ -73,14 +73,10 @@ return {
 		workertime = 200,
 		customparams = {
 			subfolder = "other/chickens",
-      model_author = "KDR_11k, Beherith",
+			model_author = "KDR_11k, Beherith",
 			normalmaps = "yes",
 			normaltex = "unittextures/chicken_s_normals.png",
 			--treeshader = "no",
-		},
-		featuredefs = {
-			dead = {},
-			heap = {},
 		},
 		sfxtypes = {
 			explosiongenerators = {
