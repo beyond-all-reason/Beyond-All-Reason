@@ -50,6 +50,7 @@ return {
 				damage = 4000,
 				description = "Kraken Wreckage",
 				energy = 0,
+				featuredead = "HEAP",
 				footprintx = 5,
 				footprintz = 5,
 				height = 20,
