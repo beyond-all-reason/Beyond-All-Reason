@@ -85,6 +85,9 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-small",
+				[2] = "custom:waterwake-small-hover",
+				[3] = "custom:bowsplash-small-hover",
+				[4] = "custom:hover-wake-small",
 			},
 			pieceexplosiongenerators = {
 				[1] = "deathceg2",

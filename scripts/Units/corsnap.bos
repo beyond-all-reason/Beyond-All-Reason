@@ -139,7 +139,7 @@ HoverIdle()
 	while( TRUE )
 	{
 	    emit-sfx 1024 + 3 from wake;
-	    sleep 1000;
+	    sleep 1750;
 	}
 }
 

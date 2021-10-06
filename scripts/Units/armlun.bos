@@ -3,8 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  lflare, rflare, turret, wake1, wake2, wake3, wake4, wake5,
-       wake6, wake7, wake8, barrelcon, lbarrel, rbarrel, launch, lrocket,
+piece  lflare, rflare, turret, wake, barrelcon, lbarrel, rbarrel, launch, lrocket,
        rrocket, base;
 
 static-var  Static_Var_1, gun_1, gun_2, bAiming, restore_delay;
@@ -13,6 +12,7 @@ static-var  Static_Var_1, gun_1, gun_2, bAiming, restore_delay;
 #define SIG_AIM				2
 #define SIG_AIM_2			4
 #define SIG_MOVE			8
+#define SIG_IDLE			16
 
 
 SmokeUnit(healthpercent, sleeptime, smoketype)
@@ -70,64 +70,40 @@ HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and f
 	return (100); //return damage percent
 }
 
+HoverIdle()
+{
+	signal SIG_IDLE;
+	set-signal-mask SIG_IDLE;
+	while( TRUE )
+	{
+	    emit-sfx 1024 + 3 from wake;
+	    sleep 1800;
+	}
+}
+
 StartMoving()
 {
 	signal SIG_MOVE;
 	set-signal-mask SIG_MOVE;
+	signal SIG_IDLE;
+	var waketime;
+	var bowtime;
 	while( TRUE )
 	{
-		if( Static_Var_1 == 1 )
-		{
-			emit-sfx 3 from wake1;
-			emit-sfx 3 from wake2;
-			emit-sfx 3 from wake3;
-			emit-sfx 3 from wake4;
-			emit-sfx 3 from wake5;
-			emit-sfx 3 from wake6;
-			emit-sfx 3 from wake7;
-			emit-sfx 3 from wake8;
-			emit-sfx 5 from wake1;
-			emit-sfx 5 from wake2;
-			emit-sfx 5 from wake3;
-			emit-sfx 5 from wake4;
-			emit-sfx 5 from wake5;
-			emit-sfx 5 from wake6;
-			emit-sfx 5 from wake7;
-			emit-sfx 5 from wake8;
-		}
-		if( Static_Var_1 == 2 )
-		{
-			emit-sfx 3 from wake1;
-			emit-sfx 3 from wake2;
-			emit-sfx 3 from wake3;
-			emit-sfx 3 from wake4;
-			emit-sfx 3 from wake5;
-			emit-sfx 3 from wake6;
-			emit-sfx 3 from wake7;
-			emit-sfx 3 from wake8;
-			emit-sfx 5 from wake1;
-			emit-sfx 5 from wake2;
-			emit-sfx 5 from wake3;
-			emit-sfx 5 from wake4;
-			emit-sfx 5 from wake5;
-			emit-sfx 5 from wake6;
-			emit-sfx 5 from wake7;
-			emit-sfx 5 from wake8;
-		}
-		sleep 300;
+		emit-sfx 1024 + 1 from wake;
+		if (bowtime) emit-sfx 1024 + 2 from wake;
+		bowtime = !bowtime;
+		waketime = (get CURRENT_SPEED) * 100 / get MAX_SPEED;
+		if( waketime < 30 ) waketime = 30;
+		sleep 15000 / waketime;
 	}
-	return (0);
 }
 
 StopMoving()
 {
-	sleep 150;
-	return (0);
-}
-
-setSFXoccupy(state)
-{
-	Static_Var_1 = state;
+	signal SIG_MOVE;
+	signal SIG_IDLE;
+	start-script HoverIdle();
 	return (0);
 }
 

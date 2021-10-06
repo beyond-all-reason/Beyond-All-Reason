@@ -133,7 +133,7 @@ HoverIdle()
 	while( TRUE )
 	{
 	    emit-sfx 1024 + 2 from wake;
-	    sleep 1000;
+	    sleep 1750;
 	}
 }
 
@@ -160,12 +160,6 @@ StopMoving()
 	signal SIG_MOVE;
 	signal SIG_IDLE;
 	start-script HoverIdle();
-	return (0);
-}
-
-setSFXoccupy(Func_Var_1)
-{
-	Static_Var_1 = Func_Var_1;
 	return (0);
 }
 
