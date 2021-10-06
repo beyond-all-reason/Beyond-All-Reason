@@ -19,7 +19,7 @@ local chicken_egg =  {
 		normalmaps = "yes",
 		normaltex = "unittextures/chicken_s_normals.png",
 		treeshader = "yes",
-		i18nfromfeature = 'chicken_egg'
+		i18nfrom = 'chicken_egg'
 	},
 }
 
