@@ -75,10 +75,6 @@ return {
 			normaltex = "unittextures/chicken_m_normals.png",
 			treeshader = "yes",
 		},
-		featuredefs = {
-			dead = {},
-			heap = {},
-		},
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:blood_spray",

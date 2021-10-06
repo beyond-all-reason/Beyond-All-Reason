@@ -13,7 +13,6 @@ end
 local unitI18Nfile = VFS.Include('language/units_en.lua')
 local i18nDescriptionEntries = unitI18Nfile.en.units.descriptions
 
-
 local function refreshUnitDefs()
 	for unitDefName, unitDef in pairs(UnitDefNames) do
 		local humanName, tooltip
@@ -43,8 +42,30 @@ local function refreshUnitDefs()
 	end
 end
 
+local function refreshFeatureDefs()
+	for _, unitDef in pairs(UnitDefs) do
+		local corpseDef = FeatureDefNames[unitDef.wreckName]
+		if corpseDef then
+			corpseDef.translatedDescription = Spring.I18N('units.dead', { name = unitDef.translatedHumanName })
+
+			local heapDef = FeatureDefs[corpseDef.deathFeatureID]
+			if heapDef then
+				heapDef.translatedDescription = Spring.I18N('units.heap', { name = unitDef.translatedHumanName })
+			end
+		end
+	end
+
+	for name, featureDef in pairs(FeatureDefNames) do
+		if not featureDef.translatedDescription then
+			-- Disabled for now to avoid excessive infolog errors
+			-- featureDef.translatedDescription = Spring.I18N('features.names.' .. name)
+		end
+	end
+end
+
 local function refreshDefs()
 	refreshUnitDefs()
+	refreshFeatureDefs()
 end
 
 local function languageChanged(language)
