@@ -617,15 +617,15 @@ Killed(severity, corpsetype)
 	if( severity <= 99 )
 	{
 		corpsetype = 3 ;
-		explode pelvis type FIRE | SMOKE | FALL;
-		explode rthigh type EXPLODE_ON_HIT | SMOKE | FALL;
-		explode rleg type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
-		explode rfoot type FIRE | SMOKE | FALL;
-		explode lthigh type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
-		explode lleg type FIRE | SMOKE | FALL;
-		explode lfoot type SMOKE | FALL;
-		explode aimy1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
-		explode torso type BITMAPONLY;
+		explode pelvis type FIRE | SMOKE | FALL | NOHEATCLOUD ;
+		explode rthigh type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD ;
+		explode rleg type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD ;
+		explode rfoot type FIRE | SMOKE | FALL | NOHEATCLOUD ;
+		explode lthigh type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD ;
+		explode lleg type FIRE | SMOKE | FALL | NOHEATCLOUD ;
+		explode lfoot type SMOKE | FALL | NOHEATCLOUD ;
+		explode aimy1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD ;
+		explode torso type BITMAPONLY | NOHEATCLOUD ;
 		//explode aimx1 type EXPLODE_ON_HIT | SMOKE | FALL;
 		//explode ruparm type FIRE | SMOKE | FALL;
 		//explode rblimb type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
