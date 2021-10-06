@@ -234,7 +234,7 @@ return {
 				def = "LASER",
 				onlytargetcategory = "NOTSUB",
 			},
-			[4] = {
+			[3] = {
 				def = "DEPTHCHARGE",
 				onlytargetcategory = "CANBEUW UNDERWATER",
 			},

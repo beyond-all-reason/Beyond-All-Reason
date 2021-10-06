@@ -204,7 +204,7 @@ AimPrimary(heading, pitch)
 	return (1);
 }
 
-AimTertiary(heading, pitch)
+AimSecondary(heading, pitch)
 {
 	signal SIG_AIM_3;
 	set-signal-mask SIG_AIM_3;
@@ -223,7 +223,7 @@ FirePrimary()
 	return (0);
 }
 
-FireTertiary()
+FireSecondary()
 {
 	sleep 100;
 	return (0);
@@ -235,7 +235,7 @@ AimFromPrimary(piecenum)
 	return (0);
 }
 
-AimFromTertiary(piecenum)
+AimFromSecondary(piecenum)
 {
 	piecenum = mbarrel;
 	return (0);
@@ -247,7 +247,7 @@ QueryPrimary(piecenum)
 	return (0);
 }
 
-QueryTertiary(piecenum)
+QuerySecondary(piecenum)
 {
 	piecenum = mflare;
 	return (0);

@@ -124,7 +124,7 @@ StopMoving()
 	return (0);
 }
 
-AimTertiary(heading, pitch)
+AimSecondary(heading, pitch)
 {
 	signal SIG_AIM_3;
 	set-signal-mask SIG_AIM_3;
@@ -133,19 +133,19 @@ AimTertiary(heading, pitch)
 	return (1);
 }
 
-FireTertiary()
+FireSecondary()
 {
 	sleep 150;
 	return (0);
 }
 
-AimFromTertiary(piecenum)
+AimFromSecondary(piecenum)
 {
 	piecenum = missile;
 	return (0);
 }
 
-QueryTertiary(piecenum)
+QuerySecondary(piecenum)
 {
 	piecenum = missile;
 	return (0);

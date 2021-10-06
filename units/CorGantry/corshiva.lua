@@ -207,7 +207,7 @@ return {
 				def = "SHIVA_GUN",
 				onlytargetcategory = "SURFACE",
 			},
-			[3] = {
+			[2] = {
 				badtargetcategory = "GROUNDSCOUT",
 				def = "SHIVA_ROCKET",
 				onlytargetcategory = "SURFACE",

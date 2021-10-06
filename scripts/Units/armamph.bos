@@ -468,13 +468,13 @@ AimFromPrimary(piecenum)
 	return (0);
 }
 
-AimFromTertiary(piecenum)
+AimFromSecondary(piecenum)
 {
 	piecenum = misbarrel;
 	return (0);
 }
 
-QueryTertiary(piecenum)
+QuerySecondary(piecenum)
 {
 	if( gun_3 == 0 )
 	{
@@ -487,7 +487,7 @@ QueryTertiary(piecenum)
 	return (0);
 }
 
-FireTertiary()
+FireSecondary()
 {
 	if( gun_3 == 0 )
 	{
@@ -501,7 +501,7 @@ FireTertiary()
 	}
 }
 
-AimTertiary(heading, pitch)
+AimSecondary(heading, pitch)
 {
 	signal SIG_AIM_3;
 	bAiming = TRUE;

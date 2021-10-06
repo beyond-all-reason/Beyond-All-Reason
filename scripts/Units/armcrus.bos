@@ -291,22 +291,22 @@ QuerySecondary(piecenum)
 	}
 }
 
-AimWeapon4(heading, pitch)
+AimTertiary(heading, pitch)
 {
 	return (1);
 }
 
-FireWeapon4()
+FireTertiary()
 {
 	sleep 150;
 }
 
-AimFromWeapon4(piecenum)
+AimFromTertiary(piecenum)
 {
 	piecenum = base;
 }
 
-QueryWeapon4(piecenum)
+QueryTertiary(piecenum)
 {
 	piecenum = base;
 }

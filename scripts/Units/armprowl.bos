@@ -501,7 +501,7 @@ AimPrimary(heading, pitch)
 
 
 
-AimTertiary(heading, pitch)
+AimSecondary(heading, pitch)
 {
 	signal SIG_AIM_2;
 	set-signal-mask SIG_AIM_2;
@@ -540,10 +540,6 @@ FireSecondary()
 
 }
 
-FireTertiary()
-{
-
-}
 
 AimFromPrimary(piecenum)
 {
@@ -551,11 +547,6 @@ AimFromPrimary(piecenum)
 }
 
 AimFromSecondary(piecenum)
-{
-	piecenum = aimx1;
-}
-
-AimFromTertiary(piecenum)
 {
 	piecenum = misturret;
 }
@@ -573,11 +564,6 @@ QueryPrimary(piecenum)
 }
 
 QuerySecondary(piecenum)
-{
-	piecenum = misflare;
-}
-
-QueryTertiary(piecenum)
 {
 	piecenum = misflare;
 }

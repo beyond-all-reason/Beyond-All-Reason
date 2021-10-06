@@ -19,7 +19,7 @@ sleeptime = 3800*2
 		kickback = true,
 		-- subcounter = 1,
 	}
-	weapons[3] = { 
+	weapons[2] = { 
 		curHead = 0, curPitch = 0, wtdHead = 0, wtdPitch = 0, -- Default position
 		wpnReady = false, -- Default state (== drawn or hidden)
 		headSpeed = headSpeed, -- Aimspeeds

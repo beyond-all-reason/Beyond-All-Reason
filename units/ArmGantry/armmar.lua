@@ -212,7 +212,7 @@ return {
 				def = "ARMMECH_CANNON",
 				onlytargetcategory = "SURFACE",
 			},
-			[3] = {
+			[2] = {
 				def = "ARMAMPH_MISSILE",
 				onlytargetcategory = "VTOL",
 			},

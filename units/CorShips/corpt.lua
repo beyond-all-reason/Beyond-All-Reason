@@ -232,7 +232,7 @@ return {
 				def = "CORTRUCK_MISSILE",
 				onlytargetcategory = "NOTSUB",
 			},
-			[3] = {
+			[2] = {
 				badtargetcategory = "LIGHTAIRSCOUT",
 				def = "AAMISSILE",
 				onlytargetcategory = "VTOL",

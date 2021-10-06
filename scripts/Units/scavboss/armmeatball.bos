@@ -388,20 +388,6 @@ AimSecondary(heading, pitch)
 	return (1);
 }
 
-AimTertiary(heading, pitch)
-{
-	signal SIG_AIM;
-	turn misturret to y-axis heading speed <180.000000>;
-	if (((get ABS(wpn3_lasthead - heading)) > 65536) OR(((get ABS(wpn3_lasthead - heading)) > 5000) AND ((get ABS(wpn3_lasthead - heading)) < 60536)))
-	{
-		wpn3_lasthead = 1000000;
-		wait-for-turn misturret around y-axis;
-	}
-	wpn3_lasthead = heading;
-	start-script RestoreAfterDelay();
-	return (1);
-}
-
 FirePrimary()
 {
 	if( gun_1 == 1 )
@@ -431,24 +417,13 @@ FireSecondary()
 	hide misflare;
 }
 
-FireTertiary()
-{
-	show misflare;
-	sleep 150;
-	hide misflare;
-}
-
 AimFromPrimary(piecenum)
 {
 	piecenum = body;
 }
 
-AimFromSecondary(piecenum)
-{
-	piecenum = misturret;
-}
 
-AimFromTertiary(piecenum)
+AimFromSecondary(piecenum)
 {
 	piecenum = misturret;
 }
@@ -465,13 +440,8 @@ QueryPrimary(piecenum)
 	}
 }
 
+
 QuerySecondary(piecenum)
-{
-	piecenum = misflare;
-}
-
-
-QueryTertiary(piecenum)
 {
 	piecenum = misflare;
 }

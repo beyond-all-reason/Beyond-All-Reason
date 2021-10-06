@@ -257,7 +257,7 @@ AimPrimary(heading, pitch)
 	return (1);
 }
 
-AimTertiary(heading, pitch)
+AimSecondary(heading, pitch)
 {
 	signal SIG_AIM_3;
 	set-signal-mask SIG_AIM_3;
@@ -280,7 +280,7 @@ FirePrimary()
 	if( gun_1 >= 3 ) gun_1 = 0;
 }
 
-FireTertiary()
+FireSecondary()
 {
 	gun_3 = !gun_3;
 }
@@ -290,7 +290,7 @@ AimFromPrimary(piecenum)
 	piecenum = flare12;
 }
 
-AimFromTertiary(piecenum)
+AimFromSecondary(piecenum)
 {
 	piecenum = launcher2;
 }
@@ -311,7 +311,7 @@ QueryPrimary(piecenum)
 	}
 }
 
-QueryTertiary(piecenum)
+QuerySecondary(piecenum)
 {
 	piecenum = gun_3;
 }

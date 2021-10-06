@@ -116,7 +116,7 @@ RestoreAfterDelay()
 	start-script ExecuteRestoreAfterDelay();
 }
 
-AimTertiary(heading, pitch)
+AimSecondary(heading, pitch)
 {
 	signal SIG_AIM_3;
 	set-signal-mask SIG_AIM_3;
@@ -128,7 +128,7 @@ AimTertiary(heading, pitch)
 	return (1);
 }
 
-FireTertiary()
+FireSecondary()
 {
 	if( gun_3 == 0 )
 	{
@@ -146,9 +146,9 @@ FireTertiary()
 	}
 	sleep 50;
 	++gun_3;
-	if( gun_3 == 2 )
+	if( gun_3 > 1 )
 	{
-		gun_3 = turret;
+		gun_3 = 0;
 	}
 }
 
@@ -162,14 +162,17 @@ QueryPrimary(piecenum)
 	piecenum = flare1;
 }
 
-AimFromTertiary(piecenum)
+AimFromSecondary(piecenum)
 {
 	piecenum = turret;
 }
 
-QueryTertiary(piecenum)
+QuerySecondary(piecenum)
 {
-	piecenum = flare1;
+	if (gun_3 == 0)
+		piecenum = flare1;
+	else
+		piecenum = flare2;
 }
 
 SweetSpot(piecenum)

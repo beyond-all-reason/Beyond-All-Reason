@@ -799,7 +799,7 @@ AimPrimary(heading, pitch)
 	return (1);
 }*/
 
-AimTertiary(heading, pitch)
+AimSecondary(heading, pitch)
 {
 	
 	signal SIG_AIM_3;
@@ -846,7 +846,7 @@ FirePrimary()
 }
 
 
-FireTertiary()
+FireSecondary()
 {
 	turn aimy1 to x-axis <-2> now;
 	turn rdoor to z-axis <-125> now; 
@@ -863,7 +863,7 @@ AimFromPrimary(piecenum)
 	piecenum = rlauncher;
 }
 
-AimFromTertiary(piecenum) //not needed?
+AimFromSecondary(piecenum) //not needed?
 {
 	piecenum = rlauncher;
 }
@@ -881,7 +881,7 @@ QueryPrimary(piecenum)
 }
 
 
-QueryTertiary(piecenum)
+QuerySecondary(piecenum)
 {
 	
 	piecenum = rlauncher; // not sure what should go here 

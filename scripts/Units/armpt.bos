@@ -171,7 +171,7 @@ StopMoving()
 	move base to y-axis [0.0] speed [0.23];
 }
 
-AimTertiary(heading, pitch)
+AimSecondary(heading, pitch)
 {
 	signal SIG_AIM_3;
 	set-signal-mask SIG_AIM_3;
@@ -182,12 +182,12 @@ AimTertiary(heading, pitch)
 	return(1);
 }
 
-AimFromTertiary(piecenum)
+AimFromSecondary(piecenum)
 {
 	piecenum = turretaa;
 }
 
-QueryTertiary(piecenum)
+QuerySecondary(piecenum)
 {
 	piecenum = flareaa;
 }

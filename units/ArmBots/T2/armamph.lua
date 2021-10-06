@@ -209,7 +209,7 @@ return {
 				def = "ARMAMPH_WEAPON1",
 				onlytargetcategory = "NOTSUB",
 			},
-			[3] = {
+			[2] = {
 				badtargetcategory = "NOTAIR",
 				def = "ARMAMPH_MISSILE",
 				onlytargetcategory = "VTOL",

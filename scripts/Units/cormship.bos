@@ -277,7 +277,7 @@ AimPrimary(heading, pitch)
 	return (1);
 }
 
-AimTertiary(heading, pitch)
+AimSecondary(heading, pitch)
 {
 	signal SIG_AIM_3;
 	set-signal-mask SIG_AIM_3;
@@ -295,7 +295,7 @@ TargetCleared(Func_Var_1)
 }
 
 /*
-FireTertiary()
+FireSecondary()
 {
 	return (1);
 }
@@ -311,7 +311,7 @@ AimFromPrimary(piecenum)
 	piecenum = launcher;
 }
 
-AimFromTertiary(piecenum)
+AimFromSecondary(piecenum)
 {
 	piecenum = sleeve;
 }
@@ -321,7 +321,7 @@ QueryPrimary(piecenum)
 	piecenum = flare1;
 }
 
-QueryTertiary(piecenum)
+QuerySecondary(piecenum)
 {
 	piecenum = flare2;
 }

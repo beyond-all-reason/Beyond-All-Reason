@@ -290,7 +290,7 @@ return {
 				maxangledif = 60,
 				onlytargetcategory = "SURFACE",
 			},
-			[3] = {
+			[2] = {
 				def = "MISSILE",
 				onlytargetcategory = "VTOL",
 			},

@@ -222,7 +222,7 @@ return {
 				def = "LASER",
 				onlytargetcategory = "NOTSUB",
 			},
-			[3] = {
+			[2] = {
 				badtargetcategory = "LIGHTAIRSCOUT",
 				def = "AAMISSILE",
 				onlytargetcategory = "VTOL",
