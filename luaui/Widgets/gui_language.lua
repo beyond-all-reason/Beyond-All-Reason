@@ -47,19 +47,16 @@ local function refreshFeatureDefs()
 		local corpseDef = FeatureDefNames[unitDef.wreckName]
 		if corpseDef then
 			corpseDef.translatedDescription = Spring.I18N('units.dead', { name = unitDef.translatedHumanName })
-			Spring.Echo(corpseDef.name, corpseDef.translatedDescription)
 
 			local heapDef = FeatureDefs[corpseDef.deathFeatureID]
 			if heapDef then
 				heapDef.translatedDescription = Spring.I18N('units.heap', { name = unitDef.translatedHumanName })
-				Spring.Echo(heapDef.name, heapDef.translatedDescription)
 			end
 		end
 	end
 
 	for name, featureDef in pairs(FeatureDefNames) do
 		if not featureDef.translatedDescription then
-			-- Spring.Echo(name, featureDef.translatedDescription)
 			featureDef.translatedDescription = Spring.I18N('features.names.' .. name)
 		end
 	end
