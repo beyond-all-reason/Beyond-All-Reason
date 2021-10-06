@@ -498,8 +498,10 @@ UnitSpeed(){
 }
 StartMoving(){
 	signal SIG_WALK;
+  set-signal-mask SIG_WALK;
 	bMoving=TRUE;
 	start-script Walk();
+	start-script UnitSpeed();
 }
 StopMoving(){
 	signal SIG_WALK;
@@ -627,56 +629,6 @@ RequestState(requestedstate, currentstate)
 	statechg_StateChanging = FALSE;
 }
 
-MotionControl(moving, aiming, justmoved)
-{
-	justmoved = TRUE;
-	while( TRUE )
-	{
-		moving = bMoving;
-		aiming = InMotion;
-		if( moving )
-		{
-			if( aiming )
-			{
-				Aim_while_moving = 1;
-			}
-			else
-			{
-				Aim_while_moving = 0;
-
-			}
-			justmoved = TRUE;
-			if( SmokeEffectFeet == 3 )
-			{
-				emit-sfx 259 from lheel;
-				emit-sfx 259 from rheel;
-				emit-sfx 259 from larm;
-				emit-sfx 259 from rarm;
-			}
-			if( SmokeEffectFeet == 2 )
-			{
-				emit-sfx 259 from lheel;
-				emit-sfx 259 from rheel;
-				emit-sfx 3 from lleg;
-				emit-sfx 3 from rleg;
-			}
-			if( SmokeEffectFeet == 1 )
-			{
-				emit-sfx 3 from lheel;
-				emit-sfx 3 from rheel;
-			}
-		}
-		else
-		{
-			Aim_while_moving = 1;
-			if( justmoved )
-			{
-
-			}
-			sleep 100;
-		}
-	}
-}
 
 SmokeUnit(healthpercent, sleeptime, smoketype)
 {
@@ -684,8 +636,6 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 	{
 		sleep 500;
 	}
-	//start-script MotionControl();
-	start-script UnitSpeed();
 	while( TRUE )
 	{
 		healthpercent = get HEALTH;

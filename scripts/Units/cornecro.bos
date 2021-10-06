@@ -182,8 +182,6 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 	{
 		sleep 500;
 	}
-	//start-script MotionControl();
-	start-script UnitSpeed();
 	while( TRUE )
 	{
 		healthpercent = get HEALTH;
@@ -246,6 +244,8 @@ StartMoving()
 {
 	bMoving = TRUE;
 	signal SIG_WALK;
+	set-signal-mask SIG_WALK;
+	start-script UnitSpeed();
 	start-script walk();
 }
 

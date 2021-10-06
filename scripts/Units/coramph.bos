@@ -370,42 +370,6 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 	}
 }
 
-MotionControl(Func_Var_1)
-{
-	Func_Var_1 = 1;
-	while( TRUE )
-	{
-		if( bMoving )
-		{
-			call-script walk();
-
-			Func_Var_1 = 1;
-			if( Static_Var_5 == 3 )
-			{
-				Static_Var_7 = 1;
-			}
-			if( Static_Var_5 == 2 )
-			{
-				Static_Var_7 = 0;
-			}
-			if( Static_Var_5 == 1 )
-			{
-				Static_Var_7 = 0;
-			}
-		}
-		if( !bMoving )
-		{
-			Static_Var_3 = 1;
-			if( Func_Var_1 )
-			{
-				call-script StopWalking();
-					
-				Func_Var_1 = 0;
-			}
-			sleep 100;
-		}
-	}
-}
 
 Create()
 {
@@ -417,7 +381,6 @@ Create()
 	Static_Var_7 = 0;
 	restore_delay = 3000;
 	hide pelvis;
-	start-script MotionControl();
 	start-script SmokeUnit();
 	gun_1 = 0;
 }
@@ -453,12 +416,16 @@ StartMoving()
 	bMoving = TRUE;
 	signal SIG_MOVE;
 	set-signal-mask SIG_MOVE;
+  
+	start-script UnitSpeed();
+	start-script Walk();
 }
 
 StopMoving()
 {
 	bMoving = FALSE;
 	signal SIG_MOVE;
+  call-script StopWalking();
 }
 
 SetMaxReloadTime(Func_Var_1)

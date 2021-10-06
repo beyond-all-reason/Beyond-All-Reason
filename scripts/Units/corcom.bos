@@ -439,9 +439,7 @@ Create()
 	maxSpeed = get MAX_SPEED;
 	animSpeed = 6;
 	currentSpeed = 100;
-	start-script UnitSpeed();
 	//call-script TeleportControl();
-	return (0);
 }
 
 StartMoving()
@@ -449,8 +447,9 @@ StartMoving()
 	bMoving = TRUE;
 	gun_3 = torso;
 	signal SIG_WALK;
+	set-signal-mask SIG_WALK;
 	start-script walk();
-	return (0);
+	start-script UnitSpeed();
 }
 
 StopMoving()
@@ -458,13 +457,11 @@ StopMoving()
 	signal SIG_WALK;
 	bMoving = FALSE;
 	call-script StopWalking();
-	return (0);
 }
 
 SweetSpot(piecenum)
 {
 	piecenum = torso;
-	return (0);
 }
 
 QueryNanoPiece(piecenum)

@@ -3,6 +3,8 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
+#define SIG_MOVE 1
+
 piece  base, turret, sleeve, rtbarrel, ltbarrel, lempslv, lempbarrel, rempslv, rempbarrel, rlauncher, tracks,
 flare1, flare2, flare3, flare4, flare5, flare6, flare7, flare8, flare9;
 
@@ -45,7 +47,6 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 		sleep 400;
 	}
 	//start-script Smoke();
-	start-script UnitSpeed();
 	while( TRUE )
 	{
 		healthpercent = get HEALTH;
@@ -126,12 +127,16 @@ Create()
 
 StartMoving()
 {
+  signal SIG_MOVE;
+  set-signal-mask SIG_MOVE;
 	bMoving = TRUE;
+	start-script UnitSpeed();
 }
 
 
 StopMoving()
 {
+  signal SIG_MOVE;
 	bMoving = FALSE;
 }
 

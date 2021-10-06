@@ -163,8 +163,6 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 	{
 		sleep 400;
 	}
-	start-script UnitSpeed();
-	start-script DoTheWalking();
 	while( TRUE )
 	{
 		healthpercent = get HEALTH;
@@ -188,20 +186,8 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 	// Build by COBBLER Ver4.0 Copyright @1998 DIGITAL CONCEPT SOFTWARE (MANU@inext.fr) / http://www.annihilationcenter.com/DCS/  
 }
 
-StartMoving()
+StopWalk()
 {
-	signal SIG_MOVE;
-	set-signal-mask SIG_MOVE;
-	moving=TRUE;
-}
-
-StopMoving()
-{
-	signal SIG_MOVE;
-	set-signal-mask SIG_MOVE;
-	moving=FALSE;
-	sleep 20*(WALK_PERIOD);
-	
 	turn leg6a to z-axis <20> speed <50> *1000/(WALK_PERIOD);
 	turn leg6b to z-axis <0> speed <20> *1000/(WALK_PERIOD);
 	sleep (WALK_PERIOD);
@@ -254,7 +240,23 @@ StopMoving()
 	turn leg3b to z-axis <0> speed <20> *1000/(WALK_PERIOD);
 	sleep (WALK_PERIOD);
 	turn leg3a to z-axis <0> speed <20> *1000/(WALK_PERIOD);
-	
+}
+
+StartMoving()
+{
+	signal SIG_MOVE;
+	set-signal-mask SIG_MOVE;
+	start-script UnitSpeed();
+	start-script DoTheWalking();
+	moving=TRUE;
+}
+
+StopMoving()
+{
+	signal SIG_MOVE;
+	moving=FALSE;
+	set-signal-mask SIG_MOVE;
+	start-script StopWalk();
 }
 
 

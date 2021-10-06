@@ -4,6 +4,7 @@
 #include "exptype.h"
 
 #define SIG_BUILD		4	
+#define SIG_MOVE    2
 
 piece  base, gun, nano1, nano2, smoke1, smoke2;
 
@@ -81,8 +82,6 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 	{
 		sleep 500;
 	}
-	start-script Smoke();
-	start-script UnitSpeed();
 	while( TRUE )
 	{
 		healthpercent = get HEALTH;
@@ -150,13 +149,17 @@ setSFXoccupy(state)
 
 StartMoving()
 {
-	bMoving = TRUE;
+	bMoving = TRUE;  signal SIG_MOVE;
+  set-signal-mask SIG_MOVE;
+  start-script UnitSpeed();
+	start-script Smoke();
 }
 
 
 StopMoving()
 {
 	bMoving = FALSE;
+  signal SIG_MOVE;
 }
 
 Activate()

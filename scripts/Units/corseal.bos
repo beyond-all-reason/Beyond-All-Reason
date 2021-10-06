@@ -10,6 +10,7 @@ static-var  bMoving, moveSpeed, currentSpeed, animSpeed, restore_delay, gun_1, t
 
 // Signal definitions
 #define SIG_AIM				2
+#define SIG_MOVE				4
 
 UnitSpeed()
 {
@@ -107,8 +108,6 @@ Create()
 		sleep 400;
 	}
 	start-script EmitSFX();
-	start-script Smoke();
-	start-script UnitSpeed();
 }
 
 setSFXoccupy(state)
@@ -146,11 +145,16 @@ RestoreAfterDelay()
 StartMoving()
 {
 	bMoving = TRUE;
+  signal SIG_MOVE;
+  set-signal-mask SIG_MOVE;
+	start-script Smoke();
+	start-script UnitSpeed();
 }
 
 StopMoving()
 {
 	bMoving = FALSE;
+  signal SIG_MOVE;
 }
 
 AimPrimary(heading, pitch)

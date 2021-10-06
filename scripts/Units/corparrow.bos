@@ -9,6 +9,7 @@ static-var  bMoving, moveSpeed, currentSpeed, animSpeed, terrain,  restore_delay
 
 // Signal definitions
 #define SIG_AIM				2
+#define SIG_MOVE			4
 
 UnitSpeed()
 {
@@ -44,8 +45,6 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 	{
 		sleep 400;
 	}
-	start-script Smoke();
-	start-script UnitSpeed();
 	while( TRUE )
 	{
 		healthpercent = get HEALTH;
@@ -124,13 +123,18 @@ SetMaxReloadTime(Func_Var_1)
 
 StartMoving()
 {
-	bMoving = TRUE;
+	bMoving = TRUE;  
+  signal SIG_MOVE;
+  set-signal-mask SIG_MOVE;
+  start-script UnitSpeed();
+	start-script Smoke();
 }
 
 
 StopMoving()
 {
 	bMoving = FALSE;
+  signal SIG_MOVE;
 }
 
 static-var  Stunned;

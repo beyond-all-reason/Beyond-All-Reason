@@ -297,8 +297,11 @@ UnitSpeed(){
 	}
 }
 StartMoving(){
+	signal SIG_WALK;
+	set-signal-mask SIG_WALK;
 	bMoving=TRUE;
 	start-script Walk();
+	start-script UnitSpeed();
 }
 StopMoving(){
 	signal SIG_WALK;

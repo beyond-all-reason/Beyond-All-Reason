@@ -9,6 +9,7 @@ static-var  bMoving, moveSpeed, currentSpeed, animSpeed, terrain, restore_delay,
 
 // Signal definitions
 #define SIG_AIM				2
+#define SIG_MOVE				4
 
 
 UnitSpeed()
@@ -44,8 +45,6 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 	{
 		sleep 400;
 	}
-	start-script Smoke();
-	start-script UnitSpeed();
 	while( TRUE )
 	{
 		healthpercent = get HEALTH;
@@ -123,12 +122,17 @@ setSFXoccupy(state)
 StartMoving()
 {
 	bMoving = TRUE;
+  signal SIG_MOVE;
+  set-signal-mask SIG_MOVE;
+	start-script Smoke();
+	start-script UnitSpeed();
 }
 
 
 StopMoving()
 {
 	bMoving = FALSE;
+  signal SIG_MOVE;
 }
 
 SetMaxReloadTime(Func_Var_1)

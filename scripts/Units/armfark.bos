@@ -4,6 +4,7 @@
 #include "exptype.h"
 
 #define SIG_BUILD		4	
+#define SIG_WALK    2
 
 piece  pelvis, lthigh, rthigh, torso, rleg, rfoot, lleg, lfoot,
        luparm, ruparm, rnano, lnano, aimx1, aimy1;
@@ -305,7 +306,6 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 	{
 		sleep 500;
 	}
-	start-script UnitSpeed();
 	while( TRUE )
 	{
 		healthpercent = get HEALTH;
@@ -377,12 +377,16 @@ StopBuilding()
 
 StartMoving()
 {
+  signal SIG_WALK;
+  set-signal-mask SIG_WALK;
 	bMoving = TRUE;
-	call-script walk();
+	start-script UnitSpeed();
+	start-script walk();
 }
 
 StopMoving()
 {
+	signal SIG_WALK;
 	bMoving = FALSE;
 	call-script StopWalking();	
 }

@@ -791,8 +791,10 @@ Die(){
 StartMoving()
 {
 	signal SIG_WALK;
+	set-signal-mask SIG_WALK;
 	bMoving = TRUE;
 	start-script Walk();
+	start-script UnitSpeed();
 }
 
 
@@ -800,8 +802,7 @@ StopMoving()
 {
 	signal SIG_WALK;
 	start-script StopWalking();
-	//sleep 100;
-	//start-script Die();
+	bMoving = FALSE;
 }
 
 SmokeUnit(healthpercent, sleeptime, smoketype)
@@ -811,7 +812,6 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 	{
 		sleep 400;
 	}
-	start-script UnitSpeed();
 	while( TRUE )
 	{
 		healthpercent = get HEALTH;

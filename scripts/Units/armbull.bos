@@ -9,6 +9,7 @@ static-var  bMoving, moveSpeed, currentSpeed, animSpeed, terrain, restore_delay,
 
 // Signal definitions
 #define SIG_AIM				2
+#define SIG_MOVE      4
 
 UnitSpeed()
 {
@@ -44,8 +45,6 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 	{
 		sleep 400;
 	}
-	start-script Smoke();
-	start-script UnitSpeed();
 	while( TRUE )
 	{
 		healthpercent = get HEALTH;
@@ -131,12 +130,18 @@ StartMoving()
 	bMoving = TRUE;
 	spin lwheel around x-axis speed <110> accelerate <5>;
 	spin rwheel around x-axis speed <110> accelerate <5>;
+  
+  signal SIG_MOVE;
+  set-signal-mask SIG_MOVE;
+  start-script UnitSpeed();
+	start-script Smoke();
 }
 
 
 StopMoving()
 {
 	bMoving = FALSE;
+  signal SIG_MOVE;
 	stop-spin lwheel around x-axis;
 	stop-spin rwheel around x-axis;
 }

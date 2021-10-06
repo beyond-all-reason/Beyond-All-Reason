@@ -9,6 +9,7 @@ static-var  bMoving, bAiming, Static_Var_3, restore_delay, moveSpeed, currentSpe
 
 // Signal definitions
 #define SIG_AIM				4
+#define SIG_WALK    2
 
 
 Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from C:\Users\ptasz\Dropbox\BAR\Remoddeling\Reanimating\zipper4.blend 
@@ -375,10 +376,14 @@ HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and f
 
 
 StartMoving(){
+  signal SIG_WALK;
+  set-signal-mask SIG_WALK;
 	bMoving=TRUE;
 	start-script Walk();
+	start-script UnitSpeed();
 }
 StopMoving(){
+	signal SIG_WALK;
 	bMoving=FALSE;
 	call-script StopWalking();
 }
@@ -390,7 +395,6 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 	{
 		sleep 500;
 	}
-	start-script UnitSpeed();
 	while( TRUE )
 	{
 		healthpercent = get HEALTH;

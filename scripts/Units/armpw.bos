@@ -13,6 +13,7 @@ static-var  bMoving, bAiming, Static_Var_3, gun_1, restore_delay, moveSpeed, cur
 #define SIG_AIM				2
 
 
+
 // Generated for N:\animations\armpw_anim_walk.blend
 // Using https://github.com/Beherith/Skeletor_S3O 
 // this animation uses the static-var animFramesPerKeyframe which contains how many frames each keyframe takes
@@ -1083,10 +1084,7 @@ StartMoving()
 StopMoving()
 {
 	bMoving = FALSE;
-
 	signal SIG_MOVE;
-	bMoving=FALSE;
-
 	call-script StopWalking();
 	start-script Animate();
 }

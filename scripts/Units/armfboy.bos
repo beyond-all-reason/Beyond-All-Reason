@@ -269,11 +269,13 @@ UnitSpeed(){
 }
 StartMoving(){
 	signal SIG_WALK;
+  set-signal-mask SIG_WALK;
 	bMoving=TRUE;
 	start-script Walk();
+  start-script UnitSpeed(); 
 }
 StopMoving(){
-	\signal SIG_WALK;
+	signal SIG_WALK;
 	bMoving=FALSE;
 	call-script StopWalking();
 }
@@ -282,7 +284,6 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 {
 	while( get BUILD_PERCENT_LEFT )
 	{
-		start-script UnitSpeed(); 
 		sleep 400;
 	}
 	while( TRUE )

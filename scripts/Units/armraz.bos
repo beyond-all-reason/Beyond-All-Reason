@@ -375,6 +375,8 @@ StartMoving()
 {
 	signal 16;
 	bMoving = TRUE;
+  set-signal-mask 16;
+	start-script UnitSpeed();
 	start-script Walk();
 }
 
@@ -393,7 +395,6 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 	{
 		sleep 400;
 	}
-	start-script UnitSpeed();
 	while( TRUE )
 	{
 		healthpercent = get HEALTH;
@@ -549,7 +550,6 @@ FirePrimary()
 		return (1);
 	}
 }
-
 
 Killed(severity, corpsetype)
 {

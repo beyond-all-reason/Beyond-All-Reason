@@ -596,7 +596,6 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 	{
 		sleep 200; // no real cost for this
 	}
-	start-script MotionControl();
 	while( TRUE )
 	{
 		healthpercent = get HEALTH;
@@ -663,7 +662,6 @@ Create()
 	restore_delay = 5000;
 	set ARMORED to 1;
 	start-script SmokeUnit();
-	start-script UnitSpeed();
 }
 
 SetMaxReloadTime(maxtime_ms) //this is called by engine immediately after Create(), and returns the longest of all weapon reload times in ms
@@ -673,13 +671,19 @@ SetMaxReloadTime(maxtime_ms) //this is called by engine immediately after Create
 
 StartMoving()
 {
-	bMoving = TRUE;
+	signal SIG_WALK;
+	bMoving=TRUE;
+  set-signal-mask SIG_WALK;
+	start-script UnitSpeed();
+  start-script Walk();
 	set ARMORED to 0;
 }
 
 StopMoving()
 {
 	bMoving = FALSE;
+  signal SIG_WALK;
+  call-script StopWalking();
 	set ARMORED to 1;
 }
 

@@ -237,7 +237,6 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 		sleep 400;
 	}
 	
-	start-script UnitSpeed();
 	
 	while( TRUE )
 	{
@@ -291,6 +290,8 @@ HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and f
 StartMoving(){
 	signal SIG_WALK;
 	bMoving=TRUE;
+	set-signal-mask SIG_WALK;
+	start-script UnitSpeed();
 	start-script Walk();
 }
 StopMoving(){

@@ -1026,8 +1026,8 @@ StartMoving(){
 	signal SIG_WALK;
 	bMoving=TRUE;
 	set-signal-mask SIG_WALK;
-	start-script UnitSpeed();
 	call-script StopAnimation();
+	start-script UnitSpeed();
 	start-script Walk();
 }
 StopMoving(){
