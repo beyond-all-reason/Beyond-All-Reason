@@ -60,7 +60,7 @@ SmokeUnit(healthpercent, smoketype) // ah yes, clever use of stack variables
 
 HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and flamers give angles of 0
 {
-	if( get BUILD_PERCENT_LEFT) return;
+	if( get BUILD_PERCENT_LEFT) return (100);
 	if (isSmoking == 0)	{ 
 		isSmoking = 1;
 		start-script SmokeUnit();
