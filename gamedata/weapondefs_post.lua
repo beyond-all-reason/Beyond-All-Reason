@@ -34,7 +34,7 @@ local function ExtractWeaponDefs(unitDefName, unitDef)
 
 	-- convert the weapon names
 	local weapons = unitDef.weapons
-		for _, weapon in ipairs(weapons) do
+		for _, weapon in pairs(weapons) do
 			local fullName = unitDefName .. '_' .. weapon.def:lower()
 			local weaponDef = WeaponDefs[fullName]
 
