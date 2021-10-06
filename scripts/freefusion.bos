@@ -84,32 +84,32 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
-		explode base type BITMAPONLY | BITMAP1;
-		explode fusionsphere type FALL | FIRE | SMOKE |BITMAP1;
-		explode column1 type BITMAPONLY;
-		explode column2 type BITMAPONLY;
-		explode column3 type BITMAPONLY;
-		explode column4 type BITMAPONLY;
+		explode base type BITMAPONLY | BITMAP1 | NOHEATCLOUD ;
+		explode fusionsphere type FALL | FIRE | SMOKE |BITMAP1 | NOHEATCLOUD ;
+		explode column1 type BITMAPONLY | NOHEATCLOUD ;
+		explode column2 type BITMAPONLY | NOHEATCLOUD ;
+		explode column3 type BITMAPONLY | NOHEATCLOUD ;
+		explode column4 type BITMAPONLY | NOHEATCLOUD ;
 		return (0);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
-		explode base type BITMAPONLY | BITMAP1;
-		explode fusionsphere type FALL | FIRE | SMOKE |BITMAP1;
-		explode column1 type FALL | FIRE | SMOKE |BITMAP1;
-		explode column2 type FALL | FIRE | SMOKE |BITMAP1;
-		explode column3 type FALL | FIRE | SMOKE |BITMAP1;
-		explode column4 type FALL | FIRE | SMOKE |BITMAP1;
+		explode base type BITMAPONLY | BITMAP1 | NOHEATCLOUD ;
+		explode fusionsphere type FALL | FIRE | SMOKE |BITMAP1 | NOHEATCLOUD ;
+		explode column1 type FALL | FIRE | SMOKE |BITMAP1 | NOHEATCLOUD ;
+		explode column2 type FALL | FIRE | SMOKE |BITMAP1 | NOHEATCLOUD ;
+		explode column3 type FALL | FIRE | SMOKE |BITMAP1 | NOHEATCLOUD ;
+		explode column4 type FALL | FIRE | SMOKE |BITMAP1 | NOHEATCLOUD ;
 		return (0);
 	}
 
 	corpsetype = 3;		
-	explode base type BITMAPONLY | BITMAP1;
-	explode fusionsphere type FALL | FIRE | SMOKE |BITMAP1;
-	explode column1 type FALL | FIRE | SMOKE |BITMAP1;
-	explode column2 type FALL | FIRE | SMOKE |BITMAP1;
-	explode column3 type FALL | FIRE | SMOKE |BITMAP1;
-	explode column4 type FALL | FIRE | SMOKE |BITMAP1;
+	explode base type BITMAPONLY | BITMAP1 | NOHEATCLOUD ;
+	explode fusionsphere type FALL | FIRE | SMOKE |BITMAP1 | NOHEATCLOUD ;
+	explode column1 type FALL | FIRE | SMOKE |BITMAP1 | NOHEATCLOUD ;
+	explode column2 type FALL | FIRE | SMOKE |BITMAP1 | NOHEATCLOUD ;
+	explode column3 type FALL | FIRE | SMOKE |BITMAP1 | NOHEATCLOUD ;
+	explode column4 type FALL | FIRE | SMOKE |BITMAP1 | NOHEATCLOUD ;
 	return (0);
 }
