@@ -12,7 +12,7 @@ return {
 		buildtime = 800,
 		canrepeat = false,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
-		corpse = "FREE_FUSION_DEAD",
+		corpse = "DEAD",
 		description = Spring.I18N('units.descriptions.freefusion'),
 		energymake = 850,
 		energystorage = 150,
@@ -38,12 +38,13 @@ return {
 			techlevel = 2,
 		},
 		featuredefs = {
-			free_fusion_dead = {
+			dead = {
 				blocking = true,
 				category = "corpses",
 				damage = 2500,
 				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
+				featuredead = "HEAP",
 				footprintx = 5,
 				footprintz = 5,
 				height = 20,

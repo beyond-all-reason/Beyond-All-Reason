@@ -56,6 +56,7 @@ return {
 				damage = 1020,
 				description = Spring.I18N('units.dead', { name = unitName }),
 				energy = 0,
+				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
 				footprintx = 4,
 				footprintz = 4,
