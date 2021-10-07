@@ -92,6 +92,21 @@ local function SpawnUnit(spawnData)
 			if ownerID then
 				spSetUnitRulesParam(unitID, "parent_unit_id", ownerID, PRIVATE)
 			end
+      
+      if ownerID then
+        local ownx, owny, ownz = Spring.GetUnitPosition(ownerID)
+        
+        if ownx then
+          local dx = (spawnData.x  - ownx) 
+          local dz = (spawnData.z - ownz)
+          local l = math.sqrt((dx*dx) + (dz*dz))
+          dx = dx/l
+          dz = dz/l
+          Spring.SetUnitDirection(unitID, dx, 0, dz) 
+          Spring.AddUnitImpulse(unitID, dx, 0.5, dz, 1.0) 
+        end
+      end
+      
 
 			if spawnDef.expire then
 				expireCount = expireCount + 1
