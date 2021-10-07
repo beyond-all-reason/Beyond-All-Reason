@@ -5,35 +5,7 @@
 
 piece  base, cover1, cover2;
 
-static-var  mmState, Active;
-
-ImAMetalMaker()
-{
-	mmState = -1;
-	while( TRUE )
-	{	
-		if (Active == 1)
-		{
-			turn cover1 to z-axis <-60> speed <60>;
-			turn cover2 to z-axis <60> speed <60>;
-			if (mmState != 1) {
-				set ACTIVATION to 1;
-				mmState = 1;
-			}
-		}
-		else
-		{
-		
-			turn cover1 to z-axis <0> speed <60>;
-			turn cover2 to z-axis <0> speed <60>;
-			if (mmState != 0) {
-				set ACTIVATION to 0;
-				mmState = 0;
-			}
-		}
-		sleep 1000;
-	}
-}
+static-var  Active;
 
 
 SmokeUnit(healthpercent, sleeptime, smoketype)
@@ -42,7 +14,7 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 	{
 		sleep 500;
 	}
-	start-script ImAMetalMaker();
+	//start-script ImAMetalMaker();
 	while( TRUE )
 	{
 		healthpercent = get HEALTH;
@@ -67,7 +39,14 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 MMStatus(State)
 {
 	Active = State;
-	//get PRINT(Active);
+	if (State) {
+		turn cover1 to z-axis <-60> speed <60>;
+		turn cover2 to z-axis <60> speed <60>;
+	}else{
+		turn cover1 to z-axis <0> speed <60>;
+		turn cover2 to z-axis <0> speed <60>;
+	}
+	//get PRINT(get GAME_FRAME, Active);
 }
 
 Create()

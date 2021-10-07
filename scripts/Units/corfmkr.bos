@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base;
+piece  base, cover2;
 
 static-var  mmState, Active;
 
@@ -54,27 +54,6 @@ RockOnWaves()
 	}
 }
 
-ImAMetalMaker()
-{
-	mmState = -1;
-	while( TRUE )
-	{
-		if( Active == 1 )
-		{
-			if( mmState != 1 )
-			{
-			set ACTIVATION to 1;
-			mmState = 1;
-			}
-		}
-		else if( mmState != 0 )
-		{
-			set ACTIVATION to 0;
-			mmState = 0;
-		}
-		sleep 1000;
-	}
-}
 
 SmokeUnit(healthpercent, sleeptime, smoketype)
 {
@@ -83,7 +62,6 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 		sleep 400;
 	}
 	start-script RockOnWaves();
-	start-script ImAMetalMaker();
 	while( TRUE )
 	{
 		healthpercent = get HEALTH;
@@ -105,11 +83,21 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 	}
 }
 
+
 MMStatus(State)
 {
 	Active = State;
+	if (State)
+	{
+		turn cover2 to x-axis <180> speed <180>;
+	}
+	else
+	{
+		turn cover2 to x-axis <0> speed <180>;
+	}
 	//get PRINT(Active);
 }
+
 
 Create()
 {

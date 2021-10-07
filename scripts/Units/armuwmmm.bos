@@ -5,21 +5,8 @@
 
 piece  base, cover1, cover2;
 
-static-var  mmState, Active;
+static-var  Active;
 
-activatescr()
-{
-	turn cover1 to y-axis <-45> speed <60>;
-	turn cover2 to y-axis <45> speed <60>;
-	sleep 1603;
-}
-
-deactivatescr()
-{
-	turn cover1 to y-axis <0> speed <60>;
-	turn cover2 to y-axis <0> speed <60>;
-	sleep 1603;
-}
 
 RockOnWaves()
 {
@@ -42,42 +29,6 @@ RockOnWaves()
 	}
 }
 
-Go()
-{
-	start-script activatescr();
-	dont-cache cover1;
-}
-
-Stop()
-{
-	call-script deactivatescr();
-	cache cover1;
-}
-
-ImAMetalMaker()
-{
-	mmState = -1;
-	while( TRUE )
-	{
-		if (Active == 1)
-		{
-			if (mmState != 1) {
-				call-script Go();
-				set ACTIVATION to 1;
-				mmState = 1;
-			}
-		}
-		else
-		{
-			if (mmState != 0) {
-				call-script Stop();
-				set ACTIVATION to 0;
-				mmState = 0;
-			}
-		}
-		sleep 1000;
-	}
-}
 
 SmokeUnit(healthpercent, sleeptime, smoketype)
 {
@@ -86,7 +37,6 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 		sleep 400;
 	}
 	start-script RockOnWaves();
-	start-script ImAMetalMaker();
 	while( TRUE )
 	{
 		healthpercent = get HEALTH;
@@ -111,13 +61,19 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 MMStatus(State)
 {
 	Active = State;
+	if (State) {
+		turn cover1 to y-axis <-45> speed <60>;
+		turn cover2 to y-axis <45> speed <60>;
+	}else{
+		turn cover1 to z-axis <0> speed <60>;
+		turn cover2 to z-axis <0> speed <60>;
+	}
 	//get PRINT(Active);
 }
 
 Create()
 {
-	dont-cache cover1;
-	dont-shade cover1;
+
 	start-script SmokeUnit();
 }
 

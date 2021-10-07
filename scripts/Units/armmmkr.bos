@@ -5,57 +5,8 @@
 
 piece  base, cover1, cover2;
 
-static-var  mmState, Active;
+static-var  Active;
 
-activatescr()
-{
-	turn cover1 to z-axis <60> speed <60>;
-	turn cover2 to z-axis <-60> speed <60>;
-	sleep 1000;
-}
-
-deactivatescr()
-{
-	turn cover1 to z-axis <0> speed <60>;
-	turn cover2 to z-axis <0> speed <60>;
-	sleep 1000;
-}
-
-
-Go()
-{
-	call-script activatescr();
-	set ARMORED to 0; //Not needed as MM in BAR have no damage modifyer tag set
-}
-
-Stop()
-{
-	set ARMORED to 1;
-	call-script deactivatescr();
-}
-
-ImAMetalMaker()
-{
-	mmState = -1;
-	while( TRUE )
-	{
-		if (Active == 1)
-		{
-			if (mmState != 1) {
-				call-script Go();
-				mmState = 1;
-			}
-		}
-		else
-		{
-			if (mmState != 0) {
-				call-script Stop();
-				mmState = 0;
-			}
-		}
-		sleep 1000;
-	}
-}
 
 SmokeUnit(healthpercent, sleeptime, smoketype)
 {
@@ -63,7 +14,6 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 	{
 		sleep 400;
 	}
-	start-script ImAMetalMaker();
 	while( TRUE )
 	{
 		healthpercent = get HEALTH;
@@ -88,7 +38,14 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 MMStatus(State)
 {
 	Active = State;
-	//get PRINT(Active);
+	if (State) {
+		turn cover1 to z-axis <60> speed <60>;
+		turn cover2 to z-axis <-60> speed <60>;
+	}else{
+		turn cover1 to z-axis <0> speed <60>;
+		turn cover2 to z-axis <0> speed <60>;
+	}
+	//get PRINT(get GAME_FRAME, Active);
 }
 
 Create()

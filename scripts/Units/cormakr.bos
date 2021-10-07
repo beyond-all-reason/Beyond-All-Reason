@@ -3,38 +3,11 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base,cover,cover2;
+piece  base, cover, cover2;
 
-static-var  mmState, Active;
+static-var Active;
 
-ImAMetalMaker()
-{
-	mmState = -1;
-	while( TRUE )
-	{	
-		if (Active == 1)
-		{
-			move cover to y-axis [-20] speed [20];
-			
-			turn cover2 to x-axis <180> speed <180>;
-			if (mmState != 1) {
-				set ACTIVATION to 1;
-				mmState = 1;
-			}
-		}
-		else
-		{
-		
-			move cover to y-axis [0.0] speed [20];
-			turn cover2 to x-axis <0> speed <180>;
-			if (mmState != 0) {
-				set ACTIVATION to 0;
-				mmState = 0;
-			}
-		}
-		sleep 1000;
-	}
-}
+
 
 SmokeUnit(healthpercent, sleeptime, smoketype)
 {
@@ -42,7 +15,6 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 	{
 		sleep 400;
 	}
-	start-script ImAMetalMaker();
 	while( TRUE )
 	{
 		healthpercent = get HEALTH;
@@ -67,6 +39,16 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 MMStatus(State)
 {
 	Active = State;
+	if (State)
+	{
+		move cover to y-axis [-20] speed [20];	
+		turn cover2 to x-axis <180> speed <180>;
+	}
+	else
+	{
+		move cover to y-axis [0.0] speed [20];
+		turn cover2 to x-axis <0> speed <180>;
+	}
 	//get PRINT(Active);
 }
 

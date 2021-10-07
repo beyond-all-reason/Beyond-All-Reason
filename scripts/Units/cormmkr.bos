@@ -8,54 +8,7 @@
 
 piece  base, cover, converter;
 
-static-var  Active, coverState, convPhase;
-
-Go()
-{
-	set ARMORED to 0;  //Not needed as MM in BAR have no damage modifyer tag set
-}
-
-Stop()
-{
-	set ARMORED to 1;
-}
-
-MovementControl()
-{
-	while (TRUE)
-	{
-		if (Active)
-		{
-			if (coverState)
-			{
-				hide cover;
-				coverState = 0;
-				convPhase = 0;
-			}
-			if (convPhase)
-			{
-				move converter to y-axis [12] speed [5.000000];
-			}
-			if (!convPhase)
-			{
-				move converter to y-axis [6] speed [5.000000];
-			}
-			convPhase = !convPhase;
-			sleep 1500;
-		} 
-		if (!Active)
-		{
-			if (!coverState)
-			{
-				move converter to y-axis [0] speed [6];
-				wait-for-move converter along y-axis;
-				show cover;
-				coverState = 1;
-			}
-		}
-		sleep 100;
-	}	
-}
+static-var  Active;
 
 SmokeUnit(healthpercent, sleeptime, smoketype)
 {
@@ -63,8 +16,6 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 	{
 		sleep 400;
 	}
-
-	start-script MovementControl();
 
 	while( TRUE )
 	{
@@ -90,13 +41,24 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 MMStatus(State)
 {
 	Active = State;
-	//get PRINT(Active);
+	if (Active){
+		hide cover;
+		show converter;
+		move converter to y-axis [6] speed [12.000000];	
+	}
+	else
+	{
+		move converter to y-axis [1] speed [12];
+		wait-for-move converter along y-axis;
+		hide converter;
+		show cover;
+	}
+	//get PRINT(get GAME_FRAME, Active);
+	
 }
 
 Create()
 {
-	coverState = 1;
-	convPhase = 0;
 	start-script SmokeUnit();
 }
 

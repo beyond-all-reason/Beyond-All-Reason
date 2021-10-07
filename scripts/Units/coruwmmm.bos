@@ -5,7 +5,7 @@
 
 piece  base, fan;
 
-static-var  mmState, Active;
+static-var  Active;
 
 RockOnWaves()
 {
@@ -28,40 +28,6 @@ RockOnWaves()
 	}
 }
 
-Go()
-{
-	spin fan around y-axis speed <300.000000> accelerate <10>;
-}
-
-Stop()
-{
-	stop-spin fan around y-axis decelerate <5>;
-	sleep 30;
-}
-
-ImAMetalMaker()
-{
-	mmState = -1;
-	while( TRUE )
-	{
-		if( Active == 1 )
-		{
-			if( mmState != 1 )
-			{
-				call-script Go();
-				set ACTIVATION to 1;
-				mmState = 1;
-			}
-		}
-		else if( mmState != 0 )
-		{
-			call-script Stop();
-			set ACTIVATION to 0;
-			mmState = 0;
-		}
-		sleep 1000;
-	}
-}
 
 SmokeUnit(healthpercent, sleeptime, smoketype)
 {
@@ -70,7 +36,6 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 		sleep 400;
 	}
 	start-script RockOnWaves();
-	start-script ImAMetalMaker();
 	while( TRUE )
 	{
 		healthpercent = get HEALTH;
@@ -95,7 +60,14 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 MMStatus(State)
 {
 	Active = State;
-	//get PRINT(Active);
+	if (State)
+	{
+		spin fan around y-axis speed <300.000000> accelerate <10>;
+	}
+	else
+	{
+		stop-spin fan around y-axis decelerate <5>;
+	}
 }
 
 Create()
