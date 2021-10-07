@@ -62,7 +62,6 @@ for featureDefName, featureDef in pairs(FeatureDefs) do
 	featureDef.customparams = featureDef.customparams or {}
 	local proxy = mapFeatureProxies[featureDefName]
 	if proxy then
-		Spring.Echo(featureDefName, proxy)
 		featureDef.customparams.i18nfrom = proxy
 	end
 end
