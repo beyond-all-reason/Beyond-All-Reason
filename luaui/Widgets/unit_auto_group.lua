@@ -125,9 +125,9 @@ function widget:Initialize()
 	widget:ViewResize()
 	widget:PlayerChanged()
 
-	widgetHandler:AddAction("add_to_autogroup", HandleAddToAutogroup, nil, "t")
-	widgetHandler:AddAction("remove_from_autogroup", HandleAddToAutogroup, nil, "t")
-	widgetHandler:AddAction("remove_unit_from_autogroup", HandleRemoveFromAutogroup, nil, "t")
+	widgetHandler:AddAction("add_to_autogroup", ChangeUnitTypeAutogroupHandler, nil, "t") -- With a parameter, adds all units of this type to a specific autogroup
+	widgetHandler:AddAction("remove_from_autogroup", ChangeUnitTypeAutogroupHandler, nil, "t") -- Without a parameter, removes all units of this type from autogroups
+	widgetHandler:AddAction("remove_one_unit_from_group", RemoveOneUnitFromGroupHandler, nil, "t") -- Removes the closest of selected units from groups and selects only it
 
 	-- unbind Any+ keybindings and binding default keybindings
 	for i = 0, 9 do
@@ -143,7 +143,7 @@ function widget:Initialize()
 		"unbind Any+` drawlabel",
 		"unbind Any+` drawinmap",
 		"bind Alt+` remove_from_autogroup",
-		"bind Ctrl+` remove_unit_from_autogroup",
+		"bind Ctrl+` remove_one_unit_from_group",
 	})
 
 	WG['autogroup'] = {}
@@ -162,7 +162,7 @@ function widget:Initialize()
 	end
 end
 
-function HandleAddToAutogroup(_, _, args)
+function ChangeUnitTypeAutogroupHandler(_, _, args)
 	local gr = args[1]
 
 	local selUnitDefIDs = {}
@@ -217,7 +217,7 @@ function HandleAddToAutogroup(_, _, args)
 	return true
 end
 
-function HandleRemoveFromAutogroup(_, _, args)
+function RemoveOneUnitFromGroupHandler(_, _, args)
 	local mx, my = GetMouseState()
 	local _, pos = TraceScreenRay(mx, my, true)
 	local mindist = math.huge
