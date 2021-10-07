@@ -148,7 +148,7 @@ local function spawnRuin(ruin, posx, posy, posz, blueprintTierLevel)
 
 		local name = UnitDefs[building.unitDefID].name
 		local r = math.random(1,100)
-		if r < 30 then
+		if r < 40 then
 			
 			local posy = Spring.GetGroundHeight(posx + (xOffset*flipX*mirrorX), posz + (zOffset*flipZ*mirrorZ))
 			local unit = Spring.CreateUnit(building.unitDefID, posx + (xOffset*flipX*mirrorX), posy, posz + (zOffset*flipZ*mirrorZ), (building.direction+rotation+mirrorRotation)%4, GaiaTeamID)
@@ -175,7 +175,7 @@ local function spawnRuin(ruin, posx, posy, posz, blueprintTierLevel)
 			end
 		-- elseif r < 90 and FeatureDefNames[name .. "_dead"] then
 		-- 	local wreck = Spring.CreateFeature(name .. "_dead", posx + (xOffset*flipX*mirrorX), posy, posz + (zOffset*flipZ*mirrorZ), (building.direction+rotation+mirrorRotation)%4, GaiaTeamID)
-		-- 	Spring.SetFeatureAlwaysVisible(wreck, true)
+		-- 	Spring.SetFeatureAlwaysVisible(wreck, false)
 		-- 	Spring.SetFeatureResurrect(wreck, name)
 		end
 	end

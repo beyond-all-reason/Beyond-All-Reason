@@ -168,6 +168,7 @@ return {
 					expl_light_mult = 1.5,
 					expl_light_radius_mult = 1.5,
 					spawns_name = "armpw",
+					spawns_surface = "LAND", -- Available: "LAND SEA"
 				},
 				damage = {
 					default = 10,

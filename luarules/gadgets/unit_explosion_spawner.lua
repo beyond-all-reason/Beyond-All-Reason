@@ -26,6 +26,9 @@ local spGiveOrderToUnit       = Spring.GiveOrderToUnit
 local spSetFeatureDirection   = Spring.SetFeatureDirection
 local spSetUnitRulesParam     = Spring.SetUnitRulesParam
 
+local mapsizeX 				  = Game.mapSizeX
+local mapsizeZ 				  = Game.mapSizeZ
+
 local random = math.random
 local sin    = math.sin
 local cos    = math.cos
@@ -58,6 +61,7 @@ for weaponDefID = 1, #WeaponDefs do
 			name = wdcp.spawns_name,
 			expire = wdcp.spawns_expire and (tonumber(wdcp.spawns_expire) * GAME_SPEED),
 			feature = wdcp.spawns_feature,
+			surface = wdcp.spawns_surface,
 		}
 		if wdcp.spawn_blocked_by_shield then
 			shieldCollide[weaponDefID] = WeaponDefs[weaponDefID].damages[Game.armorTypes.shield]
@@ -82,6 +86,22 @@ local function SpawnUnit(spawnData)
 			local rot = random() * TAU
 			spSetFeatureDirection(featureID, cos(rot), 0, sin(rot))
 		else
+			local validSurface = false
+			local removeWreck = false
+			if not spawnDef.surface then
+				validSurface = true
+			end
+			if spawnData.x > 0 and spawnData.x < mapsizeX and spawnData.z > 0 and spawnData.z < mapsizeZ then
+				local y = Spring.GetGroundHeight(spawnData.x, spawnData.z)
+				if string.find(spawnDef.surface, "LAND") and y > 0 then
+					validSurface = true
+				elseif string.find(spawnDef.surface, "SEA") and y <= 0 then
+					validSurface = true
+				end
+			else
+				removeWreck = true
+			end
+			
 			local unitID = spCreateUnit(spawnDef.name, spawnData.x, spawnData.y, spawnData.z, 0, spawnData.teamID)
 			if not unitID then
 				-- unit limit hit
@@ -93,19 +113,19 @@ local function SpawnUnit(spawnData)
 				spSetUnitRulesParam(unitID, "parent_unit_id", ownerID, PRIVATE)
 			end
       
-      if ownerID then
-        local ownx, owny, ownz = Spring.GetUnitPosition(ownerID)
-        
-        if ownx then
-          local dx = (spawnData.x  - ownx) 
-          local dz = (spawnData.z - ownz)
-          local l = math.sqrt((dx*dx) + (dz*dz))
-          dx = dx/l
-          dz = dz/l
-          Spring.SetUnitDirection(unitID, dx, 0, dz) 
-          Spring.AddUnitImpulse(unitID, dx, 0.5, dz, 1.0) 
-        end
-      end
+			if ownerID then
+				local ownx, owny, ownz = Spring.GetUnitPosition(ownerID)
+				
+				if ownx then
+				local dx = (spawnData.x  - ownx) 
+				local dz = (spawnData.z - ownz)
+				local l = math.sqrt((dx*dx) + (dz*dz))
+				dx = dx/l
+				dz = dz/l
+				Spring.SetUnitDirection(unitID, dx, 0, dz) 
+				Spring.AddUnitImpulse(unitID, dx, 0.5, dz, 1.0) 
+				end
+			end
       
 
 			if spawnDef.expire then
@@ -118,6 +138,10 @@ local function SpawnUnit(spawnData)
 			-- force a slowupdate to make the unit act immediately
 			spGiveOrderToUnit(unitID, CMD_WAIT, EMPTY_TABLE, 0)
 			spGiveOrderToUnit(unitID, CMD_WAIT, EMPTY_TABLE, 0)
+
+			if validSurface == false and unitID then
+				spDestroyUnit(unitID, false, removeWreck)
+			end
 		end
 	end
 end
