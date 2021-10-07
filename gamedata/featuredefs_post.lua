@@ -13,8 +13,9 @@
 --
 --  Per-unitDef featureDefs
 --
+local mapFeatureProxies = VFS.Include('gamedata/features_i18n_proxies.lua')
 
-local function ProcessUnitDef(unitDefName, unitDef)
+local function processUnitDef(unitDefName, unitDef)
 	local features = unitDef.featuredefs
 	if not features then
 		return
@@ -54,5 +55,14 @@ end
 local UnitDefs = DEFS.unitDefs
 
 for unitDefName, unitDef in pairs(UnitDefs) do
-	ProcessUnitDef(unitDefName, unitDef)
+	processUnitDef(unitDefName, unitDef)
+end
+
+for featureDefName, featureDef in pairs(FeatureDefs) do
+	featureDef.customparams = featureDef.customparams or {}
+	local proxy = mapFeatureProxies[featureDefName]
+	if proxy then
+		Spring.Echo(featureDefName, proxy)
+		featureDef.customparams.i18nfrom = proxy
+	end
 end

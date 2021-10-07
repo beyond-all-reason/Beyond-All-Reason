@@ -1,9 +1,11 @@
 return {
 	en = {
-		names = {
-			candycane = "Candy Cane",
-			chicken_egg = "Egg",
-			xmascomwreck = "Xmas Commander Wreckage",
-		},
+		features = {
+			names = {
+				candycane = "Candy Cane",
+				chicken_egg = "Egg",
+				xmascomwreck = "Xmas Commander Wreckage",
+			},
+		}
 	}
 }
