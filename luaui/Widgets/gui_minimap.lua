@@ -10,17 +10,17 @@ function widget:GetInfo()
 	}
 end
 
-local vsx, vsy = Spring.GetViewGeometry()
-
-local maxWidth = 0.29 * (vsx / vsy)  -- NOTE: changes in widget:ViewResize()
-local maxHeight = 0.35
-maxWidth = math.min(maxHeight * (Game.mapX / Game.mapY), maxWidth)
+local maxAllowedWidth = 0.285
+local maxAllowedHeight = 0.33
 
 local bgBorderOrg = 0.0025
 local bgBorder = bgBorderOrg
 
--------------------------------------------------------------------------------
--------------------------------------------------------------------------------
+local vsx, vsy = Spring.GetViewGeometry()
+
+local maxWidth = maxAllowedWidth * (vsx / vsy)  -- NOTE: changes in widget:ViewResize()
+local maxHeight = maxAllowedHeight
+maxWidth = math.min(maxHeight * (Game.mapX / Game.mapY), maxWidth)
 
 local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity", 0.6) or 0.66)
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
@@ -36,9 +36,6 @@ local usedHeight = math.floor(maxHeight * vsy)
 local RectRound, UiElement, elementCorner = WG.FlowUI.elementCorner
 
 local dlistGuishader, dlistMinimap, bgpadding, oldMinimapGeometry, chobbyInterface
-
--------------------------------------------------------------------------------
--------------------------------------------------------------------------------
 
 local function checkGuishader(force)
 	if WG['guishader'] then
@@ -59,11 +56,12 @@ end
 
 function widget:ViewResize()
 	vsx, vsy = Spring.GetViewGeometry()
-	local w = 0.285
-	maxWidth = w * (vsx / vsy)
-	maxWidth = math.min(maxHeight * (Game.mapX / Game.mapY), maxWidth)
-	if maxWidth >= w * (vsx / vsy) then
+	maxWidth = maxAllowedWidth * (vsx / vsy)
+	maxWidth = math.min(maxAllowedHeight * (Game.mapX / Game.mapY), maxWidth)
+	if maxWidth >= maxAllowedWidth * (vsx / vsy) then
 		maxHeight = maxWidth / (Game.mapX / Game.mapY)
+	else
+		maxHeight = maxAllowedHeight
 	end
 
 	usedWidth = math.floor(maxWidth * vsy)
@@ -95,10 +93,10 @@ function widget:Initialize()
 		return usedHeight + bgpadding
 	end
 	WG['minimap'].getMaxHeight = function()
-		return math.floor(maxHeight*vsy), maxHeight
+		return math.floor(maxAllowedHeight*vsy), maxAllowedHeight
 	end
 	WG['minimap'].setMaxHeight = function(value)
-		maxHeight = value
+		maxAllowedHeight = value
 	    widget:ViewResize()
 	end
 end
@@ -199,13 +197,13 @@ end
 
 function widget:GetConfigData()
 	return {
-		maxHeight = maxHeight,
+		maxHeight = maxAllowedHeight,
 	}
 end
 
 function widget:SetConfigData(data)
 	if data.maxHeight ~= nil then
-		maxHeight = data.maxHeight
+		maxAllowedHeight = data.maxHeight
 	end
 end
 
