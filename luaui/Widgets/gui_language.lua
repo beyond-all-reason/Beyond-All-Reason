@@ -54,11 +54,10 @@ local function refreshFeatureDefs()
 			end
 		end
 	end
-Spring.Echo("foo")
+
 	for name, featureDef in pairs(FeatureDefNames) do
 		if not featureDef.translatedDescription then
 			local proxyName = featureDef.customParams.i18nfrom or name
-			-- Disabled for now to avoid excessive infolog errors
 			featureDef.translatedDescription = Spring.I18N('features.names.' .. proxyName)
 		end
 	end
