@@ -1,7 +1,7 @@
 local unitName = Spring.I18N('units.names.armobli')
 
 return {
-	armanni = {
+	armobli = {
 		acceleration = 0,
 		activatewhenbuilt = true,
 		brakerate = 0,
