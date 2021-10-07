@@ -39,6 +39,7 @@
       properties = {
         airdrag            = 0.93,
         alwaysvisible      = false,
+        useairlos          = false,
         colormap           = [[0.0 0.0 0.00 0.0   0.19 0.16 0.08 0.3  0 0 0 0.00]],
         directional        = true,
         emitrot            = 90,
@@ -82,7 +83,7 @@
                 sizemod            = 1,
                 texture            = [[randdots]],
                 useairlos          = false,
-                alwaysvisible      = true,
+                alwaysvisible      = false,
             },
         },
    },
@@ -96,6 +97,7 @@
       properties = {
         airdrag            = 0.93,
         alwaysvisible      = false,
+        useairlos          = false,
         colormap           = [[0.0 0.0 0.00 0.0   0.19 0.16 0.08 0.3  0 0 0 0.00]],
         directional        = true,
         emitrot            = 90,
@@ -139,7 +141,7 @@
                 sizemod            = 1,
                 texture            = [[randdots]],
                 useairlos          = false,
-                alwaysvisible      = true,
+                alwaysvisible      = false,
             },
         },
   },
