@@ -13,9 +13,6 @@ end
 local maxAllowedWidth = 0.285
 local maxAllowedHeight = 0.33
 
-local bgBorderOrg = 0.0025
-local bgBorder = bgBorderOrg
-
 local vsx, vsy = Spring.GetViewGeometry()
 
 local maxWidth = maxAllowedWidth * (vsx / vsy)  -- NOTE: changes in widget:ViewResize()
@@ -33,9 +30,14 @@ local spGetCameraState = Spring.GetCameraState
 local usedWidth = math.floor(maxWidth * vsy)
 local usedHeight = math.floor(maxHeight * vsy)
 
-local RectRound, UiElement, elementCorner = WG.FlowUI.elementCorner
+local RectRound, UiElement, elementCorner
 
 local dlistGuishader, dlistMinimap, bgpadding, oldMinimapGeometry, chobbyInterface
+
+
+local function IsOnRect(x, y, BLcornerX, BLcornerY, TRcornerX, TRcornerY)
+	return x >= BLcornerX and x <= TRcornerX and y >= BLcornerY and y <= TRcornerY
+end
 
 local function checkGuishader(force)
 	if WG['guishader'] then
@@ -44,8 +46,7 @@ local function checkGuishader(force)
 		end
 		if not dlistGuishader then
 			dlistGuishader = gl.CreateList(function()
-				local padding = math.floor(bgBorder * vsy)
-				RectRound(backgroundRect[1], backgroundRect[2] - padding, backgroundRect[3] + padding, backgroundRect[4], elementCorner)
+				RectRound(backgroundRect[1], backgroundRect[2] - bgpadding, backgroundRect[3] + bgpadding, backgroundRect[4], elementCorner)
 			end)
 			WG['guishader'].InsertDlist(dlistGuishader, 'minimap')
 		end
@@ -79,7 +80,7 @@ function widget:ViewResize()
 
 	checkGuishader(true)
 
-	clear()
+	dlistMinimap = gl.DeleteList(dlistMinimap)
 end
 
 function widget:Initialize()
@@ -101,16 +102,13 @@ function widget:Initialize()
 	end
 end
 
-function widget:GameStart()
-	widget:ViewResize()
-end
-
-function clear()
-	dlistMinimap = gl.DeleteList(dlistMinimap)
-end
+-- not sure why, so disabled for now
+--function widget:GameStart()
+--	widget:ViewResize()
+--end
 
 function widget:Shutdown()
-	clear()
+	dlistMinimap = gl.DeleteList(dlistMinimap)
 	if WG['guishader'] and dlistGuishader then
 		WG['guishader'].DeleteDlist('minimap')
 		dlistGuishader = nil
@@ -143,17 +141,9 @@ function widget:Update(dt)
 		end
 		if ui_opacity ~= Spring.GetConfigFloat("ui_opacity", 0.6) then
 			ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.6)
-			clear()
+			dlistMinimap = gl.DeleteList(dlistMinimap)
 		end
 	end
-end
-
-function IsOnRect(x, y, BLcornerX, BLcornerY, TRcornerX, TRcornerY)
-	return x >= BLcornerX and x <= TRcornerX and y >= BLcornerY and y <= TRcornerY
-end
-
-function drawMinimap()
-	UiElement(backgroundRect[1], backgroundRect[2] - bgpadding, backgroundRect[3] + bgpadding, backgroundRect[4], 0, 0, 1, 0)
 end
 
 function widget:RecvLuaMsg(msg, playerID)
@@ -166,13 +156,14 @@ function widget:DrawScreen()
 	if chobbyInterface then
 		return
 	end
-	--local x,y,b = Spring.GetMouseState()
-	--if IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
-	--  Spring.SetMouseCursor('cursornormal')
-	--end
+	local x,y,b = Spring.GetMouseState()
+	if IsOnRect(x, y, backgroundRect[1], backgroundRect[2] - bgpadding, backgroundRect[3] + bgpadding, backgroundRect[4]) then
+		if not IsOnRect(x, y, backgroundRect[1], backgroundRect[2] + 1, backgroundRect[3] - 1, backgroundRect[4]) then
+			Spring.SetMouseCursor('cursornormal')
+		end
+	end
 	local st = spGetCameraState()
-	if st.name == "ov" then
-		-- overview camera
+	if st.name == "ov" then		-- overview camera
 		if dlistGuishader and WG['guishader'] then
 			WG['guishader'].RemoveDlist('minimap')
 		end
@@ -182,17 +173,13 @@ function widget:DrawScreen()
 		end
 		if not dlistMinimap then
 			dlistMinimap = gl.CreateList(function()
-				drawMinimap()
+				UiElement(backgroundRect[1], backgroundRect[2] - bgpadding, backgroundRect[3] + bgpadding, backgroundRect[4], 0, 0, 1, 0)
 			end)
 		end
 		gl.CallList(dlistMinimap)
 	end
 
-	--gl.ResetState()
-	--gl.ResetMatrices()
 	gl.DrawMiniMap()
-	--gl.ResetState()
-	--gl.ResetMatrices()
 end
 
 function widget:GetConfigData()
@@ -207,16 +194,11 @@ function widget:SetConfigData(data)
 	end
 end
 
-function IsOnRect(x, y, BLcornerX, BLcornerY, TRcornerX, TRcornerY)
-	return x >= BLcornerX and x <= TRcornerX and y >= BLcornerY and y <= TRcornerY
-end
-
 function widget:MousePress(x, y, button)
 	if Spring.IsGUIHidden() then
 		return
 	end
-	local padding = math.floor(bgBorder * vsy)
-	if IsOnRect(x, y, backgroundRect[1], backgroundRect[2] - padding, backgroundRect[3] + padding, backgroundRect[4]) then
+	if IsOnRect(x, y, backgroundRect[1], backgroundRect[2] - bgpadding, backgroundRect[3] + bgpadding, backgroundRect[4]) then
 		if not IsOnRect(x, y, backgroundRect[1], backgroundRect[2] + 1, backgroundRect[3] - 1, backgroundRect[4]) then
 			return true
 		end
