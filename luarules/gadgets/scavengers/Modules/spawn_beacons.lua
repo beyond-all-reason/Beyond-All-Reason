@@ -115,7 +115,7 @@ function SpawnBeacon(n)
 
 					
 
-					if scavengerGamePhase ~= "initial" or math.random(0,3) == 0 then
+					if scavengerGamePhase ~= "initial" then
 						if constructorControllerModuleConfig.useconstructors then
 							local unitCount = Spring.GetTeamUnitCount(GaiaTeamID)
 							local unitCountBuffer = scavMaxUnits*0.5
