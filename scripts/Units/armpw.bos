@@ -1063,6 +1063,7 @@ Create()
 	burst1 = 1;
 	bAnimate = FALSE;
 	start-script InitialSetup1();
+	call-script StopWalking(); // start in power stance!
 }
 
 SetMaxReloadTime(Func_Var_1)
