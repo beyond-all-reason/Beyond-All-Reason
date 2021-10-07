@@ -86,7 +86,7 @@ end
 if Game and Game.mapName then
 	currentMapName = Game.mapName
 	freeFusionMaps = {
-		"SpeedMetal BAR V2",
+		--"SpeedMetal BAR V2",
 	}
 
 	for i = 1,#freeFusionMaps do
