@@ -83,6 +83,7 @@ local units = {
 	armbeamer = { "defence_beamer.png", 1.10699993 },
 	armbeaver = { "amphib_worker.png", 1.36499989 },
 	armblade = { "air_t2_hover_missile.png", 1.46999991 },
+	armbotrail = { "botrail.png", 3.96999991 },
 	armbrawl = { "air_t2_hover.png", 1.46999991 },
 	armbrtha = { "armbrtha_2.5.png", 2.625 },
 	armbull = { "vehicle_t2_tank.png", 1.46999991 },

@@ -1,7 +1,7 @@
-local unitName = Spring.I18N('units.names.armpwcannon')
+local unitName = Spring.I18N('units.names.armbotrail')
 
 return {
-	armpwcannon = {
+	armbotrail = {
 		acceleration = 0,
 		brakerate = 0,
 		buildangle = 32700,
@@ -11,7 +11,7 @@ return {
 		buildinggrounddecalsizex = 6,
 		buildinggrounddecalsizey = 6,
 		buildinggrounddecaltype = "decals/armbrtha_aoplane.dds",
-		buildpic = "ARMBRTHA.DDS",
+		buildpic = "ARMBOTRAIL.DDS",
 		buildtime = 85185,
 		canrepeat = false,
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -19,7 +19,7 @@ return {
 		collisionvolumescales = "48 90 48",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		description = Spring.I18N('units.descriptions.armpwcannon'),
+		description = Spring.I18N('units.descriptions.armbotrail'),
 		explodeas = "hugeBuildingExplosionGeneric",
 		footprintx = 4,
 		footprintz = 4,
@@ -42,7 +42,7 @@ return {
 			canareaattack = 1,
 			model_author = "Cremuss",
 			normaltex = "unittextures/Arm_normal.dds",
-			removewait = true,
+			--removewait = true,
 			subfolder = "armbuildings/landdefenceoffence",
 			techlevel = 2,
 		},
@@ -91,7 +91,7 @@ return {
 		},
 		sfxtypes = {
 			explosiongenerators = {
-				[1] = "custom:barrelshot-huge",
+				[1] = "custom:tachyonshot",
 			},
 			pieceexplosiongenerators = {
 				[1] = "deathceg3",
@@ -120,23 +120,22 @@ return {
 			},
 		},
 		weapondefs = {
-			arm_berthacannon = {
+			arm_botrail = {
 				accuracy = 1,
 				areaofeffect = 10,
 				avoidfeature = false,
 				avoidfriendly = false,
-				burst = 10,
-				burstrate = 0.6,
-				cegtag = "arty-huge",
+				--burst = 10,
+				--burstrate = 0.6,
+				cegtag = "arty-botrail",
 				collidefriendly = false,
 				craterareaofeffect = 116,
 				craterboost = 0.1,
 				cratermult = 0.1,
 				edgeeffectiveness = 0.15,
-				energypershot = 1920,
-				metalpershot = 48,
-				energypershot = 960,
-				explosiongenerator = "custom:genericshellexplosion-huge",
+				metalpershot = 58,
+				energypershot = 2880,
+				explosiongenerator = "custom:botrailspawn",
 				gravityaffected = "true",
 				heightboostfactor = 8,
 				hightrajectory = 0,
@@ -145,14 +144,14 @@ return {
 				leadbonus = 0,
 				metalpershot = 96,
 				model = "armpw_anim_projectile.s3o",
-				mygravity = 0.4,
-				name = "Long range g2g plasma cannon",
+				mygravity = 0.22,
+				name = "Long range bot cannon",
 				noselfdamage = true,
-				range = 4650,
-				reloadtime = 10,
+				range = 5250,
+				reloadtime = 0.5,
 				sprayangle = 720,
 				stockpile = true,
-				stockpiletime = 20,
+				stockpiletime = 3,
 				soundhit = "xplonuk1xs",
 				soundhitwet = "splshbig",
 				soundstart = "lrpcshot3",
@@ -163,7 +162,7 @@ return {
 				bouncerebound = 0.5,
 				numbounce = 10,
 				weapontype = "Cannon",
-				weaponvelocity = 1200,
+				weaponvelocity = 1000,
 				customparams = {
 					expl_light_heat_radius_mult = 2,
 					expl_light_mult = 1.5,
@@ -172,7 +171,7 @@ return {
 				},
 				damage = {
 					default = 10,
-					shields = 10,
+					shields = 150,
 					subs = 10,
 				},
 			},
@@ -180,7 +179,7 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "MOBILE",
-				def = "ARM_BERTHACANNON",
+				def = "ARM_BOTRAIL",
 				onlytargetcategory = "SURFACE",
 			},
 		},
