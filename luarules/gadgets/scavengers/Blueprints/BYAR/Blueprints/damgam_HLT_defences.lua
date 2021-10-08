@@ -450,6 +450,99 @@ local function HLTDefences11()
 	}
 end
 
+local function HLTDefences12()
+	return {
+		type = types.Land,
+		tiers = {tiers.T1},
+		radius = 96,
+		buildings = {
+			{ unitDefID = BPWallOrPopup('scav'), xOffset = 0, zOffset = 96, direction = 1},
+			{ unitDefID = BPWallOrPopup('scav'), xOffset = 32, zOffset = -80, direction = 1},
+			{ unitDefID = BPWallOrPopup('scav'), xOffset = -32, zOffset = 16, direction = 1},
+			{ unitDefID = BPWallOrPopup('scav'), xOffset = 32, zOffset = 48, direction = 1},
+			{ unitDefID = BPWallOrPopup('scav'), xOffset = -32, zOffset = -16, direction = 1},
+			{ unitDefID = BPWallOrPopup('scav'), xOffset = -32, zOffset = 96, direction = 1},
+			{ unitDefID = BPWallOrPopup('scav'), xOffset = 32, zOffset = -48, direction = 1},
+			{ unitDefID = BPWallOrPopup('scav'), xOffset = -32, zOffset = -96, direction = 1},
+			{ unitDefID = BPWallOrPopup('scav'), xOffset = 0, zOffset = -96, direction = 1},
+			{ unitDefID = BPWallOrPopup('scav'), xOffset = 32, zOffset = 80, direction = 1},
+			{ unitDefID = UnitDefNames.armmg_scav.id, xOffset = 0, zOffset = 0, direction = 1},
+			{ unitDefID = UnitDefNames.armmg_scav.id, xOffset = 0, zOffset = -64, direction = 1},
+			{ unitDefID = UnitDefNames.armmg_scav.id, xOffset = 0, zOffset = 64, direction = 1},
+		},
+	}
+end
+
+local function HLTDefences13()
+	return {
+		type = types.Land,
+		tiers = {tiers.T1},
+		radius = 64,
+		buildings = {
+			{ unitDefID = BPWallOrPopup('scav'), xOffset = 64, zOffset = 48, direction = 1},
+			{ unitDefID = BPWallOrPopup('scav'), xOffset = -64, zOffset = 32, direction = 1},
+			{ unitDefID = BPWallOrPopup('scav'), xOffset = 64, zOffset = -32, direction = 1},
+			{ unitDefID = BPWallOrPopup('scav'), xOffset = -64, zOffset = -48, direction = 1},
+			{ unitDefID = BPWallOrPopup('scav'), xOffset = -32, zOffset = -64, direction = 1},
+			{ unitDefID = BPWallOrPopup('scav'), xOffset = -48, zOffset = 64, direction = 1},
+			{ unitDefID = BPWallOrPopup('scav'), xOffset = 32, zOffset = 64, direction = 1},
+			{ unitDefID = BPWallOrPopup('scav'), xOffset = 48, zOffset = -64, direction = 1},
+			{ unitDefID = UnitDefNames.armmg_scav.id, xOffset = -32, zOffset = 32, direction = 1},
+			{ unitDefID = UnitDefNames.armmg_scav.id, xOffset = 32, zOffset = 32, direction = 1},
+			{ unitDefID = UnitDefNames.armmg_scav.id, xOffset = -32, zOffset = -32, direction = 1},
+			{ unitDefID = UnitDefNames.armmg_scav.id, xOffset = 32, zOffset = -32, direction = 1},
+		},
+	}
+end
+
+local function HLTDefences14()
+	return {
+		type = types.Land,
+		tiers = {tiers.T1},
+		radius = 74,
+		buildings = {
+			{ unitDefID = BPWallOrPopup('scav'), xOffset = -54, zOffset = 16, direction = 1},
+			{ unitDefID = BPWallOrPopup('scav'), xOffset = -38, zOffset = -64, direction = 1},
+			{ unitDefID = BPWallOrPopup('scav'), xOffset = -6, zOffset = 64, direction = 1},
+			{ unitDefID = BPWallOrPopup('scav'), xOffset = 74, zOffset = 16, direction = 1},
+			{ unitDefID = BPWallOrPopup('scav'), xOffset = 26, zOffset = -32, direction = 1},
+			{ unitDefID = BPWallOrPopup('scav'), xOffset = 26, zOffset = 32, direction = 1},
+			{ unitDefID = BPWallOrPopup('scav'), xOffset = -6, zOffset = -64, direction = 1},
+			{ unitDefID = BPWallOrPopup('scav'), xOffset = -38, zOffset = 64, direction = 1},
+			{ unitDefID = BPWallOrPopup('scav'), xOffset = -54, zOffset = -16, direction = 1},
+			{ unitDefID = BPWallOrPopup('scav'), xOffset = 74, zOffset = -16, direction = 1},
+			{ unitDefID = UnitDefNames.armmg_scav.id, xOffset = -22, zOffset = -32, direction = 1},
+			{ unitDefID = UnitDefNames.armmg_scav.id, xOffset = 42, zOffset = 0, direction = 1},
+			{ unitDefID = UnitDefNames.armmg_scav.id, xOffset = -22, zOffset = 32, direction = 1},
+		},
+	}
+end
+
+local function HLTDefences15()
+	return {
+		type = types.Land,
+		tiers = {tiers.T1},
+		radius = 96,
+		buildings = {
+			{ unitDefID = BPWallOrPopup('scav'), xOffset = 64, zOffset = -32, direction = 1},
+			{ unitDefID = BPWallOrPopup('scav'), xOffset = 0, zOffset = -32, direction = 1},
+			{ unitDefID = BPWallOrPopup('scav'), xOffset = 0, zOffset = 32, direction = 1},
+			{ unitDefID = BPWallOrPopup('scav'), xOffset = 32, zOffset = 0, direction = 1},
+			{ unitDefID = BPWallOrPopup('scav'), xOffset = 64, zOffset = -96, direction = 1},
+			{ unitDefID = BPWallOrPopup('scav'), xOffset = -64, zOffset = 96, direction = 1},
+			{ unitDefID = BPWallOrPopup('scav'), xOffset = 96, zOffset = -64, direction = 1},
+			{ unitDefID = BPWallOrPopup('scav'), xOffset = -96, zOffset = 64, direction = 1},
+			{ unitDefID = BPWallOrPopup('scav'), xOffset = -64, zOffset = 32, direction = 1},
+			{ unitDefID = BPWallOrPopup('scav'), xOffset = -32, zOffset = 0, direction = 1},
+			{ unitDefID = BPWallOrPopup('scav'), xOffset = 32, zOffset = -64, direction = 1},
+			{ unitDefID = BPWallOrPopup('scav'), xOffset = -32, zOffset = 64, direction = 1},
+			{ unitDefID = UnitDefNames.armmg_scav.id, xOffset = 0, zOffset = 0, direction = 1},
+			{ unitDefID = UnitDefNames.armmg_scav.id, xOffset = 64, zOffset = -64, direction = 1},
+			{ unitDefID = UnitDefNames.armmg_scav.id, xOffset = -64, zOffset = 64, direction = 1},
+		},
+	}
+end
+
 
 return {
 	HLTDefences0,
@@ -464,4 +557,8 @@ return {
 	HLTDefences9,
     HLTDefences10,
 	HLTDefences11,
+	HLTDefences12,
+	HLTDefences13,
+    HLTDefences14,
+	HLTDefences15,
 }
