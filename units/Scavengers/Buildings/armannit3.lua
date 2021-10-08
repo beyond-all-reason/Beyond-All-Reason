@@ -1,7 +1,7 @@
-local unitName = Spring.I18N('units.names.armobli')
+local unitName = Spring.I18N('units.names.armannit3')
 
 return {
-	armobli = {
+	armannit3 = {
 		acceleration = 0,
 		activatewhenbuilt = true,
 		brakerate = 0,
@@ -21,7 +21,7 @@ return {
 		collisionvolumetype = "BoxY",
 		corpse = "DEAD",
 		damagemodifier = 0.25,
-		description = Spring.I18N('units.descriptions.armobli'),
+		description = Spring.I18N('units.descriptions.armannit3'),
 		energystorage = 1000,
 		explodeas = "hugeBuildingexplosiongeneric",
 		footprintx = 6,
@@ -35,7 +35,7 @@ return {
 		maxwaterdepth = 0,
 		name = unitName,
 		nochasecategory = "MOBILE",
-		objectname = "Units/ARMANNI.s3o",
+		objectname = "Units/scavbuildings/ARMANNIT3.s3o",
 		onoffable = true,
 		radardistance = 1500,
 		radaremitheight = 72,
@@ -44,7 +44,7 @@ return {
 		selfdestructas = "hugeBuildingExplosionGenericSelfd",
 		sightdistance = 900,
 		usebuildinggrounddecal = true,
-		yardmap = "oooooooooooooooo",
+		yardmap = "oooooo oooooo oooooo oooooo oooooo oooooo",
 		customparams = {
 			model_author = "Cremuss",
 			normaltex = "unittextures/Arm_normal.dds",
@@ -69,7 +69,7 @@ return {
 				height = 20,
 				hitdensity = 100,
 				metal = 5820,
-				object = "Units/armanni_dead.s3o",
+				object = "Units/scavbuildings/armannit3_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",

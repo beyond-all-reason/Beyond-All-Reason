@@ -1,7 +1,7 @@
-local unitName = Spring.I18N('units.names.corarmag')
+local unitName = Spring.I18N('units.names.cordoomt3')
 
 return {
-	corarmag = {
+	cordoomt3 = {
 		acceleration = 0,
 		activatewhenbuilt = true,
 		brakerate = 0,
@@ -11,8 +11,7 @@ return {
 		buildinggrounddecaldecayspeed = 30,
 		buildinggrounddecalsizex = 7,
 		buildinggrounddecalsizey = 7,
-		buildinggrounddecaltype = "decals/cor
-    _aoplane.dds",
+		buildinggrounddecaltype = "decals/cor_aoplane.dds",
 		buildpic = "CORDOOM.DDS",
 		buildtime = 276380,
 		canrepeat = false,
@@ -22,7 +21,7 @@ return {
 		collisionvolumetype = "box",
 		corpse = "DEAD",
 		damagemodifier = 0.25,
-		description = Spring.I18N('units.descriptions.corarmag'),
+		description = Spring.I18N('units.descriptions.cordoomt3'),
 		energystorage = 1000,
 		explodeas = "largeBuildingexplosiongeneric",
 		footprintx = 6,
@@ -36,7 +35,7 @@ return {
 		maxwaterdepth = 0,
 		name = unitName,
 		nochasecategory = "VTOL",
-		objectname = "Units/CORDOOM.s3o",
+		objectname = "Units/scavbuildings/CORDOOMT3.s3o",
 		onoffable = true,
 		radardistance = 1200,
 		radaremitheight = 80,
@@ -45,7 +44,7 @@ return {
 		selfdestructas = "largeBuildingExplosionGenericSelfd",
 		sightdistance = 900,
 		usebuildinggrounddecal = true,
-		yardmap = "yooy oooo oooo yooy",
+		yardmap = "yyooyy oooooo oooooo oooooo oooooo yyooyy",
 		customparams = {
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
@@ -70,7 +69,7 @@ return {
 				height = 20,
 				hitdensity = 100,
 				metal = 4833,
-				object = "Units/cordoom_dead.s3o",
+				object = "Units/scavbuildings/cordoomt3_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
@@ -125,7 +124,7 @@ return {
 			},
 		},
 		weapondefs = {
-			ARMAGMHEAT = {
+			armagmheat = {
 				areaofeffect = 72,
 				avoidfeature = false,
 				beamtime = 0.6,
@@ -169,7 +168,7 @@ return {
 					vtol = 3000,
 				},
 			},
-			ARMAGEDDON_blue_laser = {
+			armageddon_blue_laser = {
 				areaofeffect = 12,
 				avoidfeature = false,
 				beamtime = 0.3,
@@ -215,7 +214,7 @@ return {
 					subs = 5,
 				},
 			},
-			ARMAGEDDON_green_laser = {
+			armageddon_green_laser = {
 				areaofeffect = 12,
 				avoidfeature = false,
 				beamtime = 0.25,
@@ -263,11 +262,11 @@ return {
 				onlytargetcategory = "SURFACE",
 			},
 			[2] = {
-				def = "ARMAGEDDON_GREEN_LASER",
+				def = "ARMAGEDDON_BLUE_LASER",
 				onlytargetcategory = "NOTSUB",
 			},
 			[3] = {
-				def = "ARMAGEDDON_RED_LASER",
+				def = "ARMAGEDDON_GREEN_LASER",
 				onlytargetcategory = "NOTSUB",
 			},
 		},
