@@ -623,7 +623,7 @@ customDefs.armaca = {
 		[numBuildoptions+3] = "armwint2",
 		[numBuildoptions+4] = "corscavfort",
 		[numBuildoptions+5] = "armbotrail",
-		[numBuildoptions+5] = "armannit3",
+		[numBuildoptions+6] = "armannit3",
 	},
 }
 
@@ -635,7 +635,7 @@ customDefs.armack = {
 		[numBuildoptions+3] = "armwint2",
 		[numBuildoptions+4] = "corscavfort",
 		[numBuildoptions+5] = "armbotrail",
-		[numBuildoptions+5] = "armannit3",
+		[numBuildoptions+6] = "armannit3",
 	},
 }
 
@@ -647,7 +647,7 @@ customDefs.armacv = {
 		[numBuildoptions+3] = "armwint2",
 		[numBuildoptions+4] = "corscavfort",
 		[numBuildoptions+5] = "armbotrail",
-		[numBuildoptions+5] = "armannit3",
+		[numBuildoptions+6] = "armannit3",
 	},
 }
 
