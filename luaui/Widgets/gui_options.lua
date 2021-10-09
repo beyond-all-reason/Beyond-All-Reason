@@ -3181,13 +3181,13 @@ function init()
 		  end,
 		},
 
-		--{id="fov", group="control", name=widgetOptionColor.."   FOV", type="slider", min=15, max=75, step=1, value=Spring.GetCameraFOV(), description="Camera field of view\n\nDefault: 45",
+		--{id="fov", group="control", name=widgetOptionColor.."   FOV", type="slider", min=25, max=70, step=1, value=Spring.GetCameraFOV(), description="Camera field of view\n\nDefault: 45",
 		-- onload = function(i) end,
 		-- onchange = function(i, value)
-		--	local current_cam_state = Spring.GetCameraState()
-		--	if (current_cam_state.fov) then
-		--		current_cam_state.fov = value
-		--		Spring.SetCameraState(nil,0)
+		--	local camState = Spring.GetCameraState()
+		--	if camState.fov then
+		--		camState.fov = value
+		--		Spring.SetCameraState(camState,0)
 		--	end
 		-- end,
 		--},

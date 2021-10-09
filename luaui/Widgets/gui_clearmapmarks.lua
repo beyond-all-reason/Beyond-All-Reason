@@ -66,7 +66,7 @@ local function updatePosition(force)
 		xPos = vsx - margin
 		local prevPos = advplayerlistPos
 		advplayerlistPos = WG['advplayerlist_api'].GetPosition()		-- returns {top,left,bottom,right,widgetScale}
-		usedImgSize = iconSize * advplayerlistPos[5]
+		usedImgSize = math.floor(iconSize * advplayerlistPos[5])
 		--xPos = advplayerlistPos[2] + margin + usedImgSize
 		yPos = advplayerlistPos[3]
 		if advplayerlistPos[3] < 0 then
