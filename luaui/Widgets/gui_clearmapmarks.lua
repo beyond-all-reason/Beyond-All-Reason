@@ -5,13 +5,13 @@ function widget:GetInfo()
 		author		= "Floris",
 		date		= "24 july 2016",
 		license		= "GNU GPL, v2 or later",
-		layer		= -3,			-- set to -5 to draw mascotte on top of advplayerlist
+		layer		= -5,			-- set to -5 to draw mascotte on top of advplayerlist
 		enabled		= true
 	}
 end
 
 local iconTexture = ":n:LuaUI/Images/mapmarksfx/eraser.dds"
-local iconSize = 19
+local iconSize = 18
 
 local glTranslate				= gl.Translate
 local glPushMatrix          	= gl.PushMatrix
@@ -61,16 +61,18 @@ end
 
 local function updatePosition(force)
 	if WG['advplayerlist_api'] ~= nil then
-		local elementMargin = WG.FlowUI.elementMargin
+		local vsx, vsy = Spring.GetViewGeometry()
+		local margin = WG.FlowUI.elementPadding
+		xPos = vsx - margin
 		local prevPos = advplayerlistPos
 		advplayerlistPos = WG['advplayerlist_api'].GetPosition()		-- returns {top,left,bottom,right,widgetScale}
 		usedImgSize = iconSize * advplayerlistPos[5]
-		xPos = advplayerlistPos[2] - elementMargin
+		--xPos = advplayerlistPos[2] + margin + usedImgSize
 		yPos = advplayerlistPos[3]
 		if advplayerlistPos[3] < 0 then
 			yPos = 0
 		end
-		yPos = yPos + elementMargin
+		yPos = yPos + margin
 		if (prevPos[1] == nil or prevPos[1] ~= advplayerlistPos[1] or prevPos[2] ~= advplayerlistPos[2] or prevPos[5] ~= advplayerlistPos[5]) or force then
 			createList(usedImgSize)
 		end
@@ -126,7 +128,7 @@ function widget:DrawScreen()
 					--Spring.SetMouseCursor('cursornormal')
 					gl.Color(1,1,1,1)
 				else
-					gl.Color(0.9,0.9,0.9,0.9)
+					gl.Color(0.88,0.88,0.88,0.9)
 				end
 			glCallList(drawlist[1])
 		glPopMatrix()
