@@ -17,6 +17,7 @@ Spring.SetTeamColor(Spring.GetGaiaTeamID(), 0.3, 0.3, 0.3)
 local spSendCommands = Spring.SendCommands
 spSendCommands("ctrlpanel " .. LUAUI_DIRNAME .. "ctrlpanel.txt")
 
+VFS.Include("init.lua",                        nil, VFS.ZIP)
 VFS.Include(LUAUI_DIRNAME .. "utils.lua",      nil, VFS.ZIP)
 VFS.Include(LUAUI_DIRNAME .. "setupdefs.lua",  nil, VFS.ZIP)
 VFS.Include(LUAUI_DIRNAME .. "savetable.lua",  nil, VFS.ZIP)
