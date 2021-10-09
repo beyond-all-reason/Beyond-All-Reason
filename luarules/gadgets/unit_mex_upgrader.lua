@@ -253,7 +253,7 @@ if gadgetHandler:IsSyncedCode() then
 		local mexID = getClosestMex(unitID, upgradePairs, teamID, mexesInRange)
 
 		if not mexID then
-			SendMessageToTeam(teamID, builder.humanName .. ": No mexes to upgrade")
+			SendMessageToTeam(teamID, builder.translatedHumanName .. ": No mexes to upgrade")
 			return false
 		end
 
@@ -370,7 +370,7 @@ if gadgetHandler:IsSyncedCode() then
 			builder.unitDefID = unitDefID
 			builder.autoUpgrade = false
 			builder.buildDistance = UnitDefs[unitDefID].buildDistance
-			builder.humanName = UnitDefs[unitDefID].humanName
+			builder.translatedHumanName = UnitDefs[unitDefID].translatedHumanName
 			builder.teamID = unitTeam
 			builder.maxDepth = UnitDefs[unitDefID].maxWaterDepth or 9999
 			builder.minDepth = UnitDefs[unitDefID].minWaterDepth or 9999

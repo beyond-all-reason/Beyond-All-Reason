@@ -92,8 +92,8 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.buildpicname then
 		unitBuildPic[unitDefID] = unitDef.buildpicname
 	end
-	if unitDef.humanName then
-		unitHumanName[unitDefID] = unitDef.humanName
+	if unitDef.translatedHumanName then
+		unitHumanName[unitDefID] = unitDef.translatedHumanName
 	end
 end
 

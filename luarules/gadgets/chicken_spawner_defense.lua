@@ -132,7 +132,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	for unitDefID, unitDef in pairs(UnitDefs) do
 		unitName[unitDefID] = unitDef.name
-		unitHumanName[unitDefID] = unitDef.humanName
+		unitHumanName[unitDefID] = unitDef.translatedHumanName
 		unitShortName[unitDefID] = string.match(unitDef.name, "%D*")
 		unitSpeed[unitDefID] = unitDef.speed
 		if unitDef.canFly then

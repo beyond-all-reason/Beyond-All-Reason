@@ -25,15 +25,6 @@ local GetSelectedUnitsCount = Spring.GetSelectedUnitsCount
 
 local rightClickUpgradeParams
 
-local isCommander = {}
-local unitHumanName = {}
-for unitDefID, unitDef in pairs(UnitDefs) do
-	if unitDef.customParams.iscommander then
-		isCommander[unitDefID] = true
-	end
-	unitHumanName[unitDefID] = unitDef.humanName
-end
-
 function widget:Initialize()
 	widgetHandler:RegisterGlobal('registerUpgradePairs', registerUpgradePairs)
 end

@@ -13,7 +13,7 @@ function ShardUnitType:Name()
 end
 
 function ShardUnitType:HumanName()
-	return self.def.humanName
+	return self.def.translatedHumanName
 end
 
 function ShardUnitType:Description()

@@ -578,7 +578,7 @@ if (gadgetHandler:IsSyncedCode()) then
 		local p=ParseUnitDefID(Providers)
 		for id,quantity in pairs(p) do
 			q=type(quantity)=="number" and quantity or nil
-			dbgEcho(UnitDefs[id].humanName.." is now provider of "..((q and q~=1) and q.." " or "").."\""..TechName.."\""..(rng and " in a "..rng.." radius" or ""))
+			dbgEcho(UnitDefs[id].translatedHumanName.." is now provider of "..((q and q~=1) and q.." " or "").."\""..TechName.."\""..(rng and " in a "..rng.." radius" or ""))
 			local tp={tech=TechName}
 			if q and q~=1 then
 				tp.quantity=q
@@ -611,7 +611,7 @@ if (gadgetHandler:IsSyncedCode()) then
 		local r=ParseUnitDefID(Requirings)
 		for id,quantity in pairs(r) do
 			q=type(quantity)=="number" and quantity or nil
-			dbgEcho(UnitDefs[id].humanName.." is now user of "..((q and q~=1) and q.." " or "").."\""..TechName.."\"")
+			dbgEcho(UnitDefs[id].translatedHumanName.." is now user of "..((q and q~=1) and q.." " or "").."\""..TechName.."\"")
 			local tp={tech=TechName}
 			if q and q~=1 then
 				tp.quantity=q
@@ -651,7 +651,7 @@ if (gadgetHandler:IsSyncedCode()) then
 			for _,p in ipairs(tech.ProvidedBy) do
 				local q=ProviderTable[p][tech.name].quantity
 				local r=ProviderTable[p][tech.name].range
-				local qrt=(q and q.." " or "")..(r and ("in a "..r.." range around ") or "by ")..UnitDefs[p].humanName
+				local qrt=(q and q.." " or "")..(r and ("in a "..r.." range around ") or "by ")..UnitDefs[p].translatedHumanName
 				if (q or 1)<0 then
 					consumer_str=(consumer_str and consumer_str..", " or "\r\n\tConsumed: ")..qrt
 				else
@@ -660,7 +660,7 @@ if (gadgetHandler:IsSyncedCode()) then
 			end
 			for _,r in ipairs(tech.AccessTo) do
 				local q=AccessionTable[r][tech.name].quantity or 1
-				access_str=(access_str and access_str..", " or "\r\n\tRequired: ")..(q and q.." " or "").."by "..((r<0 and UnitDefs[-r]) and UnitDefs[-r].humanName or "CMD "..r)
+				access_str=(access_str and access_str..", " or "\r\n\tRequired: ")..(q and q.." " or "").."by "..((r<0 and UnitDefs[-r]) and UnitDefs[-r].translatedHumanName or "CMD "..r)
 			end
 			for _,team in ipairs(Spring.GetTeamList()) do
 				team_str=(team_str and team_str.." " or "\r\n\t").."Team"..team..":"..tech.ProviderSum[team]
@@ -941,7 +941,7 @@ if (gadgetHandler:IsSyncedCode()) then
 					table.insert(ProviderIDs,ud.id)
 					for _,w in ipairs(lst_p) do
 						local t,q=SplitStringNameAndQuantity(w)
-						dbgEcho(ud.humanName.." is provider of "..((q and q~=1) and q.." " or "").."\""..t.."\""..(range and " in a "..range.." radius" or ""))
+						dbgEcho(ud.translatedHumanName.." is provider of "..((q and q~=1) and q.." " or "").."\""..t.."\""..(range and " in a "..range.." radius" or ""))
 						InitTechEntry(t)
 						local tp={tech=t}
 						if q and q~=1 then
@@ -964,7 +964,7 @@ if (gadgetHandler:IsSyncedCode()) then
 					table.insert(AccessionIDs,-ud.id)
 					for _,w in ipairs(lst_r) do
 						local t,q=SplitStringNameAndQuantity(w)
-						dbgEcho(ud.humanName.." is user of "..((q and q~=1) and q.." " or "").."\""..t.."\"")
+						dbgEcho(ud.translatedHumanName.." is user of "..((q and q~=1) and q.." " or "").."\""..t.."\"")
 						InitTechEntry(t)
 						local tp={tech=t}
 						if q and q~=1 then

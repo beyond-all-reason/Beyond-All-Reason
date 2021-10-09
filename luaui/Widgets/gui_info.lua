@@ -196,7 +196,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 		end
 	end
 
-	unitDefInfo[unitDefID].humanName = unitDef.humanName
+	unitDefInfo[unitDefID].translatedHumanName = unitDef.translatedHumanName
 	if unitDef.maxWeaponRange > 16 then
 		unitDefInfo[unitDefID].maxWeaponRange = unitDef.maxWeaponRange
 	end
@@ -888,7 +888,7 @@ local function drawUnitInfo()
 
 	-- unit name
 	local nameFontSize = fontSize * 1.12
-	local humanName = unitDefInfo[displayUnitDefID].humanName
+	local humanName = unitDefInfo[displayUnitDefID].translatedHumanName
 	humanName = string.gsub(humanName, 'Scavenger', 'Scav')
 	if font:GetTextWidth(humanName) * nameFontSize > width*1.05 then
 		while font:GetTextWidth(humanName) * nameFontSize > width do
@@ -1424,7 +1424,7 @@ function widget:DrawScreen()
 				local text
 				stats = getSelectionTotals(cells)
 				if cellHovered then
-					text = tooltipTitleColor .. unitDefInfo[selectionCells[cellHovered]].humanName .. tooltipLabelTextColor .. (selUnitsCounts[selectionCells[cellHovered]] > 1 and ' x ' .. tooltipTextColor .. selUnitsCounts[selectionCells[cellHovered]] or '') .. stats
+					text = tooltipTitleColor .. unitDefInfo[selectionCells[cellHovered]].translatedHumanName .. tooltipLabelTextColor .. (selUnitsCounts[selectionCells[cellHovered]] > 1 and ' x ' .. tooltipTextColor .. selUnitsCounts[selectionCells[cellHovered]] or '') .. stats
 				else
 					text = tooltipTitleColor .. texts.selectedunits..": " .. tooltipTextColor .. #selectedUnits .. stats .. "\n " .. (stats == '' and '' or '\n') .. selectionHowto
 				end
