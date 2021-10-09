@@ -12,8 +12,13 @@ static-var  gun_1, bMoving, bAiming;
 static-var animSpeed, maxSpeed, animFramesPerKeyframe;
 
 // Signal definitions
-#define SIG_AIM				2
+#define SIG_AIM			2
 #define SIG_WALK		4
+
+lua_FlameShot(weapon) //Distortion and lups flame effect
+{
+  return 0;
+}
 
 
 Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations\corkarg_anim_walk.blend
@@ -1041,6 +1046,12 @@ AimPrimary(heading, pitch)
 	wait-for-turn aimx1 around x-axis;
 	start-script RestoreAfterDelay();
 	return (1);
+}
+
+Shot1()
+{
+	call-script lua_FlameShot(1);
+	return (TRUE);
 }
 
 FirePrimary()
