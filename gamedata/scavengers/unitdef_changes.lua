@@ -559,6 +559,7 @@ customDefs.armca = {
 		[numBuildoptions+2] = "corscavdtl",
 		[numBuildoptions+3] = "corscavdtf",
 		[numBuildoptions+4] = "corscavdtm",
+		[numBuildoptions+5] = "armmg",
 	},
 }
 
@@ -569,6 +570,7 @@ customDefs.armck = {
 		[numBuildoptions+2] = "corscavdtl",
 		[numBuildoptions+3] = "corscavdtf",
 		[numBuildoptions+4] = "corscavdtm",
+		[numBuildoptions+5] = "armmg",
 	},
 }
 
@@ -579,6 +581,7 @@ customDefs.armcv = {
 		[numBuildoptions+2] = "corscavdtl",
 		[numBuildoptions+3] = "corscavdtf",
 		[numBuildoptions+4] = "corscavdtm",
+		[numBuildoptions+5] = "armmg",
 	},
 }
 
@@ -619,6 +622,8 @@ customDefs.armaca = {
 		[numBuildoptions+2] = "armminivulc",
 		[numBuildoptions+3] = "armwint2",
 		[numBuildoptions+4] = "corscavfort",
+		[numBuildoptions+5] = "armbotrail",
+		[numBuildoptions+6] = "armannit3",
 	},
 }
 
@@ -629,6 +634,8 @@ customDefs.armack = {
 		[numBuildoptions+2] = "armminivulc",
 		[numBuildoptions+3] = "armwint2",
 		[numBuildoptions+4] = "corscavfort",
+		[numBuildoptions+5] = "armbotrail",
+		[numBuildoptions+6] = "armannit3",
 	},
 }
 
@@ -639,6 +646,8 @@ customDefs.armacv = {
 		[numBuildoptions+2] = "armminivulc",
 		[numBuildoptions+3] = "armwint2",
 		[numBuildoptions+4] = "corscavfort",
+		[numBuildoptions+5] = "armbotrail",
+		[numBuildoptions+6] = "armannit3",
 	},
 }
 
@@ -650,6 +659,7 @@ customDefs.coraca = {
 		[numBuildoptions+3] = "corwint2",
 		[numBuildoptions+4] = "corhllllt",
 		[numBuildoptions+5] = "corscavfort",
+		[numBuildoptions+6] = "cordoomt3",
 	},
 }
 
@@ -661,6 +671,7 @@ customDefs.corack = {
 		[numBuildoptions+3] = "corwint2",
 		[numBuildoptions+4] = "corhllllt",
 		[numBuildoptions+5] = "corscavfort",
+		[numBuildoptions+6] = "cordoomt3",
 	},
 }
 
@@ -672,6 +683,7 @@ customDefs.coracv = {
 		[numBuildoptions+3] = "corwint2",
 		[numBuildoptions+4] = "corhllllt",
 		[numBuildoptions+5] = "corscavfort",
+		[numBuildoptions+6] = "cordoomt3",
 	},
 }
 

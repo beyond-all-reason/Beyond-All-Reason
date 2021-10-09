@@ -60,7 +60,7 @@ function gadget:GameFrame(n)
         for i = 1,#affectedUnits do
             local unitID = affectedUnits[i]
             local unitDefID = Spring.GetUnitDefID(unitID)
-            local testRange = math.floor(((UnitDefs[unitDefID].xsize + UnitDefs[unitDefID].zsize)*0.5)*7.8)
+            local testRange = math.floor(((UnitDefs[unitDefID].xsize + UnitDefs[unitDefID].zsize)*0.5)*6)
             local nearestAlly = Spring.GetUnitNearestAlly(unitID, testRange)
             if nearestAlly then
                 local nearestAllyName = UnitDefs[Spring.GetUnitDefID(nearestAlly)].name
@@ -80,17 +80,17 @@ function gadget:GameFrame(n)
                             end
                         elseif r == 2 then
                             if x > ax then
-                                movementTargetX = 2
+                                movementTargetX = 5
                             end
                             if x < ax then
-                                movementTargetX = -2
+                                movementTargetX = -5
                             end
                         elseif r == 3 then
                             if z > az then
-                                movementTargetZ = 2
+                                movementTargetZ = 5
                             end
                             if z < az then
-                                movementTargetZ = -2
+                                movementTargetZ = -5
                             end
                         end
                         local movementTargetY = Spring.GetGroundHeight(x+movementTargetX, z+movementTargetZ)

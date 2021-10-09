@@ -11,7 +11,6 @@
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-VFS.Include("init.lua",                              nil, VFS.ZIP)
 VFS.Include(LUAUI_DIRNAME .. "Headers/keysym.h.lua", nil, VFS.ZIP)
 VFS.Include(LUAUI_DIRNAME .. "system.lua",           nil, VFS.ZIP)
 VFS.Include(LUAUI_DIRNAME .. "callins.lua",          nil, VFS.ZIP)
