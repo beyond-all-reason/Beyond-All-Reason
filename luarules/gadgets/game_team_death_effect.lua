@@ -20,7 +20,7 @@ if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
-local wavePeriod = 300
+local wavePeriod = 350
 
 --local spSpawnCEG = Spring.SpawnCEG
 local spDestroyUnit = Spring.DestroyUnit

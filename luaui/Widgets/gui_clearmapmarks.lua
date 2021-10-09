@@ -16,25 +16,18 @@ local iconSize = 19
 local glTranslate				= gl.Translate
 local glPushMatrix          	= gl.PushMatrix
 local glPopMatrix				= gl.PopMatrix
-
 local glCreateList				= gl.CreateList
 local glDeleteList				= gl.DeleteList
 local glCallList				= gl.CallList
 
+local advplayerlistPos = {}
 local drawlist = {}
 local xPos = 0
 local yPos = 0
 
-local mouseover = false
-
 local usedImgSize = iconSize
-
 local chobbyInterface
-
 local continuouslyClean = false
-
----------------------------------------------------------------------------------------------------
----------------------------------------------------------------------------------------------------
 
 local function RectQuad(px,py,sx,sy)
 	local o = 0.008		-- texture offset, because else grey line might show at the edges
@@ -48,7 +41,7 @@ local function RectQuad(px,py,sx,sy)
 	gl.Vertex(px, sy, 0)
 end
 
-function DrawRect(px,py,sx,sy)
+local function DrawRect(px,py,sx,sy)
 	gl.BeginEnd(GL.QUADS, RectQuad, px,py,sx,sy)
 end
 
@@ -66,22 +59,26 @@ local function createList(size)
 	end
 end
 
-local advplayerlistPos = {}
-function updatePosition(force)
+local function updatePosition(force)
 	if WG['advplayerlist_api'] ~= nil then
+		local elementMargin = WG.FlowUI.elementMargin
 		local prevPos = advplayerlistPos
 		advplayerlistPos = WG['advplayerlist_api'].GetPosition()		-- returns {top,left,bottom,right,widgetScale}
 		usedImgSize = iconSize * advplayerlistPos[5]
-		xPos = advplayerlistPos[2] - (5.3*advplayerlistPos[5])
+		xPos = advplayerlistPos[2] - elementMargin
 		yPos = advplayerlistPos[3]
 		if advplayerlistPos[3] < 0 then
 			yPos = 0
 		end
-		yPos = yPos + (4*advplayerlistPos[5])
+		yPos = yPos + elementMargin
 		if (prevPos[1] == nil or prevPos[1] ~= advplayerlistPos[1] or prevPos[2] ~= advplayerlistPos[2] or prevPos[5] ~= advplayerlistPos[5]) or force then
 			createList(usedImgSize)
 		end
 	end
+end
+
+local function IsOnRect(x, y, BLcornerX, BLcornerY, TRcornerX, TRcornerY)
+	return x >= BLcornerX and x <= TRcornerX and y >= BLcornerY and y <= TRcornerY
 end
 
 function widget:Initialize()
@@ -104,9 +101,6 @@ function widget:Update(dt)
 		sec = 0
 		updatePosition()
 	end
-	--if continuouslyClean then
-	--	Spring.SendCommands({"clearmapmarks"})
-	--end
 end
 
 function widget:RecvLuaMsg(msg, playerID)
@@ -128,29 +122,26 @@ function widget:DrawScreen()
 		local mx,my = Spring.GetMouseState()
 		glPushMatrix()
 			glTranslate(xPos, yPos, 0)
-				if isInBox(mx, my, {xPos-usedImgSize, yPos, xPos, yPos+usedImgSize}) then
+				if IsOnRect(mx, my, xPos-usedImgSize, yPos, xPos, yPos+usedImgSize) then
 					--Spring.SetMouseCursor('cursornormal')
 					gl.Color(1,1,1,1)
 				else
-					gl.Color(0.96,0.96,0.96,0.92)
+					gl.Color(0.9,0.9,0.9,0.9)
 				end
 			glCallList(drawlist[1])
 		glPopMatrix()
 	end
 end
 
-function isInBox(mx, my, box)
-    return mx > box[1] and my > box[2] and mx < box[3] and my < box[4]
-end
 
 function widget:MousePress(mx, my, mb)
-	if mb == 1 and isInBox(mx, my, {xPos-usedImgSize, yPos, xPos, yPos+usedImgSize}) then
+	if mb == 1 and IsOnRect(mx, my, xPos-usedImgSize, yPos, xPos, yPos+usedImgSize) then
 		return true
 	end
 end
 
 function widget:MouseRelease(mx, my, mb)
-	if mb == 1 and isInBox(mx, my, {xPos-usedImgSize, yPos, xPos, yPos+usedImgSize}) then
+	if mb == 1 and IsOnRect(mx, my, xPos-usedImgSize, yPos, xPos, yPos+usedImgSize) then
 		Spring.SendCommands({"clearmapmarks"})
 		updatePosition(true)
 
