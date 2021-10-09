@@ -51,7 +51,7 @@ local stockpilers = {
 	"cormabm_scav",
 	"armcarry_scav",
 	"corcarry_scav",
-	"armbotrail_scav"
+	"armbotrail_scav",
 }
 
 local nukes = {
