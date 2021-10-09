@@ -19,7 +19,7 @@ static-var  bMoving, bAiming, Static_Var_3, gun_1, moveSpeed, currentSpeed, wpnh
 static-var animAmplitude; //Higher values are bigger, 100 is default
 // this animation uses the static-var animFramesPerKeyframe which contains how many frames each keyframe takes
 static-var animSpeed, maxSpeed, animFramesPerKeyframe;
-#define SIG_WALK 4
+#define SIG_WALK 8
 Walk() {// For N:\animations\corak_anim_walk_v2.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 5)) 
 	set-signal-mask SIG_WALK;
 	if (bMoving) { //Frame:2
