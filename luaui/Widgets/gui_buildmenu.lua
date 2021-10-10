@@ -252,7 +252,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.customParams.objectify or unitDef.isTransport or string.find(unitDef.name, 'critter') then
 		unitGroup[unitDefID] = nil
 	end
-	if unitDef.energyMake > 19 and (not unitDef.energyUpkeep or unitDef.energyUpkeep < 10) or unitDef.energyUpkeep < -19 or unitDef.windGenerator > 0 or unitDef.tidalGenerator > 0 then
+	if unitDef.customParams.solar or (unitDef.energyMake > 19 and (not unitDef.energyUpkeep or unitDef.energyUpkeep < 10) or unitDef.energyUpkeep < -19 or unitDef.windGenerator > 0 or unitDef.tidalGenerator > 0) then
 		unitGroup[unitDefID] = 'energy'
 	end
 	if unitDef.extractsMetal > 0 or (unitDef.customParams.energyconv_capacity and unitDef.customParams.energyconv_efficiency) then
