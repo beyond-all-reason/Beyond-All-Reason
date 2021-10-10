@@ -13,8 +13,8 @@ end
 local restorePreviousFaction = false
 
 local factions = {
-	{ UnitDefNames.corcom.id, Spring.I18N('units.factions.cor'), 'unitpics/'..UnitDefNames.corcom.buildpicname },
-	{ UnitDefNames.armcom.id, Spring.I18N('units.factions.arm'), 'unitpics/'..UnitDefNames.armcom.buildpicname },
+	{ UnitDefNames.corcom.id, Spring.I18N('units.factions.cor') },
+	{ UnitDefNames.armcom.id, Spring.I18N('units.factions.arm') },
 }
 local playSounds = true
 local posY = 0.75
@@ -247,14 +247,10 @@ function drawFactionpicker()
 			1,1,1,1,
 			0,
 			nil, disabled and 0.033 or nil,
-			factions[i][3]
+			'#'..factions[i][1]
 		)
 		-- faction name
-		if not disabled then
-			font2:Print(factions[i][2], factionRect[i][1] + ((factionRect[i][3] - factionRect[i][1]) * 0.5), factionRect[i][2] + ((factionRect[i][4] - factionRect[i][2]) * 0.22) - (fontSize * 0.5), fontSize * 0.96, "co")
-		else
-			font2:Print("\255\170\170\170"..factions[i][2], factionRect[i][1] + ((factionRect[i][3] - factionRect[i][1]) * 0.5), factionRect[i][2] + ((factionRect[i][4] - factionRect[i][2]) * 0.22) - (fontSize * 0.5), fontSize * 0.96, "co")
-		end
+		font2:Print((disabled and "\255\170\170\170" or "\255\255\255\255")..factions[i][2], factionRect[i][1] + ((factionRect[i][3] - factionRect[i][1]) * 0.5), factionRect[i][2] + ((factionRect[i][4] - factionRect[i][2]) * 0.22) - (fontSize * 0.5), fontSize * 0.96, "co")
 	end
 	font2:End()
 end
@@ -334,22 +330,3 @@ function widget:MousePress(x, y, button)
 	end
 end
 
-function widget:GetConfigData()
-	return { startDefID = startDefID }
-end
-
-function widget:SetConfigData(data)
-	if restorePreviousFaction then
-		if data ~= nil and data.startDefID then
-
-			-- loop factions to make sure startDefID is legit
-			for i,v in pairs(factions) do
-				if factions[i][1] == startDefID then
-					startDefID = factions[i][1]
-					Spring.SendLuaRulesMsg('\138' .. tostring(factions[i][1]))	-- tell initial spawn
-					break
-				end
-			end
-		end
-	end
-end

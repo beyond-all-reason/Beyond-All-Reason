@@ -700,7 +700,7 @@ WG.FlowUI.Draw.Unit = function(px, py, sx, sy,  cs,  tl, tr, br, bl,  zoom,  bor
 	WG.FlowUI.Draw.RectRound(px, sy-((sy-py)*0.4), sx, sy, cs, 1,1,0,0,{1,1,1,0}, {1,1,1,0.06})
 
 	-- lighten feather edges
-	borderOpacity = borderOpacity or 0.1
+	borderOpacity = borderOpacity or 0.09
 	local halfSize = ((sx-px) * 0.5)
 	WG.FlowUI.Draw.RectRoundCircle(
 		px + halfSize,
