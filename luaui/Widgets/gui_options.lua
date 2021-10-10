@@ -3202,15 +3202,6 @@ function init()
 		},
 
 		-- INTERFACE
-		{ id = "tweakui", group = "ui", name = "Toggle tweak UI mode", type = "bool", value = false, description = 'Some UI elements have legacy/additional settings available\n\n(ESC to cancel)',
-		  onchange = function(i, value)
-			  if widgetHandler.tweakMode then
-				  -- cancel with ESC
-			  else
-				  Spring.SendCommands("luaui tweakgui")
-			  end
-		  end,
-		},
 		{ id = "label_ui_screen", group = "ui", name = texts.option.label_screen, basic = true },
 		{ id = "label_ui_screen_spacer", group = "ui", basic = true },
 		{ id = "uiscale", group = "ui", basic = true, name = texts.option.interface.. widgetOptionColor .. "  "..texts.option.uiscale, type = "slider", min = 0.8, max = 1.1, step = 0.01, value = Spring.GetConfigFloat("ui_scale", 1), description = '',

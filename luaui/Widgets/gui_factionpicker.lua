@@ -13,8 +13,8 @@ end
 local restorePreviousFaction = false
 
 local factions = {
-	{ UnitDefNames.corcom.id, Spring.I18N('units.factions.cor'), '#'..UnitDefNames.corcom.id },
-	{ UnitDefNames.armcom.id, Spring.I18N('units.factions.arm'), '#'..UnitDefNames.armcom.id },
+	{ UnitDefNames.corcom.id, Spring.I18N('units.factions.cor'), 'unitpics/'..UnitDefNames.corcom.buildpicname },
+	{ UnitDefNames.armcom.id, Spring.I18N('units.factions.arm'), 'unitpics/'..UnitDefNames.armcom.buildpicname },
 }
 local playSounds = true
 local posY = 0.75
@@ -54,7 +54,6 @@ local glBlending = gl.Blending
 local GL_SRC_ALPHA = GL.SRC_ALPHA
 local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 local GL_ONE = GL.ONE
-
 
 local font, font2, bgpadding, chobbyInterface, dlistGuishader, dlistFactionpicker, bpWidth, bpHeight, rectMargin, fontSize
 
@@ -247,7 +246,7 @@ function drawFactionpicker()
 			nil,
 			1,1,1,1,
 			0,
-			nil, disabled and 0 or nil,
+			nil, disabled and 0.033 or nil,
 			factions[i][3]
 		)
 		-- faction name
