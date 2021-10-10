@@ -13,8 +13,8 @@ end
 local restorePreviousFaction = false
 
 local factions = {
-	{ UnitDefNames.corcom.id, Spring.I18N('units.factions.cor'), 'unitpics/'..UnitDefNames.corcom.buildpicname },
-	{ UnitDefNames.armcom.id, Spring.I18N('units.factions.arm'), 'unitpics/'..UnitDefNames.armcom.buildpicname },
+	{ UnitDefNames.corcom.id, Spring.I18N('units.factions.cor'), '#'..UnitDefNames.corcom.id },
+	{ UnitDefNames.armcom.id, Spring.I18N('units.factions.arm'), '#'..UnitDefNames.armcom.id },
 }
 local playSounds = true
 local posY = 0.75

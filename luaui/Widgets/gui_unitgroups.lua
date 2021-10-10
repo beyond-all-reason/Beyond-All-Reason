@@ -62,13 +62,6 @@ local groupButtons = {}
 
 local font, font2, chobbyInterface, buildmenuBottomPosition, dlist, dlistGuishader, backgroundRect, ordermenuPosY
 
-local unitBuildPic = {}
-for unitDefID, unitDef in pairs(UnitDefs) do
-	if unitDef.buildpicname then
-		unitBuildPic[unitDefID] = unitDef.buildpicname
-	end
-end
-
 function widget:ViewResize()
 	vsx, vsy = Spring.GetViewGeometry()
 	height = setHeight * uiScale
@@ -171,7 +164,7 @@ local function drawIcon(unitDefID, rect, lightness, zoom, texSize, highlightOpac
 		ceil(backgroundPadding*0.5), 1,1,1,1,
 		zoom,
 		nil, math.max(0.1, highlightOpacity or 0.1),
-		':l:unitpics/'..unitBuildPic[unitDefID],
+		'#'..unitDefID,
 		nil, nil, nil, nil
 	)
 	if highlightOpacity then

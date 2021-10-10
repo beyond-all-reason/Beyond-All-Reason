@@ -258,7 +258,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 
 	unitDefInfo[unitDefID].health = unitDef.health
 	unitDefInfo[unitDefID].buildTime = unitDef.buildTime
-	unitDefInfo[unitDefID].buildPic = unitDef.buildpicname
+	unitDefInfo[unitDefID].buildPic = unitDef.buildpicname and true or false
 	if unitDef.canStockpile then
 		unitDefInfo[unitDefID].canStockpile = true
 	end
@@ -617,7 +617,7 @@ local function drawSelectionCell(cellID, uDefID, usedZoom, highlightColor)
 		1,1,1,1,
 		usedZoom,
 		nil, nil,
-		":l:unitpics/" .. unitDefInfo[uDefID].buildPic,
+		"#" .. uDefID,
 		nil,
 		groups[unitGroup[uDefID]]
 	)
@@ -818,7 +818,7 @@ local function drawUnitInfo()
 			1, 1, 1, 1,
 			0.03,
 			nil, nil,
-			":l:unitpics/" .. unitDefInfo[displayUnitDefID].buildPic,
+			"#" .. displayUnitDefID,
 			((unitDefInfo[displayUnitDefID].iconType and iconTypesMap[unitDefInfo[displayUnitDefID].iconType]) and ':l:' .. iconTypesMap[unitDefInfo[displayUnitDefID].iconType] or nil),
 			groups[unitGroup[displayUnitDefID]],
 			{unitDefInfo[displayUnitDefID].metalCost, unitDefInfo[displayUnitDefID].energyCost}
@@ -996,7 +996,7 @@ local function drawUnitInfo()
 						1, 1, 1, 1,
 						0.1,
 						nil, disabled and 0 or nil,
-						":l"..(disabled and 'g' or '')..":unitpics/" .. unitDefInfo[uDefID].buildPic,
+						"#"..uDefID,
 						((unitDefInfo[uDefID].iconType and iconTypesMap[unitDefInfo[uDefID].iconType]) and ':l:' .. iconTypesMap[unitDefInfo[uDefID].iconType] or nil),
 						groups[unitGroup[uDefID]],
 						{unitDefInfo[uDefID].metalCost, unitDefInfo[uDefID].energyCost}

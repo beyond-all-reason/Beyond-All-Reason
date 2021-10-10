@@ -223,7 +223,6 @@ local groups = {
 	antinuke = folder..'antinuke.png',
 }
 
-local unitBuildPic = {}
 local unitEnergyCost = {}
 local unitMetalCost = {}
 local unitGroup = {}
@@ -324,7 +323,6 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	unitIconType[unitDefID] = unitDef.iconType
 	unitEnergyCost[unitDefID] = unitDef.energyCost
 	unitMetalCost[unitDefID] = unitDef.metalCost
-	unitBuildPic[unitDefID] = unitDef.buildpicname
 	if unitDef.maxThisUnit == 0 then --or unitDef.name == 'armllt' or unitDef.name == 'armmakr' then
 		unitRestricted[unitDefID] = true
 	end
@@ -540,31 +538,6 @@ end
 -- load all icons to prevent briefly showing white unit icons (will happen due to the custom texture filtering options)
 local excludeScavs = not (Spring.Utilities.Gametype.IsScavengers() or Spring.GetModOptions().experimentalscavuniqueunits)
 local excludeChickens = not Spring.Utilities.Gametype.IsChickens()
-local dlistCache
-local function cacheUnitIcons()
-	if dlistCache then
-		dlistCache = gl.DeleteList(dlistCache)
-	end
-	dlistCache = gl.CreateList(function()
-		gl.Color(1, 1, 1, 0.001)
-		for id, unit in pairs(UnitDefs) do
-			if not excludeScavs or not string.find(unit.name,'_scav') then
-				if not excludeChickens or not string.find(unit.name,'chicken') then
-					if unitBuildPic[id] then
-						gl.Texture(':l:unitpics/' .. unitBuildPic[id])
-						gl.TexRect(-1, -1, 0, 0)
-					end
-					if unitIconType[id] and iconTypesMap[unitIconType[id]] then
-						gl.Texture(':l:' .. iconTypesMap[unitIconType[id]])
-						gl.TexRect(-1, -1, 0, 0)
-					end
-					gl.Texture(false)
-				end
-			end
-		end
-		gl.Color(1, 1, 1, 1)
-	end)
-end
 
 local showGeothermalUnits = false
 local function checkGeothermalFeatures()
@@ -776,10 +749,6 @@ function widget:Initialize()
 		iconTypesMap = Script.LuaRules.GetIconTypes()
 	end
 
-	if Spring.GetGameFrame() == 0 then
-		cacheUnitIcons()
-	end
-
 	-- Get our starting unit
 	if preGamestartPlayer then
 		SetBuildFacing()
@@ -913,9 +882,6 @@ function widget:Shutdown()
 		WG['guishader'].DeleteDlist('buildmenu')
 		dlistGuishader = nil
 	end
-	if dlistCache then
-		dlistCache = gl.DeleteList(dlistCache)
-	end
 	WG['buildmenu'] = nil
 end
 
@@ -1009,7 +975,7 @@ local function drawCell(cellRectID, usedZoom, cellColor, progress, highlightColo
 		cornerSize, 1,1,1,1,
 		usedZoom,
 		nil, disabled and 0 or nil,
-		':l:unitpics/' .. unitBuildPic[uDefID],
+		'#' .. uDefID,
 		showRadarIcon and (((unitIconType[uDefID] and iconTypesMap[unitIconType[uDefID]]) and ':l' .. (disabled and 't0.35,0.35,0.35' or '') ..':' .. iconTypesMap[unitIconType[uDefID]] or nil)) or nil,
 		showGroupIcon and (groups[unitGroup[uDefID]] and ':l' .. (disabled and 'gt0.4,0.4,0.4:' or ':') ..groups[unitGroup[uDefID]] or nil) or nil,
 		{unitMetalCost[uDefID], unitEnergyCost[uDefID]},
@@ -1020,7 +986,7 @@ local function drawCell(cellRectID, usedZoom, cellColor, progress, highlightColo
 	if cellColor then
 		glBlending(GL_DST_ALPHA, GL_ONE_MINUS_SRC_COLOR)
 		glColor(cellColor[1], cellColor[2], cellColor[3], cellColor[4])
-		glTexture(':l:unitpics/' .. unitBuildPic[uDefID])
+		glTexture('#' .. uDefID)
 		UiUnit(
 			cellRects[cellRectID][1] + cellPadding + iconPadding,
 			cellRects[cellRectID][2] + cellPadding + iconPadding,

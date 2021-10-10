@@ -80,7 +80,6 @@ local font, font2, chobbyInterface, buildmenuBottomPosition, dlist, dlistGuishad
 
 local isBuilder = {}
 local isFactory = {}
-local unitBuildPic = {}
 local unitHumanName = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.buildSpeed > 0 and not string.find(unitDef.name, 'spy') then --and unitDef.buildOptions[1] then
@@ -88,9 +87,6 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	end
 	if unitDef.isFactory then
 		isFactory[unitDefID] = true
-	end
-	if unitDef.buildpicname then
-		unitBuildPic[unitDefID] = unitDef.buildpicname
 	end
 	if unitDef.humanName then
 		unitHumanName[unitDefID] = unitDef.humanName
@@ -257,7 +253,7 @@ local function drawIcon(unitDefID, rect, lightness, zoom, texSize, highlightOpac
 		ceil(backgroundPadding*0.5), 1,1,1,1,
 		zoom,
 		nil, math.max(0.1, highlightOpacity or 0.1),
-		':l:unitpics/'..unitBuildPic[unitDefID],
+		'#'..unitDefID,
 		nil, nil, nil, nil
 	)
 	if highlightOpacity then
