@@ -195,13 +195,22 @@ local serverFrame
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-
-function IsOnRect(x, y, BLcornerX, BLcornerY, TRcornerX, TRcornerY)
+local function IsOnRect(x, y, BLcornerX, BLcornerY, TRcornerX, TRcornerY)
 	return x >= BLcornerX and x <= TRcornerX and y >= BLcornerY and y <= TRcornerY
 end
 
-function isInBox(mx, my, box)
-	return mx > box[1] and my > box[2] and mx < box[3] and my < box[4]
+local function RectQuad(px, py, sx, sy, offset)
+	gl.TexCoord(offset, 1 - offset)
+	gl.Vertex(px, py, 0)
+	gl.TexCoord(1 - offset, 1 - offset)
+	gl.Vertex(sx, py, 0)
+	gl.TexCoord(1 - offset, offset)
+	gl.Vertex(sx, sy, 0)
+	gl.TexCoord(offset, offset)
+	gl.Vertex(px, sy, 0)
+end
+local function DrawRect(px, py, sx, sy, zoom)
+	gl.BeginEnd(GL.QUADS, RectQuad, px, py, sx, sy, zoom)
 end
 
 function widget:ViewResize()
@@ -238,27 +247,13 @@ function widget:ViewResize()
 	init()
 end
 
-local function RectQuad(px, py, sx, sy, offset)
-	gl.TexCoord(offset, 1 - offset)
-	gl.Vertex(px, py, 0)
-	gl.TexCoord(1 - offset, 1 - offset)
-	gl.Vertex(sx, py, 0)
-	gl.TexCoord(1 - offset, offset)
-	gl.Vertex(sx, sy, 0)
-	gl.TexCoord(offset, offset)
-	gl.Vertex(px, sy, 0)
-end
-function DrawRect(px, py, sx, sy, zoom)
-	gl.BeginEnd(GL.QUADS, RectQuad, px, py, sx, sy, zoom)
-end
-
 local function short(n, f)
-	if (f == nil) then
+	if f == nil then
 		f = 0
 	end
-	if (n > 9999999) then
+	if n > 9999999 then
 		return sformat("%." .. f .. "fm", n / 1000000)
-	elseif (n > 9999) then
+	elseif n > 9999 then
 		return sformat("%." .. f .. "fk", n / 1000)
 	else
 		return sformat("%." .. f .. "f", n)
@@ -365,9 +360,7 @@ end
 
 local function updateButtons()
 	local area = buttonsArea
-
 	local totalWidth = area[3] - area[1]
-
 	local text = '    '
 
 	if isSinglePlayer and WG['savegame'] ~= nil then
@@ -1292,7 +1285,7 @@ function widget:Update(dt)
 		sec = 0
 		r = { metal = { spGetTeamResources(myTeamID, 'metal') }, energy = { spGetTeamResources(myTeamID, 'energy') } }
 		if not spec and not showQuitscreen then
-			if isInBox(mx, my, resbarArea['energy']) then
+			if IsOnRect(mx, my, resbarArea['energy'][1], resbarArea['energy'][2], resbarArea['energy'][3], resbarArea['energy'][4]) then
 				if resbarHover == nil then
 					resbarHover = 'energy'
 					updateResbar('energy')
@@ -1301,7 +1294,7 @@ function widget:Update(dt)
 				resbarHover = nil
 				updateResbar('energy')
 			end
-			if isInBox(mx, my, resbarArea['metal']) then
+			if IsOnRect(mx, my, resbarArea['metal'][1], resbarArea['metal'][2], resbarArea['metal'][3], resbarArea['metal'][4]) then
 				if resbarHover == nil then
 					resbarHover = 'metal'
 					updateResbar('metal')

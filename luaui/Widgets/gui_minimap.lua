@@ -11,7 +11,7 @@ function widget:GetInfo()
 end
 
 local maxAllowedWidth = 0.29
-local maxAllowedHeight = 0.33
+local maxAllowedHeight = 0.32
 
 local vsx, vsy = Spring.GetViewGeometry()
 
@@ -62,7 +62,7 @@ function widget:ViewResize()
 	RectRound = WG.FlowUI.Draw.RectRound
 	UiElement = WG.FlowUI.Draw.Element
 	elementMargin = WG.FlowUI.elementMargin
-	
+
 	if WG['topbar'] ~= nil then
 		local topbarArea = WG['topbar'].GetPosition()
 		maxAllowedWidth = (topbarArea[1] - elementMargin - elementPadding) / vsx

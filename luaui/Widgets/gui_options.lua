@@ -722,10 +722,9 @@ local function setEngineFont()
 	-- set spring engine default font cause it cant thee game archive fonts on launch
 	Spring.SetConfigString("SmallFontFile", "FreeSansBold.otf")
 	Spring.SetConfigString("FontFile", "FreeSansBold.otf")
-
 end
-
 setEngineFont()
+
 function widget:ViewResize()
 	vsx, vsy = Spring.GetViewGeometry()
 	widgetScale = ((vsx + vsy) / 2000) * 0.65 * customScale

@@ -20,7 +20,7 @@ if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
-local wavePeriod = 350
+local wavePeriod = 330
 
 --local spSpawnCEG = Spring.SpawnCEG
 local spDestroyUnit = Spring.DestroyUnit
@@ -42,7 +42,7 @@ local function wipeoutTeam(teamID, originX, originZ, attackerUnitID)
 	for i=1, #teamUnits do
 		local unitID = teamUnits[i]
 		local x,y,z = spGetUnitPosition(unitID)
-		local deathFrame = 7 + math.floor(math.min(((getSqrDistance(x, z, originX, originZ) / DISTANCE_LIMIT) * wavePeriod/2), wavePeriod) + math.random(0,wavePeriod/3))
+		local deathFrame = 7 + math.floor(math.min(((getSqrDistance(x, z, originX, originZ) / DISTANCE_LIMIT) * wavePeriod/2), wavePeriod) + math.random(0,wavePeriod/2.6))
 		maxDeathFrame = math.max(maxDeathFrame, deathFrame)
 		if destroyUnitQueue[unitID] == nil then
 			destroyUnitQueue[unitID] = {
@@ -51,6 +51,14 @@ local function wipeoutTeam(teamID, originX, originZ, attackerUnitID)
 				--x = x, y = y, z = z,
 			}
 		end
+
+		-- neutralize units
+		Spring.SetUnitNeutral(unitID, true)
+		Spring.SetUnitSensorRadius(unitID, 'los', 0)
+		Spring.SetUnitSensorRadius(unitID, 'airLos', 0)
+		Spring.SetUnitSensorRadius(unitID, 'radar', 0)
+		Spring.SetUnitSensorRadius(unitID, 'sonar', 0)
+		--Spring.SetUnitNoMinimap(unitID, true)
 	end
 	GG.maxDeathFrame = GG.maxDeathFrame and math.max(GG.maxDeathFrame, maxDeathFrame) or maxDeathFrame	-- storing frame of total unit wipeout
 end
