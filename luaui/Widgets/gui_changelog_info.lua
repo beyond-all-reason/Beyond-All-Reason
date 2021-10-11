@@ -21,8 +21,6 @@ local screenWidthOrg = 1050
 local screenHeight = screenHeightOrg
 local screenWidth = screenWidthOrg
 
-local textareaMinLines = 20        -- wont scroll down more, will show at least this amount of lines
-
 local playSounds = true
 local buttonclick = 'LuaUI/Sounds/buildbar_waypoint.wav'
 
@@ -35,29 +33,9 @@ local screenX = math.floor((vsx * centerPosX) - (screenWidth / 2))
 local screenY = math.floor((vsy * centerPosY) + (screenHeight / 2))
 
 local spIsGUIHidden = Spring.IsGUIHidden
-local showHelp = false
-
-local glColor = gl.Color
-local glLineWidth = gl.LineWidth
-local glPolygonMode = gl.PolygonMode
-local glRect = gl.Rect
-local glText = gl.Text
-local glShape = gl.Shape
-
-local bgColorMultiplier = 0
-
 local glCreateList = gl.CreateList
 local glCallList = gl.CallList
 local glDeleteList = gl.DeleteList
-
-local glPopMatrix = gl.PopMatrix
-local glPushMatrix = gl.PushMatrix
-local glTranslate = gl.Translate
-local glScale = gl.Scale
-
-local GL_FILL = GL.FILL
-local GL_FRONT_AND_BACK = GL.FRONT_AND_BACK
-local GL_LINE_STRIP = GL.LINE_STRIP
 
 local widgetScale = 1
 local vsx, vsy = Spring.GetViewGeometry()
@@ -65,8 +43,6 @@ local vsx, vsy = Spring.GetViewGeometry()
 local versions = {}
 local changelogLines = {}
 local totalChangelogLines = 0
-
-local myTeamID = Spring.GetMyTeamID()
 
 local showOnceMore = false        -- used because of GUI shader delay
 
@@ -418,38 +394,6 @@ function mouseEvent(x, y, button, release)
 		-- on window
 		if math_isInRect(x, y, screenX, screenY - screenHeight, screenX + screenWidth, screenY) then
 
-			--[[ scroll text with mouse 2
-			if button == 1 or button == 3 then
-				if math_isInRect(x, y, rectX1+(90*widgetScale), rectY2, rectX2, rectY1) then
-					if release then
-						local alt, ctrl, meta, shift = Spring.GetModKeyState()
-						local addLines = 3
-
-						if ctrl or shift then
-							addLines = 8
-						end
-						if ctrl and shift then
-							addLines = 22
-						end
-						if ctrl and shift and alt then
-							addLines = 66
-						end
-						if button == 3 then
-							addLines = -addLines
-						end
-						startLine = startLine + addLines
-						if startLine < 1 then startLine = 1 end
-						if startLine > totalChangelogLines - textareaMinLines then startLine = totalChangelogLines - textareaMinLines end
-
-						if changelogList then
-							glDeleteList(changelogList)
-						end
-						changelogList = gl.CreateList(DrawWindow)
-					end
-					return true
-				end
-			end]]--
-
 			-- version buttons
 			if button == 1 and release then
 				local yOffset = 24
@@ -489,16 +433,6 @@ function mouseEvent(x, y, button, release)
 	end
 end
 
-function lines(str)
-	local t = {}
-	local function helper(line)
-		t[#t + 1] = line
-		return ""
-	end
-	helper((str:gsub("(.-)\r?\n", helper)))
-	return t
-end
-
 function widget:Initialize()
 	widget:ViewResize()
 	if changelogFile then
@@ -519,7 +453,7 @@ function widget:Initialize()
 		changelogFile = string.sub(changelogFile, 4)
 
 		-- store changelog into array
-		changelogLines = lines(changelogFile)
+		changelogLines = string.lines(changelogFile)
 
 		local versionKey = 0
 		local insertedLatest = false

@@ -128,6 +128,7 @@ local math_ceil = math.ceil
 local math_min = math.min
 local math_max = math.max
 local math_isInRect = math.isInRect
+local string_lines = string.lines
 
 local os_clock = os.clock
 
@@ -142,16 +143,6 @@ local glBlending = gl.Blending
 local GL_SRC_ALPHA = GL.SRC_ALPHA
 local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 local GL_ONE = GL.ONE
-
-local function toLines(str)
-	local t = {}
-	local function helper(line)
-		t[#t + 1] = line
-		return ""
-	end
-	helper((str:gsub("(.-)\r?\n", helper)))
-	return t
-end
 
 local function round(value, numDecimalPlaces)
 	if value then
@@ -1178,7 +1169,7 @@ local function drawUnitInfo()
 		local text, _ = font:WrapText(text, ((backgroundRect[3] - bgpadding - bgpadding - bgpadding) - (backgroundRect[1] + contentPaddingLeft)) * (loadedFontSize / infoFontsize))
 
 		-- prune number of lines
-		local lines = toLines(text)
+		local lines = string_lines(text)
 		text = ''
 		for i, line in pairs(lines) do
 			text = text .. line

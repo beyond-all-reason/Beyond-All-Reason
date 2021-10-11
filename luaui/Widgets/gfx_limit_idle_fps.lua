@@ -30,15 +30,9 @@ local chobbyInterface = false
 -- detect display frequency > 60 and set vsyncValueIdle to 6
 --local infolog = VFS.LoadFile("infolog.txt")
 --if infolog then
---	function lines(str)
---		local t = {}
---		local function helper(line) table.insert(t, line) return "" end
---		helper((str:gsub("(.-)\r?\n", helper)))
---		return t
---	end
 --
 --	-- store changelog into table
---	local fileLines = lines(infolog)
+--	local fileLines = string.lines(infolog)
 --
 --	for i, line in ipairs(fileLines) do
 --		if string.sub(line, 1, 3) == '[F='  then

@@ -353,17 +353,6 @@ function mouseEvent(x, y, button, release)
 	end
 end
 
-function lines(str)
-	local t = {}
-	local function helper(line)
-		t[#t + 1] = line
-		return ""
-	end
-	helper((str:gsub("(.-)\r?\n", helper)))
-	return t
-end
-
-
 function toggle()
 	local newShow = not show
 	if newShow and WG['topbar'] then
@@ -440,7 +429,7 @@ function widget:Initialize()
 	--content = string.sub(content, 4)
 
 	-- store changelog into array
-	fileLines = lines(content)
+	fileLines = string.lines(content)
 
 	for i, line in ipairs(fileLines) do
 		totalFileLines = i

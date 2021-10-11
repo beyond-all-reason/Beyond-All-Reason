@@ -287,16 +287,6 @@ if Engine and Engine.version then
 	end
 end
 
-function lines(str)
-	local t = {}
-	local function helper(line)
-		t[#t + 1] = line
-		return ""
-	end
-	helper((str:gsub("(.-)\r?\n", helper)))
-	return t
-end
-
 local function detectWater()
 	local _,_,mapMinHeight, mapMaxHeight = Spring.GetGroundExtremes()
 	if select(3, Spring.GetGroundExtremes()) <= -2 then
@@ -1507,16 +1497,6 @@ function loadWidgetData(widgetName, optionId, configVar)
 	end
 end
 
-function lines(str)
-	local t = {}
-	local function helper(line)
-		table.insert(t, line)
-		return ""
-	end
-	helper((str:gsub("(.-)\r?\n", helper)))
-	return t
-end
-
 function applyOptionValue(i, skipRedrawWindow, force)
 	if options[i] == nil then
 		return
@@ -1708,7 +1688,7 @@ function init()
 	local soundDevicesByName = { [''] = 1 }
 	local infolog = VFS.LoadFile("infolog.txt")
 	if infolog then
-		local fileLines = lines(infolog)
+		local fileLines = string.lines(infolog)
 		local desktop = ''
 		local addResolutions
 		for i, line in ipairs(fileLines) do

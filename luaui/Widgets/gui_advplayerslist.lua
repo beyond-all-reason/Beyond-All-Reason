@@ -92,6 +92,9 @@ local gl_CreateList = gl.CreateList
 local gl_DeleteList = gl.DeleteList
 local gl_CallList = gl.CallList
 
+local math_isInRect = math.isInRect
+local string_lines = string.lines
+
 local RectRound, UiElement, elementCorner
 local bgpadding = 3
 
@@ -2740,16 +2743,6 @@ function PointTip(mouseX)
     end
 end
 
-function stringToLines(str)
-    local t = {}
-    local function helper(line)
-        t[#t + 1] = line
-        return ""
-    end
-    helper( str:gsub("(.-)\r?\n", helper) )
-    return t
-end
-
 function DrawTip(mouseX, mouseY)
     local scaleDiffX = -((widgetPosX * widgetScale) - widgetPosX) / widgetScale
     local scaleDiffY = -((widgetPosY * widgetScale) - widgetPosY) / widgetScale
@@ -2798,7 +2791,7 @@ function DrawTip(mouseX, mouseY)
         widgetScale = oldWidgetScale
 
         -- draw text
-        local textLines = stringToLines(text)
+        local textLines = string_lines(text)
         th = 0
         font:Begin()
         for i, line in ipairs(textLines) do
@@ -3170,8 +3163,6 @@ function Spec(teamID)
     Spring_SendCommands { "specteam " .. teamID }
     SortList()
 end
-
-local math_isInRect = math.isInRect
 
 function IsOnRect(x, y, BLcornerX, BLcornerY, TRcornerX, TRcornerY)
     -- calc scale offset

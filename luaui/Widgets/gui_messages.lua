@@ -54,14 +54,7 @@ local RectRound, elementCorner
 
 local hideSpecChat = tonumber(Spring.GetConfigInt("HideSpecChat", 0) or 0) == 1
 local math_isInRect = math.isInRect
-
-
-local function lines(str)
-	local text = {}
-	local function helper(line) text[#text+1] = line return "" end
-	helper((str:gsub("(.-)\r?\n", helper)))
-	return text
-end
+local string_lines = string.lines
 
 function widget:ViewResize()
 	vsx,vsy = Spring.GetViewGeometry()
@@ -105,7 +98,7 @@ local function addMessage(text)
 		end
 
 		-- convert /n into lines
-		local textLines = lines(text)
+		local textLines = string_lines(text)
 
 		-- word wrap text into lines
 		local wordwrappedText = {}

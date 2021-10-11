@@ -85,6 +85,8 @@ local glCallList       = gl.CallList
 local glTranslate      = gl.Translate
 local glColor          = gl.Color
 
+local string_lines = string.lines
+local math_isInRect = math.isInRect
 local floor = math.floor
 local clock = os.clock
 local schar = string.char
@@ -97,8 +99,6 @@ local spGetMyAllyTeamID = Spring.GetMyAllyTeamID
 local spPlaySoundFile = Spring.PlaySoundFile
 local spGetGameFrame = Spring.GetGameFrame
 
-local math_isInRect = math.isInRect
-
 local teamColorKeys = {}
 local teams = Spring.GetTeamList()
 for i = 1, #teams do
@@ -106,13 +106,6 @@ for i = 1, #teams do
 	teamColorKeys[teams[i]] = r..'_'..g..'_'..b
 end
 teams = nil
-
-local function lines(str)
-	local text = {}
-	local function helper(line) text[#text+1] = line return "" end
-	helper((str:gsub("(.-)\r?\n", helper)))
-	return text
-end
 
 local function wordWrap(text, maxWidth, fontSize)
 	local lines = {}
@@ -145,7 +138,7 @@ local function addConsoleLine(gameFrame, lineType, text, isLive)
 	if not text or text == '' then return end
 
 	-- convert /n into lines
-	local textLines = lines(text)
+	local textLines = string_lines(text)
 
 	-- word wrap text into lines
 	local wordwrappedText = wordWrap(textLines, consoleLineMaxWidth, usedConsoleFontSize)
@@ -182,7 +175,7 @@ local function addChat(gameFrame, lineType, name, text, isLive)
 	local startTime = clock()
 
 	-- convert /n into lines
-	local textLines = lines(text)
+	local textLines = string_lines(text)
 
 	-- word wrap text into lines
 	local wordwrappedText = wordWrap(textLines, lineMaxWidth, usedFontSize)
