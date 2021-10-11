@@ -79,6 +79,8 @@ local versionFontSize = 16
 local versionQuickLinks = {}
 local maxLines = 20
 
+local math_isInRect = math.isInRect
+
 local font, loadedFontSize, font2, changelogList, titleRect, chobbyInterface, backgroundGuishader, changelogList, dlistcreated, show, bgpadding
 
 function widget:ViewResize()
@@ -341,7 +343,7 @@ function widget:DrawScreen()
 		local usedScreenY = math.floor((vsy * centerPosY) + ((screenHeight / 2) * widgetScale))
 
 		local x, y, pressed = Spring.GetMouseState()
-		if IsOnRect(x, y, screenX, screenY - screenHeight, screenX + screenWidth, screenY) or IsOnRect(x, y, titleRect[1], titleRect[2], titleRect[3], titleRect[4]) then
+		if math_isInRect(x, y, screenX, screenY - screenHeight, screenX + screenWidth, screenY) or math_isInRect(x, y, titleRect[1], titleRect[2], titleRect[3], titleRect[4]) then
 			Spring.SetMouseCursor('cursornormal')
 		end
 		if changelogFile then
@@ -351,7 +353,7 @@ function widget:DrawScreen()
 			local yOffsetUp = ((versionFontSize * 0.66) + yOffset) * widgetScale
 			local yOffsetDown = ((versionFontSize * 1.21) - yOffset) * widgetScale
 			for k,v in pairs(versionQuickLinks) do
-				if IsOnRect(x, y, v[1], v[2], v[3], v[4]) then
+				if math_isInRect(x, y, v[1], v[2], v[3], v[4]) then
 					if pressed then
 						gl.Color(1, 0.93, 0.75, 0.23)
 					else
@@ -374,15 +376,6 @@ function widget:KeyPress(key)
 		show = false
 	end
 end
-
-function IsOnRect(x, y, BLcornerX, BLcornerY, TRcornerX, TRcornerY)
-
-	-- check if the mouse is in a rectangle
-	return x >= BLcornerX and x <= TRcornerX
-		and y >= BLcornerY
-		and y <= TRcornerY
-end
-
 
 function widget:MouseWheel(up, value)
 
@@ -423,11 +416,11 @@ function mouseEvent(x, y, button, release)
 
 	if show then
 		-- on window
-		if IsOnRect(x, y, screenX, screenY - screenHeight, screenX + screenWidth, screenY) then
+		if math_isInRect(x, y, screenX, screenY - screenHeight, screenX + screenWidth, screenY) then
 
 			--[[ scroll text with mouse 2
 			if button == 1 or button == 3 then
-				if IsOnRect(x, y, rectX1+(90*widgetScale), rectY2, rectX2, rectY1) then
+				if math_isInRect(x, y, rectX1+(90*widgetScale), rectY2, rectX2, rectY1) then
 					if release then
 						local alt, ctrl, meta, shift = Spring.GetModKeyState()
 						local addLines = 3
@@ -466,7 +459,7 @@ function mouseEvent(x, y, button, release)
 				local x, y = Spring.GetMouseState()
 				if changelogFile then
 					for k,v in pairs(versionQuickLinks) do
-						if IsOnRect(x, y, v[1], v[2], v[3], v[4]) then
+						if math_isInRect(x, y, v[1], v[2], v[3], v[4]) then
 							startLine = versions[k+1]
 							if changelogList then
 								glDeleteList(changelogList)
@@ -486,7 +479,7 @@ function mouseEvent(x, y, button, release)
 				return true
 			end
 
-		elseif titleRect == nil or not IsOnRect(x, y, titleRect[1], titleRect[2], titleRect[3], titleRect[4]) then
+		elseif titleRect == nil or not math_isInRect(x, y, titleRect[1], titleRect[2], titleRect[3], titleRect[4]) then
 			if release then
 				showOnceMore = true        -- show once more because the guishader lags behind, though this will not fully fix it
 				show = false

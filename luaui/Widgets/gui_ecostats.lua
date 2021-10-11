@@ -34,6 +34,7 @@ local vsx, vsy = Spring.GetViewGeometry()
 
 local sin = math.sin
 local floor = math.floor
+local math_isInRect = math.isInRect
 local strsub = string.sub
 local strfind = string.find
 local tconcat = table.concat
@@ -109,10 +110,6 @@ for udefID, def in ipairs(UnitDefs) do
 	if def.customParams.iscommander then
 		comDefs[udefID] = true
 	end
-end
-
-local function IsOnRect(x, y, BLcornerX, BLcornerY, TRcornerX, TRcornerY)
-	return x >= BLcornerX and x <= TRcornerX and y >= BLcornerY and y <= TRcornerY
 end
 
 local function round(num, idp)
@@ -1208,7 +1205,7 @@ function widget:MousePress(x, y, button)
 	if button == 1 then
 		for teamID, button in pairs(Button) do
 			button.click = false
-			if button.x1 and IsOnRect(x, y, button.x1, button.y1, button.x2, button.y2) then
+			if button.x1 and math_isInRect(x, y, button.x1, button.y1, button.x2, button.y2) then
 
 				if ctrlDown and teamData[teamID].hasCom then
 					local com
@@ -1257,7 +1254,7 @@ function widget:MousePress(x, y, button)
 			end
 		end
 	end
-	if IsOnRect(x, y, widgetPosX, widgetPosY, widgetPosX + widgetWidth, widgetPosY + widgetHeight) then
+	if math_isInRect(x, y, widgetPosX, widgetPosY, widgetPosX + widgetWidth, widgetPosY + widgetHeight) then
 		return true
 	end
 end
@@ -1366,7 +1363,7 @@ function widget:DrawScreen()
 
 	local mx, my, mb = Spring.GetMouseState()
 	widgetHeight = getNbTeams() * tH + (2 * sizeMultiplier)    -- not sure why i have to redefine this again, height was just 2 px
-	if IsOnRect(mx, my, widgetPosX, widgetPosY, widgetPosX + widgetWidth, widgetPosY + widgetHeight) then
+	if math_isInRect(mx, my, widgetPosX, widgetPosY, widgetPosX + widgetWidth, widgetPosY + widgetHeight) then
 		Spring.SetMouseCursor('cursornormal')
 	end
 end

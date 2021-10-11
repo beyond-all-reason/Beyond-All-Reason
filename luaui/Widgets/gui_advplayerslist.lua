@@ -1713,7 +1713,7 @@ function widget:DrawScreen()
                 screenshotVars.saveQueued = nil
             end
         end
-        if screenshotVars.width and IsOnRectPlain(mouseX, mouseY, screenshotVars.posX, screenshotVars.posY, screenshotVars.posX + (screenshotVars.width * widgetScale), screenshotVars.posY + (screenshotVars.height * widgetScale)) then
+        if screenshotVars.width and math_isInRect(mouseX, mouseY, screenshotVars.posX, screenshotVars.posY, screenshotVars.posX + (screenshotVars.width * widgetScale), screenshotVars.posY + (screenshotVars.height * widgetScale)) then
             if mouseButtonL then
                 gl_DeleteList(screenshotVars.dlist)
                 if WG['guishader'] then
@@ -3171,9 +3171,7 @@ function Spec(teamID)
     SortList()
 end
 
-function IsOnRectPlain(x, y, BLcornerX, BLcornerY, TRcornerX, TRcornerY)
-    return x >= BLcornerX and x <= TRcornerX and y >= BLcornerY and y <= TRcornerY
-end
+local math_isInRect = math.isInRect
 
 function IsOnRect(x, y, BLcornerX, BLcornerY, TRcornerX, TRcornerY)
     -- calc scale offset

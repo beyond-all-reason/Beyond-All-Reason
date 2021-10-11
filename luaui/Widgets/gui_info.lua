@@ -127,6 +127,7 @@ local math_floor = math.floor
 local math_ceil = math.ceil
 local math_min = math.min
 local math_max = math.max
+local math_isInRect = math.isInRect
 
 local os_clock = os.clock
 
@@ -599,10 +600,6 @@ local function DrawRectRoundCircle(x, y, z, radius, cs, centerOffset, color1, co
 end
 local function RectRoundCircle(x, y, z, radius, cs, centerOffset, color1, color2)
 	gl.BeginEnd(GL_QUADS, DrawRectRoundCircle, x, y, z, radius, cs, centerOffset, color1, color2)
-end
-
-function IsOnRect(x, y, BLcornerX, BLcornerY, TRcornerX, TRcornerY)
-	return x >= BLcornerX and x <= TRcornerX and y >= BLcornerY and y <= TRcornerY
 end
 
 local function drawSelectionCell(cellID, uDefID, usedZoom, highlightColor)
@@ -1296,7 +1293,7 @@ function widget:MousePress(x, y, button)
 	if Spring.IsGUIHidden() then
 		return
 	end
-	if IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
+	if math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
 		return true
 	end
 end
@@ -1305,10 +1302,10 @@ function widget:MouseRelease(x, y, button)
 	if Spring.IsGUIHidden() then
 		return
 	end
-	if displayMode and displayMode == 'selection' and customInfoArea and IsOnRect(x, y, customInfoArea[1], customInfoArea[2], customInfoArea[3], customInfoArea[4]) then
+	if displayMode and displayMode == 'selection' and customInfoArea and math_isInRect(x, y, customInfoArea[1], customInfoArea[2], customInfoArea[3], customInfoArea[4]) then
 		if selectionCells and selectionCells[1] and cellRect then
 			for cellID, unitDefID in pairs(selectionCells) do
-				if cellRect[cellID] and IsOnRect(x, y, cellRect[cellID][1], cellRect[cellID][2], cellRect[cellID][3], cellRect[cellID][4]) then
+				if cellRect[cellID] and math_isInRect(x, y, cellRect[cellID][1], cellRect[cellID][2], cellRect[cellID][3], cellRect[cellID][4]) then
 					local unitTable = nil
 					local index = 0
 					for udid, uTable in pairs(selUnitsSorted) do
@@ -1364,7 +1361,7 @@ function widget:DrawScreen()
 
 
 	-- widget hovered
-	if IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
+	if math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
 
 		Spring.SetMouseCursor('cursornormal')
 
@@ -1373,7 +1370,7 @@ function widget:DrawScreen()
 
 			local cellHovered
 			for cellID, unitDefID in pairs(selectionCells) do
-				if cellRect[cellID] and IsOnRect(x, y, cellRect[cellID][1], cellRect[cellID][2], cellRect[cellID][3], cellRect[cellID][4]) then
+				if cellRect[cellID] and math_isInRect(x, y, cellRect[cellID][1], cellRect[cellID][2], cellRect[cellID][3], cellRect[cellID][4]) then
 
 					local cellZoom = hoverCellZoom
 					local color = { 1, 1, 1 }
@@ -1477,7 +1474,7 @@ function checkChanges()
 		end
 
 		-- hovered unit
-	elseif not IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) and hoverType and hoverType == 'unit' and os_clock() - lastHoverDataClock > 0.08 then
+	elseif not math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) and hoverType and hoverType == 'unit' and os_clock() - lastHoverDataClock > 0.08 then
 		-- add small hover delay against eplilepsy
 		displayMode = 'unit'
 		displayUnitID = hoverData
@@ -1488,7 +1485,7 @@ function checkChanges()
 		end
 
 		-- hovered feature
-	elseif not IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) and hoverType and hoverType == 'feature' and os_clock() - lastHoverDataClock > 0.08 then
+	elseif not math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) and hoverType and hoverType == 'feature' and os_clock() - lastHoverDataClock > 0.08 then
 		-- add small hover delay against eplilepsy
 		--displayMode = 'feature'
 		--displayFeatureID = hoverData

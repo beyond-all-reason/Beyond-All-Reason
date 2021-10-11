@@ -53,6 +53,7 @@ local glPolygonMode = gl.PolygonMode
 local glRect = gl.Rect
 local glText = gl.Text
 local glShape = gl.Shape
+local math_isInRect = math.isInRect
 
 local bgColorMultiplier = 0
 
@@ -257,7 +258,7 @@ function widget:DrawScreen()
 		showOnceMore = false
 
 	  local x, y, pressed = Spring.GetMouseState()
-	  if IsOnRect(x, y, screenX, screenY - screenHeight, screenX + screenWidth, screenY) or IsOnRect(x, y, titleRect[1], titleRect[2], titleRect[3], titleRect[4]) then
+	  if math_isInRect(x, y, screenX, screenY - screenHeight, screenX + screenWidth, screenY) or math_isInRect(x, y, titleRect[1], titleRect[2], titleRect[3], titleRect[4]) then
 		  Spring.SetMouseCursor('cursornormal')
 	  end
 
@@ -271,14 +272,6 @@ function widget:KeyPress(key)
 	if key == 27 then	-- ESC
 		show = false
 	end
-end
-
-function IsOnRect(x, y, BLcornerX, BLcornerY,TRcornerX,TRcornerY)
-
-	-- check if the mouse is in a rectangle
-	return x >= BLcornerX and x <= TRcornerX
-	                      and y >= BLcornerY
-	                      and y <= TRcornerY
 end
 
 function widget:MouseWheel(up, value)
@@ -316,9 +309,9 @@ function mouseEvent(x, y, button, release)
 
 	if show then
 		-- on window
-		if IsOnRect(x, y, screenX, screenY - screenHeight, screenX + screenWidth, screenY) then
+		if math_isInRect(x, y, screenX, screenY - screenHeight, screenX + screenWidth, screenY) then
 			return true
-		elseif titleRect == nil or not IsOnRect(x, y, titleRect[1], titleRect[2], titleRect[3], titleRect[4]) then
+		elseif titleRect == nil or not math_isInRect(x, y, titleRect[1], titleRect[2], titleRect[3], titleRect[4]) then
 			if release then
 				showOnceMore = show        -- show once more because the guishader lags behind, though this will not fully fix it
 				show = false

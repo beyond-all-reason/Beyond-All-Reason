@@ -106,6 +106,7 @@ local capturePoints = {}
 local controlPointSolidList = {}
 
 local floor = math.floor
+local math_isInRect = math.isInRect
 
 local cvScore = {}
 local cvPoints = {}
@@ -542,12 +543,6 @@ local function drawScoreboard()
 	PopMatrix()
 end
 
-local function isOnRect(x, y, BLcornerX, BLcornerY, TRcornerX, TRcornerY)
-	return x >= BLcornerX and x <= TRcornerX
-		and y >= BLcornerY
-		and y <= TRcornerY
-end
-
 function widget:DrawScreen()
 	local mouseoverScoreboard = false
 
@@ -574,7 +569,7 @@ function widget:DrawScreen()
 		CallList(scoreboardList)
 
 		local x, y = Spring.GetMouseState()
-		if elementRect and isOnRect(x, y, elementRect[1], elementRect[2], elementRect[3], elementRect[4]) then
+		if elementRect and math_isInRect(x, y, elementRect[1], elementRect[2], elementRect[3], elementRect[4]) then
 			if not mouseoverScoreboard then
 				mouseoverScoreboard = true
 				if mouseoverScoreboardList ~= nil then
@@ -623,7 +618,7 @@ local function mouseEvent(x, y, button, release)
 		draggingScoreboard = false
 	end
 	if not release and Spring.GetGameFrame() > 0 then
-		if elementRect and (isOnRect(x, y, elementRect[1], elementRect[2], elementRect[3], elementRect[4]) or isOnRect(x, y, titleRect[1], titleRect[2], titleRect[3], titleRect[4])) then
+		if elementRect and (math_isInRect(x, y, elementRect[1], elementRect[2], elementRect[3], elementRect[4]) or math_isInRect(x, y, titleRect[1], titleRect[2], titleRect[3], titleRect[4])) then
 
 			if button == 2 then
 				draggingScoreboard = true
@@ -637,12 +632,12 @@ local function mouseEvent(x, y, button, release)
 		local rectY1 = ((screenY + bgMargin) * uiScale) - ((vsy * (uiScale - 1)) / 2)
 		local rectX2 = ((screenX + screenWidth + bgMargin) * uiScale) - ((vsx * (uiScale - 1)) / 2)
 		local rectY2 = ((screenY - screenHeight - bgMargin) * uiScale) - ((vsy * (uiScale - 1)) / 2)
-		if isOnRect(x, y, rectX1, rectY2, rectX2, rectY1) then
+		if math_isInRect(x, y, rectX1, rectY2, rectX2, rectY1) then
 
 			-- on close button
 			local brectX1 = rectX2 - ((closeButtonSize + bgMargin + bgMargin) * uiScale)
 			local brectY2 = rectY1 - ((closeButtonSize + bgMargin + bgMargin) * uiScale)
-			if isOnRect(x, y, brectX1, brectY2, rectX2, rectY1) then
+			if math_isInRect(x, y, brectX1, brectY2, rectX2, rectY1) then
 				if release then
 					showGameModeInfo = false
 				end

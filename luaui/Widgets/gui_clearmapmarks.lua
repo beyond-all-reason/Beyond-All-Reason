@@ -28,6 +28,7 @@ local yPos = 0
 local usedImgSize = iconSize
 local chobbyInterface
 local continuouslyClean = false
+local math_isInRect = math.isInRect
 
 local function RectQuad(px,py,sx,sy)
 	local o = 0.008		-- texture offset, because else grey line might show at the edges
@@ -79,10 +80,6 @@ local function updatePosition(force)
 	end
 end
 
-local function IsOnRect(x, y, BLcornerX, BLcornerY, TRcornerX, TRcornerY)
-	return x >= BLcornerX and x <= TRcornerX and y >= BLcornerY and y <= TRcornerY
-end
-
 function widget:Initialize()
 	WG.clearmapmarks = {}
 	WG.clearmapmarks.continuous = continuouslyClean
@@ -124,7 +121,7 @@ function widget:DrawScreen()
 		local mx,my = Spring.GetMouseState()
 		glPushMatrix()
 			glTranslate(xPos, yPos, 0)
-				if IsOnRect(mx, my, xPos-usedImgSize, yPos, xPos, yPos+usedImgSize) then
+				if math_isInRect(mx, my, xPos-usedImgSize, yPos, xPos, yPos+usedImgSize) then
 					--Spring.SetMouseCursor('cursornormal')
 					gl.Color(1,1,1,1)
 				else
@@ -137,13 +134,13 @@ end
 
 
 function widget:MousePress(mx, my, mb)
-	if mb == 1 and IsOnRect(mx, my, xPos-usedImgSize, yPos, xPos, yPos+usedImgSize) then
+	if mb == 1 and math_isInRect(mx, my, xPos-usedImgSize, yPos, xPos, yPos+usedImgSize) then
 		return true
 	end
 end
 
 function widget:MouseRelease(mx, my, mb)
-	if mb == 1 and IsOnRect(mx, my, xPos-usedImgSize, yPos, xPos, yPos+usedImgSize) then
+	if mb == 1 and math_isInRect(mx, my, xPos-usedImgSize, yPos, xPos, yPos+usedImgSize) then
 		Spring.SendCommands({"clearmapmarks"})
 		updatePosition(true)
 

@@ -48,6 +48,7 @@ local backgroundRect = {}
 local lastUpdate = os.clock() - 1
 
 local os_clock = os.clock
+local math_isInRect = math.isInRect
 
 local glColor = gl.Color
 local glBlending = gl.Blending
@@ -58,10 +59,6 @@ local GL_ONE = GL.ONE
 local font, font2, bgpadding, chobbyInterface, dlistGuishader, dlistFactionpicker, bpWidth, bpHeight, rectMargin, fontSize
 
 local RectRound, UiElement, UiUnit
-
-local function IsOnRect(x, y, BLcornerX, BLcornerY, TRcornerX, TRcornerY)
-	return x >= BLcornerX and x <= TRcornerX and y >= BLcornerY and y <= TRcornerY
-end
 
 local function drawFactionpicker()
 	UiElement(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], 1, 1, ((posY-height > 0 or posX <= 0) and 1 or 0), 0)
@@ -264,7 +261,7 @@ function widget:DrawScreen()
 
 	local x, y, b = Spring.GetMouseState()
 	if not WG['topbar'] or not WG['topbar'].showingQuit() then
-		if IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
+		if math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
 			Spring.SetMouseCursor('cursornormal')
 		end
 	end
@@ -292,9 +289,9 @@ function widget:DrawScreen()
 	gl.CallList(dlistFactionpicker)
 
 	-- highlight
-	if IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
+	if math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
 		for i, faction in pairs(factions) do
-			if IsOnRect(x, y, factionRect[i][1], factionRect[i][2], factionRect[i][3], factionRect[i][4]) then
+			if math_isInRect(x, y, factionRect[i][1], factionRect[i][2], factionRect[i][3], factionRect[i][4]) then
 				glBlending(GL_SRC_ALPHA, GL_ONE)
 				RectRound(factionRect[i][1] + bgpadding, factionRect[i][2] + bgpadding, factionRect[i][3], factionRect[i][4], bgpadding, 1, 1, 1, 1, { 0.3, 0.3, 0.3, (b and 0.5 or 0.25) }, { 1, 1, 1, (b and 0.3 or 0.15) })
 				glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
@@ -309,10 +306,10 @@ function widget:DrawScreen()
 end
 
 function widget:MousePress(x, y, button)
-	if IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
+	if math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
 
 		for i, faction in pairs(factions) do
-			if IsOnRect(x, y, factionRect[i][1], factionRect[i][2], factionRect[i][3], factionRect[i][4]) then
+			if math_isInRect(x, y, factionRect[i][1], factionRect[i][2], factionRect[i][3], factionRect[i][4]) then
 				if playSounds then
 					Spring.PlaySoundFile(sound_button, 0.6, 'ui')
 				end

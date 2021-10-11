@@ -38,6 +38,7 @@ local floor = math.floor
 local ceil = math.ceil
 local min = math.min
 local max = math.max
+local math_isInRect = math.isInRect
 
 local GL_SRC_ALPHA = GL.SRC_ALPHA
 local GL_ONE = GL.ONE
@@ -245,7 +246,7 @@ local function updateList()
 				local x, y, b, b2, b3 = spGetMouseState()
 				if groupButtons then
 					for i,v in pairs(groupButtons) do
-						if IsOnRect(x, y, groupButtons[i][1], groupButtons[i][2], groupButtons[i][3], groupButtons[i][4]) then
+						if math_isInRect(x, y, groupButtons[i][1], groupButtons[i][2], groupButtons[i][3], groupButtons[i][4]) then
 							hoveredGroup = groupButtons[i][5]
 							break
 						end
@@ -403,11 +404,6 @@ local function updateList()
 		end)
 		checkGuishader(true)
 	end
-
-end
-
-function IsOnRect(x, y, BLcornerX, BLcornerY, TRcornerX, TRcornerY)
-	return x >= BLcornerX and x <= TRcornerX and y >= BLcornerY and y <= TRcornerY
 end
 
 function widget:DrawScreen()
@@ -435,7 +431,7 @@ function widget:Update(dt)
 	sec2 = sec2 + dt
 
 	local x, y, b, b2, b3 = spGetMouseState()
-	if backgroundRect and IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
+	if backgroundRect and math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
 		hovered = true
 		local tooltipAddition = ''
 		if numGroups >= 1 then
@@ -540,11 +536,11 @@ function widget:MousePress(x, y, button)
 		return
 	end
 
-	if backgroundRect and IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
+	if backgroundRect and math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
 		local alt, ctrl, meta, shift = Spring.GetModKeyState()
 		if button == 1 or button == 3 then
 			for i,v in pairs(groupButtons) do
-				if IsOnRect(x, y, groupButtons[i][1], groupButtons[i][2], groupButtons[i][3], groupButtons[i][4]) then
+				if math_isInRect(x, y, groupButtons[i][1], groupButtons[i][2], groupButtons[i][3], groupButtons[i][4]) then
 					if shift then
 						local units = selectedUnits
 						local groupUnits = Spring.GetGroupUnits(groupButtons[i][5])

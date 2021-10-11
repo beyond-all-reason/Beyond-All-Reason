@@ -31,15 +31,12 @@ local glBlending = gl.Blending
 local GL_SRC_ALPHA = GL.SRC_ALPHA
 local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 local GL_ONE = GL.ONE
+local math_isInRect = math.isInRect
 
 local RectRound, UiElement, UiButton, bgpadding, elementCorner, widgetSpaceMargin
 
 local voteDlist, chobbyInterface, font, font2, gameStarted, height, dlistGuishader
 local voteOwner, hovered, voteName, windowArea, closeButtonArea, yesButtonArea, noButtonArea
-
-function IsOnRect(x, y, BLcornerX, BLcornerY, TRcornerX, TRcornerY)
-	return x >= BLcornerX and x <= TRcornerX and y >= BLcornerY and y <= TRcornerY
-end
 
 function widget:ViewResize()
 	vsx, vsy = Spring.GetViewGeometry()
@@ -206,7 +203,7 @@ function StartVote(name, owner)
 			--gl.Color(0.1,0.1,0.1,0.55+(0.36))
 			--RectRound(closeButtonArea[1], closeButtonArea[2], closeButtonArea[3], closeButtonArea[4], 3.5*widgetScale)
 			local color1, color2
-			if IsOnRect(x, y, closeButtonArea[1], closeButtonArea[2], closeButtonArea[3], closeButtonArea[4]) then
+			if math_isInRect(x, y, closeButtonArea[1], closeButtonArea[2], closeButtonArea[3], closeButtonArea[4]) then
 				hovered = 'esc'
 				--gl.Color(1,1,1,0.55)
 				color1 = { 0.6, 0.6, 0.6, 0.6 }
@@ -232,7 +229,7 @@ function StartVote(name, owner)
 
 			-- NO
 			local color1, color2, mult
-			if IsOnRect(x, y, noButtonArea[1], noButtonArea[2], noButtonArea[3], noButtonArea[4]) then
+			if math_isInRect(x, y, noButtonArea[1], noButtonArea[2], noButtonArea[3], noButtonArea[4]) then
 				hovered = 'n'
 				--gl.Color(0.7,0.1,0.1,0.8)
 				color1 = { 0.5, 0.07, 0.07, 0.8 }
@@ -256,7 +253,7 @@ function StartVote(name, owner)
 
 			-- YES
 			if not voteOwner then
-				if IsOnRect(x, y, yesButtonArea[1], yesButtonArea[2], yesButtonArea[3], yesButtonArea[4]) then
+				if math_isInRect(x, y, yesButtonArea[1], yesButtonArea[2], yesButtonArea[3], yesButtonArea[4]) then
 					hovered = 'y'
 					--gl.Color(0.05,0.6,0.05,0.8)
 					color1 = { 0.035, 0.4, 0.035, 0.8 }
@@ -296,18 +293,18 @@ end
 
 function widget:MousePress(x, y, button)
 	if voteDlist and button == 1 then
-		if IsOnRect(x, y, windowArea[1], windowArea[2], windowArea[3], windowArea[4]) then
-			if not voteOwner and IsOnRect(x, y, yesButtonArea[1], yesButtonArea[2], yesButtonArea[3], yesButtonArea[4]) then
+		if math_isInRect(x, y, windowArea[1], windowArea[2], windowArea[3], windowArea[4]) then
+			if not voteOwner and math_isInRect(x, y, yesButtonArea[1], yesButtonArea[2], yesButtonArea[3], yesButtonArea[4]) then
 				Spring.SendCommands("say !vote y")
 				EndVote()
-			elseif IsOnRect(x, y, noButtonArea[1], noButtonArea[2], noButtonArea[3], noButtonArea[4]) then
+			elseif math_isInRect(x, y, noButtonArea[1], noButtonArea[2], noButtonArea[3], noButtonArea[4]) then
 				if voteOwner then
 					Spring.SendCommands("say !endvote")
 				else
 					Spring.SendCommands("say !vote n")
 				end
 				EndVote()
-			elseif IsOnRect(x, y, closeButtonArea[1], closeButtonArea[2], closeButtonArea[3], closeButtonArea[4]) then
+			elseif math_isInRect(x, y, closeButtonArea[1], closeButtonArea[2], closeButtonArea[3], closeButtonArea[4]) then
 				Spring.SendCommands("say !vote b")
 				EndVote()
 			end
@@ -333,10 +330,10 @@ function widget:DrawScreen()
 	if voteDlist then
 		if not WG['topbar'] or not WG['topbar'].showingQuit() then
 			local x, y, b = Spring.GetMouseState()
-			if windowArea and IsOnRect(x, y, windowArea[1], windowArea[2], windowArea[3], windowArea[4]) then
-				if not voteOwner and IsOnRect(x, y, yesButtonArea[1], yesButtonArea[2], yesButtonArea[3], yesButtonArea[4]) or
-					IsOnRect(x, y, noButtonArea[1], noButtonArea[2], noButtonArea[3], noButtonArea[4]) or
-					IsOnRect(x, y, closeButtonArea[1], closeButtonArea[2], closeButtonArea[3], closeButtonArea[4])
+			if windowArea and math_isInRect(x, y, windowArea[1], windowArea[2], windowArea[3], windowArea[4]) then
+				if not voteOwner and math_isInRect(x, y, yesButtonArea[1], yesButtonArea[2], yesButtonArea[3], yesButtonArea[4]) or
+					math_isInRect(x, y, noButtonArea[1], noButtonArea[2], noButtonArea[3], noButtonArea[4]) or
+					math_isInRect(x, y, closeButtonArea[1], closeButtonArea[2], closeButtonArea[3], closeButtonArea[4])
 				then
 					StartVote()
 				elseif hovered then

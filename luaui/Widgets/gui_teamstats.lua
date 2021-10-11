@@ -28,6 +28,7 @@ local evenLineColour = {0.8,0.8,0.8,0.4}
 local sortLineColour = {0.82,0.82,0.82,0.85}
 
 local widgetScale
+local math_isInRect = math.isInRect
 
 local customScale = 1
 
@@ -516,12 +517,6 @@ function updateFontSize()
 	fontSize = 11*widgetScale + floor(fakeColumnSize/maxColumnTextSize)
 end
 
-function IsOnRect(x, y, BLcornerX, BLcornerY, TRcornerX, TRcornerY)
-
-	-- check if the mouse is in a rectangle
-	return x >= BLcornerX and x <= TRcornerX and y >= BLcornerY and y <= TRcornerY
-end
-
 function widget:MouseMove(mx,my,dx,dy)
 	if not guiData.mainPanel.visible then
 		return
@@ -576,7 +571,7 @@ function widget:DrawScreen()
 
 	local x, y, pressed = Spring.GetMouseState()
 	local x1,y1,x2,y2 = math.floor(guiData.mainPanel.absSizes.x.min), math.floor(guiData.mainPanel.absSizes.y.min), math.floor(guiData.mainPanel.absSizes.x.max), math.floor(guiData.mainPanel.absSizes.y.max)
-	if IsOnRect(x, y, x1,y1,x2,y2) then
+	if math_isInRect(x, y, x1,y1,x2,y2) then
 		Spring.SetMouseCursor('cursornormal')
 	end
 end

@@ -47,9 +47,8 @@ local hideSpecChat = (Spring.GetConfigInt('HideSpecChat', 0) == 1)
 
 local myName = Spring.GetPlayerInfo(Spring.GetMyPlayerID(), false)
 
-local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 local fontfile3 = "fonts/monospaced/" .. Spring.GetConfigString("bar_font3", "SourceCodePro-Medium.otf")
-local font, font2, font3, chobbyInterface, hovering
+local font, font3, chobbyInterface, hovering
 
 local RectRound, UiElement, UiScroller, elementCorner, elementPadding, elementMargin
 
@@ -98,6 +97,8 @@ local spGetMyAllyTeamID = Spring.GetMyAllyTeamID
 local spPlaySoundFile = Spring.PlaySoundFile
 local spGetGameFrame = Spring.GetGameFrame
 
+local math_isInRect = math.isInRect
+
 local teamColorKeys = {}
 local teams = Spring.GetTeamList()
 for i = 1, #teams do
@@ -105,10 +106,6 @@ for i = 1, #teams do
 	teamColorKeys[teams[i]] = r..'_'..g..'_'..b
 end
 teams = nil
-
-local function isOnRect(x, y, leftX, bottomY,rightX,TopY)
-	return x >= leftX and x <= rightX and y >= bottomY and y <= TopY
-end
 
 local function lines(str)
 	local text = {}
@@ -312,16 +309,16 @@ function widget:Update(dt)
 	local heightDiff = scrolling and floor(vsy*(scrollingPosY-posY)) or 0
 	if WG['topbar'] and WG['topbar'].showingQuit() then
 		scrolling = false
-	elseif isOnRect(x, y, activationArea[1], activationArea[2], activationArea[3], activationArea[4]) then
+	elseif math_isInRect(x, y, activationArea[1], activationArea[2], activationArea[3], activationArea[4]) then
 		local alt, ctrl, meta, shift = Spring.GetModKeyState()
 		if ctrl and shift then
-			if isOnRect(x, y, consoleActivationArea[1], consoleActivationArea[2], consoleActivationArea[3], consoleActivationArea[4]) then
+			if math_isInRect(x, y, consoleActivationArea[1], consoleActivationArea[2], consoleActivationArea[3], consoleActivationArea[4]) then
 				scrolling = 'console'
 			else
 				scrolling = 'chat'
 			end
 		end
-	elseif scrolling and isOnRect(x, y, activationArea[1], activationArea[2]+heightDiff, activationArea[3], activationArea[2]) then
+	elseif scrolling and math_isInRect(x, y, activationArea[1], activationArea[2]+heightDiff, activationArea[3], activationArea[2]) then
 		-- do nothing
 	else
 		scrolling = false
@@ -413,7 +410,7 @@ function widget:DrawScreen()
 	if hovering and WG['guishader'] then
 		WG['guishader'].RemoveRect('chat')
 	end
-	if isOnRect(x, y, activationArea[1], activationArea[2]+heightDiff, activationArea[3], activationArea[4]) or  (scrolling and isOnRect(x, y, activationArea[1], activationArea[2]+heightDiff, activationArea[3], activationArea[2]))  then
+	if math_isInRect(x, y, activationArea[1], activationArea[2]+heightDiff, activationArea[3], activationArea[4]) or  (scrolling and math_isInRect(x, y, activationArea[1], activationArea[2]+heightDiff, activationArea[3], activationArea[2]))  then
 		hovering = true
 		if scrolling then
 			UiElement(activationArea[1], activationArea[2]+heightDiff, activationArea[3], activationArea[4])
@@ -520,7 +517,7 @@ function widget:DrawScreen()
 					end
 					glTranslate(width, 0, 0)
 				end
-				--if scrolling == 'chat' and isOnRect(x, y, activationArea[1]+backgroundPadding, activationArea[4], activationArea[3]-backgroundPadding, activationArea[4]+(lineHeight*(maxLinesScroll-displayedLines))) then
+				--if scrolling == 'chat' and math_isInRect(x, y, activationArea[1]+backgroundPadding, activationArea[4], activationArea[3]-backgroundPadding, activationArea[4]+(lineHeight*(maxLinesScroll-displayedLines))) then
 				--	RectRound(0, 0, (activationArea[3]-activationArea[1])-backgroundPadding-backgroundPadding-maxTimeWidth, lineHeight, elementCorner*0.66, 0,0,0,0, {1,1,1,0.15}, {0.8,0.8,0.8,0.15})
 				--end
 				glCallList(scrolling == 'console' and consoleLines[i].lineDisplayList or chatLines[i].lineDisplayList)
@@ -596,7 +593,7 @@ end
 function widget:WorldTooltip(ttType,data1,data2,data3)
 	local x,y,_ = Spring.GetMouseState()
 	local heightDiff = scrolling and floor(vsy*(scrollingPosY-posY)) or 0
-	if #chatLines > 0 and isOnRect(x, y, activationArea[1],activationArea[2]+heightDiff,activationArea[3],activationArea[4]) then
+	if #chatLines > 0 and math_isInRect(x, y, activationArea[1],activationArea[2]+heightDiff,activationArea[3],activationArea[4]) then
 		return Spring.I18N('ui.chat.scroll', { textColor = "\255\255\255\255", highlightColor = "\255\255\255\001" })
 	end
 end
