@@ -2341,30 +2341,30 @@ function init()
 			  saveOptionValue('Light Effects', 'lighteffects', 'setThrusters', { 'enableThrusters' }, value)
 		  end,
 		},
-		{ id = "airjets_limitfps", group = "gfx", name = widgetOptionColor .. "   "..texts.option.airjets_limitfps, type = "slider", min = 5, max = 30, step = 1, value = 22, description = texts.option.airjets_limitfps_descr,
-		  onload = function(i)
-			  loadWidgetData("Airjets", "airjets_limitfps", { 'limitAtAvgFps' })
-		  end,
-		  onchange = function(i, value)
-			  if getOptionByID('airjets_disablefps') and value - 5 <= options[getOptionByID('airjets_disablefps')].value then
-				  options[getOptionByID('airjets_disablefps')].value = value - 6
-				  applyOptionValue(getOptionByID('airjets_disablefps'))
-			  end
-			  saveOptionValue('Airjets', 'airjets', 'setLimitFps', { 'limitAtAvgFps' }, value)
-		  end,
-		},
-		{ id = "airjets_disablefps", group = "gfx", name = widgetOptionColor .. "   "..texts.option.airjets_disablefps, type = "slider", min = 0, max = 15, step = 1, value = 11, description = texts.option.airjets_disablefps_descr,
-		  onload = function(i)
-			  loadWidgetData("Airjets", "airjets_disablefps", { 'disableAtAvgFps' })
-		  end,
-		  onchange = function(i, value)
-			  if getOptionByID('airjets_limitfps') and value + 5 >= options[getOptionByID('airjets_limitfps')].value then
-				  options[getOptionByID('airjets_limitfps')].value = value + 6
-				  applyOptionValue(getOptionByID('airjets_limitfps'))
-			  end
-			  saveOptionValue('Airjets', 'airjets', 'setDisableFps', { 'disableAtAvgFps' }, value)
-		  end,
-		},
+		--{ id = "airjets_limitfps", group = "gfx", name = widgetOptionColor .. "   "..texts.option.airjets_limitfps, type = "slider", min = 5, max = 30, step = 1, value = 22, description = texts.option.airjets_limitfps_descr,
+		--  onload = function(i)
+		--	  loadWidgetData("Airjets", "airjets_limitfps", { 'limitAtAvgFps' })
+		--  end,
+		--  onchange = function(i, value)
+		--	  if getOptionByID('airjets_disablefps') and value - 5 <= options[getOptionByID('airjets_disablefps')].value then
+		--		  options[getOptionByID('airjets_disablefps')].value = value - 6
+		--		  applyOptionValue(getOptionByID('airjets_disablefps'))
+		--	  end
+		--	  saveOptionValue('Airjets', 'airjets', 'setLimitFps', { 'limitAtAvgFps' }, value)
+		--  end,
+		--},
+		--{ id = "airjets_disablefps", group = "gfx", name = widgetOptionColor .. "   "..texts.option.airjets_disablefps, type = "slider", min = 0, max = 15, step = 1, value = 11, description = texts.option.airjets_disablefps_descr,
+		--  onload = function(i)
+		--	  loadWidgetData("Airjets", "airjets_disablefps", { 'disableAtAvgFps' })
+		--  end,
+		--  onchange = function(i, value)
+		--	  if getOptionByID('airjets_limitfps') and value + 5 >= options[getOptionByID('airjets_limitfps')].value then
+		--		  options[getOptionByID('airjets_limitfps')].value = value + 6
+		--		  applyOptionValue(getOptionByID('airjets_limitfps'))
+		--	  end
+		--	  saveOptionValue('Airjets', 'airjets', 'setDisableFps', { 'disableAtAvgFps' }, value)
+		--  end,
+		--},
 
 		--{id="treeradius", group="gfx", name="Tree render distance", type="slider", min=0, max=2000, step=50, restart=true, value=tonumber(Spring.GetConfigInt("TreeRadius",1) or 1000), description='Applies to SpringRTS engine default trees\n\nChanges will be applied next game',
 		--		 onload = function(i) end,
