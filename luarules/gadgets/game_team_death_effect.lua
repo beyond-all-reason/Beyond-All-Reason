@@ -20,7 +20,7 @@ if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
-local wavePeriod = 330
+local wavePeriod = 400
 
 --local spSpawnCEG = Spring.SpawnCEG
 local spDestroyUnit = Spring.DestroyUnit
@@ -33,16 +33,17 @@ local function getSqrDistance(x1,z1,x2,z2)
 	return (dx*dx) + (dz*dz)
 end
 
-local function wipeoutTeam(teamID, originX, originZ, attackerUnitID)
+local function wipeoutTeam(teamID, originX, originZ, attackerUnitID, periodMult)
 	originX = originX or 0
 	originZ = originZ or 0
+	periodMult = periodMult or 1
 	local gf = Spring.GetGameFrame()
 	local maxDeathFrame = 0
 	local teamUnits = Spring.GetTeamUnits(teamID)
 	for i=1, #teamUnits do
 		local unitID = teamUnits[i]
 		local x,y,z = spGetUnitPosition(unitID)
-		local deathFrame = 7 + math.floor(math.min(((getSqrDistance(x, z, originX, originZ) / DISTANCE_LIMIT) * wavePeriod/2), wavePeriod) + math.random(0,wavePeriod/2.6))
+		local deathFrame = 6 + math.floor((math.min(((getSqrDistance(x, z, originX, originZ) / DISTANCE_LIMIT) * wavePeriod/2), wavePeriod) + math.random(0,wavePeriod/2.5)) * periodMult)
 		maxDeathFrame = math.max(maxDeathFrame, deathFrame)
 		if destroyUnitQueue[unitID] == nil then
 			destroyUnitQueue[unitID] = {
