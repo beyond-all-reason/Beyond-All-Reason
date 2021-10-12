@@ -183,7 +183,78 @@ local function spawnRuin(ruin, posx, posy, posz, blueprintTierLevel)
 	mirroredDirection = nil
 end
 
+local landMexesList = {
+	"armmex",
+	"cormex",
+	"armamex",
+	"corexp",
+	"armmoho",
+	"cormoho",
+	"cormexp",
+}
+local seaMexesList = {
+	"armmex",
+	"cormex",
+	"armuwmex",
+	"coruwmex",
+	"armuwmme",
+	"coruwmme",
+}
+
+local function SpawnMexes(mexSpots)
+	for i = 1,#mexSpots do
+		local GaiaTeamID
+		local SpawnAsNeutral
+		if math.random(0,3) == 0 and scavengersAIEnabled then
+			GaiaTeamID = scavengerAITeamID
+			SpawnAsNeutral = false
+		else
+			GaiaTeamID = Spring.GetGaiaTeamID()
+			SpawnAsNeutral = true
+		end	
+		
+		local spot = mexSpots[i]
+		local posx = spot.x
+		local posz = spot.z
+		local posy = Spring.GetGroundHeight(posx, posz)
+		local mexesList
+		if posy > 0 then
+			mexesList = landMexesList
+		else
+			mexesList = seaMexesList
+		end
+		
+		radius = 64
+		canBuildHere = posLosCheck(posx, posy, posz, radius)
+					and posMapsizeCheck(posx, posy, posz, radius)
+					and posOccupied(posx, posy, posz, radius)
+					and posCheck(posx, posy, posz, radius)
+
+		if posy > 0 then
+			canBuildHere = canBuildHere and posLandCheck(posx, posy, posz, radius)
+		elseif posy <= 0 then
+			canBuildHere = canBuildHere and posSeaCheck(posx, posy, posz, radius)
+		end
+
+		if canBuildHere then
+			local mex = mexesList[math.random(1,#mexesList)]
+			local unit = Spring.CreateUnit(UnitDefNames[mex].id, posx, posy, posz, math.random(0,3), GaiaTeamID)
+			Spring.SpawnCEG("scav-spawnexplo", posx, posy, posz, 0,0,0)
+			if SpawnAsNeutral then
+				Spring.SetUnitNeutral(unit, true)
+			end
+		end
+	end
+end
+
 function gadget:GameFrame(n)
+	if n == 60 then
+		local mexSpots = GG.metalSpots
+		if mexSpots and #mexSpots > 5 then
+			SpawnMexes(mexSpots)
+		end
+	end
+	
 	if n < 5 or n%5 ~= 0 or n > spawnCutoffFrame+5 then
 		return
 	end
