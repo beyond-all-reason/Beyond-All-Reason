@@ -22,6 +22,7 @@ local separator = "::"
 
 local font, font2, loadedFontSize, mainDList, titleRect, chobbyInterface, backgroundGuishader, show
 local maxLines = 20
+local math_isInRect = math.isInRect
 
 local chickensEnabled = Spring.Utilities.Gametype.IsChickens()
 
@@ -287,7 +288,7 @@ function widget:DrawScreen()
 		showOnceMore = false
 
 		local x, y, pressed = Spring.GetMouseState()
-		if IsOnRect(x, y, screenX, screenY - screenHeight, screenX + screenWidth, screenY) or IsOnRect(x, y, titleRect[1], titleRect[2], titleRect[3], titleRect[4]) then
+		if math_isInRect(x, y, screenX, screenY - screenHeight, screenX + screenWidth, screenY) or math_isInRect(x, y, titleRect[1], titleRect[2], titleRect[3], titleRect[4]) then
 			Spring.SetMouseCursor('cursornormal')
 		end
 
@@ -303,12 +304,6 @@ function widget:KeyPress(key)
 		-- ESC
 		show = false
 	end
-end
-
-function IsOnRect(x, y, BLcornerX, BLcornerY, TRcornerX, TRcornerY)
-
-	-- check if the mouse is in a rectangle
-	return x >= BLcornerX and x <= TRcornerX and y >= BLcornerY and y <= TRcornerY
 end
 
 function widget:MouseWheel(up, value)
@@ -350,24 +345,13 @@ function mouseEvent(x, y, button, release)
 
 	if show then
 		-- on window
-		if IsOnRect(x, y, screenX, screenY - screenHeight, screenX + screenWidth, screenY) or IsOnRect(x, y, titleRect[1], titleRect[2], titleRect[3], titleRect[4]) then
+		if math_isInRect(x, y, screenX, screenY - screenHeight, screenX + screenWidth, screenY) or math_isInRect(x, y, titleRect[1], titleRect[2], titleRect[3], titleRect[4]) then
 			return true
 		else
 			show = false
 		end
 	end
 end
-
-function lines(str)
-	local t = {}
-	local function helper(line)
-		t[#t + 1] = line
-		return ""
-	end
-	helper((str:gsub("(.-)\r?\n", helper)))
-	return t
-end
-
 
 function toggle()
 	local newShow = not show
@@ -445,7 +429,7 @@ function widget:Initialize()
 	--content = string.sub(content, 4)
 
 	-- store changelog into array
-	fileLines = lines(content)
+	fileLines = string.lines(content)
 
 	for i, line in ipairs(fileLines) do
 		totalFileLines = i

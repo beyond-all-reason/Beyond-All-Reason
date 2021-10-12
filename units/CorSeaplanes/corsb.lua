@@ -118,7 +118,7 @@ return {
 				reloadtime = 8,
 				rgbcolor = "0.8 0.8 0.25",
 				size = 8,
-				soundhitdry = "xplomed2",
+				soundhitdry = "bombsmed2",
 				soundhitwet = "splsmed",
 				soundstart = "bombrel",
 				sprayangle = 6000,

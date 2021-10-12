@@ -27,6 +27,7 @@ local initialWindowPosX = windowPosX
 local initialWindowPosY = windowPosY
 local dlistPosX = windowPosX
 local dlistPosY = windowPosY
+local math_isInRect = math.isInRect
 
 local font, applyButtonPos, windowList, changeClock, escape, applyChanges, draggingStartX, draggingStartY, chobbyInterface, dragging
 
@@ -107,12 +108,8 @@ function widget:Update(dt)
 	end
 end
 
-function IsOnRect(x, y, BLcornerX, BLcornerY,TRcornerX,TRcornerY)
-	return x >= BLcornerX and x <= TRcornerX and y >= BLcornerY and y <= TRcornerY
-end
-
 function widget:MousePress(x, y, button)
-	if applyButtonPos and IsOnRect(x, y, applyButtonPos[1],applyButtonPos[2],applyButtonPos[3],applyButtonPos[4]) then
+	if applyButtonPos and math_isInRect(x, y, applyButtonPos[1],applyButtonPos[2],applyButtonPos[3],applyButtonPos[4]) then
 		applyChanges = true
 		return true
 	end
@@ -184,7 +181,7 @@ function widget:DrawScreen()
 	gl.CallList(windowList)
 
 	local x,y,b = Spring.GetMouseState()
-	if applyButtonPos and IsOnRect(x, y, applyButtonPos[1],applyButtonPos[2],applyButtonPos[3],applyButtonPos[4]) then
+	if applyButtonPos and math_isInRect(x, y, applyButtonPos[1],applyButtonPos[2],applyButtonPos[3],applyButtonPos[4]) then
 		gl.Color(0.25,1,0.25,0.15)
 		RectRound(applyButtonPos[1],applyButtonPos[2],applyButtonPos[3],applyButtonPos[4],applyButtonPos[5])
 	end

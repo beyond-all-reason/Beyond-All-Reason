@@ -43,7 +43,7 @@ return {
 		terraformspeed = 500,
 		usebuildinggrounddecal = true,
 		workertime = 100,
-		yardmap = "yyyyyyyyyoooyyooooooooocccoooocccoooocccoooocccoo",
+		yardmap = "ooooooo ooooooo ooooooo oocccoo oocccoo oocccoo oocccoo",
 		buildoptions = {
 			[1] = "corcv",
 			[2] = "cormuskrat",

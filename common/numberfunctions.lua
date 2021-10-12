@@ -1,6 +1,10 @@
 -------------------------------------------------------------------------------------
 -------------------------------------------------------------------------------------
 
+function math.isInRect(x, y, BLcornerX, BLcornerY, TRcornerX, TRcornerY)
+	return x >= BLcornerX and x <= TRcornerX and y >= BLcornerY and y <= TRcornerY
+end
+
 function math.round(num, idp)
 	return ("%." .. (((num == 0) and 0) or idp or 0) .. "f"):format(num)
 end

@@ -59,6 +59,7 @@ local glowTexture = ":l:LuaUI/Images/glow.dds"
 
 local math_floor = math.floor
 local math_min = math.min
+local math_isInRect = math.isInRect
 
 local widgetScale = (0.80 + (vsx * vsy / 6000000))
 local xPos = math_floor(vsx * relXpos)
@@ -195,13 +196,18 @@ local serverFrame
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-
-function IsOnRect(x, y, BLcornerX, BLcornerY, TRcornerX, TRcornerY)
-	return x >= BLcornerX and x <= TRcornerX and y >= BLcornerY and y <= TRcornerY
+local function RectQuad(px, py, sx, sy, offset)
+	gl.TexCoord(offset, 1 - offset)
+	gl.Vertex(px, py, 0)
+	gl.TexCoord(1 - offset, 1 - offset)
+	gl.Vertex(sx, py, 0)
+	gl.TexCoord(1 - offset, offset)
+	gl.Vertex(sx, sy, 0)
+	gl.TexCoord(offset, offset)
+	gl.Vertex(px, sy, 0)
 end
-
-function isInBox(mx, my, box)
-	return mx > box[1] and my > box[2] and mx < box[3] and my < box[4]
+local function DrawRect(px, py, sx, sy, zoom)
+	gl.BeginEnd(GL.QUADS, RectQuad, px, py, sx, sy, zoom)
 end
 
 function widget:ViewResize()
@@ -238,27 +244,13 @@ function widget:ViewResize()
 	init()
 end
 
-local function RectQuad(px, py, sx, sy, offset)
-	gl.TexCoord(offset, 1 - offset)
-	gl.Vertex(px, py, 0)
-	gl.TexCoord(1 - offset, 1 - offset)
-	gl.Vertex(sx, py, 0)
-	gl.TexCoord(1 - offset, offset)
-	gl.Vertex(sx, sy, 0)
-	gl.TexCoord(offset, offset)
-	gl.Vertex(px, sy, 0)
-end
-function DrawRect(px, py, sx, sy, zoom)
-	gl.BeginEnd(GL.QUADS, RectQuad, px, py, sx, sy, zoom)
-end
-
 local function short(n, f)
-	if (f == nil) then
+	if f == nil then
 		f = 0
 	end
-	if (n > 9999999) then
+	if n > 9999999 then
 		return sformat("%." .. f .. "fm", n / 1000000)
-	elseif (n > 9999) then
+	elseif n > 9999 then
 		return sformat("%." .. f .. "fk", n / 1000)
 	else
 		return sformat("%." .. f .. "f", n)
@@ -365,9 +357,7 @@ end
 
 local function updateButtons()
 	local area = buttonsArea
-
 	local totalWidth = area[3] - area[1]
-
 	local text = '    '
 
 	if isSinglePlayer and WG['savegame'] ~= nil then
@@ -1292,7 +1282,7 @@ function widget:Update(dt)
 		sec = 0
 		r = { metal = { spGetTeamResources(myTeamID, 'metal') }, energy = { spGetTeamResources(myTeamID, 'energy') } }
 		if not spec and not showQuitscreen then
-			if isInBox(mx, my, resbarArea['energy']) then
+			if math_isInRect(mx, my, resbarArea['energy'][1], resbarArea['energy'][2], resbarArea['energy'][3], resbarArea['energy'][4]) then
 				if resbarHover == nil then
 					resbarHover = 'energy'
 					updateResbar('energy')
@@ -1301,7 +1291,7 @@ function widget:Update(dt)
 				resbarHover = nil
 				updateResbar('energy')
 			end
-			if isInBox(mx, my, resbarArea['metal']) then
+			if math_isInRect(mx, my, resbarArea['metal'][1], resbarArea['metal'][2], resbarArea['metal'][3], resbarArea['metal'][4]) then
 				if resbarHover == nil then
 					resbarHover = 'metal'
 					updateResbar('metal')
@@ -1397,23 +1387,23 @@ function widget:RecvLuaMsg(msg, playerID)
 end
 
 local function hoveringElement(x, y)
-	if IsOnRect(x, y, topbarArea[1], topbarArea[2], topbarArea[3], topbarArea[4]) then
-		if resbarArea.metal[1] and IsOnRect(x, y, resbarArea.metal[1], resbarArea.metal[2], resbarArea.metal[3], resbarArea.metal[4]) then
+	if math_isInRect(x, y, topbarArea[1], topbarArea[2], topbarArea[3], topbarArea[4]) then
+		if resbarArea.metal[1] and math_isInRect(x, y, resbarArea.metal[1], resbarArea.metal[2], resbarArea.metal[3], resbarArea.metal[4]) then
 			return true
 		end
-		if resbarArea.energy[1] and IsOnRect(x, y, resbarArea.energy[1], resbarArea.energy[2], resbarArea.energy[3], resbarArea.energy[4]) then
+		if resbarArea.energy[1] and math_isInRect(x, y, resbarArea.energy[1], resbarArea.energy[2], resbarArea.energy[3], resbarArea.energy[4]) then
 			return true
 		end
-		if windArea[1] and IsOnRect(x, y, windArea[1], windArea[2], windArea[3], windArea[4]) then
+		if windArea[1] and math_isInRect(x, y, windArea[1], windArea[2], windArea[3], windArea[4]) then
 			return true
 		end
-		if displayComCounter and comsArea[1] and IsOnRect(x, y, comsArea[1], comsArea[2], comsArea[3], comsArea[4]) then
+		if displayComCounter and comsArea[1] and math_isInRect(x, y, comsArea[1], comsArea[2], comsArea[3], comsArea[4]) then
 			return true
 		end
-		if showRejoinUI and rejoinArea[1] and IsOnRect(x, y, rejoinArea[1], rejoinArea[2], rejoinArea[3], rejoinArea[4]) then
+		if showRejoinUI and rejoinArea[1] and math_isInRect(x, y, rejoinArea[1], rejoinArea[2], rejoinArea[3], rejoinArea[4]) then
 			return true
 		end
-		if buttonsArea[1] and IsOnRect(x, y, buttonsArea[1], buttonsArea[2], buttonsArea[3], buttonsArea[4]) then
+		if buttonsArea[1] and math_isInRect(x, y, buttonsArea[1], buttonsArea[2], buttonsArea[3], buttonsArea[4]) then
 			return true
 		end
 		return false
@@ -1564,9 +1554,9 @@ function widget:DrawScreen()
 	if dlistButtons1 then
 		glCallList(dlistButtons1)
 		-- hovered?
-		if not showQuitscreen and buttonsArea['buttons'] ~= nil and IsOnRect(x, y, buttonsArea[1], buttonsArea[2], buttonsArea[3], buttonsArea[4]) then
+		if not showQuitscreen and buttonsArea['buttons'] ~= nil and math_isInRect(x, y, buttonsArea[1], buttonsArea[2], buttonsArea[3], buttonsArea[4]) then
 			for button, pos in pairs(buttonsArea['buttons']) do
-				if IsOnRect(x, y, pos[1], pos[2], pos[3], pos[4]) then
+				if math_isInRect(x, y, pos[1], pos[2], pos[3], pos[4]) then
 					glBlending(GL_SRC_ALPHA, GL_ONE)
 					RectRound(buttonsArea['buttons'][button][1], buttonsArea['buttons'][button][2], buttonsArea['buttons'][button][3], buttonsArea['buttons'][button][4], 3.5 * widgetScale, 0, 0, 0, button == firstButton and 1 or 0, { 1, 1, 1, b and 0.13 or 0.03 }, { 0.44, 0.44, 0.44, b and 0.4 or 0.2 })
 					local mult = 1
@@ -1677,7 +1667,7 @@ function widget:DrawScreen()
 
 				-- stay button
 				if gameIsOver or not chobbyLoaded then
-					if IsOnRect(x, y, quitscreenStayArea[1], quitscreenStayArea[2], quitscreenStayArea[3], quitscreenStayArea[4]) then
+					if math_isInRect(x, y, quitscreenStayArea[1], quitscreenStayArea[2], quitscreenStayArea[3], quitscreenStayArea[4]) then
 						color1 = { 0, 0.4, 0, 0.4 + (0.5 * fadeProgress) }
 						color2 = { 0.05, 0.6, 0.05, 0.4 + (0.5 * fadeProgress) }
 					else
@@ -1690,7 +1680,7 @@ function widget:DrawScreen()
 
 				-- resign button
 				if not spec then
-					if IsOnRect(x, y, quitscreenResignArea[1], quitscreenResignArea[2], quitscreenResignArea[3], quitscreenResignArea[4]) then
+					if math_isInRect(x, y, quitscreenResignArea[1], quitscreenResignArea[2], quitscreenResignArea[3], quitscreenResignArea[4]) then
 						color1 = { 0.28, 0.28, 0.28, 0.4 + (0.5 * fadeProgress) }
 						color2 = { 0.45, 0.45, 0.45, 0.4 + (0.5 * fadeProgress) }
 					else
@@ -1703,7 +1693,7 @@ function widget:DrawScreen()
 
 				-- quit button
 				if gameIsOver or not chobbyLoaded then
-					if IsOnRect(x, y, quitscreenQuitArea[1], quitscreenQuitArea[2], quitscreenQuitArea[3], quitscreenQuitArea[4]) then
+					if math_isInRect(x, y, quitscreenQuitArea[1], quitscreenQuitArea[2], quitscreenQuitArea[3], quitscreenQuitArea[4]) then
 						color1 = { 0.4, 0, 0, 0.4 + (0.5 * fadeProgress) }
 						color2 = { 0.6, 0.05, 0.05, 0.4 + (0.5 * fadeProgress) }
 					else
@@ -1938,8 +1928,8 @@ function widget:MousePress(x, y, button)
 	if button == 1 then
 		if showQuitscreen ~= nil and quitscreenArea ~= nil then
 
-			if IsOnRect(x, y, quitscreenArea[1], quitscreenArea[2], quitscreenArea[3], quitscreenArea[4]) then
-				if (gameIsOver or not chobbyLoaded or not spec) and IsOnRect(x, y, quitscreenStayArea[1], quitscreenStayArea[2], quitscreenStayArea[3], quitscreenStayArea[4]) then
+			if math_isInRect(x, y, quitscreenArea[1], quitscreenArea[2], quitscreenArea[3], quitscreenArea[4]) then
+				if (gameIsOver or not chobbyLoaded or not spec) and math_isInRect(x, y, quitscreenStayArea[1], quitscreenStayArea[2], quitscreenStayArea[3], quitscreenStayArea[4]) then
 					if playSounds then
 						Spring.PlaySoundFile(leftclick, 0.75, 'ui')
 					end
@@ -1948,7 +1938,7 @@ function widget:MousePress(x, y, button)
 						WG['guishader'].setScreenBlur(false)
 					end
 				end
-				if (gameIsOver or not chobbyLoaded) and IsOnRect(x, y, quitscreenQuitArea[1], quitscreenQuitArea[2], quitscreenQuitArea[3], quitscreenQuitArea[4]) then
+				if (gameIsOver or not chobbyLoaded) and math_isInRect(x, y, quitscreenQuitArea[1], quitscreenQuitArea[2], quitscreenQuitArea[3], quitscreenQuitArea[4]) then
 					if playSounds then
 						Spring.PlaySoundFile(leftclick, 0.75, 'ui')
 					end
@@ -1960,7 +1950,7 @@ function widget:MousePress(x, y, button)
 					showQuitscreen = nil
 					hideQuitWindow = os.clock()
 				end
-				if not spec and IsOnRect(x, y, quitscreenResignArea[1], quitscreenResignArea[2], quitscreenResignArea[3], quitscreenResignArea[4]) then
+				if not spec and math_isInRect(x, y, quitscreenResignArea[1], quitscreenResignArea[2], quitscreenResignArea[3], quitscreenResignArea[4]) then
 					if playSounds then
 						Spring.PlaySoundFile(leftclick, 0.75, 'ui')
 					end
@@ -1980,20 +1970,20 @@ function widget:MousePress(x, y, button)
 		end
 
 		if not spec then
-			if IsOnRect(x, y, shareIndicatorArea['metal'][1], shareIndicatorArea['metal'][2], shareIndicatorArea['metal'][3], shareIndicatorArea['metal'][4]) then
+			if math_isInRect(x, y, shareIndicatorArea['metal'][1], shareIndicatorArea['metal'][2], shareIndicatorArea['metal'][3], shareIndicatorArea['metal'][4]) then
 				draggingShareIndicator = 'metal'
 			end
-			if IsOnRect(x, y, resbarDrawinfo['metal'].barArea[1], shareIndicatorArea['metal'][2], resbarDrawinfo['metal'].barArea[3], shareIndicatorArea['metal'][4]) then
+			if math_isInRect(x, y, resbarDrawinfo['metal'].barArea[1], shareIndicatorArea['metal'][2], resbarDrawinfo['metal'].barArea[3], shareIndicatorArea['metal'][4]) then
 				draggingShareIndicator = 'metal'
 				adjustSliders(x, y)
 			end
-			if IsOnRect(x, y, shareIndicatorArea['energy'][1], shareIndicatorArea['energy'][2], shareIndicatorArea['energy'][3], shareIndicatorArea['energy'][4]) then
+			if math_isInRect(x, y, shareIndicatorArea['energy'][1], shareIndicatorArea['energy'][2], shareIndicatorArea['energy'][3], shareIndicatorArea['energy'][4]) then
 				draggingShareIndicator = 'energy'
 			end
-			if draggingShareIndicator == nil and IsOnRect(x, y, conversionIndicatorArea[1], conversionIndicatorArea[2], conversionIndicatorArea[3], conversionIndicatorArea[4]) then
+			if draggingShareIndicator == nil and math_isInRect(x, y, conversionIndicatorArea[1], conversionIndicatorArea[2], conversionIndicatorArea[3], conversionIndicatorArea[4]) then
 				draggingConversionIndicator = true
 			end
-			if draggingConversionIndicator == nil and IsOnRect(x, y, resbarDrawinfo['energy'].barArea[1], shareIndicatorArea['energy'][2], resbarDrawinfo['energy'].barArea[3], shareIndicatorArea['energy'][4]) then
+			if draggingConversionIndicator == nil and math_isInRect(x, y, resbarDrawinfo['energy'].barArea[1], shareIndicatorArea['energy'][2], resbarDrawinfo['energy'].barArea[3], shareIndicatorArea['energy'][4]) then
 				draggingShareIndicator = 'energy'
 				adjustSliders(x, y)
 			end
@@ -2007,7 +1997,7 @@ function widget:MousePress(x, y, button)
 
 		if buttonsArea['buttons'] ~= nil then
 			for button, pos in pairs(buttonsArea['buttons']) do
-				if IsOnRect(x, y, pos[1], pos[2], pos[3], pos[4]) then
+				if math_isInRect(x, y, pos[1], pos[2], pos[3], pos[4]) then
 					applyButtonAction(button)
 					return true
 				end

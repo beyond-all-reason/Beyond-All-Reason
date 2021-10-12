@@ -13,8 +13,8 @@ end
 local restorePreviousFaction = false
 
 local factions = {
-	{ UnitDefNames.corcom.id, Spring.I18N('units.factions.cor'), 'unitpics/'..UnitDefNames.corcom.buildpicname },
-	{ UnitDefNames.armcom.id, Spring.I18N('units.factions.arm'), 'unitpics/'..UnitDefNames.armcom.buildpicname },
+	{ UnitDefNames.corcom.id, Spring.I18N('units.factions.cor') },
+	{ UnitDefNames.armcom.id, Spring.I18N('units.factions.arm') },
 }
 local playSounds = true
 local posY = 0.75
@@ -48,6 +48,7 @@ local backgroundRect = {}
 local lastUpdate = os.clock() - 1
 
 local os_clock = os.clock
+local math_isInRect = math.isInRect
 
 local glColor = gl.Color
 local glBlending = gl.Blending
@@ -55,10 +56,49 @@ local GL_SRC_ALPHA = GL.SRC_ALPHA
 local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 local GL_ONE = GL.ONE
 
-
 local font, font2, bgpadding, chobbyInterface, dlistGuishader, dlistFactionpicker, bpWidth, bpHeight, rectMargin, fontSize
 
 local RectRound, UiElement, UiUnit
+
+local function drawFactionpicker()
+	UiElement(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], 1, 1, ((posY-height > 0 or posX <= 0) and 1 or 0), 0)
+
+	local contentPadding = math.floor((height * vsy * 0.09) * (1 - ((1 - ui_scale) * 0.5)))
+	font2:Begin()
+	font2:Print("Pick your faction", backgroundRect[1] + contentPadding, backgroundRect[4] - contentPadding - (fontSize * 0.7), fontSize, "o")
+
+	local contentWidth = math.floor(backgroundRect[3] - backgroundRect[1] - contentPadding)
+	local contentHeight = math.floor(backgroundRect[4] - backgroundRect[2] - (contentPadding*1.33))
+	local maxCellHeight = math.floor((contentHeight - (fontSize * 1.1)) + 0.5)
+	local maxCellWidth = math.floor((contentWidth / #factions) + 0.5)
+	local cellSize = math.min(maxCellHeight, maxCellWidth)
+	local padding = bgpadding
+
+	for i, faction in pairs(factions) do
+		factionRect[i] = {
+			math.floor(backgroundRect[3] - padding - (cellSize * i)),
+			math.floor(backgroundRect[2]),
+			math.floor(backgroundRect[3] - padding - (cellSize * (i - 1))),
+			math.floor(backgroundRect[2] + cellSize)
+		}
+		local disabled = Spring.GetTeamRulesParam(myTeamID, 'startUnit') ~= factions[i][1]
+		if disabled then
+			glColor(0.55,0.55,0.55,1)
+		else
+			glColor(1,1,1,1)
+		end
+		UiUnit(factionRect[i][1]+bgpadding, factionRect[i][2] + bgpadding, factionRect[i][3], factionRect[i][4],
+			nil,
+			1,1,1,1,
+			0,
+			nil, disabled and 0.033 or nil,
+			'#'..factions[i][1]
+		)
+		-- faction name
+		font2:Print((disabled and "\255\170\170\170" or "\255\255\255\255")..factions[i][2], factionRect[i][1] + ((factionRect[i][3] - factionRect[i][1]) * 0.5), factionRect[i][2] + ((factionRect[i][4] - factionRect[i][2]) * 0.22) - (fontSize * 0.5), fontSize * 0.96, "co")
+	end
+	font2:End()
+end
 
 local function checkGuishader(force)
 	if WG['guishader'] then
@@ -161,11 +201,6 @@ function widget:Initialize()
 	end
 
 	widget:ViewResize()
-
-	-- cache
-	dlistFactionpicker = gl.CreateList(function()
-		drawFactionpicker()
-	end)
 end
 
 function widget:Shutdown()
@@ -212,54 +247,6 @@ function widget:Update(dt)
 	end
 end
 
-function IsOnRect(x, y, BLcornerX, BLcornerY, TRcornerX, TRcornerY)
-	return x >= BLcornerX and x <= TRcornerX and y >= BLcornerY and y <= TRcornerY
-end
-
-function drawFactionpicker()
-	UiElement(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], 1, 1, ((posY-height > 0 or posX <= 0) and 1 or 0), 0)
-
-	local contentPadding = math.floor((height * vsy * 0.09) * (1 - ((1 - ui_scale) * 0.5)))
-	font2:Begin()
-	font2:Print("Pick your faction", backgroundRect[1] + contentPadding, backgroundRect[4] - contentPadding - (fontSize * 0.7), fontSize, "o")
-
-	local contentWidth = math.floor(backgroundRect[3] - backgroundRect[1] - contentPadding)
-	local contentHeight = math.floor(backgroundRect[4] - backgroundRect[2] - (contentPadding*1.33))
-	local maxCellHeight = math.floor((contentHeight - (fontSize * 1.1)) + 0.5)
-	local maxCellWidth = math.floor((contentWidth / #factions) + 0.5)
-	local cellSize = math.min(maxCellHeight, maxCellWidth)
-	local padding = bgpadding
-
-	for i, faction in pairs(factions) do
-		factionRect[i] = {
-			math.floor(backgroundRect[3] - padding - (cellSize * i)),
-			math.floor(backgroundRect[2]),
-			math.floor(backgroundRect[3] - padding - (cellSize * (i - 1))),
-			math.floor(backgroundRect[2] + cellSize)
-		}
-		local disabled = Spring.GetTeamRulesParam(myTeamID, 'startUnit') ~= factions[i][1]
-		if disabled then
-			glColor(0.55,0.55,0.55,1)
-		else
-			glColor(1,1,1,1)
-		end
-		UiUnit(factionRect[i][1]+bgpadding, factionRect[i][2] + bgpadding, factionRect[i][3], factionRect[i][4],
-			nil,
-			1,1,1,1,
-			0,
-			nil, disabled and 0 or nil,
-			factions[i][3]
-		)
-		-- faction name
-		if not disabled then
-			font2:Print(factions[i][2], factionRect[i][1] + ((factionRect[i][3] - factionRect[i][1]) * 0.5), factionRect[i][2] + ((factionRect[i][4] - factionRect[i][2]) * 0.22) - (fontSize * 0.5), fontSize * 0.96, "co")
-		else
-			font2:Print("\255\170\170\170"..factions[i][2], factionRect[i][1] + ((factionRect[i][3] - factionRect[i][1]) * 0.5), factionRect[i][2] + ((factionRect[i][4] - factionRect[i][2]) * 0.22) - (fontSize * 0.5), fontSize * 0.96, "co")
-		end
-	end
-	font2:End()
-end
-
 function widget:RecvLuaMsg(msg, playerID)
 	if msg:sub(1, 18) == 'LobbyOverlayActive' then
 		chobbyInterface = (msg:sub(1, 19) == 'LobbyOverlayActive1')
@@ -274,7 +261,7 @@ function widget:DrawScreen()
 
 	local x, y, b = Spring.GetMouseState()
 	if not WG['topbar'] or not WG['topbar'].showingQuit() then
-		if IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
+		if math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
 			Spring.SetMouseCursor('cursornormal')
 		end
 	end
@@ -302,9 +289,9 @@ function widget:DrawScreen()
 	gl.CallList(dlistFactionpicker)
 
 	-- highlight
-	if IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
+	if math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
 		for i, faction in pairs(factions) do
-			if IsOnRect(x, y, factionRect[i][1], factionRect[i][2], factionRect[i][3], factionRect[i][4]) then
+			if math_isInRect(x, y, factionRect[i][1], factionRect[i][2], factionRect[i][3], factionRect[i][4]) then
 				glBlending(GL_SRC_ALPHA, GL_ONE)
 				RectRound(factionRect[i][1] + bgpadding, factionRect[i][2] + bgpadding, factionRect[i][3], factionRect[i][4], bgpadding, 1, 1, 1, 1, { 0.3, 0.3, 0.3, (b and 0.5 or 0.25) }, { 1, 1, 1, (b and 0.3 or 0.15) })
 				glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
@@ -319,10 +306,10 @@ function widget:DrawScreen()
 end
 
 function widget:MousePress(x, y, button)
-	if IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
+	if math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
 
 		for i, faction in pairs(factions) do
-			if IsOnRect(x, y, factionRect[i][1], factionRect[i][2], factionRect[i][3], factionRect[i][4]) then
+			if math_isInRect(x, y, factionRect[i][1], factionRect[i][2], factionRect[i][3], factionRect[i][4]) then
 				if playSounds then
 					Spring.PlaySoundFile(sound_button, 0.6, 'ui')
 				end
@@ -335,22 +322,3 @@ function widget:MousePress(x, y, button)
 	end
 end
 
-function widget:GetConfigData()
-	return { startDefID = startDefID }
-end
-
-function widget:SetConfigData(data)
-	if restorePreviousFaction then
-		if data ~= nil and data.startDefID then
-
-			-- loop factions to make sure startDefID is legit
-			for i,v in pairs(factions) do
-				if factions[i][1] == startDefID then
-					startDefID = factions[i][1]
-					Spring.SendLuaRulesMsg('\138' .. tostring(factions[i][1]))	-- tell initial spawn
-					break
-				end
-			end
-		end
-	end
-end

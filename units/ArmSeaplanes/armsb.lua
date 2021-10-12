@@ -109,7 +109,7 @@ return {
 				noselfdamage = true,
 				range = 1280,
 				reloadtime = 7,
-				soundhit = "xplomed2",
+				soundhit = "bombsmed2",
 				soundhitwet = "splslrg",
 				soundstart = "bombrel",
 				weapontype = "AircraftBomb",

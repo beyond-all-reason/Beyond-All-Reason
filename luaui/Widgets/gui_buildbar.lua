@@ -520,9 +520,7 @@ local function drawButton(rect, unitDefID, options, isFac)	-- options = {pressed
 
 	-- draw icon
 	local imgRect = { rect[1] + (hoverPadding*1), rect[2] - hoverPadding, rect[3] - (hoverPadding*1), rect[4] + hoverPadding }
-
-	local tex = ':l:unitpics/' .. UnitDefs[unitDefID].buildpicname
-	drawIcon(unitDefID, {imgRect[1], imgRect[4], imgRect[3], imgRect[2]}, tex, {1, 1, 1, iconAlpha}, zoom, (unitBuildOptions[unitDefID]~=nil), options.amount or 0)
+	drawIcon(unitDefID, {imgRect[1], imgRect[4], imgRect[3], imgRect[2]}, '#' ..unitDefID , {1, 1, 1, iconAlpha}, zoom, (unitBuildOptions[unitDefID]~=nil), options.amount or 0)
 
 	-- Progress
 	if (options.progress or -1) > -1 then

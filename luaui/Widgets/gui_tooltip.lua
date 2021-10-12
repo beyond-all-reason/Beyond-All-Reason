@@ -67,6 +67,8 @@ local RectRound, UiElement, bgpadding
 
 local math_floor = math.floor
 local math_ceil = math.ceil
+local math_isInRect = math.isInRect
+local string_lines = string.lines
 
 local vsx, vsy = Spring.GetViewGeometry()
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
@@ -156,20 +158,6 @@ function widget:ViewResize(x, y)
 	init()
 end
 
-function IsOnRect(x, y, BLcornerX, BLcornerY, TRcornerX, TRcornerY)
-	return x >= BLcornerX and x <= TRcornerX and y >= BLcornerY and y <= TRcornerY
-end
-
-function lines(str)
-	local t = {}
-	local function helper(line)
-		t[#t + 1] = line
-		return ""
-	end
-	helper((str:gsub("(.-)\r?\n", helper)))
-	return t
-end
-
 function drawTooltip(name, x, y)
 	local paddingH = math_floor(9.5 * widgetScale)
 	local paddingW = math_floor(paddingH * 1.42)
@@ -180,7 +168,7 @@ function drawTooltip(name, x, y)
 	local maxWidth = 0
 	local maxHeight = 0
 	local lineHeight = fontSize + (fontSize / 4.5)
-	local lines = lines(tooltips[name].value)
+	local lines = string_lines(tooltips[name].value)
 
 	-- get text dimentions
 	for i, line in ipairs(lines) do
@@ -247,7 +235,7 @@ function widget:DrawScreen()
 		end
 	end
 	for name, tooltip in pairs(tooltips) do
-		if tooltip.area == nil or (tooltip.area[4] ~= nil and IsOnRect(x, y, tooltip.area[1], tooltip.area[2], tooltip.area[3], tooltip.area[4])) then
+		if tooltip.area == nil or (tooltip.area[4] ~= nil and math_isInRect(x, y, tooltip.area[1], tooltip.area[2], tooltip.area[3], tooltip.area[4])) then
 			if tooltip.area == nil then
 				if tooltip.pos ~= nil then
 					drawTooltip(name, tooltip.pos[1], tooltip.pos[2])

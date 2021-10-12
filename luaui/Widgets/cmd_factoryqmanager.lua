@@ -63,7 +63,6 @@ local modifiedGroupTime = nil
 local defaultScreenResY = 960  --dont change it, its just to keep the same absolute size i had while developing
 local savedQueues = {}
 local drawX = nil
-local vsx, vsy
 local facRepeatIdx = "facq_repeat"
 local lastBoxX = nil
 local lastBoxY = nil
@@ -107,20 +106,19 @@ local ClearFactoryQueues
 local getSingleFactory
 local saveQueue
 local loadQueue
-local DrawTexRect
 local DrawBoxes
 local DrawBoxGroup
 local DrawBoxTitle
 local SortQueueToUnits
 local CalcDrawCoords
+local UiUnit, UiElement
 
 local udefTab = UnitDefs
-local spGetKeyState = Spring.GetKeyState
 local spEcho = Spring.Echo
 local spGetModKeyState = Spring.GetModKeyState
 local lastGameSeconds = Spring.GetGameSeconds()
 
-local font, gameStarted, selUnits, queue, chobbyInterface
+local font, gameStarted, selUnits, chobbyInterface
 
 local isFactory = {}
 for udid, ud in pairs(UnitDefs) do
@@ -168,6 +166,9 @@ function widget:ViewResize()
 	vsx, vsy = Spring.GetViewGeometry()
 
 	font = WG['fonts'].getFont(nil, 1, 0.2, 1.3)
+
+	UiUnit = WG.FlowUI.Draw.Unit
+	UiElement = WG.FlowUI.Draw.Element
 
 	calcScreenCoords()
 end
@@ -422,15 +423,6 @@ function widget:KeyPress(key, modifier, isRepeat)
 	return true;
 end
 
-function DrawTexRect(left, top, right, bottom, texture, alpha)
-	gl.Texture(true)
-	gl.Texture(texture)
-	gl.Color(1, 1, 1, alpha or 1)
-	gl.TexRect(left, bottom, right, top)
-	gl.Color(1, 1, 1, 1)
-	gl.Texture(false)
-end
-
 function CalcDrawCoords(unitId, heightAll)
 	local xw, yw, zw = Spring.GetUnitViewPosition(unitId)
 	local x, y, _ = Spring.WorldToScreenCoords(xw, yw, zw)
@@ -460,18 +452,22 @@ function CalcDrawCoords(unitId, heightAll)
 end
 
 function DrawBoxTitle(x, y, alpha, unitDef, selUnit)
-	--local x,y,z = CalcDrawCoords(selUnit)
-
-	gl.Color(0, 0, 0, math.min(alpha, 0.5))
-	gl.Rect(x, y, x + boxWidth, y - boxHeightTitle)
+	UiElement(x, y - boxHeightTitle, x + boxWidth, y, 1,1,1,0, 1,1,0,1, Spring.GetConfigFloat("ui_opacity", 0.6) + 0.2)
 	gl.Color(1, 1, 1, 1)
 
-	DrawTexRect(x + boxIconBorder, y - boxIconBorder, x + boxHeightTitle + boxIconBorder, y - boxHeightTitle + boxIconBorder, "#" .. unitDef.id, alpha)
-
+	UiUnit(
+		x + boxIconBorder, y - boxHeightTitle + boxIconBorder, x + boxHeightTitle, y - boxIconBorder,
+		nil,
+		1,1,1,1,
+		0.08,
+		nil, nil,
+		'#'..unitDef.id
+	)
 	local text = unitDef.translatedHumanName
+
 	font:Begin()
 	font:SetTextColor(0, 1, 0, alpha or 1)
-	font:Print(text, x + boxHeightTitle + titleTextXOff, y - boxHeightTitle / 2.0 - titleTextYOff, fontSizeTitle, "nd")
+	font:Print(text, x + boxHeightTitle + titleTextXOff, y - boxHeightTitle / 2.0 - titleTextYOff, fontSizeTitle, "nd0")
 	font:End()
 end
 
@@ -511,14 +507,16 @@ function DrawBoxGroup(x, y, yOffset, unitDef, selUnit, alpha, groupNo, queue)
 	end
 
 	--Draw Background Box
-	gl.Color(0, 0, 0, math.min(alpha, 0.6))
-	gl.Rect(x, y, x + boxWidth, y - boxHeight)
-	if queue[facRepeatIdx] == nil or queue[facRepeatIdx] == true then
-		gl.Color(0.0, 0.7, 0.0, math.min(alpha or 1, 0.5))
-	else
-		gl.Color(0.7, 0.7, 0.7, math.min(alpha or 1, 0.5))
-	end
-	gl.Rect(x + boxIconBorder, y - 3, x + groupLabelMargin, y - boxHeight + 3)
+	UiElement(x, y - boxHeight, x + boxWidth, y, 0,1,1,1, 1,1,1,1, Spring.GetConfigFloat("ui_opacity", 0.6) + 0.2)
+	--UiElement(x + boxIconBorder, y - boxHeight + 3, x + groupLabelMargin, y - 3, 1, 1, 1, 1)
+	--gl.Color(0, 0, 0, math.min(alpha, 0.6))
+	--gl.Rect(x, y, x + boxWidth, y - boxHeight)
+	--if queue[facRepeatIdx] == nil or queue[facRepeatIdx] == true then
+	--	gl.Color(0.0, 0.7, 0.0, math.min(alpha or 1, 0.5))
+	--else
+	--	gl.Color(0.7, 0.7, 0.7, math.min(alpha or 1, 0.5))
+	--end
+	--gl.Rect(x + boxIconBorder, y - 3, x + groupLabelMargin, y - boxHeight + 3)
 
 	font:Begin()
 	--Draw group Label
@@ -532,11 +530,19 @@ function DrawBoxGroup(x, y, yOffset, unitDef, selUnit, alpha, groupNo, queue)
 			font:Print("...", x + xOff + unitCountXOff, y - boxHeight + unitCountYOff, fontSizeUnitCount, "nd")
 			break
 		else
-			DrawTexRect(x + boxIconBorder + xOff, y - boxIconBorder, x + boxHeight + boxIconBorder + xOff, y - boxHeight + boxIconBorder, "#" .. k, alpha)
+			gl.Color(0.8,0.8,0.8 ,1)
+			UiUnit(
+				x + boxIconBorder + xOff, y - boxHeight + boxIconBorder, x + boxHeight - boxIconBorder + xOff, y - boxIconBorder,
+				nil,
+				1,1,1,1,
+				0.08,
+				nil, nil,
+				'#'..k
+			)
 			font:SetTextColor(1, 1, 1, alpha)
-			font:Print(unitCount, x + xOff + unitCountXOff, y - boxHeight + unitCountYOff, fontSizeUnitCount, "cnd")
+			font:Print(unitCount, x + (boxHeight*0.5) - boxIconBorder + xOff, y - boxHeight + unitCountYOff, fontSizeUnitCount, "cndo")
 		end
-		xOff = xOff + boxHeight + unitIconSpacing
+		xOff = xOff + boxHeight - boxIconBorder - boxIconBorder + unitIconSpacing
 	end
 
 	--draw "loaded" text
@@ -592,7 +598,7 @@ function DrawBoxes()
 			if first == true then
 				height = boxHeightTitle
 			end
-			yOffset = yOffset - (height + boxOuterMargin)
+			yOffset = yOffset - height
 			DrawBoxGroup(x, y + yOffset, yOffset, unitDef, selUnit, alpha, k, savedQueues[curModId][unitDef.id][k])
 			first = false
 		end

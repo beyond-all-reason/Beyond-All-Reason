@@ -175,7 +175,9 @@ FirePrimary()
 {
 	emit-sfx 1024 + 0 from flare;
 	move barrel to z-axis [-4.000000] speed [500.000000];
+	wait-for-move barrel along z-axis;
 	move barrel to z-axis [0.000000] speed [6.000000];
+	wait-for-move barrel along z-axis;
 }
 
 QueryPrimary(piecenum)

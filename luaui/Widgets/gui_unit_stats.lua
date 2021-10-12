@@ -188,10 +188,6 @@ local format = string.format
 local char = string.char
 
 local glColor = gl.Color
-local glText = gl.Text
-local glTexture = gl.Texture
-local glRect = gl.Rect
-local glTexRect = gl.TexRect
 
 local spGetMyTeamID = Spring.GetMyTeamID
 local spGetTeamResources = Spring.GetTeamResources
@@ -204,7 +200,6 @@ local spGetMouseState = Spring.GetMouseState
 local spTraceScreenRay = Spring.TraceScreenRay
 
 local spGetUnitDefID = Spring.GetUnitDefID
-local spGetUnitExp = Spring.GetUnitExperience
 local spGetUnitHealth = Spring.GetUnitHealth
 local spGetUnitTeam = Spring.GetUnitTeam
 local spGetUnitExperience = Spring.GetUnitExperience
@@ -214,20 +209,8 @@ local spGetUnitWeaponState = Spring.GetUnitWeaponState
 local uDefs = UnitDefs
 local wDefs = WeaponDefs
 
-local triggerKey = KEYSYMS.SPACE
-
 local font, chobbyInterface, showUnitID
-
-local unitBuildPic = {}
-for id, def in pairs(UnitDefs) do
-	unitBuildPic[id] = def.buildpicname
-end
-
-local myTeamID = Spring.GetMyTeamID
-local spGetTeamRulesParam = Spring.GetTeamRulesParam
-local spGetTooltip = Spring.GetCurrentTooltip
-
-local vsx, vsy = Spring.GetViewGeometry()
+local RectRound, UiElement, UiUnit, bgpadding, elementCorner
 
 local maxWidth = 0
 local textBuffer = {}
@@ -245,8 +228,6 @@ end
 ------------------------------------------------------------------------------------
 -- Functions
 ------------------------------------------------------------------------------------
-
-local RectRound, UiElement, UiUnit, bgpadding, elementCorner
 
 local function DrawText(t1, t2)
 	textBufferCount = textBufferCount + 1
@@ -266,11 +247,9 @@ local function DrawTextBuffer()
 end
 
 local function GetTeamColorCode(teamID)
-
 	if not teamID then return "\255\255\255\255" end
 
 	local R, G, B = spGetTeamColor(teamID)
-
 	if not R then return "\255\255\255\255" end
 
 	R = floor(R * 255)
@@ -771,7 +750,6 @@ local function drawStats(uDefID, uID)
 		cX = cXnew
 	end
 
-
 	local effectivenessRate = ''
 	if damageStats and damageStats[gameName] and damageStats[gameName]["team"] and damageStats[gameName]["team"][uDef.name] and damageStats[gameName]["team"][uDef.name].cost and damageStats[gameName]["team"][uDef.name].killed_cost then
 		effectivenessRate = "   "..damageStats[gameName]["team"][uDef.name].killed_cost / damageStats[gameName]["team"][uDef.name].cost
@@ -781,10 +759,6 @@ local function drawStats(uDefID, uID)
 	local text = "\255\190\255\190" .. UnitDefs[uDefID].translatedHumanName
 	if uID then
 		text = text .. "   " ..  grey ..  uDef.name .. "   #" .. uID .. "   "..GetTeamColorCode(uTeam) .. GetTeamName(uTeam) .. grey .. effectivenessRate
-	end
-	local iconHalfSize = floor(titleFontSize*0.9)
-	if not uID then
-		iconHalfSize = floor(-bgpadding/2.5)
 	end
 	local backgroundRect = {floor(cX-bgpadding), ceil(cYstart-bgpadding), floor(cX+(font:GetTextWidth(text)*titleFontSize)+(titleFontSize*3.5)), floor(cYstart+(titleFontSize*1.8)+bgpadding)}
 	UiElement(backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4], 1,1,1,0, 1,1,0,1, Spring.GetConfigFloat("ui_opacity", 0.6) + 0.2)
@@ -805,7 +779,7 @@ local function drawStats(uDefID, uID)
 			1,1,1,1,
 			0.13,
 			nil, nil,
-			':lc:unitpics/'..unitBuildPic[uDefID]
+			'#'..uDefID
 		)
 	end
 

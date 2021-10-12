@@ -43,6 +43,7 @@ local resources = {
 			flame_alt2        = 'gpl/flame_alt.tga',
 			fire              = 'gpl/fire.png',
 			firesmoke         = 'gpl/smoke_orange.png',
+			flamestream       = 'atmos/flamestream.tga',
 			treefire          = 'gpl/treefire.png',
 			muzzlesideflipped = 'default/muzzlesideflipped.tga',
 			muzzleside        = 'default/muzzleside.tga',

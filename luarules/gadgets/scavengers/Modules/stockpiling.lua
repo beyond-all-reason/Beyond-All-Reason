@@ -1,4 +1,6 @@
 
 function ScavStockpile(n, scav)
-    Spring.GiveOrderToUnit(scav, CMD.STOCKPILE, {}, {})
+    for i = 1,10 do
+        Spring.GiveOrderToUnit(scav, CMD.STOCKPILE, {}, {})
+    end
 end

@@ -16,7 +16,7 @@ return {
 		buildtime = 16224,
 		canmove = true,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
-		collisionvolumescales = "75 32 91",
+		collisionvolumescales = "85 75 100",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
 		description = Spring.I18N('units.descriptions.armalab'),
