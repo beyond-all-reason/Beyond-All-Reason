@@ -93,6 +93,9 @@ return {
 			},
 		},
 		sfxtypes = {
+			explosiongenerators = {
+				[1] = "custom:flamestreamxm",
+			},
 			pieceexplosiongenerators = {
 				[1] = "deathceg3",
 				[2] = "deathceg4-fire",
@@ -125,8 +128,8 @@ return {
 			dmaw = {
 				areaofeffect = 64,
 				avoidfeature = false,
-				burst = 22,
-				burstrate = 0.03333,
+				burst = 16,
+				burstrate = 0.05,
 				cegtag = "burnflame",
 				colormap = "1 0.95 0.82 0.03   0.7 0.4 0.25 0.027   0.44 0.25 0.15 0.024   0.033 0.018 0.011 0.02   0.0 0.0 0.0 0.01",
 				craterareaofeffect = 0,
@@ -168,8 +171,8 @@ return {
 					light_color = "1 0.5 0.05",
 				},
 				damage = {
-					commanders = 12,
-					default = 16,
+					commanders = 16.5,
+					default = 22,
 					subs = 1,
 				},
 			},

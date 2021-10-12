@@ -580,6 +580,7 @@ AimPrimary(heading, pitch)
 Shot1()
 {
 	call-script lua_FlameShot(1);
+	emit-sfx 1024 + 1 from flare;
 	return (TRUE);
 }
 

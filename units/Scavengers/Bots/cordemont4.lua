@@ -66,9 +66,9 @@ return {
 			},
 		},
 		sfxtypes = {
-			-- explosiongenerators = {
-			-- 	[1] = "custom:barrelshot-medium",
-			-- },
+			explosiongenerators = {
+				[1] = "custom:flamestreamxxl",
+			},
 			pieceexplosiongenerators = {
 				[1] = "deathceg2",
 				[2] = "deathceg3",

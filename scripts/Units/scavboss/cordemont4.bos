@@ -1051,6 +1051,8 @@ AimPrimary(heading, pitch)
 Shot1()
 {
 	call-script lua_FlameShot(1);
+	emit-sfx 1024 + 0 from lfflare2;
+	emit-sfx 1024 + 0 from rfflare1;
 	return (TRUE);
 }
 
