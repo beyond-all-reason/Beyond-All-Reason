@@ -594,7 +594,7 @@ end
 --	end
 --
 --	local name_override = ud.customParams.statsname or ud.name
---	return WG.Translate ("units", name_override .. ".name") or ud.humanName
+--	return WG.Translate ("units", name_override .. ".name") or ud.translatedHumanName
 --end
 --
 --function Spring.Utilities.GetDescription(ud, unitID)

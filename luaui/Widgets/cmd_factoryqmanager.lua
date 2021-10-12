@@ -454,6 +454,7 @@ end
 function DrawBoxTitle(x, y, alpha, unitDef, selUnit)
 	UiElement(x, y - boxHeightTitle, x + boxWidth, y, 1,1,1,0, 1,1,0,1, Spring.GetConfigFloat("ui_opacity", 0.6) + 0.2)
 	gl.Color(1, 1, 1, 1)
+
 	UiUnit(
 		x + boxIconBorder, y - boxHeightTitle + boxIconBorder, x + boxHeightTitle, y - boxIconBorder,
 		nil,
@@ -462,7 +463,8 @@ function DrawBoxTitle(x, y, alpha, unitDef, selUnit)
 		nil, nil,
 		'#'..unitDef.id
 	)
-	local text = unitDef.humanName
+	local text = unitDef.translatedHumanName
+
 	font:Begin()
 	font:SetTextColor(0, 1, 0, alpha or 1)
 	font:Print(text, x + boxHeightTitle + titleTextXOff, y - boxHeightTitle / 2.0 - titleTextYOff, fontSizeTitle, "nd0")

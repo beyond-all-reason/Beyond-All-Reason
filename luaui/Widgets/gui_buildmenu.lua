@@ -260,10 +260,10 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.extractsMetal > 0 or (unitDef.customParams.energyconv_capacity and unitDef.customParams.energyconv_efficiency) then
 		unitGroup[unitDefID] = 'metal'
 	end
-	if unitDef.energyStorage > 1000 and string.find(string.lower(unitDef.humanName), 'storage') then
+	if unitDef.energyStorage > 1000 and string.find(string.lower(unitDef.translatedHumanName), 'storage') then
 		unitGroup[unitDefID] = 'energy'
 	end
-	if unitDef.metalStorage > 500 and string.find(string.lower(unitDef.humanName), 'storage') then
+	if unitDef.metalStorage > 500 and string.find(string.lower(unitDef.translatedHumanName), 'storage') then
 		unitGroup[unitDefID] = 'metal'
 	end
 	if unitDef.maxWeaponRange > 16 then
@@ -405,15 +405,15 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 			end
 
 			-- storage
-			if unitDef.energyStorage > 1000 and string.find(string.lower(unitDef.humanName), 'storage') then
+			if unitDef.energyStorage > 1000 and string.find(string.lower(unitDef.translatedHumanName), 'storage') then
 				addOrderImportance(unitDefID, skip, 1100000)
 			end
-			if unitDef.metalStorage > 500 and string.find(string.lower(unitDef.humanName), 'storage') then
+			if unitDef.metalStorage > 500 and string.find(string.lower(unitDef.translatedHumanName), 'storage') then
 				addOrderImportance(unitDefID, skip, 1300000)
 			end
 
 			-- converters
-			if string.find(string.lower(unitDef.humanName), 'converter') then
+			if string.find(string.lower(unitDef.translatedHumanName), 'converter') then
 				addOrderImportance(unitDefID, skip, 1350000)
 			end
 		end
@@ -427,7 +427,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 			if unitDef.isBuilding then
 				addOrderImportance(unitDefID, skip, 250000)
 			else
-				if string.find(string.lower(unitDef.humanName), 'construction') then
+				if string.find(string.lower(unitDef.translatedHumanName), 'construction') then
 					addOrderImportance(unitDefID, skip, 600000)
 				elseif string.find(string.lower(unitDef.tooltip), 'minelayer') or string.find(string.lower(unitDef.tooltip), 'assist') or string.find(string.lower(unitDef.tooltip), 'engineer') then
 					addOrderImportance(unitDefID, skip, 400000)
@@ -1361,9 +1361,9 @@ function widget:DrawScreen()
 								local textColor = "\255\215\255\215"
 
 								if unitRestricted[uDefID] or unitDisabled[uDefID] then
-									text = Spring.I18N('ui.buildMenu.disabled', { unit = UnitDefs[uDefID].humanName, textColor = textColor, warnColor = "\255\166\166\166" })
+									text = Spring.I18N('ui.buildMenu.disabled', { unit = UnitDefs[uDefID].translatedHumanName, textColor = textColor, warnColor = "\255\166\166\166" })
 								else
-									text = textColor .. UnitDefs[uDefID].humanName
+									text = textColor .. UnitDefs[uDefID].translatedHumanName
 								end
 
 								text = text .. "\n\255\240\240\240" .. UnitDefs[uDefID].tooltip
@@ -1903,7 +1903,7 @@ function widget:MousePress(x, y, button)
 			end
 			if not disableInput then
 				for cellRectID, cellRect in pairs(cellRects) do
-					if cmds[cellRectID].id and UnitDefs[-cmds[cellRectID].id].humanName and math_isInRect(x, y, cellRect[1], cellRect[2], cellRect[3], cellRect[4]) and not (unitRestricted[-cmds[cellRectID].id] or unitDisabled[-cmds[cellRectID].id]) then
+					if cmds[cellRectID].id and UnitDefs[-cmds[cellRectID].id].translatedHumanName and math_isInRect(x, y, cellRect[1], cellRect[2], cellRect[3], cellRect[4]) and not (unitRestricted[-cmds[cellRectID].id] or unitDisabled[-cmds[cellRectID].id]) then
 						if button ~= 3 then
 							if playSounds then
 								Spring.PlaySoundFile(sound_queue_add, 0.75, 'ui')

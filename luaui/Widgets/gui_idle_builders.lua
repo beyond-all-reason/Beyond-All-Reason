@@ -89,8 +89,9 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.isFactory then
 		isFactory[unitDefID] = true
 	end
-	if unitDef.humanName then
-		unitHumanName[unitDefID] = unitDef.humanName
+
+	if unitDef.translatedHumanName then
+		unitHumanName[unitDefID] = unitDef.translatedHumanName
 	end
 end
 

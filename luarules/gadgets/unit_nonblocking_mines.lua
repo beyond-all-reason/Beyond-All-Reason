@@ -49,11 +49,6 @@ function gadget:AllowUnitCreation(unitDefID, builderID, builderTeam, x, y, z)
 		local footprintz = unitSizing[unitDefID][2]
 		for mine, pos in pairs(mines) do
 			if math.abs(x - pos[1]) < footprintx and math.abs(z - pos[2]) < footprintz then
-				-- if builderTeam ~= spGetMyTeamID() then --no getmyteamid in synced code :(
-				-- local udef = UnitDefs[builderID]
-				-- Spring.Echo( udef.humanName  .. ": Can't build on top of mines!" )
-				-- end
-
 				return false
 			end
 		end

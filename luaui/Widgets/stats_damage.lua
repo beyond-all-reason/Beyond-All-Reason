@@ -35,7 +35,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
     unitName[unitDefID] = unitDef.name
     unitMetalCost[unitDefID] = unitDef.metalCost
     unitEnergyCost[unitDefID] = unitDef.energyCost
-    unitHumanName[unitDefID] = unitDef.humanName
+    unitHumanName[unitDefID] = unitDef.translatedHumanName
 end
 
 local chunk, err = loadfile(STATS_FILE)

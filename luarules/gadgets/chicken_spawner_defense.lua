@@ -11,9 +11,9 @@ function gadget:GetInfo()
 end
 
 if Spring.Utilities.Gametype.IsChickens() then
-	Spring.Echo("[ChickenDefense: Chicken Defense Spawner] Activated!")
+	Spring.Log(gadget:GetInfo().name, LOG.INFO, "Chicken Defense Spawner Activated!")
 else
-	Spring.Echo("[ChickenDefense: Chicken Defense Spawner] Deactivated!")
+	Spring.Log(gadget:GetInfo().name, LOG.INFO, "Chicken Defense Spawner Deactivated!")
 	return false
 end
 
@@ -104,7 +104,6 @@ if gadgetHandler:IsSyncedCode() then
 	local firstSpawn = true
 	local gameOver = nil
 	local qMove = false
-	local warningMessage = false
 	local computerTeams = {}
 	local humanTeams = {}
 	local disabledUnits = {}
@@ -125,14 +124,12 @@ if gadgetHandler:IsSyncedCode() then
 	local heroChicken = {}
 	local defenseMap = {}
 	local unitName = {}
-	local unitHumanName = {}
 	local unitShortName = {}
 	local unitSpeed = {}
 	local unitCanFly = {}
 
 	for unitDefID, unitDef in pairs(UnitDefs) do
 		unitName[unitDefID] = unitDef.name
-		unitHumanName[unitDefID] = unitDef.humanName
 		unitShortName[unitDefID] = string.match(unitDef.name, "%D*")
 		unitSpeed[unitDefID] = unitDef.speed
 		if unitDef.canFly then
@@ -158,8 +155,6 @@ if gadgetHandler:IsSyncedCode() then
 	local gaiaTeamID = GetGaiaTeamID()
 	if not chickenTeamID then
 		chickenTeamID = gaiaTeamID
-
-		warningMessage = true
 	else
 		computerTeams[gaiaTeamID] = nil
 	end
@@ -453,10 +448,9 @@ if gadgetHandler:IsSyncedCode() then
 		end
 		if mRandom(100) < 50 then
 			local angle = math.rad(mRandom(1, 360))
-			--		Spring.Echo(targetCache)
 			local x, y, z = GetUnitPosition(targetCache)
 			if not x or not y or not z then
-				Spring.Echo("Invalid pos in GetUnitPosition: " .. tostring(targetCache))
+				Spring.Log(gadget:GetInfo().name, LOG.ERROR,"Invalid pos in GetUnitPosition: " .. tostring(targetCache))
 				return getRandomMapPos()
 			end
 			local distance = mRandom(50, 900)
@@ -889,7 +883,7 @@ if gadgetHandler:IsSyncedCode() then
 		else
 			failChickens[unitID] = failCount + 1
 		end
-		-- Spring.Echo(t .. " unitIdle " .. unitID)
+
 		if AttackNearestEnemy(unitID, unitDefID, unitTeam) then
 			return
 		end
@@ -943,7 +937,7 @@ if gadgetHandler:IsSyncedCode() then
 				local resistPercent = (math.min(queenResistance[weaponID].damage / queenMaxHP, 0.75) + 0.2)
 				if resistPercent > 0.35 then
 					if queenResistance[weaponID].notify == 0 then
-						Spring.Echo("The Queen is becoming resistant to " .. unitHumanName[attackerDefID] .. "'s attacks!")
+						SendToUnsynced('QueenResistant', attackerDefID)
 						queenResistance[weaponID].notify = 1
 						for i = 1, 12, 1 do
 							table.insert(spawnQueue, { burrow = queenID, unitName = "chickenw2", team = chickenTeamID })
@@ -1063,20 +1057,16 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:GameStart()
-		if warningMessage then
-			Spring.Echo("Warning: No Chicken team available, add a Chicken bot")
-			Spring.Echo("(Assigning Chicken Team to Gaia - AI: Custom)")
-		end
 		if config.burrowSpawnType == "initialbox" or config.burrowSpawnType == "alwaysbox" then
 			local _, _, _, _, _, luaAllyID = Spring.GetTeamInfo(chickenTeamID, false)
 			if luaAllyID then
 				lsx1, lsz1, lsx2, lsz2 = Spring.GetAllyTeamStartBox(luaAllyID)
 				if not lsx1 or not lsz1 or not lsx2 or not lsz2 then
 					config.burrowSpawnType = "avoid"
-					Spring.Echo("No Chicken start box available, Burrow Placement set to 'Avoid Players'")
+					Spring.Log(gadget:GetInfo().name, LOG.INFO, "No Chicken start box available, Burrow Placement set to 'Avoid Players'")
 				elseif lsx1 == 0 and lsz1 == 0 and lsx2 == Game.mapSizeX and lsz2 == Game.mapSizeX then
 					config.burrowSpawnType = "avoid"
-					Spring.Echo("No Chicken start box available, Burrow Placement set to 'Avoid Players'")
+					Spring.Log(gadget:GetInfo().name, LOG.INFO, "No Chicken start box available, Burrow Placement set to 'Avoid Players'")
 				end
 			end
 		end
@@ -1567,12 +1557,18 @@ else
 		end
 	end
 
+	local function queenResistant(_, attackerDefId)
+		Spring.Echo( Spring.I18N('ui.chickens.queenResistant', { unit = UnitDefs[attackerDefId].translatedHumanName }) )
+	end
+
 	function gadget:Initialize()
 		gadgetHandler:AddSyncAction('ChickenEvent', WrapToLuaUI)
+		gadgetHandler:AddSyncAction('QueenResistant', queenResistant)
 		gadgetHandler:AddChatAction("HasChickenEvent", HasChickenEvent, "toggles hasChickenEvent setting")
 	end
 
 	function gadget:Shutdown()
+		gadgetHandler:RemoveSyncAction('QueenResistant')
 		gadgetHandler:RemoveChatAction("HasChickenEvent")
 	end
 

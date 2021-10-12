@@ -507,6 +507,7 @@ return {
 			},
 			chickens = {
 				queenIsAngry = 'The Queen is angered!',
+				queenResistant = "The Queen is becoming resistant to %{unit} attacks!",
 				wave = 'Wave %{waveNumber}',
 				waveCount = '%{count} Chickens!',
 				chickenCount = 'Chickens: %{count}',
