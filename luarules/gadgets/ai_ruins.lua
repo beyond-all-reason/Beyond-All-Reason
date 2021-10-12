@@ -243,6 +243,8 @@ local function SpawnMexes(mexSpots)
 			if SpawnAsNeutral then
 				Spring.SetUnitNeutral(unit, true)
 			end
+			Spring.GiveOrderToUnit(unit, CMD.FIRE_STATE, {1}, 0)
+			Spring.GiveOrderToUnit(unit, CMD.MOVE_STATE, {0}, 0)
 		end
 	end
 end
