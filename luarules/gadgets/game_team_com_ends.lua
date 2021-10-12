@@ -55,7 +55,8 @@ local function commanderDeath(teamID, unitID)
 		-- destroy whole ally team
 		local totalUnits = 0
 		for _, teamID in ipairs(GetTeamList(allyTeamID)) do
-			totalUnits = totalUnits + Spring.GetTeamUnits(teamID)
+			local units = Spring.GetTeamUnits(teamID)
+			totalUnits = totalUnits + #units
 		end
 		local periodMult = math.max(0.33, math.min(1, totalUnits / 250))	-- make low unitcount blow up faster
 		for _, teamID in ipairs(GetTeamList(allyTeamID)) do
