@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, top, bore, barrel, flare, aimpoint;
+piece  base, top, bore, barrel, flare, aimpoint, firepoint;
 
 static-var  Static_Var_1, restore_delay, statechg_DesiredState, statechg_StateChanging;
 
@@ -132,7 +132,9 @@ AimPrimary(heading, pitch)
 		sleep 250;
 	}
 	turn top to y-axis heading speed <300.000000>;
+	turn firepoint to x-axis <0.000000> - pitch speed <110.000000>;
 	wait-for-turn top around y-axis;
+	wait-for-turn firepoint around x-axis;
 	start-script RestoreAfterDelay();
 	return (1);
 }
@@ -140,17 +142,17 @@ AimPrimary(heading, pitch)
 Shot1()
 {
 	call-script lua_FlameShot(1);
+	emit-sfx 1024 + 0 from firepoint;
 	return (TRUE);
 }
 
 FirePrimary()
 {
-	emit-sfx 1024 + 0 from flare;
 }
 
 QueryPrimary(piecenum)
 {
-	piecenum = flare;
+	piecenum = firepoint;
 }
 
 SweetSpot(piecenum)

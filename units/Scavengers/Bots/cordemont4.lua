@@ -153,7 +153,7 @@ return {
 				burst = 2,
 				burstrate = 0.03333,
 				cegtag = "burnflamexl",
-				colormap = "1 0.95 0.82 0.03   0.7 0.4 0.25 0.027   0.44 0.25 0.15 0.024   0.033 0.018 0.011 0.02   0.0 0.0 0.0 0.01",
+				colormap = "1 0.95 0.85 0.028   0.55 0.55 0.40 0.023   0.40 0.28 0.19 0.018   0.033 0.018 0.011 0.02   0.0 0.0 0.0 0.01",
 				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,

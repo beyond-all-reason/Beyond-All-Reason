@@ -142,7 +142,7 @@ return {
 				groundbounce = true,
 				impulseboost = 0,
 				impulsefactor = 0,
-				intensity = 0.75,
+				intensity = 0.68,
 				name = "Pop-up anti-swarm AoE flamethrower",
 				noselfdamage = true,
 				proximitypriority = 3,
@@ -169,6 +169,7 @@ return {
 					expl_light_life_mult = 1.1,
 					expl_light_radius_mult = 1.15,
 					light_color = "1 0.5 0.05",
+					--light_radius_mult = 1.25,
 				},
 				damage = {
 					commanders = 16.5,
