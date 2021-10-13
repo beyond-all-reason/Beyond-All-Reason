@@ -128,7 +128,7 @@ else
 
 			scale = 1.5,
 			strength = 1.0,
-			heat = 2,
+			heat = 6,
 		}
 		particleCnt = particleCnt + 1
 

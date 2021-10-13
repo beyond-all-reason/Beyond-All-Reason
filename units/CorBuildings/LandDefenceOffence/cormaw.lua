@@ -139,7 +139,7 @@ return {
 				explosiongenerator = "custom:burnblack",
 				firestarter = 100,
 				flamegfxtime = 1,
-				groundbounce = false,
+				groundbounce = true,
 				impulseboost = 0,
 				impulsefactor = 0,
 				intensity = 0.75,
