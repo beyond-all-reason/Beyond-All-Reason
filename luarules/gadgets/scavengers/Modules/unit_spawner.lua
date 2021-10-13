@@ -464,8 +464,10 @@ function InitialSpawnBonusCommanders()
 		local unitDefID = Spring.GetUnitDefID(unitID)
 		local unitName = UnitDefs[unitDefID].name
 		local unitTeam = Spring.GetUnitTeam(unitID)
-		if unitTeam ~= GaiaTeamID then
-			SpawnBonusCommander(unitID, unitName, unitTeam)
+		if unitName == "armcom" or unitName == "corcom" then
+			if unitTeam ~= GaiaTeamID then
+				SpawnBonusCommander(unitID, unitName, unitTeam)
+			end
 		end
 	end
 end

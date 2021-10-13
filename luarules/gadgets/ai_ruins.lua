@@ -184,21 +184,21 @@ local function spawnRuin(ruin, posx, posy, posz, blueprintTierLevel)
 end
 
 local landMexesList = {
-	"armmex",
-	"cormex",
-	"armamex",
-	"corexp",
-	"armmoho",
-	"cormoho",
-	"cormexp",
+	"armmex_scav",
+	"cormex_scav",
+	"armamex_scav",
+	"corexp_scav",
+	"armmoho_scav",
+	"cormoho_scav",
+	"cormexp_scav",
 }
 local seaMexesList = {
-	"armmex",
-	"cormex",
-	"armuwmex",
-	"coruwmex",
-	"armuwmme",
-	"coruwmme",
+	"armmex_scav",
+	"cormex_scav",
+	"armuwmex_scav",
+	"coruwmex_scav",
+	"armuwmme_scav",
+	"coruwmme_scav",
 }
 
 local function SpawnMexes(mexSpots)
@@ -250,7 +250,7 @@ local function SpawnMexes(mexSpots)
 end
 
 function gadget:GameFrame(n)
-	if n == 60 then
+	if n == 301 then
 		local mexSpots = GG.metalSpots
 		if mexSpots and #mexSpots > 5 then
 			SpawnMexes(mexSpots)

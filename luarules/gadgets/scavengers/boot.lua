@@ -410,9 +410,9 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
 	if unitTeam ~= GaiaTeamID and unitEnteredTeam == GaiaTeamID then
 		MasterMindTargetListTargetSpotted(unitID, unitTeam, unitEnteredTeam, unitDefID)
 	end
-	if unitName == "armassistdrone" or unitName == "corassistdrone" then
-		constructorController.AssistDroneRespawn(unitID, unitName)
-	end
+	-- if unitName == "armassistdrone" or unitName == "corassistdrone" then
+	-- 	constructorController.AssistDroneRespawn(unitID, unitName)
+	-- end
 	if unitTeam == GaiaTeamID then
 		if scavengerGamePhase == "initial" and (not scavConverted[unitID]) then
 			initialPhaseCountdown = initialPhaseCountdown + 1
@@ -600,7 +600,7 @@ function gadget:UnitGiven(unitID, unitDefID, unitNewTeam, unitOldTeam)
 			else
 				UnitSuffixLenght[unitID] = 0
 				local frame = Spring.GetGameFrame()
-				if frame > 300 then
+				if frame > 30 then
 					local heading = Spring.GetUnitHeading(unitID)
 					local suffix = scavconfig.unitnamesuffix
 					-- Spring.Echo(UnitName)
@@ -744,7 +744,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 		else
 			UnitSuffixLenght[unitID] = 0
 			local frame = Spring.GetGameFrame()
-			if frame > 300 then
+			if frame > 30 then
 				local heading = Spring.GetUnitHeading(unitID)
 				local suffix = scavconfig.unitnamesuffix
 				-- Spring.Echo(UnitName)
