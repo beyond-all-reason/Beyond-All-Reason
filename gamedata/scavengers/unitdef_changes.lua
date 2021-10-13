@@ -377,6 +377,7 @@ customDefs.corscavdtl = {
 customDefs.corbw = {
 	weapondefs = {
 		bladewing_lyzer = {
+			explosiongenerator = "custom:laserhit-tiny-blue",
 			paralyzer = false,
 			reloadtime = 0.1,
 			damage = {
