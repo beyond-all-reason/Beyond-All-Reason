@@ -24,34 +24,6 @@ static-var  statechg_DesiredState, statechg_StateChanging;
 static-var  Stunned;
 
 
-SmokeUnit(healthpercent, sleeptime, smoketype)
-/*     3:*/{
-/*     6:*/	while( get BUILD_PERCENT_LEFT )
-/*     8:*/	{
-/*     a:*/		sleep 400;
-/*     d:*/	}
-/*     f:*/	while( TRUE )
-/*    11:*/	{
-/*    14:*/		healthpercent = get HEALTH;
-/*    1b:*/		if( healthpercent < 66 )
-/*    1d:*/		{
-/*    22:*/			smoketype = 256 | 2;
-/*    2c:*/			if( Rand( 1, 66 ) < healthpercent )
-/*    2e:*/			{
-/*    33:*/				smoketype = 256 | 1;
-/*    35:*/			}
-/*    37:*/			emit-sfx smoketype from base;
-/*    39:*/		}
-/*    3e:*/		sleeptime = healthpercent * 50;
-/*    45:*/		if( sleeptime < 200 )
-/*    47:*/		{
-/*    49:*/			sleeptime = 200;
-/*    4b:*/		}
-/*    4d:*/		sleep sleeptime;
-/*    50:*/	}
-/*    52:*/	return (0);
-/*    53:*/}
-
 Go()
 {
 	spin dish around y-axis speed <-50.043956> accelerate <2>;
@@ -65,38 +37,38 @@ Stop()
 }
 
 InitState()
-/*    75:*/{
-/*    77:*/	statechg_DesiredState = TRUE;
-/*    7b:*/	statechg_StateChanging = FALSE;
-/*    7f:*/	return (0);
-/*    80:*/}
+{
+	statechg_DesiredState = TRUE;
+	statechg_StateChanging = FALSE;
+	return (0);
+}
 
 RequestState(requestedstate, currentstate)
-/*    82:*/{
-/*    84:*/	if( statechg_StateChanging )
-/*    86:*/	{
-/*    88:*/		statechg_DesiredState = requestedstate;
-/*    8c:*/		return (0);
-/*    8d:*/	}
-/*    8f:*/	statechg_StateChanging = TRUE;
-/*    93:*/	currentstate = statechg_DesiredState;
-/*    97:*/	statechg_DesiredState = requestedstate;
-/*    9e:*/	while( statechg_DesiredState != currentstate )
-/*    a0:*/	{
-/*    a5:*/		if( statechg_DesiredState == 0 )
-/*    a7:*/		{
-/*    a7:*/			call-script Go();
-/*    ac:*/			currentstate = 0;
-/*    ae:*/		}
-/*    b3:*/		if( statechg_DesiredState == 1 )
-/*    b5:*/		{
-/*    b5:*/			call-script Stop();
-/*    ba:*/			currentstate = 1;
-/*    bc:*/		}
-/*    be:*/	}
-/*    c0:*/	statechg_StateChanging = FALSE;
-/*    c4:*/	return (0);
-/*    c5:*/}
+{
+	if( statechg_StateChanging )
+	{
+		statechg_DesiredState = requestedstate;
+		return (0);
+	}
+	statechg_StateChanging = TRUE;
+	currentstate = statechg_DesiredState;
+	statechg_DesiredState = requestedstate;
+	while( statechg_DesiredState != currentstate )
+	{
+		if( statechg_DesiredState == 0 )
+		{
+			call-script Go();
+			currentstate = 0;
+		}
+		if( statechg_DesiredState == 1 )
+		{
+			call-script Stop();
+			currentstate = 1;
+		}
+	}
+	statechg_StateChanging = FALSE;
+	return (0);
+}
 
 SetStunned(State)
 {
@@ -111,9 +83,11 @@ SetStunned(State)
 Create()
 {
 	call-script InitState();
-	start-script SmokeUnit();
 	return (0);
 }
+
+#define SMOKEPIECE base
+#include "smokeunit_thread_nohit.h"
 
 Lights()
 {

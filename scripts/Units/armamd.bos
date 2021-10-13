@@ -27,200 +27,165 @@ static-var  Static_Var_1, restore_delay, gun_1, statechg_DesiredState, statechg_
 
 
 activatescr()
-/*     0:*/{
-/*     2:*/	if( TRUE )
-/*     4:*/	{
-/*     6:*/		turn door1 to z-axis <0.000000> now;
-/*     d:*/		turn door1 to z-axis <40> speed <73.000000>;
-/*    12:*/		turn door2 to z-axis <0.000000> now;
-/*    19:*/		turn door2 to z-axis <-40> speed <74.000000>;
-/*    36:*/		sleep 768;
-/*    3e:*/	}
+{
+	if( TRUE )
+	{
+		turn door1 to z-axis <0.000000> now;
+		turn door1 to z-axis <40> speed <73.000000>;
+		turn door2 to z-axis <0.000000> now;
+		turn door2 to z-axis <-40> speed <74.000000>;
+		sleep 768;
+	}
 
-/*    40:*/	sleep 3;
-/*    43:*/	return (0);
-/*    44:*/}
+	sleep 3;
+	return (0);
+}
 
 deactivatescr()
-/*    44:*/{
-/*    46:*/	if( TRUE )
-/*    48:*/	{
-/*    4a:*/		turn door1 to z-axis <-90> now;
-/*    51:*/		turn door1 to z-axis <0.000000> speed <73.000000>;
-/*    56:*/		turn door2 to z-axis <90> now;
-/*    5d:*/		turn door2 to z-axis <0.000000> speed <74.000000>;
-/*    7a:*/		sleep 762;
-/*    7b:*/	}
+{
+	if( TRUE )
+	{
+		turn door1 to z-axis <-90> now;
+		turn door1 to z-axis <0.000000> speed <73.000000>;
+		turn door2 to z-axis <90> now;
+		turn door2 to z-axis <0.000000> speed <74.000000>;
+		sleep 762;
+	}
 
-/*    7d:*/	sleep 14;
-/*    80:*/	return (0);
-/*    81:*/}
+	sleep 14;
+	return (0);
+}
 
-SmokeUnit(healthpercent, sleeptime, smoketype)
-/*    84:*/{
-/*    85:*/	var Func_Var_4;
-/*    88:*/	while( get BUILD_PERCENT_LEFT )
-/*    8a:*/	{
-/*    8c:*/		sleep 400;
-/*    8f:*/	}
-/*    91:*/	while( TRUE )
-/*    93:*/	{
-/*    96:*/		healthpercent = get HEALTH;
-/*    9d:*/		if( healthpercent < 66 )
-/*    9f:*/		{
-/*    a4:*/			smoketype = 256 | 2;
-/*    ae:*/			if( Rand( 1, 66 ) < healthpercent )
-/*    b0:*/			{
-/*    b5:*/				smoketype = 256 | 1;
-/*    b7:*/			}
-/*    bc:*/			Func_Var_4 = Rand( 1, 4 );
-/*    c3:*/			if( Func_Var_4 == 1 )
-/*    c5:*/			{
-/*    c7:*/				emit-sfx smoketype from door1;
-/*    c9:*/			}
-/*    ce:*/			if( Func_Var_4 == 2 )
-/*    d0:*/			{
-/*    d2:*/				emit-sfx smoketype from door2;
-/*    d4:*/			}
-/*    ea:*/		}
-/*    ef:*/		sleeptime = healthpercent * 50;
-/*    f6:*/		if( sleeptime < 200 )
-/*    f8:*/		{
-/*    fa:*/			sleeptime = 200;
-/*    fc:*/		}
-/*    fe:*/		sleep sleeptime;
-/*   101:*/	}
-/*   103:*/	return (0);
-/*   104:*/}
 
 Go()
-/*   104:*/{
-/*   114:*/	call-script activatescr();
-/*   119:*/	Static_Var_1 = 1;
-/*   11d:*/	return (0);
-/*   11e:*/}
+{
+	call-script activatescr();
+	Static_Var_1 = 1;
+	return (0);
+}
 
 Stop()
-/*   11e:*/{
-/*   120:*/	Static_Var_1 = 0;
-/*   122:*/	call-script deactivatescr();
-/*   137:*/	return (0);
-/*   138:*/}
+{
+	Static_Var_1 = 0;
+	call-script deactivatescr();
+	return (0);
+}
 
 InitState()
-/*   138:*/{
-/*   13a:*/	statechg_DesiredState = TRUE;
-/*   13e:*/	statechg_StateChanging = FALSE;
-/*   142:*/	return (0);
-/*   143:*/}
+{
+	statechg_DesiredState = TRUE;
+	statechg_StateChanging = FALSE;
+	return (0);
+}
 
 RequestState(requestedstate, currentstate)
-/*   145:*/{
-/*   147:*/	if( statechg_StateChanging )
-/*   149:*/	{
-/*   14b:*/		statechg_DesiredState = requestedstate;
-/*   14f:*/		return (0);
-/*   150:*/	}
-/*   152:*/	statechg_StateChanging = TRUE;
-/*   156:*/	currentstate = statechg_DesiredState;
-/*   15a:*/	statechg_DesiredState = requestedstate;
-/*   161:*/	while( statechg_DesiredState != currentstate )
-/*   163:*/	{
-/*   168:*/		if( statechg_DesiredState == 0 )
-/*   16a:*/		{
-/*   16a:*/			call-script Go();
-/*   16f:*/			currentstate = 0;
-/*   171:*/		}
-/*   176:*/		if( statechg_DesiredState == 1 )
-/*   178:*/		{
-/*   178:*/			call-script Stop();
-/*   17d:*/			currentstate = 1;
-/*   17f:*/		}
-/*   181:*/	}
-/*   183:*/	statechg_StateChanging = FALSE;
-/*   187:*/	return (0);
-/*   188:*/}
+{
+	if( statechg_StateChanging )
+	{
+		statechg_DesiredState = requestedstate;
+		return (0);
+	}
+	statechg_StateChanging = TRUE;
+	currentstate = statechg_DesiredState;
+	statechg_DesiredState = requestedstate;
+	while( statechg_DesiredState != currentstate )
+	{
+		if( statechg_DesiredState == 0 )
+		{
+			call-script Go();
+			currentstate = 0;
+		}
+		if( statechg_DesiredState == 1 )
+		{
+			call-script Stop();
+			currentstate = 1;
+		}
+	}
+	statechg_StateChanging = FALSE;
+	return (0);
+}
 
 Create()
-/*   188:*/{
-/*   19a:*/	Static_Var_1 = 0;
-/*   19e:*/	gun_1 = flare;
-/*   1a2:*/	restore_delay = 3000;
-/*   1a4:*/	call-script InitState();
-/*   1a7:*/	start-script SmokeUnit();
-			return (0);
-/*   1ad:*/}
+{
+	Static_Var_1 = 0;
+	gun_1 = flare;
+	restore_delay = 3000;
+	call-script InitState();
+}
+
+#define SMOKEPIECE base
+#include "smokeunit_thread_nohit.h"
 
 Activate()
-/*   1ad:*/{
-/*   1af:*/	start-script RequestState(0);
-/*   1b4:*/	return (0);
-/*   1b5:*/}
+{
+	start-script RequestState(0);
+	return (0);
+}
 
 Deactivate()
-/*   1b5:*/{
-/*   1b7:*/	start-script RequestState(1);
-/*   1bc:*/	return (0);
-/*   1bd:*/}
+{
+	start-script RequestState(1);
+	return (0);
+}
 
 SetMaxReloadTime(Func_Var_1)
-/*   1be:*/{
-/*   1c3:*/	restore_delay = Func_Var_1 * 2;
-/*   1c7:*/	return (0);
-/*   1c8:*/}
+{
+	restore_delay = Func_Var_1 * 2;
+	return (0);
+}
 
 AimPrimary(heading, pitch)
-/*   1ca:*/{
-/*   1cc:*/	start-script RequestState(0);
-/*   1d1:*/	signal SIG_AIM;
-/*   1d4:*/	set-signal-mask SIG_AIM;
-/*   1d7:*/	return (1);
-/*   1d8:*/}
+{
+	start-script RequestState(0);
+	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
+	return (1);
+}
 
 FirePrimary()
-/*   1d8:*/{
+{
 		gun_1 = flare;
-/*   213:*/	return (0);
-/*   214:*/}
+	return (0);
+}
 
 QueryPrimary(piecenum)
-/*   215:*/{
-/*   21a:*/	piecenum = flare;
-/*   238:*/	return (0);
-/*   239:*/}
+{
+	piecenum = flare;
+	return (0);
+}
 
 AimFromPrimary(piecenum)
 		{
 		piecenum = flare;
-/*   25d:*/	return (0);
-/*   25e:*/}
+	return (0);
+}
 
 SweetSpot(piecenum)
-/*   25f:*/{
-/*   261:*/	piecenum = base;
-/*   265:*/	return (0);
-/*   266:*/}
+{
+	piecenum = base;
+	return (0);
+}
 
 Killed(severity, corpsetype)
-/*   268:*/{
-/*   26d:*/	if( severity <= 25 )
-/*   26f:*/	{
-/*   271:*/		corpsetype = 1;
-/*   2b4:*/		return (corpsetype);
-/*   2b5:*/	}
-/*   2ba:*/	if( severity <= 50 )
-/*   2bc:*/	{
-/*   2be:*/		corpsetype = 2;
-/*   2e8:*/		explode flare type FALL | BITMAP1 | NOHEATCLOUD;
-/*   301:*/		return (corpsetype);
-/*   302:*/	}
-/*   307:*/	if( severity <= 99 )
-/*   309:*/	{
-/*   30b:*/		corpsetype = 3;
-/*   33e:*/		explode flare type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
-/*   369:*/		return (corpsetype);
-/*   36a:*/	}
-/*   36c:*/	corpsetype = 3;
-/*   39f:*/	explode flare type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
-/*   3cd:*/	return (corpsetype);
-/*   3ce:*/}
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1;
+		return (corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2;
+		explode flare type FALL | BITMAP1 | NOHEATCLOUD;
+		return (corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3;
+		explode flare type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
+		return (corpsetype);
+	}
+	corpsetype = 3;
+	explode flare type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
+	return (corpsetype);
+}

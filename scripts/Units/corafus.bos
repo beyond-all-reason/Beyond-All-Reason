@@ -22,129 +22,102 @@ piece  base;
 
 static-var  statechg_DesiredState, statechg_StateChanging;
 
-
-SmokeUnit(healthpercent, sleeptime, smoketype)
-/*     3:*/{
-/*     6:*/	while( get BUILD_PERCENT_LEFT )
-/*     8:*/	{
-/*     a:*/		sleep 400;
-/*     d:*/	}
-/*     f:*/	while( TRUE )
-/*    11:*/	{
-/*    14:*/		healthpercent = get HEALTH;
-/*    1b:*/		if( healthpercent < 66 )
-/*    1d:*/		{
-/*    22:*/			smoketype = 256 | 2;
-/*    2c:*/			if( Rand( 1, 66 ) < healthpercent )
-/*    2e:*/			{
-/*    33:*/				smoketype = 256 | 1;
-/*    35:*/			}
-/*    37:*/			emit-sfx smoketype from base;
-/*    39:*/		}
-/*    3e:*/		sleeptime = healthpercent * 50;
-/*    45:*/		if( sleeptime < 200 )
-/*    47:*/		{
-/*    49:*/			sleeptime = 200;
-/*    4b:*/		}
-/*    4d:*/		sleep sleeptime;
-/*    50:*/	}
-/*    52:*/	return (0);
-/*    53:*/	// Build by COBBLER Ver4.0 Copyright @1998 DIGITAL CONCEPT SOFTWARE (MANU@inext.fr) / http://www.annihilationcenter.com/DCS/  
-/*    80:*/}
 InitState()
-/*    c0:*/{
-/*    c2:*/	statechg_DesiredState = TRUE;
-/*    c6:*/	statechg_StateChanging = FALSE;
-/*    ca:*/	return (0);
-/*    cb:*/}
+{
+	statechg_DesiredState = TRUE;
+	statechg_StateChanging = FALSE;
+	return (0);
+}
 Create()
-/*    78:*/{
+{
 
-/*    7c:*/	call-script InitState();
-/*    7f:*/	start-script SmokeUnit();
-/*    94:*/	while( get BUILD_PERCENT_LEFT )
-/*    96:*/	{
-/*    98:*/		sleep 1000;
-/*    9b:*/	}
-/*    ab:*/	return (0);
-/*    ac:*/}
+	call-script InitState();
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 1000;
+	}
+	return (0);
+}
+
+#define SMOKEPIECE base
+#include "smokeunit_thread_nohit.h"
+
 
 Go()
-/*    ac:*/{
-/*    b0:*/	set ARMORED to 1;
-/*    b5:*/	return (0);
-/*    b6:*/}
+{
+	set ARMORED to 1;
+	return (0);
+}
 
 Stop()
-/*    b6:*/{
-/*    ba:*/	set ARMORED to 0;
-/*    bf:*/	return (0);
-/*    c0:*/}
-
+{
+	set ARMORED to 0;
+	return (0);
+}
 
 
 RequestState(requestedstate, currentstate)
-/*    cd:*/{
-/*    cf:*/	if( statechg_StateChanging )
-/*    d1:*/	{
-/*    d3:*/		statechg_DesiredState = requestedstate;
-/*    d7:*/		return (0);
-/*    d8:*/	}
-/*    da:*/	statechg_StateChanging = TRUE;
-/*    de:*/	currentstate = statechg_DesiredState;
-/*    e2:*/	statechg_DesiredState = requestedstate;
-/*    e9:*/	while( statechg_DesiredState != currentstate )
-/*    eb:*/	{
-/*    f0:*/		if( statechg_DesiredState == 0 )
-/*    f2:*/		{
-/*    f2:*/			call-script Go();
-/*    f7:*/			currentstate = 0;
-/*    f9:*/		}
-/*    fe:*/		if( statechg_DesiredState == 1 )
-/*   100:*/		{
-/*   100:*/			call-script Stop();
-/*   105:*/			currentstate = 1;
-/*   107:*/		}
-/*   109:*/	}
-/*   10b:*/	statechg_StateChanging = FALSE;
-/*   10f:*/	return (0);
-/*   110:*/}
+{
+	if( statechg_StateChanging )
+	{
+		statechg_DesiredState = requestedstate;
+		return (0);
+	}
+	statechg_StateChanging = TRUE;
+	currentstate = statechg_DesiredState;
+	statechg_DesiredState = requestedstate;
+	while( statechg_DesiredState != currentstate )
+	{
+		if( statechg_DesiredState == 0 )
+		{
+			call-script Go();
+			currentstate = 0;
+		}
+		if( statechg_DesiredState == 1 )
+		{
+			call-script Stop();
+			currentstate = 1;
+		}
+	}
+	statechg_StateChanging = FALSE;
+	return (0);
+}
 
 Activate()
-/*   110:*/{
-/*   112:*/	start-script RequestState(0);
-/*   117:*/	return (0);
-/*   118:*/}
+{
+	start-script RequestState(0);
+	return (0);
+}
 
 Deactivate()
-/*   118:*/{
-/*   11a:*/	start-script RequestState(1);
-/*   11f:*/	return (0);
-/*   120:*/}
+{
+	start-script RequestState(1);
+	return (0);
+}
 
 SweetSpot(piecenum)
-/*   121:*/{
-/*   123:*/	piecenum = base;
-/*   127:*/	return (0);
-/*   128:*/}
+{
+	piecenum = base;
+	return (0);
+}
 
 Killed(severity, corpsetype)
-/*   12a:*/{
-/*   12f:*/	if( severity <= 25 )
-/*   131:*/	{
-/*   133:*/		corpsetype = 1;
-/*   14c:*/		return (corpsetype);
-/*   14d:*/	}
-/*   152:*/	if( severity <= 50 )
-/*   154:*/	{
-/*   156:*/		corpsetype = 2;
-/*   16f:*/		return (corpsetype);
-/*   170:*/	}
-/*   175:*/	if( severity <= 99 )
-/*   177:*/	{
-/*   179:*/		corpsetype = 3;
-/*   19b:*/		return (corpsetype);
-/*   19c:*/	}
-/*   19e:*/	corpsetype = 3;
-/*   1c0:*/	return (corpsetype);
-/*   1c1:*/}
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1;
+		return (corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2;
+		return (corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3;
+		return (corpsetype);
+	}
+	corpsetype = 3;
+	return (corpsetype);
+}

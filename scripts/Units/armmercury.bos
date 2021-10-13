@@ -13,43 +13,15 @@ static-var gun_1, last_fire, firstaim;
 
 //lua_TargetCheck() { return 0; }
 
-SmokeUnit(healthpercent, sleeptime, smoketype)
-{
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 400;
-	}
-	turn gunl to x-axis <-13> speed <25.00000>;
-    turn gunr to x-axis <-13> speed <25.00000>;
-    spin turret around y-axis speed <20.0>;
-	while( TRUE )
-	{
-		healthpercent = get HEALTH;
-		if( healthpercent < 66 )
-		{
-			smoketype = 256 | 2;
-			if( Rand( 1, 66 ) < healthpercent )
-			{
-				smoketype = 256 | 1;
-			}
-			emit-sfx smoketype from base;
-		}
-		sleeptime = healthpercent * 50;
-		if( sleeptime < 200 )
-		{
-			sleeptime = 200;
-		}
-		sleep sleeptime;
-	}
-}
-
 Create()
 {
 
 	gun_1 = 1;
 	firstaim = 1;
-	start-script SmokeUnit();
 }
+
+#define SMOKEPIECE base
+#include "smokeunit_thread_nohit.h"
 
 static-var  Stunned;
 ExecuteRestoreAfterDelay()

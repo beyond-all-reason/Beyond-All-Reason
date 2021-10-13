@@ -1,18 +1,3 @@
-//            * Header Info *
-// VersionSignature                     4
-// NumberOfScripts                     17
-// NumberOfPieces                      17
-// LengthOfScripts                     355
-// NumberOfStaticVars                  4
-// UKZero                              0
-// OffsetToScriptCodeIndexArray        d80
-// OffsetToScriptNameOffsetArray       dc4
-// OffsetToPieceNameOffsetArray        e08
-// OffsetToScriptCode                  2c
-// OffsetToNameArray                   e4c
-
-// OffsetToFirstName                   e4c
-
 #define TA			// This is a TA script
 
 #include "sfxtype.h"
@@ -26,148 +11,122 @@ static-var  gun_1, restore_delay, statechg_DesiredState, statechg_StateChanging;
 #define SIG_AIM				2
 
 
-
-SmokeUnit(healthpercent, sleeptime, smoketype)
-/*    e7:*/{
-/*    ea:*/	while( get BUILD_PERCENT_LEFT )
-/*    ec:*/	{
-/*    ee:*/		sleep 400;
-/*    f1:*/	}
-/*    f3:*/	while( TRUE )
-/*    f5:*/	{
-/*    f8:*/		healthpercent = get HEALTH;
-/*    ff:*/		if( healthpercent < 66 )
-/*   101:*/		{
-/*   106:*/			smoketype = 256 | 2;
-/*   110:*/			if( Rand( 1, 66 ) < healthpercent )
-/*   112:*/			{
-/*   117:*/				smoketype = 256 | 1;
-/*   119:*/			}
-/*   11b:*/			emit-sfx smoketype from base;
-/*   11d:*/		}
-/*   122:*/		sleeptime = healthpercent * 50;
-/*   129:*/		if( sleeptime < 200 )
-/*   12b:*/		{
-/*   12d:*/			sleeptime = 200;
-/*   12f:*/		}
-/*   131:*/		sleep sleeptime;
-/*   134:*/	}
-/*   136:*/	return (0);
-/*   137:*/}
-
 Go()
-/*   137:*/{
-/*   13c:*/	gun_1 = flare;
-/*   140:*/	return (0);
-/*   141:*/}
+{
+	gun_1 = flare;
+	return (0);
+}
 
 Stop()
-/*   141:*/{
-/*   143:*/	gun_1 = base;
-/*   14d:*/	return (0);
-/*   14e:*/}
+{
+	gun_1 = base;
+	return (0);
+}
 
 InitState()
-/*   14e:*/{
-/*   150:*/	statechg_DesiredState = TRUE;
-/*   154:*/	statechg_StateChanging = FALSE;
-/*   158:*/	return (0);
-/*   159:*/}
+{
+	statechg_DesiredState = TRUE;
+	statechg_StateChanging = FALSE;
+	return (0);
+}
 
 RequestState(requestedstate, currentstate)
-/*   15b:*/{
-/*   15d:*/	if( statechg_StateChanging )
-/*   15f:*/	{
-/*   161:*/		statechg_DesiredState = requestedstate;
-/*   165:*/		return (0);
-/*   166:*/	}
-/*   168:*/	statechg_StateChanging = TRUE;
-/*   16c:*/	currentstate = statechg_DesiredState;
-/*   170:*/	statechg_DesiredState = requestedstate;
-/*   177:*/	while( statechg_DesiredState != currentstate )
-/*   179:*/	{
-/*   17e:*/		if( statechg_DesiredState == 0 )
-/*   180:*/		{
-/*   180:*/			call-script Go();
-/*   185:*/			currentstate = 0;
-/*   187:*/		}
-/*   18c:*/		if( statechg_DesiredState == 1 )
-/*   18e:*/		{
-/*   18e:*/			call-script Stop();
-/*   193:*/			currentstate = 1;
-/*   195:*/		}
-/*   197:*/	}
-/*   199:*/	statechg_StateChanging = FALSE;
-/*   19d:*/	return (0);
-/*   19e:*/}
+{
+	if( statechg_StateChanging )
+	{
+		statechg_DesiredState = requestedstate;
+		return (0);
+	}
+	statechg_StateChanging = TRUE;
+	currentstate = statechg_DesiredState;
+	statechg_DesiredState = requestedstate;
+	while( statechg_DesiredState != currentstate )
+	{
+		if( statechg_DesiredState == 0 )
+		{
+			call-script Go();
+			currentstate = 0;
+		}
+		if( statechg_DesiredState == 1 )
+		{
+			call-script Stop();
+			currentstate = 1;
+		}
+	}
+	statechg_StateChanging = FALSE;
+	return (0);
+}
 
 Create()
-/*   19e:*/{
-/*   1a0:*/	gun_1 = base;
-/*   1a2:*/	hide flare;
-/*   1c6:*/	restore_delay = 300;
-/*   1c8:*/	start-script SmokeUnit();
-/*   1cb:*/	call-script InitState();
-/*   1d0:*/	return (0);
-/*   1d1:*/}
+{
+	gun_1 = base;
+	hide flare;
+	restore_delay = 300;
+	call-script InitState();
+	return (0);
+}
+
+#define SMOKEPIECE base
+#include "smokeunit_thread_nohit.h"
+
 
 Activate()
-/*   1d1:*/{
-/*   1d3:*/	start-script RequestState(0);
-/*   1d8:*/	return (0);
-/*   1d9:*/}
+{
+	start-script RequestState(0);
+	return (0);
+}
 
 Deactivate()
-/*   1d9:*/{
-/*   1db:*/	start-script RequestState(1);
-/*   1e0:*/	return (0);
-/*   1e1:*/}
+{
+	start-script RequestState(1);
+	return (0);
+}
 
 SetMaxReloadTime(Func_Var_1)
-/*   1e2:*/{
-/*   1e7:*/	restore_delay = Func_Var_1 * 2;
-/*   1eb:*/	return (0);
-/*   1ec:*/}
+{
+	restore_delay = Func_Var_1 * 2;
+	return (0);
+}
 
 RestoreAfterDelay()
-/*   1ec:*/{
-/*   1ee:*/	sleep restore_delay;
-/*   1f1:*/	set-signal-mask 0;
-/*   1f4:*/	start-script RequestState(1);
-/*   1f9:*/	return (0);
-/*   1fa:*/}
+{
+	sleep restore_delay;
+	set-signal-mask 0;
+	start-script RequestState(1);
+	return (0);
+}
 
 AimPrimary(heading, pitch)
-/*   1fc:*/{
-/*   1fe:*/	start-script RequestState(0);
-/*   203:*/	signal SIG_AIM;
-/*   206:*/	set-signal-mask SIG_AIM;
-/*   20a:*/	while( !gun_1 )
-/*   20c:*/	{
-/*   20e:*/		sleep 250;
-/*   211:*/	}
-/*   211:*/	start-script RestoreAfterDelay();
-/*   216:*/	return (1);
-/*   217:*/}
+{
+	start-script RequestState(0);
+	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
+	while( !gun_1 )
+	{
+		sleep 250;
+	}
+	start-script RestoreAfterDelay();
+	return (1);
+}
 
 FirePrimary()
-/*   217:*/{
-/*   220:*/	gun_1 = base;
-/*   224:*/	start-script RequestState(1);
-/*   229:*/	return (0);
-/*   22a:*/}
+{
+	gun_1 = base;
+	start-script RequestState(1);
+	return (0);
+}
 
 QueryPrimary(piecenum)
-/*   22b:*/{
-/*   22d:*/	piecenum = flare;
-/*   231:*/	return (0);
-/*   232:*/}
+{
+	piecenum = flare;
+	return (0);
+}
 
 SweetSpot(piecenum)
-/*   233:*/{
-/*   235:*/	piecenum = flare;
-/*   239:*/	return (0);
-/*   23a:*/}
+{
+	piecenum = flare;
+	return (0);
+}
 
 Killed(severity, corpsetype)
 {

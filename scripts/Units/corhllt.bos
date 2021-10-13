@@ -5,58 +5,26 @@
 
 piece  base, body, turret1, flare1, turret2, flare2;
 
-static-var  restore_delay, unitviewer;
+static-var  restore_delay;
 
 // Signal definitions
 #define SIG_AIM				2
 #define SIG_AIM_2			4
 
 
-SmokeUnit(healthpercent, sleeptime, smoketype)
-{
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 400;
-	}
-	while( TRUE )
-	{
-		healthpercent = get HEALTH;
-		if( healthpercent < 66 )
-		{
-			smoketype = 256 | 2;
-			if( Rand( 1, 66 ) < healthpercent )
-			{
-				smoketype = 256 | 1;
-			}
-			emit-sfx smoketype from base;
-		}
-		sleeptime = healthpercent * 50;
-		if( sleeptime < 200 )
-		{
-			sleeptime = 200;
-		}
-		sleep sleeptime;
-	}
-}
-
 Create()
 {
-	unitviewer = FALSE;
 	restore_delay = 2000;
-	hide flare1;
-	hide flare2;
-	start-script SmokeUnit();
 }
+
+#define SMOKEPIECE base
+#include "smokeunit_thread_nohit.h"
 
 SetMaxReloadTime(Func_Var_1)
 {
 	restore_delay = Func_Var_1 * 2;
 }
 
-Demo()
-{
-	unitviewer = TRUE;
-}
 
 SweetSpot(piecenum)
 {

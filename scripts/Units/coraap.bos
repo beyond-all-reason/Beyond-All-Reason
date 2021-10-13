@@ -22,33 +22,6 @@ deactivatescr()
 
 }
 
-SmokeUnit(healthpercent, sleeptime, smoketype)
-{
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 400;
-	}
-	while( TRUE )
-	{
-		healthpercent = get HEALTH;
-		if( healthpercent < 66 )
-		{
-			smoketype = 256 | 2;
-			if( Rand( 1, 66 ) < healthpercent )
-			{
-				smoketype = 256 | 1;
-			}
-			emit-sfx smoketype from base;
-		}
-		sleeptime = healthpercent * 50;
-		if( sleeptime < 200 )
-		{
-			sleeptime = 200;
-		}
-		sleep sleeptime;
-	}
-}
-
 OpenYard()
 {
 	set YARD_OPEN to 1;
@@ -127,7 +100,6 @@ Create()
 	unitviewer = FALSE;
 	spray = base;
 	call-script InitState();
-	start-script SmokeUnit();
 	while( get BUILD_PERCENT_LEFT )
 	{
 		sleep 1000;
@@ -141,6 +113,9 @@ Create()
 	
 	spin dish2 around z-axis speed <150.027473>;
 }
+
+#define SMOKEPIECE base
+#include "smokeunit_thread_nohit.h"
 
 QueryNanoPiece(piecenum)
 {
