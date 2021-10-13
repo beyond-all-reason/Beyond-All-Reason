@@ -123,7 +123,6 @@ return {
 		"armmanni_scav",
 		"cortrem_scav",
 		"corhrk_scav",
-		"armthor_scav",
 
 		-- Bots
 		"armmar_scav",
@@ -135,6 +134,9 @@ return {
 		"armlunchbox_scav",
 		"armmeatball_scav",
 		"armassimilator_scav",
+
+		-- Vehicles
+		"armthor_scav",
 
 		-- Hovercraft
 		"armlun_scav",
