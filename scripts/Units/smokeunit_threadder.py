@@ -48,6 +48,8 @@ for root, dir, files in os.walk(os.getcwd()):
 				# replace smokepiece with first piece in piece list
 				
 				print ("OnlySmokeUnit", filename, piecelist[0],hasHitByWeapon, hasHitByWeaponID, hasSmokeUnit)
+			elif hasHitByWeapon and hasHitByWeaponID == 0 and hasSmokeUnit:
+				print ("hasHitByWeaponID", filename, piecelist[0],hasHitByWeapon, hasHitByWeaponID, hasSmokeUnit)
 			elif hasHitByWeapon == 0 and hasHitByWeaponID == 0 and hasSmokeUnit == 0:
 				print ("NoSmoke", filename, piecelist[0],hasHitByWeapon, hasHitByWeaponID, hasSmokeUnit)
 			else:
