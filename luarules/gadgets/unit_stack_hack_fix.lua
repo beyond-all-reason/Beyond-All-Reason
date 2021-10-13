@@ -13,6 +13,9 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
+local mapsizeX = Game.mapSizeX
+local mapsizeZ = Game.mapSizeZ
+
 affectedUnits = {}
 local affectedUnitTypes = {
     "armnanotc",
@@ -75,28 +78,37 @@ function gadget:GameFrame(n)
                         
                         if r == 1 then
                             if x == ax or z == az then
-                                movementTargetX = math.random(-testRange,testRange)
-                                movementTargetZ = math.random(-testRange,testRange)
+                                movementTargetX = math.random(-testRange*2,testRange*2)
+                                movementTargetZ = math.random(-testRange*2,testRange*2)
                             end
                         elseif r == 2 then
                             if x > ax then
-                                movementTargetX = 5
+                                movementTargetX = math.random(1,10)
                             end
                             if x < ax then
-                                movementTargetX = -5
+                                movementTargetX = -math.random(1,10)
                             end
                         elseif r == 3 then
                             if z > az then
-                                movementTargetZ = 5
+                                movementTargetZ = math.random(1,10)
                             end
                             if z < az then
-                                movementTargetZ = -5
+                                movementTargetZ = -math.random(1,10)
                             end
                         end
                         local movementTargetY = Spring.GetGroundHeight(x+movementTargetX, z+movementTargetZ)
                         local aboveMinWaterDepth = -(UnitDefs[unitDefID].minWaterDepth) > movementTargetY
                         local belowMaxWaterDepth = -(UnitDefs[unitDefID].maxWaterDepth) < movementTargetY
-                        if aboveMinWaterDepth and belowMaxWaterDepth then
+                        
+                        local onMap = true
+                        if x+movementTargetX > mapsizeX or x+movementTargetX < 0 then
+                            onMap = false
+                        end
+                        if z+movementTargetZ > mapsizeZ or z+movementTargetZ < 0 then
+                            onMap = false
+                        end
+                        
+                        if aboveMinWaterDepth and belowMaxWaterDepth and onMap then
                             Spring.SetUnitPosition(unitID, x+movementTargetX, z+movementTargetZ)
                         end
                     end
