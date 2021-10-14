@@ -1,17 +1,3 @@
-//            * Header Info *
-// VersionSignature                     4
-// NumberOfScripts                     16
-// NumberOfPieces                      14
-// LengthOfScripts                     2e5
-// NumberOfStaticVars                  4
-// UKZero                              0
-// OffsetToScriptCodeIndexArray        bc0
-// OffsetToScriptNameOffsetArray       c00
-// OffsetToPieceNameOffsetArray        c40
-// OffsetToScriptCode                  2c
-// OffsetToNameArray                   c78
-
-// OffsetToFirstName                   c78
 
 #define TA			// This is a TA script
 
@@ -27,161 +13,160 @@ static-var  spray, unitviewer, statechg_DesiredState, statechg_StateChanging;
 
 
 activatescr()
-/*     0:*/{
-			turn head1 to y-axis <0> now;
-			turn head1 to y-axis <45> speed <100>;
-			turn head2 to y-axis <0> now;
-			turn head2 to y-axis <-45> speed <100>;
-			wait-for-turn head1 around y-axis;
-/*    12:*/		sleep 464;
-/*    27:*/	return (0);
-/*    28:*/	// Build by COBBLER Ver4.0 Copyright @1998 DIGITAL CONCEPT SOFTWARE (MANU@inext.fr) / http://www.annihilationcenter.com/DCS/  
-/*    55:*/}
+{
+	turn head1 to y-axis <0> now;
+	turn head1 to y-axis <45> speed <100>;
+	turn head2 to y-axis <0> now;
+	turn head2 to y-axis <-45> speed <100>;
+	wait-for-turn head1 around y-axis;
+	sleep 464;
+	return (0);
+}
 
 deactivatescr()
-/*    4d:*/{
-			turn head1 to y-axis <0> speed <100>;
-			turn head2 to y-axis <0> speed <100>;
-			wait-for-turn head1 around y-axis;
-/*    7f:*/	sleep 500;
-/*    82:*/	return (0);
-/*    83:*/}
+{
+	turn head1 to y-axis <0> speed <100>;
+	turn head2 to y-axis <0> speed <100>;
+	wait-for-turn head1 around y-axis;
+	sleep 500;
+	return (0);
+}
 
 OpenYard()
-/*    83:*/{
-/*    87:*/	set YARD_OPEN to 1;
-/*    8c:*/	while( !get YARD_OPEN )
-/*    8e:*/	{
-/*    92:*/		set BUGGER_OFF to 1;
-/*    95:*/		sleep 1500;
-/*    9a:*/		set YARD_OPEN to 1;
-/*    9d:*/	}
-/*    a1:*/	set BUGGER_OFF to 0;
-/*    a4:*/	return (0);
-/*    a5:*/}
+{
+	set YARD_OPEN to 1;
+	while( !get YARD_OPEN )
+	{
+		set BUGGER_OFF to 1;
+		sleep 1500;
+		set YARD_OPEN to 1;
+	}
+	set BUGGER_OFF to 0;
+	return (0);
+}
 
 CloseYard()
-/*    a5:*/{
-/*    a9:*/	set YARD_OPEN to 0;
-/*    ad:*/	while( get YARD_OPEN )
-/*    af:*/	{
-/*    b3:*/		set BUGGER_OFF to 1;
-/*    b6:*/		sleep 1500;
-/*    bb:*/		set YARD_OPEN to 0;
-/*    be:*/	}
-/*    c2:*/	set BUGGER_OFF to 0;
-/*    c5:*/	return (0);
-/*    c6:*/}
+{
+	set YARD_OPEN to 0;
+	while( get YARD_OPEN )
+	{
+		set BUGGER_OFF to 1;
+		sleep 1500;
+		set YARD_OPEN to 0;
+	}
+	set BUGGER_OFF to 0;
+	return (0);
+}
 
 Go()
-/*    c6:*/{
-/*    c6:*/	call-script activatescr();
-/*    c9:*/	call-script OpenYard();
-/*    d0:*/	set INBUILDSTANCE to 1;
-/*    d3:*/	return (0);
-/*    d4:*/}
+{
+	call-script activatescr();
+	call-script OpenYard();
+	set INBUILDSTANCE to 1;
+	return (0);
+}
 
 Stop()
-/*    d4:*/{
-/*    d8:*/	set INBUILDSTANCE to 0;
-/*    d9:*/	call-script CloseYard();
-/*    dc:*/	call-script deactivatescr();
-/*    e1:*/	return (0);
-/*    e2:*/}
+{
+	set INBUILDSTANCE to 0;
+	call-script CloseYard();
+	call-script deactivatescr();
+	return (0);
+}
 
 InitState()
-/*    e2:*/{
-/*    e4:*/	statechg_DesiredState = TRUE;
-/*    e8:*/	statechg_StateChanging = FALSE;
-/*    ec:*/	return (0);
-/*    ed:*/}
+{
+	statechg_DesiredState = TRUE;
+	statechg_StateChanging = FALSE;
+	return (0);
+}
 
 RequestState(requestedstate, currentstate)
-/*    ef:*/{
-/*    f1:*/	if( statechg_StateChanging )
-/*    f3:*/	{
-/*    f5:*/		statechg_DesiredState = requestedstate;
-/*    f9:*/		return (0);
-/*    fa:*/	}
-/*    fc:*/	statechg_StateChanging = TRUE;
-/*   100:*/	currentstate = statechg_DesiredState;
-/*   104:*/	statechg_DesiredState = requestedstate;
-/*   10b:*/	while( statechg_DesiredState != currentstate )
-/*   10d:*/	{
-/*   112:*/		if( statechg_DesiredState == 0 )
-/*   114:*/		{
-/*   114:*/			call-script Go();
-/*   119:*/			currentstate = 0;
-/*   11b:*/		}
-/*   120:*/		if( statechg_DesiredState == 1 )
-/*   122:*/		{
-/*   122:*/			call-script Stop();
-/*   127:*/			currentstate = 1;
-/*   129:*/		}
-/*   12b:*/	}
-/*   12d:*/	statechg_StateChanging = FALSE;
-/*   131:*/	return (0);
-/*   132:*/}
+{
+	if( statechg_StateChanging )
+	{
+		statechg_DesiredState = requestedstate;
+		return (0);
+	}
+	statechg_StateChanging = TRUE;
+	currentstate = statechg_DesiredState;
+	statechg_DesiredState = requestedstate;
+	while( statechg_DesiredState != currentstate )
+	{
+		if( statechg_DesiredState == 0 )
+		{
+			call-script Go();
+			currentstate = 0;
+		}
+		if( statechg_DesiredState == 1 )
+		{
+			call-script Stop();
+			currentstate = 1;
+		}
+	}
+	statechg_StateChanging = FALSE;
+	return (0);
+}
 
 Create()
-/*   132:*/{
-/*   134:*/	spray = base;
-/*   138:*/	unitviewer = FALSE;
-/*   13a:*/	call-script InitState();
-/*   13f:*/	return (0);
-/*   140:*/}
+{
+	spray = base;
+	unitviewer = FALSE;
+	call-script InitState();
+	return (0);
+}
 
 QueryNanoPiece(piecenum)
-/*   141:*/{
-/*   146:*/	if( spray == 0 )
-/*   148:*/	{
-/*   14a:*/		piecenum = nano1;
-/*   14c:*/	}
-/*   151:*/	if( spray != 0 )
-/*   153:*/	{
-/*   155:*/		piecenum = nano2;
-/*   157:*/	}
-/*   15a:*/	spray = !spray;
-/*   15e:*/	return (0);
-/*   15f:*/}
+{
+	if( spray == 0 )
+	{
+		piecenum = nano1;
+	}
+	if( spray != 0 )
+	{
+		piecenum = nano2;
+	}
+	spray = !spray;
+	return (0);
+}
 
 Demo()
-/*   15f:*/{
-/*   161:*/	unitviewer = TRUE;
-/*   165:*/	return (0);
-/*   166:*/}
+{
+	unitviewer = TRUE;
+	return (0);
+}
 
 Activate()
-/*   166:*/{
-/*   168:*/	signal SIG_ACTIVATE;
-/*   16b:*/	start-script RequestState(0);
-/*   170:*/	return (0);
-/*   171:*/}
+{
+	signal SIG_ACTIVATE;
+	start-script RequestState(0);
+	return (0);
+}
 
 Deactivate()
-/*   171:*/{
-/*   173:*/	signal SIG_ACTIVATE;
-/*   176:*/	set-signal-mask SIG_ACTIVATE;
-/*   17a:*/	if( !unitviewer )
-/*   17c:*/	{
-/*   17e:*/		sleep 5000;
-/*   17f:*/	}
-/*   181:*/	set-signal-mask 0;
-/*   184:*/	start-script RequestState(1);
-/*   189:*/	return (0);
-/*   18a:*/}
+{
+	signal SIG_ACTIVATE;
+	set-signal-mask SIG_ACTIVATE;
+	if( !unitviewer )
+	{
+		sleep 5000;
+	}
+	set-signal-mask 0;
+	start-script RequestState(1);
+	return (0);
+}
 
 QueryBuildInfo(piecenum)
-/*   18b:*/{
-/*   18d:*/	piecenum = pad;
-/*   191:*/	return (0);
-/*   192:*/}
+{
+	piecenum = pad;
+	return (0);
+}
 
 SweetSpot(piecenum)
-/*   193:*/{
-/*   195:*/	piecenum = base;
-/*   199:*/	return (0);
-/*   19a:*/}
+{
+	piecenum = base;
+	return (0);
+}
 
 Killed(severity, corpsetype)
 {

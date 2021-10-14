@@ -36,6 +36,7 @@ HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and f
 	return (100); //return damage percent
 }
 
+
 activatescr()
 {
 	sleep 31;
