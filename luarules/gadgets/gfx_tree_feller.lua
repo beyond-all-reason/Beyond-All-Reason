@@ -222,7 +222,7 @@ if gadgetHandler:IsSyncedCode() then
 					local name = treeName[featureDefID]
 					Spring.SetFeatureResources(0,0,0,0)
 					Spring.SetFeatureNoSelect(featureID, true)
-					Spring.PlaySoundFile("treefall", 1, fx, fy, fz, 'sfx')
+					Spring.PlaySoundFile("treefall", 2, fx, fy, fz, 'sfx')
 					treesdying[featureID] = {
 						frame = GetGameFrame(),
 						posx = fx, posy = fy, posz = fz,
