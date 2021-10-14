@@ -7,7 +7,7 @@ return {
 		brakerate = 0.02,
 		buildcostenergy = 225000,
 		buildcostmetal = 15000,
-		buildpic = "ARMSERP.DDS",
+		buildpic = "armserpt3.DDS",
 		buildtime = 250000,
 		canmove = true,
 		category = "ALL NOTLAND MOBILE WEAPON NOTAIR NOTHOVER CANBEUW SURFACE EMPABLE UNDERWATER",
