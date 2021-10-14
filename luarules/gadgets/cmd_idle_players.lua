@@ -17,7 +17,7 @@ local maxInitialQueueSlack = 120 -- in seconds
 local takeCommand = "take2"
 local minTimeToTake = 10 -- in seconds
 local checkQueueTime = 25 -- in seconds
---in chose ingame startpostype, players must place beforehand, so take an action, grace period can be shorter
+-- in chose ingame startpostype, players must place beforehand, so take an action, grace period can be shorter
 minTimeToTake = Spring.GetModOptions().startpostype == 2 and 1 or minTimeToTake
 
 local AFKMessage = 'idleplayers '
@@ -30,10 +30,7 @@ local errorKeys = {
 }
 
 if gadgetHandler:IsSyncedCode() then
-	
-	-----------------
-	-- SYNCED code --
-	-----------------
+
 	local playerInfoTable = {}
 	local currentGameFrame = 0
 
@@ -87,15 +84,15 @@ if gadgetHandler:IsSyncedCode() then
 		local aiOwners = {}
 		for _,teamID in ipairs(GetTeamList()) do --initialize team count
 			if select(4,GetTeamInfo(teamID,false)) then
-				--store who hosts that engine ai, team will be controlled if player is present
+				-- store who hosts that engine ai, team will be controlled if player is present
 				local aiHost = select(3,GetAIInfo(teamID))
 				local hostedAis = aiOwners[aiHost] or {}
 				hostedAis[#hostedAis+1] = teamID
 				aiOwners[aiHost] = hostedAis
 			end
-			--is luaai or is gaia
-			if GetTeamLuaAI(teamID) ~= "" or teamID == gaiaTeamID then
-				--luaai and gaia are always controlled
+			-- lua ai and gaia are always controlled
+			local luaAI = GetTeamLuaAI(teamID)
+			if teamID == gaiaTeamID or (luaAI and luaAI ~= "") then
 				TeamToRemainingPlayers[teamID] = 1
 			else
 				TeamToRemainingPlayers[teamID] = 0
@@ -109,7 +106,7 @@ if gadgetHandler:IsSyncedCode() then
 			local pingTreshold = maxPing
 			local oldPingOk = playerInfoTableEntry.pingOK
 			if oldPingOk == false then
-				pingTreshold = finishedResumingPing --use smaller threshold to determine finished resuming
+				pingTreshold = finishedResumingPing -- use smaller threshold to determine finished resuming
 			end
 			playerInfoTableEntry.pingOK = ping < pingTreshold
 			if not spectator then
@@ -124,10 +121,10 @@ if gadgetHandler:IsSyncedCode() then
 			end
 			playerInfoTable[playerID] = playerInfoTableEntry
 
-			--mark hosted ais as controlled
+			-- mark hosted ais as controlled
 			local hostedAis = aiOwners[playerID]
 			if hostedAis then
-				--a player only needs to be connected and low enough ping to host an ai
+				-- a player only needs to be connected and low enough ping to host an ai
 				if playerInfoTableEntry.connected  and playerInfoTableEntry.pingOK then
 					for _,aiTeamID in ipairs(hostedAis) do
 						TeamToRemainingPlayers[aiTeamID] = TeamToRemainingPlayers[aiTeamID] + 1
@@ -140,7 +137,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 
-		for teamID,teamCount in ipairs(TeamToRemainingPlayers) do
+		for teamID, teamCount in pairs(TeamToRemainingPlayers) do
 			-- set to a public readable value that there's nobody controlling the team
 			SetTeamRulesParam(teamID, "numActivePlayers", teamCount )
 		end
@@ -155,8 +152,8 @@ if gadgetHandler:IsSyncedCode() then
 		local _,_,_,takerID,allyTeamID = GetPlayerInfo(playerID,false)
 		local teamList = GetTeamList(allyTeamID)
 		if targetTeam then
-			if select(6,GetTeamInfo(targetTeam,false)) ~= allyTeamID then
-				--don't let enemies take
+			if select(6, GetTeamInfo(targetTeam,false)) ~= allyTeamID then
+				-- don't let enemies take
 				SendToUnsynced("NotifyError", playerID, errorKeys.takeEnemies)
 				return
 			end
@@ -168,13 +165,13 @@ if gadgetHandler:IsSyncedCode() then
 				numToTake = numToTake + 1
 				-- transfer all units
 				local teamUnits = GetTeamUnits(teamID)
-				for i=1,#teamUnits do
-					TransferUnit(teamUnits[i],takerID)
+				for i=1, #teamUnits do
+					TransferUnit(teamUnits[i], takerID)
 				end
 				--send all resources en-block to the taker
-				for _,resourceName in ipairs(resourceList) do
-					local shareAmount = GetTeamResources( teamID, resourceName)
-					local current,storage,_,_,_,shareSlider = GetTeamResources(takerID,resourceName)
+				for _, resourceName in ipairs(resourceList) do
+					local shareAmount = GetTeamResources(teamID, resourceName)
+					local current,storage,_,_,_,shareSlider = GetTeamResources(takerID, resourceName)
 					shareAmount = math.min(shareAmount,shareSlider*storage-current)
 					ShareTeamResource( teamID, takerID, resourceName, shareAmount )
 				end
@@ -215,7 +212,7 @@ if gadgetHandler:IsSyncedCode() then
 		local previousPresent = playerInfoTableEntry.present
 		playerInfoTableEntry.present = afk == 0
 		playerInfoTable[playerID] = playerInfoTableEntry
-		local name,active,spectator,teamID,allyTeamID,ping = GetPlayerInfo(playerID,false)
+		local name,active,spectator,teamID,allyTeamID,ping = GetPlayerInfo(playerID, false)
 		if not spectator and name ~= nil then
 			if currentGameFrame > minTimeToTake*gameSpeed then
 				if previousPresent and not playerInfoTableEntry.present then
@@ -333,6 +330,7 @@ else
 		gadgetHandler:AddSyncAction("PlayerAFK", playerAFK)
 		gadgetHandler:AddSyncAction("PlayerReturned", playerReturned)
 		gadgetHandler:AddChatAction("initialQueueTime",onInitialQueueTime)
+		notIdle()
 	end
 
 	function gadget:Shutdown()
