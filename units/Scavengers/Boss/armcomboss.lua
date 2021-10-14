@@ -289,8 +289,8 @@ return {
 					light_radius_mult = 1.4,
 				},
 				damage = {
-					default = 999999,
-					vtol = 999999,
+					default = 5000,
+					vtol = 5000,
 				},
 			},
 		},
