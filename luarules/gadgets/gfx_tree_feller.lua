@@ -180,7 +180,6 @@ if gadgetHandler:IsSyncedCode() then
 					else
 						Damage = 0 -- so it doesnt take multiple frames for tree to get killed.
 					end
-
 					-- TREE CAUGHT FIRE FROM OTHER TREE
 					if treeWeapons[weaponDefID] then
 						ppx, ppy, ppz = GetFeaturePosition(featureID)
@@ -223,6 +222,7 @@ if gadgetHandler:IsSyncedCode() then
 					local name = treeName[featureDefID]
 					Spring.SetFeatureResources(0,0,0,0)
 					Spring.SetFeatureNoSelect(featureID, true)
+					Spring.PlaySoundFile("treefall", 1, fx, fy, fz, 'sfx')
 					treesdying[featureID] = {
 						frame = GetGameFrame(),
 						posx = fx, posy = fy, posz = fz,
