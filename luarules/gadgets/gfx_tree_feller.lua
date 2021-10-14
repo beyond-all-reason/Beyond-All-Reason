@@ -6,7 +6,7 @@ function gadget:GetInfo()
 		date = "march 201",
 		license = "CC BY NC ND",
 		layer = 0,
-		enabled = false,
+		enabled = true,
 	}
 end
 
@@ -85,6 +85,7 @@ if gadgetHandler:IsSyncedCode() then
 	local GetFeaturePosition = Spring.GetFeaturePosition
 	local GetFeatureHealth = Spring.GetFeatureHealth
 	local GetFeatureDirection = Spring.GetFeatureDirection
+  local GetGroundHeight = Spring.GetGroundHeight
 	local GetFeatureResources = Spring.GetFeatureResources
 	local SetFeatureDirection = Spring.SetFeatureDirection
 	local SetFeatureBlocking = Spring.SetFeatureBlocking
@@ -314,15 +315,15 @@ if gadgetHandler:IsSyncedCode() then
 								Spring.SpawnExplosion(firex, firey, firez, 0, 0, 0, treefireExplosion[featureinfo.size])
 							end
 						end
-
-						if featureinfo.destroyFrame <= gf then
+        
+            local gh = Spring.GetGroundHeight(fx,fz)
+            if featureinfo.destroyFrame <= gf or (gh > fy + 48) then
 							treesdying[featureID] = nil
 							DestroyFeature(featureID)
 						elseif featureinfo.frame + thisfeaturefalltime + 250 <= gf and treesdying[featureID].fire then
 							treesdying[featureID].fire = false
 						elseif featureinfo.frame + thisfeaturefalltime + 100 <= gf then
 							local dx, dy, dz = GetFeatureDirection(featureID)
-
 							if treesdying[featureID].fire then
 								SetFeaturePosition(featureID, fx, fy - treesdying[featureID].dissapearSpeed, fz, false)
 							else
