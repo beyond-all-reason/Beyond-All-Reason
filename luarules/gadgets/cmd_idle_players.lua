@@ -10,12 +10,13 @@ function gadget:GetInfo()
     }
 end
 
-local maxIdleTreshold = 60 --in seconds
-local maxPing = 30 -- in seconds
+local maxIdleTreshold = 80 --in seconds
+local warningPeriod = 15
+local maxPing = 33 -- in seconds
 local finishedResumingPing = 2 --in seconds
-local maxInitialQueueSlack = 120 -- in seconds
+local maxInitialQueueSlack = 150 -- in seconds
 local takeCommand = "take2"
-local minTimeToTake = 10 -- in seconds
+local minTimeToTake = 12 -- in seconds
 local checkQueueTime = 25 -- in seconds
 -- in chose ingame startpostype, players must place beforehand, so take an action, grace period can be shorter
 minTimeToTake = Spring.GetModOptions().startpostype == 2 and 1 or minTimeToTake
@@ -234,10 +235,9 @@ if gadgetHandler:IsSyncedCode() then
 		return capture or GetTeamRulesParam(toTeamID,"numActivePlayers") ~= 0 or IsCheatingEnabled()
 	end
 
-else
-	-------------------
-	-- UNSYNCED code --
-	-------------------
+
+else	-- UNSYNCED
+
 
 	local GetLastUpdateSeconds = Spring.GetLastUpdateSeconds
 	local SendLuaRulesMsg = Spring.SendLuaRulesMsg
@@ -258,6 +258,9 @@ else
 	local initialQueueTime
 	local mx,my = GetMouseState()
 	local validation = SYNCED.validationIdle
+	local warningGiven = false
+	local myTeamID = Spring.GetMyTeamID()
+	local myAllyTeamID = Spring.GetMyAllyTeamID()
 
 	local isBuilder = {}
 	local unitBuildSpeedTime = {}
@@ -279,6 +282,7 @@ else
 
 	local function notIdle()
 		lastActionTime = max(timer,lastActionTime)
+		warningGiven = false
 		if isIdle then
 			SendLuaRulesMsg(validation..AFKMessage.. "0")
 			isIdle = false
@@ -351,7 +355,7 @@ else
 			local teamID = Spring.GetMyTeamID()
 			local myUnits = Spring.GetTeamUnits(teamID)
 			local queueTime = 0
-			for i=1,#myUnits do
+			for i=1, #myUnits do
 				local unitID = myUnits[i]
 				local thisQueueTime = 0
 				if isBuilder[GetUnitDefID(unitID)] then
@@ -370,7 +374,7 @@ else
 			checkQueueTime = nil
 		end
 
-		-- ugly code to check if the mouse moved since the call-in doesn't work
+		-- check if the mouse moved
 		local x,y = GetMouseState()
 		if mx ~= x or my ~= y then
 			notIdle()
@@ -378,14 +382,23 @@ else
 		my = y
 		mx = x
 
-		if timer-lastActionTime > maxIdleTreshold then
-			wentIdle()
-		end
-	end
+		if timer-lastActionTime > maxIdleTreshold-warningPeriod then
+			if not warningGiven then
+				warningGiven = true
 
-	-- MouseMove isn't called either??!
-	function gadget:MouseMove()
-		notIdle()
+				-- check first if user has team players... that could possibly take... and then give warning
+				local teamList = Spring.GetTeamList(myAllyTeamID)
+				for _,teamID in ipairs(teamList) do
+					local luaAI = Spring.GetTeamLuaAI(teamID)
+					if teamID ~= myTeamID and not select(4, Spring.GetTeamInfo(teamID,false)) and (not luaAI or luaAI == "") and Spring.GetTeamRulesParam(teamID, "numActivePlayers") > 0 then
+						Spring.Echo("\255\255\166\166"..Spring.I18N('ui.idlePlayers.warning'))
+						break
+					end
+				end
+			elseif timer-lastActionTime > maxIdleTreshold then
+				wentIdle()
+			end
+		end
 	end
 
 	function gadget:MousePress()

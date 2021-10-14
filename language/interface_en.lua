@@ -598,6 +598,7 @@ return {
 				resumed = '%{name} has finished resuming',
 				afk = '%{name} went AFK',
 				returned = '%{name} came back',
+				warning = "You are idling, do something quick! (others are able to take over all your things soon)",
 			},
 			ffaNoOwner = {
 				removed = "No Owner Mode: Removing Team %{team}",
