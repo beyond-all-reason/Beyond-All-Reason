@@ -854,7 +854,7 @@ return {
 				corcut = "Seaplane Gunship",
 				corcv = "Tech Level 1",
 				cordecom = "Decoy Commander",
-				cordemont4 = "All-Terrain BRRRRRT Mech",
+				cordemont4 = "Flamethrower Mech",
 				cordl = "Coastal Torpedo Launcher",
 				corarmag = "High power energy defence",
 				cordoom = "Energy Weapon",

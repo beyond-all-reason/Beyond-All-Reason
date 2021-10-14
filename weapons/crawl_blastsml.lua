@@ -22,11 +22,11 @@ return {
 	},
 	
 	crawl_blastsmlscavboss = {
-		areaofeffect = 1920,
-		craterareaofeffect = 1920,
-		craterboost = 2.4,
-		cratermult = 1.2,
-		edgeeffectiveness = 0.45,
+		areaofeffect = 1500,
+		craterareaofeffect = 1500,
+		craterboost = 0.4,
+		cratermult = 0.2,
+		edgeeffectiveness = 0.25,
 		explosiongenerator = "custom:newnukecor",
 		impulseboost = 0,
 		impulsefactor = 0,
@@ -39,7 +39,7 @@ return {
 		weaponvelocity = 250,
 		damage = {
 			commanders = 500,
-			default = 11500,
+			default = 50000,
 		},
 	},
 }
