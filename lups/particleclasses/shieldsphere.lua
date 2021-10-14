@@ -411,7 +411,6 @@ function ShieldSphereParticle:Update(n)
 	end
   if (self.life<1) then
     -- first off, BAR doesnt change the size of the sphere, nor the color of it in any significant way, so there is no point in ever calling this, but ill leave it here for others to learn from it.
-    return
 		self.life		 = self.life + 31
 		self.size		 = self.size + n*self.sizeGrowth
 		self.color1 = {GetColor(self.colormap1,self.life)}
