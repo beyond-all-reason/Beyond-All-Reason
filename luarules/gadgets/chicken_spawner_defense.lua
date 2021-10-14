@@ -1558,7 +1558,7 @@ else
 	end
 
 	local function queenResistant(_, attackerDefId)
-		Spring.Echo( Spring.I18N('ui.chickens.queenResistant', { unit = UnitDefs[attackerDefId].translatedHumanName }) )
+		Spring.Echo( Spring.I18N('ui.chickens.queenResistant', { unit = UnitDefs[attackerDefId].humanName }) )
 	end
 
 	function gadget:Initialize()

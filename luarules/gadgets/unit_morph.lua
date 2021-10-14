@@ -247,8 +247,8 @@ local function BuildMorphDef(udSrc, morphData)
 
 	newData.texture = morphData.texture
 	if morphData.text then
-		newData.text = string.gsub(morphData.text, "$$unitname", udSrc.translatedHumanName)
-		newData.text = string.gsub(newData.text, "$$into", udDst.translatedHumanName)		
+		newData.text = string.gsub(morphData.text, "$$unitname", udSrc.humanName)
+		newData.text = string.gsub(newData.text, "$$into", udDst.humanName)		
 	else
 		newData.text = morphData.text
 	end
@@ -347,8 +347,8 @@ local function GetMorphToolTip(unitID, unitDefID, teamID, morphDef, teamTech, un
   if (morphDef.text ~= nil) then
 	tt = tt .. WhiteStr  .. morphDef.text .. '\n'
   else
-  	--tt = tt .. WhiteStr  .. 'Upgrade into a ' .. ud.translatedHumanName .. '\n'
-  	tt = tt .. 'Upgrade into a ' .. ud.translatedHumanName .. '\n'
+  	--tt = tt .. WhiteStr  .. 'Upgrade into a ' .. ud.humanName .. '\n'
+  	tt = tt .. 'Upgrade into a ' .. ud.humanName .. '\n'
   end
   if (morphDef.time > 0) then
   	tt = tt .. GreenStr  .. 'time: '   .. morphDef.time     .. '\n'
@@ -368,7 +368,7 @@ local function GetMorphToolTip(unitID, unitDefID, teamID, morphDef, teamTech, un
     if (morphDef.tech>teamTech) then tt = tt .. ' level: ' .. morphDef.tech end
     if (morphDef.xp>unitXP)     then tt = tt .. ' xp: '    .. string.format('%.2f',morphDef.xp) end
     if (morphDef.rank>unitRank) then tt = tt .. ' rank: '  .. morphDef.rank .. ' (' .. string.format('%.2f',RankToXp(unitDefID,morphDef.rank)) .. 'xp)' end
-    -- if (not teamOwnsReqUnit)	then tt = tt .. ' unit: '  .. UnitDefs[morphDef.require].translatedHumanName end
+    -- if (not teamOwnsReqUnit)	then tt = tt .. ' unit: '  .. UnitDefs[morphDef.require].humanName end
     -- Refactored to show unreached+required tech
     --tt = tt .. ' unit: '  .. reqTech[x]
       -- // Loop all unreachedTechs and add to the tooltip

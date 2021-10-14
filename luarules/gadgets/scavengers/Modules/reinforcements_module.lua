@@ -266,7 +266,7 @@ function spawnPlayerReinforcements(n)
 							end
 
 
-							ScavSendMessage(playerName .."'s reinforcements detected. Unit type: ".. UDN[groupunit].translatedHumanName .. ".")
+							ScavSendMessage(playerName .."'s reinforcements detected. Unit type: ".. UDN[groupunit].humanName .. ".")
 							for a = 1,math.ceil(groupsize) do
 								--local posradius = posradius+(groupsize*8)
 								local posx = posx+(math_random(-posradius,posradius))
