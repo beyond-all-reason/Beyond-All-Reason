@@ -261,6 +261,7 @@ else	-- UNSYNCED
 	local warningGiven = false
 	local myTeamID = Spring.GetMyTeamID()
 	local myAllyTeamID = Spring.GetMyAllyTeamID()
+	local gaiaTeamID = Spring.GetGaiaTeamID()
 
 	local isBuilder = {}
 	local unitBuildSpeedTime = {}
@@ -385,15 +386,17 @@ else	-- UNSYNCED
 		if timer-lastActionTime > maxIdleTreshold-warningPeriod then
 			if not warningGiven then
 				warningGiven = true
-
-				-- check first if user has team players... that could possibly take... and then give warning
-				local teamList = Spring.GetTeamList(myAllyTeamID)
-				for _,teamID in ipairs(teamList) do
-					local luaAI = Spring.GetTeamLuaAI(teamID)
-					local _, leader, isDead, isAiTeam, side, allyTeamID, incomeMultiplier, customTeamKeys = Spring.GetTeamInfo(teamID, false)
-					if teamID ~= myTeamID and not isDead and not isAiTeam and (not luaAI or luaAI == "") and Spring.GetTeamRulesParam(teamID, "numActivePlayers") > 0 then
-						Spring.Echo("\255\255\166\166"..Spring.I18N('ui.idlePlayers.warning'))
-						break
+				local spectator = Spring.GetSpectatingState()
+				if not spectator then
+					-- check first if user has team players... that could possibly take... and then give warning
+					local teamList = Spring.GetTeamList(myAllyTeamID)
+					for _,teamID in ipairs(teamList) do
+						local luaAI = Spring.GetTeamLuaAI(teamID)
+						local _, leader, isDead, isAiTeam, side, allyTeamID, incomeMultiplier, customTeamKeys = Spring.GetTeamInfo(teamID, false)
+						if teamID ~= myTeamID and teamID ~= gaiaTeamID and not isDead and not isAiTeam and (not luaAI or luaAI == "") and Spring.GetTeamRulesParam(teamID, "numActivePlayers") > 0 then
+							Spring.Echo("\255\255\166\166"..Spring.I18N('ui.idlePlayers.warning'))
+							break
+						end
 					end
 				end
 			elseif timer-lastActionTime > maxIdleTreshold then
