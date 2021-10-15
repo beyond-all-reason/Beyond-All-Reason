@@ -390,7 +390,8 @@ else	-- UNSYNCED
 				local teamList = Spring.GetTeamList(myAllyTeamID)
 				for _,teamID in ipairs(teamList) do
 					local luaAI = Spring.GetTeamLuaAI(teamID)
-					if teamID ~= myTeamID and not select(4, Spring.GetTeamInfo(teamID,false)) and (not luaAI or luaAI == "") and Spring.GetTeamRulesParam(teamID, "numActivePlayers") > 0 then
+					local _, leader, isDead, isAiTeam, side, allyTeamID, incomeMultiplier, customTeamKeys = Spring.GetTeamInfo(teamID, false)
+					if teamID ~= myTeamID and not isDead and not isAiTeam and (not luaAI or luaAI == "") and Spring.GetTeamRulesParam(teamID, "numActivePlayers") > 0 then
 						Spring.Echo("\255\255\166\166"..Spring.I18N('ui.idlePlayers.warning'))
 						break
 					end
