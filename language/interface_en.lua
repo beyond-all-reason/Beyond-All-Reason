@@ -1,7 +1,7 @@
 return {
 	en = {
 		ui = {
-			forceResignMessage = "You have been force-resigned: Self-destructing all your units is considered unwanted behavior.",
+			forceResignMessage = "You have been force-resigned: Self-destructing all your units is considered unwanted behavior when you still have teammates playing.",
 			topbar = {
 				button = {
 					quit = 'Quit',

@@ -19,6 +19,7 @@ if gadgetHandler:IsSyncedCode() then
 	local selfdCheckTeamUnits = {}
 	local spGetUnitSelfDTime = Spring.GetUnitSelfDTime
 	local spGetTeamUnits = Spring.GetTeamUnits
+	local gaiaTeamID = Spring.GetGaiaTeamID()
 
 	local function forceResignTeam(teamID)
 
@@ -46,24 +47,39 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:GameFrame(n)
 		if n % 15 == 1 then
 			for teamID, _ in pairs(selfdCheckTeamUnits) do
-				local units = spGetTeamUnits(teamID)
-				local unitCount = #units
-				local triggerResignAmount = math.ceil(unitCount * thresholdPercentage)
-				local skipResignAmount = unitCount - triggerResignAmount
-				local selfdUnitCount = 0
-				local skippedUnitCount = 0
-				for i=1, unitCount do
-					local unitID = units[i]
-					if spGetUnitSelfDTime(unitID) > 0 then
-						selfdUnitCount = selfdUnitCount + 1
-					else
-						skippedUnitCount = skippedUnitCount + 1
+
+				-- check first if player has team players... that could possibly take
+				local numActiveTeamPlayers = 0
+				local allyTeamID = select(6, Spring.GetTeamInfo(teamID,false))
+				local teamList = Spring.GetTeamList(allyTeamID)
+				for _,tID in ipairs(teamList) do
+					local luaAI = Spring.GetTeamLuaAI(tID)
+					if tID ~= teamID and not select(4, Spring.GetTeamInfo(tID,false)) and (not luaAI or luaAI == "") and Spring.GetTeamRulesParam(tID, "numActivePlayers") > 0 then
+						numActiveTeamPlayers = numActiveTeamPlayers + 1
 					end
-					if skippedUnitCount >= skipResignAmount then
-						break
-					elseif selfdUnitCount >= triggerResignAmount then
-						forceResignTeam(teamID)
-						break
+				end
+
+				-- players has teammates
+				if numActiveTeamPlayers > 1 then
+					local units = spGetTeamUnits(teamID)
+					local unitCount = #units
+					local triggerResignAmount = math.ceil(unitCount * thresholdPercentage)
+					local skipResignAmount = unitCount - triggerResignAmount
+					local selfdUnitCount = 0
+					local skippedUnitCount = 0
+					for i=1, unitCount do
+						local unitID = units[i]
+						if spGetUnitSelfDTime(unitID) > 0 then
+							selfdUnitCount = selfdUnitCount + 1
+						else
+							skippedUnitCount = skippedUnitCount + 1
+						end
+						if skippedUnitCount >= skipResignAmount then
+							break
+						elseif selfdUnitCount >= triggerResignAmount then
+							forceResignTeam(teamID)
+							break
+						end
 					end
 				end
 			end
@@ -72,7 +88,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
-		if cmdID == CMD_SELFD then
+		if cmdID == CMD_SELFD and teamID ~= gaiaTeamID then
 			selfdCheckTeamUnits[teamID] = true
 		end
 		return true

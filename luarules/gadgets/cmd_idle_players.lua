@@ -153,7 +153,7 @@ if gadgetHandler:IsSyncedCode() then
 		local _,_,_,takerID,allyTeamID = GetPlayerInfo(playerID,false)
 		local teamList = GetTeamList(allyTeamID)
 		if targetTeam then
-			if select(6, GetTeamInfo(targetTeam,false)) ~= allyTeamID then
+			if select(6, GetTeamInfo(targetTeam, false)) ~= allyTeamID then
 				-- don't let enemies take
 				SendToUnsynced("NotifyError", playerID, errorKeys.takeEnemies)
 				return
@@ -169,7 +169,7 @@ if gadgetHandler:IsSyncedCode() then
 				for i=1, #teamUnits do
 					TransferUnit(teamUnits[i], takerID)
 				end
-				--send all resources en-block to the taker
+				-- send all resources en-block to the taker
 				for _, resourceName in ipairs(resourceList) do
 					local shareAmount = GetTeamResources(teamID, resourceName)
 					local current,storage,_,_,_,shareSlider = GetTeamResources(takerID, resourceName)
@@ -198,7 +198,7 @@ if gadgetHandler:IsSyncedCode() then
 		if currentFrame == 10 then
 			SendToUnsynced("OnGameStart")
 		end
-		if currentFrame%15 ~= 0 then
+		if currentFrame % 15 ~= 0 then
 			return
 		end
 		updatePlayersInfo()
