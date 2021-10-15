@@ -183,8 +183,8 @@ if gadgetHandler:IsSyncedCode() then
 					-- TREE CAUGHT FIRE FROM OTHER TREE
 					if treeWeapons[weaponDefID] then
 						ppx, ppy, ppz = GetFeaturePosition(featureID)
-						ppx, ppy, ppz = ppx + math_random(-5, 5), ppy + math_random(-5, 5), ppz + math_random(-5, 5) -- we don't have an attacker pos/projpos
-						dmg = 40
+						ppx, ppy, ppz = ppx + math_random(-10, 10), ppy + math_random(-10, 10), ppz + math_random(-10, 10) -- we don't have an attacker pos/projpos
+						dmg = 2
 						if fy >= 0 then
 							fire = true
 						end

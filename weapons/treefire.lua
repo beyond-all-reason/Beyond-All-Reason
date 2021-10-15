@@ -4,6 +4,7 @@ return {
 		cratermult = 0,
 		edgeeffectiveness = 0.5,
 		explosiongenerator = "custom:treeburnexplode-tiny",
+		fireStarter = 70,
 		impulsefactor = 0,
 		name = "TreesFire",
 		soundhitdry = "fireburnshort",
@@ -11,7 +12,7 @@ return {
 		damage = {
 			commanders = 2.5,
 			crawlingbombs = 2.5,
-			default = 2.5,
+			default = 4,
 		},
 		customparams = {
 			expl_light_color = "1 0.33 0.07",
@@ -27,6 +28,7 @@ return {
 		cratermult = 0,
 		edgeeffectiveness = 0.5,
 		explosiongenerator = "custom:treeburnexplode-small",
+		fireStarter = 80,
 		impulsefactor = 0,
 		name = "TreesFire",
 		soundhitdry = "fireburnshort",
@@ -34,7 +36,7 @@ return {
 		damage = {
 			commanders = 3,
 			crawlingbombs = 3,
-			default = 3,
+			default = 5,
 		},
 		customparams = {
 			expl_light_color = "1 0.33 0.07",
@@ -50,6 +52,7 @@ return {
 		cratermult = 0,
 		edgeeffectiveness = 0.5,
 		explosiongenerator = "custom:treeburnexplode-medium",
+		fireStarter = 90,
 		impulsefactor = 0,
 		name = "TreesFire",
 
@@ -58,7 +61,7 @@ return {
 		damage = {
 			commanders = 3.5,
 			crawlingbombs = 3.5,
-			default = 3.5,
+			default = 6,
 		},
 		customparams = {
 			expl_light_color = "1 0.33 0.07",
@@ -74,6 +77,7 @@ return {
 		cratermult = 0,
 		edgeeffectiveness = 0.5,
 		explosiongenerator = "custom:treeburnexplode-large",
+		fireStarter = 100,
 		impulsefactor = 0,
 		name = "TreesFire",
 		soundhitdry = "fireburnshort",
@@ -81,7 +85,7 @@ return {
 		damage = {
 			commanders = 4,
 			crawlingbombs = 4,
-			default = 4,
+			default = 7,
 		},
 		customparams = {
 			expl_light_color = "1 0.33 0.07",
