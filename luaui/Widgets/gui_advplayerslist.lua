@@ -102,10 +102,8 @@ local bgpadding = 3
 -- IMAGES
 --------------------------------------------------------------------------------
 
-local imageDirectory = ":lb:" .. LUAUI_DIRNAME .. "Images/advplayerslist/"
+local imageDirectory = ":l:" .. LUAUI_DIRNAME .. "Images/advplayerslist/"
 local flagsDirectory = imageDirectory .. "flags/"
-local flagsExt = '.png'
-local flagHeight = 10
 
 local pics = {
     currentPic = imageDirectory .. "indicator.dds",
@@ -2355,9 +2353,9 @@ end
 
 function DrawCountry(country, posY)
     if country ~= nil and country ~= "??" then
-        gl_Texture(flagsDirectory .. string.upper(country) .. flagsExt)
+        gl_Texture(flagsDirectory .. string.upper(country) .. ".dds")
         gl_Color(1, 1, 1)
-        DrawRect(m_country.posX + widgetPosX + 3, posY + 8 - (flagHeight/2), m_country.posX + widgetPosX + 17, posY + 8 + (flagHeight/2))
+        DrawRect(m_country.posX + widgetPosX + 3, posY + 1, m_country.posX + widgetPosX + 17, posY + 15)
     end
 end
 
