@@ -165,7 +165,7 @@ else
 			sizeExp = 0.7,
 
 			--texture     = "bitmaps/smoke/smoke06.tga",
-			texture = altFlameTexture and "bitmaps/GPL/flame_alt.png" or "bitmaps/GPL/flame.png",
+			texture = altFlameTexture and "bitmaps/GPL/flame_alt.png" or "bitmaps/GPL/flame2.tga",
 		}
 		particleCnt = particleCnt + 1
 
@@ -200,7 +200,7 @@ else
 			sizeExp = 0.65,
 
 			--texture     = "bitmaps/smoke/smoke06.tga",
-			texture = altFlameTexture and "bitmaps/GPL/flame_alt.png" or "bitmaps/GPL/flame.png",
+			texture = altFlameTexture and "bitmaps/GPL/flame_alt.png" or "bitmaps/GPL/flame2.tga",
 		}
 		particleCnt = particleCnt + 1
 
