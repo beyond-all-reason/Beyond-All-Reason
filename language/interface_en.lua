@@ -158,6 +158,8 @@ return {
 				landatairbase_tooltip = 'Land At Airbase',
 				stockpile = 'Stockpile %{stockpileStatus}',
 				stockpile_tooltip = '[ stockpiled number ] / [ target stockpile number ]',
+				stopproduction = 'Clear Queue',
+				stopproduction_tooltip = 'Clear build queue for all units on selected factories',
 				-- Stateful orders
 				['Fire at will'] = 'Fire at will',
 				['Hold fire'] = 'Hold fire',

@@ -188,6 +188,9 @@ function MakeBindsTable (swapYZ)
         "bind alt+"..Y.." settarget",
         "bind j canceltarget",
 
+        -- clear factory queue
+        "bind ctrl+s stopproduction",
+
         "bind q drawinmap", --some keyboards don't have ` or \
         "bind ,	buildfacing inc", --because some keyboards don't have [ and ] ke"..Y.."s
         "bind .	buildfacing dec",
