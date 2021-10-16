@@ -1078,7 +1078,7 @@ customDefs.armbotrail = {
 			},
 		},
 	},
-},
+}
 
 customDefs.corhrk = {
 	weapondefs = {
