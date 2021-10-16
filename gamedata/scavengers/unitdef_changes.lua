@@ -1070,6 +1070,16 @@ customDefs.corvroc = {
 	},
 }
 
+customDefs.armbotrail = {
+	weapondefs = {
+		arm_botrail = {
+			customparams = {
+				spawns_name = "armpw_scav",
+			},
+		},
+	},
+},
+
 customDefs.corhrk = {
 	weapondefs = {
 		corhrk_rocket = {
