@@ -1141,6 +1141,7 @@ local unitMaxWeaponRange = {}
 
 local unitGridPos = { }
 local gridPosUnit = { }
+local selectNextFrame, switchedCategory
 
 for uname, ugrid in pairs(unitGrids) do
 	udef = UnitDefNames[uname]
@@ -1606,7 +1607,7 @@ local function RefreshCommands()
 	end
 
 	if currentBuildCategory then
-		gridPos = unitGridPos[selectedBuilder][currentCategoryIndex]
+		gridPos = unitGridPos[selectedBuilder] and unitGridPos[selectedBuilder][currentCategoryIndex]
 	elseif selectedFactory then
 		gridPos = unitGridPos[selectedFactory]
 	end
@@ -2404,6 +2405,10 @@ function drawGrid(activeArea)
 			end
 		end
 	end
+
+	if cellcmds[1] and selectedBuilder and switchedCategory then
+		selectNextFrame = spGetCmdDescIndex(cellcmds[1].id)
+	end
 end
 
 function drawPaginators(activeArea)
@@ -3074,6 +3079,11 @@ local function GetUnitCanCompleteQueue(uID)
 end
 
 function widget:GameFrame(n)
+	if selectNextFrame then
+		Spring.SetActiveCommand(selectNextFrame, 1, true, false, Spring.GetModKeyState())
+		selectNextFrame = nil
+		switchedCategory = nil
+	end
 
 	-- handle the pregame build queue
 	preGamestartPlayer = false
@@ -3244,7 +3254,7 @@ function widget:KeyPress(key, mods, isRepeat)
 		if keyCat then
 			currentBuildCategory = categories[keyCat]
 			currentCategoryIndex = keyCat
-
+			switchedCategory = true
 			doUpdate = true
 
 			return true
@@ -3285,23 +3295,23 @@ function enqueueUnit(uDefID, opts)
 	end
 end
 
-function widget:MouseRelease(x, y, button)
-	if Spring.IsGUIHidden() then
-		return
-	end
-	if WG['topbar'] and WG['topbar'].showingQuit() then
-		return
-	end
-
-	if selectedFactory and not disableInput then
-		for lab, labRect in pairs(labButtonRects) do
-			if IsOnRect(x, y, labRect[1], labRect[2], labRect[3], labRect[4]) then
-				doUpdate = true
-				return true
-			end
-		end
-	end
-end
+-- function widget:MouseRelease(x, y, button)
+-- 	if Spring.IsGUIHidden() then
+-- 		return
+-- 	end
+-- 	if WG['topbar'] and WG['topbar'].showingQuit() then
+-- 		return
+-- 	end
+-- 
+	-- if selectedFactory and not disableInput then
+	-- 	for lab, labRect in pairs(labButtonRects) do
+	-- 		if IsOnRect(x, y, labRect[1], labRect[2], labRect[3], labRect[4]) then
+	-- 			doUpdate = true
+	-- 			return true
+	-- 		end
+	-- 	end
+	-- end
+--end
 
 function widget:MousePress(x, y, button)
 	if Spring.IsGUIHidden() then
@@ -3327,6 +3337,7 @@ function widget:MousePress(x, y, button)
 				for cat, catRect in pairs(catRects) do
 					if IsOnRect(x, y, catRect[1], catRect[2], catRect[3], catRect[4]) then
 						currentBuildCategory = cat
+						switchedCategory = true
 
 						for i,c in pairs(categories) do
 							 if c == cat then
@@ -3448,6 +3459,24 @@ function widget:MousePress(x, y, button)
 	elseif activeCmd and button == 3 then
 		currentBuildCategory = nil
 		doUpdate = true
+	end
+end
+
+function widget:MouseRelease(x, y, button)
+	if Spring.IsGUIHidden() then
+		return
+	end
+	if WG['topbar'] and WG['topbar'].showingQuit() then
+		return
+	end
+
+	if selectedFactory and not disableInput then
+		for lab, labRect in pairs(labButtonRects) do
+			if IsOnRect(x, y, labRect[1], labRect[2], labRect[3], labRect[4]) then
+				doUpdate = true
+				return true
+			end
+		end
 	end
 end
 
