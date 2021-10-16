@@ -129,11 +129,11 @@ if select(3, Spring.GetGroundExtremes()) < 0 then
 end
 local heightmapChangeBuffer = {}
 
---local voidWater = false
---local success, mapinfo = pcall(VFS.Include,"mapinfo.lua") -- load mapinfo.lua confs
---if success and mapinfo then
---	voidWater = mapinfo.voidwater
---end
+local voidWater = false
+local success, mapinfo = pcall(VFS.Include,"mapinfo.lua") -- load mapinfo.lua confs
+if success and mapinfo then
+	voidWater = mapinfo.voidwater
+end
 
 local vsx, vsy = Spring.GetViewGeometry()
 local widgetScale = (0.5 + (vsx * vsy / 5700000)) * customScale
@@ -4419,70 +4419,215 @@ function init()
 		  end,
 		},
 
-		  { id = "water_shorewaves", group = "dev", name = "water (bump) "..widgetOptionColor .. "  shorewaves", type = "bool", value = Spring.GetConfigInt("BumpWaterShoreWaves", 1) == 1, description = "",
+		  { id = "water_shorewaves", group = "dev", name = "water (bump) "..widgetOptionColor .. "  shorewaves", type = "bool", value = gl.GetWaterRendering("shoreWaves"), description = "",
 			onload = function(i)
 			end,
 			onchange = function(i, value)
-				Spring.SetConfigInt("BumpWaterShoreWaves", (value and 1 or 0))
+				Spring.SetWaterParams({shoreWaves = value})
+				--Spring.SetConfigInt("BumpWaterShoreWaves", (value and 1 or 0))
 				Spring.SendCommands("water 4")
 			end,
 		  },
-		  { id = "water_dynamicwaves", group = "dev", name = widgetOptionColor .. "   dynamic waves", type = "bool", value = Spring.GetConfigInt("BumpWaterDynamicWaves", 1) == 1, description = "",
+		  --{ id = "water_dynamicwaves", group = "dev", name = widgetOptionColor .. "   dynamic waves", type = "bool", value = Spring.GetConfigInt("BumpWaterDynamicWaves", 1) == 1, description = "",
+		--	onload = function(i)
+		--	end,
+		--	onchange = function(i, value)
+		--		Spring.SetConfigInt("BumpWaterDynamicWaves", (value and 1 or 0))
+		--		Spring.SendCommands("water 4")
+		--	end,
+		  --},
+		  --{ id = "water_endless", group = "dev", name = widgetOptionColor .. "   endless", type = "bool", value = Spring.GetConfigInt("BumpWaterEndlessOcean", 1) == 1, description = "",
+		--	onload = function(i)
+		--	end,
+		--	onchange = function(i, value)
+		--		Spring.SetConfigInt("BumpWaterEndlessOcean", (value and 1 or 0))
+		--		Spring.SendCommands("water 4")
+		--	end,
+		  --},
+		  --{ id = "water_occlusionquery", group = "dev", name = widgetOptionColor .. "   occlusion query", type = "bool", value = Spring.GetConfigInt("BumpWaterOcclusionQuery", 1) == 1, description = "",
+		--	onload = function(i)
+		--	end,
+		--	onchange = function(i, value)
+		--		Spring.SetConfigInt("BumpWaterOcclusionQuery", (value and 1 or 0))
+		--		Spring.SendCommands("water 4")
+		--	end,
+		  --},
+		  --{ id = "water_blurreflection", group = "dev", name = widgetOptionColor .. "   blur reflection", type = "bool", value = Spring.GetConfigInt("BumpWaterBlurReflection", 1) == 1, description = "",
+		--	onload = function(i)
+		--	end,
+		--	onchange = function(i, value)
+		--		Spring.SetConfigInt("BumpWaterBlurReflection", (value and 1 or 0))
+		--		Spring.SendCommands("water 4")
+		--	end,
+		  --},
+		  --{ id = "water_anisotropy", group = "dev", name = widgetOptionColor .. "   anisotropy", type = "bool", value = Spring.GetConfigInt("BumpWaterAnisotropy", 1) == 1, description = "",
+		--	onload = function(i)
+		--	end,
+		--	onchange = function(i, value)
+		--		Spring.SetConfigInt("BumpWaterAnisotropy", (value and 1 or 0))
+		--		Spring.SendCommands("water 4")
+		--	end,
+		  --},
+		  --{ id = "water_usedepthtexture", group = "dev", name = widgetOptionColor .. "   use depth texture", type = "bool", value = Spring.GetConfigInt("BumpWaterUseDepthTexture", 1) == 1, description = "",
+		--	onload = function(i)
+		--	end,
+		--	onchange = function(i, value)
+		--		Spring.SetConfigInt("BumpWaterUseDepthTexture", (value and 1 or 0))
+		--		Spring.SendCommands("water 4")
+		--	end,
+		  --},
+		  --{ id = "water_useuniforms", group = "dev", name = widgetOptionColor .. "   use uniforms", type = "bool", value = Spring.GetConfigInt("BumpWaterUseUniforms", 1) == 1, description = "",
+		--	onload = function(i)
+		--	end,
+		--	onchange = function(i, value)
+		--		Spring.SetConfigInt("BumpWaterUseUniforms", (value and 1 or 0))
+		--		Spring.SendCommands("water 4")
+		--	end,
+		  --},
+		  { id = "water_haswaterplane", group = "dev", name = widgetOptionColor .. "   has waterplane", type = "bool", value = gl.GetWaterRendering("hasWaterPlane"), description = "",
 			onload = function(i)
 			end,
 			onchange = function(i, value)
-				Spring.SetConfigInt("BumpWaterDynamicWaves", (value and 1 or 0))
+				Spring.SetWaterParams({hasWaterPlane = value})
 				Spring.SendCommands("water 4")
 			end,
 		  },
-		  { id = "water_endless", group = "dev", name = widgetOptionColor .. "   endless", type = "bool", value = Spring.GetConfigInt("BumpWaterEndlessOcean", 1) == 1, description = "",
+		  { id = "water_forcerendering", group = "dev", name = widgetOptionColor .. "   force rendering", type = "bool", value = gl.GetWaterRendering("forceRendering"), description = "",
 			onload = function(i)
 			end,
 			onchange = function(i, value)
-				Spring.SetConfigInt("BumpWaterEndlessOcean", (value and 1 or 0))
+				Spring.SetWaterParams({forceRendering = value})
 				Spring.SendCommands("water 4")
 			end,
 		  },
-		  { id = "water_occlusionquery", group = "dev", name = widgetOptionColor .. "   occlusion query", type = "bool", value = Spring.GetConfigInt("BumpWaterOcclusionQuery", 1) == 1, description = "",
+		  { id = "water_repeatx", group = "dev", name = widgetOptionColor .. "   repeat X", type = "slider", min = 0, max = 20, step = 1, value = gl.GetWaterRendering("repeatX"), description = "",
 			onload = function(i)
 			end,
 			onchange = function(i, value)
-				Spring.SetConfigInt("BumpWaterOcclusionQuery", (value and 1 or 0))
+				Spring.SetWaterParams({repeatX = value})
 				Spring.SendCommands("water 4")
 			end,
 		  },
-		  { id = "water_blurreflection", group = "dev", name = widgetOptionColor .. "   blur reflection", type = "bool", value = Spring.GetConfigInt("BumpWaterBlurReflection", 1) == 1, description = "",
+		  { id = "water_repeaty", group = "dev", name = widgetOptionColor .. "   repeat Y", type = "slider", min = 0, max = 20, step = 1, value = gl.GetWaterRendering("repeatY"), description = "",
 			onload = function(i)
 			end,
 			onchange = function(i, value)
-				Spring.SetConfigInt("BumpWaterBlurReflection", (value and 1 or 0))
+				Spring.SetWaterParams({repeatY = value})
 				Spring.SendCommands("water 4")
 			end,
 		  },
-		  { id = "water_anisotropy", group = "dev", name = widgetOptionColor .. "   anisotropy", type = "bool", value = Spring.GetConfigInt("BumpWaterAnisotropy", 1) == 1, description = "",
+		  { id = "water_surfacealpha", group = "dev", name = widgetOptionColor .. "   surface alpha", type = "slider", min = 0, max = 1, step = 0.001, value = gl.GetWaterRendering("surfaceAlpha"), description = "",
 			onload = function(i)
 			end,
 			onchange = function(i, value)
-				Spring.SetConfigInt("BumpWaterAnisotropy", (value and 1 or 0))
+				Spring.SetWaterParams({surfaceAlpha = value})
 				Spring.SendCommands("water 4")
 			end,
 		  },
-		  { id = "water_usedepthtexture", group = "dev", name = widgetOptionColor .. "   use depth texture", type = "bool", value = Spring.GetConfigInt("BumpWaterUseDepthTexture", 1) == 1, description = "",
+		  { id = "water_ambientfactor", group = "dev", name = widgetOptionColor .. "   ambient factor", type = "slider", min = 0, max = 5, step = 0.001, value = gl.GetWaterRendering("ambientFactor"), description = "",
 			onload = function(i)
 			end,
 			onchange = function(i, value)
-				Spring.SetConfigInt("BumpWaterUseDepthTexture", (value and 1 or 0))
+				Spring.SetWaterParams({ambientFactor = value})
 				Spring.SendCommands("water 4")
 			end,
 		  },
-		  { id = "water_useuniforms", group = "dev", name = widgetOptionColor .. "   use uniforms", type = "bool", value = Spring.GetConfigInt("BumpWaterUseUniforms", 1) == 1, description = "",
+		  { id = "water_diffusefactor", group = "dev", name = widgetOptionColor .. "   diffuse factor", type = "slider", min = 0, max = 5, step = 0.001, value = gl.GetWaterRendering("diffuseFactor"), description = "",
 			onload = function(i)
 			end,
 			onchange = function(i, value)
-				Spring.SetConfigInt("BumpWaterUseUniforms", (value and 1 or 0))
+				Spring.SetWaterParams({diffuseFactor = value})
 				Spring.SendCommands("water 4")
 			end,
 		  },
+		  { id = "water_perlinstartfreq", group = "dev", name = widgetOptionColor .. "   perlin start freq", type = "slider", min = 10, max = 50, step = 1, value = gl.GetWaterRendering("perlinStartFreq"), description = "",
+			onload = function(i)
+			end,
+			onchange = function(i, value)
+				Spring.SetWaterParams({perlinStartFreq = value})
+				Spring.SendCommands("water 4")
+			end,
+		  },
+		  { id = "water_perlinlacunarity", group = "dev", name = widgetOptionColor .. "   perlin lacunarity", type = "slider", min = 0.1, max = 3, step = 0.01, value = gl.GetWaterRendering("perlinLacunarity"), description = "",
+			onload = function(i)
+			end,
+			onchange = function(i, value)
+				Spring.SetWaterParams({perlinLacunarity = value})
+				Spring.SendCommands("water 4")
+			end,
+		  },
+		  { id = "water_perlinlamplitude", group = "dev", name = widgetOptionColor .. "   perlin amplitude", type = "slider", min = 0.1, max = 3, step = 0.01, value = gl.GetWaterRendering("perlinAmplitude"), description = "",
+			onload = function(i)
+			end,
+			onchange = function(i, value)
+				Spring.SetWaterParams({perlinAmplitude = value})
+				Spring.SendCommands("water 4")
+			end,
+		  },
+		  { id = "water_fresnelmin", group = "dev", name = widgetOptionColor .. "   fresnel min", type = "slider", min = 0, max = 2, step = 0.01, value = gl.GetWaterRendering("fresnelMin"), description = "",
+			onload = function(i)
+			end,
+			onchange = function(i, value)
+				Spring.SetWaterParams({fresnelMin = value})
+				Spring.SendCommands("water 4")
+			end,
+		  },
+		  { id = "water_fresnelmax", group = "dev", name = widgetOptionColor .. "   fresnel max", type = "slider", min = 0, max = 2, step = 0.01, value = gl.GetWaterRendering("fresnelMax"), description = "",
+			onload = function(i)
+			end,
+			onchange = function(i, value)
+				Spring.SetWaterParams({fresnelMax = value})
+				Spring.SendCommands("water 4")
+			end,
+		  },
+		  { id = "water_fresnelpower", group = "dev", name = widgetOptionColor .. "   fresnel power", type = "slider", min = 0, max = 4, step = 0.01, value = gl.GetWaterRendering("fresnelPower"), description = "",
+			onload = function(i)
+			end,
+			onchange = function(i, value)
+				Spring.SetWaterParams({fresnelPower = value})
+				Spring.SendCommands("water 4")
+			end,
+		  },
+		  { id = "water_numtiles", group = "dev", name = widgetOptionColor .. "   num tiles", type = "slider", min = 0, max = 2, step = 0.1, value = gl.GetWaterRendering("numTiles"), description = "",
+			onload = function(i)
+			end,
+			onchange = function(i, value)
+				Spring.SetWaterParams({numTiles = value})
+				Spring.SendCommands("water 4")
+			end,
+		  },
+		  { id = "water_blurbase", group = "dev", name = widgetOptionColor .. "   blur base", type = "slider", min = 0, max = 3, step = 0.01, value = gl.GetWaterRendering("blurBase"), description = "",
+			onload = function(i)
+			end,
+			onchange = function(i, value)
+				Spring.SetWaterParams({blurBase = value})
+				Spring.SendCommands("water 4")
+			end,
+		  },
+		  { id = "water_blurexponent", group = "dev", name = widgetOptionColor .. "   blur exponent", type = "slider", min = 0, max = 3, step = 0.01, value = gl.GetWaterRendering("blurExponent"), description = "",
+			onload = function(i)
+			end,
+			onchange = function(i, value)
+				Spring.SetWaterParams({blurExponent = value})
+				Spring.SendCommands("water 4")
+			end,
+		  },
+		  { id = "water_reflectiondistortion", group = "dev", name = widgetOptionColor .. "   reflection distortion", type = "slider", min = 0, max = 5, step = 0.01, value = gl.GetWaterRendering("reflectionDistortion"), description = "",
+			onload = function(i)
+			end,
+			onchange = function(i, value)
+				Spring.SetWaterParams({reflectionDistortion = value})
+				Spring.SendCommands("water 4")
+			end,
+		  },
+		  -- TODO add SetWaterParams:
+		  --absorb = {number r, number g, number b},
+		  --baseColor = {number r, number g, number b},
+		  --minColor = {number r, number g, number b},
+		  --surfaceColor = {number r, number g, number b},
+		  --diffuseColor = {number r, number g, number b},
+		  --specularColor = {number r, number g, number b},
+		  --planeColor = {number r, number g, number b},
 	}
 
 	-- force new unit icons
