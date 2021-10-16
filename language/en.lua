@@ -295,6 +295,7 @@ return {
 			hwcursor_descr = 'When disabled: mouse cursor refresh rate will equal to your ingame fps',
 			cursorsize = 'Cursor size',
 			cursorsize_descr = 'Note that cursor already auto scales according to screen resolution\n\nFurther adjust size and snap to a smaller/larger size',
+			doubleclicktime = 'Double-click time',
 			crossalpha = 'Cursor \'cross\' alpha',
 			crossalpha_descr = 'Opacity of mouse icon in center of screen when you are in camera pan mode\n\n(The\'icon\' has a dot in center with 4 arrows pointing in all directions)',
 			middleclicktoggle = 'Middleclick toggles camera move',
