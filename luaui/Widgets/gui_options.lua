@@ -2541,6 +2541,13 @@ function init()
 
 		 { id = "containmouse", group = "control", basic = true, widget = "Grabinput", name = texts.option.containmouse, type = "bool", value = GetWidgetToggleValue("Grabinput"), description = texts.option.containmouse_descr },
 
+		  { id = "doubleclicktime", group = "control", name = texts.option.doubleclicktime, type = "slider", min = 150, max = 400, step = 10, value = Spring.GetConfigInt("DoubleClickTime", 200), description = "",
+			onload = function(i)
+			end,
+			onchange = function(i, value)
+				Spring.SetConfigInt("DoubleClickTime", value)
+			end,
+		  },
 		--{ id = "containmouse", group = "control", basic = true, name = texts.option.containmouse, type = "bool", value = (Spring.GetConfigInt("grabinput", 1) ~= 0), description = texts.option.containmouse_descr ,
 		--	onload = function(i)
 		--		updateGrabinput()
