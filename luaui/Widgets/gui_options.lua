@@ -4419,71 +4419,81 @@ function init()
 		  end,
 		},
 
-		  { id = "water_shorewaves", group = "dev", name = "water (bump) "..widgetOptionColor .. "  shorewaves", type = "bool", value = gl.GetWaterRendering("shoreWaves"), description = "",
+		  -- springsettings water params
+		  { id = "waterconfig_shorewaves", group = "dev", name = "Bumpwater settings "..widgetOptionColor .. "  shorewaves", type = "bool", value = Spring.GetConfigInt("BumpWaterShoreWaves", 1) == 1, description = "",
 			onload = function(i)
 			end,
 			onchange = function(i, value)
 				Spring.SetWaterParams({shoreWaves = value})
-				--Spring.SetConfigInt("BumpWaterShoreWaves", (value and 1 or 0))
 				Spring.SendCommands("water 4")
 			end,
 		  },
-		  --{ id = "water_dynamicwaves", group = "dev", name = widgetOptionColor .. "   dynamic waves", type = "bool", value = Spring.GetConfigInt("BumpWaterDynamicWaves", 1) == 1, description = "",
-		--	onload = function(i)
-		--	end,
-		--	onchange = function(i, value)
-		--		Spring.SetConfigInt("BumpWaterDynamicWaves", (value and 1 or 0))
-		--		Spring.SendCommands("water 4")
-		--	end,
-		  --},
-		  --{ id = "water_endless", group = "dev", name = widgetOptionColor .. "   endless", type = "bool", value = Spring.GetConfigInt("BumpWaterEndlessOcean", 1) == 1, description = "",
-		--	onload = function(i)
-		--	end,
-		--	onchange = function(i, value)
-		--		Spring.SetConfigInt("BumpWaterEndlessOcean", (value and 1 or 0))
-		--		Spring.SendCommands("water 4")
-		--	end,
-		  --},
-		  --{ id = "water_occlusionquery", group = "dev", name = widgetOptionColor .. "   occlusion query", type = "bool", value = Spring.GetConfigInt("BumpWaterOcclusionQuery", 1) == 1, description = "",
-		--	onload = function(i)
-		--	end,
-		--	onchange = function(i, value)
-		--		Spring.SetConfigInt("BumpWaterOcclusionQuery", (value and 1 or 0))
-		--		Spring.SendCommands("water 4")
-		--	end,
-		  --},
-		  --{ id = "water_blurreflection", group = "dev", name = widgetOptionColor .. "   blur reflection", type = "bool", value = Spring.GetConfigInt("BumpWaterBlurReflection", 1) == 1, description = "",
-		--	onload = function(i)
-		--	end,
-		--	onchange = function(i, value)
-		--		Spring.SetConfigInt("BumpWaterBlurReflection", (value and 1 or 0))
-		--		Spring.SendCommands("water 4")
-		--	end,
-		  --},
-		  --{ id = "water_anisotropy", group = "dev", name = widgetOptionColor .. "   anisotropy", type = "bool", value = Spring.GetConfigInt("BumpWaterAnisotropy", 1) == 1, description = "",
-		--	onload = function(i)
-		--	end,
-		--	onchange = function(i, value)
-		--		Spring.SetConfigInt("BumpWaterAnisotropy", (value and 1 or 0))
-		--		Spring.SendCommands("water 4")
-		--	end,
-		  --},
-		  --{ id = "water_usedepthtexture", group = "dev", name = widgetOptionColor .. "   use depth texture", type = "bool", value = Spring.GetConfigInt("BumpWaterUseDepthTexture", 1) == 1, description = "",
-		--	onload = function(i)
-		--	end,
-		--	onchange = function(i, value)
-		--		Spring.SetConfigInt("BumpWaterUseDepthTexture", (value and 1 or 0))
-		--		Spring.SendCommands("water 4")
-		--	end,
-		  --},
-		  --{ id = "water_useuniforms", group = "dev", name = widgetOptionColor .. "   use uniforms", type = "bool", value = Spring.GetConfigInt("BumpWaterUseUniforms", 1) == 1, description = "",
-		--	onload = function(i)
-		--	end,
-		--	onchange = function(i, value)
-		--		Spring.SetConfigInt("BumpWaterUseUniforms", (value and 1 or 0))
-		--		Spring.SendCommands("water 4")
-		--	end,
-		  --},
+		{ id = "waterconfig_dynamicwaves", group = "dev", name = widgetOptionColor .. "   dynamic waves", type = "bool", value = Spring.GetConfigInt("BumpWaterDynamicWaves", 1) == 1, description = "",
+			onload = function(i)
+			end,
+			onchange = function(i, value)
+				Spring.SetConfigInt("BumpWaterDynamicWaves", (value and 1 or 0))
+				Spring.SendCommands("water 4")
+			end,
+		},
+		{ id = "waterconfig_endless", group = "dev", name = widgetOptionColor .. "   endless", type = "bool", value = Spring.GetConfigInt("BumpWaterEndlessOcean", 1) == 1, description = "",
+			onload = function(i)
+			end,
+			onchange = function(i, value)
+				Spring.SetConfigInt("BumpWaterEndlessOcean", (value and 1 or 0))
+				Spring.SendCommands("water 4")
+			end,
+		},
+		{ id = "waterconfig_occlusionquery", group = "dev", name = widgetOptionColor .. "   occlusion query", type = "bool", value = Spring.GetConfigInt("BumpWaterOcclusionQuery", 1) == 1, description = "",
+			onload = function(i)
+			end,
+			onchange = function(i, value)
+				Spring.SetConfigInt("BumpWaterOcclusionQuery", (value and 1 or 0))
+				Spring.SendCommands("water 4")
+			end,
+		},
+		{ id = "waterconfig_blurreflection", group = "dev", name = widgetOptionColor .. "   blur reflection", type = "bool", value = Spring.GetConfigInt("BumpWaterBlurReflection", 1) == 1, description = "",
+			onload = function(i)
+			end,
+			onchange = function(i, value)
+				Spring.SetConfigInt("BumpWaterBlurReflection", (value and 1 or 0))
+				Spring.SendCommands("water 4")
+			end,
+		},
+		{ id = "waterconfig_anisotropy", group = "dev", name = widgetOptionColor .. "   anisotropy", type = "bool", value = Spring.GetConfigInt("BumpWaterAnisotropy", 1) == 1, description = "",
+			onload = function(i)
+			end,
+			onchange = function(i, value)
+				Spring.SetConfigInt("BumpWaterAnisotropy", (value and 1 or 0))
+				Spring.SendCommands("water 4")
+			end,
+		},
+		{ id = "wateconfigr_usedepthtexture", group = "dev", name = widgetOptionColor .. "   use depth texture", type = "bool", value = Spring.GetConfigInt("BumpWaterUseDepthTexture", 1) == 1, description = "",
+			onload = function(i)
+			end,
+			onchange = function(i, value)
+				Spring.SetConfigInt("BumpWaterUseDepthTexture", (value and 1 or 0))
+				Spring.SendCommands("water 4")
+			end,
+		},
+		{ id = "waterconfig_useuniforms", group = "dev", name = widgetOptionColor .. "   use uniforms", type = "bool", value = Spring.GetConfigInt("BumpWaterUseUniforms", 1) == 1, description = "",
+			onload = function(i)
+			end,
+			onchange = function(i, value)
+				Spring.SetConfigInt("BumpWaterUseUniforms", (value and 1 or 0))
+				Spring.SendCommands("water 4")
+			end,
+		},
+
+		  -- GL water params
+		  { id = "water_shorewaves", group = "dev", name = "Bumpwater GL params"..widgetOptionColor .. "  shorewaves", type = "bool", value = gl.GetWaterRendering("shoreWaves"), description = "",
+			onload = function(i)
+			end,
+			onchange = function(i, value)
+				Spring.SetWaterParams({shoreWaves = value})
+				Spring.SendCommands("water 4")
+			end,
+		  },
 		  { id = "water_haswaterplane", group = "dev", name = widgetOptionColor .. "   has waterplane", type = "bool", value = gl.GetWaterRendering("hasWaterPlane"), description = "",
 			onload = function(i)
 			end,
