@@ -921,6 +921,7 @@ local function ReloadCUS(optName, _, _, playerID)
 	if (playerID ~= Spring.GetMyPlayerID()) then
 		return
 	end
+	Spring.Echo("[CustomUnitShaders] Reloading")
 	gadget:Shutdown()
 	gadget:Initialize()
 end
@@ -929,6 +930,7 @@ local function DisableCUS(optName, _, _, playerID)
 	if (playerID ~= Spring.GetMyPlayerID()) then
 		return
 	end
+	Spring.Echo("[CustomUnitShaders] Disabling")
 	gadget:Shutdown()
 end
 
