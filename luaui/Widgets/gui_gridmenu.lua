@@ -1743,7 +1743,7 @@ function widget:ViewResize()
 		maxColls = 4
 
 		if WG['minimap'] then
-			if WG['ordermenu'] then
+			if WG['ordermenu'] and not WG['ordermenu'].getBottomPosition() then
 				local oposX, oposY, owidth, oheight = WG['ordermenu'].getPosition()
 				if posY > oposY then
 					posY = oposY - oheight - ((widgetSpaceMargin)/vsy)
@@ -2257,7 +2257,7 @@ function drawCategories()
 			y2 - pageButtonHeight - activeAreaMargin
 		}
 
-		local buttonWidth = math.round((activeArea[3] - activeArea[1]) / numCats)
+		local buttonWidth = math.round((activeArea[3] - activeArea[1] - bgpadding) / numCats)
 
 		for i, cat in ipairs(categories) do
 			local a1 = backgroundRect[1] + activeAreaMargin + (i - 1) * buttonWidth
@@ -3311,24 +3311,6 @@ function enqueueUnit(uDefID, opts)
 		end
 	end
 end
-
--- function widget:MouseRelease(x, y, button)
---	if Spring.IsGUIHidden() then
---		return
---	end
---	if WG['topbar'] and WG['topbar'].showingQuit() then
---		return
---	end
--- 
-	-- if selectedFactory and not disableInput then
-	--	for lab, labRect in pairs(labButtonRects) do
-	--		if IsOnRect(x, y, labRect[1], labRect[2], labRect[3], labRect[4]) then
-	--			doUpdate = true
-	--			return true
-	--		end
-	--	end
-	-- end
---end
 
 function widget:MousePress(x, y, button)
 	if Spring.IsGUIHidden() then
