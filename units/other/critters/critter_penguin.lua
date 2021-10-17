@@ -112,16 +112,16 @@ return {
 			},
 		},
 		weapons = {
-			[1] = {
-				badtargetcategory = "VTOL",
-				def = "EYELASER",
-				onlytargetcategory = "NOTSUB",
-			},
-			[2] = {
-				badtargetcategory = "VTOL",
-				def = "EYELASER",
-				onlytargetcategory = "NOTSUB",
-			},
+			-- [1] = {
+			-- 	badtargetcategory = "VTOL",
+			-- 	def = "EYELASER",
+			-- 	onlytargetcategory = "NOTSUB",
+			-- },
+			-- [2] = {
+			-- 	badtargetcategory = "VTOL",
+			-- 	def = "EYELASER",
+			-- 	onlytargetcategory = "NOTSUB",
+			-- },
 		},
 	},
 }
