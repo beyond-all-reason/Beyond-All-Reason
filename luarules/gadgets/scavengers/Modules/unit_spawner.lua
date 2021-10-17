@@ -115,9 +115,14 @@ function BossWaveTimer(n)
 			--end
 
 			-- kill whole allyteam  (game_end gadget will destroy leftover units)
-			local scavengerAllyTeamID = select(6, Spring.GetTeamInfo(scavengerAITeamID,false))
-			for _, teamID in ipairs(Spring.GetTeamList(scavengerAllyTeamID)) do
-				Spring.KillTeam(teamID)
+			if not killedScavengerAllyTeam then
+				local scavengerAllyTeamID = select(6, Spring.GetTeamInfo(scavengerAITeamID,false))
+				for _, teamID in ipairs(Spring.GetTeamList(scavengerAllyTeamID)) do
+					if not select(3, Spring.GetTeamInfo(teamID, false)) then
+						Spring.KillTeam(teamID)
+					end
+				end
+				killedScavengerAllyTeam = true
 			end
 		end
 	end
