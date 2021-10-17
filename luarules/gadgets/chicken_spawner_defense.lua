@@ -1222,11 +1222,19 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:GameFrame(n)
 
+		-- remove initial commander (no longer required)
+		if n == 1 then
+			local units = Spring.GetTeamUnits(chickenTeamID)
+			for _, unitID in ipairs(units) do
+				Spring.DestroyUnit(unitID, false, true)
+			end
+		end
+
 		if gameOver then
 			chickenCount = UpdateUnitCount()
-			if n > gameOver then
-				Spring.KillTeam(chickenTeamID)
-			end
+			--if n > gameOver then
+			--	Spring.KillTeam(chickenTeamID)	-- already killed
+			--end
 			return
 		end
 
