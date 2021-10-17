@@ -73,26 +73,27 @@ VFS.Include("luarules/gadgets/scavengers/Modules/messenger.lua")
 local bossController = VFS.Include("luarules/gadgets/scavengers/Modules/bossfight_module.lua")
 
 local function DisableUnit(unitID)
-	Spring.MoveCtrl.Enable(unitID)
-	Spring.MoveCtrl.SetNoBlocking(unitID, true)
-	Spring.MoveCtrl.SetPosition(unitID, Game.mapSizeX+1900, 2000, Game.mapSizeZ+1900) --don't move too far out or prevent_aicraft_hax will explode it!
-	Spring.SetUnitNeutral(unitID, true)
-	Spring.SetUnitCloak(unitID, true)
-	--Spring.SetUnitHealth(unitID, {paralyze=99999999})
-	Spring.SetUnitMaxHealth(unitID, 10000000)
-	Spring.SetUnitHealth(unitID, 10000000)
-	--Spring.SetUnitNoDraw(unitID, true)
-	Spring.SetUnitStealth(unitID, true)
-	--Spring.SetUnitNoSelect(unitID, true)
-	Spring.SetUnitNoMinimap(unitID, true)
-	Spring.GiveOrderToUnit(unitID, CMD.MOVE_STATE, { 0 }, 0)
-	Spring.GiveOrderToUnit(unitID, CMD.FIRE_STATE, { 0 }, 0)
+	Spring.DestroyUnit(unitID, false, true)
+	-- Spring.MoveCtrl.Enable(unitID)
+	-- Spring.MoveCtrl.SetNoBlocking(unitID, true)
+	-- Spring.MoveCtrl.SetPosition(unitID, Game.mapSizeX+1900, 2000, Game.mapSizeZ+1900) --don't move too far out or prevent_aicraft_hax will explode it!
+	-- Spring.SetUnitNeutral(unitID, true)
+	-- Spring.SetUnitCloak(unitID, true)
+	-- --Spring.SetUnitHealth(unitID, {paralyze=99999999})
+	-- Spring.SetUnitMaxHealth(unitID, 10000000)
+	-- Spring.SetUnitHealth(unitID, 10000000)
+	-- --Spring.SetUnitNoDraw(unitID, true)
+	-- Spring.SetUnitStealth(unitID, true)
+	-- --Spring.SetUnitNoSelect(unitID, true)
+	-- Spring.SetUnitNoMinimap(unitID, true)
+	-- Spring.GiveOrderToUnit(unitID, CMD.MOVE_STATE, { 0 }, 0)
+	-- Spring.GiveOrderToUnit(unitID, CMD.FIRE_STATE, { 0 }, 0)
 end
 
 local function DisableCommander()
 	local teamUnits = Spring.GetTeamUnits(scavengerAITeamID)
 	for _, unitID in ipairs(teamUnits) do
-		HiddenCommander = unitID
+		--HiddenCommander = unitID
 		DisableUnit(unitID)
 	end
 end
@@ -255,7 +256,7 @@ function gadget:GameFrame(n)
 			DisableCommander()
 			disabledCommander = true
 		end
-		Spring.SetUnitHealth(HiddenCommander, 10000000)
+		--Spring.SetUnitHealth(HiddenCommander, 10000000)
 	end
 
 	if n == 100 and globalScore then
