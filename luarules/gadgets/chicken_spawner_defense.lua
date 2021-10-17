@@ -113,7 +113,7 @@ if gadgetHandler:IsSyncedCode() then
 	local queenResistance = {}
 	local stunList = {}
 	local queenID
-	local chickenTeamID
+	local chickenTeamID, chickenAllyTeamID
 	local lsx1, lsz1, lsx2, lsz2
 	local turrets = {}
 	local chickenBirths = {}
@@ -146,6 +146,7 @@ if gadgetHandler:IsSyncedCode() then
 		local teamLuaAI = GetTeamLuaAI(teamID)
 		if (teamLuaAI and string.find(teamLuaAI, "Chickens")) then
 			chickenTeamID = teamID
+			chickenAllyTeamID = select(6, Spring.GetTeamInfo(chickenTeamID))
 			computerTeams[teamID] = true
 		else
 			humanTeams[teamID] = true
@@ -155,6 +156,7 @@ if gadgetHandler:IsSyncedCode() then
 	local gaiaTeamID = GetGaiaTeamID()
 	if not chickenTeamID then
 		chickenTeamID = gaiaTeamID
+		chickenAllyTeamID = select(6, Spring.GetTeamInfo(chickenTeamID))
 	else
 		computerTeams[gaiaTeamID] = nil
 	end
@@ -1451,10 +1453,15 @@ if gadgetHandler:IsSyncedCode() then
 				SpawnBurrow()
 				SpawnChickens() -- spawn new chickens (because queen could be the last one)
 			else
-				gameOver = GetGameFrame() + 120
+				gameOver = GetGameFrame() + 200
 				spawnQueue = {}
 				KillAllComputerUnits()
-				KillAllChicken()
+
+				-- kill whole allyteam  (game_end gadget will destroy leftover units)
+				for _, teamID in ipairs(Spring.GetTeamList(chickenAllyTeamID)) do
+					Spring.KillTeam(teamID)
+				end
+				--KillAllChicken()
 			end
 		end
 
@@ -1495,7 +1502,6 @@ if gadgetHandler:IsSyncedCode() then
 
 			SetGameRulesParam("roostCount", SetCount(burrows))
 		end
-
 	end
 
 	function gadget:TeamDied(teamID)
@@ -1529,12 +1535,10 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-else
-	-- UNSYNCED CODE
-	--------------------------------------------------------------------------------
-	--------------------------------------------------------------------------------
 
-	local Script = Script
+else	-- UNSYNCED
+
+
 	local hasChickenEvent = false
 
 	local function HasChickenEvent(ce)

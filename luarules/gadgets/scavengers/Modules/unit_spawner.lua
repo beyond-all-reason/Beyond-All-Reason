@@ -102,16 +102,22 @@ function BossWaveTimer(n)
 				ScavSendNotification("scav_scavfinalvictory")
 				FinalMessagePlayed = true
 			end
-			local units = Spring.GetTeamUnits(GaiaTeamID)
-			FinalSelfDChance = FinalSelfDChance - 1
-			if FinalSelfDChance < 2 then
-				FinalSelfDChance = 2
-			end
-			for i = 1,#units do
-				local r = math_random(1,FinalSelfDChance)
-				if r == 1 then
-					Spring.DestroyUnit(units[i],false,false)
-				end
+			--FinalSelfDChance = FinalSelfDChance - 1
+			--if FinalSelfDChance < 2 then
+			--	FinalSelfDChance = 2
+			--end
+			--local units = Spring.GetTeamUnits(GaiaTeamID)
+			--for i = 1,#units do
+			--	local r = math_random(1,FinalSelfDChance)
+			--	if r == 1 then
+			--		Spring.DestroyUnit(units[i],false,false)
+			--	end
+			--end
+
+			-- kill whole allyteam  (game_end gadget will destroy leftover units)
+			local scavengerAllyTeamID = select(6, Spring.GetTeamInfo(scavengerAITeamID,false))
+			for _, teamID in ipairs(Spring.GetTeamList(scavengerAllyTeamID)) do
+				Spring.KillTeam(teamID)
 			end
 		end
 	end

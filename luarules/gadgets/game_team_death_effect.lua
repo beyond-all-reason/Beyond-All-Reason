@@ -10,10 +10,6 @@ function gadget:GetInfo()
 	}
 end
 
--- other gadgets can call a unit death wave with:
--- GG.wipeoutTeam(teamID, originX, originZ, attackerUnitID)
--- attackerUnitID is optional, originX, originZ will be set as 0 when not defined
-
 -- this gadget wont do: Spring.KillTeam(...)
 
 if not gadgetHandler:IsSyncedCode() then
@@ -33,23 +29,25 @@ local function getSqrDistance(x1,z1,x2,z2)
 	return (dx*dx) + (dz*dz)
 end
 
-local function wipeoutTeam(teamID, originX, originZ, attackerUnitID, periodMult)
-	originX = originX or 0
-	originZ = originZ or 0
+local function wipeoutTeam(teamID, originX, originZ, attackerUnitID, periodMult)	-- only teamID is required
 	periodMult = periodMult or 1
 	local gf = Spring.GetGameFrame()
 	local maxDeathFrame = 0
 	local teamUnits = Spring.GetTeamUnits(teamID)
 	for i=1, #teamUnits do
 		local unitID = teamUnits[i]
-		local x,y,z = spGetUnitPosition(unitID)
-		local deathFrame = 6 + math.floor((math.min(((getSqrDistance(x, z, originX, originZ) / DISTANCE_LIMIT) * wavePeriod/2), wavePeriod) + math.random(0,wavePeriod/2.5)) * periodMult)
+		local x,_,z = spGetUnitPosition(unitID)
+		local deathFrame
+		if originX then
+			deathFrame = 6 + math.floor((math.min(((getSqrDistance(x, z, originX, originZ) / DISTANCE_LIMIT) * wavePeriod/2), wavePeriod) + math.random(0,wavePeriod/2.5)) * periodMult)
+		else
+			deathFrame = 6 + math.floor((math.random(1, wavePeriod*0.25) + math.random(0,wavePeriod/2.5)) * periodMult)
+		end
 		maxDeathFrame = math.max(maxDeathFrame, deathFrame)
 		if destroyUnitQueue[unitID] == nil then
 			destroyUnitQueue[unitID] = {
 				frame = gf + deathFrame,
 				attackerUnitID = attackerUnitID,
-				--x = x, y = y, z = z,
 			}
 		end
 
@@ -64,17 +62,32 @@ local function wipeoutTeam(teamID, originX, originZ, attackerUnitID, periodMult)
 	GG.maxDeathFrame = GG.maxDeathFrame and math.max(GG.maxDeathFrame, maxDeathFrame) or maxDeathFrame	-- storing frame of total unit wipeout
 end
 
-GG.wipeoutTeam = wipeoutTeam
-GG.wipeoutPeriod = math.floor(wavePeriod*1.25)
+local function wipeoutAllyTeam(allyTeamID, attackerUnitID, originX, originZ, periodMult)	-- only allyTeamID is required
 
+	-- xmas gadget uses this (to prevent creating xmasballs)
+	if not _G.destroyingTeam then _G.destroyingTeam = {} end
+	_G.destroyingTeam[allyTeamID] = true
+
+	-- define smaller destruction period when few units
+	local totalUnits = 0
+	for _, teamID in ipairs(Spring.GetTeamList(allyTeamID)) do
+		local units = Spring.GetTeamUnits(teamID)
+		totalUnits = totalUnits + #units
+	end
+	periodMult = (periodMult or 1) * math.max(0.33, math.min(1, totalUnits / 300))	-- make low unitcount blow up faster
+
+	-- destroy all teams
+	for _, teamID in ipairs(Spring.GetTeamList(allyTeamID)) do
+		wipeoutTeam(teamID, originX, originZ, attackerUnitID, periodMult)
+	end
+end
+
+GG.wipeoutTeam = wipeoutTeam
+GG.wipeoutAllyTeam = wipeoutAllyTeam
 
 function gadget:GameFrame(gf)
 	if next(destroyUnitQueue) then
 		for unitID, defs in pairs(destroyUnitQueue) do
-			--if dt > defs.frame - 15 and not defs.spark then
-			--	spSpawnCEG("DEATH_WAVE_SPARKS",defs.x,defs.y,defs.z,0,0,0)
-			--	destroyUnitQueue[unitID].spark = true
-			--end
 			if gf > defs.frame then
                 if defs.attackerUnitID then
 					spDestroyUnit(unitID, true, nil, defs.attackerUnitID)

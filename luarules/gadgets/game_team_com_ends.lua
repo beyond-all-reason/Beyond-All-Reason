@@ -1,7 +1,7 @@
 function gadget:GetInfo()
 	return {
-		name = "Team Com Ends + dead allyteam blowup",
-		desc = "Implements com ends for allyteams + blows up team if no players left",
+		name = "Team Com Ends",
+		desc = "Implements com ends for allyteams",
 		author = "KDR_11k (David Becker), Floris",
 		date = "2008-02-04",
 		license = "Public domain",
@@ -14,12 +14,18 @@ if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
--- this acts just like Com Ends except instead of killing a player's units when
--- his com dies it acts on an allyteam level, if all coms in an allyteam are dead
--- the allyteam is out
+-- Exclude Scavengers / Chickens AI
+local ignoredAllyTeams = {}
+local teams = Spring.GetTeamList()
+for i = 1, #teams do
+	local luaAI = Spring.GetTeamLuaAI(teams[i])
+	if luaAI and (luaAI:find("Chickens") or luaAI:find("Scavengers")) then
+		ignoredAllyTeams[ select(6, Spring.GetTeamInfo(teams[i],false)) ] = true
+	end
+end
 
-local commanderDeathQueue = {}
 local aliveComCount = {}
+local commanderDeathQueue = {}
 local gaiaTeamID = Spring.GetGaiaTeamID()
 
 local GetTeamList = Spring.GetTeamList
@@ -39,29 +45,12 @@ for _,teamID in ipairs(GetTeamList()) do
 	end
 end
 
-local function commanderDeath(teamID, unitID)
-	local allyTeamID = select(6, Spring.GetTeamInfo(teamID))
+local function commanderDeath(teamID, attackerUnitID, originX, originZ) -- optional: attackerUnitID, originX, originZ
+	local allyTeamID = select(6, Spring.GetTeamInfo(teamID, false))
 	aliveComCount[allyTeamID] = aliveComCount[allyTeamID] - 1
 	if aliveComCount[allyTeamID] <= 0 then
-		local x,z
-		if unitID then
-			x,_,z = Spring.GetUnitPosition(unitID)
-		end
-
-		-- xmas gadget uses this (to prevent creating xmasballs)
-		if not _G.destroyingTeam then _G.destroyingTeam = {} end
-		_G.destroyingTeam[allyTeamID] = true
-
-		-- destroy whole ally team
-		local totalUnits = 0
-		for _, teamID in ipairs(GetTeamList(allyTeamID)) do
-			local units = Spring.GetTeamUnits(teamID)
-			totalUnits = totalUnits + #units
-		end
-		local periodMult = math.max(0.4, math.min(1, totalUnits / 300))	-- make low unitcount blow up faster
-		for _, teamID in ipairs(GetTeamList(allyTeamID)) do
-			GG.wipeoutTeam(teamID, x, z, unitID, periodMult)
-			if not select(3, Spring.GetTeamInfo(teamID)) then
+		for _, teamID in ipairs(Spring.GetTeamList(allyTeamID)) do
+			if not select(3, Spring.GetTeamInfo(teamID, false)) then
 				Spring.KillTeam(teamID)
 			end
 		end
@@ -72,8 +61,8 @@ function gadget:GameFrame(gf)
 
 	-- execute 1 frame delayed destroyedunit (because a unit can be taken before its given which could make the game end)
 	-- untested if this actually is the case
-	for unitID, teamID in pairs(commanderDeathQueue) do
-		commanderDeath(teamID, unitID)
+	for unitID, params in pairs(commanderDeathQueue) do
+		commanderDeath(params[1], params[2], params[3], params[4])
 		commanderDeathQueue[unitID] = nil
 	end
 end
@@ -93,16 +82,16 @@ function gadget:UnitGiven(unitID, unitDefID, unitTeam)
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
-	if isCommander[unitDefID] and unitTeam ~= gaiaTeamID then
-		commanderDeathQueue[unitID] = unitTeam
-		--commanderDeath(unitTeam, unitID)
+	if isCommander[unitDefID] and unitTeam ~= gaiaTeamID and not ignoredAllyTeams[select(6,Spring.GetTeamInfo(unitTeam, false))] then
+		local x,_,z = Spring.GetUnitPosition(unitID)
+		commanderDeathQueue[unitID] = {unitTeam, attackerDefID, x, z}
 	end
 end
 
 function gadget:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
-	if isCommander[unitDefID] and unitTeam ~= gaiaTeamID then
-		commanderDeathQueue[unitID] = unitTeam
-		--commanderDeath(unitTeam, unitID)
+	if isCommander[unitDefID] and unitTeam ~= gaiaTeamID and not ignoredAllyTeams[select(6,Spring.GetTeamInfo(unitTeam, false))]  then
+		local x,_,z = Spring.GetUnitPosition(unitID)
+		commanderDeathQueue[unitID] = {unitTeam, nil, x, z}
 	end
 end
 

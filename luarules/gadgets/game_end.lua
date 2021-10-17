@@ -10,9 +10,14 @@ function gadget:GetInfo()
 	}
 end
 
+--[[
+	A dead AllyTeam blows up all units it still contains
+
+	AllyTeam is dead when:
+	- no longer has any units
+	- has no alive teams
+]]
 if gadgetHandler:IsSyncedCode() then
-	-- In this gadget, an allyteam is declared dead when it no longer has any units
-	-- Allyteam explosion when no coms are left (killing all remaining units of that allyteam) is implemented in teamcomends.lua
 
 	local sharedDynamicAllianceVictory = Spring.GetModOptions().shareddynamicalliancevictory
 	local fixedallies = Spring.GetModOptions().fixedallies
@@ -61,7 +66,6 @@ if gadgetHandler:IsSyncedCode() then
 	--	},
 	--}
 
-
 	local function UpdateAllyTeamIsDead(allyTeamID)
 		local allyTeamInfo = allyTeamInfos[allyTeamID]
 		local dead = true
@@ -72,9 +76,13 @@ if gadgetHandler:IsSyncedCode() then
 				dead = dead and (teamInfo.dead or not teamInfo.isControlled)
 			end
 		end
-		allyTeamInfos[allyTeamID].dead = dead
-	end
 
+		-- destroy all dead team units
+		if dead and not allyTeamInfos[allyTeamID].dead and GetGameFrame() > 0 then
+			GG.wipeoutAllyTeam(allyTeamID)
+			allyTeamInfos[allyTeamID].dead = true
+		end
+	end
 
 	local function CheckPlayer(playerID)
 		local _, active, spectator, teamID, allyTeamID = GetPlayerInfo(playerID, false)
@@ -272,9 +280,8 @@ if gadgetHandler:IsSyncedCode() then
 				end
 
 				-- delay gameover to let everything blow up gradually first
-				local delay = GG.wipeoutPeriod or 250
-				delay = GG.maxDeathFrame or delay
-				gameoverFrame = gf + delay + 60
+				local delay = GG.maxDeathFrame or 250
+				gameoverFrame = gf + delay + 70
 				gameoverWinners = winners
 			end
 		end
@@ -367,9 +374,9 @@ if gadgetHandler:IsSyncedCode() then
 else	-- Unsynced
 
 
-	local IsCheatingEnabled = Spring.IsCheatingEnabled
 	local sec = 0
 	local cheated = false
+	local IsCheatingEnabled = Spring.IsCheatingEnabled
 
 	function gadget:Update(dt)
 		if Spring.GetGameFrame() == 0 then
