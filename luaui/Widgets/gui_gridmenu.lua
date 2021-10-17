@@ -5,7 +5,7 @@ function widget:GetInfo()
 		author = "Floris, grid by badosu and resopmok",
 		date = "October 2021",
 		license = "GNU GPL, v2 or later",
-		layer = 1,
+		layer = 0,
 		enabled = false,
 		handler = true,
 	}
@@ -30,7 +30,7 @@ SYMKEYS = table_invert(KEYSYMS)
 local labGrids = {
 	armalab = {
 		"armack", "armfark", "armspy", "armmark",							 -- T2 con, fark, spy, radar bot
-		"armaser", "armfast", "armzeus", "armmav",						  -- jammer bot, zipper, zeus, maverick
+		"armaser", "armfast", "armzeus", "armmav",							-- jammer bot, zipper, zeus, maverick
 		"armfido", "armsptk", "armaak", "armsnipe",						 -- fido, recluse, AA bot, sniper
 	},
 
@@ -869,6 +869,7 @@ local Cfgs = {
 	cfgPriceFontSize = 0.19,
 	cfgCategoryFontSize = 0.19,
 	cfgActiveAreaMargin = 0.1, -- (# * bgpadding) space between the background border and active area
+	maxPosY = 0.74,
 	sound_queue_add = 'LuaUI/Sounds/buildbar_add.wav',
 	sound_queue_rem = 'LuaUI/Sounds/buildbar_rem.wav',
 	fontFile = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf"),
@@ -1730,22 +1731,38 @@ function widget:ViewResize()
 
 		backgroundRect = { posX, (posY - height) * vsy, posX2, posY * vsy }
 	else
-		local infoWidth, infoHeight = WG['info'].getPosition()
+		width = 0.212
+		width = width / (vsx / vsy) * 1.78				-- make smaller for ultrawide screens
+		width = width * ui_scale
 
-		vinfoWidth = infoWidth * vsx
-		vinfoHeight = infoHeight * vsy
-
+		posY2 = math_floor(0.14 * ui_scale * vsy) / vsy
+		posY2 = posY2 + (widgetSpaceMargin/vsy)
+		posY = posY2 + (0.72 * width * vsx + pageButtonHeight + paginatorCellWidth)/vsy
+		posX = 0
 		minColls = 4
 		maxColls = 4
 
-		width = vinfoWidth
-		height = 0.72 * width + pageButtonHeight + paginatorCellWidth
-		posX = 0
-		posX2 = width
-		posY = vinfoHeight + WG.FlowUI.elementMargin
-		posY2 = posY + height
+		if WG['minimap'] then
+			if WG['ordermenu'] then
+				local oposX, oposY, owidth, oheight = WG['ordermenu'].getPosition()
+				if posY > oposY then
+					posY = oposY - oheight - ((widgetSpaceMargin)/vsy)
+				end
+			end
+		end
 
-		backgroundRect = { posX, posY, posX2, posY2 }
+		posY = math_floor(posY * vsy) / vsy
+		posX = math_floor(posX * vsx) / vsx
+
+		height = (posY - posY2)
+
+		posX2 = math_floor(width * vsx)
+
+		-- make pixel aligned
+		width = math_floor(width * vsx) / vsx
+		height = math_floor(height * vsy) / vsy
+
+		backgroundRect = { posX, (posY - height) * vsy, posX2, posY * vsy }
 	end
 
 	checkGuishader(true)
@@ -3296,20 +3313,20 @@ function enqueueUnit(uDefID, opts)
 end
 
 -- function widget:MouseRelease(x, y, button)
--- 	if Spring.IsGUIHidden() then
--- 		return
--- 	end
--- 	if WG['topbar'] and WG['topbar'].showingQuit() then
--- 		return
--- 	end
+--	if Spring.IsGUIHidden() then
+--		return
+--	end
+--	if WG['topbar'] and WG['topbar'].showingQuit() then
+--		return
+--	end
 -- 
 	-- if selectedFactory and not disableInput then
-	-- 	for lab, labRect in pairs(labButtonRects) do
-	-- 		if IsOnRect(x, y, labRect[1], labRect[2], labRect[3], labRect[4]) then
-	-- 			doUpdate = true
-	-- 			return true
-	-- 		end
-	-- 	end
+	--	for lab, labRect in pairs(labButtonRects) do
+	--		if IsOnRect(x, y, labRect[1], labRect[2], labRect[3], labRect[4]) then
+	--			doUpdate = true
+	--			return true
+	--		end
+	--	end
 	-- end
 --end
 
