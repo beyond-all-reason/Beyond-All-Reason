@@ -1466,8 +1466,13 @@ if gadgetHandler:IsSyncedCode() then
 				KillAllComputerUnits()
 
 				-- kill whole allyteam  (game_end gadget will destroy leftover units)
-				for _, teamID in ipairs(Spring.GetTeamList(chickenAllyTeamID)) do
-					Spring.KillTeam(teamID)
+				if not killedChickensAllyTeam then
+					killedChickensAllyTeam = true
+					for _, teamID in ipairs(Spring.GetTeamList(chickenAllyTeamID)) do
+						if not select(3, Spring.GetTeamInfo(teamID, false)) then
+							Spring.KillTeam(teamID)
+						end
+					end
 				end
 				--KillAllChicken()
 			end
