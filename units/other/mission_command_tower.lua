@@ -30,6 +30,7 @@ return {
 		maxwaterdepth = 0,
 		name = unitName,
 		objectname = "Units/mission_command_tower.s3o",
+		script = "mission_command_tower.cob",
 		reclaimable = false,
 		seismicsignature = 0,
 		selfdestructas = "fusionExplosionSelfd",
