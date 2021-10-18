@@ -3800,7 +3800,22 @@ function init()
 			  Spring.Restart("", startScript)
 		  end,
 		},
+
+
 		-- BAR doesnt support ZK style startboxes{ id = "startboxeditor", group = "dev", widget = "Startbox Editor", name = texts.option.startboxeditor, type = "bool", value = GetWidgetToggleValue("Startbox Editor"), description = texts.option.startboxeditor_descr },
+
+
+		 { id = "gridmenu", group = "dev", name = texts.option.gridmenu, type = "bool", value = false, description = texts.option.gridmenu_descr,
+			onchange = function(i, value)
+				if value then
+					widgetHandler:DisableWidget('Build menu')
+					widgetHandler:EnableWidget('Grid menu')
+				else
+					widgetHandler:DisableWidget('Grid menu')
+					widgetHandler:EnableWidget('Build menu')
+				end
+			end,
+		  },
 
 		{ id = "debugcolvol", group = "dev", name = texts.option.debugcolvol, type = "bool", value = false, description = "",
 			onchange = function(i, value)
