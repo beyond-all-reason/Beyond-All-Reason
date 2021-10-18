@@ -12,8 +12,6 @@ end
 
 local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 
-local vsx, vsy = Spring.GetViewGeometry()
-
 local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity", 0.6) or 0.66)
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
 
@@ -23,7 +21,6 @@ local guishaderEnabled
 local playerChangeDelay = 40
 
 local parentPos = {}
-local prevPos = {}
 local drawlistsCountdown = {}
 local drawlistsPlayername = {}
 local fontSize = 12    -- 14 to be alike with advplayerslist_lockcamera widget
@@ -44,7 +41,6 @@ local vsx, vsy = Spring.GetViewGeometry()
 local widgetScale = (0.7 + (vsx * vsy / 5000000))
 
 local toggled = false
-
 local drawlist = {}
 local widgetHeight = 22
 
@@ -59,13 +55,9 @@ end
 teams = nil
 
 local font, font2, lockPlayerID, prevLockPlayerID, toggleButton, backgroundGuishader, prevGameframeClock, chobbyInterface
-
 local RectRound, elementCorner, bgpadding
 
----------------------------------------------------------------------------------------------------
----------------------------------------------------------------------------------------------------
-
-function addPlayerTsOrdered(ts, playerID, teamID, spec)
+local function addPlayerTsOrdered(ts, playerID, teamID, spec)
 	local inserted = false
 	local newTsOrderedPlayers = {}
 	tsOrderedPlayerCount = 0
@@ -247,7 +239,6 @@ function updatePosition(force)
 		right = parentPos[4]
 		top = parentPos[1] + math.floor(widgetHeight * parentPos[5])
 		widgetScale = parentPos[5]
-
 		if (prevPos[1] == nil or prevPos[1] ~= parentPos[1] or prevPos[2] ~= parentPos[2] or prevPos[5] ~= parentPos[5]) or force then
 			createCountdownLists()
 			createList()
@@ -316,6 +307,9 @@ function widget:PlayerChanged(playerID)
 		if playerID == currentTrackedPlayer then
 			SelectTrackingPlayer()
 		end
+	end
+	if drawlistsPlayername[playerID] then
+		gl.DeleteList(drawlistsPlayername[playerID])
 	end
 end
 
@@ -545,7 +539,7 @@ function widget:DrawScreen()
 							nameColourR, nameColourG, nameColourB, _ = spGetTeamColor(teamID)
 						end
 						local posX = vsx * 0.985
-						local posY = top + (vsy * 0.0215)
+						local posY = vsy * 0.0215
 						font2:Begin()
 						font2:SetTextColor(nameColourR, nameColourG, nameColourB, 1)
 						if (nameColourR + nameColourG * 1.2 + nameColourB * 0.4) < 0.8 then
@@ -561,6 +555,7 @@ function widget:DrawScreen()
 		end
 		if lockPlayerID and drawlistsPlayername[lockPlayerID] then
 			gl.PushMatrix()
+			gl.Translate(0,top,0)
 			gl.CallList(drawlistsPlayername[lockPlayerID])
 			gl.PopMatrix()
 		end
