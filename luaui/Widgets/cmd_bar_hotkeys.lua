@@ -227,6 +227,10 @@ end
 function ReloadBindings()
     UnloadBindings()
     LoadBindings()
+
+    if WG['buildmenu'] and WG['buildmenu'].reloadBindings then
+      WG['buildmenu'].reloadBindings()
+    end
 end
 
 function widget:Initialize()

@@ -1733,7 +1733,22 @@ local function hijacklayout()
 	Spring.ForceLayoutUpdate()
 end
 
+function reloadBindings()
+	local key
+	local actionHotkey = Spring.GetActionHotKeys('gridmenu_key 1 1')
+
+	if actionHotkey[1] then
+		key = string.upper(actionHotkey[1])
+	else
+		key = WG.swapYZbinds and 'Y' or 'Z'
+	end
+
+	Cfgs.keyLayouts.qwerty[1][1] = key
+	Cfgs.keyLayouts.vqwerty[1][1] = key
+end
+
 function widget:Initialize()
+	reloadBindings()
 	ui_opacity = WG.FlowUI.opacity
 	ui_scale = WG.FlowUI.scale
 	glossMult = 1 + (2 - (ui_opacity * 2))		-- increase gloss/highlight so when ui is transparant, you can still make out its boundaries and make it less flat
@@ -1821,6 +1836,10 @@ function widget:Initialize()
 	end
 	WG['buildmenu'].getSize = function()
 		return posY, posY2
+	end
+	WG['buildmenu'].reloadBindings = function()
+		reloadBindings()
+		doUpdate = true
 	end
 end
 
