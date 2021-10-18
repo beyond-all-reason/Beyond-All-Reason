@@ -66,8 +66,7 @@ local OPTIONS = {	-- these will be loaded when switching style, but the style wi
 	minAnimationMultiplier			= 0.99,
 
 	-- circle shape
-	solidCirclePieces				= 28,
-	circlePieces					= 56,
+	circlePieces					= 52,
 	circlePieceDetail				= 1,
 	circleSpaceUsage				= 1,
 	circleInnerOffset				= 0,
@@ -140,7 +139,7 @@ end
 
 local function DrawCircleSolid(size)
 	gl.BeginEnd(GL.TRIANGLE_FAN, function()
-		local pieces = OPTIONS.solidCirclePieces
+		local pieces = OPTIONS.circlePieces
 		local radstep = (2.0 * math.pi) / pieces
 		local a1
 		gl.Vertex(0, 1, 0)

@@ -541,6 +541,30 @@ end
 local excludeScavs = not (Spring.Utilities.Gametype.IsScavengers() or Spring.GetModOptions().experimentalscavuniqueunits)
 local excludeChickens = not Spring.Utilities.Gametype.IsChickens()
 
+local dlistCache
+local function cacheUnitIcons()
+	if dlistCache then
+		dlistCache = gl.DeleteList(dlistCache)
+	end
+	dlistCache = gl.CreateList(function()
+		gl.Color(1, 1, 1, 0.001)
+		for id, unit in pairs(UnitDefs) do
+			if not excludeScavs or not string.find(unit.name,'_scav') then
+				if not excludeChickens or not string.find(unit.name,'chicken') then
+					gl.Texture('#'..id)
+					gl.TexRect(-1, -1, 0, 0)
+					if unitIconType[id] and iconTypesMap[unitIconType[id]] then
+						gl.Texture(':l:' .. iconTypesMap[unitIconType[id]])
+						gl.TexRect(-1, -1, 0, 0)
+					end
+				end
+			end
+		end
+		gl.Texture(false)
+		gl.Color(1, 1, 1, 1)
+	end)
+end
+
 local showGeothermalUnits = false
 local function checkGeothermalFeatures()
 	showGeothermalUnits = false
@@ -747,6 +771,10 @@ function widget:Initialize()
 		iconTypesMap = Script.LuaRules.GetIconTypes()
 	end
 
+	if Spring.GetGameFrame() == 0 then
+		cacheUnitIcons()
+	end
+
 	-- Get our starting unit
 	if preGamestartPlayer then
 		SetBuildFacing()
@@ -879,6 +907,9 @@ function widget:Shutdown()
 	if WG['guishader'] and dlistGuishader then
 		WG['guishader'].DeleteDlist('buildmenu')
 		dlistGuishader = nil
+	end
+	if dlistCache then
+		dlistCache = gl.DeleteList(dlistCache)
 	end
 	WG['buildmenu'] = nil
 end
