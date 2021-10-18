@@ -557,10 +557,10 @@ local function cacheUnitIcons()
 						gl.Texture(':l:' .. iconTypesMap[unitIconType[id]])
 						gl.TexRect(-1, -1, 0, 0)
 					end
+					gl.Texture(false)
 				end
 			end
 		end
-		gl.Texture(false)
 		gl.Color(1, 1, 1, 1)
 	end)
 end
@@ -1325,7 +1325,7 @@ function widget:DrawScreen()
 
 	if Spring.GetGameFrame() == 0 and not cachedUnitIcons then
 		cachedUnitIcons = true
-		cacheUnitIcons()
+		--cacheUnitIcons()
 	end
 
 	-- refresh buildmenu if active cmd changed
