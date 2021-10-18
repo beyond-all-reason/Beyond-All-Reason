@@ -3810,7 +3810,7 @@ function init()
         -- BAR doesnt support ZK style startboxes{ id = "startboxeditor", group = "dev", widget = "Startbox Editor", name = texts.option.startboxeditor, type = "bool", value = GetWidgetToggleValue("Startbox Editor"), description = texts.option.startboxeditor_descr },
 
 
-        { id = "gridmenu", group = "dev", name = texts.option.gridmenu, type = "bool", value = false, description = texts.option.gridmenu_descr,
+        { id = "gridmenu", group = "dev", name = texts.option.gridmenu, type = "bool", value = GetWidgetToggleValue("Grid menu"), description = texts.option.gridmenu_descr,
           onchange = function(i, value)
               if value then
                   widgetHandler:DisableWidget('Build menu')
