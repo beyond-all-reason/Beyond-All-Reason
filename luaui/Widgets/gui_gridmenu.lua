@@ -984,8 +984,8 @@ local hoverCellZoom = 0.05 * zoomMult
 local clickSelectedCellZoom = 0.125 * zoomMult
 local selectedCellZoom = 0.135 * zoomMult
 
-local bgpadding, chobbyInterface, activeAreaMargin, textureDetail, iconTypesMap, radariconTextureDetail
-local dlistCache, dlistGuishader, dlistBuildmenuBg, dlistBuildmenu, font, font2, cmdsCount
+local bgpadding, chobbyInterface, activeAreaMargin, iconTypesMap
+local dlistGuishader, dlistBuildmenuBg, dlistBuildmenu, font, font2, cmdsCount
 local hijackedlayout, doUpdateClock, ordermenuHeight, advplayerlistPos, prevAdvplayerlistLeft
 local cellPadding, iconPadding, cornerSize, cellInnerSize, cellSize
 
@@ -1342,49 +1342,6 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	end
 end
 
--- load all icons to prevent briefly showing white unit icons (will happen due to the custom texture filtering options)
-local function cacheUnitIcons()
-	local minC = minColls
-	local maxC = maxColls
-
-	local activeArea = { backgroundRect[1] + (stickToBottom and bgpadding or 0) + activeAreaMargin, backgroundRect[2] + (stickToBottom and 0 or bgpadding) + activeAreaMargin, backgroundRect[3] - bgpadding - activeAreaMargin, backgroundRect[4] - bgpadding - activeAreaMargin }
-	local contentWidth = activeArea[3] - activeArea[1]
-	local colls = minC
-	local cellSize = math_floor((contentWidth / colls) + 0.33)
-	local cellPadding = math_floor(cellSize * Cfgs.cfgCellPadding)
-	local cellInnerSize = cellSize - cellPadding - cellPadding
-	local newTextureDetail = math_floor(cellInnerSize * (1 + defaultCellZoom) * 1.25)
-	local newRadariconTextureDetail = math_floor(math_floor((cellInnerSize * Cfgs.cfgRadariconSize) + 0.5) * 2)
-	if not textureDetail or textureDetail ~= newTextureDetail then
-		while colls <= maxC do
-			-- these are globals so it can be re-used (hover highlight)
-			gl.Color(1, 1, 1, 0.001)
-			for id, unit in pairs(UnitDefs) do
-				-- only caching for defaultCellZoom
-				if unitBuildPic[id] then
-					gl.Texture(':lr' .. newTextureDetail .. ',' .. newTextureDetail .. ':unitpics/' .. unitBuildPic[id])
-					if textureDetail then	-- delete old texture
-						gl.DeleteTexture(':lr' .. textureDetail .. ',' .. textureDetail .. ':unitpics/' .. unitBuildPic[id])
-					end
-				end
-				if unitIconType[id] and iconTypesMap[unitIconType[id]] then
-					gl.TexRect(-1, -1, 0, 0)
-					gl.Texture(':lr' .. newRadariconTextureDetail .. ',' .. newRadariconTextureDetail .. ':' .. iconTypesMap[unitIconType[id]])
-					gl.TexRect(-1, -1, 0, 0)
-					if radariconTextureDetail then	-- delete old texture
-						gl.DeleteTexture(':lr' .. radariconTextureDetail .. ',' .. radariconTextureDetail .. ':' .. iconTypesMap[unitIconType[id]])
-					end
-				end
-				gl.Texture(false)
-			end
-			gl.Color(1, 1, 1, 1)
-			colls = colls + 1
-		end
-		textureDetail = newTextureDetail
-		radariconTextureDetail = newRadariconTextureDetail
-	end
-end
-
 ------------------------------------
 -- UNIT ORDER ----------------------
 ------------------------------------
@@ -1567,14 +1524,6 @@ end
 -- /UNIT ORDER ----------------------
 ------------------------------------
 
-local function refreshUnitIconCache()
-	if dlistCache then
-		dlistCache = gl.DeleteList(dlistCache)
-	end
-	dlistCache = gl.CreateList(function()
-		cacheUnitIcons()
-	end)
-end
 
 local function checkGuishader(force)
 	if WG['guishader'] then
@@ -1766,7 +1715,6 @@ function widget:ViewResize()
 	end
 
 	checkGuishader(true)
-	refreshUnitIconCache()
 	clear()
 	doUpdate = true
 end
@@ -1874,8 +1822,6 @@ function widget:Initialize()
 	WG['buildmenu'].getSize = function()
 		return posY, posY2
 	end
-
-	refreshUnitIconCache()
 end
 
 function clear()
@@ -1892,9 +1838,6 @@ function widget:Shutdown()
 	if WG['guishader'] and dlistGuishader then
 		WG['guishader'].DeleteDlist('buildmenu')
 		dlistGuishader = nil
-	end
-	if dlistCache then
-		dlistCache = gl.DeleteList(dlistCache)
 	end
 	WG['buildmenu'] = nil
 end
@@ -1914,7 +1857,6 @@ function widget:Update(dt)
 		checkGuishader()
 		if ui_scale ~= Spring.GetConfigFloat("ui_scale", 1) then
 			ui_scale = Spring.GetConfigFloat("ui_scale", 1)
-			refreshUnitIconCache()
 			widget:ViewResize()
 			doUpdate = true
 		end
@@ -1925,7 +1867,6 @@ function widget:Update(dt)
 			doUpdate = true
 		end
 		if WG['minimap'] and minimapHeight ~= WG['minimap'].getHeight() then
-			refreshUnitIconCache()
 			widget:ViewResize()
 			doUpdate = true
 		end
@@ -2069,8 +2010,8 @@ local function drawCell(cellRectID, usedZoom, cellColor, progress, highlightColo
 	cornerSize, 1,1,1,1,
 	usedZoom,
 	nil, disabled and 0 or nil,
-	':l' .. (disabled and 'g' or '') ..'r' .. textureDetail .. ',' .. textureDetail .. ':unitpics/' .. unitBuildPic[uid],
-	showRadarIcon and (((unitIconType[uid] and iconTypesMap[unitIconType[uid]]) and ':l' .. (disabled and 't0.35,0.35,0.35' or '') ..'r' .. radariconTextureDetail .. ',' .. radariconTextureDetail .. ':' .. iconTypesMap[unitIconType[uid]] or nil)) or nil,
+	'#' .. uid,
+	showRadarIcon and (((unitIconType[uid] and iconTypesMap[unitIconType[uid]]) and ':l' .. (disabled and 't0.35,0.35,0.35' or '') ..':' .. iconTypesMap[unitIconType[uid]] or nil)) or nil,
 	showGroupIcon and (groups[unitGroup[uid]] and ':l' .. (disabled and 'gt0.4,0.4,0.4:' or ':') ..groups[unitGroup[uid]] or nil) or nil,
 	{unitMetalCost[uid], unitEnergyCost[uid]},
 	tonumber(cmd.params[1])
@@ -2080,7 +2021,7 @@ local function drawCell(cellRectID, usedZoom, cellColor, progress, highlightColo
 	if cellColor then
 		glBlending(GL_DST_ALPHA, GL_ONE_MINUS_SRC_COLOR)
 		glColor(cellColor[1], cellColor[2], cellColor[3], cellColor[4])
-		glTexture(':lr' .. (disabled and 'g' or '') .. textureDetail .. ',' .. textureDetail .. ':unitpics/' .. unitBuildPic[uid])
+		glTexture('#' .. uid)
 		UiUnit(
 		cellRects[cellRectID][1] + cellPadding + iconPadding,
 		cellRects[cellRectID][2] + cellPadding + iconPadding,
