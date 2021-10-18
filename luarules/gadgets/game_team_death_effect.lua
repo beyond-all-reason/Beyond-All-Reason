@@ -39,9 +39,9 @@ local function wipeoutTeam(teamID, originX, originZ, attackerUnitID, periodMult)
 		local x,_,z = spGetUnitPosition(unitID)
 		local deathFrame
 		if originX then
-			deathFrame = 6 + math.floor((math.min(((getSqrDistance(x, z, originX, originZ) / DISTANCE_LIMIT) * wavePeriod/2), wavePeriod) + math.random(0,wavePeriod/2.5)) * periodMult)
+			deathFrame = 6 + math.floor((math.min(((getSqrDistance(x, z, originX, originZ) / DISTANCE_LIMIT) * wavePeriod*0.6), wavePeriod) + math.random(0,wavePeriod/2.5)) * periodMult)
 		else
-			deathFrame = 6 + math.floor((math.random(1, wavePeriod*0.25) + math.random(0,wavePeriod/2.5)) * periodMult)
+			deathFrame = 6 + math.floor((math.random(1, wavePeriod*0.3) + math.random(0,wavePeriod/2.5)) * periodMult)
 		end
 		maxDeathFrame = math.max(maxDeathFrame, deathFrame)
 		if destroyUnitQueue[unitID] == nil then

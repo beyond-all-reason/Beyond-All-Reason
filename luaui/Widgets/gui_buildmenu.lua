@@ -771,10 +771,6 @@ function widget:Initialize()
 		iconTypesMap = Script.LuaRules.GetIconTypes()
 	end
 
-	if Spring.GetGameFrame() == 0 then
-		cacheUnitIcons()
-	end
-
 	-- Get our starting unit
 	if preGamestartPlayer then
 		SetBuildFacing()
@@ -1325,6 +1321,11 @@ end
 function widget:DrawScreen()
 	if chobbyInterface then
 		return
+	end
+
+	if Spring.GetGameFrame() == 0 and not cachedUnitIcons then
+		cachedUnitIcons = true
+		cacheUnitIcons()
 	end
 
 	-- refresh buildmenu if active cmd changed

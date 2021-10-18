@@ -49,18 +49,18 @@ if gadgetHandler:IsSyncedCode() then
 			for teamID, _ in pairs(selfdCheckTeamUnits) do
 
 				-- check first if player has team players... that could possibly take
-				local numActiveTeamPlayers = 0
-				local allyTeamID = select(6, Spring.GetTeamInfo(teamID,false))
-				local teamList = Spring.GetTeamList(allyTeamID)
-				for _,tID in ipairs(teamList) do
-					local luaAI = Spring.GetTeamLuaAI(tID)
-					if tID ~= teamID and not select(4, Spring.GetTeamInfo(tID,false)) and (not luaAI or luaAI == "") and Spring.GetTeamRulesParam(tID, "numActivePlayers") > 0 then
-						numActiveTeamPlayers = numActiveTeamPlayers + 1
-					end
-				end
+				--local numActiveTeamPlayers = 0
+				--local allyTeamID = select(6, Spring.GetTeamInfo(teamID,false))
+				--local teamList = Spring.GetTeamList(allyTeamID)
+				--for _,tID in ipairs(teamList) do
+				--	local luaAI = Spring.GetTeamLuaAI(tID)
+				--	if tID ~= teamID and not select(4, Spring.GetTeamInfo(tID,false)) and (not luaAI or luaAI == "") and Spring.GetTeamRulesParam(tID, "numActivePlayers") > 0 then
+				--		numActiveTeamPlayers = numActiveTeamPlayers + 1
+				--	end
+				--end
 
 				-- players has teammates
-				if numActiveTeamPlayers > 1 then
+				--if numActiveTeamPlayers > 1 then
 					local units = spGetTeamUnits(teamID)
 					local unitCount = #units
 					local triggerResignAmount = math.ceil(unitCount * thresholdPercentage)
@@ -81,7 +81,7 @@ if gadgetHandler:IsSyncedCode() then
 							break
 						end
 					end
-				end
+				--end
 			end
 			selfdCheckTeamUnits = {}
 		end
