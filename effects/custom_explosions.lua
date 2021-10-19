@@ -4420,6 +4420,26 @@ local purpleEffects = {
       color              = [[0.9, 0.3, 1]],
     },
   },
+  shockwavefirst = {
+    properties = {
+      colormap              = [[0 0 0 0   0.8 0.5 1 0.02   0.65 0.2 0.9 0.015   0.35 0.07 0.6 0.012   0.15 0.05 0.4 0.006    0 0 0 0]],
+    },
+  },
+  shockwavefast = {
+    properties = {
+      colormap              = [[0 0 0 0   0.8 0.5 1 0.02   0.65 0.2 0.9 0.015   0.35 0.07 0.6 0.012   0.15 0.05 0.4 0.006    0 0 0 0]],
+    },
+  },
+  junoring = {
+    properties = {
+      colormap              = [[0 0 0 0   0.5 0.12 0.71 0.22   0.45 0.10 0.68 0.018   0.35 0.08 0.6 0.011   0.15 0.04 0.28 0.009    0 0 0 0.05]],
+    },
+  },
+  electricstorm = {
+    properties = {
+      explosiongenerator = [[custom:lightning_storm_juno_scav]],
+    },
+  },
   innersmoke = {
     properties = {
       colormap=[[0.8 0.44 1 0.2    0.3 0.2 0.4 0.35   0.16 0.11 0.21 0.31    0.11 0.07 0.15 0.28   0.09 0.08 0.1 0.22   0.065 0.06 0.07 0.15    0 0 0 0.01]],
