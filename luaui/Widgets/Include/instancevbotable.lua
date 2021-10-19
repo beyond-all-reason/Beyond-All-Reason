@@ -337,7 +337,7 @@ function makePlaneIndexVBO(xresolution, yresolution)
 	planeIndexVBO:Define(
 		numindices
 	)
-	IndexVBOData = {}
+	local IndexVBOData = {}
 	local qindex = 0
 	local colsize = yresolution + 1
 	for x = 0, xresolution-1  do -- this is +1
