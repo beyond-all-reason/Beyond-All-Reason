@@ -859,8 +859,8 @@ local categoriesQwerty = {
 }
 
 local RESET_MENU_KEY = KEYSYMS.LSHIFT
-local NEXT_PAGE_KEY = "ALT+X"
-local PREV_PAGE_KEY = "ALT+Z"
+local NEXT_PAGE_KEY = "B"
+local PREV_PAGE_KEY = "N"
 local os_clock = os.clock
 local updateInFrames = -1
 
