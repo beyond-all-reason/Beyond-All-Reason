@@ -3437,11 +3437,12 @@ function widget:MousePress(x, y, button)
 				end
 
 				return true
+      end
+    end
 
-			elseif button == 3 then
-				setPreGamestartDefID(nil)
-				return true
-			end
+		if button == 3 then
+			setPreGamestartDefID(nil)
+			return true
 		end
 	elseif activeCmd and button == 3 then
 		currentBuildCategory = nil
