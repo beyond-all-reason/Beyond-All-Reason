@@ -155,22 +155,22 @@ else
 	end
 
 	local function allianceMade(_, teamA, teamB)
-		if Script.LuaUI('GadgetMessageBroker') then
-			local message = Script.LuaUI.GadgetMessageBroker('ui.dynamicAlly.create', { player = getTeamLeaderName(teamB) })
+		if Script.LuaUI('GadgetMessageProxy') then
+			local message = Script.LuaUI.GadgetMessageProxy('ui.dynamicAlly.create', { player = getTeamLeaderName(teamB) })
 			SendMessageToTeam(teamA, message)
 		end
 	end
 
 	local function allianceBroken(_, teamA, teamB)
-		if Script.LuaUI('GadgetMessageBroker') then
-			local message = Script.LuaUI.GadgetMessageBroker('ui.dynamicAlly.destroy', { player = getTeamLeaderName(teamB) })
+		if Script.LuaUI('GadgetMessageProxy') then
+			local message = Script.LuaUI.GadgetMessageProxy('ui.dynamicAlly.destroy', { player = getTeamLeaderName(teamB) })
 			SendMessageToTeam(teamA, message)
 		end
 	end
 
 	local function backstab(_, victimTeam, traitorTeam)
-		if Script.LuaUI('GadgetMessageBroker') then
-			local message = Script.LuaUI.GadgetMessageBroker('ui.dynamicAlly.backstab', { player = getTeamLeaderName(traitorTeam) })
+		if Script.LuaUI('GadgetMessageProxy') then
+			local message = Script.LuaUI.GadgetMessageProxy('ui.dynamicAlly.backstab', { player = getTeamLeaderName(traitorTeam) })
 			SendMessageToTeam(victimTeam, message)
 		end
 	end

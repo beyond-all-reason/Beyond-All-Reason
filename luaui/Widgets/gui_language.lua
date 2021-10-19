@@ -55,7 +55,7 @@ local function loadLanguage()
 end
 
 function widget:Initialize()
-	widgetHandler:RegisterGlobal('GadgetMessageBroker', getTranslatedMessage)
+	widgetHandler:RegisterGlobal('GadgetMessageProxy', getTranslatedMessage)
 
 	loadLanguage()
 

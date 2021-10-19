@@ -1575,8 +1575,8 @@ else	-- UNSYNCED
 	end
 
 	local function queenResistant(_, attackerDefId)
-		if Script.LuaUI('GadgetMessageBroker') then
-			local message = Script.LuaUI.GadgetMessageBroker( 'ui.chickens.queenResistant', { unit = UnitDefs[attackerDefId].humanName })
+		if Script.LuaUI('GadgetMessageProxy') then
+			local message = Script.LuaUI.GadgetMessageProxy( 'ui.chickens.queenResistant', { unit = UnitDefs[attackerDefId].humanName })
 			Spring.Echo(message)
 		end
 	end

@@ -307,34 +307,34 @@ else	-- UNSYNCED
 	end
 
 	local function notifyError(_, playerID, errorKey)
-		if Script.LuaUI('GadgetMessageBroker') then
+		if Script.LuaUI('GadgetMessageProxy') then
 			local translationKey = 'ui.idlePlayers.' .. errorKey
-			Spring.SendMessageToPlayer(playerID, Script.LuaUI.GadgetMessageBroker(translationKey))
+			Spring.SendMessageToPlayer(playerID, Script.LuaUI.GadgetMessageProxy(translationKey))
 		end
 	end
 
 	local function playerLagging(_, playerName)
-		if Script.LuaUI('GadgetMessageBroker') then
-			Spring.Echo( Script.LuaUI.GadgetMessageBroker('ui.idlePlayers.lagging', { name = playerName }) )
+		if Script.LuaUI('GadgetMessageProxy') then
+			Spring.Echo( Script.LuaUI.GadgetMessageProxy('ui.idlePlayers.lagging', { name = playerName }) )
 		end
 	end
 
 	local function playerResumed(_, playerName)
-		if Script.LuaUI('GadgetMessageBroker') then
-			Spring.Echo( Script.LuaUI.GadgetMessageBroker('ui.idlePlayers.resumed', { name = playerName }) )
+		if Script.LuaUI('GadgetMessageProxy') then
+			Spring.Echo( Script.LuaUI.GadgetMessageProxy('ui.idlePlayers.resumed', { name = playerName }) )
 		end
 	end
 
 	local function playerAFK(_, allyTeamID, playerName)
-		if Script.LuaUI('GadgetMessageBroker') then
-			local message = Script.LuaUI.GadgetMessageBroker('ui.idlePlayers.afk', { name = playerName })
+		if Script.LuaUI('GadgetMessageProxy') then
+			local message = Script.LuaUI.GadgetMessageProxy('ui.idlePlayers.afk', { name = playerName })
 			Spring.SendMessageToAllyTeam(allyTeamID, message)
 		end
 	end
 
 	local function playerReturned(_, allyTeamID, playerName)
-		if Script.LuaUI('GadgetMessageBroker') then
-			local message = Script.LuaUI.GadgetMessageBroker('ui.idlePlayers.returned', { name = playerName })
+		if Script.LuaUI('GadgetMessageProxy') then
+			local message = Script.LuaUI.GadgetMessageProxy('ui.idlePlayers.returned', { name = playerName })
 			Spring.SendMessageToAllyTeam(allyTeamID, message)
 		end
 	end
@@ -405,7 +405,7 @@ else	-- UNSYNCED
 					for _,teamID in ipairs(teamList) do
 						local luaAI = Spring.GetTeamLuaAI(teamID)
 						local _, leader, isDead, isAiTeam, side, allyTeamID, incomeMultiplier, customTeamKeys = Spring.GetTeamInfo(teamID, false)
-						if Script.LuaUI('GadgetMessageBroker') and teamID ~= myTeamID and teamID ~= gaiaTeamID and not isDead and not isAiTeam and (not luaAI or luaAI == "") and Spring.GetTeamRulesParam(teamID, "numActivePlayers") > 0 then
+						if Script.LuaUI('GadgetMessageProxy') and teamID ~= myTeamID and teamID ~= gaiaTeamID and not isDead and not isAiTeam and (not luaAI or luaAI == "") and Spring.GetTeamRulesParam(teamID, "numActivePlayers") > 0 then
 							Spring.Echo("\255\255\166\166" .. Script.LuaUI.GadgetMessageBrokerSpring('ui.idlePlayers.warning'))
 							break
 						end

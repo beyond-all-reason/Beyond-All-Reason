@@ -102,8 +102,8 @@ else -- UNSYNCED
 
 	local function forceResignMessage(_, playerID)
 		if playerID == myPlayerID then
-			if Script.LuaUI('GadgetMessageBroker') then
-				Spring.Echo("\255\255\166\166" .. Script.LuaUI.GadgetMessageBroker('ui.forceResignMessage'))
+			if Script.LuaUI('GadgetMessageProxy') then
+				Spring.Echo("\255\255\166\166" .. Script.LuaUI.GadgetMessageProxy('ui.forceResignMessage'))
 			end
 		end
 	end

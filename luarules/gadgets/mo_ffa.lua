@@ -129,29 +129,29 @@ if gadgetHandler:IsSyncedCode() then
 else	-- UNSYNCED
 
 	local function teamRemoved(_, teamID)
-		if Script.LuaUI('GadgetMessageBroker') then
-			local message = Script.LuaUI.GadgetMessageBroker('ui.ffaNoOwner.removed', { team = teamID })
+		if Script.LuaUI('GadgetMessageProxy') then
+			local message = Script.LuaUI.GadgetMessageProxy('ui.ffaNoOwner.removed', { team = teamID })
 			Spring.SendMessage(message)
 		end
 	end
 
 	local function teamDestroyed(_, teamID)
-		if Script.LuaUI('GadgetMessageBroker') then
-			local message = Script.LuaUI.GadgetMessageBroker('ui.ffaNoOwner.destroyed', { team = teamID })
+		if Script.LuaUI('GadgetMessageProxy') then
+			local message = Script.LuaUI.GadgetMessageProxy('ui.ffaNoOwner.destroyed', { team = teamID })
 			Spring.SendMessage(message)
 		end
 	end
 
 	local function playerWarned(_, teamID, gracePeriod)
-		if Script.LuaUI('GadgetMessageBroker') then
-			local message = Script.LuaUI.GadgetMessageBroker('ui.ffaNoOwner.disconnected', { team = teamID, gracePeriod = gracePeriod })
+		if Script.LuaUI('GadgetMessageProxy') then
+			local message = Script.LuaUI.GadgetMessageProxy('ui.ffaNoOwner.disconnected', { team = teamID, gracePeriod = gracePeriod })
 			Spring.SendMessage(message)
 		end
 	end
 
 	local function playerReconnected(_, teamID)
-		if Script.LuaUI('GadgetMessageBroker') then
-			local message = Script.LuaUI.GadgetMessageBroker('ui.ffaNoOwner.reconnected', { team = teamID })
+		if Script.LuaUI('GadgetMessageProxy') then
+			local message = Script.LuaUI.GadgetMessageProxy('ui.ffaNoOwner.reconnected', { team = teamID })
 			Spring.SendMessage(message)
 		end
 	end

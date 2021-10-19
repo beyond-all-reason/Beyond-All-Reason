@@ -368,8 +368,8 @@ else
 	----------------------------------------------------------------
 
 	local function positionTooClose(_, playerID)
-		if Script.LuaUI('GadgetMessageBroker') then
-			local message = Script.LuaUI.GadgetMessageBroker('ui.initialSpawn.tooClose')
+		if Script.LuaUI('GadgetMessageProxy') then
+			local message = Script.LuaUI.GadgetMessageProxy('ui.initialSpawn.tooClose')
 			Spring.SendMessageToPlayer(playerID, message)
 		end
 	end
