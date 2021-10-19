@@ -477,7 +477,7 @@ WG.FlowUI.Draw.Circle = function(x, z, radius, sides, color1, color2)
 end
 
 --[[
-	UiElement
+	Element
 		draw a complete standardized ui element having: border, tiled background, gloss on top and bottom
 	params
 		px, py, sx, sy = left, bottom, right, top
@@ -509,12 +509,22 @@ WG.FlowUI.Draw.Element = function(px, py, sx, sy,  tl, tr, br, bl,  ptl, ptr, pb
 	local sxPad = bgpadding * (sx < WG.FlowUI.vsx and 1 or 0) * (ptr or 1)
 	local syPad = bgpadding * (sy < WG.FlowUI.vsy and 1 or 0) * (ptl or 1)
 
-	-- background
+	-- background / border
 	gl.Texture(false)
 	WG.FlowUI.Draw.RectRound(px, py, sx, sy, cs, tl, tr, br, bl, { color1[1], color1[2], color1[3], color1[4] }, { color1[1], color1[2], color1[3], color1[4] })
 
+	-- element
 	cs = cs * 0.6
+	color2[4] = color2[4] * 1.25	-- multiply to compensate for inner border 'highlight'
 	WG.FlowUI.Draw.RectRound(px + pxPad, py + pyPad, sx - sxPad, sy - syPad, cs, tl, tr, br, bl, { color2[1]*0.33, color2[2]*0.33, color2[3]*0.33, color2[4] }, { color2[1], color2[2], color2[3], color2[4] })
+
+	-- element - inner darkening to create highlighted border
+	local pad2 = 1
+	local pad2OpacityMult = 0.2
+	WG.FlowUI.Draw.RectRound(px + pxPad + pad2, py + pyPad + pad2, sx - sxPad - pad2, sy - syPad - pad2, cs*0.65, tl, tr, br, bl, { color1[1], color1[2], color1[3], color1[4]*pad2OpacityMult}, { color1[1], color1[2], color1[3], color1[4]*pad2OpacityMult })
+	pad2 = 2.5
+	pad2OpacityMult = 0.065
+	WG.FlowUI.Draw.RectRound(px + pxPad + pad2, py + pyPad + pad2, sx - sxPad - pad2, sy - syPad - pad2, cs*0.3, tl, tr, br, bl, { color1[1], color1[2], color1[3], color1[4]*pad2OpacityMult}, { color1[1], color1[2], color1[3], color1[4]*pad2OpacityMult })
 
 	-- gloss
 	gl.Blending(GL.SRC_ALPHA, GL.ONE)
