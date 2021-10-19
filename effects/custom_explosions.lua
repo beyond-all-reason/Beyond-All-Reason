@@ -1586,7 +1586,7 @@ local definitions = {
         --         speed=[[0, 0, 0]],
         --     },
         -- },
-        groundflash_large = {
+        groundflash_large_long = {
             class              = [[CSimpleGroundFlash]],
             count              = 1,
             air                = true,
@@ -4398,6 +4398,11 @@ local purpleEffects = {
   groundflash_large = {
     properties = {
       colormap           = [[0.7 0.3 1 0.09   0 0 0 0.01]],
+    },
+  },
+  groundflash_large_long = {
+    properties = {
+      colormap           = [[0.82 0.22 0.99 0.45   0.72 0.2 0.92 0.30    0 0 0 0.01]],
     },
   },
   groundflash_white = {
