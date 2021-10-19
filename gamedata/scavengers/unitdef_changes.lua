@@ -688,6 +688,23 @@ customDefs.coracv = {
 	},
 }
 
+-- Purple Juno
+customDefs.armjuno = {
+	weapondefs = {
+		juno_pulse = {
+			explosiongenerator = "custom:juno-explo-purple",
+		},
+	},
+}
+
+customDefs.corjuno = {
+	weapondefs = {
+		juno_pulse = {
+			explosiongenerator = "custom:juno-explo-purple",
+		},
+	},
+}
+
 --[[
 -- Cloaked Radar
 
