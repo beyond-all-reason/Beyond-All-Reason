@@ -2423,10 +2423,28 @@ function drawGrid(activeArea)
 		end
 	end
 
-	if cellcmds[1] and selectedBuilder and switchedCategory then
-		selectNextFrame = spGetCmdDescIndex(cellcmds[1].id)
+	if cellcmds[1] and (selectedBuilder or preGamestartPlayer) and switchedCategory then
+		selectNextFrame = cellcmds[1].id
 	end
 end
+
+local function setPreGamestartDefID(uDefID)
+	selBuildQueueDefID = uDefID
+
+	if not uDefID then
+		currentBuildCategory = nil
+		doUpdate = true
+	end
+
+	if isMex[uDefID] then
+		if Spring.GetMapDrawMode() ~= "metal" then
+			Spring.SendCommands("ShowMetalMap")
+		end
+	elseif Spring.GetMapDrawMode() == "metal" then
+		Spring.SendCommands("ShowStandard")
+	end
+end
+
 
 function drawPaginators(activeArea)
 	paginatorRects = {}
@@ -2941,6 +2959,13 @@ function widget:DrawWorld()
 
 			gl.LineWidth(1.49)
 
+			-- Has to happen here due to ShowMetalMap
+			if switchedCategory and selectNextFrame then
+				setPreGamestartDefID(-selectNextFrame)
+				switchedCategory = nil
+				selectNextFrame = nil
+			end
+
 			-- We need data about currently selected building, for drawing clashes etc
 			local selBuildData
 			if selBuildQueueDefID then
@@ -3097,7 +3122,7 @@ end
 
 function widget:GameFrame(n)
 	if selectNextFrame then
-		Spring.SetActiveCommand(selectNextFrame, 1, true, false, Spring.GetModKeyState())
+		Spring.SetActiveCommand(spGetCmdDescIndex(selectNextFrame), 1, true, false, Spring.GetModKeyState())
 		selectNextFrame = nil
 		switchedCategory = nil
 	end
@@ -3167,23 +3192,6 @@ function SetBuildFacing()
 		end
 	end
 	Spring.SetBuildFacing(facing)
-end
-
-local function setPreGamestartDefID(uDefID)
-	selBuildQueueDefID = uDefID
-
-	if not uDefID then
-		currentBuildCategory = nil
-		doUpdate = true
-	end
-
-	if isMex[uDefID] then
-		if Spring.GetMapDrawMode() ~= "metal" then
-			Spring.SendCommands("ShowMetalMap")
-		end
-	elseif Spring.GetMapDrawMode() == "metal" then
-		Spring.SendCommands("ShowStandard")
-	end
 end
 
 function widget:KeyRelease(key)
@@ -3437,8 +3445,8 @@ function widget:MousePress(x, y, button)
 				end
 
 				return true
-      end
-    end
+			end
+		end
 
 		if button == 3 then
 			setPreGamestartDefID(nil)
