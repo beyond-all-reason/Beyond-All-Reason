@@ -15,6 +15,7 @@ Units
  • T2 metal extractors have 40% less metal storage (600)
  • Ground scouts (vehicles/bot): 10% more LoS
  • T1 vehicle artillery has faster projectile and does 2x more damage per shot, but also has 2x reloadtime.
+ • T2 vehicle artillery has 33% more health + same damage as t1 but with adjusted reload time to compensate
  • Decreased cormaw damage 27%
  • Arm Peewee damage reduced by 9%
  • Core AK range reduced 240->225 and damage increased 6%
