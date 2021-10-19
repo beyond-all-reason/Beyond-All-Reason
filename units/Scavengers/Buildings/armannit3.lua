@@ -130,7 +130,7 @@ return {
 			ata = {
 				areaofeffect = 16,
 				avoidfeature = false,
-				beamtime = 9,
+				beamtime = 5,
 				collidefriendly = false,
 				corethickness = 0.5,
 				craterareaofeffect = 0,
@@ -147,7 +147,7 @@ return {
 				name = "Heavy long-range g2g tachyon accelerator beam",
 				noselfdamage = true,
 				range = 2500,
-				reloadtime = 9.5,
+				reloadtime = 5.5,
 				rgbcolor = "0 0 1",
 				scrollspeed = 5,
 				soundhitdry = "",
@@ -171,7 +171,7 @@ return {
 				},
 				damage = {
 					commanders = 2400,
-					default = 32400,
+					default = 19000,
 				},
 			},
 		},
