@@ -102,7 +102,9 @@ else -- UNSYNCED
 
 	local function forceResignMessage(_, playerID)
 		if playerID == myPlayerID then
-			Spring.Echo(  "\255\255\166\166" .. Spring.I18N('ui.forceResignMessage') )
+			if Script.LuaUI('GadgetMessageProxy') then
+				Spring.Echo("\255\255\166\166" .. Script.LuaUI.GadgetMessageProxy('ui.forceResignMessage'))
+			end
 		end
 	end
 

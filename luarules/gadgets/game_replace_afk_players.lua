@@ -263,7 +263,9 @@ else
 	end
 
 	local function substitutionOccurred(incoming, outgoing)
-		Spring.Echo(Spring.I18N('ui.substitutePlayers.substitutedPlayers', { incoming = incoming, outgoing = outgoing }))
+		if Script.LuaUI('GadgetMessageProxy') then
+			Spring.Echo( Script.LuaUI.GadgetMessageProxy('ui.substitutePlayers.substitutedPlayers', { incoming = incoming, outgoing = outgoing }) )
+		end
 	end
 
 	function gadget:Initialize()
@@ -281,8 +283,8 @@ else
 		if n < 5 then
 			return
 		end
-		if revealed then
-			Spring.Echo(Spring.I18N('ui.substitutePlayers.substituted'))
+		if revealed and Script.LuaUI('GadgetMessageProxy') then
+			Spring.Echo( Script.LuaUI.GadgetMessageProxy('ui.substitutePlayers.substituted') )
 		end
 		gadgetHandler:RemoveGadget()
 	end
