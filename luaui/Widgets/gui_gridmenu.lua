@@ -1,3 +1,9 @@
+--
+-- Actions exposed:
+--
+-- bind z gridmenu_key 1 1 <-- Sets the first grid key, useful for german keyboard layout. Unnecessary if using the Bar Swap Y Z widget
+-- bind alt+x gridmenu_next_page <-- Go to next page
+-- bind alt+z gridmenu_prev_page <-- Go to previous page
 function widget:GetInfo()
 	return {
 		name = "Grid menu",
@@ -853,8 +859,8 @@ local categoriesQwerty = {
 }
 
 local RESET_MENU_KEY = KEYSYMS.LSHIFT
-local NEXT_PAGE_KEY = KEYSYMS.B
-local PREV_PAGE_KEY = KEYSYMS.N
+local NEXT_PAGE_KEY = "ALT+X"
+local PREV_PAGE_KEY = "ALT+Z"
 local os_clock = os.clock
 local updateInFrames = -1
 
@@ -1745,17 +1751,51 @@ function reloadBindings()
 
 	Cfgs.keyLayouts.qwerty[1][1] = key
 	Cfgs.keyLayouts.vqwerty[1][1] = key
+
+	actionHotkey = Spring.GetActionHotKeys('gridmenu_next_page')
+	if actionHotkey[1] then
+		NEXT_PAGE_KEY = string.upper(actionHotkey[1])
+	else
+		Spring.SendCommands("bind " .. string.lower(NEXT_PAGE_KEY) .. " gridmenu_next_page")
+	end
+
+	actionHotkey = Spring.GetActionHotKeys('gridmenu_prev_page')
+	if actionHotkey[1] then
+		PREV_PAGE_KEY = string.upper(actionHotkey[1])
+	else
+		Spring.SendCommands("bind " .. string.lower(PREV_PAGE_KEY) .. " gridmenu_prev_page")
+	end
+end
+
+function nextPageHandler()
+	currentPage = math_min(pages, currentPage + 1)
+	doUpdate = true
+
+	return true
+end
+
+function prevPageHandler()
+	currentPage = math_max(1, currentPage - 1)
+	doUpdate = true
+
+	return true
 end
 
 function widget:Initialize()
-	reloadBindings()
-	ui_opacity = WG.FlowUI.opacity
-	ui_scale = WG.FlowUI.scale
-	glossMult = 1 + (2 - (ui_opacity * 2))		-- increase gloss/highlight so when ui is transparant, you can still make out its boundaries and make it less flat
 
 	if widgetHandler:IsWidgetKnown("Build menu") then
 		widgetHandler:DisableWidget("Build menu")
 	end
+
+	-- For some reason when handler = true widgetHandler:AddAction is not available
+	widgetHandler.actionHandler:AddAction(self, "gridmenu_next_page", nextPageHandler, nil, "t")
+	widgetHandler.actionHandler:AddAction(self, "gridmenu_prev_page", prevPageHandler, nil, "t")
+
+	reloadBindings()
+
+	ui_opacity = WG.FlowUI.opacity
+	ui_scale = WG.FlowUI.scale
+	glossMult = 1 + (2 - (ui_opacity * 2))		-- increase gloss/highlight so when ui is transparant, you can still make out its boundaries and make it less flat
 
 	hijacklayout()
 
@@ -2403,9 +2443,9 @@ function drawPaginators(activeArea)
 		paginatorRects[2] = { activeArea[3] - paginatorCellWidth - activeAreaMargin, activeArea[2] + 2 * paginatorCellHeight, activeArea[3] - bgpadding - activeAreaMargin, activeArea[2] + 3 * paginatorCellHeight - activeAreaMargin }
 
 		UiButton(paginatorRects[1][1] + cellPadding, paginatorRects[1][2] + cellPadding, paginatorRects[1][3] - cellPadding, paginatorRects[1][4] - cellPadding, 1,1,1,1, 1,1,1,1, nil, { 0, 0, 0, 0.8 }, { 0.2, 0.2, 0.2, 0.8 }, bgpadding * 0.5)
-		font2:Print("\255\215\255\215[".. SYMKEYS[PREV_PAGE_KEY] .."]", paginatorRects[1][1] + (paginatorCellWidth * 0.5), paginatorRects[1][2] + (paginatorCellHeight * 0.5) - paginatorFontSize * 0.25, paginatorFontSize, "co")
+		font2:Print("\255\215\255\215[".. PREV_PAGE_KEY .."]", paginatorRects[1][1] + (paginatorCellWidth * 0.5), paginatorRects[1][2] + (paginatorCellHeight * 0.5) - paginatorFontSize * 0.25, paginatorFontSize, "co")
 		UiButton(paginatorRects[2][1] + cellPadding, paginatorRects[2][2] + cellPadding, paginatorRects[2][3] - cellPadding, paginatorRects[2][4] - cellPadding, 1,1,1,1, 1,1,1,1, nil, { 0, 0, 0, 0.8 }, { 0.2, 0.2, 0.2, 0.8 }, bgpadding * 0.5)
-		font2:Print("\255\215\255\215[".. SYMKEYS[NEXT_PAGE_KEY] .."]", paginatorRects[2][1] + (paginatorCellWidth * 0.5), paginatorRects[2][2] + (paginatorCellHeight * 0.5) - paginatorFontSize * 0.25, paginatorFontSize, "co")
+		font2:Print("\255\215\255\215[".. NEXT_PAGE_KEY .."]", paginatorRects[2][1] + (paginatorCellWidth * 0.5), paginatorRects[2][2] + (paginatorCellHeight * 0.5) - paginatorFontSize * 0.25, paginatorFontSize, "co")
 
 		font2:Print("\255\245\245\245" .. currentPage .. " / " .. pages,
 		(paginatorRects[1][1] + paginatorRects[1][3]) * 0.5,
@@ -2419,9 +2459,9 @@ function drawPaginators(activeArea)
 		paginatorCellHeight = paginatorRects[1][4] - paginatorRects[1][2]
 
 		UiButton(paginatorRects[1][1] + cellPadding, paginatorRects[1][2] + cellPadding, paginatorRects[1][3] - cellPadding, paginatorRects[1][4] - cellPadding, 1,1,1,1, 1,1,1,1, nil, { 0, 0, 0, 0.8 }, { 0.2, 0.2, 0.2, 0.8 }, bgpadding * 0.5)
-		font2:Print("\255\215\255\215[".. SYMKEYS[PREV_PAGE_KEY] .."]", paginatorRects[1][1] + (paginatorCellWidth * 0.5), activeArea[2] + paginatorCellHeight * 0.5, paginatorFontSize, "co")
+		font2:Print("\255\215\255\215[".. PREV_PAGE_KEY .."]", paginatorRects[1][1] + (paginatorCellWidth * 0.5), activeArea[2] + paginatorCellHeight * 0.5, paginatorFontSize, "co")
 		UiButton(paginatorRects[2][1] + cellPadding, paginatorRects[2][2] + cellPadding, paginatorRects[2][3] - cellPadding, paginatorRects[2][4] - cellPadding, 1,1,1,1, 1,1,1,1, nil, { 0, 0, 0, 0.8 }, { 0.2, 0.2, 0.2, 0.8 }, bgpadding * 0.5)
-		font2:Print("\255\215\255\215[".. SYMKEYS[NEXT_PAGE_KEY] .."]", paginatorRects[2][1] + (paginatorCellWidth * 0.5), activeArea[2] + paginatorCellHeight * 0.5, paginatorFontSize, "co")
+		font2:Print("\255\215\255\215[".. NEXT_PAGE_KEY .."]", paginatorRects[2][1] + (paginatorCellWidth * 0.5), activeArea[2] + paginatorCellHeight * 0.5, paginatorFontSize, "co")
 
 		font2:Print("\255\245\245\245" .. currentPage .. "	/  " .. pages, contentWidth * 0.5, activeArea[2] + paginatorCellHeight * 0.5, paginatorFontSize, "co")
 	end
@@ -3232,18 +3272,6 @@ function widget:KeyPress(key, mods, isRepeat)
 			currentBuildCategory = categories[keyCat]
 			currentCategoryIndex = keyCat
 			switchedCategory = true
-			doUpdate = true
-
-			return true
-		elseif key == PREV_PAGE_KEY then
-			currentPage = math_max(1, currentPage - 1)
-
-			doUpdate = true
-
-			return true
-		elseif key == NEXT_PAGE_KEY then
-			currentPage = math_min(pages, currentPage + 1)
-
 			doUpdate = true
 
 			return true
