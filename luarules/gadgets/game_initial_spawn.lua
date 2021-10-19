@@ -368,7 +368,10 @@ else
 	----------------------------------------------------------------
 
 	local function positionTooClose(_, playerID)
-		Spring.SendMessageToPlayer(playerID, Spring.I18N('ui.initialSpawn.tooClose'))
+		if Script.LuaUI('GadgetMessageBroker') then
+			local message = Script.LuaUI.GadgetMessageBroker('ui.initialSpawn.tooClose')
+			Spring.SendMessageToPlayer(playerID, message)
+		end
 	end
 
 	function gadget:Initialize()

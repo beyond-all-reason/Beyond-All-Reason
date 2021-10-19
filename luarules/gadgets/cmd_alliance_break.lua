@@ -155,15 +155,24 @@ else
 	end
 
 	local function allianceMade(_, teamA, teamB)
-		SendMessageToTeam(teamA, Spring.I18N('ui.dynamicAlly.create', { player = getTeamLeaderName(teamB) }))
+		if Script.LuaUI('GadgetMessageBroker') then
+			local message = Script.LuaUI.GadgetMessageBroker('ui.dynamicAlly.create', { player = getTeamLeaderName(teamB) })
+			SendMessageToTeam(teamA, message)
+		end
 	end
 
 	local function allianceBroken(_, teamA, teamB)
-		SendMessageToTeam(teamA, Spring.I18N('ui.dynamicAlly.destroy', { player = getTeamLeaderName(teamB) }))
+		if Script.LuaUI('GadgetMessageBroker') then
+			local message = Script.LuaUI.GadgetMessageBroker('ui.dynamicAlly.destroy', { player = getTeamLeaderName(teamB) })
+			SendMessageToTeam(teamA, message)
+		end
 	end
 
 	local function backstab(_, victimTeam, traitorTeam)
-		SendMessageToTeam(victimTeam, Spring.I18N('ui.dynamicAlly.backstab', { player = getTeamLeaderName(traitorTeam) }))
+		if Script.LuaUI('GadgetMessageBroker') then
+			local message = Script.LuaUI.GadgetMessageBroker('ui.dynamicAlly.backstab', { player = getTeamLeaderName(traitorTeam) })
+			SendMessageToTeam(victimTeam, message)
+		end
 	end
 
 	function gadget:Initialize()
