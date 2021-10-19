@@ -69,6 +69,7 @@ if gadgetHandler:IsSyncedCode() then
 		"Woody",
 		"zGeneral",
 		"niftybeaks",
+		"Zagupi",
 
 		-- BAR Content Creators 
 		"Requiem_TV",
