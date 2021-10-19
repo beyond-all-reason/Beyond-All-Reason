@@ -236,8 +236,7 @@ function UnitGroupSpawn(n)
 			local posy = Spring.GetGroundHeight(posx, posz)
 			local posradius = 256
 			local nearestEnemy = Spring.GetUnitNearestEnemy(pickedBeacon, 99999, false)
-			local nearestEnemyTeam = Spring.GetUnitTeam(nearestEnemy)
-			if nearestEnemyTeam == bestTeam then
+			if nearestEnemy and Spring.GetUnitTeam(nearestEnemy) == bestTeam then
 				bestTeamGroupMultiplier = 1.25
 			else
 				bestTeamGroupMultiplier = 0.75
