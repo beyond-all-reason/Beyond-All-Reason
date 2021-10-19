@@ -21,7 +21,6 @@ return {
 		corpse = "DEAD",
 		description = Spring.I18N('units.descriptions.corminibuzz'),
 		explodeas = "advancedFusionExplosion",
-		firestate = 0,
 		footprintx = 3,
 		footprintz = 3,
 		icontype = "building",

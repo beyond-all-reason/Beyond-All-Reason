@@ -263,11 +263,11 @@ return {
 				onlytargetcategory = "SURFACE",
 			},
 			[2] = {
-				def = "ARMAGEDDON_BLUE_LASER",
+				def = "ARMAGEDDON_GREEN_LASER",
 				onlytargetcategory = "NOTSUB",
 			},
 			[3] = {
-				def = "ARMAGEDDON_GREEN_LASER",
+				def = "ARMAGEDDON_BLUE_LASER",
 				onlytargetcategory = "NOTSUB",
 			},
 		},

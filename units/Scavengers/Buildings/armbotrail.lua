@@ -21,6 +21,7 @@ return {
 		corpse = "DEAD",
 		description = Spring.I18N('units.descriptions.armbotrail'),
 		explodeas = "hugeBuildingExplosionGeneric",
+		firestate = 0,
 		footprintx = 8,
 		footprintz = 8,
 		icontype = "building",
