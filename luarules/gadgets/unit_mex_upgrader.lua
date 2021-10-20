@@ -371,7 +371,6 @@ if gadgetHandler:IsSyncedCode() then
 		local mexID = getClosestMex(unitID, upgradePairs, teamID, mexesInRange)
 
 		if not mexID then
-			SendToUnsynced('NothingToUpgrade',teamID, builder.unitDefID)
 			return false
 		end
 
@@ -592,13 +591,6 @@ else
 
 	local bDefs = {}
 
-	local function nothingToUpgrade(_, team, unitDefId)
-		if Script.LuaUI('GadgetMessageProxy') then
-			local message = Script.LuaUI.GadgetMessageProxy('ui.mexUpgrader.noMexes', { unitDefId = unitDefId })
-			SendMessageToTeam(team, message)
-		end
-	end
-
 	local function RegisterUpgradePairs(_, val)
 		if Script.LuaUI("registerUpgradePairs") then
 			Script.LuaUI.registerUpgradePairs(bDefs)
@@ -617,7 +609,6 @@ else
 			bDefs[k] = upgradePairs
 		end
 
-		gadgetHandler:AddSyncAction('NothingToUpgrade', nothingToUpgrade)
 		gadgetHandler:AddChatAction("registerUpgradePairs", RegisterUpgradePairs, "toggles registerUpgradePairs setting")
 	end
 
