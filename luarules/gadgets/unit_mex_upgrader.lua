@@ -6,7 +6,7 @@ function gadget:GetInfo()
 		date = "September 13, 2007",
 		license = "GNU GPL, v2 or later",
 		layer = 0,
-		enabled = true -- loaded by default?
+		enabled = true
 	}
 end
 
@@ -15,19 +15,15 @@ local modoption_unba = Spring.GetModOptions().unba
 local ignoreWeapons = false --if the only weapon is a shield it is ignored
 local ignoreStealth = false
 
-local remove = table.remove
-
 local math_sqrt = math.sqrt
 
 local GetTeamUnits = Spring.GetTeamUnits
 local GetUnitDefID = Spring.GetUnitDefID
 local GiveOrderToUnit = Spring.GiveOrderToUnit
 local GetUnitPosition = Spring.GetUnitPosition
-local GetUnitHealth = Spring.GetUnitHealth
 local GetGroundHeight = Spring.GetGroundHeight
 local GetUnitTeam = Spring.GetUnitTeam
 local GetCommandQueue = Spring.GetCommandQueue
-local Echo = Spring.Echo
 local FindUnitCmdDesc = Spring.FindUnitCmdDesc
 local InsertUnitCmdDesc = Spring.InsertUnitCmdDesc
 local EditUnitCmdDesc = Spring.EditUnitCmdDesc
@@ -56,7 +52,6 @@ local CMD_INSERT = CMD.INSERT
 local CMD_OPT_INTERNAL = CMD.OPT_INTERNAL
 
 local CMD_AUTOMEX = 31143
-
 local CMD_UPGRADEMEX = 31244
 
 local ONTooltip = "Metal extractors are upgraded\nautomatically by this builder."
@@ -87,7 +82,6 @@ local function processMexData(mexDefID, mexDef, upgradePairs)
 	for defID, def in pairs(mexDefs) do
 		--mexDef.water won't match; "water" mexes are the same as land mexes.
 		if (mexDef.water == def.water or mexDef.water ~= def.water) and (ignoreStealth or mexDef.stealth == def.stealth) and (ignoreWeapons or mexDef.armed == def.armed) then
-
 			if mexDef.extractsMetal > def.extractsMetal then
 				if not upgradePairs then
 					upgradePairs = {}
@@ -162,8 +156,6 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	local function orderBuilder(unitID, mexID)
-		--GiveOrderToUnit(unitID, CMD_UPGRADEMEX, {mexID}, 0)
-		--addCommands[unitID] = {cmd = CMD_UPGRADEMEX, params = {mexID}, options = {""}}
 		addCommands[unitID] = { cmd = CMD_INSERT, params = { 1, CMD_UPGRADEMEX, CMD_OPT_INTERNAL, mexID }, options = { "alt" } }
 
 		gadgetHandler:UpdateCallIn("GameFrame")
@@ -173,23 +165,26 @@ if gadgetHandler:IsSyncedCode() then
 		local x1, _, y1 = GetUnitPosition(unitID)
 		local mex = mexes[teamID][mexID]
 		local x2, y2 = mex.x, mex.z
+
 		if not (x1 and y1 and x2 and y2) then
 			return math.huge
 		end --hack
+
 		return math_sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2))
 	end
 
 	local function getDistanceFromPosition(x1, y1, mexID, teamID)
 		local mex = mexes[teamID][mexID]
 		local x2, y2 = mex.x, mex.z
+
 		if not (x2 and y2) then
 			return math.huge
 		end --hack
+
 		return math_sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2))
 	end
 
 	local function getUnitPhase(unitID, teamID)
-
 		local commands = GetCommandQueue(unitID, 1)
 		if #commands == 0 then
 			return IDLE
@@ -485,15 +480,14 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
+	--------------------------
 	-- Gadget Button
-	---------------------------------------------------------------------------------------------------------------------------
+	--------------------------
 	local ON, OFF = 1, 0
 
 	function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
-		--Echo("AC " .. cmdID)
 		local builder = builders[teamID][unitID]
 		if cmdID == CMD_UPGRADEMEX then
-
 			if not cmdParams[2] then
 				-- Unit
 				local mex = mexes[teamID][cmdParams[1]]
@@ -506,9 +500,8 @@ if gadgetHandler:IsSyncedCode() then
 						return true
 					end
 				end
-
-				-- Circle
 			else
+				-- Circle
 				return true
 			end
 
@@ -545,8 +538,6 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:CommandFallback(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions)
-		--Echo("CF " .. cmdID)
-
 		if cmdID ~= CMD_UPGRADEMEX or not unitID or not unitDefID then
 			return false
 		end
@@ -567,7 +558,6 @@ if gadgetHandler:IsSyncedCode() then
 				builder.orderTaken = false
 				return true, true
 			end
-
 		else
 			--Circle
 			local x, y, z, radius = cmdParams[1], cmdParams[2], cmdParams[3], cmdParams[4]
@@ -581,6 +571,7 @@ if gadgetHandler:IsSyncedCode() then
 					canUpgrade = true
 				end
 			end
+
 			if canUpgrade then
 
 				local upgradePairs = builderDefs[builder.unitDefID]
@@ -593,8 +584,8 @@ if gadgetHandler:IsSyncedCode() then
 					return true, false
 				end
 			end
-			return true, true
 
+			return true, true
 		end
 	end
 
