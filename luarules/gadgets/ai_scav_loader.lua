@@ -41,7 +41,7 @@ else
 		myPlayerID = Spring.GetMyPlayerID()
 	end
 
-	function SendMessage(_,msg)
+	function SendMessage(_, msg)
 		if Spring.GetConfigInt("scavmessages",1) == 1 then
 			if Script.LuaUI("GadgetAddMessage") then
 				Script.LuaUI.GadgetAddMessage(msg)
@@ -109,9 +109,16 @@ else
 		end
 	end
 
+	local function notifyFriendlyReinforcements(_, player, unit)
+		if Script.LuaUI('GadgetMessageProxy') then
+			SendMessage(_, Script.LuaUI.GadgetMessageProxy('scav.messages.reinforcements', { player = player, unitDefName = unit }))
+		end
+	end
+
 	function gadget:Initialize()
 		gadgetHandler:AddSyncAction("SendMessage", SendMessage)
 		gadgetHandler:AddSyncAction("SendNotification", SendNotification)
+		gadgetHandler:AddSyncAction("ScavFriendlyReinforcements", notifyFriendlyReinforcements)
 
 		addNotifications()
 	end

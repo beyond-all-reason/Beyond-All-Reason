@@ -256,7 +256,6 @@ if gadgetHandler:IsSyncedCode() then
 			builder.unitDefID = unitDefID
 			builder.autoUpgrade = false
 			builder.buildDistance = UnitDefs[unitDefID].buildDistance
-			builder.humanName = UnitDefs[unitDefID].humanName
 			builder.teamID = unitTeam
 			builder.maxDepth = UnitDefs[unitDefID].maxWaterDepth or 9999
 			builder.minDepth = UnitDefs[unitDefID].minWaterDepth or 9999
@@ -372,7 +371,7 @@ if gadgetHandler:IsSyncedCode() then
 		local mexID = getClosestMex(unitID, upgradePairs, teamID, mexesInRange)
 
 		if not mexID then
-			SendMessageToTeam(teamID, builder.humanName .. ": No mexes to upgrade")
+			SendToUnsynced('NothingToUpgrade',teamID, builder.unitDefID)
 			return false
 		end
 
@@ -593,6 +592,13 @@ else
 
 	local bDefs = {}
 
+	local function nothingToUpgrade(_, team, unitDefId)
+		if Script.LuaUI('GadgetMessageProxy') then
+			local message = Script.LuaUI.GadgetMessageProxy('ui.mexUpgrader.noMexes', { unitDefId = unitDefId })
+			SendMessageToTeam(team, message)
+		end
+	end
+
 	local function RegisterUpgradePairs(_, val)
 		if Script.LuaUI("registerUpgradePairs") then
 			Script.LuaUI.registerUpgradePairs(bDefs)
@@ -601,7 +607,6 @@ else
 	end
 
 	function gadget:Initialize()
-
 		determine()
 
 		for k, v in pairs(builderDefs) do
@@ -612,6 +617,7 @@ else
 			bDefs[k] = upgradePairs
 		end
 
+		gadgetHandler:AddSyncAction('NothingToUpgrade', nothingToUpgrade)
 		gadgetHandler:AddChatAction("registerUpgradePairs", RegisterUpgradePairs, "toggles registerUpgradePairs setting")
 	end
 

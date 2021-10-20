@@ -1548,9 +1548,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-
 else	-- UNSYNCED
-
 
 	local hasChickenEvent = false
 
@@ -1576,7 +1574,7 @@ else	-- UNSYNCED
 
 	local function queenResistant(_, attackerDefId)
 		if Script.LuaUI('GadgetMessageProxy') then
-			local message = Script.LuaUI.GadgetMessageProxy( 'ui.chickens.queenResistant', { unit = UnitDefs[attackerDefId].humanName })
+			local message = Script.LuaUI.GadgetMessageProxy( 'ui.chickens.queenResistant', { unitDefId = attackerDefId })
 			Spring.Echo(message)
 		end
 	end

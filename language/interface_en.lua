@@ -608,6 +608,9 @@ return {
 				disconnected = "No Owner Mode: Team %{team} has %{gracePeriod} minute(s) to reconnect",
 				reconnected= "No Owner Mode: Team %{team} reconnected",
 			},
+			mexUpgrader = {
+				noMexes = "%{unit}: No mexes to upgrade"
+			}
 		}
 	}
 }
