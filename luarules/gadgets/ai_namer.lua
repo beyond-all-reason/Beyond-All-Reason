@@ -71,6 +71,7 @@ if gadgetHandler:IsSyncedCode() then
 		"niftybeaks",
 		"Zagupi",
                 "Derpiederp",
+                "LSR",
 
 		-- BAR Content Creators 
 		"Requiem_TV",
