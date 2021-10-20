@@ -6,7 +6,7 @@ function gadget:GetInfo()
 		date = "September 13, 2007",
 		license = "GNU GPL, v2 or later",
 		layer = 0,
-		enabled = true -- loaded by default?
+		enabled = true
 	}
 end
 
@@ -15,19 +15,15 @@ local modoption_unba = Spring.GetModOptions().unba
 local ignoreWeapons = false --if the only weapon is a shield it is ignored
 local ignoreStealth = false
 
-local remove = table.remove
-
 local math_sqrt = math.sqrt
 
 local GetTeamUnits = Spring.GetTeamUnits
 local GetUnitDefID = Spring.GetUnitDefID
 local GiveOrderToUnit = Spring.GiveOrderToUnit
 local GetUnitPosition = Spring.GetUnitPosition
-local GetUnitHealth = Spring.GetUnitHealth
 local GetGroundHeight = Spring.GetGroundHeight
 local GetUnitTeam = Spring.GetUnitTeam
 local GetCommandQueue = Spring.GetCommandQueue
-local Echo = Spring.Echo
 local FindUnitCmdDesc = Spring.FindUnitCmdDesc
 local InsertUnitCmdDesc = Spring.InsertUnitCmdDesc
 local EditUnitCmdDesc = Spring.EditUnitCmdDesc
@@ -56,7 +52,6 @@ local CMD_INSERT = CMD.INSERT
 local CMD_OPT_INTERNAL = CMD.OPT_INTERNAL
 
 local CMD_AUTOMEX = 31143
-
 local CMD_UPGRADEMEX = 31244
 
 local ONTooltip = "Metal extractors are upgraded\nautomatically by this builder."
@@ -83,7 +78,26 @@ local upgradeMexCmdDesc = {
 	params = {}
 }
 
-function determine()
+local function processMexData(mexDefID, mexDef, upgradePairs)
+	for defID, def in pairs(mexDefs) do
+		--mexDef.water won't match; "water" mexes are the same as land mexes.
+		if (mexDef.water == def.water or mexDef.water ~= def.water) and (ignoreStealth or mexDef.stealth == def.stealth) and (ignoreWeapons or mexDef.armed == def.armed) then
+			if mexDef.extractsMetal > def.extractsMetal then
+				if not upgradePairs then
+					upgradePairs = {}
+				end
+				local upgrader = upgradePairs[defID]
+				if not upgrader or mexDef.extractsMetal > mexDefs[upgrader].extractsMetal then
+					upgradePairs[defID] = mexDefID
+				end
+			end
+		end
+	end
+
+	return upgradePairs
+end
+
+local function determine()
 	-- register cursor
 	Spring.AssignMouseCursor("upgmex", "cursorupgmex", false)
 	Spring.AssignMouseCursor("areamex", "cursorareamex", false)
@@ -130,26 +144,6 @@ function determine()
 	end
 end
 
-function processMexData(mexDefID, mexDef, upgradePairs)
-	for defID, def in pairs(mexDefs) do
-		--mexDef.water won't match; "water" mexes are the same as land mexes.
-		if (mexDef.water == def.water or mexDef.water ~= def.water) and (ignoreStealth or mexDef.stealth == def.stealth) and (ignoreWeapons or mexDef.armed == def.armed) then
-
-			if mexDef.extractsMetal > def.extractsMetal then
-				if not upgradePairs then
-					upgradePairs = {}
-				end
-				local upgrader = upgradePairs[defID]
-				if not upgrader or mexDef.extractsMetal > mexDefs[upgrader].extractsMetal then
-					upgradePairs[defID] = mexDefID
-				end
-			end
-		end
-	end
-
-	return upgradePairs
-end
-
 if gadgetHandler:IsSyncedCode() then
 
 	local isCommander = {}
@@ -161,12 +155,126 @@ if gadgetHandler:IsSyncedCode() then
 		unitXsize[unitDefID] = unitDef.xsize
 	end
 
-	function gadget:Initialize()
-		determine()
-		registerUnits()
+	local function orderBuilder(unitID, mexID)
+		addCommands[unitID] = { cmd = CMD_INSERT, params = { 1, CMD_UPGRADEMEX, CMD_OPT_INTERNAL, mexID }, options = { "alt" } }
+
+		gadgetHandler:UpdateCallIn("GameFrame")
 	end
 
-	function registerUnits()
+	local function getDistance(unitID, mexID, teamID)
+		local x1, _, y1 = GetUnitPosition(unitID)
+		local mex = mexes[teamID][mexID]
+		local x2, y2 = mex.x, mex.z
+
+		if not (x1 and y1 and x2 and y2) then
+			return math.huge
+		end --hack
+
+		return math_sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2))
+	end
+
+	local function getDistanceFromPosition(x1, y1, mexID, teamID)
+		local mex = mexes[teamID][mexID]
+		local x2, y2 = mex.x, mex.z
+
+		if not (x2 and y2) then
+			return math.huge
+		end --hack
+
+		return math_sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2))
+	end
+
+	local function getUnitPhase(unitID, teamID)
+		local commands = GetCommandQueue(unitID, 1)
+		if #commands == 0 then
+			return IDLE
+		end
+		local cmd = commands[1]
+		local builder = builders[teamID][unitID]
+
+		if cmd.id == CMD_RECLAIM and cmd.params[1] == builder.targetMex then
+			return RECLAIMING
+
+		elseif builder.targetUpgrade and cmd.id == builder.targetUpgrade then
+			return BUILDING
+		else
+			return FOLLOWING_ORDERS
+		end
+	end
+
+	local function assignClosestBuilder(mexID, mex, teamID)
+		local bestDistance = nil
+		local bestBuilder, bestBuilderID = nil, nil
+		local mexDefID = mex.unitDefID
+
+		for unitID, builder in pairs(builders[teamID]) do
+			if builder.autoUpgrade and getUnitPhase(unitID, teamID) == IDLE then
+				local upgradePairs = builderDefs[builder.unitDefID]
+				local upgradeTo = upgradePairs[mexDefID]
+				if upgradeTo then
+					local dist = getDistance(unitID, mexID, teamID)
+					if not bestDistance or dist < bestDistance then
+						bestDistance = dist
+						bestBuilder = builder
+						bestBuilderID = unitID
+					end
+				end
+			end
+		end
+
+		if bestBuilder then
+			orderBuilder(bestBuilderID, mexID)
+		end
+	end
+
+	local function updateCommand(unitID, insertID, cmd)
+		local cmdDescId = FindUnitCmdDesc(unitID, cmd.id)
+		if not cmdDescId then
+			InsertUnitCmdDesc(unitID, insertID, cmd)
+		else
+			EditUnitCmdDesc(unitID, cmdDescId, cmd)
+		end
+	end
+
+	local function addLayoutCommands(unitID)
+		local insertID = FindUnitCmdDesc(unitID, CMD.CLOAK) or
+			FindUnitCmdDesc(unitID, CMD.ONOFF) or
+			FindUnitCmdDesc(unitID, CMD.TRAJECTORY) or
+			FindUnitCmdDesc(unitID, CMD.REPEAT) or
+			FindUnitCmdDesc(unitID, CMD.MOVE_STATE) or
+			FindUnitCmdDesc(unitID, CMD.FIRE_STATE) or
+			123456 -- back of the pack
+
+		autoMexCmdDesc.params[1] = '0'
+		updateCommand(unitID, insertID + 1, autoMexCmdDesc)
+		updateCommand(unitID, insertID + 2, upgradeMexCmdDesc)
+	end
+
+	local function registerUnit(unitID, unitDefID, unitTeam)
+		if builderDefs[unitDefID] then
+			local builder = {}
+			builder.unitDefID = unitDefID
+			builder.autoUpgrade = false
+			builder.buildDistance = UnitDefs[unitDefID].buildDistance
+			builder.humanName = UnitDefs[unitDefID].humanName
+			builder.teamID = unitTeam
+			builder.maxDepth = UnitDefs[unitDefID].maxWaterDepth or 9999
+			builder.minDepth = UnitDefs[unitDefID].minWaterDepth or 9999
+			builders[unitTeam][unitID] = builder
+
+			addLayoutCommands(unitID)
+
+		elseif mexDefs[unitDefID] then
+			local mex = {}
+			mex.unitDefID = unitDefID
+			mex.teamID = unitTeam
+			mex.x, mex.y, mex.z = GetUnitPosition(unitID)
+			mexes[unitTeam][unitID] = mex
+			assignClosestBuilder(unitID, mex, unitTeam)
+		end
+	end
+
+	local function registerUnits()
 		local teams = Spring.GetTeamList()
 		for _, teamID in ipairs(teams) do
 			builders[teamID] = {}
@@ -180,9 +288,13 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
+	function gadget:Initialize()
+		determine()
+		registerUnits()
+	end
+
 	-- This part of the code actually does somethings (upgrades mexes)
 	function gadget:GameFrame(n)
-
 		for unitID, data in pairs(addCommands) do
 			GiveOrderToUnit(unitID, data.cmd, data.params, data.options)
 		end
@@ -225,71 +337,7 @@ if gadgetHandler:IsSyncedCode() then
 		gadgetHandler:RemoveCallIn("GameFrame")
 	end
 
-	function autoUpgradeDisabled(unitID, teamID)
-		local builder = builders[teamID][unitID]
-		builder.autoUpgrade = false
-		if getUnitPhase(unitID, teamID) == RECLAIMING then
-			mexes[teamID][builder.targetMex].assignedBuilder = nil
-			GiveOrderToUnit(unitID, CMD_STOP, {}, 0)
-		end
-	end
-
-	function autoUpgradeEnabled(unitID, teamID)
-		local builder = builders[teamID][unitID]
-		builder.autoUpgrade = true
-		local phase = getUnitPhase(unitID, teamID)
-		if phase ~= BUILDING then
-			local upgradePairs = builderDefs[builder.unitDefID]
-			if getClosestMex(unitID, upgradePairs, teamID) then
-				upgradeClosestMex(unitID, teamID)
-			end
-		end
-	end
-
-	function upgradeClosestMex(unitID, teamID, mexesInRange)
-		local builder = builders[teamID][unitID]
-		local upgradePairs = builderDefs[builder.unitDefID]
-
-		local mexID = getClosestMex(unitID, upgradePairs, teamID, mexesInRange)
-
-		if not mexID then
-			SendMessageToTeam(teamID, builder.humanName .. ": No mexes to upgrade")
-			return false
-		end
-
-		orderBuilder(unitID, mexID)
-		return true
-	end
-
-	function orderBuilder(unitID, mexID)
-		--GiveOrderToUnit(unitID, CMD_UPGRADEMEX, {mexID}, 0)
-		--addCommands[unitID] = {cmd = CMD_UPGRADEMEX, params = {mexID}, options = {""}}
-		addCommands[unitID] = { cmd = CMD_INSERT, params = { 1, CMD_UPGRADEMEX, CMD_OPT_INTERNAL, mexID }, options = { "alt" } }
-
-		gadgetHandler:UpdateCallIn("GameFrame")
-	end
-
-	function upgradeMex(unitID, mexID, teamID)
-		local builder = builders[teamID][unitID]
-		local mex = mexes[teamID][mexID]
-		if not mex then
-			return
-		end
-		local upgradePairs = builderDefs[builder.unitDefID]
-
-		builder.targetMex = mexID
-		builder.targetUpgrade = upgradePairs[mex.unitDefID]
-		builder.targetX = mex.x
-		builder.targetY = mex.y
-		builder.targetZ = mex.z
-
-		mex.assignedBuilder = unitID
-
-		gadgetHandler:UpdateCallIn("GameFrame")
-		scheduledBuilders[unitID] = mexID
-	end
-
-	function getClosestMex(unitID, upgradePairs, teamID, mexesInRange)
+	local function getClosestMex(unitID, upgradePairs, teamID, mexesInRange)
 		local bestDistance = nil
 		local bestMexID, bestMexDefID = nil, nil
 
@@ -317,25 +365,63 @@ if gadgetHandler:IsSyncedCode() then
 		return bestMexID, bestMexDefID
 	end
 
-	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
-		unregisterUnit(unitID, unitDefID, unitTeam, true)
+	local function upgradeClosestMex(unitID, teamID, mexesInRange)
+		local builder = builders[teamID][unitID]
+		local upgradePairs = builderDefs[builder.unitDefID]
+
+		local mexID = getClosestMex(unitID, upgradePairs, teamID, mexesInRange)
+
+		if not mexID then
+			SendMessageToTeam(teamID, builder.humanName .. ": No mexes to upgrade")
+			return false
+		end
+
+		orderBuilder(unitID, mexID)
+		return true
 	end
 
-	function gadget:UnitIdle(unitID, unitDefID, unitTeam)
-		local builder = builders[unitTeam][unitID]
-		if builder then
+	local function autoUpgradeDisabled(unitID, teamID)
+		local builder = builders[teamID][unitID]
+		builder.autoUpgrade = false
+		if getUnitPhase(unitID, teamID) == RECLAIMING then
+			mexes[teamID][builder.targetMex].assignedBuilder = nil
+			GiveOrderToUnit(unitID, CMD_STOP, {}, 0)
+		end
+	end
 
-			if builder.autoUpgrade then
-				upgradeClosestMex(unitID, unitTeam)
+	local function autoUpgradeEnabled(unitID, teamID)
+		local builder = builders[teamID][unitID]
+		builder.autoUpgrade = true
+		local phase = getUnitPhase(unitID, teamID)
+		if phase ~= BUILDING then
+			local upgradePairs = builderDefs[builder.unitDefID]
+			if getClosestMex(unitID, upgradePairs, teamID) then
+				upgradeClosestMex(unitID, teamID)
 			end
 		end
 	end
 
-	function gadget:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
-		unregisterUnit(unitID, unitDefID, unitTeam, false)
+	local function upgradeMex(unitID, mexID, teamID)
+		local builder = builders[teamID][unitID]
+		local mex = mexes[teamID][mexID]
+		if not mex then
+			return
+		end
+		local upgradePairs = builderDefs[builder.unitDefID]
+
+		builder.targetMex = mexID
+		builder.targetUpgrade = upgradePairs[mex.unitDefID]
+		builder.targetX = mex.x
+		builder.targetY = mex.y
+		builder.targetZ = mex.z
+
+		mex.assignedBuilder = unitID
+
+		gadgetHandler:UpdateCallIn("GameFrame")
+		scheduledBuilders[unitID] = mexID
 	end
 
-	function unregisterUnit(unitID, unitDefID, unitTeam, destroyed)
+	local function unregisterUnit(unitID, unitDefID, unitTeam, destroyed)
 		local mex = mexes[unitTeam][unitID]
 		local builder = builders[unitTeam][unitID]
 
@@ -364,53 +450,22 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	function registerUnit(unitID, unitDefID, unitTeam)
-		if builderDefs[unitDefID] then
-			local builder = {}
-			builder.unitDefID = unitDefID
-			builder.autoUpgrade = false
-			builder.buildDistance = UnitDefs[unitDefID].buildDistance
-			builder.humanName = UnitDefs[unitDefID].humanName
-			builder.teamID = unitTeam
-			builder.maxDepth = UnitDefs[unitDefID].maxWaterDepth or 9999
-			builder.minDepth = UnitDefs[unitDefID].minWaterDepth or 9999
-			builders[unitTeam][unitID] = builder
+	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
+		unregisterUnit(unitID, unitDefID, unitTeam, true)
+	end
 
-			addLayoutCommands(unitID)
+	function gadget:UnitIdle(unitID, unitDefID, unitTeam)
+		local builder = builders[unitTeam][unitID]
+		if builder then
 
-		elseif mexDefs[unitDefID] then
-			local mex = {}
-			mex.unitDefID = unitDefID
-			mex.teamID = unitTeam
-			mex.x, mex.y, mex.z = GetUnitPosition(unitID)
-			mexes[unitTeam][unitID] = mex
-			assignClosestBuilder(unitID, mex, unitTeam)
+			if builder.autoUpgrade then
+				upgradeClosestMex(unitID, unitTeam)
+			end
 		end
 	end
 
-	function assignClosestBuilder(mexID, mex, teamID)
-		local bestDistance = nil
-		local bestBuilder, bestBuilderID = nil
-		local mexDefID = mex.unitDefID
-
-		for unitID, builder in pairs(builders[teamID]) do
-			if builder.autoUpgrade and getUnitPhase(unitID, teamID) == IDLE then
-				local upgradePairs = builderDefs[builder.unitDefID]
-				local upgradeTo = upgradePairs[mexDefID]
-				if upgradeTo then
-					local dist = getDistance(unitID, mexID, teamID)
-					if not bestDistance or dist < bestDistance then
-						bestDistance = dist
-						bestBuilder = builder
-						bestBuilderID = unitID
-					end
-				end
-			end
-		end
-
-		if bestBuilder then
-			orderBuilder(bestBuilderID, mexID)
-		end
+	function gadget:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
+		unregisterUnit(unitID, unitDefID, unitTeam, false)
 	end
 
 	function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
@@ -425,76 +480,14 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	function getDistance(unitID, mexID, teamID)
-		local x1, _, y1 = GetUnitPosition(unitID)
-		local mex = mexes[teamID][mexID]
-		local x2, y2 = mex.x, mex.z
-		if not (x1 and y1 and x2 and y2) then
-			return math.huge
-		end --hack
-		return math_sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2))
-	end
-
-	function getDistanceFromPosition(x1, y1, mexID, teamID)
-		local mex = mexes[teamID][mexID]
-		local x2, y2 = mex.x, mex.z
-		if not (x2 and y2) then
-			return math.huge
-		end --hack
-		return math_sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2))
-	end
-
-	function getUnitPhase(unitID, teamID)
-
-		local commands = GetCommandQueue(unitID, 1)
-		if #commands == 0 then
-			return IDLE
-		end
-		local cmd = commands[1]
-		local builder = builders[teamID][unitID]
-
-		if cmd.id == CMD_RECLAIM and cmd.params[1] == builder.targetMex then
-			return RECLAIMING
-
-		elseif builder.targetUpgrade and cmd.id == builder.targetUpgrade then
-			return BUILDING
-		else
-			return FOLLOWING_ORDERS
-		end
-	end
-
+	--------------------------
 	-- Gadget Button
-	---------------------------------------------------------------------------------------------------------------------------
+	--------------------------
 	local ON, OFF = 1, 0
 
-	function addLayoutCommands(unitID)
-		local insertID = FindUnitCmdDesc(unitID, CMD.CLOAK) or
-			FindUnitCmdDesc(unitID, CMD.ONOFF) or
-			FindUnitCmdDesc(unitID, CMD.TRAJECTORY) or
-			FindUnitCmdDesc(unitID, CMD.REPEAT) or
-			FindUnitCmdDesc(unitID, CMD.MOVE_STATE) or
-			FindUnitCmdDesc(unitID, CMD.FIRE_STATE) or
-			123456 -- back of the pack
-
-		autoMexCmdDesc.params[1] = '0'
-		updateCommand(unitID, insertID + 1, autoMexCmdDesc)
-		updateCommand(unitID, insertID + 2, upgradeMexCmdDesc)
-	end
-
-	function updateCommand(unitID, insertID, cmd)
-		local cmdDescId = FindUnitCmdDesc(unitID, cmd.id)
-		if not cmdDescId then
-			InsertUnitCmdDesc(unitID, insertID, cmd)
-		else
-			EditUnitCmdDesc(unitID, cmdDescId, cmd)
-		end
-	end
-
 	function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
-		--Echo("AC " .. cmdID)
 		local builder = builders[teamID][unitID]
 		if cmdID == CMD_UPGRADEMEX then
-
 			if not cmdParams[2] then
 				-- Unit
 				local mex = mexes[teamID][cmdParams[1]]
@@ -507,9 +500,8 @@ if gadgetHandler:IsSyncedCode() then
 						return true
 					end
 				end
-
-				-- Circle
 			else
+				-- Circle
 				return true
 			end
 
@@ -546,8 +538,6 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:CommandFallback(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions)
-		--Echo("CF " .. cmdID)
-
 		if cmdID ~= CMD_UPGRADEMEX or not unitID or not unitDefID then
 			return false
 		end
@@ -568,7 +558,6 @@ if gadgetHandler:IsSyncedCode() then
 				builder.orderTaken = false
 				return true, true
 			end
-
 		else
 			--Circle
 			local x, y, z, radius = cmdParams[1], cmdParams[2], cmdParams[3], cmdParams[4]
@@ -582,6 +571,7 @@ if gadgetHandler:IsSyncedCode() then
 					canUpgrade = true
 				end
 			end
+
 			if canUpgrade then
 
 				local upgradePairs = builderDefs[builder.unitDefID]
@@ -594,8 +584,8 @@ if gadgetHandler:IsSyncedCode() then
 					return true, false
 				end
 			end
-			return true, true
 
+			return true, true
 		end
 	end
 
