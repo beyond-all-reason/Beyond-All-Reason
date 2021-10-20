@@ -23,13 +23,13 @@ local unbinds={
     "bind any+z buildspacing inc",
     "bind z buildspacing inc",
     "bindaction buildspacing inc",
-
     "bind , prevmenu",
     "bind . nextmenu",
+    "bind Ctrl+z select AllMap+_InPrevSel+_ClearSelection_SelectAll+",
 
     "bind any+i gameinfo",
     "bind i gameinfo",
-	"bind shift+esc quitmenu",
+    "bind shift+esc quitmenu",
 }
 
 -- table of stuff that we bind on load
@@ -41,9 +41,11 @@ function MakeBindsTable (swapYZ)
     local Z = swapYZ and "y" or "z"
 
     local _binds = {
+        -- engine defaults
+        "bind Ctrl+"..Z.." select AllMap+_InPrevSel+_ClearSelection_SelectAll+",
         -- building hotkeys
-		"bind k wantcloak",
-		"bind any+k wantcloak",
+        "bind k wantcloak",
+        "bind any+k wantcloak",
         "bind "..Z.." buildunit_armmex",
         "bind shift+"..Z.." buildunit_armmex",
         "bind "..Z.." buildunit_armamex",

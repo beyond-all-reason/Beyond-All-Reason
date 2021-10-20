@@ -25,17 +25,17 @@ local GetSelectedUnitsCount = Spring.GetSelectedUnitsCount
 
 local rightClickUpgradeParams
 
+local function registerUpgradePairs(v)
+	builderDefs = v
+	return true
+end
+
 function widget:Initialize()
 	widgetHandler:RegisterGlobal('registerUpgradePairs', registerUpgradePairs)
 end
 
 function widget:Shutdown()
 	widgetHandler:DeregisterGlobal('registerUpgradePairs')
-end
-
-function registerUpgradePairs(v)
-	builderDefs = v
-	return true
 end
 
 function widget:UpdateLayout(commandsChanged, page, alt, ctrl, meta, shift)
