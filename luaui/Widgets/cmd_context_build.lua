@@ -1,5 +1,4 @@
 
-local voidWater = false
 local success, mapinfo = pcall(VFS.Include,"mapinfo.lua") -- load mapinfo.lua confs
 if success and mapinfo then
 	if mapinfo.voidwater then
@@ -20,9 +19,7 @@ function widget:GetInfo()
 end
 
 local unitlist = {--- Human friendly list. Automatically converted to unitdef IDs on init
-
 	 -- this should only ever swap between pairs of (buildable) units, 03/06/13
-
 	{'armmex','armuwmex', 'cormex','coruwmex'},-- to test that widget behaves correctly when unit can't really be built
 	{'armmakr','armfmkr'},
 	{'cormakr','corfmkr'},
@@ -42,12 +39,12 @@ local unitlist = {--- Human friendly list. Automatically converted to unitdef ID
 	{'corhlt','corfhlt'},
 	{'armtarg','armfatf'},
 	{'cortarg','corfatf'},
-	{'armmmmkr','armuwmmm'},
-	{'cormmmkr','coruwmmm'},
+	{'armmmkr','armuwmmm'},
+	{'cormmkr','coruwmmm'},
 	{'armfus','armuwfus'},
 	{'corfus','coruwfus'},
 	{'armflak','armfflak'},
-	{'corflak','corfflak'},
+	{'corflak','corenaa'},
 	{'armmoho','armuwmme'},
 	{'cormoho','coruwmme'},
 	{'armsolar','armtide'},
@@ -69,11 +66,9 @@ local TestBuildOrder		= Spring.TestBuildOrder
 local alternative_units = {}-- unit def id --> list of alternative unit def ids
 local updateRate = 8/30
 local timeCounter = 0
-
 local gameStarted
 
-
-function maybeRemoveSelf()
+local function maybeRemoveSelf()
     if Spring.GetSpectatingState() and (Spring.GetGameFrame() > 0 or gameStarted) then
         widgetHandler:RemoveWidget()
     end
@@ -92,27 +87,23 @@ function widget:Initialize()
     if Spring.IsReplay() or Spring.GetGameFrame() > 0 then
         maybeRemoveSelf()
     end
-	local unitnameToUnitDefID = {}--- unit name or humanName --> unit def id
-	for index,def in ipairs(UnitDefs) do
-		unitnameToUnitDefID[def.name]=index
-	end
+
 	for _,unitNames in ipairs(unitlist) do
 		local list={}
 		for _,unitName in ipairs(unitNames) do
-			local unitDefID=unitnameToUnitDefID[unitName]
+			local unitDefID = UnitDefNames[unitName].id
 			if unitDefID then
 				table.insert(list,unitDefID)
 			end
 		end
+
 		for _,unitDefID in ipairs(list) do
 			local tempcopy = list
 			table.remove(tempcopy,unitDefID) -- exclude itself from the alternatives
 			alternative_units[unitDefID]=tempcopy
 		end
-
 	end
 end
-
 
 function widget:Update(deltaTime)
 	timeCounter = timeCounter + deltaTime
@@ -150,5 +141,4 @@ function widget:Update(deltaTime)
 			end
 		end
 	end
-
 end
