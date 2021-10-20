@@ -10,12 +10,26 @@ function widget:GetInfo()
 	}
 end
 
+local customMessageProxies = {
+}
+
 local function languageChanged(language)
 	Spring.I18N.setLanguage(language)
 end
 
-local function getTranslatedMessage(messageKey, messageParameters)
-	return Spring.I18N(messageKey, messageParameters)
+local function getTranslation(messageKey, parameters)
+	return Spring.I18N(messageKey, parameters)
+end
+
+local function getCustomTranslation(messageKey, parameters)
+end
+
+local function getMessageProxy(messageKey, parameters)
+	if customMessageProxies[messageKey] then
+		return getCustomTranslation(messageKey, parameters)
+	else
+		return getTranslation(messageKey, parameters)
+	end
 end
 
 local noTranslationText = '---'
@@ -55,7 +69,7 @@ local function loadLanguage()
 end
 
 function widget:Initialize()
-	widgetHandler:RegisterGlobal('GadgetMessageProxy', getTranslatedMessage)
+	widgetHandler:RegisterGlobal('GadgetMessageProxy', getMessageProxy)
 
 	loadLanguage()
 
