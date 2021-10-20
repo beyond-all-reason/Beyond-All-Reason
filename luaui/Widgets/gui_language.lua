@@ -10,12 +10,22 @@ function widget:GetInfo()
 	}
 end
 
+local customMessageProxies = {
+	['ui.chickens.queenResistant'] = function (data) return { unit = UnitDefs[data.unitDefId].translatedHumanName } end,
+	['ui.mexUpgrader.noMexes'] = function (data) return { unit = UnitDefs[data.unitDefId].translatedHumanName } end,
+	['scav.messages.reinforcements'] = function (data) return { player = data.player, unit = UnitDefNames[data.unitDefName].translatedHumanName } end,
+}
+
 local function languageChanged(language)
 	Spring.I18N.setLanguage(language)
 end
 
-local function getTranslatedMessage(messageKey, messageParameters)
-	return Spring.I18N(messageKey, messageParameters)
+local function getMessageProxy(messageKey, parameters)
+	if customMessageProxies[messageKey] then
+		return Spring.I18N( messageKey, customMessageProxies[messageKey](parameters) )
+	else
+		return Spring.I18N(messageKey, parameters)
+	end
 end
 
 local noTranslationText = '---'
@@ -55,7 +65,7 @@ local function loadLanguage()
 end
 
 function widget:Initialize()
-	widgetHandler:RegisterGlobal('GadgetMessageProxy', getTranslatedMessage)
+	widgetHandler:RegisterGlobal('GadgetMessageProxy', getMessageProxy)
 
 	loadLanguage()
 

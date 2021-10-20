@@ -263,7 +263,6 @@ in GetInfo if you need to call them in Initialize.
 
 ]]--
 
-
 function gadget:GetInfo()
 	return {
 		name = "Tech Trees (with count, range, sign, ...)",
@@ -276,28 +275,11 @@ function gadget:GetInfo()
 	}
 end
 
-	if Spring.GetModOptions().comm  == "feature" then
-		gadgetHandler.RemoveGadget()
-	end
-
-local function dbgEcho(...)
-	if Spring.IsDevLuaEnabled() or false then-- Either /cheat /devlua or change that false to true for more debug info
-		Spring.Echo(...)
-	end
+if Spring.GetModOptions().comm  == "feature" then
+	gadgetHandler.RemoveGadget()
 end
-
-
-local function Xor(a,b)
-	if a then
-		return not b
-	else
-		return b
-	end
-end
-
 
 if (gadgetHandler:IsSyncedCode()) then
-
 
 	-- Variables
 	local TechTable={}
@@ -413,7 +395,7 @@ if (gadgetHandler:IsSyncedCode()) then
 	local function InitTechEntry(techname)
 		if not TechTable[techname] then
 			TechTable[techname]={name=techname,ProvidedBy={},AccessTo={},ProviderSum={}}
-			dbgEcho("New Technology declared: \""..techname.."\"")
+
 			for _,team in ipairs(Spring.GetTeamList()) do
 				TechTable[techname].ProviderSum[team]=0
 				Spring.SetTeamRulesParam(team,"technology:"..techname,0)
@@ -552,7 +534,6 @@ if (gadgetHandler:IsSyncedCode()) then
 		else
 			for _,req in pairs(AccessionTable[cmd]) do
 				if not CheckTech(req.tech,team,req.quantity,...) then
-					dbgEcho("cmd "..cmd.." forbidden for lack of "..req.tech)
 					return false
 				end
 			end
@@ -578,7 +559,6 @@ if (gadgetHandler:IsSyncedCode()) then
 		local p=ParseUnitDefID(Providers)
 		for id,quantity in pairs(p) do
 			q=type(quantity)=="number" and quantity or nil
-			dbgEcho(UnitDefs[id].humanName.." is now provider of "..((q and q~=1) and q.." " or "").."\""..TechName.."\""..(rng and " in a "..rng.." radius" or ""))
 			local tp={tech=TechName}
 			if q and q~=1 then
 				tp.quantity=q
@@ -611,7 +591,6 @@ if (gadgetHandler:IsSyncedCode()) then
 		local r=ParseUnitDefID(Requirings)
 		for id,quantity in pairs(r) do
 			q=type(quantity)=="number" and quantity or nil
-			dbgEcho(UnitDefs[id].humanName.." is now user of "..((q and q~=1) and q.." " or "").."\""..TechName.."\"")
 			local tp={tech=TechName}
 			if q and q~=1 then
 				tp.quantity=q
@@ -651,7 +630,7 @@ if (gadgetHandler:IsSyncedCode()) then
 			for _,p in ipairs(tech.ProvidedBy) do
 				local q=ProviderTable[p][tech.name].quantity
 				local r=ProviderTable[p][tech.name].range
-				local qrt=(q and q.." " or "")..(r and ("in a "..r.." range around ") or "by ")..UnitDefs[p].humanName
+				local qrt=(q and q.." " or "")..(r and ("in a "..r.." range around ") or "by ")..UnitDefs[p].name
 				if (q or 1)<0 then
 					consumer_str=(consumer_str and consumer_str..", " or "\r\n\tConsumed: ")..qrt
 				else
@@ -660,7 +639,7 @@ if (gadgetHandler:IsSyncedCode()) then
 			end
 			for _,r in ipairs(tech.AccessTo) do
 				local q=AccessionTable[r][tech.name].quantity or 1
-				access_str=(access_str and access_str..", " or "\r\n\tRequired: ")..(q and q.." " or "").."by "..((r<0 and UnitDefs[-r]) and UnitDefs[-r].humanName or "CMD "..r)
+				access_str=(access_str and access_str..", " or "\r\n\tRequired: ")..(q and q.." " or "").."by "..((r<0 and UnitDefs[-r]) and UnitDefs[-r].name or "CMD "..r)
 			end
 			for _,team in ipairs(Spring.GetTeamList()) do
 				team_str=(team_str and team_str.." " or "\r\n\t").."Team"..team..":"..tech.ProviderSum[team]
@@ -778,7 +757,6 @@ if (gadgetHandler:IsSyncedCode()) then
 			table.insert(AccessionIDs,cmd)
 			for _,w in ipairs(lst_reqs) do
 				local t,q=SplitStringNameAndQuantity(w)
-				dbgEcho("CMD "..cmd.." is user of "..((q and q~=1) and q.." " or "").."\""..t.."\"")
 				InitTechEntry(t)
 				local tp={tech=t}
 				if q and q~=1 then
@@ -941,7 +919,6 @@ if (gadgetHandler:IsSyncedCode()) then
 					table.insert(ProviderIDs,ud.id)
 					for _,w in ipairs(lst_p) do
 						local t,q=SplitStringNameAndQuantity(w)
-						dbgEcho(ud.humanName.." is provider of "..((q and q~=1) and q.." " or "").."\""..t.."\""..(range and " in a "..range.." radius" or ""))
 						InitTechEntry(t)
 						local tp={tech=t}
 						if q and q~=1 then
@@ -964,7 +941,6 @@ if (gadgetHandler:IsSyncedCode()) then
 					table.insert(AccessionIDs,-ud.id)
 					for _,w in ipairs(lst_r) do
 						local t,q=SplitStringNameAndQuantity(w)
-						dbgEcho(ud.humanName.." is user of "..((q and q~=1) and q.." " or "").."\""..t.."\"")
 						InitTechEntry(t)
 						local tp={tech=t}
 						if q and q~=1 then
