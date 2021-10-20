@@ -37,8 +37,6 @@ local buttonBackgroundTexture = "LuaUI/Images/vr_grid.png"
 local buttonBgtexScale = 1.9	-- lower = smaller tiles
 local buttonBgtexOpacity = 0
 local buttonBgtexSize
-local backgroundTexture = "LuaUI/Images/backgroundtile.png"
-local ui_tileopacity = tonumber(Spring.GetConfigFloat("ui_tileopacity", 0.012) or 0.012)
 local bgtexScale = tonumber(Spring.GetConfigFloat("ui_tilescale", 7) or 7)	-- lower = smaller tiles
 local bgtexSize
 
@@ -53,8 +51,8 @@ local rightclick = 'LuaUI/Sounds/buildbar_rem.wav'
 
 local barGlowCenterTexture = ":l:LuaUI/Images/barglow-center.png"
 local barGlowEdgeTexture = ":l:LuaUI/Images/barglow-edge.png"
-local bladesTexture = "LuaUI/Images/wind-blades.png"
-local comTexture = ":l:Icons/corcom.png"		-- will be changed later to unit icon depending on faction
+local bladesTexture = ":n:LuaUI/Images/wind-blades.png"
+local comTexture = ":n:Icons/corcom.png"		-- will be changed later to unit icon depending on faction
 local glowTexture = ":l:LuaUI/Images/glow.dds"
 
 local math_floor = math.floor
@@ -64,7 +62,6 @@ local math_isInRect = math.isInRect
 local widgetScale = (0.80 + (vsx * vsy / 6000000))
 local xPos = math_floor(vsx * relXpos)
 local currentWind = 0
-local currentTidal = 0
 local gameStarted = (Spring.GetGameFrame() > 0)
 local displayComCounter = false
 local updateTextClock = os.clock()
@@ -76,7 +73,6 @@ local glPopMatrix = gl.PopMatrix
 local glTexture = gl.Texture
 local glRect = gl.Rect
 local glTexRect = gl.TexRect
-local glText = gl.Text
 local glRotate = gl.Rotate
 local glCreateList = gl.CreateList
 local glCallList = gl.CallList
@@ -105,7 +101,7 @@ local myAllyTeamID = Spring.GetMyAllyTeamID()
 local myTeamID = Spring.GetMyTeamID()
 local myPlayerID = Spring.GetMyPlayerID()
 local isReplay = Spring.IsReplay()
-comTexture = ':l:Icons/'..UnitDefs[Spring.GetTeamRulesParam(myTeamID, 'startUnit')].name..'.png'
+comTexture = ':n:Icons/'..UnitDefs[Spring.GetTeamRulesParam(myTeamID, 'startUnit')].name..'.png'
 
 local numTeamsInAllyTeam = #Spring.GetTeamList(myAllyTeamID)
 
@@ -888,6 +884,9 @@ local function updateResbar(res)
 		-- Bar background
 		local addedSize = math_floor(((barArea[4] - barArea[2]) * 0.15) + 0.5)
 		--RectRound(barArea[1] - edgeWidth, barArea[2] - edgeWidth, barArea[3] + edgeWidth, barArea[4] + edgeWidth, barHeight * 0.33, 1, 1, 1, 1, { 1,1,1, 0.03 }, { 1,1,1, 0.03 })
+		local borderSize = 1
+		RectRound(barArea[1] - edgeWidth + borderSize, barArea[2] - edgeWidth + borderSize, barArea[3] + edgeWidth - borderSize, barArea[4] + edgeWidth - borderSize, barHeight * 0.2, 1, 1, 1, 1, { 0,0,0, 0.12 }, { 0,0,0, 0.15 })
+
 		gl.Texture(noiseBackgroundTexture)
 		gl.Color(1,1,1, 0.22)
 		TexturedRectRound(barArea[1] - edgeWidth, barArea[2] - edgeWidth, barArea[3] + edgeWidth, barArea[4] + edgeWidth, barHeight * 0.33, 1, 1, 1, 1, barWidth*0.33, 0)
@@ -1015,7 +1014,11 @@ local function drawResbarValues(res, updateText)
 		color2 = { 0.8, 0.75, 0, 1 }
 		glowAlpha = 0.035 + (0.07 * math_min(1, cappedCurRes / r[res][2] * 40))
 	end
+
 	RectRound(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[2], resbarDrawinfo[res].barTexRect[1] + valueWidth, resbarDrawinfo[res].barTexRect[4], barHeight * 0.2, 1, 1, 1, 1, color1, color2)
+
+	local borderSize = 1
+	RectRound(resbarDrawinfo[res].barTexRect[1]+borderSize, resbarDrawinfo[res].barTexRect[2]+borderSize, resbarDrawinfo[res].barTexRect[1] + valueWidth-borderSize, resbarDrawinfo[res].barTexRect[4]-borderSize, barHeight * 0.2, 1, 1, 1, 1, { 0,0,0, 0.065 }, { 0,0,0, 0.13 })
 
 	-- Bar value glow
 	glBlending(GL_SRC_ALPHA, GL_ONE)
@@ -1027,20 +1030,14 @@ local function drawResbarValues(res, updateText)
 	DrawRect((resbarDrawinfo[res].barGlowMiddleTexRect[1] + valueWidth) + (glowSize * 3), resbarDrawinfo[res].barGlowRightTexRect[2], resbarDrawinfo[res].barGlowMiddleTexRect[1] + valueWidth, resbarDrawinfo[res].barGlowRightTexRect[4], 0.008)
 	glTexture(false)
 
-	-- noise
-	gl.Texture(noiseBackgroundTexture)
-	gl.Color(1,1,1, 0.45)
-	TexturedRectRound(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[2], resbarDrawinfo[res].barTexRect[1] + valueWidth, resbarDrawinfo[res].barTexRect[4], barHeight * 0.2, 1, 1, 1, 1, barWidth*0.33, 0)
-	gl.Texture(false)
-
 	if res == 'energy' then
 		-- energy flow effect
-		gl.Color(1,1,1, 0.4)
-		glTexture("LuaUI/Images/paralyzed.png")
+		gl.Color(1,1,1, 0.26)
+		glTexture(":n:LuaUI/Images/paralyzed.png")
 		TexturedRectRound(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[2], resbarDrawinfo[res].barTexRect[1] + valueWidth, resbarDrawinfo[res].barTexRect[4], barHeight * 0.2, 0, 0, 1, 1, barWidth/0.5, -os.clock()/80)
 		TexturedRectRound(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[2], resbarDrawinfo[res].barTexRect[1] + valueWidth, resbarDrawinfo[res].barTexRect[4], barHeight * 0.2, 0, 0, 1, 1, barWidth/0.33, os.clock()/70)
 		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-		gl.Color(1,1,1, 0.33)
+		gl.Color(1,1,1, 0.22)
 		TexturedRectRound(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[2], resbarDrawinfo[res].barTexRect[1] + valueWidth, resbarDrawinfo[res].barTexRect[4], barHeight * 0.2, 0, 0, 1, 1, barWidth/0.45, -os.clock()/55)
 		TexturedRectRound(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[2], resbarDrawinfo[res].barTexRect[1] + valueWidth, resbarDrawinfo[res].barTexRect[4], barHeight * 0.2, 0, 0, 1, 1, barWidth/0.7, os.clock()/80)
 		glTexture(false)
@@ -1052,6 +1049,12 @@ local function drawResbarValues(res, updateText)
 		RectRound(resbarDrawinfo[res].barTexRect[1]-addedSize, resbarDrawinfo[res].barTexRect[2]-addedSize, resbarDrawinfo[res].barTexRect[1] + valueWidth + addedSize, resbarDrawinfo[res].barTexRect[4] + addedSize, barHeight * 0.33)
 		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 	else
+		-- noise
+		gl.Texture(noiseBackgroundTexture)
+		gl.Color(1,1,1, 0.45)
+		TexturedRectRound(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[2], resbarDrawinfo[res].barTexRect[1] + valueWidth, resbarDrawinfo[res].barTexRect[4], barHeight * 0.2, 1, 1, 1, 1, barWidth*0.33, 0)
+		gl.Texture(false)
+
 		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 	end
 
@@ -1130,7 +1133,7 @@ local function checkStatus()
 	myTeamID = Spring.GetMyTeamID()
 	myPlayerID = Spring.GetMyPlayerID()
 	if myTeamID ~= gaiaTeamID and UnitDefs[Spring.GetTeamRulesParam(myTeamID, 'startUnit')] then
-		comTexture = 'Icons/'..UnitDefs[Spring.GetTeamRulesParam(myTeamID, 'startUnit')].name..'.png'
+		comTexture = ':n:Icons/'..UnitDefs[Spring.GetTeamRulesParam(myTeamID, 'startUnit')].name..'.png'
 	end
 end
 
