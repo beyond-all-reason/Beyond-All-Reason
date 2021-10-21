@@ -10,7 +10,7 @@ function gadget:GetInfo()
 		date      = "2021 jan",
 		license   = "GPL",
 		layer     = 0,	--higher layer is loaded last
-		enabled   = true, --REMOVE THIS GADGET ONCE ENGINE IS FIXED
+		enabled   = false, --REMOVE THIS GADGET ONCE ENGINE IS FIXED
 	}
 end
 
