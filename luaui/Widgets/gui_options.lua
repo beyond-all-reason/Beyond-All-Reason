@@ -4455,7 +4455,7 @@ function init()
               Spring.SendCommands("water 4")
           end,
         },
-        { id = "waterconfig_dynamicwaves", group = "dev", name = widgetOptionColor .. "   dynamic waves", type = "bool", value = Spring.GetConfigInt("BumpWaterDynamicWaves", 1) == 1, description = "",
+        { id = "waterconfig_dynamicwaves", group = "dev", name = widgetOptionColor .. "   dynamic waves", type = "bool", value = Spring.GetConfigInt("BumpWaterDynamicWaves", 1) == 1, description = "Springsettings.cfg config, Probably requires a restart",
           onload = function(i)
           end,
           onchange = function(i, value)
@@ -4463,7 +4463,7 @@ function init()
               Spring.SendCommands("water 4")
           end,
         },
-        { id = "waterconfig_endless", group = "dev", name = widgetOptionColor .. "   endless", type = "bool", value = Spring.GetConfigInt("BumpWaterEndlessOcean", 1) == 1, description = "",
+        { id = "waterconfig_endless", group = "dev", name = widgetOptionColor .. "   endless", type = "bool", value = Spring.GetConfigInt("BumpWaterEndlessOcean", 1) == 1, description = "Springsettings.cfg config, Probably requires a restart",
           onload = function(i)
           end,
           onchange = function(i, value)
@@ -4471,7 +4471,7 @@ function init()
               Spring.SendCommands("water 4")
           end,
         },
-        { id = "waterconfig_occlusionquery", group = "dev", name = widgetOptionColor .. "   occlusion query", type = "bool", value = Spring.GetConfigInt("BumpWaterOcclusionQuery", 1) == 1, description = "",
+        { id = "waterconfig_occlusionquery", group = "dev", name = widgetOptionColor .. "   occlusion query", type = "bool", value = Spring.GetConfigInt("BumpWaterOcclusionQuery", 1) == 1, description = "Springsettings.cfg config, Probably requires a restart",
           onload = function(i)
           end,
           onchange = function(i, value)
@@ -4479,7 +4479,7 @@ function init()
               Spring.SendCommands("water 4")
           end,
         },
-        { id = "waterconfig_blurreflection", group = "dev", name = widgetOptionColor .. "   blur reflection", type = "bool", value = Spring.GetConfigInt("BumpWaterBlurReflection", 1) == 1, description = "",
+        { id = "waterconfig_blurreflection", group = "dev", name = widgetOptionColor .. "   blur reflection", type = "bool", value = Spring.GetConfigInt("BumpWaterBlurReflection", 1) == 1, description = "Springsettings.cfg config, Probably requires a restart",
           onload = function(i)
           end,
           onchange = function(i, value)
@@ -4487,7 +4487,7 @@ function init()
               Spring.SendCommands("water 4")
           end,
         },
-        { id = "waterconfig_anisotropy", group = "dev", name = widgetOptionColor .. "   anisotropy", type = "bool", value = Spring.GetConfigInt("BumpWaterAnisotropy", 1) == 1, description = "",
+        { id = "waterconfig_anisotropy", group = "dev", name = widgetOptionColor .. "   anisotropy", type = "bool", value = Spring.GetConfigInt("BumpWaterAnisotropy", 1) == 1, description = "Springsettings.cfg config, Probably requires a restart",
           onload = function(i)
           end,
           onchange = function(i, value)
@@ -4495,7 +4495,7 @@ function init()
               Spring.SendCommands("water 4")
           end,
         },
-        { id = "wateconfigr_usedepthtexture", group = "dev", name = widgetOptionColor .. "   use depth texture", type = "bool", value = Spring.GetConfigInt("BumpWaterUseDepthTexture", 1) == 1, description = "",
+        { id = "wateconfigr_usedepthtexture", group = "dev", name = widgetOptionColor .. "   use depth texture", type = "bool", value = Spring.GetConfigInt("BumpWaterUseDepthTexture", 1) == 1, description = "Springsettings.cfg config, Probably requires a restart",
           onload = function(i)
           end,
           onchange = function(i, value)
@@ -4503,7 +4503,7 @@ function init()
               Spring.SendCommands("water 4")
           end,
         },
-        { id = "waterconfig_useuniforms", group = "dev", name = widgetOptionColor .. "   use uniforms", type = "bool", value = Spring.GetConfigInt("BumpWaterUseUniforms", 1) == 1, description = "",
+        { id = "waterconfig_useuniforms", group = "dev", name = widgetOptionColor .. "   use uniforms", type = "bool", value = Spring.GetConfigInt("BumpWaterUseUniforms", 1) == 1, description = "Springsettings.cfg config, Probably requires a restart",
           onload = function(i)
           end,
           onchange = function(i, value)
@@ -4513,7 +4513,7 @@ function init()
         },
 
         -- GL water params
-        { id = "water_shorewaves", group = "dev", name = "Bumpwater GL params" .. widgetOptionColor .. "  shorewaves", type = "bool", value = gl.GetWaterRendering("shoreWaves"), description = "",
+        { id = "water_shorewaves", group = "dev", name = "Bumpwater GL params" .. widgetOptionColor .. "  shorewaves", type = "bool", value = gl.GetWaterRendering("shoreWaves"), description = "Springsettings.cfg config, Probably requires a restart",
           onload = function(i)
           end,
           onchange = function(i, value)
@@ -4521,7 +4521,7 @@ function init()
               Spring.SendCommands("water 4")
           end,
         },
-        { id = "water_haswaterplane", group = "dev", name = widgetOptionColor .. "   has waterplane", type = "bool", value = gl.GetWaterRendering("hasWaterPlane"), description = "",
+        { id = "water_haswaterplane", group = "dev", name = widgetOptionColor .. "   has waterplane", type = "bool", value = gl.GetWaterRendering("hasWaterPlane"), description = "The WaterPlane is a single Quad beneath the map.\nIt should have the same color as the ocean floor to hide the map -> background boundary. Specifying waterPlaneColor in mapinfo.lua will turn this on.",
           onload = function(i)
           end,
           onchange = function(i, value)
@@ -4529,7 +4529,7 @@ function init()
               Spring.SendCommands("water 4")
           end,
         },
-        { id = "water_forcerendering", group = "dev", name = widgetOptionColor .. "   force rendering", type = "bool", value = gl.GetWaterRendering("forceRendering"), description = "",
+        { id = "water_forcerendering", group = "dev", name = widgetOptionColor .. "   force rendering", type = "bool", value = gl.GetWaterRendering("forceRendering"), description = "Should the water be rendered even when minMapHeight>0.\nUse it to avoid the jumpin of the outside-map water rendering (BumpWater: endlessOcean option) when combat explosions reach groundwater.",
           onload = function(i)
           end,
           onchange = function(i, value)
@@ -4537,7 +4537,7 @@ function init()
               Spring.SendCommands("water 4")
           end,
         },
-        { id = "water_repeatx", group = "dev", name = widgetOptionColor .. "   repeat X", type = "slider", min = 0, max = 20, step = 1, value = gl.GetWaterRendering("repeatX"), description = "",
+        { id = "water_repeatx", group = "dev", name = widgetOptionColor .. "   repeat X", type = "slider", min = 0, max = 20, step = 1, value = gl.GetWaterRendering("repeatX"), description = "water 0 texture repeat horizontal",
           onload = function(i)
           end,
           onchange = function(i, value)
@@ -4545,7 +4545,7 @@ function init()
               Spring.SendCommands("water 4")
           end,
         },
-        { id = "water_repeaty", group = "dev", name = widgetOptionColor .. "   repeat Y", type = "slider", min = 0, max = 20, step = 1, value = gl.GetWaterRendering("repeatY"), description = "",
+        { id = "water_repeaty", group = "dev", name = widgetOptionColor .. "   repeat Y", type = "slider", min = 0, max = 20, step = 1, value = gl.GetWaterRendering("repeatY"), description = "water 0 texture repeat vertical",
           onload = function(i)
           end,
           onchange = function(i, value)
@@ -4561,7 +4561,7 @@ function init()
               Spring.SendCommands("water 4")
           end,
         },
-        { id = "water_ambientfactor", group = "dev", name = widgetOptionColor .. "   ambient factor", type = "slider", min = 0, max = 5, step = 0.001, value = gl.GetWaterRendering("ambientFactor"), description = "",
+        { id = "water_ambientfactor", group = "dev", name = widgetOptionColor .. "   ambient factor", type = "slider", min = 0, max = 2, step = 0.001, value = gl.GetWaterRendering("ambientFactor"), description = "How much ambient lighting the water surface gets (ideally very little)",
           onload = function(i)
           end,
           onchange = function(i, value)
@@ -4569,7 +4569,7 @@ function init()
               Spring.SendCommands("water 4")
           end,
         },
-        { id = "water_diffusefactor", group = "dev", name = widgetOptionColor .. "   diffuse factor", type = "slider", min = 0, max = 5, step = 0.001, value = gl.GetWaterRendering("diffuseFactor"), description = "",
+        { id = "water_diffusefactor", group = "dev", name = widgetOptionColor .. "   diffuse factor", type = "slider", min = 0, max = 5, step = 0.001, value = gl.GetWaterRendering("diffuseFactor"), description = "How strong the diffuse lighting should be on the water",
           onload = function(i)
           end,
           onchange = function(i, value)
@@ -4577,7 +4577,23 @@ function init()
               Spring.SendCommands("water 4")
           end,
         },
-        { id = "water_perlinstartfreq", group = "dev", name = widgetOptionColor .. "   perlin start freq", type = "slider", min = 10, max = 50, step = 1, value = gl.GetWaterRendering("perlinStartFreq"), description = "",
+        { id = "water_specularfactor", group = "dev", name = widgetOptionColor .. "   specular factor", type = "slider", min = 0, max = 5, step = 0.01, value = gl.GetWaterRendering("specularFactor"), description = "How much light should be reflected straight from the sun",
+          onload = function(i)
+          end,
+          onchange = function(i, value)
+              Spring.SetWaterParams({ specularFactor = value })
+              Spring.SendCommands("water 4")
+          end,
+        },
+        { id = "water_specularpower", group = "dev", name = widgetOptionColor .. "   specular power", type = "slider", min = 0, max = 100, step = 0.1, value = gl.GetWaterRendering("specularPower"), description = "How polished the surface of the water is",
+          onload = function(i)
+          end,
+          onchange = function(i, value)
+              Spring.SetWaterParams({ specularPower = value })
+              Spring.SendCommands("water 4")
+          end,
+        },
+        { id = "water_perlinstartfreq", group = "dev", name = widgetOptionColor .. "   perlin start freq", type = "slider", min = 10, max = 50, step = 1, value = gl.GetWaterRendering("perlinStartFreq"), description = "The initial frequency of the bump map repetetion rate. Larger numbers mean more tiles",
           onload = function(i)
           end,
           onchange = function(i, value)
@@ -4585,7 +4601,7 @@ function init()
               Spring.SendCommands("water 4")
           end,
         },
-        { id = "water_perlinlacunarity", group = "dev", name = widgetOptionColor .. "   perlin lacunarity", type = "slider", min = 0.1, max = 3, step = 0.01, value = gl.GetWaterRendering("perlinLacunarity"), description = "",
+        { id = "water_perlinlacunarity", group = "dev", name = widgetOptionColor .. "   perlin lacunarity", type = "slider", min = 0.1, max = 4, step = 0.01, value = gl.GetWaterRendering("perlinLacunarity"), description = "How much smaller each additional repetion of the normal map should be. Larger numbers mean smaller",
           onload = function(i)
           end,
           onchange = function(i, value)
@@ -4593,7 +4609,7 @@ function init()
               Spring.SendCommands("water 4")
           end,
         },
-        { id = "water_perlinlamplitude", group = "dev", name = widgetOptionColor .. "   perlin amplitude", type = "slider", min = 0.1, max = 3, step = 0.01, value = gl.GetWaterRendering("perlinAmplitude"), description = "",
+        { id = "water_perlinlamplitude", group = "dev", name = widgetOptionColor .. "   perlin amplitude", type = "slider", min = 0.1, max = 4, step = 0.01, value = gl.GetWaterRendering("perlinAmplitude"), description = "How strong each additional repetetion of the normal map should be",
           onload = function(i)
           end,
           onchange = function(i, value)
@@ -4601,7 +4617,7 @@ function init()
               Spring.SendCommands("water 4")
           end,
         },
-        { id = "water_fresnelmin", group = "dev", name = widgetOptionColor .. "   fresnel min", type = "slider", min = 0, max = 2, step = 0.01, value = gl.GetWaterRendering("fresnelMin"), description = "",
+        { id = "water_fresnelmin", group = "dev", name = widgetOptionColor .. "   fresnel min", type = "slider", min = 0, max = 2, step = 0.01, value = gl.GetWaterRendering("fresnelMin"), description = "Minimum reflection strength, e.g. the reflectivity of the water when looking straight down on it",
           onload = function(i)
           end,
           onchange = function(i, value)
@@ -4609,7 +4625,7 @@ function init()
               Spring.SendCommands("water 4")
           end,
         },
-        { id = "water_fresnelmax", group = "dev", name = widgetOptionColor .. "   fresnel max", type = "slider", min = 0, max = 2, step = 0.01, value = gl.GetWaterRendering("fresnelMax"), description = "",
+        { id = "water_fresnelmax", group = "dev", name = widgetOptionColor .. "   fresnel max", type = "slider", min = 0, max = 2, step = 0.01, value = gl.GetWaterRendering("fresnelMax"), description = "Maximum reflection strength, the reflectivity of the water when looking parallel to the water plane",
           onload = function(i)
           end,
           onchange = function(i, value)
@@ -4617,7 +4633,7 @@ function init()
               Spring.SendCommands("water 4")
           end,
         },
-        { id = "water_fresnelpower", group = "dev", name = widgetOptionColor .. "   fresnel power", type = "slider", min = 0, max = 4, step = 0.01, value = gl.GetWaterRendering("fresnelPower"), description = "",
+        { id = "water_fresnelpower", group = "dev", name = widgetOptionColor .. "   fresnel power", type = "slider", min = 0, max = 16, step = 0.1, value = gl.GetWaterRendering("fresnelPower"), description = "Determines how fast the reflection increases when going from straight down view to parallel.",
           onload = function(i)
           end,
           onchange = function(i, value)
@@ -4625,7 +4641,7 @@ function init()
               Spring.SendCommands("water 4")
           end,
         },
-        { id = "water_numtiles", group = "dev", name = widgetOptionColor .. "   num tiles", type = "slider", min = 0, max = 2, step = 0.1, value = gl.GetWaterRendering("numTiles"), description = "",
+        { id = "water_numtiles", group = "dev", name = widgetOptionColor .. "   num tiles", type = "slider", min = 1.0, max = 8, step = 1.0, value = gl.GetWaterRendering("numTiles"), description = "How many (squared) Tiles does the `normalTexture` have?\nSuch Tiles are used when DynamicWaves are enabled in BumpWater, the more the better.\nCheck the example php script to generate such tiled bumpmaps.",
           onload = function(i)
           end,
           onchange = function(i, value)
@@ -4633,7 +4649,7 @@ function init()
               Spring.SendCommands("water 4")
           end,
         },
-        { id = "water_blurbase", group = "dev", name = widgetOptionColor .. "   blur base", type = "slider", min = 0, max = 3, step = 0.01, value = gl.GetWaterRendering("blurBase"), description = "",
+        { id = "water_blurbase", group = "dev", name = widgetOptionColor .. "   blur base", type = "slider", min = 0, max = 3, step = 0.01, value = gl.GetWaterRendering("blurBase"), description = "How much should the reflection be blurred",
           onload = function(i)
           end,
           onchange = function(i, value)
@@ -4641,7 +4657,7 @@ function init()
               Spring.SendCommands("water 4")
           end,
         },
-        { id = "water_blurexponent", group = "dev", name = widgetOptionColor .. "   blur exponent", type = "slider", min = 0, max = 3, step = 0.01, value = gl.GetWaterRendering("blurExponent"), description = "",
+        { id = "water_blurexponent", group = "dev", name = widgetOptionColor .. "   blur exponent", type = "slider", min = 0, max = 3, step = 0.01, value = gl.GetWaterRendering("blurExponent"), description = "How much should the reflection be blurred",
           onload = function(i)
           end,
           onchange = function(i, value)
