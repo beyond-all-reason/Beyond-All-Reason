@@ -1033,7 +1033,7 @@ local function drawResbarValues(res, updateText)
 	if res == 'energy' then
 		-- energy flow effect
 		gl.Color(1,1,1, 0.26)
-		glTexture(":n:LuaUI/Images/paralyzed.png")
+		glTexture("LuaUI/Images/paralyzed.png")
 		TexturedRectRound(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[2], resbarDrawinfo[res].barTexRect[1] + valueWidth, resbarDrawinfo[res].barTexRect[4], barHeight * 0.2, 0, 0, 1, 1, barWidth/0.5, -os.clock()/80)
 		TexturedRectRound(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[2], resbarDrawinfo[res].barTexRect[1] + valueWidth, resbarDrawinfo[res].barTexRect[4], barHeight * 0.2, 0, 0, 1, 1, barWidth/0.33, os.clock()/70)
 		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
@@ -1429,7 +1429,6 @@ function widget:DrawScreen()
 		Spring.SetMouseCursor('cursornormal')
 	end
 
-	--gl.Texture(false)	-- because some other widget didnt do this
 	local updateText = os.clock() - updateTextClock > 0.08
 	if updateText then
 		updateTextClock = os.clock()
