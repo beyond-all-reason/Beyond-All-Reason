@@ -186,11 +186,6 @@ Deactivate()
 {
 	signal SIG_ACTIVATE;
 	set-signal-mask SIG_ACTIVATE;
-	if( !unitviewer )
-	{
-		sleep 5000;
-	}
-	set-signal-mask 0;
 	start-script RequestState(1);
 }
 

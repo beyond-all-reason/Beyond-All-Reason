@@ -176,7 +176,6 @@ Create()
 {
 
 	spray = 0;
-	unitviewer = FALSE;
 	call-script InitState();
 	while( get BUILD_PERCENT_LEFT )
 	{
@@ -205,13 +204,7 @@ Deactivate()
 {
 	signal SIG_ACTIVATE;
 	set-signal-mask SIG_ACTIVATE;
-	if( !unitviewer )
-	{
-		sleep 5000;
-	}
-	set-signal-mask 0;
 	start-script RequestState(1);
-	return (0);
 }
 
 QueryBuildInfo(piecenum)
