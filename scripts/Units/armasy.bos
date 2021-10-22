@@ -103,7 +103,6 @@ OpenYard()
 		sleep 1500;
 		set YARD_OPEN to 1;
 	}
-	set BUGGER_OFF to 0;
 	return (0);
 }
 
@@ -116,7 +115,6 @@ CloseYard()
 		sleep 1500;
 		set YARD_OPEN to 0;
 	}
-	set BUGGER_OFF to 0;
 	return (0);
 }
 
@@ -204,6 +202,8 @@ Deactivate()
 {
 	signal SIG_ACTIVATE;
 	set-signal-mask SIG_ACTIVATE;
+  sleep 5000;
+	set-signal-mask 0;
 	start-script RequestState(1);
 }
 

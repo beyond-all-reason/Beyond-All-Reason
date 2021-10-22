@@ -4,7 +4,7 @@
 #include "exptype.h"
 
 piece  base, doorr1, doorr2, doorl1,doorl2, standr, standl, nanol, nanor, emitl, emitr;
-static-var  Static_Var_1, unitviewer, statechg_DesiredState, statechg_StateChanging;
+static-var  Static_Var_1, statechg_DesiredState, statechg_StateChanging;
 
 // Signal definitions
 #define SIG_ACTIVATE			2
@@ -73,8 +73,6 @@ OpenYard()
 		sleep 1500;
 		set YARD_OPEN to 1;
 	}
-	set BUGGER_OFF to 0;
-	return (0);
 }
 
 CloseYard()
@@ -86,13 +84,10 @@ CloseYard()
 		sleep 1500;
 		set YARD_OPEN to 0;
 	}
-	set BUGGER_OFF to 0;
-	return (0);
 }
 
 Go()
 {
-
 	call-script activatescr();
 	call-script OpenYard();
 	set INBUILDSTANCE to 1;
@@ -104,7 +99,6 @@ Stop()
 	set INBUILDSTANCE to 0;
 	call-script CloseYard();
 	call-script deactivatescr();
-
 	return (0);
 }
 
@@ -144,8 +138,6 @@ RequestState(requestedstate, currentstate)
 
 Create()
 {
-
-	unitviewer = FALSE;
 	Static_Var_1 = 0;
 	call-script InitState();
 	return (0);
@@ -172,11 +164,6 @@ QueryNanoPiece(piecenum)
 	return (0);
 }
 
-Demo()
-{
-	unitviewer = TRUE;
-	return (0);
-}
 
 Activate()
 {
@@ -189,10 +176,7 @@ Deactivate()
 {
 	signal SIG_ACTIVATE;
 	set-signal-mask SIG_ACTIVATE;
-	if( !unitviewer )
-	{
-		sleep 5000;
-	}
+  sleep 5000;
 	set-signal-mask 0;
 	start-script RequestState(1);
 	return (0);

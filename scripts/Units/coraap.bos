@@ -31,7 +31,6 @@ OpenYard()
 		sleep 1500;
 		set YARD_OPEN to 1;
 	}
-	set BUGGER_OFF to 0;
 }
 
 CloseYard()
@@ -43,12 +42,10 @@ CloseYard()
 		sleep 1500;
 		set YARD_OPEN to 0;
 	}
-	set BUGGER_OFF to 0;
 }
 
 Go()
 {
-
 	call-script activatescr();
 	call-script OpenYard();
 	set INBUILDSTANCE to 1;
@@ -181,10 +178,7 @@ Deactivate()
 {
 	signal SIG_ACTIVATE;
 	set-signal-mask SIG_ACTIVATE;
-	if( !unitviewer )
-	{
-		sleep 5000;
-	}
+  sleep 5000;
 	set-signal-mask 0;
 	start-script RequestState(1);
 }

@@ -7,31 +7,6 @@ piece  base, fan, d1,d2,d3,d4;
 
 static-var  Static_Var_1, Static_Var_2, Static_Var_3;
 
-
-OpenYard()
-{
-	set YARD_OPEN to 1;
-	while( !get YARD_OPEN )
-	{
-		set BUGGER_OFF to 1;
-		sleep 1000;
-		set YARD_OPEN to 1;
-	}
-	set BUGGER_OFF to 0;
-}
-
-CloseYard()
-{
-	set YARD_OPEN to 0;
-	while( get YARD_OPEN )
-	{
-		set BUGGER_OFF to 1;
-		sleep 1000;
-		set YARD_OPEN to 0;
-	}
-	set BUGGER_OFF to 0;
-}
-
 activatescr()
 {
 	set ACTIVATION to 100;

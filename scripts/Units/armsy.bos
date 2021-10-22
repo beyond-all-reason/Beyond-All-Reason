@@ -5,7 +5,7 @@
 
 piece  base,pad, nc1,nc2,nc3,nc4,nt1,nt2,nt3,nt4,nano1,nano2,nano3,nano4,beam1,beam2,beam3,beam4;
 
-static-var  spray, unitviewer, statechg_DesiredState, statechg_StateChanging;
+static-var  spray, statechg_DesiredState, statechg_StateChanging;
 
 // Signal definitions
 #define SIG_ACTIVATE			2
@@ -79,7 +79,6 @@ OpenYard()
 		sleep 1500;
 		set YARD_OPEN to 1;
 	}
-	set BUGGER_OFF to 0;
 }
 
 CloseYard()
@@ -91,7 +90,6 @@ CloseYard()
 		sleep 1500;
 		set YARD_OPEN to 0;
 	}
-	set BUGGER_OFF to 0;
 }
 
 Go()
@@ -145,7 +143,6 @@ RequestState(requestedstate, currentstate)
 Create()
 {
 	//move base to y-axis [25] now;
-	unitviewer = FALSE;
 	spray = 0;
 	call-script InitState();	
 	while( get BUILD_PERCENT_LEFT )
@@ -173,10 +170,7 @@ Deactivate()
 {
 	signal SIG_ACTIVATE;
 	set-signal-mask SIG_ACTIVATE;
-	if( !unitviewer )
-	{
-		sleep 5000;
-	}
+  sleep 5000;
 	set-signal-mask 0;
 	start-script RequestState(1);
 }

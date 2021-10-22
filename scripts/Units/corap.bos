@@ -179,11 +179,13 @@ Deactivate()
 
 StartBuilding()
 {
+	set BUGGER_OFF to 1;
 	return (0);
 }
 
 StopBuilding()
 {
+	set BUGGER_OFF to 1;
 	return (0);
 }
 

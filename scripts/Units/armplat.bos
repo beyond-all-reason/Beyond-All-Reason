@@ -4,7 +4,7 @@
 #include "exptype.h"
 
 piece  base, plat1,plat2,tower,nc1,nc2,towercover,nano2,beam1,beam2,beam3,beam4,nano1,nano3,nano4,nc3,nc4,nanotower3,nanotower4,pad;
-static-var  spray, unitviewer, statechg_DesiredState, statechg_StateChanging;
+static-var  spray, statechg_DesiredState, statechg_StateChanging;
 
 // Signal definitions
 #define SIG_ACTIVATE			2
@@ -99,7 +99,6 @@ OpenYard()
 		sleep 1500;
 		set YARD_OPEN to 1;
 	}
-	set BUGGER_OFF to 0;
 }
 
 CloseYard()
@@ -111,7 +110,6 @@ CloseYard()
 		sleep 1500;
 		set YARD_OPEN to 0;
 	}
-	set BUGGER_OFF to 0;
 }
 
 Go()
@@ -160,7 +158,6 @@ Create()
 {
 
 	set ARMORED to 1;
-	unitviewer = FALSE;
 	spray = 0;
 	move base to y-axis [2.500000] now;
 	statechg_DesiredState = TRUE;
@@ -190,7 +187,7 @@ Deactivate()
 {
 	signal SIG_ACTIVATE;
 	set-signal-mask SIG_ACTIVATE;
-
+  sleep 5000;
 	set-signal-mask 0;
 	start-script RequestState(1);
 }

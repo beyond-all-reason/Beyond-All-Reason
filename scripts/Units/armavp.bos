@@ -5,7 +5,7 @@
 
 piece  base, pad, head1, head2, head3, nano1, nano2, nano3;
 
-static-var  spray, unitviewer, statechg_DesiredState, statechg_StateChanging;
+static-var  spray, statechg_DesiredState, statechg_StateChanging;
 
 // Signal definitions
 #define SIG_ACTIVATE			2
@@ -48,8 +48,6 @@ OpenYard()
 		sleep 1500;
 		set YARD_OPEN to 1;
 	}
-	set BUGGER_OFF to 0;
-	return (0);
 }
 
 CloseYard()
@@ -61,8 +59,6 @@ CloseYard()
 		sleep 1500;
 		set YARD_OPEN to 0;
 	}
-	set BUGGER_OFF to 0;
-	return (0);
 }
 
 Go()
@@ -118,7 +114,6 @@ RequestState(requestedstate, currentstate)
 
 Create()
 {
-	unitviewer = FALSE;
 	spray = nano1;
 	call-script InitState();
 }
@@ -156,7 +151,6 @@ QueryNanoPiece(piecenum)
 
 Demo()
 {
-	unitviewer = TRUE;
 	return (0);
 }
 
@@ -171,10 +165,7 @@ Deactivate()
 {
 	signal SIG_ACTIVATE;
 	set-signal-mask SIG_ACTIVATE;
-	if( !unitviewer )
-	{
-		sleep 5000;
-	}
+  sleep 5000;
 	set-signal-mask 0;
 	start-script RequestState(1);
 	return (0);

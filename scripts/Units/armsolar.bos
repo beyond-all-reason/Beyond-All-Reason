@@ -35,31 +35,6 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 	}
 }
 
-/*
-OpenYard()
-{
-	set YARD_OPEN to 1;
-	while( !get YARD_OPEN )
-	{
-		set BUGGER_OFF to 1;
-		sleep 1000;
-		set YARD_OPEN to 1;
-	}
-	set BUGGER_OFF to 0;
-}
-
-CloseYard()
-{
-	set YARD_OPEN to 0;
-	while( get YARD_OPEN )
-	{
-		set BUGGER_OFF to 1;
-		sleep 1000;
-		set YARD_OPEN to 0;
-	}
-	set BUGGER_OFF to 0;
-}
-*/
 
 Go()
 {
@@ -68,7 +43,6 @@ Go()
 		set ACTIVATION to 0;
 		return (0);
 	}
-	//call-script CloseYard();
 	turn dish1 to x-axis <-90.016484> speed <60.000000>;
 	turn dish3 to x-axis <90.016484> speed <60.000000>;
 	turn dish2 to z-axis <-90.016484> speed <60.000000>;
@@ -83,7 +57,6 @@ Go()
 
 Stop()
 {
-	//call-script OpenYard();
 	turn dish1 to x-axis <0.000000> speed <120.000000>;
 	turn dish3 to x-axis <0.000000> speed <120.000000>;
 	turn dish2 to z-axis <0.000000> speed <120.000000>;
