@@ -5,7 +5,7 @@
 
 piece  base,doorl,doorr ,nano1,nano2,nano3,nano4,nano5,nano6,nano7,nano8,pad;
 
-static-var  spray, unitviewer, statechg_DesiredState, statechg_StateChanging;
+static-var  spray, statechg_DesiredState, statechg_StateChanging;
 
 // Signal definitions
 #define SIG_ACTIVATE			2
@@ -16,12 +16,11 @@ activatescr()
 {
 	if( TRUE )
 	{
-		move doorl to x-axis [0.0] now;
+		//move doorl to x-axis [0.0] now;
 		move doorl to x-axis [-27.0] speed [27];
-		move doorr to x-axis [0.0] now;
+		//move doorr to x-axis [0.0] now;
 		move doorr to x-axis [27.0] speed [27];
 		wait-for-move doorl along x-axis;
-		sleep 1000;
 	}
 
 	sleep 6;
@@ -34,7 +33,6 @@ deactivatescr()
 		move doorl to x-axis [0.0] speed [24];
 		move doorr to x-axis [0.0] speed [24];
 		wait-for-move doorl along x-axis;
-		sleep 968;
 	}
 	sleep 12;
 }
@@ -112,7 +110,6 @@ RequestState(requestedstate, currentstate)
 
 Create()
 {
-	unitviewer = FALSE;
 	spray = base;
 	call-script InitState();
 }
@@ -161,10 +158,6 @@ QueryNanoPiece(piecenum)
 	}
 }
 
-Demo()
-{
-	unitviewer = TRUE;
-}
 
 Activate()
 {
@@ -176,11 +169,6 @@ Deactivate()
 {
 	signal SIG_ACTIVATE;
 	set-signal-mask SIG_ACTIVATE;
-	if( !unitviewer )
-	{
-		sleep 5000;
-	}
-	set-signal-mask 0;
 	start-script RequestState(1);
 }
 
@@ -190,6 +178,11 @@ StartBuilding()
 
 StopBuilding()
 {
+	set BUGGER_OFF to 1; // tell units to get out of here
+	set INBUILDSTANCE to 0; // we turn it off, to wait for the unit to clear the build pad (large aircraft)
+	sleep 500;   // then we wait for 0.5 sec
+	set INBUILDSTANCE to 1; // we turn it on again, as the next startbuilding and construction will begin when this is 1 again.
+	set BUGGER_OFF to 0; // ok now we dont mind if they are here
 }
 
 QueryBuildInfo(piecenum)

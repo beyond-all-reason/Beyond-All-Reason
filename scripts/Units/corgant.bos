@@ -232,7 +232,7 @@ Deactivate()
 {
 	signal SIG_ACTIVATE;
 	set-signal-mask SIG_ACTIVATE;
-	set-signal-mask 0;
+	//set-signal-mask 0; //this is completely stupid here
 	start-script RequestState(1);
 }
 
@@ -241,9 +241,13 @@ StartBuilding()
 	sleep 50;
 }
 
-StopBuilding()
+StopBuilding() // give the gantry a 1 second breathing room
 {
-	sleep 50;
+	set BUGGER_OFF to 1; // tell units to get out of here
+	set INBUILDSTANCE to 0; // we turn it off, to wait for the unit to clear the build pad (large aircraft)
+	sleep 1000;   // then we wait for 2 sec
+	set INBUILDSTANCE to 1; // we turn it on again, as the next startbuilding and construction will begin when this is 1 again.
+	set BUGGER_OFF to 0; // ok now we dont mind if they are here
 }
 
 QueryBuildInfo(piecenum)
