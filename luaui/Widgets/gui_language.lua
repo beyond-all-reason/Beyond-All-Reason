@@ -12,6 +12,7 @@ end
 
 local customMessageProxies = {
 	['ui.chickens.queenResistant'] = function (data) return { unit = UnitDefs[data.unitDefId].translatedHumanName } end,
+	['ui.mexUpgrader.noMexes'] = function (data) return { unit = UnitDefs[data.unitDefId].translatedHumanName } end,
 	['scav.messages.reinforcements'] = function (data) return { player = data.player, unit = UnitDefNames[data.unitDefName].translatedHumanName } end,
 }
 
