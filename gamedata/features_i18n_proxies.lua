@@ -1,3 +1,5 @@
+-- Add entries to this file for features that should read their I18N info from other features
+-- feature_name = 'feature_to_use'
 return {
 	ad0_banyan_1 = 'treeBanyan',
 	ad0_banyan_2 = 'treeBanyan',
@@ -568,5 +570,4 @@ return {
 	treetype12 = 'tree',
 	treetype13 = 'tree',
 	treetype15 = 'tree',
-
 }
