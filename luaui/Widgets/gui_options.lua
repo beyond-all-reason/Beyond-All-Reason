@@ -4561,6 +4561,14 @@ function init()
               Spring.SendCommands("water 4")
           end,
         },
+        { id = "water_windspeed", group = "dev", name = widgetOptionColor .. "   windspeed", type = "slider", min = 0.0, max = 2.0, step = 0.01, value = gl.GetWaterRendering("windSpeed"), description = "The initial frequency of the bump map repetetion rate. Larger numbers mean more tiles",
+          onload = function(i)
+          end,
+          onchange = function(i, value)
+              Spring.SetWaterParams({ windSpeed = value })
+              Spring.SendCommands("water 4")
+          end,
+        },
         { id = "water_ambientfactor", group = "dev", name = widgetOptionColor .. "   ambient factor", type = "slider", min = 0, max = 2, step = 0.001, value = gl.GetWaterRendering("ambientFactor"), description = "How much ambient lighting the water surface gets (ideally very little)",
           onload = function(i)
           end,
