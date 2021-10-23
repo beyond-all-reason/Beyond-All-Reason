@@ -17,7 +17,7 @@ return {
 		canrepeat = false,
 		category = "ALL NOTSUB NOWEAPON NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "3 -5 0",
-		collisionvolumescales = "92 43 71",
+		collisionvolumescales = "76 48 76",
 		collisionvolumetype = "Box",
 		description = Spring.I18N('units.descriptions.corageo'),
 		energymake = 1250,
