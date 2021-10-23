@@ -148,12 +148,18 @@ function widget:RecvLuaMsg(msg, playerID)
 	end
 end
 
+local existingGroups = GetGroupList()
+local existingGroupsFrame = 0
+
 function widget:DrawWorld()
 	if chobbyInterface then
 		return
 	end
 	if not IsGuiHidden() then
-		local existingGroups = GetGroupList()
+    existingGroupsFrame = existingGroupsFrame + 1 
+    if existingGroupsFrame % 10 == 0 then 
+      existingGroups = GetGroupList()
+    end
 		local camX, camY, camZ = spGetCameraPosition()
 		local camDistance
 		for inGroup, _ in pairs(existingGroups) do

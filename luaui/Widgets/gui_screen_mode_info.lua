@@ -43,6 +43,10 @@ end
 local screenModeOverviewTable = { highlightColor = '\255\255\255\255', textColor = '\255\215\215\215' }
 local screenModeTitleTable = { screenMode = "", highlightColor = "\255\255\255\255" }
 
+
+local st = Spring.GetCameraState() -- reduce the usage of callins that create tables
+local framecount = 0
+
 function widget:DrawScreen()
 	if chobbyInterface then
 		return
@@ -50,15 +54,15 @@ function widget:DrawScreen()
 	if WG['topbar'] and WG['topbar'].showingQuit() then
 		return
 	end
-
-	local st = Spring.GetCameraState()
+  framecount = framecount + 1 
+  
+	if framecount % 10 == 0 then
+    st = Spring.GetCameraState()
+  end
 	local screenmode = Spring.GetMapDrawMode()
 	if (screenmode ~= 'normal' and screenmode ~= 'los') or st.name == 'ov' then
 		local description, title = '', ''
-		glPushMatrix()
-		glTranslate((vsx * 0.5), (vsy * 0.21), 0) --has to be below where newbie info appears!
 
-		font:Begin()
 		if st.name == 'ov' then
 			screenmode = ''
 		end
@@ -75,18 +79,23 @@ function widget:DrawScreen()
 			title = Spring.I18N('ui.screenMode.resourcesTitle')
 			description = Spring.I18N('ui.screenMode.resources')
 		end
+    if screenmode ~= '' or description ~= '' then 
+      glPushMatrix()
+      glTranslate((vsx * 0.5), (vsy * 0.21), 0) --has to be below where newbie info appears!
 
-		if screenmode ~= '' then
-      screenModeTitleTable.screenMode = title
-			font:Print('\255\233\233\233' .. Spring.I18N('ui.screenMode.title', screenModeTitleTable), 0, 15 * widgetScale, 20 * widgetScale, "oc")
-		end
+      font:Begin()
+      if screenmode ~= '' then
+        screenModeTitleTable.screenMode = title
+        font:Print('\255\233\233\233' .. Spring.I18N('ui.screenMode.title', screenModeTitleTable), 0, 15 * widgetScale, 20 * widgetScale, "oc") -- these are still extremely slow btw
+      end
 
-		if description ~= '' then
-			font:Print('\255\215\215\215' .. description, 0, -10 * widgetScale, 17 * widgetScale, "oc")
-		end
+      if description ~= '' then
+        font:Print('\255\215\215\215' .. description, 0, -10 * widgetScale, 17 * widgetScale, "oc")-- these are still extremely slow btw
+      end
+      font:End()
+      glPopMatrix()
+    end
 
-		font:End()
-		glPopMatrix()
 	end
 end
 

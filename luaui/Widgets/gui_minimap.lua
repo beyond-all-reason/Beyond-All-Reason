@@ -147,6 +147,8 @@ function widget:RecvLuaMsg(msg, playerID)
 	end
 end
 
+local st = spGetCameraState()
+local stframe = 0
 function widget:DrawScreen()
 	if chobbyInterface then
 		return
@@ -157,7 +159,10 @@ function widget:DrawScreen()
 			Spring.SetMouseCursor('cursornormal')
 		end
 	end
-	local st = spGetCameraState()
+  stframe = stframe + 1 
+	if stframe % 10 == 0 then
+    st = spGetCameraState()
+  end
 	if st.name == "ov" then		-- overview camera
 		if dlistGuishader and WG['guishader'] then
 			WG['guishader'].RemoveDlist('minimap')
