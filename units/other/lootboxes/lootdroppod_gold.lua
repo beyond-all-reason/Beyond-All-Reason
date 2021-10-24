@@ -49,6 +49,7 @@ return {
 		workertime = 1500,
 		yardmap = "",
 		customparams = {
+			unitgroup = 'builder',
 			isairbase = true,
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "other/lootboxes",

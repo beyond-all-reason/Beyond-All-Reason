@@ -42,6 +42,7 @@ return {
 		turninplacespeedlimit = 0.792,
 		turnrate = 520.29999,
 		customparams = {
+			unitgroup = 'weapon',
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "corvehicles/t2",

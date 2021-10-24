@@ -46,6 +46,7 @@ return {
 		wingangle = 0.06315,
 		wingdrag = 0.06,
 		customparams = {
+			unitgroup = 'util',
 			longdescription = Spring.I18N('units.longDescriptions.corfink'),
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",

@@ -31,6 +31,7 @@ return {
 		waterline = 4,
 		yardmap = "wwwwwwwww",
 		customparams = {
+			unitgroup = 'metal',
 			energyconv_capacity = 70,
 			energyconv_efficiency = 1/64,
 			model_author = "FireStorm",

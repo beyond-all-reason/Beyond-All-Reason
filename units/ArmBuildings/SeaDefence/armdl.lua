@@ -40,6 +40,7 @@ return {
 		usebuildinggrounddecal = true,
 		yardmap = "yyyyyooyyooyyyyy",
 		customparams = {
+			unitgroup = 'sub',
 			model_author = "Beherith",
 			normaltex = "unittextures/Arm_normal.dds",
 			removewait = true,

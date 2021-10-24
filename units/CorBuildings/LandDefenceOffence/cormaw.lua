@@ -43,6 +43,7 @@ return {
 		upright = true,
 		usebuildinggrounddecal = true,
 		customparams = {
+			unitgroup = 'weapon',
 			decoyfor = "cormaw",
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",

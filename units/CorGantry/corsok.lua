@@ -45,6 +45,7 @@ return {
 		turnrate = 290,
 		waterline = 7,
 		customparams = {
+			unitgroup = 'weapon',
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "corgantry",
 		},

@@ -39,6 +39,7 @@ return {
 		turninplaceanglelimit = 360,
 		turnrate = 600,
 		customparams = {
+			unitgroup = 'weapon',
 			model_author = "Flaka",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "coraircraft/t2",

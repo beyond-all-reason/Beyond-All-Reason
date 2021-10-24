@@ -41,6 +41,7 @@ return {
 		turninplacespeedlimit = 1.122,
 		turnrate = 473,
 		customparams = {
+			unitgroup = 'antinuke',
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armbots/t2",

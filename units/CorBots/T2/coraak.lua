@@ -37,6 +37,7 @@ return {
 		turnrate = 1048.79993,
 		upright = true,
 		customparams = {
+			unitgroup = 'aa',
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",
 			prioritytarget = "air",

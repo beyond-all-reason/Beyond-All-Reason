@@ -33,6 +33,7 @@ return {
 		waterline = 2,
 		yardmap = "wwwwwwwww",
 		customparams = {
+			unitgroup = 'sub',
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			removewait = true,

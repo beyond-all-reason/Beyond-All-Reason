@@ -37,6 +37,7 @@ return {
 		turninplaceanglelimit = 360,
 		turnrate = 700,
 		customparams = {
+			unitgroup = 'weapon',
 			longdescription = Spring.I18N('units.longDescriptions.armkam'),
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",

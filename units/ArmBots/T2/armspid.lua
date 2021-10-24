@@ -40,6 +40,7 @@ return {
 		turninplacespeedlimit = 1.749,
 		turnrate = 1290.29993,
 		customparams = {
+			unitgroup = 'emp',
 			model_author = "Kaiser",
 			normaltex = "unittextures/Arm_normal.dds",
 			paralyzemultiplier = 0.125,

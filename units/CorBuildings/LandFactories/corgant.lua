@@ -52,6 +52,7 @@ return {
 			[6] = "corsok",
 		},
 		customparams = {
+			unitgroup = 'buildert3',
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "corbuildings/landfactories",

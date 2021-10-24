@@ -38,6 +38,7 @@ return {
 		usebuildinggrounddecal = false,
 		yardmap = "f",
 		customparams = {
+			unitgroup = 'util',
 			model_author = "Beherith",
 			nohealthbars = true,
 			normaltex = "unittextures/Arm_normal.dds",

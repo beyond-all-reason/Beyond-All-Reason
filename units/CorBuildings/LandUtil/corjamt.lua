@@ -43,6 +43,7 @@ return {
 		usebuildinggrounddecal = true,
 		yardmap = "oooo",
 		customparams = {
+			unitgroup = 'util',
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			removestop = true,

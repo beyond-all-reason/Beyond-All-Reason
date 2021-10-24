@@ -61,6 +61,7 @@ return {
 			[14] = "corvrad",
 		},
 		customparams = {
+			unitgroup = 'buildert2',
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "corbuildings/landfactories",

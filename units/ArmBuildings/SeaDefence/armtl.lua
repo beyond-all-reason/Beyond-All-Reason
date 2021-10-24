@@ -32,6 +32,7 @@ return {
 		waterline = 0,
 		yardmap = "wwwwwwwww",
 		customparams = {
+			unitgroup = 'sub',
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			removewait = true,

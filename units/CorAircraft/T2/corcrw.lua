@@ -42,6 +42,7 @@ return {
 		turnrate = 300,
 		upright = true,
 		customparams = {
+			unitgroup = 'weapon',
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "coraircraft/t2",

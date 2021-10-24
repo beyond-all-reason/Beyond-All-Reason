@@ -41,6 +41,7 @@ return {
 		turnrate = 330,
 		waterline = 0,
 		customparams = {
+			unitgroup = 'sub',
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "corships",

@@ -36,6 +36,7 @@ return {
 		usebuildinggrounddecal = true,
 		yardmap = "oooooooooooooooo",
 		customparams = {
+			unitgroup = 'energy',
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			removestop = true,

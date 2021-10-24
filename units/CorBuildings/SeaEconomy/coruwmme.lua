@@ -42,6 +42,7 @@ return {
 		usebuildinggrounddecal = true,
 		yardmap = "oooo oooo oooo oooo",
 		customparams = {
+			unitgroup = 'metal',
 			cvbuildable = true,
 			metal_extractor = 4,
 			model_author = "Mr Bob",

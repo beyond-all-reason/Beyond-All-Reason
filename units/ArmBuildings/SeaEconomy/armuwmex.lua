@@ -42,6 +42,7 @@ return {
 		waterline = 0,
 		yardmap = "oooo oooo oooo oooo",
 		customparams = {
+			unitgroup = 'metal',
 			cvbuildable = true,
 			metal_extractor = 1,
 			model_author = "FireStorm",

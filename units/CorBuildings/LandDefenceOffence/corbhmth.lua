@@ -39,6 +39,7 @@ return {
 		usebuildinggrounddecal = true,
 		yardmap = "ooooo ooooo ooGoo ooooo ooooo",
 		customparams = {
+			unitgroup = 'weapon',
 			cvbuildable = true,
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",

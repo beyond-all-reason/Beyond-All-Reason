@@ -40,6 +40,7 @@ return {
 		usebuildinggrounddecal = true,
 		yardmap = "yooy oooo oooo yooy",
 		customparams = {
+			unitgroup = 'util',
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			removestop = true,

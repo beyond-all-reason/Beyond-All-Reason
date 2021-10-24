@@ -39,6 +39,7 @@ return {
 		usepiececollisionvolumes = 1,
 		yardmap = "ooooooooooooooooooooooooo",
 		customparams = {
+			unitgroup = 'weapon',
 			canareaattack = 1,
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",

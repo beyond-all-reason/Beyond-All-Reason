@@ -39,6 +39,7 @@ return {
 		turninplacespeedlimit = 1.0626,
 		turnrate = 1214.40002,
 		customparams = {
+			unitgroup = 'weapon',
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",
 			paralyzemultiplier = 0.125,

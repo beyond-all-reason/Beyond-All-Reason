@@ -38,6 +38,7 @@ return {
 		turnrate = 1263.84998,
 		upright = true,
 		customparams = {
+			unitgroup = 'weapon',
 			model_author = "FireStorm, Flaka",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "corbots/t2",

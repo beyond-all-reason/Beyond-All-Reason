@@ -41,6 +41,7 @@ return {
 		turnrate = 405,
 		waterline = 0,
 		customparams = {
+			unitgroup = 'aa',
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			prioritytarget = "air",

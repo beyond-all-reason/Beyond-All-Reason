@@ -32,6 +32,7 @@ return {
 		sonardistance = 230,
 		yardmap = "ooooooooo",
 		customparams = {
+			unitgroup = 'weaponaa',
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			removewait = true,

@@ -46,6 +46,7 @@ return {
 		wingangle = 0.06315,
 		wingdrag = 0.0575,
 		customparams = {
+			unitgroup = 'util',
 			longdescription = Spring.I18N('units.longDescriptions.armpeep'),
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",

@@ -38,6 +38,7 @@ return {
 		turnrate = 1214.40002,
 		upright = true,
 		customparams = {
+			unitgroup = 'weapon',
 			model_author = "FireStorm, FLaka",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armbots/t2",

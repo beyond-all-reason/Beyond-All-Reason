@@ -39,6 +39,7 @@ return {
 		turnrate = 450, --631.5,
 		waterline = 0,
 		customparams = {
+			unitgroup = 'weapon',
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armships",

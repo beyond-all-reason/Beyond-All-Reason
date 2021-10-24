@@ -44,6 +44,7 @@ return {
 		stealth = true,
 		yardmap = "y",
 		customparams = {
+			unitgroup = 'explo',
 			detonaterange = "64",
 			model_author = "Tristan",
 			normaltex = "unittextures/cor_normal.dds",

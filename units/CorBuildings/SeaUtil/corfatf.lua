@@ -38,6 +38,7 @@ return {
 		waterline = 3,
 		yardmap = "wwwwwwwwwwwwwwww",
 		customparams = {
+			unitgroup = 'util',
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			removestop = true,

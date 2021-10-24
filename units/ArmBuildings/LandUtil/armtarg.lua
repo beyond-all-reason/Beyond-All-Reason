@@ -39,6 +39,7 @@ return {
 		usebuildinggrounddecal = true,
 		yardmap = "ooooooooo",
 		customparams = {
+			unitgroup = 'util',
 			model_author = "Cremuss",
 			normaltex = "unittextures/Arm_normal.dds",
 			removestop = true,

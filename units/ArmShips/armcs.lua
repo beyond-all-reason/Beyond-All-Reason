@@ -71,6 +71,7 @@ return {
 			"armfhlt",
 		},
 		customparams = {
+			unitgroup = 'builder',
 			area_mex_def = "armuwmex",
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",

@@ -59,6 +59,7 @@ return {
 			[13]= "corfdoom",
 		},
 		customparams = {
+			unitgroup = 'buildert2',
 			area_mex_def = "coruwmme",
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",

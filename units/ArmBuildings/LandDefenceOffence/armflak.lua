@@ -40,6 +40,7 @@ return {
 		usebuildinggrounddecal = true,
 		yardmap = "oooo",
 		customparams = {
+			unitgroup = 'aa',
 			model_author = "Cremuss",
 			normaltex = "unittextures/Arm_normal.dds",
 			prioritytarget = "air",

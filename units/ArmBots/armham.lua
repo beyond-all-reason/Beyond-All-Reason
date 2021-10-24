@@ -39,6 +39,7 @@ return {
 		turnrate = 1258.09998,
 		upright = true,
 		customparams = {
+			unitgroup = 'weapon',
 			longdescription = Spring.I18N('units.longDescriptions.armham'),
 			model_author = "Kaiser",
 			normaltex = "unittextures/Arm_normal.dds",

@@ -63,6 +63,7 @@ return {
 			[5] = "armeyes",
 		},
 		customparams = {
+			unitgroup = 'builder',
 			longdescription = Spring.I18N('units.longDescriptions.armmlv'),
 			model_author = "Beherith",
 			normaltex = "unittextures/Arm_normal.dds",

@@ -35,6 +35,7 @@ return {
 		waterline = 3,
 		yardmap = "wwwww wwwww wwwww wwwww wwwww",
 		customparams = {
+			unitgroup = 'weapon',
 			model_author = "Zecrus",
 			normaltex = "unittextures/Arm_normal.dds",
 			removewait = true,

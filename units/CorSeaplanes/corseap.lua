@@ -37,6 +37,7 @@ return {
 		sonardistance = 535,
 		turnrate = 610,
 		customparams = {
+			unitgroup = 'sub',
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "corseaplanes",
