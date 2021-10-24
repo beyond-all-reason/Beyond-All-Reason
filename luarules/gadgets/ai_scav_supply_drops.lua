@@ -322,9 +322,6 @@ function gadget:GameFrame(n)
 						if unitDefID == lootboxDefID then
 							CaptureProgressForLootboxes[lootboxID] = CaptureProgressForLootboxes[lootboxID] - 0.0005
 							--Spring.Echo("uncapturing myself")
-						-- elseif unitTeamID == lootboxTeamID and (unitDefID ~= lootboxDefID) then
-						-- 	CaptureProgressForLootboxes[lootboxID] = CaptureProgressForLootboxes[lootboxID] - 1
-							--Spring.Echo("uncapturing our beacon")
 						elseif captureraiTeam == false and unitTeamID ~= lootboxTeamID and unitTeamID ~= Spring.GetGaiaTeamID() and IsUnitExcluded == false and (not UnitDefs[unitDefID].canFly) then
 							CaptureProgressForLootboxes[lootboxID] = CaptureProgressForLootboxes[lootboxID] + ((UnitDefs[unitDefID].metalCost)/800)*0.01
 							CapturingUnitsTeam[unitTeamID] = CapturingUnitsTeam[unitTeamID] + 1
@@ -338,12 +335,17 @@ function gadget:GameFrame(n)
 							CaptureProgressForLootboxes[lootboxID] = 1
 							--Spring.Echo("capture above 1")
 						end
+						if unitTeamID == lootboxTeamID and (unitDefID ~= lootboxDefID) then
+							CaptureProgressForLootboxes[lootboxID] = CaptureProgressForLootboxes[lootboxID] - 1
+							--Spring.Echo("uncapturing our beacon")
+						end
+						
 						Spring.SetUnitHealth(lootboxID, {capture = CaptureProgressForLootboxes[lootboxID]})
 		
 						if TeamsCapturing < 2 and captureraiTeam == false and CaptureProgressForLootboxes[lootboxID] >= 1 then
+							Spring.TransferUnit(lootboxID, unitTeamID, false)
 							CaptureProgressForLootboxes[lootboxID] = 0
 							Spring.SetUnitHealth(lootboxID, {capture = 0})
-							Spring.TransferUnit(lootboxID, unitTeamID, true)
 							captureraiTeam = nil
 							break
 						end
