@@ -1280,7 +1280,7 @@ for uname, ugrid in pairs(labGrids) do
 end
 
 for unitDefID, unitDef in pairs(UnitDefs) do
-	unitGroup[unitDefID] = 'util'
+	unitGroup[unitDefID] = unitDef.customParams.unitgroup
 	unitCategories[unitDefID] = BUILDCAT_UTILITY
 
 	if unitDef.name == 'armdl' or unitDef.name == 'cordl' or unitDef.name == 'armlance' or unitDef.name == 'cortitan'	-- or unitDef.name == 'armbeaver' or unitDef.name == 'cormuskrat'
@@ -1291,26 +1291,18 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 		isWaterUnit[unitDefID] = nil
 	end
 
-	if unitDef.customParams.objectify or unitDef.isTransport or string.find(unitDef.name, 'critter') then
-		unitGroup[unitDefID] = nil
+	if unitDef.energyStorage > 1000 and string.find(string.lower(unitDef.humanName), 'storage') then
+		unitCategories[unitDefID] = BUILDCAT_ECONOMY
 	end
 
-	if unitDef.energyStorage > 1000 and string.find(string.lower(unitDef.humanName), 'storage') then
-		unitGroup[unitDefID] = 'energy'
-		unitCategories[unitDefID] = BUILDCAT_ECONOMY
-	end
 	if unitDef.metalStorage > 500 and string.find(string.lower(unitDef.humanName), 'storage') then
-		unitGroup[unitDefID] = 'metal'
 		unitCategories[unitDefID] = BUILDCAT_ECONOMY
 	end
+
 	if unitDef.maxWeaponRange > 16 then
 		unitMaxWeaponRange[unitDefID] = unitDef.maxWeaponRange
-		unitGroup[unitDefID] = 'weapon'
 	end
 
-	if string.find(string.lower(unitDef.name), 'silo') then
-		unitGroup[unitDefID] = 'nuke'
-	end
 	local aaWeapons = 0
 	local weaponCount = 0
 
@@ -1322,9 +1314,6 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 		for i = 1, #weapons do
 			local weaponDef = WeaponDefs[weapons[i].weaponDef]
 			if weaponDef then
-				if string.find(string.lower(weaponDef.name), 'minesweep') then
-					minesweeper = true
-				end
 				if weaponDef.damages and not weapons[i].hasShield then
 					-- get highest damage category
 					local maxDmg = 0
@@ -1342,12 +1331,8 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 						end
 					end
 					if weaponDef.paralyzer then
-						unitGroup[unitDefID] = 'emp'
 						unitCategories[unitDefID] = BUILDCAT_COMBAT
 					end
-				end
-				if weaponDef.shieldRepulser then
-					unitGroup[unitDefID] = 'util'
 				end
 			end
 		end
@@ -1358,17 +1343,14 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	end
 
 	if aaWeapons > 0 and weaponCount == aaWeapons then
-		unitGroup[unitDefID] = 'aa'
 		unitCategories[unitDefID] = BUILDCAT_COMBAT
 	end
 
 	if unitDef.extractsMetal > 0 or (unitDef.customParams.energyconv_capacity and unitDef.customParams.energyconv_efficiency) then
-		unitGroup[unitDefID] = 'metal'
 		unitCategories[unitDefID] = BUILDCAT_ECONOMY
 	end
 	-- as of this code armsolar and corsolar were returning 0 for either energyupkeep or energymake
 	if unitDef.customParams.solar or (unitDef.energyMake > 19 and (not unitDef.energyUpkeep or unitDef.energyUpkeep < 10) or unitDef.energyUpkeep < -19 or unitDef.windGenerator > 0 or unitDef.tidalGenerator > 0) then
-		unitGroup[unitDefID] = 'energy'
 		unitCategories[unitDefID] = BUILDCAT_ECONOMY
 	end
 
@@ -1381,27 +1363,12 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	end
 	if unitDef.buildSpeed > 0 and unitDef.buildOptions[1] then
 		isBuilder[unitDefID] = unitDef.buildOptions
-		unitGroup[unitDefID] = 'builder'
 	end
+
 	if unitDef.isFactory and #unitDef.buildOptions > 0 then
 		isFactory[unitDefID] = true
-		unitGroup[unitDefID] = 'builder'
 	end
-	if unitDef.buildSpeed > 10 then
-		unitGroup[unitDefID] = 'builder'
-	end
-	if unitGroup[unitDefID] == 'builder' and unitDef.customParams.techlevel then
-		if tonumber(unitDef.customParams.techlevel) == 2 then
-			unitGroup[unitDefID] = 'buildert2'
-		elseif tonumber(unitDef.customParams.techlevel) == 3 then
-			unitGroup[unitDefID] = 'buildert3'
-		elseif tonumber(unitDef.customParams.techlevel) == 4 then
-			unitGroup[unitDefID] = 'buildert4'
-		end
-	end
-	if string.find(string.lower(unitDef.tooltip), 'anti%-nuke') then
-		unitGroup[unitDefID] = 'antinuke'
-	end
+
 	if unitDef.extractsMetal > 0 then
 		isMex[unitDefID] = true
 	end

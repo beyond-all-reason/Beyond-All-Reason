@@ -237,7 +237,9 @@ local isMex = {}
 local isWaterUnit = {}
 local isGeothermalUnit = {}
 local unitMaxWeaponRange = {}
+
 for unitDefID, unitDef in pairs(UnitDefs) do
+	unitGroup[unitDefID] = unitDef.customParams.unitgroup
 
 	if unitDef.name == 'armdl' or unitDef.name == 'cordl' or unitDef.name == 'armlance' or unitDef.name == 'cortitan'
 		or (unitDef.minWaterDepth > 0 or unitDef.modCategories['ship']) then
@@ -250,76 +252,8 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 		isGeothermalUnit[unitDefID] = true
 	end
 
-	unitGroup[unitDefID] = 'util'
-	if unitDef.customParams.objectify or unitDef.isTransport or string.find(unitDef.name, 'critter') then
-		unitGroup[unitDefID] = nil
-	end
-	if unitDef.customParams.solar or (unitDef.energyMake > 19 and (not unitDef.energyUpkeep or unitDef.energyUpkeep < 10) or unitDef.energyUpkeep < -19 or unitDef.windGenerator > 0 or unitDef.tidalGenerator > 0) then
-		unitGroup[unitDefID] = 'energy'
-	end
-	if unitDef.extractsMetal > 0 or (unitDef.customParams.energyconv_capacity and unitDef.customParams.energyconv_efficiency) then
-		unitGroup[unitDefID] = 'metal'
-	end
-	if unitDef.energyStorage > 1000 and string.find(string.lower(unitDef.translatedHumanName), 'storage') then
-		unitGroup[unitDefID] = 'energy'
-	end
-	if unitDef.metalStorage > 500 and string.find(string.lower(unitDef.translatedHumanName), 'storage') then
-		unitGroup[unitDefID] = 'metal'
-	end
 	if unitDef.maxWeaponRange > 16 then
 		unitMaxWeaponRange[unitDefID] = unitDef.maxWeaponRange
-		unitGroup[unitDefID] = 'weapon'
-	end
-	if string.find(string.lower(unitDef.name), 'silo') then
-		unitGroup[unitDefID] = 'nuke'
-	end
-	local aaWeapons = 0
-	local weaponCount = 0
-
-	local weapons = unitDef.weapons
-	for i = 1, #weapons do
-		local weaponDef = WeaponDefs[weapons[i].weaponDef]
-		if weaponDef then
-			if weaponDef.damages then
-				-- get highest damage category
-				local maxDmg = 0
-				for _, v in pairs(weaponDef.damages) do
-					if v > maxDmg then
-						maxDmg = v
-					end
-				end
-				if maxDmg > 1 then	-- filter away bogus weapons
-					weaponCount = weaponCount + 1
-					if weapons[i].onlyTargets and weapons[i].onlyTargets['vtol'] then
-						aaWeapons = aaWeapons + 1
-					end
-				end
-				if weaponDef.paralyzer then
-					unitGroup[unitDefID] = 'emp'
-				end
-
-				if weaponDef.type == "TorpedoLauncher" then
-					unitGroup[unitDefID] = 'sub'
-				end
-			end
-			if weaponDef.shieldRepulser then
-				unitGroup[unitDefID] = 'util'
-			end
-			--if weaponDef.description ~= nil and string.find(string.lower(weaponDef.description), 'nuclear') then
-			--	unitGroup[unitDefID] = 'nuke'
-			--end
-		end
-	end
-	if aaWeapons > 0 and weaponCount == aaWeapons then
-		unitGroup[unitDefID] = 'aa'
-	end
-	if string.find(unitDef.name, 'armsam') or string.find(unitDef.name, 'cormist') or string.find(unitDef.name, 'armpt') or string.find(unitDef.name, 'corpt') or
-		string.find(unitDef.name, 'armlatnk') then--aaWeapons > 0 and weaponCount <= aaWeapons then
-		unitGroup[unitDefID] = 'weaponaa'
-	end
-
-	if unitDef.customParams.detonaterange or string.find(unitDef.deathExplosion, 'crawl_') then
-		unitGroup[unitDefID] = 'explo'
 	end
 
 	unitIconType[unitDefID] = unitDef.iconType
@@ -330,27 +264,11 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	end
 	if unitDef.buildSpeed > 0 and unitDef.buildOptions[1] then
 		isBuilder[unitDefID] = unitDef.buildOptions
-		unitGroup[unitDefID] = 'builder'
 	end
 	if unitDef.isFactory and #unitDef.buildOptions > 0 then
 		isFactory[unitDefID] = true
-		unitGroup[unitDefID] = 'builder'
 	end
-	if unitDef.buildSpeed > 10 then
-		unitGroup[unitDefID] = 'builder'
-	end
-	if unitGroup[unitDefID] == 'builder' and unitDef.customParams.techlevel then
-		if tonumber(unitDef.customParams.techlevel) == 2 then
-			unitGroup[unitDefID] = 'buildert2'
-		elseif tonumber(unitDef.customParams.techlevel) == 3 then
-			unitGroup[unitDefID] = 'buildert3'
-		elseif tonumber(unitDef.customParams.techlevel) == 4 then
-			unitGroup[unitDefID] = 'buildert4'
-		end
-	end
-	if string.find(string.lower(unitDef.tooltip), 'anti%-nuke') then
-		unitGroup[unitDefID] = 'antinuke'
-	end
+
 	if unitDef.extractsMetal > 0 then
 		isMex[unitDefID] = true
 	end
