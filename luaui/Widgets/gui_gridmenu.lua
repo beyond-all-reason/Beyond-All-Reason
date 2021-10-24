@@ -1196,10 +1196,33 @@ local groups = {
 	buildert4 = folder..'buildert4.png',
 	util = folder..'util.png',
 	weapon = folder..'weapon.png',
-	emp = folder..'emp.png',
+	explo = folder..'weaponexplo.png',
+	weaponaa = folder..'weaponaa.png',
 	aa = folder..'aa.png',
+	emp = folder..'emp.png',
+	sub = folder..'sub.png',
 	nuke = folder..'nuke.png',
 	antinuke = folder..'antinuke.png',
+}
+
+-- This data is not integrated into the above table because
+-- the other table is exposed as a public property
+local categoryGroupMapping = {
+	energy = BUILDCAT_ECONOMY,
+	metal = BUILDCAT_ECONOMY,
+	builder = BUILDCAT_PRODUCTION,
+	buildert2 = BUILDCAT_PRODUCTION,
+	buildert3 = BUILDCAT_PRODUCTION,
+	buildert4 = BUILDCAT_PRODUCTION,
+	util = BUILDCAT_UTILITY,
+	weapon = BUILDCAT_COMBAT,
+	explo = BUILDCAT_COMBAT,
+	weaponaa = BUILDCAT_COMBAT,
+	aa = BUILDCAT_COMBAT,
+	emp = BUILDCAT_COMBAT,
+	sub = BUILDCAT_COMBAT,
+	nuke = BUILDCAT_COMBAT,
+	antinuke = BUILDCAT_COMBAT,
 }
 
 local unitBuildPic = {}
@@ -1281,7 +1304,7 @@ end
 
 for unitDefID, unitDef in pairs(UnitDefs) do
 	unitGroup[unitDefID] = unitDef.customParams.unitgroup
-	unitCategories[unitDefID] = BUILDCAT_UTILITY
+	unitCategories[unitDefID] = categoryGroupMapping[unitDef.customParams.unitgroup] or BUILDCAT_UTILITY
 
 	if unitDef.name == 'armdl' or unitDef.name == 'cordl' or unitDef.name == 'armlance' or unitDef.name == 'cortitan'	-- or unitDef.name == 'armbeaver' or unitDef.name == 'cormuskrat'
 		or (unitDef.minWaterDepth > 0 or unitDef.modCategories['ship']) then
@@ -1291,76 +1314,18 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 		isWaterUnit[unitDefID] = nil
 	end
 
-	if unitDef.energyStorage > 1000 and string.find(string.lower(unitDef.humanName), 'storage') then
-		unitCategories[unitDefID] = BUILDCAT_ECONOMY
-	end
-
-	if unitDef.metalStorage > 500 and string.find(string.lower(unitDef.humanName), 'storage') then
-		unitCategories[unitDefID] = BUILDCAT_ECONOMY
-	end
-
 	if unitDef.maxWeaponRange > 16 then
 		unitMaxWeaponRange[unitDefID] = unitDef.maxWeaponRange
-	end
-
-	local aaWeapons = 0
-	local weaponCount = 0
-
-	local weapons = unitDef.weapons
-	local minesweeper = false
-	local maxGroundRange = 0
-
-	if not unitDef.hasShield then
-		for i = 1, #weapons do
-			local weaponDef = WeaponDefs[weapons[i].weaponDef]
-			if weaponDef then
-				if weaponDef.damages and not weapons[i].hasShield then
-					-- get highest damage category
-					local maxDmg = 0
-					for _, v in pairs(weaponDef.damages) do
-						if v > maxDmg then
-							maxDmg = v
-						end
-					end
-					if maxDmg > 1 then	-- filter away bogus weapons
-						weaponCount = weaponCount + 1
-						if weapons[i].onlyTargets and weapons[i].onlyTargets['vtol'] then
-							aaWeapons = aaWeapons + 1
-						elseif weaponDef.range > maxGroundRange then
-							maxGroundRange = weaponDef.range
-						end
-					end
-					if weaponDef.paralyzer then
-						unitCategories[unitDefID] = BUILDCAT_COMBAT
-					end
-				end
-			end
-		end
-	end
-
-	if maxGroundRange > 16 and not string.find(string.lower(unitDef.tooltip), 'jammer') then
-		unitCategories[unitDefID] = BUILDCAT_COMBAT
-	end
-
-	if aaWeapons > 0 and weaponCount == aaWeapons then
-		unitCategories[unitDefID] = BUILDCAT_COMBAT
-	end
-
-	if unitDef.extractsMetal > 0 or (unitDef.customParams.energyconv_capacity and unitDef.customParams.energyconv_efficiency) then
-		unitCategories[unitDefID] = BUILDCAT_ECONOMY
-	end
-	-- as of this code armsolar and corsolar were returning 0 for either energyupkeep or energymake
-	if unitDef.customParams.solar or (unitDef.energyMake > 19 and (not unitDef.energyUpkeep or unitDef.energyUpkeep < 10) or unitDef.energyUpkeep < -19 or unitDef.windGenerator > 0 or unitDef.tidalGenerator > 0) then
-		unitCategories[unitDefID] = BUILDCAT_ECONOMY
 	end
 
 	unitIconType[unitDefID] = unitDef.iconType
 	unitEnergyCost[unitDefID] = unitDef.energyCost
 	unitMetalCost[unitDefID] = unitDef.metalCost
-	unitBuildPic[unitDefID] = unitDef.buildpicname
-	if unitDef.maxThisUnit == 0 then --or unitDef.name == 'armllt' or unitDef.name == 'armmakr' then
+
+	if unitDef.maxThisUnit == 0 then
 		unitRestricted[unitDefID] = true
 	end
+
 	if unitDef.buildSpeed > 0 and unitDef.buildOptions[1] then
 		isBuilder[unitDefID] = unitDef.buildOptions
 	end
@@ -1371,15 +1336,6 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 
 	if unitDef.extractsMetal > 0 then
 		isMex[unitDefID] = true
-	end
-
-	if unitDef.buildSpeed > 0 then
-		unitCategories[unitDefID] = BUILDCAT_PRODUCTION
-	end
-
-	-- air repair pad
-	if unitDef.name == 'corasp' or unitDef.name == 'armasp' then
-		unitCategories[unitDefID] = BUILDCAT_UTILITY
 	end
 end
 
