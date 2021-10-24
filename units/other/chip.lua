@@ -41,6 +41,7 @@ return {
 		usebuildinggrounddecal = false,
 		yardmap = "f",
 		customparams = {
+			unitgroup = 'util',
 			model_author = "Floris",
 			nohealthbars = true,
 			subfolder = "other",

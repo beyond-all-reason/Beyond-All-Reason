@@ -96,6 +96,7 @@ return {
 			[27] = "corfhp",
 		},
 		customparams = {
+			unitgroup = 'builder',
 			area_mex_def = "cormex",
 			iscommander = true,
 			--energyconv_capacity = 70,

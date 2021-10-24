@@ -40,6 +40,7 @@ return {
 		turninplacespeedlimit = 0.66,
 		turnrate = 368,
 		customparams = {
+			unitgroup = 'weapon',
 			model_author = "Kaiser, PtaQ",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armbots/t2",

@@ -39,6 +39,7 @@ return {
 		turninplacespeedlimit = 1.518,
 		turnrate = 1138.5,
 		customparams = {
+			unitgroup = 'weapon',
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			onoffname = "gauss",

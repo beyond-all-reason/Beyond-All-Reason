@@ -39,6 +39,7 @@ return {
 		upright = true,
 		usesmoothmesh = 0,
 		customparams = {
+			unitgroup = 'emp',
 			longdescription = Spring.I18N('units.longDescriptions.corbw'),
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",

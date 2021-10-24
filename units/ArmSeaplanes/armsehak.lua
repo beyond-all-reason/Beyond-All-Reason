@@ -47,6 +47,7 @@ return {
 		wingangle = 0.06278,
 		wingdrag = 0.135,
 		customparams = {
+			unitgroup = 'util',
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armseaplanes",

@@ -38,6 +38,7 @@ return {
 		turnrate = 1285.69995,
 		upright = true,
 		customparams = {
+			unitgroup = 'aa',
 			longdescription = Spring.I18N('units.longDescriptions.armjeth'),
 			model_author = "Kaiser, PtaQ",
 			normaltex = "unittextures/Arm_normal.dds",

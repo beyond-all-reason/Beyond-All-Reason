@@ -44,6 +44,7 @@ return {
 		turnrate = 129,
 		waterline = 0,
 		customparams = {
+			unitgroup = 'weapon',
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",
 			paralyzemultiplier = 0,

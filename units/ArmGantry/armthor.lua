@@ -42,6 +42,7 @@ return {
 		turninplacespeedlimit = 1.6,
 		turnrate = 180,
 		customparams = {
+			unitgroup = 'emp',
 			lumamult = "0.7",
 			model_author = "Flaka",
 			normaltex = "unittextures/Arm_normal.dds",

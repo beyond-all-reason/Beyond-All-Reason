@@ -41,6 +41,7 @@ return {
 		turnrate = 1538.69995,
 		upright = true,
 		customparams = {
+			unitgroup = 'weapon',
 			model_author = "Kaiser",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armbots/t2",

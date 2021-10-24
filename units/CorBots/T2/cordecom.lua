@@ -78,6 +78,7 @@ return {
 			[16] = "corfmkr",
 		},
 		customparams = {
+			unitgroup = 'buildert2',
 			decoyfor = "corcom",
 			area_mex_def = "cormex",
 			model_author = "Beherith",

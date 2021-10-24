@@ -42,6 +42,7 @@ return {
 		turninplacespeedlimit = 2.19516,
 		turnrate = 440,
 		customparams = {
+			unitgroup = 'weaponaa',
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armvehicles/t2",

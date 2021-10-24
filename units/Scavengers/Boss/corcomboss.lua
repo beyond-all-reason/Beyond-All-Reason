@@ -68,6 +68,7 @@ return {
 			[2] = "corkorg",
 		},
 		customparams = {
+			unitgroup = 'buildert4',
 			area_mex_def = "cormex",
 			--iscommander = true,
 			model_author = "Mr Bob",

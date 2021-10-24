@@ -60,6 +60,7 @@ return {
 		yardmap = "oooo",
 		reclaimable = false,
 		customparams = {
+			unitgroup = 'energy',
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "other/lootboxes",
 		},

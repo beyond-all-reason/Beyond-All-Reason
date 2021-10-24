@@ -45,6 +45,7 @@ return {
 		waterline = 1,
 		yardmap = "w",
 		customparams = {
+			unitgroup = 'explo',
 			detonaterange = "64",
 			model_author = "Beherith",
 			normaltex = "unittextures/Arm_normal.dds",

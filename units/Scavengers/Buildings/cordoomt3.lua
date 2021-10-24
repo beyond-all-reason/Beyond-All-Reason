@@ -46,6 +46,7 @@ return {
 		usebuildinggrounddecal = true,
 		yardmap = "yyooyy oooooo oooooo oooooo oooooo yyooyy",
 		customparams = {
+			unitgroup = 'weapon',
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			removewait = true,

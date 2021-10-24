@@ -40,6 +40,7 @@ return {
 		turninplacespeedlimit = 1.782,
 		turnrate = 1733.04993,
 		customparams = {
+			unitgroup = 'explo',
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "corbots/t2",

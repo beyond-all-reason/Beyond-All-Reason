@@ -46,6 +46,7 @@ return {
 		wingangle = 0.06259,
 		wingdrag = 0.185,
 		customparams = {
+			unitgroup = 'sub',
 			model_author = "Flaka",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armaircraft/t2",

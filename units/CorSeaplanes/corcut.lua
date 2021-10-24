@@ -37,6 +37,7 @@ return {
 		turninplaceanglelimit = 360,
 		turnrate = 550,
 		customparams = {
+			unitgroup = 'weapon',
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "corseaplanes",

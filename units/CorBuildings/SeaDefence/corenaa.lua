@@ -36,6 +36,7 @@ return {
 		waterline = 0.3,
 		yardmap = "wwwwwwwwwwwwwwww",
 		customparams = {
+			unitgroup = 'aa',
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			prioritytarget = "air",

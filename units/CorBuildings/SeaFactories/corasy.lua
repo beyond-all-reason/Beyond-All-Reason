@@ -50,6 +50,7 @@ return {
 			[11] = "corblackhy",
 		},
 		customparams = {
+			unitgroup = 'buildert2',
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "corbuildings/seafactories",

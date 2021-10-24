@@ -50,6 +50,7 @@ return {
 			[4] = "corparrow",
 		},
 		customparams = {
+			unitgroup = 'buildert3',
 			model_author = "Cremuss",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "corbuildings/seafactories",

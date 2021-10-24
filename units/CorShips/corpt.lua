@@ -42,6 +42,7 @@ return {
 		turnrate = 520.5,
 		waterline = 0,
 		customparams = {
+			unitgroup = 'weaponaa',
 			maxrange = "260",
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",

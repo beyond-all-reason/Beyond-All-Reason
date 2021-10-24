@@ -43,6 +43,7 @@ return {
 		sightdistance = 83.2,
 		stealth = true,
 		customparams = {
+			unitgroup = 'explo',
 			detonaterange = "64",
 			model_author = "Tristan",
 			normaltex = "unittextures/cor_normal.dds",

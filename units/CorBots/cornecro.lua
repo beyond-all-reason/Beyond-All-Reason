@@ -45,6 +45,7 @@ return {
 		upright = true,
 		workertime = 200,
 		customparams = {
+			unitgroup = 'builder',
 			longdescription = Spring.I18N('units.longDescriptions.cornecro'),
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",

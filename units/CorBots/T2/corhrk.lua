@@ -38,6 +38,7 @@ return {
 		turnrate = 1268.44995,
 		upright = true,
 		customparams = {
+			unitgroup = 'weapon',
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "corbots/t2",

@@ -236,6 +236,7 @@ local createNanoUnitDef = function(tier)
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armbuildings/landutil",
 			i18nfromunit = parameters.i18nFromUnit,
+			unitgroup = 'builder',
 		},
 	}
 end

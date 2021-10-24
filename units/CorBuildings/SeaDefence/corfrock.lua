@@ -37,6 +37,7 @@ return {
 		waterline = 0,
 		yardmap = "wwwwwwwwwwwwwwww",
 		customparams = {
+			unitgroup = 'aa',
 			normaltex = "unittextures/cor_normal.dds",
 			removewait = true,
 			subfolder = "corbuildings/seadefence",

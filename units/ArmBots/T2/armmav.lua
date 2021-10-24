@@ -39,6 +39,7 @@ return {
 		turnrate = 1285.69995,
 		upright = true,
 		customparams = {
+			unitgroup = 'weapon',
 			model_author = "Flaka",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armbots/t2",

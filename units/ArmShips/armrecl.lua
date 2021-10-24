@@ -44,6 +44,7 @@ return {
 		waterline = 120,
 		workertime = 150,
 		customparams = {
+			unitgroup = 'builder',
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armships",

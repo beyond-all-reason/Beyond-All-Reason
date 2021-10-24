@@ -38,6 +38,7 @@ return {
 		turninplacespeedlimit = 2.904,
 		turnrate = 1807.79993,
 		customparams = {
+			unitgroup = 'weapon',
 			longdescription = Spring.I18N('units.longDescriptions.armflea'),
 			model_author = "Kaiser",
 			normaltex = "unittextures/Arm_normal.dds",

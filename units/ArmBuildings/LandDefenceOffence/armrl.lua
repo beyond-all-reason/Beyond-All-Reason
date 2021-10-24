@@ -41,6 +41,7 @@ return {
 		usebuildinggrounddecal = true,
 		yardmap = "ooooooooo",
 		customparams = {
+			unitgroup = 'aa',
 			model_author = "Beherith",
 			normaltex = "unittextures/Arm_normal.dds",
 			prioritytarget = "air",

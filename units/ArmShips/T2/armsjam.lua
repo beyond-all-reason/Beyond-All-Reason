@@ -42,6 +42,7 @@ return {
 		turnrate = 405,
 		waterline = 0,
 		customparams = {
+			unitgroup = 'util',
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armships/t2",

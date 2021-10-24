@@ -42,6 +42,7 @@ return {
 		turnrate = 100,
 		upright = false,
 		customparams = {
+			unitgroup = 'explo',
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			rockstrength = 0,

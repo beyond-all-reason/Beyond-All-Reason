@@ -45,6 +45,7 @@ return {
 		turnrate = 1263.84998,
 		upright = true,
 		customparams = {
+			unitgroup = 'weapon',
 			longdescription = Spring.I18N('units.longDescriptions.corthud'),
 			model_author = "Mr Bob, Flaka",
 			normaltex = "unittextures/cor_normal.dds",

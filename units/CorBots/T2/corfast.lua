@@ -68,6 +68,7 @@ return {
 			[22] = "corroy",
 		},
 		customparams = {
+			unitgroup = 'buildert2',
 			area_mex_def = "cormex",
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",

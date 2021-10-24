@@ -81,6 +81,7 @@ return {
 			"coracv",
 		},
 		customparams = {
+			unitgroup = 'builder',
 			area_mex_def = "cormex",
 			iscommander = true,
 			--energyconv_capacity = 70,

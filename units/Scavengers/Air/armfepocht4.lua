@@ -47,6 +47,7 @@ return {
 		turnrate = 135,
 		upright = true,
 		customparams = {
+			unitgroup = 'weapon',
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			paralyzemultiplier = 0,

@@ -51,6 +51,7 @@ return {
 			[8] = "corintr",
 		},
 		customparams = {
+			unitgroup = 'builder',
 			model_author = "FireStorm",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "corbuildings/seafactories",

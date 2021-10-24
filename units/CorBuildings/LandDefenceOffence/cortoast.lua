@@ -40,6 +40,7 @@ return {
 		usepiececollisionvolumes = 1,
 		yardmap = "ooooooooo",
 		customparams = {
+			unitgroup = 'weapon',
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			onoffname = "trajectory",

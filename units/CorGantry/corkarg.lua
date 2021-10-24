@@ -39,6 +39,7 @@ return {
 		turnrate = 607.20001,
 		upright = false,
 		customparams = {
+			unitgroup = 'weapon',
 			model_author = "Flaka",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "corgantry",

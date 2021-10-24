@@ -46,6 +46,7 @@ return {
 		waterline = 0,
 		workertime = 0,
 		customparams = {
+			unitgroup = 'util',
 			normaltex = "unittextures/cor_normal.dds",
 			removestop = true,
 			removewait = true,

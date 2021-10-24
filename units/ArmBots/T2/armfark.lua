@@ -55,6 +55,7 @@ return {
 			[7] = "armaser",
 		},
 		customparams = {
+			unitgroup = 'buildert2',
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armbots/t2",

@@ -46,6 +46,7 @@ return {
 		wingangle = 0.06296,
 		wingdrag = 0.145,
 		customparams = {
+			unitgroup = 'weapon',
 			longdescription = Spring.I18N('units.longDescriptions.corshad'),
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",

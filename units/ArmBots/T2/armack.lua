@@ -77,6 +77,7 @@ return {
 			"armalab",
 		},
 		customparams = {
+			unitgroup = 'buildert2',
 			area_mex_def = "armmoho",
 			model_author = "Kaiser",
 			normaltex = "unittextures/Arm_normal.dds",

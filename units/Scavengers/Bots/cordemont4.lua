@@ -39,6 +39,7 @@ return {
 		turnrate = 607.20001,
 		upright = true,
 		customparams = {
+			unitgroup = 'weapon',
 			model_author = "FireStorm",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "corgantry",

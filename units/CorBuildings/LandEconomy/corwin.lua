@@ -40,6 +40,7 @@ return {
 		windgenerator = 25,
 		yardmap = "ooo ooo ooo",
 		customparams = {
+			unitgroup = 'energy',
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			removestop = true,

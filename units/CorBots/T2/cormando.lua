@@ -58,6 +58,7 @@ return {
 			[7] = "corjamt",
 		},
 		customparams = {
+			unitgroup = 'buildert2',
 			model_author = "FireStorm",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "corbots/t2",

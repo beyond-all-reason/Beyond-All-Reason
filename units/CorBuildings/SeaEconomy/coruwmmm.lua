@@ -37,6 +37,7 @@ return {
 		waterline = 17,
 		yardmap = "ooooooooooooooooooooooooo",
 		customparams = {
+			unitgroup = 'metal',
 			energyconv_capacity = 650,
 			energyconv_efficiency = 1/58,
 			model_author = "Mr Bob",

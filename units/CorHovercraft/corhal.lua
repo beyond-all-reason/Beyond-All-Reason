@@ -37,6 +37,7 @@ return {
 		turninplacespeedlimit = 0.9768,
 		turnrate = 410,
 		customparams = {
+			unitgroup = 'weapon',
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "corhovercraft",

@@ -52,6 +52,7 @@ return {
 		upright = true,
 		workertime = 50,
 		customparams = {
+			unitgroup = 'buildert2',
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "corbots/t2",

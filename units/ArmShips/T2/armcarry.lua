@@ -56,6 +56,7 @@ return {
 		waterline = 0,
 		workertime = 1000,
 		customparams = {
+			unitgroup = 'antinuke',
 			isairbase = true,
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",

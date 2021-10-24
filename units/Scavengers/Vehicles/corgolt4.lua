@@ -44,6 +44,7 @@ return {
 		turninplacespeedlimit = 1,
 		turnrate = 150,
 		customparams = {
+			unitgroup = 'weapon',
 			basename = "base",
 			cannon1name = "barrel",
 			longdescription = Spring.I18N('units.longDescriptions.corgolt4'),

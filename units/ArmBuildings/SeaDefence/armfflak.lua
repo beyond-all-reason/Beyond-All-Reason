@@ -34,6 +34,7 @@ return {
 		waterline = 0.3,
 		yardmap = "wwwwwwwww",
 		customparams = {
+			unitgroup = 'aa',
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			prioritytarget = "air",

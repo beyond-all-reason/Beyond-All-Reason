@@ -41,6 +41,7 @@ return {
 		upright = true,
 		waterline = 40,
 		customparams = {
+			unitgroup = 'sub',
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "corships/t2",

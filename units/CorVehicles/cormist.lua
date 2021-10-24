@@ -42,6 +42,7 @@ return {
 		turninplacespeedlimit = 0.99,
 		turnrate = 370,
 		customparams = {
+			unitgroup = 'weaponaa',
 			longdescription = Spring.I18N('units.longDescriptions.cormist'),
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",

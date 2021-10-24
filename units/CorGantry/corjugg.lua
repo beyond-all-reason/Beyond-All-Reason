@@ -40,6 +40,7 @@ return {
 		turninplacespeedlimit = 0.363,
 		turnrate = 125.35,
 		customparams = {
+			unitgroup = 'weapon',
 			customrange = 435,
 			model_author = "FireStorm",
 			normaltex = "unittextures/cor_normal.dds",

@@ -38,6 +38,7 @@ return {
 		usebuildinggrounddecal = true,
 		yardmap = "ooooooooo",
 		customparams = {
+			unitgroup = 'metal',
 			energyconv_capacity = 70,
 			energyconv_efficiency = 1/70,
 			model_author = "Mr Bob",

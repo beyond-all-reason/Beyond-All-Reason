@@ -45,6 +45,7 @@ return {
 		turninplacespeedlimit = 1.29228,
 		turnrate = 393.79999,
 		customparams = {
+			unitgroup = 'weapon',
 			basename = "base",
 			canareaattack = 1,
 			cannon1name = "gun",

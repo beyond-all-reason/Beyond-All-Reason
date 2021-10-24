@@ -46,6 +46,7 @@ return {
 		wingangle = 0.06148,
 		wingdrag = 0.125,
 		customparams = {
+			unitgroup = 'weapon',
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "coraircraft/t2",

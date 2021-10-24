@@ -41,6 +41,7 @@ return {
 		turninplacespeedlimit = 1.122,
 		turnrate = 250,
 		customparams = {
+			unitgroup = 'weapon',
 			model_author = "Flaka",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armgantry",

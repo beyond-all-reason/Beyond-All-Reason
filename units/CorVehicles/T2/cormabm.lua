@@ -46,6 +46,7 @@ return {
 		turninplacespeedlimit = 1.188,
 		turnrate = 520.29999,
 		customparams = {
+			unitgroup = 'antinuke',
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "corvehicles/t2",

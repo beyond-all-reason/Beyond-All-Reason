@@ -40,6 +40,7 @@ return {
 		usepiececollisionvolumes = 1,
 		yardmap = "oooooooo oooooooo oooooooo oooooooo oooooooo oooooooo oooooooo oooooooo ",
 		customparams = {
+			unitgroup = 'weapon',
 			canareaattack = 1,
 			model_author = "Cremuss",
 			normaltex = "unittextures/Arm_normal.dds",
