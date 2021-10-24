@@ -637,6 +637,19 @@ function widget:GameFrame(n)
 	end
 end
 
+function widget:Update()
+	local frame = Spring.GetGameFrame()
+	local _,_,paused = Spring.GetGameSpeed()
+	if paused or frame < 1 then
+		local playedTime, totalTime = Spring.GetSoundStreamTime()
+		if totalTime == 0 then
+			silenceTimer = 0
+			warMeter = 0
+			PlayNewTrack()
+		end
+	end
+end
+
 function widget:GameOver(winningAllyTeams)
 	gameOver = true
 end
