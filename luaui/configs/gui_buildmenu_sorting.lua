@@ -1,369 +1,341 @@
 local UDN = UnitDefNames
 
 local unitOrderTable = {
-
 -- UNITS
+	--CONSTRUCTORS
+	[UDN["armck"].id]          = 000100, --BOTS
+	[UDN["corck"].id]          = 000110,
 
-   --CONSTRUCTORS
+	[UDN["armcv"].id]          = 000120, --VEH
+	[UDN["corcv"].id]          = 000130,
+	[UDN["armbeaver"].id]      = 000140,
+	[UDN["cormuskrat"].id]     = 000150,
 
-   [UDN["armck"].id]          = 000100, --BOTS
-   [UDN["corck"].id]          = 000110,
-         
-   [UDN["armcv"].id]          = 000120, --VEH
-   [UDN["corcv"].id]          = 000130,
-   [UDN["armbeaver"].id]      = 000140,
-   [UDN["cormuskrat"].id]     = 000150,
+	[UDN["armca"].id]          = 000160, --AIR
+	[UDN["corca"].id]          = 000165,
 
-   [UDN["armca"].id]          = 000160, --AIR
-   [UDN["corca"].id]          = 000165,
-
-   [UDN["armassistdrone"].id] = 000168, --ASSISTDRONES
-   [UDN["corassistdrone"].id] = 000169,
+	[UDN["armassistdrone"].id] = 000168, --ASSISTDRONES
+	[UDN["corassistdrone"].id] = 000169,
 
-   [UDN["armcsa"].id]         = 000170, --SEAPLANES
-   [UDN["corcsa"].id]         = 000175,
-         
-   [UDN["armcs"].id]          = 000180, --SHIPS
-   [UDN["corcs"].id]          = 000190,
-         
-   [UDN["armch"].id]          = 000200, --HOVER
-   [UDN["corch"].id]          = 000210,
+	[UDN["armcsa"].id]         = 000170, --SEAPLANES
+	[UDN["corcsa"].id]         = 000175,
 
-   [UDN["armrectr"].id]       = 000300, --REZ BOTS
-   [UDN["cornecro"].id]       = 000310,
+	[UDN["armcs"].id]          = 000180, --SHIPS
+	[UDN["corcs"].id]          = 000190,
 
-   [UDN["armmlv"].id]         = 000350, --MINELAYERS
-   [UDN["cormlv"].id]         = 000360,
+	[UDN["armch"].id]          = 000200, --HOVER
+	[UDN["corch"].id]          = 000210,
 
-   [UDN["armrecl"].id]        = 000400, --REZ SUBS
-   [UDN["correcl"].id]        = 000410,
+	[UDN["armrectr"].id]       = 000300, --REZ BOTS
+	[UDN["cornecro"].id]       = 000310,
 
-   [UDN["armack"].id]         = 000500,
-   [UDN["corack"].id]         = 000510,
-         
-   [UDN["armacv"].id]         = 000600,
-   [UDN["coracv"].id]         = 000610,
-         
-   [UDN["armaca"].id]         = 000700,
-   [UDN["coraca"].id]         = 000710,
+	[UDN["armmlv"].id]         = 000350, --MINELAYERS
+	[UDN["cormlv"].id]         = 000360,
 
-   [UDN["armacsub"].id]       = 000800,
-   [UDN["coracsub"].id]       = 000810,
+	[UDN["armrecl"].id]        = 000400, --REZ SUBS
+	[UDN["correcl"].id]        = 000410,
 
-   --NANO SUPPORT
+	[UDN["armack"].id]         = 000500,
+	[UDN["corack"].id]         = 000510,
 
-   [UDN["armfark"].id]        = 001000, --BOTS
-   [UDN["corfast"].id]        = 001010,
+	[UDN["armacv"].id]         = 000600,
+	[UDN["coracv"].id]         = 000610,
 
-   [UDN["armconsul"].id]      = 001020, --VEH
+	[UDN["armaca"].id]         = 000700,
+	[UDN["coraca"].id]         = 000710,
 
-   [UDN["armmls"].id]         = 001030, --SHIP
-   [UDN["cormls"].id]         = 001040, --SHIP
+	[UDN["armacsub"].id]       = 000800,
+	[UDN["coracsub"].id]       = 000810,
 
-   [UDN["armdecom"].id]       = 001050, --SUPPORT COMS
-   [UDN["cordecom"].id]       = 001060,
-      
-   [UDN["cormando"].id]       = 001070, --COMMANDO
+	--NANO SUPPORT
+	[UDN["armfark"].id]        = 001000, --BOTS
+	[UDN["corfast"].id]        = 001010,
 
-   [UDN["armspy"].id]         = 001100, --SPIES
-   [UDN["corspy"].id]         = 001110,
+	[UDN["armconsul"].id]      = 001020, --VEH
 
-   -- AIR SCOUTS LAND UNARMED
+	[UDN["armmls"].id]         = 001030, --SHIP
+	[UDN["cormls"].id]         = 001040, --SHIP
 
-   [UDN["armpeep"].id]        = 004030, --AIR
-   [UDN["corfink"].id]        = 004040,
-   [UDN["armsehak"].id]       = 004050, --SEAPLANES
-   [UDN["corhunt"].id]        = 004060,
-   [UDN["armawac"].id]        = 004050,
-   [UDN["corawac"].id]        = 004060,
+	[UDN["armdecom"].id]       = 001050, --SUPPORT COMS
+	[UDN["cordecom"].id]       = 001060,
 
-   -- SCOUTS/UTILITY LAND
+	[UDN["cormando"].id]       = 001070, --COMMANDO
 
-   [UDN["armmark"].id]        = 004100,
-   [UDN["corvoyr"].id]        = 004110,
-   [UDN["armaser"].id]        = 004120,
-   [UDN["corspec"].id]        = 004130,
+	[UDN["armspy"].id]         = 001100, --SPIES
+	[UDN["corspy"].id]         = 001110,
 
-   [UDN["armseer"].id]        = 004200,
-   [UDN["corvrad"].id]        = 004210,
-   [UDN["armjam"].id]         = 004220,
-   [UDN["coreter"].id]        = 004230,
+	-- AIR SCOUTS LAND UNARMED
+	[UDN["armpeep"].id]        = 004030, --AIR
+	[UDN["corfink"].id]        = 004040,
+	[UDN["armsehak"].id]       = 004050, --SEAPLANES
+	[UDN["corhunt"].id]        = 004060,
+	[UDN["armawac"].id]        = 004050,
+	[UDN["corawac"].id]        = 004060,
 
-   [UDN["armsjam"].id]        = 004250,
-   [UDN["corsjam"].id]        = 004260,
+	-- SCOUTS/UTILITY LAND
+	[UDN["armmark"].id]        = 004100,
+	[UDN["corvoyr"].id]        = 004110,
+	[UDN["armaser"].id]        = 004120,
+	[UDN["corspec"].id]        = 004130,
 
-   -- AIRCRAFT
+	[UDN["armseer"].id]        = 004200,
+	[UDN["corvrad"].id]        = 004210,
+	[UDN["armjam"].id]         = 004220,
+	[UDN["coreter"].id]        = 004230,
 
-   [UDN["armfig"].id]         = 004300, --FIGHTERS 
-   [UDN["corveng"].id]        = 004305,
-   [UDN["armhawk"].id]        = 004310, --FIGHTERS T2
-   [UDN["corvamp"].id]        = 004315,
+	[UDN["armsjam"].id]        = 004250,
+	[UDN["corsjam"].id]        = 004260,
 
-   [UDN["armkam"].id]         = 004320, --GUNSHIPS
-   [UDN["armsaber"].id]       = 004325,
-   [UDN["corcut"].id]         = 004330,
-
-   [UDN["armbrawl"].id]       = 004335, --GUNSHIPS T2
-   [UDN["corape"].id]         = 004340,
-   [UDN["armblade"].id]       = 004345,
-   [UDN["corcrw"].id]         = 004348,
-
-   [UDN["armthund"].id]       = 004350, --BOMBERS
-   [UDN["corshad"].id]        = 004355,
-   [UDN["armsb"].id]          = 004360,
-   [UDN["corsb"].id]          = 004365,
-
-   [UDN["armpnix"].id]        = 004370, --BOMBERS T2
-   [UDN["corhurc"].id]        = 004380,
-   [UDN["armliche"].id]       = 004385,
-   [UDN["armstil"].id]        = 004390,
-
-
-   -- SCOUTS LAND ARMED
-
-   [UDN["armflea"].id]        = 004400, --BOTS
-
-   [UDN["armfav"].id]         = 004410, --VEH
-   [UDN["corfav"].id]         = 004420,
-
-   [UDN["armsh"].id]          = 004500, --HOVER
-   [UDN["corsh"].id]          = 004510,
-
-   -- EMP
-
-   [UDN["corbw"].id]          = 004800, --EMP
-   [UDN["armspid"].id]        = 004810, --EMP
-
-   -- T1 LAND ATTACK
-
-   [UDN["armpw"].id]          = 005000, --FAST
-   [UDN["corak"].id]          = 005010,
-   [UDN["armflash"].id]       = 005020,
-   [UDN["corgator"].id]       = 005030,
-
-   [UDN["armjanus"].id]       = 005200, --MAIN BATTLE
-   [UDN["corlevlr"].id]       = 005210,
-   [UDN["armstump"].id]       = 005220,
-   [UDN["corraid"].id]        = 005230,
-   [UDN["armanac"].id]        = 005240,
-   [UDN["corsnap"].id]        = 005250,
-
-   [UDN["armrock"].id]        = 005300, --ROCKETS
-   [UDN["corstorm"].id]       = 005310,
-
-   [UDN["armham"].id]         = 005400, --ARTILLERY
-   [UDN["corthud"].id]        = 005410,
-   [UDN["armart"].id]         = 005420,
-   [UDN["corwolv"].id]        = 005430,
-   [UDN["armmh"].id]          = 005420,
-   [UDN["cormh"].id]          = 005430,
-
-   [UDN["armwar"].id]         = 005600, --STRONK
-   [UDN["corkark"].id]        = 005610, 
-
-   [UDN["armsam"].id]         = 005800, --LAND + AA
-   [UDN["cormist"].id]        = 005810,
-
-   [UDN["armpincer"].id]      = 005900, --LAND + AMPHIBIOUS
-   [UDN["corgarp"].id]        = 005910,
-
-   -- T2 LAND ATTACK
-
-   [UDN["armgremlin"].id]     = 006005,
-
-   [UDN["armfast"].id]        = 006100, --FAST
-   [UDN["corpyro"].id]        = 006110,
-   [UDN["armlatnk"].id]       = 006120,
-
-   [UDN["armzeus"].id]        = 006300, --MAIN BATTLE
-   [UDN["armmav"].id]         = 006310,
-   [UDN["armbull"].id]        = 006320,
-   [UDN["correap"].id]        = 006330,
-   [UDN["armmanni"].id]       = 006340,
-   [UDN["corgatreap"].id]     = 006350,
-
-   [UDN["corhrk"].id]         = 006400, --ROCKETS
-   [UDN["armmerl"].id]        = 006410,
-   [UDN["corvroc"].id]        = 006420,
-   [UDN["armmerl"].id]        = 006430,
-   [UDN["corban"].id]         = 006440,
-
-   [UDN["armfido"].id]        = 006500, --ARTILLERY
-   [UDN["cormort"].id]        = 006510,
-   [UDN["armmart"].id]        = 006520,
-   [UDN["cormart"].id]        = 006530,
-   [UDN["cortrem"].id]        = 006540,
-
-   [UDN["armsptk"].id]        = 006600, --ALL-TERRAIN
-   [UDN["cortermite"].id]     = 006610, 
-
-   [UDN["armfboy"].id]        = 006700, --STRONK
-   [UDN["corcan"].id]         = 006710,
-   [UDN["armsnipe"].id]       = 006720,
-   [UDN["corsumo"].id]        = 006730,
-   [UDN["corgol"].id]         = 006740,
-
-   [UDN["armvader"].id]       = 006810, --AMPHIBIOUS KAMIKAZE BOMBS
-   [UDN["corroach"].id]       = 006820,
-   [UDN["corsktl"].id]        = 006830,
-
-   [UDN["armamph"].id]        = 006900, --LAND + AMPHIBIOUS
-   [UDN["coramph"].id]        = 006910,
-   [UDN["armcroc"].id]        = 006920,
-   [UDN["corseal"].id]        = 006930,
-   [UDN["corparrow"].id]      = 006940,
-
-   --T3 LAND ATTACK
-
-   [UDN["armmar"].id]         = 007000,
-   [UDN["corcat"].id]         = 007010,
-   [UDN["armraz"].id]         = 007020,
-   [UDN["corkarg"].id]        = 007030,
-   [UDN["armvang"].id]        = 007040,
-   [UDN["corshiva"].id]       = 007050,
-   [UDN["armthor"].id]        = 007060,
-   [UDN["corkorg"].id]        = 007070,
-   [UDN["armbanth"].id]       = 007080,
-   [UDN["corjugg"].id]        = 007090,
-
-   --T3 HOVER
-
-   [UDN["armlun"].id]         = 007100, --hover
-   [UDN["corsok"].id]         = 007110, --hover
-
-   --T4 LAND ATTACK (SCAVS)
-
-   [UDN["armmeatball"].id]    = 007200,
-   [UDN["armlunchbox"].id]    = 007210,
-   [UDN["armassimilator"].id] = 007220, 
-
-   [UDN["armpwt4"].id]        = 007300, 
-   [UDN["armsptkt4"].id]      = 007310,
-   [UDN["cordemont4"].id]     = 007320,
-   [UDN["corkarganetht4"].id] = 007330,
-
-   [UDN["armvadert4"].id]     = 007400,
-   [UDN["armrattet4"].id]     = 007410,
-   [UDN["corgolt4"].id]       = 007420,
-
-   [UDN["armthundt4"].id]     = 007500,
-   [UDN["armfepocht4"].id]    = 007510,
-   [UDN["corfblackhyt4"].id]  = 007520,
-   [UDN["corcrwt4"].id]       = 007530,
-
-
-
-   -- LAND AA
-
-   [UDN["armjeth"].id]        = 008000,
-   [UDN["corcrash"].id]       = 008010,
-   [UDN["armaak"].id]         = 008020,
-   [UDN["coraak"].id]         = 008030,
-
-   [UDN["armyork"].id]        = 008200,
-   [UDN["corsent"].id]        = 008210,
-
-   [UDN["armah"].id]          = 008300,
-   [UDN["corah"].id]          = 008310,
-
-   -- -- T2 AA
-
-   -- [UDN["armaak"].id]         = 008500,
-   -- [UDN["coraak"].id]         = 008510,
-
-   -- [UDN["armyork"].id]        = 008520,
-   -- [UDN["corsent"].id]        = 008530,
-
-   -- [UDN["armhawk"].id]        = 008540,
-   -- [UDN["corvamp"].id]        = 008550,
-
-   -- WATER SCOUTS
-
-   [UDN["armpt"].id]          = 009000, --SCOUTS AA
-   [UDN["coresupp"].id]       = 009010, 
-
-   -- T1 WATER ATTACK
-
-   [UDN["armdecade"].id]      = 009100, --FAST
-   [UDN["corpt"].id]          = 009110,
-
-   [UDN["armpship"].id]       = 009200, --MAIN BATTLE
-   [UDN["corpship"].id]       = 009210,
-   [UDN["armroy"].id]         = 009220,
-   [UDN["corroy"].id]         = 009230,
-
-   -- T2 WATER ATTACK
-
-   [UDN["armcrus"].id]        = 009300, --MAIN BATTLE
-   [UDN["corcrus"].id]        = 009310,
-
-   [UDN["armmship"].id]       = 009340, --ROCKETS
-   [UDN["cormship"].id]       = 009350,
-
-   [UDN["armbats"].id]        = 009370, --STRONK
-   [UDN["corbats"].id]        = 009380,
-
-   [UDN["armepoch"].id]       = 009400, --FLAGSHIPS
-   [UDN["corblackhy"].id]     = 009410,
-
-   [UDN["armdecadet3"].id]    = 009450, --SCAV SHIPS
-   [UDN["coresuppt3"].id]     = 009460,
-   [UDN["armpshipt3"].id]     = 009470,
-   [UDN["corslrpc"].id]       = 009480,
-
-   -- T1 AA
-
-   [UDN["armsfig"].id]        = 009500,
-   [UDN["corsfig"].id]        = 009510,
-
-   -- T2 AA
-
-   [UDN["armaas"].id]         = 009600,
-   [UDN["corarch"].id]        = 009610,
-
-   -- UNDERWATER ATTACK 
-
-   [UDN["armseap"].id]        = 009800,
-   [UDN["corseap"].id]        = 009810,
-   [UDN["armsub"].id]         = 009820,
-   [UDN["corsub"].id]         = 009830,
-   
-   [UDN["armlance"].id]       = 009900,
-   [UDN["cortitan"].id]       = 009910,
-   [UDN["armsubk"].id]        = 009920,
-   [UDN["corshark"].id]       = 009930,
-   [UDN["armserp"].id]        = 009940,
-   [UDN["corssub"].id]        = 009950,
-
-   [UDN["armserpt3"].id]      = 009960,
-   [UDN["armptt2"].id]        = 009962,
-
-   -- TRANSPORTS
-
-   [UDN["armatlas"].id]       = 010500,
-   [UDN["corvalk"].id]        = 010510,
-
-   [UDN["armtship"].id]       = 010540,
-   [UDN["cortship"].id]       = 010550,
-
-   [UDN["armthovr"].id]       = 010560,
-   [UDN["corthovr"].id]       = 010570,
-
-   [UDN["corintr"].id]        = 010600,
-
-   [UDN["armdfly"].id]        = 010610,
-   [UDN["corseah"].id]        = 010620,
-
-   -- ANTINUKES
-
-   [UDN["armscab"].id]        = 020000,
-   [UDN["cormabm"].id]        = 020010,
-   
-   [UDN["armcarry"].id]       = 020100,
-   [UDN["corcarry"].id]       = 020110,
+	-- AIRCRAFT
+	[UDN["armfig"].id]         = 004300, --FIGHTERS
+	[UDN["corveng"].id]        = 004305,
+	[UDN["armhawk"].id]        = 004310, --FIGHTERS T2
+	[UDN["corvamp"].id]        = 004315,
+
+	[UDN["armkam"].id]         = 004320, --GUNSHIPS
+	[UDN["armsaber"].id]       = 004325,
+	[UDN["corcut"].id]         = 004330,
+
+	[UDN["armbrawl"].id]       = 004335, --GUNSHIPS T2
+	[UDN["corape"].id]         = 004340,
+	[UDN["armblade"].id]       = 004345,
+	[UDN["corcrw"].id]         = 004348,
+
+	[UDN["armthund"].id]       = 004350, --BOMBERS
+	[UDN["corshad"].id]        = 004355,
+	[UDN["armsb"].id]          = 004360,
+	[UDN["corsb"].id]          = 004365,
+
+	[UDN["armpnix"].id]        = 004370, --BOMBERS T2
+	[UDN["corhurc"].id]        = 004380,
+	[UDN["armliche"].id]       = 004385,
+	[UDN["armstil"].id]        = 004390,
+
+	-- SCOUTS LAND ARMED
+	[UDN["armflea"].id]        = 004400, --BOTS
+
+	[UDN["armfav"].id]         = 004410, --VEH
+	[UDN["corfav"].id]         = 004420,
+
+	[UDN["armsh"].id]          = 004500, --HOVER
+	[UDN["corsh"].id]          = 004510,
+
+	-- EMP
+	[UDN["corbw"].id]          = 004800, --EMP
+	[UDN["armspid"].id]        = 004810, --EMP
+
+	-- T1 LAND ATTACK
+	[UDN["armpw"].id]          = 005000, --FAST
+	[UDN["corak"].id]          = 005010,
+	[UDN["armflash"].id]       = 005020,
+	[UDN["corgator"].id]       = 005030,
+
+	[UDN["armjanus"].id]       = 005200, --MAIN BATTLE
+	[UDN["corlevlr"].id]       = 005210,
+	[UDN["armstump"].id]       = 005220,
+	[UDN["corraid"].id]        = 005230,
+	[UDN["armanac"].id]        = 005240,
+	[UDN["corsnap"].id]        = 005250,
+
+	[UDN["armrock"].id]        = 005300, --ROCKETS
+	[UDN["corstorm"].id]       = 005310,
+
+	[UDN["armham"].id]         = 005400, --ARTILLERY
+	[UDN["corthud"].id]        = 005410,
+	[UDN["armart"].id]         = 005420,
+	[UDN["corwolv"].id]        = 005430,
+	[UDN["armmh"].id]          = 005420,
+	[UDN["cormh"].id]          = 005430,
+
+	[UDN["armwar"].id]         = 005600, --STRONK
+	[UDN["corkark"].id]        = 005610,
+
+	[UDN["armsam"].id]         = 005800, --LAND + AA
+	[UDN["cormist"].id]        = 005810,
+
+	[UDN["armpincer"].id]      = 005900, --LAND + AMPHIBIOUS
+	[UDN["corgarp"].id]        = 005910,
+
+	-- T2 LAND ATTACK
+	[UDN["armgremlin"].id]     = 006005,
+
+	[UDN["armfast"].id]        = 006100, --FAST
+	[UDN["corpyro"].id]        = 006110,
+	[UDN["armlatnk"].id]       = 006120,
+
+	[UDN["armzeus"].id]        = 006300, --MAIN BATTLE
+	[UDN["armmav"].id]         = 006310,
+	[UDN["armbull"].id]        = 006320,
+	[UDN["correap"].id]        = 006330,
+	[UDN["armmanni"].id]       = 006340,
+	[UDN["corgatreap"].id]     = 006350,
+
+	[UDN["corhrk"].id]         = 006400, --ROCKETS
+	[UDN["armmerl"].id]        = 006410,
+	[UDN["corvroc"].id]        = 006420,
+	[UDN["armmerl"].id]        = 006430,
+	[UDN["corban"].id]         = 006440,
+
+	[UDN["armfido"].id]        = 006500, --ARTILLERY
+	[UDN["cormort"].id]        = 006510,
+	[UDN["armmart"].id]        = 006520,
+	[UDN["cormart"].id]        = 006530,
+	[UDN["cortrem"].id]        = 006540,
+
+	[UDN["armsptk"].id]        = 006600, --ALL-TERRAIN
+	[UDN["cortermite"].id]     = 006610,
+
+	[UDN["armfboy"].id]        = 006700, --STRONK
+	[UDN["corcan"].id]         = 006710,
+	[UDN["armsnipe"].id]       = 006720,
+	[UDN["corsumo"].id]        = 006730,
+	[UDN["corgol"].id]         = 006740,
+
+	[UDN["armvader"].id]       = 006810, --AMPHIBIOUS KAMIKAZE BOMBS
+	[UDN["corroach"].id]       = 006820,
+	[UDN["corsktl"].id]        = 006830,
+
+	[UDN["armamph"].id]        = 006900, --LAND + AMPHIBIOUS
+	[UDN["coramph"].id]        = 006910,
+	[UDN["armcroc"].id]        = 006920,
+	[UDN["corseal"].id]        = 006930,
+	[UDN["corparrow"].id]      = 006940,
+
+	--T3 LAND ATTACK
+	[UDN["armmar"].id]         = 007000,
+	[UDN["corcat"].id]         = 007010,
+	[UDN["armraz"].id]         = 007020,
+	[UDN["corkarg"].id]        = 007030,
+	[UDN["armvang"].id]        = 007040,
+	[UDN["corshiva"].id]       = 007050,
+	[UDN["armthor"].id]        = 007060,
+	[UDN["corkorg"].id]        = 007070,
+	[UDN["armbanth"].id]       = 007080,
+	[UDN["corjugg"].id]        = 007090,
+
+	--T3 HOVER
+	[UDN["armlun"].id]         = 007100, --hover
+	[UDN["corsok"].id]         = 007110, --hover
+
+	--T4 LAND ATTACK (SCAVS)
+	[UDN["armmeatball"].id]    = 007200,
+	[UDN["armlunchbox"].id]    = 007210,
+	[UDN["armassimilator"].id] = 007220,
+
+	[UDN["armpwt4"].id]        = 007300,
+	[UDN["armsptkt4"].id]      = 007310,
+	[UDN["cordemont4"].id]     = 007320,
+	[UDN["corkarganetht4"].id] = 007330,
+
+	[UDN["armvadert4"].id]     = 007400,
+	[UDN["armrattet4"].id]     = 007410,
+	[UDN["corgolt4"].id]       = 007420,
+
+	[UDN["armthundt4"].id]     = 007500,
+	[UDN["armfepocht4"].id]    = 007510,
+	[UDN["corfblackhyt4"].id]  = 007520,
+	[UDN["corcrwt4"].id]       = 007530,
+
+	-- LAND AA
+	[UDN["armjeth"].id]        = 008000,
+	[UDN["corcrash"].id]       = 008010,
+	[UDN["armaak"].id]         = 008020,
+	[UDN["coraak"].id]         = 008030,
+
+	[UDN["armyork"].id]        = 008200,
+	[UDN["corsent"].id]        = 008210,
+
+	[UDN["armah"].id]          = 008300,
+	[UDN["corah"].id]          = 008310,
+
+	-- -- T2 AA
+	-- [UDN["armaak"].id]         = 008500,
+	-- [UDN["coraak"].id]         = 008510,
+
+	-- [UDN["armyork"].id]        = 008520,
+	-- [UDN["corsent"].id]        = 008530,
+
+	-- [UDN["armhawk"].id]        = 008540,
+	-- [UDN["corvamp"].id]        = 008550,
+
+	-- WATER SCOUTS
+	[UDN["armpt"].id]          = 009000, --SCOUTS AA
+	[UDN["coresupp"].id]       = 009010,
+
+	-- T1 WATER ATTACK
+	[UDN["armdecade"].id]      = 009100, --FAST
+	[UDN["corpt"].id]          = 009110,
+
+	[UDN["armpship"].id]       = 009200, --MAIN BATTLE
+	[UDN["corpship"].id]       = 009210,
+	[UDN["armroy"].id]         = 009220,
+	[UDN["corroy"].id]         = 009230,
+
+	-- T2 WATER ATTACK
+	[UDN["armcrus"].id]        = 009300, --MAIN BATTLE
+	[UDN["corcrus"].id]        = 009310,
+
+	[UDN["armmship"].id]       = 009340, --ROCKETS
+	[UDN["cormship"].id]       = 009350,
+
+	[UDN["armbats"].id]        = 009370, --STRONK
+	[UDN["corbats"].id]        = 009380,
+
+	[UDN["armepoch"].id]       = 009400, --FLAGSHIPS
+	[UDN["corblackhy"].id]     = 009410,
+
+	[UDN["armdecadet3"].id]    = 009450, --SCAV SHIPS
+	[UDN["coresuppt3"].id]     = 009460,
+	[UDN["armpshipt3"].id]     = 009470,
+	[UDN["corslrpc"].id]       = 009480,
+
+	-- T1 AA
+	[UDN["armsfig"].id]        = 009500,
+	[UDN["corsfig"].id]        = 009510,
+
+	-- T2 AA
+	[UDN["armaas"].id]         = 009600,
+	[UDN["corarch"].id]        = 009610,
+
+	-- UNDERWATER ATTACK
+	[UDN["armseap"].id]        = 009800,
+	[UDN["corseap"].id]        = 009810,
+	[UDN["armsub"].id]         = 009820,
+	[UDN["corsub"].id]         = 009830,
+
+	[UDN["armlance"].id]       = 009900,
+	[UDN["cortitan"].id]       = 009910,
+	[UDN["armsubk"].id]        = 009920,
+	[UDN["corshark"].id]       = 009930,
+	[UDN["armserp"].id]        = 009940,
+	[UDN["corssub"].id]        = 009950,
+
+	[UDN["armserpt3"].id]      = 009960,
+	[UDN["armptt2"].id]        = 009962,
+
+	-- TRANSPORTS
+	[UDN["armatlas"].id]       = 010500,
+	[UDN["corvalk"].id]        = 010510,
+
+	[UDN["armtship"].id]       = 010540,
+	[UDN["cortship"].id]       = 010550,
+
+	[UDN["armthovr"].id]       = 010560,
+	[UDN["corthovr"].id]       = 010570,
+
+	[UDN["corintr"].id]        = 010600,
+
+	[UDN["armdfly"].id]        = 010610,
+	[UDN["corseah"].id]        = 010620,
+
+	-- ANTINUKES
+	[UDN["armscab"].id]        = 020000,
+	[UDN["cormabm"].id]        = 020010,
+
+	[UDN["armcarry"].id]       = 020100,
+	[UDN["corcarry"].id]       = 020110,
 
 -- BUILDINGS
-
    --ECO METAL MEX
    [UDN["armmex"].id]         = 100000,
    [UDN["cormex"].id]         = 100050,
@@ -442,7 +414,6 @@ local unitOrderTable = {
    [UDN["armapt3"].id]        = 102700, --scavengers
    [UDN["corapt3"].id]        = 102725, --scavengers
 
-
    --UTILITIES
    [UDN["armasp"].id]         = 102800, --AIR REPAIR PADS
    [UDN["corasp"].id]         = 102825,
@@ -467,9 +438,6 @@ local unitOrderTable = {
    [UDN["armgate"].id]        = 103700,
    [UDN["corgate"].id]        = 103725,
    [UDN["armdf"].id]          = 103750, --Fake Fusion
-
-
-
 
    --DEFENSES LAND
    [UDN["armdrag"].id]        = 104000,
@@ -623,18 +591,12 @@ local unitOrderTable = {
 }
 
 for unitDefID, unitDef in pairs(UnitDefs) do
-   --Spring.Echo(UnitDefs[unitDefID].name)
-   if unitOrderTable[unitDefID] then
-      local orderValue = unitOrderTable[unitDefID]
-      if UnitDefs[unitDefID].name then
-         local unitName = UnitDefs[unitDefID].name
-         local unitNameScav = unitName .. "_scav"
-         if UDN[unitNameScav] then
-            local unitDefIDScav = UDN[unitNameScav].id
-            unitOrderTable[unitDefIDScav] = orderValue
-         end
-      end
-   end
+	if unitDef.customParams.isscavenger then
+		local counterpartId = UnitDefNames[unitDef.customParams.fromunit].id
+		if unitOrderTable[counterpartId] then
+			unitOrderTable[unitDefID] = unitOrderTable[counterpartId]
+		end
+	end
 end
 
 return unitOrderTable
