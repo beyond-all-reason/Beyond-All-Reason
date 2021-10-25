@@ -259,7 +259,6 @@ local unitOrderTable = {
 	-- [UDN["corvamp"].id]        = 008550,
 
 	-- WATER SCOUTS
-
 	[UDN["armpt"].id]          = 009000, --SCOUTS AA
 	[UDN["coresupp"].id]       = 009010,
 
@@ -337,259 +336,258 @@ local unitOrderTable = {
 	[UDN["corcarry"].id]       = 020110,
 
 -- BUILDINGS
-	--ECO METAL MEX
-	[UDN["armmex"].id]         = 100000,
-	[UDN["cormex"].id]         = 100050,
-	[UDN["armamex"].id]        = 100100,
-	[UDN["corexp"].id]         = 100150,
+   --ECO METAL MEX
+   [UDN["armmex"].id]         = 100000,
+   [UDN["cormex"].id]         = 100050,
+   [UDN["armamex"].id]        = 100100,
+   [UDN["corexp"].id]         = 100150,
 
-	[UDN["armmoho"].id]        = 100200,
-	[UDN["cormoho"].id]        = 100250,
-	[UDN["cormexp"].id]        = 100300,
+   [UDN["armmoho"].id]        = 100200,
+   [UDN["cormoho"].id]        = 100250,
+   [UDN["cormexp"].id]        = 100300,
 
-	--ECO ENERGY CONVERTERS
-	[UDN["armmakr"].id]        = 100500,
-	[UDN["cormakr"].id]        = 100550,
-	[UDN["armmmkr"].id]        = 100600,
-	[UDN["cormmkr"].id]        = 100650,
+   --ECO ENERGY CONVERTERS
+   [UDN["armmakr"].id]        = 100500,
+   [UDN["cormakr"].id]        = 100550,
+   [UDN["armmmkr"].id]        = 100600,
+   [UDN["cormmkr"].id]        = 100650,
 
-	--ECO METAL STORAGE
-	[UDN["armmstor"].id]       = 100800,
-	[UDN["cormstor"].id]       = 100850,
-	[UDN["armuwadvms"].id]     = 100900,
-	[UDN["coruwadvms"].id]     = 100950,
+   --ECO METAL STORAGE
+   [UDN["armmstor"].id]       = 100800,
+   [UDN["cormstor"].id]       = 100850,
+   [UDN["armuwadvms"].id]     = 100900,
+   [UDN["coruwadvms"].id]     = 100950,
 
-	--ECO NRG GENS
-	[UDN["armwin"].id]         = 101000,
-	[UDN["corwin"].id]         = 101020,
-	[UDN["armwint2"].id]       = 101040, --scavengers
-	[UDN["corwint2"].id]       = 101050, --scavengers
-	[UDN["armsolar"].id]       = 101070,
-	[UDN["corsolar"].id]       = 101080,
-	[UDN["armadvsol"].id]      = 101100,
-	[UDN["coradvsol"].id]      = 101150,
+   --ECO NRG GENS
+   [UDN["armwin"].id]         = 101000,
+   [UDN["corwin"].id]         = 101020, 
+   [UDN["armwint2"].id]       = 101040, --scavengers
+   [UDN["corwint2"].id]       = 101050, --scavengers
+   [UDN["armsolar"].id]       = 101070,
+   [UDN["corsolar"].id]       = 101080,
+   [UDN["armadvsol"].id]      = 101100,
+   [UDN["coradvsol"].id]      = 101150,
 
-	--ECO NRG GEOS
-	[UDN["armgeo"].id]         = 101200,
-	[UDN["corgeo"].id]         = 101250,
-	[UDN["armgmm"].id]         = 101300,
-	[UDN["corageo"].id]        = 101350,
-	[UDN["armageo"].id]        = 101400,
-	[UDN["corbhmth"].id]       = 101450,
+   --ECO NRG GEOS
+   [UDN["armgeo"].id]         = 101200,
+   [UDN["corgeo"].id]         = 101250,
+   [UDN["armgmm"].id]         = 101300,
+   [UDN["corageo"].id]        = 101350,
+   [UDN["armageo"].id]        = 101400,
+   [UDN["corbhmth"].id]       = 101450,
 
-	--ECO NRG FUSIONS
-	[UDN["armfus"].id]         = 101525,
-	[UDN["armckfus"].id]       = 101550,
-	[UDN["corfus"].id]         = 101600,
-	[UDN["armafus"].id]        = 101700,
-	[UDN["corafus"].id]        = 101750,
+   --ECO NRG FUSIONS
+   [UDN["armfus"].id]         = 101525,
+   [UDN["armckfus"].id]       = 101550,
+   [UDN["corfus"].id]         = 101600,
+   [UDN["armafus"].id]        = 101700,
+   [UDN["corafus"].id]        = 101750,
 
-	--ECO NRG STORAGE
-	[UDN["armestor"].id]       = 101800,
-	[UDN["corestor"].id]       = 101850,
-	[UDN["armuwadves"].id]     = 101900,
-	[UDN["coruwadves"].id]     = 101950,
+   --ECO NRG STORAGE
+   [UDN["armestor"].id]       = 101800,
+   [UDN["corestor"].id]       = 101850,
+   [UDN["armuwadves"].id]     = 101900,
+   [UDN["coruwadves"].id]     = 101950,
 
-	--NANOS
-	[UDN["armnanotc"].id]      = 102000,
-	[UDN["cornanotc"].id]      = 102050,
+   --NANOS
+   [UDN["armnanotc"].id]      = 102000,
+   [UDN["cornanotc"].id]      = 102050,
 
-	--FACTORIES
-	[UDN["armlab"].id]         = 102100,
-	[UDN["corlab"].id]         = 102125,
-	[UDN["armvp"].id]          = 102150,
-	[UDN["corvp"].id]          = 102175,
-	[UDN["armap"].id]          = 102200,
-	[UDN["corap"].id]          = 102225,
-	[UDN["armhp"].id]          = 102250,
-	[UDN["corhp"].id]          = 102275,
+   --FACTORIES
+   [UDN["armlab"].id]         = 102100,
+   [UDN["corlab"].id]         = 102125,
+   [UDN["armvp"].id]          = 102150,
+   [UDN["corvp"].id]          = 102175,
+   [UDN["armap"].id]          = 102200,
+   [UDN["corap"].id]          = 102225,
+   [UDN["armhp"].id]          = 102250,
+   [UDN["corhp"].id]          = 102275,
 
-	[UDN["armalab"].id]        = 102400,
-	[UDN["coralab"].id]        = 102425,
-	[UDN["armavp"].id]         = 102450,
-	[UDN["coravp"].id]         = 102475,
-	[UDN["armaap"].id]         = 102500,
-	[UDN["coraap"].id]         = 102525,
-	[UDN["armshltx"].id]       = 102550,
-	[UDN["corgant"].id]        = 102575,
-	[UDN["armapt3"].id]        = 102700, --scavengers
-	[UDN["corapt3"].id]        = 102725, --scavengers
+   [UDN["armalab"].id]        = 102400,
+   [UDN["coralab"].id]        = 102425,
+   [UDN["armavp"].id]         = 102450,
+   [UDN["coravp"].id]         = 102475,
+   [UDN["armaap"].id]         = 102500,
+   [UDN["coraap"].id]         = 102525,
+   [UDN["armshltx"].id]       = 102550,
+   [UDN["corgant"].id]        = 102575,
+   [UDN["armapt3"].id]        = 102700, --scavengers
+   [UDN["corapt3"].id]        = 102725, --scavengers
 
+   --UTILITIES
+   [UDN["armasp"].id]         = 102800, --AIR REPAIR PADS
+   [UDN["corasp"].id]         = 102825,
 
-	--UTILITIES
-	[UDN["armasp"].id]         = 102800, --AIR REPAIR PADS
-	[UDN["corasp"].id]         = 102825,
+   [UDN["armeyes"].id]        = 103000,
+   [UDN["coreyes"].id]        = 103050,
+   [UDN["armrad"].id]         = 103100,
+   [UDN["corrad"].id]         = 103150,
+   [UDN["armarad"].id]        = 103200,
+   [UDN["corarad"].id]        = 103250,
+   [UDN["armjamt"].id]        = 103300,
+   [UDN["corjamt"].id]        = 103350,
+   [UDN["armveil"].id]        = 103400,
+   [UDN["corshroud"].id]      = 103450,
+   [UDN["armjuno"].id]        = 103500,
+   [UDN["corjuno"].id]        = 103550,
 
-	[UDN["armeyes"].id]        = 103000,
-	[UDN["coreyes"].id]        = 103050,
-	[UDN["armrad"].id]         = 103100,
-	[UDN["corrad"].id]         = 103150,
-	[UDN["armarad"].id]        = 103200,
-	[UDN["corarad"].id]        = 103250,
-	[UDN["armjamt"].id]        = 103300,
-	[UDN["corjamt"].id]        = 103350,
-	[UDN["armveil"].id]        = 103400,
-	[UDN["corshroud"].id]      = 103450,
-	[UDN["armjuno"].id]        = 103500,
-	[UDN["corjuno"].id]        = 103550,
+   [UDN["armsd"].id]          = 103600,
+   [UDN["corsd"].id]          = 103625,
+   [UDN["armtarg"].id]        = 103650,
+   [UDN["cortarg"].id]        = 103675,
+   [UDN["armgate"].id]        = 103700,
+   [UDN["corgate"].id]        = 103725,
+   [UDN["armdf"].id]          = 103750, --Fake Fusion
 
-	[UDN["armsd"].id]          = 103600,
-	[UDN["corsd"].id]          = 103625,
-	[UDN["armtarg"].id]        = 103650,
-	[UDN["cortarg"].id]        = 103675,
-	[UDN["armgate"].id]        = 103700,
-	[UDN["corgate"].id]        = 103725,
-	[UDN["armdf"].id]          = 103750, --Fake Fusion
+   --DEFENSES LAND
+   [UDN["armdrag"].id]        = 104000,
+   [UDN["cordrag"].id]        = 104050,
+   [UDN["corscavdrag"].id]    = 104060, --scavengers
+   [UDN["armfort"].id]        = 104060,
+   [UDN["corfort"].id]        = 104070,
+   [UDN["corscavfort"].id]    = 104080, --scavengers
+   [UDN["armclaw"].id]        = 104100,
+   [UDN["corscavdtl"].id]     = 104110, --scavengers
+   [UDN["cormaw"].id]         = 104150,
+   [UDN["corscavdtf"].id]     = 104110, --scavengers
+   [UDN["corscavdtm"].id]     = 104120, --scavengers
 
-	--DEFENSES LAND
-	[UDN["armdrag"].id]        = 104000,
-	[UDN["cordrag"].id]        = 104050,
-	[UDN["corscavdrag"].id]    = 104060, --scavengers
-	[UDN["armfort"].id]        = 104060,
-	[UDN["corfort"].id]        = 104070,
-	[UDN["corscavfort"].id]    = 104080, --scavengers
-	[UDN["armclaw"].id]        = 104100,
-	[UDN["corscavdtl"].id]     = 104110, --scavengers
-	[UDN["cormaw"].id]         = 104150,
-	[UDN["corscavdtf"].id]     = 104110, --scavengers
-	[UDN["corscavdtm"].id]     = 104120, --scavengers
+   --MINES
+   [UDN["armmine1"].id]       = 104124,
+   [UDN["cormine1"].id]       = 104128,
+   [UDN["armmine2"].id]       = 104132,
+   [UDN["cormine2"].id]       = 104136,
+   [UDN["cormine4"].id]       = 104140, --cormando
+   [UDN["armmine3"].id]       = 104144,
+   [UDN["cormine3"].id]       = 104148,
 
-	--MINES
-	[UDN["armmine1"].id]       = 104124,
-	[UDN["cormine1"].id]       = 104128,
-	[UDN["armmine2"].id]       = 104132,
-	[UDN["cormine2"].id]       = 104136,
-	[UDN["cormine4"].id]       = 104140, --cormando
-	[UDN["armmine3"].id]       = 104144,
-	[UDN["cormine3"].id]       = 104148,
+   [UDN["armllt"].id]         = 104200,
+   [UDN["corllt"].id]         = 104250,
+   [UDN["armbeamer"].id]      = 104300,
+   [UDN["corhllt"].id]        = 104350,
+   [UDN["corhllllt"].id]      = 104375, --scavengers
+   [UDN["armhlt"].id]         = 104400,
+   [UDN["corhlt"].id]         = 104450,
+   [UDN["armguard"].id]       = 104500,
+   [UDN["corpun"].id]         = 104550,
 
-	[UDN["armllt"].id]         = 104200,
-	[UDN["corllt"].id]         = 104250,
-	[UDN["armbeamer"].id]      = 104300,
-	[UDN["corhllt"].id]        = 104350,
-	[UDN["corhllllt"].id]      = 104375, --scavengers
-	[UDN["armhlt"].id]         = 104400,
-	[UDN["corhlt"].id]         = 104450,
-	[UDN["armguard"].id]       = 104500,
-	[UDN["corpun"].id]         = 104550,
+   [UDN["armpb"].id]          = 104600,
+   [UDN["corvipe"].id]        = 104650,
+   [UDN["armamb"].id]         = 104700,
+   [UDN["cortoast"].id]       = 104750,
+   [UDN["armanni"].id]        = 104800,
+   [UDN["cordoom"].id]        = 104850,
 
-	[UDN["armpb"].id]          = 104600,
-	[UDN["corvipe"].id]        = 104650,
-	[UDN["armamb"].id]         = 104700,
-	[UDN["cortoast"].id]       = 104750,
-	[UDN["armanni"].id]        = 104800,
-	[UDN["cordoom"].id]        = 104850,
+   [UDN["armbrtha"].id]       = 104855,
+   [UDN["corint"].id]         = 104860,
+   [UDN["armminivulc"].id]    = 148650, --scavengers
+   [UDN["corminibuzz"].id]    = 148700, --scavengers
+   [UDN["armbotrail"].id]     = 148750, --scavengers
+   [UDN["armvulc"].id]        = 148800,
+   [UDN["corbuzz"].id]        = 148850,
 
-	[UDN["armbrtha"].id]       = 104855,
-	[UDN["corint"].id]         = 104860,
-	[UDN["armminivulc"].id]    = 148650, --scavengers
-	[UDN["corminibuzz"].id]    = 148700, --scavengers
-	[UDN["armbotrail"].id]     = 148750, --scavengers
-	[UDN["armvulc"].id]        = 148800,
-	[UDN["corbuzz"].id]        = 148850,
+   --DEFENSES AA
+   [UDN["armrl"].id]          = 150000,
+   [UDN["corrl"].id]          = 150500,
+   [UDN["armferret"].id]      = 151000,
+   [UDN["cormadsam"].id]      = 151500,
+   [UDN["armcir"].id]         = 152000,
+   [UDN["corerad"].id]        = 152500,
 
-	--DEFENSES AA
-	[UDN["armrl"].id]          = 150000,
-	[UDN["corrl"].id]          = 150500,
-	[UDN["armferret"].id]      = 151000,
-	[UDN["cormadsam"].id]      = 151500,
-	[UDN["armcir"].id]         = 152000,
-	[UDN["corerad"].id]        = 152500,
+   [UDN["armflak"].id]        = 153000,
+   [UDN["corflak"].id]        = 153500,
+   [UDN["armmercury"].id]     = 154000,
+   [UDN["corscreamer"].id]    = 154500,
 
-	[UDN["armflak"].id]        = 153000,
-	[UDN["corflak"].id]        = 153500,
-	[UDN["armmercury"].id]     = 154000,
-	[UDN["corscreamer"].id]    = 154500,
+   --DEFENSES MISSILE LAUNCHERS
+   [UDN["armemp"].id]         = 165000,
+   [UDN["cortron"].id]        = 165500,
+   [UDN["armamd"].id]         = 166000,
+   [UDN["corfmd"].id]         = 166500,
+   [UDN["armsilo"].id]        = 180000,
+   [UDN["corsilo"].id]        = 180500,
 
-	--DEFENSES MISSILE LAUNCHERS
-	[UDN["armemp"].id]         = 165000,
-	[UDN["cortron"].id]        = 165500,
-	[UDN["armamd"].id]         = 166000,
-	[UDN["corfmd"].id]         = 166500,
-	[UDN["armsilo"].id]        = 180000,
-	[UDN["corsilo"].id]        = 180500,
+   --DEFENSES TO WATER
+   [UDN["armdl"].id]          = 155000,
+   [UDN["cordl"].id]          = 155500,
 
-	--DEFENSES TO WATER
-	[UDN["armdl"].id]          = 155000,
-	[UDN["cordl"].id]          = 155500,
+   --WATER ECO METAL
+   [UDN["armuwmme"].id]       = 200000,
+   [UDN["coruwmme"].id]       = 200100,
 
-	--WATER ECO NRG CONVERTERS
-	[UDN["armfmkr"].id]        = 200000,
-	[UDN["corfmkr"].id]        = 200500,
-	[UDN["armuwmmm"].id]       = 200600,
-	[UDN["coruwmmm"].id]       = 200700,
+   --WATER ECO NRG CONVERTERS
+   [UDN["armfmkr"].id]        = 200400,
+   [UDN["corfmkr"].id]        = 200500,
+   [UDN["armuwmmm"].id]       = 200600,
+   [UDN["coruwmmm"].id]       = 200700,
 
-	--WATER ECO METAL STORAGE
-	[UDN["armuwms"].id]        = 201000,
-	[UDN["coruwms"].id]        = 201500,
+   --WATER ECO METAL STORAGE
+   [UDN["armuwms"].id]        = 201000,
+   [UDN["coruwms"].id]        = 201500,
 
-	--WATER ECO METAL STORAGE
-	[UDN["armuwms"].id]        = 202000,
-	[UDN["coruwms"].id]        = 202500,
+   --WATER ECO NRG GENS
+   [UDN["armtide"].id]        = 203000,
+   [UDN["cortide"].id]        = 203500,
 
-	--WATER ECO NRG GENS
-	[UDN["armtide"].id]        = 203000,
-	[UDN["cortide"].id]        = 203500,
+   --WATER ECO NRG FUSIONS
+   [UDN["armuwfus"].id]       = 205000,
+   [UDN["coruwfus"].id]       = 205500,
 
-	--WATER ECO NRG FUSIONS
-	[UDN["armuwfus"].id]       = 205000,
-	[UDN["coruwfus"].id]       = 205500,
+   --WATER ECO NRG STORAGE
+   [UDN["armuwes"].id]        = 207000,
+   [UDN["coruwes"].id]        = 207500,
 
-	--WATER ECO NRG STORAGE
-	[UDN["armuwes"].id]        = 207000,
-	[UDN["coruwes"].id]        = 207500,
+   --WATER CONSTRUCTION
+   [UDN["armnanotcplat"].id]  = 210000,
+   [UDN["cornanotcplat"].id]  = 210500,
 
-	--WATER CONSTRUCTION
-	[UDN["armnanotcplat"].id]  = 210000,
-	[UDN["cornanotcplat"].id]  = 210500,
+   [UDN["armsy"].id]          = 211000,
+   [UDN["corsy"].id]          = 211500,
+   [UDN["armasy"].id]         = 211600,
+   [UDN["corasy"].id]         = 211700,
+   [UDN["armfhp"].id]         = 212000,
+   [UDN["corfhp"].id]         = 212500,
+   [UDN["armamsub"].id]       = 213000,
+   [UDN["coramsub"].id]       = 213500,
+   [UDN["armplat"].id]        = 214000,
+   [UDN["corplat"].id]        = 214500,
 
-	[UDN["armsy"].id]          = 211000,
-	[UDN["corsy"].id]          = 211500,
-	[UDN["armasy"].id]         = 211600,
-	[UDN["corasy"].id]         = 211700,
-	[UDN["armfhp"].id]         = 212000,
-	[UDN["corfhp"].id]         = 212500,
-	[UDN["armamsub"].id]       = 213000,
-	[UDN["coramsub"].id]       = 213500,
-	[UDN["armplat"].id]        = 214000,
-	[UDN["corplat"].id]        = 214500,
+   [UDN["armshltxuw"].id]     = 215000,
+   [UDN["corgantuw"].id]      = 215500,
 
-	[UDN["armshltxuw"].id]     = 215000,
-	[UDN["corgantuw"].id]      = 215500,
+   --WATER MINES
+   [UDN["armfmine3"].id]      = 216000,
+   [UDN["corfmine3"].id]      = 216500,
 
-	--WATER MINES
-	[UDN["armfmine3"].id]      = 216000,
-	[UDN["corfmine3"].id]      = 216500,
+   --WATER UTILITIES
+   [UDN["armfrad"].id]        = 220000,
+   [UDN["corfrad"].id]        = 220500,
+   [UDN["armason"].id]        = 221000,
+   [UDN["corason"].id]        = 221500,
+   [UDN["armfatf"].id]        = 222000,
+   [UDN["corfatf"].id]        = 222500,
 
-	--WATER UTILITIES
-	[UDN["armfrad"].id]        = 220000,
-	[UDN["corfrad"].id]        = 220500,
-	[UDN["armason"].id]        = 221000,
-	[UDN["corason"].id]        = 221500,
-	[UDN["armfatf"].id]        = 222000,
-	[UDN["corfatf"].id]        = 222500,
+   --WATER DEFENSES LAND
+   [UDN["armfdrag"].id]       = 230000,
+   [UDN["corfdrag"].id]       = 230500,
+   [UDN["armfhlt"].id]        = 231000,
+   [UDN["corfhlt"].id]        = 232500,
+   [UDN["armkraken"].id]      = 233000,
+   [UDN["corfdoom"].id]       = 233500,
 
-	--WATER DEFENSES LAND
-	[UDN["armfdrag"].id]       = 230000,
-	[UDN["corfdrag"].id]       = 230500,
-	[UDN["armfhlt"].id]        = 231000,
-	[UDN["corfhlt"].id]        = 232500,
-	[UDN["armkraken"].id]      = 233000,
-	[UDN["corfdoom"].id]       = 233500,
+   --WATER DEFENSES AA
+   [UDN["armfrt"].id]         = 255000,
+   [UDN["corfrt"].id]         = 255500,
+   [UDN["armfflak"].id]       = 256000,
+   [UDN["corenaa"].id]        = 256500,
 
-	--WATER DEFENSES AA
-	[UDN["armfrt"].id]         = 255000,
-	[UDN["corfrt"].id]         = 255500,
-	[UDN["armfflak"].id]       = 256000,
-	[UDN["corenaa"].id]        = 256500,
-
-	--WATER DEFENSES NAVAL
-	[UDN["armptl"].id]         = 260000,
-	[UDN["corptl"].id]         = 260500,
-	[UDN["armtl"].id]          = 261000,
-	[UDN["cortl"].id]          = 261500,
-	[UDN["armatl"].id]         = 262000,
-	[UDN["coratl"].id]         = 262500,
+   --WATER DEFENSES NAVAL
+   [UDN["armptl"].id]         = 260000,
+   [UDN["corptl"].id]         = 260500,
+   [UDN["armtl"].id]          = 261000,
+   [UDN["cortl"].id]          = 261500,
+   [UDN["armatl"].id]         = 262000,
+   [UDN["coratl"].id]         = 262500,
 }
 
 for unitDefID, unitDef in pairs(UnitDefs) do
