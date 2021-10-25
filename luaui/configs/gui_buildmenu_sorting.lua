@@ -492,9 +492,9 @@ local unitOrderTable = {
    [UDN["corint"].id]         = 110200,
    [UDN["armminivulc"].id]    = 120100, --scavengers
    [UDN["corminibuzz"].id]    = 120200, --scavengers
-   [UDN["armbotrail"].id]     = 120300, --scavengers
-   [UDN["armvulc"].id]        = 120400,
-   [UDN["corbuzz"].id]        = 120500,
+   [UDN["armvulc"].id]        = 120300,
+   [UDN["corbuzz"].id]        = 120400,
+   [UDN["armbotrail"].id]     = 120500, --scavengers
 
    --DEFENSES AA
    [UDN["armrl"].id]          = 130100,

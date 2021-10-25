@@ -6,7 +6,7 @@ return {
 		brakerate = 1,
 		buildcostenergy = 150000,
 		buildcostmetal = 15000,
-		buildpic = "CORKARGCLASSIC.DDS",
+		buildpic = "CORDEMONT4.DDS",
 		buildtime = 150000,
 		canmove = true,
 		category = "BOT WEAPON ALL NOTSUB NOTAIR NOTHOVER SURFACE EMPABLE",

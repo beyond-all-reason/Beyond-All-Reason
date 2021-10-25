@@ -6,7 +6,7 @@ return {
 		brakerate = 0.08759,
 		buildcostenergy = 250000,
 		buildcostmetal = 25000,
-		buildpic = "CORGOL.DDS",
+		buildpic = "CORGOLT4.DDS",
 		buildtime = 250000,
 		canmove = true,
 		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",

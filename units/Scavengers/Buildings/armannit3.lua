@@ -12,7 +12,7 @@ return {
 		buildinggrounddecalsizex = 8,
 		buildinggrounddecalsizey = 8,
 		buildinggrounddecaltype = "decals/armanni_aoplane.dds",
-		buildpic = "ARMANNI.DDS",
+		buildpic = "ARMANNIT3.DDS",
 		buildtime = 130200,
 		canrepeat = false,
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",

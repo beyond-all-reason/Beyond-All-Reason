@@ -12,7 +12,7 @@ return {
 		buildinggrounddecalsizex = 7,
 		buildinggrounddecalsizey = 7,
 		buildinggrounddecaltype = "decals/cor_aoplane.dds",
-		buildpic = "CORDOOM.DDS",
+		buildpic = "CORDOOMT3.DDS",
 		buildtime = 110380,
 		canrepeat = false,
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
