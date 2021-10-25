@@ -56,6 +56,7 @@ local dlistGuishader, dlistBuildmenuBg, dlistBuildmenu, font2, cmdsCount
 local hijackedlayout, doUpdateClock, ordermenuHeight, advplayerlistPos, prevAdvplayerlistLeft
 local cellPadding, iconPadding, cornerSize, cellInnerSize, cellSize, priceFontSize
 local activeCmd, selBuildQueueDefID, rowPressedClock, rowPressed
+local prevHoveredCellID, hoverDlist
 
 local math_isInRect = math.isInRect
 
@@ -1294,7 +1295,7 @@ function widget:DrawScreen()
 		gl.CallList(dlistBuildmenuBg)
 		if preGamestartPlayer or selectedBuilderCount ~= 0 then
 			-- pre process + 'highlight' under the icons
-			local hoveredCellID = nil
+			local hoveredCellID
 			if not WG['topbar'] or not WG['topbar'].showingQuit() then
 				if hovering then
 					for cellRectID, cellRect in pairs(cellRects) do
@@ -1359,73 +1360,67 @@ function widget:DrawScreen()
 						RectRound(paginatorRects[paginatorHovered][1] + cellPadding, paginatorRects[paginatorHovered][2] + cellPadding, paginatorRects[paginatorHovered][3] - cellPadding, paginatorRects[paginatorHovered][2] + cellPadding + ((paginatorRects[paginatorHovered][4] - paginatorRects[paginatorHovered][2]) * 0.33), cellSize * 0.03, 0, 0, 2, 2, { 1, 1, 1, 0.025 }, { 1, 1, 1, 0 })
 					end
 
-					-- cells
+					-- draw cell hover
 					if hoveredCellID then
-						local cellRectID = hoveredCellID
-						local cellIsSelected = (activeCmd and cmds[cellRectID] and activeCmd == cmds[cellRectID].name)
-						local uDefID = cmds[cellRectID].id * -1
+						if hoveredCellID ~= prevHoveredCellID then
+							prevHoveredCellID = hoveredCellID
+							if hoverDlist then
+								hoverDlist = gl.DeleteList(hoverDlist)
+							end
+							hoverDlist = gl.CreateList(function()
+								local cellRectID = hoveredCellID
+								local cellIsSelected = (activeCmd and cmds[cellRectID] and activeCmd == cmds[cellRectID].name)
+								local uDefID = cmds[cellRectID].id * -1
 
-						-- determine zoom amount and cell color
-						usedZoom = hoverCellZoom
-						if not cellIsSelected then
-							if (b or b2) and cellIsSelected then
-								usedZoom = clickSelectedCellZoom
-							elseif cellIsSelected then
-								usedZoom = selectedCellZoom
-							elseif (b or b2) and not disableInput then
-								usedZoom = clickCellZoom
-							elseif b3 and not disableInput and cmds[cellRectID].params[1] then
-								-- has queue
-								usedZoom = rightclickCellZoom
-							end
-							-- determine color
-							if (b or b2) and not disableInput then
-								cellColor = { 0.3, 0.8, 0.25, 0.2 }
-							elseif b3 and not disableInput then
-								cellColor = { 1, 0.35, 0.3, 0.2 }
-							else
-								cellColor = { 0.63, 0.63, 0.63, 0 }
-							end
-						else
-							-- selected cell
-							if (b or b2 or b3) then
-								usedZoom = clickSelectedCellZoom
-							else
-								usedZoom = selectedCellZoom
-							end
-							cellColor = { 1, 0.85, 0.2, 0.25 }
+								-- determine zoom amount and cell color
+								usedZoom = hoverCellZoom
+								if not cellIsSelected then
+									if (b or b2) and cellIsSelected then
+										usedZoom = clickSelectedCellZoom
+									elseif cellIsSelected then
+										usedZoom = selectedCellZoom
+									elseif (b or b2) and not disableInput then
+										usedZoom = clickCellZoom
+									elseif b3 and not disableInput and cmds[cellRectID].params[1] then
+										-- has queue
+										usedZoom = rightclickCellZoom
+									end
+									-- determine color
+									if (b or b2) and not disableInput then
+										cellColor = { 0.3, 0.8, 0.25, 0.2 }
+									elseif b3 and not disableInput then
+										cellColor = { 1, 0.35, 0.3, 0.2 }
+									else
+										cellColor = { 0.63, 0.63, 0.63, 0 }
+									end
+								else
+									-- selected cell
+									if (b or b2 or b3) then
+										usedZoom = clickSelectedCellZoom
+									else
+										usedZoom = selectedCellZoom
+									end
+									cellColor = { 1, 0.85, 0.2, 0.25 }
+								end
+								if not (unitRestricted[uDefID] or unitDisabled[uDefID]) then
+
+									local unsetShowPrice, unsetShowRadarIcon, unsetShowGroupIcon
+									if not showPrice then
+										unsetShowPrice = true
+										showPrice = true
+									end
+
+									-- re-draw cell with hover zoom (and price shown)
+									drawCell(cellRectID, usedZoom, cellColor, nil, { cellColor[1], cellColor[2], cellColor[3], 0.045 + (usedZoom * 0.45) }, 0.15, unitRestricted[uDefID] or unitDisabled[uDefID])
+
+									if unsetShowPrice then
+										showPrice = false
+										unsetShowPrice = nil
+									end
+								end
+							end)
 						end
-						if not (unitRestricted[uDefID] or unitDisabled[uDefID]) then
-
-							local unsetShowPrice, unsetShowRadarIcon, unsetShowGroupIcon
-							if not showPrice then
-								unsetShowPrice = true
-								showPrice = true
-							end
-							--if not showRadarIcon then
-							--	unsetShowRadarIcon = true
-							--	showRadarIcon = true
-							--end
-							--if not showGroupIcon then
-							--	unsetShowGroupIcon = true
-							--	showGroupIcon = true
-							--end
-							-- re-draw cell with hover zoom (and price shown)
-							drawCell(cellRectID, usedZoom, cellColor, nil, { cellColor[1], cellColor[2], cellColor[3], 0.045 + (usedZoom * 0.45) }, 0.15, unitRestricted[uDefID] or unitDisabled[uDefID])
-
-							if unsetShowPrice then
-								showPrice = false
-								unsetShowPrice = nil
-							end
-							--if unsetShowRadarIcon then
-							--	showRadarIcon = false
-							--	unsetShowRadarIcon = nil
-							--end
-							--if unsetShowGroupIcon then
-							--	showGroupIcon = false
-							--	unsetShowGroupIcon = nil
-							--end
-						end
+						gl.CallList(hoverDlist)
 					end
 				end
 			end
@@ -1433,12 +1428,12 @@ function widget:DrawScreen()
 			-- draw builders buildoption progress
 			if showBuildProgress then
 				local numCellsPerPage = rows * colls
-				local cellRectID = numCellsPerPage * (currentPage - 1)
 				local maxCellRectID = numCellsPerPage * currentPage
 				if maxCellRectID > cmdsCount then
 					maxCellRectID = cmdsCount
 				end
 				-- loop selected builders
+				local drawncellRectIDs = {}
 				for builderUnitID, _ in pairs(selectedBuilders) do
 					local unitBuildID = spGetUnitIsBuilding(builderUnitID)
 					if unitBuildID then
@@ -1447,56 +1442,16 @@ function widget:DrawScreen()
 							-- loop all shown cells
 							local cellIsSelected
 							for cellRectID, cellRect in pairs(cellRects) do
-								cellIsSelected = false
-								if cellRectID > maxCellRectID then
-									break
-								end
-								local cellUnitDefID = cmds[cellRectID].id * -1
-								if unitBuildDefID == cellUnitDefID then
-									local progress = 1 - select(5, spGetUnitHealth(unitBuildID))
-									if not usedZoom then
-										if cellRectID == hoveredCellID and (b or b2 or b3) then
-											usedZoom = clickSelectedCellZoom
-										else
-											cellIsSelected = (activeCmd and cmds[cellRectID] and activeCmd == cmds[cellRectID].name)
-											usedZoom = cellIsSelected and selectedCellZoom or defaultCellZoom
-										end
+								if not drawncellRectIDs[cellRectID] then
+									cellIsSelected = false
+									if cellRectID > maxCellRectID then
+										break
 									end
-									if cellColor and cellRectID ~= hoveredCellID then
-										cellColor = nil
-										usedZoom = cellIsSelected and selectedCellZoom or defaultCellZoom
-									end
-
-									local unsetShowPrice, unsetShowRadarIcon, unsetShowGroupIcon
-									if cellRectID == hoveredCellID then
-										if not showPrice then
-											unsetShowPrice = true
-											showPrice = true
-										end
-										if not showRadarIcon then
-											unsetShowRadarIcon = true
-											showRadarIcon = true
-										end
-										if not showGroupIcon then
-											unsetShowGroupIcon = true
-											showGroupIcon = true
-										end
-									end
-									-- re-draw cell with hover zoom (and price shown)
-									drawCell(cellRectID, usedZoom, cellColor, progress)
-									if cellRectID == hoveredCellID then
-										if unsetShowPrice then
-											showPrice = false
-											unsetShowPrice = nil
-										end
-										if unsetShowRadarIcon then
-											showRadarIcon = false
-											unsetShowRadarIcon = nil
-										end
-										if unsetShowGroupIcon then
-											showGroupIcon = false
-											unsetShowGroupIcon = nil
-										end
+									local cellUnitDefID = cmds[cellRectID].id * -1
+									if unitBuildDefID == cellUnitDefID then
+										drawncellRectIDs[cellRectID] = true
+										local progress = 1 - select(5, spGetUnitHealth(unitBuildID))
+										RectRoundProgress(cellRects[cellRectID][1] + cellPadding + iconPadding, cellRects[cellRectID][2] + cellPadding + iconPadding, cellRects[cellRectID][3] - cellPadding - iconPadding, cellRects[cellRectID][4] - cellPadding - iconPadding, cellSize * 0.03, progress, { 0.08, 0.08, 0.08, 0.6 })
 									end
 								end
 							end

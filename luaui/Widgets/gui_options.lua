@@ -408,6 +408,7 @@ function DrawWindow()
     local tabFontSize = 16 * widgetScale
     local xpos = titleRect[3]
     local xpos = screenX
+	local groupPadding = 1
     groupRect = {}
     for id, group in pairs(optionGroups) do
         groupRect[id] = { xpos, titleRect[2], math.floor(xpos + (font2:GetTextWidth(group.name) * tabFontSize) + (33 * widgetScale)), titleRect[4] }
@@ -415,7 +416,9 @@ function DrawWindow()
             xpos = groupRect[id][3]
             if currentGroupTab == nil or currentGroupTab ~= group.id then
                 RectRound(groupRect[id][1], groupRect[id][2], groupRect[id][3], groupRect[id][4], elementCorner, 1, 1, 0, 0, WG['guishader'] and { 0, 0, 0, 0.8 } or { 0, 0, 0, 0.85 }, WG['guishader'] and { 0.05, 0.05, 0.05, 0.8 } or { 0.05, 0.05, 0.05, 0.85 })
-                RectRound(groupRect[id][1] + groupMargin, groupRect[id][2], groupRect[id][3] - groupMargin, groupRect[id][4] - groupMargin, elementCorner * 0.8, 1, 1, 0, 0, { 0.44, 0.35, 0.18, 0.2 }, { 0.68, 0.55, 0.25, 0.2 })
+                RectRound(groupRect[id][1] + groupMargin, groupRect[id][2], groupRect[id][3] - groupMargin, groupRect[id][4] - groupMargin, elementCorner * 0.66, 1, 1, 0, 0, { 0.6, 0.47, 0.24, 0.2 }, { 0.88, 0.68, 0.33, 0.2 })
+
+				RectRound(groupRect[id][1] + groupMargin+groupPadding, groupRect[id][2], groupRect[id][3] - groupMargin-groupPadding, groupRect[id][4] - groupMargin-groupPadding, elementCorner * 0.5, 1, 1, 0, 0, { 0,0,0, 0.15 }, { 0,0,0, 0.15 })
 
                 glBlending(GL_SRC_ALPHA, GL_ONE)
                 -- gloss
@@ -430,7 +433,8 @@ function DrawWindow()
             else
                 RectRound(groupRect[id][1], groupRect[id][2], groupRect[id][3], groupRect[id][4], elementCorner, 1, 1, 0, 0, WG['guishader'] and { 0, 0, 0, 0.8 } or { 0, 0, 0, 0.85 }, WG['guishader'] and { 0.05, 0.05, 0.05, 0.8 } or { 0.05, 0.05, 0.05, 0.85 })
                 RectRound(groupRect[id][1] + groupMargin, groupRect[id][2] - bgpadding, groupRect[id][3] - groupMargin, groupRect[id][4] - groupMargin, elementCorner * 0.8, 1, 1, 0, 0, { 0.7, 0.7, 0.7, 0.15 }, { 0.8, 0.8, 0.8, 0.15 })
-                font2:Begin()
+
+				font2:Begin()
                 font2:SetTextColor(1, 0.75, 0.4, 1)
                 font2:SetOutlineColor(0, 0, 0, 0.4)
                 font2:Print(group.name, groupRect[id][1] + ((groupRect[id][3] - groupRect[id][1]) / 2), screenY + (9 * widgetScale), tabFontSize, "con")
