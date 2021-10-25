@@ -2786,16 +2786,15 @@ function widget:DrawScreen()
 					-- cells
 					if hoveredCellID then
 						local uDefID = cellcmds[hoveredCellID].id * -1
-						if not prevHoveredCellID or hoveredCellID ~= prevHoveredCellID or uDefID ~= hoverUdefID then
+						local cellIsSelected = (activeCmd and cellcmds[hoveredCellID] and activeCmd == cellcmds[hoveredCellID].name)
+						if not prevHoveredCellID or hoveredCellID ~= prevHoveredCellID or uDefID ~= hoverUdefID or cellIsSelected ~= hoverCellSelected then
 							prevHoveredCellID = hoveredCellID
+							hoverCellSelected = cellIsSelected
 							hoverUdefID = uDefID
 							if hoverDlist then
 								hoverDlist = gl.DeleteList(hoverDlist)
 							end
 							hoverDlist = gl.CreateList(function()
-								local cellRectID = hoveredCellID
-								local cellIsSelected = (activeCmd and cellcmds[cellRectID] and activeCmd == cellcmds[cellRectID].name)
-								local uDefID = cellcmds[cellRectID].id * -1
 
 								-- determine zoom amount and cell color
 								usedZoom = hoverCellZoom
@@ -2806,7 +2805,7 @@ function widget:DrawScreen()
 										usedZoom = selectedCellZoom
 									elseif (b or b2) and not disableInput then
 										usedZoom = clickCellZoom
-									elseif b3 and not disableInput and cellcmds[cellRectID].params[1] then
+									elseif b3 and not disableInput and cellcmds[hoveredCellID].params[1] then
 										-- has queue
 										usedZoom = rightclickCellZoom
 									end
@@ -2835,7 +2834,7 @@ function widget:DrawScreen()
 										showPrice = true
 									end
 
-									drawCell(cellRectID, usedZoom, cellColor, nil, { cellColor[1], cellColor[2], cellColor[3], 0.045 + (usedZoom * 0.45) }, 0.15, unitRestricted[uDefID])
+									drawCell(hoveredCellID, usedZoom, cellColor, nil, { cellColor[1], cellColor[2], cellColor[3], 0.045 + (usedZoom * 0.45) }, 0.15, unitRestricted[uDefID])
 
 									if unsetShowPrice then
 										showPrice = false
