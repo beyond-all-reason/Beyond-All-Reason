@@ -276,117 +276,13 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 end
 
 local unitOrder = {}
-local function addOrderImportance(unitDefID, skip, value)
-	if not skip then
-		unitOrder[unitDefID] = unitOrder[unitDefID] + value
-	end
-end
-
--- order units, add higher value for order importance
-local skip = false
 local unitOrderManualOverrideTable = VFS.Include("luaui/configs/gui_buildmenu_sorting.lua")
+
 for unitDefID, unitDef in pairs(UnitDefs) do
-	skip = false
 	if unitOrderManualOverrideTable[unitDefID] then
 		unitOrder[unitDefID] = -unitOrderManualOverrideTable[unitDefID]
 	else
-		unitOrder[unitDefID] = 2000000
-		-- is water unit
-		if unitDef.name ~= 'armmex' and unitDef.name ~= 'cormex' and (unitDef.minWaterDepth > 0 or unitDef.modCategories['ship'] or unitDef.modCategories['underwater']) then
-			unitOrder[unitDefID] = 50000
-		end
-
-		-- handle decoy unit like its the regular version
-		if unitDef.customParams.decoyfor then
-			unitDef = UnitDefNames[unitDef.customParams.decoyfor]
-			unitOrder[unitDefID] = unitOrder[unitDefID] - 2
-		end
-
-
-
-		-- mobile units
-		if not (unitDef.isImmobile or unitDef.isBuilding) then
-			addOrderImportance(unitDefID, skip, 1500000)
-		end
-
-		-- eco buildings
-		if unitDef.isImmobile or unitDef.isBuilding then
-			if unitDef.tidalGenerator > 0 then
-				addOrderImportance(unitDefID, skip, 1200000)
-			elseif unitDef.extractsMetal > 0 then
-				addOrderImportance(unitDefID, skip, 1400000)
-			elseif unitDef.windGenerator > 0 then
-				addOrderImportance(unitDefID, skip, 1250000)
-			elseif unitDef.energyMake > 19 and (not unitDef.energyUpkeep or unitDef.energyUpkeep < 10) then
-				addOrderImportance(unitDefID, skip, 1150000)
-			elseif unitDef.energyUpkeep < -19 then
-				addOrderImportance(unitDefID, skip, 1200000)
-			end
-
-			-- storage
-			if unitDef.energyStorage > 1000 and string.find(string.lower(unitDef.translatedHumanName), 'storage') then
-				addOrderImportance(unitDefID, skip, 1100000)
-			end
-			if unitDef.metalStorage > 500 and string.find(string.lower(unitDef.translatedHumanName), 'storage') then
-				addOrderImportance(unitDefID, skip, 1300000)
-			end
-
-			-- converters
-			if string.find(string.lower(unitDef.translatedHumanName), 'converter') then
-				addOrderImportance(unitDefID, skip, 1350000)
-			end
-		end
-
-		-- nanos
-		if unitDef.buildSpeed > 0 and not unitDef.buildOptions[1] then
-			addOrderImportance(unitDefID, skip, 350000)
-		end
-
-		if unitDef.buildOptions[1] then
-			if unitDef.isBuilding then
-				addOrderImportance(unitDefID, skip, 250000)
-			else
-				if string.find(string.lower(unitDef.translatedHumanName), 'construction') then
-					addOrderImportance(unitDefID, skip, 600000)
-				elseif string.find(string.lower(unitDef.tooltip), 'minelayer') or string.find(string.lower(unitDef.tooltip), 'assist') or string.find(string.lower(unitDef.tooltip), 'engineer') then
-					addOrderImportance(unitDefID, skip, 400000)
-				else
-					addOrderImportance(unitDefID, skip, 500000)
-				end
-			end
-		end
-		-- if unitDef.isImmobile or  unitDef.isBuilding then
-		--   if unitDef.floater or unitDef.floatOnWater then
-		--     addOrderImportance(unitDefID, skip, 11000000)
-		--   elseif unitDef.modCategories['underwater'] or unitDef.modCategories['canbeuw'] or unitDef.modCategories['notland'] then
-		--     addOrderImportance(unitDefID, skip, 10000000)
-		--   else
-		--     addOrderImportance(unitDefID, skip, 12000000)
-		--   end
-		-- else
-		--   if unitDef.modCategories['ship'] then
-		--     addOrderImportance(unitDefID, skip, 9000000)
-		--   elseif unitDef.modCategories['hover'] then
-		--     addOrderImportance(unitDefID, skip, 8000000)
-		--   elseif unitDef.modCategories['tank'] then
-		--     addOrderImportance(unitDefID, skip, 7000000)
-		--   elseif unitDef.modCategories['bot'] then
-		--     addOrderImportance(unitDefID, skip, 6000000)
-		--   elseif unitDef.isAirUnit then
-		--     addOrderImportance(unitDefID, skip, 5000000)
-		--   elseif unitDef.modCategories['underwater'] or unitDef.modCategories['canbeuw'] or unitDef.modCategories['notland'] then
-		--     addOrderImportance(unitDefID, skip, 8600000)
-		--   end
-		-- end
-
-
-		unitOrder[unitDefID] = math.max(1, math_floor(unitOrder[unitDefID]))
-
-		-- make more expensive units of the same kind lower in the list
-		unitOrder[unitDefID] = unitOrder[unitDefID] + 100000
-		addOrderImportance(unitDefID, skip, -(unitDef.energyCost / 70)*0.1)
-		addOrderImportance(unitDefID, skip, -unitDef.metalCost*0.1)
-		unitOrder[unitDefID] = math.max(1, math_floor(unitOrder[unitDefID]))
+		unitOrder[unitDefID] = 9999999
 	end
 end
 
