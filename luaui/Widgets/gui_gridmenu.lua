@@ -2785,8 +2785,10 @@ function widget:DrawScreen()
 
 					-- cells
 					if hoveredCellID then
-						if not prevHoveredCellID or hoveredCellID ~= prevHoveredCellID then
+						local uDefID = cellcmds[hoveredCellID].id * -1
+						if not prevHoveredCellID or hoveredCellID ~= prevHoveredCellID or uDefID ~= hoverUdefID then
 							prevHoveredCellID = hoveredCellID
+							hoverUdefID = uDefID
 							if hoverDlist then
 								hoverDlist = gl.DeleteList(hoverDlist)
 							end

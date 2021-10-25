@@ -1363,15 +1363,16 @@ function widget:DrawScreen()
 
 					-- draw cell hover
 					if hoveredCellID then
-						if not prevHoveredCellID or hoveredCellID ~= prevHoveredCellID then
+						local uDefID = cmds[hoveredCellID].id * -1
+						if not prevHoveredCellID or hoveredCellID ~= prevHoveredCellID or uDefID ~= hoverUdefID then
 							prevHoveredCellID = hoveredCellID
+							hoverUdefID = uDefID
 							if hoverDlist then
 								hoverDlist = gl.DeleteList(hoverDlist)
 							end
 							hoverDlist = gl.CreateList(function()
 								local cellRectID = hoveredCellID
 								local cellIsSelected = (activeCmd and cmds[cellRectID] and activeCmd == cmds[cellRectID].name)
-								local uDefID = cmds[cellRectID].id * -1
 
 								-- determine zoom amount and cell color
 								usedZoom = hoverCellZoom
