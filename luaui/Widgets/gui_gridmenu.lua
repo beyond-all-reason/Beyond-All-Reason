@@ -1877,6 +1877,7 @@ end
 function clear()
 	dlistBuildmenu = gl.DeleteList(dlistBuildmenu)
 	dlistBuildmenuBg = gl.DeleteList(dlistBuildmenuBg)
+	hoverDlist = gl.DeleteList(hoverDlist)
 end
 
 function widget:Shutdown()
@@ -2784,7 +2785,7 @@ function widget:DrawScreen()
 
 					-- cells
 					if hoveredCellID then
-						if hoveredCellID ~= prevHoveredCellID then
+						if not prevHoveredCellID or hoveredCellID ~= prevHoveredCellID then
 							prevHoveredCellID = hoveredCellID
 							if hoverDlist then
 								hoverDlist = gl.DeleteList(hoverDlist)
