@@ -1421,7 +1421,9 @@ function widget:DrawScreen()
 								end
 							end)
 						end
-						gl.CallList(hoverDlist)
+						if hoverDlist then
+							gl.CallList(hoverDlist)
+						end
 					end
 				end
 			end
