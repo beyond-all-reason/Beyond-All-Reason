@@ -2872,7 +2872,7 @@ function widget:DrawScreen()
 									if cellRectID > maxCellRectID then
 										break
 									end
-									local cellUnitDefID = cmds[cellRectID].id * -1
+									local cellUnitDefID = cellcmds[cellRectID].id * -1
 									if unitBuildDefID == cellUnitDefID then
 										drawncellRectIDs[cellRectID] = true
 										local progress = 1 - select(5, spGetUnitHealth(unitBuildID))
