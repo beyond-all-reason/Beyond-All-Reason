@@ -623,18 +623,12 @@ local unitOrderTable = {
 }
 
 for unitDefID, unitDef in pairs(UnitDefs) do
-   --Spring.Echo(UnitDefs[unitDefID].name)
-   if unitOrderTable[unitDefID] then
-      local orderValue = unitOrderTable[unitDefID]
-      if UnitDefs[unitDefID].name then
-         local unitName = UnitDefs[unitDefID].name
-         local unitNameScav = unitName .. "_scav"
-         if UDN[unitNameScav] then
-            local unitDefIDScav = UDN[unitNameScav].id
-            unitOrderTable[unitDefIDScav] = orderValue
-         end
-      end
-   end
+	if unitDef.customParams.isscavenger then
+		local counterpartId = UnitDefNames[unitDef.customParams.fromunit].id
+		if unitOrderTable[counterpartId] then
+			unitOrderTable[unitDefID] = unitOrderTable[counterpartId]
+		end
+	end
 end
 
 return unitOrderTable
