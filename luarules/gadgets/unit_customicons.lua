@@ -319,6 +319,7 @@ local units = {
 	corageo = { "hazardous.png", 1.88999987 },
 	corah = { "hover_aa.png", 1.15499997 },
 	corak = { "bot_t1_raid_0.7.png", 0.73499995 },
+	corakt4 = { "corakt4.png", 2.30999994 },
 	coralab = { "factory_bot_t2.png", 1.9425 },
 	coramph = { "coramph_1.3.png", 1.36499989 },
 	coramsub = { "factory_amph.png", 1.52250004 },
