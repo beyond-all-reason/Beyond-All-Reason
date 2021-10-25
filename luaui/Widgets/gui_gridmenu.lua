@@ -1877,7 +1877,6 @@ end
 function clear()
 	dlistBuildmenu = gl.DeleteList(dlistBuildmenu)
 	dlistBuildmenuBg = gl.DeleteList(dlistBuildmenuBg)
-	hoverDlist = gl.DeleteList(hoverDlist)
 end
 
 function widget:Shutdown()
@@ -1886,6 +1885,7 @@ function widget:Shutdown()
 		Spring.ForceLayoutUpdate()
 	end
 	clear()
+	hoverDlist = gl.DeleteList(hoverDlist)
 	if WG['guishader'] and dlistGuishader then
 		WG['guishader'].DeleteDlist('buildmenu')
 		dlistGuishader = nil
