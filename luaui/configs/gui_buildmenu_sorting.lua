@@ -543,8 +543,12 @@ local unitOrderTable = {
    [UDN["armdl"].id]          = 155000,
    [UDN["cordl"].id]          = 155500,
 
+   --WATER ECO METAL
+   [UDN["armuwmme"].id]       = 200000,
+   [UDN["coruwmme"].id]       = 200100,
+
    --WATER ECO NRG CONVERTERS
-   [UDN["armfmkr"].id]        = 200000,
+   [UDN["armfmkr"].id]        = 200400,
    [UDN["corfmkr"].id]        = 200500,
    [UDN["armuwmmm"].id]       = 200600,
    [UDN["coruwmmm"].id]       = 200700,
@@ -552,10 +556,6 @@ local unitOrderTable = {
    --WATER ECO METAL STORAGE
    [UDN["armuwms"].id]        = 201000,
    [UDN["coruwms"].id]        = 201500,
-
-   --WATER ECO METAL STORAGE
-   [UDN["armuwms"].id]        = 202000,
-   [UDN["coruwms"].id]        = 202500,
 
    --WATER ECO NRG GENS
    [UDN["armtide"].id]        = 203000,
