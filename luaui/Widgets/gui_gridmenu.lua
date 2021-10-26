@@ -1684,9 +1684,9 @@ function widget:DrawScreen()
 								local textColor = "\255\215\255\215"
 
 								if unitRestricted[uDefID] then
-									text = Spring.I18N('ui.buildMenu.disabled', { unit = UnitDefs[uDefID].humanName, textColor = textColor, warnColor = "\255\166\166\166" })
+									text = Spring.I18N('ui.buildMenu.disabled', { unit = UnitDefs[uDefID].translatedHumanName, textColor = textColor, warnColor = "\255\166\166\166" })
 								else
-									text = textColor .. UnitDefs[uDefID].humanName
+									text = textColor .. UnitDefs[uDefID].translatedHumanName
 								end
 
 								text = text .. "\n\255\240\240\240" .. UnitDefs[uDefID].tooltip
@@ -2349,7 +2349,7 @@ function widget:MousePress(x, y, button)
 				end
 
 				for cellRectID, cellRect in pairs(cellRects) do
-					if cellcmds[cellRectID].id and UnitDefs[-cellcmds[cellRectID].id].humanName and IsOnRect(x, y, cellRect[1], cellRect[2], cellRect[3], cellRect[4]) and not unitRestricted[-cellcmds[cellRectID].id] then
+					if cellcmds[cellRectID].id and UnitDefs[-cellcmds[cellRectID].id].translatedHumanName and IsOnRect(x, y, cellRect[1], cellRect[2], cellRect[3], cellRect[4]) and not unitRestricted[-cellcmds[cellRectID].id] then
 						if button ~= 3 then
 							Spring.PlaySoundFile(Cfgs.sound_queue_add, 0.75, 'ui')
 
