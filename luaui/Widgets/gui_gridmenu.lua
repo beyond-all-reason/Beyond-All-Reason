@@ -367,6 +367,7 @@ local unitMaxWeaponRange = {}
 
 local unitGridPos = { }
 local gridPosUnit = { }
+local hasUnitGrid = { }
 local selectNextFrame, switchedCategory
 
 for uname, ugrid in pairs(unitGrids) do
@@ -375,6 +376,7 @@ for uname, ugrid in pairs(unitGrids) do
 
 	unitGridPos[uid] = {{},{},{},{}}
 	gridPosUnit[uid] = {}
+	hasUnitGrid[uid] = {}
 	local uCanBuild = {}
 
 	local uBuilds = udef.buildOptions
@@ -393,6 +395,7 @@ for uname, ugrid in pairs(unitGrids) do
 					if ugdef and ugdef.id and uCanBuild[ugdef.id] then
 						gridPosUnit[uid][cat .. r .. c] = ugdef.id
 						unitGridPos[uid][cat][ugdef.id] = cat .. r .. c
+						hasUnitGrid[uid][ugdef.id] = true
 					end
 				end
 			end
@@ -571,7 +574,7 @@ function widget:PlayerChanged(playerID)
 end
 
 local function RefreshCommands()
-	local gridPos
+	local gridPos, lHasUnitGrid
 
 	if preGamestartPlayer and startDefID then
 		selectedBuilder = startDefID
@@ -579,6 +582,7 @@ local function RefreshCommands()
 
 	if currentBuildCategory then
 		gridPos = unitGridPos[selectedBuilder] and unitGridPos[selectedBuilder][currentCategoryIndex]
+		lHasUnitGrid = hasUnitGrid[selectedBuilder] -- Ensure if unit has static grid to not repeat unit on different category
 	elseif selectedFactory then
 		gridPos = unitGridPos[selectedFactory]
 	end
@@ -603,7 +607,7 @@ local function RefreshCommands()
 							name = UnitDefs[udefid].name,
 							params = {}
 						}
-					elseif currentBuildCategory == nil or unitCategories[udefid] == currentBuildCategory then
+					elseif currentBuildCategory == nil or (unitCategories[udefid] == currentBuildCategory and not (lHasUnitGrid and lHasUnitGrid[udefid])) then
 						cmd = {
 							id = udefid * -1,
 							name = UnitDefs[udefid].name,
@@ -638,7 +642,7 @@ local function RefreshCommands()
 					if gridPos and gridPos[cmd.id * -1] then
 						uidcmdsCount = uidcmdsCount + 1
 						uidcmds[cmd.id * -1] = activeCmdDescs[index]
-					elseif currentBuildCategory == nil or unitCategories[cmd.id * -1] == currentBuildCategory then
+					elseif currentBuildCategory == nil or (unitCategories[cmd.id * -1] == currentBuildCategory and not (lHasUnitGrid and lHasUnitGrid[cmd.id * -1])) then
 						uidcmdsCount = uidcmdsCount + 1
 						uidcmds[cmd.id * -1] = activeCmdDescs[index]
 
