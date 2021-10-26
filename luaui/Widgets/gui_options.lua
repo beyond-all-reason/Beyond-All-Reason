@@ -2855,10 +2855,6 @@ function init()
               saveOptionValue('Build menu', 'buildmenu', 'setShowTooltip', { 'showTooltip' }, value)
           end,
         },
-        --{id="buildmenu_shortcuts", group="ui", basic=true, name=widgetOptionColor.."   shortcuts", type="bool", value=(WG['buildmenu']~=nil and WG['buildmenu'].getShowShortcuts~=nil and WG['buildmenu'].getShowShortcuts()), description='Shortcuts prices in the buildmenu',
-        -- onload = function(i) end,
-        -- onchange = function(i, value) saveOptionValue('Build menu', 'buildmenu', 'setShowShortcuts', {'showShortcuts'}, value) end,
-        --},
 
         --{ id = "buildmenu_defaultcolls", group = "ui", name = widgetOptionColor .. "   columns", type = "slider", min = 4, max = 6, step = 1, value = 5, description = 'Number of columns when "dynamic columns" is disabled',
         --  onload = function(i)

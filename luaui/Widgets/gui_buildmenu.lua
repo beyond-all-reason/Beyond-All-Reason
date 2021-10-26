@@ -31,15 +31,12 @@ local smartOrderUnits = true
 
 local maxPosY = 0.74
 
-local enableShortcuts = false   -- problematic since it overrules use of top row letters from keyboard which some are in use already
-
 local disableInputWhenSpec = false		-- disable specs selecting buildoptions
 
 local makeFancy = true    -- when using transparant icons this adds highlights so it shows the squared shape of button
 local showPrice = false		-- false will still show hover
 local showRadarIcon = true		-- false will still show hover
 local showGroupIcon = true		-- false will still show hover
-local showShortcuts = false
 local showTooltip = true
 local showBuildProgress = true
 
@@ -62,19 +59,6 @@ local math_isInRect = math.isInRect
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
-
-local buildKeys = {
-	113, -- Q
-	119, -- W
-	101, -- E
-	114, -- R
-	116, -- T
-	121, -- Y
-	117, -- U
-	105, -- I
-	111, -- O
-	112, -- P
-}
 
 local playSounds = true
 local sound_queue_add = 'LuaUI/Sounds/buildbar_add.wav'
@@ -665,13 +649,6 @@ function widget:Initialize()
 		showGroupIcon = value
 		doUpdate = true
 	end
-	WG['buildmenu'].getShowShortcuts = function()
-		return showShortcuts
-	end
-	WG['buildmenu'].setShowShortcuts = function(value)
-		showShortcuts = value
-		doUpdate = true
-	end
 	WG['buildmenu'].getShowTooltip = function()
 		return showTooltip
 	end
@@ -892,14 +869,6 @@ local function drawCell(cellRectID, usedZoom, cellColor, progress, highlightColo
 	if showOrderDebug and smartOrderUnits and unitOrderDebug[uDefID] then
 		local text = unitOrderDebug[uDefID]
 		font2:Print("\255\175\175\175" .. text, cellRects[cellRectID][1] + cellPadding + (cellInnerSize * 0.05), cellRects[cellRectID][4] - cellPadding - priceFontSize, priceFontSize * 0.82, "o")
-	end
-
-	-- shortcuts
-	if showShortcuts and enableShortcuts and not disableInput then
-		local row = math_ceil(cellRectID / colls)
-		local col = cellRectID - ((row - 1) * colls)
-		local text = string.upper(string.char(buildKeys[row]) .. ' ' .. string.char(buildKeys[col]))
-		font2:Print("\255\175\175\175" .. text, cellRects[cellRectID][1] + cellPadding + (cellInnerSize * 0.05), cellRects[cellRectID][4] - cellPadding - priceFontSize, priceFontSize, "o")
 	end
 
 	-- draw build progress pie on top of texture
@@ -1655,39 +1624,12 @@ function widget:KeyPress(key, mods, isRepeat)
 	if Spring.IsGUIHidden() then
 		return
 	end
-	-- add buildfacing shortcuts (facing commands are only handled by spring if we have a building selected, which isn't possible pre-game)
+
 	if preGamestartPlayer and selBuildQueueDefID then
 		if key == 27 then
 			-- ESC
 			setPreGamestartDefID()
 		end
-	end
-
-	-- unit icon shortcuts
-	if not disableInput and enableShortcuts and cmdsCount > 0 then
-		if rowPressedClock and rowPressedClock < (os_clock() + 3) then
-			rowPressed = nil
-			rowPressedClock = nil
-		end
-		for k, buildKey in pairs(buildKeys) do
-			if buildKey == key then
-				if not rowPressed then
-					rowPressed = k
-					rowPressedClock = os_clock()
-					return true
-				else
-					local cellRectID = k + ((rowPressed - 1) * colls)
-					if cmds[cellRectID] and cmds[cellRectID].id then
-						Spring.SetActiveCommand(spGetCmdDescIndex(cmds[cellRectID].id), 1, true, false, Spring.GetModKeyState())
-					end
-					rowPressed = nil
-					rowPressedClock = nil
-					return true
-				end
-				break
-			end
-		end
-		rowPressed = nil
 	end
 end
 
@@ -1811,7 +1753,6 @@ function widget:GetConfigData()
 		minColls = minColls,
 		maxColls = maxColls,
 		defaultColls = defaultColls,
-		showShortcuts = showShortcuts,
 		makeFancy = makeFancy,
 		showTooltip = showTooltip,
 		buildQueue = buildQueue,
@@ -1844,9 +1785,6 @@ function widget:SetConfigData(data)
 	end
 	if data.defaultColls ~= nil then
 		defaultColls = data.defaultColls
-	end
-	if data.showShortcuts ~= nil then
-		showShortcuts = data.showShortcuts
 	end
 	if data.makeFancy ~= nil then
 		makeFancy = data.makeFancy
