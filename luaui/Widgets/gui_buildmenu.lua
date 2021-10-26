@@ -276,7 +276,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 end
 
 local unitOrder = {}
-local unitOrderManualOverrideTable = VFS.Include("luaui/configs/gui_buildmenu_sorting.lua")
+local unitOrderManualOverrideTable = VFS.Include("luaui/configs/buildmenu_sorting.lua")
 
 for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitOrderManualOverrideTable[unitDefID] then
