@@ -418,7 +418,7 @@ function DrawWindow()
                 RectRound(groupRect[id][1], groupRect[id][2], groupRect[id][3], groupRect[id][4], elementCorner, 1, 1, 0, 0, WG['guishader'] and { 0, 0, 0, 0.8 } or { 0, 0, 0, 0.85 }, WG['guishader'] and { 0.05, 0.05, 0.05, 0.8 } or { 0.05, 0.05, 0.05, 0.85 })
                 RectRound(groupRect[id][1] + groupMargin, groupRect[id][2], groupRect[id][3] - groupMargin, groupRect[id][4] - groupMargin, elementCorner * 0.66, 1, 1, 0, 0, { 0.6, 0.47, 0.24, 0.2 }, { 0.88, 0.68, 0.33, 0.2 })
 
-				RectRound(groupRect[id][1] + groupMargin+groupPadding, groupRect[id][2], groupRect[id][3] - groupMargin-groupPadding, groupRect[id][4] - groupMargin-groupPadding, elementCorner * 0.5, 1, 1, 0, 0, { 0,0,0, 0.15 }, { 0,0,0, 0.15 })
+				RectRound(groupRect[id][1] + groupMargin+groupPadding, groupRect[id][2], groupRect[id][3] - groupMargin-groupPadding, groupRect[id][4] - groupMargin-groupPadding, elementCorner * 0.5, 1, 1, 0, 0, { 0,0,0, 0.13 }, { 0,0,0, 0.13 })
 
                 glBlending(GL_SRC_ALPHA, GL_ONE)
                 -- gloss
@@ -4689,9 +4689,6 @@ function init()
 
     -- force new unit icons
     if Spring.GetConfigInt("UnitIconsAsUI", 0) == 0 then
-        if engineVersion < 104011747 then
-            options[getOptionByID('uniticonsasui')] = nil
-        end
         -- disable new icon options
         options[getOptionByID('uniticon_scaleui')] = nil
         options[getOptionByID('uniticon_fadestart')] = nil
@@ -5327,13 +5324,6 @@ function widget:Initialize()
         widgetHandler:EnableWidget("Sensor Ranges Sonar")
         widgetHandler:EnableWidget("Sensor Ranges Jammer")
     end
-
-    -- UNCOMMENT WHEN we want everybody to switch to new icon rendering
-    --if not newEngineIconsInitialized and engineVersion >= 104011747 then		-- initialize new engine icons first time
-    --	Spring.SendCommands("iconsasui 1")
-    --	Spring.SetConfigInt("UnitIconsAsUI", 1)
-    --	newEngineIconsInitialized = true
-    --end
 
     -- disable ambient player widget
     if widgetHandler:IsWidgetKnown("Ambient Player") then

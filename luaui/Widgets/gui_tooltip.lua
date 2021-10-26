@@ -166,7 +166,7 @@ local function drawTooltip(name, x, y)
 	local paddingW = math_floor(paddingH * 1.42)
 
 	local addX = math.floor(vsx*0.33)	-- temp add something so flowui doesnt think its near screen edge
-	local addY =  math.floor(vsy*0.5)	-- temp add something so flowui doesnt think its near screen edge
+	local addY = math.floor(vsy*0.5)	-- temp add something so flowui doesnt think its near screen edge
 
 	if not tooltips[name].dlist then
 		tooltips[name].dlist = gl.CreateList(function()
