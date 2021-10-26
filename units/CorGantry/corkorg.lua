@@ -11,7 +11,7 @@ return {
 		canmove = true,
 		category = "BOT WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE CANBEUW",
 		collisionvolumeoffsets = "0 -6 -5",
-		collisionvolumescales = "97 160 97",
+		collisionvolumescales = "97 160 85",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		description = Spring.I18N('units.descriptions.corkorg'),

@@ -13,7 +13,7 @@ return {
 		canmove = true,
 		category = "BOT MOBILE ALL NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 0 0",
-		collisionvolumescales = "23 24 23",
+		collisionvolumescales = "23 28 23",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		description = Spring.I18N('units.descriptions.corvoyr'),
