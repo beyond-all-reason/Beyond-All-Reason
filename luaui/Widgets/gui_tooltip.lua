@@ -36,7 +36,7 @@ local vsx, vsy = Spring.GetViewGeometry()
 local defaultDelay = 0.4
 local cfgFontSize = 14
 
-local xOffset = 28
+local xOffset = 35
 local yOffset = -xOffset
 
 local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
@@ -90,7 +90,7 @@ end
 function init()
 	widgetScale = (1 + ((vsy - 850) / 900)) * (0.95 + (ui_scale - 1) / 2.5)
 	usedFontSize = cfgFontSize * widgetScale
-	yOffset = -xOffset - usedFontSize
+	yOffset = -math.floor(xOffset*0.75) - usedFontSize
 
 	if WG['tooltip'] == nil then
 		WG['tooltip'] = {}
@@ -165,8 +165,8 @@ local function drawTooltip(name, x, y)
 	local paddingH = math_floor(9.5 * widgetScale)
 	local paddingW = math_floor(paddingH * 1.42)
 
-	local addX = 100	-- temp add something so flowui doesnt think its near screen edge
-	local addY = 100	-- temp add something so flowui doesnt think its near screen edge
+	local addX = math.floor(vsx*0.33)	-- temp add something so flowui doesnt think its near screen edge
+	local addY =  math.floor(vsy*0.5)	-- temp add something so flowui doesnt think its near screen edge
 
 	if not tooltips[name].dlist then
 		tooltips[name].dlist = gl.CreateList(function()
