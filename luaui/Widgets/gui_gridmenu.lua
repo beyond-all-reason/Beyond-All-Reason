@@ -800,6 +800,31 @@ function prevPageHandler()
 	return true
 end
 
+function buildFacingHandler(_, _, args)
+	if not (preGamestartPlayer and selBuildQueueDefID) then
+		return
+	end
+
+	local facing = Spring.GetBuildFacing()
+	if args and args[1] == "inc" then
+		facing = facing + 1
+		if facing > 3 then
+			facing = 0
+		end
+		Spring.SetBuildFacing(facing)
+
+		return true
+	elseif args and args[1] == "dec" then
+		facing = facing - 1
+		if facing < 0 then
+			facing = 3
+		end
+		Spring.SetBuildFacing(facing)
+
+		return true
+	end
+end
+
 function widget:Initialize()
 
 	if widgetHandler:IsWidgetKnown("Build menu") then
@@ -807,6 +832,7 @@ function widget:Initialize()
 	end
 
 	-- For some reason when handler = true widgetHandler:AddAction is not available
+	widgetHandler.actionHandler:AddAction(self, "buildfacing", buildFacingHandler, nil, "t")
 	widgetHandler.actionHandler:AddAction(self, "gridmenu_next_page", nextPageHandler, nil, "t")
 	widgetHandler.actionHandler:AddAction(self, "gridmenu_prev_page", prevPageHandler, nil, "t")
 
@@ -2207,28 +2233,6 @@ function widget:KeyPress(key, mods, isRepeat)
 	end
 
 	if preGamestartPlayer and selBuildQueueDefID then
-		if key == 91 then
-			-- [
-			local facing = Spring.GetBuildFacing()
-			facing = facing + 1
-			if facing > 3 then
-				facing = 0
-			end
-			Spring.SetBuildFacing(facing)
-
-			return
-		end
-		if key == 93 then
-			-- ]
-			local facing = Spring.GetBuildFacing()
-			facing = facing - 1
-			if facing < 0 then
-				facing = 3
-			end
-			Spring.SetBuildFacing(facing)
-
-			return
-		end
 		if key == 27 then
 			-- ESC
 			setPreGamestartDefID()

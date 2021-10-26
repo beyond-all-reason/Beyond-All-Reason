@@ -575,8 +575,33 @@ local function hijacklayout()
 	Spring.ForceLayoutUpdate()
 end
 
+function buildFacingHandler(_, _, args)
+	if not (preGamestartPlayer and selBuildQueueDefID) then
+		return
+	end
+
+	local facing = Spring.GetBuildFacing()
+	if args and args[1] == "inc" then
+		facing = facing + 1
+		if facing > 3 then
+			facing = 0
+		end
+		Spring.SetBuildFacing(facing)
+
+		return true
+	elseif args and args[1] == "dec" then
+		facing = facing - 1
+		if facing < 0 then
+			facing = 3
+		end
+		Spring.SetBuildFacing(facing)
+
+		return true
+	end
+end
 
 function widget:Initialize()
+	widgetHandler.actionHandler:AddAction(self, "buildfacing", buildFacingHandler, nil, "t")
 
 	checkGeothermalFeatures()
 	hijacklayout()
@@ -1632,24 +1657,6 @@ function widget:KeyPress(key, mods, isRepeat)
 	end
 	-- add buildfacing shortcuts (facing commands are only handled by spring if we have a building selected, which isn't possible pre-game)
 	if preGamestartPlayer and selBuildQueueDefID then
-		if key == 91 then
-			-- [
-			local facing = Spring.GetBuildFacing()
-			facing = facing + 1
-			if facing > 3 then
-				facing = 0
-			end
-			Spring.SetBuildFacing(facing)
-		end
-		if key == 93 then
-			-- ]
-			local facing = Spring.GetBuildFacing()
-			facing = facing - 1
-			if facing < 0 then
-				facing = 3
-			end
-			Spring.SetBuildFacing(facing)
-		end
 		if key == 27 then
 			-- ESC
 			setPreGamestartDefID()
