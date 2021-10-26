@@ -52,7 +52,7 @@ local bgpadding, chobbyInterface, activeAreaMargin, iconTypesMap
 local dlistGuishader, dlistBuildmenuBg, dlistBuildmenu, font2, cmdsCount
 local hijackedlayout, doUpdateClock, ordermenuHeight, advplayerlistPos, prevAdvplayerlistLeft
 local cellPadding, iconPadding, cornerSize, cellInnerSize, cellSize, priceFontSize
-local activeCmd, selBuildQueueDefID, rowPressedClock, rowPressed
+local activeCmd, selBuildQueueDefID
 local prevHoveredCellID, hoverDlist
 
 local math_isInRect = math.isInRect
