@@ -1,7 +1,7 @@
 function widget:GetInfo()
 	return {
 		name		= "Clearmapmarks button",
-		desc		= "clears mapmarks, located next to advplayerlist",
+		desc		= "clears mapmarks, located besides minimap",
 		author		= "Floris",
 		date		= "24 july 2016",
 		license		= "GNU GPL, v2 or later",
@@ -11,7 +11,7 @@ function widget:GetInfo()
 end
 
 local iconTexture = ":n:LuaUI/Images/mapmarksfx/eraser.dds"
-local iconSize = 18
+local iconSize = 26
 
 local glTranslate				= gl.Translate
 local glPushMatrix          	= gl.PushMatrix
@@ -20,7 +20,7 @@ local glCreateList				= gl.CreateList
 local glDeleteList				= gl.DeleteList
 local glCallList				= gl.CallList
 
-local advplayerlistPos = {}
+local minimapWidth
 local drawlist = {}
 local xPos = 0
 local yPos = 0
@@ -61,20 +61,17 @@ local function createList(size)
 end
 
 local function updatePosition(force)
-	if WG['advplayerlist_api'] ~= nil then
+	local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
+
+	if WG['minimap'] ~= nil then
 		local vsx, vsy = Spring.GetViewGeometry()
 		local margin = WG.FlowUI.elementPadding
-		xPos = vsx - margin
-		local prevPos = advplayerlistPos
-		advplayerlistPos = WG['advplayerlist_api'].GetPosition()		-- returns {top,left,bottom,right,widgetScale}
-		usedImgSize = math.floor(iconSize * advplayerlistPos[5])
-		--xPos = advplayerlistPos[2] + margin + usedImgSize
-		yPos = advplayerlistPos[3]
-		if advplayerlistPos[3] < 0 then
-			yPos = 0
-		end
-		yPos = yPos + margin
-		if (prevPos[1] == nil or prevPos[1] ~= advplayerlistPos[1] or prevPos[2] ~= advplayerlistPos[2] or prevPos[5] ~= advplayerlistPos[5]) or force then
+		local prevPos = minimapWidth
+		minimapWidth = WG['minimap'].getWidth()
+		usedImgSize = math.floor(iconSize * ui_scale)
+		yPos = vsy - usedImgSize
+		xPos = minimapWidth + usedImgSize
+		if (prevPos == nil or prevPos ~= minimapWidth) or force then
 			createList(usedImgSize)
 		end
 	end
@@ -84,6 +81,10 @@ function widget:Initialize()
 	WG.clearmapmarks = {}
 	WG.clearmapmarks.continuous = continuouslyClean
 	updatePosition(true)
+	WG['clearmapmarks'] = {}
+	WG['clearmapmarks'].getWidth = function()
+			return usedImgSize
+	end
 end
 
 function widget:Shutdown()

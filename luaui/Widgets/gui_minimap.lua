@@ -62,7 +62,8 @@ function widget:ViewResize()
 
 	if WG['topbar'] ~= nil then
 		local topbarArea = WG['topbar'].GetPosition()
-		maxAllowedWidth = (topbarArea[1] - elementMargin - elementPadding) / vsx
+		local toolbarWidth = WG['clearmapmarks'] and WG['clearmapmarks'].getWidth() or 0
+		maxAllowedWidth = (topbarArea[1] - elementMargin - elementPadding - toolbarWidth) / vsx
 	end
 
 	maxWidth = math.min(maxAllowedHeight * (Game.mapX / Game.mapY), maxAllowedWidth * (vsx / vsy))
@@ -91,6 +92,9 @@ function widget:Initialize()
 	WG['minimap'] = {}
 	WG['minimap'].getHeight = function()
 		return usedHeight + elementPadding
+	end
+	WG['minimap'].getWidth = function()
+		return usedWidth + elementPadding
 	end
 	WG['minimap'].getMaxHeight = function()
 		return math.floor(maxAllowedHeight*vsy), maxAllowedHeight
