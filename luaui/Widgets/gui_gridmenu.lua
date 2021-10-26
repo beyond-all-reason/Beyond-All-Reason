@@ -2986,7 +2986,10 @@ end
 
 function widget:GameFrame(n)
 	if selectNextFrame then
-		Spring.SetActiveCommand(spGetCmdDescIndex(selectNextFrame), 1, true, false, Spring.GetModKeyState())
+		local cmdIndex = spGetCmdDescIndex(selectNextFrame)
+		if cmdIndex then
+			Spring.SetActiveCommand(cmdIndex, 1, true, false, Spring.GetModKeyState())
+		end
 		selectNextFrame = nil
 		switchedCategory = nil
 	end
