@@ -12,10 +12,6 @@ function ShardUnitType:Name()
 	return self.def.name
 end
 
-function ShardUnitType:Description()
-	return self.def.tooltip
-end
-
 function ShardUnitType:Source()
 	return self.def
 end
