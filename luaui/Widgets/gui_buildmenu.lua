@@ -1214,7 +1214,7 @@ function widget:DrawScreen()
 									text = textColor .. UnitDefs[uDefID].translatedHumanName
 								end
 
-								text = text .. "\n\255\240\240\240" .. UnitDefs[uDefID].tooltip
+								text = text .. "\n\255\240\240\240" .. UnitDefs[uDefID].translatedTooltip
 
 								WG['tooltip'].ShowTooltip('buildmenu', text)
 							end
