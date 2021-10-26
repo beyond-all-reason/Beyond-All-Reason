@@ -19,10 +19,6 @@ end
 
 include("keysym.h.lua")
 
-local function IsOnRect(x, y, BLcornerX, BLcornerY, TRcornerX, TRcornerY)
-	return x >= BLcornerX and x <= TRcornerX and y >= BLcornerY and y <= TRcornerY
-end
-
 local function table_invert(t)
 	local s = {}
 	for k, v in pairs(t) do
@@ -265,6 +261,7 @@ local math_floor = math.floor
 local math_ceil = math.ceil
 local math_max = math.max
 local math_min = math.min
+local math_isInRect = math.isInRect
 
 local glTexture = gl.Texture
 local glTexRect = gl.TexRect
@@ -1685,7 +1682,7 @@ function widget:DrawScreen()
 		end
 
 		local hovering = false
-		if IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
+		if math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
 			Spring.SetMouseCursor('cursornormal')
 			hovering = true
 		end
@@ -1700,7 +1697,7 @@ function widget:DrawScreen()
 			if not WG['topbar'] or not WG['topbar'].showingQuit() then
 				if hovering then
 					for cellRectID, cellRect in pairs(cellRects) do
-						if IsOnRect(x, y, cellRect[1], cellRect[2], cellRect[3], cellRect[4]) then
+						if math_isInRect(x, y, cellRect[1], cellRect[2], cellRect[3], cellRect[4]) then
 							hoveredCellID = cellRectID
 							local cmd = cellcmds[cellRectID]
 							local cellIsSelected = (activeCmd and cmd and activeCmd == cmd.name)
@@ -1733,7 +1730,7 @@ function widget:DrawScreen()
 					end
 
 					for cat, catRect in pairs(catRects) do
-						if IsOnRect(x, y, catRect[1], catRect[2], catRect[3], catRect[4]) then
+						if math_isInRect(x, y, catRect[1], catRect[2], catRect[3], catRect[4]) then
 							hoveredCat = cat
 
 							if hoveredCat ~= drawnHoveredCat then
@@ -1766,7 +1763,7 @@ function widget:DrawScreen()
 				end
 
 				for lab, labRect in pairs(labButtonRects) do
-					if IsOnRect(x, y, labRect[1], labRect[2], labRect[3], labRect[4]) then
+					if math_isInRect(x, y, labRect[1], labRect[2], labRect[3], labRect[4]) then
 						hoveredLabButton = lab
 
 						if hoveredLabButton ~= drawnHoveredLabButton then
@@ -1816,14 +1813,14 @@ function widget:DrawScreen()
 			local usedZoom
 			local cellColor
 			if not WG['topbar'] or not WG['topbar'].showingQuit() then
-				if IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
+				if math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
 
 					-- paginator buttons
 					local paginatorHovered = false
-					if paginatorRects[1] and IsOnRect(x, y, paginatorRects[1][1], paginatorRects[1][2], paginatorRects[1][3], paginatorRects[1][4]) then
+					if paginatorRects[1] and math_isInRect(x, y, paginatorRects[1][1], paginatorRects[1][2], paginatorRects[1][3], paginatorRects[1][4]) then
 						paginatorHovered = 1
 					end
-					if paginatorRects[2] and IsOnRect(x, y, paginatorRects[2][1], paginatorRects[2][2], paginatorRects[2][3], paginatorRects[2][4]) then
+					if paginatorRects[2] and math_isInRect(x, y, paginatorRects[2][1], paginatorRects[2][2], paginatorRects[2][3], paginatorRects[2][4]) then
 						paginatorHovered = 2
 					end
 					if paginatorHovered then
@@ -2319,13 +2316,13 @@ function widget:MousePress(x, y, button)
 		return
 	end
 
-	if IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
+	if math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
 		if selectedBuilder or selectedFactory or (preGamestartPlayer and startDefID) then
-			if paginatorRects[1] and IsOnRect(x, y, paginatorRects[1][1], paginatorRects[1][2], paginatorRects[1][3], paginatorRects[1][4]) then
+			if paginatorRects[1] and math_isInRect(x, y, paginatorRects[1][1], paginatorRects[1][2], paginatorRects[1][3], paginatorRects[1][4]) then
 				currentPage = math_max(1, currentPage - 1)
 				doUpdate = true
 				return true
-			elseif paginatorRects[2] and IsOnRect(x, y, paginatorRects[2][1], paginatorRects[2][2], paginatorRects[2][3], paginatorRects[2][4]) then
+			elseif paginatorRects[2] and math_isInRect(x, y, paginatorRects[2][1], paginatorRects[2][2], paginatorRects[2][3], paginatorRects[2][4]) then
 				currentPage = math_min(pages, currentPage + 1)
 				doUpdate = true
 				return true
@@ -2333,7 +2330,7 @@ function widget:MousePress(x, y, button)
 
 			if not disableInput then
 				for cat, catRect in pairs(catRects) do
-					if IsOnRect(x, y, catRect[1], catRect[2], catRect[3], catRect[4]) then
+					if math_isInRect(x, y, catRect[1], catRect[2], catRect[3], catRect[4]) then
 						currentBuildCategory = cat
 						switchedCategory = true
 
@@ -2349,7 +2346,7 @@ function widget:MousePress(x, y, button)
 				end
 
 				for lab, labRect in pairs(labButtonRects) do
-					if IsOnRect(x, y, labRect[1], labRect[2], labRect[3], labRect[4]) then
+					if math_isInRect(x, y, labRect[1], labRect[2], labRect[3], labRect[4]) then
 						labActions[lab]()
 
 						return true
@@ -2357,7 +2354,7 @@ function widget:MousePress(x, y, button)
 				end
 
 				for cellRectID, cellRect in pairs(cellRects) do
-					if cellcmds[cellRectID].id and UnitDefs[-cellcmds[cellRectID].id].translatedHumanName and IsOnRect(x, y, cellRect[1], cellRect[2], cellRect[3], cellRect[4]) and not unitRestricted[-cellcmds[cellRectID].id] then
+					if cellcmds[cellRectID].id and UnitDefs[-cellcmds[cellRectID].id].translatedHumanName and math_isInRect(x, y, cellRect[1], cellRect[2], cellRect[3], cellRect[4]) and not unitRestricted[-cellcmds[cellRectID].id] then
 						if button ~= 3 then
 							Spring.PlaySoundFile(Cfgs.sound_queue_add, 0.75, 'ui')
 
@@ -2471,7 +2468,7 @@ function widget:MouseRelease(x, y, button)
 
 	if selectedFactory and not disableInput then
 		for lab, labRect in pairs(labButtonRects) do
-			if IsOnRect(x, y, labRect[1], labRect[2], labRect[3], labRect[4]) then
+			if math_isInRect(x, y, labRect[1], labRect[2], labRect[3], labRect[4]) then
 				doUpdate = true
 				return true
 			end
