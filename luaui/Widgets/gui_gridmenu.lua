@@ -2683,8 +2683,8 @@ function widget:DrawScreen()
 					if hoveredCellID then
 						local uDefID = cellcmds[hoveredCellID].id * -1
 						local cellIsSelected = (activeCmd and cellcmds[hoveredCellID] and activeCmd == cellcmds[hoveredCellID].name)
-						if not prevHoveredCellID or hoveredCellID ~= prevHoveredCellID or uDefID ~= hoverUdefID or cellIsSelected ~= hoverCellSelected or b ~= prevB or b3 ~= prevB3 or cmds[hoveredCellID].params[1] ~= prevQueueNr then
-							prevQueueNr = cmds[hoveredCellID].params[1]
+						if not prevHoveredCellID or hoveredCellID ~= prevHoveredCellID or uDefID ~= hoverUdefID or cellIsSelected ~= hoverCellSelected or b ~= prevB or b3 ~= prevB3 or cellcmds[hoveredCellID].params[1] ~= prevQueueNr then
+							prevQueueNr = cellcmds[hoveredCellID].params[1]
 							prevB = b
 							prevB3 = b3
 							prevHoveredCellID = hoveredCellID
