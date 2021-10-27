@@ -38,7 +38,7 @@ return {
 		selfdestructas = "mediumBuildingExplosionGenericSelfd",
 		sightdistance = 475,
 		usebuildinggrounddecal = true,
-		yardmap = "ooooooooo",
+		yardmap = "oooo",
 		customparams = {
 			unitgroup = 'weapon',
 			model_author = "Beherith",
