@@ -1081,7 +1081,7 @@ local function drawCategoryButtons()
 		local opts = {
 			highlight = (cat == currentBuildCategory),
 			hovered = (hoveredCat == cat),
-			fontSize = fontSize,
+			fontSize = fontSize * ui_scale,
 		}
 
 		if opts.hovered then
