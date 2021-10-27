@@ -149,6 +149,7 @@ function widget:Initialize()
 
     spSendCommands('unbindkeyset Any+;')
     spSendCommands('bind Any+; losradar')
+    spSendCommands('bind Any+0xf6 losradar')	
 
 	WG['los'] = {}
 	WG['los'].getColorize = function()
