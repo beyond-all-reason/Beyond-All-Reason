@@ -671,7 +671,7 @@ function widget:ViewResize()
 	elementCorner = WG.FlowUI.elementCorner
 	categoryFontSize = 0.0115 * ui_scale * vsy
 	pageButtonHeight = 3 * categoryFontSize * ui_scale
-	pageButtonWidth = 8 * categoryFontSize * ui_scale
+	pageButtonWidth = 9 * categoryFontSize * ui_scale
 	if stickToBottom then
 		paginatorFontSize = categoryFontSize
 	else
