@@ -96,7 +96,7 @@ local function NewCell(px, pz)
 	position.x, position.z = x, z
 	position.y = Spring.GetGroundHeight(x, z)
 	if x < 0 or z < 0 or x > Game.mapSizeX or z > Game.mapSizeZ  then
-		print(px,pz,'cell not in map',x,z)
+		--print(px,pz,'cell not in map',x,z)
 		return
 	end
 	local values = {
@@ -166,7 +166,7 @@ function TargetHST:GetOrCreateCellHere(pos,posZ)--can be a position or 2 grid lo
 	cell = NewCell(px,pz)
 	if cell then
 		table.insert(self.cellList, cell)
-		self:Warn(#self.cellList)
+		self:EchoDebug('#selfcelllist',#self.cellList)
 		if not self.cells[px] then self.cells[px] = {} end
 		self.cells[px][pz] = cell
 		return self.cells[px][pz]
@@ -305,7 +305,7 @@ function TargetHST:HorizontalLine(x, z, tx, threatResponse, groundAirSubmerged, 
 		if cell then
 			self.cells[ix][z][threatResponse][groundAirSubmerged] = self.cells[ix][z][threatResponse][groundAirSubmerged] + val
 		else
-			self:Warn('Cell not exist or is not in map in horizontalLine',ix,z)
+			--self:Warn('Cell not exist or is not in map in horizontalLine',ix,z)
 		end
 	end
 end
@@ -577,7 +577,7 @@ function TargetHST:UpdateEnemies()
 
 				local px, pz = GetCellPosition(pos)
 				if not self:CellExist(px,pz) then
-					self:Warn('warning cell is not already defined!!!!',px,pz)
+					--self:Warn('warning cell is not already defined!!!!',px,pz)
 				end
 				local cell = self:GetOrCreateCellHere(pos)
 				if los == 1 then

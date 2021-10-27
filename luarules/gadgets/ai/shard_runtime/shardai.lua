@@ -79,9 +79,9 @@ function ShardAI:Update()
 		if m == nil then
 			self:Warn("nil module!")
 		else
- 			self.game:StartTimer(m:Name() .. ' ai')
+ 			--self.game:StartTimer(m:Name() .. ' ai')
 			m:Update()
- 			self.game:StopTimer(m:Name() .. ' ai')
+ 			--self.game:StopTimer(m:Name() .. ' ai')
 		end
 	end
 end
