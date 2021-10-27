@@ -1500,8 +1500,8 @@ function drawPaginators(activeArea)
 		local contentHeight = activeArea[4] - activeArea[2]
 		paginatorCellHeight = contentHeight / 3
 
-		paginatorRects[1] = { activeArea[3] - paginatorCellWidth - activeAreaMargin, activeArea[2] + activeAreaMargin, activeArea[3] - bgpadding - activeAreaMargin, activeArea[2] + paginatorCellHeight }
-		paginatorRects[2] = { activeArea[3] - paginatorCellWidth - activeAreaMargin, activeArea[2] + 2 * paginatorCellHeight, activeArea[3] - bgpadding - activeAreaMargin, activeArea[2] + 3 * paginatorCellHeight - activeAreaMargin }
+		paginatorRects[1] = { activeArea[3] - paginatorCellWidth, activeArea[2] + activeAreaMargin, activeArea[3] - bgpadding - activeAreaMargin, activeArea[2] + paginatorCellHeight }
+		paginatorRects[2] = { activeArea[3] - paginatorCellWidth, activeArea[2] + 2 * paginatorCellHeight, activeArea[3] - bgpadding - activeAreaMargin, activeArea[2] + 3 * paginatorCellHeight - activeAreaMargin }
 
 		UiButton(paginatorRects[1][1] + cellPadding, paginatorRects[1][2] + cellPadding, paginatorRects[1][3] - cellPadding, paginatorRects[1][4] - cellPadding, 1,1,1,1, 1,1,1,1, nil, { 0, 0, 0, 0.8 }, { 0.2, 0.2, 0.2, 0.8 }, bgpadding * 0.5)
 		font2:Print("\255\215\255\215[".. PREV_PAGE_KEY .."]", paginatorRects[1][1] + (paginatorCellWidth * 0.5), paginatorRects[1][2] + (paginatorCellHeight * 0.5) - paginatorFontSize * 0.25, paginatorFontSize, "co")
