@@ -26,6 +26,39 @@ local function PlotSquareDebug(x, z, size, color, label, filled)
 	end
 end
 
+function TargetHST:UpdateDebug()
+	if not DebugDrawEnabled then
+		return
+	end
+	map:EraseRectangle(nil, nil, nil, nil, true, 8)
+	map:EraseRectangle(nil, nil, nil, nil, false, 8)
+	local maxThreat = 0
+	local maxValue = 0
+	for cx, czz in pairs(self.cells) do
+		for cz, cell in pairs(czz) do
+			local value, threat = self:CellValueThreat("ALL", cell)
+			if threat > maxThreat then maxThreat = threat end
+			if value > maxValue then maxValue = value end
+		end
+	end
+	for cx, czz in pairs(self.cells) do
+		for cz, cell in pairs(czz) do
+			local x = cell.x * cellElmos - cellElmosHalf
+			local z = cell.z * cellElmos - cellElmosHalf
+			local value, threat = self:CellValueThreat("ALL", cell)
+			if value > 0 then
+				local g = value / maxValue
+				local b = 1 - g
+				PlotSquareDebug(x, z, cellElmos, {0,g,b}, tostring(value), false)
+			end
+			if threat > 0 then
+				local g = 1 - (threat / maxThreat)
+				PlotSquareDebug(x, z, cellElmos, {1,g,0}, tostring(threat), true)
+			end
+		end
+	end
+end
+
 local cellElmos = 256
 local cellElmosHalf = cellElmos / 2
 local threatTypes = { "ground", "air", "submerged" }
@@ -52,7 +85,20 @@ local feintRepeatMod = 25
 
 local unitValue = {}
 
+
+
+
+
 local function NewCell(px, pz)
+	local x = px * cellElmos - cellElmosHalf
+	local z = pz * cellElmos - cellElmosHalf
+	local position = api.Position()
+	position.x, position.z = x, z
+	position.y = Spring.GetGroundHeight(x, z)
+	if x < 0 or z < 0 or x > Game.mapSizeX or z > Game.mapSizeZ  then
+		--print(px,pz,'cell not in map',x,z)
+		return
+	end
 	local values = {
 	ground = {ground = 0, air = 0, submerged = 0, value = 0},
 	air = {ground = 0, air = 0, submerged = 0, value = 0},
@@ -64,13 +110,67 @@ local function NewCell(px, pz)
 	local threat = { ground = 0, air = 0, submerged = 0 } -- threats (including buildings) by what they hurt
 	local response = { ground = 0, air = 0, submerged = 0 } -- count mobile threat by what can hurt it
 	local preresponse = { ground = 0, air = 0, submerged = 0 } -- count where mobile threat will probably be by what can hurt it
-	local x = px * cellElmos - cellElmosHalf
-	local z = pz * cellElmos - cellElmosHalf
-	local position = api.Position()
-	position.x, position.z = x, z
-	position.y = Spring.GetGroundHeight(x, z)
+
 	local newcell = { value = 0, explosionValue = 0, values = values, threat = threat, response = response, buildingIDs = {}, targets = targets, vulnerables = vulnerables, resurrectables = {}, reclaimables = {}, lastDisarmThreat = 0, metal = 0, energy = 0, x = px, z = pz, pos = position }
+
 	return newcell
+end
+
+function TargetHST:createGridCell()
+	self.cells = {}
+	for x = 1, Game.mapSizeX / cellElmos do
+		if not self.cells[x] then
+			self.cells[x] = {}
+		end
+		for z = 1, Game.mapSizeZ / cellElmos do
+			self.cells[x][z] = NewCell(x,z)
+		end
+	end
+end
+
+function TargetHST:CellExist(x,z)
+	if not self.cells[x] or not  self.cells[x][z] then
+		return false
+	end
+	return self.cells[x][z],x,z
+end
+
+local function GetCellPosition(pos)
+	local px = mCeil(pos.x / cellElmos)
+	local pz = mCeil(pos.z / cellElmos)
+	return px, pz
+end
+
+
+function TargetHST:GetCellHere(pos)
+	local px, pz = GetCellPosition(pos)
+	if self.cells[px] and self.cells[px][pz] then
+		return self.cells[px][pz], px, pz
+	end
+end
+
+function TargetHST:GetOrCreateCellHere(pos,posZ)--can be a position or 2 grid location(px,pz)
+	local px,pz
+	if type(pos) == 'table' then
+		px, pz = GetCellPosition(pos)
+	else
+		px = pos
+		pz = posZ
+	end
+
+	local cell = self:CellExist(px,pz)
+	if cell then
+		return cell
+
+	end
+	cell = NewCell(px,pz)
+	if cell then
+		table.insert(self.cellList, cell)
+		self:EchoDebug('#selfcelllist',#self.cellList)
+		if not self.cells[px] then self.cells[px] = {} end
+		self.cells[px][pz] = cell
+		return self.cells[px][pz]
+	end
 end
 
 function TargetHST:Value(unitName)
@@ -135,15 +235,45 @@ function TargetHST:CellValueThreat(unitName, cell)
 	return value, threat, gas
 end
 
-local function GetCellPosition(pos)
-	local px = mCeil(pos.x / cellElmos)
-	local pz = mCeil(pos.z / cellElmos)
-	return px, pz
+
+function TargetHST:ValueHere(position, unitOrName)
+	--self:UpdateMap()
+	local uname = self:UnitNameSanity(unitOrName)
+	if not uname then return end
+	local cell, px, pz = self:GetCellHere(position)
+	if cell == nil then return 0, nil, uname end
+	local value, _ = self:CellValueThreat(uname, cell)
+	return value, cell, uname
+end
+
+function TargetHST:ThreatHere(position, unitOrName, adjacent)
+	--self:UpdateMap()
+	local uname = self:UnitNameSanity(unitOrName)
+	if not uname then return end
+	local cell, px, pz = self:GetCellHere(position)
+	if cell == nil then return 0, nil, uname end
+	local value, threat = self:CellValueThreat(uname, cell)
+	if adjacent then
+		for cx = px-1, px+1 do
+			if self.cells[cx] then
+				for cz = pz-1, pz+1 do
+					if not (cx == px and cz == pz) then
+						local c = self.cells[cx][cz]
+						if c then
+							local cvalue, cthreat = self:CellValueThreat(uname, c)
+							threat = threat + cthreat
+						end
+					end
+				end
+			end
+		end
+	end
+	return threat, cell, uname
 end
 
 function TargetHST:Init()
 	self.DebugEnabled = false
-
+	--self:createGridCell()
 	self.enemyAlreadyCounted = {}
 	self.currentEnemyThreatCount = 0
 	self.currentEnemyImmobileThreatCount = 0
@@ -168,35 +298,15 @@ function TargetHST:Init()
 	self.pathModifierFuncs = {}
 end
 
-function TargetHST:GetCellHere(pos)
-	local px, pz = GetCellPosition(pos)
-	if self.cells[px] then
-		return self.cells[px][pz], px, pz
-	end
-end
-
-function TargetHST:GetOrCreateCellHere(pos)
-	local px, pz = GetCellPosition(pos)
-	if self.cells[px] == nil then self.cells[px] = {} end
-	if self.cells[px][pz] == nil then
-		local cell = NewCell(px, pz)
-		cell.pos = pos
-		self.cells[px][pz] = cell
-		table.insert(self.cellList, cell)
-		return cell
-	end
-	return self.cells[px][pz]
-end
-
 function TargetHST:HorizontalLine(x, z, tx, threatResponse, groundAirSubmerged, val)
 	-- self:EchoDebug("horizontal line from " .. x .. " to " .. tx .. " along z " .. z .. " with value " .. val .. " in " .. groundAirSubmerged)
 	for ix = x, tx do
-		if self.cells[ix] == nil then self.cells[ix] = {} end
-		if self.cells[ix][z] == nil then
-			-- self:EchoDebug("new cell" .. ix .. "," .. z)
-			self.cells[ix][z] = NewCell(ix, z)
+		local cell =self:GetOrCreateCellHere(ix,z)
+		if cell then
+			self.cells[ix][z][threatResponse][groundAirSubmerged] = self.cells[ix][z][threatResponse][groundAirSubmerged] + val
+		else
+			--self:Warn('Cell not exist or is not in map in horizontalLine',ix,z)
 		end
-		self.cells[ix][z][threatResponse][groundAirSubmerged] = self.cells[ix][z][threatResponse][groundAirSubmerged] + val
 	end
 end
 
@@ -234,13 +344,11 @@ function TargetHST:CheckHorizontalLine(x, z, tx, threatResponse, groundAirSubmer
 	local value = 0
 	local threat = 0
 	for ix = x, tx do
-		if self.cells[ix] ~= nil then
-			if self.cells[ix][z] ~= nil then
-				local cell = self.cells[ix][z]
-				local value = cell.values[groundAirSubmerged].value -- can't hurt it
-				local threat = cell[threatResponse][groundAirSubmerged]
-				return value, threat
-			end
+		if self:CellExist(ix,z) then
+			local cell = self.cells[ix][z]
+			local value = cell.values[groundAirSubmerged].value -- can't hurt it
+			local threat = cell[threatResponse][groundAirSubmerged]
+			return value, threat
 		end
 	end
 	return value, threat
@@ -289,6 +397,47 @@ function TargetHST:CheckInRadius(cx, cz, radius, threatResponse, groundAirSubmer
 	    end
 	end
 	return value, threat
+end
+
+function TargetHST:adiaCells(px,pz,field)--return a list with 8 adiacent cells respect the reference cell
+	local adiacents = {}
+	for x = px - 1, px + 1 do
+		if self.cells[x] ~= nil then
+			for z = pz - 1, pz + 1 do
+				if (x ~= px or z ~= pz) and self.cells[x][z] then -- ignore center cell
+					if field and self.cells[x][z][field] == nil then
+						self.cells[x][z][field] = 0
+					end
+					adiacents[x] = z
+				end
+			end
+		end
+	end
+	return adiacents
+end
+
+function TargetHST:UnitNameSanity(unitOrName)--TODO move to tool
+	if not unitOrName then
+		self.game:Warn('nil unit or name')
+		return
+	end
+	if type(unitOrName) == 'string' then
+		if not self.ai.armyhst.unitTable[unitOrName] then
+			self.game:Warn('invalid string name',unitOrName)
+			return
+		else
+			return unitOrName
+		end
+	else
+		local uName = unitOrName:Name()
+		if uName ~= nil  and self.ai.armyhst.unitTable[uName]then
+			return uName
+		else
+			self.game:Warn('invalid object unit give invalid name',unitOrName)
+			return
+		end
+	end
+	self.game:Warn('unknow reason to exit from unit name sanity')
 end
 
 function TargetHST:CountEnemyThreat(unitID, unitName, threat)
@@ -424,87 +573,89 @@ function TargetHST:UpdateEnemies()
 			-- count those we know about and that aren't being built
 			local pos
 			if ghost then pos = ghost.position else pos = e.position end
-			local px, pz = GetCellPosition(pos)
-			if self.cells[px] == nil then
-				self.cells[px] = {}
-			end
-			if self.cells[px][pz] == nil then
-				self.cells[px][pz] = NewCell(px, pz)
-				table.insert(self.cellList, self.cells[px][pz])
-			end
-			local cell = self.cells[px][pz]
-			if los == 1 then
-				if ut.isBuilding then
-					cell.value = cell.value + baseBuildingValue
-				else
-					-- if it moves, assume it's out to get you
-					self:FillCircle(px, pz, baseUnitRange, "threat", "ground", baseUnitThreat)
-					self:FillCircle(px, pz, baseUnitRange, "threat", "air", baseUnitThreat)
-					self:FillCircle(px, pz, baseUnitRange, "threat", "submerged", baseUnitThreat)
+ 			if self.ai.buildsitehst:isInMap(pos) then
+
+				local px, pz = GetCellPosition(pos)
+				if not self:CellExist(px,pz) then
+					--self:Warn('warning cell is not already defined!!!!',px,pz)
 				end
-			elseif los == 2 then
-				local mtype = ut.mtype
-				self:DangerCheck(name, e.unitID)
-				local value = self:Value(name)
-				if self.ai.armyhst.unitTable[name].extractsMetal ~= 0 then
-					table.insert(self.ai.enemyMexSpots, { position = pos, unit = e })
-				end
-				if self.ai.armyhst.unitTable[name].isBuilding then
-					table.insert(cell.buildingIDs, e.unitID)
-				end
-				local hurtBy = self.ai.tool:WhatHurtsUnit(name)
-				local threatLayers = self.ai.tool:UnitThreatRangeLayers(name)
-				local threatToTurtles = threatLayers.ground.threat + threatLayers.submerged.threat
-				local maxRange = max(threatLayers.ground.range, threatLayers.submerged.range)
-				for groundAirSubmerged, layer in pairs(threatLayers) do
-					if threatToTurtles ~= 0 and hurtBy[groundAirSubmerged] then
-						self:FillCircle(px, pz, maxRange, "response", groundAirSubmerged, threatToTurtles)
+				local cell = self:GetOrCreateCellHere(pos)
+				if los == 1 then
+					if ut.isBuilding then
+						cell.value = cell.value + baseBuildingValue
+					else
+						-- if it moves, assume it's out to get you
+						self:FillCircle(px, pz, baseUnitRange, "threat", "ground", baseUnitThreat)
+						self:FillCircle(px, pz, baseUnitRange, "threat", "air", baseUnitThreat)
+						self:FillCircle(px, pz, baseUnitRange, "threat", "submerged", baseUnitThreat)
 					end
-					local threat, range = layer.threat, layer.range
-					if mtype == "air" and groundAirSubmerged == "ground" or groundAirSubmerged == "submerged" then threat = 0 end -- because air units are pointless to run from
-					if threat ~= 0 then
-						self:FillCircle(px, pz, range, "threat", groundAirSubmerged, threat)
-						self:CountEnemyThreat(e.unitID, name, threat)
-					elseif mtype ~= "air" then -- air units are too hard to attack
-						local health = e.health
-						for hurtGAS, hit in pairs(hurtBy) do
-							cell.values[groundAirSubmerged][hurtGAS] = cell.values[groundAirSubmerged][hurtGAS] + value
-							if cell.targets[groundAirSubmerged][hurtGAS] == nil then
-								cell.targets[groundAirSubmerged][hurtGAS] = e
-							else
-								if value > self:Value(cell.targets[groundAirSubmerged][hurtGAS].unitName) then
+				elseif los == 2 then
+					local mtype = ut.mtype
+					self:DangerCheck(name, e.unitID)
+					local value = self:Value(name)
+					if self.ai.armyhst.unitTable[name].extractsMetal ~= 0 then
+						table.insert(self.ai.enemyMexSpots, { position = pos, unit = e })
+					end
+					if self.ai.armyhst.unitTable[name].isBuilding then
+						table.insert(cell.buildingIDs, e.unitID)
+					end
+					local hurtBy = self.ai.tool:WhatHurtsUnit(name)
+					local threatLayers = self.ai.tool:UnitThreatRangeLayers(name)
+					local threatToTurtles = threatLayers.ground.threat + threatLayers.submerged.threat
+					local maxRange = max(threatLayers.ground.range, threatLayers.submerged.range)
+					for groundAirSubmerged, layer in pairs(threatLayers) do
+						if threatToTurtles ~= 0 and hurtBy[groundAirSubmerged] then
+							self:FillCircle(px, pz, maxRange, "response", groundAirSubmerged, threatToTurtles)
+						end
+						local threat, range = layer.threat, layer.range
+						if mtype == "air" and groundAirSubmerged == "ground" or groundAirSubmerged == "submerged" then threat = 0 end -- because air units are pointless to run from
+						if threat ~= 0 then
+							self:FillCircle(px, pz, range, "threat", groundAirSubmerged, threat)
+							self:CountEnemyThreat(e.unitID, name, threat)
+						elseif mtype ~= "air" then -- air units are too hard to attack
+							local health = e.health
+							for hurtGAS, hit in pairs(hurtBy) do
+								cell.values[groundAirSubmerged][hurtGAS] = cell.values[groundAirSubmerged][hurtGAS] + value
+								if cell.targets[groundAirSubmerged][hurtGAS] == nil then
 									cell.targets[groundAirSubmerged][hurtGAS] = e
+								else
+									if value > self:Value(cell.targets[groundAirSubmerged][hurtGAS].unitName) then
+										cell.targets[groundAirSubmerged][hurtGAS] = e
+									end
+								end
+								if health < vulnerableHealth then
+									cell.vulnerables[groundAirSubmerged][hurtGAS] = e
+								end
+								if groundAirSubmerged == "air" and hurtGAS == "ground" and threatLayers.ground.threat > cell.lastDisarmThreat then
+									cell.disarmTarget = e
+									cell.lastDisarmThreat = threatLayers.ground.threat
 								end
 							end
-							if health < vulnerableHealth then
-								cell.vulnerables[groundAirSubmerged][hurtGAS] = e
-							end
-							if groundAirSubmerged == "air" and hurtGAS == "ground" and threatLayers.ground.threat > cell.lastDisarmThreat then
-								cell.disarmTarget = e
-								cell.lastDisarmThreat = threatLayers.ground.threat
-							end
-						end
-						if ut.bigExplosion then
-							cell.explosionValue = cell.explosionValue + bomberExplosionValue
-							if cell.explosiveTarget == nil then
-								cell.explosiveTarget = e
-							else
-								if value > self:Value(cell.explosiveTarget.unitName) then
+							if ut.bigExplosion then
+								cell.explosionValue = cell.explosionValue + bomberExplosionValue
+								if cell.explosiveTarget == nil then
 									cell.explosiveTarget = e
+								else
+									if value > self:Value(cell.explosiveTarget.unitName) then
+										cell.explosiveTarget = e
+									end
 								end
 							end
 						end
 					end
-				end
-				cell.value = cell.value + value
-				if cell.value > highestValue then
-					highestValue = cell.value
-					highestValueCell = cell
-				end
+					cell.value = cell.value + value
+					if cell.value > highestValue then
+						highestValue = cell.value
+						highestValueCell = cell
+
+					end
+			end
 		end
 			-- we dont want to target the center of the cell encase its a ledge with nothing
 			-- on it etc so target this units position instead
-			cell.pos = pos
+			if cell then
+				cell.pos = pos
+			end
 		end
 	end
 	if highestValueCell then
@@ -554,7 +705,7 @@ function TargetHST:UpdateBadPositions()
 	local f = self.game:Frame()
 	for i = #self.badPositions, 1, -1 do
 		local r = self.badPositions[i]
-		if self.cells[r.px] then
+		if self:CellExist(r.px , r.pz) then
 			cell = self.cells[r.px][r.pz]
 			if cell then
 				cell.threat[r.groundAirSubmerged] = cell.threat[r.groundAirSubmerged] + r.threat
@@ -563,42 +714,6 @@ function TargetHST:UpdateBadPositions()
 		if f > r.frame + r.duration then
 			-- remove bad positions after 1 minute
 			table.remove(self.badPositions, i)
-		end
-	end
-end
-
-function TargetHST:UpdateWrecks()
-	-- figure out where all the wrecks are
-	for id, w in pairs(self.ai.knownWrecks) do
-		-- will need to check if reclaimer can get to wreck later
-		local pos = w.position
-		local cell = self:GetOrCreateCellHere(pos)
-		local wname = w.featureName
-		local ftable = self.ai.armyhst.featureTable[wname]
-		if ftable ~= nil then
-			cell.metal = cell.metal + ftable.metal
-			cell.energy = cell.energy + ftable.energy
-			local unitName = ftable.unitName
-			if unitName ~= nil then
-				w.unitName = unitName
-				local rut = self.ai.armyhst.unitTable[unitName]
-				if not self.ai.armyhst.commanderList[unitName] and rut.speed > 0 and rut.metalCost < 2000 then
-					table.insert(cell.resurrectables, w)
-				end
-			end
-			if ftable.metal > 0 then
-				table.insert(cell.reclaimables, w)
-			end
-		else
-			for findString, metalValue in pairs(self.ai.armyhst.baseFeatureMetal) do
-				if string.find(wname, findString, nil, true) then
-					cell.metal = cell.metal + metalValue
-					break
-				end
-			end
-			if metalValue > 0 then
-				table.insert(cell.reclaimables, w)
-			end
 		end
 	end
 end
@@ -638,38 +753,6 @@ function TargetHST:UpdateFronts(number)
 	self.ai.defendhst:FindFronts(highestCells)
 end
 
-function TargetHST:UpdateDebug()
-	if DebugDrawEnabled then
-		map:EraseRectangle(nil, nil, nil, nil, true, 8)
-		map:EraseRectangle(nil, nil, nil, nil, false, 8)
-		local maxThreat = 0
-		local maxValue = 0
-		for cx, czz in pairs(self.cells) do
-			for cz, cell in pairs(czz) do
-				local value, threat = self:CellValueThreat("ALL", cell)
-				if threat > maxThreat then maxThreat = threat end
-				if value > maxValue then maxValue = value end
-			end
-		end
-		for cx, czz in pairs(self.cells) do
-			for cz, cell in pairs(czz) do
-				local x = cell.x * cellElmos - cellElmosHalf
-				local z = cell.z * cellElmos - cellElmosHalf
-				local value, threat = self:CellValueThreat("ALL", cell)
-				if value > 0 then
-					local g = value / maxValue
-					local b = 1 - g
-					PlotSquareDebug(x, z, cellElmos, {0,g,b}, tostring(value), false)
-				end
-				if threat > 0 then
-					local g = 1 - (threat / maxThreat)
-					PlotSquareDebug(x, z, cellElmos, {1,g,0}, tostring(threat), true)
-				end
-			end
-		end
-	end
-end
-
 function TargetHST:UnitDamaged(unit, attacker, damage)
 	-- even if the attacker can't be seen, human players know what weapons look like
 	-- in non-lua shard, the attacker is nil if it's an enemy unit, so this becomes useless
@@ -694,6 +777,16 @@ end
 
 function TargetHST:Update()
 	local f = self.game:Frame()
+	if f == 0 or f % 71 == 0 then
+		self:UpdateMap()
+		self.map:EraseAll(4)
+		for x,t in pairs(self.cells) do
+			for z,cell in pairs(t) do
+
+				self.map:DrawCircle({x=x*256,y = Spring.GetGroundHeight(x*256,z*256),z=z*256},256, {1,1,1,1}, nil,true, 4)
+			end
+		end
+	end
     if f == 0 or f % 1800 == 0 then
 	--if f > self.lastEnemyThreatUpdateFrame + 1800 or self.lastEnemyThreatUpdateFrame == 0 then TODO changed cause broked why??
 		-- store and reset the threat count
@@ -734,25 +827,27 @@ end
 
 function TargetHST:UpdateMap()
 	if self.ai.lastLOSUpdate > self.lastUpdateFrame then
-		-- game:SendToConsole("before target update", collectgarbage("count")/1024)
+
+-- 		game:SendToConsole("before target update", collectgarbage("count")/1024)
 		self.raiderCounted = {}
-		self.cells = {}
+		self.cells = {}--TODO
+		--self:createGridCell()--create instead of delete all self:Cells() so the table is allways populated--TEST
 		self.cellList = {}
 		self:UpdateEnemies()
 		self:UpdateDangers()
 		self:UpdateBadPositions()
-		self:UpdateWrecks()
 		self:UpdateDamagedUnits()
-		-- self:UpdateMetalGeoSpots()
 		self:UpdateFronts(3)
 		self:UpdateDebug()
+		--self:UpdateWrecks()
+		-- self:UpdateMetalGeoSpots()
 		self.lastUpdateFrame = self.game:Frame()
-		-- game:SendToConsole("after target update", collectgarbage("count")/1024)
-		-- collectgarbage()
-		-- game:SendToConsole("after collectgarbage", collectgarbage("count")/1024)
+		--game:SendToConsole("after target update", collectgarbage("count")/1024)
+		--collectgarbage()
+		--game:SendToConsole("after collectgarbage", collectgarbage("count")/1024)
 	end
 end
-
+------------------------------------------------------------------------HERE BEGIN THE ON DEMAND FUNCTION---------------------------
 local function CellVulnerable(cell, hurtByGAS, weaponsGAS)
 	hurtByGAS = hurtByGAS or threatTypesAsKeys
 	weaponsGAS = weaponsGAS or threatTypes
@@ -767,7 +862,7 @@ end
 
 function TargetHST:NearbyVulnerable(unit)
 	if unit == nil then return end
-	self:UpdateMap()
+	--self:UpdateMap()
 	local position = unit:GetPosition()
 	local px, pz = GetCellPosition(position)
 	local unitName = unit:Name()
@@ -775,10 +870,9 @@ function TargetHST:NearbyVulnerable(unit)
 	local weapons = self.ai.tool:UnitWeaponLayerList(unitName)
 	-- check this cell
 	local vulnerable = nil
-	if self.cells[px] ~= nil then
-		if self.cells[px][pz] ~= nil then
-			vulnerable = CellVulnerable(self.cells[px][pz], gas, weapons)
-		end
+	if self:CellExist(px,pz) then
+		vulnerable = CellVulnerable(self.cells[px][pz], gas, weapons)
+
 	end
 	-- check adjacent self.cells
 	if vulnerable == nil then
@@ -799,7 +893,7 @@ end
 
 function TargetHST:GetBestRaidCell(representative)
 	if not representative then return end
-	self:UpdateMap()
+	--self:UpdateMap()
 	local rpos = representative:GetPosition()
 	local inCell = self:GetCellHere(rpos)
 	local threatReduction = 0
@@ -870,7 +964,7 @@ end
 function TargetHST:GetBestAttackCell(representative, position, ourThreat)
 	if not representative then return end
 	position = position or representative:GetPosition()
-	self:UpdateMap()
+	--self:UpdateMap()
 	local bestValueCell
 	local bestValue = -999999
 	local bestAnyValueCell
@@ -939,7 +1033,7 @@ end
 function TargetHST:GetNearestAttackCell(representative, position, ourThreat)
 	if not representative then return end
 	position = position or representative:GetPosition()
-	self:UpdateMap()
+	--self:UpdateMap()
 	local name = representative:Name()
 	local longrange = self.ai.armyhst.unitTable[name].groundRange > 1000
 	local mtype = self.ai.armyhst.unitTable[name].mtype
@@ -975,7 +1069,7 @@ function TargetHST:GetNearestAttackCell(representative, position, ourThreat)
 end
 
 function TargetHST:GetBestNukeCell()
-	self:UpdateMap()
+	--self:UpdateMap()
 	if self.enemyBaseCell then return self.enemyBaseCell end
 	local best
 	local bestValueThreat = 0
@@ -999,7 +1093,7 @@ function TargetHST:GetBestBombardCell(position, range, minValueThreat, ignoreVal
 		game:SendToConsole("trying to find a place to bombard but ignoring both value and threat doesn't work")
 		return
 	end
-	self:UpdateMap()
+	--self:UpdateMap()
 	if self.enemyBaseCell and not ignoreValue then
 		local dist = self.ai.tool:Distance(position, self.enemyBaseCell.pos)
 		if dist < range then
@@ -1045,7 +1139,7 @@ function TargetHST:GetBestBombardCell(position, range, minValueThreat, ignoreVal
 end
 
 function TargetHST:GetBestBomberTarget(torpedo)
-	self:UpdateMap()
+	--self:UpdateMap()
 	local best
 	local bestValue = 0
 	for i, cell in pairs(self.cellList) do
@@ -1078,146 +1172,8 @@ function TargetHST:GetBestBomberTarget(torpedo)
 	end
 end
 
-function TargetHST:GetBestReclaimCell(representative, lookForEnergy)
-	self:UpdateMap()
-	local rpos = representative:GetPosition()
-	local rname = representative:Name()
-	local best
-	local bestDist = 99999
-	local bestVulnerable
-	for i, cell in pairs(self.cellList) do
-		local value, threat, gas = self:CellValueThreat(rname, cell)
-		if threat == 0 and cell.pos then
-			local canGo = self.ai.maphst:UnitCanGoHere(representative, cell.pos)
-			if not canGo then
-				self:EchoDebug("can't get to reclaim cell, trying nearby")
-				-- check nearby positions, because sometimes the commander is underwater in a crater but can still be reclaimed
-				for angle = halfPi, twicePi, halfPi do
-					local nearPos = self.ai.tool:RandomAway( cell.pos, 110, nil, angle)
-					canGo = self.ai.maphst:UnitCanGoHere(representative, nearPos)
-					if canGo then
-						self:EchoDebug("found accessible position near reclaim cell")
-						break
-					end
-				end
-			end
-			if canGo then
-				local mod = 0
-				if #cell.reclaimables > 0 then
-					if lookForEnergy then
-						mod = cell.energy
-					else
-						mod = cell.metal
-					end
-				end
-				local vulnerable = CellVulnerable(cell, gas, representative.canReclaimGAS)
-				if vulnerable then mod = mod + vulnerableReclaimDistMod end
-				if mod > 0 then
-					local dist = self.ai.tool:Distance(rpos, cell.pos) - (mod * reclaimModMult)
-					if dist < bestDist then
-						best = cell
-						bestDist = dist
-						bestVulnerable = vulnerable
-					end
-				end
-			end
-		end
-	end
-	return best, bestVulnerable
-end
-
-function TargetHST:WreckToResurrect(representative, alsoDamagedUnits)
-	if not representative then return end
-	self:UpdateMap()
-	local rpos = representative:GetPosition()
-	local rname = representative:Name()
-	local best
-	local bestDist = 99999
-	for i, cell in pairs(self.cellList) do
-		if #cell.resurrectables ~= 0 or (alsoDamagedUnits and cell.damagedUnits and #cell.damagedUnits > 0) then
-			local value, threat, gas = self:CellValueThreat(rname, cell)
-			if threat == 0 and cell.pos then
-				if self.ai.maphst:UnitCanGoHere(representative, cell.pos) then
-					local dist = self.ai.tool:Distance(rpos, cell.pos)
-					if dist < bestDist then
-						best = cell
-						bestDist = dist
-					end
-				end
-			end
-		end
-	end
-	if best then
-		self:EchoDebug("got wreck to resurrect")
-		if alsoDamagedUnits and best.damagedUnits and #best.damagedUnits > 0 then
-			local bestUnit
-			local bestHealth
-			local damaged = best.damagedUnits
-			for i = 1, #damaged do
-				local engUnit = damaged[i]
-				local health = engUnit:GetHealth() / engUnit:GetMaxHealth()
-				if not bestHealth or health < bestHealth then
-					bestHealth = health
-					bestUnit = engUnit
-				end
-			end
-			if bestUnit then
-				return bestUnit, best
-			end
-		end
-		local bestWreck
-		local bestMetalCost = 0
-		for i, w in pairs(best.resurrectables) do
-			if w ~= nil then
-				local wname = w.featureName
-				if wname ~= nil then
-					local ft = self.ai.armyhst.featureTable[wname]
-					if ft ~= nil then
-						local ut = self.ai.armyhst.unitTable[ft.unitName]
-						if ut ~= nil then
-							local metalCost = ut.metalCost
-							if metalCost > bestMetalCost then
-								bestWreck = w
-								bestMetalCost = metalCost
-							end
-						end
-					end
-				end
-			end
-		end
-		return bestWreck, best
-	else
-		return nil, self:NearestVulnerableCell(representative)
-	end
-end
-
-function TargetHST:NearestVulnerableCell(representative)
-	if representative == nil then return end
-	self:UpdateMap()
-	local rpos = representative:GetPosition()
-	local rname = representative:Name()
-	local best
-	local bestDist = 99999
-	local weapons = self.ai.tool:UnitWeaponLayerList(rname)
-	for i, cell in pairs(self.cellList) do
-		local value, threat, gas = self:CellValueThreat(rname, cell)
-		if threat == 0 and cell.pos then
-			if self.ai.maphst:UnitCanGoHere(representative, cell.pos) then
-				if CellVulnerable(cell, gas, weapons) ~= nil then
-					local dist = self.ai.tool:Distance(rpos, cell.pos)
-					if dist < bestDist then
-						best = cell
-						bestDist = dist
-					end
-				end
-			end
-		end
-	end
-	return best
-end
-
 function TargetHST:IsBombardPosition(position, unitName)
-	self:UpdateMap()
+	--self:UpdateMap()
 	local px, pz = GetCellPosition(position)
 	local radius = self.ai.armyhst.unitTable[unitName].groundRange
 	local groundValue, groundThreat = self:CheckInRadius(px, pz, radius, "threat", "ground")
@@ -1226,65 +1182,6 @@ function TargetHST:IsBombardPosition(position, unitName)
 	else
 		return false
 	end
-end
-
-function TargetHST:ValueHere(position, unitOrName)
-	self:UpdateMap()
-	if unitOrName == nil then
-		game:SendToConsole("nil unit or name given to ThreatHere")
-		return
-	end
-	local uname
-	if type(unitOrName) == 'string' then
-		uname = unitOrName
-	else
-		uname = unitOrName:Name()
-	end
-	if uname == nil then
-		game:SendToConsole("nil unit name give nto ThreatHere")
-		return
-	end
-	local cell, px, pz = self:GetCellHere(position)
-	if cell == nil then return 0, nil, uname end
-	local value, _ = self:CellValueThreat(uname, cell)
-	return value, cell, uname
-end
-
-function TargetHST:ThreatHere(position, unitOrName, adjacent)
-	self:UpdateMap()
-	if unitOrName == nil then
-		game:SendToConsole("nil unit or name given to ThreatHere")
-		return
-	end
-	local uname
-	if type(unitOrName) == 'string' then
-		uname = unitOrName
-	else
-		uname = unitOrName:Name()
-	end
-	if uname == nil then
-		game:SendToConsole("nil unit name give nto ThreatHere")
-		return
-	end
-	local cell, px, pz = self:GetCellHere(position)
-	if cell == nil then return 0, nil, uname end
-	local value, threat = self:CellValueThreat(uname, cell)
-	if adjacent then
-		for cx = px-1, px+1 do
-			if self.cells[cx] then
-				for cz = pz-1, pz+1 do
-					if not (cx == px and cz == pz) then
-						local c = self.cells[cx][cz]
-						if c then
-							local cvalue, cthreat = self:CellValueThreat(uname, c)
-							threat = threat + cthreat
-						end
-					end
-				end
-			end
-		end
-	end
-	return threat, cell, uname
 end
 
 
@@ -1330,7 +1227,7 @@ function TargetHST:BestAdjacentPosition(unit, targetPosition)
 		-- if we're already in the target cell or adjacent to it, keep moving
 		return nil, true
 	end
-	self:UpdateMap()
+	--self:UpdateMap()
 	local bestDist = 20000
 	local best
 	local notsafe = false
@@ -1347,19 +1244,17 @@ function TargetHST:BestAdjacentPosition(unit, targetPosition)
 				-- don't move to the cell you're already in
 			else
 				local dist = self.ai.tool:DistanceXZ(tx, tz, x, z) * cellElmos
-				if self.cells[x] ~= nil then
-					if self.cells[x][z] ~= nil then
-						local value, threat = self:CellValueThreat(uname, self.cells[x][z])
-						if self.ai.armyhst.raiders[uname] then
-							-- self.cells with other raiders in or nearby are better places to go for raiders
-							if self.cells[x][z].raiderHere then threat = threat - self.cells[x][z].raiderHere end
-							if self.cells[x][z].raiderAdjacent then threat = threat - self.cells[x][z].raiderAdjacent end
-						end
-						if threat > maxThreat then
-							-- if it's below baseUnitThreat, it's probably a lone construction unit
-							dist = dist + threat
-							notsafe = true
-						end
+				if self:CellExist(x,z) then
+					local value, threat = self:CellValueThreat(uname, self.cells[x][z])
+					if self.ai.armyhst.raiders[uname] then
+						-- self.cells with other raiders in or nearby are better places to go for raiders
+						if self.cells[x][z].raiderHere then threat = threat - self.cells[x][z].raiderHere end
+						if self.cells[x][z].raiderAdjacent then threat = threat - self.cells[x][z].raiderAdjacent end
+					end
+					if threat > maxThreat then
+						-- if it's below baseUnitThreat, it's probably a lone construction unit
+						dist = dist + threat
+						notsafe = true
 					end
 				end
 				-- if we just went to the same place, probably not a great place
@@ -1372,21 +1267,9 @@ function TargetHST:BestAdjacentPosition(unit, targetPosition)
 						dist = dist + feintRepeatMod
 					end
 				end
-				if dist < bestDist then
+				if dist < bestDist and self:CellExist(x,z) and self.ai.maphst:UnitCanGoHere(unit, self.cells[x][z].pos) then
 					bestDist = dist
-					if self.cells[x] == nil then self.cells[x] = {} end
-					if self.cells[x][z] == nil then
-						self.cells[x][z] = NewCell(x, z)
-					end
-					if self.cells[x][z].pos == nil then
-						self.cells[x][z].pos = api.Position()
-						self.cells[x][z].pos.x = x * cellElmos - cellElmosHalf
-						self.cells[x][z].pos.z = z * cellElmos - cellElmosHalf
-						self.cells[x][z].pos.y = 0
-					end
-					if self.ai.maphst:UnitCanGoHere(unit, self.cells[x][z].pos) then
-						best = self.cells[x][z]
-					end
+					best = self.cells[x][z]
 				end
 			end
 		end
@@ -1409,54 +1292,14 @@ function TargetHST:RaiderHere(raidbehaviour)
 	local position = unit:GetPosition()
 	local px, pz = GetCellPosition(position)
 	local inCell
-	if self.cells[px] then
+	if self:CellExist(px,pz) then
 		inCell = self.cells[px][pz]
-	end
-	if inCell ~= nil then
 		if inCell.raiderHere == nil then inCell.raiderHere = 0 end
 		inCell.raiderHere = inCell.raiderHere + (uthreat * 0.67)
 	end
 	local adjacentThreatReduction = uthreat * 0.33
-	for x = px - 1, px + 1 do
-		if self.cells[x] ~= nil then
-			for z = pz - 1, pz + 1 do
-				if x == px and z == pz then
-					-- ignore center cell
-				else
-					local cell = self.cells[x][z]
-					if cell ~= nil then
-						if cell.raiderAdjacent == nil then cell.raiderAdjacent = 0 end
-						cell.raiderAdjacent = cell.raiderAdjacent + adjacentThreatReduction
-					end
-				end
-			end
-		end
+	for cx , cz in pairs(self:adiaCells(px,pz,'raiderAdjacent')) do
+		self.cells[cx][cz].raiderAdjacent  = self.cells[cx][cz].raiderAdjacent + adjacentThreatReduction
 	end
 	self.raiderCounted[raidbehaviour.id] = true -- reset with UpdateMap()
-end
-
--- so that reclaimers don't try to reclaim a cell with nothing in it
-function TargetHST:RemoveFeature(feature, position)
-	local px, pz = GetCellPosition(position)
-	local cell
-	if self.cells[px] then
-		cell = self.cells[px][pz]
-	end
-	if not cell then
-		return
-	end
-	for i = #cell.reclaimables, 1, -1 do
-		local recFeature = cell.reclaimables[i].feature
-		if recFeature == feature then
-			table.remove(cell.reclaimables, i)
-			return true
-		end
-	end
-	for i = #cell.resurrectables, 1, -1 do
-		local resFeature = cell.resurrectables[i].feature
-		if resFeature == feature then
-			table.remove(cell.resurrectables, i)
-			return true
-		end
-	end
 end
