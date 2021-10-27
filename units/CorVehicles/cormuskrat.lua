@@ -93,6 +93,7 @@ return {
 			[43] = "corptl",
 		},
 		customparams = {
+			unitgroup = 'builder',
 			area_mex_def = "cormex",
 			longdescription = Spring.I18N('units.longDescriptions.cormuskrat'),
 			model_author = "Mr Bob",

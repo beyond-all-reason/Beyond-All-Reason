@@ -53,6 +53,7 @@ return {
 		usebuildinggrounddecal = false,
 		workertime = 200,
 		customparams = {
+			unitgroup = 'builder',
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "corbuildings/seautil",

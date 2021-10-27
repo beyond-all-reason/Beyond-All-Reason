@@ -13,7 +13,7 @@
 --
 --  Per-unitDef featureDefs
 --
-local mapFeatureProxies = VFS.Include('gamedata/features_i18n_proxies.lua')
+local mapFeatureProxies = VFS.Include('gamedata/map_feature_i18n_proxies.lua')
 
 local function processUnitDef(unitDefName, unitDef)
 	local features = unitDef.featuredefs

@@ -227,6 +227,24 @@ function UnitDef_Post(name, uDef)
 				uDef.unitrestricted = 0
 			end
 		end
+
+		if Spring.GetModOptions().unit_restrictions_nolrpc then
+			local LRPCs = {
+				armbotrail = true,
+				armbrtha = true,
+				armvulc = true,
+				corint = true,
+				corbuzz = true,
+				armbotrail_scav = true,
+				armbrtha_scav = true,
+				armvulc_scav = true,
+				corint_scav = true,
+				corbuzz_scav = true,
+			}
+			if LRPCs[name] then
+				uDef.unitrestricted = 0
+			end
+		end
 	end
 
 	-- Add scav units to normal factories and builders

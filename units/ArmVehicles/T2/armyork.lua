@@ -43,6 +43,7 @@ return {
 		turninplacespeedlimit = 1.63786,
 		turnrate = 618.20001,
 		customparams = {
+			unitgroup = 'aa',
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			prioritytarget = "air",

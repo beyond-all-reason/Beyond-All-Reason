@@ -88,6 +88,7 @@ return {
 			[43] = "cortl",
 		},
 		customparams = {
+			unitgroup = 'builder',
 			area_mex_def = "coruwmex",
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",

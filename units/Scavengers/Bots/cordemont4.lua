@@ -6,7 +6,7 @@ return {
 		brakerate = 1,
 		buildcostenergy = 150000,
 		buildcostmetal = 15000,
-		buildpic = "CORKARGCLASSIC.DDS",
+		buildpic = "CORDEMONT4.DDS",
 		buildtime = 150000,
 		canmove = true,
 		category = "BOT WEAPON ALL NOTSUB NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -39,6 +39,7 @@ return {
 		turnrate = 607.20001,
 		upright = true,
 		customparams = {
+			unitgroup = 'weapon',
 			model_author = "FireStorm",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "corgantry",

@@ -38,6 +38,7 @@ return {
 		turnrate = 1174.15002,
 		upright = true,
 		customparams = {
+			unitgroup = 'aa',
 			model_author = "Kaiser",
 			normaltex = "unittextures/Arm_normal.dds",
 			prioritytarget = "air",

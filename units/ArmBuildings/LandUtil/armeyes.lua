@@ -38,6 +38,7 @@ return {
 		waterline = 5,
 		yardmap = "o",
 		customparams = {
+			unitgroup = 'util',
 			model_author = "Beherith",
 			normaltex = "unittextures/Arm_normal.dds",
 			removestop = true,

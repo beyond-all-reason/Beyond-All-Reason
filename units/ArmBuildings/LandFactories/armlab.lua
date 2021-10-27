@@ -54,6 +54,7 @@ return {
 			[8] = "armflea",
 		},
 		customparams = {
+			unitgroup = 'builder',
 			model_author = "Cremuss",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armbuildings/landfactories",

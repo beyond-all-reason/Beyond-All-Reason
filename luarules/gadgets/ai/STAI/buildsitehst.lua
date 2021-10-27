@@ -107,7 +107,7 @@ function BuildSiteHST:LandWaterFilter(pos, unitTypeToBuild, builder)
 end
 
 function BuildSiteHST:isInMap(pos)
-	local mapSize = self.ai.map:MapDimensions()
+	local mapSize = map:MapDimensions()
 	local maxElmosX = mapSize.x * 8
 	local maxElmosZ = mapSize.z * 8
 	if (pos.x <= 0) or (pos.x > maxElmosX) or (pos.z <= 0) or (pos.z > maxElmosZ) then

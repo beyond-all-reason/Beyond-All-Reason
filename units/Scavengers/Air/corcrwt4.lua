@@ -42,6 +42,7 @@ return {
 		turnrate = 200,
 		upright = true,
 		customparams = {
+			unitgroup = 'aa',
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "other/scavengers",

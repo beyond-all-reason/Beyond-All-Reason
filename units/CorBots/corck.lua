@@ -76,6 +76,7 @@ return {
 			[30] = "corsy",
 		},
 		customparams = {
+			unitgroup = 'builder',
 			area_mex_def = "cormex",
 			longdescription = Spring.I18N('units.longDescriptions.corck'),
 			model_author = "Mr Bob",

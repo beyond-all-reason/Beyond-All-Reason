@@ -44,6 +44,7 @@ return {
 		turninplacespeedlimit = 1.31,
 		turnrate = 400,
 		customparams = {
+			unitgroup = 'weapon',
 			basename = "base",
 			cannon1name = "barrel",
 			driftratio = "0.25",

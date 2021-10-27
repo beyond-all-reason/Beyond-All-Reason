@@ -40,6 +40,7 @@ return {
 		turnrate = 340.5,
 		waterline = 0,
 		customparams = {
+			unitgroup = 'aa',
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",
 			prioritytarget = "air",

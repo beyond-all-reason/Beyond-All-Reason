@@ -6,7 +6,7 @@ return {
 		brakerate = 0.08759,
 		buildcostenergy = 250000,
 		buildcostmetal = 25000,
-		buildpic = "CORGOL.DDS",
+		buildpic = "CORGOLT4.DDS",
 		buildtime = 250000,
 		canmove = true,
 		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -44,6 +44,7 @@ return {
 		turninplacespeedlimit = 1,
 		turnrate = 150,
 		customparams = {
+			unitgroup = 'weapon',
 			basename = "base",
 			cannon1name = "barrel",
 			longdescription = Spring.I18N('units.longDescriptions.corgolt4'),

@@ -93,6 +93,7 @@ return {
 			[43] = "armptl",
 		},
 		customparams = {
+			unitgroup = 'builder',
 			area_mex_def = "armmex",
 			longdescription = Spring.I18N('units.longDescriptions.armbeaver'),
 			model_author = "Beherith",

@@ -12,7 +12,7 @@ return {
 		canattack = false,
 		canmove = true,
 		category = "BOT MOBILE ALL NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
-		collisionvolumeoffsets = "0 0 -2",
+		collisionvolumeoffsets = "0 0 4",
 		collisionvolumescales = "24 27 25",
 		collisionvolumetype = "Box",
 		corpse = "dead",
@@ -43,6 +43,7 @@ return {
 		turnrate = 1086.75,
 		upright = true,
 		customparams = {
+			unitgroup = 'util',
 			model_author = "FireStorm",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "corbots/t2",

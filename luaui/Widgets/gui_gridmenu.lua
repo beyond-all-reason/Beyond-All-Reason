@@ -19,10 +19,6 @@ end
 
 include("keysym.h.lua")
 
-local function IsOnRect(x, y, BLcornerX, BLcornerY, TRcornerX, TRcornerY)
-	return x >= BLcornerX and x <= TRcornerX and y >= BLcornerY and y <= TRcornerY
-end
-
 local function table_invert(t)
 	local s = {}
 	for k, v in pairs(t) do
@@ -33,881 +29,9 @@ end
 
 SYMKEYS = table_invert(KEYSYMS)
 
-local labGrids = {
-	-- T1 bot is default
-	-- T2 bot
-	armalab = {
-		"armack", "armfark", "armspy", "armfast",              -- T2 con, fark, spy, zipper
-		"armmark", "armaser", "armzeus", "armmav",             -- radar bot, jammer bot, zeus, maverick
-		"armfido", "armsnipe", "armaak", "armfboy",            -- fido, sniper, AA bot, fatboi
-	},
-
-	coralab = {
-		"corack", "corfast", "corspy", "corpyro",              -- T2 con, freaker, spy, pyro
-		"corvoyr", "corspec", "corcan", "corhrk",              -- radar bot, jammer bot, can, dominator
-		"cormort", "corsktl", "coraak", "corsumo",             -- morty, skuttle, AA bot, sumo
-	},
-	-- T1 vehicle is default
-	-- T2 vehicle
-	armavp = {
-		"armacv", "armconsul", "armbull", "armmart",           -- T2 con, consul, bulldog, luger
-		"armseer", "armjam", "armmanni", "armst",              -- radar, jammer, penetrator, gremlin
-		"armlatnk", "armcroc", "armyork", "armmerl",           -- panther, triton, AA, merl
-	},
-
-	coravp = {
-		"coracv", "corban", "correap", "cormart",              -- T2 con, banisher, reaper, pillager
-		"corvrad", "coreter", "corgol", "cortrem",             -- radar, jammer, goli, tremor
-		"corseal", "corparrow", "corsent", "corvroc",          -- croc, poison arrow, AA, diplomat
-	},
-	-- T1 air
-	armap = {
-		"armca", "armfig", "armkam", "armthund",           -- T1 con, fig, gunship, bomber
-		"armpeep", "armatlas",                             -- radar, transport,
-	},
-
-	corap = {
-		"corca", "corveng", "corbw", "corshad",              -- T1 con, fig, drone, bomber
-		"corfink", "corvalk",                                -- radar, transport
-	},
-	-- T2 air
-	armaap = {
-		"armaca", "armhawk", "armbrawl", "armpnix",           -- T2 con, fig, gunship, bomber
-		"armawac", "armdfly", "armlance", "armliche",         -- radar, transport, torpedo, liche
-		"armblade", "armstil",                                -- blade, stiletto
-	},
-
-	coraap = {
-		"coraca", "corvamp", "corape", "corhurc",              -- T2 con, fig, gunship, bomber
-		"corawac", "corseah", "cortitan", "corcrw",            -- radar, transport, torpedo, krow
-	},
-	-- seaplanes
-	armplat = {
-		"armcsa", "armsfig", "armsaber", "armsb",           -- seaplane con, fig, gunship, bomber
-		"armsehak", "armseap",                              -- radar, torpedo
-	},
-
-	corplat = {
-		"corcsa", "corsfig", "corcut", "corsb",              -- seaplane con, fig, gunship, bomber
-		"corhunt", "corseap",                                -- radar, torpedo
-	},
-	-- T1 boats
-	armsy = {
-		"armcs", "armrecl", "armdecade", "armpt",            -- T1 sea con, rez sub, decade, PT boat
-		"armpship", "armroy", "armsub", "armtship",          -- frigate, destroyer, sub, transport
-	},
-
-	corsy = {
-		"corcs", "correcl", "coresupp", "corpt",              -- T1 sea con, rez sub, supporter, missile boat
-		"corpship", "corroy", "corsub", "cortship",           -- frigate, destroyer, sub, transport
-	},
-	-- T2 boats
-	armasy = {
-		"armacsub", "armmls", "armcrus", "armmship",         -- T2 con sub, naval engineer, cruiser, rocket ship
-		"armcarry", "armsjam", "armbats", "armepoch",        -- carrier, jammer, battleship, flagship
-		"armsubk", "armserp", "armaas",                      -- sub killer, battlesub, AA
-	},
-
-	corasy = {
-		"coracsub", "cormls", "corcrus", "cormmship",              -- T2 con sub, naval engineer, cruiser, rocket ship
-		"corcarry", "corsjam", "corbats", "corblackhy",            -- carrier, jammer, battleship, flagship
-		"corshark", "corssub", "corarch",                          -- sub killer, battlesub, AA
-	}
-}
-local unitGrids = {
-	-- Commanders
-	armcom = {
-		{
-			{ "armmex", "armmakr", "armmstor", },            -- mex, T1 converter, m storage
-			{ "armsolar", "armwin", "armuwes", },            -- solar, wind, uw e storage
-			{ "armestor", "armtide", "armfmkr", "armuwms", }, -- e storage, tidal, floating converter, uw m storage
-		},
-		{
-			{ "armllt", "armtl", },                          -- LLT, offshore torp launcher
-			{ "armrl", "armfrt", },                          -- basic AA, floating AA
-			{ "armdl", },                                    -- coastal torp launcher
-		},
-		{
-			{ "armrad", "armeyes", "armdrag", },             -- radar, perimeter camera, dragon's teeth
-			{ "armfrad", "armfdrag", },                      -- floating radar, shark's teeth
-			{ },                                             -- empty
-		},
-		{
-			{ "armlab", "armvp", "armap", "armsy", },        -- bot lab, veh lab, air lab, shipyard
-			{ },                                             -- empty row
-			{ "armhp", "armfhp", },                          -- hover lab, floating hover lab
-		}
-	},
-
-	corcom = {
-		{
-			{ "cormex", "cormakr", "cormstor", },            -- mex, T1 converter, m storage
-			{ "corsolar", "corwin", "coruwes", },            -- solar, wind, uw e storage
-			{ "corestor", "cortide", "corfmkr", "coruwms", }, -- e storage, tidal, floating converter, uw m storage
-		},
-		{
-			{ "corllt", "cortl", },                          -- LLT, offshore torp launcher
-			{ "corrl", "corfrt", },                          -- basic AA, floating AA
-			{ "cordl", },                                    -- coastal torp launcher
-		},
-		{
-			{ "corrad", "coreyes", "cordrag", },             -- radar, perimeter camera, dragon's teeth
-			{ "corfrad", "corfdrag", },                      -- floating radar, shark's teeth
-			{ },                                             -- empty
-		},
-		{
-			{ "corlab", "corvp", "corap", "corsy", },        -- bot lab, veh lab, air lab, shipyard
-			{ },                                             -- empty row
-			{ "corhp", "corfhp", },                          -- hover lab, floating hover lab
-		}
-	},
-
-	-- T1 bot con
-	armck = {
-		{
-			{ "armmex", "armmakr", "armmstor", "armamex", },  -- mex, T1 converter, m storage, twilight
-			{ "armsolar", "armwin", "armadvsol", "armgeo", }, -- solar, wind, adv solar, T1 geo
-			{ "armestor", },                                  -- e storage
-		},
-		{
-			{ "armllt", "armbeamer", "armhlt", "armclaw", },  -- LLT, beamer, HLT, lightning turret
-			{ "armrl", "armferret", "armcir", },              -- basic AA, ferret, chainsaw
-			{ "armdl", "armguard", },                         -- coastal torp launcher, guardian
-		},
-		{
-			{ "armrad", "armeyes", "armdrag", "armjamt", },   -- radar, perimeter camera, dragon's teeth, jammer
-			{ "armjuno", },                                   -- juno, air repair pad aircon only
-		},
-		{
-			{ "armlab", "armvp", "armap", "armsy", },         -- bot lab, veh lab, air lab, shipyard
-			{ "armnanotc", "armalab", },                      -- nano, T2 lab
-			{ "armhp", },                                     -- hover lab, floating hover lab, amphibious lab, seaplane lab
-		}
-	},
-
-	corck = {
-		{
-			{ "cormex", "cormakr", "cormstor", "corexp", },   -- mex, T1 converter, m storage, exploiter
-			{ "corsolar", "corwin", "coradvsol", "corgeo", }, -- solar, wind, adv solar, T1 geo
-			{ "corestor", },                                  -- e storage
-		},
-		{
-			{ "corllt", "corhllt", "corhlt", "cormaw", },     -- LLT, Double LLT, HLT, flame turret
-			{ "corrl", "cormadsam", "corerad", },             -- basic AA, SAM, eradicator
-			{ "cordl", "corpun", },                           -- coastal torp launcher, punisher
-		},
-		{
-			{ "corrad", "coreyes", "cordrag", "corjamt", },   -- radar, perimeter camera, dragon's teeth, jammer
-			{ "corjuno", },                                   -- juno, air repair pad aircon only
-		},
-		{
-			{ "corlab", "corvp", "corap", "corsy", },         -- bot lab, veh lab, air lab, shipyard
-			{ "cornanotc", "coralab", },                      -- nano, T2 lab
-			{ "corhp", },                                     -- hover lab, floating hover lab, amphibious lab, seaplane lab
-		}
-	},
-
-	-- T1 vehicle con
-	armcv = {
-		{
-			{ "armmex", "armmakr", "armmstor", "armamex", },  -- mex, T1 converter, m storage, twilight
-			{ "armsolar", "armwin", "armadvsol", "armgeo", }, -- solar, wind, adv solar, T1 geo
-			{ "armestor", },                                  -- e storage
-		},
-		{
-			{ "armllt", "armbeamer", "armhlt", "armclaw", },  -- LLT, beamer, HLT, lightning turret
-			{ "armrl", "armferret", "armcir", },              -- basic AA, ferret, chainsaw
-			{ "armdl", "armguard", },                         -- coastal torp launcher, guardian
-		},
-		{
-			{ "armrad", "armeyes", "armdrag", "armjamt", },   -- radar, perimeter camera, dragon's teeth, jammer
-			{ "armjuno", },                                   -- juno, air repair pad aircon only
-		},
-		{
-			{ "armlab", "armvp", "armap", "armsy", },         -- bot lab, veh lab, air lab, shipyard
-			{ "armnanotc", "armavp", },                       -- nano, T2 lab
-			{ "armhp", },                                     -- hover lab, floating hover lab, amphibious lab, seaplane lab
-		}
-	},
-
-	corcv = {
-		{
-			{ "cormex", "cormakr", "cormstor", "corexp", },   -- mex, T1 converter, m storage, exploiter
-			{ "corsolar", "corwin", "coradvsol", "corgeo", }, -- solar, wind, adv solar, T1 geo
-			{ "corestor", },                                  -- e storage
-		},
-		{
-			{ "corllt", "corhllt", "corhlt", "cormaw", },     -- LLT, Double LLT, HLT, flame turret
-			{ "corrl", "cormadsam", "corerad", },             -- basic AA, SAM, eradicator
-			{ "cordl", "corpun", },                           -- coastal torp launcher, punisher
-		},
-		{
-			{ "corrad", "coreyes", "cordrag", "corjamt", },   -- radar, perimeter camera, dragon's teeth, jammer
-			{ "corjuno", },                                   -- juno, air repair pad aircon only
-		},
-		{
-			{ "corlab", "corvp", "corap", "corsy", },         -- bot lab, veh lab, air lab, shipyard
-			{ "cornanotc", "coravp", },                       -- nano, T2 lab
-			{ "corhp", },                                     -- hover lab, floating hover lab, amphibious lab, seaplane lab
-		}
-	},
-
-	-- T1 air con
-	armca = {
-		{
-			{ "armmex", "armmakr", "armmstor", "armamex", },  -- mex, T1 converter, m storage, twilight
-			{ "armsolar", "armwin", "armadvsol", "armgeo", }, -- solar, wind, adv solar, T1 geo
-			{ "armestor", },                                  -- e storage
-		},
-		{
-			{ "armllt", "armbeamer", "armhlt", "armclaw", },  -- LLT, beamer, HLT, lightning turret
-			{ "armrl", "armferret", "armcir", },              -- basic AA, ferret, chainsaw
-			{ "armdl", "armguard", },                         -- coastal torp launcher, guardian
-		},
-		{
-			{ "armrad", "armeyes", "armdrag", "armjamt", },   -- radar, perimeter camera, dragon's teeth, jammer
-			{ "armjuno", "armasp", },                         -- juno, air repair pad aircon only
-		},
-		{
-			{ "armlab", "armvp", "armap", "armsy", },         -- bot lab, veh lab, air lab, shipyard
-			{ "armnanotc", "armaap", },                       -- nano, T2 lab
-			{ "armhp", },                                     -- hover lab, floating hover lab, amphibious lab, seaplane lab
-		}
-	},
-
-	corca = {
-		{
-			{ "cormex", "cormakr", "cormstor", "corexp", },   -- mex, T1 converter, m storage, exploiter
-			{ "corsolar", "corwin", "coradvsol", "corgeo", }, -- solar, wind, adv solar, T1 geo
-			{ "corestor", },                                  -- e storage
-		},
-		{
-			{ "corllt", "corhllt", "corhlt", "cormaw", },     -- LLT, Double LLT, HLT, flame turret
-			{ "corrl", "cormadsam", "corerad", },             -- basic AA, SAM, eradicator
-			{ "cordl", "corpun", },                           -- coastal torp launcher, punisher
-		},
-		{
-			{ "corrad", "coreyes", "cordrag", "corjamt", },   -- radar, perimeter camera, dragon's teeth, jammer
-			{ "corjuno", "corasp", },                         -- juno, air repair pad aircon only
-		},
-		{
-			{ "corlab", "corvp", "corap", "corsy", },         -- bot lab, veh lab, air lab, shipyard
-			{ "cornanotc", "coraap", },                       -- nano, T2 lab
-			{ "corhp", },                                     -- hover lab, floating hover lab, amphibious lab, seaplane lab
-		}
-	},
-
-	-- T1 sea con
-	armcs = {
-		{
-			{ "armmex", "armfmkr", "armuwms", },             -- mex, floating T1 converter, uw metal storage
-			{ "armtide", "armuwes", "armgeo", },              -- tidal, uw e storage, geo
-			{ },                                              -- empty row
-		},
-		{
-			{ "armtl", "armfhlt", },                          -- offshore torp launcher, floating HLT
-			{ "armfrt", },                                    -- floating AA
-			{ "armdl", "armguard", "armclaw", },              -- coastal torp launcher, guardian, lightning turret
-		},
-		{
-			{ "armfrad", "armfdrag", },                       -- floating radar, shark's teeth
-			{ "armeyes", "armdrag", },                        -- perimeter camera, dragon's teeth
-		},
-		{
-			{ "armsy", "armfhp", "armamsub", "armplat", },    -- shipyard, floating hover, amphibious lab, seaplane lab
-			{ "armnanotcplat", "armasy", },                   -- floating nano, T2 shipyard
-			{ "armlab", "armvp", "armap", },                  -- bot lab, vehicle lab, air lab
-		}
-	},
-
-	corcs = {
-		{
-			{ "cormex", "corfmkr", "coruwms", },             -- mex, floating T1 converter, uw metal storage
-			{ "cortide", "coruwes", "corgeo", },              -- tidal, uw e storage, geo
-			{ },                                              -- empty row
-		},
-		{
-			{ "cortl", "corfhlt", },                          -- offshore torp launcher, floating HLT
-			{ "corfrt", },                                    -- floating AA
-			{ "cordl", "corpun", "cormaw", },                 -- coastal torp launcher, punisher, flame turret
-		},
-		{
-			{ "corfrad", "corfdrag", },                       -- floating radar, shark's teeth
-			{ "coreyes", "cordrag", },                        -- perimeter camera, dragon's teeth
-		},
-		{
-			{ "corsy", "corfhp", "coramsub", "corplat", },    -- shipyard, floating hover, amphibious lab, seaplane lab
-			{ "cornanotcplat", "corasy", },                   -- floating nano, T2 shipyard
-			{ "corlab", "corvp", "corap", },                  -- bot lab, vehicle lab, air lab
-		}
-	},
-
-	-- Hover cons
-	armch = {
-		{
-			{ "armmex", "armmakr", "armmstor", "armamex", },  -- mex, T1 converter, m storage, twilight
-			{ "armsolar", "armwin", "armadvsol", "armgeo", }, -- solar, wind, adv solar, T1 geo
-			{ "armestor", "armtide", "armfmkr", "armuwms", }, -- e storage, tidal, floating converter, uw m storage, uw e storage (next page)
-		},
-		{
-			{ "armllt", "armbeamer", "armhlt", "armclaw", },  -- LLT, beamer, HLT, lightning turret
-			{ "armrl", "armferret", "armcir", "armfrt",},     -- basic AA, ferret, chainsaw, floating AA
-			{ "armdl", "armguard", "armtl", "armfhlt", },     -- coastal torp launcher, guardian, offshore torp launcher, floating HLT
-		},
-		{
-			{ "armrad", "armeyes", "armdrag", "armjamt", },   -- radar, perimeter camera, dragon's teeth, jammer
-			{ "armjuno", },                                   -- juno, air repair pad aircon only
-			{ "armfrad", "armfdrag", },                       -- floating radar, shark's teeth
-		},
-		{
-			{ "armlab", "armvp", "armap", "armsy", },         -- bot lab, veh lab, air lab, shipyard
-			{ "armnanotc", "armnanotcplat", },                -- nano, floating nano
-			{ "armhp", "armfhp", "armamsub", "armplat", },    -- hover lab, floating hover lab, amphibious lab, seaplane lab
-		}
-	},
-
-	corch = {
-		{
-			{ "cormex", "cormakr", "cormstor", "corexp", },   -- mex, T1 converter, m storage, exploiter
-			{ "corsolar", "corwin", "coradvsol", "corgeo", }, -- solar, wind, adv solar, T1 geo
-			{ "corestor", "cortide", "corfmkr", "coruwms", }, -- e storage, tidal, floating converter, uw m storage, uw e storage (next page)
-		},
-		{
-			{ "corllt", "corhllt", "corhlt", "cormaw", },     -- LLT, Double LLT, HLT, flame turret
-			{ "corrl", "cormadsam", "corerad", },             -- basic AA, SAM, eradicator
-			{ "cordl", "corpun", "cortl", "corfhlt", },       -- coastal torp launcher, punisher, offshore torp launcher, floating HLT
-		},
-		{
-			{ "corrad", "coreyes", "cordrag", "corjamt", },   -- radar, perimeter camera, dragon's teeth, jammer
-			{ "corjuno", },                                   -- juno, air repair pad aircon only
-			{ "corfrad", "corfdrag", },                       -- floating radar, shark's teeth
-		},
-		{
-			{ "corlab", "corvp", "corap", "corsy", },         -- bot lab, veh lab, air lab, shipyard
-			{ "cornanotc", "cornanotcplat", },                -- nano, floating nano
-			{ "corhp", "corfhp", "coramsub", "corplat", },    -- hover lab, floating hover lab, amphibious lab, seaplane lab
-		}
-	},
-
-	-- Seaplane cons
-	armcsa = {
-		{
-			{ "armmex", "armmakr", "armmstor", "armamex", },  -- mex, T1 converter, m storage, twilight
-			{ "armsolar", "armwin", "armadvsol", "armgeo", }, -- solar, wind, adv solar, T1 geo
-			{ "armestor", "armtide", "armfmkr", "armuwms", }, -- e storage, tidal, floating converter, uw m storage, uw e storage (next page)
-		},
-		{
-			{ "armllt", "armbeamer", "armhlt", "armclaw", },  -- LLT, beamer, HLT, lightning turret
-			{ "armrl", "armferret", "armcir", "armfrt",},     -- basic AA, ferret, chainsaw, floating AA
-			{ "armdl", "armguard", "armtl", "armfhlt", },     -- coastal torp launcher, guardian, offshore torp launcher, floating HLT
-		},
-		{
-			{ "armrad", "armeyes", "armdrag", "armjamt", },   -- radar, perimeter camera, dragon's teeth, jammer
-			{ "armjuno", },                                   -- juno, air repair pad aircon only
-			{ "armfrad", "armfdrag", },                       -- floating radar, shark's teeth
-		},
-		{
-			{ "armlab", "armvp", "armap", "armsy", },         -- bot lab, veh lab, air lab, shipyard
-			{ "armnanotc", "armnanotcplat", },                -- nano, floating nano
-			{ "armhp", "armfhp", "armamsub", "armplat", },    -- hover lab, floating hover lab, amphibious lab, seaplane lab
-		}
-	},
-
-	corcsa = {
-		{
-			{ "cormex", "cormakr", "cormstor", "corexp", },   -- mex, T1 converter, m storage, exploiter
-			{ "corsolar", "corwin", "coradvsol", "corgeo", }, -- solar, wind, adv solar, T1 geo
-			{ "corestor", "cortide", "corfmkr", "coruwms", }, -- e storage, tidal, floating converter, uw m storage, uw e storage (next page)
-		},
-		{
-			{ "corllt", "corhllt", "corhlt", "cormaw", },     -- LLT, Double LLT, HLT, flame turret
-			{ "corrl", "cormadsam", "corerad", },             -- basic AA, SAM, eradicator
-			{ "cordl", "corpun", "cortl", "corfhlt", },       -- coastal torp launcher, punisher, offshore torp launcher, floating HLT
-		},
-		{
-			{ "corrad", "coreyes", "cordrag", "corjamt", },   -- radar, perimeter camera, dragon's teeth, jammer
-			{ "corjuno", },                                   -- juno, air repair pad aircon only
-			{ "corfrad", "corfdrag", },                       -- floating radar, shark's teeth
-		},
-		{
-			{ "corlab", "corvp", "corap", "corsy", },         -- bot lab, veh lab, air lab, shipyard
-			{ "cornanotc", "cornanotcplat", },                -- nano, floating nano
-			{ "corhp", "corfhp", "coramsub", "corplat", },    -- hover lab, floating hover lab, amphibious lab, seaplane lab
-		}
-	},
-
-	-- Amphibious vehicle cons
-	armbeaver = {
-		{
-			{ "armmex", "armmakr", "armmstor", "armamex", },  -- mex, T1 converter, m storage, twilight
-			{ "armsolar", "armwin", "armadvsol", "armgeo", }, -- solar, wind, adv solar, T1 geo
-			{ "armestor", "armtide", "armfmkr", "armuwms", }, -- e storage, tidal, floating converter, uw m storage, uw e storage (next page)
-		},
-		{
-			{ "armllt", "armbeamer", "armhlt", "armclaw", },  -- LLT, beamer, HLT, lightning turret
-			{ "armrl", "armferret", "armcir", "armfrt",},     -- basic AA, ferret, chainsaw, floating AA
-			{ "armdl", "armguard", "armptl", "armfhlt", },     -- coastal torp launcher, guardian, offshore torp launcher, floating HLT
-		},
-		{
-			{ "armrad", "armeyes", "armdrag", "armjamt", },   -- radar, perimeter camera, dragon's teeth, jammer
-			{ "armjuno", },                                   -- juno, air repair pad aircon only
-			{ "armfrad", "armfdrag", },                       -- floating radar, shark's teeth
-		},
-		{
-			{ "armlab", "armvp", "armap", "armsy", },         -- bot lab, veh lab, air lab, shipyard
-			{ "armnanotc", "armnanotcplat", "armavp", },      -- nano, floating nano, T2 veh lab
-			{ "armhp", "armfhp", "armamsub", "armplat", },    -- hover lab, floating hover lab, amphibious lab, seaplane lab
-		}
-	},
-
-	cormuskrat = {
-		{
-			{ "cormex", "cormakr", "cormstor", "corexp", },   -- mex, T1 converter, m storage, exploiter
-			{ "corsolar", "corwin", "coradvsol", "corgeo", }, -- solar, wind, adv solar, T1 geo
-			{ "corestor", "cortide", "corfmkr", "coruwms", }, -- e storage, tidal, floating converter, uw m storage, uw e storage (next page)
-		},
-		{
-			{ "corllt", "corhllt", "corhlt", "cormaw", },     -- LLT, Double LLT, HLT, flame turret
-			{ "corrl", "cormadsam", "corerad", },             -- basic AA, SAM, eradicator
-			{ "cordl", "corpun", "corptl", "corfhlt", },       -- coastal torp launcher, punisher, offshore torp launcher, floating HLT
-		},
-		{
-			{ "corrad", "coreyes", "cordrag", "corjamt", },   -- radar, perimeter camera, dragon's teeth, jammer
-			{ "corjuno", },                                   -- juno, air repair pad aircon only
-			{ "corfrad", "corfdrag", },                       -- floating radar, shark's teeth
-		},
-		{
-			{ "corlab", "corvp", "corap", "corsy", },         -- bot lab, veh lab, air lab, shipyard
-			{ "cornanotc", "cornanotcplat", "coravp", },      -- nano, floating nano, T2 veh lab
-			{ "corhp", "corfhp", "coramsub", "corplat", },    -- hover lab, floating hover lab, amphibious lab, seaplane lab
-		}
-	},
-
-	--T2 bot cons
-	armack = {
-		{
-			{ "armmoho", "armmmkr", "armuwadvms", },            -- moho, T2 converter, hardened metal storage
-			{ "armfus", "armafus", "armuwadves", "armckfus", }, -- fusion, afus, hardened energy storage, cloaked fusion
-			{ "armageo", "armgmm", },                           -- T2 geo, safe geo
-		},
-		{
-			{ "armpb", "armanni", "armamb", "armemp", },        -- pop-up gauss, annihilator, pop-up artillery, EMP missile
-			{ "armflak", "armmercury", "armamd", },             -- flak, long-range AA, anti-nuke
-			{ "armbrtha", "armvulc", "armsilo", },              -- LRPC, ICBM, lolcannon
-		},
-		{
-			{ "armarad", "armtarg", "armfort", "armveil",  },   -- adv radar, targeting facility, wall, adv jammer
-			{ "armsd", "armasp", "armdf", },                    -- intrusion counter, air repair pad, decoy fusion
-			{ "armgate", },                                     -- shield
-		},
-		{
-			{ "armlab", },                                      -- T1 lab,
-			{ "armshltx", "armalab", },                         -- T3 lab, T2 lab
-			{ },                                                --
-		}
-	},
-
-	corack = {
-		{
-			{ "cormoho", "cormmkr", "coruwadvms", "cormexp", }, -- moho, T2 converter, hardened metal storage, exploiter (cor)
-			{ "corfus", "corafus", "coruwadves", },             -- fusion, afus, hardened energy storage,
-			{ "corageo", "corbhmth", },                         -- T2 geo, behemoth
-		},
-		{
-			{ "corvipe", "cordoom", "cortoast", "cortron", },   -- pop-up gauss, DDM, pop-up artillery, tac nuke
-			{ "corflak", "corscreamer", "corfmd", },            -- flak, long-range AA
-			{ "corint", "corbuzz", "corsilo", },                -- LRPC, ICBM, lolcannon
-		},
-		{
-			{ "corarad", "cortarg", "corfort", "corshroud", },  -- adv radar, targeting facility, wall, adv jammer
-			{ "corsd", "corasp", },                             -- intrusion counter, air repair pad
-			{ "corgate", },                                     -- anti-nuke, shield
-		},
-		{
-			{ "corlab", },                                      -- T1 lab,
-			{ "corgant", "coralab", },                          -- T3 lab, T2 lab
-			{ },                                                --
-		}
-	},
-
-	--T2 vehicle cons
-	armacv = {
-		{
-			{ "armmoho", "armmmkr", "armuwadvms", },            -- moho, T2 converter, hardened metal storage
-			{ "armfus", "armafus", "armuwadves", "armckfus", }, -- fusion, afus, hardened energy storage, cloaked fusion
-			{ "armageo", "armgmm", },                           -- T2 geo, safe geo
-		},
-		{
-			{ "armpb", "armanni", "armamb", "armemp", },        -- pop-up gauss, annihilator, pop-up artillery, EMP missile
-			{ "armflak", "armmercury", "armamd", },             -- flak, long-range AA, anti-nuke
-			{ "armbrtha", "armvulc", "armsilo", },              -- LRPC, ICBM, lolcannon
-		},
-		{
-			{ "armarad", "armtarg", "armfort", "armveil",  },   -- adv radar, targeting facility, wall, adv jammer
-			{ "armsd", "armasp", "armdf", },                    -- intrusion counter, air repair pad, decoy fusion
-			{ "armgate", },                                     -- shield
-		},
-		{
-			{ "armvp", },                                       -- T1 lab,
-			{ "armshltx", "armavp", },                          -- T3 lab, T2 lab
-			{ },                                                --
-		}
-	},
-
-	coracv = {
-		{
-			{ "cormoho", "cormmkr", "coruwadvms", "cormexp", }, -- moho, T2 converter, hardened metal storage, exploiter (cor)
-			{ "corfus", "corafus", "coruwadves", },             -- fusion, afus, hardened energy storage,
-			{ "corageo", "corbhmth", },                         -- T2 geo, behemoth
-		},
-		{
-			{ "corvipe", "cordoom", "cortoast", "cortron", },   -- pop-up gauss, DDM, pop-up artillery, tac nuke
-			{ "corflak", "corscreamer", "corfmd", },            -- flak, long-range AA
-			{ "corint", "corbuzz", "corsilo", },                -- LRPC, ICBM, lolcannon
-		},
-		{
-			{ "corarad", "cortarg", "corfort", "corshroud", },  -- adv radar, targeting facility, wall, adv jammer
-			{ "corsd", "corasp", },                             -- intrusion counter, air repair pad
-			{ "corgate", },                                     -- anti-nuke, shield
-		},
-		{
-			{ "corvp", },                                       -- T1 lab,
-			{ "corgant", "coravp", },                           -- T3 lab, T2 lab
-			{ },                                                --
-		}
-	},
-
-	--T2 air cons
-	armaca = {
-		{
-			{ "armmoho", "armmmkr", "armuwadvms", },            -- moho, T2 converter, hardened metal storage
-			{ "armfus", "armafus", "armuwadves", "armckfus", }, -- fusion, afus, hardened energy storage, cloaked fusion
-			{ "armageo", "armgmm", },                           -- T2 geo, safe geo
-		},
-		{
-			{ "armpb", "armanni", "armamb", "armemp", },        -- pop-up gauss, annihilator, pop-up artillery, EMP missile
-			{ "armflak", "armmercury", "armamd", },             -- flak, long-range AA, anti-nuke
-			{ "armbrtha", "armvulc", "armsilo", },              -- LRPC, ICBM, lolcannon
-		},
-		{
-			{ "armarad", "armtarg", "armfort", "armveil",  },    -- adv radar, targeting facility, wall, adv jammer
-			{ "armsd", "armasp", "armdf", },                    -- intrusion counter, air repair pad, decoy fusion
-			{ "armgate", },                                     -- shield
-		},
-		{
-			{ "armap", },                                       -- T1 lab,
-			{ "armshltx", "armaap", },                          -- T3 lab, T2 lab
-			{ "armplat", },                                     -- seaplane lab (aircon only)
-		}
-	},
-
-	coraca = {
-		{
-			{ "cormoho", "cormmkr", "coruwadvms", "cormexp", }, -- moho, T2 converter, hardened metal storage, exploiter (cor)
-			{ "corfus", "corafus", "coruwadves", },             -- fusion, afus, hardened energy storage,
-			{ "corageo", "corbhmth", },                         -- T2 geo, behemoth
-		},
-		{
-			{ "corvipe", "cordoom", "cortoast", "cortron", },   -- pop-up gauss, DDM, pop-up artillery, tac nuke
-			{ "corflak", "corscreamer", "corfmd", },            -- flak, long-range AA
-			{ "corint", "corbuzz", "corsilo", },                -- LRPC, ICBM, lolcannon
-		},
-		{
-			{ "corarad", "cortarg", "corfort", "corshroud", },  -- adv radar, targeting facility, wall, adv jammer
-			{ "corsd", "corasp", },                             -- intrusion counter, air repair pad
-			{ "corgate", },                                     -- anti-nuke, shield
-		},
-		{
-			{ "corap", },                                       -- T1 lab,
-			{ "corgant", "coraap", },                           -- T3 lab, T2 lab
-			{ "corplat", },                                     -- seaplane lab (aircon only)
-		}
-	},
-
-	--T2 sub cons
-	armacsub = {
-		{
-			{ "armuwmme", "armuwmmm", "armuwadvms", },         -- uw moho, floating T2 converter, uw metal stor
-			{ "armuwfus", "armuwadves", },                     -- uw fusion, uw e stor
-			{ },                                               --
-		},
-		{
-			{ "armatl", "armkraken", },                        -- adv torp launcher, floating heavy platform
-			{ "armfflak", },                                   -- floating flak
-			{ },                                               --
-		},
-		{
-			{ "armason", "armfatf", },                         -- adv sonar, floating targeting facility
-			{ },                                               --
-			{ },                                               --
-		},
-		{
-			{ "armsy", },                                      -- T1 shipyard
-			{ "armshltxuw", "armasy", },                       -- amphibious gantry, T2 shipyard
-			{ },                                               --
-		}
-	},
-
-	coracsub = {
-		{
-			{ "coruwmme", "coruwmmm", "coruwadvms", },         -- uw moho, floating T2 converter, uw metal stor
-			{ "coruwfus", "coruwadves", },                     -- uw fusion, uw e stor
-			{ },                                               --
-		},
-		{
-			{ "coratl", "corfdoom", },                         -- adv torp launcher, floating heavy platform
-			{ "corenaa", },                                    -- floating flak
-			{ },                                               --
-		},
-		{
-			{ "corason", "corfatf", },                         -- adv sonar, floating targeting facility
-			{ },                                               --
-		},
-		{
-			{ "corsy", },                                      -- T1 shipyard
-			{ "corgantuw", "corasy" },                         -- amphibious gantry, T2 shipyard
-			{ },                                               --
-		}
-	},
-
-	--minelayers
-	armmlv = {
-		{
-			{ }, --
-			{ },            --
-			{ },          --
-		},
-		{
-			{ },                          --
-			{ },                          --
-			{ },                                    --
-		},
-		{
-			{ "armeyes", "armdrag", },                  -- camera, dragon's teeth
-			{ },                                        --
-			{ "armmine1", "armmine2", "armmine3", },    -- light mine, med mine, heavy mine
-		},
-		{
-			{ },        --
-			{ },                                             --
-			{ },                          --
-		}
-	},
-
-	cormlv = {
-		{
-			{ }, --
-			{ },            --
-			{ },          --
-		},
-		{
-			{ },                          --
-			{ },                          --
-			{ },                                    --
-		},
-		{
-			{ "coreyes", "cordrag", },                 -- camera, dragon's teeth
-			{ },                                       --
-			{ "cormine1", "cormine2", "cormine3", },   -- light mine, med mine, heavy mine
-		},
-		{
-			{ },        --
-			{ },                                             --
-			{ },                          --
-		}
-	},
-
-	--Decoy commanders
-	armdecom = {
-		{
-			{ "armmex", "armmakr", "armmstor", },            -- mex, T1 converter, m storage
-			{ "armsolar", "armwin", "armuwes", },            -- solar, wind, uw e storage
-			{ "armestor", "armtide", "armfmkr", "armuwms", }, -- e storage, tidal, floating converter, uw m storage
-		},
-		{
-			{ "armllt", },                                   -- LLT
-			{ "armrl", },                                    -- basic AA
-			{ },                                             --
-		},
-		{
-			{ "armrad", },                                   -- radar
-			{ },                                             --
-			{ "armmine1", "armmine2", "armmine3", },         -- light mine, med mine, heavy mine
-		},
-		{
-			{ },                                             --
-			{ },                                             -- empty row
-			{ },                                             --
-		}
-	},
-
-	cordecom = {
-		{
-			{ "cormex", "cormakr", "cormstor", },            -- mex, T1 converter, m storage
-			{ "corsolar", "corwin", "coruwes", },            -- solar, wind, uw e storage
-			{ "corestor", "cortide", "corfmkr", "coruwms", }, -- e storage, tidal, floating converter, uw m storage
-		},
-		{
-			{ "corllt", },                                   -- LLT
-			{ "corrl", },                                    -- basic AA
-			{ },                                             --
-		},
-		{
-			{ "corrad", },                                   -- radar
-			{ },                                             --
-			{ "cormine1", "cormine2", "cormine3", },         -- light mine, med mine, heavy mine
-		},
-		{
-			{ },                                             --
-			{ },                                             -- empty row
-			{ },                                             --
-		}
-	},
-
-	--fark
-	armfark = {
-		{
-			{ "armmex", "armmakr", },              -- mex, t1 converter
-			{ "armsolar", "armwin", },             -- solar, wind
-			{ },                                   --
-		},
-		{
-			{ },                                   --
-			{ },                                   --
-			{ },                                   --
-		},
-		{
-			{ "armmark", "armeyes", "armaser", },  -- radar bot, perimeter camera, jammer bot
-			{ },                                   --
-			{ },                                   --
-		},
-		{
-			{ },                                   --
-			{ },                                   --
-			{ },                                   --
-		}
-	},
-
-	--freaker
-	corfast = {
-		{
-			{ "cormex", },                                            -- mex
-			{ "corsolar", },                                          -- solar
-			{ },                                                      --
-		},
-		{
-			{ "corhllt", "corpyro", "cortoast", },                    -- HLLT, pyro, toaster
-			{ "corflak", "cormadsam", "corcrash", "corak", },         -- flak, SAM, T1 aa bot, AK
-			{ "cordl", "corroy", "coramph", },                        -- coastal torp launcher, destroyer, gimp
-		},
-		{
-			{ "corarad", "coreyes", "corfort", "corshroud", },        -- adv radar, camera, wall, adv jammer
-			{ },                                                      --
-			{ "cormine2", },                                          -- med mine
-		},
-		{
-			{ "corlab", "corck", },                                   -- bot lab, bot con
-			{ "cornanotc", "corcs", },                                -- nano, sea con
-			{ "cormando", },                                          -- commando
-		}
-	},
-
-	--consul
-	armconsul = {
-		{
-			{ "armmex", },                                            -- mex
-			{ "armsolar", },                                          -- solar
-			{ },                                                      --
-		},
-		{
-			{ "armbeamer", "armfido", "armamb", "armmav", },          -- beamer, fido, ambusher, maverick
-			{ "armflak", "armferret", "armjeth", "armpw", },          -- flak, ferret, T1 aa bot, peewee
-			{ "armdl", "armroy", "armsptk", },                        -- coastal torp launcher, destroyer, missile spider
-		},
-		{
-			{ "armarad", "armeyes", "armfort", "armveil", },          -- adv radar, camera, wall, adv jammer
-			{ },                                                      --
-			{ "armmine2" },                                           -- med. mine
-		},
-		{
-			{ "armvp", "armcv", },                                    -- vehicle lab, T1 veh con
-			{ "armnanotc", "armcs", },                                -- nano, sea con
-			{ },                                                      --
-		}
-	},
-
-	--commando
-	cormando = {
-		{
-			{ }, --
-			{ },            --
-			{ },          --
-		},
-		{
-			{ "cormaw", },                                           -- flame turret
-			{ },                                                     --
-			{ },                                                     --
-		},
-		{
-			{ "corfink", "coreyes", "cordrag", "corjamt", },         -- scout plane, camera, dragon's teeth, jammer
-			{ "corvalk", },                                          -- transport
-			{ "cormine4" },                                          -- commando mine
-		},
-		{
-			{ },        --
-			{ },                                             --
-			{ },                          --
-		}
-	},
-
-	--naval engineers
-	armmls = {
-		{
-			{ "armmex", },                                          -- mex
-			{ "armtide", },                                         -- tidal
-			{ },                                                    --
-		},
-		{
-			{ "armtl", "armkraken", "armamb", "armfhlt", },         -- torp launcher, kraken, ambusher, fHLT
-			{ "armfflak", "armpt", "armamph", },                    -- fl flak, PT boat, pelican
-			{ "armdecade", "armroy", },                             -- decade, destroyer
-		},
-		{
-			{ "armfrad", "armarad", },                              -- fl radar, adv radar
-			{ },                                                    --
-			{ "armfmine3", },                                       -- naval mine
-		},
-		{
-			{ "armsy", "armcs", },                                  -- shipyard, sea con
-			{ "armnanotcplat", },                                   -- fl nano
-			{ },                                                    --
-		}
-	},
-
-	cormls = {
-		{
-			{ "cormex", },                                         -- mex
-			{ "cortide", },                                        -- tidal
-			{ },                                                   --
-		},
-		{
-			{ "cortl", "corfdoom", "cortoast", "corfhlt", },       -- torp launcher, fl DDM, toaster, fHLT
-			{ "corenaa", "corpt", },                               -- fl flak, searcher
-			{ "coresupp", "corroy", },                             -- supporter, destroyer
-		},
-		{
-			{ "corfrad", "corarad", },                             -- fl radar, adv radar
-			{ },                                                   --
-			{ "corfmine3", },                                      -- naval mine
-		},
-		{
-			{ "corsy", "corcs", },                                 -- shipyard, sea con
-			{ "cornanotcplat", },                                  -- fl nano
-			{ },                                                   --
-		}
-	},
-}
-
+local configs = VFS.Include('luaui/configs/gridmenu_layouts.lua')
+local labGrids = configs.LabGrids
+local unitGrids = configs.UnitGrids
 
 local BUILDCAT_ECONOMY = "Economy"
 local BUILDCAT_COMBAT = "Combat"
@@ -1137,6 +261,7 @@ local math_floor = math.floor
 local math_ceil = math.ceil
 local math_max = math.max
 local math_min = math.min
+local math_isInRect = math.isInRect
 
 local glTexture = gl.Texture
 local glTexRect = gl.TexRect
@@ -1196,10 +321,33 @@ local groups = {
 	buildert4 = folder..'buildert4.png',
 	util = folder..'util.png',
 	weapon = folder..'weapon.png',
-	emp = folder..'emp.png',
+	explo = folder..'weaponexplo.png',
+	weaponaa = folder..'weaponaa.png',
 	aa = folder..'aa.png',
+	emp = folder..'emp.png',
+	sub = folder..'sub.png',
 	nuke = folder..'nuke.png',
 	antinuke = folder..'antinuke.png',
+}
+
+-- This data is not integrated into the above table because
+-- the other table is exposed as a public property
+local categoryGroupMapping = {
+	energy = BUILDCAT_ECONOMY,
+	metal = BUILDCAT_ECONOMY,
+	builder = BUILDCAT_PRODUCTION,
+	buildert2 = BUILDCAT_PRODUCTION,
+	buildert3 = BUILDCAT_PRODUCTION,
+	buildert4 = BUILDCAT_PRODUCTION,
+	util = BUILDCAT_UTILITY,
+	weapon = BUILDCAT_COMBAT,
+	explo = BUILDCAT_COMBAT,
+	weaponaa = BUILDCAT_COMBAT,
+	aa = BUILDCAT_COMBAT,
+	emp = BUILDCAT_COMBAT,
+	sub = BUILDCAT_COMBAT,
+	nuke = BUILDCAT_COMBAT,
+	antinuke = BUILDCAT_COMBAT,
 }
 
 local unitBuildPic = {}
@@ -1216,6 +364,7 @@ local unitMaxWeaponRange = {}
 
 local unitGridPos = { }
 local gridPosUnit = { }
+local hasUnitGrid = { }
 local selectNextFrame, switchedCategory
 
 for uname, ugrid in pairs(unitGrids) do
@@ -1224,6 +373,7 @@ for uname, ugrid in pairs(unitGrids) do
 
 	unitGridPos[uid] = {{},{},{},{}}
 	gridPosUnit[uid] = {}
+	hasUnitGrid[uid] = {}
 	local uCanBuild = {}
 
 	local uBuilds = udef.buildOptions
@@ -1242,6 +392,7 @@ for uname, ugrid in pairs(unitGrids) do
 					if ugdef and ugdef.id and uCanBuild[ugdef.id] then
 						gridPosUnit[uid][cat .. r .. c] = ugdef.id
 						unitGridPos[uid][cat][ugdef.id] = cat .. r .. c
+						hasUnitGrid[uid][ugdef.id] = true
 					end
 				end
 			end
@@ -1280,8 +431,8 @@ for uname, ugrid in pairs(labGrids) do
 end
 
 for unitDefID, unitDef in pairs(UnitDefs) do
-	unitGroup[unitDefID] = 'util'
-	unitCategories[unitDefID] = BUILDCAT_UTILITY
+	unitGroup[unitDefID] = unitDef.customParams.unitgroup
+	unitCategories[unitDefID] = categoryGroupMapping[unitDef.customParams.unitgroup] or BUILDCAT_UTILITY
 
 	if unitDef.name == 'armdl' or unitDef.name == 'cordl' or unitDef.name == 'armlance' or unitDef.name == 'cortitan'	-- or unitDef.name == 'armbeaver' or unitDef.name == 'cormuskrat'
 		or (unitDef.minWaterDepth > 0 or unitDef.modCategories['ship']) then
@@ -1291,128 +442,28 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 		isWaterUnit[unitDefID] = nil
 	end
 
-	if unitDef.customParams.objectify or unitDef.isTransport or string.find(unitDef.name, 'critter') then
-		unitGroup[unitDefID] = nil
-	end
-
-	if unitDef.energyStorage > 1000 and string.find(string.lower(unitDef.humanName), 'storage') then
-		unitGroup[unitDefID] = 'energy'
-		unitCategories[unitDefID] = BUILDCAT_ECONOMY
-	end
-	if unitDef.metalStorage > 500 and string.find(string.lower(unitDef.humanName), 'storage') then
-		unitGroup[unitDefID] = 'metal'
-		unitCategories[unitDefID] = BUILDCAT_ECONOMY
-	end
 	if unitDef.maxWeaponRange > 16 then
 		unitMaxWeaponRange[unitDefID] = unitDef.maxWeaponRange
-		unitGroup[unitDefID] = 'weapon'
-	end
-
-	if string.find(string.lower(unitDef.name), 'silo') then
-		unitGroup[unitDefID] = 'nuke'
-	end
-	local aaWeapons = 0
-	local weaponCount = 0
-
-	local weapons = unitDef.weapons
-	local minesweeper = false
-	local maxGroundRange = 0
-
-	if not unitDef.hasShield then
-		for i = 1, #weapons do
-			local weaponDef = WeaponDefs[weapons[i].weaponDef]
-			if weaponDef then
-				if string.find(string.lower(weaponDef.name), 'minesweep') then
-					minesweeper = true
-				end
-				if weaponDef.damages and not weapons[i].hasShield then
-					-- get highest damage category
-					local maxDmg = 0
-					for _, v in pairs(weaponDef.damages) do
-						if v > maxDmg then
-							maxDmg = v
-						end
-					end
-					if maxDmg > 1 then	-- filter away bogus weapons
-						weaponCount = weaponCount + 1
-						if weapons[i].onlyTargets and weapons[i].onlyTargets['vtol'] then
-							aaWeapons = aaWeapons + 1
-						elseif weaponDef.range > maxGroundRange then
-							maxGroundRange = weaponDef.range
-						end
-					end
-					if weaponDef.paralyzer then
-						unitGroup[unitDefID] = 'emp'
-						unitCategories[unitDefID] = BUILDCAT_COMBAT
-					end
-				end
-				if weaponDef.shieldRepulser then
-					unitGroup[unitDefID] = 'util'
-				end
-			end
-		end
-	end
-
-	if maxGroundRange > 16 and not string.find(string.lower(unitDef.tooltip), 'jammer') then
-		unitCategories[unitDefID] = BUILDCAT_COMBAT
-	end
-
-	if aaWeapons > 0 and weaponCount == aaWeapons then
-		unitGroup[unitDefID] = 'aa'
-		unitCategories[unitDefID] = BUILDCAT_COMBAT
-	end
-
-	if unitDef.extractsMetal > 0 or (unitDef.customParams.energyconv_capacity and unitDef.customParams.energyconv_efficiency) then
-		unitGroup[unitDefID] = 'metal'
-		unitCategories[unitDefID] = BUILDCAT_ECONOMY
-	end
-	-- as of this code armsolar and corsolar were returning 0 for either energyupkeep or energymake
-	if unitDef.customParams.solar or (unitDef.energyMake > 19 and (not unitDef.energyUpkeep or unitDef.energyUpkeep < 10) or unitDef.energyUpkeep < -19 or unitDef.windGenerator > 0 or unitDef.tidalGenerator > 0) then
-		unitGroup[unitDefID] = 'energy'
-		unitCategories[unitDefID] = BUILDCAT_ECONOMY
 	end
 
 	unitIconType[unitDefID] = unitDef.iconType
 	unitEnergyCost[unitDefID] = unitDef.energyCost
 	unitMetalCost[unitDefID] = unitDef.metalCost
-	unitBuildPic[unitDefID] = unitDef.buildpicname
-	if unitDef.maxThisUnit == 0 then --or unitDef.name == 'armllt' or unitDef.name == 'armmakr' then
+
+	if unitDef.maxThisUnit == 0 then
 		unitRestricted[unitDefID] = true
 	end
+
 	if unitDef.buildSpeed > 0 and unitDef.buildOptions[1] then
 		isBuilder[unitDefID] = unitDef.buildOptions
-		unitGroup[unitDefID] = 'builder'
 	end
+
 	if unitDef.isFactory and #unitDef.buildOptions > 0 then
 		isFactory[unitDefID] = true
-		unitGroup[unitDefID] = 'builder'
 	end
-	if unitDef.buildSpeed > 10 then
-		unitGroup[unitDefID] = 'builder'
-	end
-	if unitGroup[unitDefID] == 'builder' and unitDef.customParams.techlevel then
-		if tonumber(unitDef.customParams.techlevel) == 2 then
-			unitGroup[unitDefID] = 'buildert2'
-		elseif tonumber(unitDef.customParams.techlevel) == 3 then
-			unitGroup[unitDefID] = 'buildert3'
-		elseif tonumber(unitDef.customParams.techlevel) == 4 then
-			unitGroup[unitDefID] = 'buildert4'
-		end
-	end
-	if string.find(string.lower(unitDef.tooltip), 'anti%-nuke') then
-		unitGroup[unitDefID] = 'antinuke'
-	end
+
 	if unitDef.extractsMetal > 0 then
 		isMex[unitDefID] = true
-	end
-
-	if unitDef.buildSpeed > 0 then
-		unitCategories[unitDefID] = BUILDCAT_PRODUCTION
-	end
-
-	-- air repair pad
-	if unitDef.name == 'corasp' or unitDef.name == 'armasp' then
-		unitCategories[unitDefID] = BUILDCAT_UTILITY
 	end
 end
 
@@ -1421,117 +472,13 @@ end
 ------------------------------------
 
 local unitOrder = {}
-local function addOrderImportance(unitDefID, skip, value)
-	if not skip then
-		unitOrder[unitDefID] = unitOrder[unitDefID] + value
-	end
-end
+local unitOrderManualOverrideTable = VFS.Include("luaui/configs/buildmenu_sorting.lua")
 
--- order units, add higher value for order importance
-local skip = false
-local unitOrderManualOverrideTable = VFS.Include("luaui/configs/gui_buildmenu_sorting.lua")
 for unitDefID, unitDef in pairs(UnitDefs) do
-	skip = false
 	if unitOrderManualOverrideTable[unitDefID] then
 		unitOrder[unitDefID] = -unitOrderManualOverrideTable[unitDefID]
 	else
-		unitOrder[unitDefID] = 2000000
-		-- is water unit
-		if unitDef.name ~= 'armmex' and unitDef.name ~= 'cormex' and (unitDef.minWaterDepth > 0 or unitDef.modCategories['ship'] or unitDef.modCategories['underwater']) then
-			unitOrder[unitDefID] = 50000
-		end
-
-		-- handle decoy unit like its the regular version
-		if unitDef.customParams.decoyfor then
-			unitDef = UnitDefNames[unitDef.customParams.decoyfor]
-			unitOrder[unitDefID] = unitOrder[unitDefID] - 2
-		end
-
-
-
-		-- mobile units
-		if not (unitDef.isImmobile or unitDef.isBuilding) then
-			addOrderImportance(unitDefID, skip, 1500000)
-		end
-
-		-- eco buildings
-		if unitDef.isImmobile or unitDef.isBuilding then
-			if unitDef.tidalGenerator > 0 then
-				addOrderImportance(unitDefID, skip, 1200000)
-			elseif unitDef.extractsMetal > 0 then
-				addOrderImportance(unitDefID, skip, 1400000)
-			elseif unitDef.windGenerator > 0 then
-				addOrderImportance(unitDefID, skip, 1250000)
-			elseif unitDef.energyMake > 19 and (not unitDef.energyUpkeep or unitDef.energyUpkeep < 10) then
-				addOrderImportance(unitDefID, skip, 1150000)
-			elseif unitDef.energyUpkeep < -19 then
-				addOrderImportance(unitDefID, skip, 1200000)
-			end
-
-			-- storage
-			if unitDef.energyStorage > 1000 and string.find(string.lower(unitDef.humanName), 'storage') then
-				addOrderImportance(unitDefID, skip, 1100000)
-			end
-			if unitDef.metalStorage > 500 and string.find(string.lower(unitDef.humanName), 'storage') then
-				addOrderImportance(unitDefID, skip, 1300000)
-			end
-
-			-- converters
-			if string.find(string.lower(unitDef.humanName), 'converter') then
-				addOrderImportance(unitDefID, skip, 1350000)
-			end
-		end
-
-		-- nanos
-		if unitDef.buildSpeed > 0 and not unitDef.buildOptions[1] then
-			addOrderImportance(unitDefID, skip, 350000)
-		end
-
-		if unitDef.buildOptions[1] then
-			if unitDef.isBuilding then
-				addOrderImportance(unitDefID, skip, 250000)
-			else
-				if string.find(string.lower(unitDef.humanName), 'construction') then
-					addOrderImportance(unitDefID, skip, 600000)
-				elseif string.find(string.lower(unitDef.tooltip), 'minelayer') or string.find(string.lower(unitDef.tooltip), 'assist') or string.find(string.lower(unitDef.tooltip), 'engineer') then
-					addOrderImportance(unitDefID, skip, 400000)
-				else
-					addOrderImportance(unitDefID, skip, 500000)
-				end
-			end
-		end
-		-- if unitDef.isImmobile or  unitDef.isBuilding then
-		--	 if unitDef.floater or unitDef.floatOnWater then
-		--		 addOrderImportance(unitDefID, skip, 11000000)
-		--	 elseif unitDef.modCategories['underwater'] or unitDef.modCategories['canbeuw'] or unitDef.modCategories['notland'] then
-		--		 addOrderImportance(unitDefID, skip, 10000000)
-		--	 else
-		--		 addOrderImportance(unitDefID, skip, 12000000)
-		--	 end
-		-- else
-		--	 if unitDef.modCategories['ship'] then
-		--		 addOrderImportance(unitDefID, skip, 9000000)
-		--	 elseif unitDef.modCategories['hover'] then
-		--		 addOrderImportance(unitDefID, skip, 8000000)
-		--	 elseif unitDef.modCategories['tank'] then
-		--		 addOrderImportance(unitDefID, skip, 7000000)
-		--	 elseif unitDef.modCategories['bot'] then
-		--		 addOrderImportance(unitDefID, skip, 6000000)
-		--	 elseif unitDef.isAirUnit then
-		--		 addOrderImportance(unitDefID, skip, 5000000)
-		--	 elseif unitDef.modCategories['underwater'] or unitDef.modCategories['canbeuw'] or unitDef.modCategories['notland'] then
-		--		 addOrderImportance(unitDefID, skip, 8600000)
-		--	 end
-		-- end
-
-
-		unitOrder[unitDefID] = math.max(1, math_floor(unitOrder[unitDefID]))
-
-		-- make more expensive units of the same kind lower in the list
-		unitOrder[unitDefID] = unitOrder[unitDefID] + 100000
-		addOrderImportance(unitDefID, skip, -(unitDef.energyCost / 70)*0.1)
-		addOrderImportance(unitDefID, skip, -unitDef.metalCost*0.1)
-		unitOrder[unitDefID] = math.max(1, math_floor(unitOrder[unitDefID]))
+		unitOrder[unitDefID] = 9999999
 	end
 end
 
@@ -1624,7 +571,7 @@ function widget:PlayerChanged(playerID)
 end
 
 local function RefreshCommands()
-	local gridPos
+	local gridPos, lHasUnitGrid
 
 	if preGamestartPlayer and startDefID then
 		selectedBuilder = startDefID
@@ -1632,6 +579,7 @@ local function RefreshCommands()
 
 	if currentBuildCategory then
 		gridPos = unitGridPos[selectedBuilder] and unitGridPos[selectedBuilder][currentCategoryIndex]
+		lHasUnitGrid = hasUnitGrid[selectedBuilder] -- Ensure if unit has static grid to not repeat unit on different category
 	elseif selectedFactory then
 		gridPos = unitGridPos[selectedFactory]
 	end
@@ -1656,7 +604,7 @@ local function RefreshCommands()
 							name = UnitDefs[udefid].name,
 							params = {}
 						}
-					elseif currentBuildCategory == nil or unitCategories[udefid] == currentBuildCategory then
+					elseif currentBuildCategory == nil or (unitCategories[udefid] == currentBuildCategory and not (lHasUnitGrid and lHasUnitGrid[udefid])) then
 						cmd = {
 							id = udefid * -1,
 							name = UnitDefs[udefid].name,
@@ -1691,7 +639,7 @@ local function RefreshCommands()
 					if gridPos and gridPos[cmd.id * -1] then
 						uidcmdsCount = uidcmdsCount + 1
 						uidcmds[cmd.id * -1] = activeCmdDescs[index]
-					elseif currentBuildCategory == nil or unitCategories[cmd.id * -1] == currentBuildCategory then
+					elseif currentBuildCategory == nil or (unitCategories[cmd.id * -1] == currentBuildCategory and not (lHasUnitGrid and lHasUnitGrid[cmd.id * -1])) then
 						uidcmdsCount = uidcmdsCount + 1
 						uidcmds[cmd.id * -1] = activeCmdDescs[index]
 
@@ -1723,7 +671,7 @@ function widget:ViewResize()
 	elementCorner = WG.FlowUI.elementCorner
 	categoryFontSize = 0.0115 * ui_scale * vsy
 	pageButtonHeight = 3 * categoryFontSize * ui_scale
-	pageButtonWidth = 8 * categoryFontSize * ui_scale
+	pageButtonWidth = 9 * categoryFontSize * ui_scale
 	if stickToBottom then
 		paginatorFontSize = categoryFontSize
 	else
@@ -1849,6 +797,31 @@ function prevPageHandler()
 	return true
 end
 
+function buildFacingHandler(_, _, args)
+	if not (preGamestartPlayer and selBuildQueueDefID) then
+		return
+	end
+
+	local facing = Spring.GetBuildFacing()
+	if args and args[1] == "inc" then
+		facing = facing + 1
+		if facing > 3 then
+			facing = 0
+		end
+		Spring.SetBuildFacing(facing)
+
+		return true
+	elseif args and args[1] == "dec" then
+		facing = facing - 1
+		if facing < 0 then
+			facing = 3
+		end
+		Spring.SetBuildFacing(facing)
+
+		return true
+	end
+end
+
 function widget:Initialize()
 
 	if widgetHandler:IsWidgetKnown("Build menu") then
@@ -1856,6 +829,7 @@ function widget:Initialize()
 	end
 
 	-- For some reason when handler = true widgetHandler:AddAction is not available
+	widgetHandler.actionHandler:AddAction(self, "buildfacing", buildFacingHandler, nil, "t")
 	widgetHandler.actionHandler:AddAction(self, "gridmenu_next_page", nextPageHandler, nil, "t")
 	widgetHandler.actionHandler:AddAction(self, "gridmenu_prev_page", prevPageHandler, nil, "t")
 
@@ -1962,6 +936,7 @@ function widget:Shutdown()
 		Spring.ForceLayoutUpdate()
 	end
 	clear()
+	hoverDlist = gl.DeleteList(hoverDlist)
 	if WG['guishader'] and dlistGuishader then
 		WG['guishader'].DeleteDlist('buildmenu')
 		dlistGuishader = nil
@@ -2106,7 +1081,7 @@ local function drawCategoryButtons()
 		local opts = {
 			highlight = (cat == currentBuildCategory),
 			hovered = (hoveredCat == cat),
-			fontSize = fontSize,
+			fontSize = fontSize * ui_scale,
 		}
 
 		if opts.hovered then
@@ -2525,8 +1500,8 @@ function drawPaginators(activeArea)
 		local contentHeight = activeArea[4] - activeArea[2]
 		paginatorCellHeight = contentHeight / 3
 
-		paginatorRects[1] = { activeArea[3] - paginatorCellWidth - activeAreaMargin, activeArea[2] + activeAreaMargin, activeArea[3] - bgpadding - activeAreaMargin, activeArea[2] + paginatorCellHeight }
-		paginatorRects[2] = { activeArea[3] - paginatorCellWidth - activeAreaMargin, activeArea[2] + 2 * paginatorCellHeight, activeArea[3] - bgpadding - activeAreaMargin, activeArea[2] + 3 * paginatorCellHeight - activeAreaMargin }
+		paginatorRects[1] = { activeArea[3] - paginatorCellWidth, activeArea[2] + activeAreaMargin, activeArea[3] - bgpadding - activeAreaMargin, activeArea[2] + paginatorCellHeight }
+		paginatorRects[2] = { activeArea[3] - paginatorCellWidth, activeArea[2] + 2 * paginatorCellHeight, activeArea[3] - bgpadding - activeAreaMargin, activeArea[2] + 3 * paginatorCellHeight - activeAreaMargin }
 
 		UiButton(paginatorRects[1][1] + cellPadding, paginatorRects[1][2] + cellPadding, paginatorRects[1][3] - cellPadding, paginatorRects[1][4] - cellPadding, 1,1,1,1, 1,1,1,1, nil, { 0, 0, 0, 0.8 }, { 0.2, 0.2, 0.2, 0.8 }, bgpadding * 0.5)
 		font2:Print("\255\215\255\215[".. PREV_PAGE_KEY .."]", paginatorRects[1][1] + (paginatorCellWidth * 0.5), paginatorRects[1][2] + (paginatorCellHeight * 0.5) - paginatorFontSize * 0.25, paginatorFontSize, "co")
@@ -2707,7 +1682,7 @@ function widget:DrawScreen()
 		end
 
 		local hovering = false
-		if IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
+		if math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
 			Spring.SetMouseCursor('cursornormal')
 			hovering = true
 		end
@@ -2722,7 +1697,7 @@ function widget:DrawScreen()
 			if not WG['topbar'] or not WG['topbar'].showingQuit() then
 				if hovering then
 					for cellRectID, cellRect in pairs(cellRects) do
-						if IsOnRect(x, y, cellRect[1], cellRect[2], cellRect[3], cellRect[4]) then
+						if math_isInRect(x, y, cellRect[1], cellRect[2], cellRect[3], cellRect[4]) then
 							hoveredCellID = cellRectID
 							local cmd = cellcmds[cellRectID]
 							local cellIsSelected = (activeCmd and cmd and activeCmd == cmd.name)
@@ -2736,12 +1711,12 @@ function widget:DrawScreen()
 								local textColor = "\255\215\255\215"
 
 								if unitRestricted[uDefID] then
-									text = Spring.I18N('ui.buildMenu.disabled', { unit = UnitDefs[uDefID].humanName, textColor = textColor, warnColor = "\255\166\166\166" })
+									text = Spring.I18N('ui.buildMenu.disabled', { unit = UnitDefs[uDefID].translatedHumanName, textColor = textColor, warnColor = "\255\166\166\166" })
 								else
-									text = textColor .. UnitDefs[uDefID].humanName
+									text = textColor .. UnitDefs[uDefID].translatedHumanName
 								end
 
-								text = text .. "\n\255\240\240\240" .. UnitDefs[uDefID].tooltip
+								text = text .. "\n\255\240\240\240" .. UnitDefs[uDefID].translatedTooltip
 
 								WG['tooltip'].ShowTooltip('buildmenu', text)
 							end
@@ -2755,7 +1730,7 @@ function widget:DrawScreen()
 					end
 
 					for cat, catRect in pairs(catRects) do
-						if IsOnRect(x, y, catRect[1], catRect[2], catRect[3], catRect[4]) then
+						if math_isInRect(x, y, catRect[1], catRect[2], catRect[3], catRect[4]) then
 							hoveredCat = cat
 
 							if hoveredCat ~= drawnHoveredCat then
@@ -2788,7 +1763,7 @@ function widget:DrawScreen()
 				end
 
 				for lab, labRect in pairs(labButtonRects) do
-					if IsOnRect(x, y, labRect[1], labRect[2], labRect[3], labRect[4]) then
+					if math_isInRect(x, y, labRect[1], labRect[2], labRect[3], labRect[4]) then
 						hoveredLabButton = lab
 
 						if hoveredLabButton ~= drawnHoveredLabButton then
@@ -2838,14 +1813,14 @@ function widget:DrawScreen()
 			local usedZoom
 			local cellColor
 			if not WG['topbar'] or not WG['topbar'].showingQuit() then
-				if IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
+				if math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
 
 					-- paginator buttons
 					local paginatorHovered = false
-					if paginatorRects[1] and IsOnRect(x, y, paginatorRects[1][1], paginatorRects[1][2], paginatorRects[1][3], paginatorRects[1][4]) then
+					if paginatorRects[1] and math_isInRect(x, y, paginatorRects[1][1], paginatorRects[1][2], paginatorRects[1][3], paginatorRects[1][4]) then
 						paginatorHovered = 1
 					end
-					if paginatorRects[2] and IsOnRect(x, y, paginatorRects[2][1], paginatorRects[2][2], paginatorRects[2][3], paginatorRects[2][4]) then
+					if paginatorRects[2] and math_isInRect(x, y, paginatorRects[2][1], paginatorRects[2][2], paginatorRects[2][3], paginatorRects[2][4]) then
 						paginatorHovered = 2
 					end
 					if paginatorHovered then
@@ -2861,54 +1836,69 @@ function widget:DrawScreen()
 
 					-- cells
 					if hoveredCellID then
-						local cellRectID = hoveredCellID
-						local cellIsSelected = (activeCmd and cellcmds[cellRectID] and activeCmd == cellcmds[cellRectID].name)
-						local uDefID = cellcmds[cellRectID].id * -1
+						local uDefID = cellcmds[hoveredCellID].id * -1
+						local cellIsSelected = (activeCmd and cellcmds[hoveredCellID] and activeCmd == cellcmds[hoveredCellID].name)
+						if not prevHoveredCellID or hoveredCellID ~= prevHoveredCellID or uDefID ~= hoverUdefID or cellIsSelected ~= hoverCellSelected or b ~= prevB or b3 ~= prevB3 or cellcmds[hoveredCellID].params[1] ~= prevQueueNr then
+							prevQueueNr = cellcmds[hoveredCellID].params[1]
+							prevB = b
+							prevB3 = b3
+							prevHoveredCellID = hoveredCellID
+							hoverCellSelected = cellIsSelected
+							hoverUdefID = uDefID
+							if hoverDlist then
+								hoverDlist = gl.DeleteList(hoverDlist)
+							end
+							hoverDlist = gl.CreateList(function()
 
-						-- determine zoom amount and cell color
-						usedZoom = hoverCellZoom
-						if not cellIsSelected then
-							if (b or b2) and cellIsSelected then
-								usedZoom = clickSelectedCellZoom
-							elseif cellIsSelected then
-								usedZoom = selectedCellZoom
-							elseif (b or b2) and not disableInput then
-								usedZoom = clickCellZoom
-							elseif b3 and not disableInput and cellcmds[cellRectID].params[1] then
-								-- has queue
-								usedZoom = rightclickCellZoom
-							end
-							-- determine color
-							if (b or b2) and not disableInput then
-								cellColor = { 0.3, 0.8, 0.25, 0.2 }
-							elseif b3 and not disableInput then
-								cellColor = { 1, 0.35, 0.3, 0.2 }
-							else
-								cellColor = { 0.63, 0.63, 0.63, 0 }
-							end
-						else
-							-- selected cell
-							if (b or b2 or b3) then
-								usedZoom = clickSelectedCellZoom
-							else
-								usedZoom = selectedCellZoom
-							end
-							cellColor = { 1, 0.85, 0.2, 0.25 }
+								-- determine zoom amount and cell color
+								usedZoom = hoverCellZoom
+								if not cellIsSelected then
+									if (b or b2) and cellIsSelected then
+										usedZoom = clickSelectedCellZoom
+									elseif cellIsSelected then
+										usedZoom = selectedCellZoom
+									elseif (b or b2) and not disableInput then
+										usedZoom = clickCellZoom
+									elseif b3 and not disableInput and cellcmds[hoveredCellID].params[1] then
+										-- has queue
+										usedZoom = rightclickCellZoom
+									end
+									-- determine color
+									if (b or b2) and not disableInput then
+										cellColor = { 0.3, 0.8, 0.25, 0.2 }
+									elseif b3 and not disableInput then
+										cellColor = { 1, 0.35, 0.3, 0.2 }
+									else
+										cellColor = { 0.63, 0.63, 0.63, 0 }
+									end
+								else
+									-- selected cell
+									if (b or b2 or b3) then
+										usedZoom = clickSelectedCellZoom
+									else
+										usedZoom = selectedCellZoom
+									end
+									cellColor = { 1, 0.85, 0.2, 0.25 }
+								end
+								if not unitRestricted[uDefID] then
+
+									local unsetShowPrice, unsetShowRadarIcon, unsetShowGroupIcon
+									if not showPrice then
+										unsetShowPrice = true
+										showPrice = true
+									end
+
+									drawCell(hoveredCellID, usedZoom, cellColor, nil, { cellColor[1], cellColor[2], cellColor[3], 0.045 + (usedZoom * 0.45) }, 0.15, unitRestricted[uDefID])
+
+									if unsetShowPrice then
+										showPrice = false
+										unsetShowPrice = nil
+									end
+								end
+							end)
 						end
-						if not unitRestricted[uDefID] then
-
-							local unsetShowPrice, unsetShowRadarIcon, unsetShowGroupIcon
-							if not showPrice then
-								unsetShowPrice = true
-								showPrice = true
-							end
-
-							drawCell(cellRectID, usedZoom, cellColor, nil, { cellColor[1], cellColor[2], cellColor[3], 0.045 + (usedZoom * 0.45) }, 0.15, unitRestricted[uDefID])
-
-							if unsetShowPrice then
-								showPrice = false
-								unsetShowPrice = nil
-							end
+						if hoverDlist then
+							gl.CallList(hoverDlist)
 						end
 					end
 				end
@@ -2923,6 +1913,7 @@ function widget:DrawScreen()
 					maxCellRectID = uidcmdsCount
 				end
 				-- loop selected builders
+				local drawncellRectIDs = {}
 				for builderUnitID, _ in pairs(selectedBuilders) do
 					local unitBuildID = spGetUnitIsBuilding(builderUnitID)
 					if unitBuildID then
@@ -2931,56 +1922,16 @@ function widget:DrawScreen()
 							-- loop all shown cells
 							local cellIsSelected
 							for cellRectID, cellRect in pairs(cellRects) do
-								cellIsSelected = false
-								if cellRectID > maxCellRectID then
-									break
-								end
-								local cellUnitDefID = cellcmds[cellRectID].id * -1
-								if unitBuildDefID == cellUnitDefID then
-									local progress = 1 - select(5, spGetUnitHealth(unitBuildID))
-									if not usedZoom then
-										if cellRectID == hoveredCellID and (b or b2 or b3) then
-											usedZoom = clickSelectedCellZoom
-										else
-											cellIsSelected = (activeCmd and cellcmds[cellRectID] and activeCmd == cellcmds[cellRectID].name)
-											usedZoom = cellIsSelected and selectedCellZoom or defaultCellZoom
-										end
+								if not drawncellRectIDs[cellRectID] then
+									cellIsSelected = false
+									if cellRectID > maxCellRectID then
+										break
 									end
-									if cellColor and cellRectID ~= hoveredCellID then
-										cellColor = nil
-										usedZoom = cellIsSelected and selectedCellZoom or defaultCellZoom
-									end
-
-									local unsetShowPrice, unsetShowRadarIcon, unsetShowGroupIcon
-									if cellRectID == hoveredCellID then
-										if not showPrice then
-											unsetShowPrice = true
-											showPrice = true
-										end
-										if not showRadarIcon then
-											unsetShowRadarIcon = true
-											showRadarIcon = true
-										end
-										if not showGroupIcon then
-											unsetShowGroupIcon = true
-											showGroupIcon = true
-										end
-									end
-									-- re-draw cell with hover zoom (and price shown)
-									drawCell(cellRectID, usedZoom, cellColor, progress)
-									if cellRectID == hoveredCellID then
-										if unsetShowPrice then
-											showPrice = false
-											unsetShowPrice = nil
-										end
-										if unsetShowRadarIcon then
-											showRadarIcon = false
-											unsetShowRadarIcon = nil
-										end
-										if unsetShowGroupIcon then
-											showGroupIcon = false
-											unsetShowGroupIcon = nil
-										end
+									local cellUnitDefID = cellcmds[cellRectID].id * -1
+									if unitBuildDefID == cellUnitDefID then
+										drawncellRectIDs[cellRectID] = true
+										local progress = 1 - select(5, spGetUnitHealth(unitBuildID))
+										RectRoundProgress(cellRects[cellRectID][1] + cellPadding + iconPadding, cellRects[cellRectID][2] + cellPadding + iconPadding, cellRects[cellRectID][3] - cellPadding - iconPadding, cellRects[cellRectID][4] - cellPadding - iconPadding, cellSize * 0.03, progress, { 0.08, 0.08, 0.08, 0.6 })
 									end
 								end
 							end
@@ -3190,7 +2141,10 @@ end
 
 function widget:GameFrame(n)
 	if selectNextFrame then
-		Spring.SetActiveCommand(spGetCmdDescIndex(selectNextFrame), 1, true, false, Spring.GetModKeyState())
+		local cmdIndex = spGetCmdDescIndex(selectNextFrame)
+		if cmdIndex then
+			Spring.SetActiveCommand(cmdIndex, 1, true, false, Spring.GetModKeyState())
+		end
 		selectNextFrame = nil
 		switchedCategory = nil
 	end
@@ -3276,28 +2230,6 @@ function widget:KeyPress(key, mods, isRepeat)
 	end
 
 	if preGamestartPlayer and selBuildQueueDefID then
-		if key == 91 then
-			-- [
-			local facing = Spring.GetBuildFacing()
-			facing = facing + 1
-			if facing > 3 then
-				facing = 0
-			end
-			Spring.SetBuildFacing(facing)
-
-			return
-		end
-		if key == 93 then
-			-- ]
-			local facing = Spring.GetBuildFacing()
-			facing = facing - 1
-			if facing < 0 then
-				facing = 3
-			end
-			Spring.SetBuildFacing(facing)
-
-			return
-		end
 		if key == 27 then
 			-- ESC
 			setPreGamestartDefID()
@@ -3384,13 +2316,13 @@ function widget:MousePress(x, y, button)
 		return
 	end
 
-	if IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
+	if math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
 		if selectedBuilder or selectedFactory or (preGamestartPlayer and startDefID) then
-			if paginatorRects[1] and IsOnRect(x, y, paginatorRects[1][1], paginatorRects[1][2], paginatorRects[1][3], paginatorRects[1][4]) then
+			if paginatorRects[1] and math_isInRect(x, y, paginatorRects[1][1], paginatorRects[1][2], paginatorRects[1][3], paginatorRects[1][4]) then
 				currentPage = math_max(1, currentPage - 1)
 				doUpdate = true
 				return true
-			elseif paginatorRects[2] and IsOnRect(x, y, paginatorRects[2][1], paginatorRects[2][2], paginatorRects[2][3], paginatorRects[2][4]) then
+			elseif paginatorRects[2] and math_isInRect(x, y, paginatorRects[2][1], paginatorRects[2][2], paginatorRects[2][3], paginatorRects[2][4]) then
 				currentPage = math_min(pages, currentPage + 1)
 				doUpdate = true
 				return true
@@ -3398,7 +2330,7 @@ function widget:MousePress(x, y, button)
 
 			if not disableInput then
 				for cat, catRect in pairs(catRects) do
-					if IsOnRect(x, y, catRect[1], catRect[2], catRect[3], catRect[4]) then
+					if math_isInRect(x, y, catRect[1], catRect[2], catRect[3], catRect[4]) then
 						currentBuildCategory = cat
 						switchedCategory = true
 
@@ -3414,7 +2346,7 @@ function widget:MousePress(x, y, button)
 				end
 
 				for lab, labRect in pairs(labButtonRects) do
-					if IsOnRect(x, y, labRect[1], labRect[2], labRect[3], labRect[4]) then
+					if math_isInRect(x, y, labRect[1], labRect[2], labRect[3], labRect[4]) then
 						labActions[lab]()
 
 						return true
@@ -3422,7 +2354,7 @@ function widget:MousePress(x, y, button)
 				end
 
 				for cellRectID, cellRect in pairs(cellRects) do
-					if cellcmds[cellRectID].id and UnitDefs[-cellcmds[cellRectID].id].humanName and IsOnRect(x, y, cellRect[1], cellRect[2], cellRect[3], cellRect[4]) and not unitRestricted[-cellcmds[cellRectID].id] then
+					if cellcmds[cellRectID].id and UnitDefs[-cellcmds[cellRectID].id].translatedHumanName and math_isInRect(x, y, cellRect[1], cellRect[2], cellRect[3], cellRect[4]) and not unitRestricted[-cellcmds[cellRectID].id] then
 						if button ~= 3 then
 							Spring.PlaySoundFile(Cfgs.sound_queue_add, 0.75, 'ui')
 
@@ -3536,7 +2468,7 @@ function widget:MouseRelease(x, y, button)
 
 	if selectedFactory and not disableInput then
 		for lab, labRect in pairs(labButtonRects) do
-			if IsOnRect(x, y, labRect[1], labRect[2], labRect[3], labRect[4]) then
+			if math_isInRect(x, y, labRect[1], labRect[2], labRect[3], labRect[4]) then
 				doUpdate = true
 				return true
 			end

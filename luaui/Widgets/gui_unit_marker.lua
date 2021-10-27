@@ -112,8 +112,8 @@ function widget:UnitEnteredLos(unitID, unitTeam)
 				local markName
 				local colouredMarkName
 				local markColour = colourNames(spGetUnitTeam(unitID))
-				
-				markName = UnitDefs[udefID].tooltip
+
+				markName = UnitDefs[udefID].translatedTooltip
 				colouredMarkName = markColour .. markName
 				spMarkerErasePosition(prevX, prevY, prevZ)
 				spMarkerAddPoint(x, y, z, colouredMarkName)

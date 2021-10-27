@@ -31,17 +31,12 @@ Use 'ShowTooltip' to directly show a tooltip, the name you give should be unique
 -- Config
 ------------------------------------------------------------------------------------
 
-local backgroundTexture = "LuaUI/Images/backgroundtile.png"
-local ui_tileopacity = 0.012
-local bgtexScale = tonumber(Spring.GetConfigFloat("ui_tilescale", 7) or 7)	-- lower = smaller tiles
-local bgtexSize
-
 local vsx, vsy = Spring.GetViewGeometry()
 
 local defaultDelay = 0.4
 local cfgFontSize = 14
 
-local xOffset = 28
+local xOffset = 35
 local yOffset = -xOffset
 
 local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
@@ -53,15 +48,9 @@ local usedFontSize = cfgFontSize
 -- Speedups
 ------------------------------------------------------------------------------------
 
-local glColor = gl.Color
-local glText = gl.Text
-local glRect = gl.Rect
 local glTranslate = gl.Translate
 
-local spGetModKeyState = Spring.GetModKeyState
 local spGetMouseState = Spring.GetMouseState
-local spTraceScreenRay = Spring.TraceScreenRay
-local spGetTooltip = Spring.GetCurrentTooltip
 
 local RectRound, UiElement, bgpadding
 
@@ -70,7 +59,6 @@ local math_ceil = math.ceil
 local math_isInRect = math.isInRect
 local string_lines = string.lines
 
-local vsx, vsy = Spring.GetViewGeometry()
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
 
 local tooltips = {}
@@ -89,7 +77,11 @@ end
 function widget:Shutdown()
 	if WG['guishader'] then
 		for name, tooltip in pairs(tooltips) do
-			WG['guishader'].DeleteScreenDlist('tooltip_' .. name)
+			WG['guishader'].RemoveScreenRect('tooltip_' .. name)
+			WG['guishader'].RemoveScreenRect('2tooltip_' .. name)
+			if tooltip.dlist then
+				gl.DeleteList(tooltip.dlist)
+			end
 		end
 	end
 	WG['tooltip'] = nil
@@ -98,7 +90,7 @@ end
 function init()
 	widgetScale = (1 + ((vsy - 850) / 900)) * (0.95 + (ui_scale - 1) / 2.5)
 	usedFontSize = cfgFontSize * widgetScale
-	yOffset = -xOffset - usedFontSize
+	yOffset = -math.floor(xOffset*0.75) - usedFontSize
 
 	if WG['tooltip'] == nil then
 		WG['tooltip'] = {}
@@ -124,7 +116,18 @@ function init()
 		end
 		WG['tooltip'].ShowTooltip = function(name, value, x, y)
 			if value ~= nil then
-				tooltips[name] = { value = tostring(value) }
+				value = tostring(value)
+				if not tooltips[name] then
+					tooltips[name] = { value = value }
+				else
+					tooltips[name].disabled = false
+					if tooltips[name].value ~= value then
+						tooltips[name].value = value
+						if tooltips[name].dlist then
+							tooltips[name].dlist = gl.DeleteList(tooltips[name].dlist)
+						end
+					end
+				end
 				if x ~= nil and y ~= nil then
 					tooltips[name].pos = { x, y }
 				end
@@ -158,24 +161,50 @@ function widget:ViewResize(x, y)
 	init()
 end
 
-function drawTooltip(name, x, y)
+local function drawTooltip(name, x, y)
 	local paddingH = math_floor(9.5 * widgetScale)
 	local paddingW = math_floor(paddingH * 1.42)
+
+	local addX = math.floor(vsx*0.33)	-- temp add something so flowui doesnt think its near screen edge
+	local addY = math.floor(vsy*0.5)	-- temp add something so flowui doesnt think its near screen edge
+
+	if not tooltips[name].dlist then
+		tooltips[name].dlist = gl.CreateList(function()
+			local fontSize = math_floor(usedFontSize)
+			local lineHeight = fontSize + (fontSize / 4.5)
+			local lines = string_lines(tooltips[name].value)
+
+			-- get text dimentions
+			local maxWidth = 0
+			local maxHeight = 0
+			for i, line in ipairs(lines) do
+				maxWidth = math_ceil(math.max(maxWidth, (font:GetTextWidth(line) * fontSize)))
+				maxHeight = math_ceil(maxHeight + lineHeight)
+			end
+			tooltips[name].maxWidth = maxWidth
+			tooltips[name].maxHeight = maxHeight
+
+			local borderSize = 1
+			RectRound(addX-paddingW-borderSize, addY-maxHeight - paddingH-borderSize, addX+maxWidth + paddingW+borderSize, addY+paddingH+borderSize, bgpadding*1.4, 1,1,1,1, {0,0,0,0.08})
+			UiElement(addX-paddingW, addY-maxHeight-paddingH, addX+maxWidth + paddingW, addY+paddingH, 1,1,1,1, 1,1,1,1, nil, {0.85, 0.85, 0.85, (WG['guishader'] and 0.72 or 0.94)}, {0, 0, 0, (WG['guishader'] and 0.52 or 0.56)}, bgpadding)
+
+			-- draw text
+			maxHeight = math_floor(-fontSize * 0.93)
+			font:Begin()
+			for i, line in ipairs(lines) do
+				font:Print('\255\244\244\244' .. line, addX, maxHeight+addY, fontSize, "o")
+				maxHeight = maxHeight - lineHeight
+			end
+			font:End()
+		end)
+	end
+
+	local maxWidth = tooltips[name].maxWidth
+	local maxHeight = tooltips[name].maxHeight
+
+	-- adjust position when needed
 	local posX = math_floor(x + paddingW)
 	local posY = math_floor(y - paddingH)
-
-	local fontSize = math_floor(usedFontSize)
-	local maxWidth = 0
-	local maxHeight = 0
-	local lineHeight = fontSize + (fontSize / 4.5)
-	local lines = string_lines(tooltips[name].value)
-
-	-- get text dimentions
-	for i, line in ipairs(lines) do
-		maxWidth = math_ceil(math.max(maxWidth, (font:GetTextWidth(line) * fontSize)))
-		maxHeight = math_ceil(maxHeight + lineHeight)
-	end
-	-- adjust position when needed
 	if posX + maxWidth + paddingW + paddingW > vsx then
 		posX = math_floor(posX - maxWidth - paddingW - paddingW - (xOffset * widgetScale * 2))
 	end
@@ -188,27 +217,14 @@ function drawTooltip(name, x, y)
 	if posY - maxHeight - paddingH - paddingH < 0 then
 		posY = 0 + maxHeight + paddingH + paddingH
 	end
-	local borderSize = 1
-	RectRound(posX - paddingW-borderSize, posY - maxHeight - paddingH-borderSize, posX + maxWidth + paddingW+borderSize, posY + paddingH+borderSize, bgpadding*1.4, 1,1,1,1, {0,0,0,0.08})
-	UiElement(posX - paddingW, posY - maxHeight - paddingH, posX + maxWidth + paddingW, posY + paddingH, 1,1,1,1, 1,1,1,1, nil, {0.85, 0.85, 0.85, (WG['guishader'] and 0.72 or 0.94)}, {0, 0, 0, (WG['guishader'] and 0.52 or 0.56)}, bgpadding)
-	if WG['guishader'] then
-		WG['guishader'].InsertScreenDlist(gl.CreateList(function()
-			RectRound(posX - paddingW, posY - maxHeight - paddingH, posX + maxWidth + paddingW, posY + paddingH, 3.3 * widgetScale)
-		end), 'tooltip_' .. name)
-	end
 
-	-- draw text
-	maxHeight = math_floor(-fontSize * 0.93)
-	glTranslate(posX, posY, 0)
-	font:Begin()
-	--font:SetTextColor(0.95,0.95,0.95,1)
-	--font:SetOutlineColor(0.3,0.3,0.3,0.3)
-	for i, line in ipairs(lines) do
-		font:Print('\255\244\244\244' .. line, 0, maxHeight, fontSize, "o")
-		maxHeight = maxHeight - lineHeight
+	if WG['guishader'] then
+		WG['guishader'].InsertScreenRect(posX - paddingW + bgpadding, posY - maxHeight - paddingH, posX + maxWidth + paddingW -bgpadding, posY + paddingH, 'tooltip_' .. name)
+		WG['guishader'].InsertScreenRect(posX - paddingW, posY - maxHeight - paddingH + bgpadding, posX + maxWidth + paddingW, posY + paddingH - bgpadding, '2tooltip_' .. name)
 	end
-	font:End()
-	glTranslate(-posX, -posY, 0)
+	glTranslate(posX-addX, posY-addY, 0)
+	gl.CallList(tooltips[name].dlist)
+	glTranslate(-posX+addX, -posY+addY, 0)
 end
 
 local cleanupGuishaderAreas = {}
@@ -230,20 +246,21 @@ function widget:DrawScreen()
 
 	if WG['guishader'] then
 		for name, _ in pairs(cleanupGuishaderAreas) do
-			WG['guishader'].DeleteScreenDlist(name)
+			WG['guishader'].RemoveScreenRect(name)
+			WG['guishader'].RemoveScreenRect('2'..name)
 			cleanupGuishaderAreas[name] = nil
 		end
 	end
 	for name, tooltip in pairs(tooltips) do
-		if tooltip.area == nil or (tooltip.area[4] ~= nil and math_isInRect(x, y, tooltip.area[1], tooltip.area[2], tooltip.area[3], tooltip.area[4])) then
+		if (tooltip.area == nil and not tooltip.disabled) or (tooltip.area and tooltip.area[4] ~= nil and math_isInRect(x, y, tooltip.area[1], tooltip.area[2], tooltip.area[3], tooltip.area[4])) then
 			if tooltip.area == nil then
 				if tooltip.pos ~= nil then
 					drawTooltip(name, tooltip.pos[1], tooltip.pos[2])
 				else
 					drawTooltip(name, x + (xOffset * widgetScale), y + (yOffset * widgetScale))
 				end
-				tooltips[name] = nil
 				cleanupGuishaderAreas['tooltip_' .. name] = true
+				tooltips[name].disabled = true
 			else
 				if tooltip.displayTime == nil then
 					tooltip.displayTime = now + tooltip.delay
@@ -255,11 +272,13 @@ function widget:DrawScreen()
 					end
 				end
 			end
+			break	-- cut off for perf reason + this only allows one tooltip at a time
 		else
 			if tooltip.displayTime ~= nil then
 				tooltip.displayTime = nil
 				if WG['guishader'] then
-					WG['guishader'].DeleteScreenDlist('tooltip_' .. name)
+					WG['guishader'].RemoveScreenRect('tooltip_' .. name)
+					WG['guishader'].RemoveScreenRect('2tooltip_' .. name)
 				end
 			end
 		end

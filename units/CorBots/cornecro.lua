@@ -15,7 +15,7 @@ return {
 		canresurrect = true,
 		category = "BOT MOBILE ALL NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -2 1",
-		collisionvolumescales = "30.5 36 30.5",
+		collisionvolumescales = "28 36 24",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		description = Spring.I18N('units.descriptions.cornecro'),
@@ -45,6 +45,7 @@ return {
 		upright = true,
 		workertime = 200,
 		customparams = {
+			unitgroup = 'builder',
 			longdescription = Spring.I18N('units.longDescriptions.cornecro'),
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",

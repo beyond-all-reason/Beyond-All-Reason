@@ -193,6 +193,14 @@ local options={
 		section		= 'restrictions',
 		def    		= false,
 	},
+	{
+		key    		= 'unit_restrictions_nolrpc',
+		name   		= 'Disable Long Range Artilery (LRPC) structures',
+		desc   		= 'Disable Long Range Artilery (LRPC) structures',
+		type   		= "bool",
+		section		= 'restrictions',
+		def    		= false,
+	},
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	-- Scavengers

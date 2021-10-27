@@ -76,6 +76,7 @@ return {
 			[31] = "corsy",
 		},
 		customparams = {
+			unitgroup = 'builder',
 			area_mex_def = "cormex",
 			longdescription = Spring.I18N('units.longDescriptions.corca'),
 			model_author = "Mr Bob, Flaka",

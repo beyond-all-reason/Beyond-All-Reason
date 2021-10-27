@@ -52,6 +52,7 @@ return {
 			[6] = "armkam",
 		},
 		customparams = {
+			unitgroup = 'builder',
 			model_author = "Cremuss",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armbuildings/landfactories",

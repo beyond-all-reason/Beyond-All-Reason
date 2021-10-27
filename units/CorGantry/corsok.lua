@@ -17,7 +17,7 @@ return {
 		cantbetransported = true,
 		category = "ALL HOVER MOBILE WEAPON NOTSUB NOTSHIP NOTAIR SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 3 0",
-		collisionvolumescales = "52 31 58",
+		collisionvolumescales = "52 40 58",
 		collisionvolumetype = "CylY",
 		corpse = "dead",
 		description = Spring.I18N('units.descriptions.corsok'),
@@ -45,6 +45,7 @@ return {
 		turnrate = 290,
 		waterline = 7,
 		customparams = {
+			unitgroup = 'weapon',
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "corgantry",
 		},

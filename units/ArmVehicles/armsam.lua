@@ -42,6 +42,7 @@ return {
 		turninplacespeedlimit = 1.056,
 		turnrate = 370,
 		customparams = {
+			unitgroup = 'weaponaa',
 			longdescription = Spring.I18N('units.longDescriptions.armsam'),
 			model_author = "Beherith",
 			normaltex = "unittextures/Arm_normal.dds",

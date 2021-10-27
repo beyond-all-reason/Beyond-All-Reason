@@ -38,6 +38,7 @@ return {
 		turnrate = 1278.79993,
 		upright = true,
 		customparams = {
+			unitgroup = 'aa',
 			longdescription = Spring.I18N('units.longDescriptions.corcrash'),
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",

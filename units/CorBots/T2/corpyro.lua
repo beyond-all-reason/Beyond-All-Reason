@@ -10,7 +10,7 @@ return {
 		buildtime = 5027,
 		canmove = true,
 		category = "BOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
-		collisionvolumeoffsets = "0 -4 -5",
+		collisionvolumeoffsets = "0 0 -2",
 		collisionvolumescales = "25 31 25",
 		collisionvolumetype = "CylY",
 		corpse = "HEAP",
@@ -40,6 +40,7 @@ return {
 		turnrate = 1316.75,
 		upright = true,
 		customparams = {
+			unitgroup = 'weapon',
 			model_author = "Beherith, PtaQ",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "corbots/t2",

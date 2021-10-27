@@ -45,6 +45,7 @@ return {
 		turnrate = 420,
 		unloadspread = 0,
 		customparams = {
+			unitgroup = 'emp',
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			paralyzemultiplier = 0.025,

@@ -43,6 +43,7 @@ return {
 		turninplacespeedlimit = 1.6335,
 		turnrate = 591.79999,
 		customparams = {
+			unitgroup = 'aa',
 			model_author = "Mr Bob, remodelled by PtaQ",
 			normaltex = "unittextures/cor_normal.dds",
 			prioritytarget = "air",

@@ -31,15 +31,12 @@ local smartOrderUnits = true
 
 local maxPosY = 0.74
 
-local enableShortcuts = false   -- problematic since it overrules use of top row letters from keyboard which some are in use already
-
 local disableInputWhenSpec = false		-- disable specs selecting buildoptions
 
 local makeFancy = true    -- when using transparant icons this adds highlights so it shows the squared shape of button
 local showPrice = false		-- false will still show hover
 local showRadarIcon = true		-- false will still show hover
 local showGroupIcon = true		-- false will still show hover
-local showShortcuts = false
 local showTooltip = true
 local showBuildProgress = true
 
@@ -55,25 +52,13 @@ local bgpadding, chobbyInterface, activeAreaMargin, iconTypesMap
 local dlistGuishader, dlistBuildmenuBg, dlistBuildmenu, font2, cmdsCount
 local hijackedlayout, doUpdateClock, ordermenuHeight, advplayerlistPos, prevAdvplayerlistLeft
 local cellPadding, iconPadding, cornerSize, cellInnerSize, cellSize, priceFontSize
-local activeCmd, selBuildQueueDefID, rowPressedClock, rowPressed
+local activeCmd, selBuildQueueDefID
+local prevHoveredCellID, hoverDlist
 
 local math_isInRect = math.isInRect
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
-
-local buildKeys = {
-	113, -- Q
-	119, -- W
-	101, -- E
-	114, -- R
-	116, -- T
-	121, -- Y
-	117, -- U
-	105, -- I
-	111, -- O
-	112, -- P
-}
 
 local playSounds = true
 local sound_queue_add = 'LuaUI/Sounds/buildbar_add.wav'
@@ -237,7 +222,9 @@ local isMex = {}
 local isWaterUnit = {}
 local isGeothermalUnit = {}
 local unitMaxWeaponRange = {}
+
 for unitDefID, unitDef in pairs(UnitDefs) do
+	unitGroup[unitDefID] = unitDef.customParams.unitgroup
 
 	if unitDef.name == 'armdl' or unitDef.name == 'cordl' or unitDef.name == 'armlance' or unitDef.name == 'cortitan'
 		or (unitDef.minWaterDepth > 0 or unitDef.modCategories['ship']) then
@@ -250,76 +237,8 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 		isGeothermalUnit[unitDefID] = true
 	end
 
-	unitGroup[unitDefID] = 'util'
-	if unitDef.customParams.objectify or unitDef.isTransport or string.find(unitDef.name, 'critter') then
-		unitGroup[unitDefID] = nil
-	end
-	if unitDef.customParams.solar or (unitDef.energyMake > 19 and (not unitDef.energyUpkeep or unitDef.energyUpkeep < 10) or unitDef.energyUpkeep < -19 or unitDef.windGenerator > 0 or unitDef.tidalGenerator > 0) then
-		unitGroup[unitDefID] = 'energy'
-	end
-	if unitDef.extractsMetal > 0 or (unitDef.customParams.energyconv_capacity and unitDef.customParams.energyconv_efficiency) then
-		unitGroup[unitDefID] = 'metal'
-	end
-	if unitDef.energyStorage > 1000 and string.find(string.lower(unitDef.translatedHumanName), 'storage') then
-		unitGroup[unitDefID] = 'energy'
-	end
-	if unitDef.metalStorage > 500 and string.find(string.lower(unitDef.translatedHumanName), 'storage') then
-		unitGroup[unitDefID] = 'metal'
-	end
 	if unitDef.maxWeaponRange > 16 then
 		unitMaxWeaponRange[unitDefID] = unitDef.maxWeaponRange
-		unitGroup[unitDefID] = 'weapon'
-	end
-	if string.find(string.lower(unitDef.name), 'silo') then
-		unitGroup[unitDefID] = 'nuke'
-	end
-	local aaWeapons = 0
-	local weaponCount = 0
-
-	local weapons = unitDef.weapons
-	for i = 1, #weapons do
-		local weaponDef = WeaponDefs[weapons[i].weaponDef]
-		if weaponDef then
-			if weaponDef.damages then
-				-- get highest damage category
-				local maxDmg = 0
-				for _, v in pairs(weaponDef.damages) do
-					if v > maxDmg then
-						maxDmg = v
-					end
-				end
-				if maxDmg > 1 then	-- filter away bogus weapons
-					weaponCount = weaponCount + 1
-					if weapons[i].onlyTargets and weapons[i].onlyTargets['vtol'] then
-						aaWeapons = aaWeapons + 1
-					end
-				end
-				if weaponDef.paralyzer then
-					unitGroup[unitDefID] = 'emp'
-				end
-
-				if weaponDef.type == "TorpedoLauncher" then
-					unitGroup[unitDefID] = 'sub'
-				end
-			end
-			if weaponDef.shieldRepulser then
-				unitGroup[unitDefID] = 'util'
-			end
-			--if weaponDef.description ~= nil and string.find(string.lower(weaponDef.description), 'nuclear') then
-			--	unitGroup[unitDefID] = 'nuke'
-			--end
-		end
-	end
-	if aaWeapons > 0 and weaponCount == aaWeapons then
-		unitGroup[unitDefID] = 'aa'
-	end
-	if string.find(unitDef.name, 'armsam') or string.find(unitDef.name, 'cormist') or string.find(unitDef.name, 'armpt') or string.find(unitDef.name, 'corpt') or
-		string.find(unitDef.name, 'armlatnk') then--aaWeapons > 0 and weaponCount <= aaWeapons then
-		unitGroup[unitDefID] = 'weaponaa'
-	end
-
-	if unitDef.customParams.detonaterange or string.find(unitDef.deathExplosion, 'crawl_') then
-		unitGroup[unitDefID] = 'explo'
 	end
 
 	unitIconType[unitDefID] = unitDef.iconType
@@ -330,144 +249,24 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	end
 	if unitDef.buildSpeed > 0 and unitDef.buildOptions[1] then
 		isBuilder[unitDefID] = unitDef.buildOptions
-		unitGroup[unitDefID] = 'builder'
 	end
 	if unitDef.isFactory and #unitDef.buildOptions > 0 then
 		isFactory[unitDefID] = true
-		unitGroup[unitDefID] = 'builder'
 	end
-	if unitDef.buildSpeed > 10 then
-		unitGroup[unitDefID] = 'builder'
-	end
-	if unitGroup[unitDefID] == 'builder' and unitDef.customParams.techlevel then
-		if tonumber(unitDef.customParams.techlevel) == 2 then
-			unitGroup[unitDefID] = 'buildert2'
-		elseif tonumber(unitDef.customParams.techlevel) == 3 then
-			unitGroup[unitDefID] = 'buildert3'
-		elseif tonumber(unitDef.customParams.techlevel) == 4 then
-			unitGroup[unitDefID] = 'buildert4'
-		end
-	end
-	if string.find(string.lower(unitDef.tooltip), 'anti%-nuke') then
-		unitGroup[unitDefID] = 'antinuke'
-	end
+
 	if unitDef.extractsMetal > 0 then
 		isMex[unitDefID] = true
 	end
 end
 
 local unitOrder = {}
-local function addOrderImportance(unitDefID, skip, value)
-	if not skip then
-		unitOrder[unitDefID] = unitOrder[unitDefID] + value
-	end
-end
+local unitOrderManualOverrideTable = VFS.Include("luaui/configs/buildmenu_sorting.lua")
 
--- order units, add higher value for order importance
-local skip = false
-local unitOrderManualOverrideTable = VFS.Include("luaui/configs/gui_buildmenu_sorting.lua")
 for unitDefID, unitDef in pairs(UnitDefs) do
-	skip = false
 	if unitOrderManualOverrideTable[unitDefID] then
 		unitOrder[unitDefID] = -unitOrderManualOverrideTable[unitDefID]
 	else
-		unitOrder[unitDefID] = 2000000
-		-- is water unit
-		if unitDef.name ~= 'armmex' and unitDef.name ~= 'cormex' and (unitDef.minWaterDepth > 0 or unitDef.modCategories['ship'] or unitDef.modCategories['underwater']) then
-			unitOrder[unitDefID] = 50000
-		end
-
-		-- handle decoy unit like its the regular version
-		if unitDef.customParams.decoyfor then
-			unitDef = UnitDefNames[unitDef.customParams.decoyfor]
-			unitOrder[unitDefID] = unitOrder[unitDefID] - 2
-		end
-
-
-
-		-- mobile units
-		if not (unitDef.isImmobile or unitDef.isBuilding) then
-			addOrderImportance(unitDefID, skip, 1500000)
-		end
-
-		-- eco buildings
-		if unitDef.isImmobile or unitDef.isBuilding then
-			if unitDef.tidalGenerator > 0 then
-				addOrderImportance(unitDefID, skip, 1200000)
-			elseif unitDef.extractsMetal > 0 then
-				addOrderImportance(unitDefID, skip, 1400000)
-			elseif unitDef.windGenerator > 0 then
-				addOrderImportance(unitDefID, skip, 1250000)
-			elseif unitDef.energyMake > 19 and (not unitDef.energyUpkeep or unitDef.energyUpkeep < 10) then
-				addOrderImportance(unitDefID, skip, 1150000)
-			elseif unitDef.energyUpkeep < -19 then
-				addOrderImportance(unitDefID, skip, 1200000)
-			end
-
-			-- storage
-			if unitDef.energyStorage > 1000 and string.find(string.lower(unitDef.translatedHumanName), 'storage') then
-				addOrderImportance(unitDefID, skip, 1100000)
-			end
-			if unitDef.metalStorage > 500 and string.find(string.lower(unitDef.translatedHumanName), 'storage') then
-				addOrderImportance(unitDefID, skip, 1300000)
-			end
-
-			-- converters
-			if string.find(string.lower(unitDef.translatedHumanName), 'converter') then
-				addOrderImportance(unitDefID, skip, 1350000)
-			end
-		end
-
-		-- nanos
-		if unitDef.buildSpeed > 0 and not unitDef.buildOptions[1] then
-			addOrderImportance(unitDefID, skip, 350000)
-		end
-
-		if unitDef.buildOptions[1] then
-			if unitDef.isBuilding then
-				addOrderImportance(unitDefID, skip, 250000)
-			else
-				if string.find(string.lower(unitDef.translatedHumanName), 'construction') then
-					addOrderImportance(unitDefID, skip, 600000)
-				elseif string.find(string.lower(unitDef.tooltip), 'minelayer') or string.find(string.lower(unitDef.tooltip), 'assist') or string.find(string.lower(unitDef.tooltip), 'engineer') then
-					addOrderImportance(unitDefID, skip, 400000)
-				else
-					addOrderImportance(unitDefID, skip, 500000)
-				end
-			end
-		end
-		-- if unitDef.isImmobile or  unitDef.isBuilding then
-		--   if unitDef.floater or unitDef.floatOnWater then
-		--     addOrderImportance(unitDefID, skip, 11000000)
-		--   elseif unitDef.modCategories['underwater'] or unitDef.modCategories['canbeuw'] or unitDef.modCategories['notland'] then
-		--     addOrderImportance(unitDefID, skip, 10000000)
-		--   else
-		--     addOrderImportance(unitDefID, skip, 12000000)
-		--   end
-		-- else
-		--   if unitDef.modCategories['ship'] then
-		--     addOrderImportance(unitDefID, skip, 9000000)
-		--   elseif unitDef.modCategories['hover'] then
-		--     addOrderImportance(unitDefID, skip, 8000000)
-		--   elseif unitDef.modCategories['tank'] then
-		--     addOrderImportance(unitDefID, skip, 7000000)
-		--   elseif unitDef.modCategories['bot'] then
-		--     addOrderImportance(unitDefID, skip, 6000000)
-		--   elseif unitDef.isAirUnit then
-		--     addOrderImportance(unitDefID, skip, 5000000)
-		--   elseif unitDef.modCategories['underwater'] or unitDef.modCategories['canbeuw'] or unitDef.modCategories['notland'] then
-		--     addOrderImportance(unitDefID, skip, 8600000)
-		--   end
-		-- end
-
-
-		unitOrder[unitDefID] = math.max(1, math_floor(unitOrder[unitDefID]))
-
-		-- make more expensive units of the same kind lower in the list
-		unitOrder[unitDefID] = unitOrder[unitDefID] + 100000
-		addOrderImportance(unitDefID, skip, -(unitDef.energyCost / 70)*0.1)
-		addOrderImportance(unitDefID, skip, -unitDef.metalCost*0.1)
-		unitOrder[unitDefID] = math.max(1, math_floor(unitOrder[unitDefID]))
+		unitOrder[unitDefID] = 9999999
 	end
 end
 
@@ -760,8 +559,33 @@ local function hijacklayout()
 	Spring.ForceLayoutUpdate()
 end
 
+function buildFacingHandler(_, _, args)
+	if not (preGamestartPlayer and selBuildQueueDefID) then
+		return
+	end
+
+	local facing = Spring.GetBuildFacing()
+	if args and args[1] == "inc" then
+		facing = facing + 1
+		if facing > 3 then
+			facing = 0
+		end
+		Spring.SetBuildFacing(facing)
+
+		return true
+	elseif args and args[1] == "dec" then
+		facing = facing - 1
+		if facing < 0 then
+			facing = 3
+		end
+		Spring.SetBuildFacing(facing)
+
+		return true
+	end
+end
 
 function widget:Initialize()
+	widgetHandler.actionHandler:AddAction(self, "buildfacing", buildFacingHandler, nil, "t")
 
 	checkGeothermalFeatures()
 	hijacklayout()
@@ -823,13 +647,6 @@ function widget:Initialize()
 	end
 	WG['buildmenu'].setShowGroupIcon = function(value)
 		showGroupIcon = value
-		doUpdate = true
-	end
-	WG['buildmenu'].getShowShortcuts = function()
-		return showShortcuts
-	end
-	WG['buildmenu'].setShowShortcuts = function(value)
-		showShortcuts = value
 		doUpdate = true
 	end
 	WG['buildmenu'].getShowTooltip = function()
@@ -900,6 +717,7 @@ function widget:Shutdown()
 		Spring.ForceLayoutUpdate()
 	end
 	clear()
+	hoverDlist = gl.DeleteList(hoverDlist)
 	if WG['guishader'] and dlistGuishader then
 		WG['guishader'].DeleteDlist('buildmenu')
 		dlistGuishader = nil
@@ -1051,14 +869,6 @@ local function drawCell(cellRectID, usedZoom, cellColor, progress, highlightColo
 	if showOrderDebug and smartOrderUnits and unitOrderDebug[uDefID] then
 		local text = unitOrderDebug[uDefID]
 		font2:Print("\255\175\175\175" .. text, cellRects[cellRectID][1] + cellPadding + (cellInnerSize * 0.05), cellRects[cellRectID][4] - cellPadding - priceFontSize, priceFontSize * 0.82, "o")
-	end
-
-	-- shortcuts
-	if showShortcuts and enableShortcuts and not disableInput then
-		local row = math_ceil(cellRectID / colls)
-		local col = cellRectID - ((row - 1) * colls)
-		local text = string.upper(string.char(buildKeys[row]) .. ' ' .. string.char(buildKeys[col]))
-		font2:Print("\255\175\175\175" .. text, cellRects[cellRectID][1] + cellPadding + (cellInnerSize * 0.05), cellRects[cellRectID][4] - cellPadding - priceFontSize, priceFontSize, "o")
 	end
 
 	-- draw build progress pie on top of texture
@@ -1376,7 +1186,7 @@ function widget:DrawScreen()
 		gl.CallList(dlistBuildmenuBg)
 		if preGamestartPlayer or selectedBuilderCount ~= 0 then
 			-- pre process + 'highlight' under the icons
-			local hoveredCellID = nil
+			local hoveredCellID
 			if not WG['topbar'] or not WG['topbar'].showingQuit() then
 				if hovering then
 					for cellRectID, cellRect in pairs(cellRects) do
@@ -1398,7 +1208,7 @@ function widget:DrawScreen()
 									text = textColor .. UnitDefs[uDefID].translatedHumanName
 								end
 
-								text = text .. "\n\255\240\240\240" .. UnitDefs[uDefID].tooltip
+								text = text .. "\n\255\240\240\240" .. UnitDefs[uDefID].translatedTooltip
 
 								WG['tooltip'].ShowTooltip('buildmenu', text)
 							end
@@ -1441,72 +1251,72 @@ function widget:DrawScreen()
 						RectRound(paginatorRects[paginatorHovered][1] + cellPadding, paginatorRects[paginatorHovered][2] + cellPadding, paginatorRects[paginatorHovered][3] - cellPadding, paginatorRects[paginatorHovered][2] + cellPadding + ((paginatorRects[paginatorHovered][4] - paginatorRects[paginatorHovered][2]) * 0.33), cellSize * 0.03, 0, 0, 2, 2, { 1, 1, 1, 0.025 }, { 1, 1, 1, 0 })
 					end
 
-					-- cells
+					-- draw cell hover
 					if hoveredCellID then
-						local cellRectID = hoveredCellID
-						local cellIsSelected = (activeCmd and cmds[cellRectID] and activeCmd == cmds[cellRectID].name)
-						local uDefID = cmds[cellRectID].id * -1
+						local uDefID = cmds[hoveredCellID].id * -1
+						local cellIsSelected = (activeCmd and cmds[hoveredCellID] and activeCmd == cmds[hoveredCellID].name)
+						if not prevHoveredCellID or hoveredCellID ~= prevHoveredCellID or uDefID ~= hoverUdefID or cellIsSelected ~= hoverCellSelected or b ~= prevB or b3 ~= prevB3 or cmds[hoveredCellID].params[1] ~= prevQueueNr then
+							prevQueueNr = cmds[hoveredCellID].params[1]
+							prevB = b
+							prevB3 = b3
+							prevHoveredCellID = hoveredCellID
+							hoverCellSelected = cellIsSelected
+							hoverUdefID = uDefID
+							if hoverDlist then
+								hoverDlist = gl.DeleteList(hoverDlist)
+							end
+							hoverDlist = gl.CreateList(function()
 
-						-- determine zoom amount and cell color
-						usedZoom = hoverCellZoom
-						if not cellIsSelected then
-							if (b or b2) and cellIsSelected then
-								usedZoom = clickSelectedCellZoom
-							elseif cellIsSelected then
-								usedZoom = selectedCellZoom
-							elseif (b or b2) and not disableInput then
-								usedZoom = clickCellZoom
-							elseif b3 and not disableInput and cmds[cellRectID].params[1] then
-								-- has queue
-								usedZoom = rightclickCellZoom
-							end
-							-- determine color
-							if (b or b2) and not disableInput then
-								cellColor = { 0.3, 0.8, 0.25, 0.2 }
-							elseif b3 and not disableInput then
-								cellColor = { 1, 0.35, 0.3, 0.2 }
-							else
-								cellColor = { 0.63, 0.63, 0.63, 0 }
-							end
-						else
-							-- selected cell
-							if (b or b2 or b3) then
-								usedZoom = clickSelectedCellZoom
-							else
-								usedZoom = selectedCellZoom
-							end
-							cellColor = { 1, 0.85, 0.2, 0.25 }
+								-- determine zoom amount and cell color
+								usedZoom = hoverCellZoom
+								if not cellIsSelected then
+									if (b or b2) and cellIsSelected then
+										usedZoom = clickSelectedCellZoom
+									elseif cellIsSelected then
+										usedZoom = selectedCellZoom
+									elseif (b or b2) and not disableInput then
+										usedZoom = clickCellZoom
+									elseif b3 and not disableInput and cmds[hoveredCellID].params[1] then
+										-- has queue
+										usedZoom = rightclickCellZoom
+									end
+									-- determine color
+									if (b or b2) and not disableInput then
+										cellColor = { 0.3, 0.8, 0.25, 0.2 }
+									elseif b3 and not disableInput then
+										cellColor = { 1, 0.35, 0.3, 0.2 }
+									else
+										cellColor = { 0.63, 0.63, 0.63, 0 }
+									end
+								else
+									-- selected cell
+									if (b or b2 or b3) then
+										usedZoom = clickSelectedCellZoom
+									else
+										usedZoom = selectedCellZoom
+									end
+									cellColor = { 1, 0.85, 0.2, 0.25 }
+								end
+								if not (unitRestricted[uDefID] or unitDisabled[uDefID]) then
+
+									local unsetShowPrice, unsetShowRadarIcon, unsetShowGroupIcon
+									if not showPrice then
+										unsetShowPrice = true
+										showPrice = true
+									end
+
+									-- re-draw cell with hover zoom (and price shown)
+									drawCell(hoveredCellID, usedZoom, cellColor, nil, { cellColor[1], cellColor[2], cellColor[3], 0.045 + (usedZoom * 0.45) }, 0.15, unitRestricted[uDefID] or unitDisabled[uDefID])
+
+									if unsetShowPrice then
+										showPrice = false
+										unsetShowPrice = nil
+									end
+								end
+							end)
 						end
-						if not (unitRestricted[uDefID] or unitDisabled[uDefID]) then
-
-							local unsetShowPrice, unsetShowRadarIcon, unsetShowGroupIcon
-							if not showPrice then
-								unsetShowPrice = true
-								showPrice = true
-							end
-							--if not showRadarIcon then
-							--	unsetShowRadarIcon = true
-							--	showRadarIcon = true
-							--end
-							--if not showGroupIcon then
-							--	unsetShowGroupIcon = true
-							--	showGroupIcon = true
-							--end
-							-- re-draw cell with hover zoom (and price shown)
-							drawCell(cellRectID, usedZoom, cellColor, nil, { cellColor[1], cellColor[2], cellColor[3], 0.045 + (usedZoom * 0.45) }, 0.15, unitRestricted[uDefID] or unitDisabled[uDefID])
-
-							if unsetShowPrice then
-								showPrice = false
-								unsetShowPrice = nil
-							end
-							--if unsetShowRadarIcon then
-							--	showRadarIcon = false
-							--	unsetShowRadarIcon = nil
-							--end
-							--if unsetShowGroupIcon then
-							--	showGroupIcon = false
-							--	unsetShowGroupIcon = nil
-							--end
+						if hoverDlist then
+							gl.CallList(hoverDlist)
 						end
 					end
 				end
@@ -1515,12 +1325,12 @@ function widget:DrawScreen()
 			-- draw builders buildoption progress
 			if showBuildProgress then
 				local numCellsPerPage = rows * colls
-				local cellRectID = numCellsPerPage * (currentPage - 1)
 				local maxCellRectID = numCellsPerPage * currentPage
 				if maxCellRectID > cmdsCount then
 					maxCellRectID = cmdsCount
 				end
 				-- loop selected builders
+				local drawncellRectIDs = {}
 				for builderUnitID, _ in pairs(selectedBuilders) do
 					local unitBuildID = spGetUnitIsBuilding(builderUnitID)
 					if unitBuildID then
@@ -1529,56 +1339,16 @@ function widget:DrawScreen()
 							-- loop all shown cells
 							local cellIsSelected
 							for cellRectID, cellRect in pairs(cellRects) do
-								cellIsSelected = false
-								if cellRectID > maxCellRectID then
-									break
-								end
-								local cellUnitDefID = cmds[cellRectID].id * -1
-								if unitBuildDefID == cellUnitDefID then
-									local progress = 1 - select(5, spGetUnitHealth(unitBuildID))
-									if not usedZoom then
-										if cellRectID == hoveredCellID and (b or b2 or b3) then
-											usedZoom = clickSelectedCellZoom
-										else
-											cellIsSelected = (activeCmd and cmds[cellRectID] and activeCmd == cmds[cellRectID].name)
-											usedZoom = cellIsSelected and selectedCellZoom or defaultCellZoom
-										end
+								if not drawncellRectIDs[cellRectID] then
+									cellIsSelected = false
+									if cellRectID > maxCellRectID then
+										break
 									end
-									if cellColor and cellRectID ~= hoveredCellID then
-										cellColor = nil
-										usedZoom = cellIsSelected and selectedCellZoom or defaultCellZoom
-									end
-
-									local unsetShowPrice, unsetShowRadarIcon, unsetShowGroupIcon
-									if cellRectID == hoveredCellID then
-										if not showPrice then
-											unsetShowPrice = true
-											showPrice = true
-										end
-										if not showRadarIcon then
-											unsetShowRadarIcon = true
-											showRadarIcon = true
-										end
-										if not showGroupIcon then
-											unsetShowGroupIcon = true
-											showGroupIcon = true
-										end
-									end
-									-- re-draw cell with hover zoom (and price shown)
-									drawCell(cellRectID, usedZoom, cellColor, progress)
-									if cellRectID == hoveredCellID then
-										if unsetShowPrice then
-											showPrice = false
-											unsetShowPrice = nil
-										end
-										if unsetShowRadarIcon then
-											showRadarIcon = false
-											unsetShowRadarIcon = nil
-										end
-										if unsetShowGroupIcon then
-											showGroupIcon = false
-											unsetShowGroupIcon = nil
-										end
+									local cellUnitDefID = cmds[cellRectID].id * -1
+									if unitBuildDefID == cellUnitDefID then
+										drawncellRectIDs[cellRectID] = true
+										local progress = 1 - select(5, spGetUnitHealth(unitBuildID))
+										RectRoundProgress(cellRects[cellRectID][1] + cellPadding + iconPadding, cellRects[cellRectID][2] + cellPadding + iconPadding, cellRects[cellRectID][3] - cellPadding - iconPadding, cellRects[cellRectID][4] - cellPadding - iconPadding, cellSize * 0.03, progress, { 0.08, 0.08, 0.08, 0.6 })
 									end
 								end
 							end
@@ -1854,57 +1624,12 @@ function widget:KeyPress(key, mods, isRepeat)
 	if Spring.IsGUIHidden() then
 		return
 	end
-	-- add buildfacing shortcuts (facing commands are only handled by spring if we have a building selected, which isn't possible pre-game)
+
 	if preGamestartPlayer and selBuildQueueDefID then
-		if key == 91 then
-			-- [
-			local facing = Spring.GetBuildFacing()
-			facing = facing + 1
-			if facing > 3 then
-				facing = 0
-			end
-			Spring.SetBuildFacing(facing)
-		end
-		if key == 93 then
-			-- ]
-			local facing = Spring.GetBuildFacing()
-			facing = facing - 1
-			if facing < 0 then
-				facing = 3
-			end
-			Spring.SetBuildFacing(facing)
-		end
 		if key == 27 then
 			-- ESC
 			setPreGamestartDefID()
 		end
-	end
-
-	-- unit icon shortcuts
-	if not disableInput and enableShortcuts and cmdsCount > 0 then
-		if rowPressedClock and rowPressedClock < (os_clock() + 3) then
-			rowPressed = nil
-			rowPressedClock = nil
-		end
-		for k, buildKey in pairs(buildKeys) do
-			if buildKey == key then
-				if not rowPressed then
-					rowPressed = k
-					rowPressedClock = os_clock()
-					return true
-				else
-					local cellRectID = k + ((rowPressed - 1) * colls)
-					if cmds[cellRectID] and cmds[cellRectID].id then
-						Spring.SetActiveCommand(spGetCmdDescIndex(cmds[cellRectID].id), 1, true, false, Spring.GetModKeyState())
-					end
-					rowPressed = nil
-					rowPressedClock = nil
-					return true
-				end
-				break
-			end
-		end
-		rowPressed = nil
 	end
 end
 
@@ -2028,7 +1753,6 @@ function widget:GetConfigData()
 		minColls = minColls,
 		maxColls = maxColls,
 		defaultColls = defaultColls,
-		showShortcuts = showShortcuts,
 		makeFancy = makeFancy,
 		showTooltip = showTooltip,
 		buildQueue = buildQueue,
@@ -2061,9 +1785,6 @@ function widget:SetConfigData(data)
 	end
 	if data.defaultColls ~= nil then
 		defaultColls = data.defaultColls
-	end
-	if data.showShortcuts ~= nil then
-		showShortcuts = data.showShortcuts
 	end
 	if data.makeFancy ~= nil then
 		makeFancy = data.makeFancy

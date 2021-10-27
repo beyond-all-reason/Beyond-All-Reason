@@ -79,6 +79,7 @@ return {
 			[16] = "armfmkr",
 		},
 		customparams = {
+			unitgroup = 'buildert2',
 			decoyfor = "armcom",
 			area_mex_def = "armmex",
 			model_author = "FireStorm",

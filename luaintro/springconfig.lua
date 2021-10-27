@@ -86,15 +86,9 @@ if Spring.GetConfigInt("version", 0) < version then
 	Spring.SetConfigInt("version", version)
 
 	-- set icon settings
+	Spring.SetConfigInt("UnitIconsAsUI", 1)
 	Spring.SetConfigFloat("UnitIconScaleUI", 1.05)
 	Spring.SetConfigInt("UnitIconFadeVanish", 1800)
 	Spring.SetConfigInt("UnitIconFadeStart", 2000)
 	Spring.SetConfigInt("UnitIconsHideWithUI", 1)
-
-	--if Spring.GetConfigFloat("ui_tileopacity", 0.011) <= 0 then
-	--	Spring.SetConfigFloat("ui_tileopacity", 0.011)
-	--end
-	--if Spring.GetConfigFloat("ui_tilescale", 7) <= 0 then
-	--	Spring.SetConfigFloat("ui_tilescale", 7)
-	--end
 end

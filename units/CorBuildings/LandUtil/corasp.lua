@@ -45,6 +45,7 @@ return {
 		workertime = 1000,
 		yardmap = "ooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo",
 		customparams = {
+			unitgroup = 'buildert2',
 			isairbase = true,
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",

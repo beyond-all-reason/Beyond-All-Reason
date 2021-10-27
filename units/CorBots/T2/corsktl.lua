@@ -13,8 +13,8 @@ return {
 		category = "BOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE CANBEUW EMPABLE",
 		cloakcost = 150,
 		cloakcostmoving = 400,
-		collisionvolumeoffsets = "0.5 4 0",
-		collisionvolumescales = "19 17 19",
+		collisionvolumeoffsets = "0.5 0 0",
+		collisionvolumescales = "19 12 19",
 		collisionvolumetype = "CylY",
 		description = Spring.I18N('units.descriptions.corsktl'),
 		explodeas = "crawl_blast",
@@ -44,6 +44,7 @@ return {
 		turnrate = 1290.29993,
 		upright = true,
 		customparams = {
+			unitgroup = 'explo',
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "corbots/t2",

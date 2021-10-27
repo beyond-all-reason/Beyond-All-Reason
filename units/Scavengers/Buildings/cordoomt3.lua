@@ -12,7 +12,7 @@ return {
 		buildinggrounddecalsizex = 7,
 		buildinggrounddecalsizey = 7,
 		buildinggrounddecaltype = "decals/cor_aoplane.dds",
-		buildpic = "CORDOOM.DDS",
+		buildpic = "CORDOOMT3.DDS",
 		buildtime = 110380,
 		canrepeat = false,
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -46,6 +46,7 @@ return {
 		usebuildinggrounddecal = true,
 		yardmap = "yyooyy oooooo oooooo oooooo oooooo yyooyy",
 		customparams = {
+			unitgroup = 'weapon',
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			removewait = true,

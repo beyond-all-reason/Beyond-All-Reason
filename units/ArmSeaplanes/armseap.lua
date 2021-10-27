@@ -37,6 +37,7 @@ return {
 		sonardistance = 535,
 		turnrate = 720,
 		customparams = {
+			unitgroup = 'sub',
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armseaplanes",

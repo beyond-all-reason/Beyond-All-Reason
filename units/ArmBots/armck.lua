@@ -76,6 +76,7 @@ return {
 			[30] = "armsy",
 		},
 		customparams = {
+			unitgroup = 'builder',
 			area_mex_def = "armmex",
 			longdescription = Spring.I18N('units.longDescriptions.armck'),
 			model_author = "Kaiser",

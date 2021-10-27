@@ -47,6 +47,7 @@ return {
 		wingangle = 0.06252,
 		wingdrag = 0.11,
 		customparams = {
+			unitgroup = 'util',
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "corseaplanes",

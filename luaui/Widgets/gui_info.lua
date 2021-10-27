@@ -241,7 +241,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 		unitDefInfo[unitDefID].metalmaker = { tonumber(unitDef.customParams.energyconv_capacity), tonumber(unitDef.customParams.energyconv_efficiency) }
 	end
 
-	unitDefInfo[unitDefID].tooltip = unitDef.tooltip
+	unitDefInfo[unitDefID].tooltip = unitDef.translatedTooltip
 	unitDefInfo[unitDefID].iconType = unitDef.iconType
 	unitDefInfo[unitDefID].energyCost = unitDef.energyCost
 	unitDefInfo[unitDefID].metalCost = unitDef.metalCost

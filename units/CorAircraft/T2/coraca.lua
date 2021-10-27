@@ -75,6 +75,7 @@ return {
 			"corgant",
 		},
 		customparams = {
+			unitgroup = 'buildert2',
 			area_mex_def = "cormoho",
 			model_author = "Mr Bob, Flaka",
 			normaltex = "unittextures/cor_normal.dds",

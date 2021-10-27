@@ -10,7 +10,7 @@ return {
 		buildtime = 1279,
 		canmove = true,
 		category = "BOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
-		collisionvolumeoffsets = "0 -2 -3",
+		collisionvolumeoffsets = "0 -2 0",
 		collisionvolumescales = "24 28 24",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
@@ -38,6 +38,7 @@ return {
 		turnrate = 1391.5,
 		upright = true,
 		customparams = {
+			unitgroup = 'weapon',
 			longdescription = Spring.I18N('units.longDescriptions.corak'),
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",

@@ -44,6 +44,7 @@ return {
 		upright = true,
 		usebuildinggrounddecal = false,
 		customparams = {
+			unitgroup = 'weapon',
 			decoyfor = "corscavdrag",
 			model_author = "FireStorm",
 			normaltex = "unittextures/cor_normal.dds",

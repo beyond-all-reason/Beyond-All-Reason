@@ -11,8 +11,8 @@ return {
 		canmove = true,
 		category = "WEAPON NOTSUB NOTAIR NOTHOVER SURFACE BOT EMPABLE",
 		collisionvolumeoffsets = "0 0 2",
-		collisionvolumescales = "60 53 30",
-		collisionvolumetype = "box",
+		collisionvolumescales = "60 53 48",
+		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		description = Spring.I18N('units.descriptions.corcat'),
 		explodeas = "explosiont3",
@@ -39,6 +39,7 @@ return {
 		turnrate = 525.84998,
 		upright = true,
 		customparams = {
+			unitgroup = 'weapon',
 			model_author = "FireStorm",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "corgantry",

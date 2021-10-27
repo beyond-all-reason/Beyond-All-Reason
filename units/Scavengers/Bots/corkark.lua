@@ -36,6 +36,7 @@ return {
 		turnrate = 885.5,
 		upright = true,
 		customparams = {
+			unitgroup = 'weapon',
 			description_long = "Karkinos is a durable Bot armed with a heat ray and a short range riot cannon, allowing it to skirmish at medium range while protecting itself from close-range attacks from light units.  An effective unit for protecting your main forces or for acting as a stand-alone unit to hold key areas of the map",
 			model_author = "Firestorm",
 			normaltex = "unittextures/Cor_normal.dds",

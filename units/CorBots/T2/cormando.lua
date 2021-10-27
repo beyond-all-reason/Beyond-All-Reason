@@ -18,7 +18,7 @@ return {
 		canrepair = true,
 		canrestore = false,
 		category = "ALL MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE BOT CANBEUW EMPABLE",
-		collisionvolumeoffsets = "0 -6 0",
+		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "38 45 22",
 		collisionvolumetype = "box",
 		description = Spring.I18N('units.descriptions.cormando'),
@@ -58,6 +58,7 @@ return {
 			[7] = "corjamt",
 		},
 		customparams = {
+			unitgroup = 'buildert2',
 			model_author = "FireStorm",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "corbots/t2",

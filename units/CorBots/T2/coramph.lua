@@ -11,7 +11,7 @@ return {
 		buildtime = 9650,
 		canmove = true,
 		category = "BOT MOBILE WEAPON ALL NOTSHIP NOTAIR NOTHOVER NOTSUB SURFACE CANBEUW EMPABLE",
-		collisionvolumeoffsets = "0 0 -7",
+		collisionvolumeoffsets = "0 0 7",
 		collisionvolumescales = "32 29 32",
 		collisionvolumetype = "CylY",
 		corpse = "HEAP",
@@ -41,6 +41,7 @@ return {
 		turnrate = 1147.69995,
 		upright = true,
 		customparams = {
+			unitgroup = 'sub',
 			model_author = "FireStorm",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "corbots/t2",

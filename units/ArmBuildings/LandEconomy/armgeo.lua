@@ -41,6 +41,7 @@ return {
 		usebuildinggrounddecal = true,
 		yardmap = "oooo oGGo oGGo oooo",
 		customparams = {
+			unitgroup = 'energy',
 			cvbuildable = true,
 			model_author = "Cremuss",
 			normaltex = "unittextures/Arm_normal.dds",

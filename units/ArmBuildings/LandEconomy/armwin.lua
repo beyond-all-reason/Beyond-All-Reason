@@ -40,6 +40,7 @@ return {
 		windgenerator = 25,
 		yardmap = "ooo ooo ooo",
 		customparams = {
+			unitgroup = 'energy',
 			model_author = "Cremuss",
 			normaltex = "unittextures/Arm_normal.dds",
 			removestop = true,

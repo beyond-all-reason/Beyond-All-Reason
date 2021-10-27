@@ -39,6 +39,7 @@ return {
 		turnrate = 177,
 		waterline = 0,
 		customparams = {
+			unitgroup = 'weapon',
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "corships/t2",
