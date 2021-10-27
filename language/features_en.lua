@@ -58,7 +58,25 @@ return {
 				cactusSanPedro = "San Pedro",
 				crystalSapphire = "Sapphire Crystal",
 				smothtree123dead = 'Tree Trunk',
-				geocrack = 'visual crack for geovent', -- this one seems like it shouldn't have a tooltip
+				geovent = "Geovent",
+				geocrack = 'Visual Crack for Geovent', -- this one seems like it shouldn't have a tooltip
+				heap = "Heap",
+				treetype0 = "Tree",
+				treetype1 = "Tree",
+				treetype2 = "Tree",
+				treetype3 = "Tree",
+				treetype4 = "Tree",
+				treetype5 = "Tree",
+				treetype6 = "Tree",
+				treetype7 = "Tree",
+				treetype8 = "Tree",
+				treetype9 = "Tree",
+				treetype10 = "Tree",
+				treetype11 = "Tree",
+				treetype12 = "Tree",
+				treetype13 = "Tree",
+				treetype14 = "Tree",
+				treetype15 = "Tree",
 			},
 		}
 	}
