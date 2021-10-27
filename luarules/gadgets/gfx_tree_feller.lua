@@ -331,7 +331,8 @@ if gadgetHandler:IsSyncedCode() then
 							end
 
 							-- NOTE: this can create twitchy tree movement
-							SetFeatureDirection(featureID, dx, dy, dz)		-- gets reset so we re-apply
+              -- Note 2: disabling this because I saw no reset issue, but this does fix gimbal induced twitch.
+							--SetFeatureDirection(featureID, dx, dy, dz)		-- gets reset so we re-apply
 						end
 					end
 				end
