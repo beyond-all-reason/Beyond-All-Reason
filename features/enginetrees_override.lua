@@ -36,7 +36,7 @@ local function CreateTreeDef(i)
   }
 end
 
-for i=0,20 do
+for i=0,15 do
   CreateTreeDef(i)
 end
 

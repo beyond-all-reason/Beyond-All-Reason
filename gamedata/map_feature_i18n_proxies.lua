@@ -569,5 +569,6 @@ return {
 	treetype11 = 'tree',
 	treetype12 = 'tree',
 	treetype13 = 'tree',
+	treetype14 = 'tree',
 	treetype15 = 'tree',
 }
