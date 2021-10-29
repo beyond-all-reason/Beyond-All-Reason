@@ -212,9 +212,15 @@ function popElementInstance(iT, instanceID, noUpload)
 				--Spring.Echo("Shuffling",lastElementIndex,"->", oldElementIndex)
 				--Spring.Echo("popElementInstance,unitID, iT.unitIDattribID, thisInstanceIndex",unitID, iT.unitIDattribID, oldElementIndex)
 				local myunitID = iT.indextoUnitID[lastElementIndex]
+        
+        --Spring.Echo("Pop", myunitID, "is valid?", Spring.ValidUnitID(myunitID), oldElementIndex, lastElementIndex)
 				iT.indextoUnitID[oldElementIndex] = myunitID
 				iT.indextoUnitID[lastElementIndex] = nil
-				iT.instanceVBO:InstanceDataFromUnitIDs({myunitID}, iT.unitIDattribID, oldElementIndex-1)
+        if Spring.ValidUnitID(myunitID) then
+          iT.instanceVBO:InstanceDataFromUnitIDs({myunitID}, iT.unitIDattribID, oldElementIndex-1)
+        else
+          Spring.Echo("Tried to pop an invalid unitID", myunitID, "from", iT.myName)
+        end
 			end
 		else
 			iT.dirty = true
