@@ -48,7 +48,6 @@ return {
 			[4] = "corah",
 			[5] = "cormh",
 			[6] = "corhal",
-			[7] = "corthovr",
 		},
 		customparams = {
 			unitgroup = 'builder',

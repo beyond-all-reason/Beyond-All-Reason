@@ -44,7 +44,6 @@ return {
 			[5] = "corpship",
 			[6] = "corroy",
 			[7] = "corsub",
-			[8] = "cortship",
 		},
 		customparams = {
 			unitgroup = 'builder',
