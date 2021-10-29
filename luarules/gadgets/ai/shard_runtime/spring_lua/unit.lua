@@ -158,6 +158,25 @@ function ShardUnit:CanBuildWhenNotDeployed()
 	return false
 end
 
+function ShardUnit:FactoryWait()
+	local topQueue = Spring.GetFactoryCommands(self.id,1)[1]
+	if topQueue and topQueue.id ~= CMD.WAIT then
+		Spring.GiveOrderToUnit( self.id, CMD.WAIT, {}, 0 )
+	end
+end
+
+function ShardUnit:FactoryUnWait()
+	local topQueue = Spring.GetFactoryCommands(self.id,1)[1]
+	if topQueue and topQueue.id == CMD.WAIT then
+		Spring.GiveOrderToUnit( self.id, CMD.WAIT, {}, 0 )
+	end
+end
+
+-- function ShardUnit:getFactoryCommands()
+-- 	print(self.id)
+-- 	return Spring.GetFactoryCommands(self.id,1)
+-- end
+
 function ShardUnit:Stop()
 	return Spring.GiveOrderToUnit( self.id, CMD.STOP, {}, 0 )
 end
