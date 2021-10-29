@@ -262,9 +262,9 @@ function TaskLabBST:preFilter()
 -- 	local threshold = (0.4-(techLv / 10))+0.05 --TODO this is a shit
 	self:EchoDebug('prefilter threshold', threshold)
 	if self.ai.Energy.full > 0.05 and self.ai.Metal.full > threshold then
-		self:UnWait()
+		self.unit:Internal():FactoryUnWait()
 	else
-		self:Wait()
+		self.unit:Internal():FactoryWait()
 -- 		return true
 	end
 end
