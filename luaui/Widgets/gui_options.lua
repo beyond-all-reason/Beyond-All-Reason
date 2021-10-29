@@ -1590,6 +1590,7 @@ function init()
             --bloom = false,
             bloomdeferred = false,
             ssao = 1,
+			cus = 0,
             mapedgeextension = false,
             lighteffects = false,
             lighteffects_additionalflashes = false,
@@ -1611,6 +1612,7 @@ function init()
             --bloom = false,
             bloomdeferred = true,
             ssao = 1,
+			cus = 0,
             mapedgeextension = false,
             lighteffects = true,
             lighteffects_additionalflashes = false,
@@ -1632,6 +1634,7 @@ function init()
             --bloom = true,
             bloomdeferred = true,
             ssao = 1,
+			cus = 1,
             mapedgeextension = true,
             lighteffects = true,
             lighteffects_additionalflashes = true,
@@ -1653,6 +1656,7 @@ function init()
             --bloom = true,
             bloomdeferred = true,
             ssao = 2,
+			cus = 1,
             mapedgeextension = true,
             lighteffects = true,
             lighteffects_additionalflashes = true,
@@ -1674,6 +1678,7 @@ function init()
             --bloom = true,
             bloomdeferred = true,
             ssao = 3,
+			cus = 1,
             mapedgeextension = true,
             lighteffects = true,
             lighteffects_additionalflashes = true,
@@ -1955,6 +1960,16 @@ function init()
           end,
         },
 
+        { id = "cus", group = "gfx", name = texts.option.cus, type = "bool", value = tonumber(Spring.GetConfigInt("cus", 1) or 1), description = texts.option.cus_descr,
+          onchange = function(i, value)
+              Spring.SetConfigInt("cus", (value and 1 or 0))
+              if value then
+                  Spring.SendCommands("luarules reloadcus")
+              else
+                  Spring.SendCommands("luarules disablecus")
+              end
+          end,
+        },
 
         { id = "label_gfx_lighting", group = "gfx", name = texts.option.label_lighting, basic = true },
         { id = "label_gfx_lighting_spacer", group = "gfx", basic = true },
@@ -3114,7 +3129,7 @@ function init()
               Spring.SetConfigFloat("UnitIconScaleUI", value)
           end,
         },
-        { id = "uniticon_fadevanish", group = "ui", name = widgetOptionColor .. "   " .. texts.option.uniticonfadevanish, type = "slider", min = 1, max = 10000, step = 50, value = tonumber(Spring.GetConfigInt("UnitIconFadeVanish", 1000) or 1), description = texts.option.uniticonfadevanish_descr,
+        { id = "uniticon_fadevanish", group = "ui", name = widgetOptionColor .. "   " .. texts.option.uniticonfadevanish, type = "slider", min = 1, max = 12000, step = 50, value = tonumber(Spring.GetConfigInt("UnitIconFadeVanish", 1000) or 1), description = texts.option.uniticonfadevanish_descr,
           onload = function(i)
           end,
           onchange = function(i, value)
@@ -3126,7 +3141,7 @@ function init()
               Spring.SetConfigInt("UnitIconFadeVanish", value)
           end,
         },
-        { id = "uniticon_fadestart", group = "ui", name = widgetOptionColor .. "   " .. texts.option.uniticonfadestart, type = "slider", min = 1, max = 10000, step = 50, value = tonumber(Spring.GetConfigInt("UnitIconFadeStart", 3000) or 1), description = texts.option.uniticonfadestart_descr,
+        { id = "uniticon_fadestart", group = "ui", name = widgetOptionColor .. "   " .. texts.option.uniticonfadestart, type = "slider", min = 1, max = 12000, step = 50, value = tonumber(Spring.GetConfigInt("UnitIconFadeStart", 3000) or 1), description = texts.option.uniticonfadestart_descr,
           onload = function(i)
           end,
           onchange = function(i, value)
@@ -5409,6 +5424,11 @@ function widget:Initialize()
         elseif value == 3 then
             widgetHandler:DisableWidget('AdvPlayersList Music Player (orchestral)')
             widgetHandler:EnableWidget('AdvPlayersList Music Player')
+        end
+
+        -- disable CUS
+        if tonumber(Spring.GetConfigInt("cus", 1) or 1) == 0 then
+            Spring.SendCommands("luarules disablecus")
         end
     end
     if not waterDetected then

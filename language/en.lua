@@ -150,6 +150,8 @@ return {
 			msaa_descr = 'Enables multisample anti-aliasing. NOTE: Can be expensive!\n\nChanges will be applied next game',
 			cas_sharpness = 'Contrast Adaptive Sharpen',
 			cas_sharpness_descr = 'How much sharpening should be applied to the image',
+			cus = 'Advanced Model Shading',
+			cus_descr = 'Enables: depth texture, units looking damaged, have lights that blink, environment lighting.',
 			shadowslider = 'Shadows',
 			shadowslider_descr = 'Set shadow detail',
 			shadows_opacity = 'opacity',
