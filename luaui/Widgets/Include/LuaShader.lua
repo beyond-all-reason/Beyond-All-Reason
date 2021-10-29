@@ -172,6 +172,11 @@ mat4 translationMat(vec3 t) {
 		t.x, t.y, t.z, 1.0
 	);
 }
+
+mat4 mat4mix(mat4 a, mat4 b, float alpha) {
+	return (a * (1.0 - alpha) + b * alpha);
+}
+
     ]]
 
     return eubs
