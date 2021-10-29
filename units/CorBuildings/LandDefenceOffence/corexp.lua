@@ -45,7 +45,7 @@ return {
 		selfdestructcountdown = 1,
 		sightdistance = 455,
 		usebuildinggrounddecal = true,
-		yardmap = "oooo oooo oooo oooo",
+    yardmap = "h yyyyyyyy yooooooy yoyyyyoy yoyooyoy yoyooyoy yoyyyyoy yooooooy yyyyyyyy",
 		customparams = {
 			unitgroup = 'metal',
 			cvbuildable = true,

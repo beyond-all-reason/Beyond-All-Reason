@@ -44,7 +44,7 @@ return {
 		sightdistance = 273,
 		usebuildinggrounddecal = true,
 		--waterline = 0,
-		yardmap = "oooo oooo oooo oooo",
+    yardmap = "h yyyyyyyy yooooooy yoyyyyoy yoyooyoy yoyooyoy yoyyyyoy yooooooy yyyyyyyy",
 		customparams = {
 			unitgroup = 'metal',
 			cvbuildable = true,

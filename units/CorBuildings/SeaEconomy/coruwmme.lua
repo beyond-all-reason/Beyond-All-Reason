@@ -40,7 +40,7 @@ return {
 		selfdestructas = "largeBuildingExplosionGenericSelfd-uw",
 		sightdistance = 169,
 		usebuildinggrounddecal = true,
-		yardmap = "oooo oooo oooo oooo",
+		yardmap = "h oooooooo oyyyyyyo oyooooyo oyoyyoyo oyoyyoyo oyooooyo oyyyyyyo oooooooo",
 		customparams = {
 			unitgroup = 'metal',
 			cvbuildable = true,
