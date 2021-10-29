@@ -18,6 +18,7 @@ function widget:GetInfo()
 end
 
 include("keysym.h.lua")
+VFS.Include('luarules/configs/customcmds.h.lua')
 
 local function table_invert(t)
 	local s = {}
@@ -151,9 +152,7 @@ local labActions = {
 		updateInFrames = 2
 	end,
 	Clear = function ()
-		clearFactoryProduction()
-
-		Spring.PlaySoundFile(Cfgs.sound_queue_rem, 0.75, 'ui')
+		GiveOrderToFactories(CMD_STOP_PRODUCTION)
 
 		updateInFrames = 2
 	end,
@@ -2514,30 +2513,6 @@ function widget:SetConfigData(data)
 	end
 	if data.alwaysShow ~= nil then
 		alwaysShow = data.alwaysShow
-	end
-end
-
-function clearFactoryProduction()
-	local udTable = Spring.GetSelectedUnitsSorted()
-	udTable.n = nil
-	for udidFac, uTable in pairs(udTable) do
-		if isFactory[udidFac] then
-			uTable.n = nil
-			for _, uid in ipairs(uTable) do
-				local queue = Spring.GetRealBuildQueue(uid)
-				if queue ~= nil then
-					for _, buildPair in ipairs(queue) do
-						local udid, count = next(buildPair, nil)
-
-						while (count > 0) do
-							count = count - 1
-
-							Spring.GiveOrderToUnit(uid, -udid, {}, {"right"})
-						end
-					end
-				end
-			end
-		end
 	end
 end
 
