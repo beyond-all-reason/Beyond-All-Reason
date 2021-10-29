@@ -602,9 +602,11 @@ function(table, key)
 end})
 
 local iconTypes = {}
+local iconSizes = {}
 function addUnitIcon(name, path, size)
     Spring.AddUnitIcon(name, path, size)
     iconTypes[name] = path
+    iconSizes[name] = size
 end
 
 function loadUnitIcons()
@@ -635,7 +637,7 @@ function gadget:GotChatMsg(msg, playerID)
 end
 
 function GetIconTypes()
-	return iconTypes
+	return iconTypes, iconSizes
 end
 
 function gadget:Initialize()
