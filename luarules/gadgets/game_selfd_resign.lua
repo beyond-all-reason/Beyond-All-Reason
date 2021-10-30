@@ -1,4 +1,9 @@
 
+
+if Spring.Utilities.Gametype.IsSinglePlayer() then
+	return
+end
+
 function gadget:GetInfo()
     return {
         name	= "Self-Destruct Resign",
