@@ -1963,17 +1963,26 @@ function init()
         { id = "label_gfx_lighting", group = "gfx", name = texts.option.label_lighting, basic = true },
         { id = "label_gfx_lighting_spacer", group = "gfx", basic = true },
 
-		{ id = "cus", group = "gfx", name = texts.option.cus, basic = true, type = "bool", value = tonumber(Spring.GetConfigInt("cus", 1) or 1), description = texts.option.cus_descr,
+
+		{ id = "advmapshading", group = "gfx", name = texts.option.advmapshading, basic = true, type = "bool", value = (Spring.GetConfigInt("AdvMapShading", 1) == 1), description = texts.option.advmapshading_descr,
+		  onchange = function(i, value)
+			  Spring.SetConfigInt("AdvMapShading", (value and 1 or 0))
+			  Spring.SendCommands("advmapshading "..(value and '1' or '0'))
+		  end,
+		},
+		{ id = "cus", group = "gfx", name = texts.option.cus, basic = true, type = "bool", value = (Spring.GetConfigInt("cus", 1) == 1), description = texts.option.cus_descr,
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("cus", (value and 1 or 0))
 			  Spring.SendCommands("luarules "..(value and 'reloadcus' or 'disablecus'))
 		  end,
 		},
 
-		{ id = "advmapshading", group = "gfx", name = texts.option.advmapshading, basic = true, type = "bool", value = tonumber(Spring.GetConfigInt("AdvMapShading", 1) or 1), description = texts.option.advmapshading_descr,
+		{ id = "cus_threshold", group = "gfx", name = widgetOptionColor .. "   " .. texts.option.cus_threshold, min = 10, max = 100, step = 1, type = "slider", value = Spring.GetConfigInt("cusThreshold", 45), description = texts.option.cus_threshold_descr,
 		  onchange = function(i, value)
-			  Spring.SetConfigInt("AdvMapShading", (value and 1 or 0))
-			  Spring.SendCommands("advmapshading "..(value and '1' or '0'))
+			  Spring.SetConfigInt("cusThreshold", value)
+			  if not GetWidgetToggleValue("Auto Disable CUS") then
+				  widgetHandler:EnableWidget("Auto Disable CUS")
+			  end
 		  end,
 		},
 
