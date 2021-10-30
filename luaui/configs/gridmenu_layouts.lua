@@ -83,9 +83,9 @@ local unitGrids = {
 	-- Commanders
 	armcom = {
 		{
-			{ "armmex", "armmakr", "armmstor", },            -- mex, T1 converter, m storage
-			{ "armsolar", "armwin", "armuwes", },            -- solar, wind, uw e storage
-			{ "armestor", "armtide", "armfmkr", "armuwms", }, -- e storage, tidal, floating converter, uw m storage
+			{ "armmex", "armsolar", "armwin", },              -- mex, solar, wind
+			{ "armmakr", "armtide", "armuwms", },             -- T1 converter, tidal, uw m storage
+			{ "armestor", "armmstor", "armuwes", "armfmkr", }, -- e storage, m storage, uw e storage, floating converter
 		},
 		{
 			{ "armllt", "armtl", },                          -- LLT, offshore torp launcher
@@ -106,9 +106,9 @@ local unitGrids = {
 
 	corcom = {
 		{
-			{ "cormex", "cormakr", "cormstor", },            -- mex, T1 converter, m storage
-			{ "corsolar", "corwin", "coruwes", },            -- solar, wind, uw e storage
-			{ "corestor", "cortide", "corfmkr", "coruwms", }, -- e storage, tidal, floating converter, uw m storage
+			{ "cormex", "corsolar", "corwin", },                -- mex, solar, wind
+			{ "cormakr", "cortide", "coruwms", },               -- T1 converter, tidal, uw m storage
+			{ "corestor", "cormstor", "coruwes", "corfmkr",  }, -- e storage, m sotrage, uw e storage, floating converter
 		},
 		{
 			{ "corllt", "cortl", },                          -- LLT, offshore torp launcher
@@ -130,9 +130,9 @@ local unitGrids = {
 	-- T1 bot con
 	armck = {
 		{
-			{ "armmex", "armmakr", "armmstor", "armamex", },  -- mex, T1 converter, m storage, twilight
-			{ "armsolar", "armwin", "armadvsol", "armgeo", }, -- solar, wind, adv solar, T1 geo
-			{ "armestor", },                                  -- e storage
+			{ "armmex", "armsolar", "armwin", "armadvsol", },  -- mex, solar, wind, adv. solar
+			{ "armmakr", "armgeo", "armamex", },               -- T1 converter, geo, twilight, (tidal)
+			{ "armestor", "armmstor", },                       -- e storage, m storage, (uw e stor), (fl. T1 converter)
 		},
 		{
 			{ "armllt", "armbeamer", "armhlt", "armclaw", },  -- LLT, beamer, HLT, lightning turret
@@ -152,9 +152,9 @@ local unitGrids = {
 
 	corck = {
 		{
-			{ "cormex", "cormakr", "cormstor", "corexp", },   -- mex, T1 converter, m storage, exploiter
-			{ "corsolar", "corwin", "coradvsol", "corgeo", }, -- solar, wind, adv solar, T1 geo
-			{ "corestor", },                                  -- e storage
+			{ "cormex", "corsolar", "corwin", "coradvsol", },   -- mex, solar, wind, adv. solar
+			{ "cormakr", "corgeo", "corexp", },                 -- T1 converter, geo, exploiter, (tidal)
+			{ "corestor", "cormstor", },                        -- e storage, m storage, (uw e stor), (fl. T1 converter)
 		},
 		{
 			{ "corllt", "corhllt", "corhlt", "cormaw", },     -- LLT, Double LLT, HLT, flame turret
@@ -175,9 +175,9 @@ local unitGrids = {
 	-- T1 vehicle con
 	armcv = {
 		{
-			{ "armmex", "armmakr", "armmstor", "armamex", },  -- mex, T1 converter, m storage, twilight
-			{ "armsolar", "armwin", "armadvsol", "armgeo", }, -- solar, wind, adv solar, T1 geo
-			{ "armestor", },                                  -- e storage
+			{ "armmex", "armsolar", "armwin", "armadvsol", },  -- mex, solar, wind, adv. solar
+			{ "armmakr", "armgeo", "armamex", },               -- T1 converter, geo, twilight, (tidal)
+			{ "armestor", "armmstor", },                       -- e storage, m storage, (uw e stor), (fl. T1 converter)
 		},
 		{
 			{ "armllt", "armbeamer", "armhlt", "armclaw", },  -- LLT, beamer, HLT, lightning turret
@@ -197,9 +197,9 @@ local unitGrids = {
 
 	corcv = {
 		{
-			{ "cormex", "cormakr", "cormstor", "corexp", },   -- mex, T1 converter, m storage, exploiter
-			{ "corsolar", "corwin", "coradvsol", "corgeo", }, -- solar, wind, adv solar, T1 geo
-			{ "corestor", },                                  -- e storage
+			{ "cormex", "corsolar", "corwin", "coradvsol", },   -- mex, solar, wind, adv. solar
+			{ "cormakr", "corgeo", "corexp", },                 -- T1 converter, geo, exploiter, (tidal)
+			{ "corestor", "cormstor", },                        -- e storage, m storage, (uw e stor), (fl. T1 converter)
 		},
 		{
 			{ "corllt", "corhllt", "corhlt", "cormaw", },     -- LLT, Double LLT, HLT, flame turret
@@ -220,9 +220,9 @@ local unitGrids = {
 	-- T1 air con
 	armca = {
 		{
-			{ "armmex", "armmakr", "armmstor", "armamex", },  -- mex, T1 converter, m storage, twilight
-			{ "armsolar", "armwin", "armadvsol", "armgeo", }, -- solar, wind, adv solar, T1 geo
-			{ "armestor", },                                  -- e storage
+			{ "armmex", "armsolar", "armwin", "armadvsol", },  -- mex, solar, wind, adv. solar
+			{ "armmakr", "armgeo", "armamex", },               -- T1 converter, geo, twilight, (tidal)
+			{ "armestor", "armmstor", },                       -- e storage, m storage, (uw e stor), (fl. T1 converter)
 		},
 		{
 			{ "armllt", "armbeamer", "armhlt", "armclaw", },  -- LLT, beamer, HLT, lightning turret
@@ -242,9 +242,9 @@ local unitGrids = {
 
 	corca = {
 		{
-			{ "cormex", "cormakr", "cormstor", "corexp", },   -- mex, T1 converter, m storage, exploiter
-			{ "corsolar", "corwin", "coradvsol", "corgeo", }, -- solar, wind, adv solar, T1 geo
-			{ "corestor", },                                  -- e storage
+			{ "cormex", "corsolar", "corwin", "coradvsol", },   -- mex, solar, wind, adv. solar
+			{ "cormakr", "corgeo", "corexp", },                 -- T1 converter, geo, exploiter, (tidal)
+			{ "corestor", "cormstor", },                        -- e storage, m storage, (uw e stor), (fl. T1 converter)
 		},
 		{
 			{ "corllt", "corhllt", "corhlt", "cormaw", },     -- LLT, Double LLT, HLT, flame turret
@@ -265,9 +265,9 @@ local unitGrids = {
 	-- T1 sea con
 	armcs = {
 		{
-			{ "armmex", "armfmkr", "armuwms", },             -- mex, floating T1 converter, uw metal storage
-			{ "armtide", "armuwes", "armgeo", },              -- tidal, uw e storage, geo
-			{ },                                              -- empty row
+			{ "armmex", "armtide", },                         -- mex, tidal
+			{ "armfmkr", "armgeo", },                         -- floating T1 converter, geo
+			{ "armuwes", "armuwms", },                        -- uw e stor, uw m stor
 		},
 		{
 			{ "armtl", "armfhlt", },                          -- offshore torp launcher, floating HLT
@@ -287,9 +287,9 @@ local unitGrids = {
 
 	corcs = {
 		{
-			{ "cormex", "corfmkr", "coruwms", },             -- mex, floating T1 converter, uw metal storage
-			{ "cortide", "coruwes", "corgeo", },              -- tidal, uw e storage, geo
-			{ },                                              -- empty row
+			{ "cormex", "cortide", },                         -- mex, tidal
+			{ "corfmkr", "corgeo", },                         -- floating T1 converter, geo
+			{ "coruwes", "coruwms", },                        -- uw e stor, uw m stor
 		},
 		{
 			{ "cortl", "corfhlt", },                          -- offshore torp launcher, floating HLT
@@ -310,9 +310,9 @@ local unitGrids = {
 	-- Hover cons
 	armch = {
 		{
-			{ "armmex", "armmakr", "armmstor", "armamex", },  -- mex, T1 converter, m storage, twilight
-			{ "armsolar", "armwin", "armadvsol", "armgeo", }, -- solar, wind, adv solar, T1 geo
-			{ "armestor", "armtide", "armfmkr", "armuwms", }, -- e storage, tidal, floating converter, uw m storage, uw e storage (next page)
+			{ "armmex", "armsolar", "armwin", "armadvsol", },  -- mex, solar, wind, adv. solar
+			{ "armmakr", "armgeo", "armamex", "armtide",  },   -- T1 converter, geo, twilight, (tidal)
+			{ "armestor", "armmstor", "armuwes", "armfmkr", }, -- e storage, m storage, (uw e stor), (fl. T1 converter)
 		},
 		{
 			{ "armllt", "armbeamer", "armhlt", "armclaw", },  -- LLT, beamer, HLT, lightning turret
@@ -333,9 +333,9 @@ local unitGrids = {
 
 	corch = {
 		{
-			{ "cormex", "cormakr", "cormstor", "corexp", },   -- mex, T1 converter, m storage, exploiter
-			{ "corsolar", "corwin", "coradvsol", "corgeo", }, -- solar, wind, adv solar, T1 geo
-			{ "corestor", "cortide", "corfmkr", "coruwms", }, -- e storage, tidal, floating converter, uw m storage, uw e storage (next page)
+			{ "cormex", "corsolar", "corwin", "coradvsol", },   -- mex, solar, wind, adv. solar
+			{ "cormakr", "corgeo", "corexp", "cortide", },      -- T1 converter, geo, exploiter, (tidal)
+			{ "corestor", "cormstor", "coruwes", "corfmkr", },  -- e storage, m storage, (uw e stor), (fl. T1 converter)
 		},
 		{
 			{ "corllt", "corhllt", "corhlt", "cormaw", },     -- LLT, Double LLT, HLT, flame turret
@@ -357,9 +357,9 @@ local unitGrids = {
 	-- Seaplane cons
 	armcsa = {
 		{
-			{ "armmex", "armmakr", "armmstor", "armamex", },  -- mex, T1 converter, m storage, twilight
-			{ "armsolar", "armwin", "armadvsol", "armgeo", }, -- solar, wind, adv solar, T1 geo
-			{ "armestor", "armtide", "armfmkr", "armuwms", }, -- e storage, tidal, floating converter, uw m storage, uw e storage (next page)
+			{ "armmex", "armsolar", "armwin", "armadvsol", },  -- mex, solar, wind, adv. solar
+			{ "armmakr", "armgeo", "armamex", "armtide",  },   -- T1 converter, geo, twilight, (tidal)
+			{ "armestor", "armmstor", "armuwes", "armfmkr", }, -- e storage, m storage, (uw e stor), (fl. T1 converter)
 		},
 		{
 			{ "armllt", "armbeamer", "armhlt", "armclaw", },  -- LLT, beamer, HLT, lightning turret
@@ -380,9 +380,9 @@ local unitGrids = {
 
 	corcsa = {
 		{
-			{ "cormex", "cormakr", "cormstor", "corexp", },   -- mex, T1 converter, m storage, exploiter
-			{ "corsolar", "corwin", "coradvsol", "corgeo", }, -- solar, wind, adv solar, T1 geo
-			{ "corestor", "cortide", "corfmkr", "coruwms", }, -- e storage, tidal, floating converter, uw m storage, uw e storage (next page)
+			{ "cormex", "corsolar", "corwin", "coradvsol", },   -- mex, solar, wind, adv. solar
+			{ "cormakr", "corgeo", "corexp", "cortide", },      -- T1 converter, geo, exploiter, (tidal)
+			{ "corestor", "cormstor", "coruwes", "corfmkr", },  -- e storage, m storage, (uw e stor), (fl. T1 converter)
 		},
 		{
 			{ "corllt", "corhllt", "corhlt", "cormaw", },     -- LLT, Double LLT, HLT, flame turret
@@ -404,9 +404,9 @@ local unitGrids = {
 	-- Amphibious vehicle cons
 	armbeaver = {
 		{
-			{ "armmex", "armmakr", "armmstor", "armamex", },  -- mex, T1 converter, m storage, twilight
-			{ "armsolar", "armwin", "armadvsol", "armgeo", }, -- solar, wind, adv solar, T1 geo
-			{ "armestor", "armtide", "armfmkr", "armuwms", }, -- e storage, tidal, floating converter, uw m storage, uw e storage (next page)
+			{ "armmex", "armsolar", "armwin", "armadvsol", },  -- mex, solar, wind, adv. solar
+			{ "armmakr", "armgeo", "armamex", "armtide",  },   -- T1 converter, geo, twilight, (tidal)
+			{ "armestor", "armmstor", "armuwes", "armfmkr", }, -- e storage, m storage, (uw e stor), (fl. T1 converter)
 		},
 		{
 			{ "armllt", "armbeamer", "armhlt", "armclaw", },  -- LLT, beamer, HLT, lightning turret
@@ -427,9 +427,9 @@ local unitGrids = {
 
 	cormuskrat = {
 		{
-			{ "cormex", "cormakr", "cormstor", "corexp", },   -- mex, T1 converter, m storage, exploiter
-			{ "corsolar", "corwin", "coradvsol", "corgeo", }, -- solar, wind, adv solar, T1 geo
-			{ "corestor", "cortide", "corfmkr", "coruwms", }, -- e storage, tidal, floating converter, uw m storage, uw e storage (next page)
+			{ "cormex", "corsolar", "corwin", "coradvsol", },   -- mex, solar, wind, adv. solar
+			{ "cormakr", "corgeo", "corexp", "cortide", },      -- T1 converter, geo, exploiter, (tidal)
+			{ "corestor", "cormstor", "coruwes", "corfmkr", },  -- e storage, m storage, (uw e stor), (fl. T1 converter)
 		},
 		{
 			{ "corllt", "corhllt", "corhlt", "cormaw", },     -- LLT, Double LLT, HLT, flame turret
@@ -451,9 +451,9 @@ local unitGrids = {
 	--T2 bot cons
 	armack = {
 		{
-			{ "armmoho", "armmmkr", "armuwadvms", },            -- moho, T2 converter, hardened metal storage
-			{ "armfus", "armafus", "armuwadves", "armckfus", }, -- fusion, afus, hardened energy storage, cloaked fusion
-			{ "armageo", "armgmm", },                           -- T2 geo, safe geo
+			{ "armmoho", "armfus", "armafus", "armageo", },            -- moho, fusion, afus, T2 geo
+			{ "armmmkr", "armgmm", "armckfus", },                      -- T2 converter, safe geo, cloaked fusion
+			{ "armuwadves", "armuwadvms", },                           -- hardened energy storage, hardened metal storage
 		},
 		{
 			{ "armpb", "armanni", "armamb", "armemp", },        -- pop-up gauss, annihilator, pop-up artillery, EMP missile
@@ -474,9 +474,9 @@ local unitGrids = {
 
 	corack = {
 		{
-			{ "cormoho", "cormmkr", "coruwadvms", "cormexp", }, -- moho, T2 converter, hardened metal storage, exploiter (cor)
-			{ "corfus", "corafus", "coruwadves", },             -- fusion, afus, hardened energy storage,
-			{ "corageo", "corbhmth", },                         -- T2 geo, behemoth
+			{ "cormoho", "corfus", "corafus", "corageo", },     -- moho, fusion, afus, T2 geo
+			{ "cormmkr", "corbhmth", "cormexp", },              -- T2 converter, behemoth, armed moho
+			{ "coruwadves", "coruwadvms", },                    -- hardened energy storage, hardened metal storage,
 		},
 		{
 			{ "corvipe", "cordoom", "cortoast", "cortron", },   -- pop-up gauss, DDM, pop-up artillery, tac nuke
@@ -498,9 +498,9 @@ local unitGrids = {
 	--T2 vehicle cons
 	armacv = {
 		{
-			{ "armmoho", "armmmkr", "armuwadvms", },            -- moho, T2 converter, hardened metal storage
-			{ "armfus", "armafus", "armuwadves", "armckfus", }, -- fusion, afus, hardened energy storage, cloaked fusion
-			{ "armageo", "armgmm", },                           -- T2 geo, safe geo
+			{ "armmoho", "armfus", "armafus", "armageo", },            -- moho, fusion, afus, T2 geo
+			{ "armmmkr", "armgmm", "armckfus", },                      -- T2 converter, safe geo, cloaked fusion
+			{ "armuwadves", "armuwadvms", },                           -- hardened energy storage, hardened metal storage
 		},
 		{
 			{ "armpb", "armanni", "armamb", "armemp", },        -- pop-up gauss, annihilator, pop-up artillery, EMP missile
@@ -521,9 +521,9 @@ local unitGrids = {
 
 	coracv = {
 		{
-			{ "cormoho", "cormmkr", "coruwadvms", "cormexp", }, -- moho, T2 converter, hardened metal storage, exploiter (cor)
-			{ "corfus", "corafus", "coruwadves", },             -- fusion, afus, hardened energy storage,
-			{ "corageo", "corbhmth", },                         -- T2 geo, behemoth
+			{ "cormoho", "corfus", "corafus", "corageo", },     -- moho, fusion, afus, T2 geo
+			{ "cormmkr", "corbhmth", "cormexp", },              -- T2 converter, behemoth, armed moho
+			{ "coruwadves", "coruwadvms", },                    -- hardened energy storage, hardened metal storage,
 		},
 		{
 			{ "corvipe", "cordoom", "cortoast", "cortron", },   -- pop-up gauss, DDM, pop-up artillery, tac nuke
@@ -545,9 +545,9 @@ local unitGrids = {
 	--T2 air cons
 	armaca = {
 		{
-			{ "armmoho", "armmmkr", "armuwadvms", },            -- moho, T2 converter, hardened metal storage
-			{ "armfus", "armafus", "armuwadves", "armckfus", }, -- fusion, afus, hardened energy storage, cloaked fusion
-			{ "armageo", "armgmm", },                           -- T2 geo, safe geo
+			{ "armmoho", "armfus", "armafus", "armageo", },            -- moho, fusion, afus, T2 geo
+			{ "armmmkr", "armgmm", "armckfus", },                      -- T2 converter, safe geo, cloaked fusion
+			{ "armuwadves", "armuwadvms", },                           -- hardened energy storage, hardened metal storage
 		},
 		{
 			{ "armpb", "armanni", "armamb", "armemp", },        -- pop-up gauss, annihilator, pop-up artillery, EMP missile
@@ -568,9 +568,9 @@ local unitGrids = {
 
 	coraca = {
 		{
-			{ "cormoho", "cormmkr", "coruwadvms", "cormexp", }, -- moho, T2 converter, hardened metal storage, exploiter (cor)
-			{ "corfus", "corafus", "coruwadves", },             -- fusion, afus, hardened energy storage,
-			{ "corageo", "corbhmth", },                         -- T2 geo, behemoth
+			{ "cormoho", "corfus", "corafus", "corageo", },     -- moho, fusion, afus, T2 geo
+			{ "cormmkr", "corbhmth", "cormexp", },              -- T2 converter, behemoth, armed moho
+			{ "coruwadves", "coruwadvms", },                    -- hardened energy storage, hardened metal storage,
 		},
 		{
 			{ "corvipe", "cordoom", "cortoast", "cortron", },   -- pop-up gauss, DDM, pop-up artillery, tac nuke
@@ -592,9 +592,9 @@ local unitGrids = {
 	--T2 sub cons
 	armacsub = {
 		{
-			{ "armuwmme", "armuwmmm", "armuwadvms", },         -- uw moho, floating T2 converter, uw metal stor
-			{ "armuwfus", "armuwadves", },                     -- uw fusion, uw e stor
-			{ },                                               --
+			{ "armuwmme", "armuwfus", },                       -- uw moho, uw fusion,
+			{ "armuwmmm", },                                   -- floating T2 converter
+			{ "armuwadves", "armuwadvms", },                   -- uw e stor, uw metal stor
 		},
 		{
 			{ "armatl", "armkraken", },                        -- adv torp launcher, floating heavy platform
@@ -615,9 +615,9 @@ local unitGrids = {
 
 	coracsub = {
 		{
-			{ "coruwmme", "coruwmmm", "coruwadvms", },         -- uw moho, floating T2 converter, uw metal stor
-			{ "coruwfus", "coruwadves", },                     -- uw fusion, uw e stor
-			{ },                                               --
+			{ "coruwmme", "coruwfus", },                       -- uw moho, uw fusion,
+			{ "coruwmmm", },                                   -- floating T2 converter
+			{ "coruwadves", "coruwadvms", },                   -- uw e stor, uw metal stor
 		},
 		{
 			{ "coratl", "corfdoom", },                         -- adv torp launcher, floating heavy platform
@@ -685,9 +685,9 @@ local unitGrids = {
 	--Decoy commanders
 	armdecom = {
 		{
-			{ "armmex", "armmakr", "armmstor", },            -- mex, T1 converter, m storage
-			{ "armsolar", "armwin", "armuwes", },            -- solar, wind, uw e storage
-			{ "armestor", "armtide", "armfmkr", "armuwms", }, -- e storage, tidal, floating converter, uw m storage
+			{ "armmex", "armsolar", "armwin", },               -- mex, solar, wind
+			{ "armmakr", "armtide", "armuwms", },              -- T1 converter, tidal, uw ms storage
+			{ "armestor", "armmstor", "armuwes", "armfmkr", }, -- e storage, m storage, uw e storage, floating T1 converter
 		},
 		{
 			{ "armllt", },                                   -- LLT
@@ -708,9 +708,9 @@ local unitGrids = {
 
 	cordecom = {
 		{
-			{ "cormex", "cormakr", "cormstor", },            -- mex, T1 converter, m storage
-			{ "corsolar", "corwin", "coruwes", },            -- solar, wind, uw e storage
-			{ "corestor", "cortide", "corfmkr", "coruwms", }, -- e storage, tidal, floating converter, uw m storage
+			{ "cormex", "corsolar", "corwin", },               -- mex, solar, wind
+			{ "cormakr", "cortide", "coruwms", },              -- T1 converter, tidal, uw ms storage
+			{ "corestor", "cormstor", "coruwes", "corfmkr", }, -- e storage, m storage, uw e storage, floating T1 converter
 		},
 		{
 			{ "corllt", },                                   -- LLT
@@ -732,8 +732,8 @@ local unitGrids = {
 	--fark
 	armfark = {
 		{
-			{ "armmex", "armmakr", },              -- mex, t1 converter
-			{ "armsolar", "armwin", },             -- solar, wind
+			{ "armmex", "armsolar", "armwin", },   -- mex, solar, wind
+			{ "armmakr", },                        -- T1 converter
 			{ },                                   --
 		},
 		{
@@ -756,8 +756,8 @@ local unitGrids = {
 	--freaker
 	corfast = {
 		{
-			{ "cormex", },                                            -- mex
-			{ "corsolar", },                                          -- solar
+			{ "cormex", "corsolar", },                                -- mex, solar
+			{ },                                                      -- solar
 			{ },                                                      --
 		},
 		{
@@ -780,8 +780,8 @@ local unitGrids = {
 	--consul
 	armconsul = {
 		{
-			{ "armmex", },                                            -- mex
-			{ "armsolar", },                                          -- solar
+			{ "armmex", "armsolar", },                                -- mex, solar
+			{ },                                                      --
 			{ },                                                      --
 		},
 		{
@@ -828,8 +828,8 @@ local unitGrids = {
 	--naval engineers
 	armmls = {
 		{
-			{ "armmex", },                                          -- mex
-			{ "armtide", },                                         -- tidal
+			{ "armmex", "armtide", },                               -- mex, tidal
+			{ },                                                    --
 			{ },                                                    --
 		},
 		{
@@ -851,8 +851,8 @@ local unitGrids = {
 
 	cormls = {
 		{
-			{ "cormex", },                                         -- mex
-			{ "cortide", },                                        -- tidal
+			{ "cormex", "cortide", },                              -- mex, tidal
+			{ },                                                   --
 			{ },                                                   --
 		},
 		{
