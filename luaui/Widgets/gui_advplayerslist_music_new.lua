@@ -37,8 +37,8 @@ local playedTime, totalTime = Spring.GetSoundStreamTime()
 local curTrackName	= "no name"
 local prevTrackName = "no name"
 local appliedSilence = true
-local minSilenceTime = 1
-local maxSilenceTime = 180
+local minSilenceTime = 120
+local maxSilenceTime = 300
 local silenceTimer = math.random(minSilenceTime,maxSilenceTime)
 
 
