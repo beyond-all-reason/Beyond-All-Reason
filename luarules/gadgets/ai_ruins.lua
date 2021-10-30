@@ -22,12 +22,26 @@ end
 -- end
 
 local ruinSpawnEnabled = false
-if Spring.GetModOptions().ruins or (Spring.GetModOptions().scavonlyruins and scavengersAIEnabled) then
+if Spring.GetModOptions().ruins == "enabled" or (Spring.GetModOptions().ruins == "scav-only" and scavengersAIEnabled) then
 	ruinSpawnEnabled = true
 end
-Spring.Echo("[RUIN ECHO] ", Spring.GetModOptions().ruins)
-Spring.Echo("[RUIN ECHO] ", Spring.GetModOptions().scavonlyruins)
-Spring.Echo("[RUIN ECHO] ", scavengersAIEnabled)
+
+local ruinDensity = Spring.GetModOptions().ruins_density
+local ruinDensityMultiplier = 1
+if ruinDensity == "veryrare" then
+	ruinDensityMultiplier = 0.1
+elseif ruinDensity == "rare" then
+	ruinDensityMultiplier = 0.5
+elseif ruinDensity == "normal" then
+	ruinDensityMultiplier = 1
+elseif ruinDensity == "dense" then
+	ruinDensityMultiplier = 2
+elseif ruinDensity == "verydense" then
+	ruinDensityMultiplier = 10
+end
+
+
+
 
 function gadget:GetInfo()
     return {
@@ -50,7 +64,7 @@ VFS.Include('luarules/gadgets/scavengers/API/poschecks.lua')
 local blueprintController = VFS.Include('luarules/gadgets/scavengers/Blueprints/BYAR/blueprint_controller.lua')
 
 --spawningStartFrame = (math.ceil( math.ceil(mapsizeX + mapsizeZ) / 750 ) + 30) * 5
-local spawnCutoffFrame = (math.ceil( math.ceil(mapsizeX*mapsizeZ) / 1000000 )) * 5
+local spawnCutoffFrame = (math.ceil( math.ceil(mapsizeX*mapsizeZ) / 1000000 )) * 10
 
 local function randomlyRotateBlueprint()
 	local randomRotation = math.random(0,3)
@@ -149,7 +163,6 @@ local function spawnRuin(ruin, posx, posy, posz, blueprintTierLevel)
 		local name = UnitDefs[building.unitDefID].name
 		local r = math.random(1,100)
 		if r < 40 then
-			
 			local posy = Spring.GetGroundHeight(posx + (xOffset*flipX*mirrorX), posz + (zOffset*flipZ*mirrorZ))
 			local unit = Spring.CreateUnit(building.unitDefID, posx + (xOffset*flipX*mirrorX), posy, posz + (zOffset*flipZ*mirrorZ), (building.direction+rotation+mirrorRotation)%4, GaiaTeamID)
 			Spring.SpawnCEG("scav-spawnexplo", posx + (xOffset*flipX*mirrorX), posy, posz + (zOffset*flipZ*mirrorZ), 0,0,0)
@@ -259,7 +272,7 @@ function gadget:GameFrame(n)
 		end
 	end
 	
-	if n < 5 or n%5 ~= 0 or n > spawnCutoffFrame+5 then
+	if n < (10/ruinDensityMultiplier) or n%(10/ruinDensityMultiplier) ~= 0 or n > spawnCutoffFrame+5 then
 		return
 	end
 
@@ -271,17 +284,21 @@ function gadget:GameFrame(n)
 		local seaRuinChance = math.random(1, 2)
 		local radius, canBuildHere
 
-		local r = math.random(0,100)
+		local r = math.random(0,100) -- replace 100 with 200 when we get civilians
 		local blueprintTierLevel = 0
-		if r > 98 then
+		-- if r > 100 and Spring.GetModOptions().ruins_civilian_disable == false then
+		-- 	landRuin = blueprintController.Ruin.GetRandomLandBlueprint()
+		-- 	seaRuin = blueprintController.Ruin.GetRandomSeaBlueprint()
+		-- 	blueprintTierLevel = -1
+		if r > 98 and Spring.GetModOptions().ruins_only_t1 == false then -- elseif
 			landRuin = blueprintController.Constructor.GetRandomLandBlueprint(4)
 			seaRuin = blueprintController.Constructor.GetRandomSeaBlueprint(4)
 			blueprintTierLevel = 4
-		elseif r > 95 then
+		elseif r > 95 and Spring.GetModOptions().ruins_only_t1 == false then
 			landRuin = blueprintController.Constructor.GetRandomLandBlueprint(3)
 			seaRuin = blueprintController.Constructor.GetRandomSeaBlueprint(3)
 			blueprintTierLevel = 3
-		elseif r > 85 then
+		elseif r > 85 and Spring.GetModOptions().ruins_only_t1 == false then
 			landRuin = blueprintController.Constructor.GetRandomLandBlueprint(2)
 			seaRuin = blueprintController.Constructor.GetRandomSeaBlueprint(2)
 			blueprintTierLevel = 2
@@ -289,14 +306,10 @@ function gadget:GameFrame(n)
 			landRuin = blueprintController.Constructor.GetRandomLandBlueprint(1)
 			seaRuin = blueprintController.Constructor.GetRandomSeaBlueprint(1)
 			blueprintTierLevel = 1
-		elseif r > 20 then
+		else
 			landRuin = blueprintController.Constructor.GetRandomLandBlueprint(0)
 			seaRuin = blueprintController.Constructor.GetRandomSeaBlueprint(0)
 			blueprintTierLevel = 0
-		else
-			landRuin = blueprintController.Ruin.GetRandomLandBlueprint()
-			seaRuin = blueprintController.Ruin.GetRandomSeaBlueprint()
-			blueprintTierLevel = -1
 		end
 
 		if posy > 0 then

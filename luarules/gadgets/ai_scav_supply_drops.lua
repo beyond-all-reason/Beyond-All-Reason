@@ -9,7 +9,7 @@ for i = 1,#teams do
 	end
 end
 
-if Spring.GetModOptions().lootboxes or (Spring.GetModOptions().scavonlylootboxes and scavengersAIEnabled) then
+if Spring.GetModOptions().lootboxes == "enabled" or (Spring.GetModOptions().lootboxes == "scav_only" and scavengersAIEnabled) then
 	lootboxSpawnEnabled = true
 else
 	lootboxSpawnEnabled = false
@@ -49,6 +49,18 @@ local lootboxesListLow = {
     "lootboxbronze",
 	"lootboxbronze",
     "lootboxbronze",
+	"lootboxbronze",
+    "lootboxbronze",
+	"lootboxbronze",
+    "lootboxbronze",
+	"lootboxbronze",
+    "lootboxbronze",
+	"lootboxbronze",
+    "lootboxbronze",
+	"lootboxbronze",
+    "lootboxbronze",
+	"lootboxbronze",
+    "lootboxbronze",
 	"lootboxnano_t1_var1",
 	"lootboxnano_t1_var2",
 	"lootboxnano_t1_var3",
@@ -60,7 +72,31 @@ local lootboxesListMid = {
     "lootboxbronze",
 	"lootboxbronze",
     "lootboxbronze",
+	"lootboxbronze",
+    "lootboxbronze",
+	"lootboxbronze",
+    "lootboxbronze",
+	"lootboxbronze",
+    "lootboxbronze",
+	"lootboxbronze",
+    "lootboxbronze",
+	"lootboxbronze",
+    "lootboxbronze",
+	"lootboxbronze",
+    "lootboxbronze",
     "lootboxsilver",
+	"lootboxsilver",
+	"lootboxsilver",
+	"lootboxsilver",
+	"lootboxsilver",
+	"lootboxsilver",
+	"lootboxsilver",
+	"lootboxsilver",
+	"lootboxsilver",
+	"lootboxsilver",
+	"lootboxsilver",
+	"lootboxsilver",
+	"lootboxsilver",
 	"lootboxsilver",
 	"lootboxsilver",
 	"lootboxsilver",
@@ -79,11 +115,47 @@ local lootboxesListHigh = {
     "lootboxbronze",
     "lootboxbronze",
 	"lootboxbronze",
+	"lootboxbronze",
+    "lootboxbronze",
+    "lootboxbronze",
+	"lootboxbronze",
+	"lootboxbronze",
+    "lootboxbronze",
+    "lootboxbronze",
+	"lootboxbronze",
+	"lootboxbronze",
+    "lootboxbronze",
+    "lootboxbronze",
+	"lootboxbronze",
     "lootboxsilver",
+    "lootboxsilver",
+    "lootboxsilver",
+    "lootboxsilver",
+	"lootboxsilver",
+    "lootboxsilver",
+    "lootboxsilver",
+    "lootboxsilver",
+	"lootboxsilver",
+    "lootboxsilver",
+    "lootboxsilver",
+    "lootboxsilver",
+	"lootboxsilver",
     "lootboxsilver",
     "lootboxsilver",
     "lootboxsilver",
     "lootboxgold",
+	"lootboxgold",
+	"lootboxgold",
+	"lootboxgold",
+	"lootboxgold",
+	"lootboxgold",
+	"lootboxgold",
+	"lootboxgold",
+	"lootboxgold",
+	"lootboxgold",
+	"lootboxgold",
+	"lootboxgold",
+	"lootboxgold",
 	"lootboxgold",
 	"lootboxgold",
 	"lootboxgold",
@@ -106,6 +178,30 @@ local lootboxesListTop = {
 	"lootboxbronze",
 	"lootboxbronze",
 	"lootboxbronze",
+	"lootboxbronze",
+	"lootboxbronze",
+	"lootboxbronze",
+	"lootboxbronze",
+	"lootboxbronze",
+	"lootboxbronze",
+	"lootboxbronze",
+	"lootboxbronze",
+	"lootboxbronze",
+	"lootboxbronze",
+	"lootboxbronze",
+	"lootboxbronze",
+	"lootboxsilver",
+    "lootboxsilver",
+    "lootboxsilver",
+    "lootboxsilver",
+	"lootboxsilver",
+    "lootboxsilver",
+    "lootboxsilver",
+    "lootboxsilver",
+	"lootboxsilver",
+    "lootboxsilver",
+    "lootboxsilver",
+    "lootboxsilver",
 	"lootboxsilver",
     "lootboxsilver",
     "lootboxsilver",
@@ -114,7 +210,35 @@ local lootboxesListTop = {
     "lootboxgold",
 	"lootboxgold",
     "lootboxgold",
+	"lootboxgold",
+    "lootboxgold",
+	"lootboxgold",
+    "lootboxgold",
+	"lootboxgold",
+    "lootboxgold",
+	"lootboxgold",
+    "lootboxgold",
+	"lootboxgold",
+    "lootboxgold",
+	"lootboxgold",
+    "lootboxgold",
+	"lootboxgold",
+    "lootboxgold",
+	"lootboxgold",
+    "lootboxgold",
     "lootboxplatinum",
+	"lootboxplatinum",
+	"lootboxplatinum",
+	"lootboxplatinum",
+	"lootboxplatinum",
+	"lootboxplatinum",
+	"lootboxplatinum",
+	"lootboxplatinum",
+	"lootboxplatinum",
+	"lootboxplatinum",
+	"lootboxplatinum",
+	"lootboxplatinum",
+	"lootboxplatinum",
 	"lootboxplatinum",
 	"lootboxplatinum",
 	"lootboxplatinum",
@@ -174,7 +298,21 @@ local QueuedSpawnsFrames = {}
 
 local CaptureProgressForLootboxes = {}
 
-local SpawnChance = 75
+local lootboxesDensity = Spring.GetModOptions().lootboxes_density
+local lootboxDensityMultiplier = 1
+if lootboxesDensity == "veryrare" then
+	lootboxDensityMultiplier = 0.2
+elseif lootboxesDensity == "rare" then
+	lootboxDensityMultiplier = 0.5
+elseif lootboxesDensity == "normal" then
+	lootboxDensityMultiplier = 1
+elseif lootboxesDensity == "dense" then
+	lootboxDensityMultiplier = 2
+elseif lootboxesDensity == "verydense" then
+	lootboxDensityMultiplier = 5
+end
+
+local SpawnChance = math.ceil(75/lootboxDensityMultiplier)
 local TryToSpawn = false
 
 if scavengersAIEnabled then
@@ -403,19 +541,20 @@ function gadget:GameFrame(n)
                 local posx = math.floor(math_random(xBorder,mapsizeX-xBorder)/16)*16
                 local posz = math.floor(math_random(zBorder,mapsizeZ-zBorder)/16)*16
                 local posy = spGroundHeight(posx, posz)
-				local unitsCyl = spGetCylinder(posx, posz, 64)
+				local unitsCyl = spGetCylinder(posx, posz, 128)
+				local terrainCheck = posCheck(posx, posy, posz, 128)
 				local scavLoS = posFriendlyCheckOnlyLos(posx, posy, posz, scavengerAllyTeamID)
-				local playerLoS = posLosCheckOnlyLOS(posx, posy, posz, 64, scavengerAllyTeamID)
-                if #unitsCyl == 0 and scavLoS == true then
+				local playerLoS = posLosCheck(posx, posy, posz, 128)
+                if #unitsCyl == 0 and terrainCheck and playerLoS == true then
                     --QueueSpawn("lootdroppod_gold", posx, posy, posz, math_random(0,3),spGaiaTeam, n)
                     --QueueSpawn(lootboxesList[math_random(1,#lootboxesList)], posx, posy, posz, math_random(0,3),spGaiaTeam, n+600)
                     if aliveLootboxesCount < 2 then
 						local spawnedUnit = spCreateUnit(lootboxesListLow[math_random(1,#lootboxesListLow)]..NameSuffix, posx, posy, posz, math_random(0,3), spGaiaTeam)
 						Spring.SetUnitNeutral(spawnedUnit, true)
-					elseif aliveLootboxesCount < 5 then
+					elseif aliveLootboxesCount < 6 then
 						local spawnedUnit = spCreateUnit(lootboxesListMid[math_random(1,#lootboxesListMid)]..NameSuffix, posx, posy, posz, math_random(0,3), spGaiaTeam)
 						Spring.SetUnitNeutral(spawnedUnit, true)
-					elseif aliveLootboxesCount < 8 then
+					elseif aliveLootboxesCount < 10 then
 						local spawnedUnit = spCreateUnit(lootboxesListHigh[math_random(1,#lootboxesListHigh)]..NameSuffix, posx, posy, posz, math_random(0,3), spGaiaTeam)
 						Spring.SetUnitNeutral(spawnedUnit, true)
 					else

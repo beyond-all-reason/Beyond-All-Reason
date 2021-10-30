@@ -1,7 +1,7 @@
 local scavengersAIEnabled = Spring.Utilities.Gametype.IsScavengers()
 
 local ruinSpawnEnabled = false
-if Spring.GetModOptions().ruins or (Spring.GetModOptions().scavonlyruins  and scavengersAIEnabled) then
+if Spring.GetModOptions().ruins == "enabled" or (Spring.GetModOptions().ruins == "scav-only" and scavengersAIEnabled) then
 	ruinSpawnEnabled = true
 end
 
