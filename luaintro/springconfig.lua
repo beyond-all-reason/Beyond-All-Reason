@@ -95,9 +95,11 @@ if Spring.GetConfigInt("version", 0) < version then
 	Spring.SetConfigInt("UnitIconsHideWithUI", 1)
 end
 
-version = 3
+version = 3.1
 if Spring.GetConfigInt("version", 0) < version then
 	Spring.SetConfigInt("version", version)
 
-	Spring.GetConfigInt("cusThreshold", 22)
+	if Spring.GetConfigInt("cusThreshold", 30) < 30 then
+		Spring.SetConfigInt("cusThreshold", 30)
+	end
 end

@@ -1977,7 +1977,7 @@ function init()
 		  end,
 		},
 
-		{ id = "cus_threshold", group = "gfx", name = widgetOptionColor .. "   " .. texts.option.cus_threshold, min = 10, max = 90, step = 1, type = "slider", value = Spring.GetConfigInt("cusThreshold", 22), description = texts.option.cus_threshold_descr,
+		{ id = "cus_threshold", group = "gfx", name = widgetOptionColor .. "   " .. texts.option.cus_threshold, min = 10, max = 90, step = 1, type = "slider", value = Spring.GetConfigInt("cusThreshold", 30), description = texts.option.cus_threshold_descr,
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("cusThreshold", value)
 			  if not GetWidgetToggleValue("Auto Disable CUS") then
