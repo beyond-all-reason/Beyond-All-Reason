@@ -10,7 +10,7 @@ function widget:GetInfo()
 	}
 end
 
-local defaultThreshold = 45
+local defaultThreshold = 20
 local threshold = Spring.GetConfigInt("cusThreshold", defaultThreshold)
 local cusWanted = (Spring.GetConfigInt("cus", 1) == 1)
 local averageFps = 120
@@ -26,7 +26,7 @@ function widget:GameFrame(gameFrame)
 		if cusWanted and not disabledCus then
 			if WG['topbar'] and not WG['topbar'].showingRejoining() then
 				if not select(6, Spring.GetMouseState()) then		-- mouse not offscreen
-					averageFps = ((averageFps * 19) + Spring.GetFPS()) / 20
+					averageFps = ((averageFps * 24) + Spring.GetFPS()) / 25
 					threshold = Spring.GetConfigInt("cusThreshold", defaultThreshold)
 					if not disabledCus then
 						if averageFps <= threshold then

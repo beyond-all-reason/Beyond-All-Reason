@@ -94,3 +94,10 @@ if Spring.GetConfigInt("version", 0) < version then
 	Spring.SetConfigInt("UnitIconFadeStart", 2000)
 	Spring.SetConfigInt("UnitIconsHideWithUI", 1)
 end
+
+version = 3
+if Spring.GetConfigInt("version", 0) < version then
+	Spring.SetConfigInt("version", version)
+
+	Spring.GetConfigInt("cusThreshold", 20)
+end
