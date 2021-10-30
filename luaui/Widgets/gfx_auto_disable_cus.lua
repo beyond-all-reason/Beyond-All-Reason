@@ -10,14 +10,21 @@ function widget:GetInfo()
 	}
 end
 
-local defaultThreshold = 20
+local defaultThreshold = 22
 local threshold = Spring.GetConfigInt("cusThreshold", defaultThreshold)
 local cusWanted = (Spring.GetConfigInt("cus", 1) == 1)
 local averageFps = 120
 local disabledCus = false
+local chobbyInterface = false
+
+function widget:RecvLuaMsg(msg, playerID)
+	if msg:sub(1,18) == 'LobbyOverlayActive' then
+		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
+	end
+end
 
 function widget:GameFrame(gameFrame)
-	if gameFrame % 33 == 0 then
+	if gameFrame % 33 == 0 and not chobbyInterface then
 		local prevCusWanted = cusWanted
 		cusWanted = (Spring.GetConfigInt("cus", 1) == 1)
 		if not prevCusWanted and cusWanted then

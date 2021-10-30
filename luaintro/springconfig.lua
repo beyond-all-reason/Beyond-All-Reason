@@ -99,5 +99,5 @@ version = 3
 if Spring.GetConfigInt("version", 0) < version then
 	Spring.SetConfigInt("version", version)
 
-	Spring.GetConfigInt("cusThreshold", 20)
+	Spring.GetConfigInt("cusThreshold", 22)
 end
