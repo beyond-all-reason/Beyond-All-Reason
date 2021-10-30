@@ -563,7 +563,7 @@ local options={
 		items={
 			{key="enabled", name="Enabled"},
 			{key="scav_only", name="Enabled for Scavengers only"},
-			{key="disabled", name="Kill everything"},
+			{key="disabled", name="Disabled"},
 		}
 	},
 
@@ -608,7 +608,7 @@ local options={
 		items={
 			{key="enabled", name="Enabled"},
 			{key="scav_only", name="Enabled for Scavengers only"},
-			{key="disabled", name="Kill everything"},
+			{key="disabled", name="Disabled"},
 		}
 	},
 
