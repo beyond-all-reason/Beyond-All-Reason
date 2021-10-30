@@ -1586,116 +1586,116 @@ function init()
 
     presetNames = { texts.option.preset_lowest, texts.option.preset_low, texts.option.preset_medium, texts.option.preset_high, texts.option.preset_ultra }
     presets = {
-        [presetNames[1]] = {
-            --bloom = false,
-            bloomdeferred = false,
-            ssao = 1,
+		[presetNames[1]] = {
+			--bloom = false,
+			bloomdeferred = false,
+			ssao = 1,
 			cus = 0,
-            mapedgeextension = false,
-            lighteffects = false,
-            lighteffects_additionalflashes = false,
-            airjets = false,
-            heatdistortion = false,
-            snow = false,
-            particles = 9000,
-            nanoparticles = 1500,
-            nanobeamamount = 6,
-            treeradius = 0,
-            --treewind = false,
-            guishader = false,
-            decals = 0,
-            grass = false,
-            --grounddetail = 70,
-            darkenmap_darkenfeatures = false,
-        },
-        [presetNames[2]] = {
-            --bloom = false,
-            bloomdeferred = true,
-            ssao = 1,
+			advmapshading = 0,
+			mapedgeextension = false,
+			lighteffects = false,
+			lighteffects_additionalflashes = false,
+			airjets = false,
+			heatdistortion = false,
+			snow = false,
+			particles = 9000,
+			nanoparticles = 1500,
+			treeradius = 0,
+			--treewind = false,
+			guishader = false,
+			decals = 0,
+			grass = false,
+			--grounddetail = 70,
+			darkenmap_darkenfeatures = false,
+		},
+		[presetNames[2]] = {
+			--bloom = false,
+			bloomdeferred = true,
+			ssao = 1,
 			cus = 0,
-            mapedgeextension = false,
-            lighteffects = true,
-            lighteffects_additionalflashes = false,
-            airjets = true,
-            heatdistortion = true,
-            snow = false,
-            particles = 12000,
-            nanoparticles = 3000,
-            nanobeamamount = 8,
-            treeradius = 200,
-            --treewind = false,
-            guishader = false,
-            decals = 0,
-            grass = false,
-            --grounddetail = 100,
-            darkenmap_darkenfeatures = false,
-        },
-        [presetNames[3]] = {
-            --bloom = true,
-            bloomdeferred = true,
-            ssao = 1,
+			advmapshading = 1,
+			mapedgeextension = false,
+			lighteffects = true,
+			lighteffects_additionalflashes = false,
+			airjets = true,
+			heatdistortion = true,
+			snow = false,
+			particles = 12000,
+			nanoparticles = 3000,
+			treeradius = 200,
+			--treewind = false,
+			guishader = false,
+			decals = 1,
+			grass = false,
+			--grounddetail = 100,
+			darkenmap_darkenfeatures = false,
+		},
+		[presetNames[3]] = {
+		 	--bloom = true,
+		 	bloomdeferred = true,
+		 	ssao = 1,
 			cus = 1,
-            mapedgeextension = true,
-            lighteffects = true,
-            lighteffects_additionalflashes = true,
-            airjets = true,
-            heatdistortion = true,
-            snow = true,
-            particles = 15000,
-            nanoparticles = 5000,
-            nanobeamamount = 12,
-            treeradius = 400,
-            --treewind = false,
-            guishader = true,
-            decals = 2,
-            grass = true,
-            --grounddetail = 140,
-            darkenmap_darkenfeatures = false,
-        },
-        [presetNames[4]] = {
-            --bloom = true,
-            bloomdeferred = true,
-            ssao = 2,
+			advmapshading = 1,
+		 	mapedgeextension = true,
+		 	lighteffects = true,
+		 	lighteffects_additionalflashes = true,
+		 	airjets = true,
+		 	heatdistortion = true,
+		 	snow = true,
+		 	particles = 15000,
+		 	nanoparticles = 5000,
+		 	treeradius = 400,
+		 	--treewind = false,
+		 	guishader = true,
+		 	decals = 2,
+		 	grass = true,
+		 	--grounddetail = 140,
+		 	darkenmap_darkenfeatures = false,
+		},
+		[presetNames[4]] = {
+			--bloom = true,
+			bloomdeferred = true,
+			ssao = 2,
 			cus = 1,
-            mapedgeextension = true,
-            lighteffects = true,
-            lighteffects_additionalflashes = true,
-            airjets = true,
-            heatdistortion = true,
-            snow = true,
-            particles = 20000,
-            nanoparticles = 9000,
-            nanobeamamount = 20,
-            treeradius = 800,
-            --treewind = true,
-            guishader = true,
-            decals = 4,
-            grass = true,
-            --grounddetail = 180,
-            darkenmap_darkenfeatures = false,
-        },
-        [presetNames[5]] = {
-            --bloom = true,
-            bloomdeferred = true,
-            ssao = 3,
+			advmapshading = 1,
+			mapedgeextension = true,
+			lighteffects = true,
+			lighteffects_additionalflashes = true,
+			airjets = true,
+			heatdistortion = true,
+			snow = true,
+			particles = 20000,
+			nanoparticles = 9000,
+			treeradius = 800,
+			--treewind = true,
+			guishader = true,
+			decals = 4,
+			grass = true,
+			--grounddetail = 180,
+			darkenmap_darkenfeatures = false,
+		},
+		[presetNames[5]] = {
+			--bloom = true,
+			bloomdeferred = true,
+			ssao = 3,
 			cus = 1,
-            mapedgeextension = true,
-            lighteffects = true,
-            lighteffects_additionalflashes = true,
-            airjets = true,
-            heatdistortion = true,
-            snow = true,
-            particles = 25000,
-            nanoparticles = 15000,
-            nanobeamamount = 40,
-            treeradius = 800,
-            --treewind = true,
-            guishader = true,
-            decals = 5,
-            grass = true,
-            --grounddetail = 200,
-            darkenmap_darkenfeatures = true,
-        },
+			advmapshading = 1,
+			mapedgeextension = true,
+			lighteffects = true,
+			lighteffects_additionalflashes = true,
+			airjets = true,
+			heatdistortion = true,
+			snow = true,
+			particles = 25000,
+			nanoparticles = 15000,
+			treeradius = 800,
+			--treewind = true,
+			guishader = true,
+			decals = 5,
+			grass = true,
+			--grounddetail = 200,
+			darkenmap_darkenfeatures = true,
+		},
     }
     customPresets = {}
 
@@ -1960,19 +1960,23 @@ function init()
           end,
         },
 
-        { id = "cus", group = "gfx", name = texts.option.cus, type = "bool", value = tonumber(Spring.GetConfigInt("cus", 1) or 1), description = texts.option.cus_descr,
-          onchange = function(i, value)
-              Spring.SetConfigInt("cus", (value and 1 or 0))
-              if value then
-                  Spring.SendCommands("luarules reloadcus")
-              else
-                  Spring.SendCommands("luarules disablecus")
-              end
-          end,
-        },
-
         { id = "label_gfx_lighting", group = "gfx", name = texts.option.label_lighting, basic = true },
         { id = "label_gfx_lighting_spacer", group = "gfx", basic = true },
+
+		{ id = "cus", group = "gfx", name = texts.option.cus, basic = true, type = "bool", value = tonumber(Spring.GetConfigInt("cus", 1) or 1), description = texts.option.cus_descr,
+		  onchange = function(i, value)
+			  Spring.SetConfigInt("cus", (value and 1 or 0))
+			  Spring.SendCommands("luarules "..(value and 'reloadcus' or 'disablecus'))
+		  end,
+		},
+
+		{ id = "advmapshading", group = "gfx", name = texts.option.advmapshading, basic = true, type = "bool", value = tonumber(Spring.GetConfigInt("AdvMapShading", 1) or 1), description = texts.option.advmapshading_descr,
+		  onchange = function(i, value)
+			  Spring.SetConfigInt("AdvMapShading", (value and 1 or 0))
+			  Spring.SendCommands("advmapshading "..(value and '1' or '0'))
+		  end,
+		},
+
         { id = "shadowslider", group = "gfx", basic = true, name = texts.option.shadowslider, type = "slider", steps = { 2048, 3072, 4096, 8192 }, value = tonumber(Spring.GetConfigInt("ShadowMapSize", 1) or 4096), description = texts.option.shadowslider_descr,
           onchange = function(i, value)
               local enabled = (value < 1000) and 0 or 1
@@ -2170,31 +2174,6 @@ function init()
         --		 onload = function(i) loadWidgetData("Light Effects", "lighteffects_laserradius", {'globalRadiusMultLaser'}) end,
         --		 onchange = function(i, value) saveOptionValue('Light Effects', 'lighteffects', 'setLaserRadius', {'globalRadiusMultLaser'}, value) end,
         --		},
-
-        --{id="nanoeffect", group="gfx", name="Nano effect", type="select", options={'beam','particles'}, value=tonumber(Spring.GetConfigInt("NanoEffect",1) or 1), description='Sets nano effect\n\nBeams more expensive than particles',
-        -- onload = function(i) end,
-        -- onchange = function(i, value)
-        --	 Spring.SetConfigInt("NanoEffect",value)
-        --	 if value == 1 then
-        --		 Spring.SetConfigInt("MaxNanoParticles",0)
-        --	 else
-        --		 Spring.SetConfigInt("MaxNanoParticles",maxNanoParticles)
-        --	 end
-        -- end,
-        --},
-        --{id="lighteffects_nanolaser", group="gfx", name=widgetOptionColor.."   beam light  (needs 'Lights')", type="bool", value=true, description='Shows a light for every build/reclaim nanolaser',
-        --		 onload = function(i) loadWidgetData("Light Effects", "lighteffects_nanolaser", {'enableNanolaser'}) end,
-        --		 onchange = function(i, value) saveOptionValue('Light Effects', 'lighteffects', 'setNanolaser', {'enableNanolaser'}, value) end,
-        --		},
-        --{id="nanobeamicon", group="gfx", name=widgetOptionColor.."   beam when uniticon", type="bool", value=tonumber(Spring.GetConfigInt("NanoLaserIcon",0) or 0) == 1, description='Shows nano beams when unit is displayed as icon',
-        --		 onload = function(i) end,
-        --		 onchange = function(i, value) Spring.SendCommands("luarules uniticonlasers "..value) end,
-        --		},
-        --		},
-        --{id="nanobeamamount", group="gfx", name=widgetOptionColor.."   beam amount", type="slider", min=6, max=40, step=1, value=tonumber(Spring.GetConfigInt("NanoBeamAmount",10) or 10), description='Not number of total beams (but total of new beams per gameframe)\n\nBeams aren\'t cheap so lower this setting for better performance',
-        -- onload = function(i) end,
-        -- onchange = function(i, value) Spring.SetConfigInt("NanoBeamAmount",value) end,
-        --},
 
         { id = "heatdistortion", group = "gfx", basic = true, widget = "Lups", name = texts.option.heatdistortion, type = "bool", value = GetWidgetToggleValue("Lups"), description = texts.option.heatdistortion_descr },
 
@@ -5380,6 +5359,7 @@ function widget:Initialize()
             Spring.SendCommands("water 0")
             Spring.SetConfigInt("Water", 0)
 
+			Spring.SetConfigInt("AdvMapShading", 0)
             Spring.SendCommands("advmapshading 0")
             Spring.SendCommands("Shadows 0 1024")
             Spring.SetConfigInt("Shadows", 0)
@@ -5389,6 +5369,7 @@ function widget:Initialize()
         else
             Spring.SendCommands("water 4")
             Spring.SetConfigInt("Water", 4)
+
         end
 
         local minMaxparticles = 12000
@@ -5453,11 +5434,6 @@ function widget:Initialize()
         if Spring.GetConfigInt("snd_volmusic", 20) > 50 then
             Spring.SetConfigInt("snd_volmusic", 50)
         end
-
-        -- enable advanced map shading
-        --if Spring.GetConfigInt("AdvMapShading", 0) ~= 1 then
-        --	Spring.SetConfigInt("AdvMapShading", 1)
-        --end
 
         -- enable advanced model shading
         if Spring.GetConfigInt("AdvModelShading", 0) ~= 1 then
