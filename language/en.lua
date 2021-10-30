@@ -152,6 +152,8 @@ return {
 			cas_sharpness_descr = 'How much sharpening should be applied to the image',
 			cus = 'Advanced Model Shading',
 			cus_descr = 'Enables: depth texture, looking damaged, lights that blink, environment lighting, moving tank tracks.',
+			cus_threshold = 'disable below fps',
+			cus_threshold_descr = 'auto disable advanced model shading when average fps gets below this amount',
 			advmapshading = 'Advanced Map Shading',
 			advmapshading_descr = 'Enables: depth texture, detail textures, improved lighting, shadows.',
 			shadowslider = 'Shadows',
