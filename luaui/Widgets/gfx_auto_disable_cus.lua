@@ -5,7 +5,7 @@ function widget:GetInfo()
 		author    = "Floris",
 		date      = "October 2021",
 		license   = "GNU GPL, v2 or later",
-		layer     = 0,
+		layer     = -99999,
 		enabled   = true,
 	}
 end
@@ -23,14 +23,26 @@ function widget:RecvLuaMsg(msg, playerID)
 	end
 end
 
-function widget:GameFrame(gameFrame)
-	if gameFrame % 24 == 0 and not chobbyInterface then
+function widget:Initialize()
+	WG.disabledCus = disabledCus
+end
+
+local sec = 0
+function widget:Update(dt)
+	sec = sec + dt
+	if sec > 0.28 then
 		local prevCusWanted = cusWanted
 		cusWanted = (Spring.GetConfigInt("cus", 1) == 1)
 		if not prevCusWanted and cusWanted then
 			disabledCus = false
+			WG.disabledCus = disabledCus
 			averageFps = math.min(120, threshold + 30)
 		end
+	end
+end
+
+function widget:GameFrame(gameFrame)
+	if gameFrame % 24 == 0 and not chobbyInterface then
 		if cusWanted and not disabledCus then
 			if WG['topbar'] and not WG['topbar'].showingRejoining() then
 				if not select(6, Spring.GetMouseState()) then		-- mouse not offscreen
@@ -41,6 +53,7 @@ function widget:GameFrame(gameFrame)
 							Spring.SendCommands("luarules disablecus")
 							Spring.SendCommands("option cus 0.5")
 							disabledCus = true
+							WG.disabledCus = disabledCus
 							Spring.Echo(Spring.I18N('ui.disablingcus'))
 						end
 					end

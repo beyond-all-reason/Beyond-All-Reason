@@ -4663,6 +4663,7 @@ function init()
         --planeColor = {number r, number g, number b},
     }
 
+
     -- force new unit icons
     if Spring.GetConfigInt("UnitIconsAsUI", 0) == 0 then
         -- disable new icon options
@@ -4736,7 +4737,16 @@ function init()
         options[getOptionByID('font2')].value = getSelectKey(getOptionByID('font2'), string.sub(fname, 1, string.len(fname) - 4))
     end
 
-    -- set sun minimal height
+	-- set sun minimal height
+	if getOptionByID('cus') then
+		if options[getOptionByID('cus')].value then
+			if WG.disabledCus ~= nil and WG.disabledCus then
+				options[getOptionByID('cus')].value = 0.5
+			end
+		end
+	end
+
+    -- check is cus is disabled by auto disable cus widget (in case options widget has been reloaded)
     if getOptionByID('sun_y') then
         if select(2, gl.GetSun("pos")) < options[getOptionByID('sun_y')].min then
             Spring.SetSunDirection(select(1, gl.GetSun("pos")), options[getOptionByID('sun_y')].min, select(3, gl.GetSun("pos")))
