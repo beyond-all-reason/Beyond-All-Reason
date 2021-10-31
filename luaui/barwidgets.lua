@@ -1823,6 +1823,13 @@ function widgetHandler:UnitDestroyed(unitID, unitDefID, unitTeam)
 	return
 end
 
+function widgetHandler:UnitDestroyedByTeam(unitID, unitDefID, unitTeam, attackerTeamID)
+	for _, w in ipairs(self.UnitDestroyedByTeamList) do
+		w:UnitDestroyedByTeam(unitID, unitDefID, unitTeam, attackerTeamID)
+	end
+	return
+end
+
 function widgetHandler:UnitExperience(unitID, unitDefID, unitTeam, experience, oldExperience)
 	for _, w in ipairs(self.UnitExperienceList) do
 		w:UnitExperience(unitID, unitDefID, unitTeam,
