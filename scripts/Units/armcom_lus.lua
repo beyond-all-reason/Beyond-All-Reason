@@ -549,6 +549,7 @@ function script.Create()
 	--Turn(laserflare, 1,math.rad(90)) -- WHY?
 	Spin(dish, 2, 2.5)
 	isAiming = false
+	isAimingDgun = false
 	isBuilding = false
 	bAiming = false
 	buildHeading = 0
@@ -584,21 +585,27 @@ end
 function script.AimWeapon(weapon, heading, pitch)
   --Spring.Echo("Armcom aiming:",weapons[weapon])
 	if weapons[weapon] == "laser" then
-		leftArm = false
-		SetSignalMask(SIG_AIM)
-		Signal(SIG_AIM)
-		Turn(aimy1, 2, heading, rad(300.0000)) -- Turn(torso, y-axis, heading, math.rad(300))
-		Turn(rloarm, 1, rad(-55), rad(390.0000)) -- Turn(rloarm, x-axis, math.rad(-55), math.rad(390))
-		Turn(ruparm, 1, rad(-40)-pitch, rad(390.0000)) -- Turn(ruparm,	x-axis, math.rad(-55) - pitch, math.rad(390))
-		WaitForTurn(aimy1,2)
-		isAiming = true
-		if isBuilding == true then
-			StartThread(ResumeBuilding)
+		if isAimingDgun == true then
+			return false
+		else
+			leftArm = false
+			SetSignalMask(SIG_AIM)
+			Signal(SIG_AIM)
+			Turn(aimy1, 2, heading, rad(300.0000)) -- Turn(torso, y-axis, heading, math.rad(300))
+			Turn(rloarm, 1, rad(-55), rad(390.0000)) -- Turn(rloarm, x-axis, math.rad(-55), math.rad(390))
+			Turn(ruparm, 1, rad(-40)-pitch, rad(390.0000)) -- Turn(ruparm,	x-axis, math.rad(-55) - pitch, math.rad(390))
+			WaitForTurn(aimy1,2)
+			isAiming = true
+			if isBuilding == true then
+				StartThread(ResumeBuilding)
+			end
+			StartThread(Restore)
+			return true
 		end
-		StartThread(Restore)
-		return true
 	elseif weapons[weapon] == "uwlaser" then
-		if not BelowWater(rloarm) then
+		if isAimingDgun == true then
+			return false
+		elseif not BelowWater(rloarm) then
 			return false
 		else
 			leftArm = false
@@ -618,6 +625,7 @@ function script.AimWeapon(weapon, heading, pitch)
 			return true
 		end
 	elseif weapons[weapon] == "dgun" then
+		isAimingDgun = true
 		isAiming = true
 		leftArm = false
 		Turn(aimy1, 2, heading, rad(360.0000)) -- Turn(torso, y-axis, heading, math.rad(300))
@@ -636,6 +644,7 @@ function script.FireWeapon(weapon)
 		Sleep(100)
 		return false
 	elseif weapons[weapon] == "dgun" then
+		isAimingDgun = false
 		turn(luparm, 1, 20)
 		turn(biggun, 1, -100)
 		move(barrel, 2, -1.5)
@@ -696,6 +705,7 @@ function Restore()
 	turn(rloarm, 1, -38, 95.0000)
 	turn(ruparm, 1, 0, 95.0000)
 	isAiming = false
+	isAimingDgun = false
 	rightArm = true
 	leftArm = true
 end
