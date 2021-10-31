@@ -13,7 +13,7 @@ end
 local defaultThreshold = 30
 local threshold = Spring.GetConfigInt("cusThreshold", defaultThreshold)
 local cusWanted = (Spring.GetConfigInt("cus", 1) == 1)
-local averageFps = 120
+local averageFps = math.min(120, threshold + 60)
 local disabledCus = false
 local chobbyInterface = false
 
@@ -24,11 +24,12 @@ function widget:RecvLuaMsg(msg, playerID)
 end
 
 function widget:GameFrame(gameFrame)
-	if gameFrame % 29 == 0 and not chobbyInterface then
+	if gameFrame % 24 == 0 and not chobbyInterface then
 		local prevCusWanted = cusWanted
 		cusWanted = (Spring.GetConfigInt("cus", 1) == 1)
 		if not prevCusWanted and cusWanted then
 			disabledCus = false
+			averageFps = math.min(120, threshold + 30)
 		end
 		if cusWanted and not disabledCus then
 			if WG['topbar'] and not WG['topbar'].showingRejoining() then
@@ -38,6 +39,7 @@ function widget:GameFrame(gameFrame)
 					if not disabledCus then
 						if averageFps <= threshold then
 							Spring.SendCommands("luarules disablecus")
+							Spring.SendCommands("option cus 0.5")
 							disabledCus = true
 							Spring.Echo(Spring.I18N('ui.disablingcus'))
 						end

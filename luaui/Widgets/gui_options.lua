@@ -1945,8 +1945,12 @@ function init()
 		},
 		{ id = "cus", group = "gfx", name = texts.option.cus, basic = true, type = "bool", value = (Spring.GetConfigInt("cus", 1) == 1), description = texts.option.cus_descr,
 		  onchange = function(i, value)
-			  Spring.SetConfigInt("cus", (value and 1 or 0))
-			  Spring.SendCommands("luarules "..(value and 'reloadcus' or 'disablecus'))
+			  if value == 0.5 then
+				  Spring.SendCommands("luarules disablecus")
+			  else
+				  Spring.SetConfigInt("cus", (value and 1 or 0))
+				  Spring.SendCommands("luarules "..(value and 'reloadcus' or 'disablecus'))
+			  end
 		  end,
 		},
 
@@ -5575,8 +5579,10 @@ function widget:TextCommand(command)
                     elseif options[optionID].type == 'bool' then
                         if option[2] == '0' then
                             options[optionID].value = false
-                        else
-                            options[optionID].value = true
+						elseif option[2] == '0.5' then
+							options[optionID].value = 0.5
+						else
+							options[optionID].value = true
                         end
                         applyOptionValue(optionID)
                     else
