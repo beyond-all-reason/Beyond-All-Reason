@@ -356,10 +356,12 @@ local function constructNewBlueprint(n, unitID)
 			end
 			for _, building in ipairs(blueprint.buildings) do
 				local mirrorX, mirrorZ, mirrorRotation = randomlyMirrorBlueprint(mirrored, mirroredDirection, (building.direction+rotation)%4)
-				if swapXandY == false then
-					Spring.GiveOrderToUnit(unitID, -building.unitDefID, { posX + (building.xOffset*flipX*mirrorX), posY, posZ + (building.zOffset*flipZ*mirrorZ), (building.direction+rotation+mirrorRotation)%4 }, {"shift"})
-				else
-					Spring.GiveOrderToUnit(unitID, -building.unitDefID, { posX + (building.zOffset*flipX*mirrorX), posY, posZ + (building.xOffset*flipZ*mirrorZ), (building.direction+rotation+mirrorRotation)%4 }, {"shift"})
+				if building.unitDefID then
+					if swapXandY == false then
+						Spring.GiveOrderToUnit(unitID, -building.unitDefID, { posX + (building.xOffset*flipX*mirrorX), posY, posZ + (building.zOffset*flipZ*mirrorZ), (building.direction+rotation+mirrorRotation)%4 }, {"shift"})
+					else
+						Spring.GiveOrderToUnit(unitID, -building.unitDefID, { posX + (building.zOffset*flipX*mirrorX), posY, posZ + (building.xOffset*flipZ*mirrorZ), (building.direction+rotation+mirrorRotation)%4 }, {"shift"})
+					end
 				end
 			end
 			mirrored = nil

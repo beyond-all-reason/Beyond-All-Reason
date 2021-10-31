@@ -401,21 +401,27 @@ end
 
 local UDN = UnitDefNames
 function BPWallOrPopup(faction)
-	local r = math.random(0,5)
+	local r = math.random(0,15)
 	if faction == "arm" then
-		if r == 0 then
+		if r < 10 then
+			return 
+		elseif r == 10 then
 			return UDN.armclaw_scav.id
 		else
 			return UDN.armdrag_scav.id
 		end
 	elseif faction == "cor" then
-		if r == 0 then
+		if r < 10 then
+			return 
+		elseif r == 10 then
 			return UDN.cormaw_scav.id
 		else
 			return UDN.cordrag_scav.id
 		end
 	elseif faction == "scav" then
-		if r == 0 then
+		if r < 10 then
+			return 
+		elseif r == 10 then
 			local r2 = math.random(1,3)
 			if r2 == 1 then
 				return UDN.corscavdtf_scav.id

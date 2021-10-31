@@ -22,7 +22,7 @@ end
 -- end
 
 local ruinSpawnEnabled = false
-if Spring.GetModOptions().ruins == "enabled" or (Spring.GetModOptions().ruins == "scav-only" and scavengersAIEnabled) then
+if Spring.GetModOptions().ruins == "enabled" or (Spring.GetModOptions().ruins == "scav_only" and scavengersAIEnabled) then
 	ruinSpawnEnabled = true
 end
 
@@ -151,45 +151,47 @@ local function spawnRuin(ruin, posx, posy, posz, blueprintTierLevel)
 		SpawnAsNeutral = true
 	end	
 	for _, building in ipairs(ruin.buildings) do
-		if swapXandY == false then
-			xOffset = building.xOffset
-			zOffset = building.zOffset
-		else
-			xOffset = building.zOffset
-			zOffset = building.xOffset
-		end
-		local mirrorX, mirrorZ, mirrorRotation = randomlyMirrorBlueprint(mirrored, mirroredDirection, (building.direction+rotation)%4)
-
-		local name = UnitDefs[building.unitDefID].name
-		local r = math.random(1,100)
-		if r < 40 then
-			local posy = Spring.GetGroundHeight(posx + (xOffset*flipX*mirrorX), posz + (zOffset*flipZ*mirrorZ))
-			local unit = Spring.CreateUnit(building.unitDefID, posx + (xOffset*flipX*mirrorX), posy, posz + (zOffset*flipZ*mirrorZ), (building.direction+rotation+mirrorRotation)%4, GaiaTeamID)
-			Spring.SpawnCEG("scav-spawnexplo", posx + (xOffset*flipX*mirrorX), posy, posz + (zOffset*flipZ*mirrorZ), 0,0,0)
-			local radarRange = UnitDefs[building.unitDefID].radarRadius
-			local canMove = UnitDefs[building.unitDefID].canMove
-			local speed = UnitDefs[building.unitDefID].speed
-
-			if SpawnAsNeutral then
-				Spring.SetUnitNeutral(unit, true)
+		if building.unitDefID then
+			if swapXandY == false then
+				xOffset = building.xOffset
+				zOffset = building.zOffset
+			else
+				xOffset = building.zOffset
+				zOffset = building.xOffset
 			end
-			Spring.GiveOrderToUnit(unit, CMD.FIRE_STATE, {1}, 0)
-			Spring.GiveOrderToUnit(unit, CMD.MOVE_STATE, {0}, 0)
-			--Spring.SetUnitAlwaysVisible(unit, true)
+			local mirrorX, mirrorZ, mirrorRotation = randomlyMirrorBlueprint(mirrored, mirroredDirection, (building.direction+rotation)%4)
 
-			if building.patrol and canMove and speed > 0 then
-				for i = 1, 6 do
-					Spring.GiveOrderToUnit(unit, CMD.PATROL, { posx + (math.random(-200, 200)), posy + 100, posz + (math.random(-200, 200)) }, {"shift", "alt", "ctrl"})
+			local name = UnitDefs[building.unitDefID].name
+			local r = math.random(1,100)
+			if r < 40 then
+				local posy = Spring.GetGroundHeight(posx + (xOffset*flipX*mirrorX), posz + (zOffset*flipZ*mirrorZ))
+				local unit = Spring.CreateUnit(building.unitDefID, posx + (xOffset*flipX*mirrorX), posy, posz + (zOffset*flipZ*mirrorZ), (building.direction+rotation+mirrorRotation)%4, GaiaTeamID)
+				Spring.SpawnCEG("scav-spawnexplo", posx + (xOffset*flipX*mirrorX), posy, posz + (zOffset*flipZ*mirrorZ), 0,0,0)
+				local radarRange = UnitDefs[building.unitDefID].radarRadius
+				local canMove = UnitDefs[building.unitDefID].canMove
+				local speed = UnitDefs[building.unitDefID].speed
+
+				if SpawnAsNeutral then
+					Spring.SetUnitNeutral(unit, true)
 				end
-			end
+				Spring.GiveOrderToUnit(unit, CMD.FIRE_STATE, {1}, 0)
+				Spring.GiveOrderToUnit(unit, CMD.MOVE_STATE, {0}, 0)
+				--Spring.SetUnitAlwaysVisible(unit, true)
 
-			if radarRange and radarRange > 1000 then
-				Spring.GiveOrderToUnit(unit, CMD.ONOFF, {0}, 0)
+				if building.patrol and canMove and speed > 0 then
+					for i = 1, 6 do
+						Spring.GiveOrderToUnit(unit, CMD.PATROL, { posx + (math.random(-200, 200)), posy + 100, posz + (math.random(-200, 200)) }, {"shift", "alt", "ctrl"})
+					end
+				end
+
+				if radarRange and radarRange > 1000 then
+					Spring.GiveOrderToUnit(unit, CMD.ONOFF, {0}, 0)
+				end
+			-- elseif r < 90 and FeatureDefNames[name .. "_dead"] then
+			-- 	local wreck = Spring.CreateFeature(name .. "_dead", posx + (xOffset*flipX*mirrorX), posy, posz + (zOffset*flipZ*mirrorZ), (building.direction+rotation+mirrorRotation)%4, GaiaTeamID)
+			-- 	Spring.SetFeatureAlwaysVisible(wreck, false)
+			-- 	Spring.SetFeatureResurrect(wreck, name)
 			end
-		-- elseif r < 90 and FeatureDefNames[name .. "_dead"] then
-		-- 	local wreck = Spring.CreateFeature(name .. "_dead", posx + (xOffset*flipX*mirrorX), posy, posz + (zOffset*flipZ*mirrorZ), (building.direction+rotation+mirrorRotation)%4, GaiaTeamID)
-		-- 	Spring.SetFeatureAlwaysVisible(wreck, false)
-		-- 	Spring.SetFeatureResurrect(wreck, name)
 		end
 	end
 	mirrored = nil
