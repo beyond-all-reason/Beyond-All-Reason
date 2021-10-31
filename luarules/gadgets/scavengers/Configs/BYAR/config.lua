@@ -406,7 +406,7 @@ function BPWallOrPopup(faction, tier)
 		if faction == "arm" then
 			if r < 15 then
 				return 
-			elseif r == 10 then
+			elseif r == 15 then
 				return UDN.armclaw_scav.id
 			else
 				return UDN.armdrag_scav.id
@@ -414,7 +414,7 @@ function BPWallOrPopup(faction, tier)
 		elseif faction == "cor" then
 			if r < 15 then
 				return 
-			elseif r == 10 then
+			elseif r == 15 then
 				return UDN.cormaw_scav.id
 			else
 				return UDN.cordrag_scav.id
@@ -422,7 +422,7 @@ function BPWallOrPopup(faction, tier)
 		elseif faction == "scav" then
 			if r < 15 then
 				return 
-			elseif r == 10 then
+			elseif r == 15 then
 				local r2 = math.random(1,3)
 				if r2 == 1 then
 					return UDN.corscavdtf_scav.id
@@ -439,7 +439,7 @@ function BPWallOrPopup(faction, tier)
 		if faction == "arm" then
 			if r < 15 then
 				return 
-			elseif r == 10 then
+			elseif r == 15 then
 				return UDN.armclaw_scav.id
 			else
 				return UDN.armfort_scav.id
@@ -447,7 +447,7 @@ function BPWallOrPopup(faction, tier)
 		elseif faction == "cor" then
 			if r < 15 then
 				return 
-			elseif r == 10 then
+			elseif r == 15 then
 				return UDN.cormaw_scav.id
 			else
 				return UDN.corfort_scav.id
@@ -455,7 +455,7 @@ function BPWallOrPopup(faction, tier)
 		elseif faction == "scav" then
 			if r < 15 then
 				return 
-			elseif r == 10 then
+			elseif r == 15 then
 				local r2 = math.random(1,3)
 				if r2 == 1 then
 					return UDN.corscavdtf_scav.id
