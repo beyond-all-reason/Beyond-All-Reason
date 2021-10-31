@@ -281,6 +281,10 @@ function widget:ViewResize()
         gl.DeleteList(windowList)
     end
     windowList = gl.CreateList(DrawWindow)
+
+    if backgroundGuishader ~= nil then
+        backgroundGuishader = glDeleteList(backgroundGuishader)
+    end
 end
 
 local engineVersion = 104 -- just filled this in here incorrectly but old engines arent used anyway
@@ -658,10 +662,6 @@ end
 
 local sec = 0
 local lastUpdate = 0
---local minGroundDetail = 3
---if Platform ~= nil and Platform.gpuVendor == 'Intel' then
---	minGroundDetail = 2
---end
 local ambientplayerCheck = false
 function widget:Update(dt)
 
@@ -706,32 +706,6 @@ function widget:Update(dt)
     if tonumber(Spring.GetConfigInt("GroundDetail", 1) or 1) < 100 then
         Spring.SendCommands("GroundDetail " .. 100)
     end
-    -- Setting basic map mesh rendering cause of performance tanking bug: https://springrts.com/mantis/view.php?id=6340
-    -- /mapmeshdrawer    (unsynced)  Switch map-mesh rendering modes: 0=GCM, 1=HLOD, 2=ROAM
-    -- NOTE: doing this on initialize() wont work
-    --if not mapmeshdrawerChecked then
-    --	local OS = ''
-    --	if Platform.osFamily then
-    --		OS = Platform.osFamily .. (Platform.osVersion and ' '..Platform.osVersion or '')
-    --	end
-    --	if string.find(string.lower(OS), 'mac') then		-- MAC OS aka Masterbel crashes With ROAM 0
-    --		Spring.SetConfigInt("ROAM", 1)
-    --		Spring.SendCommands("mapmeshdrawer 2")
-    --	elseif tonumber(Spring.GetConfigInt("skipforceroam",0) or 0) ~= 1 then		-- added this option because maybe some people crash because of roam 0?
-    --		if tonumber(Spring.GetConfigInt("ROAM",1) or 1) ~= 0 then
-    --			Spring.SetConfigInt("ROAM", 0)
-    --		end
-    --		Spring.SendCommands("mapmeshdrawer 1")
-    --		-- ground detail
-    --		if tonumber(Spring.GetConfigInt("GroundDetail",1) or 1) < minGroundDetail then
-    --			Spring.SendCommands("GroundDetail "..minGroundDetail)
-    --		end
-    --		if tonumber(Spring.GetConfigInt("GroundDetail",1) or 1) > 3 then
-    --			Spring.SendCommands("GroundDetail 3")
-    --		end
-    --	end
-    --	mapmeshdrawerChecked = true
-    --end
 
     -- check if there is water shown 	(we do this because basic water 0 saves perf when no water is rendered)
     if not waterDetected then
@@ -765,7 +739,7 @@ function widget:Update(dt)
         end
     end
 
-    if show and (sec > lastUpdate + 0.5 or forceUpdate) then
+    if show and (sec > lastUpdate + 0.6 or forceUpdate) then
         sec = 0
         forceUpdate = nil
         lastUpdate = sec
@@ -929,23 +903,22 @@ function widget:DrawScreen()
             -- draw the options panel
             glCallList(windowList)
             if WG['guishader'] then
-                if backgroundGuishader ~= nil then
-                    glDeleteList(backgroundGuishader)
-                end
-                backgroundGuishader = glCreateList(function()
-                    -- background
-                    RectRound(screenX, screenY - screenHeight, screenX + screenWidth, screenY, elementCorner, 0, 1, 1, 1)
-                    -- title
-                    RectRound(titleRect[1], titleRect[2], titleRect[3], titleRect[4], elementCorner, 1, 1, 0, 0)
-                    -- tabs
-                    for id, group in pairs(optionGroups) do
-                        if advSettings or group.id ~= 'dev' then
-                            if groupRect[id] then
-                                RectRound(groupRect[id][1], groupRect[id][2], groupRect[id][3], groupRect[id][4], elementCorner, 1, 1, 0, 0)
+                if not backgroundGuishader then
+                    backgroundGuishader = glCreateList(function()
+                        -- background
+                        RectRound(screenX, screenY - screenHeight, screenX + screenWidth, screenY, elementCorner, 0, 1, 1, 1)
+                        -- title
+                        RectRound(titleRect[1], titleRect[2], titleRect[3], titleRect[4], elementCorner, 1, 1, 0, 0)
+                        -- tabs
+                        for id, group in pairs(optionGroups) do
+                            if advSettings or group.id ~= 'dev' then
+                                if groupRect[id] then
+                                    RectRound(groupRect[id][1], groupRect[id][2], groupRect[id][3], groupRect[id][4], elementCorner, 1, 1, 0, 0)
+                                end
                             end
                         end
-                    end
-                end)
+                    end)
+                end
                 WG['guishader'].InsertDlist(backgroundGuishader, 'options')
             end
             showOnceMore = false
