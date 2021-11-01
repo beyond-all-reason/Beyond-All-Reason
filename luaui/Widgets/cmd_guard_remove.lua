@@ -23,7 +23,7 @@ local removableCommand = {
 
 local function IsValidUnit(unitID)
 	local unitDefID = Spring.GetUnitDefID(unitID)
-	return unitDefID and UnitDefs[unitDefID] and UnitDefs[unitDefID].isBuilder
+	return unitDefID and UnitDefs[unitDefID] and UnitDefs[unitDefID].isBuilder and not UnitDefs[unitDefID].isFactory
 end
 
 function widget:CommandNotify(id, params, cmdOptions)
