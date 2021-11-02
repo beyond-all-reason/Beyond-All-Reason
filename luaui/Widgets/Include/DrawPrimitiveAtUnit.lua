@@ -159,7 +159,7 @@ void main(){
 	
 	g_color = dataIn[0].v_color; 
 	
-	uvoffsets = vec4(0.0, 1.0, 0.0, 1.0); // dataIn[0].v_uvoffsets; // if an atlas is used, then use this, otherwise dont
+	uvoffsets = dataIn[0].v_uvoffsets; // if an atlas is used, then use this, otherwise dont
 	
 	float length = dataIn[0].v_lengthwidthcornerheight.x;
 	float width = dataIn[0].v_lengthwidthcornerheight.y;
