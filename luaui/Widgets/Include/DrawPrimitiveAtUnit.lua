@@ -82,8 +82,8 @@ void main()
 	#if (ANIMATION == 1)
 		float animation = clamp((timeInfo.x - parameters.x)/GROWTHRATE + INITIALSIZE, INITIALSIZE, 1.0) + sin((timeInfo.x)/BREATHERATE)*BREATHESIZE;
 		v_lengthwidthcornerheight.xy *= animation; // modulate it with animation factor
-		POST_ANIM
 	#endif
+	POST_ANIM
 	v_numvertices = numvertices;
 	if (vertexClipped(gl_Position, CLIPTOLERANCE)) v_numvertices = 0; // Make no primitives on stuff outside of screen
 	
@@ -267,8 +267,8 @@ local function InitDrawPrimitiveAtUnit(shaderConfig, DPATname)
 		},
 		DPATname .. "Shader GL4"
 	  )
-	shaderCompiled = DrawPrimitiveAtUnitShader:Initialize()
-	if not shaderCompiled then goodbye("Failed to compile DrawPrimitiveAtUnitShader GL4 ") end
+	local shaderCompiled = DrawPrimitiveAtUnitShader:Initialize()
+	if not shaderCompiled then goodbye("Failed to compile ".. DPATname .." GL4 ") end
 	  
 	DrawPrimitiveAtUnitVBO = makeInstanceVBOTable(
 		{
@@ -285,7 +285,7 @@ local function InitDrawPrimitiveAtUnit(shaderConfig, DPATname)
 	)
 	if DrawPrimitiveAtUnitVBO == nil then goodbye("Failed to create DrawPrimitiveAtUnitVBO") end
 	
-	DrawPrimitiveAtUnitVAO = gl.GetVAO()
+	local DrawPrimitiveAtUnitVAO = gl.GetVAO()
 	DrawPrimitiveAtUnitVAO:AttachVertexBuffer(DrawPrimitiveAtUnitVBO.instanceVBO)
 	DrawPrimitiveAtUnitVBO.VAO = DrawPrimitiveAtUnitVAO
 	return  DrawPrimitiveAtUnitVBO, DrawPrimitiveAtUnitShader
