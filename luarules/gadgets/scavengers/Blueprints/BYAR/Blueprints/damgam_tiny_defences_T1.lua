@@ -351,8 +351,8 @@ return {
     tinyDefences16,
     tinyDefences17,
     tinyDefences18,
-    tinyDefences19,
-    tinyDefences20,
+    --tinyDefences19,
+    --tinyDefences20,
     tinyDefences21,
     tinyDefences22,
 }
