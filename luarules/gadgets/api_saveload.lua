@@ -620,6 +620,7 @@ function gadget:Load(zip)
 
 	savedata.feature = ReadFile(zip, "Feature", featureFile) or {}
 	local features = Spring.GetAllFeatures()
+  Spring.Echo("Api saveload destroying features" , #features)
 	for i=1,#features do
 		Spring.DestroyFeature(features[i])
 	end
