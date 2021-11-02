@@ -9,6 +9,7 @@ local shaderConfig = {
 	BREATHERATE = 30.0, -- how fast it periodicly grows
 	BREATHESIZE = 0.05, -- how much it periodicly grows
 	TEAMCOLORIZATION = 1.0, -- not used yet
+	CLIPTOLERANCE = 1.1, -- At 1.0 it wont draw at units just outside of view (may pop in), 1.1 is a good safe amount
 	USETEXTURE = 1, -- 1 if you want to use textures (atlasses too!) , 0 if not
 	BILLBOARD = 0, -- 1 if you want camera facing billboards, 0 is flat on ground
 	POST_ANIM = " ", -- what you want to do in the animation post function (glsl snippet, see shader source)
@@ -84,7 +85,7 @@ void main()
 		POST_ANIM
 	#endif
 	v_numvertices = numvertices;
-	if (vertexClipped(gl_Position, 1.2)) v_numvertices = 0; // Make no primitives on stuff outside of screen
+	if (vertexClipped(gl_Position, CLIPTOLERANCE)) v_numvertices = 0; // Make no primitives on stuff outside of screen
 	
 	// this sets the num prims to 0 for units further from cam than iconDistance
 	if (length((cameraViewInv[3]).xyz - v_centerpos.xyz) >  iconDistance) v_numvertices = 0;
