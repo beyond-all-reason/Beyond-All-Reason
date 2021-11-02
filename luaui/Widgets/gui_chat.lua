@@ -443,6 +443,10 @@ function widget:DrawScreen()
 
 	-- draw background
 	if not scrolling and backgroundOpacity > 0 and displayedChatLines > 0 then
+		glColor(1,1,1,0.1*backgroundOpacity)
+		local borderSize = 1
+		RectRound(activationArea[1]-borderSize, activationArea[2]-borderSize, activationArea[3]+borderSize, activationArea[2]+borderSize+((displayedChatLines+1)*lineHeight)+(displayedChatLines==maxLines and 0 or elementPadding), elementCorner*1.2)
+
 		glColor(0,0,0,backgroundOpacity)
 		--RectRound(activationArea[1], activationArea[2]+heightDiff, activationArea[3], activationArea[4], elementCorner)
 		RectRound(activationArea[1], activationArea[2], activationArea[3], activationArea[2]+((displayedChatLines+1)*lineHeight)+(displayedChatLines==maxLines and 0 or elementPadding), elementCorner)
