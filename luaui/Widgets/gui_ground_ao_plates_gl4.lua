@@ -41,6 +41,10 @@ local selectShader = nil
 local luaShaderDir = "LuaUI/Widgets/Include/"
 
 local glTexture = gl.Texture
+local glCulling = gl.Culling
+local glDepthTest = gl.DepthTest
+local GL_BACK = GL.BACK
+local GL_LEQUAL = GL.LEQUAL
 
 local function AddPrimitiveAtUnit(unitID, unitDefID)
 	local gf = Spring.GetGameFrame()
@@ -76,8 +80,8 @@ function widget:DrawWorldPreUnit()
 	if selectionVBO.usedElements > 0 then 
 		local disticon = 27 * Spring.GetConfigInt("UnitIconDist", 200) -- iconLength = unitIconDist * unitIconDist * 750.0f;
 		--Spring.Echo(selectionVBO.usedElements)
-		gl.Culling(GL.BACK)
-		gl.DepthTest(GL.LEQUAL)
+		glCulling(GL_BACK)
+		glDepthTest(GL_LEQUAL)
 		glTexture(0, atlasID)
 		selectShader:Activate()
 		selectShader:SetUniform("iconDistance",disticon) 
@@ -85,6 +89,8 @@ function widget:DrawWorldPreUnit()
 		selectionVBO.VAO:DrawArrays(GL.POINTS,selectionVBO.usedElements)
 		selectShader:Deactivate()
 		glTexture(0, false)
+		glCulling(false)
+		glDepthTest(false)
 	end
 end
 
