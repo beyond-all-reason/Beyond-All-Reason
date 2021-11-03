@@ -51,9 +51,9 @@ local function AddPrimitiveAtUnit(unitID, unitDefID)
 	
 	local texname = "unittextures/decals/".. UnitDefs[unitDefID].name .. "_aoplane.dds" --unittextures/decals/armllt_aoplane.dds
 	local width = decalInfo.sizex * 16
-	local length = decalInfo.sizey * 16 
+	local length = decalInfo.sizey * 16
 	local numVertices = 4 -- default to circle
-	local additionalheight = 2
+	local additionalheight = 0
 	
 	local p,q,s,t = gl.GetAtlasTexture(atlasID, decalInfo.texfile)
 	--Spring.Echo (unitDefName, p,q,s,t)
@@ -76,6 +76,8 @@ function widget:DrawWorldPreUnit()
 	if selectionVBO.usedElements > 0 then 
 		local disticon = 27 * Spring.GetConfigInt("UnitIconDist", 200) -- iconLength = unitIconDist * unitIconDist * 750.0f;
 		--Spring.Echo(selectionVBO.usedElements)
+		gl.Culling(GL.BACK)
+		gl.DepthTest(GL.LEQUAL)
 		glTexture(0, atlasID)
 		selectShader:Activate()
 		selectShader:SetUniform("iconDistance",disticon) 
@@ -128,9 +130,15 @@ function widget:Initialize()
 	local InitDrawPrimitiveAtUnit = DrawPrimitiveAtUnit.InitDrawPrimitiveAtUnit
 	local shaderConfig = DrawPrimitiveAtUnit.shaderConfig -- MAKE SURE YOU READ THE SHADERCONFIG TABLE in DrawPrimitiveAtUnit.lua
 	shaderConfig.BILLBOARD = 0
-	shaderConfig.HEIGHTOFFSET = 1
+	shaderConfig.HEIGHTOFFSET = 0
 	shaderConfig.TRANSPARENCY = 1.0
 	shaderConfig.ANIMATION = 0
+	shaderConfig.POST_GEOMETRY = "gl_Position.z = (gl_Position.z) - 256.0 / (gl_Position.w); // send 16 elmos forward in depth buffer"
+	shaderConfig.MAXVERTICES = 4
+	shaderConfig.USE_CIRCLES = nil
+	shaderConfig.USE_CORNERRECT = nil
+	
+	
 	selectionVBO, selectShader = InitDrawPrimitiveAtUnit(shaderConfig, "TESTDPAUMinimal")
 	if true then -- FOR TESTING
 		local units = Spring.GetAllUnits()
