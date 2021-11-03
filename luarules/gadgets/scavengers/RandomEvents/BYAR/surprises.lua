@@ -74,7 +74,7 @@ local function transport1(currentFrame)
 			"cornanotc_scav",
 		}
 
-		local baseNumber = ((spawnmultiplier*0.5)+(teamcount*0.5))*0.25
+		local baseNumber = ((spawnmultiplier*0.5)+(teamcount*0.5))*0.5
 
 		for i = 1,1000 do
 			local posx = math_random(300,mapsizeX-300)
