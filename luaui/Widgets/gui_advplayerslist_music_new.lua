@@ -566,20 +566,20 @@ function PlayNewTrack()
 end
 
 
--- function widget:UnitDamaged(unitID,unitDefID,_,damage)
--- 	if damage > 1 then
--- 		local curHealth, maxHealth = Spring.GetUnitHealth(unitID)
--- 		if damage > maxHealth then
--- 			local damage = maxHealth
--- 			warMeter = math.ceil(warMeter + damage)
--- 		else
--- 			warMeter = math.ceil(warMeter + damage)
--- 		end
--- 		if math.random(1,5) == 1 then
--- 			silenceTimer = silenceTimer - math.ceil(damage/1000)
--- 		end
--- 	end
--- end
+function widget:UnitDamaged(unitID,unitDefID,_,damage)
+	if damage > 1 then
+		local curHealth, maxHealth = Spring.GetUnitHealth(unitID)
+		if damage > maxHealth then
+			local damage = maxHealth
+			warMeter = math.ceil(warMeter + damage)
+		else
+			warMeter = math.ceil(warMeter + damage)
+		end
+		-- if math.random(1,5) == 1 then
+		-- 	silenceTimer = silenceTimer - math.ceil(damage/1000)
+		-- end
+	end
+end
 
 function widget:GameFrame(n)
 	if not playing then return end
