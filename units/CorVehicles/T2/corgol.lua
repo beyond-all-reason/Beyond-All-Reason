@@ -43,6 +43,11 @@ return {
 		turninplacespeedlimit = 0.957,
 		turnrate = 176,
 		customparams = {
+			usebuildinggrounddecal = true,
+			buildinggrounddecaltype = "decals/corgol_aoplane.dds",
+			buildinggrounddecalsizey = 6,
+			buildinggrounddecalsizex = 6,
+			buildinggrounddecaldecayspeed = 30,
 			unitgroup = 'weapon',
 			basename = "base",
 			cannon1name = "barrel",

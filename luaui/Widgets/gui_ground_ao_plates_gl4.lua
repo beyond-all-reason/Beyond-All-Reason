@@ -58,6 +58,7 @@ local function AddPrimitiveAtUnit(unitID, unitDefID)
 	local length = decalInfo.sizey * 16
 	local numVertices = 4 -- default to circle
 	local additionalheight = 0
+  local alpha = 1.0
 	
 	local p,q,s,t = gl.GetAtlasTexture(atlasID, decalInfo.texfile)
 	--Spring.Echo (unitDefName, p,q,s,t)
@@ -67,7 +68,7 @@ local function AddPrimitiveAtUnit(unitID, unitDefID)
 			{length, width, 0, additionalheight,  -- lengthwidthcornerheight
 			Spring.GetUnitTeam(unitID), -- teamID
 			numVertices, -- how many trianges should we make
-			gf, 0, 0, 0, -- the gameFrame (for animations), and any other parameters one might want to add
+			gf, 0, alpha, 0, -- the gameFrame (for animations), and any other parameters one might want to add
 			q,p,s,t, -- These are our default UV atlas tranformations, note how X axis is flipped for atlas
 			0, 0, 0, 0}, -- these are just padding zeros, that will get filled in 
 		unitID, -- this is the key inside the VBO Table, should be unique per unit
@@ -144,6 +145,7 @@ function widget:Initialize()
 	shaderConfig.TRANSPARENCY = 1.0
 	shaderConfig.ANIMATION = 0
 	shaderConfig.POST_GEOMETRY = "gl_Position.z = (gl_Position.z) - 256.0 / (gl_Position.w); // send 16 elmos forward in depth buffer"
+  shaderConfig.POST_SHADING = "fragColor.rgba = vec4(texcolor.rgb, texcolor.a * g_uv.z);"
 	shaderConfig.MAXVERTICES = 4
 	shaderConfig.USE_CIRCLES = nil
 	shaderConfig.USE_CORNERRECT = nil

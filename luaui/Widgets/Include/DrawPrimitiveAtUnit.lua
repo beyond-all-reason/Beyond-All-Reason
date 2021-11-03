@@ -148,7 +148,7 @@ void offsetVertex4( float x, float y, float z, float u, float v){
 	vec3 primitiveCoords = vec3(x,y,z);
 	vec3 vecnorm = normalize(primitiveCoords);
 	gl_Position = cameraViewProj * vec4(centerpos.xyz + rotY * ( addRadius * vecnorm + primitiveCoords ), 1.0);
-	
+	g_uv.zw = dataIn[0].v_parameters.zw;
 	POST_GEOMETRY
 	EmitVertex();
 }
