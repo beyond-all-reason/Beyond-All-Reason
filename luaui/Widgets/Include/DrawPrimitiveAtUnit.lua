@@ -16,6 +16,10 @@ local shaderConfig = {
 	POST_VERTEX = "v_color = v_color;", -- noop
 	POST_GEOMETRY = "g_uv.zw = dataIn[0].v_parameters.xy;", -- noop
 	POST_SHADING = "fragColor.rgba = fragColor.rgba;", -- noop
+	MAXVERTICES = 64, -- The max number of vertices we can emit, make sure this is consistent with what you are trying to draw (tris 3, quads 4, corneredrect 8, circle 64
+	USE_CIRCLES = 1, -- set to nil if you dont want circles
+	USE_CORNERRECT = 1, -- set to nil if you dont want cornerrect
+	
 }
 
 ---- GL4 Backend Stuff----
@@ -103,10 +107,10 @@ local gsSrc = [[
 #version 330
 #extension GL_ARB_uniform_buffer_object : require
 #extension GL_ARB_shading_language_420pack: require
-layout(points) in;
-layout(triangle_strip, max_vertices = 64) out;
 //__ENGINEUNIFORMBUFFERDEFS__
 //__DEFINES__
+layout(points) in;
+layout(triangle_strip, max_vertices = MAXVERTICES) out;
 #line 20000
 
 uniform float addRadius;
@@ -144,6 +148,7 @@ void offsetVertex4( float x, float y, float z, float u, float v){
 	vec3 primitiveCoords = vec3(x,y,z);
 	vec3 vecnorm = normalize(primitiveCoords);
 	gl_Position = cameraViewProj * vec4(centerpos.xyz + rotY * ( addRadius * vecnorm + primitiveCoords ), 1.0);
+	
 	POST_GEOMETRY
 	EmitVertex();
 }
@@ -173,41 +178,44 @@ void main(){
 	}
 	if (numVertices == uint(4)){ // A quad
 		offsetVertex4( width * 0.5, 0.0,  length * 0.5, 0.0, 1.0);
-		offsetVertex4(-width * 0.5, 0.0,  length * 0.5, 1.0, 1.0);
 		offsetVertex4( width * 0.5, 0.0, -length * 0.5, 0.0, 0.0);
+		offsetVertex4(-width * 0.5, 0.0,  length * 0.5, 1.0, 1.0);
 		offsetVertex4(-width * 0.5, 0.0, -length * 0.5, 1.0, 0.0);
 		EndPrimitive();
 	}
-	
-	if (numVertices == uint(2)){ // A quad with chopped off corners
-		float csuv = (cs / (length + width))*2.0;
-		offsetVertex4( - width * 0.5 , 0.0,  - length * 0.5 + cs, 0, csuv); // bottom left 
-		offsetVertex4( - width * 0.5 , 0.0,  + length * 0.5 - cs, 0, 1.0 - csuv); // top left
-		offsetVertex4( - width * 0.5 + cs, 0.0,  - length * 0.5 , csuv, 0); // bottom left
-		offsetVertex4( - width * 0.5 + cs, 0.0,  + length * 0.5, csuv, 1.0); // top left
-		offsetVertex4( + width * 0.5 - cs, 0.0,  - length * 0.5 , 1.0 - csuv, 0.0); // bottom right
-		offsetVertex4( + width * 0.5 - cs, 0.0,  + length * 0.5 ,1.0 - csuv, 1.0 ); // top right
-		offsetVertex4( + width * 0.5 , 0.0,  - length * 0.5 + cs , 1.0 , csuv ); // bottom right
-		offsetVertex4( + width * 0.5 , 0.0,  + length * 0.5 - cs , 1.0 -csuv , 1.0 ); // top right
-		EndPrimitive();
-	}
-	if (numVertices > uint(5)) { //A circle with even subdivisions
-		numVertices = min(numVertices,62u); // to make sure that we dont emit more than 64 vertices
-		//left most vertex
-		offsetVertex4(- width * 0.5, 0.0,  0, 0.0, 0.5);
-		int numSides = int(numVertices) / 2;
-		//for each phi in (-PI/2, Pi/2) omit the first and last one
-		for (int i = 1; i < numSides; i++){
-			float phi = ((i * 3.141592) / numSides) -  1.5707963;
-			float sinphi = sin(phi);
-			float cosphi = cos(phi);
-			offsetVertex4( width * 0.5 * sinphi, 0.0,  length * 0.5 * cosphi, sinphi*0.5 + 0.5, cosphi * 0.5 + 0.5);
-			offsetVertex4( width * 0.5 * sinphi, 0.0,  -length * 0.5 * cosphi, sinphi*0.5 + 0.5, cosphi *(-0.5) + 0.5);
+	#ifdef USE_CORNERRECT
+		if (numVertices == uint(2)){ // A quad with chopped off corners
+			float csuv = (cs / (length + width))*2.0;
+			offsetVertex4( - width * 0.5 , 0.0,  - length * 0.5 + cs, 0, csuv); // bottom left 
+			offsetVertex4( - width * 0.5 , 0.0,  + length * 0.5 - cs, 0, 1.0 - csuv); // top left
+			offsetVertex4( - width * 0.5 + cs, 0.0,  - length * 0.5 , csuv, 0); // bottom left
+			offsetVertex4( - width * 0.5 + cs, 0.0,  + length * 0.5, csuv, 1.0); // top left
+			offsetVertex4( + width * 0.5 - cs, 0.0,  - length * 0.5 , 1.0 - csuv, 0.0); // bottom right
+			offsetVertex4( + width * 0.5 - cs, 0.0,  + length * 0.5 ,1.0 - csuv, 1.0 ); // top right
+			offsetVertex4( + width * 0.5 , 0.0,  - length * 0.5 + cs , 1.0 , csuv ); // bottom right
+			offsetVertex4( + width * 0.5 , 0.0,  + length * 0.5 - cs , 1.0 -csuv , 1.0 ); // top right
+			EndPrimitive();
 		}
-		// add right most vertex
-		offsetVertex4(width * 0.5, 0.0,  0, 1.0, 0.5);
-		EndPrimitive();
-	}
+	#endif
+	#ifdef USE_CIRCLES
+		if (numVertices > uint(5)) { //A circle with even subdivisions
+			numVertices = min(numVertices,62u); // to make sure that we dont emit more than 64 vertices
+			//left most vertex
+			offsetVertex4(- width * 0.5, 0.0,  0, 0.0, 0.5);
+			int numSides = int(numVertices) / 2;
+			//for each phi in (-PI/2, Pi/2) omit the first and last one
+			for (int i = 1; i < numSides; i++){
+				float phi = ((i * 3.141592) / numSides) -  1.5707963;
+				float sinphi = sin(phi);
+				float cosphi = cos(phi);
+				offsetVertex4( width * 0.5 * sinphi, 0.0,  length * 0.5 * cosphi, sinphi*0.5 + 0.5, cosphi * 0.5 + 0.5);
+				offsetVertex4( width * 0.5 * sinphi, 0.0,  -length * 0.5 * cosphi, sinphi*0.5 + 0.5, cosphi *(-0.5) + 0.5);
+			}
+			// add right most vertex
+			offsetVertex4(width * 0.5, 0.0,  0, 1.0, 0.5);
+			EndPrimitive();
+		}
+	#endif
 }
 ]]
 
