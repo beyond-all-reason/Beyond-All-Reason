@@ -1,12 +1,12 @@
 function widget:GetInfo()
 	return {
 		name = "Ground AO Plates GL4",
-		desc = "Draw the same ground ao plates that we otherwise would, just with Lua",
+		desc = "Draw ground ao plates under buildings",
 		author = "Beherith",
 		date = "2021.11.02",
 		license = "GNU GPL, v2 or later",
 		layer = -1,
-		enabled = false,
+		enabled = true,
 	}
 end
 
@@ -118,11 +118,15 @@ function widget:Initialize()
 	makeAtlas()
 	for id , unitDefID in pairs(UnitDefs) do
 		local UD = UnitDefs[id]
-		if UD.useBuildingGroundDecal == true then
-			local unitDefName = string.gsub(UD.name, "_scav", "") 
-			local texname = "unittextures/decals/".. unitDefName .. "_aoplane.dds" 
-			if atlassedImages[ texname] then 
-				unitDefIDtoDecalInfo[id] = {texfile = texname, sizex  = UD.buildingDecalSizeX, sizey  = UD.buildingDecalSizeY}
+		if UD.customParams and UD.customParams.usebuildinggrounddecal and UD.customParams.buildinggrounddecaltype then
+			--local UD.name
+			local texname = "unittextures/" .. UD.customParams.buildinggrounddecaltype
+			---Spring.Echo(texname)
+			if atlassedImages[texname] then 
+				unitDefIDtoDecalInfo[id] = {
+					texfile = texname, 
+					sizex  = UD.customParams.buildinggrounddecalsizex, 
+					sizey  = UD.customParams.buildinggrounddecalsizey}
 			end
 		end
 	end
