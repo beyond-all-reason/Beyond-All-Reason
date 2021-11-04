@@ -201,7 +201,7 @@ end
 local landMexesList = {
 	"armmex_scav",
 	"cormex_scav",
-	"armamex_scav",
+	--"armamex_scav",
 	"corexp_scav",
 	"armmoho_scav",
 	"cormoho_scav",

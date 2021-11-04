@@ -162,10 +162,10 @@ StopBuilding()
 	//get PRINT(get (GAME_FRAME), 6666);
 	set BUGGER_OFF to 1; // tell units to get out of here
 	set INBUILDSTANCE to 0; // we turn it off, to wait for the unit to clear the build pad (large aircraft)
-	sleep 2000;   // then we wait for 2 sec
+	stop-spin pad around y-axis;
+	sleep 5000;   // then we wait for 5 sec
 	set INBUILDSTANCE to 1; // we turn it on again, as the next startbuilding and construction will begin when this is 1 again.
 	set BUGGER_OFF to 0; // ok now we dont mind if they are here
-	stop-spin pad around y-axis;
 }
 
 QueryBuildInfo(piecenum)
