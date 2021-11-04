@@ -111,6 +111,7 @@ local flexCallIns = {
 	'UnitFinished',
 	'UnitFromFactory',
 	'UnitDestroyed',
+	'UnitDestroyedByTeam', -- NB: called via gadget, not engine
 	'UnitExperience',
 	'UnitTaken',
 	'UnitGiven',
