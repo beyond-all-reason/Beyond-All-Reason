@@ -153,7 +153,7 @@ function widget:Initialize()
 	shaderConfig.USE_CORNERRECT = nil
 	
 	
-	selectionVBO, selectShader = InitDrawPrimitiveAtUnit(shaderConfig, "TESTDPAUMinimal")
+	selectionVBO, selectShader = InitDrawPrimitiveAtUnit(shaderConfig, "Ground AO Plates")
 	if true then -- FOR TESTING
 		local units = Spring.GetAllUnits()
 		for _, unitID in ipairs(units) do

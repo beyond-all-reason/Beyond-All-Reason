@@ -32,10 +32,11 @@ VFS.Include(luaShaderDir.."instancevbotable.lua")
 
 local vsSrc =  [[
 #version 420
-#line 5000
 #extension GL_ARB_uniform_buffer_object : require
 #extension GL_ARB_shader_storage_buffer_object : require
 #extension GL_ARB_shading_language_420pack: require
+
+#line 5000
 
 layout (location = 0) in vec4 lengthwidthcornerheight;
 layout (location = 1) in uint teamID;
@@ -242,7 +243,7 @@ void main(void)
 {
 	vec4 texcolor = vec4(1.0);
 	#if (USETEXTURE == 1)
-		texcolor = texture2D(DrawPrimitiveAtUnitTexture, g_uv.xy);
+		texcolor = texture(DrawPrimitiveAtUnitTexture, g_uv.xy);
 	#endif
 	fragColor.rgba = vec4(g_color.rgb * texcolor.rgb + addRadius, texcolor.a * TRANSPARENCY + addRadius);
 	POST_SHADING
