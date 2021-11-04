@@ -16,9 +16,9 @@ end
 
 local isT1Mex = {}
 local isT2Mex = {}
-for unitDefID, unitDef in pairs(UnitDefs) do --almost all chickens have dying anims
+for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.extractsMetal > 0 then
-		if unitDef.customParams.techlevel and tonumber(unitDef.customParams.techlevel) > 1 then
+		if unitDef.extractsMetal > 0.001 then
 			isT2Mex[unitDefID] = unitDef.metalCost
 		else
 			isT1Mex[unitDefID] = unitDef.metalCost

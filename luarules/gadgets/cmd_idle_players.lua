@@ -411,7 +411,7 @@ else	-- UNSYNCED
 						local luaAI = Spring.GetTeamLuaAI(teamID)
 						local _, leader, isDead, isAiTeam, side, allyTeamID, incomeMultiplier, customTeamKeys = Spring.GetTeamInfo(teamID, false)
 						if Script.LuaUI('GadgetMessageProxy') and teamID ~= myTeamID and teamID ~= gaiaTeamID and not isDead and not isAiTeam and (not luaAI or luaAI == "") and Spring.GetTeamRulesParam(teamID, "numActivePlayers") > 0 then
-							Spring.Echo("\255\255\166\166" .. Script.LuaUI.GadgetMessageBrokerSpring('ui.idlePlayers.warning'))
+							Spring.Echo("\255\255\166\166" .. Script.LuaUI.GadgetMessageProxy('ui.idlePlayers.warning'))
 							break
 						end
 					end

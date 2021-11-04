@@ -200,10 +200,6 @@ else
 			system = system..'\nOS:  '..s_os
 		end
 
-		if Engine.wordSize > 32 then
-			system = system..'\nEngine:  '..Engine.wordSize..' bit'
-		end
-
 		if chobbyLoaded then
 			system = system..'\nLobby:  Chobby'
 		end
