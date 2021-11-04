@@ -87,15 +87,9 @@ function resizeInstanceVBOTable(iT)
     iT.VAO:Delete()
 		iT.VAO = makeVAOandAttach(iT.vertexVBO,iT.instanceVBO, iT.indexVBO)
 	end
-    
 	--Spring.Echo("instanceVBOTable full, resizing to double size",iT.myName, iT.usedElements,iT.maxElements)
-	
 	if iT.indextoUnitID then
-		for index, unitID in ipairs(iT.indextoUnitID) do
-			iT.instanceVBO:InstanceDataFromUnitIDs(unitID, iT.unitIDattribID, index-1)
-		end
-		-- OR:
-		--iT.instanceVBO:InstanceDataFromUnitIDs(iT.indextoUnitID, iT.unitIDattribID)
+		iT.instanceVBO:InstanceDataFromUnitIDs(iT.indextoUnitID, iT.unitIDattribID)
 	end
 	return iT.maxElements
 end
@@ -262,13 +256,21 @@ function uploadAllElements(iT)
 	end
 end
 
-function uploadElementRange(iT,startElementIndex, endElementIndex)
+function uploadElementRange(iT, startElementIndex, endElementIndex)
 	iT.instanceVBO:Upload(iT.instanceData, -- The lua mirrored VBO data
 		nil, -- the attribute index, nil for all attributes
 		startElementIndex, -- vboOffset optional, , what ELEMENT offset of the VBO to start uploading into, 0 based
 		startElementIndex * iT.instanceStep + 1, --  luaStartIndex, default 1, what element of the lua array to start uploading from. 1 is the 1st element of a lua table. 
 		endElementIndex * iT.instanceStep --] luaEndIndex, default #{array}, what element of the lua array to upload up to, inclusively
-		)
+  )
+  if iT.indextoUnitID then
+    --we need to reslice the table
+    local unitIDRange = {}
+    for i = startElementIndex, endElementIndex do
+      unitIDRange[#unitIDRange + 1] = iT.indextoUnitID[i]
+    end
+		iT.instanceVBO:InstanceDataFromUnitIDs(unitIDRange, iT.unitIDattribID, startElementIndex - 1)
+	end
 end
 
 function drawInstanceVBO(iT)
