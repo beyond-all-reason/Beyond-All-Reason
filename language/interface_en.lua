@@ -115,6 +115,8 @@ return {
 			orderMenu = {
 				hotkeyTooltip = "%{highlightColor}%{hotkey}%{textColor} - %{tooltip}",
 
+				-- All keys must EXACTLY match the command name/param
+				-- Tooltips must be the command name/param with _tooltip appended
 				move = "Move",
 				move_tooltip = "Move a unit towards a position or follow other units",
 				stop = "Stop",
@@ -541,16 +543,16 @@ return {
 			},
 			initialSpawn = {
 				ready = "Ready",
-				startCountdown = "Game starting in %{time} seconds",
+				startCountdown = "Game starting in %{time}...",
 				choosePoint = "Please choose a start point!",
 				tooClose = "You cannot place your start position too close to another player",
 			},
 			substitutePlayers = {
 				offer = "Offer to play",
 				withdraw = "Withdraw offer",
-				substitutionMessage = "If player(s) are afk when the game starts, you might be used as a substitute",
-				offerWithdrawn = "Your offer to substitute has been withdrawn",
-				substituted = "Substitution occurred, revealed start positions to all",
+				substitutionMessage = "If player(s) are idle when the game starts, you might be used as a substitute",
+				offerWithdrawn = "Your have withdrawn your offer to substitute",
+				substituted = "Substitution occurred, revealing all start positions",
 				substitutedPlayers = "%{incoming} was substituted in for %{outgoing}",
 			},
 			awards = {
@@ -596,12 +598,12 @@ return {
 				backstab = "%{player} attempted to attack you!",
 			},
 			idlePlayers = {
-				shareAFK = "Cannot share to afk players",
+				shareAFK = "Cannot share to idle players",
 				takeEnemies = "Cannot take enemy players",
 				nothingToTake = "Nothing to take",
 				lagging = "%{name} is lagging behind",
 				resumed = "%{name} has finished resuming",
-				afk = "%{name} went AFK",
+				afk = "%{name} went idle",
 				returned = "%{name} came back",
 				warning = "You are idling, do something quick! (others are able to take over all your things soon)",
 			},

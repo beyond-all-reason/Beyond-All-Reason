@@ -7,7 +7,7 @@ return {
 				xmascomwreck = "Xmas Commander Wreckage",
 				pthornclump = "A very dry and brittle plant",
 				rock = "Rock",
-				ancientRocks = "An Ancient Rock Formation",
+				ancientRocks = "Ancient Rock Formation",
 				slrockcl1 = "Rock Cluster",
 				tree = "Tree",
 				treeAleppoPine = "Aleppo Pine",
@@ -58,9 +58,9 @@ return {
 				cactusSanPedro = "San Pedro",
 				crystalSapphire = "Sapphire Crystal",
 				smothtree123dead = 'Tree Trunk',
-				geovent = "Geovent",
+				geovent = "Geothermal Vent",
 				geocrack = 'Visual Crack for Geovent', -- this one seems like it shouldn't have a tooltip
-				heap = "Heap",
+				heap = "Debris",
 			},
 		}
 	}
