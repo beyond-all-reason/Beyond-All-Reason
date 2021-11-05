@@ -3,13 +3,17 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, top, barrel, flare, spark, aimpoint;
+piece  base, top, barrel, flare, spark, aimpoint, firepoint;
 
 static-var  Static_Var_1, restore_delay, statechg_DesiredState, statechg_StateChanging;
 
 // Signal definitions
 #define SIG_AIM				2
 
+lua_FlameShot(weapon) //Distortion and lups flame effect
+{
+  return 0;
+}
 
 SmokeUnit(healthpercent, sleeptime, smoketype)
 {
@@ -160,6 +164,8 @@ AimPrimary(heading, pitch)
 
 Shot1()
 {
+	call-script lua_FlameShot(1);
+	emit-sfx 1024 + 0 from firepoint;
 	return (TRUE);
 }
 

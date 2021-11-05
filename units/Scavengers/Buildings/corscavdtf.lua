@@ -95,6 +95,9 @@ return {
 			},
 		},
 		sfxtypes = {
+			explosiongenerators = {
+				[1] = "custom:flamestreamxm",
+			},
 			pieceexplosiongenerators = {
 				[1] = "deathceg3",
 				[2] = "deathceg4-fire",
