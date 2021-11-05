@@ -61,6 +61,7 @@ function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weap
 				ny = ny + (Spring.GetUnitHeight(nearUnit)*0.33)
 				Spring.SpawnCEG(sparkWeapons[weaponID].ceg,nx,ny,nz,0,0,0)
 				if nearUnit ~= unitID then
+					-- NB: weaponDefID -1 is debris damage which gets removed by engine_hotfixes.lua, use -7 (crush damage) arbitrarily instead
 					Spring.AddUnitDamage(nearUnit, math.ceil(damage*sparkWeapons[weaponID].forkdamage), 0, attackerID, -7)
 					count = count + 1
 				end
