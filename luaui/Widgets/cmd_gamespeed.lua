@@ -1,7 +1,7 @@
 function widget:GetInfo()
   return {
 	name      = "Game Speed",
-	desc      = "Overrides increasing/decreasing game speed behaviour, adds command /gamespeed X",
+	desc      = "Overrides increasing/decreasing game speed behaviour",
 	author    = "Beherith",
 	date      = "2020",
 	layer     = -math.huge,
@@ -28,11 +28,7 @@ local speedLevels = {
 }
 
 local function setGameSpeed(speed)
-	-- Order matters, min->max for speed decrease, max->min for speed increase,
-	-- so need to do min->max->min to handle both in one place
-	Spring.SendCommands("setminspeed " .. speed)
-	Spring.SendCommands("setmaxspeed " .. speed)
-	Spring.SendCommands("setminspeed " .. speed)
+	Spring.SendCommands("setspeed " .. speed)
 end
 
 local function increaseSpeed()
@@ -79,15 +75,4 @@ function widget:Initialize()
 		"bind Alt+numpad+  increasespeed",
 		"bind Alt+numpad-  decreasespeed",
 	})
-end
-
--- use bind KEY luaui gamespeed X in uikeys.txt
-function widget:TextCommand(command)
-	if string.find(command, "gamespeed", nil, true) == 1 then
-		local targetSpeed = nil
-		targetSpeed = tonumber(string.sub(command,10))
-		if targetSpeed then
-			setGameSpeed(targetSpeed)
-		end
-	end
 end
