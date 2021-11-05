@@ -6,13 +6,10 @@ function widget:GetInfo()
 		date = "April 2017",
 		license = "GNU GPL, v2 or later",
 		layer = -9999999999,
-		enabled = true, --  loaded by default?
+		enabled = true,
 	}
 end
 
-------------------------------------------------------------------------------------
--- Info
-------------------------------------------------------------------------------------
 --[[
 
 -- Availible API functions:
@@ -27,13 +24,8 @@ Use 'ShowTooltip' to directly show a tooltip, the name you give should be unique
 (the name will be deleted after use)
 
 ]]--
-------------------------------------------------------------------------------------
--- Config
-------------------------------------------------------------------------------------
 
-local vsx, vsy = Spring.GetViewGeometry()
-
-local defaultDelay = 0.4
+local defaultDelay = 0.37
 local cfgFontSize = 14
 
 local xOffset = 35
@@ -41,56 +33,26 @@ local yOffset = -xOffset
 
 local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
 
+local vsx, vsy = Spring.GetViewGeometry()
 local widgetScale = 1
 local usedFontSize = cfgFontSize
 
-------------------------------------------------------------------------------------
--- Speedups
-------------------------------------------------------------------------------------
-
-local glTranslate = gl.Translate
-
 local spGetMouseState = Spring.GetMouseState
-
-local RectRound, UiElement, bgpadding
-
 local math_floor = math.floor
 local math_ceil = math.ceil
 local math_isInRect = math.isInRect
 local string_lines = string.lines
 
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
-
 local tooltips = {}
-
+local cleanupGuishaderAreas = {}
 local font, chobbyInterface
+local RectRound, UiElement, bgpadding
+local uiSec = 0
 
-------------------------------------------------------------------------------------
--- Functions
-------------------------------------------------------------------------------------
 
 function widget:Initialize()
 	widget:ViewResize(vsx, vsy)
-	init()
-end
-
-function widget:Shutdown()
-	if WG['guishader'] then
-		for name, tooltip in pairs(tooltips) do
-			WG['guishader'].RemoveScreenRect('tooltip_' .. name)
-			WG['guishader'].RemoveScreenRect('2tooltip_' .. name)
-			if tooltip.dlist then
-				gl.DeleteList(tooltip.dlist)
-			end
-		end
-	end
-	WG['tooltip'] = nil
-end
-
-function init()
-	widgetScale = (1 + ((vsy - 850) / 900)) * (0.95 + (ui_scale - 1) / 2.5)
-	usedFontSize = cfgFontSize * widgetScale
-	yOffset = -math.floor(xOffset*0.75) - usedFontSize
 
 	if WG['tooltip'] == nil then
 		WG['tooltip'] = {}
@@ -111,6 +73,10 @@ function init()
 		end
 		WG['tooltip'].RemoveTooltip = function(name)
 			if tooltips[name] ~= nil then
+				if tooltips[name].dlist then
+					gl.DeleteList(tooltips[name].dlist)
+				end
+				cleanupGuishaderAreas[name] = true
 				tooltips[name] = nil
 			end
 		end
@@ -125,6 +91,7 @@ function init()
 						tooltips[name].value = value
 						if tooltips[name].dlist then
 							tooltips[name].dlist = gl.DeleteList(tooltips[name].dlist)
+							cleanupGuishaderAreas[name] = true
 						end
 					end
 				end
@@ -136,7 +103,19 @@ function init()
 	end
 end
 
-local uiSec = 0
+function widget:Shutdown()
+	if WG['guishader'] then
+		for name, tooltip in pairs(tooltips) do
+			WG['guishader'].RemoveScreenRect('tooltip_' .. name)
+			WG['guishader'].RemoveScreenRect('2tooltip_' .. name)
+			if tooltip.dlist then
+				gl.DeleteList(tooltip.dlist)
+			end
+		end
+	end
+	WG['tooltip'] = nil
+end
+
 function widget:Update(dt)
 	uiSec = uiSec + dt
 	if uiSec > 0.5 then
@@ -150,15 +129,14 @@ end
 
 function widget:ViewResize(x, y)
 	vsx, vsy = Spring.GetViewGeometry()
-
 	font = WG['fonts'].getFont(fontfile)
+	widgetScale = (1 + ((vsy - 850) / 900)) * (0.95 + (ui_scale - 1) / 2.5)
+	usedFontSize = cfgFontSize * widgetScale
+	yOffset = -math.floor(xOffset*0.75) - usedFontSize
 
 	bgpadding = math.ceil(WG.FlowUI.elementPadding * 0.66)
-
 	RectRound = WG.FlowUI.Draw.RectRound
 	UiElement = WG.FlowUI.Draw.Element
-
-	init()
 end
 
 local function drawTooltip(name, x, y)
@@ -189,7 +167,7 @@ local function drawTooltip(name, x, y)
 			UiElement(addX-paddingW, addY-maxHeight-paddingH, addX+maxWidth + paddingW, addY+paddingH, 1,1,1,1, 1,1,1,1, nil, {0.85, 0.85, 0.85, (WG['guishader'] and 0.72 or 0.94)}, {0, 0, 0, (WG['guishader'] and 0.52 or 0.56)}, bgpadding)
 
 			-- draw text
-			maxHeight = math_floor(-fontSize * 0.93)
+			maxHeight = math_floor(-fontSize * 0.9)
 			font:Begin()
 			for i, line in ipairs(lines) do
 				font:Print('\255\244\244\244' .. line, addX, maxHeight+addY, fontSize, "o")
@@ -222,12 +200,11 @@ local function drawTooltip(name, x, y)
 		WG['guishader'].InsertScreenRect(posX - paddingW + bgpadding, posY - maxHeight - paddingH, posX + maxWidth + paddingW -bgpadding, posY + paddingH, 'tooltip_' .. name)
 		WG['guishader'].InsertScreenRect(posX - paddingW, posY - maxHeight - paddingH + bgpadding, posX + maxWidth + paddingW, posY + paddingH - bgpadding, '2tooltip_' .. name)
 	end
-	glTranslate(posX-addX, posY-addY, 0)
+	gl.Translate(posX-addX, posY-addY, 0)
 	gl.CallList(tooltips[name].dlist)
-	glTranslate(-posX+addX, -posY+addY, 0)
+	gl.Translate(-posX+addX, -posY+addY, 0)
 end
 
-local cleanupGuishaderAreas = {}
 function widget:RecvLuaMsg(msg, playerID)
 	if msg:sub(1, 18) == 'LobbyOverlayActive' then
 		chobbyInterface = (msg:sub(1, 19) == 'LobbyOverlayActive1')
@@ -238,7 +215,7 @@ function widget:DrawScreen()
 	if chobbyInterface then
 		return
 	end
-	if (WG['topbar'] and WG['topbar'].showingQuit()) then
+	if WG['topbar'] and WG['topbar'].showingQuit() then
 		return
 	end
 	local x, y = spGetMouseState()
@@ -246,8 +223,8 @@ function widget:DrawScreen()
 
 	if WG['guishader'] then
 		for name, _ in pairs(cleanupGuishaderAreas) do
-			WG['guishader'].RemoveScreenRect(name)
-			WG['guishader'].RemoveScreenRect('2'..name)
+			WG['guishader'].RemoveScreenRect('tooltip_' .. name)
+			WG['guishader'].RemoveScreenRect('2tooltip_' .. name)
 			cleanupGuishaderAreas[name] = nil
 		end
 	end
@@ -259,7 +236,7 @@ function widget:DrawScreen()
 				else
 					drawTooltip(name, x + (xOffset * widgetScale), y + (yOffset * widgetScale))
 				end
-				cleanupGuishaderAreas['tooltip_' .. name] = true
+				cleanupGuishaderAreas[name] = true
 				tooltips[name].disabled = true
 			else
 				if tooltip.displayTime == nil then
@@ -272,7 +249,6 @@ function widget:DrawScreen()
 					end
 				end
 			end
-			break	-- cut off for perf reason + this only allows one tooltip at a time
 		else
 			if tooltip.displayTime ~= nil then
 				tooltip.displayTime = nil
@@ -284,5 +260,3 @@ function widget:DrawScreen()
 		end
 	end
 end
-
-
