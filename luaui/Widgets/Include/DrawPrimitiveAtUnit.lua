@@ -94,8 +94,8 @@ void main()
 	
 	// this sets the num prims to 0 for units further from cam than iconDistance
 	if (length((cameraViewInv[3]).xyz - v_centerpos.xyz) >  iconDistance) v_numvertices = 0;
-	vec3 abs_centerpos = abs(v_centerpos.xyz);
-	if (dot(abs_centerpos, abs_centerpos) < 1.0) v_numvertices = 0; // if the center pos is at (0,0,0) then we probably dont have the matrix yet for this unit, because it entered LOS but has not been drawn yet. 
+
+	if (dot(v_centerpos.xyz, v_centerpos.xyz) < 1.0) v_numvertices = 0; // if the center pos is at (0,0,0) then we probably dont have the matrix yet for this unit, because it entered LOS but has not been drawn yet. 
 	
 	v_centerpos.y += HEIGHTOFFSET; // Add some height to ensure above groundness
 	v_centerpos.y += lengthwidthcornerheight.w; // Add per-instance height offset
