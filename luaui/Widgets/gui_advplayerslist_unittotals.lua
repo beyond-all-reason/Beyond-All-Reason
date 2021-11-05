@@ -32,15 +32,9 @@ local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale",1) or 1)
 local widgetScale = 1
 local glPushMatrix   = gl.PushMatrix
 local glPopMatrix    = gl.PopMatrix
-local glColor        = gl.Color
 local glCreateList   = gl.CreateList
 local glDeleteList   = gl.DeleteList
 local glCallList     = gl.CallList
-
-local glBlending = gl.Blending
-local GL_SRC_ALPHA = GL.SRC_ALPHA
-local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
-local GL_ONE = GL.ONE
 
 local RectRound, UiElement, elementCorner
 
@@ -52,12 +46,19 @@ local widgetHeight = 22
 local top, left, bottom, right = 0,0,0,0
 local gameMaxUnits = Spring.GetModOptions().maxunits
 
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
+local totalUnits = 0
+local totalGaiaUnits = 0
 
-function isInBox(mx, my, box)
-	return mx > box[1] and my > box[2] and mx < box[3] and my < box[4]
-end
+local guishaderEnabled = (WG['guishader'])
+local passedTime = 0
+local passedTime2 = 0
+local uiOpacitySec = 0.5
+
+local math_isInRect = math.isInRect
+
+local textUnits = Spring.I18N('ui.unitTotals.units')
+local textAll = Spring.I18N('ui.unitTotals.all')
+
 
 function widget:Initialize()
 	widget:ViewResize()
@@ -69,9 +70,7 @@ function widget:Initialize()
 end
 
 local function updateValues()
-
 	local textsize = 11*widgetScale
-	local textYPadding = 8*widgetScale
 	local textXPadding = 10*widgetScale
 
 	if drawlist[2] ~= nil then
@@ -82,7 +81,7 @@ local function updateValues()
 		local valueColor = '\255\255\255\255'
 		local myTotalUnits = Spring.GetTeamUnitCount(Spring.GetMyTeamID())
         font:Begin()
-		font:Print(titleColor..'# units  '..valueColor..myTotalUnits..titleColor..' / '..valueColor..gameMaxUnits, left+textXPadding, bottom+(0.3*widgetHeight*widgetScale), textsize, 'no')
+		font:Print(titleColor..textUnits..'  '..valueColor..myTotalUnits..titleColor..' / '..valueColor..gameMaxUnits..'    '..titleColor..textAll..' '..valueColor..totalUnits, left+textXPadding, bottom+(0.3*widgetHeight*widgetScale), textsize, 'no')
         font:End()
     end)
 end
@@ -106,7 +105,6 @@ local function createList()
 	updateValues()
 end
 
-
 function widget:Shutdown()
 	if WG['guishader'] then
 		WG['guishader'].RemoveDlist('unittotals')
@@ -117,11 +115,6 @@ function widget:Shutdown()
 	WG['unittotals'] = nil
 end
 
-local guishaderEnabled = (WG['guishader'])
-
-local passedTime = 0
-local passedTime2 = 0
-local uiOpacitySec = 0.5
 function widget:Update(dt)
 
 	uiOpacitySec = uiOpacitySec + dt
@@ -145,6 +138,20 @@ function widget:Update(dt)
 		updatePosition()
 	end
 	if passedTime2 > 1 then
+		totalUnits = 0
+		totalGaiaUnits = 0
+		local allyTeamList = Spring.GetAllyTeamList()
+		local numberOfAllyTeams = #allyTeamList
+		for allyTeamListIndex = 1, numberOfAllyTeams do
+			local allyID = allyTeamList[allyTeamListIndex]
+			local teamList = Spring.GetTeamList(allyID)
+			for _,teamID in pairs(teamList) do
+				totalUnits = totalUnits + Spring.GetTeamUnitCount(teamID)
+				if teamID == GaiaTeamID then
+					totalGaiaUnits = totalGaiaUnits + Spring.GetTeamUnitCount(teamID)
+				end
+			end
+		end
 		updateValues()
 		passedTime2 = passedTime2 - 1
 	end
@@ -197,7 +204,7 @@ function widget:DrawScreen()
 	hovering = false
 	if drawlist[1] ~= nil then
 		local mx, my, mb = Spring.GetMouseState()
-		if isInBox(mx, my, {left, bottom, right, top}) then
+		if math_isInRect(mx, my, {left, bottom, right, top}) then
 			Spring.SetMouseCursor('cursornormal')
 			hovering = true
 		end

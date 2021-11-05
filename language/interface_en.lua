@@ -615,7 +615,11 @@ return {
 			},
 			mexUpgrader = {
 				noMexes = "%{unit}: No mexes to upgrade"
-			}
+			},
+			unitTotals = {
+				units = "units",
+				all = "all",
+			},
 		}
 	}
 }

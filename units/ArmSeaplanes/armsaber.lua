@@ -109,6 +109,9 @@ return {
 				turret = false,
 				weapontype = "LaserCannon",
 				weaponvelocity = 1000,
+				customparams = {
+					light_radius_mult = 0.5,
+				},
 				damage = {
 					bombers = 10,
 					commanders = 40,
