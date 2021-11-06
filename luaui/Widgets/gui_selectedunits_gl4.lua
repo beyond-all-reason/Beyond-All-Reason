@@ -189,6 +189,12 @@ function widget:Update(dt)
 	end
 end
 
+function widget:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
+	if unitTeam[unitID] then
+		unitTeam[unitID] = unitTeam
+	end
+end
+
 function widget:UnitDestroyed(unitID)
 	unitTeam[unitID] = nil
 	unitUnitDefID[unitID] = nil
@@ -202,8 +208,7 @@ function init()
 	shaderConfig.TEAMCOLORIZATION = teamcolorOpacity
 	shaderConfig.TRANSPARENCY = opacity
 	shaderConfig.INITIALSIZE = 0.66
-	shaderConfig.GROWTHRATE = 0.37
-	shaderConfig.HEIGHTOFFSET = 6 -- else it will get cutooff into ground that is sloped
+	shaderConfig.GROWTHRATE = 3.5
 	selectionVBO, selectShader = InitDrawPrimitiveAtUnit(shaderConfig, "TESTDPAU")
 	updateSelection = true
 	selUnits = {}
