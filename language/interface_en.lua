@@ -618,7 +618,7 @@ return {
 			},
 			unitTotals = {
 				units = "units",
-				all = "all",
+				total = "total",
 			},
 		}
 	}

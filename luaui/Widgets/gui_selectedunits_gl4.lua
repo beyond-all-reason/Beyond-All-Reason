@@ -200,7 +200,7 @@ function widget:UnitDestroyed(unitID)
 	unitUnitDefID[unitID] = nil
 end
 
-function init()
+local function init()
 	local DPatUnit = VFS.Include(luaShaderDir.."DrawPrimitiveAtUnit.lua")
 	local InitDrawPrimitiveAtUnit = DPatUnit.InitDrawPrimitiveAtUnit
 	local shaderConfig = DPatUnit.shaderConfig -- MAKE SURE YOU READ THE SHADERCONFIG TABLE!
@@ -242,7 +242,6 @@ function widget:Shutdown()
 	WG.selectedunits = nil
 end
 
-
 function widget:GetConfigData(data)
 	return {
 		opacity = opacity,
@@ -254,4 +253,3 @@ function widget:SetConfigData(data)
 	opacity = data.opacity or opacity
 	teamcolorOpacity = data.teamcolorOpacity or teamcolorOpacity
 end
-

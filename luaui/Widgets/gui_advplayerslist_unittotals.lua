@@ -45,7 +45,7 @@ local uiOpacitySec = 0.5
 local math_isInRect = math.isInRect
 
 local textUnits = Spring.I18N('ui.unitTotals.units')
-local textAll = Spring.I18N('ui.unitTotals.all')
+local textTotal = Spring.I18N('ui.unitTotals.total')
 
 
 function widget:Initialize()
@@ -69,7 +69,7 @@ local function updateValues()
 		local valueColor = '\255\255\255\255'
 		local myTotalUnits = Spring.GetTeamUnitCount(Spring.GetMyTeamID())
         font:Begin()
-		font:Print(titleColor..textUnits..'  '..valueColor..myTotalUnits..titleColor..' / '..valueColor..gameMaxUnits..'      '..titleColor..textAll..'  '..valueColor..totalUnits, left+textXPadding, bottom+(0.3*widgetHeight*widgetScale), textsize, 'no')
+		font:Print(titleColor..textUnits..'  '..valueColor..myTotalUnits..titleColor..' / '..valueColor..gameMaxUnits..'      '..titleColor..textTotal..'  '..valueColor..totalUnits, left+textXPadding, bottom+(0.3*widgetHeight*widgetScale), textsize, 'no')
         font:End()
     end)
 end
