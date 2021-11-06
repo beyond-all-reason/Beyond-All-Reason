@@ -152,6 +152,7 @@ local flexCallIns = {
 	'FeatureCreated',
 	'FeatureDestroyed',
 	'UnsyncedHeightMapUpdate',
+	'LanguageChanged',
 }
 local flexCallInMap = {}
 for _, ci in ipairs(flexCallIns) do
@@ -1787,6 +1788,12 @@ function widgetHandler:DefaultCommand(...)
 		end
 	end
 	return nil  --  not a number, use the default engine command
+end
+
+function widgetHandler:LanguageChanged(language)
+	for _, w in ipairs(self.LanguageChangedList) do
+		w:LanguageChanged(language)
+	end
 end
 
 
