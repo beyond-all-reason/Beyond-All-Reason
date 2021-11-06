@@ -5,7 +5,7 @@ function widget:GetInfo()
 		author = "Beherith, Floris",
 		date = "2021.05.16",
 		license = "GNU GPL, v2 or later",
-		layer     = -50,
+		layer = -50,
 		enabled = true,
 	}
 end
@@ -49,8 +49,8 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 		unitCanFly[unitDefID] = true
 	elseif unitDef.isBuilding or unitDef.isFactory or unitDef.speed==0 then
 		unitBuilding[unitDefID] = {
-			unitDef.xsize * 8 + 16,
-			unitDef.zsize * 8 + 16
+			unitDef.xsize * 8 + 8,
+			unitDef.zsize * 8 + 8
 		}
 	end
 end
@@ -77,19 +77,20 @@ local function AddPrimitiveAtUnit(unitID)
 	end
 	local teamID = unitTeam[unitID]
 
-	local width = radius
-	local length = radius
 	local additionalheight = 0
-
+	local width, length
 	if unitCanFly[unitDefID] then
 		numVertices = 3 -- triangles for planes
-		width = radius / 2
-		length = radius / 2
+		width = radius * 0.57
+		length = radius  * 0.57
 	elseif unitBuilding[unitDefID] then
 		width = unitBuilding[unitDefID][1]
 		length = unitBuilding[unitDefID][2]
 		cornersize = (width + length) * 0.075
 		numVertices = 2
+	else
+		width = radius * 0.94
+		length = radius  * 0.94
 	end
 
 	--Spring.Echo(unitID,radius,radius, Spring.GetUnitTeam(unitID), numvertices, 1, gf)
