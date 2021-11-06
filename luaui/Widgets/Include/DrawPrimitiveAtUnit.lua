@@ -1,11 +1,11 @@
 local DrawPrimitiveAtUnit = {}
 
 local shaderConfig = {
-	TRANSPARENCY = 0.5, -- transparency of the stuff drawn
+	TRANSPARENCY = 0.2, -- transparency of the stuff drawn
 	HEIGHTOFFSET = 1, -- Additional height added to everything
 	ANIMATION = 1, -- set to 0 if you dont want animation
-	INITIALSIZE = 0.2, -- What size the stuff starts off at when spawned
-	GROWTHRATE = 7.0, -- How fast it grows to full size
+	INITIALSIZE = 0.66, -- What size the stuff starts off at when spawned
+	GROWTHRATE = 4, -- How fast it grows to full size
 	BREATHERATE = 30.0, -- how fast it periodicly grows
 	BREATHESIZE = 0.05, -- how much it periodicly grows
 	TEAMCOLORIZATION = 1.0, -- not used yet
@@ -19,7 +19,7 @@ local shaderConfig = {
 	MAXVERTICES = 64, -- The max number of vertices we can emit, make sure this is consistent with what you are trying to draw (tris 3, quads 4, corneredrect 8, circle 64
 	USE_CIRCLES = 1, -- set to nil if you dont want circles
 	USE_CORNERRECT = 1, -- set to nil if you dont want cornerrect
-	
+
 }
 
 ---- GL4 Backend Stuff----
@@ -76,7 +76,7 @@ void main()
 {
 	uint baseIndex = instData.x; // this tells us which unit matrix to find
 	mat4 modelMatrix = UnitPieces[baseIndex]; // This gives us the models  world pos and rot matrix
-	
+
 	gl_Position = cameraViewProj * vec4(modelMatrix[3].xyz, 1.0); // We transform this vertex into the center of the model
 	v_rotationY = atan(modelMatrix[0][2], modelMatrix[0][0]); // we can get the euler Y rot of the model from the model matrix
 	v_uvoffsets = uvoffsets;
@@ -91,12 +91,12 @@ void main()
 	POST_ANIM
 	v_numvertices = numvertices;
 	if (vertexClipped(gl_Position, CLIPTOLERANCE)) v_numvertices = 0; // Make no primitives on stuff outside of screen
-	
+
 	// this sets the num prims to 0 for units further from cam than iconDistance
 	if (length((cameraViewInv[3]).xyz - v_centerpos.xyz) >  iconDistance) v_numvertices = 0;
 
-	if (dot(v_centerpos.xyz, v_centerpos.xyz) < 1.0) v_numvertices = 0; // if the center pos is at (0,0,0) then we probably dont have the matrix yet for this unit, because it entered LOS but has not been drawn yet. 
-	
+	if (dot(v_centerpos.xyz, v_centerpos.xyz) < 1.0) v_numvertices = 0; // if the center pos is at (0,0,0) then we probably dont have the matrix yet for this unit, because it entered LOS but has not been drawn yet.
+
 	v_centerpos.y += HEIGHTOFFSET; // Add some height to ensure above groundness
 	v_centerpos.y += lengthwidthcornerheight.w; // Add per-instance height offset
 
@@ -155,18 +155,18 @@ void offsetVertex4( float x, float y, float z, float u, float v){
 }
 
 void main(){
-	uint numVertices = dataIn[0].v_numvertices; 
+	uint numVertices = dataIn[0].v_numvertices;
 	centerpos = dataIn[0].v_centerpos;
 	#if (BILLBOARD == 1 )
 		rotY = mat3(cameraViewInv[0].xyz,cameraViewInv[2].xyz, cameraViewInv[1].xyz); // swizzle cause we use xz
 	#else
 		rotY = rotation3dY(-1*dataIn[0].v_rotationY); // Create a rotation matrix around Y from the unit's rotation
 	#endif
-	
-	g_color = dataIn[0].v_color; 
-	
+
+	g_color = dataIn[0].v_color;
+
 	uvoffsets = dataIn[0].v_uvoffsets; // if an atlas is used, then use this, otherwise dont
-	
+
 	float length = dataIn[0].v_lengthwidthcornerheight.x;
 	float width = dataIn[0].v_lengthwidthcornerheight.y;
 	float cs = dataIn[0].v_lengthwidthcornerheight.z;
@@ -187,7 +187,7 @@ void main(){
 	#ifdef USE_CORNERRECT
 		if (numVertices == uint(2)){ // A quad with chopped off corners
 			float csuv = (cs / (length + width))*2.0;
-			offsetVertex4( - width * 0.5 , 0.0,  - length * 0.5 + cs, 0, csuv); // bottom left 
+			offsetVertex4( - width * 0.5 , 0.0,  - length * 0.5 + cs, 0, csuv); // bottom left
 			offsetVertex4( - width * 0.5 , 0.0,  + length * 0.5 - cs, 0, 1.0 - csuv); // top left
 			offsetVertex4( - width * 0.5 + cs, 0.0,  - length * 0.5 , csuv, 0); // bottom left
 			offsetVertex4( - width * 0.5 + cs, 0.0,  + length * 0.5, csuv, 1.0); // top left
@@ -271,14 +271,14 @@ local function InitDrawPrimitiveAtUnit(shaderConfig, DPATname)
 			},
 		uniformFloat = {
 			addRadius = 1,
-			iconDistance = 1, 
+			iconDistance = 1,
 		  },
 		},
 		DPATname .. "Shader GL4"
 	  )
 	local shaderCompiled = DrawPrimitiveAtUnitShader:Initialize()
 	if not shaderCompiled then goodbye("Failed to compile ".. DPATname .." GL4 ") end
-	  
+
 	DrawPrimitiveAtUnitVBO = makeInstanceVBOTable(
 		{
 			{id = 0, name = 'lengthwidthcorner', size = 4},
@@ -293,7 +293,7 @@ local function InitDrawPrimitiveAtUnit(shaderConfig, DPATname)
 		5  -- unitIDattribID (instData)
 	)
 	if DrawPrimitiveAtUnitVBO == nil then goodbye("Failed to create DrawPrimitiveAtUnitVBO") end
-	
+
 	local DrawPrimitiveAtUnitVAO = gl.GetVAO()
 	DrawPrimitiveAtUnitVAO:AttachVertexBuffer(DrawPrimitiveAtUnitVBO.instanceVBO)
 	DrawPrimitiveAtUnitVBO.VAO = DrawPrimitiveAtUnitVAO

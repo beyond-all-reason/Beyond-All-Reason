@@ -438,7 +438,7 @@ end
 
 
 function widget:Shutdown()
-	if WG['teamplatter'] == nil and WG['highlightselunits'] == nil then
+	if not (WG.selectedunits or WG.teamplatter or WG.highlightselunits) then
 		SetupCommandColors(true)
 	end
 	WG['fancyselectedunits'] = nil

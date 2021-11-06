@@ -1,15 +1,3 @@
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
---
---	file: gui_musicPlayer.lua
---	brief:	yay music
---	author:	cake
---
---	Copyright (C) 2007.
---	Licensed under the terms of the GNU GPL, v2 or later.
---
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
 
 function widget:GetInfo()
 	return {
@@ -81,7 +69,7 @@ local function updateValues()
 		local valueColor = '\255\255\255\255'
 		local myTotalUnits = Spring.GetTeamUnitCount(Spring.GetMyTeamID())
         font:Begin()
-		font:Print(titleColor..textUnits..'  '..valueColor..myTotalUnits..titleColor..' / '..valueColor..gameMaxUnits..'    '..titleColor..textAll..' '..valueColor..totalUnits, left+textXPadding, bottom+(0.3*widgetHeight*widgetScale), textsize, 'no')
+		font:Print(titleColor..textUnits..'  '..valueColor..myTotalUnits..titleColor..' / '..valueColor..gameMaxUnits..'      '..titleColor..textAll..'  '..valueColor..totalUnits, left+textXPadding, bottom+(0.3*widgetHeight*widgetScale), textsize, 'no')
         font:End()
     end)
 end
@@ -204,7 +192,7 @@ function widget:DrawScreen()
 	hovering = false
 	if drawlist[1] ~= nil then
 		local mx, my, mb = Spring.GetMouseState()
-		if math_isInRect(mx, my, {left, bottom, right, top}) then
+		if math_isInRect(mx, my, left, bottom, right, top) then
 			Spring.SetMouseCursor('cursornormal')
 			hovering = true
 		end
