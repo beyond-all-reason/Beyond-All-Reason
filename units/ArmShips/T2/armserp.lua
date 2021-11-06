@@ -39,7 +39,7 @@ return {
 		turninplaceanglelimit = 90,
 		turnrate = 400,
 		upright = true,
-		waterline = 120, --45,
+		waterline = 80, --45,
 		customparams = {
 			unitgroup = 'sub',
 			model_author = "FireStorm",

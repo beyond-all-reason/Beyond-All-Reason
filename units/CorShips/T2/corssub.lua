@@ -39,7 +39,7 @@ return {
 		turninplaceanglelimit = 90,
 		turnrate = 320,
 		upright = true,
-		waterline = 120,
+		waterline = 80,
 		customparams = {
 			unitgroup = 'sub',
 			model_author = "Beherith",
