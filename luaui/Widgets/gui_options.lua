@@ -3094,7 +3094,7 @@ function init()
               Spring.SetConfigFloat("UnitIconScaleUI", value)
           end,
         },
-        { id = "uniticon_fadevanish", group = "ui", name = widgetOptionColor .. "   " .. texts.option.uniticonfadevanish, type = "slider", min = 1, max = 12000, step = 50, value = tonumber(Spring.GetConfigInt("UnitIconFadeVanish", 1000) or 1), description = texts.option.uniticonfadevanish_descr,
+        { id = "uniticon_fadevanish", group = "ui", name = widgetOptionColor .. "   " .. texts.option.uniticonfadevanish, type = "slider", min = 1, max = 12000, step = 50, value = tonumber(Spring.GetConfigInt("UnitIconFadeVanish", 1800) or 1), description = texts.option.uniticonfadevanish_descr,
           onload = function(i)
           end,
           onchange = function(i, value)
@@ -3106,7 +3106,7 @@ function init()
               Spring.SetConfigInt("UnitIconFadeVanish", value)
           end,
         },
-        { id = "uniticon_fadestart", group = "ui", name = widgetOptionColor .. "   " .. texts.option.uniticonfadestart, type = "slider", min = 1, max = 12000, step = 50, value = tonumber(Spring.GetConfigInt("UnitIconFadeStart", 3000) or 1), description = texts.option.uniticonfadestart_descr,
+        { id = "uniticon_fadestart", group = "ui", name = widgetOptionColor .. "   " .. texts.option.uniticonfadestart, type = "slider", min = 1, max = 12000, step = 50, value = tonumber(Spring.GetConfigInt("UnitIconFadeStart", 2000) or 1), description = texts.option.uniticonfadestart_descr,
           onload = function(i)
           end,
           onchange = function(i, value)
@@ -3206,6 +3206,24 @@ function init()
               saveOptionValue('Fancy Selected Units', 'fancyselectedunits', 'setTeamcolorOpacity', { 'teamcolorOpacity' }, value)
           end,
         },
+
+		{ id = "selectedunits", group = "ui", basic = true, widget = "Selected Units GL4", name = "Selection Unit Platters", type = "bool", value = GetWidgetToggleValue("Selected Units GL4"), description = texts.option.selectedunits_descr },
+		{ id = "selectedunits_opacity", group = "ui", name = widgetOptionColor .. "   " .. texts.option.selectedunits_opacity, min = 0, max = 0.5, step = 0.01, type = "slider", value = 0.17, description = texts.option.selectedunits_opacity_descr,
+		  onload = function(i)
+			  loadWidgetData("Selected Units GL4", "selectedunits_opacity", { 'opacity' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('Selected Units GL4', 'selectedunits', 'setOpacity', { 'opacity' }, value)
+		  end,
+		},
+		--{ id = "selectedunits_teamcoloropacity", group = "ui", name = widgetOptionColor .. "   " .. texts.option.selectedunits_teamcoloropacity, min = 0, max = 1, step = 0.01, type = "slider", value = 0.6, description = texts.option.selectedunits_teamcoloropacity_descr,
+		--  onload = function(i)
+		--	  loadWidgetData("Selected Units GL4", "selectedunits_teamcoloropacity", { 'teamcolorOpacity' })
+		--  end,
+		--  onchange = function(i, value)
+		--	  saveOptionValue('Selected Units GL4', 'selectedunits', 'setTeamcolorOpacity', { 'teamcolorOpacity' }, value)
+		--  end,
+		--},
 
         { id = "highlightselunits", group = "ui", basic = true, widget = "Highlight Selected Units", name = texts.option.highlightselunits, type = "bool", value = GetWidgetToggleValue("Highlight Selected Units"), description = texts.option.highlightselunits_descr },
         { id = "highlightselunits_opacity", group = "ui", basic = true, name = widgetOptionColor .. "   " .. texts.option.highlightselunits_opacity, min = 0.05, max = 0.5, step = 0.01, type = "slider", value = 0.1, description = texts.option.highlightselunits_opacity_descr,
@@ -5120,12 +5138,18 @@ function init()
         options[getOptionByID("cas_sharpness")] = nil
     end
 
-    if widgetHandler.knownWidgets["Fancy Selected Units"] == nil then
-        options[getOptionByID('fancyselectedunits')] = nil
-        options[getOptionByID("fancyselectedunits_opacity")] = nil
-        options[getOptionByID("fancyselectedunits_baseopacity")] = nil
-        options[getOptionByID("fancyselectedunits_teamcoloropacity")] = nil
-    end
+	if widgetHandler.knownWidgets["Fancy Selected Units"] == nil then
+		options[getOptionByID('fancyselectedunits')] = nil
+		options[getOptionByID("fancyselectedunits_opacity")] = nil
+		options[getOptionByID("fancyselectedunits_baseopacity")] = nil
+		options[getOptionByID("fancyselectedunits_teamcoloropacity")] = nil
+	end
+
+	if widgetHandler.knownWidgets["Selected Units GL4"] == nil then
+		options[getOptionByID('selectedunits')] = nil
+		options[getOptionByID("selectedunits_opacity")] = nil
+		options[getOptionByID("selectedunits_teamcoloropacity")] = nil
+	end
 
     if widgetHandler.knownWidgets["Sensor Ranges Radar"] == nil then
         options[getOptionByID('radarrangeopacity')] = nil

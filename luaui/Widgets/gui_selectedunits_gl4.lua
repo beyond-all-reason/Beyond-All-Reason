@@ -13,6 +13,9 @@ end
 -- Configurable Parts:
 local texture = "luaui/images/solid.png"
 
+local opacity = 0.17
+local teamcolorOpacity = 0.6
+
 ---- GL4 Backend Stuff----
 local selectionVBO = nil
 local selectShader = nil
@@ -34,9 +37,8 @@ local GL_REPLACE            = GL.REPLACE
 local GL_POINTS				= GL.POINTS
 
 local selUnits = {}
-local checkSelectionChanges = true
+local updateSelection = true
 local selectedUnits = Spring.GetSelectedUnits()
-local selectedUnitsCount = Spring.GetSelectedUnitsCount()
 
 local unitRadius = {}
 local unitTeam = {}
@@ -49,8 +51,8 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 		unitCanFly[unitDefID] = true
 	elseif unitDef.isBuilding or unitDef.isFactory or unitDef.speed==0 then
 		unitBuilding[unitDefID] = {
-			unitDef.xsize * 8 + 8,
-			unitDef.zsize * 8 + 8
+			unitDef.xsize * 8.3 + 8,
+			unitDef.zsize * 8.3 + 8
 		}
 	end
 end
@@ -81,8 +83,8 @@ local function AddPrimitiveAtUnit(unitID)
 	local width, length
 	if unitCanFly[unitDefID] then
 		numVertices = 3 -- triangles for planes
-		width = radius * 0.57
-		length = radius  * 0.57
+		width = radius * 0.7
+		length = radius  * 0.7
 	elseif unitBuilding[unitDefID] then
 		width = unitBuilding[unitDefID][1]
 		length = unitBuilding[unitDefID][2]
@@ -116,9 +118,14 @@ function widget:DrawWorldPreUnit()
 	drawFrame = drawFrame + 1
 	if selectionVBO.usedElements > 0 then
 		--if drawFrame % 100 == 0 then Spring.Echo("selectionVBO.usedElements",selectionVBO.usedElements) end
-		local disticon = Spring.GetConfigInt("UnitIconDist", 200) -- iconLength = unitIconDist * unitIconDist * 750.0f;
-		--gl.Culling(false)
+		local disticon
+		if Spring.GetConfigInt("UnitIconsAsUI", 1) == 1 then
+			disticon = Spring.GetConfigInt("uniticon_fadevanish", 1800)
+		else
+			disticon = Spring.GetConfigInt("UnitIconDist", 200)
+		end
 		disticon = disticon * 27 -- should be sqrt(750) but not really
+		--gl.Culling(false)
 		glTexture(0, texture)
 		selectShader:Activate()
 		selectShader:SetUniform("iconDistance",disticon) -- pass
@@ -127,21 +134,21 @@ function widget:DrawWorldPreUnit()
 		glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE) -- Set The Stencil Buffer To 1 Where Draw Any Polygon		this to the shader
 		glClear(GL_STENCIL_BUFFER_BIT ) -- set stencil buffer to 0
 
-		glStencilFunc(GL_NOTEQUAL, 1, 1); -- use NOTEQUAL instead of ALWAYS to ensure that overlapping transparent fragments dont get written multiple times
+		glStencilFunc(GL_NOTEQUAL, 1, 1) -- use NOTEQUAL instead of ALWAYS to ensure that overlapping transparent fragments dont get written multiple times
 		glStencilMask(1)
 
-		selectShader:SetUniform("addRadius",0) -- pass this
-		selectionVBO.VAO:DrawArrays(GL_POINTS,selectionVBO.usedElements)
+		selectShader:SetUniform("addRadius", 0)
+		selectionVBO.VAO:DrawArrays(GL_POINTS, selectionVBO.usedElements)
 
-		glStencilFunc(GL_NOTEQUAL, 1, 1);
+		glStencilFunc(GL_NOTEQUAL, 1, 1)
 		glStencilMask(0)
 		glDepthTest(true)
 
-		selectShader:SetUniform("addRadius",2) -- pass this
-		selectionVBO.VAO:DrawArrays(GL_POINTS,selectionVBO.usedElements)
+		selectShader:SetUniform("addRadius", 1.7)
+		selectionVBO.VAO:DrawArrays(GL_POINTS, selectionVBO.usedElements)
 
 		glStencilMask(1)
-		glStencilFunc(GL_ALWAYS, 1, 1);
+		glStencilFunc(GL_ALWAYS, 1, 1)
 		glDepthTest(true)
 
 		selectShader:Deactivate()
@@ -156,14 +163,13 @@ local function RemovePrimitive(unitID)
 end
 
 function widget:SelectionChanged(sel)
-	checkSelectionChanges = true
+	updateSelection = true
 end
 
 function widget:Update(dt)
-	if checkSelectionChanges then
+	if updateSelection then
 		selectedUnits = Spring.GetSelectedUnits()
-		selectedUnitsCount = Spring.GetSelectedUnitsCount()
-		checkSelectionChanges = false
+		updateSelection = false
 
 		local newSelUnits = {}
 		-- add to selection
@@ -188,20 +194,37 @@ function widget:UnitDestroyed(unitID)
 	unitUnitDefID[unitID] = nil
 end
 
-function widget:Initialize()
+function init()
 	local DPatUnit = VFS.Include(luaShaderDir.."DrawPrimitiveAtUnit.lua")
 	local InitDrawPrimitiveAtUnit = DPatUnit.InitDrawPrimitiveAtUnit
 	local shaderConfig = DPatUnit.shaderConfig -- MAKE SURE YOU READ THE SHADERCONFIG TABLE!
 	shaderConfig.BILLBOARD = 0
+	shaderConfig.TEAMCOLORIZATION = teamcolorOpacity
+	shaderConfig.TRANSPARENCY = opacity
+	shaderConfig.INITIALSIZE = 0.66
+	shaderConfig.GROWTHRATE = 0.37
+	shaderConfig.HEIGHTOFFSET = 6 -- else it will get cutooff into ground that is sloped
 	selectionVBO, selectShader = InitDrawPrimitiveAtUnit(shaderConfig, "TESTDPAU")
+	updateSelection = true
+end
 
-	if false then -- FOR TESTING
-		local units = Spring.GetAllUnits()
-		for _, unitID in ipairs(units) do
-			AddPrimitiveAtUnit(unitID)
-		end
+function widget:Initialize()
+	init()
+	WG.selectedunits = {}
+	WG.selectedunits.getOpacity = function()
+		return opacity
 	end
-	WG.selectedunits = true
+	WG.selectedunits.setOpacity = function(value)
+		opacity = value
+		init()
+	end
+	WG.selectedunits.getTeamcolorOpacity = function()
+		return teamcolorOpacity
+	end
+	WG.selectedunits.setTeamcolorOpacity = function(value)
+		teamcolorOpacity = value
+		init()
+	end
 	Spring.LoadCmdColorsConfig('unitBox  0 1 0 0')
 end
 
@@ -211,3 +234,17 @@ function widget:Shutdown()
 	end
 	WG.selectedunits = nil
 end
+
+
+function widget:GetConfigData(data)
+	return {
+		opacity = opacity,
+		teamcolorOpacity = teamcolorOpacity
+	}
+end
+
+function widget:SetConfigData(data)
+	opacity = data.opacity or opacity
+	teamcolorOpacity = data.teamcolorOpacity or teamcolorOpacity
+end
+
