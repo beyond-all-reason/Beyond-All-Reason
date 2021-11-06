@@ -13,7 +13,7 @@ end
 -- Configurable Parts:
 local texture = "luaui/images/solid.png"
 
-local opacity = 0.17
+local opacity = 0.19
 local teamcolorOpacity = 0.6
 
 ---- GL4 Backend Stuff----
@@ -189,9 +189,9 @@ function widget:Update(dt)
 	end
 end
 
-function widget:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
+function widget:UnitTaken(unitID, unitDefID, oldTeamID, newTeamID)
 	if unitTeam[unitID] then
-		unitTeam[unitID] = unitTeam
+		unitTeam[unitID] = newTeamID
 	end
 end
 
@@ -205,10 +205,11 @@ function init()
 	local InitDrawPrimitiveAtUnit = DPatUnit.InitDrawPrimitiveAtUnit
 	local shaderConfig = DPatUnit.shaderConfig -- MAKE SURE YOU READ THE SHADERCONFIG TABLE!
 	shaderConfig.BILLBOARD = 0
-	shaderConfig.TEAMCOLORIZATION = teamcolorOpacity
 	shaderConfig.TRANSPARENCY = opacity
 	shaderConfig.INITIALSIZE = 0.66
 	shaderConfig.GROWTHRATE = 3.5
+	shaderConfig.TEAMCOLORIZATION = teamcolorOpacity	-- not implemented, doing it via POST_SHADING below instead
+	shaderConfig.POST_SHADING = "fragColor.rgba = vec4(mix(g_color.rgb * texcolor.rgb + addRadius, vec3(1.0), "..(1-teamcolorOpacity)..") , texcolor.a * TRANSPARENCY + addRadius);"
 	selectionVBO, selectShader = InitDrawPrimitiveAtUnit(shaderConfig, "TESTDPAU")
 	updateSelection = true
 	selUnits = {}
