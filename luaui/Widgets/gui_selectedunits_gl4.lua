@@ -206,6 +206,7 @@ function init()
 	shaderConfig.HEIGHTOFFSET = 6 -- else it will get cutooff into ground that is sloped
 	selectionVBO, selectShader = InitDrawPrimitiveAtUnit(shaderConfig, "TESTDPAU")
 	updateSelection = true
+	selUnits = {}
 end
 
 function widget:Initialize()
