@@ -71,7 +71,7 @@ local function clicked_button(b)
 end
 
 local function setReplaySpeed(speed)
-	Spring.SendCommands("gamespeed " .. speed)
+	Spring.SendCommands("setspeed " .. speed)
 end
 
 local function draw_buttons(b)
