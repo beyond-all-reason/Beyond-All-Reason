@@ -638,6 +638,8 @@ function widget:GameFrame(n)
 end
 
 function widget:Update()
+	if not playing then return end
+
 	local frame = Spring.GetGameFrame()
 	local _,_,paused = Spring.GetGameSpeed()
 	if paused or frame < 1 then
