@@ -152,7 +152,6 @@ local flexCallIns = {
 	'FeatureCreated',
 	'FeatureDestroyed',
 	'UnsyncedHeightMapUpdate',
-	'LanguageChanged',
 }
 local flexCallInMap = {}
 for _, ci in ipairs(flexCallIns) do
@@ -187,6 +186,7 @@ local callInLists = {
 	'TweakMouseWheel',
 	'TweakIsAbove',
 	'TweakGetTooltip',
+	'LanguageChanged',
 
 	-- these use mouseOwner instead of lists
 	--  'MouseMove',
