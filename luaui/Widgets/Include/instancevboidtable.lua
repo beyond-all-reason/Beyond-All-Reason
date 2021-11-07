@@ -146,12 +146,15 @@ function pushElementInstance(iT,thisInstance, instanceID, updateExisting, noUplo
 	for i =1, iTStep  do -- copy data, but fast
 		iT.instanceData[endOffset + i] =  thisInstance[i]
 	end
+  
+  if unitID ~= nil then --always upload?
+    iT.indextoUnitID[thisInstanceIndex] = unitID
+    iT.indextoObjectType[thisInstanceIndex] = objecttype
+  end
 	
 	if noUpload ~= true then --upload or mark as dirty
 		iT.instanceVBO:Upload(thisInstance, nil, thisInstanceIndex - 1)
 		if unitID ~= nil then --always upload?
-			iT.indextoUnitID[thisInstanceIndex] = unitID
-      iT.indextoObjectType[thisInstanceIndex] = objecttype
       -- [3:58 PM] ivand: InstanceDataFromUnitDefIDs(const sol::stack_table& ids, int attrID, sol::optional<int> teamIdOpt, sol::optional<int> elemOffsetOpt)
       --[3:59 PM] ivand: teamId is the 3rd arg
 			--Spring.Echo("pushElementInstance,unitID, iT.objectTypeAttribID, thisInstanceIndex",unitID, iT.objectTypeAttribID, thisInstanceIndex)

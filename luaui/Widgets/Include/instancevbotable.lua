@@ -143,11 +143,14 @@ function pushElementInstance(iT,thisInstance, instanceID, updateExisting, noUplo
 		iT.instanceData[endOffset + i] =  thisInstance[i]
 	end
 	
+  if unitID ~= nil then 
+    iT.indextoUnitID[thisInstanceIndex] = unitID
+  end
+  
 	if noUpload ~= true then --upload or mark as dirty
 		iT.instanceVBO:Upload(thisInstance, nil, thisInstanceIndex - 1)
-		if unitID ~= nil then --always upload?
-			iT.indextoUnitID[thisInstanceIndex] = unitID
-			--Spring.Echo("pushElementInstance,unitID, iT.unitIDattribID, thisInstanceIndex",unitID, iT.unitIDattribID, thisInstanceIndex)
+    --Spring.Echo("pushElementInstance,unitID, iT.unitIDattribID, thisInstanceIndex",unitID, iT.unitIDattribID, thisInstanceIndex)
+		if unitID ~= nil then 
 			iT.instanceVBO:InstanceDataFromUnitIDs(unitID, iT.unitIDattribID, thisInstanceIndex-1)
 		end
 	else
