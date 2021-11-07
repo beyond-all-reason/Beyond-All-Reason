@@ -47,6 +47,7 @@ local floor = math.floor
 local ceil = math.ceil
 local min = math.min
 local max = math.max
+local math_isInRect = math.isInRect
 
 local GL_SRC_ALPHA = GL.SRC_ALPHA
 local GL_ONE = GL.ONE
@@ -80,7 +81,6 @@ local font, font2, chobbyInterface, buildmenuBottomPosition, dlist, dlistGuishad
 
 local isBuilder = {}
 local isFactory = {}
-local unitBuildPic = {}
 local unitHumanName = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.buildSpeed > 0 and not string.find(unitDef.name, 'spy') then --and unitDef.buildOptions[1] then
@@ -89,11 +89,9 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.isFactory then
 		isFactory[unitDefID] = true
 	end
-	if unitDef.buildpicname then
-		unitBuildPic[unitDefID] = unitDef.buildpicname
-	end
-	if unitDef.humanName then
-		unitHumanName[unitDefID] = unitDef.humanName
+
+	if unitDef.translatedHumanName then
+		unitHumanName[unitDefID] = unitDef.translatedHumanName
 	end
 end
 
@@ -257,7 +255,7 @@ local function drawIcon(unitDefID, rect, lightness, zoom, texSize, highlightOpac
 		ceil(backgroundPadding*0.5), 1,1,1,1,
 		zoom,
 		nil, math.max(0.1, highlightOpacity or 0.1),
-		':lr'..texSize..','..texSize..':unitpics/'..unitBuildPic[unitDefID],
+		'#'..unitDefID,
 		nil, nil, nil, nil
 	)
 	if highlightOpacity then
@@ -357,7 +355,7 @@ local function updateList()
 				local x, y, b, b2, b3 = spGetMouseState()
 				if groupButtons then
 					for i,v in pairs(groupButtons) do
-						if IsOnRect(x, y, groupButtons[i][1], groupButtons[i][2], groupButtons[i][3], groupButtons[i][4]) then
+						if math_isInRect(x, y, groupButtons[i][1], groupButtons[i][2], groupButtons[i][3], groupButtons[i][4]) then
 							hoveredGroup = groupButtons[i][5]
 							break
 						end
@@ -461,11 +459,6 @@ local function updateList()
 		end)
 		checkGuishader(true)
 	end
-
-end
-
-function IsOnRect(x, y, BLcornerX, BLcornerY, TRcornerX, TRcornerY)
-	return x >= BLcornerX and x <= TRcornerX and y >= BLcornerY and y <= TRcornerY
 end
 
 function widget:DrawScreen()
@@ -494,15 +487,15 @@ function widget:Update(dt)
 	sec2 = sec2 + dt
 
 	local x, y, b, b2, b3 = spGetMouseState()
-	if backgroundRect and IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
+	if backgroundRect and math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
 		hovered = true
 
 		local tooltipTitle = Spring.I18N('ui.idleBuilders.name')
 		local tooltipAddition = ''
-		if backgroundRect and IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
+		if backgroundRect and math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
 			local alt, ctrl, meta, shift = Spring.GetModKeyState()
 			for i,v in pairs(groupButtons) do
-				if IsOnRect(x, y, groupButtons[i][1], groupButtons[i][2], groupButtons[i][3], groupButtons[i][4]) then
+				if math_isInRect(x, y, groupButtons[i][1], groupButtons[i][2], groupButtons[i][3], groupButtons[i][4]) then
 					local unitDefID = existingGroups[i]
 					if unitDefID then
 						tooltipTitle = Spring.I18N('ui.idleBuilders.idle', { unit = unitHumanName[unitDefID], textColor = "\255\255\255\255", highlightColor = "\255\190\255\190" })
@@ -573,11 +566,11 @@ function widget:MousePress(x, y, button)
 		return
 	end
 
-	if backgroundRect and IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
+	if backgroundRect and math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
 		local alt, ctrl, meta, shift = Spring.GetModKeyState()
 		if button == 1 or button == 3 then
 			for i,v in pairs(groupButtons) do
-				if IsOnRect(x, y, groupButtons[i][1], groupButtons[i][2], groupButtons[i][3], groupButtons[i][4]) then
+				if math_isInRect(x, y, groupButtons[i][1], groupButtons[i][2], groupButtons[i][3], groupButtons[i][4]) then
 					local unitDefID = existingGroups[i]
 					if unitDefID then
 						local units = {}

@@ -10,7 +10,7 @@ return {
 		buildcostenergy = 74000,
 		buildcostmetal = 4100,
 		builder = 0,
-		buildpic = "CORFGATE.PNG",
+		buildpic = "CORFGATE.DDS",
 		buildtime = 59060,
 		canattack = false,
 		canrepeat = false,
@@ -46,6 +46,7 @@ return {
 		waterline = 0,
 		workertime = 0,
 		customparams = {
+			unitgroup = 'util',
 			normaltex = "unittextures/cor_normal.dds",
 			removestop = true,
 			removewait = true,

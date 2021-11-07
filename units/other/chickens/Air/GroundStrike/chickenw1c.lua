@@ -11,7 +11,7 @@ return {
 		buildcostenergy = 2200,
 		buildcostmetal = 72,
 		builder = false,
-		buildpic = "chickens/chickenw1c.PNG",
+		buildpic = "chickens/chickenw1c.DDS",
 		buildtime = 1875,
 		cancrash = false,
 		canfly = true,
@@ -76,10 +76,6 @@ return {
 			normaltex = "unittextures/chicken_m_normals.png",
 			treeshader = "yes",
 			--treeshader = "no",
-		},
-		featuredefs = {
-			dead = {},
-			heap = {},
 		},
 		sfxtypes = {
 			explosiongenerators = {

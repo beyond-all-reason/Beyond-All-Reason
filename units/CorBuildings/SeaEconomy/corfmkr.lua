@@ -8,7 +8,7 @@ return {
 		buildangle = 8192,
 		buildcostenergy = 2500,
 		buildcostmetal = 1,
-		buildpic = "CORFMKR.PNG",
+		buildpic = "CORFMKR.DDS",
 		buildtime = 2682,
 		canrepeat = false,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -31,6 +31,7 @@ return {
 		waterline = 3.5,
 		yardmap = "wwwwwwwww",
 		customparams = {
+			unitgroup = 'metal',
 			energyconv_capacity = 70,
 			energyconv_efficiency = 1/64,
 			model_author = "Mr Bob",

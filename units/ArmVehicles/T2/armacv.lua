@@ -8,7 +8,7 @@ return {
 		buildcostmetal = 550,
 		builddistance = 136,
 		builder = true,
-		buildpic = "ARMACV.PNG",
+		buildpic = "ARMACV.DDS",
 		buildtime = 12397,
 		canmove = true,
 		category = "ALL TANK MOBILE NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -80,6 +80,7 @@ return {
 			[30] = "armshltx",
 		},
 		customparams = {
+			unitgroup = 'buildert2',
 			area_mex_def = "armmoho",
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
@@ -130,6 +131,9 @@ return {
 			},
 		},
 		sfxtypes = {
+			explosiongenerators = {
+				[1] = "custom:dust_cloud_dirt_light",
+			},
 			pieceexplosiongenerators = {
 				[1] = "deathceg2-builder",
 				[2] = "deathceg3-builder",

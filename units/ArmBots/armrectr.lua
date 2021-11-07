@@ -8,7 +8,7 @@ return {
 		buildcostmetal = 110,
 		builddistance = 96,
 		builder = true,
-		buildpic = "ARMRECTR.PNG",
+		buildpic = "ARMRECTR.DDS",
 		buildtime = 2400,
 		canassist = false,
 		canmove = true,
@@ -45,6 +45,7 @@ return {
 		upright = true,
 		workertime = 200,
 		customparams = {
+			unitgroup = 'builder',
 			longdescription = Spring.I18N('units.longDescriptions.armrectr'),
 			model_author = "Kaiser",
 			normaltex = "unittextures/Arm_normal.dds",

@@ -10,7 +10,7 @@ return {
 		buildcostenergy = 3000,
 		buildcostmetal = 128,
 		builder = false,
-		buildpic = "chickens/chicken_dodo1.PNG",
+		buildpic = "chickens/chicken_dodo1.DDS",
 		buildtime = 4500,
 		canguard = true,
 		canhover = "1",
@@ -22,7 +22,6 @@ return {
 		collisionvolumeoffsets = "0 -1 0",
 		collisionvolumescales = "10 14 22",
 		collisionvolumetype = "box",
-		-- handled gadget side -- corpse = "chicken_egg_s_red",
 		defaultmissiontype = "Standby",
 		description = Spring.I18N('units.descriptions.chicken_dodo1'),
 		explodeas = "DODO_DEATH1",
@@ -68,14 +67,10 @@ return {
 		workertime = 0,
 		customparams = {
 			subfolder = "other/chickens",
-      model_author = "KDR_11k, Beherith",
+			model_author = "KDR_11k, Beherith",
 			normalmaps = "yes",
 			normaltex = "unittextures/chicken_s_normals.png",
 			--treeshader = "no",
-		},
-		featuredefs = {
-			dead = {},
-			heap = {},
 		},
 		sfxtypes = {
 			explosiongenerators = {

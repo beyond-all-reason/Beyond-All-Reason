@@ -7,7 +7,7 @@ return {
 		brakerate = 0.06504,
 		buildcostenergy = 19000,
 		buildcostmetal = 800,
-		buildpic = "ARMCROC.PNG",
+		buildpic = "ARMCROC.DDS",
 		buildtime = 13367,
 		canmove = true,
 		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE CANBEUW EMPABLE",
@@ -44,6 +44,7 @@ return {
 		turninplacespeedlimit = 1.35,
 		turnrate = 360,
 		customparams = {
+			unitgroup = 'weapon',
 			basename = "base",
 			cannon1name = "barrel",
 			driftratio = "0.3",

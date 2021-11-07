@@ -8,7 +8,7 @@ return {
 		buildcostmetal = 110,
 		builddistance = 130,
 		builder = true,
-		buildpic = "ARMCK.PNG",
+		buildpic = "ARMCK.DDS",
 		buildtime = 3453,
 		canmove = true,
 		category = "BOT MOBILE ALL NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -76,6 +76,7 @@ return {
 			[30] = "armsy",
 		},
 		customparams = {
+			unitgroup = 'builder',
 			area_mex_def = "armmex",
 			longdescription = Spring.I18N('units.longDescriptions.armck'),
 			model_author = "Kaiser",

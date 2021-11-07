@@ -7,7 +7,7 @@ return {
 		brakerate = 0.0621,
 		buildcostenergy = 1250,
 		buildcostmetal = 100,
-		buildpic = "ARMMARK.PNG",
+		buildpic = "ARMMARK.DDS",
 		buildtime = 3800,
 		canattack = false,
 		canmove = true,
@@ -40,6 +40,7 @@ return {
 		turninplacespeedlimit = 0.891,
 		turnrate = 580.75,
 		customparams = {
+			unitgroup = 'util',
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armbots/t2",

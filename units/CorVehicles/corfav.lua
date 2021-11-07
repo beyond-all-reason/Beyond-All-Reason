@@ -6,7 +6,7 @@ return {
 		brakerate = 0.23865,
 		buildcostenergy = 270,
 		buildcostmetal = 26,
-		buildpic = "CORFAV.PNG",
+		buildpic = "CORFAV.DDS",
 		buildtime = 1150,
 		canmove = true,
 		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE GROUNDSCOUT EMPABLE",
@@ -42,6 +42,7 @@ return {
 		turninplacespeedlimit = 3.2274,
 		turnrate = 612,
 		customparams = {
+			unitgroup = 'weapon',
 			basename = "base",
 			cannon1name = "turret",
 			longdescription = Spring.I18N('units.longDescriptions.corfav'),

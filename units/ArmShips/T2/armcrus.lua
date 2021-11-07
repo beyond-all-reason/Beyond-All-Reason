@@ -8,7 +8,7 @@ return {
 		buildangle = 16384,
 		buildcostenergy = 12000,
 		buildcostmetal = 1000,
-		buildpic = "ARMCRUS.PNG",
+		buildpic = "ARMCRUS.DDS",
 		buildtime = 17000,
 		canmove = true,
 		category = "ALL NOTLAND MOBILE WEAPON NOTSUB SHIP NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -41,6 +41,7 @@ return {
 		turnrate = 270,
 		waterline = 0,
 		customparams = {
+			unitgroup = 'weapon',
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armships/t2",
@@ -234,7 +235,7 @@ return {
 				def = "LASER",
 				onlytargetcategory = "NOTSUB",
 			},
-			[4] = {
+			[3] = {
 				def = "DEPTHCHARGE",
 				onlytargetcategory = "CANBEUW UNDERWATER",
 			},

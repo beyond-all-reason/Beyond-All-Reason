@@ -9,7 +9,7 @@ return {
 		buildcostmetal = 115,
 		builddistance = 136,
 		builder = true,
-		buildpic = "CORCA.PNG",
+		buildpic = "CORCA.DDS",
 		buildtime = 8357,
 		canfly = true,
 		canmove = true,
@@ -76,6 +76,7 @@ return {
 			[31] = "corsy",
 		},
 		customparams = {
+			unitgroup = 'builder',
 			area_mex_def = "cormex",
 			longdescription = Spring.I18N('units.longDescriptions.corca'),
 			model_author = "Mr Bob, Flaka",

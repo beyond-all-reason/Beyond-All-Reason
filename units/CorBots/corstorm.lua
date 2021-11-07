@@ -6,7 +6,7 @@ return {
 		brakerate = 0.6486,
 		buildcostenergy = 1150,
 		buildcostmetal = 110,
-		buildpic = "CORSTORM.PNG",
+		buildpic = "CORSTORM.DDS",
 		buildtime = 1949,
 		canmove = true,
 		category = "BOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -38,6 +38,7 @@ return {
 		turnrate = 1268.44995,
 		upright = true,
 		customparams = {
+			unitgroup = 'weapon',
 			longdescription = Spring.I18N('units.longDescriptions.corstorm'),
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",

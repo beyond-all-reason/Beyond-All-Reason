@@ -9,7 +9,7 @@ return {
 		brakerate = 0.06473,
 		buildcostenergy = 1600,
 		buildcostmetal = 230,
-		buildpic = "CORPT.PNG",
+		buildpic = "CORPT.DDS",
 		buildtime = 2700,
 		canmove = true,
 		category = "ALL MOBILE WEAPON NOTLAND SHIP NOTSUB NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -42,6 +42,7 @@ return {
 		turnrate = 520.5,
 		waterline = 0,
 		customparams = {
+			unitgroup = 'weaponaa',
 			maxrange = "260",
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
@@ -232,7 +233,7 @@ return {
 				def = "CORTRUCK_MISSILE",
 				onlytargetcategory = "NOTSUB",
 			},
-			[3] = {
+			[2] = {
 				badtargetcategory = "LIGHTAIRSCOUT",
 				def = "AAMISSILE",
 				onlytargetcategory = "VTOL",

@@ -10,7 +10,7 @@ return {
 		buildcostenergy = 6000,
 		buildcostmetal = 200,
 		builder = false,
-		buildpic = "chickens/chickenp1.PNG",
+		buildpic = "chickens/chickenp1.DDS",
 		buildtime = 7500,
 		canguard = true,
 		canmove = true,
@@ -62,15 +62,12 @@ return {
 			normaltex = "unittextures/chicken_m_normals.png",
 			--treeshader = "no",
 		},
-		featuredefs = {
-			dead = {},
-			heap = {},
-		},
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:blood_spray",
 				[2] = "custom:blood_explode",
 				[3] = "custom:dirt",
+				[4] = "custom:flamestreamxl",
 			},
 			pieceexplosiongenerators = {
 				[1] = "blood_spray",
@@ -108,7 +105,7 @@ return {
 				avoidfriendly = 0,
 				burst = 12,
 				burstrate = 0.03333,
-				cegtag = "burnflame",
+				cegtag = "burnflamexm",
 				colormap = "1 0.95 0.82 0.03   0.7 0.4 0.25 0.027   0.44 0.25 0.15 0.024   0.033 0.018 0.011 0.02   0.0 0.0 0.0 0.01",
 				craterboost = 0,
 				cratermult = 0,

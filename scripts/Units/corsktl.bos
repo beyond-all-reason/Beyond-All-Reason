@@ -176,6 +176,9 @@ Create()
 	start-script MotionControl();
 }
 
+#define SMOKEPIECE base
+#include "smokeunit_thread_nohit.h"
+
 StartMoving()
 {
 	bMoving = TRUE;

@@ -8,7 +8,7 @@ return {
 		buildcostmetal = 200,
 		builddistance = 200,
 		builder = true,
-		buildpic = "CORCS.PNG",
+		buildpic = "CORCS.DDS",
 		buildtime = 3700,
 		canmove = true,
 		category = "ALL NOTLAND MOBILE NOTSUB SHIP NOWEAPON NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -71,6 +71,7 @@ return {
 			"corfhlt",
 		},
 		customparams = {
+			unitgroup = 'builder',
 			area_mex_def = "cormex",
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",

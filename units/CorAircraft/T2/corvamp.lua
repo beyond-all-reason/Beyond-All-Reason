@@ -8,7 +8,7 @@ return {
 		brakerate = 0.0875,
 		buildcostenergy = 3700,
 		buildcostmetal = 105,
-		buildpic = "CORVAMP.PNG",
+		buildpic = "CORVAMP.DDS",
 		buildtime = 6554,
 		canfly = true,
 		canmove = true,
@@ -45,6 +45,7 @@ return {
 		wingangle = 0.06363,
 		wingdrag = 0.21,
 		customparams = {
+			unitgroup = 'aa',
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "coraircraft/t2",

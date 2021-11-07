@@ -11,7 +11,6 @@
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-VFS.Include("init.lua",                              nil, VFS.ZIP)
 VFS.Include(LUAUI_DIRNAME .. "Headers/keysym.h.lua", nil, VFS.ZIP)
 VFS.Include(LUAUI_DIRNAME .. "system.lua",           nil, VFS.ZIP)
 VFS.Include(LUAUI_DIRNAME .. "callins.lua",          nil, VFS.ZIP)
@@ -112,6 +111,7 @@ local flexCallIns = {
 	'UnitFinished',
 	'UnitFromFactory',
 	'UnitDestroyed',
+	'UnitDestroyedByTeam', -- NB: called via gadget, not engine
 	'UnitExperience',
 	'UnitTaken',
 	'UnitGiven',
@@ -1820,6 +1820,13 @@ end
 function widgetHandler:UnitDestroyed(unitID, unitDefID, unitTeam)
 	for _, w in ipairs(self.UnitDestroyedList) do
 		w:UnitDestroyed(unitID, unitDefID, unitTeam)
+	end
+	return
+end
+
+function widgetHandler:UnitDestroyedByTeam(unitID, unitDefID, unitTeam, attackerTeamID)
+	for _, w in ipairs(self.UnitDestroyedByTeamList) do
+		w:UnitDestroyedByTeam(unitID, unitDefID, unitTeam, attackerTeamID)
 	end
 	return
 end

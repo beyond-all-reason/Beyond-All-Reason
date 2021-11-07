@@ -8,7 +8,7 @@ return {
 		buildangle = 8192,
 		buildcostenergy = 24000,
 		buildcostmetal = 400,
-		buildpic = "ARMUWMMM.PNG",
+		buildpic = "ARMUWMMM.DDS",
 		buildtime = 38964,
 		canrepeat = false,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -37,6 +37,7 @@ return {
 		waterline = 5,
 		yardmap = "oooooooooooooooooooo",
 		customparams = {
+			unitgroup = 'metal',
 			energyconv_capacity = 650,
 			energyconv_efficiency = 1/58,
 			model_author = "FireStorm",

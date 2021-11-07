@@ -8,7 +8,7 @@ return {
 		buildangle = 16384,
 		buildcostenergy = 1000,
 		buildcostmetal = 130,
-		buildpic = "CORFRAD.PNG",
+		buildpic = "CORFRAD.DDS",
 		buildtime = 1800,
 		canattack = false,
 		canrepeat = false,
@@ -41,6 +41,7 @@ return {
 		waterline = 4,
 		yardmap = "wwwwwwwww",
 		customparams = {
+			unitgroup = 'util',
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			removestop = true,

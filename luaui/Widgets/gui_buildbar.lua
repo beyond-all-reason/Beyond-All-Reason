@@ -468,7 +468,7 @@ local function drawIcon(udid, rect, tex, color, zoom, isfactory, amount)
 	local radarIcon
 	local unitIconType = UnitDefs[udid].iconType
 	if unitIconType and iconTypesMap[unitIconType] then
-		radarIcon = ':lr'..radarIconSize..','..radarIconSize..':'..iconTypesMap[unitIconType]
+		radarIcon = ':l:'..iconTypesMap[unitIconType]
 	end
 	if isfactory then
 		radarIcon = nil
@@ -514,15 +514,13 @@ local function drawButton(rect, unitDefID, options, isFac)	-- options = {pressed
 		iconAlpha = 1
 		zoom = 0.12
 		if WG.tooltip then
-			WG.tooltip.ShowTooltip('buildbar', '\255\215\255\215' .. UnitDefs[unitDefID].humanName .. '\n' .. UnitDefs[unitDefID].tooltip)
+			WG.tooltip.ShowTooltip('buildbar', '\255\215\255\215' .. UnitDefs[unitDefID].translatedHumanName .. '\n' .. UnitDefs[unitDefID].translatedTooltip)
 		end
 	end
 
 	-- draw icon
 	local imgRect = { rect[1] + (hoverPadding*1), rect[2] - hoverPadding, rect[3] - (hoverPadding*1), rect[4] + hoverPadding }
-
-	local tex = ':lr128,128:unitpics/' .. UnitDefs[unitDefID].buildpicname
-	drawIcon(unitDefID, {imgRect[1], imgRect[4], imgRect[3], imgRect[2]}, tex, {1, 1, 1, iconAlpha}, zoom, (unitBuildOptions[unitDefID]~=nil), options.amount or 0)
+	drawIcon(unitDefID, {imgRect[1], imgRect[4], imgRect[3], imgRect[2]}, '#' ..unitDefID , {1, 1, 1, iconAlpha}, zoom, (unitBuildOptions[unitDefID]~=nil), options.amount or 0)
 
 	-- Progress
 	if (options.progress or -1) > -1 then

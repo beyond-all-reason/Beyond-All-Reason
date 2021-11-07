@@ -6,7 +6,7 @@ return {
 		brakerate = 0.04561,
 		buildcostenergy = 3000,
 		buildcostmetal = 175,
-		buildpic = "ARMMH.PNG",
+		buildpic = "ARMMH.DDS",
 		buildtime = 3298,
 		canmove = true,
 		category = "ALL HOVER MOBILE WEAPON NOTSUB NOTSHIP NOTAIR SURFACE EMPABLE",
@@ -37,6 +37,7 @@ return {
 		turninplacespeedlimit = 1.5972,
 		turnrate = 470,
 		customparams = {
+			unitgroup = 'weapon',
 			model_author = "Beherith",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armhovercraft",
@@ -83,6 +84,11 @@ return {
 			},
 		},
 		sfxtypes = {
+			explosiongenerators = {
+				[1] = "custom:waterwake-small-hover",
+				[2] = "custom:bowsplash-small-hover",
+				[3] = "custom:hover-wake-small",
+			},
 			pieceexplosiongenerators = {
 				[1] = "deathceg2",
 				[2] = "deathceg3",

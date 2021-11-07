@@ -6,7 +6,7 @@ return {
 		brakerate = 0.04624,
 		buildcostenergy = 3300,
 		buildcostmetal = 320,
-		buildpic = "CORSNAP.PNG",
+		buildpic = "CORSNAP.DDS",
 		buildtime = 3791,
 		canmove = true,
 		category = "ALL HOVER MOBILE WEAPON NOTSUB NOTSHIP NOTAIR SURFACE EMPABLE",
@@ -37,6 +37,7 @@ return {
 		turninplacespeedlimit = 1.518,
 		turnrate = 500,
 		customparams = {
+			unitgroup = 'weapon',
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "corhovercraft",

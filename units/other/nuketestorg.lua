@@ -10,7 +10,7 @@ return {
 		buildcostenergy = 25000,
 		buildcostmetal = 400,
 		builddistance = 90,
-		buildpic = "other/nuketest.png",
+		buildpic = "other/nuketest.dds",
 		buildtime = 10500,
 		capturable = false,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",

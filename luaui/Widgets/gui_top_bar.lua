@@ -37,8 +37,6 @@ local buttonBackgroundTexture = "LuaUI/Images/vr_grid.png"
 local buttonBgtexScale = 1.9	-- lower = smaller tiles
 local buttonBgtexOpacity = 0
 local buttonBgtexSize
-local backgroundTexture = "LuaUI/Images/backgroundtile.png"
-local ui_tileopacity = tonumber(Spring.GetConfigFloat("ui_tileopacity", 0.012) or 0.012)
 local bgtexScale = tonumber(Spring.GetConfigFloat("ui_tilescale", 7) or 7)	-- lower = smaller tiles
 local bgtexSize
 
@@ -53,17 +51,17 @@ local rightclick = 'LuaUI/Sounds/buildbar_rem.wav'
 
 local barGlowCenterTexture = ":l:LuaUI/Images/barglow-center.png"
 local barGlowEdgeTexture = ":l:LuaUI/Images/barglow-edge.png"
-local bladesTexture = "LuaUI/Images/wind-blades.png"
-local comTexture = ":l:Icons/corcom.png"		-- will be changed later to unit icon depending on faction
+local bladesTexture = ":n:LuaUI/Images/wind-blades.png"
+local comTexture = ":n:Icons/corcom.png"		-- will be changed later to unit icon depending on faction
 local glowTexture = ":l:LuaUI/Images/glow.dds"
 
 local math_floor = math.floor
 local math_min = math.min
+local math_isInRect = math.isInRect
 
 local widgetScale = (0.80 + (vsx * vsy / 6000000))
 local xPos = math_floor(vsx * relXpos)
 local currentWind = 0
-local currentTidal = 0
 local gameStarted = (Spring.GetGameFrame() > 0)
 local displayComCounter = false
 local updateTextClock = os.clock()
@@ -75,7 +73,6 @@ local glPopMatrix = gl.PopMatrix
 local glTexture = gl.Texture
 local glRect = gl.Rect
 local glTexRect = gl.TexRect
-local glText = gl.Text
 local glRotate = gl.Rotate
 local glCreateList = gl.CreateList
 local glCallList = gl.CallList
@@ -104,7 +101,7 @@ local myAllyTeamID = Spring.GetMyAllyTeamID()
 local myTeamID = Spring.GetMyTeamID()
 local myPlayerID = Spring.GetMyPlayerID()
 local isReplay = Spring.IsReplay()
-comTexture = ':l:Icons/'..UnitDefs[Spring.GetTeamRulesParam(myTeamID, 'startUnit')].name..'.png'
+comTexture = ':n:Icons/'..UnitDefs[Spring.GetTeamRulesParam(myTeamID, 'startUnit')].name..'.png'
 
 local numTeamsInAllyTeam = #Spring.GetTeamList(myAllyTeamID)
 
@@ -127,6 +124,7 @@ local comsArea = {}
 local rejoinArea = {}
 local buttonsArea = {}
 local dlistWindText = {}
+local dlistResValuesBar = { metal = {}, energy = {} }
 local dlistResValues = { metal = {}, energy = {} }
 local currentResValue = { metal = 1000, energy = 1000 }
 local currentStorageValue = { metal = -1, energy = -1 }
@@ -195,13 +193,18 @@ local serverFrame
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-
-function IsOnRect(x, y, BLcornerX, BLcornerY, TRcornerX, TRcornerY)
-	return x >= BLcornerX and x <= TRcornerX and y >= BLcornerY and y <= TRcornerY
+local function RectQuad(px, py, sx, sy, offset)
+	gl.TexCoord(offset, 1 - offset)
+	gl.Vertex(px, py, 0)
+	gl.TexCoord(1 - offset, 1 - offset)
+	gl.Vertex(sx, py, 0)
+	gl.TexCoord(1 - offset, offset)
+	gl.Vertex(sx, sy, 0)
+	gl.TexCoord(offset, offset)
+	gl.Vertex(px, sy, 0)
 end
-
-function isInBox(mx, my, box)
-	return mx > box[1] and my > box[2] and mx < box[3] and my < box[4]
+local function DrawRect(px, py, sx, sy, zoom)
+	gl.BeginEnd(GL.QUADS, RectQuad, px, py, sx, sy, zoom)
 end
 
 function widget:ViewResize()
@@ -228,37 +231,27 @@ function widget:ViewResize()
 	for n, _ in pairs(dlistWindText) do
 		dlistWindText[n] = glDeleteList(dlistWindText[n])
 	end
-	for n, _ in pairs(dlistResValues['metal']) do
-		dlistResValues['metal'][n] = glDeleteList(dlistResValues['metal'][n])
+	for res, _ in pairs(dlistResValues) do
+		for n, _ in pairs(dlistResValues[res]) do
+			dlistResValues[res][n] = glDeleteList(dlistResValues[res][n])
+		end
 	end
-	for n, _ in pairs(dlistResValues['energy']) do
-		dlistResValues['energy'][n] = glDeleteList(dlistResValues['energy'][n])
+	for res, _ in pairs(dlistResValuesBar) do
+		for n, _ in pairs(dlistResValuesBar[res]) do
+			dlistResValuesBar[res][n] = glDeleteList(dlistResValuesBar[res][n])
+		end
 	end
 
 	init()
 end
 
-local function RectQuad(px, py, sx, sy, offset)
-	gl.TexCoord(offset, 1 - offset)
-	gl.Vertex(px, py, 0)
-	gl.TexCoord(1 - offset, 1 - offset)
-	gl.Vertex(sx, py, 0)
-	gl.TexCoord(1 - offset, offset)
-	gl.Vertex(sx, sy, 0)
-	gl.TexCoord(offset, offset)
-	gl.Vertex(px, sy, 0)
-end
-function DrawRect(px, py, sx, sy, zoom)
-	gl.BeginEnd(GL.QUADS, RectQuad, px, py, sx, sy, zoom)
-end
-
 local function short(n, f)
-	if (f == nil) then
+	if f == nil then
 		f = 0
 	end
-	if (n > 9999999) then
+	if n > 9999999 then
 		return sformat("%." .. f .. "fm", n / 1000000)
-	elseif (n > 9999) then
+	elseif n > 9999 then
 		return sformat("%." .. f .. "fk", n / 1000)
 	else
 		return sformat("%." .. f .. "f", n)
@@ -365,9 +358,7 @@ end
 
 local function updateButtons()
 	local area = buttonsArea
-
 	local totalWidth = area[3] - area[1]
-
 	local text = '    '
 
 	if isSinglePlayer and WG['savegame'] ~= nil then
@@ -394,7 +385,7 @@ local function updateButtons()
 	if WG['options'] ~= nil then
 		text = text .. Spring.I18N('ui.topbar.button.settings') .. '   '
 	end
-	if chobbyLoaded then
+	if not gameIsOver and chobbyLoaded then
 		if not spec and gameStarted and not isSinglePlayer then
 			text = text .. Spring.I18N('ui.topbar.button.resign') .. '  '
 		end
@@ -526,7 +517,7 @@ local function updateButtons()
 					firstButton = 'options'
 				end
 			end
-			if chobbyLoaded then
+			if not gameIsOver and chobbyLoaded then
 				if not spec and gameStarted and not isSinglePlayer then
 					buttons = buttons + 1
 					offset = math_floor(offset + width + 0.5)
@@ -898,6 +889,9 @@ local function updateResbar(res)
 		-- Bar background
 		local addedSize = math_floor(((barArea[4] - barArea[2]) * 0.15) + 0.5)
 		--RectRound(barArea[1] - edgeWidth, barArea[2] - edgeWidth, barArea[3] + edgeWidth, barArea[4] + edgeWidth, barHeight * 0.33, 1, 1, 1, 1, { 1,1,1, 0.03 }, { 1,1,1, 0.03 })
+		local borderSize = 1
+		RectRound(barArea[1] - edgeWidth + borderSize, barArea[2] - edgeWidth + borderSize, barArea[3] + edgeWidth - borderSize, barArea[4] + edgeWidth - borderSize, barHeight * 0.2, 1, 1, 1, 1, { 0,0,0, 0.12 }, { 0,0,0, 0.15 })
+
 		gl.Texture(noiseBackgroundTexture)
 		gl.Color(1,1,1, 0.22)
 		TexturedRectRound(barArea[1] - edgeWidth, barArea[2] - edgeWidth, barArea[3] + edgeWidth, barArea[4] + edgeWidth, barHeight * 0.33, 1, 1, 1, 1, barWidth*0.33, 0)
@@ -994,74 +988,81 @@ local function updateResbar(res)
 end
 
 local function drawResbarValues(res, updateText)
-	local barHeight = resbarDrawinfo[res].barArea[4] - resbarDrawinfo[res].barArea[2]
-	local barWidth = resbarDrawinfo[res].barArea[3] - resbarDrawinfo[res].barArea[1]
-	local glowSize = (resbarDrawinfo[res].barArea[4] - resbarDrawinfo[res].barArea[2]) * 7
 
 	local cappedCurRes = r[res][1]    -- limit so when production dies the value wont be much larger than what you can store
 	if r[res][1] > r[res][2] * 1.07 then
 		cappedCurRes = r[res][2] * 1.07
 	end
-	if res == 'energy' then
-		glColor(1, 1, 0, 0.04)
-		local iconPadding = (resbarArea[res][4] - resbarArea[res][2])
-		glTexture(glowTexture)
-		glTexRect(resbarArea[res][1] + iconPadding, resbarArea[res][2] + iconPadding, resbarArea[res][1] + (height * widgetScale) - iconPadding, resbarArea[res][4] - iconPadding)
-		glTexture(false)
-	end
 
-	-- Bar value
+	local barHeight = resbarDrawinfo[res].barArea[4] - resbarDrawinfo[res].barArea[2]
+	local barWidth = resbarDrawinfo[res].barArea[3] - resbarDrawinfo[res].barArea[1]
 	local valueWidth = math_floor(((cappedCurRes / r[res][2]) * barWidth))
 	if valueWidth < math.ceil(barHeight * 0.2) then
 		valueWidth = math.ceil(barHeight * 0.2)
 	end
-	local color1, color2, glowAlpha
-	if res == 'metal' then
-		color1 = { 0.51, 0.51, 0.5, 1 }
-		color2 = { 0.95, 0.95, 0.95, 1 }
-		glowAlpha = 0.025 + (0.05 * math_min(1, cappedCurRes / r[res][2] * 40))
-	else
-		color1 = { 0.5, 0.45, 0, 1 }
-		color2 = { 0.8, 0.75, 0, 1 }
-		glowAlpha = 0.035 + (0.07 * math_min(1, cappedCurRes / r[res][2] * 40))
+
+	if not dlistResValuesBar[res][valueWidth] then
+		dlistResValuesBar[res][valueWidth] = glCreateList(function()
+			local glowSize = (resbarDrawinfo[res].barArea[4] - resbarDrawinfo[res].barArea[2]) * 7
+			local color1, color2, glowAlpha
+			if res == 'metal' then
+				color1 = { 0.51, 0.51, 0.5, 1 }
+				color2 = { 0.95, 0.95, 0.95, 1 }
+				glowAlpha = 0.025 + (0.05 * math_min(1, cappedCurRes / r[res][2] * 40))
+			else
+				color1 = { 0.5, 0.45, 0, 1 }
+				color2 = { 0.8, 0.75, 0, 1 }
+				glowAlpha = 0.035 + (0.07 * math_min(1, cappedCurRes / r[res][2] * 40))
+			end
+			RectRound(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[2], resbarDrawinfo[res].barTexRect[1] + valueWidth, resbarDrawinfo[res].barTexRect[4], barHeight * 0.2, 1, 1, 1, 1, color1, color2)
+
+			local borderSize = 1
+			RectRound(resbarDrawinfo[res].barTexRect[1]+borderSize, resbarDrawinfo[res].barTexRect[2]+borderSize, resbarDrawinfo[res].barTexRect[1] + valueWidth-borderSize, resbarDrawinfo[res].barTexRect[4]-borderSize, barHeight * 0.2, 1, 1, 1, 1, { 0,0,0, 0.1 }, { 0,0,0, 0.17 })
+
+			-- Bar value glow
+			glBlending(GL_SRC_ALPHA, GL_ONE)
+			glColor(resbarDrawinfo[res].barColor[1], resbarDrawinfo[res].barColor[2], resbarDrawinfo[res].barColor[3], glowAlpha)
+			glTexture(barGlowCenterTexture)
+			DrawRect(resbarDrawinfo[res].barGlowMiddleTexRect[1], resbarDrawinfo[res].barGlowMiddleTexRect[2], resbarDrawinfo[res].barGlowMiddleTexRect[1] + valueWidth, resbarDrawinfo[res].barGlowMiddleTexRect[4], 0.008)
+			glTexture(barGlowEdgeTexture)
+			DrawRect(resbarDrawinfo[res].barGlowLeftTexRect[1], resbarDrawinfo[res].barGlowLeftTexRect[2], resbarDrawinfo[res].barGlowLeftTexRect[3], resbarDrawinfo[res].barGlowLeftTexRect[4], 0.008)
+			DrawRect((resbarDrawinfo[res].barGlowMiddleTexRect[1] + valueWidth) + (glowSize * 3), resbarDrawinfo[res].barGlowRightTexRect[2], resbarDrawinfo[res].barGlowMiddleTexRect[1] + valueWidth, resbarDrawinfo[res].barGlowRightTexRect[4], 0.008)
+			glTexture(false)
+
+			if res == 'metal' then
+				-- noise
+				gl.Texture(noiseBackgroundTexture)
+				gl.Color(1,1,1, 0.45)
+				TexturedRectRound(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[2], resbarDrawinfo[res].barTexRect[1] + valueWidth, resbarDrawinfo[res].barTexRect[4], barHeight * 0.2, 1, 1, 1, 1, barWidth*0.33, 0)
+				gl.Texture(false)
+			end
+			--if res == 'energy' then
+			--	-- icon glow
+			--	glColor(1, 1, 0, 0.05)
+			--	local iconPadding = (resbarArea[res][4] - resbarArea[res][2])
+			--	glTexture(glowTexture)
+			--	glTexRect(resbarArea[res][1] + iconPadding, resbarArea[res][2] + iconPadding, resbarArea[res][1] + (height * widgetScale) - iconPadding, resbarArea[res][4] - iconPadding)
+			--	glTexture(false)
+			--end
+		end)
 	end
-	RectRound(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[2], resbarDrawinfo[res].barTexRect[1] + valueWidth, resbarDrawinfo[res].barTexRect[4], barHeight * 0.2, 1, 1, 1, 1, color1, color2)
-
-	-- Bar value glow
-	glBlending(GL_SRC_ALPHA, GL_ONE)
-	glColor(resbarDrawinfo[res].barColor[1], resbarDrawinfo[res].barColor[2], resbarDrawinfo[res].barColor[3], glowAlpha)
-	glTexture(barGlowCenterTexture)
-	DrawRect(resbarDrawinfo[res].barGlowMiddleTexRect[1], resbarDrawinfo[res].barGlowMiddleTexRect[2], resbarDrawinfo[res].barGlowMiddleTexRect[1] + valueWidth, resbarDrawinfo[res].barGlowMiddleTexRect[4], 0.008)
-	glTexture(barGlowEdgeTexture)
-	DrawRect(resbarDrawinfo[res].barGlowLeftTexRect[1], resbarDrawinfo[res].barGlowLeftTexRect[2], resbarDrawinfo[res].barGlowLeftTexRect[3], resbarDrawinfo[res].barGlowLeftTexRect[4], 0.008)
-	DrawRect((resbarDrawinfo[res].barGlowMiddleTexRect[1] + valueWidth) + (glowSize * 3), resbarDrawinfo[res].barGlowRightTexRect[2], resbarDrawinfo[res].barGlowMiddleTexRect[1] + valueWidth, resbarDrawinfo[res].barGlowRightTexRect[4], 0.008)
-	glTexture(false)
-
-	-- noise
-	gl.Texture(noiseBackgroundTexture)
-	gl.Color(1,1,1, 0.45)
-	TexturedRectRound(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[2], resbarDrawinfo[res].barTexRect[1] + valueWidth, resbarDrawinfo[res].barTexRect[4], barHeight * 0.2, 1, 1, 1, 1, barWidth*0.33, 0)
-	gl.Texture(false)
+	glCallList(dlistResValuesBar[res][valueWidth])
 
 	if res == 'energy' then
 		-- energy flow effect
-		gl.Color(1,1,1, 0.4)
+		gl.Color(1,1,1, 0.33)
 		glTexture("LuaUI/Images/paralyzed.png")
 		TexturedRectRound(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[2], resbarDrawinfo[res].barTexRect[1] + valueWidth, resbarDrawinfo[res].barTexRect[4], barHeight * 0.2, 0, 0, 1, 1, barWidth/0.5, -os.clock()/80)
 		TexturedRectRound(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[2], resbarDrawinfo[res].barTexRect[1] + valueWidth, resbarDrawinfo[res].barTexRect[4], barHeight * 0.2, 0, 0, 1, 1, barWidth/0.33, os.clock()/70)
 		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-		gl.Color(1,1,1, 0.33)
 		TexturedRectRound(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[2], resbarDrawinfo[res].barTexRect[1] + valueWidth, resbarDrawinfo[res].barTexRect[4], barHeight * 0.2, 0, 0, 1, 1, barWidth/0.45, -os.clock()/55)
-		TexturedRectRound(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[2], resbarDrawinfo[res].barTexRect[1] + valueWidth, resbarDrawinfo[res].barTexRect[4], barHeight * 0.2, 0, 0, 1, 1, barWidth/0.7, os.clock()/80)
 		glTexture(false)
 
 		-- colorize a bit more (with added size)
 		local addedSize = math_floor(((resbarDrawinfo[res].barArea[4] - resbarDrawinfo[res].barArea[2]) * 0.15) + 0.5)
 		glBlending(GL_SRC_ALPHA, GL_ONE)
-		gl.Color(1,1,0, 0.12)
+		gl.Color(1,1,0, 0.14)
 		RectRound(resbarDrawinfo[res].barTexRect[1]-addedSize, resbarDrawinfo[res].barTexRect[2]-addedSize, resbarDrawinfo[res].barTexRect[1] + valueWidth + addedSize, resbarDrawinfo[res].barTexRect[4] + addedSize, barHeight * 0.33)
-		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-	else
 		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 	end
 
@@ -1140,7 +1141,7 @@ local function checkStatus()
 	myTeamID = Spring.GetMyTeamID()
 	myPlayerID = Spring.GetMyPlayerID()
 	if myTeamID ~= gaiaTeamID and UnitDefs[Spring.GetTeamRulesParam(myTeamID, 'startUnit')] then
-		comTexture = 'Icons/'..UnitDefs[Spring.GetTeamRulesParam(myTeamID, 'startUnit')].name..'.png'
+		comTexture = ':n:Icons/'..UnitDefs[Spring.GetTeamRulesParam(myTeamID, 'startUnit')].name..'.png'
 	end
 end
 
@@ -1292,7 +1293,7 @@ function widget:Update(dt)
 		sec = 0
 		r = { metal = { spGetTeamResources(myTeamID, 'metal') }, energy = { spGetTeamResources(myTeamID, 'energy') } }
 		if not spec and not showQuitscreen then
-			if isInBox(mx, my, resbarArea['energy']) then
+			if math_isInRect(mx, my, resbarArea['energy'][1], resbarArea['energy'][2], resbarArea['energy'][3], resbarArea['energy'][4]) then
 				if resbarHover == nil then
 					resbarHover = 'energy'
 					updateResbar('energy')
@@ -1301,7 +1302,7 @@ function widget:Update(dt)
 				resbarHover = nil
 				updateResbar('energy')
 			end
-			if isInBox(mx, my, resbarArea['metal']) then
+			if math_isInRect(mx, my, resbarArea['metal'][1], resbarArea['metal'][2], resbarArea['metal'][3], resbarArea['metal'][4]) then
 				if resbarHover == nil then
 					resbarHover = 'metal'
 					updateResbar('metal')
@@ -1397,23 +1398,23 @@ function widget:RecvLuaMsg(msg, playerID)
 end
 
 local function hoveringElement(x, y)
-	if IsOnRect(x, y, topbarArea[1], topbarArea[2], topbarArea[3], topbarArea[4]) then
-		if resbarArea.metal[1] and IsOnRect(x, y, resbarArea.metal[1], resbarArea.metal[2], resbarArea.metal[3], resbarArea.metal[4]) then
+	if math_isInRect(x, y, topbarArea[1], topbarArea[2], topbarArea[3], topbarArea[4]) then
+		if resbarArea.metal[1] and math_isInRect(x, y, resbarArea.metal[1], resbarArea.metal[2], resbarArea.metal[3], resbarArea.metal[4]) then
 			return true
 		end
-		if resbarArea.energy[1] and IsOnRect(x, y, resbarArea.energy[1], resbarArea.energy[2], resbarArea.energy[3], resbarArea.energy[4]) then
+		if resbarArea.energy[1] and math_isInRect(x, y, resbarArea.energy[1], resbarArea.energy[2], resbarArea.energy[3], resbarArea.energy[4]) then
 			return true
 		end
-		if windArea[1] and IsOnRect(x, y, windArea[1], windArea[2], windArea[3], windArea[4]) then
+		if windArea[1] and math_isInRect(x, y, windArea[1], windArea[2], windArea[3], windArea[4]) then
 			return true
 		end
-		if displayComCounter and comsArea[1] and IsOnRect(x, y, comsArea[1], comsArea[2], comsArea[3], comsArea[4]) then
+		if displayComCounter and comsArea[1] and math_isInRect(x, y, comsArea[1], comsArea[2], comsArea[3], comsArea[4]) then
 			return true
 		end
-		if showRejoinUI and rejoinArea[1] and IsOnRect(x, y, rejoinArea[1], rejoinArea[2], rejoinArea[3], rejoinArea[4]) then
+		if showRejoinUI and rejoinArea[1] and math_isInRect(x, y, rejoinArea[1], rejoinArea[2], rejoinArea[3], rejoinArea[4]) then
 			return true
 		end
-		if buttonsArea[1] and IsOnRect(x, y, buttonsArea[1], buttonsArea[2], buttonsArea[3], buttonsArea[4]) then
+		if buttonsArea[1] and math_isInRect(x, y, buttonsArea[1], buttonsArea[2], buttonsArea[3], buttonsArea[4]) then
 			return true
 		end
 		return false
@@ -1436,7 +1437,6 @@ function widget:DrawScreen()
 		Spring.SetMouseCursor('cursornormal')
 	end
 
-	--gl.Texture(false)	-- because some other widget didnt do this
 	local updateText = os.clock() - updateTextClock > 0.08
 	if updateText then
 		updateTextClock = os.clock()
@@ -1564,9 +1564,11 @@ function widget:DrawScreen()
 	if dlistButtons1 then
 		glCallList(dlistButtons1)
 		-- hovered?
-		if not showQuitscreen and buttonsArea['buttons'] ~= nil and IsOnRect(x, y, buttonsArea[1], buttonsArea[2], buttonsArea[3], buttonsArea[4]) then
+		if not showQuitscreen and buttonsArea['buttons'] ~= nil and math_isInRect(x, y, buttonsArea[1], buttonsArea[2], buttonsArea[3], buttonsArea[4]) then
 			for button, pos in pairs(buttonsArea['buttons']) do
-				if IsOnRect(x, y, pos[1], pos[2], pos[3], pos[4]) then
+				if math_isInRect(x, y, pos[1], pos[2], pos[3], pos[4]) then
+					local paddingsize = 1
+					RectRound(buttonsArea['buttons'][button][1]+paddingsize, buttonsArea['buttons'][button][2]+paddingsize, buttonsArea['buttons'][button][3]-paddingsize, buttonsArea['buttons'][button][4]-paddingsize, 3.5 * widgetScale, 0, 0, 0, button == firstButton and 1 or 0, { 0,0,0, 0.06 })
 					glBlending(GL_SRC_ALPHA, GL_ONE)
 					RectRound(buttonsArea['buttons'][button][1], buttonsArea['buttons'][button][2], buttonsArea['buttons'][button][3], buttonsArea['buttons'][button][4], 3.5 * widgetScale, 0, 0, 0, button == firstButton and 1 or 0, { 1, 1, 1, b and 0.13 or 0.03 }, { 0.44, 0.44, 0.44, b and 0.4 or 0.2 })
 					local mult = 1
@@ -1610,15 +1612,12 @@ function widget:DrawScreen()
 
 				local w = math_floor(320 * widgetScale)
 				local h = math_floor(w / 3.5)
-				local padding = math_floor(w / 90)
-				local buttonPadding = math_floor(w / 90)
-				local buttonMargin = math_floor(w / 30)
-				local buttonHeight = math_floor(h * 0.55)
+
 				local fontSize = h / 6
 				local text = Spring.I18N('ui.topbar.quit.reallyQuit')
 				if not spec then
 					text = Spring.I18N('ui.topbar.quit.reallyQuitResign')
-					if chobbyLoaded then
+					if not gameIsOver and chobbyLoaded then
 						if numPlayers < 3 then
 							text = Spring.I18N('ui.topbar.quit.reallyResign')
 						else
@@ -1626,59 +1625,97 @@ function widget:DrawScreen()
 						end
 					end
 				end
+				local padding = math_floor(w / 90)
 				local textTopPadding = padding + padding + padding + padding + padding + fontSize
 				local txtWidth = font:GetTextWidth(text) * fontSize
 				w = math.max(w, txtWidth + textTopPadding + textTopPadding)
 
-				quitscreenArea = { math_floor((vsx / 2) - (w / 2)), math_floor((vsy / 1.8) - (h / 2)), math_floor((vsx / 2) + (w / 2)), math_floor((vsy / 1.8) + (h / 2)) }
-				quitscreenResignArea = { math_floor((vsx / 2) - (w / 2) + buttonMargin), math_floor((vsy / 1.8) - (h / 2) + buttonMargin), math_floor((vsx / 2) - (buttonMargin / 2)), math_floor((vsy / 1.8) - (h / 2) + buttonHeight - buttonMargin) }
-				quitscreenQuitArea = { math_floor((vsx / 2) + (buttonMargin / 2)), math_floor((vsy / 1.8) - (h / 2) + buttonMargin), math_floor((vsx / 2) + (w / 2) - buttonMargin), math_floor((vsy / 1.8) - (h / 2) + buttonHeight - buttonMargin) }
+				local x = math_floor((vsx / 2) - (w / 2))
+				local y = math_floor((vsy / 1.8) - (h / 2))
+				local buttonMargin = math_floor(h / 9)
+				local buttonWidth = math_floor((w - buttonMargin * 4) / 3) -- 4 margins for 3 buttons
+				local buttonHeight = math_floor(h * 0.30)
+
+				quitscreenArea = {
+					x,
+					y,
+					x + w,
+					y + h
+				}
+				quitscreenStayArea = {
+					x + buttonMargin + 0 * (buttonWidth + buttonMargin),
+					y + buttonMargin,
+					x + buttonMargin + 0 * (buttonWidth + buttonMargin) + buttonWidth,
+					y + buttonMargin + buttonHeight
+				}
+				quitscreenResignArea = {
+					x + buttonMargin + 1 * (buttonWidth + buttonMargin),
+					y + buttonMargin,
+					x + buttonMargin + 1 * (buttonWidth + buttonMargin) + buttonWidth,
+					y + buttonMargin + buttonHeight
+				}
+				quitscreenQuitArea = {
+					x + buttonMargin + 2 * (buttonWidth + buttonMargin),
+					y + buttonMargin,
+					x + buttonMargin + 2 * (buttonWidth + buttonMargin) + buttonWidth,
+					y + buttonMargin + buttonHeight
+				}
 
 				-- window
 				UiElement(quitscreenArea[1], quitscreenArea[2], quitscreenArea[3], quitscreenArea[4], 1,1,1,1, 1,1,1,1, nil, {1, 1, 1, 0.6 + (0.34 * fadeProgress)}, {0.45, 0.45, 0.4, 0.025 + (0.025 * fadeProgress)})
 
+				local color1, color2
+
 				font:Begin()
 				font:SetTextColor(0, 0, 0, 1)
 				font:Print(text, quitscreenArea[1] + ((quitscreenArea[3] - quitscreenArea[1]) / 2), quitscreenArea[4]-textTopPadding, fontSize, "cn")
-
-				-- quit button
-				local color1, color2
-				local mult = 0.85
-				if not chobbyLoaded then
-					if IsOnRect(x, y, quitscreenQuitArea[1], quitscreenQuitArea[2], quitscreenQuitArea[3], quitscreenQuitArea[4]) then
-						color1 = { 0.4, 0, 0, 0.4 + (0.5 * fadeProgress) }
-						color2 = { 0.6, 0.05, 0.05, 0.4 + (0.5 * fadeProgress) }
-						mult = 1.4
-					else
-						color1 = { 0.25, 0, 0, 0.35 + (0.5 * fadeProgress) }
-						color2 = { 0.5, 0, 0, 0.35 + (0.5 * fadeProgress) }
-					end
-					UiButton(quitscreenQuitArea[1], quitscreenQuitArea[2], quitscreenQuitArea[3], quitscreenQuitArea[4], 1,1,1,1, 1,1,1,1, nil, color1, color2, padding * 0.5)
-				end
 				font:End()
 
-				fontSize = fontSize * 0.92
 				font2:Begin()
-				if not chobbyLoaded then
-					font2:SetTextColor(1, 1, 1, 1)
-					font2:SetOutlineColor(0, 0, 0, 0.23)
-					font2:Print(Spring.I18N('ui.topbar.quit.quit'), quitscreenQuitArea[1] + ((quitscreenQuitArea[3] - quitscreenQuitArea[1]) / 2), quitscreenQuitArea[2] + ((quitscreenQuitArea[4] - quitscreenQuitArea[2]) / 2) - (fontSize / 3), fontSize, "con")
+				font2:SetTextColor(1, 1, 1, 1)
+				font2:SetOutlineColor(0, 0, 0, 0.23)
+
+				fontSize = fontSize * 0.92
+
+				-- stay button
+				if gameIsOver or not chobbyLoaded then
+					if math_isInRect(x, y, quitscreenStayArea[1], quitscreenStayArea[2], quitscreenStayArea[3], quitscreenStayArea[4]) then
+						color1 = { 0, 0.4, 0, 0.4 + (0.5 * fadeProgress) }
+						color2 = { 0.05, 0.6, 0.05, 0.4 + (0.5 * fadeProgress) }
+					else
+						color1 = { 0, 0.25, 0, 0.35 + (0.5 * fadeProgress) }
+						color2 = { 0, 0.5, 0, 0.35 + (0.5 * fadeProgress) }
+					end
+					UiButton(quitscreenStayArea[1], quitscreenStayArea[2], quitscreenStayArea[3], quitscreenStayArea[4], 1,1,1,1, 1,1,1,1, nil, color1, color2, padding * 0.5)
+					font2:Print(Spring.I18N('ui.topbar.quit.stay'), quitscreenStayArea[1] + ((quitscreenStayArea[3] - quitscreenStayArea[1]) / 2), quitscreenStayArea[2] + ((quitscreenStayArea[4] - quitscreenStayArea[2]) / 2) - (fontSize / 3), fontSize, "con")
 				end
+
 				-- resign button
-				mult = 0.85
 				if not spec then
-					if IsOnRect(x, y, quitscreenResignArea[1], quitscreenResignArea[2], quitscreenResignArea[3], quitscreenResignArea[4]) then
+					if math_isInRect(x, y, quitscreenResignArea[1], quitscreenResignArea[2], quitscreenResignArea[3], quitscreenResignArea[4]) then
 						color1 = { 0.28, 0.28, 0.28, 0.4 + (0.5 * fadeProgress) }
 						color2 = { 0.45, 0.45, 0.45, 0.4 + (0.5 * fadeProgress) }
-						mult = 1.3
 					else
 						color1 = { 0.18, 0.18, 0.18, 0.4 + (0.5 * fadeProgress) }
 						color2 = { 0.33, 0.33, 0.33, 0.4 + (0.5 * fadeProgress) }
 					end
 					UiButton(quitscreenResignArea[1], quitscreenResignArea[2], quitscreenResignArea[3], quitscreenResignArea[4], 1,1,1,1, 1,1,1,1, nil, color1, color2, padding * 0.5)
-
 					font2:Print(Spring.I18N('ui.topbar.quit.resign'), quitscreenResignArea[1] + ((quitscreenResignArea[3] - quitscreenResignArea[1]) / 2), quitscreenResignArea[2] + ((quitscreenResignArea[4] - quitscreenResignArea[2]) / 2) - (fontSize / 3), fontSize, "con")
 				end
+
+				-- quit button
+				if gameIsOver or not chobbyLoaded then
+					if math_isInRect(x, y, quitscreenQuitArea[1], quitscreenQuitArea[2], quitscreenQuitArea[3], quitscreenQuitArea[4]) then
+						color1 = { 0.4, 0, 0, 0.4 + (0.5 * fadeProgress) }
+						color2 = { 0.6, 0.05, 0.05, 0.4 + (0.5 * fadeProgress) }
+					else
+						color1 = { 0.25, 0, 0, 0.35 + (0.5 * fadeProgress) }
+						color2 = { 0.5, 0, 0, 0.35 + (0.5 * fadeProgress) }
+					end
+					UiButton(quitscreenQuitArea[1], quitscreenQuitArea[2], quitscreenQuitArea[3], quitscreenQuitArea[4], 1,1,1,1, 1,1,1,1, nil, color1, color2, padding * 0.5)
+					font2:Print(Spring.I18N('ui.topbar.quit.quit'), quitscreenQuitArea[1] + ((quitscreenQuitArea[3] - quitscreenQuitArea[1]) / 2), quitscreenQuitArea[2] + ((quitscreenQuitArea[4] - quitscreenQuitArea[2]) / 2) - (fontSize / 3), fontSize, "con")
+				end
+
 				font2:End()
 			end
 		end)
@@ -1781,7 +1818,7 @@ local function applyButtonAction(button)
 
 	local isvisible = false
 	if button == 'quit' or button == 'resign' then
-		if chobbyLoaded and button == 'quit' then
+		if not gameIsOver and chobbyLoaded and button == 'quit' then
 			Spring.SendLuaMenuMsg("showLobby")
 		else
 			local oldShowQuitscreen
@@ -1903,17 +1940,29 @@ function widget:MousePress(x, y, button)
 	if button == 1 then
 		if showQuitscreen ~= nil and quitscreenArea ~= nil then
 
-			if IsOnRect(x, y, quitscreenArea[1], quitscreenArea[2], quitscreenArea[3], quitscreenArea[4]) then
-
-				if not chobbyLoaded and IsOnRect(x, y, quitscreenQuitArea[1], quitscreenQuitArea[2], quitscreenQuitArea[3], quitscreenQuitArea[4]) then
+			if math_isInRect(x, y, quitscreenArea[1], quitscreenArea[2], quitscreenArea[3], quitscreenArea[4]) then
+				if (gameIsOver or not chobbyLoaded or not spec) and math_isInRect(x, y, quitscreenStayArea[1], quitscreenStayArea[2], quitscreenStayArea[3], quitscreenStayArea[4]) then
 					if playSounds then
 						Spring.PlaySoundFile(leftclick, 0.75, 'ui')
 					end
-					Spring.SendCommands("QuitForce")
+					showQuitscreen = nil
+					if WG['guishader'] then
+						WG['guishader'].setScreenBlur(false)
+					end
+				end
+				if (gameIsOver or not chobbyLoaded) and math_isInRect(x, y, quitscreenQuitArea[1], quitscreenQuitArea[2], quitscreenQuitArea[3], quitscreenQuitArea[4]) then
+					if playSounds then
+						Spring.PlaySoundFile(leftclick, 0.75, 'ui')
+					end
+					if not chobbyLoaded then
+						Spring.SendCommands("QuitForce") -- Exit the game completely
+					else
+						Spring.SendCommands("ReloadForce") -- Exit to the lobby
+					end
 					showQuitscreen = nil
 					hideQuitWindow = os.clock()
 				end
-				if not spec and IsOnRect(x, y, quitscreenResignArea[1], quitscreenResignArea[2], quitscreenResignArea[3], quitscreenResignArea[4]) then
+				if not spec and math_isInRect(x, y, quitscreenResignArea[1], quitscreenResignArea[2], quitscreenResignArea[3], quitscreenResignArea[4]) then
 					if playSounds then
 						Spring.PlaySoundFile(leftclick, 0.75, 'ui')
 					end
@@ -1933,20 +1982,20 @@ function widget:MousePress(x, y, button)
 		end
 
 		if not spec then
-			if IsOnRect(x, y, shareIndicatorArea['metal'][1], shareIndicatorArea['metal'][2], shareIndicatorArea['metal'][3], shareIndicatorArea['metal'][4]) then
+			if math_isInRect(x, y, shareIndicatorArea['metal'][1], shareIndicatorArea['metal'][2], shareIndicatorArea['metal'][3], shareIndicatorArea['metal'][4]) then
 				draggingShareIndicator = 'metal'
 			end
-			if IsOnRect(x, y, resbarDrawinfo['metal'].barArea[1], shareIndicatorArea['metal'][2], resbarDrawinfo['metal'].barArea[3], shareIndicatorArea['metal'][4]) then
+			if math_isInRect(x, y, resbarDrawinfo['metal'].barArea[1], shareIndicatorArea['metal'][2], resbarDrawinfo['metal'].barArea[3], shareIndicatorArea['metal'][4]) then
 				draggingShareIndicator = 'metal'
 				adjustSliders(x, y)
 			end
-			if IsOnRect(x, y, shareIndicatorArea['energy'][1], shareIndicatorArea['energy'][2], shareIndicatorArea['energy'][3], shareIndicatorArea['energy'][4]) then
+			if math_isInRect(x, y, shareIndicatorArea['energy'][1], shareIndicatorArea['energy'][2], shareIndicatorArea['energy'][3], shareIndicatorArea['energy'][4]) then
 				draggingShareIndicator = 'energy'
 			end
-			if draggingShareIndicator == nil and IsOnRect(x, y, conversionIndicatorArea[1], conversionIndicatorArea[2], conversionIndicatorArea[3], conversionIndicatorArea[4]) then
+			if draggingShareIndicator == nil and math_isInRect(x, y, conversionIndicatorArea[1], conversionIndicatorArea[2], conversionIndicatorArea[3], conversionIndicatorArea[4]) then
 				draggingConversionIndicator = true
 			end
-			if draggingConversionIndicator == nil and IsOnRect(x, y, resbarDrawinfo['energy'].barArea[1], shareIndicatorArea['energy'][2], resbarDrawinfo['energy'].barArea[3], shareIndicatorArea['energy'][4]) then
+			if draggingConversionIndicator == nil and math_isInRect(x, y, resbarDrawinfo['energy'].barArea[1], shareIndicatorArea['energy'][2], resbarDrawinfo['energy'].barArea[3], shareIndicatorArea['energy'][4]) then
 				draggingShareIndicator = 'energy'
 				adjustSliders(x, y)
 			end
@@ -1960,7 +2009,7 @@ function widget:MousePress(x, y, button)
 
 		if buttonsArea['buttons'] ~= nil then
 			for button, pos in pairs(buttonsArea['buttons']) do
-				if IsOnRect(x, y, pos[1], pos[2], pos[3], pos[4]) then
+				if math_isInRect(x, y, pos[1], pos[2], pos[3], pos[4]) then
 					applyButtonAction(button)
 					return true
 				end
@@ -2099,11 +2148,15 @@ function shutdown()
 		for n, _ in pairs(dlistResbar['energy']) do
 			dlistResbar['energy'][n] = glDeleteList(dlistResbar['energy'][n])
 		end
-		for n, _ in pairs(dlistResValues['metal']) do
-			dlistResValues['metal'][n] = glDeleteList(dlistResValues['metal'][n])
+		for res, _ in pairs(dlistResValues) do
+			for n, _ in pairs(dlistResValues[res]) do
+				dlistResValues[res][n] = glDeleteList(dlistResValues[res][n])
+			end
 		end
-		for n, _ in pairs(dlistResValues['energy']) do
-			dlistResValues['energy'][n] = glDeleteList(dlistResValues['energy'][n])
+		for res, _ in pairs(dlistResValuesBar) do
+			for n, _ in pairs(dlistResValuesBar[res]) do
+				dlistResValuesBar[res][n] = glDeleteList(dlistResValuesBar[res][n])
+			end
 		end
 	end
 	if WG['guishader'] then

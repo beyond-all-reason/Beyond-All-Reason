@@ -7,7 +7,7 @@ return {
 		brakerate = 0.018,
 		buildcostenergy = 29000,
 		buildcostmetal = 1900,
-		buildpic = "CORSSUB.PNG",
+		buildpic = "CORSSUB.DDS",
 		buildtime = 24750.00195,
 		canmove = true,
 		category = "ALL MOBILE WEAPON NOTLAND NOTAIR NOTHOVER CANBEUW SURFACE EMPABLE UNDERWATER",
@@ -41,6 +41,7 @@ return {
 		upright = true,
 		waterline = 80,
 		customparams = {
+			unitgroup = 'sub',
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "corships/t2",

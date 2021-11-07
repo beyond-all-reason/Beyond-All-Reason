@@ -8,7 +8,7 @@ return {
 		brakerate = 0.1,
 		buildcostenergy = 4600,
 		buildcostmetal = 90,
-		buildpic = "CORSFIG.PNG",
+		buildpic = "CORSFIG.DDS",
 		buildtime = 5200,
 		canfly = true,
 		canmove = true,
@@ -45,6 +45,7 @@ return {
 		wingangle = 0.06252,
 		wingdrag = 0.235,
 		customparams = {
+			unitgroup = 'aa',
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "corseaplanes",

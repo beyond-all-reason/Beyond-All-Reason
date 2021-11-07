@@ -7,7 +7,7 @@ return {
 		brakerate = 0.06585,
 		buildcostenergy = 4500,
 		buildcostmetal = 230,
-		buildpic = "ARMAH.PNG",
+		buildpic = "ARMAH.DDS",
 		buildtime = 3565,
 		canmove = true,
 		category = "ALL HOVER MOBILE WEAPON NOTSUB NOTSHIP NOTAIR SURFACE EMPABLE",
@@ -39,6 +39,7 @@ return {
 		turninplacespeedlimit = 2.2044,
 		turnrate = 490,
 		customparams = {
+			unitgroup = 'aa',
 			model_author = "Beherith",
 			normaltex = "unittextures/Arm_normal.dds",
 			prioritytarget = "air",
@@ -86,6 +87,11 @@ return {
 			},
 		},
 		sfxtypes = {
+			explosiongenerators = {
+				[1] = "custom:waterwake-small-hover",
+				[2] = "custom:bowsplash-small-hover",
+				[3] = "custom:hover-wake-small",
+			},
 			pieceexplosiongenerators = {
 				[1] = "deathceg2",
 				[2] = "deathceg3",

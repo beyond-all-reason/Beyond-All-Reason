@@ -7,7 +7,7 @@ return {
 		buildangle = 16384,
 		buildcostenergy = 1400,
 		buildcostmetal = 165,
-		buildpic = "ARMDECADE.PNG",
+		buildpic = "ARMDECADE.DDS",
 		buildtime = 2330,
 		canmove = true,
 		category = "ALL WEAPON NOTSUB SHIP NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -39,6 +39,7 @@ return {
 		turnrate = 450, --631.5,
 		waterline = 0,
 		customparams = {
+			unitgroup = 'weapon',
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armships",

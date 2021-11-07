@@ -9,7 +9,7 @@ return {
 		buildcostmetal = 61,
 		builddistance = 96,
 		builder = true,
-		buildpic = "CORMLV.PNG",
+		buildpic = "CORMLV.DDS",
 		buildtime = 3640,
 		canassist = false,
 		canguard = false,
@@ -63,6 +63,7 @@ return {
 			[5] = "coreyes",
 		},
 		customparams = {
+			unitgroup = 'builder',
 			longdescription = Spring.I18N('units.longDescriptions.cormlv'),
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",

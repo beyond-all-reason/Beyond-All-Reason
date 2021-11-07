@@ -1,10 +1,8 @@
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
 
 function widget:GetInfo()
 	return {
 		name = "Airjets",
-		desc = "Thruster effects on air jet exhausts (auto limits and disables when low fps)",
+		desc = "Thruster effects on air jet exhausts",
 		author = "GoogleFrog, jK, Floris",
 		date = "9 May 2020",
 		license = "GNU GPL, v2 or later",
@@ -13,10 +11,6 @@ function widget:GetInfo()
 	}
 end
 
---------------------------------------------------------------------------------
--- 'Speedups'
---------------------------------------------------------------------------------
-
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGetUnitRotation = Spring.GetUnitRotation
 local spGetUnitPieceInfo = Spring.GetUnitPieceInfo
@@ -24,7 +18,6 @@ local spGetUnitPieceInfo = Spring.GetUnitPieceInfo
 local math_cos = math.cos
 local math_sin = math.sin
 local math_rad = math.rad
-local math_random = math.random
 
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetGameSeconds = Spring.GetGameSeconds
@@ -35,7 +28,6 @@ local spGetUnitIsStunned = Spring.GetUnitIsStunned
 local spGetUnitMoveTypeData = Spring.GetUnitMoveTypeData
 local spGetUnitVelocity = Spring.GetUnitVelocity
 local spGetUnitTeam = Spring.GetUnitTeam
-local spGetFPS = Spring.GetFPS
 
 local glUseShader = gl.UseShader
 local glUniform = gl.Uniform
@@ -50,14 +42,11 @@ local GL_ONE = GL.ONE
 
 local glMultiTexCoord = gl.MultiTexCoord
 local glVertex = gl.Vertex
-local glCreateList = gl.CreateList
-local glDeleteList = gl.DeleteList
 local glBeginEnd = gl.BeginEnd
 local GL_QUADS = GL.QUADS
 
 local glAlphaTest = gl.AlphaTest
 local glDepthTest = gl.DepthTest
-local glDepthMask = gl.DepthMask
 
 local glPushMatrix = gl.PushMatrix
 local glPopMatrix = gl.PopMatrix
@@ -65,51 +54,44 @@ local glScale = gl.Scale
 local glUnitMultMatrix = gl.UnitMultMatrix
 local glUnitPieceMultMatrix = gl.UnitPieceMultMatrix
 
-local gaiaID = Spring.GetGaiaTeamID()
-
 --------------------------------------------------------------------------------
 -- Configuration
 --------------------------------------------------------------------------------
 
 local enableLights = true
-
-local disableAtAvgFps = 8
-local limitAtAvgFps = 16	-- filter spammy units: fighters/scouts
-local avgFpsThreshold = 6   -- have this more fps than disableAtAvgFps to re-enable
-
 local lightMult = 1.4
 
 local effectDefs = {
 
 	-- scouts
 	["armpeep"] = {
-		{ color = { 0.7, 0.4, 0.1 }, width = 4, length = 20, piece = "jet1", limit = true },
-		{ color = { 0.7, 0.4, 0.1 }, width = 4, length = 20, piece = "jet2", limit = true },
+		{ color = { 0.7, 0.4, 0.1 }, width = 4, length = 20, piece = "jet1" },
+		{ color = { 0.7, 0.4, 0.1 }, width = 4, length = 20, piece = "jet2" },
 	},
 	["corfink"] = {
-		{ color = { 0.7, 0.4, 0.1 }, width = 2.2, length = 15, piece = "thrusta", limit = true  },
-		{ color = { 0.7, 0.4, 0.1 }, width = 2.2, length = 15, piece = "thrustb", limit = true  },
+		{ color = { 0.7, 0.4, 0.1 }, width = 2.2, length = 15, piece = "thrusta"  },
+		{ color = { 0.7, 0.4, 0.1 }, width = 2.2, length = 15, piece = "thrustb"  },
 	},
 
 	-- fighters
 	["armfig"] = {
-		{ color = { 0.7, 0.4, 0.1 }, width = 6, length = 45, piece = "thrust", limit = true },
+		{ color = { 0.7, 0.4, 0.1 }, width = 6, length = 45, piece = "thrust" },
 	},
 	["corveng"] = {
-		{ color = { 0.7, 0.4, 0.1 }, width = 3, length = 20, piece = "thrust1", limit = true  },
-		{ color = { 0.7, 0.4, 0.1 }, width = 3, length = 20, piece = "thrust2", limit = true  },
+		{ color = { 0.7, 0.4, 0.1 }, width = 3, length = 20, piece = "thrust1"  },
+		{ color = { 0.7, 0.4, 0.1 }, width = 3, length = 20, piece = "thrust2"  },
 	},
 	["armsfig"] = {
-		{ color = { 0.2, 0.8, 0.2 }, width = 4, length = 25, piece = "thrust", limit = true },
+		{ color = { 0.2, 0.8, 0.2 }, width = 4, length = 25, piece = "thrust" },
 	},
 	["corsfig"] = {
-		{ color = { 0.2, 0.8, 0.2 }, width = 3, length = 32, piece = "thrust", limit = true },
+		{ color = { 0.2, 0.8, 0.2 }, width = 3, length = 32, piece = "thrust" },
 	},
 	["armhawk"] = {
-		{ color = { 0.1, 0.4, 0.6 }, width = 5, length = 35, piece = "thrust", limit = true },
+		{ color = { 0.1, 0.4, 0.6 }, width = 5, length = 35, piece = "thrust" },
 	},
 	["corvamp"] = {
-		{ color = { 0.1, 0.4, 0.6 }, width = 3.5, length = 35, piece = "thrusta", limit = true },
+		{ color = { 0.1, 0.4, 0.6 }, width = 3.5, length = 35, piece = "thrusta" },
 	},
 
 	-- radar
@@ -301,11 +283,9 @@ local drawReflectionPass = false	-- eats quite a bit extra perf
 
 local texture1 = "bitmaps/GPL/Lups/perlin_noise.jpg"    -- noise texture
 local texture2 = ":c:bitmaps/gpl/lups/jet2.bmp"        -- shape
-local texture3 = ":c:bitmaps/GPL/Lups/jet.bmp"        -- jitter shape
 
 local xzVelocityUnits = {}
 local defs = {}
-local limitDefs = {}
 for name, effects in pairs(effectDefs) do
 	for fx, data in pairs(effects) do
 		if not effectDefs[name][fx].emitVector then
@@ -313,9 +293,6 @@ for name, effects in pairs(effectDefs) do
 		end
 		if effectDefs[name][fx].xzVelocity then
 			xzVelocityUnits[UnitDefNames[name].id] = effectDefs[name][fx].xzVelocity
-		end
-		if effectDefs[name][fx].limit then
-			limitDefs[UnitDefNames[name].id] = true
 		end
 	end
 	if UnitDefNames[name] then
@@ -348,12 +325,8 @@ local unitPieceOffset = {}
 
 local shaders
 local lastGameFrame = Spring.GetGameFrame()
-local sceduledFpsCheckGf = lastGameFrame + 30
 local updateSec = 0
 
-local enabled = true
-local limit = false
-local averageFps = 100
 local lighteffectsEnabled = (enableLights and WG['lighteffects'] ~= nil and WG['lighteffects'].enableThrusters)
 
 --------------------------------------------------------------------------------
@@ -415,8 +388,6 @@ local function Draw(unitID, unitDefID)
 end
 
 local function DrawParticles()
-	if not enabled then return false end
-
 	glDepthTest(true)
 	glAlphaTest(false)
 
@@ -493,7 +464,7 @@ local function AddUnit(unitID, unitDefID, unitTeamID)
 	if not effectDefs[unitDefID].finishedInit then
 		FinishInitialization(unitID, effectDefs[unitDefID])
 	end
-	if spGetUnitIsActive(unitID) and not spGetUnitIsStunned(unitID) and (not limit or not limitDefs[unitDefID]) then
+	if spGetUnitIsActive(unitID) and not spGetUnitIsStunned(unitID) then
 		local uvx,_,uvz = spGetUnitVelocity(unitID)
 		if xzVelocityUnits[unitDefID] and math.abs(uvx)+math.abs(uvz) < xzVelocityUnits[unitDefID] then
 			Deactivate(unitID, unitDefID)
@@ -523,21 +494,17 @@ function widget:Update(dt)
 		lastGameFrame = gf
 		updateSec = 0
 		for unitID, unitDefID in pairs(inactivePlanes) do
-			if not limit or not limitDefs[unitDefID] then
-				if spGetUnitIsActive(unitID) then
-					Activate(unitID, unitDefID)
-				end
+			if spGetUnitIsActive(unitID) then
+				Activate(unitID, unitDefID)
 			end
 		end
 		for unitID, unitDefID in pairs(activePlanes) do
-			if not limit or not limitDefs[unitDefID] then
-				if not spGetUnitIsActive(unitID) or not spIsUnitVisible(unitID, 50, true) or spGetUnitIsStunned(unitID) then
+			if not spGetUnitIsActive(unitID) or not spIsUnitVisible(unitID, 50, true) or spGetUnitIsStunned(unitID) then
+				Deactivate(unitID, unitDefID)
+			elseif xzVelocityUnits[unitDefID] then
+				local uvx,_,uvz = spGetUnitVelocity(unitID)
+				if math.abs(uvx)+math.abs(uvz) < xzVelocityUnits[unitDefID] then
 					Deactivate(unitID, unitDefID)
-				elseif xzVelocityUnits[unitDefID] then
-					local uvx,_,uvz = spGetUnitVelocity(unitID)
-					if math.abs(uvx)+math.abs(uvz) < xzVelocityUnits[unitDefID] then
-						Deactivate(unitID, unitDefID)
-					end
 				end
 			end
 		end
@@ -550,34 +517,6 @@ function widget:Update(dt)
 			local unitDefID = Spring.GetUnitDefID(unitID)
 			RemoveUnit(unitID, unitDefID, spGetUnitTeam(unitID))
 			AddUnit(unitID, unitDefID, spGetUnitTeam(unitID))
-		end
-	end
-
-	if gf >= sceduledFpsCheckGf then
-		sceduledFpsCheckGf = gf + 30
-		averageFps = ((averageFps * 19) + spGetFPS()) / 20
-		if enabled then
-			if averageFps < disableAtAvgFps then
-				enabled = false
-			end
-			if not limit then
-				if averageFps < limitAtAvgFps then
-					limit = true
-					for unitID, unitDefID in pairs(activePlanes) do
-						if limitDefs[unitDefID] then
-							Deactivate(unitID, unitDefID)
-						end
-					end
-				end
-			else
-				if averageFps >= limitAtAvgFps + avgFpsThreshold then
-					limit = false
-				end
-			end
-		else
-			if averageFps >= disableAtAvgFps + avgFpsThreshold then
-				enabled = true
-			end
 		end
 	end
 end
@@ -790,7 +729,7 @@ end
 local function InitializeParticleLists()
 	for unitDefID, data in pairs(effectDefs) do
 		for i = 1, #data do
-			data[i].dList = glCreateList(glBeginEnd, GL_QUADS, BeginEndDrawList, data[i])
+			data[i].dList = gl.CreateList(glBeginEnd, GL_QUADS, BeginEndDrawList, data[i])
 		end
 	end
 end
@@ -802,20 +741,6 @@ function widget:Initialize()
 	for _, unitID in ipairs(Spring.GetAllUnits()) do
 		local unitDefID = Spring.GetUnitDefID(unitID)
 		AddUnit(unitID, unitDefID, spGetUnitTeam(unitID))
-	end
-
-	WG['airjets'] = {}
-	WG['airjets'].getLimitFps = function()
-		return limitAtAvgFps
-	end
-	WG['airjets'].setLimitFps = function(value)
-		limitAtAvgFps = value
-	end
-	WG['airjets'].getDisableFps = function()
-		return disableAtAvgFps
-	end
-	WG['airjets'].setDisableFps = function(value)
-		disableAtAvgFps = value
 	end
 end
 
@@ -832,28 +757,5 @@ function widget:Shutdown()
 	if shaders then
 		gl.DeleteShader(shaders.jet)
 		gl.DeleteShader(shaders.jitter)
-	end
-end
-
-
-function widget:GetConfigData(data)
-	return {
-		averageFps = math.floor(averageFps),
-		disableAtAvgFps = disableAtAvgFps,
-		limitAtAvgFps = limitAtAvgFps
-	}
-end
-
-function widget:SetConfigData(data)
-	if data.disableAtAvgFps ~= nil then
-		disableAtAvgFps = data.disableAtAvgFps
-	end
-	if data.disableAtAvgFps ~= nil then
-		limitAtAvgFps = data.limitAtAvgFps
-	end
-	if Spring.GetGameFrame() > 0 then
-		if data.averageFps ~= nil then
-			averageFps = data.averageFps
-		end
 	end
 end

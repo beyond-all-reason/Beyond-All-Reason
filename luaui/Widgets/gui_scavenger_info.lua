@@ -30,12 +30,6 @@ local screenHeightOrg = 520
 local screenWidthOrg = 1050
 local screenHeight = screenHeightOrg
 local screenWidth = screenWidthOrg
-
-local textareaMinLines = 14		-- wont scroll down more, will show at least this amount of lines
-
-local playSounds = true
-local buttonclick = 'LuaUI/Sounds/buildbar_waypoint.wav'
-
 local startLine = 1
 
 local customScale = 1
@@ -45,39 +39,18 @@ local screenX = (vsx*centerPosX) - (screenWidth/2)
 local screenY = (vsy*centerPosY) + (screenHeight/2)
 
 local spIsGUIHidden = Spring.IsGUIHidden
-local showHelp = false
-
-local glColor = gl.Color
-local glLineWidth = gl.LineWidth
-local glPolygonMode = gl.PolygonMode
-local glRect = gl.Rect
-local glText = gl.Text
-local glShape = gl.Shape
-
-local bgColorMultiplier = 0
+local math_isInRect = math.isInRect
 
 local glCreateList = gl.CreateList
 local glCallList = gl.CallList
 local glDeleteList = gl.DeleteList
 
-local glPopMatrix = gl.PopMatrix
-local glPushMatrix = gl.PushMatrix
-local glTranslate = gl.Translate
-local glScale = gl.Scale
-
-local GL_FILL = GL.FILL
-local GL_FRONT_AND_BACK = GL.FRONT_AND_BACK
-local GL_LINE_STRIP = GL.LINE_STRIP
-
 local widgetScale = 1
 
-local titleRect = {}
 local textLines = {}
 local totalTextLines = 0
 
 local maxLines = 20
-
-local myTeamID = Spring.GetMyTeamID()
 
 local showOnceMore = false		-- used because of GUI shader delay
 
@@ -115,9 +88,6 @@ function DrawTextarea(x,y,width,height,scrollbar)
 	local scrollbarMargin    		= 10 * widgetScale
 	local scrollbarWidth     		= 8 * widgetScale
 	local scrollbarPosWidth  		= 4 * widgetScale
-	local scrollbarPosMinHeight 	= 8 * widgetScale
-	local scrollbarBackgroundColor	= {0,0,0,0.24}
-	local scrollbarBarColor			= {1,1,1,0.08}
 
 	local fontSizeTitle				= 18 * widgetScale
 	local fontSizeLine				= 16 * widgetScale
@@ -257,7 +227,7 @@ function widget:DrawScreen()
 		showOnceMore = false
 
 	  local x, y, pressed = Spring.GetMouseState()
-	  if IsOnRect(x, y, screenX, screenY - screenHeight, screenX + screenWidth, screenY) or IsOnRect(x, y, titleRect[1], titleRect[2], titleRect[3], titleRect[4]) then
+	  if math_isInRect(x, y, screenX, screenY - screenHeight, screenX + screenWidth, screenY) or math_isInRect(x, y, titleRect[1], titleRect[2], titleRect[3], titleRect[4]) then
 		  Spring.SetMouseCursor('cursornormal')
 	  end
 
@@ -271,14 +241,6 @@ function widget:KeyPress(key)
 	if key == 27 then	-- ESC
 		show = false
 	end
-end
-
-function IsOnRect(x, y, BLcornerX, BLcornerY,TRcornerX,TRcornerY)
-
-	-- check if the mouse is in a rectangle
-	return x >= BLcornerX and x <= TRcornerX
-	                      and y >= BLcornerY
-	                      and y <= TRcornerY
 end
 
 function widget:MouseWheel(up, value)
@@ -316,9 +278,9 @@ function mouseEvent(x, y, button, release)
 
 	if show then
 		-- on window
-		if IsOnRect(x, y, screenX, screenY - screenHeight, screenX + screenWidth, screenY) then
+		if math_isInRect(x, y, screenX, screenY - screenHeight, screenX + screenWidth, screenY) then
 			return true
-		elseif titleRect == nil or not IsOnRect(x, y, titleRect[1], titleRect[2], titleRect[3], titleRect[4]) then
+		elseif titleRect == nil or not math_isInRect(x, y, titleRect[1], titleRect[2], titleRect[3], titleRect[4]) then
 			if release then
 				showOnceMore = show        -- show once more because the guishader lags behind, though this will not fully fix it
 				show = false
@@ -326,13 +288,6 @@ function mouseEvent(x, y, button, release)
 			return true
 		end
 	end
-end
-
-function lines(str)
-  local t = {}
-  local function helper(line) t[#t+1] = line return "" end
-  helper((str:gsub("(.-)\r?\n", helper)))
-  return t
 end
 
 function widget:Initialize()
@@ -354,7 +309,7 @@ function widget:Initialize()
 		--textFile = string.sub(textFile, 4)
 
 		-- store text into array
-		textLines = lines(textFile)
+		textLines = string.lines(textFile)
 
 		for i, line in ipairs(textLines) do
 			totalTextLines = i

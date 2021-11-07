@@ -11,7 +11,6 @@ static-var  spray, unitviewer, statechg_DesiredState, statechg_StateChanging;
 #define SIG_ACTIVATE			2
 
 
-
 activatescr()
 {
 	if( TRUE )
@@ -38,33 +37,6 @@ deactivatescr()
 	sleep 7;
 }
 
-SmokeUnit(healthpercent, sleeptime, smoketype)
-{
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 400;
-	}
-	while( TRUE )
-	{
-		healthpercent = get HEALTH;
-		if( healthpercent < 66 )
-		{
-			smoketype = 256 | 2;
-			if( Rand( 1, 66 ) < healthpercent )
-			{
-				smoketype = 256 | 1;
-			}
-			emit-sfx smoketype from base;
-		}
-		sleeptime = healthpercent * 50;
-		if( sleeptime < 200 )
-		{
-			sleeptime = 200;
-		}
-		sleep sleeptime;
-	}
-}
-
 OpenYard()
 {
 	set YARD_OPEN to 1;
@@ -74,7 +46,6 @@ OpenYard()
 		sleep 1500;
 		set YARD_OPEN to 1;
 	}
-	set BUGGER_OFF to 0;
 }
 
 CloseYard()
@@ -86,7 +57,6 @@ CloseYard()
 		sleep 1500;
 		set YARD_OPEN to 0;
 	}
-	set BUGGER_OFF to 0;
 }
 
 Go()
@@ -141,8 +111,10 @@ Create()
 	unitviewer = FALSE;
 	spray = base;
 	call-script InitState();
-	start-script SmokeUnit();
 }
+
+#define SMOKEPIECE base
+#include "smokeunit_thread_nohit.h"
 
 QueryNanoPiece(piecenum)
 {
@@ -170,11 +142,6 @@ QueryNanoPiece(piecenum)
 
 }
 
-Demo()
-{
-	unitviewer = TRUE;
-}
-
 Activate()
 {
 	signal SIG_ACTIVATE;
@@ -185,10 +152,7 @@ Deactivate()
 {
 	signal SIG_ACTIVATE;
 	set-signal-mask SIG_ACTIVATE;
-	if( !unitviewer )
-	{
-		sleep 5000;
-	}
+  sleep 5000;
 	set-signal-mask 0;
 	start-script RequestState(1);
 }

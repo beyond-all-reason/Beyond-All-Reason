@@ -1675,7 +1675,6 @@ local function ProcessOptions(materialDef, optName, optValues)
 			local optValue = unpack(optValues or {})
 			local optOriginalValue = materialDef.originalOptions[id][optName]
 
-			--Spring.Echo(optName, type(optValue), "optValue", optValue, "optOriginalValue", optOriginalValue)
 			if optOriginalValue then
 				if optValue ~= nil then
 					if type(optValue) == "boolean" then
@@ -1686,7 +1685,7 @@ local function ProcessOptions(materialDef, optName, optValues)
 				else
 					optTable[optName] = not optTable[optName] -- apparently `not nil` == true
 				end
-				--Spring.Echo("optTable[optName]", optTable[optName])
+
 				handled = true
 			end
 		elseif knownIntOptions[optName] then --integer
@@ -1698,8 +1697,6 @@ local function ProcessOptions(materialDef, optName, optValues)
 		end
 	end
 
-	--Spring.Echo("ProcessOptions", optName, unpack(optValues))
-	--Spring.Echo("ProcessOptions")
 	return handled
 end
 
@@ -1739,7 +1736,6 @@ local function ApplyOptions(luaShader, materialDef, key)
 		end
 	end
 
-	--Spring.Echo("ApplyOptions")
 	luaShader:SetUniformInt("bitOptions", intOption)
 end
 

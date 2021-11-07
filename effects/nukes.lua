@@ -353,18 +353,18 @@ local definitions = {
 
         dirt = {
             class              = [[CSimpleParticleSystem]],
-            count              = 1,
+            count              = 4,
             ground             = true,
             air                = false,
             properties = {
                 airdrag            = 0.97,
-                colormap           = [[0.04 0.03 0.01 0   0.1 0.07 0.033 0.66    0.1 0.07 0.03 0.58   0.08 0.065 0.035 0.47   0.075 0.07 0.06 0.4   0 0 0 0  ]],
+                colormap           = [[0.04 0.03 0.01 0   0.15 0.14 0.066 0.50    0.13 0.09 0.05 0.45   0.08 0.065 0.035 0.35   0.075 0.07 0.06 0.20   0 0 0 0  ]],
                 directional        = true,
                 emitrot            = 35,
                 emitrotspread      = 16,
                 emitvector         = [[0, 1, 0]],
                 gravity            = [[0, -0.15, 0]],
-                numparticles       = 50,
+                numparticles       = 12,
                 particlelife       = 100,
                 particlelifespread = 45,
                 particlesize       = 40,
@@ -383,18 +383,18 @@ local definitions = {
         },
         dirt2 = {
             class              = [[CSimpleParticleSystem]],
-            count              = 1,
+            count              = 3,
             ground             = true,
             air                = false,
             properties = {
                 airdrag            = 0.98,
-                colormap           = [[0.04 0.03 0.01 0.88   0.1 0.07 0.033 0.66    0.1 0.07 0.03 0.58   0.08 0.065 0.035 0.47   0.075 0.07 0.06 0.4   0 0 0 0  ]],
+                colormap           = [[0.08 0.06 0.03 0.66   0.12 0.09 0.05 0.58    0.1 0.07 0.03 0.52   0.08 0.065 0.035 0.40   0.075 0.07 0.06 0.3   0 0 0 0  ]],
                 directional        = true,
                 emitrot            = 10,
                 emitrotspread      = 20,
                 emitvector         = [[0, 1, 0]],
                 gravity            = [[0, -0.15, 0]],
-                numparticles       = 60,
+                numparticles       = 18,
                 particlelife       = 180,
                 particlelifespread = 40,
                 particlesize       = 3,
@@ -408,7 +408,7 @@ local definitions = {
                 texture            = [[bigexplosmoke]],
                 useairlos          = false,
                 alwaysvisible      = true,
-                drawOrder          = 1,
+                drawOrder          = 0,
             },
         },
         dirt3 = {
@@ -450,7 +450,7 @@ local definitions = {
             underwater         = true,
             properties = {
                 airdrag            = 0.96,
-                colormap           = [[0 0 0 0.01  0.025 0.02 0.02 0.05  0.06 0.055 0.055 0.2  0.043 0.04 0.04 0.12   0.0238 0.022 0.022 0.06  0 0 0 0.01]],
+                colormap           = [[0 0 0 0.01  0.025 0.02 0.02 0.05  0.06 0.055 0.055 0.16  0.043 0.04 0.04 0.11   0.0238 0.022 0.022 0.06  0 0 0 0.01]],
                 directional        = false,
                 emitrot            = 40,
                 emitrotspread      = 15,
@@ -469,7 +469,7 @@ local definitions = {
                 sizemod            = 1.0,
                 texture            = [[bigexplosmoke]],
                 alwaysvisible      = true,
-                drawOrder          = 1,
+                drawOrder          = 0,
             },
         },
         dustparticles = {
@@ -500,6 +500,7 @@ local definitions = {
                 sizemod            = 1.0,
                 texture            = [[randomdots]],
                 alwaysvisible      = true,
+                drawOrder          = 1,
       },
     },
     grounddust = {
@@ -1267,6 +1268,7 @@ definitions['newnuketac'].clouddust.properties.particlelife = math.floor(definit
 definitions['newnuketac'].dirt.properties.particlespeed = math.floor(definitions['newnuketac'].dirt.properties.particlespeed * size * 0.8)
 definitions['newnuketac'].dirt.properties.particlespeedspread = math.floor(definitions['newnuketac'].dirt.properties.particlespeedspread * size * 0.9)
 definitions['newnuketac'].dirt.properties.numparticles = math.floor(definitions['newnuketac'].dirt.properties.numparticles * size)
+definitions['newnuketac'].dirt2.properties.particlelife = math.floor(definitions['newnuketac'].dirt2.properties.particlelife * size * 0.8)
 definitions['newnuketac'].dirt2.properties.particlespeed = math.floor(definitions['newnuketac'].dirt2.properties.particlespeed * size * 0.9)
 definitions['newnuketac'].dirt2.properties.particlespeedspread = math.floor(definitions['newnuketac'].dirt2.properties.particlespeedspread * size * 0.9)
 definitions['newnuketac'].dirt2.properties.numparticles = math.floor(definitions['newnuketac'].dirt2.properties.numparticles * size)

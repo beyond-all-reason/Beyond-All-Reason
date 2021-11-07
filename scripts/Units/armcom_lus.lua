@@ -698,14 +698,14 @@ end
 
 function Restore()
 	SetSignalMask(SIG_AIM)
+	isAiming = false
+	isAimingDgun = false
 	Sleep(3000)
 	turn(aimy1, 2, 0, 105)
 	turn(biggun, 1, -38, 95.0000)
 	turn(luparm, 1, 0, 95.0000)
 	turn(rloarm, 1, -38, 95.0000)
 	turn(ruparm, 1, 0, 95.0000)
-	isAiming = false
-	isAimingDgun = false
 	rightArm = true
 	leftArm = true
 end

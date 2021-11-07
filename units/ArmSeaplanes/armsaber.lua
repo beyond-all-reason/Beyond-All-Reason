@@ -7,7 +7,7 @@ return {
 		brakerate = 0.46,
 		buildcostenergy = 6400,
 		buildcostmetal = 210,
-		buildpic = "ARMSABER.PNG",
+		buildpic = "ARMSABER.DDS",
 		buildtime = 9016,
 		canfly = true,
 		canmove = true,
@@ -37,6 +37,7 @@ return {
 		turninplaceanglelimit = 360,
 		turnrate = 720,
 		customparams = {
+			unitgroup = 'weapon',
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armseaplanes",
@@ -108,6 +109,9 @@ return {
 				turret = false,
 				weapontype = "LaserCannon",
 				weaponvelocity = 1000,
+				customparams = {
+					light_radius_mult = 0.5,
+				},
 				damage = {
 					bombers = 10,
 					commanders = 40,

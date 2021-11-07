@@ -31,10 +31,10 @@ local isCommander = {}
 local unitHumanName = {}
 local unitUnderattackSounds = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
-	if unitDef and unitDef.customParams and unitDef.customParams.iscommander then
+	if unitDef.customParams.iscommander then
 		isCommander[unitDefID] = true
 	end
-	unitHumanName[unitDefID] = unitDef.humanName
+	unitHumanName[unitDefID] = unitDef.translatedHumanName
 	if (unitDef.sounds.underattack and (#unitDef.sounds.underattack > 0)) then
 		unitUnderattackSounds[unitDefID] = unitDef.sounds.underattack
 	end

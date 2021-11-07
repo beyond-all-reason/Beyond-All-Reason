@@ -7,7 +7,7 @@ return {
 		brakerate = 0.0375,
 		buildcostenergy = 6900,
 		buildcostmetal = 130,
-		buildpic = "CORHUNT.PNG",
+		buildpic = "CORHUNT.DDS",
 		buildtime = 9512,
 		canfly = true,
 		canmove = true,
@@ -47,6 +47,7 @@ return {
 		wingangle = 0.06252,
 		wingdrag = 0.11,
 		customparams = {
+			unitgroup = 'util',
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "corseaplanes",

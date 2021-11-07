@@ -8,7 +8,7 @@ return {
 		buildcostmetal = 150,
 		builddistance = 112,
 		builder = true,
-		buildpic = "ARMBEAVER.PNG",
+		buildpic = "ARMBEAVER.DDS",
 		buildtime = 6708,
 		canmove = true,
 		category = "ALL TANK PHIB NOTSUB  NOWEAPON NOTAIR NOTHOVER SURFACE CANBEUW EMPABLE",
@@ -93,6 +93,7 @@ return {
 			[43] = "armptl",
 		},
 		customparams = {
+			unitgroup = 'builder',
 			area_mex_def = "armmex",
 			longdescription = Spring.I18N('units.longDescriptions.armbeaver'),
 			model_author = "Beherith",

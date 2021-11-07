@@ -7,7 +7,7 @@ return {
 		brakerate = 0.625,
 		buildcostenergy = 6600,
 		buildcostmetal = 320,
-		buildpic = "ARMDFLY.PNG",
+		buildpic = "ARMDFLY.DDS",
 		buildtime = 16022,
 		canfly = true,
 		canmove = true,
@@ -45,6 +45,7 @@ return {
 		turnrate = 420,
 		unloadspread = 0,
 		customparams = {
+			unitgroup = 'emp',
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			paralyzemultiplier = 0.025,

@@ -8,7 +8,7 @@ return {
 		buildcostmetal = 700,
 		builddistance = 180,
 		builder = true,
-		buildpic = "ARMACSUB.PNG",
+		buildpic = "ARMACSUB.DDS",
 		buildtime = 18000,
 		canmove = true,
 		category = "UNDERWATER ALL NOTLAND MOBILE NOWEAPON NOTAIR NOTHOVER",
@@ -59,6 +59,7 @@ return {
 			[13] = "armkraken",
 		},
 		customparams = {
+			unitgroup = 'buildert2',
 			area_mex_def = "armuwmme",
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",

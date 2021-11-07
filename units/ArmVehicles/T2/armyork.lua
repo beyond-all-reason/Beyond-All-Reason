@@ -7,7 +7,7 @@ return {
 		brakerate = 0.12223,
 		buildcostenergy = 9100,
 		buildcostmetal = 450,
-		buildpic = "ARMYORK.PNG",
+		buildpic = "ARMYORK.DDS",
 		buildtime = 9964,
 		canmove = true,
 		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -43,6 +43,7 @@ return {
 		turninplacespeedlimit = 1.63786,
 		turnrate = 618.20001,
 		customparams = {
+			unitgroup = 'aa',
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			prioritytarget = "air",
@@ -206,7 +207,7 @@ return {
 				def = "BOGUS_MISSILE",
 				onlytargetcategory = "VTOL",
 			},
-			[3] = {
+			[2] = {
 				badtargetcategory = "NOTAIR LIGHTAIRSCOUT",
 				def = "MOBILEFLAK",
 				onlytargetcategory = "VTOL",

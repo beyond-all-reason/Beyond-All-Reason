@@ -8,7 +8,7 @@ return {
 		buildcostmetal = 190,
 		builddistance = 150,
 		builder = true,
-		buildpic = "CORCH.PNG",
+		buildpic = "CORCH.DDS",
 		buildtime = 4576,
 		canmove = true,
 		category = "ALL HOVER MOBILE NOTSUB NOWEAPON NOTSHIP NOTAIR SURFACE EMPABLE",
@@ -89,6 +89,7 @@ return {
 			[43] = "cortl",
 		},
 		customparams = {
+			unitgroup = 'builder',
 			area_mex_def = "cormex",
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",

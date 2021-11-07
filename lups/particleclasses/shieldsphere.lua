@@ -395,23 +395,27 @@ function ShieldSphereParticle:Update(n)
 				self.unitPos = {}
 				self.unitPos[1], self.unitPos[2], self.unitPos[3] = Spring.GetUnitPosition(self.unit)
 			end
-			local color = {GetColor(self.colormap2,self.life) }
-			color[4]=color[4]*self.light
 			if not self.lightID then
+        
+        local color = {GetColor(self.colormap2,self.life) }
+        color[4]=color[4]*self.light
 				self.lightID = Script.LuaUI.GadgetCreateLight('shieldsphere',self.unitPos[1]+self.pos[1], self.unitPos[2]+self.pos[2], self.unitPos[3]+self.pos[1], self.size*6, color)
 			else
-				Script.LuaUI.GadgetEditLight(self.lightID, {orgMult=color[4],param={r=color[1],g=color[2],b=color[3]}})
+				--Script.LuaUI.GadgetEditLight(self.lightID, {orgMult=color[4],param={r=color[1],g=color[2],b=color[3]}})
+        -- I saw ZERO reason to edit the light while it is running, as we dont use any of the color map shit, and editing a light is a MASSIVE performance hog
+        
 			end
 		else
 			self.lightID = nil
 		end
 	end
-
-	if (self.life<1) then
-		self.life		 = self.life + n*self.life_incr
+  if (self.life<1) then
+    -- first off, BAR doesnt change the size of the sphere, nor the color of it in any significant way, so there is no point in ever calling this, but ill leave it here for others to learn from it.
+		self.life		 = self.life + 31
 		self.size		 = self.size + n*self.sizeGrowth
 		self.color1 = {GetColor(self.colormap1,self.life)}
 		self.color2 = {GetColor(self.colormap2,self.life)}
+    --Spring.Echo(Spring.GetGameFrame(),n, self.life, self.life_incr)
 	end
 end
 

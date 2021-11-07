@@ -54,11 +54,18 @@ function clearInstanceTable(iT)
 end
 
 function makeVAOandAttach(vertexVBO, instanceVBO, indexVBO) -- Attach a vertex buffer to an instance buffer, and optionally, an index buffer if one is supplied.
+  -- There is a special case for this, when we are using a vertexVBO as a quasi-instanceVBO, e.g. when we are using the geometry shader to draw a vertex as each instance. 
+  --iT.vertexVBO = vertexVBO
+  --iT.indexVBO = indexVBO
 	local newVAO = nil 
 	newVAO = gl.GetVAO()
 	if newVAO == nil then goodbye("Failed to create newVAO") end
-	newVAO:AttachVertexBuffer(vertexVBO)
-	newVAO:AttachInstanceBuffer(instanceVBO)
+  if vertexVBO == nil then -- the special case where are using 'vertices' as 'instances'
+    newVAO:AttachVertexBuffer(instanceVBO)
+  else
+    newVAO:AttachVertexBuffer(vertexVBO)
+    newVAO:AttachInstanceBuffer(instanceVBO)
+  end
   if indexVBO then
     newVAO:AttachIndexBuffer(indexVBO)     
   end
@@ -73,21 +80,16 @@ function resizeInstanceVBOTable(iT)
 	for i = (iT.maxElements/2) * iT.instanceStep + 1, (iT.maxElements) * iT.instanceStep do
 		iT.instanceData[i] = 0
 	end
-	iT.instanceVBO = nil
+	if iT.instanceVBO then iT.instanceVBO:Delete() end -- release if previous one existed
 	iT.instanceVBO = newInstanceVBO
 	iT.instanceVBO:Upload(iT.instanceData)
-	if iT.VAO and iT.vertexVBO then -- reattach new if updated :D
+	if iT.VAO then -- reattach new if updated :D
+    iT.VAO:Delete()
 		iT.VAO = makeVAOandAttach(iT.vertexVBO,iT.instanceVBO, iT.indexVBO)
 	end
-    
 	--Spring.Echo("instanceVBOTable full, resizing to double size",iT.myName, iT.usedElements,iT.maxElements)
-	
 	if iT.indextoUnitID then
-		for index, unitID in ipairs(iT.indextoUnitID) do
-			iT.instanceVBO:InstanceDataFromUnitIDs({unitID}, iT.unitIDattribID, index-1)
-		end
-		-- OR:
-		--iT.instanceVBO:InstanceDataFromUnitIDs(iT.indextoUnitID, iT.unitIDattribID)
+		iT.instanceVBO:InstanceDataFromUnitIDs(iT.indextoUnitID, iT.unitIDattribID)
 	end
 	return iT.maxElements
 end
@@ -146,7 +148,7 @@ function pushElementInstance(iT,thisInstance, instanceID, updateExisting, noUplo
 		if unitID ~= nil then --always upload?
 			iT.indextoUnitID[thisInstanceIndex] = unitID
 			--Spring.Echo("pushElementInstance,unitID, iT.unitIDattribID, thisInstanceIndex",unitID, iT.unitIDattribID, thisInstanceIndex)
-			iT.instanceVBO:InstanceDataFromUnitIDs({unitID}, iT.unitIDattribID, thisInstanceIndex-1)
+			iT.instanceVBO:InstanceDataFromUnitIDs(unitID, iT.unitIDattribID, thisInstanceIndex-1)
 		end
 	else
 		iT.dirty = true
@@ -212,9 +214,15 @@ function popElementInstance(iT, instanceID, noUpload)
 				--Spring.Echo("Shuffling",lastElementIndex,"->", oldElementIndex)
 				--Spring.Echo("popElementInstance,unitID, iT.unitIDattribID, thisInstanceIndex",unitID, iT.unitIDattribID, oldElementIndex)
 				local myunitID = iT.indextoUnitID[lastElementIndex]
+        
+        --Spring.Echo("Pop", myunitID, "is valid?", Spring.ValidUnitID(myunitID), oldElementIndex, lastElementIndex)
 				iT.indextoUnitID[oldElementIndex] = myunitID
 				iT.indextoUnitID[lastElementIndex] = nil
-				iT.instanceVBO:InstanceDataFromUnitIDs({myunitID}, iT.unitIDattribID, oldElementIndex-1)
+        if Spring.ValidUnitID(myunitID) then
+          iT.instanceVBO:InstanceDataFromUnitIDs(myunitID, iT.unitIDattribID, oldElementIndex-1)
+        else
+          Spring.Echo("Tried to pop back an invalid unitID", myunitID, "from", iT.myName, "while removing instance", instanceID,". Ensure that you remove invalid units from your instance tables")
+        end
 			end
 		else
 			iT.dirty = true
@@ -248,13 +256,21 @@ function uploadAllElements(iT)
 	end
 end
 
-function uploadElementRange(iT,startElementIndex, endElementIndex)
+function uploadElementRange(iT, startElementIndex, endElementIndex)
 	iT.instanceVBO:Upload(iT.instanceData, -- The lua mirrored VBO data
 		nil, -- the attribute index, nil for all attributes
 		startElementIndex, -- vboOffset optional, , what ELEMENT offset of the VBO to start uploading into, 0 based
 		startElementIndex * iT.instanceStep + 1, --  luaStartIndex, default 1, what element of the lua array to start uploading from. 1 is the 1st element of a lua table. 
 		endElementIndex * iT.instanceStep --] luaEndIndex, default #{array}, what element of the lua array to upload up to, inclusively
-		)
+  )
+  if iT.indextoUnitID then
+    --we need to reslice the table
+    local unitIDRange = {}
+    for i = startElementIndex, endElementIndex do
+      unitIDRange[#unitIDRange + 1] = iT.indextoUnitID[i]
+    end
+		iT.instanceVBO:InstanceDataFromUnitIDs(unitIDRange, iT.unitIDattribID, startElementIndex - 1)
+	end
 end
 
 function drawInstanceVBO(iT)
@@ -337,7 +353,7 @@ function makePlaneIndexVBO(xresolution, yresolution)
 	planeIndexVBO:Define(
 		numindices
 	)
-	IndexVBOData = {}
+	local IndexVBOData = {}
 	local qindex = 0
 	local colsize = yresolution + 1
 	for x = 0, xresolution-1  do -- this is +1

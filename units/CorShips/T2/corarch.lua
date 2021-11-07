@@ -8,7 +8,7 @@ return {
 		buildangle = 16384,
 		buildcostenergy = 12000,
 		buildcostmetal = 1000,
-		buildpic = "CORARCH.PNG",
+		buildpic = "CORARCH.DDS",
 		buildtime = 15000,
 		canmove = true,
 		category = "ALL MOBILE WEAPON NOTLAND SHIP NOTSUB NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -40,6 +40,7 @@ return {
 		turnrate = 340.5,
 		waterline = 0,
 		customparams = {
+			unitgroup = 'aa',
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",
 			prioritytarget = "air",

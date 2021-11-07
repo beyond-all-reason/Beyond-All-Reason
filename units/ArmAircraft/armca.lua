@@ -9,7 +9,7 @@ return {
 		buildcostmetal = 110,
 		builddistance = 136,
 		builder = true,
-		buildpic = "ARMCA.PNG",
+		buildpic = "ARMCA.DDS",
 		buildtime = 7959,
 		canfly = true,
 		canmove = true,
@@ -75,6 +75,7 @@ return {
 			[31] = "armsy",
 		},
 		customparams = {
+			unitgroup = 'builder',
 			area_mex_def = "armmex",
 			longdescription = Spring.I18N('units.longDescriptions.armca'),
 			model_author = "FireStorm, Flaka",

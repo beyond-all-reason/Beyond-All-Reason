@@ -8,7 +8,7 @@ return {
 		buildangle = 16384,
 		buildcostenergy = 6200,
 		buildcostmetal = 480,
-		buildpic = "CORFHLT.PNG",
+		buildpic = "CORFHLT.DDS",
 		buildtime = 11386,
 		canrepeat = false,
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -35,6 +35,7 @@ return {
 		waterline = 3,
 		yardmap = "wwwwwwwww",
 		customparams = {
+			unitgroup = 'weapon',
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			removewait = true,

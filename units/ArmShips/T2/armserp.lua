@@ -7,7 +7,7 @@ return {
 		brakerate = 0.02,
 		buildcostenergy = 27000,
 		buildcostmetal = 1800,
-		buildpic = "ARMSERP.PNG",
+		buildpic = "ARMSERP.DDS",
 		buildtime = 22770,
 		canmove = true,
 		category = "ALL NOTLAND MOBILE WEAPON NOTAIR NOTHOVER CANBEUW SURFACE EMPABLE UNDERWATER",
@@ -41,6 +41,7 @@ return {
 		upright = true,
 		waterline = 80, --45,
 		customparams = {
+			unitgroup = 'sub',
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armships/t2",

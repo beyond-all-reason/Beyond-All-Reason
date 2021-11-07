@@ -6,7 +6,7 @@ return {
 		brakerate = 0.05454,
 		buildcostenergy = 2200,
 		buildcostmetal = 135,
-		buildpic = "armart.PNG",
+		buildpic = "armart.DDS",
 		buildtime = 2998,
 		canmove = true,
 		category = "ALL TANK WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -45,6 +45,7 @@ return {
 		turninplacespeedlimit = 1.29228,
 		turnrate = 393.79999,
 		customparams = {
+			unitgroup = 'weapon',
 			basename = "base",
 			canareaattack = 1,
 			cannon1name = "gun",

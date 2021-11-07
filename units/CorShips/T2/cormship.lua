@@ -7,7 +7,7 @@ return {
 		brakerate = 0.02799,
 		buildcostenergy = 10000,
 		buildcostmetal = 2000,
-		buildpic = "CORMSHIP.PNG",
+		buildpic = "CORMSHIP.DDS",
 		buildtime = 15000,
 		canmove = true,
 		category = "ALL MOBILE WEAPON NOTLAND SHIP NOTSUB NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -40,6 +40,7 @@ return {
 		turnrate = 300,
 		waterline = 0,
 		customparams = {
+			unitgroup = 'weapon',
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "corships/t2",
@@ -288,7 +289,7 @@ return {
 				maxangledif = 60,
 				onlytargetcategory = "SURFACE",
 			},
-			[3] = {
+			[2] = {
 				def = "MISSILE",
 				onlytargetcategory = "VTOL",
 			},

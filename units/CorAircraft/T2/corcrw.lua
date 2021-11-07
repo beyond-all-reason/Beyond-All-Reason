@@ -9,7 +9,7 @@ return {
 		brakerate = 0.15,
 		buildcostenergy = 72000,
 		buildcostmetal = 5100,
-		buildpic = "CORCRW.PNG",
+		buildpic = "CORCRW.DDS",
 		buildtime = 84229,
 		canfly = true,
 		canmove = true,
@@ -42,6 +42,7 @@ return {
 		turnrate = 300,
 		upright = true,
 		customparams = {
+			unitgroup = 'weapon',
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "coraircraft/t2",

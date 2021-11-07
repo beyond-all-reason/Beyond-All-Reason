@@ -10,7 +10,7 @@ return {
 		buildcostenergy = 2000000,
 		buildcostmetal = 50000,
 		builder = false,
-		buildpic = "chickens/epic_chickenq.PNG",
+		buildpic = "chickens/epic_chickenq.DDS",
 		buildtime = 1500000,
 		canattack = true,
 		canguard = true,
@@ -24,7 +24,6 @@ return {
 		collisionvolumescales = "69 160 180",
 		collisionvolumetest = 1,
 		collisionvolumetype = "box",
-		-- handled gadget side -- corpse = "chicken_egg_l_red",
 		defaultmissiontype = "Standby",
 		description = Spring.I18N('units.descriptions.epic_chickenq'),
 		explodeas = "QUEEN_DEATH",
@@ -64,13 +63,9 @@ return {
 		workertime = 0,
 		customparams = {
 			subfolder = "other/chickens",
-      model_author = "KDR_11k, Beherith",
+			model_author = "KDR_11k, Beherith",
 			normalmaps = "yes",
 			normaltex = "unittextures/chicken_l_normals.png",
-		},
-		featuredefs = {
-			dead = {},
-			heap = {},
 		},
 		sfxtypes = {
 			explosiongenerators = {

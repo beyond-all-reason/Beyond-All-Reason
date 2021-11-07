@@ -6,8 +6,7 @@
 piece  pelvis, torso, lleg, lfoot, rleg, rfoot, head,
        rflare , lflare , lancher,tflare ,lthigh,rthigh,neck, rbarrel, lbarrel, rtoe, ltoe,aimy1;
 
-static-var  bMoving, bAiming, Static_Var_3, restore_delay, Static_Var_5,
-            gun_1, Static_Var_7, Static_Var_8, wpn1_lasthead, wpn3_lasthead;
+static-var  bMoving, bAiming, restore_delay, gun_1, wpn1_lasthead, wpn3_lasthead;
 
 // Signal definitions
 #define SIG_AIM				2
@@ -343,82 +342,14 @@ UnitSpeed(){
  }
 }
 
-SmokeUnit(healthpercent, sleeptime, smoketype)
-{
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 400;
-	}
-	while( TRUE )
-	{
-		healthpercent = get HEALTH;
-		if( healthpercent < 66 )
-		{
-			smoketype = 256 | 2;
-			if( Rand( 1, 66 ) < healthpercent )
-			{
-				smoketype = 256 | 1;
-			}
-			emit-sfx smoketype from torso;
-		}
-		sleeptime = healthpercent * 50;
-		if( sleeptime < 200 )
-		{
-			sleeptime = 200;
-		}
-		sleep sleeptime;
-	}
-}
-
-MotionControl(Func_Var_1)
-{
-	Func_Var_1 = 1;
-	while( TRUE )
-	{
-		if( bMoving )
-		{
-			call-script walk();
-
-			Func_Var_1 = 1;
-			if( Static_Var_5 == 3 )
-			{
-				Static_Var_7 = 1;
-			}
-			if( Static_Var_5 == 2 )
-			{
-				Static_Var_7 = 0;
-			}
-			if( Static_Var_5 == 1 )
-			{
-				Static_Var_7 = 0;
-			}
-		}
-		if( !bMoving )
-		{
-			Static_Var_3 = 1;
-			if( Func_Var_1 )
-			{
-				call-script StopWalking();
-					
-				Func_Var_1 = 0;
-			}
-			sleep 100;
-		}
-	}
-}
 
 Create()
 {
-	Static_Var_8 = 0 - -2147483648;
 	bMoving = FALSE;
 	bAiming = FALSE;
 	animSpeed = 4;
-	Static_Var_3 = 1;
-	Static_Var_7 = 0;
 	restore_delay = 3000;
 	hide pelvis;
-	start-script MotionControl();
-	start-script SmokeUnit();
 	gun_1 = 0;
 }
 
@@ -427,38 +358,23 @@ Create()
 //how 'heavy' the unit is, on a scale of 1-10
 #define UNITSIZE 5
 #define MAXTILT 100
-HitByWeapon(anglex, anglez, damage)	// angle[x|z] is always [-500;500], damage is multiplied by 100
-{
-	var amount;//, speedz, speedx;
-	amount = damage / (100 * UNITSIZE);
-	if (amount < 3  ) return (0);
-	if (amount > MAXTILT) amount = MAXTILT;
-	//get PRINT(anglex, anglez, amount, damage);
-	//speedz = HITSPEED * get ABS(anglez) / 500; //nevermind this, the random error this produces actually looks better than the accurate version
-	turn BASEPIECE to z-axis (anglez * amount) / 100  speed HITSPEED;
-	turn BASEPIECE to x-axis <0> - (anglex * amount) /100 speed HITSPEED;
-	wait-for-turn BASEPIECE around z-axis;
-	wait-for-turn BASEPIECE around x-axis;
-	turn BASEPIECE to z-axis <0.000000> speed HITSPEED / 4;
-	turn BASEPIECE to x-axis <0.000000> speed HITSPEED / 4;
-}
-HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and flamers give angles of 0
-{
-	start-script HitByWeapon(dmg, anglez,anglex); //I dont know why param order must be switched, and this also runs a frame later :(
-	return (100); //return damage percent
-}
+
+#include "unit_hitbyweaponid_and_smoke.h"
 
 StartMoving()
 {
 	bMoving = TRUE;
 	signal SIG_MOVE;
 	set-signal-mask SIG_MOVE;
+	start-script UnitSpeed();
+	start-script Walk();
 }
 
 StopMoving()
 {
 	bMoving = FALSE;
 	signal SIG_MOVE;
+	call-script StopWalking();
 }
 
 SetMaxReloadTime(Func_Var_1)
@@ -618,21 +534,8 @@ Killed(severity, corpsetype)
 		explode pelvis type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode torso type FALL | NOHEATCLOUD;
 		explode lancher type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode tflare type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode neck type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode head type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode rbarrel type FALL | NOHEATCLOUD;
-		//explode rflare type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lbarrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lflare type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lthigh type FALL | NOHEATCLOUD;
-		//explode lleg type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lfoot type FALL | NOHEATCLOUD;
-		//explode ltoe type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode rthigh type FALL | NOHEATCLOUD;
-		//explode rleg type FALL | NOHEATCLOUD;
-		//explode rfoot type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode rtoe type FIRE | SMOKE | FALL | NOHEATCLOUD;
+
 		return(corpsetype);
 	}
 	if( severity <= 99 )
@@ -641,21 +544,9 @@ Killed(severity, corpsetype)
 		explode pelvis type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode torso type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode lancher type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		//explode tflare type SMOKE | FALL | NOHEATCLOUD;
 		explode neck type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		explode head type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode rbarrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode rflare type SMOKE | FALL | NOHEATCLOUD;
-		//explode lbarrel type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		//explode lflare type SMOKE | FALL | NOHEATCLOUD;
-		//explode lthigh type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lleg type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lfoot type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode ltoe type SHATTER | NOHEATCLOUD;
-		//explode rthigh type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode rleg type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode rfoot type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode rtoe type SHATTER | NOHEATCLOUD;
+
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
@@ -665,17 +556,6 @@ Killed(severity, corpsetype)
 		explode tflare type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode neck type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode head type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode rbarrel type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode rflare type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lbarrel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lflare type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lthigh type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode lleg type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode lfoot type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode ltoe type SHATTER | NOHEATCLOUD;
-		//explode rthigh type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode rleg type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		//explode rfoot type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode rtoe type SHATTER | NOHEATCLOUD;
+
 	return corpsetype;
 }

@@ -18,8 +18,10 @@ end
 
 local sparkWeapons = {}
 local weapons = {
-    lightning = {ceg = "genericshellexplosion-splash-lightning", forkdamage = 0.5,   maxunits=2},
-    dclaw     = {ceg = "genericshellexplosion-splash-lightning", forkdamage = 0.325, maxunits=2},
+    lightning   = {ceg = "genericshellexplosion-splash-lightning",       forkdamage = 0.5,   maxunits=2,  range = 60},
+    lightningxl = {ceg = "genericshellexplosion-splash-large-lightning", forkdamage = 0.4,   maxunits=12, range = 175},
+    dclaw       = {ceg = "genericshellexplosion-splash-lightning",       forkdamage = 0.325, maxunits=2,  range = 60},
+
 }
 for wdid, wd in pairs(WeaponDefNames) do
     for name, v in pairs(weapons) do
@@ -33,6 +35,7 @@ local immuneToSplash = {
     [UnitDefNames.armzeus.id] = true,
 	[UnitDefNames.armlatnk.id] = true,
     [UnitDefNames.armclaw.id] = true,
+    [UnitDefNames.armthor.id] = true,
 }
 for udid, ud in pairs(UnitDefs) do
     for id, v in pairs(immuneToSplash) do
@@ -45,7 +48,7 @@ end
 function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponID, projectileID, attackerID, attackerDefID, attackerTeam)
     if sparkWeapons[weaponID] then
 		local x,y,z = Spring.GetUnitPosition(unitID)
-		local nearUnits = Spring.GetUnitsInSphere(x,y,z,60)
+        local nearUnits = Spring.GetUnitsInSphere(x,y,z,sparkWeapons[weaponID].range)
 		local count = 0
 		for i=1,#nearUnits do
 			local nearUnit = nearUnits[i]
@@ -58,6 +61,7 @@ function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weap
 				ny = ny + (Spring.GetUnitHeight(nearUnit)*0.33)
 				Spring.SpawnCEG(sparkWeapons[weaponID].ceg,nx,ny,nz,0,0,0)
 				if nearUnit ~= unitID then
+					-- NB: weaponDefID -1 is debris damage which gets removed by engine_hotfixes.lua, use -7 (crush damage) arbitrarily instead
 					Spring.AddUnitDamage(nearUnit, math.ceil(damage*sparkWeapons[weaponID].forkdamage), 0, attackerID, -7)
 					count = count + 1
 				end

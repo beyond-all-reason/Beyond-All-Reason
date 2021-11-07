@@ -6,7 +6,7 @@ return {
 		brakerate = 0.04537,
 		buildcostenergy = 23000,
 		buildcostmetal = 1000,
-		buildpic = "CORBAN.PNG",
+		buildpic = "CORBAN.DDS",
 		buildtime = 23129,
 		canmove = true,
 		category = "ALL TANK WEAPON NOTSUB NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -43,6 +43,7 @@ return {
 		turninplacespeedlimit = 1.2573,
 		turnrate = 300,
 		customparams = {
+			unitgroup = 'weapon',
 			basename = "base",
 			cannon1name = "missile1",
 			cannon2name = "missile2",

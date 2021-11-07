@@ -7,7 +7,7 @@ return {
 		brakerate = 0.375,
 		buildcostenergy = 6100,
 		buildcostmetal = 240,
-		buildpic = "CORSEAP.PNG",
+		buildpic = "CORSEAP.DDS",
 		buildtime = 10698,
 		canfly = true,
 		canmove = true,
@@ -37,6 +37,7 @@ return {
 		sonardistance = 535,
 		turnrate = 610,
 		customparams = {
+			unitgroup = 'sub',
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "corseaplanes",

@@ -6,7 +6,7 @@ return {
 		brakerate = 0.11666,
 		buildcostenergy = 6400,
 		buildcostmetal = 330,
-		buildpic = "ARMLATNK.PNG",
+		buildpic = "ARMLATNK.DDS",
 		buildtime = 6027,
 		canmove = true,
 		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -42,6 +42,7 @@ return {
 		turninplacespeedlimit = 2.19516,
 		turnrate = 440,
 		customparams = {
+			unitgroup = 'weaponaa',
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armvehicles/t2",
@@ -220,7 +221,7 @@ return {
 				def = "LIGHTNING",
 				onlytargetcategory = "SURFACE",
 			},
-			[3] = {
+			[2] = {
 				def = "ARMAMPH_MISSILE",
 				onlytargetcategory = "VTOL",
 			},

@@ -10,7 +10,7 @@ return {
 		buildcostmetal = 750,
 		builddistance = 145,
 		builder = true,
-		buildpic = "CORDECOM.PNG",
+		buildpic = "CORDECOM.DDS",
 		buildtime = 26941,
 		cancapture = true,
 		candgun = true,
@@ -78,6 +78,7 @@ return {
 			[16] = "corfmkr",
 		},
 		customparams = {
+			unitgroup = 'buildert2',
 			decoyfor = "corcom",
 			area_mex_def = "cormex",
 			model_author = "Beherith",

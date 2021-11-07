@@ -10,7 +10,7 @@ return {
 		buildcostmetal = 2700,
 		builddistance = 145,
 		builder = true,
-		buildpic = "CORCOM.PNG",
+		buildpic = "CORCOM.DDS",
 		buildtime = 75000,
 		cancapture = true,
 		cancloak = true,
@@ -96,6 +96,7 @@ return {
 			[27] = "corfhp",
 		},
 		customparams = {
+			unitgroup = 'builder',
 			area_mex_def = "cormex",
 			iscommander = true,
 			--energyconv_capacity = 70,

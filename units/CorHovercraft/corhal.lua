@@ -6,7 +6,7 @@ return {
 		brakerate = 0.02428,
 		buildcostenergy = 13000,
 		buildcostmetal = 640,
-		buildpic = "CORHAL.PNG",
+		buildpic = "CORHAL.DDS",
 		buildtime = 12907,
 		canmove = true,
 		category = "ALL HOVER WEAPON NOTSUB NOTAIR SURFACE EMPABLE",
@@ -37,6 +37,7 @@ return {
 		turninplacespeedlimit = 0.9768,
 		turnrate = 410,
 		customparams = {
+			unitgroup = 'weapon',
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "corhovercraft",

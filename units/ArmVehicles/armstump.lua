@@ -6,7 +6,7 @@ return {
 		brakerate = 0.08759,
 		buildcostenergy = 2000,
 		buildcostmetal = 225,
-		buildpic = "ARMSTUMP.PNG",
+		buildpic = "ARMSTUMP.DDS",
 		buildtime = 2904,
 		canmove = true,
 		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -43,6 +43,7 @@ return {
 		turninplacespeedlimit = 1.952,
 		turnrate = 340,
 		customparams = {
+			unitgroup = 'weapon',
 			basename = "base",
 			cannon1name = "cannon1",
 			longdescription = Spring.I18N('units.longDescriptions.armstump'),

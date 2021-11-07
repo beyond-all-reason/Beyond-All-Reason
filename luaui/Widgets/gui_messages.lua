@@ -53,18 +53,8 @@ local font, chobbyInterface, hovering, startFadeTime
 local RectRound, elementCorner
 
 local hideSpecChat = tonumber(Spring.GetConfigInt("HideSpecChat", 0) or 0) == 1
-
-
-local function lines(str)
-	local text = {}
-	local function helper(line) text[#text+1] = line return "" end
-	helper((str:gsub("(.-)\r?\n", helper)))
-	return text
-end
-
-local function isOnRect(x, y, leftX, bottomY,rightX,TopY)
-	return x >= leftX and x <= rightX and y >= bottomY and y <= TopY
-end
+local math_isInRect = math.isInRect
+local string_lines = string.lines
 
 function widget:ViewResize()
 	vsx,vsy = Spring.GetViewGeometry()
@@ -108,7 +98,7 @@ local function addMessage(text)
 		end
 
 		-- convert /n into lines
-		local textLines = lines(text)
+		local textLines = string_lines(text)
 
 		-- word wrap text into lines
 		local wordwrappedText = {}
@@ -190,12 +180,12 @@ function widget:Update(dt)
 	local x,y,b = Spring.GetMouseState()
 	if WG['topbar'] and WG['topbar'].showingQuit() then
 		scrolling = false
-	elseif isOnRect(x, y, activationArea[1], activationArea[2], activationArea[3], activationArea[4]) then
+	elseif math_isInRect(x, y, activationArea[1], activationArea[2], activationArea[3], activationArea[4]) then
 		local alt, ctrl, meta, shift = Spring.GetModKeyState()
 		if ctrl and shift and startFadeTime and os.clock() > startFadeTime+fadeDelay then
 			scrolling = true
 		end
-	elseif scrolling and isOnRect(x, y, activationArea[1], activationArea[2], activationArea[1]+lineMaxWidth+(charSize*2*widgetScale), activationArea[2]+activatedHeight) then
+	elseif scrolling and math_isInRect(x, y, activationArea[1], activationArea[2], activationArea[1]+lineMaxWidth+(charSize*2*widgetScale), activationArea[2]+activatedHeight) then
 		-- do nothing
 	else
 		scrolling = false
@@ -244,7 +234,7 @@ function widget:DrawScreen()
 	if not messageLines[1] then return end
 
 	local x,y,b = Spring.GetMouseState()
-	if isOnRect(x, y, activationArea[1], activationArea[2], activationArea[3], activationArea[4]) or  (scrolling and isOnRect(x, y, activationArea[1], activationArea[2], activationArea[1]+lineMaxWidth+(charSize*2*widgetScale), activationArea[2]+activatedHeight))  then
+	if math_isInRect(x, y, activationArea[1], activationArea[2], activationArea[3], activationArea[4]) or  (scrolling and math_isInRect(x, y, activationArea[1], activationArea[2], activationArea[1]+lineMaxWidth+(charSize*2*widgetScale), activationArea[2]+activatedHeight))  then
 		hovering = true
 		if not startFadeTime then
 			startFadeTime = os.clock()
@@ -341,7 +331,7 @@ end
 
 function widget:WorldTooltip(ttType,data1,data2,data3)
 	local x,y,_ = Spring.GetMouseState()
-	if #messageLines > 0 and isOnRect(x, y, activationArea[1],activationArea[2],activationArea[3],activationArea[4]) then
+	if #messageLines > 0 and math_isInRect(x, y, activationArea[1],activationArea[2],activationArea[3],activationArea[4]) then
 		return Spring.I18N('ui.messages.scroll', { textColor = "\255\255\255\255", highlightColor = "\255\255\255\001" })
 	end
 end

@@ -7,7 +7,7 @@ return {
 		brakerate = 0.11647,
 		buildcostenergy = 10500,
 		buildcostmetal = 470,
-		buildpic = "CORSENT.PNG",
+		buildpic = "CORSENT.DDS",
 		buildtime = 11986,
 		canmove = true,
 		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -43,6 +43,7 @@ return {
 		turninplacespeedlimit = 1.6335,
 		turnrate = 591.79999,
 		customparams = {
+			unitgroup = 'aa',
 			model_author = "Mr Bob, remodelled by PtaQ",
 			normaltex = "unittextures/cor_normal.dds",
 			prioritytarget = "air",
@@ -208,7 +209,7 @@ return {
 				def = "BOGUS_MISSILE",
 				onlytargetcategory = "VTOL",
 			},
-			[3] = {
+			[2] = {
 				badtargetcategory = "NOTAIR LIGHTAIRSCOUT",
 				def = "MOBILEFLAK",
 				onlytargetcategory = "VTOL",

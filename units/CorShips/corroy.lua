@@ -8,7 +8,7 @@ return {
 		buildangle = 16384,
 		buildcostenergy = 7200,
 		buildcostmetal = 960,
-		buildpic = "CORROY.PNG",
+		buildpic = "CORROY.DDS",
 		buildtime = 10600,
 		canmove = true,
 		category = "ALL NOTLAND MOBILE WEAPON SHIP NOTSUB NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -41,6 +41,7 @@ return {
 		turnrate = 291,
 		waterline = 0,
 		customparams = {
+			unitgroup = 'weapon',
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "corships",

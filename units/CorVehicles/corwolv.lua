@@ -6,7 +6,7 @@ return {
 		brakerate = 0.04585,
 		buildcostenergy = 2300,
 		buildcostmetal = 155,
-		buildpic = "CORWOLV.PNG",
+		buildpic = "CORWOLV.DDS",
 		buildtime = 3254,
 		canmove = true,
 		category = "ALL TANK WEAPON NOTSUB NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -45,6 +45,7 @@ return {
 		turninplacespeedlimit = 1.2342,
 		turnrate = 466,
 		customparams = {
+			unitgroup = 'weapon',
 			basename = "base",
 			canareaattack = 1,
 			cannon1name = "barrel1",

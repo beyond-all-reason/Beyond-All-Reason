@@ -8,7 +8,7 @@ return {
 		brakerate = 0.01125,
 		buildcostenergy = 4900,
 		buildcostmetal = 120,
-		buildpic = "ARMHAWK.PNG",
+		buildpic = "ARMHAWK.DDS",
 		buildtime = 7680,
 		canfly = true,
 		canmove = true,
@@ -45,6 +45,7 @@ return {
 		wingangle = 0.06333,
 		wingdrag = 0.0575,
 		customparams = {
+			unitgroup = 'aa',
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armaircraft/t2",

@@ -1,17 +1,4 @@
-//            * Header Info *
-// VersionSignature                     4
-// NumberOfScripts                     17
-// NumberOfPieces                      5
-// LengthOfScripts                     2f7
-// NumberOfStaticVars                  4
-// UKZero                              0
-// OffsetToScriptCodeIndexArray        c08
-// OffsetToScriptNameOffsetArray       c4c
-// OffsetToPieceNameOffsetArray        c90
-// OffsetToScriptCode                  2c
-// OffsetToNameArray                   ca4
 
-// OffsetToFirstName                   ca4
 
 #define TA			// This is a TA script
 
@@ -27,172 +14,147 @@ static-var  gun_1, restore_delay, statechg_DesiredState, statechg_StateChanging;
 
 
 activatescr()
-/*     0:*/{
-/*     2:*/	if( TRUE )
-/*     4:*/	{
+{
+	if( TRUE )
+	{
 				turn door1 to z-axis <180> speed <10>;
 				turn door2 to z-axis <-180> speed <10>;
-/*    12:*/		sleep 8500;
-/*    13:*/	}
-/*    81:*/	return (0);
-/*    82:*/}
+		sleep 8500;
+	}
+	return (0);
+}
 
 deactivatescr()
-/*    82:*/{
-/*     2:*/	if( TRUE )
-/*     4:*/	{
+{
+	if( TRUE )
+	{
 				turn door1 to z-axis <0> speed <10>;
 				turn door2 to z-axis <0> speed <10>;
 				wait-for-turn door1 around z-axis;
-/*    12:*/		sleep 3000;
-/*    13:*/	}
+		sleep 3000;
+	}
 			sleep 10000;
-/*   11b:*/	return (0);
-/*   11c:*/}
+	return (0);
+}
 
-SmokeUnit(healthpercent, sleeptime, smoketype)
-/*   11f:*/{
-/*   122:*/	while( get BUILD_PERCENT_LEFT )
-/*   124:*/	{
-/*   126:*/		sleep 400;
-/*   129:*/	}
-/*   12b:*/	while( TRUE )
-/*   12d:*/	{
-/*   130:*/		healthpercent = get HEALTH;
-/*   137:*/		if( healthpercent < 66 )
-/*   139:*/		{
-/*   13e:*/			smoketype = 256 | 2;
-/*   148:*/			if( Rand( 1, 66 ) < healthpercent )
-/*   14a:*/			{
-/*   14f:*/				smoketype = 256 | 1;
-/*   151:*/			}
-/*   153:*/			emit-sfx smoketype from base;
-/*   155:*/		}
-/*   15a:*/		sleeptime = healthpercent * 50;
-/*   161:*/		if( sleeptime < 200 )
-/*   163:*/		{
-/*   165:*/			sleeptime = 200;
-/*   167:*/		}
-/*   169:*/		sleep sleeptime;
-/*   16c:*/	}
-/*   16e:*/	return (0);
-/*   16f:*/}
 
 Go()
-/*   16f:*/{
-/*   16f:*/	call-script activatescr();
-/*   174:*/	gun_1 = flare;
-/*   178:*/	return (0);
-/*   179:*/}
+{
+	call-script activatescr();
+	gun_1 = flare;
+	return (0);
+}
 
 Stop()
-/*   179:*/{
-/*   17b:*/	gun_1 = base;
-/*   17f:*/	sleep 4000;
-/*   180:*/	call-script deactivatescr();
-/*   187:*/	return (0);
-/*   188:*/}
+{
+	gun_1 = base;
+	sleep 4000;
+	call-script deactivatescr();
+	return (0);
+}
 
 InitState()
-/*   188:*/{
-/*   18a:*/	statechg_DesiredState = TRUE;
-/*   18e:*/	statechg_StateChanging = FALSE;
-/*   192:*/	return (0);
-/*   193:*/}
+{
+	statechg_DesiredState = TRUE;
+	statechg_StateChanging = FALSE;
+	return (0);
+}
 
 RequestState(requestedstate, currentstate)
-/*   195:*/{
-/*   197:*/	if( statechg_StateChanging )
-/*   199:*/	{
-/*   19b:*/		statechg_DesiredState = requestedstate;
-/*   19f:*/		return (0);
-/*   1a0:*/	}
-/*   1a2:*/	statechg_StateChanging = TRUE;
-/*   1a6:*/	currentstate = statechg_DesiredState;
-/*   1aa:*/	statechg_DesiredState = requestedstate;
-/*   1b1:*/	while( statechg_DesiredState != currentstate )
-/*   1b3:*/	{
-/*   1b8:*/		if( statechg_DesiredState == 0 )
-/*   1ba:*/		{
-/*   1ba:*/			call-script Go();
-/*   1bf:*/			currentstate = 0;
-/*   1c1:*/		}
-/*   1c6:*/		if( statechg_DesiredState == 1 )
-/*   1c8:*/		{
-/*   1c8:*/			call-script Stop();
-/*   1cd:*/			currentstate = 1;
-/*   1cf:*/		}
-/*   1d1:*/	}
-/*   1d3:*/	statechg_StateChanging = FALSE;
-/*   1d7:*/	return (0);
-/*   1d8:*/}
+{
+	if( statechg_StateChanging )
+	{
+		statechg_DesiredState = requestedstate;
+		return (0);
+	}
+	statechg_StateChanging = TRUE;
+	currentstate = statechg_DesiredState;
+	statechg_DesiredState = requestedstate;
+	while( statechg_DesiredState != currentstate )
+	{
+		if( statechg_DesiredState == 0 )
+		{
+			call-script Go();
+			currentstate = 0;
+		}
+		if( statechg_DesiredState == 1 )
+		{
+			call-script Stop();
+			currentstate = 1;
+		}
+	}
+	statechg_StateChanging = FALSE;
+	return (0);
+}
 
 Create()
-/*   1d8:*/{
-/*   1da:*/	gun_1 = base;
-/*   1ec:*/	restore_delay = 3000;
-/*   1ee:*/	start-script SmokeUnit();
-/*   1f1:*/	call-script InitState();
-/*   1f6:*/	return (0);
-/*   1f7:*/}
+{
+	gun_1 = base;
+	restore_delay = 3000;
+	call-script InitState();
+	return (0);
+}
+
+#define SMOKEPIECE base
+#include "smokeunit_thread_nohit.h"
 
 Activate()
-/*   1f7:*/{
-/*   1f9:*/	start-script RequestState(0);
-/*   1fe:*/	return (0);
-/*   1ff:*/}
+{
+	start-script RequestState(0);
+	return (0);
+}
 
 Deactivate()
-/*   1ff:*/{
-/*   201:*/	start-script RequestState(1);
-/*   206:*/	return (0);
-/*   207:*/}
+{
+	start-script RequestState(1);
+	return (0);
+}
 
 SetMaxReloadTime(Func_Var_1)
-/*   208:*/{
-/*   20d:*/	restore_delay = Func_Var_1 * 2;
-/*   211:*/	return (0);
-/*   212:*/}
+{
+	restore_delay = Func_Var_1 * 2;
+	return (0);
+}
 
 RestoreAfterDelay()
-/*   212:*/{
-/*   214:*/	sleep restore_delay;
-/*   217:*/	set-signal-mask 0;
-/*   21a:*/	start-script RequestState(1);
-/*   21f:*/	return (0);
-/*   220:*/}
+{
+	sleep restore_delay;
+	set-signal-mask 0;
+	start-script RequestState(1);
+	return (0);
+}
 
 AimPrimary(heading, pitch)
-/*   222:*/{
-/*   224:*/	start-script RequestState(0);
-/*   229:*/	signal SIG_AIM;
-/*   22c:*/	set-signal-mask SIG_AIM;
-/*   230:*/	while( !gun_1 )
-/*   232:*/	{
-/*   234:*/		sleep 250;
-/*   237:*/	}
-/*   237:*/	start-script RestoreAfterDelay();
-/*   23c:*/	return (1);
-/*   23d:*/}
+{
+	start-script RequestState(0);
+	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
+	while( !gun_1 )
+	{
+		sleep 250;
+	}
+	start-script RestoreAfterDelay();
+	return (1);
+}
 
 FirePrimary()
-/*   23d:*/{
-/*   241:*/	gun_1 = base;
-/*   245:*/	start-script RequestState(1);
-/*   24a:*/	return (0);
-/*   24b:*/}
+{
+	gun_1 = base;
+	start-script RequestState(1);
+	return (0);
+}
 
 QueryPrimary(piecenum)
-/*   24c:*/{
-/*   24e:*/	piecenum = flare;
-/*   252:*/	return (0);
-/*   253:*/}
+{
+	piecenum = flare;
+	return (0);
+}
 
 SweetSpot(piecenum)
-/*   254:*/{
-/*   256:*/	piecenum = base;
-/*   25a:*/	return (0);
-/*   25b:*/}
+{
+	piecenum = base;
+	return (0);
+}
 
 Killed(severity, corpsetype)
 {

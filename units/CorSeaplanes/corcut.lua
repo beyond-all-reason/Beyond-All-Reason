@@ -7,7 +7,7 @@ return {
 		brakerate = 0.3938,
 		buildcostenergy = 5400,
 		buildcostmetal = 230,
-		buildpic = "CORCUT.PNG",
+		buildpic = "CORCUT.DDS",
 		buildtime = 9470,
 		canfly = true,
 		canmove = true,
@@ -37,6 +37,7 @@ return {
 		turninplaceanglelimit = 360,
 		turnrate = 550,
 		customparams = {
+			unitgroup = 'weapon',
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "corseaplanes",

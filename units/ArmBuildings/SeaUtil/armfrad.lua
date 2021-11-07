@@ -8,7 +8,7 @@ return {
 		buildangle = 16384,
 		buildcostenergy = 1000,
 		buildcostmetal = 130,
-		buildpic = "ARMFRAD.PNG",
+		buildpic = "ARMFRAD.DDS",
 		buildtime = 1800,
 		canattack = false,
 		canrepeat = false,
@@ -41,6 +41,7 @@ return {
 		waterline = 1,
 		yardmap = "wwwwwwwww",
 		customparams = {
+			unitgroup = 'util',
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			removestop = true,

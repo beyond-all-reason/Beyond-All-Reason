@@ -8,7 +8,7 @@ return {
 		brakerate = 0.0451,
 		buildcostenergy = 4000,
 		buildcostmetal = 580,
-		buildpic = "CORSUB.PNG",
+		buildpic = "CORSUB.DDS",
 		buildtime = 7200,
 		canmove = true,
 		category = "ALL UNDERWATER MOBILE WEAPON NOTLAND NOTAIR NOTHOVER",
@@ -41,6 +41,7 @@ return {
 		upright = true,
 		waterline = 45,
 		customparams = {
+			unitgroup = 'sub',
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "corships",

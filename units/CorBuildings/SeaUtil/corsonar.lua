@@ -8,7 +8,7 @@ return {
 		buildangle = 8192,
 		buildcostenergy = 450,
 		buildcostmetal = 20,
-		buildpic = "CORSONAR.PNG",
+		buildpic = "CORSONAR.DDS",
 		buildtime = 900,
 		canattack = false,
 		canrepeat = false,
@@ -37,6 +37,7 @@ return {
 		sonardistance = 1200,
 		yardmap = "oooo",
 		customparams = {
+			unitgroup = 'util',
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			removestop = true,

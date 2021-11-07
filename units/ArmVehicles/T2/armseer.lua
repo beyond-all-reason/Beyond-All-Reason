@@ -7,7 +7,7 @@ return {
 		brakerate = 0.09757,
 		buildcostenergy = 2000,
 		buildcostmetal = 125,
-		buildpic = "ARMSEER.PNG",
+		buildpic = "ARMSEER.DDS",
 		buildtime = 6186,
 		canattack = false,
 		canmove = true,
@@ -45,6 +45,7 @@ return {
 		turninplacespeedlimit = 1.33584,
 		turnrate = 605,
 		customparams = {
+			unitgroup = 'util',
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armvehicles/t2",

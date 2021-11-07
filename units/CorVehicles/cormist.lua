@@ -7,7 +7,7 @@ return {
 		brakerate = 0.04416,
 		buildcostenergy = 2400,
 		buildcostmetal = 155,
-		buildpic = "CORMIST.PNG",
+		buildpic = "CORMIST.DDS",
 		buildtime = 3435,
 		canmove = true,
 		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -42,6 +42,7 @@ return {
 		turninplacespeedlimit = 0.99,
 		turnrate = 370,
 		customparams = {
+			unitgroup = 'weaponaa',
 			longdescription = Spring.I18N('units.longDescriptions.cormist'),
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",

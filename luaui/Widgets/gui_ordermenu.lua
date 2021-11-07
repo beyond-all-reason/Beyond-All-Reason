@@ -14,16 +14,14 @@ local cellZoom = 1
 local cellClickedZoom = 1.05
 local cellHoverZoom = 1.035
 
-local altPosition = true
-
 local showIcons = false
 local colorize = 0
 local playSounds = true
-local stickToBottom = false
+local stickToBottom = true
 local alwaysShow = false
 
 local posX = 0
-local posY = 0.75
+local posY = 0.8
 local width = 0
 local height = 0
 local cellMarginOriginal = 0.055
@@ -78,6 +76,7 @@ local commands = {}
 local rows = 0
 local cols = 0
 local disableInput = false
+local math_isInRect = math.isInRect
 
 local font, backgroundPadding, widgetSpaceMargin, chobbyInterface, displayListOrders, displayListGuiShader
 local clickedCell, clickedCellTime, clickedCellDesiredState, cellWidth, cellHeight
@@ -283,20 +282,23 @@ function widget:ViewResize()
 	elementCorner = WG.FlowUI.elementCorner
 
 	widgetSpaceMargin = WG.FlowUI.elementMargin
-	if stickToBottom or (altPosition and not buildmenuBottomPosition) then
 
+	if WG['minimap'] then
+		minimapHeight = WG['minimap'].getHeight()
+	end
+	if stickToBottom then
 		posY = height
 		posX = width + (widgetSpaceMargin/viewSizeX)
 	else
 		if buildmenuBottomPosition then
 			posX = 0
 			posY = height + height + (widgetSpaceMargin/viewSizeY)
-		else
+		elseif WG['buildmenu'] then
 			local posY2, _ = WG['buildmenu'].getSize()
 			posY2 = posY2 + (widgetSpaceMargin/viewSizeY)
 			posY = posY2 + height
 			if WG['minimap'] then
-				posY = 1 - (WG['minimap'].getHeight() / viewSizeY) - (widgetSpaceMargin/viewSizeY)
+				posY = 1 - (minimapHeight / viewSizeY) - (widgetSpaceMargin/viewSizeY)
 			end
 			posX = 0
 		end
@@ -318,10 +320,6 @@ function widget:ViewResize()
 end
 
 function widget:Initialize()
-	if WG['minimap'] then
-		altPosition = WG['minimap'].getEnlarged()
-	end
-
 	widget:ViewResize()
 	widget:SelectionChanged()
 
@@ -399,8 +397,8 @@ function widget:Update(dt)
 			uiOpacity = Spring.GetConfigFloat("ui_opacity", 0.6)
 			doUpdate = true
 		end
-		if WG['minimap'] and altPosition ~= WG['minimap'].getEnlarged() then
-			altPosition = WG['minimap'].getEnlarged()
+
+		if WG['minimap'] and minimapHeight ~= WG['minimap'].getHeight() then
 			widget:ViewResize()
 			setupCellGrid(true)
 			doUpdate = true
@@ -425,10 +423,6 @@ local function RectQuad(px, py, sx, sy, offset)
 end
 function DrawRect(px, py, sx, sy, zoom)
 	gl.BeginEnd(GL.QUADS, RectQuad, px, py, sx, sy, zoom)
-end
-
-function IsOnRect(x, y, BLcornerX, BLcornerY, TRcornerX, TRcornerY)
-	return x >= BLcornerX and x <= TRcornerX and y >= BLcornerY and y <= TRcornerY
 end
 
 local function drawCell(cell, zoom)
@@ -654,11 +648,11 @@ function widget:DrawScreen()
 	local x, y, b = Spring.GetMouseState()
 	local cellHovered
 	if not WG['topbar'] or not WG['topbar'].showingQuit() then
-		if IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
+		if math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
 			Spring.SetMouseCursor('cursornormal')
 			for cell = 1, #cellRects do
 				if commands[cell] then
-					if IsOnRect(x, y, cellRects[cell][1], cellRects[cell][2], cellRects[cell][3], cellRects[cell][4]) then
+					if math_isInRect(x, y, cellRects[cell][1], cellRects[cell][2], cellRects[cell][3], cellRects[cell][4]) then
 						local cmd = commands[cell]
 						if WG['tooltip'] then
 							local tooltipKey = cmd.action .. '_tooltip'
@@ -806,13 +800,13 @@ function widget:MousePress(x, y, button)
 	if Spring.IsGUIHidden() then
 		return
 	end
-	if IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
+	if math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
 		if #commands > 0 then
 			if not disableInput then
 				for cell = 1, #cellRects do
 					local cmd = commands[cell]
 					if cmd then
-						if IsOnRect(x, y, cellRects[cell][1], cellRects[cell][2], cellRects[cell][3], cellRects[cell][4]) then
+						if math_isInRect(x, y, cellRects[cell][1], cellRects[cell][2], cellRects[cell][3], cellRects[cell][4]) then
 							clickCountDown = 2
 							clickedCell = cell
 							clickedCellTime = os_clock()
@@ -867,17 +861,17 @@ function widget:SelectionChanged(sel)
 end
 
 function widget:GetConfigData()
-	--save config
-	return { colorize = colorize, stickToBottom = stickToBottom, alwaysShow = alwaysShow, disabledCmd = disabledCommand}
+	return { version = 1, colorize = colorize, stickToBottom = stickToBottom, alwaysShow = alwaysShow, disabledCmd = disabledCommand}
 end
 
 function widget:SetConfigData(data)
-	--load config
+	if data.version then
+		if data.stickToBottom ~= nil then
+			stickToBottom = data.stickToBottom
+		end
+	end
 	if data.colorize ~= nil then
 		colorize = data.colorize
-	end
-	if data.stickToBottom ~= nil then
-		stickToBottom = data.stickToBottom
 	end
 	if data.alwaysShow ~= nil then
 		alwaysShow = data.alwaysShow

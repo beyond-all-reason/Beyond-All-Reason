@@ -10,7 +10,7 @@ return {
 		buildcostenergy = 3520,
 		buildcostmetal = 302,
 		builder = false,
-		buildpic = "chickens/chickena2.PNG",
+		buildpic = "chickens/chickena2.DDS",
 		buildtime = 30000,
 		canattack = true,
 		canguard = true,
@@ -21,7 +21,6 @@ return {
 		collisionvolumeoffsets = "0 10 2",
 		collisionvolumescales = "37 55 90",
 		collisionvolumetype = "box",
-		-- handled gadget side -- corpse = "chicken_egg_l_pink",
 		defaultmissiontype = "Standby",
 		description = Spring.I18N('units.descriptions.chickena2'),
 		explodeas = "BIGBUG_DEATH",
@@ -62,13 +61,9 @@ return {
 		customparams = {
 			maxrange = "200",
 			subfolder = "other/chickens",
-      model_author = "KDR_11k, Beherith",
+			model_author = "KDR_11k, Beherith",
 			normalmaps = "yes",
 			normaltex = "unittextures/chicken_l_normals.png",
-		},
-		featuredefs = {
-			dead = {},
-			heap = {},
 		},
 		sfxtypes = {
 			explosiongenerators = {

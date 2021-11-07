@@ -6,7 +6,7 @@ return {
 		brakerate = 0.01431,
 		buildcostenergy = 13500,
 		buildcostmetal = 1200,
-		buildpic = "ARMMANNI.PNG",
+		buildpic = "ARMMANNI.DDS",
 		buildtime = 25706,
 		canmove = true,
 		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -44,6 +44,7 @@ return {
 		turninplacespeedlimit = 1.00188,
 		turnrate = 120.8,
 		customparams = {
+			unitgroup = 'weapon',
 			basename = "base",
 			cannon1name = "barrel",
 			driftratio = "0",

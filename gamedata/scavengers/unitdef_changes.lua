@@ -1,13 +1,14 @@
 -- (note that alldefs_post.lua is still ran afterwards if you change anything there)
 
 -- Special rules:
--- you only need to put the things you want changed in comparison with the regular unitdef. (use the same table structure)
--- since you cant actually remove parameters normally, it will do it when you set string: 'nil' as value
--- normally an empty table as value will be ignored when merging, but not here, it will overwrite what it had with an empty table
+-- Only things you want changed in comparison with the regular unitdef need to be present (use the same table structure)
+-- Since you can't actually remove parameters normally, it will do it when you set string: 'nil' as value
+-- Normally an empty table as value will be ignored when merging, but not here, it will overwrite what it had with an empty table
 
-customDefs = {}
 
-scavDifficulty = Spring.GetModOptions().scavdifficulty
+local customDefs = {}
+
+local scavDifficulty = Spring.GetModOptions().scavdifficulty
 if scavDifficulty == "noob" then
 	ScavDifficultyMultiplier = 0.1
 elseif scavDifficulty == "veryeasy" then
@@ -31,7 +32,7 @@ end
 local scavUnit = {}
 for name,uDef in pairs(UnitDefs) do
 	if string.sub(name, 1, 3) == "arm" or string.sub(name, 1, 3) == "cor" then
-		scavUnit[#scavUnit+1] = name..'_scav'
+		scavUnit[#scavUnit+1] = name .. '_scav'
 	end
 end
 
@@ -62,14 +63,12 @@ local scavConstructorsList = {
 	"coracv",
 }
 
-
-
 customDefs.scavengerdroppodbeacon = {
-	maxdamage = 20000*ScavDifficultyMultiplier,
+	maxdamage = 20000 * ScavDifficultyMultiplier,
 }
 
 customDefs.scavsafeareabeacon = {
-	maxdamage = 50000*ScavDifficultyMultiplier,
+	maxdamage = 50000 * ScavDifficultyMultiplier,
 }
 
 -- Scav Commanders
@@ -97,7 +96,7 @@ customDefs.corcom = {
 	stealth = false,
 	workertime = 200,				-- can get multiplied in unitdef_post
 	customparams = {
-		iscommander = 'nil',		-- since you cant actually remove parameters normally, it will do it when you set string: 'nil' as value
+		iscommander = 'nil',
 	},
 	featuredefs = {
 		dead = {
@@ -164,7 +163,7 @@ customDefs.corcomcon = {
 	stealth = false,
 	workertime = 200,				-- can get multiplied in unitdef_post
 	customparams = {
-		iscommander = 'nil',		-- since you cant actually remove parameters normally, it will do it when you set string: 'nil' as value
+		iscommander = 'nil',
 	},
 	featuredefs = {
 		dead = {
@@ -230,7 +229,7 @@ customDefs.armcom = {
 	stealth = false,
 	workertime = 200,				-- can get multiplied in unitdef_post
 	customparams = {
-		iscommander = 'nil',		-- since you cant actually remove parameters normally, it will do it when you set string: 'nil' as value
+		iscommander = 'nil',
 	},
 	featuredefs = {
 		dead = {
@@ -296,7 +295,7 @@ customDefs.armcomcon = {
 	stealth = false,
 	workertime = 200,				-- can get multiplied in unitdef_post
 	customparams = {
-		iscommander = 'nil',		-- since you cant actually remove parameters normally, it will do it when you set string: 'nil' as value
+		iscommander = 'nil',
 	},
 	featuredefs = {
 		dead = {
@@ -378,6 +377,7 @@ customDefs.corscavdtl = {
 customDefs.corbw = {
 	weapondefs = {
 		bladewing_lyzer = {
+			explosiongenerator = "custom:laserhit-tiny-blue",
 			paralyzer = false,
 			reloadtime = 0.1,
 			damage = {
@@ -478,7 +478,6 @@ customDefs.armshltx = {
 		[numBuildoptions+5] = "armlunchbox",
 		[numBuildoptions+6] = "armmeatball",
 		[numBuildoptions+7] = "armassimilator",
-		
 	},
 }
 
@@ -498,7 +497,7 @@ customDefs.corgant = {
 		[numBuildoptions+1] = "cordemont4",
 		[numBuildoptions+2] = "corkarganetht4",
 		[numBuildoptions+3] = "corgolt4",
-		
+		[numBuildoptions+4] = "corakt4",
 	},
 }
 
@@ -540,19 +539,19 @@ customDefs.armasy = {
 	},
 }
 
-numBuildoptions = #UnitDefs.corap.buildoptions
-customDefs.corap = {
-	buildoptions = {
-		[numBuildoptions+1] = "corassistdrone",
-	},
-}
+-- numBuildoptions = #UnitDefs.corap.buildoptions
+-- customDefs.corap = {
+-- 	buildoptions = {
+-- 		[numBuildoptions+1] = "corassistdrone",
+-- 	},
+-- }
 
-numBuildoptions = #UnitDefs.armap.buildoptions
-customDefs.armap = {
-	buildoptions = {
-		[numBuildoptions+1] = "armassistdrone",
-	},
-}
+-- numBuildoptions = #UnitDefs.armap.buildoptions
+-- customDefs.armap = {
+-- 	buildoptions = {
+-- 		[numBuildoptions+1] = "armassistdrone",
+-- 	},
+-- }
 
 numBuildoptions = #UnitDefs.armca.buildoptions
 customDefs.armca = {
@@ -561,6 +560,7 @@ customDefs.armca = {
 		[numBuildoptions+2] = "corscavdtl",
 		[numBuildoptions+3] = "corscavdtf",
 		[numBuildoptions+4] = "corscavdtm",
+		[numBuildoptions+5] = "armmg",
 	},
 }
 
@@ -571,6 +571,7 @@ customDefs.armck = {
 		[numBuildoptions+2] = "corscavdtl",
 		[numBuildoptions+3] = "corscavdtf",
 		[numBuildoptions+4] = "corscavdtm",
+		[numBuildoptions+5] = "armmg",
 	},
 }
 
@@ -581,6 +582,7 @@ customDefs.armcv = {
 		[numBuildoptions+2] = "corscavdtl",
 		[numBuildoptions+3] = "corscavdtf",
 		[numBuildoptions+4] = "corscavdtm",
+		[numBuildoptions+5] = "armmg",
 	},
 }
 
@@ -621,6 +623,8 @@ customDefs.armaca = {
 		[numBuildoptions+2] = "armminivulc",
 		[numBuildoptions+3] = "armwint2",
 		[numBuildoptions+4] = "corscavfort",
+		[numBuildoptions+5] = "armbotrail",
+		[numBuildoptions+6] = "armannit3",
 	},
 }
 
@@ -631,6 +635,8 @@ customDefs.armack = {
 		[numBuildoptions+2] = "armminivulc",
 		[numBuildoptions+3] = "armwint2",
 		[numBuildoptions+4] = "corscavfort",
+		[numBuildoptions+5] = "armbotrail",
+		[numBuildoptions+6] = "armannit3",
 	},
 }
 
@@ -641,6 +647,8 @@ customDefs.armacv = {
 		[numBuildoptions+2] = "armminivulc",
 		[numBuildoptions+3] = "armwint2",
 		[numBuildoptions+4] = "corscavfort",
+		[numBuildoptions+5] = "armbotrail",
+		[numBuildoptions+6] = "armannit3",
 	},
 }
 
@@ -652,6 +660,7 @@ customDefs.coraca = {
 		[numBuildoptions+3] = "corwint2",
 		[numBuildoptions+4] = "corhllllt",
 		[numBuildoptions+5] = "corscavfort",
+		[numBuildoptions+6] = "cordoomt3",
 	},
 }
 
@@ -663,6 +672,7 @@ customDefs.corack = {
 		[numBuildoptions+3] = "corwint2",
 		[numBuildoptions+4] = "corhllllt",
 		[numBuildoptions+5] = "corscavfort",
+		[numBuildoptions+6] = "cordoomt3",
 	},
 }
 
@@ -674,6 +684,24 @@ customDefs.coracv = {
 		[numBuildoptions+3] = "corwint2",
 		[numBuildoptions+4] = "corhllllt",
 		[numBuildoptions+5] = "corscavfort",
+		[numBuildoptions+6] = "cordoomt3",
+	},
+}
+
+-- Purple Juno
+customDefs.armjuno = {
+	weapondefs = {
+		juno_pulse = {
+			explosiongenerator = "custom:juno-explo-purple",
+		},
+	},
+}
+
+customDefs.corjuno = {
+	weapondefs = {
+		juno_pulse = {
+			explosiongenerator = "custom:juno-explo-purple",
+		},
 	},
 }
 
@@ -820,7 +848,6 @@ customDefs.corsktl = {
 
 --]]
 
-
 -- Faster LLT - unique sound - shorter beamtime
 customDefs.corllt = {
 	-- cloakcost = 6,
@@ -854,7 +881,6 @@ customDefs.armamb = {
 		},
 	},
 }
-
 
 customDefs.cortoast = {
 	-- description = Spring.I18N('units.descriptions.cortoast_scav'),
@@ -967,7 +993,6 @@ customDefs.armllt = {
 	},
 }
 
-
 -- customDefs.corvipe = {
 -- 	cloakcost = 20,
 -- 	mincloakdistance = 288,
@@ -987,7 +1012,7 @@ customDefs.armrectr = {
 	footprintx = 0,
 	footprintz = 0,
 	movementclass = "SCAVCOMMANDERBOT",
-	workertime = 100*ScavDifficultyMultiplier, 	-- can get multiplied in unitdef_post
+	workertime = 100 * ScavDifficultyMultiplier, 	-- can get multiplied in unitdef_post
 }
 
 customDefs.cornecro = {
@@ -999,7 +1024,7 @@ customDefs.cornecro = {
 	footprintx = 0,
 	footprintz = 0,
 	movementclass = "SCAVCOMMANDERBOT",
-	workertime = 100*ScavDifficultyMultiplier,		-- can get multiplied in unitdef_post
+	workertime = 100 * ScavDifficultyMultiplier,		-- can get multiplied in unitdef_post
 }
 
 -- LOOTBOXES
@@ -1062,6 +1087,16 @@ customDefs.corvroc = {
 	},
 }
 
+customDefs.armbotrail = {
+	weapondefs = {
+		arm_botrail = {
+			customparams = {
+				spawns_name = "armpw_scav",
+			},
+		},
+	},
+}
+
 customDefs.corhrk = {
 	weapondefs = {
 		corhrk_rocket = {
@@ -1097,3 +1132,5 @@ customDefs.armmh = {
 		},
 	},
 }
+
+return customDefs

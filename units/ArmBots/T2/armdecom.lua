@@ -10,7 +10,7 @@ return {
 		buildcostmetal = 770,
 		builddistance = 145,
 		builder = true,
-		buildpic = "ARMDECOM.PNG",
+		buildpic = "ARMDECOM.DDS",
 		buildtime = 24048,
 		cancapture = true,
 		candgun = true,
@@ -79,6 +79,7 @@ return {
 			[16] = "armfmkr",
 		},
 		customparams = {
+			unitgroup = 'buildert2',
 			decoyfor = "armcom",
 			area_mex_def = "armmex",
 			model_author = "FireStorm",

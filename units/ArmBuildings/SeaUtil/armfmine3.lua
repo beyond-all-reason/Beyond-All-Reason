@@ -7,7 +7,7 @@ return {
 		brakerate = 0,
 		buildcostenergy = 1600,
 		buildcostmetal = 25,
-		buildpic = "ARMFMINE3.PNG",
+		buildpic = "ARMFMINE3.DDS",
 		buildtime = 150,
 		canattack = false,
 		canguard = false,
@@ -45,6 +45,7 @@ return {
 		waterline = 1,
 		yardmap = "w",
 		customparams = {
+			unitgroup = 'explo',
 			detonaterange = "64",
 			model_author = "Beherith",
 			normaltex = "unittextures/Arm_normal.dds",

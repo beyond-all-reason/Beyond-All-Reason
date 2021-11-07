@@ -8,7 +8,7 @@ return {
 		buildangle = 16400,
 		buildcostenergy = 7300,
 		buildcostmetal = 800,
-		buildpic = "ARMFATF.PNG",
+		buildpic = "ARMFATF.DDS",
 		buildtime = 9886,
 		canrepeat = false,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -38,6 +38,7 @@ return {
 		waterline = 3,
 		yardmap = "wwwwwwwwwwwwwwww",
 		customparams = {
+			unitgroup = 'util',
 			model_author = "Cremuss",
 			normaltex = "unittextures/Arm_normal.dds",
 			removestop = true,

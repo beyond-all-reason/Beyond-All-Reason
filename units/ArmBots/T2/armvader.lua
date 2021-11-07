@@ -7,7 +7,7 @@ return {
 		brakerate = 0.5589,
 		buildcostenergy = 5800,
 		buildcostmetal = 65,
-		buildpic = "ARMVADER.PNG",
+		buildpic = "ARMVADER.DDS",
 		buildtime = 7901,
 		canmove = true,
 		category = "BOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE CANBEUW EMPABLE",
@@ -41,6 +41,7 @@ return {
 		turninplacespeedlimit = 1.848,
 		turnrate = 1771,
 		customparams = {
+			unitgroup = 'explo',
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armbots/t2",

@@ -21,7 +21,7 @@ CMD[CMD_LAND_AT_SPECIFIC_AIRBASE] = "LAND_AT_SPECIFIC_AIRBASE"
 local tractorDist = 100 ^ 2 -- default sqr tractor distance
 local isAirbase = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
-	if unitDef.customParams and unitDef.customParams.isairbase then
+	if unitDef.customParams.isairbase then
 		isAirbase[unitDefID] = { tractorDist, unitDef.buildSpeed }
 	end
 end

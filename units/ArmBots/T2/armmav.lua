@@ -7,7 +7,7 @@ return {
 		brakerate = 0.43125,
 		buildcostenergy = 12000,
 		buildcostmetal = 700,
-		buildpic = "ARMMAV.PNG",
+		buildpic = "ARMMAV.DDS",
 		buildtime = 18384,
 		canmove = true,
 		category = "BOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -39,6 +39,7 @@ return {
 		turnrate = 1285.69995,
 		upright = true,
 		customparams = {
+			unitgroup = 'weapon',
 			model_author = "Flaka",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armbots/t2",

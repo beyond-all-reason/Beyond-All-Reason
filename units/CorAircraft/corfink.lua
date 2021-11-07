@@ -7,7 +7,7 @@ return {
 		brakerate = 0.0125,
 		buildcostenergy = 1450,
 		buildcostmetal = 51,
-		buildpic = "CORFINK.PNG",
+		buildpic = "CORFINK.DDS",
 		buildtime = 2400,
 		canfly = true,
 		canmove = true,
@@ -46,6 +46,7 @@ return {
 		wingangle = 0.06315,
 		wingdrag = 0.06,
 		customparams = {
+			unitgroup = 'util',
 			longdescription = Spring.I18N('units.longDescriptions.corfink'),
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",

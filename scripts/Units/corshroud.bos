@@ -1,17 +1,4 @@
-//            * Header Info *
-// VersionSignature                     4
-// NumberOfScripts                     11
-// NumberOfPieces                      5
-// LengthOfScripts                     21b
-// NumberOfStaticVars                  3
-// UKZero                              0
-// OffsetToScriptCodeIndexArray        898
-// OffsetToScriptNameOffsetArray       8c4
-// OffsetToPieceNameOffsetArray        8f0
-// OffsetToScriptCode                  2c
-// OffsetToNameArray                   904
 
-// OffsetToFirstName                   904
 
 #define TA			// This is a TA script
 
@@ -24,128 +11,128 @@ static-var  Static_Var_1, statechg_DesiredState, statechg_StateChanging;
 
 
 SmokeUnit(healthpercent, sleeptime, smoketype)
-/*     3:*/{
-/*     6:*/	while( get BUILD_PERCENT_LEFT )
-/*     8:*/	{
-/*     a:*/		sleep 400;
-/*     d:*/	}
-/*     f:*/	while( TRUE )
-/*    11:*/	{
-/*    14:*/		healthpercent = get HEALTH;
-/*    1b:*/		if( healthpercent < 66 )
-/*    1d:*/		{
-/*    22:*/			smoketype = 256 | 2;
-/*    2c:*/			if( Rand( 1, 66 ) < healthpercent )
-/*    2e:*/			{
-/*    33:*/				smoketype = 256 | 1;
-/*    35:*/			}
-/*    37:*/			emit-sfx smoketype from base;
-/*    39:*/		}
-/*    3e:*/		sleeptime = healthpercent * 50;
-/*    45:*/		if( sleeptime < 200 )
-/*    47:*/		{
-/*    49:*/			sleeptime = 200;
-/*    4b:*/		}
-/*    4d:*/		sleep sleeptime;
-/*    50:*/	}
-/*    52:*/	return (0);
-/*    53:*/	// Build by COBBLER Ver4.0 Copyright @1998 DIGITAL CONCEPT SOFTWARE (MANU@inext.fr) / http://www.annihilationcenter.com/DCS/  
-/*    80:*/}
+{
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 400;
+	}
+	while( TRUE )
+	{
+		healthpercent = get HEALTH;
+		if( healthpercent < 66 )
+		{
+			smoketype = 256 | 2;
+			if( Rand( 1, 66 ) < healthpercent )
+			{
+				smoketype = 256 | 1;
+			}
+			emit-sfx smoketype from base;
+		}
+		sleeptime = healthpercent * 50;
+		if( sleeptime < 200 )
+		{
+			sleeptime = 200;
+		}
+		sleep sleeptime;
+	}
+	return (0);
+	// Build by COBBLER Ver4.0 Copyright @1998 DIGITAL CONCEPT SOFTWARE (MANU@inext.fr) / http://www.annihilationcenter.com/DCS/  
+}
 
 Go()
-/*    78:*/{
-/*    7a:*/	if( Static_Var_1 )
-/*    7c:*/	{
-/*    80:*/		set ACTIVATION to 0;
-/*    83:*/		return (0);
-/*    84:*/	}
-/*    88:*/	spin tower around y-axis speed <40.005495>;
-/*    94:*/	return (0);
-/*    95:*/}
+{
+	if( Static_Var_1 )
+	{
+		set ACTIVATION to 0;
+		return (0);
+	}
+	spin tower around y-axis speed <40.005495>;
+	return (0);
+}
 
 Stop()
-/*    95:*/{
-/*    9c:*/	stop-spin tower around y-axis;
-/*    a1:*/	return (0);
-/*    a2:*/}
+{
+	stop-spin tower around y-axis;
+	return (0);
+}
 
 InitState()
-/*    a2:*/{
-/*    a4:*/	statechg_DesiredState = TRUE;
-/*    a8:*/	statechg_StateChanging = FALSE;
-/*    ac:*/	return (0);
-/*    ad:*/}
+{
+	statechg_DesiredState = TRUE;
+	statechg_StateChanging = FALSE;
+	return (0);
+}
 
 RequestState(requestedstate, currentstate)
-/*    af:*/{
-/*    b1:*/	if( statechg_StateChanging )
-/*    b3:*/	{
-/*    b5:*/		statechg_DesiredState = requestedstate;
-/*    b9:*/		return (0);
-/*    ba:*/	}
-/*    bc:*/	statechg_StateChanging = TRUE;
-/*    c0:*/	currentstate = statechg_DesiredState;
-/*    c4:*/	statechg_DesiredState = requestedstate;
-/*    cb:*/	while( statechg_DesiredState != currentstate )
-/*    cd:*/	{
-/*    d2:*/		if( statechg_DesiredState == 0 )
-/*    d4:*/		{
-/*    d4:*/			call-script Go();
-/*    d9:*/			currentstate = 0;
-/*    db:*/		}
-/*    e0:*/		if( statechg_DesiredState == 1 )
-/*    e2:*/		{
-/*    e2:*/			call-script Stop();
-/*    e7:*/			currentstate = 1;
-/*    e9:*/		}
-/*    eb:*/	}
-/*    ed:*/	statechg_StateChanging = FALSE;
-/*    f1:*/	return (0);
-/*    f2:*/}
+{
+	if( statechg_StateChanging )
+	{
+		statechg_DesiredState = requestedstate;
+		return (0);
+	}
+	statechg_StateChanging = TRUE;
+	currentstate = statechg_DesiredState;
+	statechg_DesiredState = requestedstate;
+	while( statechg_DesiredState != currentstate )
+	{
+		if( statechg_DesiredState == 0 )
+		{
+			call-script Go();
+			currentstate = 0;
+		}
+		if( statechg_DesiredState == 1 )
+		{
+			call-script Stop();
+			currentstate = 1;
+		}
+	}
+	statechg_StateChanging = FALSE;
+	return (0);
+}
 
 Create()
-/*    f2:*/{
-/*   102:*/	call-script InitState();
-/*   105:*/	start-script SmokeUnit();
-/*   10a:*/	Static_Var_1 = 0;
-/*   10e:*/	return (0);
-/*   10f:*/}
+{
+	call-script InitState();
+	start-script SmokeUnit();
+	Static_Var_1 = 0;
+	return (0);
+}
 
 Activate()
-/*   10f:*/{
-/*   111:*/	start-script RequestState(0);
-/*   116:*/	return (0);
-/*   117:*/}
+{
+	start-script RequestState(0);
+	return (0);
+}
 
 Deactivate()
-/*   117:*/{
-/*   119:*/	start-script RequestState(1);
-/*   11e:*/	return (0);
-/*   11f:*/}
+{
+	start-script RequestState(1);
+	return (0);
+}
 
 HitByWeapon(anglex, anglez)
-/*   121:*/{
-/*   124:*/	if( get ACTIVATION )
-/*   126:*/	{
-/*   128:*/		Static_Var_1 = 1;
-/*   12a:*/	}
-/*   12c:*/	if( Static_Var_1 )
-/*   12e:*/	{
-/*   130:*/		signal 2;
-/*   133:*/		set-signal-mask 2;
-/*   138:*/		set ACTIVATION to 0;
-/*   13b:*/		sleep 8000;
-/*   13e:*/		Static_Var_1 = 0;
-/*   144:*/		set ACTIVATION to 100;
-/*   145:*/	}
-/*   147:*/	return (0);
-/*   148:*/}
+{
+	if( get ACTIVATION )
+	{
+		Static_Var_1 = 1;
+	}
+	if( Static_Var_1 )
+	{
+		signal 2;
+		set-signal-mask 2;
+		set ACTIVATION to 0;
+		sleep 8000;
+		Static_Var_1 = 0;
+		set ACTIVATION to 100;
+	}
+	return (0);
+}
 
 SweetSpot(piecenum)
-/*   149:*/{
-/*   14b:*/	piecenum = base;
-/*   14f:*/	return (0);
-/*   150:*/}
+{
+	piecenum = base;
+	return (0);
+}
 
 Killed(severity, corpsetype)
 {

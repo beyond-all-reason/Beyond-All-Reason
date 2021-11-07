@@ -6,7 +6,7 @@ return {
 		brakerate = 0.04415,
 		buildcostenergy = 3300,
 		buildcostmetal = 200,
-		buildpic = "CORMH.PNG",
+		buildpic = "CORMH.DDS",
 		buildtime = 3500,
 		canmove = true,
 		category = "ALL HOVER MOBILE WEAPON NOTSUB NOTSHIP NOTAIR SURFACE EMPABLE",
@@ -37,6 +37,7 @@ return {
 		turninplacespeedlimit = 1.5972,
 		turnrate = 455,
 		customparams = {
+			unitgroup = 'weapon',
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "corhovercraft",

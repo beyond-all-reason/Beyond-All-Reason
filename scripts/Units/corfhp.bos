@@ -1,17 +1,3 @@
-//            * Header Info *
-// VersionSignature                     4
-// NumberOfScripts                     19
-// NumberOfPieces                      10
-// LengthOfScripts                     46e
-// NumberOfStaticVars                  4
-// UKZero                              0
-// OffsetToScriptCodeIndexArray        11e4
-// OffsetToScriptNameOffsetArray       1230
-// OffsetToPieceNameOffsetArray        127c
-// OffsetToScriptCode                  2c
-// OffsetToNameArray                   12a4
-
-// OffsetToFirstName                   12a4
 
 #define TA			// This is a TA script
 
@@ -27,10 +13,10 @@ static-var  Static_Var_1, unitviewer, statechg_DesiredState, statechg_StateChang
 
 
 activatescr()
-/*     0:*/{
-/*     2:*/	if( TRUE )
-/*     4:*/	{
-/*     6:*/		turn head1 to y-axis <0.000000> now;
+{
+	if( TRUE )
+	{
+		turn head1 to y-axis <0.000000> now;
 				turn head1 to y-axis <-60.000000> speed <225.000000>;
 				turn head2 to y-axis <0.000000> now;
 				turn head2 to y-axis <60.000000> speed <225.000000>;
@@ -39,51 +25,33 @@ activatescr()
 				turn head4 to y-axis <0.000000> now;
 				turn head4 to y-axis <60.000000> speed <225.000000>;
 				wait-for-turn head1 around y-axis;
-/*    1f:*/	}
-/*    60:*/	sleep 20;
-/*    63:*/	return (0);
-/*    64:*/	// Build by COBBLER Ver4.0 Copyright @1998 DIGITAL CONCEPT SOFTWARE (MANU@inext.fr) / http://www.annihilationcenter.com/DCS/  
-/*    91:*/}
+	}
+	sleep 20;
+	return (0);
+	// Build by COBBLER Ver4.0 Copyright @1998 DIGITAL CONCEPT SOFTWARE (MANU@inext.fr) / http://www.annihilationcenter.com/DCS/  
+}
 
 deactivatescr()
-/*    89:*/{
-/*     2:*/	if( TRUE )
-/*     4:*/	{
-/*     6:*/		turn head1 to y-axis <0.000000> speed <225.000000>;
+{
+	if( TRUE )
+	{
+		turn head1 to y-axis <0.000000> speed <225.000000>;
 				turn head2 to y-axis <0.000000> speed <225.000000>;
 				turn head3 to y-axis <0.000000> speed <225.000000>;
 				turn head4 to y-axis <0.000000> speed <225.000000>;
 				wait-for-turn head1 around y-axis;
-/*    1f:*/	}
-/*    60:*/	sleep 20;
-/*    63:*/	return (0);
-/*   10b:*/}
+	}
+	sleep 20;
+	return (0);
+}
 
 #define BASEPIECE base
 #define HITSPEED <15.0>
 //how 'heavy' the unit is, on a scale of 1-10
 #define UNITSIZE 10
 #define MAXTILT 100
-HitByWeapon(anglex, anglez, damage)	// angle[x|z] is always [-500;500], damage is multiplied by 100
-{
-	var amount;//, speedz, speedx;
-	amount = damage / (100 * UNITSIZE);
-	if (amount < 3  ) return (0);
-	if (amount > MAXTILT) amount = MAXTILT;
-	//get PRINT(anglex, anglez, amount, damage);
-	//speedz = HITSPEED * get ABS(anglez) / 500; //nevermind this, the random error this produces actually looks better than the accurate version
-	turn BASEPIECE to z-axis (anglez * amount) / 100  speed HITSPEED;
-	turn BASEPIECE to x-axis <0> - (anglex * amount) /100 speed HITSPEED;
-	wait-for-turn BASEPIECE around z-axis;
-	wait-for-turn BASEPIECE around x-axis;
-	turn BASEPIECE to z-axis <0.000000> speed HITSPEED / 4;
-	turn BASEPIECE to x-axis <0.000000> speed HITSPEED / 4;
-}
-HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and flamers give angles of 0
-{
-	start-script HitByWeapon(dmg, anglez,anglex); //I dont know why param order must be switched, and this also runs a frame later :(
-	return (100); //return damage percent
-}
+
+#include "unit_hitbyweaponid_and_smoke.h"
 
 RockOnWaves()
 {
@@ -107,200 +75,174 @@ RockOnWaves()
 }
 
 
-SmokeUnit(healthpercent, sleeptime, smoketype)
-/*   10e:*/{
-/*   111:*/	while( get BUILD_PERCENT_LEFT )
-/*   113:*/	{
-/*   115:*/		sleep 400;
-/*   118:*/	}
-
-			start-script RockOnWaves();
-/*   11a:*/	while( TRUE )
-/*   11c:*/	{
-/*   11f:*/		healthpercent = get HEALTH;
-/*   126:*/		if( healthpercent < 66 )
-/*   128:*/		{
-/*   12d:*/			smoketype = 256 | 2;
-/*   137:*/			if( Rand( 1, 66 ) < healthpercent )
-/*   139:*/			{
-/*   13e:*/				smoketype = 256 | 1;
-/*   140:*/			}
-/*   142:*/			emit-sfx smoketype from base;
-/*   144:*/		}
-/*   149:*/		sleeptime = healthpercent * 50;
-/*   150:*/		if( sleeptime < 200 )
-/*   152:*/		{
-/*   154:*/			sleeptime = 200;
-/*   156:*/		}
-/*   158:*/		sleep sleeptime;
-/*   15b:*/	}
-/*   15d:*/	return (0);
-/*   15e:*/}
 
 OpenYard()
-/*   15e:*/{
-/*   162:*/	set YARD_OPEN to 1;
-/*   167:*/	while( !get YARD_OPEN )
-/*   169:*/	{
-/*   16d:*/		set BUGGER_OFF to 1;
-/*   170:*/		sleep 1500;
-/*   175:*/		set YARD_OPEN to 1;
-/*   178:*/	}
-/*   17c:*/	set BUGGER_OFF to 0;
-/*   17f:*/	return (0);
-/*   180:*/}
+{
+	set YARD_OPEN to 1;
+	while( !get YARD_OPEN )
+	{
+		set BUGGER_OFF to 1;
+		sleep 1500;
+		set YARD_OPEN to 1;
+	}
+	set BUGGER_OFF to 0;
+	return (0);
+}
 
 CloseYard()
-/*   180:*/{
-/*   184:*/	set YARD_OPEN to 0;
-/*   188:*/	while( get YARD_OPEN )
-/*   18a:*/	{
-/*   18e:*/		set BUGGER_OFF to 1;
-/*   191:*/		sleep 1500;
-/*   196:*/		set YARD_OPEN to 0;
-/*   199:*/	}
-/*   19d:*/	set BUGGER_OFF to 0;
-/*   1a0:*/	return (0);
-/*   1a1:*/}
+{
+	set YARD_OPEN to 0;
+	while( get YARD_OPEN )
+	{
+		set BUGGER_OFF to 1;
+		sleep 1500;
+		set YARD_OPEN to 0;
+	}
+	set BUGGER_OFF to 0;
+	return (0);
+}
 
 Go()
-/*   1a1:*/{
+{
 
-/*   1b1:*/	call-script activatescr();
-/*   1b4:*/	call-script OpenYard();
-/*   1bb:*/	set INBUILDSTANCE to 1;
-/*   1be:*/	return (0);
-/*   1bf:*/}
+	call-script activatescr();
+	call-script OpenYard();
+	set INBUILDSTANCE to 1;
+	return (0);
+}
 
 Stop()
-/*   1bf:*/{
-/*   1c3:*/	set INBUILDSTANCE to 0;
-/*   1c4:*/	call-script CloseYard();
-/*   1c7:*/	call-script deactivatescr();
-/*   1dc:*/	return (0);
-/*   1dd:*/}
+{
+	set INBUILDSTANCE to 0;
+	call-script CloseYard();
+	call-script deactivatescr();
+	return (0);
+}
 
 InitState()
-/*   1dd:*/{
-/*   1df:*/	statechg_DesiredState = TRUE;
-/*   1e3:*/	statechg_StateChanging = FALSE;
-/*   1e7:*/	return (0);
-/*   1e8:*/}
+{
+	statechg_DesiredState = TRUE;
+	statechg_StateChanging = FALSE;
+	return (0);
+}
 
 RequestState(requestedstate, currentstate)
-/*   1ea:*/{
-/*   1ec:*/	if( statechg_StateChanging )
-/*   1ee:*/	{
-/*   1f0:*/		statechg_DesiredState = requestedstate;
-/*   1f4:*/		return (0);
-/*   1f5:*/	}
-/*   1f7:*/	statechg_StateChanging = TRUE;
-/*   1fb:*/	currentstate = statechg_DesiredState;
-/*   1ff:*/	statechg_DesiredState = requestedstate;
-/*   206:*/	while( statechg_DesiredState != currentstate )
-/*   208:*/	{
-/*   20d:*/		if( statechg_DesiredState == 0 )
-/*   20f:*/		{
-/*   20f:*/			call-script Go();
-/*   214:*/			currentstate = 0;
-/*   216:*/		}
-/*   21b:*/		if( statechg_DesiredState == 1 )
-/*   21d:*/		{
-/*   21d:*/			call-script Stop();
-/*   222:*/			currentstate = 1;
-/*   224:*/		}
-/*   226:*/	}
-/*   228:*/	statechg_StateChanging = FALSE;
-/*   22c:*/	return (0);
-/*   22d:*/}
+{
+	if( statechg_StateChanging )
+	{
+		statechg_DesiredState = requestedstate;
+		return (0);
+	}
+	statechg_StateChanging = TRUE;
+	currentstate = statechg_DesiredState;
+	statechg_DesiredState = requestedstate;
+	while( statechg_DesiredState != currentstate )
+	{
+		if( statechg_DesiredState == 0 )
+		{
+			call-script Go();
+			currentstate = 0;
+		}
+		if( statechg_DesiredState == 1 )
+		{
+			call-script Stop();
+			currentstate = 1;
+		}
+	}
+	statechg_StateChanging = FALSE;
+	return (0);
+}
 
 
 
 Create()
-/*   22d:*/{
-/*   22d:*/	hide pad;
-/*   241:*/	unitviewer = FALSE;
-/*   245:*/	Static_Var_1 = 0;
-/*   247:*/	call-script InitState();
-/*   24a:*/	start-script SmokeUnit();
-/*   24f:*/	return (0);
-/*   250:*/}
+{
+	hide pad;
+	unitviewer = FALSE;
+	Static_Var_1 = 0;
+	call-script InitState();
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 400;
+	}
+	start-script RockOnWaves();
+}
 
 QueryNanoPiece(piecenum)
-/*   251:*/{
-/*   256:*/	if( Static_Var_1 == 0 )
-/*   258:*/	{
-/*   25a:*/		piecenum = nano1;
-/*   263:*/	}
-/*   256:*/	if( Static_Var_1 == 1 )
-/*   258:*/	{
-/*   25a:*/		piecenum = nano2;
-/*   263:*/	}
-/*   256:*/	if( Static_Var_1 == 2 )
-/*   258:*/	{
-/*   25a:*/		piecenum = nano3;
-/*   263:*/	}
-/*   256:*/	if( Static_Var_1 == 3 )
-/*   258:*/	{
-/*   25a:*/		piecenum = nano4;
-/*   263:*/	}
+{
+	if( Static_Var_1 == 0 )
+	{
+		piecenum = nano1;
+	}
+	if( Static_Var_1 == 1 )
+	{
+		piecenum = nano2;
+	}
+	if( Static_Var_1 == 2 )
+	{
+		piecenum = nano3;
+	}
+	if( Static_Var_1 == 3 )
+	{
+		piecenum = nano4;
+	}
 			Static_Var_1=Static_Var_1+1;
 			if( Static_Var_1 >3 )
-/*   258:*/	{
-/*   25a:*/		Static_Var_1=0;
-/*   263:*/	}
-/*   274:*/	return (0);
-/*   275:*/}
+	{
+		Static_Var_1=0;
+	}
+	return (0);
+}
 
 Demo()
-/*   275:*/{
-/*   277:*/	unitviewer = TRUE;
-/*   27b:*/	return (0);
-/*   27c:*/}
+{
+	unitviewer = TRUE;
+	return (0);
+}
 
 Activate()
-/*   27c:*/{
-/*   27e:*/	signal SIG_ACTIVATE;
-/*   281:*/	start-script RequestState(0);
-/*   286:*/	return (0);
-/*   287:*/}
+{
+	signal SIG_ACTIVATE;
+	start-script RequestState(0);
+	return (0);
+}
 
 Deactivate()
-/*   287:*/{
-/*   289:*/	signal SIG_ACTIVATE;
-/*   28c:*/	set-signal-mask SIG_ACTIVATE;
-/*   290:*/	if( !unitviewer )
-/*   292:*/	{
-/*   294:*/		sleep 5000;
-/*   295:*/	}
-/*   297:*/	set-signal-mask 0;
-/*   29a:*/	start-script RequestState(1);
-/*   29f:*/	return (0);
-/*   2a0:*/}
+{
+	signal SIG_ACTIVATE;
+	set-signal-mask SIG_ACTIVATE;
+	if( !unitviewer )
+	{
+		sleep 5000;
+	}
+	set-signal-mask 0;
+	start-script RequestState(1);
+	return (0);
+}
 
 StartBuilding()
-/*   2a0:*/{
-/*   2a2:*/	sleep 150;
-/*   2a5:*/	return (0);
-/*   2a6:*/}
+{
+	sleep 150;
+	return (0);
+}
 
 StopBuilding()
-/*   2a6:*/{
-/*   2a8:*/	sleep 150;
-/*   2ab:*/	return (0);
-/*   2ac:*/}
+{
+	sleep 150;
+	return (0);
+}
 
 QueryBuildInfo(piecenum)
-/*   2ad:*/{
-/*   2af:*/	piecenum = pad;
-/*   2b3:*/	return (0);
-/*   2b4:*/}
+{
+	piecenum = pad;
+	return (0);
+}
 
 SweetSpot(piecenum)
-/*   2b5:*/{
-/*   2b7:*/	piecenum = base;
-/*   2bb:*/	return (0);
-/*   2bc:*/}
+{
+	piecenum = base;
+	return (0);
+}
 
 Killed(severity, corpsetype)
 {

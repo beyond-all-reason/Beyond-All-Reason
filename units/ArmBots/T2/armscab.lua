@@ -6,7 +6,7 @@ return {
 		brakerate = 0.07326,
 		buildcostenergy = 30000,
 		buildcostmetal = 1150,
-		buildpic = "ARMSCAB.PNG",
+		buildpic = "ARMSCAB.DDS",
 		buildtime = 40000,
 		canattack = false,
 		canmove = true,
@@ -41,6 +41,7 @@ return {
 		turninplacespeedlimit = 1.122,
 		turnrate = 473,
 		customparams = {
+			unitgroup = 'antinuke',
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armbots/t2",

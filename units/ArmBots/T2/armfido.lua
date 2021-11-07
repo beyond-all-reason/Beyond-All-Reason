@@ -7,7 +7,7 @@ return {
 		brakerate = 1.29375,
 		buildcostenergy = 5600,
 		buildcostmetal = 270,
-		buildpic = "ARMFIDO.PNG",
+		buildpic = "ARMFIDO.DDS",
 		buildtime = 6232,
 		canmove = true,
 		category = "BOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -39,6 +39,7 @@ return {
 		turninplacespeedlimit = 1.518,
 		turnrate = 1138.5,
 		customparams = {
+			unitgroup = 'weapon',
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			onoffname = "gauss",

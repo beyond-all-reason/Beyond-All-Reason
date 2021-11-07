@@ -8,7 +8,7 @@ return {
 		buildcostmetal = 700,
 		builddistance = 180,
 		builder = true,
-		buildpic = "CORACSUB.PNG",
+		buildpic = "CORACSUB.DDS",
 		buildtime = 18000,
 		canmove = true,
 		category = "ALL UNDERWATER MOBILE NOTLAND NOWEAPON NOTAIR NOTHOVER",
@@ -59,6 +59,7 @@ return {
 			[13]= "corfdoom",
 		},
 		customparams = {
+			unitgroup = 'buildert2',
 			area_mex_def = "coruwmme",
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",

@@ -8,7 +8,7 @@ return {
 		buildangle = 16384,
 		buildcostenergy = 3000,
 		buildcostmetal = 300,
-		buildpic = "ARMMLS.PNG",
+		buildpic = "ARMMLS.DDS",
 		buildtime = 2350,
 		canmove = true,
 		category = "ALL WEAPON SHIP NOTSUB NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -41,6 +41,7 @@ return {
 		turnrate = 330,
 		waterline = 0,
 		customparams = {
+			unitgroup = 'sub',
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "corships",

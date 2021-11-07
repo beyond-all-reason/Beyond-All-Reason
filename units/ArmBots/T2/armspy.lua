@@ -9,7 +9,7 @@ return {
 		buildcostmetal = 135,
 		builddistance = 136,
 		builder = true,
-		buildpic = "ARMSPY.PNG",
+		buildpic = "ARMSPY.DDS",
 		buildtime = 17631,
 		canassist = false,
 		canguard = false,
@@ -52,6 +52,7 @@ return {
 		upright = true,
 		workertime = 50,
 		customparams = {
+			unitgroup = 'buildert2',
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armbots/t2",

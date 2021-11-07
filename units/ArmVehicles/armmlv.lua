@@ -9,7 +9,7 @@ return {
 		buildcostmetal = 57,
 		builddistance = 96,
 		builder = true,
-		buildpic = "ARMMLV.PNG",
+		buildpic = "ARMMLV.DDS",
 		buildtime = 3519,
 		canassist = false,
 		canguard = false,
@@ -63,6 +63,7 @@ return {
 			[5] = "armeyes",
 		},
 		customparams = {
+			unitgroup = 'builder',
 			longdescription = Spring.I18N('units.longDescriptions.armmlv'),
 			model_author = "Beherith",
 			normaltex = "unittextures/Arm_normal.dds",

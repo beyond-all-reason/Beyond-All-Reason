@@ -17,7 +17,9 @@ UnitSpeed(){
 
 StartMoving(){
 	signal SIG_WALK;
+  set-signal-mask SIG_WALK;
 	bMoving=TRUE;
+  start-script UnitSpeed();
 	start-script Walk();
 }
 
@@ -42,7 +44,6 @@ Create()
 	move base to y-axis [-1] *MOVESCALE now;
 	move base to y-axis [0] speed [1]*MOVESCALE;
 	turn base to x-axis <0> speed <90>;
-	start-script UnitSpeed();
 	var smoke;
 	smoke = 0;
 	while(smoke < 9){

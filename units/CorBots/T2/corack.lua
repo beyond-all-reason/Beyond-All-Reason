@@ -8,7 +8,7 @@ return {
 		buildcostmetal = 470,
 		builddistance = 136,
 		builder = true,
-		buildpic = "CORACK.PNG",
+		buildpic = "CORACK.DDS",
 		buildtime = 9700,
 		canmove = true,
 		category = "BOT MOBILE ALL NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -76,6 +76,7 @@ return {
 			"coralab",
 		},
 		customparams = {
+			unitgroup = 'buildert2',
 			area_mex_def = "cormoho",
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",

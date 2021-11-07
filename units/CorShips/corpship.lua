@@ -9,7 +9,7 @@ return {
 		brakerate = 0.04391,
 		buildcostenergy = 2700,
 		buildcostmetal = 410,
-		buildpic = "CORPSHIP.PNG",
+		buildpic = "CORPSHIP.DDS",
 		buildtime = 4450,
 		canmove = true,
 		category = "ALL NOTLAND MOBILE WEAPON NOTSUB SHIP NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -41,6 +41,7 @@ return {
 		turnrate = 350, --382.5,
 		waterline = 0,
 		customparams = {
+			unitgroup = 'weapon',
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "coreships",
 		},

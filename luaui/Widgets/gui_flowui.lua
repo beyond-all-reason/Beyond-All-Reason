@@ -19,6 +19,7 @@ WG.FlowUI.opacity = tonumber(Spring.GetConfigFloat("ui_opacity", 0.6) or 0.66)
 WG.FlowUI.scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
 WG.FlowUI.tileOpacity = Spring.GetConfigFloat("ui_tileopacity", 0.012)
 WG.FlowUI.tileScale = Spring.GetConfigFloat("ui_tilescale", 7)
+WG.FlowUI.tileSize = WG.FlowUI.tileScale
 
 local function ViewResize(vsx, vsy)
 	if not vsy then
@@ -32,11 +33,13 @@ local function ViewResize(vsx, vsy)
 	-- elementMargin: number of px between each separated ui element
 	WG.FlowUI.elementMargin = math.floor(0.0045 * vsy * WG.FlowUI.scale)
 	-- elementCorner: element cutoff corner size
-	WG.FlowUI.elementCorner = WG.FlowUI.elementMargin
+	WG.FlowUI.elementCorner = WG.FlowUI.elementMargin * 0.9
 	-- elementPadding: element inner (background) border/outline size
-	WG.FlowUI.elementPadding = math.ceil(WG.FlowUI.elementMargin * 0.66)
+	WG.FlowUI.elementPadding = math.floor(0.003 * vsy * WG.FlowUI.scale)
 	-- buttonPadding: button inner (background) border/outline size
-	WG.FlowUI.buttonPadding = math.ceil(WG.FlowUI.elementMargin * 0.44)
+	WG.FlowUI.buttonPadding = math.floor(0.002 * vsy * WG.FlowUI.scale)
+
+	WG.FlowUI.tileSize = WG.FlowUI.tileScale * 0.003 * vsy * WG.FlowUI.scale
 end
 
 -- called at the bottom of this file
@@ -474,7 +477,7 @@ WG.FlowUI.Draw.Circle = function(x, z, radius, sides, color1, color2)
 end
 
 --[[
-	UiElement
+	Element
 		draw a complete standardized ui element having: border, tiled background, gloss on top and bottom
 	params
 		px, py, sx, sy = left, bottom, right, top
@@ -494,8 +497,7 @@ WG.FlowUI.Draw.Element = function(px, py, sx, sy,  tl, tr, br, bl,  ptl, ptr, pb
 	local cs = WG.FlowUI.elementCorner * (bgpadding/WG.FlowUI.elementPadding)
 	local glossMult = 1 + (2 - (opacity * 1.5))
 	local tileopacity = WG.FlowUI.tileOpacity
-	local bgtexScale = WG.FlowUI.tileScale
-	local bgtexSize = math.floor(WG.FlowUI.elementPadding * bgtexScale)
+	local bgtexSize = WG.FlowUI.tileSize
 
 	local tl = tl or 1
 	local tr = tr or 1
@@ -507,12 +509,22 @@ WG.FlowUI.Draw.Element = function(px, py, sx, sy,  tl, tr, br, bl,  ptl, ptr, pb
 	local sxPad = bgpadding * (sx < WG.FlowUI.vsx and 1 or 0) * (ptr or 1)
 	local syPad = bgpadding * (sy < WG.FlowUI.vsy and 1 or 0) * (ptl or 1)
 
-	-- background
+	-- background / border
 	gl.Texture(false)
 	WG.FlowUI.Draw.RectRound(px, py, sx, sy, cs, tl, tr, br, bl, { color1[1], color1[2], color1[3], color1[4] }, { color1[1], color1[2], color1[3], color1[4] })
 
+	-- element
 	cs = cs * 0.6
+	color2[4] = color2[4] * 1.25	-- multiply to compensate for inner border 'highlight'
 	WG.FlowUI.Draw.RectRound(px + pxPad, py + pyPad, sx - sxPad, sy - syPad, cs, tl, tr, br, bl, { color2[1]*0.33, color2[2]*0.33, color2[3]*0.33, color2[4] }, { color2[1], color2[2], color2[3], color2[4] })
+
+	-- element - inner darkening to create highlighted border
+	local pad2 = 1
+	local pad2OpacityMult = 0.2
+	WG.FlowUI.Draw.RectRound(px + pxPad + pad2, py + pyPad + pad2, sx - sxPad - pad2, sy - syPad - pad2, cs*0.65, tl, tr, br, bl, { color1[1], color1[2], color1[3], color1[4]*pad2OpacityMult}, { color1[1], color1[2], color1[3], color1[4]*pad2OpacityMult })
+	pad2 = 2.5
+	pad2OpacityMult = 0.065
+	WG.FlowUI.Draw.RectRound(px + pxPad + pad2, py + pyPad + pad2, sx - sxPad - pad2, sy - syPad - pad2, cs*0.3, tl, tr, br, bl, { color1[1], color1[2], color1[3], color1[4]*pad2OpacityMult}, { color1[1], color1[2], color1[3], color1[4]*pad2OpacityMult })
 
 	-- gloss
 	gl.Blending(GL.SRC_ALPHA, GL.ONE)
@@ -698,7 +710,7 @@ WG.FlowUI.Draw.Unit = function(px, py, sx, sy,  cs,  tl, tr, br, bl,  zoom,  bor
 	WG.FlowUI.Draw.RectRound(px, sy-((sy-py)*0.4), sx, sy, cs, 1,1,0,0,{1,1,1,0}, {1,1,1,0.06})
 
 	-- lighten feather edges
-	borderOpacity = borderOpacity or 0.1
+	borderOpacity = borderOpacity or 0.09
 	local halfSize = ((sx-px) * 0.5)
 	WG.FlowUI.Draw.RectRoundCircle(
 		px + halfSize,

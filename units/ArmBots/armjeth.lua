@@ -7,7 +7,7 @@ return {
 		brakerate = 0.6486,
 		buildcostenergy = 1100,
 		buildcostmetal = 125,
-		buildpic = "ARMJETH.PNG",
+		buildpic = "ARMJETH.DDS",
 		buildtime = 1831,
 		canmove = true,
 		category = "BOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE CANBEUW EMPABLE",
@@ -38,6 +38,7 @@ return {
 		turnrate = 1285.69995,
 		upright = true,
 		customparams = {
+			unitgroup = 'aa',
 			longdescription = Spring.I18N('units.longDescriptions.armjeth'),
 			model_author = "Kaiser, PtaQ",
 			normaltex = "unittextures/Arm_normal.dds",
@@ -206,7 +207,7 @@ return {
 				def = "BOGUS_MISSILE",
 				onlytargetcategory = "VTOL",
 			},
-			[3] = {
+			[2] = {
 				badtargetcategory = "NOTAIR LIGHTAIRSCOUT",
 				def = "ARMBOT_MISSILE",
 				onlytargetcategory = "VTOL",

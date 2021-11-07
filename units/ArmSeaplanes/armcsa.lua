@@ -9,7 +9,7 @@ return {
 		buildcostmetal = 150,
 		builddistance = 136,
 		builder = true,
-		buildpic = "ARMCSA.PNG",
+		buildpic = "ARMCSA.DDS",
 		buildtime = 12000,
 		canfly = true,
 		canmove = true,
@@ -88,6 +88,7 @@ return {
 			[43] = "armtl",
 		},
 		customparams = {
+			unitgroup = 'builder',
 			area_mex_def = "armuwmex",
 			model_author = "Flaka",
 			normaltex = "unittextures/Arm_normal.dds",

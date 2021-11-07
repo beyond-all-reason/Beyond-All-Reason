@@ -7,7 +7,7 @@ return {
 		brakerate = 0,
 		buildcostenergy = 1050,
 		buildcostmetal = 16,
-		buildpic = "CORMINE2.PNG",
+		buildpic = "CORMINE2.DDS",
 		buildtime = 200,
 		canattack = false,
 		canguard = false,
@@ -43,7 +43,9 @@ return {
 		sightdistance = 83.2,
 		stealth = true,
 		customparams = {
+			unitgroup = 'explo',
 			detonaterange = "64",
+			model_author = "Tristan",
 			normaltex = "unittextures/cor_normal.dds",
 			removestop = true,
 			removewait = true,

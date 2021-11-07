@@ -8,7 +8,7 @@ return {
 		buildangle = 16384,
 		buildcostenergy = 8500,
 		buildcostmetal = 1050,
-		buildpic = "CORATL.PNG",
+		buildpic = "CORATL.DDS",
 		buildtime = 10875,
 		canrepeat = false,
 		category = "ALL NOTLAND WEAPON NOTSHIP NOTAIR NOTHOVER NOTSUB SURFACE EMPABLE",
@@ -32,6 +32,7 @@ return {
 		waterline = 2,
 		yardmap = "ooooooooo",
 		customparams = {
+			unitgroup = 'sub',
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			removewait = true,

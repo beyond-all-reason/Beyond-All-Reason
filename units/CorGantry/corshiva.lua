@@ -6,7 +6,7 @@ return {
 		brakerate = 0.8211,
 		buildcostenergy = 23000,
 		buildcostmetal = 1550,
-		buildpic = "CORSHIVA.PNG",
+		buildpic = "CORSHIVA.DDS",
 		buildtime = 30609,
 		canmove = true,
 		category = "BOT WEAPON ALL NOTSUB NOTAIR NOTHOVER SURFACE CANBEUW EMPABLE",
@@ -39,6 +39,7 @@ return {
 		turnrate = 708.39996,
 		upright = true,
 		customparams = {
+			unitgroup = 'weapon',
 			customrange = 650,
 			model_author = "FireStorm",
 			normaltex = "unittextures/cor_normal.dds",
@@ -207,7 +208,7 @@ return {
 				def = "SHIVA_GUN",
 				onlytargetcategory = "SURFACE",
 			},
-			[3] = {
+			[2] = {
 				badtargetcategory = "GROUNDSCOUT",
 				def = "SHIVA_ROCKET",
 				onlytargetcategory = "SURFACE",

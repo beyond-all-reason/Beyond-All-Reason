@@ -33,7 +33,7 @@ end
 local function getRandomModel(tier)
 	local models = {
 		[tiers.T1] = {
-			[1] = { 
+			[1] = {
 				objectName = "lootboxes/lootboxnanoarmT1.s3o",
 				script = "lootboxes/lootboxnanoarm.cob",
 			},
@@ -96,6 +96,7 @@ local generateParameters = function(tier)
 			buildList = buildList,
 			objectName = objectName,
 			script = script,
+			i18nFromUnit = 'lootboxnano_t1',
 		},
 
 		[tiers.T2] = {
@@ -107,6 +108,7 @@ local generateParameters = function(tier)
 			buildList = buildList,
 			objectName = objectName,
 			script = script,
+			i18nFromUnit = 'lootboxnano_t2',
 		},
 
 		[tiers.T3] = {
@@ -118,6 +120,7 @@ local generateParameters = function(tier)
 			buildList = buildList,
 			objectName = objectName,
 			script = script,
+			i18nFromUnit = 'lootboxnano_t3',
 		},
 
 		[tiers.T4] = {
@@ -129,12 +132,13 @@ local generateParameters = function(tier)
 			buildList = buildList,
 			objectName = objectName,
 			script = script,
+			i18nFromUnit = 'lootboxnano_t4',
 		},
 	}
 	return parameters[tier]
 end
 
-local createNanoUnitDef = function(tier)	
+local createNanoUnitDef = function(tier)
 	local parameters = generateParameters(tier)
 
 	return {
@@ -148,7 +152,7 @@ local createNanoUnitDef = function(tier)
 		buildinggrounddecalsizex = 5,
 		buildinggrounddecalsizey = 5,
 		buildinggrounddecaltype = "decals/armnanotc_aoplane.dds",
-		buildpic = "ARMNANOTC.PNG",
+		buildpic = "ARMNANOTC.DDS",
 		buildtime = 5312 * parameters.sizeMultiplier,
 		buildoptions = parameters.buildList,
 		canassist = true,
@@ -165,7 +169,7 @@ local createNanoUnitDef = function(tier)
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = parameters.collisionVolumeScales,
 		collisionvolumetype = "CylY",
-		description = Spring.I18N('units.descriptions.lootboxnano'),
+		description = Spring.I18N('units.descriptions.lootboxnano_t1'),
 		energyuse = 0,
 		explodeas = "lootboxExplosion4",
 		footprintx = parameters.footprintx,
@@ -226,11 +230,13 @@ local createNanoUnitDef = function(tier)
 				[1] = "varmsel",
 			},
 		},
-	
+
 		customparams = {
 			model_author = "Beherith",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armbuildings/landutil",
+			i18nfromunit = parameters.i18nFromUnit,
+			unitgroup = 'builder',
 		},
 	}
 end

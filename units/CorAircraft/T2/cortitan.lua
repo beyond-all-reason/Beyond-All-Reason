@@ -7,7 +7,7 @@ return {
 		brakerate = 0.0725,
 		buildcostenergy = 8200,
 		buildcostmetal = 410,
-		buildpic = "CORTITAN.PNG",
+		buildpic = "CORTITAN.DDS",
 		buildtime = 14722,
 		canfly = true,
 		canmove = true,
@@ -47,6 +47,7 @@ return {
 		wingangle = 0.06222,
 		wingdrag = 0.18,
 		customparams = {
+			unitgroup = 'sub',
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "coraircraft/t2",

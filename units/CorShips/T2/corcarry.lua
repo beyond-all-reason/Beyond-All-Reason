@@ -9,7 +9,7 @@ return {
 		buildcostenergy = 17000,
 		buildcostmetal = 1400,
 		builder = true,
-		buildpic = "CORCARRY.PNG",
+		buildpic = "CORCARRY.DDS",
 		buildtime = 20000,
 		canassist = false,
 		canattack = false,
@@ -55,6 +55,7 @@ return {
 		waterline = 8,
 		workertime = 1000,
 		customparams = {
+			unitgroup = 'antinuke',
 			isairbase = true,
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",

@@ -7,7 +7,7 @@ return {
 		buildcostenergy = 9700,
 		buildcostmetal = 3200,
 		builder = true,
-		buildpic = "ARMASY.PNG",
+		buildpic = "ARMASY.DDS",
 		buildtime = 15972,
 		canmove = true,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -50,6 +50,7 @@ return {
 			[11] = "armepoch",
 		},
 		customparams = {
+			unitgroup = 'buildert2',
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armbuildings/seafactories",

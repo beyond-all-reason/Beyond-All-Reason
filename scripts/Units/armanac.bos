@@ -10,6 +10,7 @@ static-var  Static_Var_1, Wobble_status, restore_delay;
 // Signal definitions
 #define SIG_AIM				2
 #define SIG_MOVE			4
+#define SIG_IDLE			8
 
 WobbleUnit()
 {
@@ -63,36 +64,6 @@ BankControl()
 	}
 }
 
-SmokeUnit(healthpercent, sleeptime, smoketype)
-{
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 400;
-	}
-	start-script BankControl();
-	start-script WobbleUnit();
-	while( TRUE )
-	{
-		healthpercent = get HEALTH;
-		if( healthpercent < 66 )
-		{
-			smoketype = 256 | 2;
-			if( Rand( 1, 66 ) < healthpercent )
-			{
-				smoketype = 256 | 1;
-			}
-			emit-sfx smoketype from base;
-		}
-		sleeptime = healthpercent * 50;
-		if( sleeptime < 200 )
-		{
-			sleeptime = 200;
-		}
-		sleep sleeptime;
-	}
-	return (0);
-	// Build by COBBLER Ver4.0 Copyright @1998 DIGITAL CONCEPT SOFTWARE (MANU@inext.fr) / http://www.annihilationcenter.com/DCS/  
-}
 
 RockUnit(anglex, anglez)
 {
@@ -110,57 +81,43 @@ RockUnit(anglex, anglez)
 //how 'heavy' the unit is, on a scale of 1-10
 #define UNITSIZE 4
 #define MAXTILT 100
-HitByWeapon(anglex, anglez, damage)	// angle[x|z] is always [-500;500], damage is multiplied by 100
+
+#include "unit_hitbyweaponid_and_smoke.h"
+
+HoverIdle()
 {
-	var amount;//, speedz, speedx;
-	amount = damage / (100 * UNITSIZE);
-	if (amount < 3  ) return (0);
-	if (amount > MAXTILT) amount = MAXTILT;
-	//get PRINT(anglex, anglez, amount, damage);
-	//speedz = HITSPEED * get ABS(anglez) / 500; //nevermind this, the random error this produces actually looks better than the accurate version
-	turn BASEPIECE to z-axis (anglez * amount) / 100  speed HITSPEED;
-	turn BASEPIECE to x-axis <0> - (anglex * amount) /100 speed HITSPEED;
-	wait-for-turn BASEPIECE around z-axis;
-	wait-for-turn BASEPIECE around x-axis;
-	turn BASEPIECE to z-axis <0.000000> speed HITSPEED / 4;
-	turn BASEPIECE to x-axis <0.000000> speed HITSPEED / 4;
-}
-HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and flamers give angles of 0
-{
-	start-script HitByWeapon(dmg, anglez,anglex); //I dont know why param order must be switched, and this also runs a frame later :(
-	return (100); //return damage percent
+	signal SIG_IDLE;
+	set-signal-mask SIG_IDLE;
+	while( TRUE )
+	{
+	    emit-sfx 1024 + 3 from wake;
+	    sleep 1750;
+	}
 }
 
 StartMoving()
 {
 	signal SIG_MOVE;
 	set-signal-mask SIG_MOVE;
+	signal SIG_IDLE;
+	var waketime;
+	var bowtime;
 	while( TRUE )
 	{
-		if( Static_Var_1 == 1 )
-		{
-			emit-sfx 3 from wake;
-			emit-sfx 3 from wake;
-		}
-		if( Static_Var_1 == 2 )
-		{
-			emit-sfx 3 from wake;
-			emit-sfx 3 from wake;
-		}
-		sleep 300;
+		emit-sfx 1024 + 1 from wake;
+		if (bowtime) emit-sfx 1024 + 2 from wake;
+		bowtime = !bowtime;
+		waketime = (get CURRENT_SPEED) * 100 / get MAX_SPEED;
+		if( waketime < 30 ) waketime = 30;
+		sleep 15000 / waketime;
 	}
-	return (0);
 }
 
 StopMoving()
 {
-	sleep 150;
-	return (0);
-}
-
-setSFXoccupy(Func_Var_1)
-{
-	Static_Var_1 = Func_Var_1;
+	signal SIG_MOVE;
+	signal SIG_IDLE;
+	start-script HoverIdle();
 	return (0);
 }
 
@@ -168,8 +125,12 @@ Create()
 {
 	hide flare;
 	restore_delay = 3000;
-	start-script SmokeUnit();
-	return (0);
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 400;
+	}
+	start-script BankControl();
+	start-script WobbleUnit();
 }
 
 SetMaxReloadTime(Func_Var_1)

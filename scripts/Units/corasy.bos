@@ -44,43 +44,14 @@ deactivatescr()
 	sleep 11;
 }
 
-HitByWeapon(anglex, anglez)
-{
-	turn base to z-axis anglez speed <30.000000>;
-	turn base to x-axis <0> - anglex speed <30.000000>;
-	wait-for-turn base around z-axis;
-	wait-for-turn base around x-axis;
-	turn base to z-axis <0.000000> speed <10.000000>;
-	turn base to x-axis <0.000000> speed <10.000000>;
-}
 
-
-SmokeUnit(healthpercent, sleeptime, smoketype)
-{
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 400;
-	}
-	while( TRUE )
-	{
-		healthpercent = get HEALTH;
-		if( healthpercent < 66 )
-		{
-			smoketype = 256 | 2;
-			if( Rand( 1, 66 ) < healthpercent )
-			{
-				smoketype = 256 | 1;
-			}
-			emit-sfx smoketype from base;
-		}
-		sleeptime = healthpercent * 50;
-		if( sleeptime < 200 )
-		{
-			sleeptime = 200;
-		}
-		sleep sleeptime;
-	}
-}
+#define BASEPIECE base
+#define HITSPEED <20.0>
+//how 'heavy' the unit is, on a scale of 1-10
+#define UNITSIZE 10
+#define MAXTILT 100
+#define SMOKEPIECE base
+#include "unit_hitbyweaponid_and_smoke.h"
 
 OpenYard()
 {
@@ -158,7 +129,6 @@ Create()
 	unitviewer = FALSE;
 	spray = nano1;
 	call-script InitState();
-	start-script SmokeUnit();
 }
 
 QueryNanoPiece(piecenum)
@@ -216,11 +186,6 @@ Deactivate()
 {
 	signal SIG_ACTIVATE;
 	set-signal-mask SIG_ACTIVATE;
-	if( !unitviewer )
-	{
-		sleep 5000;
-	}
-	set-signal-mask 0;
 	start-script RequestState(1);
 }
 

@@ -69,7 +69,7 @@ function Activate_real()
 end
 
 function script.Activate()
-	UnitScript.StartThread(open);
+	UnitScript.StartThread(Activate_real);
 end
 
 function Deactivate_real()

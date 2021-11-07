@@ -18,7 +18,7 @@ local CMD_PATROL = 15
 function CommanderBST:Update()
 	local f = self.game:Frame()
 	if self.lowHealth and f >= self.nextHealthCheck then
-		if self.unit:Internal():GetHealth() >= self.unit:Internal():GetMaxHealth() * 0.75 then
+		if self.unit:Internal():GetHealth() >= self.unit:Internal():GetMaxHealth() * 0.95 then
 			self.lowHealth = false
 			self.unit:ElectBehaviour()
 		end
@@ -40,7 +40,7 @@ end
 
 function CommanderBST:OwnerDamaged(attacker,damage)
 	if not self.lowHealth then
-		if self.unit:Internal():GetHealth() < self.unit:Internal():GetMaxHealth() * 0.75 then
+		if self.unit:Internal():GetHealth() < self.unit:Internal():GetMaxHealth() * 0.95 then
 			self.lowHealth = true
 			self.nextHealthCheck = self.game:Frame() + 900
 			self:FindSafeHouse()
@@ -73,7 +73,7 @@ function CommanderBST:Priority()
 	local _, queueL = Spring.GetRealBuildQueue(self.id)
 	self:EchoDebug('Spring.GetRealBuildQueue(self.id)',Spring.GetRealBuildQueue(self.id),'queueL',queueL)
 
-	if (self.ai.Metal.income > 15 and self.ai.Energy.full > 0.5 and queueL == 0) or
+	if (self.ai.Metal.income > 22 and self.ai.Energy.full > 0.5 and queueL == 0) or
 			self.ai.haveAdvFactory or
 			((self.lowHealth or self.ai.overviewhst.paranoidCommander) and self.safeHouse) then
 		return 200

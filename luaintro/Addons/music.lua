@@ -33,7 +33,7 @@ function addon.Initialize()
 			local musicvolume = Spring.GetConfigInt("snd_volmusic", 50) * 0.01
 			Spring.SetSoundStreamVolume(musicvolume)
 
-			local musicfiles = VFS.DirList("sounds/music"..(Spring.GetConfigInt('soundtrack', 2) == 2 and 'new').."/intro", "*.ogg")
+			local musicfiles = VFS.DirList("sounds/music"..(Spring.GetConfigInt('soundtrack', 2) == 2 and 'new').."/peace", "*.ogg")
 			--Spring.Echo("musicfiles", #musicfiles)
 			if #musicfiles > 0 then
 				--local i = 1 + (math.floor((1000*os.clock())%#musicfiles))

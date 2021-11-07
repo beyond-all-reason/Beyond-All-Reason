@@ -102,16 +102,27 @@ function BossWaveTimer(n)
 				ScavSendNotification("scav_scavfinalvictory")
 				FinalMessagePlayed = true
 			end
-			local units = Spring.GetTeamUnits(GaiaTeamID)
-			FinalSelfDChance = FinalSelfDChance - 1
-			if FinalSelfDChance < 2 then
-				FinalSelfDChance = 2
-			end
-			for i = 1,#units do
-				local r = math_random(1,FinalSelfDChance)
-				if r == 1 then
-					Spring.DestroyUnit(units[i],false,false)
+			--FinalSelfDChance = FinalSelfDChance - 1
+			--if FinalSelfDChance < 2 then
+			--	FinalSelfDChance = 2
+			--end
+			--local units = Spring.GetTeamUnits(GaiaTeamID)
+			--for i = 1,#units do
+			--	local r = math_random(1,FinalSelfDChance)
+			--	if r == 1 then
+			--		Spring.DestroyUnit(units[i],false,false)
+			--	end
+			--end
+
+			-- kill whole allyteam  (game_end gadget will destroy leftover units)
+			if not killedScavengerAllyTeam then
+				local scavengerAllyTeamID = select(6, Spring.GetTeamInfo(scavengerAITeamID,false))
+				for _, teamID in ipairs(Spring.GetTeamList(scavengerAllyTeamID)) do
+					if not select(3, Spring.GetTeamInfo(teamID, false)) then
+						Spring.KillTeam(teamID)
+					end
 				end
+				killedScavengerAllyTeam = true
 			end
 		end
 	end
@@ -225,8 +236,7 @@ function UnitGroupSpawn(n)
 			local posy = Spring.GetGroundHeight(posx, posz)
 			local posradius = 256
 			local nearestEnemy = Spring.GetUnitNearestEnemy(pickedBeacon, 99999, false)
-			local nearestEnemyTeam = Spring.GetUnitTeam(nearestEnemy)
-			if nearestEnemyTeam == bestTeam then
+			if nearestEnemy and Spring.GetUnitTeam(nearestEnemy) == bestTeam then
 				bestTeamGroupMultiplier = 1.25
 			else
 				bestTeamGroupMultiplier = 0.75
@@ -464,8 +474,10 @@ function InitialSpawnBonusCommanders()
 		local unitDefID = Spring.GetUnitDefID(unitID)
 		local unitName = UnitDefs[unitDefID].name
 		local unitTeam = Spring.GetUnitTeam(unitID)
-		if unitTeam ~= GaiaTeamID then
-			SpawnBonusCommander(unitID, unitName, unitTeam)
+		if unitName == "armcom" or unitName == "corcom" then
+			if unitTeam ~= GaiaTeamID then
+				SpawnBonusCommander(unitID, unitName, unitTeam)
+			end
 		end
 	end
 end

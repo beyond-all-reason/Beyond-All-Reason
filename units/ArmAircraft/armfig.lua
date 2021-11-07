@@ -8,7 +8,7 @@ return {
 		brakerate = 0.075,
 		buildcostenergy = 2900,
 		buildcostmetal = 73,
-		buildpic = "ARMFIG.PNG",
+		buildpic = "ARMFIG.DDS",
 		buildtime = 3500,
 		canfly = true,
 		canmove = true,
@@ -44,6 +44,7 @@ return {
 		wingangle = 0.06315,
 		wingdrag = 0.185,
 		customparams = {
+			unitgroup = 'aa',
 			longdescription = Spring.I18N('units.longDescriptions.armfig'),
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",

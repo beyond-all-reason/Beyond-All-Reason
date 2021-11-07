@@ -8,7 +8,7 @@ return {
 		buildangle = 16384,
 		buildcostenergy = 950,
 		buildcostmetal = 120,
-		buildpic = "CORGPLAT.PNG",
+		buildpic = "CORGPLAT.DDS",
 		buildtime = 3003,
 		canrepeat = false,
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -35,6 +35,7 @@ return {
 		waterline = 1,
 		yardmap = "wwwwwwwwwwwwwwww",
 		customparams = {
+			unitgroup = 'weapon',
 			normaltex = "unittextures/cor_normal.dds",
 			removewait = true,
 			subfolder = "corbuildings/seadefence",

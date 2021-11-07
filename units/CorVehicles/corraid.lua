@@ -6,7 +6,7 @@ return {
 		brakerate = 0.08113,
 		buildcostenergy = 2400,
 		buildcostmetal = 235,
-		buildpic = "CORRAID.PNG",
+		buildpic = "CORRAID.DDS",
 		buildtime = 3312,
 		canmove = true,
 		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -42,6 +42,7 @@ return {
 		turninplacespeedlimit = 1.873,
 		turnrate = 330,
 		customparams = {
+			unitgroup = 'weapon',
 			basename = "base",
 			cannon1name = "barrel",
 			longdescription = Spring.I18N('units.longDescriptions.corraid'),

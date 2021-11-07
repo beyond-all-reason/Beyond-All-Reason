@@ -90,7 +90,7 @@ if gadgetHandler:IsSyncedCode() then
 	local unitWeapons = {}
 	local unitAlwaysSeen = {}
 	for unitDefID, unitDef in pairs(UnitDefs) do
-		if (unitDef.canAttack and unitDef.maxWeaponRange and unitDef.maxWeaponRange > 0) or unitDef.isFactory then
+		if (unitDef.canAttack and unitDef.maxWeaponRange and unitDef.maxWeaponRange > 0) then
 			validUnits[unitDefID] = true
 		end
 		local weapons = unitDef.weapons
@@ -166,6 +166,9 @@ if gadgetHandler:IsSyncedCode() then
 	--end
 
 	local function TargetCanBeReached(unitID, teamID, weaponList, target)
+		if not weaponList then
+			return
+		end
 		for weaponID in pairs(weaponList) do
 			--GetUnitWeaponTryTarget tests both target type validity and target to be reachable for the moment
 			if tonumber(target) and CallAsTeam(teamID, spGetUnitWeaponTryTarget, unitID, weaponID, target) then

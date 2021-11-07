@@ -19,7 +19,7 @@ local stunnedUnits = {}
 
 local hasSetStunned = {}
 for udid, ud in pairs(UnitDefs) do
-    if ud.customParams and ud.customParams.paralyzemultiplier == 0 then
+    if ud.customParams.paralyzemultiplier == 0 then
         hasSetStunned[udid] = false
     end
 end

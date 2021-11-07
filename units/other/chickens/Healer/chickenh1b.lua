@@ -11,7 +11,7 @@ return {
 		buildcostmetal = 40,
 		builddistance = 180,
 		builder = 1,
-		buildpic = "chickens/chickenh1b.PNG",
+		buildpic = "chickens/chickenh1b.DDS",
 		buildtime = 1125,
 		canassist = 0,
 		canbuild = 1,
@@ -73,14 +73,10 @@ return {
 		workertime = 150,
 		customparams = {
 			subfolder = "other/chickens",
-      model_author = "KDR_11k, Beherith",
+			model_author = "KDR_11k, Beherith",
 			normalmaps = "yes",
 			normaltex = "unittextures/chicken_s_normals.png",
 			--treeshader = "no",
-		},
-		featuredefs = {
-			dead = {},
-			heap = {},
 		},
 		sfxtypes = {
 			explosiongenerators = {

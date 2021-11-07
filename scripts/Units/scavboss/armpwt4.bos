@@ -1021,7 +1021,6 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 	{
 		sleep 500;
 	}
-	start-script UnitSpeed();
 	while( TRUE )
 	{
 		healthpercent = get HEALTH;
@@ -1069,20 +1068,18 @@ SetMaxReloadTime(Func_Var_1)
 StartMoving()
 {
 	signal SIG_MOVE;
-	call-script StopAnimation();
+	set-signal-mask SIG_MOVE;
 	bMoving = TRUE;
+	call-script StopAnimation();
+	start-script UnitSpeed();
 	start-script Walk();
-
 }
 
 StopMoving()
 {
 	bMoving = FALSE;
-
 	signal SIG_MOVE;
-	bMoving=FALSE;
 	call-script StopWalking();
-	
 }
 
 
@@ -1184,7 +1181,7 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
-		explode torso type SHATTER | BITMAP5 | NOHEATCLOUD;
+		explode head type FIRE | SMOKE | FALL | BITMAP5 | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 50 )

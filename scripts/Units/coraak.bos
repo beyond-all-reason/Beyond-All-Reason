@@ -229,7 +229,9 @@ UnitSpeed(){
 }
 StartMoving(){
 	signal SIG_WALK;
+  set-signal-mask SIG_WALK;
 	bMoving=TRUE;
+	start-script UnitSpeed();
 	start-script Walk();
 }
 StopMoving(){
@@ -238,41 +240,16 @@ StopMoving(){
 	call-script StopWalking();
 }
 
-SmokeUnit(healthpercent, sleeptime, smoketype)
-{
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 400;
-	}
-	start-script UnitSpeed();
-	while( TRUE )
-	{
-		healthpercent = get HEALTH;
-		if( healthpercent < 66 )
-		{
-			smoketype = 256 | 2;
-			if( Rand( 1, 66 ) < healthpercent )
-			{
-				smoketype = 256 | 1;
-			}
-			emit-sfx smoketype from torso;
-		}
-		sleeptime = healthpercent * 50;
-		if( sleeptime < 200 )
-		{
-			sleeptime = 200;
-		}
-		sleep sleeptime;
-	}
-}
-
 
 Create()
 {
 	animSpeed = 5;
-	start-script SmokeUnit();
 	bMoving = FALSE;
 }
+
+#define SMOKEPIECE pelvis
+#include "smokeunit_thread_nohit.h"
+
 
 SweetSpot(piecenum)
 {
@@ -417,7 +394,7 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
-		explode lfleg type SHATTER | NOHEATCLOUD;
+		explode lfleg type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 50 )

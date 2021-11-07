@@ -10,7 +10,7 @@ return {
 		buildcostmetal = 2700,
 		builddistance = 145,
 		builder = true,
-		buildpic = "ARMCOM.PNG",
+		buildpic = "ARMCOM.DDS",
 		buildtime = 75000,
 		cancapture = true,
 		cancloak = true,
@@ -82,6 +82,7 @@ return {
 			"armacv",
 		},
 		customparams = {
+			unitgroup = 'builder',
 			area_mex_def = "armmex",
 			iscommander = true,
 			--energyconv_capacity = 70,
@@ -90,6 +91,7 @@ return {
 			normaltex = "unittextures/Arm_normal.dds",
 			paralyzemultiplier = 0.025,
 			subfolder = "",
+			i18nfromunit = 'armcom'
 		},
 		featuredefs = {
 			dead = {

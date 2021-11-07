@@ -6,7 +6,7 @@ return {
 		brakerate = 0.0196,
 		buildcostenergy = 49000,
 		buildcostmetal = 1850,
-		buildpic = "CORTREM.PNG",
+		buildpic = "CORTREM.DDS",
 		buildtime = 31100,
 		canmove = true,
 		category = "ALL WEAPON NOTSUB NOTAIR NOTHOVER SURFACE TANK EMPABLE",
@@ -45,6 +45,7 @@ return {
 		turninplacespeedlimit = 0.95832,
 		turnrate = 169.39999,
 		customparams = {
+			unitgroup = 'weapon',
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "corvehicles/t2",

@@ -35,9 +35,9 @@ if not tonumber(Spring.GetConfigInt("AdvUnitShading",0) or 0) then
 end
 
 -- adv map shading
-if not tonumber(Spring.GetConfigInt("AdvMapShading",0) or 0) then
-	Spring.SetConfigInt("AdvMapShading", 1)
-end
+--if not tonumber(Spring.GetConfigInt("AdvMapShading",0) or 0) then
+--	Spring.SetConfigInt("AdvMapShading", 1)
+--end
 
 -- make sure default/minimum ui opacity is set
 if Spring.GetConfigFloat("ui_opacity", 0.6) < 0.3 then
@@ -80,21 +80,26 @@ Spring.SetConfigInt("LuaGarbageCollectionMemLoadMult", 2)
 
 Spring.SetConfigFloat("CrossAlpha", 0)	-- will be in effect next launch
 
+Spring.SetConfigInt("UnitLodDist", 999999)
+
 -- change some default value(s), upp the version and set what needs to be set
 local version = 2
 if Spring.GetConfigInt("version", 0) < version then
 	Spring.SetConfigInt("version", version)
 
 	-- set icon settings
+	Spring.SetConfigInt("UnitIconsAsUI", 1)
 	Spring.SetConfigFloat("UnitIconScaleUI", 1.05)
 	Spring.SetConfigInt("UnitIconFadeVanish", 1800)
 	Spring.SetConfigInt("UnitIconFadeStart", 2000)
 	Spring.SetConfigInt("UnitIconsHideWithUI", 1)
+end
 
-	--if Spring.GetConfigFloat("ui_tileopacity", 0.011) <= 0 then
-	--	Spring.SetConfigFloat("ui_tileopacity", 0.011)
-	--end
-	--if Spring.GetConfigFloat("ui_tilescale", 7) <= 0 then
-	--	Spring.SetConfigFloat("ui_tilescale", 7)
-	--end
+version = 3.1
+if Spring.GetConfigInt("version", 0) < version then
+	Spring.SetConfigInt("version", version)
+
+	if Spring.GetConfigInt("cusThreshold", 30) < 30 then
+		Spring.SetConfigInt("cusThreshold", 30)
+	end
 end

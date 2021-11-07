@@ -7,7 +7,7 @@ return {
 		brakerate = 0.06316,
 		buildcostenergy = 4700,
 		buildcostmetal = 250,
-		buildpic = "CORAH.PNG",
+		buildpic = "CORAH.DDS",
 		buildtime = 3650,
 		canmove = true,
 		category = "ALL HOVER MOBILE WEAPON NOTSUB NOTSHIP NOTAIR SURFACE EMPABLE",
@@ -39,6 +39,7 @@ return {
 		turninplacespeedlimit = 2.2044,
 		turnrate = 470,
 		customparams = {
+			unitgroup = 'aa',
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",
 			prioritytarget = "air",

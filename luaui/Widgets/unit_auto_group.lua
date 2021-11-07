@@ -36,7 +36,7 @@ include("keysym.h.lua")
 --------------------------------------------------------------------------------
 
 local addall = true
-local immediate = false
+local immediate = true
 local verbose = true
 
 local cutoffDistance = 3500
@@ -148,12 +148,18 @@ function widget:RecvLuaMsg(msg, playerID)
 	end
 end
 
+local existingGroups = GetGroupList()
+local existingGroupsFrame = 0
+
 function widget:DrawWorld()
 	if chobbyInterface then
 		return
 	end
 	if not IsGuiHidden() then
-		local existingGroups = GetGroupList()
+    existingGroupsFrame = existingGroupsFrame + 1 
+    if existingGroupsFrame % 10 == 0 then 
+      existingGroups = GetGroupList()
+    end
 		local camX, camY, camZ = spGetCameraPosition()
 		local camDistance
 		for inGroup, _ in pairs(existingGroups) do
@@ -312,9 +318,9 @@ function widget:KeyPress(key, modifier, isRepeat)
 			for udid, _ in pairs(selUnitDefIDs) do
 				if verbose then
 					if gr then
-						Echo( Spring.I18N('ui.autogroups.unitAdded', { unit = UnitDefs[udid].humanName, groupNumber = gr }) )
+						Echo( Spring.I18N('ui.autogroups.unitAdded', { unit = UnitDefs[udid].translatedHumanName, groupNumber = gr }) )
 					else
-						Echo( Spring.I18N('ui.autogroups.unitRemoved', { unit = UnitDefs[udid].humanName }) )
+						Echo( Spring.I18N('ui.autogroups.unitRemoved', { unit = UnitDefs[udid].translatedHumanName }) )
 					end
 				end
 			end

@@ -7,7 +7,7 @@ return {
 		brakerate = 0.0287,
 		buildcostenergy = 10000,
 		buildcostmetal = 2000,
-		buildpic = "ARMMSHIP.PNG",
+		buildpic = "ARMMSHIP.DDS",
 		buildtime = 15000,
 		canmove = true,
 		category = "ALL NOTLAND MOBILE WEAPON NOTSUB SHIP NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -40,6 +40,7 @@ return {
 		turnrate = 300,
 		waterline = 0,
 		customparams = {
+			unitgroup = 'weapon',
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armships/t2",
@@ -290,7 +291,7 @@ return {
 				maxangledif = 60,
 				onlytargetcategory = "SURFACE",
 			},
-			[3] = {
+			[2] = {
 				def = "MISSILE",
 				onlytargetcategory = "VTOL",
 			},

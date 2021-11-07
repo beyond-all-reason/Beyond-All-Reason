@@ -95,9 +95,6 @@ function CaptureBeacons(n)
 				if unitDefID == scavDef then
 					CaptureProgressForBeacons[scav] = CaptureProgressForBeacons[scav] - 0.0005
 					--Spring.Echo("uncapturing myself")
-				elseif unitTeamID == GaiaTeamID and (not unitDefID == scavDef) then
-					CaptureProgressForBeacons[scav] = CaptureProgressForBeacons[scav] - 1
-					--Spring.Echo("uncapturing our beacon")
 				elseif captureraiTeam == false and unitTeamID ~= GaiaTeamID and unitTeamID ~= Spring.GetGaiaTeamID() and IsUnitExcluded == false and (not UnitDefs[unitDefID].canFly) then
 					CaptureProgressForBeacons[scav] = CaptureProgressForBeacons[scav] + ((UnitDefs[unitDefID].metalCost)/800)*0.001
 					CapturingUnitsTeam[unitTeamID] = CapturingUnitsTeam[unitTeamID] + 1
@@ -111,12 +108,16 @@ function CaptureBeacons(n)
 					CaptureProgressForBeacons[scav] = 1
 					--Spring.Echo("capture above 1")
 				end
+				if unitTeamID == GaiaTeamID and (not unitDefID == scavDef) then
+					CaptureProgressForBeacons[scav] = CaptureProgressForBeacons[scav] - 1
+					--Spring.Echo("uncapturing our beacon")
+				end
 				Spring.SetUnitHealth(scav, {capture = CaptureProgressForBeacons[scav]})
 
 				if TeamsCapturing < 2 and captureraiTeam == false and CaptureProgressForBeacons[scav] >= 1 then
+					Spring.TransferUnit(scav, unitTeamID, false)
 					CaptureProgressForBeacons[scav] = 0
 					Spring.SetUnitHealth(scav, {capture = 0})
-					Spring.TransferUnit(scav, unitTeamID, true)
 					captureraiTeam = nil
 					break
 				end
@@ -265,8 +266,8 @@ function spawnPlayerReinforcements(n)
 								end
 							end
 
+							SendToUnsynced('ScavFriendlyReinforcements', playerName, groupunit)
 
-							ScavSendMessage(playerName .."'s reinforcements detected. Unit type: ".. UDN[groupunit].humanName .. ".")
 							for a = 1,math.ceil(groupsize) do
 								--local posradius = posradius+(groupsize*8)
 								local posx = posx+(math_random(-posradius,posradius))

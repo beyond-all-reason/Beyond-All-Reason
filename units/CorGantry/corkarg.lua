@@ -6,7 +6,7 @@ return {
 		brakerate = 0.8211,
 		buildcostenergy = 38000,
 		buildcostmetal = 1650,
-		buildpic = "CORKARG.PNG",
+		buildpic = "CORKARG.DDS",
 		buildtime = 50609,
 		canmove = true,
 		category = "BOT WEAPON ALL NOTSUB NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -39,6 +39,7 @@ return {
 		turnrate = 607.20001,
 		upright = false,
 		customparams = {
+			unitgroup = 'weapon',
 			model_author = "Flaka",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "corgantry",

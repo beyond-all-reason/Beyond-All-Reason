@@ -7,7 +7,7 @@ return {
 		buildangle = 16384,
 		buildcostenergy = 8300,
 		buildcostmetal = 700,
-		buildpic = "ARMTHOVR.PNG",
+		buildpic = "ARMTHOVR.DDS",
 		buildtime = 20341,
 		canmove = true,
 		cantbetransported = true,
@@ -70,6 +70,11 @@ return {
 			},
 		},
 		sfxtypes = {
+			explosiongenerators = {
+				[1] = "custom:waterwake-small-hover",
+				[2] = "custom:bowsplash-small-hover",
+				[3] = "custom:hover-wake-large",
+			},
 			pieceexplosiongenerators = {
 				[1] = "deathceg2",
 				[2] = "deathceg3",

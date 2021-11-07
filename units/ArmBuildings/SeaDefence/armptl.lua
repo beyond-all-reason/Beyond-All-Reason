@@ -8,7 +8,7 @@ return {
 		buildangle = 16384,
 		buildcostenergy = 1500,
 		buildcostmetal = 170,
-		buildpic = "ARMTL.PNG",
+		buildpic = "ARMTL.DDS",
 		buildtime = 3700,
 		canrepeat = false,
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -32,6 +32,7 @@ return {
 		sonardistance = 230,
 		yardmap = "ooooooooo",
 		customparams = {
+			unitgroup = 'weaponaa',
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			removewait = true,

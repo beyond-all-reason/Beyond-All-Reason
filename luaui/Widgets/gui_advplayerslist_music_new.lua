@@ -37,8 +37,8 @@ local playedTime, totalTime = Spring.GetSoundStreamTime()
 local curTrackName	= "no name"
 local prevTrackName = "no name"
 local appliedSilence = true
-local minSilenceTime = 1
-local maxSilenceTime = 180
+local minSilenceTime = 30
+local maxSilenceTime = 120
 local silenceTimer = math.random(minSilenceTime,maxSilenceTime)
 
 
@@ -575,9 +575,9 @@ function widget:UnitDamaged(unitID,unitDefID,_,damage)
 		else
 			warMeter = math.ceil(warMeter + damage)
 		end
-		if math.random(1,5) == 1 then
-			silenceTimer = silenceTimer - math.ceil(damage/1000)
-		end
+		-- if math.random(1,5) == 1 then
+		-- 	silenceTimer = silenceTimer - math.ceil(damage/1000)
+		-- end
 	end
 end
 
@@ -633,6 +633,21 @@ function widget:GameFrame(n)
 			else
 				PlayNewTrack()
 			end
+		end
+	end
+end
+
+function widget:Update()
+	if not playing then return end
+
+	local frame = Spring.GetGameFrame()
+	local _,_,paused = Spring.GetGameSpeed()
+	if paused or frame < 1 then
+		local playedTime, totalTime = Spring.GetSoundStreamTime()
+		if totalTime == 0 then
+			silenceTimer = 0
+			warMeter = 0
+			PlayNewTrack()
 		end
 	end
 end

@@ -7,7 +7,7 @@ return {
 		brakerate = 0.0472,
 		buildcostenergy = 2100,
 		buildcostmetal = 150,
-		buildpic = "ARMSAM.PNG",
+		buildpic = "ARMSAM.DDS",
 		buildtime = 3415,
 		canmove = true,
 		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -42,6 +42,7 @@ return {
 		turninplacespeedlimit = 1.056,
 		turnrate = 370,
 		customparams = {
+			unitgroup = 'weaponaa',
 			longdescription = Spring.I18N('units.longDescriptions.armsam'),
 			model_author = "Beherith",
 			normaltex = "unittextures/Arm_normal.dds",

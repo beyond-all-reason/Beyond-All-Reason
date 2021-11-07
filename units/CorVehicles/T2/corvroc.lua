@@ -6,7 +6,7 @@ return {
 		brakerate = 0.04978,
 		buildcostenergy = 6700,
 		buildcostmetal = 880,
-		buildpic = "CORVROC.PNG",
+		buildpic = "CORVROC.DDS",
 		buildtime = 15002,
 		canmove = true,
 		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -42,6 +42,7 @@ return {
 		turninplacespeedlimit = 0.792,
 		turnrate = 520.29999,
 		customparams = {
+			unitgroup = 'weapon',
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "corvehicles/t2",

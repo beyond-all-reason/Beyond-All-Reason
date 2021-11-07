@@ -7,7 +7,7 @@ return {
 		brakerate = 0.04831,
 		buildcostenergy = 1700,
 		buildcostmetal = 105,
-		buildpic = "ARMJAM.PNG",
+		buildpic = "ARMJAM.DDS",
 		buildtime = 5933,
 		canattack = false,
 		canmove = true,
@@ -47,6 +47,7 @@ return {
 		turninplacespeedlimit = 0.792,
 		turnrate = 505,
 		customparams = {
+			unitgroup = 'util',
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armvehicles/t2",

@@ -172,11 +172,23 @@ mat4 translationMat(vec3 t) {
 		t.x, t.y, t.z, 1.0
 	);
 }
+
+mat4 mat4mix(mat4 a, mat4 b, float alpha) {
+	return (a * (1.0 - alpha) + b * alpha);
+}
+
     ]]
 
     return eubs
 end
 
+local function CreateShaderDefinesString(args) -- Args is a table of stuff that are the shader parameters
+  local defines = {}
+  for k, v in pairs (args) do
+      defines[#defines + 1] = string.format("#define %s %s\n", tostring(k), tostring(v))
+  end
+  return table.concat(defines)
+end
 
 local LuaShader = setmetatable({}, {
 	__call = function(self, ...) return new(self, ...) end,
@@ -187,6 +199,7 @@ LuaShader.isTesselationShaderSupported = IsTesselationShaderSupported()
 LuaShader.isDeferredShadingEnabled = IsDeferredShadingEnabled()
 LuaShader.GetAdvShadingActive = GetAdvShadingActive
 LuaShader.GetEngineUniformBufferDefs = GetEngineUniformBufferDefs
+LuaShader.CreateShaderDefinesString = CreateShaderDefinesString
 
 -----------------============ Warnings & Error Gandling ============-----------------
 function LuaShader:OutputLogEntry(text, isError)

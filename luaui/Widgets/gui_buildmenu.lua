@@ -18,9 +18,6 @@ local alwaysShow = false
 local cfgCellPadding = 0.007
 local cfgIconPadding = 0.015 -- space between icons
 local cfgIconCornerSize = 0.025
-local cfgRadariconSize = 0.23
-local cfgRadariconOffset = 0.025
-local cfgGroupiconSize = 0.29
 local cfgPriceFontSize = 0.19
 local cfgActiveAreaMargin = 0.1 -- (# * bgpadding) space between the background border and active area
 
@@ -32,9 +29,7 @@ local maxColls = 5
 local showOrderDebug = false
 local smartOrderUnits = true
 
-local maxPosY = 0.73
-
-local enableShortcuts = false   -- problematic since it overrules use of top row letters from keyboard which some are in use already
+local maxPosY = 0.74
 
 local disableInputWhenSpec = false		-- disable specs selecting buildoptions
 
@@ -42,14 +37,8 @@ local makeFancy = true    -- when using transparant icons this adds highlights s
 local showPrice = false		-- false will still show hover
 local showRadarIcon = true		-- false will still show hover
 local showGroupIcon = true		-- false will still show hover
-local showShortcuts = false
 local showTooltip = true
 local showBuildProgress = true
-
-local iconBorderOpacity = 0.09  -- lighten the icon edges
-
-local texDetailMult = 1.25   -- dont go too high, will get pixely
-local radartexDetailMult = 2   -- dont go too high, will get pixely
 
 local zoomMult = 1.5
 local defaultCellZoom = 0.025 * zoomMult
@@ -59,28 +48,17 @@ local hoverCellZoom = 0.05 * zoomMult
 local clickSelectedCellZoom = 0.125 * zoomMult
 local selectedCellZoom = 0.135 * zoomMult
 
-local bgpadding, chobbyInterface, activeAreaMargin, textureDetail, iconTypesMap, radariconTextureDetail
-local dlistCache, dlistGuishader, dlistBuildmenuBg, dlistBuildmenu, font, font2, cmdsCount
+local bgpadding, chobbyInterface, activeAreaMargin, iconTypesMap
+local dlistGuishader, dlistBuildmenuBg, dlistBuildmenu, font2, cmdsCount
 local hijackedlayout, doUpdateClock, ordermenuHeight, advplayerlistPos, prevAdvplayerlistLeft
-local cellPadding, iconPadding, cornerSize, cellInnerSize, cellSize
---local radariconSize, radariconOffset, groupiconSize, priceFontSize
---local activeCmd, selBuildQueueDefID, rowPressedClock, rowPressed
+local cellPadding, iconPadding, cornerSize, cellInnerSize, cellSize, priceFontSize
+local activeCmd, selBuildQueueDefID
+local prevHoveredCellID, hoverDlist
+
+local math_isInRect = math.isInRect
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
-
-local buildKeys = {
-	113, -- Q
-	119, -- W
-	101, -- E
-	114, -- R
-	116, -- T
-	121, -- Y
-	117, -- U
-	105, -- I
-	111, -- O
-	112, -- P
-}
 
 local playSounds = true
 local sound_queue_add = 'LuaUI/Sounds/buildbar_add.wav'
@@ -111,7 +89,6 @@ local backgroundRect = { 0, 0, 0, 0 }
 local colls = 5
 local rows = 5
 local minimapHeight = 0.235
-local minimapEnlarged = false
 local posY = 0
 local posY2 = 0
 local posX = 0
@@ -146,33 +123,20 @@ local spGetGroundHeight = Spring.GetGroundHeight
 local spGetMouseState = Spring.GetMouseState
 local spTraceScreenRay = Spring.TraceScreenRay
 local spGetUnitHealth = Spring.GetUnitHealth
-local SelectedUnitsCount = spGetSelectedUnitsCount()
 local spGetUnitIsBuilding = Spring.GetUnitIsBuilding
 
+local SelectedUnitsCount = spGetSelectedUnitsCount()
+
 local string_sub = string.sub
-local string_gsub = string.gsub
 local os_clock = os.clock
 
 local math_floor = math.floor
 local math_ceil = math.ceil
 local math_max = math.max
 local math_min = math.min
-local math_tan = math.tan
-local math_pi = math.pi
-local math_cos = math.cos
-local math_sin = math.sin
-local math_rad = math.rad
-local math_twicePi = math.pi * 2
 
-local GL_QUADS = GL.QUADS
-local glShape = gl.Shape
-local GL_TRIANGLE_FAN = GL.TRIANGLE_FAN
-local glBeginEnd = gl.BeginEnd
 local glTexture = gl.Texture
-local glTexRect = gl.TexRect
 local glColor = gl.Color
-local glRect = gl.Rect
-local glVertex = gl.Vertex
 local glBlending = gl.Blending
 local GL_SRC_ALPHA = GL.SRC_ALPHA
 local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
@@ -227,30 +191,6 @@ local function convertColor(r, g, b)
 	return string.char(255, (r * 255), (g * 255), (b * 255))
 end
 
-function wrap(str, limit)
-	limit = limit or 72
-	local here = 1
-	local buf = ""
-	local t = {}
-	str:gsub("(%s*)()(%S+)()",
-		function(sp, st, word, fi)
-			if fi - here > limit then
-				--# Break the line
-				here = st
-				t[#t + 1] = buf
-				buf = word
-			else
-				buf = buf .. sp .. word  --# Append
-			end
-		end)
-	--# Tack on any leftovers
-	if (buf ~= "") then
-		t[#t + 1] = buf
-	end
-	return t
-end
-
-
 local folder = 'LuaUI/Images/groupicons/'
 local groups = {
 	energy = folder..'energy.png',
@@ -261,14 +201,15 @@ local groups = {
 	buildert4 = folder..'buildert4.png',
 	util = folder..'util.png',
 	weapon = folder..'weapon.png',
-	emp = folder..'emp.png',
+	explo = folder..'weaponexplo.png',
+	weaponaa = folder..'weaponaa.png',
 	aa = folder..'aa.png',
+	emp = folder..'emp.png',
 	sub = folder..'sub.png',
 	nuke = folder..'nuke.png',
 	antinuke = folder..'antinuke.png',
 }
 
-local unitBuildPic = {}
 local unitEnergyCost = {}
 local unitMetalCost = {}
 local unitGroup = {}
@@ -281,7 +222,9 @@ local isMex = {}
 local isWaterUnit = {}
 local isGeothermalUnit = {}
 local unitMaxWeaponRange = {}
+
 for unitDefID, unitDef in pairs(UnitDefs) do
+	unitGroup[unitDefID] = unitDef.customParams.unitgroup
 
 	if unitDef.name == 'armdl' or unitDef.name == 'cordl' or unitDef.name == 'armlance' or unitDef.name == 'cortitan'
 		or (unitDef.minWaterDepth > 0 or unitDef.modCategories['ship']) then
@@ -294,220 +237,65 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 		isGeothermalUnit[unitDefID] = true
 	end
 
-	unitGroup[unitDefID] = 'util'
-	if unitDef.customParams.objectify or unitDef.isTransport or string.find(unitDef.name, 'critter') then
-		unitGroup[unitDefID] = nil
-	end
-	if unitDef.energyMake > 19 and (not unitDef.energyUpkeep or unitDef.energyUpkeep < 10) or unitDef.energyUpkeep < -19 or unitDef.windGenerator > 0 or unitDef.tidalGenerator > 0 then
-		unitGroup[unitDefID] = 'energy'
-	end
-	if unitDef.extractsMetal > 0 or (unitDef.customParams.energyconv_capacity and unitDef.customParams.energyconv_efficiency) then
-		unitGroup[unitDefID] = 'metal'
-	end
-	if unitDef.energyStorage > 1000 and string.find(string.lower(unitDef.humanName), 'storage') then
-		unitGroup[unitDefID] = 'energy'
-	end
-	if unitDef.metalStorage > 500 and string.find(string.lower(unitDef.humanName), 'storage') then
-		unitGroup[unitDefID] = 'metal'
-	end
 	if unitDef.maxWeaponRange > 16 then
 		unitMaxWeaponRange[unitDefID] = unitDef.maxWeaponRange
-		unitGroup[unitDefID] = 'weapon'
-	end
-	if string.find(string.lower(unitDef.name), 'silo') then
-		unitGroup[unitDefID] = 'nuke'
-	end
-	local aaWeapons = 0
-	local weaponCount = 0
-
-	local weapons = unitDef.weapons
-	for i = 1, #weapons do
-		local weaponDef = WeaponDefs[weapons[i].weaponDef]
-		if weaponDef then
-			if weaponDef.damages then
-				-- get highest damage category
-				local maxDmg = 0
-				for _, v in pairs(weaponDef.damages) do
-					if v > maxDmg then
-						maxDmg = v
-					end
-				end
-				if maxDmg > 1 then	-- filter away bogus weapons
-					weaponCount = weaponCount + 1
-					if weapons[i].onlyTargets and weapons[i].onlyTargets['vtol'] then
-						aaWeapons = aaWeapons + 1
-					end
-				end
-				if weaponDef.paralyzer then
-					unitGroup[unitDefID] = 'emp'
-				end
-
-				if weaponDef.type == "TorpedoLauncher" then
-					unitGroup[unitDefID] = 'sub'
-				end
-			end
-			if weaponDef.shieldRepulser then
-				unitGroup[unitDefID] = 'util'
-			end
-			--if weaponDef.description ~= nil and string.find(string.lower(weaponDef.description), 'nuclear') then
-			--	unitGroup[unitDefID] = 'nuke'
-			--end
-		end
-	end
-	if aaWeapons > 0 and weaponCount == aaWeapons then
-		unitGroup[unitDefID] = 'aa'
 	end
 
 	unitIconType[unitDefID] = unitDef.iconType
 	unitEnergyCost[unitDefID] = unitDef.energyCost
 	unitMetalCost[unitDefID] = unitDef.metalCost
-	unitBuildPic[unitDefID] = unitDef.buildpicname
 	if unitDef.maxThisUnit == 0 then --or unitDef.name == 'armllt' or unitDef.name == 'armmakr' then
 		unitRestricted[unitDefID] = true
 	end
 	if unitDef.buildSpeed > 0 and unitDef.buildOptions[1] then
 		isBuilder[unitDefID] = unitDef.buildOptions
-		unitGroup[unitDefID] = 'builder'
 	end
 	if unitDef.isFactory and #unitDef.buildOptions > 0 then
 		isFactory[unitDefID] = true
-		unitGroup[unitDefID] = 'builder'
 	end
-	if unitDef.buildSpeed > 10 then
-		unitGroup[unitDefID] = 'builder'
-	end
-	if unitGroup[unitDefID] == 'builder' and unitDef.customParams.techlevel then
-		if tonumber(unitDef.customParams.techlevel) == 2 then
-			unitGroup[unitDefID] = 'buildert2'
-		elseif tonumber(unitDef.customParams.techlevel) == 3 then
-			unitGroup[unitDefID] = 'buildert3'
-		elseif tonumber(unitDef.customParams.techlevel) == 4 then
-			unitGroup[unitDefID] = 'buildert4'
-		end
-	end
-	if string.find(string.lower(unitDef.tooltip), 'anti%-nuke') then
-		unitGroup[unitDefID] = 'antinuke'
-	end
+
 	if unitDef.extractsMetal > 0 then
 		isMex[unitDefID] = true
 	end
 end
 
 local unitOrder = {}
-local function addOrderImportance(unitDefID, skip, value)
-	if not skip then
-		unitOrder[unitDefID] = unitOrder[unitDefID] + value
-	end
-end
+local unitOrderManualOverrideTable = VFS.Include("luaui/configs/buildmenu_sorting.lua")
 
--- order units, add higher value for order importance
-local skip = false
 for unitDefID, unitDef in pairs(UnitDefs) do
-	skip = false
-	unitOrder[unitDefID] = 20000000
-
-	-- handle decoy unit like its the regular version
-	if unitDef.customParams.decoyfor then
-		unitDef = UnitDefNames[unitDef.customParams.decoyfor]
-		unitOrder[unitDefID] = unitOrder[unitDefID] - 2
+	if unitOrderManualOverrideTable[unitDefID] then
+		unitOrder[unitDefID] = -unitOrderManualOverrideTable[unitDefID]
+	else
+		unitOrder[unitDefID] = 9999999
 	end
-
-	-- is water unit
-	if unitDef.name ~= 'armmex' and unitDef.name ~= 'cormex' and (unitDef.minWaterDepth > 0 or unitDef.modCategories['ship'] or unitDef.modCategories['underwater']) then
-		unitOrder[unitDefID] = 500000
-	end
-
-	-- mobile units
-	if not (unitDef.isImmobile or unitDef.isBuilding) then
-		addOrderImportance(unitDefID, skip, 15000000)
-	end
-
-	-- eco buildings
-	if unitDef.isImmobile or unitDef.isBuilding then
-		if unitDef.tidalGenerator > 0 then
-			addOrderImportance(unitDefID, skip, 12000000)
-		elseif unitDef.extractsMetal > 0 then
-			addOrderImportance(unitDefID, skip, 14000000)
-		elseif unitDef.windGenerator > 0 then
-			addOrderImportance(unitDefID, skip, 12500000)
-		elseif unitDef.energyMake > 19 and (not unitDef.energyUpkeep or unitDef.energyUpkeep < 10) then
-			addOrderImportance(unitDefID, skip, 11500000)
-		elseif unitDef.energyUpkeep < -19 then
-			addOrderImportance(unitDefID, skip, 12000000)
-		end
-
-		-- storage
-		if unitDef.energyStorage > 1000 and string.find(string.lower(unitDef.humanName), 'storage') then
-			addOrderImportance(unitDefID, skip, 11000000)
-		end
-		if unitDef.metalStorage > 500 and string.find(string.lower(unitDef.humanName), 'storage') then
-			addOrderImportance(unitDefID, skip, 13000000)
-		end
-
-		-- converters
-		if string.find(string.lower(unitDef.humanName), 'converter') then
-			addOrderImportance(unitDefID, skip, 13500000)
-		end
-	end
-
-	-- nanos
-	if unitDef.buildSpeed > 0 and not unitDef.buildOptions[1] then
-		addOrderImportance(unitDefID, skip, 3500000)
-	end
-
-	if unitDef.buildOptions[1] then
-		if unitDef.isBuilding then
-			addOrderImportance(unitDefID, skip, 2500000)
-		else
-			if string.find(string.lower(unitDef.humanName), 'construction') then
-				addOrderImportance(unitDefID, skip, 6000000)
-			elseif string.find(string.lower(unitDef.tooltip), 'minelayer') or string.find(string.lower(unitDef.tooltip), 'assist') or string.find(string.lower(unitDef.tooltip), 'engineer') then
-				addOrderImportance(unitDefID, skip, 4000000)
-			else
-				addOrderImportance(unitDefID, skip, 5000000)
-			end
-		end
-	end
-	-- if unitDef.isImmobile or  unitDef.isBuilding then
-	--   if unitDef.floater or unitDef.floatOnWater then
-	--     addOrderImportance(unitDefID, skip, 11000000)
-	--   elseif unitDef.modCategories['underwater'] or unitDef.modCategories['canbeuw'] or unitDef.modCategories['notland'] then
-	--     addOrderImportance(unitDefID, skip, 10000000)
-	--   else
-	--     addOrderImportance(unitDefID, skip, 12000000)
-	--   end
-	-- else
-	--   if unitDef.modCategories['ship'] then
-	--     addOrderImportance(unitDefID, skip, 9000000)
-	--   elseif unitDef.modCategories['hover'] then
-	--     addOrderImportance(unitDefID, skip, 8000000)
-	--   elseif unitDef.modCategories['tank'] then
-	--     addOrderImportance(unitDefID, skip, 7000000)
-	--   elseif unitDef.modCategories['bot'] then
-	--     addOrderImportance(unitDefID, skip, 6000000)
-	--   elseif unitDef.isAirUnit then
-	--     addOrderImportance(unitDefID, skip, 5000000)
-	--   elseif unitDef.modCategories['underwater'] or unitDef.modCategories['canbeuw'] or unitDef.modCategories['notland'] then
-	--     addOrderImportance(unitDefID, skip, 8600000)
-	--   end
-	-- end
-
-
-	unitOrder[unitDefID] = math_max(1, math_floor(unitOrder[unitDefID]))
-
-	-- make more expensive units of the same kind lower in the list
-	unitOrder[unitDefID] = unitOrder[unitDefID] + 1000000
-	addOrderImportance(unitDefID, skip, -(unitDef.energyCost / 70))
-	addOrderImportance(unitDefID, skip, -unitDef.metalCost)
-
-	unitOrder[unitDefID] = math_max(1, math_floor(unitOrder[unitDefID]))
 end
 
 local function getHighestOrderedUnit()
-	local highest = { 0, 0 }
+	local highest = { 0, 0, false }
+	local firstOrderTest = true
+	local newSortingUnit = {}
 	for unitDefID, orderValue in pairs(unitOrder) do
-		if orderValue > highest[2] then
-			highest = { unitDefID, orderValue }
+
+		if unitOrderManualOverrideTable[unitDefID] then
+			newSortingUnit[unitDefID] = true
+		else
+			newSortingUnit[unitDefID] = false
+		end
+
+		if firstOrderTest == true then
+			firstOrderTest = false
+			highest = { unitDefID, orderValue, newSortingUnit[unitDefID]}
+		--elseif orderValue > highest[2] then
+		elseif highest[3] == false and newSortingUnit[unitDefID] == true then
+			highest = { unitDefID, orderValue, newSortingUnit[unitDefID]}
+		elseif highest[3] == false and newSortingUnit[unitDefID] == false then
+			if orderValue > highest[2] then
+				highest = { unitDefID, orderValue, newSortingUnit[unitDefID]}
+			end
+		elseif highest[3] == true and newSortingUnit[unitDefID] == true then
+			if orderValue > highest[2] then
+				highest = { unitDefID, orderValue, newSortingUnit[unitDefID]}
+			end
 		end
 	end
 	return highest[1]
@@ -528,10 +316,16 @@ end
 unitOrder = unitsOrdered
 unitsOrdered = nil
 
+local voidWater = false
+local success, mapinfo = pcall(VFS.Include,"mapinfo.lua") -- load mapinfo.lua confs
+if success and mapinfo then
+	voidWater = mapinfo.voidwater
+end
+
 local minWaterUnitDepth = -11
 local showWaterUnits = false
 local _, _, mapMinWater, _ = Spring.GetGroundExtremes()
-if mapMinWater <= minWaterUnitDepth then
+if not voidWater and mapMinWater <= minWaterUnitDepth then
 	showWaterUnits = true
 end
 -- make them a disabled unit (instead of removing it entirely)
@@ -539,6 +333,35 @@ if not showWaterUnits then
 	for unitDefID,_ in pairs(isWaterUnit) do
 		unitDisabled[unitDefID] = true
 	end
+end
+
+
+-- load all icons to prevent briefly showing white unit icons (will happen due to the custom texture filtering options)
+local excludeScavs = not (Spring.Utilities.Gametype.IsScavengers() or Spring.GetModOptions().experimentalscavuniqueunits)
+local excludeChickens = not Spring.Utilities.Gametype.IsChickens()
+
+local dlistCache
+local function cacheUnitIcons()
+	if dlistCache then
+		dlistCache = gl.DeleteList(dlistCache)
+	end
+	dlistCache = gl.CreateList(function()
+		gl.Color(1, 1, 1, 0.001)
+		for id, unit in pairs(UnitDefs) do
+			if not excludeScavs or not string.find(unit.name,'_scav') then
+				if not excludeChickens or not string.find(unit.name,'chicken') then
+					gl.Texture('#'..id)
+					gl.TexRect(-1, -1, 0, 0)
+					if unitIconType[id] and iconTypesMap[unitIconType[id]] then
+						gl.Texture(':l:' .. iconTypesMap[unitIconType[id]])
+						gl.TexRect(-1, -1, 0, 0)
+					end
+					gl.Texture(false)
+				end
+			end
+		end
+		gl.Color(1, 1, 1, 1)
+	end)
 end
 
 local showGeothermalUnits = false
@@ -567,71 +390,6 @@ local function checkGeothermalFeatures()
 			end
 		end
 	end
-end
-
-
--- load all icons to prevent briefly showing white unit icons (will happen due to the custom texture filtering options)
-local function cacheUnitIcons()
-	local minC = minColls
-	local maxC = maxColls
-	if not dynamicIconsize then
-		minC = defaultColls
-		maxC = defaultColls
-	end
-	if minC > maxC then
-		maxC = minC
-	end -- just to be sure
-
-	local activeArea = { backgroundRect[1] + (stickToBottom and bgpadding or 0) + activeAreaMargin, backgroundRect[2] + (stickToBottom and 0 or bgpadding) + activeAreaMargin, backgroundRect[3] - bgpadding - activeAreaMargin, backgroundRect[4] - bgpadding - activeAreaMargin }
-	local contentWidth = activeArea[3] - activeArea[1]
-	local colls = minC
-	local cellSize = math_floor((contentWidth / colls) + 0.33)
-	local cellPadding = math_floor(cellSize * cfgCellPadding)
-	local cellInnerSize = cellSize - cellPadding - cellPadding
-	local newTextureDetail = math_floor(cellInnerSize * (1 + defaultCellZoom) * texDetailMult)
-	local newRadariconTextureDetail = math_floor(math_floor((cellInnerSize * cfgRadariconSize) + 0.5) * radartexDetailMult)
-	if not textureDetail or textureDetail ~= newTextureDetail then
-		while colls <= maxC do
-			-- these are globals so it can be re-used (hover highlight)
-			gl.Color(1, 1, 1, 0.001)
-			for id, unit in pairs(UnitDefs) do
-				-- only caching for defaultCellZoom
-				if unitBuildPic[id] then
-					gl.Texture(':lr' .. newTextureDetail .. ',' .. newTextureDetail .. ':unitpics/' .. unitBuildPic[id])
-					if textureDetail then	-- delete old texture
-						gl.DeleteTexture(':lr' .. textureDetail .. ',' .. textureDetail .. ':unitpics/' .. unitBuildPic[id])
-					end
-				end
-				if unitIconType[id] and iconTypesMap[unitIconType[id]] then
-					gl.TexRect(-1, -1, 0, 0)
-					gl.Texture(':lr' .. newRadariconTextureDetail .. ',' .. newRadariconTextureDetail .. ':' .. iconTypesMap[unitIconType[id]])
-					gl.TexRect(-1, -1, 0, 0)
-					if radariconTextureDetail then	-- delete old texture
-						gl.DeleteTexture(':lr' .. radariconTextureDetail .. ',' .. radariconTextureDetail .. ':' .. iconTypesMap[unitIconType[id]])
-					end
-				end
-				gl.Texture(false)
-			end
-			gl.Color(1, 1, 1, 1)
-			colls = colls + 1
-		end
-		textureDetail = newTextureDetail
-		radariconTextureDetail = newRadariconTextureDetail
-	end
-end
-
-local function refreshUnitIconCache()
-	if dlistCache then
-		dlistCache = gl.DeleteList(dlistCache)
-	end
-	dlistCache = gl.CreateList(function()
-		cacheUnitIcons()
-	end)
-end
-
-
-function IsOnRect(x, y, BLcornerX, BLcornerY, TRcornerX, TRcornerY)
-	return x >= BLcornerX and x <= TRcornerX and y >= BLcornerY and y <= TRcornerY
 end
 
 local function checkGuishader(force)
@@ -718,7 +476,6 @@ function widget:ViewResize()
 	font2 = WG['fonts'].getFont(fontFile, 1.2, 0.28, 1.6)
 
 	if WG['minimap'] then
-		minimapEnlarged = WG['minimap'].getEnlarged()
 		minimapHeight = WG['minimap'].getHeight()
 	end
 
@@ -744,22 +501,19 @@ function widget:ViewResize()
 		minColls = math_max(8, math_floor((width/vsx)*25))
 		maxColls = 30
 	else
-		posY = 0.606
+		posY = math_min(maxPosY, math_max(0.4615, (vsy - minimapHeight) / vsy) - (widgetSpaceMargin/vsy))
 		posY2 = math_floor(0.14 * ui_scale * vsy) / vsy
 		posY2 = posY2 + (widgetSpaceMargin/vsy)
 		posX = 0
 		minColls = 4
 		maxColls = 5
 
-		if minimapEnlarged then
-			posY = math_max(0.4615, (vsy - minimapHeight) / vsy) - 0.0064
-			if WG['minimap'] then
-				posY = 1 - (WG['minimap'].getHeight() / vsy) - (widgetSpaceMargin/vsy)
-				if posY > maxPosY then
-					posY = maxPosY
-				end
+		if WG['minimap'] then
+			posY = 1 - (WG['minimap'].getHeight() / vsy) - (widgetSpaceMargin/vsy)
+			if posY > maxPosY then
+				posY = maxPosY
 			end
-		else
+
 			if WG['ordermenu'] then
 				local oposX, oposY, owidth, oheight = WG['ordermenu'].getPosition()
 				if oposY > 0.5 then
@@ -787,7 +541,6 @@ function widget:ViewResize()
 	backgroundRect = { posX, (posY - height) * vsy, posX2, posY * vsy }
 
 	checkGuishader(true)
-	refreshUnitIconCache()
 	clear()
 	doUpdate = true
 end
@@ -806,11 +559,35 @@ local function hijacklayout()
 	Spring.ForceLayoutUpdate()
 end
 
+function buildFacingHandler(_, _, args)
+	if not (preGamestartPlayer and selBuildQueueDefID) then
+		return
+	end
+
+	local facing = Spring.GetBuildFacing()
+	if args and args[1] == "inc" then
+		facing = facing + 1
+		if facing > 3 then
+			facing = 0
+		end
+		Spring.SetBuildFacing(facing)
+
+		return true
+	elseif args and args[1] == "dec" then
+		facing = facing - 1
+		if facing < 0 then
+			facing = 3
+		end
+		Spring.SetBuildFacing(facing)
+
+		return true
+	end
+end
 
 function widget:Initialize()
+	widgetHandler.actionHandler:AddAction(self, "buildfacing", buildFacingHandler, nil, "t")
 
 	checkGeothermalFeatures()
-
 	hijacklayout()
 
 	iconTypesMap = {}
@@ -872,13 +649,6 @@ function widget:Initialize()
 		showGroupIcon = value
 		doUpdate = true
 	end
-	WG['buildmenu'].getShowShortcuts = function()
-		return showShortcuts
-	end
-	WG['buildmenu'].setShowShortcuts = function(value)
-		showShortcuts = value
-		doUpdate = true
-	end
 	WG['buildmenu'].getShowTooltip = function()
 		return showTooltip
 	end
@@ -899,7 +669,6 @@ function widget:Initialize()
 	WG['buildmenu'].setMinColls = function(value)
 		minColls = value
 		doUpdate = true
-		refreshUnitIconCache()
 	end
 	WG['buildmenu'].getMaxColls = function()
 		return maxColls
@@ -907,7 +676,6 @@ function widget:Initialize()
 	WG['buildmenu'].setMaxColls = function(value)
 		maxColls = value
 		doUpdate = true
-		refreshUnitIconCache()
 	end
 	WG['buildmenu'].getDefaultColls = function()
 		return defaultColls
@@ -916,7 +684,6 @@ function widget:Initialize()
 	WG['buildmenu'].setDefaultColls = function(value)
 		defaultColls = value
 		doUpdate = true
-		refreshUnitIconCache()
 	end
 	WG['buildmenu'].getBottomPosition = function()
 		return stickToBottom
@@ -930,8 +697,13 @@ function widget:Initialize()
 	WG['buildmenu'].getSize = function()
 		return posY, posY2
 	end
-
-	refreshUnitIconCache()
+	WG['buildmenu'].getMaxPosY = function()
+		return maxPosY
+	end
+	WG['buildmenu'].setMaxPosY = function(value)
+		maxPosY = value
+		doUpdate = true
+	end
 end
 
 function clear()
@@ -945,6 +717,7 @@ function widget:Shutdown()
 		Spring.ForceLayoutUpdate()
 	end
 	clear()
+	hoverDlist = gl.DeleteList(hoverDlist)
 	if WG['guishader'] and dlistGuishader then
 		WG['guishader'].DeleteDlist('buildmenu')
 		dlistGuishader = nil
@@ -970,7 +743,6 @@ function widget:Update(dt)
 		checkGuishader()
 		if ui_scale ~= Spring.GetConfigFloat("ui_scale", 1) then
 			ui_scale = Spring.GetConfigFloat("ui_scale", 1)
-			refreshUnitIconCache()
 			widget:ViewResize()
 			doUpdate = true
 		end
@@ -980,14 +752,13 @@ function widget:Update(dt)
 			clear()
 			doUpdate = true
 		end
-		if WG['minimap'] and minimapEnlarged ~= WG['minimap'].getEnlarged() then
-			refreshUnitIconCache()
+		if WG['minimap'] and minimapHeight ~= WG['minimap'].getHeight() then
 			widget:ViewResize()
 			doUpdate = true
 		end
 
 		local _, _, mapMinWater, _ = Spring.GetGroundExtremes()
-		if mapMinWater <= minWaterUnitDepth then
+		if not voidWater and mapMinWater <= minWaterUnitDepth then
 			if not showWaterUnits then
 				showWaterUnits = true
 
@@ -1006,16 +777,16 @@ function widget:Update(dt)
 				local prevAdvplayerlistLeft = advplayerlistLeft
 				advplayerlistLeft = advplayerlistPos[2]
 			end
-			local prevOrdermenuLeft = ordermenuLeft
-			local prevOrdermenuHeight = ordermenuHeight
-			if WG['ordermenu'] then
-				local oposX, oposY, owidth, oheight = WG['ordermenu'].getPosition()
-				ordermenuLeft = oposX + owidth
-				ordermenuHeight = oheight
-			end
-			if not prevAdvplayerlistLeft or advplayerlistLeft ~= prevAdvplayerlistLeft or not prevOrdermenuLeft or ordermenuLeft ~= prevOrdermenuLeft  or not prevOrdermenuHeight or ordermenuHeight ~= prevOrdermenuHeight then
-				widget:ViewResize()
-			end
+		end
+		local prevOrdermenuLeft = ordermenuLeft
+		local prevOrdermenuHeight = ordermenuHeight
+		if WG['ordermenu'] then
+			local oposX, oposY, owidth, oheight = WG['ordermenu'].getPosition()
+			ordermenuLeft = oposX + owidth
+			ordermenuHeight = oheight
+		end
+		if not prevAdvplayerlistLeft or advplayerlistLeft ~= prevAdvplayerlistLeft or not prevOrdermenuLeft or ordermenuLeft ~= prevOrdermenuLeft  or not prevOrdermenuHeight or ordermenuHeight ~= prevOrdermenuHeight then
+			widget:ViewResize()
 		end
 
 		disableInput = disableInputWhenSpec and isSpec
@@ -1033,18 +804,12 @@ end
 local function drawCell(cellRectID, usedZoom, cellColor, progress, highlightColor, edgeAlpha, disabled)
 	local uDefID = cmds[cellRectID].id * -1
 
-	-- encapsulating cell background
-	--RectRound(cellRects[cellRectID][1]+cellPadding, cellRects[cellRectID][2]+cellPadding, cellRects[cellRectID][3]-cellPadding, cellRects[cellRectID][4]-cellPadding, cellSize*0.03, 1,1,1,1, {0.3,0.3,0.3,0.95},{0.22,0.22,0.22,0.95})
-
 	-- unit icon
 	if disabled then
 		glColor(0.4, 0.4, 0.4, 1)
 	else
 		glColor(1, 1, 1, 1)
 	end
-	--local textureDetail = math_floor(cellInnerSize * (1 + usedZoom) * texDetailMult)
-	--glTexture(':lr' .. textureDetail .. ',' .. textureDetail .. ':unitpics/' .. unitBuildPic[uDefID])
-	--glTexRect(cellRects[cellRectID][1]+cellPadding+iconPadding, cellRects[cellRectID][2]+cellPadding+iconPadding, cellRects[cellRectID][3]-cellPadding-iconPadding, cellRects[cellRectID][4]-cellPadding-iconPadding)
 	UiUnit(
 		cellRects[cellRectID][1] + cellPadding + iconPadding,
 		cellRects[cellRectID][2] + cellPadding + iconPadding,
@@ -1053,8 +818,8 @@ local function drawCell(cellRectID, usedZoom, cellColor, progress, highlightColo
 		cornerSize, 1,1,1,1,
 		usedZoom,
 		nil, disabled and 0 or nil,
-		':l' .. (disabled and 'g' or '') ..'r' .. textureDetail .. ',' .. textureDetail .. ':unitpics/' .. unitBuildPic[uDefID],
-		showRadarIcon and (((unitIconType[uDefID] and iconTypesMap[unitIconType[uDefID]]) and ':l' .. (disabled and 't0.35,0.35,0.35' or '') ..'r' .. radariconTextureDetail .. ',' .. radariconTextureDetail .. ':' .. iconTypesMap[unitIconType[uDefID]] or nil)) or nil,
+		'#' .. uDefID,
+		showRadarIcon and (((unitIconType[uDefID] and iconTypesMap[unitIconType[uDefID]]) and ':l' .. (disabled and 't0.35,0.35,0.35' or '') ..':' .. iconTypesMap[unitIconType[uDefID]] or nil)) or nil,
 		showGroupIcon and (groups[unitGroup[uDefID]] and ':l' .. (disabled and 'gt0.4,0.4,0.4:' or ':') ..groups[unitGroup[uDefID]] or nil) or nil,
 		{unitMetalCost[uDefID], unitEnergyCost[uDefID]},
 		tonumber(cmds[cellRectID].params[1])
@@ -1064,7 +829,7 @@ local function drawCell(cellRectID, usedZoom, cellColor, progress, highlightColo
 	if cellColor then
 		glBlending(GL_DST_ALPHA, GL_ONE_MINUS_SRC_COLOR)
 		glColor(cellColor[1], cellColor[2], cellColor[3], cellColor[4])
-		glTexture(':lr' .. (disabled and 'g' or '') .. textureDetail .. ',' .. textureDetail .. ':unitpics/' .. unitBuildPic[uDefID])
+		glTexture('#' .. uDefID)
 		UiUnit(
 			cellRects[cellRectID][1] + cellPadding + iconPadding,
 			cellRects[cellRectID][2] + cellPadding + iconPadding,
@@ -1104,14 +869,6 @@ local function drawCell(cellRectID, usedZoom, cellColor, progress, highlightColo
 	if showOrderDebug and smartOrderUnits and unitOrderDebug[uDefID] then
 		local text = unitOrderDebug[uDefID]
 		font2:Print("\255\175\175\175" .. text, cellRects[cellRectID][1] + cellPadding + (cellInnerSize * 0.05), cellRects[cellRectID][4] - cellPadding - priceFontSize, priceFontSize * 0.82, "o")
-	end
-
-	-- shortcuts
-	if showShortcuts and enableShortcuts and not disableInput then
-		local row = math_ceil(cellRectID / colls)
-		local col = cellRectID - ((row - 1) * colls)
-		local text = string.upper(string.char(buildKeys[row]) .. ' ' .. string.char(buildKeys[col]))
-		font2:Print("\255\175\175\175" .. text, cellRects[cellRectID][1] + cellPadding + (cellInnerSize * 0.05), cellRects[cellRectID][4] - cellPadding - priceFontSize, priceFontSize, "o")
 	end
 
 	-- draw build progress pie on top of texture
@@ -1214,9 +971,6 @@ function drawBuildmenu()
 	iconPadding = math_max(1, math_floor(cellSize * cfgIconPadding))
 	cornerSize = math_floor(cellSize * cfgIconCornerSize)
 	cellInnerSize = cellSize - cellPadding - cellPadding
-	radariconSize = math_floor((cellInnerSize * cfgRadariconSize) + 0.5)
-	radariconOffset = math_floor(((cellInnerSize * cfgRadariconOffset) + cellPadding + iconPadding) + 0.5)
-	groupiconSize = math_floor((cellInnerSize * cfgGroupiconSize) + 0.5)
 	priceFontSize = math_floor((cellInnerSize * cfgPriceFontSize) + 0.5)
 
 	cellRects = {}
@@ -1279,9 +1033,11 @@ function drawBuildmenu()
 		paginatorRects[2] = { activeArea[3] - paginatorCellWidth, activeArea[2], activeArea[3], activeArea[2] + paginatorCellHeight - cellPadding - activeAreaMargin }
 
 		UiButton(paginatorRects[1][1] + cellPadding, paginatorRects[1][2] + cellPadding, paginatorRects[1][3] - cellPadding, paginatorRects[1][4] - cellPadding, 1,1,1,1, 1,1,1,1, nil, { 0, 0, 0, 0.8 }, { 0.2, 0.2, 0.2, 0.8 }, bgpadding * 0.5)
+		font2:Print("<", paginatorRects[1][1] + (paginatorCellWidth * 0.5), paginatorRects[1][2] + (paginatorCellHeight * 0.5) - (paginatorFontSize * 0.25), paginatorFontSize * 1.2, "co")
 		UiButton(paginatorRects[2][1] + cellPadding, paginatorRects[2][2] + cellPadding, paginatorRects[2][3] - cellPadding, paginatorRects[2][4] - cellPadding, 1,1,1,1, 1,1,1,1, nil, { 0, 0, 0, 0.8 }, { 0.2, 0.2, 0.2, 0.8 }, bgpadding * 0.5)
+		font2:Print(">", paginatorRects[2][1] + (paginatorCellWidth * 0.5), paginatorRects[2][2] + (paginatorCellHeight * 0.5) - (paginatorFontSize * 0.25), paginatorFontSize * 1.2, "co")
 
-		font2:Print("\255\245\245\245" .. currentPage .. "  \\  " .. pages, contentWidth * 0.5, activeArea[2] + (paginatorCellHeight * 0.5) - (paginatorFontSize * 0.25), paginatorFontSize, "co")
+		font2:Print("\255\245\245\245" .. currentPage .. "  /  " .. pages, contentWidth * 0.5, activeArea[2] + (paginatorCellHeight * 0.5) - (paginatorFontSize * 0.25), paginatorFontSize, "co")
 	end
 
 	font2:End()
@@ -1377,6 +1133,11 @@ function widget:DrawScreen()
 		return
 	end
 
+	if Spring.GetGameFrame() == 0 and not cachedUnitIcons then
+		cachedUnitIcons = true
+		--cacheUnitIcons()
+	end
+
 	-- refresh buildmenu if active cmd changed
 	local prevActiveCmd = activeCmd
 	activeCmd = select(4, spGetActiveCommand())
@@ -1416,7 +1177,7 @@ function widget:DrawScreen()
 		end
 
 		local hovering = false
-		if IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
+		if math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
 			Spring.SetMouseCursor('cursornormal')
 			hovering = true
 		end
@@ -1425,11 +1186,11 @@ function widget:DrawScreen()
 		gl.CallList(dlistBuildmenuBg)
 		if preGamestartPlayer or selectedBuilderCount ~= 0 then
 			-- pre process + 'highlight' under the icons
-			local hoveredCellID = nil
+			local hoveredCellID
 			if not WG['topbar'] or not WG['topbar'].showingQuit() then
 				if hovering then
 					for cellRectID, cellRect in pairs(cellRects) do
-						if IsOnRect(x, y, cellRect[1], cellRect[2], cellRect[3], cellRect[4]) then
+						if math_isInRect(x, y, cellRect[1], cellRect[2], cellRect[3], cellRect[4]) then
 							hoveredCellID = cellRectID
 							local cellIsSelected = (activeCmd and cmds[cellRectID] and activeCmd == cmds[cellRectID].name)
 							local uDefID = cmds[cellRectID].id * -1
@@ -1442,12 +1203,12 @@ function widget:DrawScreen()
 								local textColor = "\255\215\255\215"
 
 								if unitRestricted[uDefID] or unitDisabled[uDefID] then
-									text = Spring.I18N('ui.buildMenu.disabled', { unit = UnitDefs[uDefID].humanName, textColor = textColor, warnColor = "\255\166\166\166" })
+									text = Spring.I18N('ui.buildMenu.disabled', { unit = UnitDefs[uDefID].translatedHumanName, textColor = textColor, warnColor = "\255\166\166\166" })
 								else
-									text = textColor .. UnitDefs[uDefID].humanName
+									text = textColor .. UnitDefs[uDefID].translatedHumanName
 								end
 
-								text = text .. "\n\255\240\240\240" .. UnitDefs[uDefID].tooltip
+								text = text .. "\n\255\240\240\240" .. UnitDefs[uDefID].translatedTooltip
 
 								WG['tooltip'].ShowTooltip('buildmenu', text)
 							end
@@ -1469,14 +1230,14 @@ function widget:DrawScreen()
 			local usedZoom
 			local cellColor
 			if not WG['topbar'] or not WG['topbar'].showingQuit() then
-				if IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
+				if math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
 
 					-- paginator buttons
 					local paginatorHovered = false
-					if paginatorRects[1] and IsOnRect(x, y, paginatorRects[1][1], paginatorRects[1][2], paginatorRects[1][3], paginatorRects[1][4]) then
+					if paginatorRects[1] and math_isInRect(x, y, paginatorRects[1][1], paginatorRects[1][2], paginatorRects[1][3], paginatorRects[1][4]) then
 						paginatorHovered = 1
 					end
-					if paginatorRects[2] and IsOnRect(x, y, paginatorRects[2][1], paginatorRects[2][2], paginatorRects[2][3], paginatorRects[2][4]) then
+					if paginatorRects[2] and math_isInRect(x, y, paginatorRects[2][1], paginatorRects[2][2], paginatorRects[2][3], paginatorRects[2][4]) then
 						paginatorHovered = 2
 					end
 					if paginatorHovered then
@@ -1490,72 +1251,72 @@ function widget:DrawScreen()
 						RectRound(paginatorRects[paginatorHovered][1] + cellPadding, paginatorRects[paginatorHovered][2] + cellPadding, paginatorRects[paginatorHovered][3] - cellPadding, paginatorRects[paginatorHovered][2] + cellPadding + ((paginatorRects[paginatorHovered][4] - paginatorRects[paginatorHovered][2]) * 0.33), cellSize * 0.03, 0, 0, 2, 2, { 1, 1, 1, 0.025 }, { 1, 1, 1, 0 })
 					end
 
-					-- cells
+					-- draw cell hover
 					if hoveredCellID then
-						local cellRectID = hoveredCellID
-						local cellIsSelected = (activeCmd and cmds[cellRectID] and activeCmd == cmds[cellRectID].name)
-						local uDefID = cmds[cellRectID].id * -1
+						local uDefID = cmds[hoveredCellID].id * -1
+						local cellIsSelected = (activeCmd and cmds[hoveredCellID] and activeCmd == cmds[hoveredCellID].name)
+						if not prevHoveredCellID or hoveredCellID ~= prevHoveredCellID or uDefID ~= hoverUdefID or cellIsSelected ~= hoverCellSelected or b ~= prevB or b3 ~= prevB3 or cmds[hoveredCellID].params[1] ~= prevQueueNr then
+							prevQueueNr = cmds[hoveredCellID].params[1]
+							prevB = b
+							prevB3 = b3
+							prevHoveredCellID = hoveredCellID
+							hoverCellSelected = cellIsSelected
+							hoverUdefID = uDefID
+							if hoverDlist then
+								hoverDlist = gl.DeleteList(hoverDlist)
+							end
+							hoverDlist = gl.CreateList(function()
 
-						-- determine zoom amount and cell color
-						usedZoom = hoverCellZoom
-						if not cellIsSelected then
-							if (b or b2) and cellIsSelected then
-								usedZoom = clickSelectedCellZoom
-							elseif cellIsSelected then
-								usedZoom = selectedCellZoom
-							elseif (b or b2) and not disableInput then
-								usedZoom = clickCellZoom
-							elseif b3 and not disableInput and cmds[cellRectID].params[1] then
-								-- has queue
-								usedZoom = rightclickCellZoom
-							end
-							-- determine color
-							if (b or b2) and not disableInput then
-								cellColor = { 0.3, 0.8, 0.25, 0.2 }
-							elseif b3 and not disableInput then
-								cellColor = { 1, 0.35, 0.3, 0.2 }
-							else
-								cellColor = { 0.63, 0.63, 0.63, 0 }
-							end
-						else
-							-- selected cell
-							if (b or b2 or b3) then
-								usedZoom = clickSelectedCellZoom
-							else
-								usedZoom = selectedCellZoom
-							end
-							cellColor = { 1, 0.85, 0.2, 0.25 }
+								-- determine zoom amount and cell color
+								usedZoom = hoverCellZoom
+								if not cellIsSelected then
+									if (b or b2) and cellIsSelected then
+										usedZoom = clickSelectedCellZoom
+									elseif cellIsSelected then
+										usedZoom = selectedCellZoom
+									elseif (b or b2) and not disableInput then
+										usedZoom = clickCellZoom
+									elseif b3 and not disableInput and cmds[hoveredCellID].params[1] then
+										-- has queue
+										usedZoom = rightclickCellZoom
+									end
+									-- determine color
+									if (b or b2) and not disableInput then
+										cellColor = { 0.3, 0.8, 0.25, 0.2 }
+									elseif b3 and not disableInput then
+										cellColor = { 1, 0.35, 0.3, 0.2 }
+									else
+										cellColor = { 0.63, 0.63, 0.63, 0 }
+									end
+								else
+									-- selected cell
+									if (b or b2 or b3) then
+										usedZoom = clickSelectedCellZoom
+									else
+										usedZoom = selectedCellZoom
+									end
+									cellColor = { 1, 0.85, 0.2, 0.25 }
+								end
+								if not (unitRestricted[uDefID] or unitDisabled[uDefID]) then
+
+									local unsetShowPrice, unsetShowRadarIcon, unsetShowGroupIcon
+									if not showPrice then
+										unsetShowPrice = true
+										showPrice = true
+									end
+
+									-- re-draw cell with hover zoom (and price shown)
+									drawCell(hoveredCellID, usedZoom, cellColor, nil, { cellColor[1], cellColor[2], cellColor[3], 0.045 + (usedZoom * 0.45) }, 0.15, unitRestricted[uDefID] or unitDisabled[uDefID])
+
+									if unsetShowPrice then
+										showPrice = false
+										unsetShowPrice = nil
+									end
+								end
+							end)
 						end
-						if not (unitRestricted[uDefID] or unitDisabled[uDefID]) then
-
-							local unsetShowPrice, unsetShowRadarIcon, unsetShowGroupIcon
-							if not showPrice then
-								unsetShowPrice = true
-								showPrice = true
-							end
-							--if not showRadarIcon then
-							--	unsetShowRadarIcon = true
-							--	showRadarIcon = true
-							--end
-							--if not showGroupIcon then
-							--	unsetShowGroupIcon = true
-							--	showGroupIcon = true
-							--end
-							-- re-draw cell with hover zoom (and price shown)
-							drawCell(cellRectID, usedZoom, cellColor, nil, { cellColor[1], cellColor[2], cellColor[3], 0.045 + (usedZoom * 0.45) }, 0.15, unitRestricted[uDefID] or unitDisabled[uDefID])
-
-							if unsetShowPrice then
-								showPrice = false
-								unsetShowPrice = nil
-							end
-							--if unsetShowRadarIcon then
-							--	showRadarIcon = false
-							--	unsetShowRadarIcon = nil
-							--end
-							--if unsetShowGroupIcon then
-							--	showGroupIcon = false
-							--	unsetShowGroupIcon = nil
-							--end
+						if hoverDlist then
+							gl.CallList(hoverDlist)
 						end
 					end
 				end
@@ -1564,12 +1325,12 @@ function widget:DrawScreen()
 			-- draw builders buildoption progress
 			if showBuildProgress then
 				local numCellsPerPage = rows * colls
-				local cellRectID = numCellsPerPage * (currentPage - 1)
 				local maxCellRectID = numCellsPerPage * currentPage
 				if maxCellRectID > cmdsCount then
 					maxCellRectID = cmdsCount
 				end
 				-- loop selected builders
+				local drawncellRectIDs = {}
 				for builderUnitID, _ in pairs(selectedBuilders) do
 					local unitBuildID = spGetUnitIsBuilding(builderUnitID)
 					if unitBuildID then
@@ -1578,56 +1339,16 @@ function widget:DrawScreen()
 							-- loop all shown cells
 							local cellIsSelected
 							for cellRectID, cellRect in pairs(cellRects) do
-								cellIsSelected = false
-								if cellRectID > maxCellRectID then
-									break
-								end
-								local cellUnitDefID = cmds[cellRectID].id * -1
-								if unitBuildDefID == cellUnitDefID then
-									local progress = 1 - select(5, spGetUnitHealth(unitBuildID))
-									if not usedZoom then
-										if cellRectID == hoveredCellID and (b or b2 or b3) then
-											usedZoom = clickSelectedCellZoom
-										else
-											cellIsSelected = (activeCmd and cmds[cellRectID] and activeCmd == cmds[cellRectID].name)
-											usedZoom = cellIsSelected and selectedCellZoom or defaultCellZoom
-										end
+								if not drawncellRectIDs[cellRectID] then
+									cellIsSelected = false
+									if cellRectID > maxCellRectID then
+										break
 									end
-									if cellColor and cellRectID ~= hoveredCellID then
-										cellColor = nil
-										usedZoom = cellIsSelected and selectedCellZoom or defaultCellZoom
-									end
-
-									local unsetShowPrice, unsetShowRadarIcon, unsetShowGroupIcon
-									if cellRectID == hoveredCellID then
-										if not showPrice then
-											unsetShowPrice = true
-											showPrice = true
-										end
-										if not showRadarIcon then
-											unsetShowRadarIcon = true
-											showRadarIcon = true
-										end
-										if not showGroupIcon then
-											unsetShowGroupIcon = true
-											showGroupIcon = true
-										end
-									end
-									-- re-draw cell with hover zoom (and price shown)
-									drawCell(cellRectID, usedZoom, cellColor, progress)
-									if cellRectID == hoveredCellID then
-										if unsetShowPrice then
-											showPrice = false
-											unsetShowPrice = nil
-										end
-										if unsetShowRadarIcon then
-											showRadarIcon = false
-											unsetShowRadarIcon = nil
-										end
-										if unsetShowGroupIcon then
-											showGroupIcon = false
-											unsetShowGroupIcon = nil
-										end
+									local cellUnitDefID = cmds[cellRectID].id * -1
+									if unitBuildDefID == cellUnitDefID then
+										drawncellRectIDs[cellRectID] = true
+										local progress = 1 - select(5, spGetUnitHealth(unitBuildID))
+										RectRoundProgress(cellRects[cellRectID][1] + cellPadding + iconPadding, cellRects[cellRectID][2] + cellPadding + iconPadding, cellRects[cellRectID][3] - cellPadding - iconPadding, cellRects[cellRectID][4] - cellPadding - iconPadding, cellSize * 0.03, progress, { 0.08, 0.08, 0.08, 0.6 })
 									end
 								end
 							end
@@ -1903,57 +1624,12 @@ function widget:KeyPress(key, mods, isRepeat)
 	if Spring.IsGUIHidden() then
 		return
 	end
-	-- add buildfacing shortcuts (facing commands are only handled by spring if we have a building selected, which isn't possible pre-game)
+
 	if preGamestartPlayer and selBuildQueueDefID then
-		if key == 91 then
-			-- [
-			local facing = Spring.GetBuildFacing()
-			facing = facing + 1
-			if facing > 3 then
-				facing = 0
-			end
-			Spring.SetBuildFacing(facing)
-		end
-		if key == 93 then
-			-- ]
-			local facing = Spring.GetBuildFacing()
-			facing = facing - 1
-			if facing < 0 then
-				facing = 3
-			end
-			Spring.SetBuildFacing(facing)
-		end
 		if key == 27 then
 			-- ESC
 			setPreGamestartDefID()
 		end
-	end
-
-	-- unit icon shortcuts
-	if not disableInput and enableShortcuts and cmdsCount > 0 then
-		if rowPressedClock and rowPressedClock < (os_clock() + 3) then
-			rowPressed = nil
-			rowPressedClock = nil
-		end
-		for k, buildKey in pairs(buildKeys) do
-			if buildKey == key then
-				if not rowPressed then
-					rowPressed = k
-					rowPressedClock = os_clock()
-					return true
-				else
-					local cellRectID = k + ((rowPressed - 1) * colls)
-					if cmds[cellRectID] and cmds[cellRectID].id then
-						Spring.SetActiveCommand(spGetCmdDescIndex(cmds[cellRectID].id), 1, true, false, Spring.GetModKeyState())
-					end
-					rowPressed = nil
-					rowPressedClock = nil
-					return true
-				end
-				break
-			end
-		end
-		rowPressed = nil
 	end
 end
 
@@ -1965,17 +1641,17 @@ function widget:MousePress(x, y, button)
 		return
 	end
 
-	if IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
+	if math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
 		if selectedBuilderCount > 0 or (preGamestartPlayer and startDefID) then
 			local paginatorHovered = false
-			if paginatorRects[1] and IsOnRect(x, y, paginatorRects[1][1], paginatorRects[1][2], paginatorRects[1][3], paginatorRects[1][4]) then
+			if paginatorRects[1] and math_isInRect(x, y, paginatorRects[1][1], paginatorRects[1][2], paginatorRects[1][3], paginatorRects[1][4]) then
 				currentPage = currentPage - 1
 				if currentPage < 1 then
 					currentPage = pages
 				end
 				doUpdate = true
 			end
-			if paginatorRects[2] and IsOnRect(x, y, paginatorRects[2][1], paginatorRects[2][2], paginatorRects[2][3], paginatorRects[2][4]) then
+			if paginatorRects[2] and math_isInRect(x, y, paginatorRects[2][1], paginatorRects[2][2], paginatorRects[2][3], paginatorRects[2][4]) then
 				currentPage = currentPage + 1
 				if currentPage > pages then
 					currentPage = 1
@@ -1984,7 +1660,7 @@ function widget:MousePress(x, y, button)
 			end
 			if not disableInput then
 				for cellRectID, cellRect in pairs(cellRects) do
-					if cmds[cellRectID].id and UnitDefs[-cmds[cellRectID].id].humanName and IsOnRect(x, y, cellRect[1], cellRect[2], cellRect[3], cellRect[4]) and not (unitRestricted[-cmds[cellRectID].id] or unitDisabled[-cmds[cellRectID].id]) then
+					if cmds[cellRectID].id and UnitDefs[-cmds[cellRectID].id].translatedHumanName and math_isInRect(x, y, cellRect[1], cellRect[2], cellRect[3], cellRect[4]) and not (unitRestricted[-cmds[cellRectID].id] or unitDisabled[-cmds[cellRectID].id]) then
 						if button ~= 3 then
 							if playSounds then
 								Spring.PlaySoundFile(sound_queue_add, 0.75, 'ui')
@@ -2077,11 +1753,11 @@ function widget:GetConfigData()
 		minColls = minColls,
 		maxColls = maxColls,
 		defaultColls = defaultColls,
-		showShortcuts = showShortcuts,
 		makeFancy = makeFancy,
 		showTooltip = showTooltip,
 		buildQueue = buildQueue,
 		stickToBottom = stickToBottom,
+		maxPosY = maxPosY,
 		gameID = Game.gameID,
 		alwaysShow = alwaysShow,
 	}
@@ -2110,9 +1786,6 @@ function widget:SetConfigData(data)
 	if data.defaultColls ~= nil then
 		defaultColls = data.defaultColls
 	end
-	if data.showShortcuts ~= nil then
-		showShortcuts = data.showShortcuts
-	end
 	if data.makeFancy ~= nil then
 		makeFancy = data.makeFancy
 	end
@@ -2127,5 +1800,8 @@ function widget:SetConfigData(data)
 	end
 	if data.alwaysShow ~= nil then
 		alwaysShow = data.alwaysShow
+	end
+	if data.maxPosY ~= nil then
+		maxPosY = data.maxPosY
 	end
 end

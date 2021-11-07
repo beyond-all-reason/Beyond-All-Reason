@@ -8,7 +8,7 @@ return {
 		buildcostmetal = 580,
 		builddistance = 136,
 		builder = true,
-		buildpic = "CORACV.PNG",
+		buildpic = "CORACV.DDS",
 		buildtime = 12882,
 		canmove = true,
 		category = "ALL TANK MOBILE NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -79,6 +79,7 @@ return {
 			[29] = "corgant",
 		},
 		customparams = {
+			unitgroup = 'buildert2',
 			area_mex_def = "cormoho",
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
@@ -129,6 +130,9 @@ return {
 			},
 		},
 		sfxtypes = {
+			explosiongenerators = {
+				[1] = "custom:dust_cloud_dirt_light",
+			},
 			pieceexplosiongenerators = {
 				[1] = "deathceg2-builder",
 				[2] = "deathceg3-builder",

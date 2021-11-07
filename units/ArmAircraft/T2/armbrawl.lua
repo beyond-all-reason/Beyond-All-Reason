@@ -7,7 +7,7 @@ return {
 		brakerate = 0.44,
 		buildcostenergy = 6200,
 		buildcostmetal = 310,
-		buildpic = "ARMBRAWL.PNG",
+		buildpic = "ARMBRAWL.DDS",
 		buildtime = 13500,
 		canfly = true,
 		canmove = true,
@@ -36,6 +36,7 @@ return {
 		turninplaceanglelimit = 360,
 		turnrate = 800,
 		customparams = {
+			unitgroup = 'weapon',
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armaircraft/t2",

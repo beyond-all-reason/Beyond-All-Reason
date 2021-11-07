@@ -7,7 +7,7 @@ return {
 		brakerate = 0.7521,
 		buildcostenergy = 286000,
 		buildcostmetal = 13500,
-		buildpic = "ARMBANTH.PNG",
+		buildpic = "ARMBANTH.DDS",
 		buildtime = 276000,
 		canmove = true,
 		category = "BOT WEAPON ALL NOTSUB NOTAIR NOTHOVER SURFACE CANBEUW EMPABLE",
@@ -42,6 +42,7 @@ return {
 		turnrate = 1214.40002,
 		upright = true,
 		customparams = {
+			unitgroup = 'weapon',
 			customrange = 460,
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",

@@ -6,7 +6,7 @@ return {
 		brakerate = 0.77625,
 		buildcostenergy = 1150,
 		buildcostmetal = 140,
-		buildpic = "CORTHUD.PNG",
+		buildpic = "CORTHUD.DDS",
 		buildtime = 1971,
 		canmove = true,
 		category = "BOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -45,6 +45,7 @@ return {
 		turnrate = 1263.84998,
 		upright = true,
 		customparams = {
+			unitgroup = 'weapon',
 			longdescription = Spring.I18N('units.longDescriptions.corthud'),
 			model_author = "Mr Bob, Flaka",
 			normaltex = "unittextures/cor_normal.dds",

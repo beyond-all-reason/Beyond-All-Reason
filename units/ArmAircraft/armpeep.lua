@@ -7,7 +7,7 @@ return {
 		brakerate = 0.01125,
 		buildcostenergy = 1550,
 		buildcostmetal = 52,
-		buildpic = "ARMPEEP.PNG",
+		buildpic = "ARMPEEP.DDS",
 		buildtime = 2800,
 		canfly = true,
 		canmove = true,
@@ -46,6 +46,7 @@ return {
 		wingangle = 0.06315,
 		wingdrag = 0.0575,
 		customparams = {
+			unitgroup = 'util',
 			longdescription = Spring.I18N('units.longDescriptions.armpeep'),
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",

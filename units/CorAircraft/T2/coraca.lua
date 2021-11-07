@@ -9,7 +9,7 @@ return {
 		buildcostmetal = 360,
 		builddistance = 136,
 		builder = true,
-		buildpic = "CORACA.PNG",
+		buildpic = "CORACA.DDS",
 		buildtime = 18001,
 		canfly = true,
 		canmove = true,
@@ -75,6 +75,7 @@ return {
 			"corgant",
 		},
 		customparams = {
+			unitgroup = 'buildert2',
 			area_mex_def = "cormoho",
 			model_author = "Mr Bob, Flaka",
 			normaltex = "unittextures/cor_normal.dds",

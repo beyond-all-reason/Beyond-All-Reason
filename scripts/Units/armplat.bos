@@ -4,7 +4,7 @@
 #include "exptype.h"
 
 piece  base, plat1,plat2,tower,nc1,nc2,towercover,nano2,beam1,beam2,beam3,beam4,nano1,nano3,nano4,nc3,nc4,nanotower3,nanotower4,pad;
-static-var  spray, unitviewer, statechg_DesiredState, statechg_StateChanging;
+static-var  spray, statechg_DesiredState, statechg_StateChanging;
 
 // Signal definitions
 #define SIG_ACTIVATE			2
@@ -64,26 +64,8 @@ deactivatescr()
 //how 'heavy' the unit is, on a scale of 1-10
 #define UNITSIZE 7
 #define MAXTILT 100
-HitByWeapon(anglex, anglez, damage)	// angle[x|z] is always [-500;500], damage is multiplied by 100
-{
-	var amount;//, speedz, speedx;
-	amount = damage / (100 * UNITSIZE);
-	if (amount < 3  ) return (0);
-	if (amount > MAXTILT) amount = MAXTILT;
-	//get PRINT(anglex, anglez, amount, damage);
-	//speedz = HITSPEED * get ABS(anglez) / 500; //nevermind this, the random error this produces actually looks better than the accurate version
-	turn BASEPIECE to z-axis (anglez * amount) / 100  speed HITSPEED;
-	turn BASEPIECE to x-axis <0> - (anglex * amount) /100 speed HITSPEED;
-	wait-for-turn BASEPIECE around z-axis;
-	wait-for-turn BASEPIECE around x-axis;
-	turn BASEPIECE to z-axis <0.000000> speed HITSPEED / 4;
-	turn BASEPIECE to x-axis <0.000000> speed HITSPEED / 4;
-}
-HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and flamers give angles of 0
-{
-	start-script HitByWeapon(dmg, anglez,anglex); //I dont know why param order must be switched, and this also runs a frame later :(
-	return (100); //return damage percent
-}
+
+#include "unit_hitbyweaponid_and_smoke.h"
 
 
 RockOnWaves()
@@ -108,30 +90,6 @@ RockOnWaves()
 }
 
 
-SmokeUnit(healthpercent, sleeptime, smoketype)
-{
-	start-script RockOnWaves();
-	while( TRUE )
-	{
-		healthpercent = get HEALTH;
-		if( healthpercent < 66 )
-		{
-			smoketype = 258;
-			if( Rand( 1, 66 ) < healthpercent )
-			{
-				smoketype = 257;
-			}
-			emit-sfx smoketype from base;
-		}
-		sleeptime = healthpercent * 50;
-		if( sleeptime < 200 )
-		{
-			sleeptime = 200;
-		}
-		sleep sleeptime;
-	}
-}
-
 OpenYard()
 {
 	set YARD_OPEN to 1;
@@ -141,7 +99,6 @@ OpenYard()
 		sleep 1500;
 		set YARD_OPEN to 1;
 	}
-	set BUGGER_OFF to 0;
 }
 
 CloseYard()
@@ -153,7 +110,6 @@ CloseYard()
 		sleep 1500;
 		set YARD_OPEN to 0;
 	}
-	set BUGGER_OFF to 0;
 }
 
 Go()
@@ -202,7 +158,6 @@ Create()
 {
 
 	set ARMORED to 1;
-	unitviewer = FALSE;
 	spray = 0;
 	move base to y-axis [2.500000] now;
 	statechg_DesiredState = TRUE;
@@ -212,7 +167,7 @@ Create()
 		sleep 1000;
 	}
 	move base to y-axis [0.000000] speed [5.000000];
-	start-script SmokeUnit();
+	start-script RockOnWaves();
 }
 
 QueryNanoPiece(piecenum)
@@ -232,7 +187,7 @@ Deactivate()
 {
 	signal SIG_ACTIVATE;
 	set-signal-mask SIG_ACTIVATE;
-
+  sleep 5000;
 	set-signal-mask 0;
 	start-script RequestState(1);
 }

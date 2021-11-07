@@ -8,7 +8,7 @@ return {
 		buildangle = 4096,
 		buildcostenergy = 250,
 		buildcostmetal = 85,
-		buildpic = "CORTIDE.PNG",
+		buildpic = "CORTIDE.DDS",
 		buildtime = 2094,
 		canrepeat = false,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -38,6 +38,7 @@ return {
 		waterline = 7,
 		yardmap = "wwwwwwwww",
 		customparams = {
+			unitgroup = 'energy',
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			removestop = true,

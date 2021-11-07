@@ -7,7 +7,7 @@ return {
 		brakerate = 0.02086,
 		buildcostenergy = 1300,
 		buildcostmetal = 92,
-		buildpic = "CORVRAD.PNG",
+		buildpic = "CORVRAD.DDS",
 		buildtime = 4223,
 		canattack = false,
 		canmove = true,
@@ -44,6 +44,7 @@ return {
 		turninplacespeedlimit = 0.825,
 		turnrate = 210,
 		customparams = {
+			unitgroup = 'util',
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "corvehicles/t2",

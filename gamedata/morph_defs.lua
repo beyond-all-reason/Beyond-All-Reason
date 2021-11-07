@@ -955,15 +955,15 @@ local morphDefs = {
 --
 -- devolution, babe  (useful for testing)
 --
-if (devolution) then
-  local devoDefs = {}
-  for src,data in pairs(morphDefs) do
-    devoDefs[data.into] = { into = src, time = 10, energy = 1, energy = 1 }
-  end
-  for src,data in pairs(devoDefs) do
-    morphDefs[src] = data
-  end
-end
+-- if (devolution) then
+--   local devoDefs = {}
+--   for src,data in pairs(morphDefs) do
+--     devoDefs[data.into] = { into = src, time = 10, energy = 1, energy = 1 }
+--   end
+--   for src,data in pairs(devoDefs) do
+--     morphDefs[src] = data
+--   end
+-- end
 
 
 return morphDefs

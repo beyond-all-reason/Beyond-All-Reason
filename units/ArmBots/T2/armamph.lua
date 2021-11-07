@@ -6,7 +6,7 @@ return {
 		brakerate = 0.6486,
 		buildcostenergy = 2700,
 		buildcostmetal = 260,
-		buildpic = "ARMAMPH.PNG",
+		buildpic = "ARMAMPH.DDS",
 		buildtime = 5182,
 		canmove = true,
 		category = "BOT MOBILE WEAPON ALL NOTSHIP NOTAIR NOTSUB SURFACE PHIB EMPABLE",
@@ -38,6 +38,7 @@ return {
 		turnrate = 506,
 		upright = true,
 		customparams = {
+			unitgroup = 'weapon',
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armbots/t2",
@@ -209,7 +210,7 @@ return {
 				def = "ARMAMPH_WEAPON1",
 				onlytargetcategory = "NOTSUB",
 			},
-			[3] = {
+			[2] = {
 				badtargetcategory = "NOTAIR",
 				def = "ARMAMPH_MISSILE",
 				onlytargetcategory = "VTOL",

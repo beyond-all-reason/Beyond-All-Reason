@@ -10,7 +10,7 @@ return {
 		buildcostmetal = 2700,
 		builddistance = 145,
 		builder = true,
-		buildpic = "CORCOM.PNG",
+		buildpic = "CORCOM.DDS",
 		buildtime = 75000,
 		cancapture = true,
 		cancloak = true,
@@ -81,6 +81,7 @@ return {
 			"coracv",
 		},
 		customparams = {
+			unitgroup = 'builder',
 			area_mex_def = "cormex",
 			iscommander = true,
 			--energyconv_capacity = 70,
@@ -89,6 +90,7 @@ return {
 			normaltex = "unittextures/cor_normal.dds",
 			paralyzemultiplier = 0.025,
 			subfolder = "",
+			i18nfromunit = 'corcom'
 		},
 		featuredefs = {
 			dead = {

@@ -29,7 +29,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	if weapons and not string.find((string.lower(unitDef.scriptName)), "lua") then
 		for weaponID, weapon in pairs(weapons) do
 			local customParamName = 'wpn'..weaponID..'turret'
-			if unitDef.customParams and unitDef.customParams[customParamName..'x'] and unitDef.customParams[customParamName..'y'] then
+			if unitDef.customParams[customParamName..'x'] and unitDef.customParams[customParamName..'y'] then
 				local TurretX = (tonumber(unitDef.customParams[customParamName..'x']))*182
 				local TurretY = (tonumber(unitDef.customParams[customParamName..'y']))*182
 				if not unitConf[unitDefID] then

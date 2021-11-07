@@ -6,7 +6,7 @@ return {
 		brakerate = 0.13575,
 		buildcostenergy = 911,
 		buildcostmetal = 109,
-		buildpic = "ARMFLASH.PNG",
+		buildpic = "ARMFLASH.DDS",
 		buildtime = 1963,
 		canmove = true,
 		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -42,6 +42,7 @@ return {
 		turninplacespeedlimit = 2.424,
 		turnrate = 544,
 		customparams = {
+			unitgroup = 'weapon',
 			basename = "base",
 			cannon1name = "barrel1",
 			cannon2name = "barrel2",

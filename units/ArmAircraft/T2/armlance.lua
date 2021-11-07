@@ -6,7 +6,7 @@ return {
 		brakerate = 0.075,
 		buildcostenergy = 8000,
 		buildcostmetal = 400,
-		buildpic = "ARMLANCE.PNG",
+		buildpic = "ARMLANCE.DDS",
 		buildtime = 15096,
 		canfly = true,
 		canmove = true,
@@ -46,6 +46,7 @@ return {
 		wingangle = 0.06259,
 		wingdrag = 0.185,
 		customparams = {
+			unitgroup = 'sub',
 			model_author = "Flaka",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armaircraft/t2",

@@ -16,7 +16,7 @@ end
 
 local defaults = {
 	layer = -35,
-	life = 20,
+	life = 600,
 	light = 2.5,
 	repeatEffect = true,
 }

@@ -7,7 +7,7 @@ return {
 		brakerate = 0.0375,
 		buildcostenergy = 8300,
 		buildcostmetal = 180,
-		buildpic = "CORAWAC.PNG",
+		buildpic = "CORAWAC.DDS",
 		buildtime = 13264,
 		canfly = true,
 		canmove = true,
@@ -46,6 +46,7 @@ return {
 		wingangle = 0.06241,
 		wingdrag = 0.11,
 		customparams = {
+			unitgroup = 'util',
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "coraircraft/t2",

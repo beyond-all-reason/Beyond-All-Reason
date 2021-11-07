@@ -9,7 +9,7 @@ return {
 		buildcostmetal = 340,
 		builddistance = 136,
 		builder = true,
-		buildpic = "ARMACA.PNG",
+		buildpic = "ARMACA.DDS",
 		buildtime = 17763,
 		canfly = true,
 		canmove = true,
@@ -76,6 +76,7 @@ return {
 			"armshltx",
 		},
 		customparams = {
+			unitgroup = 'buildert2',
 			area_mex_def = "armmoho",
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",

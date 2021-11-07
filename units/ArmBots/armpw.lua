@@ -6,7 +6,7 @@ return {
 		brakerate = 0.69,
 		buildcostenergy = 960,
 		buildcostmetal = 48,
-		buildpic = "ARMPW.PNG",
+		buildpic = "ARMPW.DDS",
 		buildtime = 1420,
 		canmove = true,
 		category = "BOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -38,6 +38,7 @@ return {
 		turnrate = 1214.40002,
 		upright = true,
 		customparams = {
+			unitgroup = 'weapon',
 			longdescription = Spring.I18N('units.longDescriptions.armpw'),
 			model_author = "Kaiser",
 			normaltex = "unittextures/Arm_normal.dds",

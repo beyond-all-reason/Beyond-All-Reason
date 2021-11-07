@@ -4,6 +4,8 @@
 #include "exptype.h"
 
 
+piece base;
+
 Create()
 {
 	return (0);

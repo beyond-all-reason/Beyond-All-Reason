@@ -8,7 +8,7 @@ return {
 		buildcostenergy = 1000,
 		buildcostmetal = 100,
 		builder = false,
-		buildpic = "chickens/chicken2.PNG",
+		buildpic = "chickens/chicken2.DDS",
 		buildtime = 7500,
 		canattack = true,
 		canguard = true,
@@ -19,7 +19,6 @@ return {
 		collisionvolumeoffsets = "0 -1 0",
 		collisionvolumescales = "20 40 44",
 		collisionvolumetype = "box",
-		-- handled gadget side -- corpse = "chicken_egg_m_red",
 		defaultmissiontype = "Standby",
 		description = Spring.I18N('units.descriptions.chicken2'),
 		explodeas = "BUG_DEATH",
@@ -64,10 +63,6 @@ return {
 			normalmaps = "yes",
 			normaltex = "unittextures/chicken_m_normals.png",
 			treeshader = "yes",
-		},
-		featuredefs = {
-			dead = {},
-			heap = {},
 		},
 		sfxtypes = {
 			explosiongenerators = {

@@ -12,6 +12,7 @@ return {
 		"corthud",
 		"corstorm",
 		"corcrash",
+		"corkark",
 
 		-- Vehicles
 		"armflash",
@@ -158,6 +159,9 @@ return {
 		"corkarg",
 		"corcat",
 
+		-- Vehicles
+		"armthor_scav",
+
 		-- Hovercraft
 		"armlun",
 		"corsok",
@@ -184,6 +188,10 @@ return {
 		"armepoch",
 		"corbats",
 		"corblackhy",
+		"corslrpc",
+		"armdecadet3",
+		"armpshipt3",
+		"armptt2",
 
 		-- Hovercraft
 		"armlun",
@@ -194,6 +202,7 @@ return {
 		"corkorg",
 		"corjugg",
 		"armbanth",
+		"armthor",
 
 		-- Superboss
 		"armpwt4",
@@ -204,11 +213,14 @@ return {
 		"corcrwt4",
 		"cordemont4",
 		"corkarganetht4",
+		"corgolt4",
+		"corakt4",
 
 		-- Air
 		"corcrwt4",
 		"armfepocht4",
 		"corfblackhyt4",
+		"armthundt4",
 
 		-- Sea
 		"armepoch",
@@ -219,5 +231,7 @@ return {
 		"armvadert4",
 		"corkorg",
 		"armbanth",
+		"armserpt3",
+		"coresuppt3",
 	},
 }

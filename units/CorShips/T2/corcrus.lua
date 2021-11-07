@@ -8,7 +8,7 @@ return {
 		buildangle = 16384,
 		buildcostenergy = 12000,
 		buildcostmetal = 1000,
-		buildpic = "CORCRUS.PNG",
+		buildpic = "CORCRUS.DDS",
 		buildtime = 17000,
 		canmove = true,
 		category = "ALL NOTLAND MOBILE WEAPON SHIP NOTSUB NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -41,6 +41,7 @@ return {
 		turnrate = 265.5,
 		waterline = 0,
 		customparams = {
+			unitgroup = 'weapon',
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "corships/t2",

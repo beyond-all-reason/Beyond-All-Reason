@@ -20,3 +20,13 @@ end
 function string:base64Decode()
 	return base64.Decode(self)
 end
+
+function string.lines(str)
+	local text = {}
+	local function helper(line)
+		text[#text+1] = line
+		return ""
+	end
+	helper((str:gsub("(.-)\r?\n", helper)))
+	return text
+end

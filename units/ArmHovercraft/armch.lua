@@ -8,7 +8,7 @@ return {
 		buildcostmetal = 200,
 		builddistance = 150,
 		builder = true,
-		buildpic = "ARMCH.PNG",
+		buildpic = "ARMCH.DDS",
 		buildtime = 4472,
 		canmove = true,
 		category = "ALL HOVER MOBILE NOTSUB NOWEAPON NOTSHIP NOTAIR SURFACE EMPABLE",
@@ -89,6 +89,7 @@ return {
 			[43] = "armtl",
 		},
 		customparams = {
+			unitgroup = 'builder',
 			area_mex_def = "armmex",
 			model_author = "Beherith",
 			normaltex = "unittextures/Arm_normal.dds",
@@ -136,6 +137,11 @@ return {
 			},
 		},
 		sfxtypes = {
+			explosiongenerators = {
+				[1] = "custom:waterwake-small-hover",
+				[2] = "custom:bowsplash-small-hover",
+				[3] = "custom:hover-wake-tiny",
+			},
 			pieceexplosiongenerators = {
 				[1] = "deathceg2-builder",
 				[2] = "deathceg3-builder",

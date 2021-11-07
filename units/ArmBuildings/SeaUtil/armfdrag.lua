@@ -9,7 +9,7 @@ return {
 		buildangle = 8192,
 		buildcostenergy = 300,
 		buildcostmetal = 15,
-		buildpic = "ARMFDRAG.PNG",
+		buildpic = "ARMFDRAG.DDS",
 		buildtime = 370,
 		canattack = false,
 		canrepeat = false,

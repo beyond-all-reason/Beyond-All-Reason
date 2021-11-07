@@ -64,6 +64,7 @@ local units = {
 	armamsub = { "factory_amph.png", 1.52250004 },
 	armanac = { "hover_gun.png", 1.10249984 },
 	armanni = { "armanni_1.95.png", 2.0474999 },
+	armannit3 = { "laserdefenset3.png", 2.5474999 },
 	armap = { "factory_air.png", 1.52250004 },
 	armapt3 = { "factory_air_t3.png", 1.52250004 },
 	armarad = { "radar_t2_1.2.png", 1.25999999 },
@@ -83,6 +84,7 @@ local units = {
 	armbeamer = { "defence_beamer.png", 1.10699993 },
 	armbeaver = { "amphib_worker.png", 1.36499989 },
 	armblade = { "air_t2_hover_missile.png", 1.46999991 },
+	armbotrail = { "botrail.png", 3.96999991 },
 	armbrawl = { "air_t2_hover.png", 1.46999991 },
 	armbrtha = { "armbrtha_2.5.png", 2.625 },
 	armbull = { "vehicle_t2_tank.png", 1.46999991 },
@@ -318,6 +320,7 @@ local units = {
 	corageo = { "hazardous.png", 1.88999987 },
 	corah = { "hover_aa.png", 1.15499997 },
 	corak = { "bot_t1_raid_0.7.png", 0.73499995 },
+	corakt4 = { "corakt4.png", 2.30999994 },
 	coralab = { "factory_bot_t2.png", 1.9425 },
 	coramph = { "coramph_1.3.png", 1.36499989 },
 	coramsub = { "factory_amph.png", 1.52250004 },
@@ -360,6 +363,7 @@ local units = {
 	cordemont4 = { "cordemont4.png", 2.625 },
 	cordl = { "defence_1_naval.png", 1.10249984 },
 	cordoom = { "cordoom_1.95.png", 2.0474999 },
+	cordoomt3 = { "laserdefenset3.png", 2.5474999 },
 	cordrag = { "wall_0.4.png", 0.41999999 },
 	corenaa = { "aa_flak_1.4.png", 1.46999991 },
 	corerad = { "aa.png", 1.15499997 },
@@ -598,9 +602,11 @@ function(table, key)
 end})
 
 local iconTypes = {}
+local iconSizes = {}
 function addUnitIcon(name, path, size)
     Spring.AddUnitIcon(name, path, size)
     iconTypes[name] = path
+    iconSizes[name] = size
 end
 
 function loadUnitIcons()
@@ -631,7 +637,7 @@ function gadget:GotChatMsg(msg, playerID)
 end
 
 function GetIconTypes()
-	return iconTypes
+	return iconTypes, iconSizes
 end
 
 function gadget:Initialize()

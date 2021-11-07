@@ -10,7 +10,7 @@ return {
 		buildcostenergy = 0,
 		buildcostmetal = 0,
 		builder = false,
-		buildpic = "critters/critter_gull.PNG",
+		buildpic = "critters/critter_gull.DDS",
 		buildtime = 10,
 		canfly = true,
 		canguard = true,

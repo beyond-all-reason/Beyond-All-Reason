@@ -8,7 +8,7 @@ return {
 		brakerate = 0.1,
 		buildcostenergy = 4500,
 		buildcostmetal = 90,
-		buildpic = "ARMSFIG.PNG",
+		buildpic = "ARMSFIG.DDS",
 		buildtime = 5500,
 		canfly = true,
 		canmove = true,
@@ -45,6 +45,7 @@ return {
 		wingangle = 0.06278,
 		wingdrag = 0.235,
 		customparams = {
+			unitgroup = 'aa',
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armseaplanes",

@@ -1,7 +1,7 @@
 function widget:GetInfo()
 	return {
 		name      = "Language",
-		desc      = "api to handle translations",
+		desc      = "API to handle translations",
 		author    = "Floris",
 		date      = "December 2020",
 		license   = "",
@@ -10,10 +10,25 @@ function widget:GetInfo()
 	}
 end
 
-local noTranslationText = '---'
+local customMessageProxies = {
+	['ui.chickens.queenResistant'] = function (data) return { unit = UnitDefs[data.unitDefId].translatedHumanName } end,
+	['ui.mexUpgrader.noMexes'] = function (data) return { unit = UnitDefs[data.unitDefId].translatedHumanName } end,
+	['scav.messages.reinforcements'] = function (data) return { player = data.player, unit = UnitDefNames[data.unitDefName].translatedHumanName } end,
+}
 
--- todo: echo where language of choice is missing entries
---local debug = false		-- true = echo the missing entries of the additional languages
+local function languageChanged(language)
+	Spring.I18N.setLanguage(language)
+end
+
+local function getMessageProxy(messageKey, parameters)
+	if customMessageProxies[messageKey] then
+		return Spring.I18N( messageKey, customMessageProxies[messageKey](parameters) )
+	else
+		return Spring.I18N(messageKey, parameters)
+	end
+end
+
+local noTranslationText = '---'
 
 local languageContent = {}
 local defaultLanguage = 'en'
@@ -50,6 +65,8 @@ local function loadLanguage()
 end
 
 function widget:Initialize()
+	widgetHandler:RegisterGlobal('GadgetMessageProxy', getMessageProxy)
+
 	loadLanguage()
 
 	WG['lang'] = {}

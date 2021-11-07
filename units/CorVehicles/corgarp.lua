@@ -7,7 +7,7 @@ return {
 		brakerate = 0.06453,
 		buildcostenergy = 2600,
 		buildcostmetal = 220,
-		buildpic = "CORGARP.PNG",
+		buildpic = "CORGARP.DDS",
 		buildtime = 3101,
 		canmove = true,
 		category = "ALL TANK PHIB WEAPON NOTSUB NOTAIR NOTHOVER SURFACE CANBEUW EMPABLE",
@@ -44,6 +44,7 @@ return {
 		turninplacespeedlimit = 1.386,
 		turnrate = 387,
 		customparams = {
+			unitgroup = 'weapon',
 			basename = "base",
 			cannon1name = "barrel",
 			longdescription = Spring.I18N('units.longDescriptions.corgarp'),

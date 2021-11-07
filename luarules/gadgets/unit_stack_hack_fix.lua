@@ -13,6 +13,9 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
+local mapsizeX = Game.mapSizeX
+local mapsizeZ = Game.mapSizeZ
+
 affectedUnits = {}
 local affectedUnitTypes = {
     "armnanotc",
@@ -60,36 +63,53 @@ function gadget:GameFrame(n)
         for i = 1,#affectedUnits do
             local unitID = affectedUnits[i]
             local unitDefID = Spring.GetUnitDefID(unitID)
-            local testRange = math.floor(((UnitDefs[unitDefID].xsize + UnitDefs[unitDefID].zsize)*0.5)*7.8)
+            local testRange = math.floor(((UnitDefs[unitDefID].xsize + UnitDefs[unitDefID].zsize)*0.5)*6)
             local nearestAlly = Spring.GetUnitNearestAlly(unitID, testRange)
             if nearestAlly then
                 local nearestAllyName = UnitDefs[Spring.GetUnitDefID(nearestAlly)].name
                 local nearestAllyCanMove = UnitDefs[Spring.GetUnitDefID(nearestAlly)].canMove
                 if not nearestAllyCanMove then
-                    local x,y,z = Spring.GetUnitPosition(unitID)
-                    local ax,ay,az = Spring.GetUnitPosition(nearestAlly)
-                    local r = math.random(1,4)
-                    if r == 1 then
-                        if x == ax then
-                            Spring.SetUnitPosition(unitID, x+math.random(-testRange,testRange), z+math.random(-testRange,testRange))
+                    if not Spring.GetUnitTransporter(unitID) then
+                        local x,y,z = Spring.GetUnitPosition(unitID)
+                        local ax,ay,az = Spring.GetUnitPosition(nearestAlly)
+                        local r = math.random(1,3)
+                        local movementTargetX = 0
+                        local movementTargetZ = 0
+                        
+                        if r == 1 then
+                            if x == ax or z == az then
+                                movementTargetX = math.random(-testRange*2,testRange*2)
+                                movementTargetZ = math.random(-testRange*2,testRange*2)
+                            end
+                        elseif r == 2 then
+                            if x > ax then
+                                movementTargetX = math.random(1,10)
+                            end
+                            if x < ax then
+                                movementTargetX = -math.random(1,10)
+                            end
+                        elseif r == 3 then
+                            if z > az then
+                                movementTargetZ = math.random(1,10)
+                            end
+                            if z < az then
+                                movementTargetZ = -math.random(1,10)
+                            end
                         end
-                    elseif r == 2 then
-                        if z == az then
-                            Spring.SetUnitPosition(unitID, x+math.random(-testRange,testRange), z+math.random(-testRange,testRange))
+                        local movementTargetY = Spring.GetGroundHeight(x+movementTargetX, z+movementTargetZ)
+                        local aboveMinWaterDepth = -(UnitDefs[unitDefID].minWaterDepth) > movementTargetY
+                        local belowMaxWaterDepth = -(UnitDefs[unitDefID].maxWaterDepth) < movementTargetY
+                        
+                        local onMap = true
+                        if x+movementTargetX > mapsizeX or x+movementTargetX < 0 then
+                            onMap = false
                         end
-                    elseif r == 3 then
-                        if x > ax then
-                            Spring.SetUnitPosition(unitID, x+1, z)
+                        if z+movementTargetZ > mapsizeZ or z+movementTargetZ < 0 then
+                            onMap = false
                         end
-                        if x < ax then
-                            Spring.SetUnitPosition(unitID, x-1, z)
-                        end
-                    elseif r == 4 then
-                        if z > az then
-                            Spring.SetUnitPosition(unitID, x, z+1)
-                        end
-                        if z < az then
-                            Spring.SetUnitPosition(unitID, x, z-1)
+                        
+                        if aboveMinWaterDepth and belowMaxWaterDepth and onMap then
+                            Spring.SetUnitPosition(unitID, x+movementTargetX, z+movementTargetZ)
                         end
                     end
                 end

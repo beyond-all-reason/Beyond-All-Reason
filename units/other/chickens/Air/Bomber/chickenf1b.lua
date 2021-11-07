@@ -10,7 +10,7 @@ return {
 		buildcostenergy = 4550,
 		buildcostmetal = 212,
 		builder = false,
-		buildpic = "chickens/chickenf1b.PNG",
+		buildpic = "chickens/chickenf1b.DDS",
 		buildtime = 9375,
 		canattack = true,
 		canfly = true,
@@ -25,7 +25,6 @@ return {
 		collisionvolumeoffsets = "0 8 -2",
 		collisionvolumescales = "70 14 48",
 		collisionvolumetype = "box",
-		-- handled gadget side -- corpse = "chicken_egg_l_red",
 		cruisealt = 270,
 		defaultmissiontype = "Standby",
 		description = Spring.I18N('units.descriptions.chickenf1b'),
@@ -69,13 +68,9 @@ return {
 		workertime = 0,
 		customparams = {
 			subfolder = "other/chickens",
-      model_author = "KDR_11k, Beherith",
+			model_author = "KDR_11k, Beherith",
 			normalmaps = "yes",
 			normaltex = "unittextures/chicken_l_normals.png",
-		},
-		featuredefs = {
-			dead = {},
-			heap = {},
 		},
 		sfxtypes = {
 			explosiongenerators = {

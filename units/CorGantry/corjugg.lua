@@ -6,7 +6,7 @@ return {
 		brakerate = 0.43125,
 		buildcostenergy = 513000,
 		buildcostmetal = 20000,
-		buildpic = "CORJUGG.PNG",
+		buildpic = "CORJUGG.DDS",
 		buildtime = 629630,
 		canmove = true,
 		category = "BOT WEAPON ALL NOTSUB NOTAIR NOTHOVER SURFACE",
@@ -40,6 +40,7 @@ return {
 		turninplacespeedlimit = 0.363,
 		turnrate = 125.35,
 		customparams = {
+			unitgroup = 'weapon',
 			customrange = 435,
 			model_author = "FireStorm",
 			normaltex = "unittextures/cor_normal.dds",

@@ -8,33 +8,6 @@ piece  base,stand;
 static-var  Static_Var_1, Static_Var_2, Static_Var_3, statechg_DesiredState, statechg_StateChanging;
 
 
-SmokeUnit(healthpercent, sleeptime, smoketype)
-{
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 400;
-	}
-	while( TRUE )
-	{
-		healthpercent = get HEALTH;
-		if( healthpercent < 66 )
-		{
-			smoketype = 256 | 2;
-			if( Rand( 1, 66 ) < healthpercent )
-			{
-				smoketype = 256 | 1;
-			}
-			emit-sfx smoketype from base;
-		}
-		sleeptime = healthpercent * 50;
-		if( sleeptime < 200 )
-		{
-			sleeptime = 200;
-		}
-		sleep sleeptime;
-	}
-}
-
 fixGo()
 {
 	set ARMORED to 0;
@@ -46,8 +19,6 @@ fixGo()
 Stop()
 {
 	stop-spin stand around y-axis decelerate Static_Var_3;
-	wait-for-turn stand around y-axis;
-	turn stand to y-axis <0.000000> speed <70.000000>;
 	wait-for-turn stand around y-axis;
 	move stand to y-axis [0.000000] speed [10.000000];
 	set ARMORED to 1;
@@ -102,12 +73,14 @@ Create()
 	Static_Var_2 = 80;
 	Static_Var_3 = 160;
 	call-script InitState();
-	start-script SmokeUnit();
 	while( get BUILD_PERCENT_LEFT )
 	{
 		sleep 250;
 	}
 }
+
+#define SMOKEPIECE base
+#include "smokeunit_thread_nohit.h"
 
 Activate()
 {

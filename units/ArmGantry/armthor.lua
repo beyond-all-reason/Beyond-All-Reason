@@ -6,7 +6,7 @@ return {
 		brakerate = 0.03,
 		buildcostenergy = 220000,
 		buildcostmetal = 9000,
-		buildpic = "ARMTHOR.PNG",
+		buildpic = "ARMTHOR.DDS",
 		buildtime = 300000,
 		canmove = true,
 		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE CANBEUW",
@@ -42,6 +42,7 @@ return {
 		turninplacespeedlimit = 1.6,
 		turnrate = 180,
 		customparams = {
+			unitgroup = 'emp',
 			lumamult = "0.7",
 			model_author = "Flaka",
 			normaltex = "unittextures/Arm_normal.dds",
@@ -124,36 +125,36 @@ return {
 			},
 		},
 		weapondefs = {
-			lightning = {
-				areaofeffect = 24,
+			lightningxl = {
+				areaofeffect = 48,
 				avoidfeature = false,
 				beamttl = 1,
-				burst = 20,
+				burst = 10,
 				burstrate = 0.03333,
 				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
-				duration = 3,
+				duration = 2,
 				edgeeffectiveness = 0.15,
 				energypershot = 350,
-				explosiongenerator = "custom:genericshellexplosion-medium-lightning2",
+				explosiongenerator = "custom:genericshellexplosion-large-lightning2",
 				fallOffRate = 0.5, --new
 				firestarter = 50,
 				hardStop = false, --new
 				impactonly = 1,
 				impulseboost = 0,
 				impulsefactor = 0,
-				intensity = 24,
+				intensity = 28,
 				name = "Heavy Lighting Cannon",
 				noselfdamage = true,
 				range = 640,
-				reloadtime = 2,
+				reloadtime = 3.1,
 				rgbcolor = "0.5 0.5 1",
 				soundhit = "lasrfir2",
 				soundhitwet = "sizzle",
 				soundstart = "lghthvy1",
 				soundtrigger = true,
-				thickness = 1.5,
+				thickness = 1.8,
 				turret = true,
 				weapontype = "LightningCannon",
 				weaponvelocity = 400,
@@ -167,8 +168,8 @@ return {
 					light_radius_mult = 1.5,
 				},
 				damage = {
-					default = 110,
-					subs = 10,
+					default = 320,
+					subs = 30,
 				},
 			},
 			empmissile = {
@@ -276,7 +277,7 @@ return {
 		},
 		weapons = {
 			[1] = {
-				def = "LIGHTNING",
+				def = "LIGHTNINGXL",
 				onlytargetcategory = "SURFACE",
 			},
 			[2] = {

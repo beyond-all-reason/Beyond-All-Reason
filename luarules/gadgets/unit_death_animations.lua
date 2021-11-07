@@ -24,7 +24,7 @@ local hasDeathAnim = {
 local dyingUnits = {}
 
 for udid, ud in pairs(UnitDefs) do --almost all chickens have dying anims
-	if ud.customParams and ud.customParams.subfolder and ud.customParams.subfolder == "other/chickens" then
+	if ud.customParams.subfolder and ud.customParams.subfolder == "other/chickens" then
 		hasDeathAnim[udid] = true
 	end
 end

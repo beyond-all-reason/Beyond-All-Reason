@@ -15,6 +15,7 @@ Units
  • T2 metal extractors have 40% less metal storage (600)
  • Ground scouts (vehicles/bot): 10% more LoS
  • T1 vehicle artillery has faster projectile and does 2x more damage per shot, but also has 2x reloadtime.
+ • T2 vehicle artillery has 33% more health + same damage as t1 but with adjusted reload time to compensate
  • Decreased cormaw damage 27%
  • Arm Peewee damage reduced by 9%
  • Core AK range reduced 240->225 and damage increased 6%
@@ -46,8 +47,10 @@ Air
  • LLT, HLLT, BEAMER, RL, RAD now transportable with T2/Heavy Transporters
  • Torpedo bombers: Added 800 range radar+sonar, +10% los, -13% max velocity, reduced flight altitude 25%, split main weapon into 3-round burst (500 damage each instead of 1500), Increased cost by 21%
  • Torpedo gunships: Targetting/tracking improvements, +17% los, added 535 range sonar
+ • EMP bomber: 20% slower (still slightly faster than t1 fighters)
 
 Sea
+ • Ship/Hover/Amphibious transports removed
  • Arm and Cor corvette health +25, Cor corvette M cost reduced by 5 (150->145)
  • Arm and Cor frigate damage, speed, and health increased
  • Arm and Cor destroyer E cost increased 50% (7.5E/M instead of 5E/M), turret turnrates adjusted, and arm destroyer's reloadtime increased from 1.2 to 1.6 with its damage increased to keep the same dps

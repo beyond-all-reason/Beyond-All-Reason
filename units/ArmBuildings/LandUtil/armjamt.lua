@@ -8,7 +8,7 @@ return {
 		buildangle = 4400,
 		buildcostenergy = 8500,
 		buildcostmetal = 240,
-		buildpic = "ARMJAMT.PNG",
+		buildpic = "ARMJAMT.DDS",
 		buildtime = 9955,
 		canattack = false,
 		canrepeat = false,
@@ -40,6 +40,7 @@ return {
 		sightdistance = 195,
 		yardmap = "oooo",
 		customparams = {
+			unitgroup = 'util',
 			model_author = "Cremuss",
 			normaltex = "unittextures/Arm_normal.dds",
 			removestop = true,

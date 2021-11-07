@@ -5,7 +5,7 @@
 
 piece  base, fan;
 
-static-var  mmState, Active;
+static-var  Active;
 
 RockOnWaves()
 {
@@ -28,80 +28,26 @@ RockOnWaves()
 	}
 }
 
-Go()
-{
-	spin fan around y-axis speed <300.000000> accelerate <10>;
-}
-
-Stop()
-{
-	stop-spin fan around y-axis decelerate <5>;
-	sleep 30;
-}
-
-ImAMetalMaker()
-{
-	mmState = -1;
-	while( TRUE )
-	{
-		if( Active == 1 )
-		{
-			if( mmState != 1 )
-			{
-				call-script Go();
-				set ACTIVATION to 1;
-				mmState = 1;
-			}
-		}
-		else if( mmState != 0 )
-		{
-			call-script Stop();
-			set ACTIVATION to 0;
-			mmState = 0;
-		}
-		sleep 1000;
-	}
-}
-
-SmokeUnit(healthpercent, sleeptime, smoketype)
-{
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 400;
-	}
-	start-script RockOnWaves();
-	start-script ImAMetalMaker();
-	while( TRUE )
-	{
-		healthpercent = get HEALTH;
-		if( healthpercent < 66 )
-		{
-			smoketype = 256 | 2;
-			if( Rand( 1, 66 ) < healthpercent )
-			{
-				smoketype = 256 | 1;
-			}
-			emit-sfx smoketype from base;
-		}
-		sleeptime = healthpercent * 50;
-		if( sleeptime < 200 )
-		{
-			sleeptime = 200;
-		}
-		sleep sleeptime;
-	}
-}
 
 MMStatus(State)
 {
 	Active = State;
-	//get PRINT(Active);
+	if (State)
+	{
+		spin fan around y-axis speed <300.000000> accelerate <10>;
+	}
+	else
+	{
+		stop-spin fan around y-axis decelerate <5>;
+	}
 }
 
 Create()
 {	
-	start-script SmokeUnit();
 }
+
+#define SMOKEPIECE base
+#include "smokeunit_thread_nohit.h"
 
 SweetSpot(piecenum)
 {

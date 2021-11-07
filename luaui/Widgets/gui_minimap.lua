@@ -10,38 +10,30 @@ function widget:GetInfo()
 	}
 end
 
+local maxAllowedWidth = 0.29
+local maxAllowedHeight = 0.32
+
 local vsx, vsy = Spring.GetViewGeometry()
 
-local enlarged = true
-
-local maxWidth = 0.29 * (vsx / vsy)  -- NOTE: changes in widget:ViewResize()
-local maxHeight = 0.243  -- NOTE: changes in widget:ViewResize()
-maxWidth = math.min(maxHeight * (Game.mapX / Game.mapY), maxWidth)
-
-local bgBorderOrg = 0.0025
-local bgBorder = bgBorderOrg
-local bgMargin = 0.005
-
--------------------------------------------------------------------------------
--------------------------------------------------------------------------------
+local maxHeight = maxAllowedHeight
+local maxWidth = math.min(maxHeight * (Game.mapX / Game.mapY), maxAllowedWidth * (vsx / vsy))
+local usedWidth = math.floor(maxWidth * vsy)
+local usedHeight = math.floor(maxHeight * vsy)
 
 local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity", 0.6) or 0.66)
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
 
 local backgroundRect = { 0, 0, 0, 0 }
 
-local spGetMiniMapGeometry = Spring.GetMiniMapGeometry
+local delayedSetup = false
+local sec = 0
+local uiOpacitySec = 0
+
 local spGetCameraState = Spring.GetCameraState
+local math_isInRect = math.isInRect
 
-local usedWidth = math.floor(maxWidth * vsy)
-local usedHeight = math.floor(maxHeight * vsy)
-
-local RectRound, UiElement, elementCorner = WG.FlowUI.elementCorner
-
-local dlistGuishader, dlistMinimap, bgpadding, oldMinimapGeometry, chobbyInterface
-
--------------------------------------------------------------------------------
--------------------------------------------------------------------------------
+local RectRound, UiElement, elementCorner, elementPadding, elementMargin
+local dlistGuishader, dlistMinimap, oldMinimapGeometry, chobbyInterface
 
 local function checkGuishader(force)
 	if WG['guishader'] then
@@ -50,8 +42,7 @@ local function checkGuishader(force)
 		end
 		if not dlistGuishader then
 			dlistGuishader = gl.CreateList(function()
-				local padding = math.floor(bgBorder * vsy)
-				RectRound(backgroundRect[1], backgroundRect[2] - padding, backgroundRect[3] + padding, backgroundRect[4], elementCorner)
+				RectRound(backgroundRect[1], backgroundRect[2] - elementPadding, backgroundRect[3] + elementPadding, backgroundRect[4], elementCorner)
 			end)
 			WG['guishader'].InsertDlist(dlistGuishader, 'minimap')
 		end
@@ -62,70 +53,60 @@ end
 
 function widget:ViewResize()
 	vsx, vsy = Spring.GetViewGeometry()
-	local w = 0.285
-	if enlarged then
-		maxWidth = w * (vsx / vsy)
-		maxHeight = 0.3865
-	else
-		maxWidth = w * (vsx / vsy)
-		maxHeight = 0.243
+
+	elementPadding = WG.FlowUI.elementPadding
+	elementCorner = WG.FlowUI.elementCorner
+	RectRound = WG.FlowUI.Draw.RectRound
+	UiElement = WG.FlowUI.Draw.Element
+	elementMargin = WG.FlowUI.elementMargin
+
+	if WG['topbar'] ~= nil then
+		local topbarArea = WG['topbar'].GetPosition()
+		maxAllowedWidth = (topbarArea[1] - elementMargin - elementPadding) / vsx
 	end
-	maxWidth = math.min(maxHeight * (Game.mapX / Game.mapY), maxWidth)
-	if maxWidth >= w * (vsx / vsy) then
+
+	maxWidth = math.min(maxAllowedHeight * (Game.mapX / Game.mapY), maxAllowedWidth * (vsx / vsy))
+	if maxWidth >= maxAllowedWidth * (vsx / vsy) then
 		maxHeight = maxWidth / (Game.mapX / Game.mapY)
+	else
+		maxHeight = maxAllowedHeight
 	end
 
 	usedWidth = math.floor(maxWidth * vsy)
 	usedHeight = math.floor(maxHeight * vsy)
 
-	bgpadding = WG.FlowUI.elementPadding
-	elementCorner = WG.FlowUI.elementCorner
-
-	RectRound = WG.FlowUI.Draw.RectRound
-	UiElement = WG.FlowUI.Draw.Element
-
 	Spring.SendCommands(string.format("minimap geometry %i %i %i %i", 0, 0, usedWidth, usedHeight))
 
 	backgroundRect = { 0, vsy - (usedHeight), usedWidth, vsy }
-
 	checkGuishader(true)
-
-	clear()
+	dlistMinimap = gl.DeleteList(dlistMinimap)
 end
 
 function widget:Initialize()
-	oldMinimapGeometry = spGetMiniMapGeometry()
+	oldMinimapGeometry = Spring.GetMiniMapGeometry()
 	gl.SlaveMiniMap(true)
 
 	widget:ViewResize()
 
 	WG['minimap'] = {}
-	WG['minimap'].getEnlarged = function()
-		return enlarged
-	end
-	WG['minimap'].setEnlarged = function(value)
-		enlarged = value
-		widget:ViewResize()
-	end
 	WG['minimap'].getHeight = function()
-		return usedHeight + bgpadding
+		return usedHeight + elementPadding
 	end
-	--WG['minimap'].setHeight = function()
-	--
-	--    widget:ViewResize()
-	--end
+	WG['minimap'].getMaxHeight = function()
+		return math.floor(maxAllowedHeight*vsy), maxAllowedHeight
+	end
+	WG['minimap'].setMaxHeight = function(value)
+		maxAllowedHeight = value
+	    widget:ViewResize()
+	end
 end
 
 function widget:GameStart()
 	widget:ViewResize()
 end
 
-function clear()
-	dlistMinimap = gl.DeleteList(dlistMinimap)
-end
-
 function widget:Shutdown()
-	clear()
+	dlistMinimap = gl.DeleteList(dlistMinimap)
 	if WG['guishader'] and dlistGuishader then
 		WG['guishader'].DeleteDlist('minimap')
 		dlistGuishader = nil
@@ -135,9 +116,6 @@ function widget:Shutdown()
 	Spring.SendCommands("minimap geometry " .. oldMinimapGeometry)
 end
 
-local delayedSetup = false
-local sec = 0
-local uiOpacitySec = 0
 function widget:Update(dt)
 	if not delayedSetup then
 		sec = sec + dt
@@ -158,17 +136,9 @@ function widget:Update(dt)
 		end
 		if ui_opacity ~= Spring.GetConfigFloat("ui_opacity", 0.6) then
 			ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.6)
-			clear()
+			dlistMinimap = gl.DeleteList(dlistMinimap)
 		end
 	end
-end
-
-function IsOnRect(x, y, BLcornerX, BLcornerY, TRcornerX, TRcornerY)
-	return x >= BLcornerX and x <= TRcornerX and y >= BLcornerY and y <= TRcornerY
-end
-
-function drawMinimap()
-	UiElement(backgroundRect[1], backgroundRect[2] - bgpadding, backgroundRect[3] + bgpadding, backgroundRect[4], 0, 0, 1, 0)
 end
 
 function widget:RecvLuaMsg(msg, playerID)
@@ -177,17 +147,23 @@ function widget:RecvLuaMsg(msg, playerID)
 	end
 end
 
+local st = spGetCameraState()
+local stframe = 0
 function widget:DrawScreen()
 	if chobbyInterface then
 		return
 	end
-	--local x,y,b = Spring.GetMouseState()
-	--if IsOnRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) then
-	--  Spring.SetMouseCursor('cursornormal')
-	--end
-	local st = spGetCameraState()
-	if st.name == "ov" then
-		-- overview camera
+	local x,y,b = Spring.GetMouseState()
+	if math_isInRect(x, y, backgroundRect[1], backgroundRect[2] - elementPadding, backgroundRect[3] + elementPadding, backgroundRect[4]) then
+		if not math_isInRect(x, y, backgroundRect[1], backgroundRect[2] + 1, backgroundRect[3] - 1, backgroundRect[4]) then
+			Spring.SetMouseCursor('cursornormal')
+		end
+	end
+  stframe = stframe + 1 
+	if stframe % 10 == 0 then
+    st = spGetCameraState()
+  end
+	if st.name == "ov" then		-- overview camera
 		if dlistGuishader and WG['guishader'] then
 			WG['guishader'].RemoveDlist('minimap')
 		end
@@ -197,44 +173,33 @@ function widget:DrawScreen()
 		end
 		if not dlistMinimap then
 			dlistMinimap = gl.CreateList(function()
-				drawMinimap()
+				UiElement(backgroundRect[1], backgroundRect[2] - elementPadding, backgroundRect[3] + elementPadding, backgroundRect[4], 0, 0, 1, 0)
 			end)
 		end
 		gl.CallList(dlistMinimap)
 	end
 
-	--gl.ResetState()
-	--gl.ResetMatrices()
 	gl.DrawMiniMap()
-	--gl.ResetState()
-	--gl.ResetMatrices()
 end
 
 function widget:GetConfigData()
-	--save config
 	return {
-		enlarged = enlarged
+		maxHeight = maxAllowedHeight,
 	}
 end
 
 function widget:SetConfigData(data)
-	--load config
-	if data.enlarged ~= nil then
-		enlarged = data.enlarged
+	if data.maxHeight ~= nil then
+		maxAllowedHeight = data.maxHeight
 	end
-end
-
-function IsOnRect(x, y, BLcornerX, BLcornerY, TRcornerX, TRcornerY)
-	return x >= BLcornerX and x <= TRcornerX and y >= BLcornerY and y <= TRcornerY
 end
 
 function widget:MousePress(x, y, button)
 	if Spring.IsGUIHidden() then
 		return
 	end
-	local padding = math.floor(bgBorder * vsy)
-	if IsOnRect(x, y, backgroundRect[1], backgroundRect[2] - padding, backgroundRect[3] + padding, backgroundRect[4]) then
-		if not IsOnRect(x, y, backgroundRect[1], backgroundRect[2] + 1, backgroundRect[3] - 1, backgroundRect[4]) then
+	if math_isInRect(x, y, backgroundRect[1], backgroundRect[2] - elementPadding, backgroundRect[3] + elementPadding, backgroundRect[4]) then
+		if not math_isInRect(x, y, backgroundRect[1], backgroundRect[2] + 1, backgroundRect[3] - 1, backgroundRect[4]) then
 			return true
 		end
 	end

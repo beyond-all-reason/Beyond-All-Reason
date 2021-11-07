@@ -9,7 +9,7 @@ return {
 		buildcostmetal = 140,
 		builddistance = 136,
 		builder = true,
-		buildpic = "CORCSA.PNG",
+		buildpic = "CORCSA.DDS",
 		buildtime = 12000,
 		canfly = true,
 		canmove = true,
@@ -88,6 +88,7 @@ return {
 			[43] = "cortl",
 		},
 		customparams = {
+			unitgroup = 'builder',
 			area_mex_def = "coruwmex",
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",

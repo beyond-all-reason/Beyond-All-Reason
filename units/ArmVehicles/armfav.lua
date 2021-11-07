@@ -6,7 +6,7 @@ return {
 		brakerate = 0.33318,
 		buildcostenergy = 370,
 		buildcostmetal = 31,
-		buildpic = "ARMFAV.PNG",
+		buildpic = "ARMFAV.DDS",
 		buildtime = 950,
 		canmove = true,
 		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE GROUNDSCOUT EMPABLE",
@@ -42,6 +42,7 @@ return {
 		turninplacespeedlimit = 4.224,
 		turnrate = 653,
 		customparams = {
+			unitgroup = 'weapon',
 			basename = "base",
 			cannon1name = "flare1",
 			cannon2name = "flare2",

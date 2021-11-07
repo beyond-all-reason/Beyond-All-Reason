@@ -7,7 +7,7 @@ return {
 		brakerate = 0.55,
 		buildcostenergy = 1300,
 		buildcostmetal = 58,
-		buildpic = "CORBW.PNG",
+		buildpic = "CORBW.DDS",
 		buildtime = 2073,
 		canfly = true,
 		canmove = true,
@@ -39,6 +39,7 @@ return {
 		upright = true,
 		usesmoothmesh = 0,
 		customparams = {
+			unitgroup = 'emp',
 			longdescription = Spring.I18N('units.longDescriptions.corbw'),
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",

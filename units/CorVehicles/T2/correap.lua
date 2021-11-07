@@ -6,7 +6,7 @@ return {
 		brakerate = 0.0724,
 		buildcostenergy = 10000,
 		buildcostmetal = 665,
-		buildpic = "CORREAP.PNG",
+		buildpic = "CORREAP.DDS",
 		buildtime = 11501,
 		canmove = true,
 		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -42,6 +42,7 @@ return {
 		turninplacespeedlimit = 1.72656,
 		turnrate = 347,
 		customparams = {
+			unitgroup = 'weapon',
 			basename = "base",
 			cannon1name = "barrel1",
 			cannon2name = "barrel2",

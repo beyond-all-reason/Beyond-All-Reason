@@ -9,7 +9,7 @@ return {
 		brakerate = 0.07011,
 		buildcostenergy = 1000,
 		buildcostmetal = 170,
-		buildpic = "ARMPT.PNG",
+		buildpic = "ARMPT.DDS",
 		buildtime = 2920,
 		canmove = true,
 		category = "ALL NOTLAND MOBILE WEAPON NOTSUB SHIP NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -43,6 +43,7 @@ return {
 		turnrate = 540,
 		waterline = 0,
 		customparams = {
+			unitgroup = 'weaponaa',
 			maxrange = "260",
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
@@ -222,7 +223,7 @@ return {
 				def = "LASER",
 				onlytargetcategory = "NOTSUB",
 			},
-			[3] = {
+			[2] = {
 				badtargetcategory = "LIGHTAIRSCOUT",
 				def = "AAMISSILE",
 				onlytargetcategory = "VTOL",

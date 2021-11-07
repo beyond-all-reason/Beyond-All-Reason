@@ -7,7 +7,7 @@ return {
 		brakerate = 0.07166,
 		buildcostenergy = 1900,
 		buildcostmetal = 105,
-		buildpic = "CORETER.PNG",
+		buildpic = "CORETER.DDS",
 		buildtime = 6404,
 		canattack = false,
 		canmove = true,
@@ -47,6 +47,7 @@ return {
 		turninplacespeedlimit = 0.95832,
 		turnrate = 619.29999,
 		customparams = {
+			unitgroup = 'util',
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "corvehicles/t2",

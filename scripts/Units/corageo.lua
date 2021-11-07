@@ -43,7 +43,6 @@ function script.Killed(recentDamage, maxHealth)
 		Explode(fan3,SFX.EXPLODE + SFX.NO_HEATCLOUD)
 		return 2 -- corpsetype
 	else
-		Explode(base, SFX.SHATTER)
 		Explode(fan1,SFX.EXPLODE + SFX.NO_HEATCLOUD)
 		Explode(fan2,SFX.EXPLODE + SFX.NO_HEATCLOUD)
 		Explode(fan3,SFX.EXPLODE + SFX.NO_HEATCLOUD)

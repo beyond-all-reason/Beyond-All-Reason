@@ -6,7 +6,7 @@ return {
 		brakerate = 0.43125,
 		buildcostenergy = 12000,
 		buildcostmetal = 1500,
-		buildpic = "ARMFBOY.PNG",
+		buildpic = "ARMFBOY.DDS",
 		buildtime = 22397,
 		canmove = true,
 		category = "BOT WEAPON ALL NOTSUB NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -40,6 +40,7 @@ return {
 		turninplacespeedlimit = 0.66,
 		turnrate = 368,
 		customparams = {
+			unitgroup = 'weapon',
 			model_author = "Kaiser, PtaQ",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armbots/t2",

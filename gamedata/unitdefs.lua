@@ -12,7 +12,6 @@
 --------------------------------------------------------------------------------
 
 local unitDefs = {}
-
 local shared = {} -- shared amongst the lua unitdef enviroments
 
 local preProcFile  = 'gamedata/unitdefs_pre.lua'
@@ -27,7 +26,6 @@ VFS.Include('gamedata/VFSUtils.lua')
 VFS.Include('modules/i18n/i18n.lua')
 local section = 'unitdefs.lua'
 
-
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 --
@@ -35,13 +33,12 @@ local section = 'unitdefs.lua'
 --
 
 if (VFS.FileExists(preProcFile)) then
-  Shared   = shared    -- make it global
-  UnitDefs = unitDefs  -- make it global
-  VFS.Include(preProcFile)
-  UnitDefs = nil
-  Shared   = nil
+	Shared   = shared    -- make it global
+	UnitDefs = unitDefs  -- make it global
+	VFS.Include(preProcFile)
+	UnitDefs = nil
+	Shared   = nil
 end
-
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -53,17 +50,16 @@ local fbiFiles = RecursiveFileSearch('units/', '*.fbi')
 
 
 for _, filename in ipairs(fbiFiles) do
-  local ud, err = FBI.Parse(filename)
-  if (ud == nil) then
-    Spring.Log(section, LOG.ERROR, 'Error parsing ' .. filename .. ': ' .. err)
-  elseif (ud.unitname == nil) then
-    Spring.Log(section, LOG.ERROR, 'Missing unitName in ' .. filename)
-  else
-    ud.unitname = string.lower(ud.unitname)
-    unitDefs[ud.unitname] = ud
-  end
+	local ud, err = FBI.Parse(filename)
+	if (ud == nil) then
+		Spring.Log(section, LOG.ERROR, 'Error parsing ' .. filename .. ': ' .. err)
+	elseif (ud.unitname == nil) then
+		Spring.Log(section, LOG.ERROR, 'Missing unitName in ' .. filename)
+	else
+		ud.unitname = string.lower(ud.unitname)
+		unitDefs[ud.unitname] = ud
+	end
 end
-
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -72,31 +68,29 @@ end
 --  (these will override the FBI/SWU versions)
 --
 
-
 local luaFiles = RecursiveFileSearch('units/', '*.lua')
 
 for _, filename in ipairs(luaFiles) do
-  local udEnv = {}
-  udEnv._G = udEnv
-  udEnv.Shared = shared
-  udEnv.GetFilename = function() return filename end
-  setmetatable(udEnv, { __index = system })
-  local success, uds = pcall(VFS.Include, filename, udEnv, vfs_modes)
-  if (not success) then
-    Spring.Log(section, LOG.ERROR, 'Error parsing ' .. filename .. ': ' .. tostring(uds))
-  elseif (type(uds) ~= 'table') then
-    Spring.Log(section, LOG.ERROR, 'Bad return table from: ' .. filename)
-  else
-    for udName, ud in pairs(uds) do
-      if ((type(udName) == 'string') and (type(ud) == 'table')) then
-        unitDefs[udName] = ud
-      else
-        Spring.Log(section, LOG.ERROR, 'Bad return table entry from: ' .. filename)
-      end
-    end
-  end  
+	local udEnv = {}
+	udEnv._G = udEnv
+	udEnv.Shared = shared
+	udEnv.GetFilename = function() return filename end
+	setmetatable(udEnv, { __index = system })
+	local success, uds = pcall(VFS.Include, filename, udEnv, vfs_modes)
+	if (not success) then
+		Spring.Log(section, LOG.ERROR, 'Error parsing ' .. filename .. ': ' .. tostring(uds))
+	elseif (type(uds) ~= 'table') then
+		Spring.Log(section, LOG.ERROR, 'Bad return table from: ' .. filename)
+	else
+		for udName, ud in pairs(uds) do
+			if ((type(udName) == 'string') and (type(ud) == 'table')) then
+				unitDefs[udName] = ud
+			else
+				Spring.Log(section, LOG.ERROR, 'Bad return table entry from: ' .. filename)
+			end
+		end
+	end
 end
-
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -106,7 +100,6 @@ end
 
 DownloadBuilds.Execute(unitDefs)
 
-
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 --
@@ -114,13 +107,12 @@ DownloadBuilds.Execute(unitDefs)
 --
 
 if (VFS.FileExists(postProcFile)) then
-  Shared   = shared    -- make it global
-  UnitDefs = unitDefs  -- make it global
-  VFS.Include(postProcFile)
-  UnitDefs = nil
-  Shared   = nil
+	Shared   = shared    -- make it global
+	UnitDefs = unitDefs  -- make it global
+	VFS.Include(postProcFile)
+	UnitDefs = nil
+	Shared   = nil
 end
-
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -129,57 +121,49 @@ end
 --
 
 for name, def in pairs(unitDefs) do
-  local cob = 'scripts/'   .. name .. '.cob'
-
-  local obj = def.objectName or def.objectname
-  if (obj == nil) then
-    unitDefs[name] = nil
-    Spring.Log(section, LOG.ERROR, 'removed ' .. name ..
-                ' unitDef, missing objectname param')
-    for k,v in pairs(def) do print('',k,v) end
-  else
-    local objfile = 'objects3d/' .. obj
-    if ((not VFS.FileExists(objfile))           and
-        (not VFS.FileExists(objfile .. '.3do')) and
-        (not VFS.FileExists(objfile .. '.s3o'))) then
-      unitDefs[name] = nil
-      Spring.Log(section, LOG.ERROR, 'removed ' .. name
-                  .. ' unitDef, missing model file  (' .. obj .. ')')
-    end
-  end
+	local cob = 'scripts/'   .. name .. '.cob'
+	local obj = def.objectName or def.objectname
+	if (obj == nil) then
+		unitDefs[name] = nil
+		Spring.Log(section, LOG.ERROR, 'removed ' .. name ..
+								' unitDef, missing objectname param')
+		for k,v in pairs(def) do print('',k,v) end
+	else
+		local objfile = 'objects3d/' .. obj
+		if ((not VFS.FileExists(objfile))           and
+				(not VFS.FileExists(objfile .. '.3do')) and
+				(not VFS.FileExists(objfile .. '.s3o'))) then
+			unitDefs[name] = nil
+			Spring.Log(section, LOG.ERROR, 'removed ' .. name .. ' unitDef, missing model file  (' .. obj .. ')')
+		end
+	end
 end
-
 
 local isTestversion = (Game and Game.gameVersion and string.find(Game.gameVersion, '$VERSION'))
 
 for name, def in pairs(unitDefs) do
-  local badOptions = {}
-  local buildOptions = def.buildOptions or def.buildoptions
-  if (buildOptions) then
-    for i, option in ipairs(buildOptions) do
-      if (unitDefs[option] == nil) then
-        table.insert(badOptions, i)
-        if isTestversion then
-          Spring.Log(section, LOG.ERROR, 'removed the "' .. option ..'" entry'
-                  .. ' from the "' .. name .. '" build menu')
-        end
-      end
-    end
-    if (#badOptions > 0) then
-      local removed = 0
-      for _, badIndex in ipairs(badOptions) do
-        table.remove(buildOptions, badIndex - removed)
-        removed = removed + 1
-      end
-    end
-  end
+	local badOptions = {}
+	local buildOptions = def.buildOptions or def.buildoptions
+	if (buildOptions) then
+		for i, option in ipairs(buildOptions) do
+			if (unitDefs[option] == nil) then
+				table.insert(badOptions, i)
+				if isTestversion then
+					Spring.Log(section, LOG.ERROR, 'removed the "' .. option ..'" entry' .. ' from the "' .. name .. '" build menu')
+				end
+			end
+		end
+		if (#badOptions > 0) then
+			local removed = 0
+			for _, badIndex in ipairs(badOptions) do
+				table.remove(buildOptions, badIndex - removed)
+				removed = removed + 1
+			end
+		end
+	end
 end
-
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
 return unitDefs
-
---------------------------------------------------------------------------------
--------------------------------------------------------------------------------- 

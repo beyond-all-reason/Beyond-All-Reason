@@ -34,11 +34,14 @@ local base64chars = {[0]='A',[1]='B',[2]='C',[3]='D',[4]='E',[5]='F',[6]='G',[7]
 -- encodes input string to base64.
 local function base64Encode(data)
 	local bytes = {}
-	local result = ""
+	local result = {}
 	for spos=0,string.len(data)-1,3 do
-		for byte=1,3 do bytes[byte] = string.byte(string.sub(data,(spos+byte))) or 0 end
-		result = string.format('%s%s%s%s%s',result,base64chars[rsh(bytes[1],2)],base64chars[lor(lsh((bytes[1] % 4),4), rsh(bytes[2],4))] or "=",((#data-spos) > 1) and base64chars[lor(lsh(bytes[2] % 16,2), rsh(bytes[3],6))] or "=",((#data-spos) > 2) and base64chars[(bytes[3] % 64)] or "=")
+		for byte=1,3 do 
+			bytes[byte] = string.byte(string.sub(data,(spos+byte),(spos+byte))) or 0
+		end
+		result[#result + 1] = string.format('%s%s%s%s',base64chars[rsh(bytes[1],2)],base64chars[lor(lsh((bytes[1] % 4),4), rsh(bytes[2],4))] or "=",((#data-spos) > 1) and base64chars[lor(lsh(bytes[2] % 16,2), rsh(bytes[3],6))] or "=",((#data-spos) > 2) and base64chars[(bytes[3] % 64)] or "=")
 	end
+	result = table.concat(result)
 	return result
 end
 
@@ -49,15 +52,14 @@ local base64bytes = {['A']=0,['B']=1,['C']=2,['D']=3,['E']=4,['F']=5,['G']=6,['H
 -- decode base64 input to string
 local function base64Decode(data)
 	local chars = {}
-	local result=""
+	local result= {}
 	for dpos=0,string.len(data)-1,4 do
-		for char=1,4 do chars[char] = base64bytes[(string.sub(data,(dpos+char),(dpos+char)) or "=")] end
-		if not chars[1] or not chars[2] then
-			Spring.Log("base64", LOG.ERROR, "Invalid base64 string to decode", data)
-			return ""
+		for char=1,4 do 
+			chars[char] = base64bytes[(string.sub(data,(dpos+char),(dpos+char)) or "=")] 
 		end
-		result = string.format('%s%s%s%s',result,string.char(lor(lsh(chars[1],2), rsh(chars[2],4))),(chars[3] ~= nil) and string.char(lor(lsh(chars[2],4), rsh(chars[3],2))) or "",(chars[4] ~= nil) and string.char(lor(lsh(chars[3],6) % 192, (chars[4]))) or "")
+		result[#result + 1]  = string.format('%s%s%s',string.char(lor(lsh(chars[1],2), rsh(chars[2],4))),(chars[3] ~= nil) and string.char(lor(lsh(chars[2],4), rsh(chars[3],2))) or "",(chars[4] ~= nil) and string.char(lor(lsh(chars[3],6) % 192, (chars[4]))) or "")
 	end
+	result = table.concat(result)
 	return result
 end
 

@@ -6,7 +6,7 @@ return {
 		brakerate = 0.345,
 		buildcostenergy = 71000,
 		buildcostmetal = 3300,
-		buildpic = "ARMVANG.PNG",
+		buildpic = "ARMVANG.DDS",
 		buildtime = 91096,
 		canmove = true,
 		category = "ALL NOTSUB WEAPON NOTAIR NOTHOVER SURFACE BOT EMPABLE",
@@ -39,6 +39,7 @@ return {
 		turninplacespeedlimit = 0.726,
 		turnrate = 265.64999,
 		customparams = {
+			unitgroup = 'weapon',
 			model_author = "Flaka",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armgantry",

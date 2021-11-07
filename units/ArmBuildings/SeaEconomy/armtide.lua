@@ -8,7 +8,7 @@ return {
 		buildangle = 8192,
 		buildcostenergy = 250,
 		buildcostmetal = 90,
-		buildpic = "ARMTIDE.PNG",
+		buildpic = "ARMTIDE.DDS",
 		buildtime = 2188,
 		canrepeat = false,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -38,6 +38,7 @@ return {
 		waterline = 2.5,
 		yardmap = "wwwwwwwww",
 		customparams = {
+			unitgroup = 'energy',
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			removestop = true,

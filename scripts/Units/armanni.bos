@@ -64,33 +64,6 @@ deactivatescr()
 	sleep 33;
 }
 
-SmokeUnit(healthpercent, sleeptime, smoketype)
-{
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 400;
-	}
-	while( TRUE )
-	{
-		healthpercent = get HEALTH;
-		if( healthpercent < 66 )
-		{
-			smoketype = 256 | 2;
-			if( Rand( 1, 66 ) < healthpercent )
-			{
-				smoketype = 256 | 1;
-			}
-			emit-sfx smoketype from base;
-		}
-		sleeptime = healthpercent * 50;
-		if( sleeptime < 200 )
-		{
-			sleeptime = 200;
-		}
-		sleep sleeptime;
-	}
-}
-
 Go()
 {
 
@@ -154,9 +127,11 @@ Create()
 	{
 		sleep 250;
 	}
-	start-script SmokeUnit();
 	spin dish around y-axis speed <90>;
 }
+
+#define SMOKEPIECE base
+#include "smokeunit_thread_nohit.h"
 
 Activate()
 {
@@ -238,7 +213,7 @@ Killed(severity, corpsetype)
 		explode turret type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode sleeve type FALL | NOHEATCLOUD;
 		explode antenna type FALL | NOHEATCLOUD;
-		explode light type FIRE | SHATTER | SMOKE | FALL | NOHEATCLOUD;
+		explode light type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode dish type FALL | NOHEATCLOUD;
 		explode barrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode flare type FIRE | SMOKE | FALL | NOHEATCLOUD;
@@ -254,12 +229,12 @@ Killed(severity, corpsetype)
 		explode turret type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode sleeve type SMOKE | FALL | NOHEATCLOUD;
 		explode antenna type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode light type SHATTER | NOHEATCLOUD;
+		explode light type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode dish type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode barrel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode flare type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		explode door type SHATTER | NOHEATCLOUD;
-		explode doorl type SHATTER | NOHEATCLOUD;
+		explode door type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode doorl type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
@@ -268,11 +243,11 @@ Killed(severity, corpsetype)
 		explode turret type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode sleeve type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode antenna type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode light type SHATTER | NOHEATCLOUD;
+		explode light type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode dish type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode barrel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode flare type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode door type SHATTER | NOHEATCLOUD;
-		explode doorl type SHATTER | NOHEATCLOUD;
+		explode door type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode doorl type FIRE | SMOKE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }

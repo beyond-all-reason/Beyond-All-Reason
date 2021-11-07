@@ -7,7 +7,7 @@ return {
 		buildcostenergy = 5500,
 		buildcostmetal = 1400,
 		builder = true,
-		buildpic = "CORPLAT.PNG",
+		buildpic = "CORPLAT.DDS",
 		buildtime = 11800,
 		canmove = true,
 		category = "ALL NOTLAND NOWEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -42,6 +42,7 @@ return {
 			[6] = "corhunt",
 		},
 		customparams = {
+			unitgroup = 'builder',
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "corbuildings/seafactories",

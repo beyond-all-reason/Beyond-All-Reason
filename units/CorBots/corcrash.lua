@@ -7,7 +7,7 @@ return {
 		brakerate = 0.6486,
 		buildcostenergy = 1100,
 		buildcostmetal = 125,
-		buildpic = "CORCRASH.PNG",
+		buildpic = "CORCRASH.DDS",
 		buildtime = 1900,
 		canmove = true,
 		category = "BOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE CANBEUW EMPABLE",
@@ -38,6 +38,7 @@ return {
 		turnrate = 1278.79993,
 		upright = true,
 		customparams = {
+			unitgroup = 'aa',
 			longdescription = Spring.I18N('units.longDescriptions.corcrash'),
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",
@@ -202,7 +203,7 @@ return {
 				def = "BOGUS_MISSILE",
 				onlytargetcategory = "VTOL",
 			},
-			[3] = {
+			[2] = {
 				badtargetcategory = "NOTAIR LIGHTAIRSCOUT",
 				def = "CORBOT_MISSILE",
 				onlytargetcategory = "VTOL",

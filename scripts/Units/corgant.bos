@@ -12,8 +12,6 @@ static-var  Static_Var_1, statechg_DesiredState, statechg_StateChanging;
 
 activatescr()
 {
-
-
 	if( TRUE )
 	{
 		move door1 to x-axis [-33] speed [33];
@@ -77,32 +75,6 @@ deactivatescr()
 	sleep 300;
 }
 
-SmokeUnit(healthpercent, sleeptime, smoketype)
-{
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 400;
-	}
-	while( TRUE )
-	{
-		healthpercent = get HEALTH;
-		if( healthpercent < 66 )
-		{
-			smoketype = 256 | 2;
-			if( Rand( 1, 66 ) < healthpercent )
-			{
-				smoketype = 256 | 1;
-			}
-			emit-sfx smoketype from base;
-		}
-		sleeptime = healthpercent * 50;
-		if( sleeptime < 200 )
-		{
-			sleeptime = 200;
-		}
-		sleep sleeptime;
-	}
-}
 
 OpenYard()
 {
@@ -178,8 +150,10 @@ Create()
 {
 	Static_Var_1 = 1;
 	call-script InitState();
-	start-script SmokeUnit();
 }
+
+#define SMOKEPIECE base
+#include "smokeunit_thread_nohit.h"
 
 QueryNanoPiece(piecenum)
 {
@@ -258,6 +232,7 @@ Deactivate()
 {
 	signal SIG_ACTIVATE;
 	set-signal-mask SIG_ACTIVATE;
+  sleep 5000;
 	set-signal-mask 0;
 	start-script RequestState(1);
 }
@@ -267,9 +242,13 @@ StartBuilding()
 	sleep 50;
 }
 
-StopBuilding()
+StopBuilding() // give the gantry a 1 second breathing room
 {
-	sleep 50;
+	set BUGGER_OFF to 1; // tell units to get out of here
+	set INBUILDSTANCE to 0; // we turn it off, to wait for the unit to clear the build pad (large aircraft)
+	sleep 1000;   // then we wait for 2 sec
+	set INBUILDSTANCE to 1; // we turn it on again, as the next startbuilding and construction will begin when this is 1 again.
+	set BUGGER_OFF to 0; // ok now we dont mind if they are here
 }
 
 QueryBuildInfo(piecenum)

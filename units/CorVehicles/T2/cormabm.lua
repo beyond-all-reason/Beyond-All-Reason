@@ -6,7 +6,7 @@ return {
 		brakerate = 0.07443,
 		buildcostenergy = 32000,
 		buildcostmetal = 1250,
-		buildpic = "CORMABM.PNG",
+		buildpic = "CORMABM.DDS",
 		buildtime = 42000,
 		canattack = false,
 		canmove = true,
@@ -46,6 +46,7 @@ return {
 		turninplacespeedlimit = 1.188,
 		turnrate = 520.29999,
 		customparams = {
+			unitgroup = 'antinuke',
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "corvehicles/t2",

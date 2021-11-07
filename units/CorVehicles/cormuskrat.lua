@@ -8,7 +8,7 @@ return {
 		buildcostmetal = 170,
 		builddistance = 110,
 		builder = true,
-		buildpic = "CORMUSKRAT.PNG",
+		buildpic = "CORMUSKRAT.DDS",
 		buildtime = 6864,
 		canmove = true,
 		category = "ALL TANK PHIB NOTSUB  NOWEAPON NOTAIR NOTHOVER SURFACE CANBEUW EMPABLE",
@@ -93,6 +93,7 @@ return {
 			[43] = "corptl",
 		},
 		customparams = {
+			unitgroup = 'builder',
 			area_mex_def = "cormex",
 			longdescription = Spring.I18N('units.longDescriptions.cormuskrat'),
 			model_author = "Mr Bob",

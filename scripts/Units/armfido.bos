@@ -293,15 +293,19 @@ UnitSpeed(){
 		sleep 131;
 	}
 }
+
 StartMoving(){
 	signal SIG_WALK;
+  set-signal-mask SIG_WALK;
 	bMoving=TRUE;
-	 start-script Walk();
+	start-script UnitSpeed();
+  start-script Walk();
 }
+
 StopMoving(){
 	signal SIG_WALK;
 	bMoving=FALSE;
-	 call-script StopWalking();
+  call-script StopWalking();
 }
 
 
@@ -310,56 +314,8 @@ StopMoving(){
 //how 'heavy' the unit is, on a scale of 1-10
 #define UNITSIZE 4
 #define MAXTILT 100
-HitByWeapon(anglex, anglez, damage)	// angle[x|z] is always [-500;500], damage is multiplied by 100
-{
-	var amount;//, speedz, speedx;
-	amount = damage / (100 * UNITSIZE);
-	if (amount < 3  ) return (0);
-	if (amount > MAXTILT) amount = MAXTILT;
-	//get PRINT(anglex, anglez, amount, damage);
-	//speedz = HITSPEED * get ABS(anglez) / 500; //nevermind this, the random error this produces actually looks better than the accurate version
-	turn BASEPIECE to z-axis (anglez * amount) / 100  speed HITSPEED;
-	turn BASEPIECE to x-axis <0> - (anglex * amount) /100 speed HITSPEED;
-	wait-for-turn BASEPIECE around z-axis;
-	wait-for-turn BASEPIECE around x-axis;
-	turn BASEPIECE to z-axis <0.000000> speed HITSPEED / 4;
-	turn BASEPIECE to x-axis <0.000000> speed HITSPEED / 4;
-}
-HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and flamers give angles of 0
-{
-	start-script HitByWeapon(dmg, anglez,anglex); //I dont know why param order must be switched, and this also runs a frame later :(
-	return (100); //return damage percent
-}
 
-
-
-SmokeUnit(healthpercent, sleeptime, smoketype)
-{
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 500;
-	}
-	start-script UnitSpeed();
-	while( TRUE )
-	{
-		healthpercent = get HEALTH;
-		if( healthpercent < 66 )
-		{
-			smoketype = 258;
-			if( Rand( 1, 66 ) < healthpercent )
-			{
-				smoketype = 257;
-			}
-			emit-sfx smoketype from torso;
-		}
-		sleeptime = healthpercent * 50;
-		if( sleeptime < 200 )
-		{
-			sleeptime = 200;
-		}
-		sleep sleeptime;
-	}
-}
+#include "unit_hitbyweaponid_and_smoke.h"
 
 RequestState(requestedstate, currentstate)
 {
@@ -391,6 +347,7 @@ Create()
 {
 	hide flare;
 	dont-cache flare;
+	move pelvis to y-axis 4000 speed <500>; 
 	restore_delay = 30;
 	animspeed = 4;
 	Static_Var_2 = 0;
@@ -398,7 +355,6 @@ Create()
 	statechg_DesiredState = TRUE;
 	statechg_StateChanging = FALSE;
 	moveSpeed = get MAX_SPEED;
-	start-script SmokeUnit();
 }
 
 Activate()
@@ -550,7 +506,7 @@ Killed(severity, corpsetype)
 	{
 		corpsetype = 2;
 		explode flare type FALL | BITMAP1 | NOHEATCLOUD;
-		explode barrel type SHATTER | BITMAP2 | NOHEATCLOUD;
+		explode barrel type FIRE | SMOKE | FALL | BITMAP2 | NOHEATCLOUD;
 		explode lfoot type FALL | BITMAP4 | NOHEATCLOUD;
 		//explode lhand type FALL | BITMAP5 | NOHEATCLOUD;
 		explode lleg type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
@@ -569,7 +525,7 @@ Killed(severity, corpsetype)
 	{
 		corpsetype = 3;
 		explode flare type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
-		explode barrel type SHATTER | BITMAP2 | NOHEATCLOUD;
+		explode barrel type FIRE | SMOKE | FALL | BITMAP2 | NOHEATCLOUD;
 		explode lfoot type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
 		explode lhand type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5 | NOHEATCLOUD;
 		//explode lleg type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
@@ -586,7 +542,7 @@ Killed(severity, corpsetype)
 	}
 	corpsetype = 3;
 	explode flare type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
-	explode barrel type SHATTER | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
+	explode barrel type FIRE | SMOKE | FALL | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
 	explode lfoot type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
 	explode lhand type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5 | NOHEATCLOUD;
 	explode lleg type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;

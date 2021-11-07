@@ -10,12 +10,32 @@ function gadget:GetInfo()
 	}
 end
 
+--[[
+	A dead AllyTeam blows up all units it still contains
+
+	AllyTeam is dead when:
+	- no longer has any units
+	- has no alive teams
+]]
 if gadgetHandler:IsSyncedCode() then
-	-- In this gadget, an allyteam is declared dead when it no longer has any units
-	-- Allyteam explosion when no coms are left (killing all remaining units of that allyteam) is implemented in teamcomends.lua
 
 	local sharedDynamicAllianceVictory = Spring.GetModOptions().shareddynamicalliancevictory
 	local fixedallies = Spring.GetModOptions().fixedallies
+
+	local gaiaTeamID = Spring.GetGaiaTeamID()
+	local gaiaAllyTeamID = select(6, Spring.GetTeamInfo(gaiaTeamID))
+
+	-- Exclude Scavengers / Chickens AI
+	local ignoredAllyTeams = {
+		[gaiaAllyTeamID] = true,
+	}
+	local teams = Spring.GetTeamList()
+	for i = 1, #teams do
+		local luaAI = Spring.GetTeamLuaAI(teams[i])
+		if luaAI and (luaAI:find("Chickens") or luaAI:find("Scavengers")) then
+			ignoredAllyTeams[ select(6, Spring.GetTeamInfo(teams[i],false)) ] = true
+		end
+	end
 
 	local KillTeam = Spring.KillTeam
 	local GetAllyTeamList = Spring.GetAllyTeamList
@@ -32,11 +52,12 @@ if gadgetHandler:IsSyncedCode() then
 
 	local playerQuitIsDead = true	-- gets turned off for 1v1's
 	local oneTeamWasActive = false
-	local teamToAllyTeam = {}
+	local teamToAllyTeam = { [gaiaTeamID] = gaiaAllyTeamID }
 	local playerIDtoAIs = {}
-	local gaiaTeamID = Spring.GetGaiaTeamID()
-	local gaiaAllyTeamID = select(6, Spring.GetTeamInfo(gaiaTeamID))
 	local playerList = GetPlayerList()
+
+	local gameoverFrame
+	local gameoverWinners
 
 	local allyTeamInfos = {}
 	--allyTeamInfos structure: (excluding gaia)
@@ -58,7 +79,6 @@ if gadgetHandler:IsSyncedCode() then
 	--	},
 	--}
 
-
 	local function UpdateAllyTeamIsDead(allyTeamID)
 		local allyTeamInfo = allyTeamInfos[allyTeamID]
 		local dead = true
@@ -69,9 +89,13 @@ if gadgetHandler:IsSyncedCode() then
 				dead = dead and (teamInfo.dead or not teamInfo.isControlled)
 			end
 		end
-		allyTeamInfos[allyTeamID].dead = dead
-	end
 
+		-- destroy all dead team units
+		if dead and not allyTeamInfos[allyTeamID].dead and GetGameFrame() > 0 then
+			GG.wipeoutAllyTeam(allyTeamID)
+			allyTeamInfos[allyTeamID].dead = true
+		end
+	end
 
 	local function CheckPlayer(playerID)
 		local _, active, spectator, teamID, allyTeamID = GetPlayerInfo(playerID, false)
@@ -142,7 +166,6 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		-- at start, fill in the table of all alive allyteams
-		local gaiaAllyTeamID = select(6, Spring.GetTeamInfo(gaiaTeamID))
 		for _, allyTeamID in ipairs(GetAllyTeamList()) do
 			if allyTeamID ~= gaiaAllyTeamID then
 				local allyTeamInfo = {
@@ -246,23 +269,33 @@ if gadgetHandler:IsSyncedCode() then
 
 
 	function gadget:GameFrame(gf)
-		local winners
-		if fixedallies then
-			if gf < 30 or gf % 30 == 1 then
-				CheckAllPlayers()
+		if gameoverFrame then
+			if gf == gameoverFrame then
+				GameOver(gameoverWinners)
 			end
-			winners = CheckSingleAllyVictoryEnd()
 		else
-			CheckAllPlayers()
-			winners = sharedDynamicAllianceVictory and CheckSharedAllyVictoryEnd() or CheckSingleAllyVictoryEnd()
-		end
-
-		if winners then
-			if Spring.GetModOptions().scenariooptions then
-				Spring.Echo("winners", winners[1])
-				SendToUnsynced("scenariogameend", winners[1])
+			local winners
+			if fixedallies then
+				if gf < 30 or gf % 30 == 1 then
+					CheckAllPlayers()
+				end
+				winners = CheckSingleAllyVictoryEnd()
+			else
+				CheckAllPlayers()
+				winners = sharedDynamicAllianceVictory and CheckSharedAllyVictoryEnd() or CheckSingleAllyVictoryEnd()
 			end
-			GameOver(winners)
+
+			if winners then
+				if Spring.GetModOptions().scenariooptions then
+					Spring.Echo("winners", winners[1])
+					SendToUnsynced("scenariogameend", winners[1])
+				end
+
+				-- delay gameover to let everything blow up gradually first
+				local delay = GG.maxDeathFrame or 250
+				gameoverFrame = gf + delay + 70
+				gameoverWinners = winners
+			end
 		end
 	end
 
@@ -289,34 +322,31 @@ if gadgetHandler:IsSyncedCode() then
 
 
 	function gadget:UnitCreated(unitID, unitDefID, unitTeamID)
-		if unitTeamID == gaiaTeamID then
-			return
-		end
 		local allyTeamID = teamToAllyTeam[unitTeamID]
-		local allyTeamInfo = allyTeamInfos[allyTeamID]
-		allyTeamInfo.teams[unitTeamID].unitCount = allyTeamInfo.teams[unitTeamID].unitCount + 1
-		allyTeamInfo.unitCount = allyTeamInfo.unitCount + 1
-		allyTeamInfos[allyTeamID] = allyTeamInfo
+		if not ignoredAllyTeams[allyTeamID] then
+			local allyTeamInfo = allyTeamInfos[allyTeamID]
+			allyTeamInfo.teams[unitTeamID].unitCount = allyTeamInfo.teams[unitTeamID].unitCount + 1
+			allyTeamInfo.unitCount = allyTeamInfo.unitCount + 1
+			allyTeamInfos[allyTeamID] = allyTeamInfo
+		end
 	end
 	gadget.UnitGiven = gadget.UnitCreated
 	gadget.UnitCaptured = gadget.UnitCreated
 
 
 	function gadget:UnitDestroyed(unitID, unitDefID, unitTeamID)
-		if unitTeamID == gaiaTeamID then
-			return
-		end
 		local allyTeamID = teamToAllyTeam[unitTeamID]
-		local allyTeamInfo = allyTeamInfos[allyTeamID]
-		local teamUnitCount = allyTeamInfo.teams[unitTeamID].unitCount - 1
-		local allyTeamUnitCount = allyTeamInfo.unitCount - 1
-		allyTeamInfo.teams[unitTeamID].unitCount = teamUnitCount
-		allyTeamInfo.unitCount = allyTeamUnitCount
-		allyTeamInfos[allyTeamID] = allyTeamInfo
-
-		if allyTeamUnitCount == 0 then
-			for teamID in pairs(allyTeamInfo.teams) do
-				KillTeam(teamID)
+		if not ignoredAllyTeams[allyTeamID] then
+			local allyTeamInfo = allyTeamInfos[allyTeamID]
+			local teamUnitCount = allyTeamInfo.teams[unitTeamID].unitCount - 1
+			local allyTeamUnitCount = allyTeamInfo.unitCount - 1
+			allyTeamInfo.teams[unitTeamID].unitCount = teamUnitCount
+			allyTeamInfo.unitCount = allyTeamUnitCount
+			allyTeamInfos[allyTeamID] = allyTeamInfo
+			if allyTeamUnitCount == 0 then
+				for teamID in pairs(allyTeamInfo.teams) do
+					KillTeam(teamID)
+				end
 			end
 		end
 	end
@@ -353,9 +383,9 @@ if gadgetHandler:IsSyncedCode() then
 else	-- Unsynced
 
 
-	local IsCheatingEnabled = Spring.IsCheatingEnabled
 	local sec = 0
 	local cheated = false
+	local IsCheatingEnabled = Spring.IsCheatingEnabled
 
 	function gadget:Update(dt)
 		if Spring.GetGameFrame() == 0 then

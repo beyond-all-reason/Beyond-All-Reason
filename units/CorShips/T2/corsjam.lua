@@ -7,7 +7,7 @@ return {
 		brakerate = 0.03574,
 		buildcostenergy = 1800,
 		buildcostmetal = 120,
-		buildpic = "CORSJAM.PNG",
+		buildpic = "CORSJAM.DDS",
 		buildtime = 6322.50049,
 		canmove = true,
 		category = "ALL NOTLAND MOBILE NOTSUB SHIP NOWEAPON NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -42,6 +42,7 @@ return {
 		turnrate = 384,
 		waterline = 0,
 		customparams = {
+			unitgroup = 'util',
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "corships/t2",

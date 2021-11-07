@@ -7,7 +7,7 @@ return {
 		brakerate = 0,
 		buildcostenergy = 200,
 		buildcostmetal = 10,
-		buildpic = "ARMSTONE.PNG",
+		buildpic = "ARMSTONE.DDS",
 		buildtime = 255,
 		canattack = false,
 		canrepeat = false,
@@ -38,6 +38,7 @@ return {
 		usebuildinggrounddecal = false,
 		yardmap = "f",
 		customparams = {
+			unitgroup = 'util',
 			model_author = "Beherith",
 			nohealthbars = true,
 			normaltex = "unittextures/Arm_normal.dds",

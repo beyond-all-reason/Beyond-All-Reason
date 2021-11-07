@@ -106,6 +106,8 @@ local keybindsText = {
 	{ type = lineType.key, key = Spring.I18N('ui.keybinds.massSelect.allKey'),			text = Spring.I18N('ui.keybinds.massSelect.all')		},
 	{ type = lineType.key, key = Spring.I18N('ui.keybinds.massSelect.buildersKey'),		text = Spring.I18N('ui.keybinds.massSelect.builders')	},
 	{ type = lineType.key, key = Spring.I18N('ui.keybinds.massSelect.createGroupKey'),	text = Spring.I18N('ui.keybinds.massSelect.createGroup')},
+	{ type = lineType.key, key = Spring.I18N('ui.keybinds.massSelect.createAutoGroupKey'),	text = Spring.I18N('ui.keybinds.massSelect.createAutoGroup')},
+	{ type = lineType.key, key = Spring.I18N('ui.keybinds.massSelect.removeAutoGroupKey'),	text = Spring.I18N('ui.keybinds.massSelect.removeAutoGroup')},
 	{ type = lineType.key, key = Spring.I18N('ui.keybinds.massSelect.groupKey'),		text = Spring.I18N('ui.keybinds.massSelect.group')		},
 	{ type = lineType.key, key = Spring.I18N('ui.keybinds.massSelect.sameTypeKey'),		text = Spring.I18N('ui.keybinds.massSelect.sameType')	},
 	{ type = lineType.blank },
@@ -149,6 +151,7 @@ local centerPosX = 0.5
 local centerPosY = 0.5
 local screenX = math.floor((vsx * centerPosX) - (screenWidth / 2))
 local screenY = math.floor((vsy * centerPosY) + (screenHeight / 2))
+local math_isInRect = math.isInRect
 
 local font, font2, titleRect, keybinds, chobbyInterface, backgroundGuishader, show
 
@@ -276,14 +279,6 @@ function widget:Update(dt)
 	end
 end
 
-local function isOnRect(x, y, BLcornerX, BLcornerY, TRcornerX, TRcornerY)
-
-	-- check if the mouse is in a rectangle
-	return x >= BLcornerX and x <= TRcornerX
-		and y >= BLcornerY
-		and y <= TRcornerY
-end
-
 function widget:DrawScreen()
 	if chobbyInterface then
 		return
@@ -315,7 +310,7 @@ function widget:DrawScreen()
 		showOnceMore = false
 
 		local x, y, pressed = Spring.GetMouseState()
-		if isOnRect(x, y, screenX, screenY - screenHeight, screenX + screenWidth, screenY) or isOnRect(x, y, titleRect[1], titleRect[2], titleRect[3], titleRect[4]) then
+		if math_isInRect(x, y, screenX, screenY - screenHeight, screenX + screenWidth, screenY) or math_isInRect(x, y, titleRect[1], titleRect[2], titleRect[3], titleRect[4]) then
 			Spring.SetMouseCursor('cursornormal')
 		end
 	else
@@ -339,9 +334,9 @@ local function mouseEvent(x, y, button, release)
 
 	if show then
 		-- on window
-		if isOnRect(x, y, screenX, screenY - screenHeight, screenX + screenWidth, screenY) then
+		if math_isInRect(x, y, screenX, screenY - screenHeight, screenX + screenWidth, screenY) then
 			return true
-		elseif titleRect == nil or not isOnRect(x, y, titleRect[1], titleRect[2], titleRect[3], titleRect[4]) then
+		elseif titleRect == nil or not math_isInRect(x, y, titleRect[1], titleRect[2], titleRect[3], titleRect[4]) then
 			if release then
 				showOnceMore = show        -- show once more because the guishader lags behind, though this will not fully fix it
 				show = false

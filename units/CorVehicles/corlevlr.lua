@@ -6,7 +6,7 @@ return {
 		brakerate = 0.03308,
 		buildcostenergy = 2600,
 		buildcostmetal = 220,
-		buildpic = "CORLEVLR.PNG",
+		buildpic = "CORLEVLR.DDS",
 		buildtime = 3009,
 		canmove = true,
 		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -42,6 +42,7 @@ return {
 		turninplacespeedlimit = 0.94149,
 		turnrate = 292.80002,
 		customparams = {
+			unitgroup = 'weapon',
 			basename = "base",
 			cannon1name = "barrel",
 			longdescription = Spring.I18N('units.longDescriptions.corlevlr'),

@@ -7,7 +7,7 @@ return {
 		brakerate = 0.375,
 		buildcostenergy = 6500,
 		buildcostmetal = 290,
-		buildpic = "ARMSEAP.PNG",
+		buildpic = "ARMSEAP.DDS",
 		buildtime = 14825,
 		canfly = true,
 		canmove = true,
@@ -37,6 +37,7 @@ return {
 		sonardistance = 535,
 		turnrate = 720,
 		customparams = {
+			unitgroup = 'sub',
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armseaplanes",

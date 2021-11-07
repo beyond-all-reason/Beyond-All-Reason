@@ -69,13 +69,17 @@ if gadgetHandler:IsSyncedCode() then
 		"Woody",
 		"zGeneral",
 		"niftybeaks",
+		"Zagupi",
+		"Derpiederp",
+		"LSR",
+		"MelKaven",
 
 		-- BAR Content Creators 
 		"Requiem_TV",
 		"gamerangela911",
 		"Rikerss",
 
-		
+
 		-- AI Names
 		"Chris",
 		"Crewmate",
@@ -90,7 +94,7 @@ if gadgetHandler:IsSyncedCode() then
 		"Realplayer",
 		"SupCom",
 		"Taylor",
-		
+
 		--ARMADA names
 		"Albatross",
 		"Ambusher",

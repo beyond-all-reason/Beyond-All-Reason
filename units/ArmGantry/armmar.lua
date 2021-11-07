@@ -6,7 +6,7 @@ return {
 		brakerate = 0.8211,
 		buildcostenergy = 21000,
 		buildcostmetal = 970,
-		buildpic = "ARMMAR.PNG",
+		buildpic = "ARMMAR.DDS",
 		buildtime = 26061,
 		canmove = true,
 		category = "BOT WEAPON ALL NOTSUB NOTAIR NOTHOVER SURFACE CANBEUW EMPABLE",
@@ -39,6 +39,7 @@ return {
 		turnrate = 1214.40002,
 		upright = true,
 		customparams = {
+			unitgroup = 'weapon',
 			model_author = "PtaQ",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armgantry",
@@ -212,7 +213,7 @@ return {
 				def = "ARMMECH_CANNON",
 				onlytargetcategory = "SURFACE",
 			},
-			[3] = {
+			[2] = {
 				def = "ARMAMPH_MISSILE",
 				onlytargetcategory = "VTOL",
 			},

@@ -6,7 +6,7 @@ return {
 		brakerate = 0.9039,
 		buildcostenergy = 68000,
 		buildcostmetal = 3800,
-		buildpic = "ARMRAZ.PNG",
+		buildpic = "ARMRAZ.DDS",
 		buildtime = 88566,
 		canmove = true,
 		category = "BOT MOBILE WEAPON ALL NOTSUB NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -39,6 +39,7 @@ return {
 		turnrate = 768.20001,
 		upright = true,
 		customparams = {
+			unitgroup = 'weapon',
 			model_author = "PtaQ",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armgantry",

@@ -10,7 +10,7 @@ return {
 		buildcostenergy = 15000,
 		buildcostmetal = 250,
 		builder = false,
-		buildpic = "chickens/chickenr2.PNG",
+		buildpic = "chickens/chickenr2.DDS",
 		buildtime = 4500,
 		canguard = true,
 		canmove = true,
@@ -57,14 +57,10 @@ return {
 		customparams = {
 			maxrange = "200",
 			subfolder = "other/chickens",
-      model_author = "KDR_11k, Beherith",
+			model_author = "KDR_11k, Beherith",
 			normalmaps = "yes",
 			normaltex = "unittextures/chicken_s_normals.png",
 			--treeshader = "no",
-		},
-		featuredefs = {
-			dead = {},
-			heap = {},
 		},
 		sfxtypes = {
 			explosiongenerators = {

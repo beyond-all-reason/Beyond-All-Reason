@@ -6,7 +6,7 @@ return {
 		brakerate = 0.04222,
 		buildcostenergy = 2600,
 		buildcostmetal = 240,
-		buildpic = "ARMJANUS.PNG",
+		buildpic = "ARMJANUS.DDS",
 		buildtime = 3545,
 		canmove = true,
 		category = "ALL TANK WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -42,6 +42,7 @@ return {
 		turninplacespeedlimit = 1.29228,
 		turnrate = 271,
 		customparams = {
+			unitgroup = 'weapon',
 			longdescription = Spring.I18N('units.longDescriptions.armjanus'),
 			model_author = "Beherith",
 			normaltex = "unittextures/Arm_normal.dds",

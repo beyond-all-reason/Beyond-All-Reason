@@ -92,6 +92,9 @@ local gl_CreateList = gl.CreateList
 local gl_DeleteList = gl.DeleteList
 local gl_CallList = gl.CallList
 
+local math_isInRect = math.isInRect
+local string_lines = string.lines
+
 local RectRound, UiElement, elementCorner
 local bgpadding = 3
 
@@ -99,8 +102,10 @@ local bgpadding = 3
 -- IMAGES
 --------------------------------------------------------------------------------
 
-local imageDirectory = ":l:" .. LUAUI_DIRNAME .. "Images/advplayerslist/"
+local imageDirectory = ":lc:" .. LUAUI_DIRNAME .. "Images/advplayerslist/"
 local flagsDirectory = imageDirectory .. "flags/"
+local flagsExt = '.png'
+local flagHeight = 10
 
 local pics = {
     currentPic = imageDirectory .. "indicator.dds",
@@ -1713,7 +1718,7 @@ function widget:DrawScreen()
                 screenshotVars.saveQueued = nil
             end
         end
-        if screenshotVars.width and IsOnRectPlain(mouseX, mouseY, screenshotVars.posX, screenshotVars.posY, screenshotVars.posX + (screenshotVars.width * widgetScale), screenshotVars.posY + (screenshotVars.height * widgetScale)) then
+        if screenshotVars.width and math_isInRect(mouseX, mouseY, screenshotVars.posX, screenshotVars.posY, screenshotVars.posX + (screenshotVars.width * widgetScale), screenshotVars.posY + (screenshotVars.height * widgetScale)) then
             if mouseButtonL then
                 gl_DeleteList(screenshotVars.dlist)
                 if WG['guishader'] then
@@ -2350,9 +2355,9 @@ end
 
 function DrawCountry(country, posY)
     if country ~= nil and country ~= "??" then
-        gl_Texture(flagsDirectory .. string.upper(country) .. ".dds")
+        gl_Texture(flagsDirectory .. string.upper(country) .. flagsExt)
         gl_Color(1, 1, 1)
-        DrawRect(m_country.posX + widgetPosX + 3, posY + 1, m_country.posX + widgetPosX + 17, posY + 15)
+        DrawRect(m_country.posX + widgetPosX + 3, posY + 8 - (flagHeight/2), m_country.posX + widgetPosX + 17, posY + 8 + (flagHeight/2))
     end
 end
 
@@ -2740,16 +2745,6 @@ function PointTip(mouseX)
     end
 end
 
-function stringToLines(str)
-    local t = {}
-    local function helper(line)
-        t[#t + 1] = line
-        return ""
-    end
-    helper( str:gsub("(.-)\r?\n", helper) )
-    return t
-end
-
 function DrawTip(mouseX, mouseY)
     local scaleDiffX = -((widgetPosX * widgetScale) - widgetPosX) / widgetScale
     local scaleDiffY = -((widgetPosY * widgetScale) - widgetPosY) / widgetScale
@@ -2798,7 +2793,7 @@ function DrawTip(mouseX, mouseY)
         widgetScale = oldWidgetScale
 
         -- draw text
-        local textLines = stringToLines(text)
+        local textLines = string_lines(text)
         th = 0
         font:Begin()
         for i, line in ipairs(textLines) do
@@ -3169,10 +3164,6 @@ end
 function Spec(teamID)
     Spring_SendCommands { "specteam " .. teamID }
     SortList()
-end
-
-function IsOnRectPlain(x, y, BLcornerX, BLcornerY, TRcornerX, TRcornerY)
-    return x >= BLcornerX and x <= TRcornerX and y >= BLcornerY and y <= TRcornerY
 end
 
 function IsOnRect(x, y, BLcornerX, BLcornerY, TRcornerX, TRcornerY)

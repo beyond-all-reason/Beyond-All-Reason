@@ -19,7 +19,7 @@ end
 
 local isObject = {}
 for udefID,def in ipairs(UnitDefs) do
-    if def.customParams and def.customParams.objectify then
+    if def.customParams.objectify then
         isObject[udefID] = true
     end
 end

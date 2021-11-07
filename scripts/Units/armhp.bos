@@ -4,7 +4,7 @@
 #include "exptype.h"
 
 piece  base, doorr1, doorr2, doorl1,doorl2, standr, standl, nanol, nanor, emitl, emitr;
-static-var  Static_Var_1, unitviewer, statechg_DesiredState, statechg_StateChanging;
+static-var  Static_Var_1, statechg_DesiredState, statechg_StateChanging;
 
 // Signal definitions
 #define SIG_ACTIVATE			2
@@ -64,34 +64,6 @@ deactivatescr()
 	return (0);
 }
 
-SmokeUnit(healthpercent, sleeptime, smoketype)
-{
-	while( get BUILD_PERCENT_LEFT )
-	{
-		sleep 400;
-	}
-	while( TRUE )
-	{
-		healthpercent = get HEALTH;
-		if( healthpercent < 66 )
-		{
-			smoketype = 256 | 2;
-			if( Rand( 1, 66 ) < healthpercent )
-			{
-				smoketype = 256 | 1;
-			}
-			emit-sfx smoketype from base;
-		}
-		sleeptime = healthpercent * 50;
-		if( sleeptime < 200 )
-		{
-			sleeptime = 200;
-		}
-		sleep sleeptime;
-	}
-	return (0);
-}
-
 OpenYard()
 {
 	set YARD_OPEN to 1;
@@ -101,8 +73,6 @@ OpenYard()
 		sleep 1500;
 		set YARD_OPEN to 1;
 	}
-	set BUGGER_OFF to 0;
-	return (0);
 }
 
 CloseYard()
@@ -114,13 +84,10 @@ CloseYard()
 		sleep 1500;
 		set YARD_OPEN to 0;
 	}
-	set BUGGER_OFF to 0;
-	return (0);
 }
 
 Go()
 {
-
 	call-script activatescr();
 	call-script OpenYard();
 	set INBUILDSTANCE to 1;
@@ -132,7 +99,6 @@ Stop()
 	set INBUILDSTANCE to 0;
 	call-script CloseYard();
 	call-script deactivatescr();
-
 	return (0);
 }
 
@@ -172,13 +138,13 @@ RequestState(requestedstate, currentstate)
 
 Create()
 {
-
-	unitviewer = FALSE;
 	Static_Var_1 = 0;
 	call-script InitState();
-	start-script SmokeUnit();
 	return (0);
 }
+
+#define SMOKEPIECE base
+#include "smokeunit_thread_nohit.h"
 
 QueryNanoPiece(piecenum)
 {
@@ -198,11 +164,6 @@ QueryNanoPiece(piecenum)
 	return (0);
 }
 
-Demo()
-{
-	unitviewer = TRUE;
-	return (0);
-}
 
 Activate()
 {
@@ -215,10 +176,7 @@ Deactivate()
 {
 	signal SIG_ACTIVATE;
 	set-signal-mask SIG_ACTIVATE;
-	if( !unitviewer )
-	{
-		sleep 5000;
-	}
+  sleep 5000;
 	set-signal-mask 0;
 	start-script RequestState(1);
 	return (0);

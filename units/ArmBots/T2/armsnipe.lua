@@ -6,7 +6,7 @@ return {
 		brakerate = 0.6486,
 		buildcostenergy = 20000,
 		buildcostmetal = 680,
-		buildpic = "ARMSNIPE.PNG",
+		buildpic = "ARMSNIPE.DDS",
 		buildtime = 19137,
 		canmove = true,
 		category = "BOT MOBILE WEAPON ALL NOTSHIP NOTAIR NOTHOVER NOTSUB SURFACE EMPABLE",
@@ -41,6 +41,7 @@ return {
 		turnrate = 1538.69995,
 		upright = true,
 		customparams = {
+			unitgroup = 'weapon',
 			model_author = "Kaiser",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armbots/t2",
@@ -158,7 +159,6 @@ return {
 				turret = true,
 				weapontype = "LaserCannon",
 				weaponvelocity = 3000,
-				customparams = {},
 				damage = {
 					commanders = 1025,
 					default = 2500,

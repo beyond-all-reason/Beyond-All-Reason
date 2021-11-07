@@ -6,7 +6,7 @@ return {
 		brakerate = 0.43125,
 		buildcostenergy = 35000,
 		buildcostmetal = 2200,
-		buildpic = "CORSUMO.PNG",
+		buildpic = "CORSUMO.DDS",
 		buildtime = 50975,
 		canmove = true,
 		category = "BOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -39,6 +39,7 @@ return {
 		turninplacespeedlimit = 0.495,
 		turnrate = 368,
 		customparams = {
+			unitgroup = 'weapon',
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",
 			paralyzemultiplier = 0.5,

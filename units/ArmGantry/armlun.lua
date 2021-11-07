@@ -7,7 +7,7 @@ return {
 		buildcostenergy = 33000,
 		buildcostmetal = 1150,
 		builder = false,
-		buildpic = "ARMLUN.PNG",
+		buildpic = "ARMLUN.DDS",
 		buildtime = 32000,
 		canattack = true,
 		canguard = true,
@@ -41,6 +41,7 @@ return {
 		turninplacespeedlimit = 1.122,
 		turnrate = 250,
 		customparams = {
+			unitgroup = 'weapon',
 			model_author = "Flaka",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armgantry",
@@ -86,6 +87,9 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-large",
+				[2] = "custom:waterwake-small-hover",
+				[3] = "custom:bowsplash-small-hover",
+				[4] = "custom:hover-wake-large",
 			},
 			pieceexplosiongenerators = {
 				[1] = "deathceg2",

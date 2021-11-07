@@ -8,7 +8,7 @@ return {
 		buildcostenergy = 200,
 		buildcostmetal = 15,
 		builder = false,
-		buildpic = "critters/critter_penguin.PNG",
+		buildpic = "critters/critter_penguin.DDS",
 		buildtime = 250,
 		canattack = true,
 		canguard = true,
@@ -112,16 +112,16 @@ return {
 			},
 		},
 		weapons = {
-			[1] = {
-				badtargetcategory = "VTOL",
-				def = "EYELASER",
-				onlytargetcategory = "NOTSUB",
-			},
-			[2] = {
-				badtargetcategory = "VTOL",
-				def = "EYELASER",
-				onlytargetcategory = "NOTSUB",
-			},
+			-- [1] = {
+			-- 	badtargetcategory = "VTOL",
+			-- 	def = "EYELASER",
+			-- 	onlytargetcategory = "NOTSUB",
+			-- },
+			-- [2] = {
+			-- 	badtargetcategory = "VTOL",
+			-- 	def = "EYELASER",
+			-- 	onlytargetcategory = "NOTSUB",
+			-- },
 		},
 	},
 }

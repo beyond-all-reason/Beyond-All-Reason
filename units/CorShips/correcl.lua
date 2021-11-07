@@ -9,7 +9,7 @@ return {
 		buildcostmetal = 200,
 		builddistance = 140,
 		builder = true,
-		buildpic = "CORRECL.PNG",
+		buildpic = "CORRECL.DDS",
 		buildtime = 5962.5,
 		canassist = false,
 		canmove = true,
@@ -44,6 +44,7 @@ return {
 		waterline = 120, --22,
 		workertime = 150,
 		customparams = {
+			unitgroup = 'builder',
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "corships",

@@ -9,7 +9,7 @@ return {
 		buildangle = 16384,
 		buildcostenergy = 2400,
 		buildcostmetal = 480,
-		buildpic = "ARMFROCK.PNG",
+		buildpic = "ARMFROCK.DDS",
 		buildtime = 6800,
 		canrepeat = false,
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -37,6 +37,7 @@ return {
 		waterline = 0,
 		yardmap = "wwwwwwwwwwwwwwww",
 		customparams = {
+			unitgroup = 'aa',
 			normaltex = "unittextures/Arm_normal.dds",
 			removewait = true,
 			subfolder = "armbuildings/seadefence",

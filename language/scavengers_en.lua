@@ -32,6 +32,7 @@ return {
 				eventMiniboss = "Alert! Miniboss Detected.",
 				eventSwarm = "Warning! Scavenger swarm detected.",
 				eventCloud = "Alert! Scavenger cloud approaching.",
+				reinforcements = "%{player}'s reinforcements detected. Unit type: %{unit}."
 			}
 		}
 	}

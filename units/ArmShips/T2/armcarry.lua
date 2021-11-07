@@ -9,7 +9,7 @@ return {
 		buildcostenergy = 12000,
 		buildcostmetal = 1400,
 		builder = true,
-		buildpic = "ARMCARRY.PNG",
+		buildpic = "ARMCARRY.DDS",
 		buildtime = 20000,
 		canassist = false,
 		canattack = false,
@@ -56,6 +56,7 @@ return {
 		waterline = 0,
 		workertime = 1000,
 		customparams = {
+			unitgroup = 'antinuke',
 			isairbase = true,
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",

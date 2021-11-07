@@ -126,7 +126,7 @@ function SetCursor(cursorSet)
 		end
 
 		-- hide engine unit selection box
-		if not (WG['fancyselectedunits'] == nil and WG['teamplatter'] == nil and WG['highlightselunits'] == nil) then
+		if WG.selectedunits or WG.fancyselectedunits or WG.teamplatter or WG.highlightselunits then
 			Spring.LoadCmdColorsConfig('unitBox  0 1 0 0')
 		end
 	end

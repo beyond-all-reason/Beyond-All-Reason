@@ -12,49 +12,9 @@ static-var  mmState, Active;
 //how 'heavy' the unit is, on a scale of 1-10
 #define UNITSIZE 1
 #define MAXTILT 200
-HitByWeapon(anglex, anglez, damage)	// angle[x|z] is always [-500;500], damage is multiplied by 100
-{
-	var amount;//, speedz, speedx;
-	amount = damage / (100 * UNITSIZE);
-	if (amount < 3  ) return (0);
-	if (amount > MAXTILT) amount = MAXTILT;
-	//get PRINT(anglex, anglez, amount, damage);
-	//speedz = HITSPEED * get ABS(anglez) / 500; //nevermind this, the random error this produces actually looks better than the accurate version
-	turn BASEPIECE to z-axis (anglez * amount) / 100  speed HITSPEED;
-	turn BASEPIECE to x-axis <0> - (anglex * amount) /100 speed HITSPEED;
-	wait-for-turn BASEPIECE around z-axis;
-	wait-for-turn BASEPIECE around x-axis;
-	turn BASEPIECE to z-axis <0.000000> speed HITSPEED / 4;
-	turn BASEPIECE to x-axis <0.000000> speed HITSPEED / 4;
-}
-HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and flamers give angles of 0
-{
-	start-script HitByWeapon(dmg, anglez,anglex); //I dont know why param order must be switched, and this also runs a frame later :(
-	return (100); //return damage percent
-}
 
+#include "unit_hitbyweaponid_and_smoke.h"
 
-activatescr()
-{
-	if( TRUE )
-	{
-		turn cover1 to x-axis <75.000000> speed <60.000000>;
-		turn cover2 to x-axis <-75.000000> speed <60.000000>;
-		sleep 1603;
-	}
-	sleep 73;
-}
-
-deactivatescr()
-{
-	if( TRUE )
-	{
-		turn cover1 to x-axis <0.000000> speed <60.000000>;
-		turn cover2 to x-axis <0.000000> speed <60.000000>;
-		sleep 1603;
-	}
-	sleep 73;
-}
 
 RockOnWaves()
 {
@@ -77,80 +37,26 @@ RockOnWaves()
 	}
 }
 
-Go()
+MMStatus(State)
 {
-	start-script activatescr();
-	dont-cache cover1;
-}
-
-Stop()
-{
-	call-script deactivatescr();
-	cache cover1;
-}
-
-ImAMetalMaker()
-{
-	mmState = -1;
-	while( TRUE )
-	{
-		if( Active == 1 )
-		{
-			if( mmState != 1 )
-			{
-				call-script Go();
-				mmState = 1;
-			}
-		}
-		else if( mmState != 0 )
-		{
-			call-script Stop();
-			mmState = 0;
-		}
-		sleep 1000;
+	Active = State;
+	if (State) {
+		turn cover1 to x-axis <75.000000> speed <60.000000>;
+		turn cover2 to x-axis <-75.000000> speed <60.000000>;
+	}else{
+		turn cover1 to x-axis <0.000000> speed <60.000000>;
+		turn cover2 to x-axis <0.000000> speed <60.000000>;
 	}
+	//get PRINT(get GAME_FRAME, Active);
 }
 
-SmokeUnit(healthpercent, sleeptime, smoketype)
+Create()
 {
 	while( get BUILD_PERCENT_LEFT )
 	{
 		sleep 400;
 	}
 	start-script RockOnWaves();
-	start-script ImAMetalMaker();
-	while( TRUE )
-	{
-		healthpercent = get HEALTH;
-		if( healthpercent < 66 )
-		{
-			smoketype = 256 | 2;
-			if( Rand( 1, 66 ) < healthpercent )
-			{
-				smoketype = 256 | 1;
-			}
-			emit-sfx smoketype from base;
-		}
-		sleeptime = healthpercent * 50;
-		if( sleeptime < 200 )
-		{
-			sleeptime = 200;
-		}
-		sleep sleeptime;
-	}
-}
-
-MMStatus(State)
-{
-	Active = State;
-	//get PRINT(Active);
-}
-
-Create()
-{
-	dont-cache cover1;
-	dont-shade cover1;
-	start-script SmokeUnit();
 }
 
 SweetSpot(piecenum)

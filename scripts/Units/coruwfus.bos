@@ -1,17 +1,4 @@
-//            * Header Info *
-// VersionSignature                     4
-// NumberOfScripts                     4
-// NumberOfPieces                      2
-// LengthOfScripts                     71
-// NumberOfStaticVars                  0
-// UKZero                              0
-// OffsetToScriptCodeIndexArray        1f0
-// OffsetToScriptNameOffsetArray       200
-// OffsetToPieceNameOffsetArray        210
-// OffsetToScriptCode                  2c
-// OffsetToNameArray                   218
 
-// OffsetToFirstName                   218
 
 #define TA			// This is a TA script
 
@@ -22,17 +9,16 @@ piece  base;
 
 
 Create()
-/*     0:*/{
-
-/*     6:*/	return (0);
-/*     7:*/}
+{
+	return (0);
+}
 
 
 SweetSpot(piecenum)
-/*    1b:*/{
-/*    1d:*/	piecenum = base;
-/*    21:*/	return (0);
-/*    22:*/}
+{
+	piecenum = base;
+	return (0);
+}
 
 Killed(severity, corpsetype)
 {
