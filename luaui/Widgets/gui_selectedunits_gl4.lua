@@ -121,10 +121,11 @@ function widget:DrawWorldPreUnit()
 		local disticon
 		if Spring.GetConfigInt("UnitIconsAsUI", 1) == 1 then
 			disticon = Spring.GetConfigInt("uniticon_fadevanish", 1800)
+			disticon = disticon * 3
 		else
 			disticon = Spring.GetConfigInt("UnitIconDist", 200)
+			disticon = disticon * 27 -- should be sqrt(750) but not really
 		end
-		disticon = disticon * 27 -- should be sqrt(750) but not really
 		--gl.Culling(false)
 		glTexture(0, texture)
 		selectShader:Activate()
@@ -209,6 +210,7 @@ local function init()
 	shaderConfig.INITIALSIZE = 0.66
 	shaderConfig.GROWTHRATE = 3.5
 	shaderConfig.TEAMCOLORIZATION = teamcolorOpacity	-- not implemented, doing it via POST_SHADING below instead
+	shaderConfig.HEIGHTOFFSET = 4
 	shaderConfig.POST_SHADING = "fragColor.rgba = vec4(mix(g_color.rgb * texcolor.rgb + addRadius, vec3(1.0), "..(1-teamcolorOpacity)..") , texcolor.a * TRANSPARENCY + addRadius);"
 	selectionVBO, selectShader = InitDrawPrimitiveAtUnit(shaderConfig, "TESTDPAU")
 	updateSelection = true
