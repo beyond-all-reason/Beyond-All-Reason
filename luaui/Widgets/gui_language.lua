@@ -16,10 +16,6 @@ local customMessageProxies = {
 	['scav.messages.reinforcements'] = function (data) return { player = data.player, unit = UnitDefNames[data.unitDefName].translatedHumanName } end,
 }
 
-local function languageChanged(language)
-	Spring.I18N.setLanguage(language)
-end
-
 local function getMessageProxy(messageKey, parameters)
 	if customMessageProxies[messageKey] then
 		return Spring.I18N( messageKey, customMessageProxies[messageKey](parameters) )
@@ -64,6 +60,10 @@ local function loadLanguage()
 	end
 end
 
+function widget:LanguageChanged(language)
+	Spring.I18N.setLanguage(language)
+end
+
 function widget:Initialize()
 	widgetHandler:RegisterGlobal('GadgetMessageProxy', getMessageProxy)
 
@@ -102,15 +102,4 @@ end
 
 function widget:Shutdown()
 	WG['lang'] = nil
-end
-
-
-function widget:GetConfigData(data)
-	return {
-
-	}
-end
-
-function widget:SetConfigData(data)
-
 end
