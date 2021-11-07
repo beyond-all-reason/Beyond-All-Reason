@@ -33,7 +33,7 @@ return {
 				armyDiversity = "Think ahead and include anti-air and support units in your army.",
 				buildingHotkeys = "Mastering hotkeys is the key to proficiency.\nUse Z,X,C,V to quickly cycle between the most frequently built structures.",
 				shareResources = "To share resources with teammates:\nClick-and-drag the metal/energy bars next the player's name.",
-				shareUnits = "To share units with teammates:\nSelect the unit(s) and click the tank-icon next to the player's name.",
+				shareUnits = "To share units with teammates:\nSelect the unit(s) and click the two-arrows icon next to the player's name.",
 				assistFactories = "It is efficient to support a factory with constructors, increasing its build-power.\nSelect constructors and right-click on the factory to Guard it.",
 				separateBuildings2 = "Remember to separate your highly explosive buildings (like Energy Converters) from the rest of your base.",
 				longRangeUnits = "Most long-ranged units are very vulnerable in close combat. Use the Fight (F) command to always keep a good distance from your targets.",
