@@ -9,7 +9,11 @@ function widget:GetInfo()
 		enabled = true,
 	}
 end
-
+-- advanced geoshader tricount for quads
+-- 2x2 - 4
+-- 3x3 - 12
+-- 4x4 - 40
+-- 5x5 - 65!
 -- Configurable Parts:
 local atlasID = nil
 local atlasSize = 2048
@@ -36,8 +40,8 @@ local function makeAtlas()
 end
 
 ---- GL4 Backend Stuff----
-local selectionVBO = nil
-local selectShader = nil
+local groundPlateVBO = nil
+local groundPlateShader = nil
 local luaShaderDir = "LuaUI/Widgets/Include/"
 
 local glTexture = gl.Texture
@@ -46,7 +50,7 @@ local glDepthTest = gl.DepthTest
 local GL_BACK = GL.BACK
 local GL_LEQUAL = GL.LEQUAL
 
-local function AddPrimitiveAtUnit(unitID, unitDefID)
+local function AddPrimitiveAtUnit(unitID, unitDefID, noUpload)
 	local gf = Spring.GetGameFrame()
 	unitDefID = unitDefID or Spring.GetUnitDefID(unitID)
 
@@ -64,7 +68,7 @@ local function AddPrimitiveAtUnit(unitID, unitDefID)
 	--Spring.Echo (unitDefName, p,q,s,t)
 	
 	pushElementInstance(
-		selectionVBO, -- push into this Instance VBO Table
+		groundPlateVBO, -- push into this Instance VBO Table
 			{length, width, 0, additionalheight,  -- lengthwidthcornerheight
 			Spring.GetUnitTeam(unitID), -- teamID
 			numVertices, -- how many trianges should we make
@@ -73,22 +77,38 @@ local function AddPrimitiveAtUnit(unitID, unitDefID)
 			0, 0, 0, 0}, -- these are just padding zeros, that will get filled in 
 		unitID, -- this is the key inside the VBO Table, should be unique per unit
 		true, -- update existing element
-		nil, -- noupload, dont use unless you know what you want to batch push/pop
+		noUpload, -- noupload, dont use unless you know what you want to batch push/pop
 		unitID) -- last one should be UNITID!
 end
 
+local doRefresh = false
+
+local function ProcessAllUnits()
+	clearInstanceTable(groundPlateVBO)
+	local units = Spring.GetAllUnits()
+	--Spring.Echo("Refreshing Ground Plates", #units)
+	for _, unitID in ipairs(units) do
+		AddPrimitiveAtUnit(unitID, nil, true)
+	end
+	uploadAllElements(groundPlateVBO)
+end
+
 function widget:DrawWorldPreUnit()
-	if selectionVBO.usedElements > 0 then 
+	if doRefresh then
+		ProcessAllUnits()
+		doRefresh = false
+	end
+	if groundPlateVBO.usedElements > 0 then 
 		local disticon = 27 * Spring.GetConfigInt("UnitIconDist", 200) -- iconLength = unitIconDist * unitIconDist * 750.0f;
-		--Spring.Echo(selectionVBO.usedElements)
+		--Spring.Echo(groundPlateVBO.usedElements)
 		glCulling(GL_BACK)
 		glDepthTest(GL_LEQUAL)
 		glTexture(0, atlasID)
-		selectShader:Activate()
-		selectShader:SetUniform("iconDistance",disticon) 
-		selectShader:SetUniform("addRadius",0) 
-		selectionVBO.VAO:DrawArrays(GL.POINTS,selectionVBO.usedElements)
-		selectShader:Deactivate()
+		groundPlateShader:Activate()
+		groundPlateShader:SetUniform("iconDistance",disticon) 
+		groundPlateShader:SetUniform("addRadius",0) 
+		groundPlateVBO.VAO:DrawArrays(GL.POINTS,groundPlateVBO.usedElements)
+		groundPlateShader:Deactivate()
 		glTexture(0, false)
 		glCulling(false)
 		glDepthTest(false)
@@ -96,8 +116,8 @@ function widget:DrawWorldPreUnit()
 end
 
 local function RemovePrimitive(unitID)
-	if selectionVBO.instanceIDtoIndex[unitID] then
-		popElementInstance(selectionVBO, unitID)
+	if groundPlateVBO.instanceIDtoIndex[unitID] then
+		popElementInstance(groundPlateVBO, unitID)
 	end
 end
 
@@ -153,14 +173,24 @@ function widget:Initialize()
 	shaderConfig.USE_CORNERRECT = nil
 	
 	
-	selectionVBO, selectShader = InitDrawPrimitiveAtUnit(shaderConfig, "Ground AO Plates")
-	if true then -- FOR TESTING
-		local units = Spring.GetAllUnits()
-		for _, unitID in ipairs(units) do
-			AddPrimitiveAtUnit(unitID)
-		end
+	groundPlateVBO, groundPlateShader = InitDrawPrimitiveAtUnit(shaderConfig, "Ground AO Plates")
+
+	ProcessAllUnits() 
+end
+
+local spec, fullview = Spring.GetSpectatingState()
+local allyTeamID = Spring.GetMyAllyTeamID()
+
+function widget:PlayerChanged()
+	local prevFullview = fullview
+	local myPrevAllyTeamID = allyTeamID
+	spec, fullview = Spring.GetSpectatingState()
+	allyTeamID = Spring.GetMyAllyTeamID()
+	if fullview ~= prevFullview or allyTeamID ~= myPrevAllyTeamID then
+		doRefresh = true
 	end
 end
+
 
 function widget:ShutDown()
 	if atlasID ~= nil then 
