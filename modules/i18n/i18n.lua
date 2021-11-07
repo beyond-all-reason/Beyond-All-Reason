@@ -10,6 +10,7 @@ Spring.I18N.loadFile('language/scavengers_en.lua')
 
 Spring.I18N.languages = {
 	en = "English",
+	fr = "Français",
 }
 
 function Spring.I18N.setLanguage(language)

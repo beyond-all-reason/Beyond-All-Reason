@@ -16,6 +16,13 @@ end
 ]]--
 
 local texts = {}    -- loaded from external language file
+local languages = Spring.I18N.languages
+local languageCodes = { 'en', 'fr' }
+local languageNames = {}
+
+for key, code in ipairs(languageCodes) do
+	languageNames[key] = languages[code]
+end
 
 local orchestralDefaulted = false
 local newEngineIconsInitialized = false
@@ -3787,6 +3794,13 @@ function init()
         },
 
         -- DEV
+		{ id = "language", group = "dev", name = texts.option.language, type = "select", options = languageNames, --[[value = languages[Spring.I18N.getLocale()],]]
+			onchange = function(i, value)
+				if Script.LuaUI('LanguageChanged') then
+					Script.LuaUI.LanguageChanged(languageCodes[value])
+				end
+			end
+		},
         { id = "customwidgets", group = "dev", name = texts.option.customwidgets, type = "bool", value = widgetHandler.allowUserWidgets, description = texts.option.customwidgets_descr,
           onchange = function(i, value)
               widgetHandler.__allowUserWidgets = value
@@ -5326,7 +5340,6 @@ function widget:UnsyncedHeightMapUpdate(x1, z1, x2, z2)
 end
 
 function widget:Initialize()
-
     -- do it once, remove all code containing 'enabledSensorsOnce' after a few weeks or so (26-7-2021)
     if not enabledSensorsOnce then
         widgetHandler:EnableWidget("Sensor Ranges LOS")
