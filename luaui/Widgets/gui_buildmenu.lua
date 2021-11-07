@@ -147,14 +147,6 @@ local glDepthTest = gl.DepthTest
 
 local RectRound, RectRoundProgress, UiUnit, UiElement, UiButton, elementCorner
 
-function table_invert(t)
-	local s = {}
-	for k, v in pairs(t) do
-		s[v] = k
-	end
-	return s
-end
-
 -- used for pregame build queue, for switch faction buildings
 local armToCor = {
 	[UnitDefNames["armmex"].id] = UnitDefNames["cormex"].id,
@@ -185,7 +177,7 @@ local armToCor = {
 	[UnitDefNames["armfdrag"].id] = UnitDefNames["corfdrag"].id,
 	[UnitDefNames["armptl"].id] = UnitDefNames["corptl"].id,
 }
-local corToArm = table_invert(armToCor)
+local corToArm = table.invert(armToCor)
 
 local function convertColor(r, g, b)
 	return string.char(255, (r * 255), (g * 255), (b * 255))

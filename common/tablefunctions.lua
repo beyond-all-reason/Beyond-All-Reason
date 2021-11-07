@@ -68,3 +68,11 @@ function table.toString(data, key)
 	end
 	return ""
 end
+
+function table:invert()
+	local inverted = {}
+	for key, value in pairs(self) do
+		inverted[value] = key
+	end
+	return inverted
+end
