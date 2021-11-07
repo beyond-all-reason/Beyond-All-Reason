@@ -186,6 +186,7 @@ local callInLists = {
 	'TweakMouseWheel',
 	'TweakIsAbove',
 	'TweakGetTooltip',
+	'LanguageChanged',
 
 	-- these use mouseOwner instead of lists
 	--  'MouseMove',
@@ -1787,6 +1788,12 @@ function widgetHandler:DefaultCommand(...)
 		end
 	end
 	return nil  --  not a number, use the default engine command
+end
+
+function widgetHandler:LanguageChanged(language)
+	for _, w in ipairs(self.LanguageChangedList) do
+		w:LanguageChanged(language)
+	end
 end
 
 

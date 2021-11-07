@@ -438,7 +438,6 @@ return {
 			fancyselectedunits_baseopacity_descr = 'Set the opacity of the highlight on selected units',
 			fancyselectedunits_teamcoloropacity = 'teamcolor amount',
 			fancyselectedunits_teamcoloropacity_descr = 'Set the amount of teamcolor used for the base platter',
-			fancyselectedunits = 'Selection Unit Platters',
 			selectedunits_descr = 'Draws a platter under selected units\n\nNOTE: this widget can be heavy when having lots of units selected',
 			selectedunits_opacity = 'opacity',
 			selectedunits_opacity_descr = 'Set the opacity of the highlight on selected units',
@@ -622,6 +621,7 @@ return {
 			red = 'red',
 			green = 'green',
 			blue = 'blue',
+			language = 'Language',
 		},
 	},
 }

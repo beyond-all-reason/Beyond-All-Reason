@@ -117,6 +117,8 @@ CallInsList = {
 	"DownloadFinished",
 	"DownloadFailed",
 	"DownloadProgress",
+
+	"LanguageChanged"
 }
 
 
