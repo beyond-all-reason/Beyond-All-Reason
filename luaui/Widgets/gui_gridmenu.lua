@@ -20,15 +20,7 @@ end
 include("keysym.h.lua")
 VFS.Include('luarules/configs/customcmds.h.lua')
 
-local function table_invert(t)
-	local s = {}
-	for k, v in pairs(t) do
-		s[v] = k
-	end
-	return s
-end
-
-SYMKEYS = table_invert(KEYSYMS)
+SYMKEYS = table.invert(KEYSYMS)
 
 local configs = VFS.Include('luaui/configs/gridmenu_layouts.lua')
 local labGrids = configs.LabGrids
@@ -88,7 +80,7 @@ local Cfgs = {
 		qwerty = categoriesQwerty
 	},
 	categoryKeys = {
-		qwerty = table_invert(categoriesQwerty)
+		qwerty = table.invert(categoriesQwerty)
 	},
 	keyLayouts = {
 		qwerty = {
@@ -308,7 +300,7 @@ local armToCor = {
 	[UnitDefNames["armfdrag"].id] = UnitDefNames["corfdrag"].id,
 	[UnitDefNames["armptl"].id] = UnitDefNames["corptl"].id,
 }
-local corToArm = table_invert(armToCor)
+local corToArm = table.invert(armToCor)
 
 local folder = 'LuaUI/Images/groupicons/'
 local groups = {
@@ -1188,7 +1180,7 @@ function drawLabButtons()
 	local activeArea
 	local labButtons = { "Repeat", "Clear", "Wait" }
 	local numCats = #labButtons
-	local keyLabs = table_invert(labKeys)
+	local keyLabs = table.invert(labKeys)
 
 	if stickToBottom then
 		local x1 = backgroundRect[1] + bgpadding
