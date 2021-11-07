@@ -510,7 +510,7 @@ if gadgetHandler:IsSyncedCode() then
 							landingPlanes[unitID] = nil
 							tractorPlanes[unitID] = { airbaseID, padPieceNum }
 							Spring.MoveCtrl.Enable(unitID)
-						else
+						elseif px then
 							-- fly towards pad (the pad may move!)
 							Spring.SetUnitLandGoal(unitID, px, py, pz, spGetUnitRadius(unitID))	-- sometimes this gives an error
 						end

@@ -90,16 +90,19 @@ if Spring.GetConfigInt("version", 0) < version then
 	-- set icon settings
 	Spring.SetConfigInt("UnitIconsAsUI", 1)
 	Spring.SetConfigFloat("UnitIconScaleUI", 1.05)
-	Spring.SetConfigInt("UnitIconFadeVanish", 1800)
-	Spring.SetConfigInt("UnitIconFadeStart", 2000)
+	Spring.SetConfigInt("UnitIconFadeVanish", 2700)
+	Spring.SetConfigInt("UnitIconFadeStart", 3000)
 	Spring.SetConfigInt("UnitIconsHideWithUI", 1)
 end
 
-version = 3.1
+version = 3.2
 if Spring.GetConfigInt("version", 0) < version then
 	Spring.SetConfigInt("version", version)
 
-	if Spring.GetConfigInt("cusThreshold", 30) < 30 then
-		Spring.SetConfigInt("cusThreshold", 30)
+	if Spring.GetConfigInt("UnitIconFadeVanish", 2700) < 2700 then
+		Spring.SetConfigInt("UnitIconFadeVanish", 2700)
+	end
+	if Spring.GetConfigInt("UnitIconFadeStart", 3000) < 3000 then
+		Spring.SetConfigInt("UnitIconFadeVanish", 3000)
 	end
 end
