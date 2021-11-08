@@ -92,6 +92,8 @@ RequestState(requestedstate, currentstate)
 
 Create()
 {
+	hide thrust1;
+	hide bombdrop;
 	call-script InitState();
 	move lwing to x-axis [6.0] now;
 	move rwing to x-axis [-6.0] now;
@@ -102,11 +104,13 @@ Create()
 
 Activate()
 {
+	show thrust1;
 	start-script RequestState(0);
 }
 
 Deactivate()
 {
+	hide thrust1;
 	start-script RequestState(1);
 }
 

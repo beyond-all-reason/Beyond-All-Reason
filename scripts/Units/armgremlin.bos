@@ -162,6 +162,7 @@ MotionControl(moving, aiming, justmoved)
 
 Create()
 {
+	hide flare;
 	bMoving = FALSE;
 	Static_Var_3 = 0;
 	Static_Var_4 = 1;

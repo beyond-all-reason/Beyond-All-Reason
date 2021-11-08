@@ -385,6 +385,8 @@ RequestState(requestedstate, currentstate)
 
 Create()
 {
+	hide aimy1;
+	hide flare;
 	bMoving = FALSE;
 	Static_Var_1 = 0;
 	Static_Var_2 = 3000;

@@ -75,6 +75,8 @@ RequestState(requestedstate, currentstate)
 
 Create()
 {
+	hide thrustb;
+	hide thrusta;
 	hide flare1;
 	hide flare2;
 	Static_Var_1 = 0;
@@ -115,12 +117,16 @@ RestoreAfterDelay()
 
 Activate()
 {
+	show thrustb;
+	show thrusta;
 	start-script RequestState(0);
 	return (0);
 }
 
 Deactivate()
 {
+	hide thrustb;
+	hide thrusta;
 	start-script RequestState(1);
 	return (0);
 }

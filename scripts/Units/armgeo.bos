@@ -225,6 +225,10 @@ GeoSmoke()
 
 Create()
 {
+	hide smoke4;
+	hide smoke3;
+	hide smoke2;
+	hide smoke1;
 	smoker=0;
 }
 

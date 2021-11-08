@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  body, head, barrel1, barrel2, flare1, flare2,  leg1a,leg1b,leg2a,leg2b,leg3a,leg3b,leg4a,leg4b,leg5a,leg5b,leg6a,leg6b;
+piece  body, head, barrel1, barrel2, flare1, flare2,  leg1a,leg1b,leg2a,leg2b,leg3a,leg3b,leg4a,leg4b,leg5a,leg5b,leg6a,leg6b, aimy1;
 
 static-var  moving, Static_Var_2, restore_delay, gun_1,moveSpeed, currentSpeed,WALK_PERIOD, wpn1_lasthead, wpn2_lasthead;
 
@@ -241,6 +241,9 @@ StopMoving()
 
 Create()
 {
+	hide flare1;
+	hide flare2;
+	hide aimy1;
 	moving = FALSE;
 	gun_1 = 0;
 	restore_delay = 3000;

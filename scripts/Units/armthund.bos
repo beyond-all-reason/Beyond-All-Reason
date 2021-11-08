@@ -80,6 +80,11 @@ RequestState(requestedstate, currentstate)
 
 Create()
 {
+	hide thrust4;
+	hide thrust3;
+	hide thrust2;
+	hide thrust1;
+	hide thrustc;
 	turn thrust1 to x-axis <-90> now;
 	turn thrust2 to x-axis <-90> now;
 	turn thrust3 to x-axis <-90> now;
@@ -90,11 +95,21 @@ Create()
 
 Activate()
 {
+	show thrust4;
+	show thrust3;
+	show thrust2;
+	show thrust1;
+	show thrustc;
 	start-script RequestState(0);
 }
 
 Deactivate()
 {
+	hide thrust4;
+	hide thrust3;
+	hide thrust2;
+	hide thrust1;
+	hide thrustc;
 	start-script RequestState(1);
 }
 

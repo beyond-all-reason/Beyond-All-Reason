@@ -229,7 +229,7 @@ UnitSpeed(){
 }
 StartMoving(){
 	signal SIG_WALK;
-	set-signal-mask SIG_MOVE;
+	set-signal-mask SIG_WALK;
 	bMoving=TRUE;
 	start-script UnitSpeed();
 	start-script Walk();

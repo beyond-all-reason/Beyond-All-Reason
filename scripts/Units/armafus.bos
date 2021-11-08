@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, collar1, collar2;
+piece  base, collar1, collar2, emit;
 
 static-var  statechg_DesiredState, statechg_StateChanging;
 
@@ -17,6 +17,7 @@ InitState()
 
 Create()
 {
+	hide emit;
 	call-script InitState();
 	while( get BUILD_PERCENT_LEFT )
 	{

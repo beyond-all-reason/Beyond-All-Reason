@@ -32,12 +32,16 @@ MoveRate2()
 
 Create()
 {
+	hide thrusta;
+	hide thrustb;
 	gun_3=0;
 	Static_Var_1 = 0;
 }
 
 Activate()
 {
+	show thrusta;
+	show thrustb;
 	spin fan around y-axis speed <200> accelerate <20>;
 	turn wingl to z-axis <90> speed <90>;
 	turn wingr to z-axis <-90> speed <90>;
@@ -47,6 +51,8 @@ Activate()
 
 Deactivate()
 {
+	hide thrusta;
+	hide thrustb;
 	turn cowl to x-axis <0> speed <45>;
 
 	sleep 1500;

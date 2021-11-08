@@ -374,6 +374,9 @@ StopMoving(){
 Create()
 {
 	hide flare;
+	hide aimx1;
+	hide aimy1;
+	hide flare;
 	//turn flare to z-axis <-45.00000> now;
 	turn flare to x-axis <90.00000> now;
 	bMoving = FALSE;

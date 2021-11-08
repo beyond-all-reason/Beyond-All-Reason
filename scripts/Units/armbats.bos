@@ -54,6 +54,13 @@ RockOnWaves()
 
 Create()
 {
+	hide bow;
+	hide wake;
+	hide flare2b;
+	hide flare2a;
+	hide flare1a;
+	hide flare1b;
+	hide ground;
 	bAiming = TRUE;
 	Static_Var_2 = 1;
 	gun_1 = flare1a;

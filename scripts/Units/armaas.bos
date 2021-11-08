@@ -52,6 +52,11 @@ RockOnWaves()
 
 Create()
 {
+	hide missileflare2;
+	hide flare2;
+	hide flare1;
+	hide missileflare1;
+	hide ground;
 	hide flare2;
 	hide flare1;
 	gun_3 = flare1;

@@ -76,6 +76,8 @@ Create()
 {
 	hide flare1;
 	hide flare2;
+	hide flare1;
+	hide flare2;
 	OpenedState = 0;
 	restore_delay = 3000;
 	call-script InitState();

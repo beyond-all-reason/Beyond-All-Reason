@@ -63,6 +63,7 @@ StopMoving()
 
 Create()
 {
+	hide wake;
 	hide flare;
 	hide rmis;
 	hide lmis;

@@ -52,6 +52,7 @@ RequestState(requestedstate, currentstate)
 
 Create()
 {
+	hide shield;
 
 	Static_Var_1 = 1;
 	call-script InitState();

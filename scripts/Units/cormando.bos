@@ -377,6 +377,11 @@ Lights()
 
 Create()
 {
+	hide lnano;
+	hide rnano;
+	hide aimx1;
+	hide flare;
+	hide aimy1;
 	bMoving = FALSE;
 	notBuilding = 1;
 	turn flare to x-axis <90> now;

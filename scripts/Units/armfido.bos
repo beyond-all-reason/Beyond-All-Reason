@@ -345,6 +345,8 @@ RequestState(requestedstate, currentstate)
 
 Create()
 {
+	hide aimx1;
+	hide aimy1;
 	hide flare;
 	dont-cache flare;
 	move pelvis to y-axis 4000 speed <500>; 

@@ -75,6 +75,7 @@ RequestState(requestedstate, currentstate)
 
 Create()
 {
+	hide flare;
 	bMoving = FALSE;
 	notBuilding = 1;
 	statechg_DesiredState = TRUE;

@@ -253,6 +253,9 @@ StopMoving(){
 
 Create()
 {
+	hide flare;
+	hide aimx1;
+	hide aimy1;
 	bMoving=TRUE;
 	hide flare;
 	restore_delay = 3000;

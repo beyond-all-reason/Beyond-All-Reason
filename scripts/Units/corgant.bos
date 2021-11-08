@@ -148,6 +148,19 @@ RequestState(requestedstate, currentstate)
 
 Create()
 {
+	hide n10;
+	hide n9;
+	hide n12;
+	hide n11;
+	hide n6;
+	hide n5;
+	hide n7;
+	hide n8;
+	hide n2;
+	hide n1;
+	hide n4;
+	hide n3;
+	hide pad;
 	Static_Var_1 = 1;
 	call-script InitState();
 }

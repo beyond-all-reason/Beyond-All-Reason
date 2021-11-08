@@ -4,7 +4,7 @@
 #include "exptype.h"
 
 piece  pelvis, torso, lleg, lfoot, rleg, rfoot, head,
-       rflare , lflare , lancher,tflare ,lthigh,rthigh,neck, rbarrel, lbarrel, rtoe, ltoe,aimy1;
+       rflare , lflare , lancher,tflare ,lthigh,rthigh,neck, rbarrel, lbarrel, rtoe, ltoe,aimy1, aimx1;
 
 static-var  bMoving, bAiming, restore_delay, gun_1, wpn1_lasthead, wpn3_lasthead;
 
@@ -345,6 +345,12 @@ UnitSpeed(){
 
 Create()
 {
+	hide lflare;
+	hide rflare;
+	hide aimx1;
+	hide aimy1;
+	hide tflare;
+	hide pelvis;
 	bMoving = FALSE;
 	bAiming = FALSE;
 	animSpeed = 4;

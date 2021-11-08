@@ -14,6 +14,9 @@ static-var  restore_delay;
 
 Create()
 {
+	hide flare2;
+	hide flare1;
+	hide base;
 	restore_delay = 2000;
 }
 

@@ -30,12 +30,35 @@ static-var  restore_delay, v1;
 
 Create()
 {
+	hide thrustrra;
+	hide thrustfra;
+	hide thrustrla;
+	hide thrustfla;
+	hide flaref;
+	hide flarel;
+	hide flarer;
 	while( get BUILD_PERCENT_LEFT )
 	{
 		sleep 400;
 	}
 	start-script IdleHover();
 	sleep 1500;
+}
+
+Activate()
+{
+	show thrustrra;
+	show thrustfra;
+	show thrustrla;
+	show thrustfla;
+}
+
+Deactivate()
+{
+	hide thrustrra;
+	hide thrustfra;
+	hide thrustrla;
+	hide thrustfla;
 }
 
 SweetSpot(piecenum)

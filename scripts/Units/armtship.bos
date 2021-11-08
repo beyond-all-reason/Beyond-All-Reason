@@ -41,6 +41,9 @@ RockOnWaves()
 
 Create()
 {
+	hide wake;
+	hide link;
+	hide ground;
 	while( get BUILD_PERCENT_LEFT )
 	{
 		sleep 500;

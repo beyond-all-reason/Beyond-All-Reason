@@ -614,6 +614,16 @@ RequestState(requestedstate, currentstate)
 
 Create()
 {
+	hide eyeflare;
+	hide aimy2;
+	hide lgunflare;
+	hide lshoulder;
+	hide rgunflare;
+	hide rshoulder;
+	hide aimx1;
+	hide rmispoint;
+	hide lmispoint;
+	hide aimy1;
 	set ARMORED to 1;
 	hide eyeflare;
 	hide lgunflare;

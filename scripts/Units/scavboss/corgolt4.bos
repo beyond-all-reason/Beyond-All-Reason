@@ -101,6 +101,9 @@ HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and f
 
 Create()
 {
+	hide flare;
+	hide smoke1;
+	hide smoke2;
 	bMoving = FALSE;
 	moveSpeed = get (MAX_SPEED);
 	animSpeed = 100;

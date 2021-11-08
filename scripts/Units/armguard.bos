@@ -16,6 +16,8 @@ Create()
 {
 	hide flare1;
 	hide flare2;
+	hide flare1;
+	hide flare2;
 	dont-cache flare1;
 	dont-cache flare2;
 	dont-cache barrel1;

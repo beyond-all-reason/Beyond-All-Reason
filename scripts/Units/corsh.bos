@@ -114,6 +114,8 @@ StopMoving()
 
 Create()
 {
+	hide wake;
+	hide flare;
 	spin fan around y-axis speed <-300>;
 	hide flare;
 	restore_delay = 3000;

@@ -114,6 +114,10 @@ RequestState(requestedstate, currentstate)
 
 Create()
 {
+	hide pad;
+	hide nano3;
+	hide nano2;
+	hide nano1;
 	spray = nano1;
 	call-script InitState();
 }

@@ -124,6 +124,8 @@ RequestState(requestedstate, currentstate)
 
 Create()
 {
+	hide nanoemit;
+	hide ground;
 	Static_Var_2 = 0;
 	statechg_DesiredState = TRUE;
 	statechg_StateChanging = FALSE;

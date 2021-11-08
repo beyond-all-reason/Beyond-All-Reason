@@ -34,6 +34,7 @@ Lights()
 
 Create()
 {
+	hide blink;
 	dont-cache dish;
 	dont-shade dish;
 	return (0);

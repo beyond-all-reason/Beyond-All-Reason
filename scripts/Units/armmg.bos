@@ -27,6 +27,7 @@ static-var  Static_Var_1, Static_Var_2, Static_Var_3, Static_Var_4, Static_Var_5
 Create()
 {
 	hide flare;
+	hide flare;
 	gun_1 = 0;
 	restore_delay = 300;
 }

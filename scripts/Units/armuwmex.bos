@@ -56,6 +56,7 @@ RequestState(requestedstate, currentstate)
 
 Create()
 {
+	hide emit;
 	Static_Var_1 = 0;
 	Static_Var_2 = 91;
 	Static_Var_3 = 182;

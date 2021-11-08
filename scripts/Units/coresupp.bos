@@ -45,6 +45,12 @@ RockOnWaves()
 
 Create()
 {
+	hide flare3;
+	hide wake1;
+	hide flare12;
+	hide flare11;
+	hide flare22;
+	hide flare21;
 	hide flare11;
 	hide flare12;
 	hide flare21;

@@ -621,6 +621,11 @@ StopMoving(){
 
 Create()
 {
+	hide mainbarrelflare;
+	hide toplaserflare;
+	hide aimy1;
+	hide llaserflare;
+	hide rlaserflare;
 	bMoving = FALSE;
 	Static_Var_2 = 0;
 	Static_Var_3 = 1;

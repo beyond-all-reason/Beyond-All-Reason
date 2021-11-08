@@ -42,6 +42,7 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 Create()
 {
 	hide flare;
+	hide flare;
 	dont-cache flare;
 	dont-cache barrel01;
 	dont-cache barrel02;

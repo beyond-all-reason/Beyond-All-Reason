@@ -18,6 +18,7 @@ piece  base, turret, plunger, flare;
 
 Create()
 {
+	hide flare;
 	move plunger to z-axis [0.000000] now;
 	return (0);
 }

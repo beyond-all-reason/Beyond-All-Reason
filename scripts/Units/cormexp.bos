@@ -110,6 +110,10 @@ RequestState(requestedstate, currentstate)
 
 Create()
 {
+	hide aimpoint;
+	hide flare3;
+	hide flare2;
+	hide flare1;
 	Static_Var_1 = 500;
 	Static_Var_2 = 100;
 	Static_Var_3 = 1092;

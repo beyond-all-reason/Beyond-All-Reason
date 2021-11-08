@@ -286,6 +286,9 @@ MotionControl(Func_Var_1)
 
 Create()
 {
+	hide rmisflare;
+	hide lmisflare;
+	hide flare;
 	bMoving = FALSE;
 	bAiming = FALSE;
 	Static_Var_3 = 1;

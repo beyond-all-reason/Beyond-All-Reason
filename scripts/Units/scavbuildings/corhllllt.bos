@@ -42,6 +42,11 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 
 Create()
 {
+	hide flare4;
+	hide flare3;
+	hide flare2;
+	hide flare1;
+	hide base;
 	unitviewer = FALSE;
 	restore_delay = 2000;
 	hide flare1;

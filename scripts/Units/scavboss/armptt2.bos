@@ -98,6 +98,10 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 
 Create()
 {
+	hide flarel;
+	hide flarer;
+	hide flareaa;
+	hide ground;
 	restore_delay = 3000;
 	start-script SmokeUnit();
 }

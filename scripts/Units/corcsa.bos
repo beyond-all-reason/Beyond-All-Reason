@@ -64,6 +64,9 @@ RequestState(requestedstate, currentstate)
 
 Create()
 {
+	hide thrust1;
+	hide thrust2;
+	hide nano;
 	Static_Var_1 = 1;
 	Static_Var_2 = 0;
 	return (0);
@@ -71,12 +74,16 @@ Create()
 
 Activate()
 {
+	show thrust1;
+	show thrust2;
 	start-script RequestState(0);
 	return (0);
 }
 
 Deactivate()
 {
+	hide thrust1;
+	hide thrust2;
 	start-script RequestState(1);
 	return (0);
 }

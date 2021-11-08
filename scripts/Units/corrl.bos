@@ -33,6 +33,9 @@ static-var  gun_1;
 
 Create()
 {
+	hide flare1;
+	hide flare3;
+	hide flare2;
 	gun_1 = flare1;
 	while( get BUILD_PERCENT_LEFT )
 	{

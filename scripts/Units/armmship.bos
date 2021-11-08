@@ -115,6 +115,14 @@ RequestState(requestedstate, currentstate)
 
 Create()
 {
+	hide bow;
+	hide wake;
+	hide flare13;
+	hide flare12;
+	hide flare11;
+	hide flare22;
+	hide flare21;
+	hide ground;
 	Static_Var_5 = 0;
 	gun_1 = 1;
 	gun_3 = 0;

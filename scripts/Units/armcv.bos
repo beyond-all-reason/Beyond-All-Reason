@@ -74,6 +74,8 @@ RequestState(requestedstate, currentstate)
 
 Create()
 {
+	hide nano2;
+	hide nano1;
 	notBuilding = 1;
 	nano=0;
 	statechg_DesiredState = TRUE;

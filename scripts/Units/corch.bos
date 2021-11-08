@@ -147,6 +147,8 @@ StopMoving()
 
 Create()
 {
+	hide nano;
+	hide wake;
 	notBuilding = 1;
 	statechg_DesiredState = TRUE;
 	statechg_StateChanging = FALSE;

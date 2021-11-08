@@ -68,6 +68,7 @@ RequestState(requestedstate, currentstate)
 
 Create()
 {
+	hide smoke;
 	while( get BUILD_PERCENT_LEFT )
 	{
 		sleep 250;

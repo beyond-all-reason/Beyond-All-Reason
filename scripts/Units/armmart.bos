@@ -36,6 +36,7 @@ RockUnit(anglex, anglez)
 Create()
 {
 	hide flare;
+	hide flare;
 	restore_delay = 3000;
 	wpnheading = 0;
 	bAiming = 0;

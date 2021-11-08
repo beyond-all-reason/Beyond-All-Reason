@@ -67,10 +67,11 @@ RequestState(requestedstate, currentstate)
 
 Create()
 {
-	hide thrustrra;
-	hide thrustrla;
 	hide thrustfra;
 	hide thrustfla;
+	hide thrustrla;
+	hide thrustrra;
+	hide link;
 	unitviewer = FALSE;
 	Static_Var_1 = 0;
 	call-script InitState();
@@ -109,18 +110,23 @@ EndTransport()
 
 Activate()
 {
-	if( unitviewer )
-	{
-		start-script RequestState(0);
-	}
+	
+	show thrustfra;
+	show thrustfla;
+	show thrustrla;
+	show thrustrra;
+
+	start-script RequestState(0);
 }
 
 Deactivate()
 {
-	if( unitviewer )
-	{
-		start-script RequestState(1);
-	}
+
+	hide thrustfra;
+	hide thrustfla;
+	hide thrustrla;
+	hide thrustrra;
+	start-script RequestState(1);
 }
 
 

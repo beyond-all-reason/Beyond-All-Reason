@@ -574,6 +574,12 @@ StopMoving(){
 
 Create()
 {
+	hide rflare;
+	hide lflare;
+	hide aimx1;
+	hide missleflare;
+	hide laserflare;
+	hide aimy1;
 	myHeading=0;
 	moveHands = TRUE;
 	bMoving = FALSE;

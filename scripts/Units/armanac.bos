@@ -124,6 +124,8 @@ StopMoving()
 Create()
 {
 	hide flare;
+	hide wake;
+	hide flare;
 	restore_delay = 3000;
 	while( get BUILD_PERCENT_LEFT )
 	{

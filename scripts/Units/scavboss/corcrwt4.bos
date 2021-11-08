@@ -25,7 +25,7 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 	while( TRUE )
 	{
 		healthpercent = get HEALTH;
-		if( healthpercent < 66 and healthpercent > 0 )
+		if( (healthpercent < 66) AND (healthpercent > 0 ))
 		{
 			smoketype = 256 | 2;
 			if( Rand( 1, 66 ) < healthpercent )
@@ -45,8 +45,31 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 
 Create()
 {
+	hide thrustfla;
+	hide flaref;
+	hide thrustrla;
+	hide thrustfra;
+	hide flarel;
+	hide thrustrra;
+	hide flarer;
 	start-script SmokeUnit();
 	sleep 1500;
+}
+
+Activate()
+{
+	show thrustfla;
+	show thrustrla;
+	show thrustfra;
+	show thrustrra;
+}
+
+Deactivate()
+{
+	hide thrustfla;
+	hide thrustrla;
+	hide thrustfra;
+	hide thrustrra;
 }
 
 SweetSpot(piecenum)

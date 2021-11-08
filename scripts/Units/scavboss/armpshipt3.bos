@@ -139,6 +139,15 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 
 Create()
 {
+	hide wake2;
+	hide wake1;
+	hide flare22;
+	hide flare21;
+	hide sleeve2;
+	hide flare12;
+	hide flare11;
+	hide sleeve1;
+	hide ground;
 	hide flare11;
 	hide flare12;
 	hide flare21;

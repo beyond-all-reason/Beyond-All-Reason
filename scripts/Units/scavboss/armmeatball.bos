@@ -313,6 +313,9 @@ HitByWeapon(anglex, anglez)
 
 Create()
 {
+	hide rflare;
+	hide lflare;
+	hide misflare;
 	bMoving = FALSE;
 	bAiming = FALSE;
 	Static_Var_3 = 1;

@@ -446,6 +446,9 @@ PilotLight(Func_Var_1)
 Create()
 {
 	hide flare;
+	hide aimx1;
+	hide aimy1;
+	hide flare;
 	bMoving = FALSE;
 	bAiming = FALSE;
 	currentSpeed = 200;

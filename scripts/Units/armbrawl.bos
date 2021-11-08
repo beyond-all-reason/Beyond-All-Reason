@@ -129,6 +129,11 @@ RestoreAfterDelay()
 }
 Create()
 {
+	hide flare1;
+	hide flare2;
+	hide flare3;
+	hide flare4;
+	hide pivot;
 	gun_1 = flare1;
 	call-script InitState();
 	while( get BUILD_PERCENT_LEFT )

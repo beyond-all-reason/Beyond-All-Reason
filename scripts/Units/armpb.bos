@@ -90,6 +90,8 @@ RestoreAfterDelay()
 
 Create()
 {
+	hide aimpoint;
+	hide flare;
 	hide flare;
 	restore_delay = 1600;
 	OpenClosed = 1;

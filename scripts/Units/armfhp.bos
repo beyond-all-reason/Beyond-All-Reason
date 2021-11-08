@@ -170,6 +170,8 @@ RequestState(requestedstate, currentstate)
 
 Create()
 {
+	hide emitr;
+	hide emitl;
 
 	Static_Var_1 = 0;
 	call-script InitState();

@@ -48,11 +48,17 @@ Create()
 
 Activate()
 {
+	show rthrust;
+	show mthrust;
+	show lthrust;
 	turn bwing to x-axis <0> speed <45>;
 }
 
 Deactivate()
 {
+	hide rthrust;
+	hide mthrust;
+	hide lthrust;
 	turn bwing to x-axis <40> speed <45>;
 }
 

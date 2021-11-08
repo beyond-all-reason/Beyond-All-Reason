@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  flarel,flarer, barrelr,barrell,turret, base;
+piece  flarel,flarer, barrelr,barrell,turret, base, aimfrom;
 
 static-var  restore_delay, gun_2;
 
@@ -24,6 +24,9 @@ static-var  restore_delay, gun_2;
 
 Create()
 {
+	hide aimfrom;
+	hide flarel;
+	hide flarer;
 	gun_2 = flarel;
 	restore_delay = 3000;
 }

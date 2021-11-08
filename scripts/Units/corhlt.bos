@@ -14,6 +14,8 @@ static-var  gun_1,aimy1velocity, aimy1target, aimy1position;
 Create()
 {
 	hide flare;
+	hide aimpoint;
+	hide flare;
 	gun_1 = 0;
 	aimy1velocity = 0;
 	aimy1target = 0;

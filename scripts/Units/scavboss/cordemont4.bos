@@ -871,6 +871,14 @@ HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and f
 
 Create()
 {
+	hide rfflare1;
+	hide rfflare2;
+	hide lfflare2;
+	hide lfflare1;
+	hide aimx1;
+	hide rbflare;
+	hide lbflare;
+	hide aimy1;
 	gun_1 = 1;
 	bMoving = FALSE;
 	bAiming = FALSE;

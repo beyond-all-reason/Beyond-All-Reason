@@ -61,6 +61,10 @@ StopMoving()
 
 Create()
 {
+	hide barrelcon;
+	hide lrocket;
+	hide rrocket;
+	hide wake;
 	hide lflare;
 	hide rflare;
 	turn lflare to y-axis <175> now;

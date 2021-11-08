@@ -85,6 +85,20 @@ RockZ(Func_Var_1, Func_Var_2)
 
 Create()
 {
+	hide engine;
+	hide bow;
+	hide wake;
+	hide flare2;
+	hide flare5;
+	hide flare6;
+	hide flare3a;
+	hide flare3b;
+	hide flare1b;
+	hide flare1d;
+	hide flare1c;
+	hide flare1a;
+	hide flare4b;
+	hide flare4a;
 	set ARMORED to 1;
 	hide flare1a;
 	hide flare1b;

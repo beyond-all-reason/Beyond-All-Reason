@@ -514,6 +514,8 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 Create()
 {
 	hide flare;
+	hide aimy1;
+	hide flare;
 	fire_count=4;
 	animSpeed = 3;
 	maxreloadtime=0;

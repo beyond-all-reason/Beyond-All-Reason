@@ -109,6 +109,8 @@ RestoreAfterDelay()
 
 Create()
 {
+	hide aimpoint;
+	hide flare;
 	hide flare;
 	turretOpen = 0;
 	restoreDelay = 10000;

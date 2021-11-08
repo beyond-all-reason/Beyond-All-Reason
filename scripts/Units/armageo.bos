@@ -7,6 +7,9 @@ piece  base, smoke1, smoke2, smoke3;
 
 Create()
 {
+	hide smoke3;
+	hide smoke1;
+	hide smoke2;
 	while( get BUILD_PERCENT_LEFT )
 	{
 		sleep 1000;

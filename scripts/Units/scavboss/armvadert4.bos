@@ -67,6 +67,7 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 
 Create()
 {
+	hide base;
 
 	bMoving = FALSE;
 	start-script SmokeUnit();

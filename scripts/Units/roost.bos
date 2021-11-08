@@ -9,6 +9,9 @@ piece  base, emit, launcher, arm;
 Create()
 {
 	hide launcher;
+	hide arm;
+	hide emit;
+	hide launcher;
 	hide emit;
 	hide base;
 	dont-shade base;

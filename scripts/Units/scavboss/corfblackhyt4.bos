@@ -121,22 +121,27 @@ ProjXPW(Func_Var_1, Func_Var_2)
 
 Create()
 {
-	set ARMORED to 1;
-	hide flare1a;
-	hide flare1b;
-	hide flare1c;
-	hide flare1d;
-	hide flare3a;
-	hide flare3b;
-	hide flare4a;
-	hide flare4b;
-	hide flare2;
-	hide flare5;
-	hide flare6;
-	hide thrustl1;
+	hide thrustr2;
 	hide thrustr1;
 	hide thrustl2;
-	hide thrustr2;
+	hide thrustl1;
+	hide flare2;
+	hide flare5;
+	hide wake5;
+	hide flare6;
+	hide wake4;
+	hide wake1;
+	hide flare3a;
+	hide flare3b;
+	hide flare1b;
+	hide flare1d;
+	hide flare1c;
+	hide flare1a;
+	hide wake3;
+	hide flare4b;
+	hide flare4a;
+	hide wake2;
+	set ARMORED to 1;
 	turn jetl1 to x-axis <-90.000000> now;
 	turn jetr1 to x-axis <-90.000000> now;
 	turn jetl2 to x-axis <-90.000000> now;
@@ -148,6 +153,21 @@ Create()
 	start-script SmokeUnit();
 }
 
+Activate()
+{
+	show thrustr2;
+	show thrustr1;
+	show thrustl2;
+	show thrustl1;
+}
+
+Deactivate()
+{
+	hide thrustr2;
+	hide thrustr1;
+	hide thrustl2;
+	hide thrustl1;
+}
 
 MoveRate0()
 {

@@ -95,6 +95,7 @@ RequestState(requestedstate, currentstate)
 
 Create()
 {
+	hide beam;
 	restore_delay = 3000;
 	notBuilding = 1;
 	moveSpeed = get MAX_SPEED;

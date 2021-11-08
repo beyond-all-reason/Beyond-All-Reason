@@ -16,6 +16,7 @@ static-var  gun_1;
 Create()
 {
 	hide flare;
+	hide flare;
 	gun_1 = flare;
 	spin flare around z-axis speed <250.060440>;
 }

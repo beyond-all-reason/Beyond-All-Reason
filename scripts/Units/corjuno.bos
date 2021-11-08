@@ -59,6 +59,7 @@ RequestState(requestedstate, currentstate)
 
 Create()
 {
+	hide flare;
 	gun_1 = base;
 	hide flare;
 	restore_delay = 300;

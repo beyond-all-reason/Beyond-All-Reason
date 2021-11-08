@@ -515,6 +515,9 @@ RockUnit(anglex, anglez)
 Create()
 {
 	hide flare;
+	hide aimx1;
+	hide aimy1;
+	hide flare;
 	dont-cache flare;
 	bMoving = FALSE;
 	bAiming = FALSE;

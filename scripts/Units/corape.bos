@@ -3,9 +3,8 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  	base, body, lpaddle, rpaddle,
-		rjet, rthrust, rwing, rmislink, rmissile, rflare, 
-		ljet, lthrust, lwing, lmislink, lmissile, lflare;
+piece  	base, body, lpaddle, rpaddle, rjet, rthrust, rwing, rmislink, rmissile, rflare, 
+		ljet, lthrust, lwing, lmislink, lmissile, lflare, lhthrust1, lhthrust2, rhthrust1, rhthrust2  ;
 
 static-var  gun_1, statechg_DesiredState, statechg_StateChanging, restore_delay;
 
@@ -57,6 +56,14 @@ RequestState(requestedstate, currentstate)
 
 Create()
 {
+	hide lthrust;
+	hide lflare;
+	hide rthrust;
+	hide rflare;
+	hide lhthrust1;
+	hide rhthrust2;
+	hide lhthrust2;
+	hide rhthrust1;
 	hide rflare;
 	hide lflare;
 	gun_1 = rflare;
@@ -72,11 +79,15 @@ Create()
 
 Activate()
 {
+	show rthrust;
+	show lthrust;
 	start-script RequestState(0);
 }
 
 Deactivate()
 {
+	hide rthrust;
+	hide lthrust;
 	start-script RequestState(1);	
 }
 

@@ -69,6 +69,7 @@ Activate()
 
 Create()
 {
+	hide emit;
 	start-script SmokeUnit();
 	start-script Activate();
 }

@@ -161,6 +161,10 @@ Stop()
 
 Create()
 {
+	hide flare2;
+	hide flare1;
+	hide aimx1;
+	hide aimy1;
 	bMoving = FALSE;
 	animSpeed = 3;
 	spray = flare1;

@@ -67,16 +67,30 @@ RequestState(requestedstate, currentstate)
 
 Create()
 {
+	hide flare2;
+	hide flare1;
+	hide thrusta2;
+	hide thrustb2;
+	hide thrusta1;
+	hide thrustb1;
 	call-script InitState();
 }
 
 Activate()
 {
+	show thrusta2;
+	show thrustb2;
+	show thrusta1;
+	show thrustb1;
 	start-script RequestState(0);
 }
 
 Deactivate()
 {
+	hide thrusta2;
+	hide thrustb2;
+	hide thrusta1;
+	hide thrustb1;
 	start-script RequestState(1);
 }
 

@@ -800,6 +800,8 @@ RequestState(requestedstate, currentstate)
 
 Create()
 {
+	hide flare;
+	hide aimy1;
 	isAiming = FALSE;
 	bMoving = FALSE;
 	Static_Var_3 = 0;

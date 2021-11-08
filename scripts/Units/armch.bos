@@ -116,29 +116,6 @@ deactivatescr()
 	sleep 469;
 }
 
-SmokeUnit(healthpercent, sleeptime, smoketype)
-{
-
-	while( TRUE )
-	{
-		healthpercent = get HEALTH;
-		if( healthpercent < 66 )
-		{
-			smoketype = 258;
-			if( Rand( 1, 66 ) < healthpercent )
-			{
-				smoketype = 257;
-			}
-			emit-sfx smoketype from base;
-		}
-		sleeptime = healthpercent * 50;
-		if( sleeptime < 200 )
-		{
-			sleeptime = 200;
-		}
-		sleep sleeptime;
-	}
-}
 
 HoverIdle()
 {
@@ -207,10 +184,12 @@ RequestState(requestedstate, currentstate)
 
 Create()
 {
+	hide wake;
+	hide beam;
 	notBuilding = 1;
 	statechg_DesiredState = TRUE;
 	statechg_StateChanging = FALSE;
-	while( get BUILD_PERCENT_LEFT )
+	while( get(BUILD_PERCENT_LEFT))
 	{
 		sleep 500;
 	}

@@ -64,17 +64,27 @@ RequestState(requestedstate, currentstate)
 
 Create()
 {
+	hide thrustb;
+	hide thrusta1;
+	hide thrusta2;
+	hide bombs;
 	Static_Var_1 = 3000;
 	call-script InitState();
 }
 
 Activate()
 {
+	show thrustb;
+	show thrusta1;
+	show thrusta2;
 	start-script RequestState(0);
 }
 
 Deactivate()
 {
+	hide thrustb;
+	hide thrusta1;
+	hide thrusta2;
 	start-script RequestState(1);
 }
 

@@ -5,7 +5,7 @@
 
 //INCREMENT THIS COUNTER FOR EVERY HOUR OF YOUR LIFE WASTED HERE: 20
 
-piece head, torso, luparm, biggun, ruparm,rloarm,lflare, nano, laserflare, pelvis, rthigh, lthigh ,lleg ,rleg,rfoot ,lfoot, dish, barrel, aimy1;    
+piece head, torso, luparm, biggun, ruparm,rloarm,lflare, nano, laserflare, pelvis, rthigh, lthigh ,lleg ,rleg,rfoot ,lfoot, dish, barrel, aimy1, aimx1, aimx2, hatpoint, teleport;  
 
 static-var isAiming, isAimingDgun, isBuilding, buildHeading, buildPitch, leftArm, rightArm,animSpeed;
 
@@ -470,6 +470,14 @@ AmIBored() {
 
 Create(){
 
+	hide nano;
+	hide laserflare;
+	hide aimx2;
+	hide lflare;
+	hide aimx1;
+	hide hatpoint;
+	hide aimy1;
+	hide teleport;
 	//turn rloarm to  x-axis <-15> speed <130.0000> ; //-- Turn(rloarm, x-axis, math.rad(-15),math.rad(130))
 	turn lflare to x-axis <90> now; //	Turn(lflare, x-axis,math.rad(90))
 	turn nano to x-axis <90> now; //Turn(nano, x-axis,math.rad(90))

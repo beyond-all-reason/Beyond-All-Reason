@@ -10,16 +10,14 @@ static-var  Static_Var_1, gun_1, statechg_DesiredState, statechg_StateChanging;
 
 activatescr()
 {
-
-
+	show thrust;
 	sleep 66;
 	return (0);
 }
 
 deactivatescr()
 {
-
-
+	hide thrust;
 	sleep 66;
 	return (0);
 }
@@ -89,6 +87,9 @@ BarrelRoll() // remember to start-script BarrelRoll(); in Create()!
 
 Create()
 {
+	hide flare2;
+	hide flare1;
+	hide thrust;
 	Static_Var_1 = 0;
 	gun_1 = flare1;
 	call-script InitState();

@@ -9,6 +9,7 @@ piece  base, turret, barrel, flare;
 
 Create()
 {
+	hide flare;
 }
 
 #define SMOKEPIECE base

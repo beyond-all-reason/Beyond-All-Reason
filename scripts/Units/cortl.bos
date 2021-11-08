@@ -40,6 +40,7 @@ RockOnWaves()
 
 Create()
 {
+	hide flare;
 	while( get BUILD_PERCENT_LEFT )
 	{
 		sleep 400;

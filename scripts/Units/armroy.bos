@@ -92,6 +92,12 @@ RockOnWaves()
 
 Create()
 {
+	hide bow;
+	hide wake;
+	hide depthflare;
+	hide flare2;
+	hide flare1;
+	hide ground;
 	hide flare1;
 	hide flare2;
 	gun_1 = flare1;
@@ -154,7 +160,8 @@ StartMoving()
     set-signal-mask SIG_MOVE;
     var waketime;
     start-script waveSplash();
-    var bowtime  = 0;
+    var bowtime;
+    bowtime = 0;
     while( TRUE )
     {
         emit-sfx 1024 + 1 from wake;

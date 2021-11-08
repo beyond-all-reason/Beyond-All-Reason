@@ -4,7 +4,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  flare1, flare2, gun, turret, barrel;
+piece  flare1, flare2, gun, barrel, base;
 
 static-var  gun_1;
 
@@ -13,8 +13,8 @@ static-var  gun_1;
 
 Create()
 {
-	hide flare1;
 	hide flare2;
+	hide flare1;
 	gun_1 = flare1;
 }
 
@@ -101,7 +101,7 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1 ;
-		explode turret type BITMAPONLY | NOHEATCLOUD;
+		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode gun type BITMAPONLY | NOHEATCLOUD;
 		explode barrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode flare1 type BITMAPONLY | NOHEATCLOUD;
@@ -111,7 +111,7 @@ Killed(severity, corpsetype)
 	if( severity <= 50 )
 	{
 		corpsetype = 2 ;
-		explode turret type BITMAPONLY | NOHEATCLOUD;
+		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode gun type FALL | NOHEATCLOUD;
 		explode barrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode flare1 type FALL | NOHEATCLOUD;
@@ -121,7 +121,7 @@ Killed(severity, corpsetype)
 	if( severity <= 99 )
 	{
 		corpsetype = 3 ;
-		explode turret type SMOKE | FALL | NOHEATCLOUD;
+		explode base type SMOKE | FALL | NOHEATCLOUD;
 		explode gun type SMOKE | FALL | NOHEATCLOUD;
 		explode barrel type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		explode flare1 type SMOKE | FALL | NOHEATCLOUD;
@@ -129,7 +129,7 @@ Killed(severity, corpsetype)
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
-		explode turret type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode base type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode gun type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode barrel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode flare1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;

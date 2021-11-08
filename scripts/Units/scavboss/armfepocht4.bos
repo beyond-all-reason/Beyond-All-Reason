@@ -91,24 +91,23 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 
 Create()
 {
-	set ARMORED to 1;
+	hide misflare1;
+	hide misflare2;
 	hide flare1a;
-	hide flare2a;
-	hide flare3a;
-	hide flare4a;
-	hide flare5a;
 	hide flare1b;
-	hide flare2b;
-	hide flare3b;
-	hide flare4b;
+	hide flare5a;
 	hide flare5b;
-	hide flare2c;
-	hide flare4c;
 	hide flare5c;
-	hide thrustl1;
-	hide thrustr1;
-	hide thrustl2;
-	hide thrustr2;
+	hide flare2a;
+	hide flare2b;
+	hide flare2c;
+	hide flare4a;
+	hide flare4b;
+	hide flare4c;
+	hide flare3a;
+	hide flare3b;
+	hide ground;
+	set ARMORED to 1;
 	turn jetl1 to x-axis <-90.000000> now;
 	turn jetr1 to x-axis <-90.000000> now;
 	turn jetl2 to x-axis <-90.000000> now;

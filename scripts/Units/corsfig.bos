@@ -93,6 +93,9 @@ BarrelRoll() // remember to start-script BarrelRoll(); in Create()!
 
 Create()
 {
+	hide thrust;
+	hide flare2;
+	hide flare1;
 	call-script InitState();
 	start-script BarrelRoll();
 	return (0);
@@ -100,12 +103,14 @@ Create()
 
 Activate()
 {
+	show thrust;
 	start-script RequestState(0);
 	return (0);
 }
 
 Deactivate()
 {
+	hide thrust;
 	start-script RequestState(1);
 	return (0);
 }
@@ -187,7 +192,7 @@ Killed(severity, corpsetype)
 	corpsetype = 3 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode thrust type BITMAPONLY | NOHEATCLOUD;
-		explode flare1 type EBITMAPONLY | NOHEATCLOUD;
+		explode flare1 type BITMAPONLY | NOHEATCLOUD;
 		explode flare2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }

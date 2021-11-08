@@ -371,6 +371,10 @@ RockUnit(anglex, anglez)
 
 Create()
 {
+	hide lfirept;
+	hide rfirept;
+	hide aimx1;
+	hide aimy1;
 	hide rfirept;
 	hide lfirept;
 	bMoving = FALSE;

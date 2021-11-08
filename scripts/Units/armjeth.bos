@@ -342,6 +342,12 @@ RequestState(requestedstate, currentstate)
 Create()
 {
 	hide rflare;
+	hide rexhaust;
+	hide lexhaust;
+	hide lflare;
+	hide aimx1;
+	hide aimy1;
+	hide rflare;
 	hide lflare;
 	bMoving = FALSE;
 	Static_Var_2 = 0;

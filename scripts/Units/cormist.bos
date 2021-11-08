@@ -70,6 +70,9 @@ RequestState(requestedstate, currentstate)
 
 Create()
 {
+	hide flare2;
+	hide exhaust;
+	hide flare1;
 	gun_1 = flare1;
 	call-script InitState();
 }

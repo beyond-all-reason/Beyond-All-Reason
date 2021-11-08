@@ -12,6 +12,7 @@ piece  base, flare, turret, sleeve, barrel;
 
 Create()
 {
+	hide flare;
 }
 
 AimPrimary(heading, pitch)

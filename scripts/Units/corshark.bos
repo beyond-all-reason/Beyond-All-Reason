@@ -40,6 +40,9 @@ HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and f
 
 Create()
 {
+	hide wake;
+	hide torp1;
+	hide torp2;
 	gun_1 = torp1;
 }
 

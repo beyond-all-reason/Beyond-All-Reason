@@ -361,6 +361,12 @@ StopMoving()
 
 Create()
 {
+	hide lfirept;
+	hide rexhaust;
+	hide rfirept;
+	hide lexhaust;
+	hide aimx1;
+	hide aimy1;
 	gun_1 = aimy1;
 	notMoving = TRUE;
 	currentSpeed = 100;

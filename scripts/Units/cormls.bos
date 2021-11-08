@@ -103,6 +103,8 @@ RequestState(requestedstate, currentstate)
 
 Create()
 {
+	hide nano;
+	hide wake;
 	Static_Var_2 = 0;
 	statechg_DesiredState = TRUE;
 	statechg_StateChanging = FALSE;

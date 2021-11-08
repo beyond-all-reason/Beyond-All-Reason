@@ -276,6 +276,8 @@ Stop()
 
 Create()
 {
+	hide nano;
+	hide aimy1;
 	bMoving = FALSE;
 	animspeed = 3;
 	moveSpeed = get MAX_SPEED;

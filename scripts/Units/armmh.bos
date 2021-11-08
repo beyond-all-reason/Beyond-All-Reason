@@ -231,6 +231,8 @@ StopMoving()
 
 Create()
 {
+	hide wake;
+	hide flare;
 	Static_Var_1 = 0;
 	restore_delay = 3000;
 	call-script InitState();

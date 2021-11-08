@@ -29,6 +29,7 @@ BarrelRoll() // remember to start-script BarrelRoll(); in Create()!
 
 Create()
 {
+	hide thrust;
 	start-script BarrelRoll();
 }
 
@@ -43,6 +44,7 @@ Create()
 
 Activate()
 {
+	show thrust;
 	turn wingl to x-axis <36> now;
 	turn wingl to y-axis <15> now;
 	turn wingl to z-axis <-45> now;
@@ -61,7 +63,7 @@ Activate()
 
 Deactivate()
 {
-
+	hide thrust;
 	turn wingl to x-axis <36> speed <36>;
 	turn wingl to y-axis <15> speed <15>;
 	turn wingl to z-axis <-45> speed <45>;

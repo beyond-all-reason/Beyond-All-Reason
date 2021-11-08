@@ -664,6 +664,16 @@ StopMoving(){
 
 Create()
 {
+	hide rexhaust2;
+	hide rflare2;
+	hide rexhaust1;
+	hide rflare1;
+	hide lexhaust1;
+	hide lflare1;
+	hide lexhaust2;
+	hide lflare2;
+	hide aimx1;
+	hide aimy1;
 	spin thing around x-axis speed <30> accelerate <1>;
 	bMoving = FALSE;
 	bAiming = FALSE;
