@@ -50,6 +50,11 @@ local function IsSyncedCode()
 	return isSyncedCode
 end
 
+if IsSyncedCode() then
+	local devModeEnabled = string.find(string.upper(Game.gameVersion), "$VERSION", 1, true)
+	Spring.SetGameRulesParam('isDevMode', devModeEnabled)
+end
+
 --------------------------------------------------------------------------------
 
 --function pgl()
