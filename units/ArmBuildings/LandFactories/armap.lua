@@ -50,7 +50,7 @@ return {
 			usebuildinggrounddecal = true,
 			buildinggrounddecaltype = "decals/armap_aoplane.dds",
 			buildinggrounddecalsizey = 9,
-			buildinggrounddecalsizex = 9,
+			buildinggrounddecalsizex = 12,
 			buildinggrounddecaldecayspeed = 30,
 			unitgroup = 'builder',
 			model_author = "Cremuss",

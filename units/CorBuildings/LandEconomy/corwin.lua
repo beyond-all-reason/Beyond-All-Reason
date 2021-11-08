@@ -37,8 +37,8 @@ return {
 		customparams = {
 			usebuildinggrounddecal = true,
 			buildinggrounddecaltype = "decals/corwin_aoplane.dds",
-			buildinggrounddecalsizey = 4.5,
-			buildinggrounddecalsizex = 4.5,
+			buildinggrounddecalsizey = 5,
+			buildinggrounddecalsizex = 5,
 			buildinggrounddecaldecayspeed = 30,
 			unitgroup = 'energy',
 			model_author = "Mr Bob",

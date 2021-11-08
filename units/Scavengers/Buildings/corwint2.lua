@@ -36,9 +36,9 @@ return {
 		yardmap = "oooooo oooooo oooooo oooooo oooooo oooooo",
 		customparams = {
 			usebuildinggrounddecal = true,
-			buildinggrounddecaltype = "decals/corwin_aoplane.dds",
-			buildinggrounddecalsizey = 4.5,
-			buildinggrounddecalsizex = 4.5,
+			buildinggrounddecaltype = "decals/corwint2_aoplane.dds",
+			buildinggrounddecalsizey = 9,
+			buildinggrounddecalsizex = 9,
 			buildinggrounddecaldecayspeed = 30,
 			unitgroup = 'energy',
 			energymultiplier = 20,

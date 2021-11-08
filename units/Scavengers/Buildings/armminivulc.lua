@@ -35,9 +35,9 @@ return {
 		yardmap = "ooo ooo ooo",
 		customparams = {
 			usebuildinggrounddecal = false,
-			--buildinggrounddecaltype = "decals/armvulc_aoplane.dds",
-			buildinggrounddecalsizey = 7.5,
-			buildinggrounddecalsizex = 7.5,
+			buildinggrounddecaltype = "decals/armminivulc_aoplane.dds",
+			buildinggrounddecalsizey = 6,
+			buildinggrounddecalsizex = 6,
 			buildinggrounddecaldecayspeed = 30,
 			unitgroup = 'weapon',
 			model_author = "Beherith",

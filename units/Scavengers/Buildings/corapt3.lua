@@ -46,9 +46,9 @@ return {
 		},
 		customparams = {
 			usebuildinggrounddecal = true,
-			buildinggrounddecaltype = "decals/corap_aoplane.dds",
-			buildinggrounddecalsizey = 9,
-			buildinggrounddecalsizex = 9,
+			buildinggrounddecaltype = "decals/corapt3_aoplane.dds",
+			buildinggrounddecalsizey = 19,
+			buildinggrounddecalsizex = 15,
 			buildinggrounddecaldecayspeed = 30,
 			unitgroup = 'buildert3',
 			model_author = "Mr Bob",

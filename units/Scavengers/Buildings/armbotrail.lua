@@ -36,9 +36,9 @@ return {
 		yardmap = "oooooooo oooooooo oooooooo oooooooo oooooooo oooooooo oooooooo oooooooo ",
 		customparams = {
 			usebuildinggrounddecal = true,
-			buildinggrounddecaltype = "decals/armbrtha_aoplane.dds",
-			buildinggrounddecalsizey = 6,
-			buildinggrounddecalsizex = 6,
+			buildinggrounddecaltype = "decals/armbotrail_aoplane.dds",
+			buildinggrounddecalsizey = 11,
+			buildinggrounddecalsizex = 11,
 			buildinggrounddecaldecayspeed = 30,
 			unitgroup = 'weapon',
 			canareaattack = 1,

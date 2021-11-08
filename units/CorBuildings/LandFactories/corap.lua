@@ -51,7 +51,7 @@ return {
 			usebuildinggrounddecal = true,
 			buildinggrounddecaltype = "decals/corap_aoplane.dds",
 			buildinggrounddecalsizey = 9,
-			buildinggrounddecalsizex = 9,
+			buildinggrounddecalsizex = 11,
 			buildinggrounddecaldecayspeed = 30,
 			unitgroup = 'builder',
 			model_author = "Mr Bob",

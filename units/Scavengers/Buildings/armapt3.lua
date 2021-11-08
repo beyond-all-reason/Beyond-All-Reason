@@ -45,9 +45,9 @@ return {
 		},
 		customparams = {
 			usebuildinggrounddecal = true,
-			buildinggrounddecaltype = "decals/armap_aoplane.dds",
-			buildinggrounddecalsizey = 9,
-			buildinggrounddecalsizex = 9,
+			buildinggrounddecaltype = "decals/armapt3_aoplane.dds",
+			buildinggrounddecalsizey = 15,
+			buildinggrounddecalsizex = 21,
 			buildinggrounddecaldecayspeed = 30,
 			unitgroup = 'buildert3',
 			model_author = "Cremuss",
