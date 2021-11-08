@@ -1570,7 +1570,6 @@ function init()
 			--bloom = false,
 			bloomdeferred = false,
 			ssao = 1,
-			advmapshading = 0,
 			mapedgeextension = false,
 			lighteffects = false,
 			lighteffects_additionalflashes = false,
@@ -1591,7 +1590,6 @@ function init()
 			--bloom = false,
 			bloomdeferred = true,
 			ssao = 1,
-			advmapshading = 1,
 			mapedgeextension = false,
 			lighteffects = true,
 			lighteffects_additionalflashes = false,
@@ -1612,7 +1610,6 @@ function init()
 		 	--bloom = true,
 		 	bloomdeferred = true,
 		 	ssao = 1,
-			advmapshading = 1,
 		 	mapedgeextension = true,
 		 	lighteffects = true,
 		 	lighteffects_additionalflashes = true,
@@ -1633,7 +1630,6 @@ function init()
 			--bloom = true,
 			bloomdeferred = true,
 			ssao = 2,
-			advmapshading = 1,
 			mapedgeextension = true,
 			lighteffects = true,
 			lighteffects_additionalflashes = true,
@@ -1654,7 +1650,6 @@ function init()
 			--bloom = true,
 			bloomdeferred = true,
 			ssao = 3,
-			advmapshading = 1,
 			mapedgeextension = true,
 			lighteffects = true,
 			lighteffects_additionalflashes = true,
@@ -1939,12 +1934,6 @@ function init()
         { id = "label_gfx_lighting_spacer", group = "gfx", basic = true },
 
 
-		{ id = "advmapshading", group = "gfx", name = texts.option.advmapshading, basic = true, type = "bool", value = (Spring.GetConfigInt("AdvMapShading", 1) == 1), description = texts.option.advmapshading_descr,
-		  onchange = function(i, value)
-			  Spring.SetConfigInt("AdvMapShading", (value and 1 or 0))
-			  Spring.SendCommands("advmapshading "..(value and '1' or '0'))
-		  end,
-		},
 		{ id = "cus", group = "gfx", name = texts.option.cus, basic = true, type = "bool", value = (Spring.GetConfigInt("cus", 1) == 1), description = texts.option.cus_descr,
 		  onchange = function(i, value)
 			  if value == 0.5 then
@@ -3816,6 +3805,12 @@ function init()
 
         -- BAR doesnt support ZK style startboxes{ id = "startboxeditor", group = "dev", widget = "Startbox Editor", name = texts.option.startboxeditor, type = "bool", value = GetWidgetToggleValue("Startbox Editor"), description = texts.option.startboxeditor_descr },
 
+		{ id = "advmapshading", group = "dev", name = texts.option.advmapshading, type = "bool", value = (Spring.GetConfigInt("AdvMapShading", 1) == 1), description = texts.option.advmapshading_descr,
+		  onchange = function(i, value)
+			  Spring.SetConfigInt("AdvMapShading", (value and 1 or 0))
+			  Spring.SendCommands("advmapshading "..(value and '1' or '0'))
+		  end,
+		},
 
         { id = "gridmenu", group = "dev", name = texts.option.gridmenu, type = "bool", value = GetWidgetToggleValue("Grid menu"), description = texts.option.gridmenu_descr,
           onchange = function(i, value)
