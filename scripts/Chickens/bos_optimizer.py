@@ -8,7 +8,7 @@ LINEAR_CONSTANT = 65536.000000
 ANGULAR_CONSTANT = 182.00000
 
 parser = argparse.ArgumentParser()
-parser.add_argument("-b", "--bosfile", type = str, help= "The bos file to optimize", default = "../units/armcrus.bos")
+parser.add_argument("-b", "--bosfile", type = str, help= "The bos file to optimize")#, default = "../units/armcrus.bos")
 parser.add_argument("-d", "--directory", type = str, help= "the directory of bos files to work on", default = '../units/')
 
 args = parser.parse_args()
