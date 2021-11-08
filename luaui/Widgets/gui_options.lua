@@ -4716,7 +4716,7 @@ function init()
         resettedTonemapDefault = true
     end
 
-    if not string.find(string.upper(Game.gameVersion), "$VERSION") then
+    if not Spring.Utilities.IsDevMode() then
         options[getOptionByID('restart')] = nil
     end
 
