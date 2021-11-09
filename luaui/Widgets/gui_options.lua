@@ -3796,6 +3796,11 @@ function init()
 				end
 			end
 		},
+		{ id = "usePlayerUI", group = "dev", name = "View UI as player", type = "bool", value = Spring.GetConfigInt("DevUI", 0) == 0,
+			onchange = function(i, value)
+				Spring.SetConfigInt("DevUI", value and 0 or 1)
+			end,
+		},
         { id = "customwidgets", group = "dev", name = texts.option.customwidgets, type = "bool", value = widgetHandler.allowUserWidgets, description = texts.option.customwidgets_descr,
           onchange = function(i, value)
               widgetHandler.__allowUserWidgets = value
