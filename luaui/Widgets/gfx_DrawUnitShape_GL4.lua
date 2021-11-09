@@ -53,10 +53,12 @@ VFS.Include(luaShaderDir.."instancevboidtable.lua")
 local unitShader, unitShapeShader
 
 local unitShaderConfig = {
+	STATICMODEL = 0.0, -- do not touch!
 	TRANSPARENCY = 0.5, -- transparency of the stuff drawn
 }
 
 local unitShapeShaderConfig = {
+	STATICMODEL = 1.0, -- do not touch!
 	TRANSPARENCY = 0.5,
 }
 
@@ -76,7 +78,8 @@ layout (location = 4) in vec4 uv;
 layout (location = 5) in uint pieceIndex;
 layout (location = 6) in vec4 worldposrot;
 layout (location = 7) in vec4 parameters; // x = alpha, y = isstatic
-layout (location = 8) in uvec4 instData;
+layout (location = 8) in uvec2 overrideteam; // x = override teamcolor if < 256
+layout (location = 9) in uvec4 instData;
 
 uniform float iconDistance;
 
@@ -126,8 +129,8 @@ void main() {
   
 	vec4 modelPos = modelMatrix * pieceMatrix * vec4(pos, 1.0);
 
-	modelPos.xyz += vec3(0.0, 10.0, 0.0) +  worldposrot.xyz; //instOffset;	
-	if (parameters.y > 0.5) modelPos.xyz += mouseWorldPos.xyz; // we offset drawn defs with mouse
+	modelPos.xyz += vec3(0.0, 0.0, 0.0) +  worldposrot.xyz; //instOffset;	
+	//if (parameters.y > 0.5) modelPos.xyz += mouseWorldPos.xyz; // we offset drawn defs with mouse
 	
 	vec3 modelBaseToCamera = cameraViewInv[3].xyz - modelMatrix[3].xyz;
 	if ( dot (modelBaseToCamera, modelBaseToCamera) >  (iconDistance * iconDistance)) ; // do something if we are far out?
@@ -140,17 +143,13 @@ void main() {
 	uint drawFlags = (instData.y & 0x0000FF00u) >> 8 ; // hopefully this works
 	//uint isDrawn = drawFlags & 0x00000080u
 	myTeamColor = vec4(teamColor[teamIndex].rgb, parameters.x); // pass alpha through
-	//if ((drawFlags & 0x00000080u) > 0u)   myTeamColor.a = 0.0;
-	//if ((drawFlags & 0x00000040u) > 0u)   myTeamColor.r = 1.0;
-	//if ((drawFlags & 0x00000020u) > 0u)   myTeamColor.g = 1.0;
-	//if ((drawFlags & 0x00000010u) > 0u)   myTeamColor.b = 0.0;
 	
 	//uint tester = uint(mod(timeInfo.x*0.25, 10));
 	//if ((drawFlags & (1u << tester) )> 0u )  myTeamColor.rgba = vec4(0.0);
 	//if (drawFlags == 0u )  myTeamColor.rgba = vec4(1.0);
 	myTeamColor.a = parameters.x;
 	
-	if ( dot (modelBaseToCamera, modelBaseToCamera) >  (iconDistance * iconDistance)) myTeamColor.a = 0.0; // do something if we are far out?
+	if ( dot (modelBaseToCamera, modelBaseToCamera) >  (iconDistance * iconDistance)) myTeamColor.a = 0.4; // do something if we are far out?
 }
 ]]
 
@@ -174,6 +173,9 @@ out vec4 fragColor;
 #line 25000
 void main() {
 	vec4 modelColor = texture(tex1, vuv.xy);
+	vec4 extraColor = texture(tex2, vuv.xy);
+	modelColor += modelColor * extraColor.r; // emission
+	//modelColor.a = extraColor.a; // transparency
 	modelColor.rgb = mix(modelColor.rgb, myTeamColor.rgb, modelColor.a);
 	fragColor = vec4(modelColor.rgb, myTeamColor.a);
 	//fragColor = vec4(col.rgb, 1.0);
@@ -210,6 +212,7 @@ local function DrawUnitGL4(unitID, unitDefID, px, py, pz, rot, alpha, param1, pa
 	local elementID = pushElementInstance(DrawUnitVBOTable, {
 			px, py, pz, 0,
 			0.6, 0, 1.0, 1.0,
+			256, 0, 
 			0,0,0,0
 		},
 		uniqueID,
@@ -236,6 +239,7 @@ local function DrawUnitShapeGL4(unitDefID, px, py, pz, rot, alpha, param1, param
 	local elementID = pushElementInstance(DrawUnitShapeVBOTable, {
 			px, py, pz, 0,
 			0.6, 1, 1.0, 1.0,
+			256, 0, 
 			0,0,0,0
 		},
 		uniqueID,
@@ -243,7 +247,7 @@ local function DrawUnitShapeGL4(unitDefID, px, py, pz, rot, alpha, param1, param
 		nil,
 		unitDefID,
 		"unitDefID")
-	--Spring.Echo("Pushed", objecttype, unitID, "to uniqueID", uniqueID,"elemID", elementID)
+	Spring.Echo("Pushed", "unitDefID", unitDefID, "to unitDefID", uniqueID,"elemID", elementID)
 	return uniqueID
 end
 
@@ -259,10 +263,10 @@ local function StopDrawUnitGL4(uniqueID)
 end
 
 local function StopDrawUnitDefGL4(uniqueID)
-	if corDrawUnitVBOTable.instanceIDtoIndex[uniqueID] then
-		popElementInstance(corDrawUnitDefVBOTable, uniqueID)
-	elseif armDrawUnitVBOTable.instanceIDtoIndex[uniqueID] then
-		popElementInstance(armDrawUnitDefVBOTable, uniqueID)
+	if corDrawUnitShapeVBOTable.instanceIDtoIndex[uniqueID] then
+		popElementInstance(corDrawUnitShapeVBOTable, uniqueID)
+	elseif armDrawUnitShapeVBOTable.instanceIDtoIndex[uniqueID] then
+		popElementInstance(armDrawUnitShapeVBOTable, uniqueID)
 	else
 		Spring.Echo("Unable to remove what you wanted in StopDrawUnitDefGL4", uniqueID)
 	end
@@ -274,15 +278,15 @@ local unitDefIDtoUniqueID = {}
 
 
 function widget:UnitCreated(unitID, unitDefID)
-	unitIDtoUniqueID[unitID] =  DrawUnitGL4(unitID, unitDefID,  0, 64, 0, 0, 0.6)
+	--unitIDtoUniqueID[unitID] =  DrawUnitGL4(unitID, unitDefID,  0, 64, 0, 0, 0.6)
 	
 	local px, py, pz = Spring.GetUnitPosition(unitID)
-	unitDefIDtoUniqueID[unitID] = DrawUnitDefGL4(unitDefID, px, py + 50, pz, 0, 0.6)
+	unitDefIDtoUniqueID[unitID] = DrawUnitShapeGL4(Spring.GetUnitDefID(unitID), px+20, py + 50, pz+20, 0, 0.6)
 end
 
 function widget:UnitDestroyed(unitID)
-	StopDrawUnitGL4(unitIDtoUniqueID[unitID])
-	unitIDtoUniqueID[unitID] = nil
+	--StopDrawUnitGL4(unitIDtoUniqueID[unitID])
+	--unitIDtoUniqueID[unitID] = nil
 	
 	StopDrawUnitDefGL4(unitDefIDtoUniqueID[unitID])
 	unitDefIDtoUniqueID[unitID] = nil
@@ -305,11 +309,12 @@ function widget:Initialize()
 	local VBOLayout = { 
 			{id = 6, name = "worldposrot", size = 4},
 			{id = 7, name = "parameters" , size = 4},
-			{id = 8, name = "instData", type = GL.UNSIGNED_INT, size = 4},
+			{id = 8, name = "overrideteam" , type = GL.UNSIGNED_INT, size = 2},
+			{id = 9, name = "instData", type = GL.UNSIGNED_INT, size = 4},
 		}
 
 	local maxElements = 32 -- start small for testing
-	local unitIDAttributeIndex = 8
+	local unitIDAttributeIndex = 9
 	corDrawUnitVBOTable         = makeInstanceVBOTable(VBOLayout, maxElements, "corDrawUnitVBOTable", unitIDAttributeIndex, "unitID")
 	armDrawUnitVBOTable         = makeInstanceVBOTable(VBOLayout, maxElements, "armDrawUnitVBOTable", unitIDAttributeIndex, "unitID")
 	corDrawUnitShapeVBOTable    = makeInstanceVBOTable(VBOLayout, maxElements, "corDrawUnitShapeVBOTable", unitIDAttributeIndex, "unitDefID")
@@ -340,6 +345,9 @@ function widget:Initialize()
 			tex1 = 0,
 			tex2 = 1,
 		},
+		uniformFloat = {
+			iconDistance = 1,
+		  },
 	}, "UnitGL4 API")
 	
 	unitShapeShader = LuaShader({
@@ -349,9 +357,13 @@ function widget:Initialize()
 			tex1 = 0,
 			tex2 = 1,
 		},
+		uniformFloat = {
+			iconDistance = 1,
+		  },
 	}, "UnitShapeGL4 API")
 	
 	local shaderCompiled = unitShader:Initialize()
+	local shaderCompiled = unitShapeShader:Initialize()
 	--Spring.Echo("Hello")
 	
 	for i, unitID in ipairs(Spring.GetAllUnits()) do
@@ -371,19 +383,19 @@ end
 function widget:DrawWorldPreUnit() -- this is for UnitDef
 	if armDrawUnitShapeVBOTable.usedElements > 0 or corDrawUnitShapeVBOTable.usedElements > 0 then 
 		gl.Culling(GL.BACK)
-		gl.DepthMask(true)
-		gl.DepthTest(true)
-		gl.PolygonOffset ( 0.5 ) 
+		gl.DepthMask(false)
+		gl.DepthTest(false)
+		gl.PolygonOffset ( 0.5,0.5 ) 
 		unitShapeShader:Activate()
 		unitShapeShader:SetUniform("iconDistance",27 * Spring.GetConfigInt("UnitIconDist", 200)) 
-		if (corDrawUnitVBOTable.usedElements > 0 ) then
+		if (corDrawUnitShapeVBOTable.usedElements > 0 ) then
 			gl.UnitShapeTextures(corcomUnitDefID, true)
-			corDrawUnitVBOTable.VAO:Submit()
+			corDrawUnitShapeVBOTable.VAO:Submit()
 		end
 		
-		if (armDrawUnitVBOTable.usedElements > 0 ) then
+		if (armDrawUnitShapeVBOTable.usedElements > 0 ) then
 			gl.UnitShapeTextures(armcomUnitDefID, true)
-			armDrawUnitVBOTable.VAO:Submit()
+			armDrawUnitShapeVBOTable.VAO:Submit()
 		end
 		
 		unitShapeShader:Deactivate()
@@ -398,7 +410,7 @@ function widget:DrawWorld()
 		gl.Culling(GL.BACK)
 		gl.DepthMask(true)
 		gl.DepthTest(true)
-		gl.PolygonOffset ( 0.5 ) 
+		gl.PolygonOffset( 0.5 ,0.5) 
 		unitShader:Activate()
 		unitShader:SetUniform("iconDistance",27 * Spring.GetConfigInt("UnitIconDist", 200)) 
 		if (corDrawUnitVBOTable.usedElements > 0 ) then

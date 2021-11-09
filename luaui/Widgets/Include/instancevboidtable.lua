@@ -284,7 +284,7 @@ function popElementInstance(iT, instanceID, noUpload)
         
         if iT.VAO then
           iT.VAO:RemoveFromSubmission(oldElementIndex-1)
-          Spring.Echo("RemoveFromSubmission",oldElementIndex-1)
+          Spring.Echo("RemoveFromSubmission",objecttype,oldElementIndex-1)
         end
         
         if objecttype == "unitID" then 
