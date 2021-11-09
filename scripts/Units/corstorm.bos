@@ -436,7 +436,7 @@ FirePrimary()
 {
 	if( gun_1 )
 	{
-		emit-sfx UNIT_SFX0 from rexhaust;
+		emit-sfx UNIT_SFX0 from lexhaust;
 		turn turret to y-axis <-8> now;
 		turn launcher to x-axis <-5> now;
 		
@@ -445,7 +445,7 @@ FirePrimary()
 	}
 	else
 	{
-		emit-sfx UNIT_SFX0 from lexhaust;
+		emit-sfx UNIT_SFX0 from rexhaust;
 		
 		turn turret to y-axis <8> now;
 		turn launcher to x-axis <-5> now;
