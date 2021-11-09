@@ -14,6 +14,11 @@ end
    Add option, at:
    function init
 ]]--
+local types = {
+	basic = 1,
+	advanced = 2,
+	dev = 3,
+}
 
 local texts = {}    -- loaded from external language file
 local languages = Spring.I18N.languages
@@ -482,7 +487,7 @@ function DrawWindow()
     if currentGroupTab ~= nil then
         numOptions = 0
         for i, option in pairs(options) do
-            if option.group == currentGroupTab and (advSettings or option.basic) then
+            if option.group == currentGroupTab and (advSettings or option.category == types.basic) then
                 numOptions = numOptions + 1
             end
         end
@@ -540,7 +545,7 @@ function DrawWindow()
     -- draw options
     local yPos
     for oid, option in pairs(options) do
-        if advSettings or option.basic and option.group ~= 'Dev' then
+        if advSettings or option.category == types.basic and option.group ~= 'Dev' then
             if currentGroupTab == nil or option.group == currentGroupTab then
                 yPos = math.floor(y - (((oHeight + oPadding + oPadding) * i) - oPadding))
                 if yPos - oHeight < yPosMax then
@@ -1775,7 +1780,7 @@ function init()
         { id = 'ui', name = texts.group.interface },
         { id = 'game', name = texts.group.game },
         { id = 'control', name = texts.group.control },
-        { id = 'snd', name = texts.group.audio },
+        { id = 'sound', name = texts.group.audio },
         { id = 'notif', name = texts.group.notifications },
         { id = 'dev', name = texts.group.dev },
     }
@@ -1799,7 +1804,7 @@ function init()
     options = {
         --GFX
         -- PRESET
-        { id = "preset", group = "gfx", basic = true, name = texts.option.preset, type = "select", options = presetNames, value = 0, description = texts.option.preset_descr,
+        { id = "preset", group = "gfx", category = types.basic, name = texts.option.preset, type = "select", options = presetNames, value = 0, description = texts.option.preset_descr,
           onload = function(i)
           end,
           onchange = function(i, value)
@@ -1808,9 +1813,9 @@ function init()
               loadPreset(presetNames[value])
           end,
         },
-        { id = "label_gfx_screen", group = "gfx", name = texts.option.label_screen, basic = true },
-        { id = "label_gfx_screen_spacer", group = "gfx", basic = true },
-        { id = "resolution", group = "gfx", basic = true, name = texts.option.resolution, type = "select", options = supportedResolutions, value = 0, description = texts.option.resolution_descr,
+        { id = "label_gfx_screen", group = "gfx", name = texts.option.label_screen, category = types.basic },
+        { id = "label_gfx_screen_spacer", group = "gfx", category = types.basic },
+        { id = "resolution", group = "gfx", category = types.basic, name = texts.option.resolution, type = "select", options = supportedResolutions, value = 0, description = texts.option.resolution_descr,
           onchange = function(i, value)
               local resolutionX = string.match(options[i].options[options[i].value], '[0-9]*')
               local resolutionY = string.gsub(string.match(options[i].options[options[i].value], 'x [0-9]*'), 'x ', '')
@@ -1828,7 +1833,7 @@ function init()
               checkResolution()
           end,
         },
-        { id = "fullscreen", group = "gfx", basic = true, name = texts.option.fullscreen, type = "bool", value = tonumber(Spring.GetConfigInt("Fullscreen", 1) or 1) == 1,
+        { id = "fullscreen", group = "gfx", category = types.basic, name = texts.option.fullscreen, type = "bool", value = tonumber(Spring.GetConfigInt("Fullscreen", 1) or 1) == 1,
           onchange = function(i, value)
               if value then
                   options[getOptionByID('borderless')].value = false
@@ -1847,7 +1852,7 @@ function init()
               Spring.SendCommands("Fullscreen " .. (value and 1 or 0))
               Spring.SetConfigInt("Fullscreen", (value and 1 or 0))
           end, },
-        { id = "borderless", group = "gfx", basic = true, name = texts.option.borderless, type = "bool", value = tonumber(Spring.GetConfigInt("WindowBorderless", 1) or 1) == 1, description = texts.option.borderless_descr,
+        { id = "borderless", group = "gfx", category = types.basic, name = texts.option.borderless, type = "bool", value = tonumber(Spring.GetConfigInt("WindowBorderless", 1) or 1) == 1, description = texts.option.borderless_descr,
           onchange = function(i, value)
               Spring.SetConfigInt("WindowBorderless", (value and 1 or 0))
               if value then
@@ -1864,13 +1869,13 @@ function init()
               checkResolution()
           end,
         },
-        { id = "windowpos", group = "gfx", basic = true, widget = "Move Window Position", name = texts.option.windowpos, type = "bool", value = GetWidgetToggleValue("Move Window Position"), description = texts.option.windowpos_descr,
+        { id = "windowpos", group = "gfx", category = types.basic, widget = "Move Window Position", name = texts.option.windowpos, type = "bool", value = GetWidgetToggleValue("Move Window Position"), description = texts.option.windowpos_descr,
           onchange = function(i, value)
               Spring.SetConfigInt("FullscreenEdgeMove", (value and 1 or 0))
               Spring.SetConfigInt("WindowedEdgeMove", (value and 1 or 0))
           end,
         },
-        { id = "vsync", group = "gfx", basic = true, name = texts.option.vsync, type = "bool", value = vsyncEnabled, description = '',
+        { id = "vsync", group = "gfx", category = types.basic, name = texts.option.vsync, type = "bool", value = vsyncEnabled, description = '',
           onchange = function(i, value)
               vsyncEnabled = value
               local vsync = 0
@@ -1886,7 +1891,7 @@ function init()
               Spring.SetConfigInt("VSyncGame", vsync)    -- stored here as assurance cause lobby/game also changes vsync when idle and lobby could think game has set vsync 4 after a hard crash
           end,
         },
-        { id = "vsync_spec", group = "gfx", basic = true, name = widgetOptionColor .. "   " .. texts.option.vsync_spec, type = "bool", value = vsyncOnlyForSpec, description = texts.option.vsync_spec_descr,
+        { id = "vsync_spec", group = "gfx", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.vsync_spec, type = "bool", value = vsyncOnlyForSpec, description = texts.option.vsync_spec_descr,
           onchange = function(i, value)
               vsyncOnlyForSpec = value
               if isSpec and vsyncEnabled then
@@ -1899,7 +1904,7 @@ function init()
               end
           end,
         },
-        { id = "vsync_level", group = "gfx", name = widgetOptionColor .. "   " .. texts.option.vsync_level, type = "slider", min = 1, max = 3, step = 1, value = vsyncLevel, description = texts.option.vsync_level_descr,
+        { id = "vsync_level", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.vsync_level, type = "slider", min = 1, max = 3, step = 1, value = vsyncLevel, description = texts.option.vsync_level_descr,
           onchange = function(i, value)
               vsyncLevel = value
               local vsync = 0
@@ -1910,15 +1915,15 @@ function init()
               Spring.SetConfigInt("VSyncGame", vsync)    -- stored here as assurance cause lobby/game also changes vsync when idle and lobby could think game has set vsync 4 after a hard crash
           end,
         },
-        { id = "limitidlefps", group = "gfx", widget = "Limit idle FPS", name = texts.option.limitidlefps, type = "bool", value = GetWidgetToggleValue("Limit idle FPS"), description = texts.option.limitidlefps_descr },
+        { id = "limitidlefps", group = "gfx", category = types.advanced, widget = "Limit idle FPS", name = texts.option.limitidlefps, type = "bool", value = GetWidgetToggleValue("Limit idle FPS"), description = texts.option.limitidlefps_descr },
 
-        { id = "msaa", group = "gfx", basic = true, name = texts.option.msaa, type = "slider", min = 0, max = 8, step = 1, restart = true, value = tonumber(Spring.GetConfigInt("MSAALevel", 1) or 2), description = texts.option.msaa_descr,
+        { id = "msaa", group = "gfx", category = types.basic, name = texts.option.msaa, type = "slider", min = 0, max = 8, step = 1, restart = true, value = tonumber(Spring.GetConfigInt("MSAALevel", 1) or 2), description = texts.option.msaa_descr,
           onchange = function(i, value)
               Spring.SetConfigInt("MSAALevel", value)
           end,
         },
 
-        { id = "cas_sharpness", group = "gfx", name = texts.option.cas_sharpness, min = 0.3, max = 1.1, step = 0.01, type = "slider", value = 1.0, description = texts.option.cas_sharpness_descr,
+        { id = "cas_sharpness", group = "gfx", category = types.advanced, name = texts.option.cas_sharpness, min = 0.3, max = 1.1, step = 0.01, type = "slider", value = 1.0, description = texts.option.cas_sharpness_descr,
           onload = function(i)
               loadWidgetData("Contrast Adaptive Sharpen", "cas_sharpness", { 'SHARPNESS' })
           end,
@@ -1930,11 +1935,11 @@ function init()
           end,
         },
 
-        { id = "label_gfx_lighting", group = "gfx", name = texts.option.label_lighting, basic = true },
-        { id = "label_gfx_lighting_spacer", group = "gfx", basic = true },
+        { id = "label_gfx_lighting", group = "gfx", name = texts.option.label_lighting, category = types.basic },
+        { id = "label_gfx_lighting_spacer", group = "gfx", category = types.basic },
 
 
-		{ id = "cus", group = "gfx", name = texts.option.cus, basic = true, type = "bool", value = (Spring.GetConfigInt("cus", 1) == 1), description = texts.option.cus_descr,
+		{ id = "cus", group = "gfx", name = texts.option.cus, category = types.basic, type = "bool", value = (Spring.GetConfigInt("cus", 1) == 1), description = texts.option.cus_descr,
 		  onchange = function(i, value)
 			  if value == 0.5 then
 				  Spring.SendCommands("luarules disablecus")
@@ -1945,7 +1950,7 @@ function init()
 		  end,
 		},
 
-		{ id = "cus_threshold", group = "gfx", name = widgetOptionColor .. "   " .. texts.option.cus_threshold, min = 10, max = 90, step = 1, type = "slider", value = Spring.GetConfigInt("cusThreshold", 30), description = texts.option.cus_threshold_descr,
+		{ id = "cus_threshold", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.cus_threshold, min = 10, max = 90, step = 1, type = "slider", value = Spring.GetConfigInt("cusThreshold", 30), description = texts.option.cus_threshold_descr,
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("cusThreshold", value)
 			  if not GetWidgetToggleValue("Auto Disable CUS") then
@@ -1954,7 +1959,7 @@ function init()
 		  end,
 		},
 
-        { id = "shadowslider", group = "gfx", basic = true, name = texts.option.shadowslider, type = "slider", steps = { 2048, 3072, 4096, 8192 }, value = tonumber(Spring.GetConfigInt("ShadowMapSize", 1) or 4096), description = texts.option.shadowslider_descr,
+        { id = "shadowslider", group = "gfx", category = types.basic, name = texts.option.shadowslider, type = "slider", steps = { 2048, 3072, 4096, 8192 }, value = tonumber(Spring.GetConfigInt("ShadowMapSize", 1) or 4096), description = texts.option.shadowslider_descr,
           onchange = function(i, value)
               local enabled = (value < 1000) and 0 or 1
               Spring.SendCommands("shadows " .. enabled .. " " .. value)
@@ -1962,20 +1967,20 @@ function init()
               Spring.SetConfigInt("ShadowMapSize", value)
           end,
         },
-        { id = "shadows_opacity", group = "gfx", name = widgetOptionColor .. "   " .. texts.option.shadows_opacity, type = "slider", min = 0.3, max = 1, step = 0.01, value = gl.GetSun("shadowDensity"), description = '',
+        { id = "shadows_opacity", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.shadows_opacity, type = "slider", min = 0.3, max = 1, step = 0.01, value = gl.GetSun("shadowDensity"), description = '',
           onchange = function(i, value)
               Spring.SetSunLighting({ groundShadowDensity = value, modelShadowDensity = value })
           end,
         },
 
-        { id = "darkenmap", group = "gfx", name = texts.option.darkenmap, min = 0, max = 0.5, step = 0.01, type = "slider", value = 0, description = texts.option.darkenmap_descr,
+        { id = "darkenmap", group = "gfx", category = types.advanced, name = texts.option.darkenmap, min = 0, max = 0.5, step = 0.01, type = "slider", value = 0, description = texts.option.darkenmap_descr,
           onload = function(i)
           end,
           onchange = function(i, value)
               saveOptionValue('Darken map', 'darkenmap', 'setMapDarkness', { 'maps', Game.mapName:lower() }, value)
           end,
         },
-        { id = "darkenmap_darkenfeatures", group = "gfx", name = widgetOptionColor .. "   " .. texts.option.darkenmap_darkenfeatures, type = "bool", value = false, description = texts.option.darkenmap_darkenfeatures_descr,
+        { id = "darkenmap_darkenfeatures", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.darkenmap_darkenfeatures, type = "bool", value = false, description = texts.option.darkenmap_darkenfeatures_descr,
           onload = function(i)
           end,
           onchange = function(i, value)
@@ -1983,7 +1988,7 @@ function init()
           end,
         },
 
-        { id = "fog_start", group = "gfx", name = texts.option.fog .. widgetOptionColor .. "  " .. texts.option.fog_start, type = "slider", min = 0, max = 1.99, step = 0.01, value = gl.GetAtmosphere("fogStart"), description = texts.option.fog_start_descr,
+        { id = "fog_start", group = "gfx", category = types.advanced, name = texts.option.fog .. widgetOptionColor .. "  " .. texts.option.fog_start, type = "slider", min = 0, max = 1.99, step = 0.01, value = gl.GetAtmosphere("fogStart"), description = texts.option.fog_start_descr,
           onload = function(i)
           end,
           onchange = function(i, value)
@@ -1995,7 +2000,7 @@ function init()
               customMapFog[Game.mapName] = { fogStart = gl.GetAtmosphere("fogStart"), fogEnd = gl.GetAtmosphere("fogStart") }
           end,
         },
-        { id = "fog_end", group = "gfx", name = widgetOptionColor .. "   " .. texts.option.fog_end, type = "slider", min = 0.5, max = 2, step = 0.01, value = gl.GetAtmosphere("fogEnd"), description = texts.option.fog_end_descr,
+        { id = "fog_end", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.fog_end, type = "slider", min = 0.5, max = 2, step = 0.01, value = gl.GetAtmosphere("fogEnd"), description = texts.option.fog_end_descr,
           onload = function(i)
           end,
           onchange = function(i, value)
@@ -2007,7 +2012,7 @@ function init()
               customMapFog[Game.mapName] = { fogStart = gl.GetAtmosphere("fogStart"), fogEnd = gl.GetAtmosphere("fogEnd") }
           end,
         },
-        { id = "fog_reset", group = "gfx", name = widgetOptionColor .. "   " .. texts.option.fog_reset, type = "bool", value = false, description = '',
+        { id = "fog_reset", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.fog_reset, type = "bool", value = false, description = '',
           onload = function(i)
           end,
           onchange = function(i, value)
@@ -2022,7 +2027,7 @@ function init()
           end,
         },
 
-        { id = "ssao", group = "gfx", basic = true, name = texts.option.ssao, type = "select", options = { 'disabled', 'enabled', 'high' }, value = 0, description = texts.option.ssao_descr,
+        { id = "ssao", group = "gfx", category = types.basic, name = texts.option.ssao, type = "select", options = { 'disabled', 'enabled', 'high' }, value = 0, description = texts.option.ssao_descr,
           onchange = function(i, value)
               if value == 1 then
                   widgetHandler:DisableWidget("SSAO")
@@ -2042,7 +2047,7 @@ function init()
               end
           end,
         },
-        { id = "ssao_strength", group = "gfx", name = widgetOptionColor .. "   " .. texts.option.ssao_strength, type = "slider", min = 5, max = 15, step = 1, value = 9, description = '',
+        { id = "ssao_strength", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.ssao_strength, type = "slider", min = 5, max = 15, step = 1, value = 9, description = '',
           onchange = function(i, value)
               saveOptionValue('SSAO', 'ssao', 'setStrength', { 'strength' }, value)
           end,
@@ -2050,13 +2055,13 @@ function init()
               loadWidgetData("SSAO", "ssao_strength", { 'strength' })
           end,
         },
-        --{id="ssao_radius", group="gfx", name=widgetOptionColor.."   radius", type="slider", min=4, max=6, step=1, value=5, description='',
+        --{ id ="ssao_radius", group="gfx", name=widgetOptionColor.."   radius", type="slider", min=4, max=6, step=1, value=5, description='',
         -- onchange=function(i,value) saveOptionValue('SSAO', 'ssao', 'setRadius', {'radius'}, value) end,
         -- onload=function(i) loadWidgetData("SSAO", "ssao_radius", {'radius'}) end,
         --},
 
-        { id = "bloomdeferred", group = "gfx", basic = true, widget = "Bloom Shader Deferred", name = texts.option.bloomdeferred, type = "bool", value = GetWidgetToggleValue("Bloom Shader Deferred"), description = texts.option.bloomdeferred_descr },
-        { id = "bloomdeferredbrightness", group = "gfx", name = widgetOptionColor .. "   " .. texts.option.bloomdeferredbrightness, type = "slider", min = 0.6, max = 1.5, step = 0.05, value = 1, description = '',
+        { id = "bloomdeferred", group = "gfx", category = types.basic, widget = "Bloom Shader Deferred", name = texts.option.bloomdeferred, type = "bool", value = GetWidgetToggleValue("Bloom Shader Deferred"), description = texts.option.bloomdeferred_descr },
+        { id = "bloomdeferredbrightness", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.bloomdeferredbrightness, type = "slider", min = 0.6, max = 1.5, step = 0.05, value = 1, description = '',
           onchange = function(i, value)
               saveOptionValue('Bloom Shader Deferred', 'bloomdeferred', 'setBrightness', { 'glowAmplifier' }, value)
           end,
@@ -2065,8 +2070,8 @@ function init()
           end,
         },
 
-        { id = "bloom", group = "gfx", basic = true, widget = "Bloom Shader", name = texts.option.bloom, type = "bool", value = GetWidgetToggleValue("Bloom Shader"), description = texts.option.bloom_descr },
-        { id = "bloombrightness", group = "gfx", name = widgetOptionColor .. "   " .. texts.option.bloombrightness, type = "slider", min = 0.1, max = 0.25, step = 0.05, value = 0.15, description = '',
+        { id = "bloom", group = "gfx", category = types.basic, widget = "Bloom Shader", name = texts.option.bloom, type = "bool", value = GetWidgetToggleValue("Bloom Shader"), description = texts.option.bloom_descr },
+        { id = "bloombrightness", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.bloombrightness, type = "slider", min = 0.1, max = 0.25, step = 0.05, value = 0.15, description = '',
           onchange = function(i, value)
               saveOptionValue('Bloom Shader', 'bloom', 'setBrightness', { 'basicAlpha' }, value)
           end,
@@ -2075,8 +2080,8 @@ function init()
           end,
         },
 
-        { id = "dof", group = "gfx", widget = "Depth of Field", name = texts.option.dof, type = "bool", value = GetWidgetToggleValue("Depth of Field"), description = texts.option.dof_descr },
-        { id = "dof_autofocus", group = "gfx", name = widgetOptionColor .. "   " .. texts.option.dof_autofocus, type = "bool", value = true, description = texts.option.dof_autofocus_descr,
+        { id = "dof", group = "gfx", category = types.advanced, widget = "Depth of Field", name = texts.option.dof, type = "bool", value = GetWidgetToggleValue("Depth of Field"), description = texts.option.dof_descr },
+        { id = "dof_autofocus", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.dof_autofocus, type = "bool", value = true, description = texts.option.dof_autofocus_descr,
           onload = function(i)
               loadWidgetData("Depth of Field", "dof_autofocus", { 'autofocus' })
           end,
@@ -2084,7 +2089,7 @@ function init()
               saveOptionValue('Depth of Field', 'dof', 'setAutofocus', { 'autofocus' }, value)
           end,
         },
-        { id = "dof_fstop", group = "gfx", name = widgetOptionColor .. "   " .. texts.option.dof_fstop, type = "slider", min = 1, max = 6, step = 0.1, value = 2, description = texts.option.dof_fstop_descr,
+        { id = "dof_fstop", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.dof_fstop, type = "slider", min = 1, max = 6, step = 0.1, value = 2, description = texts.option.dof_fstop_descr,
           onload = function(i)
               loadWidgetData("Depth of Field", "dof_fstop", { 'fStop' })
           end,
@@ -2094,7 +2099,7 @@ function init()
         },
 
 
-        { id = "lighteffects", group = "gfx", basic = true, name = texts.option.lighteffects, type = "bool", value = GetWidgetToggleValue("Light Effects"), description = texts.option.lighteffects_descr,
+        { id = "lighteffects", group = "gfx", category = types.basic, name = texts.option.lighteffects, type = "bool", value = GetWidgetToggleValue("Light Effects"), description = texts.option.lighteffects_descr,
           onload = function(i)
           end,
           onchange = function(i, value)
@@ -2111,7 +2116,7 @@ function init()
               end
           end,
         },
-        --{ id = "lighteffects_life", group = "gfx", name = widgetOptionColor .. "   "..texts.option.lighteffects_life, min = 0.35, max = 0.65, step = 0.05, type = "slider", value = 0.45, description = texts.option.lighteffects_life_descr,
+        --{ id = "lighteffects_life", group = "gfx", category = optionTypes.advanced, name = widgetOptionColor .. "   "..texts.option.lighteffects_life, min = 0.35, max = 0.65, step = 0.05, type = "slider", value = 0.45, description = texts.option.lighteffects_life_descr,
         --  onload = function(i)
         --	  loadWidgetData("Light Effects", "lighteffects_life", { 'globalLifeMult' })
         --  end,
@@ -2119,7 +2124,7 @@ function init()
         --	  saveOptionValue('Light Effects', 'lighteffects', 'setLife', { 'globalLifeMult' }, value)
         --  end,
         --},
-        { id = "lighteffects_brightness", group = "gfx", name = widgetOptionColor .. "   " .. texts.option.lighteffects_brightness, min = 0.65, max = 2, step = 0.05, type = "slider", value = 1.4, description = texts.option.lighteffects_brightness_descr,
+        { id = "lighteffects_brightness", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.lighteffects_brightness, min = 0.65, max = 2, step = 0.05, type = "slider", value = 1.4, description = texts.option.lighteffects_brightness_descr,
           onload = function(i)
               loadWidgetData("Light Effects", "lighteffects_brightness", { 'globalLightMult' })
           end,
@@ -2127,7 +2132,7 @@ function init()
               saveOptionValue('Light Effects', 'lighteffects', 'setGlobalBrightness', { 'globalLightMult' }, value)
           end,
         },
-        { id = "lighteffects_additionalflashes", group = "gfx", name = widgetOptionColor .. "   " .. texts.option.lighteffects_additionalflashes, type = "bool", value = true, description = texts.option.lighteffects_additionalflashes_descr,
+        { id = "lighteffects_additionalflashes", category = types.advanced, group = "gfx", name = widgetOptionColor .. "   " .. texts.option.lighteffects_additionalflashes, type = "bool", value = true, description = texts.option.lighteffects_additionalflashes_descr,
           onload = function(i)
               loadWidgetData("Light Effects", "lighteffects_additionalflashes", { 'additionalLightingFlashes' })
           end,
@@ -2135,7 +2140,7 @@ function init()
               saveOptionValue('Light Effects', 'lighteffects', 'setAdditionalFlashes', { 'additionalLightingFlashes' }, value)
           end,
         },
-        --{ id = "lighteffects_radius", group = "gfx", name = widgetOptionColor .. "   "..texts.option.lighteffects_radius, min = 1.2, max = 1.7, step = 0.05, type = "slider", value = 1.5, description = texts.option.lighteffects_radius_descr,
+        --{ id = "lighteffects_radius", group = "gfx", category = optionTypes.advanced, name = widgetOptionColor .. "   "..texts.option.lighteffects_radius, min = 1.2, max = 1.7, step = 0.05, type = "slider", value = 1.5, description = texts.option.lighteffects_radius_descr,
         --  onload = function(i)
         --	  loadWidgetData("Light Effects", "lighteffects_radius", { 'globalRadiusMult' })
         --  end,
@@ -2143,22 +2148,22 @@ function init()
         --	  saveOptionValue('Light Effects', 'lighteffects', 'setGlobalRadius', { 'globalRadiusMult' }, value)
         --  end,
         --},
-        --{id="lighteffects_laserbrightness", group="gfx", name=widgetOptionColor.."   laser brightness", min=0.4, max=2, step=0.1, type="slider", value=1.2, description='laser lights brightness RELATIVE to global light brightness set above\n\n(only applies to real map and model lighting)',
+        --{ id ="lighteffects_laserbrightness", group="gfx", name=widgetOptionColor.."   laser brightness", min=0.4, max=2, step=0.1, type="slider", value=1.2, description='laser lights brightness RELATIVE to global light brightness set above\n\n(only applies to real map and model lighting)',
         --		 onload = function(i) loadWidgetData("Light Effects", "lighteffects_laserbrightness", {'globalLightMultLaser'}) end,
         --		 onchange = function(i, value) saveOptionValue('Light Effects', 'lighteffects', 'setLaserBrightness', {'globalLightMultLaser'}, value) end,
         --		},
-        --{id="lighteffects_laserradius", group="gfx", name=widgetOptionColor.."   laser radius", min=0.5, max=1.6, step=0.1, type="slider", value=1, description='laser lights radius RELATIVE to global light radius set above\n\n(only applies to real map and model lighting)',
+        --{ id ="lighteffects_laserradius", group="gfx", name=widgetOptionColor.."   laser radius", min=0.5, max=1.6, step=0.1, type="slider", value=1, description='laser lights radius RELATIVE to global light radius set above\n\n(only applies to real map and model lighting)',
         --		 onload = function(i) loadWidgetData("Light Effects", "lighteffects_laserradius", {'globalRadiusMultLaser'}) end,
         --		 onchange = function(i, value) saveOptionValue('Light Effects', 'lighteffects', 'setLaserRadius', {'globalRadiusMultLaser'}, value) end,
         --		},
 
-        { id = "heatdistortion", group = "gfx", basic = true, widget = "Lups", name = texts.option.heatdistortion, type = "bool", value = GetWidgetToggleValue("Lups"), description = texts.option.heatdistortion_descr },
+        { id = "heatdistortion", group = "gfx", category = types.basic, widget = "Lups", name = texts.option.heatdistortion, type = "bool", value = GetWidgetToggleValue("Lups"), description = texts.option.heatdistortion_descr },
 
 
-        { id = "label_gfx_environment", group = "gfx", name = texts.option.label_environment, basic = true },
-        { id = "label_gfx_environment_spacer", group = "gfx", basic = true },
+        { id = "label_gfx_environment", group = "gfx", name = texts.option.label_environment, category = types.basic },
+        { id = "label_gfx_environment_spacer", group = "gfx", category = types.basic },
 
-        { id = "water", group = "gfx", basic = true, name = texts.option.water, type = "select", options = { 'basic', 'reflective', 'dynamic', 'reflective&refractive', 'bump-mapped' }, value = desiredWaterValue + 1,
+        { id = "water", group = "gfx", category = types.basic, name = texts.option.water, type = "select", options = { 'basic', 'reflective', 'dynamic', 'reflective&refractive', 'bump-mapped' }, value = desiredWaterValue + 1,
           onload = function(i)
           end,
           onchange = function(i, value)
@@ -2169,9 +2174,9 @@ function init()
           end,
         },
 
-        { id = "mapedgeextension", group = "gfx", basic = true, widget = "Map Edge Extension", name = texts.option.mapedgeextension, type = "bool", value = GetWidgetToggleValue("Map Edge Extension"), description = texts.option.mapedgeextension_descr },
+        { id = "mapedgeextension", group = "gfx", category = types.basic, widget = "Map Edge Extension", name = texts.option.mapedgeextension, type = "bool", value = GetWidgetToggleValue("Map Edge Extension"), description = texts.option.mapedgeextension_descr },
 
-        { id = "mapedgeextension_brightness", group = "gfx", name = widgetOptionColor .. "   " .. texts.option.mapedgeextension_brightness, min = 0.2, max = 1, step = 0.01, type = "slider", value = 0.3, description = '',
+        { id = "mapedgeextension_brightness", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.mapedgeextension_brightness, min = 0.2, max = 1, step = 0.01, type = "slider", value = 0.3, description = '',
           onload = function(i)
               loadWidgetData("Map Edge Extension", "mapedgeextension_brightness", { 'brightness' })
           end,
@@ -2179,7 +2184,7 @@ function init()
               saveOptionValue('Map Edge Extension', 'mapedgeextension', 'setBrightness', { 'brightness' }, value)
           end,
         },
-        { id = "mapedgeextension_curvature", group = "gfx", name = widgetOptionColor .. "   " .. texts.option.mapedgeextension_curvature, type = "bool", value = true, description = texts.option.mapedgeextension_curvature_descr,
+        { id = "mapedgeextension_curvature", category = types.advanced, group = "gfx", name = widgetOptionColor .. "   " .. texts.option.mapedgeextension_curvature, type = "bool", value = true, description = texts.option.mapedgeextension_curvature_descr,
           onload = function(i)
               loadWidgetData("Map Edge Extension", "mapedgeextension_curvature", { 'curvature' })
           end,
@@ -2188,7 +2193,7 @@ function init()
           end,
         },
 
-        { id = "decals", group = "gfx", basic = true, name = texts.option.decals, type = "slider", min = 0, max = 5, step = 1, value = tonumber(Spring.GetConfigInt("GroundDecals", 1) or 1), description = texts.option.decals_descr,
+        { id = "decals", group = "gfx", category = types.basic, name = texts.option.decals, type = "slider", min = 0, max = 5, step = 1, value = tonumber(Spring.GetConfigInt("GroundDecals", 1) or 1), description = texts.option.decals_descr,
           onload = function(i)
           end,
           onchange = function(i, value)
@@ -2197,7 +2202,7 @@ function init()
               Spring.SetConfigInt("GroundScarAlphaFade", 1)
           end,
         },
-        { id = "grounddetail", group = "gfx", basic = true, name = texts.option.grounddetail, type = "slider", min = 100, max = 200, step = 1, value = tonumber(Spring.GetConfigInt("GroundDetail", 100) or 100), description = texts.option.grounddetail_descr,
+        { id = "grounddetail", group = "gfx", category = types.basic, name = texts.option.grounddetail, type = "slider", min = 100, max = 200, step = 1, value = tonumber(Spring.GetConfigInt("GroundDetail", 100) or 100), description = texts.option.grounddetail_descr,
           onload = function(i)
           end,
           onchange = function(i, value)
@@ -2206,9 +2211,9 @@ function init()
           end,
         },
 
-        { id = "grass", group = "gfx", basic = true, widget = "Map Grass GL4", name = texts.option.grass, type = "bool", value = GetWidgetToggleValue("Map Grass GL4"), description = texts.option.grass_desc },
+        { id = "grass", group = "gfx", category = types.basic, widget = "Map Grass GL4", name = texts.option.grass, type = "bool", value = GetWidgetToggleValue("Map Grass GL4"), description = texts.option.grass_desc },
 
-        { id = "treewind", group = "gfx", basic = true, name = texts.option.treewind, type = "bool", value = tonumber(Spring.GetConfigInt("TreeWind", 1) or 1) == 1, description = texts.option.treewind_descr,
+        { id = "treewind", group = "gfx", category = types.basic, name = texts.option.treewind, type = "bool", value = tonumber(Spring.GetConfigInt("TreeWind", 1) or 1) == 1, description = texts.option.treewind_descr,
           onload = function(i)
           end,
           onchange = function(i, value)
@@ -2217,8 +2222,8 @@ function init()
           end,
         },
 
-        { id = "clouds", group = "gfx", basic = true, widget = "Volumetric Clouds", name = texts.option.clouds, type = "bool", value = GetWidgetToggleValue("Volumetric Clouds"), description = '' },
-        { id = "clouds_opacity", group = "gfx", name = widgetOptionColor .. "   " .. texts.option.clouds_opacity, type = "slider", min = 0.2, max = 1.4, step = 0.05, value = 1, description = '',
+        { id = "clouds", group = "gfx", category = types.basic, widget = "Volumetric Clouds", name = texts.option.clouds, type = "bool", value = GetWidgetToggleValue("Volumetric Clouds"), description = '' },
+        { id = "clouds_opacity", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.clouds_opacity, type = "slider", min = 0.2, max = 1.4, step = 0.05, value = 1, description = '',
           onload = function(i)
               loadWidgetData("Volumetric Clouds", "clouds_opacity", { 'opacityMult' })
           end,
@@ -2227,8 +2232,8 @@ function init()
           end,
         },
 
-        { id = "snow", group = "gfx", basic = true, widget = "Snow", name = texts.option.snow, type = "bool", value = GetWidgetToggleValue("Snow"), description = texts.option.snow_descr },
-        { id = "snowmap", group = "gfx", name = widgetOptionColor .. "   " .. texts.option.snowmap, type = "bool", value = true, description = texts.option.snowmap_descr,
+        { id = "snow", group = "gfx", category = types.basic, widget = "Snow", name = texts.option.snow, type = "bool", value = GetWidgetToggleValue("Snow"), description = texts.option.snow_descr },
+        { id = "snowmap", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.snowmap, type = "bool", value = true, description = texts.option.snowmap_descr,
           onload = function(i)
               loadWidgetData("Snow", "snowmap", { 'snowMaps', Game.mapName:lower() })
           end,
@@ -2236,7 +2241,7 @@ function init()
               saveOptionValue('Snow', 'snow', 'setSnowMap', { 'snowMaps', Game.mapName:lower() }, value)
           end,
         },
-        { id = "snowautoreduce", group = "gfx", name = widgetOptionColor .. "   " .. texts.option.snowautoreduce, type = "bool", value = true, description = texts.option.snowautoreduce_descr,
+        { id = "snowautoreduce", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.snowautoreduce, type = "bool", value = true, description = texts.option.snowautoreduce_descr,
           onload = function(i)
               loadWidgetData("Snow", "snowautoreduce", { 'autoReduce' })
           end,
@@ -2244,7 +2249,7 @@ function init()
               saveOptionValue('Snow', 'snow', 'setAutoReduce', { 'autoReduce' }, value)
           end,
         },
-        { id = "snowamount", group = "gfx", name = widgetOptionColor .. "   " .. texts.option.snowamount, type = "slider", min = 0.2, max = 3, step = 0.2, value = 1, description = texts.option.snowamount_descr,
+        { id = "snowamount", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.snowamount, type = "slider", min = 0.2, max = 3, step = 0.2, value = 1, description = texts.option.snowamount_descr,
           onload = function(i)
               loadWidgetData("Snow", "snowamount", { 'customParticleMultiplier' })
           end,
@@ -2254,10 +2259,10 @@ function init()
         },
 
 
-        { id = "label_gfx_effects", group = "gfx", name = texts.option.label_effects, basic = true },
-        { id = "label_gfx_effects_spacer", group = "gfx", basic = true },
+        { id = "label_gfx_effects", group = "gfx", name = texts.option.label_effects, category = types.basic },
+        { id = "label_gfx_effects_spacer", group = "gfx", category = types.basic },
 
-        --{id="featurefadedist", group="gfx", name=widgetOptionColor.."   fade distance", type="slider", min=2500, max=15000, step=500, value=tonumber(Spring.GetConfigInt("FeatureFadeDistance",4500) or 400), description='Features (trees, stones, wreckage) start fading away from this distance',
+        --{ id ="featurefadedist", group="gfx", name=widgetOptionColor.."   fade distance", type="slider", min=2500, max=15000, step=500, value=tonumber(Spring.GetConfigInt("FeatureFadeDistance",4500) or 400), description='Features (trees, stones, wreckage) start fading away from this distance',
         --	onload = function(i) end,
         --	onchange = function(i, value)
         --		if getOptionByID('featuredrawdist') and value > options[getOptionByID('featuredrawdist')].value then
@@ -2268,14 +2273,14 @@ function init()
         --	end,
         --},
 
-        { id = "particles", group = "gfx", basic = true, name = texts.option.particles, type = "slider", min = 9000, max = 25000, step = 1000, value = tonumber(Spring.GetConfigInt("MaxParticles", 1) or 15000), description = texts.option.particles_descr,
+        { id = "particles", group = "gfx", category = types.basic, name = texts.option.particles, type = "slider", min = 9000, max = 25000, step = 1000, value = tonumber(Spring.GetConfigInt("MaxParticles", 1) or 15000), description = texts.option.particles_descr,
           onload = function(i)
           end,
           onchange = function(i, value)
               Spring.SetConfigInt("MaxParticles", value)
           end,
         },
-        { id = "nanoparticles", group = "gfx", name = texts.option.nanoparticles, type = "slider", min = 3000, max = 20000, step = 1000, value = maxNanoParticles, description = '',
+        { id = "nanoparticles", group = "gfx", category = types.advanced, name = texts.option.nanoparticles, type = "slider", min = 3000, max = 20000, step = 1000, value = maxNanoParticles, description = '',
           onload = function(i)
           end,
           onchange = function(i, value)
@@ -2286,8 +2291,8 @@ function init()
           end,
         },
 
-        { id = "outline", group = "gfx", basic = true, widget = "Outline", name = texts.option.outline, type = "bool", value = GetWidgetToggleValue("Outline"), description = texts.option.outline_descr },
-        { id = "outline_width", group = "gfx", basic = true, name = widgetOptionColor .. "   " .. texts.option.outline_width, min = 1, max = 3, step = 1, type = "slider", value = 1, description = texts.option.outline_width_descr,
+        { id = "outline", group = "gfx", category = types.basic, widget = "Outline", name = texts.option.outline, type = "bool", value = GetWidgetToggleValue("Outline"), description = texts.option.outline_descr },
+        { id = "outline_width", group = "gfx", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.outline_width, min = 1, max = 3, step = 1, type = "slider", value = 1, description = texts.option.outline_width_descr,
           onload = function(i)
               loadWidgetData("Outline", "outline_width", { 'DILATE_HALF_KERNEL_SIZE' })
           end,
@@ -2295,7 +2300,7 @@ function init()
               saveOptionValue('Outline', 'outline', 'setWidth', { 'DILATE_HALF_KERNEL_SIZE' }, value)
           end
         },
-        { id = "outline_mult", group = "gfx", basic = true, name = widgetOptionColor .. "   " .. texts.option.outline_mult, min = 0.1, max = 1, step = 0.1, type = "slider", value = 0.5, description = texts.option.outline_mult_descr,
+        { id = "outline_mult", group = "gfx", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.outline_mult, min = 0.1, max = 1, step = 0.1, type = "slider", value = 0.5, description = texts.option.outline_mult_descr,
           onload = function(i)
               loadWidgetData("Outline", "outline_mult", { 'STRENGTH_MULT' })
           end,
@@ -2303,7 +2308,7 @@ function init()
               saveOptionValue('Outline', 'outline', 'setMult', { 'STRENGTH_MULT' }, value)
           end,
         },
-        { id = "outline_color", group = "gfx", name = widgetOptionColor .. "   " .. texts.option.outline_color, type = "bool", value = false, description = texts.option.outline_color_descr,
+        { id = "outline_color", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.outline_color, type = "bool", value = false, description = texts.option.outline_color_descr,
           onload = function(i)
               loadWidgetData("Outline", "outline_color", { 'whiteColored' })
           end,
@@ -2312,15 +2317,15 @@ function init()
           end,
         },
 
-        { id = "unitRotation", group = "gfx", name = texts.option.unitrotation, min = 0, max = 10, step = 1, type = "slider", value = tonumber(Spring.GetConfigInt("unitRotation", 0)), description = texts.option.unitrotation_descr,
+        { id = "unitRotation", group = "gfx", category = types.advanced, name = texts.option.unitrotation, min = 0, max = 10, step = 1, type = "slider", value = tonumber(Spring.GetConfigInt("unitRotation", 0)), description = texts.option.unitrotation_descr,
           onchange = function(i, value)
               Spring.SetConfigInt("unitRotation", value or 0)
               Spring.SendCommands("luarules unitrotation " .. value)
           end
         },
 
-        { id = "airjets", group = "gfx", widget = "Airjets", name = texts.option.airjets, type = "bool", value = GetWidgetToggleValue("Airjets"), description = texts.option.airjets_descr },
-        { id = "jetenginefx_lights", group = "gfx", name = widgetOptionColor .. "   " .. texts.option.jetenginefx_lights, type = "bool", value = true, description = texts.option.jetenginefx_lights_descr,
+        { id = "airjets", group = "gfx", category = types.advanced, widget = "Airjets", name = texts.option.airjets, type = "bool", value = GetWidgetToggleValue("Airjets"), description = texts.option.airjets_descr },
+        { id = "jetenginefx_lights", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.jetenginefx_lights, type = "bool", value = true, description = texts.option.jetenginefx_lights_descr,
           onload = function(i)
               loadWidgetData("Light Effects", "lups_jetenginefx_lights", { 'enableThrusters' })
           end,
@@ -2329,16 +2334,16 @@ function init()
           end,
         },
 
-        --{id="treeradius", group="gfx", name="Tree render distance", type="slider", min=0, max=2000, step=50, restart=true, value=tonumber(Spring.GetConfigInt("TreeRadius",1) or 1000), description='Applies to SpringRTS engine default trees\n\nChanges will be applied next game',
+        --{ id ="treeradius", group="gfx", name="Tree render distance", type="slider", min=0, max=2000, step=50, restart=true, value=tonumber(Spring.GetConfigInt("TreeRadius",1) or 1000), description='Applies to SpringRTS engine default trees\n\nChanges will be applied next game',
         --		 onload = function(i) end,
         --		 onchange = function(i, value) Spring.SetConfigInt("TreeRadius",value) end,
         --		},
 
-        { id = "resurrectionhalos", group = "gfx", widget = "Resurrection Halos", name = texts.option.resurrectionhalos, type = "bool", value = GetWidgetToggleValue("Resurrection Halos"), description = texts.option.resurrectionhalos_descr },
-        { id = "tombstones", group = "gfx", widget = "Tombstones", name = texts.option.tombstones, type = "bool", value = GetWidgetToggleValue("Tombstones"), description = texts.option.tombstones_descr },
+        { id = "resurrectionhalos", group = "gfx", category = types.advanced, widget = "Resurrection Halos", name = texts.option.resurrectionhalos, type = "bool", value = GetWidgetToggleValue("Resurrection Halos"), description = texts.option.resurrectionhalos_descr },
+        { id = "tombstones", group = "gfx", category = types.advanced, widget = "Tombstones", name = texts.option.tombstones, type = "bool", value = GetWidgetToggleValue("Tombstones"), description = texts.option.tombstones_descr },
 
-        -- SND
-        { id = "snddevice", group = "snd", name = texts.option.snddevice, type = "select", restart = true, options = soundDevices, value = soundDevicesByName[Spring.GetConfigString("snd_device")], description = texts.option.snddevice_descr,
+        -- SOUND
+        { id = "snddevice", group = "sound", category = types.advanced, name = texts.option.snddevice, type = "select", restart = true, options = soundDevices, value = soundDevicesByName[Spring.GetConfigString("snd_device")], description = texts.option.snddevice_descr,
           onchange = function(i, value)
               if options[i].options[options[i].value] == 'default' then
                   Spring.SetConfigString("snd_device", '')
@@ -2348,42 +2353,42 @@ function init()
           end,
         },
 
-        { id = "sndvolmaster", group = "snd", basic = true, name = texts.option.volume .. widgetOptionColor .. "  " .. texts.option.sndvolmaster, type = "slider", min = 0, max = 200, step = 2, value = tonumber(Spring.GetConfigInt("snd_volmaster", 1) or 100),
+        { id = "sndvolmaster", group = "sound", category = types.basic, name = texts.option.volume .. widgetOptionColor .. "  " .. texts.option.sndvolmaster, type = "slider", min = 0, max = 200, step = 2, value = tonumber(Spring.GetConfigInt("snd_volmaster", 1) or 100),
           onload = function(i)
           end,
           onchange = function(i, value)
               Spring.SetConfigInt("snd_volmaster", value)
           end,
         },
-        { id = "sndvolgeneral", group = "snd", basic = true, name = widgetOptionColor .. "   " .. texts.option.sndvolgeneral, type = "slider", min = 0, max = 100, step = 2, value = tonumber(Spring.GetConfigInt("snd_volgeneral", 1) or 100),
+        { id = "sndvolgeneral", group = "sound", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.sndvolgeneral, type = "slider", min = 0, max = 100, step = 2, value = tonumber(Spring.GetConfigInt("snd_volgeneral", 1) or 100),
           onload = function(i)
           end,
           onchange = function(i, value)
               Spring.SetConfigInt("snd_volgeneral", value)
           end,
         },
-        { id = "sndvolbattle", group = "snd", basic = true, name = widgetOptionColor .. "   " .. texts.option.sndvolbattle, type = "slider", min = 0, max = 100, step = 2, value = tonumber(Spring.GetConfigInt("snd_volbattle", 1) or 100),
+        { id = "sndvolbattle", group = "sound", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.sndvolbattle, type = "slider", min = 0, max = 100, step = 2, value = tonumber(Spring.GetConfigInt("snd_volbattle", 1) or 100),
           onload = function(i)
           end,
           onchange = function(i, value)
               Spring.SetConfigInt("snd_volbattle", value)
           end,
         },
-        { id = "sndvolui", group = "snd", basic = true, name = widgetOptionColor .. "   " .. texts.option.sndvolui, type = "slider", min = 0, max = 100, step = 2, value = tonumber(Spring.GetConfigInt("snd_volui", 1) or 100),
+        { id = "sndvolui", group = "sound", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.sndvolui, type = "slider", min = 0, max = 100, step = 2, value = tonumber(Spring.GetConfigInt("snd_volui", 1) or 100),
           onload = function(i)
           end,
           onchange = function(i, value)
               Spring.SetConfigInt("snd_volui", value)
           end,
         },
-        { id = "sndvolunitreply", group = "snd", basic = true, name = widgetOptionColor .. "   " .. texts.option.sndvolunitreply, type = "slider", min = 0, max = 100, step = 2, value = tonumber(Spring.GetConfigInt("snd_volunitreply", 1) or 100),
+        { id = "sndvolunitreply", group = "sound", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.sndvolunitreply, type = "slider", min = 0, max = 100, step = 2, value = tonumber(Spring.GetConfigInt("snd_volunitreply", 1) or 100),
           onload = function(i)
           end,
           onchange = function(i, value)
               Spring.SetConfigInt("snd_volunitreply", value)
           end,
         },
-        { id = "sndairabsorption", group = "snd", name = texts.option.sndairabsorption, type = "slider", min = 0.05, max = 0.4, step = 0.01, value = tonumber(Spring.GetConfigFloat("snd_airAbsorption", .35) or .35), description = texts.option.sndairabsorption_descr,
+        { id = "sndairabsorption", group = "sound", category = types.advanced, name = texts.option.sndairabsorption, type = "slider", min = 0.05, max = 0.4, step = 0.01, value = tonumber(Spring.GetConfigFloat("snd_airAbsorption", .35) or .35), description = texts.option.sndairabsorption_descr,
           onload = function(i)
           end,
           onchange = function(i, value)
@@ -2391,7 +2396,7 @@ function init()
           end,
         },
 
-        { id = "soundtrack", group = "snd", basic = true, name = texts.option.soundtrack, type = "select", options = { '---', 'orchestral', 'modern' }, value = Spring.GetConfigInt('soundtrack', 2), description = texts.option.soundtrack_descr,
+        { id = "soundtrack", group = "sound", category = types.basic, name = texts.option.soundtrack, type = "select", options = { '---', 'orchestral', 'modern' }, value = Spring.GetConfigInt('soundtrack', 2), description = texts.option.soundtrack_descr,
           onchange = function(i, value)
               Spring.SetConfigString("soundtrack", value)
               Spring.StopSoundStream()
@@ -2410,7 +2415,7 @@ function init()
               end
           end,
         },
-        { id = "sndvolmusic", group = "snd", basic = true, name = widgetOptionColor .. "   " .. texts.option.sndvolmusic, type = "slider", min = 0, max = 100, step = 1, value = tonumber(Spring.GetConfigInt("snd_volmusic", 20) or 20),
+        { id = "sndvolmusic", group = "sound", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.sndvolmusic, type = "slider", min = 0, max = 100, step = 1, value = tonumber(Spring.GetConfigInt("snd_volmusic", 20) or 20),
           onload = function(i)
           end,
           onchange = function(i, value)
@@ -2421,23 +2426,23 @@ function init()
               end
           end,
         },
-        { id = "loadscreen_music", group = "snd", basic = true, name = widgetOptionColor .. "   " .. texts.option.loadscreen_music, type = "bool", value = (Spring.GetConfigInt("music_loadscreen", 1) == 1), description = texts.option.loadscreen_music_descr,
+        { id = "loadscreen_music", group = "sound", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.loadscreen_music, type = "bool", value = (Spring.GetConfigInt("music_loadscreen", 1) == 1), description = texts.option.loadscreen_music_descr,
           onchange = function(i, value)
               Spring.SetConfigInt("music_loadscreen", (value and 1 or 0))
           end,
         },
 
-        { id = "label_snd_tracks", group = "snd", name = texts.option.label_tracks, basic = true },
-        { id = "label_snd_tracks_spacer", group = "snd", basic = true },
+        { id = "label_snd_tracks", group = "sound", name = texts.option.label_tracks, category = types.basic },
+        { id = "label_snd_tracks_spacer", group = "sound", category = types.basic },
 
-        { id = "scav_messages", group = "notif", basic = true, name = texts.option.scav_messages, type = "bool", value = tonumber(Spring.GetConfigInt("scavmessages", 1) or 1) == 1, description = "",
+        { id = "scav_messages", group = "notif", category = types.basic, name = texts.option.scav_messages, type = "bool", value = tonumber(Spring.GetConfigInt("scavmessages", 1) or 1) == 1, description = "",
           onchange = function(i, value)
               Spring.SetConfigInt("scavmessages", (value and 1 or 0))
           end,
         },
-        { id = "scav_voicenotifs", group = "notif", basic = true, widget = "Scavenger Audio Reciever", name = texts.option.scav_voicenotifs, type = "bool", value = GetWidgetToggleValue("Scavenger Audio Reciever"), description = texts.option.scav_voicenotifs_descr },
+        { id = "scav_voicenotifs", group = "notif", category = types.basic, widget = "Scavenger Audio Reciever", name = texts.option.scav_voicenotifs, type = "bool", value = GetWidgetToggleValue("Scavenger Audio Reciever"), description = texts.option.scav_voicenotifs_descr },
 
-        { id = "notifications_tutorial", group = "notif", name = texts.option.notifications_tutorial, basic = true, type = "bool", value = (WG['notifications'] ~= nil and WG['notifications'].getTutorial()), description = texts.option.notifications_tutorial_desc,
+        { id = "notifications_tutorial", group = "notif", name = texts.option.notifications_tutorial, category = types.basic, type = "bool", value = (WG['notifications'] ~= nil and WG['notifications'].getTutorial()), description = texts.option.notifications_tutorial_desc,
           onload = function(i)
               loadWidgetData("Notifications", "notifications_tutorial", { 'tutorialMode' })
           end,
@@ -2445,7 +2450,7 @@ function init()
               saveOptionValue('Notifications', 'notifications', 'setTutorial', { 'tutorialMode' }, value)
           end,
         },
-        { id = "notifications_messages", group = "notif", name = texts.option.notifications_messages, basic = true, type = "bool", value = (WG['notifications'] ~= nil and WG['notifications'].getMessages()), description = texts.option.notifications_messages_descr,
+        { id = "notifications_messages", group = "notif", name = texts.option.notifications_messages, category = types.basic, type = "bool", value = (WG['notifications'] ~= nil and WG['notifications'].getMessages()), description = texts.option.notifications_messages_descr,
           onload = function(i)
               loadWidgetData("Notifications", "notifications_messages", { 'displayMessages' })
           end,
@@ -2453,7 +2458,7 @@ function init()
               saveOptionValue('Notifications', 'notifications', 'setMessages', { 'displayMessages' }, value)
           end,
         },
-        { id = "notifications_spoken", group = "notif", name = texts.option.notifications_spoken, basic = true, type = "bool", value = (WG['notifications'] ~= nil and WG['notifications'].getSpoken()), description = texts.option.notifications_spoken_descr,
+        { id = "notifications_spoken", group = "notif", name = texts.option.notifications_spoken, category = types.basic, type = "bool", value = (WG['notifications'] ~= nil and WG['notifications'].getSpoken()), description = texts.option.notifications_spoken_descr,
           onload = function(i)
               loadWidgetData("Notifications", "notifications_spoken", { 'spoken' })
           end,
@@ -2461,7 +2466,7 @@ function init()
               saveOptionValue('Notifications', 'notifications', 'setSpoken', { 'spoken' }, value)
           end,
         },
-        { id = "notifications_volume", group = "notif", basic = true, name = texts.option.notifications_volume, type = "slider", min = 0.05, max = 1, step = 0.05, value = 1, description = texts.option.notifications_volume_descr,
+        { id = "notifications_volume", group = "notif", category = types.basic, name = texts.option.notifications_volume, type = "slider", min = 0.05, max = 1, step = 0.05, value = 1, description = texts.option.notifications_volume_descr,
           onload = function(i)
               loadWidgetData("Notifications", "notifications_volume", { 'volume' })
           end,
@@ -2469,7 +2474,7 @@ function init()
               saveOptionValue('Notifications', 'notifications', 'setVolume', { 'volume' }, value)
           end,
         },
-        { id = "notifications_playtrackedplayernotifs", basic = true, group = "notif", name = texts.option.notifications_playtrackedplayernotifs, type = "bool", value = (WG['notifications'] ~= nil and WG['notifications'].getPlayTrackedPlayerNotifs()), description = texts.option.notifications_playtrackedplayernotifs_descr,
+        { id = "notifications_playtrackedplayernotifs", category = types.basic, group = "notif", name = texts.option.notifications_playtrackedplayernotifs, type = "bool", value = (WG['notifications'] ~= nil and WG['notifications'].getPlayTrackedPlayerNotifs()), description = texts.option.notifications_playtrackedplayernotifs_descr,
           onload = function(i)
               loadWidgetData("Notifications", "notifications_playtrackedplayernotifs", { 'playTrackedPlayerNotifs' })
           end,
@@ -2479,11 +2484,11 @@ function init()
         },
 
 
-        { id = "label_notif_messages", group = "notif", name = texts.option.label_messages, basic = true },
-        { id = "label_notif_messages_spacer", group = "notif", basic = true },
+        { id = "label_notif_messages", group = "notif", name = texts.option.label_messages, category = types.basic },
+        { id = "label_notif_messages_spacer", group = "notif", category = types.basic },
 
         -- CONTROL
-        { id = "hwcursor", group = "control", basic = true, name = texts.option.hwcursor, type = "bool", value = tonumber(Spring.GetConfigInt("hardwareCursor", 1) or 1) == 1, description = texts.option.hwcursor_descr,
+        { id = "hwcursor", group = "control", category = types.basic, name = texts.option.hwcursor, type = "bool", value = tonumber(Spring.GetConfigInt("hardwareCursor", 1) or 1) == 1, description = texts.option.hwcursor_descr,
           onload = function(i)
           end,
           onchange = function(i, value)
@@ -2491,12 +2496,12 @@ function init()
               Spring.SetConfigInt("HardwareCursor", (value and 1 or 0))
           end,
         },
-        --{id="cursor", group="control", basic=true, name="Cursor", type="select", options={}, value=1, description='Choose a different mouse cursor style and/or size',
+        --{ id ="cursor", group="control", basic=true, name="Cursor", type="select", options={}, value=1, description='Choose a different mouse cursor style and/or size',
         -- onchange=function(i, value)
         --	 saveOptionValue('Cursors', 'cursors', 'setcursor', {'cursorSet'}, options[i].options[value])
         -- end,
         --},
-        { id = "cursorsize", group = "control", basic = true, name = texts.option.cursorsize, type = "slider", min = 0.3, max = 1.7, step = 0.1, value = 1, description = texts.option.cursorsize_descr,
+        { id = "cursorsize", group = "control", category = types.basic, name = texts.option.cursorsize, type = "slider", min = 0.3, max = 1.7, step = 0.1, value = 1, description = texts.option.cursorsize_descr,
           onload = function(i)
           end,
           onchange = function(i, value)
@@ -2505,14 +2510,14 @@ function init()
               end
           end,
         },
-        --{ id = "crossalpha", group = "control", name = texts.option.crossalpha, type = "slider", min = 0, max = 1, step = 0.05, value = tonumber(Spring.GetConfigFloat("CrossAlpha", 0.5) or 1), description = texts.option.crossalpha_descr,
+        --{ id = "crossalpha", group = "control", category = optionTypes.advanced, name = texts.option.crossalpha, type = "slider", min = 0, max = 1, step = 0.05, value = tonumber(Spring.GetConfigFloat("CrossAlpha", 0.5) or 1), description = texts.option.crossalpha_descr,
         --  onload = function(i)
         --  end,
         --  onchange = function(i, value)
         --	  Spring.SendCommands("cross " .. tonumber(Spring.GetConfigInt("CrossSize", 1) or 10) .. " " .. value)
         --  end,
         --},
-        { id = "middleclicktoggle", group = "control", basic = true, name = texts.option.middleclicktoggle, type = "bool", value = (Spring.GetConfigFloat("MouseDragScrollThreshold", 0.3) ~= 0), description = texts.option.middleclicktoggle_descr,
+        { id = "middleclicktoggle", group = "control", category = types.basic, name = texts.option.middleclicktoggle, type = "bool", value = (Spring.GetConfigFloat("MouseDragScrollThreshold", 0.3) ~= 0), description = texts.option.middleclicktoggle_descr,
           onload = function(i)
           end,
           onchange = function(i, value)
@@ -2520,16 +2525,16 @@ function init()
           end,
         },
 
-        { id = "containmouse", group = "control", basic = true, widget = "Grabinput", name = texts.option.containmouse, type = "bool", value = GetWidgetToggleValue("Grabinput"), description = texts.option.containmouse_descr },
+        { id = "containmouse", group = "control", category = types.basic, widget = "Grabinput", name = texts.option.containmouse, type = "bool", value = GetWidgetToggleValue("Grabinput"), description = texts.option.containmouse_descr },
 
-        { id = "doubleclicktime", group = "control", restart = true, name = texts.option.doubleclicktime, type = "slider", min = 150, max = 400, step = 10, value = Spring.GetConfigInt("DoubleClickTime", 200), description = "",
+        { id = "doubleclicktime", group = "control", category = types.advanced, restart = true, name = texts.option.doubleclicktime, type = "slider", min = 150, max = 400, step = 10, value = Spring.GetConfigInt("DoubleClickTime", 200), description = "",
           onload = function(i)
           end,
           onchange = function(i, value)
               Spring.SetConfigInt("DoubleClickTime", value)
           end,
         },
-        --{ id = "containmouse", group = "control", basic = true, name = texts.option.containmouse, type = "bool", value = (Spring.GetConfigInt("grabinput", 1) ~= 0), description = texts.option.containmouse_descr ,
+        --{ id = "containmouse", group = "control", category = optionTypes.basic, name = texts.option.containmouse, type = "bool", value = (Spring.GetConfigInt("grabinput", 1) ~= 0), description = texts.option.containmouse_descr ,
         --	onload = function(i)
         --		updateGrabinput()
         --	end,
@@ -2539,24 +2544,24 @@ function init()
         --  end,
         --},
 
-        { id = "screenedgemove", group = "control", basic = true, name = texts.option.screenedgemove, type = "bool", restart = true, value = tonumber(Spring.GetConfigInt("FullscreenEdgeMove", 1) or 1) == 1, description = texts.option.screenedgemove_descr,
+        { id = "screenedgemove", group = "control", category = types.basic, name = texts.option.screenedgemove, type = "bool", restart = true, value = tonumber(Spring.GetConfigInt("FullscreenEdgeMove", 1) or 1) == 1, description = texts.option.screenedgemove_descr,
           onchange = function(i, value)
               Spring.SetConfigInt("FullscreenEdgeMove", (value and 1 or 0))
               Spring.SetConfigInt("WindowedEdgeMove", (value and 1 or 0))
           end,
         },
-        { id = "screenedgemovewidth", group = "control", basic = true, name = widgetOptionColor .. "   " .. texts.option.screenedgemovewidth, type = "slider", min = 0, max = 0.1, step = 0.01, value = tonumber(Spring.GetConfigFloat("EdgeMoveWidth", 1) or 0.02), description = texts.option.screenedgemovewidth_descr,
+        { id = "screenedgemovewidth", group = "control", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.screenedgemovewidth, type = "slider", min = 0, max = 0.1, step = 0.01, value = tonumber(Spring.GetConfigFloat("EdgeMoveWidth", 1) or 0.02), description = texts.option.screenedgemovewidth_descr,
           onchange = function(i, value)
               Spring.SetConfigFloat("EdgeMoveWidth", value)
           end,
         },
-        { id = "screenedgemovedynamic", group = "control", name = widgetOptionColor .. "   " .. texts.option.screenedgemovedynamic, type = "bool", restart = true, value = tonumber(Spring.GetConfigInt("EdgeMoveDynamic", 1) or 1) == 1, description = texts.option.screenedgemovedynamic_descr,
+        { id = "screenedgemovedynamic", group = "control", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.screenedgemovedynamic, type = "bool", restart = true, value = tonumber(Spring.GetConfigInt("EdgeMoveDynamic", 1) or 1) == 1, description = texts.option.screenedgemovedynamic_descr,
           onchange = function(i, value)
               Spring.SetConfigInt("EdgeMoveDynamic", (value and 1 or 0))
           end,
         },
 
-        { id = "camera", group = "control", basic = true, name = texts.option.camera, type = "select", options = { 'fps', 'overhead', 'spring', 'rot overhead', 'free' }, value = (tonumber((Spring.GetConfigInt("CamMode", 1) + 1) or 2)),
+        { id = "camera", group = "control", category = types.basic, name = texts.option.camera, type = "select", options = { 'fps', 'overhead', 'spring', 'rot overhead', 'free' }, value = (tonumber((Spring.GetConfigInt("CamMode", 1) + 1) or 2)),
           onchange = function(i, value)
               Spring.SetConfigInt("CamMode", (value - 1))
               if value == 1 then
@@ -2572,7 +2577,7 @@ function init()
               end
           end,
         },
-        { id = "camerashake", group = "control", name = widgetOptionColor .. "   " .. texts.option.camerashake, type = "slider", min = 0, max = 200, step = 10, value = 80, description = texts.option.camerashake_descr,
+        { id = "camerashake", group = "control", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.camerashake, type = "slider", min = 0, max = 200, step = 10, value = 80, description = texts.option.camerashake_descr,
           onload = function(i)
               loadWidgetData("CameraShake", "camerashake", { 'powerScale' })
               if options[i].value > 0 then
@@ -2586,7 +2591,7 @@ function init()
               end
           end,
         },
-        { id = "camerasmoothness", group = "control", name = widgetOptionColor .. "   " .. texts.option.camerasmoothness, type = "slider", min = 0.04, max = 2, step = 0.01, value = cameraTransitionTime, description = texts.option.camerasmoothness_descr,
+        { id = "camerasmoothness", group = "control", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.camerasmoothness, type = "slider", min = 0.04, max = 2, step = 0.01, value = cameraTransitionTime, description = texts.option.camerasmoothness_descr,
           onload = function(i)
           end,
           onchange = function(i, value)
@@ -2594,14 +2599,14 @@ function init()
               --Spring.SetConfigFloat("CamTimeFactor", value)
           end,
         },
-        { id = "camerapanspeed", group = "control", basic = true, name = widgetOptionColor .. "   " .. texts.option.camerapanspeed, type = "slider", min = -0.01, max = -0.00195, step = 0.0001, value = Spring.GetConfigFloat("MiddleClickScrollSpeed", 0.0035), description = texts.option.camerapanspeed_descr,
+        { id = "camerapanspeed", group = "control", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.camerapanspeed, type = "slider", min = -0.01, max = -0.00195, step = 0.0001, value = Spring.GetConfigFloat("MiddleClickScrollSpeed", 0.0035), description = texts.option.camerapanspeed_descr,
           onload = function(i)
           end,
           onchange = function(i, value)
               Spring.SetConfigFloat("MiddleClickScrollSpeed", value)
           end,
         },
-        { id = "cameramovespeed", group = "control", basic = true, name = widgetOptionColor .. "   " .. texts.option.cameramovespeed, type = "slider", min = 0, max = 50, step = 1, value = Spring.GetConfigInt("CamSpringScrollSpeed", 10), description = texts.option.cameramovespeed_descr,
+        { id = "cameramovespeed", group = "control", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.cameramovespeed, type = "slider", min = 0, max = 50, step = 1, value = Spring.GetConfigInt("CamSpringScrollSpeed", 10), description = texts.option.cameramovespeed_descr,
           onload = function(i)
           end,
           onchange = function(i, value)
@@ -2613,7 +2618,7 @@ function init()
               Spring.SetConfigInt("CamSpringScrollSpeed", value)        -- spring default: 10
           end,
         },
-        { id = "scrollspeed", group = "control", basic = true, name = widgetOptionColor .. "   " .. texts.option.scrollspeed, type = "slider", min = 1, max = 50, step = 1, value = math.abs(tonumber(Spring.GetConfigInt("ScrollWheelSpeed", 1) or 25)), description = '',
+        { id = "scrollspeed", group = "control", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.scrollspeed, type = "slider", min = 1, max = 50, step = 1, value = math.abs(tonumber(Spring.GetConfigInt("ScrollWheelSpeed", 1) or 25)), description = '',
           onload = function(i)
           end,
           onchange = function(i, value)
@@ -2624,7 +2629,7 @@ function init()
               end
           end,
         },
-        { id = "scrollinverse", group = "control", basic = true, name = widgetOptionColor .. "   " .. texts.option.scrollinverse, type = "bool", value = (tonumber(Spring.GetConfigInt("ScrollWheelSpeed", 1) or 25) < 0), description = "",
+        { id = "scrollinverse", group = "control", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.scrollinverse, type = "bool", value = (tonumber(Spring.GetConfigInt("ScrollWheelSpeed", 1) or 25) < 0), description = "",
           onload = function(i)
           end,
           onchange = function(i, value)
@@ -2638,7 +2643,7 @@ function init()
           end,
         },
 
-        --{id="fov", group="control", name=widgetOptionColor.."   FOV", type="slider", min=25, max=70, step=1, value=Spring.GetCameraFOV(), description="Camera field of view\n\nDefault: 45",
+        --{ id ="fov", group="control", name=widgetOptionColor.."   FOV", type="slider", min=25, max=70, step=1, value=Spring.GetCameraFOV(), description="Camera field of view\n\nDefault: 45",
         -- onload = function(i) end,
         -- onchange = function(i, value)
         --	local camState = Spring.GetCameraState()
@@ -2649,7 +2654,7 @@ function init()
         -- end,
         --},
 
-        { id = "lockcamera_transitiontime", group = "control", name = texts.option.lockcamera_transitiontime, type = "slider", min = 0.5, max = 1.7, step = 0.01, value = (WG['advplayerlist_api'] ~= nil and WG['advplayerlist_api'].GetLockTransitionTime ~= nil and WG['advplayerlist_api'].GetLockTransitionTime()), description = texts.option.lockcamera_transitiontime_descr,
+        { id = "lockcamera_transitiontime", group = "control", category = types.advanced, name = texts.option.lockcamera_transitiontime, type = "slider", min = 0.5, max = 1.7, step = 0.01, value = (WG['advplayerlist_api'] ~= nil and WG['advplayerlist_api'].GetLockTransitionTime ~= nil and WG['advplayerlist_api'].GetLockTransitionTime()), description = texts.option.lockcamera_transitiontime_descr,
           onload = function(i)
               loadWidgetData("AdvPlayersList", "lockcamera_transitiontime", { 'transitionTime' })
           end,
@@ -2659,9 +2664,9 @@ function init()
         },
 
         -- INTERFACE
-        { id = "label_ui_screen", group = "ui", name = texts.option.label_screen, basic = true },
-        { id = "label_ui_screen_spacer", group = "ui", basic = true },
-        { id = "uiscale", group = "ui", basic = true, name = texts.option.interface .. widgetOptionColor .. "  " .. texts.option.uiscale, type = "slider", min = 0.8, max = 1.1, step = 0.01, value = Spring.GetConfigFloat("ui_scale", 1), description = '',
+        { id = "label_ui_screen", group = "ui", name = texts.option.label_screen, category = types.basic },
+        { id = "label_ui_screen_spacer", group = "ui", category = types.basic },
+        { id = "uiscale", group = "ui", category = types.basic, name = texts.option.interface .. widgetOptionColor .. "  " .. texts.option.uiscale, type = "slider", min = 0.8, max = 1.1, step = 0.01, value = Spring.GetConfigFloat("ui_scale", 1), description = '',
           onload = function(i)
           end,
           onchange = function(i, value, force)
@@ -2673,14 +2678,14 @@ function init()
               end
           end,
         },
-        { id = "guiopacity", group = "ui", name = widgetOptionColor .. "   " .. texts.option.guiopacity, type = "slider", min = 0.3, max = 1, step = 0.01, value = Spring.GetConfigFloat("ui_opacity", 0.6), description = '',
+        { id = "guiopacity", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.guiopacity, type = "slider", min = 0.3, max = 1, step = 0.01, value = Spring.GetConfigFloat("ui_opacity", 0.6), description = '',
           onload = function(i)
           end,
           onchange = function(i, value)
               Spring.SetConfigFloat("ui_opacity", value)
           end,
         },
-        { id = "guitilescale", group = "ui", name = widgetOptionColor .. "   " .. texts.option.guitilescale, type = "slider", min = 4, max = 40, step = 1, value = Spring.GetConfigFloat("ui_tilescale", 7), description = '',
+        { id = "guitilescale", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.guitilescale, type = "slider", min = 4, max = 40, step = 1, value = Spring.GetConfigFloat("ui_tilescale", 7), description = '',
           onload = function(i)
           end,
           onchange = function(i, value, force)
@@ -2692,7 +2697,7 @@ function init()
               end
           end,
         },
-        { id = "guitileopacity", group = "ui", basic = true, name = widgetOptionColor .. "      " .. texts.option.guitileopacity, type = "slider", min = 0, max = 0.03, step = 0.001, value = Spring.GetConfigFloat("ui_tileopacity", 0.011), description = '',
+        { id = "guitileopacity", group = "ui", category = types.basic, name = widgetOptionColor .. "      " .. texts.option.guitileopacity, type = "slider", min = 0, max = 0.03, step = 0.001, value = Spring.GetConfigFloat("ui_tileopacity", 0.011), description = '',
           onload = function(i)
           end,
           onchange = function(i, value, force)
@@ -2705,8 +2710,8 @@ function init()
           end,
         },
 
-        { id = "guishader", group = "ui", basic = true, widget = "GUI Shader", name = widgetOptionColor .. "   " .. texts.option.guishader, type = "bool", value = GetWidgetToggleValue("GUI Shader"), description = texts.option.guishader_descr },
-        { id = "guishaderintensity", group = "ui", name = widgetOptionColor .. "   " .. texts.option.guishaderintensity, type = "slider", min = 0.001, max = 0.005, step = 0.0001, value = 0.0035, description = '',
+        { id = "guishader", group = "ui", category = types.basic, widget = "GUI Shader", name = widgetOptionColor .. "   " .. texts.option.guishader, type = "bool", value = GetWidgetToggleValue("GUI Shader"), description = texts.option.guishader_descr },
+        { id = "guishaderintensity", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.guishaderintensity, type = "slider", min = 0.001, max = 0.005, step = 0.0001, value = 0.0035, description = '',
           onload = function(i)
               loadWidgetData("GUI Shader", "guishaderintensity", { 'blurIntensity' })
           end,
@@ -2715,7 +2720,7 @@ function init()
           end,
         },
 
-        { id = "font", group = "ui", name = widgetOptionColor .. "   " .. texts.option.font, type = "select", options = {}, value = 1, description = texts.option.font_descr,
+        { id = "font", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.font, type = "select", options = {}, value = 1, description = texts.option.font_descr,
           onload = function(i)
           end,
           onchange = function(i, value)
@@ -2725,7 +2730,7 @@ function init()
               end
           end,
         },
-        { id = "font2", group = "ui", name = widgetOptionColor .. "   " .. texts.option.font2, type = "select", options = {}, value = 1, description = texts.option.font2_descr,
+        { id = "font2", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.font2, type = "select", options = {}, value = 1, description = texts.option.font2_descr,
           onload = function(i)
           end,
           onchange = function(i, value)
@@ -2735,7 +2740,7 @@ function init()
               end
           end,
         },
-        { id = "minimap_maxheight", group = "ui", basic = true, name = texts.option.minimap .. widgetOptionColor .. "  " .. texts.option.minimap_maxheight, type = "slider", min = 0.2, max = 0.4, step = 0.01, value = 0.35, description = texts.option.minimap_maxheight_descr,
+        { id = "minimap_maxheight", group = "ui", category = types.basic, name = texts.option.minimap .. widgetOptionColor .. "  " .. texts.option.minimap_maxheight, type = "slider", min = 0.2, max = 0.4, step = 0.01, value = 0.35, description = texts.option.minimap_maxheight_descr,
           onload = function(i)
               loadWidgetData("Minimap", "minimap_maxheight", { 'maxHeight' })
           end,
@@ -2743,7 +2748,7 @@ function init()
               saveOptionValue('Minimap', 'minimap', 'setMaxHeight', { 'maxHeight' }, value)
           end,
         },
-        --{ id = "simpleminimapcolors", group = "ui", name = widgetOptionColor .. "   "..texts.option.simpleminimapcolors, type = "bool", value = tonumber(Spring.GetConfigInt("SimpleMiniMapColors", 0) or 0) == 1, description = texts.option.simpleminimapcolors_descr,
+        --{ id = "simpleminimapcolors", group = "ui", category = optionTypes.advanced, name = widgetOptionColor .. "   "..texts.option.simpleminimapcolors, type = "bool", value = tonumber(Spring.GetConfigInt("SimpleMiniMapColors", 0) or 0) == 1, description = texts.option.simpleminimapcolors_descr,
         --  onload = function(i)
         --  end,
         --  onchange = function(i, value)
@@ -2751,7 +2756,7 @@ function init()
         --	  Spring.SetConfigInt("SimpleMiniMapColors", (value and 1 or 0))
         --  end,
         --},
-        { id = "minimapiconsize", group = "ui", name = widgetOptionColor .. "   " .. texts.option.minimapiconsize, type = "slider", min = 2, max = 5, step = 0.25, value = tonumber(Spring.GetConfigFloat("MinimapIconScale", 3.5) or 1), description = '',
+        { id = "minimapiconsize", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.minimapiconsize, type = "slider", min = 2, max = 5, step = 0.25, value = tonumber(Spring.GetConfigFloat("MinimapIconScale", 3.5) or 1), description = '',
           onload = function(i)
           end,
           onchange = function(i, value)
@@ -2760,30 +2765,30 @@ function init()
           end,
         },
 
-        --{id="los_opacity", group="ui", basic=true, name="LoS"..widgetOptionColor.."  opacity", type="slider", min=0.3, max=1.5, step=0.01, value=1, description='Line-of-Sight opacity',
+        --{ id ="los_opacity", group="ui", basic=true, name="LoS"..widgetOptionColor.."  opacity", type="slider", min=0.3, max=1.5, step=0.01, value=1, description='Line-of-Sight opacity',
         -- onload = function(i) loadWidgetData("LOS colors", "los_opacity", {'opacity'}) end,
         -- onchange = function(i, value) saveOptionValue('LOS colors', 'los', 'setOpacity', {'opacity'}, value) end,
         --},
-        --{id="los_colorize", group="ui", basic=true, name=widgetOptionColor.."   colorize", type="bool", value=(WG['los']~=nil and WG['los'].getColorize~=nil and WG['los'].getColorize()), description='',
+        --{ id ="los_colorize", group="ui", basic=true, name=widgetOptionColor.."   colorize", type="bool", value=(WG['los']~=nil and WG['los'].getColorize~=nil and WG['los'].getColorize()), description='',
         -- onload = function(i) end,
         -- onchange = function(i, value) saveOptionValue('LOS colors', 'los', 'setColorize', {'colorize'}, value) end,
         --},
 
-        { id = "buildmenu_makefancy", group = "ui", basic = true, name = texts.option.buildmenu .. widgetOptionColor .. "  " .. texts.option.buildmenu_makefancy, type = "bool", value = (WG['buildmenu'] ~= nil and WG['buildmenu'].getMakeFancy ~= nil and WG['buildmenu'].getMakeFancy()), description = texts.option.buildmenu_makefancy_descr,
+        { id = "buildmenu_makefancy", group = "ui", category = types.basic, name = texts.option.buildmenu .. widgetOptionColor .. "  " .. texts.option.buildmenu_makefancy, type = "bool", value = (WG['buildmenu'] ~= nil and WG['buildmenu'].getMakeFancy ~= nil and WG['buildmenu'].getMakeFancy()), description = texts.option.buildmenu_makefancy_descr,
           onload = function(i)
           end,
           onchange = function(i, value)
               saveOptionValue('Build menu', 'buildmenu', 'setMakeFancy', { 'showMakeFancy' }, value)
           end,
         },
-        { id = "buildmenu_bottom", group = "ui", basic = true, name = widgetOptionColor .. "   " .. texts.option.buildmenu_bottom, type = "bool", value = (WG['buildmenu'] ~= nil and WG['buildmenu'].getBottomPosition ~= nil and WG['buildmenu'].getBottomPosition()), description = texts.option.buildmenu_bottom_descr,
+        { id = "buildmenu_bottom", group = "ui", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.buildmenu_bottom, type = "bool", value = (WG['buildmenu'] ~= nil and WG['buildmenu'].getBottomPosition ~= nil and WG['buildmenu'].getBottomPosition()), description = texts.option.buildmenu_bottom_descr,
           onload = function(i)
           end,
           onchange = function(i, value)
               saveOptionValue('Build menu', 'buildmenu', 'setBottomPosition', { 'stickToBottom' }, value)
           end,
         },
-        { id = "buildmenu_maxposy", group = "ui", name = widgetOptionColor .. "   " .. texts.option.buildmenu_maxposy, type = "slider", min = 0.66, max = 0.88, step = 0.01, value = 0.74, description = texts.option.buildmenu_maxposy_descr,
+        { id = "buildmenu_maxposy", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.buildmenu_maxposy, type = "slider", min = 0.66, max = 0.88, step = 0.01, value = 0.74, description = texts.option.buildmenu_maxposy_descr,
           onload = function(i)
               loadWidgetData("Build menu", "buildmenu_maxposy", { 'maxPosY' })
           end,
@@ -2791,35 +2796,35 @@ function init()
               saveOptionValue('Build menu', 'buildmenu', 'setMaxPosY', { 'maxPosY' }, value)
           end,
         },
-        { id = "buildmenu_alwaysshow", group = "ui", basic = true, name = widgetOptionColor .. "   " .. texts.option.buildmenu_alwaysshow, type = "bool", value = (WG['buildmenu'] ~= nil and WG['buildmenu'].getAlwaysShow ~= nil and WG['buildmenu'].getAlwaysShow()), description = texts.option.buildmenu_alwaysshow_descr,
+        { id = "buildmenu_alwaysshow", group = "ui", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.buildmenu_alwaysshow, type = "bool", value = (WG['buildmenu'] ~= nil and WG['buildmenu'].getAlwaysShow ~= nil and WG['buildmenu'].getAlwaysShow()), description = texts.option.buildmenu_alwaysshow_descr,
           onload = function(i)
           end,
           onchange = function(i, value)
               saveOptionValue('Build menu', 'buildmenu', 'setAlwaysShow', { 'alwaysShow' }, value)
           end,
         },
-        { id = "buildmenu_prices", group = "ui", basic = true, name = widgetOptionColor .. "   " .. texts.option.buildmenu_prices, type = "bool", value = (WG['buildmenu'] ~= nil and WG['buildmenu'].getShowPrice ~= nil and WG['buildmenu'].getShowPrice()), description = texts.option.buildmenu_prices_descr,
+        { id = "buildmenu_prices", group = "ui", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.buildmenu_prices, type = "bool", value = (WG['buildmenu'] ~= nil and WG['buildmenu'].getShowPrice ~= nil and WG['buildmenu'].getShowPrice()), description = texts.option.buildmenu_prices_descr,
           onload = function(i)
           end,
           onchange = function(i, value)
               saveOptionValue('Build menu', 'buildmenu', 'setShowPrice', { 'showPrice' }, value)
           end,
         },
-        { id = "buildmenu_groupicon", group = "ui", basic = true, name = widgetOptionColor .. "   " .. texts.option.buildmenu_groupicon, type = "bool", value = (WG['buildmenu'] ~= nil and WG['buildmenu'].getShowGroupIcon ~= nil and WG['buildmenu'].getShowGroupIcon()), description = texts.option.buildmenu_groupicon_descr,
+        { id = "buildmenu_groupicon", group = "ui", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.buildmenu_groupicon, type = "bool", value = (WG['buildmenu'] ~= nil and WG['buildmenu'].getShowGroupIcon ~= nil and WG['buildmenu'].getShowGroupIcon()), description = texts.option.buildmenu_groupicon_descr,
           onload = function(i)
           end,
           onchange = function(i, value)
               saveOptionValue('Build menu', 'buildmenu', 'setShowGroupIcon', { 'showGroupIcon' }, value)
           end,
         },
-        { id = "buildmenu_radaricon", group = "ui", basic = true, name = widgetOptionColor .. "   " .. texts.option.buildmenu_radaricon, type = "bool", value = (WG['buildmenu'] ~= nil and WG['buildmenu'].getShowRadarIcon ~= nil and WG['buildmenu'].getShowRadarIcon()), description = texts.option.buildmenu_radaricon_descr,
+        { id = "buildmenu_radaricon", group = "ui", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.buildmenu_radaricon, type = "bool", value = (WG['buildmenu'] ~= nil and WG['buildmenu'].getShowRadarIcon ~= nil and WG['buildmenu'].getShowRadarIcon()), description = texts.option.buildmenu_radaricon_descr,
           onload = function(i)
           end,
           onchange = function(i, value)
               saveOptionValue('Build menu', 'buildmenu', 'setShowRadarIcon', { 'showRadarIcon' }, value)
           end,
         },
-        { id = "buildmenu_tooltip", group = "ui", name = widgetOptionColor .. "   " .. texts.option.buildmenu_tooltip, type = "bool", value = (WG['buildmenu'] ~= nil and WG['buildmenu'].getShowTooltip ~= nil and WG['buildmenu'].getShowTooltip()), description = texts.option.buildmenu_tooltip_descr,
+        { id = "buildmenu_tooltip", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.buildmenu_tooltip, type = "bool", value = (WG['buildmenu'] ~= nil and WG['buildmenu'].getShowTooltip ~= nil and WG['buildmenu'].getShowTooltip()), description = texts.option.buildmenu_tooltip_descr,
           onload = function(i)
           end,
           onchange = function(i, value)
@@ -2827,7 +2832,7 @@ function init()
           end,
         },
 
-        --{ id = "buildmenu_defaultcolls", group = "ui", name = widgetOptionColor .. "   columns", type = "slider", min = 4, max = 6, step = 1, value = 5, description = 'Number of columns when "dynamic columns" is disabled',
+        --{ id = "buildmenu_defaultcolls", group = "ui", category = optionTypes.advanced, name = widgetOptionColor .. "   columns", type = "slider", min = 4, max = 6, step = 1, value = 5, description = 'Number of columns when "dynamic columns" is disabled',
         --  onload = function(i)
         --	  loadWidgetData("Build menu", "buildmenu_defaultcolls", { 'defaultColls' })
         --  end,
@@ -2835,14 +2840,14 @@ function init()
         --	  saveOptionValue('Build menu', 'buildmenu', 'setDefaultColls', { 'defaultColls' }, value)
         --  end,
         --},
-        --{ id = "buildmenu_dynamic", group = "ui", name = widgetOptionColor .. "   dynamic columns", type = "bool", value = (WG['buildmenu'] ~= nil and WG['buildmenu'].getDynamicIconsize ~= nil and WG['buildmenu'].getDynamicIconsize()), description = 'Use variable number of columns depending on number of buildoptions available',
+        --{ id = "buildmenu_dynamic", group = "ui", category = optionTypes.advanced, name = widgetOptionColor .. "   dynamic columns", type = "bool", value = (WG['buildmenu'] ~= nil and WG['buildmenu'].getDynamicIconsize ~= nil and WG['buildmenu'].getDynamicIconsize()), description = 'Use variable number of columns depending on number of buildoptions available',
         --  onload = function(i)
         --  end,
         --  onchange = function(i, value)
         --	  saveOptionValue('Build menu', 'buildmenu', 'setDynamicIconsize', { 'dynamicIconsize' }, value)
         --  end,
         --},
-        --{ id = "buildmenu_mincolls", group = "ui", name = widgetOptionColor .. "      min columns", type = "slider", min = 4, max = 6, step = 1, value = 5, description = '',
+        --{ id = "buildmenu_mincolls", group = "ui", category = optionTypes.advanced, name = widgetOptionColor .. "      min columns", type = "slider", min = 4, max = 6, step = 1, value = 5, description = '',
         --  onload = function(i)
         --	  loadWidgetData("Build menu", "buildmenu_mincolls", { 'minColls' })
         --  end,
@@ -2850,7 +2855,7 @@ function init()
         --	  saveOptionValue('Build menu', 'buildmenu', 'setMinColls', { 'minColls' }, value)
         --  end,
         --},
-        --{ id = "buildmenu_maxcolls", group = "ui", name = widgetOptionColor .. "      max columns", type = "slider", min = 4, max = 7, step = 1, value = 6, description = '',
+        --{ id = "buildmenu_maxcolls", group = "ui", category = optionTypes.advanced, name = widgetOptionColor .. "      max columns", type = "slider", min = 4, max = 7, step = 1, value = 6, description = '',
         --  onload = function(i)
         --	  loadWidgetData("Build menu", "buildmenu_maxcolls", { 'maxColls' })
         --  end,
@@ -2859,7 +2864,7 @@ function init()
         --  end,
         --},
 
-        { id = "ordermenu_colorize", group = "ui", basic = true, name = texts.option.ordermenu .. widgetOptionColor .. "  " .. texts.option.ordermenu_colorize, type = "slider", min = 0, max = 1, step = 0.1, value = 0, description = '',
+        { id = "ordermenu_colorize", group = "ui", category = types.basic, name = texts.option.ordermenu .. widgetOptionColor .. "  " .. texts.option.ordermenu_colorize, type = "slider", min = 0, max = 1, step = 0.1, value = 0, description = '',
           onload = function(i)
               loadWidgetData("Order menu", "ordermenu_colorize", { 'colorize' })
           end,
@@ -2867,21 +2872,21 @@ function init()
               saveOptionValue('Order menu', 'ordermenu', 'setColorize', { 'colorize' }, value)
           end,
         },
-        { id = "ordermenu_bottompos", group = "ui", basic = true, name = widgetOptionColor .. "   " .. texts.option.ordermenu_bottompos, type = "bool", value = (WG['ordermenu'] ~= nil and WG['ordermenu'].getBottomPosition ~= nil and WG['ordermenu'].getBottomPosition()), description = texts.option.ordermenu_bottompos_descr,
+        { id = "ordermenu_bottompos", group = "ui", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.ordermenu_bottompos, type = "bool", value = (WG['ordermenu'] ~= nil and WG['ordermenu'].getBottomPosition ~= nil and WG['ordermenu'].getBottomPosition()), description = texts.option.ordermenu_bottompos_descr,
           onload = function(i)
           end,
           onchange = function(i, value)
               saveOptionValue('Order menu', 'ordermenu', 'setBottomPosition', { 'stickToBottom' }, value)
           end,
         },
-        { id = "ordermenu_alwaysshow", group = "ui", name = widgetOptionColor .. "   " .. texts.option.ordermenu_alwaysshow, type = "bool", value = (WG['ordermenu'] ~= nil and WG['ordermenu'].getAlwaysShow ~= nil and WG['ordermenu'].getAlwaysShow()), description = texts.option.ordermenu_alwaysshow_descr,
+        { id = "ordermenu_alwaysshow", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.ordermenu_alwaysshow, type = "bool", value = (WG['ordermenu'] ~= nil and WG['ordermenu'].getAlwaysShow ~= nil and WG['ordermenu'].getAlwaysShow()), description = texts.option.ordermenu_alwaysshow_descr,
           onload = function(i)
           end,
           onchange = function(i, value)
               saveOptionValue('Order menu', 'ordermenu', 'setAlwaysShow', { 'alwaysShow' }, value)
           end,
         },
-        { id = "ordermenu_hideset", group = "ui", basic = true, name = widgetOptionColor .. "   " .. texts.option.ordermenu_hideset, type = "bool", value = (WG['ordermenu'] ~= nil and WG['ordermenu'].getDisabledCmd ~= nil and WG['ordermenu'].getDisabledCmd('Move')), description = texts.option.ordermenu_hideset_descr,
+        { id = "ordermenu_hideset", group = "ui", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.ordermenu_hideset, type = "bool", value = (WG['ordermenu'] ~= nil and WG['ordermenu'].getDisabledCmd ~= nil and WG['ordermenu'].getDisabledCmd('Move')), description = texts.option.ordermenu_hideset_descr,
           onload = function(i)
           end,
           onchange = function(i, value)
@@ -2891,7 +2896,7 @@ function init()
               end
           end,
         },
-        --{ id = "ordermenu_button_move", group = "ui", name = widgetOptionColor .. "   "..texts.option.ordermenu_alwaysshow, type = "bool", value = (WG['ordermenu'] ~= nil and WG['ordermenu'].getDisbledCmd~= nil and WG['ordermenu'].getAlwaysShow()), description = texts.option.ordermenu_alwaysshow_descr,
+        --{ id = "ordermenu_button_move", group = "ui", category = optionTypes.advanced, name = widgetOptionColor .. "   "..texts.option.ordermenu_alwaysshow, type = "bool", value = (WG['ordermenu'] ~= nil and WG['ordermenu'].getDisbledCmd~= nil and WG['ordermenu'].getAlwaysShow()), description = texts.option.ordermenu_alwaysshow_descr,
         --  onload = function(i)
         --  end,
         --  onchange = function(i, value)
@@ -2899,9 +2904,9 @@ function init()
         --  end,
         --},
 
-        { id = "unitgroups", group = "ui", basic = true, widget = "Unit Groups", name = texts.option.unitgroups, type = "bool", value = GetWidgetToggleValue("Unit Groups"), description = texts.option.unitgroups_descr },
+        { id = "unitgroups", group = "ui", category = types.basic, widget = "Unit Groups", name = texts.option.unitgroups, type = "bool", value = GetWidgetToggleValue("Unit Groups"), description = texts.option.unitgroups_descr },
 
-        { id = "advplayerlist_scale", group = "ui", basic = true, name = texts.option.advplayerlist .. widgetOptionColor .. "  " .. texts.option.advplayerlist_scale, min = 0.85, max = 1.2, step = 0.01, type = "slider", value = 1, description = texts.option.advplayerlist_scale_descr,
+        { id = "advplayerlist_scale", group = "ui", category = types.basic, name = texts.option.advplayerlist .. widgetOptionColor .. "  " .. texts.option.advplayerlist_scale, min = 0.85, max = 1.2, step = 0.01, type = "slider", value = 1, description = texts.option.advplayerlist_scale_descr,
           onload = function(i)
               loadWidgetData("AdvPlayersList", "advplayerlist_scale", { 'customScale' })
           end,
@@ -2909,7 +2914,7 @@ function init()
               saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetScale', { 'customScale' }, value)
           end,
         },
-        { id = "advplayerlist_showid", group = "ui", name = widgetOptionColor .. "   " .. texts.option.advplayerlist_showid, type = "bool", value = false, description = texts.option.advplayerlist_showid_descr,
+        { id = "advplayerlist_showid", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.advplayerlist_showid, type = "bool", value = false, description = texts.option.advplayerlist_showid_descr,
           onload = function(i)
               loadWidgetData("AdvPlayersList", "advplayerlist_showid", { 'm_active_Table', 'id' })
           end,
@@ -2917,7 +2922,7 @@ function init()
               saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetModuleActive', { 'm_active_Table', 'id' }, value, { 'id', value })
           end,
         },
-        { id = "advplayerlist_country", group = "ui", name = widgetOptionColor .. "   " .. texts.option.advplayerlist_country, type = "bool", value = true, description = texts.option.advplayerlist_country_descr,
+        { id = "advplayerlist_country", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.advplayerlist_country, type = "bool", value = true, description = texts.option.advplayerlist_country_descr,
           onload = function(i)
               loadWidgetData("AdvPlayersList", "advplayerlist_country", { 'm_active_Table', 'country' })
           end,
@@ -2925,7 +2930,7 @@ function init()
               saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetModuleActive', { 'm_active_Table', 'country' }, value, { 'country', value })
           end,
         },
-        { id = "advplayerlist_rank", group = "ui", name = widgetOptionColor .. "   " .. texts.option.advplayerlist_rank, type = "bool", value = true, description = texts.option.advplayerlist_rank_descr,
+        { id = "advplayerlist_rank", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.advplayerlist_rank, type = "bool", value = true, description = texts.option.advplayerlist_rank_descr,
           onload = function(i)
               loadWidgetData("AdvPlayersList", "advplayerlist_rank", { 'm_active_Table', 'rank' })
           end,
@@ -2933,7 +2938,7 @@ function init()
               saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetModuleActive', { 'm_active_Table', 'rank' }, value, { 'rank', value })
           end,
         },
-        { id = "advplayerlist_side", group = "ui", name = widgetOptionColor .. "   " .. texts.option.advplayerlist_side, type = "bool", value = true, description = texts.option.advplayerlist_side_descr,
+        { id = "advplayerlist_side", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.advplayerlist_side, type = "bool", value = true, description = texts.option.advplayerlist_side_descr,
           onload = function(i)
               loadWidgetData("AdvPlayersList", "advplayerlist_side", { 'm_active_Table', 'side' })
           end,
@@ -2941,7 +2946,7 @@ function init()
               saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetModuleActive', { 'm_active_Table', 'side' }, value, { 'side', value })
           end,
         },
-        { id = "advplayerlist_skill", group = "ui", name = widgetOptionColor .. "   " .. texts.option.advplayerlist_skill, type = "bool", value = true, description = texts.option.advplayerlist_skill_descr,
+        { id = "advplayerlist_skill", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.advplayerlist_skill, type = "bool", value = true, description = texts.option.advplayerlist_skill_descr,
           onload = function(i)
               loadWidgetData("AdvPlayersList", "advplayerlist_skill", { 'm_active_Table', 'skill' })
           end,
@@ -2949,7 +2954,7 @@ function init()
               saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetModuleActive', { 'm_active_Table', 'skill' }, value, { 'skill', value })
           end,
         },
-        { id = "advplayerlist_cpuping", group = "ui", name = widgetOptionColor .. "   " .. texts.option.advplayerlist_cpuping, type = "bool", value = true, description = texts.option.advplayerlist_cpuping_descr,
+        { id = "advplayerlist_cpuping", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.advplayerlist_cpuping, type = "bool", value = true, description = texts.option.advplayerlist_cpuping_descr,
           onload = function(i)
               loadWidgetData("AdvPlayersList", "advplayerlist_cpuping", { 'm_active_Table', 'cpuping' })
           end,
@@ -2957,7 +2962,7 @@ function init()
               saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetModuleActive', { 'm_active_Table', 'cpuping' }, value, { 'cpuping', value })
           end,
         },
-        { id = "advplayerlist_share", group = "ui", name = widgetOptionColor .. "   " .. texts.option.advplayerlist_share, type = "bool", value = true, description = texts.option.advplayerlist_share_descr,
+        { id = "advplayerlist_share", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.advplayerlist_share, type = "bool", value = true, description = texts.option.advplayerlist_share_descr,
           onload = function(i)
               loadWidgetData("AdvPlayersList", "advplayerlist_share", { 'm_active_Table', 'share' })
           end,
@@ -2965,8 +2970,8 @@ function init()
               saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetModuleActive', { 'm_active_Table', 'share' }, value, { 'share', value })
           end,
         },
-        { id = "unittotals", group = "ui", basic = true, widget = "AdvPlayersList Unit Totals", name = widgetOptionColor .. "   " .. texts.option.unittotals, type = "bool", value = GetWidgetToggleValue("AdvPlayersList Unit Totals"), description = texts.option.unittotals_descr },
-        --{ id = "musicplayer", group = "ui", basic = true, widget = "AdvPlayersList Music Player", name = widgetOptionColor .. "   "..texts.option.musicplayer, type = "bool", value = GetWidgetToggleValue("AdvPlayersList Music Player"), description = texts.option.musicplayer,
+        { id = "unittotals", group = "ui", category = types.basic, widget = "AdvPlayersList Unit Totals", name = widgetOptionColor .. "   " .. texts.option.unittotals, type = "bool", value = GetWidgetToggleValue("AdvPlayersList Unit Totals"), description = texts.option.unittotals_descr },
+        --{ id = "musicplayer", group = "ui", category = optionTypes.basic, widget = "AdvPlayersList Music Player", name = widgetOptionColor .. "   "..texts.option.musicplayer, type = "bool", value = GetWidgetToggleValue("AdvPlayersList Music Player"), description = texts.option.musicplayer,
         --  onload = function(i)
         --  end,
         --  onchange = function(i, value)
@@ -2975,16 +2980,16 @@ function init()
         --	  end
         --  end
         --},
-        { id = "mascot", group = "ui", basic = true, widget = "AdvPlayersList Mascot", name = widgetOptionColor .. "   " .. texts.option.mascot, type = "bool", value = GetWidgetToggleValue("AdvPlayersList Mascot"), description = texts.option.mascot_descr },
+        { id = "mascot", group = "ui", category = types.basic, widget = "AdvPlayersList Mascot", name = widgetOptionColor .. "   " .. texts.option.mascot, type = "bool", value = GetWidgetToggleValue("AdvPlayersList Mascot"), description = texts.option.mascot_descr },
 
-        { id = "console_hidespecchat", group = "ui", name = texts.option.console .. "   " .. widgetOptionColor .. texts.option.console_hidespecchat, type = "bool", value = (Spring.GetConfigInt("HideSpecChat", 0) == 1), description = texts.option.console_hidespecchat_descr,
+        { id = "console_hidespecchat", group = "ui", category = types.advanced, name = texts.option.console .. "   " .. widgetOptionColor .. texts.option.console_hidespecchat, type = "bool", value = (Spring.GetConfigInt("HideSpecChat", 0) == 1), description = texts.option.console_hidespecchat_descr,
           onload = function(i)
           end,
           onchange = function(i, value)
               Spring.SetConfigInt("HideSpecChat", value and 1 or 0)
           end,
         },
-        { id = "console_maxlines", group = "ui", name = widgetOptionColor .. "   " .. texts.option.console_maxlines, type = "slider", min = 3, max = 7, step = 1, value = (WG['chat'] ~= nil and WG['chat'].getMaxLines() or 5), description = '',
+        { id = "console_maxlines", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.console_maxlines, type = "slider", min = 3, max = 7, step = 1, value = (WG['chat'] ~= nil and WG['chat'].getMaxLines() or 5), description = '',
           onload = function(i)
               loadWidgetData("Chat", "console_maxlines", { 'maxLines' })
           end,
@@ -2992,7 +2997,7 @@ function init()
               saveOptionValue('Chat', 'chat', 'setMaxLines', { 'maxLines' }, value)
           end,
         },
-        { id = "console_maxconsolelines", group = "ui", name = widgetOptionColor .. "   " .. texts.option.console_maxconsolelines, type = "slider", min = 2, max = 12, step = 1, value = (WG['chat'] ~= nil and WG['chat'].getMaxConsoleLines() or 2), description = '',
+        { id = "console_maxconsolelines", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.console_maxconsolelines, type = "slider", min = 2, max = 12, step = 1, value = (WG['chat'] ~= nil and WG['chat'].getMaxConsoleLines() or 2), description = '',
           onload = function(i)
               loadWidgetData("Chat", "console_maxconsolelines", { 'maxConsoleLines' })
           end,
@@ -3000,7 +3005,7 @@ function init()
               saveOptionValue('Chat', 'chat', 'setMaxConsoleLines', { 'maxConsoleLines' }, value)
           end,
         },
-        --{ id = "console_capitalize", group = "ui", name = widgetOptionColor .. "   "..texts.option.console_capitalize, type = "bool", value = (WG['chat'] ~= nil and WG['chat'].getCapitalize() or false), description = '',
+        --{ id = "console_capitalize", group = "ui", category = optionTypes.advanced, name = widgetOptionColor .. "   "..texts.option.console_capitalize, type = "bool", value = (WG['chat'] ~= nil and WG['chat'].getCapitalize() or false), description = '',
         --	onload = function(i)
         --		loadWidgetData("Chat", "console_capitalize", { 'capitalize' })
         --	end,
@@ -3008,7 +3013,7 @@ function init()
         --		saveOptionValue('Chat', 'chat', 'setCapitalize', { 'capitalize' }, value)
         --	end,
         --},
-        { id = "console_fontsize", group = "ui", name = widgetOptionColor .. "   " .. texts.option.console_fontsize, type = "slider", min = 0.92, max = 1.12, step = 0.02, value = (WG['chat'] ~= nil and WG['chat'].getFontsize() or 1), description = '',
+        { id = "console_fontsize", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.console_fontsize, type = "slider", min = 0.92, max = 1.12, step = 0.02, value = (WG['chat'] ~= nil and WG['chat'].getFontsize() or 1), description = '',
           onload = function(i)
               loadWidgetData("Chat", "console_fontsize", { 'fontsizeMult' })
           end,
@@ -3016,7 +3021,7 @@ function init()
               saveOptionValue('Chat', 'chat', 'setFontsize', { 'fontsizeMult' }, value)
           end,
         },
-        { id = "console_backgroundopacity", group = "ui", basic = true, name = widgetOptionColor .. "   " .. texts.option.console_backgroundopacity, type = "slider", min = 0, max = 0.35, step = 0.01, value = (WG['chat'] ~= nil and WG['chat'].getBackgroundOpacity() or 0), description = texts.option.console_backgroundopacity_descr,
+        { id = "console_backgroundopacity", group = "ui", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.console_backgroundopacity, type = "slider", min = 0, max = 0.35, step = 0.01, value = (WG['chat'] ~= nil and WG['chat'].getBackgroundOpacity() or 0), description = texts.option.console_backgroundopacity_descr,
           onload = function(i)
               loadWidgetData("Chat", "console_backgroundopacity", { 'chatBackgroundOpacity' })
           end,
@@ -3025,18 +3030,18 @@ function init()
           end,
         },
 
-        --{id="commanderhurt", group="ui", widget="Commander Hurt Vignette", name="Commander hurt vignette", type="bool", value=GetWidgetToggleValue("Commander Hurt Vignette"), description='Shows a red vignette when commander is out of view and gets damaged'},
+        --{ id ="commanderhurt", group="ui", widget="Commander Hurt Vignette", name="Commander hurt vignette", type="bool", value=GetWidgetToggleValue("Commander Hurt Vignette"), description='Shows a red vignette when commander is out of view and gets damaged'},
 
-        { id = "idlebuilders", group = "ui", basic = true, widget = "Idle Builders", name = texts.option.idlebuilders, type = "bool", value = GetWidgetToggleValue("Idle Builders"), description = texts.option.idlebuilders_descr },
+        { id = "idlebuilders", group = "ui", category = types.basic, widget = "Idle Builders", name = texts.option.idlebuilders, type = "bool", value = GetWidgetToggleValue("Idle Builders"), description = texts.option.idlebuilders_descr },
 
-        { id = "buildbar", group = "ui", basic = true, widget = "BuildBar", name = texts.option.buildbar, type = "bool", value = GetWidgetToggleValue("BuildBar"), description = texts.option.buildbar_descr },
-
-
-        { id = "label_ui_game", group = "ui", name = texts.option.label_game, basic = true },
-        { id = "label_ui_game_spacer", group = "ui", basic = true },
+        { id = "buildbar", group = "ui", category = types.basic, widget = "BuildBar", name = texts.option.buildbar, type = "bool", value = GetWidgetToggleValue("BuildBar"), description = texts.option.buildbar_descr },
 
 
-        { id = "uniticonsasui", group = "ui", name = texts.option.uniticonsasui, type = "bool", value = (Spring.GetConfigInt("UnitIconsAsUI", 0) == 1), description = texts.option.uniticonsasui_descr,
+        { id = "label_ui_game", group = "ui", name = texts.option.label_game, category = types.basic },
+        { id = "label_ui_game_spacer", group = "ui", category = types.basic },
+
+
+        { id = "uniticonsasui", group = "ui", category = types.advanced, name = texts.option.uniticonsasui, type = "bool", value = (Spring.GetConfigInt("UnitIconsAsUI", 0) == 1), description = texts.option.uniticonsasui_descr,
           onload = function(i)
           end,
           onchange = function(i, value)
@@ -3046,7 +3051,7 @@ function init()
           end,
         },
 
-        { id = "disticon", group = "ui", basic = true, name = texts.option.disticon, type = "slider", min = 100, max = 700, step = 10, value = tonumber(Spring.GetConfigInt("UnitIconDist", 1) or 160), description = texts.option.disticon_descr,
+        { id = "disticon", group = "ui", category = types.basic, name = texts.option.disticon, type = "slider", min = 100, max = 700, step = 10, value = tonumber(Spring.GetConfigInt("UnitIconDist", 1) or 160), description = texts.option.disticon_descr,
           onload = function(i)
           end,
           onchange = function(i, value)
@@ -3054,7 +3059,7 @@ function init()
               Spring.SetConfigInt("UnitIconDist", value)
           end,
         },
-        { id = "iconscale", group = "ui", basic = true, name = widgetOptionColor .. "   " .. texts.option.iconscale, type = "slider", min = 0.85, max = 1.8, step = 0.05, value = tonumber(Spring.GetConfigFloat("UnitIconScale", 1.15) or 1.05), description = texts.option.iconscale_descr,
+        { id = "iconscale", group = "ui", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.iconscale, type = "slider", min = 0.85, max = 1.8, step = 0.05, value = tonumber(Spring.GetConfigFloat("UnitIconScale", 1.15) or 1.05), description = texts.option.iconscale_descr,
           onload = function(i)
           end,
           onchange = function(i, value)
@@ -3069,7 +3074,7 @@ function init()
               end
           end,
         },
-        --{ id = "uniticon_asui", group = "gfx", name = texts.option.uniticonasui, type = "bool", value = (Spring.GetConfigInt("UnitIconsAsUI", 0) == 1), description = texts.option.uniticonasui_descr,
+        --{ id = "uniticon_asui", group = "gfx", category = optionTypes.advanced, name = texts.option.uniticonasui, type = "bool", value = (Spring.GetConfigInt("UnitIconsAsUI", 0) == 1), description = texts.option.uniticonasui_descr,
         --  onload = function(i)
         --  end,
         --  onchange = function(i, value)
@@ -3077,7 +3082,7 @@ function init()
         --	  Spring.SetConfigInt("UnitIconsAsUI", (value and 1 or 0))
         --  end,
         --},
-        { id = "uniticon_scaleui", group = "ui", name = texts.option.uniticonscaleui, type = "slider", min = 0.85, max = 1.6, step = 0.05, value = tonumber(Spring.GetConfigFloat("UnitIconScaleUI", 1) or 1), description = texts.option.uniticonscaleui_descr,
+        { id = "uniticon_scaleui", group = "ui", category = types.advanced, name = texts.option.uniticonscaleui, type = "slider", min = 0.85, max = 1.6, step = 0.05, value = tonumber(Spring.GetConfigFloat("UnitIconScaleUI", 1) or 1), description = texts.option.uniticonscaleui_descr,
           onload = function(i)
           end,
           onchange = function(i, value)
@@ -3085,7 +3090,7 @@ function init()
               Spring.SetConfigFloat("UnitIconScaleUI", value)
           end,
         },
-        { id = "uniticon_fadevanish", group = "ui", name = widgetOptionColor .. "   " .. texts.option.uniticonfadevanish, type = "slider", min = 1, max = 12000, step = 50, value = tonumber(Spring.GetConfigInt("UnitIconFadeVanish", 2700) or 1), description = texts.option.uniticonfadevanish_descr,
+        { id = "uniticon_fadevanish", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.uniticonfadevanish, type = "slider", min = 1, max = 12000, step = 50, value = tonumber(Spring.GetConfigInt("UnitIconFadeVanish", 2700) or 1), description = texts.option.uniticonfadevanish_descr,
           onload = function(i)
           end,
           onchange = function(i, value)
@@ -3097,7 +3102,7 @@ function init()
               Spring.SetConfigInt("UnitIconFadeVanish", value)
           end,
         },
-        { id = "uniticon_fadestart", group = "ui", name = widgetOptionColor .. "   " .. texts.option.uniticonfadestart, type = "slider", min = 1, max = 12000, step = 50, value = tonumber(Spring.GetConfigInt("UnitIconFadeStart", 3000) or 1), description = texts.option.uniticonfadestart_descr,
+        { id = "uniticon_fadestart", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.uniticonfadestart, type = "slider", min = 1, max = 12000, step = 50, value = tonumber(Spring.GetConfigInt("UnitIconFadeStart", 3000) or 1), description = texts.option.uniticonfadestart_descr,
           onload = function(i)
           end,
           onchange = function(i, value)
@@ -3109,7 +3114,7 @@ function init()
               Spring.SetConfigInt("UnitIconFadeStart", value)
           end,
         },
-        { id = "uniticon_hidewithui", group = "ui", name = widgetOptionColor .. "   " .. texts.option.uniticonhidewithui, type = "bool", value = (Spring.GetConfigInt("UnitIconsHideWithUI", 0) == 1), description = texts.option.uniticonhidewithui_descr,
+        { id = "uniticon_hidewithui", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.uniticonhidewithui, type = "bool", value = (Spring.GetConfigInt("UnitIconsHideWithUI", 0) == 1), description = texts.option.uniticonhidewithui_descr,
           onload = function(i)
           end,
           onchange = function(i, value)
@@ -3118,7 +3123,7 @@ function init()
           end,
         },
 
-        { id = "featuredrawdist", group = "ui", name = texts.option.featuredrawdist, type = "slider", min = 2500, max = 15000, step = 500, value = tonumber(Spring.GetConfigInt("FeatureDrawDistance", 10000)), description = texts.option.featuredrawdist_descr,
+        { id = "featuredrawdist", group = "ui", category = types.advanced, name = texts.option.featuredrawdist, type = "slider", min = 2500, max = 15000, step = 500, value = tonumber(Spring.GetConfigInt("FeatureDrawDistance", 10000)), description = texts.option.featuredrawdist_descr,
           onload = function(i)
           end,
           onchange = function(i, value)
@@ -3131,8 +3136,8 @@ function init()
           end,
         },
 
-        { id = "teamcolors", group = "ui", basic = true, widget = "Player Color Palette", name = texts.option.teamcolors, type = "bool", value = GetWidgetToggleValue("Player Color Palette"), description = texts.option.teamcolors_descr },
-        { id = "sameteamcolors", group = "ui", basic = true, name = widgetOptionColor .. "   " .. texts.option.sameteamcolors, type = "bool", value = (WG['playercolorpalette'] ~= nil and WG['playercolorpalette'].getSameTeamColors ~= nil and WG['playercolorpalette'].getSameTeamColors()), description = texts.option.sameteamcolors_descr,
+        { id = "teamcolors", group = "ui", category = types.basic, widget = "Player Color Palette", name = texts.option.teamcolors, type = "bool", value = GetWidgetToggleValue("Player Color Palette"), description = texts.option.teamcolors_descr },
+        { id = "sameteamcolors", group = "ui", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.sameteamcolors, type = "bool", value = (WG['playercolorpalette'] ~= nil and WG['playercolorpalette'].getSameTeamColors ~= nil and WG['playercolorpalette'].getSameTeamColors()), description = texts.option.sameteamcolors_descr,
           onload = function(i)
           end,
           onchange = function(i, value)
@@ -3140,7 +3145,7 @@ function init()
           end,
         },
 
-        { id = "simpleteamcolors", group = "ui", basic = true, name = texts.option.playercolors .. widgetOptionColor .. "  " .. texts.option.simpleteamcolors, type = "bool", value = tonumber(Spring.GetConfigInt("simple_auto_colors", 0) or 0) == 1, description = texts.option.simpleteamcolors_descr,
+        { id = "simpleteamcolors", group = "ui", category = types.basic, name = texts.option.playercolors .. widgetOptionColor .. "  " .. texts.option.simpleteamcolors, type = "bool", value = tonumber(Spring.GetConfigInt("simple_auto_colors", 0) or 0) == 1, description = texts.option.simpleteamcolors_descr,
           onload = function(i)
           end,
           onchange = function(i, value)
@@ -3148,8 +3153,8 @@ function init()
           end,
         },
 
-        { id = "teamplatter", group = "ui", basic = true, widget = "TeamPlatter", name = texts.option.teamplatter, type = "bool", value = GetWidgetToggleValue("TeamPlatter"), description = texts.option.teamplatter_descr },
-        { id = "teamplatter_opacity", basic = true, group = "ui", name = widgetOptionColor .. "   " .. texts.option.teamplatter_opacity, min = 0.05, max = 0.4, step = 0.01, type = "slider", value = 0.3, description = texts.option.teamplatter_opacity_descr,
+        { id = "teamplatter", group = "ui", category = types.basic, widget = "TeamPlatter", name = texts.option.teamplatter, type = "bool", value = GetWidgetToggleValue("TeamPlatter"), description = texts.option.teamplatter_descr },
+        { id = "teamplatter_opacity", category = types.basic, group = "ui", name = widgetOptionColor .. "   " .. texts.option.teamplatter_opacity, min = 0.05, max = 0.4, step = 0.01, type = "slider", value = 0.3, description = texts.option.teamplatter_opacity_descr,
           onload = function(i)
               loadWidgetData("TeamPlatter", "teamplatter_opacity", { 'spotterOpacity' })
           end,
@@ -3157,7 +3162,7 @@ function init()
               saveOptionValue('TeamPlatter', 'teamplatter', 'setOpacity', { 'spotterOpacity' }, value)
           end,
         },
-        { id = "teamplatter_skipownteam", group = "ui", name = widgetOptionColor .. "   " .. texts.option.teamplatter_skipownteam, type = "bool", value = false, description = texts.option.teamplatter_skipownteam_descr,
+        { id = "teamplatter_skipownteam", category = types.advanced, group = "ui", name = widgetOptionColor .. "   " .. texts.option.teamplatter_skipownteam, type = "bool", value = false, description = texts.option.teamplatter_skipownteam_descr,
           onload = function(i)
               loadWidgetData("TeamPlatter", "teamplatter_skipownteam", { 'skipOwnTeam' })
           end,
@@ -3166,8 +3171,8 @@ function init()
           end,
         },
 
-        { id = "enemyspotter", group = "ui", basic = true, widget = "EnemySpotter", name = texts.option.enemyspotter, type = "bool", value = GetWidgetToggleValue("EnemySpotter"), description = texts.option.enemyspotter_descr },
-        { id = "enemyspotter_opacity", basic = true, group = "ui", name = widgetOptionColor .. "   " .. texts.option.enemyspotter_opacity, min = 0.12, max = 0.4, step = 0.01, type = "slider", value = 0.15, description = texts.option.enemyspotter_opacity_descr,
+        { id = "enemyspotter", group = "ui", category = types.basic, widget = "EnemySpotter", name = texts.option.enemyspotter, type = "bool", value = GetWidgetToggleValue("EnemySpotter"), description = texts.option.enemyspotter_descr },
+        { id = "enemyspotter_opacity", category = types.basic, group = "ui", name = widgetOptionColor .. "   " .. texts.option.enemyspotter_opacity, min = 0.12, max = 0.4, step = 0.01, type = "slider", value = 0.15, description = texts.option.enemyspotter_opacity_descr,
           onload = function(i)
               loadWidgetData("EnemySpotter", "enemyspotter_opacity", { 'spotterOpacity' })
           end,
@@ -3176,12 +3181,12 @@ function init()
           end,
         },
 
-        { id = "fancyselectedunits", group = "ui", basic = true, widget = "Fancy Selected Units", name = "Selection Unit Platters", type = "bool", value = GetWidgetToggleValue("Fancy Selected Units"), description = texts.option.fancyselectedunits_descr },
-        --{id="fancyselectedunits_opacity", group="ui", name=widgetOptionColor.."   line opacity", min=0.8, max=1, step=0.01, type="slider", value=0.95, description='Set the opacity of the highlight on selected units',
+        { id = "fancyselectedunits", group = "ui", category = types.basic, widget = "Fancy Selected Units", name = "Selection Unit Platters", type = "bool", value = GetWidgetToggleValue("Fancy Selected Units"), description = texts.option.fancyselectedunits_descr },
+        --{ id ="fancyselectedunits_opacity", group="ui", name=widgetOptionColor.."   line opacity", min=0.8, max=1, step=0.01, type="slider", value=0.95, description='Set the opacity of the highlight on selected units',
         -- onload = function(i) loadWidgetData("Fancy Selected Units", "fancyselectedunits_opacity", {'spotterOpacity'}) end,
         -- onchange = function(i, value) saveOptionValue('Fancy Selected Units', 'fancyselectedunits', 'setOpacity', {'spotterOpacity'}, value) end,
         --},
-        { id = "fancyselectedunits_baseopacity", group = "ui", name = widgetOptionColor .. "   " .. texts.option.fancyselectedunits_baseopacity, min = 0, max = 0.5, step = 0.01, type = "slider", value = 0.15, description = texts.option.fancyselectedunits_baseopacity_descr,
+        { id = "fancyselectedunits_baseopacity", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.fancyselectedunits_baseopacity, min = 0, max = 0.5, step = 0.01, type = "slider", value = 0.15, description = texts.option.fancyselectedunits_baseopacity_descr,
           onload = function(i)
               loadWidgetData("Fancy Selected Units", "fancyselectedunits_baseopacity", { 'baseOpacity' })
           end,
@@ -3189,7 +3194,7 @@ function init()
               saveOptionValue('Fancy Selected Units', 'fancyselectedunits', 'setBaseOpacity', { 'baseOpacity' }, value)
           end,
         },
-        { id = "fancyselectedunits_teamcoloropacity", group = "ui", name = widgetOptionColor .. "   " .. texts.option.fancyselectedunits_teamcoloropacity, min = 0, max = 1, step = 0.01, type = "slider", value = 0.55, description = texts.option.fancyselectedunits_teamcoloropacity_descr,
+        { id = "fancyselectedunits_teamcoloropacity", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.fancyselectedunits_teamcoloropacity, min = 0, max = 1, step = 0.01, type = "slider", value = 0.55, description = texts.option.fancyselectedunits_teamcoloropacity_descr,
           onload = function(i)
               loadWidgetData("Fancy Selected Units", "fancyselectedunits_teamcoloropacity", { 'teamcolorOpacity' })
           end,
@@ -3198,8 +3203,8 @@ function init()
           end,
         },
 
-		{ id = "selectedunits", group = "ui", basic = true, widget = "Selected Units GL4", name = "Selection Unit Platters", type = "bool", value = GetWidgetToggleValue("Selected Units GL4"), description = texts.option.selectedunits_descr },
-		{ id = "selectedunits_opacity", group = "ui", name = widgetOptionColor .. "   " .. texts.option.selectedunits_opacity, min = 0, max = 0.5, step = 0.01, type = "slider", value = 0.19, description = texts.option.selectedunits_opacity_descr,
+		{ id = "selectedunits", group = "ui", category = types.basic, widget = "Selected Units GL4", name = "Selection Unit Platters", type = "bool", value = GetWidgetToggleValue("Selected Units GL4"), description = texts.option.selectedunits_descr },
+		{ id = "selectedunits_opacity", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.selectedunits_opacity, min = 0, max = 0.5, step = 0.01, type = "slider", value = 0.19, description = texts.option.selectedunits_opacity_descr,
 		  onload = function(i)
 			  loadWidgetData("Selected Units GL4", "selectedunits_opacity", { 'opacity' })
 		  end,
@@ -3207,7 +3212,7 @@ function init()
 			  saveOptionValue('Selected Units GL4', 'selectedunits', 'setOpacity', { 'opacity' }, value)
 		  end,
 		},
-		{ id = "selectedunits_teamcoloropacity", group = "ui", name = widgetOptionColor .. "   " .. texts.option.selectedunits_teamcoloropacity, min = 0, max = 1, step = 0.01, type = "slider", value = 0.6, description = texts.option.selectedunits_teamcoloropacity_descr,
+		{ id = "selectedunits_teamcoloropacity", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.selectedunits_teamcoloropacity, min = 0, max = 1, step = 0.01, type = "slider", value = 0.6, description = texts.option.selectedunits_teamcoloropacity_descr,
 		  onload = function(i)
 			  loadWidgetData("Selected Units GL4", "selectedunits_teamcoloropacity", { 'teamcolorOpacity' })
 		  end,
@@ -3216,8 +3221,8 @@ function init()
 		  end,
 		},
 
-        { id = "highlightselunits", group = "ui", basic = true, widget = "Highlight Selected Units", name = texts.option.highlightselunits, type = "bool", value = GetWidgetToggleValue("Highlight Selected Units"), description = texts.option.highlightselunits_descr },
-        { id = "highlightselunits_opacity", group = "ui", basic = true, name = widgetOptionColor .. "   " .. texts.option.highlightselunits_opacity, min = 0.05, max = 0.5, step = 0.01, type = "slider", value = 0.1, description = texts.option.highlightselunits_opacity_descr,
+        { id = "highlightselunits", group = "ui", category = types.basic, widget = "Highlight Selected Units", name = texts.option.highlightselunits, type = "bool", value = GetWidgetToggleValue("Highlight Selected Units"), description = texts.option.highlightselunits_descr },
+        { id = "highlightselunits_opacity", group = "ui", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.highlightselunits_opacity, min = 0.05, max = 0.5, step = 0.01, type = "slider", value = 0.1, description = texts.option.highlightselunits_opacity_descr,
           onload = function(i)
               loadWidgetData("Highlight Selected Units", "highlightselunits_opacity", { 'highlightAlpha' })
           end,
@@ -3225,11 +3230,11 @@ function init()
               saveOptionValue('Highlight Selected Units', 'highlightselunits', 'setOpacity', { 'highlightAlpha' }, value)
           end,
         },
-        --{id="highlightselunits_shader", group="ui", name=widgetOptionColor.."   use shader", type="bool", value=false, description='Highlight model edges a bit',
+        --{ id ="highlightselunits_shader", group="ui", name=widgetOptionColor.."   use shader", type="bool", value=false, description='Highlight model edges a bit',
         --		 onload = function(i) loadWidgetData("Highlight Selected Units", "highlightselunits_shader", {'useHighlightShader'}) end,
         --		 onchange = function(i, value) saveOptionValue('Highlight Selected Units', 'highlightselunits', 'setShader', {'useHighlightShader'}, value) end,
         --		},
-        { id = "highlightselunits_teamcolor", group = "ui", basic = true, name = widgetOptionColor .. "   " .. texts.option.highlightselunits_teamcolor, type = "bool", value = false, description = texts.option.highlightselunits_teamcolor_descr,
+        { id = "highlightselunits_teamcolor", group = "ui", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.highlightselunits_teamcolor, type = "bool", value = false, description = texts.option.highlightselunits_teamcolor_descr,
           onload = function(i)
               loadWidgetData("Highlight Selected Units", "highlightselunits_teamcolor", { 'useTeamcolor' })
           end,
@@ -3238,8 +3243,8 @@ function init()
           end,
         },
 
-        { id = "metalspots", group = "ui", basic = true, widget = "Metalspots", name = texts.option.metalspots, type = "bool", value = GetWidgetToggleValue("Metalspots"), description = texts.option.metalpots_descr },
-        --{ id = "metalspots_opacity", group = "ui", name = widgetOptionColor .. "   "..texts.option.metalspots_opacity, type = "slider", min = 0.1, max = 1, step = 0.01, value = 0.5,
+        { id = "metalspots", group = "ui", category = types.basic, widget = "Metalspots", name = texts.option.metalspots, type = "bool", value = GetWidgetToggleValue("Metalspots"), description = texts.option.metalpots_descr },
+        --{ id = "metalspots_opacity", group = "ui", category = optionTypes.advanced, name = widgetOptionColor .. "   "..texts.option.metalspots_opacity, type = "slider", min = 0.1, max = 1, step = 0.01, value = 0.5,
         --	onload = function(i)
         --		loadWidgetData("Metalspots", "metalspots_opacity", { 'opacity' })
         --	end,
@@ -3248,7 +3253,7 @@ function init()
         --		saveOptionValue('Metalspots', 'metalspots', 'setOpacity', { 'opacity' }, options[getOptionByID('metalspots_opacity')].value)
         --	end,
         --},
-        { id = "metalspots_values", group = "ui", basic = true, name = widgetOptionColor .. "   " .. texts.option.metalspots_values, type = "bool", value = true, description = texts.option.metalspots_values_descr,
+        { id = "metalspots_values", group = "ui", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.metalspots_values, type = "bool", value = true, description = texts.option.metalspots_values_descr,
           onload = function(i)
               loadWidgetData("Metalspots", "metalspots_values", { 'showValues' })
           end,
@@ -3257,7 +3262,7 @@ function init()
               saveOptionValue('Metalspots', 'metalspots', 'setShowValue', { 'showValue' }, options[getOptionByID('metalspots_values')].value)
           end,
         },
-        { id = "metalspots_metalviewonly", group = "ui", name = widgetOptionColor .. "   " .. texts.option.metalspots_metalviewonly, type = "bool", value = false, description = texts.option.metalspots_metalviewonly_descr,
+        { id = "metalspots_metalviewonly", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.metalspots_metalviewonly, type = "bool", value = false, description = texts.option.metalspots_metalviewonly_descr,
           onload = function(i)
               loadWidgetData("Metalspots", "metalspots_metalviewonly", { 'metalViewOnly' })
           end,
@@ -3266,8 +3271,8 @@ function init()
           end,
         },
 
-        { id = "geospots", group = "ui", basic = true, widget = "Geothermalspots", name = texts.option.geospots, type = "bool", value = GetWidgetToggleValue("Metalspots"), description = texts.option.geospots_descr },
-        --{ id = "geospots_opacity", group = "ui", name = widgetOptionColor .. "   "..texts.option.geospots_opacity, type = "slider", min = 0.1, max = 1, step = 0.01, value = 0.5,
+        { id = "geospots", group = "ui", category = types.basic, widget = "Geothermalspots", name = texts.option.geospots, type = "bool", value = GetWidgetToggleValue("Metalspots"), description = texts.option.geospots_descr },
+        --{ id = "geospots_opacity", group = "ui", category = optionTypes.advanced, name = widgetOptionColor .. "   "..texts.option.geospots_opacity, type = "slider", min = 0.1, max = 1, step = 0.01, value = 0.5,
         --	onload = function(i)
         --		loadWidgetData("Geothermalspots", "geospots_opacity", { 'opacity' })
         --	end,
@@ -3277,7 +3282,7 @@ function init()
         --	end,
         --},
 
-        { id = "healthbarsscale", group = "ui", name = texts.option.healthbars .. widgetOptionColor .. "  " .. texts.option.healthbarsscale, type = "slider", min = 0.6, max = 1.6, step = 0.1, value = 1, description = '',
+        { id = "healthbarsscale", group = "ui", category = types.advanced, name = texts.option.healthbars .. widgetOptionColor .. "  " .. texts.option.healthbarsscale, type = "slider", min = 0.6, max = 1.6, step = 0.1, value = 1, description = '',
           onload = function(i)
               loadWidgetData("Health Bars", "healthbarsscale", { 'barScale' })
           end,
@@ -3285,7 +3290,7 @@ function init()
               saveOptionValue('Health Bars', 'healthbars', 'setScale', { 'barScale' }, value)
           end,
         },
-        { id = "healthbarsdistance", group = "ui", name = widgetOptionColor .. "   " .. texts.option.healthbarsdistance, type = "slider", min = 0.4, max = 6, step = 0.1, value = 1, description = '',
+        { id = "healthbarsdistance", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.healthbarsdistance, type = "slider", min = 0.4, max = 6, step = 0.1, value = 1, description = '',
           onload = function(i)
               loadWidgetData("Health Bars", "healthbarsdistance", { 'drawDistanceMult' })
           end,
@@ -3293,7 +3298,7 @@ function init()
               saveOptionValue('Health Bars', 'healthbars', 'setDrawDistance', { 'drawDistanceMult' }, value)
           end,
         },
-        { id = "healthbarsvariable", group = "ui", name = widgetOptionColor .. "   " .. texts.option.healthbarsvariable, type = "bool", value = (WG['healthbar'] ~= nil and WG['healthbar'].getVariableSizes()), description = texts.option.healthbarsvariable_descr,
+        { id = "healthbarsvariable", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.healthbarsvariable, type = "bool", value = (WG['healthbar'] ~= nil and WG['healthbar'].getVariableSizes()), description = texts.option.healthbarsvariable_descr,
           onload = function(i)
               loadWidgetData("Health Bars", "healthbarsvariable", { 'variableBarSizes' })
           end,
@@ -3301,7 +3306,7 @@ function init()
               saveOptionValue('Health Bars', 'healthbars', 'setVariableSizes', { 'variableBarSizes' }, value)
           end,
         },
-        { id = "healthbarshide", group = "ui", name = widgetOptionColor .. "   " .. texts.option.healthbarshide, type = "bool", value = (WG['nametags'] ~= nil and WG['nametags'].getDrawForIcon()), description = texts.option.healthbarshide_descr,
+        { id = "healthbarshide", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.healthbarshide, type = "bool", value = (WG['nametags'] ~= nil and WG['nametags'].getDrawForIcon()), description = texts.option.healthbarshide_descr,
           onload = function(i)
               loadWidgetData("Health Bars", "healthbarshide", { 'hideHealthbars' })
           end,
@@ -3310,15 +3315,15 @@ function init()
           end,
         },
 
-        { id = "rankicons", group = "ui", basic = true, widget = "Rank Icons", name = texts.option.rankicons, type = "bool", value = GetWidgetToggleValue("Rank Icons"), description = texts.option.rankicons_descr },
-        { id = "rankicons_distance", group = "ui", name = widgetOptionColor .. "   " .. texts.option.rankicons_distance, type = "slider", min = 0.4, max = 2, step = 0.1, value = (WG['rankicons'] ~= nil and WG['rankicons'].getDrawDistance ~= nil and WG['rankicons'].getDrawDistance()), description = '',
+        { id = "rankicons", group = "ui", category = types.basic, widget = "Rank Icons", name = texts.option.rankicons, type = "bool", value = GetWidgetToggleValue("Rank Icons"), description = texts.option.rankicons_descr },
+        { id = "rankicons_distance", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.rankicons_distance, type = "slider", min = 0.4, max = 2, step = 0.1, value = (WG['rankicons'] ~= nil and WG['rankicons'].getDrawDistance ~= nil and WG['rankicons'].getDrawDistance()), description = '',
           onload = function(i)
           end,
           onchange = function(i, value)
               saveOptionValue('Rank Icons', 'rankicons', 'setDrawDistance', { 'distanceMult' }, value)
           end,
         },
-        { id = "rankicons_scale", group = "ui", name = widgetOptionColor .. "   " .. texts.option.rankicons_scale, type = "slider", min = 0.3, max = 3, step = 0.1, value = (WG['rankicons'] ~= nil and WG['rankicons'].getScale ~= nil and WG['rankicons'].getScale()), description = '',
+        { id = "rankicons_scale", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.rankicons_scale, type = "slider", min = 0.3, max = 3, step = 0.1, value = (WG['rankicons'] ~= nil and WG['rankicons'].getScale ~= nil and WG['rankicons'].getScale()), description = '',
           onload = function(i)
           end,
           onchange = function(i, value)
@@ -3326,8 +3331,8 @@ function init()
           end,
         },
 
-        { id = "allycursors", group = "ui", basic = true, widget = "AllyCursors", name = texts.option.allycursors, type = "bool", value = GetWidgetToggleValue("AllyCursors"), description = texts.option.allycursors_descr },
-        { id = "allycursors_playername", group = "ui", name = widgetOptionColor .. "   " .. texts.option.allycursors_playername, type = "bool", value = true, description = texts.option.allycursors_playername_descr,
+        { id = "allycursors", group = "ui", category = types.basic, widget = "AllyCursors", name = texts.option.allycursors, type = "bool", value = GetWidgetToggleValue("AllyCursors"), description = texts.option.allycursors_descr },
+        { id = "allycursors_playername", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.allycursors_playername, type = "bool", value = true, description = texts.option.allycursors_playername_descr,
           onload = function(i)
               loadWidgetData("AllyCursors", "allycursors_playername", { 'showPlayerName' })
           end,
@@ -3335,7 +3340,7 @@ function init()
               saveOptionValue('AllyCursors', 'allycursors', 'setPlayerNames', { 'showPlayerName' }, value)
           end,
         },
-        { id = "allycursors_showdot", group = "ui", name = widgetOptionColor .. "   " .. texts.option.allycursors_showdot, type = "bool", value = true, description = texts.option.allycursors_showdot_descr,
+        { id = "allycursors_showdot", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.allycursors_showdot, type = "bool", value = true, description = texts.option.allycursors_showdot_descr,
           onload = function(i)
               loadWidgetData("AllyCursors", "allycursors_showdot", { 'showCursorDot' })
           end,
@@ -3343,7 +3348,7 @@ function init()
               saveOptionValue('AllyCursors', 'allycursors', 'setCursorDot', { 'showCursorDot' }, value)
           end,
         },
-        { id = "allycursors_spectatorname", group = "ui", name = widgetOptionColor .. "   " .. texts.option.allycursors_spectatorname, type = "bool", value = true, description = texts.option.allycursors_spectatorname_descr,
+        { id = "allycursors_spectatorname", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.allycursors_spectatorname, type = "bool", value = true, description = texts.option.allycursors_spectatorname_descr,
           onload = function(i)
               loadWidgetData("AllyCursors", "allycursors_spectatorname", { 'showSpectatorName' })
           end,
@@ -3351,7 +3356,7 @@ function init()
               saveOptionValue('AllyCursors', 'allycursors', 'setSpectatorNames', { 'showSpectatorName' }, value)
           end,
         },
-        { id = "allycursors_lights", group = "ui", name = widgetOptionColor .. "   " .. texts.option.allycursors_lights, type = "bool", value = true, description = texts.option.allycursors_lights_descr,
+        { id = "allycursors_lights", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.allycursors_lights, type = "bool", value = true, description = texts.option.allycursors_lights_descr,
           onload = function(i)
               loadWidgetData("AllyCursors", "allycursors_lights", { 'addLights' })
           end,
@@ -3359,7 +3364,7 @@ function init()
               saveOptionValue('AllyCursors', 'allycursors', 'setLights', { 'addLights' }, options[getOptionByID('allycursors_lights')].value)
           end,
         },
-        { id = "allycursors_lightradius", group = "ui", name = widgetOptionColor .. "      " .. texts.option.allycursors_lightradius, type = "slider", min = 0.15, max = 1, step = 0.05, value = 0.5, description = '',
+        { id = "allycursors_lightradius", group = "ui", category = types.advanced, name = widgetOptionColor .. "      " .. texts.option.allycursors_lightradius, type = "slider", min = 0.15, max = 1, step = 0.05, value = 0.5, description = '',
           onload = function(i)
               loadWidgetData("AllyCursors", "allycursors_lightradius", { 'lightRadiusMult' })
           end,
@@ -3367,7 +3372,7 @@ function init()
               saveOptionValue('AllyCursors', 'allycursors', 'setLightRadius', { 'lightRadiusMult' }, value)
           end,
         },
-        { id = "allycursors_lightstrength", group = "ui", name = widgetOptionColor .. "      " .. texts.option.allycursors_lightstrength, type = "slider", min = 0.1, max = 1.2, step = 0.05, value = 0.85, description = '',
+        { id = "allycursors_lightstrength", group = "ui", category = types.advanced, name = widgetOptionColor .. "      " .. texts.option.allycursors_lightstrength, type = "slider", min = 0.1, max = 1.2, step = 0.05, value = 0.85, description = '',
           onload = function(i)
               loadWidgetData("AllyCursors", "allycursors_lightstrength", { 'lightStrengthMult' })
           end,
@@ -3376,8 +3381,8 @@ function init()
           end,
         },
 
-        { id = "cursorlight", group = "ui", basic = true, widget = "Cursor Light", name = texts.option.cursorlight, type = "bool", value = GetWidgetToggleValue("Cursor Light"), description = texts.option.cursorlight_descr },
-        { id = "cursorlight_lightradius", group = "ui", name = widgetOptionColor .. "   " .. texts.option.cursorlight_lightradius, type = "slider", min = 0.15, max = 1, step = 0.05, value = 1.5, description = '',
+        { id = "cursorlight", group = "ui", category = types.basic, widget = "Cursor Light", name = texts.option.cursorlight, type = "bool", value = GetWidgetToggleValue("Cursor Light"), description = texts.option.cursorlight_descr },
+        { id = "cursorlight_lightradius", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.cursorlight_lightradius, type = "slider", min = 0.15, max = 1, step = 0.05, value = 1.5, description = '',
           onload = function(i)
               loadWidgetData("Cursor Light", "cursorlight_lightradius", { 'lightRadiusMult' })
           end,
@@ -3385,7 +3390,7 @@ function init()
               saveOptionValue('Cursor Light', 'cursorlight', 'setLightRadius', { 'lightRadiusMult' }, value)
           end,
         },
-        { id = "cursorlight_lightstrength", group = "ui", name = widgetOptionColor .. "   " .. texts.option.cursorlight_lightstrength, type = "slider", min = 0.1, max = 1.2, step = 0.05, value = 0.2, description = '',
+        { id = "cursorlight_lightstrength", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.cursorlight_lightstrength, type = "slider", min = 0.1, max = 1.2, step = 0.05, value = 0.2, description = '',
           onload = function(i)
               loadWidgetData("Cursor Light", "cursorlight_lightstrength", { 'lightStrengthMult' })
           end,
@@ -3394,10 +3399,10 @@ function init()
           end,
         },
 
-        { id = "showbuilderqueue", group = "ui", basic = true, widget = "Show Builder Queue", name = texts.option.showbuilderqueue, type = "bool", value = GetWidgetToggleValue("Show Builder Queue"), description = texts.option.showbuilderqueue_descr },
+        { id = "showbuilderqueue", group = "ui", category = types.basic, widget = "Show Builder Queue", name = texts.option.showbuilderqueue, type = "bool", value = GetWidgetToggleValue("Show Builder Queue"), description = texts.option.showbuilderqueue_descr },
 
-        { id = "unitenergyicons", group = "ui", basic = true, widget = "Unit energy icons", name = texts.option.unitenergyicons, type = "bool", value = GetWidgetToggleValue("Unit energy icons"), description = texts.option.unitenergyicons_descr },
-        { id = "unitenergyicons_self", group = "ui", name = widgetOptionColor .. "   " .. texts.option.unitenergyicons_self, type = "bool", value = (WG['unitenergyicons'] ~= nil and WG['unitenergyicons'].getOnlyShowOwnTeam()), description = texts.option.unitenergyicons_self_descr,
+        { id = "unitenergyicons", group = "ui", category = types.basic, widget = "Unit energy icons", name = texts.option.unitenergyicons, type = "bool", value = GetWidgetToggleValue("Unit energy icons"), description = texts.option.unitenergyicons_descr },
+        { id = "unitenergyicons_self", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.unitenergyicons_self, type = "bool", value = (WG['unitenergyicons'] ~= nil and WG['unitenergyicons'].getOnlyShowOwnTeam()), description = texts.option.unitenergyicons_self_descr,
           onload = function(i)
               loadWidgetData("Unit energy icons", "unitenergyicons_self", { 'onlyShowOwnTeam' })
           end,
@@ -3407,7 +3412,7 @@ function init()
         },
 
 
-        --{ id = "nametags_icon", group = "ui", name = texts.option.nametags_icon, type = "bool", value = (WG['nametags'] ~= nil and WG['nametags'].getDrawForIcon()), description = texts.option.nametags_icon_descr,
+        --{ id = "nametags_icon", group = "ui", category = optionTypes.advanced, name = texts.option.nametags_icon, type = "bool", value = (WG['nametags'] ~= nil and WG['nametags'].getDrawForIcon()), description = texts.option.nametags_icon_descr,
         --  onload = function(i)
         --	  loadWidgetData("Commander Name Tags", "nametags_icon", { 'drawForIcon' })
         --  end,
@@ -3416,8 +3421,8 @@ function init()
         --  end,
         --},
 
-        { id = "commandsfx", group = "ui", basic = true, widget = "Commands FX", name = texts.option.commandsfx, type = "bool", value = GetWidgetToggleValue("Commands FX"), description = texts.option.commandsfx_descr },
-        { id = "commandsfxfilterai", group = "ui", name = widgetOptionColor .. "   " .. texts.option.commandsfxfilterai, type = "bool", value = true, description = texts.option.commandsfxfilterai_descr,
+        { id = "commandsfx", group = "ui", category = types.basic, widget = "Commands FX", name = texts.option.commandsfx, type = "bool", value = GetWidgetToggleValue("Commands FX"), description = texts.option.commandsfx_descr },
+        { id = "commandsfxfilterai", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.commandsfxfilterai, type = "bool", value = true, description = texts.option.commandsfxfilterai_descr,
           onload = function(i)
               loadWidgetData("Commands FX", "commandsfxfilterai", { 'filterAIteams' })
           end,
@@ -3425,7 +3430,7 @@ function init()
               saveOptionValue('Commands FX', 'commandsfx', 'setFilterAI', { 'filterAIteams' }, value)
           end,
         },
-        { id = "commandsfxopacity", group = "ui", name = widgetOptionColor .. "   " .. texts.option.commandsfxopacity, type = "slider", min = 0.25, max = 1, step = 0.1, value = 1, description = '',
+        { id = "commandsfxopacity", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.commandsfxopacity, type = "slider", min = 0.25, max = 1, step = 0.1, value = 1, description = '',
           onload = function(i)
               loadWidgetData("Commands FX", "commandsfxopacity", { 'opacity' })
           end,
@@ -3434,19 +3439,19 @@ function init()
           end,
         },
 
-        { id = "displaydps", group = "ui", basic = true, name = texts.option.displaydps, type = "bool", value = tonumber(Spring.GetConfigInt("DisplayDPS", 0) or 0) == 1, description = texts.option.displaydps_descr,
+        { id = "displaydps", group = "ui", category = types.basic, name = texts.option.displaydps, type = "bool", value = tonumber(Spring.GetConfigInt("DisplayDPS", 0) or 0) == 1, description = texts.option.displaydps_descr,
           onload = function(i)
           end,
           onchange = function(i, value)
               Spring.SetConfigInt("DisplayDPS", (value and 1 or 0))
           end,
         },
-        { id = "givenunits", group = "ui", widget = "Given Units", name = texts.option.givenunits, type = "bool", value = GetWidgetToggleValue("Given Units"), description = texts.option.giveunits_descr },
+        { id = "givenunits", group = "ui", category = types.advanced, widget = "Given Units", name = texts.option.givenunits, type = "bool", value = GetWidgetToggleValue("Given Units"), description = texts.option.giveunits_descr },
 
         -- Radar range rings:
-        { id = "radarrange", group = "ui", widget = "Sensor Ranges Radar", name = texts.option.radarrange, type = "bool", value = GetWidgetToggleValue("Sensor Ranges Radar"), description = texts.option.radarrange_descr },
+        { id = "radarrange", group = "ui", category = types.advanced, widget = "Sensor Ranges Radar", name = texts.option.radarrange, type = "bool", value = GetWidgetToggleValue("Sensor Ranges Radar"), description = texts.option.radarrange_descr },
 
-        { id = "radarrangeopacity", group = "ui", name = widgetOptionColor .. "   " .. texts.option.radarrangeopacity, type = "slider", min = 0.01, max = 0.33, step = 0.01, value = (WG['radarrange'] ~= nil and WG['radarrange'].getOpacity ~= nil and WG['radarrange'].getOpacity()) or 0.08, description = '',
+        { id = "radarrangeopacity", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.radarrangeopacity, type = "slider", min = 0.01, max = 0.33, step = 0.01, value = (WG['radarrange'] ~= nil and WG['radarrange'].getOpacity ~= nil and WG['radarrange'].getOpacity()) or 0.08, description = '',
           onload = function(i)
               loadWidgetData("Sensor Ranges Radar", "radarrangeopacity", { 'opacity' })
           end,
@@ -3455,9 +3460,9 @@ function init()
           end,
         },
         -- Sonar range
-        { id = "sonarrange", group = "ui", widget = "Sensor Ranges Sonar", name = texts.option.sonarrange, type = "bool", value = GetWidgetToggleValue("Sensor Ranges Sonar"), description = texts.option.sonarrange_descr },
+        { id = "sonarrange", group = "ui", category = types.advanced, widget = "Sensor Ranges Sonar", name = texts.option.sonarrange, type = "bool", value = GetWidgetToggleValue("Sensor Ranges Sonar"), description = texts.option.sonarrange_descr },
 
-        { id = "sonarrangeopacity", group = "ui", name = widgetOptionColor .. "   " .. texts.option.sonarrangeopacity, type = "slider", min = 0.01, max = 0.33, step = 0.01, value = (WG['sonarrange'] ~= nil and WG['sonarrange'].getOpacity ~= nil and WG['sonarrange'].getOpacity()) or 0.08, description = '',
+        { id = "sonarrangeopacity", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.sonarrangeopacity, type = "slider", min = 0.01, max = 0.33, step = 0.01, value = (WG['sonarrange'] ~= nil and WG['sonarrange'].getOpacity ~= nil and WG['sonarrange'].getOpacity()) or 0.08, description = '',
           onload = function(i)
               loadWidgetData("Sensor Ranges Sonar", "sonarrangeopacity", { 'opacity' })
           end,
@@ -3466,9 +3471,9 @@ function init()
           end,
         },
         -- Jammer range
-        { id = "jammerrange", group = "ui", widget = "Sensor Ranges Jammer", name = texts.option.jammerrange, type = "bool", value = GetWidgetToggleValue("Sensor Ranges Jammer"), description = texts.option.jammerrange_descr },
+        { id = "jammerrange", group = "ui", category = types.advanced, widget = "Sensor Ranges Jammer", name = texts.option.jammerrange, type = "bool", value = GetWidgetToggleValue("Sensor Ranges Jammer"), description = texts.option.jammerrange_descr },
 
-        { id = "jammerrangeopacity", group = "ui", name = widgetOptionColor .. "   " .. texts.option.jammerrangeopacity, type = "slider", min = 0.01, max = 0.66, step = 0.01, value = (WG['jammerrange'] ~= nil and WG['jammerrange'].getOpacity ~= nil and WG['jammerrange'].getOpacity()) or 0.08, description = '',
+        { id = "jammerrangeopacity", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.jammerrangeopacity, type = "slider", min = 0.01, max = 0.66, step = 0.01, value = (WG['jammerrange'] ~= nil and WG['jammerrange'].getOpacity ~= nil and WG['jammerrange'].getOpacity()) or 0.08, description = '',
           onload = function(i)
               loadWidgetData("Sensor Ranges Jammer", "jammerrangeopacity", { 'opacity' })
           end,
@@ -3477,9 +3482,9 @@ function init()
           end,
         },
         -- LOS Range:
-        { id = "losrange", group = "ui", widget = "Sensor Ranges LOS", name = texts.option.losrange, type = "bool", value = GetWidgetToggleValue("Sensor Ranges LOS"), description = texts.option.losrange_descr },
+        { id = "losrange", group = "ui", category = types.advanced, widget = "Sensor Ranges LOS", name = texts.option.losrange, type = "bool", value = GetWidgetToggleValue("Sensor Ranges LOS"), description = texts.option.losrange_descr },
 
-        { id = "losrangeopacity", group = "ui", name = widgetOptionColor .. "   " .. texts.option.losrangeopacity, type = "slider", min = 0.01, max = 0.33, step = 0.01, value = (WG['losrange'] ~= nil and WG['losrange'].getOpacity ~= nil and WG['losrange'].getOpacity()) or 0.08, description = '',
+        { id = "losrangeopacity", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.losrangeopacity, type = "slider", min = 0.01, max = 0.33, step = 0.01, value = (WG['losrange'] ~= nil and WG['losrange'].getOpacity ~= nil and WG['losrange'].getOpacity()) or 0.08, description = '',
           onload = function(i)
               loadWidgetData("Sensor Ranges LOS", "losrangeopacity", { 'opacity' })
           end,
@@ -3487,7 +3492,7 @@ function init()
               saveOptionValue('Sensor Ranges LOS', 'losrange', 'setOpacity', { 'opacity' }, value)
           end,
         },
-        { id = "losrangeteamcolors", group = "ui", name = widgetOptionColor .. "   " .. texts.option.losrangeteamcolors, type = "bool", value = (WG['losrange'] ~= nil and WG['losrange'].getUseTeamColors ~= nil and WG['losrange'].getUseTeamColors()), description = '',
+        { id = "losrangeteamcolors", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.losrangeteamcolors, type = "bool", value = (WG['losrange'] ~= nil and WG['losrange'].getUseTeamColors ~= nil and WG['losrange'].getUseTeamColors()), description = '',
           onload = function(i)
               loadWidgetData("Sensor Ranges LOS", "losrangeteamcolors", { 'useteamcolors' })
           end,
@@ -3496,8 +3501,8 @@ function init()
           end,
         },
 
-        { id = "defrange", group = "ui", basic = true, widget = "Defense Range", name = texts.option.defrange, type = "bool", value = GetWidgetToggleValue("Defense Range"), description = texts.option.defrange_descr },
-        { id = "defrange_allyair", group = "ui", name = widgetOptionColor .. "   " .. texts.option.defrange_allyair, type = "bool", value = (WG['defrange'] ~= nil and WG['defrange'].getAllyAir ~= nil and WG['defrange'].getAllyAir()), description = texts.option.defrange_allyair_descr,
+        { id = "defrange", group = "ui", category = types.basic, widget = "Defense Range", name = texts.option.defrange, type = "bool", value = GetWidgetToggleValue("Defense Range"), description = texts.option.defrange_descr },
+        { id = "defrange_allyair", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.defrange_allyair, type = "bool", value = (WG['defrange'] ~= nil and WG['defrange'].getAllyAir ~= nil and WG['defrange'].getAllyAir()), description = texts.option.defrange_allyair_descr,
           onload = function(i)
               loadWidgetData("Defense Range", "defrange_allyair", { 'enabled', 'ally', 'air' })
           end,
@@ -3511,7 +3516,7 @@ function init()
               saveOptionValue('Defense Range', 'defrange', 'setAllyAir', { 'enabled', 'ally', 'air' }, value)
           end,
         },
-        { id = "defrange_allyground", group = "ui", name = widgetOptionColor .. "   " .. texts.option.defrange_allyground, type = "bool", value = (WG['defrange'] ~= nil and WG['defrange'].getAllyGround ~= nil and WG['defrange'].getAllyGround()), description = texts.option.defrange_allyground_descr,
+        { id = "defrange_allyground", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.defrange_allyground, type = "bool", value = (WG['defrange'] ~= nil and WG['defrange'].getAllyGround ~= nil and WG['defrange'].getAllyGround()), description = texts.option.defrange_allyground_descr,
           onload = function(i)
               loadWidgetData("Defense Range", "defrange_allyground", { 'enabled', 'ally', 'ground' })
           end,
@@ -3525,7 +3530,7 @@ function init()
               saveOptionValue('Defense Range', 'defrange', 'setAllyGround', { 'enabled', 'ally', 'ground' }, value)
           end,
         },
-        { id = "defrange_allynuke", group = "ui", name = widgetOptionColor .. "   " .. texts.option.defrange_allynuke, type = "bool", value = (WG['defrange'] ~= nil and WG['defrange'].getAllyNuke ~= nil and WG['defrange'].getAllyNuke()), description = texts.option.defrange_allynuke_descr,
+        { id = "defrange_allynuke", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.defrange_allynuke, type = "bool", value = (WG['defrange'] ~= nil and WG['defrange'].getAllyNuke ~= nil and WG['defrange'].getAllyNuke()), description = texts.option.defrange_allynuke_descr,
           onload = function(i)
               loadWidgetData("Defense Range", "defrange_allynuke", { 'enabled', 'ally', 'nuke' })
           end,
@@ -3539,7 +3544,7 @@ function init()
               saveOptionValue('Defense Range', 'defrange', 'setAllyNuke', { 'enabled', 'ally', 'nuke' }, value)
           end,
         },
-        { id = "defrange_enemyair", group = "ui", name = widgetOptionColor .. "   " .. texts.option.defrange_enemyair, type = "bool", value = (WG['defrange'] ~= nil and WG['defrange'].getEnemyAir ~= nil and WG['defrange'].getEnemyAir()), description = texts.option.defrange_enemyair_descr,
+        { id = "defrange_enemyair", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.defrange_enemyair, type = "bool", value = (WG['defrange'] ~= nil and WG['defrange'].getEnemyAir ~= nil and WG['defrange'].getEnemyAir()), description = texts.option.defrange_enemyair_descr,
           onload = function(i)
               loadWidgetData("Defense Range", "defrange_enemyair", { 'enabled', 'enemy', 'air' })
           end,
@@ -3553,7 +3558,7 @@ function init()
               saveOptionValue('Defense Range', 'defrange', 'setEnemyAir', { 'enabled', 'enemy', 'air' }, value)
           end,
         },
-        { id = "defrange_enemyground", group = "ui", name = widgetOptionColor .. "   " .. texts.option.defrange_enemyground, type = "bool", value = (WG['defrange'] ~= nil and WG['defrange'].getEnemyGround ~= nil and WG['defrange'].getEnemyGround()), description = texts.option.defrange_enemyground_descr,
+        { id = "defrange_enemyground", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.defrange_enemyground, type = "bool", value = (WG['defrange'] ~= nil and WG['defrange'].getEnemyGround ~= nil and WG['defrange'].getEnemyGround()), description = texts.option.defrange_enemyground_descr,
           onload = function(i)
               loadWidgetData("Defense Range", "defrange_enemyground", { 'enabled', 'enemy', 'ground' })
           end,
@@ -3567,7 +3572,7 @@ function init()
               saveOptionValue('Defense Range', 'defrange', 'setEnemyGround', { 'enabled', 'enemy', 'ground' }, value)
           end,
         },
-        { id = "defrange_enemynuke", group = "ui", name = widgetOptionColor .. "   " .. texts.option.defrange_enemynuke, type = "bool", value = (WG['defrange'] ~= nil and WG['defrange'].getEnemyNuke ~= nil and WG['defrange'].getEnemyNuke()), description = texts.option.defrange_enemynuke_descr,
+        { id = "defrange_enemynuke", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.defrange_enemynuke, type = "bool", value = (WG['defrange'] ~= nil and WG['defrange'].getEnemyNuke ~= nil and WG['defrange'].getEnemyNuke()), description = texts.option.defrange_enemynuke_descr,
           onload = function(i)
               loadWidgetData("Defense Range", "defrange_enemynuke", { 'enabled', 'enemy', 'nuke' })
           end,
@@ -3582,7 +3587,7 @@ function init()
           end,
         },
 
-        { id = "allyselunits_select", group = "ui", name = texts.option.allyselunits_select, type = "bool", value = (WG['allyselectedunits'] ~= nil and WG['allyselectedunits'].getSelectPlayerUnits()), description = texts.option.allyselunits_select_descr,
+        { id = "allyselunits_select", group = "ui", category = types.advanced, name = texts.option.allyselunits_select, type = "bool", value = (WG['allyselectedunits'] ~= nil and WG['allyselectedunits'].getSelectPlayerUnits()), description = texts.option.allyselunits_select_descr,
           onload = function(i)
               loadWidgetData("Ally Selected Units", "allyselunits_select", { 'selectPlayerUnits' })
           end,
@@ -3590,7 +3595,7 @@ function init()
               saveOptionValue('Ally Selected Units', 'allyselectedunits', 'setSelectPlayerUnits', { 'selectPlayerUnits' }, value)
           end,
         },
-        { id = "lockcamera_hideenemies", group = "ui", name = widgetOptionColor .. "   " .. texts.option.lockcamera_hideenemies, type = "bool", value = (WG['advplayerlist_api'] ~= nil and WG['advplayerlist_api'].GetLockHideEnemies()), description = texts.option.lockcamera_hideenemies_descr,
+        { id = "lockcamera_hideenemies", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.lockcamera_hideenemies, type = "bool", value = (WG['advplayerlist_api'] ~= nil and WG['advplayerlist_api'].GetLockHideEnemies()), description = texts.option.lockcamera_hideenemies_descr,
           onload = function(i)
               loadWidgetData("AdvPlayersList", "lockcamera_hideenemies", { 'lockcameraHideEnemies' })
           end,
@@ -3598,7 +3603,7 @@ function init()
               saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetLockHideEnemies', { 'lockcameraHideEnemies' }, value)
           end,
         },
-        { id = "lockcamera_los", group = "ui", name = widgetOptionColor .. "   " .. texts.option.lockcamera_los, type = "bool", value = (WG['advplayerlist_api'] ~= nil and WG['advplayerlist_api'].GetLockLos()), description = texts.option.lockcamera_los_descr,
+        { id = "lockcamera_los", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.lockcamera_los, type = "bool", value = (WG['advplayerlist_api'] ~= nil and WG['advplayerlist_api'].GetLockLos()), description = texts.option.lockcamera_los_descr,
           onload = function(i)
               loadWidgetData("AdvPlayersList", "lockcamera_los", { 'lockcameraLos' })
           end,
@@ -3607,7 +3612,7 @@ function init()
           end,
         },
 
-        --{ id = "playertv_countdown", group = "ui", name = texts.option.playertv_countdown, type = "slider", min = 8, max = 60, step = 1, value = (WG['playertv'] ~= nil and WG['playertv'].GetPlayerChangeDelay()) or 40, description = texts.option.playertv_countdown_descr,
+        --{ id = "playertv_countdown", group = "ui", category = optionTypes.advanced, name = texts.option.playertv_countdown, type = "slider", min = 8, max = 60, step = 1, value = (WG['playertv'] ~= nil and WG['playertv'].GetPlayerChangeDelay()) or 40, description = texts.option.playertv_countdown_descr,
         --  onload = function(i)
         --	  loadWidgetData("Player-TV", "playertv_countdown", { 'playerChangeDelay' })
         --  end,
@@ -3616,7 +3621,7 @@ function init()
         --  end,
         --},
 
-        --{ id = "loadscreen_tips", group = "ui", name = texts.option.loadscreen_tips, type = "bool", value = (Spring.GetConfigInt("loadscreen_tips",1) == 1), description = texts.option.loadscreen_tips_descr,
+        --{ id = "loadscreen_tips", group = "ui", category = optionTypes.advanced, name = texts.option.loadscreen_tips, type = "bool", value = (Spring.GetConfigInt("loadscreen_tips",1) == 1), description = texts.option.loadscreen_tips_descr,
         --  onchange = function(i, value)
         --	  Spring.SetConfigInt("loadscreen_tips", (value and 1 or 0))
         --  end,
@@ -3624,7 +3629,7 @@ function init()
 
 
         -- GAME
-        { id = "networksmoothing", restart = true, basic = true, group = "game", name = texts.option.networksmoothing, type = "bool", value = useNetworkSmoothing, description = texts.option.networksmoothing_descr,
+        { id = "networksmoothing", restart = true, category = types.basic, group = "game", name = texts.option.networksmoothing, type = "bool", value = useNetworkSmoothing, description = texts.option.networksmoothing_descr,
           onload = function(i)
               options[i].onchange(i, options[i].value)
           end,
@@ -3647,16 +3652,16 @@ function init()
               end
           end,
         },
-        { id = "autoquit", group = "game", basic = true, widget = "Autoquit", name = texts.option.autoquit, type = "bool", value = GetWidgetToggleValue("Autoquit"), description = texts.option.autoquit_descr },
+        { id = "autoquit", group = "game", category = types.basic, widget = "Autoquit", name = texts.option.autoquit, type = "bool", value = GetWidgetToggleValue("Autoquit"), description = texts.option.autoquit_descr },
 
-        { id = "smartselect_includebuildings", group = "game", basic = true, name = texts.option.smartselect_includebuildings, type = "bool", value = false, description = texts.option.smartselect_includebuildings_descr,
+        { id = "smartselect_includebuildings", group = "game", category = types.basic, name = texts.option.smartselect_includebuildings, type = "bool", value = false, description = texts.option.smartselect_includebuildings_descr,
           onload = function(i)
           end,
           onchange = function(i, value)
               saveOptionValue('SmartSelect', 'smartselect', 'setIncludeBuildings', { 'selectBuildingsWithMobile' }, value)
           end,
         },
-        { id = "smartselect_includebuilders", group = "game", basic = true, name = widgetOptionColor .. "   " .. texts.option.smartselect_includebuilders, type = "bool", value = true, description = texts.option.smartselect_includebuilders_descr,
+        { id = "smartselect_includebuilders", group = "game", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.smartselect_includebuilders, type = "bool", value = true, description = texts.option.smartselect_includebuilders_descr,
           onload = function(i)
           end,
           onchange = function(i, value)
@@ -3664,13 +3669,13 @@ function init()
           end,
         },
 
-        { id = "onlyfighterspatrol", group = "game", basic = true, widget = "OnlyFightersPatrol", name = texts.option.onlyfighterspatrol, type = "bool", value = GetWidgetToggleValue("Autoquit"), description = texts.option.onlyfighterspatrol_descr },
-        { id = "fightersfly", group = "game", basic = true, widget = "Set fighters on Fly mode", name = texts.option.fightersfly, type = "bool", value = GetWidgetToggleValue("Set fighters on Fly mode"), description = texts.option.fightersfly_descr },
+        { id = "onlyfighterspatrol", group = "game", category = types.basic, widget = "OnlyFightersPatrol", name = texts.option.onlyfighterspatrol, type = "bool", value = GetWidgetToggleValue("Autoquit"), description = texts.option.onlyfighterspatrol_descr },
+        { id = "fightersfly", group = "game", category = types.basic, widget = "Set fighters on Fly mode", name = texts.option.fightersfly, type = "bool", value = GetWidgetToggleValue("Set fighters on Fly mode"), description = texts.option.fightersfly_descr },
 
         {
             id = "builderpriority",
             group = "game",
-            basic = true,
+            category = types.basic,
             widget = "Builder Priority",
             name = texts.option.builderpriority,
             type = "bool",
@@ -3681,6 +3686,7 @@ function init()
         {
             id = "builderpriority_nanos",
             group = "game",
+			category = types.advanced,
             name = widgetOptionColor .. "   " .. texts.option.builderpriority_nanos,
             type = "bool",
             value = (
@@ -3700,6 +3706,7 @@ function init()
         {
             id = "builderpriority_cons",
             group = "game",
+			category = types.advanced,
             name = widgetOptionColor .. "   " .. texts.option.builderpriority_cons,
             type = "bool",
             value = (
@@ -3719,6 +3726,7 @@ function init()
         {
             id = "builderpriority_labs",
             group = "game",
+			category = types.advanced,
             name = widgetOptionColor .. "   " .. texts.option.builderpriority_labs,
             type = "bool",
             value = (
@@ -3735,11 +3743,11 @@ function init()
             end,
         },
 
-        { id = "autocloakpopups", group = "game", basic = true, widget = "Auto Cloak Popups", name = texts.option.autocloakpopups, type = "bool", value = GetWidgetToggleValue("Auto Cloak Popups"), description = texts.option.autocloakpopups_descr },
+        { id = "autocloakpopups", group = "game", category = types.basic, widget = "Auto Cloak Popups", name = texts.option.autocloakpopups, type = "bool", value = GetWidgetToggleValue("Auto Cloak Popups"), description = texts.option.autocloakpopups_descr },
 
-        { id = "unitreclaimer", group = "game", basic = true, widget = "Unit Reclaimer", name = texts.option.unitreclaimer, type = "bool", value = GetWidgetToggleValue("Unit Reclaimer"), description = texts.option.unitreclaimer_descr },
+        { id = "unitreclaimer", group = "game", category = types.basic, widget = "Unit Reclaimer", name = texts.option.unitreclaimer, type = "bool", value = GetWidgetToggleValue("Unit Reclaimer"), description = texts.option.unitreclaimer_descr },
 
-        { id = "autogroup_immediate", group = "game", basic = true, name = texts.option.autogroup_immediate, type = "bool", value = (WG['autogroup'] ~= nil and WG['autogroup'].getImmediate ~= nil and WG['autogroup'].getImmediate()), description = texts.option.autogroup_immediate_descr,
+        { id = "autogroup_immediate", group = "game", category = types.basic, name = texts.option.autogroup_immediate, type = "bool", value = (WG['autogroup'] ~= nil and WG['autogroup'].getImmediate ~= nil and WG['autogroup'].getImmediate()), description = texts.option.autogroup_immediate_descr,
           onload = function(i)
               loadWidgetData("Auto Group", "autogroup_immediate", { 'immediate' })
           end,
@@ -3752,16 +3760,16 @@ function init()
           end,
         },
 
-        { id = "factoryguard", group = "game", basic = true, widget = "FactoryGuard", name = texts.option.factory .. widgetOptionColor .. "  " .. texts.option.factoryguard, type = "bool", value = GetWidgetToggleValue("FactoryGuard"), description = texts.option.factoryguard_descr },
-        { id = "factoryholdpos", group = "game", basic = true, widget = "Factory hold position", name = widgetOptionColor .. "   " .. texts.option.factoryholdpos, type = "bool", value = GetWidgetToggleValue("Factory hold position"), description = texts.option.factoryholdpos_descr },
-        { id = "factoryrepeat", group = "game", basic = true, widget = "Factory Auto-Repeat", name = widgetOptionColor .. "   " .. texts.option.factoryrepeat, type = "bool", value = GetWidgetToggleValue("Factory Auto-Repeat"), description = texts.option.factoryrepeat_descr },
+        { id = "factoryguard", group = "game", category = types.basic, widget = "FactoryGuard", name = texts.option.factory .. widgetOptionColor .. "  " .. texts.option.factoryguard, type = "bool", value = GetWidgetToggleValue("FactoryGuard"), description = texts.option.factoryguard_descr },
+        { id = "factoryholdpos", group = "game", category = types.basic, widget = "Factory hold position", name = widgetOptionColor .. "   " .. texts.option.factoryholdpos, type = "bool", value = GetWidgetToggleValue("Factory hold position"), description = texts.option.factoryholdpos_descr },
+        { id = "factoryrepeat", group = "game", category = types.basic, widget = "Factory Auto-Repeat", name = widgetOptionColor .. "   " .. texts.option.factoryrepeat, type = "bool", value = GetWidgetToggleValue("Factory Auto-Repeat"), description = texts.option.factoryrepeat_descr },
 
-        { id = "transportai", group = "game", basic = true, widget = "Transport AI", name = texts.option.transportai, type = "bool", value = GetWidgetToggleValue("Transport AI"), description = texts.option.transportai_descr },
-        { id = "settargetdefault", group = "game", basic = true, widget = "Set target default", name = texts.option.settargetdefault, type = "bool", value = GetWidgetToggleValue("Set target default"), description = texts.option.settargetdefault_descr },
-        { id = "dgunnogroundenemies", group = "game", widget = "DGun no ground enemies", name = texts.option.dgunnogroundenemies, type = "bool", value = GetWidgetToggleValue("DGun no ground enemies"), description = texts.option.dgunnogroundenemies_descr },
-        { id = "dgunstallassist", group = "game", widget = "DGun Stall Assist", name = texts.option.dgunstallassist, type = "bool", value = GetWidgetToggleValue("DGun Stall Assist"), description = texts.option.dgunstallassist_descr },
+        { id = "transportai", group = "game", category = types.basic, widget = "Transport AI", name = texts.option.transportai, type = "bool", value = GetWidgetToggleValue("Transport AI"), description = texts.option.transportai_descr },
+        { id = "settargetdefault", group = "game", category = types.basic, widget = "Set target default", name = texts.option.settargetdefault, type = "bool", value = GetWidgetToggleValue("Set target default"), description = texts.option.settargetdefault_descr },
+        { id = "dgunnogroundenemies", group = "game", category = types.advanced, widget = "DGun no ground enemies", name = texts.option.dgunnogroundenemies, type = "bool", value = GetWidgetToggleValue("DGun no ground enemies"), description = texts.option.dgunnogroundenemies_descr },
+        { id = "dgunstallassist", group = "game", category = types.advanced, widget = "DGun Stall Assist", name = texts.option.dgunstallassist, type = "bool", value = GetWidgetToggleValue("DGun Stall Assist"), description = texts.option.dgunstallassist_descr },
 
-        { id = "singleplayerpause", group = "game", name = texts.option.singleplayerpause, type = "bool", value = pauseGameWhenSingleplayer, description = texts.option.singleplayerpause_descr,
+        { id = "singleplayerpause", group = "game", category = types.advanced, name = texts.option.singleplayerpause, type = "bool", value = pauseGameWhenSingleplayer, description = texts.option.singleplayerpause_descr,
           onchange = function(i, value)
               pauseGameWhenSingleplayer = value
               if (isSinglePlayer or isReplay) and show then
@@ -3778,29 +3786,29 @@ function init()
         },
 
         -- DEV
-		{ id = "language", group = "dev", name = texts.option.language, type = "select", options = languageNames, --[[value = languages[Spring.I18N.getLocale()],]]
+		{ id = "language", group = "dev", category = types.dev, name = texts.option.language, type = "select", options = languageNames, --[[value = languages[Spring.I18N.getLocale()],]]
 			onchange = function(i, value)
 				if Script.LuaUI('LanguageChanged') then
 					Script.LuaUI.LanguageChanged(languageCodes[value])
 				end
 			end
 		},
-		{ id = "usePlayerUI", group = "dev", name = "View UI as player", type = "bool", value = Spring.GetConfigInt("DevUI", 0) == 0,
+		{ id = "usePlayerUI", group = "dev", category = types.dev, name = "View UI as player", type = "bool", value = Spring.GetConfigInt("DevUI", 0) == 0,
 			onchange = function(i, value)
 				Spring.SetConfigInt("DevUI", value and 0 or 1)
 			end,
 		},
-        { id = "customwidgets", group = "dev", name = texts.option.customwidgets, type = "bool", value = widgetHandler.allowUserWidgets, description = texts.option.customwidgets_descr,
+        { id = "customwidgets", group = "dev", category = types.dev, name = texts.option.customwidgets, type = "bool", value = widgetHandler.allowUserWidgets, description = texts.option.customwidgets_descr,
           onchange = function(i, value)
               widgetHandler.__allowUserWidgets = value
               Spring.SendCommands("luarules reloadluaui")
           end,
         },
-        { id = "profiler", group = "dev", widget = "Widget Profiler", name = texts.option.profiler, type = "bool", value = GetWidgetToggleValue("Widget Profiler"), description = "" },
-        { id = "framegrapher", group = "dev", widget = "Frame Grapher", name = texts.option.framegrapher, type = "bool", value = GetWidgetToggleValue("Frame Grapher"), description = "" },
+        { id = "profiler", group = "dev", category = types.dev, widget = "Widget Profiler", name = texts.option.profiler, type = "bool", value = GetWidgetToggleValue("Widget Profiler"), description = "" },
+        { id = "framegrapher", group = "dev", category = types.dev, widget = "Frame Grapher", name = texts.option.framegrapher, type = "bool", value = GetWidgetToggleValue("Frame Grapher"), description = "" },
 
-        { id = "autocheat", group = "dev", widget = "Auto cheat", name = texts.option.autocheat, type = "bool", value = GetWidgetToggleValue("Auto cheat"), description = texts.option.autocheat_descr },
-        { id = "restart", group = "dev", name = texts.option.restart, type = "bool", value = false, description = texts.option.restart_descr,
+        { id = "autocheat", group = "dev", category = types.dev, widget = "Auto cheat", name = texts.option.autocheat, type = "bool", value = GetWidgetToggleValue("Auto cheat"), description = texts.option.autocheat_descr },
+        { id = "restart", group = "dev", category = types.dev, name = texts.option.restart, type = "bool", value = false, description = texts.option.restart_descr,
           onchange = function(i, value)
               options[getOptionByID('restart')].value = false
               Spring.Restart("", startScript)
@@ -3808,16 +3816,16 @@ function init()
         },
 
 
-        -- BAR doesnt support ZK style startboxes{ id = "startboxeditor", group = "dev", widget = "Startbox Editor", name = texts.option.startboxeditor, type = "bool", value = GetWidgetToggleValue("Startbox Editor"), description = texts.option.startboxeditor_descr },
+        -- BAR doesnt support ZK style startboxes{ id = "startboxeditor", group = "dev", category = optionTypes.dev, widget = "Startbox Editor", name = texts.option.startboxeditor, type = "bool", value = GetWidgetToggleValue("Startbox Editor"), description = texts.option.startboxeditor_descr },
 
-		{ id = "advmapshading", group = "dev", name = texts.option.advmapshading, type = "bool", value = (Spring.GetConfigInt("AdvMapShading", 1) == 1), description = texts.option.advmapshading_descr,
+		{ id = "advmapshading", group = "dev", category = types.dev, name = texts.option.advmapshading, type = "bool", value = (Spring.GetConfigInt("AdvMapShading", 1) == 1), description = texts.option.advmapshading_descr,
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("AdvMapShading", (value and 1 or 0))
 			  Spring.SendCommands("advmapshading "..(value and '1' or '0'))
 		  end,
 		},
 
-        { id = "gridmenu", group = "dev", name = texts.option.gridmenu, type = "bool", value = GetWidgetToggleValue("Grid menu"), description = texts.option.gridmenu_descr,
+        { id = "gridmenu", group = "dev", category = types.dev, name = texts.option.gridmenu, type = "bool", value = GetWidgetToggleValue("Grid menu"), description = texts.option.gridmenu_descr,
           onchange = function(i, value)
               if value then
                   widgetHandler:DisableWidget('Build menu')
@@ -3829,76 +3837,76 @@ function init()
           end,
         },
 
-        { id = "debugcolvol", group = "dev", name = texts.option.debugcolvol, type = "bool", value = false, description = "",
+        { id = "debugcolvol", group = "dev", category = types.dev, name = texts.option.debugcolvol, type = "bool", value = false, description = "",
           onchange = function(i, value)
               Spring.SendCommands("DebugColVol " .. (value and '1' or '0'))
           end,
         },
 
-        { id = "tonemapA", group = "dev", name = texts.option.tonemap .. widgetOptionColor .. "  1", type = "slider", min = 0, max = 7, step = 0.01, value = Spring.GetConfigFloat("tonemapA", 4.8), description = "",
+        { id = "tonemapA", group = "dev", category = types.dev, name = texts.option.tonemap .. widgetOptionColor .. "  1", type = "slider", min = 0, max = 7, step = 0.01, value = Spring.GetConfigFloat("tonemapA", 4.8), description = "",
           onchange = function(i, value)
               Spring.SetConfigFloat("tonemapA", value)
               Spring.SendCommands("luarules updatesun")
               Spring.SendCommands("luarules GlassUpdateSun")
           end,
         },
-        { id = "tonemapB", group = "dev", name = widgetOptionColor .. "   2", type = "slider", min = 0, max = 2, step = 0.01, value = Spring.GetConfigFloat("tonemapB", 0.75), description = "",
+        { id = "tonemapB", group = "dev", category = types.dev, name = widgetOptionColor .. "   2", type = "slider", min = 0, max = 2, step = 0.01, value = Spring.GetConfigFloat("tonemapB", 0.75), description = "",
           onchange = function(i, value)
               Spring.SetConfigFloat("tonemapB", value)
               Spring.SendCommands("luarules updatesun")
               Spring.SendCommands("luarules GlassUpdateSun")
           end,
         },
-        { id = "tonemapC", group = "dev", name = widgetOptionColor .. "   3", type = "slider", min = 0, max = 5, step = 0.01, value = Spring.GetConfigFloat("tonemapC", 3.5), description = "",
+        { id = "tonemapC", group = "dev", category = types.dev, name = widgetOptionColor .. "   3", type = "slider", min = 0, max = 5, step = 0.01, value = Spring.GetConfigFloat("tonemapC", 3.5), description = "",
           onchange = function(i, value)
               Spring.SetConfigFloat("tonemapC", value)
               Spring.SendCommands("luarules updatesun")
               Spring.SendCommands("luarules GlassUpdateSun")
           end,
         },
-        { id = "tonemapD", group = "dev", name = widgetOptionColor .. "   4", type = "slider", min = 0, max = 3, step = 0.01, value = Spring.GetConfigFloat("tonemapD", 0.85), description = "",
+        { id = "tonemapD", group = "dev", category = types.dev, name = widgetOptionColor .. "   4", type = "slider", min = 0, max = 3, step = 0.01, value = Spring.GetConfigFloat("tonemapD", 0.85), description = "",
           onchange = function(i, value)
               Spring.SetConfigFloat("tonemapD", value)
               Spring.SendCommands("luarules updatesun")
               Spring.SendCommands("luarules GlassUpdateSun")
           end,
         },
-        { id = "tonemapE", group = "dev", name = widgetOptionColor .. "   5", type = "slider", min = 0.75, max = 1.5, step = 0.01, value = Spring.GetConfigFloat("tonemapE", 1.0), description = "",
+        { id = "tonemapE", group = "dev", category = types.dev, name = widgetOptionColor .. "   5", type = "slider", min = 0.75, max = 1.5, step = 0.01, value = Spring.GetConfigFloat("tonemapE", 1.0), description = "",
           onchange = function(i, value)
               Spring.SetConfigFloat("tonemapE", value)
               Spring.SendCommands("luarules updatesun")
               Spring.SendCommands("luarules GlassUpdateSun")
           end,
         },
-        { id = "envAmbient", group = "dev", name = widgetOptionColor .. "   " .. texts.option.envAmbient, type = "slider", min = 0, max = 1, step = 0.01, value = Spring.GetConfigFloat("envAmbient", 0.25), description = "",
+        { id = "envAmbient", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.envAmbient, type = "slider", min = 0, max = 1, step = 0.01, value = Spring.GetConfigFloat("envAmbient", 0.25), description = "",
           onchange = function(i, value)
               Spring.SetConfigFloat("envAmbient", value)
               Spring.SendCommands("luarules updatesun")
               Spring.SendCommands("luarules GlassUpdateSun")
           end,
         },
-        { id = "unitSunMult", group = "dev", name = widgetOptionColor .. "   " .. texts.option.unitSunMult, type = "slider", min = 0.7, max = 1.6, step = 0.01, value = Spring.GetConfigFloat("unitSunMult", 1.0), description = "",
+        { id = "unitSunMult", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.unitSunMult, type = "slider", min = 0.7, max = 1.6, step = 0.01, value = Spring.GetConfigFloat("unitSunMult", 1.0), description = "",
           onchange = function(i, value)
               Spring.SetConfigFloat("unitSunMult", value)
               Spring.SendCommands("luarules updatesun")
               Spring.SendCommands("luarules GlassUpdateSun")
           end,
         },
-        { id = "unitExposureMult", group = "dev", name = widgetOptionColor .. "   " .. texts.option.unitExposureMult, type = "slider", min = 0.6, max = 1.25, step = 0.01, value = Spring.GetConfigFloat("unitExposureMult", 1.0), description = "",
+        { id = "unitExposureMult", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.unitExposureMult, type = "slider", min = 0.6, max = 1.25, step = 0.01, value = Spring.GetConfigFloat("unitExposureMult", 1.0), description = "",
           onchange = function(i, value)
               Spring.SetConfigFloat("unitExposureMult", value)
               Spring.SendCommands("luarules updatesun")
               Spring.SendCommands("luarules GlassUpdateSun")
           end,
         },
-        { id = "modelGamma", group = "dev", name = widgetOptionColor .. "   " .. texts.option.modelGamma, type = "slider", min = 0.7, max = 1.7, step = 0.01, value = Spring.GetConfigFloat("modelGamma", 1.0), description = "",
+        { id = "modelGamma", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.modelGamma, type = "slider", min = 0.7, max = 1.7, step = 0.01, value = Spring.GetConfigFloat("modelGamma", 1.0), description = "",
           onchange = function(i, value)
               Spring.SetConfigFloat("modelGamma", value)
               Spring.SendCommands("luarules updatesun")
               Spring.SendCommands("luarules GlassUpdateSun")
           end,
         },
-        { id = "tonemapDefaults", group = "dev", name = widgetOptionColor .. "   " .. texts.option.tonemapDefaults, type = "bool", value = GetWidgetToggleValue("Unit Reclaimer"), description = "",
+        { id = "tonemapDefaults", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.tonemapDefaults, type = "bool", value = GetWidgetToggleValue("Unit Reclaimer"), description = "",
           onchange = function(i, value)
               Spring.SetConfigFloat("tonemapA", 4.75)
               Spring.SetConfigFloat("tonemapB", 0.75)
@@ -3923,7 +3931,7 @@ function init()
               options[getOptionByID('tonemapDefaults')].value = false
           end,
         },
-        { id = "sun_y", group = "dev", name = texts.option.sun .. widgetOptionColor .. "  " .. texts.option.sun_y, type = "slider", min = 0.05, max = 0.9999, step = 0.0001, value = select(2, gl.GetSun("pos")), description = '',
+        { id = "sun_y", group = "dev", category = types.dev, name = texts.option.sun .. widgetOptionColor .. "  " .. texts.option.sun_y, type = "slider", min = 0.05, max = 0.9999, step = 0.0001, value = select(2, gl.GetSun("pos")), description = '',
           onchange = function(i, value)
               local sunX, sunY, sunZ = gl.GetSun("pos")
               sunY = value
@@ -3941,7 +3949,7 @@ function init()
               Spring.Echo(gl.GetSun())
           end,
         },
-        { id = "sun_x", group = "dev", name = widgetOptionColor .. "   " .. texts.option.sun_x, type = "slider", min = -0.9999, max = 0.9999, step = 0.0001, value = select(1, gl.GetSun("pos")), description = '',
+        { id = "sun_x", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.sun_x, type = "slider", min = -0.9999, max = 0.9999, step = 0.0001, value = select(1, gl.GetSun("pos")), description = '',
           onchange = function(i, value)
               local sunX, sunY, sunZ = gl.GetSun("pos")
               sunX = value
@@ -3959,7 +3967,7 @@ function init()
               Spring.Echo(gl.GetSun())
           end,
         },
-        { id = "sun_z", group = "dev", name = widgetOptionColor .. "   " .. texts.option.sun_z, type = "slider", min = -0.9999, max = 0.9999, step = 0.0001, value = select(3, gl.GetSun("pos")), description = '',
+        { id = "sun_z", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.sun_z, type = "slider", min = -0.9999, max = 0.9999, step = 0.0001, value = select(3, gl.GetSun("pos")), description = '',
           onload = function(i)
           end,
           onchange = function(i, value)
@@ -3979,7 +3987,7 @@ function init()
               Spring.Echo(gl.GetSun())
           end,
         },
-        { id = "sun_reset", group = "dev", name = widgetOptionColor .. "   " .. texts.option.sun_reset, type = "bool", value = false, description = '',
+        { id = "sun_reset", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.sun_reset, type = "bool", value = false, description = '',
           onload = function(i)
           end,
           onchange = function(i, value)
@@ -3995,7 +4003,7 @@ function init()
               Spring.Echo(gl.GetSun())
           end,
         },
-        { id = "fog_r", group = "dev", name = texts.option.fog .. widgetOptionColor .. "  " .. texts.option.red, type = "slider", min = 0, max = 1, step = 0.01, value = select(1, gl.GetAtmosphere("fogColor")), description = '',
+        { id = "fog_r", group = "dev", category = types.dev, name = texts.option.fog .. widgetOptionColor .. "  " .. texts.option.red, type = "slider", min = 0, max = 1, step = 0.01, value = select(1, gl.GetAtmosphere("fogColor")), description = '',
           onload = function(i)
           end,
           onchange = function(i, value)
@@ -4003,7 +4011,7 @@ function init()
               Spring.SetAtmosphere({ fogColor = { value, fogColor[2], fogColor[3], fogColor[4] } })
           end,
         },
-        { id = "fog_g", group = "dev", name = widgetOptionColor .. "   " .. texts.option.green, type = "slider", min = 0, max = 1, step = 0.01, value = select(2, gl.GetAtmosphere("fogColor")), description = '',
+        { id = "fog_g", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.green, type = "slider", min = 0, max = 1, step = 0.01, value = select(2, gl.GetAtmosphere("fogColor")), description = '',
           onload = function(i)
           end,
           onchange = function(i, value)
@@ -4011,7 +4019,7 @@ function init()
               Spring.SetAtmosphere({ fogColor = { fogColor[1], value, fogColor[3], fogColor[4] } })
           end,
         },
-        { id = "fog_b", group = "dev", name = widgetOptionColor .. "   " .. texts.option.blue, type = "slider", min = 0, max = 1, step = 0.01, value = select(3, gl.GetAtmosphere("fogColor")), description = '',
+        { id = "fog_b", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.blue, type = "slider", min = 0, max = 1, step = 0.01, value = select(3, gl.GetAtmosphere("fogColor")), description = '',
           onload = function(i)
           end,
           onchange = function(i, value)
@@ -4019,7 +4027,7 @@ function init()
               Spring.SetAtmosphere({ fogColor = { fogColor[1], fogColor[2], value, fogColor[4] } })
           end,
         },
-        { id = "fog_color_reset", group = "dev", name = widgetOptionColor .. "   " .. texts.option.fog_color_reset, type = "bool", value = false, description = '',
+        { id = "fog_color_reset", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.fog_color_reset, type = "bool", value = false, description = '',
           onload = function(i)
           end,
           onchange = function(i, value)
@@ -4031,13 +4039,13 @@ function init()
               Spring.Echo('resetted map fog color defaults')
           end,
         },
-        --{id="debugdrawai", group="dev", name="Debug draw AI", type="bool", value=false, description="",	-- seems only for engine AI
+        --{ id ="debugdrawai", group="dev", name="Debug draw AI", type="bool", value=false, description="",	-- seems only for engine AI
         --  onchange=function(i, value)
         --	  Spring.SendCommands("DebugDrawAI "..(value and '1' or '0'))
         --  end,
         --},
 
-        { id = "map_voidwater", group = "dev", name = texts.option.map_voidwater, type = "bool", value = false, description = "",
+        { id = "map_voidwater", group = "dev", category = types.dev, name = texts.option.map_voidwater, type = "bool", value = false, description = "",
           onload = function(i)
               options[i].value = gl.GetMapRendering("voidWater")
           end,
@@ -4045,7 +4053,7 @@ function init()
               Spring.SetMapRenderingParams({ voidWater = value })
           end,
         },
-        { id = "map_voidground", group = "dev", name = texts.option.map_voidground, type = "bool", value = false, description = "",
+        { id = "map_voidground", group = "dev", category = types.dev, name = texts.option.map_voidground, type = "bool", value = false, description = "",
           onload = function(i)
               options[i].value = gl.GetMapRendering("voidGround")
           end,
@@ -4054,7 +4062,7 @@ function init()
           end,
         },
 
-        { id = "map_splatdetailnormaldiffusealpha", group = "dev", name = texts.option.map_splatdetailnormaldiffusealpha, type = "bool", value = false, description = "",
+        { id = "map_splatdetailnormaldiffusealpha", group = "dev", category = types.dev, name = texts.option.map_splatdetailnormaldiffusealpha, type = "bool", value = false, description = "",
           onload = function(i)
               options[i].value = gl.GetMapRendering("splatDetailNormalDiffuseAlpha")
           end,
@@ -4063,7 +4071,7 @@ function init()
           end,
         },
 
-        { id = "map_splattexmults_r", group = "dev", name = texts.option.map_splattexmults .. widgetOptionColor .. "   0", type = "slider", min = 0, max = 1.5, step = 0.001, value = 0, description = "",
+        { id = "map_splattexmults_r", group = "dev", category = types.dev, name = texts.option.map_splattexmults .. widgetOptionColor .. "   0", type = "slider", min = 0, max = 1.5, step = 0.001, value = 0, description = "",
           onload = function(i)
               local r, g, b, a = gl.GetMapRendering("splatTexMults")
               options[i].value = r
@@ -4073,7 +4081,7 @@ function init()
               Spring.SetMapRenderingParams({ splatTexMults = { value, g, b, a } })
           end,
         },
-        { id = "map_splattexmults_g", group = "dev", name = widgetOptionColor .. "   1", type = "slider", min = 0, max = 1.5, step = 0.001, value = 0, description = "",
+        { id = "map_splattexmults_g", group = "dev", category = types.dev, name = widgetOptionColor .. "   1", type = "slider", min = 0, max = 1.5, step = 0.001, value = 0, description = "",
           onload = function(i)
               local r, g, b, a = gl.GetMapRendering("splatTexMults")
               options[i].value = g
@@ -4083,7 +4091,7 @@ function init()
               Spring.SetMapRenderingParams({ splatTexMults = { r, value, b, a } })
           end,
         },
-        { id = "map_splattexmults_b", group = "dev", name = widgetOptionColor .. "   2", type = "slider", min = 0, max = 1.5, step = 0.001, value = 0, description = "",
+        { id = "map_splattexmults_b", group = "dev", category = types.dev, name = widgetOptionColor .. "   2", type = "slider", min = 0, max = 1.5, step = 0.001, value = 0, description = "",
           onload = function(i)
               local r, g, b, a = gl.GetMapRendering("splatTexMults")
               options[i].value = b
@@ -4093,7 +4101,7 @@ function init()
               Spring.SetMapRenderingParams({ splatTexMults = { r, g, value, a } })
           end,
         },
-        { id = "map_splattexmults_a", group = "dev", name = widgetOptionColor .. "   3", type = "slider", min = 0, max = 1.5, step = 0.001, value = 0, description = "",
+        { id = "map_splattexmults_a", group = "dev", category = types.dev, name = widgetOptionColor .. "   3", type = "slider", min = 0, max = 1.5, step = 0.001, value = 0, description = "",
           onload = function(i)
               local r, g, b, a = gl.GetMapRendering("splatTexMults")
               options[i].value = a
@@ -4104,7 +4112,7 @@ function init()
           end,
         },
 
-        { id = "map_splattexacales_r", group = "dev", name = texts.option.map_splattexacales .. widgetOptionColor .. "   0", type = "slider", min = 0, max = 0.02, step = 0.0001, value = 0, description = "",
+        { id = "map_splattexacales_r", group = "dev", category = types.dev, name = texts.option.map_splattexacales .. widgetOptionColor .. "   0", type = "slider", min = 0, max = 0.02, step = 0.0001, value = 0, description = "",
           onload = function(i)
               local r, g, b, a = gl.GetMapRendering("splatTexScales")
               options[i].value = r
@@ -4114,7 +4122,7 @@ function init()
               Spring.SetMapRenderingParams({ splatTexScales = { value, g, b, a } })
           end,
         },
-        { id = "map_splattexacales_g", group = "dev", name = widgetOptionColor .. "   1", type = "slider", min = 0, max = 0.02, step = 0.0001, value = 0, description = "",
+        { id = "map_splattexacales_g", group = "dev", category = types.dev, name = widgetOptionColor .. "   1", type = "slider", min = 0, max = 0.02, step = 0.0001, value = 0, description = "",
           onload = function(i)
               local r, g, b, a = gl.GetMapRendering("splatTexScales")
               options[i].value = g
@@ -4124,7 +4132,7 @@ function init()
               Spring.SetMapRenderingParams({ splatTexScales = { r, value, b, a } })
           end,
         },
-        { id = "map_splattexacales_b", group = "dev", name = widgetOptionColor .. "   2", type = "slider", min = 0, max = 0.02, step = 0.0001, value = 0, description = "",
+        { id = "map_splattexacales_b", group = "dev", category = types.dev, name = widgetOptionColor .. "   2", type = "slider", min = 0, max = 0.02, step = 0.0001, value = 0, description = "",
           onload = function(i)
               local r, g, b, a = gl.GetMapRendering("splatTexScales")
               options[i].value = b
@@ -4133,7 +4141,7 @@ function init()
               local r, g, b, a = gl.GetMapRendering("splatTexScales")
               Spring.SetMapRenderingParams({ splatTexScales = { r, g, value, a } })
           end,
-        }, { id = "map_splattexacales_a", group = "dev", name = widgetOptionColor .. "   3", type = "slider", min = 0, max = 0.02, step = 0.0001, value = 0, description = "",
+        }, { id = "map_splattexacales_a", group = "dev", category = types.dev, name = widgetOptionColor .. "   3", type = "slider", min = 0, max = 0.02, step = 0.0001, value = 0, description = "",
              onload = function(i)
                  local r, g, b, a = gl.GetMapRendering("splatTexScales")
                  options[i].value = a
@@ -4145,7 +4153,7 @@ function init()
         },
 
 
-        { id = "GroundShadowDensity", group = "dev", name = texts.option.GroundShadowDensity .. widgetOptionColor .. "  ", type = "slider", min = 0, max = 1.5, step = 0.001, value = 0, description = "",
+        { id = "GroundShadowDensity", group = "dev", category = types.dev, name = texts.option.GroundShadowDensity .. widgetOptionColor .. "  ", type = "slider", min = 0, max = 1.5, step = 0.001, value = 0, description = "",
           onload = function(i)
               local groundshadowDensity = gl.GetSun("shadowDensity", "ground")
               options[i].value = groundshadowDensity
@@ -4156,7 +4164,7 @@ function init()
           end,
         },
 
-        { id = "UnitShadowDensity", group = "dev", name = texts.option.UnitShadowDensity .. widgetOptionColor .. "  ", type = "slider", min = 0, max = 1.5, step = 0.001, value = 0, description = "",
+        { id = "UnitShadowDensity", group = "dev", category = types.dev, name = texts.option.UnitShadowDensity .. widgetOptionColor .. "  ", type = "slider", min = 0, max = 1.5, step = 0.001, value = 0, description = "",
           onload = function(i)
               local groundshadowDensity = gl.GetSun("shadowDensity", "unit")
               options[i].value = groundshadowDensity
@@ -4167,7 +4175,7 @@ function init()
           end,
         },
 
-        { id = "color_groundambient_r", group = "dev", name = texts.option.color_groundambient .. widgetOptionColor .. "  " .. texts.option.red, type = "slider", min = 0, max = 2, step = 0.001, value = 0, description = "",
+        { id = "color_groundambient_r", group = "dev", category = types.dev, name = texts.option.color_groundambient .. widgetOptionColor .. "  " .. texts.option.red, type = "slider", min = 0, max = 2, step = 0.001, value = 0, description = "",
           onload = function(i)
               local r, g, b = gl.GetSun("ambient")
               options[i].value = r
@@ -4178,7 +4186,7 @@ function init()
               Spring.SendCommands("luarules updatesun")
           end,
         },
-        { id = "color_groundambient_g", group = "dev", name = widgetOptionColor .. "   " .. texts.option.green, type = "slider", min = 0, max = 2, step = 0.001, value = 0, description = "",
+        { id = "color_groundambient_g", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.green, type = "slider", min = 0, max = 2, step = 0.001, value = 0, description = "",
           onload = function(i)
               local r, g, b = gl.GetSun("ambient")
               options[i].value = g
@@ -4189,7 +4197,7 @@ function init()
               Spring.SendCommands("luarules updatesun")
           end,
         },
-        { id = "color_groundambient_b", group = "dev", name = widgetOptionColor .. "   " .. texts.option.blue, type = "slider", min = 0, max = 2, step = 0.001, value = 0, description = "",
+        { id = "color_groundambient_b", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.blue, type = "slider", min = 0, max = 2, step = 0.001, value = 0, description = "",
           onload = function(i)
               local r, g, b = gl.GetSun("ambient")
               options[i].value = b
@@ -4201,7 +4209,7 @@ function init()
           end,
         },
 
-        { id = "color_grounddiffuse_r", group = "dev", name = texts.option.color_grounddiffuse .. widgetOptionColor .. "  " .. texts.option.red, type = "slider", min = 0, max = 2, step = 0.001, value = 0, description = "",
+        { id = "color_grounddiffuse_r", group = "dev", category = types.dev, name = texts.option.color_grounddiffuse .. widgetOptionColor .. "  " .. texts.option.red, type = "slider", min = 0, max = 2, step = 0.001, value = 0, description = "",
           onload = function(i)
               local r, g, b = gl.GetSun("diffuse")
               options[i].value = r
@@ -4212,7 +4220,7 @@ function init()
               Spring.SendCommands("luarules updatesun")
           end,
         },
-        { id = "color_grounddiffuse_g", group = "dev", name = widgetOptionColor .. "   " .. texts.option.green, type = "slider", min = 0, max = 2, step = 0.001, value = 0, description = "",
+        { id = "color_grounddiffuse_g", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.green, type = "slider", min = 0, max = 2, step = 0.001, value = 0, description = "",
           onload = function(i)
               local r, g, b = gl.GetSun("diffuse")
               options[i].value = g
@@ -4223,7 +4231,7 @@ function init()
               Spring.SendCommands("luarules updatesun")
           end,
         },
-        { id = "color_grounddiffuse_b", group = "dev", name = widgetOptionColor .. "   " .. texts.option.blue, type = "slider", min = 0, max = 2, step = 0.001, value = 0, description = "",
+        { id = "color_grounddiffuse_b", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.blue, type = "slider", min = 0, max = 2, step = 0.001, value = 0, description = "",
           onload = function(i)
               local r, g, b = gl.GetSun("diffuse")
               options[i].value = b
@@ -4235,7 +4243,7 @@ function init()
           end,
         },
 
-        { id = "color_groundspecular_r", group = "dev", name = texts.option.color_groundspecular .. widgetOptionColor .. "  " .. texts.option.red, type = "slider", min = 0, max = 2, step = 0.001, value = 0, description = "",
+        { id = "color_groundspecular_r", group = "dev", category = types.dev, name = texts.option.color_groundspecular .. widgetOptionColor .. "  " .. texts.option.red, type = "slider", min = 0, max = 2, step = 0.001, value = 0, description = "",
           onload = function(i)
               local r, g, b = gl.GetSun("specular")
               options[i].value = r
@@ -4246,7 +4254,7 @@ function init()
               Spring.SendCommands("luarules updatesun")
           end,
         },
-        { id = "color_groundspecular_g", group = "dev", name = widgetOptionColor .. "   " .. texts.option.green, type = "slider", min = 0, max = 1, step = 0.001, value = 0, description = "",
+        { id = "color_groundspecular_g", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.green, type = "slider", min = 0, max = 1, step = 0.001, value = 0, description = "",
           onload = function(i)
               local r, g, b = gl.GetSun("specular")
               options[i].value = g
@@ -4257,7 +4265,7 @@ function init()
               Spring.SendCommands("luarules updatesun")
           end,
         },
-        { id = "color_groundspecular_b", group = "dev", name = widgetOptionColor .. "   " .. texts.option.blue, type = "slider", min = 0, max = 1, step = 0.001, value = 0, description = "",
+        { id = "color_groundspecular_b", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.blue, type = "slider", min = 0, max = 1, step = 0.001, value = 0, description = "",
           onload = function(i)
               local r, g, b = gl.GetSun("specular")
               options[i].value = b
@@ -4270,7 +4278,7 @@ function init()
         },
 
 
-        { id = "color_unitambient_r", group = "dev", name = texts.option.color_unitambient .. widgetOptionColor .. "  " .. texts.option.red, type = "slider", min = 0, max = 2, step = 0.001, value = 0, description = "",
+        { id = "color_unitambient_r", group = "dev", category = types.dev, name = texts.option.color_unitambient .. widgetOptionColor .. "  " .. texts.option.red, type = "slider", min = 0, max = 2, step = 0.001, value = 0, description = "",
           onload = function(i)
               local r, g, b = gl.GetSun("ambient", "unit")
               options[i].value = r
@@ -4281,7 +4289,7 @@ function init()
               Spring.SendCommands("luarules updatesun")
           end,
         },
-        { id = "color_unitambient_g", group = "dev", name = widgetOptionColor .. "   " .. texts.option.green, type = "slider", min = 0, max = 2, step = 0.001, value = 0, description = "",
+        { id = "color_unitambient_g", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.green, type = "slider", min = 0, max = 2, step = 0.001, value = 0, description = "",
           onload = function(i)
               local r, g, b = gl.GetSun("ambient", "unit")
               options[i].value = g
@@ -4292,7 +4300,7 @@ function init()
               Spring.SendCommands("luarules updatesun")
           end,
         },
-        { id = "color_unitambient_b", group = "dev", name = widgetOptionColor .. "   " .. texts.option.blue, type = "slider", min = 0, max = 2, step = 0.001, value = 0, description = "",
+        { id = "color_unitambient_b", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.blue, type = "slider", min = 0, max = 2, step = 0.001, value = 0, description = "",
           onload = function(i)
               local r, g, b = gl.GetSun("ambient", "unit")
               options[i].value = b
@@ -4304,7 +4312,7 @@ function init()
           end,
         },
 
-        { id = "color_unitdiffuse_r", group = "dev", name = texts.option.color_unitdiffuse .. widgetOptionColor .. "  " .. texts.option.red, type = "slider", min = 0, max = 2, step = 0.001, value = 0, description = "",
+        { id = "color_unitdiffuse_r", group = "dev", category = types.dev, name = texts.option.color_unitdiffuse .. widgetOptionColor .. "  " .. texts.option.red, type = "slider", min = 0, max = 2, step = 0.001, value = 0, description = "",
           onload = function(i)
               local r, g, b = gl.GetSun("diffuse", "unit")
               options[i].value = r
@@ -4315,7 +4323,7 @@ function init()
               Spring.SendCommands("luarules updatesun")
           end,
         },
-        { id = "color_unitdiffuse_g", group = "dev", name = widgetOptionColor .. "   " .. texts.option.green, type = "slider", min = 0, max = 2, step = 0.001, value = 0, description = "",
+        { id = "color_unitdiffuse_g", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.green, type = "slider", min = 0, max = 2, step = 0.001, value = 0, description = "",
           onload = function(i)
               local r, g, b = gl.GetSun("diffuse", "unit")
               options[i].value = g
@@ -4326,7 +4334,7 @@ function init()
               Spring.SendCommands("luarules updatesun")
           end,
         },
-        { id = "color_unitdiffuse_b", group = "dev", name = widgetOptionColor .. "   " .. texts.option.blue, type = "slider", min = 0, max = 2, step = 0.001, value = 0, description = "",
+        { id = "color_unitdiffuse_b", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.blue, type = "slider", min = 0, max = 2, step = 0.001, value = 0, description = "",
           onload = function(i)
               local r, g, b = gl.GetSun("diffuse", "unit")
               options[i].value = b
@@ -4338,7 +4346,7 @@ function init()
           end,
         },
 
-        { id = "color_unitspecular_r", group = "dev", name = texts.option.color_unitspecular .. widgetOptionColor .. "  " .. texts.option.red, type = "slider", min = 0, max = 2, step = 0.001, value = 0, description = "",
+        { id = "color_unitspecular_r", group = "dev", category = types.dev, name = texts.option.color_unitspecular .. widgetOptionColor .. "  " .. texts.option.red, type = "slider", min = 0, max = 2, step = 0.001, value = 0, description = "",
           onload = function(i)
               local r, g, b = gl.GetSun("specular", "unit")
               options[i].value = r
@@ -4349,7 +4357,7 @@ function init()
               Spring.SendCommands("luarules updatesun")
           end,
         },
-        { id = "color_unitspecular_g", group = "dev", name = widgetOptionColor .. "   " .. texts.option.green, type = "slider", min = 0, max = 2, step = 0.001, value = 0, description = "",
+        { id = "color_unitspecular_g", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.green, type = "slider", min = 0, max = 2, step = 0.001, value = 0, description = "",
           onload = function(i)
               local r, g, b = gl.GetSun("specular", "unit")
               options[i].value = g
@@ -4360,7 +4368,7 @@ function init()
               Spring.SendCommands("luarules updatesun")
           end,
         },
-        { id = "color_unitspecular_b", group = "dev", name = widgetOptionColor .. "   " .. texts.option.blue, type = "slider", min = 0, max = 2, step = 0.001, value = 0, description = "",
+        { id = "color_unitspecular_b", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.blue, type = "slider", min = 0, max = 2, step = 0.001, value = 0, description = "",
           onload = function(i)
               local r, g, b = gl.GetSun("specular", "unit")
               options[i].value = b
@@ -4372,7 +4380,7 @@ function init()
           end,
         },
 
-        { id = "suncolor_r", group = "dev", name = "Sun" .. widgetOptionColor .. "  " .. texts.option.red, type = "slider", min = 0, max = 1, step = 0.001, value = 0, description = "",
+        { id = "suncolor_r", group = "dev", category = types.dev, name = "Sun" .. widgetOptionColor .. "  " .. texts.option.red, type = "slider", min = 0, max = 1, step = 0.001, value = 0, description = "",
           onload = function(i)
               local r, g, b = gl.GetAtmosphere("sunColor")
               options[i].value = r
@@ -4383,7 +4391,7 @@ function init()
               Spring.SendCommands("luarules updatesun")
           end,
         },
-        { id = "suncolor_g", group = "dev", name = widgetOptionColor .. "   " .. texts.option.green, type = "slider", min = 0, max = 1, step = 0.001, value = 0, description = "",
+        { id = "suncolor_g", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.green, type = "slider", min = 0, max = 1, step = 0.001, value = 0, description = "",
           onload = function(i)
               local r, g, b = gl.GetAtmosphere("sunColor")
               options[i].value = g
@@ -4394,7 +4402,7 @@ function init()
               Spring.SendCommands("luarules updatesun")
           end,
         },
-        { id = "suncolor_b", group = "dev", name = widgetOptionColor .. "   " .. texts.option.blue, type = "slider", min = 0, max = 1, step = 0.001, value = 0, description = "",
+        { id = "suncolor_b", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.blue, type = "slider", min = 0, max = 1, step = 0.001, value = 0, description = "",
           onload = function(i)
               local r, g, b = gl.GetAtmosphere("sunColor")
               options[i].value = b
@@ -4406,7 +4414,7 @@ function init()
           end,
         },
 
-        { id = "skycolor_r", group = "dev", name = texts.option.skycolor .. widgetOptionColor .. "  " .. texts.option.red, type = "slider", min = 0, max = 1, step = 0.001, value = 0, description = "",
+        { id = "skycolor_r", group = "dev", category = types.dev, name = texts.option.skycolor .. widgetOptionColor .. "  " .. texts.option.red, type = "slider", min = 0, max = 1, step = 0.001, value = 0, description = "",
           onload = function(i)
               local r, g, b = gl.GetAtmosphere("skyColor")
               options[i].value = r
@@ -4417,7 +4425,7 @@ function init()
               Spring.SendCommands("luarules updatesun")
           end,
         },
-        { id = "skycolor_g", group = "dev", name = widgetOptionColor .. "   " .. texts.option.green, type = "slider", min = 0, max = 1, step = 0.001, value = 0, description = "",
+        { id = "skycolor_g", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.green, type = "slider", min = 0, max = 1, step = 0.001, value = 0, description = "",
           onload = function(i)
               local r, g, b = gl.GetAtmosphere("skyColor")
               options[i].value = g
@@ -4428,7 +4436,7 @@ function init()
               Spring.SendCommands("luarules updatesun")
           end,
         },
-        { id = "skycolor_b", group = "dev", name = widgetOptionColor .. "   " .. texts.option.blue, type = "slider", min = 0, max = 1, step = 0.001, value = 0, description = "",
+        { id = "skycolor_b", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.blue, type = "slider", min = 0, max = 1, step = 0.001, value = 0, description = "",
           onload = function(i)
               local r, g, b = gl.GetAtmosphere("skyColor")
               options[i].value = b
@@ -4440,7 +4448,7 @@ function init()
           end,
         },
 
-        { id = "sunlighting_reset", group = "dev", name = texts.option.sunlighting_reset, type = "bool", value = false, description = texts.option.sunlighting_reset_descr,
+        { id = "sunlighting_reset", group = "dev", category = types.dev, name = texts.option.sunlighting_reset, type = "bool", value = false, description = texts.option.sunlighting_reset_descr,
           onload = function(i)
           end,
           onchange = function(i, value)
@@ -4454,7 +4462,7 @@ function init()
         },
 
         -- springsettings water params
-        { id = "waterconfig_shorewaves", group = "dev", name = "Bumpwater settings " .. widgetOptionColor .. "  shorewaves", type = "bool", value = Spring.GetConfigInt("BumpWaterShoreWaves", 1) == 1, description = "",
+        { id = "waterconfig_shorewaves", group = "dev", category = types.dev, name = "Bumpwater settings " .. widgetOptionColor .. "  shorewaves", type = "bool", value = Spring.GetConfigInt("BumpWaterShoreWaves", 1) == 1, description = "",
           onload = function(i)
           end,
           onchange = function(i, value)
@@ -4462,7 +4470,7 @@ function init()
               Spring.SendCommands("water 4")
           end,
         },
-        { id = "waterconfig_dynamicwaves", group = "dev", name = widgetOptionColor .. "   dynamic waves", type = "bool", value = Spring.GetConfigInt("BumpWaterDynamicWaves", 1) == 1, description = "Springsettings.cfg config, Probably requires a restart",
+        { id = "waterconfig_dynamicwaves", group = "dev", category = types.dev, name = widgetOptionColor .. "   dynamic waves", type = "bool", value = Spring.GetConfigInt("BumpWaterDynamicWaves", 1) == 1, description = "Springsettings.cfg config, Probably requires a restart",
           onload = function(i)
           end,
           onchange = function(i, value)
@@ -4470,7 +4478,7 @@ function init()
               Spring.SendCommands("water 4")
           end,
         },
-        { id = "waterconfig_endless", group = "dev", name = widgetOptionColor .. "   endless", type = "bool", value = Spring.GetConfigInt("BumpWaterEndlessOcean", 1) == 1, description = "Springsettings.cfg config, Probably requires a restart",
+        { id = "waterconfig_endless", group = "dev", category = types.dev, name = widgetOptionColor .. "   endless", type = "bool", value = Spring.GetConfigInt("BumpWaterEndlessOcean", 1) == 1, description = "Springsettings.cfg config, Probably requires a restart",
           onload = function(i)
           end,
           onchange = function(i, value)
@@ -4478,7 +4486,7 @@ function init()
               Spring.SendCommands("water 4")
           end,
         },
-        { id = "waterconfig_occlusionquery", group = "dev", name = widgetOptionColor .. "   occlusion query", type = "bool", value = Spring.GetConfigInt("BumpWaterOcclusionQuery", 1) == 1, description = "Springsettings.cfg config, Probably requires a restart",
+        { id = "waterconfig_occlusionquery", group = "dev", category = types.dev, name = widgetOptionColor .. "   occlusion query", type = "bool", value = Spring.GetConfigInt("BumpWaterOcclusionQuery", 1) == 1, description = "Springsettings.cfg config, Probably requires a restart",
           onload = function(i)
           end,
           onchange = function(i, value)
@@ -4486,7 +4494,7 @@ function init()
               Spring.SendCommands("water 4")
           end,
         },
-        { id = "waterconfig_blurreflection", group = "dev", name = widgetOptionColor .. "   blur reflection", type = "bool", value = Spring.GetConfigInt("BumpWaterBlurReflection", 1) == 1, description = "Springsettings.cfg config, Probably requires a restart",
+        { id = "waterconfig_blurreflection", group = "dev", category = types.dev, name = widgetOptionColor .. "   blur reflection", type = "bool", value = Spring.GetConfigInt("BumpWaterBlurReflection", 1) == 1, description = "Springsettings.cfg config, Probably requires a restart",
           onload = function(i)
           end,
           onchange = function(i, value)
@@ -4494,7 +4502,7 @@ function init()
               Spring.SendCommands("water 4")
           end,
         },
-        { id = "waterconfig_anisotropy", group = "dev", name = widgetOptionColor .. "   anisotropy", type = "bool", value = Spring.GetConfigInt("BumpWaterAnisotropy", 1) == 1, description = "Springsettings.cfg config, Probably requires a restart",
+        { id = "waterconfig_anisotropy", group = "dev", category = types.dev, name = widgetOptionColor .. "   anisotropy", type = "bool", value = Spring.GetConfigInt("BumpWaterAnisotropy", 1) == 1, description = "Springsettings.cfg config, Probably requires a restart",
           onload = function(i)
           end,
           onchange = function(i, value)
@@ -4502,7 +4510,7 @@ function init()
               Spring.SendCommands("water 4")
           end,
         },
-        { id = "wateconfigr_usedepthtexture", group = "dev", name = widgetOptionColor .. "   use depth texture", type = "bool", value = Spring.GetConfigInt("BumpWaterUseDepthTexture", 1) == 1, description = "Springsettings.cfg config, Probably requires a restart",
+        { id = "wateconfigr_usedepthtexture", group = "dev", category = types.dev, name = widgetOptionColor .. "   use depth texture", type = "bool", value = Spring.GetConfigInt("BumpWaterUseDepthTexture", 1) == 1, description = "Springsettings.cfg config, Probably requires a restart",
           onload = function(i)
           end,
           onchange = function(i, value)
@@ -4510,7 +4518,7 @@ function init()
               Spring.SendCommands("water 4")
           end,
         },
-        { id = "waterconfig_useuniforms", group = "dev", name = widgetOptionColor .. "   use uniforms", type = "bool", value = Spring.GetConfigInt("BumpWaterUseUniforms", 1) == 1, description = "Springsettings.cfg config, Probably requires a restart",
+        { id = "waterconfig_useuniforms", group = "dev", category = types.dev, name = widgetOptionColor .. "   use uniforms", type = "bool", value = Spring.GetConfigInt("BumpWaterUseUniforms", 1) == 1, description = "Springsettings.cfg config, Probably requires a restart",
           onload = function(i)
           end,
           onchange = function(i, value)
@@ -4520,7 +4528,7 @@ function init()
         },
 
         -- GL water params
-        { id = "water_shorewaves", group = "dev", name = "Bumpwater GL params" .. widgetOptionColor .. "  shorewaves", type = "bool", value = gl.GetWaterRendering("shoreWaves"), description = "Springsettings.cfg config, Probably requires a restart",
+        { id = "water_shorewaves", group = "dev", category = types.dev, name = "Bumpwater GL params" .. widgetOptionColor .. "  shorewaves", type = "bool", value = gl.GetWaterRendering("shoreWaves"), description = "Springsettings.cfg config, Probably requires a restart",
           onload = function(i)
           end,
           onchange = function(i, value)
@@ -4528,7 +4536,7 @@ function init()
               Spring.SendCommands("water 4")
           end,
         },
-        { id = "water_haswaterplane", group = "dev", name = widgetOptionColor .. "   has waterplane", type = "bool", value = gl.GetWaterRendering("hasWaterPlane"), description = "The WaterPlane is a single Quad beneath the map.\nIt should have the same color as the ocean floor to hide the map -> background boundary. Specifying waterPlaneColor in mapinfo.lua will turn this on.",
+        { id = "water_haswaterplane", group = "dev", category = types.dev, name = widgetOptionColor .. "   has waterplane", type = "bool", value = gl.GetWaterRendering("hasWaterPlane"), description = "The WaterPlane is a single Quad beneath the map.\nIt should have the same color as the ocean floor to hide the map -> background boundary. Specifying waterPlaneColor in mapinfo.lua will turn this on.",
           onload = function(i)
           end,
           onchange = function(i, value)
@@ -4536,7 +4544,7 @@ function init()
               Spring.SendCommands("water 4")
           end,
         },
-        { id = "water_forcerendering", group = "dev", name = widgetOptionColor .. "   force rendering", type = "bool", value = gl.GetWaterRendering("forceRendering"), description = "Should the water be rendered even when minMapHeight>0.\nUse it to avoid the jumpin of the outside-map water rendering (BumpWater: endlessOcean option) when combat explosions reach groundwater.",
+        { id = "water_forcerendering", group = "dev", category = types.dev, name = widgetOptionColor .. "   force rendering", type = "bool", value = gl.GetWaterRendering("forceRendering"), description = "Should the water be rendered even when minMapHeight>0.\nUse it to avoid the jumpin of the outside-map water rendering (BumpWater: endlessOcean option) when combat explosions reach groundwater.",
           onload = function(i)
           end,
           onchange = function(i, value)
@@ -4544,7 +4552,7 @@ function init()
               Spring.SendCommands("water 4")
           end,
         },
-        { id = "water_repeatx", group = "dev", name = widgetOptionColor .. "   repeat X", type = "slider", min = 0, max = 20, step = 1, value = gl.GetWaterRendering("repeatX"), description = "water 0 texture repeat horizontal",
+        { id = "water_repeatx", group = "dev", category = types.dev, name = widgetOptionColor .. "   repeat X", type = "slider", min = 0, max = 20, step = 1, value = gl.GetWaterRendering("repeatX"), description = "water 0 texture repeat horizontal",
           onload = function(i)
           end,
           onchange = function(i, value)
@@ -4552,7 +4560,7 @@ function init()
               Spring.SendCommands("water 4")
           end,
         },
-        { id = "water_repeaty", group = "dev", name = widgetOptionColor .. "   repeat Y", type = "slider", min = 0, max = 20, step = 1, value = gl.GetWaterRendering("repeatY"), description = "water 0 texture repeat vertical",
+        { id = "water_repeaty", group = "dev", category = types.dev, name = widgetOptionColor .. "   repeat Y", type = "slider", min = 0, max = 20, step = 1, value = gl.GetWaterRendering("repeatY"), description = "water 0 texture repeat vertical",
           onload = function(i)
           end,
           onchange = function(i, value)
@@ -4560,7 +4568,7 @@ function init()
               Spring.SendCommands("water 4")
           end,
         },
-        { id = "water_surfacealpha", group = "dev", name = widgetOptionColor .. "   surface alpha", type = "slider", min = 0, max = 1, step = 0.001, value = gl.GetWaterRendering("surfaceAlpha"), description = "",
+        { id = "water_surfacealpha", group = "dev", category = types.dev, name = widgetOptionColor .. "   surface alpha", type = "slider", min = 0, max = 1, step = 0.001, value = gl.GetWaterRendering("surfaceAlpha"), description = "",
           onload = function(i)
           end,
           onchange = function(i, value)
@@ -4568,7 +4576,7 @@ function init()
               Spring.SendCommands("water 4")
           end,
         },
-        { id = "water_windspeed", group = "dev", name = widgetOptionColor .. "   windspeed", type = "slider", min = 0.0, max = 2.0, step = 0.01, value = gl.GetWaterRendering("windSpeed"), description = "The speed of bumpwater tiles moving",
+        { id = "water_windspeed", group = "dev", category = types.dev, name = widgetOptionColor .. "   windspeed", type = "slider", min = 0.0, max = 2.0, step = 0.01, value = gl.GetWaterRendering("windSpeed"), description = "The speed of bumpwater tiles moving",
           onload = function(i)
           end,
           onchange = function(i, value)
@@ -4576,7 +4584,7 @@ function init()
               Spring.SendCommands("water 4")
           end,
         },
-        { id = "water_ambientfactor", group = "dev", name = widgetOptionColor .. "   ambient factor", type = "slider", min = 0, max = 2, step = 0.001, value = gl.GetWaterRendering("ambientFactor"), description = "How much ambient lighting the water surface gets (ideally very little)",
+        { id = "water_ambientfactor", group = "dev", category = types.dev, name = widgetOptionColor .. "   ambient factor", type = "slider", min = 0, max = 2, step = 0.001, value = gl.GetWaterRendering("ambientFactor"), description = "How much ambient lighting the water surface gets (ideally very little)",
           onload = function(i)
           end,
           onchange = function(i, value)
@@ -4584,7 +4592,7 @@ function init()
               Spring.SendCommands("water 4")
           end,
         },
-        { id = "water_diffusefactor", group = "dev", name = widgetOptionColor .. "   diffuse factor", type = "slider", min = 0, max = 5, step = 0.001, value = gl.GetWaterRendering("diffuseFactor"), description = "How strong the diffuse lighting should be on the water",
+        { id = "water_diffusefactor", group = "dev", category = types.dev, name = widgetOptionColor .. "   diffuse factor", type = "slider", min = 0, max = 5, step = 0.001, value = gl.GetWaterRendering("diffuseFactor"), description = "How strong the diffuse lighting should be on the water",
           onload = function(i)
           end,
           onchange = function(i, value)
@@ -4592,7 +4600,7 @@ function init()
               Spring.SendCommands("water 4")
           end,
         },
-        { id = "water_specularfactor", group = "dev", name = widgetOptionColor .. "   specular factor", type = "slider", min = 0, max = 5, step = 0.01, value = gl.GetWaterRendering("specularFactor"), description = "How much light should be reflected straight from the sun",
+        { id = "water_specularfactor", group = "dev", category = types.dev, name = widgetOptionColor .. "   specular factor", type = "slider", min = 0, max = 5, step = 0.01, value = gl.GetWaterRendering("specularFactor"), description = "How much light should be reflected straight from the sun",
           onload = function(i)
           end,
           onchange = function(i, value)
@@ -4600,7 +4608,7 @@ function init()
               Spring.SendCommands("water 4")
           end,
         },
-        { id = "water_specularpower", group = "dev", name = widgetOptionColor .. "   specular power", type = "slider", min = 0, max = 100, step = 0.1, value = gl.GetWaterRendering("specularPower"), description = "How polished the surface of the water is",
+        { id = "water_specularpower", group = "dev", category = types.dev, name = widgetOptionColor .. "   specular power", type = "slider", min = 0, max = 100, step = 0.1, value = gl.GetWaterRendering("specularPower"), description = "How polished the surface of the water is",
           onload = function(i)
           end,
           onchange = function(i, value)
@@ -4608,7 +4616,7 @@ function init()
               Spring.SendCommands("water 4")
           end,
         },
-        { id = "water_perlinstartfreq", group = "dev", name = widgetOptionColor .. "   perlin start freq", type = "slider", min = 10, max = 50, step = 1, value = gl.GetWaterRendering("perlinStartFreq"), description = "The initial frequency of the bump map repetetion rate. Larger numbers mean more tiles",
+        { id = "water_perlinstartfreq", group = "dev", category = types.dev, name = widgetOptionColor .. "   perlin start freq", type = "slider", min = 10, max = 50, step = 1, value = gl.GetWaterRendering("perlinStartFreq"), description = "The initial frequency of the bump map repetetion rate. Larger numbers mean more tiles",
           onload = function(i)
           end,
           onchange = function(i, value)
@@ -4616,7 +4624,7 @@ function init()
               Spring.SendCommands("water 4")
           end,
         },
-        { id = "water_perlinlacunarity", group = "dev", name = widgetOptionColor .. "   perlin lacunarity", type = "slider", min = 0.1, max = 4, step = 0.01, value = gl.GetWaterRendering("perlinLacunarity"), description = "How much smaller each additional repetion of the normal map should be. Larger numbers mean smaller",
+        { id = "water_perlinlacunarity", group = "dev", category = types.dev, name = widgetOptionColor .. "   perlin lacunarity", type = "slider", min = 0.1, max = 4, step = 0.01, value = gl.GetWaterRendering("perlinLacunarity"), description = "How much smaller each additional repetion of the normal map should be. Larger numbers mean smaller",
           onload = function(i)
           end,
           onchange = function(i, value)
@@ -4624,7 +4632,7 @@ function init()
               Spring.SendCommands("water 4")
           end,
         },
-        { id = "water_perlinlamplitude", group = "dev", name = widgetOptionColor .. "   perlin amplitude", type = "slider", min = 0.1, max = 4, step = 0.01, value = gl.GetWaterRendering("perlinAmplitude"), description = "How strong each additional repetetion of the normal map should be",
+        { id = "water_perlinlamplitude", group = "dev", category = types.dev, name = widgetOptionColor .. "   perlin amplitude", type = "slider", min = 0.1, max = 4, step = 0.01, value = gl.GetWaterRendering("perlinAmplitude"), description = "How strong each additional repetetion of the normal map should be",
           onload = function(i)
           end,
           onchange = function(i, value)
@@ -4632,7 +4640,7 @@ function init()
               Spring.SendCommands("water 4")
           end,
         },
-        { id = "water_fresnelmin", group = "dev", name = widgetOptionColor .. "   fresnel min", type = "slider", min = 0, max = 2, step = 0.01, value = gl.GetWaterRendering("fresnelMin"), description = "Minimum reflection strength, e.g. the reflectivity of the water when looking straight down on it",
+        { id = "water_fresnelmin", group = "dev", category = types.dev, name = widgetOptionColor .. "   fresnel min", type = "slider", min = 0, max = 2, step = 0.01, value = gl.GetWaterRendering("fresnelMin"), description = "Minimum reflection strength, e.g. the reflectivity of the water when looking straight down on it",
           onload = function(i)
           end,
           onchange = function(i, value)
@@ -4640,7 +4648,7 @@ function init()
               Spring.SendCommands("water 4")
           end,
         },
-        { id = "water_fresnelmax", group = "dev", name = widgetOptionColor .. "   fresnel max", type = "slider", min = 0, max = 2, step = 0.01, value = gl.GetWaterRendering("fresnelMax"), description = "Maximum reflection strength, the reflectivity of the water when looking parallel to the water plane",
+        { id = "water_fresnelmax", group = "dev", category = types.dev, name = widgetOptionColor .. "   fresnel max", type = "slider", min = 0, max = 2, step = 0.01, value = gl.GetWaterRendering("fresnelMax"), description = "Maximum reflection strength, the reflectivity of the water when looking parallel to the water plane",
           onload = function(i)
           end,
           onchange = function(i, value)
@@ -4648,7 +4656,7 @@ function init()
               Spring.SendCommands("water 4")
           end,
         },
-        { id = "water_fresnelpower", group = "dev", name = widgetOptionColor .. "   fresnel power", type = "slider", min = 0, max = 16, step = 0.1, value = gl.GetWaterRendering("fresnelPower"), description = "Determines how fast the reflection increases when going from straight down view to parallel.",
+        { id = "water_fresnelpower", group = "dev", category = types.dev, name = widgetOptionColor .. "   fresnel power", type = "slider", min = 0, max = 16, step = 0.1, value = gl.GetWaterRendering("fresnelPower"), description = "Determines how fast the reflection increases when going from straight down view to parallel.",
           onload = function(i)
           end,
           onchange = function(i, value)
@@ -4656,7 +4664,7 @@ function init()
               Spring.SendCommands("water 4")
           end,
         },
-        { id = "water_numtiles", group = "dev", name = widgetOptionColor .. "   num tiles", type = "slider", min = 1.0, max = 8, step = 1.0, value = gl.GetWaterRendering("numTiles"), description = "How many (squared) Tiles does the `normalTexture` have?\nSuch Tiles are used when DynamicWaves are enabled in BumpWater, the more the better.\nCheck the example php script to generate such tiled bumpmaps.",
+        { id = "water_numtiles", group = "dev", category = types.dev, name = widgetOptionColor .. "   num tiles", type = "slider", min = 1.0, max = 8, step = 1.0, value = gl.GetWaterRendering("numTiles"), description = "How many (squared) Tiles does the `normalTexture` have?\nSuch Tiles are used when DynamicWaves are enabled in BumpWater, the more the better.\nCheck the example php script to generate such tiled bumpmaps.",
           onload = function(i)
           end,
           onchange = function(i, value)
@@ -4664,7 +4672,7 @@ function init()
               Spring.SendCommands("water 4")
           end,
         },
-        { id = "water_blurbase", group = "dev", name = widgetOptionColor .. "   blur base", type = "slider", min = 0, max = 3, step = 0.01, value = gl.GetWaterRendering("blurBase"), description = "How much should the reflection be blurred",
+        { id = "water_blurbase", group = "dev", category = types.dev, name = widgetOptionColor .. "   blur base", type = "slider", min = 0, max = 3, step = 0.01, value = gl.GetWaterRendering("blurBase"), description = "How much should the reflection be blurred",
           onload = function(i)
           end,
           onchange = function(i, value)
@@ -4672,7 +4680,7 @@ function init()
               Spring.SendCommands("water 4")
           end,
         },
-        { id = "water_blurexponent", group = "dev", name = widgetOptionColor .. "   blur exponent", type = "slider", min = 0, max = 3, step = 0.01, value = gl.GetWaterRendering("blurExponent"), description = "How much should the reflection be blurred",
+        { id = "water_blurexponent", group = "dev", category = types.dev, name = widgetOptionColor .. "   blur exponent", type = "slider", min = 0, max = 3, step = 0.01, value = gl.GetWaterRendering("blurExponent"), description = "How much should the reflection be blurred",
           onload = function(i)
           end,
           onchange = function(i, value)
@@ -4680,7 +4688,7 @@ function init()
               Spring.SendCommands("water 4")
           end,
         },
-        { id = "water_reflectiondistortion", group = "dev", name = widgetOptionColor .. "   reflection distortion", type = "slider", min = 0, max = 5, step = 0.01, value = gl.GetWaterRendering("reflectionDistortion"), description = "",
+        { id = "water_reflectiondistortion", group = "dev", category = types.dev, name = widgetOptionColor .. "   reflection distortion", type = "slider", min = 0, max = 5, step = 0.01, value = gl.GetWaterRendering("reflectionDistortion"), description = "",
           onload = function(i)
           end,
           onchange = function(i, value)
@@ -4689,7 +4697,7 @@ function init()
           end,
         },
         -- new water 4 params since engine 105BAR 582
-        { id = "water_waveoffsetfactor", group = "dev", name = widgetOptionColor .. "   waveoffsetfactor", type = "slider", min = 0.0, max = 2.0, step = 0.01, value = gl.GetWaterRendering("waveOffsetFactor"), description = "Set this to 0.1 to make waves break shores not all at the same time",
+        { id = "water_waveoffsetfactor", group = "dev", category = types.dev, name = widgetOptionColor .. "   waveoffsetfactor", type = "slider", min = 0.0, max = 2.0, step = 0.01, value = gl.GetWaterRendering("waveOffsetFactor"), description = "Set this to 0.1 to make waves break shores not all at the same time",
           onload = function(i)
           end,
           onchange = function(i, value)
@@ -4697,7 +4705,7 @@ function init()
               Spring.SendCommands("water 4")
           end,
         },
-        { id = "water_wavelength", group = "dev", name = widgetOptionColor .. "   waveLength", type = "slider", min = 0.0, max = 1.0, step = 0.01, value = gl.GetWaterRendering("waveLength"), description = "How long the waves are",
+        { id = "water_wavelength", group = "dev", category = types.dev, name = widgetOptionColor .. "   waveLength", type = "slider", min = 0.0, max = 1.0, step = 0.01, value = gl.GetWaterRendering("waveLength"), description = "How long the waves are",
           onload = function(i)
           end,
           onchange = function(i, value)
@@ -4705,7 +4713,7 @@ function init()
               Spring.SendCommands("water 4")
           end,
         },
-        { id = "water_wavefoamdistortion", group = "dev", name = widgetOptionColor .. "   waveFoamDistortion", type = "slider", min = 0.0, max = 0.5, step = 0.01, value = gl.GetWaterRendering("waveFoamDistortion"), description = "How much the waters movement distorts the foam texture",
+        { id = "water_wavefoamdistortion", group = "dev", category = types.dev, name = widgetOptionColor .. "   waveFoamDistortion", type = "slider", min = 0.0, max = 0.5, step = 0.01, value = gl.GetWaterRendering("waveFoamDistortion"), description = "How much the waters movement distorts the foam texture",
           onload = function(i)
           end,
           onchange = function(i, value)
@@ -4713,7 +4721,7 @@ function init()
               Spring.SendCommands("water 4")
           end,
         },
-        { id = "water_wavefoamintensity", group = "dev", name = widgetOptionColor .. "   waveFoamIntensity", type = "slider", min = 0.0, max = 2.0, step = 0.01, value = gl.GetWaterRendering("waveFoamIntensity"), description = "How strong the foam texture is",
+        { id = "water_wavefoamintensity", group = "dev", category = types.dev, name = widgetOptionColor .. "   waveFoamIntensity", type = "slider", min = 0.0, max = 2.0, step = 0.01, value = gl.GetWaterRendering("waveFoamIntensity"), description = "How strong the foam texture is",
           onload = function(i)
           end,
           onchange = function(i, value)
@@ -4721,7 +4729,7 @@ function init()
               Spring.SendCommands("water 4")
           end,
         },
-        { id = "water_causticsresolution", group = "dev", name = widgetOptionColor .. "   causticsResolution", type = "slider", min = 10.0, max = 300.0, step = 1.0, value = gl.GetWaterRendering("causticsResolution"), description = "The tiling rate of the caustics texture",
+        { id = "water_causticsresolution", group = "dev", category = types.dev, name = widgetOptionColor .. "   causticsResolution", type = "slider", min = 10.0, max = 300.0, step = 1.0, value = gl.GetWaterRendering("causticsResolution"), description = "The tiling rate of the caustics texture",
           onload = function(i)
           end,
           onchange = function(i, value)
@@ -4729,7 +4737,7 @@ function init()
               Spring.SendCommands("water 4")
           end,
         },
-        { id = "water_causticsstrength", group = "dev", name = widgetOptionColor .. "   causticsStrength", type = "slider", min = 0.0, max = 0.5, step = 0.01, value = gl.GetWaterRendering("causticsStrength"), description = "How intense the caustics effects are",
+        { id = "water_causticsstrength", group = "dev", category = types.dev, name = widgetOptionColor .. "   causticsStrength", type = "slider", min = 0.0, max = 0.5, step = 0.01, value = gl.GetWaterRendering("causticsStrength"), description = "How intense the caustics effects are",
           onload = function(i)
           end,
           onchange = function(i, value)
@@ -4746,7 +4754,6 @@ function init()
         --specularColor = {number r, number g, number b},
         --planeColor = {number r, number g, number b},
     }
-
 
     -- force new unit icons
     if Spring.GetConfigInt("UnitIconsAsUI", 0) == 0 then
@@ -4973,7 +4980,7 @@ function init()
                 if option.id == 'label_notif_messages_spacer' then
                     for k, v in pairs(soundList) do
                         count = count + 1
-                        newOptions[count] = { id = "notifications_notif_" .. v[1], group = "notif", basic = true, name = widgetOptionColor .. "   " .. v[1], type = "bool", value = v[2], description = v[3],
+                        newOptions[count] = { id = "notifications_notif_" .. v[1], group = "notif", category = types.basic, name = widgetOptionColor .. "   " .. v[1], type = "bool", value = v[2], description = v[3],
                                               onchange = function(i, value)
                                                   saveOptionValue('Notifications', 'notifications', 'setSound' .. v[1], { 'soundList' }, value)
                                               end,
@@ -5065,7 +5072,7 @@ function init()
                             end
                             optionName = optionName .. '...'
                         end
-                        newOptions[count] = { id = "music_track" .. v[1], group = "snd", basic = true, name = musicOptionColor .. optionName, type = "bool", value = v[2], description = trackName .. '\n\255\200\200\200' .. v[3],
+                        newOptions[count] = { id = "music_track" .. v[1], group = "sound", category = types.basic, name = musicOptionColor .. optionName, type = "bool", value = v[2], description = trackName .. '\n\255\200\200\200' .. v[3],
                                               onchange = function(i, value)
                                                   if not WG['music'] and widgetHandler.configData[widgetName] ~= nil and widgetHandler.configData[widgetName].tracksConfig ~= nil then
                                                       if widgetHandler.configData[widgetName].tracksConfig[v[1]] then
