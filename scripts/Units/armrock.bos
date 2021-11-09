@@ -4,7 +4,7 @@
 #include "exptype.h"
 
 piece  torso, lbarrel, lmisspod, rshield, pelvis, rfoot, lfoot, lthigh,
-       rthigh, lleg, rleg, flare, exhaust,aimx1, aimy1;
+       rthigh, lleg, rleg, flare, exhaust,aimx1, aimy1, aimpoint;
 
 static-var  bMoving, bAiming, Static_Var_3, restore_delay, moveSpeed, currentSpeed, wpn1_lasthead;
 
@@ -318,7 +318,7 @@ RestoreAfterDelay()
 
 AimFromPrimary(piecenum)
 {
-	piecenum = lmisspod;
+	piecenum = aimpoint;
 }
 
 QueryPrimary(piecenum)

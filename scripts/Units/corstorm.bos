@@ -453,6 +453,13 @@ FirePrimary()
 		turn launcher to x-axis <0> speed <5>;
 		turn turret to y-axis <0> speed <16>;
 	}
+	sleep 32;
+	// WHY DO WE NEED TO SLEEP A FRAME HERE? well simple!
+	// the order of the calls is 
+	//1. AimFromWeapon
+	//2. FirePrimary
+	//3. QueryWeapon
+	// If we swap guns on fireprimary, then we would shoot from other barrel that we aimed from, so we delay swapping barrels by one frame
 	gun_1 = !gun_1;
 }
 
