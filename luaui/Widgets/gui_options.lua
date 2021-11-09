@@ -34,6 +34,7 @@ local newEngineIconsInitialized = false
 
 local ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.6)
 
+local devMode = Spring.Utilities.IsDevMode()
 local advSettings = false
 local initialized = false
 local pauseGameWhenSingleplayer = true
@@ -257,6 +258,18 @@ local function setEngineFont()
 end
 setEngineFont()
 
+local function showOption(option)
+	if (not option.category)
+		or (option.category == types.basic)
+		or (advSettings and option.category == types.advanced)
+		or (devMode and (option.group == "dev" or option.category == types.dev)) then
+
+		return true
+	end
+
+	return false
+end
+
 function widget:ViewResize()
     vsx, vsy = Spring.GetViewGeometry()
     widgetScale = ((vsx + vsy) / 2000) * 0.65 * customScale
@@ -339,7 +352,7 @@ function orderOptions()
     local newOptions = {}
     local newOptionsCount = 0
     for id, group in pairs(optionGroups) do
-        --if advSettings or group.id ~= 'dev' then
+        --if devMode or group.id ~= 'dev' then
         local grOptions = groupOptions[group.id]
         if #grOptions > 0 then
             local name = group.name
@@ -428,7 +441,7 @@ function DrawWindow()
     groupRect = {}
     for id, group in pairs(optionGroups) do
         groupRect[id] = { xpos, titleRect[2], math.floor(xpos + (font2:GetTextWidth(group.name) * tabFontSize) + (33 * widgetScale)), titleRect[4] }
-        if advSettings or group.id ~= 'dev' then
+        if devMode or group.id ~= 'dev' then
             xpos = groupRect[id][3]
             if currentGroupTab == nil or currentGroupTab ~= group.id then
                 RectRound(groupRect[id][1], groupRect[id][2], groupRect[id][3], groupRect[id][4], elementCorner, 1, 1, 0, 0, WG['guishader'] and { 0, 0, 0, 0.8 } or { 0, 0, 0, 0.85 }, WG['guishader'] and { 0.05, 0.05, 0.05, 0.8 } or { 0.05, 0.05, 0.05, 0.85 })
@@ -487,7 +500,7 @@ function DrawWindow()
     if currentGroupTab ~= nil then
         numOptions = 0
         for i, option in pairs(options) do
-            if option.group == currentGroupTab and (advSettings or option.category == types.basic) then
+            if option.group == currentGroupTab and showOption(option) then
                 numOptions = numOptions + 1
             end
         end
@@ -545,7 +558,7 @@ function DrawWindow()
     -- draw options
     local yPos
     for oid, option in pairs(options) do
-        if advSettings or option.category == types.basic and option.group ~= 'Dev' then
+        if showOption(option) then
             if currentGroupTab == nil or option.group == currentGroupTab then
                 yPos = math.floor(y - (((oHeight + oPadding + oPadding) * i) - oPadding))
                 if yPos - oHeight < yPosMax then
@@ -794,7 +807,7 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOptions)
             return true
         elseif groupRect ~= nil then
             for id, group in pairs(optionGroups) do
-                if advSettings or group.id ~= 'dev' then
+                if devMode or group.id ~= 'dev' then
                     if math_isInRect(mx, my, groupRect[id][1], groupRect[id][2], groupRect[id][3], groupRect[id][4]) then
                         return true
                     end
@@ -900,7 +913,7 @@ function widget:DrawScreen()
             end
             if groupRect ~= nil then
                 for id, group in pairs(optionGroups) do
-                    if advSettings or group.id ~= 'dev' then
+                    if devMode or group.id ~= 'dev' then
                         if math_isInRect(mx, my, groupRect[id][1], groupRect[id][2], groupRect[id][3], groupRect[id][4]) then
                             Spring.SetMouseCursor('cursornormal')
                             break
@@ -923,7 +936,7 @@ function widget:DrawScreen()
                         RectRound(titleRect[1], titleRect[2], titleRect[3], titleRect[4], elementCorner, 1, 1, 0, 0)
                         -- tabs
                         for id, group in pairs(optionGroups) do
-                            if advSettings or group.id ~= 'dev' then
+                            if devMode or group.id ~= 'dev' then
                                 if groupRect[id] then
                                     RectRound(groupRect[id][1], groupRect[id][2], groupRect[id][3], groupRect[id][4], elementCorner, 1, 1, 0, 0)
                                 end
@@ -947,7 +960,7 @@ function widget:DrawScreen()
             end
             if groupRect ~= nil then
                 for id, group in pairs(optionGroups) do
-                    if advSettings or group.id ~= 'dev' then
+                    if devMode or group.id ~= 'dev' then
                         if math_isInRect(mx, my, groupRect[id][1], groupRect[id][2], groupRect[id][3], groupRect[id][4]) then
                             mouseoverGroupTab(id)
                         end
@@ -1266,9 +1279,6 @@ function mouseEvent(mx, my, button, release)
                     -- showhow rightmouse doesnt get triggered :S
                     advSettings = not advSettings
                     startColumn = 1
-                    if currentGroupTab == 'dev' then
-                        currentGroupTab = 'gfx'
-                    end
                     return
                 end
                 -- navigation buttons
@@ -1338,7 +1348,7 @@ function mouseEvent(mx, my, button, release)
             local tabClicked = false
             if show and groupRect ~= nil then
                 for id, group in pairs(optionGroups) do
-                    if advSettings or group.id ~= 'dev' then
+                    if devMode or group.id ~= 'dev' then
                         if math_isInRect(mx, my, groupRect[id][1], groupRect[id][2], groupRect[id][3], groupRect[id][4]) then
                             if not release then
                                 currentGroupTab = group.id
@@ -4780,7 +4790,7 @@ function init()
         resettedTonemapDefault = true
     end
 
-    if not Spring.Utilities.IsDevMode() then
+    if not devMode then
         options[getOptionByID('restart')] = nil
     end
 
