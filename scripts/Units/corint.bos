@@ -10,6 +10,7 @@ piece  base, flare, turret, gun, barrel,bore,cylinder;
 
 Create()
 {
+	hide flare;
 }
 
 #define SMOKEPIECE base

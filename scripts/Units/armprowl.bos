@@ -414,6 +414,11 @@ StopMoving(){
 
 Create()
 {
+	hide lflare;
+	hide rflare;
+	hide aimx1;
+	hide misflare;
+	hide aimy1;
 	bMoving = FALSE;
 	bAiming = FALSE;
 	Static_Var_3 = 1;

@@ -1045,6 +1045,10 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 Create()
 {
 	hide rfire;
+	hide lfire;
+	hide aimx1;
+	hide aimy1;
+	hide rfire;
 	turn rfire to x-axis <10> now;
 	hide lfire;
 	turn lfire to x-axis <10> now;

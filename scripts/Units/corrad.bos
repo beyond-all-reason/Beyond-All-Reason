@@ -75,6 +75,7 @@ SetStunned(State)
 
 Create()
 {
+	hide blink;
 	call-script InitState();
 	return (0);
 }

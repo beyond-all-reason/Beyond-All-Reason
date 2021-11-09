@@ -33,6 +33,8 @@ RockUnit(anglex, anglez)
 
 Create()
 {
+	hide Flare1;
+	hide Flare2;
 	hide flare1;
 	hide flare2;
 	restore_delay = 5000;

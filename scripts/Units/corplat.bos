@@ -125,6 +125,10 @@ RequestState(requestedstate, currentstate)
 
 Create()
 {
+	hide nano4;
+	hide nano3;
+	hide nano1;
+	hide nano2;
 	unitviewer = FALSE;
 	spray = base;
 	set ARMORED to 1;

@@ -87,6 +87,9 @@ RequestState(requestedstate, currentstate)
 
 Create()
 {
+	hide nano2;
+	hide pad;
+	hide nano1;
 	spray = base;
 	unitviewer = FALSE;
 	call-script InitState();

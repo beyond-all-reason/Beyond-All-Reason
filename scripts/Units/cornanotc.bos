@@ -74,6 +74,7 @@ RequestState(requestedstate, currentstate)
 
 Create()
 {
+	hide emitnano;
 	call-script InitState();
 	Static_Var_1 = 0;
 	Static_Var_2 = 5000;

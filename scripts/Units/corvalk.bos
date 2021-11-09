@@ -73,6 +73,11 @@ RequestState(requestedstate, currentstate)
 
 Create()
 {
+	hide thrust4;
+	hide thrust2;
+	hide thrust1;
+	hide link;
+	hide thrust3;
 	unitviewer = FALSE;
 	Static_Var_1 = 0;
 	call-script InitState();
@@ -84,11 +89,6 @@ Create()
 	return (0);
 }
 
-Demo()
-{
-	unitviewer = TRUE;
-	return (0);
-}
 
 SweetSpot(piecenum)
 {
@@ -117,19 +117,19 @@ EndTransport()
 
 Activate()
 {
-	if( unitviewer )
-	{
-		start-script RequestState(0);
-	}
+	show thrust4;
+	show thrust2;
+	show thrust1;
+	show thrust3;
 	return (0);
 }
 
 Deactivate()
 {
-	if( unitviewer )
-	{
-		start-script RequestState(1);
-	}
+	hide thrust4;
+	hide thrust2;
+	hide thrust1;
+	hide thrust3;
 	return (0);
 }
 

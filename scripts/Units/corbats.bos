@@ -84,6 +84,12 @@ RockZ(Func_Var_1, Func_Var_2)
 
 Create()
 {
+	hide bow;
+	hide flareb3;
+	hide flareb1;
+	hide flareb2;
+	hide flarea;
+	hide wake;
 	hide flarea;
 	hide flareb1;
 	hide flareb2;

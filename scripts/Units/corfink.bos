@@ -100,12 +100,16 @@ Create()
 
 Activate()
 {
+	show thrusta;
+	show thrustb;
 	start-script RequestState(0);
 	return (0);
 }
 
 Deactivate()
 {
+	hide thrusta;
+	hide thrustb;
 	start-script RequestState(1);
 	return (0);
 }

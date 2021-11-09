@@ -97,6 +97,9 @@ RequestState(requestedstate, currentstate)
 
 Create()
 {
+	hide aimpoint;
+	hide firepoint;
+	hide flare;
 	hide flare;
 	restore_delay = 2000;
 	Static_Var_1 = 0;

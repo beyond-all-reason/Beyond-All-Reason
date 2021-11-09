@@ -7,6 +7,11 @@ piece  base, pad1, pad2, pad3,pad0,nano;
 
 Create()
 {
+	hide nano;
+	hide pad3;
+	hide pad2;
+	hide pad1;
+	hide pad0;
 }
 
 #define SMOKEPIECE base

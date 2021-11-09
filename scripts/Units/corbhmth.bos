@@ -69,6 +69,10 @@ RequestState(requestedstate, currentstate)
 
 Create()
 {
+	hide vent;
+	hide flare1;
+	hide flare2;
+	hide flare3;
 	bAiming = FALSE;
 	gun_1 = FALSE;
 	Static_Var_2 = 12000;

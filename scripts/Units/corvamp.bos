@@ -83,6 +83,11 @@ BarrelRoll() // remember to start-script BarrelRoll(); in Create()!
 
 Create()
 {
+	hide thrustb1;
+	hide thrusta;
+	hide missileb;
+	hide thrustb2;
+	hide missilea;
 	gun_1 = 1;
 	call-script InitState();
 	start-script BarrelRoll();
@@ -90,11 +95,13 @@ Create()
 
 Activate()
 {
+	show thrusta;
 	start-script RequestState(0);
 }
 
 Deactivate()
 {
+	hide thrusta;
 	start-script RequestState(1);
 }
 

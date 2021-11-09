@@ -67,16 +67,20 @@ RequestState(requestedstate, currentstate)
 
 Create()
 {
+	hide flare;
+	hide thrust;
 	call-script InitState();
 }
 
 Activate()
 {
+	show thrust;
 	start-script RequestState(0);
 }
 
 Deactivate()
 {
+	hide thrust;
 	start-script RequestState(1);
 }
 

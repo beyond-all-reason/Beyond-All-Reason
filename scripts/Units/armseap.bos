@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  lwing, rwing, base, thrustm;
+piece  lwing, rwing, base, thrustm, lthrust, rthrust;
 
 static-var  gun_3, Static_Var_2, statechg_DesiredState, statechg_StateChanging;
 
@@ -87,6 +87,9 @@ RequestState(requestedstate, currentstate)
 
 Create()
 {
+	hide lthrust;
+	hide rthrust;
+	hide thrustm;
 	gun_3 = lwing;
 	call-script InitState();
 	while( get BUILD_PERCENT_LEFT )

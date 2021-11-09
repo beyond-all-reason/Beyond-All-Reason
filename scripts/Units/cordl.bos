@@ -21,6 +21,7 @@ static-var  gun_1;
 
 Create()
 {
+	hide flare;
 	gun_1 = turret;
 	return (0);
 }

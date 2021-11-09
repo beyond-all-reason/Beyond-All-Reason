@@ -58,6 +58,7 @@ Steering(heading, steer, currentSpeed)
 
 Create()
 {
+	hide flare;
 	Static_Var_1 = 0;
 	oldheading = get HEADING;
 	statechg_DesiredState = TRUE;

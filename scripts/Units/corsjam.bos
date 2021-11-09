@@ -61,6 +61,7 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 
 Create()
 {
+	hide wake;
 	start-script SmokeUnit();
 	Static_Var_1 = 0;
 }

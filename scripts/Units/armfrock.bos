@@ -59,6 +59,8 @@ Create()
 {
 	hide flare1;
 	hide flare2;
+	hide flare1;
+	hide flare2;
 	gun_1 = flare1;
 	start-script RockOnWaves();
 	return (0);

@@ -123,6 +123,11 @@ RequestState(requestedstate, currentstate)
 
 Create()
 {
+	hide nano2;
+	hide nano3;
+	hide pad;
+	hide nano4;
+	hide nano1;
 	hide pad;
 	unitviewer = FALSE;
 	Static_Var_1 = 0;

@@ -105,6 +105,15 @@ RestoreAfterDelay()
 
 Create()
 {
+	hide bow;
+	hide wake;
+	hide blink;
+	hide antiflare;
+	hide nanoemit2;
+	hide nanoemit1;
+	hide pad1;
+	hide pad0;
+	hide ground;
 	Static_Var_1 = 0;
 	while( get BUILD_PERCENT_LEFT )
 	{

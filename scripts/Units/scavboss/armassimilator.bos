@@ -166,6 +166,10 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 
 Create()
 {
+	hide lflare2;
+	hide lflare1;
+	hide rflare2;
+	hide rflare1;
 
 	gun_1 = 0;
 	bMoving = FALSE;

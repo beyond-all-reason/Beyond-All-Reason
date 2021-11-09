@@ -23,6 +23,7 @@ piece  base, flare;
 Create()
 {
 	hide flare;
+	hide flare;
 	while( get BUILD_PERCENT_LEFT )
 	{
 		sleep 400;

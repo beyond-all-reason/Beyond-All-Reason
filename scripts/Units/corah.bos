@@ -113,6 +113,9 @@ StopMoving()
 
 Create()
 {
+	hide flare2;
+	hide flare1;
+	hide wake;
 	Static_Var_7 = 1;
 	Static_Var_2 = 1;
 	Static_Var_4 = 5000;

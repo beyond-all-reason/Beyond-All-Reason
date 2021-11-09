@@ -39,6 +39,10 @@ StopMoving()
 
 Create()
 {
+	hide flare2;
+	hide flare1;
+	hide flare4;
+	hide flare3;
 	hide flare1;
 	hide flare2;
 	hide flare3;

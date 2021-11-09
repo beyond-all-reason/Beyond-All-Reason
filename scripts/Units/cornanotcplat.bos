@@ -94,6 +94,7 @@ RequestState(requestedstate, currentstate)
 
 Create()
 {
+	hide emitnano;
 	call-script InitState();
 	while( get BUILD_PERCENT_LEFT )
 	{

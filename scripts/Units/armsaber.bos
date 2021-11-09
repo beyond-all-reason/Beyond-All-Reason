@@ -84,6 +84,8 @@ RequestState(requestedstate, currentstate)
 
 Create()
 {
+	hide flare1;
+	hide flare2;
 	Static_Var_1 = 0;
 	gun_1 = base;
 	bMoving = FALSE;

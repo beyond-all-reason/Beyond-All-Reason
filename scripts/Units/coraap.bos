@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, pad, dishbase1,dishbase2, dish1, dish2, nano1, nano2, nano3, nano4, nano5, nano6, nano7, nano8;
+piece  base, pad, dishbase1,dishbase2, dish1, dish2, nano1, nano2, nano3, nano4, nano5, nano6, nano7, nano8, none;
 
 static-var  spray, unitviewer, statechg_DesiredState, statechg_StateChanging;
 
@@ -93,6 +93,17 @@ RequestState(requestedstate, currentstate)
 
 Create()
 {
+	hide nano1;
+	hide nano8;
+	hide nano4;
+	hide nano2;
+	hide nano5;
+	hide nano6;
+	hide dishbase2;
+	hide nano3;
+	hide dishbase1;
+	hide nano7;
+	hide none;
 
 	unitviewer = FALSE;
 	spray = base;

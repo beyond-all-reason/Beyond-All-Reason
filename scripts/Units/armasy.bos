@@ -172,6 +172,11 @@ RequestState(requestedstate, currentstate)
 
 Create()
 {
+	hide beam4;
+	hide beam3;
+	hide beam2;
+	hide beam1;
+	hide pad;
 
 	spray = 0;
 	call-script InitState();

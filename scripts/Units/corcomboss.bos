@@ -426,6 +426,12 @@ Create()
 {
 	hide rbigflash;
 	hide lfirept;
+	hide nanospray;
+	hide aimx1;
+	hide aimy1;
+	hide teleport;
+	hide rbigflash;
+	hide lfirept;
 	bMoving = FALSE;
 	bAiming = FALSE;
 	bIsBuilding = 0;

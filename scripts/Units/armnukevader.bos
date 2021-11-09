@@ -40,6 +40,7 @@ MotionControl(Func_Var_1)
 
 Create()
 {
+	hide base;
 	bMoving = FALSE;
 }
 

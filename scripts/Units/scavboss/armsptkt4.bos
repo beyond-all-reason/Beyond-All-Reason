@@ -421,6 +421,10 @@ HitByWeaponId(anglex, anglez, weaponid, dmg) //weaponID is always 0,lasers and f
 Create()
 {
 	hide flare1;
+	hide flare3;
+	hide flare2;
+	hide aimy1;
+	hide flare1;
 	hide flare2;
 	hide flare3;
 	fire_count=4;

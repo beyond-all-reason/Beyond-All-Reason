@@ -147,6 +147,9 @@ StopMoving()
 
 Create()
 {
+	hide lflare;
+	hide rflare;
+	hide aimy1;
 	gun_3 = lflare;
 	restore_delay = 3000;
 	bMoving = FALSE;

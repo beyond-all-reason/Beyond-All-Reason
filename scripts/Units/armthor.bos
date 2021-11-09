@@ -62,6 +62,15 @@ RockUnit(anglex, anglez)
 
 Create()
 {
+	hide flare8;
+	hide flare7;
+	hide flare6;
+	hide flare5;
+	hide flare9;
+	hide flare4;
+	hide flare3;
+	hide flare2;
+	hide flare1;
 	bMoving = FALSE;
 	moveSpeed = get (MAX_SPEED);
 	animSpeed = 100;

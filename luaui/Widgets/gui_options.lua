@@ -1570,7 +1570,6 @@ function init()
 			--bloom = false,
 			bloomdeferred = false,
 			ssao = 1,
-			advmapshading = 0,
 			mapedgeextension = false,
 			lighteffects = false,
 			lighteffects_additionalflashes = false,
@@ -1591,7 +1590,6 @@ function init()
 			--bloom = false,
 			bloomdeferred = true,
 			ssao = 1,
-			advmapshading = 1,
 			mapedgeextension = false,
 			lighteffects = true,
 			lighteffects_additionalflashes = false,
@@ -1612,7 +1610,6 @@ function init()
 		 	--bloom = true,
 		 	bloomdeferred = true,
 		 	ssao = 1,
-			advmapshading = 1,
 		 	mapedgeextension = true,
 		 	lighteffects = true,
 		 	lighteffects_additionalflashes = true,
@@ -1633,7 +1630,6 @@ function init()
 			--bloom = true,
 			bloomdeferred = true,
 			ssao = 2,
-			advmapshading = 1,
 			mapedgeextension = true,
 			lighteffects = true,
 			lighteffects_additionalflashes = true,
@@ -1654,7 +1650,6 @@ function init()
 			--bloom = true,
 			bloomdeferred = true,
 			ssao = 3,
-			advmapshading = 1,
 			mapedgeextension = true,
 			lighteffects = true,
 			lighteffects_additionalflashes = true,
@@ -1939,12 +1934,6 @@ function init()
         { id = "label_gfx_lighting_spacer", group = "gfx", basic = true },
 
 
-		{ id = "advmapshading", group = "gfx", name = texts.option.advmapshading, basic = true, type = "bool", value = (Spring.GetConfigInt("AdvMapShading", 1) == 1), description = texts.option.advmapshading_descr,
-		  onchange = function(i, value)
-			  Spring.SetConfigInt("AdvMapShading", (value and 1 or 0))
-			  Spring.SendCommands("advmapshading "..(value and '1' or '0'))
-		  end,
-		},
 		{ id = "cus", group = "gfx", name = texts.option.cus, basic = true, type = "bool", value = (Spring.GetConfigInt("cus", 1) == 1), description = texts.option.cus_descr,
 		  onchange = function(i, value)
 			  if value == 0.5 then
@@ -3821,6 +3810,12 @@ function init()
 
         -- BAR doesnt support ZK style startboxes{ id = "startboxeditor", group = "dev", widget = "Startbox Editor", name = texts.option.startboxeditor, type = "bool", value = GetWidgetToggleValue("Startbox Editor"), description = texts.option.startboxeditor_descr },
 
+		{ id = "advmapshading", group = "dev", name = texts.option.advmapshading, type = "bool", value = (Spring.GetConfigInt("AdvMapShading", 1) == 1), description = texts.option.advmapshading_descr,
+		  onchange = function(i, value)
+			  Spring.SetConfigInt("AdvMapShading", (value and 1 or 0))
+			  Spring.SendCommands("advmapshading "..(value and '1' or '0'))
+		  end,
+		},
 
         { id = "gridmenu", group = "dev", name = texts.option.gridmenu, type = "bool", value = GetWidgetToggleValue("Grid menu"), description = texts.option.gridmenu_descr,
           onchange = function(i, value)
@@ -4573,6 +4568,14 @@ function init()
               Spring.SendCommands("water 4")
           end,
         },
+        { id = "water_windspeed", group = "dev", name = widgetOptionColor .. "   windspeed", type = "slider", min = 0.0, max = 2.0, step = 0.01, value = gl.GetWaterRendering("windSpeed"), description = "The speed of bumpwater tiles moving",
+          onload = function(i)
+          end,
+          onchange = function(i, value)
+              Spring.SetWaterParams({ windSpeed = value })
+              Spring.SendCommands("water 4")
+          end,
+        },
         { id = "water_ambientfactor", group = "dev", name = widgetOptionColor .. "   ambient factor", type = "slider", min = 0, max = 2, step = 0.001, value = gl.GetWaterRendering("ambientFactor"), description = "How much ambient lighting the water surface gets (ideally very little)",
           onload = function(i)
           end,
@@ -4682,6 +4685,55 @@ function init()
           end,
           onchange = function(i, value)
               Spring.SetWaterParams({ reflectionDistortion = value })
+              Spring.SendCommands("water 4")
+          end,
+        },
+        -- new water 4 params since engine 105BAR 582
+        { id = "water_waveoffsetfactor", group = "dev", name = widgetOptionColor .. "   waveoffsetfactor", type = "slider", min = 0.0, max = 2.0, step = 0.01, value = gl.GetWaterRendering("waveOffsetFactor"), description = "Set this to 0.1 to make waves break shores not all at the same time",
+          onload = function(i)
+          end,
+          onchange = function(i, value)
+              Spring.SetWaterParams({ waveOffsetFactor = value })
+              Spring.SendCommands("water 4")
+          end,
+        },
+        { id = "water_wavelength", group = "dev", name = widgetOptionColor .. "   waveLength", type = "slider", min = 0.0, max = 1.0, step = 0.01, value = gl.GetWaterRendering("waveLength"), description = "How long the waves are",
+          onload = function(i)
+          end,
+          onchange = function(i, value)
+              Spring.SetWaterParams({ waveLength = value })
+              Spring.SendCommands("water 4")
+          end,
+        },
+        { id = "water_wavefoamdistortion", group = "dev", name = widgetOptionColor .. "   waveFoamDistortion", type = "slider", min = 0.0, max = 0.5, step = 0.01, value = gl.GetWaterRendering("waveFoamDistortion"), description = "How much the waters movement distorts the foam texture",
+          onload = function(i)
+          end,
+          onchange = function(i, value)
+              Spring.SetWaterParams({ waveFoamDistortion = value })
+              Spring.SendCommands("water 4")
+          end,
+        },
+        { id = "water_wavefoamintensity", group = "dev", name = widgetOptionColor .. "   waveFoamIntensity", type = "slider", min = 0.0, max = 2.0, step = 0.01, value = gl.GetWaterRendering("waveFoamIntensity"), description = "How strong the foam texture is",
+          onload = function(i)
+          end,
+          onchange = function(i, value)
+              Spring.SetWaterParams({ waveFoamIntensity = value })
+              Spring.SendCommands("water 4")
+          end,
+        },
+        { id = "water_causticsresolution", group = "dev", name = widgetOptionColor .. "   causticsResolution", type = "slider", min = 10.0, max = 300.0, step = 1.0, value = gl.GetWaterRendering("causticsResolution"), description = "The tiling rate of the caustics texture",
+          onload = function(i)
+          end,
+          onchange = function(i, value)
+              Spring.SetWaterParams({ causticsResolution = value })
+              Spring.SendCommands("water 4")
+          end,
+        },
+        { id = "water_causticsstrength", group = "dev", name = widgetOptionColor .. "   causticsStrength", type = "slider", min = 0.0, max = 0.5, step = 0.01, value = gl.GetWaterRendering("causticsStrength"), description = "How intense the caustics effects are",
+          onload = function(i)
+          end,
+          onchange = function(i, value)
+              Spring.SetWaterParams({ causticsStrength = value })
               Spring.SendCommands("water 4")
           end,
         },

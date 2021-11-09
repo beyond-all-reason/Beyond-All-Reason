@@ -44,6 +44,11 @@ RockOnWaves()
 
 Create()
 {
+	hide wake;
+	hide flarea;
+	hide lflare;
+	hide rflare;
+	hide flareb;
 	hide lflare;
 	hide rflare;
 	gun_3 = rflare;

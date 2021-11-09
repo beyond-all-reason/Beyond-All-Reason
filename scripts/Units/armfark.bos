@@ -287,6 +287,8 @@ Stop()
 
 Create()
 {
+	hide aimx1;
+	hide aimy1;
 	bMoving = FALSE;
 	animSpeed = 3;
 	nanoNozzle = 0;

@@ -12,6 +12,18 @@ static-var  bMoving, moveSpeed, currentSpeed, animSpeed, terrain, restore_delay,
 #define SIG_MOVE				4
 
 
+
+UnitSpeed()
+{
+	while(TRUE)
+	{
+		currentSpeed = (get CURRENT_SPEED)*20/moveSpeed;
+		if (currentSpeed<4) currentSpeed=4;
+		animSpeed = 1600 / currentSpeed;
+		sleep 250;
+	}
+}
+
 Smoke()
 {
 	while( TRUE )
@@ -52,6 +64,10 @@ RockUnit(anglex, anglez)
 
 Create()
 {
+	hide smoke1;
+	hide smoke2;
+	hide flare1;
+	hide flare2;
 	bMoving = FALSE;
 	moveSpeed = get (MAX_SPEED);
 	animSpeed = 100;
@@ -59,6 +75,7 @@ Create()
 	hide flare2;
 	gun_1 = flare1;
 	restore_delay = 3000;
+	start-script UnitSpeed();
 }
 
 setSFXoccupy(state)
@@ -72,7 +89,6 @@ StartMoving()
 	signal SIG_MOVE;
 	set-signal-mask SIG_MOVE;
 	start-script Smoke();
-	start-script UnitSpeed();
 }
 
 

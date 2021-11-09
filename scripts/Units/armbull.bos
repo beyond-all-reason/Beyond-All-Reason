@@ -60,6 +60,10 @@ RockUnit(anglex, anglez)
 
 Create()
 {
+	hide smoke1;
+	hide rflare;
+	hide lflare;
+	hide smoke2;
 	bMoving = FALSE;
 	moveSpeed = get (MAX_SPEED);
 	animSpeed = 100;

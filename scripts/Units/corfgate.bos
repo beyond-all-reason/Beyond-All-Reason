@@ -59,6 +59,7 @@ RequestState(requestedstate, currentstate)
 
 Create()
 {
+	hide emit;
 	spin dish around y-axis speed <15.000000>;
 	call-script InitState();
 }

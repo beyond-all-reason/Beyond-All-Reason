@@ -99,6 +99,8 @@ RequestState(requestedstate, currentstate)
 
 Create()
 {
+	hide rnano;
+	hide lnano;
 	unitviewer = FALSE;
 	Static_Var_2 = 0;
 	nano=0;

@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, flare, turret, barrel, sleeve;
+piece  base, flare, turret, barrel, sleeve, smoke2, smoke1;
 
 static-var  restore_delay;
 
@@ -34,6 +34,8 @@ RockUnit(anglex, anglez)
 
 Create()
 {
+	hide smoke2;
+	hide smoke1;
 	hide flare;
 	restore_delay = 3000;
 }

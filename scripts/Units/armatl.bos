@@ -43,6 +43,7 @@ RockOnWaves()
 
 Create()
 {
+	hide flare;
 	restore_delay = 3000;
 	while( get BUILD_PERCENT_LEFT )
 	{

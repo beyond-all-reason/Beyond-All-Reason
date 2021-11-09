@@ -334,6 +334,9 @@ BuildAnim(){
 Create()
 {
 	hide flare;
+	hide aimx1;
+	hide aimy1;
+	hide flare;
 	bMoving = FALSE;
 	building = 0;
 	moveSpeed = get MAX_SPEED;

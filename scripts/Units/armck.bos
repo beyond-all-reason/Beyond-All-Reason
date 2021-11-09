@@ -346,6 +346,8 @@ RequestState(requestedstate, currentstate)
 
 Create()
 {
+	hide nano;
+	hide aimy1;
 	bMoving = FALSE;
 	notBuilding = 1;
 	statechg_DesiredState = TRUE;

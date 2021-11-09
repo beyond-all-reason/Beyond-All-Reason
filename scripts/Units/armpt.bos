@@ -52,6 +52,10 @@ RockOnWaves()
 
 Create()
 {
+	hide flarel;
+	hide flareaa;
+	hide flarer;
+	hide ground;
 
 	gun_1 = flarel;
 	Static_Var_2 = 1;

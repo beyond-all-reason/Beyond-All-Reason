@@ -13,6 +13,13 @@ static-var  Static_Var_1, gun_1, last_fire, firstaim;
 
 Create()
 {
+	hide flare2;
+	hide flare1;
+	hide flare4;
+	hide flare3;
+	hide flare6;
+	hide flare7;
+	hide flare5;
 	gun_1 = flare1;
 	firstaim = 1;
 }

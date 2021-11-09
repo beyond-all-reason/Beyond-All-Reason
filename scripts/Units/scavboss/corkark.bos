@@ -359,6 +359,10 @@ Create()
 {
 	hide rflare;
 	hide lflare;
+	hide aimx1;
+	hide aimy1;
+	hide rflare;
+	hide lflare;
 //	turn leg6a to y-axis <30> now;
 	turn leg4a to y-axis <-30> now;
 //	turn leg1a to y-axis <-30> now;//2

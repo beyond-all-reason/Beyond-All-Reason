@@ -74,6 +74,8 @@ BankControl()
 
 Create()
 {
+	hide wake;
+	hide link;
 	while( get BUILD_PERCENT_LEFT )
 	{
 		sleep 400;

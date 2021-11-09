@@ -120,6 +120,8 @@ StopMoving()
 
 Create()
 {
+	hide wake;
+	hide flare;
 	hide flare;
 	spin fan1 around y-axis speed <300>;
 	

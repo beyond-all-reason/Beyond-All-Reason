@@ -56,6 +56,8 @@ RequestState(requestedstate, currentstate)
 
 Create()
 {
+	hide flare1;
+	hide flare2;
 	Static_Var_3 = 0;
 	Static_Var_4 = 91;
 	Static_Var_5 = 182;

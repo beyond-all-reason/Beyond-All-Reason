@@ -529,6 +529,10 @@ Sparks()
 Create()
 {
 	hide flare;
+	hide emit_spark;
+	hide aimx1;
+	hide aimy1;
+	hide flare;
 	show gunstatic;
 	hide gunhand;
 	hide emit_spark;

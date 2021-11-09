@@ -127,6 +127,11 @@ RequestState(requestedstate, currentstate)
 
 Create()
 {
+	hide nano1;
+	hide nano2;
+	hide nano3;
+	hide nano4;
+	hide pad;
 	spray = nano1;
 	call-script InitState();
 	while( get BUILD_PERCENT_LEFT )

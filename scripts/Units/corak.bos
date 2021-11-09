@@ -957,6 +957,10 @@ Create()
 {
 	hide rfire;
 	hide lfire;
+	hide aimx1;
+	hide aimy1;
+	hide rfire;
+	hide lfire;
 	bMoving = FALSE;
 	bAiming = FALSE;
 	Static_Var_3 = 1;

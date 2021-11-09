@@ -69,6 +69,10 @@ EmitSFX()
 
 Create()
 {
+	hide wake2;
+	hide wake1;
+	hide flare2;
+	hide flare1;
 	bMoving = FALSE;
 	moveSpeed = get (MAX_SPEED);
 	animSpeed = 100;

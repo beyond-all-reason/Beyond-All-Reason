@@ -80,6 +80,10 @@ RequestState(requestedstate, currentstate)
 
 Create()
 {
+	hide flare;
+	hide link;
+	hide thrusta;
+	hide thrustb;
 	Static_Var_1 = 0;
 	call-script InitState();
 	while( get BUILD_PERCENT_LEFT )
@@ -89,6 +93,21 @@ Create()
 	start-script IdleHover();
 }
 
+Activate()
+{
+	show thrusta;
+	show thrustb;
+	start-script RequestState(0);
+	return (0);
+}
+
+Deactivate()
+{
+	hide thrusta;
+	hide thrustb;
+	start-script RequestState(1);
+	return (0);
+}
 
 SweetSpot(piecenum)
 {

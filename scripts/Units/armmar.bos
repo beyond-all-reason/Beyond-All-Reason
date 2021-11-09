@@ -3,7 +3,8 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  pelvis, body, rthigh, lthigh , lleg, rleg, rfoot,lfoot, misturret, misflare, lturret, rturret, lbarrel, rbarrel, lflare, rflare;
+piece  pelvis, body, rthigh, lthigh, lleg, rleg, rfoot,lfoot, misturret, misflare, lturret, rturret, lbarrel,
+	 rbarrel, lflare, rflare, lturbfx, lflareaa, rturbfx, rflareaa, aimx1, aimy1;
 
 static-var  bMoving, bAiming, Static_Var_3, restore_delay, gun_1, wpn1_lasthead, wpn2_lasthead, wpn3_lasthead;
 
@@ -284,6 +285,15 @@ MotionControl(moving, aiming, justmoved)
 
 Create()
 {
+	hide lturbfx;
+	hide lflareaa;
+	hide lflare;
+	hide rflare;
+	hide aimx1;
+	hide rturbfx;
+	hide rflareaa;
+	hide lflareaa;
+	hide aimy1;
 	bMoving = FALSE;
 	bAiming = FALSE;
 	Static_Var_3 = 1;

@@ -301,6 +301,8 @@ RockUnit(anglex, anglez)
 
 Create()
 {
+	hide flare;
+	hide aimy1;
 	bMoving = FALSE;
 	Static_Var_2 = 0;
 	animspeed = 8;

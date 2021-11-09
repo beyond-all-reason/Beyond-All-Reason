@@ -56,6 +56,25 @@ RockOnWaves()
 
 Create()
 {
+	hide engine;
+	hide bow;
+	hide wake;
+	hide misflare1;
+	hide misflare2;
+	hide flare1a;
+	hide flare1b;
+	hide flare5a;
+	hide flare5b;
+	hide flare5c;
+	hide flare2a;
+	hide flare2b;
+	hide flare2c;
+	hide flare4a;
+	hide flare4b;
+	hide flare4c;
+	hide flare3a;
+	hide flare3b;
+	hide ground;
 	set ARMORED to 1;
 	hide flare1a;
 	hide flare2a;
@@ -156,7 +175,8 @@ StartMoving()
 	set-signal-mask SIG_MOVE;
 	var waketime;
 	start-script waveSplash();
-	var bowtime  = 0;
+	var bowtime;
+	bowtime  = 0;
 	while( TRUE )
 	{
 		emit-sfx 1024 + 3 from wake;

@@ -40,9 +40,24 @@ BarrelRoll() // remember to start-script BarrelRoll(); in Create()!
 
 Create()
 {
+	hide missile1;
+	hide missile2;
+	hide thrust1;
+	hide thrust2;
 	start-script BarrelRoll();
 }
 
+Activate()
+{
+	show thrust1;
+	show thrust2;
+}
+
+Deactivate()
+{
+	hide thrust1;
+	hide thrust2;
+}
 
 AimPrimary(heading, pitch)
 {

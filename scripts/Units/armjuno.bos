@@ -123,6 +123,11 @@ RequestState(requestedstate, currentstate)
 
 Create()
 {
+	hide flare;
+	hide Emit4;
+	hide Emit3;
+	hide Emit2;
+	hide Emit1;
 	gun_1 = flare;
 	restore_delay = 3000;
 	start-script NanoEmit();

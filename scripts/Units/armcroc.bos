@@ -51,6 +51,7 @@ EmitSFX()
 Create()
 {
 	hide flare;
+	hide flare;
 	Static_Var_2 = 4;
 	bMoving = FALSE;
 	restore_delay = 3000;

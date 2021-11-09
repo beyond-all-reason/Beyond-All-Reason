@@ -124,6 +124,7 @@ MoveRate3(){
 
 Create()
 {
+	hide link;
 	hide thrustl;
 	hide thrustr;
 	hide thrustm;
@@ -159,6 +160,20 @@ BeginTransport(Func_Var_1)
 	//move larm3 to y-axis [-3] now;
 	//move rarm3 to y-axis [-3] now;
 
+}
+
+Activate()
+{
+	show thrustl;
+	show thrustr;
+	show thrustm;
+}
+
+Deactivate()
+{
+	hide thrustl;
+	hide thrustr;
+	hide thrustm;
 }
 
 EndTransport()

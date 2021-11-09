@@ -4,7 +4,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, lthigh, rthigh, rleg, rfoot, lleg, lfoot,shoulder, elbow, spindle, arm1,arm2,arm3,arm4,head,eye;
+piece  base, lthigh, rthigh, rleg, rfoot, lleg, lfoot,shoulder, elbow, spindle, arm1,arm2,arm3,arm4,head,eye, aimy1;
 
 static-var  bMoving, Static_Var_3, Static_Var_4, Static_Var_5, keepspinning, animSpeed, maxSpeed, animFramesPerKeyframe;
 
@@ -233,6 +233,7 @@ close()
 
 Create()
 {
+	hide aimy1;
 	bMoving = FALSE;
 	Static_Var_3 = 1;
 	Static_Var_4 = 3000;
@@ -270,7 +271,11 @@ SmokeUnit(healthpercent) // ah yes, clever use of stack variables
 	while( TRUE )
 	{
 		healthpercent = get HEALTH;
-		if (healthpercent > 66) break;
+		if (healthpercent > 66) {
+			sleep 97;
+			isSmoking = 0;
+			return;
+		}
 		if (healthpercent < 4 ) healthpercent = 4;
 		sleep healthpercent * 50;
 
@@ -282,7 +287,7 @@ SmokeUnit(healthpercent) // ah yes, clever use of stack variables
 }
 
 // this is what a pure hitbyweapon can look like, without any of the motion garbage
-HitByWeapon() //weaponID is always 0,lasers and flamers give angles of 0
+HitByWeapon(anglex, anglez) //weaponID is always 0,lasers and flamers give angles of 0
 {
 	if( get BUILD_PERCENT_LEFT) return (0);
 	if (isSmoking == 0)	{ 

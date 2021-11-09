@@ -88,6 +88,9 @@ Sparks()
 
 Create()
 {
+	hide emit_spark;
+	hide lflare;
+	hide mflare;
 	restore_delay = 3000;
 	bAiming = FALSE;
 	hide emit_spark;

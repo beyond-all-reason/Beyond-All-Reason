@@ -307,6 +307,10 @@ Create()
 {
 	hide rflare;
 	hide lflare;
+	hide aimx1;
+	hide aimy1;
+	hide rflare;
+	hide lflare;
 	bMoving = FALSE;
 	bAiming = FALSE;
 	Static_Var_3 = 1;

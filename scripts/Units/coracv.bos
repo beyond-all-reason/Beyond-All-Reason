@@ -78,6 +78,10 @@ RequestState(requestedstate, currentstate)
 
 Create()
 {
+	hide smoke2;
+	hide nano1;
+	hide nano2;
+	hide smoke1;
 	bMoving = FALSE;
 	moveSpeed = get (MAX_SPEED);
 	animSpeed = 100;

@@ -222,6 +222,7 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 
 Create()
 {
+	hide aimy1;
 	bMoving = FALSE;
 	Static_Var_3 = 1;
 	animspeed = 5;

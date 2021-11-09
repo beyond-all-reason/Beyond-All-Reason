@@ -287,7 +287,7 @@ Stop()
 {
 	set INBUILDSTANCE to 0;
 	turn cover to x-axis <0> speed <180>;
-	turn aimy1 to y-axis<0> speed <180>;
+	turn aimy1 to y-axis <0> speed <180>;
 	sleep 500;
 
 }
@@ -322,6 +322,8 @@ RequestState(requestedstate, currentstate)
 
 Create()
 {
+	hide nano;
+	hide aimy1;
 	bMoving = FALSE;
 	notBuilding = 1;
 	nanoNozzle = 0;

@@ -62,6 +62,8 @@ Create()
 {
 	hide flare1;
 	hide flare2;
+	hide flare1;
+	hide flare2;
 	restore_delay = 3000;
 	gun_1 = flare1;
     turn guns to x-axis <-30> speed <25.00000>;

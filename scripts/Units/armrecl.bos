@@ -126,6 +126,7 @@ RequestState(requestedstate, currentstate)
 
 Create()
 {
+	hide flare;
 	Static_Var_1 = 0;
 	moveSpeed = get MAX_SPEED;
 	start-script Propcontrol();

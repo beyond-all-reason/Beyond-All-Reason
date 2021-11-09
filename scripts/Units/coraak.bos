@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  pelvis, lfleg, rfleg, lbleg, rbleg, lbfoot, lffoot, rbfoot, rffoot, torso, flakgun, flareflak, flare1, flare2, flare3, flare4;
+piece  pelvis, lfleg, rfleg, lbleg, rbleg, lbfoot, lffoot, rbfoot, rffoot, torso, flakgun, flareflak, flare1, flare2, flare3, flare4, aimy1;
 
 static-var  bMoving, Static_Var_2;
 static-var animSpeed, maxSpeed, animFramesPerKeyframe;
@@ -243,6 +243,12 @@ StopMoving(){
 
 Create()
 {
+	hide flareflak;
+	hide flare4;
+	hide flare3;
+	hide flare2;
+	hide flare1;
+	hide aimy1;
 	animSpeed = 5;
 	bMoving = FALSE;
 }

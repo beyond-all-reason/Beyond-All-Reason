@@ -90,6 +90,7 @@ RequestState(requestedstate, currentstate)
 
 Create()
 {
+	hide blink;
 	call-script InitState();
 }
 

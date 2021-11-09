@@ -24,6 +24,10 @@ Create()
 {
 	hide flare1;
 	hide flare2;
+	hide wake1;
+	hide missile;
+	hide flare1;
+	hide flare2;
 	gun_1 = flare1;
 	restore_delay = 3000;
 	return (0);

@@ -32,6 +32,7 @@ Propcontrol()
 Create()
 {
 	hide flare;
+	hide flare;
 	restore_delay = 3000;
 	moveSpeed = get MAX_SPEED;
 	start-script Propcontrol();

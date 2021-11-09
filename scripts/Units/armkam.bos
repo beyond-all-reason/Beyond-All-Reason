@@ -76,12 +76,29 @@ IdleHover()
 static-var gun_1;
 Create()
 {
+	hide lflare;
+	hide rflare;
+	hide thrusta;
+	hide thrustb;
 	gun_1=0;
 	while( get BUILD_PERCENT_LEFT )
 	{
 		sleep 400;
 	}
 	start-script IdleHover();
+}
+
+Activate()
+{
+	show thrusta;
+	show thrustb;
+}
+
+Deactivate()
+{
+
+	hide thrusta;
+	hide thrustb;
 }
 
 static-var  Stunned;

@@ -108,6 +108,9 @@ RequestState(requestedstate, currentstate)
 
 Create()
 {
+	hide wake2;
+	hide flare;
+	hide wake1;
 	notBuilding = 1;
 	statechg_DesiredState = TRUE;
 	statechg_StateChanging = FALSE;

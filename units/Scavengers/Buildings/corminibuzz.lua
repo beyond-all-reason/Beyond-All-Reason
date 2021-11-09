@@ -34,9 +34,9 @@ return {
 		yardmap = "ooo ooo ooo",
 		customparams = {
 			usebuildinggrounddecal = false,
-			buildinggrounddecaltype = "decals/corbuzz_aoplane.dds",
-			buildinggrounddecalsizey = 11,
-			buildinggrounddecalsizex = 11,
+			buildinggrounddecaltype = "decals/corminibuzz_aoplane.dds",
+			buildinggrounddecalsizey = 6,
+			buildinggrounddecalsizex = 6,
 			buildinggrounddecaldecayspeed = 30,
 			unitgroup = 'weapon',
 			model_author = "Mr Bob",

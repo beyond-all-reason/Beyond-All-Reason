@@ -108,6 +108,9 @@ BarrelRoll() // remember to start-script BarrelRoll(); in Create()!
 }
 Create()
 {
+	hide flarel;
+	hide flarer;
+	hide thrust;
 	gun_1=0;
 	call-script InitState();
 	start-script BarrelRoll();
@@ -116,12 +119,14 @@ Create()
 
 Activate()
 {
+	show thrust;
 	start-script RequestState(0);
 	return (0);
 }
 
 Deactivate()
 {
+	hide thrust;
 	start-script RequestState(1);
 	return (0);
 }

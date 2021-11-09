@@ -568,6 +568,12 @@ StopMoving(){
 
 Create()
 {
+	hide flare4;
+	hide flare2;
+	hide flare3;
+	hide flare1;
+	hide aimx1;
+	hide aimy1;
 	gun_1 = 1;
 	bMoving = FALSE;
 	bAiming = FALSE;

@@ -142,6 +142,11 @@ RequestState(requestedstate, currentstate)
 
 Create()
 {
+	hide beam3;
+	hide pad;
+	hide beam1;
+	hide beam4;
+	hide beam2;
 	//move base to y-axis [25] now;
 	spray = 0;
 	call-script InitState();	

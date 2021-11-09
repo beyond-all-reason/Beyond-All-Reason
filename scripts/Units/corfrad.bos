@@ -104,6 +104,7 @@ RequestState(requestedstate, currentstate)
 
 Create()
 {
+	hide blink;
 	call-script InitState();
 	while( get BUILD_PERCENT_LEFT )
 	{

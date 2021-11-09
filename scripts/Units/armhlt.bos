@@ -21,6 +21,8 @@ static-var  gun_1;
 
 Create()
 {
+	hide flare2;
+	hide flare1;
 	gun_1 = 0;
 }
 

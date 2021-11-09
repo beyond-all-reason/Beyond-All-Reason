@@ -87,6 +87,7 @@ RequestState(requestedstate, currentstate)
 
 Create()
 {
+	hide flare;
 	gun_1 = base;
 	restore_delay = 3000;
 	call-script InitState();

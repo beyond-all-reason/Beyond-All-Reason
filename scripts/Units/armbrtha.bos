@@ -12,6 +12,7 @@ piece  base, flare, turret, barrel, sleeve;
 Create()
 {
 	hide flare;
+	hide flare;
 	dont-cache flare;
 	dont-cache barrel;
 	dont-cache sleeve;

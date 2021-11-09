@@ -177,6 +177,11 @@ RequestState(requestedstate, currentstate)
 
 Create()
 {
+	hide flareb;
+	hide flareg;
+	hide aimpoint;
+	hide flarer2;
+	hide flarer1;
     hide flarer1;
     hide flarer2;
     hide flareb;

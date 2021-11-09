@@ -68,6 +68,7 @@ RequestState(requestedstate, currentstate)
 
 Create()
 {
+	hide dummy;
 	Static_Var_1 = 0;
 	Static_Var_2 = 10000;
 	call-script InitState();

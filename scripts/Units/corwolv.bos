@@ -34,6 +34,7 @@ RockUnit(anglex, anglez)
 Create()
 {
 	hide flare;
+	hide flare;
 	turn flare to z-axis <-45.00000> now;
 	turn flare to x-axis <-45.00000> now;
 	dont-cache flare;

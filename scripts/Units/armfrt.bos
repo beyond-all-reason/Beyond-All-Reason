@@ -62,6 +62,7 @@ RockUnit(anglex, anglez)
 Create()
 {
 	hide flare;
+	hide flare;
 	gun_1 = flare;	
 	while( get BUILD_PERCENT_LEFT )
 	{

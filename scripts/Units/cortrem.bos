@@ -25,6 +25,12 @@ static-var  gun_1;
 
 Create()
 {
+	hide flare6;
+	hide flare3;
+	hide flare4;
+	hide flare1;
+	hide flare2;
+	hide flare5;
 	hide flare1;
 	hide flare2;
 	hide flare3;

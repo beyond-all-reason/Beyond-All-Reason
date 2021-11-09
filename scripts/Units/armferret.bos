@@ -98,6 +98,9 @@ RestoreAfterDelay()
 
 Create()
 {
+	hide aimpoint;
+	hide flare1;
+	hide flare2;
 
 	Static_Var_1 = 1;
 	Static_Var_2 = 0;

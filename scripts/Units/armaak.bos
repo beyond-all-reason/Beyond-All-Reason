@@ -236,6 +236,12 @@ StopMoving(){
 
 Create()
 {
+	hide rflare2;
+	hide rflare1;
+	hide lflare1;
+	hide lflare2;
+	hide aimx1;
+	hide aimy1;
 	bMoving = FALSE;
 	animSpeed = 4;
 	return (0);

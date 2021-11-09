@@ -57,16 +57,26 @@ RequestState(requestedstate, currentstate)
 
 Create()
 {
+	hide bombbay;
+	hide thrustb;
+	hide thrusta2;
+	hide thrusta1;
 	call-script InitState();
 }
 
 Activate()
 {
+	show thrustb;
+	show thrusta2;
+	show thrusta1;
 	start-script RequestState(0);
 }
 
 Deactivate()
 {
+	hide thrustb;
+	hide thrusta2;
+	hide thrusta1;
 	start-script RequestState(1);
 }
 
