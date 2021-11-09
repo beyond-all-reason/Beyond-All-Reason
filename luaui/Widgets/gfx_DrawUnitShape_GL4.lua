@@ -1,6 +1,6 @@
 function widget:GetInfo()
   return {
-    name      = "UnitShapeGL4 API",
+    name      = "DrawUnitShape GL4",
     version   = "v0.2",
     desc      = "Faster gl.UnitShape, Use WG.UnitShapeGL4",
     author    = "ivand, Beherith",
@@ -45,14 +45,19 @@ end
   -- NO REFLECTIONS, REFRACTIONS ET AL
 
 -- void LuaVAOImpl::RemoveFromSubmission(int idx)
+
 local luaShaderDir = "LuaUI/Widgets/Include/"
 local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
 VFS.Include(luaShaderDir.."instancevboidtable.lua")
 
-local unitShader
+local unitShader, unitShapeShader
 
-local shaderConfig = {
+local unitShaderConfig = {
 	TRANSPARENCY = 0.5, -- transparency of the stuff drawn
+}
+
+local unitShapeShaderConfig = {
+	TRANSPARENCY = 0.5,
 }
 
 local vsSrc = [[
@@ -126,7 +131,6 @@ void main() {
 	
 	vec3 modelBaseToCamera = cameraViewInv[3].xyz - modelMatrix[3].xyz;
 	if ( dot (modelBaseToCamera, modelBaseToCamera) >  (iconDistance * iconDistance)) ; // do something if we are far out?
-	
 
 	gl_Position = cameraViewProj * modelPos;
 
@@ -189,46 +193,99 @@ local corUnitDefIDs = {}
 local armUnitDefIDs = {}
 
 
-local objectIDtoUniqueID = {}
-
 local uniqueID = 0
-local function pushObjectIDtoPosition(objectID, objecttype, px, py, pz, rot, alpha, param1, param2, param3)
+
+local function DrawUnitGL4(unitID, unitDefID, px, py, pz, rot, alpha, param1, param2, param3)
+	unitDefID = unitDefID or Spring.GetUnitDefID(unitID)
 	uniqueID = uniqueID + 1
-	local isStatic = 0
-	local targetVBO 
-	if objecttype == "unitID" then 
-		if 
-	else
-		
+	
+	local DrawUnitVBOTable 
+	if corUnitDefIDs[unitDefID] then DrawUnitVBOTable = corDrawUnitVBOTable 
+	elseif armUnitDefIDs[unitDefID] then DrawUnitVBOTable = armDrawUnitVBOTable 
+	else 
+		Spring.Echo("The given unitDefID", unitDefID, "is neither arm nor cor, only those two are supported at the moment")
+		return nil
 	end
-	if objecttype == "unitDefID" then isStatic = 1 end
-	local elementID = pushElementInstance(corDrawUnitVBOTable, {
+
+	local elementID = pushElementInstance(DrawUnitVBOTable, {
 			px, py, pz, 0,
-			0.6, isStatic, 1.0, 1.0,
+			0.6, 0, 1.0, 1.0,
 			0,0,0,0
 		},
 		uniqueID,
 		true,
 		nil,
-		objectID,
-		objecttype)
-	objectIDtoUniqueID[objectID] = uniqueID
-	--Spring.Echo("Pushed", objecttype, objectID, "to uniqueID", uniqueID,"elemID", elementID)
+		unitID,
+		"unitID")
+	--Spring.Echo("Pushed", objecttype, unitID, "to uniqueID", uniqueID,"elemID", elementID)
 	return uniqueID
 end
 
-local function popObjectID(uniqueID, objecttype)
-	popElementInstance(corDrawUnitVBOTable, uniqueID)
-	Spring.Echo("Popped element", uniqueID, objecttype)
+
+local function DrawUnitShapeGL4(unitDefID, px, py, pz, rot, alpha, param1, param2, param3)
+	uniqueID = uniqueID + 1
+	
+	local DrawUnitShapeVBOTable 
+	if corUnitDefIDs[unitDefID] then DrawUnitShapeVBOTable = corDrawUnitShapeVBOTable 
+	elseif armUnitDefIDs[unitDefID] then DrawUnitShapeVBOTable = armDrawUnitShapeVBOTable 
+	else
+		Spring.Echo("The given unitDefID", unitDefID, "is neither arm nor cor, only those two are supported at the moment")
+		return nil
+	end
+	
+	local elementID = pushElementInstance(DrawUnitShapeVBOTable, {
+			px, py, pz, 0,
+			0.6, 1, 1.0, 1.0,
+			0,0,0,0
+		},
+		uniqueID,
+		true,
+		nil,
+		unitDefID,
+		"unitDefID")
+	--Spring.Echo("Pushed", objecttype, unitID, "to uniqueID", uniqueID,"elemID", elementID)
+	return uniqueID
 end
 
-function widget:UnitCreated(unitID)
-	objectIDtoUniqueID[unitID] =  pushObjectIDtoPosition(unitID, "unitID", 0, 64, 0, 0, 0.6)
+local function StopDrawUnitGL4(uniqueID)
+	if corDrawUnitVBOTable.instanceIDtoIndex[uniqueID] then
+		popElementInstance(corDrawUnitVBOTable, uniqueID)
+	elseif armDrawUnitVBOTable.instanceIDtoIndex[uniqueID] then
+		popElementInstance(armDrawUnitVBOTable, uniqueID)
+	else
+		Spring.Echo("Unable to remove what you wanted in StopDrawUnitGL4", uniqueID)
+	end
+	Spring.Echo("Popped element", uniqueID)
+end
+
+local function StopDrawUnitDefGL4(uniqueID)
+	if corDrawUnitVBOTable.instanceIDtoIndex[uniqueID] then
+		popElementInstance(corDrawUnitDefVBOTable, uniqueID)
+	elseif armDrawUnitVBOTable.instanceIDtoIndex[uniqueID] then
+		popElementInstance(armDrawUnitDefVBOTable, uniqueID)
+	else
+		Spring.Echo("Unable to remove what you wanted in StopDrawUnitDefGL4", uniqueID)
+	end
+	Spring.Echo("Popped element", uniqueID)
+end
+
+local unitIDtoUniqueID = {}
+local unitDefIDtoUniqueID = {}
+
+
+function widget:UnitCreated(unitID, unitDefID)
+	unitIDtoUniqueID[unitID] =  DrawUnitGL4(unitID, unitDefID,  0, 64, 0, 0, 0.6)
+	
+	local px, py, pz = Spring.GetUnitPosition(unitID)
+	unitDefIDtoUniqueID[unitID] = DrawUnitDefGL4(unitDefID, px, py + 50, pz, 0, 0.6)
 end
 
 function widget:UnitDestroyed(unitID)
-	popObjectID(objectIDtoUniqueID[unitID], "unitID")
-	objectIDtoUniqueID[unitID] = nil
+	StopDrawUnitGL4(unitIDtoUniqueID[unitID])
+	unitIDtoUniqueID[unitID] = nil
+	
+	StopDrawUnitDefGL4(unitDefIDtoUniqueID[unitID])
+	unitDefIDtoUniqueID[unitID] = nil
 end
 
 function widget:Initialize()
@@ -271,37 +328,23 @@ function widget:Initialize()
 	local communitdefid = UnitDefNames["armcom"].id
 	local pwdefid = UnitDefNames["armpw"].id
 	local corcomunitdefid = UnitDefNames["corcom"].id
-	local featureDefID1 = FeatureDefNames["cormstor_dead"].id
-	local featureDefID1 = FeatureDefNames["cormstor_dead"].id
-	
-
-	for x=1, 10 do
-		for z = 1, 10 do
-			--pushObjectIDtoPosition(UnitDefNames["armck"].id,"unitDefID", x*32, 50, z*32)
-		end
-	end
-	
-	--pushObjectIDtoPosition(UnitDefNames["armfboy"].id,"unitDefID", 100, 0, 0)
-	--pushObjectIDtoPosition(FeatureDefNames["armsy_dead"].id,"featureDefID", -100, 0, 0) -- put in armcom unitdefid
-	--pushObjectIDtoPosition(UnitDefNames["armfboy"].id,"unitDefID", 150, 0, 0)
-	--pushObjectIDtoPosition(UnitDefNames["armflea"].id,"unitDefID", 0, 200, 0)
-	--pushObjectIDtoPosition(unitIDs[1],"unitID", 0, 0  , 0) -- put in armcom unitdefid
-	--pushObjectIDtoPosition(UnitDefNames["armpw"].id,"unitDefID", 0, 300, 0)
-	--pushObjectIDtoPosition(UnitDefNames["armrock"].id,"unitDefID", 0, 400, 0)
-	--pushObjectIDtoPosition(UnitDefNames["armham"].id,"unitDefID", 0, 500, 0)
-	--pushObjectIDtoPosition(unitIDs[1],"unitID", 0, 0  , 100) -- put in armcom unitdefid
-	--pushObjectIDtoPosition(featuresIDs[1],"featureID", 0, 0, -100) -- put in armcom unitdefid
-	--pushObjectIDtoPosition(pwdefid,"unitDefID", 100, 100, 100)
-	--pushObjectIDtoPosition(pwdefid,"unitDefID", 100, 100, 200)
-	
-	--
 
 	local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()
 	vsSrc = vsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
 	fsSrc = fsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
+	
 	unitShader = LuaShader({
-		vertex = vsSrc:gsub("//__DEFINES__", LuaShader.CreateShaderDefinesString(shaderConfig)),
-		fragment = fsSrc:gsub("//__DEFINES__", LuaShader.CreateShaderDefinesString(shaderConfig)),
+		vertex = vsSrc:gsub("//__DEFINES__", LuaShader.CreateShaderDefinesString(unitShaderConfig)),
+		fragment = fsSrc:gsub("//__DEFINES__", LuaShader.CreateShaderDefinesString(unitShaderConfig)),
+		uniformInt = {
+			tex1 = 0,
+			tex2 = 1,
+		},
+	}, "UnitGL4 API")
+	
+	unitShapeShader = LuaShader({
+		vertex = vsSrc:gsub("//__DEFINES__", LuaShader.CreateShaderDefinesString(unitShapeShaderConfig)),
+		fragment = fsSrc:gsub("//__DEFINES__", LuaShader.CreateShaderDefinesString(unitShapeShaderConfig)),
 		uniformInt = {
 			tex1 = 0,
 			tex2 = 1,
@@ -321,25 +364,20 @@ function widget:Shutdown()
 	for i,VBOTable in ipairs(VBOTables) do
 		if VBOTable.VAO then VBOTable.VAO:Delete() end
 	end
-	if unitShader then
-		unitShader:Finalize()
-	end
+	if unitShader then unitShader:Finalize() end
+	if unitShapeShader then unitShapeShader:Finalize() end
 end
 
 function widget:DrawWorldPreUnit() -- this is for UnitDef
-
-end
-
-function widget:DrawWorld()
-	if corDrawUnitVBOTable.usedElements > 0 or corDrawUnitVBOTable.usedElements > 0 then 
+	if armDrawUnitShapeVBOTable.usedElements > 0 or corDrawUnitShapeVBOTable.usedElements > 0 then 
 		gl.Culling(GL.BACK)
 		gl.DepthMask(true)
 		gl.DepthTest(true)
-		gl.PolygonOffset ( 0.5, 0.5 ) 
-		unitShader:Activate()
-		unitShader:SetUniform("iconDistance",27 * Spring.GetConfigInt("UnitIconDist", 200)) 
+		gl.PolygonOffset ( 0.5 ) 
+		unitShapeShader:Activate()
+		unitShapeShader:SetUniform("iconDistance",27 * Spring.GetConfigInt("UnitIconDist", 200)) 
 		if (corDrawUnitVBOTable.usedElements > 0 ) then
-			gl.UnitShapeTextures(armcomUnitDefID, true)
+			gl.UnitShapeTextures(corcomUnitDefID, true)
 			corDrawUnitVBOTable.VAO:Submit()
 		end
 		
@@ -348,13 +386,33 @@ function widget:DrawWorld()
 			armDrawUnitVBOTable.VAO:Submit()
 		end
 		
-		unitShader:Deactivate()
+		unitShapeShader:Deactivate()
 		gl.UnitShapeTextures(udefID, false)
-		gl.PolygonOffset ( false ) 
+		gl.PolygonOffset( false ) 
 		gl.Culling(false)
 	end
 end
 
-function widget:DrawScreenEffects()
-	local vsx, vsy = widgetHandler:GetViewSizes()
+function widget:DrawWorld()
+	if armDrawUnitVBOTable.usedElements > 0 or corDrawUnitVBOTable.usedElements > 0 then 
+		gl.Culling(GL.BACK)
+		gl.DepthMask(true)
+		gl.DepthTest(true)
+		gl.PolygonOffset ( 0.5 ) 
+		unitShader:Activate()
+		unitShader:SetUniform("iconDistance",27 * Spring.GetConfigInt("UnitIconDist", 200)) 
+		if (corDrawUnitVBOTable.usedElements > 0 ) then
+			gl.UnitShapeTextures(corcomUnitDefID, true)
+			corDrawUnitVBOTable.VAO:Submit()
+		end
+		
+		if (armDrawUnitVBOTable.usedElements > 0 ) then
+			gl.UnitShapeTextures(armcomUnitDefID, true)
+			armDrawUnitVBOTable.VAO:Submit()
+		end
+		unitShader:Deactivate()
+		gl.UnitShapeTextures(udefID, false)
+		gl.PolygonOffset( false ) 
+		gl.Culling(false)
+	end
 end
