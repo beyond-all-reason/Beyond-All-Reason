@@ -3785,6 +3785,11 @@ function init()
 				end
 			end
 		},
+		{ id = "usePlayerUI", group = "dev", name = "View UI as player", type = "bool", value = Spring.GetConfigInt("DevUI", 0) == 0,
+			onchange = function(i, value)
+				Spring.SetConfigInt("DevUI", value and 0 or 1)
+			end,
+		},
         { id = "customwidgets", group = "dev", name = texts.option.customwidgets, type = "bool", value = widgetHandler.allowUserWidgets, description = texts.option.customwidgets_descr,
           onchange = function(i, value)
               widgetHandler.__allowUserWidgets = value
@@ -4768,7 +4773,7 @@ function init()
         resettedTonemapDefault = true
     end
 
-    if not string.find(string.upper(Game.gameVersion), "$VERSION") then
+    if not Spring.Utilities.IsDevMode() then
         options[getOptionByID('restart')] = nil
     end
 

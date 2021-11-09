@@ -14,6 +14,11 @@ Spring.Utilities = {
 	GetTeamCount = team.GetTeamCount,
 	GetPlayerCount = team.GetPlayerCount,
 	Gametype = team.Gametype,
+
+	IsDevMode = function()
+		local devMode = Spring.GetGameRulesParam('isDevMode')
+		return (devMode and devMode > 0) and true or false
+	end
 }
 
 VFS.Include('common/luaUtilities/json.lua')
