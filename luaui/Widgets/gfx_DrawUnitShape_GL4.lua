@@ -303,13 +303,13 @@ local function StopDrawUnitGL4(uniqueID)
 	--Spring.Echo("Popped element", uniqueID)
 end
 
-local function StopDrawUnitDefGL4(uniqueID)
+local function StopDrawUnitShapeGL4(uniqueID)
 	if corDrawUnitShapeVBOTable.instanceIDtoIndex[uniqueID] then
 		popElementInstance(corDrawUnitShapeVBOTable, uniqueID)
 	elseif armDrawUnitShapeVBOTable.instanceIDtoIndex[uniqueID] then
 		popElementInstance(armDrawUnitShapeVBOTable, uniqueID)
 	else
-		Spring.Echo("Unable to remove what you wanted in StopDrawUnitDefGL4", uniqueID)
+		Spring.Echo("Unable to remove what you wanted in StopDrawUnitShapeGL4", uniqueID)
 	end
 	--Spring.Echo("Popped element", uniqueID)
 end
@@ -333,7 +333,7 @@ function widget:UnitDestroyed(unitID)
 		StopDrawUnitGL4(unitIDtoUniqueID[unitID])
 		unitIDtoUniqueID[unitID] = nil
 		
-		StopDrawUnitDefGL4(unitDefIDtoUniqueID[unitID])
+		StopDrawUnitShapeGL4(unitDefIDtoUniqueID[unitID])
 		unitDefIDtoUniqueID[unitID] = nil
 	end
 end
@@ -414,9 +414,15 @@ function widget:Initialize()
 		Spring.Echo("DrawUnitShape shader compilation failed", unitshaderCompiled, unitshapeshaderCompiled)
 		widgetHandler:RemoveWidget()
 	end
-	for i, unitID in ipairs(Spring.GetAllUnits()) do
-		widget:UnitCreated(unitID)
+	if TESTMODE then
+		for i, unitID in ipairs(Spring.GetAllUnits()) do
+			widget:UnitCreated(unitID)
+		end
 	end
+	WG['DrawUnitGL4'] = DrawUnitGL4
+	WG['DrawUnitGL4'] = DrawUnitShapeGL4
+	WG['StopDrawUnitGL4'] = StopDrawUnitGL4
+	WG['StopDrawUnitShapeGL4'] = StopDrawUnitShapeGL4
 end
 
 
@@ -426,6 +432,11 @@ function widget:Shutdown()
 	end
 	if unitShader then unitShader:Finalize() end
 	if unitShapeShader then unitShapeShader:Finalize() end
+	
+	WG['DrawUnitGL4'] = nil
+	WG['DrawUnitGL4'] = nil
+	WG['StopDrawUnitGL4'] = nil
+	WG['StopDrawUnitShapeGL4'] = nil
 end
 
 function widget:DrawWorldPreUnit() -- this is for UnitDef

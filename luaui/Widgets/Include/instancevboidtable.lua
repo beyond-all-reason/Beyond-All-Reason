@@ -246,7 +246,7 @@ function popElementInstance(iT, instanceID, noUpload)
     if iT.indextoObjectType then  iT.indextoObjectType[oldElementIndex] = nil end 
     if iT.VAO then
       iT.VAO:RemoveFromSubmission(oldElementIndex-1)
-      Spring.Echo("RemoveFromSubmissionLast",oldElementIndex-1 )
+      --Spring.Echo("RemoveFromSubmissionLast",oldElementIndex-1 )
     end
   
   else
