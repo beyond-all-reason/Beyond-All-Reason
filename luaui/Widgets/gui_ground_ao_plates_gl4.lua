@@ -58,21 +58,19 @@ local function AddPrimitiveAtUnit(unitID, unitDefID, noUpload)
 	local decalInfo = unitDefIDtoDecalInfo[unitDefID]
 	
 	local texname = "unittextures/decals/".. UnitDefs[unitDefID].name .. "_aoplane.dds" --unittextures/decals/armllt_aoplane.dds
-	local width = decalInfo.sizex * 16
-	local length = decalInfo.sizey * 16
+
 	local numVertices = 4 -- default to circle
 	local additionalheight = 0
-  local alpha = 1.0
 	
 	local p,q,s,t = gl.GetAtlasTexture(atlasID, decalInfo.texfile)
-	--Spring.Echo (unitDefName, p,q,s,t)
+	--Spring.Echo (unitDefID,decalInfo.texfile, width, length, alpha)
 	
 	pushElementInstance(
 		groundPlateVBO, -- push into this Instance VBO Table
-			{length, width, 0, additionalheight,  -- lengthwidthcornerheight
+			{decalInfo.sizey, decalInfo.sizex, 0, additionalheight,  -- lengthwidthcornerheight
 			Spring.GetUnitTeam(unitID), -- teamID
 			numVertices, -- how many trianges should we make
-			gf, 0, alpha, 0, -- the gameFrame (for animations), and any other parameters one might want to add
+			gf, 0, decalInfo.alpha, 0, -- the gameFrame (for animations), and any other parameters one might want to add
 			q,p,s,t, -- These are our default UV atlas tranformations, note how X axis is flipped for atlas
 			0, 0, 0, 0}, -- these are just padding zeros, that will get filled in 
 		unitID, -- this is the key inside the VBO Table, should be unique per unit
@@ -151,9 +149,12 @@ function widget:Initialize()
 			---Spring.Echo(texname)
 			if atlassedImages[texname] then 
 				unitDefIDtoDecalInfo[id] = {
-					texfile = texname, 
-					sizex  = UD.customParams.buildinggrounddecalsizex, 
-					sizey  = UD.customParams.buildinggrounddecalsizey}
+						texfile = texname, 
+						-- note that this is hacky, as customparams are always strings, but multiplying number with stringnumber is number
+						sizex  = (UD.customParams.buildinggrounddecalsizex or 0.0 ) * 16, 
+						sizey  = (UD.customParams.buildinggrounddecalsizey or 0.0 ) * 16,
+						alpha  = (UD.customParams.buildinggrounddecalalpha or 1.0 ) * 1.0,
+					}
 			end
 		end
 	end
@@ -166,7 +167,7 @@ function widget:Initialize()
 	shaderConfig.ANIMATION = 0
   -- MATCH CUS position as seed to sin, then pass it through geoshader into fragshader
   shaderConfig.POST_VERTEX = "v_parameters.w = max(-0.2, sin(timeInfo.x * 2.0/30.0 + (v_centerpos.x + v_centerpos.z) * 0.1)) + 0.2; // match CUS glow rate"
-	shaderConfig.POST_GEOMETRY = "g_uv.w = dataIn[0].v_parameters.w; gl_Position.z = (gl_Position.z) - 256.0 / (gl_Position.w); // send 16 elmos forward in depth buffer"
+	shaderConfig.POST_GEOMETRY = "g_uv.w = dataIn[0].v_parameters.w; gl_Position.z = (gl_Position.z) - 512.0 / (gl_Position.w); // send 16 elmos forward in depth buffer"
   shaderConfig.POST_SHADING = "fragColor.rgba = vec4(texcolor.rgb* (1.0 + g_uv.w), texcolor.a * g_uv.z);"
 	shaderConfig.MAXVERTICES = 4
 	shaderConfig.USE_CIRCLES = nil

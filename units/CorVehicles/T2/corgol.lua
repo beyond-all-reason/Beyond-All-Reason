@@ -48,6 +48,7 @@ return {
 			buildinggrounddecalsizey = 6,
 			buildinggrounddecalsizex = 6,
 			buildinggrounddecaldecayspeed = 30,
+			buildinggrounddecalalpha = 0.5,
 			unitgroup = 'weapon',
 			basename = "base",
 			cannon1name = "barrel",
