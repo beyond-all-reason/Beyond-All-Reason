@@ -137,7 +137,7 @@ instVBO:Upload({
 Here is how you upload starting from 1st element and starting from 4th element in Lua array (-100) and finishing with 6th element (0), essentially it will upload (-100, 0, 0) into 7th attribute of 2nd instance.
 ]]--
 
-function pushElementInstance(iT,thisInstance, instanceID, updateExisting, noUpload, unitID, objecttype) 
+function pushElementInstance(iT,thisInstance, instanceID, updateExisting, noUpload, unitID, objecttype, teamID) 
 	-- iT: instanceTable created with makeInstanceTable
 	-- thisInstance: is a lua array of values to add to table, MUST BE INSTANCESTEP SIZED LUA ARRAY
 	-- instanceID: an optional key given to the item, so it can be easily removed/updated by reference, defaults to the index of the instance in the buffer (1 based)
@@ -192,7 +192,7 @@ function pushElementInstance(iT,thisInstance, instanceID, updateExisting, noUplo
         iT.instanceVBO:InstanceDataFromUnitIDs(unitID, iT.objectTypeAttribID, thisInstanceIndex-1)
         iT.VAO:AddUnitsToSubmission(unitID)
       elseif objecttype == "unitDefID" then  -- TODO 
-        iT.instanceVBO:InstanceDataFromUnitDefIDs(unitID, iT.objectTypeAttribID, nil, thisInstanceIndex-1)
+        iT.instanceVBO:InstanceDataFromUnitDefIDs(unitID, iT.objectTypeAttribID, teamID, thisInstanceIndex-1)
         iT.VAO:AddUnitDefsToSubmission(unitID)
       elseif objecttype == "featureID" then 
         iT.instanceVBO:InstanceDataFromFeatureIDs(unitID, iT.objectTypeAttribID, thisInstanceIndex-1)
@@ -284,7 +284,7 @@ function popElementInstance(iT, instanceID, noUpload)
         
         if iT.VAO then
           iT.VAO:RemoveFromSubmission(oldElementIndex-1)
-          Spring.Echo("RemoveFromSubmission",objecttype,oldElementIndex-1)
+          --Spring.Echo("RemoveFromSubmission",objecttype,oldElementIndex-1)
         end
         
         if objecttype == "unitID" then 
@@ -295,7 +295,7 @@ function popElementInstance(iT, instanceID, noUpload)
             Spring.Echo("Tried to pop back an invalid unitID", myunitID, "from", iT.myName, "while removing instance", instanceID,". Ensure that you remove invalid units from your instance tables")
           end
         elseif objecttype == "unitDefID" then 
-          iT.instanceVBO:InstanceDataFromUnitDefIDs(myunitID, iT.objectTypeAttribID, oldElementIndex-1)
+          iT.instanceVBO:InstanceDataFromUnitDefIDs(myunitID, iT.objectTypeAttribID,nil,  oldElementIndex-1)
         elseif objecttype == "featureID" then 
           iT.instanceVBO:InstanceDataFromFeatureIDs(myunitID, iT.objectTypeAttribID, oldElementIndex-1)
         elseif objecttype == "featureDefID" then 
