@@ -10,10 +10,8 @@ function widget:GetInfo()
 	}
 end
 
---[[
-	Add option, at:
-	function init
-]]--
+-- Add new options at: function init
+
 local types = {
 	basic = 1,
 	advanced = 2,
@@ -30,7 +28,6 @@ for key, code in ipairs(languageCodes) do
 end
 
 local orchestralDefaulted = false
-local newEngineIconsInitialized = false
 
 local ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.6)
 
@@ -65,8 +62,6 @@ local vsx, vsy = Spring.GetViewGeometry()
 local fontfileScale = (0.5 + (vsx * vsy / 5700000))
 local fontfileSize = 36
 local fontfileOutlineSize = 7
-local fontfileOutlineStrength = 1
-local fontfileScale2 = fontfileScale * 1.2
 
 local pauseGameWhenSingleplayerExecuted = false
 
@@ -88,7 +83,6 @@ local wsx, wsy, wpx, wpy = Spring.GetWindowGeometry()
 local ssx, ssy, spx, spy = Spring.GetScreenGeometry()
 
 local changesRequireRestart = false
-local enabledSensorsOnce = false
 local useNetworkSmoothing = false
 
 local customMapSunPos = {}
@@ -107,26 +101,21 @@ local math_isInRect = math.isInRect
 
 local chobbyInterface, font, font2, font3, backgroundGuishader, currentGroupTab, windowList, optionButtonBackward, optionButtonForward
 local groupRect, titleRect, countDownOptionID, countDownOptionClock, sceduleOptionApply, checkedForWaterAfterGamestart, checkedWidgetDataChanges
-local savedConfig, forceUpdate, sliderValueChanged, selectOptionsList, showSelectOptions, prevSelectHover, showPresetButtons
+local savedConfig, forceUpdate, sliderValueChanged, selectOptionsList, showSelectOptions, prevSelectHover
 local fontOption, draggingSlider, lastSliderSound, selectClickAllowHide, draggingSliderPreDragValue
 
 local glColor = gl.Color
 local glTexRect = gl.TexRect
-local glRotate = gl.Rotate
 local glTexture = gl.Texture
 local glCreateList = gl.CreateList
 local glCallList = gl.CallList
 local glDeleteList = gl.DeleteList
-local glPopMatrix = gl.PopMatrix
-local glPushMatrix = gl.PushMatrix
-local glTranslate = gl.Translate
-local glScale = gl.Scale
 local glBlending = gl.Blending
 local GL_SRC_ALPHA = GL.SRC_ALPHA
 local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 local GL_ONE = GL.ONE
 
-local RectRound, TexturedRectRound, elementCorner, UiElement, UiButton, UiSlider, UiSliderKnob, UiToggle, UiSelector, UiSelectHighlight, bgpadding
+local RectRound, elementCorner, UiElement, UiButton, UiSlider, UiSliderKnob, UiToggle, UiSelector, UiSelectHighlight, bgpadding
 
 local scavengersAIEnabled = Spring.Utilities.Gametype.IsScavengers()
 local isSinglePlayer = Spring.Utilities.Gametype.IsSinglePlayer()
@@ -148,7 +137,6 @@ if success and mapinfo then
 	voidWater = mapinfo.voidwater
 end
 
-local vsx, vsy = Spring.GetViewGeometry()
 local widgetScale = (0.5 + (vsx * vsy / 5700000)) * customScale
 
 local vsyncLevel = 1
@@ -284,7 +272,6 @@ function widget:ViewResize()
 	elementCorner = WG.FlowUI.elementCorner
 
 	RectRound = WG.FlowUI.Draw.RectRound
-	TexturedRectRound = WG.FlowUI.Draw.TexturedRectRound
 	UiElement = WG.FlowUI.Draw.Element
 	UiButton = WG.FlowUI.Draw.Button
 	UiSlider = WG.FlowUI.Draw.Slider
@@ -312,19 +299,9 @@ function widget:ViewResize()
 	end
 end
 
-local engineVersion = 104 -- just filled this in here incorrectly but old engines arent used anyway
-if Engine and Engine.version then
-	engineVersion = string.split(Engine.version, '-')
-	if engineVersion[2] ~= nil and engineVersion[3] ~= nil then
-		engineVersion = tonumber(string.gsub(engineVersion[1], '%.', '') .. engineVersion[2])
-	else
-		engineVersion = tonumber(Engine.version)
-	end
-end
-
 local function detectWater()
 	local _, _, mapMinHeight, mapMaxHeight = Spring.GetGroundExtremes()
-	if select(3, Spring.GetGroundExtremes()) <= -2 then
+	if mapMinHeight <= -2 then
 		waterDetected = true
 		Spring.SendCommands("water " .. desiredWaterValue)
 	end
@@ -352,7 +329,6 @@ function orderOptions()
 	local newOptions = {}
 	local newOptionsCount = 0
 	for id, group in pairs(optionGroups) do
-		--if devMode or group.id ~= 'dev' then
 		local grOptions = groupOptions[group.id]
 		if #grOptions > 0 then
 			local name = group.name
@@ -366,7 +342,6 @@ function orderOptions()
 			newOptionsCount = newOptionsCount + 1
 			newOptions[newOptionsCount] = option
 		end
-		--end
 	end
 	options = table.copy(newOptions)
 end
@@ -396,16 +371,14 @@ local startColumn = 1        -- used for navigation
 local maxShownColumns = 3
 local maxColumnRows = 0    -- gets calculated
 local totalColumns = 0        -- gets calculated
-function DrawWindow()
 
+function DrawWindow()
 	orderOptions()
 
 	glTexture(false)
 	local x = screenX --rightwards
 	local y = screenY --upwards
 	windowRect = { screenX, screenY - screenHeight, screenX + screenWidth, screenY }
-	--RectRound(windowRect[1], windowRect[2], windowRect[3], windowRect[4], 8, 0, 1, 1, 1, { 0.05, 0.05, 0.05, WG['guishader'] and 0.8 or 0.88 }, { 0, 0, 0, WG['guishader'] and 0.8 or 0.88 })
-	--RectRound(x, y - screenHeight, x + screenWidth, y, 5.5, 1, 1, 1, 1, { 0.25, 0.25, 0.25, 0.2 }, { 0.5, 0.5, 0.5, 0.2 })
 
 	-- background
 	UiElement(screenX, screenY - screenHeight, screenX + screenWidth, screenY, 0, 0, 1, 1, 1, 1, 1, 1, ui_opacity + 0.2)
@@ -419,8 +392,6 @@ function DrawWindow()
 		title = "" .. color2 .. texts.basic .. "  /  " .. color .. texts.advanced
 	end
 	local titleFontSize = 18 * widgetScale
-	--titleRect = { screenX, screenY, math.floor(screenX + (font2:GetTextWidth(title) * titleFontSize) + (titleFontSize*1.5)), math.floor(screenY + (titleFontSize*1.7)) }
-
 	titleRect = { math.floor((screenX + screenWidth) - ((font2:GetTextWidth(title) * titleFontSize) + (titleFontSize * 1.5))), screenY, screenX + screenWidth, math.floor(screenY + (titleFontSize * 1.7)) }
 
 	-- title drawing
@@ -435,7 +406,6 @@ function DrawWindow()
 
 	-- group tabs
 	local tabFontSize = 16 * widgetScale
-	local xpos = titleRect[3]
 	local xpos = screenX
 	local groupPadding = 1
 	groupRect = {}
@@ -474,8 +444,6 @@ function DrawWindow()
 
 	font:Begin()
 	local width = screenWidth / 3
-	--gl.Color(0.66,0.66,0.66,0.08)
-	--RectRound(x+width+width+6,y-screenHeight,x+width+width+width,y,6)
 
 	-- draw options
 	local oHeight = math.floor(15 * widgetScale)
@@ -486,7 +454,6 @@ function DrawWindow()
 	local xPos = math.floor(x + oPadding + (5 * widgetScale))
 	local xPosMax = xPos + oWidth - oPadding - oPadding
 	local yPosMax = y - yHeight
-	local boolPadding = math.floor(3.5 * widgetScale)
 	local boolWidth = math.floor(40 * widgetScale)
 	local sliderWidth = math.floor(110 * widgetScale)
 	local selectWidth = math.floor(140 * widgetScale)
@@ -497,6 +464,7 @@ function DrawWindow()
 
 	maxColumnRows = math.floor((y - yPosMax + oPadding) / (oHeight + oPadding + oPadding))
 	local numOptions = #options
+
 	if currentGroupTab ~= nil then
 		numOptions = 0
 		for i, option in pairs(options) do
@@ -505,6 +473,7 @@ function DrawWindow()
 			end
 		end
 	end
+
 	totalColumns = math.ceil(numOptions / maxColumnRows)
 
 	optionButtons = {}
@@ -578,13 +547,9 @@ function DrawWindow()
 				end
 
 				if column >= startColumn then
-					--and (column ~= startColumn+2 or yPos > y-(yHeight-(70*widgetScale))) then
 					rows = rows + 1
 					if option.name then
 						color = '\255\225\225\225'
-						--if option.type == 'label' then
-						--	color = '\255\235\200\125'
-						--end
 
 						font:SetTextColor(1, 1, 1, 1)
 						font:SetOutlineColor(0, 0, 0, 0.4)
@@ -688,8 +653,8 @@ end
 local sec = 0
 local lastUpdate = 0
 local ambientplayerCheck = false
-function widget:Update(dt)
 
+function widget:Update(dt)
 	if countDownOptionID and countDownOptionClock and countDownOptionClock < os_clock() then
 		applyOptionValue(countDownOptionID)
 		countDownOptionID = nil
@@ -716,15 +681,10 @@ function widget:Update(dt)
 	end
 
 	if WG['advplayerlist_api'] and not WG['advplayerlist_api'].GetLockPlayerID() then
-		--if select(7, Spring.GetMouseState()) then	-- when camera panning
-		--	Spring.SetCameraState(nil, cameraPanTransitionTime)
-		--else
 		Spring.SetCameraState(nil, cameraTransitionTime)
-		--end
 	end
-	sec = sec + dt
 
-	--Spring.SetConfigInt("MaxDynamicModelLights", 0)
+	sec = sec + dt
 
 	Spring.SetConfigInt("ROAM", 1)
 	Spring.SendCommands("mapmeshdrawer 2")
@@ -839,8 +799,8 @@ end
 
 local quitscreen = false
 local prevQuitscreen = false
-function widget:DrawScreen()
 
+function widget:DrawScreen()
 	-- pause/unpause when the options/quitscreen interface shows
 	local _, _, isClientPaused, _ = Spring.GetGameState()
 	if not isClientPaused then
@@ -875,7 +835,6 @@ function widget:DrawScreen()
 		init()
 		initialized = true
 	else
-
 		if chobbyInterface then
 			return
 		end
@@ -1145,19 +1104,10 @@ function widget:KeyPress(key)
 		-- ESC
 		if showSelectOptions then
 			showSelectOptions = nil
-			--elseif draggingSlider ~= nil then
-			--	options[draggingSlider].value = draggingSliderPreDragValue
-			--	draggingSlider = nil
-			--	sliderValueChanged = nil
-			--	draggingSliderPreDragValue = nil
 		else
 			show = false
 		end
 	end
-end
-
-function round(value, numDecimalPlaces)
-	return string.format("%0." .. numDecimalPlaces .. "f", math.round(value, numDecimalPlaces))
 end
 
 function NearestValue(table, number)
@@ -1226,14 +1176,6 @@ function widget:MouseMove(mx, my)
 	end
 end
 
-function widget:TweakMousePress(x, y, button)
-	--return mouseEvent(x, y, button, false)
-end
-
-function widget:TweakMouseRelease(x, y, button)
-	--return mouseEvent(x, y, button, true)
-end
-
 function widget:MousePress(x, y, button)
 	return mouseEvent(x, y, button, false)
 end
@@ -1274,7 +1216,6 @@ function mouseEvent(mx, my, button, release)
 			end
 		elseif button == 1 then
 			if release then
-
 				if titleRect ~= nil and math_isInRect(mx, my, titleRect[1], titleRect[2], titleRect[3], titleRect[4]) then
 					-- showhow rightmouse doesnt get triggered :S
 					advSettings = not advSettings
@@ -1370,20 +1311,9 @@ function mouseEvent(mx, my, button, release)
 
 			elseif math_isInRect(mx, my, windowRect[1], windowRect[2], windowRect[3], windowRect[4]) then
 				-- on window
-
-
 				if release then
-
 					-- select option
 					if showSelectOptions == nil then
-						if showPresetButtons then
-							for preset, pp in pairs(presets) do
-								if math_isInRect(mx, my, pp.pos[1], pp.pos[2], pp.pos[3], pp.pos[4]) then
-									loadPreset(preset)
-								end
-							end
-						end
-
 						for i, o in pairs(optionButtons) do
 
 							if options[i].type == 'bool' and math_isInRect(mx, my, o[1], o[2], o[3], o[4]) then
@@ -1407,7 +1337,6 @@ function mouseEvent(mx, my, button, release)
 					end
 				else
 					-- mousepress
-
 					if not showSelectOptions then
 						for i, o in pairs(optionButtons) do
 							if options[i].type == 'slider' and (math_isInRect(mx, my, o.sliderXpos[1], o[2], o.sliderXpos[2], o[4]) or math_isInRect(mx, my, o[1], o[2], o[3], o[4])) then
@@ -1441,8 +1370,6 @@ function mouseEvent(mx, my, button, release)
 				end
 				-- on title
 			elseif titleRect ~= nil and math_isInRect(mx, my, (titleRect[1] * widgetScale) - ((vsx * (widgetScale - 1)) / 2), (titleRect[2] * widgetScale) - ((vsy * (widgetScale - 1)) / 2), (titleRect[3] * widgetScale) - ((vsx * (widgetScale - 1)) / 2), (titleRect[4] * widgetScale) - ((vsy * (widgetScale - 1)) / 2)) then
-				--currentGroupTab = nil
-				--startColumn = 1
 				returnTrue = true
 			elseif not tabClicked then
 				if release and draggingSlider == nil then
@@ -1568,7 +1495,6 @@ if gpuMem and gpuMem > 0 and gpuMem < 1800 then
 end
 
 function init()
-
 	-- make the orchestral soundtrack the new default retrospectively
 	if not orchestralDefaulted then
 		Spring.SetConfigInt('soundtrack', 2)
@@ -1582,7 +1508,6 @@ function init()
 	presetNames = { texts.option.preset_lowest, texts.option.preset_low, texts.option.preset_medium, texts.option.preset_high, texts.option.preset_ultra }
 	presets = {
 		[presetNames[1]] = {
-			--bloom = false,
 			bloomdeferred = false,
 			ssao = 1,
 			mapedgeextension = false,
@@ -1594,15 +1519,12 @@ function init()
 			particles = 9000,
 			nanoparticles = 1500,
 			treeradius = 0,
-			--treewind = false,
 			guishader = false,
 			decals = 0,
 			grass = false,
-			--grounddetail = 70,
 			darkenmap_darkenfeatures = false,
 		},
 		[presetNames[2]] = {
-			--bloom = false,
 			bloomdeferred = true,
 			ssao = 1,
 			mapedgeextension = false,
@@ -1614,15 +1536,12 @@ function init()
 			particles = 12000,
 			nanoparticles = 3000,
 			treeradius = 200,
-			--treewind = false,
 			guishader = false,
 			decals = 1,
 			grass = false,
-			--grounddetail = 100,
 			darkenmap_darkenfeatures = false,
 		},
 		[presetNames[3]] = {
-		 	--bloom = true,
 		 	bloomdeferred = true,
 		 	ssao = 1,
 		 	mapedgeextension = true,
@@ -1634,15 +1553,12 @@ function init()
 		 	particles = 15000,
 		 	nanoparticles = 5000,
 		 	treeradius = 400,
-		 	--treewind = false,
 		 	guishader = true,
 		 	decals = 2,
 		 	grass = true,
-		 	--grounddetail = 140,
 		 	darkenmap_darkenfeatures = false,
 		},
 		[presetNames[4]] = {
-			--bloom = true,
 			bloomdeferred = true,
 			ssao = 2,
 			mapedgeextension = true,
@@ -1654,15 +1570,12 @@ function init()
 			particles = 20000,
 			nanoparticles = 9000,
 			treeradius = 800,
-			--treewind = true,
 			guishader = true,
 			decals = 4,
 			grass = true,
-			--grounddetail = 180,
 			darkenmap_darkenfeatures = false,
 		},
 		[presetNames[5]] = {
-			--bloom = true,
 			bloomdeferred = true,
 			ssao = 3,
 			mapedgeextension = true,
@@ -1674,11 +1587,9 @@ function init()
 			particles = 25000,
 			nanoparticles = 15000,
 			treeradius = 800,
-			--treewind = true,
 			guishader = true,
 			decals = 5,
 			grass = true,
-			--grounddetail = 200,
 			darkenmap_darkenfeatures = true,
 		},
 	}
@@ -1707,13 +1618,9 @@ function init()
 					end
 				else
 					addResolutions = nil
-					--break
 				end
 			end
 			if string.find(line, '	display=') and not supportedResolutions[1] then
-				if addResolutions then
-					--break
-				end
 				addResolutions = true
 				local width = string.sub(string.match(line, 'w=([0-9]*)'), 1)
 				local height = string.sub(string.match(line, 'h=([0-9]*)'), 1)
@@ -1748,9 +1655,6 @@ function init()
 			end
 
 			if string.find(line:lower(), 'hardware config: ') then
-				--if string.find(line:lower() 'core(tm)2') then
-				--	isPotatoCpu = true
-				--end
 				local s_ram = string.match(line, '([0-9]*MB RAM)')
 				if s_ram ~= nil then
 					s_ram = string.gsub(s_ram, " RAM", "")
@@ -1771,7 +1675,6 @@ function init()
 		--supportedResolutions[#supportedResolutions+1] = '2560 x 1080'
 		--supportedResolutions[#supportedResolutions+1] = '2560 x 900'
 	end
-
 
 	-- restrict options for potato systems
 	if isPotatoCpu or isPotatoGpu then
@@ -3783,7 +3686,6 @@ function init()
 		  onchange = function(i, value)
 			  pauseGameWhenSingleplayer = value
 			  if (isSinglePlayer or isReplay) and show then
-				  -- local _, _, isClientPaused, _ = Spring.GetGameState() -- not needed here
 				  if pauseGameWhenSingleplayer then
 					  Spring.SendCommands("pause " .. (pauseGameWhenSingleplayer and '1' or '0'))
 					  pauseGameWhenSingleplayerExecuted = pauseGameWhenSingleplayer
@@ -4465,7 +4367,6 @@ function init()
 			  options[getOptionByID('sunlighting_reset')].value = false
 			  -- just so that map/model lighting gets updated
 			  Spring.SetSunLighting(defaultSunLighting)
-			  --customMapSunPos[Game.mapName] = nil
 			  Spring.Echo('resetted ground/unit coloring')
 			  init()
 		  end,
@@ -4799,12 +4700,6 @@ function init()
 		options[getOptionByID('scav_messages')] = nil
 	end
 
-	-- set lowest quality shadows for Intel GPU (they eat fps but dont show)
-	--if Platform ~= nil and Platform.gpuVendor == 'Intel' then
-	--	options[getOptionByID('shadowslider')] = nil
-	--	options[getOptionByID('shadows_opacity')] = nil
-	--end
-
 	-- add fonts
 	if getOptionByID('font') then
 		local fonts = {}
@@ -4873,7 +4768,6 @@ function init()
 
 	-- reduce options for potatoes
 	if isPotatoGpu or isPotatoCpu then
-
 		local id = getOptionByID('shadowslider')
 		options[id].steps = { 0, 2048, 3072 }
 		if options[id].value > 3072 then
@@ -4994,11 +4888,6 @@ function init()
 											  onchange = function(i, value)
 												  saveOptionValue('Notifications', 'notifications', 'setSound' .. v[1], { 'soundList' }, value)
 											  end,
-							--onclick = function()
-							--	if WG['notifications'] ~= nil and WG['notifications'].playNotif then
-							--		WG['notifications'].playNotif(v[1])
-							--	end
-							--end,
 						}
 					end
 				end
@@ -5051,6 +4940,7 @@ function init()
 				end
 			end
 		end
+
 		local newOptions = {}
 		local count = 0
 		for i, option in pairs(options) do
@@ -5409,14 +5299,6 @@ function widget:UnsyncedHeightMapUpdate(x1, z1, x2, z2)
 end
 
 function widget:Initialize()
-	-- do it once, remove all code containing 'enabledSensorsOnce' after a few weeks or so (26-7-2021)
-	if not enabledSensorsOnce then
-		widgetHandler:EnableWidget("Sensor Ranges LOS")
-		widgetHandler:EnableWidget("Sensor Ranges Radar")
-		widgetHandler:EnableWidget("Sensor Ranges Sonar")
-		widgetHandler:EnableWidget("Sensor Ranges Jammer")
-	end
-
 	-- disable ambient player widget
 	if widgetHandler:IsWidgetKnown("Ambient Player") then
 		widgetHandler:DisableWidget("Ambient Player")
@@ -5442,7 +5324,6 @@ function widget:Initialize()
 	end
 
 	updateGrabinput()
-
 	widget:ViewResize()
 
 	prevShow = show
@@ -5481,10 +5362,6 @@ function widget:Initialize()
 		end
 	end
 
-	-- Sets necessary spring configuration parameters, so shaded units look the way they should
-	--Spring.SetConfigInt("CubeTexGenerateMipMaps", 1)
-	--Spring.SetConfigInt("CubeTexSizeReflection", 2048)
-
 	if Spring.GetGameFrame() == 0 then
 		detectWater()
 
@@ -5519,7 +5396,6 @@ function widget:Initialize()
 	end
 
 	Spring.SetConfigFloat("CamTimeFactor", 1)
-
 	Spring.SetConfigString("InputTextGeo", "0.35 0.72 0.03 0.04")    -- input chat position posX, posY, ?, ?
 
 	if Spring.GetGameFrame() == 0 then
@@ -5558,22 +5434,6 @@ function widget:Initialize()
 		if Spring.GetConfigInt("MSAALevel", 0) > 8 then
 			Spring.SetConfigInt("MSAALevel", 8)
 		end
-		--if Spring.GetConfigInt("UsePBO",0) == 0 then
-		--	Spring.SetConfigInt("UsePBO",1)
-		--end
-		--if Platform ~= nil and Platform.gpuVendor ~= 'Nvidia' and Platform.gpuVendor ~= 'AMD' then
-		--	Spring.SetConfigInt("UsePBO",0)
-		--end
-
-		-- enable shadows at gamestart
-		--if Spring.GetConfigInt("Shadows",0) ~= 1 then
-		--	Spring.SetConfigInt("Shadows",1)
-		--	Spring.SendCommands("Shadows 1")
-		--end
-		-- set lowest quality shadows for Intel GPU (they eat fps but dont really show, but without any shadows enables it looks glitchy)
-		--if Platform ~= nil and Platform.gpuVendor == 'Intel' then
-		--	Spring.SendCommands("Shadows 1 1000")
-		--end
 
 		-- set custom user map sun position
 		if customMapSunPos[Game.mapName] and customMapSunPos[Game.mapName][1] then
@@ -5591,7 +5451,6 @@ function widget:Initialize()
 	end
 
 	Spring.SendCommands("minimap unitsize " .. (Spring.GetConfigFloat("MinimapIconScale", 3.5)))        -- spring wont remember what you set with '/minimap iconssize #'
-
 	Spring.SendCommands({ "bind f10 options" })
 
 	checkResolution()
@@ -5631,7 +5490,6 @@ function widget:Initialize()
 	for preset, _ in pairs(customPresets) do
 		table.insert(presetNames, preset)
 	end
-	--init()
 end
 
 function widget:Shutdown()
@@ -5659,6 +5517,7 @@ function widget:Shutdown()
 end
 
 local lastOptionCommand = 0
+
 function widget:TextCommand(command)
 	if string.find(command, "options", nil, true) == 1 and string.len(command) == 7 then
 		local newShow = not show
@@ -5709,6 +5568,7 @@ function widget:TextCommand(command)
 			end
 		end
 	end
+
 	if string.find(command, "savepreset", nil, true) == 1 then
 		local words = string.split(command, ' ')
 		if words[2] then
@@ -5754,32 +5614,21 @@ function widget:GetConfigData(data)
 		useNetworkSmoothing = useNetworkSmoothing,
 		desiredWaterValue = desiredWaterValue,
 		waterDetected = waterDetected,
-		enabledSensorsOnce = true,
 
 		disticon = { 'UnitIconDist', tonumber(Spring.GetConfigInt("UnitIconDist", 1) or 160) },
 		particles = { 'MaxParticles', tonumber(Spring.GetConfigInt("MaxParticles", 1) or 15000) },
-		--nanoparticles = {'MaxNanoParticles', tonumber(Spring.GetConfigInt("MaxNanoParticles",1) or 500)},	-- already saved above in: maxNanoParticles
 		decals = { 'GroundDecals', tonumber(Spring.GetConfigInt("GroundDecals", 1) or 1) },
-		--grounddetail = {'GroundDetail', tonumber(Spring.GetConfigInt("GroundDetail",1) or 1)},
 		camera = { 'CamMode', tonumber(Spring.GetConfigInt("CamMode", 1) or 1) },
-		--treewind = {'TreeWind', tonumber(Spring.GetConfigInt("TreeWind",1) or 1)},
 		hwcursor = { 'HardwareCursor', tonumber(Spring.GetConfigInt("HardwareCursor", 1) or 1) },
 		sndvolmaster = { 'snd_volmaster', tonumber(Spring.GetConfigInt("snd_volmaster", 40) or 40) },
 		sndvolbattle = { 'snd_volbattle', tonumber(Spring.GetConfigInt("snd_volbattle", 40) or 40) },
 		sndvolunitreply = { 'snd_volunitreply', tonumber(Spring.GetConfigInt("snd_volunitreply", 40) or 40) },
-		--sndvolmusic = {'snd_volmusic', tonumber(Spring.GetConfigInt("snd_volmusic",20) or 20)},
 		guiopacity = { 'ui_opacity', tonumber(Spring.GetConfigFloat("ui_opacity", 0.6) or 0.66) },
 		scrollwheelspeed = { 'ScrollWheelSpeed', tonumber(Spring.GetConfigInt("ScrollWheelSpeed", 25) or 25) },
 	}
 end
 
 function widget:SetConfigData(data)
-	if data.enabledSensorsOnce then
-		enabledSensorsOnce = true
-	end
-	if data.newEngineIconsInitialized then
-		newEngineIconsInitialized = data.newEngineIconsInitialized
-	end
 	if data.orchestralDefaulted then
 		orchestralDefaulted = true
 	end
