@@ -562,14 +562,16 @@ function TargetHST:UpdateEnemies()
 		local ghost = e.ghost
 		local name = e.unitName
 		local ut = self.ai.armyhst.unitTable[name]
-		if ghost and not ghost.position and not e.beingBuilt then
+-- 		if ghost and not ghost.position and not e.beingBuilt then
+		if e.view < 0 then
 			-- count ghosts with unknown positions as non-positioned threats
 			self:DangerCheck(name, e.unitID)
 			local threatLayers = self.ai.tool:UnitThreatRangeLayers(name)
 			for groundAirSubmerged, layer in pairs(threatLayers) do
 				self:CountEnemyThreat(e.unitID, name, layer.threat)
 			end
-		elseif (los ~= 0 or (ghost and ghost.position)) and not e.beingBuilt then
+-- 		elseif (los ~= 0 or (ghost and ghost.position)) and not e.beingBuilt then
+		else
 			-- count those we know about and that aren't being built
 			local pos
 			if ghost then pos = ghost.position else pos = e.position end
@@ -580,7 +582,7 @@ function TargetHST:UpdateEnemies()
 					--self:Warn('warning cell is not already defined!!!!',px,pz)
 				end
 				local cell = self:GetOrCreateCellHere(pos)
-				if los == 1 then
+				if los == 0 then
 					if ut.isBuilding then
 						cell.value = cell.value + baseBuildingValue
 					else
@@ -589,7 +591,7 @@ function TargetHST:UpdateEnemies()
 						self:FillCircle(px, pz, baseUnitRange, "threat", "air", baseUnitThreat)
 						self:FillCircle(px, pz, baseUnitRange, "threat", "submerged", baseUnitThreat)
 					end
-				elseif los == 2 then
+				elseif los > 0 then
 					local mtype = ut.mtype
 					self:DangerCheck(name, e.unitID)
 					local value = self:Value(name)
