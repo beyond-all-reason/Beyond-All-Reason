@@ -46,14 +46,16 @@ local musicOptionColor = '\255\130\160\130'
 local firstlaunchsetupDone = false
 
 local playSounds = true
-local buttonclick = 'LuaUI/Sounds/tock.wav'
-local paginatorclick = 'LuaUI/Sounds/buildbar_waypoint.wav'
-local sliderdrag = 'LuaUI/Sounds/buildbar_rem.wav'
-local selectclick = 'LuaUI/Sounds/buildbar_click.wav'
-local selectunfoldclick = 'LuaUI/Sounds/buildbar_hover.wav'
-local selecthoverclick = 'LuaUI/Sounds/hover.wav'
-local toggleonclick = 'LuaUI/Sounds/switchon.wav'
-local toggleoffclick = 'LuaUI/Sounds/switchoff.wav'
+local sounds = {
+	buttonClick = 'LuaUI/Sounds/tock.wav',
+	paginatorClick = 'LuaUI/Sounds/buildbar_waypoint.wav',
+	sliderDrag = 'LuaUI/Sounds/buildbar_rem.wav',
+	selectClick = 'LuaUI/Sounds/buildbar_click.wav',
+	selectUnfoldClick = 'LuaUI/Sounds/buildbar_hover.wav',
+	selectHoverClick = 'LuaUI/Sounds/hover.wav',
+	toggleOnClick = 'LuaUI/Sounds/switchon.wav',
+	toggleOffClick = 'LuaUI/Sounds/switchoff.wav',
+}
 
 local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
 local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
@@ -1016,7 +1018,7 @@ function widget:DrawScreen()
 						if math_isInRect(mx, my, optionSelect[#optionSelect][1], optionSelect[#optionSelect][2], optionSelect[#optionSelect][3], optionSelect[#optionSelect][4]) then
 							UiSelectHighlight(optionButtons[showSelectOptions][1], math.floor(yPos - oHeight - oPadding), optionButtons[showSelectOptions][1] + maxWidth, math.floor(yPos + oPadding))
 							if playSounds and (prevSelectHover == nil or prevSelectHover ~= i) then
-								Spring.PlaySoundFile(selecthoverclick, 0.04, 'ui')
+								Spring.PlaySoundFile(sounds.selectHoverClick, 0.04, 'ui')
 							end
 							prevSelectHover = i
 						end
@@ -1170,7 +1172,7 @@ function widget:MouseMove(mx, my)
 			applyOptionValue(draggingSlider)    -- disabled so only on release it gets applied
 			if playSounds and (lastSliderSound == nil or os_clock() - lastSliderSound > 0.04) then
 				lastSliderSound = os_clock()
-				Spring.PlaySoundFile(sliderdrag, 0.4, 'ui')
+				Spring.PlaySoundFile(sounds.sliderDrag, 0.4, 'ui')
 			end
 		end
 	end
@@ -1201,7 +1203,7 @@ function mouseEvent(mx, my, button, release)
 						if presetNames[o[5]] and customPresets[presetNames[o[5]]] ~= nil then
 							deletePreset(presetNames[o[5]])
 							if playSounds then
-								Spring.PlaySoundFile(selectclick, 0.5, 'ui')
+								Spring.PlaySoundFile(sounds.selectClick, 0.5, 'ui')
 							end
 							if selectClickAllowHide ~= nil or not math_isInRect(mx, my, optionButtons[showSelectOptions][1], optionButtons[showSelectOptions][2], optionButtons[showSelectOptions][3], optionButtons[showSelectOptions][4]) then
 								showSelectOptions = nil
@@ -1229,7 +1231,7 @@ function mouseEvent(mx, my, button, release)
 						startColumn = (totalColumns - maxShownColumns) + 1
 					end
 					if playSounds then
-						Spring.PlaySoundFile(paginatorclick, 0.6, 'ui')
+						Spring.PlaySoundFile(sounds.paginatorClick, 0.6, 'ui')
 					end
 					showSelectOptions = nil
 					selectClickAllowHide = nil
@@ -1245,7 +1247,7 @@ function mouseEvent(mx, my, button, release)
 						startColumn = 1
 					end
 					if playSounds then
-						Spring.PlaySoundFile(paginatorclick, 0.6, 'ui')
+						Spring.PlaySoundFile(sounds.paginatorClick, 0.6, 'ui')
 					end
 					showSelectOptions = nil
 					selectClickAllowHide = nil
@@ -1272,7 +1274,7 @@ function mouseEvent(mx, my, button, release)
 							options[showSelectOptions].value = o[5]
 							applyOptionValue(showSelectOptions)
 							if playSounds then
-								Spring.PlaySoundFile(selectclick, 0.5, 'ui')
+								Spring.PlaySoundFile(sounds.selectClick, 0.5, 'ui')
 							end
 						end
 					end
@@ -1297,7 +1299,7 @@ function mouseEvent(mx, my, button, release)
 								showSelectOptions = nil
 								selectClickAllowHide = nil
 								if playSounds then
-									Spring.PlaySoundFile(paginatorclick, 0.9, 'ui')
+									Spring.PlaySoundFile(sounds.paginatorClick, 0.9, 'ui')
 								end
 							end
 							tabClicked = true
@@ -1321,9 +1323,9 @@ function mouseEvent(mx, my, button, release)
 								applyOptionValue(i)
 								if playSounds then
 									if options[i].value then
-										Spring.PlaySoundFile(toggleonclick, 0.75, 'ui')
+										Spring.PlaySoundFile(sounds.toggleOnClick, 0.75, 'ui')
 									else
-										Spring.PlaySoundFile(toggleoffclick, 0.75, 'ui')
+										Spring.PlaySoundFile(sounds.toggleOffClick, 0.75, 'ui')
 									end
 								end
 							elseif options[i].type == 'slider' and math_isInRect(mx, my, o[1], o[2], o[3], o[4]) then
@@ -1347,13 +1349,13 @@ function mouseEvent(mx, my, button, release)
 									options[draggingSlider].value = getSliderValue(draggingSlider, mx)
 									applyOptionValue(draggingSlider)    -- disabled so only on release it gets applied
 									if playSounds then
-										Spring.PlaySoundFile(sliderdrag, 0.3, 'ui')
+										Spring.PlaySoundFile(sounds.sliderDrag, 0.3, 'ui')
 									end
 								end
 							elseif options[i].type == 'select' and math_isInRect(mx, my, o[1], o[2], o[3], o[4]) then
 
 								if playSounds then
-									Spring.PlaySoundFile(selectunfoldclick, 0.6, 'ui')
+									Spring.PlaySoundFile(sounds.selectUnfoldClick, 0.6, 'ui')
 								end
 								if showSelectOptions == nil then
 									showSelectOptions = i
