@@ -1246,26 +1246,6 @@ function ArmyHST:GetUnitTable()
 				utable.isTurret = true
 				if unitDef.modCategories.mine then
 					utable.isMine = utable.techLevel
-				elseif utable.firstWeapon and utable.firstWeapon['type'] == ('StarburstLauncher' or 'MissileLauncher') then
-					utable.isTacticalTurret =  utable.techLevel
-				elseif utable.firstWeapon and utable.firstWeapon['type'] == 'Cannon' then
-					utable.isCannonTurret = utable.techLevel
-					if not utable.firstWeapon.selfExplode then
-						utable.isPlasmaCannon = utable.techLevel
-					end
-				elseif utable.firstWeapon and utable.firstWeapon['type'] == 'BeamLaser' then
-					utable.isLaserTurret = utable.techLevel
-				elseif utable.firstWeapon and utable.firstWeapon['type'] == 'TorpedoLauncher' then
-					utable.isTorpedoTurret = utable.techLevel
-				end
-				if utable.groundRange and utable.groundRange > 0 then
-					utable.isGroundTurret = utable.groundRange
-				end
-				if utable.airRange and utable.airRange > 0 then
-					utable.isAirTurret = utable.airRange
-				end
-				if utable.submergedRange and utable.submergedRange > 0 then
-					utable.isSubTurret = utable.submergedRange
 				end
 			end
 			if utable.isFighterAirUnit then
@@ -1274,27 +1254,49 @@ function ArmyHST:GetUnitTable()
 			utable.needsWater = unitDef.minWaterDepth > 0
 			if unitDef["canFly"] then
 				utable.mtype = "air"
+				utable.layer = 'a'
+				utable.hitBy = 'a'
 			elseif	utable.isBuilding and utable.needsWater then
 				utable.mtype = 'sub'
+				utable.layer = 's'
+				utable.hitBy = 's'
 			elseif	utable.isBuilding and not utable.needsWater then
 				utable.mtype = 'veh'
+				utable.layer = 'g'
+				utable.hitBy = 'g'
 			elseif  unitDef.moveDef.name and (string.find(unitDef.moveDef.name, 'abot') or string.find(unitDef.moveDef.name, 'vbot')  or string.find(unitDef.moveDef.name,'atank'))  then
 				utable.mtype = 'amp'
+				utable.layer = 'sg'
+				utable.hitBy = 'sg'
 			elseif unitDef.moveDef.name and string.find(unitDef.moveDef.name, 'uboat') then
 				utable.mtype = 'sub'
+				utable.layer = 's'
+				utable.hitBy = 's'
 			elseif unitDef.moveDef.name and  string.find(unitDef.moveDef.name, 'hover') then
 				utable.mtype = 'hov'
+				utable.layer = 'g'
+				utable.hitBy = 'sg'
 			elseif unitDef.moveDef.name and string.find(unitDef.moveDef.name, 'boat') then
 				utable.mtype = 'shp'
+				utable.layer = 'g'
+				utable.hitBy = 'sg'
 			elseif unitDef.moveDef.name and string.find(unitDef.moveDef.name, 'tank') then
 				utable.mtype = 'veh'
+				utable.layer = 'g'
+				utable.hitBy = 'g'
 			elseif unitDef.moveDef.name and string.find(unitDef.moveDef.name, 'bot') then
 				utable.mtype = 'bot'
+				utable.layer = 'g'
+				utable.hitBy = 'g'
 			else
 				if unitDef.maxwaterdepth and unitDef.maxwaterdepth < 0 then
 					utable.mtype = 'shp'
+					utable.layer =  'g'
+					utable.hitBy = 'sg'
 				else
 					utable.mtype = 'veh'
+					utable.layer =  'g'
+					utable.hitBy = 'g'
 				end
 			end
 
@@ -1340,7 +1342,7 @@ function ArmyHST:GetUnitTable()
 				utable.isAttacker = true
 				--Spring:Echo(utable.name, 'isAttacker')
 			end
-			utable.bigExplosion = unitDef["deathExplosion"] == "atomic_blast"
+			utable.bigExplosion = unitDef["deathExplosion"] == "UNKNOW NAME FOR BIG EXPLOSION"
 			utable.xsize = unitDef["xsize"]
 			utable.zsize = unitDef["zsize"]
 			utable.wreckName = unitDef["wreckName"]
