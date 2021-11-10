@@ -21,6 +21,7 @@ local types = {
 local texts = {}    -- loaded from external language file
 local languages = Spring.I18N.languages
 local languageCodes = { 'en', 'fr' }
+local languageCodesInverse = table.invert(languageCodes)
 local languageNames = {}
 
 for key, code in ipairs(languageCodes) do
@@ -3480,7 +3481,7 @@ function init()
 		},
 
 		-- DEV
-		{ id = "language", group = "dev", category = types.dev, name = texts.option.language, type = "select", options = languageNames, --[[value = languages[Spring.I18N.getLocale()],]]
+		{ id = "language", group = "dev", category = types.dev, name = texts.option.language, type = "select", options = languageNames, value = languageCodesInverse[Spring.I18N.getLocale()],
 			onchange = function(i, value)
 				if Script.LuaUI('LanguageChanged') then
 					Script.LuaUI.LanguageChanged(languageCodes[value])
