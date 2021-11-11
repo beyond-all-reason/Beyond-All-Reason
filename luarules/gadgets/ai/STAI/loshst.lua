@@ -213,11 +213,14 @@ end
 
 function LosHST:LosPos(upos)
 	local LosOrRadar, inLos, inRadar, jammed = Spring.GetPositionLosState(upos.x, upos.y, upos.z, self.ai.allyId)
-	if inLos then return 'inLos' end
 	if Spring.IsPosInAirLos(upos.x, upos.y, upos.z, self.ai.allyId) then return 1 end
-	if inRadar and upos.y < 0 and not jammed then return 'inSonar' -1 end
-	if inRadar and upos.y >= 0 and not jammed then return 'inRadar' 0 end
-	return 'blind'
+	if if inLos and upos.y < 0 then return -1 end
+	if inLos then return 0 end
+	--if inRadar then return nil end
+
+	--if inRadar and upos.y < 0 and not jammed then return 'inSonar' -1 end
+	--if inRadar and upos.y >= 0 and not jammed then return 'inRadar' 0 end
+	return nil
 end
 
 function LosHST:Draw()
