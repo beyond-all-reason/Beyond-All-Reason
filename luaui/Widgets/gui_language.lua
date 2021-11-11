@@ -10,6 +10,8 @@ function widget:GetInfo()
 	}
 end
 
+local i18nHelper = VFS.Include('luaui/i18nhelpers.lua')
+
 local customMessageProxies = {
 	['ui.chickens.queenResistant'] = function (data) return { unit = UnitDefs[data.unitDefId].translatedHumanName } end,
 	['ui.mexUpgrader.noMexes'] = function (data) return { unit = UnitDefs[data.unitDefId].translatedHumanName } end,
@@ -62,6 +64,8 @@ end
 
 function widget:LanguageChanged(language)
 	Spring.I18N.setLanguage(language)
+
+	i18nHelper.RefreshDefs()
 end
 
 function widget:Initialize()
