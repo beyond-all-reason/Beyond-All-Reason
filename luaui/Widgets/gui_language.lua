@@ -62,9 +62,7 @@ local function loadLanguage()
 	end
 end
 
-function widget:LanguageChanged(language)
-	Spring.I18N.setLanguage(language)
-
+function widget:LanguageChanged()
 	i18nHelper.RefreshDefs()
 end
 

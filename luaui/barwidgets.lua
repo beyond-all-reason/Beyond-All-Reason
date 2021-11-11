@@ -1790,9 +1790,9 @@ function widgetHandler:DefaultCommand(...)
 	return nil  --  not a number, use the default engine command
 end
 
-function widgetHandler:LanguageChanged(language)
+function widgetHandler:LanguageChanged()
 	for _, w in ipairs(self.LanguageChangedList) do
-		w:LanguageChanged(language)
+		w:LanguageChanged()
 	end
 end
 

@@ -3483,8 +3483,9 @@ function init()
 		-- DEV
 		{ id = "language", group = "dev", category = types.dev, name = texts.option.language, type = "select", options = languageNames, value = languageCodesInverse[Spring.I18N.getLocale()],
 			onchange = function(i, value)
+				Spring.I18N.setLanguage(languageCodes[value])
 				if Script.LuaUI('LanguageChanged') then
-					Script.LuaUI.LanguageChanged(languageCodes[value])
+					Script.LuaUI.LanguageChanged()
 				end
 			end
 		},
