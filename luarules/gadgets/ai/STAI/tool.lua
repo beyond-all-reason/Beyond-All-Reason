@@ -384,34 +384,6 @@ function Tool:UnitWeaponLayerList(unitName)
 	return weaponLayers
 end
 
-function Tool:UnitWeaponMtypeList(unitName)
-	if unitName == nil then return {} end
-	if unitName == self.ai.armyhst.DummyUnitName then return {} end
-	local mtypes = unitWeaponMtypes[unitName]
-	if mtypes then
-		return mtypes
-	end
-	local utable = self.ai.armyhst.unitTable[unitName]
-	mtypes = {}
-	if utable.groundRange > 0 then
-		table.insert(mtypes, "veh")
-		table.insert(mtypes, "bot")
-		table.insert(mtypes, "amp")
-		table.insert(mtypes, "hov")
-		table.insert(mtypes, "shp")
-	end
-	if utable.airRange > 0 then
-		table.insert(mtypes, "air")
-	end
-	if utable.submergedRange > 0 then
-		table.insert(mtypes, "sub")
-		table.insert(mtypes, "shp")
-		table.insert(mtypes, "amp")
-	end
-	unitWeaponMtypes[unitName] = mtypes
-	return mtypes
-end
-
 function Tool:WhatHurtsUnit(unitName, mtype, position)
 	local hurts = whatHurtsMtype[mtype] or whatHurtsUnit[unitName]
 	if hurts ~= nil then return hurts else hurts = {} end
@@ -452,65 +424,6 @@ function Tool:BehaviourPosition(behaviour)
 	if unit == nil then return end
 	return unit:GetPosition()
 end
-
-function Tool:ClosestBuildPos( utype,pos, searchRadius, minDistance, buildFacing, validFunction)
-	self.DebugEnabled = true
-	unitdefID = utype.id
--- 	if type(unitdefID) == 'table' then
--- 		for i,v in pairs (unitdefID) do
--- 			self:EchoDebug('i',i,'v',v)
--- 		end
--- 		unitdefID = unitdefID.id
--- 		self:EchoDebug(id , unitdefID)
---
--- 	end
-	--Spring.ClosestBuildPos(teamID, unitdefID, worldx,worldy,worldz, searchRadius, minDistance, buildFacing) -> buildx,buildy,buildz  to LuaSyncedRead
-	if not unitdefID then
-		self:EchoDebug('non-valid unit def ID')
-		self.DebugEnabled = false
-		return
-	end
-	if not pos then
-		self:EchoDebug('non-valid unit def ID')
-		self.DebugEnabled = false
-		return
-	end
-	self.DebugEnabled = false
-	buildFacing = buildFacing or 1
-	teamID = self.ai.id
-	searchRadius = searchRadius or 5000
-	minDistance = minDistance or 0
-	pos.y = pos.y or Spring.GetGroundHeight(pos.x,pos.z)
-	--self.game:StartTimer('toolpos')
-	local position = Spring.ClosestBuildPos(teamID, unitdefID, pos.x,pos.y,pos.z, searchRadius, minDistance, buildFacing)
-	--self.game:StopTimer('toolpos')
-	if not position then
-		self:EchoDebug('no position')
-		self.DebugEnabled = false
-		return end
-
-	local buildable, position = self.ai.map:CanBuildHere(utype, {x = pos.x, y = pos.y, z = pos.z})
-	if not buildable then
-		self:EchoDebug('not buildable')
-		self.DebugEnabled = false
-		return
-	end
-
--- 	local lastDitch, lastDitchPos = self:CanBuildHere(unitdefID, builderpos)
--- 	if not lastDitch then return end
-	validFunction = validFunction or function (position) return position end
-	position = validFunction(position)
-	if not position then
-
-		self:EchoDebug('position not valid')
-		self.DebugEnabled = false
-		return
-	end
-	self.DebugEnabled = false
-	return position
-end
-
-
 
 
 
@@ -603,6 +516,39 @@ function Tool:SimplifyPath(path)
 	end
 	return path
 end
+--[[
+
+
+
+function Tool:UnitWeaponMtypeList(unitName)
+	if unitName == nil then return {} end
+	if unitName == self.ai.armyhst.DummyUnitName then return {} end
+	local mtypes = unitWeaponMtypes[unitName]
+	if mtypes then
+		return mtypes
+	end
+	local utable = self.ai.armyhst.unitTable[unitName]
+	mtypes = {}
+	if utable.groundRange > 0 then
+		table.insert(mtypes, "veh")
+		table.insert(mtypes, "bot")
+		table.insert(mtypes, "amp")
+		table.insert(mtypes, "hov")
+		table.insert(mtypes, "shp")
+	end
+	if utable.airRange > 0 then
+		table.insert(mtypes, "air")
+	end
+	if utable.submergedRange > 0 then
+		table.insert(mtypes, "sub")
+		table.insert(mtypes, "shp")
+		table.insert(mtypes, "amp")
+	end
+	unitWeaponMtypes[unitName] = mtypes
+	return mtypes
+end
+
+
 
 function Tool:serialize (o, keylist,reset)
 	if reset then output = '' end
@@ -641,3 +587,61 @@ function Tool:serialize (o, keylist,reset)
 	end
 	return output
 end
+
+function Tool:ClosestBuildPos( utype,pos, searchRadius, minDistance, buildFacing, validFunction)
+	self.DebugEnabled = true
+	unitdefID = utype.id
+-- 	if type(unitdefID) == 'table' then
+-- 		for i,v in pairs (unitdefID) do
+-- 			self:EchoDebug('i',i,'v',v)
+-- 		end
+-- 		unitdefID = unitdefID.id
+-- 		self:EchoDebug(id , unitdefID)
+--
+-- 	end
+	--Spring.ClosestBuildPos(teamID, unitdefID, worldx,worldy,worldz, searchRadius, minDistance, buildFacing) -> buildx,buildy,buildz  to LuaSyncedRead
+	if not unitdefID then
+		self:EchoDebug('non-valid unit def ID')
+		self.DebugEnabled = false
+		return
+	end
+	if not pos then
+		self:EchoDebug('non-valid unit def ID')
+		self.DebugEnabled = false
+		return
+	end
+	self.DebugEnabled = false
+	buildFacing = buildFacing or 1
+	teamID = self.ai.id
+	searchRadius = searchRadius or 5000
+	minDistance = minDistance or 0
+	pos.y = pos.y or Spring.GetGroundHeight(pos.x,pos.z)
+	--self.game:StartTimer('toolpos')
+	local position = Spring.ClosestBuildPos(teamID, unitdefID, pos.x,pos.y,pos.z, searchRadius, minDistance, buildFacing)
+	--self.game:StopTimer('toolpos')
+	if not position then
+		self:EchoDebug('no position')
+		self.DebugEnabled = false
+		return end
+
+	local buildable, position = self.ai.map:CanBuildHere(utype, {x = pos.x, y = pos.y, z = pos.z})
+	if not buildable then
+		self:EchoDebug('not buildable')
+		self.DebugEnabled = false
+		return
+	end
+
+-- 	local lastDitch, lastDitchPos = self:CanBuildHere(unitdefID, builderpos)
+-- 	if not lastDitch then return end
+	validFunction = validFunction or function (position) return position end
+	position = validFunction(position)
+	if not position then
+
+		self:EchoDebug('position not valid')
+		self.DebugEnabled = false
+		return
+	end
+	self.DebugEnabled = false
+	return position
+end
+]]
