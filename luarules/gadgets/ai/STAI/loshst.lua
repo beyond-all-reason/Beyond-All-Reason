@@ -117,7 +117,7 @@ function LosHST:scanEnemy(enemy,isShoting)
 				t.layer = 's'
 			else
 				t.layer = 'g'
-				if Spring.GetGroundHeight(t.position.x,t.position.z) < 0 then --TEST
+				if Spring.GetGroundHeight(t.position.x,t.position.z) < 0 then --TEST  WARNING
 					t.float = true
 				end
 			end
@@ -214,9 +214,9 @@ end
 function LosHST:LosPos(upos)
 	local LosOrRadar, inLos, inRadar, jammed = Spring.GetPositionLosState(upos.x, upos.y, upos.z, self.ai.allyId)
 	if inLos then return 'inLos' end
-	if Spring.IsPosInAirLos(upos.x, upos.y, upos.z, self.ai.allyId) then return 'inAir' end
-	if inRadar and upos.y < 0 and not jammed then return 'inSonar' end
-	if inRadar and upos.y >= 0 and not jammed then return 'inRadar' end
+	if Spring.IsPosInAirLos(upos.x, upos.y, upos.z, self.ai.allyId) then return 1 end
+	if inRadar and upos.y < 0 and not jammed then return 'inSonar' -1 end
+	if inRadar and upos.y >= 0 and not jammed then return 'inRadar' 0 end
 	return 'blind'
 end
 
