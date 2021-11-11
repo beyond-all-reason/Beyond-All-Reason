@@ -647,7 +647,7 @@ function TurtleHST:MostTurtled(builder, unitName, bombard, oneOnly, ignoreDistan
 end
 
 function TurtleHST:SafeWithinTurtle(position, unitName)
-	local gas = self.ai.tool:WhatHurtsUnit(unitName)
+ 	local gas = self.ai.tool:WhatHurtsUnit(unitName)
 	local cost = self.ai.armyhst.unitTable[unitName].metalCost
 	for i = 1, #self.turtles do
 		local turtle = self.turtles[i]
