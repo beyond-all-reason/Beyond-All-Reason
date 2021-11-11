@@ -21,8 +21,8 @@ function ScoutHST:ScoutLos(scoutbst, position)
 	local los
 	if self.ai.maphst:IsUnderWater(position) and self.ai.armyhst.unitTable[scoutbst.name].sonarRadius == 0 then
 		-- treat underwater spots as surface spots if the scout has no sonar, so that it moves on
-		local lt = self.ai.loshst:AllLos(position)
-		if lt[2] then
+		local lt = self.ai.loshst:LosHST:LosPos(position)
+		if lt-1 then
 			los = 2
 		else
 			los = 0
