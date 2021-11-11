@@ -582,7 +582,7 @@ function TargetHST:UpdateEnemies()
 					--self:Warn('warning cell is not already defined!!!!',px,pz)
 				end
 				local cell = self:GetOrCreateCellHere(pos)
-				if los == 0 then
+				if e.view == 0 then--radar
 					if ut.isBuilding then
 						cell.value = cell.value + baseBuildingValue
 					else
@@ -591,7 +591,7 @@ function TargetHST:UpdateEnemies()
 						self:FillCircle(px, pz, baseUnitRange, "threat", "air", baseUnitThreat)
 						self:FillCircle(px, pz, baseUnitRange, "threat", "submerged", baseUnitThreat)
 					end
-				elseif los > 0 then
+				elseif e.view > 0 then --LOS, full view
 					local mtype = ut.mtype
 					self:DangerCheck(name, e.unitID)
 					local value = self:Value(name)
