@@ -377,13 +377,11 @@ if gadgetHandler:IsSyncedCode() then
 			chickenTargets[chickenTargets[chickenID]][chickenID] = nil
 		end
 		if chickenTargets[targetID] == nil then
-			chickenTargets[targetID] = {}
+			chickenTargets[targetID] = { [chickenID] = targetID }
+		elseif type(chickenTargets[targetID]) == 'table' then	-- without this an error happened to "index a number value" on unknown occasion (game-end), possible cause players own a chicken unit as well
 			chickenTargets[targetID][chickenID] = targetID
-			chickenTargets[chickenID] = targetID
-		else
-			chickenTargets[targetID][chickenID] = targetID
-			chickenTargets[chickenID] = targetID
 		end
+		chickenTargets[chickenID] = targetID
 	end
 
 	local function AttackNearestEnemy(unitID, unitDefID, unitTeam)
