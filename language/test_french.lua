@@ -986,7 +986,7 @@ return {
 				armmeatball = "Le Meatball",
 				armmercury = "Le Mercury",
 				armmerl = "Le Merl",
-				armmex = "Le Metal Extractor",
+				armmex = "Le Metal Extracteur",
 				armmg = "Le Shredder",
 				armmh = "Le Wombat",
 				armmine1 = "Le Micro",
