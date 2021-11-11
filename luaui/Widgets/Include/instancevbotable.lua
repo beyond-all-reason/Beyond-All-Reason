@@ -82,6 +82,40 @@ function resizeInstanceVBOTable(iT)
 	end
 	if iT.instanceVBO then iT.instanceVBO:Delete() end -- release if previous one existed
 	iT.instanceVBO = newInstanceVBO
+  -- ok this needs some sanitation right here, with reporting.
+  if iT.indexToUnitID then 
+    -- we need to walk through both tables at the same time, and virtually pop all invalid unit/featureIDs on a resize, or else face dire consequences (crashes) later on
+    -- the tables we need to keep updated are:
+    local new_instanceData = {}
+    local new_usedElements = 0
+    local new_instanceIDtoIndex = {}
+    local new_indextoInstanceID = {}
+    local new_indextoUnitID = {}
+    for i, objectID in ipairs(iT.indexToUnitID) do
+        local isValidID = false
+        if iT.featureIDs then isValidID = Spring.ValidFeatureID(objectID)
+        else isValidID = Spring.ValidUnit(objectID) end
+        if isValidID then
+          for j = 1, instanceStep do 
+            new_instanceData[#new_instanceData + 1 ] = iT.instanceData[j + new_usedElements * iT.instanceStep]
+          end
+          new_usedElements = new_usedElements + 1 
+          new_indextoInstanceID[new_usedElements] = iT.indextoInstanceID[i]
+          new_indextoUnitID[new_usedElements] =  iT.indextoUnitID[i]
+          new_instanceIDtoIndex[iT.indextoInstanceID[i]] = new_usedElements
+        else
+            Spring.Echo("Warning: Found invalid unit/featureID",objectID,"at",i,"while resizing",iT.myName)
+        end
+    end
+    iT.instanceData = new_instanceData
+    iT.usedElements = new_usedElements
+    iT.instanceIDtoIndex = new_instanceIDtoIndex
+    iT.indextoInstanceID = new_indextoInstanceID
+    iT.indextoUnitID = new_indextoUnitID
+  end
+  
+  
+  
 	iT.instanceVBO:Upload(iT.instanceData)
 	if iT.VAO then -- reattach new if updated :D
     iT.VAO:Delete()
@@ -89,7 +123,11 @@ function resizeInstanceVBOTable(iT)
 	end
 	--Spring.Echo("instanceVBOTable full, resizing to double size",iT.myName, iT.usedElements,iT.maxElements)
 	if iT.indextoUnitID then
-		iT.instanceVBO:InstanceDataFromUnitIDs(iT.indextoUnitID, iT.unitIDattribID)
+    if iT.featureIDs then
+      iT.instanceVBO:InstanceDataFromFeatureIDs(iT.indextoUnitID, iT.unitIDattribID)
+    else
+      iT.instanceVBO:InstanceDataFromUnitIDs(iT.indextoUnitID, iT.unitIDattribID)
+    end
 	end
 	return iT.maxElements
 end
@@ -151,7 +189,11 @@ function pushElementInstance(iT,thisInstance, instanceID, updateExisting, noUplo
 		iT.instanceVBO:Upload(thisInstance, nil, thisInstanceIndex - 1)
     --Spring.Echo("pushElementInstance,unitID, iT.unitIDattribID, thisInstanceIndex",unitID, iT.unitIDattribID, thisInstanceIndex)
 		if unitID ~= nil then 
-			iT.instanceVBO:InstanceDataFromUnitIDs(unitID, iT.unitIDattribID, thisInstanceIndex-1)
+      if iT.featureIDs then
+        iT.instanceVBO:InstanceDataFromFeatureIDs(unitID, iT.unitIDattribID, thisInstanceIndex-1)
+      else
+        iT.instanceVBO:InstanceDataFromUnitIDs(unitID, iT.unitIDattribID, thisInstanceIndex-1)  
+      end
 		end
 	else
 		iT.dirty = true
@@ -221,10 +263,19 @@ function popElementInstance(iT, instanceID, noUpload)
         --Spring.Echo("Pop", myunitID, "is valid?", Spring.ValidUnitID(myunitID), oldElementIndex, lastElementIndex)
 				iT.indextoUnitID[oldElementIndex] = myunitID
 				iT.indextoUnitID[lastElementIndex] = nil
-        if Spring.ValidUnitID(myunitID) then
-          iT.instanceVBO:InstanceDataFromUnitIDs(myunitID, iT.unitIDattribID, oldElementIndex-1)
+        
+        if iT.featureIDs then
+          if Spring.ValidFeatureID(myunitID) then 
+            iT.instanceVBO:InstanceDataFromFeatureIDs(myunitID, iT.unitIDattribID, oldElementIndex-1)
+          else
+             Spring.Echo("Warning: Tried to pop back an invalid featureID", myunitID, "from", iT.myName, "while removing instance", instanceID)
+          end
         else
-          Spring.Echo("Tried to pop back an invalid unitID", myunitID, "from", iT.myName, "while removing instance", instanceID,". Ensure that you remove invalid units from your instance tables")
+          if Spring.ValidUnitID(myunitID) then
+            iT.instanceVBO:InstanceDataFromUnitIDs(myunitID, iT.unitIDattribID, oldElementIndex-1)
+          else
+            Spring.Echo("Warning: Tried to pop back an invalid unitID", myunitID, "from", iT.myName, "while removing instance", instanceID)
+          end
         end
 			end
 		else
@@ -255,7 +306,11 @@ function uploadAllElements(iT)
   iT.instanceVBO:Upload(iT.instanceData,nil,0, 1, iT.usedElements * iT.instanceStep)
   iT.dirty = false
   if iT.indextoUnitID then
-		iT.instanceVBO:InstanceDataFromUnitIDs(iT.indextoUnitID, iT.unitIDattribID)
+    if iT.featureIDs then
+      iT.instanceVBO:InstanceDataFromFeatureIDs(iT.indextoUnitID, iT.unitIDattribID)
+    else
+      iT.instanceVBO:InstanceDataFromUnitIDs(iT.indextoUnitID, iT.unitIDattribID)
+    end
 	end
 end
 
@@ -272,7 +327,11 @@ function uploadElementRange(iT, startElementIndex, endElementIndex)
     for i = startElementIndex, endElementIndex do
       unitIDRange[#unitIDRange + 1] = iT.indextoUnitID[i]
     end
-		iT.instanceVBO:InstanceDataFromUnitIDs(unitIDRange, iT.unitIDattribID, startElementIndex - 1)
+    if iT.featureIDs then
+      iT.instanceVBO:InstanceDataFromFeatureIDs(unitIDRange, iT.unitIDattribID, startElementIndex - 1)
+    else
+      iT.instanceVBO:InstanceDataFromUnitIDs(unitIDRange, iT.unitIDattribID, startElementIndex - 1)
+    end
 	end
 end
 
