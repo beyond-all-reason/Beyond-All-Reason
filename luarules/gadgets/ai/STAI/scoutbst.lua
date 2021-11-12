@@ -49,7 +49,7 @@ function ScoutBST:Update()
 				if not self.ai.loshst:LosHST:LosPos(position) then
 					self.target = nil
 				end
--- 				local los = self.ai.scouthst:ScoutLos(self, self.target)
+-- 				local los = self.ai.scouthst:ScoutLos(self, self.target)  --TEST
 -- 				self:EchoDebug("target los: " .. los)
 -- 				if los == 2 or los == 3 then
 -- 					self.target = nil
