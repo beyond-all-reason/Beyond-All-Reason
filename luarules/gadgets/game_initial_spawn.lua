@@ -252,6 +252,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	local function spawnStartUnit(teamID, x, z)
 		local startUnit = spGetTeamRulesParam(teamID, startUnitParamName)
+		local luaAI = Spring.GetTeamLuaAI (teamID)
 
 		local _, _, _, isAI, sideName = Spring.GetTeamInfo(teamID)
 		if sideName == "random" then
@@ -274,8 +275,11 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 
+
 		if not scenarioSpawnsUnits then
-			local unitID = spCreateUnit(startUnit, x, y, z, 0, teamID)
+			if not (luaAI and (luaAI == "ScavengersAI" or luaAI == "ChickensAI")) then
+				local unitID = spCreateUnit(startUnit, x, y, z, 0, teamID)
+			end
 		end
 
 		-- share info

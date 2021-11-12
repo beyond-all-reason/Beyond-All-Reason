@@ -337,14 +337,6 @@ local options={
 			{key="higher", name="Higher", desc="Doubled"},
 		}
 	},
-	{
-		key    = 'scavinitialbonuscommander',
-		name   = 'Bonus Starter Constructors',
-		desc   = 'Spawns additional constructors on game start',
-		type   = 'bool',
-		section = 'options_scavengers',
-		def  = true,
-	},
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	-- Chickens
@@ -625,6 +617,31 @@ local options={
 			{key="dense", name="Dense"},
 			{key="verydense", name="Very Dense"},
 		}
+	},
+
+	{
+		key="assistdronesenabled",
+		name="Assist Drones",
+		type="list",
+		def="scav_only",
+		section="options",
+		items={
+			{key="enabled", name="Enabled"},
+			{key="scav_only", name="Enabled for Scavengers only"},
+			{key="disabled", name="Disabled"},
+		}
+	},
+
+	{
+		key    = 'assistdronescount',
+		name   = 'Assist Drones: Count',
+		desc   = 'How many assist drones per commander should be spawned',
+		type   = 'number',
+		section= 'options',
+		def    = 8,
+		min    = 1,
+		max    = 30,
+		step   = 1,
 	},
 
 

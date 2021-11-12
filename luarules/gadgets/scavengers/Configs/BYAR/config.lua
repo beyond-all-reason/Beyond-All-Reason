@@ -53,8 +53,6 @@
 		scavRandomEventsAmountModoption = 0.5
 	end
 
-	local initialBonusCommanderEnabled = Spring.GetModOptions().scavinitialbonuscommander
-
 -- End of Modoptions
 
 
@@ -188,34 +186,6 @@ randomEventsConfig = {
 	randomEventChance = 200*scavRandomEventsAmountModoption, -- higher = lower chance
 
 }
-
-
-
--- Functions which you can configure
-CommanderDronesList = {}
-function SpawnBonusCommander(unitID, unitName, unitTeam)
-	local posx, posy, posz = Spring.GetUnitPosition(unitID)
-	-- Spring.CreateUnit("scavengerdroppodfriendly", posx-32, posy+48, posz, math_random(0,3), unitTeam)
-	-- Spring.CreateUnit("scavengerdroppodfriendly", posx+32, posy+48, posz, math_random(0,3), unitTeam)
-	-- Spring.CreateUnit("scavengerdroppodfriendly", posx, posy+48, posz+32, math_random(0,3), unitTeam)
-	-- Spring.CreateUnit("scavengerdroppodfriendly", posx, posy+48, posz-32, math_random(0,3), unitTeam)
-		--Spring.SetUnitPosition(unitID, posx-32, posz)
-	for i = 1,8 do
-		local posx = posx+math.random(-64,64)
-		local posz = posz+math.random(-64,64)
-		if unitName == "armcom" then
-			local droneID = Spring.CreateUnit("armassistdrone", posx, posy+96, posz+math.random(-64,64), 0, unitTeam)
-			Spring.SpawnCEG("scav-spawnexplo", posx, posy+96, posz,0,0,0)
-			Spring.GiveOrderToUnit(droneID, CMD.GUARD, unitID, {})
-			--CommanderDronesList[droneID] = unitID
-		elseif unitName == "corcom" then
-			local droneID = Spring.CreateUnit("corassistdrone", posx+math.random(-64,64), posy+96, posz+math.random(-64,64), 0, unitTeam)
-			Spring.SpawnCEG("scav-spawnexplo", posx, posy+96, posz,0,0,0)
-			Spring.GiveOrderToUnit(droneID, CMD.GUARD, unitID, {})
-			--CommanderDronesList[droneID] = unitID
-		end
-	end
-end
 
 function UpdateTierChances(n)
 	-- Must be 100 in total
