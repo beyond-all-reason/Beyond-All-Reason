@@ -368,22 +368,6 @@ function TaskQueueBST:specialFilter(cat,param,name)
 	end
 end
 
-function TaskQueueBST:GetAmpOrGroundWeapon()
-	if self.ai.enemyBasePosition then
-		if self.ai.maphst:MobilityNetworkHere('veh', self.position) ~= self.ai.maphst:MobilityNetworkHere('veh', self.ai.enemyBasePosition) and self.ai.maphst:MobilityNetworkHere('amp', self.position) == self.ai.maphst:MobilityNetworkHere('amp', self.ai.enemyBasePosition) then
-			self:EchoDebug('canbuild amphibious because of enemyBasePosition')
-			return true
-		end
-	end
-	local mtype = self.ai.armyhst.factoryMobilities[self.name][1]
-	local network = self.ai.maphst:MobilityNetworkHere(mtype, self.position)
-	if not network or not self.ai.factoryBuilded[mtype] or not self.ai.factoryBuilded[mtype][network] then
-		self:EchoDebug('canbuild amphibious because ' .. mtype .. ' network here is too small or has not enough spots')
-		return true
-	end
-	return false
-end
-
 function TaskQueueBST:findPlace(utype, value,cat)
 	if not value or not cat or not utype then return end
 	local POS = nil

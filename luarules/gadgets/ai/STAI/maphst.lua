@@ -1211,22 +1211,6 @@ function MapHST:UnitCanGetToUnit(unit1, unit2)
 	return self:UnitCanGoHere(unit1, position)
 end
 
-function MapHST:UnitCanHurtVictim(unit, victim)
-	if unit:WeaponCount() == 0 then return false end
-	local vname = victim:Name()
-	local mtype = self.ai.armyhst.unitTable[vname].mtype
-	local name = unit:Name()
-	local canhurt = false
-	if self.ai.armyhst.unitTable[name].groundRange > 0 and mtype == "veh" or mtype == "bot" or mtype == "amp" or mtype == "hov" then
-		canhurt = "ground"
-	elseif self.ai.armyhst.unitTable[name].airRange > 0 and mtype == "air" then
-		canhurt = "air"
-	elseif self.ai.armyhst.unitTable[name].submergedRange > 0 and mtype == "shp" or mtype == "sub" or mtype == "amp" then
-		canhurt = "submerged"
-	end
-	return canhurt
-end
-
 function MapHST:MobilityNetworkSizeHere(mtype, position)
 	if mtype == "air" then return mobilityGridArea end
 	local x = math.ceil(position.x / mobilityGridSize)
@@ -1354,3 +1338,20 @@ function MapHST:GetPathGraph(mtype, targetNodeSize)
 	pathGraphs[mtype][cellsPerNodeSide] = aGraph
 	return aGraph
 end
+--[[
+function MapHST:UnitCanHurtVictim(unit, victim)
+	if unit:WeaponCount() == 0 then return false end
+	local vname = victim:Name()
+	local mtype = self.ai.armyhst.unitTable[vname].mtype
+	local name = unit:Name()
+	local canhurt = false
+	if self.ai.armyhst.unitTable[name].groundRange > 0 and mtype == "veh" or mtype == "bot" or mtype == "amp" or mtype == "hov" then
+		canhurt = "ground"
+	elseif self.ai.armyhst.unitTable[name].airRange > 0 and mtype == "air" then
+		canhurt = "air"
+	elseif self.ai.armyhst.unitTable[name].submergedRange > 0 and mtype == "shp" or mtype == "sub" or mtype == "amp" then
+		canhurt = "submerged"
+	end
+	return canhurt
+end
+]]

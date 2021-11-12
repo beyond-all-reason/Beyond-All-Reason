@@ -169,12 +169,12 @@ function TaskLabBST:countCheck(soldier,Min,mType,Max)
 	self:EchoDebug('countcheck',soldier)
 	if not soldier then return end
 	Min = Min or 0
-	Max = Max or 1 / 0
+	Max = Max or math.huge
 	local team = self.game:GetTeamID()
 	local func = 0
 	local spec = self.ai.armyhst.unitTable[soldier]
 	local counter = self.game:GetTeamUnitDefCount(team,spec.defId)
-	local mtypeLv = self.ai.taskshst:GetMtypedLv(soldier)
+	local mtypeLv = self.ai.tool:mtypedLvCount(self.ai.armyhst.unitTable[soldier].mtypedLv)--self.ai.taskshst:GetMtypedLv(soldier)
 
 	if mType then
 		local mmType = (mtypeLv / mType) + 1
