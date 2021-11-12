@@ -1016,7 +1016,7 @@ local options={
 		type   = 'bool',
 		section = 'options_experimental',
 		def  = false,
-		hidden = true
+		hidden = true,
 	},
 
 	{
