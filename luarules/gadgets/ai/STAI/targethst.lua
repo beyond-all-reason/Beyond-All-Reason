@@ -758,7 +758,7 @@ end
 function TargetHST:UnitDamaged(unit, attacker, damage)
 	-- even if the attacker can't be seen, human players know what weapons look like
 	-- in non-lua shard, the attacker is nil if it's an enemy unit, so this becomes useless
-	if attacker ~= nil and self.ai.loshst:IsKnownEnemy(attacker) ~= 2 then
+	if attacker ~= nil then --   we know what is itand self.ai.loshst:IsKnownEnemy(attacker) ~= 2 then
 		self:DangerCheck(attacker:Name(), attacker:ID())
 		local mtype
 		local ut = self.ai.armyhst.unitTable[unit:Name()]

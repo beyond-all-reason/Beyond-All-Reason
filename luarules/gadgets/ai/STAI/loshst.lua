@@ -60,7 +60,7 @@ function LosHST:UnitDead(unit)
 end
 
 function LosHST:UnitDamaged(unit, attacker, damage)
-	if  attacker ~= nil then --forse siamo arrivati che anora qua devo controllare chi ally è perchè magari in attacco fa casino
+	if  attacker ~= nil then --maybe check ally?? --TODO --WARNING NOTE ATTENTION CAUTION TEST ALERT
 		self:scanEnemy(attacker,true) --a shoting unit is individuable by a medium player so is managed as a unit in LOS :full view
 	end
 end
@@ -106,7 +106,7 @@ function LosHST:scanEnemy(enemy,isShoting)
 		self:cleanEnemy(t.id)
 		t = nil
 	else
-		local t.GULS = Spring.GetUnitLosState(t.id ,self.ai.allyId,true)
+		t.GULS = Spring.GetUnitLosState(t.id ,self.ai.allyId,true)
 		if isShoting or t.GULS >=7 or (t.GULS == 4 and isBuilding) or (t.GULS == 6 and isBuilding) then
 			t.view = 1
 			--full view
@@ -138,7 +138,7 @@ function LosHST:scanEnemy(enemy,isShoting)
 		self:EchoDebug('X-Z SPEED',t.speedX,t.speedZ,t.SPEED)
 		t.dirX,t.dirY,t.dirZ = Spring.GetUnitDirection ( t.id )
 		self:EchoDebug('dir X-Z',t.dirX,t,dirZ)
-
+	end
 
 	return t
 -- 	else
@@ -205,16 +205,16 @@ function LosHST:scanEnemy(enemy,isShoting)
 
 end
 
-function LosHST:IsKnownEnemy(unit)
-	local id = unit:ID()
-	return self.knownEnemies[id]
-end
+-- function LosHST:IsKnownEnemy(unit)
+-- 	local id = unit:ID()
+-- 	return self.knownEnemies[id]
+-- end
 
 
 function LosHST:LosPos(upos)
 	local LosOrRadar, inLos, inRadar, jammed = Spring.GetPositionLosState(upos.x, upos.y, upos.z, self.ai.allyId)
 	if Spring.IsPosInAirLos(upos.x, upos.y, upos.z, self.ai.allyId) then return 1 end
-	if if inLos and upos.y < 0 then return -1 end
+	if inLos and upos.y < 0 then return -1 end
 	if inLos then return 0 end
 	--if inRadar then return nil end
 
