@@ -76,7 +76,6 @@ local screenWidthOrg = 1050
 local screenHeight = screenHeightOrg
 local screenWidth = screenWidthOrg
 
-local customScale = 1
 local centerPosX = 0.5
 local centerPosY = 0.5
 local screenX = math.floor((vsx * centerPosX) - (screenWidth / 2))
@@ -140,7 +139,7 @@ if success and mapinfo then
 	voidWater = mapinfo.voidwater
 end
 
-local widgetScale = (0.5 + (vsx * vsy / 5700000)) * customScale
+local widgetScale = (vsy / 1080)
 
 local vsyncLevel = 1
 local vsyncEnabled = false
@@ -263,8 +262,7 @@ end
 
 function widget:ViewResize()
 	vsx, vsy = Spring.GetViewGeometry()
-	widgetScale = ((vsx + vsy) / 2000) * 0.65 * customScale
-	widgetScale = widgetScale * (1 - (0.11 * ((vsx / vsy) - 1.78)))        -- make smaller for ultrawide screens
+	widgetScale = (vsy / 1080)
 
 	screenHeight = math.floor(screenHeightOrg * widgetScale)
 	screenWidth = math.floor(screenWidthOrg * widgetScale)

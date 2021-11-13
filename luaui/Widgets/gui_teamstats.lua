@@ -27,10 +27,8 @@ local oddLineColour = {0.23,0.23,0.23,0.4}
 local evenLineColour = {0.8,0.8,0.8,0.4}
 local sortLineColour = {0.82,0.82,0.82,0.85}
 
-local widgetScale
+local widgetScale = (vsy / 1080)
 local math_isInRect = math.isInRect
-
-local customScale = 1
 
 local playSounds = true
 local buttonclick = 'LuaUI/Sounds/buildbar_waypoint.wav'
@@ -52,12 +50,14 @@ local header = {
 
 local headerRemap = {}	-- filled in initialize
 
+local aspectMult = vsx / vsy
+Spring.Echo(aspectMult, ((0.07*aspectMult)))
 local guiData = {
 	mainPanel = {
 		relSizes = {
 			x = {
-				min = 0.2333,
-				max = 0.7666,
+				min = 0.1 + ((0.08*aspectMult)),
+				max = 0.9 - ((0.08*aspectMult)),
 				length = 0.49,
 			},
 			y = {
@@ -70,34 +70,25 @@ local guiData = {
 		visible = false,
 	},
 }
+guiData.mainPanel.relSizes.x.length = (guiData.mainPanel.relSizes.x.max - guiData.mainPanel.relSizes.x.min) * 0.92
 
-local glRect	= gl.Rect
 local glColor	= gl.Color
-local glText	= gl.Text
 local glCreateList = gl.CreateList
 local glCallList = gl.CallList
 local glDeleteList = gl.DeleteList
-local glBeginText = gl.BeginText
-local glEndText = gl.EndText
 
 local GetGaiaTeamID			= Spring.GetGaiaTeamID
 local GetAllyTeamList		= Spring.GetAllyTeamList
 local GetTeamList			= Spring.GetTeamList
-local MyTeamID				= Spring.GetMyTeamID()
 local GetTeamStatsHistory	= Spring.GetTeamStatsHistory
-local GetUnitDefID			= Spring.GetUnitDefID
 local GetTeamColor			= Spring.GetTeamColor
 local GetTeamInfo			= Spring.GetTeamInfo
 local GetPlayerInfo			= Spring.GetPlayerInfo
 local IsGUIHidden			= Spring.IsGUIHidden
 local GetMouseState			= Spring.GetMouseState
 local GetGameFrame			= Spring.GetGameFrame
-local floor					= math.floor
 local min					= math.min
 local max					= math.max
-local pi					= math.pi
-local sin					= math.sin
-local cos					= math.cos
 local ceil					= math.ceil
 local floor					= math.floor
 local abs					= math.abs
@@ -237,8 +228,7 @@ end
 
 function widget:ViewResize()
 	vsx,vsy = Spring.GetViewGeometry()
-	widgetScale = ((vsx+vsy) / 2000) * 0.65 * customScale
-	widgetScale = widgetScale * (1 - (0.11 * ((vsx/vsy) - 1.78)))		-- make smaller for ultrawide screens
+	widgetScale = (vsy / 1080)
 
 	font = WG['fonts'].getFont()
 	for _, data in pairs(headerRemap) do

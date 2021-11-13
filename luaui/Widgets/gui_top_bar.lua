@@ -299,7 +299,7 @@ local function updateRejoin()
 		RectRound(barArea[1] - addedSize, barArea[2] - addedSize, barArea[3] + addedSize, barArea[4] + addedSize, barHeight * 0.33, 1, 1, 1, 1, { 0.15, 0.15, 0.15, 0.2 }, { 0.8, 0.8, 0.8, 0.16 })
 
 		gl.Texture(noiseBackgroundTexture)
-		gl.Color(1,1,1, 0.18)
+		gl.Color(1,1,1, 0.15)
 		TexturedRectRound(barArea[1] - addedSize - edgeWidth, barArea[2] - addedSize - edgeWidth, barArea[3] + addedSize + edgeWidth, barArea[4] + addedSize + edgeWidth, barHeight * 0.33, barWidth*0.6, 0)
 		gl.Texture(false)
 
@@ -320,7 +320,7 @@ local function updateRejoin()
 		gl.Texture(false)
 
 		gl.Texture(noiseBackgroundTexture)
-		gl.Color(1,1,1, 0.25)
+		gl.Color(1,1,1, 0.22)
 		TexturedRectRound(barArea[1], barArea[2], barArea[1] + valueWidth, barArea[4], barHeight * 0.2, barWidth*0.6, 0)
 		gl.Texture(false)
 
@@ -1032,7 +1032,7 @@ local function drawResbarValues(res, updateText)
 			if res == 'metal' then
 				-- noise
 				gl.Texture(noiseBackgroundTexture)
-				gl.Color(1,1,1, 0.45)
+				gl.Color(1,1,1, 0.4)
 				TexturedRectRound(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[2], resbarDrawinfo[res].barTexRect[1] + valueWidth, resbarDrawinfo[res].barTexRect[4], barHeight * 0.2, 1, 1, 1, 1, barWidth*0.33, 0)
 				gl.Texture(false)
 			end
