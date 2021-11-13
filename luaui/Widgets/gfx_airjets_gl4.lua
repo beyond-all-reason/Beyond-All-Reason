@@ -745,7 +745,7 @@ local function DrawParticles()
 
 	glAlphaTest(false)
 
-	glDepthTest(true)
+	glDepthTest(false)
 end
 
 
