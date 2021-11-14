@@ -322,7 +322,6 @@ local TESTMODE = true
 function widget:UnitCreated(unitID, unitDefID)
 	if TESTMODE then 
 		unitIDtoUniqueID[unitID] =  DrawUnitGL4(unitID, unitDefID,  0, 0, 0, math.random()*2, 0.6)
-		gl.SetUnitBufferUniforms(unitID, {1, 2, 3, 4, 5}, 0)
 		
 		local px, py, pz = Spring.GetUnitPosition(unitID)
 		unitDefIDtoUniqueID[unitID] = DrawUnitShapeGL4(Spring.GetUnitDefID(unitID), px+20, py + 50, pz+20, 0, 0.6)
