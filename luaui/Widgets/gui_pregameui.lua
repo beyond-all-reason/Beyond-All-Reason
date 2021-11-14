@@ -143,7 +143,6 @@ function widget:GameSetup(state, ready, playerStates)
 end
 
 function widget:MousePress(sx, sy)
-
 	if buttonDrawn then
 
 		-- pressing element
@@ -188,6 +187,10 @@ local function checkStartPointChosen()
 			startPointChosen = true
 		end
 	end
+end
+
+function widget:LanguageChanged()
+	widget:ViewResize()
 end
 
 function widget:Initialize()

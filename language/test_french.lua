@@ -684,6 +684,9 @@ return {
 				units = "Le units",
 				total = "Le total",
 			},
+			factionPicker = {
+				pick = "Le Pick your faction",
+			},
 		},
 
 		scav = {
