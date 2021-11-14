@@ -1,16 +1,17 @@
-VFS.Include('modules/i18n/i18n.lua')
+-- Do NOT use Spring.GetSideData() to display the faction names defined here on the UI,
+-- as these names do not support I18N translations. Use the appropriate I18N entry instead.
 
 return {
     {
-        name = Spring.I18N('units.factions.arm'),
+        name = "Armada",
         startunit = 'armcom',
     },
     {
-        name = Spring.I18N('units.factions.cor'),
+        name = "Cortex",
         startunit = 'corcom',
     },
     {
-        name = Spring.I18N('units.factions.random'),
+        name = "Random",
         startunit = 'armcom',
     },
 }
