@@ -231,7 +231,7 @@ function TurtleHST:RemoveOrgan(unitID)
 				table.remove(turtle.organs, oi)
 				if #turtle.organs == 0 then
 					emptyTurtle = turtle
-					self.ai.defendhst:RemoveWard(nil, turtle)
+					--self.ai.defendhst:RemoveWard(nil, turtle) TESTING
 					table.remove(self.turtles, ti)
 				end
 				foundOrgan = true
@@ -383,7 +383,7 @@ function TurtleHST:AddTurtle(position, water, priority)
 	end
 	table.insert(self.turtles, turtle)
 	self.totalPriority = self.totalPriority + priority
-	self.ai.defendhst:AddWard(nil, turtle)
+	--self.ai.defendhst:AddWard(nil, turtle) TESTING
 	return turtle
 end
 
