@@ -1164,46 +1164,21 @@ function ArmyHST:GetUnitTable()
 			utable.metalStorage = unitDef.metalStorage
 			utable.energyConv = unitDef.customParams.energyconv
 			utable.dps = getDPS(unitDefID)
-			utable.hit = {}
+			utable.hit = 0
 			utable.HIT = 'n'
-			utable.HHH = ''
-			utable.s =
 			utable.groundRange = GetLongestWeaponRange(unitDefID, 0) or 0
 			utable.airRange = GetLongestWeaponRange(unitDefID, 1) or 0
 			utable.submergedRange = GetLongestWeaponRange(unitDefID, 2) or 0
 			utable.g = GetLongestWeaponRange(unitDefID, 0) or 0
 			utable.a = GetLongestWeaponRange(unitDefID, 1) or 0
 			utable.s = GetLongestWeaponRange(unitDefID, 2) or 0
-			utable.sga = self.ai.tool:pairsByKeys{ s = utable.s, g = utable.g, a = utable.a}
-
-			utable.SGA = ''
+			utable.sga = { s = utable.s, g = utable.g, a = utable.a}
 			for name,value in pairs(utable.sga) do
-				utable.SGA = utable.SGA .. name
+				if value > utable.hit then
+					utable.hit = value
+					utable.HIT = name
+				end
 			end
-			utable.HIT = SGA[1]
---[[			if utable.submergedRange > 0 then
-				utable.hit.s = metalCost
-			end
-			local long = 0
-			if utable.groundRange > long then
-				long = utable.groundRange
-				utable.HIT = 'g'
-				utable.hit.g = utable.dps
-
-			end
-			if utable.airRange > long then
-				long = utable.airRange
-				utable.HIT = 'a'
-				utable.hit.a = utable.dps
-			end
-			if utable.submergedRange > long then
-				long = utable.submergedRange
-				utable.HIT = 's'
-				utable.hit.s = utable.dps
--- 			end
--- 			if utable.HIT ~= 'n' then
--- 				utable['dpsLayer'..utable.HIT] = metalCost
--- 			end]]
 			utable.antiNuke = getInterceptor(unitDefID)
 			utable.targetableWeapon = getTargetableWeapon(unitDefID)
 			utable.paralyzer = getParalyzer(unitDefID)
