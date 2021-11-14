@@ -18,7 +18,7 @@ end
 
 
 function LosHST:Init()
-	self.DebugEnabled = false
+	self.DebugEnabled = true
 	self.knownEnemies = {}
 	self.ai.friendlyTeamID = {}
 end
@@ -60,7 +60,7 @@ function LosHST:UnitDead(unit)
 end
 
 function LosHST:UnitDamaged(unit, attacker, damage)
-	if  attacker ~= nil then --maybe check ally?? --TODO --WARNING NOTE ATTENTION CAUTION TEST ALERT
+	if  attacker ~= nil and attacker:AllyTeam() ~= self.ai.allyId then --TODO --WARNING NOTE ATTENTION CAUTION TEST ALERT
 		self:scanEnemy(attacker,true) --a shoting unit is individuable by a medium player so is managed as a unit in LOS :full view
 	end
 end
@@ -74,7 +74,7 @@ function LosHST:cleanEnemy(id)
 		--self.ai.raidhst:TargetDied(self.ai.IDsWeAreRaiding[id])
 	end
 	if self.knownEnemies[id] then
-		self:EchoDebug('clean',id,self.knownEnemies[id].name,self.knownEnemies[id].guls,self.knownEnemies[id].mobile)
+		self:EchoDebug('clean',id,self.knownEnemies[id].name,self.knownEnemies[id].guls,self.knownEnemies[id].SPEED>0)
 		table.remove(self.knownEnemies,id)
 	end
 end
@@ -89,38 +89,28 @@ function LosHST:scanEnemy(enemy,isShoting)
 		self:Warn('nil name')
 	end
 	t.position = enemy:GetPosition() --if is died pos is nil -- exixtance check
-
 	--we are interessed where the unit is right now, this is the threatening DEFENSIVE
 	t.HIT = ut.HIT -- this is the most important OFFENSIVE data
 	t.hitBy = ut.hitBy
-	t.layer = ut.layer
 	t.knownid = true
 	t.hidden = false
 	t.mobile = ut.speed > 0
 	t.health = enemy:GetHealth()
 
-	t.mType =ut.mtype
-	t.GULS = Spring.GetUnitLosState(id ,self.ai.allyId,true)
-	if not t.position or t.GULS == 0 then--enemy dead,
 
-		self:cleanEnemy(t.id)
+	t.mType =ut.mtype
+	t.GULS = Spring.GetUnitLosState(t.id ,self.ai.allyId,true)
+	self:EchoDebug('GULS',t.id,t.GULS)
+	if not t.position or t.GULS == 0 then--enemy dead,or not in sensor at all
 		t = nil
+		self:Warn('how do you are there????? ? ?  ?  ?   ?   ?     ?        ?                 ?              ?')
 	else
 		t.GULS = Spring.GetUnitLosState(t.id ,self.ai.allyId,true)
-		if isShoting or t.GULS >=7 or (t.GULS == 4 and isBuilding) or (t.GULS == 6 and isBuilding) then
+
+		if isShoting or t.GULS >=7 or (t.GULS == 4 and ut.speed == 0) or (t.GULS == 6 and ut.speed == 0) then
 			t.view = 1
 			--full view
-			if moveType == 'air' then
-					t.layer = 'a' --seem cheat but it's not cause a player distingue a airplain in the enemy units
-					self.ai.needAntiAir = true --TODO need to move from here
-			elseif t.position.y < 0 then
-				t.layer = 's'
-			else
-				t.layer = 'g'
-				if Spring.GetGroundHeight(t.position.x,t.position.z) < 0 then --TEST  WARNING
-					t.float = true
-				end
-			end
+
 		elseif t.GULS == 2  or (t.GULS == 6) then -- blip RADAR check speed to hazard a mobile/immobile bet
 			t.view = 0
 			--pure radar
@@ -128,81 +118,23 @@ function LosHST:scanEnemy(enemy,isShoting)
 			t.view = -1
 			--pure radar
 		else
-			self:Warn('unespected GULS response',GULS,t.id,t.position.x,t.position.z,t.name)
-			self:cleanEnemy(t.id)
 			t = nil
+			self:Warn('unespected GULS response',GULS,t.id,t.position.x,t.position.z,t.name)
+		end
+		if t then
+			t.layer = self:setPosLayer(t.name,t.position)
+			t.speedX,t.speedY,t.speedZ, t.SPEED = Spring.GetUnitVelocity ( t.id )
+			self:EchoDebug(t.name,'X-Z SPEED',t.speedX,t.speedZ,t.SPEED)
+			t.dirX,t.dirY,t.dirZ = Spring.GetUnitDirection ( t.id )
+			self:EchoDebug(t.name,'dir X-Z',t.dirX,t.dirZ)
+
+		else
+			self:cleanEnemy(enemy:ID())
 		end
  	end
-	if t.view >= 0 then
-		t.speedX,t.speedY,t.speedZ, t.SPEED = Spring.GetUnitVelocity ( t.id )
-		self:EchoDebug('X-Z SPEED',t.speedX,t.speedZ,t.SPEED)
-		t.dirX,t.dirY,t.dirZ = Spring.GetUnitDirection ( t.id )
-		self:EchoDebug('dir X-Z',t.dirX,t,dirZ)
-	end
+
 
 	return t
--- 	else
--- 		if not enemy:IsCloaked() or isShoting then --full view
--- 			local GULS = Spring.GetUnitLosState(id ,self.ai.allyId,true)
--- 			t.guls = GULS
--- 			if GULS >= 7 or isShoting then
--- 				t.speed = Spring.GetUnitVelocity ( id ) --TODO keep dir and speed
--- 				t.los = true
--- 				t.knownEnemy = true
--- 				t.detect = true
--- 				if moveType == 'air' then
--- 					t.air = true --seem cheat but it's not cause a player distingue a airplain in the enemy units
--- 					self.ai.needAntiAir = true --TODO need to move from here
--- 				elseif t.position.y < 0 then
--- 					t.uw = true
--- 					if moveType == 'amp' then
--- 						t.amp = true
--- 					elseif t.moveType == 'sub' then
--- 						t.sub = true
--- 					else
--- 						self:Warn('unespected moveType underWater',t.position.x,t.position.z,t.name,moveType)
--- 					end
--- 				else
--- 					t.surface = true
--- 					if self.ai.maphst:IsUnderWater(t.position) then --TEST
--- 						t.water = true
--- 					else
--- 						t.ground = true
--- 					end
--- 				end
--- 			elseif GULS == 6 and not self.ai.armyhst.unitTable[t.name].stealth and not Spring.IsUnitInJammer ( id, self.ai.allyId )  then --radar +prevlos not continue
--- 				if t.immobile then
--- 					t.los = true
--- 				end
--- 				t.radar = true
--- 				t.speed = Spring.GetUnitVelocity ( id ) --TODO keep dir and speed
--- 				t.knownid = false
--- 				t.knownEnemy = true
--- 				t.detect = false
---
--- 			elseif GULS == 2   and not self.ai.armyhst.unitTable[t.name].stealth and not Spring.IsUnitInJammer ( id, self.ai.allyId )  then --radar
--- 				t.radar = true
--- 				t.speed = Spring.GetUnitVelocity ( id ) --TODO keep dir and speed
--- 				t.knownid = false
--- 				t.knownEnemy = true
--- 				t.detect = false
--- 			elseif GULS == 4 then --no radar, no los, i know you are there and prevlos
--- 				if t.mobile then
--- 					t.hidden = true --is somewhere
--- 				else
--- 					--immobile are where we know
--- 				end
--- 			elseif GULS == 0 then
--- 				--totally unknow
--- 				t = nil
--- 				self:cleanEnemy(id)
--- 			else
--- 				self:Warn('unespected GULS response',GULS,id,t.position)
--- 				self:cleanEnemy(id)
--- 			end
--- 		end
--- 	end
-
 end
 
 -- function LosHST:IsKnownEnemy(unit)
@@ -211,17 +143,37 @@ end
 -- end
 
 
-function LosHST:LosPos(upos)
+function LosHST:viewPos(upos)
 	local LosOrRadar, inLos, inRadar, jammed = Spring.GetPositionLosState(upos.x, upos.y, upos.z, self.ai.allyId)
 	if Spring.IsPosInAirLos(upos.x, upos.y, upos.z, self.ai.allyId) then return 1 end
 	if inLos and upos.y < 0 then return -1 end
 	if inLos then return 0 end
+	if inRadar then return true end
 	--if inRadar then return nil end
 
 	--if inRadar and upos.y < 0 and not jammed then return 'inSonar' -1 end
 	--if inRadar and upos.y >= 0 and not jammed then return 'inRadar' 0 end
 	return nil
 end
+
+function LosHST:setPosLayer(unitName,Pos)
+	local ut = self.ai.armyhst.unitTable[unitName]
+	local float = false
+	if ut.mtype == 'air' then
+		self.ai.needAntiAir = true --TODO need to move from here
+		return 1
+	end
+	if Pos.y < 0 then
+		return -1
+	end
+	if Spring.GetGroundHeight(Pos.x,Pos.z) < 0 then --TEST  WARNING
+		float = true
+	end
+
+	return 0 , float
+end
+
+
 
 function LosHST:Draw()
 	self.map:EraseAll(5)
@@ -239,19 +191,16 @@ function LosHST:Draw()
 -- 		self:Warn('losname',data.name)
 
 		else
-			self:Warn(data.name,data.GULS)
-			if data.view > 1 then
-				if data.layer == 'a' then
+			self:Warn('draw',data.name,data.GULS,data.id)
+			if data.view ==1 then
+				if data.layer == 1 then
 					u:DrawHighlight({1,1,0,1} , nil, 5 )
 				end
-				if data.layer == 's' then
+				if data.layer == -1 then
 					u:DrawHighlight({1,0,1,1} , nil, 5 )
 				end
-				if data.float then
+				if data.layer == 0 then
 					u:DrawHighlight({0,1,1,1} , nil, 5 )
-				end
-				if data.layer == 'g' then
-					u:DrawHighlight({1,0,0,1} , nil, 5 )
 				end
 			end
 			if data.view == 0 then
@@ -260,8 +209,10 @@ function LosHST:Draw()
 			if data.view == -1 then
 				u:DrawHighlight({0,0,0,1} , nil, 5 )
 			end
-			if not data.SPEED > 0  then
-				map:DrawLine(data.position, {data.position.x+data.speedX,data.position.y,data.position.z+data.speedZ}, {1,1,1,1}, label, true, 5 )
+			self:EchoDebug('speeeed',data.SPEED,data.name)
+			if data.SPEED and data.SPEED > 0 then
+				map:DrawLine(data.position, {x=data.position.x+(data.speedX*30),y=data.position.y,z=data.position.z+(data.speedZ*30)}, {1,0,0,1}, nil, false, 5 )
+
 			end
 		end
 	end

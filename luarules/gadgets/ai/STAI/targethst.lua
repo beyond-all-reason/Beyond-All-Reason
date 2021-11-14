@@ -557,18 +557,18 @@ function TargetHST:UpdateEnemies()
 	-- where is/are the party/parties tonight?
 	local highestValue = minNukeValue
 	local highestValueCell
-	for unitID, e in pairs(self.ai.knownEnemies) do
+	for unitID, e in pairs(self.ai.loshst.knownEnemies) do
 		local los = e.los
 		local ghost = e.ghost
-		local name = e.unitName
+		local name = e.name
 		local ut = self.ai.armyhst.unitTable[name]
 -- 		if ghost and not ghost.position and not e.beingBuilt then
 		if e.view < 0 then
 			-- count ghosts with unknown positions as non-positioned threats
-			self:DangerCheck(name, e.unitID)
+			self:DangerCheck(name, unitID)
 			local threatLayers = self.ai.tool:UnitThreatRangeLayers(name)
 			for groundAirSubmerged, layer in pairs(threatLayers) do
-				self:CountEnemyThreat(e.unitID, name, layer.threat)
+				self:CountEnemyThreat(unitID, name, layer.threat)
 			end
 -- 		elseif (los ~= 0 or (ghost and ghost.position)) and not e.beingBuilt then
 		else
@@ -593,13 +593,13 @@ function TargetHST:UpdateEnemies()
 					end
 				elseif e.view > 0 then --LOS, full view
 					local mtype = ut.mtype
-					self:DangerCheck(name, e.unitID)
+					self:DangerCheck(name, unitID)
 					local value = self:Value(name)
 					if self.ai.armyhst.unitTable[name].extractsMetal ~= 0 then
 						table.insert(self.ai.enemyMexSpots, { position = pos, unit = e })
 					end
 					if self.ai.armyhst.unitTable[name].isBuilding then
-						table.insert(cell.buildingIDs, e.unitID)
+						table.insert(cell.buildingIDs, unitID)
 					end
 					local hurtBy = self.ai.tool:WhatHurtsUnit(name)
 					local threatLayers = self.ai.tool:UnitThreatRangeLayers(name)
@@ -613,7 +613,7 @@ function TargetHST:UpdateEnemies()
 						if mtype == "air" and groundAirSubmerged == "ground" or groundAirSubmerged == "submerged" then threat = 0 end -- because air units are pointless to run from
 						if threat ~= 0 then
 							self:FillCircle(px, pz, range, "threat", groundAirSubmerged, threat)
-							self:CountEnemyThreat(e.unitID, name, threat)
+							self:CountEnemyThreat(unitID, name, threat)
 						elseif mtype ~= "air" then -- air units are too hard to attack
 							local health = e.health
 							for hurtGAS, hit in pairs(hurtBy) do
@@ -752,13 +752,14 @@ function TargetHST:UpdateFronts(number)
 		highestResponses[n] = highestResponse
 		highestCells[n] = highestCell
 	end
-	self.ai.defendhst:FindFronts(highestCells)
+	--self.ai.defendhst:FindFronts(highestCells)TESTING
 end
 
 function TargetHST:UnitDamaged(unit, attacker, damage)
 	-- even if the attacker can't be seen, human players know what weapons look like
 	-- in non-lua shard, the attacker is nil if it's an enemy unit, so this becomes useless
-	if attacker ~= nil then --   we know what is itand self.ai.loshst:IsKnownEnemy(attacker) ~= 2 then
+	if attacker ~= nil and attacker:AllyTeam() ~= self.ai.allyId then --   we know what is it and self.ai.loshst:IsKnownEnemy(attacker) ~= 2 then
+		--print(attacker:Name())
 		self:DangerCheck(attacker:Name(), attacker:ID())
 		local mtype
 		local ut = self.ai.armyhst.unitTable[unit:Name()]
@@ -767,7 +768,8 @@ function TargetHST:UnitDamaged(unit, attacker, damage)
 			local aut = self.ai.armyhst.unitTable[attacker:Name()]
 			if aut then
 				if aut.isBuilding then
-					self.ai.loshst:KnowEnemy(attacker)
+
+					self.ai.loshst:scanEnemy(attacker,isShoting)
 					return
 				end
 				threat = aut.metalCost
@@ -828,7 +830,7 @@ function TargetHST:AddBadPosition(position, mtype, threat, duration)
 end
 
 function TargetHST:UpdateMap()
-	if self.ai.lastLOSUpdate > self.lastUpdateFrame then
+
 
 -- 		game:SendToConsole("before target update", collectgarbage("count")/1024)
 		self.raiderCounted = {}
@@ -846,8 +848,7 @@ function TargetHST:UpdateMap()
 		self.lastUpdateFrame = self.game:Frame()
 		--game:SendToConsole("after target update", collectgarbage("count")/1024)
 		--collectgarbage()
-		--game:SendToConsole("after collectgarbage", collectgarbage("count")/1024)
-	end
+		--game:SendToConsole("after collectgarbage", collectgarbage("count")/1024
 end
 ------------------------------------------------------------------------HERE BEGIN THE ON DEMAND FUNCTION---------------------------
 local function CellVulnerable(cell, hurtByGAS, weaponsGAS)
