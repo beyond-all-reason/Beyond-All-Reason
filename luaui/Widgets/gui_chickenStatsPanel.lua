@@ -23,9 +23,7 @@ if not Spring.GetGameRulesParam("difficulty") then
 end
 
 local GetGameSeconds = Spring.GetGameSeconds
-local Spring = Spring
 local gl = gl
-local widgetHandler = widgetHandler
 local math = math
 
 local displayList
@@ -61,6 +59,10 @@ local updatePanel
 local hasChickenEvent = false
 
 local difficultyOption = Spring.GetModOptions().chicken_difficulty
+Spring.Echo("foo", "Chickens difficulty:", difficultyOption)
+-- for k,v in pairs(Spring.GetModOptions()) do
+-- 	Spring.Echo(k, v)
+-- end
 local difficultyCaption = Spring.I18N('ui.chickens.difficulty.' .. difficultyOption)
 
 local rules = {
@@ -379,4 +381,8 @@ function widget:ViewResize()
 	widgetScale = (0.75 + (viewSizeX * viewSizeY / 10000000)) * customScale
 	x1 = viewSizeX + x1 + ((x1 / 2) * (widgetScale - 1))
 	y1 = viewSizeY + y1 + ((y1 / 2) * (widgetScale - 1))
+end
+
+function widget:LanguageChanged()
+	widget:ViewResize()
 end

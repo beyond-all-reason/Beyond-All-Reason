@@ -860,6 +860,10 @@ function widget:SelectionChanged(sel)
 	clickedCellDesiredState = nil
 end
 
+function widget:LanguageChanged()
+	widget:ViewResize()
+end
+
 function widget:GetConfigData()
 	return { version = 1, colorize = colorize, stickToBottom = stickToBottom, alwaysShow = alwaysShow, disabledCmd = disabledCommand}
 end

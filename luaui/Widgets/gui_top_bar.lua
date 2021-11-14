@@ -2090,6 +2090,9 @@ function widget:GameProgress(n)
 	serverFrame = n
 end
 
+function widget:LanguageChanged()
+	updateButtons();
+end
 
 function widget:Initialize()
 	gameFrame = Spring.GetGameFrame()

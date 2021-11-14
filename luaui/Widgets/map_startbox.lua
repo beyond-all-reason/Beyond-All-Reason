@@ -31,8 +31,6 @@ local fontSize = 18
 local fontShadow = true        -- only shows if font has a white outline
 local shadowOpacity = 0.35
 
-local infotext = Spring.I18N('ui.startSpot.anywhere')
-local infotextBoxes = Spring.I18N('ui.startSpot.startbox')
 local infotextFontsize = 13
 
 local commanderNameList = {}
@@ -62,8 +60,6 @@ local startTimer = Spring.GetTimer()
 
 local infotextList, chobbyInterface
 
-local GetTeamInfo = Spring.GetTeamInfo
-local GetPlayerInfo = Spring.GetPlayerInfo
 local GetTeamColor = Spring.GetTeamColor
 
 local glTranslate = gl.Translate
@@ -176,6 +172,9 @@ local function drawName(x, y, name, teamID)
 end
 
 local function createInfotextList()
+	local infotext = Spring.I18N('ui.startSpot.anywhere')
+	local infotextBoxes = Spring.I18N('ui.startSpot.startbox')
+
 	if infotextList then
 		gl.DeleteList(infotextList)
 	end
@@ -191,8 +190,11 @@ local function CoopStartPoint(playerID, x, y, z)
 	coopStartPoints[playerID] = {x, y, z}
 end
 
-function widget:Initialize()
+function widget:LanguageChanged()
+	createInfotextList()
+end
 
+function widget:Initialize()
 	-- only show at the beginning
 	if Spring.GetGameFrame() > 1 then
 		widgetHandler:RemoveWidget()
