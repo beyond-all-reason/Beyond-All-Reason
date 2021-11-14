@@ -59,10 +59,6 @@ local updatePanel
 local hasChickenEvent = false
 
 local difficultyOption = Spring.GetModOptions().chicken_difficulty
-Spring.Echo("foo", "Chickens difficulty:", difficultyOption)
--- for k,v in pairs(Spring.GetModOptions()) do
--- 	Spring.Echo(k, v)
--- end
 local difficultyCaption = Spring.I18N('ui.chickens.difficulty.' .. difficultyOption)
 
 local rules = {
