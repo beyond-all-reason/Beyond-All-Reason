@@ -10,12 +10,12 @@ function widget:GetInfo()
 	}
 end
 
-local restorePreviousFaction = false
-
 local factions = {
-	{ UnitDefNames.corcom.id, Spring.I18N('units.factions.cor') },
-	{ UnitDefNames.armcom.id, Spring.I18N('units.factions.arm') },
+	{ startUnit = UnitDefNames.corcom.id, factionName = Spring.I18N('units.factions.cor') },
+	{ startUnit = UnitDefNames.armcom.id, factionName = Spring.I18N('units.factions.arm') },
 }
+
+local doUpdate
 local playSounds = true
 local posY = 0.75
 local posX = 0
@@ -41,13 +41,10 @@ local sound_button = 'LuaUI/Sounds/buildbar_waypoint.wav'
 
 local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity", 0.6) or 0.66)
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
-local glossMult = 1 + (2 - (ui_opacity * 2))    -- increase gloss/highlight so when ui is transparant, you can still make out its boundaries and make it less flat
 
 local isSpec = Spring.GetSpectatingState()
 local backgroundRect = {}
-local lastUpdate = os.clock() - 1
 
-local os_clock = os.clock
 local math_isInRect = math.isInRect
 
 local glColor = gl.Color
@@ -81,7 +78,7 @@ local function drawFactionpicker()
 			math.floor(backgroundRect[3] - padding - (cellSize * (i - 1))),
 			math.floor(backgroundRect[2] + cellSize)
 		}
-		local disabled = Spring.GetTeamRulesParam(myTeamID, 'startUnit') ~= factions[i][1]
+		local disabled = Spring.GetTeamRulesParam(myTeamID, 'startUnit') ~= factions[i].startUnit
 		if disabled then
 			glColor(0.55,0.55,0.55,1)
 		else
@@ -92,10 +89,10 @@ local function drawFactionpicker()
 			1,1,1,1,
 			0,
 			nil, disabled and 0.033 or nil,
-			'#'..factions[i][1]
+			'#'..factions[i].startUnit
 		)
 		-- faction name
-		font2:Print((disabled and "\255\170\170\170" or "\255\255\255\255")..factions[i][2], factionRect[i][1] + ((factionRect[i][3] - factionRect[i][1]) * 0.5), factionRect[i][2] + ((factionRect[i][4] - factionRect[i][2]) * 0.22) - (fontSize * 0.5), fontSize * 0.96, "co")
+		font2:Print((disabled and "\255\170\170\170" or "\255\255\255\255")..factions[i].factionName, factionRect[i][1] + ((factionRect[i][3] - factionRect[i][1]) * 0.5), factionRect[i][2] + ((factionRect[i][4] - factionRect[i][2]) * 0.22) - (fontSize * 0.5), fontSize * 0.96, "co")
 	end
 	font2:End()
 end
@@ -230,7 +227,6 @@ function widget:Update(dt)
 		end
 		if ui_opacity ~= Spring.GetConfigFloat("ui_opacity", 0.6) then
 			ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.6)
-			glossMult = 1 + (2 - (ui_opacity * 2))
 			doUpdate = true
 		end
 
@@ -271,10 +267,6 @@ function widget:DrawScreen()
 		doUpdate = true
 	end
 
-	if doUpdate then
-		lastUpdate = os_clock()
-	end
-
 	if dlistGuishader and WG['guishader'] then
 		WG['guishader'].InsertDlist(dlistGuishader, 'factionpicker')
 	end
@@ -296,7 +288,7 @@ function widget:DrawScreen()
 				RectRound(factionRect[i][1] + bgpadding, factionRect[i][2] + bgpadding, factionRect[i][3], factionRect[i][4], bgpadding, 1, 1, 1, 1, { 0.3, 0.3, 0.3, (b and 0.5 or 0.25) }, { 1, 1, 1, (b and 0.3 or 0.15) })
 				glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
-				font2:Print(factions[i][2], factionRect[i][1] + ((factionRect[i][3] - factionRect[i][1]) * 0.5), factionRect[i][2] + ((factionRect[i][4] - factionRect[i][2]) * 0.22) - (fontSize * 0.5), fontSize * 0.96, "co")
+				font2:Print(factions[i].factionName, factionRect[i][1] + ((factionRect[i][3] - factionRect[i][1]) * 0.5), factionRect[i][2] + ((factionRect[i][4] - factionRect[i][2]) * 0.22) - (fontSize * 0.5), fontSize * 0.96, "co")
 				break
 			end
 		end
@@ -314,7 +306,7 @@ function widget:MousePress(x, y, button)
 					Spring.PlaySoundFile(sound_button, 0.6, 'ui')
 				end
 				-- tell initial spawn
-				Spring.SendLuaRulesMsg('\138' .. tostring(factions[i][1]))
+				Spring.SendLuaRulesMsg('\138' .. tostring(factions[i].startUnit))
 				break
 			end
 		end
