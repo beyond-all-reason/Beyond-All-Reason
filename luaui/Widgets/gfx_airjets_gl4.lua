@@ -84,8 +84,6 @@ local gaiaID = Spring.GetGaiaTeamID()
 local enableLights = true
 
 local disableAtAvgFps = 1
-local limitAtAvgFps = 1	-- filter spammy units: fighters/scouts
-local avgFpsThreshold = 1   -- have this more fps than disableAtAvgFps to re-enable
 
 local lightMult = 1.4
 
@@ -322,7 +320,6 @@ local distortion = 0.008
 local animSpeed = 3
 local jitterWidthScale = 3
 local jitterLengthScale = 3
-local drawReflectionPass = false	-- should be free now :D, but is strangely ugly on bumpwater
 
 local texture1 = "bitmaps/GPL/Lups/perlin_noise.jpg"    -- noise texture 
 --local texture1 = "luaui/images/perlin_noise_rgba_512.png"    -- noise texture
@@ -374,7 +371,6 @@ local unitPieceOffset = {}
 
 local shaders
 local lastGameFrame = Spring.GetGameFrame()
-local sceduledFpsCheckGf = lastGameFrame + 30
 local updateSec = 0
 
 local enabled = true
@@ -386,7 +382,6 @@ local lighteffectsEnabled = false -- TODO (enableLights and WG['lighteffects'] ~
 -- no FPS limited
 -- draw in refract/reflect too?
 -- A crashing aircraft can be neither destroyed nor go out ouf LOS before becoming an invalid unitID
-
 -- GL4 Variables:
 
 local quadVBO = nil
@@ -425,26 +420,27 @@ out DataVS {
 	vec4 jetcolor;
 };
 
-const vec4 centerPos = vec4(0.0,0.0,0.0,1.0);
-
-//#define WIDTH  gl_Vertex.x
-//#define LENGTH gl_Vertex.y
-//#define TEXCOORD gl_Vertex.zw
-// gl_MultiTexCoord0.xy := jitter width/length scale (i.e jitter quad length = gl_vertex.x * gl_MultiTexCoord0.x)
-// gl_MultiTexCoord0.z  := (quad_width) / (quad_length) (used to normalize the texcoord dimensions)
-//#define DISTORTION_STRENGTH gl_MultiTexCoord0.w
-//#define EMITDIR gl_MultiTexCoord1
-//#define COLOR gl_MultiTexCoord2.rgb
-//#define ANIMATION_SPEED gl_MultiTexCoord2.w
-//	glMultiTexCoord(0, jitterWidthScale, jitterLengthScale, self.width / self.length, distortion)
-//	glMultiTexCoord(1, ev[1], ev[2], ev[3], 1)
-//	glMultiTexCoord(2, color[1], color[2], color[3], animSpeed)
-
-
-
 //__ENGINEUNIFORMBUFFERDEFS__
 
+struct SUniformsBuffer {
+    uint composite; //     u8 drawFlag; u8 unused1; u16 id;
+    
+    uint unused2;
+    uint unused3;
+    uint unused4;
 
+    float maxHealth;
+    float health;
+    float unused5;
+    float unused6;
+    
+    vec4 speed;    
+    vec4[5] userDefined; //can't use float[20] because float in arrays occupies 4 * float space
+};
+
+layout(std140, binding=1) readonly buffer UniformsBuffer {
+    SUniformsBuffer uni[];
+};
 layout(std140, binding=0) readonly buffer MatrixBuffer {
 	mat4 UnitPieces[];
 };
@@ -489,9 +485,9 @@ void main()
 
 	mat4 pieceMatrix = mat4mix(mat4(1.0), UnitPieces[baseIndex + pieceIndex + 1u], modelMatrix[3][3]);
 	
-	vec2 modulatedsize = widthlengthtime.xy;
+	vec2 modulatedsize = widthlengthtime.xy * 1.5;
 	// modulatedsize += rndVec3.xy * modulatedsize * 0.25; // not very pretty
-	vec4 vertexPos = vec4(position_xy_uv.x * modulatedsize.x , 0, position_xy_uv.y*modulatedsize.y ,1.0);
+	vec4 vertexPos = vec4(position_xy_uv.x * modulatedsize.x * 2.0, 0, position_xy_uv.y*modulatedsize.y * 0.66 ,1.0);
 
 	mat4 worldMat = modelMatrix * pieceMatrix;
 	//worldMat = modelMatrix;
@@ -500,7 +496,6 @@ void main()
 	mat4 worldMatInv = transpose(worldMat);
 	
 	vec4 worldPos  = worldMat * vertexPos;
-	//vec4 worldPosM = worldMat * centerPos;
 	
 	vec3 modelNormal = vec3(0.0, 1.0, 0.0);
 	vec3 modelAxis   = vec3(0.0, 0.0, 1.0);
@@ -528,11 +523,10 @@ void main()
 	jetcolor.rgb = color;
 	jetcolor.a = clamp((timeInfo.x - widthlengthtime.z)*0.053, 0.0, 1.0);
 	// VISIBILITY CULLING
-	//if (length(worldCamPos.xyz - worldPos.xyz) >  iconDistance) jetcolor.a = 0;
-	//if (dot(worldPos.xyz, worldPos.xyz) < 1.0) jetcolor.a = 0; 
-	
-	//if ((instData.y & 0x00008000u) > 0u )  jetcolor = vec4(0.0); // this should work fine
-	if (vertexClipped(cameraViewProj * worldMat * vec4(0.0, 0.0, 0.0, 1.0), 1.0)) jetcolor.a = 0.0;
+	if (length(worldCamPos.xyz - worldPos.xyz) >  iconDistance) jetcolor.a = 0; // disable if unit is further than icondist
+	if (dot(worldPos.xyz, worldPos.xyz) < 1.0) jetcolor.a = 0; // handle accidental zero matrix case
+	if ((uni[instData.y].composite & 0x00000001u) == 0u )  jetcolor = vec4(0.0); // disable if drawflag is set to 0
+	if (vertexClipped(cameraViewProj * worldMat * vec4(0.0, 0.0, 0.0, 1.0), 1.2)) jetcolor.a = 0.0; // dont draw if way outside of view
 	//jetcolor.a = 0.2;
 }
 ]]
@@ -547,7 +541,6 @@ uniform sampler2D noiseMap;
 uniform sampler2D mask;
 
 //__ENGINEUNIFORMBUFFERDEFS__
-
 
 #define DISTORTION 0.01
 in DataVS {
@@ -572,22 +565,13 @@ void main(void)
 		fragColor.rgba = clamp(fragColor, 0.0, 1.0);
 		
 		fragColor.rgba *= jetcolor.a;
-		//fragColor.rgba = jetcolor.a;
-		
-		//fragColor.rgb= vec3(1.0);
-		
 }
-
 ]]
-	
-	
-
 
 local function goodbye(reason)
   Spring.Echo("Airjet GL4 widget exiting with reason: "..reason)
   widgetHandler:RemoveWidget()
 end
-
 
 local function initGL4()
 
@@ -627,10 +611,7 @@ local function initGL4()
   jetInstanceVBO.primitiveType = GL.TRIANGLES
   jetInstanceVBO.indexVBO = makeRectIndexVBO()
   jetInstanceVBO.VAO:AttachIndexBuffer(jetInstanceVBO.indexVBO)
-  
 end
-
-
 
 --------------------------------------------------------------------------------
 -- Draw Iteration
@@ -710,9 +691,6 @@ local function ValidateUnitIDs(unitIDkeys)
 	if numunitids- validunitids > 0 then
 		Spring.Echo("Airjets GL4", numunitids, "Valid", numunitids- validunitids, "invalid", invalidstr)
 	end
-	if #invalidunitids > 0 then 
-	--	Spring.Echo(invalidunitids)
-	end
 end
 
 local drawframe = 0
@@ -721,7 +699,7 @@ local function DrawParticles()
 	-- validate unitID buffer
 	drawframe = drawframe + 1
 	if drawframe %99 == 1 then
-		Spring.Echo("Numairjets", jetInstanceVBO.usedElements)
+		--Spring.Echo("Numairjets", jetInstanceVBO.usedElements)
 	end
 	gl.Culling(false)
 	
@@ -886,7 +864,9 @@ function widget:Update(dt)
 		lastGameFrame = gf
 		updateSec = 0
 		for unitID, unitDefID in pairs(inactivePlanes) do
-			if spGetUnitIsActive(unitID) then
+			-- always activate enemy planes
+			
+			if spGetUnitIsActive(unitID) or not Spring.IsUnitAllied(unitID) then
 				if xzVelocityUnits[unitDefID] then
 					local uvx,_,uvz = spGetUnitVelocity(unitID)
 					if uvx * uvx + uvz * uvz > xzVelocityUnits[unitDefID] * xzVelocityUnits[unitDefID] then
@@ -924,42 +904,16 @@ function widget:Update(dt)
 			AddUnit(unitID, unitDefID, spGetUnitTeam(unitID))
 		end
 	end
-	--[[
-	if gf >= sceduledFpsCheckGf then
-		sceduledFpsCheckGf = gf + 30
-		averageFps = ((averageFps * 19) + spGetFPS()) / 20
-		if enabled then
-			if averageFps < disableAtAvgFps then
-				enabled = false
-			end
-			if not limit then
-				if averageFps < limitAtAvgFps then
-					limit = true
-					for unitID, unitDefID in pairs(activePlanes) do
-						if limitDefs[unitDefID] then
-							Deactivate(unitID, unitDefID, "lowfps")
-						end
-					end
-				end
-			else
-				if averageFps >= limitAtAvgFps + avgFpsThreshold then
-					limit = false
-				end
-			end
-		else
-			if averageFps >= disableAtAvgFps + avgFpsThreshold then
-				enabled = true
-			end
-		end
-	end]]--
 end
 
 function widget:UnitEnteredLos(unitID, unitTeam, allyTeam, unitDefID)
+	unitDefID = unitDefID or Spring.GetUnitDefID(unitID)
 	--Spring.Echo("UnitEnteredLos(unitID, unitTeam, allyTeam, unitDefID)",unitID, unitTeam, allyTeam, unitDefID)
 	AddUnit(unitID, unitDefID, unitTeam)
 end
 
 function widget:UnitLeftLos(unitID, unitTeam, allyTeam, unitDefID)
+	unitDefID = unitDefID or Spring.GetUnitDefID(unitID)
 	--Spring.Echo("UnitLeftLos(unitID, unitDefID, unitTeam)",unitID, unitTeam, allyTeam, unitDefID)
 	RemoveUnit(unitID, unitDefID, unitTeam)
 end
@@ -991,15 +945,12 @@ function widget:DrawWorld()
 	DrawParticles()
 end
 
-if drawReflectionPass then
-	widget.DrawWorldReflection = DrawParticles
-	widget.DrawWorldRefraction = DrawParticles
-end
+
+widget.DrawWorldReflection = DrawParticles
+
 
 
 function widget:Initialize()
-	--shaders = CreateShader()
-	
 	initGL4()
 
 	for _, unitID in ipairs(Spring.GetAllUnits()) do
@@ -1008,19 +959,6 @@ function widget:Initialize()
 	end
 
 	WG['airjets'] = {}
-	WG['airjets'].getLimitFps = function()
-		return limitAtAvgFps
-	end
-	WG['airjets'].setLimitFps = function(value)
-		limitAtAvgFps = value
-	end
-	WG['airjets'].getDisableFps = function()
-		return disableAtAvgFps
-	end
-	WG['airjets'].setDisableFps = function(value)
-		disableAtAvgFps = value
-	end
-	
 
 	WG['airjets'].addAirJet = function (unitID, piecenum, width, length, color3, emitVector) -- for WG external calls
 		local airjetkey = tostring(unitID).."_"..tostring(piecenum)
@@ -1058,22 +996,12 @@ end
 
 function widget:GetConfigData(data)
 	return {
-		averageFps = math.floor(averageFps),
 		disableAtAvgFps = disableAtAvgFps,
-		limitAtAvgFps = limitAtAvgFps
 	}
 end
 
 function widget:SetConfigData(data)
 	if data.disableAtAvgFps ~= nil then
 		disableAtAvgFps = data.disableAtAvgFps
-	end
-	if data.disableAtAvgFps ~= nil then
-		limitAtAvgFps = data.limitAtAvgFps
-	end
-	if Spring.GetGameFrame() > 0 then
-		if data.averageFps ~= nil then
-			averageFps = data.averageFps
-		end
 	end
 end
