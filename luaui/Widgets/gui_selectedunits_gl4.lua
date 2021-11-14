@@ -47,9 +47,10 @@ local unitScale = {}
 local unitCanFly = {}
 local unitBuilding = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
-	unitScale[unitDefID] = (8 * ( unitDef.xsize^2 + unitDef.zsize^2 ) ^ 0.5) + 8
+	unitScale[unitDefID] = (7.5 * ( unitDef.xsize^2 + unitDef.zsize^2 ) ^ 0.5) + 8
 	if unitDef.canFly then
 		unitCanFly[unitDefID] = true
+		unitScale[unitDefID] = unitScale[unitDefID] * 0.7
 	elseif unitDef.isBuilding or unitDef.isFactory or unitDef.speed==0 then
 		unitBuilding[unitDefID] = {
 			unitDef.xsize * 8.2 + 12,
@@ -81,16 +82,16 @@ local function AddPrimitiveAtUnit(unitID)
 	local width, length
 	if unitCanFly[unitDefID] then
 		numVertices = 3 -- triangles for planes
-		width = radius * 0.7
-		length = radius  * 0.7
+		width = radius
+		length = radius
 	elseif unitBuilding[unitDefID] then
 		width = unitBuilding[unitDefID][1]
 		length = unitBuilding[unitDefID][2]
 		cornersize = (width + length) * 0.075
 		numVertices = 2
 	else
-		width = radius * 0.94
-		length = radius  * 0.94
+		width = radius
+		length = radius
 	end
 
 	--Spring.Echo(unitID,radius,radius, Spring.GetUnitTeam(unitID), numvertices, 1, gf)
