@@ -40,19 +40,20 @@ local selUnits = {}
 local updateSelection = true
 local selectedUnits = Spring.GetSelectedUnits()
 
-local unitRadius = {}
 local unitTeam = {}
 local unitUnitDefID = {}
 
+local unitScale = {}
 local unitCanFly = {}
 local unitBuilding = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
+	unitScale[unitDefID] = (8 * ( unitDef.xsize^2 + unitDef.zsize^2 ) ^ 0.5) + 8
 	if unitDef.canFly then
 		unitCanFly[unitDefID] = true
 	elseif unitDef.isBuilding or unitDef.isFactory or unitDef.speed==0 then
 		unitBuilding[unitDefID] = {
-			unitDef.xsize * 8.3 + 8,
-			unitDef.zsize * 8.3 + 8
+			unitDef.xsize * 8.2 + 12,
+			unitDef.zsize * 8.2 + 12
 		}
 	end
 end
@@ -69,10 +70,7 @@ local function AddPrimitiveAtUnit(unitID)
 	local numVertices = 64 -- default to cornered rectangle
 	local cornersize = 0
 
-	if not unitRadius[unitDefID] then
-		unitRadius[unitDefID] = Spring.GetUnitRadius(unitID) * 2.6 or 64
-	end
-	local radius = unitRadius[unitDefID]
+	local radius = unitScale[unitDefID]
 
 	if not unitTeam[unitID] then
 		unitTeam[unitID] = Spring.GetUnitTeam(unitID)
