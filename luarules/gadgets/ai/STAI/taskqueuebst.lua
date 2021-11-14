@@ -669,7 +669,7 @@ function TaskQueueBST:ProgressQueue()
 		--self.game:StopTimer('tqbPOS')
 		--self.game:StartTimer('tqb5')
 		if value and not utype   then
-			self:EchoDebug('warning' , self.name , " cannot build:",value,", couldnt grab the unit type from the engine")
+			self:Warn('warning' , self.name , " cannot build:",value,", couldnt grab the unit type from the engine")
 			self.progress = true
 			return
 		end
