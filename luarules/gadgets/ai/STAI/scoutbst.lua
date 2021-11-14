@@ -46,7 +46,7 @@ function ScoutBST:Update()
 			local unit = self.unit:Internal()
 			-- reset target if it's in sight
 			if self.target ~= nil then
-				if not self.ai.loshst:LosHST:LosPos(position) then
+				if not self.ai.loshst:viewPos(self.target) then--TEST
 					self.target = nil
 				end
 -- 				local los = self.ai.scouthst:ScoutLos(self, self.target)  --TEST
