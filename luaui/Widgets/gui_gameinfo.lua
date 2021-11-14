@@ -67,7 +67,6 @@ for key, value in pairs(modoptions) do
 				changedChickenModoptions[key] = tostring(value)
 			end
 		end
-		modoptions[key] = nil    -- filter chicken modoptions
 	end
 end
 
@@ -84,8 +83,6 @@ local screenWidthOrg = 540
 local screenHeight = screenHeightOrg
 local screenWidth = screenWidthOrg
 
-local customScale = 1.1
-
 local startLine = 1
 
 local vsx, vsy = Spring.GetViewGeometry()
@@ -98,7 +95,7 @@ local glCreateList = gl.CreateList
 local glCallList = gl.CallList
 local glDeleteList = gl.DeleteList
 
-local widgetScale = 1
+local widgetScale = (vsy / 1080)
 
 local fileLines = {}
 local totalFileLines = 0
@@ -109,8 +106,7 @@ local RectRound, UiElement, UiScroller, elementCorner
 
 function widget:ViewResize()
 	vsx, vsy = Spring.GetViewGeometry()
-	widgetScale = ((vsx + vsy) / 2000) * 0.65    --(0.5 + (vsx*vsy / 5700000)) * customScale
-	widgetScale = widgetScale * (1 - (0.11 * ((vsx / vsy) - 1.78)))        -- make smaller for ultrawide screens
+	widgetScale = (vsy / 1080)
 
 	screenHeight = math.floor(screenHeightOrg * widgetScale)
 	screenWidth = math.floor(screenWidthOrg * widgetScale)
@@ -187,7 +183,7 @@ function DrawTextarea(x, y, width, height, scrollbar)
 			if string.find(line, '::') then
 				local cmd = string.match(line, '^[ %+a-zA-Z0-9_-]*')        -- escaping the escape: \\ doesnt work in lua !#$@&*()&5$#
 				local descr = string.sub(line, string.len(string.match(line, '^[ %+a-zA-Z0-9_-]*::')) + 1)
-				descr, numLines = font:WrapText(descr, (width - scrollbarMargin - scrollbarWidth - 250 - textRightOffset) * (loadedFontSize / fontSizeLine))
+				descr, numLines = font:WrapText(descr, (width - scrollbarMargin - scrollbarWidth - 250 - textRightOffset) * 0.65 * (loadedFontSize / fontSizeLine))
 				if (lineSeparator + fontSizeTitle) * (j + numLines - 1) > height then
 					break
 				end
@@ -196,7 +192,7 @@ function DrawTextarea(x, y, width, height, scrollbar)
 				font:Print(cmd, x + (18*widgetScale), y - (lineSeparator + fontSizeTitle) * j, fontSizeLine, "n")
 
 				font:SetTextColor(fontColorLine)
-				font:Print(descr, x + (screenWidth*0.47), y - (lineSeparator + fontSizeTitle) * j, fontSizeLine, "n")
+				font:Print(descr, x + (screenWidth*0.58), y - (lineSeparator + fontSizeTitle) * j, fontSizeLine, "n")
 				j = j + (numLines - 1)
 			else
 				-- line

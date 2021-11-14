@@ -110,7 +110,9 @@ local pagestepped = false
 
 local RectRound, UiElement, UiSelectHighlight
 
-local chobbyInterface, widgetScale, dlistGuishader, lastStart
+local chobbyInterface, dlistGuishader, lastStart
+
+local widgetScale = (vsy / 1080)
 
 local texts = {
 	title = 'Widget Selector',
@@ -303,12 +305,12 @@ end
 
 function widget:ViewResize(n_vsx, n_vsy)
 	vsx, vsy = Spring.GetViewGeometry()
-	widgetScale = (0.6 + (vsx * vsy / 6000000))
+	widgetScale = (vsy / 1080)
 	local fontfileScale = widgetScale
 	font = gl.LoadFont(fontfile, fontfileSize * fontfileScale, fontfileOutlineSize * fontfileScale, fontfileOutlineStrength)
 	font2 = gl.LoadFont(fontfile2, fontfileSize * fontfileScale, fontfileOutlineSize * fontfileScale, fontfileOutlineStrength)
 
-	sizeMultiplier = 0.66 + (vsx * vsy / 6500000) * customScale
+	sizeMultiplier = widgetScale * 0.95
 
 	RectRound = WG.FlowUI.Draw.RectRound
 	UiElement = WG.FlowUI.Draw.Element

@@ -518,8 +518,8 @@ void main()
 	
 	mat4 rotMat = rotationMatrixZ(s * angle);
 
-	//gl_Position = cameraViewProj * worldMat * rotMat * vertexPos;
-	gl_Position = cameraViewProj * worldMat  * vertexPos;
+	gl_Position = cameraViewProj * worldMat * rotMat * vertexPos;
+	//gl_Position = cameraViewProj * worldMat  * vertexPos;
 
 	texCoords.st = position_xy_uv.zw;
 	texCoords.pq = position_xy_uv.zw;
@@ -725,7 +725,8 @@ local function DrawParticles()
 	end
 	gl.Culling(false)
 	
-	glDepthTest(false)
+	glDepthTest(true)
+
 	glAlphaTest(GL_GREATER, 0)
 
 	glTexture(0, texture1)
@@ -743,8 +744,8 @@ local function DrawParticles()
 	glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
 	glAlphaTest(false)
-	--glDepthTest(false)
-	
+
+	glDepthTest(false)
 end
 
 
@@ -987,8 +988,8 @@ function widget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
 end
 
 function widget:DrawWorld()
- DrawParticles()
- end
+	DrawParticles()
+end
 
 if drawReflectionPass then
 	widget.DrawWorldReflection = DrawParticles

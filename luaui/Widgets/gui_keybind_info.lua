@@ -145,8 +145,7 @@ local keybindColor = "\255\235\185\070"
 local titleColor = "\255\254\254\254"
 local descriptionColor = "\255\192\190\180"
 
-local widgetScale = 1
-local customScale = 1
+local widgetScale = (vsy / 1080)
 local centerPosX = 0.5
 local centerPosY = 0.5
 local screenX = math.floor((vsx * centerPosX) - (screenWidth / 2))
@@ -240,8 +239,7 @@ end
 
 function widget:ViewResize()
 	vsx, vsy = Spring.GetViewGeometry()
-	widgetScale = ((vsx + vsy) / 2000) * 0.65 * customScale
-	widgetScale = widgetScale * (1 - (0.11 * ((vsx / vsy) - 1.78)))        -- make smaller for ultrawide screens
+	widgetScale = (vsy / 1080)
 
 	screenHeight = math.floor(screenHeightOrg * widgetScale)
 	screenWidth = math.floor(screenWidthOrg * widgetScale)
