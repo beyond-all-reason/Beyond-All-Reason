@@ -12,7 +12,10 @@ end
 
 local customScale = 1
 local widgetScale = customScale
-local font, font2, waveMessage, chobbyInterface
+local font, font2, chobbyInterface
+local messageArgs, marqueeMessage
+local refreshMarqueeMessage = false
+local showMarqueeMessage = false
 
 if not Spring.Utilities.Gametype.IsChickens() then
 	return false
@@ -59,7 +62,6 @@ local updatePanel
 local hasChickenEvent = false
 
 local difficultyOption = Spring.GetModOptions().chicken_difficulty
-local difficultyCaption = Spring.I18N('ui.chickens.difficulty.' .. difficultyOption)
 
 local rules = {
 	"queenTime",
@@ -133,7 +135,7 @@ local function commaValue(amount)
 	return formatted
 end
 
-local function MakeCountString(type)
+local function getChickenCounts(type)
 	local total = 0
 	local subtotal
 
@@ -142,11 +144,7 @@ local function MakeCountString(type)
 		total = total + subtotal
 	end
 
-	if type == "Count" then
-		return Spring.I18N('ui.chickens.chickenCount', { count = total })
-	else
-		return Spring.I18N('ui.chickens.chickenKillCount', { count = total })
-	end
+	return total
 end
 
 local function updatePos(x, y)
@@ -183,20 +181,34 @@ local function CreatePanelDisplayList()
 
 	font:Begin()
 	font:Print(techLevel, panelMarginX, PanelRow(1), panelFontSize, "")
-	font:Print(gameInfo.unitCounts, panelMarginX, PanelRow(2), panelFontSize, "")
-	font:Print(gameInfo.unitKills, panelMarginX, PanelRow(3), panelFontSize, "")
+	font:Print(Spring.I18N('ui.chickens.chickenCount', { count = gameInfo.chickenCounts }), panelMarginX, PanelRow(2), panelFontSize, "")
+	font:Print(Spring.I18N('ui.chickens.chickenKillCount', { count = gameInfo.chickenKills }), panelMarginX, PanelRow(3), panelFontSize, "")
 	font:Print(Spring.I18N('ui.chickens.burrowCount', { count = gameInfo.roostCount }), panelMarginX, PanelRow(4), panelFontSize, "")
 	font:Print(Spring.I18N('ui.chickens.burrowKillCount', { count = gameInfo.roostKills }), panelMarginX, PanelRow(5), panelFontSize, "")
 
 	if gotScore then
 		font:Print(Spring.I18N('ui.chickens.score', { score = commaValue(scoreCount) }), 88, h - 170, panelFontSize "")
 	else
+		local difficultyCaption = Spring.I18N('ui.chickens.difficulty.' .. difficultyOption)
 		font:Print(Spring.I18N('ui.chickens.mode', { mode = difficultyCaption }), 120, h - 170, panelFontSize, "")
 	end
 	font:End()
 
 	gl.Texture(false)
 	gl.PopMatrix()
+end
+
+local function getMarqueeMessage(chickenEventArgs)
+	local messages = {}
+
+	if chickenEventArgs.type == "wave" then
+		messages[1] = Spring.I18N('ui.chickens.wave', { waveNumber = chickenEventArgs.waveCount })
+		messages[2] = waveColors[chickenEventArgs.tech] .. Spring.I18N('ui.chickens.waveCount', { count = chickenEventArgs.number })
+	elseif chickenEventArgs.type == "queen" then
+		messages[1] = Spring.I18N('ui.chickens.queenIsAngry')
+	end
+
+	return messages
 end
 
 local function Draw()
@@ -217,18 +229,23 @@ local function Draw()
 		gl.CallList(guiPanel)
 	end
 
-	if waveMessage then
+	if showMarqueeMessage then
 		local t = Spring.GetTimer()
 
 		local waveY = viewSizeY - Spring.DiffTimers(t, waveTime) * waveSpeed * viewSizeY
 		if waveY > 0 then
+			if refreshMarqueeMessage or not marqueeMessage then
+				marqueeMessage = getMarqueeMessage(messageArgs)
+			end
+
 			font2:Begin()
-			for i, message in ipairs(waveMessage) do
+			for i, message in ipairs(marqueeMessage) do
 				font2:Print(message, viewSizeX / 2, waveY - WaveRow(i), waveFontSize * widgetScale, "co")
 			end
 			font2:End()
 		else
-			waveMessage = nil
+			showMarqueeMessage = false
+			messageArgs = nil
 			waveY = viewSizeY
 		end
 	end
@@ -242,8 +259,8 @@ local function UpdateRules()
 	for _, rule in ipairs(rules) do
 		gameInfo[rule] = Spring.GetGameRulesParam(rule) or 999
 	end
-	gameInfo.unitCounts = MakeCountString('Count')
-	gameInfo.unitKills = MakeCountString('Kills')
+	gameInfo.chickenCounts = getChickenCounts('Count')
+	gameInfo.chickenKills = getChickenCounts('Kills')
 
 	updatePanel = true
 end
@@ -253,16 +270,16 @@ function ChickenEvent(chickenEventArgs)
 		if gameInfo.roostCount < 1 then
 			return
 		end
-		waveMessage = {}
 		waveCount = waveCount + 1
-		waveMessage[1] = Spring.I18N('ui.chickens.wave', { waveNumber = waveCount })
-		waveMessage[2] = waveColors[chickenEventArgs.tech] .. Spring.I18N('ui.chickens.waveCount', { count = chickenEventArgs.number })
+		chickenEventArgs.waveCount = waveCount
+		showMarqueeMessage = true
+		messageArgs = chickenEventArgs
 		waveTime = Spring.GetTimer()
 	elseif chickenEventArgs.type == "burrowSpawn" then
 		UpdateRules()
 	elseif chickenEventArgs.type == "queen" then
-		waveMessage = {}
-		waveMessage[1] = Spring.I18N('ui.chickens.queenIsAngry')
+		showMarqueeMessage = true
+		messageArgs = chickenEventArgs
 		waveTime = Spring.GetTimer()
 	elseif chickenEventArgs.type == "score" .. (Spring.GetMyTeamID()) then
 		gotScore = chickenEventArgs.number
@@ -380,5 +397,6 @@ function widget:ViewResize()
 end
 
 function widget:LanguageChanged()
-	widget:ViewResize()
+	refreshMarqueeMessage = true;
+	updatePanel = true;
 end
