@@ -1,0 +1,148 @@
+// Mono-space font required
+{
+// Build special units when enemy_metal*ratio > response_metal*eps; eps=teamSize*eps_step+(1-eps_step)
+// AA condition for 3v3: (enemy_air_metal*0.75 > (aa_metal+aa_cost)*2.6) and (aa_metal+aa_cost < army_metal*0.5)
+//
+// Probability of UnitDef for AA role depends on income tier: (tierN[UnitDef]+_weight_)*enemy_air_metal/aa_metal*importance
+// armjeth probability for tier 1: (0.00+30.00)*enemy_air_metal*150.0
+//
+//
+//ratio: 100% (ratio=1.0): means AI will invest the same amount of metal into response as enemy did in specific role. (=build until?). 
+//ratio =3 => ai will invest up to 3x the metal like enemy has invested. high ratio reduce also build probability. in other words. ai build longer but with lower probabilty this unit
+//importance: influences how much the build propability gets changed. the higher the value the higher the probability a this unit role gets build against the specific enemy unit
+//
+//IMPORTANCE & RATIO
+//example:  build probability>: weight_=0.1, importance=25, factory probability 0.2
+// response calculation p=(factory weight + responce weight) * importance / ratio
+//probability = (0.2+0.1)*25/r, where r - ratio our_aa_metal/enemy_air_metal, but consider r=1 for specific time frame, then probabilities is 7.5 
+//(0.2+0.1)\*25*enemy_air_metal/our_aa_metal 
+//lets assume enemy_air_metal=const for some period of time, so as long as ai builds our_aa_metal the probability for AA response will decay slowly allowing some other response (anti static for example) to have more probability at some point.
+//it's to allow other responses and not stuck on single one till it's full. Though it's also possible to stuck on 1 response if it's desired, by setting very high importance for that specific type of response.
+//
+//MAX PERCENT: for example AA, max_percent=1.0 means 100% of army may consist of AA; max_percent=0.3  ~ only 30% of whole army can be AA
+//
+//ROLE DEFINITTION
+//SKIRMISH: good allround combat stats - good, dps & speed
+// RIOT: able to hit a lot of units via fast reload or aoe, fast targetting.
+// ASSAULT: first strong hit & good range. usually units with longer reload
+// Heavy: much armor, powerfull weapon, sluggish?
+
+"response": {
+	"_weight_": 0.1,  // base weight of response probability, default=0.5 // was 30.00
+	"_importance_mod_": 1.0,  // global importance multiplier, default=1.0 => balance factory values to importance values
+
+	"assault": {
+		"vs":         ["riot", "static"],
+		"ratio":      [ 1.00,   2.00],
+		"importance": [ 25.00,  40.00],
+		"max_percent": 0.8,
+		"eps_step": 0.075
+	},
+	"skirmish": {
+		"vs":         ["static", "assault", "skirmish", "raider"],
+		"ratio":      [  1.00,     0.80, 		1.30,       0.50],
+		"importance": [  25.00,    30.00,		50.00,       30.00],
+		"max_percent": 1.00,
+		"eps_step": 0.075
+	},
+	"raider": {
+		"vs":         ["anti_air", "scout", "raider", "anti_heavy", "anti_heavy_ass",	"mine",  "artillery"],
+		"ratio":      [ 0.00,       1.00,    1.00,     0.40,  		 	0.40,			0.65,       0.15],
+		"importance": [ 15.00,      50.00,  50.00,    30.00,			30.00,			30.00,     10.00],
+		"max_percent": 0.6,
+		"eps_step": 0.12
+	},
+	"riot": {
+		"vs":         ["raider", "scout",  "skirmish", "riot"],
+		"ratio":      [ 0.80,     1.00,		0.70,       1.00],
+		"importance": [ 50.00,   25.00, 	80.00,     50.00],
+		"max_percent": 0.8,
+		"eps_step": 0.02
+	},
+	"scout": {
+		"vs":         ["mine", "artillery", "anti_air", "scout", "static",  "anti_heavy", "anti_heavy_ass"],
+		"ratio":      [ 0.15,   0.05,        0.10,       0.15,    0.00,      0.05,			0.05],
+		"importance": [ 50.00,  0.10,        0.10,       15.00,   0.00,      10.00,			10.00],
+		"max_percent": 0.1,
+		"eps_step": 0.02
+	},
+	"artillery": {
+		"vs":         ["static", "artillery"],
+		"ratio":      [ 0.70,     0.50],
+		"importance": [ 40.00,    0.20],
+		"max_percent": 0.20,
+		"eps_step": -0.075
+	},
+	"anti_air": {
+		"vs":         ["air"],
+		"ratio":      [ 0.75],
+		"importance": [ 150.0],
+		"max_percent": 0.4,
+		"eps_step": 0.8
+	},
+	"anti_sub": {
+		"vs":         ["sub"],
+		"ratio":      [ 0.0],
+		"importance": [ 0.0],
+		"max_percent": 0.20,
+		"eps_step": 0.0
+	},
+	"sub":{
+		"vs":         ["skirmish"],
+		"ratio":      [ 0.5],
+		"importance": [ 25.00],
+		"max_percent": 0.50,
+		"eps_step": 0.0
+	},
+	"anti_heavy": {
+		"vs":         ["static",	"heavy", 	"artillery", "anti_heavy", "anti_heavy_ass", "super"],
+		"ratio":      [ 0.20,		2.00,    	0.00,       	0.70,              0.70,		0.50],
+		"importance": [ 10.00,		150.00,   	0.00,       	0.00,             30.00, 		30.00],
+		"max_percent": 0.60,
+		"eps_step": 0.00
+	},
+	"anti_heavy_ass": {
+		"vs":         ["static",	"heavy", 	"artillery", "anti_heavy", "anti_heavy_ass", "super"],
+		"ratio":      [ 0.20,		2.00,    	0.00,       	0.70,              0.70,		0.50],
+		"importance": [ 10.00,		150.00,   	0.00,       	0.00,             30.00, 		30.00],
+		"max_percent": 0.60,
+		"eps_step": 0.00
+	},
+	"heavy": {
+		"vs":         ["heavy", "static", "skirmish", "riot", "super"],
+		"ratio":      [ 1.50,    2.00,     1.50,       1.00,	0.50],
+		"importance": [ 100.00,  25.00,    50.00,      1.00,	50.00],
+		"max_percent": 0.80,
+		"eps_step": 0.00
+	},
+	"bomber": {
+		"vs":         ["static"],
+		"ratio":      [ 0.00],
+		"importance": [ 20.0],
+		"max_percent": 0.3,
+		"eps_step": 0.00
+	},
+	"super": {	//  korgoth, bantha, juggernaut
+		"vs":         ["heavy", "static", "support", "skirmish", "artillery", "super"],
+		"ratio":      [ 2.00,    2.00,     0.00,      3.00,       0.00,        2.00],
+		"importance": [ 25.00,   50.00,    0.00,      60.00,       0.00,        100.00],
+		"max_percent": 0.8,
+		"eps_step": 0.00
+	},
+    "builderT2": {
+        "vs":        ["skirmish",  "heavy", "super"],
+        "ratio":      [ 0.40,     0.30,		0.10],
+        "importance": [ 10.00,     10.00,		10.00],
+        "max_percent": 0.20,
+        "eps_step": 0.00
+        }
+	//"support": {
+	//	"vs":         ["skirmish", "assault", "heavy"],
+	//	"ratio":      [ 0.10,        0.10,        0.05],
+	//	"importance": [ 0.50,       0.50,       0.50],
+	//	"max_percent": 0.20,
+	//	"eps_step": 0.00
+	//},
+
+}
+}

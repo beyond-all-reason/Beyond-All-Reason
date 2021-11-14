@@ -1,0 +1,113 @@
+// Mono-space font required
+// last changes f002: added a eco push start
+{
+"commander": {
+	"prefix": "",
+	"suffix": "",
+	"unit": {
+		"armcom": {
+			// Choice importance, 0 by default
+			"importance": 0.5,
+
+			// Starting units (order matters)
+			"start": {
+				"factory": {
+					"armlab": [
+						// [<weight>, [<role>, <role>, ...]]
+						[0.3, ["scout", "builder", "raider", "raider", "builder", "raider", "builder", "raider", "raider", "raider", "raider", "raider", "builder", "raider"]], //push
+						[0.3, ["scout", "builder", "raider", "builder"]],
+						[0.4, ["scout", "builder", "raider", "raider", "raider", "builder", "raider", "raider", "builder"]]    //standard
+                    ],                 
+					"armvp": [
+						[0.4, ["scout", "builder", "raider", "builder", "raider", "builder", "raider", "raider", "raider", "builder", "raider"]], //standard
+						[0.3, ["scout", "scout", "scout", "scout", "builder", "raider", "builder", "raider" ]], //early scout push
+                        [0.3, ["builder", "raider", "builder", "raider", "builder", "raider", "raider", "raider", "raider", "builder"]]
+                    ],
+					"armalab": [
+						[1.0, ["builderT2", "skirmish", "skirmish", "builderT2", "skirmish", "skirmish", "builderT2", "skirmish", "skirmish", "skirmish", "builderT2", "builderT2"]]
+					],
+					"armavp": [
+						[0.8, ["builderT2", "skirmish", "skirmish", "builderT2", "skirmish", "builderT2", "anti_heavy", "builderT2", "skirmish", "builderT2"]], 
+                        [0.2, ["builderT2", "skirmish", "builderT2", "skirmish", "builderT2", "skirmish", "builderT2", "builderT2"]]
+					],
+					"armshltx": [
+						[1.0, ["heavy", "artillery"]]	
+					],
+					"armsy":[
+						[0.3, ["scout", "builder", "scout", "builder", "raider", "scout",  "builder", "sub", "skirmish"]]
+					]
+				},
+				
+				"default": ["builder", "raider", "raider", "raider", "builder", "raider", "support", "raider"]
+			},
+
+			// Morph params
+		"upgrade": {
+        //"time": 120,  // Force-morph delay, in seconds
+		"module": []
+		},
+
+			// Commander hides if ("time" elapsed) and ("threat" exceeds value or enemy has "air")
+			"hide": {
+				"time": 420,  // seconds
+				"threat": 8,
+				"air": true,
+				"task_rad": [-1, 800.0]  // [<peace_radius>, <danger_radius>] value -1 for deactivation
+				},
+
+			"side": "armada"
+		},
+		"corcom": {
+			// Choice importance, 0 by default
+			"importance": 0.5,
+
+			// Starting units (order matters)
+			"start": {
+				"factory": {
+					"corlab": [
+						// [<weight>, [<role>, <role>, ...]]
+						[0.3, ["builder", "raider", "builder", "raider", "raider", "raider",  "raider", "builder", "raider", "raider"]],
+                        [0.3, ["raider", "builder", "raider", "raider", "builder", "raider", "builder", "raider", "raider", "riot", "builder", "raider", "raider"]],
+                        [0.3, ["raider", "builder", "raider", "builder", "raider", "builder", "raider"]]	
+					],
+					"corvp": [
+						[0.4, ["scout", "raider", "builder", "raider", "raider", "builder", "raider", "raider", "builder", "raider", "raider"]], //standard
+                        [0.3, ["scout", "builder",  "raider", "builder", "raider",  "raider", "raider", "raider", "raider", "builder"]], // raider serial production
+						//[0.2, ["scout", "scout", "scout", "scout", "builder", "raider", "builder", "raider", "builder", "raider"]], // scout start
+						[0.2, ["builder", "raider", "builder", "raider", "builder", "raider"]]  //defensive eco start
+					],
+					"coralab": [
+						[1.0, ["builderT2", "raider", "raider", "raider", "builderT2", "raider", "raider", "raider", "builderT2", "skirmish", "heavy", "builderT2", "assault", "assault", "builderT2"]]
+					],
+					"coravp": [
+						[1.0, ["builderT2", "skirmish", "skirmish", "builderT2", "assault",  "builderT2", "heavy", "builderT2", "builderT2"]]  
+					],
+					"corgant":[
+						[1.0, ["raider", "assault", "artillery", "artillery"]]
+					],
+                    "corsy":[
+						[0.3, ["scout", "builder", "scout", "builder", "raider", "scout",  "builder", "sub", "skirmish"]]
+					]
+				},
+				"default": ["builder", "builder", "skirmish", "skirmish", "builder", "raider", "support", "raider"]
+			},
+
+			// Morph params
+			"upgrade": {
+            //"time": 120,  // Force-morph delay, in seconds
+			"module": []
+			},
+
+			// Commander hides if ("time" elapsed) and ("threat" exceeds value or enemy has "air")
+			"hide": {
+				"time": 240,  // seconds
+				"threat": 7,
+				"air": true,
+				"task_rad": [-1, 1000.0]  // [<peace_radius>, <danger_radius>]
+				},
+
+			"side": "cortex"
+		}
+	}
+}
+} 
