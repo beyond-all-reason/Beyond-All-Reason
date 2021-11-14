@@ -11,8 +11,8 @@ function widget:GetInfo()
 end
 
 local factions = {
-	{ startUnit = UnitDefNames.corcom.id, factionName = Spring.I18N('units.factions.cor') },
-	{ startUnit = UnitDefNames.armcom.id, factionName = Spring.I18N('units.factions.arm') },
+	{ startUnit = UnitDefNames.corcom.id, faction = 'cor' },
+	{ startUnit = UnitDefNames.armcom.id, faction = 'arm' },
 }
 
 local doUpdate
@@ -62,7 +62,7 @@ local function drawFactionpicker()
 
 	local contentPadding = math.floor((height * vsy * 0.09) * (1 - ((1 - ui_scale) * 0.5)))
 	font2:Begin()
-	font2:Print("Pick your faction", backgroundRect[1] + contentPadding, backgroundRect[4] - contentPadding - (fontSize * 0.7), fontSize, "o")
+	font2:Print(Spring.I18N('ui.factionPicker.pick'), backgroundRect[1] + contentPadding, backgroundRect[4] - contentPadding - (fontSize * 0.7), fontSize, "o")
 
 	local contentWidth = math.floor(backgroundRect[3] - backgroundRect[1] - contentPadding)
 	local contentHeight = math.floor(backgroundRect[4] - backgroundRect[2] - (contentPadding*1.33))
@@ -92,7 +92,7 @@ local function drawFactionpicker()
 			'#'..factions[i].startUnit
 		)
 		-- faction name
-		font2:Print((disabled and "\255\170\170\170" or "\255\255\255\255")..factions[i].factionName, factionRect[i][1] + ((factionRect[i][3] - factionRect[i][1]) * 0.5), factionRect[i][2] + ((factionRect[i][4] - factionRect[i][2]) * 0.22) - (fontSize * 0.5), fontSize * 0.96, "co")
+		font2:Print((disabled and "\255\170\170\170" or "\255\255\255\255")..Spring.I18N('units.factions.' .. factions[i].faction), factionRect[i][1] + ((factionRect[i][3] - factionRect[i][1]) * 0.5), factionRect[i][2] + ((factionRect[i][4] - factionRect[i][2]) * 0.22) - (fontSize * 0.5), fontSize * 0.96, "co")
 	end
 	font2:End()
 end
@@ -288,7 +288,7 @@ function widget:DrawScreen()
 				RectRound(factionRect[i][1] + bgpadding, factionRect[i][2] + bgpadding, factionRect[i][3], factionRect[i][4], bgpadding, 1, 1, 1, 1, { 0.3, 0.3, 0.3, (b and 0.5 or 0.25) }, { 1, 1, 1, (b and 0.3 or 0.15) })
 				glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
-				font2:Print(factions[i].factionName, factionRect[i][1] + ((factionRect[i][3] - factionRect[i][1]) * 0.5), factionRect[i][2] + ((factionRect[i][4] - factionRect[i][2]) * 0.22) - (fontSize * 0.5), fontSize * 0.96, "co")
+				font2:Print(Spring.I18N('units.factions.' .. factions[i].faction), factionRect[i][1] + ((factionRect[i][3] - factionRect[i][1]) * 0.5), factionRect[i][2] + ((factionRect[i][4] - factionRect[i][2]) * 0.22) - (fontSize * 0.5), fontSize * 0.96, "co")
 				break
 			end
 		end

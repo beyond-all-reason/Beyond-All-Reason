@@ -620,6 +620,9 @@ return {
 				units = "units",
 				total = "total",
 			},
+			factionPicker = {
+				pick = "Pick your faction",
+			},
 		}
 	}
 }
