@@ -67,7 +67,6 @@ for key, value in pairs(modoptions) do
 				changedChickenModoptions[key] = tostring(value)
 			end
 		end
-		modoptions[key] = nil    -- filter chicken modoptions
 	end
 end
 
