@@ -31,51 +31,24 @@ end
 --------------------------------------------------------------------------------
 
 local spGetUnitPieceInfo = Spring.GetUnitPieceInfo
-
-
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetGameSeconds = Spring.GetGameSeconds
 local spGetGameFrame = Spring.GetGameFrame
 local spGetUnitPieceMap = Spring.GetUnitPieceMap
-local spIsUnitVisible = Spring.IsUnitVisible
 local spGetUnitIsActive = Spring.GetUnitIsActive
-local spGetUnitIsStunned = Spring.GetUnitIsStunned
 local spGetUnitMoveTypeData = Spring.GetUnitMoveTypeData
 local spGetUnitVelocity = Spring.GetUnitVelocity
 local spGetUnitTeam = Spring.GetUnitTeam
-local spGetFPS = Spring.GetFPS
-
-local math_abs = math.abs
-
-local glUseShader = gl.UseShader
-local glUniform = gl.Uniform
 local glBlending = gl.Blending
 local glTexture = gl.Texture
-local glCallList = gl.CallList
 
 local GL_GREATER = GL.GREATER
 local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 local GL_SRC_ALPHA = GL.SRC_ALPHA
 local GL_ONE = GL.ONE
 
-local glMultiTexCoord = gl.MultiTexCoord
-local glVertex = gl.Vertex
-local glCreateList = gl.CreateList
-local glDeleteList = gl.DeleteList
-local glBeginEnd = gl.BeginEnd
-local GL_QUADS = GL.QUADS
-
 local glAlphaTest = gl.AlphaTest
 local glDepthTest = gl.DepthTest
-local glDepthMask = gl.DepthMask
 
-local glPushMatrix = gl.PushMatrix
-local glPopMatrix = gl.PopMatrix
-local glScale = gl.Scale
-local glUnitMultMatrix = gl.UnitMultMatrix
-local glUnitPieceMultMatrix = gl.UnitPieceMultMatrix
-
-local gaiaID = Spring.GetGaiaTeamID()
+local spValidUnitID = Spring.ValidUnitID
 
 --------------------------------------------------------------------------------
 -- Configuration
@@ -373,9 +346,9 @@ local shaders
 local lastGameFrame = Spring.GetGameFrame()
 local updateSec = 0
 
+local spec, fullview = Spring.GetSpectatingState()
+
 local enabled = true
-local limit = false
-local averageFps = 100
 local lighteffectsEnabled = false -- TODO (enableLights and WG['lighteffects'] ~= nil and WG['lighteffects'].enableThrusters)
 -- GL4 Notes/TODO:
 -- xzVelocityUnits is disabled
@@ -913,15 +886,19 @@ function widget:Update(dt)
 end
 
 function widget:UnitEnteredLos(unitID, unitTeam, allyTeam, unitDefID)
-	unitDefID = unitDefID or Spring.GetUnitDefID(unitID)
-	--Spring.Echo("UnitEnteredLos(unitID, unitTeam, allyTeam, unitDefID)",unitID, unitTeam, allyTeam, unitDefID)
-	AddUnit(unitID, unitDefID, unitTeam)
+	if spValidUnitID(unitID) then
+		unitDefID = unitDefID or Spring.GetUnitDefID(unitID)
+		--Spring.Echo("UnitEnteredLos(unitID, unitTeam, allyTeam, unitDefID)",unitID, unitTeam, allyTeam, unitDefID)
+		AddUnit(unitID, unitDefID, unitTeam)
+	end
 end
 
 function widget:UnitLeftLos(unitID, unitTeam, allyTeam, unitDefID)
-	unitDefID = unitDefID or Spring.GetUnitDefID(unitID)
-	--Spring.Echo("UnitLeftLos(unitID, unitDefID, unitTeam)",unitID, unitTeam, allyTeam, unitDefID)
-	RemoveUnit(unitID, unitDefID, unitTeam)
+	if not fullview then
+		unitDefID = unitDefID or Spring.GetUnitDefID(unitID)
+		--Spring.Echo("UnitLeftLos(unitID, unitDefID, unitTeam)",unitID, unitTeam, allyTeam, unitDefID)
+		RemoveUnit(unitID, unitDefID, unitTeam)
+	end
 end
 
 function widget:UnitCreated(unitID, unitDefID, unitTeam)
@@ -945,6 +922,11 @@ function widget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
 	if effectDefs[unitDefID] and spGetUnitMoveTypeData(unitID).aircraftState == "crashing" then
 		RemoveUnit(unitID, unitDefID, unitTeam)
 	end
+end
+
+
+function widget:Update(dt)
+	spec, fullview = Spring.GetSpectatingState()
 end
 
 function widget:DrawWorld()

@@ -1,20 +1,19 @@
 function widget:GetInfo()
 	return {
-		name = "Selected Units GL4",
+		name = "Teamplatters GL4",
 		desc = "Draw geometric pritives at any unit",
 		author = "Beherith, Floris",
-		date = "2021.05.16",
+		date = "2021.11.14",
 		license = "GNU GPL, v2 or later",
-		layer = -50,
-		enabled = true,
+		layer = -1,
+		enabled = false,
 	}
 end
 
 -- Configurable Parts:
 local texture = "luaui/images/solid.png"
 
-local opacity = 0.19
-local teamcolorOpacity = 0.6
+local opacity = 0.25
 
 ---- GL4 Backend Stuff----
 local selectionVBO = nil
@@ -36,12 +35,13 @@ local GL_STENCIL_BUFFER_BIT = GL.STENCIL_BUFFER_BIT
 local GL_REPLACE            = GL.REPLACE
 local GL_POINTS				= GL.POINTS
 
-local selUnits = {}
-local updateSelection = true
-local selectedUnits = Spring.GetSelectedUnits()
+local spGetUnitMoveTypeData = Spring.GetUnitMoveTypeData
+local spValidUnitID = Spring.ValidUnitID
 
 local unitTeam = {}
 local unitUnitDefID = {}
+
+local spec, fullview = Spring.GetSpectatingState()
 
 local unitScale = {}
 local unitCanFly = {}
@@ -93,7 +93,6 @@ local function AddPrimitiveAtUnit(unitID)
 		length = radius
 	end
 
-	--Spring.Echo(unitID,radius,radius, Spring.GetUnitTeam(unitID), numvertices, 1, gf)
 	pushElementInstance(
 		selectionVBO, -- push into this Instance VBO Table
 		{
@@ -111,8 +110,15 @@ local function AddPrimitiveAtUnit(unitID)
 	)
 end
 
+function widget:Update(dt)
+	spec, fullview = Spring.GetSpectatingState()
+end
+
 local drawFrame = 0
 function widget:DrawWorldPreUnit()
+	if Spring.IsGUIHidden() then
+		return
+	end
 	drawFrame = drawFrame + 1
 	if selectionVBO.usedElements > 0 then
 		--if drawFrame % 100 == 0 then Spring.Echo("selectionVBO.usedElements",selectionVBO.usedElements) end
@@ -143,7 +149,7 @@ function widget:DrawWorldPreUnit()
 		glStencilMask(0)
 		glDepthTest(true)
 
-		selectShader:SetUniform("addRadius", 1.7)
+		selectShader:SetUniform("addRadius", 0.15)
 		selectionVBO.VAO:DrawArrays(GL_POINTS, selectionVBO.usedElements)
 
 		glStencilMask(1)
@@ -161,31 +167,16 @@ local function RemovePrimitive(unitID)
 	end
 end
 
-function widget:SelectionChanged(sel)
-	updateSelection = true
+local function AddUnit(unitID, unitDefID, unitTeamID)
+	unitTeam[unitID] = unitTeamID
+	unitUnitDefID[unitID] = unitDefID
+	AddPrimitiveAtUnit(unitID)
 end
 
-function widget:Update(dt)
-	if updateSelection then
-		selectedUnits = Spring.GetSelectedUnits()
-		updateSelection = false
-
-		local newSelUnits = {}
-		-- add to selection
-		for i, unitID in ipairs(selectedUnits) do
-			newSelUnits[unitID] = true
-			if not selUnits[unitID] then
-				AddPrimitiveAtUnit(unitID)
-			end
-		end
-		-- remove from selection
-		for unitID, _ in pairs(selUnits) do
-			if not newSelUnits[unitID] then
-				RemovePrimitive(unitID)
-			end
-		end
-		selUnits = newSelUnits
-	end
+local function RemoveUnit(unitID, unitDefID, unitTeamID)
+	RemovePrimitive(unitID)
+	unitTeam[unitID] = nil
+	unitUnitDefID[unitID] = nil
 end
 
 function widget:UnitTaken(unitID, unitDefID, oldTeamID, newTeamID)
@@ -194,62 +185,81 @@ function widget:UnitTaken(unitID, unitDefID, oldTeamID, newTeamID)
 	end
 end
 
-function widget:UnitDestroyed(unitID)
-	unitTeam[unitID] = nil
-	unitUnitDefID[unitID] = nil
+function widget:UnitEnteredLos(unitID, unitTeam, allyTeam, unitDefID)
+	if spValidUnitID(unitID) then
+		unitDefID = unitDefID or Spring.GetUnitDefID(unitID)
+		AddUnit(unitID, unitDefID, unitTeam)
+	end
+end
+
+function widget:UnitLeftLos(unitID, unitTeam, allyTeam, unitDefID)
+	if not fullview then
+		unitDefID = unitDefID or Spring.GetUnitDefID(unitID)
+		RemoveUnit(unitID, unitDefID, unitTeam)
+	end
+end
+
+function widget:UnitCreated(unitID, unitDefID, unitTeam)
+	AddUnit(unitID, unitDefID, unitTeam)
+end
+
+function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
+	RemoveUnit(unitID, unitDefID, unitTeam)
+end
+
+function widget.RenderUnitDestroyed(unitID, unitDefID, unitTeam)
+	RemoveUnit(unitID, unitDefID, unitTeam)
+end
+
+-- wont be called for enemy units nor can it read spGetUnitMoveTypeData(unitID).aircraftState anyway
+function widget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
+	if unitCanFly[unitDefID] and spGetUnitMoveTypeData(unitID).aircraftState == "crashing" then
+		RemoveUnit(unitID, unitDefID, unitTeam)
+	end
 end
 
 local function init()
 	local DPatUnit = VFS.Include(luaShaderDir.."DrawPrimitiveAtUnit.lua")
 	local InitDrawPrimitiveAtUnit = DPatUnit.InitDrawPrimitiveAtUnit
 	local shaderConfig = DPatUnit.shaderConfig -- MAKE SURE YOU READ THE SHADERCONFIG TABLE!
-	shaderConfig.BILLBOARD = 0
 	shaderConfig.TRANSPARENCY = opacity
-	shaderConfig.INITIALSIZE = 0.75
-	shaderConfig.GROWTHRATE = 3.5
-	shaderConfig.TEAMCOLORIZATION = teamcolorOpacity	-- not implemented, doing it via POST_SHADING below instead
-	shaderConfig.HEIGHTOFFSET = 4
-	shaderConfig.POST_SHADING = "fragColor.rgba = vec4(mix(g_color.rgb * texcolor.rgb + addRadius, vec3(1.0), "..(1-teamcolorOpacity)..") , texcolor.a * TRANSPARENCY + addRadius);"
+	shaderConfig.ANIMATION = 0
+	shaderConfig.HEIGHTOFFSET = 3.99
 	selectionVBO, selectShader = InitDrawPrimitiveAtUnit(shaderConfig, "selectedUnits")
-	updateSelection = true
-	selUnits = {}
+
+	for _, unitID in ipairs(Spring.GetAllUnits()) do
+		AddUnit(unitID, Spring.GetUnitDefID(unitID), Spring.GetUnitTeam(unitID))
+	end
 end
 
 function widget:Initialize()
 	init()
-	WG.selectedunits = {}
-	WG.selectedunits.getOpacity = function()
+	WG['teamplatter'] = {}
+	WG['teamplatter'].getOpacity = function()
 		return opacity
 	end
-	WG.selectedunits.setOpacity = function(value)
+	WG['teamplatter'].setOpacity = function(value)
 		opacity = value
 		init()
 	end
-	WG.selectedunits.getTeamcolorOpacity = function()
-		return teamcolorOpacity
-	end
-	WG.selectedunits.setTeamcolorOpacity = function(value)
-		teamcolorOpacity = value
-		init()
-	end
-	Spring.LoadCmdColorsConfig('unitBox  0 1 0 0')
+	--WG['teamplatter'].getSkipOwnTeam = function()
+	--	return skipOwnTeam
+	--end
+	--WG['teamplatter'].setSkipOwnTeam = function(value)
+	--	skipOwnTeam = value
+	--end
 end
 
 function widget:Shutdown()
-	if not (WG.fancyselectedunits or WG.teamplatter or WG.highlightselunits) then
-		Spring.LoadCmdColorsConfig('unitBox  0 1 0 1')
-	end
-	WG.selectedunits = nil
+
 end
 
 function widget:GetConfigData(data)
 	return {
 		opacity = opacity,
-		teamcolorOpacity = teamcolorOpacity
 	}
 end
 
 function widget:SetConfigData(data)
 	opacity = data.opacity or opacity
-	teamcolorOpacity = data.teamcolorOpacity or teamcolorOpacity
 end
