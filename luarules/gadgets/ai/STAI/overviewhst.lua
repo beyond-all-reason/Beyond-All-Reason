@@ -45,7 +45,7 @@ function OverviewHST:EvaluateSituation()
 	self.ai.haveAdvFactory = self.ai.factoriesAtLevel[3] and #self.ai.factoriesAtLevel[3] ~= 0
 	self.ai.haveExpFactory = self.ai.factoriesAtLevel[5] and #self.ai.factoriesAtLevel[5] ~= 0
 
-	self.ai.needToReclaim = self.ai.Metal.full < 0.5 and self.ai.wreckCount > 0
+	--self.ai.needToReclaim = self.ai.Metal.full < 0.5 and self.ai.wreckCount > 0
 	self.AAUnitPerTypeLimit = math.min(10,math.ceil(self.ai.turtlehst:GetTotalPriority() / 4))
 	self.heavyPlasmaLimit = math.ceil(self.ai.tool:countMyUnit({'isWeapon'}) / 10)
 	self.nukeLimit = math.ceil(self.ai.tool:countMyUnit({'isWeapon'}) / 50)
