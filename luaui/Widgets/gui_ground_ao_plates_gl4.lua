@@ -51,6 +51,9 @@ local GL_BACK = GL.BACK
 local GL_LEQUAL = GL.LEQUAL
 
 local function AddPrimitiveAtUnit(unitID, unitDefID, noUpload)
+	if Spring.ValidUnitID(unitID) ~= true then
+		Spring.Echo("Warning: Ground AO Plates GL4 attempted to add an invalid unitID:", unitID)
+	end
 	local gf = Spring.GetGameFrame()
 	unitDefID = unitDefID or Spring.GetUnitDefID(unitID)
 
