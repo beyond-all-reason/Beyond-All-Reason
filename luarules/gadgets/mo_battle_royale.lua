@@ -71,16 +71,18 @@ if gadgetHandler:IsSyncedCode() then
     radius = radius - shrinkrate
     radius = math.max(radius,0)
     radiussquared = radius * radius
-    local allunits = Spring.GetAllUnits()
-    local numdestroyed = 0
-    for _,unitID in ipairs(allunits) do
-        local ux,uy,uz = Spring.GetUnitPosition(unitID)
-        if ux and distsqrgreater(ux - mapCenterX, uz - mapCenterZ, radiussquared) then
-          --Spring.DestroyUnit(unitID, true, false)
-          numdestroyed = numdestroyed + 1 
-        end
-    end
-    --Spring.Echo("BattleRoyale radius =", radius, "destroyed", numdestroyed)
+	if gameFrame % 11 == 0 then
+		local allunits = Spring.GetAllUnits()
+		local numdestroyed = 0
+		for _,unitID in ipairs(allunits) do
+			local ux,uy,uz = Spring.GetUnitPosition(unitID)
+			if ux and distsqrgreater(ux - mapCenterX, uz - mapCenterZ, radiussquared) then
+			  --Spring.DestroyUnit(unitID, true, false)
+			  numdestroyed = numdestroyed + 1 
+			end
+		end
+		--Spring.Echo("BattleRoyale radius =", radius, "destroyed", numdestroyed)
+	end
     SendToUnsynced("BattleRoyaleRadius", radius)
 	end
 
@@ -107,7 +109,6 @@ else
   local function goodbye(reason)
     Spring.Echo("Ground Circle GL4 widget exiting with reason: "..reason)
     if circleShader then circleShader:Finalize() end
-    --widgetHandler:RemoveWidget(self)
   end
 
   local vsSrc = [[
@@ -118,7 +119,7 @@ else
   layout (location = 1) in vec4 posrad; // per-instance parameters
   layout (location = 2) in vec4 color;  // per-instance
   uniform vec4 circleuniforms; // none yet
-  uniform sampler2D heightmapTex;
+
   uniform sampler2D hexTex;
   out DataVS {
     vec4 worldPos; // pos and radius
@@ -134,14 +135,13 @@ else
   void main() {
     vec4 circleWorldPos = posrad;
     circleWorldPos.xz = circlepointposition.xz * circleWorldPos.w +  circleWorldPos.xz;
-    //circleWorldPos.y += circlepointposition.y * circleWorldPos.w;
+
     // get heightmap 
     if (circlepointposition.y > 0) 
        circleWorldPos.y = circleuniforms.x;
     else
       circleWorldPos.y = circleuniforms.y;
     
-    //circleWorldPos.y += max(0.0,heightAtWorldPos(circleWorldPos.xz))+32.0;
     
     // -- MAP OUT OF BOUNDS
     vec2 mymin = min(circleWorldPos.xz,mapSize.xy - circleWorldPos.xz);
@@ -195,7 +195,6 @@ else
     fragColor.rgba = wallcolor;
     fragColor.a *= blendedcolor.a;
     
-    //fragColor.a *= 2.0 * sin(worldscale_circumference + timeInfo.x*0.1); // stipple
   }
   ]]
 
@@ -209,8 +208,7 @@ else
       fragment = fsSrc:gsub("//__DEFINES__", "#define USE_STIPPLE ".. tostring(0) ),
       --geometry = gsSrc, no geom shader for now
       uniformInt = {
-        heightmapTex = 0,
-        hexTex = 1,
+        hexTex = 0,
       },
       uniformFloat = {
         circleuniforms = {1,1,1,1}, -- unused
@@ -249,7 +247,6 @@ else
   local function BattleRoyaleDebug()
   end
   
-  
   function gadget:Initialize()
     minY, maxY = Spring.GetGroundExtremes ( ) 
 		gadgetHandler:AddSyncAction("BattleRoyaleRadius", BattleRoyaleRadius)
@@ -265,27 +262,17 @@ else
       gl.DepthTest(true)
       gl.AlphaTest(GL.GREATER, 0)
       gl.Blending(GL.SRC_ALPHA, GL.ONE)
-      gl.Texture(0, "$heightmap")
-      gl.Texture(1,hextexture)
+      gl.Texture(0,hextexture)
       circleShader:Activate()
       circleShader:SetUniform("circleuniforms", minY, maxY + 32, 1.0, 1.0) -- unused
-      circleInstanceVBO.VAO:DrawArrays(GL.TRIANGLES, circleInstanceVBO.numVertices, 0, circleInstanceVBO.usedElements, 0) -- could be GL.TRIANGLE_FAN too
-
-
-      
-      
-      
-
-
+      circleInstanceVBO.VAO:DrawArrays(GL.TRIANGLES, circleInstanceVBO.numVertices, 0, circleInstanceVBO.usedElements, 0)
       circleShader:Deactivate()
       gl.Texture(0, false)
-      gl.Texture(1, false)      
       gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
       gl.AlphaTest(false)
       gl.DepthTest(false)
       gl.DepthMask(false)
     end
   end
-
   
 end
