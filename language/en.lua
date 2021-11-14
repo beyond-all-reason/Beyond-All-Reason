@@ -523,7 +523,7 @@ return {
 			defrange_allyground = 'Ally Ground',
 			defrange_allyground_descr = 'Show Range For Ally Ground',
 			defrange_allynuke = 'Ally Nuke',
-			defrange_allynuke_descr = 'Show Range For Ally Air Nuke',
+			defrange_allynuke_descr = 'Show Range For Ally Nuke',
 			defrange_enemyair = 'Enemy Air',
 			defrange_enemyair_descr = 'Show Range For Enemy Air',
 			defrange_enemyground = 'Enemy Ground',

@@ -26,7 +26,7 @@ local spTraceScreenRay = Spring.TraceScreenRay
 local spWorldToScreenCoords = Spring.WorldToScreenCoords
 
 local spGetTeamUnits = Spring.GetTeamUnits
-local spGetAllUnits = Spring.GetAllUnits
+local spGetVisibleUnits = Spring.GetVisibleUnits
 local spGetUnitsInRectangle = Spring.GetUnitsInRectangle
 local spSelectUnitArray = Spring.SelectUnitArray
 local spGetActiveCommand = Spring.GetActiveCommand
@@ -104,7 +104,7 @@ local function GetUnitsInMinimapRectangle(x1, y1, x2, y2, team)
 end
 
 local function GetUnitsInScreenRectangle(x1, y1, x2, y2, team)
-	local units = team and spGetTeamUnits(team) or spGetAllUnits()
+	local units = team and spGetTeamUnits(team) or spGetVisibleUnits()
 	local left, right = sort(x1, x2)
 	local bottom, top = sort(y1, y2)
 
@@ -197,7 +197,6 @@ function widget:Update()
 				mouseSelection = GetUnitsInScreenRectangle(x, y, x1, y1, nil)
 			end
 			originalMouseSelection = mouseSelection
-
 
 			local newSelection = {}
 			local uid, udid, tmp
