@@ -321,7 +321,7 @@ local animSpeed = 3
 local jitterWidthScale = 3
 local jitterLengthScale = 3
 
-local texture1 = "bitmaps/GPL/Lups/perlin_noise.jpg"    -- noise texture 
+local texture1 = "bitmaps/GPL/Lups/perlin_noise.jpg"    -- noise texture
 --local texture1 = "luaui/images/perlin_noise_rgba_512.png"    -- noise texture
 local texture2 = ":c:bitmaps/gpl/lups/jet2.bmp"        -- shape
 local texture3 = ":c:bitmaps/GPL/Lups/jet.bmp"        -- jitter shape
@@ -393,7 +393,7 @@ local luaShaderDir = "LuaUI/Widgets/Include/"
 local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
 VFS.Include(luaShaderDir.."instancevbotable.lua")
 
-local vsSrc =  
+local vsSrc =
 [[#version 420
 #extension GL_ARB_uniform_buffer_object : require
 #extension GL_ARB_shader_storage_buffer_object : require
@@ -402,8 +402,9 @@ local vsSrc =
 uniform float timer;
 
 uniform float iconDistance;
+uniform int reflectionPass = 0;
 
-layout (location = 0) in vec4 position_xy_uv; 
+layout (location = 0) in vec4 position_xy_uv;
 
 layout (location = 1) in vec3 widthlengthtime; // time is gameframe spawned :D
 layout (location = 2) in vec3 emitdir;
@@ -413,7 +414,7 @@ layout (location = 5) in uvec4 instData; // unitID, teamID, ??
 
 #define JITTERWIDTHSCALE 3
 #define JITTERLENGTHSCALE 3
-#define ANIMATION_SPEED 0.1 
+#define ANIMATION_SPEED 0.1
 
 out DataVS {
 	vec4 texCoords;
@@ -424,7 +425,7 @@ out DataVS {
 
 struct SUniformsBuffer {
     uint composite; //     u8 drawFlag; u8 unused1; u16 id;
-    
+
     uint unused2;
     uint unused3;
     uint unused4;
@@ -433,8 +434,8 @@ struct SUniformsBuffer {
     float health;
     float unused5;
     float unused6;
-    
-    vec4 speed;    
+
+    vec4 speed;
     vec4[5] userDefined; //can't use float[20] because float in arrays occupies 4 * float space
 };
 
@@ -452,7 +453,7 @@ mat4 rotationMatrix(vec3 axis, float angle)
     float s = sin(angle);
     float c = cos(angle);
     float oc = 1.0 - c;
-    
+
     return mat4(oc * axis.x * axis.x + c,           oc * axis.x * axis.y - axis.z * s,  oc * axis.z * axis.x + axis.y * s,  0.0,
                 oc * axis.x * axis.y + axis.z * s,  oc * axis.y * axis.y + c,           oc * axis.y * axis.z - axis.x * s,  0.0,
                 oc * axis.z * axis.x - axis.y * s,  oc * axis.y * axis.z + axis.x * s,  oc * axis.z * axis.z + c,           0.0,
@@ -464,7 +465,7 @@ mat4 rotationMatrixZ(float angle)
 {
     float s = sin(angle);
     float c = cos(angle);
-    
+
     return mat4(  c,  -s, 0.0, 0.0,
 				  s,   c, 0.0, 0.0,
 				0.0, 0.0, 1.0, 0.0,
@@ -480,23 +481,23 @@ bool vertexClipped(vec4 clipspace, float tolerance) {
 void main()
 {
 	uint baseIndex = instData.x; // grab the correct offset into UnitPieces SSBO
-	
+
 	mat4 modelMatrix = UnitPieces[baseIndex]; //Find our matrix
 
 	mat4 pieceMatrix = mat4mix(mat4(1.0), UnitPieces[baseIndex + pieceIndex + 1u], modelMatrix[3][3]);
-	
+
 	vec2 modulatedsize = widthlengthtime.xy * 1.5;
 	// modulatedsize += rndVec3.xy * modulatedsize * 0.25; // not very pretty
 	vec4 vertexPos = vec4(position_xy_uv.x * modulatedsize.x * 2.0, 0, position_xy_uv.y*modulatedsize.y * 0.66 ,1.0);
 
 	mat4 worldMat = modelMatrix * pieceMatrix;
 	//worldMat = modelMatrix;
-	
-	
+
+
 	mat4 worldMatInv = transpose(worldMat);
-	
+
 	vec4 worldPos  = worldMat * vertexPos;
-	
+
 	vec3 modelNormal = vec3(0.0, 1.0, 0.0);
 	vec3 modelAxis   = vec3(0.0, 0.0, 1.0);
 
@@ -504,30 +505,34 @@ void main()
 
 	vec3 worldCamDir = normalize(worldCamPos.xyz - worldPos.xyz); //can use worldPosM instead of worldPos.xyz to prevent close-up distortion
 	vec3 modelCamDir = normalize(mat3(worldMatInv) * worldCamDir);
-	
-	float s = modelCamDir.x < 0.0 ? -1.0 : 1.0; //go figure why
-	
+
+	float s = modelCamDir.x < 0.0 ? -1.0 : 1.0;
+
 	vec3 modelCamDirProj = normalize(modelCamDir - dot(modelCamDir, modelAxis) * modelAxis);
 	float dotP = dot(modelCamDirProj, modelNormal);
 	float angle = acos(dot(modelCamDirProj, modelNormal));
-	
+
 	mat4 rotMat = rotationMatrixZ(s * angle);
 
-	gl_Position = cameraViewProj * worldMat * rotMat * vertexPos;
-	//gl_Position = cameraViewProj * worldMat  * vertexPos;
+	mat4 VP = (reflectionPass == 0) ? cameraViewProj : reflectionViewProj;
+
+	gl_Position = VP * worldMat * rotMat * vertexPos;
+	//gl_Position = VP * worldMat  * vertexPos;
 
 	texCoords.st = position_xy_uv.zw;
 	texCoords.pq = position_xy_uv.zw;
 	texCoords.q += timeInfo.x * ANIMATION_SPEED;
-	
+
 	jetcolor.rgb = color;
 	jetcolor.a = clamp((timeInfo.x - widthlengthtime.z)*0.053, 0.0, 1.0);
+	/*
 	// VISIBILITY CULLING
 	if (length(worldCamPos.xyz - worldPos.xyz) >  iconDistance) jetcolor.a = 0; // disable if unit is further than icondist
 	if (dot(worldPos.xyz, worldPos.xyz) < 1.0) jetcolor.a = 0; // handle accidental zero matrix case
 	if ((uni[instData.y].composite & 0x00000001u) == 0u )  jetcolor = vec4(0.0); // disable if drawflag is set to 0
-	if (vertexClipped(cameraViewProj * worldMat * vec4(0.0, 0.0, 0.0, 1.0), 1.2)) jetcolor.a = 0.0; // dont draw if way outside of view
+	if (vertexClipped(VP * worldMat * vec4(0.0, 0.0, 0.0, 1.0), 1.2)) jetcolor.a = 0.0; // dont draw if way outside of view
 	//jetcolor.a = 0.2;
+	*/
 }
 ]]
 
@@ -561,9 +566,9 @@ void main(void)
 
 		fragColor.rgb  = opac * jetcolor.rgb; //color
 		fragColor.rgb += pow(opac, 5.0 );     //white flame
-		fragColor.a    = min(opac*1.5, 1.0); // 
+		fragColor.a    = min(opac*1.5, 1.0); //
 		fragColor.rgba = clamp(fragColor, 0.0, 1.0);
-		
+
 		fragColor.rgba *= jetcolor.a;
 }
 ]]
@@ -589,7 +594,7 @@ local function initGL4()
         },
 	uniformFloat = {
         jetuniforms = {1,1,1,1}, --unused
-		iconDistance = 1, 
+		iconDistance = 1,
       },
     },
     "jetShader GL4"
@@ -601,8 +606,8 @@ local function initGL4()
 		  {id = 1, name = 'widthlengthtime', size = 3}, -- widthlength
 		  {id = 2, name = 'emitdir', size = 3}, --  emit dir
 		  {id = 3, name = 'color', size = 3}, --- color
-		  {id = 4, name = 'pieceIndex', type = GL.UNSIGNED_INT, size= 1}, 
-		  {id = 5, name = 'instData', type = GL.UNSIGNED_INT, size= 4}, 
+		  {id = 4, name = 'pieceIndex', type = GL.UNSIGNED_INT, size= 1},
+		  {id = 5, name = 'instData', type = GL.UNSIGNED_INT, size= 4},
 		}
   jetInstanceVBO = makeInstanceVBOTable(jetInstanceVBOLayout,256, "jetInstanceVBO", 5)
   jetInstanceVBO.numVertices = numVertices
@@ -636,7 +641,7 @@ local function DrawLights(unitID, unitDefID)
 			--glPopMatrix()
 
 			-- add deferred light
-			
+
 			--[[
 			if lighteffectsEnabled and lightDefs[unitDefID] then
 				local unitPosX, unitPosY, unitPosZ = spGetUnitPosition(unitID)
@@ -680,9 +685,9 @@ local function ValidateUnitIDs(unitIDkeys)
 	local invalidunitids = {}
 	local invalidstr = ''
 	for indexpos, unitID in pairs(unitIDkeys) do
-		numunitids = numunitids + 1 
+		numunitids = numunitids + 1
 		if Spring.ValidUnitID(unitID) then
-			validunitids = validunitids + 1 
+			validunitids = validunitids + 1
 		else
 			invalidunitids[#invalidunitids + 1] = unitID
 			invalidstr = tostring(unitID) .. " " .. invalidstr
@@ -694,7 +699,7 @@ local function ValidateUnitIDs(unitIDkeys)
 end
 
 local drawframe = 0
-local function DrawParticles()
+local function DrawParticles(isReflection)
 	if not enabled then return false end
 	-- validate unitID buffer
 	drawframe = drawframe + 1
@@ -702,7 +707,7 @@ local function DrawParticles()
 		--Spring.Echo("Numairjets", jetInstanceVBO.usedElements)
 	end
 	gl.Culling(false)
-	
+
 	glDepthTest(true)
 
 	glAlphaTest(GL_GREATER, 0)
@@ -711,11 +716,12 @@ local function DrawParticles()
 	glTexture(1, texture2)
 	glBlending(GL_ONE, GL_ONE)
 	jetShader:Activate()
-	
-	jetShader:SetUniform("iconDistance",27 * Spring.GetConfigInt("UnitIconDist", 200)) 
-	
+
+	jetShader:SetUniformInt("reflectionPass", ((isReflection == true) and 1) or 0)
+	jetShader:SetUniform("iconDistance", 27 * Spring.GetConfigInt("UnitIconDist", 200))
+
 	drawInstanceVBO(jetInstanceVBO)
-	
+
 	jetShader:Deactivate()
 	glTexture(0, false)
 	glTexture(1, false)
@@ -742,15 +748,15 @@ end
 
 local function Activate(unitID, unitDefID, who, when)
 	--Spring.Echo(Spring.GetGameFrame(), who, "Activate(unitID, unitDefID)",unitID, unitDefID)
-	
+
 	inactivePlanes[unitID] = nil
 	-- this unit already has lights assigned to it, clear it from inactive and done
 	--if activePlanes[unitID] == unitDefID then return end
-	
+
 	activePlanes[unitID] = unitDefID
-	
+
 	if when ==  nil then when = 0 end --
-	
+
 	local unitEffects = effectDefs[unitDefID]
 	for i = 1, #unitEffects do
 		local effectDef = unitEffects[i]
@@ -764,7 +770,7 @@ local function Activate(unitID, unitDefID, who, when)
 			--math.floor(math.random() * 5) ,
 			effectDef.piecenum - 1,
 			0,0,0,0, -- this is needed to keep the lua copy of the vbo the correct size
-			
+
 		}
 		--Spring.Echo("Adding", tostring(unitID).."_"..tostring(effectDef.piecenum))
 		pushElementInstance(jetInstanceVBO,effectdata,tostring(unitID).."_"..tostring(effectDef.piecenum), true, nil, unitID)
@@ -772,16 +778,16 @@ local function Activate(unitID, unitDefID, who, when)
 end
 
 
-	
+
 
 local function Deactivate(unitID, unitDefID, who)
 	--Spring.Echo(Spring.GetGameFrame(),who, "Deactivate(unitID, unitDefID)",unitID, unitDefID)
-	
+
 	activePlanes[unitID] = nil
-	
+
 	inactivePlanes[unitID] = unitDefID
 	RemoveLights(unitID)
-	
+
 	local unitEffects = effectDefs[unitDefID]
 	for i = 1, #unitEffects do
 		local effectDef = unitEffects[i]
@@ -851,7 +857,7 @@ function widget:Update(dt)
 	if gf ~= lastGameFrame and updateSec > 0.51 then		-- to limit the number of unit status checks
 		--[[
 		if Spring.GetGameFrame() > 0 then
-		
+
 			ValidateUnitIDs(jetInstanceVBO.indextoUnitID)
 			local activecnt = 0
 			local inactivecnt = 0
@@ -865,7 +871,7 @@ function widget:Update(dt)
 		updateSec = 0
 		for unitID, unitDefID in pairs(inactivePlanes) do
 			-- always activate enemy planes
-			
+
 			if spGetUnitIsActive(unitID) or not Spring.IsUnitAllied(unitID) then
 				if xzVelocityUnits[unitDefID] then
 					local uvx,_,uvz = spGetUnitVelocity(unitID)
@@ -879,7 +885,7 @@ function widget:Update(dt)
 		end
 		for unitID, unitDefID in pairs(activePlanes) do
 			if Spring.ValidUnitID(unitID) then
-				if not spGetUnitIsActive(unitID) then 
+				if not spGetUnitIsActive(unitID) then
 					Deactivate(unitID, unitDefID,"updatewasinactive")
 				else
 					if xzVelocityUnits[unitDefID] then
@@ -929,7 +935,7 @@ function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
 end
 
 
-function widget.RenderUnitDestroyed(unitID, unitDefID, unitTeam) 	
+function widget.RenderUnitDestroyed(unitID, unitDefID, unitTeam)
 	--Spring.Echo("RenderUnitDestroyed(unitID, unitDefID, unitTeam)",unitID, unitDefID, unitTeam)
 	RemoveUnit(unitID, unitDefID, unitTeam)
 end
@@ -942,11 +948,13 @@ function widget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
 end
 
 function widget:DrawWorld()
-	DrawParticles()
+	DrawParticles(false)
 end
 
 
-widget.DrawWorldReflection = DrawParticles
+function widget:DrawWorldReflection()
+	DrawParticles(true)
+end
 
 
 
@@ -991,7 +999,7 @@ function widget:Shutdown()
 	for unitID, unitDefID in pairs(activePlanes) do
 		RemoveUnit(unitID, unitDefID, spGetUnitTeam(unitID))
 	end
-	
+
 end
 
 function widget:GetConfigData(data)

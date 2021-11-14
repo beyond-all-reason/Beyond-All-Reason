@@ -73,6 +73,10 @@ layout(std140, binding = 0) uniform UniformMatrixBuffer {
 	mat4 shadowProj;
 	mat4 shadowViewProj;
 
+	mat4 reflectionView;
+	mat4 reflectionProj;
+	mat4 reflectionViewProj;
+
 	mat4 orthoProj01;
 
 	// transforms for [0] := Draw, [1] := DrawInMiniMap, [2] := Lua DrawInMiniMap
