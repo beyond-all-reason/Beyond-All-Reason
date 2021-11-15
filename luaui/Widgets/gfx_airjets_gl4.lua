@@ -679,6 +679,16 @@ local function DrawParticles(isReflection)
 	if drawframe %99 == 1 then
 		--Spring.Echo("Numairjets", jetInstanceVBO.usedElements)
 	end
+
+	local disticon
+	if Spring.GetConfigInt("UnitIconsAsUI", 1) == 1 then
+		disticon = Spring.GetConfigInt("uniticon_fadevanish", 1800)
+		disticon = disticon * 3
+	else
+		disticon = Spring.GetConfigInt("UnitIconDist", 200)
+		disticon = disticon * 27 -- should be sqrt(750) but not really
+	end
+
 	gl.Culling(false)
 
 	glDepthTest(true)
@@ -691,7 +701,7 @@ local function DrawParticles(isReflection)
 	jetShader:Activate()
 
 	jetShader:SetUniformInt("reflectionPass", ((isReflection == true) and 1) or 0)
-	jetShader:SetUniform("iconDistance", 27 * Spring.GetConfigInt("UnitIconDist", 200))
+	jetShader:SetUniform("iconDistance", disticon)
 
 	drawInstanceVBO(jetInstanceVBO)
 
