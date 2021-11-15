@@ -103,21 +103,26 @@ local function GetUnitsInMinimapRectangle(x1, y1, x2, y2, team)
 	return spGetUnitsInRectangle(left, bottom, right, top, team)
 end
 
-local function GetUnitsInScreenRectangle(x1, y1, x2, y2, team)
-	local units = team and spGetTeamUnits(team) or spGetVisibleUnits()
-	local left, right = sort(x1, x2)
-	local bottom, top = sort(y1, y2)
 
-	local result = {}
-	for i = 1, #units do
-		local uid = units[i]
-		local x, y, z = spGetUnitPosition(uid)
-		x, y = spWorldToScreenCoords(x, y, z)
-		if left <= x and x <= right and top >= y and y >= bottom then
-			result[#result + 1] = uid
+local function GetUnitsInScreenRectangle(x1, y1, x2, y2, team)
+	if Spring.GetUnitsInScreenRectangle then	-- (future) engine function that can replace this whole lua function here
+		return Spring.GetUnitsInScreenRectangle(x1, y1, x2, y2)
+	else
+		local units = team and spGetTeamUnits(team) or spGetVisibleUnits()
+		local left, right = sort(x1, x2)
+		local bottom, top = sort(y1, y2)
+
+		local result = {}
+		for i = 1, #units do
+			local uid = units[i]
+			local x, y, z = spGetUnitPosition(uid)
+			x, y = spWorldToScreenCoords(x, y, z)
+			if left <= x and x <= right and top >= y and y >= bottom then
+				result[#result + 1] = uid
+			end
 		end
+		return result
 	end
-	return result
 end
 
 function widget:SelectionChanged(sel)
