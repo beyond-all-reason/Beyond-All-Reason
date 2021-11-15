@@ -297,7 +297,7 @@ local function UpdateList()
 	--  error('knownCount mismatch')
 	--end
 
-	table.sort(fullWidgetsList, SortWidgetListFunc)
+	table.sort(fullWidgetsList, SortWidgetListFunc)	-- occurred: Error in IsAbove(): [string "LuaUI/Widgets/widget_selector.lua"]:300: invalid order function for sorting (migh have happened cause i renamed/added a custom widget after launch)
 
 	UpdateListScroll()
 	UpdateGeometry()

@@ -249,14 +249,13 @@ end
 setEngineFont()
 
 local function showOption(option)
-	if (not option.category)
-		or (option.category == types.basic)
+	if not option.category
+		or option.category == types.basic
 		or (advSettings and option.category == types.advanced)
 		or (devMode and (option.group == "dev" or option.category == types.dev)) then
 
 		return true
 	end
-
 	return false
 end
 
@@ -2900,7 +2899,7 @@ function init()
 		},
 
 		{ id = "teamplatter", group = "ui", category = types.basic, widget = "TeamPlatter", name = texts.option.teamplatter, type = "bool", value = GetWidgetToggleValue("TeamPlatter"), description = texts.option.teamplatter_descr },
-		{ id = "teamplatter_opacity", category = types.basic, group = "ui", name = widgetOptionColor .. "   " .. texts.option.teamplatter_opacity, min = 0.05, max = 0.4, step = 0.01, type = "slider", value = 0.3, description = texts.option.teamplatter_opacity_descr,
+		{ id = "teamplatter_opacity", category = types.basic, group = "ui", name = widgetOptionColor .. "   " .. texts.option.teamplatter_opacity, min = 0.05, max = 0.4, step = 0.01, type = "slider", value = 0.25, description = texts.option.teamplatter_opacity_descr,
 		  onload = function(i)
 			  loadWidgetData("TeamPlatter", "teamplatter_opacity", { 'spotterOpacity' })
 		  end,
