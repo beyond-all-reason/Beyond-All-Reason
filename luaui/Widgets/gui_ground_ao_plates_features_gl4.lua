@@ -11,7 +11,7 @@ function widget:GetInfo()
 end
 
 --------------- Configurables -------------------
-local decalAlpha = 0.4
+local decalAlpha = 0.33
 
 --------------- Atlas textures ----------------
 
@@ -23,7 +23,7 @@ local unitDefIDtoDecalInfo = {} -- key unitdef, table of {texfile = "", sizex = 
 
 local function basepath(s,pattern)
   while string.find(s, pattern, 1, true ) do
-    s = string.sub(s, string.find(s, pattern, 1, true) + 1 ) 
+    s = string.sub(s, string.find(s, pattern, 1, true) + 1 )
   end
   return s
 end
@@ -66,15 +66,15 @@ local function AddPrimitiveAtUnit(featureID, unitDefID, noUpload)
 
 	if unitDefID == nil or unitDefIDtoDecalInfo[unitDefID] == nil then return end -- these cant have plates
 	local decalInfo = unitDefIDtoDecalInfo[unitDefID]
-	
+
 	--local texname = "unittextures/decals/".. UnitDefs[unitDefID].name .. "_aoplane.dds" --unittextures/decals/armllt_aoplane.dds
 
 	local numVertices = 4 -- default to circle
 	local additionalheight = 0
-	
+
 	local p,q,s,t = gl.GetAtlasTexture(atlasID, decalInfo.texfile)
 	--Spring.Echo (unitDefID,featureID,decalInfo.texfile, decalInfo.sizez, decalInfo.sizex , decalInfo.alpha, p, q, s,t)
-	
+
 	pushElementInstance(
 		groundPlateVBO, -- push into this Instance VBO Table
 			{decalInfo.sizez, decalInfo.sizex, 0, additionalheight,  -- lengthwidthcornerheight
@@ -82,7 +82,7 @@ local function AddPrimitiveAtUnit(featureID, unitDefID, noUpload)
 			numVertices, -- how many trianges should we make
 			gf, 0, decalInfo.alpha * decalAlpha, 0, -- the gameFrame (for animations), and any other parameters one might want to add
 			q,p,s,t, -- These are our default UV atlas tranformations, note how X axis is flipped for atlas
-			0, 0, 0, 0}, -- these are just padding zeros, that will get filled in 
+			0, 0, 0, 0}, -- these are just padding zeros, that will get filled in
 		featureID, -- this is the key inside the VBO Table, should be unique per unit
 		true, -- update existing element
 		noUpload, -- noupload, dont use unless you know what you want to batch push/pop
@@ -100,15 +100,15 @@ local function ProcessAllFeatures()
 end
 
 function widget:DrawWorldPreUnit()
-	if groundPlateVBO.usedElements > 0 then 
+	if groundPlateVBO.usedElements > 0 then
 		local disticon = Spring.GetConfigInt("FeatureFadeDistance", 200) -- iconLength = unitIconDist * unitIconDist * 750.0f;
 		glCulling(GL_BACK)
 		glDepthTest(GL_LEQUAL)
 		--glDepthTest(false)
 		glTexture(0, atlasID)
 		groundPlateShader:Activate()
-		groundPlateShader:SetUniform("iconDistance",disticon) 
-		groundPlateShader:SetUniform("addRadius",0) 
+		groundPlateShader:SetUniform("iconDistance",disticon)
+		groundPlateShader:SetUniform("addRadius",0)
 		groundPlateVBO.VAO:DrawArrays(GL.POINTS,groundPlateVBO.usedElements)
 		groundPlateShader:Deactivate()
 		glTexture(0, false)
@@ -159,7 +159,7 @@ function widget:Initialize()
           alpha = 1.0,
           }
       end
-      
+
 		end
 	end
 	local DrawPrimitiveAtUnit = VFS.Include(luaShaderDir.."DrawPrimitiveAtUnit.lua")
@@ -169,7 +169,7 @@ function widget:Initialize()
 	shaderConfig.HEIGHTOFFSET = 0
 	shaderConfig.TRANSPARENCY = 1.0
 	shaderConfig.ANIMATION = 0
-	shaderConfig.FULL_ROTATION = 1 
+	shaderConfig.FULL_ROTATION = 1
 	shaderConfig.CLIPTOLERANCE = 1.2
   -- MATCH CUS position as seed to sin, then pass it through geoshader into fragshader
 	--shaderConfig.POST_VERTEX = "v_parameters.w = max(-0.2, sin(timeInfo.x * 2.0/30.0 + (v_centerpos.x + v_centerpos.z) * 0.1)) + 0.2; // match CUS glow rate"
@@ -180,7 +180,7 @@ function widget:Initialize()
 	shaderConfig.USE_CORNERRECT = nil
 	groundPlateVBO, groundPlateShader = InitDrawPrimitiveAtUnit(shaderConfig, "Ground AO Plates Features")
   groundPlateVBO.featureIDs = true
-	ProcessAllFeatures() 
+	ProcessAllFeatures()
 end
 
 local spec, fullview = Spring.GetSpectatingState()
@@ -195,7 +195,7 @@ end
 
 
 function widget:ShutDown()
-	if atlasID ~= nil then 
+	if atlasID ~= nil then
 		gl.DeleteTextureAtlas(atlasID)
 	end
 end
