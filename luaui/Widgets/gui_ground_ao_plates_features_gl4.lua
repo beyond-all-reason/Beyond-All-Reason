@@ -11,7 +11,7 @@ function widget:GetInfo()
 end
 
 --------------- Configurables -------------------
-local decalAlpha = 1.0
+local decalAlpha = 0.75
 
 --------------- Atlas textures ----------------
 
