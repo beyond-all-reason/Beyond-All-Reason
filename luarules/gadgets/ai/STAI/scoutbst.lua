@@ -4,7 +4,7 @@ function ScoutBST:Name()
 	return "ScoutBST"
 end
 
-ScoutBST.DebugEnabled = false
+ScoutBST.DebugEnabled = true
 
 function ScoutBST:Init()
 	self.evading = false
@@ -46,7 +46,7 @@ function ScoutBST:Update()
 			local unit = self.unit:Internal()
 			-- reset target if it's in sight
 			if self.target ~= nil then
-				if not self.ai.loshst:viewPos(self.target) then--TEST
+				if self.ai.loshst:viewPos(self.target) == 1 then--TEST
 					self.target = nil
 				end
 -- 				local los = self.ai.scouthst:ScoutLos(self, self.target)  --TEST
