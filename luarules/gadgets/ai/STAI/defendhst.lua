@@ -111,87 +111,151 @@ function DefendHST:RemoveWard(behaviour, turtle)
 	end
 end
 
+function DefendHST:setBase()
+
+	map:EraseAll(6)
+	self.CENTER = api.Position()
+	local count = 0
+	self.distal = 0
+	local media = 0
+	local mediaz = 0
+	local countmedia = 0
+	self.distalUnit = nil
+	local myunits = game:GetUnits() --game:GetFriendlies()???
+	self:EchoDebug('myunits',#myunits)
+	if not myunits then return end
+	for i,u in pairs(myunits) do
+		local ut = self.ai.armyhst.unitTable[u:Name()]
+		if not ut.isWeapon then
+			local upos = u:GetPosition()
+			self.CENTER.x = self.CENTER.x + upos.x
+			self.CENTER.y = self.CENTER.y + upos.y
+			self.CENTER.z = self.CENTER.z + upos.z
+			count = count+1
+		end
+	end
+	self.CENTER.x = self.CENTER.x / count
+	self.CENTER.y = self.CENTER.y / count
+	self.CENTER.z = self.CENTER.z / count
+	self:EchoDebug('CENTER',self.CENTER.x,self.CENTER.z, 'count',count)
+	for i,u in pairs(myunits) do
+		local ut = self.ai.armyhst.unitTable[u:Name()]
+		if ut.isImmobile then
+			local upos = u:GetPosition()
+			local dist = self.ai.tool:Distance(self.CENTER,upos)
+			media = media + dist
+			if self.distal  > dist then
+				self.distalUnit = u
+			end
+			self.distal = math.max(self.distal,dist)
+
+			countmedia = countmedia + 1
+		end
+	end
+	media = media /countmedia
+	map:DrawCircle(self.CENTER, media, {1,0,0,1}, nil, false, 6)
+	map:DrawCircle(self.CENTER, self.distal, {0,1,0,1}, nil, false, 6)
+	map:DrawCircle(self.CENTER, (media+self.distal)/2, {0,0,1,1}, nil, false, 6)
+end
+
+function DefendHST:scanRisk()
+	local risks = {}
+	for i,cell in pairs(self.ai.targethst.cellList)do
+		if self.ai.buildsitehst:isInMap(cell.target) then
+			local dist = self.ai.tool:Distance(cell.target,self.ai.defendhst.CENTER)
+			if self.ai.tool:Distance(cell.target,self.ai.defendhst.CENTER) < self.ai.defendhst.distal then
+				risks[dist] = cell
+			end
+		end
+	end
+	risk = table.sort(risks)
+	return risks
+end
+
 function DefendHST:Update()
 	local f = self.game:Frame()
-	if f % 30 == 0 then
-		local scrambleCalls = 0
-		for i, ward in pairs(self.wards) do
-			if ward.behaviour ~= nil then
-				if not ward.behaviour.isScout then
-					if ward.threatened then
-						if not ward.behaviour.underFire then
-							local groundDiff = ward.priority.air - ward.priority.ground
-							local submergedDiff = ward.priority.air - ward.priority.submerged
-							if groundDiff > 0 then
-								self:MarkAllMtypesForAssignment("ground")
-								self.totalPriority.ground = self.totalPriority.ground + groundDiff
+	if f % 30 ~= 0 then
+		return
+	end
+	self:setBase()
+	local scrambleCalls = 0
+	for i, ward in pairs(self.wards) do
+		if ward.behaviour ~= nil then
+			if not ward.behaviour.isScout then
+				if ward.threatened then
+					if not ward.behaviour.underFire then
+						local groundDiff = ward.priority.air - ward.priority.ground
+						local submergedDiff = ward.priority.air - ward.priority.submerged
+						if groundDiff > 0 then
+							self:MarkAllMtypesForAssignment("ground")
+							self.totalPriority.ground = self.totalPriority.ground + groundDiff
+						end
+						if submergedDiff > 0 then
+							self:MarkAllMtypesForAssignment("submerged")
+							self.totalPriority.submerged = self.totalPriority.submerged + submergedDiff
+						end
+						ward.threatened = nil
+					end
+				else
+					if ward.behaviour.withinTurtle then
+						if ward.prioritySnap == nil then
+							ward.prioritySnap = {}
+							for GAS, p in pairs(ward.priority) do
+								ward.prioritySnap[GAS] = p+0
+								self.totalPriority[GAS] = self.totalPriority[GAS] - p
+								ward.priority[GAS] = 0
+								self:MarkAllMtypesForAssignment(GAS)
 							end
-							if submergedDiff > 0 then
-								self:MarkAllMtypesForAssignment("submerged")
-								self.totalPriority.submerged = self.totalPriority.submerged + submergedDiff
-							end
-							ward.threatened = nil
 						end
 					else
-						if ward.behaviour.withinTurtle then
-							if ward.prioritySnap == nil then
-								ward.prioritySnap = {}
-								for GAS, p in pairs(ward.priority) do
-									ward.prioritySnap[GAS] = p+0
-									self.totalPriority[GAS] = self.totalPriority[GAS] - p
-									ward.priority[GAS] = 0
-									self:MarkAllMtypesForAssignment(GAS)
-								end
+						if ward.prioritySnap ~= nil then
+							for GAS, p in pairs(ward.prioritySnap) do
+								ward.priority[GAS] = p+0
+								self.totalPriority[GAS] = self.totalPriority[GAS] + p
+								self:MarkAllMtypesForAssignment(GAS)
 							end
-						else
-							if ward.prioritySnap ~= nil then
-								for GAS, p in pairs(ward.prioritySnap) do
-									ward.priority[GAS] = p+0
-									self.totalPriority[GAS] = self.totalPriority[GAS] + p
-									self:MarkAllMtypesForAssignment(GAS)
-								end
-								ward.prioritySnap = nil
-							end
-							if ward.behaviour.underFire then
-								if ward.behaviour.response then
-									for GAS, r in pairs(ward.behaviour.response) do
-										if r > 0 then
-											ward.priority[GAS] = ward.priority[GAS] + threatenedPriority
-											self.totalPriority[GAS] = self.totalPriority[GAS] + threatenedPriority
-											self:MarkAllMtypesForAssignment(GAS)
-											ward.threatened = f
-										end
+							ward.prioritySnap = nil
+						end
+						if ward.behaviour.underFire then
+							if ward.behaviour.response then
+								for GAS, r in pairs(ward.behaviour.response) do
+									if r > 0 then
+										ward.priority[GAS] = ward.priority[GAS] + threatenedPriority
+										self.totalPriority[GAS] = self.totalPriority[GAS] + threatenedPriority
+										self:MarkAllMtypesForAssignment(GAS)
+										ward.threatened = f
 									end
 								end
 							end
 						end
 					end
 				end
-			elseif ward.turtle ~= nil then
-				if ward.threatened ~= nil then
-					-- defend threatened turtles for ten seconds after they've stopped being threatened
-					if f > ward.threatened + 300 then
-						self.totalPriority.ground = self.totalPriority.ground - ward.priority.ground
-						self.totalPriority.submerged = self.totalPriority.submerged - ward.priority.submerged
-						if ward.priority.ground > 0 then self:MarkAllMtypesForAssignment("ground") end
-						if ward.priority.submerged > 0 then self:MarkAllMtypesForAssignment("submerged") end
-						ward.priority.ground, ward.priority.submerged = 0, 0
-					else
-						if ward.scrambleForMe then scrambleCalls = scrambleCalls + 1 end
-					end
+			end
+		elseif ward.turtle ~= nil then
+			if ward.threatened ~= nil then
+				-- defend threatened turtles for ten seconds after they've stopped being threatened
+				if f > ward.threatened + 300 then
+					self.totalPriority.ground = self.totalPriority.ground - ward.priority.ground
+					self.totalPriority.submerged = self.totalPriority.submerged - ward.priority.submerged
+					if ward.priority.ground > 0 then self:MarkAllMtypesForAssignment("ground") end
+					if ward.priority.submerged > 0 then self:MarkAllMtypesForAssignment("submerged") end
+					ward.priority.ground, ward.priority.submerged = 0, 0
+				else
+					if ward.scrambleForMe then scrambleCalls = scrambleCalls + 1 end
 				end
 			end
 		end
-		if scrambleCalls ~= 0 then
-			self:Scramble()
-		else
-			self:Unscramble()
-		end
-		if self.frontWardWater ~= self.lastFrontWardWater then self:AssignLoiterers(self.frontWardWater) end
-		if self.frontWardLand ~= self.lastFrontWardLand then self:AssignLoiterers(self.frontWardLand) end
-		self.lastFrontWardWater = self.frontWardWater
-		self.lastFrontWardLand = self.frontWardLand
 	end
+	if scrambleCalls ~= 0 then
+		self:Scramble()
+	else
+		self:Unscramble()
+	end
+	if self.frontWardWater ~= self.lastFrontWardWater then self:AssignLoiterers(self.frontWardWater) end
+	if self.frontWardLand ~= self.lastFrontWardLand then self:AssignLoiterers(self.frontWardLand) end
+	self.lastFrontWardWater = self.frontWardWater
+	self.lastFrontWardLand = self.frontWardLand
+
 	for GAS, mtypes in pairs(self.needAssignment) do
 		for mtype, needAssignment in pairs(mtypes) do
 			if needAssignment and f > self.lastAssignFrame[GAS][mtype] + 60 then
