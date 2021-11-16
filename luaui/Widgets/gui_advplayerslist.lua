@@ -1284,7 +1284,7 @@ function GetAIName(teamID)
 	if niceName then
         name = niceName
 
-		if options.profile then
+		if Spring.Utilities.ShowDevUI() and options.profile then
 			name = name .. " [" .. options.profile .. "]"
 		end
 	end
