@@ -100,12 +100,14 @@ function LosHST:scanEnemy(enemy,isShoting)
 
 	t.mType =ut.mtype
 	t.GULS = Spring.GetUnitLosState(t.id ,self.ai.allyId,true)
-	self:EchoDebug('GULS',t.id,t.GULS)
-	if not t.position or t.GULS == 0 then--enemy dead,or not in sensor at all
+
+	if not t.position then
 		t = nil
 		self:Warn('how do you are there????? ? ?  ?  ?   ?   ?     ?        ?                 ?              ?')
+	elseif not t.position or t.GULS == 0 then--enemy dead,or not in sensor at all
+		t = nil
 	else
-		t.GULS = Spring.GetUnitLosState(t.id ,self.ai.allyId,true)
+		self:EchoDebug('GULS',t.id,t.GULS)
 
 		if isShoting or t.GULS >=7 or (t.GULS == 4 and ut.speed == 0) or (t.GULS == 6 and ut.speed == 0) then
 			t.view = 1
@@ -125,6 +127,7 @@ function LosHST:scanEnemy(enemy,isShoting)
 			t.layer = self:setPosLayer(t.name,t.position)
 			t.speedX,t.speedY,t.speedZ, t.SPEED = Spring.GetUnitVelocity ( t.id )
 			self:EchoDebug(t.name,'X-Z SPEED',t.speedX,t.speedZ,t.SPEED)
+			t.target = {x = t.position.x+( t.speedX*30),y = t.position.y,z = t.position.z + (t.speedZ*30)}
 			t.dirX,t.dirY,t.dirZ = Spring.GetUnitDirection ( t.id )
 			self:EchoDebug(t.name,'dir X-Z',t.dirX,t.dirZ)
 

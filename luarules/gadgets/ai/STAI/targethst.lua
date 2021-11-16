@@ -110,8 +110,9 @@ local function NewCell(px, pz)
 	local threat = { ground = 0, air = 0, submerged = 0 } -- threats (including buildings) by what they hurt
 	local response = { ground = 0, air = 0, submerged = 0 } -- count mobile threat by what can hurt it
 	local preresponse = { ground = 0, air = 0, submerged = 0 } -- count where mobile threat will probably be by what can hurt it
-
-	local newcell = { value = 0, explosionValue = 0, values = values, threat = threat, response = response, buildingIDs = {}, targets = targets, vulnerables = vulnerables, resurrectables = {}, reclaimables = {}, lastDisarmThreat = 0, metal = 0, energy = 0, x = px, z = pz, pos = position }
+	local target={x=-1000,y=-1000,z=-1000}
+	local risksNum = 0
+	local newcell = { value = 0, explosionValue = 0, values = values, threat = threat, response = response, buildingIDs = {}, targets = targets, vulnerables = vulnerables, resurrectables = {}, reclaimables = {}, lastDisarmThreat = 0, metal = 0, energy = 0, x = px, z = pz, pos = position ,target=target,risksNum = risksNum}
 
 	return newcell
 end
@@ -562,6 +563,9 @@ function TargetHST:UpdateEnemies()
 		local ghost = e.ghost
 		local name = e.name
 		local ut = self.ai.armyhst.unitTable[name]
+
+
+
 -- 		if ghost and not ghost.position and not e.beingBuilt then
 		if e.view < 0 then
 			-- count ghosts with unknown positions as non-positioned threats
@@ -582,6 +586,12 @@ function TargetHST:UpdateEnemies()
 					--self:Warn('warning cell is not already defined!!!!',px,pz)
 				end
 				local cell = self:GetOrCreateCellHere(pos)
+				if e.SPEED then
+					cell.target.x = math.max(cell.target.x , e.target.x)
+					cell.target.z = math.max(cell.target.z , e.target.z)
+					cell.target.y = Spring.GetGroundHeight(cell.target.x,cell.target.z)
+					cell.risksNum = cell.risksNum + 1 --TODO become metal amount
+				end
 				if e.view == 0 then--radar
 					if ut.isBuilding then
 						cell.value = cell.value + baseBuildingValue
