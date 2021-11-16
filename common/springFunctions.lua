@@ -18,7 +18,12 @@ Spring.Utilities = {
 	IsDevMode = function()
 		local devMode = Spring.GetGameRulesParam('isDevMode')
 		return (devMode and devMode > 0) and true or false
-	end
+	end,
+
+	ShowDevUI = function ()
+		local devUI = Spring.GetConfigInt('DevUI', 0)
+		return (devUI > 0) and true or false
+	end,
 }
 
 VFS.Include('common/luaUtilities/json.lua')
