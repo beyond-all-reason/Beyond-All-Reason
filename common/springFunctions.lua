@@ -54,6 +54,8 @@ if Spring.GetModOptions then
 	end
 
 	Spring.GetModOptions = function ()
-		return modOptions
+		-- Returning the table itself would allow callers to mutate the table
+		-- Copying it ensures each caller gets its own copy
+		return table.copy(modOptions)
 	end
 end
