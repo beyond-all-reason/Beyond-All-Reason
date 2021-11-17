@@ -149,7 +149,7 @@ return {
 				},
 				damage = {
 					default = 16.5,
-					subs = 1,
+					subs = 5.5,
 				},
 			},
 		},

@@ -152,7 +152,7 @@ return {
 				weapontype = "TorpedoLauncher",
 				weaponvelocity = 140,
 				damage = {
-					default = 225, --280, --210,
+					default = 225,
 				},
 			},
 			plasma = {
@@ -180,7 +180,6 @@ return {
 					bombers = 45,
 					default = 385,
 					fighters = 45,
-					--subs = 5,
 					vtol = 45,
 				},
 			},

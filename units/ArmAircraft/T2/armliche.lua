@@ -187,7 +187,7 @@ return {
 				damage = {
 					commanders = 3350,
 					default = 5625,
-					subs = 5,
+					subs = 1000,
 					vtol = 562,
 					bombers = 562,
 					fighters = 562,

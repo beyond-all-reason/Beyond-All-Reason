@@ -192,7 +192,7 @@ return {
 				weapontype = "TorpedoLauncher",
 				weaponvelocity = 200,
 				damage = {
-					default = 225, --400, --300,
+					default = 225,
 				},
 			},
 			cor_crus = {
@@ -227,7 +227,6 @@ return {
 					bombers = 44,
 					default = 200,
 					fighters = 44,
-					--subs = 5,
 					vtol = 44,
 				},
 			},
