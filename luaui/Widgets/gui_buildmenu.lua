@@ -57,6 +57,8 @@ local prevHoveredCellID, hoverDlist
 
 local math_isInRect = math.isInRect
 
+local facingMap = {south=0, east=1, north=2, west=3}
+
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 
@@ -555,7 +557,7 @@ function buildFacingHandler(_, _, args)
 	if not (preGamestartPlayer and selBuildQueueDefID) then
 		return
 	end
-
+	
 	local facing = Spring.GetBuildFacing()
 	if args and args[1] == "inc" then
 		facing = facing + 1
@@ -572,6 +574,11 @@ function buildFacingHandler(_, _, args)
 		end
 		Spring.SetBuildFacing(facing)
 
+		return true
+
+	elseif args and facingMap[args[1]] then
+		Spring.SetBuildFacing(facingMap[args[1]])
+	
 		return true
 	end
 end
