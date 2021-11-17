@@ -226,7 +226,7 @@ return {
 				damage = {
 					commanders = 500,
 					default = 1100,
-					subs = 5,
+					subs = 300,
 				},
 			},
 			rocket_split = {
@@ -277,7 +277,6 @@ return {
 				damage = {
 					commanders = 223,
 					default = 350,
-					--subs = 5,
 				},
 			},
 		},

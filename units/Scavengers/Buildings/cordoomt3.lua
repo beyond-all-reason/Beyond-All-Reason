@@ -166,7 +166,6 @@ return {
 				damage = {
 					commanders = 1350,
 					default = 7500,
-					subs = 5,
 					vtol = 3000,
 				},
 			},
@@ -213,7 +212,6 @@ return {
 				damage = {
 					commanders = 999,
 					default = 4500,
-					subs = 5,
 				},
 			},
 			armageddon_green_laser = {
@@ -252,7 +250,6 @@ return {
 					bombers = 65,
 					default = 247,
 					fighters = 65,
-					subs = 5,
 					vtol = 65,
 				},
 			},

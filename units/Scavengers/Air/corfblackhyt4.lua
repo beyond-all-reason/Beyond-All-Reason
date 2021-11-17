@@ -141,7 +141,6 @@ return {
 				weaponvelocity = 950,
 				damage = {
 					default = 75,
-					subs = 5,
 				},
 			},
 			heavylaser = {
@@ -179,7 +178,6 @@ return {
 					bombers = 65,
 					default = 270,
 					fighters = 65,
-					subs = 5,
 					vtol = 65,
 				},
 			},
@@ -210,7 +208,7 @@ return {
 					bombers = 130,
 					default = 465,
 					fighters = 130,
-					subs = 10,
+					subs = 100,
 					vtol = 130,
 				},
 			},
@@ -270,7 +268,6 @@ return {
 					bombers = 50,
 					fighters = 50,
 					vtol = 50,
-					commanders = 1,
 				},
 			},
 		},

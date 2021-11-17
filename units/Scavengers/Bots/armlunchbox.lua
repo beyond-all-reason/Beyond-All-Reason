@@ -158,7 +158,7 @@ return {
 					commanders = 1100,
 					default = 1265,
 					shields = 765,
-					subs = 5,
+					subs = 400,
 				},
 			},
 		},

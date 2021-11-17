@@ -141,7 +141,6 @@ return {
 					default = 297,
 					fighters = 174,
 					shields = 87,
-					subs = 20,
 					vtol = 174,
 				},
 			},

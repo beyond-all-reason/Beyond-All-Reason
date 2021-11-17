@@ -128,7 +128,7 @@ return {
 				craterboost = 0.02,
 				cratermult = 0.02,
 				edgeeffectiveness = 0.9,
-				energypershot = 500,
+				energypershot = 1000,
 				explosiongenerator = "custom:genericshellexplosion-medium-bomb",
 				gravityaffected = "true",
 				impulseboost = 0.1,
@@ -151,7 +151,6 @@ return {
 				damage = {
 					default = 210,
 					shields = 105,
-					subs = 5,
 				},
 			},
 		},

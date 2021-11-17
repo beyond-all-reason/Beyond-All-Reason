@@ -166,7 +166,6 @@ return {
 				damage = {
 					commanders = 999,
 					default = 4500,
-					subs = 5,
 				},
 			},
 			doomsday_green_laser = {
@@ -205,7 +204,6 @@ return {
 					bombers = 65,
 					default = 247,
 					fighters = 65,
-					subs = 5,
 					vtol = 65,
 				},
 			},
@@ -245,7 +243,6 @@ return {
 				weaponvelocity = 2250,
 				damage = {
 					default = 40,
-					subs = 2,
 				},
 			},
 		},

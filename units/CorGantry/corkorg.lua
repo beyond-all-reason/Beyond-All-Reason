@@ -154,7 +154,6 @@ return {
 				},
 				damage = {
 					default = 165,
-					subs = 5,
 				},
 			},
 			corkorg_laser = {
@@ -198,7 +197,6 @@ return {
 				damage = {
 					commanders = 1200,
 					default = 5500,
-					subs = 5,
 					vtol = 2750,
 				},
 			},
@@ -253,7 +251,6 @@ return {
 				},
 				damage = {
 					default = 800,
-					subs = 5,
 				},
 			},
 			krogkick = {

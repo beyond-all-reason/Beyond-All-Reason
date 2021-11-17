@@ -124,7 +124,7 @@ return {
 					commanders = 200,
 					default = 2000,
 					vtol = 200,
-					subs = 5,
+					subs = 200,
 				},
 			},
 			krowbosslaser2 = {
@@ -166,7 +166,7 @@ return {
 					commanders = 500,
 					default = 5000,
 					vtol = 500,
-					subs = 5,
+					subs = 500,
 				},
 			},
 		},

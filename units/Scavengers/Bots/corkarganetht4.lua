@@ -272,7 +272,7 @@ return {
 				damage = {
 					bombers = 1000,
 					default = 1000,
-					subs = 15,
+					subs = 150,
 					vtol = 1000,
 				},
 			},

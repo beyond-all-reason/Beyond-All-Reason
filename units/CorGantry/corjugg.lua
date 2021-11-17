@@ -157,7 +157,6 @@ return {
 				weaponvelocity = 2250,
 				damage = {
 					default = 75,
-					subs = 3,
 				},
 			},
 			juggernaut_fire = {
@@ -198,7 +197,6 @@ return {
 				},
 				damage = {
 					default = 1200,
-					subs = 5,
 				},
 			},
 			juggernaut_top = {
@@ -235,7 +233,6 @@ return {
 				weaponvelocity = 2250,
 				damage = {
 					default = 150,
-					subs = 3,
 				},
 			},
 		},
