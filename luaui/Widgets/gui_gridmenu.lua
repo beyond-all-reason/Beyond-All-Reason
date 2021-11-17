@@ -182,6 +182,8 @@ local showWaterUnits = false
 
 local selectedBuilder, selectedFactory
 
+local facingMap = {south=0, east=1, north=2, west=3}
+
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 
@@ -809,6 +811,10 @@ function buildFacingHandler(_, _, args)
 		end
 		Spring.SetBuildFacing(facing)
 
+		return true
+	elseif args and facingMap[args[1]] then
+		Spring.SetBuildFacing(facingMap[args[1]])
+	
 		return true
 	end
 end
