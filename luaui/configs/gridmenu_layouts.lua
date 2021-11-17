@@ -21,7 +21,7 @@ local labGrids = {
 	coralab = {
 		"corack", "corfast", "corpyro", "corspy",               -- T2 con, freaker, pyro, spy
 		"corvoyr", "corspec", "corcan", "corhrk",              -- radar bot, jammer bot, can, dominator
-		"cormort", "corsktl", "coraak", "corsumo",             -- morty, skuttle, AA bot, sumo
+		"cormort", "corroach", "coraak", "corsumo",             -- morty, skuttle, AA bot, sumo
 	},
 	-- T1 vehicle
 	armvp = {
