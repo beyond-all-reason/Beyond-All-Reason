@@ -214,6 +214,7 @@ function gadget:GameFrame(n)
 							local posz = rawPos.z
 							local posy = Spring.GetGroundHeight(posx, posz)
 							if posx then
+								Spring.GiveOrderToUnit(unitID,CMD.MOVE_STATE,{2},0)
 								Spring.GiveOrderToUnit(unitID, CMD.FIGHT,  {posx+math.random(-capturePointRadius,capturePointRadius), posy, posz+math.random(-capturePointRadius,capturePointRadius)}, {"alt", "ctrl"})
 							end
 						end
@@ -225,6 +226,7 @@ function gadget:GameFrame(n)
 							local posz = rawPos.z
 							local posy = Spring.GetGroundHeight(posx, posz)
 							if posx then
+								Spring.GiveOrderToUnit(unitID,CMD.MOVE_STATE,{2},0)
 								Spring.GiveOrderToUnit(unitID, CMD.FIGHT,  {posx-(capturePointRadius*0.8), posy, posz-(capturePointRadius*0.8)}, {"alt", "ctrl"})
 								Spring.GiveOrderToUnit(unitID, CMD.PATROL,  {posx, posy, posz-(capturePointRadius*0.95)}, {"shift", "alt", "ctrl"})
 								Spring.GiveOrderToUnit(unitID, CMD.PATROL,  {posx+(capturePointRadius*0.8), posy, posz-(capturePointRadius*0.8)}, {"shift", "alt", "ctrl"})
@@ -243,6 +245,7 @@ function gadget:GameFrame(n)
 							local posz = rawPos.z
 							local posy = Spring.GetGroundHeight(posx, posz)
 							if posx then
+								Spring.GiveOrderToUnit(unitID,CMD.MOVE_STATE,{2},0)
 								Spring.GiveOrderToUnit(unitID, CMD.FIGHT,  {posx-(capturePointRadius*0.8), posy, posz-(capturePointRadius*0.8)}, {"alt", "ctrl"})
 								Spring.GiveOrderToUnit(unitID, CMD.PATROL,  {posx, posy, posz-(capturePointRadius*0.95)}, {"shift", "alt", "ctrl"})
 								Spring.GiveOrderToUnit(unitID, CMD.PATROL,  {posx+(capturePointRadius*0.8), posy, posz-(capturePointRadius*0.8)}, {"shift", "alt", "ctrl"})
@@ -263,7 +266,8 @@ function gadget:GameFrame(n)
 							if posx then
 								local pickedBuilding = AIBuilderBuildoptions[unitID][math.random(1,#AIBuilderBuildoptions[unitID])]
 								if UnitDefs[pickedBuilding].weapons and #UnitDefs[pickedBuilding].weapons > 0 then
-									Spring.GiveOrderToUnit(unitID, -pickedBuilding, {posx+math.random(-capturePointRadius,capturePointRadius), posy, posz+math.random(-capturePointRadius,capturePointRadius)}, {"shift", "alt", "ctrl"})
+									Spring.GiveOrderToUnit(unitID,CMD.MOVE_STATE,{2},0)
+									Spring.GiveOrderToUnit(unitID, -pickedBuilding, {posx+math.random(-capturePointRadius*3,capturePointRadius*3), posy, posz+math.random(-capturePointRadius*3,capturePointRadius*3)}, {"shift", "alt", "ctrl"})
 								end
 							end
 						end

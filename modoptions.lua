@@ -718,7 +718,7 @@ local options={
 		desc   = 'Initial score amount available.',
 		type   = 'number',
 		section= 'controlvictoryoptions',
-		def    = 1000,
+		def    = 300,
 		min    = 100,
 		max    = 10000,
 		step   = 1,  -- quantization is aligned to the def value
@@ -829,11 +829,12 @@ local options={
 		desc   = 'Each player on an allyteam that has captured a point will receive this amount of resources per point captured per second',
 		type   = 'number',
 		section= 'controlvictoryoptions',
-		def    = 0,
+		def    = 1,
 		min    = 0,
 		max    = 5,
 		step   = 0.1,  -- quantization is aligned to the def value
 		-- (step <= 0) means that there is no quantization
+		hidden = true,
 	},
 		{
 		key    = 'energyperpoint',
@@ -841,11 +842,12 @@ local options={
 		desc   = 'Each player on an allyteam that has captured a point will receive this amount of resources per point captured per second',
 		type   = 'number',
 		section= 'controlvictoryoptions',
-		def    = 0,
+		def    = 75,
 		min    = 0,
 		max    = 500,
 		step   = 0.1,  -- quantization is aligned to the def value
 		-- (step <= 0) means that there is no quantization
+		hidden = true,
 	},
 	{
 		key    = 'dominationscoretime',

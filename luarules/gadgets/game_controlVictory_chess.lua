@@ -14,6 +14,9 @@ ChessModeUnbalancedModoption = Spring.GetModOptions().scoremode_chess_unbalanced
 ChessModePhaseTimeModoption = Spring.GetModOptions().scoremode_chess_adduptime
 ChessModeSpawnPerPhaseModoption = Spring.GetModOptions().scoremode_chess_spawnsperphase
 
+local capturePointRadius = Spring.GetModOptions().captureradius
+local capturePointRadius = math.floor(capturePointRadius*0.75)
+
 local pveEnabled = Spring.Utilities.Gametype.IsPvE()
 
 if pveEnabled then
@@ -46,6 +49,13 @@ local teamIsLandPlayer = {}
 local resurrectedUnits = {}
 
 
+local function distance(pos1,pos2)
+	local xd = pos1.x-pos2.x
+	local yd = pos1.z-pos2.z
+	local dist = math.sqrt(xd*xd + yd*yd)
+	return dist
+end
+
 function GetControlPoints()
 	--if controlPoints then return controlPoints end
 	controlPoints = {}
@@ -74,6 +84,34 @@ function GetRandomAllyPoint(teamID)
 		if pointAlly == allyTeamID then
 			pos = pointPos
 			break
+		end
+	end
+	return pos
+end
+
+function GetClosestEnemyPoint(unitID)
+	local pos
+	local bestDistance
+	local controlPoints = controlPointsList
+	local unitAllyTeam = Spring.GetUnitAllyTeam(unitID)
+	local unitDefID = Spring.GetUnitDefID(unitID)
+	local unitPositionX, unitPositionY, unitPositionZ = Spring.GetUnitPosition(unitID)
+	local position = {x=unitPositionX, y=unitPositionY, z=unitPositionZ}
+	for i = 1, #controlPoints do
+		local point = controlPoints[i]
+		local pointAlly = controlPoints[i].pointOwner
+		if pointAlly ~= unitAllyTeam then
+			local pointPos = controlPoints[i].pointPosition
+			local dist = distance(position, pointPos)
+			local y = Spring.GetGroundHeight(pointPos.x, pointPos.z)
+			local unreachable = true
+			if (-(UnitDefs[unitDefID].minWaterDepth) > y) and (-(UnitDefs[unitDefID].maxWaterDepth) < y) or UnitDefs[unitDefID].canFly then
+				unreachable = false
+			end
+			if unreachable == false and (not bestDistance or dist < bestDistance) then
+				bestDistance = dist
+				pos = pointPos
+			end
 		end
 	end
 	return pos
@@ -233,20 +271,30 @@ local function spawnUnitsFromQueue(teamID)
     if teamSpawnQueue[teamID] then
         if teamSpawnQueue[teamID][1] then
             local pos = GetRandomAllyPoint(teamID)
+            local spawnedUnit
             if pos and pos.x then
                 local x = pos.x+math.random(-50,50)
                 local z = pos.z+math.random(-50,50)
                 local y = Spring.GetGroundHeight(x,z)
-                Spring.CreateUnit(teamSpawnQueue[teamID][1], x, y, z, 0, teamID)
+                spawnedUnit = Spring.CreateUnit(teamSpawnQueue[teamID][1], x, y, z, 0, teamID)
                 Spring.SpawnCEG("scav-spawnexplo",x,y,z,0,0,0)
                 table.remove(teamSpawnQueue[teamID], 1)
             else
                 local x = teamSpawnPositions[teamID].x + math.random(-64,64)
                 local z = teamSpawnPositions[teamID].z + math.random(-64,64)
                 local y = Spring.GetGroundHeight(x,z)
-                Spring.CreateUnit(teamSpawnQueue[teamID][1], x, y, z, 0, teamID)
+                spawnedUnit = Spring.CreateUnit(teamSpawnQueue[teamID][1], x, y, z, 0, teamID)
                 Spring.SpawnCEG("scav-spawnexplo",x,y,z,0,0,0)
                 table.remove(teamSpawnQueue[teamID], 1)
+            end
+            local rawPos = GetClosestEnemyPoint(spawnedUnit)
+            if rawPos then
+                local posx = rawPos.x
+                local posz = rawPos.z
+                local posy = Spring.GetGroundHeight(posx, posz)
+                if posx then
+                    Spring.GiveOrderToUnit(spawnedUnit, CMD.FIGHT,  {posx+math.random(-capturePointRadius,capturePointRadius), posy, posz+math.random(-capturePointRadius,capturePointRadius)}, {"alt", "ctrl"})
+                end
             end
         end
     end
@@ -256,20 +304,31 @@ local function respawnUnitsFromQueue(teamID)
     if teamRespawnQueue[teamID] then
         if teamRespawnQueue[teamID][1] then
             local pos = GetRandomAllyPoint(teamID)
+            local spawnedUnit
             if pos and pos.x then
                 local x = pos.x+math.random(-50,50)
                 local z = pos.z+math.random(-50,50)
                 local y = Spring.GetGroundHeight(x,z)
-                Spring.CreateUnit(teamRespawnQueue[teamID][1], x, y, z, 0, teamID)
+                spawnedUnit = Spring.CreateUnit(teamRespawnQueue[teamID][1], x, y, z, 0, teamID)
                 Spring.SpawnCEG("scav-spawnexplo",x,y,z,0,0,0)
                 table.remove(teamRespawnQueue[teamID], 1)
             else
                 local x = teamSpawnPositions[teamID].x + math.random(-64,64)
                 local z = teamSpawnPositions[teamID].z + math.random(-64,64)
                 local y = Spring.GetGroundHeight(x,z)
-                Spring.CreateUnit(teamRespawnQueue[teamID][1], x, y, z, 0, teamID)
+                spawnedUnit = Spring.CreateUnit(teamRespawnQueue[teamID][1], x, y, z, 0, teamID)
                 Spring.SpawnCEG("scav-spawnexplo",x,y,z,0,0,0)
                 table.remove(teamRespawnQueue[teamID], 1)
+            end
+            local rawPos = GetClosestEnemyPoint(spawnedUnit)
+            if rawPos then
+                local posx = rawPos.x
+                local posz = rawPos.z
+                local posy = Spring.GetGroundHeight(posx, posz)
+                if posx then
+                    Spring.GiveOrderToUnit(spawnedUnit,CMD.MOVE_STATE,{0},0)
+                    Spring.GiveOrderToUnit(spawnedUnit, CMD.FIGHT,  {posx+math.random(-capturePointRadius,capturePointRadius), posy, posz+math.random(-capturePointRadius,capturePointRadius)}, {"alt", "ctrl"})
+                end
             end
         end
     end
