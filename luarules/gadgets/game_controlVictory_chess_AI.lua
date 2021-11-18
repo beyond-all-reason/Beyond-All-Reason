@@ -59,8 +59,10 @@ local AIDiverseAttackers = {}
 local AIDefenders = {}
 local AIMainAttackersCount = {}
 local AIDiverseAttackersCount = {}
+local AIBuildersCount = {}
 local AIDefendersCount = {}
 local AIBuilders = {}
+local AIBuilderBuildoptions = {}
 
 
 
@@ -87,6 +89,7 @@ function GetClosestAllyPoint(unitID)
 	local bestDistance
 	local controlPoints = controlPointsList
 	local unitAllyTeam = Spring.GetUnitAllyTeam(unitID)
+	local unitDefID = Spring.GetUnitDefID(unitID)
 	local unitPositionX, unitPositionY, unitPositionZ = Spring.GetUnitPosition(unitID)
 	local position = {x=unitPositionX, y=unitPositionY, z=unitPositionZ}
 	for i = 1, #controlPoints do
@@ -95,7 +98,12 @@ function GetClosestAllyPoint(unitID)
 		if pointAlly == unitAllyTeam then
 			local pointPos = controlPoints[i].pointPosition
 			local dist = distance(position, pointPos)
-			if not bestDistance or dist < bestDistance then
+			local y = Spring.GetGroundHeight(pointPos.x, pointPos.z)
+			local unreachable = true
+			if (-(UnitDefs[unitDefID].minWaterDepth) > y) and (-(UnitDefs[unitDefID].maxWaterDepth) < y) or UnitDefs[unitDefID].canFly then
+				unreachable = false
+			end
+			if unreachable == false and (not bestDistance or dist < bestDistance) then
 				bestDistance = dist
 				pos = pointPos
 			end
@@ -109,6 +117,7 @@ function GetClosestEnemyPoint(unitID)
 	local bestDistance
 	local controlPoints = controlPointsList
 	local unitAllyTeam = Spring.GetUnitAllyTeam(unitID)
+	local unitDefID = Spring.GetUnitDefID(unitID)
 	local unitPositionX, unitPositionY, unitPositionZ = Spring.GetUnitPosition(unitID)
 	local position = {x=unitPositionX, y=unitPositionY, z=unitPositionZ}
 	for i = 1, #controlPoints do
@@ -117,7 +126,12 @@ function GetClosestEnemyPoint(unitID)
 		if pointAlly ~= unitAllyTeam then
 			local pointPos = controlPoints[i].pointPosition
 			local dist = distance(position, pointPos)
-			if not bestDistance or dist < bestDistance then
+			local y = Spring.GetGroundHeight(pointPos.x, pointPos.z)
+			local unreachable = true
+			if (-(UnitDefs[unitDefID].minWaterDepth) > y) and (-(UnitDefs[unitDefID].maxWaterDepth) < y) or UnitDefs[unitDefID].canFly then
+				unreachable = false
+			end
+			if unreachable == false and (not bestDistance or dist < bestDistance) then
 				bestDistance = dist
 				pos = pointPos
 			end
@@ -130,14 +144,21 @@ function GetRandomAllyPoint(unitID)
 	local pos
 	local controlPoints = controlPointsList
 	local unitAllyTeam = Spring.GetUnitAllyTeam(unitID)
+	local unitDefID = Spring.GetUnitDefID(unitID)
 	local unitPositionX, unitPositionY, unitPositionZ = Spring.GetUnitPosition(unitID)
 	local position = {x=unitPositionX, y=unitPositionY, z=unitPositionZ}
-	for i = 1,100 do 
+	for i = 1,1000 do 
 		local r = math.random(1,#controlPoints)
 		local point = controlPoints[r]
 		local pointAlly = controlPoints[r].pointOwner
-		if pointAlly == unitAllyTeam then
-			pos = controlPoints[r].pointPosition
+		local pointPos = controlPoints[r].pointPosition
+		local y = Spring.GetGroundHeight(pointPos.x, pointPos.z)
+		local unreachable = true
+		if (-(UnitDefs[unitDefID].minWaterDepth) > y) and (-(UnitDefs[unitDefID].maxWaterDepth) < y) or UnitDefs[unitDefID].canFly then
+			unreachable = false
+		end
+		if unreachable == false and pointAlly == unitAllyTeam then
+			pos = pointPos
 			break
 		end
 	end
@@ -148,14 +169,21 @@ function GetRandomEnemyPoint(unitID)
 	local pos
 	local controlPoints = controlPointsList
 	local unitAllyTeam = Spring.GetUnitAllyTeam(unitID)
+	local unitDefID = Spring.GetUnitDefID(unitID)
 	local unitPositionX, unitPositionY, unitPositionZ = Spring.GetUnitPosition(unitID)
 	local position = {x=unitPositionX, y=unitPositionY, z=unitPositionZ}
-	for i = 1,100 do 
+	for i = 1,1000 do 
 		local r = math.random(1,#controlPoints)
 		local point = controlPoints[r]
 		local pointAlly = controlPoints[r].pointOwner
-		if pointAlly ~= unitAllyTeam then
-			pos = controlPoints[r].pointPosition
+		local pointPos = controlPoints[r].pointPosition
+		local y = Spring.GetGroundHeight(pointPos.x, pointPos.z)
+		local unreachable = true
+		if (-(UnitDefs[unitDefID].minWaterDepth) > y) and (-(UnitDefs[unitDefID].maxWaterDepth) < y) or UnitDefs[unitDefID].canFly then
+			unreachable = false
+		end
+		if unreachable == false and pointAlly ~= unitAllyTeam then
+			pos = pointPos
 			break
 		end
 	end
@@ -226,6 +254,20 @@ function gadget:GameFrame(n)
 							end
 						end
 					end
+					if AIBuilders[unitID] and Spring.GetCommandQueue(unitID, 0) <= 5 then
+						local rawPos = GetRandomAllyPoint(unitID)
+						if rawPos then
+							local posx = rawPos.x
+							local posz = rawPos.z
+							local posy = Spring.GetGroundHeight(posx, posz)
+							if posx then
+								local pickedBuilding = AIBuilderBuildoptions[unitID][math.random(1,#AIBuilderBuildoptions[unitID])]
+								if UnitDefs[pickedBuilding].weapons and #UnitDefs[pickedBuilding].weapons > 0 then
+									Spring.GiveOrderToUnit(unitID, -pickedBuilding, {posx+math.random(-capturePointRadius,capturePointRadius), posy, posz+math.random(-capturePointRadius,capturePointRadius)}, {"shift", "alt", "ctrl"})
+								end
+							end
+						end
+					end
 				end
 			end
 		end
@@ -239,17 +281,25 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 			if not AIMainAttackersCount[unitTeam] then AIMainAttackersCount[unitTeam] = 0 end
 			if not AIDefendersCount[unitTeam] then AIDefendersCount[unitTeam] = 0 end
 			if not AIDiverseAttackersCount[unitTeam] then AIDiverseAttackersCount[unitTeam] = 0 end
+			if not AIBuildersCount[unitTeam] then AIBuildersCount[unitTeam] = 0 end
 			
-			
-			if AIMainAttackersCount[unitTeam] < AIDiverseAttackersCount[unitTeam]*0.5 then -- and AIMainAttackersCount[unitTeam] < AIDefendersCount[unitTeam]
-				AIMainAttackers[unitID] = true
-				AIMainAttackersCount[unitTeam] = AIMainAttackersCount[unitTeam] + 1
-			-- elseif AIDefendersCount[unitTeam] < AIDiverseAttackersCount[unitTeam] and GetRandomAllyPoint(unitID) then
-			-- 	AIDefenders[unitID] = true
-			-- 	AIDefendersCount[unitTeam] = AIDefendersCount[unitTeam] + 1
-			else
-				AIDiverseAttackers[unitID] = true
-				AIDiverseAttackersCount[unitTeam] = AIDiverseAttackersCount[unitTeam] + 1
+			if UnitDefs[unitDefID].buildOptions and #UnitDefs[unitDefID].buildOptions > 0 then
+				AIBuilders[unitID] = true
+				AIBuilderBuildoptions[unitID] = UnitDefs[unitDefID].buildOptions
+				AIBuildersCount[unitTeam] = AIBuildersCount[unitTeam] + 1
+			end
+
+			if not AIBuilders[unitID] then
+				if AIMainAttackersCount[unitTeam] < AIDiverseAttackersCount[unitTeam]*5 then -- and AIMainAttackersCount[unitTeam] < AIDefendersCount[unitTeam]
+					AIMainAttackers[unitID] = true
+					AIMainAttackersCount[unitTeam] = AIMainAttackersCount[unitTeam] + 1
+				-- elseif AIDefendersCount[unitTeam] < AIDiverseAttackersCount[unitTeam] and GetRandomAllyPoint(unitID) then
+				-- 	AIDefenders[unitID] = true
+				-- 	AIDefendersCount[unitTeam] = AIDefendersCount[unitTeam] + 1
+				else
+					AIDiverseAttackers[unitID] = true
+					AIDiverseAttackersCount[unitTeam] = AIDiverseAttackersCount[unitTeam] + 1
+				end
 			end
 		end
 	--end
@@ -267,6 +317,11 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 	if AIDiverseAttackers[unitID] then
 		AIDiverseAttackers[unitID] = nil
 		AIDiverseAttackersCount[unitTeam] = AIDiverseAttackersCount[unitTeam] - 1
+	end
+	if UnitDefs[unitDefID].canbuild then
+		AIBuilders[unitID] = nil
+		AIBuilderBuildoptions[unitID] = nil
+		AIBuildersCount[unitTeam] = AIBuildersCount[unitTeam] - 1
 	end
 	
 	if controlAITeams[unitTeam] then

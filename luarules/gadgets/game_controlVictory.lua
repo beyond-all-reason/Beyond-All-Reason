@@ -17,6 +17,7 @@ end
 
 local selectedScoreMode = modOptions.scoremode
 local useMapConfig = modOptions.usemapconfig
+local useMexConfig = modOptions.usemexconfig
 local numberOfControlPoints = modOptions.numberofcontrolpoints
 local captureRadius = modOptions.captureradius
 local decapSpeed = modOptions.decapspeed
@@ -165,15 +166,15 @@ if gadgetHandler:IsSyncedCode() then
 		gadgetHandler:RegisterGlobal('NonCapturingUnits', gNonCapturingUnits)
 		gadgetHandler:RegisterGlobal('CaptureRadius', gCaptureRadius)
 
-		for _, a in ipairs(Spring.GetAllyTeamList()) do
-			if scoreMode ~= scoreModes.domination then
-				score[a] = limitScore
-			else
-				score[a] = 0
+		-- Create table of metal spots.
+		local metalSpots = GG.metalSpots
+		local metalPoints = {}
+		if metalSpots then
+			for i = 1, #metalSpots do
+				local spot = metalSpots[i]
+				table.insert(metalPoints, {x = spot.x, y = 0, z = spot.z})
 			end
 		end
-
-		score[gaia] = 0
 
 		if scoreMode == scoreModes.domination then
 			local angle = math.random() * math.pi * 2
@@ -194,7 +195,6 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		else
 			local mapConfigExists = false
-
 			if useMapConfig then
 				local configfile, _ = string.gsub(Game.mapName, ".smf$", ".lua")
 				configfile = "LuaRules/Configs/ControlPoints/cv_" .. configfile .. ".lua"
@@ -209,7 +209,19 @@ if gadgetHandler:IsSyncedCode() then
 					-- moveSpeed = 0
 				end
 			end
-			if not mapConfigExists then
+			if (not mapConfigExists) and useMexConfig and #metalPoints > 7 then
+				points = {}
+				for i = 1,#metalPoints do
+					points[i] = {
+						x = metalPoints[i].x,
+						y = metalPoints[i].y,
+						z = metalPoints[i].z,
+						owner = nil,
+						aggressor = nil,
+						capture = 0,
+					}
+				end
+			elseif not mapConfigExists then
 				if numberOfControlPoints == 7 then
 					--Since no config file is found, we create 7 points spaced out in a circle on the map
 					local angle = math.random() * math.pi * 2
@@ -387,6 +399,15 @@ if gadgetHandler:IsSyncedCode() then
 				}
 			end
 		end
+
+		for _, a in ipairs(Spring.GetAllyTeamList()) do
+			if scoreMode ~= scoreModes.domination then
+				score[a] = limitScore*#points
+			else
+				score[a] = 0
+			end
+		end
+		score[gaia] = 0
 
 		_G.points = points
 		_G.score = score
