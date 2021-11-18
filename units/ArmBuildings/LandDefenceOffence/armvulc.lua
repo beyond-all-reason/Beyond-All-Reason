@@ -140,7 +140,7 @@ return {
 				range = 5750,
 				reloadtime = 0.4,
 				rgbcolor = "1, 0.4, 0",
-				soundhit = "rflrpc3",
+				soundhit = "rflrpcexplo",
 				soundhitwet = "splshbig",
 				soundstart = "lrpcshot3",
 				turret = true,

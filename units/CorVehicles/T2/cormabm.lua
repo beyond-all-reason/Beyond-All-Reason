@@ -156,7 +156,7 @@ return {
 				smokeTrailCastShadow = true,
 				soundhit = "xplomed4",
 				soundhitwet = "splslrg",
-				soundstart = "Rockhvy1",
+				soundstart = "antinukelaunch",
 				stockpile = true,
 				stockpiletime = 90,
 				texture1 = "null",

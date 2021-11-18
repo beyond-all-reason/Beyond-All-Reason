@@ -168,7 +168,7 @@ local soundData = {
 		pitchmod = 0.27,
 		gainmod  = 0.2 * 0.3,
 		dopplerscale = 1.0,
-		maxconcurrent = 18,
+		maxconcurrent = 32,
 		rolloff = 1.1,
 	},
 
