@@ -73,6 +73,7 @@ local defaultConfig = {
 	maxSpeed = 0, -- not implemented yet
 	acceleration = 0, -- not implemented yet (also affects braking)
 	turnRate = 0, -- not implemented yet
+	buildPower = 0, -- not implemented yet
 }
 
 local unitConfigs = { -- missing values default to 0
@@ -83,7 +84,6 @@ local unitConfigs = { -- missing values default to 0
 local function ApplyBonuses(unitID)
 	local unitDefID = unitsDefID[unitID]
 	if unitConfigs[unitDefID] then
-
 		if unitConfigs[unitDefID].health then
 			local curhealth, curmaxhealth = Spring.GetUnitHealth(unitID)
 			Spring.SetUnitMaxHealth(unitID, curmaxhealth * (1 + (unitConfigs[unitDefID].health * 0.01)))
@@ -95,13 +95,11 @@ local function ApplyBonuses(unitID)
 			for i = 1, #weapons do
 				if unitConfigs[unitDefID].reloadTime then
 					local weaponReloadTime = Spring.GetUnitWeaponState(unitID, i, "reloadTime")
-					Spring.SetUnitWeaponState(unitID, i, "reloadTime", weaponReloadTime * (1 - (unitConfigs[unitDefID].reloadTime * 0.01)))
+					Spring.SetUnitWeaponState(unitID, i, "reloadTime", weaponReloadTime + (1 - (unitConfigs[unitDefID].reloadTime * 0.01)))
 				end
 			end
 		end
-
 	else
-
 		if defaultConfig.health ~= 0 then
 			local curhealth, curmaxhealth = Spring.GetUnitHealth(unitID)
 			Spring.SetUnitMaxHealth(unitID, curmaxhealth * (1 + (defaultConfig.health * 0.01)))
@@ -112,7 +110,7 @@ local function ApplyBonuses(unitID)
 			for i = 1, #weapons do
 				if defaultConfig.reloadTime ~= 0 then
 					local weaponReloadTime = Spring.GetUnitWeaponState(unitID, i, "reloadTime")
-					Spring.SetUnitWeaponState(unitID, i, "reloadTime", weaponReloadTime * (1 - (defaultConfig.reloadTime * 0.01)))
+					Spring.SetUnitWeaponState(unitID, i, "reloadTime", weaponReloadTime * (1 + (defaultConfig.reloadTime * 0.01)))
 				end
 			end
 		end
