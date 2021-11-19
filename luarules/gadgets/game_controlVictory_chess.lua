@@ -74,7 +74,7 @@ function GetControlPoints()
 	return controlPoints
 end
 
-function GetRandomAllyPoint(teamID)
+function GetRandomAllyPoint(teamID, )
     local _,_,_,_,_,allyTeamID = Spring.GetTeamInfo(teamID)
 	for i = 1,1000 do 
 		local r = math.random(1,#controlPoints)
@@ -137,17 +137,47 @@ local starterLandUnitsList = {
     [1] = {
         [1] = {    
             table = {
+                --bots
                 "armpw", 
-                "corak", 
+                "corak",
+                --vehicles
+                "armflash",
+                "corfav",
             },                           
             quantity = 10,
         },
         [2] = {    
             table = {
+                "armflea", 
+                "armfav",
+                "corfav" ,
+            },                           
+            quantity = 5,
+        },
+        [3] = {    
+            table = {
                 "armassistdrone", 
                 "corassistdrone", 
             },                           
             quantity = 2,
+        },
+        [4] = {    
+            table = {
+                "armmlv", 
+                "cormlv", 
+            },                           
+            quantity = 2,
+        },
+        [5] = {    
+            table = {
+                "armjeth",
+                "corcrash",
+                "armah",
+                "corah",
+                "armsam",
+                "cormist",
+            },                           
+            quantity = 1,
         },
     },
 }
@@ -156,6 +186,7 @@ local landUnitsList = {
     [1] = {
         [1] = {    
             table = {
+                -- bots
                 "armpw", 
                 "corak",
                 "armrock",
@@ -163,8 +194,45 @@ local landUnitsList = {
                 "armwar",
                 "corstorm",
                 "corthud",
+
+                -- tanks
+                "armflash",
+                "corgator",
+                "armstump",
+                "corraid",
+                "armpincer",
+                "corgarp",
+                "armsam",
+                "cormist",
+                "armjanus",
+                "corlevlr",
+                "corwolv",
+
+                -- hover
+                "armsh",
+                "corsh",
+                "armmh",
+                "cormh",
+                "armanac",
+                "corsnap",
             },                           
             quantity = 10,
+        },
+        [2] = {    
+            table = {
+                "armassistdrone", 
+                "corassistdrone", 
+            },                           
+            quantity = 1,
+        },
+        [3] = {    
+            table = {
+                "armjeth",
+                "corcrash",
+                "armah",
+                "corah",
+            },                           
+            quantity = 1,
         },
     },
 }
