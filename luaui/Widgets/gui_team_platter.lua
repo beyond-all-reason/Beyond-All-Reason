@@ -186,7 +186,8 @@ end
 
 function widget:UnitTaken(unitID, unitDefID, oldTeamID, newTeamID)
 	if unitTeam[unitID] then
-		unitTeam[unitID] = newTeamID
+		RemoveUnit(unitID, unitDefID, oldTeamID)
+		AddUnit(unitID, unitDefID, unitTeam)
 	end
 end
 
