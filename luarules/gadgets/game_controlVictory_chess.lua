@@ -74,14 +74,20 @@ function GetControlPoints()
 	return controlPoints
 end
 
-function GetRandomAllyPoint(teamID, )
+function GetRandomAllyPoint(teamID, unitName)
     local _,_,_,_,_,allyTeamID = Spring.GetTeamInfo(teamID)
+    local unitDefID = UnitDefNames[unitName].id
 	for i = 1,1000 do 
 		local r = math.random(1,#controlPoints)
 		local point = controlPoints[r]
 		local pointAlly = controlPoints[r].pointOwner
 		local pointPos = controlPoints[r].pointPosition
-		if pointAlly == allyTeamID then
+		local y = Spring.GetGroundHeight(pointPos.x, pointPos.z)
+        local unreachable = true
+        if (-(UnitDefs[unitDefID].minWaterDepth) > y) and (-(UnitDefs[unitDefID].maxWaterDepth) < y) or UnitDefs[unitDefID].canFly then
+            unreachable = false
+        end
+        if unreachable == false and pointAlly == allyTeamID then
 			pos = pointPos
 			break
 		end
@@ -338,7 +344,7 @@ end
 local function spawnUnitsFromQueue(teamID)
     if teamSpawnQueue[teamID] then
         if teamSpawnQueue[teamID][1] then
-            local pos = GetRandomAllyPoint(teamID)
+            local pos = GetRandomAllyPoint(teamID, teamSpawnQueue[teamID][1])
             local spawnedUnit
             if pos and pos.x then
                 local x = pos.x+math.random(-50,50)
@@ -371,7 +377,7 @@ end
 local function respawnUnitsFromQueue(teamID)
     if teamRespawnQueue[teamID] then
         if teamRespawnQueue[teamID][1] then
-            local pos = GetRandomAllyPoint(teamID)
+            local pos = GetRandomAllyPoint(teamID, teamRespawnQueue[teamID][1])
             local spawnedUnit
             if pos and pos.x then
                 local x = pos.x+math.random(-50,50)
