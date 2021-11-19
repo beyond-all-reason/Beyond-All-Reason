@@ -28,7 +28,7 @@ for key, code in ipairs(languageCodes) do
 	languageNames[key] = languages[code]
 end
 
-local orchestralDefaulted = false
+local enabledAirjetsOnce = false	-- delete everything with enabledAirjetsOnce after a month or so (2021)
 
 local ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.6)
 
@@ -1495,15 +1495,6 @@ if gpuMem and gpuMem > 0 and gpuMem < 1800 then
 end
 
 function init()
-	-- make the orchestral soundtrack the new default retrospectively
-	if not orchestralDefaulted then
-		Spring.SetConfigInt('soundtrack', 2)
-		-- dont enable when they turned off music widget
-		if widgetHandler.orderList["AdvPlayersList Music Player"] ~= nil or widgetHandler.orderList["AdvPlayersList Music Player"] ~= 0 then
-			widgetHandler:DisableWidget('AdvPlayersList Music Player')
-			widgetHandler:EnableWidget('AdvPlayersList Music Player (orchestral)')
-		end
-	end
 
 	presetNames = { texts.option.preset_lowest, texts.option.preset_low, texts.option.preset_medium, texts.option.preset_high, texts.option.preset_ultra }
 	presets = {
@@ -2197,7 +2188,7 @@ function init()
 		  end
 		},
 
-		{ id = "airjets", group = "gfx", category = types.advanced, widget = "Airjets", name = texts.option.airjets, type = "bool", value = GetWidgetToggleValue("Airjets"), description = texts.option.airjets_descr },
+		{ id = "airjets", group = "gfx", category = types.advanced, widget = "Airjets", name = texts.option.airjets, type = "bool", value = GetWidgetToggleValue("Airjets GL4"), description = texts.option.airjets_descr },
 		{ id = "jetenginefx_lights", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.jetenginefx_lights, type = "bool", value = true, description = texts.option.jetenginefx_lights_descr,
 		  onload = function(i)
 			  loadWidgetData("Light Effects", "lups_jetenginefx_lights", { 'enableThrusters' })
@@ -5137,6 +5128,13 @@ function widget:Initialize()
 		end
 	end
 
+	if not enabledAirjetsOnce then
+		enabledAirjetsOnce = true
+		if not GetWidgetToggleValue('Airjets GL4') then
+			widgetHandler:EnableWidget('Airjets GL4')
+		end
+	end
+
 	if Spring.GetGameFrame() == 0 then
 		detectWater()
 
@@ -5365,7 +5363,6 @@ end
 
 function widget:GetConfigData(data)
 	return {
-		orchestralDefaulted = true,
 		vsyncLevel = vsyncLevel,
 		vsyncOnlyForSpec = vsyncOnlyForSpec,
 		vsyncEnabled = vsyncEnabled,
@@ -5389,6 +5386,7 @@ function widget:GetConfigData(data)
 		useNetworkSmoothing = useNetworkSmoothing,
 		desiredWaterValue = desiredWaterValue,
 		waterDetected = waterDetected,
+		enabledAirjetsOnce = enabledAirjetsOnce,
 
 		disticon = { 'UnitIconDist', tonumber(Spring.GetConfigInt("UnitIconDist", 1) or 160) },
 		particles = { 'MaxParticles', tonumber(Spring.GetConfigInt("MaxParticles", 1) or 15000) },
@@ -5404,8 +5402,8 @@ function widget:GetConfigData(data)
 end
 
 function widget:SetConfigData(data)
-	if data.orchestralDefaulted then
-		orchestralDefaulted = true
+	if data.enabledAirjetsOnce then
+		enabledAirjetsOnce = true
 	end
 	if data.vsyncEnabled ~= nil then
 		vsyncEnabled = data.vsyncEnabled

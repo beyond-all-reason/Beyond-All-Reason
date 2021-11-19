@@ -11,7 +11,7 @@ function widget:GetInfo()
 		date = "2021.05.16",
 		license = "GNU GPL, v2 or later",
 		layer = -1,
-		enabled = false,
+		enabled = true,
 	}
 end
 
@@ -55,9 +55,6 @@ local spValidUnitID = Spring.ValidUnitID
 --------------------------------------------------------------------------------
 
 local enableLights = true
-
-local disableAtAvgFps = 1
-
 local lightMult = 1.4
 
 local effectDefs = {
@@ -680,14 +677,6 @@ local function DrawParticles(isReflection)
 		--Spring.Echo("Numairjets", jetInstanceVBO.usedElements)
 	end
 
-	local disticon
-	if Spring.GetConfigInt("UnitIconsAsUI", 1) == 1 then
-		disticon = Spring.GetConfigInt("uniticon_fadevanish", 1800)
-		disticon = disticon * 3
-	else
-		disticon = Spring.GetConfigInt("UnitIconDist", 200)
-		disticon = disticon * 27 -- should be sqrt(750) but not really
-	end
 
 	gl.Culling(false)
 
@@ -701,7 +690,15 @@ local function DrawParticles(isReflection)
 	jetShader:Activate()
 
 	jetShader:SetUniformInt("reflectionPass", ((isReflection == true) and 1) or 0)
-	jetShader:SetUniform("iconDistance", disticon)
+	--zlocal disticon
+	--zif Spring.GetConfigInt("UnitIconsAsUI", 1) == 1 then
+	--z	disticon = Spring.GetConfigInt("uniticon_fadevanish", 1800)
+	--z	disticon = disticon * 3
+	--zelse
+	--z	disticon = Spring.GetConfigInt("UnitIconDist", 200)
+	--z	disticon = disticon * 27 -- should be sqrt(750) but not really
+	--zend
+	--jetShader:SetUniform("iconDistance", disticon)
 
 	drawInstanceVBO(jetInstanceVBO)
 
@@ -992,16 +989,4 @@ function widget:Shutdown()
 		RemoveUnit(unitID, unitDefID, spGetUnitTeam(unitID))
 	end
 
-end
-
-function widget:GetConfigData(data)
-	return {
-		disableAtAvgFps = disableAtAvgFps,
-	}
-end
-
-function widget:SetConfigData(data)
-	if data.disableAtAvgFps ~= nil then
-		disableAtAvgFps = data.disableAtAvgFps
-	end
 end
