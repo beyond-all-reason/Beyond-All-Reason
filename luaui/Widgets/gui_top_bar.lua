@@ -763,19 +763,19 @@ local function updateResbarText(res)
 					local color1, color2
 					if res == 'metal' then
 						if allyteamOverflowingMetal then
-							color1 = { 0.35, 0.1, 0.1, 0.8 }
-							color2 = { 0.25, 0.05, 0.05, 0.8 }
+							color1 = { 0.35, 0.1, 0.1, 1 }
+							color2 = { 0.25, 0.05, 0.05, 1 }
 						else
-							color1 = { 0.35, 0.35, 0.35, 0.55 }
-							color2 = { 0.25, 0.25, 0.25, 0.55 }
+							color1 = { 0.35, 0.35, 0.35, 1 }
+							color2 = { 0.25, 0.25, 0.25, 1 }
 						end
 					else
 						if allyteamOverflowingEnergy then
-							color1 = { 0.35, 0.1, 0.1, 0.8 }
-							color2 = { 0.25, 0.05, 0.05, 0.8 }
+							color1 = { 0.35, 0.1, 0.1, 1 }
+							color2 = { 0.25, 0.05, 0.05, 1 }
 						else
-							color1 = { 0.35, 0.25, 0, 0.8 }
-							color2 = { 0.25, 0.16, 0, 0.8 }
+							color1 = { 0.35, 0.25, 0, 1 }
+							color2 = { 0.25, 0.16, 0, 1 }
 						end
 					end
 					RectRound(resbarArea[res][3] - textWidth, resbarArea[res][4] - 15.5 * widgetScale, resbarArea[res][3], resbarArea[res][4], 3.7 * widgetScale, 0, 0, 1, 1, color1, color2)

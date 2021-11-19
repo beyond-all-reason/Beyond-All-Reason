@@ -2188,7 +2188,7 @@ function init()
 		  end
 		},
 
-		{ id = "airjets", group = "gfx", category = types.advanced, widget = "Airjets", name = texts.option.airjets, type = "bool", value = GetWidgetToggleValue("Airjets GL4"), description = texts.option.airjets_descr },
+		{ id = "airjets", group = "gfx", category = types.advanced, widget = "Airjets GL4", name = texts.option.airjets, type = "bool", value = GetWidgetToggleValue("Airjets GL4"), description = texts.option.airjets_descr },
 		{ id = "jetenginefx_lights", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.jetenginefx_lights, type = "bool", value = true, description = texts.option.jetenginefx_lights_descr,
 		  onload = function(i)
 			  loadWidgetData("Light Effects", "lups_jetenginefx_lights", { 'enableThrusters' })
