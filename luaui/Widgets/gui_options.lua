@@ -32,7 +32,7 @@ local enabledAirjetsOnce = false	-- delete everything with enabledAirjetsOnce af
 
 local ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.6)
 
-local devMode = Spring.Utilities.IsDevMode() or Spring.GetConfigInt("DevUI") == 1
+local devMode = Spring.Utilities.IsDevMode() or Spring.Utilities.ShowDevUI()
 local advSettings = false
 local initialized = false
 local pauseGameWhenSingleplayer = true
@@ -3477,10 +3477,10 @@ function init()
 				end
 			end
 		},
-		{ id = "usePlayerUI", group = "dev", category = types.dev, name = "View UI as player", type = "bool", value = Spring.GetConfigInt("DevUI", 0) == 0,
+		{ id = "usePlayerUI", group = "dev", category = types.dev, name = "View UI as player", type = "bool", value = not Spring.Utilities.ShowDevUI(),
 			onchange = function(i, value)
 				Spring.SetConfigInt("DevUI", value and 0 or 1)
-				Spring.Echo(Spring.GetConfigInt("DevUI"))
+				Spring.SendCommands("luaui reload")
 			end,
 		},
 		{ id = "customwidgets", group = "dev", category = types.dev, name = texts.option.customwidgets, type = "bool", value = widgetHandler.allowUserWidgets, description = texts.option.customwidgets_descr,
