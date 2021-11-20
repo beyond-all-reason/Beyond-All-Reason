@@ -726,8 +726,26 @@ local function RemoveLights(unitID)
 	end
 end
 
+local function FinishInitialization(unitID, effectDef)
+	local pieceMap = spGetUnitPieceMap(unitID)
+	for i = 1, #effectDef do
+		local fx = effectDef[i]
+		if fx.piece then
+			--Spring.Echo("FinishInitialization", fx.piece, pieceMap[fx.piece])
+			fx.piecenum = pieceMap[fx.piece]
+		end
+		fx.width = fx.width*1.2
+		fx.length = fx.length*1.5
+	end
+	effectDef.finishedInit = true
+end
+
 local function Activate(unitID, unitDefID, who, when)
 	--Spring.Echo(Spring.GetGameFrame(), who, "Activate(unitID, unitDefID)",unitID, unitDefID)
+
+	if not effectDefs[unitDefID].finishedInit then
+		FinishInitialization(unitID, effectDefs[unitDefID])
+	end
 
 	inactivePlanes[unitID] = nil
 	-- this unit already has lights assigned to it, clear it from inactive and done
@@ -793,26 +811,9 @@ local function RemoveUnit(unitID, unitDefID, unitTeamID)
 	end
 end
 
-local function FinishInitialization(unitID, effectDef)
-	local pieceMap = spGetUnitPieceMap(unitID)
-	for i = 1, #effectDef do
-		local fx = effectDef[i]
-		if fx.piece then
-			--Spring.Echo("FinishInitialization", fx.piece, pieceMap[fx.piece])
-			fx.piecenum = pieceMap[fx.piece]
-		end
-		fx.width = fx.width*1.2
-		fx.length = fx.length*1.5
-	end
-	effectDef.finishedInit = true
-end
-
 local function AddUnit(unitID, unitDefID, unitTeamID)
 	if not effectDefs[unitDefID] then
 		return false
-	end
-	if not effectDefs[unitDefID].finishedInit then
-		FinishInitialization(unitID, effectDefs[unitDefID])
 	end
 	Activate(unitID, unitDefID, "addunit")
 
