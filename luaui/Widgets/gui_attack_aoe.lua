@@ -167,7 +167,9 @@ local function GetMouseTargetPosition(dgun)
 			end
 		elseif mouseTargetType == "feature" then
 			local mouseTargetType, mouseTarget = TraceScreenRay(mx, my, true)
-			return mouseTarget[1], mouseTarget[2], mouseTarget[3]
+			if mouseTarget then
+				return mouseTarget[1], mouseTarget[2], mouseTarget[3]
+			end
 			--return GetFeaturePosition(mouseTarget)
 		else
 			return nil
