@@ -189,12 +189,15 @@ Activate()
 {
 	signal SIG_ACTIVATE;
 	start-script RequestState(0);
+	return (0);
 }
 
 Deactivate()
 {
 	signal SIG_ACTIVATE;
 	set-signal-mask SIG_ACTIVATE;
+	sleep 5000;
+	set-signal-mask 0;
 	start-script RequestState(1);
 }
 
