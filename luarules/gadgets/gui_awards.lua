@@ -287,19 +287,13 @@ if gadgetHandler:IsSyncedCode() then
 		--is the cow awarded?
 		local ecoKillAwardTeam = awards.ecoKill[1].teamID
 		local fightKillAwardTeam = awards.fightKill[1].teamID
-		local efficientKillAwardTeam = awards.efficiency[1].teamID
+		local efficiencyAwardTeam = awards.efficiency[1].teamID
 
 		--If one player won all the awards, they also win the Golden Cow award, but this is only meaningful in large games
-		if ecoKillAwardTeam ~= -1 and (ecoKillAwardTeam == fightKillAwardTeam) and (ecoKillAwardTeam == efficientKillAwardTeam) and nTeams > 3 then
-			if winningAllyTeams and winningAllyTeams[1] then
-				local _, _, _, _, _, cowAllyTeamID = Spring.GetTeamInfo(ecoKillAwardTeam, false)
-				for _, allyTeamID in pairs(winningAllyTeams) do
-					if cowAllyTeamID == allyTeamID then
-						table.insert(awards.goldenCow, { teamID = teamID, score = 1 })
-						table.sort(awards.goldenCow, awardSortFunction)
-						break
-					end
-				end
+		if ecoKillAwardTeam ~= -1 and (ecoKillAwardTeam == fightKillAwardTeam) and (ecoKillAwardTeam == efficiencyAwardTeam) and nTeams > 3 then
+			if winningAllyTeams then
+				table.insert(awards.goldenCow, { teamID = teamID, score = 1 })
+				table.sort(awards.goldenCow, awardSortFunction)
 			end
 		end
 
