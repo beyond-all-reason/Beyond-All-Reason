@@ -356,7 +356,7 @@ return {
 			simpleminimapcolors = 'simple colors',
 			simpleminimapcolors_descr = 'Enable simple minimap teamcolors\nRed is enemy,blue is ally and you are green!',
 			minimapiconsize = 'icon scale',
-			gridmenu = 'Grid build menu',
+			gridmenu = 'grid',
 			gridmenu_descr = 'Alternative comprehensive build menu',
 			buildmenu = 'Build menu',
 			buildmenu_makefancy = 'fancy',

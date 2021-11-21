@@ -33,7 +33,6 @@ local maxPosY = 0.74
 
 local disableInputWhenSpec = false		-- disable specs selecting buildoptions
 
-local makeFancy = true    -- when using transparant icons this adds highlights so it shows the squared shape of button
 local showPrice = false		-- false will still show hover
 local showRadarIcon = true		-- false will still show hover
 local showGroupIcon = true		-- false will still show hover
@@ -557,7 +556,7 @@ function buildFacingHandler(_, _, args)
 	if not (preGamestartPlayer and selBuildQueueDefID) then
 		return
 	end
-	
+
 	local facing = Spring.GetBuildFacing()
 	if args and args[1] == "inc" then
 		facing = facing + 1
@@ -578,7 +577,7 @@ function buildFacingHandler(_, _, args)
 
 	elseif args and facingMap[args[1]] then
 		Spring.SetBuildFacing(facingMap[args[1]])
-	
+
 		return true
 	end
 end
@@ -612,13 +611,6 @@ function widget:Initialize()
 	end
 	WG['buildmenu'].getOrder = function()
 		return unitOrder
-	end
-	WG['buildmenu'].getMakeFancy = function()
-		return makeFancy
-	end
-	WG['buildmenu'].setMakeFancy = function(value)
-		makeFancy = value
-		doUpdate = true
 	end
 	WG['buildmenu'].getShowPrice = function()
 		return showPrice
@@ -1752,7 +1744,6 @@ function widget:GetConfigData()
 		minColls = minColls,
 		maxColls = maxColls,
 		defaultColls = defaultColls,
-		makeFancy = makeFancy,
 		showTooltip = showTooltip,
 		buildQueue = buildQueue,
 		stickToBottom = stickToBottom,
@@ -1784,9 +1775,6 @@ function widget:SetConfigData(data)
 	end
 	if data.defaultColls ~= nil then
 		defaultColls = data.defaultColls
-	end
-	if data.makeFancy ~= nil then
-		makeFancy = data.makeFancy
 	end
 	if data.showTooltip ~= nil then
 		showTooltip = data.showTooltip

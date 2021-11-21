@@ -2515,11 +2515,15 @@ function init()
 		  end,
 		},
 
-		{ id = "buildmenu_makefancy", group = "ui", category = types.basic, name = texts.option.buildmenu .. widgetOptionColor .. "  " .. texts.option.buildmenu_makefancy, type = "bool", value = (WG['buildmenu'] ~= nil and WG['buildmenu'].getMakeFancy ~= nil and WG['buildmenu'].getMakeFancy()), description = texts.option.buildmenu_makefancy_descr,
-		  onload = function(i)
-		  end,
+		{ id = "gridmenu", group = "ui", category = types.advanced, name = texts.option.buildmenu..widgetOptionColor .. "  " .. texts.option.gridmenu, type = "bool", value = GetWidgetToggleValue("Grid menu"), description = texts.option.gridmenu_descr,
 		  onchange = function(i, value)
-			  saveOptionValue('Build menu', 'buildmenu', 'setMakeFancy', { 'showMakeFancy' }, value)
+			  if value then
+				  widgetHandler:DisableWidget('Build menu')
+				  widgetHandler:EnableWidget('Grid menu')
+			  else
+				  widgetHandler:DisableWidget('Grid menu')
+				  widgetHandler:EnableWidget('Build menu')
+			  end
 		  end,
 		},
 		{ id = "buildmenu_bottom", group = "ui", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.buildmenu_bottom, type = "bool", value = (WG['buildmenu'] ~= nil and WG['buildmenu'].getBottomPosition ~= nil and WG['buildmenu'].getBottomPosition()), description = texts.option.buildmenu_bottom_descr,
@@ -2570,18 +2574,6 @@ function init()
 		  end,
 		  onchange = function(i, value)
 			  saveOptionValue('Build menu', 'buildmenu', 'setShowTooltip', { 'showTooltip' }, value)
-		  end,
-		},
-
-		{ id = "gridmenu", group = "ui", category = types.advanced, name = texts.option.gridmenu, type = "bool", value = GetWidgetToggleValue("Grid menu"), description = texts.option.gridmenu_descr,
-		  onchange = function(i, value)
-			  if value then
-				  widgetHandler:DisableWidget('Build menu')
-				  widgetHandler:EnableWidget('Grid menu')
-			  else
-				  widgetHandler:DisableWidget('Grid menu')
-				  widgetHandler:EnableWidget('Build menu')
-			  end
 		  end,
 		},
 
