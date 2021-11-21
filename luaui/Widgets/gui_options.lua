@@ -991,7 +991,9 @@ function widget:DrawScreen()
 				local y = optionButtons[showSelectOptions][4] - oPadding
 				local yPos = y
 				optionSelect = {}
-				for i, option in pairs(options[showSelectOptions].options) do
+				local i = 0
+				for k, option in pairs(options[showSelectOptions].options) do
+					i = i + 1
 					yPos = y - (((oHeight + oPadding + oPadding) * i) - oPadding)
 				end
 
@@ -1008,16 +1010,18 @@ function widget:DrawScreen()
 					RectRound(optionButtons[showSelectOptions][1], yPos - oHeight - oPadding, optionButtons[showSelectOptions][1] + maxWidth, optionButtons[showSelectOptions][2], (optionButtons[showSelectOptions][4] - optionButtons[showSelectOptions][2]) * 0.1, 1, 1, 1, 1, { 0.3, 0.3, 0.3, WG['guishader'] and 0.84 or 0.94 }, { 0.35, 0.35, 0.35, WG['guishader'] and 0.84 or 0.94 })
 					UiSelector(optionButtons[showSelectOptions][1], optionButtons[showSelectOptions][2], optionButtons[showSelectOptions][3], optionButtons[showSelectOptions][4])
 
-					for i, option in pairs(options[showSelectOptions].options) do
+					local i = 0
+					for k, option in pairs(options[showSelectOptions].options) do
+						i = i + 1
 						yPos = math.floor(y - (((oHeight + oPadding + oPadding) * i) - oPadding))
-						optionSelect[#optionSelect + 1] = { math.floor(optionButtons[showSelectOptions][1]), math.floor(yPos - oHeight - oPadding), math.floor(optionButtons[showSelectOptions][1] + maxWidth), math.floor(yPos + oPadding) - 1, i }
+						optionSelect[#optionSelect + 1] = { math.floor(optionButtons[showSelectOptions][1]), math.floor(yPos - oHeight - oPadding), math.floor(optionButtons[showSelectOptions][1] + maxWidth), math.floor(yPos + oPadding) - 1, k }
 
 						if math_isInRect(mx, my, optionSelect[#optionSelect][1], optionSelect[#optionSelect][2], optionSelect[#optionSelect][3], optionSelect[#optionSelect][4]) then
 							UiSelectHighlight(optionButtons[showSelectOptions][1], math.floor(yPos - oHeight - oPadding), optionButtons[showSelectOptions][1] + maxWidth, math.floor(yPos + oPadding))
 							if playSounds and (prevSelectHover == nil or prevSelectHover ~= i) then
 								Spring.PlaySoundFile(sounds.selectHoverClick, 0.04, 'ui')
 							end
-							prevSelectHover = i
+							prevSelectHover = k
 						end
 						if options[showSelectOptions].optionsFont and fontOption then
 							fontOption[i]:Begin()
@@ -1511,6 +1515,7 @@ function init()
 			treeradius = 0,
 			guishader = false,
 			decals = 0,
+			shadowslider = 1,
 			grass = false,
 			darkenmap_darkenfeatures = false,
 		},
@@ -1528,6 +1533,7 @@ function init()
 			treeradius = 200,
 			guishader = false,
 			decals = 1,
+			shadowslider = 2,
 			grass = false,
 			darkenmap_darkenfeatures = false,
 		},
@@ -1545,6 +1551,7 @@ function init()
 		 	treeradius = 400,
 		 	guishader = true,
 		 	decals = 2,
+			shadowslider = 3,
 		 	grass = true,
 		 	darkenmap_darkenfeatures = false,
 		},
@@ -1562,6 +1569,7 @@ function init()
 			treeradius = 800,
 			guishader = true,
 			decals = 4,
+			shadowslider = 4,
 			grass = true,
 			darkenmap_darkenfeatures = false,
 		},
@@ -1579,6 +1587,7 @@ function init()
 			treeradius = 800,
 			guishader = true,
 			decals = 5,
+			shadowslider = 5,
 			grass = true,
 			darkenmap_darkenfeatures = true,
 		},
@@ -1867,12 +1876,32 @@ function init()
 		  end,
 		},
 
-		{ id = "shadowslider", group = "gfx", category = types.basic, name = texts.option.shadowslider, type = "select", options = { 2048, 3072, 4096, 6144, 8192 }, value = tonumber(Spring.GetConfigInt("ShadowMapSize", 1) or 4096), description = texts.option.shadowslider_descr,
+		{ id = "shadowslider", group = "gfx", category = types.basic, name = texts.option.shadowslider, type = "select", options = { 'lowest', 'low', 'medium', 'high', 'ultra'}, value = tonumber(Spring.GetConfigInt("ShadowMapSize", 1) or 4096), description = texts.option.shadowslider_descr,
+		  onload = function(i)
+			  local ShadowMapSize = tonumber(Spring.GetConfigInt("ShadowMapSize", 4096) or 4096)
+			  if devMode then
+				  options[getOptionByID('shadowslider')].options[6] = 'insane'
+			  end
+			  local quality = {
+				  ['lowest'] = 2048, ['low'] = 3072, ['medium'] = 4096, ['high'] = 6144, ['ultra'] = 10240, ['insane'] = 16384
+			  }
+			  if ShadowMapSize == 0 then
+				  --options[getOptionByID('shadowslider')].value = 1
+			  else
+				  for k,v in pairs( options[getOptionByID('shadowslider')].options) do
+					  if quality[v] <= ShadowMapSize then
+						  options[getOptionByID('shadowslider')].value = k
+					  end
+				  end
+			  end
+		  end,
 		  onchange = function(i, value)
-			  local enabled = (value < 1) and 0 or 1
-			  value = options[getOptionByID('shadowslider')].options[value]
-			  Spring.SendCommands("shadows " .. enabled .. " " .. value)
-			  Spring.SetConfigInt("Shadows", enabled)
+			  local quality = {
+				  [1] = 2048, [2] = 3072, [3] = 4096, [4] = 6144, [5] = 10240, [6] = 16384
+			  }
+			  value = quality[value]
+			  Spring.SendCommands("shadows 1 " .. value)
+			  Spring.SetConfigInt("Shadows", 1)
 			  Spring.SetConfigInt("ShadowMapSize", value)
 		  end,
 		},
@@ -1952,7 +1981,7 @@ function init()
 			  saveOptionValue('Light Effects', 'lighteffects', 'setGlobalBrightness', { 'globalLightMult' }, value)
 		  end,
 		},
-		{ id = "lighteffects_additionalflashes", category = types.advanced, group = "gfx", name = widgetOptionColor .. "   " .. texts.option.lighteffects_additionalflashes, type = "bool", value = true, description = texts.option.lighteffects_additionalflashes_descr,
+		{ id = "lighteffects_additionalflashes", category = types.dev, group = "gfx", name = widgetOptionColor .. "   " .. texts.option.lighteffects_additionalflashes, type = "bool", value = true, description = texts.option.lighteffects_additionalflashes_descr,
 		  onload = function(i)
 			  loadWidgetData("Light Effects", "lighteffects_additionalflashes", { 'additionalLightingFlashes' })
 		  end,
@@ -1961,7 +1990,7 @@ function init()
 		  end,
 		},
 
-		{ id = "heatdistortion", group = "gfx", category = types.basic, widget = "Lups", name = texts.option.heatdistortion, type = "bool", value = GetWidgetToggleValue("Lups"), description = texts.option.heatdistortion_descr },
+		{ id = "heatdistortion", group = "gfx", category = types.dev, widget = "Lups", name = texts.option.heatdistortion, type = "bool", value = GetWidgetToggleValue("Lups"), description = texts.option.heatdistortion_descr },
 
 
 		{ id = "label_gfx_environment", group = "gfx", name = texts.option.label_environment, category = types.basic },
@@ -2006,7 +2035,7 @@ function init()
 		  end,
 		},
 
-		{ id = "decals", group = "gfx", category = types.basic, name = texts.option.decals, type = "slider", min = 0, max = 5, step = 1, value = tonumber(Spring.GetConfigInt("GroundDecals", 1) or 1), description = texts.option.decals_descr,
+		{ id = "decals", group = "gfx", category = types.dev, name = texts.option.decals, type = "slider", min = 0, max = 5, step = 1, value = tonumber(Spring.GetConfigInt("GroundDecals", 1) or 1), description = texts.option.decals_descr,
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
@@ -2018,7 +2047,7 @@ function init()
 
 		{ id = "grass", group = "gfx", category = types.basic, widget = "Map Grass GL4", name = texts.option.grass, type = "bool", value = GetWidgetToggleValue("Map Grass GL4"), description = texts.option.grass_desc },
 
-		{ id = "treewind", group = "gfx", category = types.basic, name = texts.option.treewind, type = "bool", value = tonumber(Spring.GetConfigInt("TreeWind", 1) or 1) == 1, description = texts.option.treewind_descr,
+		{ id = "treewind", group = "gfx", category = types.dev, name = texts.option.treewind, type = "bool", value = tonumber(Spring.GetConfigInt("TreeWind", 1) or 1) == 1, description = texts.option.treewind_descr,
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
@@ -2028,7 +2057,7 @@ function init()
 		},
 
 		{ id = "clouds", group = "gfx", category = types.basic, widget = "Volumetric Clouds", name = texts.option.clouds, type = "bool", value = GetWidgetToggleValue("Volumetric Clouds"), description = '' },
-		{ id = "clouds_opacity", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.clouds_opacity, type = "slider", min = 0.2, max = 1.4, step = 0.05, value = 1, description = '',
+		{ id = "clouds_opacity", group = "gfx", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.clouds_opacity, type = "slider", min = 0.2, max = 1.4, step = 0.05, value = 1, description = '',
 		  onload = function(i)
 			  loadWidgetData("Volumetric Clouds", "clouds_opacity", { 'opacityMult' })
 		  end,
@@ -2038,7 +2067,7 @@ function init()
 		},
 
 		{ id = "snow", group = "gfx", category = types.basic, widget = "Snow", name = texts.option.snow, type = "bool", value = GetWidgetToggleValue("Snow"), description = texts.option.snow_descr },
-		{ id = "snowmap", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.snowmap, type = "bool", value = true, description = texts.option.snowmap_descr,
+		{ id = "snowmap", group = "gfx", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.snowmap, type = "bool", value = true, description = texts.option.snowmap_descr,
 		  onload = function(i)
 			  loadWidgetData("Snow", "snowmap", { 'snowMaps', Game.mapName:lower() })
 		  end,
@@ -2046,7 +2075,7 @@ function init()
 			  saveOptionValue('Snow', 'snow', 'setSnowMap', { 'snowMaps', Game.mapName:lower() }, value)
 		  end,
 		},
-		{ id = "snowautoreduce", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.snowautoreduce, type = "bool", value = true, description = texts.option.snowautoreduce_descr,
+		{ id = "snowautoreduce", group = "gfx", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.snowautoreduce, type = "bool", value = true, description = texts.option.snowautoreduce_descr,
 		  onload = function(i)
 			  loadWidgetData("Snow", "snowautoreduce", { 'autoReduce' })
 		  end,
@@ -2054,7 +2083,7 @@ function init()
 			  saveOptionValue('Snow', 'snow', 'setAutoReduce', { 'autoReduce' }, value)
 		  end,
 		},
-		{ id = "snowamount", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.snowamount, type = "slider", min = 0.2, max = 3, step = 0.2, value = 1, description = texts.option.snowamount_descr,
+		{ id = "snowamount", group = "gfx", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.snowamount, type = "slider", min = 0.2, max = 3, step = 0.2, value = 1, description = texts.option.snowamount_descr,
 		  onload = function(i)
 			  loadWidgetData("Snow", "snowamount", { 'customParticleMultiplier' })
 		  end,
@@ -4542,9 +4571,9 @@ function init()
 	-- reduce options for potatoes
 	if isPotatoGpu or isPotatoCpu then
 		local id = getOptionByID('shadowslider')
-		options[id].options = { 0, 2048, 3072 }
-		if options[id].value > 3072 then
-			options[id].value = 3072
+		options[id].options = { 1, 2 }
+		if options[id].value > 2 then
+			options[id].value = 2
 			options[id].onchange(id, options[id].value)
 		end
 
