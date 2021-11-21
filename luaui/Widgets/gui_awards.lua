@@ -91,32 +91,19 @@ local function findPlayerName(teamID)
 	return name
 end
 
-local function createAward(pic, award, note, noteColour, winnerID, secondID, thirdID, winnerScore, secondScore, thirdScore, offset)
+local function createAward(pic, award, note, noteColour, winnersTable, offset)
+	local winnerTeamID, secondTeamID, thirdTeamID = winnersTable[1].teamID, winnersTable[2].teamID, winnersTable[3].teamID
+	local winnerScore, secondScore, thirdScore = winnersTable[1].score, winnersTable[2].score, winnersTable[3].score
 	local winnerName, secondName, thirdName
 
 	--award is: 0 for a normal award, 1 for the cow award, 2 for the no-cow awards
 	local notAwardedText = Spring.I18N('ui.awards.notAwarded')
 
-	if winnerID >= 0 then
-		winnerName = findPlayerName(winnerID)
-	else
-		winnerName = notAwardedText
-	end
-
-	if secondID >= 0 then
-		secondName = findPlayerName(secondID)
-	else
-		secondName = notAwardedText
-	end
-
-	if thirdID >= 0 then
-		thirdName = findPlayerName(thirdID)
-	else
-		thirdName = notAwardedText
-	end
+	winnerName = winnerTeamID >= 0 and findPlayerName(winnerTeamID) or notAwardedText
+	secondName = secondTeamID >= 0 and findPlayerName(secondTeamID) or notAwardedText
+	thirdName  = thirdTeamID  >= 0 and findPlayerName(thirdTeamID)  or notAwardedText
 
 	thisAward = gl.CreateList(function()
-
 		font:Begin()
 		--names
 		if award ~= 2 then
@@ -126,34 +113,34 @@ local function createAward(pic, award, note, noteColour, winnerID, secondID, thi
 			gl.Texture(pic)
 			gl.TexRect(widgetX + math.floor(12*widgetScale), widgetY + widgetHeightScaled - offset - math.floor(70*widgetScale), widgetX + math.floor(108*widgetScale), widgetY + widgetHeightScaled - offset + math.floor(25*widgetScale))
 
-			font:Print(colourNames(winnerID) .. winnerName, widgetX + math.floor(120*widgetScale), widgetY + widgetHeightScaled - offset - math.floor(10*widgetScale), 18*widgetScale, "o")
+			font:Print(colourNames(winnerTeamID) .. winnerName, widgetX + math.floor(120*widgetScale), widgetY + widgetHeightScaled - offset - math.floor(10*widgetScale), 18*widgetScale, "o")
 			font:Print(noteColour .. note, widgetX + math.floor(120*widgetScale), widgetY + widgetHeightScaled - offset - math.floor(50*widgetScale), 15*widgetScale, "o")
 		else
 			--if the cow is not awarded, we replace it with minor awards (just text)
 			local heightoffset = 0
-			if winnerID >= 0 then
-				font:Print(Spring.I18N('ui.awards.resourcesProduced', { playerColor = colourNames(winnerID), player = winnerName, textColor = white, score = math.floor(winnerScore) }), widgetX + math.floor(70*widgetScale), widgetY + widgetHeightScaled - offset - math.floor(10*widgetScale) - heightoffset, 14*widgetScale, "o")
+			if winnerTeamID >= 0 then
+				font:Print(Spring.I18N('ui.awards.resourcesProduced', { playerColor = colourNames(winnerTeamID), player = winnerName, textColor = white, score = math.floor(winnerScore) }), widgetX + math.floor(70*widgetScale), widgetY + widgetHeightScaled - offset - math.floor(10*widgetScale) - heightoffset, 14*widgetScale, "o")
 				heightoffset = heightoffset + (17 * widgetScale)
 			end
-			if secondID >= 0 then
-				font:Print(Spring.I18N('ui.awards.damageTaken', { playerColor = colourNames(secondID), player = secondName, textColor = white, score = math.floor(secondScore) }), widgetX + math.floor(70*widgetScale), widgetY + widgetHeightScaled - offset - math.floor(10*widgetScale) - heightoffset, 14*widgetScale, "o")
+			if secondTeamID >= 0 then
+				font:Print(Spring.I18N('ui.awards.damageTaken', { playerColor = colourNames(secondTeamID), player = secondName, textColor = white, score = math.floor(secondScore) }), widgetX + math.floor(70*widgetScale), widgetY + widgetHeightScaled - offset - math.floor(10*widgetScale) - heightoffset, 14*widgetScale, "o")
 				heightoffset = heightoffset + (17 * widgetScale)
 			end
-			if thirdID >= 0 then
-				font:Print(Spring.I18N('ui.awards.sleptLongest', { playerColor = colourNames(thirdID), player = thirdName, textColor = white, score = math.floor(thirdScore / 60) }), widgetX + math.floor(70*widgetScale), widgetY + widgetHeightScaled - offset - math.floor(10*widgetScale) - heightoffset, 14*widgetScale, "o")
+			if thirdTeamID >= 0 then
+				font:Print(Spring.I18N('ui.awards.sleptLongest', { playerColor = colourNames(thirdTeamID), player = thirdName, textColor = white, score = math.floor(thirdScore / 60) }), widgetX + math.floor(70*widgetScale), widgetY + widgetHeightScaled - offset - math.floor(10*widgetScale) - heightoffset, 14*widgetScale, "o")
 			end
 		end
 
 		--scores
 		if award == 0 then
 			--normal awards
-			if winnerID >= 0 then
+			if winnerTeamID >= 0 then
 				if pic == 'comwreath' then
 					winnerScore = round(winnerScore, 2)
 				else
 					winnerScore = math.floor(winnerScore)
 				end
-				font:Print(colourNames(winnerID) .. winnerScore, widgetX + widgetWidthScaled / 2 + math.floor(275*widgetScale), widgetY + widgetHeightScaled - offset - 5, 14*widgetScale, "o")
+				font:Print(colourNames(winnerTeamID) .. winnerScore, widgetX + widgetWidthScaled / 2 + math.floor(275*widgetScale), widgetY + widgetHeightScaled - offset - 5, 14*widgetScale, "o")
 			else
 				font:Print('-', widgetX + widgetWidthScaled / 2 + math.floor(275*widgetScale), widgetY + widgetHeightScaled - offset - math.floor(5*widgetScale), 17*widgetScale, "o")
 			end
@@ -165,8 +152,8 @@ local function createAward(pic, award, note, noteColour, winnerID, secondID, thi
 				else
 					secondScore = math.floor(secondScore)
 				end
-				font:Print(colourNames(secondID) .. secondName, widgetX + math.floor(520*widgetScale), widgetY + widgetHeightScaled - offset - math.floor(25*widgetScale), 14*widgetScale, "o")
-				font:Print(colourNames(secondID) .. secondScore, widgetX + widgetWidthScaled / 2 + math.floor(275*widgetScale), widgetY + widgetHeightScaled - offset - math.floor(25*widgetScale), 14*widgetScale, "o")
+				font:Print(colourNames(secondTeamID) .. secondName, widgetX + math.floor(520*widgetScale), widgetY + widgetHeightScaled - offset - math.floor(25*widgetScale), 14*widgetScale, "o")
+				font:Print(colourNames(secondTeamID) .. secondScore, widgetX + widgetWidthScaled / 2 + math.floor(275*widgetScale), widgetY + widgetHeightScaled - offset - math.floor(25*widgetScale), 14*widgetScale, "o")
 			end
 
 			if thirdScore > 0 then
@@ -175,8 +162,8 @@ local function createAward(pic, award, note, noteColour, winnerID, secondID, thi
 				else
 					thirdScore = math.floor(thirdScore)
 				end
-				font:Print(colourNames(thirdID) .. thirdName, widgetX + math.floor(520*widgetScale), widgetY + widgetHeightScaled - offset - math.floor(45*widgetScale), 14*widgetScale, "o")
-				font:Print(colourNames(thirdID) .. thirdScore, widgetX + widgetWidthScaled / 2 + math.floor(275*widgetScale), widgetY + widgetHeightScaled - offset - math.floor(45*widgetScale), 14*widgetScale, "o")
+				font:Print(colourNames(thirdTeamID) .. thirdName, widgetX + math.floor(520*widgetScale), widgetY + widgetHeightScaled - offset - math.floor(45*widgetScale), 14*widgetScale, "o")
+				font:Print(colourNames(thirdTeamID) .. thirdScore, widgetX + widgetWidthScaled / 2 + math.floor(275*widgetScale), widgetY + widgetHeightScaled - offset - math.floor(45*widgetScale), 14*widgetScale, "o")
 			end
 		end
 		font:End()
@@ -234,32 +221,32 @@ local function createBackground()
 	end)
 end
 
-local function ProcessAwards(ecoKillAward, ecoKillAwardSec, ecoKillAwardThi, ecoKillScore, ecoKillScoreSec, ecoKillScoreThi,
-					   fightKillAward, fightKillAwardSec, fightKillAwardThi, fightKillScore, fightKillScoreSec, fightKillScoreThi,
-					   effKillAward, effKillAwardSec, effKillAwardThi, effKillScore, effKillScoreSec, effKillScoreThi,
-					   ecoAward, ecoScore,
-					   dmgRecAward, dmgRecScore,
-					   sleepAward, sleepScore,
-					   cowAward,
-					   traitorAward, traitorAwardSec, traitorAwardThi, traitorScore, traitorScoreSec, traitorScoreThi)
+local function ProcessAwards(awards)
+	local traitorWinner = awards.traitor[1]
+	local cowAwardWinner = awards.goldenCow[1].teamID
+
+	local compoundAwards = {}
+	table.insert(compoundAwards, awards.eco[1])
+	table.insert(compoundAwards, awards.damageReceived[1])
+	table.insert(compoundAwards, awards.sleep[1])
 
 	-- create awards ui
-	local addy = 0
-	if traitorScore > threshold then
-		addy = 100
+	local addY = 0
+	if traitorWinner.score > threshold then
+		addY = 100
 		widgetHeightScaled = 600
 	end
 	createBackground()
-	FirstAward = createAward('fuscup', 0, Spring.I18N('ui.awards.resourcesDestroyed'), white, ecoKillAward, ecoKillAwardSec, ecoKillAwardThi, ecoKillScore, ecoKillScoreSec, ecoKillScoreThi, 100)
-	SecondAward = createAward('bullcup', 0, Spring.I18N('ui.awards.enemiesDestroyed'), white, fightKillAward, fightKillAwardSec, fightKillAwardThi, fightKillScore, fightKillScoreSec, fightKillScoreThi, 200)
-	ThirdAward = createAward('comwreath', 0, Spring.I18N('ui.awards.resourcesEfficiency'), white, effKillAward, effKillAwardSec, effKillAwardThi, effKillScore, effKillScoreSec, effKillScoreThi, 300)
-	if cowAward ~= -1 then
-		CowAward = createAward('cow', 1, Spring.I18N('ui.awards.didEverything'), white, ecoKillAward, 1, 1, 1, 1, 1, 400 + addy)
+	FirstAward = createAward('fuscup', 0, Spring.I18N('ui.awards.resourcesDestroyed'), white, awards.ecoKill, 100)
+	SecondAward = createAward('bullcup', 0, Spring.I18N('ui.awards.enemiesDestroyed'), white, awards.fightKill, 200)
+	ThirdAward = createAward('comwreath', 0, Spring.I18N('ui.awards.resourcesEfficiency'), white, awards.efficiency, 300)
+	if cowAwardWinner ~= -1 then
+		CowAward = createAward('cow', 1, Spring.I18N('ui.awards.didEverything'), white, awards.goldenCow, 400 + addY)
 	else
-		OtherAwards = createAward('', 2, '', white, ecoAward, dmgRecAward, sleepAward, ecoScore, dmgRecScore, sleepScore, 400 + addy)
+		OtherAwards = createAward('', 2, '', white, compoundAwards, 400 + addY)
 	end
-	if traitorScore > threshold then
-		FourthAward = createAward('traitor', 0, Spring.I18N('ui.awards.traitor'), white, traitorAward, traitorAwardSec, traitorAwardThi, traitorScore, traitorScoreSec, traitorScoreThi, 400)
+	if traitorWinner.score > threshold then
+		FourthAward = createAward('traitor', 0, Spring.I18N('ui.awards.traitor'), white, awards.traitor, 400)
 	end
 	drawAwards = true
 
