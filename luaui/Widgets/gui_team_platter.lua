@@ -43,6 +43,7 @@ local unitUnitDefID = {}
 
 local spec, fullview = Spring.GetSpectatingState()
 local myTeamID = Spring.GetMyTeamID()
+local gaiaTeamID = Spring.GetGaiaTeamID()
 
 local unitScale = {}
 local unitCanFly = {}
@@ -169,7 +170,7 @@ local function RemovePrimitive(unitID)
 end
 
 local function AddUnit(unitID, unitDefID, unitTeamID)
-	if not skipOwnTeam or unitTeamID ~= myTeamID then
+	if (not skipOwnTeam or unitTeamID ~= myTeamID) and unitTeamID ~= gaiaTeamID then
 		unitTeam[unitID] = unitTeamID
 		unitUnitDefID[unitID] = unitDefID
 		AddPrimitiveAtUnit(unitID)
@@ -177,7 +178,7 @@ local function AddUnit(unitID, unitDefID, unitTeamID)
 end
 
 local function RemoveUnit(unitID, unitDefID, unitTeamID)
-	if not skipOwnTeam or unitTeamID ~= myTeamID then
+	if (not skipOwnTeam or unitTeamID ~= myTeamID) and unitTeamID ~= gaiaTeamID then
 		RemovePrimitive(unitID)
 		unitTeam[unitID] = nil
 		unitUnitDefID[unitID] = nil

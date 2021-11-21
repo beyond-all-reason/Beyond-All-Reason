@@ -2039,6 +2039,15 @@ function init()
 		{ id = "label_gfx_environment", group = "gfx", name = texts.option.label_environment, category = types.basic },
 		{ id = "label_gfx_environment_spacer", group = "gfx", category = types.basic },
 
+		--{ id = "losopacity", group = "gfx", category = types.advanced, name = texts.option.lineofsight..widgetOptionColor .. "  " .. texts.option.losopacity, type = "slider", min = 0.5, max = 3, step = 0.1, value = (WG['los'] ~= nil and WG['los'].getOpacity ~= nil and WG['los'].getOpacity()) or 1, description = '',
+		--  onload = function(i)
+		--	  loadWidgetData("LOS colors", "losopacity", { 'opacity' })
+		--  end,
+		--  onchange = function(i, value)
+		--	  saveOptionValue('LOS colors', 'los', 'setOpacity', { 'opacity' }, value)
+		--  end,
+		--},
+
 		{ id = "water", group = "gfx", category = types.basic, name = texts.option.water, type = "select", options = { 'basic', 'reflective', 'dynamic', 'reflective&refractive', 'bump-mapped' }, value = desiredWaterValue + 1,
 		  onload = function(i)
 		  end,

@@ -198,6 +198,8 @@ return {
 			mapedgeextension_brightness = 'brightness',
 			mapedgeextension_curvature = 'curvature',
 			mapedgeextension_curvature_descr = 'Curve the mirrored edges away into the floor/seabed',
+			lineofsight = 'Line of Sight',
+			losopacity = 'opacity',
 			water = 'Water type',
 			decals = 'Ground decals',
 			decals_descr = 'Set how long map decals will stay.\n\nDecals are ground scars, footsteps/tracks and shading under buildings',
