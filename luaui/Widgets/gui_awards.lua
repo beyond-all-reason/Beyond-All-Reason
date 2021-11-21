@@ -378,15 +378,6 @@ function widget:Initialize()
 	widget:ViewResize(viewScreenX, viewScreenY)
 	widgetHandler:RegisterGlobal('GadgetReceiveAwards', ProcessAwards)
 
-	--for testing
-	--[[
-	FirstAward = CreateAward('fuscup',0,'Destroying enemy resource production', white, 1,1,1,24378,1324,132,100)
-	SecondAward = CreateAward('bullcup',0,'Destroying enemy units and defences',white, 1,1,1,24378,1324,132,200)
-	ThirdAward = CreateAward('comwreath',0,'Effective use of resources',white,1,1,1,24378,1324,132,300)
-	CowAward = CreateAward('cow',1,'Doing everything',white,1,1,1,24378,1324,132,400)
-	OtherAwards = CreateAward('',2,'',white,1,1,1,3,100,1000,400)
-	]]
-
 	-- load a list of players for each team into playerListByTeam
 	local teamList = Spring.GetTeamList()
 	for _, teamID in pairs(teamList) do

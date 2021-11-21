@@ -11,7 +11,6 @@ function gadget:GetInfo()
 end
 
 local topPlacementsCount = 3 -- Only report the top N places for each award
---local localtestDebug = false        -- when true: ends game after 30 secs
 
 if gadgetHandler:IsSyncedCode() then
 	local spAreTeamsAllied = Spring.AreTeamsAllied
@@ -146,18 +145,6 @@ if gadgetHandler:IsSyncedCode() then
 			teamInfo[attackerTeamID].otherDmg = teamInfo[attackerTeamID].otherDmg + cost --currently not using this but recording it for interest
 		end
 	end
-
-	-- for debugging/testing
-	--[[
-	local effSampleRate = 15
-	function gadget:GameFrame(n)
-		if n%(30*effSampleRate)~=0 or n==0 then return end
-
-		if localtestDebug and n==900 then
-			Spring.GameOver({1,0})
-		end
-	end
-	]]
 
 	-----------------------------------
 	-- work out who wins the awards
