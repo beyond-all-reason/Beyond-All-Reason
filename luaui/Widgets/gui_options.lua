@@ -1820,10 +1820,26 @@ function init()
 		},
 		{ id = "limitidlefps", group = "gfx", category = types.advanced, widget = "Limit idle FPS", name = texts.option.limitidlefps, type = "bool", value = GetWidgetToggleValue("Limit idle FPS"), description = texts.option.limitidlefps_descr },
 
-		{ id = "msaa", group = "gfx", category = types.basic, name = texts.option.msaa, type = "select", options = { 0, 1, 2, 4, 8 }, restart = true, value = tonumber(Spring.GetConfigInt("MSAALevel", 1) or 2), description = texts.option.msaa_descr,
+		{ id = "msaa", group = "gfx", category = types.basic, name = texts.option.msaa, type = "select", options = { 'off', 'x1', 'x2', 'x4', 'x8'}, restart = true, value = tonumber(Spring.GetConfigInt("MSAALevel", 1) or 2), description = texts.option.msaa_descr,
+		  onload = function(i)
+			  local msaa = tonumber(Spring.GetConfigInt("MSAALevel", 1) or 2)
+			  if msaa == 0 then
+				  options[getOptionByID('msaa')].value = 0
+			  else
+				  for k,v in ipairs( options[getOptionByID('msaa')].options) do
+					  if v == 'x'..msaa then
+						  options[getOptionByID('msaa')].value = k
+						  break
+					  end
+				  end
+			  end
+		  end,
 		  onchange = function(i, value)
-			  value = options[getOptionByID('msaa')].options[value]
-			  Spring.SetConfigInt("MSAALevel", value)
+			  if value == 1 then
+				  Spring.SetConfigInt("MSAALevel", 0)
+			  else
+				  Spring.SetConfigInt("MSAALevel", tonumber(string.sub(options[getOptionByID('msaa')].options[value], 2)))
+			  end
 		  end,
 		},
 
@@ -1858,45 +1874,6 @@ function init()
 			  Spring.SendCommands("shadows " .. enabled .. " " .. value)
 			  Spring.SetConfigInt("Shadows", enabled)
 			  Spring.SetConfigInt("ShadowMapSize", value)
-		  end,
-		},
-
-		{ id = "fog_start", group = "gfx", category = types.advanced, name = texts.option.fog .. widgetOptionColor .. "  " .. texts.option.fog_start, type = "slider", min = 0, max = 1.99, step = 0.01, value = gl.GetAtmosphere("fogStart"), description = texts.option.fog_start_descr,
-		  onload = function(i)
-		  end,
-		  onchange = function(i, value)
-			  if getOptionByID('fog_end') and value >= options[getOptionByID('fog_end')].value then
-				  options[getOptionByID('fog_end')].value = value + 0.01
-				  applyOptionValue(getOptionByID('fog_end'))
-			  end
-			  Spring.SetAtmosphere({ fogStart = value })
-			  customMapFog[Game.mapName] = { fogStart = gl.GetAtmosphere("fogStart"), fogEnd = gl.GetAtmosphere("fogStart") }
-		  end,
-		},
-		{ id = "fog_end", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.fog_end, type = "slider", min = 0.5, max = 2, step = 0.01, value = gl.GetAtmosphere("fogEnd"), description = texts.option.fog_end_descr,
-		  onload = function(i)
-		  end,
-		  onchange = function(i, value)
-			  if getOptionByID('fog_start') and value <= options[getOptionByID('fog_start')].value then
-				  options[getOptionByID('fog_start')].value = value - 0.01
-				  applyOptionValue(getOptionByID('fog_start'))
-			  end
-			  Spring.SetAtmosphere({ fogEnd = value })
-			  customMapFog[Game.mapName] = { fogStart = gl.GetAtmosphere("fogStart"), fogEnd = gl.GetAtmosphere("fogEnd") }
-		  end,
-		},
-		{ id = "fog_reset", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.fog_reset, type = "bool", value = false, description = '',
-		  onload = function(i)
-		  end,
-		  onchange = function(i, value)
-			  if getOptionByID('fog_start') then
-				  options[getOptionByID('fog_start')].value = defaultFog.fogStart
-				  options[getOptionByID('fog_end')].value = defaultFog.fogEnd
-				  options[getOptionByID('fog_reset')].value = false
-			  end
-			  Spring.SetAtmosphere({ fogStart = defaultFog.fogStart, fogEnd = defaultFog.fogEnd })
-			  Spring.Echo('resetted map fog defaults')
-			  customMapFog[Game.mapName] = nil
 		  end,
 		},
 
@@ -3677,6 +3654,46 @@ function init()
 			  Spring.Echo(gl.GetSun())
 		  end,
 		},
+
+		{ id = "fog_start", group = "dev", category = types.dev, name = texts.option.fog .. widgetOptionColor .. "  " .. texts.option.fog_start, type = "slider", min = 0, max = 1.99, step = 0.01, value = gl.GetAtmosphere("fogStart"), description = texts.option.fog_start_descr,
+		  onload = function(i)
+		  end,
+		  onchange = function(i, value)
+			  if getOptionByID('fog_end') and value >= options[getOptionByID('fog_end')].value then
+				  options[getOptionByID('fog_end')].value = value + 0.01
+				  applyOptionValue(getOptionByID('fog_end'))
+			  end
+			  Spring.SetAtmosphere({ fogStart = value })
+			  --customMapFog[Game.mapName] = { fogStart = gl.GetAtmosphere("fogStart"), fogEnd = gl.GetAtmosphere("fogStart") }
+		  end,
+		},
+		{ id = "fog_end", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.fog_end, type = "slider", min = 0.5, max = 2, step = 0.01, value = gl.GetAtmosphere("fogEnd"), description = texts.option.fog_end_descr,
+		  onload = function(i)
+		  end,
+		  onchange = function(i, value)
+			  if getOptionByID('fog_start') and value <= options[getOptionByID('fog_start')].value then
+				  options[getOptionByID('fog_start')].value = value - 0.01
+				  applyOptionValue(getOptionByID('fog_start'))
+			  end
+			  Spring.SetAtmosphere({ fogEnd = value })
+			  --customMapFog[Game.mapName] = { fogStart = gl.GetAtmosphere("fogStart"), fogEnd = gl.GetAtmosphere("fogEnd") }
+		  end,
+		},
+		{ id = "fog_reset", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.fog_reset, type = "bool", value = false, description = '',
+		  onload = function(i)
+		  end,
+		  onchange = function(i, value)
+			  if getOptionByID('fog_start') then
+				  options[getOptionByID('fog_start')].value = defaultFog.fogStart
+				  options[getOptionByID('fog_end')].value = defaultFog.fogEnd
+				  options[getOptionByID('fog_reset')].value = false
+			  end
+			  Spring.SetAtmosphere({ fogStart = defaultFog.fogStart, fogEnd = defaultFog.fogEnd })
+			  Spring.Echo('resetted map fog defaults')
+			  --customMapFog[Game.mapName] = nil
+		  end,
+		},
+
 		{ id = "fog_r", group = "dev", category = types.dev, name = texts.option.fog .. widgetOptionColor .. "  " .. texts.option.red, type = "slider", min = 0, max = 1, step = 0.01, value = select(1, gl.GetAtmosphere("fogColor")), description = '',
 		  onload = function(i)
 		  end,
@@ -5364,7 +5381,7 @@ function widget:GetConfigData(data)
 		defaultFog = defaultFog,
 		mapChecksum = Game.mapChecksum,
 		customMapSunPos = customMapSunPos,
-		customMapFog = customMapFog,
+		--customMapFog = customMapFog,
 		useNetworkSmoothing = useNetworkSmoothing,
 		desiredWaterValue = desiredWaterValue,
 		waterDetected = waterDetected,
@@ -5453,7 +5470,7 @@ function widget:SetConfigData(data)
 		customMapSunPos = data.customMapSunPos
 	end
 	if data.customMapFog then
-		customMapFog = data.customMapFog
+		--customMapFog = data.customMapFog
 	end
 	if data.useNetworkSmoothing then
 		useNetworkSmoothing = data.useNetworkSmoothing

@@ -21,30 +21,12 @@ local blurAmplifier = 1        -- intensity multiplier when applying a blur pass
 local drawWorldAlpha = 0		-- darken world so bloom doesnt blown-white out the brightest areas too much
 local illumThreshold = 0            -- how bright does a fragment need to be before being considered a glow source? [0, 1]
 
-local presets = {
-	--{
-	--	blursize = 22,	-- gaussian blur iteration blur size
-	--	blurPasses = 1,	-- how many iterations of Gaussian blur should be applied to the glow sources?
-	--	quality = 4,	-- resolution divider
-	--},
-	--{
-	--	blursize = 19,
-	--	blurPasses = 2,
-	--	quality = 2,
-	--},
-	{
-		blursize = 16,
-		blurPasses = 3,
-		quality = 2,
-	},
-}
 --quality =1 : 90 fps, 9% memctrler load, 99% shader load
 --quality =2 : 113 fps, 57% memctrler load, 99% shader load
 --quality =4 : 123 fps, 9% memctrler load, 99% shader load
-local qualityPreset = 1
-local blursize = presets[qualityPreset].blursize
-local blurPasses = presets[qualityPreset].blurPasses
-local quality = presets[qualityPreset].quality
+local blursize = 16
+local blurPasses = 3
+local quality = 2
 
 -- non-editables
 local vsx = 1                        -- current viewport width
@@ -64,16 +46,12 @@ local brightTexture2 = nil
 
 local combineShader = nil
 
--- speedups
 local glGetSun = gl.GetSun
 
 local glCreateTexture = gl.CreateTexture
 local glDeleteTexture = gl.DeleteTexture
-local glActiveTexture = gl.ActiveTexture
-local glCopyToTexture = gl.CopyToTexture
 local glRenderToTexture = gl.RenderToTexture
 local glTexture = gl.Texture
-local glTexRect = gl.TexRect
 
 local glGetShaderLog = gl.GetShaderLog
 local glCreateShader = gl.CreateShader
@@ -83,24 +61,13 @@ local glUseShader = gl.UseShader
 local glUniformInt = gl.UniformInt
 local glUniform = gl.Uniform
 local glGetUniformLocation = gl.GetUniformLocation
-local glGetActiveUniforms = gl.GetActiveUniforms
 
+local brightShaderIllumLoc, brightShaderFragLoc
+local blurShaderH71FragLoc, blurShaderV71FragLoc
+local combineShaderDebgDrawLoc
 
--- shader uniform locations
-local brightShaderText0Loc = nil
-local brightShaderText1Loc = nil
-local brightShaderIllumLoc = nil
-local brightShaderFragLoc = nil
-
-
-local blurShaderH71Text0Loc = nil
-local blurShaderH71FragLoc = nil
-local blurShaderV71Text0Loc = nil
-local blurShaderV71FragLoc = nil
-
-local combineShaderDebgDrawLoc = nil
-local combineShaderTexture0Loc = nil
-local combineShaderTexture1Loc = nil
+local camX, camY, camZ = Spring.GetCameraPosition()
+local camDirX, camDirY, camDirZ = Spring.GetCameraDirection()
 
 local function SetIllumThreshold()
 	local ra, ga, ba = glGetSun("ambient", "unit")
@@ -116,6 +83,7 @@ local function SetIllumThreshold()
 
 	illumThreshold = (0.4 + illumThreshold) / 2
 end
+SetIllumThreshold()
 
 local function RemoveMe(msg)
 	Spring.Echo(msg)
@@ -327,18 +295,7 @@ function widget:ViewResize(viewSizeX, viewSizeY)
 	MakeBloomShaders() --we are gonna reinit the the widget, in order to recompile the shaders with the static IVSX and IVSY values in the blur shaders
 end
 
-widget:ViewResize(widgetHandler:GetViewSizes())
 
-SetIllumThreshold()
-
-function loadPreset()
-	if presets[qualityPreset] ~= nil then
-		blursize = presets[qualityPreset].blursize
-		blurPasses = presets[qualityPreset].blurPasses
-		quality = presets[qualityPreset].quality
-		MakeBloomShaders()
-	end
-end
 
 function widget:Initialize()
 
@@ -355,8 +312,6 @@ function widget:Initialize()
 	if hasdeferredmaprendering == false then
 		RemoveMe("[BloomShader::Initialize] removing widget, AllowDeferredMapRendering is required")
 	end
-	MakeBloomShaders()
-
 
 	WG['bloomdeferred'] = {}
 	WG['bloomdeferred'].getBrightness = function()
@@ -366,34 +321,19 @@ function widget:Initialize()
 		glowAmplifier = value
 		MakeBloomShaders()
 	end
-	WG['bloomdeferred'].getBlursize = function()
-		return globalBlursizeMult
-	end
-	WG['bloomdeferred'].setBlursize = function(value)
-		globalBlursizeMult = value
-		MakeBloomShaders()
-	end
-	WG['bloomdeferred'].getPreset = function()
-		return qualityPreset
-	end
-	WG['bloomdeferred'].setPreset = function(value)
-		qualityPreset = value
-		loadPreset()
-	end
 
+	widget:ViewResize(widgetHandler:GetViewSizes())
+	MakeBloomShaders()
 end
 
 function widget:Shutdown()
-
 	glDeleteTexture(brightTexture1 or "")
-
 	if glDeleteShader then
 		if brightShader ~= nil then glDeleteShader(brightShader or 0) end
 		if blurShaderH71 ~= nil then glDeleteShader(blurShaderH71 or 0) end
 		if blurShaderV71 ~= nil then glDeleteShader(blurShaderV71 or 0) end
 		if combineShader ~= nil then glDeleteShader(combineShader or 0) end
 	end
-
 	WG['bloomdeferred'] = nil
 end
 
@@ -458,8 +398,6 @@ local function Bloom()
 	gl.DepthMask(true)
 end
 
-local camX, camY, camZ = Spring.GetCameraPosition()
-local camDirX, camDirY, camDirZ = Spring.GetCameraDirection()
 function widget:Update(dt)
 	if drawWorldAlpha <= 0 then return end
 	camX, camY, camZ = Spring.GetCameraPosition()
@@ -482,12 +420,10 @@ function widget:DrawWorld()
 end
 
 
-function widget:GetConfigData(data)
+function widget:GetConfigData()
 	return {
 		version = version,
 		glowAmplifier = glowAmplifier,
-		qualityPreset = qualityPreset,
-		globalBlursizeMult = globalBlursizeMult
 	}
 end
 
@@ -496,17 +432,6 @@ function widget:SetConfigData(data)
 		data.version = version
 		if data.glowAmplifier ~= nil then
 			glowAmplifier = data.glowAmplifier
-		end
-		if data.globalBlursizeMult ~= nil then
-			globalBlursizeMult = data.globalBlursizeMult
-		end
-		if data.qualityPreset ~= nil then
-			if presets[data.qualityPreset] ~= nil then
-				qualityPreset = data.qualityPreset
-				blursize = presets[qualityPreset].blursize
-				blurPasses = presets[qualityPreset].blurPasses
-				quality = presets[qualityPreset].quality
-			end
 		end
 	end
 end
