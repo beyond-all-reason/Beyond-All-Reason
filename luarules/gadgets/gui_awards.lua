@@ -10,7 +10,7 @@ function gadget:GetInfo()
 	}
 end
 
---local localtestDebug = false        -- when true: ends game after 30 secs
+local topPlacementsCount = 3 -- Only report the top N places for each award
 
 if gadgetHandler:IsSyncedCode() then
 	local spAreTeamsAllied = Spring.AreTeamsAllied
@@ -146,18 +146,6 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	-- for debugging/testing
-	--[[
-	local effSampleRate = 15
-	function gadget:GameFrame(n)
-		if n%(30*effSampleRate)~=0 or n==0 then return end
-
-		if localtestDebug and n==900 then
-			Spring.GameOver({1,0})
-		end
-	end
-	]]
-
 	-----------------------------------
 	-- work out who wins the awards
 	-----------------------------------
@@ -187,7 +175,6 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:GameOver(winningAllyTeams)
-
 		--get stuff from engine stats (not all of which is currently used)
 		for teamID, _ in pairs(teamInfo) do
 			local cur_max = Spring.GetTeamStatsHistory(teamID)
@@ -223,13 +210,18 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		--award awards
-		local ecoKillAward, ecoKillAwardSec, ecoKillAwardThi, ecoKillScore, ecoKillScoreSec, ecoKillScoreThi = -1, -1, -1, 0, 0, 0
-		local fightKillAward, fightKillAwardSec, fightKillAwardThi, fightKillScore, fightKillScoreSec, fightKillScoreThi = -1, -1, -1, 0, 0, 0
-		local effKillAward, effKillAwardSec, effKillAwardThi, effKillScore, effKillScoreSec, effKillScoreThi = -1, -1, -1, 0, 0, 0
-		local ecoAward, ecoScore = -1, 0
-		local dmgRecAward, dmgRecScore = -1, 0
-		local sleepAward, sleepScore = -1, 0
-		local traitorAward, traitorAwardSec, traitorAwardThi, traitorScore, traitorScoreSec, traitorScoreThi = -1, -1, -1, 0, 0, 0
+		local awards = {
+			ecoKill = {},
+			fightKill = {},
+			efficiency = {},
+			eco = {},
+			sleep = {},
+			damageReceived = {},
+			goldenCow = {},
+			traitor = {},
+		}
+
+		local dummyEntry = { teamID = -1, score = 0 }
 
 		for teamID, _ in pairs(teamInfo) do
 			--deal with sleep times
@@ -237,150 +229,85 @@ if gadgetHandler:IsSyncedCode() then
 			if (curTime - teamInfo[teamID].lastKill > teamInfo[teamID].sleepTime) then
 				teamInfo[teamID].sleepTime = curTime - teamInfo[teamID].lastKill
 			end
-			--eco killing award
-			if ecoKillScore < teamInfo[teamID].ecoDmg then
-				ecoKillScoreThi = ecoKillScoreSec
-				ecoKillAwardThi = ecoKillAwardSec
-				ecoKillScoreSec = ecoKillScore
-				ecoKillAwardSec = ecoKillAward
-				ecoKillScore = teamInfo[teamID].ecoDmg
-				ecoKillAward = teamID
-			elseif ecoKillScoreSec < teamInfo[teamID].ecoDmg then
-				ecoKillScoreThi = ecoKillScoreSec
-				ecoKillAwardThi = ecoKillAwardSec
-				ecoKillScoreSec = teamInfo[teamID].ecoDmg
-				ecoKillAwardSec = teamID
-			elseif ecoKillScoreThi < teamInfo[teamID].ecoDmg then
-				ecoKillScoreThi = teamInfo[teamID].ecoDmg
-				ecoKillAwardThi = teamID
-			end
-			--fight killing award
-			if fightKillScore < teamInfo[teamID].fightDmg then
-				fightKillScoreThi = fightKillScoreSec
-				fightKillAwardThi = fightKillAwardSec
-				fightKillScoreSec = fightKillScore
-				fightKillAwardSec = fightKillAward
-				fightKillScore = teamInfo[teamID].fightDmg
-				fightKillAward = teamID
-			elseif fightKillScoreSec < teamInfo[teamID].fightDmg then
-				fightKillScoreThi = fightKillScoreSec
-				fightKillAwardThi = fightKillAwardSec
-				fightKillScoreSec = teamInfo[teamID].fightDmg
-				fightKillAwardSec = teamID
-			elseif fightKillScoreThi < teamInfo[teamID].fightDmg then
-				fightKillScoreThi = teamInfo[teamID].fightDmg
-				fightKillAwardThi = teamID
-			end
-			--efficiency ratio award
-			if effKillScore < teamInfo[teamID].effScore then
-				effKillScoreThi = effKillScoreSec
-				effKillAwardThi = effKillAwardSec
-				effKillScoreSec = effKillScore
-				effKillAwardSec = effKillAward
-				effKillScore = teamInfo[teamID].effScore
-				effKillAward = teamID
-			elseif effKillScoreSec < teamInfo[teamID].effScore then
-				effKillScoreThi = effKillScoreSec
-				effKillAwardThi = effKillAwardSec
-				effKillScoreSec = teamInfo[teamID].effScore
-				effKillAwardSec = teamID
-			elseif effKillScoreThi < teamInfo[teamID].effScore then
-				effKillScoreThi = teamInfo[teamID].effScore
-				effKillAwardThi = teamID
-			end
 
-			--eco prod award
-			if ecoScore < teamInfo[teamID].ecoProd then
-				ecoScore = teamInfo[teamID].ecoProd
-				ecoAward = teamID
+			if teamInfo[teamID].ecoDmg > 0 then
+				table.insert(awards.ecoKill, { teamID = teamID, score = teamInfo[teamID].ecoDmg })
 			end
-			--most damage rec award
-			if dmgRecScore < teamInfo[teamID].dmgRec then
-				dmgRecScore = teamInfo[teamID].dmgRec
-				dmgRecAward = teamID
+			if teamInfo[teamID].fightDmg > 0 then
+				table.insert(awards.fightKill, { teamID = teamID, score = teamInfo[teamID].fightDmg })
 			end
-			--longest sleeper award
-			if sleepScore < teamInfo[teamID].sleepTime and teamInfo[teamID].sleepTime > 12 * 60 then
-				sleepScore = teamInfo[teamID].sleepTime
-				sleepAward = teamID
+			if teamInfo[teamID].effScore > 0 then
+				table.insert(awards.efficiency, { teamID = teamID, score = teamInfo[teamID].effScore })
 			end
-			--traitor award
-			if traitorScore < teamInfo[teamID].teamDmg then
-				traitorScoreThi = traitorScoreSec
-				traitorAwardThi = traitorAwardSec
-				traitorScoreSec = traitorScore
-				traitorAwardSec = traitorAward
-				traitorScore = teamInfo[teamID].teamDmg
-				traitorAward = teamID
-			elseif traitorScoreSec < teamInfo[teamID].teamDmg then
-				traitorScoreThi = traitorScoreSec
-				traitorAwardThi = traitorAwardSec
-				traitorScoreSec = teamInfo[teamID].teamDmg
-				traitorAwardSec = teamID
-			elseif traitorScoreThi < teamInfo[teamID].teamDmg then
-				traitorScoreThi = teamInfo[teamID].teamDmg
-				traitorAwardThi = teamID
+			if teamInfo[teamID].ecoProd > 0 then
+				table.insert(awards.eco, { teamID = teamID, score = teamInfo[teamID].ecoProd })
+			end
+			if teamInfo[teamID].dmgRec > 0 then
+				table.insert(awards.damageReceived, { teamID = teamID, score = teamInfo[teamID].dmgRec })
+			end
+			if teamInfo[teamID].teamDmg > 0 then
+				table.insert(awards.traitor, { teamID = teamID, score = teamInfo[teamID].teamDmg })
+			end
+			if (teamInfo[teamID].sleepTime > 12 * 60) then
+				table.insert(awards.sleep, { teamID = teamID, score = teamInfo[teamID].sleepTime })
 			end
 		end
 
-		--is the cow awarded?
-		local cowAward = -1
-		if ecoKillAward ~= -1 and (ecoKillAward == fightKillAward) and (fightKillAward == effKillAward) and ecoKillAward ~= -1 and nTeams > 3 then
-			--check if some team got all the awards + if more than 3 teams in the game
-			if winningAllyTeams and winningAllyTeams[1] then
-				local _, _, _, _, _, cowAllyTeamID = Spring.GetTeamInfo(ecoKillAward, false)
-				for _, allyTeamID in pairs(winningAllyTeams) do
-					if cowAllyTeamID == allyTeamID then
-						--check if this team won the game
-						cowAward = ecoKillAward
-						break
-					end
+		local awardSortFunction = function (award1, award2)
+			return award1.score > award2.score
+		end
+
+		for _, entries in pairs(awards) do
+			table.sort(entries, awardSortFunction)
+
+			for index = #entries, topPlacementsCount + 1, -1 do
+					table.remove(entries, index)
+			end
+
+			for index = 1, topPlacementsCount do
+				if entries[index] == nil then
+					table.insert(entries, index, dummyEntry)
 				end
 			end
 		end
 
-		--tell unsynced
-		SendToUnsynced("ReceiveAwards", ecoKillAward, ecoKillAwardSec, ecoKillAwardThi, ecoKillScore, ecoKillScoreSec, ecoKillScoreThi,
-			fightKillAward, fightKillAwardSec, fightKillAwardThi, fightKillScore, fightKillScoreSec, fightKillScoreThi,
-			effKillAward, effKillAwardSec, effKillAwardThi, effKillScore, effKillScoreSec, effKillScoreThi,
-			ecoAward, ecoScore,
-			dmgRecAward, dmgRecScore,
-			sleepAward, sleepScore,
-			cowAward,
-			traitorAward, traitorAwardSec, traitorAwardThi, traitorScore, traitorScoreSec, traitorScoreThi)
+		--is the cow awarded?
+		local ecoKillAwardTeam = awards.ecoKill[1].teamID
+		local fightKillAwardTeam = awards.fightKill[1].teamID
+		local efficiencyAwardTeam = awards.efficiency[1].teamID
+
+		--If one player won all the awards, they also win the Golden Cow award, but this is only meaningful in large games
+		if ecoKillAwardTeam ~= -1 and (ecoKillAwardTeam == fightKillAwardTeam) and (ecoKillAwardTeam == efficiencyAwardTeam) and nTeams > 3 then
+			if winningAllyTeams then
+				table.insert(awards.goldenCow, { teamID = teamID, score = 1 })
+				table.sort(awards.goldenCow, awardSortFunction)
+			end
+		end
+
+		_G.awards = awards
+
+		SendToUnsynced("ReceiveAwards")
 	end
 
 	-------------------------------------------------------------------------------------
 else
 
-	local function ProcessAwards(_, ecoKillAward, ecoKillAwardSec, ecoKillAwardThi, ecoKillScore, ecoKillScoreSec, ecoKillScoreThi,
-						   fightKillAward, fightKillAwardSec, fightKillAwardThi, fightKillScore, fightKillScoreSec, fightKillScoreThi,
-						   effKillAward, effKillAwardSec, effKillAwardThi, effKillScore, effKillScoreSec, effKillScoreThi,
-						   ecoAward, ecoScore,
-						   dmgRecAward, dmgRecScore,
-						   sleepAward, sleepScore,
-						   cowAward,
-						   traitorAward, traitorAwardSec, traitorAwardThi, traitorScore, traitorScoreSec, traitorScoreThi)
+	local function ProcessAwards(_)
+		local awards = SYNCED.awards
 
 		-- record who won which awards in chat message (for demo parsing by replays.springrts.com)
 		-- make all values positive, as unsigned ints are easier to parse
-		local ecoKillLine = '\161' .. tostring(1 + ecoKillAward) .. ':' .. tostring(ecoKillScore) .. '\161' .. tostring(1 + ecoKillAwardSec) .. ':' .. tostring(ecoKillScoreSec) .. '\161' .. tostring(1 + ecoKillAwardThi) .. ':' .. tostring(ecoKillScoreThi)
-		local fightKillLine = '\162' .. tostring(1 + fightKillAward) .. ':' .. tostring(fightKillScore) .. '\162' .. tostring(1 + fightKillAwardSec) .. ':' .. tostring(fightKillScoreSec) .. '\162' .. tostring(1 + fightKillAwardThi) .. ':' .. tostring(fightKillScoreThi)
-		local effKillLine = '\163' .. tostring(1 + effKillAward) .. ':' .. tostring(effKillScore) .. '\163' .. tostring(1 + effKillAwardSec) .. ':' .. tostring(effKillScoreSec) .. '\163' .. tostring(1 + effKillAwardThi) .. ':' .. tostring(effKillScoreThi)
-		local otherLine = '\164' .. tostring(1 + cowAward) .. '\165' .. tostring(1 + ecoAward) .. ':' .. tostring(ecoScore) .. '\166' .. tostring(1 + dmgRecAward) .. ':' .. tostring(dmgRecScore) .. '\167' .. tostring(1 + sleepAward) .. ':' .. tostring(sleepScore)
-		local awardsMsg = ecoKillLine .. fightKillLine .. effKillLine .. otherLine
+		local ecoKillLine = '\161' .. tostring(1 + awards.ecoKill[1].teamID) .. ':' .. tostring(awards.ecoKill[1].score) .. '\161' .. tostring(1 + awards.ecoKill[2].teamID) .. ':' .. tostring(awards.ecoKill[2].score) .. '\161' .. tostring(1 + awards.ecoKill[3].teamID) .. ':' .. tostring(awards.ecoKill[3].score)
+		local fightKillLine = '\162' .. tostring(1 + awards.fightKill[1].teamID) .. ':' .. tostring(awards.fightKill[1].score) .. '\162' .. tostring(1 + awards.fightKill[2].teamID) .. ':' .. tostring(awards.fightKill[2].score) .. '\162' .. tostring(1 + awards.fightKill[3].teamID) .. ':' .. tostring(awards.fightKill[3].score)
+		local efficientKillLine = '\163' .. tostring(1 + awards.efficiency[1].teamID) .. ':' .. tostring(awards.efficiency[1].score) .. '\163' .. tostring(1 + awards.efficiency[2].teamID) .. ':' .. tostring(awards.efficiency[2].score) .. '\163' .. tostring(1 + awards.efficiency[3].teamID) .. ':' .. tostring(awards.efficiency[3].score)
+		local otherLine = '\164' .. tostring(1 + awards.goldenCow[1].teamID) .. '\165' .. tostring(1 + awards.eco[1].teamID) .. ':' .. tostring(awards.eco[1].score) .. '\166' .. tostring(1 + awards.damageReceived[1].teamID) .. ':' .. tostring(awards.damageReceived[1].score) .. '\167' .. tostring(1 + awards.sleep[1].teamID) .. ':' .. tostring(awards.sleep[1].score)
+		local awardsMsg = ecoKillLine .. fightKillLine .. efficientKillLine .. otherLine
+
 		Spring.SendLuaRulesMsg(awardsMsg)
 
 		-- send to awards widget
 		if Script.LuaUI("GadgetReceiveAwards") then
-			Script.LuaUI.GadgetReceiveAwards(ecoKillAward, ecoKillAwardSec, ecoKillAwardThi, ecoKillScore, ecoKillScoreSec, ecoKillScoreThi,
-				fightKillAward, fightKillAwardSec, fightKillAwardThi, fightKillScore, fightKillScoreSec, fightKillScoreThi,
-				effKillAward, effKillAwardSec, effKillAwardThi, effKillScore, effKillScoreSec, effKillScoreThi,
-				ecoAward, ecoScore,
-				dmgRecAward, dmgRecScore,
-				sleepAward, sleepScore,
-				cowAward,
-				traitorAward, traitorAwardSec, traitorAwardThi, traitorScore, traitorScoreSec, traitorScoreThi)
+			Script.LuaUI.GadgetReceiveAwards(awards)
 		end
 	end
 
