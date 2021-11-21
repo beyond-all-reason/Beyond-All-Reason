@@ -13,6 +13,7 @@ end
 local glCallList = gl.CallList
 
 local thisAward
+local cachedAwards = {}
 
 local widgetScale = 1
 
@@ -222,6 +223,8 @@ local function createBackground()
 end
 
 local function ProcessAwards(awards)
+	cachedAwards = awards
+
 	local traitorWinner = awards.traitor[1]
 	local cowAwardWinner = awards.goldenCow[1].teamID
 
@@ -371,6 +374,11 @@ function widget:DrawScreen()
 	gl.PopMatrix()
 end
 
+function widget:LanguageChanged()
+	if next(cachedAwards) ~= nil then
+		ProcessAwards(cachedAwards)
+	end
+end
 
 function widget:Initialize()
 	Spring.SendCommands('endgraph 2')
