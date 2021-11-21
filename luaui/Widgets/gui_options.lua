@@ -684,13 +684,11 @@ function widget:Update(dt)
 		Spring.SetCameraState(nil, cameraTransitionTime)
 	end
 
-	sec = sec + dt
-
-	Spring.SetConfigInt("ROAM", 1)
-	Spring.SendCommands("mapmeshdrawer 2")
-	if tonumber(Spring.GetConfigInt("GroundDetail", 1) or 1) < 100 then
-		Spring.SendCommands("GroundDetail " .. 100)
-	end
+	--Spring.SetConfigInt("ROAM", 1)
+	--Spring.SendCommands("mapmeshdrawer 2")
+	--if tonumber(Spring.GetConfigInt("GroundDetail", 1) or 1) < 100 then
+	--	Spring.SendCommands("GroundDetail " .. 100)
+	--end
 
 	-- check if there is water shown 	(we do this because basic water 0 saves perf when no water is rendered)
 	if not waterDetected then
@@ -724,6 +722,7 @@ function widget:Update(dt)
 		end
 	end
 
+	sec = sec + dt
 	if show and (sec > lastUpdate + 0.6 or forceUpdate) then
 		sec = 0
 		forceUpdate = nil
@@ -1821,21 +1820,10 @@ function init()
 		},
 		{ id = "limitidlefps", group = "gfx", category = types.advanced, widget = "Limit idle FPS", name = texts.option.limitidlefps, type = "bool", value = GetWidgetToggleValue("Limit idle FPS"), description = texts.option.limitidlefps_descr },
 
-		{ id = "msaa", group = "gfx", category = types.basic, name = texts.option.msaa, type = "slider", min = 0, max = 8, step = 1, restart = true, value = tonumber(Spring.GetConfigInt("MSAALevel", 1) or 2), description = texts.option.msaa_descr,
+		{ id = "msaa", group = "gfx", category = types.basic, name = texts.option.msaa, type = "select", options = { 0, 1, 2, 4, 8 }, restart = true, value = tonumber(Spring.GetConfigInt("MSAALevel", 1) or 2), description = texts.option.msaa_descr,
 		  onchange = function(i, value)
+			  value = options[getOptionByID('msaa')].options[value]
 			  Spring.SetConfigInt("MSAALevel", value)
-		  end,
-		},
-
-		{ id = "cas_sharpness", group = "gfx", category = types.advanced, name = texts.option.cas_sharpness, min = 0.3, max = 1.1, step = 0.01, type = "slider", value = 1.0, description = texts.option.cas_sharpness_descr,
-		  onload = function(i)
-			  loadWidgetData("Contrast Adaptive Sharpen", "cas_sharpness", { 'SHARPNESS' })
-		  end,
-		  onchange = function(i, value)
-			  if not GetWidgetToggleValue("Contrast Adaptive Sharpen") then
-				  widgetHandler:EnableWidget("Contrast Adaptive Sharpen")
-			  end
-			  saveOptionValue('Contrast Adaptive Sharpen', 'cas', 'setSharpness', { 'SHARPNESS' }, options[getOptionByID('cas_sharpness')].value)
 		  end,
 		},
 
@@ -1863,32 +1851,13 @@ function init()
 		  end,
 		},
 
-		{ id = "shadowslider", group = "gfx", category = types.basic, name = texts.option.shadowslider, type = "slider", steps = { 2048, 3072, 4096, 8192 }, value = tonumber(Spring.GetConfigInt("ShadowMapSize", 1) or 4096), description = texts.option.shadowslider_descr,
+		{ id = "shadowslider", group = "gfx", category = types.basic, name = texts.option.shadowslider, type = "select", options = { 2048, 3072, 4096, 6144, 8192 }, value = tonumber(Spring.GetConfigInt("ShadowMapSize", 1) or 4096), description = texts.option.shadowslider_descr,
 		  onchange = function(i, value)
-			  local enabled = (value < 1000) and 0 or 1
+			  local enabled = (value < 1) and 0 or 1
+			  value = options[getOptionByID('shadowslider')].options[value]
 			  Spring.SendCommands("shadows " .. enabled .. " " .. value)
 			  Spring.SetConfigInt("Shadows", enabled)
 			  Spring.SetConfigInt("ShadowMapSize", value)
-		  end,
-		},
-		{ id = "shadows_opacity", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.shadows_opacity, type = "slider", min = 0.3, max = 1, step = 0.01, value = gl.GetSun("shadowDensity"), description = '',
-		  onchange = function(i, value)
-			  Spring.SetSunLighting({ groundShadowDensity = value, modelShadowDensity = value })
-		  end,
-		},
-
-		{ id = "darkenmap", group = "gfx", category = types.advanced, name = texts.option.darkenmap, min = 0, max = 0.5, step = 0.01, type = "slider", value = 0, description = texts.option.darkenmap_descr,
-		  onload = function(i)
-		  end,
-		  onchange = function(i, value)
-			  saveOptionValue('Darken map', 'darkenmap', 'setMapDarkness', { 'maps', Game.mapName:lower() }, value)
-		  end,
-		},
-		{ id = "darkenmap_darkenfeatures", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.darkenmap_darkenfeatures, type = "bool", value = false, description = texts.option.darkenmap_darkenfeatures_descr,
-		  onload = function(i)
-		  end,
-		  onchange = function(i, value)
-			  saveOptionValue('Darken map', 'darkenmap', 'setDarkenFeatures', { 'darkenFeatures' }, value)
 		  end,
 		},
 
@@ -1970,33 +1939,15 @@ function init()
 		  end,
 		},
 
-		{ id = "bloom", group = "gfx", category = types.basic, widget = "Bloom Shader", name = texts.option.bloom, type = "bool", value = GetWidgetToggleValue("Bloom Shader"), description = texts.option.bloom_descr },
-		{ id = "bloombrightness", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.bloombrightness, type = "slider", min = 0.1, max = 0.25, step = 0.05, value = 0.15, description = '',
-		  onchange = function(i, value)
-			  saveOptionValue('Bloom Shader', 'bloom', 'setBrightness', { 'basicAlpha' }, value)
-		  end,
-		  onload = function(i)
-			  loadWidgetData("Bloom Shader", "bloombrightness", { 'basicAlpha' })
-		  end,
-		},
-
-		{ id = "dof", group = "gfx", category = types.advanced, widget = "Depth of Field", name = texts.option.dof, type = "bool", value = GetWidgetToggleValue("Depth of Field"), description = texts.option.dof_descr },
-		{ id = "dof_autofocus", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.dof_autofocus, type = "bool", value = true, description = texts.option.dof_autofocus_descr,
-		  onload = function(i)
-			  loadWidgetData("Depth of Field", "dof_autofocus", { 'autofocus' })
-		  end,
-		  onchange = function(i, value)
-			  saveOptionValue('Depth of Field', 'dof', 'setAutofocus', { 'autofocus' }, value)
-		  end,
-		},
-		{ id = "dof_fstop", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.dof_fstop, type = "slider", min = 1, max = 6, step = 0.1, value = 2, description = texts.option.dof_fstop_descr,
-		  onload = function(i)
-			  loadWidgetData("Depth of Field", "dof_fstop", { 'fStop' })
-		  end,
-		  onchange = function(i, value)
-			  saveOptionValue('Depth of Field', 'dof', 'setFstop', { 'fStop' }, value)
-		  end,
-		},
+		--{ id = "bloom", group = "gfx", category = types.basic, widget = "Bloom Shader", name = texts.option.bloom, type = "bool", value = GetWidgetToggleValue("Bloom Shader"), description = texts.option.bloom_descr },
+		--{ id = "bloombrightness", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.bloombrightness, type = "slider", min = 0.1, max = 0.25, step = 0.05, value = 0.15, description = '',
+		--  onchange = function(i, value)
+		--	  saveOptionValue('Bloom Shader', 'bloom', 'setBrightness', { 'basicAlpha' }, value)
+		--  end,
+		--  onload = function(i)
+		--	  loadWidgetData("Bloom Shader", "bloombrightness", { 'basicAlpha' })
+		--  end,
+		--},
 
 
 		{ id = "lighteffects", group = "gfx", category = types.basic, name = texts.option.lighteffects, type = "bool", value = GetWidgetToggleValue("Light Effects"), description = texts.option.lighteffects_descr,
@@ -2085,14 +2036,6 @@ function init()
 			  Spring.SetConfigInt("GroundDecals", value)
 			  Spring.SendCommands("GroundDecals " .. value)
 			  Spring.SetConfigInt("GroundScarAlphaFade", 1)
-		  end,
-		},
-		{ id = "grounddetail", group = "gfx", category = types.basic, name = texts.option.grounddetail, type = "slider", min = 100, max = 200, step = 1, value = tonumber(Spring.GetConfigInt("GroundDetail", 100) or 100), description = texts.option.grounddetail_descr,
-		  onload = function(i)
-		  end,
-		  onchange = function(i, value)
-			  Spring.SetConfigInt("GroundDetail", value)
-			  Spring.SendCommands("GroundDetail " .. value)
 		  end,
 		},
 
@@ -2555,26 +2498,6 @@ function init()
 		  end,
 		},
 
-		{ id = "font", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.font, type = "select", options = {}, value = 1, description = texts.option.font_descr,
-		  onload = function(i)
-		  end,
-		  onchange = function(i, value)
-			  if VFS.FileExists('fonts/' .. options[i].optionsFont[value]) then
-				  Spring.SetConfigString("bar_font", options[i].optionsFont[value])
-				  Spring.SendCommands("luarules reloadluaui")
-			  end
-		  end,
-		},
-		{ id = "font2", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.font2, type = "select", options = {}, value = 1, description = texts.option.font2_descr,
-		  onload = function(i)
-		  end,
-		  onchange = function(i, value)
-			  if VFS.FileExists('fonts/' .. options[i].optionsFont[value]) then
-				  Spring.SetConfigString("bar_font2", options[i].optionsFont[value])
-				  Spring.SendCommands("luarules reloadluaui")
-			  end
-		  end,
-		},
 		{ id = "minimap_maxheight", group = "ui", category = types.basic, name = texts.option.minimap .. widgetOptionColor .. "  " .. texts.option.minimap_maxheight, type = "slider", min = 0.2, max = 0.4, step = 0.01, value = 0.35, description = texts.option.minimap_maxheight_descr,
 		  onload = function(i)
 			  loadWidgetData("Minimap", "minimap_maxheight", { 'maxHeight' })
@@ -2647,6 +2570,18 @@ function init()
 		  end,
 		  onchange = function(i, value)
 			  saveOptionValue('Build menu', 'buildmenu', 'setShowTooltip', { 'showTooltip' }, value)
+		  end,
+		},
+
+		{ id = "gridmenu", group = "ui", category = types.advanced, name = texts.option.gridmenu, type = "bool", value = GetWidgetToggleValue("Grid menu"), description = texts.option.gridmenu_descr,
+		  onchange = function(i, value)
+			  if value then
+				  widgetHandler:DisableWidget('Build menu')
+				  widgetHandler:EnableWidget('Grid menu')
+			  else
+				  widgetHandler:DisableWidget('Grid menu')
+				  widgetHandler:EnableWidget('Build menu')
+			  end
 		  end,
 		},
 
@@ -3509,6 +3444,12 @@ function init()
 		  end,
 		},
 
+		{ id = "debugcolvol", group = "dev", category = types.dev, name = texts.option.debugcolvol, type = "bool", value = false, description = "",
+		  onchange = function(i, value)
+			  Spring.SendCommands("DebugColVol " .. (value and '1' or '0'))
+		  end,
+		},
+
 		-- BAR doesnt support ZK style startboxes{ id = "startboxeditor", group = "dev", category = optionTypes.dev, widget = "Startbox Editor", name = texts.option.startboxeditor, type = "bool", value = GetWidgetToggleValue("Startbox Editor"), description = texts.option.startboxeditor_descr },
 
 		{ id = "advmapshading", group = "dev", category = types.dev, name = texts.option.advmapshading, type = "bool", value = (Spring.GetConfigInt("AdvMapShading", 1) == 1), description = texts.option.advmapshading_descr,
@@ -3518,21 +3459,69 @@ function init()
 		  end,
 		},
 
-		{ id = "gridmenu", group = "dev", category = types.dev, name = texts.option.gridmenu, type = "bool", value = GetWidgetToggleValue("Grid menu"), description = texts.option.gridmenu_descr,
+		{ id = "grounddetail", group = "dev", category = types.dev, name = texts.option.grounddetail, type = "slider", min = 50, max = 200, step = 1, value = tonumber(Spring.GetConfigInt("GroundDetail", 150) or 150), description = texts.option.grounddetail_descr,
+		  onload = function(i)
+		  end,
 		  onchange = function(i, value)
-			  if value then
-				  widgetHandler:DisableWidget('Build menu')
-				  widgetHandler:EnableWidget('Grid menu')
-			  else
-				  widgetHandler:DisableWidget('Grid menu')
-				  widgetHandler:EnableWidget('Build menu')
-			  end
+			  Spring.SetConfigInt("GroundDetail", value)
+			  Spring.SendCommands("GroundDetail " .. value)
 		  end,
 		},
 
-		{ id = "debugcolvol", group = "dev", category = types.dev, name = texts.option.debugcolvol, type = "bool", value = false, description = "",
+		{ id = "shadows_opacity", group = "dev", category = types.dev, name = texts.option.shadowslider..widgetOptionColor .. "  " .. texts.option.shadows_opacity, type = "slider", min = 0.3, max = 1, step = 0.01, value = gl.GetSun("shadowDensity"), description = '',
 		  onchange = function(i, value)
-			  Spring.SendCommands("DebugColVol " .. (value and '1' or '0'))
+			  Spring.SetSunLighting({ groundShadowDensity = value, modelShadowDensity = value })
+		  end,
+		},
+
+		{ id = "cas_sharpness", group = "dev", category = types.dev, name = texts.option.cas_sharpness, min = 0.3, max = 1.1, step = 0.01, type = "slider", value = 1.0, description = texts.option.cas_sharpness_descr,
+		  onload = function(i)
+			  loadWidgetData("Contrast Adaptive Sharpen", "cas_sharpness", { 'SHARPNESS' })
+		  end,
+		  onchange = function(i, value)
+			  if not GetWidgetToggleValue("Contrast Adaptive Sharpen") then
+				  widgetHandler:EnableWidget("Contrast Adaptive Sharpen")
+			  end
+			  saveOptionValue('Contrast Adaptive Sharpen', 'cas', 'setSharpness', { 'SHARPNESS' }, options[getOptionByID('cas_sharpness')].value)
+		  end,
+		},
+
+		{ id = "dof", group = "dev", category = types.advanced, widget = "Depth of Field", name = texts.option.dof, type = "bool", value = GetWidgetToggleValue("Depth of Field"), description = texts.option.dof_descr },
+		{ id = "dof_autofocus", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.dof_autofocus, type = "bool", value = true, description = texts.option.dof_autofocus_descr,
+		  onload = function(i)
+			  loadWidgetData("Depth of Field", "dof_autofocus", { 'autofocus' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('Depth of Field', 'dof', 'setAutofocus', { 'autofocus' }, value)
+		  end,
+		},
+		{ id = "dof_fstop", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.dof_fstop, type = "slider", min = 1, max = 6, step = 0.1, value = 2, description = texts.option.dof_fstop_descr,
+		  onload = function(i)
+			  loadWidgetData("Depth of Field", "dof_fstop", { 'fStop' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('Depth of Field', 'dof', 'setFstop', { 'fStop' }, value)
+		  end,
+		},
+
+		{ id = "font", group = "dev", category = types.dev, name = texts.option.font, type = "select", options = {}, value = 1, description = texts.option.font_descr,
+		  onload = function(i)
+		  end,
+		  onchange = function(i, value)
+			  if VFS.FileExists('fonts/' .. options[i].optionsFont[value]) then
+				  Spring.SetConfigString("bar_font", options[i].optionsFont[value])
+				  Spring.SendCommands("luarules reloadluaui")
+			  end
+		  end,
+		},
+		{ id = "font2", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.font2, type = "select", options = {}, value = 1, description = texts.option.font2_descr,
+		  onload = function(i)
+		  end,
+		  onchange = function(i, value)
+			  if VFS.FileExists('fonts/' .. options[i].optionsFont[value]) then
+				  Spring.SetConfigString("bar_font2", options[i].optionsFont[value])
+				  Spring.SendCommands("luarules reloadluaui")
+			  end
 		  end,
 		},
 
@@ -4544,7 +4533,7 @@ function init()
 	-- reduce options for potatoes
 	if isPotatoGpu or isPotatoCpu then
 		local id = getOptionByID('shadowslider')
-		options[id].steps = { 0, 2048, 3072 }
+		options[id].options = { 0, 2048, 3072 }
 		if options[id].value > 3072 then
 			options[id].value = 3072
 			options[id].onchange(id, options[id].value)
@@ -4841,14 +4830,6 @@ function init()
 
 	if WG['snow'] ~= nil and WG['snow'].getSnowMap ~= nil then
 		options[getOptionByID('snowmap')].value = WG['snow'].getSnowMap()
-	end
-
-	if WG['darkenmap'] == nil then
-		options[getOptionByID('darkenmap')] = nil
-		options[getOptionByID('darkenmap_darkenfeatures')] = nil
-	else
-		options[getOptionByID('darkenmap')].value = WG['darkenmap'].getMapDarkness()
-		options[getOptionByID('darkenmap_darkenfeatures')].value = WG['darkenmap'].getDarkenFeatures()
 	end
 
 	-- not sure if needed: remove vsync option when its done by monitor (freesync/gsync) -> config value is set as 'x'
