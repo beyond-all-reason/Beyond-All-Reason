@@ -61,13 +61,14 @@ local labGrids = {
 	-- T2 air
 	armaap = {
 		"armaca", "armhawk", "armbrawl", "armpnix",           -- T2 con, fig, gunship, bomber
-		"armawac", "armdfly", "armlance", "armliche",         -- radar, transport, torpedo, liche
-		"armblade", "armstil",                                -- blade, stiletto
+		"armawac", "armdfly", "armlance", "",                -- radar, transport, torpedo,
+		"armliche", "armblade", "armstil",                    -- liche, blade, stiletto
 	},
 
 	coraap = {
 		"coraca", "corvamp", "corape", "corhurc",              -- T2 con, fig, gunship, bomber
-		"corawac", "corseah", "cortitan", "corcrw",            -- radar, transport, torpedo, krow
+		"corawac", "corseah", "cortitan", "",                 -- radar, transport, torpedo,
+		"corcrw",                                              -- krow
 	},
 	-- seaplanes
 	armplat = {
