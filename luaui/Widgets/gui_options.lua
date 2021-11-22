@@ -1906,27 +1906,28 @@ function init()
 		  end,
 		},
 
-		{ id = "ssao", group = "gfx", category = types.basic, name = texts.option.ssao, type = "select", options = { 'disabled', 'enabled', 'high' }, value = 0, description = texts.option.ssao_descr,
-		  onchange = function(i, value)
-			  if value == 1 then
-				  widgetHandler:DisableWidget("SSAO")
-			  else
-				  if not GetWidgetToggleValue("SSAO") then
-					  widgetHandler:EnableWidget("SSAO")
-				  end
-				  saveOptionValue('SSAO', 'ssao', 'setPreset', { 'preset' }, value - 1)
-			  end
-		  end,
-		  onload = function(i)
-			  if not GetWidgetToggleValue("SSAO") then
-				  options[getOptionByID('ssao')].value = 1
-			  else
-				  loadWidgetData("SSAO", "ssao", { 'preset' })
-				  options[getOptionByID('ssao')].value = options[getOptionByID('ssao')].value + 1
-			  end
-		  end,
-		},
-		{ id = "ssao_strength", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.ssao_strength, type = "slider", min = 5, max = 15, step = 1, value = 9, description = '',
+		{ id = "ssao", group = "gfx", category = types.basic, widget = "SSAO", name = texts.option.ssao, type = "bool", value = GetWidgetToggleValue("SSAO"), description = texts.option.ssao_descr },
+		--{ id = "ssao", group = "gfx", category = types.basic, name = texts.option.ssao, type = "select", options = { 'disabled', 'enabled', 'high' }, value = 0, description = texts.option.ssao_descr,
+		--  onchange = function(i, value)
+		--	  if value == 1 then
+		--		  widgetHandler:DisableWidget("SSAO")
+		--	  else
+		--		  if not GetWidgetToggleValue("SSAO") then
+		--			  widgetHandler:EnableWidget("SSAO")
+		--		  end
+		--		  saveOptionValue('SSAO', 'ssao', 'setPreset', { 'preset' }, value - 1)
+		--	  end
+		--  end,
+		--  onload = function(i)
+		--	  if not GetWidgetToggleValue("SSAO") then
+		--		  options[getOptionByID('ssao')].value = 1
+		--	  else
+		--		  loadWidgetData("SSAO", "ssao", { 'preset' })
+		--		  options[getOptionByID('ssao')].value = options[getOptionByID('ssao')].value + 1
+		--	  end
+		--  end,
+		--},
+		{ id = "ssao_strength", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.ssao_strength, type = "slider", min = 5, max = 11, step = 1, value = 8, description = '',
 		  onchange = function(i, value)
 			  saveOptionValue('SSAO', 'ssao', 'setStrength', { 'strength' }, value)
 		  end,
