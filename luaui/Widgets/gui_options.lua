@@ -2114,32 +2114,6 @@ function init()
 		  end,
 		},
 
-		{ id = "outline", group = "gfx", category = types.basic, widget = "Outline", name = texts.option.outline, type = "bool", value = GetWidgetToggleValue("Outline"), description = texts.option.outline_descr },
-		{ id = "outline_width", group = "gfx", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.outline_width, min = 1, max = 3, step = 1, type = "slider", value = 1, description = texts.option.outline_width_descr,
-		  onload = function(i)
-			  loadWidgetData("Outline", "outline_width", { 'DILATE_HALF_KERNEL_SIZE' })
-		  end,
-		  onchange = function(i, value)
-			  saveOptionValue('Outline', 'outline', 'setWidth', { 'DILATE_HALF_KERNEL_SIZE' }, value)
-		  end
-		},
-		{ id = "outline_mult", group = "gfx", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.outline_mult, min = 0.1, max = 1, step = 0.1, type = "slider", value = 0.5, description = texts.option.outline_mult_descr,
-		  onload = function(i)
-			  loadWidgetData("Outline", "outline_mult", { 'STRENGTH_MULT' })
-		  end,
-		  onchange = function(i, value)
-			  saveOptionValue('Outline', 'outline', 'setMult', { 'STRENGTH_MULT' }, value)
-		  end,
-		},
-		{ id = "outline_color", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.outline_color, type = "bool", value = false, description = texts.option.outline_color_descr,
-		  onload = function(i)
-			  loadWidgetData("Outline", "outline_color", { 'whiteColored' })
-		  end,
-		  onchange = function(i, value)
-			  saveOptionValue('Outline', 'outline', 'setColor', { 'whiteColored' }, value)
-		  end,
-		},
-
 		{ id = "unitRotation", group = "gfx", category = types.advanced, name = texts.option.unitrotation, min = 0, max = 10, step = 1, type = "slider", value = tonumber(Spring.GetConfigInt("unitRotation", 0)), description = texts.option.unitrotation_descr,
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("unitRotation", value or 0)
@@ -4894,13 +4868,6 @@ function init()
 		options[getOptionByID('lockcamera_transitiontime')] = nil
 	end
 
-	-- disable options when widget isnt available
-	if widgetHandler.knownWidgets["Outline"] == nil then
-		options[getOptionByID('outline')] = nil
-		options[getOptionByID("outline_width")] = nil
-		options[getOptionByID("outline_mult")] = nil
-		options[getOptionByID("outline_color")] = nil
-	end
 
 	if widgetHandler.knownWidgets["Contrast Adaptive Sharpen"] == nil then
 		options[getOptionByID("cas_sharpness")] = nil
