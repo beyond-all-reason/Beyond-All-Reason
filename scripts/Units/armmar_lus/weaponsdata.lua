@@ -27,7 +27,7 @@ sleeptime = 3800*2
 		aimx = {raacannon, laacannon}, -- Piece for x aiming (pitch)
 		aimy = {raaturret, laaturret}, -- Piece for y aiming (head)
 		canFire = false, -- Initial state: weapon not ready to fire
-		signal = 2^1, -- Signal value for restore threads
+		signal = 2^2, -- Signal value for restore threads
 		aimfrompiece = aimy1,
 		flare = {rflareaa, lflareaa},
 		cannon = {raacannon, laacannon},
@@ -46,7 +46,7 @@ function DrawWeapon(id)
 		WaitForTurn(ruparm, 1)
 		WaitForTurn(luparm, 1)
 		WeaponDrawn(id)
-	elseif id == 3 then
+	elseif id == 2 then
 		Move(laaturret, 2, 0,5)
 		Move(raaturret, 2, 0,5)
 		Turn(laacannon, 1, ang(0), ang(27.5))

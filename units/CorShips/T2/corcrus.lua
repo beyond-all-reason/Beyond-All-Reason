@@ -34,7 +34,7 @@ return {
 		script = "Units/CORCRUS.cob",
 		seismicsignature = 0,
 		selfdestructas = "largeexplosiongenericSelfd",
-		sightdistance = 533,
+		sightdistance = 600,
 		sonardistance = 375,
 		turninplace = true,
 		turninplaceanglelimit = 90,
