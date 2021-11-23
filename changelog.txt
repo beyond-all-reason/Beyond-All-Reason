@@ -25,6 +25,7 @@ Units
  • Arm Stumpy turn rate reduced by 10%
  • Cor Raider turn rate reduced by 10%
  • Claw/Zeus: lightning chains again (up to 2 neighbouring units *0.5dmg for zeus, *0.325 for claw)
+ • Zeus: does 25% less damage (but still more than it was due to the chaining effect)
  • Juggernaut: main weapon does 4x old damage/reloadtime
  • EMP launcher: reduced range 10%
  • Spy paralyzetime 45 -> 35 sec
