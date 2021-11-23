@@ -31,7 +31,7 @@ local function refreshUnitDefs()
 end
 
 local function refreshFeatureDefs()
-local processedFeatureDefs = {}
+	local processedFeatureDefs = {}
 
 	for _, unitDef in pairs(UnitDefs) do
 		local corpseDef = FeatureDefNames[unitDef.wreckName]
