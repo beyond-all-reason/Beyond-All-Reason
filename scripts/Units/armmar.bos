@@ -3,15 +3,15 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  pelvis, body, rthigh, lthigh, lleg, rleg, rfoot,lfoot, misturret, misflare, lturret, rturret, lbarrel,
-	 rbarrel, lflare, rflare, lturbfx, lflareaa, rturbfx, rflareaa, aimx1, aimy1;
+piece  pelvis, body, rthigh, lthigh, lleg, rleg, rfoot,lfoot, lturret, rturret, lbarrel,
+	 rbarrel, lflare, rflare, lturbfx, lflareaa, rturbfx, rflareaa, aimx1, aimy1, 
+	 raaturret, laaturret, laacannon, raacannon;
 
-static-var  bMoving, bAiming, Static_Var_3, restore_delay, gun_1, wpn1_lasthead, wpn2_lasthead, wpn3_lasthead;
+static-var  bMoving, bAiming, Static_Var_3, restore_delay, gun_1, gun_2, wpn1_lasthead, wpn2_lasthead;
 
 // Signal definitions
 #define SIG_AIM				2
 #define SIG_AIM_2			4
-#define SIG_AIM_3			8
 
 
 walk()
@@ -286,7 +286,6 @@ MotionControl(moving, aiming, justmoved)
 Create()
 {
 	hide lturbfx;
-	hide lflareaa;
 	hide lflare;
 	hide rflare;
 	hide aimx1;
@@ -298,6 +297,7 @@ Create()
 	bAiming = FALSE;
 	Static_Var_3 = 1;
 	gun_1 = 1;
+	gun_2 = 1;
 
 	restore_delay = 3000;
 	start-script MotionControl();
@@ -327,11 +327,11 @@ ExecuteRestoreAfterDelay()
 	turn body to y-axis <0.000000> speed <120.000000>;
 	turn lturret to x-axis <0.000000> speed <120.000000>;
 	turn rturret to x-axis <0.000000> speed <120.000000>;
-	turn misturret to y-axis <0.000000> speed <120.000000>;
+	turn laaturret to y-axis <0.000000> speed <120.000000>;
+	turn raaturret to y-axis <0.000000> speed <120.000000>;
 	bAiming = FALSE;
 	wpn1_lasthead = 1000000;
 	wpn2_lasthead = 1000000;
-	wpn3_lasthead = 1000000;
 }
 SetStunned(State)
 {
@@ -371,28 +371,15 @@ AimPrimary(heading, pitch)
 
 AimSecondary(heading, pitch)
 {
-	signal SIG_AIM;
-	turn misturret to y-axis heading speed <180.000000>;
+	signal SIG_AIM_2;
+	turn laaturret to y-axis heading speed <180.000000>;
+	turn raaturret to y-axis heading speed <180.000000>;
 	if (((get ABS(wpn2_lasthead - heading)) > 65536) OR(((get ABS(wpn2_lasthead - heading)) > 5000) AND ((get ABS(wpn2_lasthead - heading)) < 60536)))
 	{
 		wpn2_lasthead = 1000000;
-		wait-for-turn misturret around y-axis;
+		wait-for-turn laaturret around y-axis;
 	}
 	wpn2_lasthead = heading;
-	start-script RestoreAfterDelay();
-	return (1);
-}
-
-AimTertiary(heading, pitch)
-{
-	signal SIG_AIM;
-	turn misturret to y-axis heading speed <180.000000>;
-	if (((get ABS(wpn3_lasthead - heading)) > 65536) OR(((get ABS(wpn3_lasthead - heading)) > 5000) AND ((get ABS(wpn3_lasthead - heading)) < 60536)))
-	{
-		wpn3_lasthead = 1000000;
-		wait-for-turn misturret around y-axis;
-	}
-	wpn3_lasthead = heading;
 	start-script RestoreAfterDelay();
 	return (1);
 }
@@ -406,7 +393,6 @@ FirePrimary()
 		sleep 100;
 		move lbarrel to z-axis [0.000000] speed [10.000000];
 		gun_1 = 2;
-		return (0);
 	}
 	if( gun_1 == 2 )
 	{
@@ -415,22 +401,25 @@ FirePrimary()
 		sleep 100;
 		move rbarrel to z-axis [0.000000] speed [10.000000];
 		gun_1 = 1;
-		return (0);
 	}
 }
 
 FireSecondary()
 {
-	show misflare;
-	sleep 150;
-	hide misflare;
-}
-
-FireTertiary()
-{
-	show misflare;
-	sleep 150;
-	hide misflare;
+	if( gun_2 == 1 )
+	{
+	    show lflareaa;
+		sleep 150;
+		hide lflareaa;
+		gun_2 = 2;
+	}
+	if( gun_2 == 2 )
+	{
+	    show rflareaa;
+		sleep 150;
+		hide rflareaa;
+		gun_2 = 1;
+	}
 }
 
 AimFromPrimary(piecenum)
@@ -440,12 +429,7 @@ AimFromPrimary(piecenum)
 
 AimFromSecondary(piecenum)
 {
-	piecenum = misturret;
-}
-
-AimFromTertiary(piecenum)
-{
-	piecenum = misturret;
+	piecenum = laacannon;
 }
 
 QueryPrimary(piecenum)
@@ -462,13 +446,14 @@ QueryPrimary(piecenum)
 
 QuerySecondary(piecenum)
 {
-	piecenum = misflare;
-}
-
-
-QueryTertiary(piecenum)
-{
-	piecenum = misflare;
+	if( gun_2 == 1 )
+	{
+		piecenum = laaturret;
+	}
+	if( gun_2 == 2 )
+	{
+		piecenum = raaturret;
+	}
 }
 
 SweetSpot(piecenum)
@@ -489,8 +474,6 @@ Killed(severity, corpsetype)
 		//explode lleg type BITMAPONLY | NOHEATCLOUD;
 		explode lfoot type BITMAPONLY | NOHEATCLOUD;
 		explode body type BITMAPONLY | NOHEATCLOUD;
-		explode misturret type BITMAPONLY | NOHEATCLOUD;
-		//explode misflare type BITMAPONLY | NOHEATCLOUD;
 		//explode lturret type BITMAPONLY | NOHEATCLOUD;
 		//explode lbarrel type BITMAPONLY | NOHEATCLOUD;
 		//explode lflare type BITMAPONLY | NOHEATCLOUD;
@@ -509,8 +492,6 @@ Killed(severity, corpsetype)
 		//explode lthigh type FALL | NOHEATCLOUD;
 		explode lleg type FALL | NOHEATCLOUD;
 		explode lfoot type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode misturret type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode misflare type FALL | NOHEATCLOUD;
 		//explode lturret type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		//explode lbarrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		//explode lflare type FALL | NOHEATCLOUD;
@@ -530,8 +511,6 @@ Killed(severity, corpsetype)
 		//explode lleg type SMOKE | FALL | NOHEATCLOUD;
 		explode lfoot type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode body type BITMAPONLY | NOHEATCLOUD;
-		explode misturret type SMOKE | FALL | NOHEATCLOUD;
-		//explode misflare type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		//explode lbarrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		//explode lflare type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		//explode rbarrel type SMOKE | FALL | NOHEATCLOUD;
@@ -547,8 +526,6 @@ Killed(severity, corpsetype)
 		explode lleg type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode lfoot type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode body type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode misturret type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode misflare type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		//explode lbarrel type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		//explode lflare type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		//explode rbarrel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;

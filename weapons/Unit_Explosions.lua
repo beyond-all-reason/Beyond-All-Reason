@@ -834,7 +834,28 @@ unitDeaths = {
 			expl_light_heat_radius_mult = 1.05,
 		},
 	},
-
+	minifusionExplosion = {
+		weaponType = "Cannon",
+		AreaOfEffect = 320,
+		cameraShake = 320,
+		impulseboost = impulseboost,
+		impulsefactor = impulsefactor,
+		soundhit = "xplonuk3",
+		soundstart = "largegun",
+		explosiongenerator = "custom:fusexpl",
+		damage = {
+			commanders = 900,
+			default = 1600,
+		},
+		customparams = {
+			expl_light_color = "1 1 0.66",
+			expl_light_mult = 1.5,
+			expl_light_radius_mult = 1.4,
+			expl_light_life_mult = 1.75,
+			expl_light_heat_radius_mult = 1.2,
+			expl_light_nuke = 1,
+		},
+	},
 	fusionExplosion = {
 		weaponType = "Cannon",
 		AreaOfEffect = 480,
