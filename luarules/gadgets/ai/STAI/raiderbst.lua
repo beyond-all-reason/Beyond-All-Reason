@@ -19,6 +19,7 @@ function RaiderBST:Init()
 	local mtype, network = self.ai.maphst:MobilityOfUnit(self.unit:Internal())
 	self.mtype = mtype
 	self.name = self.unit:Internal():Name()
+	self.id = self.unit:Internal():ID()
 	local utable = self.ai.armyhst.unitTable[self.name]
 	if self.mtype == "sub" then
 		self.range = utable.submergedRange
@@ -44,36 +45,42 @@ function RaiderBST:Init()
 	self.attackDistance = nodeSize * 0.6 -- move this far away from targets once arrived
 	self.pathingDistance = nodeSize * 0.67 -- how far away from a node means you've arrived there
 	self.minPathfinderDistance = nodeSize * 3 -- closer than this and i don't pathfind
-	self.id = self.unit:Internal():ID()
+
 	self.disarmer = self.ai.armyhst.airgun[self.name]
 	self.ai.raiderCount[mtype] = (self.ai.raiderCount[mtype] or 0) + 1
 	self.lastGetTargetFrame = 0
 	self.lastMovementFrame = 0
 	self.lastPathCheckFrame = 0
+
+	self.ai.raidhst.RAIDERS[self.id] = {}
+	self.squad = self.name .. network
+	self.ai.raidhst.RAIDERS[self.id].squad = self.squad
+
+	table.insert(self.ai.raidhst.SQUADS[self.squad])
 end
 
 function RaiderBST:OwnerDead()
 	-- game:SendToConsole("raider " .. self.name .. " died")
-	if self.DebugEnabled then
-		self.map:EraseLine(nil, nil, nil, self.unit:Internal():ID(), nil, 8)
-	end
+
 	if self.target then
 		self.ai.targethst:AddBadPosition(self.target, self.mtype)
 	end
-	self.ai.raidhst:NeedLess(self.mtype)
+	--self.ai.raidhst:NeedLess(self.mtype)
 	self.ai.raiderCount[self.mtype] = self.ai.raiderCount[self.mtype] - 1
+	self.ai.raidhst.RAIDERS[self.id] = nil
+	self.ai.raidhst:removeRaiderFromSquad(self.id,self.squad)
 end
 
 function RaiderBST:OwnerIdle()
-	-- does recursion, which is bad
-	-- if self.active then
-	-- 	self:ResumeCourse()
-	-- end
+	-- does recursion, which is bad--TEST
+	if self.active then
+		self:ResumeCourse()
+	end
 end
 
 function RaiderBST:Priority()
 	if self.path then
-		return 100
+		return 101
 	else
 		return 0
 	end
@@ -88,53 +95,64 @@ end
 function RaiderBST:Deactivate()
 	self:EchoDebug("deactivate")
 	self.active = false
-	if self.DebugEnabled then
-		self.map:EraseLine(nil, nil, nil, self.unit:Internal():ID(), nil, 8)
-	end
 end
 
 function RaiderBST:Update()
 	local f = self.game:Frame()
-	if self.active and f % 83 == 0 then
+	if  f % 83 ~= 0 then
+		return
+	end
+	self.unit:Internal():EraseHighlight({1,0,0,1}, nil, 8)
+	self.unit:Internal():DrawHighlight( {1,0,0,1}, nil, 8 )
+	if self.active then
 		if self.path  then
+			self:EchoDebug('update have path')
 			self.lastPathCheckFrame = f
 			self:CheckPath()
 		end
 		if self.moveNextUpdate then
- 			self.unit:Internal():Move(self.moveNextUpdate)
--- 			self.unit:Internal():AttackMove(self.moveNextUpdate)--need to check
+			self:EchoDebug('update move')
+			self.unit:Internal():Move(self.moveNextUpdate)
+	-- 			self.unit:Internal():AttackMove(self.moveNextUpdate)--need to check
 			self.moveNextUpdate = nil
 		else
+			self:EchoDebug('raider')
 			self.ai.targethst:RaiderHere(self)
 			self.lastMovementFrame = f
 			-- attack nearby targets immediately
 			local attackThisUnit = self:GetImmediateTargetUnit()
 			if self.arrived and not attackThisUnit then
+				self:EchoDebug('arrived and not thisunit')
 				self:GetTarget()
 			end
 			if attackThisUnit then
+				self:EchoDebug('attackthisUnit')
 				self.offPath = true
--- 				self.ai.tool:CustomCommand(self.unit:Internal(), CMD_ATTACK, {attackThisUnit:ID()})
-				local tg = attackThisUnit:GetPosition()
-				if tg then
+	-- 				self.ai.tool:CustomCommand(self.unit:Internal(), CMD_ATTACK, {attackThisUnit:ID()})
+				if attackThisUnit:IsAlive() then
 					self.unit:Internal():AttackMove(attackThisUnit:GetPosition())--need to check
 				else
 					Spring.Echo('warning no pos for',attackThisUnit:ID())
 				end
 			elseif self.offPath then
+				self:EchoDebug('offpath')
 				self.offPath = false
 				self:ResumeCourse()
 			else
+				self:EchoDebug('updateprogres')
 				self:ArrivalCheck()
 				if not self.arrived then
 					self:UpdatePathProgress()
 				end
 			end
 		end
-	elseif f % 97 == 0 then
-		self.lastGetTargetFrame = f
-		self:GetTarget()
-		if not self.path and self.pathfinder then
+	else
+		if not self.target  then
+			self:EchoDebug('getanothertarget')
+			self:GetTarget()
+		elseif not self.path and self.pathfinder then
+			self:EchoDebug('find another path')
+			self.lastPathCheckFrame = f
 			self:FindPath()
 		end
 	end
@@ -218,15 +236,13 @@ function RaiderBST:GetTarget()
 	self.clearShot = nil
 	self.offPath = nil
 	self.arrived = nil
-	if self.DebugEnabled then
-		self.map:EraseLine(nil, nil, nil, self.unit:Internal():ID(), nil, 8)
-	end
 	local unit = self.unit:Internal()
 	local bestCell = self.ai.targethst:GetBestRaidCell(unit)
 	self.ai.targethst:RaiderHere(self)
 	if bestCell then
 		self:EchoDebug("got target")
 		self:RaidCell(bestCell)
+
 	else
 		self.unit:ElectBehaviour()
 	end
@@ -287,20 +303,26 @@ function RaiderBST:FindPath()
 	elseif remaining == 0 then
 		self:EchoDebug("no path found")
 		self.pathfinder = nil
+	else
+		self:EchoDebug('no path found in findPATH()')
 	end
 end
 
 function RaiderBST:ReceivePath(path)
-	if not path then return end
-	-- if self.DebugEnabled then
-	-- 	self.map:EraseLine(nil, nil, {0,0,1}, self.unit:Internal():ID(), nil, 8)
-	-- 	for i = 2, #path do
-	-- 		local pos1 = path[i-1].position
-	-- 		local pos2 = path[i].position
-	-- 		local arrow = i == #path
-	-- 		self.map:DrawLine(pos1, pos2, {0,0,1}, self.unit:Internal():ID(), arrow, 8)
-	-- 	end
-	-- end
+	if not path then
+		self:EchoDebug('no path')
+		return
+
+	end
+	if self.DebugEnabled then
+
+		for i = 2, #path do
+			local pos1 = path[i-1].position
+			local pos2 = path[i].position
+			local arrow = i == #path
+			self.map:DrawLine(pos1, pos2, {0,0,1}, self.unit:Internal():ID(), arrow, 8)
+		end
+	end
 	-- path = self.ai.tool:SimplifyPathByAngle(path)
 	self.path = path
 	if not self.path[2] then
@@ -311,7 +333,7 @@ function RaiderBST:ReceivePath(path)
 	self.targetNode = self.path[self.pathStep]
 	self:ResumeCourse()
 	if self.DebugEnabled then
-		self.map:EraseLine(nil, nil, {0,1,1}, self.unit:Internal():ID(), nil, 8)
+
 		for i = 2, #self.path do
 			local pos1 = self.path[i-1].position
 			local pos2 = self.path[i].position
@@ -401,7 +423,7 @@ function RaiderBST:CheckPath()
 	if type(self.path) == 'boolean' then return end
 	for i = self.pathStep, #self.path do
 		local node = self.path[i]
-		if not self.ai.targethst:IsSafePosition(node.position, self.name, 1) then
+		if not self.ai.targethst:IsSafePosition(node.position, self.name, 0.5) then
 			self:EchoDebug("unsafe path, get a new one")
 			self:GetTarget()
 			self:MoveToSafety()

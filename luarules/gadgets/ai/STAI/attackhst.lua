@@ -438,7 +438,7 @@ end
 function AttackHST:NeedMore(attkbhvr)
 	local mtype = attkbhvr.mtype
 	local level = attkbhvr.level
-	self.counter[mtype] = math.min(self.ai.armyhst.maxAttackCounter, self.counter[mtype] + (level * 0.7) ) -- 0.75
+	self.counter[mtype] = math.min(self.ai.armyhst.maxAttackCounter, self.counter[mtype] + (level * 0.7) )
 	self:EchoDebug(mtype .. " attack counter: " .. self.counter[mtype])
 end
 

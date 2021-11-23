@@ -833,11 +833,11 @@ ArmyHST.cleanable = {
 }
 
 -- minimum, maximum, starting point units required to attack, bomb
-ArmyHST.minAttackCounter = 8
+ArmyHST.minAttackCounter = 4
 ArmyHST.maxAttackCounter = 30
-ArmyHST.baseAttackCounter = 15
-ArmyHST.breakthroughAttackCounter = 16 -- build heavier battle units
-ArmyHST.siegeAttackCounter = 20 -- build siege units
+ArmyHST.baseAttackCounter = 8
+ArmyHST.breakthroughAttackCounter = 10 -- build heavier battle units
+ArmyHST.siegeAttackCounter = 10 -- build siege units
 ArmyHST.minBattleCount = 4 -- how many battle units to build before building any breakthroughs, even if counter is too high
 ArmyHST.minBomberCounter = 0
 ArmyHST.maxBomberCounter = 16

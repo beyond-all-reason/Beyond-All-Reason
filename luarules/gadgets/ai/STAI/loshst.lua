@@ -338,7 +338,7 @@ function LosHST:UpdateEnemies(enemyList)
 			self:EchoDebug("enemy " .. e.unitName .. " died!")
 			local mtypes = self.ai.tool:UnitWeaponMtypeList(e.unitName)
 			for i, mtype in pairs(mtypes) do
-				self.ai.raidhst:NeedMore(mtype)
+-- 				self.ai.raidhst:NeedMore(mtype)
 				self.ai.attackhst:NeedLess(mtype)
 				if mtype == "air" then self.ai.bomberhst:NeedLess() end
 			end

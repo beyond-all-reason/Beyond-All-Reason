@@ -46,6 +46,12 @@ function TaskLabBST:ampRating()
 	self.amphRank = amphRank
 end
 
+function TaskLabBST:GetMtypedLv(unitName)
+	local counter = self.ai.tool:mtypedLvCount(self.ai.armyhst.unitTable[unitName].mtypedLv)
+	self:EchoDebug('mtypedLvmtype ' , counter)
+	return counter
+end
+
 function TaskLabBST:resetCounters()
 	if self.isAirFactory then
 		self.ai.couldBomb = 0
@@ -169,12 +175,12 @@ function TaskLabBST:countCheck(soldier,Min,mType,Max)
 	self:EchoDebug('countcheck',soldier)
 	if not soldier then return end
 	Min = Min or 0
-	Max = Max or 1 / 0
+	Max = Max or math.huge
 	local team = self.game:GetTeamID()
 	local func = 0
 	local spec = self.ai.armyhst.unitTable[soldier]
 	local counter = self.game:GetTeamUnitDefCount(team,spec.defId)
-	local mtypeLv = self.ai.taskshst:GetMtypedLv(soldier)
+	local mtypeLv = self:GetMtypedLv(soldier)
 
 	if mType then
 		local mmType = (mtypeLv / mType) + 1
@@ -216,19 +222,18 @@ function TaskLabBST:toAmphibious(soldier)
 	return soldier
 end
 
-
-
-
-
 TaskLabBST.queue = {
 
-		{'techs',3,6,10,1},
+		{'techs',3,nil,10,1},
 		{'scouts',1,10,2,2},
 		{'raiders',1,6,10,5},
+		{'techs',3,nil,10,2},
 		{'battles',3,nil,25,5},
-		{'techs',3,6,7,2},
+		{'techs',3,6,7,1},
 		{'artillerys',1,10,10,3},
-		{'breaks',2,5,15,2},
+		{'techs',3,nil,10,1},
+		{'breaks',2,5,15,3},
+		{'techs',3,nil,10,2},
 		{'rezs',1,8,10,2}, -- rezzers
 		{'engineers',1,8,10}, --help builders and build thinghs
 		{'antiairs',1,7,8,2},
@@ -238,10 +243,10 @@ TaskLabBST.queue = {
 		{'airgun',1,5,10,5},
 		{'bomberairs',10,4,20,5},
 		{'fighterairs',1,5,10},
-		{'paralyzers',1,10,5}, --have paralyzer weapon
+		{'paralyzers',1,10,5,3}, --have paralyzer weapon
 
 		{'wartechs',1,nil,1}, --decoy etc
-		{'techs',3,6,5,3},
+		{'techs',3,nil,5,3},
 		{'subkillers',1,7,5}, -- submarine weaponed
 		{'breaks',nil,nil,40,3},
 		{'amphibious',0,7,20}, -- weapon amphibious
@@ -261,7 +266,8 @@ function TaskLabBST:preFilter()
  	local threshold = 1 - (techLv / self.ai.maxFactoryLevel)+0.05
 -- 	local threshold = (0.4-(techLv / 10))+0.05 --TODO this is a shit
 	self:EchoDebug('prefilter threshold', threshold)
-	if self.ai.Energy.full > 0.05 and self.ai.Metal.full > threshold then
+	--if (self.ai.Energy.full > 0.2 and self.ai.Metal.full > threshold + 0.1) or  self.ai.Energy.full > 0.9 then--this is maen to manage levels but stall builders t1 productions when we have a t2
+	if self.ai.Metal.full > 0.2 then
 		self.unit:Internal():FactoryUnWait()
 	else
 		self.unit:Internal():FactoryWait()

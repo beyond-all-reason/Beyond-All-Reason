@@ -183,8 +183,7 @@ function TaskQueueBST:CategoryEconFilter(cat,param,name)
 		check =   (M.full < 0.5 or M.income < 6) or self.role == 'expand'
 	elseif cat == '_nano_' then
  		check =  (E.full > 0.3  and M.full > 0.3 and M.income > 10 and E.income > 100) or
- 				(self.ai.tool:countMyUnit({name}) == 0 and (M.income > 10 and E.income > 100)) or
- 				self.ai.tool:countMyUnit({name}) < E.income / 200
+ 				(self.ai.tool:countMyUnit({name}) == 0 and (M.income > 10 and E.income > 60 ))
 	elseif cat == '_wind_' then
 		check =   map:AverageWind() > 7 and ((E.full < 0.5 or E.income < E.usage )  or E.income < 30)
 	elseif cat == '_tide_' then
@@ -583,39 +582,75 @@ function TaskQueueBST:getOrder(builder,params)
 
 end
 
+function TaskQueueBST:removeOldBuildersRole(name,id)
+	for i,v in pairs(self.ai.armyhst.buildersRole) do
+		if v == name then
+			for ii,index in pairs (v) do
+				if index == id then
+					table.remove(self.ai.armyhst.buildersRole[i],ii)
+					return
+				end
+			end
+		end
+	end
+end
+
+function TaskQueueBST:roleCounter(role)
+	if not self.ai.armyhst.buildersRole[role] then
+		return 0
+	end
+	local counter = 0
+
+		for name, units in pairs(self.ai.armyhst.buildersRole[role]) do
+			counter = counter + #units
+		end
+	return counter
+
+
+end
+
 function TaskQueueBST:GetQueue()
 -- 	self.unit:ElectBehaviour()
 	local buildersRole = self.ai.armyhst.buildersRole
 	local team = self.game:GetTeamID()
 	local id = self.ai.armyhst.unitTable[self.name].defId
 	local counter = self.game:GetTeamUnitDefCount(team,id)
+	print('getqueue')
+	if self.isCommander then
+		print('getqueue commander')
+		if self:roleCounter('eco') > 0 then
+			self:removeOldBuildersRole(self.name,self.id)
+			table.insert(buildersRole.expand[self.name], self.id)
+			self.role = 'expand'
+
+		else
+			self:removeOldBuildersRole(self.name,self.id)
+			table.insert(buildersRole.default[self.name], self.id)
+			self.role = 'default'
+
+		end
+	end
 	if self.role then
+		print('getqueue2')
+		print (self.name .. self.role)
+		print('getqueue3')
 		return self.ai.taskshst.roles[self.role]
-	elseif self.isCommander then
-		table.insert(buildersRole.default[self.name], self.id)
-		self.role = 'default'
 	elseif #buildersRole.eco[self.name] < 1 then
 		table.insert(buildersRole.eco[self.name], self.id)
 		self.role = 'eco'
-	elseif #buildersRole.expand[self.name] < 1 then
-		self.role = 'expand'
+
+	elseif #buildersRole.expand[self.name] < 2 then
 		table.insert(buildersRole.expand[self.name], self.id)
-	elseif #buildersRole.default[self.name] < 1 then
-		table.insert(buildersRole.default[self.name], self.id)
-		self.role = 'default'
+		self.role = 'expand'
+
 	elseif #buildersRole.support[self.name] < 1 then
 		table.insert(buildersRole.support[self.name], self.id)
 		self.role = 'support'
 
-	elseif #buildersRole.expand[self.name] < 2 then
-		self.role = 'expand'
-		table.insert(buildersRole.expand[self.name], self.id)
-	elseif #buildersRole.eco[self.name] < 3 then
-		table.insert(buildersRole.eco[self.name], self.id)
-		self.role = 'eco'
-	elseif #buildersRole.support[self.name] < 2 then
-		table.insert(buildersRole.support[self.name], self.id)
-		self.role = 'support'
+	elseif #buildersRole.default[self.name] < 1 then
+		table.insert(buildersRole.default[self.name], self.id)
+		self.role = 'default'
+
 	else
 		table.insert(buildersRole.expand[self.name], self.id)
 		self.role ='expand'
@@ -625,19 +660,17 @@ function TaskQueueBST:GetQueue()
 end
 
 function TaskQueueBST:ProgressQueue()
-	--self.game:StartTimer('tqb1')
 	self:EchoDebug(self.name," progress queue")
 	self.lastWatchdogCheck = self.game:Frame()
 	self.constructing = false
 	self.progress = false
 	self.ai.buildsitehst:ClearMyPlans(self)
-	--self.game:StartTimer('tqb7')
 	local builder = self.unit:Internal()
 	local idx, val = next(self.queue,self.idx)
 	self:EchoDebug(idx , val)
 	self.idx = idx
 	if idx == nil then
-		self.queue = self:GetQueue(name)--TODO ?????????????????????self.name?
+		self.queue = self:GetQueue(self.name)--TODO ?????????????????????self.name?
 		self.progress = true
 
 		return
@@ -648,13 +681,10 @@ function TaskQueueBST:ProgressQueue()
 	local p
 	local value, p = self:getOrder(builder,val)
 	self:EchoDebug('value',value)
-	--self.game:StartTimer('tqb3')
-	--self.game:StopTimer('tqb7')
 	if type(value) == "table" then
 		self:EchoDebug('table queue ', value,value[1],'think about mex upgrade')
 		-- not using this except for upgrading things
 	else
-		--self.game:StartTimer('tqb4')
 		self:EchoDebug(self.name .. " filtering...")
 
 		local success = false
@@ -675,17 +705,13 @@ function TaskQueueBST:ProgressQueue()
 		if value  then
 			utype = self.game:GetTypeByName(value)
 		end
-		--self.game:StopTimer('tqb4')
-		--self.game:StartTimer('tqbPOS')
 		if value and utype and not p then
 			utype, value, p = self:findPlace(utype, value,val[1])
 			self:EchoDebug('p',p)
 
 		end
-		--self.game:StopTimer('tqbPOS')
-		--self.game:StartTimer('tqb5')
 		if value and not utype   then
-			self:EchoDebug('warning' , self.name , " cannot build:",value,", couldnt grab the unit type from the engine")
+			self:Warn('warning' , self.name , " cannot build:",value,", couldnt grab the unit type from the engine")
 			self.progress = true
 			return
 		end
@@ -735,23 +761,79 @@ end
 
 function TaskQueueBST:assist()
 	if self.assistant then return end
-	local unitsNear = self.game:getUnitsInCylinder(self.unit:Internal():GetPosition(), 2500)
+	local builderPos = self.unit:Internal():GetPosition()
+	local unitsNear = self.game:getUnitsInCylinder(builderPos, 2500)
 	for index, unitID in pairs(unitsNear) do
 		local unitName = self.game:GetUnitByID(unitID):Name()
 		if self.role == 'eco' then
--- 			if self.ai.armyhst.factoryMobilities[unitName] then
--- 				self.unit:Internal():Guard(unitID)
--- 				self.assistant = true
+ 			if self.ai.armyhst.factoryMobilities[unitName] then
+ 				self.unit:Internal():Guard(unitID)
+ 				self.assistant = true
 				return
--- 			end
+ 			end
 		elseif self.ai.armyhst.techs[unitName] and Spring.GetUnitIsBuilding(unitID) then
 			self.unit:Internal():Guard(unitID)
 			self.assistant = true
 			return
 		end
 	end
+	for i = 1, 3 do
+		local r = 2000 * i
+		local doing = self.unit:Internal():AreaResurrect( builderPos, r) or
+				self.unit:Internal():AreaReclaim(builderPos, r ) or
+				self.unit:Internal():AreaRepair( builderPos, r)
+		if doing  then
+			print('assistant')
+			self.assitant = true
+		else
+			print('assistant not work')
+		end
+
+	end
 end
 
+
+-- function TasksHST:repair(id)
+-- 	local builder = id:GetUintByID()
+-- 	local builderPos = builder:GetPosition()
+-- 	local bestDistance = math.huge
+-- 	for i,v in pairs(self.game:GetUnits()) do
+-- 		if id ~= v then
+-- 			local target = v:GetUintByID()
+-- 			local health, maxHealth, paralyzeDamage, captureProgress, buildProgress = target:GetHealtsParams()
+-- 			if health < maxHealth then
+-- 				local targetPos = target:GetPosition()
+-- 				local dist = self.ai.tool:Distance(builderPos,targetPos)
+-- 				if dist < bestDistance then
+-- 					bestTarget = v
+-- 					bestDistance = dist
+-- 				end
+-- 			end
+-- 		end
+-- 	end
+-- 	return bestTarget
+-- end
+--
+-- function TasksHST:reclaim(id)
+-- 	local builder = id:GetUintByID()
+-- 	local builderPos = builder:GetPosition()
+-- 	local bestDistance = math.huge
+-- 	for i,v in pairs(self.game:GetUnits()) do
+-- 		if id ~= v then
+-- 			local target = v:GetUintByID()
+-- 			local health, maxHealth, paralyzeDamage, captureProgress, buildProgress = target:GetHealtsParams()
+-- 			if health < maxHealth then
+-- 				local targetPos = target:GetPosition()
+-- 				local dist = self.ai.tool:Distance(builderPos,targetPos)
+-- 				if dist < bestDistance then
+-- 					bestTarget = v
+-- 					bestDistance = dist
+-- 				end
+-- 			end
+-- 		end
+-- 	end
+-- 	return bestTarget
+-- end
 
 function TaskQueueBST:VisualDBG()
 	local colours = {
