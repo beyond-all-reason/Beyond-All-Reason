@@ -41,13 +41,14 @@ local white = "\255" .. string.char(251) .. string.char(251) .. string.char(251)
 local playerListByTeam = {} -- does not contain specs
 
 local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
+local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 local viewScreenX, viewScreenY = Spring.GetViewGeometry()
 local fontfileScale = (0.7 + (viewScreenX * viewScreenY / 7000000))
 local fontfileSize = 40
 local fontfileOutlineSize = 8
 local fontfileOutlineStrength = 1.45
+local titleFont
 local font = gl.LoadFont(fontfile, fontfileSize * fontfileScale, fontfileOutlineSize * fontfileScale, fontfileOutlineStrength)
-local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 local font2 = gl.LoadFont(fontfile2, fontfileSize * fontfileScale, fontfileOutlineSize * fontfileScale, fontfileOutlineStrength)
 
 local UiElement
@@ -213,8 +214,10 @@ local function createBackground()
 		UiElement(widgetX, widgetY, widgetX + widgetWidthScaled, widgetY + widgetHeightScaled, 1,1,1,1, 1,1,1,1, Spring.GetConfigFloat("ui_opacity", 0.6) + 0.2)
 
 		gl.Color(1, 1, 1, 1)
-		gl.Texture(':l:LuaRules/Images/awards.png')
-		gl.TexRect(widgetX + widgetWidthScaled / 2 - math.floor(220*widgetScale), widgetY + widgetHeightScaled - math.floor(75*widgetScale), widgetX + widgetWidthScaled / 2 + math.floor(120*widgetScale), widgetY + widgetHeightScaled - math.floor(5*widgetScale))
+
+		titleFont:Begin()
+		titleFont:Print("\255\254\184\64" .. Spring.I18N('ui.awards.awards'), widgetX + widgetWidthScaled / 2, widgetY + widgetHeightScaled - math.floor(75*widgetScale), 72 * widgetScale, "c")
+		titleFont:End()
 
 		font:Begin()
 		font:Print(Spring.I18N('ui.awards.score'), widgetX + widgetWidthScaled / 2 + math.floor(275*widgetScale), widgetY + widgetHeightScaled - math.floor(65*widgetScale), 15*widgetScale, "o")
@@ -383,6 +386,7 @@ end
 function widget:Initialize()
 	Spring.SendCommands('endgraph 2')
 
+	titleFont = WG['fonts'].getFont(fontfile2, 4, 0.2, 1)
 	widget:ViewResize(viewScreenX, viewScreenY)
 	widgetHandler:RegisterGlobal('GadgetReceiveAwards', ProcessAwards)
 
