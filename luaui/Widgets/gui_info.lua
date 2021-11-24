@@ -101,13 +101,13 @@ local contentWidth, dlistInfo, bfcolormap, selUnitTypes
 
 local RectRound, UiElement, UiUnit, elementCorner
 
-local spGetCurrentTooltip = Spring.GetCurrentTooltip
 local spGetSelectedUnitsCounts = Spring.GetSelectedUnitsCounts
 local spGetSelectedUnitsSorted = Spring.GetSelectedUnitsSorted
 local spGetSelectedUnitsCount = Spring.GetSelectedUnitsCount
 local SelectedUnitsCount = Spring.GetSelectedUnitsCount()
 local selectedUnits = Spring.GetSelectedUnits()
 local spGetUnitDefID = Spring.GetUnitDefID
+local spGetFeatureDefID = Spring.GetFeatureDefID
 local spTraceScreenRay = Spring.TraceScreenRay
 local spGetMouseState = Spring.GetMouseState
 local spGetModKeyState = Spring.GetModKeyState
@@ -1478,10 +1478,20 @@ function checkChanges()
 		-- hovered feature
 	elseif not math_isInRect(x, y, backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4]) and hoverType and hoverType == 'feature' and os_clock() - lastHoverDataClock > 0.08 then
 		-- add small hover delay against eplilepsy
-		--displayMode = 'feature'
-		--displayFeatureID = hoverData
-		--displayFeatureDefID = spGetUnitDefID(displayUnitID)
-		local newTooltip = spGetCurrentTooltip()
+		displayMode = 'feature'
+		local featureID = hoverData
+		local featureDefID = spGetFeatureDefID(featureID)
+		local featureDef = FeatureDefs[featureDefID]
+		local newTooltip = featureDef.translatedDescription
+
+		if featureDef.reclaimable then
+			local metal, _, energy, _ = Spring.GetFeatureResources(featureID)
+			metal = math.floor(metal)
+			energy = math.floor(energy)
+			local reclaimText = Spring.I18N('ui.reclaimInfo.metal', { metal = metal }) .. "\255\255\255\128" .. " " .. Spring.I18N('ui.reclaimInfo.energy', { energy = energy })
+			newTooltip = newTooltip .. "\n\n" .. reclaimText
+		end
+
 		if newTooltip ~= currentTooltip then
 			currentTooltip = newTooltip
 			doUpdate = true
@@ -1503,11 +1513,8 @@ function checkChanges()
 
 		-- tooltip text
 	else
-		local newTooltip = spGetCurrentTooltip()
-		if newTooltip ~= currentTooltip then
-			currentTooltip = newTooltip
-			doUpdate = true
-		end
+		currentTooltip = ""
+		doUpdate = true
 	end
 
 	-- display changed

@@ -31,20 +31,24 @@ local function refreshUnitDefs()
 end
 
 local function refreshFeatureDefs()
+	local processedFeatureDefs = {}
+
 	for _, unitDef in pairs(UnitDefs) do
 		local corpseDef = FeatureDefNames[unitDef.wreckName]
 		if corpseDef then
 			corpseDef.translatedDescription = Spring.I18N('units.dead', { name = unitDef.translatedHumanName })
+			processedFeatureDefs[corpseDef.id] = true
 
 			local heapDef = FeatureDefs[corpseDef.deathFeatureID]
 			if heapDef then
 				heapDef.translatedDescription = Spring.I18N('units.heap', { name = unitDef.translatedHumanName })
+				processedFeatureDefs[heapDef.id] = true
 			end
 		end
 	end
 
 	for name, featureDef in pairs(FeatureDefNames) do
-		if not featureDef.translatedDescription then
+		if not processedFeatureDefs[featureDef.id] then
 			local proxyName = featureDef.customParams.i18nfrom or name
 			featureDef.translatedDescription = Spring.I18N('features.names.' .. proxyName)
 		end
