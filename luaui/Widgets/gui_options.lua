@@ -1514,7 +1514,7 @@ function init()
 			nanoparticles = 1500,
 			treeradius = 0,
 			guishader = false,
-			decals = 0,
+			decals = false,
 			shadowslider = 1,
 			grass = false,
 			darkenmap_darkenfeatures = false,
@@ -1532,7 +1532,7 @@ function init()
 			nanoparticles = 3000,
 			treeradius = 200,
 			guishader = false,
-			decals = 1,
+			decals = true,
 			shadowslider = 2,
 			grass = false,
 			darkenmap_darkenfeatures = false,
@@ -1550,7 +1550,7 @@ function init()
 		 	nanoparticles = 5000,
 		 	treeradius = 400,
 		 	guishader = true,
-		 	decals = 2,
+		 	decals = true,
 			shadowslider = 3,
 		 	grass = true,
 		 	darkenmap_darkenfeatures = false,
@@ -1568,7 +1568,7 @@ function init()
 			nanoparticles = 9000,
 			treeradius = 800,
 			guishader = true,
-			decals = 4,
+			decals = true,
 			shadowslider = 4,
 			grass = true,
 			darkenmap_darkenfeatures = false,
@@ -1586,7 +1586,7 @@ function init()
 			nanoparticles = 15000,
 			treeradius = 800,
 			guishader = true,
-			decals = 5,
+			decals = true,
 			shadowslider = 5,
 			grass = true,
 			darkenmap_darkenfeatures = true,
@@ -2036,12 +2036,10 @@ function init()
 		  end,
 		},
 
-		{ id = "decals", group = "gfx", category = types.dev, name = texts.option.decals, type = "slider", min = 0, max = 5, step = 1, value = tonumber(Spring.GetConfigInt("GroundDecals", 1) or 1), description = texts.option.decals_descr,
-		  onload = function(i)
-		  end,
+		{ id = "decals", group = "gfx", category = types.advanced, name = texts.option.decals, type = "bool", value = tonumber(Spring.GetConfigInt("GroundDecals", 3) or 3) >= 1, description = texts.option.decals_descr,
 		  onchange = function(i, value)
-			  Spring.SetConfigInt("GroundDecals", value)
-			  Spring.SendCommands("GroundDecals " .. value)
+			  Spring.SetConfigInt("GroundDecals", (value and 3 or 0))
+			  Spring.SendCommands("GroundDecals " .. (value and 3 or 0))
 			  Spring.SetConfigInt("GroundScarAlphaFade", 1)
 		  end,
 		},
