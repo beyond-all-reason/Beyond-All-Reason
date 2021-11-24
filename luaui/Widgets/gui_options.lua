@@ -1503,7 +1503,7 @@ function init()
 	presets = {
 		[presetNames[1]] = {
 			bloomdeferred = false,
-			ssao = 1,
+			ssao = 0,
 			mapedgeextension = false,
 			lighteffects = false,
 			lighteffects_additionalflashes = false,
@@ -1521,7 +1521,7 @@ function init()
 		},
 		[presetNames[2]] = {
 			bloomdeferred = true,
-			ssao = 1,
+			ssao = 0,
 			mapedgeextension = false,
 			lighteffects = true,
 			lighteffects_additionalflashes = false,
