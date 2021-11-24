@@ -13,7 +13,6 @@ end
 local glCallList = gl.CallList
 
 local thisAward
-local cachedAwards = {}
 
 local widgetScale = 1
 
@@ -226,7 +225,9 @@ local function createBackground()
 end
 
 local function ProcessAwards(awards)
-	cachedAwards = awards
+	if not awards then return end
+
+	WG.awards = awards
 
 	local traitorWinner = awards.traitor[1]
 	local cowAwardWinner = awards.goldenCow[1].teamID
@@ -378,9 +379,7 @@ function widget:DrawScreen()
 end
 
 function widget:LanguageChanged()
-	if next(cachedAwards) ~= nil then
-		ProcessAwards(cachedAwards)
-	end
+	ProcessAwards(WG.awards)
 end
 
 function widget:Initialize()
@@ -403,6 +402,8 @@ function widget:Initialize()
 		end
 		playerListByTeam[teamID] = list
 	end
+
+	ProcessAwards(WG.awards)
 end
 
 function widget:Shutdown()
