@@ -1512,7 +1512,6 @@ function init()
 			heatdistortion = false,
 			snow = false,
 			particles = 9000,
-			nanoparticles = 1500,
 			treeradius = 0,
 			guishader = false,
 			decals = false,
@@ -1530,7 +1529,6 @@ function init()
 			heatdistortion = true,
 			snow = false,
 			particles = 12000,
-			nanoparticles = 3000,
 			treeradius = 200,
 			guishader = false,
 			decals = true,
@@ -1548,7 +1546,6 @@ function init()
 		 	heatdistortion = true,
 		 	snow = true,
 		 	particles = 15000,
-		 	nanoparticles = 5000,
 		 	treeradius = 400,
 		 	guishader = true,
 		 	decals = true,
@@ -1566,7 +1563,6 @@ function init()
 			heatdistortion = true,
 			snow = true,
 			particles = 20000,
-			nanoparticles = 9000,
 			treeradius = 800,
 			guishader = true,
 			decals = true,
@@ -1584,7 +1580,6 @@ function init()
 			heatdistortion = true,
 			snow = true,
 			particles = 25000,
-			nanoparticles = 15000,
 			treeradius = 800,
 			guishader = true,
 			decals = true,
@@ -2100,18 +2095,19 @@ function init()
 		  end,
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("MaxParticles", value)
+			  Spring.SetConfigInt("MaxNanoParticles", math.floor(value*0.34))
 		  end,
 		},
-		{ id = "nanoparticles", group = "gfx", category = types.advanced, name = texts.option.nanoparticles, type = "slider", min = 3000, max = 20000, step = 1000, value = maxNanoParticles, description = '',
-		  onload = function(i)
-		  end,
-		  onchange = function(i, value)
-			  maxNanoParticles = value
-			  if not options[getOptionByID('nanoeffect')] or options[getOptionByID('nanoeffect')].value == 2 then
-				  Spring.SetConfigInt("MaxNanoParticles", value)
-			  end
-		  end,
-		},
+		--{ id = "nanoparticles", group = "gfx", category = types.advanced, name = texts.option.nanoparticles, type = "slider", min = 3000, max = 20000, step = 1000, value = maxNanoParticles, description = '',
+		--  onload = function(i)
+		--  end,
+		--  onchange = function(i, value)
+		--	  maxNanoParticles = value
+		--	  if not options[getOptionByID('nanoeffect')] or options[getOptionByID('nanoeffect')].value == 2 then
+		--		  Spring.SetConfigInt("MaxNanoParticles", value)
+		--	  end
+		--  end,
+		--},
 
 		{ id = "unitRotation", group = "gfx", category = types.advanced, name = texts.option.unitrotation, min = 0, max = 10, step = 1, type = "slider", value = tonumber(Spring.GetConfigInt("unitRotation", 0)), description = texts.option.unitrotation_descr,
 		  onchange = function(i, value)
@@ -4594,16 +4590,6 @@ function init()
 				options[getOptionByID('shadowslider')] = nil
 				options[getOptionByID('shadows_opacity')] = nil
 			end
-		end
-	end
-
-	-- remove engine particles if nano beams are enabled
-	if options[getOptionByID('nanoeffect')] and options[getOptionByID('nanoeffect')].value == 1 then
-		Spring.SetConfigInt("MaxNanoParticles", 0)
-	else
-		-- set min engine particles
-		if Spring.GetConfigInt("MaxNanoParticles") < options[getOptionByID('nanoparticles')].min then
-			Spring.SetConfigInt("MaxNanoParticles", options[getOptionByID('nanoparticles')].min)
 		end
 	end
 
