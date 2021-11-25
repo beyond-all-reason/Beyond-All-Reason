@@ -252,7 +252,8 @@ local function showOption(option)
 	if not option.category
 		or option.category == types.basic
 		or (advSettings and option.category == types.advanced)
-		or (devMode and (option.group == "dev" or option.category == types.dev)) then
+		or (devMode and option.group == "dev")
+		or Spring.Utilities.ShowDevUI() then
 
 		return true
 	end
