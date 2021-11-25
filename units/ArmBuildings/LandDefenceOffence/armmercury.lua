@@ -149,7 +149,7 @@ return {
 				castshadow = false,
 				soundhit = "impact",
 				soundhitwet = "splslrg",
-				soundstart = "launch",
+				soundstart = "aarocket",
 				soundhitvolume = 8,
 				soundstartvolume = 8,
 				sprayangle = 10000,

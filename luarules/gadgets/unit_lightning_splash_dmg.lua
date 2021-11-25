@@ -18,9 +18,9 @@ end
 
 local sparkWeapons = {}
 local weapons = {
-    lightning   = {ceg = "genericshellexplosion-splash-lightning",       forkdamage = 0.5,   maxunits=2,  range = 60},
-    lightningxl = {ceg = "genericshellexplosion-splash-large-lightning", forkdamage = 0.4,   maxunits=12, range = 175},
-    dclaw       = {ceg = "genericshellexplosion-splash-lightning",       forkdamage = 0.325, maxunits=2,  range = 60},
+	lightningxl = {ceg = "genericshellexplosion-splash-large-lightning", forkdamage = 0.4,   maxunits=12, range = 175},
+    lightning   = {ceg = "genericshellexplosion-splash-lightning",       forkdamage = 0.33,   maxunits=2,  range = 60},
+    dclaw       = {ceg = "genericshellexplosion-splash-lightning",       forkdamage = 0.33, maxunits=2,  range = 60},
 
 }
 for wdid, wd in pairs(WeaponDefNames) do

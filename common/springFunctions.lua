@@ -18,7 +18,12 @@ Spring.Utilities = {
 	IsDevMode = function()
 		local devMode = Spring.GetGameRulesParam('isDevMode')
 		return (devMode and devMode > 0) and true or false
-	end
+	end,
+
+	ShowDevUI = function ()
+		local devUI = Spring.GetConfigInt('DevUI', 0)
+		return (devUI > 0) and true or false
+	end,
 }
 
 VFS.Include('common/luaUtilities/json.lua')
@@ -54,6 +59,8 @@ if Spring.GetModOptions then
 	end
 
 	Spring.GetModOptions = function ()
-		return modOptions
+		-- Returning the table itself would allow callers to mutate the table
+		-- Copying it ensures each caller gets its own copy
+		return table.copy(modOptions)
 	end
 end

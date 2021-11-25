@@ -24,7 +24,8 @@ Units
  • Cor Instigator health increased by 2%
  • Arm Stumpy turn rate reduced by 10%
  • Cor Raider turn rate reduced by 10%
- • Claw/Zeus: lightning chains again (up to 2 neighbouring units *0.5dmg for zeus, *0.325 for claw)
+ • Claw/Zeus: lightning chains again (up to 2 neighbouring units *0.33)
+ • Zeus: does 10% less damage
  • Juggernaut: main weapon does 4x old damage/reloadtime
  • EMP launcher: reduced range 10%
  • Spy paralyzetime 45 -> 35 sec

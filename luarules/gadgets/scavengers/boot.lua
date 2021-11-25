@@ -193,10 +193,6 @@ function gadget:GameFrame(n)
 		UpdateTierChances(n)
 	end
 
-	if n == 60 and unitSpawnerModuleConfig.initialbonuscommander == true then
-		InitialSpawnBonusCommanders()
-	end
-
 	if n > 1 then
 		SpawnFromQueue(n)
 		local unitCount = Spring.GetTeamUnitCount(GaiaTeamID)

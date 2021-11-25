@@ -48,7 +48,7 @@ if gadgetHandler:IsSyncedCode() then
 		"Watch The Fort",
 		"Yaribz",
 		"Zecrus",
-		
+
 		-- Supporters ($20+ Donation)
 		"badosu",
 		"catraxx",
@@ -73,8 +73,9 @@ if gadgetHandler:IsSyncedCode() then
 		"Derpiederp",
 		"LSR",
 		"MelKaven",
+		"BoT0x",
 
-		-- BAR Content Creators 
+		-- BAR Content Creators
 		"Requiem_TV",
 		"gamerangela911",
 		"Rikerss",

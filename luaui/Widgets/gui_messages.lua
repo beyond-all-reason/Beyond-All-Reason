@@ -48,7 +48,7 @@ local currentTypewriterLine = 0
 local scrolling = false
 local lineMaxWidth = 0
 
-local font, chobbyInterface, hovering, startFadeTime
+local font, chobbyInterface, hovering, startFadeTime, buildmenuBottomPosition
 
 local RectRound, elementCorner
 
@@ -67,6 +67,21 @@ function widget:ViewResize()
 	RectRound = WG.FlowUI.Draw.RectRound
 
 	font = WG['fonts'].getFont(nil, 1, 0.18, 1.4)
+
+	if WG['buildmenu'] then
+		buildmenuBottomPosition = WG['buildmenu'].getBottomPosition()
+	end
+
+	posY = 0.16
+	if buildmenuBottomPosition then
+		posY = 0.21
+		if WG['ordermenu'] then
+			local oposX, oposY, owidth, oheight = WG['ordermenu'].getPosition()
+			if oposY < 0.5 then
+				posY = 0.16
+			end
+		end
+	end
 
 	for i, _ in ipairs(messageLines) do
 		if messageLines[i][6] then
@@ -164,6 +179,7 @@ function widget:Initialize()
 end
 
 local uiSec = 0
+local buildmenuBottomPos = false
 function widget:Update(dt)
 	uiSec = uiSec + dt
 	if uiSec > 0.5 then
@@ -174,6 +190,13 @@ function widget:Update(dt)
 		end
 		if hideSpecChat ~= tonumber(Spring.GetConfigInt("HideSpecChat", 0) or 0) == 1 then
 			hideSpecChat = tonumber(Spring.GetConfigInt("HideSpecChat", 0) or 0) == 1
+		end
+		if WG['buildmenu'] and WG['buildmenu'].getBottomPosition then
+			local prevbuildmenuBottomPos = buildmenuBottomPos
+			buildmenuBottomPos = WG['buildmenu'].getBottomPosition()
+			if buildmenuBottomPos ~= prevbuildmenuBottomPos then
+				widget:ViewResize()
+			end
 		end
 	end
 

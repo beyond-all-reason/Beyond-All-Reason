@@ -14,6 +14,9 @@ ChessModeUnbalancedModoption = Spring.GetModOptions().scoremode_chess_unbalanced
 ChessModePhaseTimeModoption = Spring.GetModOptions().scoremode_chess_adduptime
 ChessModeSpawnPerPhaseModoption = Spring.GetModOptions().scoremode_chess_spawnsperphase
 
+local capturePointRadius = Spring.GetModOptions().captureradius
+local capturePointRadius = math.floor(capturePointRadius*0.75)
+
 local pveEnabled = Spring.Utilities.Gametype.IsPvE()
 
 if pveEnabled then
@@ -37,12 +40,89 @@ local spGetTeamList = Spring.GetTeamList
 local spGetAllyTeamList= Spring.GetAllyTeamList
 local spGetTeamLuaAI = Spring.GetTeamLuaAI
 local spGetGaiaTeamID = Spring.GetGaiaTeamID
+local teams = Spring.GetTeamList()
 
 local teamSpawnPositions = {}
 local teamSpawnQueue = {}
 local teamRespawnQueue = {}
 local teamIsLandPlayer = {}
 local resurrectedUnits = {}
+
+
+local function distance(pos1,pos2)
+	local xd = pos1.x-pos2.x
+	local yd = pos1.z-pos2.z
+	local dist = math.sqrt(xd*xd + yd*yd)
+	return dist
+end
+
+function GetControlPoints()
+	--if controlPoints then return controlPoints end
+	controlPoints = {}
+	if Script.LuaRules('ControlPoints') then
+		local rawPoints = Script.LuaRules.ControlPoints() or {}
+		for id = 1, #rawPoints do
+			local rawPoint = rawPoints[id]
+			local rawPoint = rawPoint
+			local pointID = id
+			local pointOwner = rawPoint.owner
+			local pointPosition = {x=rawPoint.x, y=rawPoint.y, z=rawPoint.z}
+			local point = {pointID=pointID, pointPosition=pointPosition, pointOwner=pointOwner}
+			controlPoints[id] = point
+		end
+	end
+	return controlPoints
+end
+
+-- function GetRandomAllyPoint(teamID, unitName)
+--     local _,_,_,_,_,allyTeamID = Spring.GetTeamInfo(teamID)
+--     local unitDefID = UnitDefNames[unitName].id
+-- 	for i = 1,1000 do 
+-- 		local r = math.random(1,#controlPoints)
+-- 		local point = controlPoints[r]
+-- 		local pointAlly = controlPoints[r].pointOwner
+-- 		local pointPos = controlPoints[r].pointPosition
+-- 		local y = Spring.GetGroundHeight(pointPos.x, pointPos.z)
+--         local unreachable = true
+--         if (-(UnitDefs[unitDefID].minWaterDepth) > y) and (-(UnitDefs[unitDefID].maxWaterDepth) < y) or UnitDefs[unitDefID].canFly then
+--             unreachable = false
+--         end
+--         if unreachable == false and pointAlly == allyTeamID then
+-- 			pos = pointPos
+-- 			break
+-- 		end
+-- 	end
+-- 	return pos
+-- end
+
+-- function GetClosestEnemyPoint(unitID)
+-- 	local pos
+-- 	local bestDistance
+-- 	local controlPoints = controlPointsList
+-- 	local unitAllyTeam = Spring.GetUnitAllyTeam(unitID)
+-- 	local unitDefID = Spring.GetUnitDefID(unitID)
+-- 	local unitPositionX, unitPositionY, unitPositionZ = Spring.GetUnitPosition(unitID)
+-- 	local position = {x=unitPositionX, y=unitPositionY, z=unitPositionZ}
+-- 	for i = 1, #controlPoints do
+-- 		local point = controlPoints[i]
+-- 		local pointAlly = controlPoints[i].pointOwner
+-- 		if pointAlly ~= unitAllyTeam then
+-- 			local pointPos = controlPoints[i].pointPosition
+-- 			local dist = distance(position, pointPos)
+-- 			local y = Spring.GetGroundHeight(pointPos.x, pointPos.z)
+-- 			local unreachable = true
+-- 			if (-(UnitDefs[unitDefID].minWaterDepth) > y) and (-(UnitDefs[unitDefID].maxWaterDepth) < y) or UnitDefs[unitDefID].canFly then
+-- 				unreachable = false
+-- 			end
+-- 			if unreachable == false and (not bestDistance or dist < bestDistance) then
+-- 				bestDistance = dist
+-- 				pos = pointPos
+-- 			end
+-- 		end
+-- 	end
+-- 	return pos
+-- end
+
 
 local function pickRandomUnit(list, quantity)
     if #list > 1 then
@@ -61,260 +141,104 @@ end
 
 local starterLandUnitsList = {
     [1] = {
-        [1] = { 
+        [1] = {    
+            table = {
+                --bots
+                "armpw", 
+                "corak",
+                --vehicles
+                "armflash",
+                "corfav",
+            },                           
+            quantity = 10,
+        },
+        [2] = {    
             table = {
                 "armflea", 
-                "armfav", 
-                "corfav",
-            },              
+                "armfav",
+                "corfav" ,
+            },                           
             quantity = 5,
         },
-        [2] = { 
+        [3] = {    
             table = {
-                "armjeth", 
-                "corcrash", 
-                "armsam", 
-                "cormist", 
-                "armah", 
-                "corah",
-            },              
+                "armassistdrone", 
+                "corassistdrone", 
+            },                           
             quantity = 2,
         },
-        [3] = { 
+        [4] = {    
             table = {
-                "armpeep", 
-                "corfink",
-            },                      
+                "armmlv", 
+                "cormlv", 
+            },                           
+            quantity = 2,
+        },
+        [5] = {    
+            table = {
+                "armjeth",
+                "corcrash",
+                "armah",
+                "corah",
+                "armsam",
+                "cormist",
+            },                           
             quantity = 1,
         },
     },
 }
     
 local landUnitsList = {
-    -- PHASE 1 -- Early T1
     [1] = {
         [1] = {    
             table = {
+                -- bots
                 "armpw", 
-                "corak", 
-                "armflash", 
-                "corgator", 
-                "armsh", 
-                "corsh",
-            },                           
-            quantity = 5,
-        },
-    },
+                "corak",
+                "armrock",
+                "armham",
+                "armwar",
+                "corstorm",
+                "corthud",
 
-    -- PHASE 2 -- Late T1
-    [2] = {
-        [1] = {    
-            table = {
-                "armrock", 
-                "corstorm", 
-                "armham", 
-                "corthud", 
-                "armwar", 
-                "corkark", 
-                "corwolv", 
-                "armart", 
-                "corgarp", 
-                "armpincer", 
-                "corlevlr", 
-                "armjanus", 
-                "corraid", 
-                "armstump", 
-                "armmh", 
-                "cormh", 
-                "armanac", 
+                -- tanks
+                "armflash",
+                "corgator",
+                "armstump",
+                "corraid",
+                "armpincer",
+                "corgarp",
+                "armsam",
+                "cormist",
+                "armjanus",
+                "corlevlr",
+                "corwolv",
+
+                -- hover
+                "armsh",
+                "corsh",
+                "armmh",
+                "cormh",
+                "armanac",
                 "corsnap",
             },                           
-            quantity = 5,
+            quantity = 10,
         },
-        [2] = { 
+        [2] = {    
             table = {
-                "armjeth", 
-                "corcrash", 
-                "armsam", 
-                "cormist", 
-                "armah", 
-                "corah",
-            },              
-            quantity = 2,
-        },
-    },
-
-    -- PHASE 3 -- Air T1
-    [3] = {
-        [1] = { 
-            table = {
-                "armjeth", 
-                "corcrash", 
-                "armsam", 
-                "cormist", 
-                "armah", 
-                "corah",
-            },              
-            quantity = 2,
-        },
-        [2] = { 
-            table = {
-                "armfig", 
-                "corveng",
-            }, 
-            quantity = 2,
-        },
-        [3] = { 
-            table = {
-                "armthund", 
-                "corshad", 
-                "armkam", 
-                "corbw",
-            }, 
-            quantity = 5,
-        },
-    },
-
-    -- PHASE 4 -- Early T2
-    [4] = {
-        [1] = {    
-            table = {
-                "armfast", 
-                "corpyro", 
-                "armfido", 
-                "cormort", 
-                "armlatnk", 
+                "armassistdrone", 
+                "corassistdrone", 
             },                           
-            quantity = 5,
-        },
-    },
-
-    -- PHASE 5 -- Late T2
-    [5] = {
-        [1] = {    
-            table = {
-                "cortermite", 
-                "armamph", 
-                "coramph", 
-                "armzeus", 
-                "corcan", 
-                "armsptk", 
-                "armsnipe", 
-                "corhrk", 
-                "armmav", 
-                "armfboy", 
-                "corsumo",
-                "armmart", 
-                "cormart", 
-                "armcroc", 
-                "corseal", 
-                "armmerl", 
-                "corvroc", 
-                "armbull",
-                "correap",
-                "armmanni",
-                "cortrem",
-                "corban",
-                "corgatreap",
-            },                           
-            quantity = 5,
-        },
-        [2] = { 
-            table = {
-                "armaak", 
-                "coraak", 
-                "armyork", 
-                "corsent", 
-            },              
-            quantity = 2,
-        },
-        [3] = { 
-            table = {
-                "armvader", 
-                "corroach", 
-                "armmark", 
-                "corvoyr",
-                "armspy", 
-                "corspy",
-                "armspid",
-                "armseer",
-                "corvrad",      
-            },              
-            quantity = 3,
-        },
-    },
-
-    -- PHASE 6 -- Air T2
-    [6] = {
-        [1] = { 
-            table = {
-                "armaak", 
-                "coraak", 
-                "armyork", 
-                "corsent", 
-            },              
-            quantity = 2,
-        },
-        [2] = { 
-            table = {
-                "armhawk", 
-                "corvamp",
-            }, 
-            quantity = 2,
-        },
-        [3] = { 
-            table = {
-                "armpnix", 
-                "corhurc", 
-                "armstil",
-                "armbrawl", 
-                "corape", 
-            }, 
-            quantity = 5,
-        },
-    },
-
-    -- PHASE 7 -- Endgame
-    [7] = {
-        [1] = {
-            table = {
-                "corkorg",
-                "corjugg",
-                "armbanth",
-                "armthor",
-                "armpwt4",
-                "armrattet4",
-                "armvadert4",
-                "cordemont4",
-                "corkarganetht4",
-                "armrectrt4",
-                "corgolt4",
-                "corcrwt4",
-                "armfepocht4",
-                "corfblackhyt4",
-                "armthundt4",
-            },
             quantity = 1,
         },
-        [2] = {
+        [3] = {    
             table = {
-                "armmar",
-                "armvang",
-                "armraz",
-                "corshiva",
-                "corkarg",
-                "corcat",
-                "armlunchbox",
-                "armmeatball",
-                "armassimilator",
-                "armrectrt4",
-                "armsptkt4",
-                "armlun",
-                "corsok",
-                "corcrw",
-                "armliche",
-            },
-            quantity = 3,
+                "armjeth",
+                "corcrash",
+                "armah",
+                "corah",
+            },                           
+            quantity = 1,
         },
     },
 }
@@ -326,100 +250,26 @@ local starterSeaUnitsList = {
                 "armpt", 
                 "corpt",
             },                          
-            quantity = 5,
+            quantity = 10,
         },
-        [2] = { 
+        [2] = {    
             table = {
-                "armpeep", 
-                "corfink",
-            },                       
-            quantity = 1,
+                "armassistdrone", 
+                "corassistdrone", 
+            },                           
+            quantity = 2,
         },
     },
 }
 
 local seaUnitsList = {
-    -- PHASE 1 -- Early T1
     [1] = {
         [1] = {
-            table = {"armpt", "corpt",},                          
+            table = {
+                "armpt", 
+                "corpt",
+            },                          
             quantity = 10,
-        },
-        [2] = {
-            table = {"armfig", "corveng", "armthund", "corshad"},                       
-            quantity = 5,
-        },
-    },
-
-    -- PHASE 1 -- Late T1
-    [2] = {
-        [1] = {
-            table = {"armpt", "corpt",},                          
-            quantity = 10,
-        },
-        [2] = {
-            table = {"armfig", "corveng", "armthund", "corshad"},                       
-            quantity = 5,
-        },
-    },
-
-    -- PHASE 3 -- Air T1
-    [3] = {
-        [1] = {
-            table = {"armpt", "corpt",},                          
-            quantity = 10,
-        },
-        [2] = {
-            table = {"armfig", "corveng", "armthund", "corshad"},                       
-            quantity = 5,
-        },
-    },
-
-    -- PHASE 4 -- Early T2
-    [4] = {
-        [1] = {
-            table = {"armpt", "corpt",},                          
-            quantity = 10,
-        },
-        [2] = {
-            table = {"armfig", "corveng", "armthund", "corshad"},                       
-            quantity = 5,
-        },
-    },
-
-    -- PHASE 5 -- Late T2
-    [5] = {
-        [1] = {
-            table = {"armpt", "corpt",},                          
-            quantity = 10,
-        },
-        [2] = {
-            table = {"armfig", "corveng", "armthund", "corshad"},                       
-            quantity = 5,
-        },
-    },
-
-    -- PHASE 6 -- Air T2
-    [6] = {
-        [1] = {
-            table = {"armpt", "corpt",},                          
-            quantity = 10,
-        },
-        [2] = {
-            table = {"armfig", "corveng", "armthund", "corshad"},                       
-            quantity = 5,
-        },
-    },
-
-    -- PHASE 6 -- Endgame
-    [7] = {
-        [1] = {
-            table = {"armpt", "corpt",},                          
-            quantity = 10,
-        },
-        [2] = {
-            table = {"armfig", "corveng", "armthund", "corshad"},                       
-            quantity = 5,
         },
     },
 }
@@ -430,8 +280,8 @@ local maxPhases = #landUnitsList
 local phaseSpawns = 0
 local spawnsPerPhase = ChessModeSpawnPerPhaseModoption
 local addUpFrequency = ChessModePhaseTimeModoption*1800
-local spawnTimer = 2
-local respawnTimer = 300
+local spawnTimer = 9000
+local respawnTimer = 9000
 local phase
 local canResurrect = {}
 
@@ -460,11 +310,10 @@ local function disableUnit(unitID)
 end
 
 local function introSetUp()
-    local teams = spGetTeamList()
     for i = 1,#teams do
         local teamID = teams[i]
         local teamUnits = Spring.GetTeamUnits(teamID)
-        --if (not spGetGaiaTeamID() == teamID) then
+        if spGetGaiaTeamID() ~= teamID then
             for _, unitID in ipairs(teamUnits) do
                 local x,y,z = Spring.GetUnitPosition(unitID)
                 teamSpawnPositions[teamID] = { x = x, y = y, z = z}
@@ -477,13 +326,12 @@ local function introSetUp()
 				teamRespawnQueue[teamID] = {}
                 disableUnit(unitID)
             end
-        --end
+        end
     end
     phase = 1
 end
 
 local function addInfiniteResources()
-    local teams = spGetTeamList()
     for i = 1,#teams do
         local teamID = teams[i]
         Spring.SetTeamResource(teamID, "ms", 1000000)
@@ -493,36 +341,99 @@ local function addInfiniteResources()
     end
 end
 
-local function spawnUnitsFromQueue()
-    local teams = spGetTeamList()
-    for i = 1,#teams do
-        local teamID = teams[i]
-        if teamSpawnQueue[teamID] then
-            if teamSpawnQueue[teamID][1] then
-                local x = teamSpawnPositions[teamID].x + math.random(-64,64)
-                local z = teamSpawnPositions[teamID].z + math.random(-64,64)
-                local y = Spring.GetGroundHeight(x,z)
-                Spring.CreateUnit(teamSpawnQueue[teamID][1], x, y, z, 0, teamID)
-                Spring.SpawnCEG("scav-spawnexplo",x,y,z,0,0,0)
-                table.remove(teamSpawnQueue[teamID], 1)
-            end
+-- local function spawnUnitsFromQueue(teamID)
+--     if teamSpawnQueue[teamID] then
+--         if teamSpawnQueue[teamID][1] then
+--             local pos = GetRandomAllyPoint(teamID, teamSpawnQueue[teamID][1])
+--             local spawnedUnit
+--             if pos and pos.x then
+--                 local x = pos.x+math.random(-50,50)
+--                 local z = pos.z+math.random(-50,50)
+--                 local y = Spring.GetGroundHeight(x,z)
+--                 spawnedUnit = Spring.CreateUnit(teamSpawnQueue[teamID][1], x, y, z, 0, teamID)
+--                 Spring.SpawnCEG("scav-spawnexplo",x,y,z,0,0,0)
+--                 table.remove(teamSpawnQueue[teamID], 1)
+--             else
+--                 local x = teamSpawnPositions[teamID].x + math.random(-64,64)
+--                 local z = teamSpawnPositions[teamID].z + math.random(-64,64)
+--                 local y = Spring.GetGroundHeight(x,z)
+--                 spawnedUnit = Spring.CreateUnit(teamSpawnQueue[teamID][1], x, y, z, 0, teamID)
+--                 Spring.SpawnCEG("scav-spawnexplo",x,y,z,0,0,0)
+--                 table.remove(teamSpawnQueue[teamID], 1)
+--             end
+--             local rawPos = GetClosestEnemyPoint(spawnedUnit)
+--             if rawPos then
+--                 local posx = rawPos.x
+--                 local posz = rawPos.z
+--                 local posy = Spring.GetGroundHeight(posx, posz)
+--                 if posx then
+--                     Spring.GiveOrderToUnit(spawnedUnit, CMD.FIGHT,  {posx+math.random(-capturePointRadius,capturePointRadius), posy, posz+math.random(-capturePointRadius,capturePointRadius)}, {"alt", "ctrl"})
+--                 end
+--             end
+--         end
+--     end
+-- end
+
+-- local function respawnUnitsFromQueue(teamID)
+--     if teamRespawnQueue[teamID] then
+--         if teamRespawnQueue[teamID][1] then
+--             local pos = GetRandomAllyPoint(teamID, teamRespawnQueue[teamID][1])
+--             local spawnedUnit
+--             if pos and pos.x then
+--                 local x = pos.x+math.random(-50,50)
+--                 local z = pos.z+math.random(-50,50)
+--                 local y = Spring.GetGroundHeight(x,z)
+--                 spawnedUnit = Spring.CreateUnit(teamRespawnQueue[teamID][1], x, y, z, 0, teamID)
+--                 Spring.SpawnCEG("scav-spawnexplo",x,y,z,0,0,0)
+--                 table.remove(teamRespawnQueue[teamID], 1)
+--             else
+--                 local x = teamSpawnPositions[teamID].x + math.random(-64,64)
+--                 local z = teamSpawnPositions[teamID].z + math.random(-64,64)
+--                 local y = Spring.GetGroundHeight(x,z)
+--                 spawnedUnit = Spring.CreateUnit(teamRespawnQueue[teamID][1], x, y, z, 0, teamID)
+--                 Spring.SpawnCEG("scav-spawnexplo",x,y,z,0,0,0)
+--                 table.remove(teamRespawnQueue[teamID], 1)
+--             end
+--             local rawPos = GetClosestEnemyPoint(spawnedUnit)
+--             if rawPos then
+--                 local posx = rawPos.x
+--                 local posz = rawPos.z
+--                 local posy = Spring.GetGroundHeight(posx, posz)
+--                 if posx then
+--                     Spring.GiveOrderToUnit(spawnedUnit,CMD.MOVE_STATE,{0},0)
+--                     Spring.GiveOrderToUnit(spawnedUnit, CMD.FIGHT,  {posx+math.random(-capturePointRadius,capturePointRadius), posy, posz+math.random(-capturePointRadius,capturePointRadius)}, {"alt", "ctrl"})
+--                 end
+--             end
+--         end
+--     end
+-- end
+
+local function spawnUnitsFromQueue(teamID)
+    if teamSpawnQueue[teamID] then
+        if teamSpawnQueue[teamID][1] then
+            local spawnedUnit
+            local x = teamSpawnPositions[teamID].x + math.random(-64,64)
+            local z = teamSpawnPositions[teamID].z + math.random(-64,64)
+            local y = Spring.GetGroundHeight(x,z)
+            spawnedUnit = Spring.CreateUnit(teamSpawnQueue[teamID][1], x, y, z, 0, teamID)
+            Spring.GiveOrderToUnit(spawnedUnit,CMD.MOVE_STATE,{0},0)
+            Spring.SpawnCEG("scav-spawnexplo",x,y,z,0,0,0)
+            table.remove(teamSpawnQueue[teamID], 1)
         end
     end
 end
 
-local function respawnUnitsFromQueue()
-    local teams = spGetTeamList()
-    for i = 1,#teams do
-        local teamID = teams[i]
-        if teamRespawnQueue[teamID] then
-            if teamRespawnQueue[teamID][1] then
-                local x = teamSpawnPositions[teamID].x + math.random(-64,64)
-                local z = teamSpawnPositions[teamID].z + math.random(-64,64)
-                local y = Spring.GetGroundHeight(x,z)
-                Spring.CreateUnit(teamRespawnQueue[teamID][1], x, y, z, 0, teamID)
-                Spring.SpawnCEG("scav-spawnexplo",x,y,z,0,0,0)
-                table.remove(teamRespawnQueue[teamID], 1)
-            end
+local function respawnUnitsFromQueue(teamID)
+    if teamRespawnQueue[teamID] then
+        if teamRespawnQueue[teamID][1] then
+            local spawnedUnit
+            local x = teamSpawnPositions[teamID].x + math.random(-64,64)
+            local z = teamSpawnPositions[teamID].z + math.random(-64,64)
+            local y = Spring.GetGroundHeight(x,z)
+            spawnedUnit = Spring.CreateUnit(teamRespawnQueue[teamID][1], x, y, z, 0, teamID)
+            Spring.GiveOrderToUnit(spawnedUnit,CMD.MOVE_STATE,{0},0)
+            Spring.SpawnCEG("scav-spawnexplo",x,y,z,0,0,0)
+            table.remove(teamRespawnQueue[teamID], 1)
         end
     end
 end
@@ -558,7 +469,6 @@ local function addNewUnitsToQueue(starter)
 	--local seaRandom, seaUnit, seaUnitCount
     chooseNewUnits(starter)
     
-	local teams = Spring.GetTeamList()
     for i = 1,#teams do
         local teamID = teams[i]
         if ChessModeUnbalancedModoption then
@@ -609,7 +519,7 @@ local function addNewUnitsToQueue(starter)
 end
 
 local function respawnDeadUnit(unitName, unitTeam)
-    if teamSpawnQueue[unitTeam] then
+    if teamRespawnQueue[unitTeam] then
         if teamRespawnQueue[unitTeam][1] then
             teamRespawnQueue[unitTeam][#teamRespawnQueue[unitTeam]+1] = unitName
         else
@@ -619,6 +529,9 @@ local function respawnDeadUnit(unitName, unitTeam)
 end
 
 function gadget:GameFrame(n)
+    if n%30 == 0 then
+		controlPointsList = GetControlPoints()
+	end
     if n == 20 then
         introSetUp()
     end
@@ -628,14 +541,35 @@ function gadget:GameFrame(n)
     if n%900 == 1 then
         addInfiniteResources()
     end
-    if n > 25 and n%spawnTimer == 1 then
-        spawnUnitsFromQueue()
-    end
-    if n > 25 and n%1800 < 10 then
-        respawnUnitsFromQueue()
-    end
     if n > 25 and n%addUpFrequency == 1 then
         addNewUnitsToQueue(false)
+    end
+    for i = 1,#teams do
+        local teamID = teams[i]
+        if n == 30 then
+            for i = 1,100 do
+                spawnUnitsFromQueue(teamID)
+                respawnUnitsFromQueue(teamID)
+            end
+        end
+        
+        if teamSpawnQueue[teamID] and #teamSpawnQueue[teamID] > 0 then
+            if teamRespawnQueue[teamID] and #teamRespawnQueue[teamID] > 0 then
+                if n > 25 and n%math.ceil(spawnTimer/(#teamRespawnQueue[teamID]+#teamSpawnQueue[teamID])) == 1 then
+                    spawnUnitsFromQueue(teamID)
+                end
+            else
+                if n > 25 and n%spawnTimer == 1 then
+                    spawnUnitsFromQueue(teamID)
+                end
+            end
+        else
+            if teamRespawnQueue[teamID] and #teamRespawnQueue[teamID] > 0 then
+                if n > 25 and n%math.ceil(respawnTimer/(#teamRespawnQueue[teamID])) == 1 then
+                    respawnUnitsFromQueue(teamID)
+                end
+            end
+        end
     end
 end
 

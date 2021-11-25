@@ -19,7 +19,7 @@ local shaderConfig = {
 	MAXVERTICES = 64, -- The max number of vertices we can emit, make sure this is consistent with what you are trying to draw (tris 3, quads 4, corneredrect 8, circle 64
 	USE_CIRCLES = 1, -- set to nil if you dont want circles
 	USE_CORNERRECT = 1, -- set to nil if you dont want cornerrect
-
+	FULL_ROTATION = 0, -- the primitive is fully rotated in the units plane
 }
 
 ---- GL4 Backend Stuff----
@@ -60,6 +60,9 @@ out DataVS {
 	vec4 v_centerpos;
 	vec4 v_uvoffsets;
 	vec4 v_parameters;
+	#if (FULL_ROTATION == 1)
+		mat3 v_fullrotation;
+	#endif
 };
 
 layout(std140, binding=0) readonly buffer MatrixBuffer {
@@ -91,6 +94,7 @@ void main()
 	POST_ANIM
 	v_numvertices = numvertices;
 	if (vertexClipped(gl_Position, CLIPTOLERANCE)) v_numvertices = 0; // Make no primitives on stuff outside of screen
+	// TODO: take into account size of primitive before clipping
 
 	// this sets the num prims to 0 for units further from cam than iconDistance
 	if (length((cameraViewInv[3]).xyz - v_centerpos.xyz) >  iconDistance) v_numvertices = 0;
@@ -99,7 +103,9 @@ void main()
 
 	v_centerpos.y += HEIGHTOFFSET; // Add some height to ensure above groundness
 	v_centerpos.y += lengthwidthcornerheight.w; // Add per-instance height offset
-
+	#if (FULL_ROTATION == 1)
+		v_fullrotation = mat3(modelMatrix);
+	#endif
 	POST_VERTEX
 }
 ]]
@@ -125,6 +131,9 @@ in DataVS {
 	vec4 v_centerpos;
 	vec4 v_uvoffsets;
 	vec4 v_parameters;
+	#if (FULL_ROTATION == 1)
+		mat3 v_fullrotation;
+	#endif
 } dataIn[];
 
 out DataGS {
@@ -153,14 +162,18 @@ void offsetVertex4( float x, float y, float z, float u, float v){
 	POST_GEOMETRY
 	EmitVertex();
 }
-
+#line 22000
 void main(){
 	uint numVertices = dataIn[0].v_numvertices;
 	centerpos = dataIn[0].v_centerpos;
 	#if (BILLBOARD == 1 )
 		rotY = mat3(cameraViewInv[0].xyz,cameraViewInv[2].xyz, cameraViewInv[1].xyz); // swizzle cause we use xz
 	#else
-		rotY = rotation3dY(-1*dataIn[0].v_rotationY); // Create a rotation matrix around Y from the unit's rotation
+		#if (FULL_ROTATION == 1)
+			rotY = dataIn[0].v_fullrotation; // Use the units true rotation
+		#else
+			rotY = rotation3dY(-1*dataIn[0].v_rotationY); // Create a rotation matrix around Y from the unit's rotation
+		#endif
 	#endif
 
 	g_color = dataIn[0].v_color;

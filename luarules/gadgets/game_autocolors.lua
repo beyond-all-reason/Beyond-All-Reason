@@ -30,7 +30,7 @@ if gadgetHandler:IsSyncedCode() then
         "#FF00DB", -- Fuchsia
         "#0CC4E8", -- Turquoise
         "#FF6B00", -- Orange
-        "#00FF9E", -- Turquoise Green
+        "#86FFD1", -- Light Turquoise Green
         "#F6BB56", -- Light Brown
         "#68B900", -- Dark Lime
         "#6697FF", -- Very Light Blue
@@ -50,7 +50,7 @@ if gadgetHandler:IsSyncedCode() then
         "#FF68EA", -- Light Fuchsia
         "#08839B", -- Dark Turquoise
         "#FFC8AA", -- Very Light Orange
-        "#86FFD1", -- Light Turquoise Green
+        "#00FF9E", -- Turquoise Green
         "#DB8E0E", -- Brown
         "#9FFF25", -- Lime
     }
@@ -67,7 +67,7 @@ if gadgetHandler:IsSyncedCode() then
                 "#004DFF", -- Armada Blue
                 "#0CE818", -- Green
                 "#0CC4E8", -- Turquoise
-                "#00FF9E", -- Turquoise Green
+                "#86FFD1", -- Light Turquoise Green
                 "#68B900", -- Dark Lime
                 "#6697FF", -- Very Light Blue
                 "#8DF492", -- Light Green
@@ -77,7 +77,7 @@ if gadgetHandler:IsSyncedCode() then
                 "#3475FF", -- Light Blue
                 "#089B10", -- Dark Green
                 "#08839B", -- Dark Turquoise
-                "#86FFD1", -- Light Turquoise Green
+                "#00FF9E", -- Turquoise Green
                 "#9FFF25", -- Lime
             },
             { -- Second Team (Warm)
@@ -118,11 +118,11 @@ if gadgetHandler:IsSyncedCode() then
             },
             { -- Third Team (Green)
                 "#0CE818", -- Green
-                "#00FF9E", -- Turquoise Green
+                "#86FFD1", -- Light Turquoise Green
                 "#68B900", -- Dark Lime
-                "#089B10", -- Dark Green
                 "#8DF492", -- Light Green
-                "#C4FF79", -- Light Lime
+                "#00AA69", -- Dark Turquoise Green
+                "#089B10", -- Dark Green
             },
         },
 
@@ -145,11 +145,11 @@ if gadgetHandler:IsSyncedCode() then
             },
             { -- Third Team (Green)
                 "#0CE818", -- Green
-                "#00FF9E", -- Turquoise Green
+                "#86FFD1", -- Light Turquoise Green
                 "#68B900", -- Dark Lime
-                "#089B10", -- Dark Green
                 "#8DF492", -- Light Green
-                "#C4FF79", -- Light Lime
+                "#00AA69", -- Dark Turquoise Green
+                "#089B10", -- Dark Green
             },
             { -- Fourth Team (Yellow)
                 "#FFD70D", -- Yellow
@@ -178,10 +178,10 @@ if gadgetHandler:IsSyncedCode() then
             },
             { -- Third Team (Green)
                 "#0CE818", -- Green
-                "#00FF9E", -- Turquoise Green
+                "#86FFD1", -- Light Turquoise Green
                 "#68B900", -- Dark Lime
-                "#089B10", -- Dark Green
                 "#8DF492", -- Light Green
+                "#00AA69", -- Dark Turquoise Green
             },
             { -- Fourth Team (Yellow)
                 "#FFD70D", -- Yellow
@@ -214,9 +214,9 @@ if gadgetHandler:IsSyncedCode() then
             },
             { -- Third Team (Green)
                 "#0CE818", -- Green
-                "#00FF9E", -- Turquoise Green
+                "#86FFD1", -- Light Turquoise Green
                 "#68B900", -- Dark Lime
-                "#089B10", -- Dark Green
+                "#8DF492", -- Light Green
             },
             { -- Fourth Team (Yellow)
                 "#FFD70D", -- Yellow

@@ -1,18 +1,41 @@
 local labGrids = {
-	-- T1 bot is default
+	-- T1 bot
+	armlab = {
+		"armck", "armrectr", "armpw", "armflea",                -- T1 con, rez bot, peewee, flea
+		"armrock", "armham", "armwar", "",                     -- rocko, hammer, warrior
+		"", "", "armjeth",                                         -- aa bot
+	},
+
+	corlab = {
+		"corck", "cornecro", "corak", "",                      -- T1 con, rez bot, AK
+		"corstorm", "corthud", "", "",                        -- storm, thud
+		"", "", "corcrash",                                        -- aa bot
+	},
 	-- T2 bot
 	armalab = {
-		"armack", "armfark", "armspy", "armfast",              -- T2 con, fark, spy, zipper
+		"armack", "armfark", "armfast", "armspy",             -- T2 con, fark, zipper, spy
 		"armmark", "armaser", "armzeus", "armmav",             -- radar bot, jammer bot, zeus, maverick
 		"armfido", "armsnipe", "armaak", "armfboy",            -- fido, sniper, AA bot, fatboi
 	},
 
 	coralab = {
-		"corack", "corfast", "corspy", "corpyro",              -- T2 con, freaker, spy, pyro
+		"corack", "corfast", "corpyro", "corspy",               -- T2 con, freaker, pyro, spy
 		"corvoyr", "corspec", "corcan", "corhrk",              -- radar bot, jammer bot, can, dominator
-		"cormort", "corsktl", "coraak", "corsumo",             -- morty, skuttle, AA bot, sumo
+		"cormort", "corroach", "coraak", "corsumo",             -- morty, skuttle, AA bot, sumo
 	},
-	-- T1 vehicle is default
+	-- T1 vehicle
+	armvp = {
+		"armcv", "armmlv", "armflash", "armfav",        -- T1 con, minelayer, flash, scout
+		"armstump", "armjanus", "armart", "",          -- stumpy, janus, arty
+		"armbeaver", "armpincer", "armsam", "",        -- amphib con, amphib tank, missile truck
+	},
+
+	corvp = {
+		"corcv", "cormlv", "corgator", "corfav",       -- T1 con, minelayer, gator, scout
+		"corraid", "corlevlr", "corwolv", "",         -- raider, leveler, art
+		"cormuskrat", "corgarp", "cormist", "",       -- amphib con, amphib tank, missile truck
+	},
+
 	-- T2 vehicle
 	armavp = {
 		"armacv", "armconsul", "armbull", "armmart",           -- T2 con, consul, bulldog, luger
@@ -38,13 +61,14 @@ local labGrids = {
 	-- T2 air
 	armaap = {
 		"armaca", "armhawk", "armbrawl", "armpnix",           -- T2 con, fig, gunship, bomber
-		"armawac", "armdfly", "armlance", "armliche",         -- radar, transport, torpedo, liche
-		"armblade", "armstil",                                -- blade, stiletto
+		"armawac", "armdfly", "armlance", "",                -- radar, transport, torpedo,
+		"armliche", "armblade", "armstil",                    -- liche, blade, stiletto
 	},
 
 	coraap = {
 		"coraca", "corvamp", "corape", "corhurc",              -- T2 con, fig, gunship, bomber
-		"corawac", "corseah", "cortitan", "corcrw",            -- radar, transport, torpedo, krow
+		"corawac", "corseah", "cortitan", "",                 -- radar, transport, torpedo,
+		"corcrw",                                              -- krow
 	},
 	-- seaplanes
 	armplat = {
@@ -58,13 +82,15 @@ local labGrids = {
 	},
 	-- T1 boats
 	armsy = {
-		"armcs", "armrecl", "armdecade", "armpt",            -- T1 sea con, rez sub, decade, PT boat
-		"armpship", "armroy", "armsub", "armtship",          -- frigate, destroyer, sub, transport
+		"armcs", "armrecl", "armdecade", "",              -- T1 sea con, rez sub, decade
+		"armpship", "armroy", "", "",                    -- frigate, destroyer, transport ("armtship",)
+		"armsub", "", "armpt",                            -- sub, PT boat
 	},
 
 	corsy = {
-		"corcs", "correcl", "coresupp", "corpt",              -- T1 sea con, rez sub, supporter, missile boat
-		"corpship", "corroy", "corsub", "cortship",           -- frigate, destroyer, sub, transport
+		"corcs", "correcl", "coresupp", "",               -- T1 sea con, rez sub, supporter, missile boat
+		"corpship", "corroy", "", "",                    -- frigate, destroyer, transport ("cortship",)
+		"corsub", "", "corpt",                            -- sub, missile boat
 	},
 	-- T2 boats
 	armasy = {
@@ -77,7 +103,42 @@ local labGrids = {
 		"coracsub", "cormls", "corcrus", "cormmship",              -- T2 con sub, naval engineer, cruiser, rocket ship
 		"corcarry", "corsjam", "corbats", "corblackhy",            -- carrier, jammer, battleship, flagship
 		"corshark", "corssub", "corarch",                          -- sub killer, battlesub, AA
-	}
+	},
+	-- amphibious labs
+	armamsub = {
+		"armbeaver", "armdecom", "armpincer", "",
+		"armcroc", "", "", "",
+		"", "armjeth", "armaak",
+	},
+
+	coramsub = {
+		"cormuskrat", "cordecom", "corgarp", "",
+		"corseal", "corparrow", "", "",
+		"", "corcrash", "coraak",
+	},
+	-- hover labs
+	armhp = {
+		"armch", "", "armsh", "",
+		"armanac", "armmh", "", "",
+		"", "", "armah",
+	},
+
+	corhp = {
+		"corch", "", "corsh", "",
+		"corsnap", "cormh", "corhal", "",
+		"", "", "corah",
+	},
+	armfhp = {
+		"armch", "", "armsh", "",
+		"armanac", "armmh", "", "",
+		"", "", "armah",
+	},
+
+	corfhp = {
+		"corch", "", "corsh", "",
+		"corsnap", "cormh", "corhal", "",
+		"", "", "corah",
+	},
 }
 local unitGrids = {
 	-- Commanders

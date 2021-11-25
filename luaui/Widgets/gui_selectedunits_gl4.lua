@@ -40,19 +40,21 @@ local selUnits = {}
 local updateSelection = true
 local selectedUnits = Spring.GetSelectedUnits()
 
-local unitRadius = {}
 local unitTeam = {}
 local unitUnitDefID = {}
 
+local unitScale = {}
 local unitCanFly = {}
 local unitBuilding = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
+	unitScale[unitDefID] = (7.5 * ( unitDef.xsize^2 + unitDef.zsize^2 ) ^ 0.5) + 8
 	if unitDef.canFly then
 		unitCanFly[unitDefID] = true
+		unitScale[unitDefID] = unitScale[unitDefID] * 0.7
 	elseif unitDef.isBuilding or unitDef.isFactory or unitDef.speed==0 then
 		unitBuilding[unitDefID] = {
-			unitDef.xsize * 8.3 + 8,
-			unitDef.zsize * 8.3 + 8
+			unitDef.xsize * 8.2 + 12,
+			unitDef.zsize * 8.2 + 12
 		}
 	end
 end
@@ -69,30 +71,26 @@ local function AddPrimitiveAtUnit(unitID)
 	local numVertices = 64 -- default to cornered rectangle
 	local cornersize = 0
 
-	if not unitRadius[unitDefID] then
-		unitRadius[unitDefID] = Spring.GetUnitRadius(unitID) * 2.6 or 64
-	end
-	local radius = unitRadius[unitDefID]
+	local radius = unitScale[unitDefID]
 
 	if not unitTeam[unitID] then
 		unitTeam[unitID] = Spring.GetUnitTeam(unitID)
 	end
-	local teamID = unitTeam[unitID]
 
 	local additionalheight = 0
 	local width, length
 	if unitCanFly[unitDefID] then
 		numVertices = 3 -- triangles for planes
-		width = radius * 0.7
-		length = radius  * 0.7
+		width = radius
+		length = radius
 	elseif unitBuilding[unitDefID] then
 		width = unitBuilding[unitDefID][1]
 		length = unitBuilding[unitDefID][2]
 		cornersize = (width + length) * 0.075
 		numVertices = 2
 	else
-		width = radius * 0.94
-		length = radius  * 0.94
+		width = radius
+		length = radius
 	end
 
 	--Spring.Echo(unitID,radius,radius, Spring.GetUnitTeam(unitID), numvertices, 1, gf)
@@ -100,7 +98,7 @@ local function AddPrimitiveAtUnit(unitID)
 		selectionVBO, -- push into this Instance VBO Table
 		{
 			length, width, cornersize, additionalheight,  -- lengthwidthcornerheight
-			teamID, -- teamID
+			unitTeam[unitID], -- teamID
 			numVertices, -- how many trianges should we make
 			gf, 0, 0, 0, -- the gameFrame (for animations), and any other parameters one might want to add
 			0, 1, 0, 1, -- These are our default UV atlas tranformations
@@ -207,12 +205,12 @@ local function init()
 	local shaderConfig = DPatUnit.shaderConfig -- MAKE SURE YOU READ THE SHADERCONFIG TABLE!
 	shaderConfig.BILLBOARD = 0
 	shaderConfig.TRANSPARENCY = opacity
-	shaderConfig.INITIALSIZE = 0.66
+	shaderConfig.INITIALSIZE = 0.75
 	shaderConfig.GROWTHRATE = 3.5
 	shaderConfig.TEAMCOLORIZATION = teamcolorOpacity	-- not implemented, doing it via POST_SHADING below instead
 	shaderConfig.HEIGHTOFFSET = 4
 	shaderConfig.POST_SHADING = "fragColor.rgba = vec4(mix(g_color.rgb * texcolor.rgb + addRadius, vec3(1.0), "..(1-teamcolorOpacity)..") , texcolor.a * TRANSPARENCY + addRadius);"
-	selectionVBO, selectShader = InitDrawPrimitiveAtUnit(shaderConfig, "TESTDPAU")
+	selectionVBO, selectShader = InitDrawPrimitiveAtUnit(shaderConfig, "selectedUnits")
 	updateSelection = true
 	selUnits = {}
 end

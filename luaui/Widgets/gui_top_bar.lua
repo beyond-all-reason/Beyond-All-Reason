@@ -299,7 +299,7 @@ local function updateRejoin()
 		RectRound(barArea[1] - addedSize, barArea[2] - addedSize, barArea[3] + addedSize, barArea[4] + addedSize, barHeight * 0.33, 1, 1, 1, 1, { 0.15, 0.15, 0.15, 0.2 }, { 0.8, 0.8, 0.8, 0.16 })
 
 		gl.Texture(noiseBackgroundTexture)
-		gl.Color(1,1,1, 0.18)
+		gl.Color(1,1,1, 0.16)
 		TexturedRectRound(barArea[1] - addedSize - edgeWidth, barArea[2] - addedSize - edgeWidth, barArea[3] + addedSize + edgeWidth, barArea[4] + addedSize + edgeWidth, barHeight * 0.33, barWidth*0.6, 0)
 		gl.Texture(false)
 
@@ -320,7 +320,7 @@ local function updateRejoin()
 		gl.Texture(false)
 
 		gl.Texture(noiseBackgroundTexture)
-		gl.Color(1,1,1, 0.25)
+		gl.Color(1,1,1, 0.2)
 		TexturedRectRound(barArea[1], barArea[2], barArea[1] + valueWidth, barArea[4], barHeight * 0.2, barWidth*0.6, 0)
 		gl.Texture(false)
 
@@ -763,19 +763,19 @@ local function updateResbarText(res)
 					local color1, color2
 					if res == 'metal' then
 						if allyteamOverflowingMetal then
-							color1 = { 0.35, 0.1, 0.1, 0.8 }
-							color2 = { 0.25, 0.05, 0.05, 0.8 }
+							color1 = { 0.35, 0.1, 0.1, 1 }
+							color2 = { 0.25, 0.05, 0.05, 1 }
 						else
-							color1 = { 0.35, 0.35, 0.35, 0.55 }
-							color2 = { 0.25, 0.25, 0.25, 0.55 }
+							color1 = { 0.35, 0.35, 0.35, 1 }
+							color2 = { 0.25, 0.25, 0.25, 1 }
 						end
 					else
 						if allyteamOverflowingEnergy then
-							color1 = { 0.35, 0.1, 0.1, 0.8 }
-							color2 = { 0.25, 0.05, 0.05, 0.8 }
+							color1 = { 0.35, 0.1, 0.1, 1 }
+							color2 = { 0.25, 0.05, 0.05, 1 }
 						else
-							color1 = { 0.35, 0.25, 0, 0.8 }
-							color2 = { 0.25, 0.16, 0, 0.8 }
+							color1 = { 0.35, 0.25, 0, 1 }
+							color2 = { 0.25, 0.16, 0, 1 }
 						end
 					end
 					RectRound(resbarArea[res][3] - textWidth, resbarArea[res][4] - 15.5 * widgetScale, resbarArea[res][3], resbarArea[res][4], 3.7 * widgetScale, 0, 0, 1, 1, color1, color2)
@@ -893,7 +893,7 @@ local function updateResbar(res)
 		RectRound(barArea[1] - edgeWidth + borderSize, barArea[2] - edgeWidth + borderSize, barArea[3] + edgeWidth - borderSize, barArea[4] + edgeWidth - borderSize, barHeight * 0.2, 1, 1, 1, 1, { 0,0,0, 0.12 }, { 0,0,0, 0.15 })
 
 		gl.Texture(noiseBackgroundTexture)
-		gl.Color(1,1,1, 0.22)
+		gl.Color(1,1,1, 0.16)
 		TexturedRectRound(barArea[1] - edgeWidth, barArea[2] - edgeWidth, barArea[3] + edgeWidth, barArea[4] + edgeWidth, barHeight * 0.33, 1, 1, 1, 1, barWidth*0.33, 0)
 		gl.Texture(false)
 
@@ -1032,18 +1032,10 @@ local function drawResbarValues(res, updateText)
 			if res == 'metal' then
 				-- noise
 				gl.Texture(noiseBackgroundTexture)
-				gl.Color(1,1,1, 0.45)
+				gl.Color(1,1,1, 0.37)
 				TexturedRectRound(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[2], resbarDrawinfo[res].barTexRect[1] + valueWidth, resbarDrawinfo[res].barTexRect[4], barHeight * 0.2, 1, 1, 1, 1, barWidth*0.33, 0)
 				gl.Texture(false)
 			end
-			--if res == 'energy' then
-			--	-- icon glow
-			--	glColor(1, 1, 0, 0.05)
-			--	local iconPadding = (resbarArea[res][4] - resbarArea[res][2])
-			--	glTexture(glowTexture)
-			--	glTexRect(resbarArea[res][1] + iconPadding, resbarArea[res][2] + iconPadding, resbarArea[res][1] + (height * widgetScale) - iconPadding, resbarArea[res][4] - iconPadding)
-			--	glTexture(false)
-			--end
 		end)
 	end
 	glCallList(dlistResValuesBar[res][valueWidth])
@@ -1437,7 +1429,7 @@ function widget:DrawScreen()
 		Spring.SetMouseCursor('cursornormal')
 	end
 
-	local updateText = os.clock() - updateTextClock > 0.08
+	local updateText = os.clock() - updateTextClock > 0.1
 	if updateText then
 		updateTextClock = os.clock()
 	end
@@ -2090,6 +2082,9 @@ function widget:GameProgress(n)
 	serverFrame = n
 end
 
+function widget:LanguageChanged()
+	updateButtons();
+end
 
 function widget:Initialize()
 	gameFrame = Spring.GetGameFrame()

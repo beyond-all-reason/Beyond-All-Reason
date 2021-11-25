@@ -28,7 +28,7 @@ local function addDirToAtlas(atlas, path)
 	for i=1, #files do
 		if imgExts[string.sub(files[i],-3,-1)] then
 			gl.AddAtlasTexture(atlas,files[i])
-			atlassedImages[files[i]] = true 
+			atlassedImages[files[i]] = true
 		end
 	end
 end
@@ -39,7 +39,6 @@ local function makeAtlas()
 	gl.FinalizeTextureAtlas(atlasID)
 end
 
----- GL4 Backend Stuff----
 local groundPlateVBO = nil
 local groundPlateShader = nil
 local luaShaderDir = "LuaUI/Widgets/Include/"
@@ -50,31 +49,36 @@ local glDepthTest = gl.DepthTest
 local GL_BACK = GL.BACK
 local GL_LEQUAL = GL.LEQUAL
 
+local spValidUnitID = Spring.ValidUnitID
+
+local spec, fullview = Spring.GetSpectatingState()
+
 local function AddPrimitiveAtUnit(unitID, unitDefID, noUpload)
+	if Spring.ValidUnitID(unitID) ~= true then
+		Spring.Echo("Warning: Ground AO Plates GL4 attempted to add an invalid unitID:", unitID)
+	end
 	local gf = Spring.GetGameFrame()
 	unitDefID = unitDefID or Spring.GetUnitDefID(unitID)
 
 	if unitDefID == nil or unitDefIDtoDecalInfo[unitDefID] == nil then return end -- these cant have plates
 	local decalInfo = unitDefIDtoDecalInfo[unitDefID]
-	
+
 	local texname = "unittextures/decals/".. UnitDefs[unitDefID].name .. "_aoplane.dds" --unittextures/decals/armllt_aoplane.dds
-	local width = decalInfo.sizex * 16
-	local length = decalInfo.sizey * 16
+
 	local numVertices = 4 -- default to circle
 	local additionalheight = 0
-  local alpha = 1.0
-	
+
 	local p,q,s,t = gl.GetAtlasTexture(atlasID, decalInfo.texfile)
-	--Spring.Echo (unitDefName, p,q,s,t)
-	
+	--Spring.Echo (unitDefID,decalInfo.texfile, width, length, alpha)
+
 	pushElementInstance(
 		groundPlateVBO, -- push into this Instance VBO Table
-			{length, width, 0, additionalheight,  -- lengthwidthcornerheight
+			{decalInfo.sizey, decalInfo.sizex, 0, additionalheight,  -- lengthwidthcornerheight
 			Spring.GetUnitTeam(unitID), -- teamID
 			numVertices, -- how many trianges should we make
-			gf, 0, alpha, 0, -- the gameFrame (for animations), and any other parameters one might want to add
+			gf, 0, decalInfo.alpha, 0, -- the gameFrame (for animations), and any other parameters one might want to add
 			q,p,s,t, -- These are our default UV atlas tranformations, note how X axis is flipped for atlas
-			0, 0, 0, 0}, -- these are just padding zeros, that will get filled in 
+			0, 0, 0, 0}, -- these are just padding zeros, that will get filled in
 		unitID, -- this is the key inside the VBO Table, should be unique per unit
 		true, -- update existing element
 		noUpload, -- noupload, dont use unless you know what you want to batch push/pop
@@ -93,20 +97,24 @@ local function ProcessAllUnits()
 	uploadAllElements(groundPlateVBO)
 end
 
+function widget:Update(dt)
+	spec, fullview = Spring.GetSpectatingState()
+end
+
 function widget:DrawWorldPreUnit()
 	if doRefresh then
 		ProcessAllUnits()
 		doRefresh = false
 	end
-	if groundPlateVBO.usedElements > 0 then 
+	if groundPlateVBO.usedElements > 0 then
 		local disticon = 27 * Spring.GetConfigInt("UnitIconDist", 200) -- iconLength = unitIconDist * unitIconDist * 750.0f;
 		--Spring.Echo(groundPlateVBO.usedElements)
 		glCulling(GL_BACK)
 		glDepthTest(GL_LEQUAL)
 		glTexture(0, atlasID)
 		groundPlateShader:Activate()
-		groundPlateShader:SetUniform("iconDistance",disticon) 
-		groundPlateShader:SetUniform("addRadius",0) 
+		groundPlateShader:SetUniform("iconDistance",disticon)
+		groundPlateShader:SetUniform("addRadius",0)
 		groundPlateVBO.VAO:DrawArrays(GL.POINTS,groundPlateVBO.usedElements)
 		groundPlateShader:Deactivate()
 		glTexture(0, false)
@@ -134,11 +142,15 @@ function widget:RenderUnitDestroyed(unitID)
 end
 
 function widget:UnitEnteredLos(unitID)
-	AddPrimitiveAtUnit(unitID)
+	if spValidUnitID(unitID) then
+		AddPrimitiveAtUnit(unitID)
+	end
 end
 
 function widget:UnitLeftLos(unitID)
-	RemovePrimitive(unitID)
+	if not fullview then
+		RemovePrimitive(unitID)
+	end
 end
 
 function widget:Initialize()
@@ -149,11 +161,14 @@ function widget:Initialize()
 			--local UD.name
 			local texname = "unittextures/" .. UD.customParams.buildinggrounddecaltype
 			---Spring.Echo(texname)
-			if atlassedImages[texname] then 
+			if atlassedImages[texname] then
 				unitDefIDtoDecalInfo[id] = {
-					texfile = texname, 
-					sizex  = UD.customParams.buildinggrounddecalsizex, 
-					sizey  = UD.customParams.buildinggrounddecalsizey}
+						texfile = texname,
+						-- note that this is hacky, as customparams are always strings, but multiplying number with stringnumber is number
+						sizex  = (UD.customParams.buildinggrounddecalsizex or 0.0 ) * 16,
+						sizey  = (UD.customParams.buildinggrounddecalsizey or 0.0 ) * 16,
+						alpha  = (UD.customParams.buildinggrounddecalalpha or 1.0 ) * 1.0,
+					}
 			end
 		end
 	end
@@ -166,16 +181,16 @@ function widget:Initialize()
 	shaderConfig.ANIMATION = 0
   -- MATCH CUS position as seed to sin, then pass it through geoshader into fragshader
   shaderConfig.POST_VERTEX = "v_parameters.w = max(-0.2, sin(timeInfo.x * 2.0/30.0 + (v_centerpos.x + v_centerpos.z) * 0.1)) + 0.2; // match CUS glow rate"
-	shaderConfig.POST_GEOMETRY = "g_uv.w = dataIn[0].v_parameters.w; gl_Position.z = (gl_Position.z) - 256.0 / (gl_Position.w); // send 16 elmos forward in depth buffer"
+	shaderConfig.POST_GEOMETRY = "g_uv.w = dataIn[0].v_parameters.w; gl_Position.z = (gl_Position.z) - 512.0 / (gl_Position.w); // send 16 elmos forward in depth buffer"
   shaderConfig.POST_SHADING = "fragColor.rgba = vec4(texcolor.rgb* (1.0 + g_uv.w), texcolor.a * g_uv.z);"
 	shaderConfig.MAXVERTICES = 4
 	shaderConfig.USE_CIRCLES = nil
 	shaderConfig.USE_CORNERRECT = nil
-	
-	
+
+
 	groundPlateVBO, groundPlateShader = InitDrawPrimitiveAtUnit(shaderConfig, "Ground AO Plates")
 
-	ProcessAllUnits() 
+	ProcessAllUnits()
 end
 
 local spec, fullview = Spring.GetSpectatingState()
@@ -193,7 +208,7 @@ end
 
 
 function widget:ShutDown()
-	if atlasID ~= nil then 
+	if atlasID ~= nil then
 		gl.DeleteTextureAtlas(atlasID)
 	end
 end

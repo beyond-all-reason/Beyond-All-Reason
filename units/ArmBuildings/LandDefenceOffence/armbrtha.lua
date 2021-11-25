@@ -144,7 +144,7 @@ return {
 				noselfdamage = true,
 				range = 4650,
 				reloadtime = 13.2,
-				soundhit = "xplonuk1xs",
+				soundhit = "lrpcexplo",
 				soundhitwet = "splshbig",
 				soundstart = "lrpcshot3",
 				soundstartvolume = 50,

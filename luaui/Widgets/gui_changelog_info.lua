@@ -26,7 +26,6 @@ local buttonclick = 'LuaUI/Sounds/buildbar_waypoint.wav'
 
 local startLine = 1
 
-local customScale = 1
 local centerPosX = 0.5
 local centerPosY = 0.5
 local screenX = math.floor((vsx * centerPosX) - (screenWidth / 2))
@@ -37,8 +36,8 @@ local glCreateList = gl.CreateList
 local glCallList = gl.CallList
 local glDeleteList = gl.DeleteList
 
-local widgetScale = 1
 local vsx, vsy = Spring.GetViewGeometry()
+local widgetScale = (vsy / 1080)
 
 local versions = {}
 local changelogLines = {}
@@ -61,8 +60,7 @@ local font, loadedFontSize, font2, changelogList, titleRect, chobbyInterface, ba
 
 function widget:ViewResize()
 	vsx, vsy = Spring.GetViewGeometry()
-	widgetScale = ((vsx + vsy) / 2000) * 0.65 * customScale
-	widgetScale = widgetScale * (1 - (0.11 * ((vsx / vsy) - 1.78)))        -- make smaller for ultrawide screens
+	widgetScale = (vsy / 1080)
 
 	screenHeight = math.floor(screenHeightOrg * widgetScale)
 	screenWidth = math.floor(screenWidthOrg * widgetScale)
@@ -140,9 +138,9 @@ function DrawTextarea(x, y, width, height, scrollbar)
 	local scrollbarBackgroundColor = { 0, 0, 0, 0.24 }
 	local scrollbarBarColor = { 1, 1, 1, 0.15 }
 
-	local fontSizeTitle = 18 * widgetScale
-	local fontSizeDate = 14 * widgetScale
-	local fontSizeLine = 16 * widgetScale
+	local fontSizeTitle = 17 * widgetScale
+	local fontSizeDate = 13 * widgetScale
+	local fontSizeLine = 15 * widgetScale
 	local lineSeparator = 2 * widgetScale
 
 	local fontColorTitle = { 1, 1, 1, 1 }

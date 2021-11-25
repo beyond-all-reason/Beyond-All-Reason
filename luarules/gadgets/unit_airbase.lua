@@ -512,7 +512,7 @@ if gadgetHandler:IsSyncedCode() then
 							Spring.MoveCtrl.Enable(unitID)
 						elseif px then
 							-- fly towards pad (the pad may move!)
-							Spring.SetUnitLandGoal(unitID, px, py, pz, spGetUnitRadius(unitID))	-- sometimes this gives an error
+							Spring.SetUnitLandGoal(unitID, px, py, pz, spGetUnitRadius(unitID))	-- sometimes this gives an error: "not a flying unit"
 						end
 					end
 				end
@@ -611,10 +611,9 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 
-	--------------------------------------------------------------------------------
-	-- Unsynced
-else
-	--------------------------------------------------------------------------------
+
+else	-- Unsynced
+
 
 	local landAtAirBaseCmdColor = { 0.50, 1.00, 1.00, 0.8 } -- same colour as repair
 
@@ -673,6 +672,5 @@ else
 		end
 		return false
 	end
-
 
 end

@@ -12,43 +12,26 @@ function widget:GetInfo()
 	}
 end
 
-local floor                 = math.floor
-local abs					= math.abs
-
 local spGetSelectedUnits	= Spring.GetSelectedUnits
 local spGetUnitDefID        = Spring.GetUnitDefID
-local spEcho                = Spring.Echo
-local spGetUnitPosition     = Spring.GetUnitPosition
 local spGetUnitBasePosition = Spring.GetUnitBasePosition
-local spGetMyPlayerID       = Spring.GetMyPlayerID
 local spGetPlayerInfo       = Spring.GetPlayerInfo
 local spGetLocalTeamID		= Spring.GetLocalTeamID
-local spGetUnitDefDimensions = Spring.GetUnitDefDimensions
 local spSelectUnitMap		= Spring.SelectUnitMap
 local spGetTeamColor 		= Spring.GetTeamColor
-local spGetGroundHeight 	= Spring.GetGroundHeight
 local spIsSphereInView  	= Spring.IsSphereInView
 local spGetSpectatingState	= Spring.GetSpectatingState
 local spGetGameSeconds		= Spring.GetGameSeconds
 local spIsGUIHidden			= Spring.IsGUIHidden
 local glColor               = gl.Color
 local glDepthTest           = gl.DepthTest
-local glUnitShape			= gl.UnitShape
 local glPopMatrix           = gl.PopMatrix
 local glPushMatrix          = gl.PushMatrix
 local glTranslate           = gl.Translate
-local glText                = gl.Text
-local glTexture             = gl.Texture
-local glTexRect             = gl.TexRect
-local glBillboard           = gl.Billboard
 local glLineWidth 			= gl.LineWidth
-local glBeginEnd			= gl.BeginEnd
 local glScale				= gl.Scale
-local glVertex              = gl.Vertex
 local glCallList   			= gl.CallList
 local glDrawListAtUnit      = gl.DrawListAtUnit
-
-local GL_LINE_LOOP			= GL.LINE_LOOP
 
 local spec = false
 local playerIsSpec = {}
@@ -77,15 +60,6 @@ local playerColorPool = {
 	{1.0, 0.0, 0.0},
 }
 
-local xRelPos, yRelPos		= 0.835, 0.88 -- (only used here for now)
-local vsx, vsy				= gl.GetViewSizes()
-local xPos, yPos            = xRelPos*vsx, yRelPos*vsy
-
-local panelWidth = 200
-local panelHeight = 55
-
-local sizeMultiplier = 1
-
 local nextPlayerPoolId = 1
 local myTeamID = Spring.GetMyTeamID()
 local myPlayerID = Spring.GetMyPlayerID()
@@ -105,7 +79,22 @@ for i = 1, #teams do
 end
 teams = nil
 
-local guiList, font, chobbyInterface
+local unitScale = {}
+local unitCanFly = {}
+local unitBuilding = {}
+for unitDefID, unitDef in pairs(UnitDefs) do
+	unitScale[unitDefID] = (7.5 * ( unitDef.xsize^2 + unitDef.zsize^2 ) ^ 0.5) + 8
+	if unitDef.canFly then
+		unitCanFly[unitDefID] = true
+		unitScale[unitDefID] = unitScale[unitDefID] * 0.7
+	elseif unitDef.isBuilding or unitDef.isFactory or unitDef.speed==0 then
+		unitBuilding[unitDefID] = {
+			unitDef.xsize * 8.2 + 12,
+			unitDef.zsize * 8.2 + 12
+		}
+	end
+end
+
 
 local unitConf = {}
 for udid, unitDef in pairs(UnitDefs) do
@@ -379,8 +368,6 @@ function widget:Update(dt)
 end
 
 function widget:Initialize()
-	widget:ViewResize()
-
 	circleLinesCoop = calcCircleLines(circleDivsCoop)
 	circleLinesAlly = calcCircleLines(circleDivsAlly)
 
@@ -413,32 +400,11 @@ function widget:Shutdown()
 	widgetHandler:DeregisterGlobal('selectedUnitsRemove')
 	widgetHandler:DeregisterGlobal('selectedUnitsClear')
 	widgetHandler:DeregisterGlobal('selectedUnitsAdd')
-	if guiList ~= nil then
-		gl.DeleteList(guiList)
-	end
 	if circleLinesCoop ~= nil then
 		gl.DeleteList(circleLinesCoop)
 	end
 	if circleLinesAlly ~= nil then
 		gl.DeleteList(circleLinesAlly)
-	end
-	if WG['guishader'] then
-		WG['guishader'].RemoveRect('allyselectedunits')
-	end
-end
-
-function widget:ViewResize()
-	vsx,vsy = Spring.GetViewGeometry()
-
-	font = WG['fonts'].getFont(nil, 1, 0.2, 1.3)
-
-	xPos, yPos = xRelPos*vsx, yRelPos*vsy
-	sizeMultiplier = 0.55 + (vsx*vsy / 8000000)
-end
-
-function widget:RecvLuaMsg(msg, playerID)
-	if msg:sub(1,18) == 'LobbyOverlayActive' then
-		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
 	end
 end
 
@@ -526,7 +492,6 @@ local function DrawSelectedUnits()
 end
 
 function widget:DrawWorldPreUnit()
-	if chobbyInterface then return end
 	if spIsGUIHidden() then return end
 	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)      -- disable layer blending
 	DrawSelectedUnits()
@@ -537,7 +502,6 @@ function widget:GetConfigData()
     return {
 		maxAlpha = maxAlpha,
         selectPlayerUnits = selectPlayerUnits,
-        xRelPos = xRelPos, yRelPos = yRelPos,
         version = 1.1
     }
 end
@@ -546,9 +510,5 @@ function widget:SetConfigData(data)
     if data.version ~= nil and data.version == 1.1 then
         maxAlpha = data.maxAlpha or maxAlpha
         selectPlayerUnits = data.selectPlayerUnits or selectPlayerUnits
-        xRelPos = data.xRelPos or xRelPos
-        yRelPos = data.yRelPos or yRelPos
-        xPos = xRelPos * vsx
-        yPos = yRelPos * vsy
     end
 end

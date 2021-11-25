@@ -63,6 +63,7 @@ local resources = {
 			smoke_puff        = 'projectiletextures/smoke_puff.png',
 			smoke_puff2       = 'projectiletextures/smoke_puff2.png',
 			smoke_puff_red    = 'atmos/smoke_puff_red.png',
+			dirtrush          = 'atmos/dirtdebrisexplo.tga',
 			explowater        = 'projectiletextures/explowater.tga',
 			waterrush         = 'projectiletextures/waterrush.tga',
 			waterfoam         = 'atmos/waterfoam.tga',

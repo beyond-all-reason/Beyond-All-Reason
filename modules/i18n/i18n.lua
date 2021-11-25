@@ -8,6 +8,8 @@ Spring.I18N.loadFile('language/features_en.lua')
 Spring.I18N.loadFile('language/tips_en.lua')
 Spring.I18N.loadFile('language/scavengers_en.lua')
 
+Spring.I18N.loadFile('language/test_french.lua')
+
 Spring.I18N.languages = {
 	en = "English",
 	fr = "Français",

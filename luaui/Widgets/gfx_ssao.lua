@@ -1,3 +1,14 @@
+
+local isPotatoGpu = false
+local gpuMem = (Platform.gpuMemorySize and Platform.gpuMemorySize or 1000) / 1000
+if Platform ~= nil and Platform.gpuVendor == 'Intel' then
+	isPotatoGpu = true
+end
+if gpuMem and gpuMem > 0 and gpuMem < 1800 then
+	isPotatoGpu = true
+end
+
+
 local wiName = "SSAO"
 function widget:GetInfo()
     return {
@@ -8,7 +19,7 @@ function widget:GetInfo()
         date      = "2019",
         license   = "GPL",
         layer     = math.huge,
-        enabled   = false,
+        enabled   = not isPotatoGpu,
     }
 end
 
@@ -37,7 +48,7 @@ local SSAO_KERNEL_SIZE = 48 -- how many samples are used for SSAO spatial sampli
 local SSAO_RADIUS = 5 -- world space maximum sampling radius
 local SSAO_MIN = 1.0 -- minimum depth difference between fragment and sample depths to trigger SSAO sample occlusion. Absolute value in world space coords.
 local SSAO_MAX = 1.0 -- maximum depth difference between fragment and sample depths to trigger SSAO sample occlusion. Percentage of SSAO_RADIUS.
-local SSAO_ALPHA_POW = 9.0 -- consider this as SSAO effect strength
+local SSAO_ALPHA_POW = 8.0 -- consider this as SSAO effect strength
 
 local BLUR_HALF_KERNEL_SIZE = 4 -- (BLUR_HALF_KERNEL_SIZE + BLUR_HALF_KERNEL_SIZE + 1) samples are used to perform the blur
 local BLUR_PASSES = 3 -- number of blur passes
@@ -50,6 +61,9 @@ local DEBUG_SSAO = false -- use for debug
 
 local math_sqrt = math.sqrt
 
+local cusMult = 1.4
+local strengthMult = 1
+
 local initialTonemapA = Spring.GetConfigFloat("tonemapA", 4.75)
 local initialTonemapD = Spring.GetConfigFloat("tonemapD", 0.85)
 local initialTonemapE = Spring.GetConfigFloat("tonemapE", 1.0)
@@ -57,21 +71,21 @@ local initialTonemapE = Spring.GetConfigFloat("tonemapE", 1.0)
 local preset = 1
 local presets = {
 	{
-		SSAO_KERNEL_SIZE = 24,
-		DOWNSAMPLE = 3,
+		SSAO_KERNEL_SIZE = 32,
+		DOWNSAMPLE = 2,
 		BLUR_HALF_KERNEL_SIZE = 4,
 		BLUR_PASSES = 2,
-		BLUR_SIGMA = 2,
+		BLUR_SIGMA = 4,
 		tonemapA = 0.45,
 		tonemapD = -0.25,
 		tonemapE = -0.03,
 	},
 	{
-		SSAO_KERNEL_SIZE = 56,
+		SSAO_KERNEL_SIZE = 48,
 		DOWNSAMPLE = 1,
-		BLUR_HALF_KERNEL_SIZE = 8,
+		BLUR_HALF_KERNEL_SIZE = 6,
 		BLUR_PASSES = 3,
-		BLUR_SIGMA = 6.5,
+		BLUR_SIGMA = 6,
 		tonemapA = 0.4,
 		tonemapD = -0.25,
 		tonemapE = -0.025,
@@ -231,9 +245,9 @@ function widget:Initialize()
 
 	-- make unit lighting brighter to compensate for darkening (also restoring values on Shutdown())
 	if presets[preset].tonemapA then
-		Spring.SetConfigFloat("tonemapA", initialTonemapA + (presets[preset].tonemapA * (SSAO_ALPHA_POW/10)))
-		Spring.SetConfigFloat("tonemapD", initialTonemapD + (presets[preset].tonemapD * (SSAO_ALPHA_POW/10)))
-		Spring.SetConfigFloat("tonemapE", initialTonemapE + (presets[preset].tonemapE * (SSAO_ALPHA_POW/10)))
+		Spring.SetConfigFloat("tonemapA", initialTonemapA + (presets[preset].tonemapA * ((SSAO_ALPHA_POW * strengthMult)/10)))
+		Spring.SetConfigFloat("tonemapD", initialTonemapD + (presets[preset].tonemapD * ((SSAO_ALPHA_POW * strengthMult)/10)))
+		Spring.SetConfigFloat("tonemapE", initialTonemapE + (presets[preset].tonemapE * ((SSAO_ALPHA_POW * strengthMult)/10)))
 		Spring.SendCommands("luarules updatesun")
 	end
 
@@ -350,7 +364,7 @@ function widget:Initialize()
 	ssaoShaderFrag = ssaoShaderFrag:gsub("###SSAO_MIN###", tostring(SSAO_MIN))
 	ssaoShaderFrag = ssaoShaderFrag:gsub("###SSAO_MAX###", tostring(SSAO_MAX))
 
-	ssaoShaderFrag = ssaoShaderFrag:gsub("###SSAO_ALPHA_POW###", tostring(SSAO_ALPHA_POW))
+	ssaoShaderFrag = ssaoShaderFrag:gsub("###SSAO_ALPHA_POW###", tostring(SSAO_ALPHA_POW * strengthMult))
 	ssaoShaderFrag = ssaoShaderFrag:gsub("###USE_MATERIAL_INDICES###", tostring((MERGE_MISC and 1) or 0))
 
 	ssaoShader = LuaShader({
@@ -401,6 +415,23 @@ function widget:Initialize()
 	end)
 
 	widget:SunChanged()
+end
+
+local sec = 0
+function widget:Update(dt)
+	sec = sec + dt
+	if sec > 1 then
+		sec = 0
+		if Spring.GetConfigInt("cus", 1) == 1 then
+			if WG.disabledCus then
+				strengthMult = 1
+			else
+				strengthMult = cusMult
+			end
+		else
+			strengthMult = 1
+		end
+	end
 end
 
 function widget:SunChanged()
@@ -615,10 +646,10 @@ function widget:SetConfigData(data)
 	if data.radius ~= nil then
 		SSAO_RADIUS = data.radius
 	end
-	if data.preset ~= nil then
-		preset = data.preset
-		if preset > 1 then
-			preset = 2
-		end
-	end
+	--if data.preset ~= nil then
+	--	preset = data.preset
+	--	if preset > 1 then
+	--		preset = 2
+	--	end
+	--end
 end

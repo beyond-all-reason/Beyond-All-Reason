@@ -163,7 +163,7 @@ abilities.tacticalNuke = function(currentFrame)
 		if nearestEnemy then
 			--Spring.Echo("[Scavengers] Boss Is TacNuking")
 			local bossx,bossy,bossz = Spring.GetUnitPosition(FinalBossUnitID)
-			local NearestUnits = Spring.GetUnitsInSphere(bossx, bossy, bossz, 750)
+			local NearestUnits = Spring.GetUnitsInSphere(bossx, bossy, bossz, 1500)
 			if #NearestUnits > 5 then
 				for i = 1,BossFightCurrentPhase do
 					for t = 1,10 do
@@ -187,7 +187,7 @@ abilities.EMP = function(currentFrame)
 		if nearestEnemy then
 			--Spring.Echo("[Scavengers] Boss Is TacNuking")
 			local bossx,bossy,bossz = Spring.GetUnitPosition(FinalBossUnitID)
-			local NearestUnits = Spring.GetUnitsInSphere(bossx, bossy, bossz, 750)
+			local NearestUnits = Spring.GetUnitsInSphere(bossx, bossy, bossz, 1000)
 			if #NearestUnits > 5 then
 				for i = 1,BossFightCurrentPhase do
 					for t = 1,10 do

@@ -158,7 +158,6 @@ local labKeys = {
 local stickToBottom = false
 local alwaysShow = false
 
-local makeFancy = true		-- when using transparant icons this adds highlights so it shows the squared shape of button
 local showPrice = false		-- false will still show hover
 local showRadarIcon = true		-- false will still show hover
 local showGroupIcon = true		-- false will still show hover
@@ -181,6 +180,8 @@ local cellPadding, iconPadding, cornerSize, cellInnerSize, cellSize
 local showWaterUnits = false
 
 local selectedBuilder, selectedFactory
+
+local facingMap = {south=0, east=1, north=2, west=3}
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
@@ -810,6 +811,10 @@ function buildFacingHandler(_, _, args)
 		Spring.SetBuildFacing(facing)
 
 		return true
+	elseif args and facingMap[args[1]] then
+		Spring.SetBuildFacing(facingMap[args[1]])
+
+		return true
 	end
 end
 
@@ -855,13 +860,6 @@ function widget:Initialize()
 	end
 	WG['buildmenu'].getOrder = function()
 		return unitOrder
-	end
-	WG['buildmenu'].getMakeFancy = function()
-		return makeFancy
-	end
-	WG['buildmenu'].setMakeFancy = function(value)
-		makeFancy = value
-		doUpdate = true
 	end
 	WG['buildmenu'].getShowPrice = function()
 		return showPrice
@@ -2472,7 +2470,6 @@ function widget:GetConfigData()
 		showPrice = showPrice,
 		showRadarIcon = showRadarIcon,
 		showGroupIcon = showGroupIcon,
-		makeFancy = makeFancy,
 		showTooltip = showTooltip,
 		buildQueue = buildQueue,
 		stickToBottom = stickToBottom,
@@ -2490,9 +2487,6 @@ function widget:SetConfigData(data)
 	end
 	if data.showGroupIcon ~= nil then
 		showGroupIcon = data.showGroupIcon
-	end
-	if data.makeFancy ~= nil then
-		makeFancy = data.makeFancy
 	end
 	if data.showTooltip ~= nil then
 		showTooltip = data.showTooltip
