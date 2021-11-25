@@ -13,7 +13,7 @@ end
 
 local idleTime = 60
 local vsyncValueActive = Spring.GetConfigInt("VSync",1)
-if vsyncValueActive > 0 and WG['options'] and WG['options'].getOptionValue then
+if vsyncValueActive > 0 and WG['options'] and WG['options'].getOptionValue and WG['options'].getOptionValue('vsync_level') then
 	vsyncValueActive = WG['options'].getOptionValue('vsync_level')
 end
 local vsyncValueIdle = 4    -- sometimes vsync > 4 doesnt work at all
@@ -80,7 +80,7 @@ function widget:Update(dt)
 	sec = sec + dt
 	if sec > 2 then
 		sec = 0
-		if WG['options'] and WG['options'].getOptionValue then
+		if WG['options'] and WG['options'].getOptionValue and WG['options'].getOptionValue('vsync_level') then
 			if WG['options'].getOptionValue('vsync') then
 				vsyncValueActive = WG['options'].getOptionValue('vsync_level')
 			else

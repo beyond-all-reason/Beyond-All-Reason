@@ -42,7 +42,7 @@ return {
 			buildinggrounddecaldecayspeed = 30,
 			unitgroup = 'weapon',
 			canareaattack = 1,
-			model_author = "Cremuss",
+			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			--removewait = true,
 			subfolder = "armbuildings/landdefenceoffence",

@@ -1803,30 +1803,30 @@ function init()
 			  Spring.SetConfigInt("VSyncGame", vsync)    -- stored here as assurance cause lobby/game also changes vsync when idle and lobby could think game has set vsync 4 after a hard crash
 		  end,
 		},
-		{ id = "vsync_spec", group = "gfx", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.vsync_spec, type = "bool", value = vsyncOnlyForSpec, description = texts.option.vsync_spec_descr,
-		  onchange = function(i, value)
-			  vsyncOnlyForSpec = value
-			  if isSpec and vsyncEnabled then
-				  Spring.SetConfigInt("VSync", (vsyncOnlyForSpec and vsyncLevel or 0))
-				  Spring.SetConfigInt("VSyncGame", (vsyncOnlyForSpec and vsyncLevel or 0))    -- stored here as assurance cause lobby/game also changes vsync when idle and lobby could think game has set vsync 4 after a hard crash
-			  end
-			  if vsyncEnabled then
-				  local id = getOptionByID('vsync')
-				  options[id].onchange(id, options[id].value)
-			  end
-		  end,
-		},
-		{ id = "vsync_level", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.vsync_level, type = "slider", min = 1, max = 3, step = 1, value = vsyncLevel, description = texts.option.vsync_level_descr,
-		  onchange = function(i, value)
-			  vsyncLevel = value
-			  local vsync = 0
-			  if vsyncEnabled and (not vsyncOnlyForSpec or isSpec) then
-				  vsync = vsyncLevel
-			  end
-			  Spring.SetConfigInt("VSync", vsync)
-			  Spring.SetConfigInt("VSyncGame", vsync)    -- stored here as assurance cause lobby/game also changes vsync when idle and lobby could think game has set vsync 4 after a hard crash
-		  end,
-		},
+		--{ id = "vsync_spec", group = "gfx", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.vsync_spec, type = "bool", value = vsyncOnlyForSpec, description = texts.option.vsync_spec_descr,
+		--  onchange = function(i, value)
+		--	  vsyncOnlyForSpec = value
+		--	  if isSpec and vsyncEnabled then
+		--		  Spring.SetConfigInt("VSync", (vsyncOnlyForSpec and vsyncLevel or 0))
+		--		  Spring.SetConfigInt("VSyncGame", (vsyncOnlyForSpec and vsyncLevel or 0))    -- stored here as assurance cause lobby/game also changes vsync when idle and lobby could think game has set vsync 4 after a hard crash
+		--	  end
+		--	  if vsyncEnabled then
+		--		  local id = getOptionByID('vsync')
+		--		  options[id].onchange(id, options[id].value)
+		--	  end
+		--  end,
+		--},
+		--{ id = "vsync_level", group = "gfx", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.vsync_level, type = "slider", min = 1, max = 3, step = 1, value = vsyncLevel, description = texts.option.vsync_level_descr,
+		--  onchange = function(i, value)
+		--	  vsyncLevel = value
+		--	  local vsync = 0
+		--	  if vsyncEnabled and (not vsyncOnlyForSpec or isSpec) then
+		--		  vsync = vsyncLevel
+		--	  end
+		--	  Spring.SetConfigInt("VSync", vsync)
+		--	  Spring.SetConfigInt("VSyncGame", vsync)    -- stored here as assurance cause lobby/game also changes vsync when idle and lobby could think game has set vsync 4 after a hard crash
+		--  end,
+		--},
 		{ id = "limitidlefps", group = "gfx", category = types.advanced, widget = "Limit idle FPS", name = texts.option.limitidlefps, type = "bool", value = GetWidgetToggleValue("Limit idle FPS"), description = texts.option.limitidlefps_descr },
 
 		{ id = "msaa", group = "gfx", category = types.basic, name = texts.option.msaa, type = "select", options = { 'off', 'x1', 'x2', 'x4', 'x8'}, restart = true, value = tonumber(Spring.GetConfigInt("MSAALevel", 1) or 2), description = texts.option.msaa_descr,
@@ -2556,7 +2556,7 @@ function init()
 		--  end,
 		--},
 
-		{ id = "ordermenu_colorize", group = "ui", category = types.basic, name = texts.option.ordermenu .. widgetOptionColor .. "  " .. texts.option.ordermenu_colorize, type = "slider", min = 0, max = 1, step = 0.1, value = 0, description = '',
+		{ id = "ordermenu_colorize", group = "ui", category = types.advanced, name = texts.option.ordermenu .. widgetOptionColor .. "  " .. texts.option.ordermenu_colorize, type = "slider", min = 0, max = 1, step = 0.1, value = 0, description = '',
 		  onload = function(i)
 			  loadWidgetData("Order menu", "ordermenu_colorize", { 'colorize' })
 		  end,
@@ -2578,7 +2578,7 @@ function init()
 			  saveOptionValue('Order menu', 'ordermenu', 'setAlwaysShow', { 'alwaysShow' }, value)
 		  end,
 		},
-		{ id = "ordermenu_hideset", group = "ui", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.ordermenu_hideset, type = "bool", value = (WG['ordermenu'] ~= nil and WG['ordermenu'].getDisabledCmd ~= nil and WG['ordermenu'].getDisabledCmd('Move')), description = texts.option.ordermenu_hideset_descr,
+		{ id = "ordermenu_hideset", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.ordermenu_hideset, type = "bool", value = (WG['ordermenu'] ~= nil and WG['ordermenu'].getDisabledCmd ~= nil and WG['ordermenu'].getDisabledCmd('Move')), description = texts.option.ordermenu_hideset_descr,
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
@@ -5358,7 +5358,7 @@ end
 function widget:GetConfigData(data)
 	return {
 		vsyncLevel = vsyncLevel,
-		vsyncOnlyForSpec = vsyncOnlyForSpec,
+		--vsyncOnlyForSpec = vsyncOnlyForSpec,
 		vsyncEnabled = vsyncEnabled,
 		firsttimesetupDone = firstlaunchsetupDone,
 		resettedTonemapDefault = resettedTonemapDefault,
