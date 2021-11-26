@@ -101,12 +101,14 @@ Create()
 
 Activate()
 {
+	show thrustm;
 	start-script RequestState(0);
 	return (0);
 }
 
 Deactivate()
 {
+	hide thrustm;
 	start-script RequestState(1);
 	return (0);
 }
