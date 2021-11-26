@@ -1,3 +1,9 @@
+-------------------------------------------------
+-- An API wrapper to draw simple graphical primitives at units extremely efficiently
+-- License: Lua code  GPL V2, GLSL shader code: (c) Beherith (mysterme@gmail.com)
+-------------------------------------------------
+
+
 local DrawPrimitiveAtUnit = {}
 
 local shaderConfig = {
@@ -47,6 +53,27 @@ layout (location = 5) in uvec4 instData;
 
 //__ENGINEUNIFORMBUFFERDEFS__
 //__DEFINES__
+
+struct SUniformsBuffer {
+    uint composite; //     u8 drawFlag; u8 unused1; u16 id;
+    
+    uint unused2;
+    uint unused3;
+    uint unused4;
+
+    float maxHealth;
+    float health;
+    float unused5;
+    float unused6;
+    
+    vec4 speed;    
+    vec4[5] userDefined; //can't use float[20] because float in arrays occupies 4 * float space
+};
+
+layout(std140, binding=1) readonly buffer UniformsBuffer {
+    SUniformsBuffer uni[];
+}; 
+
 #line 10000
 
 uniform float addRadius;
@@ -106,6 +133,7 @@ void main()
 	#if (FULL_ROTATION == 1)
 		v_fullrotation = mat3(modelMatrix);
 	#endif
+	if ((uni[instData.y].composite & 0x00000001u) == 0u ) v_numvertices = 0u; // this checks the drawFlag of wether the unit is actually being drawn (this is ==1 when then unit is both visible and drawn as a full model (not icon)) 
 	POST_VERTEX
 }
 ]]
