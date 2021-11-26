@@ -50,7 +50,7 @@ return {
 			firingceg = "",
 			flare1name = "flare",
 			kickback = "0",
-			model_author = "Mr Bob, PtaQ",
+			model_author = "Flaka",
 			normaltex = "unittextures/cor_normal.dds",
 			restoretime = "3000",
 			rockstrength = "0",
