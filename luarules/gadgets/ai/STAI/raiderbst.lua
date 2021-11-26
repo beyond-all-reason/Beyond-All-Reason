@@ -13,13 +13,14 @@ local IDLEMODE_LAND = 1
 local IDLEMODE_FLY = 0
 
 function RaiderBST:Init()
-	self.DebugEnabled = false
+	self.DebugEnabled = true
 
 	self:EchoDebug("init")
-	local mtype, network = self.ai.maphst:MobilityOfUnit(self.unit:Internal())
+	local mtype, network = self.ai.maphst:MobilityOfUnit(self.unit:Internal())--WARNING check this callin have troubles
 	self.mtype = mtype
 	self.name = self.unit:Internal():Name()
 	self.id = self.unit:Internal():ID()
+	self.originalPosition = self.unit:Internal():GetPosition()
 	local utable = self.ai.armyhst.unitTable[self.name]
 	if self.mtype == "sub" then
 		self.range = utable.submergedRange
@@ -52,23 +53,38 @@ function RaiderBST:Init()
 	self.lastMovementFrame = 0
 	self.lastPathCheckFrame = 0
 
-	self.ai.raidhst.RAIDERS[self.id] = {}
-	self.squad = self.name .. network
-	self.ai.raidhst.RAIDERS[self.id].squad = self.squad
+	local net = self.ai.maphst:MobilityNetworkHere(self.mtype, self.originalPosition)
+	if not net then
+		self:Warn('no network ', self.mtype,self.name,net, self.originalPosition.x,self.originalPosition.z)
+	else
 
-	table.insert(self.ai.raidhst.SQUADS[self.squad])
+		local squadName = self.name .. net
+
+		if not self.ai.raidhst.SQUADS[squadName] then
+			self.ai.raidhst:draftSquad(squadName)
+		end
+		self:EchoDebug('squadName',squadName,self.ai.raidhst.SQUADS[squadName])
+		self.squad = self.ai.raidhst.SQUADS[squadName]
+
+		if self.squad.mode < 100 then
+			self.ai.raidhst.SQUADS[squadName].members[self.id] = 0
+-- 			self.ai.raidhst:getSquadPos(squadName)
+		end
+	end
 end
 
 function RaiderBST:OwnerDead()
-	-- game:SendToConsole("raider " .. self.name .. " died")
+	self:EchoDebug("raider " .. self.name .. " died")
 
 	if self.target then
 		self.ai.targethst:AddBadPosition(self.target, self.mtype)
 	end
 	--self.ai.raidhst:NeedLess(self.mtype)
 	self.ai.raiderCount[self.mtype] = self.ai.raiderCount[self.mtype] - 1
-	self.ai.raidhst.RAIDERS[self.id] = nil
-	self.ai.raidhst:removeRaiderFromSquad(self.id,self.squad)
+
+	table.remove(self.squad.members,self.id)
+
+
 end
 
 function RaiderBST:OwnerIdle()
@@ -99,18 +115,29 @@ end
 
 function RaiderBST:Update()
 	local f = self.game:Frame()
-	if  f % 83 ~= 0 then
+	if  f % 83 ~= 0  then
 		return
 	end
 	self.unit:Internal():EraseHighlight({1,0,0,1}, nil, 8)
 	self.unit:Internal():DrawHighlight( {1,0,0,1}, nil, 8 )
-	if self.active then
+
+
+	if self.active  then --TODO add it later if possible
 		if self.path  then
 			self:EchoDebug('update have path')
 			self.lastPathCheckFrame = f
 			self:CheckPath()
 		end
-		if self.moveNextUpdate then
+		if self.squad.mode < 1000 then
+
+			--self.ai.raidhst:runSquad(self.squad.name)
+			self.unit:Internal():Move(self.squad.POS)
+			self:EchoDebug('converge')
+
+
+
+
+		elseif self.moveNextUpdate then
 			self:EchoDebug('update move')
 			self.unit:Internal():Move(self.moveNextUpdate)
 	-- 			self.unit:Internal():AttackMove(self.moveNextUpdate)--need to check
@@ -132,7 +159,7 @@ function RaiderBST:Update()
 				if attackThisUnit:IsAlive() then
 					self.unit:Internal():AttackMove(attackThisUnit:GetPosition())--need to check
 				else
-					Spring.Echo('warning no pos for',attackThisUnit:ID())
+					Spring.Echo('warning this unit is dead pos for',attackThisUnit:ID())
 				end
 			elseif self.offPath then
 				self:EchoDebug('offpath')
@@ -147,9 +174,23 @@ function RaiderBST:Update()
 			end
 		end
 	else
-		if not self.target  then
-			self:EchoDebug('getanothertarget')
-			self:GetTarget()
+-- 		self:EchoDebug(self.squad.name)
+		if not self.squad then
+			self:EchoDebug('im not in a squad')
+			local squad = self.ai.raidhst:addToSquad(self.id)
+			if squad then
+
+				if self.squad.mode < 100 then--check if mode block and need reset PROBABIL
+					self.ai.raidhst.SQUADS[self.squad.name].members[self.id] = 0
+					self.squad = squad
+					--self.ai.raidhst:getSquadPos(self.squad.name)
+				end
+			end
+
+
+		elseif not self.squad.target  then
+			self:EchoDebug('no squad target',self.squad.name)
+			--self:GetTarget()
 		elseif not self.path and self.pathfinder then
 			self:EchoDebug('find another path')
 			self.lastPathCheckFrame = f
@@ -206,6 +247,7 @@ function RaiderBST:RaidCell(cell)
 		self.ai.raidhst:IDsWeAreRaiding(cell.buildingIDs, self.mtype)
 		self.buildingIDs = cell.buildingIDs
 		self.target = cell.pos
+		self.map:DrawCircle({x=self.target.x*256,y = 100,z=self.target.z*256},56, {1,0,0,1}, self.squad.name,true, 8)
 		self:BeginPath(self.target)
 		if self.mtype == "air" then
 			if self.disarmer and cell.disarmTarget then
@@ -214,7 +256,7 @@ function RaiderBST:RaidCell(cell)
 				self.unitTarget = cell.targets.air.ground.unit
 			end
 			if self.unitTarget then
-				self:EchoDebug("air raid target: " .. self.unitTarget:Name())
+				print("air raid target: " .. self.unitTarget:Name())
 			end
 		end
 		self.unit:ElectBehaviour()
@@ -237,12 +279,10 @@ function RaiderBST:GetTarget()
 	self.offPath = nil
 	self.arrived = nil
 	local unit = self.unit:Internal()
-	local bestCell = self.ai.targethst:GetBestRaidCell(unit)
-	self.ai.targethst:RaiderHere(self)
-	if bestCell then
-		self:EchoDebug("got target")
-		self:RaidCell(bestCell)
 
+	self.ai.targethst:RaiderHere(self)
+	if self.squad.target then
+		self:RaidCell(self.squad.target)
 	else
 		self.unit:ElectBehaviour()
 	end

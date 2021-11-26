@@ -615,9 +615,9 @@ function TaskQueueBST:GetQueue()
 	local team = self.game:GetTeamID()
 	local id = self.ai.armyhst.unitTable[self.name].defId
 	local counter = self.game:GetTeamUnitDefCount(team,id)
-	print('getqueue')
+
 	if self.isCommander then
-		print('getqueue commander')
+
 		if self:roleCounter('eco') > 0 then
 			self:removeOldBuildersRole(self.name,self.id)
 			table.insert(buildersRole.expand[self.name], self.id)
@@ -631,9 +631,6 @@ function TaskQueueBST:GetQueue()
 		end
 	end
 	if self.role then
-		print('getqueue2')
-		print (self.name .. self.role)
-		print('getqueue3')
 		return self.ai.taskshst.roles[self.role]
 	elseif #buildersRole.eco[self.name] < 1 then
 		table.insert(buildersRole.eco[self.name], self.id)

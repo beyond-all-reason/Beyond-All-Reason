@@ -1182,6 +1182,7 @@ end
 function MapHST:MobilityOfUnit(unit)
 	local position = unit:GetPosition()
 	local name = unit:Name()
+
 	local mtype = self.ai.armyhst.unitTable[name].mtype
 	if self.ai.activeMobTypes[mtype] == nil then self.ai.activeMobTypes[mtype] = true end
 	return mtype, self:MobilityNetworkHere(mtype, position)
