@@ -6,7 +6,7 @@
 piece  base, rdrbar, rdrdish, steer, turret, fwheel, bwheel, gun, flare;
 
 static-var  restore_delay, moveSpeed, wheelSpeed, Static_Var_1, gun_2, statechg_DesiredState, statechg_StateChanging,
-			oldHeading;
+			oldHeading,dishturn;
 
 // Signal definitions
 #define SIG_MOVE 			2
@@ -44,6 +44,7 @@ Create()
 {
 	hide flare;
 	Static_Var_1 = 0;
+	dishturn = 1;
 	oldheading = get HEADING;
 	statechg_DesiredState = TRUE;
 	statechg_StateChanging = FALSE;
@@ -52,22 +53,34 @@ Create()
 }
 
 
+
+
 StartMoving()
 {
-	start-script Steering();
+    dishturn = 0;
+    start-script Steering();
+}
+
+TurnTheDish()
+{
+    while (dishturn){
+        turn rdrdish to y-axis <-30> speed <30>;
+        wait-for-turn rdrdish around y-axis;
+        turn rdrdish to y-axis <30> speed <30>;
+        wait-for-turn rdrdish around y-axis;
+    }
+    turn rdrdish to y-axis <0> speed <30>;
 }
 
 StopMoving()
 {
-	signal SIG_MOVE;
-	stop-spin fwheel around x-axis;
-	stop-spin bwheel around x-axis;
-	turn rdrdish to y-axis <-30> speed <30>;
-	wait-for-turn rdrdish around y-axis;
-	turn rdrdish to y-axis <30> speed <30>;
-	wait-for-turn rdrdish around y-axis;
-	
+    signal SIG_MOVE;
+    stop-spin fwheel around x-axis;
+    stop-spin bwheel around x-axis;
+    dishturn = 1;
+    start-script TurnTheDish();
 }
+
 
 
 
