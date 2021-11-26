@@ -9,7 +9,7 @@ function widget:GetInfo()
 		desc = "Thruster effects on air jet exhausts (auto limits and disables when low fps)",
 		author = "GoogleFrog, jK, Floris, Beherith",
 		date = "2021.05.16",
-		license = "GNU GPL, v2 or later",
+		license = "Lua code is GNU GPL, v2 or later, GLSL shader code is (c) Beherith, mysterme@gmail.com",
 		layer = -1,
 		enabled = true,
 	}
@@ -102,9 +102,9 @@ local effectDefs = {
 	["corhunt"] = {
 		{ color = { 0.2, 0.8, 0.2 }, width = 4, length = 37, piece = "thrust", light = 1 },
 	},
-	["armsehak"] = {
-		{ color = { 0.2, 0.8, 0.2 }, width = 3.5, length = 37, piece = "thrust", light = 1 },
-	},
+	--["armsehak"] = {
+	--	{ color = { 0.2, 0.8, 0.2 }, width = 3.5, length = 37, piece = "thrust", light = 1 },
+	--},
 
 	-- transports
 	["armatlas"] = {
@@ -164,8 +164,8 @@ local effectDefs = {
 		{ color = { 0.1, 0.4, 0.6 }, width = 17, length = 44, piece = "thrustfla", emitVector = { 0, 1, 0 }, light = 0.6 },
 	},
 	["corcut"] = {
-		{ color = { 0.1, 0.4, 0.6 }, width = 3.7, length = 15, piece = "thrusta", light = 1 },
-		{ color = { 0.1, 0.4, 0.6 }, width = 3.7, length = 15, piece = "thrustb", light = 1 },
+		{ color = { 0.2, 0.8, 0.2 }, width = 3.7, length = 15, piece = "thrusta", light = 1 },
+		{ color = { 0.2, 0.8, 0.2 }, width = 3.7, length = 15, piece = "thrustb", light = 1 },
 	},
 	--["armbrawl"] = {
 	--	{ color = { 0.1, 0.4, 0.6 }, width = 3.7, length = 15, piece = "thrust1", light = 1 },
@@ -246,6 +246,11 @@ local effectDefs = {
 		{ color = { 0.2, 0.8, 0.2 }, width = 5, length = 17, piece = "thrusta" },
 		{ color = { 0.2, 0.8, 0.2 }, width = 5, length = 17, piece = "thrustb" },
 	},
+	["corcsa"] = {
+		{ color = { 0.2, 0.8, 0.2 }, width = 5, length = 17, piece = "thrust1" },
+		{ color = { 0.2, 0.8, 0.2 }, width = 5, length = 17, piece = "thrust2" },
+	},
+
 
 	-- flying ships
 	["armfepocht4"] = {
@@ -382,9 +387,6 @@ layout (location = 3) in vec3 color;
 layout (location = 4) in uint pieceIndex;
 layout (location = 5) in uvec4 instData; // unitID, teamID, ??
 
-#define JITTERWIDTHSCALE 3
-#define JITTERLENGTHSCALE 3
-#define ANIMATION_SPEED 0.1
 
 out DataVS {
 	vec4 texCoords;
@@ -455,8 +457,11 @@ void main()
 	mat4 modelMatrix = UnitPieces[baseIndex]; //Find our matrix
 
 	mat4 pieceMatrix = mat4mix(mat4(1.0), UnitPieces[baseIndex + pieceIndex + 1u], modelMatrix[3][3]);
+	
+	vec4 speedvector = uni[instData.y].speed;
 
-	vec2 modulatedsize = widthlengthtime.xy * 1.5;
+	vec2 modulatedsize = widthlengthtime.xy * 1.5; 
+	modulatedsize.y *= clamp(speedvector.y * 0.5 + 1.0 , 0.66, 2.0); // make the jet shorter/longer based on Y velocity
 	// modulatedsize += rndVec3.xy * modulatedsize * 0.25; // not very pretty
 	vec4 vertexPos = vec4(position_xy_uv.x * modulatedsize.x * 2.0, 0, position_xy_uv.y*modulatedsize.y * 0.66 ,1.0);
 
@@ -491,17 +496,17 @@ void main()
 
 	texCoords.st = position_xy_uv.zw;
 	texCoords.pq = position_xy_uv.zw;
-	texCoords.q += timeInfo.x * ANIMATION_SPEED;
+	texCoords.q += timeInfo.x * 0.1;
 
 	jetcolor.rgb = color;
 	jetcolor.a = clamp((timeInfo.x - widthlengthtime.z)*0.053, 0.0, 1.0);
-	/*
-	// VISIBILITY CULLING
-	if (length(worldCamPos.xyz - worldPos.xyz) >  iconDistance) jetcolor.a = 0; // disable if unit is further than icondist
-	if (dot(worldPos.xyz, worldPos.xyz) < 1.0) jetcolor.a = 0; // handle accidental zero matrix case
 	if ((uni[instData.y].composite & 0x00000001u) == 0u )  jetcolor = vec4(0.0); // disable if drawflag is set to 0
-	if (vertexClipped(VP * worldMat * vec4(0.0, 0.0, 0.0, 1.0), 1.2)) jetcolor.a = 0.0; // dont draw if way outside of view
-	//jetcolor.a = 0.2;
+	/*
+		// VISIBILITY CULLING
+		if (length(worldCamPos.xyz - worldPos.xyz) >  iconDistance) jetcolor.a = 0; // disable if unit is further than icondist
+		if (dot(worldPos.xyz, worldPos.xyz) < 1.0) jetcolor.a = 0; // handle accidental zero matrix case
+		if (vertexClipped(VP * worldMat * vec4(0.0, 0.0, 0.0, 1.0), 1.2)) jetcolor.a = 0.0; // dont draw if way outside of view
+		//jetcolor.a = 0.2;
 	*/
 }
 ]]
