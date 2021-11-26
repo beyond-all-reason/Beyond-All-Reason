@@ -394,7 +394,7 @@ out DataVS {
 };
 
 //__ENGINEUNIFORMBUFFERDEFS__
-
+/*
 struct SUniformsBuffer {
     uint composite; //     u8 drawFlag; u8 unused1; u16 id;
 
@@ -414,6 +414,7 @@ struct SUniformsBuffer {
 layout(std140, binding=1) readonly buffer UniformsBuffer {
     SUniformsBuffer uni[];
 };
+*/
 layout(std140, binding=0) readonly buffer MatrixBuffer {
 	mat4 UnitPieces[];
 };
@@ -458,10 +459,10 @@ void main()
 
 	mat4 pieceMatrix = mat4mix(mat4(1.0), UnitPieces[baseIndex + pieceIndex + 1u], modelMatrix[3][3]);
 	
-	vec4 speedvector = uni[instData.y].speed;
+	//vec4 speedvector = uni[instData.y].speed;
 
 	vec2 modulatedsize = widthlengthtime.xy * 1.5; 
-	modulatedsize.y *= clamp(speedvector.y * 0.5 + 1.0 , 0.66, 2.0); // make the jet shorter/longer based on Y velocity
+	//modulatedsize.y *= clamp(speedvector.y * 0.5 + 1.0 , 0.66, 2.0); // make the jet shorter/longer based on Y velocity
 	// modulatedsize += rndVec3.xy * modulatedsize * 0.25; // not very pretty
 	vec4 vertexPos = vec4(position_xy_uv.x * modulatedsize.x * 2.0, 0, position_xy_uv.y*modulatedsize.y * 0.66 ,1.0);
 
@@ -500,7 +501,7 @@ void main()
 
 	jetcolor.rgb = color;
 	jetcolor.a = clamp((timeInfo.x - widthlengthtime.z)*0.053, 0.0, 1.0);
-	if ((uni[instData.y].composite & 0x00000001u) == 0u )  jetcolor = vec4(0.0); // disable if drawflag is set to 0
+	//if ((uni[instData.y].composite & 0x00000001u) == 0u )  jetcolor = vec4(0.0); // disable if drawflag is set to 0
 	/*
 		// VISIBILITY CULLING
 		if (length(worldCamPos.xyz - worldPos.xyz) >  iconDistance) jetcolor.a = 0; // disable if unit is further than icondist
