@@ -1923,7 +1923,7 @@ function init()
 		--	  end
 		--  end,
 		--},
-		{ id = "ssao_strength", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.ssao_strength, type = "slider", min = 5, max = 11, step = 1, value = 8, description = '',
+		{ id = "ssao_strength", group = "gfx", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.ssao_strength, type = "slider", min = 5, max = 11, step = 1, value = 8, description = '',
 		  onchange = function(i, value)
 			  saveOptionValue('SSAO', 'ssao', 'setStrength', { 'strength' }, value)
 		  end,
@@ -2117,17 +2117,35 @@ function init()
 		},
 
 		{ id = "airjets", group = "gfx", category = types.advanced, widget = "Airjets GL4", name = texts.option.airjets, type = "bool", value = GetWidgetToggleValue("Airjets GL4"), description = texts.option.airjets_descr },
-		{ id = "jetenginefx_lights", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.jetenginefx_lights, type = "bool", value = true, description = texts.option.jetenginefx_lights_descr,
-		  onload = function(i)
-			  loadWidgetData("Light Effects", "lups_jetenginefx_lights", { 'enableThrusters' })
-		  end,
-		  onchange = function(i, value)
-			  saveOptionValue('Light Effects', 'lighteffects', 'setThrusters', { 'enableThrusters' }, value)
-		  end,
-		},
+		--{ id = "jetenginefx_lights", group = "gfx", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.jetenginefx_lights, type = "bool", value = true, description = texts.option.jetenginefx_lights_descr,
+		--  onload = function(i)
+		--	  loadWidgetData("Light Effects", "lups_jetenginefx_lights", { 'enableThrusters' })
+		--  end,
+		--  onchange = function(i, value)
+		--	  saveOptionValue('Light Effects', 'lighteffects', 'setThrusters', { 'enableThrusters' }, value)
+		--  end,
+		--},
 
 		{ id = "resurrectionhalos", group = "gfx", category = types.advanced, widget = "Resurrection Halos", name = texts.option.resurrectionhalos, type = "bool", value = GetWidgetToggleValue("Resurrection Halos"), description = texts.option.resurrectionhalos_descr },
 		{ id = "tombstones", group = "gfx", category = types.advanced, widget = "Tombstones", name = texts.option.tombstones, type = "bool", value = GetWidgetToggleValue("Tombstones"), description = texts.option.tombstones_descr },
+
+		{ id = "dof", group = "gfx", category = types.advanced, widget = "Depth of Field", name = texts.option.dof, type = "bool", value = GetWidgetToggleValue("Depth of Field"), description = texts.option.dof_descr },
+		{ id = "dof_autofocus", group = "gfx", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.dof_autofocus, type = "bool", value = true, description = texts.option.dof_autofocus_descr,
+		  onload = function(i)
+			  loadWidgetData("Depth of Field", "dof_autofocus", { 'autofocus' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('Depth of Field', 'dof', 'setAutofocus', { 'autofocus' }, value)
+		  end,
+		},
+		{ id = "dof_fstop", group = "gfx", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.dof_fstop, type = "slider", min = 1, max = 6, step = 0.1, value = 2, description = texts.option.dof_fstop_descr,
+		  onload = function(i)
+			  loadWidgetData("Depth of Field", "dof_fstop", { 'fStop' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('Depth of Field', 'dof', 'setFstop', { 'fStop' }, value)
+		  end,
+		},
 
 		-- SOUND
 		{ id = "snddevice", group = "sound", category = types.advanced, name = texts.option.snddevice, type = "select", restart = true, options = soundDevices, value = soundDevicesByName[Spring.GetConfigString("snd_device")], description = texts.option.snddevice_descr,
@@ -3381,14 +3399,6 @@ function init()
 		},
 
 		-- DEV
-		{ id = "language", group = "dev", category = types.dev, name = texts.option.language, type = "select", options = languageNames, value = languageCodesInverse[Spring.I18N.getLocale()],
-			onchange = function(i, value)
-				Spring.I18N.setLanguage(languageCodes[value])
-				if Script.LuaUI('LanguageChanged') then
-					Script.LuaUI.LanguageChanged()
-				end
-			end
-		},
 		{ id = "usePlayerUI", group = "dev", category = types.dev, name = "View UI as player", type = "bool", value = not Spring.Utilities.ShowDevUI(),
 			onchange = function(i, value)
 				Spring.SetConfigInt("DevUI", value and 0 or 1)
@@ -3401,8 +3411,6 @@ function init()
 			  Spring.SendCommands("luarules reloadluaui")
 		  end,
 		},
-		{ id = "profiler", group = "dev", category = types.dev, widget = "Widget Profiler", name = texts.option.profiler, type = "bool", value = GetWidgetToggleValue("Widget Profiler"), description = "" },
-		{ id = "framegrapher", group = "dev", category = types.dev, widget = "Frame Grapher", name = texts.option.framegrapher, type = "bool", value = GetWidgetToggleValue("Frame Grapher"), description = "" },
 
 		{ id = "autocheat", group = "dev", category = types.dev, widget = "Auto cheat", name = texts.option.autocheat, type = "bool", value = GetWidgetToggleValue("Auto cheat"), description = texts.option.autocheat_descr },
 		{ id = "restart", group = "dev", category = types.dev, name = texts.option.restart, type = "bool", value = false, description = texts.option.restart_descr,
@@ -3412,11 +3420,20 @@ function init()
 		  end,
 		},
 
+		{ id = "label_dev_debug", group = "dev", name = texts.option.label_debug, category = types.dev },
+		{ id = "label_dev_debug_spacer", group = "dev", category = types.dev },
+
+		{ id = "profiler", group = "dev", category = types.dev, widget = "Widget Profiler", name = texts.option.profiler, type = "bool", value = GetWidgetToggleValue("Widget Profiler"), description = "" },
+		{ id = "framegrapher", group = "dev", category = types.dev, widget = "Frame Grapher", name = texts.option.framegrapher, type = "bool", value = GetWidgetToggleValue("Frame Grapher"), description = "" },
+
 		{ id = "debugcolvol", group = "dev", category = types.dev, name = texts.option.debugcolvol, type = "bool", value = false, description = "",
 		  onchange = function(i, value)
 			  Spring.SendCommands("DebugColVol " .. (value and '1' or '0'))
 		  end,
 		},
+
+		{ id = "label_dev_other", group = "dev", name = texts.option.label_other, category = types.dev },
+		{ id = "label_dev_other_spacer", group = "dev", category = types.dev },
 
 		-- BAR doesnt support ZK style startboxes{ id = "startboxeditor", group = "dev", category = optionTypes.dev, widget = "Startbox Editor", name = texts.option.startboxeditor, type = "bool", value = GetWidgetToggleValue("Startbox Editor"), description = texts.option.startboxeditor_descr },
 
@@ -3454,24 +3471,14 @@ function init()
 		  end,
 		},
 
-		{ id = "dof", group = "dev", category = types.advanced, widget = "Depth of Field", name = texts.option.dof, type = "bool", value = GetWidgetToggleValue("Depth of Field"), description = texts.option.dof_descr },
-		{ id = "dof_autofocus", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.dof_autofocus, type = "bool", value = true, description = texts.option.dof_autofocus_descr,
-		  onload = function(i)
-			  loadWidgetData("Depth of Field", "dof_autofocus", { 'autofocus' })
-		  end,
+		{ id = "language", group = "dev", category = types.dev, name = texts.option.language, type = "select", options = languageNames, value = languageCodesInverse[Spring.I18N.getLocale()],
 		  onchange = function(i, value)
-			  saveOptionValue('Depth of Field', 'dof', 'setAutofocus', { 'autofocus' }, value)
-		  end,
+			  Spring.I18N.setLanguage(languageCodes[value])
+			  if Script.LuaUI('LanguageChanged') then
+				  Script.LuaUI.LanguageChanged()
+			  end
+		  end
 		},
-		{ id = "dof_fstop", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.dof_fstop, type = "slider", min = 1, max = 6, step = 0.1, value = 2, description = texts.option.dof_fstop_descr,
-		  onload = function(i)
-			  loadWidgetData("Depth of Field", "dof_fstop", { 'fStop' })
-		  end,
-		  onchange = function(i, value)
-			  saveOptionValue('Depth of Field', 'dof', 'setFstop', { 'fStop' }, value)
-		  end,
-		},
-
 		{ id = "font", group = "dev", category = types.dev, name = texts.option.font, type = "select", options = {}, value = 1, description = texts.option.font_descr,
 		  onload = function(i)
 		  end,
@@ -3492,6 +3499,9 @@ function init()
 			  end
 		  end,
 		},
+
+		{ id = "label_dev_unit", group = "dev", name = texts.option.label_unit, category = types.dev },
+		{ id = "label_dev_unit_spacer", group = "dev", category = types.dev },
 
 		{ id = "tonemapA", group = "dev", category = types.dev, name = texts.option.tonemap .. widgetOptionColor .. "  1", type = "slider", min = 0, max = 7, step = 0.01, value = Spring.GetConfigFloat("tonemapA", 4.8), description = "",
 		  onchange = function(i, value)
@@ -3581,6 +3591,10 @@ function init()
 			  options[getOptionByID('tonemapDefaults')].value = false
 		  end,
 		},
+
+		{ id = "label_dev_map", group = "dev", name = texts.option.label_map, category = types.dev },
+		{ id = "label_dev_map_spacer", group = "dev", category = types.dev },
+
 		{ id = "sun_y", group = "dev", category = types.dev, name = texts.option.sun .. widgetOptionColor .. "  " .. texts.option.sun_y, type = "slider", min = 0.05, max = 0.9999, step = 0.0001, value = select(2, gl.GetSun("pos")), description = '',
 		  onchange = function(i, value)
 			  local sunX, sunY, sunZ = gl.GetSun("pos")
@@ -4143,6 +4157,9 @@ function init()
 			  init()
 		  end,
 		},
+
+		{ id = "label_dev_water", group = "dev", name = texts.option.label_water, category = types.dev },
+		{ id = "label_dev_water_spacer", group = "dev", category = types.dev },
 
 		-- springsettings water params
 		{ id = "waterconfig_shorewaves", group = "dev", category = types.dev, name = "Bumpwater settings " .. widgetOptionColor .. "  shorewaves", type = "bool", value = Spring.GetConfigInt("BumpWaterShoreWaves", 1) == 1, description = "",

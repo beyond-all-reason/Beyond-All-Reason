@@ -245,9 +245,9 @@ function widget:Initialize()
 
 	-- make unit lighting brighter to compensate for darkening (also restoring values on Shutdown())
 	if presets[preset].tonemapA then
-		Spring.SetConfigFloat("tonemapA", initialTonemapA + (presets[preset].tonemapA * ((SSAO_ALPHA_POW * strengthMult)/10)))
-		Spring.SetConfigFloat("tonemapD", initialTonemapD + (presets[preset].tonemapD * ((SSAO_ALPHA_POW * strengthMult)/10)))
-		Spring.SetConfigFloat("tonemapE", initialTonemapE + (presets[preset].tonemapE * ((SSAO_ALPHA_POW * strengthMult)/10)))
+		Spring.SetConfigFloat("tonemapA", initialTonemapA + (presets[preset].tonemapA * ((SSAO_ALPHA_POW * strengthMult)/11)))
+		Spring.SetConfigFloat("tonemapD", initialTonemapD + (presets[preset].tonemapD * ((SSAO_ALPHA_POW * strengthMult)/11)))
+		Spring.SetConfigFloat("tonemapE", initialTonemapE + (presets[preset].tonemapE * ((SSAO_ALPHA_POW * strengthMult)/11)))
 		Spring.SendCommands("luarules updatesun")
 	end
 
