@@ -136,7 +136,6 @@ return {
 			label_debug = 'Debug',
 			label_other = 'Other',
 			preset = 'Load graphics preset',
-			preset_descr = 'Wont reapply the preset every time you restart a game.\n\nSave custom preset with /savepreset name\nRightclick to delete a custom preset',
 			resolution = 'Resolution',
 			resolution_descr = 'WARNING: sometimes freezes game engine in windowed mode',
 			fullscreen = 'Fullscreen',

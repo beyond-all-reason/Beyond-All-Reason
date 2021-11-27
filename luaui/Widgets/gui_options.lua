@@ -1199,25 +1199,6 @@ function mouseEvent(mx, my, button, release)
 			if titleRect ~= nil and math_isInRect(mx, my, titleRect[1], titleRect[2], titleRect[3], titleRect[4]) then
 				return
 			end
-			if showSelectOptions ~= nil and options[showSelectOptions].id == 'preset' then
-				for i, o in pairs(optionSelect) do
-					if math_isInRect(mx, my, o[1], o[2], o[3], o[4]) then
-						if presetNames[o[5]] and customPresets[presetNames[o[5]]] ~= nil then
-							deletePreset(presetNames[o[5]])
-							if playSounds then
-								Spring.PlaySoundFile(sounds.selectClick, 0.5, 'ui')
-							end
-							if selectClickAllowHide ~= nil or not math_isInRect(mx, my, optionButtons[showSelectOptions][1], optionButtons[showSelectOptions][2], optionButtons[showSelectOptions][3], optionButtons[showSelectOptions][4]) then
-								showSelectOptions = nil
-								selectClickAllowHide = nil
-							else
-								selectClickAllowHide = true
-							end
-							return
-						end
-					end
-				end
-			end
 		elseif button == 1 then
 			if release then
 				if titleRect ~= nil and math_isInRect(mx, my, titleRect[1], titleRect[2], titleRect[3], titleRect[4]) then
@@ -1712,7 +1693,7 @@ function init()
 	options = {
 		--GFX
 		-- PRESET
-		{ id = "preset", group = "gfx", category = types.basic, name = texts.option.preset, type = "select", options = presetNames, value = 0, description = texts.option.preset_descr,
+		{ id = "preset", group = "gfx", category = types.basic, name = texts.option.preset, type = "select", options = presetNames, value = 0,
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
@@ -4974,54 +4955,6 @@ function init()
 	windowList = gl.CreateList(DrawWindow)
 end
 
-function deletePreset(name)
-	Spring.Echo('deleted preset:  ' .. name)
-	customPresets[name] = nil
-	presets[name] = nil
-	local newPresetNames = {}
-	for _, presetName in ipairs(presetNames) do
-		if presetName ~= name then
-			table.insert(newPresetNames, presetName)
-		end
-	end
-	presetNames = newPresetNames
-	options[getOptionByID('preset')].options = presetNames
-	if windowList then
-		gl.DeleteList(windowList)
-	end
-	windowList = gl.CreateList(DrawWindow)
-end
-
-function savePreset(name)
-	if name == nil then
-		name = 'custom'
-		local i = 1
-		while customPresets[name] ~= nil do
-			i = i + 1
-			name = 'custom' .. i
-		end
-	end
-	if presets[name] ~= nil then
-		Spring.Echo("preset '" .. name .. "' already exists")
-	else
-		local preset = {}
-		for optionID, _ in pairs(presets['lowest']) do
-			if options[getOptionByID(optionID)] ~= nil then
-				preset[optionID] = options[getOptionByID(optionID)].value
-			end
-		end
-		customPresets[name] = preset
-		presets[name] = preset
-		table.insert(presetNames, name)
-		options[getOptionByID('preset')].options = presetNames
-		Spring.Echo('saved preset: ' .. name)
-		if windowList then
-			gl.DeleteList(windowList)
-		end
-		windowList = gl.CreateList(DrawWindow)
-	end
-end
-
 function checkResolution()
 	-- resize resolution if is larger than screen resolution
 	wsx, wsy, wpx, wpy = Spring.GetWindowGeometry()
@@ -5337,15 +5270,6 @@ function widget:TextCommand(command)
 					end
 				end
 			end
-		end
-	end
-
-	if string.find(command, "savepreset", nil, true) == 1 then
-		local words = string.split(command, ' ')
-		if words[2] then
-			savePreset(words[2])
-		else
-			savePreset()
 		end
 	end
 end
