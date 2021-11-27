@@ -2013,9 +2013,9 @@ function init()
 		  end,
 		},
 
-		{ id = "mapedgeextension", group = "gfx", category = types.basic, widget = "Map Edge Extension", name = texts.option.mapedgeextension, type = "bool", value = GetWidgetToggleValue("Map Edge Extension"), description = texts.option.mapedgeextension_descr },
+		{ id = "mapedgeextension", group = "gfx", category = types.advanced, widget = "Map Edge Extension", name = texts.option.mapedgeextension, type = "bool", value = GetWidgetToggleValue("Map Edge Extension"), description = texts.option.mapedgeextension_descr },
 
-		{ id = "mapedgeextension_brightness", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.mapedgeextension_brightness, min = 0.2, max = 1, step = 0.01, type = "slider", value = 0.3, description = '',
+		{ id = "mapedgeextension_brightness", group = "gfx", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.mapedgeextension_brightness, min = 0.2, max = 1, step = 0.01, type = "slider", value = 0.3, description = '',
 		  onload = function(i)
 			  loadWidgetData("Map Edge Extension", "mapedgeextension_brightness", { 'brightness' })
 		  end,
@@ -2023,7 +2023,7 @@ function init()
 			  saveOptionValue('Map Edge Extension', 'mapedgeextension', 'setBrightness', { 'brightness' }, value)
 		  end,
 		},
-		{ id = "mapedgeextension_curvature", category = types.advanced, group = "gfx", name = widgetOptionColor .. "   " .. texts.option.mapedgeextension_curvature, type = "bool", value = true, description = texts.option.mapedgeextension_curvature_descr,
+		{ id = "mapedgeextension_curvature", category = types.dev, group = "gfx", name = widgetOptionColor .. "   " .. texts.option.mapedgeextension_curvature, type = "bool", value = true, description = texts.option.mapedgeextension_curvature_descr,
 		  onload = function(i)
 			  loadWidgetData("Map Edge Extension", "mapedgeextension_curvature", { 'curvature' })
 		  end,
@@ -2051,16 +2051,6 @@ function init()
 		  end,
 		},
 
-		{ id = "clouds", group = "gfx", category = types.basic, widget = "Volumetric Clouds", name = texts.option.clouds, type = "bool", value = GetWidgetToggleValue("Volumetric Clouds"), description = '' },
-		{ id = "clouds_opacity", group = "gfx", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.clouds_opacity, type = "slider", min = 0.2, max = 1.4, step = 0.05, value = 1, description = '',
-		  onload = function(i)
-			  loadWidgetData("Volumetric Clouds", "clouds_opacity", { 'opacityMult' })
-		  end,
-		  onchange = function(i, value)
-			  saveOptionValue('Volumetric Clouds', 'clouds', 'setOpacity', { 'opacityMult' }, value)
-		  end,
-		},
-
 		{ id = "snow", group = "gfx", category = types.basic, widget = "Snow", name = texts.option.snow, type = "bool", value = GetWidgetToggleValue("Snow"), description = texts.option.snow_descr },
 		{ id = "snowmap", group = "gfx", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.snowmap, type = "bool", value = true, description = texts.option.snowmap_descr,
 		  onload = function(i)
@@ -2084,6 +2074,16 @@ function init()
 		  end,
 		  onchange = function(i, value)
 			  saveOptionValue('Snow', 'snow', 'setMultiplier', { 'customParticleMultiplier' }, value)
+		  end,
+		},
+
+		{ id = "clouds", group = "gfx", category = types.advanced, widget = "Volumetric Clouds", name = texts.option.clouds, type = "bool", value = GetWidgetToggleValue("Volumetric Clouds"), description = '' },
+		{ id = "clouds_opacity", group = "gfx", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.clouds_opacity, type = "slider", min = 0.2, max = 1.4, step = 0.05, value = 1, description = '',
+		  onload = function(i)
+			  loadWidgetData("Volumetric Clouds", "clouds_opacity", { 'opacityMult' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('Volumetric Clouds', 'clouds', 'setOpacity', { 'opacityMult' }, value)
 		  end,
 		},
 
@@ -2125,10 +2125,6 @@ function init()
 		--	  saveOptionValue('Light Effects', 'lighteffects', 'setThrusters', { 'enableThrusters' }, value)
 		--  end,
 		--},
-
-		{ id = "resurrectionhalos", group = "gfx", category = types.advanced, widget = "Resurrection Halos", name = texts.option.resurrectionhalos, type = "bool", value = GetWidgetToggleValue("Resurrection Halos"), description = texts.option.resurrectionhalos_descr },
-		{ id = "tombstones", group = "gfx", category = types.advanced, widget = "Tombstones", name = texts.option.tombstones, type = "bool", value = GetWidgetToggleValue("Tombstones"), description = texts.option.tombstones_descr },
-
 		{ id = "dof", group = "gfx", category = types.advanced, widget = "Depth of Field", name = texts.option.dof, type = "bool", value = GetWidgetToggleValue("Depth of Field"), description = texts.option.dof_descr },
 		{ id = "dof_autofocus", group = "gfx", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.dof_autofocus, type = "bool", value = true, description = texts.option.dof_autofocus_descr,
 		  onload = function(i)
@@ -2146,6 +2142,12 @@ function init()
 			  saveOptionValue('Depth of Field', 'dof', 'setFstop', { 'fStop' }, value)
 		  end,
 		},
+
+		{ id = "label_gfx_game", group = "gfx", name = texts.option.label_game, category = types.advanced },
+		{ id = "label_gfx_game_spacer", group = "gfx", category = types.basic },
+		{ id = "resurrectionhalos", group = "gfx", category = types.advanced, widget = "Resurrection Halos", name = texts.option.resurrectionhalos, type = "bool", value = GetWidgetToggleValue("Resurrection Halos"), description = texts.option.resurrectionhalos_descr },
+		{ id = "tombstones", group = "gfx", category = types.advanced, widget = "Tombstones", name = texts.option.tombstones, type = "bool", value = GetWidgetToggleValue("Tombstones"), description = texts.option.tombstones_descr },
+
 
 		-- SOUND
 		{ id = "snddevice", group = "sound", category = types.advanced, name = texts.option.snddevice, type = "select", restart = true, options = soundDevices, value = soundDevicesByName[Spring.GetConfigString("snd_device")], description = texts.option.snddevice_descr,
@@ -2509,7 +2511,14 @@ function init()
 		  end,
 		},
 
-		{ id = "gridmenu", group = "ui", category = types.advanced, name = texts.option.buildmenu..widgetOptionColor .. "  " .. texts.option.gridmenu, type = "bool", value = GetWidgetToggleValue("Grid menu"), description = texts.option.gridmenu_descr,
+		{ id = "buildmenu_bottom", group = "ui", category = types.basic, name = texts.option.buildmenu ..widgetOptionColor.. "  " .. texts.option.buildmenu_bottom, type = "bool", value = (WG['buildmenu'] ~= nil and WG['buildmenu'].getBottomPosition ~= nil and WG['buildmenu'].getBottomPosition()), description = texts.option.buildmenu_bottom_descr,
+		  onload = function(i)
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('Build menu', 'buildmenu', 'setBottomPosition', { 'stickToBottom' }, value)
+		  end,
+		},
+		{ id = "gridmenu", group = "ui", category = types.advanced, name = widgetOptionColor.."   " .. texts.option.gridmenu, type = "bool", value = GetWidgetToggleValue("Grid menu"), description = texts.option.gridmenu_descr,
 		  onchange = function(i, value)
 			  if value then
 				  widgetHandler:DisableWidget('Build menu')
@@ -2518,13 +2527,6 @@ function init()
 				  widgetHandler:DisableWidget('Grid menu')
 				  widgetHandler:EnableWidget('Build menu')
 			  end
-		  end,
-		},
-		{ id = "buildmenu_bottom", group = "ui", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.buildmenu_bottom, type = "bool", value = (WG['buildmenu'] ~= nil and WG['buildmenu'].getBottomPosition ~= nil and WG['buildmenu'].getBottomPosition()), description = texts.option.buildmenu_bottom_descr,
-		  onload = function(i)
-		  end,
-		  onchange = function(i, value)
-			  saveOptionValue('Build menu', 'buildmenu', 'setBottomPosition', { 'stickToBottom' }, value)
 		  end,
 		},
 		{ id = "buildmenu_maxposy", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.buildmenu_maxposy, type = "slider", min = 0.66, max = 0.88, step = 0.01, value = 0.74, description = texts.option.buildmenu_maxposy_descr,
@@ -2571,19 +2573,19 @@ function init()
 		--  end,
 		--},
 
-		{ id = "ordermenu_colorize", group = "ui", category = types.advanced, name = texts.option.ordermenu .. widgetOptionColor .. "  " .. texts.option.ordermenu_colorize, type = "slider", min = 0, max = 1, step = 0.1, value = 0, description = '',
+		{ id = "ordermenu_bottompos", group = "ui", category = types.basic, name = texts.option.ordermenu..widgetOptionColor .. "  " .. texts.option.ordermenu_bottompos, type = "bool", value = (WG['ordermenu'] ~= nil and WG['ordermenu'].getBottomPosition ~= nil and WG['ordermenu'].getBottomPosition()), description = texts.option.ordermenu_bottompos_descr,
+		  onload = function(i)
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('Order menu', 'ordermenu', 'setBottomPosition', { 'stickToBottom' }, value)
+		  end,
+		},
+		{ id = "ordermenu_colorize", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.ordermenu_colorize, type = "slider", min = 0, max = 1, step = 0.1, value = 0, description = '',
 		  onload = function(i)
 			  loadWidgetData("Order menu", "ordermenu_colorize", { 'colorize' })
 		  end,
 		  onchange = function(i, value)
 			  saveOptionValue('Order menu', 'ordermenu', 'setColorize', { 'colorize' }, value)
-		  end,
-		},
-		{ id = "ordermenu_bottompos", group = "ui", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.ordermenu_bottompos, type = "bool", value = (WG['ordermenu'] ~= nil and WG['ordermenu'].getBottomPosition ~= nil and WG['ordermenu'].getBottomPosition()), description = texts.option.ordermenu_bottompos_descr,
-		  onload = function(i)
-		  end,
-		  onchange = function(i, value)
-			  saveOptionValue('Order menu', 'ordermenu', 'setBottomPosition', { 'stickToBottom' }, value)
 		  end,
 		},
 		{ id = "ordermenu_alwaysshow", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.ordermenu_alwaysshow, type = "bool", value = (WG['ordermenu'] ~= nil and WG['ordermenu'].getAlwaysShow ~= nil and WG['ordermenu'].getAlwaysShow()), description = texts.option.ordermenu_alwaysshow_descr,
