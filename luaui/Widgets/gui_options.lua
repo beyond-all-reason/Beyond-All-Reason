@@ -19,13 +19,13 @@ local types = {
 }
 
 local texts = {}    -- loaded from external language file
-local languages = Spring.I18N.languages
-local languageCodes = { 'en', 'fr' }
-local languageCodesInverse = table.invert(languageCodes)
-local languageNames = {}
 
+local languageCodes = { 'en', 'fr' }
+languageCodes = table.merge(languageCodes, table.invert(languageCodes))
+
+local languageNames = {}
 for key, code in ipairs(languageCodes) do
-	languageNames[key] = languages[code]
+	languageNames[key] = Spring.I18N.languages[code]
 end
 
 local enabledAirjetsOnce = false	-- delete everything with enabledAirjetsOnce after a month or so (2021)
@@ -3450,7 +3450,7 @@ function init()
 		  end,
 		},
 
-		{ id = "language", group = "dev", category = types.dev, name = texts.option.language, type = "select", options = languageNames, value = languageCodesInverse[Spring.I18N.getLocale()],
+		{ id = "language", group = "dev", category = types.dev, name = texts.option.language, type = "select", options = languageNames, value = languageCodes[Spring.I18N.getLocale()],
 		  onchange = function(i, value)
 			  Spring.I18N.setLanguage(languageCodes[value])
 			  if Script.LuaUI('LanguageChanged') then
