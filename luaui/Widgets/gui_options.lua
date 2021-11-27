@@ -171,7 +171,6 @@ local heightmapChangeClock
 
 local presetNames = {}
 local presets = {}
-local customPresets = {}
 
 local startScript = VFS.LoadFile("_script.txt")
 if not startScript then
@@ -1481,7 +1480,7 @@ end
 
 function init()
 
-	presetNames = { texts.option.preset_lowest, texts.option.preset_low, texts.option.preset_medium, texts.option.preset_high, texts.option.preset_ultra }
+	presetNames = { texts.option.preset_lowest, texts.option.preset_low, texts.option.preset_medium, texts.option.preset_high, texts.option.preset_ultra, texts.option.preset_custom }
 	presets = {
 		[presetNames[1]] = {
 			bloomdeferred = false,
@@ -1569,7 +1568,6 @@ function init()
 			darkenmap_darkenfeatures = true,
 		},
 	}
-	customPresets = {}
 
 	local supportedResolutions = {}
 	local soundDevices = { 'default' }
@@ -5189,11 +5187,6 @@ function widget:Initialize()
 			return false
 		end
 	end
-
-	table.mergeInPlace(presets, customPresets)
-	for preset, _ in pairs(customPresets) do
-		table.insert(presetNames, preset)
-	end
 end
 
 function widget:Shutdown()
@@ -5290,7 +5283,6 @@ function widget:GetConfigData(data)
 		vsyncEnabled = vsyncEnabled,
 		firsttimesetupDone = firstlaunchsetupDone,
 		resettedTonemapDefault = resettedTonemapDefault,
-		customPresets = customPresets,
 		cameraTransitionTime = cameraTransitionTime,
 		cameraPanTransitionTime = cameraPanTransitionTime,
 		maxNanoParticles = maxNanoParticles,
@@ -5344,9 +5336,6 @@ function widget:SetConfigData(data)
 	end
 	if data.resettedTonemapDefault ~= nil then
 		resettedTonemapDefault = data.resettedTonemapDefault
-	end
-	if data.customPresets ~= nil then
-		customPresets = data.customPresets
 	end
 	if data.cameraTransitionTime ~= nil then
 		cameraTransitionTime = data.cameraTransitionTime
