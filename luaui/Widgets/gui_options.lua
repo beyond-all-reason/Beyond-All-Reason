@@ -1508,7 +1508,6 @@ function init()
 			mapedgeextension = false,
 			lighteffects = false,
 			lighteffects_additionalflashes = false,
-			airjets = false,
 			heatdistortion = false,
 			snow = false,
 			particles = 9000,
@@ -1525,7 +1524,6 @@ function init()
 			mapedgeextension = false,
 			lighteffects = true,
 			lighteffects_additionalflashes = false,
-			airjets = true,
 			heatdistortion = true,
 			snow = false,
 			particles = 12000,
@@ -1542,7 +1540,6 @@ function init()
 		 	mapedgeextension = true,
 		 	lighteffects = true,
 		 	lighteffects_additionalflashes = true,
-		 	airjets = true,
 		 	heatdistortion = true,
 		 	snow = true,
 		 	particles = 15000,
@@ -1559,7 +1556,6 @@ function init()
 			mapedgeextension = true,
 			lighteffects = true,
 			lighteffects_additionalflashes = true,
-			airjets = true,
 			heatdistortion = true,
 			snow = true,
 			particles = 20000,
@@ -1576,7 +1572,6 @@ function init()
 			mapedgeextension = true,
 			lighteffects = true,
 			lighteffects_additionalflashes = true,
-			airjets = true,
 			heatdistortion = true,
 			snow = true,
 			particles = 25000,
@@ -2116,7 +2111,7 @@ function init()
 		  end
 		},
 
-		{ id = "airjets", group = "gfx", category = types.advanced, widget = "Airjets GL4", name = texts.option.airjets, type = "bool", value = GetWidgetToggleValue("Airjets GL4"), description = texts.option.airjets_descr },
+		--{ id = "airjets", group = "gfx", category = types.dev, widget = "Airjets GL4", name = texts.option.airjets, type = "bool", value = GetWidgetToggleValue("Airjets GL4"), description = texts.option.airjets_descr },
 		--{ id = "jetenginefx_lights", group = "gfx", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.jetenginefx_lights, type = "bool", value = true, description = texts.option.jetenginefx_lights_descr,
 		--  onload = function(i)
 		--	  loadWidgetData("Light Effects", "lups_jetenginefx_lights", { 'enableThrusters' })
@@ -2438,8 +2433,8 @@ function init()
 		},
 
 		-- INTERFACE
-		{ id = "label_ui_screen", group = "ui", name = texts.option.label_screen, category = types.basic },
-		{ id = "label_ui_screen_spacer", group = "ui", category = types.basic },
+		{ id = "label_ui_interface", group = "ui", name = texts.option.label_interface, category = types.basic },
+		{ id = "label_ui_interface_spacer", group = "ui", category = types.basic },
 		{ id = "uiscale", group = "ui", category = types.basic, name = texts.option.interface .. widgetOptionColor .. "  " .. texts.option.uiscale, type = "slider", min = 0.8, max = 1.1, step = 0.01, value = Spring.GetConfigFloat("ui_scale", 1), description = '',
 		  onload = function(i)
 		  end,
@@ -2606,8 +2601,6 @@ function init()
 		  end,
 		},
 
-		{ id = "unitgroups", group = "ui", category = types.basic, widget = "Unit Groups", name = texts.option.unitgroups, type = "bool", value = GetWidgetToggleValue("Unit Groups"), description = texts.option.unitgroups_descr },
-
 		{ id = "advplayerlist_scale", group = "ui", category = types.basic, name = texts.option.advplayerlist .. widgetOptionColor .. "  " .. texts.option.advplayerlist_scale, min = 0.85, max = 1.2, step = 0.01, type = "slider", value = 1, description = texts.option.advplayerlist_scale_descr,
 		  onload = function(i)
 			  loadWidgetData("AdvPlayersList", "advplayerlist_scale", { 'customScale' })
@@ -2715,11 +2708,13 @@ function init()
 		  end,
 		},
 
+		{ id = "unitgroups", group = "ui", category = types.basic, widget = "Unit Groups", name = texts.option.unitgroups, type = "bool", value = GetWidgetToggleValue("Unit Groups"), description = texts.option.unitgroups_descr },
 		{ id = "idlebuilders", group = "ui", category = types.basic, widget = "Idle Builders", name = texts.option.idlebuilders, type = "bool", value = GetWidgetToggleValue("Idle Builders"), description = texts.option.idlebuilders_descr },
 		{ id = "buildbar", group = "ui", category = types.basic, widget = "BuildBar", name = texts.option.buildbar, type = "bool", value = GetWidgetToggleValue("BuildBar"), description = texts.option.buildbar_descr },
 
-		{ id = "label_ui_game", group = "ui", name = texts.option.label_game, category = types.basic },
-		{ id = "label_ui_game_spacer", group = "ui", category = types.basic },
+
+		{ id = "label_ui_visuals", group = "ui", name = texts.option.label_visuals, category = types.basic },
+		{ id = "label_ui_visuals_spacer", group = "ui", category = types.basic },
 
 		{ id = "uniticonsasui", group = "ui", category = types.advanced, name = texts.option.uniticonsasui, type = "bool", value = (Spring.GetConfigInt("UnitIconsAsUI", 0) == 1), description = texts.option.uniticonsasui_descr,
 		  onload = function(i)
@@ -2822,7 +2817,7 @@ function init()
 		},
 
 		{ id = "teamplatter", group = "ui", category = types.basic, widget = "TeamPlatter", name = texts.option.teamplatter, type = "bool", value = GetWidgetToggleValue("TeamPlatter"), description = texts.option.teamplatter_descr },
-		{ id = "teamplatter_opacity", category = types.basic, group = "ui", name = widgetOptionColor .. "   " .. texts.option.teamplatter_opacity, min = 0.05, max = 0.4, step = 0.01, type = "slider", value = 0.25, description = texts.option.teamplatter_opacity_descr,
+		{ id = "teamplatter_opacity", category = types.advanced, group = "ui", name = widgetOptionColor .. "   " .. texts.option.teamplatter_opacity, min = 0.05, max = 0.4, step = 0.01, type = "slider", value = 0.25, description = texts.option.teamplatter_opacity_descr,
 		  onload = function(i)
 			  loadWidgetData("TeamPlatter", "teamplatter_opacity", { 'spotterOpacity' })
 		  end,
@@ -2840,7 +2835,7 @@ function init()
 		},
 
 		{ id = "enemyspotter", group = "ui", category = types.basic, widget = "EnemySpotter", name = texts.option.enemyspotter, type = "bool", value = GetWidgetToggleValue("EnemySpotter"), description = texts.option.enemyspotter_descr },
-		{ id = "enemyspotter_opacity", category = types.basic, group = "ui", name = widgetOptionColor .. "   " .. texts.option.enemyspotter_opacity, min = 0.12, max = 0.4, step = 0.01, type = "slider", value = 0.15, description = texts.option.enemyspotter_opacity_descr,
+		{ id = "enemyspotter_opacity", category = types.advanced, group = "ui", name = widgetOptionColor .. "   " .. texts.option.enemyspotter_opacity, min = 0.12, max = 0.4, step = 0.01, type = "slider", value = 0.15, description = texts.option.enemyspotter_opacity_descr,
 		  onload = function(i)
 			  loadWidgetData("EnemySpotter", "enemyspotter_opacity", { 'spotterOpacity' })
 		  end,
@@ -2849,26 +2844,8 @@ function init()
 		  end,
 		},
 
-		{ id = "fancyselectedunits", group = "ui", category = types.basic, widget = "Fancy Selected Units", name = "Selection Unit Platters", type = "bool", value = GetWidgetToggleValue("Fancy Selected Units"), description = texts.option.fancyselectedunits_descr },
-		{ id = "fancyselectedunits_baseopacity", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.fancyselectedunits_baseopacity, min = 0, max = 0.5, step = 0.01, type = "slider", value = 0.15, description = texts.option.fancyselectedunits_baseopacity_descr,
-		  onload = function(i)
-			  loadWidgetData("Fancy Selected Units", "fancyselectedunits_baseopacity", { 'baseOpacity' })
-		  end,
-		  onchange = function(i, value)
-			  saveOptionValue('Fancy Selected Units', 'fancyselectedunits', 'setBaseOpacity', { 'baseOpacity' }, value)
-		  end,
-		},
-		{ id = "fancyselectedunits_teamcoloropacity", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.fancyselectedunits_teamcoloropacity, min = 0, max = 1, step = 0.01, type = "slider", value = 0.55, description = texts.option.fancyselectedunits_teamcoloropacity_descr,
-		  onload = function(i)
-			  loadWidgetData("Fancy Selected Units", "fancyselectedunits_teamcoloropacity", { 'teamcolorOpacity' })
-		  end,
-		  onchange = function(i, value)
-			  saveOptionValue('Fancy Selected Units', 'fancyselectedunits', 'setTeamcolorOpacity', { 'teamcolorOpacity' }, value)
-		  end,
-		},
-
-		{ id = "selectedunits", group = "ui", category = types.basic, widget = "Selected Units GL4", name = "Selection Unit Platters", type = "bool", value = GetWidgetToggleValue("Selected Units GL4"), description = texts.option.selectedunits_descr },
-		{ id = "selectedunits_opacity", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.selectedunits_opacity, min = 0, max = 0.5, step = 0.01, type = "slider", value = 0.19, description = texts.option.selectedunits_opacity_descr,
+		--{ id = "selectedunits", group = "ui", category = types.basic, widget = "Selected Units GL4", name = "Selection", type = "bool", value = GetWidgetToggleValue("Selected Units GL4"), description = texts.option.selectedunits_descr },
+		{ id = "selectedunits_opacity", group = "ui", category = types.advanced, name = texts.option.selectedunits..widgetOptionColor .. "  " .. texts.option.selectedunits_opacity, min = 0, max = 0.5, step = 0.01, type = "slider", value = 0.19, description = texts.option.selectedunits_opacity_descr,
 		  onload = function(i)
 			  loadWidgetData("Selected Units GL4", "selectedunits_opacity", { 'opacity' })
 		  end,
@@ -2894,7 +2871,7 @@ function init()
 			  saveOptionValue('Highlight Selected Units', 'highlightselunits', 'setOpacity', { 'highlightAlpha' }, value)
 		  end,
 		},
-		{ id = "highlightselunits_teamcolor", group = "ui", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.highlightselunits_teamcolor, type = "bool", value = false, description = texts.option.highlightselunits_teamcolor_descr,
+		{ id = "highlightselunits_teamcolor", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.highlightselunits_teamcolor, type = "bool", value = false, description = texts.option.highlightselunits_teamcolor_descr,
 		  onload = function(i)
 			  loadWidgetData("Highlight Selected Units", "highlightselunits_teamcolor", { 'useTeamcolor' })
 		  end,
@@ -2903,8 +2880,30 @@ function init()
 		  end,
 		},
 
-		{ id = "metalspots", group = "ui", category = types.basic, widget = "Metalspots", name = texts.option.metalspots, type = "bool", value = GetWidgetToggleValue("Metalspots"), description = texts.option.metalpots_descr },
-		{ id = "metalspots_values", group = "ui", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.metalspots_values, type = "bool", value = true, description = texts.option.metalspots_values_descr,
+		{ id = "cursorlight", group = "ui", category = types.advanced, widget = "Cursor Light", name = texts.option.cursorlight, type = "bool", value = GetWidgetToggleValue("Cursor Light"), description = texts.option.cursorlight_descr },
+		{ id = "cursorlight_lightradius", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.cursorlight_lightradius, type = "slider", min = 0.15, max = 1, step = 0.05, value = 1.5, description = '',
+		  onload = function(i)
+			  loadWidgetData("Cursor Light", "cursorlight_lightradius", { 'lightRadiusMult' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('Cursor Light', 'cursorlight', 'setLightRadius', { 'lightRadiusMult' }, value)
+		  end,
+		},
+		{ id = "cursorlight_lightstrength", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.cursorlight_lightstrength, type = "slider", min = 0.1, max = 1.2, step = 0.05, value = 0.2, description = '',
+		  onload = function(i)
+			  loadWidgetData("Cursor Light", "cursorlight_lightstrength", { 'lightStrengthMult' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('Cursor Light', 'cursorlight', 'setLightStrength', { 'lightStrengthMult' }, value)
+		  end,
+		},
+
+
+		{ id = "label_ui_info", group = "ui", name = texts.option.label_info, category = types.basic },
+		{ id = "label_ui_info_spacer", group = "ui", category = types.basic },
+
+		--{ id = "metalspots", group = "ui", category = types.basic, widget = "Metalspots", name = texts.option.metalspots, type = "bool", value = GetWidgetToggleValue("Metalspots"), description = texts.option.metalpots_descr },
+		{ id = "metalspots_values", group = "ui", category = types.advanced, name = texts.option.metalspots..widgetOptionColor .. "   " .. texts.option.metalspots_values, type = "bool", value = true, description = texts.option.metalspots_values_descr,
 		  onload = function(i)
 			  loadWidgetData("Metalspots", "metalspots_values", { 'showValues' })
 		  end,
@@ -2922,7 +2921,7 @@ function init()
 		  end,
 		},
 
-		{ id = "geospots", group = "ui", category = types.basic, widget = "Geothermalspots", name = texts.option.geospots, type = "bool", value = GetWidgetToggleValue("Metalspots"), description = texts.option.geospots_descr },
+		{ id = "geospots", group = "ui", category = types.dev, widget = "Geothermalspots", name = texts.option.geospots, type = "bool", value = GetWidgetToggleValue("Metalspots"), description = texts.option.geospots_descr },
 
 		{ id = "healthbarsscale", group = "ui", category = types.advanced, name = texts.option.healthbars .. widgetOptionColor .. "  " .. texts.option.healthbarsscale, type = "slider", min = 0.6, max = 1.6, step = 0.1, value = 1, description = '',
 		  onload = function(i)
@@ -2957,15 +2956,15 @@ function init()
 		  end,
 		},
 
-		{ id = "rankicons", group = "ui", category = types.basic, widget = "Rank Icons", name = texts.option.rankicons, type = "bool", value = GetWidgetToggleValue("Rank Icons"), description = texts.option.rankicons_descr },
-		{ id = "rankicons_distance", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.rankicons_distance, type = "slider", min = 0.4, max = 2, step = 0.1, value = (WG['rankicons'] ~= nil and WG['rankicons'].getDrawDistance ~= nil and WG['rankicons'].getDrawDistance()), description = '',
+		{ id = "rankicons", group = "ui", category = types.advanced, widget = "Rank Icons", name = texts.option.rankicons, type = "bool", value = GetWidgetToggleValue("Rank Icons"), description = texts.option.rankicons_descr },
+		{ id = "rankicons_distance", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.rankicons_distance, type = "slider", min = 0.4, max = 2, step = 0.1, value = (WG['rankicons'] ~= nil and WG['rankicons'].getDrawDistance ~= nil and WG['rankicons'].getDrawDistance()), description = '',
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
 			  saveOptionValue('Rank Icons', 'rankicons', 'setDrawDistance', { 'distanceMult' }, value)
 		  end,
 		},
-		{ id = "rankicons_scale", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.rankicons_scale, type = "slider", min = 0.3, max = 3, step = 0.1, value = (WG['rankicons'] ~= nil and WG['rankicons'].getScale ~= nil and WG['rankicons'].getScale()), description = '',
+		{ id = "rankicons_scale", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.rankicons_scale, type = "slider", min = 0.3, max = 3, step = 0.1, value = (WG['rankicons'] ~= nil and WG['rankicons'].getScale ~= nil and WG['rankicons'].getScale()), description = '',
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
@@ -3020,24 +3019,6 @@ function init()
 		  end,
 		  onchange = function(i, value)
 			  saveOptionValue('AllyCursors', 'allycursors', 'setLightStrength', { 'lightStrengthMult' }, value)
-		  end,
-		},
-
-		{ id = "cursorlight", group = "ui", category = types.basic, widget = "Cursor Light", name = texts.option.cursorlight, type = "bool", value = GetWidgetToggleValue("Cursor Light"), description = texts.option.cursorlight_descr },
-		{ id = "cursorlight_lightradius", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.cursorlight_lightradius, type = "slider", min = 0.15, max = 1, step = 0.05, value = 1.5, description = '',
-		  onload = function(i)
-			  loadWidgetData("Cursor Light", "cursorlight_lightradius", { 'lightRadiusMult' })
-		  end,
-		  onchange = function(i, value)
-			  saveOptionValue('Cursor Light', 'cursorlight', 'setLightRadius', { 'lightRadiusMult' }, value)
-		  end,
-		},
-		{ id = "cursorlight_lightstrength", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.cursorlight_lightstrength, type = "slider", min = 0.1, max = 1.2, step = 0.05, value = 0.2, description = '',
-		  onload = function(i)
-			  loadWidgetData("Cursor Light", "cursorlight_lightstrength", { 'lightStrengthMult' })
-		  end,
-		  onchange = function(i, value)
-			  saveOptionValue('Cursor Light', 'cursorlight', 'setLightStrength', { 'lightStrengthMult' }, value)
 		  end,
 		},
 
