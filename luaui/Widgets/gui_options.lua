@@ -169,6 +169,7 @@ local showOnceMore = false        -- used because of GUI shader delay
 local resettedTonemapDefault = false
 local heightmapChangeClock
 
+local presetCodes = {}
 local presetNames = {}
 local presets = {}
 
@@ -1479,10 +1480,15 @@ if gpuMem and gpuMem > 0 and gpuMem < 1800 then
 end
 
 function init()
+	presetCodes = { 'lowest', 'low', 'medium', 'high', 'ultra', 'custom', }
+	presetCodes = table.merge(presetCodes, table.invert(presetCodes))
 
-	presetNames = { texts.option.preset_lowest, texts.option.preset_low, texts.option.preset_medium, texts.option.preset_high, texts.option.preset_ultra, texts.option.preset_custom }
+	for index, name in ipairs(presetCodes) do
+		presetNames[index] = texts.option['preset_' .. name]
+	end
+
 	presets = {
-		[presetNames[1]] = {
+		lowest = {
 			bloomdeferred = false,
 			ssao = 0,
 			mapedgeextension = false,
@@ -1499,7 +1505,7 @@ function init()
 			grass = false,
 			darkenmap_darkenfeatures = false,
 		},
-		[presetNames[2]] = {
+		low = {
 			bloomdeferred = true,
 			ssao = 0,
 			mapedgeextension = false,
@@ -1516,7 +1522,7 @@ function init()
 			grass = false,
 			darkenmap_darkenfeatures = false,
 		},
-		[presetNames[3]] = {
+		medium = {
 		 	bloomdeferred = true,
 		 	ssao = 1,
 		 	mapedgeextension = true,
@@ -1533,7 +1539,7 @@ function init()
 		 	grass = true,
 		 	darkenmap_darkenfeatures = false,
 		},
-		[presetNames[4]] = {
+		high = {
 			bloomdeferred = true,
 			ssao = 2,
 			mapedgeextension = true,
@@ -1550,7 +1556,7 @@ function init()
 			grass = true,
 			darkenmap_darkenfeatures = false,
 		},
-		[presetNames[5]] = {
+		ultra = {
 			bloomdeferred = true,
 			ssao = 3,
 			mapedgeextension = true,
@@ -1567,6 +1573,7 @@ function init()
 			grass = true,
 			darkenmap_darkenfeatures = true,
 		},
+		custom = {},
 	}
 
 	local supportedResolutions = {}
@@ -1658,7 +1665,7 @@ function init()
 		if isPotatoGpu then
 			Spring.Echo('potato Graphics Card detected')
 		end
-		presetNames = { texts.option.preset_lowest, texts.option.preset_low, texts.option.preset_medium }
+		presetNames = { texts.option.preset_lowest, texts.option.preset_low, texts.option.preset_medium, texts.option.preset_custom }
 	end
 
 	-- if you want to add an option it should be added here, and in applyOptionValue(), if option needs shaders than see the code below the options definition
@@ -1697,7 +1704,7 @@ function init()
 		  onchange = function(i, value)
 			  Spring.Echo('Loading preset:   ' .. options[i].options[value])
 			  options[i].value = 0
-			  loadPreset(presetNames[value])
+			  loadPreset(presetCodes[value])
 		  end,
 		},
 		{ id = "label_gfx_screen", group = "gfx", name = texts.option.label_screen, category = types.basic },
