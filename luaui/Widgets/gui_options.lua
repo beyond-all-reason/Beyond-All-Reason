@@ -28,15 +28,12 @@ for key, code in ipairs(languageCodes) do
 	languageNames[key] = languages[code]
 end
 
-local enabledAirjetsOnce = false	-- delete everything with enabledAirjetsOnce after a month or so (2021)
-
 local ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.6)
 
 local devMode = Spring.Utilities.IsDevMode() or Spring.Utilities.ShowDevUI()
 local advSettings = false
 local initialized = false
 local pauseGameWhenSingleplayer = true
-local maxNanoParticles = 5000
 
 local cameraTransitionTime = 0.12
 local cameraPanTransitionTime = 0.03
@@ -2093,11 +2090,10 @@ function init()
 			  Spring.SetConfigInt("MaxNanoParticles", math.floor(value*0.34))
 		  end,
 		},
-		--{ id = "nanoparticles", group = "gfx", category = types.advanced, name = texts.option.nanoparticles, type = "slider", min = 3000, max = 20000, step = 1000, value = maxNanoParticles, description = '',
+		--{ id = "nanoparticles", group = "gfx", category = types.advanced, name = texts.option.nanoparticles, type = "slider", min = 3000, max = 20000, step = 1000, value = Spring.GetConfigInt("MaxNanoParticles", 5000), description = '',
 		--  onload = function(i)
 		--  end,
 		--  onchange = function(i, value)
-		--	  maxNanoParticles = value
 		--	  if not options[getOptionByID('nanoeffect')] or options[getOptionByID('nanoeffect')].value == 2 then
 		--		  Spring.SetConfigInt("MaxNanoParticles", value)
 		--	  end
@@ -5109,13 +5105,6 @@ function widget:Initialize()
 		end
 	end
 
-	if not enabledAirjetsOnce then
-		enabledAirjetsOnce = true
-		if not GetWidgetToggleValue('Airjets GL4') then
-			widgetHandler:EnableWidget('Airjets GL4')
-		end
-	end
-
 	if Spring.GetGameFrame() == 0 then
 		detectWater()
 
@@ -5342,50 +5331,41 @@ function getSelectKey(i, value)
 	return false
 end
 
-function widget:GetConfigData(data)
+function widget:GetConfigData()
 	return {
-		vsyncLevel = vsyncLevel,
-		--vsyncOnlyForSpec = vsyncOnlyForSpec,
-		vsyncEnabled = vsyncEnabled,
-		firsttimesetupDone = firstlaunchsetupDone,
-		resettedTonemapDefault = resettedTonemapDefault,
-		customPresets = customPresets,
+		-- these could be re-implemented as custom springsetting configint/float
 		cameraTransitionTime = cameraTransitionTime,
 		cameraPanTransitionTime = cameraPanTransitionTime,
-		maxNanoParticles = maxNanoParticles,
-		currentGroupTab = currentGroupTab,
-		show = show,
+		useNetworkSmoothing = useNetworkSmoothing,
+		desiredWaterValue = desiredWaterValue,			-- configint water cant be used since we will set water 0 when no water is present
+		vsyncEnabled = vsyncEnabled,			-- configint vsync cant be used since we will change vsync depending on idle state for example
+		vsyncLevel = vsyncLevel,
+		--vsyncOnlyForSpec = vsyncOnlyForSpec,
 		pauseGameWhenSingleplayerExecuted = pauseGameWhenSingleplayerExecuted,
 		pauseGameWhenSingleplayer = pauseGameWhenSingleplayer,
-		advSettings = advSettings,
-		defaultMapSunPos = defaultMapSunPos,
-		defaultSunLighting = defaultSunLighting,
-		defaultFog = defaultFog,
-		mapChecksum = Game.mapChecksum,
+
+		-- custom map settings
 		customMapSunPos = customMapSunPos,
 		--customMapFog = customMapFog,
-		useNetworkSmoothing = useNetworkSmoothing,
-		desiredWaterValue = desiredWaterValue,
-		waterDetected = waterDetected,
-		enabledAirjetsOnce = enabledAirjetsOnce,
 
-		disticon = { 'UnitIconDist', tonumber(Spring.GetConfigInt("UnitIconDist", 1) or 160) },
-		particles = { 'MaxParticles', tonumber(Spring.GetConfigInt("MaxParticles", 1) or 15000) },
-		decals = { 'GroundDecals', tonumber(Spring.GetConfigInt("GroundDecals", 1) or 1) },
-		camera = { 'CamMode', tonumber(Spring.GetConfigInt("CamMode", 1) or 1) },
-		hwcursor = { 'HardwareCursor', tonumber(Spring.GetConfigInt("HardwareCursor", 1) or 1) },
-		sndvolmaster = { 'snd_volmaster', tonumber(Spring.GetConfigInt("snd_volmaster", 40) or 40) },
-		sndvolbattle = { 'snd_volbattle', tonumber(Spring.GetConfigInt("snd_volbattle", 40) or 40) },
-		sndvolunitreply = { 'snd_volunitreply', tonumber(Spring.GetConfigInt("snd_volunitreply", 40) or 40) },
-		guiopacity = { 'ui_opacity', tonumber(Spring.GetConfigFloat("ui_opacity", 0.6) or 0.66) },
-		scrollwheelspeed = { 'ScrollWheelSpeed', tonumber(Spring.GetConfigInt("ScrollWheelSpeed", 25) or 25) },
+		-- options widget settings
+		firsttimesetupDone = firstlaunchsetupDone,
+		advSettings = advSettings,
+		currentGroupTab = currentGroupTab,
+		show = show,
+		waterDetected = waterDetected,
+		customPresets = customPresets,
+
+		-- to restore init defaults
+		mapChecksum = Game.mapChecksum,
+		defaultFog = defaultFog,
+		defaultMapSunPos = defaultMapSunPos,
+		defaultSunLighting = defaultSunLighting,
+		resettedTonemapDefault = resettedTonemapDefault,
 	}
 end
 
 function widget:SetConfigData(data)
-	if data.enabledAirjetsOnce then
-		enabledAirjetsOnce = true
-	end
 	if data.vsyncEnabled ~= nil then
 		vsyncEnabled = data.vsyncEnabled
 	end
@@ -5412,9 +5392,6 @@ function widget:SetConfigData(data)
 	end
 	if data.cameraPanTransitionTime ~= nil then
 		cameraPanTransitionTime = data.cameraPanTransitionTime
-	end
-	if data.maxNanoParticles ~= nil then
-		maxNanoParticles = data.maxNanoParticles
 	end
 	if data.currentGroupTab ~= nil then
 		currentGroupTab = data.currentGroupTab
