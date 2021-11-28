@@ -195,6 +195,10 @@ function widget:UnitTaken(unitID, unitDefID, oldTeamID, newTeamID)
 end
 
 function widget:UnitDestroyed(unitID)
+	--Spring.Echo("UnitDestroyed(unitID)",unitID, selectedUnits[unitID])
+	if selectedUnits[unitID] then 
+		RemovePrimitive(unitID)
+	end
 	unitTeam[unitID] = nil
 	unitUnitDefID[unitID] = nil
 end
