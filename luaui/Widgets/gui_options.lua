@@ -2312,13 +2312,6 @@ function init()
 			  end
 		  end,
 		},
-		{ id = "middleclicktoggle", group = "control", category = types.basic, name = texts.option.middleclicktoggle, type = "bool", value = (Spring.GetConfigFloat("MouseDragScrollThreshold", 0.3) ~= 0), description = texts.option.middleclicktoggle_descr,
-		  onload = function(i)
-		  end,
-		  onchange = function(i, value)
-			  Spring.SetConfigFloat("MouseDragScrollThreshold", (value and 0.3 or 0))
-		  end,
-		},
 
 		{ id = "containmouse", group = "control", category = types.basic, widget = "Grabinput", name = texts.option.containmouse, type = "bool", value = GetWidgetToggleValue("Grabinput"), description = texts.option.containmouse_descr },
 
@@ -2327,6 +2320,18 @@ function init()
 		  end,
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("DoubleClickTime", value)
+		  end,
+		},
+
+
+		{ id = "label_ui_camera", group = "control", name = texts.option.label_camera, category = types.basic },
+		{ id = "label_ui_camera_spacer", group = "control", category = types.basic },
+		
+		{ id = "middleclicktoggle", group = "control", category = types.basic, name = texts.option.middleclicktoggle, type = "bool", value = (Spring.GetConfigFloat("MouseDragScrollThreshold", 0.3) ~= 0), description = texts.option.middleclicktoggle_descr,
+		  onload = function(i)
+		  end,
+		  onchange = function(i, value)
+			  Spring.SetConfigFloat("MouseDragScrollThreshold", (value and 0.3 or 0))
 		  end,
 		},
 
@@ -2428,12 +2433,38 @@ function init()
 		  end,
 		},
 
-		{ id = "lockcamera_transitiontime", group = "control", category = types.advanced, name = texts.option.lockcamera_transitiontime, type = "slider", min = 0.5, max = 1.7, step = 0.01, value = (WG['advplayerlist_api'] ~= nil and WG['advplayerlist_api'].GetLockTransitionTime ~= nil and WG['advplayerlist_api'].GetLockTransitionTime()), description = texts.option.lockcamera_transitiontime_descr,
+		{ id = "lockcamera_transitiontime", group = "control", category = types.advanced, name = texts.option.lockcamera..widgetOptionColor .. "   " ..texts.option.lockcamera_transitiontime, type = "slider", min = 0.5, max = 1.7, step = 0.01, value = (WG['advplayerlist_api'] ~= nil and WG['advplayerlist_api'].GetLockTransitionTime ~= nil and WG['advplayerlist_api'].GetLockTransitionTime()), description = texts.option.lockcamera_transitiontime_descr,
 		  onload = function(i)
 			  loadWidgetData("AdvPlayersList", "lockcamera_transitiontime", { 'transitionTime' })
 		  end,
 		  onchange = function(i, value)
 			  saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetLockTransitionTime', { 'transitionTime' }, value)
+		  end,
+		},
+
+
+		{ id = "allyselunits_select", group = "control", category = types.advanced, name = widgetOptionColor .. "  " ..texts.option.allyselunits_select, type = "bool", value = (WG['allyselectedunits'] ~= nil and WG['allyselectedunits'].getSelectPlayerUnits()), description = texts.option.allyselunits_select_descr,
+		  onload = function(i)
+			  loadWidgetData("Ally Selected Units", "allyselunits_select", { 'selectPlayerUnits' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('Ally Selected Units', 'allyselectedunits', 'setSelectPlayerUnits', { 'selectPlayerUnits' }, value)
+		  end,
+		},
+		{ id = "lockcamera_hideenemies", group = "control", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.lockcamera_hideenemies, type = "bool", value = (WG['advplayerlist_api'] ~= nil and WG['advplayerlist_api'].GetLockHideEnemies()), description = texts.option.lockcamera_hideenemies_descr,
+		  onload = function(i)
+			  loadWidgetData("AdvPlayersList", "lockcamera_hideenemies", { 'lockcameraHideEnemies' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetLockHideEnemies', { 'lockcameraHideEnemies' }, value)
+		  end,
+		},
+		{ id = "lockcamera_los", group = "control", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.lockcamera_los, type = "bool", value = (WG['advplayerlist_api'] ~= nil and WG['advplayerlist_api'].GetLockLos()), description = texts.option.lockcamera_los_descr,
+		  onload = function(i)
+			  loadWidgetData("AdvPlayersList", "lockcamera_los", { 'lockcameraLos' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetLockLos', { 'lockcameraLos' }, value)
 		  end,
 		},
 
@@ -2936,7 +2967,7 @@ function init()
 			  saveOptionValue('Health Bars', 'healthbars', 'setScale', { 'barScale' }, value)
 		  end,
 		},
-		{ id = "healthbarsdistance", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.healthbarsdistance, type = "slider", min = 0.4, max = 6, step = 0.1, value = 1, description = '',
+		{ id = "healthbarsdistance", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.healthbarsdistance, type = "slider", min = 0.4, max = 6, step = 0.1, value = 1, description = '',
 		  onload = function(i)
 			  loadWidgetData("Health Bars", "healthbarsdistance", { 'drawDistanceMult' })
 		  end,
@@ -2944,7 +2975,7 @@ function init()
 			  saveOptionValue('Health Bars', 'healthbars', 'setDrawDistance', { 'drawDistanceMult' }, value)
 		  end,
 		},
-		{ id = "healthbarsvariable", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.healthbarsvariable, type = "bool", value = (WG['healthbar'] ~= nil and WG['healthbar'].getVariableSizes()), description = texts.option.healthbarsvariable_descr,
+		{ id = "healthbarsvariable", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.healthbarsvariable, type = "bool", value = (WG['healthbar'] ~= nil and WG['healthbar'].getVariableSizes()), description = texts.option.healthbarsvariable_descr,
 		  onload = function(i)
 			  loadWidgetData("Health Bars", "healthbarsvariable", { 'variableBarSizes' })
 		  end,
@@ -2952,7 +2983,7 @@ function init()
 			  saveOptionValue('Health Bars', 'healthbars', 'setVariableSizes', { 'variableBarSizes' }, value)
 		  end,
 		},
-		{ id = "healthbarshide", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.healthbarshide, type = "bool", value = (WG['nametags'] ~= nil and WG['nametags'].getDrawForIcon()), description = texts.option.healthbarshide_descr,
+		{ id = "healthbarshide", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.healthbarshide, type = "bool", value = (WG['nametags'] ~= nil and WG['nametags'].getDrawForIcon()), description = texts.option.healthbarshide_descr,
 		  onload = function(i)
 			  loadWidgetData("Health Bars", "healthbarshide", { 'hideHealthbars' })
 		  end,
@@ -2978,7 +3009,7 @@ function init()
 		},
 
 		{ id = "allycursors", group = "ui", category = types.basic, widget = "AllyCursors", name = texts.option.allycursors, type = "bool", value = GetWidgetToggleValue("AllyCursors"), description = texts.option.allycursors_descr },
-		{ id = "allycursors_playername", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.allycursors_playername, type = "bool", value = true, description = texts.option.allycursors_playername_descr,
+		{ id = "allycursors_playername", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.allycursors_playername, type = "bool", value = true, description = texts.option.allycursors_playername_descr,
 		  onload = function(i)
 			  loadWidgetData("AllyCursors", "allycursors_playername", { 'showPlayerName' })
 		  end,
@@ -2986,7 +3017,7 @@ function init()
 			  saveOptionValue('AllyCursors', 'allycursors', 'setPlayerNames', { 'showPlayerName' }, value)
 		  end,
 		},
-		{ id = "allycursors_showdot", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.allycursors_showdot, type = "bool", value = true, description = texts.option.allycursors_showdot_descr,
+		{ id = "allycursors_showdot", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.allycursors_showdot, type = "bool", value = true, description = texts.option.allycursors_showdot_descr,
 		  onload = function(i)
 			  loadWidgetData("AllyCursors", "allycursors_showdot", { 'showCursorDot' })
 		  end,
@@ -3010,7 +3041,7 @@ function init()
 			  saveOptionValue('AllyCursors', 'allycursors', 'setLights', { 'addLights' }, options[getOptionByID('allycursors_lights')].value)
 		  end,
 		},
-		{ id = "allycursors_lightradius", group = "ui", category = types.advanced, name = widgetOptionColor .. "      " .. texts.option.allycursors_lightradius, type = "slider", min = 0.15, max = 1, step = 0.05, value = 0.5, description = '',
+		{ id = "allycursors_lightradius", group = "ui", category = types.dev, name = widgetOptionColor .. "      " .. texts.option.allycursors_lightradius, type = "slider", min = 0.15, max = 1, step = 0.05, value = 0.5, description = '',
 		  onload = function(i)
 			  loadWidgetData("AllyCursors", "allycursors_lightradius", { 'lightRadiusMult' })
 		  end,
@@ -3018,7 +3049,7 @@ function init()
 			  saveOptionValue('AllyCursors', 'allycursors', 'setLightRadius', { 'lightRadiusMult' }, value)
 		  end,
 		},
-		{ id = "allycursors_lightstrength", group = "ui", category = types.advanced, name = widgetOptionColor .. "      " .. texts.option.allycursors_lightstrength, type = "slider", min = 0.1, max = 1.2, step = 0.05, value = 0.85, description = '',
+		{ id = "allycursors_lightstrength", group = "ui", category = types.dev , name = widgetOptionColor .. "      " .. texts.option.allycursors_lightstrength, type = "slider", min = 0.1, max = 1.2, step = 0.05, value = 0.85, description = '',
 		  onload = function(i)
 			  loadWidgetData("AllyCursors", "allycursors_lightstrength", { 'lightStrengthMult' })
 		  end,
@@ -3040,20 +3071,21 @@ function init()
 		},
 
 		{ id = "commandsfx", group = "ui", category = types.basic, widget = "Commands FX", name = texts.option.commandsfx, type = "bool", value = GetWidgetToggleValue("Commands FX"), description = texts.option.commandsfx_descr },
-		{ id = "commandsfxfilterai", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.commandsfxfilterai, type = "bool", value = true, description = texts.option.commandsfxfilterai_descr,
-		  onload = function(i)
-			  loadWidgetData("Commands FX", "commandsfxfilterai", { 'filterAIteams' })
-		  end,
-		  onchange = function(i, value)
-			  saveOptionValue('Commands FX', 'commandsfx', 'setFilterAI', { 'filterAIteams' }, value)
-		  end,
-		},
-		{ id = "commandsfxopacity", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.commandsfxopacity, type = "slider", min = 0.25, max = 1, step = 0.1, value = 1, description = '',
+
+		{ id = "commandsfxopacity", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.commandsfxopacity, type = "slider", min = 0.25, max = 1, step = 0.1, value = 1, description = '',
 		  onload = function(i)
 			  loadWidgetData("Commands FX", "commandsfxopacity", { 'opacity' })
 		  end,
 		  onchange = function(i, value)
 			  saveOptionValue('Commands FX', 'commandsfx', 'setOpacity', { 'opacity' }, value)
+		  end,
+		},
+		{ id = "commandsfxfilterai", group = "ui", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.commandsfxfilterai, type = "bool", value = true, description = texts.option.commandsfxfilterai_descr,
+		  onload = function(i)
+			  loadWidgetData("Commands FX", "commandsfxfilterai", { 'filterAIteams' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('Commands FX', 'commandsfx', 'setFilterAI', { 'filterAIteams' }, value)
 		  end,
 		},
 
@@ -3065,32 +3097,6 @@ function init()
 		  end,
 		},
 		{ id = "givenunits", group = "ui", category = types.advanced, widget = "Given Units", name = texts.option.givenunits, type = "bool", value = GetWidgetToggleValue("Given Units"), description = texts.option.giveunits_descr },
-
-
-		{ id = "allyselunits_select", group = "ui", category = types.advanced, name = texts.option.allyselunits_select, type = "bool", value = (WG['allyselectedunits'] ~= nil and WG['allyselectedunits'].getSelectPlayerUnits()), description = texts.option.allyselunits_select_descr,
-		  onload = function(i)
-			  loadWidgetData("Ally Selected Units", "allyselunits_select", { 'selectPlayerUnits' })
-		  end,
-		  onchange = function(i, value)
-			  saveOptionValue('Ally Selected Units', 'allyselectedunits', 'setSelectPlayerUnits', { 'selectPlayerUnits' }, value)
-		  end,
-		},
-		{ id = "lockcamera_hideenemies", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.lockcamera_hideenemies, type = "bool", value = (WG['advplayerlist_api'] ~= nil and WG['advplayerlist_api'].GetLockHideEnemies()), description = texts.option.lockcamera_hideenemies_descr,
-		  onload = function(i)
-			  loadWidgetData("AdvPlayersList", "lockcamera_hideenemies", { 'lockcameraHideEnemies' })
-		  end,
-		  onchange = function(i, value)
-			  saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetLockHideEnemies', { 'lockcameraHideEnemies' }, value)
-		  end,
-		},
-		{ id = "lockcamera_los", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.lockcamera_los, type = "bool", value = (WG['advplayerlist_api'] ~= nil and WG['advplayerlist_api'].GetLockLos()), description = texts.option.lockcamera_los_descr,
-		  onload = function(i)
-			  loadWidgetData("AdvPlayersList", "lockcamera_los", { 'lockcameraLos' })
-		  end,
-		  onchange = function(i, value)
-			  saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetLockLos', { 'lockcameraLos' }, value)
-		  end,
-		},
 
 
 		{ id = "label_ui_ranges", group = "ui", name = texts.option.label_ranges, category = types.basic },
