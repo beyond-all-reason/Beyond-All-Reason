@@ -1730,48 +1730,60 @@ function init()
 			  checkResolution()
 		  end,
 		},
-		{ id = "fullscreen", group = "gfx", category = types.basic, name = texts.option.fullscreen, type = "bool", value = tonumber(Spring.GetConfigInt("Fullscreen", 1) or 1) == 1,
-		  onchange = function(i, value)
-			  if value then
-				  options[getOptionByID('borderless')].value = false
-				  applyOptionValue(getOptionByID('borderless'))
-				  local xres = tonumber(Spring.GetConfigInt('XResolutionWindowed', ssx))
-				  local yres = tonumber(Spring.GetConfigInt('YResolutionWindowed', ssy))
-				  Spring.SetConfigInt("XResolution", xres)
-				  Spring.SetConfigInt("YResolution", yres)
-			  else
-				  local xres = tonumber(Spring.GetConfigInt('XResolution', ssx))
-				  local yres = tonumber(Spring.GetConfigInt('YResolution', ssy))
-				  Spring.SetConfigInt("XResolutionWindowed", xres)
-				  Spring.SetConfigInt("YResolutionWindowed", yres)
-			  end
-			  checkResolution()
-			  Spring.SendCommands("Fullscreen " .. (value and 1 or 0))
-			  Spring.SetConfigInt("Fullscreen", (value and 1 or 0))
-		  end, },
+		--{ id = "borderless", group = "gfx", category = types.basic, name = texts.option.borderless, type = "bool", value = tonumber(Spring.GetConfigInt("WindowBorderless", 1) or 1) == 1, description = texts.option.borderless_descr,
+		--  onchange = function(i, value)
+		--	  ssx, ssy, spx, spy = Spring.GetScreenGeometry()
+		--	  Spring.SetConfigInt("WindowPosX", 0)
+		--	  Spring.SetConfigInt("WindowPosY", 0)
+		--	  Spring.SetConfigInt("XResolutionWindowed", ssx)
+		--	  Spring.SetConfigInt("YResolutionWindowed", ssy)
+		--	  Spring.SetConfigInt("XResolution", ssx)
+		--	  Spring.SetConfigInt("YResolution", ssy)
+		--	  Spring.SetConfigInt("WindowBorderless", (value and 1 or 0))
+		--	  Spring.SetConfigInt("WindowState", 0)
+		--	  Spring.SetConfigInt("Fullscreen", (value and 0 or 1))
+		--	  Spring.SendCommands("Fullscreen " .. (value and 0 or 1))
+		--	  init()
+		--  end,
+		--},
+		--{ id = "fullscreen", group = "gfx", category = types.basic, name = texts.option.fullscreen, type = "bool", value = tonumber(Spring.GetConfigInt("Fullscreen", 1) or 1) == 1,
+		--  onchange = function(i, value)
+		--	  if value then
+		--		  options[getOptionByID('borderless')].value = false
+		--		  applyOptionValue(getOptionByID('borderless'))
+		--		  local xres = tonumber(Spring.GetConfigInt('XResolutionWindowed', ssx))
+		--		  local yres = tonumber(Spring.GetConfigInt('YResolutionWindowed', ssy))
+		--		  Spring.SetConfigInt("XResolution", xres)
+		--		  Spring.SetConfigInt("YResolution", yres)
+		--	  else
+		--		  local xres = tonumber(Spring.GetConfigInt('XResolution', ssx))
+		--		  local yres = tonumber(Spring.GetConfigInt('YResolution', ssy))
+		--		  Spring.SetConfigInt("XResolutionWindowed", xres)
+		--		  Spring.SetConfigInt("YResolutionWindowed", yres)
+		--	  end
+		--	  checkResolution()
+		--	  Spring.SendCommands("Fullscreen " .. (value and 1 or 0))
+		--	  Spring.SetConfigInt("Fullscreen", (value and 1 or 0))
+		--  end, },
 		{ id = "borderless", group = "gfx", category = types.basic, name = texts.option.borderless, type = "bool", value = tonumber(Spring.GetConfigInt("WindowBorderless", 1) or 1) == 1, description = texts.option.borderless_descr,
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("WindowBorderless", (value and 1 or 0))
 			  if value then
 				  options[getOptionByID('fullscreen')].value = false
 				  applyOptionValue(getOptionByID('fullscreen'))
-				  Spring.SetConfigInt("WindowPosX", 0)
-				  Spring.SetConfigInt("WindowPosY", 0)
-				  Spring.SetConfigInt("WindowState", 0)
-			  else
-				  Spring.SetConfigInt("WindowPosX", 0)
-				  Spring.SetConfigInt("WindowPosY", 0)
-				  Spring.SetConfigInt("WindowState", 1)
 			  end
+			  Spring.SetConfigInt("WindowPosX", 0)
+			  Spring.SetConfigInt("WindowPosY", 0)
+			  Spring.SetConfigInt("WindowState", (value and 0 or 1))
 			  checkResolution()
 		  end,
 		},
-		{ id = "windowpos", group = "gfx", category = types.basic, widget = "Move Window Position", name = texts.option.windowpos, type = "bool", value = GetWidgetToggleValue("Move Window Position"), description = texts.option.windowpos_descr,
-		  onchange = function(i, value)
-			  Spring.SetConfigInt("FullscreenEdgeMove", (value and 1 or 0))
-			  Spring.SetConfigInt("WindowedEdgeMove", (value and 1 or 0))
-		  end,
-		},
+		--{ id = "windowpos", group = "gfx", category = types.basic, widget = "Move Window Position", name = texts.option.windowpos, type = "bool", value = GetWidgetToggleValue("Move Window Position"), description = texts.option.windowpos_descr,
+		--  onchange = function(i, value)
+		--	  Spring.SetConfigInt("FullscreenEdgeMove", (value and 1 or 0))
+		--	  Spring.SetConfigInt("WindowedEdgeMove", (value and 1 or 0))
+		--  end,
+		--},
 		{ id = "vsync", group = "gfx", category = types.basic, name = texts.option.vsync, type = "bool", value = vsyncEnabled, description = '',
 		  onchange = function(i, value)
 			  vsyncEnabled = value
@@ -3054,6 +3066,37 @@ function init()
 		},
 		{ id = "givenunits", group = "ui", category = types.advanced, widget = "Given Units", name = texts.option.givenunits, type = "bool", value = GetWidgetToggleValue("Given Units"), description = texts.option.giveunits_descr },
 
+
+		{ id = "allyselunits_select", group = "ui", category = types.advanced, name = texts.option.allyselunits_select, type = "bool", value = (WG['allyselectedunits'] ~= nil and WG['allyselectedunits'].getSelectPlayerUnits()), description = texts.option.allyselunits_select_descr,
+		  onload = function(i)
+			  loadWidgetData("Ally Selected Units", "allyselunits_select", { 'selectPlayerUnits' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('Ally Selected Units', 'allyselectedunits', 'setSelectPlayerUnits', { 'selectPlayerUnits' }, value)
+		  end,
+		},
+		{ id = "lockcamera_hideenemies", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.lockcamera_hideenemies, type = "bool", value = (WG['advplayerlist_api'] ~= nil and WG['advplayerlist_api'].GetLockHideEnemies()), description = texts.option.lockcamera_hideenemies_descr,
+		  onload = function(i)
+			  loadWidgetData("AdvPlayersList", "lockcamera_hideenemies", { 'lockcameraHideEnemies' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetLockHideEnemies', { 'lockcameraHideEnemies' }, value)
+		  end,
+		},
+		{ id = "lockcamera_los", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.lockcamera_los, type = "bool", value = (WG['advplayerlist_api'] ~= nil and WG['advplayerlist_api'].GetLockLos()), description = texts.option.lockcamera_los_descr,
+		  onload = function(i)
+			  loadWidgetData("AdvPlayersList", "lockcamera_los", { 'lockcameraLos' })
+		  end,
+		  onchange = function(i, value)
+			  saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetLockLos', { 'lockcameraLos' }, value)
+		  end,
+		},
+
+
+		{ id = "label_ui_ranges", group = "ui", name = texts.option.label_ranges, category = types.basic },
+		{ id = "label_ui_ranges_spacer", group = "ui", category = types.basic },
+
+
 		-- Radar range rings:
 		{ id = "radarrange", group = "ui", category = types.advanced, widget = "Sensor Ranges Radar", name = texts.option.radarrange, type = "bool", value = GetWidgetToggleValue("Sensor Ranges Radar"), description = texts.option.radarrange_descr },
 
@@ -3193,30 +3236,6 @@ function init()
 		  end,
 		},
 
-		{ id = "allyselunits_select", group = "ui", category = types.advanced, name = texts.option.allyselunits_select, type = "bool", value = (WG['allyselectedunits'] ~= nil and WG['allyselectedunits'].getSelectPlayerUnits()), description = texts.option.allyselunits_select_descr,
-		  onload = function(i)
-			  loadWidgetData("Ally Selected Units", "allyselunits_select", { 'selectPlayerUnits' })
-		  end,
-		  onchange = function(i, value)
-			  saveOptionValue('Ally Selected Units', 'allyselectedunits', 'setSelectPlayerUnits', { 'selectPlayerUnits' }, value)
-		  end,
-		},
-		{ id = "lockcamera_hideenemies", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.lockcamera_hideenemies, type = "bool", value = (WG['advplayerlist_api'] ~= nil and WG['advplayerlist_api'].GetLockHideEnemies()), description = texts.option.lockcamera_hideenemies_descr,
-		  onload = function(i)
-			  loadWidgetData("AdvPlayersList", "lockcamera_hideenemies", { 'lockcameraHideEnemies' })
-		  end,
-		  onchange = function(i, value)
-			  saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetLockHideEnemies', { 'lockcameraHideEnemies' }, value)
-		  end,
-		},
-		{ id = "lockcamera_los", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.lockcamera_los, type = "bool", value = (WG['advplayerlist_api'] ~= nil and WG['advplayerlist_api'].GetLockLos()), description = texts.option.lockcamera_los_descr,
-		  onload = function(i)
-			  loadWidgetData("AdvPlayersList", "lockcamera_los", { 'lockcameraLos' })
-		  end,
-		  onchange = function(i, value)
-			  saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetLockLos', { 'lockcameraLos' }, value)
-		  end,
-		},
 
 		-- GAME
 		{ id = "networksmoothing", restart = true, category = types.basic, group = "game", name = texts.option.networksmoothing, type = "bool", value = useNetworkSmoothing, description = texts.option.networksmoothing_descr,
@@ -3244,6 +3263,25 @@ function init()
 		},
 		{ id = "autoquit", group = "game", category = types.basic, widget = "Autoquit", name = texts.option.autoquit, type = "bool", value = GetWidgetToggleValue("Autoquit"), description = texts.option.autoquit_descr },
 
+		{ id = "singleplayerpause", group = "game", category = types.advanced, name = texts.option.singleplayerpause, type = "bool", value = pauseGameWhenSingleplayer, description = texts.option.singleplayerpause_descr,
+		  onchange = function(i, value)
+			  pauseGameWhenSingleplayer = value
+			  if (isSinglePlayer or isReplay) and show then
+				  if pauseGameWhenSingleplayer then
+					  Spring.SendCommands("pause " .. (pauseGameWhenSingleplayer and '1' or '0'))
+					  pauseGameWhenSingleplayerExecuted = pauseGameWhenSingleplayer
+				  elseif pauseGameWhenSingleplayerExecuted then
+					  Spring.SendCommands("pause 0")
+					  pauseGameWhenSingleplayerExecuted = false
+				  end
+			  end
+		  end,
+		},
+
+		{ id = "label_ui_behavior", group = "game", name = texts.option.label_behavior, category = types.basic },
+		{ id = "label_ui_behavior_spacer", group = "game", category = types.basic },
+
+
 		{ id = "smartselect_includebuildings", group = "game", category = types.basic, name = texts.option.smartselect_includebuildings, type = "bool", value = false, description = texts.option.smartselect_includebuildings_descr,
 		  onload = function(i)
 		  end,
@@ -3258,9 +3296,6 @@ function init()
 			  saveOptionValue('SmartSelect', 'smartselect', 'setIncludeBuilders', { 'includeBuilders' }, value)
 		  end,
 		},
-
-		{ id = "onlyfighterspatrol", group = "game", category = types.basic, widget = "OnlyFightersPatrol", name = texts.option.onlyfighterspatrol, type = "bool", value = GetWidgetToggleValue("Autoquit"), description = texts.option.onlyfighterspatrol_descr },
-		{ id = "fightersfly", group = "game", category = types.basic, widget = "Set fighters on Fly mode", name = texts.option.fightersfly, type = "bool", value = GetWidgetToggleValue("Set fighters on Fly mode"), description = texts.option.fightersfly_descr },
 
 		{
 			id = "builderpriority",
@@ -3333,6 +3368,20 @@ function init()
 			end,
 		},
 
+		{ id = "factoryguard", group = "game", category = types.basic, widget = "FactoryGuard", name = texts.option.factory .. widgetOptionColor .. "  " .. texts.option.factoryguard, type = "bool", value = GetWidgetToggleValue("FactoryGuard"), description = texts.option.factoryguard_descr },
+		{ id = "factoryholdpos", group = "game", category = types.basic, widget = "Factory hold position", name = widgetOptionColor .. "   " .. texts.option.factoryholdpos, type = "bool", value = GetWidgetToggleValue("Factory hold position"), description = texts.option.factoryholdpos_descr },
+		{ id = "factoryrepeat", group = "game", category = types.basic, widget = "Factory Auto-Repeat", name = widgetOptionColor .. "   " .. texts.option.factoryrepeat, type = "bool", value = GetWidgetToggleValue("Factory Auto-Repeat"), description = texts.option.factoryrepeat_descr },
+
+
+		{ id = "transportai", group = "game", category = types.basic, widget = "Transport AI", name = texts.option.transportai, type = "bool", value = GetWidgetToggleValue("Transport AI"), description = texts.option.transportai_descr },
+
+		{ id = "onlyfighterspatrol", group = "game", category = types.basic, widget = "OnlyFightersPatrol", name = texts.option.onlyfighterspatrol, type = "bool", value = GetWidgetToggleValue("Autoquit"), description = texts.option.onlyfighterspatrol_descr },
+		{ id = "fightersfly", group = "game", category = types.basic, widget = "Set fighters on Fly mode", name = texts.option.fightersfly, type = "bool", value = GetWidgetToggleValue("Set fighters on Fly mode"), description = texts.option.fightersfly_descr },
+		
+		{ id = "settargetdefault", group = "game", category = types.basic, widget = "Set target default", name = texts.option.settargetdefault, type = "bool", value = GetWidgetToggleValue("Set target default"), description = texts.option.settargetdefault_descr },
+		{ id = "dgunnogroundenemies", group = "game", category = types.advanced, widget = "DGun no ground enemies", name = texts.option.dgunnogroundenemies, type = "bool", value = GetWidgetToggleValue("DGun no ground enemies"), description = texts.option.dgunnogroundenemies_descr },
+		{ id = "dgunstallassist", group = "game", category = types.advanced, widget = "DGun Stall Assist", name = texts.option.dgunstallassist, type = "bool", value = GetWidgetToggleValue("DGun Stall Assist"), description = texts.option.dgunstallassist_descr },
+
 		{ id = "autocloakpopups", group = "game", category = types.basic, widget = "Auto Cloak Popups", name = texts.option.autocloakpopups, type = "bool", value = GetWidgetToggleValue("Auto Cloak Popups"), description = texts.option.autocloakpopups_descr },
 
 		{ id = "unitreclaimer", group = "game", category = types.basic, widget = "Unit Reclaimer", name = texts.option.unitreclaimer, type = "bool", value = GetWidgetToggleValue("Unit Reclaimer"), description = texts.option.unitreclaimer_descr },
@@ -3350,29 +3399,7 @@ function init()
 		  end,
 		},
 
-		{ id = "factoryguard", group = "game", category = types.basic, widget = "FactoryGuard", name = texts.option.factory .. widgetOptionColor .. "  " .. texts.option.factoryguard, type = "bool", value = GetWidgetToggleValue("FactoryGuard"), description = texts.option.factoryguard_descr },
-		{ id = "factoryholdpos", group = "game", category = types.basic, widget = "Factory hold position", name = widgetOptionColor .. "   " .. texts.option.factoryholdpos, type = "bool", value = GetWidgetToggleValue("Factory hold position"), description = texts.option.factoryholdpos_descr },
-		{ id = "factoryrepeat", group = "game", category = types.basic, widget = "Factory Auto-Repeat", name = widgetOptionColor .. "   " .. texts.option.factoryrepeat, type = "bool", value = GetWidgetToggleValue("Factory Auto-Repeat"), description = texts.option.factoryrepeat_descr },
 
-		{ id = "transportai", group = "game", category = types.basic, widget = "Transport AI", name = texts.option.transportai, type = "bool", value = GetWidgetToggleValue("Transport AI"), description = texts.option.transportai_descr },
-		{ id = "settargetdefault", group = "game", category = types.basic, widget = "Set target default", name = texts.option.settargetdefault, type = "bool", value = GetWidgetToggleValue("Set target default"), description = texts.option.settargetdefault_descr },
-		{ id = "dgunnogroundenemies", group = "game", category = types.advanced, widget = "DGun no ground enemies", name = texts.option.dgunnogroundenemies, type = "bool", value = GetWidgetToggleValue("DGun no ground enemies"), description = texts.option.dgunnogroundenemies_descr },
-		{ id = "dgunstallassist", group = "game", category = types.advanced, widget = "DGun Stall Assist", name = texts.option.dgunstallassist, type = "bool", value = GetWidgetToggleValue("DGun Stall Assist"), description = texts.option.dgunstallassist_descr },
-
-		{ id = "singleplayerpause", group = "game", category = types.advanced, name = texts.option.singleplayerpause, type = "bool", value = pauseGameWhenSingleplayer, description = texts.option.singleplayerpause_descr,
-		  onchange = function(i, value)
-			  pauseGameWhenSingleplayer = value
-			  if (isSinglePlayer or isReplay) and show then
-				  if pauseGameWhenSingleplayer then
-					  Spring.SendCommands("pause " .. (pauseGameWhenSingleplayer and '1' or '0'))
-					  pauseGameWhenSingleplayerExecuted = pauseGameWhenSingleplayer
-				  elseif pauseGameWhenSingleplayerExecuted then
-					  Spring.SendCommands("pause 0")
-					  pauseGameWhenSingleplayerExecuted = false
-				  end
-			  end
-		  end,
-		},
 
 		-- DEV
 		{ id = "usePlayerUI", group = "dev", category = types.dev, name = "View UI as player", type = "bool", value = not Spring.Utilities.ShowDevUI(),
@@ -4431,6 +4458,10 @@ function init()
 		--planeColor = {number r, number g, number b},
 	}
 
+	--if Spring.GetConfigInt("Fullscreen", 0) == 0 then
+	--	options[getOptionByID('resolution')] = nil
+	--end
+
 	-- force new unit icons
 	if Spring.GetConfigInt("UnitIconsAsUI", 0) == 0 then
 		-- disable new icon options
@@ -4610,14 +4641,15 @@ function init()
 	if not aiDetected then
 		options[getOptionByID('commandsfxfilterai')] = nil
 	end
-
-	if #supportedResolutions < 2 then
-		options[getOptionByID('resolution')] = nil
-	else
-		for id, res in pairs(options[getOptionByID('resolution')].options) do
-			if res == vsx .. ' x ' .. vsy then
-				options[getOptionByID('resolution')].value = id
-				break
+	if getOptionByID('resolution') then
+		if #supportedResolutions < 2 then
+			options[getOptionByID('resolution')] = nil
+		else
+			for id, res in pairs(options[getOptionByID('resolution')].options) do
+				if res == vsx .. ' x ' .. vsy then
+					options[getOptionByID('resolution')].value = id
+					break
+				end
 			end
 		end
 	end
