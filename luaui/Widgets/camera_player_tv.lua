@@ -419,7 +419,7 @@ end
 
 function widget:MousePress(mx, my, mb)
 	if isSpec and (Spring.GetGameFrame() > 0 or lockPlayerID) then
-		if toggleButton ~= nil and isInBox(mx, my, toggleButton) then
+		if toggleButton ~= nil and math_isInRect(mx, my, toggleButton[1], toggleButton[2], toggleButton[3], toggleButton[4]) then
 			if mb == 1 then
 				prevOrderID = nil
 				currentTrackedPlayer = nil
@@ -507,7 +507,7 @@ function widget:DrawScreen()
 			gl.CallList(drawlist[1])
 			gl.PopMatrix()
 			local mx, my, mb = Spring.GetMouseState()
-			if toggleButton ~= nil and isInBox(mx, my, toggleButton) then
+			if toggleButton ~= nil and math_isInRect(mx, my, toggleButton[1], toggleButton[2], toggleButton[3], toggleButton[4]) then
 				gl.CallList(drawlist[2])
 			end
 		end
