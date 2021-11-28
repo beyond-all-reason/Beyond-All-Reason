@@ -1746,25 +1746,25 @@ function init()
 		--	  init()
 		--  end,
 		--},
-		--{ id = "fullscreen", group = "gfx", category = types.basic, name = texts.option.fullscreen, type = "bool", value = tonumber(Spring.GetConfigInt("Fullscreen", 1) or 1) == 1,
-		--  onchange = function(i, value)
-		--	  if value then
-		--		  options[getOptionByID('borderless')].value = false
-		--		  applyOptionValue(getOptionByID('borderless'))
-		--		  local xres = tonumber(Spring.GetConfigInt('XResolutionWindowed', ssx))
-		--		  local yres = tonumber(Spring.GetConfigInt('YResolutionWindowed', ssy))
-		--		  Spring.SetConfigInt("XResolution", xres)
-		--		  Spring.SetConfigInt("YResolution", yres)
-		--	  else
-		--		  local xres = tonumber(Spring.GetConfigInt('XResolution', ssx))
-		--		  local yres = tonumber(Spring.GetConfigInt('YResolution', ssy))
-		--		  Spring.SetConfigInt("XResolutionWindowed", xres)
-		--		  Spring.SetConfigInt("YResolutionWindowed", yres)
-		--	  end
-		--	  checkResolution()
-		--	  Spring.SendCommands("Fullscreen " .. (value and 1 or 0))
-		--	  Spring.SetConfigInt("Fullscreen", (value and 1 or 0))
-		--  end, },
+		{ id = "fullscreen", group = "gfx", category = types.basic, name = texts.option.fullscreen, type = "bool", value = tonumber(Spring.GetConfigInt("Fullscreen", 1) or 1) == 1,
+		  onchange = function(i, value)
+			  if value then
+				  options[getOptionByID('borderless')].value = false
+				  applyOptionValue(getOptionByID('borderless'))
+				  local xres = tonumber(Spring.GetConfigInt('XResolutionWindowed', ssx))
+				  local yres = tonumber(Spring.GetConfigInt('YResolutionWindowed', ssy))
+				  Spring.SetConfigInt("XResolution", xres)
+				  Spring.SetConfigInt("YResolution", yres)
+			  else
+				  local xres = tonumber(Spring.GetConfigInt('XResolution', ssx))
+				  local yres = tonumber(Spring.GetConfigInt('YResolution', ssy))
+				  Spring.SetConfigInt("XResolutionWindowed", xres)
+				  Spring.SetConfigInt("YResolutionWindowed", yres)
+			  end
+			  checkResolution()
+			  Spring.SendCommands("Fullscreen " .. (value and 1 or 0))
+			  Spring.SetConfigInt("Fullscreen", (value and 1 or 0))
+		  end, },
 		{ id = "borderless", group = "gfx", category = types.basic, name = texts.option.borderless, type = "bool", value = tonumber(Spring.GetConfigInt("WindowBorderless", 1) or 1) == 1, description = texts.option.borderless_descr,
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("WindowBorderless", (value and 1 or 0))
@@ -3377,7 +3377,7 @@ function init()
 
 		{ id = "onlyfighterspatrol", group = "game", category = types.basic, widget = "OnlyFightersPatrol", name = texts.option.onlyfighterspatrol, type = "bool", value = GetWidgetToggleValue("Autoquit"), description = texts.option.onlyfighterspatrol_descr },
 		{ id = "fightersfly", group = "game", category = types.basic, widget = "Set fighters on Fly mode", name = texts.option.fightersfly, type = "bool", value = GetWidgetToggleValue("Set fighters on Fly mode"), description = texts.option.fightersfly_descr },
-		
+
 		{ id = "settargetdefault", group = "game", category = types.basic, widget = "Set target default", name = texts.option.settargetdefault, type = "bool", value = GetWidgetToggleValue("Set target default"), description = texts.option.settargetdefault_descr },
 		{ id = "dgunnogroundenemies", group = "game", category = types.advanced, widget = "DGun no ground enemies", name = texts.option.dgunnogroundenemies, type = "bool", value = GetWidgetToggleValue("DGun no ground enemies"), description = texts.option.dgunnogroundenemies_descr },
 		{ id = "dgunstallassist", group = "game", category = types.advanced, widget = "DGun Stall Assist", name = texts.option.dgunstallassist, type = "bool", value = GetWidgetToggleValue("DGun Stall Assist"), description = texts.option.dgunstallassist_descr },
