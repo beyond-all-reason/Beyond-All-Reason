@@ -57,6 +57,8 @@ teams = nil
 local font, font2, lockPlayerID, prevLockPlayerID, toggleButton, backgroundGuishader, prevGameframeClock, chobbyInterface
 local RectRound, elementCorner, bgpadding
 
+local math_isInRect = math.isInRect
+
 local function addPlayerTsOrdered(ts, playerID, teamID, spec)
 	local inserted = false
 	local newTsOrderedPlayers = {}
@@ -355,7 +357,7 @@ function widget:Update(dt)
 	if isSpec and Spring.GetGameFrame() > 0 and not rejoining then
 		if WG['tooltip'] and not toggled and not lockPlayerID then
 			local mx, my, mb = Spring.GetMouseState()
-			if toggleButton ~= nil and isInBox(mx, my, toggleButton) then
+			if toggleButton ~= nil and math_isInRect(mx, my, toggleButton[1], toggleButton[2], toggleButton[3], toggleButton[4]) then
 				Spring.SetMouseCursor('cursornormal')
 				WG['tooltip'].ShowTooltip('playertv', Spring.I18N('ui.playerTV.tooltip'))
 			end
@@ -414,9 +416,6 @@ function widget:GameFrame(n)
 	end
 end
 
-function isInBox(mx, my, box)
-	return mx > box[1] and my > box[2] and mx < box[3] and my < box[4]
-end
 
 function widget:MousePress(mx, my, mb)
 	if isSpec and (Spring.GetGameFrame() > 0 or lockPlayerID) then

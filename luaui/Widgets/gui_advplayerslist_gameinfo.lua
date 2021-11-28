@@ -42,6 +42,8 @@ local GL_SRC_ALPHA = GL.SRC_ALPHA
 local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 local GL_ONE = GL.ONE
 
+local math_isInRect = math.isInRect
+
 local drawlist = {}
 local advplayerlistPos = {}
 local widgetHeight = 22
@@ -56,13 +58,6 @@ local uiOpacitySec = 0.5
 local vsx, vsy = Spring.GetViewGeometry()
 
 local RectRound, UiElement, elementCorner
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
-function isInBox(mx, my, box)
-	return mx > box[1] and my > box[2] and mx < box[3] and my < box[4]
-end
 
 function widget:Initialize()
 	widget:ViewResize()
@@ -228,7 +223,7 @@ function widget:DrawScreen()
 	hovering = false
 	if drawlist[1] ~= nil then
 		local mx, my, mb = Spring.GetMouseState()
-		if isInBox(mx, my, {left, bottom, right, top}) then
+		if math_isInRect(mx, my, left, bottom, right, top) then
 			Spring.SetMouseCursor('cursornormal')
 			hovering = true
 		end

@@ -100,6 +100,8 @@ local glCreateList				= gl.CreateList
 local glDeleteList				= gl.DeleteList
 local glCallList				= gl.CallList
 
+local math_isInRect = math.isInRect
+
 local drawlist = {}
 local xPos = 0
 local yPos = 0
@@ -270,12 +272,8 @@ function widget:DrawScreen()
 	end
 end
 
-function isInBox(mx, my, box)
-    return mx > box[1] and my > box[2] and mx < box[3] and my < box[4]
-end
-
 function widget:MousePress(mx, my, mb)
-	if mb == 1 and isInBox(mx, my, {xPos-(usedImgSize/2), yPos-(usedImgSize/2), xPos+(usedImgSize/2), yPos+(usedImgSize/2)}) then
+	if mb == 1 and math_isInRect(mx, my, xPos-(usedImgSize/2), yPos-(usedImgSize/2), xPos+(usedImgSize/2), yPos+(usedImgSize/2)) then
 		toggleOptions()
 	end
 end
