@@ -152,8 +152,6 @@ return {
 			windowpos = 'Move window position',
 			windowpos_descr = 'Toggle and move window position with the arrow keys or by dragging',
 			vsync = 'V-sync',
-			vsync_spec = 'only when spectator',
-			vsync_spec_descr = 'Only enable vsync when being spectator',
 			vsync_level = 'divider',
 			vsync_level_descr = 'Lowers max framerate, resticting fps. (set to 1 to have max fps)\nneeds vsync option above to be enabled.\nNOTE: does not always work!\n(I like to use this when I\'m spectating on my 144hz laptop)',
 			limitidlefps = 'Limit FPS when idle/offscreen',

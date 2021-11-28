@@ -87,8 +87,6 @@ local useNetworkSmoothing = false
 local customMapSunPos = {}
 local customMapFog = {}
 
-local isSpec = Spring.GetSpectatingState()
-
 local show = false
 local prevShow = show
 local manualChange = true
@@ -141,7 +139,6 @@ local widgetScale = (vsy / 1080)
 
 local vsyncLevel = 1
 local vsyncEnabled = false
-local vsyncOnlyForSpec = false
 
 local defaultMapSunPos = { gl.GetSun("pos") }
 local defaultSunLighting = {
@@ -1786,38 +1783,21 @@ function init()
 		--},
 		{ id = "vsync", group = "gfx", category = types.basic, name = texts.option.vsync, type = "bool", value = vsyncEnabled, description = '',
 		  onchange = function(i, value)
-			  vsyncEnabled = value
-			  local vsync = 0
-			  if vsyncEnabled then
-				  if not vsyncOnlyForSpec or isSpec then
-					  vsync = vsyncLevel
-					  options[getOptionByID('vsync')].value = true
-				  else
-					  options[getOptionByID('vsync')].value = 0.5
-				  end
-			  end
-			  Spring.SetConfigInt("VSync", vsync)
-			  Spring.SetConfigInt("VSyncGame", vsync)    -- stored here as assurance cause lobby/game also changes vsync when idle and lobby could think game has set vsync 4 after a hard crash
+			vsyncEnabled = value
+			local vsync = 0
+			if vsyncEnabled then
+				vsync = vsyncLevel
+				options[getOptionByID('vsync')].value = true
+			end
+			Spring.SetConfigInt("VSync", vsync)
+			Spring.SetConfigInt("VSyncGame", vsync)    -- stored here as assurance cause lobby/game also changes vsync when idle and lobby could think game has set vsync 4 after a hard crash
 		  end,
 		},
-		--{ id = "vsync_spec", group = "gfx", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.vsync_spec, type = "bool", value = vsyncOnlyForSpec, description = texts.option.vsync_spec_descr,
-		--  onchange = function(i, value)
-		--	  vsyncOnlyForSpec = value
-		--	  if isSpec and vsyncEnabled then
-		--		  Spring.SetConfigInt("VSync", (vsyncOnlyForSpec and vsyncLevel or 0))
-		--		  Spring.SetConfigInt("VSyncGame", (vsyncOnlyForSpec and vsyncLevel or 0))    -- stored here as assurance cause lobby/game also changes vsync when idle and lobby could think game has set vsync 4 after a hard crash
-		--	  end
-		--	  if vsyncEnabled then
-		--		  local id = getOptionByID('vsync')
-		--		  options[id].onchange(id, options[id].value)
-		--	  end
-		--  end,
-		--},
 		--{ id = "vsync_level", group = "gfx", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.vsync_level, type = "slider", min = 1, max = 3, step = 1, value = vsyncLevel, description = texts.option.vsync_level_descr,
 		--  onchange = function(i, value)
 		--	  vsyncLevel = value
 		--	  local vsync = 0
-		--	  if vsyncEnabled and (not vsyncOnlyForSpec or isSpec) then
+		--	  if vsyncEnabled then
 		--		  vsync = vsyncLevel
 		--	  end
 		--	  Spring.SetConfigInt("VSync", vsync)
@@ -5010,15 +4990,6 @@ function checkResolution()
 	end
 end
 
-function widget:PlayerChanged(playerID)
-	local prevIsSpec = isSpec
-	isSpec = Spring.GetSpectatingState()
-	if isSpec and isSpec ~= prevIsSpec and vsyncEnabled and vsyncOnlyForSpec then
-		local id = getOptionByID('vsync')
-		options[id].onchange(id, options[id].value)
-	end
-end
-
 function widget:UnsyncedHeightMapUpdate(x1, z1, x2, z2)
 	if not waterDetected and Spring.GetGameFrame() > 30 then
 		if heightmapChangeClock == nil then
@@ -5097,7 +5068,7 @@ function widget:Initialize()
 
 		-- set vsync
 		local vsync = 0
-		if vsyncEnabled and (not isSpec or vsyncOnlyForSpec) then
+		if vsyncEnabled then
 			vsync = vsyncLevel
 		end
 		Spring.SetConfigInt("VSync", vsync)
@@ -5313,7 +5284,6 @@ function widget:GetConfigData()
 		desiredWaterValue = desiredWaterValue,			-- configint water cant be used since we will set water 0 when no water is present
 		vsyncEnabled = vsyncEnabled,			-- configint vsync cant be used since we will change vsync depending on idle state for example
 		vsyncLevel = vsyncLevel,
-		--vsyncOnlyForSpec = vsyncOnlyForSpec,
 		pauseGameWhenSingleplayerExecuted = pauseGameWhenSingleplayerExecuted,
 		pauseGameWhenSingleplayer = pauseGameWhenSingleplayer,
 
@@ -5341,9 +5311,6 @@ end
 function widget:SetConfigData(data)
 	if data.vsyncEnabled ~= nil then
 		vsyncEnabled = data.vsyncEnabled
-	end
-	if data.vsyncOnlyForSpec ~= nil then
-		vsyncOnlyForSpec = data.vsyncOnlyForSpec
 	end
 	if data.vsyncLevel ~= nil then
 		vsyncLevel = data.vsyncLevel
