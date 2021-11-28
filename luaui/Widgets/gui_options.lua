@@ -1793,17 +1793,6 @@ function init()
 			Spring.SetConfigInt("VSyncGame", vsync)    -- stored here as assurance cause lobby/game also changes vsync when idle and lobby could think game has set vsync 4 after a hard crash
 		  end,
 		},
-		--{ id = "vsync_level", group = "gfx", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.vsync_level, type = "slider", min = 1, max = 3, step = 1, value = vsyncLevel, description = texts.option.vsync_level_descr,
-		--  onchange = function(i, value)
-		--	  vsyncLevel = value
-		--	  local vsync = 0
-		--	  if vsyncEnabled then
-		--		  vsync = vsyncLevel
-		--	  end
-		--	  Spring.SetConfigInt("VSync", vsync)
-		--	  Spring.SetConfigInt("VSyncGame", vsync)    -- stored here as assurance cause lobby/game also changes vsync when idle and lobby could think game has set vsync 4 after a hard crash
-		--  end,
-		--},
 		{ id = "limitidlefps", group = "gfx", category = types.advanced, widget = "Limit idle FPS", name = texts.option.limitidlefps, type = "bool", value = GetWidgetToggleValue("Limit idle FPS"), description = texts.option.limitidlefps_descr },
 
 		{ id = "msaa", group = "gfx", category = types.basic, name = texts.option.msaa, type = "select", options = { 'off', 'x1', 'x2', 'x4', 'x8'}, restart = true, value = tonumber(Spring.GetConfigInt("MSAALevel", 1) or 2), description = texts.option.msaa_descr,
@@ -5283,7 +5272,6 @@ function widget:GetConfigData()
 		useNetworkSmoothing = useNetworkSmoothing,
 		desiredWaterValue = desiredWaterValue,			-- configint water cant be used since we will set water 0 when no water is present
 		vsyncEnabled = vsyncEnabled,			-- configint vsync cant be used since we will change vsync depending on idle state for example
-		vsyncLevel = vsyncLevel,
 		pauseGameWhenSingleplayerExecuted = pauseGameWhenSingleplayerExecuted,
 		pauseGameWhenSingleplayer = pauseGameWhenSingleplayer,
 
@@ -5311,9 +5299,6 @@ end
 function widget:SetConfigData(data)
 	if data.vsyncEnabled ~= nil then
 		vsyncEnabled = data.vsyncEnabled
-	end
-	if data.vsyncLevel ~= nil then
-		vsyncLevel = data.vsyncLevel
 	end
 	if data.desiredWaterValue ~= nil then
 		desiredWaterValue = data.desiredWaterValue
