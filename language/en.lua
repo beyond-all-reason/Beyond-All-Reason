@@ -136,7 +136,7 @@ return {
 			label_unit = 'Unit',
 			label_debug = 'Debug',
 			label_other = 'Other',
-			preset = 'Load graphics preset',
+			preset = 'Graphics Quality',
 			resolution = 'Resolution',
 			resolution_descr = 'WARNING: sometimes freezes game engine in windowed mode',
 			fullscreen = 'Fullscreen',

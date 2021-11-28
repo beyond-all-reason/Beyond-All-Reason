@@ -94,6 +94,7 @@ local isSpec = Spring.GetSpectatingState()
 
 local show = false
 local prevShow = show
+local manualChange = true
 
 local spIsGUIHidden = Spring.IsGUIHidden
 local spGetGroundHeight = Spring.GetGroundHeight
@@ -979,7 +980,7 @@ function widget:DrawScreen()
 
 				-- highlight all that are affected by presets
 				if options[showSelectOptions].id == 'preset' then
-					for optionID, _ in pairs(presets['lowest']) do
+					for optionID, _ in pairs(presets.lowest) do
 						local optionKey = getOptionByID(optionID)
 						if optionHover[optionKey] ~= nil then
 							RectRound(optionHover[optionKey][1], optionHover[optionKey][2] + 1, optionHover[optionKey][3], optionHover[optionKey][4] - 1, 1, 2, 2, 2, 2, { 0, 0, 0, 0.15 }, { 1, 1, 1, 0.15 })
@@ -1420,6 +1421,11 @@ function applyOptionValue(i, skipRedrawWindow, force)
 		return
 	end
 
+	if options[i].id ~= 'preset' and presets.lowest[options[i].id] ~= nil and manualChange then
+		options[getOptionByID('preset')].value = presetCodes.custom
+		Spring.SetConfigString('graphicsPreset', presetCodes[presetCodes.custom])
+	end
+
 	if options[i].restart then
 		changesRequireRestart = true
 	end
@@ -1698,14 +1704,19 @@ function init()
 	options = {
 		--GFX
 		-- PRESET
-		{ id = "preset", group = "gfx", category = types.basic, name = texts.option.preset, type = "select", options = presetNames, value = 0,
-		  onload = function(i)
-		  end,
-		  onchange = function(i, value)
-			  Spring.Echo('Loading preset:   ' .. options[i].options[value])
-			  options[i].value = 0
-			  loadPreset(presetCodes[value])
-		  end,
+		{ id = "preset", group = "gfx", category = types.basic, name = texts.option.preset, type = "select", options = presetNames, value = presetCodes[Spring.GetConfigString('graphicsPreset')],
+			onload = function(i)
+			end,
+			onchange = function(i, value)
+				Spring.SetConfigString('graphicsPreset', presetCodes[value])
+
+				if value == presetCodes.custom then return end
+
+				Spring.Echo('Loading preset:   ' .. options[i].options[value])
+				manualChange = false
+				loadPreset(presetCodes[value])
+				manualChange = true
+			end,
 		},
 		{ id = "label_gfx_screen", group = "gfx", name = texts.option.label_screen, category = types.basic },
 		{ id = "label_gfx_screen_spacer", group = "gfx", category = types.basic },
