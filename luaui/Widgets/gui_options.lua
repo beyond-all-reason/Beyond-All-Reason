@@ -19,13 +19,13 @@ local types = {
 }
 
 local texts = {}    -- loaded from external language file
-local languages = Spring.I18N.languages
-local languageCodes = { 'en', 'fr' }
-local languageCodesInverse = table.invert(languageCodes)
-local languageNames = {}
 
+local languageCodes = { 'en', 'fr' }
+languageCodes = table.merge(languageCodes, table.invert(languageCodes))
+
+local languageNames = {}
 for key, code in ipairs(languageCodes) do
-	languageNames[key] = languages[code]
+	languageNames[key] = Spring.I18N.languages[code]
 end
 
 local ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.6)
@@ -91,6 +91,7 @@ local isSpec = Spring.GetSpectatingState()
 
 local show = false
 local prevShow = show
+local manualChange = true
 
 local spIsGUIHidden = Spring.IsGUIHidden
 local spGetGroundHeight = Spring.GetGroundHeight
@@ -166,9 +167,9 @@ local showOnceMore = false        -- used because of GUI shader delay
 local resettedTonemapDefault = false
 local heightmapChangeClock
 
+local presetCodes = {}
 local presetNames = {}
 local presets = {}
-local customPresets = {}
 
 local startScript = VFS.LoadFile("_script.txt")
 if not startScript then
@@ -976,7 +977,7 @@ function widget:DrawScreen()
 
 				-- highlight all that are affected by presets
 				if options[showSelectOptions].id == 'preset' then
-					for optionID, _ in pairs(presets['lowest']) do
+					for optionID, _ in pairs(presets.lowest) do
 						local optionKey = getOptionByID(optionID)
 						if optionHover[optionKey] ~= nil then
 							RectRound(optionHover[optionKey][1], optionHover[optionKey][2] + 1, optionHover[optionKey][3], optionHover[optionKey][4] - 1, 1, 2, 2, 2, 2, { 0, 0, 0, 0.15 }, { 1, 1, 1, 0.15 })
@@ -1195,25 +1196,6 @@ function mouseEvent(mx, my, button, release)
 		if button == 3 then
 			if titleRect ~= nil and math_isInRect(mx, my, titleRect[1], titleRect[2], titleRect[3], titleRect[4]) then
 				return
-			end
-			if showSelectOptions ~= nil and options[showSelectOptions].id == 'preset' then
-				for i, o in pairs(optionSelect) do
-					if math_isInRect(mx, my, o[1], o[2], o[3], o[4]) then
-						if presetNames[o[5]] and customPresets[presetNames[o[5]]] ~= nil then
-							deletePreset(presetNames[o[5]])
-							if playSounds then
-								Spring.PlaySoundFile(sounds.selectClick, 0.5, 'ui')
-							end
-							if selectClickAllowHide ~= nil or not math_isInRect(mx, my, optionButtons[showSelectOptions][1], optionButtons[showSelectOptions][2], optionButtons[showSelectOptions][3], optionButtons[showSelectOptions][4]) then
-								showSelectOptions = nil
-								selectClickAllowHide = nil
-							else
-								selectClickAllowHide = true
-							end
-							return
-						end
-					end
-				end
 			end
 		elseif button == 1 then
 			if release then
@@ -1436,6 +1418,11 @@ function applyOptionValue(i, skipRedrawWindow, force)
 		return
 	end
 
+	if options[i].id ~= 'preset' and presets.lowest[options[i].id] ~= nil and manualChange then
+		options[getOptionByID('preset')].value = presetCodes.custom
+		Spring.SetConfigString('graphicsPreset', presetCodes[presetCodes.custom])
+	end
+
 	if options[i].restart then
 		changesRequireRestart = true
 	end
@@ -1496,10 +1483,15 @@ if gpuMem and gpuMem > 0 and gpuMem < 1800 then
 end
 
 function init()
+	presetCodes = { 'lowest', 'low', 'medium', 'high', 'ultra', 'custom', }
+	presetCodes = table.merge(presetCodes, table.invert(presetCodes))
 
-	presetNames = { texts.option.preset_lowest, texts.option.preset_low, texts.option.preset_medium, texts.option.preset_high, texts.option.preset_ultra }
+	for index, name in ipairs(presetCodes) do
+		presetNames[index] = texts.option['preset_' .. name]
+	end
+
 	presets = {
-		[presetNames[1]] = {
+		lowest = {
 			bloomdeferred = false,
 			ssao = 0,
 			mapedgeextension = false,
@@ -1515,7 +1507,7 @@ function init()
 			grass = false,
 			darkenmap_darkenfeatures = false,
 		},
-		[presetNames[2]] = {
+		low = {
 			bloomdeferred = true,
 			ssao = 0,
 			mapedgeextension = false,
@@ -1531,7 +1523,7 @@ function init()
 			grass = false,
 			darkenmap_darkenfeatures = false,
 		},
-		[presetNames[3]] = {
+		medium = {
 		 	bloomdeferred = true,
 		 	ssao = 1,
 		 	mapedgeextension = true,
@@ -1547,7 +1539,7 @@ function init()
 		 	grass = true,
 		 	darkenmap_darkenfeatures = false,
 		},
-		[presetNames[4]] = {
+		high = {
 			bloomdeferred = true,
 			ssao = 2,
 			mapedgeextension = true,
@@ -1563,7 +1555,7 @@ function init()
 			grass = true,
 			darkenmap_darkenfeatures = false,
 		},
-		[presetNames[5]] = {
+		ultra = {
 			bloomdeferred = true,
 			ssao = 3,
 			mapedgeextension = true,
@@ -1579,8 +1571,8 @@ function init()
 			grass = true,
 			darkenmap_darkenfeatures = true,
 		},
+		custom = {},
 	}
-	customPresets = {}
 
 	local supportedResolutions = {}
 	local soundDevices = { 'default' }
@@ -1671,7 +1663,7 @@ function init()
 		if isPotatoGpu then
 			Spring.Echo('potato Graphics Card detected')
 		end
-		presetNames = { texts.option.preset_lowest, texts.option.preset_low, texts.option.preset_medium }
+		presetNames = { texts.option.preset_lowest, texts.option.preset_low, texts.option.preset_medium, texts.option.preset_custom }
 	end
 
 	-- if you want to add an option it should be added here, and in applyOptionValue(), if option needs shaders than see the code below the options definition
@@ -1704,14 +1696,19 @@ function init()
 	options = {
 		--GFX
 		-- PRESET
-		{ id = "preset", group = "gfx", category = types.basic, name = texts.option.preset, type = "select", options = presetNames, value = 0, description = texts.option.preset_descr,
-		  onload = function(i)
-		  end,
-		  onchange = function(i, value)
-			  Spring.Echo('Loading preset:   ' .. options[i].options[value])
-			  options[i].value = 0
-			  loadPreset(presetNames[value])
-		  end,
+		{ id = "preset", group = "gfx", category = types.basic, name = texts.option.preset, type = "select", options = presetNames, value = presetCodes[Spring.GetConfigString('graphicsPreset')],
+			onload = function(i)
+			end,
+			onchange = function(i, value)
+				Spring.SetConfigString('graphicsPreset', presetCodes[value])
+
+				if value == presetCodes.custom then return end
+
+				Spring.Echo('Loading preset:   ' .. options[i].options[value])
+				manualChange = false
+				loadPreset(presetCodes[value])
+				manualChange = true
+			end,
 		},
 		{ id = "label_gfx_screen", group = "gfx", name = texts.option.label_screen, category = types.basic },
 		{ id = "label_gfx_screen_spacer", group = "gfx", category = types.basic },
@@ -3450,7 +3447,7 @@ function init()
 		  end,
 		},
 
-		{ id = "language", group = "dev", category = types.dev, name = texts.option.language, type = "select", options = languageNames, value = languageCodesInverse[Spring.I18N.getLocale()],
+		{ id = "language", group = "dev", category = types.dev, name = texts.option.language, type = "select", options = languageNames, value = languageCodes[Spring.I18N.getLocale()],
 		  onchange = function(i, value)
 			  Spring.I18N.setLanguage(languageCodes[value])
 			  if Script.LuaUI('LanguageChanged') then
@@ -4953,54 +4950,6 @@ function init()
 	windowList = gl.CreateList(DrawWindow)
 end
 
-function deletePreset(name)
-	Spring.Echo('deleted preset:  ' .. name)
-	customPresets[name] = nil
-	presets[name] = nil
-	local newPresetNames = {}
-	for _, presetName in ipairs(presetNames) do
-		if presetName ~= name then
-			table.insert(newPresetNames, presetName)
-		end
-	end
-	presetNames = newPresetNames
-	options[getOptionByID('preset')].options = presetNames
-	if windowList then
-		gl.DeleteList(windowList)
-	end
-	windowList = gl.CreateList(DrawWindow)
-end
-
-function savePreset(name)
-	if name == nil then
-		name = 'custom'
-		local i = 1
-		while customPresets[name] ~= nil do
-			i = i + 1
-			name = 'custom' .. i
-		end
-	end
-	if presets[name] ~= nil then
-		Spring.Echo("preset '" .. name .. "' already exists")
-	else
-		local preset = {}
-		for optionID, _ in pairs(presets['lowest']) do
-			if options[getOptionByID(optionID)] ~= nil then
-				preset[optionID] = options[getOptionByID(optionID)].value
-			end
-		end
-		customPresets[name] = preset
-		presets[name] = preset
-		table.insert(presetNames, name)
-		options[getOptionByID('preset')].options = presetNames
-		Spring.Echo('saved preset: ' .. name)
-		if windowList then
-			gl.DeleteList(windowList)
-		end
-		windowList = gl.CreateList(DrawWindow)
-	end
-end
-
 function checkResolution()
 	-- resize resolution if is larger than screen resolution
 	wsx, wsy, wpx, wpy = Spring.GetWindowGeometry()
@@ -5228,11 +5177,6 @@ function widget:Initialize()
 			return false
 		end
 	end
-
-	table.mergeInPlace(presets, customPresets)
-	for preset, _ in pairs(customPresets) do
-		table.insert(presetNames, preset)
-	end
 end
 
 function widget:Shutdown()
@@ -5311,15 +5255,6 @@ function widget:TextCommand(command)
 			end
 		end
 	end
-
-	if string.find(command, "savepreset", nil, true) == 1 then
-		local words = string.split(command, ' ')
-		if words[2] then
-			savePreset(words[2])
-		else
-			savePreset()
-		end
-	end
 end
 
 function getSelectKey(i, value)
@@ -5383,9 +5318,6 @@ function widget:SetConfigData(data)
 	end
 	if data.resettedTonemapDefault ~= nil then
 		resettedTonemapDefault = data.resettedTonemapDefault
-	end
-	if data.customPresets ~= nil then
-		customPresets = data.customPresets
 	end
 	if data.cameraTransitionTime ~= nil then
 		cameraTransitionTime = data.cameraTransitionTime
