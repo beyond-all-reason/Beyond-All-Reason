@@ -1,16 +1,3 @@
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
---
---	file: gui_musicPlayer.lua
---	brief:	yay music
---	author:	cake
---
---	Copyright (C) 2007.
---	Licensed under the terms of the GNU GPL, v2 or later.
---
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
 function widget:GetInfo()
 	return {
 		name	= "AdvPlayersList Music Player",
@@ -66,34 +53,25 @@ local playedTracks = {}
 
 local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity",0.66) or 0.66)
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale",1) or 1)
-local glossMult = 1 + (2-(ui_opacity*2))	-- increase gloss/highlight so when ui is transparant, you can still make out its boundaries and make it less flat
 
-local firstTime = false
 local wasPaused = false
 local gameOver = false
 local playing = (Spring.GetConfigInt('music', 1) == 1)
 
 local playedTime, totalTime = Spring.GetSoundStreamTime()
 local targetTime = totalTime
+local firstTime = (totalTime > 0)
 
-if totalTime > 0 then
-	firstTime = true
-end
-
-local playTex				= ":l:"..LUAUI_DIRNAME.."Images/music/play.png"
-local pauseTex				= ":l:"..LUAUI_DIRNAME.."Images/music/pause.png"
-local nextTex				= ":l:"..LUAUI_DIRNAME.."Images/music/next.png"
-local musicTex				= ":l:"..LUAUI_DIRNAME.."Images/music/music.png"
-local volumeTex				= ":l:"..LUAUI_DIRNAME.."Images/music/volume.png"
+local playTex	= ":l:"..LUAUI_DIRNAME.."Images/music/play.png"
+local pauseTex	= ":l:"..LUAUI_DIRNAME.."Images/music/pause.png"
+local nextTex	= ":l:"..LUAUI_DIRNAME.."Images/music/next.png"
+local musicTex	= ":l:"..LUAUI_DIRNAME.."Images/music/music.png"
+local volumeTex	= ":l:"..LUAUI_DIRNAME.."Images/music/volume.png"
 
 local widgetScale = 1
-local glScale        = gl.Scale
-local glRotate       = gl.Rotate
-local glTranslate	 = gl.Translate
 local glPushMatrix   = gl.PushMatrix
 local glPopMatrix	 = gl.PopMatrix
 local glColor        = gl.Color
-local glRect         = gl.Rect
 local glTexRect	     = gl.TexRect
 local glTexture      = gl.Texture
 local glCreateList   = gl.CreateList
@@ -105,45 +83,46 @@ local GL_SRC_ALPHA = GL.SRC_ALPHA
 local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 local GL_ONE = GL.ONE
 
-local RectRound, UiElement, UiButton, UiSlider, UiSliderKnob, elementCorner
+local math_isInRect = math.isInRect
 
 local guishaderEnabled = (WG['guishader'] ~= nil)
-
 local drawlist = {}
 local advplayerlistPos = {}
 local widgetHeight = 22
-local top, left, bottom, right = 0,0,0,0
 local borderPadding = 5
-
-local shown = false
+local top, left, bottom, right = 0,0,0,0
 local mouseover = false
 
 local dynamicMusic = Spring.GetConfigInt("bar_dynamicmusic", 1)
 local interruptMusic = Spring.GetConfigInt("bar_interruptmusic", 1)
 local warMeter = 0
 local maxWarMeter = 1500
-
-
 local fadeOut = false
 local maxMusicVolume = Spring.GetConfigInt("snd_volmusic", 20)	-- user value, cause actual volume will change during fadein/outc
 local volume = Spring.GetConfigInt("snd_volmaster", 100)
-
 local fadeMult = 1
 local uiOpacitySec = 0
+local averageSkipTime = 16
 
---Assume that if it isn't set, dynamic music is true
-if dynamicMusic == nil then
+local RectRound, UiElement, UiButton, UiSlider, UiSliderKnob, elementCorner
+
+if dynamicMusic == nil then	-- Assume that if it isn't set, dynamic music is true
 	dynamicMusic = 1
 end
-
---Assume that if it isn't set, interrupt music is true
-if interruptMusic == nil then
+if interruptMusic == nil then	-- Assume that if it isn't set, interrupt music is true
 	interruptMusic = 1
 end
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
 
-function updateMusicVolume()	-- handles fadings
+local function getKeyByValue(t, id)
+	for k, v in pairs(t) do
+		if v == id then
+			return k
+		end
+	end
+	return false
+end
+
+local function updateMusicVolume()	-- handles fadings
 	playedTime, totalTime = Spring.GetSoundStreamTime()
 	if playedTime < fadeInTime then
 		fadeMult = playedTime / fadeInTime
@@ -155,8 +134,7 @@ function updateMusicVolume()	-- handles fadings
 	Spring.SetConfigInt("snd_volmusic", (math.random()*0.1) + (maxMusicVolume * fadeMult))	-- added random value so its unique and forces engine to update (else it wont actually do)
 end
 
-function applyTracksConfig()
-	local isPeace = (tracks == peaceTracks)
+local function applyTracksConfig()
 	peaceTracks = {}
 	warTracks = {}
 	for track, params in pairs(tracksConfig) do
@@ -168,11 +146,11 @@ function applyTracksConfig()
 			end
 		end
 	end
+	local isPeace = (tracks == peaceTracks)
 	tracks = (isPeace and peaceTracks or warTracks)
 end
 
-function toggleTrack(track, value)
-	local isPeace = (tracks == peaceTracks)
+local function toggleTrack(track, value)
 	local isPeaceTrack = tracksConfig[track][2] == 'peace'
 	tracksConfig[track][1] = value
 	if value then
@@ -198,12 +176,7 @@ function toggleTrack(track, value)
 end
 
 
-function isInBox(mx, my, box)
-	return mx > box[1] and my > box[2] and mx < box[3] and my < box[4]
-end
-
 local function createList()
-
 	local padding = math.floor(2.75*widgetScale) -- button background margin
 	local padding2 = math.floor(2.5*widgetScale) -- inner icon padding
 	local volumeWidth = math.floor(50*widgetScale)
@@ -221,16 +194,13 @@ local function createList()
 	buttons['volume'][5] = buttons['volume'][1] + (buttons['volume'][3] - buttons['volume'][1]) * (volume/200)
 
 	local textsize = 11*widgetScale
-	local textYPadding = 8*widgetScale
 	local textXPadding = 7*widgetScale
 	local maxTextWidth = right-buttons['next'][3]-textXPadding-textXPadding
 
 	if drawlist[1] ~= nil then
-		glDeleteList(drawlist[5])
-		glDeleteList(drawlist[1])
-		glDeleteList(drawlist[2])
-		glDeleteList(drawlist[3])
-		glDeleteList(drawlist[4])
+		for i=1, #drawlist do
+			glDeleteList(drawlist[i])
+		end
 	end
 	if WG['guishader'] then
 		drawlist[5] = glCreateList( function()
@@ -330,218 +300,22 @@ local function createList()
 	end
 end
 
-
-function widget:Initialize()
-	widget:ViewResize()
-	updateMusicVolume()
-
-	if #tracks == 0 then
-		Spring.Echo("[Music Player] No music was found, Shutting Down")
-		widgetHandler:RemoveWidget()
-		return
-	end
-
-	updatePosition()
-
-	WG['music'] = {}
-	WG['music'].GetPosition = function()
-		if shutdown then
-			return false
-		end
-		updatePosition(force)
-		return {top,left,bottom,right,widgetScale}
-	end
-	WG['music'].playTrack = function(track)
-		PlayNewTrack(track)
-	end
-	WG['music'].GetMusicVolume = function()
-		return maxMusicVolume
-	end
-	WG['music'].SetMusicVolume = function(value)
-		maxMusicVolume = value
-		Spring.SetConfigInt("snd_volmusic", math.floor(maxMusicVolume * fadeMult))
-		createList()
-	end
-	WG['music'].getTracksConfig = function(value)
-		return tracksConfig
-	end
-	for track, params in pairs(tracksConfig) do
-		-- get track
-		WG['music']['getTrack'..track] = function()
-			return params[1]
-		end
-		-- set track
-		WG['music']['setTrack'..track] = function(value)
-			toggleTrack(track, value)
-		end
-	end
-end
-
-function getSliderValue(button, x)
-	local sliderWidth = buttons[button][3] - buttons[button][1]
-	local value = (x - buttons[button][1]) / (sliderWidth)
-	if value < 0 then value = 0 end
-	if value > 1 then value = 1 end
-	return value
-end
-
-
-function widget:MouseMove(x, y)
-	if draggingSlider ~= nil then
-		if draggingSlider == 'musicvolume' then
-			maxMusicVolume = math.floor(getSliderValue(draggingSlider, x) * 100)
-			Spring.SetConfigInt("snd_volmusic", math.floor(maxMusicVolume * fadeMult))
-			createList()
-		end
-		if draggingSlider == 'volume' then
-			volume = math.floor(getSliderValue(draggingSlider, x) * 200)
-			Spring.SetConfigInt("snd_volmaster", volume)
+local function updatePosition(force)
+	if WG['advplayerlist_api'] ~= nil then
+		local prevPos = advplayerlistPos
+		advplayerlistPos = WG['advplayerlist_api'].GetPosition()		-- returns {top,left,bottom,right,widgetScale}
+		left = advplayerlistPos[2]
+		bottom = advplayerlistPos[1]
+		right = advplayerlistPos[4]
+		top = math.ceil(advplayerlistPos[1]+(widgetHeight*advplayerlistPos[5]))
+		widgetScale = advplayerlistPos[5]
+		if (prevPos[1] == nil or prevPos[1] ~= advplayerlistPos[1] or prevPos[2] ~= advplayerlistPos[2] or prevPos[5] ~= advplayerlistPos[5]) or force then
 			createList()
 		end
 	end
 end
 
-function widget:MousePress(x, y, button)
-	return mouseEvent(x, y, button, false)
-end
-
-function widget:MouseRelease(x, y, button)
-	return mouseEvent(x, y, button, true)
-end
-
-function mouseEvent(x, y, button, release)
-
-	if Spring.IsGUIHidden() then return false end
-	if button == 1 then
-		if not release then
-			local sliderWidth = (3.3*widgetScale) -- should be same as in createlist()
-			local button = 'musicvolume'
-			if isInBox(x, y, {buttons[button][1]-sliderWidth, buttons[button][2], buttons[button][3]+sliderWidth, buttons[button][4]}) then
-				draggingSlider = button
-				maxMusicVolume = math.floor(getSliderValue(button, x) * 100)
-				Spring.SetConfigInt("snd_volmusic", math.floor(maxMusicVolume * fadeMult))
-				createList()
-			end
-			button = 'volume'
-			if isInBox(x, y, {buttons[button][1]-sliderWidth, buttons[button][2], buttons[button][3]+sliderWidth, buttons[button][4]}) then
-				draggingSlider = button
-				volume = math.floor(getSliderValue(button, x) * 200)
-				Spring.SetConfigInt("snd_volmaster", volume)
-				createList()
-			end
-		end
-		if release and draggingSlider ~= nil then
-			draggingSlider = nil
-		end
-		if button == 1 and not release and isInBox(x, y, {left, bottom, right, top}) then
-			if buttons['playpause'] ~= nil and isInBox(x, y, {buttons['playpause'][1], buttons['playpause'][2], buttons['playpause'][3], buttons['playpause'][4]}) then
-				playing = not playing
-				Spring.SetConfigInt('music', (playing and 1 or 0))
-				Spring.PauseSoundStream()
-				createList()
-				return true
-			elseif buttons['next'] ~= nil and isInBox(x, y, {buttons['next'][1], buttons['next'][2], buttons['next'][3], buttons['next'][4]}) then
-				PlayNewTrack()
-				return true
-			end
-			return true
-		end
-	end
-
-	if mouseover and isInBox(x, y, {left, bottom, right, top}) then
-		return true
-	end
-end
-
-
-function widget:Shutdown()
-	shutdown = true
-	Spring.SetConfigInt('music', (playing and 1 or 0))
-
-	--Spring.StopSoundStream()	-- disable music outside of this widget, cause else it restarts on every luaui reload
-
-	if WG['guishader'] then
-		WG['guishader'].RemoveDlist('music')
-	end
-	if WG['tooltip'] ~= nil then
-		WG['tooltip'].RemoveTooltip('music')
-	end
-
-	for i=1,#drawlist do
-		glDeleteList(drawlist[i])
-	end
-	WG['music'] = nil
-end
-
-function widget:UnitDamaged(_, _, _, damage)
-	warMeter = warMeter + damage
-	if warMeter > maxWarMeter then
-		warMeter = maxWarMeter
-	end
-end
-
-
-function getKeyByValue(t, id)
-	for k, v in pairs(t) do
-		if v == id then
-			return k
-		end
-	end
-	return false
-end
-
-function widget:GameFrame(n)
-    if n%5 == 4 then
-		updateMusicVolume()
-
-		dynamicMusic = Spring.GetConfigInt("bar_dynamicmusic", 1)
-		interruptMusic = Spring.GetConfigInt("bar_interruptmusic", 1)
-
-		--Assume that if it isn't set, dynamic music is true
-		if dynamicMusic == nil then
-			dynamicMusic = 1
-		end
-
-		--Assume that if it isn't set, interrupt music is true
-		if interruptMusic == nil then
-			interruptMusic = 1
-		end
-
-		if dynamicMusic == 1 then
-			--Spring.Echo("[Music Player] Unit Death Count is currently: ".. warMeter)
-			if warMeter <= 1 then
-				warMeter = 0
-			elseif warMeter >= 3000 then
-				warMeter = warMeter - 500
-			elseif warMeter >= 1000 then
-				warMeter = warMeter - 100
-			elseif warMeter >= 0 then
-				warMeter = warMeter - 3
-			end
-			if not manualPlay then
-				if interruptMusic == 1 and not fadeOut then
-					if tracks == peaceTracks and warMeter >= 200 then
-						fadeOut = true
-						targetTime = playedTime + fadeOutTime
-						if targetTime > totalTime then
-							targetTime = totalTime
-						end
-					elseif (tracks == warTracks and warMeter <= 0) then
-						fadeOut = true
-						targetTime = playedTime + fadeOutTime
-						if targetTime > totalTime then
-							targetTime = totalTime
-						end
-					end
-				end
-			end
-		end
-   end
-end
-
-
-local averageSkipTime = 16
-function PlayNewTrack(track)
+local function PlayNewTrack(track)
 	fadeOut = false
 	if prevStreamStartTime then
 		local timeDiff = os.clock()-prevStreamStartTime
@@ -609,7 +383,7 @@ function PlayNewTrack(track)
 	--Spring.Echo(#tracks, newTrack)
 	curTrack = newTrack
 	Spring.PlaySoundStream(newTrack)
-    Spring.SetSoundStreamVolume(0)
+	Spring.SetSoundStreamVolume(0)
 	playedTime, totalTime = Spring.GetSoundStreamTime()
 	if playedTime == 0 then playedTime = 0.001 end
 	targetTime = totalTime
@@ -619,13 +393,206 @@ function PlayNewTrack(track)
 	createList()
 end
 
+function widget:Initialize()
+	widget:ViewResize()
+	updateMusicVolume()
+
+	if #tracks == 0 then
+		Spring.Echo("[Music Player] No music was found, Shutting Down")
+		widgetHandler:RemoveWidget()
+		return
+	end
+
+	updatePosition()
+
+	WG['music'] = {}
+	WG['music'].GetPosition = function()
+		if shutdown then
+			return false
+		end
+		updatePosition(force)
+		return {top,left,bottom,right,widgetScale}
+	end
+	WG['music'].playTrack = function(track)
+		PlayNewTrack(track)
+	end
+	WG['music'].GetMusicVolume = function()
+		return maxMusicVolume
+	end
+	WG['music'].SetMusicVolume = function(value)
+		maxMusicVolume = value
+		Spring.SetConfigInt("snd_volmusic", math.floor(maxMusicVolume * fadeMult))
+		createList()
+	end
+	WG['music'].getTracksConfig = function(value)
+		return tracksConfig
+	end
+	for track, params in pairs(tracksConfig) do
+		WG['music']['getTrack'..track] = function()
+			return params[1]
+		end
+		WG['music']['setTrack'..track] = function(value)
+			toggleTrack(track, value)
+		end
+	end
+end
+
+local function getSliderValue(button, x)
+	local sliderWidth = buttons[button][3] - buttons[button][1]
+	local value = (x - buttons[button][1]) / (sliderWidth)
+	if value < 0 then value = 0 end
+	if value > 1 then value = 1 end
+	return value
+end
+
+
+function widget:MouseMove(x, y)
+	if draggingSlider ~= nil then
+		if draggingSlider == 'musicvolume' then
+			maxMusicVolume = math.floor(getSliderValue(draggingSlider, x) * 100)
+			Spring.SetConfigInt("snd_volmusic", math.floor(maxMusicVolume * fadeMult))
+			createList()
+		end
+		if draggingSlider == 'volume' then
+			volume = math.floor(getSliderValue(draggingSlider, x) * 200)
+			Spring.SetConfigInt("snd_volmaster", volume)
+			createList()
+		end
+	end
+end
+
+local function mouseEvent(x, y, button, release)
+
+	if Spring.IsGUIHidden() then return false end
+	if button == 1 then
+		if not release then
+			local sliderWidth = (3.3*widgetScale) -- should be same as in createlist()
+			local button = 'musicvolume'
+			if math_isInRect(x, y, buttons[button][1]-sliderWidth, buttons[button][2], buttons[button][3]+sliderWidth, buttons[button][4]) then
+				draggingSlider = button
+				maxMusicVolume = math.floor(getSliderValue(button, x) * 100)
+				Spring.SetConfigInt("snd_volmusic", math.floor(maxMusicVolume * fadeMult))
+				createList()
+			end
+			button = 'volume'
+			if math_isInRect(x, y, buttons[button][1]-sliderWidth, buttons[button][2], buttons[button][3]+sliderWidth, buttons[button][4]) then
+				draggingSlider = button
+				volume = math.floor(getSliderValue(button, x) * 200)
+				Spring.SetConfigInt("snd_volmaster", volume)
+				createList()
+			end
+		end
+		if release and draggingSlider ~= nil then
+			draggingSlider = nil
+		end
+		if button == 1 and not release and math_isInRect(x, y, left, bottom, right, top) then
+			if buttons['playpause'] ~= nil and math_isInRect(x, y, buttons['playpause'][1], buttons['playpause'][2], buttons['playpause'][3], buttons['playpause'][4]) then
+				playing = not playing
+				Spring.SetConfigInt('music', (playing and 1 or 0))
+				Spring.PauseSoundStream()
+				createList()
+				return true
+			elseif buttons['next'] ~= nil and math_isInRect(x, y, buttons['next'][1], buttons['next'][2], buttons['next'][3], buttons['next'][4]) then
+				PlayNewTrack()
+				return true
+			end
+			return true
+		end
+	end
+
+	if mouseover and math_isInRect(x, y, left, bottom, right, top) then
+		return true
+	end
+end
+
+function widget:MousePress(x, y, button)
+	return mouseEvent(x, y, button, false)
+end
+
+function widget:MouseRelease(x, y, button)
+	return mouseEvent(x, y, button, true)
+end
+
+function widget:Shutdown()
+	shutdown = true
+	Spring.SetConfigInt('music', (playing and 1 or 0))
+
+	if WG['guishader'] then
+		WG['guishader'].RemoveDlist('music')
+	end
+	if WG['tooltip'] ~= nil then
+		WG['tooltip'].RemoveTooltip('music')
+	end
+
+	for i=1,#drawlist do
+		glDeleteList(drawlist[i])
+	end
+	WG['music'] = nil
+end
+
+function widget:UnitDamaged(_, _, _, damage)
+	warMeter = warMeter + damage
+	if warMeter > maxWarMeter then
+		warMeter = maxWarMeter
+	end
+end
+
+function widget:GameFrame(n)
+    if n%5 == 4 then
+		updateMusicVolume()
+
+		dynamicMusic = Spring.GetConfigInt("bar_dynamicmusic", 1)
+		interruptMusic = Spring.GetConfigInt("bar_interruptmusic", 1)
+
+		--Assume that if it isn't set, dynamic music is true
+		if dynamicMusic == nil then
+			dynamicMusic = 1
+		end
+
+		--Assume that if it isn't set, interrupt music is true
+		if interruptMusic == nil then
+			interruptMusic = 1
+		end
+
+		if dynamicMusic == 1 then
+			--Spring.Echo("[Music Player] Unit Death Count is currently: ".. warMeter)
+			if warMeter <= 1 then
+				warMeter = 0
+			elseif warMeter >= 3000 then
+				warMeter = warMeter - 500
+			elseif warMeter >= 1000 then
+				warMeter = warMeter - 100
+			elseif warMeter >= 0 then
+				warMeter = warMeter - 3
+			end
+			if not manualPlay then
+				if interruptMusic == 1 and not fadeOut then
+					if tracks == peaceTracks and warMeter >= 200 then
+						fadeOut = true
+						targetTime = playedTime + fadeOutTime
+						if targetTime > totalTime then
+							targetTime = totalTime
+						end
+					elseif (tracks == warTracks and warMeter <= 0) then
+						fadeOut = true
+						targetTime = playedTime + fadeOutTime
+						if targetTime > totalTime then
+							targetTime = totalTime
+						end
+					end
+				end
+			end
+		end
+   end
+end
+
 function widget:Update(dt)
 	if playing then
 		updateMusicVolume()
 	end
 
 	local mx, my, mlb = Spring.GetMouseState()
-	if isInBox(mx, my, {left, bottom, right, top}) then
+	if math_isInRect(mx, my, left, bottom, right, top) then
 		mouseover = true
 	end
 	local curVolume = Spring.GetConfigInt("snd_volmaster", 100)
@@ -643,7 +610,6 @@ function widget:Update(dt)
 		uiOpacitySec = 0
 		if ui_opacity ~= Spring.GetConfigFloat("ui_opacity",0.66) or guishaderEnabled ~= (WG['guishader'] ~= nil)then
 			ui_opacity = Spring.GetConfigFloat("ui_opacity",0.66)
-			glossMult = 1 + (2-(ui_opacity*2))
 			guishaderEnabled = (WG['guishader'] ~= nil)
 			doCreateList = true
 		end
@@ -675,22 +641,6 @@ function widget:Update(dt)
 	end
 end
 
-function updatePosition(force)
-	if WG['advplayerlist_api'] ~= nil then
-		local prevPos = advplayerlistPos
-		advplayerlistPos = WG['advplayerlist_api'].GetPosition()		-- returns {top,left,bottom,right,widgetScale}
-
-		left = advplayerlistPos[2]
-		bottom = advplayerlistPos[1]
-		right = advplayerlistPos[4]
-		top = math.ceil(advplayerlistPos[1]+(widgetHeight*advplayerlistPos[5]))
-		widgetScale = advplayerlistPos[5]
-		if (prevPos[1] == nil or prevPos[1] ~= advplayerlistPos[1] or prevPos[2] ~= advplayerlistPos[2] or prevPos[5] ~= advplayerlistPos[5]) or force then
-			createList()
-		end
-	end
-end
-
 function widget:ViewResize(newX,newY)
 	local prevVsx, prevVsy = vsx, vsy
 	vsx, vsy = Spring.GetViewGeometry()
@@ -706,7 +656,7 @@ function widget:ViewResize(newX,newY)
 	UiSlider = WG.FlowUI.Draw.Slider
 	UiSliderKnob = WG.FlowUI.Draw.SliderKnob
 
-	if prevVsy ~= vsx or prevVsy ~= vsy then
+	if prevVsx ~= vsx or prevVsy ~= vsy then
 		createList()
 	end
 end
@@ -725,7 +675,7 @@ function widget:DrawScreen()
 	if WG['topbar'] and WG['topbar'].showingQuit() then
 		mouseover = false
 	else
-		if isInBox(mx, my, {left, bottom, right, top}) then
+		if math_isInRect(mx, my, left, bottom, right, top) then
 			local curVolume = Spring.GetConfigInt("snd_volmaster", 100)
 			if volume ~= curVolume then
 				volume = curVolume
@@ -738,7 +688,7 @@ function widget:DrawScreen()
 		glPushMatrix()
 			glCallList(drawlist[1])
 			glCallList(drawlist[2])
-			if not mouseover and not draggingSlider or isInBox(mx, my, {buttons['playpause'][1], buttons['next'][2], buttons['next'][3], buttons['next'][4]}) then
+			if not mouseover and not draggingSlider or math_isInRect(mx, my, buttons['playpause'][1], buttons['next'][2], buttons['next'][3], buttons['next'][4]) then
 				glCallList(drawlist[3])
 			else
 				glCallList(drawlist[4])
@@ -758,11 +708,11 @@ function widget:DrawScreen()
 				local colorHighlight = { 1, 1, 1, 0.3 }
 				glBlending(GL_SRC_ALPHA, GL_ONE)
 				local button = 'playpause'
-				if buttons[button] ~= nil and isInBox(mx, my, { buttons[button][1], buttons[button][2], buttons[button][3], buttons[button][4] }) then
+				if buttons[button] ~= nil and math_isInRect(mx, my, buttons[button][1], buttons[button][2], buttons[button][3], buttons[button][4]) then
 					UiButton(buttons[button][1], buttons[button][2], buttons[button][3], buttons[button][4], 1, 1, 1, 1, 1, 1, 1, 1, 1, mlb and colorHighlight or color)
 				end
 				button = 'next'
-				if buttons[button] ~= nil and isInBox(mx, my, { buttons[button][1], buttons[button][2], buttons[button][3], buttons[button][4] }) then
+				if buttons[button] ~= nil and math_isInRect(mx, my, buttons[button][1], buttons[button][2], buttons[button][3], buttons[button][4]) then
 					UiButton(buttons[button][1], buttons[button][2], buttons[button][3], buttons[button][4], 1, 1, 1, 1, 1, 1, 1, 1, 1, mlb and colorHighlight or color)
 				end
 				glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
@@ -776,12 +726,12 @@ function widget:DrawScreen()
 end
 
 function widget:GetConfigData(data)
-  local savedTable = {}
-  savedTable.curTrack = curTrack
-  savedTable.maxMusicVolume = maxMusicVolume
-  savedTable.tracksConfig = tracksConfig
-  savedTable.playedTracks = playedTracks
-  return savedTable
+	return {
+		curTrack = curTrack,
+		maxMusicVolume = maxMusicVolume,
+		tracksConfig = tracksConfig,
+		playedTracks = playedTracks,
+	}
 end
 
 function widget:SetConfigData(data)

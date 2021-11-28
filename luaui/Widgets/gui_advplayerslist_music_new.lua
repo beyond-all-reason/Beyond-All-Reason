@@ -10,9 +10,7 @@ function widget:GetInfo()
 	}
 end
 
-local defaultMusicVolume = 50
-
-local warMeter = 0
+local enableSilenceGaps = true
 
 local musicDir = 'sounds/musicnew/'
 local introTracks = VFS.DirList(musicDir..'intro', '*.ogg')
@@ -20,79 +18,53 @@ local peaceTracks = VFS.DirList(musicDir..'peace', '*.ogg')
 local warhighTracks = VFS.DirList(musicDir..'warhigh', '*.ogg')
 local warlowTracks = VFS.DirList(musicDir..'warlow', '*.ogg')
 local gameOverTracks = VFS.DirList(musicDir..'gameover', '*.ogg')
-local myTeamID = Spring.GetMyTeamID()
-local myAllyTeamID = Spring.GetMyAllyTeamID()
-local iAmSpec = Spring.GetSpectatingState()
 
 local currentTrackList = introTracks
 
+local defaultMusicVolume = 50
+local warMeter = 0
 local gameOver = false
 local playedGameOverTrack = false
 local endfadelevel = 999
-
 local faderMin = 45 -- range in dB for volume faders, from -faderMin to 0dB
 
 local playedTime, totalTime = Spring.GetSoundStreamTime()
-
-local curTrackName	= "no name"
-local prevTrackName = "no name"
 local appliedSilence = true
 local minSilenceTime = 30
 local maxSilenceTime = 120
 local silenceTimer = math.random(minSilenceTime,maxSilenceTime)
-
-
---- config
-local enableSilenceGaps = true
-local musicVolume = Spring.GetConfigInt("snd_volmusic", defaultMusicVolume)*0.01
-
-
-
-local RectRound, UiElement, UiButton, UiSlider, UiSliderKnob, bgpadding, elementCorner
 
 local maxMusicVolume = Spring.GetConfigInt("snd_volmusic", 20)	-- user value, cause actual volume will change during fadein/outc
 local volume = Spring.GetConfigInt("snd_volmaster", 100)
 
 local buttons = {}
 local drawlist = {}
-
 local advplayerlistPos = {}
+local widgetScale = 1
 local widgetHeight = 22
 local top, left, bottom, right = 0,0,0,0
 local borderPadding = bgpadding
-
 local uiOpacitySec = 0
 
 local vsx, vsy = Spring.GetViewGeometry()
 local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity",0.66) or 0.66)
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale",1) or 1)
-local glossMult = 1 + (2-(ui_opacity*2))	-- increase gloss/highlight so when ui is transparant, you can still make out its boundaries and make it less flat
 
-local firstTime = false
 local playing = (Spring.GetConfigInt('music', 1) == 1)
 
-local borderPaddingRight, borderPaddingLeft, trackname, font, draggingSlider, prevStreamStartTime, force, doCreateList, chobbyInterface
+local guishaderEnabled = (WG['guishader'] ~= nil)
 
-local playedTime, totalTime = Spring.GetSoundStreamTime()
-local targetTime = totalTime
+local RectRound, UiElement, UiButton, UiSlider, UiSliderKnob, bgpadding, elementCorner
+local borderPaddingRight, borderPaddingLeft, trackname, font, draggingSlider, force, doCreateList, chobbyInterface, mouseover
 
-if totalTime > 0 then
-	firstTime = true
-end
+local playTex	= ":l:"..LUAUI_DIRNAME.."Images/music/play.png"
+local pauseTex	= ":l:"..LUAUI_DIRNAME.."Images/music/pause.png"
+local musicTex	= ":l:"..LUAUI_DIRNAME.."Images/music/music.png"
+local volumeTex	= ":l:"..LUAUI_DIRNAME.."Images/music/volume.png"
 
-local playTex				= ":l:"..LUAUI_DIRNAME.."Images/music/play.png"
-local pauseTex				= ":l:"..LUAUI_DIRNAME.."Images/music/pause.png"
-local musicTex				= ":l:"..LUAUI_DIRNAME.."Images/music/music.png"
-local volumeTex				= ":l:"..LUAUI_DIRNAME.."Images/music/volume.png"
-
-local widgetScale = 1
-local glScale        = gl.Scale
-local glRotate       = gl.Rotate
-local glTranslate	 = gl.Translate
 local glPushMatrix   = gl.PushMatrix
 local glPopMatrix	 = gl.PopMatrix
 local glColor        = gl.Color
-local glRect         = gl.Rect
 local glTexRect	     = gl.TexRect
 local glTexture      = gl.Texture
 local glCreateList   = gl.CreateList
@@ -104,20 +76,15 @@ local GL_SRC_ALPHA = GL.SRC_ALPHA
 local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 local GL_ONE = GL.ONE
 
-function isInBox(mx, my, box)
-	return mx > box[1] and my > box[2] and mx < box[3] and my < box[4]
-end
+local math_isInRect = math.isInRect
 
 local function getVolumeCoef(fader)
 	if fader <= 0 then
 		return 0
-	end
-	if fader >= 1 then
+	elseif fader >= 1 then
 		return 1
 	end
-
 	local db = faderMin * (fader - 1) -- interpolate between -faderMin and 0
-
 	return 10 ^ (db * 0.05) -- ranges between 0.005 and 1.0 in log scale
 end
 
@@ -125,13 +92,10 @@ local faderMinDelta = getVolumeCoef(0.01) -- volume setting only allows discrete
 local function getVolumePos(coef)
 	if coef < faderMinDelta then
 		return 0
-	end
-	if coef >= 1 then
+	elseif coef >= 1 then
 		return 1
 	end
-
 	local db = math.log10(coef) * 20
-
 	return (db/faderMin) + 1
 end
 
@@ -151,16 +115,13 @@ local function createList()
 	buttons['volume'][5] = buttons['volume'][1] + (buttons['volume'][3] - buttons['volume'][1]) * (getVolumePos(volume/200))
 
 	local textsize = 11*widgetScale
-	local textYPadding = 8*widgetScale
 	local textXPadding = 7*widgetScale
 	local maxTextWidth = right-buttons['playpause'][3]-textXPadding-textXPadding
 
 	if drawlist[1] ~= nil then
-		glDeleteList(drawlist[5])
-		glDeleteList(drawlist[1])
-		glDeleteList(drawlist[2])
-		glDeleteList(drawlist[3])
-		glDeleteList(drawlist[4])
+		for i=1, #drawlist do
+			glDeleteList(drawlist[i])
+		end
 	end
 	if WG['guishader'] then
 		drawlist[5] = glCreateList( function()
@@ -170,7 +131,6 @@ local function createList()
 	end
 	drawlist[1] = glCreateList( function()
 		UiElement(left, bottom, right, top, 1,0,0,1, 1,1,0,1)
-
 		borderPadding = bgpadding
 		borderPaddingRight = borderPadding
 		if right >= vsx-0.2 then
@@ -182,7 +142,6 @@ local function createList()
 		end
 	end)
 	drawlist[2] = glCreateList( function()
-
 		local button = 'playpause'
 		glColor(0.88,0.88,0.88,0.9)
 		if playing then
@@ -354,7 +313,7 @@ function widget:ViewResize(newX,newY)
 	UiSlider = WG.FlowUI.Draw.Slider
 	UiSliderKnob = WG.FlowUI.Draw.SliderKnob
 
-	if prevVsy ~= vsx or prevVsy ~= vsy then
+	if prevVsx ~= vsx or prevVsy ~= vsy then
 		createList()
 	end
 end
@@ -396,14 +355,14 @@ function mouseEvent(x, y, button, release)
 		if not release then
 			local sliderWidth = (3.3*widgetScale) -- should be same as in createlist()
 			local button = 'musicvolume'
-			if isInBox(x, y, {buttons[button][1]-sliderWidth, buttons[button][2], buttons[button][3]+sliderWidth, buttons[button][4]}) then
+			if math_isInRect(x, y, buttons[button][1]-sliderWidth, buttons[button][2], buttons[button][3]+sliderWidth, buttons[button][4]) then
 				draggingSlider = button
 				maxMusicVolume = math.floor(getVolumeCoef(getSliderValue(button, x)) * 100)
 				Spring.SetConfigInt("snd_volmusic", maxMusicVolume)
 				createList()
 			end
 			button = 'volume'
-			if isInBox(x, y, {buttons[button][1]-sliderWidth, buttons[button][2], buttons[button][3]+sliderWidth, buttons[button][4]}) then
+			if math_isInRect(x, y, buttons[button][1]-sliderWidth, buttons[button][2], buttons[button][3]+sliderWidth, buttons[button][4]) then
 				draggingSlider = button
 				volume = math.floor(getVolumeCoef(getSliderValue(button, x)) * 200)
 				Spring.SetConfigInt("snd_volmaster", volume)
@@ -413,8 +372,8 @@ function mouseEvent(x, y, button, release)
 		if release and draggingSlider ~= nil then
 			draggingSlider = nil
 		end
-		if button == 1 and not release and isInBox(x, y, {left, bottom, right, top}) then
-			if buttons['playpause'] ~= nil and isInBox(x, y, {buttons['playpause'][1], buttons['playpause'][2], buttons['playpause'][3], buttons['playpause'][4]}) then
+		if button == 1 and not release and math_isInRect(x, y, left, bottom, right, top) then
+			if buttons['playpause'] ~= nil and math_isInRect(x, y, buttons['playpause'][1], buttons['playpause'][2], buttons['playpause'][3], buttons['playpause'][4]) then
 				playing = not playing
 				Spring.SetConfigInt('music', (playing and 1 or 0))
 				Spring.PauseSoundStream()
@@ -425,14 +384,14 @@ function mouseEvent(x, y, button, release)
 		end
 	end
 
-	if mouseover and isInBox(x, y, {left, bottom, right, top}) then
+	if mouseover and math_isInRect(x, y, left, bottom, right, top) then
 		return true
 	end
 end
 
 function widget:Update(dt)
 	local mx, my, mlb = Spring.GetMouseState()
-	if isInBox(mx, my, {left, bottom, right, top}) then
+	if math_isInRect(mx, my, left, bottom, right, top) then
 		mouseover = true
 	end
 	local curVolume = Spring.GetConfigInt("snd_volmaster", 100)
@@ -450,7 +409,6 @@ function widget:Update(dt)
 		uiOpacitySec = 0
 		if ui_opacity ~= Spring.GetConfigFloat("ui_opacity",0.66) or guishaderEnabled ~= (WG['guishader'] ~= nil)then
 			ui_opacity = Spring.GetConfigFloat("ui_opacity",0.66)
-			glossMult = 1 + (2-(ui_opacity*2))
 			guishaderEnabled = (WG['guishader'] ~= nil)
 			doCreateList = true
 		end
@@ -475,7 +433,7 @@ function widget:DrawScreen()
 	if WG['topbar'] and WG['topbar'].showingQuit() then
 		mouseover = false
 	else
-		if isInBox(mx, my, {left, bottom, right, top}) then
+		if math_isInRect(mx, my, left, bottom, right, top) then
 			local curVolume = Spring.GetConfigInt("snd_volmaster", 100)
 			if volume ~= curVolume then
 				volume = curVolume
@@ -504,7 +462,7 @@ function widget:DrawScreen()
 			local colorHighlight = { 1, 1, 1, 0.3 }
 			glBlending(GL_SRC_ALPHA, GL_ONE)
 			local button = 'playpause'
-			if buttons[button] ~= nil and isInBox(mx, my, { buttons[button][1], buttons[button][2], buttons[button][3], buttons[button][4] }) then
+			if buttons[button] ~= nil and math_isInRect(mx, my, buttons[button][1], buttons[button][2], buttons[button][3], buttons[button][4]) then
 				UiButton(buttons[button][1], buttons[button][2], buttons[button][3], buttons[button][4], 1, 1, 1, 1, 1, 1, 1, 1, 1, mlb and colorHighlight or color)
 			end
 			glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
@@ -657,7 +615,9 @@ function widget:GameOver(winningAllyTeams)
 end
 
 function widget:GetConfigData(data)
-	return {curTrack = curTrack}
+	return {
+		curTrack = curTrack
+	}
 end
 
 function widget:SetConfigData(data)
