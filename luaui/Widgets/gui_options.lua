@@ -1502,7 +1502,6 @@ function init()
 			decals = false,
 			shadowslider = 1,
 			grass = false,
-			darkenmap_darkenfeatures = false,
 		},
 		low = {
 			bloomdeferred = true,
@@ -1518,7 +1517,6 @@ function init()
 			decals = true,
 			shadowslider = 2,
 			grass = false,
-			darkenmap_darkenfeatures = false,
 		},
 		medium = {
 		 	bloomdeferred = true,
@@ -1534,7 +1532,6 @@ function init()
 		 	decals = true,
 			shadowslider = 3,
 		 	grass = true,
-		 	darkenmap_darkenfeatures = false,
 		},
 		high = {
 			bloomdeferred = true,
@@ -1550,7 +1547,6 @@ function init()
 			decals = true,
 			shadowslider = 4,
 			grass = true,
-			darkenmap_darkenfeatures = false,
 		},
 		ultra = {
 			bloomdeferred = true,
@@ -1566,7 +1562,6 @@ function init()
 			decals = true,
 			shadowslider = 5,
 			grass = true,
-			darkenmap_darkenfeatures = true,
 		},
 		custom = {},
 	}
