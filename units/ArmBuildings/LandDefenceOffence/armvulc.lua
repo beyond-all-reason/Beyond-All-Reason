@@ -143,6 +143,7 @@ return {
 				soundhit = "rflrpcexplo",
 				soundhitwet = "splshbig",
 				soundstart = "lrpcshot3",
+				soundhitvolume = 34,
 				turret = true,
 				weapontimer = 14,
 				weapontype = "Cannon",

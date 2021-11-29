@@ -147,6 +147,7 @@ return {
 				smokeTrailCastShadow = true,
 				soundhit = "nukearm",
 				soundstart = "nukelaunch",
+				soundstartvolume = 20,
 				stockpile = true,
 				stockpiletime = 120,
 				targetable = 1,

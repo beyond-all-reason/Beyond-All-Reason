@@ -136,7 +136,7 @@ return {
 				cratermult = 0,
 				edgeeffectiveness = 0.15,
 				energypershot = 1200,
-				explosiongenerator = "custom:laserhit-large-blue",
+				explosiongenerator = "custom:genericshellexplosion-medium-beam",
 				impulseboost = 0,
 				impulsefactor = 0,
 				largebeamlaser = true,

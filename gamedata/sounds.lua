@@ -124,6 +124,7 @@ local soundData = {
 				['^xplosml'] = 0.22,
 				['^xplomed'] = 0.25,
 				['^xplolrg'] = 0.3,
+				['^nukelaunch$'] = 0.02,
 			},
 		},
 		gainmod  = 0.2 * 0.3,
