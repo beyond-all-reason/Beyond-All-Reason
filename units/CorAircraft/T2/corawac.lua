@@ -12,7 +12,7 @@ return {
 		canfly = true,
 		canmove = true,
 		category = "ALL NOTLAND MOBILE NOTSUB VTOL NOWEAPON NOTSHIP NOTHOVER",
-		collide = true,
+		collide = false,
 		cruisealt = 110,
 		description = Spring.I18N('units.descriptions.corawac'),
 		explodeas = "mediumexplosiongeneric",

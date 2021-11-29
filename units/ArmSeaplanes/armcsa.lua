@@ -15,7 +15,7 @@ return {
 		canmove = true,
 		cansubmerge = true,
 		category = "ALL NOTLAND MOBILE NOTSUB VTOL NOWEAPON NOTSHIP NOTHOVER",
-		collide = false,
+		collide = true,
 		cruisealt = 50,
 		description = Spring.I18N('units.descriptions.armcsa'),
 		energymake = 20,
