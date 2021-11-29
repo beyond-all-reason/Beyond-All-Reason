@@ -2,8 +2,8 @@ return {
 	corkark = {
 		acceleration = 0.0828,
 		brakerate = 0.8211,
-		buildcostenergy = 3100,
-		buildcostmetal = 270,
+		buildcostenergy = 3500,
+		buildcostmetal = 290,
 		buildpic = "CORKARK.DDS",
 		buildtime = 4210,
 		canmove = true,
@@ -151,7 +151,7 @@ return {
 				weaponvelocity = 950,
 				damage = {
 					bombers = 9,
-					default = 180,
+					default = 140,
 					fighters = 9,
 					vtol = 9,
 				},
