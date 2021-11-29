@@ -95,11 +95,17 @@ function RaiderBST:OwnerIdle()
 end
 
 function RaiderBST:Priority()
-	if self.path then
-		return 101
-	else
-		return 0
+	if self.squad then
+		return self.squad.mode
 	end
+	return 0
+
+
+-- 	if self.path then
+-- 		return 101
+-- 	else
+-- 		return 0
+-- 	end
 end
 
 function RaiderBST:Activate()
@@ -121,14 +127,16 @@ function RaiderBST:Update()
 	self.unit:Internal():EraseHighlight({1,0,0,1}, nil, 8)
 	self.unit:Internal():DrawHighlight( {1,0,0,1}, nil, 8 )
 
-
+	--self:EchoDebug(self.squad.mode)
 	if self.active  then --TODO add it later if possible
 		if self.path  then
 			self:EchoDebug('update have path')
 			self.lastPathCheckFrame = f
 			self:CheckPath()
+		else
+			self:FindPath()
 		end
-		if self.squad.mode < 1000 then
+		if self.squad.mode == 500 then
 
 			--self.ai.raidhst:runSquad(self.squad.name)
 			self.unit:Internal():Move(self.squad.POS)
@@ -174,15 +182,18 @@ function RaiderBST:Update()
 			end
 		end
 	else
+		if self.squad and self.squad.mode > 99 then
+			self.unit:ElectBehaviour()
+		end
 -- 		self:EchoDebug(self.squad.name)
 		if not self.squad then
 			self:EchoDebug('im not in a squad')
 			local squad = self.ai.raidhst:addToSquad(self.id)
 			if squad then
-
+				self.squad = squad
 				if self.squad.mode < 100 then--check if mode block and need reset PROBABIL
 					self.ai.raidhst.SQUADS[self.squad.name].members[self.id] = 0
-					self.squad = squad
+
 					--self.ai.raidhst:getSquadPos(self.squad.name)
 				end
 			end
@@ -385,6 +396,7 @@ end
 
 function RaiderBST:UpdatePathProgress()
 	if self.targetNode and not self.clearShot then
+		self:EchoDebug(self.targetNode,self.clearShot)
 		-- have a path and it's not clear
 		local myPos = self.unit:Internal():GetPosition()
 		local x = myPos.x
@@ -403,6 +415,7 @@ function RaiderBST:UpdatePathProgress()
 			end
 		end
 	elseif self.target then
+		self:EchoDebug('tgtgtggtgt',self.target)
 		self:AttackTarget()
 	end
 end

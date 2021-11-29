@@ -332,9 +332,9 @@ function LosHST:UpdateEnemies(enemyList)
 			if self.ai.IDsWeAreAttacking[id] then
 				self.ai.attackhst:TargetDied(self.ai.IDsWeAreAttacking[id])
 			end
-			if self.ai.IDsWeAreRaiding[id] then
-				self.ai.raidhst:TargetDied(self.ai.IDsWeAreRaiding[id])
-			end
+			--if self.ai.IDsWeAreRaiding[id] then
+				--self.ai.raidhst:TargetDied(self.ai.IDsWeAreRaiding[id])
+			--end
 			self:EchoDebug("enemy " .. e.unitName .. " died!")
 			local mtypes = self.ai.tool:UnitWeaponMtypeList(e.unitName)
 			for i, mtype in pairs(mtypes) do

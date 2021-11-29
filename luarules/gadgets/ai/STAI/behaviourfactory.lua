@@ -98,7 +98,8 @@ function BehaviourFactory:defaultBehaviours(unit)
 	end
 	if army.raiders[un] then
 -- 		table.insert(b, AttackerBST)
-		table.insert(b, RaiderBST)
+-- 		table.insert(b, RaiderBST)
+		table.insert(b, RaidBST)
  		table.insert(b, ScoutBST)
 		--table.insert(b, DefendBST)
 		--self:EchoDebug()

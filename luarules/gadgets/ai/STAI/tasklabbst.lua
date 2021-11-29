@@ -226,7 +226,7 @@ TaskLabBST.queue = {
 
 		{'techs',3,nil,10,1},
 		{'scouts',1,10,2,2},
-		{'raiders',1,nil,nil,5},
+		{'raiders',1,nil,20,5},
 	--[[
 		{'techs',3,nil,10,2},
 		{'battles',3,nil,25,5},

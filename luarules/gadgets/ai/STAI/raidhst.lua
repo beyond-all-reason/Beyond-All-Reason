@@ -21,8 +21,6 @@ function RaidHST:Init()
 	self.pathValidFuncs = {}
 	self.SQUADS = {}
 	self.squadSize = 5
-
-
 end
 
 
@@ -99,12 +97,15 @@ function RaidHST:getSquadPos(squad)
 end
 
 
-function RaidHST:squadRandevouz()
+function RaidHST:squadRandevouz(squad)
 	local dist = 0
 	for ID,param in pairs(self.SQUADS[squad].members) do
+
 		local raider = self.game:GetUnitByID(ID)
-		local raiderPos = raider:GetPosition()
-		dist = dist + math.abs(self.ai.tool:Distance(param.POS,raiderPos))
+		if raider:IsAlive() then
+			local raiderPos = raider:GetPosition()
+			dist = dist + math.abs(self.ai.tool:Distance(self.SQUADS[squad].POS,raiderPos))
+		end
 	end
 	return dist
 end
@@ -128,13 +129,20 @@ function RaidHST:updateSquads()
 		if self.SQUADS[squad].counter < 1 and self.SQUADS.target  then
 			self:EchoDebug('no enough raiders to do a squad' ,squad)
 			self:draftSquad(squad)
+		elseif self.SQUADS[squad].counter > 5 and not self.SQUADS[squad].target and self:squadRandevouz(squad) > 500 then
+			self:EchoDebug('randevouz',squad)
+			self.SQUADS[squad].mode = 500
 		elseif self.SQUADS[squad].counter > 5 and not self.SQUADS[squad].target then
 			self:EchoDebug('do a squad and get a target',squad)
 			self:startSquad(squad)
-		elseif self.SQUADS[squad].counter > 5 and self.SQUADS[squad].target then
-			self.map:DrawCircle({x=self.SQUADS[squad].target.x*256,y = 100,z=self.SQUADS[squad].target.z*256},256, {1,1,1,1}, self.SQUADS[squad].name,true, 8)
+		elseif self.SQUADS[squad].target then
+			self.map:DrawCircle({x=self.SQUADS[squad].target.x*256,y = 100,z=self.SQUADS[squad].target.z*256},56, {1,1,1,1}, self.SQUADS[squad].name,true, 8)
 			self:EchoDebug(squad, 'squad is running')
 			self:runSquad(squad)
+		elseif self.SQUADS[squad].target then
+
+			self:EchoDebug(self.ai.tool:Distance(self.SQUADS[squad].target,self.SQUADS[squad].POS))
+
 		else
 			self:EchoDebug(squad, 'condition ',self.SQUADS[squad].counter,self.SQUADS[squad].target,self.SQUADS[squad].mode,self.SQUADS[squad].POS)
 		end
@@ -143,19 +151,19 @@ function RaidHST:updateSquads()
 end
 
 function RaidHST:squadMode(squad)
-	if self.SQUADS[squad] then
-		squad = self.SQUADS[squad]
-		if squad.counter > self.squadSize and not self.target then
-			mode = 'targeting'
-		elseif self.target and self:squadRandevouz() then
-			mode = 10
-
-	if squad.target then
-		--pass
-	else
-		--pass
+	if not self.SQUADS[squad] then
+		self:EchoDebug('squad whith strange name')
 	end
-
+	squad = self.SQUADS[squad]
+	if squad.counter < squadSize then
+		squad.mode = 'formation'
+	elseif squad.counter > squad.squadSize and not squad.target then
+		squad.mode = 'targeting'
+	elseif squad.targett and self:squadRandevouz() > 300 then
+		squad.mode = 'randevouz'
+	else
+		self:EchoDebug('squad whith strange condition')
+	end
 end
 
 function RaidHST:targetSquad(squad)
@@ -187,12 +195,8 @@ function RaidHST:runSquad(squad)
 	for ID,status in pairs(self.SQUADS[squad].members) do
 
 		local raider = self.game:GetUnitByID(ID)
-		if raider:IsAlive() then
-			if self.ai.tool:Distance(self.SQUADS[squad].POS , raider:GetPosition()) > 300 then
-				self.SQUADS[squad].mode  = 101
+		if not raider:IsAlive() then
 
-			end
-		else
 			table.remove(self.SQUADS[squad].members,ID)
 		end
 	end
