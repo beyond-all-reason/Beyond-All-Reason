@@ -43,8 +43,8 @@ local gameoverTracksCustom 		= VFS.DirList(musicDirCustom..'/gameover', '*.ogg')
 -----------------------------------SETTINGS---------------------------------------
 
 local originalSoundtrackEnabled = true
-local legacySoundtrackEnabled 	= true
-local customSoundtrackEnabled	= true
+local legacySoundtrackEnabled 	= false
+local customSoundtrackEnabled	= false
 
 -------------------------------CREATE PLAYLISTS-----------------------------------
 
