@@ -20,7 +20,7 @@ end
 
 local GL_RGBA8 = 0x8058
 
-local SHARPNESS = 0.88
+local SHARPNESS = 0.92
 local version = 1.05
 
 -----------------------------------------------------------------
