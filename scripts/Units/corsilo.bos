@@ -17,6 +17,7 @@ activatescr()
 {
 	if( TRUE )
 	{
+				emit-sfx 4096 + 1 from flare;
 				turn door1 to z-axis <180> speed <10>;
 				turn door2 to z-axis <-180> speed <10>;
 		sleep 8500;
