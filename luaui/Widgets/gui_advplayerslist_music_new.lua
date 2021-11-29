@@ -100,14 +100,15 @@ warhighTracks 	= shuffleMusic(warhighTracks)
 warlowTracks 	= shuffleMusic(warlowTracks)
 gameoverTracks 	= shuffleMusic(gameoverTracks)
 
-peaceTracksPlayCounter 		= 1
-warhighTracksPlayCounter 	= 1
-warlowTracksPlayCounter 	= 1
-gameoverTracksPlayCounter 	= 1
+peaceTracksPlayCounter 		= math.random(#peaceTracks)
+warhighTracksPlayCounter 	= math.random(#warhighTracks)
+warlowTracksPlayCounter 	= math.random(#warlowTracks)
+gameoverTracksPlayCounter 	= math.random(#gameoverTracks)
 
 ------------------------------------END----------------------------------------
 
 local currentTrackList = peaceTracks
+local currentTrackListString = "intro"
 
 local defaultMusicVolume = 50
 local warMeter = 0
@@ -303,7 +304,6 @@ end
 
 function widget:Initialize()
 	appliedSilence = true
-	Spring.StopSoundStream()
 	silenceTimer = math.random(minSilenceTime,maxSilenceTime)
 	widget:ViewResize()
 	--Spring.StopSoundStream() -- only for testing purposes
@@ -677,9 +677,7 @@ end
 
 function widget:GameFrame(n)
 	if not playing then return end
-	--if n == 1 then
-		--Spring.StopSoundStream()
-	--end
+	
 	if fadeOutTrackBool then
 		fadeOutTrack()
 	end
@@ -692,7 +690,7 @@ function widget:GameFrame(n)
 		
 		if warMeter > 0 then
 			warMeter = math.floor(warMeter - (warMeter*0.02))
-			Spring.Echo("[NewMusicPlayer] Warmeter: ".. warMeter)
+			--Spring.Echo("[NewMusicPlayer] Warmeter: ".. warMeter)
 		end
 		
 		if gameOver == false then
@@ -701,15 +699,26 @@ function widget:GameFrame(n)
 				if not fadeOutTrackBool then
 					local musicVolume = (Spring.GetConfigInt("snd_volmusic", defaultMusicVolume))*0.01
 					Spring.SetSoundStreamVolume(musicVolume)
-					if currentTrackListString == "peace" and warMeter > warLowLevel then
+					if currentTrackListString == "intro" and n > 30 then
 						fadeOutTrackBool = true
 					end
-					if (currentTrackListString == "warLow" or currentTrackListString == "warHigh") and warMeter <= 0 then
+					if currentTrackListString == "peace" and warMeter > warLowLevel*2 then
+						fadeOutTrackBool = true
+					end
+					if (currentTrackListString == "warLow" or currentTrackListString == "warHigh") and warMeter <= warLowLevel*0.20 then
+						fadeOutTrackBool = true
+					end
+					if currentTrackListString == "warLow" and warMeter > warHighLevel*2 then
+						fadeOutTrackBool = true
+					end
+					if currentTrackListString == "warHigh" and warMeter <= warHighLevel*0.20 then
 						fadeOutTrackBool = true
 					end
 				end
 			elseif totalTime == 0 then -- there's no music
-				if appliedSilence == true and silenceTimer <= 0 then
+				if warMeter > warHighLevel*3 and silenceTimer > 1 then
+					silenceTimer = 1
+				elseif appliedSilence == true and silenceTimer <= 0 then
 					PlayNewTrack()
 				elseif appliedSilence == false and silenceTimer <= 0 then
 					silenceTimer = math.random(minSilenceTime,maxSilenceTime)

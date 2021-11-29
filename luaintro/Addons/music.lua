@@ -26,28 +26,43 @@ function addon.Shutdown()
 end
 
 function addon.Initialize()
-	if Spring.GetConfigInt('music', 1) == 1 and Spring.GetConfigInt("music_loadscreen", 1) == 1 then
-		if Spring.GetConfigInt('soundtrack', 2) == 2 or Spring.GetConfigInt('soundtrack', 2) == 3 then
-			math.randomseed( os.clock() )
-			math.random(); math.random(); math.random()
-			local musicvolume = Spring.GetConfigInt("snd_volmusic", 50) * 0.01
-			Spring.SetSoundStreamVolume(musicvolume)
+	local originalSoundtrackEnabled = true
+	local legacySoundtrackEnabled 	= false
+	local customSoundtrackEnabled	= false
+	
+	
+	local musicPlaylist = {}
+	if originalSoundtrackEnabled then
+		local musicDirOriginal 		= 'music/original'
+		table.mergeInPlace(musicPlaylist, VFS.DirList(musicDirOriginal..'/warhigh', '*.ogg'))
+		table.mergeInPlace(musicPlaylist, VFS.DirList(musicDirOriginal..'/warlow', '*.ogg'))
+	end
 
-			local musicfiles = VFS.DirList("sounds/music"..(Spring.GetConfigInt('soundtrack', 2) == 2 and 'new').."/peace", "*.ogg")
-			--Spring.Echo("musicfiles", #musicfiles)
-			if #musicfiles > 0 then
-				--local i = 1 + (math.floor((1000*os.clock())%#musicfiles))
+	-- Legacy Soundtrack List
+	if legacySoundtrackEnabled then
+		local musicDirLegacy 		= 'music/legacy'
+		table.mergeInPlace(musicPlaylist, VFS.DirList(musicDirLegacy..'/war', '*.ogg'))
+	end
 
-				--Spring.SetConfigInt('musictrack', i)
-				if #musicfiles > 1 then
-					local pickedTrack = math.ceil(#musicfiles*math.random())
-					Spring.PlaySoundStream(musicfiles[pickedTrack], 0.5)
-					Spring.SetSoundStreamVolume(musicvolume)
-				elseif #musicfiles == 1 then
-					Spring.PlaySoundStream(musicfiles[1], 0.5)
-					Spring.SetSoundStreamVolume(musicvolume)
-				end
-			end
-		end
+	-- Custom Soundtrack List
+	if customSoundtrackEnabled then
+		local musicDirCustom 		= 'music/custom'
+		table.mergeInPlace(musicPlaylist, VFS.DirList(musicDirCustom, '*.ogg'))
+		table.mergeInPlace(musicPlaylist, VFS.DirList(musicDirCustom..'/warhigh', '*.ogg'))
+		table.mergeInPlace(musicPlaylist, VFS.DirList(musicDirCustom..'/warlow', '*.ogg'))
+		table.mergeInPlace(musicPlaylist, VFS.DirList(musicDirCustom..'/war', '*.ogg'))
+	end
+
+	math.randomseed( os.clock() )
+	math.random(); math.random(); math.random()
+
+	local musicvolume = Spring.GetConfigInt("snd_volmusic", 50) * 0.01
+	if #musicPlaylist > 1 then
+		local pickedTrack = math.ceil(#musicPlaylist*math.random())
+		Spring.PlaySoundStream(musicPlaylist[pickedTrack], 0.5)
+		Spring.SetSoundStreamVolume(musicvolume)
+	elseif #musicPlaylist == 1 then
+		Spring.PlaySoundStream(musicPlaylist[1], 0.5)
+		Spring.SetSoundStreamVolume(musicvolume)
 	end
 end
