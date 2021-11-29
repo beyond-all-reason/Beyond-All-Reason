@@ -2016,6 +2016,7 @@ function init()
 		  end,
 		},
 
+
 		{ id = "snow", group = "gfx", category = types.basic, widget = "Snow", name = texts.option.snow, type = "bool", value = GetWidgetToggleValue("Snow"), description = texts.option.snow_descr },
 		{ id = "snowmap", group = "gfx", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.snowmap, type = "bool", value = true, description = texts.option.snowmap_descr,
 		  onload = function(i)
@@ -2049,6 +2050,18 @@ function init()
 		  end,
 		  onchange = function(i, value)
 			  saveOptionValue('Volumetric Clouds', 'clouds', 'setOpacity', { 'opacityMult' }, value)
+		  end,
+		},
+		{ id = "fogmult", group = "gfx", category = types.advanced, name = texts.option.fog, type = "slider", min = 0, max = 1, step = 0.01, value = Spring.GetConfigInt("FogMult", 1), description = texts.option.fogmult_descr,
+		  onload = function(i)
+		  	options[i].onchange(i, options[i].value)
+		  end,
+		  onchange = function(i, value)
+			  Spring.SetConfigInt("FogMult", value)
+			  value = 1 / value	-- inverse
+			  local newFogStart = math.min(9, (defaultFog.fogStart * value))
+			  local newFogEnd = math.min(9, defaultFog.fogEnd * value)
+			  Spring.SetAtmosphere({ fogStart = newFogStart, fogEnd = newFogEnd })
 		  end,
 		},
 
@@ -2281,7 +2294,7 @@ function init()
 
 		{ id = "label_ui_camera", group = "control", name = texts.option.label_camera, category = types.basic },
 		{ id = "label_ui_camera_spacer", group = "control", category = types.basic },
-		
+
 		{ id = "middleclicktoggle", group = "control", category = types.basic, name = texts.option.middleclicktoggle, type = "bool", value = (Spring.GetConfigFloat("MouseDragScrollThreshold", 0.3) ~= 0), description = texts.option.middleclicktoggle_descr,
 		  onload = function(i)
 		  end,

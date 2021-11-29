@@ -173,6 +173,8 @@ return {
 			sun_z = 'pos Z',
 			sun_reset = 'reset map default',
 			fog = 'Fog',
+			fogmult = 'amount',
+			fogmult_descr = 'fog multiplier',
 			fog_start = 'start',
 			fog_start_descr = 'NOTE: remembers setting per map',
 			fog_end = 'end',
