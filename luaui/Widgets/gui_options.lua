@@ -2063,15 +2063,6 @@ function init()
 			  Spring.SetConfigInt("MaxNanoParticles", math.floor(value*0.34))
 		  end,
 		},
-		--{ id = "nanoparticles", group = "gfx", category = types.advanced, name = texts.option.nanoparticles, type = "slider", min = 3000, max = 20000, step = 1000, value = Spring.GetConfigInt("MaxNanoParticles", 5000), description = '',
-		--  onload = function(i)
-		--  end,
-		--  onchange = function(i, value)
-		--	  if not options[getOptionByID('nanoeffect')] or options[getOptionByID('nanoeffect')].value == 2 then
-		--		  Spring.SetConfigInt("MaxNanoParticles", value)
-		--	  end
-		--  end,
-		--},
 
 		{ id = "unitRotation", group = "gfx", category = types.advanced, name = texts.option.unitrotation, min = 0, max = 10, step = 1, type = "slider", value = tonumber(Spring.GetConfigInt("unitRotation", 0)), description = texts.option.unitrotation_descr,
 		  onchange = function(i, value)
