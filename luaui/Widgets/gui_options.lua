@@ -1379,9 +1379,7 @@ end
 function GetWidgetToggleValue(widgetname)
 	if widgetHandler.orderList[widgetname] == nil or widgetHandler.orderList[widgetname] == 0 then
 		return false
-	elseif widgetHandler.orderList[widgetname] >= 1
-			and widgetHandler.knownWidgets ~= nil
-			and widgetHandler.knownWidgets[widgetname] ~= nil then
+	elseif widgetHandler.orderList[widgetname] >= 1 then
 		if widgetHandler.knownWidgets[widgetname].active then
 			return true
 		else
@@ -1392,20 +1390,18 @@ end
 
 -- configVar = table, add more entries the deeper the configdata table var is: example: {'Config','console','maxlines'}  (limit = 3 deep)
 function loadWidgetData(widgetName, optionId, configVar)
-	if widgetHandler.knownWidgets[widgetName] ~= nil then
-		if getOptionByID(optionId) and widgetHandler.configData[widgetName] ~= nil and widgetHandler.configData[widgetName][configVar[1]] ~= nil then
-			if configVar[2] ~= nil and widgetHandler.configData[widgetName][configVar[1]][configVar[2]] ~= nil then
-				if configVar[3] ~= nil and widgetHandler.configData[widgetName][configVar[1]][configVar[2]][configVar[3]] ~= nil then
-					options[getOptionByID(optionId)].value = widgetHandler.configData[widgetName][configVar[1]][configVar[2]][configVar[3]]
-					return true
-				else
-					options[getOptionByID(optionId)].value = widgetHandler.configData[widgetName][configVar[1]][configVar[2]]
-					return true
-				end
-			elseif options[getOptionByID(optionId)].value ~= widgetHandler.configData[widgetName][configVar[1]] then
-				options[getOptionByID(optionId)].value = widgetHandler.configData[widgetName][configVar[1]]
+	if getOptionByID(optionId) and widgetHandler.configData[widgetName] ~= nil and widgetHandler.configData[widgetName][configVar[1]] ~= nil then
+		if configVar[2] ~= nil and widgetHandler.configData[widgetName][configVar[1]][configVar[2]] ~= nil then
+			if configVar[3] ~= nil and widgetHandler.configData[widgetName][configVar[1]][configVar[2]][configVar[3]] ~= nil then
+				options[getOptionByID(optionId)].value = widgetHandler.configData[widgetName][configVar[1]][configVar[2]][configVar[3]]
+				return true
+			else
+				options[getOptionByID(optionId)].value = widgetHandler.configData[widgetName][configVar[1]][configVar[2]]
 				return true
 			end
+		elseif options[getOptionByID(optionId)].value ~= widgetHandler.configData[widgetName][configVar[1]] then
+			options[getOptionByID(optionId)].value = widgetHandler.configData[widgetName][configVar[1]]
+			return true
 		end
 	end
 end
@@ -4629,43 +4625,33 @@ function init()
 	end
 
 	-- add sound notification widget sound toggle options
-	if widgetHandler.knownWidgets["Notifications"] then
-		local soundList
-		if WG['notifications'] ~= nil then
-			soundList = WG['notifications'].getSoundList()
-		elseif widgetHandler.configData["Notifications"] ~= nil and widgetHandler.configData["Notifications"].soundList ~= nil then
-			soundList = widgetHandler.configData["Notifications"].soundList
-		end
-		if type(soundList) == 'table' then
-			local newOptions = {}
-			local count = 0
-			for i, option in pairs(options) do
-				count = count + 1
-				newOptions[count] = option
-				if option.id == 'label_notif_messages_spacer' then
-					for k, v in pairs(soundList) do
-						count = count + 1
-						newOptions[count] = { id = "notifications_notif_" .. v[1], group = "notif", category = types.basic, name = widgetOptionColor .. "   " .. v[1], type = "bool", value = v[2], description = v[3],
-											  onchange = function(i, value)
-												  saveOptionValue('Notifications', 'notifications', 'setSound' .. v[1], { 'soundList' }, value)
-											  end,
-						}
-					end
+	local soundList
+	if WG['notifications'] ~= nil then
+		soundList = WG['notifications'].getSoundList()
+	elseif widgetHandler.configData["Notifications"] ~= nil and widgetHandler.configData["Notifications"].soundList ~= nil then
+		soundList = widgetHandler.configData["Notifications"].soundList
+	end
+	if type(soundList) == 'table' then
+		local newOptions = {}
+		local count = 0
+		for i, option in pairs(options) do
+			count = count + 1
+			newOptions[count] = option
+			if option.id == 'label_notif_messages_spacer' then
+				for k, v in pairs(soundList) do
+					count = count + 1
+					newOptions[count] = { id = "notifications_notif_" .. v[1], group = "notif", category = types.basic, name = widgetOptionColor .. "   " .. v[1], type = "bool", value = v[2], description = v[3],
+											onchange = function(i, value)
+												saveOptionValue('Notifications', 'notifications', 'setSound' .. v[1], { 'soundList' }, value)
+											end,
+					}
 				end
 			end
-			options = newOptions
 		end
-	else
-		options[getOptionByID('notifications')] = nil
-		options[getOptionByID('notifications_volume')] = nil
-		options[getOptionByID('notifications_playtrackedplayernotifs')] = nil
-		options[getOptionByID('label_notif_messages')] = nil
-		options[getOptionByID('label_notif_messages_spacer')] = nil
+		options = newOptions
 	end
 
-	if (Spring.GetConfigInt('soundtrack', 2) == 2 and widgetHandler.knownWidgets["AdvPlayersList Music Player (orchestral)"]) or
-			(Spring.GetConfigInt('soundtrack', 2) == 3 and widgetHandler.knownWidgets["AdvPlayersList Music Player"]) then
-
+	if (Spring.GetConfigInt('soundtrack', 2) == 2) or (Spring.GetConfigInt('soundtrack', 2) == 3) then
 		local widgetName = Spring.GetConfigInt('soundtrack', 2) == 2 and "AdvPlayersList Music Player (orchestral)" or "AdvPlayersList Music Player"
 		local tracksConfig = {}
 		if WG['music'] ~= nil and WG['music'].getTracksConfig ~= nil then
@@ -4765,10 +4751,6 @@ function init()
 		options[getOptionByID('label_snd_tracks_spacer')] = nil
 	end
 
-	if not widgetHandler.knownWidgets["Player-TV"] then
-		options[getOptionByID('playertv_countdown')] = nil
-	end
-
 	-- cursors
 	if WG['cursors'] == nil then
 		options[getOptionByID('cursor')] = nil
@@ -4794,21 +4776,6 @@ function init()
 		else
 			options[getOptionByID('cursorsize')] = nil
 		end
-	end
-	if widgetHandler.knownWidgets["SSAO"] == nil then
-		options[getOptionByID('ssao')] = nil
-		options[getOptionByID('ssao_strength')] = nil
-		options[getOptionByID('ssao_radius')] = nil
-	end
-	if widgetHandler.knownWidgets["Bloom Shader"] == nil then
-		options[getOptionByID('bloombrightness')] = nil
-		options[getOptionByID('bloomsize')] = nil
-		options[getOptionByID('bloomquality')] = nil
-	end
-	if widgetHandler.knownWidgets["Bloom Shader Deferred"] == nil then
-		options[getOptionByID('bloomdeferredbrightness')] = nil
-		options[getOptionByID('bloomdeferredsize')] = nil
-		options[getOptionByID('bloomdeferredquality')] = nil
 	end
 
 	if WG['healthbars'] == nil then
@@ -4840,10 +4807,6 @@ function init()
 		options[id].onchange(id, options[id].value)
 	end
 
-	if not widgetHandler.knownWidgets["Commander Name Tags"] then
-		options[getOptionByID('nametags_icon')] = nil
-	end
-
 	if WG['playercolorpalette'] == nil or WG['playercolorpalette'].getSameTeamColors == nil then
 		options[getOptionByID('sameteamcolors')] = nil
 	end
@@ -4852,83 +4815,10 @@ function init()
 		options[getOptionByID('lockcamera_transitiontime')] = nil
 	end
 
-
-	if widgetHandler.knownWidgets["Contrast Adaptive Sharpen"] == nil then
-		options[getOptionByID("cas_sharpness")] = nil
-	end
-
-	if widgetHandler.knownWidgets["Fancy Selected Units"] == nil then
-		options[getOptionByID('fancyselectedunits')] = nil
-		options[getOptionByID("fancyselectedunits_opacity")] = nil
-		options[getOptionByID("fancyselectedunits_baseopacity")] = nil
-		options[getOptionByID("fancyselectedunits_teamcoloropacity")] = nil
-	end
-
-	if widgetHandler.knownWidgets["Selected Units GL4"] == nil then
-		options[getOptionByID('selectedunits')] = nil
-		options[getOptionByID("selectedunits_opacity")] = nil
-		options[getOptionByID("selectedunits_teamcoloropacity")] = nil
-	end
-
-	if widgetHandler.knownWidgets["Sensor Ranges Radar"] == nil then
-		options[getOptionByID('radarrangeopacity')] = nil
-	end
-	if widgetHandler.knownWidgets["Sensor Ranges Sonar"] == nil then
-		options[getOptionByID('sonarrangeopacity')] = nil
-	end
-	if widgetHandler.knownWidgets["Sensor Ranges Jammer"] == nil then
-		options[getOptionByID('jammerrangeopacity')] = nil
-	end
-	if widgetHandler.knownWidgets["Sensor Ranges LOS"] == nil then
-		options[getOptionByID('losrangeopacity')] = nil
-		options[getOptionByID("losrangeteamcolors")] = nil
-	end
-
-	if widgetHandler.knownWidgets["Defense Range"] == nil then
-		options[getOptionByID('defrange')] = nil
-		options[getOptionByID("defrange_allyair")] = nil
-		options[getOptionByID("defrange_allyground")] = nil
-		options[getOptionByID("defrange_allynuke")] = nil
-		options[getOptionByID("defrange_enemyair")] = nil
-		options[getOptionByID("defrange_enemyground")] = nil
-		options[getOptionByID("defrange_enemynuke")] = nil
-	end
-
-	if widgetHandler.knownWidgets["Auto Group"] == nil then
-		options[getOptionByID("autogroup_immediate")] = nil
-	end
-
-	if widgetHandler.knownWidgets["Highlight Selected Units"] == nil then
-		options[getOptionByID('highlightselunits')] = nil
-		options[getOptionByID("highlightselunits_opacity")] = nil
-		options[getOptionByID("highlightselunits_shader")] = nil
-		options[getOptionByID("highlightselunits_teamcolor")] = nil
-	end
-
-	if widgetHandler.knownWidgets["Light Effects"] == nil or widgetHandler.knownWidgets["Deferred rendering"] == nil then
-		options[getOptionByID('lighteffects')] = nil
-		options[getOptionByID("lighteffects_brightness")] = nil
-		options[getOptionByID("lighteffects_laserbrightness")] = nil
-		options[getOptionByID("lighteffects_radius")] = nil
-		options[getOptionByID("lighteffects_laserradius")] = nil
-		options[getOptionByID("lighteffects_nanolaser")] = nil
-		options[getOptionByID("lighteffects_additionalflashes")] = nil
-	end
-
-	if widgetHandler.knownWidgets["TeamPlatter"] == nil then
-		options[getOptionByID('teamplatter_opacity')] = nil
-		options[getOptionByID('teamplatter_skipownunits')] = nil
-	end
-
-	if widgetHandler.knownWidgets["EnemySpotter"] == nil then
-		options[getOptionByID('enemyspotter_opacity')] = nil
-	end
-
 	local processedOptions = {}
 	local processedOptionsCount = 0
-	local insert = true
+
 	for i, option in pairs(options) do
-		insert = true
 		if option.type == 'slider' and not option.steps then
 			if type(option.value) ~= 'number' then
 				option.value = option.min
@@ -4940,13 +4830,9 @@ function init()
 				option.value = option.max
 			end
 		end
-		if option.widget ~= nil and widgetHandler.knownWidgets[option.widget] == nil then
-			insert = false
-		end
-		if insert then
-			processedOptionsCount = processedOptionsCount + 1
-			processedOptions[processedOptionsCount] = option
-		end
+
+		processedOptionsCount = processedOptionsCount + 1
+		processedOptions[processedOptionsCount] = option
 	end
 	options = processedOptions
 

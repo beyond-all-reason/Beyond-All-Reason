@@ -240,7 +240,7 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
-	if not (WG.fancyselectedunits or WG.teamplatter or WG.highlightselunits) then
+	if not (WG.teamplatter or WG.highlightselunits) then
 		Spring.LoadCmdColorsConfig('unitBox  0 1 0 1')
 	end
 	WG.selectedunits = nil
