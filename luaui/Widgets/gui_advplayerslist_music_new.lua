@@ -46,7 +46,7 @@ local gameoverTracksCustom 		= VFS.DirList(musicDirCustom..'/gameover', '*.ogg')
 
 local originalSoundtrackEnabled = Spring.GetConfigInt('UseSoundtrackNew', 1)
 local legacySoundtrackEnabled 	= Spring.GetConfigInt('UseSoundtrackOld', 0)
-local customSoundtrackEnabled	= Spring.GetConfigInt('UseSoundtrackCustom', 0)
+local customSoundtrackEnabled	= Spring.GetConfigInt('UseSoundtrackCustom', 1)
 
 -------------------------------CREATE PLAYLISTS-----------------------------------
 
@@ -55,20 +55,20 @@ warhighTracks = {}
 warlowTracks = {}
 gameoverTracks = {}
 
-if originalSoundtrackEnabled then
+if originalSoundtrackEnabled == 1 then
 	table.mergeInPlace(peaceTracks, peaceTracksOriginal)
 	table.mergeInPlace(warhighTracks, warhighTracksOriginal)
 	table.mergeInPlace(warlowTracks, warlowTracksOriginal)
 	table.mergeInPlace(gameoverTracks, gameoverTracksOriginal)
 end
 
-if legacySoundtrackEnabled then
+if legacySoundtrackEnabled == 1 then
 	table.mergeInPlace(peaceTracks, peaceTracksLegacy)
 	table.mergeInPlace(warhighTracks, warTracksLegacy)
 	table.mergeInPlace(warlowTracks, warTracksLegacy)
 end
 
-if customSoundtrackEnabled then
+if customSoundtrackEnabled == 1 then
 	table.mergeInPlace(peaceTracks, baseTracksCustom)
 	table.mergeInPlace(warhighTracks, baseTracksCustom)
 	table.mergeInPlace(warlowTracks, baseTracksCustom)

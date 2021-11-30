@@ -26,26 +26,26 @@ function addon.Shutdown()
 end
 
 function addon.Initialize()
-	local originalSoundtrackEnabled = true
-	local legacySoundtrackEnabled 	= false
-	local customSoundtrackEnabled	= true
+	local originalSoundtrackEnabled = Spring.GetConfigInt('UseSoundtrackNew', 1)
+	local legacySoundtrackEnabled 	= Spring.GetConfigInt('UseSoundtrackOld', 0)
+	local customSoundtrackEnabled	= Spring.GetConfigInt('UseSoundtrackCustom', 1)
 	
 	
 	local musicPlaylist = {}
-	if originalSoundtrackEnabled then
+	if originalSoundtrackEnabled == 1 then
 		local musicDirOriginal 		= 'music/original'
 		table.mergeInPlace(musicPlaylist, VFS.DirList(musicDirOriginal..'/warhigh', '*.ogg'))
 		table.mergeInPlace(musicPlaylist, VFS.DirList(musicDirOriginal..'/warlow', '*.ogg'))
 	end
 
 	-- Legacy Soundtrack List
-	if legacySoundtrackEnabled then
+	if legacySoundtrackEnabled == 1 then
 		local musicDirLegacy 		= 'music/legacy'
 		table.mergeInPlace(musicPlaylist, VFS.DirList(musicDirLegacy..'/war', '*.ogg'))
 	end
 
 	-- Custom Soundtrack List
-	if customSoundtrackEnabled then
+	if customSoundtrackEnabled == 1 then
 		local musicDirCustom 		= 'music/custom'
 		table.mergeInPlace(musicPlaylist, VFS.DirList(musicDirCustom, '*.ogg'))
 		table.mergeInPlace(musicPlaylist, VFS.DirList(musicDirCustom..'/warhigh', '*.ogg'))
