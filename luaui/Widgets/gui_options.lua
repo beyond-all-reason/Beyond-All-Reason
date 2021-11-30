@@ -1809,9 +1809,37 @@ function init()
 		  end,
 		},
 
+		{ id = "cas_sharpness", group = "gfx", category = types.advanced, name = texts.option.cas_sharpness, min = 0.7, max = 1.1, step = 0.01, type = "slider", value = 0.92, description = texts.option.cas_sharpness_descr,
+		  onload = function(i)
+			  loadWidgetData("Contrast Adaptive Sharpen", "cas_sharpness", { 'SHARPNESS' })
+		  end,
+		  onchange = function(i, value)
+			  if not GetWidgetToggleValue("Contrast Adaptive Sharpen") then
+				  widgetHandler:EnableWidget("Contrast Adaptive Sharpen")
+			  end
+			  saveOptionValue('Contrast Adaptive Sharpen', 'cas', 'setSharpness', { 'SHARPNESS' }, options[getOptionByID('cas_sharpness')].value)
+		  end,
+		},
+
 		{ id = "label_gfx_lighting", group = "gfx", name = texts.option.label_lighting, category = types.basic },
 		{ id = "label_gfx_lighting_spacer", group = "gfx", category = types.basic },
 
+
+		{ id = "advmapshading", group = "gfx", category = types.dev, name = texts.option.advmapshading, type = "bool", value = (Spring.GetConfigInt("AdvMapShading", 1) == 1), description = texts.option.advmapshading_descr,
+		  onchange = function(i, value)
+			  Spring.SetConfigInt("AdvMapShading", (value and 1 or 0))
+			  Spring.SendCommands("advmapshading "..(value and '1' or '0'))
+		  end,
+		},
+
+		{ id = "grounddetail", group = "gfx", category = types.dev, name = texts.option.grounddetail, type = "slider", min = 50, max = 200, step = 1, value = tonumber(Spring.GetConfigInt("GroundDetail", 150) or 150), description = texts.option.grounddetail_descr,
+		  onload = function(i)
+		  end,
+		  onchange = function(i, value)
+			  Spring.SetConfigInt("GroundDetail", value)
+			  Spring.SendCommands("GroundDetail " .. value)
+		  end,
+		},
 
 		{ id = "cus", group = "gfx", name = texts.option.cus, category = types.basic, type = "bool", value = (Spring.GetConfigInt("cus", 1) == 1), description = texts.option.cus_descr,
 		  onchange = function(i, value)
@@ -1860,6 +1888,12 @@ function init()
 			  Spring.SendCommands("shadows 1 " .. value)
 			  Spring.SetConfigInt("Shadows", 1)
 			  Spring.SetConfigInt("ShadowMapSize", value)
+		  end,
+		},
+
+		{ id = "shadows_opacity", group = "gfx", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.shadows_opacity, type = "slider", min = 0.3, max = 1, step = 0.01, value = gl.GetSun("shadowDensity"), description = '',
+		  onchange = function(i, value)
+			  Spring.SetSunLighting({ groundShadowDensity = value, modelShadowDensity = value })
 		  end,
 		},
 
@@ -1993,7 +2027,7 @@ function init()
 		  end,
 		},
 
-		{ id = "decals", group = "gfx", category = types.advanced, name = texts.option.decals, type = "bool", value = tonumber(Spring.GetConfigInt("GroundDecals", 3) or 3) >= 1, description = texts.option.decals_descr,
+		{ id = "decals", group = "gfx", category = types.advanced, name = texts.option.decals, restart = true, type = "bool", value = tonumber(Spring.GetConfigInt("GroundDecals", 3) or 3) >= 1, description = texts.option.decals_descr,
 		  onchange = function(i, value)
 			  Spring.SetConfigInt("GroundDecals", (value and 3 or 0))
 			  Spring.SendCommands("GroundDecals " .. (value and 3 or 0))
@@ -3409,40 +3443,6 @@ function init()
 		{ id = "label_dev_other_spacer", group = "dev", category = types.dev },
 
 		-- BAR doesnt support ZK style startboxes{ id = "startboxeditor", group = "dev", category = optionTypes.dev, widget = "Startbox Editor", name = texts.option.startboxeditor, type = "bool", value = GetWidgetToggleValue("Startbox Editor"), description = texts.option.startboxeditor_descr },
-
-		{ id = "advmapshading", group = "dev", category = types.dev, name = texts.option.advmapshading, type = "bool", value = (Spring.GetConfigInt("AdvMapShading", 1) == 1), description = texts.option.advmapshading_descr,
-		  onchange = function(i, value)
-			  Spring.SetConfigInt("AdvMapShading", (value and 1 or 0))
-			  Spring.SendCommands("advmapshading "..(value and '1' or '0'))
-		  end,
-		},
-
-		{ id = "grounddetail", group = "dev", category = types.dev, name = texts.option.grounddetail, type = "slider", min = 50, max = 200, step = 1, value = tonumber(Spring.GetConfigInt("GroundDetail", 150) or 150), description = texts.option.grounddetail_descr,
-		  onload = function(i)
-		  end,
-		  onchange = function(i, value)
-			  Spring.SetConfigInt("GroundDetail", value)
-			  Spring.SendCommands("GroundDetail " .. value)
-		  end,
-		},
-
-		{ id = "shadows_opacity", group = "dev", category = types.dev, name = texts.option.shadowslider..widgetOptionColor .. "  " .. texts.option.shadows_opacity, type = "slider", min = 0.3, max = 1, step = 0.01, value = gl.GetSun("shadowDensity"), description = '',
-		  onchange = function(i, value)
-			  Spring.SetSunLighting({ groundShadowDensity = value, modelShadowDensity = value })
-		  end,
-		},
-
-		{ id = "cas_sharpness", group = "dev", category = types.dev, name = texts.option.cas_sharpness, min = 0.3, max = 1.1, step = 0.01, type = "slider", value = 1.0, description = texts.option.cas_sharpness_descr,
-		  onload = function(i)
-			  loadWidgetData("Contrast Adaptive Sharpen", "cas_sharpness", { 'SHARPNESS' })
-		  end,
-		  onchange = function(i, value)
-			  if not GetWidgetToggleValue("Contrast Adaptive Sharpen") then
-				  widgetHandler:EnableWidget("Contrast Adaptive Sharpen")
-			  end
-			  saveOptionValue('Contrast Adaptive Sharpen', 'cas', 'setSharpness', { 'SHARPNESS' }, options[getOptionByID('cas_sharpness')].value)
-		  end,
-		},
 
 		{ id = "language", group = "dev", category = types.dev, name = texts.option.language, type = "select", options = languageNames, value = languageCodes[Spring.I18N.getLocale()],
 		  onchange = function(i, value)

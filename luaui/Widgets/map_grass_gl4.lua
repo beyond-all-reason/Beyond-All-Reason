@@ -1,3 +1,11 @@
+local isPotatoGpu = false
+local gpuMem = (Platform.gpuMemorySize and Platform.gpuMemorySize or 1000) / 1000
+if Platform ~= nil and Platform.gpuVendor == 'Intel' then
+	isPotatoGpu = true
+end
+if gpuMem and gpuMem > 0 and gpuMem < 1800 then
+	isPotatoGpu = true
+end
 
 function widget:GetInfo()
   return {
@@ -8,9 +16,10 @@ function widget:GetInfo()
     date      = "2021.04.12",
     license   = "Lua code: GPL V2, Shader Code: CC-BY-NC-ND 4.0",
     layer     = -1000000000000,
-    enabled   = false,
+    enabled   = not isPotatoGpu,
   }
 end
+
 ----------IMPORTANT USAGE INSTRUCTIONS/ README----------
 
 -- The grass configuration is set in the following order:

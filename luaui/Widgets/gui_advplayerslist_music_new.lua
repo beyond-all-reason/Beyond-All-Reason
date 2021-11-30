@@ -1,38 +1,132 @@
 function widget:GetInfo()
 	return {
-		name	= "AdvPlayersList Music Player (orchestral)",
+		name	= "AdvPlayersList Music Player New",
 		desc	= "Plays music and offers volume controls",
 		author	= "Damgam",
 		date	= "2021",
-		license	= "i don't care",
 		layer	= -4,
 		enabled	= true	--	loaded by default?
 	}
 end
 
-local enableSilenceGaps = true
+math.randomseed( os.clock() )
 
-local musicDir = 'sounds/musicnew/'
-local introTracks = VFS.DirList(musicDir..'intro', '*.ogg')
-local peaceTracks = VFS.DirList(musicDir..'peace', '*.ogg')
-local warhighTracks = VFS.DirList(musicDir..'warhigh', '*.ogg')
-local warlowTracks = VFS.DirList(musicDir..'warlow', '*.ogg')
-local gameOverTracks = VFS.DirList(musicDir..'gameover', '*.ogg')
+--[[
+   What i want:
+	- Update music preset after switching the setting (just reload the widget),
+	- Merge old soundtrack into this widget,
+	- Custom Music in main directory going into all music levels, and specific folders for specific level for those who want it,
+	- Make it possible to merge custom music with original soundtrack,
+]]
 
-local currentTrackList = introTracks
+---------------------------------COLLECT MUSIC------------------------------------
+
+-- Original Soundtrack List
+local musicDirOriginal 		= 'music/original'
+local peaceTracksOriginal 		= VFS.DirList(musicDirOriginal..'/peace', '*.ogg')
+local warhighTracksOriginal 	= VFS.DirList(musicDirOriginal..'/warhigh', '*.ogg')
+local warlowTracksOriginal 		= VFS.DirList(musicDirOriginal..'/warlow', '*.ogg')
+local gameoverTracksOriginal 	= VFS.DirList(musicDirOriginal..'/gameover', '*.ogg')
+
+-- Legacy Soundtrack List
+local musicDirLegacy 		= 'music/legacy'
+local peaceTracksLegacy 		= VFS.DirList(musicDirLegacy..'/peace', '*.ogg')
+local warTracksLegacy 			= VFS.DirList(musicDirLegacy..'/war', '*.ogg')
+
+-- Custom Soundtrack List
+local musicDirCustom 		= 'music/custom'
+local baseTracksCustom 			= VFS.DirList(musicDirCustom, '*.ogg')
+local peaceTracksCustom 		= VFS.DirList(musicDirCustom..'/peace', '*.ogg')
+local warhighTracksCustom 		= VFS.DirList(musicDirCustom..'/warhigh', '*.ogg')
+local warlowTracksCustom 		= VFS.DirList(musicDirCustom..'/warlow', '*.ogg')
+local warTracksCustom 			= VFS.DirList(musicDirCustom..'/war', '*.ogg')
+local gameoverTracksCustom 		= VFS.DirList(musicDirCustom..'/gameover', '*.ogg')
+
+-----------------------------------SETTINGS---------------------------------------
+
+local originalSoundtrackEnabled = true
+local legacySoundtrackEnabled 	= false
+local customSoundtrackEnabled	= true
+
+-------------------------------CREATE PLAYLISTS-----------------------------------
+
+peaceTracks = {}
+warhighTracks = {}
+warlowTracks = {}
+gameoverTracks = {}
+
+if originalSoundtrackEnabled then
+	table.mergeInPlace(peaceTracks, peaceTracksOriginal)
+	table.mergeInPlace(warhighTracks, warhighTracksOriginal)
+	table.mergeInPlace(warlowTracks, warlowTracksOriginal)
+	table.mergeInPlace(gameoverTracks, gameoverTracksOriginal)
+end
+
+if legacySoundtrackEnabled then
+	table.mergeInPlace(peaceTracks, peaceTracksLegacy)
+	table.mergeInPlace(warhighTracks, warTracksLegacy)
+	table.mergeInPlace(warlowTracks, warTracksLegacy)
+end
+
+if customSoundtrackEnabled then
+	table.mergeInPlace(peaceTracks, baseTracksCustom)
+	table.mergeInPlace(warhighTracks, baseTracksCustom)
+	table.mergeInPlace(warlowTracks, baseTracksCustom)
+
+	table.mergeInPlace(peaceTracks, peaceTracksCustom)
+	table.mergeInPlace(warhighTracks, warhighTracksCustom)
+	table.mergeInPlace(warlowTracks, warlowTracksCustom)
+	table.mergeInPlace(warhighTracks, warTracksCustom)
+	table.mergeInPlace(warlowTracks, warTracksCustom)
+	table.mergeInPlace(gameoverTracks, gameoverTracksCustom)
+end
+
+----------------------------------SHUFFLE--------------------------------------
+
+local function shuffleMusic(playlist)
+	local originalPlaylist = {}
+	table.mergeInPlace(originalPlaylist, playlist)
+	local shuffledPlaylist = {}
+	
+	repeat
+		local r = math.random(#originalPlaylist)
+		table.insert(shuffledPlaylist, originalPlaylist[r])
+		table.remove(originalPlaylist, r)
+	until(#originalPlaylist == 0)
+	
+	return shuffledPlaylist
+end
+
+peaceTracks 	= shuffleMusic(peaceTracks)
+warhighTracks 	= shuffleMusic(warhighTracks)
+warlowTracks 	= shuffleMusic(warlowTracks)
+gameoverTracks 	= shuffleMusic(gameoverTracks)
+
+peaceTracksPlayCounter 		= math.random(#peaceTracks)
+warhighTracksPlayCounter 	= math.random(#warhighTracks)
+warlowTracksPlayCounter 	= math.random(#warlowTracks)
+gameoverTracksPlayCounter 	= math.random(#gameoverTracks)
+
+------------------------------------END----------------------------------------
+
+local currentTrackList = peaceTracks
+local currentTrackListString = "intro"
 
 local defaultMusicVolume = 50
 local warMeter = 0
 local gameOver = false
 local playedGameOverTrack = false
-local endfadelevel = 999
+local fadelevel = 100
 local faderMin = 45 -- range in dB for volume faders, from -faderMin to 0dB
 
 local playedTime, totalTime = Spring.GetSoundStreamTime()
 local appliedSilence = true
-local minSilenceTime = 30
+local minSilenceTime = 10
 local maxSilenceTime = 120
 local silenceTimer = math.random(minSilenceTime,maxSilenceTime)
+
+local warLowLevel = 1000
+local warHighLevel = 20000
 
 local maxMusicVolume = Spring.GetConfigInt("snd_volmusic", 20)	-- user value, cause actual volume will change during fadein/outc
 local volume = Spring.GetConfigInt("snd_volmaster", 100)
@@ -157,11 +251,15 @@ local function createList()
 		trackname = curTrack or ''
 		glColor(0.45,0.45,0.45,1)
 		trackname = string.gsub(trackname, ".ogg", "")
-		trackname = string.gsub(trackname, musicDir.."intro/", "")
-		trackname = string.gsub(trackname, musicDir.."peace/", "")
-		trackname = string.gsub(trackname, musicDir.."warlow/", "")
-		trackname = string.gsub(trackname, musicDir.."warhigh/", "")
-		trackname = string.gsub(trackname, musicDir.."gameover/", "")
+		trackname = string.gsub(trackname, "intro/", "")
+		trackname = string.gsub(trackname, "peace/", "")
+		trackname = string.gsub(trackname, "warlow/", "")
+		trackname = string.gsub(trackname, "warhigh/", "")
+		trackname = string.gsub(trackname, "war/", "")
+		trackname = string.gsub(trackname, "gameover/", "")
+		trackname = string.gsub(trackname, "music/original/", "")
+		trackname = string.gsub(trackname, "music/legacy/", "")
+		trackname = string.gsub(trackname, "music/custom/", "")
 		local text = ''
 		for i=1, #trackname do
 			local c = string.sub(trackname, i,i)
@@ -237,9 +335,6 @@ function widget:Initialize()
 	end
 	WG['music'].getTracksConfig = function(value)
 		local tracksConfig = {}
-		for k,v in pairs(introTracks) do
-			tracksConfig[#tracksConfig+1] = {true, 'intro', k, v}
-		end
 		for k,v in pairs(peaceTracks) do
 			tracksConfig[#tracksConfig+1] = {true, 'peace', k, v}
 		end
@@ -249,7 +344,7 @@ function widget:Initialize()
 		for k,v in pairs(warhighTracks) do
 			tracksConfig[#tracksConfig+1] = {true, 'warhigh', k, v}
 		end
-		for k,v in pairs(gameOverTracks) do
+		for k,v in pairs(gameoverTracks) do
 			tracksConfig[#tracksConfig+1] = {true, 'gameover', k, v}
 		end
 		return tracksConfig
@@ -417,6 +512,17 @@ function widget:Update(dt)
 		createList()
 		doCreateList = nil
 	end
+
+	local frame = Spring.GetGameFrame()
+	local _,_,paused = Spring.GetGameSpeed()
+	if playing and (paused or frame < 1) then
+		local playedTime, totalTime = Spring.GetSoundStreamTime()
+		if totalTime == 0 then
+			silenceTimer = 0
+			warMeter = 0
+			PlayNewTrack()
+		end
+	end
 end
 
 function widget:RecvLuaMsg(msg, playerID)
@@ -475,8 +581,21 @@ function widget:DrawScreen()
 	end
 end
 
+function fadeOutTrack()
+	fadelevel = fadelevel - 1.5
+	local volumefadelevel = (Spring.GetConfigInt("snd_volmusic", defaultMusicVolume))*0.01*(fadelevel*0.01)
+	Spring.SetSoundStreamVolume(volumefadelevel)
+
+	if fadelevel <= 0 then
+		silenceTimer = 0
+		PlayNewTrack()
+	end
+end
+
 function PlayNewTrack()
 	Spring.StopSoundStream()
+	fadelevel = 100
+	fadeOutTrackBool = false
 	appliedSilence = false
 	prevTrack = curTrack
 	curTrack = nil
@@ -484,32 +603,58 @@ function PlayNewTrack()
 
 	currentTrackList = nil
 	if gameOver == true then
-		currentTrackList = gameOverTracks
+		currentTrackList = gameoverTracks
+		currentTrackListString = "gameOver"
 		playedGameOverTrack = true
-	elseif warMeter >= 20000 then
+	elseif warMeter >= warHighLevel then
 		currentTrackList = warhighTracks
+		currentTrackListString = "warHigh"
 		--Spring.Echo("[NewMusicPlayer] Playing warhigh track")
-	elseif warMeter >= 1000 then
+	elseif warMeter >= warLowLevel then
 		currentTrackList = warlowTracks
+		currentTrackListString = "warLow"
 		--Spring.Echo("[NewMusicPlayer] Playing warlow track")
 	else
 		currentTrackList = peaceTracks
+		currentTrackListString = "peace"
 		--Spring.Echo("[NewMusicPlayer] Playing peace track")
 	end
 
-	if not currentTrackList  then
+	if not currentTrackList then
 		--Spring.Echo("[NewMusicPlayer] there is some issue with getting track list")
 		return
 	end
 
-	if #currentTrackList > 1 then
-		repeat
-			curTrack = currentTrackList[math.random(1,#currentTrackList)]
-		until(curTrack ~= prevTrack)
-	elseif #currentTrackList == 1 then
-		curTrack = currentTrackList[1]
+	if #currentTrackList > 0 then
+		if currentTrackListString == "peace" then
+			curTrack = currentTrackList[peaceTracksPlayCounter]
+			if peaceTracksPlayCounter <= #peaceTracks then
+				peaceTracksPlayCounter = peaceTracksPlayCounter + 1
+			else
+				peaceTracksPlayCounter = 1
+			end
+		end
+		if currentTrackListString == "warHigh" then
+			curTrack = currentTrackList[warhighTracksPlayCounter]
+			if warhighTracksPlayCounter <= #warhighTracks then
+				warhighTracksPlayCounter = warhighTracksPlayCounter + 1
+			else
+				warhighTracksPlayCounter = 1
+			end
+		end
+		if currentTrackListString == "warLow" then
+			curTrack = currentTrackList[warlowTracksPlayCounter]
+			if warlowTracksPlayCounter <= #warlowTracks then
+				warlowTracksPlayCounter = warlowTracksPlayCounter + 1
+			else
+				warlowTracksPlayCounter = 1
+			end
+		end
+		if currentTrackListString == "gameOver" then
+			curTrack = currentTrackList[gameoverTracksPlayCounter]
+		end
 	elseif #currentTrackList == 0 then
-		--Spring.Echo("[NewMusicPlayer] empty track list")
+		-- Spring.Echo("[NewMusicPlayer] empty track list")
 		return
 	end
 
@@ -518,11 +663,11 @@ function PlayNewTrack()
 		Spring.PlaySoundStream(curTrack, 1)
 		Spring.SetSoundStreamVolume(musicVolume)
 	end
-	warMeter = 0
-
+	
+	warMeter = warMeter*0.5
 	createList()
-end
 
+end
 
 function widget:UnitDamaged(unitID,unitDefID,_,damage)
 	if damage > 1 then
@@ -533,79 +678,62 @@ function widget:UnitDamaged(unitID,unitDefID,_,damage)
 		else
 			warMeter = math.ceil(warMeter + damage)
 		end
-		-- if math.random(1,5) == 1 then
-		-- 	silenceTimer = silenceTimer - math.ceil(damage/1000)
-		-- end
 	end
 end
 
 function widget:GameFrame(n)
 	if not playing then return end
-	--if n == 1 then
-		--Spring.StopSoundStream()
-	--end
-	if gameOver == true and playedGameOverTrack == false and endfadelevel ~= 999 then
-		endfadelevel = endfadelevel - ((Spring.GetConfigInt("snd_volmusic", defaultMusicVolume))/45)
-		local musicVolume = endfadelevel*0.01
-		Spring.SetSoundStreamVolume(musicVolume)
+	
+	if fadeOutTrackBool then
+		fadeOutTrack()
 	end
-	if n%30 == 15 or gameOver == true then
+
+	if gameOver == true and playedGameOverTrack == false then
+		fadeOutTrackBool = true
+	end
+	if n%30 == 15 then
 		playedTime, totalTime = Spring.GetSoundStreamTime()
+		
+		if warMeter > 0 then
+			warMeter = math.floor(warMeter - (warMeter*0.02))
+			--Spring.Echo("[NewMusicPlayer] Warmeter: ".. warMeter)
+		end
+		
 		if gameOver == false then
+			
 			if playedTime > 0 and totalTime > 0 then -- music is playing
-				local musicVolume = (Spring.GetConfigInt("snd_volmusic", defaultMusicVolume))*0.01
-				Spring.SetSoundStreamVolume(musicVolume)
-				if warMeter > 0 then
-					warMeter = math.floor(warMeter - (warMeter*0.02))
-					--Spring.Echo("[NewMusicPlayer] Warmeter: ".. warMeter)
+				if not fadeOutTrackBool then
+					local musicVolume = (Spring.GetConfigInt("snd_volmusic", defaultMusicVolume))*0.01
+					Spring.SetSoundStreamVolume(musicVolume)
+					if currentTrackListString == "intro" and n > 30 then
+						fadeOutTrackBool = true
+					end
+					if currentTrackListString == "peace" and warMeter > warLowLevel*2 then
+						fadeOutTrackBool = true
+					end
+					if (currentTrackListString == "warLow" or currentTrackListString == "warHigh") and warMeter <= warLowLevel*0.20 then
+						fadeOutTrackBool = true
+					end
+					if currentTrackListString == "warLow" and warMeter > warHighLevel*2 then
+						fadeOutTrackBool = true
+					end
+					if currentTrackListString == "warHigh" and warMeter <= warHighLevel*0.20 then
+						fadeOutTrackBool = true
+					end
 				end
 			elseif totalTime == 0 then -- there's no music
-				if appliedSilence == true and silenceTimer <= 0 then
+				if warMeter > warHighLevel*3 and silenceTimer > 1 then
+					silenceTimer = 1
+				elseif appliedSilence == true and silenceTimer <= 0 then
 					PlayNewTrack()
 				elseif appliedSilence == false and silenceTimer <= 0 then
-					if enableSilenceGaps == true then
-						silenceTimer = math.random(minSilenceTime,maxSilenceTime)
-						--Spring.Echo("[NewMusicPlayer] Silence Time: ".. silenceTimer)
-					else
-						silenceTimer = 1
-					end
+					silenceTimer = math.random(minSilenceTime,maxSilenceTime)
 					appliedSilence = true
 				elseif appliedSilence == true and silenceTimer > 0 then
 					silenceTimer = silenceTimer - 1
-					--Spring.Echo("[NewMusicPlayer] Silence Time Left: ".. silenceTimer)
-					if warMeter > 0 then
-						warMeter = math.floor(warMeter - (warMeter*0.02))
-						--Spring.Echo("[NewMusicPlayer] Warmeter: ".. warMeter)
-					end
 				end
 			end
-		end
-		if gameOver == true and playedGameOverTrack == false then
-			if totalTime > 0 then
-				if endfadelevel == 999 then
-					endfadelevel = (Spring.GetConfigInt("snd_volmusic", defaultMusicVolume))
-				elseif endfadelevel <= 0 then
-					silenceTimer = 0
-					PlayNewTrack()
-				end
-			else
-				PlayNewTrack()
-			end
-		end
-	end
-end
 
-function widget:Update()
-	if not playing then return end
-
-	local frame = Spring.GetGameFrame()
-	local _,_,paused = Spring.GetGameSpeed()
-	if paused or frame < 1 then
-		local playedTime, totalTime = Spring.GetSoundStreamTime()
-		if totalTime == 0 then
-			silenceTimer = 0
-			warMeter = 0
-			PlayNewTrack()
 		end
 	end
 end

@@ -1,6 +1,6 @@
 function widget:GetInfo()
 	return {
-		name	= "AdvPlayersList Music Player",
+		name	= "AdvPlayersList Music Player Old",
 		desc	= "Plays music and offers volume controls",
 		author	= "Forboding Angel, Floris, Damgam",
 		date	= "november 2016",

@@ -1,3 +1,12 @@
+local isPotatoGpu = false
+local gpuMem = (Platform.gpuMemorySize and Platform.gpuMemorySize or 1000) / 1000
+if Platform ~= nil and Platform.gpuVendor == 'Intel' then
+	isPotatoGpu = true
+end
+if gpuMem and gpuMem > 0 and gpuMem < 1800 then
+	isPotatoGpu = true
+end
+
 function widget:GetInfo()
 	return {
 		name      = "Bloom Shader Deferred", --(v0.5)
@@ -6,7 +15,7 @@ function widget:GetInfo()
 		date      = "2018-05-13",
 		license   = "GPL V2",
 		layer     = 99999,
-		enabled   = true,
+		enabled   = not isPotatoGpu,
 	}
 end
 
