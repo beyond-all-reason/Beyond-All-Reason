@@ -87,13 +87,15 @@ local function shuffleMusic(playlist)
 	local originalPlaylist = {}
 	table.mergeInPlace(originalPlaylist, playlist)
 	local shuffledPlaylist = {}
-	
-	repeat
-		local r = math.random(#originalPlaylist)
-		table.insert(shuffledPlaylist, originalPlaylist[r])
-		table.remove(originalPlaylist, r)
-	until(#originalPlaylist == 0)
-	
+	if #originalPlaylist > 0 then
+		repeat
+			local r = math.random(#originalPlaylist)
+			table.insert(shuffledPlaylist, originalPlaylist[r])
+			table.remove(originalPlaylist, r)
+		until(#originalPlaylist == 0)
+	else 
+		shuffledPlaylist = originalPlaylist
+	end
 	return shuffledPlaylist
 end
 
@@ -597,6 +599,7 @@ end
 
 function PlayNewTrack()
 	Spring.StopSoundStream()
+	warMeter = warMeter*0.5
 	fadelevel = 100
 	fadeOutTrackBool = false
 	appliedSilence = false
@@ -667,9 +670,7 @@ function PlayNewTrack()
 		Spring.SetSoundStreamVolume(musicVolume)
 	end
 	
-	warMeter = warMeter*0.5
 	createList()
-
 end
 
 function widget:UnitDamaged(unitID,unitDefID,_,damage)
