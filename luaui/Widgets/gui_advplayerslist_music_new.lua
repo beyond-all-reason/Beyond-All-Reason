@@ -18,98 +18,101 @@ math.randomseed( os.clock() )
 	- Custom Music in main directory going into all music levels, and specific folders for specific level for those who want it,
 	- Make it possible to merge custom music with original soundtrack,
 ]]
-
+local function ReloadMusicPlaylists()
 ---------------------------------COLLECT MUSIC------------------------------------
 
--- Original Soundtrack List
-local musicDirOriginal 		= 'music/original'
-local peaceTracksOriginal 		= VFS.DirList(musicDirOriginal..'/peace', '*.ogg')
-local warhighTracksOriginal 	= VFS.DirList(musicDirOriginal..'/warhigh', '*.ogg')
-local warlowTracksOriginal 		= VFS.DirList(musicDirOriginal..'/warlow', '*.ogg')
-local gameoverTracksOriginal 	= VFS.DirList(musicDirOriginal..'/gameover', '*.ogg')
+	-- Original Soundtrack List
+	local musicDirOriginal 		= 'music/original'
+	local peaceTracksOriginal 		= VFS.DirList(musicDirOriginal..'/peace', '*.ogg')
+	local warhighTracksOriginal 	= VFS.DirList(musicDirOriginal..'/warhigh', '*.ogg')
+	local warlowTracksOriginal 		= VFS.DirList(musicDirOriginal..'/warlow', '*.ogg')
+	local gameoverTracksOriginal 	= VFS.DirList(musicDirOriginal..'/gameover', '*.ogg')
 
--- Legacy Soundtrack List
-local musicDirLegacy 		= 'music/legacy'
-local peaceTracksLegacy 		= VFS.DirList(musicDirLegacy..'/peace', '*.ogg')
-local warTracksLegacy 			= VFS.DirList(musicDirLegacy..'/war', '*.ogg')
+	-- Legacy Soundtrack List
+	local musicDirLegacy 		= 'music/legacy'
+	local peaceTracksLegacy 		= VFS.DirList(musicDirLegacy..'/peace', '*.ogg')
+	local warTracksLegacy 			= VFS.DirList(musicDirLegacy..'/war', '*.ogg')
 
--- Custom Soundtrack List
-local musicDirCustom 		= 'music/custom'
-local baseTracksCustom 			= VFS.DirList(musicDirCustom, '*.ogg')
-local peaceTracksCustom 		= VFS.DirList(musicDirCustom..'/peace', '*.ogg')
-local warhighTracksCustom 		= VFS.DirList(musicDirCustom..'/warhigh', '*.ogg')
-local warlowTracksCustom 		= VFS.DirList(musicDirCustom..'/warlow', '*.ogg')
-local warTracksCustom 			= VFS.DirList(musicDirCustom..'/war', '*.ogg')
-local gameoverTracksCustom 		= VFS.DirList(musicDirCustom..'/gameover', '*.ogg')
+	-- Custom Soundtrack List
+	local musicDirCustom 		= 'music/custom'
+	local baseTracksCustom 			= VFS.DirList(musicDirCustom, '*.ogg')
+	local peaceTracksCustom 		= VFS.DirList(musicDirCustom..'/peace', '*.ogg')
+	local warhighTracksCustom 		= VFS.DirList(musicDirCustom..'/warhigh', '*.ogg')
+	local warlowTracksCustom 		= VFS.DirList(musicDirCustom..'/warlow', '*.ogg')
+	local warTracksCustom 			= VFS.DirList(musicDirCustom..'/war', '*.ogg')
+	local gameoverTracksCustom 		= VFS.DirList(musicDirCustom..'/gameover', '*.ogg')
 
 -----------------------------------SETTINGS---------------------------------------
 
-local originalSoundtrackEnabled = Spring.GetConfigInt('UseSoundtrackNew', 1)
-local legacySoundtrackEnabled 	= Spring.GetConfigInt('UseSoundtrackOld', 0)
-local customSoundtrackEnabled	= Spring.GetConfigInt('UseSoundtrackCustom', 1)
+	local originalSoundtrackEnabled = Spring.GetConfigInt('UseSoundtrackNew', 1)
+	local legacySoundtrackEnabled 	= Spring.GetConfigInt('UseSoundtrackOld', 0)
+	local customSoundtrackEnabled	= Spring.GetConfigInt('UseSoundtrackCustom', 1)
 
 -------------------------------CREATE PLAYLISTS-----------------------------------
 
-peaceTracks = {}
-warhighTracks = {}
-warlowTracks = {}
-gameoverTracks = {}
+	peaceTracks = {}
+	warhighTracks = {}
+	warlowTracks = {}
+	gameoverTracks = {}
 
-if originalSoundtrackEnabled == 1 then
-	table.mergeInPlace(peaceTracks, peaceTracksOriginal)
-	table.mergeInPlace(warhighTracks, warhighTracksOriginal)
-	table.mergeInPlace(warlowTracks, warlowTracksOriginal)
-	table.mergeInPlace(gameoverTracks, gameoverTracksOriginal)
-end
+	if originalSoundtrackEnabled == 1 then
+		table.mergeInPlace(peaceTracks, peaceTracksOriginal)
+		table.mergeInPlace(warhighTracks, warhighTracksOriginal)
+		table.mergeInPlace(warlowTracks, warlowTracksOriginal)
+		table.mergeInPlace(gameoverTracks, gameoverTracksOriginal)
+	end
 
-if legacySoundtrackEnabled == 1 then
-	table.mergeInPlace(peaceTracks, peaceTracksLegacy)
-	table.mergeInPlace(warhighTracks, warTracksLegacy)
-	table.mergeInPlace(warlowTracks, warTracksLegacy)
-end
+	if legacySoundtrackEnabled == 1 then
+		table.mergeInPlace(peaceTracks, peaceTracksLegacy)
+		table.mergeInPlace(warhighTracks, warTracksLegacy)
+		table.mergeInPlace(warlowTracks, warTracksLegacy)
+	end
 
-if customSoundtrackEnabled == 1 then
-	table.mergeInPlace(peaceTracks, baseTracksCustom)
-	table.mergeInPlace(warhighTracks, baseTracksCustom)
-	table.mergeInPlace(warlowTracks, baseTracksCustom)
+	if customSoundtrackEnabled == 1 then
+		table.mergeInPlace(peaceTracks, baseTracksCustom)
+		table.mergeInPlace(warhighTracks, baseTracksCustom)
+		table.mergeInPlace(warlowTracks, baseTracksCustom)
 
-	table.mergeInPlace(peaceTracks, peaceTracksCustom)
-	table.mergeInPlace(warhighTracks, warhighTracksCustom)
-	table.mergeInPlace(warlowTracks, warlowTracksCustom)
-	table.mergeInPlace(warhighTracks, warTracksCustom)
-	table.mergeInPlace(warlowTracks, warTracksCustom)
-	table.mergeInPlace(gameoverTracks, gameoverTracksCustom)
-end
+		table.mergeInPlace(peaceTracks, peaceTracksCustom)
+		table.mergeInPlace(warhighTracks, warhighTracksCustom)
+		table.mergeInPlace(warlowTracks, warlowTracksCustom)
+		table.mergeInPlace(warhighTracks, warTracksCustom)
+		table.mergeInPlace(warlowTracks, warTracksCustom)
+		table.mergeInPlace(gameoverTracks, gameoverTracksCustom)
+	end
 
 ----------------------------------SHUFFLE--------------------------------------
 
-local function shuffleMusic(playlist)
-	local originalPlaylist = {}
-	table.mergeInPlace(originalPlaylist, playlist)
-	local shuffledPlaylist = {}
-	if #originalPlaylist > 0 then
-		repeat
-			local r = math.random(#originalPlaylist)
-			table.insert(shuffledPlaylist, originalPlaylist[r])
-			table.remove(originalPlaylist, r)
-		until(#originalPlaylist == 0)
-	else 
-		shuffledPlaylist = originalPlaylist
+	local function shuffleMusic(playlist)
+		local originalPlaylist = {}
+		table.mergeInPlace(originalPlaylist, playlist)
+		local shuffledPlaylist = {}
+		if #originalPlaylist > 0 then
+			repeat
+				local r = math.random(#originalPlaylist)
+				table.insert(shuffledPlaylist, originalPlaylist[r])
+				table.remove(originalPlaylist, r)
+			until(#originalPlaylist == 0)
+		else 
+			shuffledPlaylist = originalPlaylist
+		end
+		return shuffledPlaylist
 	end
-	return shuffledPlaylist
-end
 
-peaceTracks 	= shuffleMusic(peaceTracks)
-warhighTracks 	= shuffleMusic(warhighTracks)
-warlowTracks 	= shuffleMusic(warlowTracks)
-gameoverTracks 	= shuffleMusic(gameoverTracks)
+	peaceTracks 	= shuffleMusic(peaceTracks)
+	warhighTracks 	= shuffleMusic(warhighTracks)
+	warlowTracks 	= shuffleMusic(warlowTracks)
+	gameoverTracks 	= shuffleMusic(gameoverTracks)
 
-peaceTracksPlayCounter 		= math.random(#peaceTracks)
-warhighTracksPlayCounter 	= math.random(#warhighTracks)
-warlowTracksPlayCounter 	= math.random(#warlowTracks)
-gameoverTracksPlayCounter 	= math.random(#gameoverTracks)
+	peaceTracksPlayCounter 		= math.random(#peaceTracks)
+	warhighTracksPlayCounter 	= math.random(#warhighTracks)
+	warlowTracksPlayCounter 	= math.random(#warlowTracks)
+	gameoverTracksPlayCounter 	= math.random(#gameoverTracks)
 
 ------------------------------------END----------------------------------------
+	Spring.SetConfigInt('UseSoundtrackReload', 0)
+end
+ReloadMusicPlaylists()
 
 local currentTrackList = peaceTracks
 local currentTrackListString = "intro"
@@ -697,7 +700,11 @@ function widget:GameFrame(n)
 	end
 	if n%30 == 15 then
 		playedTime, totalTime = Spring.GetSoundStreamTime()
-		
+		if Spring.GetConfigInt('UseSoundtrackReload', 0) == 1 then
+			Spring.StopSoundStream()
+			ReloadMusicPlaylists()
+			PlayNewTrack()
+		end
 		if warMeter > 0 then
 			warMeter = math.floor(warMeter - (warMeter*0.02))
 			--Spring.Echo("[NewMusicPlayer] Warmeter: ".. warMeter)
