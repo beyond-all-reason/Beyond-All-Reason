@@ -135,7 +135,6 @@ return {
 			label_automation = 'Automation',
 			label_game = 'Game',
 			label_info = 'Info',
-			label_tracks = 'Tracks',
 			label_messages = 'Messages',
 			label_camera = 'Camera',
 			label_water = 'Water',
