@@ -9,6 +9,8 @@ function widget:GetInfo()
 	}
 end
 
+math.randomseed( os.clock() )
+
 --[[
    What i want:
 	- Update music preset after switching the setting (just reload the widget),
@@ -253,7 +255,11 @@ local function createList()
 		trackname = string.gsub(trackname, "peace/", "")
 		trackname = string.gsub(trackname, "warlow/", "")
 		trackname = string.gsub(trackname, "warhigh/", "")
+		trackname = string.gsub(trackname, "war/", "")
 		trackname = string.gsub(trackname, "gameover/", "")
+		trackname = string.gsub(trackname, "music/original/", "")
+		trackname = string.gsub(trackname, "music/legacy/", "")
+		trackname = string.gsub(trackname, "music/custom/", "")
 		local text = ''
 		for i=1, #trackname do
 			local c = string.sub(trackname, i,i)
