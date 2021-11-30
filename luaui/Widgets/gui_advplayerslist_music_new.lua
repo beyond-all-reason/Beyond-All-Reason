@@ -44,9 +44,9 @@ local gameoverTracksCustom 		= VFS.DirList(musicDirCustom..'/gameover', '*.ogg')
 
 -----------------------------------SETTINGS---------------------------------------
 
-local originalSoundtrackEnabled = true
-local legacySoundtrackEnabled 	= false
-local customSoundtrackEnabled	= true
+local originalSoundtrackEnabled = Spring.GetConfigInt('UseSoundtrackNew', 1)
+local legacySoundtrackEnabled 	= Spring.GetConfigInt('UseSoundtrackOld', 0)
+local customSoundtrackEnabled	= Spring.GetConfigInt('UseSoundtrackCustom', 0)
 
 -------------------------------CREATE PLAYLISTS-----------------------------------
 
@@ -348,6 +348,9 @@ function widget:Initialize()
 			tracksConfig[#tracksConfig+1] = {true, 'gameover', k, v}
 		end
 		return tracksConfig
+	end
+	WG['music'].RefreshTrackList = function ()
+		-- TODO: Refactor track list into functions, call on initialize and from here
 	end
 	--for track, params in pairs(tracksConfig) do
 	--	-- get track

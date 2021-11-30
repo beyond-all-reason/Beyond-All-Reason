@@ -2201,24 +2201,20 @@ function init()
 		  end,
 		},
 
-		{ id = "soundtrack", group = "sound", category = types.basic, name = texts.option.soundtrack, type = "select", options = { '---', 'orchestral', 'modern' }, value = Spring.GetConfigInt('soundtrack', 2), description = texts.option.soundtrack_descr,
-		  onchange = function(i, value)
-			  Spring.SetConfigString("soundtrack", value)
-			  Spring.StopSoundStream()
-			  if value == 1 then
-				  widgetHandler:DisableWidget('AdvPlayersList Music Player')
-				  widgetHandler:DisableWidget('AdvPlayersList Music Player (orchestral)')
-				  init()
-			  elseif value == 2 then
-				  widgetHandler:DisableWidget('AdvPlayersList Music Player')
-				  widgetHandler:EnableWidget('AdvPlayersList Music Player (orchestral)')
-				  init()
-			  elseif value == 3 then
-				  widgetHandler:DisableWidget('AdvPlayersList Music Player (orchestral)')
-				  widgetHandler:EnableWidget('AdvPlayersList Music Player')
-				  init()
-			  end
-		  end,
+		{ id = "soundtrackNew", group = "sound", category = types.basic, name = texts.option.soundtrack.. widgetOptionColor .. "  " .. texts.option.soundtracknew, type = "bool", value = Spring.GetConfigInt('UseSoundtrackNew', 1) == 1, description = texts.option.soundtrack_descr,
+			onchange = function(i, value)
+				Spring.SetConfigInt('UseSoundtrackNew', value and 1 or 0)
+			end
+		},
+		{ id = "soundtrackOld", group = "sound", category = types.basic, name = widgetOptionColor .. "  " .. texts.option.soundtrackold, type = "bool", value = Spring.GetConfigInt('UseSoundtrackOld', 0) == 1,
+			onchange = function(i, value)
+				Spring.SetConfigInt('UseSoundtrackOld', value and 1 or 0)
+			end
+		},
+		{ id = "soundtrackCustom", group = "sound", category = types.basic, name = widgetOptionColor .. "  " .. texts.option.soundtrackcustom, type = "bool", value = Spring.GetConfigInt('UseSoundtrackCustom', 0) == 1,
+			onchange = function(i, value)
+				Spring.SetConfigInt('UseSoundtrackCustom', value and 1 or 0)
+			end
 		},
 		{ id = "sndvolmusic", group = "sound", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.sndvolmusic, type = "slider", min = 0, max = 100, step = 1, value = tonumber(Spring.GetConfigInt("snd_volmusic", 20) or 20),
 		  onload = function(i)
@@ -2236,9 +2232,6 @@ function init()
 			  Spring.SetConfigInt("music_loadscreen", (value and 1 or 0))
 		  end,
 		},
-
-		{ id = "label_snd_tracks", group = "sound", name = texts.option.label_tracks, category = types.basic },
-		{ id = "label_snd_tracks_spacer", group = "sound", category = types.basic },
 
 		{ id = "scav_messages", group = "notif", category = types.basic, name = texts.option.scav_messages, type = "bool", value = tonumber(Spring.GetConfigInt("scavmessages", 1) or 1) == 1, description = "",
 		  onchange = function(i, value)
@@ -4651,106 +4644,6 @@ function init()
 		options = newOptions
 	end
 
-	if (Spring.GetConfigInt('soundtrack', 2) == 2) or (Spring.GetConfigInt('soundtrack', 2) == 3) then
-		local widgetName = Spring.GetConfigInt('soundtrack', 2) == 2 and "AdvPlayersList Music Player (orchestral)" or "AdvPlayersList Music Player"
-		local tracksConfig = {}
-		if WG['music'] ~= nil and WG['music'].getTracksConfig ~= nil then
-			tracksConfig = WG['music'].getTracksConfig()
-		elseif widgetHandler.configData[widgetName] ~= nil and widgetHandler.configData[widgetName].tracksConfig ~= nil then
-			tracksConfig = widgetHandler.configData[widgetName].tracksConfig
-		end
-		local musicList = {}
-		if type(tracksConfig) == 'table' then
-			local tracksConfigSorted = {}
-			for n in pairs(tracksConfig) do
-				table.insert(tracksConfigSorted, n)
-			end
-			table.sort(tracksConfigSorted)
-
-			if Spring.GetConfigInt('soundtrack', 2) == 3 then
-				for i, track in ipairs(tracksConfigSorted) do
-					local params = tracksConfig[track]
-					if params[2] == 'peace' then
-						musicList[#musicList + 1] = { track, params[1], params[2] }
-					end
-				end
-				for i, track in ipairs(tracksConfigSorted) do
-					local params = tracksConfig[track]
-					if params[2] == 'war' then
-						musicList[#musicList + 1] = { track, params[1], params[2] }
-					end
-				end
-			else
-				for i, track in ipairs(tracksConfigSorted) do
-					local params = tracksConfig[track]
-					musicList[#musicList + 1] = { track, params[1], params[2], params[3], params[4] }
-				end
-			end
-		end
-
-		local newOptions = {}
-		local count = 0
-		for i, option in pairs(options) do
-			count = count + 1
-			newOptions[count] = option
-			if option.id == 'label_snd_tracks_spacer' then
-				for k, v in pairs(musicList) do
-					count = count + 1
-					local optionName = ''
-					local trackName = ''
-					if Spring.GetConfigInt('soundtrack', 2) == 3 then
-						trackName = string.gsub(v[1], "sounds/music/peace/", "")
-						trackName = string.gsub(trackName, "sounds/music/war/", "")
-						trackName = string.gsub(trackName, ".ogg", "")
-					elseif musicList[k][5] then
-						trackName = musicList[k][5]
-						trackName = string.gsub(trackName, "sounds/musicnew/intro/", "")
-						trackName = string.gsub(trackName, "sounds/musicnew/peace/", "")
-						trackName = string.gsub(trackName, "sounds/musicnew/warlow/", "")
-						trackName = string.gsub(trackName, "sounds/musicnew/warhigh/", "")
-						trackName = string.gsub(trackName, "sounds/musicnew/gameover/", "")
-						trackName = string.gsub(trackName, ".ogg", "")
-					end
-					if trackName ~= '' then
-						optionName = trackName
-						if font:GetTextWidth(optionName) * math.floor(15 * widgetScale) > screenWidth * 0.25 then
-							while font:GetTextWidth(optionName) * math.floor(15 * widgetScale) > screenWidth * 0.245 do
-								optionName = string.sub(optionName, 1, string.len(optionName) - 1)
-							end
-							optionName = optionName .. '...'
-						end
-						newOptions[count] = { id = "music_track" .. v[1], group = "sound", category = types.basic, name = musicOptionColor .. optionName, type = "bool", value = v[2], description = trackName .. '\n\255\200\200\200' .. v[3],
-											  onchange = function(i, value)
-												  if not WG['music'] and widgetHandler.configData[widgetName] ~= nil and widgetHandler.configData[widgetName].tracksConfig ~= nil then
-													  if widgetHandler.configData[widgetName].tracksConfig[v[1]] then
-														  widgetHandler.configData[widgetName].tracksConfig[v[1]][1] = value
-													  end
-												  else
-													  saveOptionValue(widgetName, 'music', 'setTrack' .. v[1], { 'tracksConfig' }, value)
-												  end
-											  end,
-											  onclick = function()
-												  WG['music'].playTrack(v[1])
-											  end,
-						}
-						if WG['music'] == nil or not WG['music'].playTrack then
-							newOptions[count].onclick = nil
-						end
-						if Spring.GetConfigInt('soundtrack', 2) == 2 then
-							newOptions[count].onchange = nil
-							newOptions[count].type = 'text'
-							newOptions[count].value = nil
-						end
-					end
-				end
-			end
-		end
-		options = newOptions
-	else
-		options[getOptionByID('label_snd_tracks')] = nil
-		options[getOptionByID('label_snd_tracks_spacer')] = nil
-	end
-
 	-- cursors
 	if WG['cursors'] == nil then
 		options[getOptionByID('cursor')] = nil
@@ -4947,19 +4840,6 @@ function widget:Initialize()
 		end
 		Spring.SetConfigInt("VSync", vsync)
 		Spring.SetConfigInt("VSyncGame", vsync)    -- stored here as assurance cause lobby/game also changes vsync when idle and lobby could think game has set vsync 4 after a hard crash
-
-		-- make sure only one music widget is loaded
-		local value = Spring.GetConfigInt('soundtrack', 2)
-		if value == 1 then
-			widgetHandler:DisableWidget('AdvPlayersList Music Player')
-			widgetHandler:DisableWidget('AdvPlayersList Music Player (orchestral)')
-		elseif value == 2 then
-			widgetHandler:DisableWidget('AdvPlayersList Music Player')
-			widgetHandler:EnableWidget('AdvPlayersList Music Player (orchestral)')
-		elseif value == 3 then
-			widgetHandler:DisableWidget('AdvPlayersList Music Player (orchestral)')
-			widgetHandler:EnableWidget('AdvPlayersList Music Player')
-		end
 
 		-- disable CUS
 		if tonumber(Spring.GetConfigInt("cus", 1) or 1) == 0 then
