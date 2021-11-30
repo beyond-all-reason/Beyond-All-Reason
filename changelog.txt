@@ -1,4 +1,4 @@
-﻿10.24 -> 1.00
+﻿# 2019 - 2021
 
 General
  • Enabled ground deformation
@@ -70,7 +70,7 @@ Renamed units:
  • Gaat Gun -> Warden
 
 
-10.23 -> 10.24
+10.24
 24/02/2019
 
 Balanced Annihilation 10.24, the game this has been based on.

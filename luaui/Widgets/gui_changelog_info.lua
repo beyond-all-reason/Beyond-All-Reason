@@ -47,9 +47,10 @@ local showOnceMore = false        -- used because of GUI shader delay
 
 local RectRound, UiElement, UiScroller, elementCorner
 
-local versionOffsetX = 28
+local versionOffsetX = 6
 local versionOffsetY = 14
 local versionFontSize = 16
+local versionWidth = 110
 
 local versionQuickLinks = {}
 local maxLines = 20
@@ -102,22 +103,23 @@ function DrawSidebar(x, y, width, height)
 		local j = 0
 		while j < 22 do
 			if ((fontSize + fontOffsetY) * j) + 4 > height - yOffset then
-				break ;
+				break
 			end
 			if versions[lineKey] == nil then
-				break ;
+				break
 			end
 			local line = changelogLines[versions[lineKey]]
 
 			-- version button title
-			line = " " .. string.match(line, '( %d*%d.?%d+)')
+			--line = " " .. string.match(line, '( %d*%d.?%d+)')
+			line = " " .. string.sub(line, 3)
 			local textY = y - ((fontSize + fontOffsetY) * j) - (20*widgetScale)
-			font:Print(line, x + fontOffsetX, textY, fontSize, "ocn")
+			font:Print(line, x + fontOffsetX, textY, fontSize, "on")
 
 			versionQuickLinks[j] = {
 				math.floor(x),
 				math.floor(textY - (versionFontSize * widgetScale * 0.66)),
-				math.floor(x + (70*widgetScale)),
+				math.floor(x + (versionWidth*widgetScale)),
 				math.ceil(textY + (versionFontSize * widgetScale * 1.21))
 			}
 
@@ -189,14 +191,10 @@ function DrawTextarea(x, y, width, height, scrollbar)
 				line = "  " .. line
 				font:SetTextColor(fontColorDate)
 				font:Print(line, x, y - (lineSeparator + fontSizeTitle) * j, fontSizeDate, "n")
-			elseif string.find(line, '^(%d*%d.?%d+)') then
+
+			elseif string.find(line, '^# ') then
 				-- version line
-				local versionStrip = string.match(line, '( %d*%d.?%d+)')
-				if versionStrip ~= nil then
-					line = " " .. versionStrip
-				else
-					line = " " .. line
-				end
+				line = string.sub(line, 3)
 				font:SetTextColor(fontColorTitle)
 				font:Print(line, x - (9*widgetScale), y - (lineSeparator + fontSizeTitle) * j, fontSizeTitle, "n")
 
@@ -255,10 +253,10 @@ function DrawWindow()
 	font2:End()
 
 	-- version links
-	DrawSidebar(screenX+bgpadding, screenY-bgpadding, 70*widgetScale, screenHeight-bgpadding-bgpadding)
+	DrawSidebar(screenX+bgpadding, screenY-bgpadding, versionWidth*widgetScale, screenHeight-bgpadding-bgpadding)
 
 	-- textarea
-	DrawTextarea(screenX + (90*widgetScale), screenY - (10*widgetScale), screenWidth - (90*widgetScale), screenHeight - (24*widgetScale), 1)
+	DrawTextarea(screenX + ((versionWidth+30)*widgetScale), screenY - (10*widgetScale), screenWidth - ((versionWidth+30)*widgetScale), screenHeight - (24*widgetScale), 1)
 end
 
 function widget:RecvLuaMsg(msg, playerID)
@@ -457,7 +455,9 @@ function widget:Initialize()
 		local insertedLatest = false
 		for i, line in ipairs(changelogLines) do
 
-			if insertedLatest == false or string.find(line, '^(%d*%d.?%d+ [/-]> %d*%d.[0-9]0)$') or string.find(line, '^(%d*%d.?%d+ [/-]> %d*%d.[0-9])$') then
+			--if insertedLatest == false or string.find(line, '^(%d*%d.?%d+ [/-]> %d*%d.[0-9]0)$') or string.find(line, '^(%d*%d.?%d+ [/-]> %d*%d.[0-9])$') then
+			if insertedLatest == false or string.match(line, '^# ') then
+
 				--if string.find(line, '^(%d*%d.?%d+ [/-]> )') then
 				versionKey = versionKey + 1
 				versions[versionKey] = i
