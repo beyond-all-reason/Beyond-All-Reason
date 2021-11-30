@@ -1379,7 +1379,9 @@ end
 function GetWidgetToggleValue(widgetname)
 	if widgetHandler.orderList[widgetname] == nil or widgetHandler.orderList[widgetname] == 0 then
 		return false
-	elseif widgetHandler.orderList[widgetname] >= 1 then
+	elseif widgetHandler.orderList[widgetname] >= 1
+		and widgetHandler.knownWidgets ~= nil
+		and widgetHandler.knownWidgets[widgetname] ~= nil then
 		if widgetHandler.knownWidgets[widgetname].active then
 			return true
 		else
