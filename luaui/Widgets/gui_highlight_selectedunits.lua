@@ -129,7 +129,7 @@ function widget:Shutdown()
 	if shader then
 		gl.DeleteShader(shader)
 	end
-	if WG['teamplatter'] == nil and WG['fancyselectedunits'] == nil then
+	if WG['teamplatter'] == nil then
 		SetupCommandColors(true)
 	end
 	WG['highlightselunits'] = nil
