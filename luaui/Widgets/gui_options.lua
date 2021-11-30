@@ -2213,7 +2213,7 @@ function init()
 				Spring.SetConfigInt('UseSoundtrackOld', value and 1 or 0)
 			end
 		},
-		{ id = "soundtrackCustom", group = "sound", category = types.basic, name = widgetOptionColor .. "  " .. texts.option.soundtrackcustom, type = "bool", value = Spring.GetConfigInt('UseSoundtrackCustom', 0) == 1,
+		{ id = "soundtrackCustom", group = "sound", category = types.basic, name = widgetOptionColor .. "  " .. texts.option.soundtrackcustom, type = "bool", value = Spring.GetConfigInt('UseSoundtrackCustom', 1) == 1,
 			onchange = function(i, value)
 				Spring.SetConfigInt('UseSoundtrackCustom', value and 1 or 0)
 			end
