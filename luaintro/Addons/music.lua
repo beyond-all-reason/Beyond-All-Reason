@@ -28,7 +28,7 @@ end
 function addon.Initialize()
 	local originalSoundtrackEnabled = true
 	local legacySoundtrackEnabled 	= false
-	local customSoundtrackEnabled	= false
+	local customSoundtrackEnabled	= true
 	
 	
 	local musicPlaylist = {}
