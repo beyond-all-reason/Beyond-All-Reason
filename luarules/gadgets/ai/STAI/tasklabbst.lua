@@ -226,8 +226,8 @@ TaskLabBST.queue = {
 
 		{'techs',3,nil,10,1},
 		{'scouts',1,10,2,2},
-		{'raiders',1,nil,20,5},
-	--[[
+		--{'raiders',1,nil,20,5},
+	{'battles',3,nil,25,5},--[[
 		{'techs',3,nil,10,2},
 		{'battles',3,nil,25,5},
 		{'techs',3,6,7,1},
@@ -251,8 +251,7 @@ TaskLabBST.queue = {
 		{'subkillers',1,7,5}, -- submarine weaponed
 		{'breaks',nil,nil,40,3},
 		{'amphibious',0,7,20}, -- weapon amphibious
-		]]
-
+]]
 
 
 -- 		{'transports',1,nil,nil},

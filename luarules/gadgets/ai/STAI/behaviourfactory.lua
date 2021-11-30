@@ -105,9 +105,9 @@ function BehaviourFactory:defaultBehaviours(unit)
 		--self:EchoDebug()
 	end
 	if army.breaks[un] then
-		table.insert(b, AttackerBST)
-		--table.insert(b, RaiderBST)
-		table.insert(b, DefendBST)
+		--table.insert(b, AttackerBST)
+		table.insert(b, RaiderBST)
+		--table.insert(b, DefendBST)
 		--self:EchoDebug()
 	end
 	if army.artillerys[un] then
@@ -117,7 +117,8 @@ function BehaviourFactory:defaultBehaviours(unit)
 	end
 	if army.battles[un] then
 		table.insert(b, AttackerBST)
-		--table.insert(b, RaiderBST)
+		table.insert(b, RaiderBST)
+		table.insert(b, ScoutBST)
 		table.insert(b, DefendBST)
 		--self:EchoDebug()
 	end
