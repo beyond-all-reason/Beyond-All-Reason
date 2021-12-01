@@ -3,10 +3,12 @@
 -- reading on LuaVBO: https://github.com/beyond-all-reason/spring/blob/BAR/rts/Lua/LuaVBOImpl.cpp
 -- Quick video on what VAO/VBO are: https://www.youtube.com/watch?v=WMiggUPst-Q
 
+
+
 function widget:GetInfo()
 	return {
 		name = "Frame Grapher",
-		desc = "Draw frame time graph in bottom right",
+		desc = "Draw frame time graph in bottom right, bar height is time elapsed between frames, blue bars are estimated sim frames, purple bars are CTO errors, and bars are shaded black if their CTO error differs from ideal",
 		author = "Beherith",
 		date = "2021.mar.29",
 		license = "GPLv2",
@@ -92,7 +94,8 @@ void main() {
 	fragColor = vec4(red,green,0,0.75 );
   fragColor.a = 1.0;
   if (v_time_duration_wasgf.z > 0.5 ) fragColor = vec4(0.0, 0.0, 1.0, 1.0);
-  if (v_time_duration_wasgf.w > 0.5 ) fragColor = vec4(1.0, 0.0, 1.0, 1.1);
+  if (v_time_duration_wasgf.w > 2.0 ) fragColor = vec4(1.0, 0.0, 1.0, 1.1);
+  else fragColor.rgb = mix(fragColor.rgb, vec3(0.0), v_time_duration_wasgf.w);
 }
 ]]
 --------------------------------------------------------------------------------
@@ -131,27 +134,40 @@ function widget:GameFrame(n)
 end
 
 function widget:DrawScreen()
+	local drawpersimframe = math.floor(Spring.GetFPS()/30.0 +0.5 )
+	
 	local timernew = spGetTimer()
 	local lastframeduration = spDiffTimers(timernew, timerold)*1000 -- in MILLISECONDS
 	timerold = timernew
   local lastframetime = spDiffTimers(timernew, timerstart) * 1000 -- in MILLISECONDS
   local fto = Spring.GetFrameTimeOffset()
   
+  local CTOError = 0
+  
+  if drawpersimframe == 2 then
+	CTOError = 4 * math.min(math.abs(fto-0.5), math.abs(fto))
+  elseif drawpersimframe ==3 then
+	CTOError = 6 * math.min(math.min(math.abs(fto-0.33), math.abs(fto -0.66)), math.abs(fto))
+  elseif drawpersimframe ==4 then
+	CTOError = 8 * math.min(math.min(math.abs(fto-0.25), math.abs(fto -0.5)), math.min(math.abs(fto), math.abs(fto-0.75)))
+  end
+  --Spring.Echo(Spring.GetGameFrame(), fto, CTOError)
+  
   rectInstancePtr = rectInstancePtr+1
   if rectInstancePtr >= maxframes then rectInstancePtr = 0 end
-  pushElementInstance(rectInstanceTable, {lastframetime, lastframeduration, 0, 0}, rectInstancePtr, true)
+  pushElementInstance(rectInstanceTable, {lastframetime, lastframeduration, 0, CTOError}, rectInstancePtr, true)
   if wasgameframe>0 then
       
     rectInstancePtr = rectInstancePtr+1
     if rectInstancePtr >= maxframes then rectInstancePtr = 0 end
-    pushElementInstance(rectInstanceTable, {lastframetime, lastframeduration-prevframems, 1, 0}, rectInstancePtr, true)
+    pushElementInstance(rectInstanceTable, {lastframetime, lastframeduration-prevframems, 1, CTOError}, rectInstancePtr, true)
   end
   
   if fto > 0.99 then
       
     rectInstancePtr = rectInstancePtr+1
     if rectInstancePtr >= maxframes then rectInstancePtr = 0 end
-    pushElementInstance(rectInstanceTable, {lastframetime, lastframeduration, 1, fto}, rectInstancePtr, true)
+    pushElementInstance(rectInstanceTable, {lastframetime, lastframeduration, 1, 3}, rectInstancePtr, true)
   end
   
   
