@@ -279,7 +279,7 @@ if gadgetHandler:IsSyncedCode() then
 		--If one player won all the awards, they also win the Golden Cow award, but this is only meaningful in large games
 		if ecoKillAwardTeam ~= -1 and (ecoKillAwardTeam == fightKillAwardTeam) and (ecoKillAwardTeam == efficiencyAwardTeam) and nTeams > 3 then
 			if winningAllyTeams then
-				table.insert(awards.goldenCow, { teamID = teamID, score = 1 })
+				table.insert(awards.goldenCow, { teamID = ecoKillAwardTeam, score = 1 })
 				table.sort(awards.goldenCow, awardSortFunction)
 			end
 		end
