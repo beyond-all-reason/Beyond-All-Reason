@@ -1,315 +1,248 @@
 function widget:GetInfo()
 	return {
-		name = "EnemySpotter",
-		desc = "Draws transparant smoothed donuts under enemy units (with teamcolors or predefined colors, depending on situation)",
-		author = "Floris (original enemyspotter by TradeMark, who edited 'TeamPlatter' by Dave Rodgers)",
-		date = "18 february 2015",
+		name = "EnemySpotter", -- GL4
+		desc = "Draw geometric primitives at any unit",
+		author = "Beherith, Floris",
+		date = "December 2021",
 		license = "GNU GPL, v2 or later",
-		layer = 5,
-		enabled = false
+		layer = -1,
+		enabled = false,
 	}
 end
 
---------------------------------------------------------------------------------
--- Config
---------------------------------------------------------------------------------
+-- Configurable Parts:
+local texture = "LuaUI/Images/enemyspotter.dds"
+local opacity = 0.23
+local skipOwnTeam = true
+local sizeMultiplier = 1.25
 
-local renderAllTeamsAsSpec = false        -- renders for all teams when spectator
-local renderAllTeamsAsPlayer = false        -- keep this 'false' if you dont want circles rendered under your own units as player
+---- GL4 Backend Stuff----
+local selectionVBO = nil
+local selectShader = nil
+local luaShaderDir = "LuaUI/Widgets/Include/"
 
-local spotterOpacity = 0.16
+-- Localize for speedups:
+local glDepthTest           = gl.DepthTest
+local glTexture             = gl.Texture
+local GL_POINTS				= GL.POINTS
 
-local defaultColorsForAllyTeams = 0        -- (number of teams)   if number <= of total numebr of allyTeams then dont use teamcoloring but default colors
-local keepTeamColorsForSmallAllyTeam = 99            -- (number of teams)   use teamcolors if number or teams (inside allyTeam)  <=  this value
-local spotterColor = {                                -- default color values
-	{ 0, 0, 1 }, { 1, 0, 1 }, { 0, 1, 1 }, { 0, 1, 0 }, { 1, 0.5, 0 }, { 0, 1, 1 }, { 1, 1, 0 }, { 1, 1, 1 }, { 0.5, 0.5, 0.5 }, { 0, 0, 0 }, { 0.5, 0, 0 }, { 0, 0.5, 0 }, { 0, 0, 0.5 }, { 0.5, 0.5, 0 }, { 0.5, 0, 0.5 }, { 0, 0.5, 0.5 }, { 1, 0.5, 0.5 }, { 0.5, 0.5, 0.1 }, { 0.5, 0.1, 0.5 },
-}
-
-local spotterImg = ":n:LuaUI/Images/enemyspotter.dds"
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
-local glDrawListAtUnit = gl.DrawListAtUnit
-local glColor = gl.Color
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetAllyTeamList = Spring.GetAllyTeamList
-local spIsGUIHidden = Spring.IsGUIHidden
+local spGetUnitMoveTypeData = Spring.GetUnitMoveTypeData
+local spValidUnitID = Spring.ValidUnitID
 local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
-local spGetVisibleUnits = Spring.GetVisibleUnits
-local spGetCameraPosition = Spring.GetCameraPosition
-local spGetGameFrame = Spring.GetGameFrame
 
-local myAllyID = Spring.GetMyAllyTeamID()
+local unitTeam = {}
+local unitUnitDefID = {}
+
+local spec, fullview = Spring.GetSpectatingState()
+local myTeamID = Spring.GetMyTeamID()
+local myAllyTeamID = Spring.GetMyAllyTeamID()
 local gaiaTeamID = Spring.GetGaiaTeamID()
 
-local allyColors = {}
-local allyToSpotterColor = {}
-local unitConf = {}
-local skipOwnAllyTeam = true
-local lastUpdatedFrame = 0
-local drawUnits = {}
-
-local visibleUnits = {}
-local visibleUnitsCount = 0
-
-local prevCam = {}
-prevCam[1], prevCam[2], prevCam[3] = spGetCameraPosition()
-
-local chobbyInterface, DrawSpotterList
-
-local ignoreUnits = {}
-for udefID, def in ipairs(UnitDefs) do
-	if def.customParams['nohealthbars'] then
-		ignoreUnits[udefID] = true
+local unitScale = {}
+local unitCanFly = {}
+for unitDefID, unitDef in pairs(UnitDefs) do
+	unitScale[unitDefID] = ((7.5 * ( unitDef.xsize^2 + unitDef.zsize^2 ) ^ 0.5) + 8) * sizeMultiplier
+	if unitDef.canFly then
+		unitCanFly[unitDefID] = true
+		unitScale[unitDefID] = unitScale[unitDefID] * 0.9
+	elseif unitDef.isBuilding or unitDef.isFactory or unitDef.speed==0 then
+		unitScale[unitDefID] = unitScale[unitDefID] * 0.9
 	end
 end
 
-local numAllyTeams = #Spring.GetAllyTeamList() - 1
-local singleTeams = false
-if #Spring.GetTeamList() - 1 == numAllyTeams then
-	singleTeams = true
+local teamLeader = {}
+local allyTeamLeader = {}
+local teams = Spring.GetTeamList()
+for i = 1, #teams do
+	local teamID = teams[i]
+	local allyTeamID =  select(6, Spring.GetTeamInfo(teamID, false))
+	if not allyTeamLeader[allyTeamID] then
+		allyTeamLeader[allyTeamID] = teamID	-- assign which team color to use for whole allyteam
+	end
+	teamLeader[teamID] = allyTeamLeader[allyTeamID]
 end
+allyTeamLeader = nil
 
-local sameTeamColors = false
-if WG['playercolorpalette'] ~= nil and WG['playercolorpalette'].getSameTeamColors() then
-	sameTeamColors = WG['playercolorpalette'].getSameTeamColors()
-end
+local function AddPrimitiveAtUnit(unitID)
 
-function setColors()
+	if not unitUnitDefID[unitID] then
+		unitUnitDefID[unitID] = Spring.GetUnitDefID(unitID)
+	end
+	local unitDefID = unitUnitDefID[unitID]
+	if unitDefID == nil then return end -- these cant be selected
 
-	if Spring.GetSpectatingState() and renderAllTeamsAsSpec then
-		skipOwnAllyTeam = false
-	elseif not Spring.GetSpectatingState() and renderAllTeamsAsPlayer then
-		skipOwnAllyTeam = false
+	local radius = unitScale[unitDefID]
+
+	if not unitTeam[unitID] then
+		unitTeam[unitID] = Spring.GetUnitTeam(unitID)
 	end
 
-	local allyToSpotterColorCount = 0
-	local allyTeamList = spGetAllyTeamList()
-	local numberOfAllyTeams = #allyTeamList
-	for _, allyID in pairs(allyTeamList) do
-
-		if not skipOwnAllyTeam or (skipOwnAllyTeam and not (allyID == myAllyID)) then
-
-			allyToSpotterColorCount = allyToSpotterColorCount + 1
-			allyToSpotterColor[allyID] = allyToSpotterColorCount
-			local usedSpotterColor = spotterColor[allyToSpotterColorCount]
-			local teamList = Spring.GetTeamList(allyID)
-			if defaultColorsForAllyTeams < numberOfAllyTeams - 1 then
-				for teamListIndex = 1, #teamList do
-					local teamID = teamList[teamListIndex]
-					if teamID ~= gaiaTeamID then
-						local pickTeamColor = false
-						if (teamListIndex == 1 and #teamList <= keepTeamColorsForSmallAllyTeam) or sameTeamColors then
-							-- only check for the first allyTeam, (to be consistent with picking a teamcolor or default color, inconsistency could happen with different teamsizes)
-							pickTeamColor = true
-						end
-						if pickTeamColor then
-							-- pick the first team in the allyTeam and take the color from that one
-							if teamListIndex == 1 then
-								--usedSpotterColor[1],usedSpotterColor[2],usedSpotterColor[3] = Spring.GetTeamColor(teamID)
-								local luaAI = Spring.GetTeamLuaAI(teamID)
-								if luaAI and luaAI ~= "" and string.sub(luaAI, 1, 12) == 'ScavengersAI' then
-									usedSpotterColor[1] = 0.38
-									usedSpotterColor[2] = 0.14
-									usedSpotterColor[3] = 0.38
-								else
-									usedSpotterColor[1] = 1
-									usedSpotterColor[2] = 0
-									usedSpotterColor[3] = 0
-								end
-							end
-						end
-					end
-				end
-			end
-			for teamListIndex = 1, #teamList do
-				if teamList[teamListIndex] ~= gaiaTeamID then
-					allyColors[allyID] = usedSpotterColor
-					allyColors[allyID][4] = spotterOpacity
-				end
-			end
-		end
-	end
-
+	pushElementInstance(
+		selectionVBO, -- push into this Instance VBO Table
+		{
+			radius, radius, 0, 0,  -- lengthwidthcornerheight
+			teamLeader[unitTeam[unitID]], -- teamID
+			2, -- how many triangles should we make
+			0, 0, 0, 0, -- the gameFrame (for animations), and any other parameters one might want to add
+			0, 1, 0, 1, -- These are our default UV atlas tranformations
+			0, 0, 0, 0 -- these are just padding zeros, that will get filled in
+		},
+		unitID, -- this is the key inside the VBO TAble,
+		true, -- update existing element
+		nil, -- noupload, dont use unless you
+		unitID -- last one should be UNITID?
+	)
 end
 
-function SetUnitConf()
-	-- preferred to keep these values the same as fancy unit selections widget
-	local scaleFactor = 2.6
-	local rectangleFactor = 3.25
+function widget:Update(dt)
+	spec, fullview = Spring.GetSpectatingState()
+end
 
-	for udid, unitDef in pairs(UnitDefs) do
-		local xsize, zsize = unitDef.xsize, unitDef.zsize
-		local scale = scaleFactor * (xsize ^ 2 + zsize ^ 2) ^ 0.5
-		local xscale, zscale
-
-		if unitDef.isBuilding or unitDef.isFactory or unitDef.speed == 0 then
-			xscale, zscale = rectangleFactor * xsize, rectangleFactor * zsize
-		elseif unitDef.modCategories["ship"] then
-			xscale, zscale = scale * 0.82, scale * 0.82
-		elseif unitDef.isAirUnit then
-			xscale, zscale = scale * 1.07, scale * 1.07
+local drawFrame = 0
+function widget:DrawWorldPreUnit()
+	if Spring.IsGUIHidden() then
+		return
+	end
+	drawFrame = drawFrame + 1
+	if selectionVBO.usedElements > 0 then
+		--if drawFrame % 100 == 0 then Spring.Echo("selectionVBO.usedElements",selectionVBO.usedElements) end
+		local disticon
+		if Spring.GetConfigInt("UnitIconsAsUI", 1) == 1 then
+			disticon = Spring.GetConfigInt("uniticon_fadevanish", 1800)
+			disticon = disticon * 3
 		else
-			xscale, zscale = scale, scale
+			disticon = Spring.GetConfigInt("UnitIconDist", 200)
+			disticon = disticon * 27 -- should be sqrt(750) but not really
 		end
+		--gl.Culling(false)
+		glTexture(0, texture)
+		selectShader:Activate()
+		selectShader:SetUniform("iconDistance",disticon) -- pass
 
-		local radius = Spring.GetUnitDefDimensions(udid).radius
-		xscale = (xscale * 0.7) + (radius / 5)
-		zscale = (zscale * 0.7) + (radius / 5)
+		glDepthTest(true)
 
-		unitConf[udid] = (xscale + zscale) * 1.5
+		selectShader:SetUniform("addRadius", 0)
+		selectionVBO.VAO:DrawArrays(GL_POINTS, selectionVBO.usedElements)
+
+		selectShader:Deactivate()
+		glTexture(0, false)
 	end
 end
 
-function checkAllUnits()
-	drawUnits = {}
-	visibleUnits = spGetVisibleUnits(skipOwnAllyTeam and Spring.ENEMY_UNITS or Spring.ALL_UNITS, nil, false)
-	visibleUnitsCount = #visibleUnits
-	for i = 1, visibleUnitsCount do
-		checkUnit(visibleUnits[i])
+local function RemovePrimitive(unitID)
+	if selectionVBO.instanceIDtoIndex[unitID] then
+		popElementInstance(selectionVBO, unitID)
 	end
 end
 
-function checkUnit(unitID)
-	local allyID = spGetUnitAllyTeam(unitID)
-	if not skipOwnAllyTeam or (skipOwnAllyTeam and not (allyID == myAllyID)) then
-		local unitDefID = spGetUnitDefID(unitID)
-		if ignoreUnits[unitDefID] ~= nil then
-			return
-		end
-		if unitDefID then
-			if drawUnits[allyID] == nil then
-				drawUnits[allyID] = {}
-			end
-			drawUnits[allyID][unitID] = unitConf[unitDefID]
-		end
+local function AddUnit(unitID, unitDefID, unitTeamID)
+	if (not skipOwnTeam or spGetUnitAllyTeam(unitID) ~= myAllyTeamID) and unitTeamID ~= gaiaTeamID then
+		unitTeam[unitID] = unitTeamID
+		unitUnitDefID[unitID] = unitDefID
+		AddPrimitiveAtUnit(unitID)
 	end
 end
 
---------------------------------------------------------------------------------
--- Engine Calls
---------------------------------------------------------------------------------
+local function RemoveUnit(unitID, unitDefID, unitTeamID)
+	if (not skipOwnTeam or spGetUnitAllyTeam(unitID) ~= myAllyTeamID) and unitTeamID ~= gaiaTeamID then
+		RemovePrimitive(unitID)
+		unitTeam[unitID] = nil
+		unitUnitDefID[unitID] = nil
+	end
+end
+
+function widget:UnitTaken(unitID, unitDefID, oldTeamID, newTeamID)
+	if unitTeam[unitID] then
+		RemoveUnit(unitID, unitDefID, oldTeamID)
+		AddUnit(unitID, unitDefID, unitTeam)
+	end
+end
+
+function widget:UnitEnteredLos(unitID, unitTeam, allyTeam, unitDefID)
+	if spValidUnitID(unitID) then
+		AddUnit(unitID, unitDefID or Spring.GetUnitDefID(unitID), unitTeam)
+	end
+end
+
+function widget:UnitLeftLos(unitID, unitTeam, allyTeam, unitDefID)
+	if not fullview then
+		RemoveUnit(unitID, unitDefID or Spring.GetUnitDefID(unitID), unitTeam)
+	end
+end
+
+function widget:UnitCreated(unitID, unitDefID, unitTeam)
+	AddUnit(unitID, unitDefID, unitTeam)
+end
+
+function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
+	RemoveUnit(unitID, unitDefID, unitTeam)
+end
+
+function widget.RenderUnitDestroyed(unitID, unitDefID, unitTeam)
+	RemoveUnit(unitID, unitDefID, unitTeam)
+end
+
+-- wont be called for enemy units nor can it read spGetUnitMoveTypeData(unitID).aircraftState anyway
+function widget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
+	if unitCanFly[unitDefID] and spGetUnitMoveTypeData(unitID).aircraftState == "crashing" then
+		RemoveUnit(unitID, unitDefID, unitTeam)
+	end
+end
+
+local function init()
+	local DPatUnit = VFS.Include(luaShaderDir.."DrawPrimitiveAtUnit.lua")
+	local InitDrawPrimitiveAtUnit = DPatUnit.InitDrawPrimitiveAtUnit
+	local shaderConfig = DPatUnit.shaderConfig -- MAKE SURE YOU READ THE SHADERCONFIG TABLE!
+	shaderConfig.TRANSPARENCY = opacity
+	shaderConfig.ANIMATION = 0
+	shaderConfig.HEIGHTOFFSET = 3.99
+	selectionVBO, selectShader = InitDrawPrimitiveAtUnit(shaderConfig, "selectedUnits")
+
+	for _, unitID in ipairs(Spring.GetAllUnits()) do
+			AddUnit(unitID, Spring.GetUnitDefID(unitID), Spring.GetUnitTeam(unitID))
+	end
+end
+
+function widget:PlayerChanged(playerID)
+	spec, fullview = Spring.GetSpectatingState()
+	myTeamID = Spring.GetMyTeamID()
+	myAllyTeamID = Spring.GetMyAllyTeamID()
+	if skipOwnTeam then
+		init()
+	end
+end
 
 function widget:Initialize()
-
+	init()
 	WG['enemyspotter'] = {}
 	WG['enemyspotter'].getOpacity = function()
-		return spotterOpacity
+		return opacity
 	end
 	WG['enemyspotter'].setOpacity = function(value)
-		spotterOpacity = value
-		setColors()
+		opacity = value
+		init()
 	end
-
-	SetUnitConf()
-	setColors()
-	checkAllUnits()
-	DrawSpotterList = gl.CreateList(function()
-		gl.TexRect(-1, 1, 1, -1)
-	end)
+	WG['enemyspotter'].getSkipOwnTeam = function()
+		return skipOwnTeam
+	end
+	WG['enemyspotter'].setSkipOwnTeam = function(value)
+		skipOwnTeam = value
+		init()
+	end
 end
 
 function widget:Shutdown()
 	WG['enemyspotter'] = nil
-	if DrawSpotterList ~= nil then
-		gl.DeleteList(DrawSpotterList)
-	end
-end
-
-function widget:DrawWorldPreUnit()
-	if singleTeams or (sameTeamColors and numAllyTeams <= 2) then
-		return
-	end
-	if chobbyInterface then
-		return
-	end
-	if spIsGUIHidden() then
-		return
-	end
-
-	gl.DepthTest(true)
-	gl.PolygonOffset(-100, -2)
-	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)      -- disable layer blending
-	gl.Texture(spotterImg)
-
-	for _, allyID in ipairs(spGetAllyTeamList()) do
-		if allyColors[allyID] ~= nil and drawUnits[allyID] ~= nil then
-			glColor(allyColors[allyID])
-			for unitID, unitScale in pairs(drawUnits[allyID]) do
-				glDrawListAtUnit(unitID, DrawSpotterList, false, unitScale, unitScale, unitScale, 90, 1, 0, 0)
-			end
-		end
-	end
-
-	gl.Texture(false)
-	glColor(1, 1, 1, 1)
-	gl.PolygonOffset(false)
-end
-
-local sec = 0
-local sceduledCheck = false
-local updateTime = 1
-function widget:Update(dt)
-	if chobbyInterface then
-		return
-	end
-	sec = sec + dt
-	local camX, camY, camZ = spGetCameraPosition()
-	if camX ~= prevCam[1] or camY ~= prevCam[2] or camZ ~= prevCam[3] then
-		sceduledCheck = true
-	end
-	if sec > 1 / updateTime and lastUpdatedFrame ~= spGetGameFrame() or (sec > 1 / (updateTime * 5) and sceduledCheck) then
-		sec = 0
-		if not singleTeams and WG['playercolorpalette'] ~= nil and WG['playercolorpalette'].getSameTeamColors then
-			if WG['playercolorpalette'].getSameTeamColors() ~= sameTeamColors then
-				sameTeamColors = WG['playercolorpalette'].getSameTeamColors()
-				setColors()
-			end
-
-		end
-		lastUpdatedFrame = spGetGameFrame()
-		sceduledCheck = false
-		updateTime = Spring.GetFPS() / 15
-		if updateTime < 0.66 then
-			updateTime = 0.66
-		end
-		--if singleTeams or (sameTeamColors and numAllyTeams <= 2) then return end
-		checkAllUnits()
-	end
-	prevCam[1], prevCam[2], prevCam[3] = camX, camY, camZ
-end
-
-function widget:RecvLuaMsg(msg, playerID)
-	if msg:sub(1, 18) == 'LobbyOverlayActive' then
-		chobbyInterface = (msg:sub(1, 19) == 'LobbyOverlayActive1')
-	end
-end
-
-function widget:PlayerChanged()
-	if Spring.GetSpectatingState() and renderAllTeamsAsSpec then
-		skipOwnAllyTeam = false
-		setColors()
-	elseif not Spring.GetSpectatingState() and renderAllTeamsAsPlayer then
-		skipOwnAllyTeam = false
-		setColors()
-	end
 end
 
 function widget:GetConfigData(data)
 	return {
-		renderAllTeamsAsSpec = renderAllTeamsAsSpec,
-		renderAllTeamsAsPlayer = renderAllTeamsAsPlayer,
-		spotterOpacity = spotterOpacity,
+		opacity2 = opacity,
+		skipOwnTeam = skipOwnTeam,
 	}
 end
 
 function widget:SetConfigData(data)
-	if data.renderAllTeamsAsSpec ~= nil then
-		renderAllTeamsAsSpec = data.renderAllTeamsAsSpec
-	end
-	if data.renderAllTeamsAsPlayer ~= nil then
-		renderAllTeamsAsPlayer = data.renderAllTeamsAsPlayer
-	end
-	spotterOpacity = data.spotterOpacity or spotterOpacity
+	opacity = data.opacity2 or opacity
+	skipOwnTeam = data.skipOwnTeam or skipOwnTeam
 end

@@ -25,8 +25,7 @@ local spGetKeyState = Spring.GetKeyState
 local spTraceScreenRay = Spring.TraceScreenRay
 local spWorldToScreenCoords = Spring.WorldToScreenCoords
 
-local spGetTeamUnits = Spring.GetTeamUnits
-local spGetVisibleUnits = Spring.GetVisibleUnits
+local spGetUnitsInScreenRectangle = Spring.GetUnitsInScreenRectangle
 local spGetUnitsInRectangle = Spring.GetUnitsInRectangle
 local spSelectUnitArray = Spring.SelectUnitArray
 local spGetActiveCommand = Spring.GetActiveCommand
@@ -37,7 +36,6 @@ local spGetMiniMapGeometry = Spring.GetMiniMapGeometry
 local spIsAboveMiniMap = Spring.IsAboveMiniMap
 
 local spGetUnitDefID = Spring.GetUnitDefID
-local spGetUnitPosition = Spring.GetUnitPosition
 local spGetCommandQueue = Spring.GetCommandQueue
 
 local GaiaTeamID = Spring.GetGaiaTeamID()
@@ -103,27 +101,6 @@ local function GetUnitsInMinimapRectangle(x1, y1, x2, y2, team)
 	return spGetUnitsInRectangle(left, bottom, right, top, team)
 end
 
-
-local function GetUnitsInScreenRectangle(x1, y1, x2, y2, team)
-	if Spring.GetUnitsInScreenRectangle then	-- (future) engine function that can replace this whole lua function here
-		return Spring.GetUnitsInScreenRectangle(x1, y1, x2, y2)
-	else
-		local units = team and spGetTeamUnits(team) or spGetVisibleUnits()
-		local left, right = sort(x1, x2)
-		local bottom, top = sort(y1, y2)
-
-		local result = {}
-		for i = 1, #units do
-			local uid = units[i]
-			local x, y, z = spGetUnitPosition(uid)
-			x, y = spWorldToScreenCoords(x, y, z)
-			if left <= x and x <= right and top >= y and y >= bottom then
-				result[#result + 1] = uid
-			end
-		end
-		return result
-	end
-end
 
 function widget:SelectionChanged(sel)
 	local equalSelection = true
@@ -199,7 +176,7 @@ function widget:Update()
 			else
 				local d = referenceCoords
 				local x1, y1 = spWorldToScreenCoords(d[1], d[2], d[3])
-				mouseSelection = GetUnitsInScreenRectangle(x, y, x1, y1, nil)
+				mouseSelection = spGetUnitsInScreenRectangle(x, y, x1, y1, nil)
 			end
 			originalMouseSelection = mouseSelection
 
