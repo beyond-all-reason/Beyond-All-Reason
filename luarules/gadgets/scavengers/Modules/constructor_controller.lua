@@ -76,7 +76,7 @@ local function reclaimerOrders(n, unitID)
 end
 
 local function spawnConstructor(n)
-	local spawnOverdue = constructorTimer > constructorControllerModuleConfig.constructortimer or countScavCommanders() < constructorControllerModuleConfig.minimumconstructors
+	local spawnOverdue = constructorTimer > constructorControllerModuleConfig.constructortimer or (countScavCommanders() < constructorControllerModuleConfig.minimumconstructors and constructorTimer > 20) 
 	local exclusionPeriodExpired = constructorTimer > 0
 
 	if spawnOverdue and numOfSpawnBeacons > 0 and exclusionPeriodExpired then
