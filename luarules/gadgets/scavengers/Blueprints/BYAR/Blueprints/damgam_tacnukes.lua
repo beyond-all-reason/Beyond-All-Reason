@@ -13,7 +13,7 @@ local UDN = UnitDefNames
 local function tacnukes0()
 	return {
 		type = types.Land,
-		tiers = { tiers.T0, tiers.T1, tiers.T2, tiers.T3, tiers.T4 },
+		tiers = {tiers.T2, tiers.T3, tiers.T4 },
 		radius = 232,
 		buildings = {
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset = -192, zOffset = -24, direction = 3},
@@ -59,7 +59,7 @@ end
 local function tacnukes1()
 	return {
 		type = types.Land,
-		tiers = { tiers.T0, tiers.T1, tiers.T2, tiers.T3, tiers.T4 },
+		tiers = {tiers.T2, tiers.T3, tiers.T4 },
 		radius = 219,
 		buildings = {
 			{ unitDefID = BPWallOrPopup('scav', 1), xOffset = 192, zOffset = 27, direction = 3},
@@ -105,7 +105,7 @@ end
 local function tacnukes2()
 	return {
 		type = types.Land,
-		tiers = { tiers.T0, tiers.T1, tiers.T2, tiers.T3, tiers.T4 },
+		tiers = {tiers.T3, tiers.T4 },
 		radius = 104,
 		buildings = {
 			{ unitDefID = UnitDefNames.armnanotc_scav.id, xOffset = -96, zOffset = -96, direction = 3},
@@ -140,7 +140,7 @@ end
 local function tacnukes3()
 	return {
 		type = types.Land,
-		tiers = { tiers.T0, tiers.T1, tiers.T2, tiers.T3, tiers.T4 },
+		tiers = {tiers.T3, tiers.T4 },
 		radius = 116,
 		buildings = {
 			{ unitDefID = UnitDefNames.armnanotc_scav.id, xOffset = 108, zOffset = 68, direction = 3},
@@ -168,7 +168,7 @@ end
 local function tacnukes4()
 	return {
 		type = types.Land,
-		tiers = { tiers.T0, tiers.T1, tiers.T2, tiers.T3, tiers.T4 },
+		tiers = {tiers.T2, tiers.T3, tiers.T4 },
 		radius = 84,
 		buildings = {
 			{ unitDefID = UnitDefNames.armnanotc_scav.id, xOffset = -20, zOffset = -54, direction = 3},
@@ -190,7 +190,7 @@ end
 local function tacnukes5()
 	return {
 		type = types.Land,
-		tiers = { tiers.T0, tiers.T1, tiers.T2, tiers.T3, tiers.T4 },
+		tiers = {tiers.T2, tiers.T3, tiers.T4 },
 		radius = 42,
 		buildings = {
 			{ unitDefID = UnitDefNames.armnanotc_scav.id, xOffset = -17, zOffset = -14, direction = 3},
@@ -206,7 +206,7 @@ end
 local function tacnukes6()
 	return {
 		type = types.Land,
-		tiers = { tiers.T0, tiers.T1, tiers.T2, tiers.T3, tiers.T4 },
+		tiers = {tiers.T3, tiers.T4 },
 		radius = 104,
 		buildings = {
 			{ unitDefID = UnitDefNames.cornanotc_scav.id, xOffset = 48, zOffset = -48, direction = 3},
@@ -241,7 +241,7 @@ end
 local function tacnukes7()
 	return {
 		type = types.Land,
-		tiers = { tiers.T0, tiers.T1, tiers.T2, tiers.T3, tiers.T4 },
+		tiers = {tiers.T3, tiers.T4 },
 		radius = 116,
 		buildings = {
 			{ unitDefID = UnitDefNames.cornanotc_scav.id, xOffset = -84, zOffset = 68, direction = 3},
@@ -269,7 +269,7 @@ end
 local function tacnukes8()
 	return {
 		type = types.Land,
-		tiers = { tiers.T0, tiers.T1, tiers.T2, tiers.T3, tiers.T4 },
+		tiers = {tiers.T2, tiers.T3, tiers.T4 },
 		radius = 84,
 		buildings = {
 			{ unitDefID = UnitDefNames.cornanotc_scav.id, xOffset = 28, zOffset = -6, direction = 3},
@@ -291,7 +291,7 @@ end
 local function tacnukes9()
 	return {
 		type = types.Land,
-		tiers = { tiers.T0, tiers.T1, tiers.T2, tiers.T3, tiers.T4 },
+		tiers = {tiers.T2, tiers.T3, tiers.T4 },
 		radius = 42,
 		buildings = {
 			{ unitDefID = UnitDefNames.cornanotc_scav.id, xOffset = 31, zOffset = -62, direction = 3},
