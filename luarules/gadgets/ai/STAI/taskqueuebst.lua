@@ -61,7 +61,7 @@ function TaskQueueBST:OwnerDead()
 	if self.unit ~= nil then
 		for i, idx in pairs(self.ai.armyhst.buildersRole[self.role][self.name]) do
 			if self.id == idx then
-				self.ai.armyhst.buildersRole[self.role][self.name][i] = nil
+				table.remove(self.ai.armyhst.buildersRole[self.role][self.name],i)
 				self.role = nil
 			end
 		end
@@ -185,11 +185,11 @@ function TaskQueueBST:CategoryEconFilter(cat,param,name)
  		check =  (E.full > 0.3  and M.full > 0.3 and M.income > 10 and E.income > 100) or
  				(self.ai.tool:countMyUnit({name}) == 0 and (M.income > 10 and E.income > 60 ))
 	elseif cat == '_wind_' then
-		check =   map:AverageWind() > 7 and ((E.full < 0.5 or E.income < E.usage )  or E.income < 30)
+		check =   map:AverageWind() > 7 and ((E.full < 0.75 or E.income < E.usage * 1.1 )  or E.income < 30)
 	elseif cat == '_tide_' then
-		check =  map:TidalStrength() >= 10 and  ((E.full < 0.5 or E.income < E.usage )  or E.income < 30)
+		check =  map:TidalStrength() >= 10 and  ((E.full < 0.75 or E.income < E.usage * 1.1 )  or E.income < 30)
 	elseif cat == '_solar_' then
-		check =   ((E.full < 0.5 or E.income < E.usage * 1.1 )  or E.income < 40 ) and self.ai.Energy.income < 3000
+		check =   ((E.full < 0.75 or E.income < E.usage * 1.1 )  or E.income < 40 ) and self.ai.Energy.income < 3000
 	elseif cat == '_estor_' then
 		check =   E.full > 0.8 and E.income > 400  and M.full > 0.1
 	elseif cat == '_mstor_' then
@@ -617,8 +617,11 @@ function TaskQueueBST:GetQueue()
 	local counter = self.game:GetTeamUnitDefCount(team,id)
 
 	if self.isCommander then
-
-		if self:roleCounter('eco') > 0 then
+		if self:roleCounter('expand') > 2 then
+			self:removeOldBuildersRole(self.name,self.id)
+			table.insert(buildersRole.eco[self.name], self.id)
+			self.role = 'eco'
+		elseif self:roleCounter('eco') > 0 then
 			self:removeOldBuildersRole(self.name,self.id)
 			table.insert(buildersRole.expand[self.name], self.id)
 			self.role = 'expand'
@@ -780,10 +783,10 @@ function TaskQueueBST:assist()
 				self.unit:Internal():AreaReclaim(builderPos, r ) or
 				self.unit:Internal():AreaRepair( builderPos, r)
 		if doing  then
-			print('assistant')
+			self:EchoDebug('assistant')
 			self.assitant = true
 		else
-			print('assistant not work')
+			self:EchoDebug('assistant not work')
 		end
 
 	end

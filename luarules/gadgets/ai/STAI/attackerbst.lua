@@ -163,7 +163,6 @@ function AttackerBST:SetMoveState()
 		local unitName = self.name
 		local floats = api.vectorFloat()
 		if self.ai.armyhst.battles[unitName] then
-			-- floats:push_back(MOVESTATE_ROAM)
 			floats:push_back(MOVESTATE_MANEUVER)
 		elseif self.ai.armyhst.breaks[unitName] then
 			floats:push_back(MOVESTATE_MANEUVER)

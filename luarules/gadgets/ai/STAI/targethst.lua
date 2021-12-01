@@ -893,15 +893,18 @@ end
 
 function TargetHST:GetBestRaidCell(representative)
 	if not representative then return end
-	--self:UpdateMap()
+
 	local rpos = representative:GetPosition()
 	local inCell = self:GetCellHere(rpos)
 	local threatReduction = 0
+	local TR = 0
 	if inCell ~= nil then
 		-- if we're near more raiders, these raiders can target more threatening targets together
 		if inCell.raiderHere then threatReduction = threatReduction + inCell.raiderHere end
 		if inCell.raiderAdjacent then threatReduction = threatReduction + inCell.raiderAdjacent end
 	end
+	self:Warn(threatReduction,TR)
+
 	local rname = representative:Name()
 	local maxThreat = baseUnitThreat
 	local rthreat, rrange = self.ai.tool:ThreatRange(rname)

@@ -161,7 +161,7 @@ end
 
 function WardBST:OwnerDamaged(attacker,damage)
 	if not self.underFire then
-		if self.unit:Internal():GetHealth() < self.unit:Internal():GetMaxHealth() * 0.8 then
+		if self.unit:Internal():GetHealth() < self.unit:Internal():GetMaxHealth() * 0.95 then
 			self.underFire = true
 			self.lastAttackedFrame = self.game:Frame()
 			self.ai.defendhst:Danger(self)--TEST

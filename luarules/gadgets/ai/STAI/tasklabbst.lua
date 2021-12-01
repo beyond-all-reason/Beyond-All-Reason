@@ -87,19 +87,20 @@ function TaskLabBST:getSoldier()
 	self:EchoDebug('soldier')
 	local param
 	local soldiers
-	for i=0,#self.queue do
-		param = self.queue[self.qIndex]
+	local queue = self:getQueue()
+	for i = 0 , #queue do
+		param = queue[self.qIndex]
 		soldiers = self:scanRanks(param[1])
 		if soldiers then
 			self.qIndex = self.qIndex + 1
-			if self.qIndex > #self.queue then
+			if self.qIndex > #queue then
 				self.qIndex = 1
 			end
 			break
 
 		end
 		self.qIndex = self.qIndex + 1
-		if self.qIndex > #self.queue then
+		if self.qIndex > #queue then
 			self.qIndex = 1
 		end
 	end
@@ -222,19 +223,19 @@ function TaskLabBST:toAmphibious(soldier)
 	return soldier
 end
 
-TaskLabBST.queue = {
+function TaskLabBST:getQueue()
+	local queue = {
 
-		{'techs',3,nil,10,1},
-		{'scouts',1,10,2,2},
-		--{'raiders',1,nil,20,5},
-	{'battles',3,nil,25,5},--[[
 		{'techs',3,nil,10,2},
+		{'scouts',1,10,2,2},
+		{'raiders',1,nil,20,self.ai.raidhst.wave},
+		{'techs',3,nil,10,1},
 		{'battles',3,nil,25,5},
 		{'techs',3,6,7,1},
 		{'artillerys',1,10,10,3},
 		{'techs',3,nil,10,1},
 		{'breaks',2,5,15,3},
-		{'techs',3,nil,10,2},
+		{'techs',3,nil,10,1},
 		{'rezs',1,8,10,2}, -- rezzers
 		{'engineers',1,8,10}, --help builders and build thinghs
 		{'antiairs',1,7,8,2},
@@ -251,13 +252,55 @@ TaskLabBST.queue = {
 		{'subkillers',1,7,5}, -- submarine weaponed
 		{'breaks',nil,nil,40,3},
 		{'amphibious',0,7,20}, -- weapon amphibious
-]]
+		{'spiders',nil,nil,15,10}, -- all terrain spider
+
 
 
 -- 		{'transports',1,nil,nil},
 -- 		{'spys',1,nil,1}, -- spy bot
 -- 		{'miners',1,nil,nil},
--- 		{'spiders',0,0,10}, -- all terrain spider
+-- 		{'antinukes',1,nil,nil},
+-- 		{'crawlings',1,nil,1},
+-- 		{'cloakables',0,0,10},
+}
+	return queue
+end
+
+TaskLabBST.queue = {
+
+		{'techs',3,nil,10,1},
+		{'scouts',1,10,2,2},
+		{'raiders',1,nil,20,5},
+		{'techs',3,nil,10,1},
+		{'battles',3,nil,25,5},
+		{'techs',3,6,7,1},
+		{'artillerys',1,10,10,3},
+		{'techs',3,nil,10,1},
+		{'breaks',2,5,15,3},
+		{'techs',3,nil,10,1},
+		{'rezs',1,8,10,2}, -- rezzers
+		{'engineers',1,8,10}, --help builders and build thinghs
+		{'antiairs',1,7,8,2},
+		{'amptechs',1,7,5,1}, --amphibious builders
+		{'jammers',1,nil,1	},
+		{'radars',1,nil,1},
+		{'airgun',1,5,10,5},
+		{'bomberairs',10,4,20,5},
+		{'fighterairs',1,5,10},
+		{'paralyzers',1,10,5,3}, --have paralyzer weapon
+
+		{'wartechs',1,nil,1}, --decoy etc
+		{'techs',3,nil,5,3},
+		{'subkillers',1,7,5}, -- submarine weaponed
+		{'breaks',nil,nil,40,3},
+		{'amphibious',0,7,20}, -- weapon amphibious
+		{'spiders',nil,nil,15,10}, -- all terrain spider
+
+
+
+-- 		{'transports',1,nil,nil},
+-- 		{'spys',1,nil,1}, -- spy bot
+-- 		{'miners',1,nil,nil},
 -- 		{'antinukes',1,nil,nil},
 -- 		{'crawlings',1,nil,1},
 -- 		{'cloakables',0,0,10},

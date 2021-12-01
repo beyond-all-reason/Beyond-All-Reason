@@ -20,6 +20,7 @@ end
 function RaidHST:Update()
 	local f = self.game:Frame()
 	if f % 97 ~=0 then return end
+	self.wave = 5 + math.min(math.ceil(self.ai.Energy.income/1000),20)
 	self:EchoDebug('start update')
 	self:doSquads()
 	for squadID,squad in pairs(self.squads) do
@@ -39,7 +40,7 @@ function RaidHST:Update()
 			end
 		else
 			if run == false then
-				boot = self:targeting(squad)
+				self:targeting(squad)
 			else
 				self:EchoDebug('nil run',run)
 				self:resetSquad(squad)
@@ -108,10 +109,14 @@ function RaidHST:targeting(squad)
 		self:EchoDebug('have already a target')
 		return
 	end
-	local leaderID = squad.members[1]
-	local leader = self.game:GetUnitByID(leaderID)
-	local leaderPos = leader:GetPosition()
-	local target = self.ai.targethst:GetBestRaidCell(leader)
+	local target = nil
+	for index,leaderID in pairs(squad.members) do
+-- 	local leaderID = squad.members[1]
+		local leader = self.game:GetUnitByID(leaderID)
+		local leaderPos = leader:GetPosition()
+		target = self.ai.targethst:GetBestRaidCell(leader)
+		if target then break end
+	end
 	if not target then
 		self:EchoDebug('no target for ' ,squad.squadID)
 		return
@@ -135,7 +140,7 @@ function RaidHST:FindPath(squad)
 		self:EchoDebug('no pathfinder??')
 		return
 	end
-	local path, remaining, maxInvalid = squad.pathfinder:Find(100)
+	local path, remaining, maxInvalid = squad.pathfinder:Find(10)
 	self:EchoDebug(tostring(remaining) .. " remaining to find path",path,maxInvalid)
 	if path then
 		local pt = {}
@@ -187,7 +192,7 @@ function RaidHST:goToNextNode(squad)
 		self:resetSquad(squad)
 		return
 	end	self:EchoDebug('pos',squad.position.x,squad.position.z,'path1',squad.path[1].x,squad.path[1].z,'dist',self.ai.tool:Distance(squad.position,squad.path[1]))
-  	if self.ai.tool:Distance(squad.position,squad.path[1]) < 256 then
+  	if self.ai.tool:Distance(squad.position,squad.path[1]) < 516 then
   		Next = table.remove(squad.path,1)
   	end
  	if #squad.path [1] then
@@ -232,7 +237,7 @@ function RaidHST:doAttack(squad)
 		local unit = self.game:GetUnitByID(id)
 		local rx = math.random(-50,50)
 		local rz = math.random(-50,50)
-		if vulnerable then
+		if vulnerable and vulnerable.position then
 			self:EchoDebug('nearby vulnerable',vulnerable)
 			local vpos = vulnerable.position
 			unit:AttackMove({x=vpos.x+rx,y= Spring.GetGroundHeight(vpos.x+rx,vpos.z+rz),z=vpos.z+rz})
