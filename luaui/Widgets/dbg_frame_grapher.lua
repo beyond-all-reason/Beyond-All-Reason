@@ -36,14 +36,14 @@ local vsSrc = [[
 #version 420
 
 layout (location = 0) in vec4 coords; // a set of coords coming from vertex buffer
-layout (location = 1) in vec3 time_duration_wasgf; // a 'time' for the frame, in milliseconds, and a duration also in ms
+layout (location = 1) in vec4 time_duration_wasgf; // a 'time' for the frame, in milliseconds, and a duration also in ms, w = frametimeoffset
 
 uniform vec4 shaderparams; // .y contains the current actual time
 
 //__ENGINEUNIFORMBUFFERDEFS__
 
 out DataVS {
-  vec3 v_time_duration_wasgf;
+  vec4 v_time_duration_wasgf;
 };
 
 void main() {
@@ -56,7 +56,7 @@ void main() {
   gl_Position = vec4(
     rect_bottom_right - coords.x*rect_width_pixels,
     -1.0 + coords.y * rect_height_pixels,
-    0.5 + 0.1*time_duration_wasgf.z,
+    0.5 + 0.1*time_duration_wasgf.z + time_duration_wasgf.w * 0.1,
     1.0
   );
   
@@ -80,7 +80,7 @@ local fsSrc = [[
 uniform vec4 shaderparams;
 
 in DataVS {
-  vec3 v_time_duration_wasgf;
+  vec4 v_time_duration_wasgf;
 };
 
 out vec4 fragColor;
@@ -90,15 +90,16 @@ void main() {
   float red = clamp((v_time_duration_wasgf.y-16.6)/16.6, 0.0, 1.0);
   if (v_time_duration_wasgf.y > 16.6) green = clamp(1.0-(v_time_duration_wasgf.y-16.6)/16.6, 0.0, 1.0);
 	fragColor = vec4(red,green,0,0.75 );
-  if (v_time_duration_wasgf.z > 0.5 ) fragColor = vec4(0.0, 0.0, 1.0, 1.0);
   fragColor.a = 1.0;
+  if (v_time_duration_wasgf.z > 0.5 ) fragColor = vec4(0.0, 0.0, 1.0, 1.0);
+  if (v_time_duration_wasgf.w > 0.5 ) fragColor = vec4(1.0, 0.0, 1.0, 1.1);
 }
 ]]
 --------------------------------------------------------------------------------
 
 function widget:Initialize()
   local rectvbo, numVertices = makeRectVBO(0,0,1,1,0,0,1,1)
-  rectInstanceTable = makeInstanceVBOTable( {{id = 1,  name = "instances",size = 3}}, maxframes+1, "framegraphervbotable")
+  rectInstanceTable = makeInstanceVBOTable( {{id = 1,  name = "instances",size = 4}}, maxframes+1, "framegraphervbotable")
   rectInstanceTable.VAO = makeVAOandAttach(rectvbo,rectInstanceTable.instanceVBO)
   rectInstanceTable.numVertices = numVertices
 
@@ -134,17 +135,25 @@ function widget:DrawScreen()
 	local lastframeduration = spDiffTimers(timernew, timerold)*1000 -- in MILLISECONDS
 	timerold = timernew
   local lastframetime = spDiffTimers(timernew, timerstart) * 1000 -- in MILLISECONDS
-  
+  local fto = Spring.GetFrameTimeOffset()
   
   rectInstancePtr = rectInstancePtr+1
   if rectInstancePtr >= maxframes then rectInstancePtr = 0 end
-  pushElementInstance(rectInstanceTable, {lastframetime, lastframeduration, 0}, rectInstancePtr, true)
+  pushElementInstance(rectInstanceTable, {lastframetime, lastframeduration, 0, 0}, rectInstancePtr, true)
   if wasgameframe>0 then
       
     rectInstancePtr = rectInstancePtr+1
     if rectInstancePtr >= maxframes then rectInstancePtr = 0 end
-    pushElementInstance(rectInstanceTable, {lastframetime, lastframeduration-prevframems, 1}, rectInstancePtr, true)
+    pushElementInstance(rectInstanceTable, {lastframetime, lastframeduration-prevframems, 1, 0}, rectInstancePtr, true)
   end
+  
+  if fto > 0.99 then
+      
+    rectInstancePtr = rectInstancePtr+1
+    if rectInstancePtr >= maxframes then rectInstancePtr = 0 end
+    pushElementInstance(rectInstanceTable, {lastframetime, lastframeduration, 1, fto}, rectInstancePtr, true)
+  end
+  
   
   
   rectShader:Activate()
