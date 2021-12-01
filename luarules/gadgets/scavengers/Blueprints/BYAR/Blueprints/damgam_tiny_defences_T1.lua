@@ -333,7 +333,8 @@ local function tinyDefences22()
 end
 
 return {
-    tinyDefences1,
+    tinyDefences0,
+	tinyDefences1,
     tinyDefences2,
     tinyDefences3,
     tinyDefences4,
