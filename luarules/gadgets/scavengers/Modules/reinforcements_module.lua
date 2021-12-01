@@ -362,7 +362,7 @@ function ReinforcementsMoveOrder(n)
 					-- fallback - armyorders
 					if FriendlyArmyOrders == true and Spring.GetCommandQueue(unitID, 0) <= 1 then
 
-						local nearestEnemy = Spring.GetUnitNearestEnemy(unitID, 200000, false)
+						local nearestEnemy = Spring.GetUnitNearestEnemy(unitID, 200000, true)
 						if nearestEnemy then
 							UnitRange = {}
 							if UnitDefs[unitDefID].maxWeaponRange and UnitDefs[unitDefID].maxWeaponRange > 100 then

@@ -55,11 +55,12 @@ end
 
 local function capturerOrders(n, unitID)
 	Spring.GiveOrderToUnit(unitID, CMD.CAPTURE, generateOrderParams(), 0)
-
-	local nearestEnemy = Spring.GetUnitNearestEnemy(unitID, 999999, false)
-	Spring.GiveOrderToUnit(unitID, CMD.CAPTURE, { nearestEnemy }, {"shift"})
-	local x,y,z = Spring.GetUnitPosition(nearestEnemy)
-	Spring.GiveOrderToUnit(unitID, CMD.FIGHT, { x, y, z }, {"meta", "shift", "alt"})
+	local nearestEnemy = Spring.GetUnitNearestEnemy(unitID, 999999, true)
+	if nearestenemy then
+		Spring.GiveOrderToUnit(unitID, CMD.CAPTURE, { nearestEnemy }, 0)
+		local x,y,z = Spring.GetUnitPosition(nearestEnemy)
+		Spring.GiveOrderToUnit(unitID, CMD.FIGHT, { x, y, z }, {"meta", "shift", "alt"})
+	end
 end
 
 local function collectorOrders(n, unitID)
@@ -67,7 +68,7 @@ local function collectorOrders(n, unitID)
 end
 
 local function reclaimerOrders(n, unitID)
-	local nearestenemy = Spring.GetUnitNearestEnemy(unitID, 999999, false)
+	local nearestenemy = Spring.GetUnitNearestEnemy(unitID, 999999, true)
 	if nearestenemy then
 		Spring.GiveOrderToUnit(unitID, CMD.RECLAIM, { nearestenemy }, 0)
 		local x,y,z = Spring.GetUnitPosition(nearestenemy)

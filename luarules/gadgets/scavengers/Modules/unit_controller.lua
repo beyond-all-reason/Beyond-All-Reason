@@ -85,10 +85,10 @@ function ArmyMoveOrders(n, scav, scavDef)
 	else
 		UnitRange[scav] = 100
 	end
-	attackTarget = Spring.GetUnitNearestEnemy(scav, 200000, false)
+	attackTarget = Spring.GetUnitNearestEnemy(scav, 200000, true)
 	
 	if not BossWaveStarted or BossWaveStarted == false then
-		attackTarget = Spring.GetUnitNearestEnemy(scav, 200000, false)
+		attackTarget = Spring.GetUnitNearestEnemy(scav, 200000, true)
 	elseif FinalBossUnitID then
 		-- if scav == FinalBossUnitID then
 			if AliveEnemyCommanders and AliveEnemyCommandersCount > 0 then
@@ -114,11 +114,11 @@ function ArmyMoveOrders(n, scav, scavDef)
 		-- 	attackTarget = FinalBossUnitID
 		-- end
 	else
-		attackTarget = Spring.GetUnitNearestEnemy(scav, 200000, false)
+		attackTarget = Spring.GetUnitNearestEnemy(scav, 200000, true)
 	end
-	if attackTarget == nil then
-		attackTarget = Spring.GetUnitNearestEnemy(scav, 200000, false)
-	end
+	-- if attackTarget == nil then
+	-- 	attackTarget = Spring.GetUnitNearestEnemy(scav, 200000, false)
+	-- end
 	if attackTarget then
 		local x,y,z = Spring.GetUnitPosition(attackTarget)
 		local y = Spring.GetGroundHeight(x, z)

@@ -75,7 +75,7 @@ local function transport1(currentFrame)
 		}
 
 		local baseNumber = ((spawnmultiplier*0.5)+(teamcount*0.5))*0.5
-
+		local commanderOrNearestTarget = math.random(2)
 		for i = 1,1000 do
 			local posx = math_random(300,mapsizeX-300)
 			local posz = math_random(300,mapsizeZ-300)
@@ -86,7 +86,7 @@ local function transport1(currentFrame)
 			end
 			if CanSpawnEvent then
 				local testunit = Spring.CreateUnit("scavengerdroppod_scav", posx, posy, posz, math_random(0,3),GaiaTeamID)
-				if AliveEnemyCommanders and AliveEnemyCommandersCount > 0 then
+				if AliveEnemyCommanders and AliveEnemyCommandersCount > 0 and commanderOrNearestTarget == 1 then
 					if AliveEnemyCommandersCount > 1 then
 						for i = 1,AliveEnemyCommandersCount do
 							-- let's get nearest commander
@@ -105,8 +105,13 @@ local function transport1(currentFrame)
 						attackTarget = AliveEnemyCommanders[1]
 					end
 				end
-				if attackTarget == nil then
-					attackTarget = Spring.GetUnitNearestEnemy(scav, 200000, false)
+				if attackTarget == nil or commanderOrNearestTarget == 2 then
+					local test = Spring.CreateUnit("scavengerdroppod_scav", posx, posy, posz, math.random(0, 3), GaiaTeamID)
+					attackTarget = Spring.GetUnitNearestEnemy(test, 200000, true)
+				end
+				if attackTarget == nil or commanderOrNearestTarget == 2 then
+					local test = Spring.CreateUnit("scavengerdroppod_scav", posx, posy, posz, math.random(0, 3), GaiaTeamID)
+					attackTarget = Spring.GetUnitNearestEnemy(test, 200000, false)
 				end
 				local ax, ay, az = Spring.GetUnitPosition(attackTarget)
 				
