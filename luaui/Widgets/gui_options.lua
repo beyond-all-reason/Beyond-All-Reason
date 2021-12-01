@@ -2851,10 +2851,10 @@ function init()
 		{ id = "teamplatter", group = "ui", category = types.basic, widget = "TeamPlatter", name = texts.option.teamplatter, type = "bool", value = GetWidgetToggleValue("TeamPlatter"), description = texts.option.teamplatter_descr },
 		{ id = "teamplatter_opacity", category = types.advanced, group = "ui", name = widgetOptionColor .. "   " .. texts.option.teamplatter_opacity, min = 0.05, max = 0.4, step = 0.01, type = "slider", value = 0.25, description = texts.option.teamplatter_opacity_descr,
 		  onload = function(i)
-			  loadWidgetData("TeamPlatter", "teamplatter_opacity", { 'spotterOpacity' })
+			  loadWidgetData("TeamPlatter", "teamplatter_opacity", { 'opacity' })
 		  end,
 		  onchange = function(i, value)
-			  saveOptionValue('TeamPlatter', 'teamplatter', 'setOpacity', { 'spotterOpacity' }, value)
+			  saveOptionValue('TeamPlatter', 'teamplatter', 'setOpacity', { 'opacity' }, value)
 		  end,
 		},
 		{ id = "teamplatter_skipownteam", category = types.advanced, group = "ui", name = widgetOptionColor .. "   " .. texts.option.teamplatter_skipownteam, type = "bool", value = false, description = texts.option.teamplatter_skipownteam_descr,
