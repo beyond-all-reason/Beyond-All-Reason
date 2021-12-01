@@ -2869,10 +2869,10 @@ function init()
 		{ id = "enemyspotter", group = "ui", category = types.basic, widget = "EnemySpotter", name = texts.option.enemyspotter, type = "bool", value = GetWidgetToggleValue("EnemySpotter"), description = texts.option.enemyspotter_descr },
 		{ id = "enemyspotter_opacity", category = types.advanced, group = "ui", name = widgetOptionColor .. "   " .. texts.option.enemyspotter_opacity, min = 0.12, max = 0.4, step = 0.01, type = "slider", value = 0.15, description = texts.option.enemyspotter_opacity_descr,
 		  onload = function(i)
-			  loadWidgetData("EnemySpotter", "enemyspotter_opacity", { 'spotterOpacity' })
+			  loadWidgetData("EnemySpotter", "enemyspotter_opacity", { 'opacity' })
 		  end,
 		  onchange = function(i, value)
-			  saveOptionValue('EnemySpotter', 'enemyspotter', 'setOpacity', { 'spotterOpacity' }, value)
+			  saveOptionValue('EnemySpotter', 'enemyspotter', 'setOpacity', { 'opacity' }, value)
 		  end,
 		},
 

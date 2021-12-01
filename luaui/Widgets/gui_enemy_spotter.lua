@@ -237,12 +237,12 @@ end
 
 function widget:GetConfigData(data)
 	return {
-		opacity2 = opacity,
+		opacity = opacity,
 		skipOwnTeam = skipOwnTeam,
 	}
 end
 
 function widget:SetConfigData(data)
-	opacity = data.opacity2 or opacity
+	opacity = data.opacity or opacity
 	skipOwnTeam = data.skipOwnTeam or skipOwnTeam
 end
