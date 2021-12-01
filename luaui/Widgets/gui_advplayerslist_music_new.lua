@@ -11,13 +11,15 @@ end
 
 math.randomseed( os.clock() )
 
---[[
-   What i want:
-	- Update music preset after switching the setting (just reload the widget),
-	- Merge old soundtrack into this widget,
-	- Custom Music in main directory going into all music levels, and specific folders for specific level for those who want it,
-	- Make it possible to merge custom music with original soundtrack,
-]]
+local peaceTracks = {}
+local warhighTracks = {}
+local warlowTracks = {}
+local gameoverTracks = {}
+
+local currentTrack
+local peaceTracksPlayCounter, warhighTracksPlayCounter, warlowTracksPlayCounter, gameoverTracksPlayCounter
+local fadeOutCurrentTrack = false
+
 local function ReloadMusicPlaylists()
 ---------------------------------COLLECT MUSIC------------------------------------
 
@@ -93,7 +95,7 @@ local function ReloadMusicPlaylists()
 				table.insert(shuffledPlaylist, originalPlaylist[r])
 				table.remove(originalPlaylist, r)
 			until(#originalPlaylist == 0)
-		else 
+		else
 			shuffledPlaylist = originalPlaylist
 		end
 		return shuffledPlaylist
@@ -136,6 +138,8 @@ local warHighLevel = 20000
 local maxMusicVolume = Spring.GetConfigInt("snd_volmusic", 20)	-- user value, cause actual volume will change during fadein/outc
 local volume = Spring.GetConfigInt("snd_volmaster", 100)
 
+local RectRound, UiElement, UiButton, UiSlider, UiSliderKnob, bgpadding, elementCorner
+local borderPaddingRight, borderPaddingLeft, trackname, font, draggingSlider, force, doCreateList, chobbyInterface, mouseover
 local buttons = {}
 local drawlist = {}
 local advplayerlistPos = {}
@@ -150,11 +154,8 @@ local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity",0.66) or 0.66)
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale",1) or 1)
 
 local playing = (Spring.GetConfigInt('music', 1) == 1)
-
+local shutdown
 local guishaderEnabled = (WG['guishader'] ~= nil)
-
-local RectRound, UiElement, UiButton, UiSlider, UiSliderKnob, bgpadding, elementCorner
-local borderPaddingRight, borderPaddingLeft, trackname, font, draggingSlider, force, doCreateList, chobbyInterface, mouseover
 
 local playTex	= ":l:"..LUAUI_DIRNAME.."Images/music/play.png"
 local pauseTex	= ":l:"..LUAUI_DIRNAME.."Images/music/pause.png"
@@ -253,7 +254,7 @@ local function createList()
 	drawlist[3] = glCreateList( function()
 
 		-- track name
-		trackname = curTrack or ''
+		trackname = currentTrack or ''
 		glColor(0.45,0.45,0.45,1)
 		trackname = string.gsub(trackname, ".ogg", "")
 		trackname = string.gsub(trackname, "intro/", "")
@@ -313,6 +314,22 @@ local function createList()
 	end
 end
 
+local function updatePosition(force)
+	if WG['advplayerlist_api'] ~= nil then
+		local prevPos = advplayerlistPos
+		advplayerlistPos = WG['advplayerlist_api'].GetPosition()		-- returns {top,left,bottom,right,widgetScale}
+
+		left = advplayerlistPos[2]
+		bottom = advplayerlistPos[1]
+		right = advplayerlistPos[4]
+		top = math.ceil(advplayerlistPos[1]+(widgetHeight*advplayerlistPos[5]))
+		widgetScale = advplayerlistPos[5]
+		if (prevPos[1] == nil or prevPos[1] ~= advplayerlistPos[1] or prevPos[2] ~= advplayerlistPos[2] or prevPos[5] ~= advplayerlistPos[5]) or force then
+			createList()
+		end
+	end
+end
+
 function widget:Initialize()
 	appliedSilence = true
 	silenceTimer = math.random(minSilenceTime,maxSilenceTime)
@@ -357,16 +374,6 @@ function widget:Initialize()
 	WG['music'].RefreshTrackList = function ()
 		-- TODO: Refactor track list into functions, call on initialize and from here
 	end
-	--for track, params in pairs(tracksConfig) do
-	--	-- get track
-	--	WG['music']['getTrack'..track] = function()
-	--		return params[1]
-	--	end
-	--	-- set track
-	--	WG['music']['setTrack'..track] = function(value)
-	--		toggleTrack(track, value)
-	--	end
-	--end
 end
 
 function widget:Shutdown()
@@ -383,22 +390,6 @@ function widget:Shutdown()
 		glDeleteList(drawlist[i])
 	end
 	WG['music'] = nil
-end
-
-function updatePosition(force)
-	if WG['advplayerlist_api'] ~= nil then
-		local prevPos = advplayerlistPos
-		advplayerlistPos = WG['advplayerlist_api'].GetPosition()		-- returns {top,left,bottom,right,widgetScale}
-
-		left = advplayerlistPos[2]
-		bottom = advplayerlistPos[1]
-		right = advplayerlistPos[4]
-		top = math.ceil(advplayerlistPos[1]+(widgetHeight*advplayerlistPos[5]))
-		widgetScale = advplayerlistPos[5]
-		if (prevPos[1] == nil or prevPos[1] ~= advplayerlistPos[1] or prevPos[2] ~= advplayerlistPos[2] or prevPos[5] ~= advplayerlistPos[5]) or force then
-			createList()
-		end
-	end
 end
 
 function widget:ViewResize(newX,newY)
@@ -444,15 +435,7 @@ function widget:MouseMove(x, y)
 	end
 end
 
-function widget:MousePress(x, y, button)
-	return mouseEvent(x, y, button, false)
-end
-
-function widget:MouseRelease(x, y, button)
-	return mouseEvent(x, y, button, true)
-end
-
-function mouseEvent(x, y, button, release)
+local function mouseEvent(x, y, button, release)
 	if Spring.IsGUIHidden() then return false end
 	if button == 1 then
 		if not release then
@@ -490,6 +473,14 @@ function mouseEvent(x, y, button, release)
 	if mouseover and math_isInRect(x, y, left, bottom, right, top) then
 		return true
 	end
+end
+
+function widget:MousePress(x, y, button)
+	return mouseEvent(x, y, button, false)
+end
+
+function widget:MouseRelease(x, y, button)
+	return mouseEvent(x, y, button, true)
 end
 
 function widget:Update(dt)
@@ -589,7 +580,7 @@ function widget:DrawScreen()
 	end
 end
 
-function fadeOutTrack()
+local function fadeOutTrack()
 	fadelevel = fadelevel - 1.5
 	local volumefadelevel = (Spring.GetConfigInt("snd_volmusic", defaultMusicVolume))*0.01*(fadelevel*0.01)
 	Spring.SetSoundStreamVolume(volumefadelevel)
@@ -604,11 +595,9 @@ function PlayNewTrack()
 	Spring.StopSoundStream()
 	warMeter = warMeter*0.5
 	fadelevel = 100
-	fadeOutTrackBool = false
+	fadeOutCurrentTrack = false
 	appliedSilence = false
-	prevTrack = curTrack
-	curTrack = nil
-	--Spring.Echo("[NewMusicPlayer] Warmeter: "..warMeter)
+	currentTrack = nil
 
 	currentTrackList = nil
 	if gameOver == true then
@@ -618,25 +607,21 @@ function PlayNewTrack()
 	elseif warMeter >= warHighLevel then
 		currentTrackList = warhighTracks
 		currentTrackListString = "warHigh"
-		--Spring.Echo("[NewMusicPlayer] Playing warhigh track")
 	elseif warMeter >= warLowLevel then
 		currentTrackList = warlowTracks
 		currentTrackListString = "warLow"
-		--Spring.Echo("[NewMusicPlayer] Playing warlow track")
 	else
 		currentTrackList = peaceTracks
 		currentTrackListString = "peace"
-		--Spring.Echo("[NewMusicPlayer] Playing peace track")
 	end
 
 	if not currentTrackList then
-		--Spring.Echo("[NewMusicPlayer] there is some issue with getting track list")
 		return
 	end
 
 	if #currentTrackList > 0 then
 		if currentTrackListString == "peace" then
-			curTrack = currentTrackList[peaceTracksPlayCounter]
+			currentTrack = currentTrackList[peaceTracksPlayCounter]
 			if peaceTracksPlayCounter <= #peaceTracks then
 				peaceTracksPlayCounter = peaceTracksPlayCounter + 1
 			else
@@ -644,7 +629,7 @@ function PlayNewTrack()
 			end
 		end
 		if currentTrackListString == "warHigh" then
-			curTrack = currentTrackList[warhighTracksPlayCounter]
+			currentTrack = currentTrackList[warhighTracksPlayCounter]
 			if warhighTracksPlayCounter <= #warhighTracks then
 				warhighTracksPlayCounter = warhighTracksPlayCounter + 1
 			else
@@ -652,7 +637,7 @@ function PlayNewTrack()
 			end
 		end
 		if currentTrackListString == "warLow" then
-			curTrack = currentTrackList[warlowTracksPlayCounter]
+			currentTrack = currentTrackList[warlowTracksPlayCounter]
 			if warlowTracksPlayCounter <= #warlowTracks then
 				warlowTracksPlayCounter = warlowTracksPlayCounter + 1
 			else
@@ -660,23 +645,22 @@ function PlayNewTrack()
 			end
 		end
 		if currentTrackListString == "gameOver" then
-			curTrack = currentTrackList[gameoverTracksPlayCounter]
+			currentTrack = currentTrackList[gameoverTracksPlayCounter]
 		end
 	elseif #currentTrackList == 0 then
-		-- Spring.Echo("[NewMusicPlayer] empty track list")
 		return
 	end
 
-	if curTrack then
+	if currentTrack then
 		local musicVolume = (Spring.GetConfigInt("snd_volmusic", defaultMusicVolume))*0.01
-		Spring.PlaySoundStream(curTrack, 1)
+		Spring.PlaySoundStream(currentTrack, 1)
 		Spring.SetSoundStreamVolume(musicVolume)
 	end
-	
+
 	createList()
 end
 
-function widget:UnitDamaged(unitID,unitDefID,_,damage)
+function widget:UnitDamaged(unitID, unitDefID, _, damage)
 	if damage > 1 then
 		local curHealth, maxHealth = Spring.GetUnitHealth(unitID)
 		if damage > maxHealth then
@@ -690,13 +674,13 @@ end
 
 function widget:GameFrame(n)
 	if not playing then return end
-	
-	if fadeOutTrackBool then
+
+	if fadeOutCurrentTrack then
 		fadeOutTrack()
 	end
 
 	if gameOver == true and playedGameOverTrack == false then
-		fadeOutTrackBool = true
+		fadeOutCurrentTrack = true
 	end
 	if n%30 == 15 then
 		playedTime, totalTime = Spring.GetSoundStreamTime()
@@ -707,29 +691,27 @@ function widget:GameFrame(n)
 		end
 		if warMeter > 0 then
 			warMeter = math.floor(warMeter - (warMeter*0.02))
-			--Spring.Echo("[NewMusicPlayer] Warmeter: ".. warMeter)
 		end
-		
+
 		if gameOver == false then
-			
 			if playedTime > 0 and totalTime > 0 then -- music is playing
-				if not fadeOutTrackBool then
+				if not fadeOutCurrentTrack then
 					local musicVolume = (Spring.GetConfigInt("snd_volmusic", defaultMusicVolume))*0.01
 					Spring.SetSoundStreamVolume(musicVolume)
 					if currentTrackListString == "intro" and n > 30 then
-						fadeOutTrackBool = true
+						fadeOutCurrentTrack = true
 					end
-					if currentTrackListString == "peace" and warMeter > warLowLevel*2 then
-						fadeOutTrackBool = true
+					if currentTrackListString == "peace" and warMeter > warLowLevel * 2 then
+						fadeOutCurrentTrack = true
 					end
-					if (currentTrackListString == "warLow" or currentTrackListString == "warHigh") and warMeter <= warLowLevel*0.20 then
-						fadeOutTrackBool = true
+					if (currentTrackListString == "warLow" or currentTrackListString == "warHigh") and warMeter <= warLowLevel * 0.20 then
+						fadeOutCurrentTrack = true
 					end
-					if currentTrackListString == "warLow" and warMeter > warHighLevel*2 then
-						fadeOutTrackBool = true
+					if currentTrackListString == "warLow" and warMeter > warHighLevel * 2 then
+						fadeOutCurrentTrack = true
 					end
-					if currentTrackListString == "warHigh" and warMeter <= warHighLevel*0.20 then
-						fadeOutTrackBool = true
+					if currentTrackListString == "warHigh" and warMeter <= warHighLevel * 0.20 then
+						fadeOutCurrentTrack = true
 					end
 				end
 			elseif totalTime == 0 then -- there's no music
@@ -755,14 +737,14 @@ end
 
 function widget:GetConfigData(data)
 	return {
-		curTrack = curTrack
+		curTrack = currentTrack
 	}
 end
 
 function widget:SetConfigData(data)
 	if Spring.GetGameFrame() > 0 then
 		if data.curTrack ~= nil then
-			curTrack = data.curTrack
+			currentTrack = data.curTrack
 		end
 	end
 end
