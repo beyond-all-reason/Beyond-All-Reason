@@ -701,13 +701,13 @@ ArmyHST.factoryExitSides = {
 	armshltxuw = 1,
 }
 
-ArmyHST.littlePlasmaList = {
-	corpun = 1,
-	armguard = 1,
-	cortoast = 1,
-	armamb = 1,
-	corbhmth = 1,
-}
+-- ArmyHST.littlePlasmaList = {
+-- 	corpun = 1,
+-- 	armguard = 1,
+-- 	cortoast = 1,
+-- 	armamb = 1,
+-- 	corbhmth = 1,
+-- }
 
 -- what mexes upgrade to what
 ArmyHST.mexUpgrade = {
@@ -833,25 +833,25 @@ ArmyHST.cleanable = {
 }
 
 -- minimum, maximum, starting point units required to attack, bomb
-ArmyHST.minAttackCounter = 4
-ArmyHST.maxAttackCounter = 30
-ArmyHST.baseAttackCounter = 8
-ArmyHST.breakthroughAttackCounter = 10 -- build heavier battle units
-ArmyHST.siegeAttackCounter = 10 -- build siege units
-ArmyHST.minBattleCount = 4 -- how many battle units to build before building any breakthroughs, even if counter is too high
-ArmyHST.minBomberCounter = 0
-ArmyHST.maxBomberCounter = 16
-ArmyHST.baseBomberCounter = 8
-ArmyHST.breakthroughBomberCounter = 8 -- build atomic bombers or air fortresses
+-- ArmyHST.minAttackCounter = 4
+-- ArmyHST.maxAttackCounter = 16
+-- ArmyHST.baseAttackCounter = 8
+--ArmyHST.breakthroughAttackCounter = 10 -- build heavier battle units
+-- ArmyHST.siegeAttackCounter = 10 -- build siege units
+-- ArmyHST.minBattleCount = 4 -- how many battle units to build before building any breakthroughs, even if counter is too high
+ArmyHST.minBomberCounter = 10
+ArmyHST.maxBomberCounter = 20
+ArmyHST.baseBomberCounter = 10
+-- ArmyHST.breakthroughBomberCounter = 8 -- build atomic bombers or air fortresses
 
 -- raid counter works backwards: it determines the number of raiders to build
 -- if it reaches ArmyHST.minRaidCounter, none are built
-ArmyHST.minRaidCounter =2
-ArmyHST.maxRaidCounter = 8
-ArmyHST.baseRaidCounter = 5
+-- ArmyHST.minRaidCounter =2
+-- ArmyHST.maxRaidCounter = 8
+-- ArmyHST.baseRaidCounter = 5
 
 -- Taskqueuebehaviour was modified to skip this name
-ArmyHST.DummyUnitName = "skipthisorder"
+-- ArmyHST.DummyUnitName = "skipthisorder"
 -- this unit is used to check for underwater metal spots
 ArmyHST.UWMetalSpotCheckUnit = "coruwmex"
 

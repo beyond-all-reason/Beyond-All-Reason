@@ -891,59 +891,59 @@ function TargetHST:NearbyVulnerable(unit)
 	return vulnerable
 end
 
-function TargetHST:GetBestRaidCell(representative)
-	if not representative then return end
-
-	local rpos = representative:GetPosition()
-	local inCell = self:GetCellHere(rpos)
-	local threatReduction = 0
-	local TR = 0
-	if inCell ~= nil then
-		-- if we're near more raiders, these raiders can target more threatening targets together
-		if inCell.raiderHere then threatReduction = threatReduction + inCell.raiderHere end
-		if inCell.raiderAdjacent then threatReduction = threatReduction + inCell.raiderAdjacent end
-	end
-	self:Warn(threatReduction,TR)
-
-	local rname = representative:Name()
-	local maxThreat = baseUnitThreat
-	local rthreat, rrange = self.ai.tool:ThreatRange(rname)
-	self:EchoDebug(rname .. ": " .. rthreat .. " " .. rrange)
-	if rthreat > maxThreat then maxThreat = rthreat end
-	local best
-	local bestDist = math.huge
-	local cells
-	local minThreat = math.huge
- 	for i,cell in pairs (self.cellList) do
- 		local value, threat, gas = self:CellValueThreat(rname, cell)
- 		local dist = self.ai.tool:Distance(rpos, cell.pos)
- 		if value > 0 and threat < minThreat  and self.ai.maphst:UnitCanGoHere(representative, cell.pos) then
- 			minThreat = threat
- 			best = cell
---  			map:DrawCircle(best.pos, 100, {255,0,0,255}, 'raid', true, 3)
- 		end
- 	end
-	--[[
-  	for i, cell in pairs(self.cellList) do
-  		local value, threat, gas = self:CellValueThreat(rname, cell)
-  		-- cells with other raiders in or nearby are better places to go for raiders
-  		if cell.raiderHere then threat = threat - cell.raiderHere end
-  		if cell.raiderAdjacent then threat = threat - cell.raiderAdjacent end
-  		threat = threat - threatReduction
-  		if value > 0 and threat <= maxThreat then
-  			if self.ai.maphst:UnitCanGoHere(representative, cell.pos) then
-  				local mod = value - (threat * 3)
-  				local dist = self.ai.tool:Distance(rpos, cell.pos) - mod
-  				if dist < bestDist then
-  					best = cell
-  					bestDist = dist
-  				end
-  			end
-  		end
-  	end]]
-
-	return best
-end
+-- function TargetHST:GetBestRaidCell(representative)
+-- 	if not representative then return end
+--
+-- 	local rpos = representative:GetPosition()
+-- 	local inCell = self:GetCellHere(rpos)
+-- 	local threatReduction = 0
+-- 	local TR = 0
+-- 	if inCell ~= nil then
+-- 		-- if we're near more raiders, these raiders can target more threatening targets together
+-- 		if inCell.raiderHere then threatReduction = threatReduction + inCell.raiderHere end
+-- 		if inCell.raiderAdjacent then threatReduction = threatReduction + inCell.raiderAdjacent end
+-- 	end
+-- 	self:Warn(threatReduction,TR)
+--
+-- 	local rname = representative:Name()
+-- 	local maxThreat = baseUnitThreat
+-- 	local rthreat, rrange = self.ai.tool:ThreatRange(rname)
+-- 	self:EchoDebug(rname .. ": " .. rthreat .. " " .. rrange)
+-- 	if rthreat > maxThreat then maxThreat = rthreat end
+-- 	local best
+-- 	local bestDist = math.huge
+-- 	local cells
+-- 	local minThreat = math.huge
+--  	for i,cell in pairs (self.cellList) do
+--  		local value, threat, gas = self:CellValueThreat(rname, cell)
+--  		local dist = self.ai.tool:Distance(rpos, cell.pos)
+--  		if value > 0 and threat < minThreat  and self.ai.maphst:UnitCanGoHere(representative, cell.pos) then
+--  			minThreat = threat
+--  			best = cell
+-- --  			map:DrawCircle(best.pos, 100, {255,0,0,255}, 'raid', true, 3)
+--  		end
+--  	end
+-- 	--[[
+--   	for i, cell in pairs(self.cellList) do
+--   		local value, threat, gas = self:CellValueThreat(rname, cell)
+--   		-- cells with other raiders in or nearby are better places to go for raiders
+--   		if cell.raiderHere then threat = threat - cell.raiderHere end
+--   		if cell.raiderAdjacent then threat = threat - cell.raiderAdjacent end
+--   		threat = threat - threatReduction
+--   		if value > 0 and threat <= maxThreat then
+--   			if self.ai.maphst:UnitCanGoHere(representative, cell.pos) then
+--   				local mod = value - (threat * 3)
+--   				local dist = self.ai.tool:Distance(rpos, cell.pos) - mod
+--   				if dist < bestDist then
+--   					best = cell
+--   					bestDist = dist
+--   				end
+--   			end
+--   		end
+--   	end]]
+--
+-- 	return best
+-- end
 
 function TargetHST:RaidableCell(representative, position)
 	position = position or representative:GetPosition()

@@ -9,7 +9,7 @@ function AttackerBST:Name()
 	return "AttackerBST"
 end
 
-AttackerBST.DebugEnabled = false
+AttackerBST.DebugEnabled = true
 
 function AttackerBST:Init()
 	local mtype, network = self.ai.maphst:MobilityOfUnit(self.unit:Internal())
@@ -86,14 +86,20 @@ function AttackerBST:Deactivate()
 end
 
 function AttackerBST:Update()
+	local f = self.game:Frame()
+	if f % 19 ~= 0 then
+		return
+	end
+	if not self.active and self.squad and self.target then
+		self.unit:ElectBehaviour()
+	end
 	if self.damaged then
-		local f = self.game:Frame()
 		if f > self.damaged + 450 then
 			self.damaged = nil
 		end
 	end
 	if self.timeout then
-		if self.game:Frame() >= self.timeout	then
+		if f >= self.timeout	then
 			self.game:SendToConsole("timeout triggered")
 			self.timeout = nil
 			-- self.ai.attackhst:RemoveMember(self)
@@ -115,6 +121,7 @@ function AttackerBST:Advance(pos, perpendicularAttackAngle, reverseAttackAngle)
 	self.idle = false
 	self.attacking = true
 	if reverseAttackAngle then
+		self:EchoDebug('adv reverse')
 		local awayDistance = math.min(self.sightDistance, self.weaponDistance)
 		if not self.sturdy or self.ai.loshst:IsInLos(pos) then
 			awayDistance = self.weaponDistance
@@ -122,21 +129,27 @@ function AttackerBST:Advance(pos, perpendicularAttackAngle, reverseAttackAngle)
 		local myAngle = self.ai.tool:AngleAdd(reverseAttackAngle, self.formationAngle)
 		self.target = self.ai.tool:RandomAway( pos, awayDistance, nil, myAngle)
 	else
+		self:EchoDebug('adv drit')
 		self.target = self.ai.tool:RandomAway( pos, self.formationDist, nil, perpendicularAttackAngle)
 	end
 	local canMoveThere = self.ai.maphst:UnitCanGoHere(self.unit:Internal(), self.target)
+
 	if canMoveThere and self.squad then
+		self:EchoDebug('adv', canMoveThere)
 		self.squad.lastValidMove = self.target
 	elseif self.squad and self.squad.lastValidMove then
+		self:EchoDebug('adv lastvalidMove',self.squad.lastValidMove)
 		self.target = self.ai.tool:RandomAway( self.squad.lastValidMove, self.congSize)
 		canMoveThere = self.ai.maphst:UnitCanGoHere(self.unit:Internal(), self.target)
 	end
+	self:EchoDebug('adv',self.attacking,self.active,self.target.x,self.target.z)
 	if self.active and canMoveThere then
+		self:EchoDebug('adv move',self.target.x,self.target.z)
 		-- local framesToArrive = 30 * (self.ai.tool:Distance(self.unit:Internal():GetPosition(), self.target) / self.speed) * 2
 		-- game:SendToConsole("frames to arrive", framesToArrive)
 		-- self.timeout = self.game:Frame() + framesToArrive
-		self.unit:Internal():AttackMove(self.target) --need to check this
-		--self.unit:Internal():Move(self.target)
+		--self.unit:Internal():AttackMove(self.target) --need to check this
+		self.unit:Internal():Move(self.target)
 	end
 	return canMoveThere
 end

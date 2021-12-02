@@ -10,7 +10,7 @@ end
 
 local minRaidCount = 5
 function RaidHST:Init()
-	self.DebugEnabled = true
+	self.DebugEnabled = false
 	self.raiders = {}
 	self.squads = {}
 	self.pathValidFuncs = {}
@@ -28,8 +28,9 @@ function RaidHST:Update()
 		self:getSquadPosition(squad)
 		local run = self:running(squad)
 		self:EchoDebug('RUN',run)
+		self:visualDBG(squad)
 		if run then
-			self:visualDBG(squad)
+
 			if self:squadOnTarget(squad) then
 				self:doAttack(squad)
 				self:EchoDebug('squad on target')
@@ -57,7 +58,9 @@ function RaidHST:visualDBG(squad)
 	for i , p in pairs(squad.path) do
 		self.map:DrawPoint(p, squad.colour, i, 6)
 	end
-	self.map:DrawPoint(squad.target.pos, squad.colour, squad.squadID .. 'target', 6)
+	if squad.target then
+		self.map:DrawPoint(squad.target.pos, squad.colour, squad.squadID .. 'target', 6)
+	end
 end
 
 function RaidHST:running(squad)
@@ -109,14 +112,16 @@ function RaidHST:targeting(squad)
 		self:EchoDebug('have already a target')
 		return
 	end
-	local target = nil
-	for index,leaderID in pairs(squad.members) do
--- 	local leaderID = squad.members[1]
-		local leader = self.game:GetUnitByID(leaderID)
-		local leaderPos = leader:GetPosition()
-		target = self.ai.targethst:GetBestRaidCell(leader)
-		if target then break end
-	end
+	local target = self:getRaidCell(squad)
+
+-- 	for index,leaderID in pairs(squad.members) do
+-- -- 	local leaderID = squad.members[1]
+-- 		local leader = self.game:GetUnitByID(leaderID)
+-- 		local leaderPos = leader:GetPosition()
+-- 		target = self.ai.targethst:GetBestRaidCell(leader)
+-- 		if target then break end
+-- 	end
+
 	if not target then
 		self:EchoDebug('no target for ' ,squad.squadID)
 		return
@@ -192,10 +197,10 @@ function RaidHST:goToNextNode(squad)
 		self:resetSquad(squad)
 		return
 	end	self:EchoDebug('pos',squad.position.x,squad.position.z,'path1',squad.path[1].x,squad.path[1].z,'dist',self.ai.tool:Distance(squad.position,squad.path[1]))
-  	if self.ai.tool:Distance(squad.position,squad.path[1]) < 516 then
+  	if self.ai.tool:Distance(squad.position,squad.path[1]) < 256 then
   		Next = table.remove(squad.path,1)
   	end
- 	if #squad.path [1] then
+ 	if squad.path[1] then
 		self:EchoDebug('in moving')
  		self:squadMove(squad.members,squad.path[1])
 	else
@@ -306,6 +311,61 @@ function RaidHST:GetPathValidFunc(unitName)
 	return valid_node_func
 end
 
+function RaidHST:getRaidCell(squad)
+	if not squad then return end
+	local leader = self.game:GetUnitByID(squad.members[1])
+-- 	local rpos = representative:GetPosition()
+	local inCell = self.ai.targethst:GetCellHere(squad.position)
+	local threatReduction = 0
+	local TR = self.ai.armyhst.unitTable[squad.unitName].metalCost * #squad.members
+	if inCell ~= nil then
+		-- if we're near more raiders, these raiders can target more threatening targets together
+		if inCell.raiderHere then threatReduction = threatReduction + inCell.raiderHere end
+		if inCell.raiderAdjacent then threatReduction = threatReduction + inCell.raiderAdjacent end
+	end
+	self:EchoDebug(threatReduction,TR)
+
+-- 	local rname = representative:Name()
+	local maxThreat = self.ai.armyhst.unitTable[squad.unitName].metalCost
+	local rthreat, rrange = self.ai.tool:ThreatRange(squad.unitName)
+	self:EchoDebug(squad.unitName .. ": " .. rthreat .. " " .. rrange)
+	if rthreat > maxThreat then maxThreat = rthreat end
+	local best
+	local bestDist = math.huge
+	local cells
+	local minThreat = math.huge
+ 	for i,cell in pairs (self.ai.targethst.cellList) do
+ 		local value, threat, gas = self.ai.targethst:CellValueThreat(squad.unitName, cell)
+		self:EchoDebug('cell target raid value',value,cell.pos.x,cell.pos.z	)
+ 		local dist = self.ai.tool:Distance(squad.position, cell.pos)
+ 		if value > 0 and threat < minThreat  and self.ai.maphst:UnitCanGoHere(leader, cell.pos) then
+ 			minThreat = threat
+ 			best = cell
+			self:EchoDebug('have a cell')
+--  			map:DrawCircle(best.pos, 100, {255,0,0,255}, 'raid', true, 3)
+ 		end
+ 	end
+	--[[
+  	for i, cell in pairs(self.cellList) do
+  		local value, threat, gas = self:CellValueThreat(rname, cell)
+  		-- cells with other raiders in or nearby are better places to go for raiders
+  		if cell.raiderHere then threat = threat - cell.raiderHere end
+  		if cell.raiderAdjacent then threat = threat - cell.raiderAdjacent end
+  		threat = threat - threatReduction
+  		if value > 0 and threat <= maxThreat then
+  			if self.ai.maphst:UnitCanGoHere(representative, cell.pos) then
+  				local mod = value - (threat * 3)
+  				local dist = self.ai.tool:Distance(rpos, cell.pos) - mod
+  				if dist < bestDist then
+  					best = cell
+  					bestDist = dist
+  				end
+  			end
+  		end
+  	end]]
+
+	return best
+end
 -- function RaidHST:GetImmediateTargetUnit()
 -- 	if self.arrived and self.unitTarget then
 -- 		local utpos = self.unitTarget:GetPosition()

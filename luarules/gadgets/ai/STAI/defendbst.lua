@@ -179,7 +179,7 @@ function DefendBST:Priority()
 			return 0
 		end
 	else
-		return 40
+		return 51
 	end
 end
 
