@@ -45,7 +45,9 @@ local function ReloadMusicPlaylists()
 	local gameoverTracksCustom 		= VFS.DirList(musicDirCustom..'/gameover', '*.ogg')
 
 	-----------------------------------SETTINGS---------------------------------------
-
+	
+	local interruptionEnabled = Spring.GetConfigInt('UseSoundtrackInterruption', 1) == 1
+	local silenceTimerEnabled = Spring.GetConfigInt('UseSoundtrackSilenceTimer', 1) == 1
 	local newSoundtrackEnabled = Spring.GetConfigInt('UseSoundtrackNew', 1) == 1
 	local oldSoundtrackEnabled 	= Spring.GetConfigInt('UseSoundtrackOld', 0) == 1
 	local customSoundtrackEnabled	= Spring.GetConfigInt('UseSoundtrackCustom', 1) == 1
@@ -686,24 +688,28 @@ function widget:GameFrame(n)
 					Spring.SetSoundStreamVolume(musicVolume)
 
 					if (currentTrackListString == "intro" and n > 30)
-						or (currentTrackListString == "peace" and warMeter > warLowLevel * 2)
-						or ( (currentTrackListString == "warLow" or currentTrackListString == "warHigh") and warMeter <= warLowLevel * 0.20 )
-						or (currentTrackListString == "warLow" and warMeter > warHighLevel * 2)
-						or (currentTrackListString == "warHigh" and warMeter <= warHighLevel * 0.20) then
+						or ((currentTrackListString == "peace" and warMeter > warLowLevel * 2) and interruptionEnabled)
+						or (( (currentTrackListString == "warLow" or currentTrackListString == "warHigh") and warMeter <= warLowLevel * 0.20 ) and interruptionEnabled)
+						or ((currentTrackListString == "warLow" and warMeter > warHighLevel * 2) and interruptionEnabled)
+						or ((currentTrackListString == "warHigh" and warMeter <= warHighLevel * 0.20) and interruptionEnabled) then
 
 						fadeOutCurrentTrack = true
 					end
 				end
 			elseif totalTime == 0 then -- there's no music
-				if warMeter > warHighLevel * 3 and silenceTimer > 1 then
-					silenceTimer = 1
-				elseif appliedSilence and silenceTimer <= 0 then
+				if silenceTimerEnabled then
+					if warMeter > warHighLevel * 3 and silenceTimer > 1 then
+						silenceTimer = 1
+					elseif appliedSilence and silenceTimer <= 0 then
+						PlayNewTrack()
+					elseif not appliedSilence and silenceTimer <= 0 then
+						silenceTimer = math.random(minSilenceTime,maxSilenceTime)
+						appliedSilence = true
+					elseif appliedSilence and silenceTimer > 0 then
+						silenceTimer = silenceTimer - 1
+					end
+				else
 					PlayNewTrack()
-				elseif not appliedSilence and silenceTimer <= 0 then
-					silenceTimer = math.random(minSilenceTime,maxSilenceTime)
-					appliedSilence = true
-				elseif appliedSilence and silenceTimer > 0 then
-					silenceTimer = silenceTimer - 1
 				end
 			end
 		end
