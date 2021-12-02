@@ -214,7 +214,9 @@ function widget:ViewResize(viewSizeX, viewSizeY)
 	graphsRightX = math.floor(250 * widgetScale)
 	closeRightX = math.floor(30 * widgetScale)
 
-	createBackground()
+	if drawAwards then
+		createBackground()
+	end
 end
 
 local function ProcessAwards(awards)
@@ -305,9 +307,11 @@ function widget:DrawScreen()
 
 	gl.PushMatrix()
 
-	if Background then
-		glCallList(Background)
+	if not Background then
+		createBackground()
 	end
+
+	glCallList(Background)
 
 	if FirstAward and SecondAward and ThirdAward then
 		glCallList(FirstAward)
