@@ -105,19 +105,9 @@ function widget:DrawWorldPreUnit()
 	end
 	drawFrame = drawFrame + 1
 	if selectionVBO.usedElements > 0 then
-		--if drawFrame % 100 == 0 then Spring.Echo("selectionVBO.usedElements",selectionVBO.usedElements) end
-		local disticon
-		if Spring.GetConfigInt("UnitIconsAsUI", 1) == 1 then
-			disticon = Spring.GetConfigInt("uniticon_fadevanish", 1800)
-			disticon = disticon * 3
-		else
-			disticon = Spring.GetConfigInt("UnitIconDist", 200)
-			disticon = disticon * 27 -- should be sqrt(750) but not really
-		end
-		--gl.Culling(false)
 		glTexture(0, texture)
 		selectShader:Activate()
-		selectShader:SetUniform("iconDistance",disticon) -- pass
+		selectShader:SetUniform("iconDistance", 99999) -- pass
 
 		glDepthTest(true)
 
