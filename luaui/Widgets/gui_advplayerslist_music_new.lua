@@ -110,12 +110,7 @@ local function ReloadMusicPlaylists()
 	warhighTracksPlayCounter 	= math.random(#warhighTracks)
 	warlowTracksPlayCounter 	= math.random(#warlowTracks)
 	gameoverTracksPlayCounter 	= math.random(#gameoverTracks)
-
-------------------------------------END----------------------------------------
-	Spring.SetConfigInt('UseSoundtrackReload', 0)
 end
-
-ReloadMusicPlaylists()
 
 local currentTrackList = peaceTracks
 local currentTrackListString = "intro"
@@ -326,6 +321,7 @@ local function updatePosition(force)
 end
 
 function widget:Initialize()
+	ReloadMusicPlaylists()
 	appliedSilence = true
 	silenceTimer = math.random(minSilenceTime,maxSilenceTime)
 	widget:ViewResize()
@@ -364,7 +360,9 @@ function widget:Initialize()
 		return tracksConfig
 	end
 	WG['music'].RefreshTrackList = function ()
-		-- TODO: Refactor track list into functions, call on initialize and from here
+		Spring.StopSoundStream()
+		ReloadMusicPlaylists()
+		PlayNewTrack()
 	end
 end
 
@@ -676,11 +674,6 @@ function widget:GameFrame(n)
 
 	if n%30 == 15 then
 		playedTime, totalTime = Spring.GetSoundStreamTime()
-		if Spring.GetConfigInt('UseSoundtrackReload', 0) == 1 then
-			Spring.StopSoundStream()
-			ReloadMusicPlaylists()
-			PlayNewTrack()
-		end
 
 		if warMeter > 0 then
 			warMeter = math.floor(warMeter - (warMeter * 0.02))
