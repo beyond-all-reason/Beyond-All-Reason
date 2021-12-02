@@ -2206,19 +2206,25 @@ function init()
 		{ id = "soundtrackNew", group = "sound", category = types.basic, name = texts.option.soundtrack.. widgetOptionColor .. "  " .. texts.option.soundtracknew, type = "bool", value = Spring.GetConfigInt('UseSoundtrackNew', 1) == 1, description = texts.option.soundtrack_descr,
 			onchange = function(i, value)
 				Spring.SetConfigInt('UseSoundtrackNew', value and 1 or 0)
-				Spring.SetConfigInt('UseSoundtrackReload', 1)
+				if WG['music'] and WG['music'].RefreshTrackList then
+					WG['music'].RefreshTrackList()
+				end
 			end
 		},
 		{ id = "soundtrackOld", group = "sound", category = types.basic, name = widgetOptionColor .. "  " .. texts.option.soundtrackold, type = "bool", value = Spring.GetConfigInt('UseSoundtrackOld', 0) == 1,
 			onchange = function(i, value)
 				Spring.SetConfigInt('UseSoundtrackOld', value and 1 or 0)
-				Spring.SetConfigInt('UseSoundtrackReload', 1)
+				if WG['music'] and WG['music'].RefreshTrackList then
+					WG['music'].RefreshTrackList()
+				end
 			end
 		},
 		{ id = "soundtrackCustom", group = "sound", category = types.basic, name = widgetOptionColor .. "  " .. texts.option.soundtrackcustom, type = "bool", value = Spring.GetConfigInt('UseSoundtrackCustom', 1) == 1,
 			onchange = function(i, value)
 				Spring.SetConfigInt('UseSoundtrackCustom', value and 1 or 0)
-				Spring.SetConfigInt('UseSoundtrackReload', 1)
+				if WG['music'] and WG['music'].RefreshTrackList then
+					WG['music'].RefreshTrackList()
+				end
 			end
 		},
 		{ id = "sndvolmusic", group = "sound", category = types.basic, name = widgetOptionColor .. "   " .. texts.option.sndvolmusic, type = "slider", min = 0, max = 100, step = 1, value = tonumber(Spring.GetConfigInt("snd_volmusic", 20) or 20),
