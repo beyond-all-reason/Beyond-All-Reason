@@ -16,7 +16,7 @@ local thisAward
 
 local widgetScale = 1
 
-local drawAwards = false
+local drawAwards = true
 local centerX, centerY -- coords for center of screen
 local widgetX, widgetY -- coords for top left hand corner of box
 local width = 880
@@ -41,14 +41,9 @@ local playerListByTeam = {} -- does not contain specs
 
 local fontfile = "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
 local fontfile2 = "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
+local font, font2, titleFont
+
 local viewScreenX, viewScreenY = Spring.GetViewGeometry()
-local fontfileScale = (0.7 + (viewScreenX * viewScreenY / 7000000))
-local fontfileSize = 40
-local fontfileOutlineSize = 8
-local fontfileOutlineStrength = 1.45
-local titleFont
-local font = gl.LoadFont(fontfile, fontfileSize * fontfileScale, fontfileOutlineSize * fontfileScale, fontfileOutlineStrength)
-local font2 = gl.LoadFont(fontfile2, fontfileSize * fontfileScale, fontfileOutlineSize * fontfileScale, fontfileOutlineStrength)
 
 local UiElement
 
@@ -174,33 +169,6 @@ local function createAward(pic, award, note, noteColour, winnersTable, offset)
 	return thisAward
 end
 
-function widget:ViewResize(viewSizeX, viewSizeY)
-	UiElement = WG.FlowUI.Draw.Element
-
-	viewScreenX, viewScreenY = Spring.GetViewGeometry()
-	local newFontfileScale = (0.5 + (viewScreenX * viewScreenY / 5700000))
-	if fontfileScale ~= newFontfileScale then
-		fontfileScale = newFontfileScale
-		gl.DeleteFont(font)
-		font = gl.LoadFont(fontfile, fontfileSize * fontfileScale, fontfileOutlineSize * fontfileScale, fontfileOutlineStrength)
-		gl.DeleteFont(font2)
-		font2 = gl.LoadFont(fontfile2, fontfileSize * fontfileScale, fontfileOutlineSize * fontfileScale, fontfileOutlineStrength)
-	end
-
-	--fix geometry
-	widgetScale = (0.75 + (viewScreenX * viewScreenY / 7500000))
-	widgetWidthScaled = math.floor(width * widgetScale)
-	widgetHeightScaled = math.floor(height * widgetScale)
-	centerX = math.floor(viewScreenX / 2)
-	centerY = math.floor(viewScreenY / 2)
-	widgetX = math.floor(centerX - (widgetWidthScaled / 2))
-	widgetY = math.floor(centerY - (widgetHeightScaled / 2))
-
-	quitRightX = math.floor(100 * widgetScale)
-	graphsRightX = math.floor(250 * widgetScale)
-	closeRightX = math.floor(30 * widgetScale)
-end
-
 local function createBackground()
 	if Background then
 		gl.DeleteList(Background)
@@ -224,6 +192,31 @@ local function createBackground()
 	end)
 end
 
+function widget:ViewResize(viewSizeX, viewSizeY)
+	UiElement = WG.FlowUI.Draw.Element
+
+	viewScreenX, viewScreenY = Spring.GetViewGeometry()
+
+	font = WG['fonts'].getFont(fontfile)
+	font2 = WG['fonts'].getFont(fontfile2)
+	titleFont = WG['fonts'].getFont(fontfile2, 4, 0.2, 1)
+
+	--fix geometry
+	widgetScale = (0.75 + (viewScreenX * viewScreenY / 7500000))
+	widgetWidthScaled = math.floor(width * widgetScale)
+	widgetHeightScaled = math.floor(height * widgetScale)
+	centerX = math.floor(viewScreenX / 2)
+	centerY = math.floor(viewScreenY / 2)
+	widgetX = math.floor(centerX - (widgetWidthScaled / 2))
+	widgetY = math.floor(centerY - (widgetHeightScaled / 2))
+
+	quitRightX = math.floor(100 * widgetScale)
+	graphsRightX = math.floor(250 * widgetScale)
+	closeRightX = math.floor(30 * widgetScale)
+
+	createBackground()
+end
+
 local function ProcessAwards(awards)
 	if not awards then return end
 
@@ -243,7 +236,7 @@ local function ProcessAwards(awards)
 		addY = 100
 		widgetHeightScaled = 600
 	end
-	createBackground()
+
 	FirstAward = createAward('fuscup', 0, Spring.I18N('ui.awards.resourcesDestroyed'), white, awards.ecoKill, 100)
 	SecondAward = createAward('bullcup', 0, Spring.I18N('ui.awards.enemiesDestroyed'), white, awards.fightKill, 200)
 	ThirdAward = createAward('comwreath', 0, Spring.I18N('ui.awards.resourcesEfficiency'), white, awards.efficiency, 300)
@@ -385,7 +378,6 @@ end
 function widget:Initialize()
 	Spring.SendCommands('endgraph 2')
 
-	titleFont = WG['fonts'].getFont(fontfile2, 4, 0.2, 1)
 	widget:ViewResize(viewScreenX, viewScreenY)
 	widgetHandler:RegisterGlobal('GadgetReceiveAwards', ProcessAwards)
 
@@ -409,8 +401,6 @@ end
 function widget:Shutdown()
 	widgetHandler:DeregisterGlobal('GadgetReceiveAwards')
 	Spring.SendCommands('endgraph 2')
-
-	gl.DeleteFont(font)
 	if Background then
 		gl.DeleteList(Background)
 	end
