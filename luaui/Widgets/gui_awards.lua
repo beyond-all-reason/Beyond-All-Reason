@@ -16,7 +16,7 @@ local thisAward
 
 local widgetScale = 1
 
-local drawAwards = true
+local drawAwards = false
 local centerX, centerY -- coords for center of screen
 local widgetX, widgetY -- coords for top left hand corner of box
 local width = 880
