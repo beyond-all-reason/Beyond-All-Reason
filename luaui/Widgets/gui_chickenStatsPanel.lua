@@ -208,6 +208,8 @@ local function getMarqueeMessage(chickenEventArgs)
 		messages[1] = Spring.I18N('ui.chickens.queenIsAngry')
 	end
 
+	refreshMarqueeMessage = false
+
 	return messages
 end
 
@@ -273,12 +275,14 @@ function ChickenEvent(chickenEventArgs)
 		waveCount = waveCount + 1
 		chickenEventArgs.waveCount = waveCount
 		showMarqueeMessage = true
+		refreshMarqueeMessage = true
 		messageArgs = chickenEventArgs
 		waveTime = Spring.GetTimer()
 	elseif chickenEventArgs.type == "burrowSpawn" then
 		UpdateRules()
 	elseif chickenEventArgs.type == "queen" then
 		showMarqueeMessage = true
+		refreshMarqueeMessage = true
 		messageArgs = chickenEventArgs
 		waveTime = Spring.GetTimer()
 	elseif chickenEventArgs.type == "score" .. (Spring.GetMyTeamID()) then
