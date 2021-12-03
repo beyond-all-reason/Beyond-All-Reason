@@ -12,7 +12,7 @@ local floor = math.floor
 local ceil = math.ceil
 
 function AttackHST:Init()
-	self.DebugEnabled = true
+	self.DebugEnabled = false
 
 	self.recruits = {}
 	self.count = {}
@@ -25,45 +25,44 @@ function AttackHST:Init()
 	self.ai.couldAttack = 0
 	self.ai.IDsWeAreAttacking = {}
 	self.minAttackCounter = 4
-	self.maxAttackCounter = 16
+	self.maxAttackCounter = 12
 	self.baseAttackCounter = 8
 end
 
 function AttackHST:Update()
 	local f = self.game:Frame()
-	if f % 17 == 0 then
-		self:DraftSquads()
+	if f % 17 ~= 0 then
+		return
 	end
-	if self.squads and #self.squads > 0 then
-		for is = 1, #self.squads do
-			if self.squads[is] then
-				local squad = self.squads[is] --TODO problem
-				if not squad.arrived and squad.idleTimeout and f >= squad.idleTimeout then
-					squad.arrived = true
-					squad.idleTimeout = nil
-				end
+	if not self.squads or #self.squads < 1 then
+		return
+	end
+	self:DraftSquads()
+	for index , squad in pairs(self.squads) do
+		if not squad.arrived and squad.idleTimeout and f >= squad.idleTimeout then
+			squad.arrived = true
+			squad.idleTimeout = nil
+		end
 
-				if squad.arrived then
-					squad.arrived = nil
-					if squad.pathStep < #squad.path - 1 then
-						local value = self.ai.targethst:ValueHere(squad.target, squad.members[1].name)
-						local threat = self.ai.targethst:ThreatHere(squad.target, squad.members[1].name)
-						if (value == 0 and threat == 0) or threat > squad.totalThreat * 0.67 then
-							self:SquadReTarget(squad) -- get a new target, this one isn't valuable
-						else
-							self:SquadNewPath(squad) -- see if there's a better way from the point we're going to
-						end
-					end
-					self:SquadAdvance(squad)
+		if squad.arrived then
+			squad.arrived = nil
+			if squad.pathStep < #squad.path - 1 then
+				local value = self.ai.targethst:ValueHere(squad.target, squad.members[1].name)
+				local threat = self.ai.targethst:ThreatHere(squad.target, squad.members[1].name)
+				if (value == 0 and threat == 0) or threat > squad.totalThreat * 0.67 then
+					self:SquadReTarget(squad) -- get a new target, this one isn't valuable
+				else
+					self:SquadNewPath(squad) -- see if there's a better way from the point we're going to
 				end
 			end
+			self:SquadAdvance(squad)
 		end
-		local is = (self.lastSquadPathfind or 0) + 1
-		if is > #self.squads then is = 1 end
-		local squad = self.squads[is]
-		self:SquadPathfind(squad, is)
-		self.lastSquadPathfind = is
 	end
+	local index = (self.lastSquadPathfind or 0) + 1
+	if index > #self.squads then is = 1 end
+	local squad = self.squads[index]
+	self:SquadPathfind(squad, index)
+	self.lastSquadPathfind = index
 end
 
 function AttackHST:DraftSquads()
@@ -363,7 +362,7 @@ function AttackHST:SquadAdvance(squad)
 	if squad.hasMovedOnce then
 		self:EchoDebug('advance hasmovedonce 2')
 		local distToNext = self.ai.tool:Distance(squad.path[squad.pathStep-1].position, nextPos)
-		squad.idleTimeout = self.game:Frame() + (3 * 30 * (distToNext / squad.lowestSpeed))
+		squad.idleTimeout = self.game:Frame() + (2 * 30 * (distToNext / squad.lowestSpeed))
 	end
 	squad.hasMovedOnce = true
 end

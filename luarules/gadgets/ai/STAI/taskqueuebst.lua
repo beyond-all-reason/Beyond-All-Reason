@@ -73,6 +73,24 @@ function TaskQueueBST:OwnerDead()
 	end
 end
 
+function TaskQueueBST:removeOldBuildersRole(unitName,id)
+	if not self.role then return end
+	for index,unitID in pairs(self.ai.armyhst.buildersRole[self.role][unitName]) do
+		if id == unitID then
+			table.remove(self.ai.armyhst.buildersRole[self.role][unitName],id)
+-- 			self.role = nil
+		end
+	end
+	self.role = nil
+-- 	for role,names in pairs(self.ai.armyhst.buildersRole) do
+-- 		for name,index in pairs (names) do
+-- 			if unitName == name and in == index then
+-- 				table.remove(self.ai.armyhst.buildersRole[i],ii)
+-- 				return
+-- 			end
+-- 		end
+-- 	end
+end
 
 function TaskQueueBST:OwnerIdle()
 	if not self:IsActive() then
@@ -580,19 +598,6 @@ function TaskQueueBST:getOrder(builder,params)
 		----self.game:StopTimer('getOrder2')
 	end
 
-end
-
-function TaskQueueBST:removeOldBuildersRole(name,id)
-	for i,v in pairs(self.ai.armyhst.buildersRole) do
-		if v == name then
-			for ii,index in pairs (v) do
-				if index == id then
-					table.remove(self.ai.armyhst.buildersRole[i],ii)
-					return
-				end
-			end
-		end
-	end
 end
 
 function TaskQueueBST:roleCounter(role)

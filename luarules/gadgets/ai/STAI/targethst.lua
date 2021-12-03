@@ -780,12 +780,12 @@ function TargetHST:Update()
 	if f == 0 or f % 71 == 0 then
 		self:UpdateMap()
 		self.map:EraseAll(4)
-		for x,t in pairs(self.cells) do
-			for z,cell in pairs(t) do
-
-				self.map:DrawCircle({x=x*256,y = Spring.GetGroundHeight(x*256,z*256),z=z*256},256, {1,1,1,1}, nil,true, 4)
-			end
-		end
+-- 		for x,t in pairs(self.cells) do
+-- 			for z,cell in pairs(t) do
+--
+-- 				self.map:DrawCircle({x=x*256,y = Spring.GetGroundHeight(x*256,z*256),z=z*256},256, {1,1,1,1}, nil,true, 4)
+-- 			end
+-- 		end
 	end
     if f == 0 or f % 1800 == 0 then
 	--if f > self.lastEnemyThreatUpdateFrame + 1800 or self.lastEnemyThreatUpdateFrame == 0 then TODO changed cause broked why??
@@ -840,7 +840,7 @@ function TargetHST:UpdateMap()
 		self:UpdateFronts(3)
 		self:UpdateDebug()
 		--self:UpdateWrecks()
-		-- self:UpdateMetalGeoSpots()
+		self:UpdateMetalGeoSpots()--TEST
 		self.lastUpdateFrame = self.game:Frame()
 		--game:SendToConsole("after target update", collectgarbage("count")/1024)
 		--collectgarbage()

@@ -9,7 +9,7 @@ function AttackerBST:Name()
 	return "AttackerBST"
 end
 
-AttackerBST.DebugEnabled = true
+AttackerBST.DebugEnabled = false
 
 function AttackerBST:Init()
 	local mtype, network = self.ai.maphst:MobilityOfUnit(self.unit:Internal())
@@ -69,7 +69,7 @@ function AttackerBST:Priority()
 	if not self.attacking then
 		return 0
 	else
-		return 100
+		return 200
 	end
 end
 
@@ -111,8 +111,8 @@ function AttackerBST:Update()
 	end
 	if self.active and self.needToMoveToTarget then
 		self.needToMoveToTarget = false
--- 		self.unit:Internal():Move(self.target)
-		self.unit:Internal():AttackMove(self.target) --need to check this
+ 		self.unit:Internal():Move(self.target)
+-- 		self.unit:Internal():AttackMove(self.target) --need to check this
 
 	end
 end

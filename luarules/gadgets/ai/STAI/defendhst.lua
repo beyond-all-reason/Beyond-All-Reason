@@ -514,12 +514,14 @@ function DefendHST:FindFronts(troublingCells)
 				local nearestMobile
 				local nearestTurtleDist = 100000
 				local nearestTurtle
-				for wi = #self.wards, 1, -1 do
-					local ward = self.wards[wi]
+				for wardIndex , ward in pairs(self.wards) do
+-- 				for wi = #self.wards, 1, -1 do
+-- 					local ward = self.wards[wi]
+
 					if ward.behaviour ~= nil then
 						local behaviour = ward.behaviour
-						if not ward.behaviour.unit or not ward.behaviour.unit:Internal() then
-							table.remove(self.wards, wi)
+						if not ward.behaviour.unit or not ward.behaviour.unit:Internal() or not ward.behaviour.unit:Internal():IsAlive() then
+							table.remove(self.wards, wardIndex)
 						else
 							if water == behaviour.water then
 								local dist = self.ai.tool:Distance(behaviour.unit:Internal():GetPosition(), cell.pos)
