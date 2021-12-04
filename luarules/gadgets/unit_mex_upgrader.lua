@@ -34,7 +34,7 @@ local builders = {}
 
 local IDLE = 0
 local FOLLOWING_ORDERS = 1
-local BUILDING = 3
+local BUILDING = 2
 
 local scheduledBuilders = {}
 local addCommands = {}
@@ -84,64 +84,61 @@ local function processMexData(mexDefID, mexDef, upgradePairs)
 			end
 		end
 	end
-
 	return upgradePairs
 end
 
-local function determine()
-	-- register cursor
-	Spring.AssignMouseCursor("upgmex", "cursorupgmex", false)
-	Spring.AssignMouseCursor("areamex", "cursorareamex", false)
-	-- show the command in the queue
-	Spring.SetCustomCommandDrawData(CMD_UPGRADEMEX, "upgrademex", { 0.75, 0.75, 0.75, 0.7 }, true)
-	Spring.SetCustomCommandDrawData(CMD_AUTOMEX, "automex", { 0.75, 0.75, 0.75, 0.7 }, true)
 
-	local tmpbuilders = {}
-	for unitDefID, unitDef in pairs(UnitDefs) do
-		if unitDef.isBuilder and unitDef.canAssist then
-			tmpbuilders[#tmpbuilders + 1] = unitDefID
-		else
-			local extractsMetal = unitDef.extractsMetal
-			if extractsMetal > 0 then
-				local mexDef = {}
-				mexDef.extractsMetal = extractsMetal
-				--mexDef.armed = #unitDef.weapons > 0
-				mexDef.water = unitDef.minWaterDepth >= 0
-				mexDefs[unitDefID] = mexDef
-			end
-		end
-	end
-
-	for _, unitDefID in ipairs(tmpbuilders) do
-		local upgradePairs = nil
-		for _, optionID in ipairs(UnitDefs[unitDefID].buildOptions) do
-			local mexDef = mexDefs[optionID]
-			if mexDef then
-				upgradePairs = processMexData(optionID, mexDef, upgradePairs)
-			end
-		end
-		if upgradePairs then
-			builderDefs[unitDefID] = upgradePairs
+local tmpbuilders = {}
+for unitDefID, unitDef in pairs(UnitDefs) do
+	if unitDef.isBuilder and unitDef.canAssist then
+		tmpbuilders[#tmpbuilders + 1] = unitDefID
+	else
+		local extractsMetal = unitDef.extractsMetal
+		if extractsMetal > 0 then
+			local mexDef = {}
+			mexDef.extractsMetal = extractsMetal
+			mexDef.water = unitDef.minWaterDepth >= 0
+			mexDefs[unitDefID] = mexDef
 		end
 	end
 end
 
+for _, unitDefID in ipairs(tmpbuilders) do
+	local upgradePairs = nil
+	for _, optionID in ipairs(UnitDefs[unitDefID].buildOptions) do
+		local mexDef = mexDefs[optionID]
+		if mexDef then
+			upgradePairs = processMexData(optionID, mexDef, upgradePairs)
+		end
+	end
+	if upgradePairs then
+		builderDefs[unitDefID] = upgradePairs
+	end
+end
+tmpbuilders = nil
 
 
 if gadgetHandler:IsSyncedCode() then
 
 	local isCommander = {}
 	local unitXsize = {}
+	local unitBuildDistance = {}
+	local unitMaxWaterDepth = {}
+	local unitMinWaterDepth = {}
 	for unitDefID, unitDef in pairs(UnitDefs) do
 		if unitDef.customParams.iscommander then
 			isCommander[unitDefID] = true
 		end
 		unitXsize[unitDefID] = unitDef.xsize
+		if builderDefs[unitDefID] then
+			unitBuildDistance[unitDefID] = unitDef.buildDistance
+			unitMaxWaterDepth[unitDefID] = unitDef.maxWaterDepth or 9999
+			unitMinWaterDepth[unitDefID] = unitDef.minWaterDepth or 9999
+		end
 	end
 
 	local function orderBuilder(unitID, mexID)
 		addCommands[unitID] = { cmd = CMD_INSERT, params = { 1, CMD_UPGRADEMEX, CMD_OPT_INTERNAL, mexID }, options = { "alt" } }
-
 		gadgetHandler:UpdateCallIn("GameFrame")
 	end
 
@@ -236,10 +233,10 @@ if gadgetHandler:IsSyncedCode() then
 			local builder = {}
 			builder.unitDefID = unitDefID
 			builder.autoUpgrade = false
-			builder.buildDistance = UnitDefs[unitDefID].buildDistance
 			builder.teamID = unitTeam
-			builder.maxDepth = UnitDefs[unitDefID].maxWaterDepth or 9999
-			builder.minDepth = UnitDefs[unitDefID].minWaterDepth or 9999
+			builder.buildDistance = unitBuildDistance[unitDefID]
+			builder.maxDepth = unitMaxWaterDepth[unitDefID]
+			builder.minDepth = unitMinWaterDepth[unitDefID]
 			builders[unitTeam][unitID] = builder
 
 			addLayoutCommands(unitID)
@@ -269,7 +266,6 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:Initialize()
-		determine()
 		registerUnits()
 	end
 
@@ -546,7 +542,12 @@ else
 	end
 
 	function gadget:Initialize()
-		determine()
+		-- register cursor
+		Spring.AssignMouseCursor("upgmex", "cursorupgmex", false)
+		Spring.AssignMouseCursor("areamex", "cursorareamex", false)
+		-- show the command in the queue
+		Spring.SetCustomCommandDrawData(CMD_UPGRADEMEX, "upgrademex", { 0.75, 0.75, 0.75, 0.7 }, true)
+		Spring.SetCustomCommandDrawData(CMD_AUTOMEX, "automex", { 0.75, 0.75, 0.75, 0.7 }, true)
 
 		for k, v in pairs(builderDefs) do
 			local upgradePairs = {}
