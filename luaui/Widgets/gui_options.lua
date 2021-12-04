@@ -129,12 +129,6 @@ if select(3, Spring.GetGroundExtremes()) < 0 then
 end
 local heightmapChangeBuffer = {}
 
-local voidWater = false
-local success, mapinfo = pcall(VFS.Include, "mapinfo.lua") -- load mapinfo.lua confs
-if success and mapinfo then
-	voidWater = mapinfo.voidwater
-end
-
 local widgetScale = (vsy / 1080)
 
 local vsyncLevel = 1
@@ -439,7 +433,6 @@ function DrawWindow()
 	end
 
 	font:Begin()
-	local width = screenWidth / 3
 
 	-- draw options
 	local oHeight = math.floor(15 * widgetScale)
@@ -661,14 +654,14 @@ function widget:Update(dt)
 		return
 	end
 
-	-- disable ambient player widget, also doing this on initialize but hell... players somehow still have this enabled
-	if not ambientplayerCheck then
-		ambientplayerCheck = true
-		if widgetHandler:IsWidgetKnown("Ambient Player") then
-			widgetHandler:DisableWidget("Ambient Player")
+		-- disable ambient player widget, also doing this on initialize but hell... players somehow still have this enabled
+		if not ambientplayerCheck then
+			ambientplayerCheck = true
+			if widgetHandler:IsWidgetKnown("Ambient Player") then
+				widgetHandler:DisableWidget("Ambient Player")
+			end
 		end
-	end
-
+	
 	if sceduleOptionApply then
 		if sceduleOptionApply[1] <= os.clock() then
 			applyOptionValue(sceduleOptionApply[2], true, true)
@@ -679,12 +672,6 @@ function widget:Update(dt)
 	if WG['advplayerlist_api'] and not WG['advplayerlist_api'].GetLockPlayerID() then
 		Spring.SetCameraState(nil, cameraTransitionTime)
 	end
-
-	--Spring.SetConfigInt("ROAM", 1)
-	--Spring.SendCommands("mapmeshdrawer 2")
-	--if tonumber(Spring.GetConfigInt("GroundDetail", 1) or 1) < 100 then
-	--	Spring.SendCommands("GroundDetail " .. 100)
-	--end
 
 	-- check if there is water shown 	(we do this because basic water 0 saves perf when no water is rendered)
 	if not waterDetected then
@@ -4738,11 +4725,11 @@ function widget:UnsyncedHeightMapUpdate(x1, z1, x2, z2)
 end
 
 function widget:Initialize()
-	-- disable ambient player widget
-	if widgetHandler:IsWidgetKnown("Ambient Player") then
-		widgetHandler:DisableWidget("Ambient Player")
-	end
-
+		-- disable ambient player widget
+		if widgetHandler:IsWidgetKnown("Ambient Player") then
+			widgetHandler:DisableWidget("Ambient Player")
+		end
+	
 	if widgetHandler.orderList["FlowUI"] and widgetHandler.orderList["FlowUI"] < 0.5 then
 		widgetHandler:EnableWidget("FlowUI")
 	end
