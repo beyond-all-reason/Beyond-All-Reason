@@ -2040,15 +2040,15 @@ function init()
 			  saveOptionValue('Volumetric Clouds', 'clouds', 'setOpacity', { 'opacityMult' }, value)
 		  end,
 		},
-		{ id = "fogmult", group = "gfx", category = types.advanced, name = texts.option.fog, type = "slider", min = 0, max = 1, step = 0.01, value = Spring.GetConfigInt("FogMult", 1), description = texts.option.fogmult_descr,
+		{ id = "fogmult", group = "gfx", category = types.advanced, name = texts.option.fog, type = "slider", min = 0, max = 1, step = 0.01, value = Spring.GetConfigFloat("FogMult", 1), description = texts.option.fogmult_descr,
 		  onload = function(i)
 		  	options[i].onchange(i, options[i].value)
 		  end,
 		  onchange = function(i, value)
-			  Spring.SetConfigInt("FogMult", value)
+			  Spring.SetConfigFloat("FogMult", value)
 			  value = 1 / value	-- inverse
-			  local newFogStart = math.min(9, (defaultFog.fogStart * value))
-			  local newFogEnd = math.min(9, defaultFog.fogEnd * value)
+			  local newFogStart = math.min(9, (defaultFog.fogStart * ((value+4)*0.2)))
+			  local newFogEnd = math.min(9, defaultFog.fogEnd * ((value+1)*0.5))
 			  Spring.SetAtmosphere({ fogStart = newFogStart, fogEnd = newFogEnd })
 		  end,
 		},
