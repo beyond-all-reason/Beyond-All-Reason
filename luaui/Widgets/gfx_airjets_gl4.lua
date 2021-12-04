@@ -748,7 +748,7 @@ local function FinishInitialization(unitID, effectDef)
 			fx.piecenum = pieceMap[fx.piece]
 		end
 		fx.width = fx.width*1.2
-		fx.length = fx.length*1.5
+		fx.length = fx.length*1.4
 	end
 	effectDef.finishedInit = true
 end

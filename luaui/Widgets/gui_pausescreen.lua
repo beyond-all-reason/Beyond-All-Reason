@@ -53,7 +53,7 @@ local maxNonShaderAlpha = 0.12            --background alpha when shaders arent 
 local boxWidth = 200
 local boxHeight = 35
 local slideTime = 0.12
-local fadeToTextAlpha = 0.44
+local fadeToTextAlpha = 0.33
 local fontSizeHeadline = 30
 local autoFadeTime = 1
 

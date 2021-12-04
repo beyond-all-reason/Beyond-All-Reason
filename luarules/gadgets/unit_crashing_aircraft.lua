@@ -67,16 +67,16 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 		if Spring.GetGameSeconds() - totalUnitsTime > 5 then
 			totalUnitsTime = Spring.GetGameSeconds()
 			local totalUnits = #Spring.GetAllUnits()
-			percentage = (1 - (totalUnits/7000))
-			if percentage < 0.4 then
-				percentage = 0.4
+			percentage = (1 - (totalUnits/10000))
+			if percentage < 0.5 then
+				percentage = 0.5
 			end
 		end
 		if random() < percentage or alwaysCrash[unitDefID] then
 			-- increase gravity so it crashes faster
 			local moveTypeData = Spring.GetUnitMoveTypeData(unitID)
 			if moveTypeData['myGravity'] then
-				Spring.MoveCtrl.SetAirMoveTypeData(unitID, 'myGravity', moveTypeData['myGravity'] * 2)
+				Spring.MoveCtrl.SetAirMoveTypeData(unitID, 'myGravity', moveTypeData['myGravity'] * 1.7)
 			end
 			-- make it crash
 			crashingCount = crashingCount + 1
