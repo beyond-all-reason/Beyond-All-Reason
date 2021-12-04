@@ -512,7 +512,10 @@ if gadgetHandler:IsSyncedCode() then
 							Spring.MoveCtrl.Enable(unitID)
 						elseif px then
 							-- fly towards pad (the pad may move!)
-							Spring.SetUnitLandGoal(unitID, px, py, pz, spGetUnitRadius(unitID))	-- sometimes this gives an error: "not a flying unit"
+							local radius = spGetUnitRadius(unitID)
+							if radius then
+								Spring.SetUnitLandGoal(unitID, px, py, pz, radius)	-- sometimes this gives an error: "not a flying unit"
+							end
 						end
 					end
 				end

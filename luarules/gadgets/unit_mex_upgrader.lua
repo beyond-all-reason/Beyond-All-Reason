@@ -12,9 +12,6 @@ end
 
 local modoption_unba = Spring.GetModOptions().unba
 
-local ignoreWeapons = false --if the only weapon is a shield it is ignored
-local ignoreStealth = false
-
 local math_sqrt = math.sqrt
 
 local GetTeamUnits = Spring.GetTeamUnits
@@ -28,8 +25,6 @@ local FindUnitCmdDesc = Spring.FindUnitCmdDesc
 local InsertUnitCmdDesc = Spring.InsertUnitCmdDesc
 local EditUnitCmdDesc = Spring.EditUnitCmdDesc
 local SendMessageToTeam = Spring.SendMessageToTeam
-local ValidUnitID = Spring.ValidUnitID
-local GetUnitIsDead = Spring.GetUnitIsDead
 
 local builderDefs = {}
 local mexDefs = {}
@@ -39,15 +34,11 @@ local builders = {}
 
 local IDLE = 0
 local FOLLOWING_ORDERS = 1
-local RECLAIMING = 2
 local BUILDING = 3
 
 local scheduledBuilders = {}
-local addFakeReclaim = {}
 local addCommands = {}
 
-local CMD_RECLAIM = CMD.RECLAIM
-local CMD_STOP = CMD.STOP
 local CMD_INSERT = CMD.INSERT
 local CMD_OPT_INTERNAL = CMD.OPT_INTERNAL
 
@@ -81,7 +72,7 @@ local upgradeMexCmdDesc = {
 local function processMexData(mexDefID, mexDef, upgradePairs)
 	for defID, def in pairs(mexDefs) do
 		--mexDef.water won't match; "water" mexes are the same as land mexes.
-		if (mexDef.water == def.water or mexDef.water ~= def.water) and (ignoreStealth or mexDef.stealth == def.stealth) and (ignoreWeapons or mexDef.armed == def.armed) then
+		if mexDef.water == def.water or mexDef.water ~= def.water then
 			if mexDef.extractsMetal > def.extractsMetal then
 				if not upgradePairs then
 					upgradePairs = {}
@@ -114,16 +105,7 @@ local function determine()
 			if extractsMetal > 0 then
 				local mexDef = {}
 				mexDef.extractsMetal = extractsMetal
-				if #unitDef.weapons <= 1 then
-					if #unitDef.weapons == 1 and WeaponDefs[unitDef.weapons[1].weaponDef].isShield then
-						mexDef.armed = #unitDef.weapons < 0
-					else
-						mexDef.armed = #unitDef.weapons > 0
-					end
-				else
-					mexDef.armed = #unitDef.weapons > 0
-				end
-				mexDef.stealth = unitDef.stealth
+				--mexDef.armed = #unitDef.weapons > 0
 				mexDef.water = unitDef.minWaterDepth >= 0
 				mexDefs[unitDefID] = mexDef
 			end
@@ -143,6 +125,8 @@ local function determine()
 		end
 	end
 end
+
+
 
 if gadgetHandler:IsSyncedCode() then
 
@@ -192,10 +176,7 @@ if gadgetHandler:IsSyncedCode() then
 		local cmd = commands[1]
 		local builder = builders[teamID][unitID]
 
-		if cmd.id == CMD_RECLAIM and cmd.params[1] == builder.targetMex then
-			return RECLAIMING
-
-		elseif builder.targetUpgrade and cmd.id == builder.targetUpgrade then
+		if builder.targetUpgrade and cmd.id == builder.targetUpgrade then
 			return BUILDING
 		else
 			return FOLLOWING_ORDERS
@@ -304,35 +285,11 @@ if gadgetHandler:IsSyncedCode() then
 			if builders[teamID] then
 				local builder = builders[teamID][unitID]
 				local y = GetGroundHeight(builder.targetX, builder.targetZ)
-				local blockers = {}
-				local hsize = unitXsize[builder.targetUpgrade] * 4
-				for x = builder.targetX - hsize + 4, builder.targetX + hsize, 8 do
-					for z = builder.targetZ - hsize + 4, builder.targetZ + hsize, 8 do
-						local typ, blocker = Spring.GetGroundBlocked(x, z)
-						if blocker and not blockers[blocker] then
-							GiveOrderToUnit(unitID, CMD.RECLAIM, { blocker }, { "shift" })
-							blockers[blocker] = true
-						end
-					end
-				end
 				GiveOrderToUnit(unitID, CMD_INSERT, { -1, -builder.targetUpgrade, CMD_OPT_INTERNAL, builder.targetX, y, builder.targetZ, 0 }, { "shift", "alt" })
 				builder.orderTaken = true
 			end
 		end
 		scheduledBuilders = {}
-
-		for unitID, _ in pairs(addFakeReclaim) do
-			local commands = GetCommandQueue(unitID, 20)
-			for i = 1, #commands do
-				local cmd = commands[i]
-				if cmd.id == CMD_UPGRADEMEX and not (commands[i + 1] and commands[i + 1].id == CMD_RECLAIM) then
-					GiveOrderToUnit(unitID, CMD_INSERT, { i, CMD_RECLAIM, CMD_OPT_INTERNAL + 1, cmd.params[1] }, { "alt" })
-				end
-			end
-
-		end
-		addFakeReclaim = {}
-
 		gadgetHandler:RemoveCallIn("GameFrame")
 	end
 
@@ -382,10 +339,6 @@ if gadgetHandler:IsSyncedCode() then
 	local function autoUpgradeDisabled(unitID, teamID)
 		local builder = builders[teamID][unitID]
 		builder.autoUpgrade = false
-		if getUnitPhase(unitID, teamID) == RECLAIMING then
-			mexes[teamID][builder.targetMex].assignedBuilder = nil
-			GiveOrderToUnit(unitID, CMD_STOP, {}, 0)
-		end
 	end
 
 	local function autoUpgradeEnabled(unitID, teamID)
@@ -435,16 +388,6 @@ if gadgetHandler:IsSyncedCode() then
 
 			mexes[unitTeam][unitID] = nil
 		elseif builder then
-			if getUnitPhase(unitID, unitTeam) == RECLAIMING then
-				local mex = mexes[unitTeam][builder.targetMex]
-				if mexes[unitTeam][builder.targetMex] then
-					mexes[unitTeam][builder.targetMex].assignedBuilder = nil
-				end
-				if mex then
-					assignClosestBuilder(builder.targetMex, mex, unitTeam)
-				end
-			end
-
 			builders[unitTeam][unitID] = nil
 		end
 	end
@@ -494,7 +437,6 @@ if gadgetHandler:IsSyncedCode() then
 					local upgradePairs = builderDefs[builder.unitDefID]
 					local upgradeTo = upgradePairs[mex.unitDefID]
 					if upgradeTo then
-						addFakeReclaim[unitID] = true;
 						gadgetHandler:UpdateCallIn("GameFrame")
 						return true
 					end
@@ -506,9 +448,6 @@ if gadgetHandler:IsSyncedCode() then
 
 			return false
 		elseif cmdID ~= CMD_AUTOMEX then
-			if builder and builder.targetMex and ValidUnitID(builder.targetMex) and (not GetUnitIsDead(builder.targetMex)) and (getUnitPhase(unitID, teamID) == RECLAIMING) and mexes[teamID][builder.targetMex] then
-				mexes[teamID][builder.targetMex].assignedBuilder = nil
-			end
 			return true
 		end
 		local cmdDescID = FindUnitCmdDesc(unitID, CMD_AUTOMEX)

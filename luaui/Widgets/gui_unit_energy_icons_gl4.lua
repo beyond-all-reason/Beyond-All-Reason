@@ -12,31 +12,23 @@ end
 
 local weaponEnergyCostFloor = 6
 local onlyShowOwnTeam = false
-local fadeTime = 0.4
 
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
-local glDrawFuncAtUnit			= gl.DrawFuncAtUnit
 
 local spIsGUIHidden				= Spring.IsGUIHidden
 local spGetUnitDefID			= Spring.GetUnitDefID
-local spIsUnitInView 			= Spring.IsUnitInView
 local spGetTeamUnits			= Spring.GetTeamUnits
 local spGetUnitRulesParam		= Spring.GetUnitRulesParam
 local spGetTeamResources		= Spring.GetTeamResources
 local spGetUnitResources		= Spring.GetUnitResources
-local math_min = math.min
 
 local unitConf = {} -- table of unitid to {iconsize, iconheight, neededEnergy, bool buildingNeedingUpkeep}
 local teamEnergy = {} -- table of teamid to current energy amount
 local teamUnits = {} -- table of teamid to table of stallable unitID : unitDefID
 local teamList = {} -- {team1, team2, team3....}
-local maxStall = 0  
+local maxStall = 0
 
 local spec, fullview = Spring.GetSpectatingState()
 local myTeamID = Spring.GetMyTeamID()
-local myAllyTeamID = Spring.GetMyAllyTeamID()
 local updateFrame = 0
 local lastGameFrame = 0
 local sceduledGameFrame = 1
@@ -46,7 +38,7 @@ local chobbyInterface
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 -- how shit should work
--- init 
+-- init
 	--stallable unitdefs
 	--count maxstall amount
 	--unitdefheights
@@ -75,13 +67,8 @@ local chobbyInterface
 local energyIconVBO = nil
 local energyIconShader = nil
 local luaShaderDir = "LuaUI/Widgets/Include/"
-local glTexture = gl.Texture
-local glCulling = gl.Culling
-local glDepthTest = gl.DepthTest
-local GL_BACK = GL.BACK
-local GL_LEQUAL = GL.LEQUAL
 
-local function initGL4() 
+local function initGL4()
 	local DrawPrimitiveAtUnit = VFS.Include(luaShaderDir.."DrawPrimitiveAtUnit.lua")
 	local InitDrawPrimitiveAtUnit = DrawPrimitiveAtUnit.InitDrawPrimitiveAtUnit
 	local shaderConfig = DrawPrimitiveAtUnit.shaderConfig -- MAKE SURE YOU READ THE SHADERCONFIG TABLE in DrawPrimitiveAtUnit.lua
@@ -215,7 +202,7 @@ local function updateStalling()
 				if teamEnergy[teamID] and unitConf[unitDefID][3] > teamEnergy[teamID] and -- more neededEnergy than we have
 
 					(not unitConf[unitDefID][4] or ((unitConf[unitDefID][4] and (select(4, spGetUnitResources(unitID))) or 999999) < unitConf[unitDefID][3])) then
-					
+
 					if spGetUnitRulesParam(unitID, "under_construction") ~= 1 and-- not under construction
 						energyIconVBO.instanceIDtoIndex[unitID] == nil then -- not already being drawn
 						pushElementInstance(
@@ -225,7 +212,7 @@ local function updateStalling()
 								4, -- how many vertices should we make ( 2 is a quad)
 								gf, 0, 0.75 , 0, -- the gameFrame (for animations), and any other parameters one might want to add
 								0,1,0,1, -- These are our default UV atlas tranformations, note how X axis is flipped for atlas
-								0, 0, 0, 0}, -- these are just padding zeros, that will get filled in 
+								0, 0, 0, 0}, -- these are just padding zeros, that will get filled in
 							unitID, -- this is the key inside the VBO Table, should be unique per unit
 							false, -- update existing element
 							true, -- noupload, dont use unless you know what you want to batch push/pop
@@ -269,7 +256,7 @@ function widget:GameFrame(n)
 	if Spring.GetGameFrame() %9 == 0 then
 		updateStalling()
 	end
-end 
+end
 
 
 function widget:UnitCreated(unitID, unitDefID, teamID)
@@ -330,18 +317,18 @@ function widget:DrawWorld()
 	if spIsGUIHidden() then return end
 
     local now = os.clock()
-	if lastGameFrame % 90 == 0 then 
-		--Spring.Echo("energyicons",energyIconVBO.usedElements) 
+	if lastGameFrame % 90 == 0 then
+		--Spring.Echo("energyicons",energyIconVBO.usedElements)
 		--Spring.Debug.TableEcho(energyIconVBO.indextoUnitID)
 	end
-	if energyIconVBO.usedElements > 0 then 
-	
+	if energyIconVBO.usedElements > 0 then
+
 		local disticon = Spring.GetConfigInt("UnitIconDistance", 200) * 27.5 -- iconLength = unitIconDist * unitIconDist * 750.0f;
 		gl.DepthTest(true)
 		gl.Texture('LuaUI/Images/energy.png')
 		energyIconShader:Activate()
-		energyIconShader:SetUniform("iconDistance",disticon) 
-		energyIconShader:SetUniform("addRadius",0) 
+		energyIconShader:SetUniform("iconDistance",disticon)
+		energyIconShader:SetUniform("addRadius",0)
 		energyIconVBO.VAO:DrawArrays(GL.POINTS,energyIconVBO.usedElements)
 		energyIconShader:Deactivate()
 		gl.Texture(false)

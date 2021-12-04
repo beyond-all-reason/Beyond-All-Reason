@@ -14,16 +14,26 @@ local upgradeMouseCursor = "upgmex"
 
 local CMD_UPGRADEMEX = 31244
 
-local builderDefs = nil
+local builderDefs, rightClickUpgradeParams
 
 local GetUnitDefID = Spring.GetUnitDefID
 local GiveOrderToUnit = Spring.GiveOrderToUnit
-local GetSelectedUnits = Spring.GetSelectedUnits
 local TraceScreenRay = Spring.TraceScreenRay
 local GetActiveCommand = Spring.GetActiveCommand
+local GetSelectedUnits = Spring.GetSelectedUnits
 local GetSelectedUnitsCount = Spring.GetSelectedUnitsCount
 
-local rightClickUpgradeParams
+--local isT2Builder = {}
+--local isT1Mex = {}
+--for unitDefID, unitDef in pairs(UnitDefs) do
+--	if unitDef.buildSpeed and unitDef.buildOptions[1] and unitDef.customParams.techlevel == '2' then
+--		isT2Builder[unitDefID] = true
+--	end
+--	if unitDef.extractsMetal > 0 and unitDef.extractsMetal < 0.002 then
+--		isT1Mex[unitDefID] = true
+--	end
+--end
+
 
 local function registerUpgradePairs(v)
 	builderDefs = v
@@ -38,15 +48,16 @@ function widget:Shutdown()
 	widgetHandler:DeregisterGlobal('registerUpgradePairs')
 end
 
-function widget:UpdateLayout(commandsChanged, page, alt, ctrl, meta, shift)
-	return true
-end
-
 function widget:GameFrame(n)
 	if n > 1 then
 		Spring.SendCommands({ "luarules registerUpgradePairs 1" })
 		widgetHandler:RemoveCallIn("GameFrame")
 	end
+end
+
+local selectedUnits = GetSelectedUnits()
+function widget:SelectionChanged(sel)
+	selectedUnits = sel
 end
 
 function widget:MousePress(x, y, b)
