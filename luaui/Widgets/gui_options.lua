@@ -2565,13 +2565,6 @@ function init()
 			  saveOptionValue('Build menu', 'buildmenu', 'setShowRadarIcon', { 'showRadarIcon' }, value)
 		  end,
 		},
-		--{ id = "buildmenu_tooltip", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.buildmenu_tooltip, type = "bool", value = (WG['buildmenu'] ~= nil and WG['buildmenu'].getShowTooltip ~= nil and WG['buildmenu'].getShowTooltip()), description = texts.option.buildmenu_tooltip_descr,
-		--  onload = function(i)
-		--  end,
-		--  onchange = function(i, value)
-		--	  saveOptionValue('Build menu', 'buildmenu', 'setShowTooltip', { 'showTooltip' }, value)
-		--  end,
-		--},
 
 		{ id = "ordermenu_bottompos", group = "ui", category = types.basic, name = texts.option.ordermenu..widgetOptionColor .. "  " .. texts.option.ordermenu_bottompos, type = "bool", value = (WG['ordermenu'] ~= nil and WG['ordermenu'].getBottomPosition ~= nil and WG['ordermenu'].getBottomPosition()), description = texts.option.ordermenu_bottompos_descr,
 		  onload = function(i)

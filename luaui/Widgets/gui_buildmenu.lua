@@ -36,7 +36,6 @@ local disableInputWhenSpec = false		-- disable specs selecting buildoptions
 local showPrice = false		-- false will still show hover
 local showRadarIcon = true		-- false will still show hover
 local showGroupIcon = true		-- false will still show hover
-local showTooltip = true
 local showBuildProgress = true
 
 local zoomMult = 1.5
@@ -640,13 +639,6 @@ function widget:Initialize()
 		showGroupIcon = value
 		doUpdate = true
 	end
-	WG['buildmenu'].getShowTooltip = function()
-		return showTooltip
-	end
-	WG['buildmenu'].setShowTooltip = function(value)
-		showTooltip = value
-		doUpdate = true
-	end
 	WG['buildmenu'].getDynamicIconsize = function()
 		return dynamicIconsize
 	end
@@ -1188,7 +1180,7 @@ function widget:DrawScreen()
 							WG['buildmenu'].hoverID = uDefID
 							gl.Color(1, 1, 1, 1)
 							local alt, ctrl, meta, shift = Spring.GetModKeyState()
-							if showTooltip and WG['tooltip'] and not meta then
+							if WG['tooltip'] and not meta then
 								-- when meta: unitstats does the tooltip
 								local text
 								local textColor = "\255\215\255\215"
@@ -1744,7 +1736,6 @@ function widget:GetConfigData()
 		minColls = minColls,
 		maxColls = maxColls,
 		defaultColls = defaultColls,
-		showTooltip = showTooltip,
 		buildQueue = buildQueue,
 		stickToBottom = stickToBottom,
 		maxPosY = maxPosY,
@@ -1775,9 +1766,6 @@ function widget:SetConfigData(data)
 	end
 	if data.defaultColls ~= nil then
 		defaultColls = data.defaultColls
-	end
-	if data.showTooltip ~= nil then
-		showTooltip = data.showTooltip
 	end
 	if data.stickToBottom ~= nil then
 		stickToBottom = data.stickToBottom

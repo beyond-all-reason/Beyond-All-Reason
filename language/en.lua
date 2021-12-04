@@ -363,8 +363,6 @@ return {
 			buildmenu_groupicon_descr = 'Group icons in the buildmenu',
 			buildmenu_radaricon = 'radar icon',
 			buildmenu_radaricon_descr = 'Radar icons in the buildmenu',
-			buildmenu_tooltip = 'tooltips',
-			buildmenu_tooltip_descr = 'Tooltip when hovering over a unit in the buildmenu',
 			info = 'Info',
 			ordermenu = 'Ordermenu',
 			ordermenu_colorize = 'colorize',
