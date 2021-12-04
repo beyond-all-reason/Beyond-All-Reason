@@ -182,7 +182,7 @@ function script.Killed(recentDamage, maxHealth)
 		UnitScript.Explode(center2,  SFX.SMOKE + SFX.FIRE+ SFX.EXPLODE + SFX.NO_HEATCLOUD);
 		return corpsetype;
 	end
-	corpsetype = 1;
+	corpsetype = 3;
 	UnitScript.Explode(base,  SFX.SMOKE + SFX.FIRE+ SFX.EXPLODE + SFX.NO_HEATCLOUD);
 	UnitScript.Explode(head1,  SFX.SMOKE + SFX.FIRE+ SFX.EXPLODE + SFX.NO_HEATCLOUD);
 	UnitScript.Explode(head2,  SFX.SMOKE + SFX.FIRE+ SFX.EXPLODE + SFX.NO_HEATCLOUD);
