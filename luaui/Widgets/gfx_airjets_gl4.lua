@@ -65,8 +65,8 @@ local effectDefs = {
 		{ color = { 0.7, 0.4, 0.1 }, width = 4, length = 20, piece = "jet2", limit = true },
 	},
 	["corfink"] = {
-		{ color = { 0.7, 0.4, 0.1 }, width = 2.2, length = 15, piece = "thrusta", limit = true  },
-		{ color = { 0.7, 0.4, 0.1 }, width = 2.2, length = 15, piece = "thrustb", limit = true  },
+		{ color = { 0.7, 0.4, 0.1 }, width = 2.3, length = 18, piece = "thrusta", limit = true  },
+		{ color = { 0.7, 0.4, 0.1 }, width = 2.3, length = 18, piece = "thrustb", limit = true  },
 	},
 
 	-- fighters
@@ -74,8 +74,8 @@ local effectDefs = {
 		{ color = { 0.7, 0.4, 0.1 }, width = 6, length = 45, piece = "thrust", limit = true },
 	},
 	["corveng"] = {
-		{ color = { 0.7, 0.4, 0.1 }, width = 3, length = 20, piece = "thrust1", limit = true  },
-		{ color = { 0.7, 0.4, 0.1 }, width = 3, length = 20, piece = "thrust2", limit = true  },
+		{ color = { 0.7, 0.4, 0.1 }, width = 3.3, length = 24, piece = "thrust1", limit = true  },
+		{ color = { 0.7, 0.4, 0.1 }, width = 3.3, length = 24, piece = "thrust2", limit = true  },
 	},
 	["armsfig"] = {
 		{ color = { 0.2, 0.8, 0.2 }, width = 4, length = 25, piece = "thrust", limit = true },
@@ -283,9 +283,17 @@ local function deepcopy(orig)
 end
 
 for name, effects in pairs(effectDefs) do
+
+	-- make length and width smaller cause will enlarge when in full effect
+	for i, effect in pairs(effects) do
+		effect.length = math.floor(effect.length * 0.8)
+		effect.width = math.floor(effect.width * 0.92)
+	end
+
+	-- create scavenger variant
 	if UnitDefNames[name..'_scav'] then
 		effectDefs[name..'_scav'] = deepcopy(effects)
-		for i,effect in pairs(effects) do
+		for i, effect in pairs(effects) do
 			effectDefs[name..'_scav'][i].color = {0.6, 0.12, 0.7}
 		end
 	end
