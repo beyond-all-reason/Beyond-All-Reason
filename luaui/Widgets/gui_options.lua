@@ -129,12 +129,6 @@ if select(3, Spring.GetGroundExtremes()) < 0 then
 end
 local heightmapChangeBuffer = {}
 
-local voidWater = false
-local success, mapinfo = pcall(VFS.Include, "mapinfo.lua") -- load mapinfo.lua confs
-if success and mapinfo then
-	voidWater = mapinfo.voidwater
-end
-
 local widgetScale = (vsy / 1080)
 
 local vsyncLevel = 1
@@ -439,7 +433,6 @@ function DrawWindow()
 	end
 
 	font:Begin()
-	local width = screenWidth / 3
 
 	-- draw options
 	local oHeight = math.floor(15 * widgetScale)
@@ -661,14 +654,14 @@ function widget:Update(dt)
 		return
 	end
 
-	-- disable ambient player widget, also doing this on initialize but hell... players somehow still have this enabled
-	if not ambientplayerCheck then
-		ambientplayerCheck = true
-		if widgetHandler:IsWidgetKnown("Ambient Player") then
-			widgetHandler:DisableWidget("Ambient Player")
+		-- disable ambient player widget, also doing this on initialize but hell... players somehow still have this enabled
+		if not ambientplayerCheck then
+			ambientplayerCheck = true
+			if widgetHandler:IsWidgetKnown("Ambient Player") then
+				widgetHandler:DisableWidget("Ambient Player")
+			end
 		end
-	end
-
+	
 	if sceduleOptionApply then
 		if sceduleOptionApply[1] <= os.clock() then
 			applyOptionValue(sceduleOptionApply[2], true, true)
@@ -679,12 +672,6 @@ function widget:Update(dt)
 	if WG['advplayerlist_api'] and not WG['advplayerlist_api'].GetLockPlayerID() then
 		Spring.SetCameraState(nil, cameraTransitionTime)
 	end
-
-	--Spring.SetConfigInt("ROAM", 1)
-	--Spring.SendCommands("mapmeshdrawer 2")
-	--if tonumber(Spring.GetConfigInt("GroundDetail", 1) or 1) < 100 then
-	--	Spring.SendCommands("GroundDetail " .. 100)
-	--end
 
 	-- check if there is water shown 	(we do this because basic water 0 saves perf when no water is rendered)
 	if not waterDetected then
@@ -1900,26 +1887,7 @@ function init()
 		},
 
 		{ id = "ssao", group = "gfx", category = types.basic, widget = "SSAO", name = texts.option.ssao, type = "bool", value = GetWidgetToggleValue("SSAO"), description = texts.option.ssao_descr },
-		--{ id = "ssao", group = "gfx", category = types.basic, name = texts.option.ssao, type = "select", options = { 'disabled', 'enabled', 'high' }, value = 0, description = texts.option.ssao_descr,
-		--  onchange = function(i, value)
-		--	  if value == 1 then
-		--		  widgetHandler:DisableWidget("SSAO")
-		--	  else
-		--		  if not GetWidgetToggleValue("SSAO") then
-		--			  widgetHandler:EnableWidget("SSAO")
-		--		  end
-		--		  saveOptionValue('SSAO', 'ssao', 'setPreset', { 'preset' }, value - 1)
-		--	  end
-		--  end,
-		--  onload = function(i)
-		--	  if not GetWidgetToggleValue("SSAO") then
-		--		  options[getOptionByID('ssao')].value = 1
-		--	  else
-		--		  loadWidgetData("SSAO", "ssao", { 'preset' })
-		--		  options[getOptionByID('ssao')].value = options[getOptionByID('ssao')].value + 1
-		--	  end
-		--  end,
-		--},
+
 		{ id = "ssao_strength", group = "gfx", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.ssao_strength, type = "slider", min = 5, max = 11, step = 1, value = 8, description = '',
 		  onchange = function(i, value)
 			  saveOptionValue('SSAO', 'ssao', 'setStrength', { 'strength' }, value)
@@ -1938,17 +1906,6 @@ function init()
 			  loadWidgetData("Bloom Shader Deferred", "bloomdeferredbrightness", { 'glowAmplifier' })
 		  end,
 		},
-
-		--{ id = "bloom", group = "gfx", category = types.basic, widget = "Bloom Shader", name = texts.option.bloom, type = "bool", value = GetWidgetToggleValue("Bloom Shader"), description = texts.option.bloom_descr },
-		--{ id = "bloombrightness", group = "gfx", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.bloombrightness, type = "slider", min = 0.1, max = 0.25, step = 0.05, value = 0.15, description = '',
-		--  onchange = function(i, value)
-		--	  saveOptionValue('Bloom Shader', 'bloom', 'setBrightness', { 'basicAlpha' }, value)
-		--  end,
-		--  onload = function(i)
-		--	  loadWidgetData("Bloom Shader", "bloombrightness", { 'basicAlpha' })
-		--  end,
-		--},
-
 
 		{ id = "lighteffects", group = "gfx", category = types.basic, name = texts.option.lighteffects, type = "bool", value = GetWidgetToggleValue("Light Effects"), description = texts.option.lighteffects_descr,
 		  onload = function(i)
@@ -1989,15 +1946,6 @@ function init()
 
 		{ id = "label_gfx_environment", group = "gfx", name = texts.option.label_environment, category = types.basic },
 		{ id = "label_gfx_environment_spacer", group = "gfx", category = types.basic },
-
-		--{ id = "losopacity", group = "gfx", category = types.advanced, name = texts.option.lineofsight..widgetOptionColor .. "  " .. texts.option.losopacity, type = "slider", min = 0.5, max = 3, step = 0.1, value = (WG['los'] ~= nil and WG['los'].getOpacity ~= nil and WG['los'].getOpacity()) or 1, description = '',
-		--  onload = function(i)
-		--	  loadWidgetData("LOS colors", "losopacity", { 'opacity' })
-		--  end,
-		--  onchange = function(i, value)
-		--	  saveOptionValue('LOS colors', 'los', 'setOpacity', { 'opacity' }, value)
-		--  end,
-		--},
 
 		{ id = "water", group = "gfx", category = types.basic, name = texts.option.water, type = "select", options = { 'basic', 'reflective', 'dynamic', 'reflective&refractive', 'bump-mapped' }, value = desiredWaterValue + 1,
 		  onload = function(i)
@@ -2047,7 +1995,6 @@ function init()
 			  Spring.SetConfigInt("TreeWind", (value and 1 or 0))
 		  end,
 		},
-
 
 		{ id = "snow", group = "gfx", category = types.basic, widget = "Snow", name = texts.option.snow, type = "bool", value = GetWidgetToggleValue("Snow"), description = texts.option.snow_descr },
 		{ id = "snowmap", group = "gfx", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.snowmap, type = "bool", value = true, description = texts.option.snowmap_descr,
@@ -2116,15 +2063,6 @@ function init()
 		  end
 		},
 
-		--{ id = "airjets", group = "gfx", category = types.dev, widget = "Airjets GL4", name = texts.option.airjets, type = "bool", value = GetWidgetToggleValue("Airjets GL4"), description = texts.option.airjets_descr },
-		--{ id = "jetenginefx_lights", group = "gfx", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.jetenginefx_lights, type = "bool", value = true, description = texts.option.jetenginefx_lights_descr,
-		--  onload = function(i)
-		--	  loadWidgetData("Light Effects", "lups_jetenginefx_lights", { 'enableThrusters' })
-		--  end,
-		--  onchange = function(i, value)
-		--	  saveOptionValue('Light Effects', 'lighteffects', 'setThrusters', { 'enableThrusters' }, value)
-		--  end,
-		--},
 		{ id = "dof", group = "gfx", category = types.advanced, widget = "Depth of Field", name = texts.option.dof, type = "bool", value = GetWidgetToggleValue("Depth of Field"), description = texts.option.dof_descr },
 		{ id = "dof_autofocus", group = "gfx", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.dof_autofocus, type = "bool", value = true, description = texts.option.dof_autofocus_descr,
 		  onload = function(i)
@@ -2614,13 +2552,6 @@ function init()
 			  saveOptionValue('Build menu', 'buildmenu', 'setShowRadarIcon', { 'showRadarIcon' }, value)
 		  end,
 		},
-		--{ id = "buildmenu_tooltip", group = "ui", category = types.advanced, name = widgetOptionColor .. "   " .. texts.option.buildmenu_tooltip, type = "bool", value = (WG['buildmenu'] ~= nil and WG['buildmenu'].getShowTooltip ~= nil and WG['buildmenu'].getShowTooltip()), description = texts.option.buildmenu_tooltip_descr,
-		--  onload = function(i)
-		--  end,
-		--  onchange = function(i, value)
-		--	  saveOptionValue('Build menu', 'buildmenu', 'setShowTooltip', { 'showTooltip' }, value)
-		--  end,
-		--},
 
 		{ id = "ordermenu_bottompos", group = "ui", category = types.basic, name = texts.option.ordermenu..widgetOptionColor .. "  " .. texts.option.ordermenu_bottompos, type = "bool", value = (WG['ordermenu'] ~= nil and WG['ordermenu'].getBottomPosition ~= nil and WG['ordermenu'].getBottomPosition()), description = texts.option.ordermenu_bottompos_descr,
 		  onload = function(i)
@@ -4794,11 +4725,11 @@ function widget:UnsyncedHeightMapUpdate(x1, z1, x2, z2)
 end
 
 function widget:Initialize()
-	-- disable ambient player widget
-	if widgetHandler:IsWidgetKnown("Ambient Player") then
-		widgetHandler:DisableWidget("Ambient Player")
-	end
-
+		-- disable ambient player widget
+		if widgetHandler:IsWidgetKnown("Ambient Player") then
+			widgetHandler:DisableWidget("Ambient Player")
+		end
+	
 	if widgetHandler.orderList["FlowUI"] and widgetHandler.orderList["FlowUI"] < 0.5 then
 		widgetHandler:EnableWidget("FlowUI")
 	end

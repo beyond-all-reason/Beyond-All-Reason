@@ -9,10 +9,10 @@ if gpuMem and gpuMem > 0 and gpuMem < 1800 then
 end
 
 
-local wiName = "SSAO"
+local widgetName = "SSAO"
 function widget:GetInfo()
     return {
-        name      = wiName,
+        name      = widgetName,
         version	  = 2.0,
         desc      = "Screen-Space Ambient Occlusion",
         author    = "ivand",
@@ -240,7 +240,7 @@ function widget:Initialize()
 	end
 	local canContinue = LuaShader.isDeferredShadingEnabled and LuaShader.GetAdvShadingActive()
 	if not canContinue then
-		Spring.Echo(string.format("Error in [%s] widget: %s", wiName, "Deferred shading is not enabled or advanced shading is not active"))
+		Spring.Echo(string.format("Error in [%s] widget: %s", widgetName, "Deferred shading is not enabled or advanced shading is not active"))
 	end
 
 	-- make unit lighting brighter to compensate for darkening (also restoring values on Shutdown())
@@ -302,7 +302,7 @@ function widget:Initialize()
 	end
 
 	if not gl.IsValidFBO(gbuffFuseFBO) then
-		Spring.Echo(string.format("Error in [%s] widget: %s", wiName, "Invalid gbuffFuseFBO"))
+		Spring.Echo(string.format("Error in [%s] widget: %s", widgetName, "Invalid gbuffFuseFBO"))
 	end
 
 	ssaoFBO = gl.CreateFBO({
@@ -310,7 +310,7 @@ function widget:Initialize()
 		drawbuffers = {GL_COLOR_ATTACHMENT0_EXT},
 	})
 	if not gl.IsValidFBO(ssaoFBO) then
-		Spring.Echo(string.format("Error in [%s] widget: %s", wiName, "Invalid ssaoFBO"))
+		Spring.Echo(string.format("Error in [%s] widget: %s", widgetName, "Invalid ssaoFBO"))
 	end
 
 	for i = 1, 2 do
@@ -319,7 +319,7 @@ function widget:Initialize()
 			drawbuffers = {GL_COLOR_ATTACHMENT0_EXT},
 		})
 		if not gl.IsValidFBO(ssaoBlurFBOs[i]) then
-			Spring.Echo(string.format("Error in [%s] widget: %s", wiName, string.format("Invalid ssaoBlurFBOs[%d]", i)))
+			Spring.Echo(string.format("Error in [%s] widget: %s", widgetName, string.format("Invalid ssaoBlurFBOs[%d]", i)))
 		end
 	end
 
@@ -351,7 +351,7 @@ function widget:Initialize()
 		uniformFloat = {
 			viewPortSize = {vsx, vsy},
 		},
-	}, wiName..": G-buffer Fuse")
+	}, widgetName..": G-buffer Fuse")
 	gbuffFuseShader:Initialize()
 
 
@@ -378,7 +378,7 @@ function widget:Initialize()
 		uniformFloat = {
 			viewPortSize = {vsx / presets[preset].DOWNSAMPLE, vsy / presets[preset].DOWNSAMPLE},
 		},
-	}, wiName..": Processing")
+	}, widgetName..": Processing")
 	ssaoShader:Initialize()
 
 	ssaoShader:ActivateWith( function()
@@ -404,7 +404,7 @@ function widget:Initialize()
 		uniformFloat = {
 			viewPortSize = {vsx / presets[preset].DOWNSAMPLE, vsy / presets[preset].DOWNSAMPLE},
 		},
-	}, wiName..": Gaussian Blur")
+	}, widgetName..": Gaussian Blur")
 	gaussianBlurShader:Initialize()
 
 	local gaussWeights, gaussOffsets = GetGaussLinearWeightsOffsets(presets[preset].BLUR_SIGMA, presets[preset].BLUR_HALF_KERNEL_SIZE, 1.0)

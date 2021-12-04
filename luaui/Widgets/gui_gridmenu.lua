@@ -161,7 +161,6 @@ local alwaysShow = false
 local showPrice = false		-- false will still show hover
 local showRadarIcon = true		-- false will still show hover
 local showGroupIcon = true		-- false will still show hover
-local showTooltip = true
 local showBuildProgress = true
 
 local zoomMult = 1.5
@@ -887,13 +886,6 @@ function widget:Initialize()
 	end
 	WG['buildmenu'].setShowGroupIcon = function(value)
 		showGroupIcon = value
-		doUpdate = true
-	end
-	WG['buildmenu'].getShowTooltip = function()
-		return showTooltip
-	end
-	WG['buildmenu'].setShowTooltip = function(value)
-		showTooltip = value
 		doUpdate = true
 	end
 	WG['buildmenu'].getBottomPosition = function()
@@ -1694,7 +1686,7 @@ function widget:DrawScreen()
 							WG['buildmenu'].hoverID = uDefID
 							gl.Color(1, 1, 1, 1)
 							local alt, ctrl, meta, shift = Spring.GetModKeyState()
-							if showTooltip and WG['tooltip'] and not meta then
+							if WG['tooltip'] and not meta then
 								-- when meta: unitstats does the tooltip
 								local text
 								local textColor = "\255\215\255\215"
@@ -1727,7 +1719,7 @@ function widget:DrawScreen()
 							end
 
 
-							if showTooltip and WG['tooltip'] then
+							if WG['tooltip'] then
 								-- when meta: unitstats does the tooltip
 								local text
 								local textColor = "\255\215\255\215"
@@ -1760,7 +1752,7 @@ function widget:DrawScreen()
 						end
 
 
-						-- if showTooltip and WG['tooltip'] then
+						-- if WG['tooltip'] then
 						--	 -- when meta: unitstats does the tooltip
 						--	 local text
 						--	 local textColor = "\255\215\255\215"
@@ -2470,7 +2462,6 @@ function widget:GetConfigData()
 		showPrice = showPrice,
 		showRadarIcon = showRadarIcon,
 		showGroupIcon = showGroupIcon,
-		showTooltip = showTooltip,
 		buildQueue = buildQueue,
 		stickToBottom = stickToBottom,
 		gameID = Game.gameID,
@@ -2487,9 +2478,6 @@ function widget:SetConfigData(data)
 	end
 	if data.showGroupIcon ~= nil then
 		showGroupIcon = data.showGroupIcon
-	end
-	if data.showTooltip ~= nil then
-		showTooltip = data.showTooltip
 	end
 	if data.stickToBottom ~= nil then
 		stickToBottom = data.stickToBottom
