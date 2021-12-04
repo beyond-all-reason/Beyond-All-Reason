@@ -6,11 +6,10 @@ shard_include ("labbuildhst")
 shard_include ("attackhst")
 shard_include ("bomberhst")
 shard_include ("sleepst")
-shard_include ("raidhst2")
+shard_include ("raidhst")
 shard_include ("loshst")
 shard_include ("targethst")
 shard_include ("scouthst")
--- shard_include ("assisthst")
 shard_include ("defendhst")
 shard_include ("turtlehst")
 shard_include ("ecohst")
@@ -38,7 +37,6 @@ return {
 	TargetHST,
 	DamageHST,
 	ScoutHST,
--- 	AssistHST,
 	DefendHST,
 	CleanHST,
 	NanoHST,

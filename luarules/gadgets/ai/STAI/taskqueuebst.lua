@@ -73,23 +73,26 @@ function TaskQueueBST:OwnerDead()
 	end
 end
 
-function TaskQueueBST:removeOldBuildersRole(unitName,id)
-	if not self.role then return end
-	for index,unitID in pairs(self.ai.armyhst.buildersRole[self.role][unitName]) do
-		if id == unitID then
-			table.remove(self.ai.armyhst.buildersRole[self.role][unitName],id)
--- 			self.role = nil
+function TaskQueueBST:removeOldBuildersRole()
+	--  	if not self.role then return end
+	--  	for index,unitID in pairs(self.ai.armyhst.buildersRole[self.role][self.Name]) do
+	--  		if id == unitID then
+	--  			table.remove(self.ai.armyhst.buildersRole[self.role][self.name],id)
+	--
+	--  		end
+	--  	end
+	--  	self.role = nil
+	--
+	for role,roleTable in pairs(self.ai.armyhst.buildersRole) do
+		for name,nameTable in pairs (roleTable) do
+			for index,unitID in pairs(nameTable) do
+				if self.id == unitID then
+					table.remove(self.ai.armyhst.buildersRole[role][name],index)
+				end
+			end
 		end
 	end
 	self.role = nil
--- 	for role,names in pairs(self.ai.armyhst.buildersRole) do
--- 		for name,index in pairs (names) do
--- 			if unitName == name and in == index then
--- 				table.remove(self.ai.armyhst.buildersRole[i],ii)
--- 				return
--- 			end
--- 		end
--- 	end
 end
 
 function TaskQueueBST:OwnerIdle()
@@ -152,9 +155,9 @@ end
 function TaskQueueBST:Update()
 	local f = self.game:Frame()
 
--- 	if f % 180 == 0 then
--- 		self:VisualDBG()
--- 	end
+	-- 	if f % 180 == 0 then
+	-- 		self:VisualDBG()
+	-- 	end
 	if not self:IsActive() then
 		return
 	end
@@ -200,8 +203,8 @@ function TaskQueueBST:CategoryEconFilter(cat,param,name)
 	elseif cat == '_mex_' then
 		check =   (M.full < 0.5 or M.income < 6) or self.role == 'expand'
 	elseif cat == '_nano_' then
- 		check =  (E.full > 0.3  and M.full > 0.3 and M.income > 10 and E.income > 100) or
- 				(self.ai.tool:countMyUnit({name}) == 0 and (M.income > 10 and E.income > 60 ))
+		check =  (E.full > 0.3  and M.full > 0.3 and M.income > 10 and E.income > 100) or
+				(self.ai.tool:countMyUnit({name}) == 0 and (M.income > 10 and E.income > 60 ))
 	elseif cat == '_wind_' then
 		check =   map:AverageWind() > 7 and ((E.full < 0.75 or E.income < E.usage * 1.1 )  or E.income < 30)
 	elseif cat == '_tide_' then
@@ -446,7 +449,7 @@ function TaskQueueBST:findPlace(utype, value,cat)
 			self:EchoDebug(self.name..' search position for nano near ' ..target.unit:Internal():Name())
 			local factoryPos = target.unit:Internal():GetPosition()
 
-   			POS = site:ClosestBuildSpot(builder, factoryPos, utype,nil,nil,nil,390)
+			POS = site:ClosestBuildSpot(builder, factoryPos, utype,nil,nil,nil,390)
 
 		end
 		if not POS then
@@ -495,8 +498,8 @@ function TaskQueueBST:findPlace(utype, value,cat)
 
 
 	elseif cat == '_popup1_' then
- 		POS = site:searchPosNearCategories(utype, builder, 50, nil,{'_mex_'},{'_llt_','_popup2_','_popup1_'})
--- 		POS = site:buildOnCircle(self.ai.buildsitehst:ClosestHighestLevelFactory(builderPos),500,8,value)
+		POS = site:searchPosNearCategories(utype, builder, 50, nil,{'_mex_'},{'_llt_','_popup2_','_popup1_'})
+		-- 		POS = site:buildOnCircle(self.ai.buildsitehst:ClosestHighestLevelFactory(builderPos),500,8,value)
 	elseif cat == '_specialt_' then
 		POS = site:searchPosNearCategories(utype, builder,100,nil,{'factoryMobilities'},{'_specialt_'})
 	elseif cat == '_heavyt_' then
@@ -524,10 +527,10 @@ function TaskQueueBST:findPlace(utype, value,cat)
 				site:searchPosInList(utype, builder, nil,nil,self.ai.hotSpot,{'_laser2_'})
 	elseif cat == '_lol_' then
 		POS =  site:searchPosNearCategories(utype, builder,50,nil,{'_nano_'})
- 	elseif cat == '_coast1_' then
- 		POS = site:searchPosInList(utype, builder, nil,nil,self.ai.turtlehst:LeastTurtled(builder, value),{'_coast1_','_coast2_'})
- 	elseif cat == '_coast2_' then
- 		POS = site:searchPosInList(utype, builder, nil,nil,self.ai.turtlehst:LeastTurtled(builder, value),{'_coast2_'})
+	elseif cat == '_coast1_' then
+		POS = site:searchPosInList(utype, builder, nil,nil,self.ai.turtlehst:LeastTurtled(builder, value),{'_coast1_','_coast2_'})
+	elseif cat == '_coast2_' then
+		POS = site:searchPosInList(utype, builder, nil,nil,self.ai.turtlehst:LeastTurtled(builder, value),{'_coast2_'})
 	elseif cat == '_plasma_' then
 		POS =  site:searchPosNearCategories(utype, builder,50,nil,{'_nano_'})
 	elseif cat == '_torpedo1_' then
@@ -575,7 +578,6 @@ end
 
 function TaskQueueBST:getOrder(builder,params)
 	if params[1] == 'factoryMobilities' then
-		--self.game:StartTimer('getOrder1')
 		if params[2] then
 			local p = nil
 			local  value = nil
@@ -585,9 +587,7 @@ function TaskQueueBST:getOrder(builder,params)
 				return  value, p
 			end
 		end
-		--self.game:StopTimer('getOrder1')
 	else
-		--self.game:StartTimer('getOrder2')
 		self:EchoDebug(params[1])
 		local army = self.ai.armyhst
 		for index, uName in pairs (army.unitTable[self.name].buildingsCanBuild) do
@@ -595,7 +595,6 @@ function TaskQueueBST:getOrder(builder,params)
 				return uName
 			end
 		end
-		----self.game:StopTimer('getOrder2')
 	end
 
 end
@@ -606,16 +605,15 @@ function TaskQueueBST:roleCounter(role)
 	end
 	local counter = 0
 
-		for name, units in pairs(self.ai.armyhst.buildersRole[role]) do
-			counter = counter + #units
-		end
+	for name, units in pairs(self.ai.armyhst.buildersRole[role]) do
+		counter = counter + #units
+	end
 	return counter
 
 
 end
 
 function TaskQueueBST:GetQueue()
--- 	self.unit:ElectBehaviour()
 	local buildersRole = self.ai.armyhst.buildersRole
 	local team = self.game:GetTeamID()
 	local id = self.ai.armyhst.unitTable[self.name].defId
@@ -675,7 +673,7 @@ function TaskQueueBST:ProgressQueue()
 	self:EchoDebug(idx , val)
 	self.idx = idx
 	if idx == nil then
-		self.queue = self:GetQueue(self.name)--TODO ?????????????????????self.name?
+		self.queue = self:GetQueue(self.name)
 		self.progress = true
 
 		return
@@ -771,11 +769,11 @@ function TaskQueueBST:assist()
 	for index, unitID in pairs(unitsNear) do
 		local unitName = self.game:GetUnitByID(unitID):Name()
 		if self.role == 'eco' then
- 			if self.ai.armyhst.factoryMobilities[unitName] then
- 				self.unit:Internal():Guard(unitID)
- 				self.assistant = true
+			if self.ai.armyhst.factoryMobilities[unitName] then
+				self.unit:Internal():Guard(unitID)
+				self.assistant = true
 				return
- 			end
+			end
 		elseif self.ai.armyhst.techs[unitName] and Spring.GetUnitIsBuilding(unitID) then
 			self.unit:Internal():Guard(unitID)
 			self.assistant = true
@@ -842,11 +840,11 @@ end
 
 function TaskQueueBST:VisualDBG()
 	local colours = {
-	default = {255,0,0,255},
-	eco = {0,255,0,255},
-	support = {0,0,255,255},
-	expand = {255,255,255,255},
-	}
+		default = {255,0,0,255},
+		eco = {0,255,0,255},
+		support = {0,0,255,255},
+		expand = {255,255,255,255},
+		}
 	self.unit:Internal():EraseHighlight(nil, self.id, 8 )
 	self.unit:Internal():DrawHighlight(colours[self.role] , self.id, 8 )
 

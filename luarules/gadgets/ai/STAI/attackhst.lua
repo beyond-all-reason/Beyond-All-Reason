@@ -13,7 +13,7 @@ local ceil = math.ceil
 
 function AttackHST:Init()
 	self.DebugEnabled = false
-
+	self.visualdbg = true
 	self.recruits = {}
 	self.count = {}
 	self.squads = {}
@@ -34,11 +34,13 @@ function AttackHST:Update()
 	if f % 17 ~= 0 then
 		return
 	end
+	self:DraftSquads()
 	if not self.squads or #self.squads < 1 then
 		return
 	end
-	self:DraftSquads()
+
 	for index , squad in pairs(self.squads) do
+		self:visualDBG(squad)
 		if not squad.arrived and squad.idleTimeout and f >= squad.idleTimeout then
 			squad.arrived = true
 			squad.idleTimeout = nil
@@ -58,11 +60,36 @@ function AttackHST:Update()
 			self:SquadAdvance(squad)
 		end
 	end
+	if not self.squads or #self.squads < 1 then--TEST how to a squad is deleted during update?
+		return
+	end
 	local index = (self.lastSquadPathfind or 0) + 1
-	if index > #self.squads then is = 1 end
+	if index > #self.squads then index = 1 end
 	local squad = self.squads[index]
+	self:Warn(index,self.squads[index],#self.squads)
 	self:SquadPathfind(squad, index)
 	self.lastSquadPathfind = index
+end
+
+function AttackHST:visualDBG(squad)
+
+	if not self.visualdbg  then
+		return
+	end
+	self.map:EraseAll(6)
+	if squad.path then
+		for i , p in pairs(squad.path) do
+-- 			for ii,vv in pairs(p.position) do
+-- 				print(ii,vv)
+-- 			end
+			self.map:DrawPoint(p.position, squad.colour, i, 6)
+		end
+	end
+	if squad.target then
+		self.map:DrawPoint(squad.target, squad.colour, 'target ', 6)
+	end
+
+
 end
 
 function AttackHST:DraftSquads()
@@ -121,6 +148,7 @@ function AttackHST:DraftSquads()
 				self.ai.hasAttacked = self.ai.hasAttacked + 1
 				self.potentialAttackCounted[mtype] = false
 				self.counter[mtype] = math.min(self.maxAttackCounter, self.counter[mtype] + 1)
+				squad.colour = {0,math.random(),math.random(),1}
 			end
 		end
 	end
@@ -365,6 +393,75 @@ function AttackHST:SquadAdvance(squad)
 		squad.idleTimeout = self.game:Frame() + (2 * 30 * (distToNext / squad.lowestSpeed))
 	end
 	squad.hasMovedOnce = true
+end
+
+function AttackHST:GetBestAttackCell(representative, position, ourThreat)
+	if not representative then return end
+	position = position or representative:GetPosition()
+	--self:UpdateMap()
+	local bestValueCell
+	local bestValue = -999999
+	local bestAnyValueCell
+	local bestAnyValue = -999999
+	local bestThreatCell
+	local bestThreat = 0
+	local name = representative:Name()
+	local longrange = self.ai.armyhst.unitTable[name].groundRange > 1000
+	local mtype = self.ai.armyhst.unitTable[name].mtype
+	ourThreat = ourThreat or self.ai.armyhst.unitTable[name].metalCost * self.ai.attackhst:GetCounter(mtype)
+	if mtype ~= "sub" and longrange then longrange = true end
+	local possibilities = {}
+	local highestDist = 0
+	local lowestDist = 100000
+	for i, cell in pairs(self.cellList) do
+		if cell.pos then
+			if self.ai.maphst:UnitCanGoHere(representative, cell.pos) or longrange then
+				local value, threat = self:CellValueThreat(name, cell)
+				local dist = self.ai.tool:Distance(position, cell.pos)
+				if dist > highestDist then highestDist = dist end
+				if dist < lowestDist then lowestDist = dist end
+				table.insert(possibilities, { cell = cell, value = value, threat = threat, dist = dist })
+			end
+		end
+	end
+	local distRange = highestDist - lowestDist
+	for i, pb in pairs(possibilities) do
+		local fraction = 1.5 - ((pb.dist - lowestDist) / distRange)
+		local value = pb.value * fraction
+		local threat = pb.threat * fraction
+		if pb.value > 750 then
+			value = value - (threat * 0.5)
+			if value > bestValue then
+				bestValueCell = pb.cell
+				bestValue = value
+			end
+		elseif pb.value > 0 then
+			value = value - (threat * 0.5)
+			if value > bestAnyValue then
+				bestAnyValueCell = pb.cell
+				bestAnyValue = value
+			end
+		else
+			if threat > bestThreat then
+				bestThreatCell = pb.cell
+				bestThreat = threat
+			end
+		end
+	end
+	local best
+	if bestValueCell then
+		best = bestValueCell
+	elseif self.enemyBaseCell then
+		best = self.enemyBaseCell
+	elseif bestAnyValueCell then
+		best = bestAnyValueCell
+	elseif bestThreatCell then
+		best = bestThreatCell
+	elseif self.lastAttackCell then
+		best = self.lastAttackCell
+	end
+	self.lastAttackCell = best
+	return best
 end
 
 function AttackHST:IDsWeAreAttacking(unitIDs, mtype)

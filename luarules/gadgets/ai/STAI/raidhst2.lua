@@ -327,7 +327,9 @@ function RaidHST:getRaidCell(squad)
 
 -- 	local rname = representative:Name()
 	local maxThreat = self.ai.armyhst.unitTable[squad.unitName].metalCost
-	local rthreat, rrange = self.ai.tool:ThreatRange(squad.unitName)
+	--local rthreat, rrange = self.ai.tool:ThreatRange(squad.unitName)
+	local rthreat = self.ai.armyhst.unitTable[squad.unitName].threat
+	local rrange = self.ai.armyhst.unitTable[squad.unitName].maxRange
 	self:EchoDebug(squad.unitName .. ": " .. rthreat .. " " .. rrange)
 	if rthreat > maxThreat then maxThreat = rthreat end
 	local best

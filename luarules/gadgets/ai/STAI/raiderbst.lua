@@ -33,7 +33,7 @@ function RaiderBST:Init()
 	elseif self.mtype == 'air' then
 		self.groundAirSubmerged = 'air'
 	end
-	self.hurtsList = self.ai.tool:UnitWeaponLayerList(self.name)
+	self.hurtsList = self.ai.armyhst.unitTable[self.name].weaponLayer--self.ai.tool:UnitWeaponLayerList(self.name)
 	self.sightRange = utable.losRadius
 
 	-- for pathfinding

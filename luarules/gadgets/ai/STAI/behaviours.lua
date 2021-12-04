@@ -1,7 +1,7 @@
 shard_include ("taskqueuebst")
 shard_include ("tasklabbst")
 shard_include ("attackerbst")
-shard_include ("raidbst2")
+shard_include ("raidbst")
 shard_include ("bomberbst")
 shard_include ("wardbst")
 shard_include ("mexupbst")
