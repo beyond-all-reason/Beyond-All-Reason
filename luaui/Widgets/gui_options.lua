@@ -1472,7 +1472,7 @@ function init()
 	presets = {
 		lowest = {
 			bloomdeferred = false,
-			ssao = 0,
+			ssao = false,
 			mapedgeextension = false,
 			lighteffects = false,
 			lighteffects_additionalflashes = false,
@@ -1487,7 +1487,7 @@ function init()
 		},
 		low = {
 			bloomdeferred = true,
-			ssao = 0,
+			ssao = false,
 			mapedgeextension = false,
 			lighteffects = true,
 			lighteffects_additionalflashes = false,
@@ -1502,7 +1502,7 @@ function init()
 		},
 		medium = {
 		 	bloomdeferred = true,
-		 	ssao = 1,
+		 	ssao = true,
 		 	mapedgeextension = true,
 		 	lighteffects = true,
 		 	lighteffects_additionalflashes = true,
@@ -1517,7 +1517,7 @@ function init()
 		},
 		high = {
 			bloomdeferred = true,
-			ssao = 2,
+			ssao = true,
 			mapedgeextension = true,
 			lighteffects = true,
 			lighteffects_additionalflashes = true,
@@ -1532,7 +1532,7 @@ function init()
 		},
 		ultra = {
 			bloomdeferred = true,
-			ssao = 3,
+			ssao = true,
 			mapedgeextension = true,
 			lighteffects = true,
 			lighteffects_additionalflashes = true,
@@ -1795,7 +1795,7 @@ function init()
 		  end,
 		},
 
-		{ id = "cas_sharpness", group = "gfx", category = types.advanced, name = texts.option.cas_sharpness, min = 0.7, max = 1.1, step = 0.01, type = "slider", value = 0.92, description = texts.option.cas_sharpness_descr,
+		{ id = "cas_sharpness", group = "gfx", category = types.advanced, name = texts.option.cas_sharpness, min = 0.75, max = 1.1, step = 0.01, type = "slider", value = 1.0, description = texts.option.cas_sharpness_descr,
 		  onload = function(i)
 			  loadWidgetData("Contrast Adaptive Sharpen", "cas_sharpness", { 'SHARPNESS' })
 		  end,
