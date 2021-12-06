@@ -18,7 +18,7 @@ return {
 		collisionvolumescales = "75 44 75",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		damagemodifier = 0.3,
+		damagemodifier = 0.5,
 		description = Spring.I18N('units.descriptions.cormexp'),
 		energyuse = 20,
 		explodeas = "hugeBuildingexplosiongeneric",

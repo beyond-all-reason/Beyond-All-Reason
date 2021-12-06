@@ -4,10 +4,10 @@ return {
 	armfboy = {
 		acceleration = 0.138,
 		brakerate = 0.43125,
-		buildcostenergy = 12000,
-		buildcostmetal = 1500,
+		buildcostenergy = 11000,
+		buildcostmetal = 1400,
 		buildpic = "ARMFBOY.DDS",
-		buildtime = 22397,
+		buildtime = 21000,
 		canmove = true,
 		category = "BOT WEAPON ALL NOTSUB NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 0 0",

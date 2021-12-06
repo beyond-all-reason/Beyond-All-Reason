@@ -554,7 +554,7 @@ UnitSpeed(){
 	while(TRUE){
 		animSpeed = (get CURRENT_SPEED);
 		if (animSpeed<1) animSpeed=1;
-		animSpeed = (maxSpeed * 4) / animSpeed; 
+		animSpeed = (maxSpeed * 5) / animSpeed; 
 		//get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed); //how to print debug info from bos
 		if (animSpeed<3) animSpeed=3;
 		if (animspeed>12) animSpeed = 12;
@@ -808,7 +808,7 @@ Create()
 	Static_Var_4 = 1;
 	Static_Var_1 = 0;
 	hide flare;
-	animSpeed = 6;
+	animSpeed = 5;
 	turn flare to x-axis <-90> now;
 	restore_delay = 800;
 	statechg_DesiredState = TRUE;
