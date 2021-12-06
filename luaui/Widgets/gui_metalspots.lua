@@ -20,6 +20,8 @@ local opacity			= 0.5
 local innersize			= 1.8		-- outersize-innersize = circle width
 local outersize			= 1.98		-- outersize-innersize = circle width
 
+local maxValue			= 15		-- ignore spots above this metal value (probably metalmap)
+
 local spIsGUIHidden = Spring.IsGUIHidden
 local spIsSphereInView = Spring.IsSphereInView
 local spGetUnitsInSphere = Spring.GetUnitsInSphere
@@ -296,7 +298,7 @@ function widget:Initialize()
 		for i = 1, #mSpots do
 			local spot = mSpots[i]
 			local value = string.format("%0.1f",math.round(spot.worth/1000,1))
-			if tonumber(value) > 0.001 then
+			if tonumber(value) > 0.001 and tonumber(value) < maxValue then
 				local scale = 0.77 + ((math.max(spot.maxX,spot.minX)-(math.min(spot.maxX,spot.minX))) * (math.max(spot.maxZ,spot.minZ)-(math.min(spot.maxZ,spot.minZ)))) / 10000
 
 				local units = spGetUnitsInSphere(spot.x, spot.y, spot.z, 115*scale)
