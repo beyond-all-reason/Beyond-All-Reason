@@ -84,9 +84,6 @@ local ssx, ssy, spx, spy = Spring.GetScreenGeometry()
 local changesRequireRestart = false
 local useNetworkSmoothing = false
 
-local customMapSunPos = {}
-local customMapFog = {}
-
 local show = false
 local prevShow = show
 local manualChange = true
@@ -3528,7 +3525,7 @@ function init()
 		{ id = "label_dev_map", group = "dev", name = texts.option.label_map, category = types.dev },
 		{ id = "label_dev_map_spacer", group = "dev", category = types.dev },
 
-		{ id = "sun_y", group = "dev", category = types.dev, name = texts.option.sun .. widgetOptionColor .. "  " .. texts.option.sun_y, type = "slider", min = 0.05, max = 0.9999, step = 0.0001, value = select(2, gl.GetSun("pos")), description = '',
+		{ id = "sun_y", group = "dev", category = types.dev, name = texts.option.sun .. widgetOptionColor .. "  " .. texts.option.sun_y, type = "slider", min = 0.05, max = 0.9999, step = 0.0001, value = select(2, gl.GetSun("pos")),
 		  onchange = function(i, value)
 			  local sunX, sunY, sunZ = gl.GetSun("pos")
 			  sunY = value
@@ -3542,11 +3539,10 @@ function init()
 			  Spring.SetSunDirection(sunX, sunY, sunZ)
 			  -- just so that map/model lighting gets updated
 			  Spring.SetSunLighting({ groundShadowDensity = gl.GetSun("shadowDensity"), modelShadowDensity = gl.GetSun("shadowDensity") })
-			  customMapSunPos[Game.mapName] = { gl.GetSun("pos") }
 			  Spring.Echo(gl.GetSun())
 		  end,
 		},
-		{ id = "sun_x", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.sun_x, type = "slider", min = -0.9999, max = 0.9999, step = 0.0001, value = select(1, gl.GetSun("pos")), description = '',
+		{ id = "sun_x", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.sun_x, type = "slider", min = -0.9999, max = 0.9999, step = 0.0001, value = select(1, gl.GetSun("pos")),
 		  onchange = function(i, value)
 			  local sunX, sunY, sunZ = gl.GetSun("pos")
 			  sunX = value
@@ -3560,11 +3556,10 @@ function init()
 			  Spring.SetSunDirection(sunX, sunY, sunZ)
 			  -- just so that map/model lighting gets updated
 			  Spring.SetSunLighting({ groundShadowDensity = gl.GetSun("shadowDensity"), modelShadowDensity = gl.GetSun("shadowDensity") })
-			  customMapSunPos[Game.mapName] = { gl.GetSun("pos") }
 			  Spring.Echo(gl.GetSun())
 		  end,
 		},
-		{ id = "sun_z", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.sun_z, type = "slider", min = -0.9999, max = 0.9999, step = 0.0001, value = select(3, gl.GetSun("pos")), description = '',
+		{ id = "sun_z", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.sun_z, type = "slider", min = -0.9999, max = 0.9999, step = 0.0001, value = select(3, gl.GetSun("pos")),
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
@@ -3580,11 +3575,10 @@ function init()
 			  Spring.SetSunDirection(sunX, sunY, sunZ)
 			  -- just so that map/model lighting gets updated
 			  Spring.SetSunLighting({ groundShadowDensity = gl.GetSun("shadowDensity"), modelShadowDensity = gl.GetSun("shadowDensity") })
-			  customMapSunPos[Game.mapName] = { gl.GetSun("pos") }
 			  Spring.Echo(gl.GetSun())
 		  end,
 		},
-		{ id = "sun_reset", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.sun_reset, type = "bool", value = false, description = '',
+		{ id = "sun_reset", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.sun_reset, type = "bool", value = false,
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
@@ -3595,13 +3589,11 @@ function init()
 			  Spring.SetSunDirection(defaultMapSunPos[1], defaultMapSunPos[2], defaultMapSunPos[3])
 			  -- just so that map/model lighting gets updated
 			  Spring.SetSunLighting({ groundShadowDensity = gl.GetSun("shadowDensity"), modelShadowDensity = gl.GetSun("shadowDensity") })
-			  Spring.Echo('resetted map sun defaults')
-			  customMapSunPos[Game.mapName] = nil
 			  Spring.Echo(gl.GetSun())
 		  end,
 		},
 
-		{ id = "fog_start", group = "dev", category = types.dev, name = texts.option.fog .. widgetOptionColor .. "  " .. texts.option.fog_start, type = "slider", min = 0, max = 1.99, step = 0.01, value = gl.GetAtmosphere("fogStart"), description = texts.option.fog_start_descr,
+		{ id = "fog_start", group = "dev", category = types.dev, name = texts.option.fog .. widgetOptionColor .. "  " .. texts.option.fog_start, type = "slider", min = 0, max = 1.99, step = 0.01, value = gl.GetAtmosphere("fogStart"),
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
@@ -3610,10 +3602,9 @@ function init()
 				  applyOptionValue(getOptionByID('fog_end'))
 			  end
 			  Spring.SetAtmosphere({ fogStart = value })
-			  --customMapFog[Game.mapName] = { fogStart = gl.GetAtmosphere("fogStart"), fogEnd = gl.GetAtmosphere("fogStart") }
 		  end,
 		},
-		{ id = "fog_end", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.fog_end, type = "slider", min = 0.5, max = 2, step = 0.01, value = gl.GetAtmosphere("fogEnd"), description = texts.option.fog_end_descr,
+		{ id = "fog_end", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.fog_end, type = "slider", min = 0.5, max = 2, step = 0.01, value = gl.GetAtmosphere("fogEnd"),
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
@@ -3622,7 +3613,6 @@ function init()
 				  applyOptionValue(getOptionByID('fog_start'))
 			  end
 			  Spring.SetAtmosphere({ fogEnd = value })
-			  --customMapFog[Game.mapName] = { fogStart = gl.GetAtmosphere("fogStart"), fogEnd = gl.GetAtmosphere("fogEnd") }
 		  end,
 		},
 		{ id = "fog_reset", group = "dev", category = types.dev, name = widgetOptionColor .. "   " .. texts.option.fog_reset, type = "bool", value = false, description = '',
@@ -3635,8 +3625,6 @@ function init()
 				  options[getOptionByID('fog_reset')].value = false
 			  end
 			  Spring.SetAtmosphere({ fogStart = defaultFog.fogStart, fogEnd = defaultFog.fogEnd })
-			  Spring.Echo('resetted map fog defaults')
-			  --customMapFog[Game.mapName] = nil
 		  end,
 		},
 
@@ -4856,15 +4844,6 @@ function widget:Initialize()
 		if Spring.GetConfigInt("MSAALevel", 0) > 8 then
 			Spring.SetConfigInt("MSAALevel", 8)
 		end
-
-		-- set custom user map sun position
-		if customMapSunPos[Game.mapName] and customMapSunPos[Game.mapName][1] then
-			Spring.SetSunDirection(customMapSunPos[Game.mapName][1], customMapSunPos[Game.mapName][2], customMapSunPos[Game.mapName][3])
-			Spring.SetSunLighting({ groundShadowDensity = gl.GetSun("shadowDensity"), modelShadowDensity = gl.GetSun("shadowDensity") })
-		end
-		if customMapFog[Game.mapName] and customMapFog[Game.mapName] then
-			Spring.SetAtmosphere(customMapFog[Game.mapName])
-		end
 	end
 
 	-- make sure fog-start is smaller than fog-end in case maps have configured it this way
@@ -5007,10 +4986,6 @@ function widget:GetConfigData()
 		pauseGameWhenSingleplayerExecuted = pauseGameWhenSingleplayerExecuted,
 		pauseGameWhenSingleplayer = pauseGameWhenSingleplayer,
 
-		-- custom map settings
-		customMapSunPos = customMapSunPos,
-		--customMapFog = customMapFog,
-
 		-- options widget settings
 		firsttimesetupDone = firstlaunchsetupDone,
 		advSettings = advSettings,
@@ -5021,7 +4996,6 @@ function widget:GetConfigData()
 
 		-- to restore init defaults
 		mapChecksum = Game.mapChecksum,
-		defaultFog = defaultFog,
 		defaultMapSunPos = defaultMapSunPos,
 		defaultSunLighting = defaultSunLighting,
 		resettedTonemapDefault = resettedTonemapDefault,
@@ -5075,15 +5049,6 @@ function widget:SetConfigData(data)
 		if data.defaultSunLighting ~= nil then
 			defaultSunLighting = data.defaultSunLighting
 		end
-		if data.defaultFog ~= nil and type(data.defaultFog.fogStart) ~= 'table' then
-			defaultFog = data.defaultFog
-		end
-	end
-	if data.customMapSunPos then
-		customMapSunPos = data.customMapSunPos
-	end
-	if data.customMapFog then
-		--customMapFog = data.customMapFog
 	end
 	if data.useNetworkSmoothing then
 		useNetworkSmoothing = data.useNetworkSmoothing
