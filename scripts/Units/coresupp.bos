@@ -3,8 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, turret1, turret2, abarrela, abarrelb, bbarrela, bbarrelb, flare11,
-       flare12, flare21, flare22, wake1, flare3;
+piece  base, bturret, bsleeve, blbarrel, brbarrel, fturret, fsleeve, flbarrel, frbarrel, fin, blflare, brflare, flflare, frflare, wake1, wake2;
 
 static-var  gun_1, gun_2, restore_delay;
 
@@ -45,18 +44,14 @@ RockOnWaves()
 
 Create()
 {
-	hide flare3;
 	hide wake1;
-	hide flare12;
-	hide flare11;
-	hide flare22;
-	hide flare21;
-	hide flare11;
-	hide flare12;
-	hide flare21;
-	hide flare22;
-	gun_1 = turret1;
-	gun_2 = turret1;
+	hide wake2;
+	hide flflare;
+	hide frflare;
+	hide blflare;
+	hide brflare;
+	gun_1 = fturret;
+	gun_2 = fturret;
 	restore_delay = 3000;
 	while( get BUILD_PERCENT_LEFT )
 	{
@@ -77,10 +72,10 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-	turn turret1 to y-axis <0.> speed <90.>;
-	turn turret2 to y-axis <0.> speed <90.>;
-	turn turret1 to x-axis <0.> speed <90.>;
-	turn turret2 to x-axis <0.> speed <90.>;
+	turn fturret to y-axis <0.> speed <90.>;
+	turn bturret to y-axis <0.> speed <90.>;
+	turn fturret to x-axis <0.> speed <90.>;
+	turn bturret to x-axis <0.> speed <90.>;
 }
 SetStunned(State)
 {
@@ -119,10 +114,10 @@ AimPrimary(heading, pitch)
 {
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
-	turn turret1 to y-axis heading speed <270.>;
-	turn turret1 to x-axis -1*pitch speed <150.>;
-	wait-for-turn turret1 around y-axis;
-	wait-for-turn turret1 around x-axis;
+	turn fturret to y-axis heading speed <270.>;
+	turn fturret to x-axis -1*pitch speed <150.>;
+	wait-for-turn fturret around y-axis;
+	wait-for-turn fturret around x-axis;
 	start-script RestoreAfterDelay();
 	return (1);
 }
@@ -131,21 +126,21 @@ FirePrimary()
 {
 	if( gun_1 == 0 )
 	{
-		move abarrela to z-axis [-1.] speed [500.];
-		wait-for-move abarrela along z-axis;
-		move abarrela to z-axis [0.] speed [5.];
-		show flare11;
+		move flbarrel to z-axis [-1.] speed [500.];
+		wait-for-move flbarrel along z-axis;
+		move flbarrel to z-axis [0.] speed [5.];
+		show flflare;
 		sleep 150;
-		hide flare11;
+		hide flflare;
 	}
 	if( gun_1 == 1 )
 	{
-		move abarrelb to z-axis [-1.] speed [500.];
-		wait-for-move abarrelb along z-axis;
-		move abarrelb to z-axis [0.] speed [5.];
-		show flare12;
+		move frbarrel to z-axis [-1.] speed [500.];
+		wait-for-move frbarrel along z-axis;
+		move frbarrel to z-axis [0.] speed [5.];
+		show frflare;
 		sleep 150;
-		hide flare12;
+		hide frflare;
 	}
 	++gun_1;
 	if( gun_1 == 2 )
@@ -157,7 +152,7 @@ FirePrimary()
 
 AimFromPrimary(piecenum)
 {
-	piecenum = turret1;
+	piecenum = fsleeve;
 	return (0);
 }
 
@@ -165,10 +160,10 @@ AimSecondary(heading, pitch)
 {
 	signal SIG_AIM_2;
 	set-signal-mask SIG_AIM_2;
-	turn turret2 to y-axis heading speed <270.>;
-	turn turret2 to x-axis -1*pitch speed <150.>;
-	wait-for-turn turret2 around y-axis;
-	wait-for-turn turret2 around x-axis;
+	turn bturret to y-axis heading speed <270.>;
+	turn bturret to x-axis -1*pitch speed <150.>;
+	wait-for-turn bturret around y-axis;
+	wait-for-turn bturret around x-axis;
 	start-script RestoreAfterDelay();
 	return (1);
 }
@@ -177,21 +172,21 @@ FireSecondary()
 {
 	if( gun_2 == 0 )
 	{
-		move bbarrela to z-axis [-1.] speed [500.];
-		wait-for-move bbarrela along z-axis;
-		move bbarrela to z-axis [0.] speed [5.];
-		show flare21;
+		move blbarrel to z-axis [-1.] speed [500.];
+		wait-for-move blbarrel along z-axis;
+		move blbarrel to z-axis [0.] speed [5.];
+		show blflare;
 		sleep 150;
-		hide flare21;
+		hide blflare;
 	}
 	if( gun_2 == 1 )
 	{
-		move bbarrelb to z-axis [-1.] speed [500.];
-		wait-for-move bbarrelb along z-axis;
-		move bbarrelb to z-axis [0.] speed [5.];
-		show flare22;
+		move brbarrel to z-axis [-1.] speed [500.];
+		wait-for-move brbarrel along z-axis;
+		move brbarrel to z-axis [0.] speed [5.];
+		show brflare;
 		sleep 150;
-		hide flare22;
+		hide brflare;
 	}
 	++gun_2;
 	if( gun_2 == 2 )
@@ -203,7 +198,7 @@ FireSecondary()
 
 AimFromSecondary(piecenum)
 {
-	piecenum = turret2;
+	piecenum = bsleeve;
 	return (0);
 }
 
@@ -211,11 +206,11 @@ QueryPrimary(piecenum)
 {
 	if( gun_1 == 0 )
 	{
-		piecenum = flare11;
+		piecenum = flflare;
 	}
 	if( gun_1 == 1 )
 	{
-		piecenum = flare12;
+		piecenum = frflare;
 	}
 	return (0);
 }
@@ -224,11 +219,11 @@ QuerySecondary(piecenum)
 {
 	if( gun_2 == 0 )
 	{
-		piecenum = flare21;
+		piecenum = blflare;
 	}
 	if( gun_2 == 1 )
 	{
-		piecenum = flare22;
+		piecenum = brflare;
 	}
 	return (0);
 }
@@ -245,10 +240,11 @@ Killed(severity, corpsetype)
 	{
 		corpsetype = 1 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode turret2 type BITMAPONLY | NOHEATCLOUD;
-		explode bbarrela type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode fturret type BITMAPONLY | NOHEATCLOUD;
+		explode flbarrel type BITMAPONLY | NOHEATCLOUD;
+		explode frbarrel type BITMAPONLY | NOHEATCLOUD;
+		explode bturret type BITMAPONLY | NOHEATCLOUD;
 		//explode flare21 type BITMAPONLY | NOHEATCLOUD;
-		explode bbarrelb type BITMAPONLY | NOHEATCLOUD;
 		//explode flare22 type BITMAPONLY | NOHEATCLOUD;
 		//explode turret1 type BITMAPONLY | NOHEATCLOUD;
 		//explode abarrela type BITMAPONLY | NOHEATCLOUD;
@@ -262,12 +258,12 @@ Killed(severity, corpsetype)
 	{
 		corpsetype = 2 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode turret2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode bbarrela type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode flare21 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode bbarrelb type FALL | NOHEATCLOUD;
+		explode fturret type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode flbarrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode frbarrel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode flare21 type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		//explode flare22 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode turret1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode bturret type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		//explode abarrela type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		//explode flare11 type FALL | NOHEATCLOUD;
 		//explode abarrelb type FIRE | SMOKE | FALL | NOHEATCLOUD;
@@ -279,12 +275,12 @@ Killed(severity, corpsetype)
 	{
 		corpsetype = 3 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode turret2 type SMOKE | FALL | NOHEATCLOUD;
-		explode bbarrela type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode flare21 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode bbarrelb type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode fturret type SMOKE | FALL | NOHEATCLOUD;
+		explode flbarrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode flare21 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode frbarrel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		//explode flare22 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode turret1 type SMOKE | FALL | NOHEATCLOUD;
+		explode bturret type SMOKE | FALL | NOHEATCLOUD;
 		//explode abarrela type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		//explode flare11 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		//explode abarrelb type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
@@ -295,12 +291,12 @@ Killed(severity, corpsetype)
 	}
 	corpsetype = 3 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode turret2 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode bbarrela type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode flare21 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode bbarrelb type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode fturret type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode flbarrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode frbarrel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode flare21 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		//explode flare22 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		//explode turret1 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode bturret type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		//explode abarrela type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		//explode flare11 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		//explode abarrelb type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
