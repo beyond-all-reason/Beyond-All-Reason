@@ -21,6 +21,7 @@ local innersize			= 1.8		-- outersize-innersize = circle width
 local outersize			= 1.98		-- outersize-innersize = circle width
 
 local maxValue			= 15		-- ignore spots above this metal value (probably metalmap)
+local maxScale			= 4			-- ignore spots above this scale (probably metalmap)
 
 local spIsGUIHidden = Spring.IsGUIHidden
 local spIsSphereInView = Spring.IsSphereInView
@@ -301,25 +302,27 @@ function widget:Initialize()
 			if tonumber(value) > 0.001 and tonumber(value) < maxValue then
 				local scale = 0.77 + ((math.max(spot.maxX,spot.minX)-(math.min(spot.maxX,spot.minX))) * (math.max(spot.maxZ,spot.minZ)-(math.min(spot.maxZ,spot.minZ)))) / 10000
 
-				local units = spGetUnitsInSphere(spot.x, spot.y, spot.z, 115*scale)
-				local occupied = false
-				for j=1, #units do
-					if extractors[spGetUnitDefID(units[j])]  then
-						occupied = true
-						break
+				if scale < maxScale then
+					local units = spGetUnitsInSphere(spot.x, spot.y, spot.z, 115*scale)
+					local occupied = false
+					for j=1, #units do
+						if extractors[spGetUnitDefID(units[j])]  then
+							occupied = true
+							break
+						end
 					end
-				end
-				spotsCount = spotsCount + 1
-				spots[spotsCount] = {spot.x, spGetGroundHeight(spot.x, spot.z), spot.z, value, scale, occupied, currentClock}
-				pushElementInstance(spotInstanceVBO, {spot.x, 0, spot.z, scale, (occupied and 0) or 1, -1000,0,0}, spotKey(spot.x, spot.z))
-				if not valueList[value] then
-					valueList[value] = gl.CreateList(function()
-						font:Begin()
-						font:SetTextColor(1,1,1,1)
-						font:SetOutlineColor(0,0,0,0.4)
-						font:Print(value, 0, 0, 1.05, "con")
-						font:End()
-					end)
+					spotsCount = spotsCount + 1
+					spots[spotsCount] = {spot.x, spGetGroundHeight(spot.x, spot.z), spot.z, value, scale, occupied, currentClock}
+					pushElementInstance(spotInstanceVBO, {spot.x, 0, spot.z, scale, (occupied and 0) or 1, -1000,0,0}, spotKey(spot.x, spot.z))
+					if not valueList[value] then
+						valueList[value] = gl.CreateList(function()
+							font:Begin()
+							font:SetTextColor(1,1,1,1)
+							font:SetOutlineColor(0,0,0,0.4)
+							font:Print(value, 0, 0, 1.05, "con")
+							font:End()
+						end)
+					end
 				end
 			end
 		end
