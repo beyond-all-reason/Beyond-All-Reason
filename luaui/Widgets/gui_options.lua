@@ -140,7 +140,7 @@ local defaultSunLighting = {
 	groundSpecularColor = { gl.GetSun("specular") },
 	unitSpecularColor = { gl.GetSun("specular", "unit") },
 }
-local defaultFog = {
+local defaultMapFog = {
 	fogStart = gl.GetAtmosphere("fogStart"),
 	fogEnd = gl.GetAtmosphere("fogEnd"),
 	fogColor = { gl.GetAtmosphere("fogColor") },
@@ -2044,8 +2044,8 @@ function init()
 		  onchange = function(i, value)
 			  Spring.SetConfigFloat("FogMult", value)
 			  value = 1 / value	-- inverse
-			  local newFogStart = math.min(9, (defaultFog.fogStart * ((value+4)*0.2)))
-			  local newFogEnd = math.min(9, defaultFog.fogEnd * ((value+1)*0.5))
+			  local newFogStart = math.min(9, (defaultMapFog.fogStart * ((value+4)*0.2)))
+			  local newFogEnd = math.min(9, defaultMapFog.fogEnd * ((value+1)*0.5))
 			  if newFogStart >= newFogEnd then newFogStart = newFogEnd - 0.01 end
 			  Spring.SetAtmosphere({ fogStart = newFogStart, fogEnd = newFogEnd })
 		  end,
@@ -3621,11 +3621,11 @@ function init()
 		  end,
 		  onchange = function(i, value)
 			  if getOptionByID('fog_start') then
-				  options[getOptionByID('fog_start')].value = defaultFog.fogStart
-				  options[getOptionByID('fog_end')].value = defaultFog.fogEnd
+				  options[getOptionByID('fog_start')].value = defaultMapFog.fogStart
+				  options[getOptionByID('fog_end')].value = defaultMapFog.fogEnd
 				  options[getOptionByID('fog_reset')].value = false
 			  end
-			  Spring.SetAtmosphere({ fogStart = defaultFog.fogStart, fogEnd = defaultFog.fogEnd })
+			  Spring.SetAtmosphere({ fogStart = defaultMapFog.fogStart, fogEnd = defaultMapFog.fogEnd })
 		  end,
 		},
 
@@ -3657,11 +3657,11 @@ function init()
 		  onload = function(i)
 		  end,
 		  onchange = function(i, value)
-			  options[getOptionByID('fog_r')].value = defaultFog.fogColor[1]
-			  options[getOptionByID('fog_g')].value = defaultFog.fogColor[2]
-			  options[getOptionByID('fog_b')].value = defaultFog.fogColor[3]
+			  options[getOptionByID('fog_r')].value = defaultMapFog.fogColor[1]
+			  options[getOptionByID('fog_g')].value = defaultMapFog.fogColor[2]
+			  options[getOptionByID('fog_b')].value = defaultMapFog.fogColor[3]
 			  options[getOptionByID('fog_color_reset')].value = false
-			  Spring.SetAtmosphere({ fogColor = defaultFog.fogColor })
+			  Spring.SetAtmosphere({ fogColor = defaultMapFog.fogColor })
 			  Spring.Echo('resetted map fog color defaults')
 		  end,
 		},
@@ -4997,6 +4997,7 @@ function widget:GetConfigData()
 
 		-- to restore init defaults
 		mapChecksum = Game.mapChecksum,
+		defaultMapFog = defaultMapFog,
 		defaultMapSunPos = defaultMapSunPos,
 		defaultSunLighting = defaultSunLighting,
 		resettedTonemapDefault = resettedTonemapDefault,
@@ -5025,8 +5026,10 @@ function widget:SetConfigData(data)
 	if data.currentGroupTab ~= nil then
 		currentGroupTab = data.currentGroupTab
 	end
-	if data.show ~= nil and Spring.GetGameFrame() > 0 then
-		show = data.show
+	if Spring.GetGameFrame() > 0 then
+		if data.show ~= nil then
+			show = data.show
+		end
 	end
 	if data.pauseGameWhenSingleplayerExecuted ~= nil and Spring.GetGameFrame() > 0 then
 		pauseGameWhenSingleplayerExecuted = data.pauseGameWhenSingleplayerExecuted
@@ -5049,6 +5052,9 @@ function widget:SetConfigData(data)
 		end
 		if data.defaultSunLighting ~= nil then
 			defaultSunLighting = data.defaultSunLighting
+		end
+		if data.defaultMapFog ~= nil then
+			defaultMapFog = data.defaultMapFog
 		end
 	end
 	if data.useNetworkSmoothing then
