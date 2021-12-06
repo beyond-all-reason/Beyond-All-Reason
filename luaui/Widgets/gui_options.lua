@@ -2046,6 +2046,7 @@ function init()
 			  value = 1 / value	-- inverse
 			  local newFogStart = math.min(9, (defaultFog.fogStart * ((value+4)*0.2)))
 			  local newFogEnd = math.min(9, defaultFog.fogEnd * ((value+1)*0.5))
+			  if newFogStart >= newFogEnd then newFogStart = newFogEnd - 0.01 end
 			  Spring.SetAtmosphere({ fogStart = newFogStart, fogEnd = newFogEnd })
 		  end,
 		},
