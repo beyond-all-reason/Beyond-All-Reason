@@ -18,7 +18,7 @@ return {
 		description = Spring.I18N('units.descriptions.coresupp'),
 		explodeas = "mediumexplosiongeneric",
 		floater = true,
-		footprintx = 3,
+		footprintx = 2,
 		footprintz = 3,
 		icontype = "sea",
 		idleautoheal = 5,
