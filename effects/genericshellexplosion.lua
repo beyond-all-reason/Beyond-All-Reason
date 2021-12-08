@@ -547,7 +547,7 @@ local definitions = {
       },
     },
     outerflash = {
-      air                = true,
+      air                = false,
       class              = [[CHeatCloudProjectile]],
       count              = 1,
       ground             = true,
@@ -1170,7 +1170,7 @@ local definitions = {
       },
     },
     bigsmoketrails = {
-      air                = true,
+      air                = false,
       class              = [[CBitmapMuzzleFlame]],
       count              = 0,
       ground             = true,
@@ -1774,7 +1774,7 @@ local definitions = {
     --},
 
     bigsmoketrails = {
-      air                = true,
+      air                = false,
       class              = [[CBitmapMuzzleFlame]],
       count              = 1,
       ground             = true,
@@ -2439,7 +2439,7 @@ watersparks = {
     },
 
     bigsmoketrails = {
-      air                = true,
+      air                = false,
       class              = [[CBitmapMuzzleFlame]],
       count              = 2,
       ground             = true,
@@ -2935,7 +2935,7 @@ watersparks = {
       },
     },
     bigsmoketrails = {
-      air                = true,
+      air                = false,
       class              = [[CBitmapMuzzleFlame]],
       count              = 2,
       ground             = true,
@@ -3504,9 +3504,9 @@ watersparks = {
       },
     },
     bigsmoketrails = {
-      air                = true,
+      air                = false,
       class              = [[CBitmapMuzzleFlame]],
-      count              = 5,
+      count              = 4,
       ground             = true,
       underwater         = 0,
       water              = true,
@@ -3516,13 +3516,13 @@ watersparks = {
         --gravity            = [[0.0, 0.1, 0.0]],
         frontoffset        = 0.05,
         fronttexture       = [[none]],
-        length             = [[70 r40]],
+        length             = [[79 r30]],
         sidetexture        = [[flamestream]],
         size               = [[32 r20]],
         sizegrowth         = 1,
         ttl                = [[41 r6]],
         rotParams          = [[-24 r48, -10 r20, 0 r90]],
-        pos                = [[-20 r40, 0 r20, -20 r40]],
+        pos                = [[-20 r40, -18 r20, -20 r40]],
         drawOrder          = 0,
       },
     },
