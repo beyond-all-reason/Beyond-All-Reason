@@ -1,5 +1,5 @@
 function IsAttacker(unit)
--- 	return self.ai.armyhst.attackerlist[unit:Internal():Name()] or false
+	-- 	return self.ai.armyhst.attackerlist[unit:Internal():Name()] or false
 	return self.ai.armyhst.unitTable[unit:Internal():Name()].isAttacker
 end
 
@@ -14,6 +14,7 @@ AttackerBST.DebugEnabled = false
 function AttackerBST:Init()
 	local mtype, network = self.ai.maphst:MobilityOfUnit(self.unit:Internal())
 	self.mtype = mtype
+	self.network = network
 	self.name = self.unit:Internal():Name()
 	local ut = self.ai.armyhst.unitTable[self.name]
 	self.level = ut.techLevel - 1
@@ -22,7 +23,7 @@ function AttackerBST:Init()
 	self.congSize = self.size * 0.67 -- how much self.ai.tool:distance between it and other attackers when congregating
 	self.range = math.max(ut.groundRange, ut.airRange, ut.submergedRange)
 	self.weaponDistance = self.range * 0.9
-	self.sightDistance = ut.losRadius * 0.9
+	self.sightDistance = ut.losRadius --* 0.9
 	self.sturdy = self.ai.armyhst.battles[self.name] or self.ai.armyhst.breaks[self.name]
 	if ut.groundRange > 0 then
 		self.hits = "ground"
@@ -48,7 +49,7 @@ function AttackerBST:OwnerDead()
 	self.attacking = nil
 	self.active = nil
 	self.unit = nil
-	self.ai.attackhst:NeedMore(self)
+	--self.ai.attackhst:NeedMore(self)
 	self.ai.attackhst:RemoveRecruit(self)
 	self.ai.attackhst:RemoveMember(self)
 end
@@ -93,6 +94,9 @@ function AttackerBST:Update()
 	if not self.active and self.squad and self.target then
 		self.unit:ElectBehaviour()
 	end
+	if not self.mtype then
+		self:Warn('no mtype and network')
+	end
 	if self.damaged then
 		if f > self.damaged + 450 then
 			self.damaged = nil
@@ -111,8 +115,8 @@ function AttackerBST:Update()
 	end
 	if self.active and self.needToMoveToTarget then
 		self.needToMoveToTarget = false
- 		self.unit:Internal():Move(self.target)
--- 		self.unit:Internal():AttackMove(self.target) --need to check this
+		--self.unit:Internal():Move(self.target)
+		self.unit:Internal():AttackMove(self.target) --need to check this
 
 	end
 end
@@ -174,14 +178,17 @@ function AttackerBST:SetMoveState()
 	local thisUnit = self.unit
 	if thisUnit then
 		local unitName = self.name
-		local floats = api.vectorFloat()
+		--local floats = api.vectorFloat()
 		if self.ai.armyhst.battles[unitName] then
-			floats:push_back(MOVESTATE_MANEUVER)
+			thisUnit:Internal():HoldPosition()
+			--floats:push_back(MOVESTATE_MANEUVER)
 		elseif self.ai.armyhst.breaks[unitName] then
-			floats:push_back(MOVESTATE_MANEUVER)
+			thisUnit:Internal():HoldPosition()
+			--floats:push_back(MOVESTATE_MANEUVER)
 		else
-			floats:push_back(MOVESTATE_HOLDPOS)
+			thisUnit:Internal():HoldPosition()
+			--floats:push_back(MOVESTATE_HOLDPOS)
 		end
-		thisUnit:Internal():ExecuteCustomCommand(CMD_MOVE_STATE, floats)
+		--thisUnit:Internal():ExecuteCustomCommand(CMD_MOVE_STATE, floats)
 	end
 end

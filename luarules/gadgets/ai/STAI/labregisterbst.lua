@@ -89,7 +89,7 @@ function LabRegisterBST:Register()
 	table.insert(self.ai.factoriesAtLevel[level], self)
 	if level > self.ai.maxFactoryLevel then
 		-- so that it will start producing combat units
-		self.ai.attackhst:NeedLess(nil, 2)
+-- 		self.ai.attackhst:NeedLess(nil, 2)
 		self.ai.bomberhst:NeedLess()
 -- 		self.ai.bomberhst:NeedLess() --TODO check why 2 time?
 -- 		self.ai.raidhst:NeedMore(nil, 2)

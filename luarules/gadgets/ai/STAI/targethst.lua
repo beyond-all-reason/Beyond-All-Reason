@@ -787,12 +787,6 @@ function TargetHST:Update()
 	if f == 0 or f % 71 == 0 then
 		self:UpdateMap()
 		self.map:EraseAll(4)
-		-- 		for x,t in pairs(self.cells) do
-		-- 			for z,cell in pairs(t) do
-		--
-		-- 				self.map:DrawCircle({x=x*256,y = Spring.GetGroundHeight(x*256,z*256),z=z*256},256, {1,1,1,1}, nil,true, 4)
-		-- 			end
-		-- 		end
 	end
 	if f == 0 or f % 1800 == 0 then
 		--if f > self.lastEnemyThreatUpdateFrame + 1800 or self.lastEnemyThreatUpdateFrame == 0 then TODO changed cause broked why??
@@ -847,7 +841,7 @@ function TargetHST:UpdateMap()
 		self:UpdateFronts(3)
 		self:UpdateDebug()
 		--self:UpdateWrecks()
--- 		self:UpdateMetalGeoSpots()
+		self:UpdateMetalGeoSpots()
 		self.lastUpdateFrame = self.game:Frame()
 		--game:SendToConsole("after target update", collectgarbage("count")/1024)
 		--collectgarbage()
@@ -990,7 +984,7 @@ function TargetHST:GetBestAttackCell(representative, position, ourThreat)
 	if mtype ~= "sub" and longrange then longrange = true end
 	local possibilities = {}
 	local highestDist = 0
-	local lowestDist = 100000
+	local lowestDist = math.huge
 	for i, cell in pairs(self.cellList) do
 		if cell.pos then
 			if self.ai.maphst:UnitCanGoHere(representative, cell.pos) or longrange then
@@ -1080,10 +1074,10 @@ function TargetHST:GetNearestAttackCell(representative, position, ourThreat)
 	end
 	if closestValuableCell then
 
-		self.map:DrawCircle(closestValuableCell.pos  ,100, {1,0,0,1}, i,true, 6)
+		self.map:DrawCircle(closestValuableCell.pos  ,100, {1,0,0,1}, 'cvc',true, 6)
 	end
 	if closestThreateningCell then
-		self.map:DrawCircle(closestThreateningCell.pos ,100, {0,0,1,1}, i,true, 6)
+		self.map:DrawCircle(closestThreateningCell.pos ,100, {0,0,1,1}, 'ctc',true, 6)
 	end
 
 	return closestValuableCell or closestThreateningCell

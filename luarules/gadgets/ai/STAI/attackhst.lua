@@ -12,7 +12,7 @@ local floor = math.floor
 local ceil = math.ceil
 
 function AttackHST:Init()
-	self.DebugEnabled = false
+	self.DebugEnabled = true
 	self.visualdbg = true
 	self.recruits = {}
 	self.count = {}
@@ -27,6 +27,8 @@ function AttackHST:Init()
 	self.minAttackCounter = 4
 	self.maxAttackCounter = 12
 	self.baseAttackCounter = 8
+	self.idleTimeMult = 45  --originally set to 3 * 30
+	self.squadID = 1
 end
 
 function AttackHST:Update()
@@ -35,22 +37,17 @@ function AttackHST:Update()
 		return
 	end
 	self:DraftSquads()
-	if not self.squads or #self.squads < 1 then
-		return
-	end
-
 	for index , squad in pairs(self.squads) do
 		self:visualDBG(squad)
 		if not squad.arrived and squad.idleTimeout and f >= squad.idleTimeout then
 			squad.arrived = true
 			squad.idleTimeout = nil
 		end
-
 		if squad.arrived then
 			squad.arrived = nil
 			if squad.pathStep < #squad.path - 1 then
-				local value = self.ai.targethst:ValueHere(squad.target, squad.members[1].name)
-				local threat = self.ai.targethst:ThreatHere(squad.target, squad.members[1].name)
+				local value = self.ai.targethst:ValueHere(squad.targetPos, squad.members[1].name)
+				local threat = self.ai.targethst:ThreatHere(squad.targetPos, squad.members[1].name)
 				if (value == 0 and threat == 0) or threat > squad.totalThreat * 0.67 then
 					self:SquadReTarget(squad) -- get a new target, this one isn't valuable
 				else
@@ -66,38 +63,36 @@ function AttackHST:Update()
 	local index = (self.lastSquadPathfind or 0) + 1
 	if index > #self.squads then index = 1 end
 	local squad = self.squads[index]
-	self:Warn(index,self.squads[index],#self.squads)
+	self:EchoDebug(index,self.squads[index],#self.squads)
 	self:SquadPathfind(squad, index)
 	self.lastSquadPathfind = index
 end
 
 function AttackHST:visualDBG(squad)
-
 	if not self.visualdbg  then
 		return
 	end
 	self.map:EraseAll(6)
+	for i,member in pairs(squad.members) do
+		member.unit:Internal():EraseHighlight(nil, nil, 6 )
+		member.unit:Internal():DrawHighlight(squad.colour ,nil , 6 )
+	end
 	if squad.path then
 		for i , p in pairs(squad.path) do
--- 			for ii,vv in pairs(p.position) do
--- 				print(ii,vv)
--- 			end
 			self.map:DrawPoint(p.position, squad.colour, i, 6)
 		end
 	end
-	if squad.target then
-		self.map:DrawPoint(squad.target, squad.colour, 'target ', 6)
+	if squad.targetPos then
+		self.map:DrawCircle(squad.targetPos,100, squad.colour, 'target ',true, 6)
 	end
-
-
 end
 
 function AttackHST:DraftSquads()
 	-- if self.ai.incomingThreat > 0 then game:SendToConsole(self.ai.incomingThreat .. " " .. (self.ai.tool:countMyUnit({'battles'}) + self.ai.tool:countMyUnit({'breaks'})) * 75) end
 	-- if self.ai.incomingThreat > (self.ai.tool:countMyUnit({'battles'}) + self.ai.tool:countMyUnit({'breaks'})) * 75 then
-		-- do not attack if we're in trouble
-		-- self:EchoDebug("not a good time to attack " .. tostring(self.ai.tool:countMyUnit({'battles'}) + self.ai.tool:countMyUnit({'breaks'})) .. " " .. self.ai.incomingThreat .. " > " .. tostring((self.ai.tool:countMyUnit({'battles'}) + self.ai.tool:countMyUnit({'breaks'}))*75))
-		-- return
+	-- do not attack if we're in trouble
+	-- self:EchoDebug("not a good time to attack " .. tostring(self.ai.tool:countMyUnit({'battles'}) + self.ai.tool:countMyUnit({'breaks'})) .. " " .. self.ai.incomingThreat .. " > " .. tostring((self.ai.tool:countMyUnit({'battles'}) + self.ai.tool:countMyUnit({'breaks'}))*75))
+	-- return
 	-- end
 	local needtarget = {}
 	local f = self.game:Frame()
@@ -109,19 +104,17 @@ function AttackHST:DraftSquads()
 			table.insert(needtarget, mtype)
 		end
 	end
-	for nothing, mtype in pairs(needtarget) do
+	for index, mtype in pairs(needtarget) do
 		-- prepare a squad
 		local squad = { members = {}, mtype = mtype }
 		local representative, representativeBehaviour
 		self:EchoDebug(mtype, #self.recruits[mtype], "recruits")
-		for _, attkbhvr in pairs(self.recruits[mtype]) do
-			if attkbhvr ~= nil then
-				if attkbhvr.unit ~= nil then
-					representativeBehaviour = representativeBehaviour or attkbhvr
-					representative = representative or attkbhvr.unit:Internal()
-					table.insert(squad.members, attkbhvr)
-					attkbhvr.squad = squad
-				end
+		for i, attkbhvr in pairs(self.recruits[mtype]) do
+			if attkbhvr and attkbhvr.unit then
+				representativeBehaviour = representativeBehaviour or attkbhvr
+				representative = representative or attkbhvr.unit:Internal()
+				table.insert(squad.members, attkbhvr)
+				attkbhvr.squad = squad
 			end
 		end
 		if representative ~= nil then
@@ -132,10 +125,11 @@ function AttackHST:DraftSquads()
 				self.potentialAttackCounted[mtype] = true
 			end
 			-- don't actually draft the squad unless there's something to attack
-			local bestCell = self.ai.targethst:GetNearestAttackCell(representative) or self.ai.targethst:GetBestAttackCell(representative)
+			local bestCell = self.ai.targethst:GetBestAttackCell(representative) or self.ai.targethst:GetNearestAttackCell(representative)
 			if bestCell ~= nil then
 				self:EchoDebug(mtype, "has target, recruiting squad...")
-				squad.target = bestCell.pos
+				squad.targetCell = bestCell
+				squad.targetPos = bestCell.pos
 				self:IDsWeAreAttacking(bestCell.buildingIDs, squad.mtype)
 				squad.buildingIDs = bestCell.buildingIDs
 				self.attackSent[mtype] = f
@@ -154,18 +148,17 @@ function AttackHST:DraftSquads()
 	end
 end
 
+
 function AttackHST:SquadReTarget(squad, squadIndex)
 	local f = self.game:Frame()
 	local representativeBehaviour
 	local representative
 	for iu, member in pairs(squad.members) do
-		if member ~= nil then
-			if member.unit ~= nil then
-				representativeBehaviour = member
-				representative = member.unit:Internal()
-				if representative ~= nil then
-					break
-				end
+		if member and member.unit then
+			representativeBehaviour = member
+			representative = member.unit:Internal()
+			if representative ~= nil then
+				break
 			end
 		end
 	end
@@ -181,18 +174,61 @@ function AttackHST:SquadReTarget(squad, squadIndex)
 			local step = math.min(squad.pathStep+1, #squad.path)
 			position = squad.path[step].position
 		end
-		local bestCell = self.ai.targethst:GetNearestAttackCell(representative, position, squad.totalThreat) or self.ai.targethst:GetBestAttackCell(representative, position, squad.totalThreat)
+		local bestCell =  self:targetCell(representative, position, squad.totalThreat) or self.ai.targethst:GetNearestAttackCell(representative, position, squad.totalThreat) or self.ai.targethst:GetBestAttackCell(representative, position, squad.totalThreat)
 		if bestCell then
-			squad.target = bestCell.pos
+			squad.targetPos = bestCell.pos
+			squad.targetCell = bestCell
+			self.attackSent[squad.mtype] = f
 			self:IDsWeAreAttacking(bestCell.buildingIDs, squad.mtype)
 			squad.buildingIDs = bestCell.buildingIDs
 			squad.reachedTarget = nil
+			self:SquadFormation(squad)
 			self:SquadNewPath(squad, representativeBehaviour)
 		else
 			self:EchoDebug("no target found on retarget")
 			self:SquadDisband(squad, squadIndex)
 		end
 	end
+end
+
+function AttackHST:targetCell(representative, position, ourThreat)
+	if not representative then return end
+	position = position or representative:GetPosition()
+	local aName = representative:Name()
+	local targets = {}
+	local maxdist = 0
+	for i, cell in pairs(self.ai.targethst.cellList) do
+		for squadIndex,squad in pairs(self.squads) do
+			if squad.targetCell == cell or not cell.pos then return end
+		end
+		if self.ai.maphst:UnitCanGoHere(representative, cell.pos) then
+			local value, threat = self.ai.targethst:CellValueThreat(aName, cell)
+
+			if value > 50 then
+				local dist = self.ai.tool:Distance(position, cell.pos)
+
+				local rank =  value - threat
+				maxdist = math.max(dist,maxdist)
+				table.insert(targets, { cell = cell, value = value, threat = threat, dist = dist ,rank = rank})
+				self.map:DrawCircle(cell.pos,100, {0,1,0,1}, value,true, 6)
+				self:EchoDebug('is possible attack',cell.pos.x,cell.pos.z,value,threat,dist,rank)
+			end
+		end
+
+	end
+	local TG = nil
+	local distancedtarget = 0
+	for i, target in pairs(targets) do
+		if (1 - (target.dist / maxdist)) * target.rank > distancedtarget then
+			TG = target
+			distancedtarget = (1 - (target.dist / maxdist)) * target.rank
+		end
+	end
+	if TG then
+		self.lastAttackCell = TG.cell
+		return TG.cell
+	end
+	self:Warn('notargetfoundforattackhst')
 end
 
 function AttackHST:SquadDisband(squad, squadIndex)
@@ -263,12 +299,9 @@ function AttackHST:SquadFormation(squad)
 end
 
 function AttackHST:SquadNewPath(squad, representativeBehaviour)
-	if not squad.target then return end
+	if not squad.targetPos then return end
 	representativeBehaviour = representativeBehaviour or squad.members[#squad.members]
 	local representative = representativeBehaviour.unit:Internal()
--- 	if self.DebugEnabled then
--- 		self.map:EraseLine(nil, nil, {1,1,0}, squad.mtype, nil, 8)
--- 	end
 	local startPos
 	if squad.pathStep then
 		local step = math.min(squad.pathStep+1, #squad.path)
@@ -276,7 +309,7 @@ function AttackHST:SquadNewPath(squad, representativeBehaviour)
 	elseif not squad.hasGottenPathOnce then
 		startPos = self.ai.frontPosition[representativeBehaviour.hits]
 		if startPos then
-			local angle = self.ai.tool:AnglePosPos(startPos, squad.target)
+			local angle = self.ai.tool:AnglePosPos(startPos, squad.targetPos)
 			startPos = self.ai.tool:RandomAway( startPos, 150, nil, angle)
 		else
 			startPos = representative:GetPosition()
@@ -288,16 +321,16 @@ function AttackHST:SquadNewPath(squad, representativeBehaviour)
 	local targetModFunc = self.ai.targethst:GetPathModifierFunc(representative:Name(), true)
 	local startHeight = Spring.GetGroundHeight(startPos.x, startPos.z)
 	squad.modifierFunc = function(node, distanceToGoal, distanceStartToGoal)
-		local hMod = math.max(0, Spring.GetGroundHeight(node.position.x, node.position.z) - startHeight) / 100
-		if distanceToGoal then
-			local dMod = math.min(1, (distanceToGoal - 500) / 500)
-			return targetModFunc(node, distanceToGoal, distanceStartToGoal) + (dMod * hMod)
-		else
-			return targetModFunc(node, distanceToGoal, distanceStartToGoal) + hMod
-		end
+	local hMod = math.max(0, Spring.GetGroundHeight(node.position.x, node.position.z) - startHeight) / 100
+	if distanceToGoal then
+		local dMod = math.min(1, (distanceToGoal - 500) / 500)
+		return targetModFunc(node, distanceToGoal, distanceStartToGoal) + (dMod * hMod)
+	else
+		return targetModFunc(node, distanceToGoal, distanceStartToGoal) + hMod
 	end
-	squad.graph = squad.graph or self.ai.maphst:GetPathGraph(squad.mtype)
-	squad.pathfinder = squad.graph:PathfinderPosPos(startPos, squad.target, nil, nil, nil, squad.modifierFunc)
+end
+squad.graph = squad.graph or self.ai.maphst:GetPathGraph(squad.mtype)
+squad.pathfinder = squad.graph:PathfinderPosPos(startPos, squad.targetPos, nil, nil, nil, squad.modifierFunc)
 end
 
 function AttackHST:SquadPathfind(squad, squadIndex)
@@ -312,17 +345,6 @@ function AttackHST:SquadPathfind(squad, squadIndex)
 		squad.pathfinder = nil
 		squad.hasGottenPathOnce = true
 		self:SquadAdvance(squad)
-		--[[
-		if self.DebugEnabled then
-			self.map:EraseLine(nil, nil, {1,1,0}, squad.mtype, nil, 8)
-			for i = 2, #path do
-				local pos1 = path[i-1].position
-				local pos2 = path[i].position
-				local arrow = i == #path
-				self.map:DrawLine(pos1, pos2, {1,1,0}, squad.mtype, arrow, 8)
-			end
-		end
-		]]
 	elseif remaining == 0 then
 		squad.pathfinder = nil
 		self:SquadReTarget(squad, squadIndex)
@@ -349,6 +371,10 @@ function AttackHST:SquadAdvance(squad)
 		self:SquadReTarget(squad)
 		return
 	end
+	if math.random() > 0.5 then
+		self:SquadReTarget(squad)
+		return
+	end
 	if squad.hasMovedOnce then
 		self:EchoDebug('advance hasmovedonce')
 		squad.pathStep = squad.pathStep + 1
@@ -359,7 +385,7 @@ function AttackHST:SquadAdvance(squad)
 	local nextAngle
 	if squad.pathStep == #squad.path then
 		self:EchoDebug('advance nextangle')
-		nextPos = squad.target
+		nextPos = squad.targetPos
 		nextAngle = self.ai.tool:AnglePosPos(squad.path[squad.pathStep-1].position, nextPos)
 	else
 		self:EchoDebug('nextposanglepospos')
@@ -371,14 +397,11 @@ function AttackHST:SquadAdvance(squad)
 	squad.lastValidMove = nextPos -- attackers use this to correct bad move orders
 	self:EchoDebug('advance before attackers members move')
 	self:EchoDebug('advance #members',#members)
-	for i = #members, 1, -1 do
-
-		local member = members[i]
+	for i,member in pairs(members) do
 		local pos = nextPos
 		if member.formationBack and squad.pathStep ~= #squad.path then
 			pos = self.ai.tool:RandomAway( nextPos, -member.formationBack, nil, nextAngle)
 		end
-
 		local reverseAttackAngle
 		if squad.pathStep == #squad.path then
 			reverseAttackAngle = self.ai.tool:AngleAdd(nextAngle, pi)
@@ -390,79 +413,11 @@ function AttackHST:SquadAdvance(squad)
 	if squad.hasMovedOnce then
 		self:EchoDebug('advance hasmovedonce 2')
 		local distToNext = self.ai.tool:Distance(squad.path[squad.pathStep-1].position, nextPos)
-		squad.idleTimeout = self.game:Frame() + (2 * 30 * (distToNext / squad.lowestSpeed))
+		squad.idleTimeout = self.game:Frame() + (self.idleTimeMult * (distToNext / squad.lowestSpeed))
 	end
 	squad.hasMovedOnce = true
 end
 
-function AttackHST:GetBestAttackCell(representative, position, ourThreat)
-	if not representative then return end
-	position = position or representative:GetPosition()
-	--self:UpdateMap()
-	local bestValueCell
-	local bestValue = -999999
-	local bestAnyValueCell
-	local bestAnyValue = -999999
-	local bestThreatCell
-	local bestThreat = 0
-	local name = representative:Name()
-	local longrange = self.ai.armyhst.unitTable[name].groundRange > 1000
-	local mtype = self.ai.armyhst.unitTable[name].mtype
-	ourThreat = ourThreat or self.ai.armyhst.unitTable[name].metalCost * self.ai.attackhst:GetCounter(mtype)
-	if mtype ~= "sub" and longrange then longrange = true end
-	local possibilities = {}
-	local highestDist = 0
-	local lowestDist = 100000
-	for i, cell in pairs(self.cellList) do
-		if cell.pos then
-			if self.ai.maphst:UnitCanGoHere(representative, cell.pos) or longrange then
-				local value, threat = self:CellValueThreat(name, cell)
-				local dist = self.ai.tool:Distance(position, cell.pos)
-				if dist > highestDist then highestDist = dist end
-				if dist < lowestDist then lowestDist = dist end
-				table.insert(possibilities, { cell = cell, value = value, threat = threat, dist = dist })
-			end
-		end
-	end
-	local distRange = highestDist - lowestDist
-	for i, pb in pairs(possibilities) do
-		local fraction = 1.5 - ((pb.dist - lowestDist) / distRange)
-		local value = pb.value * fraction
-		local threat = pb.threat * fraction
-		if pb.value > 750 then
-			value = value - (threat * 0.5)
-			if value > bestValue then
-				bestValueCell = pb.cell
-				bestValue = value
-			end
-		elseif pb.value > 0 then
-			value = value - (threat * 0.5)
-			if value > bestAnyValue then
-				bestAnyValueCell = pb.cell
-				bestAnyValue = value
-			end
-		else
-			if threat > bestThreat then
-				bestThreatCell = pb.cell
-				bestThreat = threat
-			end
-		end
-	end
-	local best
-	if bestValueCell then
-		best = bestValueCell
-	elseif self.enemyBaseCell then
-		best = self.enemyBaseCell
-	elseif bestAnyValueCell then
-		best = bestAnyValueCell
-	elseif bestThreatCell then
-		best = bestThreatCell
-	elseif self.lastAttackCell then
-		best = self.lastAttackCell
-	end
-	self.lastAttackCell = best
-	return best
-end
 
 function AttackHST:IDsWeAreAttacking(unitIDs, mtype)
 	for i, unitID in pairs(unitIDs) do
@@ -478,7 +433,6 @@ end
 
 function AttackHST:TargetDied(mtype)
 	self:EchoDebug("target died")
-	self:NeedLess(mtype, 0.75)
 end
 
 function AttackHST:RemoveMember(attkbhvr)
@@ -548,28 +502,6 @@ function AttackHST:RemoveRecruit(attkbhvr)
 	return false
 end
 
-function AttackHST:NeedMore(attkbhvr)
-	local mtype = attkbhvr.mtype
-	local level = attkbhvr.level
-	self.counter[mtype] = math.min(self.maxAttackCounter, self.counter[mtype] + (level * 0.7) )
-	self:EchoDebug(mtype .. " more attack counter: " .. self.counter[mtype])
-end
-
-function AttackHST:NeedLess(mtype, subtract)
-	if subtract == nil then subtract = 0.1 end
-	if mtype == nil then
-		for mtype, count in pairs(self.counter) do
-			if self.counter[mtype] == nil then self.counter[mtype] = self.baseAttackCounter end
-			self.counter[mtype] = math.max(self.counter[mtype] - subtract, self.minAttackCounter)
-			self:EchoDebug(mtype .. " less attack counter: " .. self.counter[mtype])
-		end
-	else
-		if self.counter[mtype] == nil then self.counter[mtype] = self.baseAttackCounter end
-		self.counter[mtype] = math.max(self.counter[mtype] - subtract, self.minAttackCounter)
-		self:EchoDebug(mtype .. " attack counter: " .. self.counter[mtype])
-	end
-end
-
 function AttackHST:GetCounter(mtype)
 	if mtype == nil then
 		local highestCounter = 0
@@ -584,3 +516,9 @@ function AttackHST:GetCounter(mtype)
 		return self.counter[mtype]
 	end
 end
+
+--[[
+
+
+
+]]

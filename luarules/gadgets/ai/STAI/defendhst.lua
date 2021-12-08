@@ -436,12 +436,12 @@ end
 function DefendHST:RemoveDefender(dfndbehaviour)
 	-- Spring.Echo(self.ai.id, "remove defender", dfndbehaviour.hits, dfndbehaviour.mtype, self.defenders[dfndbehaviour.hits])
 	if dfndbehaviour.tough or dfndbehaviour.hits == "air" then
-		print('defendersdebug',self.defenders)
-		print(#self.defenders)
-		print(self.defenders[dfndbehaviour.hits])
-		print(#self.defenders[dfndbehaviour.hits])
-		print(self.defenders[dfndbehaviour.hits][dfndbehaviour.mtype])
-		print(#self.defenders[dfndbehaviour.hits][dfndbehaviour.mtype])
+-- 		print('defendersdebug',self.defenders)
+-- 		print(#self.defenders)
+-- 		print(self.defenders[dfndbehaviour.hits])
+-- 		print(#self.defenders[dfndbehaviour.hits])
+-- 		print(self.defenders[dfndbehaviour.hits][dfndbehaviour.mtype])
+-- 		print(#self.defenders[dfndbehaviour.hits][dfndbehaviour.mtype])
 
 		self:EchoDebug(self.defenders,#self.defenders,#self.defenders[dfndbehaviour.hits],#self.defenders[dfndbehaviour.hits][dfndbehaviour.mtype])
 		for i = #self.defenders[dfndbehaviour.hits][dfndbehaviour.mtype], 1, -1 do
