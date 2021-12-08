@@ -138,7 +138,7 @@ return {
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.4,
-				explosiongenerator = "custom:genericshellexplosion-medium-bomb",
+				explosiongenerator = "custom:genericshellexplosion-medium-aoe",
 				gravityaffected = "true",
 				impulseboost = 0.123,
 				impulsefactor = 0.5,

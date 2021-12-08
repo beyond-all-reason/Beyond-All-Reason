@@ -547,7 +547,7 @@ local definitions = {
       },
     },
     outerflash = {
-      air                = true,
+      air                = false,
       class              = [[CHeatCloudProjectile]],
       count              = 1,
       ground             = true,
@@ -1170,7 +1170,7 @@ local definitions = {
       },
     },
     bigsmoketrails = {
-      air                = true,
+      air                = false,
       class              = [[CBitmapMuzzleFlame]],
       count              = 0,
       ground             = true,
@@ -1774,25 +1774,25 @@ local definitions = {
     --},
 
     bigsmoketrails = {
-      air                = true,
+      air                = false,
       class              = [[CBitmapMuzzleFlame]],
-      count              = 1,
+      count              = 2,
       ground             = true,
       underwater         = 0,
       water              = true,
       properties = {
         colormap           = [[0.95 0.68 0.28 0.92    0.93 0.65 0.27 0.71   0.07 0.05 0.05 0.63   0.07 0.05 0.05 0.30    0.05 0.04 0.04 0.24   0.03 0.03 0.03 0.16   0.025 0.025 0.025 0.09   0.02 0.02 0.02 0.07   0 0 0 0.01]],
-        dir                = [[-0.7 r1.4, 0.2 r0.8, 0 r-0.7]],
+        dir                = [[-0.7 r1.4, 0.2 r0.8, -0.7 r1.4]],
         --gravity            = [[0.0, 0.1, 0.0]],
         frontoffset        = 0.05,
         fronttexture       = [[none]],
-        length             = [[20 r10]],
+        length             = [[16 r10]],
         sidetexture        = [[flamestream]],
         size               = [[13 r7]],
-        sizegrowth         = 1,
+        sizegrowth         = 1.5,
         ttl                = [[25 r2]],
         rotParams          = [[-24 r48, -10 r20, 0 r90]],
-        pos                = [[-7 r14, -2 r6, -7 r14]],
+        pos                = [[-7 r14, -4 r6, -7 r14]],
         drawOrder          = 0,
       },
     },
@@ -2439,7 +2439,7 @@ watersparks = {
     },
 
     bigsmoketrails = {
-      air                = true,
+      air                = false,
       class              = [[CBitmapMuzzleFlame]],
       count              = 2,
       ground             = true,
@@ -2453,9 +2453,9 @@ watersparks = {
         fronttexture       = [[none]],
         length             = [[47 r14]],
         sidetexture        = [[flamestream]],
-        size               = [[36 r12]],
+        size               = [[36 r11]],
         sizegrowth         = 1.1,
-        ttl                = [[26 r3]],
+        ttl                = [[24 r3]],
         rotParams          = [[-24 r48, -10 r20, 0 r90]],
         pos                = [[-10 r20, 0 r12, -10 r20]],
         drawOrder          = 0,
@@ -2935,7 +2935,7 @@ watersparks = {
       },
     },
     bigsmoketrails = {
-      air                = true,
+      air                = false,
       class              = [[CBitmapMuzzleFlame]],
       count              = 2,
       ground             = true,
@@ -3504,9 +3504,9 @@ watersparks = {
       },
     },
     bigsmoketrails = {
-      air                = true,
+      air                = false,
       class              = [[CBitmapMuzzleFlame]],
-      count              = 5,
+      count              = 4,
       ground             = true,
       underwater         = 0,
       water              = true,
@@ -3516,13 +3516,13 @@ watersparks = {
         --gravity            = [[0.0, 0.1, 0.0]],
         frontoffset        = 0.05,
         fronttexture       = [[none]],
-        length             = [[70 r40]],
+        length             = [[79 r30]],
         sidetexture        = [[flamestream]],
         size               = [[32 r20]],
         sizegrowth         = 1,
         ttl                = [[41 r6]],
         rotParams          = [[-24 r48, -10 r20, 0 r90]],
-        pos                = [[-20 r40, 0 r20, -20 r40]],
+        pos                = [[-20 r40, -18 r20, -20 r40]],
         drawOrder          = 0,
       },
     },
@@ -3789,6 +3789,19 @@ for size, e in pairs(sizes) do
     --  definitions[defname].grounddust.properties.numparticles = math.ceil(definitions[defname].grounddust.properties.numparticles / 5)
     --end
 end
+
+definitions['genericshellexplosion-medium-aoe'] = table.copy(definitions[root.."-medium"])
+definitions['genericshellexplosion-medium-aoe'].dustparticles.properties.numparticles = 10
+definitions['genericshellexplosion-medium-aoe'].shockwave.count = 1
+definitions['genericshellexplosion-medium-aoe'].dirtrush.count = 1
+definitions['genericshellexplosion-medium-aoe'].bigsmoketrails.count = 4
+definitions['genericshellexplosion-medium-aoe'].bigsmoketrails.properties.ttl = [[28 r3]]
+definitions['genericshellexplosion-medium-aoe'].bigsmoketrails.properties.length = [[28 r5]]
+definitions['genericshellexplosion-medium-aoe'].explosion.properties.colormap = [[0 0 0 0   1 0.62 0.38 0.09   0.7 0.27 0.1 0.066   0.5 0.15 0.025 0.033   0 0 0 0]]
+definitions['genericshellexplosion-medium-aoe'].explosion2.properties.colormap = [[0 0 0 0   1 0.32 0.18 0.09   0.7 0.17 0.05 0.066   0.3 0.08 0.015 0.033   0 0 0 0]]
+
+definitions['genericshellexplosion-small-t2'] = table.copy(definitions[root.."-small"])
+definitions['genericshellexplosion-small-t2'].explosion.properties.particlesize = 8
 
 definitions['antinukeexplosion'] = table.copy(definitions[root.."-large"])
 
