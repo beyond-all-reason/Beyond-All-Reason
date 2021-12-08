@@ -37,7 +37,7 @@ return {
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turnrate = 500, --663,
-		waterline = 1,
+		waterline = 0.7,
 		customparams = {
 			unitgroup = 'weapon',
 			model_author = "Flaka",

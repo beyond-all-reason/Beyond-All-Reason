@@ -3,9 +3,10 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, bturret, bsleeve, blbarrel, brbarrel, fturret, fsleeve, flbarrel, frbarrel, fin, blflare, brflare, flflare, frflare, wake1, wake2;
+piece  base, bturret, bsleeve, blbarrel, brbarrel, fturret, fsleeve, flbarrel, frbarrel, fin, blflare, brflare, flflare, frflare, wake1;
 
-static-var  gun_1, gun_2, restore_delay;
+static-var  gun_1, gun_2, restore_delay, oldheading;
+
 
 // Signal definitions
 #define SIG_AIM				2
@@ -42,10 +43,25 @@ RockOnWaves()
 	}
 }
 
+Steering(heading, steery, currentspeed)
+{
+	signal SIG_MOVE;
+	set-signal-mask SIG_MOVE;
+	while(1)
+	{
+		heading = get HEADING;
+		steery = (heading - oldheading)*3;
+		turn fin to y-axis steery speed <60>;
+		sleep 100;
+		oldheading = heading;
+	}
+}
+
+
+
 Create()
 {
 	hide wake1;
-	hide wake2;
 	hide flflare;
 	hide frflare;
 	hide blflare;
@@ -94,6 +110,7 @@ StartMoving()
 {
 	signal SIG_MOVE;
 	set-signal-mask SIG_MOVE;
+	start-script Steering();
 	var waketime;
 	while( TRUE )
 	{
@@ -104,10 +121,21 @@ StartMoving()
 	}
 }
 
+boatposition(speed, maxspeed)
+{
+	speed = (get CURRENT_SPEED);
+	maxspeed = (get MAX_SPEED);
+	speed = speed * 100 /maxspeed;
+	if (speed > 50) turn base to x-axis <45> speed <30>;
+	if (speed < 50) turn base to x-axis <0> speed <30>;
+}
+
+
 StopMoving()
 {
 	signal SIG_MOVE;
 	return (0);
+	
 }
 
 AimPrimary(heading, pitch)
