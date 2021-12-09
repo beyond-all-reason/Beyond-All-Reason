@@ -97,6 +97,7 @@ local generateParameters = function(tier)
 			objectName = objectName,
 			script = script,
 			i18nFromUnit = 'lootboxnano_t1',
+			explodeas = "lootboxExplosion1",
 		},
 
 		[tiers.T2] = {
@@ -109,6 +110,7 @@ local generateParameters = function(tier)
 			objectName = objectName,
 			script = script,
 			i18nFromUnit = 'lootboxnano_t2',
+			explodeas = "lootboxExplosion2",
 		},
 
 		[tiers.T3] = {
@@ -121,6 +123,7 @@ local generateParameters = function(tier)
 			objectName = objectName,
 			script = script,
 			i18nFromUnit = 'lootboxnano_t3',
+			explodeas = "lootboxExplosion3",
 		},
 
 		[tiers.T4] = {
@@ -133,6 +136,7 @@ local generateParameters = function(tier)
 			objectName = objectName,
 			script = script,
 			i18nFromUnit = 'lootboxnano_t4',
+			explodeas = "lootboxExplosion4",
 		},
 	}
 	return parameters[tier]
@@ -171,7 +175,7 @@ local createNanoUnitDef = function(tier)
 		collisionvolumetype = "CylY",
 		description = Spring.I18N('units.descriptions.lootboxnano_t1'),
 		energyuse = 0,
-		explodeas = "lootboxExplosion4",
+		explodeas = parameters.explodeas,
 		footprintx = parameters.footprintx,
 		footprintz = parameters.footprintz,
 		--floater = true,
@@ -188,7 +192,7 @@ local createNanoUnitDef = function(tier)
 		objectname = parameters.objectName,
 		script = parameters.script,
 		seismicsignature = 0,
-		selfdestructas = "lootboxExplosion4",
+		selfdestructas = parameters.explodeas,
 		sightdistance = 750,
 		terraformspeed = 1000 * parameters.sizeMultiplier,
 		turnrate = 1,

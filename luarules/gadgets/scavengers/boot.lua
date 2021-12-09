@@ -275,7 +275,7 @@ function gadget:GameFrame(n)
 		end
 		local scavUnits = Spring.GetTeamUnits(GaiaTeamID)
 		local scavUnitsCount = #scavUnits
-		if scavUnitsCount < (unitSpawnerModuleConfig.minimumspawnbeacons*4) and scavengerGamePhase ~= "initial" then 
+		if scavUnitsCount < (unitSpawnerModuleConfig.minimumspawnbeacons*4) and n > scavconfig.gracePeriod*3 then 
 			killedscavengers = killedscavengers + 1000
 			if BossWaveStarted and (BossWaveTimeLeft and BossWaveTimeLeft > 20) then
 				BossWaveTimeLeft = 20
@@ -923,9 +923,9 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 			UnitSuffixLenght[unitID] = 0
 		end
 
-		if staticUnitList.WallsID[unitDefID] then
-			Spring.SetUnitNeutral(unitID, false)
-		end
+		-- if staticUnitList.WallsID[unitDefID] then
+		-- 	Spring.SetUnitNeutral(unitID, false)
+		-- end
 
 		Spring.GiveOrderToUnit(unitID,37382,{1},0)
 		-- Fire At Will
