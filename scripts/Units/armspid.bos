@@ -11,10 +11,23 @@
 
 piece	flare, base, turret, barrel, leg1a, leg1b, leg2a, leg2b, leg3a, leg3b, leg4a, leg4b, leg5a, leg5b, leg6a, leg6b, aimy1;
 
-static-var fire_count, firing, open, maxreloadtime, restore_delay, wpn1_lasthead, animSpeed, maxSpeed, animFramesPerKeyframe, bMoving;
+static-var Static_Var_1, fire_count, statechg_DesiredState, statechg_StateChanging, firing, notBuilding, open, maxreloadtime, restore_delay, wpn1_lasthead, animSpeed, maxSpeed, animFramesPerKeyframe, bMoving;
+
+Activatescr()
+{
+	sleep 1;
+	return (0);
+}
+
+Deactivatescr()
+{
+	sleep 1;
+	return (0);
+}
 
 #define SIG_AIM 2
 #define SIG_FIRE1 4
+#define SIG_BUILD	5
 #define SIG_WALK 8
 #define SMOKEPIECE1 body
 
@@ -446,13 +459,11 @@ UnitSpeed(){
 }
 StartMoving(){
 	signal SIG_WALK;
-  set-signal-mask SIG_WALK;
 	bMoving=TRUE;
 	start-script Walk();
-	start-script UnitSpeed();
 }
 StopMoving(){
-	signal SIG_WALK;
+	\signal SIG_WALK;
 	bMoving=FALSE;
 	call-script StopWalking();
 }
@@ -489,6 +500,7 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 	{
 		sleep 400;
 	}
+	start-script UnitSpeed();
 	while( TRUE )
 	{
 		healthpercent = get HEALTH;
@@ -510,12 +522,62 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 	}
 }
 
+Go()
+{
+	call-script Activatescr();
+	turn turret to y-axis Static_Var_1 speed <100.000000>;
+	wait-for-turn turret around y-axis;
+	set INBUILDSTANCE to 1;
+	return (0);
+}
+
+Stop()
+{
+	set INBUILDSTANCE to 0;
+	call-script Deactivatescr();
+	return (0);
+}
+
+InitState()
+{
+	statechg_DesiredState = TRUE;
+	statechg_StateChanging = FALSE;
+	return (0);
+}
+
+RequestState(requestedstate, currentstate)
+{
+	if( statechg_StateChanging )
+	{
+		statechg_DesiredState = requestedstate;
+		return (0);
+	}
+	statechg_StateChanging = TRUE;
+	currentstate = statechg_DesiredState;
+	statechg_DesiredState = requestedstate;
+	while( statechg_DesiredState != currentstate )
+	{
+		if( statechg_DesiredState )
+		{
+			call-script Stop();
+			notBuilding = 1;
+			currentstate = 1;
+		}
+		else
+		{
+			call-script Go();
+			notBuilding = 0;
+			currentstate = 0;
+		}
+	}
+	statechg_StateChanging = FALSE;
+}
 
 Create()
 {
+	call-script InitState();
 	hide flare;
-	hide aimy1;
-	hide flare;
+	notBuilding = 1;
 	fire_count=4;
 	animSpeed = 3;
 	maxreloadtime=0;
@@ -547,8 +609,24 @@ FirePrimary()
 	return(1);
 }
 
+StartBuilding(heading, pitch)
+{
+	start-script RequestState(0);
+	while( notBuilding ) sleep 100;
+	signal SIG_BUILD;
+	turn turret to y-axis heading speed <100.000000>;
+	wait-for-turn turret around y-axis;
+	set INBUILDSTANCE to 1;
+}
 
-
+StopBuilding()
+{
+	signal SIG_BUILD;	
+	set-signal-mask SIG_BUILD;
+	sleep 1000;
+	set-signal-mask 0;
+	signal SIG_BUILD;	
+}
 
 
 SweetSpot(piecenum)
@@ -556,6 +634,11 @@ SweetSpot(piecenum)
 	piecenum = turret;
 }
 
+
+QueryNanoPiece(piecenum)
+{
+	piecenum=flare;
+}
 
 static-var  Stunned;
 ExecuteRestoreAfterDelay()
@@ -583,6 +666,18 @@ RestoreAfterDelay()
 	set-signal-mask SIG_AIM;
 	sleep restore_delay;
 	start-script ExecuteRestoreAfterDelay();
+}
+
+Activate()
+{
+	start-script RequestState(0);
+	return (0);
+}
+
+Deactivate()
+{
+	start-script RequestState(1);
+	return (0);
 }
 
 AimPrimary(heading, pitch)

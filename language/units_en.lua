@@ -728,7 +728,7 @@ return {
 				armsnipe = "Sniper Bot",
 				armsolar = "Produces 20 Energy",
 				armsonar = "Locates Water Units",
-				armspid = "All-Terrain EMP Spider",
+				armspid = "All-Terrain EMP and Reclaiming Spider",
 				armsptk = "All-Terrain Rocket Spider",
 				armsptkt4 = "Recluse, but bigger.",
 				armspy = "Radar-Invisible Spy Bot",
