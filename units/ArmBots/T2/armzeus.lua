@@ -160,7 +160,7 @@ return {
 				},
 				damage = {
 					bombers = 6,
-					default = 20,
+					default = 22,
 					fighters = 6,
 					vtol = 6,
 				},
