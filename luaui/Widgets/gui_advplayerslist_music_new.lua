@@ -20,6 +20,9 @@ local currentTrack
 local peaceTracksPlayCounter, warhighTracksPlayCounter, warlowTracksPlayCounter, gameoverTracksPlayCounter
 local fadeOutCurrentTrack = false
 
+local interruptionEnabled
+local silenceTimerEnabled
+
 local function ReloadMusicPlaylists()
 	---------------------------------COLLECT MUSIC------------------------------------
 
@@ -46,8 +49,8 @@ local function ReloadMusicPlaylists()
 
 	-----------------------------------SETTINGS---------------------------------------
 	
-	local interruptionEnabled = Spring.GetConfigInt('UseSoundtrackInterruption', 1) == 1
-	local silenceTimerEnabled = Spring.GetConfigInt('UseSoundtrackSilenceTimer', 1) == 1
+	interruptionEnabled = Spring.GetConfigInt('UseSoundtrackInterruption', 1) == 1
+	silenceTimerEnabled = Spring.GetConfigInt('UseSoundtrackSilenceTimer', 1) == 1
 	local newSoundtrackEnabled = Spring.GetConfigInt('UseSoundtrackNew', 1) == 1
 	local oldSoundtrackEnabled 	= Spring.GetConfigInt('UseSoundtrackOld', 0) == 1
 	local customSoundtrackEnabled	= Spring.GetConfigInt('UseSoundtrackCustom', 1) == 1
