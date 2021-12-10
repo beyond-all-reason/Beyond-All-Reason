@@ -547,7 +547,7 @@ local definitions = {
       },
     },
     outerflash = {
-      air                = true,
+      air                = false,
       class              = [[CHeatCloudProjectile]],
       count              = 1,
       ground             = true,
@@ -563,6 +563,29 @@ local definitions = {
         speed              = [[0, 1 0, 0]],
         texture            = [[orangenovaexplo]],
         drawOrder          = 1,
+      },
+    },
+    bigsmoketrails = {
+      air                = true,
+      class              = [[CBitmapMuzzleFlame]],
+      count              = 0,
+      ground             = true,
+      underwater         = 0,
+      water              = true,
+      properties = {
+        colormap           = [[0.95 0.68 0.28 0.92    0.93 0.65 0.27 0.71   0.07 0.05 0.05 0.63   0.07 0.05 0.05 0.30    0.05 0.04 0.04 0.24   0.03 0.03 0.03 0.16   0.025 0.025 0.025 0.09   0.02 0.02 0.02 0.07   0 0 0 0.01]],
+        dir                = [[-0.6 r1.2, 0.5 r0.40, 0 r-0.6]],
+        --gravity            = [[0.0, 0.1, 0.0]],
+        frontoffset        = 0.05,
+        fronttexture       = [[none]],
+        length             = [[30 r16]],
+        sidetexture        = [[flamestream]],
+        size               = [[16 r14]],
+        sizegrowth         = 1,
+        ttl                = [[28 r3]],
+        rotParams          = [[-24 r48, -10 r20, 0 r90]],
+        pos                = [[-10 r20, -10 r12, -10 r20]],
+        drawOrder          = 0,
       },
     },
 
@@ -1146,6 +1169,29 @@ local definitions = {
         texture            = [[orangenovaexplo]],
       },
     },
+    bigsmoketrails = {
+      air                = false,
+      class              = [[CBitmapMuzzleFlame]],
+      count              = 0,
+      ground             = true,
+      underwater         = 0,
+      water              = true,
+      properties = {
+        colormap           = [[0.95 0.68 0.28 0.92    0.93 0.65 0.27 0.71   0.07 0.05 0.05 0.63   0.07 0.05 0.05 0.30    0.05 0.04 0.04 0.24   0.03 0.03 0.03 0.16   0.025 0.025 0.025 0.09   0.02 0.02 0.02 0.07   0 0 0 0.01]],
+        dir                = [[-0.6 r1.2, 0.5 r0.40, 0 r-0.6]],
+        --gravity            = [[0.0, 0.1, 0.0]],
+        frontoffset        = 0.05,
+        fronttexture       = [[none]],
+        length             = [[30 r16]],
+        sidetexture        = [[flamestream]],
+        size               = [[16 r14]],
+        sizegrowth         = 1,
+        ttl                = [[28 r3]],
+        rotParams          = [[-24 r48, -10 r20, 0 r90]],
+        pos                = [[-10 r20, -10 r12, -10 r20]],
+        drawOrder          = 0,
+      },
+    },
 
   },
 
@@ -1301,7 +1347,7 @@ local definitions = {
         emitrotspread      = 32,
         emitvector         = [[0.5, 1, 0.5]],
         gravity            = [[0, -0.011, 0]],
-        numparticles       = 3,
+        numparticles       = 2,
         particlelife       = 4,
         particlelifespread = 2,
         particlesize       = 4,
@@ -1506,7 +1552,7 @@ local definitions = {
         emitrotspread      = 33,
         emitvector         = [[0, 1, 0]],
         gravity            = [[0, -0.3, 0]],
-        numparticles       = 6,
+        numparticles       = 5,
         particlelife       = 19,
         particlelifespread = 5,
         particlesize       = 1.5,
@@ -1566,7 +1612,7 @@ local definitions = {
         emitrotspread      = 30,
         emitvector         = [[0, 1, 0]],
         gravity            = [[0, -0.3, 0]],
-        numparticles       = [[1 r1.6]],
+        numparticles       = 1,
         particlelife       = 32,
         particlelifespread = 0,
         particlesize       = 1.6,
@@ -1595,7 +1641,7 @@ local definitions = {
         emitrotspread      = 30,
         emitvector         = [[0, 1, 0]],
         gravity            = [[0, -0.3, 0]],
-        numparticles       = [[1 r1.6]],
+        numparticles       = 1,
         particlelife       = 32,
         particlelifespread = 0,
         particlesize       = 1.8,
@@ -1624,7 +1670,7 @@ local definitions = {
         emitrotspread      = 30,
         emitvector         = [[0, 1, 0]],
         gravity            = [[0, -0.3, 0]],
-        numparticles       = [[1 r1.4]],
+        numparticles       = 1,
         particlelife       = 32,
         particlelifespread = 0,
         particlesize       = 1.8,
@@ -1726,6 +1772,30 @@ local definitions = {
     --    texture            = [[bigexplosmoke]],
     --  },
     --},
+
+    bigsmoketrails = {
+      air                = false,
+      class              = [[CBitmapMuzzleFlame]],
+      count              = 2,
+      ground             = true,
+      underwater         = 0,
+      water              = true,
+      properties = {
+        colormap           = [[0.95 0.68 0.28 0.92    0.93 0.65 0.27 0.71   0.07 0.05 0.05 0.63   0.07 0.05 0.05 0.30    0.05 0.04 0.04 0.24   0.03 0.03 0.03 0.16   0.025 0.025 0.025 0.09   0.02 0.02 0.02 0.07   0 0 0 0.01]],
+        dir                = [[-0.7 r1.4, 0.2 r0.8, -0.7 r1.4]],
+        --gravity            = [[0.0, 0.1, 0.0]],
+        frontoffset        = 0.05,
+        fronttexture       = [[none]],
+        length             = [[16 r10]],
+        sidetexture        = [[flamestream]],
+        size               = [[13 r7]],
+        sizegrowth         = 1.5,
+        ttl                = [[25 r2]],
+        rotParams          = [[-24 r48, -10 r20, 0 r90]],
+        pos                = [[-7 r14, -4 r6, -7 r14]],
+        drawOrder          = 0,
+      },
+    },
 
     outerflash = {
       air                = true,
@@ -1876,7 +1946,7 @@ local definitions = {
         emitrotspread      = 32,
         emitvector         = [[0.5, 1, 0.5]],
         gravity            = [[0, -0.011, 0]],
-        numparticles       = 4,
+        numparticles       = 3,
         particlelife       = 7.6,
         particlelifespread = 6.5,
         particlesize       = 4.5,
@@ -2103,7 +2173,7 @@ watersparks = {
         emitrotspread      = 36,
         emitvector         = [[0, 1, 0]],
         gravity            = [[0, -0.33, 0]],
-        numparticles       = 9,
+        numparticles       = 8,
         particlelife       = 26,
         particlelifespread = 5,
         particlesize       = 1.75,
@@ -2165,7 +2235,7 @@ watersparks = {
         emitrotspread      = 30,
         emitvector         = [[0, 1, 0]],
         gravity            = [[0, -0.3, 0]],
-        numparticles       = [[1 r2]],
+        numparticles       = 1,
         particlelife       = 36,
         particlelifespread = 0,
         particlesize       = 1.9,
@@ -2194,7 +2264,7 @@ watersparks = {
         emitrotspread      = 30,
         emitvector         = [[0, 1, 0]],
         gravity            = [[0, -0.3, 0]],
-        numparticles       = [[1 r2]],
+        numparticles       = 2,
         particlelife       = 36,
         particlelifespread = 0,
         particlesize       = 2,
@@ -2222,7 +2292,7 @@ watersparks = {
         emitrotspread      = 30,
         emitvector         = [[0, 1, 0]],
         gravity            = [[0, -0.3, 0]],
-        numparticles       = [[1 r1.5]],
+        numparticles       = 1,
         particlelife       = 36,
         particlelifespread = 0,
         particlesize       = 2,
@@ -2367,6 +2437,30 @@ watersparks = {
         texture            = [[orangenovaexplo]],
       },
     },
+
+    bigsmoketrails = {
+      air                = false,
+      class              = [[CBitmapMuzzleFlame]],
+      count              = 2,
+      ground             = true,
+      underwater         = 0,
+      water              = true,
+      properties = {
+        colormap           = [[0.94 0.64 0.27 0.86    0.93 0.62 0.25 0.65   0.07 0.05 0.05 0.61   0.07 0.05 0.05 0.30    0.05 0.04 0.04 0.24   0.03 0.03 0.03 0.16   0.025 0.025 0.025 0.09   0.02 0.02 0.02 0.07   0 0 0 0.01]],
+        dir                = [[-0.6 r1.2, 0.5 r0.40, 0 r-0.6]],
+        --gravity            = [[0.0, 0.1, 0.0]],
+        frontoffset        = 0.05,
+        fronttexture       = [[none]],
+        length             = [[47 r14]],
+        sidetexture        = [[flamestream]],
+        size               = [[36 r11]],
+        sizegrowth         = 1.1,
+        ttl                = [[24 r3]],
+        rotParams          = [[-24 r48, -10 r20, 0 r90]],
+        pos                = [[-10 r20, 0 r12, -10 r20]],
+        drawOrder          = 0,
+      },
+    },
     --kickedupwater = {
     --  class              = [[CSimpleParticleSystem]],
     --  count              = 1,
@@ -2509,7 +2603,7 @@ watersparks = {
         emitrotspread      = 32,
         emitvector         = [[0, 1.1, 0]],
         gravity            = [[0, 0.01, 0]],
-        numparticles       = 15,
+        numparticles       = 14,
         particlelife       = 1.9,
         particlelifespread = 13,
         particlesize       = 24.5,
@@ -2649,7 +2743,7 @@ watersparks = {
         emitrotspread      = 40,
         emitvector         = [[0, 1, 0]],
         gravity            = [[0, -0.05, 0]],
-        numparticles       = 7,
+        numparticles       = 5,
         particlelife       = 13,
         particlelifespread = 18,
         particlesize       = 40,
@@ -2838,6 +2932,29 @@ watersparks = {
         sizemod            = 1.0,
         texture            = [[bigexplosmoke]],
         drawOrder          = 1,
+      },
+    },
+    bigsmoketrails = {
+      air                = false,
+      class              = [[CBitmapMuzzleFlame]],
+      count              = 2,
+      ground             = true,
+      underwater         = 0,
+      water              = true,
+      properties = {
+        colormap           = [[0.95 0.68 0.28 0.92    0.93 0.65 0.27 0.71   0.07 0.05 0.05 0.63   0.07 0.05 0.05 0.30    0.05 0.04 0.04 0.24   0.03 0.03 0.03 0.16   0.025 0.025 0.025 0.09   0.02 0.02 0.02 0.07   0 0 0 0.01]],
+        dir                = [[-0.6 r1.2, 0.5 r0.40, 0 r-0.6]],
+        --gravity            = [[0.0, 0.1, 0.0]],
+        frontoffset        = 0.05,
+        fronttexture       = [[none]],
+        length             = [[55 r20]],
+        sidetexture        = [[flamestream]],
+        size               = [[40 r14]],
+        sizegrowth         = 1.2,
+        ttl                = [[32 r4]],
+        rotParams          = [[-24 r48, -10 r20, 0 r90]],
+        pos                = [[-10 r20, 0 r12, -10 r20]],
+        drawOrder          = 0,
       },
     },
     outerflash = {
@@ -3387,7 +3504,7 @@ watersparks = {
       },
     },
     bigsmoketrails = {
-      air                = true,
+      air                = false,
       class              = [[CBitmapMuzzleFlame]],
       count              = 4,
       ground             = true,
@@ -3399,13 +3516,13 @@ watersparks = {
         --gravity            = [[0.0, 0.1, 0.0]],
         frontoffset        = 0.05,
         fronttexture       = [[none]],
-        length             = [[70 r40]],
+        length             = [[79 r30]],
         sidetexture        = [[flamestream]],
         size               = [[32 r20]],
         sizegrowth         = 1,
-        ttl                = 40,
+        ttl                = [[41 r6]],
         rotParams          = [[-24 r48, -10 r20, 0 r90]],
-        pos                = [[-20 r40, 0 r20, -20 r40]],
+        pos                = [[-20 r40, -18 r20, -20 r40]],
         drawOrder          = 0,
       },
     },
@@ -3605,9 +3722,10 @@ local colors = {
     dustparticles = {properties={numparticles=10}},
     shockwave = {count=1},
     dirtrush = {count=1},
+    bigsmoketrails = {count=4, properties={ttl=[[33 r5]], length=[[38 r14]]}},
     groundflash_small = {properties={colormap=[[1 0.47 0.25 0.08   0 0 0 0.01]]}},
     groundflash_large = {properties={colormap=[[1 0.47 0.25 0.08   0 0 0 0.01]]}},
-    sparks = {properties={colormap=[[0.85 0.4 0.15 0.01   0.95 0.45 0.18 0.017   0 0 0 0]], numparticles=7}},
+    sparks = {properties={colormap=[[0.85 0.4 0.15 0.01   0.95 0.45 0.18 0.017   0 0 0 0]], numparticles=5}},
   }
 }
 for color, effects in pairs(colors) do
@@ -3620,6 +3738,10 @@ for color, effects in pairs(colors) do
     end
   end
 end
+-- adjust ceg for large bombs
+definitions[root.."-large-bomb"].bigsmoketrails.properties.length = [[52 r24]]
+definitions[root.."-large-bomb"].bigsmoketrails.properties.dir = [[-0.55 r1.1, 0.5 r0.40, 0 r-0.55]]
+definitions[root.."-large-bomb"].sparks.properties.numparticles = 3
 
 -- adjust ceg used for flak
 definitions[root.."-large-aa"].explosion.properties.particlesize = definitions[root.."-large-aa"].explosion.properties.particlesize * 0.5
@@ -3667,6 +3789,19 @@ for size, e in pairs(sizes) do
     --  definitions[defname].grounddust.properties.numparticles = math.ceil(definitions[defname].grounddust.properties.numparticles / 5)
     --end
 end
+
+definitions['genericshellexplosion-medium-aoe'] = table.copy(definitions[root.."-medium"])
+definitions['genericshellexplosion-medium-aoe'].dustparticles.properties.numparticles = 10
+definitions['genericshellexplosion-medium-aoe'].shockwave.count = 1
+definitions['genericshellexplosion-medium-aoe'].dirtrush.count = 1
+definitions['genericshellexplosion-medium-aoe'].bigsmoketrails.count = 4
+definitions['genericshellexplosion-medium-aoe'].bigsmoketrails.properties.ttl = [[28 r3]]
+definitions['genericshellexplosion-medium-aoe'].bigsmoketrails.properties.length = [[28 r5]]
+definitions['genericshellexplosion-medium-aoe'].explosion.properties.colormap = [[0 0 0 0   1 0.62 0.38 0.09   0.7 0.27 0.1 0.066   0.5 0.15 0.025 0.033   0 0 0 0]]
+definitions['genericshellexplosion-medium-aoe'].explosion2.properties.colormap = [[0 0 0 0   1 0.32 0.18 0.09   0.7 0.17 0.05 0.066   0.3 0.08 0.015 0.033   0 0 0 0]]
+
+definitions['genericshellexplosion-small-t2'] = table.copy(definitions[root.."-small"])
+definitions['genericshellexplosion-small-t2'].explosion.properties.particlesize = 8
 
 definitions['antinukeexplosion'] = table.copy(definitions[root.."-large"])
 

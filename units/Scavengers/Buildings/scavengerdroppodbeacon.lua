@@ -22,7 +22,7 @@ return {
 		collisionvolumetype = "CylY",
 		description = Spring.I18N('units.descriptions.scavengerdroppodbeacon'),
 		energystorage = 10,
-		explodeas = "lootboxExplosion4",
+		explodeas = "lootboxExplosion2",
 		floater = false,
 		footprintx = 0,
 		footprintz = 0,

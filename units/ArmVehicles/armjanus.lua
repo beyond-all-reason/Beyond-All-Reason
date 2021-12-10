@@ -127,7 +127,7 @@ return {
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.15,
-				explosiongenerator = "custom:genericshellexplosion-medium-bomb",
+				explosiongenerator = "custom:genericshellexplosion-medium-aoe",
 				firestarter = 70,
 				impulsefactor = 1.015,
 				model = "catapultmissile.s3o",

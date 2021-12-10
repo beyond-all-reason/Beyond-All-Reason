@@ -930,23 +930,23 @@ customDefs.corhllt = {
 	},
  }
 
-customDefs.armemp = {
-	weapondefs = {
-		armemp_weapon = {
-			--range = 1800,
-			stockpiletime = 120, --25,
-		}
-	}
-}
+-- customDefs.armemp = {
+-- 	weapondefs = {
+-- 		armemp_weapon = {
+-- 			--range = 1800,
+-- 			stockpiletime = 120, --25,
+-- 		}
+-- 	}
+-- }
 
-customDefs.cortron = {
-	weapondefs = {
-		cortron_weapon = {
-			--range = 1500,
-			stockpiletime = 180, --45,
-		}
-	}
-}
+-- customDefs.cortron = {
+-- 	weapondefs = {
+-- 		cortron_weapon = {
+-- 			--range = 1500,
+-- 			stockpiletime = 180, --45,
+-- 		}
+-- 	}
+-- }
 
 customDefs.armmercury = {
 	description = Spring.I18N('units.descriptions.armmercury_scav'),

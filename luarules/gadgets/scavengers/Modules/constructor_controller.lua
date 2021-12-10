@@ -51,6 +51,7 @@ end
 
 local function resurrectorOrders(n, unitID)
 	Spring.GiveOrderToUnit(unitID, CMD.RESURRECT, generateOrderParams(), 0)
+	Spring.GiveOrderToUnit(unitID, CMD.CAPTURE, generateOrderParams(), {"shift"})
 end
 
 local function capturerOrders(n, unitID)
@@ -65,6 +66,7 @@ end
 
 local function collectorOrders(n, unitID)
 	Spring.GiveOrderToUnit(unitID, CMD.RECLAIM, generateOrderParams(), 0)
+	Spring.GiveOrderToUnit(unitID, CMD.CAPTURE, generateOrderParams(), {"shift"})
 end
 
 local function reclaimerOrders(n, unitID)
@@ -277,18 +279,18 @@ end
 ConstructorNumberOfRetries = {}
 local function constructNewBlueprint(n, unitID)
 	local x,y,z = Spring.GetUnitPosition(unitID)
-	local surroundingGaiaUnits = Spring.GetUnitsInCylinder(x, z, 500, Spring.GetGaiaTeamID())
+	local surroundingGaiaUnits = Spring.GetUnitsInCylinder(x, z, 1000, Spring.GetGaiaTeamID())
 	if surroundingGaiaUnits then
 		if #surroundingGaiaUnits > 1 then
 			local target = ScavComGetClosestGaiaUnit(x, z, surroundingGaiaUnits)
 			local posx, posy, posz = Spring.GetUnitPosition(target)
-			Spring.GiveOrderToUnit(unitID, CMD.MOVE, { posx + math.random(-256,256), posy, posz + math.random(-256,256) }, {})
+			Spring.GiveOrderToUnit(unitID, CMD.MOVE, { posx + math.random(-64,64), posy, posz + math.random(-64,64) }, {})
 			Spring.GiveOrderToUnit(unitID, CMD.CAPTURE, {target}, {"shift"})
 			return
 		elseif #surroundingGaiaUnits == 1 then
 			local target = surroundingGaiaUnits[1]
 			local posx, posy, posz = Spring.GetUnitPosition(target)
-			Spring.GiveOrderToUnit(unitID, CMD.MOVE, { posx + math.random(-256,256), posy, posz + math.random(-256,256) }, {})
+			Spring.GiveOrderToUnit(unitID, CMD.MOVE, { posx + math.random(-64,64), posy, posz + math.random(-64,64) }, {})
 			Spring.GiveOrderToUnit(unitID, CMD.CAPTURE, {target}, {"shift"})
 			return
 		end

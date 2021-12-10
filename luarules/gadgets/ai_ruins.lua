@@ -143,13 +143,13 @@ local function spawnRuin(ruin, posx, posy, posz, blueprintTierLevel)
 		mirrored = false
 		mirroredDirection = "null"
 	end
-	if math.random(0,3) == 0 and (blueprintTierLevel == 0 or blueprintTierLevel == 1) and scavengersAIEnabled then
-		GaiaTeamID = scavengerAITeamID
-		SpawnAsNeutral = false
-	else
+	-- if math.random(0,3) == 0 and (blueprintTierLevel == 0 or blueprintTierLevel == 1) and scavengersAIEnabled then
+	-- 	GaiaTeamID = scavengerAITeamID
+	-- 	SpawnAsNeutral = false
+	-- else
 		GaiaTeamID = Spring.GetGaiaTeamID()
 		SpawnAsNeutral = true
-	end	
+	-- end	
 	for _, building in ipairs(ruin.buildings) do
 		if building.unitDefID then
 			if swapXandY == false then
@@ -221,13 +221,13 @@ local function SpawnMexes(mexSpots)
 		if math.random(0,3) == 0 then
 			local GaiaTeamID
 			local SpawnAsNeutral
-			if math.random(0,3) == 0 and scavengersAIEnabled then
-				GaiaTeamID = scavengerAITeamID
-				SpawnAsNeutral = false
-			else
+			-- if math.random(0,3) == 0 and scavengersAIEnabled then
+			-- 	GaiaTeamID = scavengerAITeamID
+			-- 	SpawnAsNeutral = false
+			-- else
 				GaiaTeamID = Spring.GetGaiaTeamID()
 				SpawnAsNeutral = true
-			end	
+			-- end	
 			
 			local spot = mexSpots[i]
 			local posx = spot.x
