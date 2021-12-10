@@ -1,4 +1,15 @@
-﻿# 2019 - 2021
+﻿# December 2021
+
+ • [Fido] cost: 270m->300m, 5600->6300E
+ • [Sniper] speed: 35.4->30
+ • [Zeus] unnerfed: dps 200->220
+ • [Fatboy] cost: 1500->1400m, 12000->11000E
+ • [Maverick] cost: 700->650m, 12000->11000E + range increases with experience 3x faster
+ • [Recluse] health increased (1050->1250) and weapon range increased (550->600) Burst 4->3 (no dps loss)
+ • [EMP-spider] now able to reclaim (100 buildpower),  cost: 175->250m, 3400->5000E
+
+
+# 2019 - 2021
 
 General
  • Enabled ground deformation
