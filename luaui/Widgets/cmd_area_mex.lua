@@ -2,7 +2,7 @@ function widget:GetInfo()
 	return {
 		name = "Area Mex",
 		desc = "Adds a command to cap mexes in an area.",
-		author = "Google Frog, NTG (file handling), Chojin (metal map), Doo (multiple enhancements), Floris",
+		author = "Google Frog, NTG (file handling), Chojin (metal map), Doo (multiple enhancements), Floris (mex placer/upgrader)",
 		date = "Oct 23, 2010",
 		license = "GNU GPL, v2 or later",
 		handler = true,
@@ -15,6 +15,7 @@ local moveIsAreamex = true		-- auto make move cmd an area mex cmd
 
 local CMD_AREA_MEX = 10100
 local CMD_MOVE = CMD.MOVE
+local CMD_GUARD = CMD.GUARD
 
 local spGetSelectedUnits = Spring.GetSelectedUnits
 local spGetSelectedUnitsCounts = Spring.GetSelectedUnitsCounts
@@ -41,7 +42,7 @@ local mexBuilder = {}
 local mexIds = {}
 local unitWaterDepth = {}
 local unitXsize = {}
-local isCommander = {}
+--local isCommander = {}
 for udid, ud in pairs(UnitDefs) do
 	if ud.extractsMetal > 0 then
 		mexIds[udid] = ud.extractsMetal
@@ -50,16 +51,19 @@ for udid, ud in pairs(UnitDefs) do
 		unitWaterDepth[udid] = { ud.minWaterDepth, ud.maxWaterDepth }
 		unitXsize[udid] = ud.xsize
 	end
-	if ud.customParams.iscommander then
-		isCommander[udid] = true
-	end
+	--if ud.customParams.iscommander then
+	--	isCommander[udid] = true
+	--end
 end
 
 local mexBuilderDef = {}
+local t2mexBuilderDef = {}
 for udid, ud in pairs(UnitDefs) do
 	if ud.buildOptions then
+		local maxExtractmetal = 0
 		for i, option in ipairs(ud.buildOptions) do
 			if mexIds[option] then
+				maxExtractmetal = math.max(maxExtractmetal, mexIds[option])
 				if mexBuilderDef[udid] then
 					mexBuilderDef[udid].buildings = mexBuilderDef[udid].buildings + 1
 					mexBuilderDef[udid].building[mexBuilderDef[udid].buildings] = option * -1
@@ -67,6 +71,9 @@ for udid, ud in pairs(UnitDefs) do
 					mexBuilderDef[udid] = { buildings = 1, building = { [1] = option * -1 } }
 				end
 			end
+		end
+		if maxExtractmetal > 0.002 then
+			t2mexBuilderDef[udid] = true
 		end
 	end
 end
@@ -134,6 +141,24 @@ function widget:Update()
 			end
 			toggledMetal = false
 		end
+
+		-- mex-upgrade mouse cursor
+		local mx, my = Spring.GetMouseState()
+		local type, unitID = Spring.TraceScreenRay(mx, my)
+		if type == 'unit' and mexIds[Spring.GetUnitDefID(unitID)] and mexIds[Spring.GetUnitDefID(unitID)] < 0.002 then
+			local proceed = false
+			local selUnitCounts = spGetSelectedUnitsCounts()
+			-- search for t2 builder
+			for k,v in pairs(selUnitCounts) do
+				if k ~= 'n' and t2mexBuilderDef[k] then
+					proceed = true
+					break
+				end
+			end
+			if proceed then
+				Spring.SetMouseCursor('upgmex')
+			end
+		end
 	end
 end
 
@@ -183,14 +208,15 @@ end
 
 function widget:CommandNotify(id, params, options)
 	local isMove = (id == CMD_MOVE)
-	if not (id == CMD_AREA_MEX or isMove) then
+	local isGuard = (id == CMD_GUARD)
+	if not (id == CMD_AREA_MEX or isMove or isGuard) then
 		return
 	end
 
 	-- transform move (for mex builders) into area-mex command
 	local units = spGetSelectedUnits()
-	if isMove and moveIsAreamex and mexBuilder[units[1]] then
-		local proceed = #units == 1
+	if (isGuard or (isMove and moveIsAreamex)) and mexBuilder[units[1]] then
+		local proceed = #units == 1 or isGuard
 		if not proceed then
 			proceed = true
 			local selUnitCounts = spGetSelectedUnitsCounts()
@@ -204,12 +230,19 @@ function widget:CommandNotify(id, params, options)
 		-- transform move into area-mex command
 		-- NOTE: not sure this is wanted for commanders ...when enemy is near
 		if proceed then
-			local closestMex = GetClosestMetalSpot(params[1], params[3])
-			if closestMex and Distance(params[1], params[3], closestMex.x, closestMex.z) < 700 then
+			if isGuard then
+				local ux, uy, uz = Spring.GetUnitPosition(params[1])
+				params[1], params[2], params[3] = ux, uy, uz
 				id = CMD_AREA_MEX
 				params[4] = 25
 			else
-				return
+				local closestMex = GetClosestMetalSpot(params[1], params[3])
+				if closestMex and Distance(params[1], params[3], closestMex.x, closestMex.z) < 700 then
+					id = CMD_AREA_MEX
+					params[4] = 25
+				else
+					return
+				end
 			end
 		end
 	end
@@ -363,7 +396,7 @@ function widget:CommandNotify(id, params, options)
 				end
 			end
 		end
-		if isMove and not mexQueued then
+		if (isMove or isGuard) and not mexQueued then
 			return		-- no mex buildorder made so let move go through!
 		end
 		return true
