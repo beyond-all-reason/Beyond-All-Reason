@@ -588,10 +588,11 @@ end
 
 function PlayNewTrack()
 	Spring.StopSoundStream()
-	warMeter = warMeter * 0.5
+	silenceTimer = 0
+	appliedSilence = false
+	warMeter = warMeter * 0.75
 	fadelevel = 100
 	fadeOutCurrentTrack = false
-	appliedSilence = false
 	currentTrack = nil
 	currentTrackList = nil
 
