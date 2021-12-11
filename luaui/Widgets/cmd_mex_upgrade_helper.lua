@@ -64,7 +64,6 @@ function widget:SelectionChanged(sel)
 end
 
 function widget:MousePress(x, y, b)
-	Spring.Echo(x,y,b)
 	if rightClickUpgradeParams then
 		local mx, my, b, b2, b3 = Spring.GetMouseState()
 		pressMouseX, pressMouseY = mx, my
