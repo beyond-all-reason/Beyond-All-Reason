@@ -118,6 +118,16 @@ end
 tmpbuilders = nil
 
 
+local function cursorInit()
+	-- register cursor
+	Spring.AssignMouseCursor("upgmex", "cursorupgmex", false)
+	Spring.AssignMouseCursor("areamex", "cursorareamex", false)
+	-- show the command in the queue
+	Spring.SetCustomCommandDrawData(CMD_UPGRADEMEX, "upgrademex", { 0.75, 0.75, 0.75, 0.7 }, true)
+	Spring.SetCustomCommandDrawData(CMD_AUTOMEX, "automex", { 0.75, 0.75, 0.75, 0.7 }, true)
+end
+
+
 if gadgetHandler:IsSyncedCode() then
 
 	local isCommander = {}
@@ -266,6 +276,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:Initialize()
+		cursorInit()
 		registerUnits()
 	end
 
@@ -542,12 +553,7 @@ else
 	end
 
 	function gadget:Initialize()
-		-- register cursor
-		Spring.AssignMouseCursor("upgmex", "cursorupgmex", false)
-		Spring.AssignMouseCursor("areamex", "cursorareamex", false)
-		-- show the command in the queue
-		Spring.SetCustomCommandDrawData(CMD_UPGRADEMEX, "upgrademex", { 0.75, 0.75, 0.75, 0.7 }, true)
-		Spring.SetCustomCommandDrawData(CMD_AUTOMEX, "automex", { 0.75, 0.75, 0.75, 0.7 }, true)
+		cursorInit()
 
 		for k, v in pairs(builderDefs) do
 			local upgradePairs = {}
