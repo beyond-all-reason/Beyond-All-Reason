@@ -44,6 +44,10 @@ local function registerUpgradePairs(v)
 end
 
 function widget:Initialize()
+	if not WG.metalSpots or (#WG.metalSpots > 0 and #WG.metalSpots <= 2) then
+		widgetHandler:RemoveWidget(self)
+		return
+	end
 	widgetHandler:RegisterGlobal('registerUpgradePairs', registerUpgradePairs)
 end
 
