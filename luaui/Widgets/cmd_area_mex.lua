@@ -212,6 +212,13 @@ function widget:CommandNotify(id, params, options)
 	if not (id == CMD_AREA_MEX or isMove or isGuard) then
 		return
 	end
+	if isGuard then
+		local mx, my = Spring.GetMouseState()
+		local type, unitID = Spring.TraceScreenRay(mx, my)
+		if not (type == 'unit' and mexIds[Spring.GetUnitDefID(unitID)] and mexIds[Spring.GetUnitDefID(unitID)] < 0.002) then
+			return
+		end
+	end
 
 	-- transform move (for mex builders) into area-mex command
 	local units = spGetSelectedUnits()
