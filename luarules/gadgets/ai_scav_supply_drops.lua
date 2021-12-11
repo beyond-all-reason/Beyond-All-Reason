@@ -548,18 +548,26 @@ function gadget:GameFrame(n)
                 if #unitsCyl == 0 and terrainCheck and playerLoS == true then
                     --QueueSpawn("lootdroppod_gold", posx, posy, posz, math_random(0,3),spGaiaTeam, n)
                     --QueueSpawn(lootboxesList[math_random(1,#lootboxesList)], posx, posy, posz, math_random(0,3),spGaiaTeam, n+600)
-                    if aliveLootboxesCount < 2 then
+					if aliveLootboxesCount < 2 then
 						local spawnedUnit = spCreateUnit(lootboxesListLow[math_random(1,#lootboxesListLow)]..NameSuffix, posx, posy, posz, math_random(0,3), spGaiaTeam)
-						Spring.SetUnitNeutral(spawnedUnit, true)
+						if spawnedUnit then
+							Spring.SetUnitNeutral(spawnedUnit, true)
+						end
 					elseif aliveLootboxesCount < 6 then
 						local spawnedUnit = spCreateUnit(lootboxesListMid[math_random(1,#lootboxesListMid)]..NameSuffix, posx, posy, posz, math_random(0,3), spGaiaTeam)
-						Spring.SetUnitNeutral(spawnedUnit, true)
+						if spawnedUnit then
+							Spring.SetUnitNeutral(spawnedUnit, true)
+						end
 					elseif aliveLootboxesCount < 10 then
 						local spawnedUnit = spCreateUnit(lootboxesListHigh[math_random(1,#lootboxesListHigh)]..NameSuffix, posx, posy, posz, math_random(0,3), spGaiaTeam)
-						Spring.SetUnitNeutral(spawnedUnit, true)
+						if spawnedUnit then
+							Spring.SetUnitNeutral(spawnedUnit, true)
+						end
 					else
 						local spawnedUnit = spCreateUnit(lootboxesListTop[math_random(1,#lootboxesListTop)]..NameSuffix, posx, posy, posz, math_random(0,3), spGaiaTeam)
-						Spring.SetUnitNeutral(spawnedUnit, true)
+						if spawnedUnit then
+							Spring.SetUnitNeutral(spawnedUnit, true)
+						end
 					end
 					spCreateUnit("lootdroppod_gold"..NameSuffix, posx, posy, posz, math_random(0,3), spGaiaTeam)
                     break
