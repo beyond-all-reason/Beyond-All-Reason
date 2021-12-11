@@ -13,6 +13,7 @@ end
 local upgradeMouseCursor = "upgmex"
 
 local CMD_UPGRADEMEX = 31244
+local CMD_AREA_MEX = 10100
 
 local builderDefs, rightClickUpgradeParams
 
@@ -22,6 +23,8 @@ local TraceScreenRay = Spring.TraceScreenRay
 local GetActiveCommand = Spring.GetActiveCommand
 local GetSelectedUnits = Spring.GetSelectedUnits
 local GetSelectedUnitsCount = Spring.GetSelectedUnitsCount
+
+local pressMouseX, pressMouseY
 
 --local isT2Builder = {}
 --local isT1Mex = {}
@@ -50,7 +53,7 @@ end
 
 function widget:GameFrame(n)
 	if n > 1 then
-		Spring.SendCommands({ "luarules registerUpgradePairs 1" })
+		Spring.SendCommands("luarules registerUpgradePairs 1")
 		widgetHandler:RemoveCallIn("GameFrame")
 	end
 end
@@ -61,6 +64,15 @@ function widget:SelectionChanged(sel)
 end
 
 function widget:MousePress(x, y, b)
+	Spring.Echo(x,y,b)
+	if rightClickUpgradeParams then
+		local mx, my, b, b2, b3 = Spring.GetMouseState()
+		pressMouseX, pressMouseY = mx, my
+		return true
+	end
+end
+
+function widget:MouseRelease(x, y, b)
 	if rightClickUpgradeParams then
 		local alt, ctrl, meta, shift = Spring.GetModKeyState()
 		local options = {}
@@ -72,6 +84,19 @@ function widget:MousePress(x, y, b)
 	end
 end
 
+-- FIRST NEED TO FIND AWAY TO MAKE THE AREAMEX CMD NOT JUST ACTIVE, BUT AT THE DRAGGING STAGE TOO
+-- transform upgrade-mex cmd to area-mex cmd when dragging
+--unction widget:MouseMove(mx, my, dx, dy, mButton)
+--	if rightClickUpgradeParams then
+--		local vsx, vsy = Spring.GetViewGeometry()
+--		local gracePx = math.floor((vsx+vsy) * 0.0025)
+--		if mx > pressMouseX + gracePx or mx < pressMouseX - gracePx and my > pressMouseY + gracePx or my < pressMouseY - gracePx then
+--			Spring.SetActiveCommand(Spring.GetCmdDescIndex(CMD_AREA_MEX), 1, true, false, Spring.GetModKeyState())
+--			rightClickUpgradeParams = nil
+--		end
+--	end
+--nd
+
 function widget:IsAbove(x, y)
 	if not builderDefs then
 		return
@@ -81,22 +106,18 @@ function widget:IsAbove(x, y)
 	if GetActiveCommand() ~= 0 then
 		return false
 	end
-
 	if GetSelectedUnitsCount() ~= 1 then
 		return false
 	end
 
 	local selectedUnits = GetSelectedUnits()
-
 	local builderID = selectedUnits[1]
 	local upgradePairs = builderDefs[GetUnitDefID(builderID)]
-
 	if not upgradePairs then
 		return false
 	end
 
 	local type, unitID = TraceScreenRay(x, y)
-
 	if type ~= "unit" then
 		return false
 	end
@@ -107,7 +128,6 @@ function widget:IsAbove(x, y)
 	end
 
 	rightClickUpgradeParams = { builderID = builderID, mexID = unitID, upgradeTo = upgradeTo }
-
 	Spring.SetMouseCursor(upgradeMouseCursor)
 	return true
 end
