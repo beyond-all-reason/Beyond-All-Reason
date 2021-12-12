@@ -13,6 +13,8 @@ end
 
 local moveIsAreamex = true		-- auto make move cmd an area mex cmd
 
+local mexPlacementRadius = 700	-- not actual ingame size
+
 local CMD_AREA_MEX = 10100
 local CMD_MOVE = CMD.MOVE
 local CMD_STOP = CMD.STOP
@@ -37,6 +39,9 @@ local toggledMetal, retoggleLos, chobbyInterface
 
 local tasort = table.sort
 local taremove = table.remove
+
+local activeCmd = select(4, spGetActiveCommand())
+local buildmenuMexSelected = false
 
 local mexes = {}
 local mexBuilder = {}
@@ -105,9 +110,22 @@ function widget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
 	end
 end
 
+local function GetClosestMetalSpot(x, z)
+	local bestSpot
+	local bestDist = math.huge
+	local metalSpots = WG.metalSpots
+	for i = 1, #metalSpots do
+		local spot = metalSpots[i]
+		local dx, dz = x - spot.x, z - spot.z
+		local dist = dx * dx + dz * dz
+		if dist < bestDist then
+			bestSpot = spot
+			bestDist = dist
+		end
+	end
+	return bestSpot
+end
 
-local activeCmd = select(4, spGetActiveCommand())
-local buildmenuMexSelected = false
 function widget:Update()
 	if chobbyInterface then
 		return
@@ -144,21 +162,30 @@ function widget:Update()
 			toggledMetal = false
 		end
 
+
 		-- mex-upgrade mouse cursor
 		local mx, my = Spring.GetMouseState()
-		local type, unitID = Spring.TraceScreenRay(mx, my)
-		if type == 'unit' and mexIds[Spring.GetUnitDefID(unitID)] and mexIds[Spring.GetUnitDefID(unitID)] < 0.002 then
+		local type, params = Spring.TraceScreenRay(mx, my)
+		if (type == 'unit' and mexIds[Spring.GetUnitDefID(params)] and mexIds[Spring.GetUnitDefID(params)] < 0.002) or type == 'ground' then
 			local proceed = false
-			local selUnitCounts = spGetSelectedUnitsCounts()
-			-- search for t2 builder
-			for k,v in pairs(selUnitCounts) do
-				if k ~= 'n' and t2mexBuilderDef[k] then
+			if type == 'ground' then
+				local closestMex = GetClosestMetalSpot(params[1], params[3])
+				if closestMex and Distance(params[1], params[3], closestMex.x, closestMex.z) < mexPlacementRadius then
 					proceed = true
-					break
 				end
 			end
-			if proceed then
-				Spring.SetMouseCursor('upgmex')
+			if type == 'unit' or proceed then
+				local selUnitCounts = spGetSelectedUnitsCounts()
+				-- search for t2 builder
+				for k,v in pairs(selUnitCounts) do
+					if k ~= 'n' and t2mexBuilderDef[k] then
+						proceed = true
+						break
+					end
+				end
+				if proceed then
+					Spring.SetMouseCursor('upgmex')
+				end
 			end
 		end
 	end
@@ -174,22 +201,6 @@ local function NoAlliedMex(x, z, batchextracts)
 		end
 	end
 	return true
-end
-
-local function GetClosestMetalSpot(x, z)
-	local bestSpot
-	local bestDist = math.huge
-	local metalSpots = WG.metalSpots
-	for i = 1, #metalSpots do
-		local spot = metalSpots[i]
-		local dx, dz = x - spot.x, z - spot.z
-		local dist = dx * dx + dz * dz
-		if dist < bestDist then
-			bestSpot = spot
-			bestDist = dist
-		end
-	end
-	return bestSpot
 end
 
 local function GetClosestMexPosition(spot, x, z, uDefID, facing)
@@ -225,20 +236,17 @@ function widget:CommandNotify(id, params, options)
 	-- transform move (for mex builders) into area-mex command
 	local units = spGetSelectedUnits()
 	if (isGuard or (isMove and moveIsAreamex)) and mexBuilder[units[1]] then
-		local proceed = #units == 1 or isGuard
-		if not proceed then
-			proceed = true
-			local selUnitCounts = spGetSelectedUnitsCounts()
-			for k,v in pairs(selUnitCounts) do
-				if k ~= 'n' and not mexBuilderDef[k] then
-					proceed = false
-					break
-				end
-			end
-		end
+		--local proceed = true --#units == 1 or isGuard
+		--local selUnitCounts = spGetSelectedUnitsCounts()
+		--for k,v in pairs(selUnitCounts) do
+		--	if k ~= 'n' and not mexBuilderDef[k] then
+		--		proceed = false
+		--		break
+		--	end
+		--end
 		-- transform move into area-mex command
 		-- NOTE: not sure this is wanted for commanders ...when enemy is near
-		if proceed then
+		--if proceed then
 			if isGuard then
 				local ux, uy, uz = Spring.GetUnitPosition(params[1])
 				isGuard = { x = ux, y = uy, z = uz }
@@ -247,20 +255,21 @@ function widget:CommandNotify(id, params, options)
 				params[4] = 25
 			else
 				local closestMex = GetClosestMetalSpot(params[1], params[3])
-				if closestMex and Distance(params[1], params[3], closestMex.x, closestMex.z) < 700 then
+				if closestMex and Distance(params[1], params[3], closestMex.x, closestMex.z) < mexPlacementRadius then
 					id = CMD_AREA_MEX
 					params[4] = 25
 				else
 					return
 				end
 			end
-		end
+		--end
 	end
 
 	if id == CMD_AREA_MEX then
-		mexes = WG.metalSpots
 		if isGuard then
-			mexes = {isGuard}
+			mexes = { isGuard }	-- only need the mex we guard
+		else
+			mexes = WG.metalSpots
 		end
 		local cx, cy, cz, cr = params[1], params[2], params[3], params[4]
 		if not cr or cr < Game.extractorRadius then
