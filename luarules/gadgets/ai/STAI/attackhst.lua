@@ -338,6 +338,7 @@ function AttackHST:SquadPathfind(squad, squadIndex)
 	local path, remaining, maxInvalid = squad.pathfinder:Find(2)
 	if path then
 		-- path = self.ai.tool:SimplifyPath(path)
+		--table.insert(path,squad.targetPos)--TEST
 		squad.path = path
 		squad.pathStep = 1
 		squad.targetNode = squad.path[1]
@@ -366,12 +367,9 @@ end
 function AttackHST:SquadAdvance(squad)
 	self:EchoDebug("advance")
 	squad.idleCount = 0
+	self:Warn('squad.pathStep',squad.pathStep,'#squad.path',#squad.path)
 	if squad.pathStep == #squad.path then
 		self:EchoDebug('advance retarget')
-		self:SquadReTarget(squad)
-		return
-	end
-	if math.random() > 0.5 then
 		self:SquadReTarget(squad)
 		return
 	end

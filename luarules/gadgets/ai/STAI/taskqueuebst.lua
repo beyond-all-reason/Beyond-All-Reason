@@ -619,6 +619,7 @@ function TaskQueueBST:GetQueue()
 	local id = self.ai.armyhst.unitTable[self.name].defId
 	local counter = self.game:GetTeamUnitDefCount(team,id)
 
+	--[[
 	if self.isCommander then
 		if self:roleCounter('expand') > 2 then
 			self:removeOldBuildersRole(self.name,self.id)
@@ -635,6 +636,23 @@ function TaskQueueBST:GetQueue()
 			self.role = 'default'
 
 		end
+	end
+	]]
+	if self.isCommander then
+		if self.ai.Energy.full < 0.3 then
+			self:removeOldBuildersRole(self.name,self.id)
+			table.insert(buildersRole.eco[self.name], self.id)
+			self.role = 'eco'
+		elseif self.ai.Energy.full > 0.3 and self.ai.Metal.full < 0.3 then
+			self:removeOldBuildersRole(self.name,self.id)
+			table.insert(buildersRole.expand[self.name], self.id)
+			self.role = 'expand'
+		else
+			self:removeOldBuildersRole(self.name,self.id)
+			table.insert(buildersRole.default[self.name], self.id)
+			self.role = 'default'
+		end
+
 	end
 	if self.role then
 		return self.ai.taskshst.roles[self.role]
