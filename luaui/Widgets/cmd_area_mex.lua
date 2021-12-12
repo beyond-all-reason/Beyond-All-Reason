@@ -64,7 +64,7 @@ for udid, ud in pairs(UnitDefs) do
 end
 
 local mexBuilderDef = {}
-local t2mexBuilderDef = {}
+--local t2mexBuilderDef = {}
 for udid, ud in pairs(UnitDefs) do
 	if ud.buildOptions then
 		local maxExtractmetal = 0
@@ -79,9 +79,9 @@ for udid, ud in pairs(UnitDefs) do
 				end
 			end
 		end
-		if maxExtractmetal > 0.002 then
-			t2mexBuilderDef[udid] = true
-		end
+		--if maxExtractmetal > 0.002 then
+		--	t2mexBuilderDef[udid] = true
+		--end
 	end
 end
 
@@ -177,9 +177,9 @@ function widget:Update()
 			if type == 'unit' or proceed then
 				proceed = false
 				local selUnitCounts = spGetSelectedUnitsCounts()
-				-- search for t2 builder
+				-- search for builder
 				for k,v in pairs(selUnitCounts) do
-					if k ~= 'n' and t2mexBuilderDef[k] then
+					if k ~= 'n' and mexBuilderDef[k] then
 						proceed = true
 						break
 					end
