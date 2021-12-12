@@ -43,6 +43,7 @@ local taremove = table.remove
 
 local activeCmd = select(4, spGetActiveCommand())
 local buildmenuMexSelected = false
+local metalmap = false
 
 local mexes = {}
 local mexBuilder = {}
@@ -308,11 +309,7 @@ function widget:CommandNotify(id, params, options)
 	end
 
 	if id == CMD_AREA_MEX then
-		if isGuard then
-			mexes = { isGuard }	-- only need the mex we guard
-		else
-			mexes = WG.metalSpots
-		end
+		local mexes = isGuard and { isGuard } or WG.metalSpots -- only need the mex we guard if that is the case
 		local cx, cy, cz, cr = params[1], params[2], params[3], params[4]
 		if not cr or cr < Game.extractorRadius then
 			cr = Game.extractorRadius
@@ -420,19 +417,15 @@ function widget:CommandNotify(id, params, options)
 				if ((i % batchSize == ct % batchSize or i % #orderedCommands == ct % #orderedCommands) and ctrl) or not ctrl then
 					for j = 1, mexBuilder[id].buildings do
 						local def = unitWaterDepth[-mexBuilder[id].building[j]]
-
 						local buildable = 0
 						local newx, newz = command.x, command.z
-						if not buildable ~= 0 then
-							-- If location unavailable, check surroundings (extractorRadius - 25). Should consider replacing 25 with avg mex x,z sizes
-							--local bestPos = GetClosestMexPosition(GetClosestMetalSpot(newx, newz), newx - 2 * Game.extractorRadius, newz - 2 * Game.extractorRadius, -mexBuilder[id].building[j], "s")
-							local bestPos = GetClosestMexPosition(GetClosestMetalSpot(newx, newz), newx, newz, -mexBuilder[id].building[j], "s")
-							if bestPos then
-								newx, newz = bestPos[1], bestPos[3]
-								buildable = true
-							end
+						-- If location unavailable, check surroundings (extractorRadius - 25). Should consider replacing 25 with avg mex x,z sizes
+						--local bestPos = GetClosestMexPosition(GetClosestMetalSpot(newx, newz), newx - 2 * Game.extractorRadius, newz - 2 * Game.extractorRadius, -mexBuilder[id].building[j], "s")
+						local bestPos = GetClosestMexPosition(GetClosestMetalSpot(newx, newz), newx, newz, -mexBuilder[id].building[j], "s")
+						if bestPos then
+							newx, newz = bestPos[1], bestPos[3]
+							buildable = true
 						end
-
 						if buildable ~= 0 then
 							mexQueued = true
 							spGiveOrderToUnit(id, mexBuilder[id].building[j], { newx, spGetGroundHeight(newx, newz), newz }, { "shift" })
@@ -467,31 +460,34 @@ function widget:CommandNotify(id, params, options)
 end
 
 function widget:CommandsChanged()
-	local units = spGetSelectedUnits()
-	local unitCount = #units
-	if unitCount > 0 then
-		local customCommands = widgetHandler.customCommands
-		for i = 1, unitCount do
-			if mexBuilder[units[i]] then
-				customCommands[#customCommands + 1] = {
-					id = CMD_AREA_MEX,
-					type = CMDTYPE.ICON_AREA,
-					tooltip = 'Define an area (with metal spots in it) to make metal extractors in',
-					name = 'Mex',
-					cursor = 'areamex',
-					action = 'areamex',
-				}
-				return
+	if not metalmap then
+		local units = spGetSelectedUnits()
+		local unitCount = #units
+		if unitCount > 0 then
+			local customCommands = widgetHandler.customCommands
+			for i = 1, unitCount do
+				if mexBuilder[units[i]] then
+					customCommands[#customCommands + 1] = {
+						id = CMD_AREA_MEX,
+						type = CMDTYPE.ICON_AREA,
+						tooltip = 'Define an area (with metal spots in it) to make metal extractors in',
+						name = 'Mex',
+						cursor = 'areamex',
+						action = 'areamex',
+					}
+					return
+				end
 			end
 		end
 	end
 end
 
 function widget:Initialize()
-	--if not WG.metalSpots or (#WG.metalSpots > 0 and #WG.metalSpots <= 2) then
-	--	widgetHandler:RemoveWidget(self)
-	--	return
-	--end
+	if not WG.metalSpots or (#WG.metalSpots > 0 and #WG.metalSpots <= 2) then
+		metalmap = true
+		--widgetHandler:RemoveWidget(self)
+		--return
+	end
 	local units = spGetTeamUnits(spGetMyTeamID())
 	for i = 1, #units do
 		local id = units[i]
