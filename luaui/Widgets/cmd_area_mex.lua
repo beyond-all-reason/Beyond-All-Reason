@@ -14,7 +14,7 @@ end
 local moveIsAreamex = true		-- auto make move cmd an area mex cmd
 
 local mexPlacementRadius = 700	-- (not actual ingame distance)
-local mexPlacementDragRadius = 6000	-- larger size so you can drag a move line over/near mex spots and it will auto queue mex there more easily
+local mexPlacementDragRadius = 20000	-- larger size so you can drag a move line over/near mex spots and it will auto queue mex there more easily
 
 local CMD_AREA_MEX = 10100
 local CMD_MOVE = CMD.MOVE
