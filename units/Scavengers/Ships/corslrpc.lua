@@ -27,7 +27,7 @@ return {
 		maxdamage = 6500,
 		maxvelocity = 1.11,
 		minwaterdepth = 12,
-		movementclass = "BOAT8",
+		movementclass = "EPICSHIP",
 		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/scavboss/CORSLRPC.s3o",

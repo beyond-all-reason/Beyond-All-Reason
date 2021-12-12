@@ -26,7 +26,7 @@ return {
 		maxslope = 32,
 		maxvelocity = 0.67,
 		maxwaterdepth = 112,
-		movementclass = "BOSSPEEWEE4",
+		movementclass = "EPICALLTERRAIN",
 		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/scavboss/armvadert4.s3o",

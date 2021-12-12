@@ -24,7 +24,7 @@ return {
 		maxdamage = 25000,
 		maxvelocity = 1.2,
 		maxwaterdepth = 12,
-		movementclass = "TBOT3",
+		movementclass = "EPICALLTERRAIN",
 		mygravity = 10000,
 		name = unitName,
 		nochasecategory = "VTOL",

@@ -25,7 +25,7 @@ return {
 		maxslope = 15,
 		maxvelocity = 2.3,
 		maxwaterdepth = 22,
-		movementclass = "HBOT4",
+		movementclass = "EPICBOT",
 		name = unitName,
 		objectname = "Units/scavboss/armassimilator.s3o",
 		script = "Units/scavboss/armassimilator.cob",

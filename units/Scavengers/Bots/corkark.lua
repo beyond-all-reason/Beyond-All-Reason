@@ -22,7 +22,7 @@ return {
 		maxslope = 17,
 		maxvelocity = 1.4,
 		maxwaterdepth = 12,
-		movementclass = "BOT3",
+		movementclass = "BOT2",
 		name = "Karkinos",
 		nochasecategory = "VTOL",
 		objectname = "Units/scavboss/CORKARK.s3o",

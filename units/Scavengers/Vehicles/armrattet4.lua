@@ -27,7 +27,7 @@ return {
 		maxslope = 10,
 		maxvelocity = 0.8,
 		maxwaterdepth = 12,
-		movementclass = "BOSSSTUMPY7",
+		movementclass = "EPICVEH",
 		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/scavboss/armrattet4.s3o",

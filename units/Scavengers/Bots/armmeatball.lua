@@ -25,7 +25,7 @@ return {
 		maxslope = 17,
 		maxvelocity = 2,
 		maxwaterdepth = 32,
-		movementclass = "ATANK3",
+		movementclass = "EPICBOT",
 		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/scavboss/ARMMEATBALL.s3o",

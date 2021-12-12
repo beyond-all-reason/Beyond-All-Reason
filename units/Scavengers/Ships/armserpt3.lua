@@ -25,7 +25,7 @@ return {
 		maxdamage = 24000,
 		maxvelocity = 1.5,
 		minwaterdepth = 30,
-		movementclass = "UBOAT6",
+		movementclass = "EPICSUBMARINE",
 		name = unitName,
 		nochasecategory = "VTOL",
 		objectname = "Units/scavboss/ARMSERPT3.s3o",

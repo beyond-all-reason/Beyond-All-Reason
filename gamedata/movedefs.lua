@@ -514,32 +514,68 @@ local moveDatas = {
 		maxwaterslope = 255,
 		speedModClass = 2,
 	},
-	
-	BOSSPEEWEE4 = {
+
+	EPICBOT = {
 		crushstrength = 9999,
+		depthmod = 0,
 		footprintx = 4,
 		footprintz = 4,
-		maxslope = 50,
+		maxslope = 36,
 		maxwaterdepth = 9999,
-		depthModParams = {
-			minHeight = 4,
-			linearCoeff = 0.03,
-			maxValue = 0.7,
-		}
+		maxwaterslope = 50,
+		speedModClass = 1,
 	},
 	
-	BOSSSTUMPY7 = {
+	EPICVEH = {
 		crushstrength = 9999,
-		footprintx = 5,
-		footprintz = 5,
-		maxslope = 26,
-		--slopeMod = 32,
+		depthmod = 0,
+		footprintx = 6,
+		footprintz = 6,
+		maxslope = 36,
 		maxwaterdepth = 9999,
-		depthModParams = {
-			minHeight = 4,
-			linearCoeff = 0.03,
-			maxValue = 0.7,
-		}
+		maxwaterslope = 50,
+		speedModClass = 0,
+	},
+
+	EPICHOVER = {
+		crushstrength = 9999,
+		footprintx = 6,
+		footprintz = 6,
+		maxslope = 36,
+		maxwaterdepth = 9999,
+		maxwaterslope = 255,
+		speedModClass = 2,
+	},
+
+	EPICSHIP = {
+		crushstrength = 9999,
+		footprintx = 6,
+		footprintz = 6,
+		maxslope = 255,
+		maxwaterdepth = 9999,
+		maxwaterslope = 255,
+		speedModClass = 3,
+	},
+
+	EPICALLTERRAIN = {
+		crushstrength = 9999,
+		depthmod = 0,
+		footprintx = 6,
+		footprintz = 6,
+		maxslope = 255,
+		maxwaterdepth = 9999,
+		maxwaterslope = 255,
+		speedModClass = 1,
+	},
+
+	EPICSUBMARINE = {
+		footprintx = 6,
+		footprintz = 6,
+		minwaterdepth = 15,
+		maxwaterdepth = 9999,
+		crushstrength = 9999,
+		subMarine = 1,
+		speedModClass = 3,
 	},
 }
 
