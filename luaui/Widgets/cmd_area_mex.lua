@@ -64,7 +64,7 @@ for udid, ud in pairs(UnitDefs) do
 end
 
 local mexBuilderDef = {}
---local t2mexBuilderDef = {}
+local t2mexBuilderDef = {}
 for udid, ud in pairs(UnitDefs) do
 	if ud.buildOptions then
 		local maxExtractmetal = 0
@@ -79,9 +79,9 @@ for udid, ud in pairs(UnitDefs) do
 				end
 			end
 		end
-		--if maxExtractmetal > 0.002 then
-		--	t2mexBuilderDef[udid] = true
-		--end
+		if maxExtractmetal > 0.002 then
+			t2mexBuilderDef[udid] = true
+		end
 	end
 end
 
@@ -126,6 +126,47 @@ local function GetClosestMetalSpot(x, z)
 	return bestSpot
 end
 
+local function NoAlliedMex(x, z, batchextracts)
+	-- Is there any better and allied mex at this location (returns false if there is)
+	local mexesatspot = Spring.GetUnitsInCylinder(x, z, Game.extractorRadius)
+	for i = 1, #mexesatspot do
+		local uid = mexesatspot[i]
+		if mexIds[spGetUnitDefID(uid)] and Spring.AreTeamsAllied(Spring.GetMyTeamID(), Spring.GetUnitTeam(uid)) and mexIds[spGetUnitDefID(uid)] >= batchextracts then
+			return false
+		end
+	end
+	return true
+end
+
+local function GetClosestMexPosition(spot, x, z, uDefID, facing)
+	local bestPos
+	local bestDist = math.huge
+	local positions = WG.GetMexPositions(spot, uDefID, facing, true)
+	for i = 1, #positions do
+		local pos = positions[i]
+		local dx, dz = x - pos[1], z - pos[3]
+		local dist = dx * dx + dz * dz
+		if dist < bestDist then
+			bestPos = pos
+			bestDist = dist
+		end
+	end
+	return bestPos
+end
+
+local function IsSpotOccupied(spot)
+	local scale = 0.77 + ((math.max(spot.maxX,spot.minX)-(math.min(spot.maxX,spot.minX))) * (math.max(spot.maxZ,spot.minZ)-(math.min(spot.maxZ,spot.minZ)))) / 10000
+	local units = Spring.GetUnitsInSphere(spot.x, spot.y, spot.z, 115*scale)
+	local occupied = false
+	for j=1, #units do
+		if mexIds[spGetUnitDefID(units[j])]  then
+			occupied = true
+			break
+		end
+	end
+	return occupied
+end
+
 function widget:Update()
 	if chobbyInterface then
 		return
@@ -166,22 +207,37 @@ function widget:Update()
 		-- mex-upgrade mouse cursor
 		local mx, my = Spring.GetMouseState()
 		local type, params = Spring.TraceScreenRay(mx, my)
-		if (type == 'unit' and mexIds[Spring.GetUnitDefID(params)] and mexIds[Spring.GetUnitDefID(params)] < 0.002) or type == 'ground' then
+		local isT1Mex = (type == 'unit' and mexIds[Spring.GetUnitDefID(params)] and mexIds[Spring.GetUnitDefID(params)] < 0.002)
+		local closestMex
+		if isT1Mex or type == 'ground' then
 			local proceed = false
 			if type == 'ground' then
-				local closestMex = GetClosestMetalSpot(params[1], params[3])
+				closestMex = GetClosestMetalSpot(params[1], params[3])
 				if closestMex and Distance(params[1], params[3], closestMex.x, closestMex.z) < mexPlacementRadius then
 					proceed = true
 				end
 			end
-			if type == 'unit' or proceed then
+			if isT1Mex or proceed then
 				proceed = false
 				local selUnitCounts = spGetSelectedUnitsCounts()
-				-- search for builder
+				local hasT1builder, hasT2builder = false, false
+				-- search for builders
 				for k,v in pairs(selUnitCounts) do
 					if k ~= 'n' and mexBuilderDef[k] then
-						proceed = true
+						hasT1builder = true
+					end
+					if k ~= 'n' and t2mexBuilderDef[k] then
+						hasT2builder = true
 						break
+					end
+				end
+				if isT1Mex then
+					if hasT2builder then
+						proceed = true
+					end
+				else
+					if (hasT1builder or hasT2builder) and not IsSpotOccupied(closestMex) then
+						proceed = true
 					end
 				end
 				if proceed then
@@ -190,34 +246,6 @@ function widget:Update()
 			end
 		end
 	end
-end
-
-local function NoAlliedMex(x, z, batchextracts)
-	-- Is there any better and allied mex at this location (returns false if there is)
-	local mexesatspot = Spring.GetUnitsInCylinder(x, z, Game.extractorRadius)
-	for i = 1, #mexesatspot do
-		local uid = mexesatspot[i]
-		if mexIds[spGetUnitDefID(uid)] and Spring.AreTeamsAllied(Spring.GetMyTeamID(), Spring.GetUnitTeam(uid)) and mexIds[spGetUnitDefID(uid)] >= batchextracts then
-			return false
-		end
-	end
-	return true
-end
-
-local function GetClosestMexPosition(spot, x, z, uDefID, facing)
-	local bestPos
-	local bestDist = math.huge
-	local positions = WG.GetMexPositions(spot, uDefID, facing, true)
-	for i = 1, #positions do
-		local pos = positions[i]
-		local dx, dz = x - pos[1], z - pos[3]
-		local dist = dx * dx + dz * dz
-		if dist < bestDist then
-			bestPos = pos
-			bestDist = dist
-		end
-	end
-	return bestPos
 end
 
 function widget:CommandNotify(id, params, options)
