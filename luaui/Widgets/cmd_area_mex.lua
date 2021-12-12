@@ -13,7 +13,7 @@ end
 
 local moveIsAreamex = true		-- auto make move cmd an area mex cmd
 
-local mexPlacementRadius = 700	-- (not actual ingame distance)
+local mexPlacementRadius = 750	-- (not actual ingame distance)
 local mexPlacementDragRadius = 20000	-- larger size so you can drag a move line over/near mex spots and it will auto queue mex there more easily
 
 local CMD_AREA_MEX = 10100
@@ -204,7 +204,6 @@ function widget:Update()
 			toggledMetal = false
 		end
 
-
 		-- mex-upgrade mouse cursor
 		local mx, my = Spring.GetMouseState()
 		local type, params = Spring.TraceScreenRay(mx, my)
@@ -292,7 +291,7 @@ function widget:CommandNotify(id, params, options)
 				if #units == 1 and #Spring.GetCommandQueue(units[1], 8) > 1 then
 					if (not lastInsertedOrder or (closestMex.x ~= lastInsertedOrder[1] and closestMex.z ~= lastInsertedOrder[2])) then
 						spotRadius = mexPlacementDragRadius		-- make move drag near mex spots be less strict
-					else
+					elseif lastInsertedOrder then
 						spotRadius = 0
 					end
 				else
