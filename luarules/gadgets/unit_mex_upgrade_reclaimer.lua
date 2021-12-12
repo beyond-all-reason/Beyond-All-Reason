@@ -33,8 +33,12 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 		local units = Spring.GetUnitsInCylinder(x, z, 10)
 		for k, uID in ipairs(units) do
 			if isT1Mex[Spring.GetUnitDefID(uID)] then
+				local t1MexTeamID = Spring.GetUnitTeam(uID)
 				Spring.DestroyUnit(uID, false, true)
 				Spring.AddTeamResource(unitTeam, "metal", isT1Mex[Spring.GetUnitDefID(uID)])
+				if t1MexTeamID ~= unitTeam and not select(3, Spring.GetTeamInfo(t1MexTeamID, false)) then -- and Spring.AreTeamsAllied(t1MexTeamID, unitTeam) then
+					Spring.TransferUnit(unitID, t1MexTeamID)
+				end
 			end
 		end
 	end
