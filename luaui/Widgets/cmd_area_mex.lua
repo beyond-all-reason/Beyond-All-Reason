@@ -65,7 +65,7 @@ for udid, ud in pairs(UnitDefs) do
 end
 
 local mexBuilderDef = {}
-local t2mexBuilderDef = {}
+local t2mexBuilder = {}
 for udid, ud in pairs(UnitDefs) do
 	if ud.buildOptions then
 		local maxExtractmetal = 0
@@ -81,7 +81,7 @@ for udid, ud in pairs(UnitDefs) do
 			end
 		end
 		if maxExtractmetal > 0.002 then
-			t2mexBuilderDef[udid] = true
+			t2mexBuilder[udid] = true
 		end
 	end
 end
@@ -206,45 +206,45 @@ function widget:Update()
 
 
 		-- mex-upgrade mouse cursor
-		if cmd == CMD_MOVE or cmd == CMD_GUARD then
-			local mx, my = Spring.GetMouseState()
-			local type, params = Spring.TraceScreenRay(mx, my)
-			local isT1Mex = (type == 'unit' and mexIds[Spring.GetUnitDefID(params)] and mexIds[Spring.GetUnitDefID(params)] < 0.002)
-			local closestMex
-			if isT1Mex or type == 'ground' then
-				local proceed = false
-				if type == 'ground' then
-					closestMex = GetClosestMetalSpot(params[1], params[3])
-					if closestMex and Distance(params[1], params[3], closestMex.x, closestMex.z) < mexPlacementRadius then
-						proceed = true
-					end
+		local mx, my = Spring.GetMouseState()
+		local type, params = Spring.TraceScreenRay(mx, my)
+		local isT1Mex = (type == 'unit' and mexIds[Spring.GetUnitDefID(params)] and mexIds[Spring.GetUnitDefID(params)] < 0.002)
+		local closestMex
+		if isT1Mex or type == 'ground' then
+			local proceed = false
+			if type == 'ground' then
+				closestMex = GetClosestMetalSpot(params[1], params[3])
+				if closestMex and Distance(params[1], params[3], closestMex.x, closestMex.z) < mexPlacementRadius then
+					proceed = true
 				end
-				if isT1Mex or proceed then
-					proceed = false
-					local selUnitCounts = spGetSelectedUnitsCounts()
-					local hasT1builder, hasT2builder = false, false
-					-- search for builders
-					for k,v in pairs(selUnitCounts) do
-						if k ~= 'n' and mexBuilderDef[k] then
+			end
+			if isT1Mex or proceed then
+				proceed = false
+				local selUnitCounts = spGetSelectedUnitsCounts()
+				local hasT1builder, hasT2builder = false, false
+				-- search for builders
+				for k,v in pairs(selUnitCounts) do
+					if k ~= 'n' then
+						if mexBuilderDef[k] then
 							hasT1builder = true
 						end
-						if k ~= 'n' and t2mexBuilderDef[k] then
+						if t2mexBuilder[k] then
 							hasT2builder = true
 							break
 						end
 					end
-					if isT1Mex then
-						if hasT2builder then
-							proceed = true
-						end
-					else
-						if (hasT1builder or hasT2builder) and not IsSpotOccupied(closestMex) then
-							proceed = true
-						end
+				end
+				if isT1Mex then
+					if hasT2builder then
+						proceed = true
 					end
-					if proceed then
-						Spring.SetMouseCursor('upgmex')
+				else
+					if (hasT1builder or hasT2builder) and not IsSpotOccupied(closestMex) then
+						proceed = true
 					end
+				end
+				if proceed then
+					Spring.SetMouseCursor('upgmex')
 				end
 			end
 		end
