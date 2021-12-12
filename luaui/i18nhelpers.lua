@@ -1,5 +1,6 @@
-local unitI18Nfile = VFS.Include('language/units_en.lua')
-local i18nDescriptionEntries = unitI18Nfile.en.units.descriptions
+local unitI18Nfile = VFS.LoadFile('language/units_en.json')
+local unitI18Nlua = Spring.Utilities.json.decode(unitI18Nfile)
+local i18nDescriptionEntries = unitI18Nlua.en.units.descriptions
 
 local function refreshUnitDefs()
 	for unitDefName, unitDef in pairs(UnitDefNames) do

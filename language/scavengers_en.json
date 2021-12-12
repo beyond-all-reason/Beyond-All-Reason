@@ -1,0 +1,39 @@
+{
+	"en": {
+		"scav": {
+			"messages": {
+				"timeRemaining04": "Only 4 minutes remaining.",
+				"reinforcements":"%{player}'s reinforcements detected. Unit type: %{unit}.",
+				"timeRemaining05": "5 minutes remaining. You are almost there.",
+				"eventCloud": "Alert! Scavenger cloud approaching.",
+				"eventMiniboss": "Alert! Miniboss Detected.",
+				"commanderDetected5": "An extra Scavenger Commander has been spotted.",
+				"droppingUnits": "Scavengers are dropping units in our area.",
+				"commanderDetected2": "An additional Scavenger Commander detected.",
+				"finalVictory": "Good work commander. You survived all scavenger attacks. You are victorius! Celebrate and then try and annihilate them on the next map.",
+				"timeRemaining07": "Still 7 minutes remaining. Fight your way through them.",
+				"timeRemaining09": "9 minutes remaining. Hold your line.",
+				"timeRemaining03": "3 minute mark.",
+				"dropPodsDetected": "Scavenger Droppods detected in the area.",
+				"timeRemaining01": "1 minute remaining.",
+				"eventMalfunctions": "Alert! Scavenger malfunction detected.",
+				"timeRemaining12": "12.5 minutes remaining. Still a long fight ahead.",
+				"finalAttack": "Scavengers are unleashing all they have. Their final assault has started.",
+				"commanderDetected3": "Another Scavenger Commander detected in the area.",
+				"bossDetected": "Critical danger! Scavengers have dropped a highly lethal boss unit in the area, destroy it before it reaches your base.",
+				"eventSwarm": "Warning! Scavenger swarm detected.",
+				"timeRemaining06": "6 minutes remaining.",
+				"heavyShipsDetected": "Alert. Heavy ships detected in the area.",
+				"finalBoss":"Commander, we've detected an abnormally large signature of scavenger unit. It's approaching slowly in your direction. Be prepared for the worst!",
+				"commanderDetected1": "Scavenger commander detected.",
+				"unkownObjectsDetected": "Unidentified objects have been detected in the vicinity...",
+				"timeRemaining08": "8 minutes remaining.",
+				"timeRemaining10": "10 minutes remaining.",
+				"commanderDetected6": "New Scav Commander detected.",
+				"classifiedAsScavengers": "Unidentified objects are now classified as Scavengers.",
+				"commanderDetected4": "New Scavenger Commander entered this location.",
+				"timeRemaining02": "Only 2 minutes remaining."
+			}
+		}
+	}
+}
