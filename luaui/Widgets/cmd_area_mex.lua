@@ -15,7 +15,9 @@ local moveIsAreamex = true		-- auto make move cmd an area mex cmd
 
 local CMD_AREA_MEX = 10100
 local CMD_MOVE = CMD.MOVE
+local CMD_STOP = CMD.STOP
 local CMD_GUARD = CMD.GUARD
+local CMD_OPT_RIGHT = CMD.OPT_RIGHT
 
 local spGetSelectedUnits = Spring.GetSelectedUnits
 local spGetSelectedUnitsCounts = Spring.GetSelectedUnitsCounts
@@ -239,6 +241,7 @@ function widget:CommandNotify(id, params, options)
 		if proceed then
 			if isGuard then
 				local ux, uy, uz = Spring.GetUnitPosition(params[1])
+				isGuard = { x = ux, y = uy, z = uz }
 				params[1], params[2], params[3] = ux, uy, uz
 				id = CMD_AREA_MEX
 				params[4] = 25
@@ -256,17 +259,18 @@ function widget:CommandNotify(id, params, options)
 
 	if id == CMD_AREA_MEX then
 		mexes = WG.metalSpots
+		if isGuard then
+			mexes = {isGuard}
+		end
 		local cx, cy, cz, cr = params[1], params[2], params[3], params[4]
 		if not cr or cr < Game.extractorRadius then
 			cr = Game.extractorRadius
 		end
-		local cr = cr
 
 		local commands = {}
 		local commandsCount = 0
 		local orderedCommands = {}
 		local ux, uz, us, aveX, aveZ = 0, 0, 0, 0, 0
-
 		local maxbatchextracts = 0
 		local batchMexBuilder = {}
 		local lastprocessedbestbuilder = nil
@@ -298,9 +302,9 @@ function widget:CommandNotify(id, params, options)
 					batchMexBuilder[batchSize] = id
 				else
 					if not shift then
-						spGiveOrderToUnit(id, CMD.STOP, {}, CMD.OPT_RIGHT)
+						spGiveOrderToUnit(id, CMD_STOP, {}, CMD_OPT_RIGHT)
 					end
-					spGiveOrderToUnit(id, CMD.GUARD, { lastprocessedbestbuilder }, { "shift" })
+					spGiveOrderToUnit(id, CMD_GUARD, { lastprocessedbestbuilder }, { "shift" })
 				end
 			end
 		end
@@ -350,12 +354,11 @@ function widget:CommandNotify(id, params, options)
 		for ct = 1, #batchMexBuilder do
 			local id = batchMexBuilder[ct]
 			if not shift then
-				spGiveOrderToUnit(id, CMD.STOP, {}, CMD.OPT_RIGHT)
+				spGiveOrderToUnit(id, CMD_STOP, {}, CMD_OPT_RIGHT)
 			end
 		end
 
 		local mexQueued = false
-		local shift = true
 		for ct = 1, #batchMexBuilder do
 			local id = batchMexBuilder[ct]
 
@@ -432,10 +435,10 @@ function widget:CommandsChanged()
 end
 
 function widget:Initialize()
-	if not WG.metalSpots or (#WG.metalSpots > 0 and #WG.metalSpots <= 2) then
-		widgetHandler:RemoveWidget(self)
-		return
-	end
+	--if not WG.metalSpots or (#WG.metalSpots > 0 and #WG.metalSpots <= 2) then
+	--	widgetHandler:RemoveWidget(self)
+	--	return
+	--end
 	local units = spGetTeamUnits(spGetMyTeamID())
 	for i = 1, #units do
 		local id = units[i]
