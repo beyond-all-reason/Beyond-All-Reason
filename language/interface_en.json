@@ -405,7 +405,6 @@
 				"reclaim_tooltip": "Suck metal/energy from wrecks or features (trees/stones)",
 				"repair_tooltip": "Repair a damaged unit",
 				"Roam": "Roam",
-				"upgrademex_tooltip": "Click on a T1 metal extractor to upgrade it to T2 (click-drag for area)",
 				"attack_tooltip": "Attack a unit or ground position",
 				"resurrect_tooltip": "Revive wrecks to become units again (click-drag for area)",
 				"repeat_tooltip": "Repeat unit command queue",
@@ -419,7 +418,6 @@
 				"morph": "Upgrade",
 				"areamex": "Area Mex",
 				"firestate_tooltip": "Set under what conditions a unit should start firing at enemies (without explicit attack order)",
-				"automex_tooltip": "When toggled: Auto Upgrade all T1 metal extractors to T2",
 				"resurrect": "Resurrect",
 				"LandAt 0": "No Retreat",
 				"No priority": "No priority",
@@ -439,7 +437,6 @@
 				},
 				"Fire at will": "Fire at will",
 				"Hold pos": "Hold pos",
-				"UpgMex ON": "Auto Upgrade",
 				"apAirRepair_tooltip": "Air factory: Set at which health %% an aircraft should automatically move to and land on an air repair pad",
 				"areaattack": "Area Attack",
 				"autorepairlevel_tooltip": "Set at which HP %% this aircraft retreats to nearest air repair pad",
@@ -450,7 +447,6 @@
 				"LandAt 30": "Retreat 30%%",
 				"Maneuver": "Maneuver",
 				"attack": "Attack",
-				"upgrademex": "Upgrade Mex",
 				"apLandAt_tooltip": "Sets what aircraft do when leaving air factory",
 				"unloadunits": "Unload units",
 				"idlemode_tooltip": "Sets what aircraft do when idle",
@@ -472,7 +468,6 @@
 				"High Prio": "Priority",
 				"canceltarget_tooltip": "Removes the priority target",
 				"morph_tooltip": "Upgrade to next Tech-level (second click to cancel)",
-				"UpgMex OFF": "Auto Upgrade",
 				"Return fire": "Return fire",
 				"wait_tooltip": "Pause a unit/factory on processing command/build queues",
 				"movestate_tooltip": "Set how far out of its way a unit should move to attack enemies",
@@ -504,9 +499,6 @@
 			"unitTotals": {
 				"total": "total",
 				"units": "units"
-			},
-			"mexUpgrader": {
-				"noMexes": "%{unit}: No mexes to upgrade"
 			},
 			"loadScreen": {
 				"intelGpuWarning": "%{textColor}You are using the integrated %{warnColor}Intel graphics%{textColor} card.      Your experience might be sub optimal."
