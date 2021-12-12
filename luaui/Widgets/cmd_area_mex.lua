@@ -13,7 +13,8 @@ end
 
 local moveIsAreamex = true		-- auto make move cmd an area mex cmd
 
-local mexPlacementRadius = 700	-- not actual ingame size
+local mexPlacementRadius = 700	-- (not actual ingame distance)
+local mexPlacementDragRadius = 6000	-- larger size so you can drag a move line over/near mex spots and it will auto queue mex there more easily
 
 local CMD_AREA_MEX = 10100
 local CMD_MOVE = CMD.MOVE
@@ -35,7 +36,7 @@ local spGetActiveCommand = Spring.GetActiveCommand
 local spGetMapDrawMode = Spring.GetMapDrawMode
 local spSendCommands = Spring.SendCommands
 
-local toggledMetal, retoggleLos, chobbyInterface
+local toggledMetal, retoggleLos, chobbyInterface, lastInsertedOrder
 
 local tasort = table.sort
 local taremove = table.remove
@@ -205,43 +206,45 @@ function widget:Update()
 
 
 		-- mex-upgrade mouse cursor
-		local mx, my = Spring.GetMouseState()
-		local type, params = Spring.TraceScreenRay(mx, my)
-		local isT1Mex = (type == 'unit' and mexIds[Spring.GetUnitDefID(params)] and mexIds[Spring.GetUnitDefID(params)] < 0.002)
-		local closestMex
-		if isT1Mex or type == 'ground' then
-			local proceed = false
-			if type == 'ground' then
-				closestMex = GetClosestMetalSpot(params[1], params[3])
-				if closestMex and Distance(params[1], params[3], closestMex.x, closestMex.z) < mexPlacementRadius then
-					proceed = true
-				end
-			end
-			if isT1Mex or proceed then
-				proceed = false
-				local selUnitCounts = spGetSelectedUnitsCounts()
-				local hasT1builder, hasT2builder = false, false
-				-- search for builders
-				for k,v in pairs(selUnitCounts) do
-					if k ~= 'n' and mexBuilderDef[k] then
-						hasT1builder = true
-					end
-					if k ~= 'n' and t2mexBuilderDef[k] then
-						hasT2builder = true
-						break
-					end
-				end
-				if isT1Mex then
-					if hasT2builder then
-						proceed = true
-					end
-				else
-					if (hasT1builder or hasT2builder) and not IsSpotOccupied(closestMex) then
+		if cmd == CMD_MOVE or cmd == CMD_GUARD then
+			local mx, my = Spring.GetMouseState()
+			local type, params = Spring.TraceScreenRay(mx, my)
+			local isT1Mex = (type == 'unit' and mexIds[Spring.GetUnitDefID(params)] and mexIds[Spring.GetUnitDefID(params)] < 0.002)
+			local closestMex
+			if isT1Mex or type == 'ground' then
+				local proceed = false
+				if type == 'ground' then
+					closestMex = GetClosestMetalSpot(params[1], params[3])
+					if closestMex and Distance(params[1], params[3], closestMex.x, closestMex.z) < mexPlacementRadius then
 						proceed = true
 					end
 				end
-				if proceed then
-					Spring.SetMouseCursor('upgmex')
+				if isT1Mex or proceed then
+					proceed = false
+					local selUnitCounts = spGetSelectedUnitsCounts()
+					local hasT1builder, hasT2builder = false, false
+					-- search for builders
+					for k,v in pairs(selUnitCounts) do
+						if k ~= 'n' and mexBuilderDef[k] then
+							hasT1builder = true
+						end
+						if k ~= 'n' and t2mexBuilderDef[k] then
+							hasT2builder = true
+							break
+						end
+					end
+					if isT1Mex then
+						if hasT2builder then
+							proceed = true
+						end
+					else
+						if (hasT1builder or hasT2builder) and not IsSpotOccupied(closestMex) then
+							proceed = true
+						end
+					end
+					if proceed then
+						Spring.SetMouseCursor('upgmex')
+					end
 				end
 			end
 		end
@@ -282,9 +285,20 @@ function widget:CommandNotify(id, params, options)
 				params[1], params[2], params[3] = ux, uy, uz
 				id = CMD_AREA_MEX
 				params[4] = 25
+				lastInsertedOrder = nil
 			else
 				local closestMex = GetClosestMetalSpot(params[1], params[3])
-				if closestMex and Distance(params[1], params[3], closestMex.x, closestMex.z) < mexPlacementRadius then
+				local spotRadius = mexPlacementRadius
+				if #units == 1 and #Spring.GetCommandQueue(units[1], 8) > 1 then
+					if (not lastInsertedOrder or (closestMex.x ~= lastInsertedOrder[1] and closestMex.z ~= lastInsertedOrder[2])) then
+						spotRadius = mexPlacementDragRadius		-- make move drag near mex spots be less strict
+					else
+						spotRadius = 0
+					end
+				else
+					lastInsertedOrder = nil
+				end
+				if spotRadius > 0 and closestMex and Distance(params[1], params[3], closestMex.x, closestMex.z) < spotRadius then
 					id = CMD_AREA_MEX
 					params[4] = 25
 				else
@@ -423,6 +437,7 @@ function widget:CommandNotify(id, params, options)
 						if buildable ~= 0 then
 							mexQueued = true
 							spGiveOrderToUnit(id, mexBuilder[id].building[j], { newx, spGetGroundHeight(newx, newz), newz }, { "shift" })
+							lastInsertedOrder = {command.x, command.z}
 							break
 						elseif def[2] and -def[2] < Y and def[1] and -def[1] > Y then
 							local hsize = unitXsize[-mexBuilder[id].building[j]] * 4
@@ -438,6 +453,7 @@ function widget:CommandNotify(id, params, options)
 							end
 							mexQueued = true
 							spGiveOrderToUnit(id, CMD.INSERT, { -1, mexBuilder[id].building[j], CMD.OPT_INTERNAL, command.x, spGetGroundHeight(command.x, command.z), command.z }, { shift = true, internal = true, alt = true })
+							lastInsertedOrder = {command.x, command.z}
 							break
 						end
 					end
