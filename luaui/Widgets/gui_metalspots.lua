@@ -30,6 +30,14 @@ local spGetUnitDefID = Spring.GetUnitDefID
 local spGetGroundHeight = Spring.GetGroundHeight
 local spGetMapDrawMode  = Spring.GetMapDrawMode
 
+
+local glPushMatrix = gl.PushMatrix
+local glTranslate = gl.Translate
+local glScale = gl.Scale
+local glBillboard = gl.Billboard
+local glCallList = gl.CallList
+local glPopMatrix = gl.PopMatrix
+
 local spots = {}
 local valueList = {}
 local previousOsClock = os.clock()
@@ -399,23 +407,17 @@ function widget:DrawWorldPreUnit()
 	end
 
 	local spot
-	if showValue or Spring.GetGameFrame() == 0 or Spring.GetMapDrawMode() == 'metal' then
+	local gf = Spring.GetGameFrame()
+	if showValue or gf == 0 or mapDrawMode == 'metal' then
 		for i = 1, #spots do
 			spot = spots[i]
-			if spot[7] and spIsSphereInView(spot[1], spot[2], spot[3], 60) then
-
-				gl.PushMatrix()
-				gl.Translate(spot[1], spot[2], spot[3])
-				gl.Color(1, 1, 1, opacity)
-
-				if showValue or Spring.GetGameFrame() == 0 or mapDrawMode == 'metal' then
-					if spot[5] < 200 then
-						gl.Scale(21*spot[5],21*spot[5],21*spot[5])
-						gl.Billboard()
-						gl.CallList(valueList[spot[4]])
-					end
-				end
-				gl.PopMatrix()
+			if spot[7] and spot[5] < 200 and spIsSphereInView(spot[1], spot[2], spot[3], 60) then
+				glPushMatrix()
+				glTranslate(spot[1], spot[2], spot[3])
+				glScale(21*spot[5],21*spot[5],21*spot[5])
+				glBillboard()
+				glCallList(valueList[spot[4]])
+				glPopMatrix()
 			end
 		end
 	end
