@@ -175,6 +175,7 @@ function widget:Update()
 				end
 			end
 			if type == 'unit' or proceed then
+				proceed = false
 				local selUnitCounts = spGetSelectedUnitsCounts()
 				-- search for t2 builder
 				for k,v in pairs(selUnitCounts) do
