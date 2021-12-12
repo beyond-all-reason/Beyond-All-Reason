@@ -40,6 +40,7 @@ local gaiaTeamID = Spring.GetGaiaTeamID()
 
 local unitScale = {}
 local unitCanFly = {}
+local unitDecoration = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
 	unitScale[unitDefID] = ((7.5 * ( unitDef.xsize^2 + unitDef.zsize^2 ) ^ 0.5) + 8) * sizeMultiplier
 	if unitDef.canFly then
@@ -47,6 +48,9 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 		unitScale[unitDefID] = unitScale[unitDefID] * 0.9
 	elseif unitDef.isBuilding or unitDef.isFactory or unitDef.speed==0 then
 		unitScale[unitDefID] = unitScale[unitDefID] * 0.9
+	end
+	if unitDef.name == 'xmasball' or unitDef.name == 'xmasball2' then
+		unitDecoration[unitDefID] = true
 	end
 end
 
@@ -126,7 +130,7 @@ local function RemovePrimitive(unitID)
 end
 
 local function AddUnit(unitID, unitDefID, unitTeamID)
-	if (not skipOwnTeam or spGetUnitAllyTeam(unitID) ~= myAllyTeamID) and unitTeamID ~= gaiaTeamID then
+	if (not skipOwnTeam or spGetUnitAllyTeam(unitID) ~= myAllyTeamID) and unitTeamID ~= gaiaTeamID and not unitDecoration[unitDefID] then
 		unitTeam[unitID] = unitTeamID
 		unitUnitDefID[unitID] = unitDefID
 		AddPrimitiveAtUnit(unitID)
@@ -134,7 +138,7 @@ local function AddUnit(unitID, unitDefID, unitTeamID)
 end
 
 local function RemoveUnit(unitID, unitDefID, unitTeamID)
-	if (not skipOwnTeam or spGetUnitAllyTeam(unitID) ~= myAllyTeamID) and unitTeamID ~= gaiaTeamID then
+	if (not skipOwnTeam or spGetUnitAllyTeam(unitID) ~= myAllyTeamID) and unitTeamID ~= gaiaTeamID and not unitDecoration[unitDefID] then
 		RemovePrimitive(unitID)
 		unitTeam[unitID] = nil
 		unitUnitDefID[unitID] = nil
@@ -189,7 +193,7 @@ local function init()
 	selectionVBO, selectShader = InitDrawPrimitiveAtUnit(shaderConfig, "selectedUnits")
 
 	for _, unitID in ipairs(Spring.GetAllUnits()) do
-			AddUnit(unitID, Spring.GetUnitDefID(unitID), Spring.GetUnitTeam(unitID))
+		AddUnit(unitID, Spring.GetUnitDefID(unitID), Spring.GetUnitTeam(unitID))
 	end
 end
 
