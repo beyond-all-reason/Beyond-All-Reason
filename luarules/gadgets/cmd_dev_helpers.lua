@@ -205,6 +205,10 @@ else
 		gadgetHandler:AddChatAction('reclaimunits', reclaimUnits, "")  -- doing it via GotChatMsg ensures it will only listen to the caller
 		gadgetHandler:AddChatAction('removeunits', removeUnits, "")  -- doing it via GotChatMsg ensures it will only listen to the caller
 		gadgetHandler:AddChatAction('spawnceg', spawnceg, "")
+		
+		gadgetHandler:AddChatAction('dumpunits', dumpUnits, "")
+		gadgetHandler:AddChatAction('dumpfeatures', dumpFeatures, "")
+		
 	end
 
 	function gadget:Shutdown()
@@ -238,6 +242,37 @@ else
 			msg = msg .. " " .. tostring(unitID)
 		end
 		Spring.SendLuaRulesMsg(PACKET_HEADER .. ':' .. msg)
+	end
+	
+	function dumpFeatures(_)
+		if not isAuthorized(Spring.GetMyPlayerID()) then
+			return
+		end
+		local features=Spring.GetAllFeatures()		
+		local outputstr = "\n"
+		for k,v in pairs(features) do
+			local featureName = (FeatureDefs[Spring.GetFeatureDefID(v)].name or "nil")
+			local x,y,z = Spring.GetFeaturePosition(v)
+			local r = Spring.GetFeatureHeading(v)
+			local resurrectas = Spring.GetFeatureResurrect(v)
+			if resurrectas then resurrectas = "\"" .. resurrectas .. "\"" else resurrectas = 'nil' end
+			outputstr = outputstr .. string.format("{name = \'%s\', x = %d, y = %d, z = %d, rot = %d , scale = 1.0, resurrectas = %s},\n",featureName,x,y,z,r, resurrectas) --{ name = 'ad0_aleppo_2', x = 2900, z = 52, rot = "-1" },
+		end
+		Spring.Echo(outputstr)
+	end	
+	
+	function dumpUnits(_)
+		Spring.Echo("Dont forget to /globallos!")
+		local units=Spring.GetAllUnits()
+		local outputstr = "\n"
+		for k,v in pairs(units) do
+			local unitname = (UnitDefs[Spring.GetUnitDefID(v)].name or "nil")
+			local x,y,z= Spring.GetUnitPosition(v)
+			local r=Spring.GetUnitHeading(v)
+			local tid = Spring.GetUnitTeam(v)
+			outputstr = outputstr .. string.format("{name = \'%s\', x = %d, y = %d, z = %d, rot = %d , team = %d},\n",unitname,x,y,z,r,tid) --{ name = 'ad0_aleppo_2', x = 2900, z = 52, rot = "-1" },
+		end
+		Spring.Echo(outputstr)
 	end
 
 	function spawnceg(_, line, words, playerID)
