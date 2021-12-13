@@ -31,7 +31,6 @@ if gadgetHandler:IsSyncedCode() then
 
 	local isBuilder = {}
 	local unitSize = {}
-	local unitBuildSpeedTime = {}
 	local initiated
 
 	for unitDefID, unitDef in pairs(UnitDefs) do
@@ -41,7 +40,7 @@ if gadgetHandler:IsSyncedCode() then
 		unitSize[unitDefID] = { ((unitDef.xsize*8)+8)/2, ((unitDef.zsize*8)+8)/2 }
 	end
 
-	local maxDecorations = 150
+	local maxDecorations = 200
 
 	_G.itsXmas = false
 
@@ -83,7 +82,7 @@ if gadgetHandler:IsSyncedCode() then
 			if def.mass >= 35 then
 				local balls = math.floor(((def.radius-13) / 7.5))
 				local cost = def.metalCost + (def.energyCost/100)
-				local impulse = 0.35
+				local impulse = 0.37
 				local radius = 0.8
 				for _,v in ipairs(costSettings) do
 					if cost > v[1] then
@@ -175,9 +174,9 @@ if gadgetHandler:IsSyncedCode() then
 					local x,y,z = Spring.GetUnitPosition(unitID)
 					local gy = Spring.GetGroundHeight(x,z)
 
-					decorationsTerminal[unitID] = n+240+((y - gy) * 33)		-- allows if in sea to take longer to go under seafloor
-					if decorationsTerminal[unitID] > n+1400 then	-- limit time
-						decorationsTerminal[unitID] = n+1400
+					decorationsTerminal[unitID] = n+random(0,50)+225+((y - gy) * 33)		-- allows if in sea to take longer to go under seafloor
+					if decorationsTerminal[unitID] > n+1500 then	-- limit time
+						decorationsTerminal[unitID] = n+1500
 					end
 					local env = Spring.UnitScript.GetScriptEnv(unitID)
 					Spring.UnitScript.CallAsUnit(unitID,env.Sink)
@@ -361,7 +360,8 @@ else
 	local updateTimer = 0
 	function gadget:Update()
 		updateTimer = updateTimer + Spring.GetLastUpdateSeconds()
-		if updateTimer > 1.3 then
+		if updateTimer > 0.7 then
+			updateTimer = 0
 			scaleMult = Spring.GetConfigFloat("decorationsize", 1)
 		end
 	end
