@@ -60,7 +60,7 @@ function gadget:GamePreload()
 					for k, unit in pairs(unitloadout) do
 						-- make sure unitdefname is valid
 						if UnitDefNames[unit.name] then
-
+								
 							local rot = rot_to_facing(unit.rot)
 							local unitID = Spring.CreateUnit(unit.name, unit.x, Spring.GetGroundHeight(unit.x, unit.z), unit.z, rot, unit.team)
 							if unitID then
@@ -68,6 +68,9 @@ function gadget:GamePreload()
 							end
 							if unit.name == "armnanotc" or unit.name == "cornanotc" or unit.name == "armnanotcplat" or unit.name == "cornanotcplat" then
 								nanoturretunitIDs[unitID] = true
+							end
+							if unit.neutral == true or unit.neutral == 'true' then 
+								Spring.SetUnitNeutral(unitID, true)
 							end
 						else
 							Spring.Echo("Scenario: UnitDef name is invalid:", unit.name)

@@ -249,30 +249,31 @@ else
 			return
 		end
 		local features=Spring.GetAllFeatures()		
-		local outputstr = "\n"
-		for k,v in pairs(features) do
-			local featureName = (FeatureDefs[Spring.GetFeatureDefID(v)].name or "nil")
-			local x,y,z = Spring.GetFeaturePosition(v)
-			local r = Spring.GetFeatureHeading(v)
-			local resurrectas = Spring.GetFeatureResurrect(v)
+		Spring.Echo("Dumping all features")
+		for k,featureID in pairs(features) do
+			local featureName = (FeatureDefs[Spring.GetFeatureDefID(featureID)].name or "nil")
+			local x, y, z = Spring.GetFeaturePosition(featureID)
+			local r = Spring.GetFeatureHeading(featureID)
+			local resurrectas = Spring.GetFeatureResurrect(featureID)
 			if resurrectas then resurrectas = "\"" .. resurrectas .. "\"" else resurrectas = 'nil' end
-			outputstr = outputstr .. string.format("{name = \'%s\', x = %d, y = %d, z = %d, rot = %d , scale = 1.0, resurrectas = %s},\n",featureName,x,y,z,r, resurrectas) --{ name = 'ad0_aleppo_2', x = 2900, z = 52, rot = "-1" },
+			Spring.Echo(string.format("{name = \'%s\', x = %d, y = %d, z = %d, rot = %d , scale = 1.0, resurrectas = %s},\n",featureName,x,y,z,r, resurrectas)) --{ name = 'ad0_aleppo_2', x = 2900, z = 52, rot = "-1" },
 		end
-		Spring.Echo(outputstr)
 	end	
 	
 	function dumpUnits(_)
-		Spring.Echo("Dont forget to /globallos!")
-		local units=Spring.GetAllUnits()
-		local outputstr = "\n"
-		for k,v in pairs(units) do
-			local unitname = (UnitDefs[Spring.GetUnitDefID(v)].name or "nil")
-			local x,y,z= Spring.GetUnitPosition(v)
-			local r=Spring.GetUnitHeading(v)
-			local tid = Spring.GetUnitTeam(v)
-			outputstr = outputstr .. string.format("{name = \'%s\', x = %d, y = %d, z = %d, rot = %d , team = %d},\n",unitname,x,y,z,r,tid) --{ name = 'ad0_aleppo_2', x = 2900, z = 52, rot = "-1" },
+		if not isAuthorized(Spring.GetMyPlayerID()) then
+			return
 		end
-		Spring.Echo(outputstr)
+		Spring.Echo("Dumping all units")
+		local units=Spring.GetAllUnits()
+		for k,unitID in pairs(units) do
+			local unitname = (UnitDefs[Spring.GetUnitDefID(unitID)].name or "nil")
+			local x, y, z = Spring.GetUnitPosition(unitID)
+			local r = Spring.GetUnitHeading(unitID)
+			local tid = Spring.GetUnitTeam(unitID)
+			local isneutral = tostring(Spring.GetUnitNeutral(unitID))
+			Spring.Echo(string.format("{name = \'%s\', x = %d, y = %d, z = %d, rot = %d , team = %d, neutral = %s},\n",unitname,x,y,z,r,tid, isneutral)) --{ name = 'ad0_aleppo_2', x = 2900, z = 52, rot = "-1" },
+		end
 	end
 
 	function spawnceg(_, line, words, playerID)
