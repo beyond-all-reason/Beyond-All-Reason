@@ -777,7 +777,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 		for i = 1,#bossUnitList.Bosses do
 			if unitName == bossUnitList.Bosses[i] then
 				FinalBossUnitID = unitID
-				Spring.SetUnitArmored(unitID, true , 1/(teamcount*spawnmultiplier))
+				Spring.SetUnitArmored(unitID, true , 1/(spawnmultiplier*3))
 				initialbosshealth = Spring.GetUnitHealth(unitID)
 
 				local stopScavUnits = Spring.GetTeamUnits(GaiaTeamID)
