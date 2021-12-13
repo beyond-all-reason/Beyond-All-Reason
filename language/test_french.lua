@@ -637,7 +637,7 @@ return {
 				unitRemoved = "Le Removed %{unit} from autogroups.",
 			},
 			moveAttackNotify = {
-				underAttack = "Le -> %{unit} is being attacked!",
+				underAttack = "Le %{unit} is being attacked!",
 				cantMove = "Le %{unit}: Can't reach destination!",
 			},
 			unitShare = {
