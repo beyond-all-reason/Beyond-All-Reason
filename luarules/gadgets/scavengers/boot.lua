@@ -142,6 +142,20 @@ function SpawnFromQueue(n)
 	end
 end
 
+function DestroyOldBuildings()
+	local unitCount = Spring.GetTeamUnitCount(GaiaTeamID)
+	local unitCountBuffer = scavMaxUnits*0.05
+	if unitCount + unitCountBuffer > scavMaxUnits then 
+		for i = 1,((unitCount + unitCountBuffer)-scavMaxUnits) do
+			if #BaseCleanupQueue > 0 then
+				Spring.DestroyUnit(BaseCleanupQueue[1], true, false)
+				table.remove(BaseCleanupQueue, 1)
+			end
+		end
+	end
+end
+
+
 -- function PutSpectatorsInScavTeam(n)
 	-- local players = Spring.GetPlayerList()
 	-- for i = 1,#players do
@@ -195,13 +209,7 @@ function gadget:GameFrame(n)
 
 	if n > 1 then
 		SpawnFromQueue(n)
-		local unitCount = Spring.GetTeamUnitCount(GaiaTeamID)
-		local unitCountBuffer = scavMaxUnits*0.05
-		if unitCount + unitCountBuffer >= scavMaxUnits then 
-			if #BaseCleanupQueue > 0 then
-				Spring.DestroyUnit(BaseCleanupQueue[1], true, false)
-			end
-		end
+		DestroyOldBuildings()
 	end
 
 	if n%900 then
@@ -416,11 +424,6 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
 		end
 		scavStatsScavUnits = scavStatsScavUnits-1
 		scavStatsScavUnitsKilled = scavStatsScavUnitsKilled+1
-		for i = 1,#BaseCleanupQueue do
-			if unitID == BaseCleanupQueue[i] then
-				table.remove(BaseCleanupQueue, i)
-			end
-		end
 
 		if FinalBossUnitSpawned == true then
 			for i = 1,#bossUnitList.Bosses do
