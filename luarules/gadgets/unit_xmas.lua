@@ -29,6 +29,8 @@ end
 
 if gadgetHandler:IsSyncedCode() then
 
+	VFS.Include("luarules/configs/map_biomes.lua")	-- used to place extra candy canes on snowy maps!
+
 	local isBuilder = {}
 	local unitSize = {}
 	local initiated
@@ -111,7 +113,7 @@ if gadgetHandler:IsSyncedCode() then
 	local createDecorations = {}
 	local createdDecorations = {}
 
-	local candycaneAmount = math.ceil((Game.mapSizeX*Game.mapSizeZ)/1500000)
+	local candycaneAmount = math.ceil((Game.mapSizeX*Game.mapSizeZ)/2200000)		-- snowy maps get more later
 	local candycanes = {}
 	local gaiaTeamID = Spring.GetGaiaTeamID()
 	local random = math.random
@@ -131,6 +133,17 @@ if gadgetHandler:IsSyncedCode() then
 	function initiateXmas()
 		if not initiated then
 			initiated = true
+
+			if snowKeywords then
+				local currentMapname = Game.mapName:lower()
+				for _,keyword in pairs(snowKeywords) do
+					if string.find(currentMapname, keyword, nil, true) then
+						candycaneAmount = math.floor(candycaneAmount * 2.5)
+						break
+					end
+				end
+			end
+
 			-- spawn candy canes
 			for i=1, candycaneAmount do
 				local x = random(0, Game.mapSizeX)
