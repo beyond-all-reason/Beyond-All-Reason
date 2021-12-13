@@ -360,6 +360,15 @@ else
 
 	--local itsXmas = SYNCED.itsXmas
 	local xmasballs = {}
+	local scaleMult = Spring.GetConfigFloat("decorationsize", 1)
+
+	local updateTimer = 0
+	function gadget:Update()
+		updateTimer = updateTimer + Spring.GetLastUpdateSeconds()
+		if updateTimer > 1.3 then
+			scaleMult = Spring.GetConfigFloat("decorationsize", 1)
+		end
+	end
 
 	function gadget:UnitCreated(unitID, unitDefID, team)
 		if decorationUdefIDs[unitDefID] then
@@ -399,7 +408,8 @@ else
 
 	function gadget:DrawUnit(unitID, drawMode)
 		if xmasballs[unitID] then
-			gl.Scale( xmasballs[unitID], xmasballs[unitID], xmasballs[unitID] )
+			local scale = xmasballs[unitID] * scaleMult
+			gl.Scale( scale, scale, scale )
 			return false
 		end
 	end

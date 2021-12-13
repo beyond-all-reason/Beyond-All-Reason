@@ -251,6 +251,8 @@ return {
 			snowamount_descr = 'disable "auto reduce" option to see the max snow amount you have set',
 			resurrectionhalos = 'Resurrected unit halos',
 			resurrectionhalos_descr = 'Gives units have have been resurrected a little halo above it.',
+			xmas = 'X-mas balls',
+			xmas_descr = 'disabling will make the xmas ball invisible (other decorations stay)',
 			tombstones = 'Tombstones',
 			tombstones_descr = 'Displays tombstones where commanders died',
 			snddevice = 'Sound device',

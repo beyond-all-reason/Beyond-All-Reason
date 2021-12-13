@@ -2093,6 +2093,12 @@ function init()
 		{ id = "resurrectionhalos", group = "gfx", category = types.advanced, widget = "Resurrection Halos", name = texts.option.resurrectionhalos, type = "bool", value = GetWidgetToggleValue("Resurrection Halos"), description = texts.option.resurrectionhalos_descr },
 		{ id = "tombstones", group = "gfx", category = types.advanced, widget = "Tombstones", name = texts.option.tombstones, type = "bool", value = GetWidgetToggleValue("Tombstones"), description = texts.option.tombstones_descr },
 
+		{ id = "xmas", group = "gfx", name = texts.option.xmas, category = types.basic, type = "bool", value = (Spring.GetConfigFloat("decorationsize", 1) == 1), description = texts.option.xmas_descr,
+		  onchange = function(i, value)
+			  Spring.SetConfigFloat("decorationsize", (value and 1 or 0))
+		  end,
+		},
+
 
 		-- SOUND
 		{ id = "snddevice", group = "sound", category = types.advanced, name = texts.option.snddevice, type = "select", restart = true, options = soundDevices, value = soundDevicesByName[Spring.GetConfigString("snd_device")], description = texts.option.snddevice_descr,
@@ -4380,6 +4386,11 @@ function init()
 	--if Spring.GetConfigInt("Fullscreen", 0) == 0 then
 	--	options[getOptionByID('resolution')] = nil
 	--end
+
+
+	if os.date("%m") ~= "12"  or  os.date("%d") < "12" then
+		options[getOptionByID('xmas')] = nil
+	end
 
 	-- force new unit icons
 	if Spring.GetConfigInt("UnitIconsAsUI", 0) == 0 then
