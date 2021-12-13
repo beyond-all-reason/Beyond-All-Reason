@@ -1493,7 +1493,7 @@ function checkChanges()
 			local reclaimText = Spring.I18N('ui.reclaimInfo.metal', { metal = metal }) .. "\255\255\255\128" .. " " .. Spring.I18N('ui.reclaimInfo.energy', { energy = energy })
 			newTooltip = newTooltip .. "\n\n" .. reclaimText
 		end
-		local newTooltip = spGetCurrentTooltip()
+
 		if newTooltip ~= currentTooltip then
 			currentTooltip = newTooltip
 			doUpdate = true
