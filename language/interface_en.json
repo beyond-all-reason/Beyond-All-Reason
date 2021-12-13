@@ -1,614 +1,617 @@
 {
 	"en": {
 		"ui": {
-			"buildEstimate": {
-				"time": "ETA"
+			"disablingcus": "Disabling Advanced Model Shading (fps threshold reached)",
+			"forceResignMessage": "You have been force-resigned: Self-destructing all your units is considered unwanted behavior when you still have teammates playing.",
+			"topbar": {
+				"button": {
+					"quit": "Quit",
+					"resign": "Resign",
+					"lobby": "Lobby",
+					"settings": "Settings",
+					"changes": "Changes",
+					"commands": "Commands",
+					"keys": "Keys",
+					"scavengers": "Scavengers",
+					"stats": "Statistics",
+					"graphs": "Graphs",
+					"save": "Save"
+				},
+				"quit": {
+					"stay": "Stay",
+					"quit": "Quit",
+					"resign": "Resign",
+					"reallyQuit": "Are you sure you want to quit?",
+					"reallyQuitResign": "Are you sure you want to resign or quit to desktop?",
+					"reallyResign": "Are you sure you want to resign?",
+					"reallyResignSpectate": "Are you sure you want to resign and spectate?"
+				},
+				"catchingUp": "Catching up",
+				"catchingUpTooltip": "Displays the catch-up progress\nGame time: %{gameTime}",
+				"commanderCountTooltip": "%{titleColor}Commander Counter\nDisplays the number of ally\nand enemy commanders",
+				"wind": {
+					"nowind1": "No",
+					"nowind2": "wind",
+					"tooltip": "%{titleColor}Wind Display\nDisplays current wind strength (small numbers are minimum and maximum)\n%{warnColor}It is better to build Solar Collectors when average\n%{warnColor}wind speed is below 5 (Armada) or 6 (Cortex)",
+					"worth1": "Wind is not worth it",
+					"worth2": "Wind is viable",
+					"worth3": "Wind is okay",
+					"worth4": "Wind is good",
+					"worth5": "Wind is really good",
+					"worth6": "Wind is amazing"
+				},
+				"resources": {
+					"metal": "Metal",
+					"energy": "Energy",
+					"overflowing": "Overflowing",
+					"wastingMetal": "Wasting metal",
+					"wastingEnergy": "Wasting energy",
+					"shareMetalTooltip": "%{titleColor}Metal Share Slider\nShare excess metal above this point with your team",
+					"shareEnergyTooltip": "%{titleColor}Energy Share Slider\nShare excess energy above this point with your team",
+					"pullTooltip": "%{resource} spending (per second)",
+					"incomeTooltip": "%{resource} income (per second)",
+					"expenseTooltip": "%{resource} potential spending  (per second)",
+					"storageTooltip": "%{resource} storage",
+					"conversionTooltip": "%{titleColor}Energy Conversion Slider\nExcess energy above this point\nwill power your Energy Converters"
+				}
 			},
-			"messages": {
-				"scroll": "%{textColor}Press %{highlightColor}CTRL+SHIFT %{textColor}to activate chatlog viewing/scrolling"
+			"playersList": {
+				"spectators": "Spectators %{amount}",
+				"enemies": "Enemies %{amount}",
+				"allies": "Allies",
+				"hideSpecs": "Click to hide spectators",
+				"showSpecs": "Click to show spectators",
+				"hideEnemies": "Click to hide enemies",
+				"showEnemies": "Click to show enemies",
+				"trackPlayer": "Double-click player name to track",
+				"takeUnits": "Click to take abandoned units",
+				"requestSupport": "Double-click to ask for support",
+				"requestMetal": "Click-and-drag to ask for metal",
+				"requestEnergy": "Click-and-drag to ask for energy",
+				"shareUnits": "Double-click to share units",
+				"shareMetal": "Click-and-drag to share metal",
+				"shareEnergy": "Click-and-drag to share energy",
+				"becomeEnemy": "Click to become enemy",
+				"becomeAlly": "Click to become ally",
+				"thousands": "%{number}k",
+				"milliseconds": "%{number} ms",
+				"seconds": "%{number} sec",
+				"commandDelay": "%{labelColor}Total command delay: %{delayColor}%{delay}",
+				"cpu": "CPU: %{cpuUsage}%%",
+				"framerate": "FPS: %{fps}",
+				"gpuMemory": "GPU Memory: %{gpuUsage}%%",
+				"pointClickTooltip": "Click to go to the last point set by the player",
+				"aiName": "%{name} (AI)",
+				"chat": {
+					"needSupport": "I need unit support!",
+					"needMetal": "I need metal!",
+					"needMetalAmount": "I need %{amount} metal!",
+					"needEnergy": "I need energy!",
+					"needEnergyAmount": "I need %{amount} energy!",
+					"giveUnits": "I gave %{count} units to %{name}.",
+					"giveMetal": "I sent %{amount} metal to %{name}",
+					"giveEnergy": "I sent %{amount} energy to %{name}",
+					"takeTeam": "I took %{name}.",
+					"takeTeamAmount": "I took %{name}: %{units} units, %{energy} energy and %{metal} metal."
+				}
+			},
+			"playerTV": {
+				"playerTV": "Player TV",
+				"cancelCamera": "Turn off",
+				"tooltip": "Auto camera-track the top ranked players\n(switches player every 40 seconds by default)"
 			},
 			"teamEconomy": {
 				"tooltip": "Team metal/energy income\n(Lighter portion is income from reclaiming)"
+			},
+			"clearMapmarks": {
+				"tooltip": "Clear mapmarks/drawings",
+				"tooltipctrl": "CTRL-click to continuously clear"
+			},
+			"buildMenu": {
+				"nextPage": "Next page",
+				"previousPage": "Previous page",
+				"disabled": "%{textColor}%{unit} %{warnColor}(disabled)"
+			},
+			"orderMenu": {
+				"hotkeyTooltip": "%{highlightColor}%{hotkey}%{textColor} - %{tooltip}",
+
+				"move": "Move",
+				"move_tooltip": "Move a unit towards a position or follow other units",
+				"stop": "Stop",
+				"stop_tooltip": "Cancel the units current actions",
+				"attack": "Attack",
+				"attack_tooltip": "Attack a unit or ground position",
+				"areaattack": "Area Attack",
+				"areaattack_tooltip": "Area attack everything within a circle (click-drag)",
+				"manualfire": "D-Gun",
+				"manualfire_tooltip": "Fire the powerful commander Disintegrator-gun",
+				"patrol": "Patrol",
+				"patrol_tooltip": "Patrol along one or more waypoints",
+				"fight": "Fight",
+				"fight_tooltip": "Order units to take action while moving to a position",
+				"resurrect": "Resurrect",
+				"resurrect_tooltip": "Revive wrecks to become units again (click-drag for area)",
+				"guard": "Guard",
+				"guard_tooltip": "Guard another unit against enemy units attacking it",
+				"wait": "Wait",
+				"wait_tooltip": "Pause a unit/factory on processing command/build queues",
+				"repair": "Repair",
+				"repair_tooltip": "Repair a damaged unit",
+				"reclaim": "Reclaim",
+				"reclaim_tooltip": "Suck metal/energy from wrecks or features (trees/stones)",
+				"restore": "Restore",
+				"restore_tooltip": "Restore an area of the map to its original height",
+				"capture": "Capture",
+				"capture_tooltip": "Convert units that belong to the enemy (or ally)",
+				"settarget": "Set Target",
+				"settarget_tooltip": "Set a prioritized target (prioritizes targeting when target in range) ",
+				"canceltarget": "Clear Target",
+				"canceltarget_tooltip": "Removes the priority target",
+				"areamex": "Area Mex",
+				"areamex_tooltip": "Click-drag an area to auto queue metal extractors for all available metal spots",
+				"loadunits": "Load units",
+				"loadunits_tooltip": "Load unit or multiple units within an area in the transport",
+				"unloadunits": "Unload units",
+				"unloadunits_tooltip": "Unload unit or multiple units within an area in the transport",
+				"landatairbase": "To Air Pad",
+				"landatairbase_tooltip": "Go to nearest Air Repair Pad",
+				"stockpile": "Stockpile %{stockpileStatus}",
+				"stockpile_tooltip": "[ stockpiled number ] / [ target stockpile number ]",
+				"stopproduction": "Clear Queue",
+				"stopproduction_tooltip": "Clear build queue for all units on selected factories",
+				"morph": "Upgrade",
+				"morph_tooltip": "Upgrade to next Tech-level (second click to cancel)",
+				
+				"Fire at will": "Fire at will",
+				"Hold fire": "Hold fire",
+				"Return fire": "Return fire",
+				"firestate_tooltip": "Set under what conditions a unit should start firing at enemies (without explicit attack order)",
+				"Hold pos": "Hold pos",
+				"Maneuver": "Maneuver",
+				"Roam": "Roam",
+				"movestate_tooltip": "Set how far out of its way a unit should move to attack enemies",
+				"Repeat on": "Repeat",
+				"Repeat off": "Repeat",
+				"repeat_tooltip": "Repeat unit command queue",
+				"Low Prio": "Priority",
+				"High Prio": "Priority",
+				"priority_tooltip": "Assigns resources to use for this builder when not having enough for all",
+				"Decloaked": "Cloaked",
+				"Cloaked": "Cloaked",
+				"wantcloak_tooltip": "Invisibility state",
+				" On ": "On",
+				" Off ": "On",
+				"onoff_tooltip": "Active state: turn a unit on/off",
+				"Fighters": "Fighters",
+				"Bombers": "Bombers",
+				"No priority": "No priority",
+				"setpriority_tooltip": "Set target priority Fighters/Bombers/no priority",
+				" Fly ": "Land",
+				"Land": "Land",
+				"idlemode_tooltip": "Sets what aircraft do when idle",
+				"apLandAt_tooltip": "Sets what aircraft do when leaving air factory",
+				"LandAt 0": "No Retreat",
+				"LandAt 30": "Retreat 30%%",
+				"LandAt 50": "Retreat 50%%",
+				"LandAt 80": "Retreat 80%%",
+				"autorepairlevel_tooltip": "Set at which HP %% this aircraft retreats to nearest air repair pad",
+				"apAirRepair_tooltip": "Air factory: Set at which health %% an aircraft should automatically move to and land on an air repair pad",
+				"Low traj": "High Traj",
+				"High traj": "High Traj",
+				"trajectory_tooltip": "Sets fire mode in artillery state (firing upwards instead of forwards)",
+
+				"customOnOff": {
+					"lowTrajectory": "Low Trajectory",
+					"highTrajectory": "High Trajectory",
+					"trajectory_tooltip": "Switch artillery firing angle between low and high trajectory",
+					"gaussCannon": "Gauss Cannon",
+					"heavyPlasma": "Heavy Plasma",
+					"gauss_tooltip": "Switches between Gauss Cannon and Heavy Plasma Cannon"
+				}
+			},
+			"moveGameWindow": {
+				"moveWindow": "%{textColor}Move window position with the %{emphasisColor}arrow keys%{textColor} or %{emphasisColor}drag%{textColor} using the mouse.",
+				"cancel": "%{emphasisColor}ESCAPE%{textColor} key will cancel changes",
+				"apply": "Apply"
+			},
+			"idleBuilders": {
+				"name": "Idle builders",
+				"idle": "%{textColor}Idle %{highlightColor}%{unit}",
+				"controls": "%{textColor}Click:   Cycle next builder\n%{textColor}Shift + Click:   Select all",
+				"sleeping": "z"
+			},
+			"unitGroups": {
+				"name": "Unit groups",
+				"shiftclick": "shift + click:   add to selection",
+				"ctrlclick": "ctrl + click:   subtract from selection"
+			},
+			"changelog": {
+				"title": "Changelog"
+			},
+			"keybinds": {
+				"title": "Keybinds",
+				"disclaimer": "These keybinds are set by default. If you remove/replace hotkey widgets, or use your own uikeys, they might stop working!",
+				"chat": {
+					"title": "Chat",
+					"sendKey": "enter",
+					"send": "Send chat message",
+					"alliesKey": "alt + enter",
+					"allies": "Send chat message to allies",
+					"spectatorsKey": "shift + enter",
+					"spectators": "Send chat message to spectators",
+					"ignoreKey": "ctrl + left click on name",
+					"ignore": "Ignore player"
+				},
+				"menus": {
+					"title": "Menus",
+					"settingsKey": "f10",
+					"settings": "Settings",
+					"widgetsKey": "f11",
+					"widgets": "Widget list",
+					"widgetsTweakKey": "ctrl + f11",
+					"widgetsTweak": "Widget tweak mode",
+					"shareKey": "h",
+					"share": "Share units / resources"
+				},
+				"camera": {
+					"title": "Camera movement",
+					"zoomKey": "scrollwheel",
+					"zoom": "Zoom camera",
+					"panKey": "arrow keys / mouse at screen edge",
+					"pan": "Move camera",
+					"tiltKey": "ctrl + scrollwheel",
+					"tilt": "Change camera angle",
+					"dragKey": "middle click (+ drag)",
+					"drag": "Drag camera",
+					"flipKey": "ctrl + shift + o",
+					"flip": "Flip camera"
+				},
+				"cameraModes": {
+					"title": "Camera modes",
+					"changeKey": "ctrl + f1,2,3,4,5",
+					"change": "Change camera type",
+					"fullscreenKey": "alt + backspace",
+					"fullscreen": "Toggle fullscreen",
+					"overviewKey": "tab",
+					"overview": "Toggle overview camera",
+					"losKey": "l",
+					"los": "Toggle LOS view",
+					"heightmapKey": "f1",
+					"heightmap": "Show height map",
+					"traversabilityKey": "f2",
+					"traversability": "Show passability (for selected unit)",
+					"mapmarksKey": "f3",
+					"mapmarks": "Cycle through map marks",
+					"resourceSpotsKey": "f4",
+					"resourceSpots": "Show metal map",
+					"interfaceKey": "f5",
+					"interface": "Hide GUI"
+				},
+				"sound": {
+					"title": "Sound",
+					"volumeKey": "-/+",
+					"volume": "Change volume",
+					"muteKey": "f6",
+					"mute": "Toggle mute"
+				},
+				"selection": {
+					"title": "Selecting units",
+					"unitsKey": "left mouse (+ drag)",
+					"units": "Select or deselect units"
+				},
+				"issueContextOrders": {
+					"title": "Giving orders",
+					"orderKey": "right mouse (single click)",
+					"order": "Give order to unit(s)",
+					"formationOrderKey": "right mouse (drag)",
+					"formationOrder": "Give formation order to unit(s)"
+				},
+				"orders": {
+					"title": "Selecting orders",
+					"defaultKey": "(none)",
+					"default": "default order (usually move)",
+					"moveKey": "m",
+					"move": "move",
+					"attack": "attack",
+					"attackKey": "a",
+					"stopKey": "s",
+					"stop": "stop (clears order queue)",
+					"repairKey": "r",
+					"repair": "repair",
+					"reclaimKey": "e",
+					"reclaim": "reclaim",
+					"resurrectKey": "o",
+					"resurrect": "resurrect",
+					"patrolKey": "p",
+					"patrol": "patrol",
+					"fightKey": "f",
+					"fight": "fight",
+					"setTargetKey": "y",
+					"setTarget": "set priority target",
+					"cancelTargetKey": "j",
+					"cancelTarget": "cancel priority target",
+					"waitKey": "w",
+					"wait": "wait (pause current command)",
+					"cloak": "cloak",
+					"cloakKey": "k",
+					"dGunKey": "d",
+					"dGun": "manual fire (dgun)",
+					"selfDestructKey": "ctrl + d",
+					"selfDestruct": "self-destruct"
+				},
+				"issueOrders": {
+					"title": "Giving selected orders",
+					"orderKey": "left mouse (single click)",
+					"order": "Give order to unit(s)",
+					"revert": "Revert to default order",
+					"revertKey": "right mouse (single click)",
+					"formationKey": "right mouse + drag",
+					"formation": "Give formation order to unit(s)"
+				},
+				"queues": {
+					"title": "Queueing orders",
+					"append": "Add order to end of order queue",
+					"appendKey": "shift + (some order)",
+					"prependKey": "space + (some order)",
+					"prepend": "Add order to start of order queue"
+				},
+				"buildOrders": {
+					"title": "Selecting build orders",
+					"selectTileKey": "(mouse)",
+					"selectTile": "Select from units build-menu",
+					"metalKey": "z",
+					"metal": "Cycle through mexes",
+					"energyKey": "x",
+					"energy": "Cycle through energy production",
+					"intelKey": "c",
+					"intel": "Cycle through radar/defence/etc",
+					"factoriesKey": "v",
+					"factories": "Cycle through factories",
+					"rotateKey": "[ and ], or o",
+					"rotate": "Change facing of buildings"
+				},
+				"issueBuildOrders": {
+					"title": "Giving build orders",
+					"orderKey": "left mouse",
+					"order": "Give build order",
+					"deselectKey": "right mouse",
+					"deselect": "De-select build order",
+					"lineKey": "shift + (build order)",
+					"line": "Build in a line",
+					"gridKey": "shift + alt + (build order)",
+					"grid": "Build in a square",
+					"spacingUpKey": "alt+z",
+					"spacingUp": "Increase build spacing",
+					"spacingDownKey": "alt+x",
+					"spacingDown": "Decrease build spacing"
+				},
+				"massSelect": {
+					"title": "Group selection",
+					"allKey": "ctrl + a",
+					"all": "Select all units",
+					"buildersKey": "ctrl + b",
+					"builders": "Select all constructors",
+					"createGroupKey": "ctrl + (num)",
+					"createGroup": "Add units to group (num=1,2,..)",
+					"createAutoGroupKey": "alt + (num)",
+					"createAutoGroup": "Add unit type to autogroup (num=1,2,..)",
+					"removeAutoGroupKey": "alt + `",
+					"removeAutoGroup": "Remove unit type from autogroup",
+					"groupKey": "(num)",
+					"group": "Select all units assigned to group (num)",
+					"sameTypeKey": "ctrl + z",
+					"sameType": "Select all units of same type as selected"
+				},
+				"drawing": {
+					"title": "Drawing",
+					"mapmarkKey": "q + dbl click",
+					"mapmark": "Place map mark",
+					"drawKey": "q + drag left mouse",
+					"draw": "Draw on map",
+					"eraseKey": "q + drag right mouse",
+					"erase": "Erase drawings and markers"
+				},
+				"console": {
+					"title": "Console commands",
+					"eraseKey": "/clearmapmarks",
+					"erase": "Erase all drawings and markes",
+					"pauseKey": "/pause",
+					"pause": "Pause"
+				}
+			},
+			"chat": {
+				"ignored": "ignored",
+				"scroll": "%{textColor}Press %{highlightColor}CTRL %{textColor}+ %{highlightColor}SHIFT %{textColor}to activate chatlog viewing/scrolling",
+				"shortcut": "CTRL + SHIFT"
+			},
+			"teamStats": {
+				"player": "Player",
+				"dead": "%{player} (dead)",
+				"gone": "%{player} (gone)",
+				"damage": "Damage",
+				"damageDealt": "Dealt",
+				"damageReceived": "Received",
+				"damageEfficiency": "Efficiency",
+				"units": "Units",
+				"unitsProduced": "Produced",
+				"unitsKilled": "Killed",
+				"unitsDied": "Lost",
+				"aggression": "Aggression",
+				"aggressionLevel": "Level",
+				"metal": "Metal",
+				"energy": "Energy",
+				"resourceProduced": "Produced",
+				"resourceExcess": "Excess"
+			},
+			"reclaimInfo": {
+				"metal": "Metal: %{metal}",
+				"energy": "Energy: %{energy}"
+			},
+			"prospector": {
+				"metalExtraction": "Metal extraction: %{amount}"
+			},
+			"buildEstimate": {
+				"time": "ETA"
+			},
+			"statusBars": {
+				"building": "Building",
+				"health": "Health",
+				"reclaim": "Reclaim",
+				"resurrect": "Resurrect",
+				"capture": "Capture",
+				"reload": "Reload",
+				"stockpile": "Stockpile",
+				"shield": "Shield",
+				"paralyze": "Paralyze"
+			},
+			"gametypeInfo": {
+				"killAllUnits": "Kill all enemy units",
+				"killAllCommanders": "Kill all enemy Commanders",
+				"commandersSurviveDgun": "Commanders survive D-Guns and commander explosions",
+				"unbalancedCommanders": "Unbalanced Commanders is enabled: Commander levels up and gains upgrades",
+				"victoryCondition": "Victory condition"
 			},
 			"startSpot": {
 				"startbox": "Pick a startspot within the green area, and click the Ready button. (F4 shows metal spots)",
 				"anywhere": "Pick a startspot and click the Ready button. (F4 shows metal spots)"
 			},
-			"disablingcus": "Disabling Advanced Model Shading (fps threshold reached)",
-			"gameInfo": {
-				"waterDamage": "Water damage",
-				"tidalStrength": "Tidal speed",
-				"gravity": "Gravity",
-				"engine": "Engine",
-				"chickenOptions": "Chicken options",
-				"title": "Game info",
-				"windStrength": "Wind speed",
-				"engineVersionError": "engine version error",
-				"modOptions": "Mod options",
-				"hardness": "Hardness",
-				"size": "Size"
+			"screenMode": {
+				"title": "Screen mode: %{highlightColor}%{screenMode}",
+				"overview": "Press %{highlightColor}[TAB]%{textColor} to zoom onto mouse position",
+				"heightTitle": "Height",
+				"heightmap": "[F1] Displays a different color for every height level",
+				"pathingTitle": "Traversability",
+				"pathing":"[F2] Shows where the selected unit can move, Green: okay, Red: problematic, Purple: can't move",
+				"resourcesTitle": "Resources",
+				"resources": "[F4] Highlights metal spots in green and geothermal vents in yellow.\n    Occupied metal spots are shown in red."
 			},
-			"prospector": {
-				"metalExtraction": "Metal extraction: %{amount}"
+			"pauseScreen": {
+				"paused": "GAME  PAUSED"
+			},
+			"voting": {
+				"no": "NO",
+				"yes": "YES",
+				"endVote": "End Vote",
+				"cancel": "ESC"
+			},
+			"gameInfo": {
+				"title": "Game info",
+				"engine": "Engine",
+				"engineVersionError": "engine version error",
+				"size": "Size",
+				"gravity": "Gravity",
+				"hardness": "Hardness",
+				"tidalStrength": "Tidal speed",
+				"windStrength": "Wind speed",
+				"waterDamage": "Water damage",
+				"chickenOptions": "Chicken options",
+				"modOptions": "Mod options"
+			},
+			"chickens": {
+				"queenIsAngry": "The Queen is angered!",
+				"queenResistant": "The Queen is becoming resistant to %{unit} attacks!",
+				"wave": "Wave %{waveNumber}",
+				"waveCount": "%{count} Chickens!",
+				"chickenCount": "Chickens: %{count}",
+				"chickenKillCount": "Chicken Kills: %{count}",
+				"queenAnger": "Queen Anger: %{anger}%%",
+				"queenHealth": "Queen Health: %{health}%%",
+				"gracePeriod": "Grace Period: %{time}",
+				"burrowCount": "Burrows: %{count}",
+				"burrowKillCount": "Burrow Kills: %{count}",
+				"mode": "Mode: %{mode}",
+				"score": "Your Score: %{score}",
+				"difficulty": {
+					"veryeasy": "Very Easy",
+					"easy": "Easy",
+					"normal": "Normal",
+					"hard": "Hard",
+					"veryhard": "Very Hard",
+					"epic": "Epic",
+					"survival": "Survival"
+				}
+			},
+			"loadScreen": {
+				"intelGpuWarning": "%{textColor}You are using the integrated %{warnColor}Intel graphics%{textColor} card.      Your experience might be sub optimal."
+			},
+			"initialSpawn": {
+				"ready": "Ready",
+				"startCountdown": "Game starting in %{time}...",
+				"choosePoint": "Please choose a start point!",
+				"tooClose": "You cannot place your start position too close to another player"
+			},
+			"substitutePlayers": {
+				"offer": "Offer to play",
+				"withdraw": "Withdraw offer",
+				"substitutionMessage": "If player(s) are idle when the game starts, you might be used as a substitute",
+				"offerWithdrawn": "Your have withdrawn your offer to substitute",
+				"substituted": "Substitution occurred, revealing all start positions",
+				"substitutedPlayers": "%{incoming} was substituted in for %{outgoing}"
+			},
+			"awards": {
+				"awards": "Awards",
+				"score": "Score",
+				"notAwarded": "(not awarded)",
+				"unknown": "(unknown)",
+				"coop": "%{name} (co-op)",
+				"runnersUp": "Runners up:",
+				"enemiesDestroyed": "Destroying enemy units and defences",
+				"resourcesDestroyed": "Destroying enemy resource production",
+				"resourcesEfficiency": "Efficient use of resources",
+				"resourcesProduced": "%{playerColor}%{player}%{textColor} produced the most resources (%{score}).",
+				"didEverything": "Doing everything",
+				"damageTaken": "%{playerColor}%{player}%{textColor} took the most damage (%{score}).",
+				"sleptLongest": "%{playerColor}%{player}%{textColor} slept longest, for %{score} minutes.",
+				"traitor": "The Traitor - Destroying allied units",
+				"leave": "Leave",
+				"showGraphs": "Show Graphs"
+			},
+			"autogroups": {
+				"unitAdded": "Added %{unit} to autogroup #%{groupNumber}.",
+				"unitRemoved": "Removed %{unit} from autogroups."
 			},
 			"moveAttackNotify": {
 				"underAttack": "-> %{unit} is being attacked!",
 				"cantMove":"%{unit}: Can't reach destination!"
 			},
-			"clearMapmarks": {
-				"tooltipctrl": "CTRL-click to continuously clear",
-				"tooltip": "Clear mapmarks/drawings"
-			},
-			"gametypeInfo": {
-				"killAllUnits": "Kill all enemy units",
-				"unbalancedCommanders": "Unbalanced Commanders is enabled: Commander levels up and gains upgrades",
-				"killAllCommanders": "Kill all enemy Commanders",
-				"commandersSurviveDgun": "Commanders survive D-Guns and commander explosions",
-				"victoryCondition": "Victory condition"
-			},
-			"moveGameWindow": {
-				"cancel": "%{emphasisColor}ESCAPE%{textColor} key will cancel changes",
-				"apply": "Apply",
-				"moveWindow": "%{textColor}Move window position with the %{emphasisColor}arrow keys%{textColor} or %{emphasisColor}drag%{textColor} using the mouse."
-			},
-			"idleBuilders": {
-				"controls": "%{textColor}Click:   Cycle next builder\n%{textColor}Shift + Click:   Select all",
-				"sleeping": "z",
-				"name": "Idle builders",
-				"idle": "%{textColor}Idle %{highlightColor}%{unit}"
-			},
-			"chickens": {
-				"queenResistant": "The Queen is becoming resistant to %{unit} attacks!",
-				"waveCount": "%{count} Chickens!",
-				"chickenKillCount": "Chicken Kills: %{count}",
-				"queenAnger": "Queen Anger: %{anger}%%",
-				"queenHealth": "Queen Health: %{health}%%",
-				"queenIsAngry": "The Queen is angered!",
-				"burrowKillCount": "Burrow Kills: %{count}",
-				"wave": "Wave %{waveNumber}",
-				"difficulty": {
-					"normal": "Normal",
-					"veryhard": "Very Hard",
-					"veryeasy": "Very Easy",
-					"survival": "Survival",
-					"epic": "Epic",
-					"hard": "Hard",
-					"easy": "Easy"
-				},
-				"score": "Your Score: %{score}",
-				"burrowCount": "Burrows: %{count}",
-				"mode": "Mode: %{mode}",
-				"chickenCount": "Chickens: %{count}",
-				"gracePeriod": "Grace Period: %{time}"
-			},
-			"voting": {
-				"no": "NO",
-				"endVote": "End Vote",
-				"yes": "YES",
-				"cancel": "ESC"
-			},
-			"keybinds": {
-				"menus": {
-					"shareKey": "h",
-					"widgetsTweakKey": "ctrl + f11",
-					"widgetsKey": "f11",
-					"settingsKey": "f10",
-					"title": "Menus",
-					"share": "Share units / resources",
-					"widgets": "Widget list",
-					"widgetsTweak": "Widget tweak mode",
-					"settings": "Settings"
-				},
-				"buildOrders": {
-					"selectTile": "Select from units build-menu",
-					"rotateKey": "[ and ], or o",
-					"metal": "Cycle through mexes",
-					"energyKey": "x",
-					"intel": "Cycle through radar/defence/etc",
-					"factoriesKey": "v",
-					"selectTileKey": "(mouse)",
-					"title": "Selecting build orders",
-					"intelKey": "c",
-					"factories": "Cycle through factories",
-					"rotate": "Change facing of buildings",
-					"energy": "Cycle through energy production",
-					"metalKey": "z"
-				},
-				"issueContextOrders": {
-					"title": "Giving orders",
-					"formationOrderKey": "right mouse (drag)",
-					"order": "Give order to unit(s)",
-					"formationOrder": "Give formation order to unit(s)",
-					"orderKey": "right mouse (single click)"
-				},
-				"orders": {
-					"repair": "repair",
-					"patrol": "patrol",
-					"fightKey": "f",
-					"resurrect": "resurrect",
-					"selfDestruct": "self-destruct",
-					"stopKey": "s",
-					"reclaim": "reclaim",
-					"default": "default order (usually move)",
-					"repairKey": "r",
-					"cancelTarget": "cancel priority target",
-					"fight": "fight",
-					"wait": "wait (pause current command)",
-					"reclaimKey": "e",
-					"defaultKey": "(none)",
-					"patrolKey": "p",
-					"stop": "stop (clears order queue)",
-					"selfDestructKey": "ctrl + d",
-					"move": "move",
-					"cloak": "cloak",
-					"cloakKey": "k",
-					"cancelTargetKey": "j",
-					"moveKey": "m",
-					"setTarget": "set priority target",
-					"resurrectKey": "o",
-					"dGun": "manual fire (dgun)",
-					"title": "Selecting orders",
-					"waitKey": "w",
-					"setTargetKey": "y",
-					"dGunKey": "d",
-					"attackKey": "a",
-					"attack": "attack"
-				},
-				"chat": {
-					"send": "Send chat message",
-					"allies": "Send chat message to allies",
-					"ignore": "Ignore player",
-					"title": "Chat",
-					"ignoreKey": "ctrl + left click on name",
-					"spectatorsKey": "shift + enter",
-					"spectators": "Send chat message to spectators",
-					"alliesKey": "alt + enter",
-					"sendKey": "enter"
-				},
-				"disclaimer": "These keybinds are set by default. If you remove/replace hotkey widgets, or use your own uikeys, they might stop working!",
-				"selection": {
-					"unitsKey": "left mouse (+ drag)",
-					"title": "Selecting units",
-					"units": "Select or deselect units"
-				},
-				"sound": {
-					"muteKey": "f6",
-					"title": "Sound",
-					"volumeKey": "-/+",
-					"mute": "Toggle mute",
-					"volume": "Change volume"
-				},
-				"queues": {
-					"prepend": "Add order to start of order queue",
-					"title": "Queueing orders",
-					"append": "Add order to end of order queue",
-					"prependKey": "space + (some order)",
-					"appendKey": "shift + (some order)"
-				},
-				"cameraModes": {
-					"fullscreen": "Toggle fullscreen",
-					"change": "Change camera type",
-					"traversability": "Show passability (for selected unit)",
-					"fullscreenKey": "alt + backspace",
-					"heightmapKey": "f1",
-					"mapmarksKey": "f3",
-					"losKey": "l",
-					"interface": "Hide GUI",
-					"traversabilityKey": "f2",
-					"heightmap": "Show height map",
-					"changeKey": "ctrl + f1,2,3,4,5",
-					"interfaceKey": "f5",
-					"overviewKey": "tab",
-					"title": "Camera modes",
-					"los": "Toggle LOS view",
-					"resourceSpots": "Show metal map",
-					"resourceSpotsKey": "f4",
-					"overview": "Toggle overview camera",
-					"mapmarks": "Cycle through map marks"
-				},
-				"massSelect": {
-					"createAutoGroupKey": "alt + (num)",
-					"buildersKey": "ctrl + b",
-					"sameType": "Select all units of same type as selected",
-					"group": "Select all units assigned to group (num)",
-					"createGroup": "Add units to group (num=1,2,..)",
-					"allKey": "ctrl + a",
-					"createAutoGroup": "Add unit type to autogroup (num=1,2,..)",
-					"removeAutoGroup": "Remove unit type from autogroup",
-					"groupKey": "(num)",
-					"title": "Group selection",
-					"builders": "Select all constructors",
-					"removeAutoGroupKey": "alt + `",
-					"all": "Select all units",
-					"sameTypeKey": "ctrl + z",
-					"createGroupKey": "ctrl + (num)"
-				},
-				"camera": {
-					"zoom": "Zoom camera",
-					"tiltKey": "ctrl + scrollwheel",
-					"flipKey": "ctrl + shift + o",
-					"drag": "Drag camera",
-					"pan": "Move camera",
-					"zoomKey": "scrollwheel",
-					"title": "Camera movement",
-					"flip": "Flip camera",
-					"dragKey": "middle click (+ drag)",
-					"tilt": "Change camera angle",
-					"panKey": "arrow keys / mouse at screen edge"
-				},
-				"title": "Keybinds",
-				"console": {
-					"pauseKey": "/pause",
-					"erase": "Erase all drawings and markes",
-					"title": "Console commands",
-					"pause": "Pause",
-					"eraseKey": "/clearmapmarks"
-				},
-				"drawing": {
-					"mapmark": "Place map mark",
-					"title": "Drawing",
-					"erase": "Erase drawings and markers",
-					"mapmarkKey": "q + dbl click",
-					"eraseKey": "q + drag right mouse",
-					"drawKey": "q + drag left mouse",
-					"draw": "Draw on map"
-				},
-				"issueBuildOrders": {
-					"spacingUp": "Increase build spacing",
-					"deselect": "De-select build order",
-					"order": "Give build order",
-					"spacingDown": "Decrease build spacing",
-					"orderKey": "left mouse",
-					"gridKey": "shift + alt + (build order)",
-					"line": "Build in a line",
-					"title": "Giving build orders",
-					"spacingUpKey": "alt+z",
-					"grid": "Build in a square",
-					"deselectKey": "right mouse",
-					"spacingDownKey": "alt+x",
-					"lineKey": "shift + (build order)"
-				},
-				"issueOrders": {
-					"formation": "Give formation order to unit(s)",
-					"title": "Giving selected orders",
-					"formationKey": "right mouse + drag",
-					"order": "Give order to unit(s)",
-					"revert": "Revert to default order",
-					"revertKey": "right mouse (single click)",
-					"orderKey": "left mouse (single click)"
-				}
-			},
-			"playersList": {
-				"requestMetal": "Click-and-drag to ask for metal",
-				"requestEnergy": "Click-and-drag to ask for energy",
-				"commandDelay": "%{labelColor}Total command delay: %{delayColor}%{delay}",
-				"becomeEnemy": "Click to become enemy",
-				"milliseconds": "%{number} ms",
-				"hideEnemies": "Click to hide enemies",
-				"enemies": "Enemies %{amount}",
-				"thousands": "%{number}k",
-				"shareMetal": "Click-and-drag to share metal",
-				"spectators": "Spectators %{amount}",
-				"chat": {
-					"needMetal": "I need metal!",
-					"needMetalAmount": "I need %{amount} metal!",
-					"giveUnits": "I gave %{count} units to %{name}.",
-					"takeTeamAmount": "I took %{name}: %{units} units, %{energy} energy and %{metal} metal.",
-					"needSupport": "I need unit support!",
-					"takeTeam": "I took %{name}.",
-					"giveMetal": "I sent %{amount} metal to %{name}",
-					"needEnergy": "I need energy!",
-					"needEnergyAmount": "I need %{amount} energy!",
-					"giveEnergy": "I sent %{amount} energy to %{name}"
-				},
-				"aiName": "%{name} (AI)",
-				"becomeAlly": "Click to become ally",
-				"pointClickTooltip": "Click to go to the last point set by the player",
-				"gpuMemory": "GPU Memory: %{gpuUsage}%%",
-				"takeUnits": "Click to take abandoned units",
-				"framerate": "FPS: %{fps}",
-				"cpu": "CPU: %{cpuUsage}%%",
-				"seconds": "%{number} sec",
-				"shareEnergy": "Click-and-drag to share energy",
-				"shareUnits": "Double-click to share units",
-				"showSpecs": "Click to show spectators",
-				"trackPlayer": "Double-click player name to track",
-				"hideSpecs": "Click to hide spectators",
-				"showEnemies": "Click to show enemies",
-				"requestSupport": "Double-click to ask for support",
-				"allies": "Allies"
-			},
-			"dynamicAlly": {
-				"destroy": "%{player} broke their alliance with you.",
-				"create": "%{player} has allied with you.",
-				"backstab": "%{player} attempted to attack you!"
-			},
-			"ffaNoOwner": {
-				"removed": "No Owner Mode: Removing Team %{team}",
-				"destroyed": "No Owner Mode: Destroying Team %{team}",
-				"reconnected": "No Owner Mode: Team %{team} reconnected",
-				"disconnected": "No Owner Mode: Team %{team} has %{gracePeriod} minute(s) to reconnect"
-			},
-			"factionPicker": {
-				"pick": "Pick your faction"
-			},
-			"mapDrawBlocker": {
-				"unblock": "Showing map drawing from %{player}",
-				"block": "Ignoring map drawing from %{player}"
-			},
-			"buildMenu": {
-				"previousPage": "Previous page",
-				"disabled": "%{textColor}%{unit} %{warnColor}(disabled)",
-				"nextPage": "Next page"
-			},
-			"substitutePlayers": {
-				"substitutionMessage": "If player(s) are idle when the game starts, you might be used as a substitute",
-				"withdraw": "Withdraw offer",
-				"offer": "Offer to play",
-				"substitutedPlayers": "%{incoming} was substituted in for %{outgoing}",
-				"substituted": "Substitution occurred, revealing all start positions",
-				"offerWithdrawn": "Your have withdrawn your offer to substitute"
-			},
-			"forceResignMessage": "You have been force-resigned: Self-destructing all your units is considered unwanted behavior when you still have teammates playing.",
-			"changelog": {
-				"title": "Changelog"
-			},
-			"pauseScreen": {
-				"paused": "GAME  PAUSED"
-			},
-			"teamStats": {
-				"resourceProduced": "Produced",
-				"unitsKilled": "Killed",
-				"dead": "%{player} (dead)",
-				"gone": "%{player} (gone)",
-				"unitsDied": "Lost",
-				"resourceExcess": "Excess",
-				"damageDealt": "Dealt",
-				"damage": "Damage",
-				"units": "Units",
-				"aggression": "Aggression",
-				"player": "Player",
-				"metal": "Metal",
-				"unitsProduced": "Produced",
-				"aggressionLevel": "Level",
-				"damageEfficiency": "Efficiency",
-				"energy": "Energy",
-				"damageReceived": "Received"
-			},
 			"unitShare": {
 				"received": "You received %{count} new unit(s)*",
 				"unit": "*%{unit}"
 			},
-			"unitGroups": {
-				"shiftclick": "shift + click:   add to selection",
-				"name": "Unit groups",
-				"ctrlclick": "ctrl + click:   subtract from selection"
+			"messages": {
+				"scroll": "%{textColor}Press %{highlightColor}CTRL+SHIFT %{textColor}to activate chatlog viewing/scrolling"
 			},
-			"orderMenu": {
-				"repair": "Repair",
-				"Fighters": "Fighters",
-				"stockpile_tooltip": "[ stockpiled number ] / [ target stockpile number ]",
-				"landatairbase_tooltip": "Go to nearest Air Repair Pad",
-				"restore_tooltip": "Restore an area of the map to its original height",
-				"Decloaked": "Cloaked",
-				"restore": "Restore",
-				"unloadunits_tooltip": "Unload unit or multiple units within an area in the transport",
-				"move": "Move",
-				"trajectory_tooltip": "Sets fire mode in artillery state (firing upwards instead of forwards)",
-				"patrol_tooltip": "Patrol along one or more waypoints",
-				"wait": "Wait",
-				"landatairbase": "To Air Pad",
-				"Low Prio": "Priority",
-				"manualfire_tooltip": "Fire the powerful commander Disintegrator-gun",
-				"move_tooltip": "Move a unit towards a position or follow other units",
-				"patrol": "Patrol",
-				"reclaim_tooltip": "Suck metal/energy from wrecks or features (trees/stones)",
-				"repair_tooltip": "Repair a damaged unit",
-				"Roam": "Roam",
-				"attack_tooltip": "Attack a unit or ground position",
-				"resurrect_tooltip": "Revive wrecks to become units again (click-drag for area)",
-				"repeat_tooltip": "Repeat unit command queue",
-				"stop_tooltip": "Cancel the units current actions",
-				"areamex_tooltip": "Click-drag an area to auto queue metal extractors for all available metal spots",
-				"LandAt 50": "Retreat 50%%",
-				"stopproduction": "Clear Queue",
-				" On ": "On",
-				"reclaim": "Reclaim",
-				"loadunits": "Load units",
-				"morph": "Upgrade",
-				"areamex": "Area Mex",
-				"firestate_tooltip": "Set under what conditions a unit should start firing at enemies (without explicit attack order)",
-				"resurrect": "Resurrect",
-				"LandAt 0": "No Retreat",
-				"No priority": "No priority",
-				"Hold fire": "Hold fire",
-				"Repeat off": "Repeat",
-				"fight_tooltip": "Order units to take action while moving to a position",
-				"guard": "Guard",
-				"High traj": "High Traj",
-				"hotkeyTooltip": "%{highlightColor}%{hotkey}%{textColor} - %{tooltip}",
-				"customOnOff": {
-					"gaussCannon": "Gauss Cannon",
-					"gauss_tooltip": "Switches between Gauss Cannon and Heavy Plasma Cannon",
-					"trajectory_tooltip": "Switch artillery firing angle between low and high trajectory",
-					"highTrajectory": "High Trajectory",
-					"lowTrajectory": "Low Trajectory",
-					"heavyPlasma": "Heavy Plasma"
-				},
-				"Fire at will": "Fire at will",
-				"Hold pos": "Hold pos",
-				"apAirRepair_tooltip": "Air factory: Set at which health %% an aircraft should automatically move to and land on an air repair pad",
-				"areaattack": "Area Attack",
-				"autorepairlevel_tooltip": "Set at which HP %% this aircraft retreats to nearest air repair pad",
-				"LandAt 80": "Retreat 80%%",
-				"stop": "Stop",
-				"setpriority_tooltip": "Set target priority Fighters/Bombers/no priority",
-				"capture_tooltip": "Convert units that belong to the enemy (or ally)",
-				"LandAt 30": "Retreat 30%%",
-				"Maneuver": "Maneuver",
-				"attack": "Attack",
-				"apLandAt_tooltip": "Sets what aircraft do when leaving air factory",
-				"unloadunits": "Unload units",
-				"idlemode_tooltip": "Sets what aircraft do when idle",
-				" Off ": "On",
-				" Fly ": "Land",
-				"Bombers": "Bombers",
-				"loadunits_tooltip": "Load unit or multiple units within an area in the transport",
-				"onoff_tooltip": "Active state: turn a unit on/off",
-				"fight": "Fight",
-				"Land": "Land",
-				"wantcloak_tooltip": "Invisibility state",
-				"areaattack_tooltip": "Area attack everything within a circle (click-drag)",
-				"manualfire": "D-Gun",
-				"settarget_tooltip": "Set a prioritized target (prioritizes targeting when target in range) ",
-				"Cloaked": "Cloaked",
-				"stopproduction_tooltip": "Clear build queue for all units on selected factories",
-				"priority_tooltip": "Assigns resources to use for this builder when not having enough for all",
-				"Repeat on": "Repeat",
-				"High Prio": "Priority",
-				"canceltarget_tooltip": "Removes the priority target",
-				"morph_tooltip": "Upgrade to next Tech-level (second click to cancel)",
-				"Return fire": "Return fire",
-				"wait_tooltip": "Pause a unit/factory on processing command/build queues",
-				"movestate_tooltip": "Set how far out of its way a unit should move to attack enemies",
-				"Low traj": "High Traj",
-				"stockpile": "Stockpile %{stockpileStatus}",
-				"capture": "Capture",
-				"settarget": "Set Target",
-				"guard_tooltip": "Guard another unit against enemy units attacking it",
-				"canceltarget": "Clear Target"
+			"mapDrawBlocker": {
+				"block": "Ignoring map drawing from %{player}",
+				"unblock": "Showing map drawing from %{player}"
 			},
-			"awards": {
-				"coop": "%{name} (co-op)",
-				"notAwarded": "(not awarded)",
-				"awards": "Awards",
-				"traitor": "The Traitor - Destroying allied units",
-				"sleptLongest": "%{playerColor}%{player}%{textColor} slept longest, for %{score} minutes.",
-				"didEverything": "Doing everything",
-				"damageTaken": "%{playerColor}%{player}%{textColor} took the most damage (%{score}).",
-				"resourcesProduced": "%{playerColor}%{player}%{textColor} produced the most resources (%{score}).",
-				"leave": "Leave",
-				"resourcesEfficiency": "Efficient use of resources",
-				"enemiesDestroyed": "Destroying enemy units and defences",
-				"resourcesDestroyed": "Destroying enemy resource production",
-				"showGraphs": "Show Graphs",
-				"unknown": "(unknown)",
-				"runnersUp": "Runners up:",
-				"score": "Score"
-			},
-			"unitTotals": {
-				"total": "total",
-				"units": "units"
-			},
-			"loadScreen": {
-				"intelGpuWarning": "%{textColor}You are using the integrated %{warnColor}Intel graphics%{textColor} card.      Your experience might be sub optimal."
-			},
-			"autogroups": {
-				"unitRemoved": "Removed %{unit} from autogroups.",
-				"unitAdded": "Added %{unit} to autogroup #%{groupNumber}."
+			"dynamicAlly": {
+				"create": "%{player} has allied with you.",
+				"destroy": "%{player} broke their alliance with you.",
+				"backstab": "%{player} attempted to attack you!"
 			},
 			"idlePlayers": {
-				"takeEnemies": "Cannot take enemy players",
-				"warning": "You are idling, do something quick! (others are able to take over all your things soon)",
 				"shareAFK": "Cannot share to idle players",
-				"returned": "%{name} came back",
+				"takeEnemies": "Cannot take enemy players",
+				"nothingToTake": "Nothing to take",
 				"lagging": "%{name} is lagging behind",
-				"afk": "%{name} went idle",
 				"resumed": "%{name} has finished resuming",
-				"nothingToTake": "Nothing to take"
+				"afk": "%{name} went idle",
+				"returned": "%{name} came back",
+				"warning": "You are idling, do something quick! (others are able to take over all your things soon)"
 			},
-			"initialSpawn": {
-				"tooClose": "You cannot place your start position too close to another player",
-				"choosePoint": "Please choose a start point!",
-				"startCountdown": "Game starting in %{time}...",
-				"ready": "Ready"
+			"ffaNoOwner": {
+				"removed": "No Owner Mode: Removing Team %{team}",
+				"destroyed": "No Owner Mode: Destroying Team %{team}",
+				"disconnected": "No Owner Mode: Team %{team} has %{gracePeriod} minute(s) to reconnect",
+				"reconnected": "No Owner Mode: Team %{team} reconnected"
 			},
-			"screenMode": {
-				"resourcesTitle": "Resources",
-				"pathing":"[F2] Shows where the selected unit can move, Green: okay, Red: problematic, Purple: can't move",
-				"title": "Screen mode: %{highlightColor}%{screenMode}",
-				"pathingTitle": "Traversability",
-				"heightmap": "[F1] Displays a different color for every height level",
-				"resources": "[F4] Highlights metal spots in green and geothermal vents in yellow.\n    Occupied metal spots are shown in red.",
-				"overview": "Press %{highlightColor}[TAB]%{textColor} to zoom onto mouse position",
-				"heightTitle": "Height"
+			"unitTotals": {
+				"units": "units",
+				"total": "total"
 			},
-			"statusBars": {
-				"capture": "Capture",
-				"shield": "Shield",
-				"reload": "Reload",
-				"health": "Health",
-				"stockpile": "Stockpile",
-				"reclaim": "Reclaim",
-				"resurrect": "Resurrect",
-				"paralyze": "Paralyze",
-				"building": "Building"
-			},
-			"topbar": {
-				"quit": {
-					"quit": "Quit",
-					"stay": "Stay",
-					"reallyResign": "Are you sure you want to resign?",
-					"resign": "Resign",
-					"reallyResignSpectate": "Are you sure you want to resign and spectate?",
-					"reallyQuitResign": "Are you sure you want to resign or quit to desktop?",
-					"reallyQuit": "Are you sure you want to quit?"
-				},
-				"wind": {
-					"worth4": "Wind is good",
-					"worth3": "Wind is okay",
-					"worth1": "Wind is not worth it",
-					"tooltip": "%{titleColor}Wind Display\nDisplays current wind strength (small numbers are minimum and maximum)\n%{warnColor}It is better to build Solar Collectors when average\n%{warnColor}wind speed is below 5 (Armada) or 6 (Cortex)",
-					"worth5": "Wind is really good",
-					"nowind1": "No",
-					"nowind2": "wind",
-					"worth6": "Wind is amazing",
-					"worth2": "Wind is viable"
-				},
-				"resources": {
-					"wastingEnergy": "Wasting energy",
-					"conversionTooltip": "%{titleColor}Energy Conversion Slider\nExcess energy above this point\nwill power your Energy Converters",
-					"storageTooltip": "%{resource} storage",
-					"expenseTooltip": "%{resource} potential spending  (per second)",
-					"incomeTooltip": "%{resource} income (per second)",
-					"pullTooltip": "%{resource} spending (per second)",
-					"shareMetalTooltip": "%{titleColor}Metal Share Slider\nShare excess metal above this point with your team",
-					"shareEnergyTooltip": "%{titleColor}Energy Share Slider\nShare excess energy above this point with your team",
-					"overflowing": "Overflowing",
-					"wastingMetal": "Wasting metal",
-					"energy": "Energy",
-					"metal": "Metal"
-				},
-				"button": {
-					"commands": "Commands",
-					"graphs": "Graphs",
-					"save": "Save",
-					"changes": "Changes",
-					"quit": "Quit",
-					"settings": "Settings",
-					"stats": "Statistics",
-					"resign": "Resign",
-					"scavengers": "Scavengers",
-					"lobby": "Lobby",
-					"keys": "Keys"
-				},
-				"catchingUpTooltip": "Displays the catch-up progress\nGame time: %{gameTime}",
-				"catchingUp": "Catching up",
-				"commanderCountTooltip": "%{titleColor}Commander Counter\nDisplays the number of ally\nand enemy commanders"
-			},
-			"reclaimInfo": {
-				"energy": "Energy: %{energy}",
-				"metal": "Metal: %{metal}"
-			},
-			"chat": {
-				"scroll": "%{textColor}Press %{highlightColor}CTRL %{textColor}+ %{highlightColor}SHIFT %{textColor}to activate chatlog viewing/scrolling",
-				"ignored": "ignored",
-				"shortcut": "CTRL + SHIFT"
-			},
-			"playerTV": {
-				"cancelCamera": "Turn off",
-				"tooltip": "Auto camera-track the top ranked players\n(switches player every 40 seconds by default)",
-				"playerTV": "Player TV"
+			"factionPicker": {
+				"pick": "Pick your faction"
 			}
 		}
 	}
