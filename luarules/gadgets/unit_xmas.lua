@@ -186,10 +186,10 @@ if gadgetHandler:IsSyncedCode() then
 		end
 		if n % 90 == 1 then
 
-			if not _G.itsXmas then
-				SendToUnsynced('RemoveGadget') -- Remove unsynced side too
-				gadgetHandler:RemoveGadget(self)
-			end
+			--if not _G.itsXmas then
+			--	SendToUnsynced('RemoveGadget') -- Remove unsynced side too
+			--	gadgetHandler:RemoveGadget(self)
+			--end
 
 			for unitID, frame in pairs(decorationsTerminal) do
 
@@ -330,10 +330,6 @@ if gadgetHandler:IsSyncedCode() then
 		return true
 	end
 
-	function gadget:GameOver()
-		gadgetHandler:RemoveGadget(self)
-	end
-
 	function gadget:GameStart()
 		if not _G.itsXmas then
 			local xmasRatio = 0
@@ -395,9 +391,9 @@ else
 			local team = Spring.GetUnitTeam(unitID)
 			gadget:UnitCreated(unitID, udID, team)
 		end
-		if Spring.GetGameFrame() > 1 then
-			gadgetHandler:RemoveGadget(self)
-		end
+		--if Spring.GetGameFrame() > 1 then
+		--	gadgetHandler:RemoveGadget(self)
+		--end
 	end
 
 	function gadget:RecvFromSynced(arg1, ...)
