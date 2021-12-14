@@ -481,3 +481,7 @@ function widget:Shutdown()
 		WG['guishader'].DeleteDlist('changelog')
 	end
 end
+
+function widget:LanguageChanged()
+	widget:ViewResize()
+end

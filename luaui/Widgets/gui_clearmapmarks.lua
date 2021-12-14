@@ -156,3 +156,7 @@ function widget:MouseRelease(mx, my, mb)
 		end
 	end
 end
+
+function widget:LanguageChanged()
+	updatePosition(true)
+end
